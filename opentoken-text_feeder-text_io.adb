@@ -26,6 +26,9 @@
 --
 -- Update History:
 -- $Log: opentoken-text_feeder-text_io.adb,v $
+-- Revision 1.2  2000/02/05 04:00:21  Ted
+-- Added End_Of_Text to support analyzing binaries.
+--
 -- Revision 1.1  2000/01/27 20:54:43  Ted
 -- A text feeder based on Text_IO files.
 --
@@ -45,7 +48,8 @@ package body OpenToken.Text_Feeder.Text_IO is
    function Create (File_Ptr : Ada.Text_IO.File_Access := Ada.Text_IO.Current_Input)
      return Instance is
    begin
-      return (File => File_Ptr);
+      return (File  => File_Ptr,
+              Ended => False);
    end Create;
 
    ----------------------------------------------------------------------------
@@ -62,11 +66,13 @@ package body OpenToken.Text_Feeder.Text_IO is
                             Item => New_Text,
                             Last => Text_End);
 
+      Feeder.Ended := False;
       if Text_End < New_Text'Last then
          -- Figure out if it should end with an end of file or end of line
          Text_End := Text_End + 1;
          if Ada.Text_IO.End_Of_File (Feeder.File.all) then
             New_Text(Text_End) := EOF_Character;
+            Feeder.Ended := True;
          else
             New_Text(Text_End) := EOL_Character;
          end if;
@@ -75,6 +81,14 @@ package body OpenToken.Text_Feeder.Text_IO is
       when Ada.Text_IO.End_Error =>
          Text_End := New_Text'First;
          New_Text(New_Text'First) := EOF_Character;
+         Feeder.Ended := True;
    end Get;
 
+   ----------------------------------------------------------------------------
+   -- Return True if there is no more text to process.
+   ----------------------------------------------------------------------------
+   function End_Of_Text (Feeder : Instance) return Boolean is
+   begin
+      return Feeder.Ended and then Ada.Text_IO.End_Of_File (Feeder.File.all);
+   end End_Of_Text;
 end OpenToken.Text_Feeder.Text_IO;

@@ -1,5 +1,10 @@
-asu_example_3_6 : asu_example_4_46.adb
-	gnatmake -I../../ asu_example_4_46
+all : asu_example_4_46-run asu_example_4_46_rd-run
+
+asu_example_4_46-run : asu_example_4_46.ads asu_example_4_46-run.adb
+	gnatmake -I../../ asu_example_4_46-run
+
+asu_example_4_46_rd-run : asu_example_4_46_rd.ads asu_example_4_46_rd-run.adb
+	gnatmake -I../../ asu_example_4_46_rd-run
 
 clean :
-	rm *.exe *.o *.ali
+	$(RM) *.exe *.o *.ali

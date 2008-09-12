@@ -26,6 +26,9 @@
 --
 -- Update History:
 -- $Log: opentoken-text_feeder-string.adb,v $
+-- Revision 1.2  2000/02/05 04:00:21  Ted
+-- Added End_Of_Text to support analyzing binaries.
+--
 -- Revision 1.1  2000/01/27 20:53:25  Ted
 -- A settable string text feeder.
 --
@@ -40,7 +43,7 @@ package body OpenToken.Text_Feeder.String is
 
    ----------------------------------------------------------------------------
    -- This function returns strings for the analyzer. This version of it
-   -- returns the string given it with the set command the first time it is 
+   -- returns the string given it with the set command the first time it is
    -- called. On subsequent calls, Token.EOF_Character is retured.
    ----------------------------------------------------------------------------
    procedure Get (Feeder   : in out Instance;
@@ -67,12 +70,19 @@ package body OpenToken.Text_Feeder.String is
    -- This function sets the string to be returned the next time Get is called
    ----------------------------------------------------------------------------
    procedure Set (Feeder : out Instance;
-		  Value  : in  Standard.String
-		 ) is
+                  Value  : in  Standard.String
+                 ) is
    begin
       Feeder.Next_Value := Ada.Strings.Unbounded.To_Unbounded_String
         (Value & OpenToken.Eof_Character);
    end Set;
-		  
+
+   ----------------------------------------------------------------------------
+   -- Return True if there is no more text to process.
+   ----------------------------------------------------------------------------
+   function End_Of_Text (Feeder : Instance) return Boolean is
+   begin
+      return Ada.Strings.Unbounded.Length(Feeder.Next_Value) <= 1;
+   end End_Of_Text;
 end OpenToken.Text_Feeder.String;
 

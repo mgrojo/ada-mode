@@ -26,6 +26,9 @@
 --
 -- Update History:
 -- $Log: opentoken-recognizer-bracketed_comment.ads,v $
+-- Revision 1.3  2000/02/05 03:57:30  Ted
+-- Add support for nested comments.
+--
 -- Revision 1.2  1999/12/27 19:56:00  Ted
 -- fix file contents to work w/ new hierarchy
 --
@@ -40,8 +43,8 @@
 
 -------------------------------------------------------------------------------
 -- This package implements a token recognizer for a comment that is bracketed
--- by special comment opening and closing character strings. The text in betwee
--- may extend over several lines.
+-- by special comment opening and closing character strings. The text in
+-- between may extend over several lines.
 -------------------------------------------------------------------------------
 package Opentoken.Recognizer.Bracketed_Comment is
 
@@ -55,14 +58,18 @@ package Opentoken.Recognizer.Bracketed_Comment is
   ----------------------------------------------------------------------------
   function Get (Comment_Opener : String;
                 Comment_Closer : String;
-                Reportable     : Boolean := False) return Instance;
+                Reportable     : Boolean := False;
+                Nested         : Boolean := False) return Instance;
+
 
 private
 
-  type State_ID is (Opener, Text, Closer, Done);
+  type State_ID is (Opener, Nest_Opener, Text, Nest_Closer, Closer, Done);
 
   subtype Bracketed_String is String (1 .. Max_Bracket_Length);
   type Instance is new Opentoken.Recognizer.Instance with record
+
+     Nested         : Boolean := False;
 
     -- The comment introducer string
      Opener_Text   : Bracketed_String;
@@ -73,7 +80,7 @@ private
     -- The finite state machine state
     State          : State_ID := Opener;
     Bracket_State  : Positive := 1;
-
+    Nested_Depth   : Natural := 0;
   end record;
 
   ----------------------------------------------------------------------------

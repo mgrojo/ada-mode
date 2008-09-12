@@ -26,6 +26,9 @@
 --
 -- Update History:
 -- $Log: opentoken-production-parser.ads,v $
+-- Revision 1.2  2000/08/06 23:44:17  Ted
+-- Fix to work w/ new package hierarchy
+--
 -- Revision 1.1  2000/01/27 20:52:45  Ted
 -- Abstract type for parsers
 --
@@ -34,7 +37,7 @@
 -------------------------------------------------------------------------------
 
 with OpenToken.Production.List;
-with OpenToken.Token.Analyzer;
+with OpenToken.Token.Enumerated.Analyzer;
 
 -------------------------------------------------------------------------------
 -- This package provides an interface for a parser for grammars defined by a

@@ -32,6 +32,9 @@
 --
 -- Update History:
 -- $Log: opentoken-recognizer-real.adb,v $
+-- Revision 1.3  2000/08/12 23:57:18  Ted
+-- Changed some calls to dynamic dispatching to work around Gnat 3.13p bug
+--
 -- Revision 1.2  1999/12/27 19:56:03  Ted
 -- fix file contents to work w/ new hierarchy
 --
@@ -61,7 +64,8 @@ package body Opentoken.Recognizer.Real is
   procedure Clear (The_Token: in out Instance) is
   begin
 
-    Extended_Digits.Clear (The_Token.Decimal_Recognizer);
+     -- Changed to dynamicly dispatch to work around gnat 3.13p bug
+    Extended_Digits.Clear (Extended_Digits.Instance'Class(The_Token.Decimal_Recognizer));
 
     The_Token.Last_Verdict := Failed;
     The_Token.State        := First_Char;
@@ -111,7 +115,8 @@ package body Opentoken.Recognizer.Real is
 
             when others =>
 
-               Extended_Digits.Analyze (The_Token.Decimal_Recognizer, Next_Char, Decimal_Verdict);
+               -- Changed to dynamicly dispatch to work around gnat 3.13p bug
+               Extended_Digits.Analyze (Extended_Digits.Instance'Class(The_Token.Decimal_Recognizer), Next_Char, Decimal_Verdict);
 
                -- If the fore part is an integer, so-far-so-good...
                if Decimal_Verdict = Matches then
@@ -142,7 +147,8 @@ package body Opentoken.Recognizer.Real is
 
         else
 
-          Extended_Digits.Analyze (The_Token.Decimal_Recognizer, Next_Char, Decimal_Verdict);
+           -- Changed to dynamicly dispatch to work around gnat 3.13p bug
+          Extended_Digits.Analyze (Extended_Digits.Instance'Class(The_Token.Decimal_Recognizer), Next_Char, Decimal_Verdict);
 
           if Decimal_Verdict = Matches then
             Verdict         := So_Far_So_Good;
@@ -162,7 +168,8 @@ package body Opentoken.Recognizer.Real is
         -- Note that any state that leads into this one needs to set
         -- The_Token.Last_Verdict to match the last verdict given from
         -- The_Token.Decimal_Recognizer.
-        Extended_Digits.Analyze (The_Token.Decimal_Recognizer, Next_Char, Decimal_Verdict);
+         -- Changed to dynamicly dispatch to work around gnat 3.13p bug
+        Extended_Digits.Analyze (Extended_Digits.Instance'Class(The_Token.Decimal_Recognizer), Next_Char, Decimal_Verdict);
 
         case Decimal_Verdict is
           when So_Far_So_Good |  -- Next_Char is '_'
@@ -179,13 +186,15 @@ package body Opentoken.Recognizer.Real is
               The_Token.State        := Aft;
               The_Token.Last_Verdict := Decimal_Verdict;
 
-              Extended_Digits.Clear (The_Token.Decimal_Recognizer);
+              -- Changed to dynamicly dispatch to work around gnat 3.13p bug
+              Extended_Digits.Clear (Extended_Digits.Instance'Class(The_Token.Decimal_Recognizer));
             elsif The_Token.Last_Verdict = Matches     and
                   (Next_Char = 'e' or Next_Char = 'E') and
                   The_Token.Allow_Laziness and The_Token.Allow_Exponent then
               Verdict         := So_Far_So_Good;
               The_Token.State := Exponent_Sign;
-              Extended_Digits.Clear (The_Token.Decimal_Recognizer);
+              -- Changed to dynamicly dispatch to work around gnat 3.13p bug
+              Extended_Digits.Clear (Extended_Digits.Instance'Class(The_Token.Decimal_Recognizer));
             else
               Verdict         := Failed;
               The_Token.State := Done;
@@ -196,7 +205,8 @@ package body Opentoken.Recognizer.Real is
         -- We arrive here only for omitted fore part.
         -- If the aft character is a digit, it matches.
 
-        Extended_Digits.Analyze (The_Token.Decimal_Recognizer, Next_Char, Decimal_Verdict);
+         -- Changed to dynamicly dispatch to work around gnat 3.13p bug
+        Extended_Digits.Analyze (Extended_Digits.Instance'Class(The_Token.Decimal_Recognizer), Next_Char, Decimal_Verdict);
 
         if Decimal_Verdict = Matches then
           Verdict                := Matches;
@@ -214,7 +224,8 @@ package body Opentoken.Recognizer.Real is
         -- The_Token.Last_Verdict to match the last verdict given from
         -- The_Token.Decimal_Recognizer.
 
-        Extended_Digits.Analyze (The_Token.Decimal_Recognizer, Next_Char, Decimal_Verdict);
+         -- Changed to dynamicly dispatch to work around gnat 3.13p bug
+        Extended_Digits.Analyze (Extended_Digits.Instance'Class(The_Token.Decimal_Recognizer), Next_Char, Decimal_Verdict);
 
         case Decimal_Verdict is
           when So_Far_So_Good =>  -- Next_Char is '_'
@@ -230,7 +241,8 @@ package body Opentoken.Recognizer.Real is
                (Next_Char = 'e' or Next_Char = 'E') and The_Token.Allow_Exponent then
               Verdict         := So_Far_So_Good;
               The_Token.State := Exponent_Sign;
-              Extended_Digits.Clear (The_Token.Decimal_Recognizer);
+              -- Changed to dynamicly dispatch to work around gnat 3.13p bug
+              Extended_Digits.Clear (Extended_Digits.Instance'Class(The_Token.Decimal_Recognizer));
             else
               Verdict         := Failed;
               The_Token.State := Done;
@@ -248,7 +260,8 @@ package body Opentoken.Recognizer.Real is
 
         else
 
-          Extended_Digits.Analyze (The_Token.Decimal_Recognizer, Next_Char, Decimal_Verdict);
+           -- Changed to dynamicly dispatch to work around gnat 3.13p bug
+          Extended_Digits.Analyze (Extended_Digits.Instance'Class(The_Token.Decimal_Recognizer), Next_Char, Decimal_Verdict);
 
           if Decimal_Verdict = Matches then  -- a decimal digit
             Verdict         := Matches;
@@ -264,7 +277,8 @@ package body Opentoken.Recognizer.Real is
         -- If the exponent is a digit, it matches.
         -- If it is an underscore, so-far-so-good...
 
-        Extended_Digits.Analyze (The_Token.Decimal_Recognizer, Next_Char, Decimal_Verdict);
+         -- Changed to dynamicly dispatch to work around gnat 3.13p bug
+        Extended_Digits.Analyze (Extended_Digits.Instance'Class(The_Token.Decimal_Recognizer), Next_Char, Decimal_Verdict);
 
         case Decimal_Verdict is
           when So_Far_So_Good |   -- Next_Char is '_'

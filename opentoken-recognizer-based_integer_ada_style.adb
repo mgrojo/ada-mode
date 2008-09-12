@@ -26,6 +26,9 @@
 --
 -- Update History:
 -- $Log: opentoken-recognizer-based_integer_ada_style.adb,v $
+-- Revision 1.3  2000/08/12 23:57:18  Ted
+-- Changed some calls to dynamic dispatching to work around Gnat 3.13p bug
+--
 -- Revision 1.2  1999/12/27 19:55:59  Ted
 -- fix file contents to work w/ new hierarchy
 --
@@ -84,7 +87,8 @@ package body Opentoken.Recognizer.Based_Integer_Ada_Style is
          when Base =>
             -- If the base part is a decimal integer, so-far-so-good...
 
-            Extended_Digits.Analyze (The_Token.Number_Recognizer, Next_Char, Digits_Verdict);
+            -- Changed to dynamicly dispatch to work around gnat 3.13p bug
+            Extended_Digits.Analyze (Extended_Digits.Instance'Class(The_Token.Number_Recognizer), Next_Char, Digits_Verdict);
 
             case Digits_Verdict is
                when So_Far_So_Good |  -- Next_Char is '_'
@@ -123,7 +127,8 @@ package body Opentoken.Recognizer.Based_Integer_Ada_Style is
             -- If the numeral consists of extended digits, so-far-so-good...
             -- If it is a '#', it matches.
 
-            Extended_Digits.Analyze (The_Token.Number_Recognizer, Next_Char, Digits_Verdict);
+            -- Changed to dynamicly dispatch to work around gnat 3.13p bug
+            Extended_Digits.Analyze (Extended_Digits.Instance'Class(The_Token.Number_Recognizer), Next_Char, Digits_Verdict);
 
             case Digits_Verdict is
                when So_Far_So_Good |   -- Next_Char is '_'
@@ -165,7 +170,8 @@ package body Opentoken.Recognizer.Based_Integer_Ada_Style is
 
             else
 
-               Extended_Digits.Analyze (The_Token.Number_Recognizer, Next_Char, Digits_Verdict);
+               -- Changed to dynamicly dispatch to work around gnat 3.13p bug
+               Extended_Digits.Analyze (Extended_Digits.Instance'Class(The_Token.Number_Recognizer), Next_Char, Digits_Verdict);
 
                if Digits_Verdict = Matches then  -- a decimal digit
                   Verdict         := Matches;
@@ -180,7 +186,8 @@ package body Opentoken.Recognizer.Based_Integer_Ada_Style is
          when Exponent =>
             -- If the exponent is a decimal integer, it matches.
 
-            Extended_Digits.Analyze (The_Token.Number_Recognizer, Next_Char, Digits_Verdict);
+            -- Changed to dynamicly dispatch to work around gnat 3.13p bug
+            Extended_Digits.Analyze (Extended_Digits.Instance'Class(The_Token.Number_Recognizer), Next_Char, Digits_Verdict);
 
             case Digits_Verdict is
                when So_Far_So_Good |   -- Next_Char is '_'

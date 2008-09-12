@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 1999 Ted Dennison
+-- Copyright (C) 1999,2000 Ted Dennison
 --
 -- This file is part of the OpenToken package.
 --
@@ -25,7 +25,13 @@
 -- Maintainer: Ted Dennison (dennison@telepath.com)
 --
 -- Update History:
--- $Log: string_test.adb,v $
+-- $Log: string_test-run.adb,v $
+-- Revision 1.1  2000/08/12 21:15:55  Ted
+-- moved from string_test.adb
+--
+-- Revision 1.4  2000/02/05 04:06:21  Ted
+-- Add test run for two consecutive octal escape sequences.
+--
 -- Revision 1.3  2000/01/27 21:18:20  Ted
 -- Fix to work with 2.0
 --
@@ -41,45 +47,7 @@ with Ada.Characters.Latin_1;
 with Ada.Exceptions;
 with Ada.Text_IO;
 
-with Opentoken;
-with Opentoken.Recognizer.Character_Set;
-with Opentoken.Recognizer.End_Of_File;
-with Opentoken.Recognizer.Keyword;
-with Opentoken.Recognizer.String;
-with OpenToken.Text_Feeder.Text_IO;
-with Opentoken.Token;
-with Opentoken.Token.Analyzer;
-
-procedure String_Test is
-   -- Global text file for reading parse data
-   File : Ada.Text_IO.File_Type;
-
-   File_Name : constant String := "String_Test.txt";
-
-   type Example_Token_ID is (If_ID, String_ID, Whitespace, EOF);
-
-   package Master_Example_Token is new Opentoken.Token (Example_Token_ID);
-   package Tokenizer is new Master_Example_Token.Analyzer;
-
-   Ada_Syntax : constant Tokenizer.Syntax :=
-     (If_ID   => Tokenizer.Get(Opentoken.Recognizer.Keyword.Get ("if")),
-      String_ID   => Tokenizer.Get(Opentoken.Recognizer.String.Get),
-      Whitespace => Tokenizer.Get(Opentoken.Recognizer.Character_Set.Get
-                                                      (Opentoken.Recognizer.Character_Set.Standard_Whitespace)),
-      EOF => Tokenizer.Get(Opentoken.Recognizer.End_Of_File.Get)
-      );
-
-   C_Syntax : constant Tokenizer.Syntax :=
-     (If_ID   => Tokenizer.Get(Opentoken.Recognizer.Keyword.Get ("if")),
-      String_ID   => Tokenizer.Get(Opentoken.Recognizer.String.Get(Escapeable => True)),
-      Whitespace => Tokenizer.Get(Opentoken.Recognizer.Character_Set.Get
-                          (Opentoken.Recognizer.Character_Set.Standard_Whitespace)),
-      EOF => Tokenizer.Get(Opentoken.Recognizer.End_Of_File.Get)
-      );
-
-   Analyzer : Tokenizer.Instance := Tokenizer.Initialize (Ada_Syntax);
-
-
+procedure String_Test.Run is
 begin
 
 
@@ -99,7 +67,7 @@ Case_1 :
        Ada.Text_IO.Put ("Valid Ada string test...");
        Ada.Text_IO.Flush;
 
-       Ada.Text_IO.Create  --@@
+       Ada.Text_IO.Create
          (File => File,
           Mode => Ada.Text_IO.Out_File,
           Name => File_Name
@@ -350,7 +318,78 @@ Case_3 :
           Ada.Text_IO.Put_Line ("Source string: " & Text);
     end Case_3;
 
-end String_Test;
+   ---------------------------------------------------------------------------
+   -- Purpose          : Verify that a C string with consecutive escaped
+   --                    characters is read correctly.
+   -- Input            : Two C escape sequences right next to each other.
+   -- Expected Results : The same string with the escaped strings properly
+   --                    replaced.
+   ---------------------------------------------------------------------------
+Case_4 :
+    declare
+       Text : constant String := """\074\075f""";
+       Expected_Result : constant String := "<=f";
+       Passed : Boolean := True;
+       Analyzer : Tokenizer.Instance := Tokenizer.Initialize (C_Syntax);
+
+    begin
+
+       Ada.Text_IO.Put ("Double-escaped string test...");
+       Ada.Text_IO.Flush;
+
+       Ada.Text_IO.Open
+         (File => File,
+          Mode => Ada.Text_IO.Out_File,
+          Name => File_Name
+          );
+
+       Ada.Text_IO.Put_Line (File, Text);
+       Ada.Text_IO.Close(File);
+
+       Ada.Text_IO.Open
+         (File => File,
+          Mode => Ada.Text_IO.In_File,
+          Name => File_Name
+          );
+       Ada.Text_IO.Set_Input (File);
+       Tokenizer.Input_Feeder := OpenToken.Text_Feeder.Text_IO.Create;
 
 
+       Tokenizer.Find_Next (Analyzer);
+       if Tokenizer.ID(Analyzer) /= String_ID then
+          Passed := False;
+          Ada.Text_IO.Put_Line ("failed.");
+          Ada.Text_IO.Put_Line ("Found " & Example_Token_ID'Image (Tokenizer.ID (Analyzer)));
+          Ada.Text_IO.Put_Line ("  (Value = """ & Opentoken.Recognizer.String.Value
+                                (Opentoken.Recognizer.String.Instance(C_Syntax(String_ID).Recognizer.all)) & """)");
+          Ada.Text_IO.Put_Line ("when expecting a String_ID");
 
+       elsif Opentoken.Recognizer.String.Value
+         (Opentoken.Recognizer.String.Instance(C_Syntax(String_ID).Recognizer.all)) /= Expected_Result
+       then
+
+          Passed := False;
+          Ada.Text_IO.Put_Line ("failed.");
+          Ada.Text_IO.Put_Line ("Found """ & Opentoken.Recognizer.String.Value
+                                (Opentoken.Recognizer.String.Instance(C_Syntax(String_ID).Recognizer.all)) & '"');
+          Ada.Text_IO.Put_Line ("(" & Integer'Image (Opentoken.Recognizer.String.Value(Opentoken.Recognizer.String.Instance
+                                                                         (C_Syntax(String_ID).Recognizer.all))'Length) &
+                                " characters)");
+       end if;
+
+       if Passed then
+          Ada.Text_IO.Put_Line ("passed.");
+        end if;
+
+
+       Ada.Text_IO.Close(File);
+
+    exception
+       when Error : others =>
+          Ada.Text_IO.Put_Line ("failed.");
+          Ada.Text_IO.Put_Line ("Exception:");
+          Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information(Error));
+          Ada.Text_IO.Put_Line ("Source string: " & Text);
+    end Case_4;
+
+end String_Test.Run;

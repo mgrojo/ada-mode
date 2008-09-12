@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 1999 Ted Dennison
+-- Copyright (C) 2000 Ted Dennison
 --
 -- This file is part of the OpenToken package.
 --
@@ -26,240 +26,126 @@
 --
 -- Update History:
 -- $Log: opentoken-token-list.adb,v $
--- Revision 1.1  2000/01/27 20:58:35  Ted
--- Lists of tokens.
---
+-- Revision 1.2  2000/08/06 23:51:55  Ted
+-- Initial Version (old package by this name was moved to .enumerated hierarchy).
 --
 --
 -------------------------------------------------------------------------------
-
-with Ada.Unchecked_Deallocation;
+with Unchecked_Deallocation;
 
 -------------------------------------------------------------------------------
--- This package provides a type and operatoions for building lists of tokens
--- for use in grammar productions
---
--- The algorithm for handling automatic cleanup of list nodes using
--- controlled types was taken directly from Matthew Heaney's tutorial on
--- Homogeneous, Reference-Counted Lists on AdaPower at
--- http://www.adapower.com/alg/homoref.html
+-- This package defines a reusable list token. A list is a token that is made
+-- up of any number of repetitions of other tokens, separated by a given
+-- separator token.
 -------------------------------------------------------------------------------
 package body OpenToken.Token.List is
 
-   procedure Free is new Ada.Unchecked_Deallocation (List_Node, List_Node_Ptr);
-   procedure Free is new Ada.Unchecked_Deallocation (OpenToken.Token.Class, OpenToken.Token.Handle);
+
+   procedure Dispose is new Unchecked_Deallocation (Object => OpenToken.Token.Class,
+                                                    Name   => OpenToken.Token.Handle
+                                                    );
 
    ----------------------------------------------------------------------------
-   -- Create a token list from a single instance.
+   -- Retrieve a list token from the analyzer.
+   -- The private routine Add_List_Element is called with every successive list
+   -- element that is recognized. The private routine Build_List is called when
+   -- the entire list has been recognized.
+   -- An a non active parse does not comsume any input from the analyzer,
+   -- and does not call any of the private routines.
    ----------------------------------------------------------------------------
-   function Only (Subject : in OpenToken.Token.Class) return Instance is
-      New_Node : constant List_Node_Ptr :=
-        new List_Node'(Token => new OpenToken.Token.Class'(Subject),
---                       Count => 1,
-                       Next  => null
-                       );
-   begin
-      return (Head => New_Node,
-              Tail => New_Node
-              );
-   end Only;
+   procedure Parse
+     (Match    : in out Instance;
+      Analyzer : in out Source_Class;
+      Actively : in     Boolean := True
+     ) is
 
-   ----------------------------------------------------------------------------
-   -- Create a token list from a pair of token instances.
-   ----------------------------------------------------------------------------
-   function "&" (Left  : in OpenToken.Token.Class;
-                 Right : in OpenToken.Token.Class) return Instance is
-      Right_Node : constant List_Node_Ptr :=
-        new List_Node'(Token => new OpenToken.Token.Class'(Right),
---                       Count => 1,
-                       Next  => null
-                       );
+      -- Since this routine can be called recursively, we have to keep the
+      -- working copy on the stack.
+      Local_Match : Instance'Class := Match;
    begin
-      return (Head => new List_Node'(Token => new OpenToken.Token.Class'(Left),
---                                     Count => 1,
-                                     Next  => Right_Node
-                                     ),
-              Tail => Right_Node
-              );
-   end "&";
+      loop
+         OpenToken.Token.Parse
+           (Match    => Local_Match.Element.all,
+            Analyzer => Analyzer,
+            Actively => Actively
+            );
 
-   ----------------------------------------------------------------------------
-   -- Create a token list from a token instance and a token list.
-   ----------------------------------------------------------------------------
-   function "&" (Left  : in OpenToken.Token.Class;
-                 Right : in Instance) return Instance is
-      Left_Node : constant List_Node_Ptr :=
-        new List_Node'(Token => new OpenToken.Token.Class'(Left),
---                       Count => 1,
-                       Next  => Right.Head
-                       );
-      Last_Node : List_Node_Ptr := Right.Tail;
-   begin
-      if Last_Node = null then
-         Last_Node := Left_Node;
-      end if;
-      return (Head => Left_Node,
-              Tail => Last_Node
-              );
-   end "&";
+         if Actively then
+            Add_List_Element
+              (Match   => Local_Match,
+               Element => Local_Match.Element.all
+               );
+         end if;
 
-   function "&" (Left  : in Instance;
-                 Right : in OpenToken.Token.Class) return Instance is
-      New_Node : constant List_Node_Ptr :=
-        new List_Node'(Token => new OpenToken.Token.Class'(Right),
---                       Count => 1,
-                       Next  => null
-                       );
-      First_Node : List_Node_Ptr;
-   begin
-      if Left.Tail = null then
-         First_Node := New_Node;
-      else
-         First_Node     := Left.Head;
-         Left.Tail.Next := New_Node;
-      end if;
-      return (Head => First_Node,
-              Tail => New_Node
-              );
-   end "&";
+         exit when not
+           OpenToken.Token.Could_Parse_To
+           (Match    => Local_Match.Separator.all,
+            Analyzer => Analyzer
+            );
 
-   ----------------------------------------------------------------------------
-   -- Create a token list from a pair of token lists.
-   ----------------------------------------------------------------------------
-   function "&" (Left  : in Instance;
-                 Right : in Instance) return Instance is
-   begin
-      Left.Tail.Next := Right.Head;
-      return (Head => Left.Head,
-              Tail => Right.Tail
-              );
-   end "&";
+         OpenToken.Token.Parse
+           (Match    => Local_Match.Separator.all,
+            Analyzer => Analyzer,
+            Actively => Actively
+            );
 
-   ----------------------------------------------------------------------------
-   -- Enqueue a token on the given list. The token itself will not be copied,
-   -- but will be managed by the list from here on in. Do not delete it while
-   -- the list is still using it!
-   --
-   -- This routine is intended for internal use by parsers.
-   ----------------------------------------------------------------------------
-   procedure Enqueue (List  : in out Instance;
-                      Token : in     OpenToken.Token.Handle
-                     ) is
-      New_Node : constant List_Node_Ptr :=
-        new List_Node'(Token => Token,
-                       Next  => List.Head
-                       );
-   begin
-      if List.Tail = null then
-         List.Tail := New_Node;
-      end if;
-      List.Head := New_Node;
-   end Enqueue;
-
-   ----------------------------------------------------------------------------
-   -- This routine needs to be called when you are done using a list, or want
-   -- to reset it to empty.
-   ----------------------------------------------------------------------------
-   procedure Clean (List : in out Instance) is
-      Node : List_Node_Ptr := List.Head;
-      Next : List_Node_Ptr;
-   begin
-      -- Deallocate all the nodes in the list, along with all their tokens
-      while Node /= null loop
-         Next := Node.Next;
-         Free (Node.Token);
-         Free (Node);
-         Node := Next;
       end loop;
 
-      List.Head := null;
-      List.Tail := null;
-   end Clean;
-
---    ----------------------------------------------------------------------------
---    -- A controlled object gets adjusted during an assignment, immediately
---    -- after making a bit-wise copy from the value on the right hand side to
---    -- the object on the left hand side.
---    --
---    -- When we assign one list object to another, we have to increment the
---    -- reference count, because there is now one more object referring to that
---    -- node
---    ----------------------------------------------------------------------------
---    procedure Adjust (Object : in out Instance) is
---    begin
---       if Object.Head /= null then
---          Object.Head.Count := Object.Head.Count + 1;
---       end if;
---    end Adjust;
-
---    ----------------------------------------------------------------------------
---    -- Dereferencing of one node can cause a chain reaction of node
---    -- dereferences to occur.  When the reference count for a node drops to
---    -- zero, you have to return the node to storage.  That means there's one
---    -- less reference to the next node, so that next node needs to have its
---    -- reference count decremented.  But if its count goes to zero, then you
---    -- have to dereference its next node, and so on.
---    --
---    -- The recursion terminates when you decrement a node whose reference count
---    -- is greater than one, or you fall off the end of the list (because the
---    -- reference counts of all the nodes in the list were one).
---    ----------------------------------------------------------------------------
---    procedure Dereference (Node : Node_List_Ptr) is
---    begin
---       Node.Count := Node.Count - 1;
-
---       if Node.Count = 0 then
-
---          if Node.Next /= null then
---          Dereference (Node.Next);
---       end if;
-
---       Free (Node);
-
---       end if;
-
---    end Dereference;
-
---    ----------------------------------------------------------------------------
---    -- A controlled object gets finalized immediately prior to the bit-wise
---    -- copy, and when the scope in which the object is declared ends.  When a
---    -- list object is finalized, it means there is one less list object
---    -- pointing to the first node, so you have to decrement the reference Count.
---    ----------------------------------------------------------------------------
---    procedure Finalize (Object : in out Instance) is
---    begin
---       if List.Head /= null then
---       Dereference (List.Head);
---       end if;
---    end Finalize;
-
-   ----------------------------------------------------------------------------
-   -- Return an initialized iterator for traversing the token list
-   ----------------------------------------------------------------------------
-   function Initial_Iterator (List : in Instance) return List_Iterator is
-   begin
-      return List_Iterator(List.Head);
-   end Initial_Iterator;
-
-   ----------------------------------------------------------------------------
-   -- Move the iterator down the list to the next token.
-   ----------------------------------------------------------------------------
-   procedure Next_Token (Iterator : in out List_Iterator) is
-   begin
-      if Iterator /= null then
-         Iterator := List_Iterator(Iterator.Next);
+      if Actively then
+         Build (Local_Match);
+         Instance'Class(Match) := Local_Match;
       end if;
-   end Next_Token;
+
+   end Parse;
 
    ----------------------------------------------------------------------------
-   -- Return the next Token in the list.
+   -- Construct a new list token, using the given Element and Separator tokens.
    ----------------------------------------------------------------------------
-   function Token_Handle (Iterator : in List_Iterator) return OpenToken.Token.Handle is
+   function Get
+     (Element   : access OpenToken.Token.Class;
+      Separator : access OpenToken.Token.Class
+     ) return Class is
    begin
-      if Iterator = null then
-         return null;
-      end if;
-      return Iterator.Token;
-   end Token_Handle;
+      return
+        Instance'(Element   => OpenToken.Token.Handle(Element),
+                  Separator => OpenToken.Token.Handle(Separator)
+                  );
+   end Get;
+
+   ----------------------------------------------------------------------------
+   -- This routine should is a quick check to verify that the given list token
+   -- can possibly succesfully parse from what's sitting in the analyzer.
+   -- This routine is meant to be used for choosing between parsing options.
+   -- It simply checks Could_Parse_To for this token's Left token.
+   ----------------------------------------------------------------------------
+   function Could_Parse_To
+     (Match    : in Instance;
+      Analyzer : in Source_Class
+     ) return Boolean is
+   begin
+      return Could_Parse_To (Match.Element.all, Analyzer);
+   end Could_Parse_To;
+
+
+   ----------------------------------------------------------------------------
+   -- This routine is called every time a list element is actively parsed.
+   -- The default implementation does nothing.
+   ----------------------------------------------------------------------------
+   procedure Add_List_Element
+     (Match   : in out Instance;
+      Element : in out OpenToken.Token.Class
+     ) is
+   begin
+      null;
+   end Add_List_Element;
+
+   ----------------------------------------------------------------------------
+   -- This routine is called when an entire list has been actively parsed.
+   -- The default implementation does nothing.
+   ----------------------------------------------------------------------------
+   procedure Build (Match : in out Instance) is
+   begin
+      null;
+   end Build;
 
 end OpenToken.Token.List;

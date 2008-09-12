@@ -1,6 +1,6 @@
-asu_example_3_6 : asu_example_5_10.adb simple_integer_token.ads \
+asu_example_3_6 : asu_example_5_10-run.adb asu_example_5_10.ads simple_integer_token.ads \
 simple_integer_token.adb
-	gnatmake -I../../ asu_example_5_10
+	gnatmake -I../../ asu_example_5_10-run
 
 clean :
-	rm *.exe *.o *.ali
+	$(RM) *.exe *.o *.ali

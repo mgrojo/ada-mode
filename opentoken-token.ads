@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 1999 Ted Dennison
+-- Copyright (C) 1999, 2000 Ted Dennison
 --
 -- This file is part of the OpenToken package.
 --
@@ -26,6 +26,9 @@
 --
 -- Update History:
 -- $Log: opentoken-token.ads,v $
+-- Revision 1.3  2000/08/06 23:57:27  Ted
+-- Added some types and routines for supporting recursive descent parsing
+--
 -- Revision 1.2  2000/01/27 20:59:37  Ted
 -- Added some common routines.
 --
@@ -35,73 +38,74 @@
 --
 -------------------------------------------------------------------------------
 
-with OpenToken.Recognizer;
-
 -------------------------------------------------------------------------------
--- This package is the top of a generic hierarchy. Based on the list of IDs
--- it is instantiated with, a user can create tokens and token analyzers.
---
--- This package declares an type for designating a single token. It is
--- designed to be created by an instance of the Token.Analyzer class when a
--- particular kind of token is recognized.
---
--- Packages implementing a child of this type need to include a constructor for
--- the token analyzer and any nessecary utility routines their parser may
--- require.
+-- This package defines an abstract token type, for use by this facility. It
+-- also defines a parse operation and a token source type, for use by recursive
+-- decent parsers.
 -------------------------------------------------------------------------------
-generic
-
-   type Token_Id is (<>);
-
 package OpenToken.Token is
 
-   type Instance is tagged private;
+   type Instance is abstract tagged private;
 
    subtype Class is Instance'Class;
 
    type Handle is access all Class;
 
-   -- Recognizer handle type. Defined here to allow access's of objects
-   -- declared at the same level as this package's instantiation.
-   type Recognizer_Handle is access all Opentoken.Recognizer.Class;
+   type Source is abstract tagged private;
+
+   subtype Source_Class is Source'Class;
+
+   type Source_Handle is access all Source_Class;
+
+   -- A general-purpose parsing exception.
+   Parse_Error : exception;
 
    ----------------------------------------------------------------------------
-   -- Get a token with the given ID.
-   ----------------------------------------------------------------------------
-   function Get (ID : in Token_ID := Token_ID'First) return Instance'Class;
-
-   ----------------------------------------------------------------------------
-   -- This procedure will be called when a token is recognized.
+   -- Abstract specification for a token parse routine.
+   -- Implementations of this routine are to verify that current contents of
+   -- the input contain this token, and return the value of the token.
    --
-   -- The Token's ID will be set to the given value. The Lexeme and Recognizer
-   -- fields aren't used for this instance of the type. But they will be
-   -- filled in by the analyzer.
-   -- The recognizer is useful in creating tighly coupled pairs of tokens and
-   -- recognizers. This allows communication of user-defined information
-   -- global to the analyzer instance while maintaining overall re-entrancy.
+   -- The current token loaded in the Analyzer should be the first token to
+   -- parse against. Upon successful completion, the current token in the
+   -- analyzer will be the next token after the parsed token.
+   --
+   -- An active parse consumes the input, where a non active parse does not.
    ----------------------------------------------------------------------------
-   procedure Create (Lexeme     : in     String;
-                     ID         : in     Token_ID;
-                     Recognizer : in     Recognizer_Handle;
-                     New_Token  :    out Instance);
+   procedure Parse
+     (Match    : in out Instance;
+      Analyzer : in out Source_Class;
+      Actively : in     Boolean := True
+     ) is abstract;
 
    ----------------------------------------------------------------------------
-   -- This function returns the ID of the token.
-   -- This is made class-wide so it won't be overridable. That is done because
-   -- some child packages access the ID directly, so overriding this routine
-   -- would lead to inconsistent results.
+   -- This routine should be a quick routine to verify that the given token
+   -- can possibly succesfully parse. This routine is meant to be used for
+   -- choosing between parsing options, so it should be a *very* quick check
+   -- rather than a full parse. In most cases, simply checking against the
+   -- analyzer's current token should be sufficient. But in extreme cases, a
+   -- call to Parse with Actively set to False may be required.
    ----------------------------------------------------------------------------
-   function ID (Token : in Instance'Class) return Token_ID;
+   function Could_Parse_To
+     (Match    : in Instance;
+      Analyzer : in Source_Class
+     ) return Boolean is abstract;
 
    ----------------------------------------------------------------------------
-   -- Set the given token's ID to the given value
+   -- Locate the next token.
+   --
+   -- If Look_Ahead is set, the next token after the current one will be
+   -- returned, but the current one will not be discarded. Subsequent
+   -- Look_Ahead calls will return later and later tokens.
    ----------------------------------------------------------------------------
-   procedure Set_ID (Token : in out Instance'Class;
-                    ID    : in     Token_ID);
+   procedure Find_Next (Analyzer   : in out Source;
+                        Look_Ahead : in     Boolean := False) is abstract;
+
+   ----------------------------------------------------------------------------
+   -- Returns the last token that was matched.
+   ----------------------------------------------------------------------------
+   function Get (Analyzer : in Source) return Class is abstract;
 
 private
-   type Instance is tagged record
-      ID : Token_ID;
-   end record;
-
+   type Instance is abstract tagged null record;
+   type Source   is abstract tagged null record;
 end OpenToken.Token;

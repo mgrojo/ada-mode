@@ -26,6 +26,9 @@
 --
 -- Update History:
 -- $Log: html_lexer-basic.ads,v $
+-- Revision 1.3  2000/08/07 00:21:17  Ted
+-- Change to work w/ new package hierarchy
+--
 -- Revision 1.2  2000/01/27 21:22:35  Ted
 -- Fix to work with 2.0 release
 --
@@ -39,8 +42,7 @@
 
 with Ada.Strings.Maps.Constants;
 
-with OpenToken.Token;
-with OpenToken.Token.Analyzer;
+with OpenToken.Token.Enumerated.Analyzer;
 
 with OpenToken.Recognizer.Bracketed_Comment;
 with OpenToken.Recognizer.Character_Set;
@@ -71,7 +73,7 @@ private package HTML_Lexer.Basic is
    -- Note that sequence of tokens is relevant since among competing
    -- tokens the first one wins.
 
-   package Master_Basic_Token is new OpenToken.Token (Basic_Token);
+   package Master_Basic_Token is new OpenToken.Token.Enumerated (Basic_Token);
    package Tokenizer is new Master_Basic_Token.Analyzer;
 
    use type Ada.Strings.Maps.Character_Set;

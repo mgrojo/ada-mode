@@ -26,6 +26,9 @@
 --
 -- Update History:
 -- $Log: simple_integer_token.ads,v $
+-- Revision 1.2  2000/08/07 00:10:49  Ted
+-- Change to work w/ new package hierarchy
+--
 -- Revision 1.1  2000/01/27 21:05:01  Ted
 -- An implementation of a simple nonterminal interger token.
 --
@@ -36,16 +39,16 @@
 -------------------------------------------------------------------------------
 
 with OpenToken.Recognizer;
-with OpenToken.Token;
-with OpenToken.Token.Nonterminal;
-with OpenToken.Token.Integer_Literal;
-with OpenToken.Token.List;
+with OpenToken.Token.Enumerated;
+with OpenToken.Token.Enumerated.Nonterminal;
+with OpenToken.Token.Enumerated.Integer_Literal;
+with OpenToken.Token.Enumerated.List;
 
 -------------------------------------------------------------------------------
 -- This package declares a type for designating an integer literal.
 -------------------------------------------------------------------------------
 generic
-   with package Token           is new OpenToken.Token(<>);
+   with package Token           is new OpenToken.Token.Enumerated(<>);
    with package Token_List      is new Token.List;
    with package Nonterminal     is new Token.Nonterminal (Token_List);
    with package Integer_Literal is new Token.Integer_Literal;

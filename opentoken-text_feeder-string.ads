@@ -26,6 +26,9 @@
 --
 -- Update History:
 -- $Log: opentoken-text_feeder-string.ads,v $
+-- Revision 1.2  2000/02/05 04:00:21  Ted
+-- Added End_Of_Text to support analyzing binaries.
+--
 -- Revision 1.1  2000/01/27 20:53:25  Ted
 -- A settable string text feeder.
 --
@@ -55,6 +58,13 @@ package OpenToken.Text_Feeder.String is
    procedure Set (Feeder : out Instance;
                   Value  : in  Standard.String
                  );
+
+   ----------------------------------------------------------------------------
+   -- Return True if there is no more text to process. For this feeder that
+   -- happens after a Get when no Set has yet been called.
+   ----------------------------------------------------------------------------
+   function End_Of_Text (Feeder : Instance) return Boolean;
+
 
 private
    type Instance is new OpenToken.Text_Feeder.Instance with record

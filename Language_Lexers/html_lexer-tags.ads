@@ -26,6 +26,9 @@
 --
 -- Update History:
 -- $Log: html_lexer-tags.ads,v $
+-- Revision 1.3  2000/08/07 00:22:21  Ted
+-- Change to work w/ new package hierarchy
+--
 -- Revision 1.2  2000/01/27 21:22:35  Ted
 -- Fix to work with 2.0 release
 --
@@ -42,8 +45,7 @@ with Ada.Strings.Unbounded;
 
 with OpenToken.Text_Feeder;
 with OpenToken.Text_Feeder.String;
-with OpenToken.Token;
-with OpenToken.Token.Analyzer;
+with OpenToken.Token.Enumerated.Analyzer;
 
 with OpenToken.Recognizer.Character_Set;
 with OpenToken.Recognizer.End_Of_File;
@@ -98,7 +100,7 @@ private package HTML_Lexer.Tags is
                       --
                       Whitespace, End_Of_Tag);
 
-   package Master_Tag_Token is new OpenToken.Token (Tag_Token);
+   package Master_Tag_Token is new OpenToken.Token.Enumerated (Tag_Token);
    package Tokenizer is new Master_Tag_Token.Analyzer;
 
    use type Ada.Strings.Maps.Character_Set;

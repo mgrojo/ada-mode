@@ -25,62 +25,65 @@
 -- Maintainer: Ted Dennison (dennison@telepath.com)
 --
 -- Update History:
--- $Log: opentoken-token.adb,v $
--- Revision 1.1  2000/01/27 20:59:37  Ted
--- Added some common routines.
+-- $Log: opentoken-token-enumerated-integer_literal.ads,v $
+-- Revision 1.1  2000/08/12 13:54:40  Ted
+-- moved from opentoken-token-integer_literal
 --
+-- Revision 1.1  2000/01/27 20:56:40  Ted
+-- A token for integer literals.
+--
+-- Revision 1.1  1999/12/27 21:30:44  Ted
+-- Initial Version
 --
 --
 -------------------------------------------------------------------------------
 
+with OpenToken.Recognizer;
+
 -------------------------------------------------------------------------------
--- This package is the top of a generic hierarchy. Based on the list of IDs
--- it is instantiated with, a user can create tokens and token analyzers.
---
--- This package declares an type for designating a single token. It is
--- designed to be created by an instance of the Token.Analyzer class when a
--- particular kind of token is recognized.
+-- This package declares a type for designating an integer literal.
 -------------------------------------------------------------------------------
-package body OpenToken.Token is
+generic
+package OpenToken.Token.Enumerated.Integer_Literal is
+
+   -- I'd prefer to use full named notation (OpenToken.Token.Enumerated.Instance)
+   -- to refer to this type. But gnat has some wierd instatiation visibility bug
+   -- with parent packages.
+   subtype Enumerated_Instance is Instance;
+
+   type Instance is new Enumerated_Instance with private;
+
+   subtype Class is Instance'Class;
+
+   type Handle is access all Class;
 
    ----------------------------------------------------------------------------
-   -- Get a nonterminal token with the given ID.
+   -- Get an integer literal token with the given ID and value.
    ----------------------------------------------------------------------------
-   function Get (ID : in Token_ID := Token_ID'First) return Instance'Class is
-   begin
-      return Instance'Class(Instance'(ID => ID));
-   end Get;
+   function Get (ID     : in Token_ID;
+                 Value  : in Integer := 0
+                ) return Instance'Class;
 
    ----------------------------------------------------------------------------
    -- This procedure will be called when a token is recognized.
    --
-   -- The Token's ID will be set to the given value. The Lexeme and Recognizer
-   -- fields aren't used for this instance of the type. But they will be
-   -- filled in by the analyzer.
+   -- The Token's ID will be set to the given value. The literal's value will
+   -- be set to the integer value of the Lexeme. The Recognizer filed isn't
+   -- used for this instance of the type.
    ----------------------------------------------------------------------------
    procedure Create (Lexeme     : in     String;
                      ID         : in     Token_ID;
                      Recognizer : in     Recognizer_Handle;
-                     New_Token  :    out Instance) is
-   begin
-      New_Token.ID := ID;
-   end Create;
+                     New_Token  :    out Instance);
 
    ----------------------------------------------------------------------------
-   -- This function returns the ID of the token.
+   -- Return the value of the given integer token.
    ----------------------------------------------------------------------------
-   function ID (Token : in Instance'Class) return Token_ID is
-   begin
-      return Token.ID;
-   end ID;
+   function Value (Subject : in Instance) return Integer;
 
-   ----------------------------------------------------------------------------
-   -- Set the given token's ID to the given value
-   ----------------------------------------------------------------------------
-   procedure Set_ID (Token : in out Instance'Class;
-                    ID    : in     Token_ID) is
-   begin
-      Token.ID := ID;
-   end Set_ID;
+private
+   type Instance is new Enumerated_Instance with record
+      Value : Integer;
+   end record;
 
-end OpenToken.Token;
+end OpenToken.Token.Enumerated.Integer_Literal;

@@ -26,6 +26,9 @@
 --
 -- Update History:
 -- $Log: opentoken-text_feeder.ads,v $
+-- Revision 1.2  2000/02/05 04:00:21  Ted
+-- Added End_Of_Text to support analyzing binaries.
+--
 -- Revision 1.1  2000/01/27 20:55:16  Ted
 -- An interface for text feeders for the token analyzer
 --
@@ -60,6 +63,11 @@ package OpenToken.Text_Feeder is
    procedure Get (Feeder   : in out Instance;
                   New_Text :    out String;
                   Text_End :    out Integer) is abstract;
+
+   ----------------------------------------------------------------------------
+   -- Return True if there is no more text to process.
+   ----------------------------------------------------------------------------
+   function End_Of_Text (Feeder : Instance) return Boolean is abstract;
 
 end OpenToken.Text_Feeder;
 

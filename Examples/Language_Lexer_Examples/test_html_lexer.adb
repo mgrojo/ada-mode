@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 1999 Christoph Karl Walter Grein
+-- Copyright (C) 1999, 2000 Christoph Karl Walter Grein
 --
 -- This file is part of the OpenToken package.
 --
@@ -26,6 +26,9 @@
 --
 -- Update History:
 -- $Log: test_html_lexer.adb,v $
+-- Revision 1.2  2000/08/07 00:15:26  Ted
+-- Update to use new string feeder
+--
 -- Revision 1.1  1999/12/27 21:41:56  Ted
 -- Merged into OpenToken baseline
 --
@@ -40,26 +43,35 @@
 with Ada.Text_Io;
 with Ada.Command_Line;
 
+with OpenToken.Text_Feeder.Text_IO;
+
 with HTML_Lexer;
 use  HTML_Lexer;
 
 procedure Test_HTML_Lexer is
 
-   Token : HTML_Token;
+  File : Ada.Text_IO.File_Type;
+  Token: HTML_Token;
 
 begin
 
-   Initialize (Ada.Command_Line.Argument (1));
+  Ada.Text_IO.Open
+    (File => File,
+     Mode => Ada.Text_IO.In_File,
+     Name => Ada.Command_Line.Argument (1));
+  Ada.Text_IO.Set_Input (File);
 
-   loop
+  Initialize (OpenToken.Text_Feeder.Text_IO.Create);
 
-      Token := Next_Token;
+  loop
 
-      Ada.Text_Io.Put_Line ("Found " & Token_Name'Image (Name (Token)) &
-                            ' ' & Lexeme (Token));
+    Token := Next_Token;
 
-      exit when Name (Token) = End_Of_File;
+    Ada.Text_Io.Put_Line ("Found " & Token_Name'Image (Name (Token)) &
+                          ' ' & Lexeme (Token));
 
-   end loop;
+    exit when Name (Token) = End_Of_File;
+
+  end loop;
 
 end Test_HTML_Lexer;

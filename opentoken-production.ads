@@ -26,6 +26,9 @@
 --
 -- Update History:
 -- $Log: opentoken-production.ads,v $
+-- Revision 1.2  2000/08/06 23:44:44  Ted
+-- Fix to work w/ new package hierarchy
+--
 -- Revision 1.1  2000/01/27 20:50:39  Ted
 -- Packages to support grammar productions
 --
@@ -33,19 +36,19 @@
 --
 -------------------------------------------------------------------------------
 
-with OpenToken.Token;
-with OpenToken.Token.List;
-with OpenToken.Token.Nonterminal;
+with OpenToken.Token.Enumerated;
+with OpenToken.Token.Enumerated.List;
+with OpenToken.Token.Enumerated.Nonterminal;
 
-pragma Elaborate_All (OpenToken.Token);
+pragma Elaborate_All (OpenToken.Token.Enumerated);
 
 -------------------------------------------------------------------------------
 -- This package provides a type and operations for building grammar
 -- productions.
 -------------------------------------------------------------------------------
 generic
-   with package Token        is new OpenToken.Token(<>);
-   with package Token_List   is new Token.List;
+   with package Token is new OpenToken.Token.Enumerated(<>);
+   with package Token_List is new Token.List;
    with package Nonterminal  is new Token.Nonterminal (Token_List);
 package OpenToken.Production is
 

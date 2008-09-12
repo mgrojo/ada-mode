@@ -25,36 +25,30 @@
 -- Maintainer: Ted Dennison (dennison@telepath.com)
 --
 -- Update History:
--- $Log: opentoken-token-integer_literal.ads,v $
+-- $Log: opentoken-token-enumerated-integer_literal.adb,v $
+-- Revision 1.1  2000/08/12 13:54:40  Ted
+-- moved from opentoken-token-integer_literal
+--
 -- Revision 1.1  2000/01/27 20:56:40  Ted
 -- A token for integer literals.
 --
--- Revision 1.1  1999/12/27 21:30:44  Ted
--- Initial Version
 --
 --
 -------------------------------------------------------------------------------
-
-with OpenToken.Recognizer;
 
 -------------------------------------------------------------------------------
 -- This package declares a type for designating an integer literal.
 -------------------------------------------------------------------------------
-generic
-package OpenToken.Token.Integer_Literal is
-
-   type Instance is new OpenToken.Token.Instance with private;
-
-   subtype Class is Instance'Class;
-
-   type Handle is access all Class;
+package body OpenToken.Token.Enumerated.Integer_Literal is
 
    ----------------------------------------------------------------------------
-   -- Get an integer literal token with the given ID and value.
+   -- Get a nonterminal token with the given ID.
    ----------------------------------------------------------------------------
    function Get (ID     : in Token_ID;
-                 Value  : in Integer := 0
-                ) return Instance'Class;
+                 Value  : in Integer := 0) return Instance'Class is
+   begin
+      return Instance'Class(Instance'(ID => ID, Value => Value));
+   end Get;
 
    ----------------------------------------------------------------------------
    -- This procedure will be called when a token is recognized.
@@ -66,16 +60,18 @@ package OpenToken.Token.Integer_Literal is
    procedure Create (Lexeme     : in     String;
                      ID         : in     Token_ID;
                      Recognizer : in     Recognizer_Handle;
-                     New_Token  :    out Instance);
+                     New_Token  :    out Instance) is
+   begin
+      New_Token.ID := ID;
+      New_Token.Value := Integer'Value(Lexeme);
+   end Create;
 
    ----------------------------------------------------------------------------
    -- Return the value of the given integer token.
    ----------------------------------------------------------------------------
-   function Value (Subject : in Instance) return Integer;
+   function Value (Subject : in Instance) return Integer is
+   begin
+      return Subject.Value;
+   end Value;
 
-private
-   type Instance is new OpenToken.Token.Instance with record
-      Value : Integer;
-   end record;
-
-end OpenToken.Token.Integer_Literal;
+end OpenToken.Token.Enumerated.Integer_Literal;

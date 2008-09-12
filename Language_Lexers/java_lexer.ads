@@ -26,6 +26,9 @@
 --
 -- Update History:
 -- $Log: java_lexer.ads,v $
+-- Revision 1.5  2000/08/06 23:37:55  Ted
+-- Change to work w/ new package hierarchy
+--
 -- Revision 1.4  2000/01/27 21:21:05  Ted
 -- Fix to work with 2.0
 --
@@ -47,8 +50,7 @@
 
 with Ada.Strings.Maps;
 
-with Opentoken.Token.Analyzer;
-with Opentoken.Token;
+with Opentoken.Token.Enumerated.Analyzer;
 with Opentoken.Recognizer.Keyword, Opentoken.Recognizer.Separator;
 with Opentoken.Recognizer.Identifier;
 with Opentoken.Recognizer.Graphic_Character,
@@ -59,7 +61,7 @@ with Opentoken.Recognizer.Character_Set;
 with Opentoken.Recognizer.Line_Comment, Opentoken.Recognizer.Bracketed_Comment;
 with Opentoken.Recognizer.End_Of_File;
 
-pragma Elaborate_All (Opentoken.Token.Analyzer, Opentoken.Token,
+pragma Elaborate_All (Opentoken.Token.Enumerated.Analyzer,
                       Opentoken.Recognizer.Keyword, Opentoken.Recognizer.Separator,
                       Opentoken.Recognizer.Identifier,
                       Opentoken.Recognizer.Graphic_Character,
@@ -153,7 +155,7 @@ package Java_Lexer is
      --
      End_of_File_T);
 
-  package Master_Java_Token is new Opentoken.Token (Java_Token);
+  package Master_Java_Token is new Opentoken.Token.Enumerated (Java_Token);
   package Tokenizer is new Master_Java_Token.Analyzer;
 
   Syntax : constant Tokenizer.Syntax :=

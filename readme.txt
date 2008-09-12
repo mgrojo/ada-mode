@@ -1,6 +1,6 @@
                           OpenToken Package Readme
 
-                                Version 2.0
+                                Version 3.0b
 
 The OpenToken package is a facility for performing token analysis and
 parsing within the Ada language. It is designed to provide all the
@@ -26,11 +26,55 @@ working properly, and easier to understand.
 
 History
 
+Version 3.0b
+
+This version contains another code reorganization to go with another new
+parsing facility. This time it is recursive decent parsing. The new method
+has the following advantages over table-driven parsers:
+
+   * Its simpler to implement.
+   * Its provides many more opportunities for reuse.
+   * Its parsers are debugable.
+   * There's no expensive parser-generation phase.
+
+The disadvantages are:
+
+   * Its parsers are most likely a bit slower.
+
+Given the above balance, I do intend to make this the standard supported
+parsing facility for future versions of OpenToken. The "b" designation is
+there to indicate that some things might not be in quite their permanent
+form yet, and that there isn't yet the full set of reusable tokens to
+support it that I would like to see in a release. I'm hoping for feedback
+both in the form of criticisms/suggestions, and reusable tokens in order to
+help finalize this facility.
+
+A general list of the changes is below:
+
+   * Renamed OpenToken.Token tree to OpenToken.Token.Enumerated.
+   * Created a new (non-enumerated) base token type and base analyzer type
+     in OpenToken.Token.
+   * Made a Parse routine and a Could_Parse_To routine primitives of the
+     base token type.
+   * Created the following predefined nonterminal tokens (both as straight
+     types, and as mixins).
+        o List
+        o Selection
+        o Sequence
+   * Fixed a bug in the bracketed comment recognizer.
+   * Implemented a (hopefully temporary) work-around for a bug in Gnat
+     version 3.13p.
+   * Fixed a bug in the string recognizer where it was mishandling octal
+     and hex escape sequences.
+   * Changed the analyzer and the text feeders to support analyzing binary
+     files.
+   * The HTML lexer has been improved to be a bit faster and more flexible.
+
 Version 2.0
 
-This is the first version to include parsing capablity. The existing
-packages underwent a major reorganization to accomodate the new
-functionality. As some of the restructuring that was done is incompatable
+This is the first version to include parsing capability. The existing
+packages underwent a major reorganization to accommodate the new
+functionality. As some of the restructuring that was done is incompatible
 with old code, the major revision has been bumped up to 2. A partial list
 of changes is below:
 
@@ -80,7 +124,7 @@ ability to turn off non-repeatable underscores was added.
 
 Integer and Real tokens had an option added to support signed literals.
 This option is set on by default (which causes a minor backward
-incompatability). Syntaxes that have addition or subtraction operators will
+incompatibility). Syntaxes that have addition or subtraction operators will
 need to turn this option off.
 
 A test to verify proper handling of default parameters was added to the
@@ -144,16 +188,15 @@ As it stands, I am developing and maintaining this package as part of my
 master's thesis. Thus you can count on a certain amount of progress in the
 next few months
 
+You may notice that most of the stuff I had marked for last release has
+been delayed or thrown out. So of course plans do change. :-) But with that
+caveat...
+
 Things on my plate for the next release:
 
-   * More functionality out of the lalr parser. Possiblities include
-        o Better support for ambigouos grammars.
-        o More intelligent error reporting and handling
-        o The ability to specify your own error routines for specific parse
-          table entries.
+   * Better support for error reporting and handling
    * A Reference Manual describing all the routines in all the packages
    * A reference manual generator (with which the above will be created)
-   * Inclusion of the Modula-3 analyzer submitted by David Starner
 
 Things you can help with:
 
@@ -161,13 +204,12 @@ Things you can help with:
      facility is. If you make 'em, please send 'em in!
    * Generally usable Tokens - I'm not sure there are as many reusable
      tokens out there as there are reusable recognizers, but I await
-     pleasent suprises.
+     pleasant surprises.
    * Useful token support packages. One example would be a generic symbol
      table creation/lookup package.
-   * New parser generators. These aren't tirvial to build, but if you make
-     youself an Cannonical LR parser or somesuch, I'd we'd love to have it.
-   * Well isolated bug reports (or even fixes). Version 2.0 has quite a few
-     changes, so bugs are much more likely in this version.
+   * Well isolated bug reports (or even fixes). Version 3.0 has quite a few
+     changes, as did 2.0. So bugs are much more likely in this version than
+     they have been in the past.
 
 Again, I hope you find this package useful for your needs.
 

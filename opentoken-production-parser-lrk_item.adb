@@ -26,6 +26,9 @@
 --
 -- Update History:
 -- $Log: opentoken-production-parser-lrk_item.adb,v $
+-- Revision 1.2  2000/08/12 23:58:06  Ted
+-- Removed unused variables
+--
 -- Revision 1.1  2000/01/27 20:52:15  Ted
 -- LRK item utilities for parsers
 --
@@ -791,7 +794,6 @@ package body OpenToken.Production.Parser.LRk_Item is
       Old_Items            : Item_Set_Ptr := null;
       New_Items            : Item_Set;
       New_Items_Set        : Item_Set_Ptr;
-      Source_Goto          : Set_Reference_Ptr;
 
    begin
 

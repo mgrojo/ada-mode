@@ -31,7 +31,13 @@
 --                    Broken Arrow, OK  USA  918-259-4000
 --
 -- Update History:
--- $Log: opentoken-token-analyzer.ads,v $
+-- $Log: opentoken-token-enumerated-analyzer.ads,v $
+-- Revision 1.1  2000/08/12 13:49:25  Ted
+-- moved from opentoken-token-analyzer
+--
+-- Revision 1.3  2000/02/05 04:00:22  Ted
+-- Added End_Of_Text to support analyzing binaries.
+--
 -- Revision 1.2  2000/01/27 20:55:48  Ted
 -- A token (lexical) analyzer
 --
@@ -75,22 +81,27 @@ with OpenToken.Text_Feeder.Text_IO;
 -------------------------------------------------------------------------------
 generic
 
-   Last_Terminal : in OpenToken.Token.Token_ID := OpenToken.Token.Token_ID'Last;
+   Last_Terminal : in Token_ID := Token_ID'Last;
 
-package OpenToken.Token.Analyzer is
+package OpenToken.Token.Enumerated.Analyzer is
+
+   -- I'd prefer to use full named notation to get at this type, but Gnat has
+   -- some bizzare bug where some instantations of this package can't see the
+   -- parent package's name.
+   subtype Enumerated_Class is Class;
 
    subtype Terminal_ID is Token_ID range Token_ID'First..Last_Terminal;
 
    -- Descriptor for what an individual token in this language looks like.
    type Recognizable_Token is record
       Recognizer   : Recognizer_Handle;
-      Token_Handle : OpenToken.Token.Handle := new OpenToken.Token.Instance'(OpenToken.Token.Get);
+      Token_Handle : Handle;
    end record;
 
    -- The syntax of a language, which is defined by the set of valid tokens.
    type Syntax is array (Terminal_Id) of Recognizable_Token;
 
-   type Instance is tagged private;
+   type Instance is new Source with private;
 
    -- Need to revisit token definitions or raise Max_String_Length
    Token_Too_Long : exception;
@@ -110,7 +121,7 @@ package OpenToken.Token.Analyzer is
    -- dynamicly allocate the memory for the recognizer and token.
    ----------------------------------------------------------------------------
    function Get (Recognizer : in OpenToken.Recognizer.Class;
-                 New_Token  : in OpenToken.Token.Class := OpenToken.Token.Get
+                 New_Token  : in Enumerated_Class := Get
                 ) return Recognizable_Token;
 
 
@@ -168,12 +179,18 @@ package OpenToken.Token.Analyzer is
    -- Locate the next token.
    --
    -- The next token will be the token that matches the *longest* sequence of
-   -- characters before failing. Ties go to the token with the smallest Terminal_Id.
+   -- characters before failing. Ties go to the token with the smallest
+   -- Terminal_Id.
+   --
+   -- If Look_Ahead is set, the next token after the current one will be
+   -- returned, but the current one will not be discarded. Subsequent
+   -- Look_Ahead calls will return later and later tokens.
    --
    -- Raises Syntax_Error if no token could be found (unless there is a default
    -- token defined).
    ----------------------------------------------------------------------------
-   procedure Find_Next (Analyzer : in out Instance);
+   procedure Find_Next (Analyzer   : in out Instance;
+                        Look_Ahead : in     Boolean := False);
 
    ----------------------------------------------------------------------------
    -- Returns the current text line at which processing will resume. This is
@@ -190,6 +207,20 @@ package OpenToken.Token.Analyzer is
    function Column (Analyzer : in Instance) return Natural;
 
    ----------------------------------------------------------------------------
+   -- Returns True if the next token will be at the start of its text line.
+   -- The main purpose of this routine is to assist in writing recognizers
+   -- for tokens that must start a line.
+   ----------------------------------------------------------------------------
+   function First_Column (Analyzer : in Instance) return Boolean;
+
+   ----------------------------------------------------------------------------
+   -- Returns the column at which the the next token starts on its text line.
+   -- The main purpose of this routine is to assist in writing recognizers
+   -- for tokens that must start on a specific column
+   ----------------------------------------------------------------------------
+   function Next_Token_Column (Analyzer : in Instance) return Integer;
+
+   ----------------------------------------------------------------------------
    -- Returns the last token that was matched.
    ----------------------------------------------------------------------------
    function Get (Analyzer : in Instance) return OpenToken.Token.Class;
@@ -204,13 +235,21 @@ package OpenToken.Token.Analyzer is
    ----------------------------------------------------------------------------
    function Lexeme (Analyzer : in Instance) return String;
 
+   ----------------------------------------------------------------------------
+   -- Returns the recognizer handle of the last token that was matched.
+   ----------------------------------------------------------------------------
+   function Last_Recognizer (Analyzer : in Instance) return Recognizer_Handle;
+
 private
+
+   type Token_List_Node;
+   type Token_List_Node_Pointer is access Token_List_Node;
 
    -- Put all the Analyzer's state information in here, so there can be several
    -- Analyzers running at once.
-   type Instance is tagged record
+   type Instance is new Source with record
       -- User-settable attributes
-      Token_List    : Syntax;
+      Syntax_List   : Syntax;
       Feeder        : Text_Feeder_Ptr := Input_Feeder'access;
       Has_Default   : Boolean := False;
       Default_Token : Terminal_Id;
@@ -231,6 +270,8 @@ private
       Next_Line    : Natural := 1;
       Next_Column  : Natural := 1;
 
+      Lookahead_Queue : Token_List_Node_Pointer;
+      Lookahead_Tail  : Token_List_Node_Pointer;
    end record;
 
-end OpenToken.Token.Analyzer;
+end OpenToken.Token.Enumerated.Analyzer;

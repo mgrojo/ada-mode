@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 1999 Theodore Edward Dennison
+## Copyright (C) 1999,2000 Theodore Edward Dennison
 ##
 ## This file is part of the OpenToken package.
 ##
@@ -26,6 +26,12 @@
 ##
 ## Update History:
 ## $Log: makefile,v $
+## Revision 1.6  2000/08/07 00:12:58  Ted
+## Use RM variable instead of hardcoded unix command
+##
+## Revision 1.5  2000/02/05 04:03:37  Ted
+## Add Modula-3 lexer tester.
+##
 ## Revision 1.4  2000/01/27 21:13:31  Ted
 ## Change default flags to optimize (for more speed out of the ada counter)
 ##
@@ -42,7 +48,7 @@
 
 GNAT_FLAGS = -O2
 
-Main_Files = test_ada_lexer test_java_lexer ada_count test_html_lexer
+Main_Files = test_ada_lexer test_java_lexer ada_count test_html_lexer test_m3_lexer
 
 all : $(Main_Files)
 
@@ -50,4 +56,4 @@ $(Main_Files) : % : %.adb
 	gnatmake $< $(GNAT_FLAGS) -I../../ -I../../Language_Lexers/
 
 clean : 
-	-rm *.exe *.o *.ali
+	-$(RM) *.exe *.o *.ali b~*

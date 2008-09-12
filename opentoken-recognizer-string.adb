@@ -26,6 +26,9 @@
 --
 -- Update History:
 -- $Log: opentoken-recognizer-string.adb,v $
+-- Revision 1.3  2000/02/05 03:58:45  Ted
+-- Fix escaped character support to use octal and hex values properly.
+--
 -- Revision 1.2  1999/12/27 19:56:04  Ted
 -- fix file contents to work w/ new hierarchy
 --
@@ -120,9 +123,14 @@ package body Opentoken.Recognizer.String is
          when Escaped_Text =>
 
             -- If its a number, start to calculate its value.
-            if Next_Char in '0'..'9' then
-               The_Token.State := Escaped_Number;
+            if Next_Char in '0'..'7' then
+               The_Token.State := Escaped_Octal_Number;
                The_Token.Esc_Code := Natural'Value((1=>Next_Char));
+               Verdict := So_Far_So_Good;
+
+            -- ..otherwise, if its an x, the next characters should be hex digits
+            elsif Next_Char = 'x' then
+               The_Token.State := First_Hex_Digit;
                Verdict := So_Far_So_Good;
 
             -- ...otherwise, return the mapped value for the character.
@@ -137,15 +145,15 @@ package body Opentoken.Recognizer.String is
 
             end if;
 
-         -- Process escaped numbers
-         when Escaped_Number =>
+         -- Process escaped octal numbers
+         when Escaped_Octal_Number =>
             -- If its a number, continue to calculate its value.
-            if Next_Char in '0'..'9' then
-               The_Token.Esc_Code := The_Token.Esc_Code * 10 + Natural'Value((1=>Next_Char));
+            if Next_Char in '0'..'7' then
+               The_Token.Esc_Code := The_Token.Esc_Code * 8 + Natural'Value((1=>Next_Char));
 
                -- Verify that the number isn't too large to be a character value
                if The_Token.Esc_Code <= Character'Pos(Character'Last) then
-                  The_Token.State := Escaped_Number;
+                  The_Token.State := Escaped_Octal_Number;
                   Verdict := So_Far_So_Good;
                else
                   The_Token.State := Done;
@@ -158,13 +166,145 @@ package body Opentoken.Recognizer.String is
                The_Token.State := Done;
                Verdict := Failed;
 
-            -- ...otherwise, return the character value for the given number
+            -- ...otherwise, return the character value for the given number, and process the character as text
             else
+               The_Token.Value_Length := The_Token.Value_Length + 1;
+               The_Token.Value(The_Token.Value_Length) := Character'Val(The_Token.Esc_Code);
+
+               if Next_Char = The_Token.Delimiter then
+                  -- If its a delimiter, report that we have a good string, but
+                  -- look for the next character to possibly be another delimiter.
+
+                  if The_Token.Double_Delimiter then
+                     The_Token.State := Double_Delimit;
+                  else
+                     The_Token.State := Done;
+                  end if;
+
+                  The_Token.Good_Length := The_Token.Value_Length;
+                  Verdict := Matches;
+               elsif Next_Char = The_Token.Escape then
+                  The_Token.State := Escaped_Text;
+                  Verdict := So_Far_So_Good;
+               else
+                  The_Token.State := Text;
+                  Verdict := So_Far_So_Good;
+                  The_Token.Value_Length := The_Token.Value_Length + 1;
+                  The_Token.Value(The_Token.Value_Length) := Next_Char;
+               end if;
+
+            end if;
+
+         -- Process the first hex digit
+         when First_Hex_Digit =>
+            -- If its a number, continue to calculate its value.
+            if Next_Char in '0'..'9' then
+               The_Token.Esc_Code := Natural'Value((1=>Next_Char));
+
+               The_Token.State := Escaped_Hex_Number;
+               Verdict := So_Far_So_Good;
+
+            elsif Next_Char in 'a'..'f' then
+               The_Token.Esc_Code := Character'Pos(Next_Char) - (Character'Pos('a') - 10);
+
+               The_Token.State := Escaped_Hex_Number;
+               Verdict := So_Far_So_Good;
+
+            elsif Next_Char in 'A'..'F' then
+               The_Token.Esc_Code := Character'Pos(Next_Char) - (Character'Pos('A') - 10);
+
+               The_Token.State := Escaped_Hex_Number;
+               Verdict := So_Far_So_Good;
+
+            elsif Next_Char = EOL_Character then
+
+               The_Token.State := Done;
+               Verdict := Failed;
+
+            -- ...otherwise, return the character value for the given number, and process the character as text
+            else
+               The_Token.Value_Length := The_Token.Value_Length + 1;
+               The_Token.Value(The_Token.Value_Length) := Character'Val(The_Token.Esc_Code);
+
+               if Next_Char = The_Token.Delimiter then
+                  -- If its a delimiter, report that we have a good string, but
+                  -- look for the next character to possibly be another delimiter.
+
+                  if The_Token.Double_Delimiter then
+                     The_Token.State := Double_Delimit;
+                  else
+                     The_Token.State := Done;
+                  end if;
+
+                  The_Token.Good_Length := The_Token.Value_Length;
+                  Verdict := Matches;
+               elsif Next_Char = The_Token.Escape then
+                  The_Token.State := Escaped_Text;
+                  Verdict := So_Far_So_Good;
+               else
+                  The_Token.State := Text;
+                  Verdict := So_Far_So_Good;
+                  The_Token.Value_Length := The_Token.Value_Length + 1;
+                  The_Token.Value(The_Token.Value_Length) := Next_Char;
+               end if;
+
+            end if;
+
+         -- Process the first hex digit
+         when Escaped_Hex_Number =>
+            -- If its a number, continue to calculate its value.
+            if Next_Char in '0'..'9' then
+               The_Token.Esc_Code := The_Token.Esc_Code * 16 + Natural'Value((1=>Next_Char));
+
                The_Token.State := Text;
                Verdict := So_Far_So_Good;
 
+            elsif Next_Char in 'a'..'f' then
+               The_Token.Esc_Code := The_Token.Esc_Code * 16 +
+                 Character'Pos(Next_Char) - (Character'Pos('a') - 10);
+
+               The_Token.State := Text;
+               Verdict := So_Far_So_Good;
+
+            elsif Next_Char in 'A'..'F' then
+               The_Token.Esc_Code := The_Token.Esc_Code * 16 +
+                 Character'Pos(Next_Char) - (Character'Pos('A') - 10);
+
+               The_Token.State := Text;
+               Verdict := So_Far_So_Good;
+
+            elsif Next_Char = EOL_Character then
+
+               The_Token.State := Done;
+               Verdict := Failed;
+
+            -- ...otherwise, return the character value for the given number, and process the character as text
+            else
                The_Token.Value_Length := The_Token.Value_Length + 1;
                The_Token.Value(The_Token.Value_Length) := Character'Val(The_Token.Esc_Code);
+
+               if Next_Char = The_Token.Delimiter then
+                  -- If its a delimiter, report that we have a good string, but
+                  -- look for the next character to possibly be another delimiter.
+
+                  if The_Token.Double_Delimiter then
+                     The_Token.State := Double_Delimit;
+                  else
+                     The_Token.State := Done;
+                  end if;
+
+                  The_Token.Good_Length := The_Token.Value_Length;
+                  Verdict := Matches;
+               elsif Next_Char = The_Token.Escape then
+                  The_Token.State := Escaped_Text;
+                  Verdict := So_Far_So_Good;
+               else
+                  The_Token.State := Text;
+                  Verdict := So_Far_So_Good;
+                  The_Token.Value_Length := The_Token.Value_Length + 1;
+                  The_Token.Value(The_Token.Value_Length) := Next_Char;
+               end if;
+
             end if;
 
          -- Process the character after the delimiter

@@ -27,6 +27,9 @@
 -- Update History:
 --
 -- $Log: opentoken-recognizer-based_integer_java_style.adb,v $
+-- Revision 1.3  2000/08/12 23:57:18  Ted
+-- Changed some calls to dynamic dispatching to work around Gnat 3.13p bug
+--
 -- Revision 1.2  1999/12/27 19:55:59  Ted
 -- fix file contents to work w/ new hierarchy
 --
@@ -51,7 +54,8 @@ package body Opentoken.Recognizer.Based_Integer_Java_Style is
   procedure Clear (The_Token: in out Instance) is
   begin
 
-    Extended_Digits.Clear (The_Token.Numeral_Recognizer);
+     -- Changed to dynamicly dispatch to work around gnat 3.13p bug
+    Extended_Digits.Clear (Extended_Digits.Instance'Class(The_Token.Numeral_Recognizer));
 
     The_Token.State := Base_0;
 
@@ -90,7 +94,8 @@ package body Opentoken.Recognizer.Based_Integer_Java_Style is
 
         else
 
-          Extended_Digits.Analyze (The_Token.Numeral_Recognizer, Next_Char, Verdict);
+          -- Changed to dynamicly dispatch to work around gnat 3.13p bug
+          Extended_Digits.Analyze (Extended_Digits.Instance'Class(The_Token.Numeral_Recognizer), Next_Char, Verdict);
 
           if Verdict = Matches then
             The_Token.State := Numeral;
@@ -103,7 +108,8 @@ package body Opentoken.Recognizer.Based_Integer_Java_Style is
 
       when Numeral =>
 
-        Extended_Digits.Analyze (The_Token.Numeral_Recognizer, Next_Char, Verdict);
+         -- Changed to dynamicly dispatch to work around gnat 3.13p bug
+        Extended_Digits.Analyze (Extended_Digits.Instance'Class(The_Token.Numeral_Recognizer), Next_Char, Verdict);
 
         if Verdict = Matches then
           The_Token.State := Numeral;

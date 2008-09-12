@@ -31,7 +31,10 @@
 --                    Broken Arrow, OK  USA  918-259-4000
 --
 -- Update History:
--- $Log: token_analyzer_ctd.adb,v $
+-- $Log: token_analyzer_ctd-run.adb,v $
+-- Revision 1.1  2000/08/12 21:14:12  Ted
+-- moved from token_analyzer.adb
+--
 -- Revision 1.3  2000/01/27 21:19:15  Ted
 -- Fix to work with 2.0
 --
@@ -44,17 +47,12 @@
 --
 -------------------------------------------------------------------------------
 with Ada.Text_IO;
-with OpenToken;
 with OpenToken.Text_Feeder.Text_IO;
-with Opentoken.Token;
-with Opentoken.Token.Analyzer;
-with Opentoken.Recognizer.Keyword;
-with Opentoken.Recognizer.Nothing;
 
 -------------------------------------------------------------------------------
 -- Test driver for the token anlayzer's default token functionality
 -------------------------------------------------------------------------------
-procedure Token_Analyzer_Ctd is
+procedure Token_Analyzer_Ctd.Run is
    Test_File_Name : constant String := "Test.txt";
 begin
 
@@ -72,23 +70,8 @@ begin
 
       Text_Line_1 : constant String := "39045trjkjklgr dfsjkl ";
       Text_Line_2 : constant String := "(more garbage)5 689035 6t78905858 9 45:";
-      Normal_Text : constant String := "Normal";
 
       Test_File : Ada.Text_IO.File_Type;
-
-      type Token_IDs is (Normal, Default);
-
-      package Master_Token is new Opentoken.Token(Token_IDs);
-      package Tokenizer is new Master_Token.Analyzer;
-
-      Syntax : Tokenizer.Syntax :=
-        (Normal  => Tokenizer.Get(Opentoken.Recognizer.Keyword.Get (Normal_Text)),
-         Default => Tokenizer.Get(Opentoken.Recognizer.Nothing.Get)
-         );
-
-      Analyzer : Tokenizer.Instance := Tokenizer.Initialize
-        (Language_Syntax => Syntax,
-         Default         => Default);
 
    begin
 
@@ -152,8 +135,8 @@ begin
       end if;
 
       Ada.Text_IO.Close (Test_File);
-      Ada.Text_IO.Put_Line ("succeded");
+      Ada.Text_IO.Put_Line ("passed");
    end Test_Case_1;
 
 
-end Token_Analyzer_Ctd;
+end Token_Analyzer_Ctd.Run;

@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 1999 Ted Dennison
+-- Copyright (C) 1999,2000 Ted Dennison
 --
 -- This file is part of the OpenToken package.
 --
@@ -25,19 +25,16 @@
 -- Maintainer: Ted Dennison (dennison@telepath.com)
 --
 -- Update History:
--- $Log: production_test.adb,v $
+-- $Log: production_test-run.adb,v $
+-- Revision 1.1  2000/08/12 21:17:53  Ted
+-- moved from production_test.adb
+--
 -- Revision 1.1  2000/01/27 21:05:39  Ted
 -- A test to verify that productions are handled correctly.
 --
 --
 -------------------------------------------------------------------------------
 with Ada.Text_IO;
-with OpenToken.Token;
-with OpenToken.Token.List;
-with OpenToken.Token.Analyzer;
-with OpenToken.Token.Nonterminal;
-with OpenToken.Production;
-with OpenToken.Production.List;
 with OpenToken.Recognizer.Integer;
 with OpenToken.Recognizer.Keyword;
 with OpenToken.Recognizer.String;
@@ -46,7 +43,7 @@ with OpenToken.Recognizer.Real;
 -------------------------------------------------------------------------------
 -- Test driver for the token list handling code.
 -------------------------------------------------------------------------------
-procedure Production_Test is
+procedure Production_Test.Run is
 begin
 
    ----------------------------------------------------------------------------
@@ -58,15 +55,6 @@ begin
    -- Purpose          :
    --
    Test_Case_1 : declare
-      type Token_IDs is (Int_ID, Real_ID, String_ID, Keyword_ID, Expression_ID, Literal_ID);
-
-      package Master_Token is new OpenToken.Token(Token_IDs);
-      package Tokenizer is new Master_Token.Analyzer(Keyword_ID);
-      package Token_List is new Master_Token.List;
-      package Nonterminal is new Master_Token.Nonterminal(Token_List);
-      package Production is new OpenToken.Production(Master_Token, Token_List, Nonterminal);
-      package Production_List is new Production.List;
-
       use type Token_List.Instance;
       use type Production.Right_Hand_Side;
       use type Production.Instance;
@@ -135,6 +123,6 @@ begin
          Ada.Text_IO.Put_Line ("passed");
       end if;
    end Test_Case_1;
-end Production_Test;
+end Production_Test.Run;
 
 

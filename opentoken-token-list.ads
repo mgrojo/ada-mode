@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 1999 Ted Dennison
+-- Copyright (C) 2000 Ted Dennison
 --
 -- This file is part of the OpenToken package.
 --
@@ -26,106 +26,78 @@
 --
 -- Update History:
 -- $Log: opentoken-token-list.ads,v $
--- Revision 1.1  2000/01/27 20:58:35  Ted
--- Lists of tokens.
---
+-- Revision 1.2  2000/08/07 01:52:08  Ted
+-- Initial Version (old package by this name was moved to .enumerated hierarchy).
 --
 --
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
--- This package provides a type and operations for building lists of tokens
--- for use in grammar productions
+-- This package defines a generic list token. A list is a token that is made
+-- up of any number of repetitions of other tokens, separated by a given
+-- separator token.
 -------------------------------------------------------------------------------
-generic
-
 package OpenToken.Token.List is
 
-   type Instance is tagged private;
+   type Instance is new Token.Instance with private;
+
+   subtype Class is Instance'Class;
+
+   type Handle is access all Class;
 
    ----------------------------------------------------------------------------
-   -- Create a token list from a single instance.
+   -- Retrieve a list token from the analyzer.
+   -- The private routine Add_List_Element is called with every successive list
+   -- element that is recognized. The private routine Build is called when the
+   -- entire list has been recognized.
+   -- An a non active parse does not comsume any input from the analyzer,
+   -- and does not call any of the private routines.
    ----------------------------------------------------------------------------
-   function Only (Subject : in OpenToken.Token.Class) return Instance;
+   procedure Parse
+     (Match    : in out Instance;
+      Analyzer : in out Source_Class;
+      Actively : in     Boolean := True
+     );
 
    ----------------------------------------------------------------------------
-   -- Create a token list from a pair of token instances.
+   -- Construct a new list token, using the given Element and Separator tokens.
    ----------------------------------------------------------------------------
-   function "&" (Left  : in OpenToken.Token.Class;
-                 Right : in OpenToken.Token.Class) return Instance;
+   function Get
+     (Element   : access OpenToken.Token.Class;
+      Separator : access OpenToken.Token.Class
+     ) return Class;
 
    ----------------------------------------------------------------------------
-   -- Create a token list from a token instance and a token list.
+   -- This routine should is a quick check to verify that the given list token
+   -- can possibly succesfully parse from what's sitting in the analyzer.
+   -- This routine is meant to be used for choosing between parsing options.
+   -- It simply checks Could_Parse_To for this token's Element token.
    ----------------------------------------------------------------------------
-   function "&" (Left  : in OpenToken.Token.Class;
-                 Right : in Instance) return Instance;
-   function "&" (Left  : in Instance;
-                 Right : in OpenToken.Token.Class) return Instance;
-
-   ----------------------------------------------------------------------------
-   -- Create a token list from a pair of token lists.
-   ----------------------------------------------------------------------------
-   function "&" (Left  : in Instance;
-                 Right : in Instance) return Instance;
-
-   ----------------------------------------------------------------------------
-   -- This routine needs to be called when you are done using a list, or want
-   -- to reset it to empty.
-   ----------------------------------------------------------------------------
-   procedure Clean (List : in out Instance);
-
-   type List_Iterator is private;
-   Null_Iterator : constant List_Iterator;
-
-   ----------------------------------------------------------------------------
-   -- Return an initialized iterator for traversing the token list
-   ----------------------------------------------------------------------------
-   function Initial_Iterator (List : in Instance) return List_Iterator;
-
-   ----------------------------------------------------------------------------
-   -- Move the iterator down the list to the next token.
-   ----------------------------------------------------------------------------
-   procedure Next_Token (Iterator : in out List_Iterator);
-
-   ----------------------------------------------------------------------------
-   -- Return the next Token in the list.
-   ----------------------------------------------------------------------------
-   function Token_Handle (Iterator : in List_Iterator) return OpenToken.Token.Handle;
-
-   ---------------------
-   -- Parser Routines --
-
-   ----------------------------------------------------------------------------
-   -- Enqueue a token on the given list. The token itself will not be copied.
-   -- Its storage will be managed by the list from here on in. Do not delete
-   -- it while the list is still using it!
-   ----------------------------------------------------------------------------
-   procedure Enqueue (List  : in out Instance;
-                      Token : in     OpenToken.Token.Handle
-                     );
+   function Could_Parse_To
+     (Match    : in Instance;
+      Analyzer : in Source_Class
+     ) return Boolean;
 
 private
-   type List_Node;
-   type List_Node_Ptr is access List_Node;
-   type List_Node is record
-      Token : OpenToken.Token.Handle;
---       Count : Natural;
-      Next  : List_Node_Ptr;
+
+   type Instance is new Token.Instance with record
+      Element   : OpenToken.Token.Handle;
+      Separator : OpenToken.Token.Handle;
    end record;
 
-   type Instance is tagged record
-     Head : List_Node_Ptr;
-     Tail : List_Node_Ptr;
-   end record;
+   ----------------------------------------------------------------------------
+   -- This routine is called every time a list element is actively parsed.
+   -- The default implementation does nothing.
+   ----------------------------------------------------------------------------
+   procedure Add_List_Element
+     (Match   : in out Instance;
+      Element : in out OpenToken.Token.Class
+     );
 
---    ----------------------------------------------------------------------------
---    -- Overriding of controled operations to provide for automatic cleanup of
---    -- list nodes.
---    ----------------------------------------------------------------------------
---    procedure Adjust (Object : in out Instance);
---    procedure Finalize (Object : in out Instance);
-
-   type List_Iterator is new List_Node_Ptr;
-   Null_Iterator : constant List_Iterator := null;
+   ----------------------------------------------------------------------------
+   -- This routine is called when an entire list has been actively parsed.
+   -- The default implementation does nothing.
+   ----------------------------------------------------------------------------
+   procedure Build (Match : in out Instance);
 
 end OpenToken.Token.List;

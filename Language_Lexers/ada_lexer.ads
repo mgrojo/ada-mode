@@ -26,6 +26,9 @@
 --
 -- Update History:
 -- $Log: ada_lexer.ads,v $
+-- Revision 1.5  2000/08/07 00:17:43  Ted
+-- Change to work w/ new package hierarchy
+--
 -- Revision 1.4  2000/01/27 21:21:05  Ted
 -- Fix to work with 2.0
 --
@@ -47,8 +50,8 @@
 -- 0.0 - 22 June 1999    First preliminary release
 -------------------------------------------------------------------------------
 
-with Opentoken.Token;
-with Opentoken.Token.Analyzer;
+with Opentoken.Token.Enumerated;
+with Opentoken.Token.Enumerated.Analyzer;
 with Opentoken.Recognizer.Keyword, Opentoken.Recognizer.Separator;
 with Opentoken.Recognizer.Identifier;
 with Opentoken.Recognizer.Graphic_Character, Opentoken.Recognizer.String;
@@ -58,7 +61,7 @@ with Opentoken.Recognizer.Character_Set;
 with Opentoken.Recognizer.Line_Comment;
 with Opentoken.Recognizer.End_Of_File;
 
-pragma Elaborate_All (Opentoken.Token, Opentoken.Token.Analyzer,
+pragma Elaborate_All (Opentoken.Token.Enumerated, Opentoken.Token.Enumerated.Analyzer,
                       Opentoken.Recognizer.Keyword, Opentoken.Recognizer.Separator,
                       Opentoken.Recognizer.Identifier,
                       Opentoken.Recognizer.Graphic_Character, Opentoken.Recognizer.String,
@@ -126,7 +129,7 @@ package Ada_Lexer is
      --
      End_of_File_T);
 
-  package Master_Ada_Token is new Opentoken.Token (Ada_Token);
+  package Master_Ada_Token is new Opentoken.Token.Enumerated (Ada_Token);
   package Tokenizer is new Master_Ada_Token.Analyzer;
 
   Syntax : constant Tokenizer.Syntax :=

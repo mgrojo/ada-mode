@@ -26,6 +26,12 @@
 --
 -- Update History:
 -- $Log: opentoken-production-parser-lalr.adb,v $
+-- Revision 1.3  2000/08/12 23:58:06  Ted
+-- Removed unused variables
+--
+-- Revision 1.2  2000/08/06 23:42:58  Ted
+-- Fix token parsing to be dynamicly dispatching
+--
 -- Revision 1.1  2000/01/27 20:51:42  Ted
 -- An LALR parser implementation
 --
@@ -354,7 +360,6 @@ package body OpenToken.Production.Parser.LALR is
       Next_Item   : LRK.Item_Node;
       Next_Token  : Token_List.List_Iterator;
       Next_Kernel : LRK.Item_Ptr;
-      Next_Set    : LRK.Item_Set_Ptr;
       Lookahead   : LRK.Item_Lookahead_Ptr := Closure_Item.Lookahead_Set;
 
       use type Token.Handle;
@@ -767,7 +772,6 @@ package body OpenToken.Production.Parser.LALR is
       Item      : LRK.Item_Ptr;
       Lookahead : LRK.Item_Lookahead_Ptr;
 
-      Goto_Production   : LRK.Item_Set_Ptr;
       Production_Length : Natural;
       RHS_Iterator      : Token_List.List_Iterator;
 
@@ -949,7 +953,6 @@ package body OpenToken.Production.Parser.LALR is
 
       Set     : LRK.Item_Set_Ptr := Kernels.Head;
 
-      Propagations : Item_Item_List_Mapping_Ptr;
    begin
       New_Parser.Analyzer := Analyzer;
 
@@ -991,7 +994,7 @@ package body OpenToken.Production.Parser.LALR is
 
       -- Get the first token from the analyzer
       Tokenizer.Find_Next (Parser.Analyzer);
-      Current_State.Seen_Token := new Token.Class'(Tokenizer.Get (Parser.Analyzer));
+      Current_State.Seen_Token := new Token.Class'(Token.Class(Tokenizer.Get (Parser.Analyzer)));
 
       Current_State.State := 1;
       loop
@@ -1010,7 +1013,8 @@ package body OpenToken.Production.Parser.LALR is
 
                -- Get the next token
                Tokenizer.Find_Next (Parser.Analyzer);
-               Current_State.Seen_Token := new Token.Class'(Tokenizer.Get (Parser.Analyzer));
+               Current_State.Seen_Token := new Token.Class'
+                 (Token.Class(Tokenizer.Get (Parser.Analyzer)));
 
                Current_State.State := Action.State;
 

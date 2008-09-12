@@ -26,6 +26,9 @@
 --
 -- Update History:
 -- $Log: opentoken-recognizer-string.ads,v $
+-- Revision 1.3  2000/02/05 03:58:45  Ted
+-- Fix escaped character support to use octal and hex values properly.
+--
 -- Revision 1.2  1999/12/27 19:56:04  Ted
 -- fix file contents to work w/ new hierarchy
 --
@@ -106,7 +109,7 @@ package Opentoken.Recognizer.String is
 private
 
 
-   type State_ID is (Delimit, Text, Escaped_Text, Escaped_Number, Double_Delimit, Done);
+   type State_ID is (Delimit, Text, Escaped_Text, Escaped_Octal_Number, First_Hex_Digit, Escaped_Hex_Number, Double_Delimit, Done);
 
    type Instance is new Opentoken.Recognizer.Instance with record
 

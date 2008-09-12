@@ -25,7 +25,10 @@
 -- Maintainer: Ted Dennison (dennison@telepath.com)
 --
 -- Update History:
--- $Log: opentoken-token-nonterminal.ads,v $
+-- $Log: opentoken-token-enumerated-nonterminal.ads,v $
+-- Revision 1.1  2000/08/12 14:07:51  Ted
+-- moved from opentoken-token-nonterminal
+--
 -- Revision 1.1  2000/01/27 20:59:05  Ted
 -- Nonterminal tokens (for productions).
 --
@@ -33,8 +36,8 @@
 --
 -------------------------------------------------------------------------------
 
-with OpenToken.Token;
-with OpenToken.Token.List;
+with OpenToken.Token.Enumerated;
+with OpenToken.Token.Enumerated.List;
 
 -------------------------------------------------------------------------------
 -- This package provides a type and operations for building grammar
@@ -42,10 +45,14 @@ with OpenToken.Token.List;
 -------------------------------------------------------------------------------
 
 generic
-   with package Token_List is new OpenToken.Token.List;
-package OpenToken.Token.Nonterminal is
+   with package Token_List is new OpenToken.Token.Enumerated.List;
+package OpenToken.Token.Enumerated.Nonterminal is
 
-   type Instance is new OpenToken.Token.Instance with null record;
+   -- I'd rather used full named notation to get at this, but Gnat won't allow
+   -- visibility to OpeToken.Token.Enumerated here for some reason.
+   subtype Enumerated_Instance is Instance;
+
+   type Instance is new Enumerated_Instance with null record;
 
    subtype Class is Instance'Class;
 
@@ -78,7 +85,7 @@ package OpenToken.Token.Nonterminal is
    ----------------------------------------------------------------------------
    type Synthesize is access procedure (New_Token : out Class;
                                         Source    : in  Token_List.Instance'Class;
-                                        To_ID     : in  OpenToken.Token.Token_ID);
+                                        To_ID     : in  Token_ID);
 
    ----------------------------------------------------------------------------
    -- Default synthesization routine. If no synthesization routine is
@@ -143,8 +150,8 @@ package OpenToken.Token.Nonterminal is
    -- the Source must be in Instance'Class.
    ----------------------------------------------------------------------------
    procedure Synthesize_By_Copying (New_Token : out Instance;
-                                    Source    : in  OpenToken.Token.Instance'Class;
-                                    To_ID     : in  OpenToken.Token.Token_ID);
+                                    Source    : in  Enumerated_Instance'Class;
+                                    To_ID     : in  Token_ID);
 
 
    ----------------------------------------------------------------------------
@@ -155,7 +162,7 @@ package OpenToken.Token.Nonterminal is
    ----------------------------------------------------------------------------
    procedure Default_Synthesize (New_Token : out Instance;
                                  Source    : in  Token_List.Instance'Class;
-                                 To_ID     : in  OpenToken.Token.Token_ID);
+                                 To_ID     : in  Token_ID);
 
 private
 
@@ -170,7 +177,7 @@ private
    ----------------------------------------------------------------------------
    procedure Self_Synthesize (New_Token : out Class;
                               Source    : in  Token_List.Instance'Class;
-                              To_ID     : in  OpenToken.Token.Token_ID);
+                              To_ID     : in  Token_ID);
 
    ----------------------------------------------------------------------------
    -- Optional synthesization routine. Passes the first token in the list to
@@ -182,7 +189,7 @@ private
    ----------------------------------------------------------------------------
    procedure Synthesize_From_First (New_Token : out Class;
                                     Source    : in  Token_List.Instance'Class;
-                                    To_ID     : in  OpenToken.Token.Token_ID);
+                                    To_ID     : in  Token_ID);
 
    ----------------------------------------------------------------------------
    -- Default synthesization routine. This routine dispatches to the return
@@ -191,9 +198,9 @@ private
    ----------------------------------------------------------------------------
    procedure Default_Synthesize_Class (New_Token : out Class;
                                        Source    : in  Token_List.Instance'Class;
-                                       To_ID     : in  OpenToken.Token.Token_ID);
+                                       To_ID     : in  Token_ID);
 
    Synthesize_Self    : constant Synthesize := Self_Synthesize'Access;
    Synthesize_First   : constant Synthesize := Synthesize_From_First'Access;
    Synthesize_Default : constant Synthesize := Default_Synthesize_Class'Access;
-end OpenToken.Token.Nonterminal;
+end OpenToken.Token.Enumerated.Nonterminal;

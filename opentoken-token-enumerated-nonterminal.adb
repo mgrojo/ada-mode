@@ -25,7 +25,13 @@
 -- Maintainer: Ted Dennison (dennison@telepath.com)
 --
 -- Update History:
--- $Log: opentoken-token-nonterminal.adb,v $
+-- $Log: opentoken-token-enumerated-nonterminal.adb,v $
+-- Revision 1.2  2000/08/12 23:58:06  Ted
+-- Removed unused variables
+--
+-- Revision 1.1  2000/08/12 14:07:51  Ted
+-- moved from opentoken-token-nonterminal
+--
 -- Revision 1.1  2000/01/27 20:59:04  Ted
 -- Nonterminal tokens (for productions).
 --
@@ -39,7 +45,7 @@ with Ada.Exceptions;
 -- This package provides a type and operatoions for building grammar
 -- productions.
 -------------------------------------------------------------------------------
-package body OpenToken.Token.Nonterminal is
+package body OpenToken.Token.Enumerated.Nonterminal is
 
    ----------------------------------------------------------------------------
    -- Get a token with the given ID.
@@ -55,8 +61,8 @@ package body OpenToken.Token.Nonterminal is
    -- the Source must be in Instance'Class.
    ----------------------------------------------------------------------------
    procedure Synthesize_By_Copying (New_Token : out Instance;
-                                    Source    : in  OpenToken.Token.Instance'Class;
-                                    To_ID     : in  OpenToken.Token.Token_ID) is
+                                    Source    : in  OpenToken.Token.Enumerated.Instance'Class;
+                                    To_ID     : in  OpenToken.Token.Enumerated.Token_ID) is
 
    begin
       New_Token := Instance(Source);
@@ -66,9 +72,9 @@ package body OpenToken.Token.Nonterminal is
       when Constraint_Error =>
          Ada.Exceptions.Raise_Exception
            (Invalid_Synth_Argument'Identity,
-            "Token " & OpenToken.Token.Token_ID'Image(To_ID) & " cannot be synthesized " &
+            "Token " & OpenToken.Token.Enumerated.Token_ID'Image(To_ID) & " cannot be synthesized " &
             "solely from a " &
-            OpenToken.Token.Token_ID'Image (OpenToken.Token.ID(Source)) & "."
+            OpenToken.Token.Enumerated.Token_ID'Image (OpenToken.Token.Enumerated.ID(Source)) & "."
             );
 
    end Synthesize_By_Copying;
@@ -81,8 +87,7 @@ package body OpenToken.Token.Nonterminal is
    ----------------------------------------------------------------------------
    procedure Default_Synthesize (New_Token : out Instance;
                                  Source    : in  Token_List.Instance'Class;
-                                 To_ID     : in  OpenToken.Token.Token_ID) is
-      Checked_Source : Handle;
+                                 To_ID     : in  OpenToken.Token.Enumerated.Token_ID) is
    begin
       Synthesize_By_Copying
         (New_Token => Class(New_Token),
@@ -102,7 +107,7 @@ package body OpenToken.Token.Nonterminal is
    ----------------------------------------------------------------------------
    procedure Self_Synthesize (New_Token : out Class;
                               Source    : in  Token_List.Instance'Class;
-                              To_ID     : in  OpenToken.Token.Token_ID) is
+                              To_ID     : in  OpenToken.Token.Enumerated.Token_ID) is
    begin
       New_Token.ID := To_ID;
    end Self_Synthesize;
@@ -117,7 +122,7 @@ package body OpenToken.Token.Nonterminal is
    ----------------------------------------------------------------------------
    procedure Synthesize_From_First (New_Token : out Class;
                                     Source    : in  Token_List.Instance'Class;
-                                    To_ID     : in  OpenToken.Token.Token_ID) is
+                                    To_ID     : in  OpenToken.Token.Enumerated.Token_ID) is
 
       Checked_Source : Handle;
    begin
@@ -127,10 +132,10 @@ package body OpenToken.Token.Nonterminal is
          when Constraint_Error =>
             Ada.Exceptions.Raise_Exception
               (Invalid_Synth_Argument'Identity,
-               "Token " & OpenToken.Token.Token_ID'Image(To_ID) & " cannot be synthesized " &
+               "Token " & OpenToken.Token.Enumerated.Token_ID'Image(To_ID) & " cannot be synthesized " &
                "solely from a " &
-               OpenToken.Token.Token_ID'Image
-               (OpenToken.Token.ID
+               OpenToken.Token.Enumerated.Token_ID'Image
+               (OpenToken.Token.Enumerated.ID
                 (Token_List.Token_Handle(Token_List.Initial_Iterator(Source)).all
                  )
                 ) & "."
@@ -152,11 +157,11 @@ package body OpenToken.Token.Nonterminal is
    ----------------------------------------------------------------------------
    procedure Default_Synthesize_Class (New_Token : out Class;
                                        Source    : in  Token_List.Instance'Class;
-                                       To_ID     : in  OpenToken.Token.Token_ID) is
+                                       To_ID     : in  OpenToken.Token.Enumerated.Token_ID) is
    begin
       Default_Synthesize (New_Token => New_Token,
                           Source    => Source,
                           To_ID     => To_ID);
    end Default_Synthesize_Class;
 
-end OpenToken.Token.Nonterminal;
+end OpenToken.Token.Enumerated.Nonterminal;

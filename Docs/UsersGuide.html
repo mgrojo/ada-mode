@@ -3,7 +3,7 @@
 <head>
    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
    <meta name="Author" content="Ellie Dennison">
-   <meta name="GENERATOR" content="Mozilla/4.5 [en] (WinNT; I) [Netscape]">
+   <meta name="GENERATOR" content="Mozilla/4.72 [en] (Windows NT 5.0; I) [Netscape]">
    <title>OpenToken User's Guide</title>
 </head>
 <body>
@@ -68,6 +68,10 @@ Feeder</a></li>
 
 <ul>
 <li>
+<a href="#Table-Driven">Table-Driven Parsing</a></li>
+
+<ul>
+<li>
 <a href="#Step 1: Creating an Enumeration of">Step 1: Creating an Enumeration
 of Token IDs</a></li>
 
@@ -111,6 +115,10 @@ Text Feeder</a></li>
 <a href="#Defining the">Defining the Parser</a></li>
 </ul>
 </ul>
+
+<li>
+<a href="#Recursive Descent">Recursive Descent Parsing</a> (beta)</li>
+</ul>
 </ul>
 
 <h3>
@@ -121,7 +129,7 @@ analyzer or parser than you would with a traditional lerxer/parser generator.
 In many cases using it is just a matter of picking the right components
 and plugging them together properly.
 <p>A <i>token</i> is a consecutive sequence of characters that have a collective
-meaning. As the name implies, this utility revolves around tokens. The
+meaning. As the name implies, this facility revolves around tokens. The
 basic facilities provided are for <i><a href="#Lexical">lexical analysis</a></i>,
 which is the breaking up of a stream of text into tokens, and <i><a href="#Parsing">parsing</a></i>,
 which is the grouping of tokens into grammatical phrases.
@@ -178,19 +186,20 @@ need. But of course figuring that out is not always so simple!
 <h4>
 <a NAME="Step 2: Instantiate a token analyzer"></a>Step 2: Instantiate
 a token analyzer class</h4>
-This step is trivial. Simply instantiate the generic OpenToken.Token package
-token enumerated type. Then use that package to instantiate an OpenToken.Token.Analyzer
-package.
+This step is trivial. Simply instantiate the generic OpenToken.Token.Enumerated
+package with your enumerated type. Then use that package to instantiate
+an OpenToken.Token.Enumerated.Analyzer package.
 <br>&nbsp;
-<blockquote><tt>package Example_Token is new Opentoken.Token (Example_Token_ID);</tt>
+<blockquote><tt>package Example_Token is new Opentoken.Token.Enumerated
+(Example_Token_ID);</tt>
 <br><tt>package Tokenizer is new Example_Token.Analyzer;</tt></blockquote>
 
 <h4>
 <a NAME="Step 3: Create a token recognizers for each"></a>Step 3: Create
 a token recognizer for each token</h4>
-Each token needs a recognizer object. Recognizer objects can be created
-in one of two ways. The easy way is to use one of the recognizer classes
-in the OpenToken.Recognizer.* hierarchy of packages.
+Each enumerated token needs a recognizer object. Recognizer objects can
+be created in one of two ways. The easy way is to use one of the recognizer
+classes in the OpenToken.Recognizer.* hierarchy of packages.
 <blockquote><tt>If_Recognizer&nbsp;&nbsp; : constant Tokenizer.Recognizable_Token
 :=</tt>
 <br><tt>&nbsp;&nbsp; Tokenizer.Get(Opentoken.Recognizer.Keyword.Get ("if"));</tt>
@@ -525,8 +534,8 @@ procedure with your own version.
 Now we have our own token analyzer. To use it, all we have to do is call
 <i>Tokenizer.Find_Next
 </i>once
-for each token we want to find. <i>Tokenizer.Token</i> will return the
-ID of the token that was found. <i>Tokenizer.Lexeme</i> returns the actual
+for each token we want to find. <i>Tokenizer.ID</i> will return the ID
+of the token that was found. <i>Tokenizer.Lexeme</i> returns the actual
 string that was matched.
 <p>The full source that was used for this tutorial is available in the
 Examples/ASU_Example_3_6 directory, along with a sample input file. To
@@ -550,7 +559,17 @@ list of token recognitions.
 <br>&nbsp;
 <h3>
 <a NAME="Parsing"></a>Parsing</h3>
-The OpenToken parsing facility packages consists of 4 major parts.
+OpenToken has to facilities to support parsing. The traditional method
+is table-driven parsing, which relies on extra "non-terminal" token enumerations,
+as well as the OpenToken.Production tree of packages.
+<p>The newest method is recursive-descent parsing. This method relies on
+enumerated tokens, as well as non-enumerated tokens from the OpenToken.Token
+hierarchy.
+<br>&nbsp;
+<h4>
+<a NAME="Table-Driven"></a>Table-Driven Parsing</h4>
+The OpenToken table-driven parsing facility packages consists of 4 major
+parts.
 <ol>
 <li>
 The lexical analyzer packages</li>
@@ -564,7 +583,7 @@ Tokens</li>
 <li>
 A list of productions (aka: a Grammar)</li>
 </ol>
-There are four basic phases to creating your own parser with OpenToken
+There are five basic phases to creating your own parser with OpenToken
 <ol>
 <li>
 <a href="#Step 1: Creating an Enumeration of">Create an enumeration</a>
@@ -591,9 +610,9 @@ the dragon book.<sup><a href="#*">*</a></sup>:
 <br><tt>R&nbsp; -> L</tt></blockquote>
 For our implementation we will also use two extra tokens to designate the
 end of the file, and whitespace in the text stream.
-<h4>
+<h5>
 <a NAME="Step 1: Creating an Enumeration of"></a>Step 1: Creating an Enumeration
-of Token IDs</h4>
+of Token IDs</h5>
 This step is the same as outlined in the previous section, with one twist:
 No longer do we just need to identify ID's of tokens that will physically
 appear in the input (aka: "terminals"). We will also have to identify ID's
@@ -608,20 +627,20 @@ need. But of course figuring that out is not always so simple!
 <br>Just like any other program, you cannot expect to sit down at the keyboard
 and pound out a well-working parser without doing any design beforehand.
 <br>&nbsp;
-<h4>
+<h5>
 <a NAME="Step 2: Instantiate Your Token"></a>Step 2: Instantiate Your Token
-Packages</h4>
+Packages</h5>
 This step is much like step 2 in the previous section, except that now
 there are a whole lot more packages to instantiate. Start by instantiating
-the generic OpenToken.Token package with the token enumerated type. Then
-use that package to instantiate an OpenToken.Token.Analyzer package. You
-may have noticed before that the Analyzer package has a generic parameter
-and wondered why it wasn't mentioned. Its purpose is to designate to the
-analyzer which Token ID enumeration is the <i>last</i> terminal. The analyzer
-doesn't care about nonterminals because they won't be found in the input
-stream.
+the generic OpenToken.Token.Enumerated package with the token enumerated
+type. Then use that package to instantiate an OpenToken.Token.Enumerated.Analyzer
+package. You may have noticed before that the Analyzer package has a generic
+parameter and wondered why it wasn't mentioned. Its purpose is to designate
+to the analyzer which Token ID enumeration is the <i>last</i> terminal.
+The analyzer doesn't care about nonterminals because they won't be found
+in the input stream.
 <br>&nbsp;
-<blockquote><tt>package Master_Token is new OpenToken.Token(Token_IDs);</tt>
+<blockquote><tt>package Master_Token is new OpenToken.Token.Enumerated(Token_IDs);</tt>
 <br><tt>package Tokenizer is new Master_Token.Analyzer(Whitespace_ID);</tt></blockquote>
 Next you will need to use the instantiated token package to create a token
 list package for use in creating productions. That package is also used
@@ -651,8 +670,8 @@ want to perform a few use type's</tt>
 <br><tt>use type Production.Instance;</tt>
 <br><tt>use type Production_List.Instance;</tt></blockquote>
 
-<h4>
-<a NAME="Step 3: Create the"></a>Step 3: Create the Tokens</h4>
+<h5>
+<a NAME="Step 3: Create the"></a>Step 3: Create the Tokens</h5>
 Next we need to declare token variables for all our tokens that will appear
 in a production. Unreported tokens, like the Whitespace token in this example,
 can just as easily be created on the fly in the next step. The terminals
@@ -673,9 +692,9 @@ Master_Token.Get (ID_ID);</tt>
 := Nonterminal.Get (R_ID);</tt>
 <br><tt>S_Prime : aliased Nonterminal.Class&nbsp; := Nonterminal.Get (S_Prime_ID);</tt></blockquote>
 
-<h4>
+<h5>
 <a NAME="Step 4: Map the Terminal Token ID's to their"></a>Step 4: Map
-the Terminal Token ID's to their recognizers and tokens</h4>
+the Terminal Token ID's to their recognizers and tokens</h5>
 An object of type <i>Tokenizer.Syntax</i> must now be initialized. This
 object will map all Terminal token ID's to both their recognizer and their
 token object. The routine Tokenizer.Get creates a structure (called a <i>Recognizable_Token</i>)
@@ -708,12 +727,12 @@ New_Token&nbsp; => EOF),</tt>
 <br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (OpenToken.Recognizer.Character_Set.Standard_Whitespace))</tt>
 <br><tt>&nbsp;&nbsp; );</tt></blockquote>
 
-<h4>
-<a NAME="Step 5: Define a Lexical"></a>Step 5: Define a Lexical Analyzer</h4>
-
 <h5>
+<a NAME="Step 5: Define a Lexical"></a>Step 5: Define a Lexical Analyzer</h5>
+
+<h6>
 <a NAME="Advanced: Declaring a Custom Text"></a>Advanced: Declaring a Custom
-Text Feeder</h5>
+Text Feeder</h6>
 In this case we would like to use a text feeder tied to our own file, rather
 than <i>Ada.Text_IO.Current_Input</i>. To do this, first declare an (aliased)
 object to serve as the file for <i>Text_IO.Open</i>s and <i>Close</i>s.
@@ -733,8 +752,8 @@ the previous example. Yes, there were a lot more packages to instantiate,
 and that bit about creating tokens was new. But still most of the steps
 were familiar, and the result is pretty much the same so far: an analyzer.
 With the next step this will start to change, so get ready. Here it comes...
-<h4>
-<a NAME="Step 6: Creating a"></a>Step 6: Creating a Grammar</h4>
+<h5>
+<a NAME="Step 6: Creating a"></a>Step 6: Creating a Grammar</h5>
 A <i>grammar</i> is a notation for describing how the tokens of the language
 interrelate. Another way of looking at it is that it is a way of describing
 a language in terms of its tokens.
@@ -789,8 +808,8 @@ R + Nonterminal.Synthesize_Self and</tt>
 and</tt>
 <br><tt>&nbsp; R&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;= L;</tt></blockquote>
 
-<h4>
-<a NAME="Step 7: Generating a"></a>Step 7: Generating a parser</h4>
+<h5>
+<a NAME="Step 7: Generating a"></a>Step 7: Generating a parser</h5>
 Now that we have a grammar defined, we can use it to generate a parser.
 For this example we will use the lalr(1) parser type in our instantiation
 of OpenToken.Production.Parser.LALR. We just declare an object of that
@@ -804,8 +823,8 @@ Analyzer => Analyzer</tt>
 <br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 );</tt></blockquote>
 
-<h4>
-<a NAME="Parser Use"></a>Use</h4>
+<h5>
+<a NAME="Parser Use"></a>Use</h5>
 To use the parser, we just call its Parse routine, and the parser will
 handle the rest. For our example program we want to first open up the file
 that the token analyzer's text feeder uses.
@@ -824,8 +843,8 @@ Mode => Ada.Text_IO.In_File</tt>
 <p><tt>&nbsp;&nbsp; LALR_Parser.Parse (Test_Parser);</tt>
 <br>&nbsp;</blockquote>
 
-<h4>
-<a NAME="Synthesized"></a>Synthesized Attributes</h4>
+<h5>
+<a NAME="Synthesized"></a>Synthesized Attributes</h5>
 So now that you can create a parser, lets look at how you get it to <i>do
 </i>something.
 <p>If you take a peek at one of the Token.Nonterminal packages, you will
@@ -858,8 +877,8 @@ a constraint error if the source token isn't in the target token's class.
 from the Dragon Book. Example 5.10 defines a simple desk calculator. It
 has addition and multiplication operators, as well as parenthesis for association.
 <br>&nbsp;
-<h5>
-<a NAME="Custom"></a>Custom Nonterminals</h5>
+<h6>
+<a NAME="Custom"></a>Custom Nonterminals</h6>
 First off, we need to create a custom integer-valued nonterminal, as OpenToken
 currently doesn't have such a thing in its nonterminal library. We do that
 by creating a new type derived from Nonterminal. Since we want it in its
@@ -1136,8 +1155,8 @@ Token.Token_ID'Image</tt>
 <p><tt>end Simple_Integer_Token;</tt>
 <br>&nbsp;</blockquote>
 
-<h5>
-<a NAME="Defining the"></a>Defining the Parser</h5>
+<h6>
+<a NAME="Defining the"></a>Defining the Parser</h6>
 So now that we have declared our custom Nonterminal token, let's define
 a parser. The first few steps are very much as they were in the previous
 example. The description of the grammar from the dragon book that we are
@@ -1231,6 +1250,260 @@ When this code is run and the user types in
 The program responds with
 <blockquote><tt>57</tt></blockquote>
 
+<h4>
+<a NAME="Recursive Descent"></a>Recursive Descent Parsing</h4>
+When using this kind of parsing, you should consider a Token to be a parsable
+entity. Each token has Parse routine which verifies that the input contains
+a valid version of that token. A Token is either made up of combinations
+of other tokens, or comes from the lexical analyzer directly (a "terminal"
+token). So the entire language that your parser handles is itself one big
+Token. Your job as a language designer is to define how your language's
+token breaks down into its terminal tokens.
+<p>Although there is this division between terminal and non-terminal tokens,
+there really aren't a lot of separate parts and facilities to a recursive-decent
+parser. Terminal tokens are parsed by reading them from the analyzer, while
+non-terminals are parsed by looking for the right combination of other
+tokens. But parsing is just an activity that is performed on tokens, and
+everything is a token.
+<p>This conceptual simplification should bring you a lot more freedom.
+You could take an existing parser and:
+<ul>
+<li>
+reuse some of its existing tokens in another parser.</li>
+
+<li>
+add a new token or two to it to extend the token's language.</li>
+
+<li>
+extend some of its tokens with new attributes and action routines so that
+it parses the same language, but gathers different information in the process.</li>
+</ul>
+
+<p><br>The general process you follow in creating a recursive descent parser
+is:
+<ul>
+<li>
+<a href="#Step 1: Creating an Enumeration of">Create an enumeration</a>
+listing all your tokens.</li>
+
+<li>
+Specify your tokens using an enumeration of token IDs, and actual token
+objects.</li>
+
+<li>
+Create the lexical analyzer.</li>
+
+<li>
+Create a token to represent your entire language.</li>
+
+<li>
+(Iterative) Create any tokens you need to represent the token(s) you created
+in the previous step</li>
+</ul>
+For our example this time, we will assume the grammar in Example 4.46 of
+the dragon book.<sup><a href="#*">*</a></sup>:
+<blockquote><tt>S' -> S</tt>
+<br><tt>S&nbsp; -> L = R | R</tt>
+<br><tt>L&nbsp; -> * R | id</tt>
+<br><tt>R&nbsp; -> L</tt></blockquote>
+For our implementation we will also use two extra tokens to designate the
+end of the file, and whitespace in the text stream.
+<h5>
+Step 1: Creating an Enumeration of Token IDs</h5>
+This step is the same as outlined in the <a href="#Lexical">section on
+lexical analysis</a>.
+<blockquote><tt>type Token_IDs is (Asterix_ID, ID_ID, Equals_ID, EOF_ID,
+Whitespace_ID);</tt></blockquote>
+Again, this is a very simple step once you know the list of tokens you
+need. But of course figuring that out is not always so simple!
+<br>Just like any other program, you cannot expect to sit down at the keyboard
+and pound out a well-working parser without doing any design beforehand.
+<h5>
+Step 2: Instantiate Your Token Packages</h5>
+This step is the same as outlined in the <a href="#Lexical">section on
+lexical analysis</a> (and is still trivial). Simply instantiate the generic
+OpenToken.Token.Enumerated package with your enumerated type. Then use
+that package to instantiate an OpenToken.Token.Enumerated.Analyzer package.
+<blockquote><tt>package Master_Token is new Opentoken.Token.Enumerated
+(Token_IDs);</tt>
+<br><tt>package Tokenizer is new Master_Token.Analyzer;</tt></blockquote>
+
+<h5>
+Step 3: Map the Terminal Token ID's to their recognizers and tokens</h5>
+An object of type <i>Tokenizer.Syntax</i> must now be initialized. This
+object will map all Terminal token ID's to both their recognizer and their
+token object. The routine Tokenizer.Get creates a structure (called a <i>Recognizable_Token</i>)
+which can be assigned into an analyzer syntax element to create the mapping.
+<p>Additionally, there's a special version of the <i>Get</i> routine which
+has no <i>New_Token</i> parameter. This form can be used to create a mapping
+without first creating a token object. This saves us some work, at the
+expense of a little heap storage. A Master_Token.Instance will be dynamically
+allocated and assigned into the mapping.
+<blockquote><tt>Syntax : constant Tokenizer.Syntax :=</tt>
+<br><tt>&nbsp; (Asterix_ID&nbsp;&nbsp;&nbsp; => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get
+("*")),</tt>
+<br><tt>&nbsp;&nbsp; ID_ID&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+=> Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("id")),</tt>
+<br><tt>&nbsp;&nbsp; Equals_ID&nbsp;&nbsp;&nbsp;&nbsp; => Tokenizer.Get
+(OpenToken.Recognizer.Keyword.Get ("=")),</tt>
+<br><tt>&nbsp;&nbsp; EOF_ID&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =>
+Tokenizer.Get (OpenToken.Recognizer.End_Of_File.Get),</tt>
+<br><tt>&nbsp;&nbsp; Whitespace_ID => Tokenizer.Get (OpenToken.Recognizer.Character_Set.Get</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+(OpenToken.Recognizer.Character_Set.Standard_Whitespace))</tt>
+<br><tt>&nbsp;&nbsp; );</tt></blockquote>
+
+<h5>
+Step 4: Create the Tokens</h5>
+Next we need to declare token handles for all our tokens. The terminals
+can simply be assigned straight out of the Syntax (a renames would probably
+work just as well). The nonterminals could be initialized later, but since
+they will always point to the same token objects, we will save space and
+initialize them now. If you initialize them here, you will want to do so
+with the token type that they will be using. In later steps you will see
+why the instance types I chose below were used. If you remember the example
+we are using, the names of the nonterminal tokens (the ones on the left
+side of a production) were S', S, L, and R. So following is their declarations:
+<blockquote><tt>S_Prime :&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+OpenToken.Token.Handle;</tt>
+<br><tt>S&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; : constant OpenToken.Token.Handle
+:= new OpenToken.Token.Selection.Instance;</tt>
+<br><tt>L&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; : constant OpenToken.Token.Handle
+:= new OpenToken.Token.Selection.Instance;</tt>
+<br><tt>R&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; : constant OpenToken.Token.Handle
+:= new OpenToken.Token.Selection.Instance;</tt></blockquote>
+Later I will also explain why S_Prime is not initialized and the others
+are.
+<blockquote>&nbsp;</blockquote>
+
+<h5>
+Step 5: Define a Lexical Analyzer</h5>
+
+<h6>
+Advanced: Declaring a Custom Text Feeder</h6>
+In this case we would like to use a text feeder tied to our own file, rather
+than <i>Ada.Text_IO.Current_Input</i>. To do this, first declare an (aliased)
+object to serve as the file for <i>Text_IO.Open</i>s and <i>Close</i>s.
+Then declare an <i>OpenToken.Text_Feeder.Text_IO.Instance</i>. Initialize
+the text feeder with the <i>Create</i> routine, using the file object as
+the <i>File_Ptr</i>.
+<blockquote><tt>Input_File : aliased Ada.Text_IO.File_Type;</tt>
+<br><tt>Feeder&nbsp;&nbsp;&nbsp;&nbsp; : aliased OpenToken.Text_Feeder.Text_IO.Instance
+:=</tt>
+<br><tt>&nbsp; OpenToken.Text_Feeder.Text_IO.Create (Input_File'Unchecked_Access);</tt></blockquote>
+Now to create the analyzer itself, we just make an object of type <i>Tokenizer.Instance</i>,
+and initialize it with our syntax and text feeder. This is trivial.
+<blockquote><tt>Analyzer : Tokenizer.Instance := Tokenizer.Initialize (Syntax,
+Feeder'access);</tt></blockquote>
+In this example program, we're going to be reading from a set filename.
+Let's also define that filename here in a constant, so its easy to change:
+<blockquote><tt>Test_File_Name : constant String := "Example.txt";</tt></blockquote>
+So far this should have all looked pretty familiar if you have gone through
+the first example. That bit about creating tokens was new. But still most
+of the steps were familiar, and the result is pretty much the same so far:
+an analyzer. With the next step this will start to change, so get ready.
+Here it comes...
+<br>&nbsp;
+<h5>
+Step 6: Define the top-level (Language) token:</h5>
+Let's recall the first (top-level) production in our language's grammar.
+It was:
+<blockquote><tt>S' -> S</tt></blockquote>
+Now you may think this looks like a pretty silly rule. Well, you're absolutely
+right, it is a silly rule! It was artificially put into this example in
+order to make a table parser building algorithm work right. We are using
+a table to parse, so its really just a waste. The smart thing to do would
+be to just ditch this rule and start with S. But that wouldn't exactly
+be playing fair, because then we aren't really doing anything for the production.
+We could create a token that just looks for an S token when it parses.
+But that's really a bit of a waste of time.
+<p>So what we will do is just make S_Prime point to the same object as
+S:
+<blockquote><tt>S_Prime := S;</tt></blockquote>
+Incidentally, this is the reason we didn't make an object for S_Prime,
+like we did for the others.
+<br>&nbsp;
+<h5>
+Step 7: Define an undefined token used in a previous step</h5>
+We used S in the previous step. Its grammar rule was:
+<blockquote><tt>S&nbsp; -> L = R | R</tt></blockquote>
+Note that since this it the top level token, there is an implied EOF token
+at the end of the production. So in other words, it is <b>either</b> the
+sequence of tokens L, =, R, and EOF <b>or</b> it is a sequence of an R
+and an EOF token. We could craft a custom token with a parser that recognizes
+that pattern. But a sequence of tokens, and a selection between tokens
+happen to be very common token types. For that reason there are prebuilt
+Token.Sequence and Token.Selection tokens. Using those packages (with appropriate
+"use type" declarations of course), we can define S thusly:
+<blockquote><tt>S.all&nbsp;&nbsp; := OpenToken.Token.Selection.Class</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+(OpenToken.Token.Sequence.New_Instance(L &amp; Equals &amp; R &amp; EOF)
+or</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+OpenToken.Token.Sequence.New_Instance(R &amp; EOF));</tt></blockquote>
+
+<h5>
+Step 8: Define an undefined token used in a previous step</h5>
+We used the nonterminal tokens L and R in the previous step. Let's define
+L next. Its production was:
+<blockquote><tt>L&nbsp; -> * R | id</tt></blockquote>
+That's either a sequnce of * and R, or an id. Using the same two prebuilt
+tokens, we get:
+<blockquote><tt>L.all&nbsp;&nbsp; := OpenToken.Token.Selection.Class</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+(OpenToken.Token.Sequence.New_Instance(Asterix &amp; R) or ID);</tt></blockquote>
+
+<h5>
+Step 9: Define an undefined token used in a previous step</h5>
+The only remaining undefined token is R, so we'll finish with it. Its production
+was:
+<blockquote><tt>R&nbsp; -> L</tt></blockquote>
+Here is another of those silly identity productions again. But let's try
+another tactic this time and make a separate R token that is a copy of
+the L token.
+<blockquote><tt>R.all&nbsp;&nbsp; := L.all;</tt></blockquote>
+Use
+<p>To use the parser, we just call the top-level token's Parse routine.
+All our token's built-in parse routines will handle the rest. For our example
+program we want to first open up the file that the token analyzer's text
+feeder uses. Then we must call the token analyzer once to load up the first
+token. Token parser routines assume the currently loaded token is the first
+one they are to look at.
+<blockquote><tt>Ada.Text_IO.Open (File => Input_File,</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Name => Test_File_Name,</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Mode => Ada.Text_IO.In_File</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+);</tt><tt></tt>
+<p><tt>-- Load up the first token</tt>
+<br><tt>Tokenizer.Find_Next (Analyzer);</tt><tt></tt>
+<p><tt>OpenToken.Token.Parse</tt>
+<br><tt>&nbsp; (Match&nbsp;&nbsp;&nbsp; => S_Prime.all,</tt>
+<br><tt>&nbsp;&nbsp; Analyzer => Analyzer</tt>
+<br><tt>&nbsp;&nbsp; );</tt></blockquote>
+That's it! If you want to perform error handling, you may consider adding
+something like the following exception handler:
+<blockquote><tt>exception</tt>
+<br><tt>&nbsp;&nbsp; when Error : OpenToken.Token.Parse_Error =></tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Ada.Text_IO.Put_Line ("failed at
+line" &amp; Integer'Image(Tokenizer.Line (Analyzer)) &amp;</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+", column" &amp; Integer'Image(Tokenizer.Column (Analyzer)) &amp;</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+" due to parse exception:");</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information
+(Error));</tt></blockquote>
+
+<h5>
+Caveats:</h5>
+Note that recursive descent parsers do not handle "left-recursion" very
+well. This is a situation where the definition of a token has that same
+token as its first possiblity. This would normally cause infinite recursion
+in the parser. If you are implementing the parse routine yourself, this
+situation is quite obvious, but its something to be aware of when using
+a prebuilt Token package.
+<p>
 <hr WIDTH="100%"><a NAME="*"></a><sup>*</sup>&nbsp; This is the classic
 text on compiler theory. Note that for this example we have some minor
 modifications to the syntax to keep things simple. For instance, the "num"
@@ -1246,11 +1519,19 @@ in ASD, but we will leave that as an exercise for the reader.
 <hr WIDTH="100%">
 <h3>
 Revisions</h3>
-$Log: UsersGuide.html,v $
-Revision 1.3  2000/01/27 21:08:56  Ted
-Add two examples to illustrate the new parsing facility.
-Spell check.
- Revision 1.2 1999/08/17 03:21:41 Ted Add log
-line
+
+<pre><font size=-1>$Log: UsersGuide.html,v $
+<pre><font size=-1>Revision 1.5  2000/08/14 03:05:08  Ted
+<pre><font size=-1>Add recursive-descent example for 3.0b release
+<pre><font size=-1></font></pre>
+
+<pre><font size=-1>Revision 1.4&nbsp; 2000/02/05 04:08:10&nbsp; Ted</font></pre>
+
+<pre><font size=-1>Fix typo</font></pre>
+
+<pre><font size=-1>Revision 1.3 2000/01/27 21:08:56 Ted Add two examples to illustrate the new parsing facility. Spell check.</font></pre>
+
+<pre><font size=-1>Revision 1.2 1999/08/17 03:21:41 Ted Add log line</font></pre>
+
 </body>
 </html>

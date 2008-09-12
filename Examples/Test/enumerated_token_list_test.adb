@@ -25,7 +25,10 @@
 -- Maintainer: Ted Dennison (dennison@telepath.com)
 --
 -- Update History:
--- $Log: token_list_test.adb,v $
+-- $Log: enumerated_token_list_test.adb,v $
+-- Revision 1.1  2000/08/12 21:24:57  Ted
+-- moved from token_list_test
+--
 -- Revision 1.1  2000/01/27 21:06:23  Ted
 -- A test to verify that token lists a handled correctly.
 --
@@ -43,7 +46,7 @@ with OpenToken.Recognizer.Real;
 -------------------------------------------------------------------------------
 -- Test driver for the token list handling code.
 -------------------------------------------------------------------------------
-procedure Token_List_Test is
+procedure Enumerated_Token_List_Test is
 begin
 
    ----------------------------------------------------------------------------
@@ -100,4 +103,4 @@ begin
          Ada.Text_IO.Put_Line ("passed");
       end if;
    end Test_Case_1;
-end Token_List_Test;
+end Enumerated_Token_List_Test;

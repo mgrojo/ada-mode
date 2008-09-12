@@ -26,6 +26,9 @@
 --
 -- Update History:
 -- $Log: opentoken-text_feeder-text_io.ads,v $
+-- Revision 1.2  2000/02/05 04:00:21  Ted
+-- Added End_Of_Text to support analyzing binaries.
+--
 -- Revision 1.1  2000/01/27 20:54:44  Ted
 -- A text feeder based on Text_IO files.
 --
@@ -66,11 +69,18 @@ package OpenToken.Text_Feeder.Text_IO is
                   New_Text :    out String;
                   Text_End :    out Integer);
 
+   ----------------------------------------------------------------------------
+   -- Return True if there is no more text to process. For this feeder, that
+   -- happens when we are at the end of the file.
+   ----------------------------------------------------------------------------
+   function End_Of_Text (Feeder : Instance) return Boolean;
+
 private
    Nothing : constant Character := Character'Val(0);
 
    type Instance is new OpenToken.Text_Feeder.Instance with record
       File     : Ada.Text_IO.File_Access := Ada.Text_IO.Current_Input;
+      Ended    : Boolean := False;
    end record;
 
 end OpenToken.Text_Feeder.Text_IO;

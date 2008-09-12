@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 1999 Christoph Karl Walter Grein
+-- Copyright (C) 1999, 2000 Christoph Karl Walter Grein
 --
 -- This file is part of the OpenToken package.
 --
@@ -26,6 +26,9 @@
 --
 -- Update History:
 -- $Log: html_lexer.ads,v $
+-- Revision 1.2  2000/08/06 23:37:55  Ted
+-- Change to work w/ new package hierarchy
+--
 -- Revision 1.1  1999/12/27 21:41:57  Ted
 -- Merged into OpenToken baseline
 --
@@ -39,68 +42,73 @@
 
 with Ada.Strings.Unbounded;
 
+with OpenToken.Text_Feeder.Text_IO;
+
+pragma Elaborate_All (Opentoken.Text_Feeder.Text_IO);
+
 package HTML_Lexer is
 
-   ------------------------------------------------------------------------
-   -- This ia a lexical analyser for the HTML language.
-   --
-   --   <Tag Attribute=Value Attribute="String"> Text with &entity; </Tag>
-   --
-   -- This very first version is not complete. It simply serves as a
-   -- demonstration of feasibility.
-   ------------------------------------------------------------------------
+  ------------------------------------------------------------------------
+  -- This ia a lexical analyser for the HTML language.
+  --
+  --   <Tag Attribute=Value Attribute="String"> Text with &entity; </Tag>
+  --
+  -- This very first version is not complete. It simply serves as a
+  -- demonstration of feasibility.
+  ------------------------------------------------------------------------
 
-   type Token_Name is (-- Document Type Declaration <!DOCTYPE ... >
-                       Document_Type,
-                       -- Tag delimiters
-                       Start_Tag_Opener,  -- <
-                       End_Tag_Opener,    -- </
-                       Tag_Closer,        -- >
-                       -- Tags (without delimiters, ... standing for attributes)
-                       HTML,              -- <HTML ...>
-                       Head,              -- <HEAD ...>
-                       Meta,              -- <META ...>
-                       HTML_Body,         -- <BODY ...>
-                       Heading_1,         -- <H1 ...>
-                       Anchor,            -- <A ...>
-                       Image,             -- <IMG ...>
-                       -- add further tags here
-                       -- Attributes (without = and following value)
-                       Content,           -- CONTENT=
-                       Hyper_Reference,   -- HREF=
-                       Name,              -- NAME=
-                       Link_Type,         -- TYPE=
-                       Title,             -- TITLE=
-                       -- add further attributes here
-                       -- The assignment character in attributes
-                       Assignment,        -- =
-                       -- Values (the right side of assignments)
-                       Value,             -- unquoted
-                       String,            -- "quoted"
-                       -- Comments <!-- anything -->
-                       Comment,
-                       -- Running text and entities like &amp;
-                       Text, Entity,
-                       -- Syntax error
-                       Bad_Token,
-                       --
-                       End_Of_File);
+  type Token_Name is (-- Syntax error
+                      Bad_Token,
+                      -- Comments <!-- anything -->
+                      Comment,
+                      Whitespace,
+                      -- Document Type Declaration <!DOCTYPE attributes>
+                      Document_Type,
+                      -- Tag delimiters
+                      Start_Tag_Opener,  -- <
+                      End_Tag_Opener,    -- </
+                      Tag_Closer,        -- >
+                      -- Tags (without delimiters), not all tags may have
+                      -- attributes
+                      HTML,              -- <HTML attributes>
+                      Head,              -- <HEAD attributes>
+                      Title,             -- <TITLE attributes>
+                      Meta,              -- <META attributes>
+                      HTML_Body,         -- <BODY attributes>
+                      Heading_1,         -- <H1 attributes>
+                      Anchor,            -- <A attributes>
+                      Image,             -- <IMG attributes>
+                         -- add further tags here
+                      -- Attributes (Attribute=value)
+                      Content,           -- CONTENT
+                      Hyper_Reference,   -- HREF
+                      Name,              -- NAME
+                      Link_Type,         -- TYPE
+                        -- add further attributes here
+                      -- The assignment character in attributes
+                      Assignment,        -- =
+                      -- Values (the right side of assignments)
+                      Value,             -- unquoted
+                      String,            -- "quoted"
+                      -- Running text and entities like &amp;
+                      Text, Entity,
+                      --
+                      End_Of_File);
 
-   procedure Initialize (File_Name: Standard.String);
+  procedure Initialize (Input_Feeder: in OpenToken.Text_Feeder.Text_IO.Instance);
 
-   type HTML_Token is private;
+  type HTML_Token is private;
 
-   function Next_Token return HTML_Token;
+  function Next_Token return HTML_Token;
 
-   function Name   (Token: HTML_Token) return Token_Name;
-   function Lexeme (Token: HTML_Token) return Standard.String;
+  function Name   (Token: HTML_Token) return Token_Name;
+  function Lexeme (Token: HTML_Token) return Standard.String;
 
 private
 
-   type HTML_Token is record
-      Name : Token_Name;
-      Lexeme : Ada.Strings.Unbounded.Unbounded_String;
-      -- more components as needed
-   end record;
+  type HTML_Token is record
+     Name  : Token_Name;
+     Lexeme: Ada.Strings.Unbounded.Unbounded_String;
+  end record;
 
 end HTML_Lexer;

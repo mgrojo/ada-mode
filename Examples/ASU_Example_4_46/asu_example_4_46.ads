@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 1999 Ted Dennison
+-- Copyright (C) 2000 Ted Dennison
 --
 -- This file is part of the OpenToken package.
 --
@@ -25,19 +25,18 @@
 -- Maintainer: Ted Dennison (dennison@telepath.com)
 --
 -- Update History:
--- $Log: ASU_Example_4_46.adb,v $
--- Revision 1.1  2000/01/27 21:01:18  Ted
--- An implementation of example 4.46 from the dragon book
+-- $Log: asu_example_4_46.ads,v $
+-- Revision 1.1  2000/08/12 16:07:40  Ted
+-- Initial version
 --
 --
 -------------------------------------------------------------------------------
 with Ada.Text_IO;
 with OpenToken.Text_Feeder.Text_IO;
-with OpenToken.Token;
-with OpenToken.Token.List;
-with OpenToken.Token.Analyzer;
-with OpenToken.Token.Nonterminal;
-with OpenToken.Production;
+
+with OpenToken.Token.Enumerated.List;
+with OpenToken.Token.Enumerated.Analyzer;
+with OpenToken.Token.Enumerated.Nonterminal;
 with OpenToken.Production.List;
 with OpenToken.Production.Parser;
 with OpenToken.Production.Parser.LALR;
@@ -46,18 +45,13 @@ with OpenToken.Recognizer.Keyword;
 with OpenToken.Recognizer.End_Of_File;
 with OpenToken.Recognizer.Character_Set;
 
--------------------------------------------------------------------------------
--- This example is an implementation of Example 4.46 from "Compilers
--- Principles, Techniques, and Tools" by Aho, Sethi, and Ullman (aka: "The
--- Dragon Book"). It demonstrates basic LALR(1) parsing
--------------------------------------------------------------------------------
-procedure ASU_Example_4_46 is
+package ASU_Example_4_46 is
 
    -- The complete list of tokens, with the terminals listed first.
    type Token_IDs is (Asterix_ID, ID_ID, Equals_ID, EOF_ID, Whitespace_ID, S_ID, L_ID, R_ID, S_Prime_ID);
 
    -- Instantiate all the nessecary packages
-   package Master_Token is new OpenToken.Token(Token_IDs);
+   package Master_Token is new OpenToken.Token.Enumerated(Token_IDs);
    package Tokenizer is new Master_Token.Analyzer(Whitespace_ID);
    package Token_List is new Master_Token.List;
    package Nonterminal is new Master_Token.Nonterminal(Token_List);
@@ -71,11 +65,6 @@ procedure ASU_Example_4_46 is
    use type Production.Right_Hand_Side;
    use type Production.Instance;
    use type Production_List.Instance;
-
-   -- Create a text feeder for our Input_File.
-   Input_File : aliased Ada.Text_IO.File_Type;
-   Feeder     : aliased OpenToken.Text_Feeder.Text_IO.Instance :=
-     OpenToken.Text_Feeder.Text_IO.Create (Input_File'Unchecked_Access);
 
    -- Define all our tokens
    Asterix : aliased Master_Token.Class := Master_Token.Get (Asterix_ID);
@@ -103,8 +92,6 @@ procedure ASU_Example_4_46 is
                                       (OpenToken.Recognizer.Character_Set.Standard_Whitespace))
       );
 
-   Analyzer : Tokenizer.Instance := Tokenizer.Initialize (Syntax, Feeder'access);
-
    --------------------------------------------------------------------------
    -- Define the Grammar. The text in the example in the book looks something
    -- like:
@@ -122,30 +109,13 @@ procedure ASU_Example_4_46 is
      L       <= ID + Nonterminal.Synthesize_Self and
      R       <= L;
 
+   -- Create a text feeder for our Input_File.
+   Input_File : aliased Ada.Text_IO.File_Type;
+   Feeder     : aliased OpenToken.Text_Feeder.Text_IO.Instance :=
+     OpenToken.Text_Feeder.Text_IO.Create (Input_File'Unchecked_Access);
 
-   -- The lalr parser instance.
-   Test_Parser : LALR_Parser.Instance :=
-     LALR_Parser.Generate (Grammar  => Grammar,
-                           Analyzer => Analyzer
-                           );
+   Analyzer : Tokenizer.Instance := Tokenizer.Initialize (Syntax, Feeder'access);
 
-   Test_File_Name : constant String := "Example.txt";
-begin
-
-   Ada.Text_IO.Put ("Parsing file " & Test_File_Name & "...");
-   Ada.Text_IO.Flush;
-
-   Ada.Text_IO.Open (File => Input_File,
-                     Name => Test_File_Name,
-                     Mode => Ada.Text_IO.In_File
-                     );
-
-   -- Uncomment the following line to get a look at the parser
---   LALR_Parser.Print_Table (Test_Parser);
-
-   LALR_Parser.Parse (Test_Parser);
-
-   Ada.Text_IO.Put_Line ("passed");
 end ASU_Example_4_46;
 
 

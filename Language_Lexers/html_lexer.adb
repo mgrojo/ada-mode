@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 1999 Christoph Karl Walter Grein
+-- Copyright (C) 1999, 2000 Christoph Karl Walter Grein
 --
 -- This file is part of the OpenToken package.
 --
@@ -26,6 +26,9 @@
 --
 -- Update History:
 -- $Log: html_lexer.adb,v $
+-- Revision 1.3  2000/08/07 00:22:54  Ted
+-- Change to work w/ new package hierarchy
+--
 -- Revision 1.2  2000/01/27 21:21:39  Ted
 -- Fix to work with new text feeder routines
 --
@@ -37,220 +40,163 @@
 --
 -------------------------------------------------------------------------------
 
-with Ada.Text_Io;
+with Ada.Strings.Maps.Constants;
 
-with OpenToken.Text_Feeder.Text_IO;
-with OpenToken.Text_Feeder.String;
+with OpenToken.Token.Enumerated.Analyzer;
 
-with HTML_Lexer.Basic, HTML_Lexer.Tags;
+with Opentoken.Recognizer.Keyword, Opentoken.Recognizer.Separator;
+with Opentoken.Recognizer.String;
+with Opentoken.Recognizer.Character_Set, Opentoken.Recognizer.HTML_Entity;
+with Opentoken.Recognizer.Bracketed_Comment;
+with Opentoken.Recognizer.Nothing;
+with Opentoken.Recognizer.End_Of_File;
+
+pragma Elaborate_All (Opentoken.Token.Enumerated, Opentoken.Token.Enumerated.Analyzer,
+                      Opentoken.Recognizer.Keyword, Opentoken.Recognizer.Separator,
+                      Opentoken.Recognizer.String,
+                      Opentoken.Recognizer.Character_Set, Opentoken.Recognizer.HTML_Entity,
+                      Opentoken.Recognizer.Bracketed_Comment,
+                      Opentoken.Recognizer.Nothing,
+                      Opentoken.Recognizer.End_Of_File);
 
 package body HTML_Lexer is
 
-   -----------------------------------------------------------------------
-   -- This package has been implemented as a test of feasibility.
-   -- The implementation is open to improvements.
-   -----------------------------------------------------------------------
-   -- HTML syntax is very different from Ada or Java syntax. This is an
-   -- abbreviated excerpt of the HTML 4.0 Reference.
-   --
-   --    Elements are the structures that describe parts of an HTML
-   --    document ... An element has three parts: a start tag, content,
-   --    and an end tag. A tag is special text--"markup"--that is
-   --    delimited by "<" and ">". An end tag includes a "/" after the
-   --    "<" ... The start and end tags surround the content of the
-   ---   element:
-   --       <EM>This is emphasized text</EM>
-   --    ... An element's attributes define various properties for the
-   --    element ...
-   --
-   --       <IMG SRC="wdglogo.gif" ALT="Web Design Group">
-   --
-   --    An attribute is included in the start tag only--never the end
-   --    tag--and takes the form Attribute-name="Attribute-value".
-   --
-   -- Thus the text between tokens is arbitrary and need not be analysed.
-   -- In fact the whole text between tags is treated as a token of its
-   -- own.
-   -- Inside tags, however, we want to analyse for tag names, attribute
-   -- names and attribute values.
-   -- Thus we have to analyse the HTML document after an opening "<" and
-   -- stop after a closing ">". With OpenToken, however, it is not so easy
-   -- to analyse depending on the history.
-   --
-   -- So the idea is the following:
-   -- A basic tokenizer first splits the document into "tags" (everything
-   -- between matching delimiters "<" and ">") and "text" (everything
-   -- between two consecutive tags).
-   -- Then a tag tokenizer analyses the contents of the tags.
-   -----------------------------------------------------------------------
+  -----------------------------------------------------------------------
+  -- This package has been implemented as a test of feasibility.
+  -- The implementation is open to improvements.
+  -----------------------------------------------------------------------
+  -- HTML syntax is very different from Ada or Java syntax. This is an
+  -- abbreviated excerpt of the HTML 4.0 Reference.
+  --
+  --    Elements are the structures that describe parts of an HTML
+  --    document ... An element has three parts: a start tag, content,
+  --    and an end tag. A tag is special text--"markup"--that is
+  --    delimited by "<" and ">". An end tag includes a "/" after the
+  --    "<" ... The start and end tags surround the content of the
+  ---   element:
+  --       <EM>This is emphasized text</EM>
+  --    ... An element's attributes define various properties for the
+  --    element ...
+  --
+  --       <IMG SRC="wdglogo.gif" ALT="Web Design Group">
+  --
+  --    An attribute is included in the start tag only--never the end
+  --    tag--and takes the form Attribute-name="Attribute-value".
+  --
+  -- Thus the text between tokens is arbitrary and need not be analysed.
+  -- In fact the whole text between tags is treated as a token of its
+  -- own (entities excepted).
+  -- Inside tags, however, we want to analyse for tag names, attribute
+  -- names and attribute values.
+  -- Thus we have to analyse the HTML document after an opening "<" and
+  -- stop after a closing ">".
+  --
+  -- So the idea is the following:
+  -- We split the syntax into two parts: A text and a tag syntax.
+  -- The lexer starts with the text syntax, and every time a tag opener
+  -- or closer is hit, we change the syntax to the appropriate one.
+  --
+  -- When defining the syntaxes, the following has to be taken into
+  -- account:
+  -- Since the syntax has to contain all token names, unused (and hence
+  -- in this syntax illegal) names use the Nothing recognizer. In order
+  -- to return them as Bad_Token, this name has to come first in the
+  -- sequence of names.
+  -- Since Document_Type and Comment both use the Bracketed_Comment
+  -- recognizer with the same opening string "<!", Comment has to come
+  -- first in the sequence of names.
+  --
+  -- If Document_Type is to be analyzed further like other tags, the
+  -- same trick with switching syntaxes can be applied.
+  -----------------------------------------------------------------------
 
-   File: Ada.Text_Io.File_Type;
+  use type Ada.Strings.Maps.Character_Set;
 
-   Within_Tag: Boolean;
-   Tag_End   : exception;
-   Unexpected_Whitespace : exception; -- This is mainly used to shut the compiler up
+  package Master_Token is new OpenToken.Token.Enumerated (Token_Name);
+  package Tokenizer is new Master_Token.Analyzer;
 
-   procedure Initialize (File_Name : Standard.String) is
-   begin
-      Ada.Text_Io.Open (File => File,
-                        Mode => Ada.Text_Io.In_File,
-                        Name => File_Name);
-      Ada.Text_Io.Set_Input (File);
-      Basic.Tokenizer.Input_Feeder := OpenToken.Text_Feeder.Text_IO.Create;
+  Text_Syntax: constant Tokenizer.Syntax :=
+    (Document_Type    => Tokenizer.Get(OpenToken.Recognizer.Bracketed_Comment.Get
+                                          (Comment_Opener => "<!",
+                                           Comment_Closer => ">",
+                                           Reportable     => True)),
+     Start_Tag_Opener => Tokenizer.Get(OpenToken.Recognizer.Separator.Get ("<")),
+     End_Tag_Opener   => Tokenizer.Get(OpenToken.Recognizer.Separator.Get ("</")),
+     Text             => Tokenizer.Get(OpenToken.Recognizer.Character_Set.Get
+                                          (Ada.Strings.Maps.Constants.Graphic_Set -
+                                           Ada.Strings.Maps.To_Set ("<>""&"),
+                                           Reportable => True)),
+     Entity           => Tokenizer.Get(OpenToken.Recognizer.HTML_Entity.Get),
+     Comment          => Tokenizer.Get(OpenToken.Recognizer.Bracketed_Comment.Get
+                                          (Comment_Opener => "<!--",
+                                           Comment_Closer => "-->",
+                                           Reportable => True)),
+     Whitespace       => Tokenizer.Get(OpenToken.Recognizer.Character_Set.Get
+                                          (OpenToken.Recognizer.Character_Set.Standard_Whitespace)),
+     Bad_Token        => Tokenizer.Get(OpenToken.Recognizer.Nothing.Get),
+     End_Of_File      => Tokenizer.Get(OpenToken.Recognizer.End_Of_File.Get),
+     others           => Tokenizer.Get(OpenToken.Recognizer.Nothing.Get));
 
-      Within_Tag := False;
-   end Initialize;
+  Tag_Syntax: constant Tokenizer.Syntax :=
+    (Tag_Closer       => Tokenizer.Get(OpenToken.Recognizer.Separator.Get (">")),
+     HTML             => Tokenizer.Get(OpenToken.Recognizer.Keyword.Get ("HTML")),
+     Head             => Tokenizer.Get(OpenToken.Recognizer.Keyword.Get ("Head")),
+     Meta             => Tokenizer.Get(OpenToken.Recognizer.Keyword.Get ("Meta")),
+     HTML_Body        => Tokenizer.Get(OpenToken.Recognizer.Keyword.Get ("Body")),
+     Heading_1        => Tokenizer.Get(OpenToken.Recognizer.Keyword.Get ("H1")),
+     Anchor           => Tokenizer.Get(OpenToken.Recognizer.Keyword.Get ("A")),
+     Image            => Tokenizer.Get(OpenToken.Recognizer.Keyword.Get ("IMG")),
+     Content          => Tokenizer.Get(OpenToken.Recognizer.Keyword.Get ("CONTENT")),
+     Hyper_Reference  => Tokenizer.Get(OpenToken.Recognizer.Keyword.Get ("HREF")),
+     Link_Type        => Tokenizer.Get(OpenToken.Recognizer.Keyword.Get ("TYPE")),
+     Name             => Tokenizer.Get(OpenToken.Recognizer.Keyword.Get ("NAME")),
+     Title            => Tokenizer.Get(OpenToken.Recognizer.Keyword.Get ("TITLE")),
+     Assignment       => Tokenizer.Get(OpenToken.Recognizer.Separator.Get ("=")),
+     Value            => Tokenizer.Get(OpenToken.Recognizer.Character_Set.Get
+                                          (Ada.Strings.Maps.Constants.Letter_Set        or
+                                           Ada.Strings.Maps.Constants.Decimal_Digit_Set or
+                                           Ada.Strings.Maps.To_Set (".-"),
+                                           Reportable => True)),
+     String           => Tokenizer.Get(OpenToken.Recognizer.String.Get (Double_Delimiter => False)),
+     Whitespace       => Tokenizer.Get(OpenToken.Recognizer.Character_Set.Get
+                                          (OpenToken.Recognizer.Character_Set.Standard_Whitespace)),
+     Bad_Token        => Tokenizer.Get(OpenToken.Recognizer.Nothing.Get),
+     End_Of_File      => Tokenizer.Get(OpenToken.Recognizer.End_Of_File.Get),
+     others           => Tokenizer.Get(OpenToken.Recognizer.Nothing.Get));
 
-   function Name (Token : HTML_Token) return Token_Name is
-   begin
-      return Token.Name;
-   end Name;
+  Analyzer: Tokenizer.Instance := Tokenizer.Initialize (Text_Syntax, Default => Bad_Token);
 
-   function Lexeme (Token : HTML_Token) return Standard.String is
-   begin
-      return Ada.Strings.Unbounded.To_String (Token.Lexeme);
-   end Lexeme;
+  procedure Initialize (Input_Feeder: in OpenToken.Text_Feeder.Text_IO.Instance) is
+  begin
+    Tokenizer.Input_Feeder := Input_Feeder;
+  end Initialize;
 
-   function Next_Tag_Token return HTML_Token is
-      use Tags;
-   begin
-      Tags.Tokenizer.Find_Next (Tags.Analyzer);
-      case Tags.Tokenizer.Id (Tags.Analyzer) is
-         when Start_Tag_Opener =>
-            return (Name   => Start_Tag_Opener,
-                    Lexeme => Ada.Strings.Unbounded.To_Unbounded_String
-                    (Tags.Tokenizer.Lexeme (Tags.Analyzer)));
-         when End_Tag_Opener =>
-            return (Name   => End_Tag_Opener,
-                    Lexeme => Ada.Strings.Unbounded.To_Unbounded_String
-                    (Tags.Tokenizer.Lexeme (Tags.Analyzer)));
-         when Tag_Closer =>
-            return (Name   => Tag_Closer,
-                    Lexeme => Ada.Strings.Unbounded.To_Unbounded_String
-                    (Tags.Tokenizer.Lexeme (Tags.Analyzer)));
-         when Meta =>
-            return (Name   => Meta,
-                    Lexeme => Ada.Strings.Unbounded.To_Unbounded_String
-                    (Tags.Tokenizer.Lexeme (Tags.Analyzer)));
-         when HTML =>
-            return (Name   => HTML,
-                    Lexeme => Ada.Strings.Unbounded.To_Unbounded_String
-                    (Tags.Tokenizer.Lexeme (Tags.Analyzer)));
-         when Head =>
-            return (Name   => Head,
-                    Lexeme => Ada.Strings.Unbounded.To_Unbounded_String
-                    (Tags.Tokenizer.Lexeme (Tags.Analyzer)));
-         when HTML_Body =>
-            return (Name   => HTML_Body,
-                    Lexeme => Ada.Strings.Unbounded.To_Unbounded_String
-                    (Tags.Tokenizer.Lexeme (Tags.Analyzer)));
-         when Anchor =>
-            return (Name   => Anchor,
-                    Lexeme => Ada.Strings.Unbounded.To_Unbounded_String
-                    (Tags.Tokenizer.Lexeme (Tags.Analyzer)));
-         when Heading_1 =>
-            return (Name   => Heading_1,
-                    Lexeme => Ada.Strings.Unbounded.To_Unbounded_String
-                    (Tags.Tokenizer.Lexeme (Tags.Analyzer)));
-         when Image =>
-            return (Name   => Image,
-                    Lexeme => Ada.Strings.Unbounded.To_Unbounded_String
-                    (Tags.Tokenizer.Lexeme (Tags.Analyzer)));
-         when Content =>
-            return (Name   => Content,
-                    Lexeme => Ada.Strings.Unbounded.To_Unbounded_String
-                    (Tags.Tokenizer.Lexeme (Tags.Analyzer)));
-         when Hyper_Reference =>
-            return (Name   => Hyper_Reference,
-                    Lexeme => Ada.Strings.Unbounded.To_Unbounded_String
-                    (Tags.Tokenizer.Lexeme (Tags.Analyzer)));
-         when Link_Type =>
-            return (Name   => Link_Type,
-                    Lexeme => Ada.Strings.Unbounded.To_Unbounded_String
-                    (Tags.Tokenizer.Lexeme (Tags.Analyzer)));
-         when Name =>
-            return (Name   => Name,
-                    Lexeme => Ada.Strings.Unbounded.To_Unbounded_String
-                    (Tags.Tokenizer.Lexeme (Tags.Analyzer)));
-         when Title =>
-            return (Name   => Title,
-                    Lexeme => Ada.Strings.Unbounded.To_Unbounded_String
-                    (Tags.Tokenizer.Lexeme (Tags.Analyzer)));
-         when Assignment =>
-            return (Name   => Assignment,
-                    Lexeme => Ada.Strings.Unbounded.To_Unbounded_String
-                    (Tags.Tokenizer.Lexeme (Tags.Analyzer)));
-         when Value =>
-            return (Name   => Value,
-                    Lexeme => Ada.Strings.Unbounded.To_Unbounded_String
-                    (Tags.Tokenizer.Lexeme (Tags.Analyzer)));
-         when Tags.String =>
-            return (Name   => String,
-                    Lexeme => Ada.Strings.Unbounded.To_Unbounded_String
-                    (Tags.Tokenizer.Lexeme (Tags.Analyzer)));
-         when Bad_Token =>
-            return (Name   => Bad_Token,
-                    Lexeme => Ada.Strings.Unbounded.To_Unbounded_String
-                    (Tags.Tokenizer.Lexeme (Tags.Analyzer)));
-         when Whitespace =>  -- not reported
-            raise Unexpected_Whitespace;
-         when End_Of_Tag =>
-            raise Tag_End;
-      end case;
-   end Next_Tag_Token;
+  function Name (Token: HTML_Token) return Token_Name is
+  begin
+    return Token.Name;
+  end Name;
 
-   function Next_Token return HTML_Token is
-      -- I would like to return Basic.Analyzer or Tags.Analyzer instead of
-      -- doing all this copying, but they do not have a common ancestor.
-      -- Perhaps derivingTags.Analyzer from Basic.Analyzer could simplify
-      -- the algorithm, which currently involves a lot of copying.
-      -- Or we could have only one Analyzer and change its syntax as necessary.
-      -- Improvements are welcome.
-      use Basic;
-   begin
-      case Within_Tag is
-         when False =>
-            Basic.Tokenizer.Find_Next (Basic.Analyzer);
-            case Basic.Tokenizer.Id (Basic.Analyzer) is
-               when Doctype =>
-                  return (Name   => Document_Type,
-                          Lexeme => Ada.Strings.Unbounded.To_Unbounded_String
-                          (Basic.Tokenizer.Lexeme (Basic.Analyzer)));
-               when HTML_Tag =>
-                  Within_Tag := True;
-                  OpenToken.Text_Feeder.String.Set (Value  => Basic.Tokenizer.Lexeme (Basic.Analyzer),
-                                                    Feeder => Tags.Tag_Input_Feeder);
-                  return Next_Tag_Token;
-               when Text =>
-                  return (Name   => Text,
-                          Lexeme => Ada.Strings.Unbounded.To_Unbounded_String
-                          (Basic.Tokenizer.Lexeme (Basic.Analyzer)));
-               when Entity =>
-                  return (Name   => Entity,
-                          Lexeme => Ada.Strings.Unbounded.To_Unbounded_String
-                          (Basic.Tokenizer.Lexeme (Basic.Analyzer)));
-               when Comment =>
-                  return (Name   => Comment,
-                          Lexeme => Ada.Strings.Unbounded.To_Unbounded_String
-                          (Basic.Tokenizer.Lexeme (Basic.Analyzer)));
-               when Bad_Token =>
-                  return (Name   => Bad_Token,
-                          Lexeme => Ada.Strings.Unbounded.To_Unbounded_String
-                          (Basic.Tokenizer.Lexeme (Basic.Analyzer)));
-               when End_Of_File =>
-                  return (Name   => End_Of_File,
-                          Lexeme => Ada.Strings.Unbounded.To_Unbounded_String
-                          (Basic.Tokenizer.Lexeme (Basic.Analyzer)));
-               when Whitespace =>  -- not reported
-                  raise Unexpected_Whitespace;
-            end case;
-         when True =>
-            return Next_Tag_Token;
-      end case;
-   exception
-      when Tag_End =>
-         Within_Tag := False;
-         return Next_Token;
-   end Next_Token;
+  function Lexeme (Token: HTML_Token) return Standard.String is
+  begin
+    return Ada.Strings.Unbounded.To_String (Token.Lexeme);
+  end Lexeme;
+
+  function Next_Token return HTML_Token is
+    Result: HTML_Token;
+  begin
+    Tokenizer.Find_Next (Analyzer);
+    Result := (Name   => Tokenizer.Id (Analyzer),
+               Lexeme => Ada.Strings.Unbounded.To_Unbounded_String
+                              (Tokenizer.Lexeme (Analyzer)));
+    case Result.Name is
+      when Start_Tag_Opener | End_Tag_Opener =>
+        Tokenizer.Set_Syntax (Analyzer, Tag_Syntax);
+      when Tag_Closer =>
+        Tokenizer.Set_Syntax (Analyzer, Text_Syntax);
+      when others =>
+        null;
+    end case;
+    return Result;
+  end Next_Token;
 
 end HTML_Lexer;
