@@ -1,0 +1,10 @@
+project Opentoken_Lib is
+   Version := "4.0.1";
+   for Languages use ("Ada");
+   for Source_Dirs use (".");
+   for Object_Dir use "obj";
+   for Library_Name use "opentoken";
+   for Library_Dir use "lib";
+   for Library_Kind use "dynamic";
+   for Library_Version use "libopentoken.so." & Version;
+end Opentoken_Lib;
