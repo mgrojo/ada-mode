@@ -33,6 +33,7 @@
 --
 -------------------------------------------------------------------------------
 with Ada.Exceptions;
+with Ada.Text_IO;
 
 -------------------------------------------------------------------------------
 -- This package declares a type for designating an integer literal.
@@ -165,5 +166,30 @@ package body Simple_Integer_Token is
             Token.Token_ID'Image
             (Token.ID (Token_List.Token_Handle(Second).all) ) & ".");
    end Synthesize_From_Second_Argument;
+
+   --------------------------------------------------------------------------
+   -- Routine to print the value of the given Single integer token.
+   --------------------------------------------------------------------------
+   procedure Print_Value (New_Token : out Nonterminal.Class;
+                          Source    : in  Token_List.Instance'Class;
+                          To_ID     : in  Token.Token_ID) is
+
+   begin
+      Ada.Text_IO.Put_Line
+        (Integer'Image
+         (Value
+          (Class
+           (Token_List.Token_Handle
+            (Token_List.Initial_Iterator(Source)
+             ).all
+            )
+           )
+          )
+         );
+
+      Nonterminal.Synthesize_Self (New_Token => New_Token,
+                                   Source    => Source,
+                                   To_ID     => To_ID);
+   end Print_Value;
 
 end Simple_Integer_Token;

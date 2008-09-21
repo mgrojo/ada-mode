@@ -118,14 +118,6 @@ package ASU_Example_5_10 is
    Analyzer : Tokenizer.Instance := Tokenizer.Initialize (Syntax, Feeder'access);
 
    --------------------------------------------------------------------------
-   -- Routine to print the value of the given Single interger token.
-   --------------------------------------------------------------------------
-   procedure Print_Value (New_Token : out Nonterminal.Class;
-                          Source    : in  Token_List.Instance'Class;
-                          To_ID     : in  Master_Token.Token_ID);
-
-
-   --------------------------------------------------------------------------
    -- Define the Grammar. The text in the example in the book looks something
    -- like:
    --
@@ -138,12 +130,12 @@ package ASU_Example_5_10 is
    -- F -> digit
    --
    Grammar : constant Production_List.Instance :=
-     L <= E & EOF                      + Print_Value'Access               and
-     E <= E & Plus & T                 + Simple_Integer.Add_Integers      and
-     E <= T                                                               and
-     T <= T & Times & F                + Simple_Integer.Multiply_Integers and
-     T <= F                                                               and
-     F <= Left_Paren & E & Right_Paren + Simple_Integer.Synthesize_Second and
+     L <= E & EOF                      + Simple_Integer.Print_Value'Access and
+     E <= E & Plus & T                 + Simple_Integer.Add_Integers       and
+     E <= T                                                                and
+     T <= T & Times & F                + Simple_Integer.Multiply_Integers  and
+     T <= F                                                                and
+     F <= Left_Paren & E & Right_Paren + Simple_Integer.Synthesize_Second  and
      F <= Int_Literal;
 
 end ASU_Example_5_10;

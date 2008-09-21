@@ -98,6 +98,13 @@ package Simple_Integer_Token is
    ----------------------------------------------------------------------------
    Synthesize_Second : constant Nonterminal.Synthesize;
 
+   --------------------------------------------------------------------------
+   -- Routine to print the value of the given Single interger token.
+   --------------------------------------------------------------------------
+   procedure Print_Value (New_Token : out Nonterminal.Class;
+                          Source    : in  Token_List.Instance'Class;
+                          To_ID     : in  Token.Token_ID);
+
 private
    type Instance is new Nonterminal.Instance with record
       Value : Integer;
