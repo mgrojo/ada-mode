@@ -97,7 +97,6 @@ package body Opentoken.Recognizer.Character_Set is
    function Get (Set        : in Ada.Strings.Maps.Character_Set;
                  Reportable : in Boolean := False) return Instance is
 
-      New_Token : Instance;
    begin
 
       return (Report => Reportable,
