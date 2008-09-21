@@ -49,60 +49,46 @@
 -------------------------------------------------------------------------------
 package body Opentoken.Recognizer.Character_Set is
 
-   ----------------------------------------------------------------------------
-   -- This procedure will be called when analysis on a new candidate string
-   -- is started. The Token needs to clear its state (if any).
-   ----------------------------------------------------------------------------
-   procedure Clear (The_Token : in out Instance) is
-   begin
+  ----------------------------------------------------------------------------
+  -- This procedure will be called when analysis on a new candidate string
+  -- is started. The Token needs to clear its state (if any).
+  ----------------------------------------------------------------------------
+  procedure Clear (The_Token: in out Instance) is
+  begin
+    The_Token.State := Text;
+  end Clear;
 
-      The_Token.State := Text;
-
-   end Clear;
-
-
-   ----------------------------------------------------------------------------
-   -- This procedure will be called to perform further analysis on a token
-   -- based on the given next character.
-   ----------------------------------------------------------------------------
-   procedure Analyze (The_Token : in out Instance;
-                      Next_Char : in Character;
-                      Verdict   : out Analysis_Verdict) is
-   begin
-
-      case The_Token.State is
+  ----------------------------------------------------------------------------
+  -- This procedure will be called to perform further analysis on a token
+  -- based on the given next character.
+  ----------------------------------------------------------------------------
+  procedure Analyze (The_Token: in out Instance;
+                     Next_Char: in     Character;
+                     Verdict  :    out Analysis_Verdict) is
+  begin
+    case The_Token.State is
       when Text =>
-
-         if Ada.Strings.Maps.Is_In (Element => Next_Char, Set => The_Token.Set) then
-            Verdict := Matches;
-         else
-            Verdict := Failed;
-            The_Token.State := Done;
-         end if;
-
-
+        if Ada.Strings.Maps.Is_In (Element => Next_Char, Set => The_Token.Set) then
+          Verdict := Matches;
+        else
+          Verdict         := Failed;
+          The_Token.State := Done;
+        end if;
       when Done =>
+        -- We shouldn't get called from here.
+        Verdict := Failed;
+    end case;
+  end Analyze;
 
-         -- We shouldn't get called from here.
-         Verdict := Failed;
-
-      end case;
-
-   end Analyze;
-
-
-   ----------------------------------------------------------------------------
-   -- This procedure will be called to create a character set token
-   ----------------------------------------------------------------------------
-   function Get (Set        : in Ada.Strings.Maps.Character_Set;
-                 Reportable : in Boolean := False) return Instance is
-
-   begin
-
-      return (Report => Reportable,
-              State  => Text,
-              Set    => Set);
-
-   end Get;
+  ----------------------------------------------------------------------------
+  -- This procedure will be called to create a character set token
+  ----------------------------------------------------------------------------
+  function Get (Set       : in Ada.Strings.Maps.Character_Set;
+                Reportable: in Boolean := False) return Instance is
+  begin
+    return (Report => Reportable,
+            State  => Text,
+            Set    => Set);
+  end Get;
 
 end Opentoken.Recognizer.Character_Set;

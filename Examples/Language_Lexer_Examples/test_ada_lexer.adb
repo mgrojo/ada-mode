@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 1999 Christoph Karl Walter Grein
+-- Copyright (C) 1999, 2008 Christoph Karl Walter Grein
 --
 -- This file is part of the OpenToken package.
 --
@@ -35,7 +35,6 @@
 -- Revision 1.1  1999/08/17 03:36:53  Ted
 -- Initial Version
 --
---
 -- 0.1 - 23 June 1999  Input via command line parameter; bug fix for EOF
 -- 0.0 - 22 June 1999  First preliminary release
 -------------------------------------------------------------------------------
@@ -43,7 +42,6 @@
 with Ada.Text_IO;
 with Ada.Command_Line;
 
-with OpenToken.Text_Feeder.Text_IO;
 with Ada_Lexer;
 use  Ada_Lexer;
 
@@ -54,24 +52,21 @@ procedure Test_Ada_Lexer is
 
 begin
 
-   Ada.Text_IO.Open
-     (File => File,
-      Mode => Ada.Text_IO.In_File,
-      Name => Ada.Command_Line.Argument (1));
+  Ada.Text_IO.Open (File => File,
+                    Mode => Ada.Text_IO.In_File,
+                    Name => Ada.Command_Line.Argument (1));
 
-   Ada.Text_IO.Set_Input (File);
-   Tokenizer.Input_Feeder := OpenToken.Text_Feeder.Text_IO.Create;
+  Set_Input_Feeder (File);
+  Bad_Token_on_Syntax_Error;
 
-   loop
+  loop
 
-      Tokenizer.Find_Next (Analyzer);
+    Find_Next;
 
-      Ada.Text_IO.Put_Line
-        ("Found " & Ada_Token'Image (Tokenizer.ID (Analyzer)) &
-         ' ' & Tokenizer.Lexeme (Analyzer));
+    Ada.Text_IO.Put_Line (Ada_Token'Image (Token_ID) & ' ' & Lexeme);
 
-      exit when Tokenizer.ID (Analyzer) = End_of_File_T;
+    exit when Token_ID = End_of_File_T;
 
-   end loop;
+  end loop;
 
 end Test_Ada_Lexer;

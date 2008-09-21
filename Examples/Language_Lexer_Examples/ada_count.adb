@@ -119,15 +119,15 @@ procedure Ada_Count is
          Mode => Ada.Text_Io.In_File,
          Name => Filename);
 
-      Ada.Text_Io.Set_Input (File);
-      Tokenizer.Input_Feeder := OpenToken.Text_Feeder.Text_IO.Create;
+      Set_Input_Feeder (File);
+	  Bad_Token_on_Syntax_Error;
 
       -- Count statements and comments
       loop
 
          begin
-            Tokenizer.Find_Next (Analyzer);
-            case Tokenizer.ID (Analyzer) is
+            Find_Next;
+            case Token_ID is
                when Semicolon_T =>
                   if Paren_Count = 0 then
                      Local_SLOC:= Local_SLOC + 1;
@@ -142,15 +142,9 @@ procedure Ada_Count is
                   null;
             end case;
 
-         exception
-            when OpenToken.Syntax_Error =>
-               Ada.Text_Io.Put_Line
-                 ("WARNING: Syntax error detected at" &
-                  Integer'Image(Tokenizer.Line (Analyzer)) & ',' &
-                  Integer'Image(Tokenizer.Column (Analyzer)));
          end;
 
-         exit when Tokenizer.ID (Analyzer) = End_Of_File_T;
+         exit when Token_ID = End_Of_File_T;
 
       end loop;
 
@@ -159,8 +153,8 @@ procedure Ada_Count is
       Ada.Text_Io.Set_Col(43);
       Ada.Integer_Text_Io.Put (Item => Local_SLOC,Width => 10);
       Ada.Text_Io.Set_Col(56);
-      Ada.Integer_Text_Io.Put (Item => Tokenizer.Line(Analyzer) - Line_Count, Width => 10);
-      Line_Count := Tokenizer.Line(Analyzer);
+      Ada.Integer_Text_Io.Put (Item => Line - Line_Count, Width => 10);
+      Line_Count := Line;
       Ada.Text_Io.Set_Col(67);
       Ada.Integer_Text_Io.Put (Item => Local_Comment_Count,Width => 10);
       Ada.Text_Io.New_Line;
@@ -212,7 +206,7 @@ begin
    end if;
 
    -- Modify the Ada syntax to report comments
-   Ada_Lexer.Syntax (Comment_T).Recognizer.Report := True;
+   Set_Comments_Reportable(True);
 
    -- Print out a header line
    Ada.Text_IO.New_Line;
@@ -250,7 +244,7 @@ begin
    Ada.Text_Io.Set_Col(43);
    Ada.Integer_Text_Io.Put (Item => SLOC, Width => 10);
    Ada.Text_Io.Set_Col(56);
-   Ada.Integer_Text_Io.Put (Item => Tokenizer.Line(Analyzer), Width => 10);
+   Ada.Integer_Text_Io.Put (Item => Line, Width => 10);
    Ada.Text_Io.Set_Col(67);
    Ada.Integer_Text_Io.Put (Item => Comment_Count, Width => 10);
    Ada.Text_Io.New_Line;

@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 1999 Christoph Karl Walter Grein
+-- Copyright (C) 1999, 2008 Christoph Karl Walter Grein
 --
 -- This file is part of the OpenToken package.
 --
@@ -35,7 +35,6 @@
 -- Revision 1.2  1999/10/08 23:12:00  Ted
 -- Add ability to exclude characters from the set
 --
---
 -- 1.1 -  4 July 1999  Exclusion set
 -- 1.0 - 26 June 1999  First release
 -------------------------------------------------------------------------------
@@ -51,26 +50,21 @@ package body Opentoken.Recognizer.Graphic_Character is
   -- This procedure will be called when analysis on a new candidate string
   -- is started. The Token needs to clear its state (if any).
   ----------------------------------------------------------------------------
-  procedure Clear (The_Token : in out Instance) is
+  procedure Clear (The_Token: in out Instance) is
   begin
-
     The_Token.State := Opening_Tick;
-
   end Clear;
 
   ----------------------------------------------------------------------------
   -- This procedure will be called to perform further analysis on a token
   -- based on the given next character.
   ----------------------------------------------------------------------------
-  procedure Analyze (The_Token : in out Instance;
-                     Next_Char : in     Character;
-                     Verdict   :    out Analysis_Verdict) is
+  procedure Analyze (The_Token: in out Instance;
+                     Next_Char: in     Character;
+                     Verdict  :    out Analysis_Verdict) is
   begin
-
     case The_Token.State is
-
       when Opening_Tick =>
-
         if Next_Char = ''' then  -- '' (this comment works around an emacs colorizing bug)
           Verdict         := So_Far_So_Good;
           The_Token.State := The_Character;
@@ -78,9 +72,7 @@ package body Opentoken.Recognizer.Graphic_Character is
           Verdict         := Failed;
           The_Token.State := Done;
         end if;
-
       when The_Character =>
-
         if Ada.Characters.Handling.Is_Graphic (Next_Char) and
            not Ada.Strings.Maps.Is_In (Element => Next_Char, Set => The_Token.Excluded) then
           Verdict         := So_Far_So_Good;
@@ -89,37 +81,34 @@ package body Opentoken.Recognizer.Graphic_Character is
           Verdict         := Failed;
           The_Token.State := Done;
         end if;
-
       when Closing_Tick =>
-
-        if Next_Char = ''' then -- '' (this comment works around an emacs colorizing bug)
+        if Next_Char = ''' then
           Verdict         := Matches;
           The_Token.State := Done;
         else
           Verdict         := Failed;
           The_Token.State := Done;
         end if;
-
       when Done =>
-
         Verdict := Failed;
-
     end case;
-
   end Analyze;
 
   ----------------------------------------------------------------------------
-  -- This procedure will be called to create a character set token
+  -- This procedure will be called to create a character set token.
   ----------------------------------------------------------------------------
-  function Get (Exclude : Ada.Strings.Maps.Character_Set := Ada.Strings.Maps.Null_Set)
-               return Instance is
-
+  function Get (Exclude: Ada.Strings.Maps.Character_Set := Ada.Strings.Maps.Null_Set)
+    return Instance is
   begin
-
     return (Report   => True,
             Excluded => Exclude,
             State    => Opening_Tick);
-
   end Get;
+
+  procedure Redefine (Inst   : in out Instance;
+                      Exclude: in     Ada.Strings.Maps.Character_Set) is
+  begin
+    Inst.Excluded := Exclude;
+  end Redefine;
 
 end Opentoken.Recognizer.Graphic_Character;

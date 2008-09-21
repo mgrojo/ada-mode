@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 1999 Christoph Karl Walter Grein
+-- Copyright (C) 1999, 2008 Christoph Karl Walter Grein
 --
 -- This file is part of the OpenToken package.
 --
@@ -35,15 +35,14 @@
 -- Revision 1.2  1999/10/08 23:12:00  Ted
 -- Add ability to exclude characters from the set
 --
---
 -- 1.1 -  4 July 1999  Exclusion set
 -- 1.0 - 26 June 1999  First release
 -------------------------------------------------------------------------------
 
-with Ada.Strings.Maps;
+with Ada.Strings.Maps.Constants;
 
 -------------------------------------------------------------------------------
--- This package implements a token recognizer for a graphic character 'x',
+-- This package implements a token recognizer for a character literal 'x',
 -- where all graphic characters are allowed for x except those given in an
 -- exclusion set.
 -------------------------------------------------------------------------------
@@ -52,36 +51,39 @@ package Opentoken.Recognizer.Graphic_Character is
   type Instance is new Opentoken.Recognizer.Instance with private;
 
   ----------------------------------------------------------------------------
-  -- This procedure will be called to create a Graphic_Character token.
+  -- Call this procedure to create a Graphic_Character token.
   ----------------------------------------------------------------------------
-  function Get (Exclude : Ada.Strings.Maps.Character_Set := Ada.Strings.Maps.Null_Set)
-               return Instance;
+  function Get (Exclude: Ada.Strings.Maps.Character_Set := Ada.Strings.Maps.Null_Set)
+    return Instance;
+
+  ----------------------------------------------------------------------------
+  -- Call this procedure to redefine the exclusion set.
+  ----------------------------------------------------------------------------
+  procedure Redefine (Inst   : in out Instance;
+                      Exclude: in     Ada.Strings.Maps.Character_Set);
 
 private
 
   type State_ID is (Opening_Tick, The_Character, Closing_Tick, Done);
 
   type Instance is new Opentoken.Recognizer.Instance with record
-
     Excluded: Ada.Strings.Maps.Character_Set;
-
     -- The finite state machine state
     State: State_ID := Opening_Tick;
-
   end record;
 
   ----------------------------------------------------------------------------
   -- This procedure will be called when analysis on a new candidate string
   -- is started. The Token needs to clear its state (if any).
   ----------------------------------------------------------------------------
-  procedure Clear (The_Token : in out Instance);
+  procedure Clear (The_Token: in out Instance);
 
   ----------------------------------------------------------------------------
   -- This procedure will be called to perform further analysis on a token
   -- based on the given next character.
   ----------------------------------------------------------------------------
-  procedure Analyze (The_Token : in out Instance;
-                     Next_Char : in     Character;
-                     Verdict   :    out Analysis_Verdict);
+  procedure Analyze (The_Token: in out Instance;
+                     Next_Char: in     Character;
+                     Verdict  :    out Analysis_Verdict);
 
 end Opentoken.Recognizer.Graphic_Character;

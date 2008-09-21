@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 1999 Christoph Karl Walter Grein
+-- Copyright (C) 1999, 2008 Christoph Karl Walter Grein
 --
 -- This file is part of the OpenToken package.
 --
@@ -41,7 +41,6 @@
 -- Revision 1.1  1999/08/17 03:40:24  Ted
 -- Initial Version
 --
---
 -- 1.0 -  8 August 1999  Final complete version
 -- 0.3 - 26 June 1999    Added character literals
 -- 0.2 - 25 June 1999    Added based numbers
@@ -50,26 +49,7 @@
 -- 0.0 - 22 June 1999    First preliminary release
 -------------------------------------------------------------------------------
 
-with Opentoken.Token.Enumerated;
-with Opentoken.Token.Enumerated.Analyzer;
-with Opentoken.Recognizer.Keyword, Opentoken.Recognizer.Separator;
-with Opentoken.Recognizer.Identifier;
-with Opentoken.Recognizer.Graphic_Character, Opentoken.Recognizer.String;
-with Opentoken.Recognizer.Integer, Opentoken.Recognizer.Based_Integer_Ada_Style,
-     Opentoken.Recognizer.Real, Opentoken.Recognizer.Based_Real_Ada_Style;
-with Opentoken.Recognizer.Character_Set;
-with Opentoken.Recognizer.Line_Comment;
-with Opentoken.Recognizer.End_Of_File;
-
-pragma Elaborate_All (Opentoken.Token.Enumerated, Opentoken.Token.Enumerated.Analyzer,
-                      Opentoken.Recognizer.Keyword, Opentoken.Recognizer.Separator,
-                      Opentoken.Recognizer.Identifier,
-                      Opentoken.Recognizer.Graphic_Character, Opentoken.Recognizer.String,
-                      Opentoken.Recognizer.Integer, Opentoken.Recognizer.Based_Integer_Ada_Style,
-                      Opentoken.Recognizer.Real, Opentoken.Recognizer.Based_Real_Ada_Style,
-                      Opentoken.Recognizer.Character_Set,
-                      Opentoken.Recognizer.Line_Comment,
-                      Opentoken.Recognizer.End_Of_File);
+with Ada.Text_IO;
 
 package Ada_Lexer is
 
@@ -89,21 +69,21 @@ package Ada_Lexer is
      Else_T, Elsif_T, End_T, Entry_T, Exception_T, Exit_T,
      For_T, Function_T,
      Generic_T, Goto_T,
-     If_T, In_T, Is_T,
+     If_T, In_T, Interface_T, Is_T,
      Limited_T, Loop_T,
      Mod_T,
      New_T, Not_T, Null_T,
-     Of_T, Or_T, Others_T, Out_T,
+     Of_T, Or_T, Others_T, Out_T, Overriding_T,
      Package_T, Pragma_T, Private_T, Procedure_T, Protected_T,
      Raise_T, Range_T, Record_T, Rem_T, Renames_T, Requeue_T, Return_T, Reverse_T,
-     Select_T, Separate_T, Subtype_T,
+     Select_T, Separate_T, Subtype_T, Synchronized_T,
      Tagged_T, Task_T, Terminate_T, Then_T, Type_T,
      Until_T, Use_T,
      When_T, While_T, With_T,
      Xor_T,
      -- Delimiters ARM 2.2 (9)
      -- & ' ( ) * + , - . / : ; < = > |
-     -- Compound delimiters ARM 2.2 (14)
+     -- Compound delimiters ARM 2.2 (11)
      -- => .. ** := /= >= <= << >> <>
      Colon_T, Comma_T, Dot_T, Semicolon_T, Tick_T,         -- : , . ; '
      Left_Parenthesis_T, Right_Parenthesis_T,              -- ( )
@@ -125,121 +105,32 @@ package Ada_Lexer is
      Comment_T,
      Whitespace_T,
      -- Syntax error
-  -- Bad_Token_T,
+     Bad_Token_T,
      --
      End_of_File_T);
 
-  package Master_Ada_Token is new Opentoken.Token.Enumerated (Ada_Token);
-  package Tokenizer is new Master_Ada_Token.Analyzer;
+  -- Define the file where to find the code to be processed.
+  -- The file must be open for reading.
+  procedure Set_Input_Feeder (File: in Ada.Text_IO.File_Type);
 
-  Syntax : constant Tokenizer.Syntax :=
-    (Abort_T     => Tokenizer.Get(Opentoken.Recognizer.Keyword.Get ("abort")),
-     Abs_T       => Tokenizer.Get(Opentoken.Recognizer.Keyword.Get ("abs")),
-     Abstract_T  => Tokenizer.Get(Opentoken.Recognizer.Keyword.Get ("abstract")),
-     Accept_T    => Tokenizer.Get(Opentoken.Recognizer.Keyword.Get ("accept")),
-     Access_T    => Tokenizer.Get(Opentoken.Recognizer.Keyword.Get ("access")),
-     Aliased_T   => Tokenizer.Get(Opentoken.Recognizer.Keyword.Get ("aliased")),
-     All_T       => Tokenizer.Get(Opentoken.Recognizer.Keyword.Get ("all")),
-     And_T       => Tokenizer.Get(Opentoken.Recognizer.Keyword.Get ("and")),
-     Array_T     => Tokenizer.Get(Opentoken.Recognizer.Keyword.Get ("array")),
-     At_T        => Tokenizer.Get(Opentoken.Recognizer.Keyword.Get ("at")),
-     Begin_T     => Tokenizer.Get(Opentoken.Recognizer.Keyword.Get ("begin")),
-     Body_T      => Tokenizer.Get(Opentoken.Recognizer.Keyword.Get ("body")),
-     Case_T      => Tokenizer.Get(Opentoken.Recognizer.Keyword.Get ("case")),
-     Constant_T  => Tokenizer.Get(Opentoken.Recognizer.Keyword.Get ("constant")),
-     Declare_T   => Tokenizer.Get(Opentoken.Recognizer.Keyword.Get ("declare")),
-     Delay_T     => Tokenizer.Get(Opentoken.Recognizer.Keyword.Get ("delay")),
-     Delta_T     => Tokenizer.Get(Opentoken.Recognizer.Keyword.Get ("delta")),
-     Digits_T    => Tokenizer.Get(Opentoken.Recognizer.Keyword.Get ("digits")),
-     Do_T        => Tokenizer.Get(Opentoken.Recognizer.Keyword.Get ("do")),
-     Else_T      => Tokenizer.Get(Opentoken.Recognizer.Keyword.Get ("else")),
-     Elsif_T     => Tokenizer.Get(Opentoken.Recognizer.Keyword.Get ("elsif")),
-     End_T       => Tokenizer.Get(Opentoken.Recognizer.Keyword.Get ("end")),
-     Entry_T     => Tokenizer.Get(Opentoken.Recognizer.Keyword.Get ("entry")),
-     Exception_T => Tokenizer.Get(Opentoken.Recognizer.Keyword.Get ("exception")),
-     Exit_T      => Tokenizer.Get(Opentoken.Recognizer.Keyword.Get ("exit")),
-     For_T       => Tokenizer.Get(Opentoken.Recognizer.Keyword.Get ("for")),
-     Function_T  => Tokenizer.Get(Opentoken.Recognizer.Keyword.Get ("function")),
-     Generic_T   => Tokenizer.Get(Opentoken.Recognizer.Keyword.Get ("generic")),
-     Goto_T      => Tokenizer.Get(Opentoken.Recognizer.Keyword.Get ("goto")),
-     If_T        => Tokenizer.Get(Opentoken.Recognizer.Keyword.Get ("if")),
-     In_T        => Tokenizer.Get(Opentoken.Recognizer.Keyword.Get ("in")),
-     Is_T        => Tokenizer.Get(Opentoken.Recognizer.Keyword.Get ("is")),
-     Limited_T   => Tokenizer.Get(Opentoken.Recognizer.Keyword.Get ("limited")),
-     Loop_T      => Tokenizer.Get(Opentoken.Recognizer.Keyword.Get ("loop")),
-     Mod_T       => Tokenizer.Get(Opentoken.Recognizer.Keyword.Get ("mod")),
-     New_T       => Tokenizer.Get(Opentoken.Recognizer.Keyword.Get ("new")),
-     Not_T       => Tokenizer.Get(Opentoken.Recognizer.Keyword.Get ("not")),
-     Null_T      => Tokenizer.Get(Opentoken.Recognizer.Keyword.Get ("null")),
-     Of_T        => Tokenizer.Get(Opentoken.Recognizer.Keyword.Get ("of")),
-     Or_T        => Tokenizer.Get(Opentoken.Recognizer.Keyword.Get ("or")),
-     Others_T    => Tokenizer.Get(Opentoken.Recognizer.Keyword.Get ("others")),
-     Out_T       => Tokenizer.Get(Opentoken.Recognizer.Keyword.Get ("out")),
-     Package_T   => Tokenizer.Get(Opentoken.Recognizer.Keyword.Get ("package")),
-     Pragma_T    => Tokenizer.Get(Opentoken.Recognizer.Keyword.Get ("pragma")),
-     Private_T   => Tokenizer.Get(Opentoken.Recognizer.Keyword.Get ("private")),
-     Procedure_T => Tokenizer.Get(Opentoken.Recognizer.Keyword.Get ("procedure")),
-     Protected_T => Tokenizer.Get(Opentoken.Recognizer.Keyword.Get ("protected")),
-     Raise_T     => Tokenizer.Get(Opentoken.Recognizer.Keyword.Get ("raise")),
-     Range_T     => Tokenizer.Get(Opentoken.Recognizer.Keyword.Get ("range")),
-     Record_T    => Tokenizer.Get(Opentoken.Recognizer.Keyword.Get ("record")),
-     Rem_T       => Tokenizer.Get(Opentoken.Recognizer.Keyword.Get ("rem")),
-     Renames_T   => Tokenizer.Get(Opentoken.Recognizer.Keyword.Get ("renames")),
-     Requeue_T   => Tokenizer.Get(Opentoken.Recognizer.Keyword.Get ("requeue")),
-     Return_T    => Tokenizer.Get(Opentoken.Recognizer.Keyword.Get ("return")),
-     Reverse_T   => Tokenizer.Get(Opentoken.Recognizer.Keyword.Get ("reverse")),
-     Select_T    => Tokenizer.Get(Opentoken.Recognizer.Keyword.Get ("select")),
-     Separate_T  => Tokenizer.Get(Opentoken.Recognizer.Keyword.Get ("separate")),
-     Subtype_T   => Tokenizer.Get(Opentoken.Recognizer.Keyword.Get ("subtype")),
-     Tagged_T    => Tokenizer.Get(Opentoken.Recognizer.Keyword.Get ("tagged")),
-     Task_T      => Tokenizer.Get(Opentoken.Recognizer.Keyword.Get ("task")),
-     Terminate_T => Tokenizer.Get(Opentoken.Recognizer.Keyword.Get ("terminate")),
-     Then_T      => Tokenizer.Get(Opentoken.Recognizer.Keyword.Get ("then")),
-     Type_T      => Tokenizer.Get(Opentoken.Recognizer.Keyword.Get ("type")),
-     Until_T     => Tokenizer.Get(Opentoken.Recognizer.Keyword.Get ("until")),
-     Use_T       => Tokenizer.Get(Opentoken.Recognizer.Keyword.Get ("use")),
-     When_T      => Tokenizer.Get(Opentoken.Recognizer.Keyword.Get ("when")),
-     While_T     => Tokenizer.Get(Opentoken.Recognizer.Keyword.Get ("while")),
-     With_T      => Tokenizer.Get(Opentoken.Recognizer.Keyword.Get ("with")),
-     Xor_T       => Tokenizer.Get(Opentoken.Recognizer.Keyword.Get ("xor")),
-     Colon_T               => Tokenizer.Get(Opentoken.Recognizer.Separator.Get (":")),
-     Comma_T               => Tokenizer.Get(Opentoken.Recognizer.Separator.Get (",")),
-     Dot_T                 => Tokenizer.Get(Opentoken.Recognizer.Separator.Get (".")),
-     Semicolon_T           => Tokenizer.Get(Opentoken.Recognizer.Separator.Get (";")),
-     Tick_T                => Tokenizer.Get(Opentoken.Recognizer.Separator.Get ("'")),
-     Left_Parenthesis_T    => Tokenizer.Get(Opentoken.Recognizer.Separator.Get ("(")),
-     Right_Parenthesis_T   => Tokenizer.Get(Opentoken.Recognizer.Separator.Get (")")),
-     Concatenate_T         => Tokenizer.Get(Opentoken.Recognizer.Separator.Get ("&")),
-     Alternative_T         => Tokenizer.Get(Opentoken.Recognizer.Separator.Get ("|")),
-     Equal_T               => Tokenizer.Get(Opentoken.Recognizer.Separator.Get ("=")),
-     Not_Equal_T           => Tokenizer.Get(Opentoken.Recognizer.Separator.Get ("/=")),
-     Greater_Than_T        => Tokenizer.Get(Opentoken.Recognizer.Separator.Get (">")),
-     Less_Than_T           => Tokenizer.Get(Opentoken.Recognizer.Separator.Get ("<")),
-     Greater_Equal_T       => Tokenizer.Get(Opentoken.Recognizer.Separator.Get (">=")),
-     Less_Equal_T          => Tokenizer.Get(Opentoken.Recognizer.Separator.Get ("<=")),
-     Plus_T                => Tokenizer.Get(Opentoken.Recognizer.Separator.Get ("+")),
-     Minus_T               => Tokenizer.Get(Opentoken.Recognizer.Separator.Get ("-")),
-     Times_T               => Tokenizer.Get(Opentoken.Recognizer.Separator.Get ("*")),
-     Divide_T              => Tokenizer.Get(Opentoken.Recognizer.Separator.Get ("/")),
-     Arrow_T               => Tokenizer.Get(Opentoken.Recognizer.Separator.Get ("=>")),
-     Assignment_T          => Tokenizer.Get(Opentoken.Recognizer.Separator.Get (":=")),
-     Double_Dot_T          => Tokenizer.Get(Opentoken.Recognizer.Separator.Get ("..")),
-     Exponentiate_T        => Tokenizer.Get(Opentoken.Recognizer.Separator.Get ("**")),
-     Left_Label_Bracket_T  => Tokenizer.Get(Opentoken.Recognizer.Separator.Get ("<<")),
-     Right_Label_Bracket_T => Tokenizer.Get(Opentoken.Recognizer.Separator.Get (">>")),
-     Box_T                 => Tokenizer.Get(Opentoken.Recognizer.Separator.Get ("<>")),
-     Integer_T       => Tokenizer.Get(Opentoken.Recognizer.Integer.Get (Allow_Signs => False)),
-     Based_Integer_T => Tokenizer.Get(Opentoken.Recognizer.Based_Integer_Ada_Style.Get),
-     Real_T          => Tokenizer.Get(Opentoken.Recognizer.Real.Get (Allow_Signs => False)),
-     Based_Real_T    => Tokenizer.Get(Opentoken.Recognizer.Based_Real_Ada_Style.Get),
-     Character_T     => Tokenizer.Get(Opentoken.Recognizer.Graphic_Character.Get),
-     String_T        => Tokenizer.Get(Opentoken.Recognizer.String.Get),
-     Identifier_T    => Tokenizer.Get(Opentoken.Recognizer.Identifier.Get),
-     Comment_T       => Tokenizer.Get(Opentoken.Recognizer.Line_Comment.Get ("--")),
-     Whitespace_T    => Tokenizer.Get(Opentoken.Recognizer.Character_Set.Get
-                                      (Opentoken.Recognizer.Character_Set.Standard_Whitespace)),
-     End_of_File_T   => Tokenizer.Get(Opentoken.Recognizer.End_Of_File.Get));
+  -- In case of syntax errors:
+  -- Define whether the Syntax_Error exception shall be raised (default)
+  -- or the Bad_Token_T token shall be be returned.
+  procedure Exception_on_Syntax_Error;
+  procedure Bad_Token_on_Syntax_Error;
 
-   Analyzer: Tokenizer.Instance := Tokenizer.Initialize (Syntax);
+  -- Change reportability of comments (off by default).
+  procedure Set_Comments_Reportable (To: in Boolean);
+
+  -- Find the next reportable token.
+  procedure Find_Next;
+
+  -- Query the current token:
+
+  function Line   return Natural;
+  function Column return Natural;
+
+  function Token_ID return Ada_Token;
+  function Lexeme   return String;
 
 end Ada_Lexer;
