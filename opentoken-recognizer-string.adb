@@ -6,7 +6,7 @@
 --
 -- The OpenToken package is free software; you can redistribute it and/or
 -- modify it under the terms of the  GNU General Public License as published
--- by the Free Software Foundation; either version 2, or (at your option)
+-- by the Free Software Foundation; either version 3, or (at your option)
 -- any later version. The OpenToken package is distributed in the hope that
 -- it will be useful, but WITHOUT ANY WARRANTY; without even the implied
 -- warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -22,25 +22,6 @@
 -- however invalidate any other reasons why the executable file might be
 -- covered by the GNU Public License.
 --
--- Maintainer: Ted Dennison (dennison@telepath.com)
---
--- Update History:
--- $Log: opentoken-recognizer-string.adb,v $
--- Revision 1.3  2000/02/05 03:58:45  Ted
--- Fix escaped character support to use octal and hex values properly.
---
--- Revision 1.2  1999/12/27 19:56:04  Ted
--- fix file contents to work w/ new hierarchy
---
--- Revision 1.1  1999/12/27 17:11:39  Ted
--- renamed everything to new hierarchy
---
--- Revision 1.1  1999/08/17 02:49:12  Ted
--- Initial Version
---
---
--- 1.1 - 8 August 1999  (C.K.W.Grein) Amended functionality
--- 1.0                  Original version
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
@@ -48,7 +29,7 @@
 -- optionally use an escape character to introduce special character mappings,
 -- and can thus be used to recognize either Ada or C-style strings.
 -------------------------------------------------------------------------------
-package body Opentoken.Recognizer.String is
+package body OpenToken.Recognizer.String is
 
    ----------------------------------------------------------------------------
    -- This procedure will be called to perform further analysis on a token
@@ -383,5 +364,5 @@ package body Opentoken.Recognizer.String is
       return Recognized_String.Value(1..Recognized_String.Good_Length);
    end Value;
 
-end Opentoken.Recognizer.String;
+end OpenToken.Recognizer.String;
 

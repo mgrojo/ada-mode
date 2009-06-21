@@ -6,7 +6,7 @@
 --
 -- The OpenToken package is free software; you can redistribute it and/or
 -- modify it under the terms of the  GNU General Public License as published
--- by the Free Software Foundation; either version 2, or (at your option)
+-- by the Free Software Foundation; either version 3, or (at your option)
 -- any later version. The OpenToken package is distributed in the hope that
 -- it will be useful, but WITHOUT ANY WARRANTY; without even the implied
 -- warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -21,18 +21,6 @@
 -- covered by the GNU General Public License.  This exception does not
 -- however invalidate any other reasons why the executable file might be
 -- covered by the GNU Public License.
---
--- Maintainer: Ted Dennison (dennison@telepath.com)
---
--- Update History:
--- $Log: opentoken-token-enumerated-integer_literal.adb,v $
--- Revision 1.1  2000/08/12 13:54:40  Ted
--- moved from opentoken-token-integer_literal
---
--- Revision 1.1  2000/01/27 20:56:40  Ted
--- A token for integer literals.
---
---
 --
 -------------------------------------------------------------------------------
 
@@ -60,10 +48,17 @@ package body OpenToken.Token.Enumerated.Integer_Literal is
    procedure Create (Lexeme     : in     String;
                      ID         : in     Token_ID;
                      Recognizer : in     Recognizer_Handle;
-                     New_Token  :    out Instance) is
+                     New_Token  :    out Instance)
+   is
+      pragma Unreferenced (Recognizer);
    begin
       New_Token.ID := ID;
       New_Token.Value := Integer'Value(Lexeme);
+
+   exception
+   when Constraint_Error =>
+      raise Syntax_Error with
+        Lexeme & " not in range: " & Integer'Image (Integer'First) & " .. " & Integer'Image (Integer'Last);
    end Create;
 
    ----------------------------------------------------------------------------

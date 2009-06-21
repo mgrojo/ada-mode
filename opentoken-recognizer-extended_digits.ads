@@ -6,7 +6,7 @@
 --
 -- The OpenToken package is free software; you can redistribute it and/or
 -- modify it under the terms of the  GNU General Public License as published
--- by the Free Software Foundation; either version 2, or (at your option)
+-- by the Free Software Foundation; either version 3, or (at your option)
 -- any later version. The OpenToken package is distributed in the hope that
 -- it will be useful, but WITHOUT ANY WARRANTY; without even the implied
 -- warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -22,28 +22,6 @@
 -- however invalidate any other reasons why the executable file might be
 -- covered by the GNU Public License.
 --
--- Maintainer: Christoph K. W. Grein (Christ-Usch.Grein@T-Online.de)
---
--- Update History:
---
--- $Log: opentoken-recognizer-extended_digits.ads,v $
--- Revision 1.2  1999/12/27 19:56:01  Ted
--- fix file contents to work w/ new hierarchy
---
--- Revision 1.1  1999/12/27 17:11:34  Ted
--- renamed everything to new hierarchy
---
--- Revision 1.3  1999/10/22 04:29:47  Ted
--- Add named-number for maximum supported base
---
--- Revision 1.2  1999/10/08 23:05:52  Ted
--- Fix comments
---
--- Revision 1.1  1999/08/17 03:05:35  Ted
--- Initial Version
---
--- 1.1 -  1 Sept 1999  Add comments
--- 1.0 - 25 June 1999  First release
 -------------------------------------------------------------------------------
 
 with Ada.Text_IO;
@@ -59,9 +37,9 @@ with Ada.Text_IO;
 -- [For the OpenToken end user, this should not be too useful, but it shows up
 -- handy for internal use.]
 -------------------------------------------------------------------------------
-package Opentoken.Recognizer.Extended_Digits is
+package OpenToken.Recognizer.Extended_Digits is
 
-  type Instance is new Opentoken.Recognizer.Instance with private;
+  type Instance is new OpenToken.Recognizer.Instance with private;
 
   -- The maximum base value supported by this package
   Maximum_Base : constant := 16;
@@ -82,7 +60,7 @@ private
 
   type State_ID is (First_Char, Extended_Digit, Underscore, Done);
 
-  type Instance is new Opentoken.Recognizer.Instance with record
+  type Instance is new OpenToken.Recognizer.Instance with record
 
     Number_Base      : Ada.Text_IO.Number_Base;
     Allow_Underscores: Boolean;
@@ -106,4 +84,4 @@ private
                      Next_Char: in     Character;
                      Verdict  :    out Analysis_Verdict);
 
-end Opentoken.Recognizer.Extended_Digits;
+end OpenToken.Recognizer.Extended_Digits;

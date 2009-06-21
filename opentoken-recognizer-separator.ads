@@ -6,7 +6,7 @@
 --
 -- The OpenToken package is free software; you can redistribute it and/or
 -- modify it under the terms of the  GNU General Public License as published
--- by the Free Software Foundation; either version 2, or (at your option)
+-- by the Free Software Foundation; either version 3, or (at your option)
 -- any later version. The OpenToken package is distributed in the hope that
 -- it will be useful, but WITHOUT ANY WARRANTY; without even the implied
 -- warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -22,21 +22,6 @@
 -- however invalidate any other reasons why the executable file might be
 -- covered by the GNU Public License.
 --
--- Maintainer: Christoph K. W. Grein (Christ-Usch.Grein@T-Online.de)
---
--- Update History:
--- $Log: opentoken-recognizer-separator.ads,v $
--- Revision 1.2  1999/12/27 19:56:04  Ted
--- fix file contents to work w/ new hierarchy
---
--- Revision 1.1  1999/12/27 17:11:39  Ted
--- renamed everything to new hierarchy
---
--- Revision 1.2  1999/09/17 01:59:58  Ted
--- Fix comment typo
---
--- Revision 1.1  1999/08/17 02:50:01  Ted
--- Initial Version
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
@@ -45,9 +30,9 @@
 -- (The keyword recognizer could have been used as well, but the latter has
 -- some traits that are not needed for separators, so these were removed.)
 -------------------------------------------------------------------------------
-package Opentoken.Recognizer.Separator is
+package OpenToken.Recognizer.Separator is
 
-  type Instance is new Opentoken.Recognizer.Instance with private;
+  type Instance is new OpenToken.Recognizer.Instance with private;
 
   ----------------------------------------------------------------------------
   -- This procedure will be called to create a separator token.
@@ -59,7 +44,7 @@ private
 
   type State_ID is (Text, Done);
 
-  type Instance is new Opentoken.Recognizer.Instance with record
+  type Instance is new OpenToken.Recognizer.Instance with record
 
     -- The separator definition
     Literal : Buffers.Bounded_String;
@@ -84,4 +69,4 @@ private
                      Next_Char: in     Character;
                      Verdict  :    out Analysis_Verdict);
 
-end Opentoken.Recognizer.Separator;
+end OpenToken.Recognizer.Separator;

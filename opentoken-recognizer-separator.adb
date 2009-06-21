@@ -6,7 +6,7 @@
 --
 -- The OpenToken package is free software; you can redistribute it and/or
 -- modify it under the terms of the  GNU General Public License as published
--- by the Free Software Foundation; either version 2, or (at your option)
+-- by the Free Software Foundation; either version 3, or (at your option)
 -- any later version. The OpenToken package is distributed in the hope that
 -- it will be useful, but WITHOUT ANY WARRANTY; without even the implied
 -- warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -22,26 +22,9 @@
 -- however invalidate any other reasons why the executable file might be
 -- covered by the GNU Public License.
 --
--- Maintainer: Christoph K. W. Grein (Christ-Usch.Grein@T-Online.de)
---
--- Update History:
--- $Log: opentoken-recognizer-separator.adb,v $
--- Revision 1.2  1999/12/27 19:56:03  Ted
--- fix file contents to work w/ new hierarchy
---
--- Revision 1.1  1999/12/27 17:11:39  Ted
--- renamed everything to new hierarchy
---
--- Revision 1.1  1999/08/17 02:50:01  Ted
--- Initial Version
---
---
--- 1.1 - 23 June 1999  Wrong parameter name in Get corrected;
---                     corrected error in comment (reported by Ted Dennison)
--- 1.0 - 22 June 1999  First release
 -------------------------------------------------------------------------------
 
-package body Opentoken.Recognizer.Separator is
+package body OpenToken.Recognizer.Separator is
 
   ----------------------------------------------------------------------------
   -- This procedure will be called when analysis on a new candidate string
@@ -119,4 +102,4 @@ package body Opentoken.Recognizer.Separator is
 
   end Get;
 
-end Opentoken.Recognizer.Separator;
+end OpenToken.Recognizer.Separator;

@@ -6,7 +6,7 @@
 --
 -- The OpenToken package is free software; you can redistribute it and/or
 -- modify it under the terms of the  GNU General Public License as published
--- by the Free Software Foundation; either version 2, or (at your option)
+-- by the Free Software Foundation; either version 3, or (at your option)
 -- any later version. The OpenToken package is distributed in the hope that
 -- it will be useful, but WITHOUT ANY WARRANTY; without even the implied
 -- warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -21,20 +21,6 @@
 -- covered by the GNU General Public License.  This exception does not
 -- however invalidate any other reasons why the executable file might be
 -- covered by the GNU Public License.
---
--- Maintainer: Ted Dennison (dennison@telepath.com)
---
--- Update History:
--- $Log: opentoken-token.ads,v $
--- Revision 1.3  2000/08/06 23:57:27  Ted
--- Added some types and routines for supporting recursive descent parsing
---
--- Revision 1.2  2000/01/27 20:59:37  Ted
--- Added some common routines.
---
--- Revision 1.1  1999/12/27 21:30:44  Ted
--- Initial Version
---
 --
 -------------------------------------------------------------------------------
 
@@ -56,9 +42,6 @@ package OpenToken.Token is
    subtype Source_Class is Source'Class;
 
    type Source_Handle is access all Source_Class;
-
-   -- A general-purpose parsing exception.
-   Parse_Error : exception;
 
    ----------------------------------------------------------------------------
    -- Abstract specification for a token parse routine.

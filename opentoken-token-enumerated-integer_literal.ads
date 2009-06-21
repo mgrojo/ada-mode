@@ -1,12 +1,13 @@
 -------------------------------------------------------------------------------
 --
+-- Copyright (C) 2003 Stephen Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
 --
 -- The OpenToken package is free software; you can redistribute it and/or
 -- modify it under the terms of the  GNU General Public License as published
--- by the Free Software Foundation; either version 2, or (at your option)
+-- by the Free Software Foundation; either version 3, or (at your option)
 -- any later version. The OpenToken package is distributed in the hope that
 -- it will be useful, but WITHOUT ANY WARRANTY; without even the implied
 -- warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -22,23 +23,7 @@
 -- however invalidate any other reasons why the executable file might be
 -- covered by the GNU Public License.
 --
--- Maintainer: Ted Dennison (dennison@telepath.com)
---
--- Update History:
--- $Log: opentoken-token-enumerated-integer_literal.ads,v $
--- Revision 1.1  2000/08/12 13:54:40  Ted
--- moved from opentoken-token-integer_literal
---
--- Revision 1.1  2000/01/27 20:56:40  Ted
--- A token for integer literals.
---
--- Revision 1.1  1999/12/27 21:30:44  Ted
--- Initial Version
---
---
 -------------------------------------------------------------------------------
-
-with OpenToken.Recognizer;
 
 -------------------------------------------------------------------------------
 -- This package declares a type for designating an integer literal.
@@ -46,12 +31,7 @@ with OpenToken.Recognizer;
 generic
 package OpenToken.Token.Enumerated.Integer_Literal is
 
-   -- I'd prefer to use full named notation (OpenToken.Token.Enumerated.Instance)
-   -- to refer to this type. But gnat has some wierd instatiation visibility bug
-   -- with parent packages.
-   subtype Enumerated_Instance is Instance;
-
-   type Instance is new Enumerated_Instance with private;
+   type Instance is new OpenToken.Token.Enumerated.Instance with private;
 
    subtype Class is Instance'Class;
 
@@ -82,7 +62,7 @@ package OpenToken.Token.Enumerated.Integer_Literal is
    function Value (Subject : in Instance) return Integer;
 
 private
-   type Instance is new Enumerated_Instance with record
+   type Instance is new OpenToken.Token.Enumerated.Instance with record
       Value : Integer;
    end record;
 

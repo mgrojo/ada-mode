@@ -1,12 +1,13 @@
 -------------------------------------------------------------------------------
 --
+-- Copyright (C) 2002, 2003 Stephe Leake
 -- Copyright (C) 1999 FlightSafety International and Ted Dennison
 --
 -- This file is part of the OpenToken package.
 --
 -- The OpenToken package is free software; you can redistribute it and/or
 -- modify it under the terms of the  GNU General Public License as published
--- by the Free Software Foundation; either version 2, or (at your option)
+-- by the Free Software Foundation; either version 3, or (at your option)
 -- any later version. The OpenToken package is distributed in the hope that
 -- it will be useful, but WITHOUT ANY WARRANTY; without even the implied
 -- warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -22,45 +23,14 @@
 -- however invalidate any other reasons why the executable file might be
 -- covered by the GNU Public License.
 --
--- Maintainer: Ted Dennison (dennison@telepath.com)
---
 -- This software was originally developed by the following company, and was
 -- released as open-source software as a service to the community:
 --
 --           FlightSafety International Simulation Systems Division
 --                    Broken Arrow, OK  USA  918-259-4000
 --
--- Update History:
--- $Log: opentoken-token-enumerated-analyzer.ads,v $
--- Revision 1.1  2000/08/12 13:49:25  Ted
--- moved from opentoken-token-analyzer
---
--- Revision 1.3  2000/02/05 04:00:22  Ted
--- Added End_Of_Text to support analyzing binaries.
---
--- Revision 1.2  2000/01/27 20:55:48  Ted
--- A token (lexical) analyzer
---
--- Revision 1.1  1999/12/28 00:57:15  Ted
--- renamed opentoken-analyzer to opentoken-token-analyzer
---
--- Revision 1.2  1999/12/27 19:55:58  Ted
--- fix file contents to work w/ new hierarchy
---
--- Revision 1.1  1999/12/27 17:11:31  Ted
--- renamed everything to new hierarchy
---
--- Revision 1.4  1999/10/08 22:47:33  Ted
--- Add default token functionality
---
--- Revision 1.3  1999/08/17 03:07:54  Ted
--- Add log line
---
 -------------------------------------------------------------------------------
 
-with Ada.Characters.Latin_1;
-with Ada.Text_IO;
-with Ada.Strings.Bounded;
 with OpenToken.Recognizer;
 with OpenToken.Text_Feeder;
 with OpenToken.Text_Feeder.Text_IO;
@@ -85,11 +55,6 @@ generic
 
 package OpenToken.Token.Enumerated.Analyzer is
 
-   -- I'd prefer to use full named notation to get at this type, but Gnat has
-   -- some bizzare bug where some instantations of this package can't see the
-   -- parent package's name.
-   subtype Enumerated_Class is Class;
-
    subtype Terminal_ID is Token_ID range Token_ID'First..Last_Terminal;
 
    -- Descriptor for what an individual token in this language looks like.
@@ -99,7 +64,7 @@ package OpenToken.Token.Enumerated.Analyzer is
    end record;
 
    -- The syntax of a language, which is defined by the set of valid tokens.
-   type Syntax is array (Terminal_Id) of Recognizable_Token;
+   type Syntax is array (Terminal_ID) of Recognizable_Token;
 
    type Instance is new Source with private;
 
@@ -121,7 +86,7 @@ package OpenToken.Token.Enumerated.Analyzer is
    -- dynamicly allocate the memory for the recognizer and token.
    ----------------------------------------------------------------------------
    function Get (Recognizer : in OpenToken.Recognizer.Class;
-                 New_Token  : in Enumerated_Class := Get
+                 New_Token  : in OpenToken.Token.Enumerated.Class := Get
                 ) return Recognizable_Token;
 
 
@@ -132,7 +97,7 @@ package OpenToken.Token.Enumerated.Analyzer is
                         Feeder          : in Text_Feeder_Ptr := Input_Feeder'Access
                        ) return Instance;
    function Initialize (Language_Syntax : in Syntax;
-                        Default         : in Terminal_Id;
+                        Default         : in Terminal_ID;
                         Feeder          : in Text_Feeder_Ptr := Input_Feeder'Access
                        ) return Instance;
 
@@ -152,6 +117,21 @@ package OpenToken.Token.Enumerated.Analyzer is
    ----------------------------------------------------------------------------
    procedure Set_Text_Feeder (Analyzer : in out Instance; Feeder : in Text_Feeder_Ptr);
 
+   ------------------------------------------------------------------------
+   --  True if Analyzer's internal buffer is empty, and
+   --  Analyzer.Text_Feeder reports End_Of_Text.
+   function End_Of_Text (Analyzer : in Instance) return Boolean;
+
+   ------------------------------------------------------------------------
+   --  True if Analyzer's internal buffer is empty.
+   function End_Of_Buffered_Text (Analyzer : in Instance) return Boolean;
+
+   --------------------------------------------------------------------------
+   --  Discard text in Analyzer's internal buffer. Do this when a
+   --  parse error is encountered, and you want to start over.
+   --------------------------------------------------------------------------
+   procedure Discard_Buffered_Text (Analyzer : in out Instance);
+
    ----------------------------------------------------------------------------
    -- Set the analyzer's default token to the given ID.
    --
@@ -166,7 +146,7 @@ package OpenToken.Token.Enumerated.Analyzer is
    -- any legitimate string (eg: Opentoken.Recognizer.Nothing)
    ----------------------------------------------------------------------------
    procedure Set_Default (Analyzer : in out Instance;
-                          Default  : in     Terminal_Id
+                          Default  : in     Terminal_ID
                          );
 
    ----------------------------------------------------------------------------
@@ -228,7 +208,7 @@ package OpenToken.Token.Enumerated.Analyzer is
    ----------------------------------------------------------------------------
    -- Returns the last token ID that was matched.
    ----------------------------------------------------------------------------
-   function ID (Analyzer : in Instance) return Terminal_Id;
+   function ID (Analyzer : in Instance) return Terminal_ID;
 
    ----------------------------------------------------------------------------
    -- Returns the actual text of the last token that was matched.
@@ -250,16 +230,16 @@ private
    type Instance is new Source with record
       -- User-settable attributes
       Syntax_List   : Syntax;
-      Feeder        : Text_Feeder_Ptr := Input_Feeder'access;
+      Feeder        : Text_Feeder_Ptr := Input_Feeder'Access;
       Has_Default   : Boolean := False;
-      Default_Token : Terminal_Id;
+      Default_Token : Terminal_ID;
 
       -- User-gettable attributes
       Line        : Natural := 1;
       Column      : Natural := 1;
       Lexeme_Head : Natural := 1;
       Lexeme_Tail : Natural := 0;
-      Last_Token  : Terminal_Id;
+      Last_Token  : Terminal_ID;
 
       -- Internal state information
       Buffer       : String (1..Max_String_Length);

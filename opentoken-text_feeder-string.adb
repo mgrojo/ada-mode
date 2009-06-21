@@ -6,7 +6,7 @@
 --
 -- The OpenToken package is free software; you can redistribute it and/or
 -- modify it under the terms of the  GNU General Public License as published
--- by the Free Software Foundation; either version 2, or (at your option)
+-- by the Free Software Foundation; either version 3, or (at your option)
 -- any later version. The OpenToken package is distributed in the hope that
 -- it will be useful, but WITHOUT ANY WARRANTY; without even the implied
 -- warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -21,17 +21,6 @@
 -- covered by the GNU General Public License.  This exception does not
 -- however invalidate any other reasons why the executable file might be
 -- covered by the GNU Public License.
---
--- Maintainer: Ted Dennison (dennison@telepath.com)
---
--- Update History:
--- $Log: opentoken-text_feeder-string.adb,v $
--- Revision 1.2  2000/02/05 04:00:21  Ted
--- Added End_Of_Text to support analyzing binaries.
---
--- Revision 1.1  2000/01/27 20:53:25  Ted
--- A settable string text feeder.
---
 --
 -------------------------------------------------------------------------------
 
@@ -62,7 +51,7 @@ package body OpenToken.Text_Feeder.String is
          Text_End := New_Text'First + Data_Length - 1;
          New_Text(New_Text'First..Text_End) :=
            Ada.Strings.Unbounded.To_String (Feeder.Next_Value);
-         Feeder.Next_Value := Ada.Strings.Unbounded.To_Unbounded_String ((1 => OpenToken.Eof_Character));
+         Feeder.Next_Value := Ada.Strings.Unbounded.To_Unbounded_String ((1 => OpenToken.EOF_Character));
       end if;
    end Get;
 
@@ -74,7 +63,7 @@ package body OpenToken.Text_Feeder.String is
                  ) is
    begin
       Feeder.Next_Value := Ada.Strings.Unbounded.To_Unbounded_String
-        (Value & OpenToken.Eof_Character);
+        (Value & OpenToken.EOF_Character);
    end Set;
 
    ----------------------------------------------------------------------------

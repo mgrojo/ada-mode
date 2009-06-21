@@ -1,12 +1,13 @@
 -------------------------------------------------------------------------------
 --
+-- Copyright (C) 2003 Stephen Leake
 -- Copyright (C) 1999 FlightSafety International and Ted Dennison
 --
 -- This file is part of the OpenToken package.
 --
 -- The OpenToken package is free software; you can redistribute it and/or
 -- modify it under the terms of the  GNU General Public License as published
--- by the Free Software Foundation; either version 2, or (at your option)
+-- by the Free Software Foundation; either version 3, or (at your option)
 -- any later version. The OpenToken package is distributed in the hope that
 -- it will be useful, but WITHOUT ANY WARRANTY; without even the implied
 -- warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -22,40 +23,18 @@
 -- however invalidate any other reasons why the executable file might be
 -- covered by the GNU Public License.
 --
--- Maintainer: Ted Dennison (dennison@telepath.com)
---
 -- This software was originally developed by the following company, and was
 -- released as open-source software as a service to the community:
 --
 --           FlightSafety International Simulation Systems Division
 --                    Broken Arrow, OK  USA  918-259-4000
 --
--- Update History:
--- $Log: opentoken-recognizer-real.adb,v $
--- Revision 1.3  2000/08/12 23:57:18  Ted
--- Changed some calls to dynamic dispatching to work around Gnat 3.13p bug
---
--- Revision 1.2  1999/12/27 19:56:03  Ted
--- fix file contents to work w/ new hierarchy
---
--- Revision 1.1  1999/12/27 17:11:38  Ted
--- renamed everything to new hierarchy
---
--- Revision 1.4  1999/10/22 02:24:20  Ted
--- Restructure Last_State assignments to avoid unitialized data problems
---
--- Revision 1.3  1999/10/08 23:15:43  Ted
--- Add Get parameter to allow signed literals
---
--- Revision 1.2  1999/08/17 02:53:55  Ted
--- Chris Grien fixes to the recognizer
---
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
 -- This package implements a token recognizer for a token of a real literal.
 -------------------------------------------------------------------------------
-package body Opentoken.Recognizer.Real is
+package body OpenToken.Recognizer.Real is
 
   ----------------------------------------------------------------------------
   -- This procedure will be called when analysis on a new candidate string
@@ -63,9 +42,7 @@ package body Opentoken.Recognizer.Real is
   ----------------------------------------------------------------------------
   procedure Clear (The_Token: in out Instance) is
   begin
-
-     -- Changed to dynamicly dispatch to work around gnat 3.13p bug
-    Extended_Digits.Clear (Extended_Digits.Instance'Class(The_Token.Decimal_Recognizer));
+    Extended_Digits.Clear (The_Token.Decimal_Recognizer);
 
     The_Token.Last_Verdict := Failed;
     The_Token.State        := First_Char;
@@ -115,8 +92,7 @@ package body Opentoken.Recognizer.Real is
 
             when others =>
 
-               -- Changed to dynamicly dispatch to work around gnat 3.13p bug
-               Extended_Digits.Analyze (Extended_Digits.Instance'Class(The_Token.Decimal_Recognizer), Next_Char, Decimal_Verdict);
+               Extended_Digits.Analyze (The_Token.Decimal_Recognizer, Next_Char, Decimal_Verdict);
 
                -- If the fore part is an integer, so-far-so-good...
                if Decimal_Verdict = Matches then
@@ -147,8 +123,7 @@ package body Opentoken.Recognizer.Real is
 
         else
 
-           -- Changed to dynamicly dispatch to work around gnat 3.13p bug
-          Extended_Digits.Analyze (Extended_Digits.Instance'Class(The_Token.Decimal_Recognizer), Next_Char, Decimal_Verdict);
+           Extended_Digits.Analyze (The_Token.Decimal_Recognizer, Next_Char, Decimal_Verdict);
 
           if Decimal_Verdict = Matches then
             Verdict         := So_Far_So_Good;
@@ -168,8 +143,7 @@ package body Opentoken.Recognizer.Real is
         -- Note that any state that leads into this one needs to set
         -- The_Token.Last_Verdict to match the last verdict given from
         -- The_Token.Decimal_Recognizer.
-         -- Changed to dynamicly dispatch to work around gnat 3.13p bug
-        Extended_Digits.Analyze (Extended_Digits.Instance'Class(The_Token.Decimal_Recognizer), Next_Char, Decimal_Verdict);
+        Extended_Digits.Analyze (The_Token.Decimal_Recognizer, Next_Char, Decimal_Verdict);
 
         case Decimal_Verdict is
           when So_Far_So_Good |  -- Next_Char is '_'
@@ -186,15 +160,14 @@ package body Opentoken.Recognizer.Real is
               The_Token.State        := Aft;
               The_Token.Last_Verdict := Decimal_Verdict;
 
-              -- Changed to dynamicly dispatch to work around gnat 3.13p bug
-              Extended_Digits.Clear (Extended_Digits.Instance'Class(The_Token.Decimal_Recognizer));
+              Extended_Digits.Clear (The_Token.Decimal_Recognizer);
+
             elsif The_Token.Last_Verdict = Matches     and
                   (Next_Char = 'e' or Next_Char = 'E') and
                   The_Token.Allow_Laziness and The_Token.Allow_Exponent then
               Verdict         := So_Far_So_Good;
               The_Token.State := Exponent_Sign;
-              -- Changed to dynamicly dispatch to work around gnat 3.13p bug
-              Extended_Digits.Clear (Extended_Digits.Instance'Class(The_Token.Decimal_Recognizer));
+              Extended_Digits.Clear (The_Token.Decimal_Recognizer);
             else
               Verdict         := Failed;
               The_Token.State := Done;
@@ -205,8 +178,7 @@ package body Opentoken.Recognizer.Real is
         -- We arrive here only for omitted fore part.
         -- If the aft character is a digit, it matches.
 
-         -- Changed to dynamicly dispatch to work around gnat 3.13p bug
-        Extended_Digits.Analyze (Extended_Digits.Instance'Class(The_Token.Decimal_Recognizer), Next_Char, Decimal_Verdict);
+         Extended_Digits.Analyze (The_Token.Decimal_Recognizer, Next_Char, Decimal_Verdict);
 
         if Decimal_Verdict = Matches then
           Verdict                := Matches;
@@ -224,8 +196,7 @@ package body Opentoken.Recognizer.Real is
         -- The_Token.Last_Verdict to match the last verdict given from
         -- The_Token.Decimal_Recognizer.
 
-         -- Changed to dynamicly dispatch to work around gnat 3.13p bug
-        Extended_Digits.Analyze (Extended_Digits.Instance'Class(The_Token.Decimal_Recognizer), Next_Char, Decimal_Verdict);
+         Extended_Digits.Analyze (The_Token.Decimal_Recognizer, Next_Char, Decimal_Verdict);
 
         case Decimal_Verdict is
           when So_Far_So_Good =>  -- Next_Char is '_'
@@ -241,8 +212,7 @@ package body Opentoken.Recognizer.Real is
                (Next_Char = 'e' or Next_Char = 'E') and The_Token.Allow_Exponent then
               Verdict         := So_Far_So_Good;
               The_Token.State := Exponent_Sign;
-              -- Changed to dynamicly dispatch to work around gnat 3.13p bug
-              Extended_Digits.Clear (Extended_Digits.Instance'Class(The_Token.Decimal_Recognizer));
+              Extended_Digits.Clear (The_Token.Decimal_Recognizer);
             else
               Verdict         := Failed;
               The_Token.State := Done;
@@ -260,8 +230,7 @@ package body Opentoken.Recognizer.Real is
 
         else
 
-           -- Changed to dynamicly dispatch to work around gnat 3.13p bug
-          Extended_Digits.Analyze (Extended_Digits.Instance'Class(The_Token.Decimal_Recognizer), Next_Char, Decimal_Verdict);
+           Extended_Digits.Analyze (The_Token.Decimal_Recognizer, Next_Char, Decimal_Verdict);
 
           if Decimal_Verdict = Matches then  -- a decimal digit
             Verdict         := Matches;
@@ -277,8 +246,7 @@ package body Opentoken.Recognizer.Real is
         -- If the exponent is a digit, it matches.
         -- If it is an underscore, so-far-so-good...
 
-         -- Changed to dynamicly dispatch to work around gnat 3.13p bug
-        Extended_Digits.Analyze (Extended_Digits.Instance'Class(The_Token.Decimal_Recognizer), Next_Char, Decimal_Verdict);
+        Extended_Digits.Analyze (The_Token.Decimal_Recognizer, Next_Char, Decimal_Verdict);
 
         case Decimal_Verdict is
           when So_Far_So_Good |   -- Next_Char is '_'
@@ -319,4 +287,4 @@ package body Opentoken.Recognizer.Real is
 
   end Get;
 
-end Opentoken.Recognizer.Real;
+end OpenToken.Recognizer.Real;

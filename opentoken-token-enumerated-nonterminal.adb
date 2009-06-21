@@ -6,7 +6,7 @@
 --
 -- The OpenToken package is free software; you can redistribute it and/or
 -- modify it under the terms of the  GNU General Public License as published
--- by the Free Software Foundation; either version 2, or (at your option)
+-- by the Free Software Foundation; either version 3, or (at your option)
 -- any later version. The OpenToken package is distributed in the hope that
 -- it will be useful, but WITHOUT ANY WARRANTY; without even the implied
 -- warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -21,21 +21,6 @@
 -- covered by the GNU General Public License.  This exception does not
 -- however invalidate any other reasons why the executable file might be
 -- covered by the GNU Public License.
---
--- Maintainer: Ted Dennison (dennison@telepath.com)
---
--- Update History:
--- $Log: opentoken-token-enumerated-nonterminal.adb,v $
--- Revision 1.2  2000/08/12 23:58:06  Ted
--- Removed unused variables
---
--- Revision 1.1  2000/08/12 14:07:51  Ted
--- moved from opentoken-token-nonterminal
---
--- Revision 1.1  2000/01/27 20:59:04  Ted
--- Nonterminal tokens (for productions).
---
---
 --
 -------------------------------------------------------------------------------
 
@@ -107,7 +92,9 @@ package body OpenToken.Token.Enumerated.Nonterminal is
    ----------------------------------------------------------------------------
    procedure Self_Synthesize (New_Token : out Class;
                               Source    : in  Token_List.Instance'Class;
-                              To_ID     : in  OpenToken.Token.Enumerated.Token_ID) is
+                              To_ID     : in  OpenToken.Token.Enumerated.Token_ID)
+   is
+      pragma Unreferenced (Source);
    begin
       New_Token.ID := To_ID;
    end Self_Synthesize;

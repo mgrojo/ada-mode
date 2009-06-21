@@ -1,0 +1,100 @@
+-- Common settings
+project Common is
+
+   for Source_Dirs use (); -- avoids spurios error about "no Ada sources"
+
+   type GNAT_Version_Type is ("4.3.2", "6.2.1", "GPL-2009");
+   --  4.3.2 is the Ada included in the current Debian stable distribution
+   --  6.x.x are the supported AdaCore releases.
+   --  GPL-200x are the current AdaCore public releases
+
+   GNAT_Version : GNAT_Version_Type := External ("GNAT_VERSION");
+
+   package Compiler is
+      -- Switches for gcc
+
+      Style_Checks := "-gnaty3abcefhiklM120nprtx";
+
+      --  -gnatVa causes some inline procedures to be non-inlineable;
+      --  suppress that warning with -gnatwP.
+      Debug_Switches :=
+        --  Switches we always use
+        ("-g",
+         "-O0",
+         "-gnat05",
+         "-gnata",
+         "-gnatf",
+         "-gnato",
+         "-gnatq",
+         "-gnatQ",
+         "-gnatVa",
+         "-gnatwa",
+         "-gnatwe",
+         "-gnatwL",
+         "-gnatwP",
+         "-fstack-check");
+
+      --  AdaCore recommends -O2 -gnatn instead of -O3; -O3 includes
+      --  "potentially unsafe and disruptive optimizations". We include
+      --  -fstack-check because it catches hard-to-find bugs, and the
+      --  processors are so fast.
+      Release_Switches :=
+        ("-g",
+         "-O2",
+         "-gnat05",
+         "-gnatf",
+         "-gnatn",
+         "-gnato",
+         "-gnatq",
+         "-gnatQ",
+         "-gnatwa",
+         "-gnatwe",
+         "-gnatwL",
+         "-fstack-check");
+
+      --  The project file syntax does not let us set a variable in a
+      --  case statement. So we set the Default_Switches attribute to
+      --  contain the version-dependent switches. This is then
+      --  accessible in child project files via 'Default_Switches.
+      case GNAT_Version is
+         when "GPL-2009" | "6.2.1" =>
+            --  -gnatwa turns on -gnatwb and -gnatwm, but we want them off.
+            --  -gnatyO enforces use of 'overriding'
+            --  Not valid options for earlier compilers.
+            for Default_Switches ("Ada") use ("-gnatwB", "-gnatwM", "-gnatyO");
+
+         when "4.3.2" =>
+
+      end case;
+
+   end Compiler;
+
+   --  In user project files, normally use this:
+   --  package Compiler is
+   --  for Default_Switches ("Ada") use
+   --     Standard_Common.Compiler.Release_Switches &
+   --     Standard_Common.Compiler.Style_Checks &
+   --     Standard_Common.Compiler'Default_Switches ("Ada");
+   --  end Compiler;
+
+   package Builder is
+      --  Switches for gnatmake
+      for Default_Switches ("Ada") use ("-C");
+   end Builder;
+
+   --  In user project files, normally use this:
+   --  package Builder is
+   --     for Default_Switches ("Ada") use Standard_Common.Builder'Default_Switches ("Ada");
+   --  end Builder;
+
+   package Binder is
+      --  Switches for gnatbind
+      for Default_Switches ("Ada") use ("-E");
+   end Binder;
+
+   --  In user project files, normally use this:
+   --  package Binder is
+   --     for Default_Switches ("Ada") use Standard_Common.Binder'Default_Switches ("Ada");
+   --  end Binder;
+
+end Common;

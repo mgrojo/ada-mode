@@ -6,7 +6,7 @@
 --
 -- The OpenToken package is free software; you can redistribute it and/or
 -- modify it under the terms of the  GNU General Public License as published
--- by the Free Software Foundation; either version 2, or (at your option)
+-- by the Free Software Foundation; either version 3, or (at your option)
 -- any later version. The OpenToken package is distributed in the hope that
 -- it will be useful, but WITHOUT ANY WARRANTY; without even the implied
 -- warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -22,18 +22,6 @@
 -- however invalidate any other reasons why the executable file might be
 -- covered by the GNU Public License.
 --
--- Maintainer: Ted Dennison (dennison@telepath.com)
---
--- Update History:
--- $Log: opentoken-token-enumerated-list.ads,v $
--- Revision 1.1  2000/08/12 13:56:41  Ted
--- moved from opentoken-token-list
---
--- Revision 1.1  2000/01/27 20:58:35  Ted
--- Lists of tokens.
---
---
---
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
@@ -45,6 +33,8 @@ generic
 package OpenToken.Token.Enumerated.List is
 
    type Instance is tagged private;
+
+   Null_List : constant Instance;
 
    ----------------------------------------------------------------------------
    -- Create a token list from a single instance.
@@ -70,6 +60,11 @@ package OpenToken.Token.Enumerated.List is
    ----------------------------------------------------------------------------
    function "&" (Left  : in Instance;
                  Right : in Instance) return Instance;
+
+   ----------------------------------------------------------------------------
+   -- Return first token on List.
+   ----------------------------------------------------------------------------
+   function First (List : in Instance) return Handle;
 
    ----------------------------------------------------------------------------
    -- This routine needs to be called when you are done using a list, or want
@@ -121,14 +116,9 @@ private
      Tail : List_Node_Ptr;
    end record;
 
---    ----------------------------------------------------------------------------
---    -- Overriding of controled operations to provide for automatic cleanup of
---    -- list nodes.
---    ----------------------------------------------------------------------------
---    procedure Adjust (Object : in out Instance);
---    procedure Finalize (Object : in out Instance);
-
    type List_Iterator is new List_Node_Ptr;
    Null_Iterator : constant List_Iterator := null;
+
+   Null_List : constant Instance := (null, null);
 
 end OpenToken.Token.Enumerated.List;

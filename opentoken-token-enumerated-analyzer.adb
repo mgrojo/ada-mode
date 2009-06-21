@@ -1,12 +1,13 @@
 -------------------------------------------------------------------------------
 --
+-- Copyright (C) 2002, 2003 Stephe Leake
 -- Copyright (C) 1999, 2000 FlightSafety International and Ted Dennison
 --
 -- This file is part of the OpenToken package.
 --
 -- The OpenToken package is free software; you can redistribute it and/or
 -- modify it under the terms of the  GNU General Public License as published
--- by the Free Software Foundation; either version 2, or (at your option)
+-- by the Free Software Foundation; either version 3, or (at your option)
 -- any later version. The OpenToken package is distributed in the hope that
 -- it will be useful, but WITHOUT ANY WARRANTY; without even the implied
 -- warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -22,44 +23,15 @@
 -- however invalidate any other reasons why the executable file might be
 -- covered by the GNU Public License.
 --
--- Maintainer: Ted Dennison (dennison@telepath.com)
---
 -- This software was originally developed by the following company, and was
 -- released as open-source software as a service to the community:
 --
 --           FlightSafety International Simulation Systems Division
 --                    Broken Arrow, OK  USA  918-259-4000
 --
--- Update History:
--- $Log: opentoken-token-enumerated-analyzer.adb,v $
--- Revision 1.1  2000/08/12 13:49:25  Ted
--- moved from opentoken-token-analyzer
---
--- Revision 1.3  2000/02/05 04:00:22  Ted
--- Added End_Of_Text to support analyzing binaries.
---
--- Revision 1.2  2000/01/27 20:55:48  Ted
--- A token (lexical) analyzer
---
--- Revision 1.1  1999/12/28 00:57:16  Ted
--- renamed opentoken-analyzer to opentoken-token-analyzer
---
--- Revision 1.2  1999/12/27 19:55:58  Ted
--- fix file contents to work w/ new hierarchy
---
--- Revision 1.1  1999/12/27 17:11:31  Ted
--- renamed everything to new hierarchy
---
--- Revision 1.4  1999/10/08 22:47:51  Ted
--- Add default token functionality
---
--- Revision 1.3  1999/08/17 03:07:54  Ted
--- Add log line
---
 -------------------------------------------------------------------------------
 
 with Ada.Exceptions;
-with Ada.Strings;
 with Ada.Strings.Fixed;
 with Unchecked_Deallocation;
 
@@ -70,9 +42,9 @@ use type OpenToken.Recognizer.Analysis_Verdict;
 -- This package implements a mostly full-strength tokenizer (or lexical
 -- analyizer).
 -------------------------------------------------------------------------------
-package body Opentoken.Token.Enumerated.Analyzer is
+package body OpenToken.Token.Enumerated.Analyzer is
 
-   type Match_List is array (Terminal_Id) of Recognizer.Analysis_Verdict;
+   type Match_List is array (Terminal_ID) of Recognizer.Analysis_Verdict;
 
    -------------------------------------------------------------------------
    -- type for handling token lookaheads.
@@ -121,7 +93,7 @@ package body Opentoken.Token.Enumerated.Analyzer is
          return Index in Analyzer.Buffer_Head .. Analyzer.Buffer_Tail;
       else
          -- It is in the buffer if it is not bounded by the tail and the head
-        return Index not in Analyzer.Buffer_Tail + 1 .. Analyzer.Buffer_Head - 1;
+         return Index not in Analyzer.Buffer_Tail + 1 .. Analyzer.Buffer_Head - 1;
       end if;
 
    end In_Buffer;
@@ -260,7 +232,7 @@ package body Opentoken.Token.Enumerated.Analyzer is
          Current_Char := Increment_Buffer_Index (Analyzer.Buffer_Head, Unmatched_Length);
 
          -- Clear the state of all the tokens
-         for Token_Index in Terminal_Id loop
+         for Token_Index in Terminal_ID loop
             Recognizer.Clear (Analyzer.Syntax_List(Token_Index).Recognizer.all);
          end loop;
          Match := (others => Recognizer.So_Far_So_Good);
@@ -277,7 +249,7 @@ package body Opentoken.Token.Enumerated.Analyzer is
             -- otherwise.
             Possible_Matches := False;
 
-            for Token_Index in Terminal_Id loop
+            for Token_Index in Terminal_ID loop
 
                if Match(Token_Index) /= Recognizer.Failed then
 
@@ -314,10 +286,8 @@ package body Opentoken.Token.Enumerated.Analyzer is
 
          Unmatched_Length := Unmatched_Length + 1;
 
-         exit when Current_Char = Analyzer.Buffer_Tail and then
+         exit Check_For_Unrecognized when Current_Char = Analyzer.Buffer_Tail and then
            OpenToken.Text_Feeder.End_Of_Text (Analyzer.Feeder.all);
-
---         exit when Analyzer.Buffer(Increment_Buffer_Index (Analyzer.Buffer_Head, Unmatched_Length - 1)) = EOF_Character;
 
       end loop Check_For_Unrecognized;
 
@@ -335,7 +305,7 @@ package body Opentoken.Token.Enumerated.Analyzer is
    ----------------------------------------------------------------------------
    procedure Find_Best_Match
      (Analyzer          : in out Instance;
-      Best_Match_Token  :    out Terminal_Id;
+      Best_Match_Token  :    out Terminal_ID;
       Best_Match_Length :    out Natural
      ) is
 
@@ -349,7 +319,7 @@ package body Opentoken.Token.Enumerated.Analyzer is
    begin
 
       -- Clear the state of all the tokens
-      for Token_Index in Terminal_Id loop
+      for Token_Index in Terminal_ID loop
          Recognizer.Clear (Analyzer.Syntax_List(Token_Index).Recognizer.all);
       end loop;
 
@@ -366,7 +336,7 @@ package body Opentoken.Token.Enumerated.Analyzer is
          More_Possible_Matches := False;
 
          -- Check all the token Analyzers...
-         for Token_Index in Terminal_Id loop
+         for Token_Index in Terminal_ID loop
 
             -- check only tokens that haven't yet failed...
             if Match(Token_Index) /= Recognizer.Failed then
@@ -413,7 +383,7 @@ package body Opentoken.Token.Enumerated.Analyzer is
    begin
       -- Initialize the syntax
       New_Analyzer.Syntax_List := Language_Syntax;
-      for Id in Syntax'range loop
+      for ID in Syntax'Range loop
          New_Analyzer.Syntax_List(ID).Token_Handle.ID := ID;
       end loop;
 
@@ -434,14 +404,14 @@ package body Opentoken.Token.Enumerated.Analyzer is
    end Initialize;
 
    function Initialize (Language_Syntax : in Syntax;
-                        Default         : in Terminal_Id;
+                        Default         : in Terminal_ID;
                         Feeder          : in Text_Feeder_Ptr := Input_Feeder'Access
                        ) return Instance is
       New_Analyzer : Instance;
    begin
       -- Initialize the syntax
       New_Analyzer.Syntax_List    := Language_Syntax;
-      for Id in Syntax'range loop
+      for ID in Syntax'Range loop
          New_Analyzer.Syntax_List(ID).Token_Handle.ID := ID;
       end loop;
 
@@ -467,7 +437,11 @@ package body Opentoken.Token.Enumerated.Analyzer is
    ----------------------------------------------------------------------------
    procedure Set_Text_Feeder (Analyzer : in out Instance; Feeder : in Text_Feeder_Ptr) is
    begin
-      Analyzer.Feeder := Feeder;
+      Analyzer.Feeder      := Feeder;
+      Analyzer.Line        := 1;
+      Analyzer.Column      := 1;
+      Analyzer.Next_Line   := 1;
+      Analyzer.Next_Column := 1;
    end Set_Text_Feeder;
 
 
@@ -477,10 +451,27 @@ package body Opentoken.Token.Enumerated.Analyzer is
    procedure Set_Syntax (Analyzer : in out Instance; Language_Syntax : in Syntax) is
    begin
       Analyzer.Syntax_List := Language_Syntax;
-      for Id in Syntax'range loop
+      for ID in Syntax'Range loop
          Analyzer.Syntax_List(ID).Token_Handle.ID := ID;
       end loop;
    end Set_Syntax;
+
+   function End_Of_Text (Analyzer : in Instance) return Boolean
+   is begin
+      return End_Of_Buffered_Text (Analyzer) and Text_Feeder.End_Of_Text (Analyzer.Feeder.all);
+   end End_Of_Text;
+
+   function End_Of_Buffered_Text (Analyzer : in Instance) return Boolean
+   is begin
+      return Analyzer.Buffer_Size = 0 or Analyzer.Buffer_Head = Analyzer.Buffer_Tail;
+   end End_Of_Buffered_Text;
+
+   procedure Discard_Buffered_Text (Analyzer : in out Instance)
+   is begin
+      Analyzer.Buffer_Head := Analyzer.Buffer'First;
+      Analyzer.Buffer_Tail := Analyzer.Buffer'Last;
+      Analyzer.Buffer_Size := 0;
+   end Discard_Buffered_Text;
 
    ----------------------------------------------------------------------------
    -- Set the analyzer's default token to the given ID.
@@ -496,7 +487,7 @@ package body Opentoken.Token.Enumerated.Analyzer is
    -- any legitimate string (eg: Token.Nothing)
    ----------------------------------------------------------------------------
    procedure Set_Default (Analyzer : in out Instance;
-                          Default  : in     Terminal_Id
+                          Default  : in     Terminal_ID
                          ) is
    begin
       Analyzer.Has_Default   := True;
@@ -523,7 +514,7 @@ package body Opentoken.Token.Enumerated.Analyzer is
 
       EOLs_Found : Integer;
 
-      Matched_Token  : Terminal_Id;
+      Matched_Token  : Terminal_ID;
       Matched_Length : Natural;
 
       Trash : Token_List_Node_Pointer;
@@ -607,11 +598,12 @@ package body Opentoken.Token.Enumerated.Analyzer is
             );
 
          Analyzer.Last_Token := Matched_Token;
-         Create (Lexeme     => Lexeme(Analyzer),
+
+         Create (Lexeme     => Lexeme (Analyzer),
                  ID         => Matched_Token,
                  Recognizer => Analyzer.Syntax_List(Matched_Token).Recognizer,
                  New_Token  => Analyzer.Syntax_List(Matched_Token).Token_Handle.all
-                 );
+                );
 
          -- If we are looking ahead, push the new token on the look-aheads queue
          if Look_Ahead then
@@ -643,7 +635,7 @@ package body Opentoken.Token.Enumerated.Analyzer is
       else -- Read the next token from the lookahead queue
 
          -- Pop the firt item off the queue and put it into the syntax list
-         Analyzer.Last_Token := Analyzer.Lookahead_Queue.Token_Handle.Id;
+         Analyzer.Last_Token := Analyzer.Lookahead_Queue.Token_Handle.ID;
          Analyzer.Syntax_List (Analyzer.Last_Token).Token_Handle.all :=
            Analyzer.Lookahead_Queue.Token_Handle.all;
          Trash := Analyzer.Lookahead_Queue;
@@ -698,7 +690,7 @@ package body Opentoken.Token.Enumerated.Analyzer is
    ----------------------------------------------------------------------------
    -- Returns the last token ID that was matched.
    ----------------------------------------------------------------------------
-   function ID (Analyzer : in Instance) return Terminal_Id is
+   function ID (Analyzer : in Instance) return Terminal_ID is
    begin
       return Analyzer.Last_Token;
    end ID;

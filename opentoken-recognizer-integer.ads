@@ -6,7 +6,7 @@
 --
 -- The OpenToken package is free software; you can redistribute it and/or
 -- modify it under the terms of the  GNU General Public License as published
--- by the Free Software Foundation; either version 2, or (at your option)
+-- by the Free Software Foundation; either version 3, or (at your option)
 -- any later version. The OpenToken package is distributed in the hope that
 -- it will be useful, but WITHOUT ANY WARRANTY; without even the implied
 -- warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -22,34 +22,15 @@
 -- however invalidate any other reasons why the executable file might be
 -- covered by the GNU Public License.
 --
--- Maintainer: Ted Dennison (dennison@telepath.com)
---
 -- This software was originally developed by the following company, and was
 -- released as open-source software as a service to the community:
 --
 --           FlightSafety International Simulation Systems Division
 --                    Broken Arrow, OK  USA  918-259-4000
 --
--- Update History:
--- $Log: opentoken-recognizer-integer.ads,v $
--- Revision 1.2  1999/12/27 19:56:02  Ted
--- fix file contents to work w/ new hierarchy
---
--- Revision 1.1  1999/12/27 17:11:36  Ted
--- renamed everything to new hierarchy
---
--- Revision 1.4  1999/10/08 23:15:42  Ted
--- Add Get parameter to allow signed literals
---
--- Revision 1.3  1999/09/17 02:02:56  Ted
--- Fix comment typo
---
--- Revision 1.2  1999/08/17 03:04:15  Ted
--- Add leading zero function (CKWG)
---
 -------------------------------------------------------------------------------
 
-with Opentoken.Recognizer.Extended_Digits;
+with OpenToken.Recognizer.Extended_Digits;
 
 -------------------------------------------------------------------------------
 -- This package implements a token recognizer for an integer. An integer is
@@ -65,9 +46,9 @@ with Opentoken.Recognizer.Extended_Digits;
 -- created with leading zero disallowed or a string like 07 is ambiguous.
 -- (However 0 is always a simple integer.)
 -------------------------------------------------------------------------------
-package Opentoken.Recognizer.Integer is
+package OpenToken.Recognizer.Integer is
 
-  type Instance is new Opentoken.Recognizer.Instance with private;
+  type Instance is new OpenToken.Recognizer.Instance with private;
 
   ----------------------------------------------------------------------------
   -- This procedure will be called to create an Integer token.
@@ -86,7 +67,7 @@ private
 
   type State_ID is (First_Char, First_Numeral, Numeral, Exponent_Sign, Exponent, Done);
 
-  type Instance is new Opentoken.Recognizer.Instance with record
+  type Instance is new OpenToken.Recognizer.Instance with record
 
      Allow_Exponent     : Boolean;
      Allow_Leading_Zero : Boolean;
@@ -114,4 +95,4 @@ private
                      Next_Char: in     Character;
                      Verdict  :    out Analysis_Verdict);
 
-end Opentoken.Recognizer.Integer;
+end OpenToken.Recognizer.Integer;

@@ -6,7 +6,7 @@
 --
 -- The OpenToken package is free software; you can redistribute it and/or
 -- modify it under the terms of the  GNU General Public License as published
--- by the Free Software Foundation; either version 2, or (at your option)
+-- by the Free Software Foundation; either version 3, or (at your option)
 -- any later version. The OpenToken package is distributed in the hope that
 -- it will be useful, but WITHOUT ANY WARRANTY; without even the implied
 -- warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -22,24 +22,11 @@
 -- however invalidate any other reasons why the executable file might be
 -- covered by the GNU Public License.
 --
--- Maintainer: Ted Dennison (dennison@telepath.com)
---
 -- This software was originally developed by the following company, and was
 -- released as open-source software as a service to the community:
 --
 --           FlightSafety International Simulation Systems Division
 --                    Broken Arrow, OK  USA  918-259-4000
---
--- Update History:
--- $Log: opentoken-recognizer-line_comment.adb,v $
--- Revision 1.2  1999/12/27 19:56:02  Ted
--- fix file contents to work w/ new hierarchy
---
--- Revision 1.1  1999/12/27 17:11:37  Ted
--- renamed everything to new hierarchy
---
--- Revision 1.2  1999/08/17 02:55:37  Ted
--- Add log line
 --
 -------------------------------------------------------------------------------
 
@@ -47,7 +34,7 @@
 -- This package implements a token recognizer for a line comment. A line comment
 -- is a comment that runs from the introducer to the end of the line
 -------------------------------------------------------------------------------
-package body Opentoken.Recognizer.Line_Comment is
+package body OpenToken.Recognizer.Line_Comment is
 
    ----------------------------------------------------------------------------
    -- This procedure will be called when analysis on a new candidate string
@@ -128,4 +115,4 @@ package body Opentoken.Recognizer.Line_Comment is
 
    end Get;
 
-end Opentoken.Recognizer.Line_Comment;
+end OpenToken.Recognizer.Line_Comment;

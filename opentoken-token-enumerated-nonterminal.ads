@@ -6,7 +6,7 @@
 --
 -- The OpenToken package is free software; you can redistribute it and/or
 -- modify it under the terms of the  GNU General Public License as published
--- by the Free Software Foundation; either version 2, or (at your option)
+-- by the Free Software Foundation; either version 3, or (at your option)
 -- any later version. The OpenToken package is distributed in the hope that
 -- it will be useful, but WITHOUT ANY WARRANTY; without even the implied
 -- warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -22,18 +22,6 @@
 -- however invalidate any other reasons why the executable file might be
 -- covered by the GNU Public License.
 --
--- Maintainer: Ted Dennison (dennison@telepath.com)
---
--- Update History:
--- $Log: opentoken-token-enumerated-nonterminal.ads,v $
--- Revision 1.1  2000/08/12 14:07:51  Ted
--- moved from opentoken-token-nonterminal
---
--- Revision 1.1  2000/01/27 20:59:05  Ted
--- Nonterminal tokens (for productions).
---
---
---
 -------------------------------------------------------------------------------
 
 with OpenToken.Token.Enumerated;
@@ -48,11 +36,7 @@ generic
    with package Token_List is new OpenToken.Token.Enumerated.List;
 package OpenToken.Token.Enumerated.Nonterminal is
 
-   -- I'd rather used full named notation to get at this, but Gnat won't allow
-   -- visibility to OpeToken.Token.Enumerated here for some reason.
-   subtype Enumerated_Instance is Instance;
-
-   type Instance is new Enumerated_Instance with null record;
+   type Instance is new OpenToken.Token.Enumerated.Instance with null record;
 
    subtype Class is Instance'Class;
 
@@ -150,7 +134,7 @@ package OpenToken.Token.Enumerated.Nonterminal is
    -- the Source must be in Instance'Class.
    ----------------------------------------------------------------------------
    procedure Synthesize_By_Copying (New_Token : out Instance;
-                                    Source    : in  Enumerated_Instance'Class;
+                                    Source    : in  OpenToken.Token.Enumerated.Instance'Class;
                                     To_ID     : in  Token_ID);
 
 
