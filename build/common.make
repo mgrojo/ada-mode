@@ -16,7 +16,7 @@ obj:
 
 tests : association_token_test-run.diff
 tests : bracketed_comment_test-run.run
-tests : enumerated_token_list_test.run
+# tests : enumerated_token_list_test.run FIXME: doesn't compile
 tests : lookahead_test-run.run
 tests : name_token_test-run.diff
 tests : production_test-run.run
@@ -26,8 +26,8 @@ tests : string_test-run.run
 tests : string_token_test-run.diff
 tests : token_analyzer_ctd-run.run
 tests : token_list_test-run.run
-tests : token_selection_test-run.run
-tests : token_sequence_test-run.run
+# tests : token_selection_test-run.run FIXME: doesn't compile
+# tests : token_sequence_test-run.run FIXME: doesn't compile
 
 clean :: test-clean
 	rm -f *.exe

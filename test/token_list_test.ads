@@ -1,4 +1,3 @@
-with OpenToken.Token.List;
 with OpenToken.Token.Enumerated;
 with OpenToken.Token.Enumerated.Analyzer;
 with OpenToken.Recognizer.Character_Set;
@@ -9,9 +8,9 @@ with OpenToken.Text_Feeder.String;
 
 package Token_List_Test is
 
-   type Token_Ids is (Int, Comma, EOF, Whitespace);
+   type Token_IDs is (Int, Comma, EOF, Whitespace);
 
-   package Terminal_Token is new OpenToken.Token.Enumerated(Token_IDs);
+   package Terminal_Token is new OpenToken.Token.Enumerated (Token_IDs);
    package Tokenizer is new Terminal_Token.Analyzer;
 
    Syntax : constant Tokenizer.Syntax :=

@@ -16,17 +16,17 @@
 -- package;  see file GPL.txt.  If not, write to  the Free Software Foundation,
 -- 59 Temple Place - Suite 330,  Boston, MA 02111-1307, USA.
 --
--- As a special exception,  if other files  instantiate  generics from this
--- unit, or you link this unit with other files to produce an executable,
--- this unit does not by itself cause the resulting executable to be
--- covered by the GNU General Public License.  This exception does not
--- however invalidate any other reasons why the executable file might be
--- covered by the GNU Public License.
+--  As a special exception, if other files instantiate generics from
+--  this unit, or you link this unit with other files to produce an
+--  executable, this unit does not by itself cause the resulting
+--  executable to be covered by the GNU General Public License. This
+--  exception does not however invalidate any other reasons why the
+--  executable file might be covered by the GNU Public License.
 --
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
--- This package declares a type for designating an integer literal.
+--  This package declares a type for designating an integer literal.
 -------------------------------------------------------------------------------
 generic
 package OpenToken.Token.Enumerated.Integer_Literal is
@@ -38,26 +38,26 @@ package OpenToken.Token.Enumerated.Integer_Literal is
    type Handle is access all Class;
 
    ----------------------------------------------------------------------------
-   -- Get an integer literal token with the given ID and value.
+   --  Get an integer literal token with the given ID and value.
    ----------------------------------------------------------------------------
    function Get (ID     : in Token_ID;
                  Value  : in Integer := 0
                 ) return Instance'Class;
 
    ----------------------------------------------------------------------------
-   -- This procedure will be called when a token is recognized.
+   --  This procedure will be called when a token is recognized.
    --
-   -- The Token's ID will be set to the given value. The literal's value will
-   -- be set to the integer value of the Lexeme. The Recognizer filed isn't
-   -- used for this instance of the type.
-   ----------------------------------------------------------------------------
+   --  The Token's ID will be set to the given value. The literal's
+   --  value will be set to the integer value of the Lexeme. The
+   --  Recognizer filed isn't used for this instance of the type.
+   --------------------------------------------------------------------------
    procedure Create (Lexeme     : in     String;
                      ID         : in     Token_ID;
                      Recognizer : in     Recognizer_Handle;
                      New_Token  :    out Instance);
 
    ----------------------------------------------------------------------------
-   -- Return the value of the given integer token.
+   --  Return the value of the given integer token.
    ----------------------------------------------------------------------------
    function Value (Subject : in Instance) return Integer;
 

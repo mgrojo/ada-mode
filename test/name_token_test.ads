@@ -6,7 +6,7 @@
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
---  published by the Free Software Foundation; either version 2, or (at
+--  published by the Free Software Foundation; either version 3, or (at
 --  your option) any later version. This program is distributed in the
 --  hope that it will be useful, but WITHOUT ANY WARRANTY; without even
 --  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
@@ -32,7 +32,7 @@ with OpenToken.Token.Enumerated.Nonterminal;
 package Name_Token_Test is
 
    type Token_ID_Type is
-     (--  terminals
+     ( --  terminals
       Whitespace_ID, --  first to debug lookahead logic
       Dot_ID,
       EOF_ID,
@@ -74,7 +74,7 @@ package Name_Token_Test is
    end Tokens;
 
    Syntax : constant Tokenizer.Syntax :=
-     (--  terminals
+     ( --  terminals
       Dot_ID            => Tokenizer.Get (OpenToken.Recognizer.Separator.Get (".")),
       EOF_ID            => Tokenizer.Get (OpenToken.Recognizer.End_Of_File.Get, Tokens.EOF),
       Paren_Left_ID     => Tokenizer.Get (OpenToken.Recognizer.Separator.Get ("(")),
@@ -113,7 +113,7 @@ package Name_Token_Test is
      Name           <= Tokens.Identifier & Component + Nonterminal.Synthesize_Self and
      Component      <= Tokens.Dot & Tokens.Identifier + Nonterminal.Synthesize_Self and
      Component      <= Tokens.Paren_Left & Tokens.Identifier & Tokens.Paren_Right + Nonterminal.Synthesize_Self and
-      -- extra stuff so Generate doesn't complain
+      --  extra stuff so Generate doesn't complain
      Symbol_Name    <= Tokens.Dot and
      Component_List <= Tokens.Dot;
 
@@ -127,7 +127,7 @@ package Name_Token_Test is
      Symbol_Name    <= Tokens.Identifier & Tokens.Dot & Tokens.Identifier + Nonterminal.Synthesize_Self and
      Component      <= Tokens.Dot & Tokens.Identifier + Nonterminal.Synthesize_Self and
      Component      <= Tokens.Paren_Left & Tokens.Identifier & Tokens.Paren_Right + Nonterminal.Synthesize_Self and
-      -- extra stuff so Generate doesn't complain
+      --  extra stuff so Generate doesn't complain
      Component_List <= Tokens.Dot;
 
    --  valid names:

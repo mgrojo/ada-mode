@@ -6,7 +6,7 @@
 --
 -- The OpenToken package is free software; you can redistribute it and/or
 -- modify it under the terms of the  GNU General Public License as published
--- by the Free Software Foundation; either version 2, or (at your option)
+-- by the Free Software Foundation; either version 3, or (at your option)
 -- any later version. The OpenToken package is distributed in the hope that
 -- it will be useful, but WITHOUT ANY WARRANTY; without even the implied
 -- warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -15,16 +15,16 @@
 -- package;  see file GPL.txt.  If not, write to  the Free Software Foundation,
 -- 59 Temple Place - Suite 330,  Boston, MA 02111-1307, USA.
 --
--- As a special exception,  if other files  instantiate  generics from this
--- unit, or you link this unit with other files to produce an executable,
--- this unit does not by itself cause the resulting executable to be
--- covered by the GNU General Public License.  This exception does not
--- however invalidate any other reasons why the executable file might be
--- covered by the GNU Public License.
+--  As a special exception, if other files instantiate generics from
+--  this unit, or you link this unit with other files to produce an
+--  executable, this unit does not by itself cause the resulting
+--  executable to be covered by the GNU General Public License. This
+--  exception does not however invalidate any other reasons why the
+--  executable file might be covered by the GNU Public License.
 
 package body OpenToken.Recognizer.Based_Integer is
 
-   procedure Clear (The_Token: in out Instance) is
+   procedure Clear (The_Token : in out Instance) is
    begin
 
       The_Token :=
@@ -38,12 +38,12 @@ package body OpenToken.Recognizer.Based_Integer is
    end Clear;
 
    procedure Analyze
-     (The_Token: in out Instance;
-      Next_Char: in     Character;
-      Verdict  :    out Analysis_Verdict)
+     (The_Token : in out Instance;
+      Next_Char : in     Character;
+      Verdict   :    out Analysis_Verdict)
    is
 
-      Digits_Verdict: Analysis_Verdict := Failed;
+      Digits_Verdict : Analysis_Verdict := Failed;
 
    begin
 
@@ -65,9 +65,10 @@ package body OpenToken.Recognizer.Based_Integer is
                Verdict         := Matches;
                The_Token.State := Maybe_Base;
 
-               -- Keep a running total of the value, in case it is the base.
+               --  Keep a running total of the value, in case it is
+               --  the base.
 
-               The_Token.Base := (The_Token.Base * 10) + (Character'Pos(Next_Char) - Character'Pos('0'));
+               The_Token.Base := (The_Token.Base * 10) + (Character'Pos (Next_Char) - Character'Pos ('0'));
 
             else
                Verdict         := Failed;
@@ -81,13 +82,13 @@ package body OpenToken.Recognizer.Based_Integer is
 
          case Digits_Verdict is
          when So_Far_So_Good =>
-            -- Next_Char is '_'
+            --  Next_Char is '_'
             Verdict := So_Far_So_Good;
 
          when Matches =>
             --  Next_Char is a decimal digit
 
-            The_Token.Base := (The_Token.Base * 10) + (Character'Pos(Next_Char) - Character'Pos('0'));
+            The_Token.Base := (The_Token.Base * 10) + (Character'Pos (Next_Char) - Character'Pos ('0'));
 
             --  Test against maximum_base here, to avoid constraint
             --  error on large integers.
@@ -104,7 +105,7 @@ package body OpenToken.Recognizer.Based_Integer is
 
                The_Token.Based := True;
 
-               -- Set up the subrecognizer for integers of the specified base
+               --  Set up the subrecognizer for integers of the specified base
                The_Token.Number_Recognizer := Extended_Digits.Get
                  (Allow_Underscores => True,
                   For_Base          => The_Token.Base);
@@ -124,13 +125,13 @@ package body OpenToken.Recognizer.Based_Integer is
 
             case Digits_Verdict is
             when So_Far_So_Good =>
-               -- Next_Char is '_'
+               --  Next_Char is '_'
                Verdict := So_Far_So_Good;
 
             when Matches =>
-               -- Next_Char extended digit
+               --  Next_Char extended digit
                if The_Token.Based then
-                  -- need trailing #
+                  --  need trailing #
                   Verdict := So_Far_So_Good;
                else
                   Verdict := Matches;
@@ -160,7 +161,7 @@ package body OpenToken.Recognizer.Based_Integer is
 
 
          when Done =>
-            -- We shouldn't get here.
+            --  We shouldn't get here.
 
             Verdict := Failed;
 

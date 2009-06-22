@@ -1,2 +1,6 @@
+^Build/debian_release/.*\.diff$
+^Build/debian_release/.*\.exe$
+^Build/debian_release/.*\.out$
+^Build/debian_release/.*\.txt$
 ^Build/debian_release/lib$
 ^Build/debian_release/obj$

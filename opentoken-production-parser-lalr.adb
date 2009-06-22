@@ -140,7 +140,7 @@ package body OpenToken.Production.Parser.LALR is
    --------------------------------------------------------------------------
    --  Free the storage allocated by this package for the given item
    --  item list mapping list.
-   --  ------------------------------------------------------------------------
+   --------------------------------------------------------------------------
    procedure Free (List : in out Item_Item_List_Mapping_Ptr) is
       Old_Mapping : Item_Item_List_Mapping_Ptr := List;
    begin
@@ -326,7 +326,7 @@ package body OpenToken.Production.Parser.LALR is
    --  lookaheads. If it is a spontanious lookahead, put it in the
    --  source item's lookahead. If it is a propagated lookahead, put
    --  the appropriate entry on the propagation list.
-   --  ------------------------------------------------------------------------
+   --------------------------------------------------------------------------
    procedure Generate_Lookahead_Info
      (Source_Item  : in     LRk.Item_Ptr;
       Source_Set   : in     LRk.Item_Set;
@@ -436,7 +436,7 @@ package body OpenToken.Production.Parser.LALR is
    --------------------------------------------------------------------------
    --  Propagate lookaheads as directed by the given propagation list,
    --  until no more lookaheads are propagated.
-   --  ------------------------------------------------------------------------
+   --------------------------------------------------------------------------
    procedure Propagate_Lookaheads
      (List  : in Item_Item_List_Mapping_Ptr;
       Trace : in Boolean)
@@ -495,7 +495,7 @@ package body OpenToken.Production.Parser.LALR is
    --  Calculate the LR(1) propogations from the given grammar.
    --  Kernels should be the sets of LR(0) kernels on input, and will
    --  become the set of LR(1) kernels on output.
-   --  ------------------------------------------------------------------------
+   --------------------------------------------------------------------------
    procedure Fill_In_Lookaheads
      (Grammar : in     Production_List.Instance;
       First   : in     LRk.Derivation_Matrix;
@@ -596,7 +596,7 @@ package body OpenToken.Production.Parser.LALR is
    --------------------------------------------------------------------------
    --  Print the contents of the given parse action. This routine is
    --  provided for debugging purposes.
-   --  ------------------------------------------------------------------------
+   --------------------------------------------------------------------------
    function Print_Parse_Action (Action  : in Parse_Action;
                                 Kernels : in LRk.Item_Set_List) return String is
       Result : Ada.Strings.Unbounded.Unbounded_String :=
@@ -633,7 +633,7 @@ package body OpenToken.Production.Parser.LALR is
    --------------------------------------------------------------------------
    --  Print the given Action node. This routine is included for
    --  debugging purposes.
-   --  ------------------------------------------------------------------------
+   --------------------------------------------------------------------------
    function Print_Parse_Action (Action : in Parse_Action) return String is
       Result : Ada.Strings.Unbounded.Unbounded_String :=
          Ada.Strings.Unbounded.Null_Unbounded_String;
@@ -662,7 +662,7 @@ package body OpenToken.Production.Parser.LALR is
    --------------------------------------------------------------------------
    --  Print the given Action node. This routine is included for
    --  debugging purposes.
-   --  ------------------------------------------------------------------------
+   --------------------------------------------------------------------------
    function Print_Action_Node (Node : in Action_Node) return String is
       Result : Ada.Strings.Unbounded.Unbounded_String :=
          Ada.Strings.Unbounded.Null_Unbounded_String;
@@ -676,7 +676,7 @@ package body OpenToken.Production.Parser.LALR is
    --------------------------------------------------------------------------
    --  Print the given Reduction node. This routine is included for
    --  debugging purposes.
-   --  ------------------------------------------------------------------------
+   --------------------------------------------------------------------------
    function Print_Reduction_Node (Node : in Reduction_Node) return String is
       Result : Ada.Strings.Unbounded.Unbounded_String :=
          Ada.Strings.Unbounded.Null_Unbounded_String;

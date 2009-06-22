@@ -6,7 +6,7 @@
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
---  published by the Free Software Foundation; either version 2, or (at
+--  published by the Free Software Foundation; either version 3, or (at
 --  your option) any later version. This program is distributed in the
 --  hope that it will be useful, but WITHOUT ANY WARRANTY; without even
 --  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
@@ -30,7 +30,7 @@ with OpenToken.Token.Enumerated.String_Literal;
 package String_Token_Test is
 
    type Token_ID_Type is
-     (--  terminals
+     ( --  terminals
       Whitespace_ID, --  first to debug lookahead logic
       EOF_ID,
       String_ID,

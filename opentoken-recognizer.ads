@@ -39,7 +39,7 @@
 --  tokens in the child packages is highly reccomended where possible.
 --  State information should be saved in the token itself to make the
 --  system reentrant.
---  ---------------------------------------------------------------------------
+-----------------------------------------------------------------------------
 package OpenToken.Recognizer is
 
    --  Indication from a recognizer of how the given string matches.
@@ -63,7 +63,7 @@ package OpenToken.Recognizer is
    --------------------------------------------------------------------------
    --  This procedure will be called when analysis on a new candidate
    --  string is started. The Token needs to clear its state (if any).
-   --  ------------------------------------------------------------------------
+   --------------------------------------------------------------------------
    procedure Clear (The_Token : in out Instance) is abstract;
 
 

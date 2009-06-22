@@ -21,12 +21,12 @@
 --  executable to be covered by the GNU General Public License. This
 --  exception does not however invalidate any other reasons why the
 --  executable file might be covered by the GNU Public License.
---  ---------------------------------------------------------------------------
+-----------------------------------------------------------------------------
 
 -----------------------------------------------------------------------------
 --  This package provides a type and operations for building lists of
 --  productions for use in grammars.
---  ---------------------------------------------------------------------------
+-----------------------------------------------------------------------------
 generic package OpenToken.Production.List is
 
    type Instance is tagged private;

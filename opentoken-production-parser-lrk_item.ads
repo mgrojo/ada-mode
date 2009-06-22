@@ -174,7 +174,7 @@ package OpenToken.Production.Parser.LRk_Item is
    --  it will not be put in again. In this case, this routine
    --  automatilcy deallocates the components of New_Set that were
    --  created within this package.
-   --  ------------------------------------------------------------------------
+   --------------------------------------------------------------------------
    procedure Merge (New_Item     : in out Item_Node;
                     Existing_Set : in out Item_Set
                    );
@@ -194,7 +194,7 @@ package OpenToken.Production.Parser.LRk_Item is
    --------------------------------------------------------------------------
    --  For each nonterminal in the given grammar, find the set of
    --  tokens that its first term could resolve to.
-   --  ------------------------------------------------------------------------
+   --------------------------------------------------------------------------
    function First_Derivations
      (Grammar : in Production_List.Instance;
       Trace   : in Boolean)
@@ -205,7 +205,7 @@ package OpenToken.Production.Parser.LRk_Item is
    --
    --  Each item set returned will contain only one item. This is done
    --  so that they each get their own look-aheads.
-   --  ------------------------------------------------------------------------
+   --------------------------------------------------------------------------
    function Closure  (Set     : in Item_Set;
                       First   : in Derivation_Matrix;
                       Grammar : in Production_List.Instance

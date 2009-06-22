@@ -36,26 +36,26 @@ package OpenToken.Token.Enumerated.String_Literal is
    type Handle is access all Class;
 
    ----------------------------------------------------------------------------
-   -- Get a string literal token with the given ID and value.
+   --  Get a string literal token with the given ID and value.
    ----------------------------------------------------------------------------
    function Get (ID     : in Token_ID;
                  Value  : in String := ""
                 ) return Instance'Class;
 
    ----------------------------------------------------------------------------
-   -- This procedure will be called when a token is recognized.
+   --  This procedure will be called when a token is recognized.
    --
-   -- The Token's ID will be set to the given value. The literal's value will
-   -- be set to the string value of the Lexeme. The Recognizer field isn't
-   -- used for this instance of the type.
-   ----------------------------------------------------------------------------
+   --  The Token's ID will be set to the given value. The literal's
+   --  value will be set to the string value of the Lexeme. The
+   --  Recognizer field isn't used for this instance of the type.
+   --------------------------------------------------------------------------
    procedure Create (Lexeme     : in     String;
                      ID         : in     Token_ID;
                      Recognizer : in     Recognizer_Handle;
                      New_Token  :    out Instance);
 
    ----------------------------------------------------------------------------
-   -- Return the value of the given token, with quotes removed (assumes Ada syntax).
+   --  Return the value of the given token, with quotes removed (assumes Ada syntax).
    ----------------------------------------------------------------------------
    function Value (Subject : in Instance) return String;
 

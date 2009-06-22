@@ -15,58 +15,58 @@
 -- package;  see file GPL.txt.  If not, write to  the Free Software Foundation,
 -- 59 Temple Place - Suite 330,  Boston, MA 02111-1307, USA.
 --
--- As a special exception,  if other files  instantiate  generics from this
--- unit, or you link this unit with other files to produce an executable,
--- this unit does not by itself cause the resulting executable to be
--- covered by the GNU General Public License.  This exception does not
--- however invalidate any other reasons why the executable file might be
--- covered by the GNU Public License.
+--  As a special exception, if other files instantiate generics from
+--  this unit, or you link this unit with other files to produce an
+--  executable, this unit does not by itself cause the resulting
+--  executable to be covered by the GNU General Public License. This
+--  exception does not however invalidate any other reasons why the
+--  executable file might be covered by the GNU Public License.
 --
 -------------------------------------------------------------------------------
 
--------------------------------------------------------------------------------
--- This package implements a token recognizer for separators. To match, the
--- token has to match the separator EXACTLY.
--- (The keyword recognizer could have been used as well, but the latter has
--- some traits that are not needed for separators, so these were removed.)
--------------------------------------------------------------------------------
+-----------------------------------------------------------------------------
+--  This package implements a token recognizer for separators. To
+--  match, the token has to match the separator EXACTLY. (The keyword
+--  recognizer could have been used as well, but the latter has some
+--  traits that are not needed for separators, so these were removed.)
+-----------------------------------------------------------------------------
 package OpenToken.Recognizer.Separator is
 
-  type Instance is new OpenToken.Recognizer.Instance with private;
+   type Instance is new OpenToken.Recognizer.Instance with private;
 
-  ----------------------------------------------------------------------------
-  -- This procedure will be called to create a separator token.
-  ----------------------------------------------------------------------------
-  function Get (Separator_Literal: in String;
-                Reportable       : in Boolean := True) return Instance;
+   ----------------------------------------------------------------------------
+   --  This procedure will be called to create a separator token.
+   ----------------------------------------------------------------------------
+   function Get (Separator_Literal : in String;
+                 Reportable        : in Boolean := True) return Instance;
 
 private
 
-  type State_ID is (Text, Done);
+   type State_ID is (Text, Done);
 
-  type Instance is new OpenToken.Recognizer.Instance with record
+   type Instance is new OpenToken.Recognizer.Instance with record
 
-    -- The separator definition
-    Literal : Buffers.Bounded_String;
+      --  The separator definition
+      Literal : Buffers.Bounded_String;
 
-    -- The finite state machine state
-    State   : State_ID := Text;
-    Substate: Positive := 1;    -- number of the next character to be analyzed
+      --  The finite state machine state
+      State    : State_ID := Text;
+      Substate : Positive := 1; -- number of the next character to be analyzed
 
-  end record;
+   end record;
 
-  ----------------------------------------------------------------------------
-  -- This procedure will be called when analysis on a new candidate string
-  -- is started. The Token needs to clear its state (if any).
-  ----------------------------------------------------------------------------
-  procedure Clear (The_Token: in out Instance);
+   --------------------------------------------------------------------------
+   --  This procedure will be called when analysis on a new candidate
+   --  string is started. The Token needs to clear its state (if any).
+   --------------------------------------------------------------------------
+   procedure Clear (The_Token : in out Instance);
 
-  ----------------------------------------------------------------------------
-  -- This procedure will be called to perform further analysis on a token
-  -- based on the given next character.
-  ----------------------------------------------------------------------------
-  procedure Analyze (The_Token: in out Instance;
-                     Next_Char: in     Character;
-                     Verdict  :    out Analysis_Verdict);
+   --------------------------------------------------------------------------
+   --  This procedure will be called to perform further analysis on a
+   --  token based on the given next character.
+   --------------------------------------------------------------------------
+   procedure Analyze (The_Token : in out Instance;
+                      Next_Char : in     Character;
+                      Verdict   :    out Analysis_Verdict);
 
 end OpenToken.Recognizer.Separator;

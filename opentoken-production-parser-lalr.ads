@@ -22,7 +22,7 @@
 --  executable to be covered by the GNU General Public License. This
 --  exception does not however invalidate any other reasons why the
 --  executable file might be covered by the GNU Public License.
---  ---------------------------------------------------------------------------
+-----------------------------------------------------------------------------
 
 -----------------------------------------------------------------------------
 --  This package provides an implementation of a LALR (Look-Ahead
@@ -30,7 +30,7 @@
 --  defined by a production list. This is probably the most popular
 --  method due to it being a good trade-off between the amount of
 --  grammars handled and the size of its parse table.
---  ---------------------------------------------------------------------------
+-----------------------------------------------------------------------------
 generic
 package OpenToken.Production.Parser.LALR is
 
@@ -50,20 +50,20 @@ package OpenToken.Production.Parser.LALR is
    --  Attempt a parse. This routine will return when the grammar
    --  indicates the first production has been parsed. (or an
    --  exception is raised)
-   --  ------------------------------------------------------------------------
+   --------------------------------------------------------------------------
    procedure Parse (Parser : in out Instance);
 
    --------------------------------------------------------------------------
    --  Free any resources used by the given parser. It will be invalid
    --  after this call.
-   --  ------------------------------------------------------------------------
+   --------------------------------------------------------------------------
    procedure Cleanup (Parser : in out Instance) is null;
 
    --------------------------------------------------------------------------
    --  This routine displays the parse table for the parser to
    --  Ada.Text_IO.Current_Output. This may be useful for debugging
    --  grammars (or, heaven forbid, the parser itself).
-   --  ------------------------------------------------------------------------
+   --------------------------------------------------------------------------
    procedure Print_Table (Parser : in Instance);
 
    procedure Set_Trace (Parser : in out Instance; Enabled : in Boolean);

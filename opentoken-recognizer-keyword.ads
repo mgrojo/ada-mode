@@ -15,39 +15,40 @@
 -- package;  see file GPL.txt.  If not, write to  the Free Software Foundation,
 -- 59 Temple Place - Suite 330,  Boston, MA 02111-1307, USA.
 --
--- As a special exception,  if other files  instantiate  generics from this
--- unit, or you link this unit with other files to produce an executable,
--- this unit does not by itself cause the resulting executable to be
--- covered by the GNU General Public License.  This exception does not
--- however invalidate any other reasons why the executable file might be
--- covered by the GNU Public License.
+--  As a special exception, if other files instantiate generics from
+--  this unit, or you link this unit with other files to produce an
+--  executable, this unit does not by itself cause the resulting
+--  executable to be covered by the GNU General Public License. This
+--  exception does not however invalidate any other reasons why the
+--  executable file might be covered by the GNU Public License.
 --
--- This software was originally developed by the following company, and was
--- released as open-source software as a service to the community:
+--  This software was originally developed by the following company,
+--  and was released as open-source software as a service to the
+--  community:
 --
 --           FlightSafety International Simulation Systems Division
 --                    Broken Arrow, OK  USA  918-259-4000
 --
 -------------------------------------------------------------------------------
 
--------------------------------------------------------------------------------
--- This package implements a token recognizer for keywords. To match, the
--- token has to match the keyword EXACTLY. There is, however a global switch
--- for case-sensitivity.
--------------------------------------------------------------------------------
+-----------------------------------------------------------------------------
+--  This package implements a token recognizer for keywords. To match,
+--  the token has to match the keyword EXACTLY. There is, however a
+--  global switch for case-sensitivity.
+-----------------------------------------------------------------------------
 package OpenToken.Recognizer.Keyword is
 
-   -- It is usually a lot easier on the user if keywords are not case-sensitive,
-   -- so that's our default.
+   --  It is usually a lot easier on the user if keywords are not
+   --  case-sensitive, so that's our default.
    Default_Case_Sensitivity : Boolean := False;
 
    type Instance is new OpenToken.Recognizer.Instance with private;
 
-   ----------------------------------------------------------------------------
-   -- This procedure will be called to create a keyword token. Setting
-   -- Case_Sensitive to false allows the token to match keywords typed in
-   -- upper or lower case.
-   ----------------------------------------------------------------------------
+   --------------------------------------------------------------------------
+   --  This procedure will be called to create a keyword token.
+   --  Setting Case_Sensitive to false allows the token to match
+   --  keywords typed in upper or lower case.
+   --------------------------------------------------------------------------
    function Get (Keyword_Literal : in String;
                  Case_Sensitive  : in Boolean := Default_Case_Sensitivity;
                  Reportable      : in Boolean := True) return Instance;
@@ -59,27 +60,27 @@ private
 
    type Instance is new OpenToken.Recognizer.Instance with record
 
-      -- The keyword definition
+      --  The keyword definition
       Literal        : Buffers.Bounded_String;
       Case_Sensitive : Boolean;
 
-      -- The finite state machine state
+      --  The finite state machine state
       State    : State_ID := Text;
       Substate : Integer  := 1;
 
    end record;
 
-   ----------------------------------------------------------------------------
-   -- This procedure will be called when analysis on a new candidate string
-   -- is started. The Token needs to clear its state (if any).
-   ----------------------------------------------------------------------------
+   --------------------------------------------------------------------------
+   --  This procedure will be called when analysis on a new candidate
+   --  string is started. The Token needs to clear its state (if any).
+   --------------------------------------------------------------------------
    procedure Clear (The_Token : in out Instance);
 
 
-   ----------------------------------------------------------------------------
-   -- This procedure will be called to perform further analysis on a token
-   -- based on the given next character.
-   ----------------------------------------------------------------------------
+   --------------------------------------------------------------------------
+   --  This procedure will be called to perform further analysis on a
+   --  token based on the given next character.
+   --------------------------------------------------------------------------
    procedure Analyze (The_Token : in out Instance;
                       Next_Char : in Character;
                       Verdict   : out Analysis_Verdict);

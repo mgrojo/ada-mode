@@ -32,7 +32,7 @@ package body OpenToken.Token.Enumerated.String_Literal is
    function Get (ID     : in Token_ID;
                  Value  : in String := "") return Instance'Class is
    begin
-      return Instance'Class(Instance'(ID => ID, Value => Buffers.To_Bounded_String (Value)));
+      return Instance'Class (Instance'(ID => ID, Value => Buffers.To_Bounded_String (Value)));
    end Get;
 
    procedure Create (Lexeme     : in     String;

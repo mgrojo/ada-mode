@@ -156,7 +156,7 @@ package body OpenToken.Production.Parser.LRk_Item is
    --------------------------------------------------------------------------
    --  Return an item node made from the given production and iterator
    --  into the production's right hand side.
-   --  ------------------------------------------------------------------------
+   --------------------------------------------------------------------------
    function Item_Node_Of
      (Prod      : in OpenToken.Production.Instance;
       Iterator  : in Token_List.List_Iterator;
@@ -187,7 +187,7 @@ package body OpenToken.Production.Parser.LRk_Item is
    --------------------------------------------------------------------------
    --  Return an item node made from the given production. The pointer
    --  will be set to the start of the right hand side.
-   --  ------------------------------------------------------------------------
+   --------------------------------------------------------------------------
    function Item_Node_Of (Prod : in OpenToken.Production.Instance) return Item_Node is
    begin
       return (Prod          => Prod,
@@ -201,7 +201,7 @@ package body OpenToken.Production.Parser.LRk_Item is
    --  Return an item node made from the given production the iterator
    --  refers to and the given lookahead. The lookaheads will be
    --  copied.
-   --  ------------------------------------------------------------------------
+   --------------------------------------------------------------------------
    function Item_Node_Of (Prod      : in Production_List.List_Iterator;
                           Lookahead : in Item_Lookahead_Ptr := null) return Item_Node is
       New_Item : Item_Node;
@@ -226,7 +226,7 @@ package body OpenToken.Production.Parser.LRk_Item is
    --------------------------------------------------------------------------
    --  Add the given lookahead to the given lookahead set if it is not
    --  already in there
-   --  ------------------------------------------------------------------------
+   --------------------------------------------------------------------------
    procedure Include (Set   : in out Item_Lookahead_Ptr;
                       Value : in     Item_Lookahead;
                       Added :    out Boolean
@@ -263,7 +263,7 @@ package body OpenToken.Production.Parser.LRk_Item is
    --------------------------------------------------------------------------
    --  Add the given lookahead to the given lookahead set if it is not
    --  already in there
-   --  ------------------------------------------------------------------------
+   --------------------------------------------------------------------------
    procedure Include (Set   : in out Item_Lookahead_Ptr;
                       Value : in     Item_Lookahead
                      ) is
@@ -290,7 +290,7 @@ package body OpenToken.Production.Parser.LRk_Item is
    --------------------------------------------------------------------------
    --  Return a pointer to the given item in the given set. Null will
    --  be returned if it cannot be found.
-   --  ------------------------------------------------------------------------
+   --------------------------------------------------------------------------
    function Find (Left  : in Item_Node;
                   Right : in Item_Set
                  ) return Item_Ptr is
@@ -414,7 +414,7 @@ package body OpenToken.Production.Parser.LRk_Item is
    --  it will not be put in again. In this case, this routine
    --  automaticly deallocates the components of New_Item that were
    --  created within this package.
-   --  ------------------------------------------------------------------------
+   --------------------------------------------------------------------------
    procedure Merge (New_Item     : in out Item_Node;
                     Existing_Set : in out Item_Set
                    ) is

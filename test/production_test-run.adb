@@ -6,7 +6,7 @@
 --
 -- The OpenToken package is free software; you can redistribute it and/or
 -- modify it under the terms of the  GNU General Public License as published
--- by the Free Software Foundation; either version 2, or (at your option)
+-- by the Free Software Foundation; either version 3, or (at your option)
 -- any later version. The OpenToken package is distributed in the hope that
 -- it will be useful, but WITHOUT ANY WARRANTY; without even the implied
 -- warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -15,23 +15,12 @@
 -- package;  see file GPL.txt.  If not, write to  the Free Software Foundation,
 -- 59 Temple Place - Suite 330,  Boston, MA 02111-1307, USA.
 --
--- As a special exception,  if other files  instantiate  generics from this
--- unit, or you link this unit with other files to produce an executable,
--- this unit does not by itself cause the resulting executable to be
--- covered by the GNU General Public License.  This exception does not
--- however invalidate any other reasons why the executable file might be
--- covered by the GNU Public License.
---
--- Maintainer: Ted Dennison (dennison@telepath.com)
---
--- Update History:
--- $Log: production_test-run.adb,v $
--- Revision 1.1  2000/08/12 21:17:53  Ted
--- moved from production_test.adb
---
--- Revision 1.1  2000/01/27 21:05:39  Ted
--- A test to verify that productions are handled correctly.
---
+--  As a special exception, if other files instantiate generics from
+--  this unit, or you link this unit with other files to produce an
+--  executable, this unit does not by itself cause the resulting
+--  executable to be covered by the GNU General Public License. This
+--  exception does not however invalidate any other reasons why the
+--  executable file might be covered by the GNU Public License.
 --
 -------------------------------------------------------------------------------
 with Ada.Text_IO;
@@ -41,18 +30,18 @@ with OpenToken.Recognizer.String;
 with OpenToken.Recognizer.Real;
 
 -------------------------------------------------------------------------------
--- Test driver for the token list handling code.
+--  Test driver for the token list handling code.
 -------------------------------------------------------------------------------
 procedure Production_Test.Run is
 begin
 
    ----------------------------------------------------------------------------
-   -- Test Case 1
+   --  Test Case 1
    --
-   -- Inputs           :
+   --  Inputs           :
    --
-   -- Expected Results :
-   -- Purpose          :
+   --  Expected Results :
+   --  Purpose          :
    --
    Test_Case_1 : declare
       use type Token_List.Instance;
@@ -67,14 +56,15 @@ begin
          Keyword_ID    => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("whatever"))
          );
 
-      Int     : Master_Token.Instance renames Syntax(Int_ID).Token_Handle.all;
-      Keyword : Master_Token.Instance renames Syntax(Keyword_ID).Token_Handle.all;
-      String  : Master_Token.Instance renames Syntax(String_ID).Token_Handle.all;
+      Int     : Master_Token.Instance renames Syntax (Int_ID).Token_Handle.all;
+      Keyword : Master_Token.Instance renames Syntax (Keyword_ID).Token_Handle.all;
+      String  : Master_Token.Instance renames Syntax (String_ID).Token_Handle.all;
 
       Analyzer : constant Tokenizer.Instance := Tokenizer.Initialize (Syntax);
+      pragma Unreferenced (Analyzer);
 
-      Expression : Nonterminal.Handle := new Nonterminal.Instance;
-      Literal    : Nonterminal.Handle := new Nonterminal.Instance;
+      Expression : constant Nonterminal.Handle := new Nonterminal.Instance;
+      Literal    : constant Nonterminal.Handle := new Nonterminal.Instance;
 
       Whatever_Production : constant Production.Instance :=
         Expression <= Int & Keyword & Int +
@@ -94,7 +84,7 @@ begin
       List := Whatever_Production and STR_Key_Production;
       Iterator := Production_List.Initial_Iterator (List);
 
-      if Production_List.Get_Production(Iterator) /= Whatever_Production then
+      if Production_List.Get_Production (Iterator) /= Whatever_Production then
          Ada.Text_IO.Put_Line ("failed!");
          Ada.Text_IO.Put_Line
            ("  (got an unexpected production on the first try)");
@@ -102,7 +92,7 @@ begin
       end if;
       Production_List.Next_Production (Iterator);
 
-      if Production_List.Get_Production(Iterator) /= STR_Key_Production then
+      if Production_List.Get_Production (Iterator) /= STR_Key_Production then
          Ada.Text_IO.Put_Line ("failed!");
          Ada.Text_IO.Put_Line
            ("  (got an unexpected production on the second try)");

@@ -44,7 +44,7 @@ with Ada.Strings.Maps.Constants;
 --  If you use an identifier token with keyword tokens, they will
 --  *both* typically match. So be sure to list the keyword tokens in
 --  your syntax first, so that the keywords will take precedence.
---  ---------------------------------------------------------------------------
+-----------------------------------------------------------------------------
 package OpenToken.Recognizer.Identifier is
 
    type Instance is new OpenToken.Recognizer.Instance with private;
@@ -60,7 +60,7 @@ package OpenToken.Recognizer.Identifier is
    --
    --  Only set Has_Separator false when your identifier allows
    --  multiple underscores in a row.
-   --  ------------------------------------------------------------------------
+   --------------------------------------------------------------------------
    function Get (Start_Chars   : in Ada.Strings.Maps.Character_Set :=
                    Ada.Strings.Maps.Constants.Letter_Set;
                  Body_Chars    : in Ada.Strings.Maps.Character_Set :=

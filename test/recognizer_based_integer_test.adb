@@ -6,7 +6,7 @@
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
---  published by the Free Software Foundation; either version 2, or (at
+--  published by the Free Software Foundation; either version 3, or (at
 --  your option) any later version. This program is distributed in the
 --  hope that it will be useful, but WITHOUT ANY WARRANTY; without even
 --  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
@@ -29,8 +29,8 @@ is
      (Item         : in String;
       Expect_Match : in Boolean;
       Comment      : in String)
-     --  Analyze all of Item, compare final Verdict to Expect_Match.
    is
+      --  Analyze all of Item, compare final Verdict to Expect_Match.
       use OpenToken.Recognizer;
       Verdict : Analysis_Verdict;
       Last    : Integer := Item'First;
@@ -71,9 +71,9 @@ is
      (Item         : in String;
       Comment      : in String;
       Expected     : in String)
-     --  Assume Item contains one more character after valid
-     --  based_integer; compare matched string to Expected.
    is
+      --  Assume Item contains one more character after valid
+      --  based_integer; compare matched string to Expected.
       use OpenToken.Recognizer;
       Verdict : Analysis_Verdict;
       Last    : Integer := Item'First;

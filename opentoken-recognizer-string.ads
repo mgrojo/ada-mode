@@ -15,27 +15,29 @@
 -- package;  see file GPL.txt.  If not, write to  the Free Software Foundation,
 -- 59 Temple Place - Suite 330,  Boston, MA 02111-1307, USA.
 --
--- As a special exception,  if other files  instantiate  generics from this
--- unit, or you link this unit with other files to produce an executable,
--- this unit does not by itself cause the resulting executable to be
--- covered by the GNU General Public License.  This exception does not
--- however invalidate any other reasons why the executable file might be
--- covered by the GNU Public License.
+--  As a special exception, if other files instantiate generics from
+--  this unit, or you link this unit with other files to produce an
+--  executable, this unit does not by itself cause the resulting
+--  executable to be covered by the GNU General Public License. This
+--  exception does not however invalidate any other reasons why the
+--  executable file might be covered by the GNU Public License.
 --
 -------------------------------------------------------------------------------
 
 with Ada.Strings.Maps;
 with Ada.Characters.Latin_1;
 
--------------------------------------------------------------------------------
--- This package implements a token recognizer for a string literal. It can
--- optionally use an escape character to introduce special character mappings,
--- and can thus be used to recognize either Ada or C-style strings.
--------------------------------------------------------------------------------
+-----------------------------------------------------------------------------
+--  This package implements a token recognizer for a string literal.
+--  It can optionally use an escape character to introduce special
+--  character mappings, and can thus be used to recognize either Ada
+--  or C-style strings.
+-----------------------------------------------------------------------------
 package OpenToken.Recognizer.String is
 
-   -- The following mapping from escape codes (the character after the
-   -- backslash) to "escape" characters matches the mapping C uses.
+   --  The following mapping from escape codes (the character after
+   --  the backslash) to "escape" characters matches the mapping C
+   --  uses.
 
    C_Style_Escape_Code_Map : constant Ada.Strings.Maps.Character_Mapping :=
      Ada.Strings.Maps.To_Mapping
@@ -59,32 +61,33 @@ package OpenToken.Recognizer.String is
 
    type Instance is new OpenToken.Recognizer.Instance with private;
 
-   ----------------------------------------------------------------------------
-   -- This procedure will be called to create a String literal token.
-   -- If Escapeable is set to False, the string will treat the Escape character
-   -- as any other character.
+   --------------------------------------------------------------------------
+   --  This procedure will be called to create a String literal token.
+   --  If Escapeable is set to False, the string will treat the Escape
+   --  character as any other character.
    --
-   -- If all parameters are defaulted, an Ada-style string token will be
-   -- created.
-   -- If Escapeable is set to True and all other parameters are defaulted,
-   -- a C-style string token will be created.
-   -- If Escapeable is set to True, Double_Delimiter set to false,
-   -- Escape_Mapping uses Java_Style_Escape_Code_Map, the remaining parameters
-   -- are defaulted, a Java-style string token will be created.
-   ----------------------------------------------------------------------------
-   function Get (Delimiter       : in Character := '"';
-                 Double_Delimiter: in Boolean   := True;
-                 Escapeable      : in Boolean   := False;
-                 Escape          : in Character := '\';
-                 Escape_Mapping  : in Ada.Strings.Maps.Character_Mapping := C_Style_Escape_Code_Map
-                ) return Instance;
+   --  If all parameters are defaulted, an Ada-style string token will
+   --  be created. If Escapeable is set to True and all other
+   --  parameters are defaulted, a C-style string token will be
+   --  created. If Escapeable is set to True, Double_Delimiter set to
+   --  false, Escape_Mapping uses Java_Style_Escape_Code_Map, the
+   --  remaining parameters are defaulted, a Java-style string token
+   --  will be created.
+   --------------------------------------------------------------------------
+   function Get
+     (Delimiter        : in Character                          := '"';
+      Double_Delimiter : in Boolean                            := True;
+      Escapeable       : in Boolean                            := False;
+      Escape           : in Character                          := '\';
+      Escape_Mapping   : in Ada.Strings.Maps.Character_Mapping := C_Style_Escape_Code_Map)
+     return Instance;
 
-   ----------------------------------------------------------------------------
-   -- Return the translated value of the recognized string. This will not
-   -- include any quotation characters. The escape mapping will have been
-   -- applied, and internal sets of double quotes will appear as a single
-   -- double-quote character.
-   ----------------------------------------------------------------------------
+   --------------------------------------------------------------------------
+   --  Return the translated value of the recognized string. This will
+   --  not include any quotation characters. The escape mapping will
+   --  have been applied, and internal sets of double quotes will
+   --  appear as a single double-quote character.
+   --------------------------------------------------------------------------
    function Value (Recognized_String : in Instance) return Standard.String;
 
 private
@@ -95,35 +98,35 @@ private
 
    type Instance is new OpenToken.Recognizer.Instance with record
 
-      -- The finite state machine state
+      --  The finite state machine state
       State           : State_ID := Delimit;
       Esc_Code        : Natural;
 
-      -- The token settings
-      Delimiter       : Character;
-      Double_Delimiter: Boolean;
-      Escapeable      : Boolean;
-      Escape          : Character;
-      Escape_Mapping  : Ada.Strings.Maps.Character_Mapping;
+      --  The token settings
+      Delimiter        : Character;
+      Double_Delimiter : Boolean;
+      Escapeable       : Boolean;
+      Escape           : Character;
+      Escape_Mapping   : Ada.Strings.Maps.Character_Mapping;
 
-      -- The translated string value
-      Value           : Standard.String (1..Max_String_Length);
+      --  The translated string value
+      Value           : Standard.String (1 .. Max_String_Length);
       Value_Length    : Natural := 0;
       Good_Length     : Natural := 0;
 
    end record;
 
-   ----------------------------------------------------------------------------
-   -- This procedure will be called when analysis on a new candidate string
-   -- is started. The Token needs to clear its state (if any).
-   ----------------------------------------------------------------------------
+   --------------------------------------------------------------------------
+   --  This procedure will be called when analysis on a new candidate
+   --  string is started. The Token needs to clear its state (if any).
+   --------------------------------------------------------------------------
    procedure Clear (The_Token : in out Instance);
 
 
-   ----------------------------------------------------------------------------
-   -- This procedure will be called to perform further analysis on a token
-   -- based on the given next character.
-   ----------------------------------------------------------------------------
+   --------------------------------------------------------------------------
+   --  This procedure will be called to perform further analysis on a
+   --  token based on the given next character.
+   --------------------------------------------------------------------------
    procedure Analyze (The_Token : in out Instance;
                       Next_Char : in     Character;
                       Verdict   : out    Analysis_Verdict);

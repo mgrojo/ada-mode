@@ -21,7 +21,7 @@
 --  executable to be covered by the GNU General Public License. This
 --  exception does not however invalidate any other reasons why the
 --  executable file might be covered by the GNU Public License.
---  ---------------------------------------------------------------------------
+-----------------------------------------------------------------------------
 
 with Ada.Unchecked_Deallocation;
 package body OpenToken.Production.List is
@@ -100,7 +100,7 @@ package body OpenToken.Production.List is
    --------------------------------------------------------------------------
    --  This routine needs to be called when you are done using a list,
    --  or want to reset it to empty.
-   --  ------------------------------------------------------------------------
+   --------------------------------------------------------------------------
    procedure Clean (List : in out Instance) is
       Node : List_Node_Ptr := List.Head;
       Next : List_Node_Ptr;

@@ -38,7 +38,7 @@ with Ada.Characters.Latin_1;
 --  number of characters from a given set. The most useful use of this
 --  facility in a typical application is locating strings of
 --  "whitespace"
---  ---------------------------------------------------------------------------
+-----------------------------------------------------------------------------
 package OpenToken.Recognizer.Character_Set is
 
    --  A typical definition set for whitespace. Use
@@ -61,7 +61,7 @@ package OpenToken.Recognizer.Character_Set is
    --
    --  It defaults to non-reportable because the typical use of this
    --  facility is for ignoring whitespace
-   --  ------------------------------------------------------------------------
+   --------------------------------------------------------------------------
    function Get (Set        : in Ada.Strings.Maps.Character_Set;
                  Reportable : in Boolean := False) return Instance;
 

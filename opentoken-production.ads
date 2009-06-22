@@ -56,7 +56,7 @@ package OpenToken.Production is
    --  tokens and a synthesization routine. The synthesization routine
    --  will be called whenever the production is reduced by the
    --  parser.
-   --  ------------------------------------------------------------------------
+   --------------------------------------------------------------------------
    function "+" (Tokens : in Token_List.Instance;
                  Action : in Nonterminal.Synthesize
                  ) return Right_Hand_Side;

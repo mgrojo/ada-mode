@@ -35,7 +35,7 @@
 --  This package implements a token recognizer for an end of file.
 --  This allows programs to detect the end of the file as normal
 --  tokens without getting syntax errors.
---  ---------------------------------------------------------------------------
+-----------------------------------------------------------------------------
 package OpenToken.Recognizer.End_Of_File is
 
    type Instance is new OpenToken.Recognizer.Instance with private;
@@ -45,7 +45,7 @@ package OpenToken.Recognizer.End_Of_File is
    --  defaults to reportable because doing otherwise would result in
    --  attempts to read more data, which would cause an error in the
    --  vast majority of cases.
-   --  ------------------------------------------------------------------------
+   --------------------------------------------------------------------------
    function Get (Reportable : in Boolean := True) return Instance;
 
 private
@@ -63,14 +63,14 @@ private
    --------------------------------------------------------------------------
    --  This procedure will be called when analysis on a new candidate
    --  string is started. The Token needs to clear its state (if any).
-   --  ------------------------------------------------------------------------
+   --------------------------------------------------------------------------
    procedure Clear (The_Token : in out Instance);
 
 
    --------------------------------------------------------------------------
    --  This procedure will be called to perform further analysis on a
    --  token based on the given next character.
-   --  ------------------------------------------------------------------------
+   --------------------------------------------------------------------------
    procedure Analyze (The_Token : in out Instance;
                       Next_Char : in Character;
                       Verdict   : out Analysis_Verdict);

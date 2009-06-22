@@ -15,26 +15,27 @@
 -- package;  see file GPL.txt.  If not, write to  the Free Software Foundation,
 -- 59 Temple Place - Suite 330,  Boston, MA 02111-1307, USA.
 --
--- As a special exception,  if other files  instantiate  generics from this
--- unit, or you link this unit with other files to produce an executable,
--- this unit does not by itself cause the resulting executable to be
--- covered by the GNU General Public License.  This exception does not
--- however invalidate any other reasons why the executable file might be
--- covered by the GNU Public License.
+--  As a special exception, if other files instantiate generics from
+--  this unit, or you link this unit with other files to produce an
+--  executable, this unit does not by itself cause the resulting
+--  executable to be covered by the GNU General Public License. This
+--  exception does not however invalidate any other reasons why the
+--  executable file might be covered by the GNU Public License.
 --
 -------------------------------------------------------------------------------
 
 
 -------------------------------------------------------------------------------
--- This package provides a text feeder class that returns user-defined strings.
+--  This package provides a text feeder class that returns user-defined strings.
 -------------------------------------------------------------------------------
 package body OpenToken.Text_Feeder.String is
 
-   ----------------------------------------------------------------------------
-   -- This function returns strings for the analyzer. This version of it
-   -- returns the string given it with the set command the first time it is
-   -- called. On subsequent calls, Token.EOF_Character is retured.
-   ----------------------------------------------------------------------------
+   --------------------------------------------------------------------------
+   --  This function returns strings for the analyzer. This version of
+   --  it returns the string given it with the set command the first
+   --  time it is called. On subsequent calls, Token.EOF_Character is
+   --  retured.
+   --------------------------------------------------------------------------
    procedure Get (Feeder   : in out Instance;
                   New_Text :    out Standard.String;
                   Text_End :    out Integer) is
@@ -49,14 +50,14 @@ package body OpenToken.Text_Feeder.String is
          Text_End := New_Text'Last;
       else
          Text_End := New_Text'First + Data_Length - 1;
-         New_Text(New_Text'First..Text_End) :=
+         New_Text (New_Text'First .. Text_End) :=
            Ada.Strings.Unbounded.To_String (Feeder.Next_Value);
          Feeder.Next_Value := Ada.Strings.Unbounded.To_Unbounded_String ((1 => OpenToken.EOF_Character));
       end if;
    end Get;
 
    ----------------------------------------------------------------------------
-   -- This function sets the string to be returned the next time Get is called
+   --  This function sets the string to be returned the next time Get is called
    ----------------------------------------------------------------------------
    procedure Set (Feeder : out Instance;
                   Value  : in  Standard.String
@@ -67,11 +68,11 @@ package body OpenToken.Text_Feeder.String is
    end Set;
 
    ----------------------------------------------------------------------------
-   -- Return True if there is no more text to process.
+   --  Return True if there is no more text to process.
    ----------------------------------------------------------------------------
    function End_Of_Text (Feeder : Instance) return Boolean is
    begin
-      return Ada.Strings.Unbounded.Length(Feeder.Next_Value) <= 1;
+      return Ada.Strings.Unbounded.Length (Feeder.Next_Value) <= 1;
    end End_Of_Text;
 end OpenToken.Text_Feeder.String;
 

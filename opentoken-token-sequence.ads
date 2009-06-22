@@ -6,7 +6,7 @@
 --
 -- The OpenToken package is free software; you can redistribute it and/or
 -- modify it under the terms of the  GNU General Public License as published
--- by the Free Software Foundation; either version 2, or (at your option)
+-- by the Free Software Foundation; either version 3, or (at your option)
 -- any later version. The OpenToken package is distributed in the hope that
 -- it will be useful, but WITHOUT ANY WARRANTY; without even the implied
 -- warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -99,10 +99,9 @@ package OpenToken.Token.Sequence is
    ----------------------------------------------------------------------------
    -- This routine is called when an entire sequence has been actively
    -- parsed.
-   -- The default implementation does nothing.
    ----------------------------------------------------------------------------
    procedure Build (Match : in out Instance;
-                    Using : in     Token.Linked_List.Instance);
+                    Using : in     Token.Linked_List.Instance) is null;
 
 private
    type Instance is new Token.Instance with record
