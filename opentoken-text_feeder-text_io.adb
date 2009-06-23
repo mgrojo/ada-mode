@@ -24,15 +24,8 @@
 --
 -------------------------------------------------------------------------------
 
------------------------------------------------------------------------------
---  This package provides an implementation of a text feeder class
---  that relies on Ada.Text_IO for the underlying mechanism.
------------------------------------------------------------------------------
 package body OpenToken.Text_Feeder.Text_IO is
 
-   ----------------------------------------------------------------------------
-   --  Create a Text Feeder for the given Text_IO file.
-   ----------------------------------------------------------------------------
    function Create (File_Ptr : Ada.Text_IO.File_Access := Ada.Text_IO.Current_Input)
      return Instance is
    begin
@@ -40,14 +33,11 @@ package body OpenToken.Text_Feeder.Text_IO is
               Ended => False);
    end Create;
 
-   --------------------------------------------------------------------------
-   --  This procedure returns strings for the analyzer. If the end of
-   --  the file is reached, a Token.EOF_Character is retured.
-   --------------------------------------------------------------------------
-   procedure Get (Feeder   : in out Instance;
-                  New_Text :    out String;
-                  Text_End :    out Integer) is
-   begin
+   overriding procedure Get
+     (Feeder   : in out Instance;
+      New_Text :    out String;
+      Text_End :    out Integer)
+   is begin
 
       --  Get as much text as possible from Text_IO
       Ada.Text_IO.Get_Line (File => Feeder.File.all,
@@ -72,11 +62,9 @@ package body OpenToken.Text_Feeder.Text_IO is
          Feeder.Ended := True;
    end Get;
 
-   ----------------------------------------------------------------------------
-   --  Return True if there is no more text to process.
-   ----------------------------------------------------------------------------
-   function End_Of_Text (Feeder : Instance) return Boolean is
-   begin
+   overriding function End_Of_Text (Feeder : Instance) return Boolean
+   is begin
       return Feeder.Ended and then Ada.Text_IO.End_Of_File (Feeder.File.all);
    end End_Of_Text;
+
 end OpenToken.Text_Feeder.Text_IO;

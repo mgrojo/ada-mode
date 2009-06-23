@@ -38,17 +38,11 @@ package body OpenToken.Token.Enumerated.Integer_Literal is
       return Instance'Class (Instance'(ID => ID, Value => Value));
    end Get;
 
-   ----------------------------------------------------------------------------
-   --  This procedure will be called when a token is recognized.
-   --
-   --  The Token's ID will be set to the given value. The literal's
-   --  value will be set to the integer value of the Lexeme. The
-   --  Recognizer filed isn't used for this instance of the type.
-   --------------------------------------------------------------------------
-   procedure Create (Lexeme     : in     String;
-                     ID         : in     Token_ID;
-                     Recognizer : in     Recognizer_Handle;
-                     New_Token  :    out Instance)
+   overriding procedure Create
+     (Lexeme     : in     String;
+      ID         : in     Token_ID;
+      Recognizer : in     Recognizer_Handle;
+      New_Token  :    out Instance)
    is
       pragma Unreferenced (Recognizer);
    begin

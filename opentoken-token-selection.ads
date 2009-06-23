@@ -40,6 +40,8 @@ package OpenToken.Token.Selection is
 
    type Handle is access all Class;
 
+   Null_Selection : constant Instance;
+
    ----------------------------------------------------------------------------
    --  Retrieve the given selection token from the analyzer.
    --
@@ -70,11 +72,10 @@ package OpenToken.Token.Selection is
    --  A non active parse does not comsume any input from the analyzer,
    --  and does not call any of the private routines.
    ----------------------------------------------------------------------------
-   procedure Parse
+   overriding procedure Parse
      (Match    : in out Instance;
       Analyzer : in out Source_Class;
-      Actively : in     Boolean := True
-     );
+      Actively : in     Boolean      := True);
 
    ----------------------------------------------------------------------------
    --  Create a token selection from a pair of token instances.
@@ -97,23 +98,9 @@ package OpenToken.Token.Selection is
                   Right : in Instance) return Instance;
 
 
-   --------------------------------------------------------------------------
-   --  This routine should is a quick check to verify that the given
-   --  operation token can possibly succesfully parse from what's
-   --  sitting in the analyzer.
-   --
-   --  This routine is meant to be used for choosing between parsing
-   --  options.
-   --
-   --  It simply checks Could_Parse_To for this token's Element token.
-   --
-   --  The default implementation calls Could_Parse_To for every token
-   --  in the selection.
-   --------------------------------------------------------------------------
-   function Could_Parse_To
+   overriding function Could_Parse_To
      (Match    : in Instance;
-      Analyzer : in Source_Class
-     ) return Boolean;
+      Analyzer : in Source_Class) return Boolean;
 
    --------------------------------------------------------------------------
    --  This routine is called when none of the sequence's tokens
@@ -150,5 +137,7 @@ private
    type Instance is new Token.Instance with record
       Members : Token.Linked_List.Instance;
    end record;
+
+   Null_Selection : constant Instance := (Members => Token.Linked_List.Null_List);
 
 end OpenToken.Token.Selection;

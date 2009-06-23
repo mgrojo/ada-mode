@@ -504,15 +504,10 @@ package body OpenToken.Token.Enumerated.Analyzer is
       Analyzer.Has_Default := False;
    end Unset_Default;
 
-   ----------------------------------------------------------------------------
-   --  Get the next token.
-   --
-   --  Raises Syntax_Error or returns the default token if no token
-   --  could be found.
-   --------------------------------------------------------------------------
-   procedure Find_Next (Analyzer   : in out Instance;
-                        Look_Ahead : in     Boolean := False) is
-
+   overriding procedure Find_Next
+     (Analyzer   : in out Instance;
+      Look_Ahead : in     Boolean := False)
+   is
       EOLs_Found : Integer;
 
       Matched_Token  : Terminal_ID;
@@ -682,11 +677,8 @@ package body OpenToken.Token.Enumerated.Analyzer is
       return Analyzer.Column;
    end Column;
 
-   ----------------------------------------------------------------------------
-   --  Returns the last (enumerated) token that was matched.
-   ----------------------------------------------------------------------------
-   function Get (Analyzer : in Instance) return OpenToken.Token.Class is
-   begin
+   overriding function Get (Analyzer : in Instance) return OpenToken.Token.Class
+   is begin
       return Analyzer.Syntax_List (Analyzer.Last_Token).Token_Handle.all;
    end Get;
 
@@ -698,11 +690,8 @@ package body OpenToken.Token.Enumerated.Analyzer is
       return Analyzer.Last_Token;
    end ID;
 
-   ----------------------------------------------------------------------------
-   --  Returns the actual text of the last token that was matched.
-   ----------------------------------------------------------------------------
-   function Lexeme (Analyzer : in Instance) return String is
-   begin
+   overriding function Lexeme (Analyzer : in Instance) return String
+   is begin
       if Analyzer.Lexeme_Tail = 0 then
          return "";
       end if;
@@ -715,26 +704,18 @@ package body OpenToken.Token.Enumerated.Analyzer is
       end if;
    end Lexeme;
 
-   --------------------------------------------------------------------------
-   --  Retrieve a new recognizable token, using the given token
-   --  values. This is a convienence routine for more easliy creating
-   --  Syntaxes. It will dynamicly allocate the memory for the
-   --  recognizer and token.
-   --------------------------------------------------------------------------
-   function Get (Recognizer : in OpenToken.Recognizer.Class;
-                 New_Token  : in OpenToken.Token.Enumerated.Class := OpenToken.Token.Enumerated.Get
-                 ) return Recognizable_Token is
-   begin
+   function Get
+     (Recognizer : in OpenToken.Recognizer.Class;
+      New_Token  : in OpenToken.Token.Enumerated.Class := OpenToken.Token.Enumerated.Get)
+     return Recognizable_Token
+   is begin
       return (Recognizer   => new OpenToken.Recognizer.Class'(Recognizer),
               Token_Handle => new OpenToken.Token.Enumerated.Class'(New_Token)
               );
    end Get;
 
-   ----------------------------------------------------------------------------
-   --  Returns the recognizer handle of the last token that was matched.
-   ----------------------------------------------------------------------------
-   function Last_Recognizer (Analyzer : in Instance) return Recognizer_Handle is
-   begin
+   overriding function Last_Recognizer (Analyzer : in Instance) return Recognizer_Handle
+   is begin
       return Analyzer.Syntax_List (Analyzer.Last_Token).Recognizer;
    end Last_Recognizer;
 

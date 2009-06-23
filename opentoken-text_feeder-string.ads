@@ -38,9 +38,10 @@ package OpenToken.Text_Feeder.String is
    --  time it is called. On subsequent calls, Token.EOF_Character is
    --  retured.
    --------------------------------------------------------------------------
-   procedure Get (Feeder   : in out Instance;
-                  New_Text :    out Standard.String;
-                  Text_End :    out Integer);
+   overriding procedure Get
+     (Feeder   : in out Instance;
+      New_Text :    out Standard.String;
+      Text_End :    out Integer);
 
    ----------------------------------------------------------------------------
    --  This function sets the string to be returned the next time Get is called
@@ -54,7 +55,7 @@ package OpenToken.Text_Feeder.String is
    --  feeder that happens after a Get when no Set has yet been
    --  called.
    --------------------------------------------------------------------------
-   function End_Of_Text (Feeder : Instance) return Boolean;
+   overriding function End_Of_Text (Feeder : in Instance) return Boolean;
 
 
 private

@@ -35,10 +35,11 @@ package body OpenToken.Token.Enumerated.String_Literal is
       return Instance'Class (Instance'(ID => ID, Value => Buffers.To_Bounded_String (Value)));
    end Get;
 
-   procedure Create (Lexeme     : in     String;
-                     ID         : in     Token_ID;
-                     Recognizer : in     Recognizer_Handle;
-                     New_Token  :    out Instance)
+   overriding procedure Create
+     (Lexeme     : in     String;
+      ID         : in     Token_ID;
+      Recognizer : in     Recognizer_Handle;
+      New_Token  :    out Instance)
    is
       pragma Unreferenced (Recognizer);
    begin

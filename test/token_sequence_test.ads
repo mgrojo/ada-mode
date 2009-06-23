@@ -1,4 +1,3 @@
-with OpenToken.Token.Sequence;
 with OpenToken.Token.Enumerated;
 with OpenToken.Token.Enumerated.Analyzer;
 with OpenToken.Recognizer.Character_Set;

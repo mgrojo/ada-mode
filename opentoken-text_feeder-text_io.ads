@@ -46,7 +46,7 @@ package OpenToken.Text_Feeder.Text_IO is
    ----------------------------------------------------------------------------
    --  Create a Text Feeder for the given Text_IO file.
    ----------------------------------------------------------------------------
-   function Create (File_Ptr : Ada.Text_IO.File_Access := Ada.Text_IO.Current_Input)
+   function Create (File_Ptr : in Ada.Text_IO.File_Access := Ada.Text_IO.Current_Input)
      return Instance;
 
    --------------------------------------------------------------------------
@@ -56,15 +56,16 @@ package OpenToken.Text_Feeder.Text_IO is
    --  matter what actual character (if any) the OS uses for that
    --  purpose.
    --------------------------------------------------------------------------
-   procedure Get (Feeder   : in out Instance;
-                  New_Text :    out String;
-                  Text_End :    out Integer);
+   overriding procedure Get
+     (Feeder   : in out Instance;
+      New_Text :    out String;
+      Text_End :    out Integer);
 
    --------------------------------------------------------------------------
    --  Return True if there is no more text to process. For this
    --  feeder, that happens when we are at the end of the file.
    --------------------------------------------------------------------------
-   function End_Of_Text (Feeder : Instance) return Boolean;
+   overriding function End_Of_Text (Feeder : in Instance) return Boolean;
 
 private
    Nothing : constant Character := Character'Val (0);

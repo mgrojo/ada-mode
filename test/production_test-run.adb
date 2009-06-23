@@ -56,9 +56,9 @@ begin
          Keyword_ID    => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("whatever"))
          );
 
-      Int     : Master_Token.Instance renames Syntax (Int_ID).Token_Handle.all;
-      Keyword : Master_Token.Instance renames Syntax (Keyword_ID).Token_Handle.all;
-      String  : Master_Token.Instance renames Syntax (String_ID).Token_Handle.all;
+      Int     : constant Master_Token.Handle := Syntax (Int_ID).Token_Handle;
+      Keyword : constant Master_Token.Handle := Syntax (Keyword_ID).Token_Handle;
+      String  : constant Master_Token.Handle := Syntax (String_ID).Token_Handle;
 
       Analyzer : constant Tokenizer.Instance := Tokenizer.Initialize (Syntax);
       pragma Unreferenced (Analyzer);
@@ -67,10 +67,11 @@ begin
       Literal    : constant Nonterminal.Handle := new Nonterminal.Instance;
 
       Whatever_Production : constant Production.Instance :=
-        Expression <= Int & Keyword & Int +
+        Expression <= Int.all & Keyword.all & Int.all +
         Nonterminal.Synthesize'(Nonterminal.Synthesize_Self);
 
-      STR_Key_Production : constant Production.Instance := Literal <= String & Keyword + Nonterminal.Synthesize_Self;
+      STR_Key_Production : constant Production.Instance := Literal <= String.all & Keyword.all +
+        Nonterminal.Synthesize_Self;
 
       Passed : Boolean := True;
 

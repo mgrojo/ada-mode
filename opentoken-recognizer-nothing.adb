@@ -24,21 +24,12 @@
 --
 -------------------------------------------------------------------------------
 
------------------------------------------------------------------------------
---  This package implements a token recognizer that recognizes
---  absolutely *Nothing*! Its intended use is for providing a good
---  default token for analyzers. But if you find another use for it,
---  be my guest....
------------------------------------------------------------------------------
 package body OpenToken.Recognizer.Nothing is
 
-   --------------------------------------------------------------------------
-   --  This procedure will be called to perform further analysis on a
-   --  token based on the given next character.
-   --------------------------------------------------------------------------
-   procedure Analyze (The_Token : in out Instance;
-                      Next_Char : in     Character;
-                      Verdict   :    out Analysis_Verdict)
+   overriding procedure Analyze
+     (The_Token : in out Instance;
+      Next_Char : in     Character;
+      Verdict   :    out Analysis_Verdict)
    is
       pragma Unreferenced (Next_Char);
       pragma Unreferenced (The_Token);

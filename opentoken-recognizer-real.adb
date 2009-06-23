@@ -32,17 +32,9 @@
 --
 -------------------------------------------------------------------------------
 
------------------------------------------------------------------------------
---  This package implements a token recognizer for a token of a real
---  literal.
------------------------------------------------------------------------------
 package body OpenToken.Recognizer.Real is
 
-   --------------------------------------------------------------------------
-   --  This procedure will be called when analysis on a new candidate
-   --  string is started. The Token needs to clear its state (if any).
-   --------------------------------------------------------------------------
-   procedure Clear (The_Token : in out Instance) is
+   overriding procedure Clear (The_Token : in out Instance) is
    begin
       Extended_Digits.Clear (The_Token.Decimal_Recognizer);
 
@@ -51,13 +43,10 @@ package body OpenToken.Recognizer.Real is
 
    end Clear;
 
-   --------------------------------------------------------------------------
-   --  This procedure will be called to perform further analysis on a
-   --  token based on the given next character.
-   --------------------------------------------------------------------------
-   procedure Analyze (The_Token : in out Instance;
-                      Next_Char : in     Character;
-                      Verdict   :    out Analysis_Verdict)
+   overriding procedure Analyze
+     (The_Token : in out Instance;
+      Next_Char : in     Character;
+      Verdict   :    out Analysis_Verdict)
    is
 
       Decimal_Verdict : Analysis_Verdict;

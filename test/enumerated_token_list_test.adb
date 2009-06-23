@@ -28,7 +28,13 @@
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 with Ada.Text_IO;
-with OpenToken.Token;
+with OpenToken.Recognizer.Integer;
+with OpenToken.Recognizer.Keyword;
+with OpenToken.Recognizer.Real;
+with OpenToken.Recognizer.String;
+with OpenToken.Token.Enumerated.Analyzer;
+with OpenToken.Token.Enumerated.List;
+with OpenToken.Token.Enumerated;
 procedure Enumerated_Token_List_Test is
 begin
 
@@ -43,7 +49,7 @@ begin
    Test_Case_1 : declare
       type Token_IDs is (Int, Real, String, Keyword);
 
-      package Master_Token is new OpenToken.Token (Token_IDs);
+      package Master_Token is new OpenToken.Token.Enumerated (Token_IDs);
       package Tokenizer is new Master_Token.Analyzer;
       package Token_List is new Master_Token.List;
 
@@ -57,6 +63,7 @@ begin
          );
 
       Analyzer : constant Tokenizer.Instance := Tokenizer.Initialize (Syntax);
+      pragma Unreferenced (Analyzer);
 
       List : Token_List.Instance;
       Iterator : Token_List.List_Iterator;

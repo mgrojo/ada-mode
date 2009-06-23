@@ -30,15 +30,11 @@
 -------------------------------------------------------------------------------
 package body OpenToken.Text_Feeder.String is
 
-   --------------------------------------------------------------------------
-   --  This function returns strings for the analyzer. This version of
-   --  it returns the string given it with the set command the first
-   --  time it is called. On subsequent calls, Token.EOF_Character is
-   --  retured.
-   --------------------------------------------------------------------------
-   procedure Get (Feeder   : in out Instance;
-                  New_Text :    out Standard.String;
-                  Text_End :    out Integer) is
+   overriding procedure Get
+     (Feeder   : in out Instance;
+      New_Text :    out Standard.String;
+      Text_End :    out Integer)
+   is
       Data_Length : constant Natural := Ada.Strings.Unbounded.Length (Feeder.Next_Value);
    begin
       if New_Text'Length < Data_Length then
@@ -56,23 +52,18 @@ package body OpenToken.Text_Feeder.String is
       end if;
    end Get;
 
-   ----------------------------------------------------------------------------
-   --  This function sets the string to be returned the next time Get is called
-   ----------------------------------------------------------------------------
-   procedure Set (Feeder : out Instance;
-                  Value  : in  Standard.String
-                 ) is
-   begin
+   procedure Set
+     (Feeder :    out Instance;
+      Value  : in     Standard.String)
+   is begin
       Feeder.Next_Value := Ada.Strings.Unbounded.To_Unbounded_String
         (Value & OpenToken.EOF_Character);
    end Set;
 
-   ----------------------------------------------------------------------------
-   --  Return True if there is no more text to process.
-   ----------------------------------------------------------------------------
-   function End_Of_Text (Feeder : Instance) return Boolean is
-   begin
+   overriding function End_Of_Text (Feeder : Instance) return Boolean
+   is begin
       return Ada.Strings.Unbounded.Length (Feeder.Next_Value) <= 1;
    end End_Of_Text;
+
 end OpenToken.Text_Feeder.String;
 

@@ -36,12 +36,8 @@
 -------------------------------------------------------------------------------
 package body OpenToken.Recognizer.Integer is
 
-   ----------------------------------------------------------------------------
-   --  This procedure will be called when analysis on a new candidate string
-   --  is started. The Token needs to clear its state (if any).
-   ----------------------------------------------------------------------------
-   procedure Clear (The_Token : in out Instance) is
-   begin
+   overriding procedure Clear (The_Token : in out Instance)
+   is begin
       Extended_Digits.Clear (The_Token.Decimal_Recognizer);
 
       The_Token.Last_Verdict := Failed;
@@ -49,13 +45,10 @@ package body OpenToken.Recognizer.Integer is
 
    end Clear;
 
-   ----------------------------------------------------------------------------
-   --  This procedure will be called to perform further analysis on a token
-   --  based on the given next character.
-   ----------------------------------------------------------------------------
-   procedure Analyze (The_Token : in out Instance;
-                      Next_Char : in     Character;
-                      Verdict   :    out Analysis_Verdict)
+   overriding procedure Analyze
+     (The_Token : in out Instance;
+      Next_Char : in     Character;
+      Verdict   :    out Analysis_Verdict)
    is
       Decimal_Verdict : Analysis_Verdict := Failed;
 

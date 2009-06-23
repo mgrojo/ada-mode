@@ -24,29 +24,13 @@
 --
 -------------------------------------------------------------------------------
 
------------------------------------------------------------------------------
---  This package defines a reusable list token. A list is a token that
---  is made up of any number of repetitions of other tokens, separated
---  by a given separator token.
------------------------------------------------------------------------------
 package body OpenToken.Token.List is
 
-   ----------------------------------------------------------------------------
-   --  Retrieve a list token from the analyzer.
-   --
-   --  The private routine Add_List_Element is called with every
-   --  successive list element that is recognized. The private routine
-   --  Build_List is called when the entire list has been recognized.
-   --
-   --  A non active parse does not comsume any input from the
-   --  analyzer, and does not call any of the private routines.
-   --
-   ----------------------------------------------------------------------------
-   procedure Parse
+   overriding procedure Parse
      (Match    : in out Instance;
       Analyzer : in out Source_Class;
-      Actively : in     Boolean := True
-     ) is
+      Actively : in     Boolean      := True)
+   is
 
       --  Since this routine can be called recursively, we have to
       --  keep the working copy on the stack.
@@ -101,18 +85,11 @@ package body OpenToken.Token.List is
                   );
    end Get;
 
-   --------------------------------------------------------------------------
-   --  This routine should is a quick check to verify that the given
-   --  list token can possibly succesfully parse from what's sitting
-   --  in the analyzer. This routine is meant to be used for choosing
-   --  between parsing options. It simply checks Could_Parse_To for
-   --  this token's Left token.
-   --------------------------------------------------------------------------
-   function Could_Parse_To
+   overriding function Could_Parse_To
      (Match    : in Instance;
-      Analyzer : in Source_Class
-     ) return Boolean is
-   begin
+      Analyzer : in Source_Class)
+     return Boolean
+   is begin
       return Could_Parse_To (Match.Element.all, Analyzer);
    end Could_Parse_To;
 

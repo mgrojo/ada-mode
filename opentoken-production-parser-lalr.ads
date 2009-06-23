@@ -36,22 +36,13 @@ package OpenToken.Production.Parser.LALR is
 
    type Instance is new OpenToken.Production.Parser.Instance with private;
 
-   ----------------------------------------------------------------------------
-   --  Create a new parser from the given grammar with the given token
-   --  analyzer.
-   ----------------------------------------------------------------------------
-   function Generate
+   overriding function Generate
      (Grammar  : in Production_List.Instance;
       Analyzer : in Tokenizer.Instance;
       Trace    : in Boolean                  := False)
      return Instance;
 
-   --------------------------------------------------------------------------
-   --  Attempt a parse. This routine will return when the grammar
-   --  indicates the first production has been parsed. (or an
-   --  exception is raised)
-   --------------------------------------------------------------------------
-   procedure Parse (Parser : in out Instance);
+   overriding procedure Parse (Parser : in out Instance);
 
    --------------------------------------------------------------------------
    --  Free any resources used by the given parser. It will be invalid

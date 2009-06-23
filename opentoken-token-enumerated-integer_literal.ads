@@ -51,10 +51,11 @@ package OpenToken.Token.Enumerated.Integer_Literal is
    --  value will be set to the integer value of the Lexeme. The
    --  Recognizer filed isn't used for this instance of the type.
    --------------------------------------------------------------------------
-   procedure Create (Lexeme     : in     String;
-                     ID         : in     Token_ID;
-                     Recognizer : in     Recognizer_Handle;
-                     New_Token  :    out Instance);
+   overriding procedure Create
+     (Lexeme     : in     String;
+      ID         : in     Token_ID;
+      Recognizer : in     Recognizer_Handle;
+      New_Token  :    out Instance);
 
    ----------------------------------------------------------------------------
    --  Return the value of the given integer token.

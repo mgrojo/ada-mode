@@ -81,20 +81,11 @@ package body OpenToken.Token.Enumerated is
       Token.ID := ID;
    end Set_ID;
 
-   ----------------------------------------------------------------------------
-   --  Implementation for a token parse routine.
-   --
-   --  The default version of this routine checks that the ID of the
-   --  next token matches the Match ID.
-   --
-   --  An active parse consumes the input, where a non active parse
-   --  does not.
-   --------------------------------------------------------------------------
-   procedure Parse
+   overriding procedure Parse
      (Match    : in out Instance;
       Analyzer : in out Source_Class;
-      Actively : in     Boolean := True
-     ) is
+      Actively : in     Boolean      := True)
+   is
 
       Next_Token : constant OpenToken.Token.Class := Get (Analyzer);
    begin
@@ -127,18 +118,11 @@ package body OpenToken.Token.Enumerated is
             Ada.Tags.Expanded_Name (Next_Token'Tag));
    end Parse;
 
-   --------------------------------------------------------------------------
-   --  This routine should be a quick routine to verify that the given
-   --  token can possibly succesfully parse. This routine is meant to
-   --  be used for choosing between parsing options, so it should be a
-   --  *very* quick check rather than a full parse. This version just
-   --  checks against the currently loaded token on in the analyzer.
-   --------------------------------------------------------------------------
-   function Could_Parse_To
+   overriding function Could_Parse_To
      (Match    : in Instance;
-      Analyzer : in  Source_Class
-     ) return Boolean is
-   begin
+      Analyzer : in  Source_Class)
+     return Boolean
+   is begin
       return Instance (Get (Analyzer)).ID = Match.ID;
    end Could_Parse_To;
 

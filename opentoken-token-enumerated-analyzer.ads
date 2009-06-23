@@ -174,8 +174,9 @@ package OpenToken.Token.Enumerated.Analyzer is
    --  Raises Syntax_Error if no token could be found (unless there is
    --  a default token defined).
    --------------------------------------------------------------------------
-   procedure Find_Next (Analyzer   : in out Instance;
-                        Look_Ahead : in     Boolean := False);
+   overriding procedure Find_Next
+     (Analyzer   : in out Instance;
+      Look_Ahead : in     Boolean := False);
 
    --------------------------------------------------------------------------
    --  Returns the current text line at which processing will resume.
@@ -209,7 +210,7 @@ package OpenToken.Token.Enumerated.Analyzer is
    --------------------------------------------------------------------------
    --  Returns the last token that was matched.
    --------------------------------------------------------------------------
-   function Get (Analyzer : in Instance) return OpenToken.Token.Class;
+   overriding function Get (Analyzer : in Instance) return OpenToken.Token.Class;
 
    ----------------------------------------------------------------------------
    --  Returns the last token ID that was matched.
@@ -219,12 +220,12 @@ package OpenToken.Token.Enumerated.Analyzer is
    ----------------------------------------------------------------------------
    --  Returns the actual text of the last token that was matched.
    ----------------------------------------------------------------------------
-   function Lexeme (Analyzer : in Instance) return String;
+   overriding function Lexeme (Analyzer : in Instance) return String;
 
    ----------------------------------------------------------------------------
    --  Returns the recognizer handle of the last token that was matched.
    ----------------------------------------------------------------------------
-   function Last_Recognizer (Analyzer : in Instance) return Recognizer_Handle;
+   overriding function Last_Recognizer (Analyzer : in Instance) return Recognizer_Handle;
 
 private
 

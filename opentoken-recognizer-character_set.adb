@@ -36,23 +36,16 @@
 -----------------------------------------------------------------------------
 package body OpenToken.Recognizer.Character_Set is
 
-   ----------------------------------------------------------------------------
-   --  This procedure will be called when analysis on a new candidate string
-   --  is started. The Token needs to clear its state (if any).
-   ----------------------------------------------------------------------------
-   procedure Clear (The_Token : in out Instance) is
-   begin
+   overriding procedure Clear (The_Token : in out Instance)
+   is begin
       The_Token.State := Text;
    end Clear;
 
-   ----------------------------------------------------------------------------
-   --  This procedure will be called to perform further analysis on a token
-   --  based on the given next character.
-   ----------------------------------------------------------------------------
-   procedure Analyze (The_Token : in out Instance;
-                      Next_Char : in     Character;
-                      Verdict   :    out Analysis_Verdict) is
-   begin
+   overriding procedure Analyze
+     (The_Token : in out Instance;
+      Next_Char : in     Character;
+      Verdict   :    out Analysis_Verdict)
+   is begin
       case The_Token.State is
       when Text =>
          if Ada.Strings.Maps.Is_In (Element => Next_Char, Set => The_Token.Set) then

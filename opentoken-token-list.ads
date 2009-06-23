@@ -37,41 +37,23 @@ package OpenToken.Token.List is
 
    type Handle is access all Class;
 
-   ----------------------------------------------------------------------------
-   --  Retrieve a list token from the analyzer.
-   --
-   --  The private routine Add_List_Element is called with every
-   --  successive list element that is recognized. The private routine
-   --  Build is called when the entire list has been recognized.
-   --
-   --  A non active parse does not comsume any input from the analyzer,
-   --  and does not call any of the private routines.
-   ----------------------------------------------------------------------------
-   procedure Parse
+   overriding procedure Parse
      (Match    : in out Instance;
       Analyzer : in out Source_Class;
-      Actively : in     Boolean := True
-     );
+      Actively : in     Boolean := True);
 
    ----------------------------------------------------------------------------
    --  Construct a new list token, using the given Element and Separator tokens.
    ----------------------------------------------------------------------------
    function Get
      (Element   : access OpenToken.Token.Class;
-      Separator : access OpenToken.Token.Class
-     ) return Class;
+      Separator : access OpenToken.Token.Class)
+     return Class;
 
-   --------------------------------------------------------------------------
-   --  This routine should is a quick check to verify that the given
-   --  list token can possibly succesfully parse from what's sitting
-   --  in the analyzer. This routine is meant to be used for choosing
-   --  between parsing options. It simply checks Could_Parse_To for
-   --  this token's Element token.
-   --------------------------------------------------------------------------
-   function Could_Parse_To
+   overriding function Could_Parse_To
      (Match    : in Instance;
-      Analyzer : in Source_Class
-     ) return Boolean;
+      Analyzer : in Source_Class)
+     return Boolean;
 
 private
 

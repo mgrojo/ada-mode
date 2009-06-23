@@ -4,3 +4,8 @@
 ^Build/debian_release/.*\.txt$
 ^Build/debian_release/lib$
 ^Build/debian_release/obj$
+^Build/windows_release/.*\.diff$
+^Build/windows_release/.*\.exe$
+^Build/windows_release/.*\.out$
+^Build/windows_release/.*\.txt$
+^Build/windows_release/obj$

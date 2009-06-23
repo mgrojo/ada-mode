@@ -82,21 +82,11 @@ package body OpenToken.Token.Selection is
       end if;
    end Raise_Parse_Error;
 
-   ----------------------------------------------------------------------------
-   --  Retrieve the given selection token from the analyzer.
-   --
-   --  The private routine Build is called when the entire operation
-   --  has been recognized.
-   --
-   --  A non active parse does not comsume any input from the
-   --  analyzer, and does not call any of the private routines.
-   ----------------------------------------------------------------------------
-   procedure Parse
+   overriding procedure Parse
      (Match    : in out Instance;
       Analyzer : in out Source_Class;
-      Actively : in     Boolean := True
-     ) is
-
+      Actively : in     Boolean      := True)
+   is
       List_Iterator : Token.Linked_List.List_Iterator :=
         Token.Linked_List.Initial_Iterator (Match.Members);
    begin
@@ -162,19 +152,11 @@ package body OpenToken.Token.Selection is
       return (Members => Left.Members & Right.Members);
    end "or";
 
-   --------------------------------------------------------------------------
-   --  This routine should is a quick check to verify that the given
-   --  operation token can possibly succesfully parse from what's
-   --  sitting in the analyzer. This routine is meant to be used for
-   --  choosing between parsing options. It simply checks
-   --  Could_Parse_To for this token's Element token.
-   --
-   ----------------------------------------------------------------------------
-   function Could_Parse_To
+   overriding function Could_Parse_To
      (Match    : in Instance;
-      Analyzer : in Source_Class
-     ) return Boolean is
-
+      Analyzer : in Source_Class)
+     return Boolean
+   is
       List_Iterator : Token.Linked_List.List_Iterator :=
         Token.Linked_List.Initial_Iterator (Match.Members);
    begin

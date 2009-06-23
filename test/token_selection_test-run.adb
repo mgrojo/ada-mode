@@ -44,13 +44,16 @@ begin
    --  Expected Results : A Token.Selection
    --  Purpose          : Verify that a valid selection of tokens is properly
    --                     parsed.
-   Test_Case_1 : declare
+   Test_Case_1 :
+   declare
+
+      use OpenToken.Token.Selection;
 
       Parse_String : constant String := "Do several things 200 times in a row";
 
       Analyzer : Tokenizer.Instance := Tokenizer.Initialize (Syntax, String_Feeder'Access);
 
-      Selection : OpenToken.Token.Selection.Class :=
+      Selection : OpenToken.Token.Selection.Class := Null_Selection or
         Do_Keyword or Several_Keyword or Things_Keyword or Int_Literal or Times_Keyword or
         In_Keyword or A_Keyword or Row_Keyword;
 
@@ -82,7 +85,7 @@ begin
       else
          Ada.Text_IO.Put_Line ("failed.");
          Ada.Text_IO.Put_Line ("There was an unexpected " &
-                               Token_Ids'Image (Tokenizer.ID (Analyzer)) &
+                               Token_IDs'Image (Tokenizer.ID (Analyzer)) &
                                " left on the input stream.");
       end if;
 
@@ -101,17 +104,17 @@ begin
    --  Purpose          : Verify that an invalid token selection is correctly
    --                     diagnosed.
    --
-   Test_Case_2 : declare
+   Test_Case_2 :
+   declare
+      use OpenToken.Token.Selection;
 
       Parse_String : constant String := "Do several things in a row";
 
       Analyzer : Tokenizer.Instance := Tokenizer.Initialize (Syntax, String_Feeder'Access);
 
-      Selection : OpenToken.Token.Selection.Class :=
+      Selection : OpenToken.Token.Selection.Class := Null_Selection or
         Several_Keyword or Things_Keyword or Int_Literal or Times_Keyword or
         In_Keyword or A_Keyword or Row_Keyword;
-
-      Passed : Boolean := True;
 
    begin
 
@@ -136,11 +139,11 @@ begin
       Ada.Text_IO.Put_Line ("failed.");
 
    exception
-      when Error : OpenToken.Parse_Error =>
-         Ada.Text_IO.Put_Line ("passed.");
+   when OpenToken.Parse_Error =>
+      Ada.Text_IO.Put_Line ("passed.");
 
-      when Error : others =>
-         Ada.Text_IO.Put_Line ("failed due to parse exception:");
-         Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (Error));
+   when Error : others =>
+      Ada.Text_IO.Put_Line ("failed due to parse exception:");
+      Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (Error));
    end Test_Case_2;
 end Token_Selection_Test.Run;

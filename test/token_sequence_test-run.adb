@@ -43,13 +43,16 @@ begin
    --
    --  Expected Results : A Token.Sequence
    --  Purpose          : Verify that a valid sequence of tokens is properly parsed.
-   Test_Case_1 : declare
+   Test_Case_1 :
+   declare
+
+      use OpenToken.Token.Sequence;
 
       Parse_String : constant String := "Do several things 200 times in a row";
 
       Analyzer : Tokenizer.Instance := Tokenizer.Initialize (Syntax, String_Feeder'Access);
 
-      Sequence : OpenToken.Token.Sequence.Class :=
+      Sequence : OpenToken.Token.Sequence.Class := Null_Sequence &
         Do_Keyword & Several_Keyword & Things_Keyword &
         Int_Literal & Times_Keyword &
         In_Keyword & A_Keyword & Row_Keyword;
@@ -79,7 +82,7 @@ begin
       else
          Ada.Text_IO.Put_Line ("failed.");
          Ada.Text_IO.Put_Line ("There was an unexpected " &
-                               Token_Ids'Image (Tokenizer.ID (Analyzer)) &
+                               Token_IDs'Image (Tokenizer.ID (Analyzer)) &
                                " left on the input stream.");
       end if;
 
@@ -98,18 +101,18 @@ begin
    --  Purpose          : Verify that an invalid token sequence is correctly
    --                     diagnosed.
    --
-   Test_Case_2 : declare
+   Test_Case_2 :
+   declare
+      use OpenToken.Token.Sequence;
 
       Parse_String : constant String := "Do several things in a row";
 
       Analyzer : Tokenizer.Instance := Tokenizer.Initialize (Syntax, String_Feeder'Access);
 
-      Sequence : OpenToken.Token.Sequence.Class :=
+      Sequence : OpenToken.Token.Sequence.Class := Null_Sequence &
         Do_Keyword & Several_Keyword & Things_Keyword &
         Int_Literal & Times_Keyword & In_Keyword &
         A_Keyword & Row_Keyword;
-
-      Passed : Boolean := True;
 
    begin
 

@@ -55,20 +55,12 @@ private
 
    type Instance is new OpenToken.Recognizer.Instance with null record;
 
-   --------------------------------------------------------------------------
-   --  This procedure will be called when analysis on a new candidate
-   --  string is started. The Token needs to clear its state (if any).
-   --------------------------------------------------------------------------
-   procedure Clear (The_Token : in out Instance) is null;
+   overriding procedure Clear (The_Token : in out Instance) is null;
 
-
-   --------------------------------------------------------------------------
-   --  This procedure will be called to perform further analysis on a
-   --  token based on the given next character.
-   --------------------------------------------------------------------------
-   procedure Analyze (The_Token : in out Instance;
-                      Next_Char : in     Character;
-                      Verdict   :    out Analysis_Verdict);
+   overriding procedure Analyze
+     (The_Token : in out Instance;
+      Next_Char : in     Character;
+      Verdict   :    out Analysis_Verdict);
 
 end OpenToken.Recognizer.Nothing;
 

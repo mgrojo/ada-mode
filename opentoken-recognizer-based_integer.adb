@@ -24,7 +24,7 @@
 
 package body OpenToken.Recognizer.Based_Integer is
 
-   procedure Clear (The_Token : in out Instance) is
+   overriding procedure Clear (The_Token : in out Instance) is
    begin
 
       The_Token :=
@@ -37,7 +37,7 @@ package body OpenToken.Recognizer.Based_Integer is
 
    end Clear;
 
-   procedure Analyze
+   overriding procedure Analyze
      (The_Token : in out Instance;
       Next_Char : in     Character;
       Verdict   :    out Analysis_Verdict)

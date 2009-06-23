@@ -991,7 +991,7 @@ package body OpenToken.Production.Parser.LALR is
    ----------------------------------------------------------------------------
    --  Create a new parser from the given grammar with the given token analyzer.
    ----------------------------------------------------------------------------
-   function Generate
+   overriding function Generate
      (Grammar  : in Production_List.Instance;
       Analyzer : in Tokenizer.Instance;
       Trace    : in Boolean                  := False)
@@ -1036,7 +1036,8 @@ package body OpenToken.Production.Parser.LALR is
    --  Attempt a parse. This routine will return when all available tokens
    --  have been parsed. (or an exception is raised)
    ----------------------------------------------------------------------------
-   procedure Parse (Parser : in out Instance) is
+   overriding procedure Parse (Parser : in out Instance)
+   is
       Stack         : State_Node_Ptr;
       Current_State : State_Node;
 
