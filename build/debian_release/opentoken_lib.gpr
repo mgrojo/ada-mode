@@ -1,7 +1,7 @@
 project Opentoken_Lib is
    Version := "4.0.1";
    for Languages use ("Ada");
-   for Source_Dirs use (".", "Language_Lexers");
+   for Source_Dirs use ("../..", "../../Language_Lexers");
    for Object_Dir use "obj";
    for Library_Name use "opentoken";
    for Library_Dir use "lib";

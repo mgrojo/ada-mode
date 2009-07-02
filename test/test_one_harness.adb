@@ -1,76 +1,55 @@
 --  Abstract :
 --
---  Run one test, while working on it.
+--  Run one OpenToken AUnit test
+--
+--  Notice
+--
+--  Copyright (C) 2009 National Aeronautics and Space Administration.
+--  No copyright is claimed in the United States under Title 17, U.S.
+--  Code. All Foreign Rights are Reserved to the U.S. Government.
+--
+--  Disclaimer
+--
+--  This software is provided "as is" without any warranty of any kind,
+--  either express, implied, or statutory, including, but not limited
+--  to, any warranty that the software will conform to specifications,
+--  any implied warranties of merchantability, fitness for a particular
+--  purpose, and freedom from infringement, and any warranty that the
+--  documentation will conform to the program, or any warranty that the
+--  software will be error free.
+--
+--  In no event shall NASA be liable for any damages, including, but not
+--  limited to direct, indirect, special or consequential damages,
+--  arising out of, resulting from, or in any way connected with the
+--  software or its documentation.  Whether or not based upon warranty,
+--  contract, tort or otherwise, and whether or not loss was sustained
+--  from, or arose out of the results of, or use of, the software,
+--  documentation or services provided hereunder.
+--
+--  Export Control
+--
+--  The recipient of this software from NASA shall not export or
+--  re-export directly or indirectly (including via remote access,
+--  i.e. Internet) any part of this software or its documentation to any
+--  country for which a validated license is required for such export or
+--  re-export under the EXPORT LAWS without first obtaining such a
+--  validated license.
 
-with AUnit.Options;
-with AUnit.Reporter.Text;
-with AUnit.Test_Cases; use AUnit.Test_Cases;
-with AUnit.Test_Filters.Verbose;
-with AUnit.Test_Results;
+with AUnit.Test_Results.Text_Reporter;
 with AUnit.Test_Suites; use AUnit.Test_Suites;
-with Ada.Command_Line; use Ada.Command_Line;
-with Ada.Text_IO;
-with GNAT.Traceback.Symbolic;
-with Test_Unbounded_Definite_Vectors_Sorted;
-with Test_Bounded_Definite_Vectors_Sorted;
+with Test_LR0_Kernels;
 procedure Test_One_Harness
 is
-   --  command line arguments (all optional, order matters):
-   --  <verbose> test_name routine_name trace
-   --  1         2         3            4
-   --  <verbose> is 1 | 0; 1 lists each enabled test/routine name before running it
-   --
-   --  routine_name can be '' to set trace or cost for all routines.
-
-   Filter : aliased AUnit.Test_Filters.Verbose.Filter;
-   Trace  : constant Integer := (if Argument_Count >= 4 then Integer'Value (Argument (4)) else 0);
-   pragma Unreferenced (Trace);
-
-   Options : constant AUnit.Options.AUnit_Options :=
-     (Global_Timer     => False,
-      Test_Case_Timer  => False,
-      Report_Successes => True,
-      Filter           => Filter'Unchecked_Access);
-
-   Suite    : constant Access_Test_Suite := new Test_Suite;
-   Reporter : AUnit.Reporter.Text.Text_Reporter;
-   Result   : AUnit.Test_Results.Result;
-   Status   : AUnit.Status;
+   Suite  : constant Access_Test_Suite := new Test_Suite;
+   Result : AUnit.Test_Results.Result;
 
 begin
-   Filter.Verbose := Argument_Count > 0 and then Argument (1) = "1";
+   Add_Test (Suite, new Test_LR0_Kernels.Test_Case (Debug => True));
 
-   case Argument_Count is
-   when 0 | 1 =>
-      null;
 
-   when 2 =>
-      Filter.Set_Name (Argument (2)); -- test name only
-
-   when others =>
-      declare
-         Test_Name    : String renames Argument (2);
-         Routine_Name : String renames Argument (3);
-      begin
-         if Test_Name = "" then
-            Filter.Set_Name (Routine_Name);
-         elsif Routine_Name = "" then
-            Filter.Set_Name (Test_Name);
-         else
-            Filter.Set_Name (Test_Name & " : " & Routine_Name);
-         end if;
-      end;
-   end case;
-
-   Add_Test (Suite, Test_Case_Access'(new Test_Unbounded_Definite_Vectors_Sorted.Test_Case));
-   Add_Test (Suite, Test_Case_Access'(new Test_Bounded_Definite_Vectors_Sorted.Test_Case));
-
-   Run (Suite, Options, Result, Status);
+   Run (Suite.all, Result);
 
    --  Provide command line option -v to set verbose mode
-   AUnit.Reporter.Text.Report (Reporter, Result);
+   AUnit.Test_Results.Text_Reporter.Report (Result);
 
-exception
-when E : others =>
-   Ada.Text_IO.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
 end Test_One_Harness;

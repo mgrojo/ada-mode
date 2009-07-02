@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2002 - 2005, 2008 Stephe Leake
+-- Copyright (C) 2002 - 2005, 2008, 2009 Stephe Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -1117,20 +1117,20 @@ package body OpenToken.Production.Parser.LALR is
                   Production       => Action.Production
                   );
 
-               if Parser.Trace then
-                  Ada.Text_IO.Put_Line
-                    (Ada.Text_IO.Standard_Error,
-                     " to state" &
-                       State_Index'Image (Stack.State) &
-                       " : " & Token.Token_ID_Type'Image (Token.ID (Action.Production.LHS.all)));
-               end if;
-
                --  The next state is the one that the reduced state's goto for the
                --  LHS token takes us to.
                Current_State.State :=
                  Goto_For (Table => Parser.Table,
                            State => Stack.State,
                            ID    => Token.ID (Action.Production.LHS.all));
+
+               if Parser.Trace then
+                  Ada.Text_IO.Put_Line
+                    (Ada.Text_IO.Standard_Error,
+                     " to state" &
+                       State_Index'Image (Current_State.State) &
+                       " : " & Token.Token_ID_Type'Image (Token.ID (Action.Production.LHS.all)));
+               end if;
 
             when Accept_It =>
                --  Reduce by the indicated production

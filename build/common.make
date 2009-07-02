@@ -26,6 +26,7 @@ tests : recognizer_based_integer_test.run
 tests : recognizer_integer_test.run
 tests : string_test-run.run
 tests : string_token_test-run.diff
+tests : test_all_harness.diff
 tests : token_analyzer_ctd-run.run
 tests : token_list_test-run.run
 #tests : token_selection_test-run.run # FIXME: fails with CONSTRAINT_ERROR

@@ -1,6 +1,6 @@
 --  Abstract :
 --
---  Run all OpenToken AUnit tests; see Makefile for other tests.
+--  Test OpenToken.Production.Parser.LRK_Item.LR0_Kernels
 --
 --  Notice
 --
@@ -35,24 +35,16 @@
 --  re-export under the EXPORT LAWS without first obtaining such a
 --  validated license.
 
-with AUnit.Test_Results.Text_Reporter;
-with AUnit.Test_Suites; use AUnit.Test_Suites;
-with Test_LR0_Kernels;
-procedure Test_All_Harness
-is
-   Suite  : constant Access_Test_Suite := new Test_Suite;
-   Result : AUnit.Test_Results.Result;
+with Ada.Strings.Unbounded;
+with AUnit.Test_Cases;
+package Test_LR0_Kernels is
 
-begin
-   --  Test cases; test package alphabetical order, unless otherwise noted.
+   type Test_Case (Debug : Boolean) is new AUnit.Test_Cases.Test_Case with null record;
 
-   Add_Test (Suite, new Test_LR0_Kernels.Test_Case (Debug => False));
+   type Test_Case_Access is access all Test_Case;
 
-   --  end test cases
+   overriding procedure Register_Tests (T : in out Test_Case);
 
-   Run (Suite.all, Result);
+   overriding function Name (T : Test_Case) return Ada.Strings.Unbounded.String_Access;
 
-   --  Provide command line option -v to set verbose mode
-   AUnit.Test_Results.Text_Reporter.Report (Result);
-
-end Test_All_Harness;
+end Test_LR0_Kernels;

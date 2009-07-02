@@ -3,7 +3,7 @@
  2 : EOF_ID : SHIFT
  4 : EOF_ID : REDUCE
 String => 'foo'
- to state 1 : STATEMENT_ID
+ to state 3 : STATEMENT_ID
  3 : EOF_ID : ACCEPT_IT
 success
 
@@ -12,7 +12,7 @@ success
  2 : EOF_ID : SHIFT
  4 : EOF_ID : REDUCE
 String => 'Module"Component'
- to state 1 : STATEMENT_ID
+ to state 3 : STATEMENT_ID
  3 : EOF_ID : ACCEPT_IT
 success
 
@@ -21,7 +21,7 @@ success
  2 : EOF_ID : SHIFT
  4 : EOF_ID : REDUCE
 String => ''
- to state 1 : STATEMENT_ID
+ to state 3 : STATEMENT_ID
  3 : EOF_ID : ACCEPT_IT
 success
 
