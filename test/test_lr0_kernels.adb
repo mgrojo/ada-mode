@@ -36,7 +36,6 @@
 --  validated license.
 
 with AUnit.Test_Cases.Registration;
-with Ada.Strings.Maps;
 with OpenToken.Production.List.Print;
 with OpenToken.Production.List;
 with OpenToken.Production.Parser.LALR;
@@ -45,12 +44,10 @@ with OpenToken.Production.Print;
 with OpenToken.Recognizer.Based_Integer;
 with OpenToken.Recognizer.Character_Set;
 with OpenToken.Recognizer.End_Of_File;
-with OpenToken.Recognizer.Identifier;
 with OpenToken.Recognizer.Keyword;
 with OpenToken.Recognizer.Separator;
 with OpenToken.Text_Feeder.String;
 with OpenToken.Token.Enumerated.Analyzer;
-with OpenToken.Token.Enumerated.Identifier;
 with OpenToken.Token.Enumerated.Integer_Literal;
 with OpenToken.Token.Enumerated.List.Print;
 with OpenToken.Token.Enumerated.List;
@@ -72,7 +69,6 @@ package body Test_LR0_Kernels is
       Semicolon_ID,
       Set_ID,
       Verify_ID,
-      Identifier_ID,
       Int_ID,
       Whitespace_ID,
 
@@ -88,7 +84,6 @@ package body Test_LR0_Kernels is
    package Nonterminal is new Master_Token.Nonterminal (Token_List);
 
    package Integer_Literal is new Master_Token.Integer_Literal;
-   package Identifier_Token is new Master_Token.Identifier;
 
    package Production is new OpenToken.Production (Master_Token, Token_List, Nonterminal);
    package Production_List is new Production.List;
@@ -103,7 +98,6 @@ package body Test_LR0_Kernels is
       --  Terminals
       EOF            : constant Master_Token.Class := Master_Token.Get (EOF_ID);
       Equals_Greater : constant Master_Token.Class := Master_Token.Get (Equals_Greater_ID);
-      Identifier     : constant Master_Token.Class := Identifier_Token.Get (Identifier_ID);
       Integer        : constant Master_Token.Class := Integer_Literal.Get (Int_ID);
       Paren_Left     : constant Master_Token.Class := Master_Token.Get (Paren_Left_ID);
       Plus_Minus     : constant Master_Token.Class := Master_Token.Get (Plus_Minus_ID);
@@ -137,6 +131,7 @@ package body Test_LR0_Kernels is
         (Master_Token.Instance (Master_Token.Get (Association_ID)) with null record);
 
       Grammar : constant Production_List.Instance :=
+        --  Not a real aggregate; simpler to simplify test
         Association <= Tokens.Integer & Tokens.Equals_Greater + Nonterminal.Synthesize_Self and
         Association <= Tokens.Value + Nonterminal.Synthesize_Self;
 
@@ -191,15 +186,6 @@ package body Test_LR0_Kernels is
         Tokens.Plus_Minus  + Nonterminal.Synthesize_Self;
    end Verify_Statement;
 
-   use Ada.Strings.Maps;
-
-   Identifier_Set : constant Character_Set :=
-     To_Set (Character_Range'('0', '9')) or
-     To_Set (Character_Range'('A', 'Z')) or
-     To_Set (Character_Range'('a', 'z')) or
-     To_Set ('.') or
-     To_Set ('_');
-
    package Tokenizer is new Master_Token.Analyzer (Last_Terminal => Whitespace_ID);
 
    Syntax : constant Tokenizer.Syntax :=
@@ -220,11 +206,6 @@ package body Test_LR0_Kernels is
 
       --  terminals: values
       Int_ID  => Tokenizer.Get (OpenToken.Recognizer.Based_Integer.Get, New_Token => Tokens.Integer),
-
-      --  terminals: other
-      Identifier_ID => Tokenizer.Get
-        (Recognizer => OpenToken.Recognizer.Identifier.Get (Body_Chars => Identifier_Set),
-         New_Token  => Tokens.Identifier),
 
       --  The mere presence of the Whitespace_ID token in the syntax
       --  allows whitespace in any statement, even though it is not
@@ -297,21 +278,27 @@ package body Test_LR0_Kernels is
          LALR_Parser.Set_Trace (Command_Parser, True);
       end if;
 
-      --  The test is that we get no exceptions
+      --  The test is that we get no exceptions. Note that the
+      --  aggregate is not a real aggregate; simpler syntax for this
+      --  test.
       Execute_Command ("set (2 =>;");
+
+      --  IMPROVEME: Two successive statements does _not_ work; first
+      --  call to Parse eats first token of second statement.
+      --  Execute_Command ("set (2 =>; set 3;", Trace => Test.Debug);
    end Nominal;
 
    ----------
    --  Public subprograms
 
-   function Name (T : Test_Case) return Ada.Strings.Unbounded.String_Access
+   overriding function Name (T : Test_Case) return Ada.Strings.Unbounded.String_Access
    is
       pragma Unreferenced (T);
    begin
       return new String'("Test_LR0_Kernels");
    end Name;
 
-   procedure Register_Tests (T : in out Test_Case)
+   overriding procedure Register_Tests (T : in out Test_Case)
    is
       use AUnit.Test_Cases.Registration;
    begin
