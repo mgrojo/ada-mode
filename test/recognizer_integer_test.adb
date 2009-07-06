@@ -2,11 +2,11 @@
 --
 --  Test OpenToken.Recognizer.Integer
 --
---  Copyright (C) 2002 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2002, 2009 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
---  published by the Free Software Foundation; either version 2, or (at
+--  published by the Free Software Foundation; either version 3, or (at
 --  your option) any later version. This program is distributed in the
 --  hope that it will be useful, but WITHOUT ANY WARRANTY; without even
 --  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
@@ -68,5 +68,10 @@ begin
      (Item         => "-- A comment :)",
       Expect_Match => False,
       Comment      => "Ada comment");
+
+   Test
+     (Item         => "-1234",
+      Expect_Match => True,
+      Comment      => "negative integer");
 
 end Recognizer_Integer_Test;

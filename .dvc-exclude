@@ -1,3 +1,1 @@
-build/Makefile
-build/prj.el
-test/test_one_harness.adb
+Test/test_one_harness.adb
