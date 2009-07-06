@@ -1,6 +1,6 @@
 --  Abstract :
 --
---  Test OpenToken.Recognizer.Ada_Integer
+--  Test OpenToken.Recognizer.Based_Integer
 --
 --  Copyright (C) 2006 Stephen Leake.  All Rights Reserved.
 --
