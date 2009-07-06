@@ -2,38 +2,19 @@
 --
 --  Test OpenToken.Production.Parser.LRK_Item.LR0_Kernels
 --
---  Notice
+--  Copyright (C) 2009 Stephen Leake.  All Rights Reserved.
 --
---  Copyright (C) 2008 National Aeronautics and Space Administration.
---  No copyright is claimed in the United States under Title 17, U.S.
---  Code. All Foreign Rights are Reserved to the U.S. Government.
---
---  Disclaimer
---
---  This software is provided "as is" without any warranty of any kind,
---  either express, implied, or statutory, including, but not limited
---  to, any warranty that the software will conform to specifications,
---  any implied warranties of merchantability, fitness for a particular
---  purpose, and freedom from infringement, and any warranty that the
---  documentation will conform to the program, or any warranty that the
---  software will be error free.
---
---  In no event shall NASA be liable for any damages, including, but not
---  limited to direct, indirect, special or consequential damages,
---  arising out of, resulting from, or in any way connected with the
---  software or its documentation.  Whether or not based upon warranty,
---  contract, tort or otherwise, and whether or not loss was sustained
---  from, or arose out of the results of, or use of, the software,
---  documentation or services provided hereunder.
---
---  Export Control
---
---  The recipient of this software from NASA shall not export or
---  re-export directly or indirectly (including via remote access,
---  i.e. Internet) any part of this software or its documentation to any
---  country for which a validated license is required for such export or
---  re-export under the EXPORT LAWS without first obtaining such a
---  validated license.
+--  This program is free software; you can redistribute it and/or
+--  modify it under terms of the GNU General Public License as
+--  published by the Free Software Foundation; either version 3, or (at
+--  your option) any later version. This program is distributed in the
+--  hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+--  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+--  PURPOSE. See the GNU General Public License for more details. You
+--  should have received a copy of the GNU General Public License
+--  distributed with this program; see file COPYING. If not, write to
+--  the Free Software Foundation, 59 Temple Place - Suite 330, Boston,
+--  MA 02111-1307, USA.
 
 with Ada.Strings.Unbounded;
 with AUnit.Test_Cases;

@@ -1,6 +1,6 @@
 --  Abstract :
 --
---  Run one OpenToken AUnit test
+--  Test statement sequence grammar with an action on each statement
 --
 --  Copyright (C) 2009 Stephen Leake.  All Rights Reserved.
 --
@@ -16,21 +16,16 @@
 --  the Free Software Foundation, 59 Temple Place - Suite 330, Boston,
 --  MA 02111-1307, USA.
 
-with AUnit.Test_Results.Text_Reporter;
-with AUnit.Test_Suites; use AUnit.Test_Suites;
-with Test_LR0_Kernels;
-procedure Test_One_Harness
-is
-   Suite  : constant Access_Test_Suite := new Test_Suite;
-   Result : AUnit.Test_Results.Result;
+with Ada.Strings.Unbounded;
+with AUnit.Test_Cases;
+package Test_Statement_Actions is
 
-begin
-   Add_Test (Suite, new Test_LR0_Kernels.Test_Case (Debug => False));
+   type Test_Case (Debug : Boolean) is new AUnit.Test_Cases.Test_Case with null record;
 
+   type Test_Case_Access is access all Test_Case;
 
-   Run (Suite.all, Result);
+   overriding procedure Register_Tests (T : in out Test_Case);
 
-   --  Provide command line option -v to set verbose mode
-   AUnit.Test_Results.Text_Reporter.Report (Result);
+   overriding function Name (T : Test_Case) return Ada.Strings.Unbounded.String_Access;
 
-end Test_One_Harness;
+end Test_Statement_Actions;

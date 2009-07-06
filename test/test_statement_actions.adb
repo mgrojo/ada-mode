@@ -16,14 +16,11 @@
 --  the Free Software Foundation, 59 Temple Place - Suite 330, Boston,
 --  MA 02111-1307, USA.
 
-pragma License (GPL);
-
+with AUnit.Assertions;
 with AUnit.Test_Cases.Registration;
-with Ada.Text_IO;
+with Ada.Exceptions;
 with OpenToken.Production.List.Print;
-with OpenToken.Production.List;
 with OpenToken.Production.Parser.LALR;
-with OpenToken.Production.Parser;
 with OpenToken.Production.Print;
 with OpenToken.Recognizer.Based_Integer;
 with OpenToken.Recognizer.Character_Set;
@@ -34,32 +31,23 @@ with OpenToken.Text_Feeder.String;
 with OpenToken.Token.Enumerated.Analyzer;
 with OpenToken.Token.Enumerated.Integer_Literal;
 with OpenToken.Token.Enumerated.List.Print;
-with OpenToken.Token.Enumerated.List;
 with OpenToken.Token.Enumerated.Nonterminal;
-package body Test_LR0_Kernels is
+package body Test_Statement_Actions is
 
-   --  A simple grammar that exersizes the "already in goto_set" branches in LR0_Kernels
-
-   --  Even though EOF is not part of the grammar, it must be part of
-   --  the syntax; the string_feeder inserts it to mark the end of the
-   --  string.
    type Token_ID_Type is
-     (EOF_ID,
-      Equals_ID,
-      Equals_Greater_ID,
-      Paren_Left_ID,
-      Plus_Minus_ID,
+     (Plus_Minus_ID,
       Semicolon_ID,
       Set_ID,
       Verify_ID,
       Int_ID,
+      EOF_ID,
       Whitespace_ID,
 
       --  non-terminals
-      Association_ID,
       Value_ID,
       Statement_ID,
       Statement_Semi_ID,
+      Statement_Sequence_ID,
       Parse_Sequence_ID);
 
    package Master_Token is new OpenToken.Token.Enumerated (Token_ID_Type);
@@ -80,56 +68,16 @@ package body Test_LR0_Kernels is
       --  For use in right hand sides.
       --  Terminals
       EOF            : constant Master_Token.Class := Master_Token.Get (EOF_ID);
-      Equals_Greater : constant Master_Token.Class := Master_Token.Get (Equals_Greater_ID);
       Integer        : constant Master_Token.Class := Integer_Literal.Get (Int_ID);
-      Paren_Left     : constant Master_Token.Class := Master_Token.Get (Paren_Left_ID);
       Plus_Minus     : constant Master_Token.Class := Master_Token.Get (Plus_Minus_ID);
       Semicolon      : constant Master_Token.Class := Master_Token.Get (Semicolon_ID);
 
       --  Nonterminals
-      Association    : constant Nonterminal.Class := Nonterminal.Get (Association_ID);
-      Parse_Sequence : constant Nonterminal.Class := Nonterminal.Get (Parse_Sequence_ID);
-      Statement      : constant Nonterminal.Class := Nonterminal.Get (Statement_ID);
-      Statement_Semi : constant Nonterminal.Class := Nonterminal.Get (Statement_Semi_ID);
-      Value          : constant Nonterminal.Class := Nonterminal.Get (Value_ID);
+      Parse_Sequence     : constant Nonterminal.Class := Nonterminal.Get (Parse_Sequence_ID);
+      Statement          : constant Nonterminal.Class := Nonterminal.Get (Statement_ID);
+      Statement_Semi     : constant Nonterminal.Class := Nonterminal.Get (Statement_Semi_ID);
+      Statement_Sequence : constant Nonterminal.Class := Nonterminal.Get (Statement_Sequence_ID);
    end Tokens;
-
-   package Aggregate_Token is
-
-      type Instance is new Nonterminal.Instance with null record;
-
-      Aggregate : constant Instance :=
-        (Master_Token.Instance (Master_Token.Get (Value_ID)) with null record);
-
-      Grammar : constant Production_List.Instance :=
-        Production_List.Only (Aggregate <= Tokens.Paren_Left & Tokens.Association + Nonterminal.Synthesize_Self);
-
-   end Aggregate_Token;
-
-   package Association_Token is
-
-      type Instance is new Nonterminal.Instance with null record;
-
-      Association : constant Instance :=
-        (Master_Token.Instance (Master_Token.Get (Association_ID)) with null record);
-
-      Grammar : constant Production_List.Instance :=
-        --  Not a real aggregate; simpler to simplify test
-        Association <= Tokens.Integer & Tokens.Equals_Greater + Nonterminal.Synthesize_Self and
-        Association <= Tokens.Value + Nonterminal.Synthesize_Self;
-
-   end Association_Token;
-
-   package Integer_Token is
-
-      type Instance is new Nonterminal.Instance with null record;
-
-      Value : constant Instance := (Master_Token.Instance (Master_Token.Get (Value_ID)) with null record);
-
-      Grammar : constant Production_List.Instance :=
-        Production_List.Only (Value <= Integer_Literal.Get (Int_ID) + Nonterminal.Synthesize_Self);
-
-   end Integer_Token;
 
    package Set_Statement is
 
@@ -139,7 +87,7 @@ package body Test_LR0_Kernels is
 
       Grammar : constant Production_List.Instance :=
         Production_List.Only
-        (Set_Statement <= Nonterminal.Get (Set_ID) & Tokens.Value  + Nonterminal.Synthesize_Self);
+        (Set_Statement <= Nonterminal.Get (Set_ID) & Integer_Literal.Get (Int_ID) + Nonterminal.Synthesize_Self);
 
    end Set_Statement;
 
@@ -147,25 +95,13 @@ package body Test_LR0_Kernels is
 
       type Instance is new Nonterminal.Instance with null record;
 
-      --  This produces the kernels:
-      --  STATEMENT_ID(VERIFY_AGGREGATE.NONTERMINAL.INSTANCE) <= VERIFY_ID ^ VALUE_ID PLUS_MINUS_ID
-      --  STATEMENT_ID(VERIFY_AGGREGATE.NONTERMINAL.INSTANCE) <= VERIFY_ID ^ VALUE_ID
-      --
-      --  which generates a goto_set of:
-      --  STATEMENT_ID(VERIFY_AGGREGATE.NONTERMINAL.INSTANCE) <= VERIFY_ID ^ VALUE_ID
-      --  STATEMENT_ID(VERIFY_AGGREGATE.NONTERMINAL.INSTANCE) <= VERIFY_ID ^ VALUE_ID
-      --
-      --  which is filtered by the second "already in goto_set" check.
-
       Verify_Statement : constant Instance :=
         (Master_Token.Instance (Master_Token.Get (Statement_ID)) with null record);
 
       Grammar : constant Production_List.Instance :=
-        --  verify symbol = value;
-        Verify_Statement  <= Nonterminal.Get (Verify_ID) & Tokens.Value + Nonterminal.Synthesize_Self
+        Verify_Statement  <= Nonterminal.Get (Verify_ID) & Integer_Literal.Get (Int_ID) + Nonterminal.Synthesize_Self
         and
-        --  verify symbol = value +- tolerance;
-        Verify_Statement  <= Nonterminal.Get (Verify_ID) & Tokens.Value &
+        Verify_Statement  <= Nonterminal.Get (Verify_ID) & Integer_Literal.Get (Int_ID) &
         Tokens.Plus_Minus  + Nonterminal.Synthesize_Self;
    end Verify_Statement;
 
@@ -175,36 +111,52 @@ package body Test_LR0_Kernels is
      (
       --  terminals: operators etc
 
-      EOF_ID            => Tokenizer.Get (OpenToken.Recognizer.End_Of_File.Get, Tokens.EOF),
-      Equals_ID         => Tokenizer.Get (OpenToken.Recognizer.Separator.Get ("=")),
-      Equals_Greater_ID => Tokenizer.Get (OpenToken.Recognizer.Separator.Get ("=>")),
-      Paren_Left_ID     => Tokenizer.Get (OpenToken.Recognizer.Separator.Get ("(")),
-      Plus_Minus_ID     => Tokenizer.Get (OpenToken.Recognizer.Separator.Get ("+-")),
-      Semicolon_ID      => Tokenizer.Get (OpenToken.Recognizer.Separator.Get (";")),
+      Plus_Minus_ID => Tokenizer.Get (OpenToken.Recognizer.Separator.Get ("+-")),
+      Semicolon_ID  => Tokenizer.Get (OpenToken.Recognizer.Separator.Get (";")),
 
       --  terminals: keywords
-      Set_ID          => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("set")),
-      Verify_ID       => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("verify")),
+      Set_ID    => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("set")),
+      Verify_ID => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("verify")),
 
       --  terminals: values
       Int_ID  => Tokenizer.Get (OpenToken.Recognizer.Based_Integer.Get, New_Token => Tokens.Integer),
 
-      --  The mere presence of the Whitespace_ID token in the syntax
-      --  allows whitespace in any statement, even though it is not
-      --  referenced anywhere else.
+      --  Syntax only
+      EOF_ID        => Tokenizer.Get (OpenToken.Recognizer.End_Of_File.Get, Tokens.EOF),
       Whitespace_ID => Tokenizer.Get
         (OpenToken.Recognizer.Character_Set.Get (OpenToken.Recognizer.Character_Set.Standard_Whitespace))
      );
 
+   --  We can't set the grammar to parse only one statement, but then
+   --  pass in a string with two statements. The first parse doesn't
+   --  return until it consumes the first token of the second
+   --  statement; then the second parse doesn't see it. See
+   --  test_lr0_kernels.adb for an example of this.
+   --
+   --  To get a similar effect, specify an action on a statement
+
+   Action_Count : Integer := 0;
+
+   procedure Statement_Action
+     (New_Token :    out Nonterminal.Class;
+      Source    : in     Token_List.Instance'Class;
+      To_ID     : in     Token_ID_Type)
+   is
+      pragma Unreferenced (To_ID);
+      pragma Unreferenced (Source);
+   begin
+      New_Token := Nonterminal.Get (Statement_Semi_ID);
+      Action_Count := Action_Count + 1;
+   end Statement_Action;
+
    Grammar : constant Production_List.Instance :=
-     Tokens.Parse_Sequence <= Tokens.Statement_Semi and
-     Tokens.Statement_Semi <= Tokens.Statement & Tokens.Semicolon and
+     Tokens.Parse_Sequence     <= Tokens.Statement_Sequence & Tokens.EOF and
+     Tokens.Statement_Sequence <= Tokens.Statement_Semi & Tokens.Statement_Sequence and
+     Tokens.Statement_Sequence <= Tokens.Statement_Semi and
+     Tokens.Statement_Semi     <= Tokens.Statement & Tokens.Semicolon + Statement_Action'Access and
 
      Set_Statement.Grammar and
-     Verify_Statement.Grammar and
-     Integer_Token.Grammar and
-     Aggregate_Token.Grammar and
-     Association_Token.Grammar;
+     Verify_Statement.Grammar;
    package OpenToken_Parser is new Production.Parser (Production_List, Tokenizer);
    package LALR_Parser is new OpenToken_Parser.LALR;
    String_Feeder : aliased OpenToken.Text_Feeder.String.Instance;
@@ -227,7 +179,7 @@ package body Test_LR0_Kernels is
       LALR_Parser.Print_Table (Command_Parser);
    end Dump_Parse_Table;
 
-   procedure Execute_Command (Command : in String; Trace : in Boolean)
+   procedure Execute_Command (Command : in String)
    is
       use LALR_Parser;
    begin
@@ -236,15 +188,10 @@ package body Test_LR0_Kernels is
       Set_Text_Feeder (Command_Parser, String_Feeder'Unchecked_Access);
 
       --  Read and parse statements from the string until end of string
-      loop
-         exit when End_Of_Text (Command_Parser);
-
-         Parse (Command_Parser);
-
-         if Trace then
-            Ada.Text_IO.Put_Line ("finished one parse");
-         end if;
-      end loop;
+      Parse (Command_Parser);
+   exception
+   when E : others =>
+      AUnit.Assertions.Assert (False, "'" & Command & "': " & Ada.Exceptions.Exception_Message (E));
    end Execute_Command;
 
    ----------
@@ -253,7 +200,7 @@ package body Test_LR0_Kernels is
    procedure Nominal (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       Test : Test_Case renames Test_Case (T);
-
+      use AUnit.Assertions;
    begin
       Command_Parser := LALR_Parser.Generate (Grammar, An_Analyzer, Trace => Test.Debug);
 
@@ -263,14 +210,14 @@ package body Test_LR0_Kernels is
          LALR_Parser.Set_Trace (Command_Parser, True);
       end if;
 
-      --  The test is that we get no exceptions. Note that the
-      --  aggregate is not a real aggregate; simpler syntax for this
-      --  test.
-      Execute_Command ("set (2 =>;", Trace => Test.Debug);
+      Execute_Command ("set 2;");
 
-      --  IMPROVEME: Two successive statements do _not_ work; first
-      --  call to Parse eats first token of second statement.
-      --  Execute_Command ("set (2 =>; set 3;", Trace => Test.Debug);
+      Assert (Action_Count = 1, "1 statement");
+
+      Execute_Command ("set 2; verify 3;");
+
+      Assert (Action_Count = 3, "2 more statements");
+
    end Nominal;
 
    ----------
@@ -280,7 +227,7 @@ package body Test_LR0_Kernels is
    is
       pragma Unreferenced (T);
    begin
-      return new String'("Test_LR0_Kernels");
+      return new String'("Test_Statement_Actions");
    end Name;
 
    overriding procedure Register_Tests (T : in out Test_Case)
@@ -290,4 +237,4 @@ package body Test_LR0_Kernels is
       Register_Routine (T, Nominal'Access, "Nominal");
    end Register_Tests;
 
-end Test_LR0_Kernels;
+end Test_Statement_Actions;
