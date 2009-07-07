@@ -57,7 +57,8 @@ package body OpenToken.Token.Enumerated.Nonterminal is
       raise Invalid_Synth_Argument with
         "Token " & OpenToken.Token.Enumerated.Token_ID'Image (To_ID) & " cannot be synthesized " &
         "solely from a " &
-        OpenToken.Token.Enumerated.Token_ID'Image (OpenToken.Token.Enumerated.ID (Source)) & ".";
+        OpenToken.Token.Enumerated.Token_ID'Image (OpenToken.Token.Enumerated.ID (Source)) &
+        "; need Synthesize_Self or other action?";
 
    end Synthesize_By_Copying;
 

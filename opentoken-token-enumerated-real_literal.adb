@@ -6,7 +6,7 @@
 --
 -- The OpenToken package is free software; you can redistribute it and/or
 -- modify it under the terms of the  GNU General Public License as published
--- by the Free Software Foundation; either version 2, or (at your option)
+-- by the Free Software Foundation; either version 3, or (at your option)
 -- any later version. The OpenToken package is distributed in the hope that
 -- it will be useful, but WITHOUT ANY WARRANTY; without even the implied
 -- warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -15,28 +15,19 @@
 -- package;  see file GPL.txt.  If not, write to  the Free Software Foundation,
 -- 59 Temple Place - Suite 330,  Boston, MA 02111-1307, USA.
 --
--- As a special exception,  if other files  instantiate  generics from this
--- unit, or you link this unit with other files to produce an executable,
--- this unit does not by itself cause the resulting executable to be
--- covered by the GNU General Public License.  This exception does not
--- however invalidate any other reasons why the executable file might be
--- covered by the GNU Public License.
---
--- Maintainer: Ted Dennison (dennison@telepath.com)
---
--- Update History:
--- $Log: opentoken-token-enumerated-real_literal.adb,v $
--- Revision 1.1.1.1  2003/01/13 17:49:24  stephe
--- initial
---
--------------------------------------------------------------------------------
+--  As a special exception, if other files instantiate generics from
+--  this unit, or you link this unit with other files to produce an
+--  executable, this unit does not by itself cause the resulting
+--  executable to be covered by the GNU General Public License. This
+--  exception does not however invalidate any other reasons why the
+--  executable file might be covered by the GNU Public License.
 
 package body OpenToken.Token.Enumerated.Real_Literal is
 
    function Get (ID     : in Token_ID;
                  Value  : in Real_Type := 0.0) return Instance'Class is
    begin
-      return Instance'Class(Instance'(ID => ID, Value => Value));
+      return Instance'Class (Instance'(ID => ID, Value => Value));
    end Get;
 
    procedure Create (Lexeme     : in     String;
@@ -47,7 +38,7 @@ package body OpenToken.Token.Enumerated.Real_Literal is
       pragma Unreferenced (Recognizer);
    begin
       New_Token.ID := ID;
-      New_Token.Value := Real_Type'Value(Lexeme);
+      New_Token.Value := Real_Type'Value (Lexeme);
    end Create;
 
    function Value (Subject : in Instance) return Real_Type is

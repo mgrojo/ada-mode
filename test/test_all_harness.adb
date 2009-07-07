@@ -22,7 +22,7 @@ with AUnit.Test_Results.Text_Reporter;
 with AUnit.Test_Suites; use AUnit.Test_Suites;
 with Test_LR0_Kernels;
 with Test_Statement_Actions;
-with Test_Token_Enumerated_Identifier;
+with Test_Token_Identifier_Real_String;
 procedure Test_All_Harness
 is
    Suite  : constant Access_Test_Suite := new Test_Suite;
@@ -33,7 +33,7 @@ begin
 
    Add_Test (Suite, new Test_LR0_Kernels.Test_Case (Debug => False));
    Add_Test (Suite, new Test_Statement_Actions.Test_Case (Debug => False));
-   Add_Test (Suite, new Test_Token_Enumerated_Identifier.Test_Case (Debug => False));
+   Add_Test (Suite, new Test_Token_Identifier_Real_String.Test_Case (Debug => False));
 
    --  end test cases
 

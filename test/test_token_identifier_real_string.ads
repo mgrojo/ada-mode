@@ -1,6 +1,6 @@
 --  Abstract :
 --
---  Test OpenToken.Token.Enumerated.Identifiers
+--  Test OpenToken.Token.Enumerated.Identifier, .Real_Literal, .String_Literal
 --
 --  Copyright (C) 2009 Stephen Leake.  All Rights Reserved.
 --
@@ -18,7 +18,7 @@
 
 with Ada.Strings.Unbounded;
 with AUnit.Test_Cases;
-package Test_Token_Enumerated_Identifier is
+package Test_Token_Identifier_Real_String is
 
    type Test_Case (Debug : Boolean) is new AUnit.Test_Cases.Test_Case with null record;
 
@@ -28,4 +28,4 @@ package Test_Token_Enumerated_Identifier is
 
    overriding function Name (T : Test_Case) return Ada.Strings.Unbounded.String_Access;
 
-end Test_Token_Enumerated_Identifier;
+end Test_Token_Identifier_Real_String;
