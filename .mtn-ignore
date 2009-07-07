@@ -1,4 +1,7 @@
+^Build/linux_debug/.*\.diff$
 ^Build/linux_debug/.*\.exe$
+^Build/linux_debug/.*\.out$
+^Build/linux_debug/.*\.txt$
 ^Build/linux_debug/lib$
 ^Build/linux_debug/obj$
 ^Build/linux_release/.*\.diff$

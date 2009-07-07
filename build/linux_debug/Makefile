@@ -1,11 +1,8 @@
-all: dirs tests examples library
-
-library:
-	@gnatmake -Popentoken_lib
+all: dirs tests examples
 
 # ../../Test/test_one_harness.adb
 #one : test_one_harness.run
-one : ada_count.run
+one : asu_example_5_10_rd-run.run
 
 trace :
 	addr2line -e token_selection_test-run.exe 0x805b2e7 0x805cfd3 0x8067ed9 0x804d36b 0x40345453

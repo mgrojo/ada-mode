@@ -29,7 +29,6 @@ with Ada.Exceptions;
 with Ada.Text_IO;
 with OpenToken.Text_Feeder.Text_IO;
 procedure String_Test.Run is
-begin
 
    ---------------------------------------------------------------------------
    --  Purpose          : Verify that a valid Ada string is read correctly.
@@ -38,8 +37,8 @@ begin
    --  Expected Results : The same string with the double quotes replaced by
    --                     single qoutes. Then the next Opentoken.Recognizer.
    ---------------------------------------------------------------------------
-   Case_1 :
-   declare
+   procedure Case_1
+   is
       Text : constant String := """This is a standard WSIWG """"Ada"""" string \n.""if";
       Passed : Boolean := True;
    begin
@@ -128,8 +127,8 @@ begin
    --                     missing end quotation.
    --  Expected Results : A syntax error.
    ---------------------------------------------------------------------------
-   Case_2 :
-   declare
+   procedure Case_2
+   is
       Text : constant String := """This is an """"Ada"""" string w/o an end quotation" &
         OpenToken.EOL_Character;
       Passed : Boolean := True;
@@ -204,8 +203,8 @@ begin
    --                     single qoutes and the escaped strings properly
    --                     replaced. Then the next token.
    ---------------------------------------------------------------------------
-   Case_3 :
-   declare
+   procedure Case_3
+   is
       Text : constant String := """This is a standard """"C"""" string \n.""if";
       Expected_Result : constant String := "This is a standard ""C"" string " & Ada.Characters.Latin_1.LF & '.';
       Passed : Boolean := True;
@@ -310,8 +309,8 @@ begin
    --  Expected Results : The same string with the escaped strings properly
    --                     replaced.
    ---------------------------------------------------------------------------
-   Case_4 :
-   declare
+   procedure Case_4
+   is
       Text : constant String := """\074\075f""";
       Expected_Result : constant String := "<=f";
       Passed : Boolean := True;
@@ -377,5 +376,9 @@ begin
       Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (Error));
       Ada.Text_IO.Put_Line ("Source string: " & Text);
    end Case_4;
-
+begin
+   Case_1;
+   Case_2;
+   Case_3;
+   Case_4;
 end String_Test.Run;

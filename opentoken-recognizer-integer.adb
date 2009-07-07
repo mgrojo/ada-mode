@@ -69,9 +69,8 @@ package body OpenToken.Recognizer.Integer is
             end if;
 
          when others =>
-            --  Changed to dynamicly dispatch to work around gnat 3.13p bug
             Extended_Digits.Analyze
-              (The_Token => Extended_Digits.Instance'Class (The_Token.Decimal_Recognizer),
+              (The_Token => The_Token.Decimal_Recognizer,
                Next_Char => Next_Char,
                Verdict   => Decimal_Verdict);
 
@@ -87,9 +86,8 @@ package body OpenToken.Recognizer.Integer is
 
       when First_Numeral =>
 
-         --  Changed to dynamicly dispatch to work around gnat 3.13p bug
          Extended_Digits.Analyze
-           (The_Token => Extended_Digits.Instance'Class (The_Token.Decimal_Recognizer),
+           (The_Token => The_Token.Decimal_Recognizer,
             Next_Char => Next_Char,
             Verdict   => Decimal_Verdict);
 
@@ -105,9 +103,7 @@ package body OpenToken.Recognizer.Integer is
       when Numeral =>
          --  If the numeral is a decimal integer, it matches.
 
-         --  Changed to dynamicly dispatch to work around gnat 3.13p bug
-         Extended_Digits.Analyze (Extended_Digits.Instance'Class (The_Token.Decimal_Recognizer),
-                                  Next_Char, Decimal_Verdict);
+         Extended_Digits.Analyze (The_Token.Decimal_Recognizer, Next_Char, Decimal_Verdict);
 
          case Decimal_Verdict is
          when So_Far_So_Good |  -- Next_Char is '_'
@@ -133,8 +129,7 @@ package body OpenToken.Recognizer.Integer is
          --  If it is a digit, it matches.
          --  If it is a sign , so-far-so-good...
 
-         --  Changed to dynamicly dispatch to work around gnat 3.13p bug
-         Extended_Digits.Clear (Extended_Digits.Instance'Class (The_Token.Decimal_Recognizer));
+         Extended_Digits.Clear (The_Token.Decimal_Recognizer);
 
          if Next_Char = '+' then
 
@@ -142,10 +137,7 @@ package body OpenToken.Recognizer.Integer is
             The_Token.State := Exponent;
 
          else
-
-            --  Changed to dynamicly dispatch to work around gnat 3.13p bug
-            Extended_Digits.Analyze (Extended_Digits.Instance'Class (The_Token.Decimal_Recognizer),
-                                     Next_Char, Decimal_Verdict);
+            Extended_Digits.Analyze (The_Token.Decimal_Recognizer, Next_Char, Decimal_Verdict);
 
             if Decimal_Verdict = Matches then  -- a decimal digit
                Verdict         := Matches;
@@ -160,9 +152,7 @@ package body OpenToken.Recognizer.Integer is
       when Exponent =>
          --  If the exponent is a decimal integer, it matches.
 
-         --  Changed to dynamicly dispatch to work around gnat 3.13p bug
-         Extended_Digits.Analyze (Extended_Digits.Instance'Class (The_Token.Decimal_Recognizer),
-                                  Next_Char, Decimal_Verdict);
+         Extended_Digits.Analyze (The_Token.Decimal_Recognizer, Next_Char, Decimal_Verdict);
 
          case Decimal_Verdict is
          when So_Far_So_Good |   -- Next_Char is '_'

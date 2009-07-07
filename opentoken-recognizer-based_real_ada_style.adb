@@ -62,9 +62,7 @@ package body OpenToken.Recognizer.Based_Real_Ada_Style is
          when Base =>
             --  If the base part is a decimal integer, so-far-so-good...
 
-            --  Changed to dynamicly dispatch to work around gnat 3.13p bug
-            Extended_Digits.Analyze
-              (Extended_Digits.Instance'Class (The_Token.Number_Recognizer), Next_Char, Digits_Verdict);
+            Extended_Digits.Analyze (The_Token.Number_Recognizer, Next_Char, Digits_Verdict);
 
             case Digits_Verdict is
                when So_Far_So_Good |  -- Next_Char is '_'
@@ -103,9 +101,7 @@ package body OpenToken.Recognizer.Based_Real_Ada_Style is
             --  If the fore consists of extended digits, so-far-so-good...
             --  If it is a '.', so-far-so-good...
 
-            --  Changed to dynamicly dispatch to work around gnat 3.13p bug
-            Extended_Digits.Analyze
-              (Extended_Digits.Instance'Class (The_Token.Number_Recognizer), Next_Char, Digits_Verdict);
+            Extended_Digits.Analyze (The_Token.Number_Recognizer, Next_Char, Digits_Verdict);
 
             case Digits_Verdict is
                when So_Far_So_Good |   -- Next_Char is '_'
@@ -115,8 +111,7 @@ package body OpenToken.Recognizer.Based_Real_Ada_Style is
                   if The_Token.Last_Verdict = Matches and Next_Char = '.' then
                      Verdict         := So_Far_So_Good;
                      The_Token.State := Aft;
-                     --  Changed to dynamicly dispatch to work around gnat 3.13p bug
-                     Extended_Digits.Clear (Extended_Digits.Instance'Class (The_Token.Number_Recognizer));
+                     Extended_Digits.Clear (The_Token.Number_Recognizer);
                   else
                      Verdict         := Failed;
                      The_Token.State := Done;
@@ -127,9 +122,7 @@ package body OpenToken.Recognizer.Based_Real_Ada_Style is
             --  If the aft consists of extended digits, so-far-so-good...
             --  If it is a '#', it matches.
 
-            --  Changed to dynamicly dispatch to work around gnat 3.13p bug
-            Extended_Digits.Analyze
-              (Extended_Digits.Instance'Class (The_Token.Number_Recognizer), Next_Char, Digits_Verdict);
+            Extended_Digits.Analyze (The_Token.Number_Recognizer, Next_Char, Digits_Verdict);
 
             case Digits_Verdict is
                when So_Far_So_Good |   -- Next_Char is '_'
@@ -155,8 +148,7 @@ package body OpenToken.Recognizer.Based_Real_Ada_Style is
             if Next_Char = 'e' or Next_Char = 'E' then
                Verdict         := So_Far_So_Good;
                The_Token.State := Exponent_Sign;
-               --  Changed to dynamicly dispatch to work around gnat 3.13p bug
-               Extended_Digits.Clear (Extended_Digits.Instance'Class (The_Token.Number_Recognizer));
+               Extended_Digits.Clear (The_Token.Number_Recognizer);
             else
                Verdict         := Failed;
                The_Token.State := Done;
@@ -173,9 +165,7 @@ package body OpenToken.Recognizer.Based_Real_Ada_Style is
 
             else
 
-               --  Changed to dynamicly dispatch to work around gnat 3.13p bug
-               Extended_Digits.Analyze
-                 (Extended_Digits.Instance'Class (The_Token.Number_Recognizer), Next_Char, Digits_Verdict);
+               Extended_Digits.Analyze (The_Token.Number_Recognizer, Next_Char, Digits_Verdict);
 
                if Digits_Verdict = Matches then  -- a decimal digit
                   Verdict         := Matches;
@@ -190,9 +180,7 @@ package body OpenToken.Recognizer.Based_Real_Ada_Style is
          when Exponent =>
             --  If the exponent is a decimal integer, it matches.
 
-            --  Changed to dynamicly dispatch to work around gnat 3.13p bug
-            Extended_Digits.Analyze
-              (Extended_Digits.Instance'Class (The_Token.Number_Recognizer), Next_Char, Digits_Verdict);
+            Extended_Digits.Analyze (The_Token.Number_Recognizer, Next_Char, Digits_Verdict);
 
             case Digits_Verdict is
                when So_Far_So_Good |   -- Next_Char is '_'

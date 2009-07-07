@@ -35,8 +35,7 @@ package body OpenToken.Recognizer.Octal_Escape is
    procedure Clear (The_Token : in out Instance) is
    begin
 
-      --  Changed to dynamicly dispatch to work around gnat 3.13p bug
-      Extended_Digits.Clear (Extended_Digits.Instance'Class (The_Token.Octal_Recognizer));
+      Extended_Digits.Clear (The_Token.Octal_Recognizer);
       The_Token.State := Opening_Tick;
 
    end Clear;
@@ -74,8 +73,7 @@ package body OpenToken.Recognizer.Octal_Escape is
 
       when Octal_First =>
 
-         --  Changed to dynamicly dispatch to work around gnat 3.13p bug
-         Extended_Digits.Analyze (Extended_Digits.Instance'Class (The_Token.Octal_Recognizer), Next_Char, Verdict);
+         Extended_Digits.Analyze (The_Token.Octal_Recognizer, Next_Char, Verdict);
 
          if Verdict = Matches then
             Verdict         := So_Far_So_Good;
@@ -87,8 +85,7 @@ package body OpenToken.Recognizer.Octal_Escape is
 
       when Octal =>
 
-         --  Changed to dynamicly dispatch to work around gnat 3.13p bug
-         Extended_Digits.Analyze (Extended_Digits.Instance'Class (The_Token.Octal_Recognizer), Next_Char, Verdict);
+         Extended_Digits.Analyze (The_Token.Octal_Recognizer, Next_Char, Verdict);
 
          if Verdict = Matches then
             Verdict := So_Far_So_Good;
