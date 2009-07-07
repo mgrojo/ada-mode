@@ -6,7 +6,7 @@
 --
 -- The OpenToken package is free software; you can redistribute it and/or
 -- modify it under the terms of the  GNU General Public License as published
--- by the Free Software Foundation; either version 2, or (at your option)
+-- by the Free Software Foundation; either version 3, or (at your option)
 -- any later version. The OpenToken package is distributed in the hope that
 -- it will be useful, but WITHOUT ANY WARRANTY; without even the implied
 -- warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -15,25 +15,12 @@
 -- package;  see file GPL.txt.  If not, write to  the Free Software Foundation,
 -- 59 Temple Place - Suite 330,  Boston, MA 02111-1307, USA.
 --
--- As a special exception,  if other files  instantiate  generics from this
--- unit, or you link this unit with other files to produce an executable,
--- this unit does not by itself cause the resulting executable to be
--- covered by the GNU General Public License.  This exception does not
--- however invalidate any other reasons why the executable file might be
--- covered by the GNU Public License.
---
--- Maintainer: Christoph K. W. Grein (Christ-Usch.Grein@T-Online.de)
---
--- Update History:
--- $Log: opentoken-recognizer-html_entity.adb,v $
--- Revision 1.1  1999/12/27 21:41:56  Ted
--- Merged into OpenToken baseline
---
--- Revision 1.0  1999/12/24  Grein
--- First Release
---
--- Revision 0.0  1999/12/16  Grein
--- Initial Version
+--  As a special exception, if other files instantiate generics from
+--  this unit, or you link this unit with other files to produce an
+--  executable, this unit does not by itself cause the resulting
+--  executable to be covered by the GNU General Public License. This
+--  exception does not however invalidate any other reasons why the
+--  executable file might be covered by the GNU Public License.
 -------------------------------------------------------------------------------
 
 with Ada.Strings.Maps.Constants;
@@ -47,15 +34,15 @@ package body OpenToken.Recognizer.HTML_Entity is
               Set    => Ada.Strings.Maps.Null_Set);
    end Get;
 
-   procedure Clear (The_Token: in out Instance) is
+   procedure Clear (The_Token : in out Instance) is
    begin
       The_Token.State := Escape;
       The_Token.Set   := Ada.Strings.Maps.Null_Set;
    end Clear;
 
-   procedure Analyze (The_Token: in out Instance;
-                      Next_Char: in     Character;
-                      Verdict  :    out OpenToken.Recognizer.Analysis_Verdict) is
+   procedure Analyze (The_Token : in out Instance;
+                      Next_Char : in     Character;
+                      Verdict   :    out OpenToken.Recognizer.Analysis_Verdict) is
 
       use type Ada.Strings.Maps.Character_Set;
 
@@ -94,7 +81,7 @@ package body OpenToken.Recognizer.HTML_Entity is
                if Next_Char = 'x' or Next_Char = 'X' then
                   Verdict         := So_Far_So_Good;
                   The_Token.Set   := Ada.Strings.Maps.Constants.Hexadecimal_Digit_Set;
-                  -- We stay in this state so that we must have at least one digit.
+                  --  We stay in this state so that we must have at least one digit.
                elsif Ada.Strings.Maps.Is_In (Element => Next_Char,
                                              Set     => Ada.Strings.Maps.Constants.Decimal_Digit_Set) then
                   Verdict         := So_Far_So_Good;
@@ -105,8 +92,8 @@ package body OpenToken.Recognizer.HTML_Entity is
                   The_Token.State := Done;
                end if;
             elsif Ada.Strings.Maps.Is_In (Next_Char, The_Token.Set) then  -- this is hexadecimal
-                 Verdict         := So_Far_So_Good;
-                 The_Token.State := Rest;
+               Verdict         := So_Far_So_Good;
+               The_Token.State := Rest;
             else
                Verdict         := Failed;
                The_Token.State := Done;

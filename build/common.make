@@ -42,6 +42,10 @@ examples : asu_example_3_6-run.run
 examples : asu_example_4_46-run.run
 examples : asu_example_5_10-run.run
 examples : ada_count.run
+examples : test_ada_lexer.run
+examples : test_html_lexer.run
+examples : test_java_lexer.run
+examples : test_m3_lexer.run
 
 asu_example_3_6-run.run : asu_example_3_6-run.exe
 	cd ../../Examples/ASU_Example_3_6; $(CURDIR)/asu_example_3_6-run.exe
@@ -54,6 +58,19 @@ asu_example_5_10-run.run : asu_example_5_10-run.exe
 
 ada_count.run : ada_count.exe
 	./ada_count.exe ../../Examples/Language_Lexer_Examples/ada_count.adb ../../Examples/Language_Lexer_Examples/test_ada_lexer.adb
+
+test_ada_lexer.run : test_ada_lexer.exe
+	./test_ada_lexer.exe ../../Examples/Language_Lexer_Examples/test_ada_lexer.adb
+
+test_html_lexer.run : test_html_lexer.exe
+	./test_html_lexer.exe ../../readme.html
+
+test_java_lexer.run : test_java_lexer.exe
+	./test_java_lexer.exe ../../Examples/Language_Lexer_Examples/something.java
+
+# yes, we use the java source as a test for the m3 lexer. Close enough!
+test_m3_lexer.run : test_m3_lexer.exe
+	./test_m3_lexer.exe ../../Examples/Language_Lexer_Examples/something.java
 
 clean :: test-clean
 	rm -f *.exe
