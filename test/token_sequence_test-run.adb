@@ -52,7 +52,7 @@ begin
 
       Analyzer : Tokenizer.Instance := Tokenizer.Initialize (Syntax, String_Feeder'Access);
 
-      Sequence : OpenToken.Token.Sequence.Class := Null_Sequence &
+      Sequence : OpenToken.Token.Sequence.Class :=
         Do_Keyword & Several_Keyword & Things_Keyword &
         Int_Literal & Times_Keyword &
         In_Keyword & A_Keyword & Row_Keyword;
@@ -109,7 +109,7 @@ begin
 
       Analyzer : Tokenizer.Instance := Tokenizer.Initialize (Syntax, String_Feeder'Access);
 
-      Sequence : OpenToken.Token.Sequence.Class := Null_Sequence &
+      Sequence : OpenToken.Token.Sequence.Class :=
         Do_Keyword & Several_Keyword & Things_Keyword &
         Int_Literal & Times_Keyword & In_Keyword &
         A_Keyword & Row_Keyword;

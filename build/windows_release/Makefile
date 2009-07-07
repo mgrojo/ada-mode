@@ -1,4 +1,4 @@
-all: dirs
+all: dirs tests examples library
 
 # ../../Test/test_one_harness.adb
 one : test_one_harness.run

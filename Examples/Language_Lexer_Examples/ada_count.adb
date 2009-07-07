@@ -6,7 +6,7 @@
 --
 -- The Ada_Count program is free software; you can redistribute it and/or
 -- modify it under the terms of the  GNU General Public License as published
--- by the Free Software Foundation; either version 2, or (at your option)
+-- by the Free Software Foundation; either version 3, or (at your option)
 -- any later version. The Ada_Count program  is distributed in the hope that
 -- it will be useful, but WITHOUT ANY WARRANTY; without even the implied
 -- warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -15,55 +15,34 @@
 -- package;  see file GPL.txt.  If not, write to  the Free Software Foundation,
 -- 59 Temple Place - Suite 330,  Boston, MA 02111-1307, USA.
 --
--- As a special exception,  if other files  instantiate  generics from this
--- unit, or you link this unit with other files to produce an executable,
--- this unit does not by itself cause the resulting executable to be
--- covered by the GNU General Public License.  This exception does not
--- however invalidate any other reasons why the executable file might be
--- covered by the GNU Public License.
---
--- Maintainer: Jim Hopper (macconnect.com)
---
--- Update History:
--- $Log: ada_count.adb,v $
--- Revision 1.4  2000/01/27 21:11:35  Ted
--- Fix to use new token feeder objects
---
--- Revision 1.3  1999/12/27 23:05:01  Ted
--- Added file of filenames flag and usage printing
---
--- Revision 1.1  1999/10/22 04:26:30  Ted
--- A simple Ada SLOC and comment counter
---
---
+--  As a special exception, if other files instantiate generics from
+--  this unit, or you link this unit with other files to produce an
+--  executable, this unit does not by itself cause the resulting
+--  executable to be covered by the GNU General Public License. This
+--  exception does not however invalidate any other reasons why the
+--  executable file might be covered by the GNU Public License.
 -------------------------------------------------------------------------------
 
-with Ada.Text_Io;
-with Ada.Integer_Text_Io;
+with Ada.Text_IO;
+with Ada.Integer_Text_IO;
 with Ada.Command_Line;
 with Ada.Strings.Fixed;
-with Ada.Strings.Unbounded;
-
-with OpenToken;
-with OpenToken.Text_Feeder.Text_IO;
-
-with Ada_Lexer;
-use  Ada_Lexer;
+with Ada_Lexer; use Ada_Lexer;
 
 procedure Ada_Count is
 
-   -- The revision keyword automaticly gets the current CVS revision of this
-   -- package when we check it out of clearcase. The revision string itself
-   -- is the slice from the ':' to the '$'.
+   --  The revision keyword automaticly gets the current CVS revision
+   --  of this package when we check it out of clearcase. The revision
+   --  string itself is the slice from the ':' to the '$'.
    Revision_Keyword : constant String := "$Revision: 1.4 $";
-   Revision         : constant String := Revision_Keyword (12..Revision_Keyword'Length-2);
+   Revision         : constant String := Revision_Keyword (12 .. Revision_Keyword'Length - 2);
 
-   SLOC          : Integer:= 0;
-   Comment_Count : Integer:= 0;
-   Line_Count    : Integer:= 0;
+   SLOC          : Integer := 0;
+   Comment_Count : Integer := 0;
+   Line_Count    : Integer := 0;
 
    ----------------------------------------------------------------------------
-   -- Print a description of the proper usage of this program
+   --  Print a description of the proper usage of this program
    ----------------------------------------------------------------------------
    procedure Print_Usage is
    begin
@@ -97,32 +76,32 @@ procedure Ada_Count is
    end Print_Usage;
 
    ----------------------------------------------------------------------------
-   -- Parse the source file.
-   -- This produces a count of all semicolon tokens that are not between a
-   -- set of parentheses (and are not part of another Ada token like a
-   -- string, of course). It also keeps track of the number of comment
-   -- lines encountered.
+   --  Parse the source file.
+   --  This produces a count of all semicolon tokens that are not between a
+   --  set of parentheses (and are not part of another Ada token like a
+   --  string, of course). It also keeps track of the number of comment
+   --  lines encountered.
    ----------------------------------------------------------------------------
-   procedure Count(Filename : String) is
+   procedure Count (Filename : String) is
 
-      Local_SLOC          : Integer:= 0;
-      Local_Comment_Count : Integer:= 0;
-      Paren_Count         : Integer:= 0;
+      Local_SLOC          : Integer := 0;
+      Local_Comment_Count : Integer := 0;
+      Paren_Count         : Integer := 0;
 
-      -- Text file for reading parse data
-      File : Ada.Text_Io.File_Type;
+      --  Text file for reading parse data
+      File : Ada.Text_IO.File_Type;
    begin
 
-      -- Open the file for reading
-      Ada.Text_Io.Open
+      --  Open the file for reading
+      Ada.Text_IO.Open
         (File => File,
-         Mode => Ada.Text_Io.In_File,
+         Mode => Ada.Text_IO.In_File,
          Name => Filename);
 
       Set_Input_Feeder (File);
-	  Bad_Token_on_Syntax_Error;
+      Bad_Token_on_Syntax_Error;
 
-      -- Count statements and comments
+      --  Count statements and comments
       loop
 
          begin
@@ -130,100 +109,100 @@ procedure Ada_Count is
             case Token_ID is
                when Semicolon_T =>
                   if Paren_Count = 0 then
-                     Local_SLOC:= Local_SLOC + 1;
+                     Local_SLOC := Local_SLOC + 1;
                   end if;
                when Left_Parenthesis_T =>
-                  Paren_Count:= Paren_Count + 1;
+                  Paren_Count := Paren_Count + 1;
                when Right_Parenthesis_T =>
-                  Paren_Count:= Paren_Count - 1;
+                  Paren_Count := Paren_Count - 1;
                when Comment_T =>
-                  Local_Comment_Count:= Local_Comment_Count + 1;
+                  Local_Comment_Count := Local_Comment_Count + 1;
                when others =>
                   null;
             end case;
 
          end;
 
-         exit when Token_ID = End_Of_File_T;
+         exit when Token_ID = End_of_File_T;
 
       end loop;
 
-      -- Print the local results
-      Ada.Text_Io.Put(Filename);
-      Ada.Text_Io.Set_Col(43);
-      Ada.Integer_Text_Io.Put (Item => Local_SLOC,Width => 10);
-      Ada.Text_Io.Set_Col(56);
-      Ada.Integer_Text_Io.Put (Item => Line - Line_Count, Width => 10);
+      --  Print the local results
+      Ada.Text_IO.Put (Filename);
+      Ada.Text_IO.Set_Col (43);
+      Ada.Integer_Text_IO.Put (Item => Local_SLOC, Width => 10);
+      Ada.Text_IO.Set_Col (56);
+      Ada.Integer_Text_IO.Put (Item => Line - Line_Count, Width => 10);
       Line_Count := Line;
-      Ada.Text_Io.Set_Col(67);
-      Ada.Integer_Text_Io.Put (Item => Local_Comment_Count,Width => 10);
-      Ada.Text_Io.New_Line;
-      Ada.Text_Io.Close(File => File);
+      Ada.Text_IO.Set_Col (67);
+      Ada.Integer_Text_IO.Put (Item => Local_Comment_Count, Width => 10);
+      Ada.Text_IO.New_Line;
+      Ada.Text_IO.Close (File => File);
 
-      -- Update the global results
+      --  Update the global results
       SLOC          := SLOC + Local_SLOC;
       Comment_Count := Comment_Count + Local_Comment_Count;
 
    end Count;
 
    procedure Count_From_File (File_Of_Filenames : in String) is
-      File_List : Ada.Text_Io.File_Type;
-      File_Name : String (1..1024);
+      File_List : Ada.Text_IO.File_Type;
+      File_Name : String (1 .. 1024);
       Name_Size : Natural;
    begin
 
-      -- Open the file for reading
-      Ada.Text_Io.Open
+      --  Open the file for reading
+      Ada.Text_IO.Open
         (File => File_List,
-         Mode => Ada.Text_Io.In_File,
+         Mode => Ada.Text_IO.In_File,
          Name => File_Of_Filenames);
 
-      while not Ada.Text_Io.End_Of_File (File_List) loop
-         Ada.Text_Io.Get_Line
+      while not Ada.Text_IO.End_Of_File (File_List) loop
+         Ada.Text_IO.Get_Line
            (File => File_List,
             Item => File_Name,
             Last => Name_Size
             );
 
-         Count (File_Name (1..Name_Size));
+         Count (File_Name (1 .. Name_Size));
       end loop;
 
-      Ada.Text_Io.Close (File_List);
+      Ada.Text_IO.Close (File_List);
    exception
-      when Ada.Text_Io.End_Error =>
-         Ada.Text_Io.Close (File_List);
+      when Ada.Text_IO.End_Error =>
+         Ada.Text_IO.Close (File_List);
    end Count_From_File;
 
 begin
 
-   -- Verify the arguments
+   --  Verify the arguments
    if
      Ada.Command_Line.Argument_Count = 0 or else
-     Ada.Command_Line.Argument(1) = "--help"
+     Ada.Command_Line.Argument (1) = "--help"
    then
       Print_Usage;
       return;
    end if;
 
-   -- Modify the Ada syntax to report comments
-   Set_Comments_Reportable(True);
+   --  Modify the Ada syntax to report comments
+   Set_Comments_Reportable (True);
 
-   -- Print out a header line
+   --  Print out a header line
    Ada.Text_IO.New_Line;
-   Ada.Text_IO.Put_Line("Open_Token Ada SLOC Counter " & Revision);
+   Ada.Text_IO.Put_Line ("Open_Token Ada SLOC Counter " & Revision);
    Ada.Text_IO.New_Line;
-   Ada.Text_Io.Put("Filename");
-   Ada.Text_Io.Set_Col(49);
-   Ada.Text_Io.Put("SLOC");
-   Ada.Text_Io.Set_Col(55);
-   Ada.Text_Io.Put("Total Lines");
-   Ada.Text_Io.Set_Col(69);
-   Ada.Text_Io.Put("Comments");
-   Ada.Text_Io.New_Line;
-   Ada.Text_Io.Put_Line("----------------------------------------------------------------------------");
+   Ada.Text_IO.Put ("Filename");
+   Ada.Text_IO.Set_Col (49);
+   Ada.Text_IO.Put ("SLOC");
+   Ada.Text_IO.Set_Col (55);
+   Ada.Text_IO.Put ("Total Lines");
+   Ada.Text_IO.Set_Col (69);
+   Ada.Text_IO.Put ("Comments");
+   Ada.Text_IO.New_Line;
+   Ada.Text_IO.Put_Line ("----------------------------------------------------------------------------");
 
-   -- Count from all the files listed on the command line
-   for Arg_Num in 1..Ada.Command_Line.Argument_Count loop
+   --  Count from all the files listed on the command line
+   for Arg_Num in 1 .. Ada.Command_Line.Argument_Count loop
       if Ada.Strings.Fixed.Head
         (Source => Ada.Command_Line.Argument (Arg_Num),
          Count  => 2) = "-f"
@@ -239,14 +218,14 @@ begin
       end if;
    end loop;
 
-   -- Print out a trailer, and the accumulated totals
-   Ada.Text_Io.Put_Line("----------------------------------------------------------------------------");
-   Ada.Text_Io.Set_Col(43);
-   Ada.Integer_Text_Io.Put (Item => SLOC, Width => 10);
-   Ada.Text_Io.Set_Col(56);
-   Ada.Integer_Text_Io.Put (Item => Line, Width => 10);
-   Ada.Text_Io.Set_Col(67);
-   Ada.Integer_Text_Io.Put (Item => Comment_Count, Width => 10);
-   Ada.Text_Io.New_Line;
+   --  Print out a trailer, and the accumulated totals
+   Ada.Text_IO.Put_Line ("----------------------------------------------------------------------------");
+   Ada.Text_IO.Set_Col (43);
+   Ada.Integer_Text_IO.Put (Item => SLOC, Width => 10);
+   Ada.Text_IO.Set_Col (56);
+   Ada.Integer_Text_IO.Put (Item => Line, Width => 10);
+   Ada.Text_IO.Set_Col (67);
+   Ada.Integer_Text_IO.Put (Item => Comment_Count, Width => 10);
+   Ada.Text_IO.New_Line;
 
 end Ada_Count;

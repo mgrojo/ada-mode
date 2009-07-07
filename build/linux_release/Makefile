@@ -1,4 +1,6 @@
-all: dirs
+all: dirs tests examples library
+
+library:
 	@gnatmake -Popentoken_lib
 
 # ../../Test/test_one_harness.adb

@@ -53,7 +53,7 @@ begin
 
       Analyzer : Tokenizer.Instance := Tokenizer.Initialize (Syntax, String_Feeder'Access);
 
-      Selection : OpenToken.Token.Selection.Class := Null_Selection or
+      Selection : OpenToken.Token.Selection.Class :=
         Do_Keyword or Several_Keyword or Things_Keyword or Int_Literal or Times_Keyword or
         In_Keyword or A_Keyword or Row_Keyword;
 
@@ -112,7 +112,7 @@ begin
 
       Analyzer : Tokenizer.Instance := Tokenizer.Initialize (Syntax, String_Feeder'Access);
 
-      Selection : OpenToken.Token.Selection.Class := Null_Selection or
+      Selection : OpenToken.Token.Selection.Class :=
         Several_Keyword or Things_Keyword or Int_Literal or Times_Keyword or
         In_Keyword or A_Keyword or Row_Keyword;
 

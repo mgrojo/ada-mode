@@ -7,7 +7,13 @@
 
 .PHONY : force
 
-VPATH := ../.. ../../Test
+VPATH := ../..
+VPATH += ../../Test
+VPATH += ../../Examples/ASU_Example_3_6
+VPATH += ../../Examples/ASU_Example_4_46
+VPATH += ../../Examples/ASU_Example_5_10
+VPATH += ../../Examples/Language_Lexer_Examples
+VPATH += ../../Language_Lexers
 
 dirs :: obj
 
@@ -29,8 +35,25 @@ tests : string_token_test-run.diff
 tests : test_all_harness.diff
 tests : token_analyzer_ctd-run.run
 tests : token_list_test-run.run
-#tests : token_selection_test-run.run # FIXME: fails with CONSTRAINT_ERROR
-#tests : token_sequence_test-run.run # FIXME: fails with CONSTRAINT_ERROR
+tests : token_selection_test-run.run
+tests : token_sequence_test-run.run
+
+examples : asu_example_3_6-run.run
+examples : asu_example_4_46-run.run
+examples : asu_example_5_10-run.run
+examples : ada_count.run
+
+asu_example_3_6-run.run : asu_example_3_6-run.exe
+	cd ../../Examples/ASU_Example_3_6; $(CURDIR)/asu_example_3_6-run.exe
+
+asu_example_4_46-run.run : asu_example_4_46-run.exe
+	cd ../../Examples/ASU_Example_4_46; $(CURDIR)/asu_example_4_46-run.exe
+
+asu_example_5_10-run.run : asu_example_5_10-run.exe
+	cd ../../Examples/ASU_Example_5_10; $(CURDIR)/asu_example_5_10-run.exe < Example.txt
+
+ada_count.run : ada_count.exe
+	./ada_count.exe ../../Examples/Language_Lexer_Examples/ada_count.adb ../../Examples/Language_Lexer_Examples/test_ada_lexer.adb
 
 clean :: test-clean
 	rm -f *.exe

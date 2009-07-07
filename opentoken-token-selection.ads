@@ -40,8 +40,6 @@ package OpenToken.Token.Selection is
 
    type Handle is access all Class;
 
-   Null_Selection : constant Instance;
-
    ----------------------------------------------------------------------------
    --  Retrieve the given selection token from the analyzer.
    --
@@ -137,7 +135,5 @@ private
    type Instance is new Token.Instance with record
       Members : Token.Linked_List.Instance;
    end record;
-
-   Null_Selection : constant Instance := (Members => Token.Linked_List.Null_List);
 
 end OpenToken.Token.Selection;

@@ -37,8 +37,6 @@ package OpenToken.Token.Sequence is
 
    type Instance is new Token.Instance with private;
 
-   Null_Sequence : constant Instance;
-
    subtype Class is Instance'Class;
 
    type Handle is access all Class;
@@ -90,5 +88,4 @@ private
       Members : Token.Linked_List.Instance;
    end record;
 
-   Null_Sequence : constant Instance := (Token.Instance with Token.Linked_List.Null_List);
 end OpenToken.Token.Sequence;
