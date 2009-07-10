@@ -34,18 +34,18 @@ package body OpenToken.Recognizer.HTML_Entity is
               Set    => Ada.Strings.Maps.Null_Set);
    end Get;
 
-   procedure Clear (The_Token : in out Instance) is
+   overriding procedure Clear (The_Token : in out Instance) is
    begin
       The_Token.State := Escape;
       The_Token.Set   := Ada.Strings.Maps.Null_Set;
    end Clear;
 
-   procedure Analyze (The_Token : in out Instance;
-                      Next_Char : in     Character;
-                      Verdict   :    out OpenToken.Recognizer.Analysis_Verdict) is
-
+   overriding procedure Analyze
+     (The_Token : in out Instance;
+      Next_Char : in     Character;
+      Verdict   :    out OpenToken.Recognizer.Analysis_Verdict)
+   is
       use type Ada.Strings.Maps.Character_Set;
-
    begin
 
       case The_Token.State is

@@ -1,6 +1,7 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 1999 Christoph Karl Walter Grein
+-- Copyright (C) 2009 Stephen Leake
+-- Copyright (C) 1999, 2000 Christoph Karl Walter Grein
 --
 -- This file is part of the OpenToken package.
 --
@@ -23,37 +24,44 @@
 --  executable file might be covered by the GNU Public License.
 -------------------------------------------------------------------------------
 
-with Ada.Strings.Maps;
-package OpenToken.Recognizer.HTML_Entity is
+package body HTML_Lexer.Task_Safe is
 
-   -------------------------------------------------------------------------
-   --  A recognizer for HTML entities like
-   --   "&copy;"  named case-sensitive reference,
-   --   "&#169;"  numeric decimal reference,
-   --   "&#xA9;"  numeric hexadecimal reference case-insensitive,
-   --  (all denoting the same character, the copyright sign).
-   --  See the HTML 4.0 Reference for more information.
-   -------------------------------------------------------------------------
+   procedure Initialize
+     (Lexer        : in out Lexer_Type;
+      Input_Feeder : access OpenToken.Text_Feeder.Instance'Class)
+   is begin
+      Lexer :=
+        (Text_Syntax => Text_Syntax,
+         Tag_Syntax  => Tag_Syntax,
+         Analyzer    => Tokenizer.Initialize
+           (Text_Syntax,
+            Default  => Bad_Token,
+            Feeder   => Tokenizer.Text_Feeder_Ptr (Input_Feeder)));
+   end Initialize;
 
-   type Instance is new OpenToken.Recognizer.Instance with private;
+   procedure Next_Token
+     (Lexer : in out Lexer_Type;
+      Token :    out HTML_Token)
+   is begin
+      Tokenizer.Find_Next (Lexer.Analyzer);
 
-   function Get return Instance;
+      Token :=
+        (Name   => Tokenizer.ID (Lexer.Analyzer),
+         Lexeme => Ada.Strings.Unbounded.To_Unbounded_String (Tokenizer.Lexeme (Lexer.Analyzer)),
+         Line   => Tokenizer.Line (Lexer.Analyzer),
+         Column => Tokenizer.Column (Lexer.Analyzer));
 
-private
+      case Token.Name is
+      when Start_Tag_Opener | End_Tag_Opener =>
+         Tokenizer.Set_Syntax (Lexer.Analyzer, Lexer.Tag_Syntax);
 
-   type State_Id is (Escape, First, Number, Rest, Done);
+      when Tag_Closer =>
+         Tokenizer.Set_Syntax (Lexer.Analyzer, Lexer.Text_Syntax);
 
-   type Instance is new OpenToken.Recognizer.Instance with record
-      --  The finite state machine state
-      State : State_Id := Escape;
-      Set   : Ada.Strings.Maps.Character_Set;
-   end record;
+      when others =>
+         null;
 
-   overriding procedure Clear (The_Token : in out Instance);
+      end case;
+   end Next_Token;
 
-   overriding procedure
-     Analyze (The_Token : in out Instance;
-              Next_Char : in     Character;
-              Verdict   :    out OpenToken.Recognizer.Analysis_Verdict);
-
-end OpenToken.Recognizer.HTML_Entity;
+end HTML_Lexer.Task_Safe;

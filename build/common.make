@@ -15,10 +15,13 @@ VPATH += ../../Examples/ASU_Example_5_10
 VPATH += ../../Examples/Language_Lexer_Examples
 VPATH += ../../Language_Lexers
 
-dirs :: obj
+dirs :: obj obj_tree
 
 obj:
 	mkdir -p obj
+
+obj_tree:
+	mkdir -p obj_tree
 
 tests : dirs
 
@@ -45,7 +48,8 @@ examples : asu_example_5_10-run.run
 examples : asu_example_5_10_rd-run.run
 examples : ada_count.run
 examples : test_ada_lexer.run
-examples : test_html_lexer.run
+examples : test_html_lexer_safe.run
+examples : test_html_lexer_unsafe.run
 examples : test_java_lexer.run
 examples : test_m3_lexer.run
 
@@ -70,8 +74,11 @@ ada_count.run : ada_count.exe
 test_ada_lexer.run : test_ada_lexer.exe
 	./test_ada_lexer.exe ../../Examples/Language_Lexer_Examples/test_ada_lexer.adb
 
-test_html_lexer.run : test_html_lexer.exe
-	./test_html_lexer.exe ../../readme.html
+test_html_lexer_safe.run : test_html_lexer_safe.exe
+	./test_html_lexer_safe.exe ../../readme.html
+
+test_html_lexer_unsafe.run : test_html_lexer_unsafe.exe
+	./test_html_lexer_unsafe.exe ../../readme.html
 
 test_java_lexer.run : test_java_lexer.exe
 	./test_java_lexer.exe ../../Examples/Language_Lexer_Examples/something.java

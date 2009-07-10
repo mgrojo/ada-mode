@@ -1,5 +1,6 @@
 -------------------------------------------------------------------------------
 --
+-- Copyright (C) 2009 Stephen Leake
 -- Copyright (C) 1999, 2000 Christoph Karl Walter Grein
 --
 -- This file is part of the OpenToken package.
@@ -23,38 +24,20 @@
 --  executable file might be covered by the GNU Public License.
 -------------------------------------------------------------------------------
 
-with Ada.Text_IO;
-with Ada.Command_Line;
-
 with OpenToken.Text_Feeder.Text_IO;
+package HTML_Lexer.Task_Unsafe is
 
-with HTML_Lexer;
-use  HTML_Lexer;
+   ------------------------------------------------------------------------
+   --  This is a lexical analyser for the HTML language.
+   --
+   --  It uses package level variables in the body, so it is not task
+   --  safe.
+   --
+   --   <Tag Attribute=Value Attribute="String"> Text with &entity; </Tag>
+   ------------------------------------------------------------------------
 
-procedure Test_HTML_Lexer is
+   procedure Initialize (Input_Feeder : in OpenToken.Text_Feeder.Text_IO.Instance);
 
-   File  : Ada.Text_IO.File_Type;
-   Token : HTML_Token;
+   function Next_Token return HTML_Token;
 
-begin
-
-   Ada.Text_IO.Open
-     (File => File,
-      Mode => Ada.Text_IO.In_File,
-      Name => Ada.Command_Line.Argument (1));
-   Ada.Text_IO.Set_Input (File);
-
-   Initialize (OpenToken.Text_Feeder.Text_IO.Create);
-
-   loop
-
-      Token := Next_Token;
-
-      Ada.Text_IO.Put_Line ("Found " & Token_Name'Image (Name (Token)) &
-                              ' ' & Lexeme (Token));
-
-      exit when Name (Token) = End_Of_File;
-
-   end loop;
-
-end Test_HTML_Lexer;
+end HTML_Lexer.Task_Unsafe;

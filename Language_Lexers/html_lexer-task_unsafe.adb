@@ -1,6 +1,7 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 1999 Christoph Karl Walter Grein
+-- Copyright (C) 2009 Stephen Leake
+-- Copyright (C) 1999, 2000 Christoph Karl Walter Grein
 --
 -- This file is part of the OpenToken package.
 --
@@ -23,37 +24,37 @@
 --  executable file might be covered by the GNU Public License.
 -------------------------------------------------------------------------------
 
-with Ada.Strings.Maps;
-package OpenToken.Recognizer.HTML_Entity is
+package body HTML_Lexer.Task_Unsafe is
 
-   -------------------------------------------------------------------------
-   --  A recognizer for HTML entities like
-   --   "&copy;"  named case-sensitive reference,
-   --   "&#169;"  numeric decimal reference,
-   --   "&#xA9;"  numeric hexadecimal reference case-insensitive,
-   --  (all denoting the same character, the copyright sign).
-   --  See the HTML 4.0 Reference for more information.
-   -------------------------------------------------------------------------
+   Analyzer : Tokenizer.Instance := Tokenizer.Initialize (Text_Syntax, Default => Bad_Token);
 
-   type Instance is new OpenToken.Recognizer.Instance with private;
+   procedure Initialize (Input_Feeder : in OpenToken.Text_Feeder.Text_IO.Instance) is
+   begin
+      Tokenizer.Input_Feeder := Input_Feeder;
+   end Initialize;
 
-   function Get return Instance;
+   function Next_Token return HTML_Token is
+      Result : HTML_Token;
+   begin
+      Tokenizer.Find_Next (Analyzer);
 
-private
+      Result :=
+        (Name   => Tokenizer.ID (Analyzer),
+         Lexeme => Ada.Strings.Unbounded.To_Unbounded_String (Tokenizer.Lexeme (Analyzer)),
+         Line   => Tokenizer.Line (Analyzer),
+         Column => Tokenizer.Column (Analyzer));
 
-   type State_Id is (Escape, First, Number, Rest, Done);
+      case Result.Name is
+      when Start_Tag_Opener | End_Tag_Opener =>
+         Tokenizer.Set_Syntax (Analyzer, Tag_Syntax);
 
-   type Instance is new OpenToken.Recognizer.Instance with record
-      --  The finite state machine state
-      State : State_Id := Escape;
-      Set   : Ada.Strings.Maps.Character_Set;
-   end record;
+      when Tag_Closer =>
+         Tokenizer.Set_Syntax (Analyzer, Text_Syntax);
 
-   overriding procedure Clear (The_Token : in out Instance);
+      when others =>
+         null;
+      end case;
+      return Result;
+   end Next_Token;
 
-   overriding procedure
-     Analyze (The_Token : in out Instance;
-              Next_Char : in     Character;
-              Verdict   :    out OpenToken.Recognizer.Analysis_Verdict);
-
-end OpenToken.Recognizer.HTML_Entity;
+end HTML_Lexer.Task_Unsafe;

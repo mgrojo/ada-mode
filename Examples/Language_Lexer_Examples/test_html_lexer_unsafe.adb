@@ -1,6 +1,7 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 1999 Christoph Karl Walter Grein
+-- Copyright (C) 2009 Stephen Leake
+-- Copyright (C) 1999, 2000 Christoph Karl Walter Grein
 --
 -- This file is part of the OpenToken package.
 --
@@ -23,37 +24,39 @@
 --  executable file might be covered by the GNU Public License.
 -------------------------------------------------------------------------------
 
-with Ada.Strings.Maps;
-package OpenToken.Recognizer.HTML_Entity is
+with Ada.Text_IO;
+with Ada.Command_Line;
+with OpenToken.Text_Feeder.Text_IO;
+with HTML_Lexer.Task_Unsafe;
+procedure Test_HTML_Lexer_Unsafe is
 
-   -------------------------------------------------------------------------
-   --  A recognizer for HTML entities like
-   --   "&copy;"  named case-sensitive reference,
-   --   "&#169;"  numeric decimal reference,
-   --   "&#xA9;"  numeric hexadecimal reference case-insensitive,
-   --  (all denoting the same character, the copyright sign).
-   --  See the HTML 4.0 Reference for more information.
-   -------------------------------------------------------------------------
+   use HTML_Lexer;
+   use HTML_Lexer.Task_Unsafe;
 
-   type Instance is new OpenToken.Recognizer.Instance with private;
+   File  : Ada.Text_IO.File_Type;
+   Token : HTML_Token;
 
-   function Get return Instance;
+begin
 
-private
+   Ada.Text_IO.Open
+     (File => File,
+      Mode => Ada.Text_IO.In_File,
+      Name => Ada.Command_Line.Argument (1));
 
-   type State_Id is (Escape, First, Number, Rest, Done);
+   Ada.Text_IO.Set_Input (File);
 
-   type Instance is new OpenToken.Recognizer.Instance with record
-      --  The finite state machine state
-      State : State_Id := Escape;
-      Set   : Ada.Strings.Maps.Character_Set;
-   end record;
+   Initialize (OpenToken.Text_Feeder.Text_IO.Create);
 
-   overriding procedure Clear (The_Token : in out Instance);
+   loop
 
-   overriding procedure
-     Analyze (The_Token : in out Instance;
-              Next_Char : in     Character;
-              Verdict   :    out OpenToken.Recognizer.Analysis_Verdict);
+      Token := Next_Token;
 
-end OpenToken.Recognizer.HTML_Entity;
+      Ada.Text_IO.Put_Line
+        ("Found " & Token_Name'Image (Name (Token)) &
+           ' ' & Lexeme (Token));
+
+      exit when Name (Token) = End_Of_File;
+
+   end loop;
+
+end Test_HTML_Lexer_Unsafe;

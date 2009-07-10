@@ -1,5 +1,6 @@
 -------------------------------------------------------------------------------
 --
+-- Copyright (C) 2009 Stephen Leake
 -- Copyright (C) 1999, 2000 Christoph Karl Walter Grein
 --
 -- This file is part of the OpenToken package.
@@ -23,75 +24,195 @@
 --  executable file might be covered by the GNU Public License.
 -------------------------------------------------------------------------------
 
+with Ada.Characters.Latin_1;
+with Ada.Strings.Maps.Constants;
 with Ada.Strings.Unbounded;
-
-with OpenToken.Text_Feeder.Text_IO;
-
-pragma Elaborate_All (Opentoken.Text_Feeder.Text_IO);
-
+with OpenToken.Recognizer.Bracketed_Comment;
+with OpenToken.Recognizer.Character_Set;
+with OpenToken.Recognizer.End_Of_File;
+with OpenToken.Recognizer.HTML_Entity;
+with OpenToken.Recognizer.Keyword;
+with OpenToken.Recognizer.Nothing;
+with OpenToken.Recognizer.Separator;
+with OpenToken.Recognizer.String;
+with OpenToken.Token.Enumerated.Analyzer;
 package HTML_Lexer is
 
-   ------------------------------------------------------------------------
-   --  This ia a lexical analyser for the HTML language.
+   ----------------------------------------------------------------------
+   --  Utilities for a lexical analyser for the HTML language.
    --
-   --   <Tag Attribute=Value Attribute="String"> Text with &entity; </Tag>
+   --  See the child packages HTML_Lexer.Task_Safe, .Task_Unsafe for
+   --  the actual lexers.
    --
-   --  This very first version is not complete. It simply serves as a
-   --  demonstration of feasibility.
-   ------------------------------------------------------------------------
+   ----------------------------------------------------------------------
 
-   type Token_Name is ( -- Syntax error
-                       Bad_Token,
-                       -- Comments <!-- anything -->
-                       Comment,
-                       Whitespace,
-                       -- Document Type Declaration <!DOCTYPE attributes>
-                       Document_Type,
-                       -- Tag delimiters
-                       Start_Tag_Opener,  -- <
-                       End_Tag_Opener,    -- </
-                       Tag_Closer,        -- >
-                       -- Tags (without delimiters), not all tags may have
-                       -- attributes
-                       HTML,              -- <HTML attributes>
-                       Head,              -- <HEAD attributes>
-                       Title,             -- <TITLE attributes>
-                       Meta,              -- <META attributes>
-                       HTML_Body,         -- <BODY attributes>
-                       Heading_1,         -- <H1 attributes>
-                       Anchor,            -- <A attributes>
-                       Image,             -- <IMG attributes>
-                       -- add further tags here
-                       -- Attributes (Attribute=value)
-                       Content,           -- CONTENT
-                       Hyper_Reference,   -- HREF
-                       Name,              -- NAME
-                       Link_Type,         -- TYPE
-                       --  add further attributes here
-                       -- The assignment character in attributes
-                       Assignment,        -- =
-                       -- Values (the right side of assignments)
-                       Value,             -- unquoted
-                       String,            -- "quoted"
-                       -- Running text and entities like &amp;
-                       Text, Entity,
-                       --
-                       End_Of_File);
+   type Token_Name is
+     (
+      --  Syntax error
+      Bad_Token,
 
-   procedure Initialize (Input_Feeder : in OpenToken.Text_Feeder.Text_IO.Instance);
+      --  Comments <!-- anything -->
+      Comment,
+      Whitespace,
+
+      --  Document Type Declaration <!DOCTYPE attributes>
+      Document_Type,
+
+      --  Tag delimiters
+      Start_Tag_Opener,  -- <
+      End_Tag_Opener,    -- </
+      Tag_Closer,        -- >
+
+      --  Tags (without delimiters), not all tags may have attributes
+      HTML,              -- <HTML attributes>
+      Head,              -- <HEAD attributes>
+      Title,             -- <TITLE attributes>
+      Meta,              -- <META attributes>
+      HTML_Body,         -- <BODY attributes>
+      Heading_1,         -- <H1 attributes>
+      Anchor,            -- <A attributes>
+      Image,             -- <IMG attributes>
+
+      --  add further tags here
+      --  Attributes (Attribute=value)
+      Content,           -- CONTENT
+      Hyper_Reference,   -- HREF
+      Name,              -- NAME
+      Link_Type,         -- TYPE
+      Source,            -- SRC
+
+      --  add further attributes here
+      --  The assignment character in attributes
+      Assignment,        -- =
+
+      --  Values (the right side of assignments)
+      Value,             -- unquoted
+      String,            -- "quoted"
+
+      --  Running text and entities like &amp;
+      Text,
+      Entity,
+
+      End_Of_File);
 
    type HTML_Token is private;
 
-   function Next_Token return HTML_Token;
-
    function Name   (Token : HTML_Token) return Token_Name;
    function Lexeme (Token : HTML_Token) return Standard.String;
-
+   function Line   (Token : in HTML_Token) return Natural;
+   function Column (Token : in HTML_Token) return Natural;
 private
 
    type HTML_Token is record
       Name   : Token_Name;
       Lexeme : Ada.Strings.Unbounded.Unbounded_String;
+      Line   : Natural;
+      Column : Natural;
    end record;
+
+   --  Visible for children
+   package Master_Token is new OpenToken.Token.Enumerated (Token_Name);
+   package Tokenizer is new Master_Token.Analyzer;
+
+   -----------------------------------------------------------------------
+   --  HTML syntax is very different from Ada or Java syntax. This is an
+   --  abbreviated excerpt of the HTML 4.0 Reference.
+   --
+   --    Elements are the structures that describe parts of an HTML
+   --    document ... An element has three parts: a start tag, content,
+   --    and an end tag. A tag is special text--"markup"--that is
+   --    delimited by "<" and ">". An end tag includes a "/" after the
+   --    "<" ... The start and end tags surround the content of the
+   ---   element:
+   --       <EM>This is emphasized text</EM>
+   --    ... An element's attributes define various properties for the
+   --    element ...
+   --
+   --       <IMG SRC="wdglogo.gif" ALT="Web Design Group">
+   --
+   --    An attribute is included in the start tag only--never the end
+   --    tag--and takes the form Attribute-name="Attribute-value".
+   --
+   --  Thus the text between tokens is arbitrary and need not be analysed.
+   --  In fact the whole text between tags is treated as a token of its
+   --  own (entities excepted).
+   --  Inside tags, however, we want to analyse for tag names, attribute
+   --  names and attribute values.
+   --  Thus we have to analyse the HTML document after an opening "<" and
+   --  stop after a closing ">".
+   --
+   --  So the idea is the following:
+   --  We split the syntax into two parts: A text and a tag syntax.
+   --  The lexer starts with the text syntax, and every time a tag opener
+   --  or closer is hit, we change the syntax to the appropriate one.
+   --
+   --  When defining the syntaxes, the following has to be taken into
+   --  account:
+   --  Since the syntax has to contain all token names, unused (and hence
+   --  in this syntax illegal) names use the Nothing recognizer. In order
+   --  to return them as Bad_Token, this name has to come first in the
+   --  sequence of names.
+   --  Since Document_Type and Comment both use the Bracketed_Comment
+   --  recognizer with the same opening string "<!", Comment has to come
+   --  first in the sequence of names.
+   --
+   --  If Document_Type is to be analyzed further like other tags, the
+   --  same trick with switching syntaxes can be applied.
+   -----------------------------------------------------------------------
+
+   use type Ada.Strings.Maps.Character_Set;
+
+   HTML_Whitespace : constant Ada.Strings.Maps.Character_Set := Ada.Strings.Maps.To_Set
+     (Ada.Characters.Latin_1.HT &
+        Ada.Characters.Latin_1.CR &
+        Ada.Characters.Latin_1.LF &
+        Ada.Characters.Latin_1.Space);
+
+   Text_Syntax : constant Tokenizer.Syntax :=
+     (Document_Type    => Tokenizer.Get (OpenToken.Recognizer.Bracketed_Comment.Get
+                                          (Comment_Opener => "<!",
+                                           Comment_Closer => ">",
+                                           Reportable     => True)),
+      Start_Tag_Opener => Tokenizer.Get (OpenToken.Recognizer.Separator.Get ("<")),
+      End_Tag_Opener   => Tokenizer.Get (OpenToken.Recognizer.Separator.Get ("</")),
+      Text             => Tokenizer.Get (OpenToken.Recognizer.Character_Set.Get
+                                          (Ada.Strings.Maps.Constants.Graphic_Set -
+                                             Ada.Strings.Maps.To_Set ("<>""&"),
+                                           Reportable => True)),
+      Entity           => Tokenizer.Get (OpenToken.Recognizer.HTML_Entity.Get),
+      Comment          => Tokenizer.Get (OpenToken.Recognizer.Bracketed_Comment.Get
+                                          (Comment_Opener => "<!--",
+                                           Comment_Closer => "-->",
+                                           Reportable => True)),
+      Whitespace       => Tokenizer.Get (OpenToken.Recognizer.Character_Set.Get (HTML_Whitespace)),
+      Bad_Token        => Tokenizer.Get (OpenToken.Recognizer.Nothing.Get),
+      End_Of_File      => Tokenizer.Get (OpenToken.Recognizer.End_Of_File.Get),
+      others           => Tokenizer.Get (OpenToken.Recognizer.Nothing.Get));
+
+   Tag_Syntax : constant Tokenizer.Syntax :=
+     (Tag_Closer       => Tokenizer.Get (OpenToken.Recognizer.Separator.Get (">")),
+      HTML             => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("HTML")),
+      Head             => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("Head")),
+      Meta             => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("Meta")),
+      HTML_Body        => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("Body")),
+      Heading_1        => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("H1")),
+      Anchor           => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("A")),
+      Image            => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("IMG")),
+      Content          => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("CONTENT")),
+      Hyper_Reference  => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("HREF")),
+      Link_Type        => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("TYPE")),
+      Name             => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("NAME")),
+      Title            => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("TITLE")),
+      Assignment       => Tokenizer.Get (OpenToken.Recognizer.Separator.Get ("=")),
+      Value            => Tokenizer.Get (OpenToken.Recognizer.Character_Set.Get
+                                          (Ada.Strings.Maps.Constants.Letter_Set        or
+                                             Ada.Strings.Maps.Constants.Decimal_Digit_Set or
+                                             Ada.Strings.Maps.To_Set (".-"),
+                                           Reportable => True)),
+      String           => Tokenizer.Get (OpenToken.Recognizer.String.Get (Double_Delimiter => False)),
+      Whitespace       => Tokenizer.Get (OpenToken.Recognizer.Character_Set.Get (HTML_Whitespace)),
+      Bad_Token        => Tokenizer.Get (OpenToken.Recognizer.Nothing.Get),
+      End_Of_File      => Tokenizer.Get (OpenToken.Recognizer.End_Of_File.Get),
+      others           => Tokenizer.Get (OpenToken.Recognizer.Nothing.Get));
 
 end HTML_Lexer;

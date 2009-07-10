@@ -32,7 +32,7 @@ package body OpenToken.Recognizer.Based_Integer_Ada_Style is
    --  This procedure will be called when analysis on a new candidate string
    --  is started. The Token needs to clear its state (if any).
    ----------------------------------------------------------------------------
-   procedure Clear (The_Token : in out Instance) is
+   overriding procedure Clear (The_Token : in out Instance) is
    begin
 
       The_Token.Number_Recognizer :=
@@ -47,12 +47,12 @@ package body OpenToken.Recognizer.Based_Integer_Ada_Style is
    --  This procedure will be called to perform further analysis on a token
    --  based on the given next character.
    ----------------------------------------------------------------------------
-   procedure Analyze (The_Token : in out Instance;
-                      Next_Char : in     Character;
-                      Verdict  :    out Analysis_Verdict) is
-
+   overriding procedure
+     Analyze (The_Token : in out Instance;
+              Next_Char : in     Character;
+              Verdict  :    out Analysis_Verdict)
+   is
       Digits_Verdict : Analysis_Verdict := Failed;
-
    begin
 
       case The_Token.State is

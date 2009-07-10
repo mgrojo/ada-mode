@@ -1,6 +1,7 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 1999 Christoph Karl Walter Grein
+-- Copyright (C) 2009 Stephen Leake
+-- Copyright (C) 1999, 2000 Christoph Karl Walter Grein
 --
 -- This file is part of the OpenToken package.
 --
@@ -23,37 +24,36 @@
 --  executable file might be covered by the GNU Public License.
 -------------------------------------------------------------------------------
 
-with Ada.Strings.Maps;
-package OpenToken.Recognizer.HTML_Entity is
+with OpenToken.Text_Feeder;
+package HTML_Lexer.Task_Safe is
 
-   -------------------------------------------------------------------------
-   --  A recognizer for HTML entities like
-   --   "&copy;"  named case-sensitive reference,
-   --   "&#169;"  numeric decimal reference,
-   --   "&#xA9;"  numeric hexadecimal reference case-insensitive,
-   --  (all denoting the same character, the copyright sign).
-   --  See the HTML 4.0 Reference for more information.
-   -------------------------------------------------------------------------
+   -----------------------------------------------------------------------
+   --  This is a lexical analyser for the HTML language.
+   --
+   --  All state data is stored in the Lexer_Type object, so it is
+   --  task safe.
+   --
+   --   <Tag Attribute=Value Attribute="String"> Text with &entity; </Tag>
+   ------------------------------------------------------------------------
 
-   type Instance is new OpenToken.Recognizer.Instance with private;
+   type Lexer_Type is limited private;
 
-   function Get return Instance;
+   procedure Initialize
+     (Lexer        : in out Lexer_Type;
+      Input_Feeder : access OpenToken.Text_Feeder.Instance'Class);
+
+   procedure Next_Token
+     (Lexer : in out Lexer_Type;
+      Token :    out HTML_Token);
 
 private
 
-   type State_Id is (Escape, First, Number, Rest, Done);
-
-   type Instance is new OpenToken.Recognizer.Instance with record
-      --  The finite state machine state
-      State : State_Id := Escape;
-      Set   : Ada.Strings.Maps.Character_Set;
+   type Lexer_Type is record
+      --  We switch syntax during parsing. The Syntax structure
+      --  contains state, so each lexer needs its own copy.
+      Text_Syntax : Tokenizer.Syntax;
+      Tag_Syntax  : Tokenizer.Syntax;
+      Analyzer    : Tokenizer.Instance;
    end record;
 
-   overriding procedure Clear (The_Token : in out Instance);
-
-   overriding procedure
-     Analyze (The_Token : in out Instance;
-              Next_Char : in     Character;
-              Verdict   :    out OpenToken.Recognizer.Analysis_Verdict);
-
-end OpenToken.Recognizer.HTML_Entity;
+end HTML_Lexer.Task_Safe;
