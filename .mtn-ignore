@@ -15,3 +15,4 @@
 ^Build/windows_release/.*\.out$
 ^Build/windows_release/.*\.txt$
 ^Build/windows_release/obj$
+^Build/windows_release/obj_tree$

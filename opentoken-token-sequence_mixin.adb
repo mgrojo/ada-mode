@@ -44,7 +44,7 @@ package body OpenToken.Token.Sequence_Mixin is
    --  An a non active parse does not comsume any input from the analyzer,
    --  and does not call any of the private routines.
    ----------------------------------------------------------------------------
-   procedure Parse
+   overriding procedure Parse
      (Match    : in out Instance;
       Analyzer : in out Source_Class;
       Actively : in     Boolean := True
@@ -125,7 +125,7 @@ package body OpenToken.Token.Sequence_Mixin is
    --  This routine is meant to be used for choosing between parsing options.
    --  It simply checks Could_Parse_To for this token's Element token.
    ----------------------------------------------------------------------------
-   function Could_Parse_To
+   overriding function Could_Parse_To
      (Match    : in Instance;
       Analyzer : in Source_Class
      ) return Boolean is

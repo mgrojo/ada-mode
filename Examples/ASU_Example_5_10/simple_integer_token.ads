@@ -61,10 +61,10 @@ package Simple_Integer_Token is
    --  accepts all token lists whose first element is in Instance'Class, or in
    --  Integer_Literal.Instance'Class.
    ----------------------------------------------------------------------------
-   procedure Synthesize_By_Copying (New_Token : out Instance;
-                                    Source    : in  Token.Instance'Class;
-                                    To_ID     : in  Token.Token_ID);
-
+   overriding procedure Synthesize_By_Copying
+     (New_Token : out Instance;
+      Source    : in  Token.Instance'Class;
+      To_ID     : in  Token.Token_ID);
 
    ----------------------------------------------------------------------------
    --  Routines to synthesize tokens by performing integer ops on the list they

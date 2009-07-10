@@ -51,10 +51,11 @@ package body Simple_Integer_Token is
    --  Create a token by simply up-converting the given token, and
    --  changing its ID to match the given ID.
    ----------------------------------------------------------------------------
-   procedure Synthesize_By_Copying (New_Token : out Instance;
-                                    Source    : in  Token.Instance'Class;
-                                    To_ID     : in  Token.Token_ID) is
-   begin
+   overriding procedure Synthesize_By_Copying
+     (New_Token :    out Instance;
+      Source    : in     Token.Instance'Class;
+      To_ID     : in     Token.Token_ID)
+   is begin
       if Source in Integer_Literal.Class then
          New_Token := (Nonterminal.Instance (Nonterminal.Get (To_ID)) with
                          Value => Integer_Literal.Value (Integer_Literal.Class (Source)));

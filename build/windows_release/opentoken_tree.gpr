@@ -1,0 +1,17 @@
+--  Generate tree files in compile only mode, for AdaControl (and other ASIS applications)
+with "common";
+project OpenToken_Tree is
+
+   for Source_Dirs use ("../..", "../../Language_Lexers");
+
+   for Object_Dir use "obj_tree";
+
+   package Compiler is
+      for Default_Switches ("Ada") use ("-gnat05");
+   end Compiler;
+
+   package Builder is
+      for Default_Switches ("Ada") use ("-gnatct");
+   end Builder;
+
+end OpenToken_Tree;

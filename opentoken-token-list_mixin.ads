@@ -47,11 +47,10 @@ package OpenToken.Token.List_Mixin is
    --  An a non active parse does not comsume any input from the analyzer,
    --  and does not call any of the private routines.
    ----------------------------------------------------------------------------
-   procedure Parse
+   overriding procedure Parse
      (Match    : in out Instance;
       Analyzer : in out Source_Class;
-      Actively : in     Boolean := True
-     );
+      Actively : in     Boolean := True);
 
    ----------------------------------------------------------------------------
    --  Construct a new list token, using the given Element and Separator tokens.
@@ -67,10 +66,10 @@ package OpenToken.Token.List_Mixin is
    --  This routine is meant to be used for choosing between parsing options.
    --  It simply checks Could_Parse_To for this token's Element token.
    ----------------------------------------------------------------------------
-   function Could_Parse_To
+   overriding function Could_Parse_To
      (Match    : in Instance;
-      Analyzer : in Source_Class
-     ) return Boolean;
+      Analyzer : in Source_Class)
+     return Boolean;
 
    ----------------------------------------------------------------------------
    --  This routine is called when a parse starts to clean up any saved data.

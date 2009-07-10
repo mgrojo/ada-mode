@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2002, 2003, 2008 Stephe Leake
+-- Copyright (C) 2002, 2003, 2008, 2009 Stephe Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -44,8 +44,16 @@ package body OpenToken.Production.Parser.LRk_Item is
    procedure Free is new Ada.Unchecked_Deallocation (Item_Set, Item_Set_Ptr);
    procedure Free is new Ada.Unchecked_Deallocation (Set_Reference, Set_Reference_Ptr);
 
-   --  This should have been a constant, but Ada doesn't like the dynamic ranges on the types
-   Non_Terminals : Token_ID_Set;
+   function Compute_Non_Terminals return Token_ID_Set
+   is
+      Result : Token_ID_Set;
+   begin
+      Result (Tokenizer.Terminal_ID'First .. Tokenizer.Terminal_ID'Last)               := (others => False);
+      Result (Token.Token_ID'Succ (Tokenizer.Terminal_ID'Last) .. Token.Token_ID'Last) := (others => True);
+      return Result;
+   end Compute_Non_Terminals;
+
+   Non_Terminals : constant Token_ID_Set := Compute_Non_Terminals;
 
    Line_End : constant String := "" & Ada.Characters.Latin_1.LF;
 
@@ -906,22 +914,6 @@ package body OpenToken.Production.Parser.LRk_Item is
    begin
       return Token.Token_ID'Image (Subject);
    end Token_Name;
-   function Terminal_First return Tokenizer.Terminal_ID is
-   begin
-      return Tokenizer.Terminal_ID'First;
-   end Terminal_First;
-   function Terminal_Last return Tokenizer.Terminal_ID is
-   begin
-      return Tokenizer.Terminal_ID'Last;
-   end Terminal_Last;
-   function Token_Last return Token.Token_ID is
-   begin
-      return Token.Token_ID'Last;
-   end Token_Last;
-   function Token_Succ (Subject : in Token.Token_ID) return Token.Token_ID is
-   begin
-      return Token.Token_ID'Succ (Subject);
-   end Token_Succ;
 
    function Print (Item : in Item_Lookahead) return String
    is
@@ -1088,11 +1080,6 @@ package body OpenToken.Production.Parser.LRk_Item is
    begin
       Ada.Text_IO.Put_Line (Print_Item_Set_List (Items));
    end Print_Item_Set_List;
-
-begin
-   --  This should have been a constant, but Ada doesn't like the dynamic ranges on the types
-   Non_Terminals (Terminal_First .. Terminal_Last)         := (others => False);
-   Non_Terminals (Token_Succ (Terminal_Last) .. Token_Last) := (others => True);
 
 end OpenToken.Production.Parser.LRk_Item;
 

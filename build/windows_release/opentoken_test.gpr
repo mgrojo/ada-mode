@@ -1,9 +1,16 @@
 --  For running OpenToken tests.
 with "aunit";
 with "common";
+with "opentoken";
 project OpenToken_Test is
 
-   for Source_Dirs use ("../..", "../../Test");
+   for Source_Dirs use
+     ("../../Examples/ASU_Example_3_6",
+      "../../Examples/ASU_Example_4_46",
+      "../../Examples/ASU_Example_5_10",
+      "../../Examples/Language_Lexer_Examples",
+      "../../Language_Lexers",
+      "../../Test");
 
    for Object_Dir use "obj";
    for Exec_Dir use ".";

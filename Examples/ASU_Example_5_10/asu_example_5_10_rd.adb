@@ -43,9 +43,10 @@ package body ASU_Example_5_10_RD is
    --------------------------------------------------------------------------
    --  Create an integer token using the given selected token.
    --------------------------------------------------------------------------
-   procedure Build (Match : in out Integer_Selection;
-                    From  : in     OpenToken.Token.Instance'Class) is
-   begin
+   overriding procedure Build
+     (Match : in out Integer_Selection;
+      From  : in     OpenToken.Token.Instance'Class)
+   is begin
       if From in Integer_Token'Class then
          Match.Value := Integer_Token'Class (From).Value;
       elsif From in Integer_Literal.Class then
@@ -60,25 +61,33 @@ package body ASU_Example_5_10_RD is
    --  Overrides for the (implicitly) abstract "or" operations on
    --  Integer_Selection.
    ----------------------------------------------------------------------------
-   function "or" (Left  : access OpenToken.Token.Instance'Class;
-                  Right : access OpenToken.Token.Instance'Class) return Integer_Selection is
-   begin
+   overriding function "or"
+     (Left  : access OpenToken.Token.Instance'Class;
+      Right : access OpenToken.Token.Instance'Class)
+     return Integer_Selection
+   is begin
       return (Integer_Selection_Token."or" (Left, Right) with null record);
    end "or";
 
-   function "or" (Left  : access OpenToken.Token.Instance'Class;
-                  Right : in     Integer_Selection) return Integer_Selection is
-   begin
+   overriding function "or"
+     (Left  : access OpenToken.Token.Instance'Class;
+      Right : in     Integer_Selection)
+     return Integer_Selection
+   is begin
       return (Integer_Selection_Token."or" (Left, Integer_Selection_Token.Instance (Right)) with null record);
    end "or";
-   function "or" (Left  : in     Integer_Selection;
-                  Right : access OpenToken.Token.Instance'Class) return Integer_Selection is
-   begin
+   overriding function "or"
+     (Left  : in     Integer_Selection;
+      Right : access OpenToken.Token.Instance'Class)
+     return Integer_Selection
+   is begin
       return (Integer_Selection_Token."or" (Integer_Selection_Token.Instance (Left), Right) with null record);
    end "or";
-   function "or" (Left  : in Integer_Selection;
-                  Right : in Integer_Selection) return Integer_Selection is
-   begin
+   overriding function "or"
+     (Left  : in Integer_Selection;
+      Right : in Integer_Selection)
+     return Integer_Selection
+   is begin
       return (Integer_Selection_Token."or" (Integer_Selection_Token.Instance (Left),
                                             Integer_Selection_Token.Instance (Right)
                                             )
@@ -90,7 +99,7 @@ package body ASU_Example_5_10_RD is
    --  This should be a three-token sequence where the token we draw from is
    --  the second one.
    --------------------------------------------------------------------------
-   procedure Build (Match : in out Expression_Sequence)
+   overriding procedure Build (Match : in out Expression_Sequence)
    is
       Iterator : OpenToken.Token.Linked_List.List_Iterator :=
         OpenToken.Token.Linked_List.Initial_Iterator (Match.Members);
@@ -102,24 +111,32 @@ package body ASU_Example_5_10_RD is
    ----------------------------------------------------------------------------
    --  Extensions for the (implicitly) abstract "&" functions.
    ----------------------------------------------------------------------------
-   function "&" (Left  : access OpenToken.Token.Class;
-                 Right : access OpenToken.Token.Class) return Expression_Sequence is
-   begin
+   overriding function "&"
+     (Left  : access OpenToken.Token.Class;
+      Right : access OpenToken.Token.Class)
+     return Expression_Sequence
+   is begin
       return (Integer_Sequence_Token."&"(Left, Right) with null record);
    end "&";
-   function "&" (Left  : access OpenToken.Token.Class;
-                 Right : in     Expression_Sequence) return Expression_Sequence is
-   begin
+   overriding function "&"
+     (Left  : access OpenToken.Token.Class;
+      Right : in     Expression_Sequence)
+     return Expression_Sequence
+   is begin
       return (Integer_Sequence_Token."&"(Left, Integer_Sequence_Token.Instance (Right)) with null record);
    end "&";
-   function "&" (Left  : in     Expression_Sequence;
-                 Right : access OpenToken.Token.Class) return Expression_Sequence is
-   begin
+   overriding function "&"
+     (Left  : in     Expression_Sequence;
+      Right : access OpenToken.Token.Class)
+     return Expression_Sequence
+   is begin
       return (Integer_Sequence_Token."&"(Integer_Sequence_Token.Instance (Left), Right) with null record);
    end "&";
-   function "&" (Left  : in Expression_Sequence;
-                 Right : in Expression_Sequence) return Expression_Sequence is
-   begin
+   overriding function "&"
+     (Left  : in Expression_Sequence;
+      Right : in Expression_Sequence)
+     return Expression_Sequence
+   is begin
       return (Integer_Sequence_Token."&"
               (Integer_Sequence_Token.Instance (Left), Integer_Sequence_Token.Instance (Right))
               with null record);
@@ -128,18 +145,18 @@ package body ASU_Example_5_10_RD is
    --------------------------------------------------------------------------
    --  Creation of tokens for mathematical operations.
    --------------------------------------------------------------------------
-   procedure Initialize (Match : in out Multiply_Operation_List) is
+   overriding procedure Initialize (Match : in out Multiply_Operation_List) is
    begin
       Match.Value := 1;
    end Initialize;
-   procedure Add_List_Element
+   overriding procedure Add_List_Element
      (Match   : in out Multiply_Operation_List;
       Element : in out Integer_Token'Class
      ) is
    begin
       Match.Value := Match.Value * Element.Value;
    end Add_List_Element;
-   function Get
+   overriding function Get
      (Element   : access Integer_Token'Class;
       Separator : access OpenToken.Token.Class
      ) return Multiply_Operation_List is
@@ -151,11 +168,11 @@ package body ASU_Example_5_10_RD is
               with null record);
    end Get;
 
-   procedure Initialize (Match : in out Add_Operation_List) is
+   overriding procedure Initialize (Match : in out Add_Operation_List) is
    begin
       Match.Value := 0;
    end Initialize;
-   procedure Add_List_Element
+   overriding procedure Add_List_Element
      (Match   : in out Add_Operation_List;
       Element : in out Integer_Token'Class
      ) is
@@ -163,7 +180,7 @@ package body ASU_Example_5_10_RD is
       Match.Value := Match.Value + Element.Value;
    end Add_List_Element;
 
-   function Get
+   overriding function Get
      (Element   : access Integer_Token'Class;
       Separator : access OpenToken.Token.Class
      ) return Add_Operation_List is
@@ -180,7 +197,7 @@ package body ASU_Example_5_10_RD is
    --  This should be a two-token sequence where the token we draw from is
    --  the first one.
    --------------------------------------------------------------------------
-   procedure Build (Match : in out L_Sequence)
+   overriding procedure Build (Match : in out L_Sequence)
    is
       Iterator : constant OpenToken.Token.Linked_List.List_Iterator :=
         OpenToken.Token.Linked_List.Initial_Iterator (Match.Members);
@@ -192,24 +209,32 @@ package body ASU_Example_5_10_RD is
    ----------------------------------------------------------------------------
    --  Extensions for the (implicitly) abstract "&" functions.
    ----------------------------------------------------------------------------
-   function "&" (Left  : access OpenToken.Token.Class;
-                 Right : access OpenToken.Token.Class) return L_Sequence is
-   begin
+   overriding function "&"
+     (Left  : access OpenToken.Token.Class;
+      Right : access OpenToken.Token.Class)
+     return L_Sequence
+   is begin
       return (Integer_Sequence_Token."&"(Left, Right) with null record);
    end "&";
-   function "&" (Left  : access OpenToken.Token.Class;
-                 Right : in     L_Sequence) return L_Sequence is
-   begin
+   overriding function "&"
+     (Left  : access OpenToken.Token.Class;
+      Right : in     L_Sequence)
+     return L_Sequence
+   is begin
       return (Integer_Sequence_Token."&"(Left, Integer_Sequence_Token.Instance (Right)) with null record);
    end "&";
-   function "&" (Left  : in     L_Sequence;
-                 Right : access OpenToken.Token.Class) return L_Sequence is
-   begin
+   overriding function "&"
+     (Left  : in     L_Sequence;
+      Right : access OpenToken.Token.Class)
+     return L_Sequence
+   is begin
       return (Integer_Sequence_Token."&"(Integer_Sequence_Token.Instance (Left), Right) with null record);
    end "&";
-   function "&" (Left  : in L_Sequence;
-                 Right : in L_Sequence) return L_Sequence is
-   begin
+   overriding function "&"
+     (Left  : in L_Sequence;
+      Right : in L_Sequence)
+     return L_Sequence
+   is begin
       return (Integer_Sequence_Token."&"
               (Integer_Sequence_Token.Instance (Left), Integer_Sequence_Token.Instance (Right))
               with null record);

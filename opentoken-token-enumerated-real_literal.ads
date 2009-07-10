@@ -49,10 +49,11 @@ package OpenToken.Token.Enumerated.Real_Literal is
    --  be set to the real value of the Lexeme. The Recognizer field isn't
    --  used for this instance of the type.
    ----------------------------------------------------------------------------
-   procedure Create (Lexeme     : in     String;
-                     ID         : in     Token_ID;
-                     Recognizer : in     Recognizer_Handle;
-                     New_Token  :    out Instance);
+   overriding procedure Create
+     (Lexeme     : in     String;
+      ID         : in     Token_ID;
+      Recognizer : in     Recognizer_Handle;
+      New_Token  :    out Instance);
 
    ----------------------------------------------------------------------------
    --  Return the value of the given token.

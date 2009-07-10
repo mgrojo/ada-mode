@@ -69,9 +69,15 @@ begin
       Expect_Match => False,
       Comment      => "Ada comment");
 
+   --  Tests for Debian bug 536359
    Test
      (Item         => "-1234",
       Expect_Match => True,
       Comment      => "negative integer");
+
+   Test
+     (Item         => "+1234",
+      Expect_Match => True,
+      Comment      => "explicitly positive integer");
 
 end Recognizer_Integer_Test;

@@ -67,11 +67,10 @@ package OpenToken.Token.Selection_Mixin is
    --  An a non active parse does not comsume any input from the analyzer,
    --  and does not call any of the private routines.
    ----------------------------------------------------------------------------
-   procedure Parse
+   overriding procedure Parse
      (Match    : in out Instance;
       Analyzer : in out Source_Class;
-      Actively : in     Boolean := True
-     );
+      Actively : in     Boolean := True);
 
    ----------------------------------------------------------------------------
    --  Create a token selection from a pair of token instances.
@@ -102,10 +101,10 @@ package OpenToken.Token.Selection_Mixin is
    --  The default implementation calls Could_Parse_To for every token in the
    --  selection.
    ----------------------------------------------------------------------------
-   function Could_Parse_To
+   overriding function Could_Parse_To
      (Match    : in Instance;
-      Analyzer : in Source_Class
-     ) return Boolean;
+      Analyzer : in Source_Class)
+     return Boolean;
 
    ----------------------------------------------------------------------------
    --  This routine is called when none of the sequence's tokens return true for

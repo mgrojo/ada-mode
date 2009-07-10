@@ -57,7 +57,17 @@ begin
    L.all := E & EOF;
    E.all := Operation_List.Class (Add_Operation_List'(Get (T, Plus)));
    T.all := Operation_List.Class (Multiply_Operation_List'(Get (F, Times)));
-   F.all := Int_Literal or new Expression_Sequence'(Left_Paren & E & Right_Paren);
+
+   --  We'd like to use this simpler expression:
+   --
+   --     Int_Literal or new Expression_Sequence'(Left_Paren & E & Right_Paren);
+   --
+   --  But the type of 'new Expression_Sequence' is an anonymous
+   --  access type declared in a procedure (not at library level), so
+   --  its accessiblity level is lower than T's, and we get an
+   --  accessibility error in GNAT 6.2.1. Using a type qualifier of a
+   --  global access type fixes this.
+   F.all := Int_Literal or Expression_Sequence_Handle'(new Expression_Sequence'(Left_Paren & E & Right_Paren));
 
    Ada.Text_IO.Put_Line ("A simple calculator, as specified in example 5.10 in Aho, Sethi, and Ullman's");
    Ada.Text_IO.Put_Line ("""Compilers Principles, Techniques and Tools""");

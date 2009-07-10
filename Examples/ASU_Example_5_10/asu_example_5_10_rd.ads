@@ -85,16 +85,25 @@ package ASU_Example_5_10_RD is
    --  an integer with the value of the selected component from a parse.
    package Integer_Selection_Token is new OpenToken.Token.Selection_Mixin (Integer_Token, OpenToken.Token.Instance);
    type Integer_Selection is new Integer_Selection_Token.Instance with null record;
-   procedure Build (Match : in out Integer_Selection;
-                    From  : in     OpenToken.Token.Instance'Class);
-   function "or" (Left  : access OpenToken.Token.Instance'Class;
-                  Right : access OpenToken.Token.Instance'Class) return Integer_Selection;
-   function "or" (Left  : access OpenToken.Token.Instance'Class;
-                  Right : in     Integer_Selection) return Integer_Selection;
-   function "or" (Left  : in     Integer_Selection;
-                  Right : access OpenToken.Token.Instance'Class) return Integer_Selection;
-   function "or" (Left  : in Integer_Selection;
-                  Right : in Integer_Selection) return Integer_Selection;
+   overriding procedure
+     Build (Match : in out Integer_Selection;
+            From  : in     OpenToken.Token.Instance'Class);
+   overriding function "or"
+     (Left  : access OpenToken.Token.Instance'Class;
+      Right : access OpenToken.Token.Instance'Class)
+     return Integer_Selection;
+   overriding function "or"
+     (Left  : access OpenToken.Token.Instance'Class;
+      Right : in     Integer_Selection)
+     return Integer_Selection;
+   overriding function "or"
+     (Left  : in     Integer_Selection;
+      Right : access OpenToken.Token.Instance'Class)
+     return Integer_Selection;
+   overriding function "or"
+     (Left  : in Integer_Selection;
+      Right : in Integer_Selection)
+     return Integer_Selection;
    type Integer_Selection_Handle is access all Integer_Selection;
 
 
@@ -103,51 +112,65 @@ package ASU_Example_5_10_RD is
    package Integer_Sequence_Token is new OpenToken.Token.Sequence_Mixin (Integer_Token);
    type Expression_Sequence is new Integer_Sequence_Token.Instance with null record;
    type Expression_Sequence_Handle is access all Expression_Sequence;
-   procedure Build (Match : in out Expression_Sequence);
-   function "&" (Left  : access OpenToken.Token.Class;
-                 Right : access OpenToken.Token.Class) return Expression_Sequence;
-   function "&" (Left  : access OpenToken.Token.Class;
-                 Right : in     Expression_Sequence) return Expression_Sequence;
-   function "&" (Left  : in     Expression_Sequence;
-                 Right : access OpenToken.Token.Class) return Expression_Sequence;
-   function "&" (Left  : in Expression_Sequence;
-                 Right : in Expression_Sequence) return Expression_Sequence;
+   overriding procedure Build (Match : in out Expression_Sequence);
+   overriding function "&"
+     (Left  : access OpenToken.Token.Class;
+      Right : access OpenToken.Token.Class)
+     return Expression_Sequence;
+   overriding function "&"
+     (Left  : access OpenToken.Token.Class;
+      Right : in     Expression_Sequence)
+     return Expression_Sequence;
+   overriding function "&"
+     (Left  : in     Expression_Sequence;
+      Right : access OpenToken.Token.Class)
+     return Expression_Sequence;
+   overriding function "&"
+     (Left  : in Expression_Sequence;
+      Right : in Expression_Sequence)
+     return Expression_Sequence;
 
    --  Token types for mathematical operations
    package Operation_List is new OpenToken.Token.List_Mixin (Integer_Token, Integer_Token);
    type Multiply_Operation_List is new Operation_List.Instance with null record;
-   procedure Initialize (Match : in out Multiply_Operation_List);
-   procedure Add_List_Element
+   overriding procedure Initialize (Match : in out Multiply_Operation_List);
+   overriding procedure Add_List_Element
      (Match   : in out Multiply_Operation_List;
-      Element : in out Integer_Token'Class
-     );
-   function Get
+      Element : in out Integer_Token'Class);
+   overriding function Get
      (Element   : access Integer_Token'Class;
-      Separator : access OpenToken.Token.Class
-     ) return Multiply_Operation_List;
+      Separator : access OpenToken.Token.Class)
+     return Multiply_Operation_List;
 
    type Add_Operation_List is new Operation_List.Instance with null record;
-   procedure Initialize (Match : in out Add_Operation_List);
-   procedure Add_List_Element
+   overriding procedure Initialize (Match : in out Add_Operation_List);
+   overriding procedure Add_List_Element
      (Match   : in out Add_Operation_List;
-      Element : in out Integer_Token'Class
-     );
-   function Get
+      Element : in out Integer_Token'Class);
+   overriding function Get
      (Element   : access Integer_Token'Class;
-      Separator : access OpenToken.Token.Class
-     ) return Add_Operation_List;
+      Separator : access OpenToken.Token.Class)
+     return Add_Operation_List;
 
    type L_Sequence is new Integer_Sequence_Token.Instance with null record;
    type L_Sequence_Handle is access all L_Sequence;
-   procedure Build (Match : in out L_Sequence);
-   function "&" (Left  : access OpenToken.Token.Class;
-                 Right : access OpenToken.Token.Class) return L_Sequence;
-   function "&" (Left  : access OpenToken.Token.Class;
-                 Right : in     L_Sequence) return L_Sequence;
-   function "&" (Left  : in     L_Sequence;
-                 Right : access OpenToken.Token.Class) return L_Sequence;
-   function "&" (Left  : in L_Sequence;
-                 Right : in L_Sequence) return L_Sequence;
+   overriding procedure Build (Match : in out L_Sequence);
+   overriding function "&"
+     (Left  : access OpenToken.Token.Class;
+      Right : access OpenToken.Token.Class)
+     return L_Sequence;
+   overriding function "&"
+     (Left  : access OpenToken.Token.Class;
+      Right : in     L_Sequence)
+     return L_Sequence;
+   overriding function "&"
+     (Left  : in     L_Sequence;
+      Right : access OpenToken.Token.Class)
+     return L_Sequence;
+   overriding function "&"
+     (Left  : in L_Sequence;
+      Right : in L_Sequence)
+     return L_Sequence;
 
    --  Define all our tokens
    --  ...terminals
