@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2002, 2003 Stephe Leake
+-- Copyright (C) 2002, 2003, 2009 Stephe Leake
 -- Copyright (C) 1999, 2000 FlightSafety International and Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -445,12 +445,15 @@ package body OpenToken.Token.Enumerated.Analyzer is
    end Set_Text_Feeder;
 
 
-   ----------------------------------------------------------------------------
-   --  Set the Analyzer's syntax to the given value.
-   ----------------------------------------------------------------------------
-   procedure Set_Syntax (Analyzer : in out Instance; Language_Syntax : in Syntax) is
-   begin
+   procedure Set_Syntax (Analyzer : in out Instance; Language_Syntax : in Syntax)
+   is begin
+      --  This copies the pointers to recognizer, which is why this is
+      --  unsafe.
       Analyzer.Syntax_List := Language_Syntax;
+
+      --  If Language_Syntax was created with the Get in this package,
+      --  using the default New_Token parameter, the Token IDs are all
+      --  Token_ID'First, which is wrong. So fix that now.
       for ID in Syntax'Range loop
          Analyzer.Syntax_List (ID).Token_Handle.ID := ID;
       end loop;

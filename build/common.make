@@ -36,6 +36,7 @@ tests : recognizer_integer_test.run
 tests : string_test-run.run
 tests : string_token_test-run.diff
 tests : test_all_harness.diff
+tests : test_html_lexer_safe.diff
 tests : token_analyzer_ctd-run.run
 tests : token_list_test-run.run
 tests : token_selection_test-run.run
@@ -48,7 +49,6 @@ examples : asu_example_5_10-run.run
 examples : asu_example_5_10_rd-run.run
 examples : ada_count.run
 examples : test_ada_lexer.run
-examples : test_html_lexer_safe.run
 examples : test_html_lexer_unsafe.run
 examples : test_java_lexer.run
 examples : test_m3_lexer.run
@@ -74,8 +74,8 @@ ada_count.run : ada_count.exe
 test_ada_lexer.run : test_ada_lexer.exe
 	./test_ada_lexer.exe ../../Examples/Language_Lexer_Examples/test_ada_lexer.adb
 
-test_html_lexer_safe.run : test_html_lexer_safe.exe
-	./test_html_lexer_safe.exe ../../readme.html
+test_html_lexer_safe.out : test_html_lexer_safe.exe test_html_scan.html
+	./$^ $(RUN_ARGS) > $@
 
 test_html_lexer_unsafe.run : test_html_lexer_unsafe.exe
 	./test_html_lexer_unsafe.exe ../../readme.html

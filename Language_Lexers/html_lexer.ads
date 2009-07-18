@@ -24,17 +24,7 @@
 --  executable file might be covered by the GNU Public License.
 -------------------------------------------------------------------------------
 
-with Ada.Characters.Latin_1;
-with Ada.Strings.Maps.Constants;
 with Ada.Strings.Unbounded;
-with OpenToken.Recognizer.Bracketed_Comment;
-with OpenToken.Recognizer.Character_Set;
-with OpenToken.Recognizer.End_Of_File;
-with OpenToken.Recognizer.HTML_Entity;
-with OpenToken.Recognizer.Keyword;
-with OpenToken.Recognizer.Nothing;
-with OpenToken.Recognizer.Separator;
-with OpenToken.Recognizer.String;
 with OpenToken.Token.Enumerated.Analyzer;
 package HTML_Lexer is
 
@@ -97,8 +87,8 @@ package HTML_Lexer is
 
    type HTML_Token is private;
 
-   function Name   (Token : HTML_Token) return Token_Name;
-   function Lexeme (Token : HTML_Token) return Standard.String;
+   function Name   (Token : in HTML_Token) return Token_Name;
+   function Lexeme (Token : in HTML_Token) return Standard.String;
    function Line   (Token : in HTML_Token) return Natural;
    function Column (Token : in HTML_Token) return Natural;
 private
@@ -160,59 +150,9 @@ private
    --  same trick with switching syntaxes can be applied.
    -----------------------------------------------------------------------
 
-   use type Ada.Strings.Maps.Character_Set;
-
-   HTML_Whitespace : constant Ada.Strings.Maps.Character_Set := Ada.Strings.Maps.To_Set
-     (Ada.Characters.Latin_1.HT &
-        Ada.Characters.Latin_1.CR &
-        Ada.Characters.Latin_1.LF &
-        Ada.Characters.Latin_1.Space);
-
-   Text_Syntax : constant Tokenizer.Syntax :=
-     (Document_Type    => Tokenizer.Get (OpenToken.Recognizer.Bracketed_Comment.Get
-                                          (Comment_Opener => "<!",
-                                           Comment_Closer => ">",
-                                           Reportable     => True)),
-      Start_Tag_Opener => Tokenizer.Get (OpenToken.Recognizer.Separator.Get ("<")),
-      End_Tag_Opener   => Tokenizer.Get (OpenToken.Recognizer.Separator.Get ("</")),
-      Text             => Tokenizer.Get (OpenToken.Recognizer.Character_Set.Get
-                                          (Ada.Strings.Maps.Constants.Graphic_Set -
-                                             Ada.Strings.Maps.To_Set ("<>""&"),
-                                           Reportable => True)),
-      Entity           => Tokenizer.Get (OpenToken.Recognizer.HTML_Entity.Get),
-      Comment          => Tokenizer.Get (OpenToken.Recognizer.Bracketed_Comment.Get
-                                          (Comment_Opener => "<!--",
-                                           Comment_Closer => "-->",
-                                           Reportable => True)),
-      Whitespace       => Tokenizer.Get (OpenToken.Recognizer.Character_Set.Get (HTML_Whitespace)),
-      Bad_Token        => Tokenizer.Get (OpenToken.Recognizer.Nothing.Get),
-      End_Of_File      => Tokenizer.Get (OpenToken.Recognizer.End_Of_File.Get),
-      others           => Tokenizer.Get (OpenToken.Recognizer.Nothing.Get));
-
-   Tag_Syntax : constant Tokenizer.Syntax :=
-     (Tag_Closer       => Tokenizer.Get (OpenToken.Recognizer.Separator.Get (">")),
-      HTML             => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("HTML")),
-      Head             => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("Head")),
-      Meta             => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("Meta")),
-      HTML_Body        => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("Body")),
-      Heading_1        => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("H1")),
-      Anchor           => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("A")),
-      Image            => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("IMG")),
-      Content          => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("CONTENT")),
-      Hyper_Reference  => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("HREF")),
-      Link_Type        => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("TYPE")),
-      Name             => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("NAME")),
-      Title            => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("TITLE")),
-      Assignment       => Tokenizer.Get (OpenToken.Recognizer.Separator.Get ("=")),
-      Value            => Tokenizer.Get (OpenToken.Recognizer.Character_Set.Get
-                                          (Ada.Strings.Maps.Constants.Letter_Set        or
-                                             Ada.Strings.Maps.Constants.Decimal_Digit_Set or
-                                             Ada.Strings.Maps.To_Set (".-"),
-                                           Reportable => True)),
-      String           => Tokenizer.Get (OpenToken.Recognizer.String.Get (Double_Delimiter => False)),
-      Whitespace       => Tokenizer.Get (OpenToken.Recognizer.Character_Set.Get (HTML_Whitespace)),
-      Bad_Token        => Tokenizer.Get (OpenToken.Recognizer.Nothing.Get),
-      End_Of_File      => Tokenizer.Get (OpenToken.Recognizer.End_Of_File.Get),
-      others           => Tokenizer.Get (OpenToken.Recognizer.Nothing.Get));
+   function Text_Syntax return Tokenizer.Syntax;
+   function Tag_Syntax return Tokenizer.Syntax;
+   --  These must be functions, not constants, because they contain
+   --  pointers, and we don't have a deep copy defined.
 
 end HTML_Lexer;

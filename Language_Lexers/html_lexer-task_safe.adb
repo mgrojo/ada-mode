@@ -24,6 +24,7 @@
 --  executable file might be covered by the GNU Public License.
 -------------------------------------------------------------------------------
 
+with Ada.Strings.Unbounded;
 package body HTML_Lexer.Task_Safe is
 
    procedure Initialize

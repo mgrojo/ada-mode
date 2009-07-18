@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2002, 2003 Stephe Leake
+-- Copyright (C) 2002, 2003, 2009 Stephe Leake
 -- Copyright (C) 1999 FlightSafety International and Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -88,10 +88,10 @@ package OpenToken.Token.Enumerated.Analyzer is
    --  Syntaxes. It will dynamicly allocate the memory for the
    --  recognizer and token.
    --------------------------------------------------------------------------
-   function Get (Recognizer : in OpenToken.Recognizer.Class;
-                 New_Token  : in OpenToken.Token.Enumerated.Class := Get
-                ) return Recognizable_Token;
-
+   function Get
+     (Recognizer : in OpenToken.Recognizer.Class;
+      New_Token  : in OpenToken.Token.Enumerated.Class := Get)
+     return Recognizable_Token;
 
    ----------------------------------------------------------------------------
    --  Return an Analyzer with the given syntax and text feeder.
@@ -113,7 +113,20 @@ package OpenToken.Token.Enumerated.Analyzer is
    --  'access on the tokens. 'Unchecked_Access is safe to use as long
    --  as the Analyzer does not have a longer lifetime than its
    --  tokens.
-   --------------------------------------------------------------------------
+   --
+   --  Note that the Syntax structure contains pointers to
+   --  recognizers, which have dynamic state. Set_Syntax does a simple
+   --  copy of the array, not a deep copy of the recognizer objects.
+   --  Therefore this Analyzer will share those recognizers with any
+   --  other Analyzer using the same syntax, which can happen in a
+   --  multi-threaded system.
+   --
+   --  We could make Syntax Limited_Controlled and provide a deep copy
+   --  in Adjust. But that would significantly complicate creating a
+   --  syntax, and make it expensive to switch syntaxes during a parse
+   --  (as HTML_Lexer does).
+   --
+   ----------------------------------------------------------------------
    procedure Set_Syntax (Analyzer : in out Instance; Language_Syntax : in Syntax);
 
    ----------------------------------------------------------------------------
