@@ -117,11 +117,6 @@ package body OpenToken.Token.Enumerated.List is
               );
    end "&";
 
-   function First (List : in Instance) return Handle
-   is begin
-      return List.Head.Token;
-   end First;
-
    --------------------------------------------------------------------------
    --  Enqueue a token on the given list. The token itself will not be
    --  copied, but will be managed by the list from here on in. Do not

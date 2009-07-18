@@ -22,16 +22,9 @@ project Common is
         ("-g",
          "-O0",
          "-gnat05",
-         "-gnata",
-         "-gnatf",
-         "-gnato",
-         "-gnatq",
-         "-gnatQ",
+         "-gnatafoqQ",
          "-gnatVa",
-         "-gnatwa",
-         "-gnatwe",
-         "-gnatwL",
-         "-gnatwP",
+         "-gnatwaeLP",
          "-fstack-check");
 
       --  AdaCore recommends -O2 -gnatn instead of -O3; -O3 includes
@@ -42,14 +35,8 @@ project Common is
         ("-g",
          "-O2",
          "-gnat05",
-         "-gnatf",
-         "-gnatn",
-         "-gnato",
-         "-gnatq",
-         "-gnatQ",
-         "-gnatwa",
-         "-gnatwe",
-         "-gnatwL",
+         "-gnatfnoqQ",
+         "-gnatwaBeL",
          "-fstack-check");
 
       --  The project file syntax does not let us set a variable in a

@@ -6,7 +6,7 @@
 --
 -- The OpenToken package is free software; you can redistribute it and/or
 -- modify it under the terms of the  GNU General Public License as published
--- by the Free Software Foundation; either version 2, or (at your option)
+-- by the Free Software Foundation; either version 3, or (at your option)
 -- any later version. The OpenToken package is distributed in the hope that
 -- it will be useful, but WITHOUT ANY WARRANTY; without even the implied
 -- warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -21,23 +21,6 @@
 -- covered by the GNU General Public License.  This exception does not
 -- however invalidate any other reasons why the executable file might be
 -- covered by the GNU Public License.
---
--- Maintainer: Christoph K. W. Grein (Christ-Usch.Grein@T-Online.de)
---
--- Update History:
--- $Log: html_lexer-basic.ads,v $
--- Revision 1.3  2000/08/07 00:21:17  Ted
--- Change to work w/ new package hierarchy
---
--- Revision 1.2  2000/01/27 21:22:35  Ted
--- Fix to work with 2.0 release
---
--- Revision 1.1  1999/12/27 21:41:56  Ted
--- Merged into OpenToken baseline
---
--- Revision 1.0  1999/12/21  Grein
--- Initial Version
---
 -------------------------------------------------------------------------------
 
 with Ada.Strings.Maps.Constants;

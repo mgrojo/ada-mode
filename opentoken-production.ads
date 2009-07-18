@@ -46,10 +46,7 @@ package OpenToken.Production is
    --  synthesization routine. For example:
    --     Number & Minus_Sign & Number + Nonterminal.Synthesize_First
    --
-   type Right_Hand_Side is record
-      Tokens : Token_List.Instance;
-      Action : Nonterminal.Synthesize;
-   end record;
+   type Right_Hand_Side is private;
 
    --------------------------------------------------------------------------
    --  Create the right hand side of a production from a list of
@@ -75,10 +72,7 @@ package OpenToken.Production is
    --    Subtraction <= Number & Minus_Sign & Number
    --  will use Subtraction's default synthesization routine.
    --
-   type Instance is record
-      LHS : Nonterminal.Handle;
-      RHS : Right_Hand_Side;
-   end record;
+   type Instance is private;
 
    type Handle is access all Instance;
 
@@ -114,5 +108,17 @@ package OpenToken.Production is
    function "<=" (LHS : in Nonterminal.Class;
                   RHS : in Token.Class
                  ) return Instance;
+
+private
+
+   type Right_Hand_Side is record
+      Tokens : Token_List.Instance;
+      Action : Nonterminal.Synthesize;
+   end record;
+
+   type Instance is record
+      LHS : Nonterminal.Handle;
+      RHS : Right_Hand_Side;
+   end record;
 
 end OpenToken.Production;

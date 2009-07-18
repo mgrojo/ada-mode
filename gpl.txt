@@ -301,7 +301,7 @@ Copyright (C) yyyy  name of author
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
+as published by the Free Software Foundation; either version 3
 of the License, or (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
@@ -348,7 +348,7 @@ library. If this is what you want to do, use the GNU Library General Public
 License instead of this License.
   ------------------------------------------------------------------------
 
-FSF & GNU inquiries & questions to gnu@gnu.org. 
+FSF & GNU inquiries & questions to gnu@gnu.org.
 
 Copyright notice above.
 Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA

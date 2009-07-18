@@ -39,6 +39,8 @@
 
               <li>Allow setting the parser's text feeder.
 
+              <li>Add a new version of HTML_Lexer that is task safe.
+
               <li>New procedure opentoken-token-enumerated-analyzer.ads Discard_Buffered_Text<br>
                   For calling parser in a loop while handling exceptions.
 
@@ -62,57 +64,38 @@
               <li>based_integer_test
               <li>recognizer_integer_test
               <li>string_token_test
+              <li>test_html_lexer (there is now a known good result for one input file)
               <li>test_lr0_kernels
               <li>test_token_identifier_real_string
             </ul>
         <li>Other changes
             <ul>
               <li>change to unix line ending
-
-        update to GPL 3
-
-        delete all CVS logs
-
-        enforce style via -gnaty3abcefhiklM120nprtx, and -gnatyO ('overriding') in gnat gpl-2009, 6.2.1
-            enforces capitalization of OpenToken, ID
-
-        Ada 2005 syntax for some 'raise exception', 'is null'
-
-        gnat pragma Unreferenced
-
-        separate Build directory
-
-        opentoken-production-parser-lrk_item.adb Generate
-        opentoken-production-parser-lalr.adb LR0_Kernels
-            optimize computation of First_Derivations (was done twice)
-
-        print Ada.Tags.Expanded name in productions
-
-        generally improve readability of dump
-
-        only one Parse_Error declared
-
-        opentoken-production.ads
-            Right_Hand_Side, Instance public
-                put it back to find out why
-
-        Opentoken.Recognizer.Graphic_Character
-            add Redefine
-
-        delete gnat 3.13 workarounds
-
-        delete commented out code
-
-        opentoken-token-enumerated-list.ads
-            add Null_List
-            add First
-            allows test to work
+              <li>update to GPL 3
+              <li>delete all CVS logs
+              <li>Enforce style via -gnaty3abcefhiklM120nprtx, and
+                  -gnatyO ('overriding') in gnat gpl-2009, 6.2.1. This
+                  enforces capitalization of OpenToken, ID, HTML, etc.
+              <li>Ada 2005 syntax for some 'raise exception', 'is null'
+              <li>Add GNAT pragma Unreferenced where needed
+              <li>Merge all Makefiles into one, in a separate Build directory
+              <li>In opentoken-production-parser-lrk_item.adb Generate
+                  and opentoken-production-parser-lalr.adb
+                  LR0_Kernels; optimize computation of
+                  First_Derivations (was done twice).
+              <li>print Ada.Tags.Expanded name in productions
+              <li>generally improve readability of dump
+              <li>only one Parse_Error exception declared
+              <li>In Opentoken.Recognizer.Graphic_Character; add Redefine
+              <li>delete gnat 3.13 workarounds
+              <li>delete commented out code
             </ul>
       </ul>
 
   <dt>Version 3.0b sometime before 2008</dt>
+  <dt>Version 1.0 sometime before 1999?</dt>
 </dl>
 <p>Author : <a href="mailto:stephen_leake@steohe-leake.org">Stephen Leake</a> </p>
-<!-- hhmts start --> Last modified: Tue Jul  7 06:12:21 EDT 2009 <!-- hhmts end -->
+<!-- hhmts start --> Last modified: Sat Jul 18 02:58:17 -0400 2009 <!-- hhmts end -->
 </body>
 </html>

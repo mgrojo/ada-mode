@@ -61,11 +61,6 @@ package OpenToken.Token.Enumerated.List is
    function "&" (Left  : in Instance;
                  Right : in Instance) return Instance;
 
-   ----------------------------------------------------------------------------
-   --  Return first token on List.
-   ----------------------------------------------------------------------------
-   function First (List : in Instance) return Handle;
-
    --------------------------------------------------------------------------
    --  This routine needs to be called when you are done using a list,
    --  or want to reset it to empty.
