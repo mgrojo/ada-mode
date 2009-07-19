@@ -34,8 +34,10 @@ loop until no changes:
 
         (dvc-status ".")
 
+        mtn sync --ticker=count
+
     Windows:
-        mtn_sync_opentoken_shevek.sh
+        mtn_sync_ada_france.sh
 
         windows_release/Makefile
             distclean

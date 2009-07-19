@@ -28,8 +28,8 @@ OpenToken is on the newsgroup comp.lang.ada.
 <p>OpenToken may be obtained in several ways:
 <ul>
   <li><a href="opentoken-3.1w.tar.gz">source tarball opentoken-3.1w.tar.gz</a>
-  <li>Debian package (does not include tests
-  <li><a href="http://www.monotone.ca/">monotone</a> server www.ada-france.org, branch org.opentoken
+  <li>Debian package
+  <li><a href="http://www.monotone.ca/">monotone</a> server www.ada-france.org, branch org.opentoken. Maintained by <a href="mailto:ludovic@ludovic-brenta.org">Ludovic Brenta</a>
 </ul>
 
 <p>
@@ -68,7 +68,7 @@ properly, and easier to understand.
 
 <h2> History</h2>
 
-<h3>Version 3.1 sometime soon<h3>
+<h3>Version 3.1 sometime soon</h3>
 <ul>
   <li>bugs fixed
       <ul>
@@ -82,7 +82,10 @@ properly, and easier to understand.
             Handle duplicate goto set. Tested in test_lr0_kernels.
 
         <li>opentoken-recognizer-integer.adb Analyze<br>
-            Set verdict when Allow_Signs. Tested in recognizer_integer_test.
+            Set verdict when Allow_Signs. Tested in recognizer_integer_test. Debian bug 536359.
+
+        <li>Language_Lexers/ada_lexer.ads, .adb<br>
+            Handle Character'('x'). Debian bug 498945.
 
       </ul>
   <li>significant changes
@@ -325,6 +328,6 @@ agree. Bravo!
 <A href="http://validator.w3.org/check/referer"><img src="../images/vh40.png" alt="Valid HTML 4.0!" height="31" width="88"></A>
 <a href="http://www.gnu.org/software/emacs/windows/ntemacs.html">
 <img src="images/emacs.png" border="0" alt="Created with Emacs"align="right" width="100" height="30"></a>
-<!-- hhmts start --> Last modified: Sun Jul 19 12:10:01 EDT 2009 <!-- hhmts end -->
+<!-- hhmts start --> Last modified: Sun Jul 19 14:13:29 EDT 2009 <!-- hhmts end -->
 </body>
 </html>
