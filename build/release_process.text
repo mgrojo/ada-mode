@@ -1,0 +1,63 @@
+sync with gds, ada-france
+    ~/bin/mtn_sync_ada_france_gds.sh
+    ~/bin/mtn_sync_ada_france.sh
+
+(dvc-status ".")
+
+bump version, doc changes
+    ../opentoken.html
+        current version
+        opentoken-*.tar.gz
+
+    ../Build/Makefile
+        ZIP_VERSION
+
+    ~/Web/Makefile
+        OPENTOKEN_ZIP_VERSION
+
+review Debian bugs
+    http://packages.qa.debian.org/o/opentoken.html
+
+    tests implemented, fixed?
+
+loop until no changes:
+    Debian:
+
+        ; sal-standard uses GNAT GPL 2009; it provides an incompatible
+        ; version of AUnit. Could put in a choice to use SAL AUnit,
+        ; but it's not worth it.
+
+        (sal-debian)
+        linux_release/Makefile
+            distclean
+            all
+
+        (dvc-status ".")
+
+    Windows:
+        mtn_sync_opentoken_shevek.sh
+
+        windows_release/Makefile
+            distclean
+            all
+
+        (dvc-status ".")
+
+        mtn_sync_opentoken_shevek.sh
+end loop
+
+Build/Makefile
+    zip
+
+publish:
+    ~/Web/Makefile
+        opentoken
+
+announce:
+    comp.lang.ada
+    Reto Buerki (Debian maintainer) buerki@swiss-it.ch
+
+update Debian bugs?
+    http://packages.qa.debian.org/o/opentoken.html
+
+(end of file)

@@ -78,7 +78,7 @@ test_html_lexer_safe.out : test_html_lexer_safe.exe test_html_scan.html
 	./$^ $(RUN_ARGS) > $@
 
 test_html_lexer_unsafe.run : test_html_lexer_unsafe.exe
-	./test_html_lexer_unsafe.exe ../../readme.html
+	./test_html_lexer_unsafe.exe ../../Docs/opentoken.html
 
 test_java_lexer.run : test_java_lexer.exe
 	./test_java_lexer.exe ../../Examples/Language_Lexer_Examples/something.java
@@ -88,8 +88,11 @@ test_m3_lexer.run : test_m3_lexer.exe
 	./test_m3_lexer.exe ../../Examples/Language_Lexer_Examples/something.java
 
 clean :: test-clean
-	rm -f *.exe
+	rm -f *.diff *.exe *.out *.txt
 	rm -f obj/*
+
+distclean :: clean
+	rm -rf obj obj_tree
 
 test-clean :
 	rm -f *.diff *.out *.txt

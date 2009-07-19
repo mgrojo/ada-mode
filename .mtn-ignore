@@ -1,3 +1,4 @@
+^Build/.*\.gz$
 ^Build/linux_debug/.*\.diff$
 ^Build/linux_debug/.*\.exe$
 ^Build/linux_debug/.*\.out$
@@ -10,6 +11,7 @@
 ^Build/linux_release/.*\.txt$
 ^Build/linux_release/lib$
 ^Build/linux_release/obj$
+^Build/linux_release/obj_tree$
 ^Build/windows_release/.*\.diff$
 ^Build/windows_release/.*\.exe$
 ^Build/windows_release/.*\.out$

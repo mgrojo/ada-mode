@@ -15,8 +15,7 @@ lib:
 clean ::
 	@rm -rf lib/*
 
-distclean:
-	@rm -rf obj
+distclean ::
 	@rm -rf lib
 
 include ../common.make
