@@ -21,7 +21,7 @@ also made by Christoph Grein and Stephen Leake.
 
 <p>OpenToken is currently maintained by <a
 href="mailto:stephen_leake@stephe-leake.org">Stephen Leake</a>. Submit
-bugs via the <a href="http://bugs.debian.org/Bugs/">Debian Bug
+bugs via the <a href="http://www.debian.org/Bugs/">Debian Bug
 system</a>, against the opentoken source package. Discussion about
 OpenToken is on the newsgroup comp.lang.ada.
 
@@ -101,6 +101,9 @@ properly, and easier to understand.
         <li>Allow setting the parser's text feeder.
 
         <li>Add a new version of HTML_Lexer that is task safe.
+
+        <li>HTML_Lexer allows '"' in paragraphs; not clear why that
+        was disallowed. It also allows more characters in tags.
 
         <li>New procedure opentoken-token-enumerated-analyzer.ads Discard_Buffered_Text<br>
             For calling parser in a loop while handling exceptions.
@@ -322,12 +325,14 @@ this code be released as Open Source. They were open-minded enough to
 agree. Bravo!
 
 <HR>
-<p>Author : <a href="mailto:stephen_leake@steohe-leake.org">Stephen Leake</a>
 <p><a href="../index.html">my home page</a>
-<P><A href="http://www.adaic.org/"><img src="../images/adapowered2.jpg" alt="powered by Ada"width="200" height="50"></A>
-<A href="http://validator.w3.org/check/referer"><img src="../images/vh40.png" alt="Valid HTML 4.0!" height="31" width="88"></A>
+<a href="mailto:stephen_leake@stephe-leake.org">Author : Stephen Leake</a>
+<a href="http://validator.w3.org/check/referer">
+<img src="../images/valid-html401.png" alt="Valid HTML 4.01!" height=31 width=88></a>
 <a href="http://www.gnu.org/software/emacs/windows/ntemacs.html">
-<img src="images/emacs.png" border="0" alt="Created with Emacs"align="right" width="100" height="30"></a>
-<!-- hhmts start --> Last modified: Sun Jul 19 14:13:29 EDT 2009 <!-- hhmts end -->
+<img src="../images/emacs.png" alt="Created with Emacs" width="100" height="30"></a>
+<a href="http://www.adaic.org/">
+<img src="../images/adapowered2.png" alt="powered by Ada" width="200" height="50"></a>
+<!-- hhmts start --> Last modified: Sun Jul 19 16:47:02 EDT 2009 <!-- hhmts end -->
 </body>
 </html>

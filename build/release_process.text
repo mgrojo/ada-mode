@@ -48,7 +48,7 @@ loop until no changes:
         mtn_sync_opentoken_shevek.sh
 end loop
 
-Build/Makefile
+Makefile
     zip
 
 publish:
