@@ -10,6 +10,12 @@
 ^Build/linux_release/.*\.txt$
 ^Build/linux_release/lib$
 ^Build/linux_release/obj$
+^Build/lynx_release/.*\.diff$
+^Build/lynx_release/.*\.exe$
+^Build/lynx_release/.*\.out$
+^Build/lynx_release/.*\.txt$
+^Build/lynx_release/obj$
+^Build/lynx_release/obj_tree$
 ^Build/windows_release/.*\.diff$
 ^Build/windows_release/.*\.exe$
 ^Build/windows_release/.*\.out$

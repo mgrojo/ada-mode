@@ -27,7 +27,8 @@ include ../common.make
 GNAT_PROJECT := opentoken_test.gpr
 GNAT_VERSION := 6.2.1
 
-export ADA_PROJECT_PATH := ..;../../../GDS/main/sal/build/x86_gnu_windows_release;../../../GDS/main/makerules
+# this is correct when OpenToken resides in the GDS tree
+export ADA_PROJECT_PATH := ../../../sal/build/x86_gnu_windows_release;../../../makerules
 
 # Local Variables:
 # eval: (ada-parse-prj-file "opentoken.prj")

@@ -6,6 +6,9 @@ source-clean ::
 	-find ../ -name "*,t" -print | xargs rm -v
 
 # GDS targets
+lynx-all :
+	make -C lynx_release all
+
 windows-all :
 	make -C windows_release all
 
