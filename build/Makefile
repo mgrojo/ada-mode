@@ -21,4 +21,8 @@ zipfile : $(ZIPFILE)
 $(ZIPFILE) : force
 	tar -zcf $(ZIPFILE) -C ../.. --exclude=_MTN --exclude=*.tar.gz --exclude=*.tar --no-anchor opentoken
 
+# GDS targets
+windows-all :
+	make -C windows_release all
+
 # end of file
