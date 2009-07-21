@@ -95,6 +95,10 @@ package OpenToken.Token.Selection is
    function "or" (Left  : in Instance;
                   Right : in Instance) return Instance;
 
+   ----------------------------------------------------------------------------
+   --  Return a newly allocated instance which is a copy of the given instance.
+   ----------------------------------------------------------------------------
+   function New_Instance (Old_Instance : in Instance) return Handle;
 
    overriding function Could_Parse_To
      (Match    : in Instance;
@@ -116,8 +120,7 @@ package OpenToken.Token.Selection is
    procedure Raise_Parse_Error
      (Match    : in out Instance;
       Analyzer : in out Source_Class;
-      Actively : in     Boolean := True
-     );
+      Actively : in     Boolean := True);
 
 private
 

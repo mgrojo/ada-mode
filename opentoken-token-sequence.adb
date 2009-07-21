@@ -1,5 +1,6 @@
 -------------------------------------------------------------------------------
 --
+-- Copyright (C) 2009 Stephe Leake
 -- Copyright (C) 2000 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -24,40 +25,25 @@
 --
 -------------------------------------------------------------------------------
 
------------------------------------------------------------------------------
---  This package defines a reusable token for a simple sequence of
---  tokens. These a quite easy to create yourself, of course. But
---  having a prebuilt one allows you to easily use it in constructors
---  for other tokens.
---
--------------------------------------------------------------------------------
 package body OpenToken.Token.Sequence is
-
-   use type Token.Linked_List.List_Iterator;
-   use type Token.Linked_List.Instance;
-
-   ----------------------------------------------------------------------------
-   --  Externally visible routines
-   --
 
    overriding procedure Parse
      (Match    : in out Instance;
       Analyzer : in out Source_Class;
       Actively : in     Boolean := True)
    is
+      use Token.Linked_List;
 
-      List_Iterator : Token.Linked_List.List_Iterator :=
-        Token.Linked_List.Initial_Iterator (Match.Members);
+      I : List_Iterator := Initial_Iterator (Match.Members);
    begin
 
-      while List_Iterator /= Token.Linked_List.Null_Iterator loop
+      while I /= Null_Iterator loop
          Parse
-           (Match    => Token.Linked_List.Token_Handle (List_Iterator).all,
+           (Match    => Token_Handle (I).all,
             Analyzer => Analyzer,
-            Actively => Actively
-            );
+            Actively => Actively);
 
-         Token.Linked_List.Next_Token (List_Iterator);
+         Next_Token (I);
       end loop;
 
       if Actively then
@@ -66,45 +52,48 @@ package body OpenToken.Token.Sequence is
 
    end Parse;
 
-   ----------------------------------------------------------------------------
-   --  Create a token sequence from a pair of token handles.
-   ----------------------------------------------------------------------------
-   function "&" (Left  : access OpenToken.Token.Class;
-                 Right : access OpenToken.Token.Class) return Instance is
-
+   function "&"
+     (Left  : access OpenToken.Token.Class;
+      Right : access OpenToken.Token.Class)
+     return Instance
+   is
+      use Linked_List;
    begin
       return (Members => OpenToken.Token.Handle (Left) & OpenToken.Token.Handle (Right));
    end "&";
 
-   ----------------------------------------------------------------------------
-   --  Create a token sequence from a token handle and a token sequence.
-   ----------------------------------------------------------------------------
-   function "&" (Left  : access OpenToken.Token.Class;
-                 Right : in     Instance) return Instance is
+   function "&"
+     (Left  : access OpenToken.Token.Class;
+      Right : in     Instance)
+     return Instance
+   is
+      use Linked_List;
    begin
       return (Members => OpenToken.Token.Handle (Left) & Right.Members);
    end "&";
 
-   function "&" (Left  : in     Instance;
-                 Right : access OpenToken.Token.Class) return Instance is
+   function "&"
+     (Left  : in     Instance;
+      Right : access OpenToken.Token.Class)
+     return Instance
+   is
+      use Linked_List;
    begin
       return (Members => Left.Members & OpenToken.Token.Handle (Right));
    end "&";
 
-   ----------------------------------------------------------------------------
-   --  Create a token sequence from a pair of token sequences.
-   ----------------------------------------------------------------------------
-   function "&" (Left  : in Instance;
-                 Right : in Instance) return Instance is
+   function "&"
+     (Left  : in Instance;
+      Right : in Instance)
+     return Instance
+   is
+      use Linked_List;
    begin
       return (Members => Left.Members & Right.Members);
    end "&";
 
-   ----------------------------------------------------------------------------
-   --  Return a newly allocated instance which is a copy of the given instance.
-   ----------------------------------------------------------------------------
-   function New_Instance (Old_Instance : in Instance) return Handle is
-   begin
+   function New_Instance (Old_Instance : in Instance) return Handle
+   is begin
       return new Class'(Class (Old_Instance));
    end New_Instance;
 

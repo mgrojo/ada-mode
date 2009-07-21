@@ -26,33 +26,13 @@
 
 with Ada.Exceptions;
 with Ada.Tags;
-
------------------------------------------------------------------------------
---  This package is the top of a generic hierarchy. Based on the list
---  of IDs it is instantiated with, a user can create tokens and token
---  analyzers.
---
---  This package declares an type for designating a single token. It
---  is designed to be created by an instance of the Token.Analyzer
---  class when a particular kind of token is recognized.
------------------------------------------------------------------------------
 package body OpenToken.Token.Enumerated is
 
-   ----------------------------------------------------------------------------
-   --  Get a nonterminal token with the given ID.
-   ----------------------------------------------------------------------------
-   function Get (ID : in Token_ID := Token_ID'First) return Instance'Class is
-   begin
+   function Get (ID : in Token_ID := Token_ID'First) return Instance'Class
+   is begin
       return Instance'Class (Instance'(ID => ID));
    end Get;
 
-   ----------------------------------------------------------------------------
-   --  This procedure will be called when a token is recognized.
-   --
-   --  The Token's ID will be set to the given value. The Lexeme and
-   --  Recognizer fields aren't used for this instance of the type.
-   --  But they will be filled in by the analyzer.
-   --------------------------------------------------------------------------
    procedure Create (Lexeme     : in     String;
                      ID         : in     Token_ID;
                      Recognizer : in     Recognizer_Handle;
@@ -64,20 +44,15 @@ package body OpenToken.Token.Enumerated is
       New_Token.ID := ID;
    end Create;
 
-   ----------------------------------------------------------------------------
-   --  This function returns the ID of the token.
-   ----------------------------------------------------------------------------
    function ID (Token : in Instance'Class) return Token_ID is
    begin
       return Token.ID;
    end ID;
 
-   ----------------------------------------------------------------------------
-   --  Set the given token's ID to the given value
-   ----------------------------------------------------------------------------
-   procedure Set_ID (Token : in out Instance'Class;
-                    ID    : in     Token_ID) is
-   begin
+   procedure Set_ID
+     (Token : in out Instance'Class;
+      ID    : in     Token_ID)
+   is begin
       Token.ID := ID;
    end Set_ID;
 

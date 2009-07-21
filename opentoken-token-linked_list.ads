@@ -111,7 +111,7 @@ private
    end record;
 
    --------------------------------------------------------------------------
-   --  Overriding of controled operations to provide for automatic
+   --  Overriding of controlled operations to provide for automatic
    --  cleanup of list nodes.
    --
    ----------------------------------------------------------------------------

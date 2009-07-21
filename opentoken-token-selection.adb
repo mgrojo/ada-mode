@@ -152,6 +152,11 @@ package body OpenToken.Token.Selection is
       return (Members => Left.Members & Right.Members);
    end "or";
 
+   function New_Instance (Old_Instance : in Instance) return Handle
+   is begin
+      return new Class'(Class (Old_Instance));
+   end New_Instance;
+
    overriding function Could_Parse_To
      (Match    : in Instance;
       Analyzer : in Source_Class)

@@ -31,7 +31,7 @@ with OpenToken.Recognizer;
 --  of IDs it is instantiated with, a user can create tokens and token
 --  analyzers.
 --
---  This package declares an type for designating a single token. It
+--  This package declares a type for designating a single token. It
 --  is designed to be created by an instance of the Token.Analyzer
 --  class when a particular kind of token is recognized.
 --

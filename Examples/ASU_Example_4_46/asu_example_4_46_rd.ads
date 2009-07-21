@@ -1,5 +1,6 @@
 -------------------------------------------------------------------------------
 --
+-- Copyright (C) 2009 Stephe Leake
 -- Copyright (C) 2000 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -22,55 +23,98 @@
 --  exception does not however invalidate any other reasons why the
 --  executable file might be covered by the GNU Public License.
 -------------------------------------------------------------------------------
+
+
+-----------------------------------------------------------------------------
+--  This package contains the library-level objects for the
+--  recursive-descent version of Example 4.46 from the Dragon Book.
+--
+-------------------------------------------------------------------------------
+
 with Ada.Text_IO;
-with OpenToken.Text_Feeder.Text_IO;
-
-with OpenToken.Token.Enumerated.Analyzer;
-with OpenToken.Recognizer.Keyword;
-with OpenToken.Recognizer.End_Of_File;
 with OpenToken.Recognizer.Character_Set;
+with OpenToken.Recognizer.End_Of_File;
+with OpenToken.Recognizer.Keyword;
+with OpenToken.Text_Feeder.Text_IO;
+with OpenToken.Token.Enumerated.Analyzer;
 with OpenToken.Token.Selection;
-
--------------------------------------------------------------------------------
---  This package contains the library-level object for the recursive-decent
---  version of Example 4.46 from the Dragon Book.
--------------------------------------------------------------------------------
+with OpenToken.Token.Sequence;
 package ASU_Example_4_46_RD is
 
-   --  The complete list of tokens, with the terminals listed first.
+   --  The complete list of tokens. No non-terminals in recursive descent.
    type Token_IDs is (Asterix_ID, ID_ID, Equals_ID, EOF_ID, Whitespace_ID);
 
-   --  Instantiate all the nessecary packages
    package Master_Token is new OpenToken.Token.Enumerated (Token_IDs);
    package Tokenizer is new Master_Token.Analyzer (Whitespace_ID);
 
-   --  Define a lexer syntax for the terminals
    Syntax : constant Tokenizer.Syntax :=
      (Asterix_ID    => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("*")),
       ID_ID         => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("id")),
       Equals_ID     => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("=")),
       EOF_ID        => Tokenizer.Get (OpenToken.Recognizer.End_Of_File.Get),
       Whitespace_ID => Tokenizer.Get (OpenToken.Recognizer.Character_Set.Get
-                                      (OpenToken.Recognizer.Character_Set.Standard_Whitespace))
-      );
+                                        (OpenToken.Recognizer.Character_Set.Standard_Whitespace)));
 
-   --  Define all our terminal tokens
+   --  Define all tokens, for use in declaring the grammar. Note that
+   --  these must all be variables or pointers to variables. Parsing
+   --  stores intermediate results in the non-terminal tokens; the
+   --  terminal tokens must also be variables because the parser
+   --  doesn't really know the difference.
+   --
+   --  The non-terminal tokens are pointers (type Handle) to allow for
+   --  mutual recursion. So the terminal ones are too, for
+   --  consistency, and to reduce the number of '&' and 'or' operators
+   --  we need.
+   --
+   --  Terminal tokens
    Asterix : constant Master_Token.Handle := Syntax (Asterix_ID).Token_Handle;
    ID      : constant Master_Token.Handle := Syntax (ID_ID).Token_Handle;
    Equals  : constant Master_Token.Handle := Syntax (Equals_ID).Token_Handle;
    EOF     : constant Master_Token.Handle := Syntax (EOF_ID).Token_Handle;
 
-   --  The tokens. Since the defintion of tokens L and R are mutually-recursive, we'll have to
-   --  delay their initializations (grammar specification) until after they are both declared.
-   S_Prime :          OpenToken.Token.Handle;
-   S       : constant OpenToken.Token.Handle := new OpenToken.Token.Selection.Instance;
-   L       : constant OpenToken.Token.Handle := new OpenToken.Token.Selection.Instance;
-   R       : constant OpenToken.Token.Handle := new OpenToken.Token.Selection.Instance;
+   --  Allow infix operators for building productions
+   use type OpenToken.Token.Selection.Instance;
+   use type OpenToken.Token.Sequence.Instance;
+   use OpenToken.Token;
+
+   --  Non-terminal tokens, which define the grammar.
+   --
+   --  The text in the example in the book looks something like:
+   --
+   --  S' -> S
+   --  S  -> L = R | R
+   --  L  -> * R | id
+   --  R  -> L
+   --
+   --  Since the defintion of tokens L and R are
+   --  mutually-recursive, we'll have to delay their initializations
+   --  (grammar specification) until after they are both declared.
+
+   --  L and R are mutually recursive, so we need a forward reference
+   --  for one of them. R is the simplest, so we pick that for the
+   --  forward reference; the actual value is set in the body.
+   --
+   --  Note that these must be pointers to variables, not pointers to
+   --  constants; the parser stores result values in them.
+   --
+   --  We must use Sequence.New_Instance, not 'new Sequence.Instance',
+   --  to avoid accessibility errors.
+   --
+   --  FIXME : need selection."or" (sequence, token.handle) return selection.handle
+   R : constant Selection.Handle := new Selection.Instance;
+
+   L : constant Selection.Handle := Selection.New_Instance (Sequence.New_Instance (Asterix & R) or ID);
+
+   S : constant Selection.Handle := Selection.New_Instance
+     (Sequence.New_Instance (L & Equals & R & EOF) or
+        Sequence.New_Instance (R & EOF));
+
+   S_Prime : constant OpenToken.Token.Handle := OpenToken.Token.Handle (S);
 
    --  Create a text feeder for our Input_File.
    Input_File : aliased Ada.Text_IO.File_Type;
    Feeder     : aliased OpenToken.Text_Feeder.Text_IO.Instance :=
-     OpenToken.Text_Feeder.Text_IO.Create (Input_File'Unchecked_Access);
+     OpenToken.Text_Feeder.Text_IO.Create (Input_File'Access);
 
    Analyzer : Tokenizer.Instance := Tokenizer.Initialize (Syntax, Feeder'Access);
 

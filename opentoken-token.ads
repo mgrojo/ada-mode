@@ -92,6 +92,13 @@ package OpenToken.Token is
    ----------------------------------------------------------------------------
    function Get (Analyzer : in Source) return Class is abstract;
 
+   --------------------------------------------------------------------
+   --  We _don't_ define a 'Print' procedure for tokens, even though
+   --  that might be useful in debugging recursive descent parsers.
+   --  The problem is that grammars are often recursive, which leads
+   --  to infinite loops in Print, and detecting such loops is too
+   --  hard.
+
 private
    type Instance is abstract tagged null record;
    type Source   is abstract tagged null record;
