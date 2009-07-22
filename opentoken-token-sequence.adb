@@ -25,10 +25,11 @@
 --
 -------------------------------------------------------------------------------
 
+with Ada.Text_IO;
 package body OpenToken.Token.Sequence is
 
    overriding procedure Parse
-     (Match    : in out Instance;
+     (Match    : access Instance;
       Analyzer : in out Source_Class;
       Actively : in     Boolean := True)
    is
@@ -37,26 +38,23 @@ package body OpenToken.Token.Sequence is
       I : List_Iterator := Initial_Iterator (Match.Members);
    begin
 
-      while I /= Null_Iterator loop
-         begin
-            Parse (Token_Handle (I).all, Analyzer, Actively);
-         exception
-         when Parse_Error =>
-            if Actively then
-               raise Parse_Error with
-                 "found " & Name (Get (Analyzer)) & " expecting " & Name (Token_Handle (I).all);
-            else
-               --  Don't waste time building error message; just
-               --  signal we can't match this.
-               raise Parse_Error;
-            end if;
-         end;
+      if Trace_Parse then
+         if Actively then
+            Ada.Text_IO.Put ("parsing");
+         else
+            Ada.Text_IO.Put ("trying");
+         end if;
+         Ada.Text_IO.Put_Line (" sequence " & Name (Class (Match.all)) &
+              "'(" & Names (Match.Members) & ") match " & Name (Get (Analyzer)));
+      end if;
 
+      while I /= Null_Iterator loop
+         Parse (Token_Handle (I), Analyzer, Actively);
          Next_Token (I);
       end loop;
 
       if Actively then
-         Build (Match, Match.Members);
+         Build (Match.all, Match.Members);
       end if;
 
    end Parse;
@@ -115,5 +113,12 @@ package body OpenToken.Token.Sequence is
    begin
       return Could_Parse_To (Token_Handle (Initial_Iterator (Match.Members)).all, Analyzer);
    end Could_Parse_To;
+
+   overriding procedure Expecting (Token : access Instance; List : in out Linked_List.Instance)
+   is
+      use Linked_List;
+   begin
+      Add (List, Token_Handle (First (Token.Members)));
+   end Expecting;
 
 end OpenToken.Token.Sequence;

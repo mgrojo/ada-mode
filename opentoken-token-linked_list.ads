@@ -73,6 +73,7 @@ package OpenToken.Token.Linked_List is
    --  Return an initialized iterator for traversing the token list
    ----------------------------------------------------------------------------
    function Initial_Iterator (List : in Instance) return List_Iterator;
+   function First (List : in Instance) return List_Iterator renames Initial_Iterator;
 
    ----------------------------------------------------------------------------
    --  Move the iterator down the list to the next token.
@@ -98,9 +99,8 @@ package OpenToken.Token.Linked_List is
    --  in. Do not delete it while the list is still using it!
    --
    ----------------------------------------------------------------------------
-   procedure Enqueue
-     (List  : in out Instance;
-      Token : in     OpenToken.Token.Handle);
+   procedure Enqueue (List : in out Instance; Token : in OpenToken.Token.Handle);
+   procedure Add (List : in out Instance; Token : in OpenToken.Token.Handle) renames Enqueue;
 
 private
    type List_Node;

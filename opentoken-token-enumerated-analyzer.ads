@@ -96,13 +96,21 @@ package OpenToken.Token.Enumerated.Analyzer is
    ----------------------------------------------------------------------------
    --  Return an Analyzer with the given syntax and text feeder.
    ----------------------------------------------------------------------------
-   function Initialize (Language_Syntax : in Syntax;
-                        Feeder          : in Text_Feeder_Ptr := Input_Feeder'Access
-                       ) return Instance;
-   function Initialize (Language_Syntax : in Syntax;
-                        Default         : in Terminal_ID;
-                        Feeder          : in Text_Feeder_Ptr := Input_Feeder'Access
-                       ) return Instance;
+   function Initialize
+     (Language_Syntax : in Syntax;
+      Feeder          : in Text_Feeder_Ptr := Input_Feeder'Access)
+     return Instance;
+   function Initialize
+     (Language_Syntax : in Syntax;
+      Default         : in Terminal_ID;
+      Feeder          : in Text_Feeder_Ptr := Input_Feeder'Access)
+     return Instance;
+
+   --------------------------------------------------------------------
+   --  Reset Analyzer, to start finding tokens. This is appropriate
+   --  when the Feeder text has been changed.
+   --------------------------------------------------------------------
+   procedure Reset (Analyzer : in out Instance);
 
    ----------------------------------------------------------------------------
    --  Set the Analyzer's syntax to the given value.

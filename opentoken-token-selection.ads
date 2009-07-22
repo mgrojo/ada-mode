@@ -72,7 +72,7 @@ package OpenToken.Token.Selection is
    --  and does not call any of the private routines.
    ----------------------------------------------------------------------------
    overriding procedure Parse
-     (Match    : in out Instance;
+     (Match    : access Instance;
       Analyzer : in out Source_Class;
       Actively : in     Boolean      := True);
 
@@ -128,23 +128,7 @@ package OpenToken.Token.Selection is
      (Match    : in Instance;
       Analyzer : in Source_Class) return Boolean;
 
-   --------------------------------------------------------------------------
-   --  This routine is called when none of the sequence's tokens
-   --  return true for Could_Parse_To. It raises parse error. If
-   --  Actively is set, it includes a descriptive exception message in
-   --  the exception.
-   --
-   --  The default version of this routine tries to identify the
-   --  possible tokens by their tag name. This is a pretty lame scheme
-   --  if reusable tokens are used, so you will probably either want
-   --  to override this, or handle the parse error in the calling
-   --  routine and print out a better message there.
-   --
-   ----------------------------------------------------------------------------
-   procedure Raise_Parse_Error
-     (Match    : in out Instance;
-      Analyzer : in out Source_Class;
-      Actively : in     Boolean := True);
+   overriding procedure Expecting (Token : access Instance; List : in out Linked_List.Instance);
 
    ----------------------------------------------------------------------
    --  This routine is called when an entire selection has been

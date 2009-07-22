@@ -373,12 +373,11 @@ package body OpenToken.Token.Enumerated.Analyzer is
 
    end Find_Best_Match;
 
-   ----------------------------------------------------------------------------
-   --  Return an Analyzer with the given syntax and text feeder.
-   ----------------------------------------------------------------------------
-   function Initialize (Language_Syntax : in Syntax;
-                        Feeder          : in Text_Feeder_Ptr := Input_Feeder'Access
-                       ) return Instance is
+   function Initialize
+     (Language_Syntax : in Syntax;
+      Feeder          : in Text_Feeder_Ptr := Input_Feeder'Access)
+     return Instance
+   is
       New_Analyzer : Instance;
    begin
       --  Initialize the syntax
@@ -403,10 +402,12 @@ package body OpenToken.Token.Enumerated.Analyzer is
       return New_Analyzer;
    end Initialize;
 
-   function Initialize (Language_Syntax : in Syntax;
-                        Default         : in Terminal_ID;
-                        Feeder          : in Text_Feeder_Ptr := Input_Feeder'Access
-                       ) return Instance is
+   function Initialize
+     (Language_Syntax : in Syntax;
+      Default         : in Terminal_ID;
+      Feeder          : in Text_Feeder_Ptr := Input_Feeder'Access)
+     return Instance
+   is
       New_Analyzer : Instance;
    begin
       --  Initialize the syntax
@@ -432,9 +433,19 @@ package body OpenToken.Token.Enumerated.Analyzer is
       return New_Analyzer;
    end Initialize;
 
-   ----------------------------------------------------------------------------
-   --  Set the analyzer's text feeder.
-   ----------------------------------------------------------------------------
+   procedure Reset (Analyzer : in out Instance)
+   is begin
+      Analyzer.Line        := 1;
+      Analyzer.Column      := 1;
+      Analyzer.Lexeme_Head := 1;
+      Analyzer.Lexeme_Tail := 0;
+      Analyzer.Buffer_Head := Analyzer.Buffer'First;
+      Analyzer.Buffer_Tail := Analyzer.Buffer'Last;
+      Analyzer.Buffer_Size := 0;
+      Analyzer.Next_Line   := 1;
+      Analyzer.Next_Column := 1;
+   end Reset;
+
    procedure Set_Text_Feeder (Analyzer : in out Instance; Feeder : in Text_Feeder_Ptr) is
    begin
       Analyzer.Feeder      := Feeder;
@@ -443,7 +454,6 @@ package body OpenToken.Token.Enumerated.Analyzer is
       Analyzer.Next_Line   := 1;
       Analyzer.Next_Column := 1;
    end Set_Text_Feeder;
-
 
    procedure Set_Syntax (Analyzer : in out Instance; Language_Syntax : in Syntax)
    is begin

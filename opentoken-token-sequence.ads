@@ -43,7 +43,7 @@ package OpenToken.Token.Sequence is
    type Handle is access all Class;
 
    overriding procedure Parse
-     (Match    : in out Instance;
+     (Match    : access Instance;
       Analyzer : in out Source_Class;
       Actively : in     Boolean := True);
 
@@ -99,6 +99,8 @@ package OpenToken.Token.Sequence is
      (Match    : in Instance;
       Analyzer : in Source_Class)
      return Boolean;
+
+   overriding procedure Expecting (Token : access Instance; List : in out Linked_List.Instance);
 
    ----------------------------------------------------------------------------
    --  This routine is called when an entire sequence has been actively

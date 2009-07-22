@@ -25,50 +25,59 @@
 --
 -------------------------------------------------------------------------------
 
+with Ada.Text_IO;
 package body OpenToken.Token.Selection is
 
-   procedure Raise_Parse_Error
-     (Match    : in out Instance;
-      Analyzer : in out Source_Class;
-      Actively : in     Boolean := True)
-   is begin
-      if Actively then
-         raise Parse_Error with "Unexpected " & Name (Get (Analyzer)) & " found. Expected one of " &
-           Token.Linked_List.Names (Match.Members) & ".";
-      else
-         --  Don't waste time since this is probably *not* an error
-         --  condition in this mode, and it will probably be handled
-         --  so no one will ever see the message anyway.
-         raise Parse_Error;
-      end if;
-   end Raise_Parse_Error;
-
    overriding procedure Parse
-     (Match    : in out Instance;
+     (Match    : access Instance;
       Analyzer : in out Source_Class;
       Actively : in     Boolean      := True)
    is
-      use type OpenToken.Token.Linked_List.List_Iterator;
-      List_Iterator : Token.Linked_List.List_Iterator :=
-        Token.Linked_List.Initial_Iterator (Match.Members);
+      use Linked_List;
+      I : List_Iterator := First (Match.Members);
    begin
 
-      while
-        not Token.Could_Parse_To
-        (Match    => Token.Linked_List.Token_Handle (List_Iterator).all,
-         Analyzer => Analyzer)
-      loop
-         Token.Linked_List.Next_Token (List_Iterator);
-         if List_Iterator = Token.Linked_List.Null_Iterator then
-            Raise_Parse_Error (Match, Analyzer, Actively);
+      if Trace_Parse then
+         if Actively then
+            Ada.Text_IO.Put ("parsing");
+         else
+            Ada.Text_IO.Put ("trying");
          end if;
+         Ada.Text_IO.Put_Line
+           (" selection " & Name (Class (Match.all)) &
+              "'(" & Names (Match.Members) & ") match " & Name (Get (Analyzer)));
+      end if;
 
+      while
+        not Token.Could_Parse_To (Token_Handle (I).all, Analyzer)
+      loop
+         Next_Token (I);
+         if I = Null_Iterator then
+            if Actively then
+               declare
+                  Expected : Linked_List.Instance;
+               begin
+                  Expecting (Match, Expected);
+                  raise Parse_Error with "Found " & Name (Get (Analyzer)) & "; expected one of " &
+                    Token.Linked_List.Names (Expected) & ".";
+               end;
+            else
+               --  Don't waste time since this is probably *not* an error
+               --  condition in this mode, and it will probably be handled
+               --  so no one will ever see the message anyway.
+               raise Parse_Error;
+            end if;
+         end if;
       end loop;
 
-      Parse (Token.Linked_List.Token_Handle (List_Iterator).all, Analyzer, Actively);
+      if Trace_Parse then
+         Ada.Text_IO.Put_Line ("matched " & Name (Token_Handle (I).all));
+      end if;
+
+      Parse (Token_Handle (I), Analyzer, Actively);
 
       if Actively then
-         Build (Match, Token.Linked_List.Token_Handle (List_Iterator).all);
+         Build (Match.all, Token_Handle (I).all);
       end if;
 
    end Parse;
@@ -123,18 +132,28 @@ package body OpenToken.Token.Selection is
       Analyzer : in Source_Class)
      return Boolean
    is
-      use type OpenToken.Token.Linked_List.List_Iterator;
-      List_Iterator : Token.Linked_List.List_Iterator :=
-        Token.Linked_List.Initial_Iterator (Match.Members);
+      use Linked_List;
+      I : List_Iterator := First (Match.Members);
    begin
-
-      while List_Iterator /= Token.Linked_List.Null_Iterator loop
-         if Could_Parse_To (Token.Linked_List.Token_Handle (List_Iterator).all, Analyzer) then
+      while I /= Null_Iterator loop
+         if Could_Parse_To (Token_Handle (I).all, Analyzer) then
             return True;
          end if;
-         Token.Linked_List.Next_Token (List_Iterator);
+         Next_Token (I);
       end loop;
       return False;
    end Could_Parse_To;
+
+   overriding procedure Expecting (Token : access Instance; List : in out Linked_List.Instance)
+   is
+      use Linked_List;
+      I : List_Iterator := First (Token.Members);
+   begin
+      loop
+         exit when I = Null_Iterator;
+         Expecting (Token_Handle (I), List);
+         Next_Token (I);
+      end loop;
+   end Expecting;
 
 end OpenToken.Token.Selection;

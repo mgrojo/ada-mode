@@ -25,8 +25,8 @@
 --
 -------------------------------------------------------------------------------
 
-with Ada.Exceptions;
 with Ada.Tags;
+with Ada.Text_IO;
 package body OpenToken.Token.Enumerated is
 
    function Get (ID : in Token_ID := Token_ID'First) return Instance'Class
@@ -59,40 +59,42 @@ package body OpenToken.Token.Enumerated is
    end Set_ID;
 
    overriding procedure Parse
-     (Match    : in out Instance;
+     (Match    : access Instance;
       Analyzer : in out Source_Class;
       Actively : in     Boolean      := True)
    is
-
       Next_Token : constant OpenToken.Token.Class := Get (Analyzer);
    begin
+      if Trace_Parse then
+         if Actively then
+            Ada.Text_IO.Put_Line ("parsing enumerated " & Name (Match.all));
+         else
+            Ada.Text_IO.Put_Line ("trying enumerated " & Name (Match.all));
+         end if;
+      end if;
+
       if Instance (Next_Token).ID = Match.ID then
-         Match := Instance (Next_Token);
+         begin
+            Match.all := Instance (Next_Token);
+         exception
+         when Constraint_Error =>
+            raise Parse_Error with
+              "Expected a token of type" & Ada.Tags.Expanded_Name (Instance'Tag) & " but found a " &
+              Ada.Tags.Expanded_Name (Next_Token'Tag);
+         end;
 
          if Actively then
             Create
               (Lexeme     => Lexeme (Source'Class (Analyzer)),
                ID         => Match.ID,
                Recognizer => Last_Recognizer (Source'Class (Analyzer)),
-               New_Token  => Class (Match)
-               );
+               New_Token  => Class (Match.all));
          end if;
       else
-         Ada.Exceptions.Raise_Exception
-           (Parse_Error'Identity,
-            "Expected " & Token_ID'Image (Match.ID) & " but found " &
-            Token_ID'Image (Instance (Next_Token).ID));
+         raise Parse_Error with "Expected " & Name (Match.all) & " but found " & Name (Next_Token);
       end if;
 
-      Find_Next (Analyzer   => Analyzer,
-                 Look_Ahead => not Actively
-                 );
-   exception
-      when Constraint_Error =>
-         Ada.Exceptions.Raise_Exception
-           (Parse_Error'Identity,
-            "Expected a token of type" & Ada.Tags.Expanded_Name (Instance'Tag) & " but found a " &
-            Ada.Tags.Expanded_Name (Next_Token'Tag));
+      Find_Next (Analyzer, Look_Ahead => not Actively);
    end Parse;
 
    overriding function Could_Parse_To

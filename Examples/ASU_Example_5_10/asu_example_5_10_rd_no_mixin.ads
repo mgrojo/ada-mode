@@ -96,6 +96,7 @@ package ASU_Example_5_10_RD_No_Mixin is
    use OpenToken.Token;
    type Integer_Selection_Instance is new Selection.Instance with record
       Value : Integer;
+      Name  : access String;
    end record;
    type Integer_Selection_Handle is access all Integer_Selection_Instance'Class;
    overriding function "or"
@@ -111,6 +112,7 @@ package ASU_Example_5_10_RD_No_Mixin is
    overriding procedure Build
      (Match : in out Integer_Selection_Instance;
       From  : in     OpenToken.Token.Instance'Class);
+   overriding function Name (Item : in Integer_Selection_Instance) return String;
 
    --  Similarly for Sequence.
    --
@@ -124,6 +126,7 @@ package ASU_Example_5_10_RD_No_Mixin is
    --  operator, or the value between the parens.
    type Expression_Instance is new Sequence.Instance with record
       Value : Integer;
+      Name  : access String;
    end record;
    type Expression_Handle is access all Expression_Instance'Class;
    overriding function "&"
@@ -134,7 +137,7 @@ package ASU_Example_5_10_RD_No_Mixin is
      (Left  : in Expression_Instance; Right : access OpenToken.Token.Class) return Expression_Instance;
    overriding function "&"
      (Left  : in Expression_Instance; Right : in Expression_Instance) return Expression_Instance;
-   function New_Expression_Instance (Item : in Expression_Instance) return Expression_Handle;
+   function New_Expression_Instance (Name : in String; Item : in Expression_Instance) return Expression_Handle;
    overriding procedure Build
      (Match : in out Expression_Instance;
       Using : in     OpenToken.Token.Linked_List.Instance);

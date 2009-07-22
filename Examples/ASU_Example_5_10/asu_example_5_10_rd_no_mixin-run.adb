@@ -32,17 +32,17 @@ begin
    begin
       L.all := E & EOF;
 
-      E.all := New_Expression_Instance (E & Plus & T) or T;
+      E.all := New_Expression_Instance ("E + T", E & Plus & T) or T;
 
-      T.all := New_Expression_Instance (T & Times & F) or F;
+      T.all := New_Expression_Instance ("T * F", T & Times & F) or F;
 
-      F.all := New_Expression_Instance (Left_Paren & E & Right_Paren) or Int_Literal;
+      F.all := New_Expression_Instance ("( E )", Left_Paren & E & Right_Paren) or Int_Literal;
 
       OpenToken.Text_Feeder.String.Set (Feeder, "10 + 5 * 6");
 
       Tokenizer.Find_Next (Analyzer);
 
-      Parse (L.all, Analyzer);
+      Parse (L, Analyzer);
 
       Put_Line ("Hmm, didn't get Storage_Error!");
    exception
@@ -69,17 +69,23 @@ begin
 
    L.all := E & EOF;
 
-   E.all := New_Expression_Instance (T & Plus & E) or T;
+   E.all := New_Expression_Instance ("T + E", T & Plus & E) or T;
+   E.Name := new String'("E");
 
-   T.all := New_Expression_Instance (F & Times & T) or F;
+   T.all := New_Expression_Instance ("F * T", F & Times & T) or F;
+   T.Name := new String'("T");
 
-   F.all := New_Expression_Instance (Left_Paren & E & Right_Paren) or Int_Literal;
+   F.all := New_Expression_Instance ("( E )", Left_Paren & E & Right_Paren) or Int_Literal;
+   F.Name := new String'("F");
 
    OpenToken.Text_Feeder.String.Set (Feeder, "10 + 5 * 6");
 
+   Tokenizer.Reset (Analyzer);
+
    Tokenizer.Find_Next (Analyzer);
 
-   Parse (L.all, Analyzer);
+   OpenToken.Token.Trace_Parse := True;
+   Parse (L, Analyzer);
 
 exception
 when Ada.Text_IO.End_Error =>

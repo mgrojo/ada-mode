@@ -35,7 +35,7 @@ package body ASU_Example_5_10_RD_No_Mixin is
    is
       use type Selection.Instance;
    begin
-      return (Selection.Instance'(Left or Right) with Value => 0);
+      return (Selection.Instance'(Left or Right) with Value => 0, Name => null);
    end "or";
 
    overriding function "or"
@@ -45,7 +45,7 @@ package body ASU_Example_5_10_RD_No_Mixin is
    is
       use type Selection.Instance;
    begin
-      return (Selection.Instance'(Left or Selection.Instance (Right)) with Value => 0);
+      return (Selection.Instance'(Left or Selection.Instance (Right)) with Value => 0, Name => null);
    end "or";
 
    overriding function "or"
@@ -55,7 +55,7 @@ package body ASU_Example_5_10_RD_No_Mixin is
    is
       use type Selection.Instance;
    begin
-      return (Selection.Instance'(Selection.Instance (Left) or Right) with Value => 0);
+      return (Selection.Instance'(Selection.Instance (Left) or Right) with Value => 0, Name => null);
    end "or";
 
    overriding function "or"
@@ -65,7 +65,8 @@ package body ASU_Example_5_10_RD_No_Mixin is
    is
       use type Selection.Instance;
    begin
-      return (Selection.Instance'(Selection.Instance (Left) or Selection.Instance (Right)) with Value => 0);
+      return
+        (Selection.Instance'(Selection.Instance (Left) or Selection.Instance (Right)) with Value => 0, Name => null);
    end "or";
 
    function New_Integer_Selection_Instance
@@ -93,6 +94,11 @@ package body ASU_Example_5_10_RD_No_Mixin is
       end if;
    end Build;
 
+   overriding function Name (Item : in Integer_Selection_Instance) return String
+   is begin
+      return Item.Name.all;
+   end Name;
+
    overriding function "&"
      (Left  : access OpenToken.Token.Class;
       Right : access OpenToken.Token.Class)
@@ -100,7 +106,7 @@ package body ASU_Example_5_10_RD_No_Mixin is
    is
       use type Sequence.Instance;
    begin
-      return (Sequence.Instance'(Left & Right) with Value => 0);
+      return (Sequence.Instance'(Left & Right) with Value => 0, Name => null);
    end "&";
 
    overriding function "&"
@@ -110,7 +116,7 @@ package body ASU_Example_5_10_RD_No_Mixin is
    is
       use type Sequence.Instance;
    begin
-      return (Sequence.Instance'(Left & Sequence.Instance (Right)) with Value => 0);
+      return (Sequence.Instance'(Left & Sequence.Instance (Right)) with Value => 0, Name => null);
    end "&";
 
    overriding function "&"
@@ -120,7 +126,7 @@ package body ASU_Example_5_10_RD_No_Mixin is
    is
       use type Sequence.Instance;
    begin
-      return (Sequence.Instance'(Sequence.Instance (Left) & Right) with Value => 0);
+      return (Sequence.Instance'(Sequence.Instance (Left) & Right) with Value => 0, Name => null);
    end "&";
 
    overriding function "&"
@@ -130,14 +136,12 @@ package body ASU_Example_5_10_RD_No_Mixin is
    is
       use type Sequence.Instance;
    begin
-      return (Sequence.Instance'(Sequence.Instance (Left) & Sequence.Instance (Right)) with Value => 0);
+      return (Sequence.Instance'(Sequence.Instance (Left) & Sequence.Instance (Right)) with Value => 0, Name => null);
    end "&";
 
-   function New_Expression_Instance
-     (Item : in Expression_Instance)
-      return Expression_Handle
+   function New_Expression_Instance (Name : in String; Item : in Expression_Instance) return Expression_Handle
    is begin
-      return new Expression_Instance'Class'(Expression_Instance'Class (Item));
+      return new Expression_Instance'(Sequence.Instance (Item) with Value => 0, Name => new String'(Name));
    end New_Expression_Instance;
 
    overriding procedure Build

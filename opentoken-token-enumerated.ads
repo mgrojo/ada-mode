@@ -97,7 +97,7 @@ package OpenToken.Token.Enumerated is
       ID    : in     Token_ID);
 
    overriding procedure Parse
-     (Match    : in out Instance;
+     (Match    : access Instance;
       Analyzer : in out Source_Class;
       Actively : in     Boolean      := True);
 

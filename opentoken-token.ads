@@ -31,6 +31,8 @@
 --  facility. It also defines a parse operation and a token source
 --  type, for use by recursive decent parsers.
 -----------------------------------------------------------------------------
+
+limited with OpenToken.Token.Linked_List;
 package OpenToken.Token is
 
    type Instance is abstract tagged private;
@@ -45,22 +47,17 @@ package OpenToken.Token is
 
    type Source_Handle is access all Source_Class;
 
-   --------------------------------------------------------------------------
-   --  Abstract specification for a token parse routine.
-   --  Implementations of this routine are to verify that current
-   --  contents of the input contain this token, and return the value
-   --  of the token.
+   ----------------------------------------------------------------------
+   --  Verify that token in Analyzer matches the token Match.
    --
-   --  The current token loaded in the Analyzer should be the first
-   --  token to parse against. Upon successful completion, the current
-   --  token in the analyzer will be the next token after the parsed
-   --  token.
+   --  If Actively, upon successful completion, update Match with the
+   --  value of the token, and advance Analyzer across all matched
+   --  tokens.
    --
-   --  An active parse consumes the input, where a non active parse
-   --  does not.
-   --------------------------------------------------------------------------
+   --  If not Actively, Match is unchanged, and Analyzer is not advanced.
+   ----------------------------------------------------------------------
    procedure Parse
-     (Match    : in out Instance;
+     (Match    : access Instance;
       Analyzer : in out Source_Class;
       Actively : in     Boolean := True)
       is abstract;
@@ -101,12 +98,22 @@ package OpenToken.Token is
    ----------------------------------------------------------------------
    function Name (Token : in Instance) return String;
 
+   ----------------------------------------------------------------------
+   --  Add expected tokens to List, for error messages
+   ----------------------------------------------------------------------
+   procedure Expecting (Token : access Instance; List : in out Linked_List.Instance);
+
    ------------------------------------------------------------------
    --  We _don't_ define a 'Print' procedure for tokens, even though
    --  that might be useful in debugging recursive descent parsers.
    --  The problem is that grammars are often recursive, which leads
    --  to infinite loops in Print, and dealing with such loops is too
    --  hard.
+
+   ----------------------------------------------------------------------
+   --  If Trace_Parse, Parse prints helpful messages
+   ----------------------------------------------------------------------
+   Trace_Parse : Boolean := False;
 
 private
    type Instance is abstract tagged null record;

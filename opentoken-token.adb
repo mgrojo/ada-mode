@@ -26,11 +26,17 @@
 -------------------------------------------------------------------------------
 
 with Ada.Tags;
+with OpenToken.Token.Linked_List;
 package body OpenToken.Token is
 
    function Name (Token : in Instance) return String is
    begin
       return Ada.Tags.External_Tag (Class (Token)'Tag);
    end Name;
+
+   procedure Expecting (Token : access Instance; List : in out Linked_List.Instance)
+   is begin
+      Linked_List.Add (List, Handle (Token));
+   end Expecting;
 
 end OpenToken.Token;
