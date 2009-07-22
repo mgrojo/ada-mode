@@ -1,5 +1,6 @@
 -------------------------------------------------------------------------------
 --
+-- Copyright (C) 2009 Stephe Leake
 -- Copyright (C) 2000 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -46,25 +47,48 @@ package OpenToken.Token.Sequence is
       Analyzer : in out Source_Class;
       Actively : in     Boolean := True);
 
-   ----------------------------------------------------------------------------
+   -----------------------------------------------------------------------
    --  Create a token sequence from a pair of token handles.
-   ----------------------------------------------------------------------------
-   function "&" (Left  : access OpenToken.Token.Class;
-                 Right : access OpenToken.Token.Class) return Instance;
+   --
+   --  If either is a sequence, it is included by reference; the
+   --  member list is _not_ examined. Together with returning Instance
+   --  rather than Handle, this allows for controlled recursion. It
+   --  also requires the use of New_Selection to return an object
+   --  compatible with Selection and other tokens, which has the
+   --  effect of making it clear when recursion is desired.
+   --
+   --  These arguments must be 'access OpenToken.Token.Class', rather
+   --  than 'in OpenToken.Token.Handle', in order to accept any
+   --  derived type Handle (Ada is annoying in this case!). However,
+   --  they are immediately converted to OpenToken.Token.Handle in the
+   --  body, so they must have library accessibility level.
+   ------------------------------------------------------------------------
+   function "&"
+     (Left  : access OpenToken.Token.Class;
+      Right : access OpenToken.Token.Class)
+     return Instance;
 
-   ----------------------------------------------------------------------------
-   --  Create a token sequence from a token handle and a token sequence.
-   ----------------------------------------------------------------------------
-   function "&" (Left  : access OpenToken.Token.Class;
-                 Right : in     Instance) return Instance;
-   function "&" (Left  : in     Instance;
-                 Right : access OpenToken.Token.Class) return Instance;
+   ---------------------------------------------------------------------
+   --  Create a token sequence from a sequence and a token handle. The
+   --  token is added to the sequence.
+   ---------------------------------------------------------------------
+   function "&"
+     (Left  : access OpenToken.Token.Class;
+      Right : in     Instance)
+     return Instance;
+   function "&"
+     (Left  : in     Instance;
+      Right : access OpenToken.Token.Class)
+     return Instance;
 
-   ----------------------------------------------------------------------------
-   --  Create a token sequence from a pair of token sequences.
-   ----------------------------------------------------------------------------
-   function "&" (Left  : in Instance;
-                 Right : in Instance) return Instance;
+   -------------------------------------------------------------------
+   --  Create a token sequence from a pair of sequences. The sequences
+   --  are combined to return a single sequence.
+   -------------------------------------------------------------------
+   function "&"
+     (Left  : in Instance;
+      Right : in Instance)
+     return Instance;
 
    ----------------------------------------------------------------------------
    --  Return a newly allocated instance which is a copy of the given instance.

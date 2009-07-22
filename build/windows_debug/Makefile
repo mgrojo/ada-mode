@@ -2,10 +2,11 @@ all: dirs tests examples
 
 # ../../Test/test_one_harness.adb
 #one : test_one_harness.run
-#one : asu_example_4_46_rd-run.run
+one : asu_example_4_46_rd-run.run
 #one : asu_example_5_10-run.run
 #one : asu_example_5_10_rd-run.run
-one : asu_example_5_10_rd-run_bad.run
+#one : RUN_ARGS := < ../../Examples/asu_example_5_10/Example.txt
+#one : asu_example_5_10_rd-run_bad.run
 
 trace :
 	addr2line -e asu_example_5_10_rd-run.exe 0x411a82 0x411aec 0x416f34 0x401783 0x401235 0x401286 0x7c817075

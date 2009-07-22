@@ -12,6 +12,12 @@
 ^Build/linux_release/lib$
 ^Build/linux_release/obj$
 ^Build/linux_release/obj_tree$
+^Build/windows_debug/.*\.diff$
+^Build/windows_debug/.*\.exe$
+^Build/windows_debug/.*\.out$
+^Build/windows_debug/.*\.txt$
+^Build/windows_debug/obj$
+^Build/windows_debug/obj_tree$
 ^Build/windows_release/.*\.diff$
 ^Build/windows_release/.*\.exe$
 ^Build/windows_release/.*\.out$

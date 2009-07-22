@@ -86,30 +86,29 @@ package ASU_Example_4_46_RD is
    --  L  -> * R | id
    --  R  -> L
    --
-   --  Since the defintion of tokens L and R are
-   --  mutually-recursive, we'll have to delay their initializations
-   --  (grammar specification) until after they are both declared.
-
    --  L and R are mutually recursive, so we need a forward reference
    --  for one of them. R is the simplest, so we pick that for the
    --  forward reference; the actual value is set in the body.
    --
-   --  Note that these must be pointers to variables, not pointers to
-   --  constants; the parser stores result values in them.
+   --  This illustrates why we require Selection.New_Selection; if the
+   --  "or" in the expression for S actually looked at the contents of
+   --  R, it would be dereferencing a null pointer. This grammar does
+   --  not have a similar situation for sequence, but it is clear that
+   --  other grammars might.
    --
    --  We must use Sequence.New_Instance, not 'new Sequence.Instance',
    --  to avoid accessibility errors.
    --
-   --  FIXME : need selection."or" (sequence, token.handle) return selection.handle
+   --  Note that these must be pointers to variables, not pointers to
+   --  constants; the parser stores result values in them.
+
    R : constant Selection.Handle := new Selection.Instance;
 
    L : constant Selection.Handle := Selection.New_Instance (Sequence.New_Instance (Asterix & R) or ID);
 
-   S : constant Selection.Handle := Selection.New_Instance
-     (Sequence.New_Instance (L & Equals & R & EOF) or
-        Sequence.New_Instance (R & EOF));
+   S : constant Selection.Handle := Selection.New_Instance (Sequence.New_Instance (L & Equals & R) or R);
 
-   S_Prime : constant OpenToken.Token.Handle := OpenToken.Token.Handle (S);
+   S_Prime : constant OpenToken.Token.Handle := OpenToken.Token.Handle (Sequence.New_Instance (S & EOF));
 
    --  Create a text feeder for our Input_File.
    Input_File : aliased Ada.Text_IO.File_Type;

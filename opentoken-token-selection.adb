@@ -1,5 +1,6 @@
 -------------------------------------------------------------------------------
 --
+-- Copyright (C) 2009 Stephe Leake
 -- Copyright (C) 2000 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -28,16 +29,12 @@ with Ada.Exceptions;
 with Ada.Tags;
 package body OpenToken.Token.Selection is
 
-   use type Token.Linked_List.List_Iterator;
-   use type Token.Linked_List.Instance;
-
    ----------------------------------------------------------------------------
    --  Internal Helper routines
 
-   ----------------------------------------------------------------------------
-   --  Returns with the name of every token in the given list
-   ----------------------------------------------------------------------------
-   function Names_Of (List : Token.Linked_List.List_Iterator) return String is
+   function Names_Of (List : Token.Linked_List.List_Iterator) return String
+   is
+      use type OpenToken.Token.Linked_List.List_Iterator;
       Next_Iteration : Token.Linked_List.List_Iterator := List;
 
       This_Name : constant String := Ada.Tags.External_Tag
@@ -60,10 +57,6 @@ package body OpenToken.Token.Selection is
    --  Externally visible routines
    --
 
-   ----------------------------------------------------------------------------
-   --  This routine is called when none of the sequence's tokens return
-   --  true for Could_Parse_To.
-   ----------------------------------------------------------------------------
    procedure Raise_Parse_Error
      (Match    : in out Instance;
       Analyzer : in out Source_Class;
@@ -87,6 +80,7 @@ package body OpenToken.Token.Selection is
       Analyzer : in out Source_Class;
       Actively : in     Boolean      := True)
    is
+      use type OpenToken.Token.Linked_List.List_Iterator;
       List_Iterator : Token.Linked_List.List_Iterator :=
         Token.Linked_List.Initial_Iterator (Match.Members);
    begin
@@ -120,34 +114,42 @@ package body OpenToken.Token.Selection is
 
    end Parse;
 
-   ----------------------------------------------------------------------------
-   --  Create a token selection from a pair of token instances.
-   ----------------------------------------------------------------------------
-   function "or" (Left  : access OpenToken.Token.Class;
-                  Right : access OpenToken.Token.Class) return Instance is
+   function "or"
+     (Left  : access OpenToken.Token.Class;
+      Right : access OpenToken.Token.Class)
+     return Instance
+   is
+      use type Linked_List.Instance;
    begin
       return (Members => OpenToken.Token.Handle (Left) & OpenToken.Token.Handle (Right));
    end "or";
 
-   ----------------------------------------------------------------------------
-   --  Create a token selection from a token handle and a token selection.
-   ----------------------------------------------------------------------------
-   function "or" (Left  : access OpenToken.Token.Class;
-                  Right : in     Instance) return Instance is
+   function "or"
+     (Left  : access OpenToken.Token.Class;
+      Right : in     Instance)
+     return Instance
+   is
+      use type Linked_List.Instance;
    begin
       return (Members => OpenToken.Token.Handle (Left) & Right.Members);
    end "or";
-   function "or" (Left  : in     Instance;
-                  Right : access OpenToken.Token.Class) return Instance is
+
+   function "or"
+     (Left  : in     Instance;
+      Right : access OpenToken.Token.Class)
+     return Instance
+   is
+      use type Linked_List.Instance;
    begin
       return (Members => Left.Members & OpenToken.Token.Handle (Right));
    end "or";
 
-   ----------------------------------------------------------------------------
-   --  Create a token selection from a pair of selection tokens
-   ----------------------------------------------------------------------------
-   function "or" (Left  : in Instance;
-                  Right : in Instance) return Instance is
+   function "or"
+     (Left  : in Instance;
+      Right : in Instance)
+     return Instance
+   is
+      use type Linked_List.Instance;
    begin
       return (Members => Left.Members & Right.Members);
    end "or";
@@ -162,6 +164,7 @@ package body OpenToken.Token.Selection is
       Analyzer : in Source_Class)
      return Boolean
    is
+      use type OpenToken.Token.Linked_List.List_Iterator;
       List_Iterator : Token.Linked_List.List_Iterator :=
         Token.Linked_List.Initial_Iterator (Match.Members);
    begin

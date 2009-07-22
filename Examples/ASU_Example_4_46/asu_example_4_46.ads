@@ -67,8 +67,8 @@ package ASU_Example_4_46 is
 
    --  Define all tokens, for use in declaring the grammar. Note that
    --  these may be constants; the parser stores intermediate results
-   --  in the non-terminal tokens, but the production operators '&',
-   --  'and' make copies of the tokens.
+   --  in the non-terminal tokens, but it allocates new tokens for
+   --  that.
    --
    --  Terminal tokens
    Asterix : constant Master_Token.Class := Master_Token.Get (Asterix_ID);
