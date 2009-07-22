@@ -1,5 +1,6 @@
 -------------------------------------------------------------------------------
 --
+-- Copyright (C) 2009 Stephe Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -74,10 +75,11 @@ package OpenToken.Token.Enumerated is
    --  information global to the analyzer instance while maintaining
    --  overall re-entrancy.
    --------------------------------------------------------------------------
-   procedure Create (Lexeme     : in     String;
-                     ID         : in     Token_ID;
-                     Recognizer : in     Recognizer_Handle;
-                     New_Token  :    out Instance);
+   procedure Create
+     (Lexeme     : in     String;
+      ID         : in     Token_ID;
+      Recognizer : in     Recognizer_Handle;
+      New_Token  :    out Instance);
 
    --------------------------------------------------------------------------
    --  This function returns the ID of the token. This is made
@@ -90,8 +92,9 @@ package OpenToken.Token.Enumerated is
    ----------------------------------------------------------------------------
    --  Set the given token's ID to the given value
    ----------------------------------------------------------------------------
-   procedure Set_ID (Token : in out Instance'Class;
-                     ID    : in     Token_ID);
+   procedure Set_ID
+     (Token : in out Instance'Class;
+      ID    : in     Token_ID);
 
    overriding procedure Parse
      (Match    : in out Instance;
@@ -102,6 +105,8 @@ package OpenToken.Token.Enumerated is
      (Match    : in Instance;
       Analyzer : in Source_Class)
      return Boolean;
+
+   overriding function Name (Token : in Instance) return String;
 
    type Source is abstract new OpenToken.Token.Source with null record;
 

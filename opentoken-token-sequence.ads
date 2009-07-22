@@ -102,10 +102,12 @@ package OpenToken.Token.Sequence is
 
    ----------------------------------------------------------------------------
    --  This routine is called when an entire sequence has been actively
-   --  parsed.
+   --  parsed. Using is the sequence of tokens.
    ----------------------------------------------------------------------------
-   procedure Build (Match : in out Instance;
-                    Using : in     Token.Linked_List.Instance) is null;
+   procedure Build
+     (Match : in out Instance;
+      Using : in     Token.Linked_List.Instance)
+   is null;
 
 private
    type Instance is new Token.Instance with record

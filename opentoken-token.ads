@@ -1,19 +1,21 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 1999, 2000 Ted Dennison
+--  Copyright (C) 2009 Stephe Leake
+--  Copyright (C) 1999, 2000 Ted Dennison
 --
--- This file is part of the OpenToken package.
+--  This file is part of the OpenToken package.
 --
--- The OpenToken package is free software; you can redistribute it and/or
--- modify it under the terms of the  GNU General Public License as published
--- by the Free Software Foundation; either version 3, or (at your option)
--- any later version. The OpenToken package is distributed in the hope that
--- it will be useful, but WITHOUT ANY WARRANTY; without even the implied
--- warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
--- GNU General Public License for  more details.  You should have received
--- a copy of the GNU General Public License  distributed with the OpenToken
--- package;  see file GPL.txt.  If not, write to  the Free Software Foundation,
--- 59 Temple Place - Suite 330,  Boston, MA 02111-1307, USA.
+--  The OpenToken package is free software; you can redistribute it
+--  and/or modify it under the terms of the GNU General Public License
+--  as published by the Free Software Foundation; either version 3, or
+--  (at your option) any later version. The OpenToken package is
+--  distributed in the hope that it will be useful, but WITHOUT ANY
+--  WARRANTY; without even the implied warranty of MERCHANTABILITY or
+--  FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public
+--  License for more details. You should have received a copy of the
+--  GNU General Public License distributed with the OpenToken package;
+--  see file GPL.txt. If not, write to the Free Software Foundation,
+--  59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 --
 --  As a special exception, if other files instantiate generics from
 --  this unit, or you link this unit with other files to produce an
@@ -60,8 +62,8 @@ package OpenToken.Token is
    procedure Parse
      (Match    : in out Instance;
       Analyzer : in out Source_Class;
-      Actively : in     Boolean := True
-     ) is abstract;
+      Actively : in     Boolean := True)
+      is abstract;
 
    --------------------------------------------------------------------------
    --  This routine should be a quick routine to verify that the given
@@ -74,8 +76,8 @@ package OpenToken.Token is
    --------------------------------------------------------------------------
    function Could_Parse_To
      (Match    : in Instance;
-      Analyzer : in Source_Class
-     ) return Boolean is abstract;
+      Analyzer : in Source_Class)
+     return Boolean is abstract;
 
    --------------------------------------------------------------------------
    --  Locate the next token.
@@ -84,19 +86,26 @@ package OpenToken.Token is
    --  be returned, but the current one will not be discarded.
    --  Subsequent Look_Ahead calls will return later and later tokens.
    --------------------------------------------------------------------------
-   procedure Find_Next (Analyzer   : in out Source;
-                        Look_Ahead : in     Boolean := False) is abstract;
+   procedure Find_Next
+     (Analyzer   : in out Source;
+      Look_Ahead : in     Boolean := False)
+      is abstract;
 
    ----------------------------------------------------------------------------
    --  Returns the last token that was matched.
    ----------------------------------------------------------------------------
    function Get (Analyzer : in Source) return Class is abstract;
 
-   --------------------------------------------------------------------
+   ----------------------------------------------------------------------
+   --  Return the name of Token, for error messages
+   ----------------------------------------------------------------------
+   function Name (Token : in Instance) return String;
+
+   ------------------------------------------------------------------
    --  We _don't_ define a 'Print' procedure for tokens, even though
    --  that might be useful in debugging recursive descent parsers.
    --  The problem is that grammars are often recursive, which leads
-   --  to infinite loops in Print, and detecting such loops is too
+   --  to infinite loops in Print, and dealing with such loops is too
    --  hard.
 
 private

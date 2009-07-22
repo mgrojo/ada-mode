@@ -1,5 +1,6 @@
 -------------------------------------------------------------------------------
 --
+-- Copyright (C) 2009 Stephe Leake
 -- Copyright (C) 2000 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -82,6 +83,11 @@ package OpenToken.Token.Linked_List is
    --  Return the next Token in the list.
    ----------------------------------------------------------------------------
    function Token_Handle (Iterator : in List_Iterator) return OpenToken.Token.Handle;
+
+   ----------------------------------------------------------------------
+   --  Return names of tokens in list, for error messages
+   ----------------------------------------------------------------------
+   function Names (List : in Instance) return String;
 
    ---------------------------
    -- Table Parser Routines --

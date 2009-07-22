@@ -1,5 +1,6 @@
 -------------------------------------------------------------------------------
 --
+-- Copyright (C) 2009 Stephe Leake
 -- Copyright (C) 1999, 2000 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -239,5 +240,26 @@ package body OpenToken.Token.Linked_List is
       end if;
       return Iterator.Token;
    end Token_Handle;
+
+   function Names (List : in List_Iterator) return String
+   is
+      Next_Iteration : List_Iterator := List;
+
+      This_Name : constant String := Name (Token_Handle (List).all);
+   begin
+      Next_Token (Next_Iteration);
+
+      if Next_Iteration = Null_Iterator then
+         return This_Name;
+      else
+         return This_Name & ", " & Names (Next_Iteration);
+      end if;
+
+   end Names;
+
+   function Names (List : in Instance) return String
+   is begin
+      return Names (Initial_Iterator (List));
+   end Names;
 
 end OpenToken.Token.Linked_List;

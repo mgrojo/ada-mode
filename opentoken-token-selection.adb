@@ -25,48 +25,16 @@
 --
 -------------------------------------------------------------------------------
 
-with Ada.Exceptions;
-with Ada.Tags;
 package body OpenToken.Token.Selection is
-
-   ----------------------------------------------------------------------------
-   --  Internal Helper routines
-
-   function Names_Of (List : Token.Linked_List.List_Iterator) return String
-   is
-      use type OpenToken.Token.Linked_List.List_Iterator;
-      Next_Iteration : Token.Linked_List.List_Iterator := List;
-
-      This_Name : constant String := Ada.Tags.External_Tag
-        (Token.Linked_List.Token_Handle (List).all'Tag);
-   begin
-      --  Find the next token in the list.
-      Token.Linked_List.Next_Token (Next_Iteration);
-
-      --  Return with this token's external tag, along with the tags
-      --  of the rest of the tokens in the list.
-      if Next_Iteration = Token.Linked_List.Null_Iterator then
-         return This_Name;
-      else
-         return This_Name & ", " & Names_Of (Next_Iteration);
-      end if;
-
-   end Names_Of;
-
-   ----------------------------------------------------------------------------
-   --  Externally visible routines
-   --
 
    procedure Raise_Parse_Error
      (Match    : in out Instance;
       Analyzer : in out Source_Class;
-      Actively : in     Boolean := True
-     ) is
-   begin
+      Actively : in     Boolean := True)
+   is begin
       if Actively then
-         Ada.Exceptions.Raise_Exception
-           (Parse_Error'Identity, "Unexpected token found. Expected one of " &
-            Names_Of (Token.Linked_List.Initial_Iterator (Match.Members)) & ".");
+         raise Parse_Error with "Unexpected " & Name (Get (Analyzer)) & " found. Expected one of " &
+           Token.Linked_List.Names (Match.Members) & ".";
       else
          --  Don't waste time since this is probably *not* an error
          --  condition in this mode, and it will probably be handled
@@ -92,24 +60,15 @@ package body OpenToken.Token.Selection is
       loop
          Token.Linked_List.Next_Token (List_Iterator);
          if List_Iterator = Token.Linked_List.Null_Iterator then
-            Raise_Parse_Error (Match    => Match,
-                               Analyzer => Analyzer,
-                               Actively => Actively
-                               );
+            Raise_Parse_Error (Match, Analyzer, Actively);
          end if;
 
       end loop;
 
-      Parse
-        (Match    => Token.Linked_List.Token_Handle (List_Iterator).all,
-         Analyzer => Analyzer,
-         Actively => Actively
-         );
+      Parse (Token.Linked_List.Token_Handle (List_Iterator).all, Analyzer, Actively);
 
       if Actively then
-         Build (Match => Match,
-                From  => Token.Linked_List.Token_Handle (List_Iterator).all
-                );
+         Build (Match, Token.Linked_List.Token_Handle (List_Iterator).all);
       end if;
 
    end Parse;
@@ -170,11 +129,7 @@ package body OpenToken.Token.Selection is
    begin
 
       while List_Iterator /= Token.Linked_List.Null_Iterator loop
-         if Could_Parse_To
-           (Match    => Token.Linked_List.Token_Handle (List_Iterator).all,
-            Analyzer => Analyzer
-            )
-         then
+         if Could_Parse_To (Token.Linked_List.Token_Handle (List_Iterator).all, Analyzer) then
             return True;
          end if;
          Token.Linked_List.Next_Token (List_Iterator);

@@ -38,10 +38,19 @@ package body OpenToken.Token.Sequence is
    begin
 
       while I /= Null_Iterator loop
-         Parse
-           (Match    => Token_Handle (I).all,
-            Analyzer => Analyzer,
-            Actively => Actively);
+         begin
+            Parse (Token_Handle (I).all, Analyzer, Actively);
+         exception
+         when Parse_Error =>
+            if Actively then
+               raise Parse_Error with
+                 "found " & Name (Get (Analyzer)) & " expecting " & Name (Token_Handle (I).all);
+            else
+               --  Don't waste time building error message; just
+               --  signal we can't match this.
+               raise Parse_Error;
+            end if;
+         end;
 
          Next_Token (I);
       end loop;
@@ -57,7 +66,7 @@ package body OpenToken.Token.Sequence is
       Right : access OpenToken.Token.Class)
      return Instance
    is
-      use Linked_List;
+      use type Linked_List.Instance;
    begin
       return (Members => OpenToken.Token.Handle (Left) & OpenToken.Token.Handle (Right));
    end "&";
@@ -101,12 +110,10 @@ package body OpenToken.Token.Sequence is
      (Match    : in Instance;
       Analyzer : in Source_Class)
      return Boolean
-   is begin
-      return Could_Parse_To
-        (Match    => Token.Linked_List.Token_Handle
-         (Token.Linked_List.Initial_Iterator (Match.Members)).all,
-         Analyzer => Analyzer
-         );
+   is
+      use Token.Linked_List;
+   begin
+      return Could_Parse_To (Token_Handle (Initial_Iterator (Match.Members)).all, Analyzer);
    end Could_Parse_To;
 
 end OpenToken.Token.Sequence;

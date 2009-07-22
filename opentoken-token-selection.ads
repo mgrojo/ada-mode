@@ -146,18 +146,19 @@ package OpenToken.Token.Selection is
       Analyzer : in out Source_Class;
       Actively : in     Boolean := True);
 
-private
-
-   --------------------------------------------------------------------------
+   ----------------------------------------------------------------------
    --  This routine is called when an entire selection has been
-   --  actively parsed. The second parameter contains the token that
-   --  was parsed. An implementation of this routine could then check
-   --  the 'tag or ID of From to figure out which selection was
-   --  matched.
+   --  actively parsed. From is the token that was selected. An
+   --  implementation of this routine could then check the 'tag or ID
+   --  of From to figure out which selection was matched.
    --
    ----------------------------------------------------------------------------
-   procedure Build (Match : in out Instance;
-                    From  : in     OpenToken.Token.Class) is null;
+   procedure Build
+     (Match : in out Instance;
+      From  : in     OpenToken.Token.Class)
+   is null;
+
+private
 
    type Instance is new Token.Instance with record
       Members : Token.Linked_List.Instance;

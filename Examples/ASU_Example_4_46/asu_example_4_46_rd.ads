@@ -108,6 +108,8 @@ package ASU_Example_4_46_RD is
 
    S : constant Selection.Handle := Selection.New_Instance (Sequence.New_Instance (L & Equals & R) or R);
 
+   --  This is of type OpenToken.Token.Handle, so it can be passed to
+   --  OpenToken.Token.Parse, rather than Sequence.Parse.
    S_Prime : constant OpenToken.Token.Handle := OpenToken.Token.Handle (Sequence.New_Instance (S & EOF));
 
    --  Create a text feeder for our Input_File.

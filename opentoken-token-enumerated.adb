@@ -1,5 +1,6 @@
 -------------------------------------------------------------------------------
 --
+-- Copyright (C) 2009 Stephe Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -33,10 +34,11 @@ package body OpenToken.Token.Enumerated is
       return Instance'Class (Instance'(ID => ID));
    end Get;
 
-   procedure Create (Lexeme     : in     String;
-                     ID         : in     Token_ID;
-                     Recognizer : in     Recognizer_Handle;
-                     New_Token  :    out Instance)
+   procedure Create
+     (Lexeme     : in     String;
+      ID         : in     Token_ID;
+      Recognizer : in     Recognizer_Handle;
+      New_Token  :    out Instance)
    is
       pragma Unreferenced (Recognizer);
       pragma Unreferenced (Lexeme);
@@ -100,5 +102,10 @@ package body OpenToken.Token.Enumerated is
    is begin
       return Instance (Get (Analyzer)).ID = Match.ID;
    end Could_Parse_To;
+
+   overriding function Name (Token : in Instance) return String
+   is begin
+      return Token_ID'Image (Token.ID);
+   end Name;
 
 end OpenToken.Token.Enumerated;
