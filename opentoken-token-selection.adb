@@ -30,26 +30,26 @@ package body OpenToken.Token.Selection is
 
    overriding procedure Parse
      (Match    : access Instance;
-      Analyzer : in out Source_Class;
+      Analyzer : access Source_Class;
       Actively : in     Boolean      := True)
    is
       use Linked_List;
       I : List_Iterator := First (Match.Members);
    begin
-
       if Trace_Parse then
+         Trace_Indent := Trace_Indent + 1;
          if Actively then
-            Ada.Text_IO.Put ("parsing");
+            Trace_Put ("parsing");
          else
-            Ada.Text_IO.Put ("trying");
+            Trace_Put ("trying");
          end if;
          Ada.Text_IO.Put_Line
            (" selection " & Name_Dispatch (Match) &
-              "'(" & Names (Match.Members) & ") match " & Name_Dispatch (Get (Analyzer)));
+              "'(" & Names (Match.Members) & ") match " & Name_Dispatch (Get (Analyzer.all)));
       end if;
 
       while
-        not Token.Could_Parse_To (Token_Handle (I).all, Analyzer)
+        not Token.Could_Parse_To (Token_Handle (I), Analyzer)
       loop
          Next_Token (I);
          if I = Null_Iterator then
@@ -58,7 +58,7 @@ package body OpenToken.Token.Selection is
                   Expected : Linked_List.Instance;
                begin
                   Expecting (Match, Expected);
-                  raise Parse_Error with "Found " & Name_Dispatch (Get (Analyzer)) & "; expected one of " &
+                  raise Parse_Error with "Found " & Name_Dispatch (Get (Analyzer.all)) & "; expected one of " &
                     Token.Linked_List.Names (Expected) & ".";
                end;
             else
@@ -70,16 +70,23 @@ package body OpenToken.Token.Selection is
          end if;
       end loop;
 
-      if Trace_Parse then
-         Ada.Text_IO.Put_Line ("matched " & Name_Dispatch (Token_Handle (I)));
-      end if;
-
       Parse (Token_Handle (I), Analyzer, Actively);
 
       if Actively then
          Build (Match.all, Token_Handle (I).all);
       end if;
 
+      if Trace_Parse then
+         Trace_Put ("...succeeded"); Ada.Text_IO.New_Line;
+         Trace_Indent := Trace_Indent - 1;
+      end if;
+   exception
+   when others =>
+      if Trace_Parse then
+         Trace_Put ("...failed"); Ada.Text_IO.New_Line;
+         Trace_Indent := Trace_Indent - 1;
+      end if;
+      raise;
    end Parse;
 
    function "or"
@@ -128,15 +135,15 @@ package body OpenToken.Token.Selection is
    end New_Instance;
 
    overriding function Could_Parse_To
-     (Match    : in Instance;
-      Analyzer : in Source_Class)
+     (Match    : access Instance;
+      Analyzer : access Source_Class)
      return Boolean
    is
       use Linked_List;
       I : List_Iterator := First (Match.Members);
    begin
       while I /= Null_Iterator loop
-         if Could_Parse_To (Token_Handle (I).all, Analyzer) then
+         if Could_Parse_To (Token_Handle (I), Analyzer) then
             return True;
          end if;
          Next_Token (I);

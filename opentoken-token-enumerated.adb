@@ -60,16 +60,17 @@ package body OpenToken.Token.Enumerated is
 
    overriding procedure Parse
      (Match    : access Instance;
-      Analyzer : in out Source_Class;
+      Analyzer : access Source_Class;
       Actively : in     Boolean      := True)
    is
-      Next_Token : constant OpenToken.Token.Class := Get (Analyzer);
+      Next_Token : constant OpenToken.Token.Class := Get (Analyzer.all);
    begin
       if Trace_Parse then
+         Trace_Indent := Trace_Indent + 1;
          if Actively then
-            Ada.Text_IO.Put ("parsing");
+            Trace_Put ("parsing");
          else
-            Ada.Text_IO.Put ("trying");
+            Trace_Put ("trying");
          end if;
          Ada.Text_IO.Put_Line (" enumerated " & Name_Dispatch (Match));
       end if;
@@ -86,24 +87,36 @@ package body OpenToken.Token.Enumerated is
 
          if Actively then
             Create
-              (Lexeme     => Lexeme (Source'Class (Analyzer)),
+              (Lexeme     => Lexeme (Source'Class (Analyzer.all)),
                ID         => Match.ID,
-               Recognizer => Last_Recognizer (Source'Class (Analyzer)),
+               Recognizer => Last_Recognizer (Source'Class (Analyzer.all)),
                New_Token  => Class (Match.all));
          end if;
       else
          raise Parse_Error with "Expected " & Name_Dispatch (Match) & " but found " & Name_Dispatch (Next_Token);
       end if;
 
-      Find_Next (Analyzer, Look_Ahead => not Actively);
+      Find_Next (Analyzer.all, Look_Ahead => not Actively);
+
+      if Trace_Parse then
+         Trace_Put ("...succeeded"); Ada.Text_IO.New_Line;
+         Trace_Indent := Trace_Indent - 1;
+      end if;
+   exception
+   when others =>
+      if Trace_Parse then
+         Trace_Put ("...failed"); Ada.Text_IO.New_Line;
+         Trace_Indent := Trace_Indent - 1;
+      end if;
+      raise;
    end Parse;
 
    overriding function Could_Parse_To
-     (Match    : in Instance;
-      Analyzer : in  Source_Class)
+     (Match    : access Instance;
+      Analyzer : access Source_Class)
      return Boolean
    is begin
-      return Instance (Get (Analyzer)).ID = Match.ID;
+      return Instance (Get (Analyzer.all)).ID = Match.ID;
    end Could_Parse_To;
 
    overriding function Name (Token : in Instance) return String

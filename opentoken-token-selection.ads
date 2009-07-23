@@ -73,7 +73,7 @@ package OpenToken.Token.Selection is
    ----------------------------------------------------------------------------
    overriding procedure Parse
      (Match    : access Instance;
-      Analyzer : in out Source_Class;
+      Analyzer : access Source_Class;
       Actively : in     Boolean      := True);
 
    ------------------------------------------------------------------
@@ -125,8 +125,9 @@ package OpenToken.Token.Selection is
    function New_Instance (Old_Instance : in Instance) return Handle;
 
    overriding function Could_Parse_To
-     (Match    : in Instance;
-      Analyzer : in Source_Class) return Boolean;
+     (Match    : access Instance;
+      Analyzer : access Source_Class)
+     return Boolean;
 
    overriding procedure Expecting (Token : access Instance; List : in out Linked_List.Instance);
 

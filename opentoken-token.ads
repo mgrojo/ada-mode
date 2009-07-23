@@ -59,10 +59,13 @@ package OpenToken.Token is
    --
    --  Match is 'access' to match Expecting, which needs to store a
    --  pointer to it in some cases.
+   --
+   --  Analyser is 'access' to match Could_Parse_To, which needs a
+   --  variable Analyzer when it in turn calls Parse.
    ------------------------------------------------------------------
    procedure Parse
      (Match    : access Instance;
-      Analyzer : in out Source_Class;
+      Analyzer : access Source_Class;
       Actively : in     Boolean := True)
       is abstract;
 
@@ -76,8 +79,8 @@ package OpenToken.Token is
    --  set to False may be required.
    --------------------------------------------------------------------------
    function Could_Parse_To
-     (Match    : in Instance;
-      Analyzer : in Source_Class)
+     (Match    : access Instance;
+      Analyzer : access Source_Class)
      return Boolean is abstract;
 
    --------------------------------------------------------------------------
@@ -128,4 +131,10 @@ package OpenToken.Token is
 private
    type Instance is abstract tagged null record;
    type Source   is abstract tagged null record;
+
+   Trace_Indent : Integer := 0;
+
+   --  Put Message, indented by 3 * Trace_Indent; no new_line
+   procedure Trace_Put (Message : in String);
+
 end OpenToken.Token;

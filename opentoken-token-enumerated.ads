@@ -98,12 +98,12 @@ package OpenToken.Token.Enumerated is
 
    overriding procedure Parse
      (Match    : access Instance;
-      Analyzer : in out Source_Class;
+      Analyzer : access Source_Class;
       Actively : in     Boolean      := True);
 
    overriding function Could_Parse_To
-     (Match    : in Instance;
-      Analyzer : in Source_Class)
+     (Match    : access Instance;
+      Analyzer : access Source_Class)
      return Boolean;
 
    overriding function Name (Token : in Instance) return String;

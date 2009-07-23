@@ -25,7 +25,9 @@
 --
 -------------------------------------------------------------------------------
 
+with Ada.Strings.Fixed;
 with Ada.Tags;
+with Ada.Text_IO;
 with OpenToken.Token.Linked_List;
 package body OpenToken.Token is
 
@@ -48,5 +50,12 @@ package body OpenToken.Token is
    is begin
       Linked_List.Add (List, Handle (Token));
    end Expecting;
+
+   procedure Trace_Put (Message : in String)
+   is
+      use Ada.Strings.Fixed;
+   begin
+      Ada.Text_IO.Put (Trace_Indent * 3 * ' ' & Message);
+   end Trace_Put;
 
 end OpenToken.Token;

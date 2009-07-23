@@ -65,7 +65,7 @@ package ASU_Example_5_10_RD_No_Mixin is
       );
 
    Feeder   : aliased OpenToken.Text_Feeder.String.Instance;
-   Analyzer : Tokenizer.Instance := Tokenizer.Initialize (Syntax, Feeder'Access);
+   Analyzer : aliased Tokenizer.Instance := Tokenizer.Initialize (Syntax, Feeder'Access);
 
    --------------------------------------------------------------------------
    --  Our custom token types. The grammar is:

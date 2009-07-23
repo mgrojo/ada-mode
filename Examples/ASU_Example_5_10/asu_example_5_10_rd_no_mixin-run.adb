@@ -42,7 +42,7 @@ begin
 
       Tokenizer.Find_Next (Analyzer);
 
-      Parse (L, Analyzer);
+      Parse (L, Analyzer'Access);
 
       Put_Line ("Hmm, didn't get Storage_Error!");
    exception
@@ -85,7 +85,7 @@ begin
    Tokenizer.Find_Next (Analyzer);
 
    OpenToken.Token.Trace_Parse := True;
-   Parse (L, Analyzer);
+   Parse (L, Analyzer'Access);
 
 exception
 when Ada.Text_IO.End_Error =>
