@@ -141,6 +141,7 @@ package ASU_Example_5_10_RD_No_Mixin is
    overriding procedure Build
      (Match : in out Expression_Instance;
       Using : in     OpenToken.Token.Linked_List.Instance);
+   overriding function Name (Item : in Expression_Instance) return String;
 
    --  This type prints the value of the first element in the sequence.
    type Result_Instance is new Sequence.Instance with null record;

@@ -198,6 +198,11 @@ package body ASU_Example_5_10_RD_No_Mixin is
 
    end Build;
 
+   overriding function Name (Item : in Expression_Instance) return String
+   is begin
+      return Item.Name.all;
+   end Name;
+
    overriding function "&"
      (Left  : access OpenToken.Token.Class;
       Right : access OpenToken.Token.Class)

@@ -34,6 +34,16 @@ package body OpenToken.Token is
       return Ada.Tags.External_Tag (Class (Token)'Tag);
    end Name;
 
+   function Name_Dispatch (Token : in Class) return String
+   is begin
+      return Name (Token);
+   end Name_Dispatch;
+
+   function Name_Dispatch (Token : access constant Instance'Class) return String
+   is begin
+      return Name (Token.all);
+   end Name_Dispatch;
+
    procedure Expecting (Token : access Instance; List : in out Linked_List.Instance)
    is begin
       Linked_List.Add (List, Handle (Token));

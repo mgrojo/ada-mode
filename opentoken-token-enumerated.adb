@@ -67,10 +67,11 @@ package body OpenToken.Token.Enumerated is
    begin
       if Trace_Parse then
          if Actively then
-            Ada.Text_IO.Put_Line ("parsing enumerated " & Name (Match.all));
+            Ada.Text_IO.Put ("parsing");
          else
-            Ada.Text_IO.Put_Line ("trying enumerated " & Name (Match.all));
+            Ada.Text_IO.Put ("trying");
          end if;
+         Ada.Text_IO.Put_Line (" enumerated " & Name_Dispatch (Match));
       end if;
 
       if Instance (Next_Token).ID = Match.ID then
@@ -91,7 +92,7 @@ package body OpenToken.Token.Enumerated is
                New_Token  => Class (Match.all));
          end if;
       else
-         raise Parse_Error with "Expected " & Name (Match.all) & " but found " & Name (Next_Token);
+         raise Parse_Error with "Expected " & Name_Dispatch (Match) & " but found " & Name_Dispatch (Next_Token);
       end if;
 
       Find_Next (Analyzer, Look_Ahead => not Actively);

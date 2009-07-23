@@ -44,8 +44,8 @@ package body OpenToken.Token.Selection is
             Ada.Text_IO.Put ("trying");
          end if;
          Ada.Text_IO.Put_Line
-           (" selection " & Name (Class (Match.all)) &
-              "'(" & Names (Match.Members) & ") match " & Name (Get (Analyzer)));
+           (" selection " & Name_Dispatch (Match) &
+              "'(" & Names (Match.Members) & ") match " & Name_Dispatch (Get (Analyzer)));
       end if;
 
       while
@@ -58,7 +58,7 @@ package body OpenToken.Token.Selection is
                   Expected : Linked_List.Instance;
                begin
                   Expecting (Match, Expected);
-                  raise Parse_Error with "Found " & Name (Get (Analyzer)) & "; expected one of " &
+                  raise Parse_Error with "Found " & Name_Dispatch (Get (Analyzer)) & "; expected one of " &
                     Token.Linked_List.Names (Expected) & ".";
                end;
             else
@@ -71,7 +71,7 @@ package body OpenToken.Token.Selection is
       end loop;
 
       if Trace_Parse then
-         Ada.Text_IO.Put_Line ("matched " & Name (Token_Handle (I).all));
+         Ada.Text_IO.Put_Line ("matched " & Name_Dispatch (Token_Handle (I)));
       end if;
 
       Parse (Token_Handle (I), Analyzer, Actively);

@@ -245,7 +245,7 @@ package body OpenToken.Token.Linked_List is
    is
       Next_Iteration : List_Iterator := List;
 
-      This_Name : constant String := Name (Token_Handle (List).all);
+      This_Name : constant String := Name_Dispatch (Token_Handle (List));
    begin
       Next_Token (Next_Iteration);
 

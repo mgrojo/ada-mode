@@ -54,8 +54,12 @@ package OpenToken.Token is
    --  value of the token, and advance Analyzer across all matched
    --  tokens.
    --
-   --  If not Actively, Match is unchanged, and Analyzer is not advanced.
-   ----------------------------------------------------------------------
+   --  If not Actively, Match is unchanged, and Analyzer is not
+   --  advanced.
+   --
+   --  Match is 'access' to match Expecting, which needs to store a
+   --  pointer to it in some cases.
+   ------------------------------------------------------------------
    procedure Parse
      (Match    : access Instance;
       Analyzer : in out Source_Class;
@@ -97,6 +101,12 @@ package OpenToken.Token is
    --  Return the name of Token, for error messages
    ----------------------------------------------------------------------
    function Name (Token : in Instance) return String;
+
+   ----------------------------------------------------------------------
+   --  Dispatching calls to Name
+   ----------------------------------------------------------------------
+   function Name_Dispatch (Token : in Class) return String;
+   function Name_Dispatch (Token : access constant Instance'Class) return String;
 
    ----------------------------------------------------------------------
    --  Add expected tokens to List, for error messages
