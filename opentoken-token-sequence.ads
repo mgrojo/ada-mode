@@ -42,10 +42,24 @@ package OpenToken.Token.Sequence is
 
    type Handle is access all Class;
 
+   ------------------------------------------------------------------------
+   --  The behavior of this procedure when called with Actively =>
+   --  False depends on the setting of First_Only; see Set_First_Only
+   --  below.
+   ------------------------------------------------------------------------
    overriding procedure Parse
      (Match    : access Instance;
-      Analyzer : access Source_Class;
+      Analyzer : in out Source_Class;
       Actively : in     Boolean := True);
+
+   ---------------------------------------------------------------------
+   --  First_Only should be True if the grammar is carefully designed
+   --  so that checking the first element of the sequence is all that
+   --  is necessary in Parse (Actively => False). If False (the
+   --  default), Parse (Actively => False) will look ahead for the
+   --  entire sequence, until one raises Parse_Error.
+   ---------------------------------------------------------------------
+   procedure Set_First_Only (Token : in out Instance; First_Only : in Boolean);
 
    -----------------------------------------------------------------------
    --  Create a token sequence from a pair of token handles.
@@ -95,11 +109,6 @@ package OpenToken.Token.Sequence is
    ----------------------------------------------------------------------------
    function New_Instance (Old_Instance : in Instance) return Handle;
 
-   overriding function Could_Parse_To
-     (Match    : access Instance;
-      Analyzer : access Source_Class)
-     return Boolean;
-
    overriding procedure Expecting (Token : access Instance; List : in out Linked_List.Instance);
 
    ----------------------------------------------------------------------------
@@ -111,17 +120,10 @@ package OpenToken.Token.Sequence is
       Using : in     Token.Linked_List.Instance)
    is null;
 
-   --  First_Only should be True if the grammar is carefully designed
-   --  so that checking the first element of the sequence is all that
-   --  is necessary in Could_Parse_To. If False (the default),
-   --  Could_Parse_To will look ahead for the entire sequence.
-   procedure Set_Could_Parse_To_First (Token : in out Instance; First_Only : in Boolean);
-
 private
    type Instance is new Token.Instance with record
-      Could_Parse_To_First : Boolean := False;
-
-      Members : Token.Linked_List.Instance;
+      First_Only : Boolean := False;
+      Members    : Token.Linked_List.Instance;
    end record;
 
 end OpenToken.Token.Sequence;

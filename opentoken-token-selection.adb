@@ -30,7 +30,7 @@ package body OpenToken.Token.Selection is
 
    overriding procedure Parse
      (Match    : access Instance;
-      Analyzer : access Source_Class;
+      Analyzer : in out Source_Class;
       Actively : in     Boolean      := True)
    is
       use Linked_List;
@@ -45,12 +45,19 @@ package body OpenToken.Token.Selection is
          end if;
          Ada.Text_IO.Put_Line
            (" selection " & Name_Dispatch (Match) &
-              "'(" & Names (Match.Members) & ") match " & Name_Dispatch (Get (Analyzer.all)));
+              "'(" & Names (Match.Members) & ") match " & Name_Dispatch (Get (Analyzer)));
       end if;
 
-      while
-        not Token.Could_Parse_To (Token_Handle (I), Analyzer)
+      Find_Match :
       loop
+         begin
+            Parse (Token_Handle (I), Analyzer, Actively => False);
+            exit Find_Match;
+         exception
+         when Parse_Error =>
+            null;
+         end;
+
          Next_Token (I);
          if I = Null_Iterator then
             if Actively then
@@ -58,21 +65,17 @@ package body OpenToken.Token.Selection is
                   Expected : Linked_List.Instance;
                begin
                   Expecting (Match, Expected);
-                  raise Parse_Error with "Found " & Name_Dispatch (Get (Analyzer.all)) & "; expected one of " &
+                  raise Parse_Error with "Found " & Name_Dispatch (Get (Analyzer)) & "; expected one of " &
                     Token.Linked_List.Names (Expected) & ".";
                end;
             else
-               --  Don't waste time since this is probably *not* an error
-               --  condition in this mode, and it will probably be handled
-               --  so no one will ever see the message anyway.
                raise Parse_Error;
             end if;
          end if;
-      end loop;
-
-      Parse (Token_Handle (I), Analyzer, Actively);
+      end loop Find_Match;
 
       if Actively then
+         Parse (Token_Handle (I), Analyzer, Actively);
          Build (Match.all, Token_Handle (I).all);
       end if;
 
@@ -133,23 +136,6 @@ package body OpenToken.Token.Selection is
    is begin
       return new Class'(Class (Old_Instance));
    end New_Instance;
-
-   overriding function Could_Parse_To
-     (Match    : access Instance;
-      Analyzer : access Source_Class)
-     return Boolean
-   is
-      use Linked_List;
-      I : List_Iterator := First (Match.Members);
-   begin
-      while I /= Null_Iterator loop
-         if Could_Parse_To (Token_Handle (I), Analyzer) then
-            return True;
-         end if;
-         Next_Token (I);
-      end loop;
-      return False;
-   end Could_Parse_To;
 
    overriding procedure Expecting (Token : access Instance; List : in out Linked_List.Instance)
    is

@@ -50,6 +50,13 @@ package OpenToken.Token is
    ----------------------------------------------------------------------
    --  Verify that token in Analyzer matches the token Match.
    --
+   --  If not Actively, this should determine as quickly as possible
+   --  whether the parse would fail or succeed, and raise Parse_Error
+   --  with no message if it would fail. Depending on the grammar
+   --  design, only checking the current Analyzer token would be
+   --  enough, but it may be necessary to look ahead. When called in
+   --  this way, a higher level parse is choosing between options.
+   --
    --  If Actively, upon successful completion, update Match with the
    --  value of the token, and advance Analyzer across all matched
    --  tokens.
@@ -59,29 +66,12 @@ package OpenToken.Token is
    --
    --  Match is 'access' to match Expecting, which needs to store a
    --  pointer to it in some cases.
-   --
-   --  Analyser is 'access' to match Could_Parse_To, which needs a
-   --  variable Analyzer when it in turn calls Parse.
    ------------------------------------------------------------------
    procedure Parse
      (Match    : access Instance;
-      Analyzer : access Source_Class;
+      Analyzer : in out Source_Class;
       Actively : in     Boolean := True)
       is abstract;
-
-   --------------------------------------------------------------------------
-   --  This routine should be a quick routine to verify that the given
-   --  token can possibly succesfully parse. This routine is meant to
-   --  be used for choosing between parsing options, so it should be a
-   --  *very* quick check rather than a full parse. In most cases,
-   --  simply checking against the analyzer's current token should be
-   --  sufficient. But in extreme cases, a call to Parse with Actively
-   --  set to False may be required.
-   --------------------------------------------------------------------------
-   function Could_Parse_To
-     (Match    : access Instance;
-      Analyzer : access Source_Class)
-     return Boolean is abstract;
 
    --------------------------------------------------------------------------
    --  Locate the next token.
@@ -94,6 +84,13 @@ package OpenToken.Token is
      (Analyzer   : in out Source;
       Look_Ahead : in     Boolean := False)
       is abstract;
+
+   --------------------------------------------------------------------
+   --  Push back Count tokens that were found with Look_Ahead True.
+   --  The pushed back tokens will be returned by subsequent calls to
+   --  Find_Next.
+   --------------------------------------------------------------------
+   procedure Push_Back (Analyzer : in out Source; Count : in Integer) is abstract;
 
    ----------------------------------------------------------------------------
    --  Returns the last token that was matched.

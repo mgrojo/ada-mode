@@ -41,39 +41,9 @@ package OpenToken.Token.Selection is
 
    type Handle is access all Class;
 
-   ----------------------------------------------------------------------------
-   --  Retrieve the given selection token from the analyzer.
-   --
-   --  The default implementation chooses which token to parse by
-   --  calling Could_Parse_To on every token in the selection until
-   --  one returns true. If the token is not LL(1), that is, if it
-   --  needs to examine more than one token from the input stream to
-   --  determine which selection to make, then this behavior won't
-   --  parse correctly. This is a problem because all the supplied
-   --  Parse and Could_Parse_To routines only check the first token.
-   --
-   --  To fix this, you have a several options. You can:
-   --    o  Implement your own token type to do the parsing. You can look ahead
-   --       multiple tokens by setting the Actively flag on the parse routine.
-   --    o  Derive a type from Instance, and provide your own Parse routine.
-   --       This routine should examine enough tokens ahead (using the Actively
-   --       flag where it needs to) in order to make the proper decision.
-   --    o  Override the default implementations of Could_Parse_To for the
-   --       tokens in the selection (not the selection token itself). The
-   --       overridden routines can check multiple tokens ahead instead of
-   --       just one.
-   --    o  Rearrange your token defintions so that only one token of
-   --       lookahead is required.
-   --
-   --  The private routine Build is called when the entire operation
-   --  has been recognized.
-   --
-   --  A non active parse does not comsume any input from the analyzer,
-   --  and does not call any of the private routines.
-   ----------------------------------------------------------------------------
    overriding procedure Parse
      (Match    : access Instance;
-      Analyzer : access Source_Class;
+      Analyzer : in out Source_Class;
       Actively : in     Boolean      := True);
 
    ------------------------------------------------------------------
@@ -123,11 +93,6 @@ package OpenToken.Token.Selection is
    --  Return a newly allocated instance which is a copy of the given instance.
    ----------------------------------------------------------------------------
    function New_Instance (Old_Instance : in Instance) return Handle;
-
-   overriding function Could_Parse_To
-     (Match    : access Instance;
-      Analyzer : access Source_Class)
-     return Boolean;
 
    overriding procedure Expecting (Token : access Instance; List : in out Linked_List.Instance);
 

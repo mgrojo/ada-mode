@@ -1,5 +1,6 @@
 -------------------------------------------------------------------------------
 --
+-- Copyright (C) 2009 Stephe Leake
 -- Copyright (C) 2000 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -53,7 +54,7 @@ begin
 
       Analyzer : Tokenizer.Instance := Tokenizer.Initialize (Syntax, String_Feeder'Access);
 
-      Selection : OpenToken.Token.Selection.Class :=
+      Selection : aliased OpenToken.Token.Selection.Class :=
         Do_Keyword or Several_Keyword or Things_Keyword or Int_Literal or Times_Keyword or
         In_Keyword or A_Keyword or Row_Keyword;
 
@@ -73,10 +74,7 @@ begin
 
       for String_Token in 1 .. 8 loop
          --  Perform the parse
-         OpenToken.Token.Selection.Parse
-           (Match    => Selection,
-            Analyzer => Analyzer
-            );
+         OpenToken.Token.Selection.Parse (Selection'Access, Analyzer);
 
       end loop;
 
@@ -84,15 +82,16 @@ begin
          Ada.Text_IO.Put_Line ("passed");
       else
          Ada.Text_IO.Put_Line ("failed.");
-         Ada.Text_IO.Put_Line ("There was an unexpected " &
-                               Token_IDs'Image (Tokenizer.ID (Analyzer)) &
-                               " left on the input stream.");
+         Ada.Text_IO.Put_Line
+           ("There was an unexpected " &
+              Token_IDs'Image (Tokenizer.ID (Analyzer)) &
+              " left on the input stream.");
       end if;
 
    exception
-      when Error : others =>
-         Ada.Text_IO.Put_Line ("failed due to parse exception:");
-         Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (Error));
+   when Error : others =>
+      Ada.Text_IO.Put_Line ("failed due to parse exception:");
+      Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (Error));
    end Test_Case_1;
 
    ----------------------------------------------------------------------------
@@ -112,7 +111,7 @@ begin
 
       Analyzer : Tokenizer.Instance := Tokenizer.Initialize (Syntax, String_Feeder'Access);
 
-      Selection : OpenToken.Token.Selection.Class :=
+      Selection : aliased OpenToken.Token.Selection.Class :=
         Several_Keyword or Things_Keyword or Int_Literal or Times_Keyword or
         In_Keyword or A_Keyword or Row_Keyword;
 
@@ -124,17 +123,13 @@ begin
       --  Put the parse string into the analyzer's text feeder.
       OpenToken.Text_Feeder.String.Set
         (Feeder => String_Feeder,
-         Value  => Parse_String
-         );
+         Value  => Parse_String);
 
       --  Load up the first token
       Tokenizer.Find_Next (Analyzer);
 
       --  Parse token selection
-      OpenToken.Token.Selection.Parse
-        (Match    => Selection,
-         Analyzer => Analyzer
-         );
+      OpenToken.Token.Selection.Parse (Selection'Access, Analyzer);
 
       Ada.Text_IO.Put_Line ("failed.");
 

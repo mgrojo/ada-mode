@@ -1,5 +1,6 @@
 -------------------------------------------------------------------------------
 --
+-- Copyright (C) 2009 Stephen Leake
 -- Copyright (C) 2000 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -38,7 +39,7 @@ package OpenToken.Token.List is
    type Handle is access all Class;
 
    overriding procedure Parse
-     (Match    : in out Instance;
+     (Match    : access Instance;
       Analyzer : in out Source_Class;
       Actively : in     Boolean := True);
 
@@ -49,11 +50,6 @@ package OpenToken.Token.List is
      (Element   : access OpenToken.Token.Class;
       Separator : access OpenToken.Token.Class)
      return Class;
-
-   overriding function Could_Parse_To
-     (Match    : in Instance;
-      Analyzer : in Source_Class)
-     return Boolean;
 
 private
 
@@ -67,8 +63,8 @@ private
    ----------------------------------------------------------------------------
    procedure Add_List_Element
      (Match   : in out Instance;
-      Element : in out OpenToken.Token.Class
-     ) is null;
+      Element : in out OpenToken.Token.Class)
+   is null;
 
    ----------------------------------------------------------------------------
    --  This routine is called when an entire list has been actively parsed.

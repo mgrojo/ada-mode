@@ -1,20 +1,21 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2002, 2003, 2009 Stephe Leake
--- Copyright (C) 1999, 2000 FlightSafety International and Ted Dennison
+--  Copyright (C) 2002, 2003, 2009 Stephe Leake
+--  Copyright (C) 1999, 2000 FlightSafety International and Ted Dennison
 --
--- This file is part of the OpenToken package.
+--  This file is part of the OpenToken package.
 --
--- The OpenToken package is free software; you can redistribute it and/or
--- modify it under the terms of the  GNU General Public License as published
--- by the Free Software Foundation; either version 3, or (at your option)
--- any later version. The OpenToken package is distributed in the hope that
--- it will be useful, but WITHOUT ANY WARRANTY; without even the implied
--- warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
--- GNU General Public License for  more details.  You should have received
--- a copy of the GNU General Public License  distributed with the OpenToken
--- package;  see file GPL.txt.  If not, write to  the Free Software Foundation,
--- 59 Temple Place - Suite 330,  Boston, MA 02111-1307, USA.
+--  The OpenToken package is free software; you can redistribute it
+--  and/or modify it under the terms of the GNU General Public License
+--  as published by the Free Software Foundation; either version 3, or
+--  (at your option) any later version. The OpenToken package is
+--  distributed in the hope that it will be useful, but WITHOUT ANY
+--  WARRANTY; without even the implied warranty of MERCHANTABILITY or
+--  FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public
+--  License for more details. You should have received a copy of the
+--  GNU General Public License distributed with the OpenToken package;
+--  see file GPL.txt. If not, write to the Free Software Foundation,
+--  59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 --
 --  As a special exception, if other files instantiate generics from
 --  this unit, or you link this unit with other files to produce an
@@ -32,15 +33,8 @@
 -------------------------------------------------------------------------------
 
 with Ada.Strings.Fixed;
-with Unchecked_Deallocation;
-
-with OpenToken.Recognizer;
-use type OpenToken.Recognizer.Analysis_Verdict;
-
------------------------------------------------------------------------------
---  This package implements a mostly full-strength tokenizer (or
---  lexical analyizer).
------------------------------------------------------------------------------
+with Ada.Text_IO;
+with Ada.Unchecked_Deallocation;
 package body OpenToken.Token.Enumerated.Analyzer is
 
    type Match_List is array (Terminal_ID) of Recognizer.Analysis_Verdict;
@@ -50,9 +44,11 @@ package body OpenToken.Token.Enumerated.Analyzer is
    --
    type Token_List_Node is record
       Token_Handle : OpenToken.Token.Enumerated.Handle;
+      Prev         : Token_List_Node_Pointer;
       Next         : Token_List_Node_Pointer;
    end record;
 
+   procedure Free is new Ada.Unchecked_Deallocation (Token_List_Node, Token_List_Node_Pointer);
 
    -------------------------------------------------------------------------
    --  Routines to handle indexes in a circular ring buffer
@@ -65,12 +61,13 @@ package body OpenToken.Token.Enumerated.Analyzer is
    --  relies on the fact that the string buffer will be ranged
    --  1..Max_String_Length.
    -----------------------------------------------------------------------
-   function Increment_Buffer_Index (Index  : in Integer;
-                                    Amount : in Integer := 1) return Natural is
-   begin
+   function Increment_Buffer_Index
+     (Index  : in Integer;
+      Amount : in Integer := 1)
+     return Natural
+   is begin
       return ((Index + Amount - 1) mod Max_String_Length) + 1;
    end Increment_Buffer_Index;
-
 
    -----------------------------------------------------------------------
    --  Return True if the given index designates a valid element of
@@ -78,9 +75,9 @@ package body OpenToken.Token.Enumerated.Analyzer is
    -----------------------------------------------------------------------
    function In_Buffer
      (Index    : Integer;
-      Analyzer : Instance
-     ) return Boolean is
-   begin
+      Analyzer : Instance)
+     return Boolean
+   is begin
 
       --  It is not in the buffer if the Index is outside the string or the string is empty
       if Index not in Analyzer.Buffer'Range or Analyzer.Buffer_Size = 0 then
@@ -103,8 +100,8 @@ package body OpenToken.Token.Enumerated.Analyzer is
    --  and either the amount of space left in the buffer, or the
    --  distance from the tail to the buffer's wrap point.
    -----------------------------------------------------------------------
-   procedure Get_More_Text (Analyzer : in out Instance) is
-
+   procedure Get_More_Text (Analyzer : in out Instance)
+   is
       Old_Tail       : constant Natural := Analyzer.Buffer_Tail;
       First_New_Char : constant Natural := Increment_Buffer_Index (Analyzer.Buffer_Tail);
    begin
@@ -113,14 +110,12 @@ package body OpenToken.Token.Enumerated.Analyzer is
          OpenToken.Text_Feeder.Get
            (Feeder   => Analyzer.Feeder.all,
             New_Text => Analyzer.Buffer (First_New_Char .. Analyzer.Buffer_Head - 1),
-            Text_End => Analyzer.Buffer_Tail
-            );
+            Text_End => Analyzer.Buffer_Tail);
       else
          OpenToken.Text_Feeder.Get
            (Feeder   => Analyzer.Feeder.all,
             New_Text => Analyzer.Buffer (First_New_Char .. Analyzer.Buffer'Last),
-            Text_End => Analyzer.Buffer_Tail
-            );
+            Text_End => Analyzer.Buffer_Tail);
       end if;
       Analyzer.Buffer_Size := Analyzer.Buffer_Size +
         Increment_Buffer_Index (Analyzer.Buffer_Tail, -Old_Tail);
@@ -131,28 +126,27 @@ package body OpenToken.Token.Enumerated.Analyzer is
    --  Return the number of EOLs in the first Length characters in the
    --  Analyzer's buffer
    -----------------------------------------------------------------------
-   function EOLs_Buffered (Analyzer : in Instance;
-                           Length   : in Natural
-                          ) return Natural is
-
+   function EOLs_Buffered
+     (Analyzer : in Instance;
+      Length   : in Natural)
+     return Natural
+   is
       Slice_Tail : constant Natural := Increment_Buffer_Index (Analyzer.Buffer_Head, Length - 1);
       EOL_String : constant String  := (1 => EOL_Character);
    begin
       if Slice_Tail < Analyzer.Buffer_Head then
          return Ada.Strings.Fixed.Count
            (Source  => Analyzer.Buffer (Analyzer.Buffer_Head .. Analyzer.Buffer'Last),
-            Pattern => EOL_String
-            ) +
+            Pattern => EOL_String)
+           +
            Ada.Strings.Fixed.Count
            (Source  => Analyzer.Buffer (Analyzer.Buffer'First .. Slice_Tail),
-            Pattern => EOL_String
-            );
+            Pattern => EOL_String);
       else
          return
            Ada.Strings.Fixed.Count
            (Source  => Analyzer.Buffer (Analyzer.Buffer_Head .. Slice_Tail),
-            Pattern => EOL_String
-            );
+            Pattern => EOL_String);
       end if;
    end EOLs_Buffered;
 
@@ -162,9 +156,9 @@ package body OpenToken.Token.Enumerated.Analyzer is
    -----------------------------------------------------------------------
    function Characters_After_Last_EOL
      (Analyzer : in Instance;
-      Length   : in Natural
-     ) return Natural is
-
+      Length   : in Natural)
+     return Natural
+   is
       Slice_Tail : constant Natural := Increment_Buffer_Index (Analyzer.Buffer_Head, Length - 1);
       EOL_String : constant String  := (1 => EOL_Character);
 
@@ -212,8 +206,10 @@ package body OpenToken.Token.Enumerated.Analyzer is
    --  Last_Unmatched will be set to the index of the last unmatchable
    --  character.
    -----------------------------------------------------------------------
-   procedure Find_Non_Match (Unmatched_Length : out    Natural;
-                             Analyzer         : in out Instance) is
+   procedure Find_Non_Match
+     (Unmatched_Length : out    Natural;
+      Analyzer         : in out Instance)
+   is
 
       --  The table of token matches
       Match : Match_List;
@@ -221,6 +217,7 @@ package body OpenToken.Token.Enumerated.Analyzer is
       Possible_Matches : Boolean;
       Current_Char     : Integer;
 
+      use type OpenToken.Recognizer.Analysis_Verdict;
    begin
 
       --  Loop to find unrecognized characters
@@ -307,8 +304,8 @@ package body OpenToken.Token.Enumerated.Analyzer is
    procedure Find_Best_Match
      (Analyzer          : in out Instance;
       Best_Match_Token  :    out Terminal_ID;
-      Best_Match_Length :    out Natural
-     ) is
+      Best_Match_Length :    out Natural)
+   is
 
       --  The table of token matches
       Match : Match_List := (others => Recognizer.So_Far_So_Good);
@@ -317,6 +314,7 @@ package body OpenToken.Token.Enumerated.Analyzer is
 
       Current_Char : Integer := Analyzer.Buffer_Head;
 
+      use type OpenToken.Recognizer.Analysis_Verdict;
    begin
 
       --  Clear the state of all the tokens
@@ -429,12 +427,17 @@ package body OpenToken.Token.Enumerated.Analyzer is
       New_Analyzer.Buffer_Size := 0;
       New_Analyzer.Next_Line   := 1;
       New_Analyzer.Next_Column := 1;
+      New_Analyzer.Lookahead_Queue := null;
+      New_Analyzer.Lookahead_Head  := null;
+      New_Analyzer.Lookahead_Tail  := null;
 
       return New_Analyzer;
    end Initialize;
 
    procedure Reset (Analyzer : in out Instance)
-   is begin
+   is
+      Prev : Token_List_Node_Pointer;
+   begin
       Analyzer.Line        := 1;
       Analyzer.Column      := 1;
       Analyzer.Lexeme_Head := 1;
@@ -444,6 +447,17 @@ package body OpenToken.Token.Enumerated.Analyzer is
       Analyzer.Buffer_Size := 0;
       Analyzer.Next_Line   := 1;
       Analyzer.Next_Column := 1;
+
+      loop
+         exit when Analyzer.Lookahead_Tail = null;
+         Free (Analyzer.Lookahead_Tail.Token_Handle);
+         Prev := Analyzer.Lookahead_Tail.Prev;
+         Free (Analyzer.Lookahead_Tail);
+         Analyzer.Lookahead_Tail := Prev;
+      end loop;
+
+      Analyzer.Lookahead_Head  := null;
+      Analyzer.Lookahead_Queue := null;
    end Reset;
 
    procedure Set_Text_Feeder (Analyzer : in out Instance; Feeder : in Text_Feeder_Ptr) is
@@ -486,34 +500,16 @@ package body OpenToken.Token.Enumerated.Analyzer is
       Analyzer.Buffer_Size := 0;
    end Discard_Buffered_Text;
 
-   ----------------------------------------------------------------------------
-   --  Set the analyzer's default token to the given ID.
-   --
-   --  If Find_Next can't find a matching token, it will set Token to
-   --  this token id, instead of raising syntax error. The Lexeme in
-   --  this situation will be contain all the contiguous characters
-   --  that fail to match an token. In practice this will be much less
-   --  efficient than an "error" token that explicitly matches
-   --  unmatchable strings. But often those are quite difficult to
-   --  construct. The default token will be checked for legitimate
-   --  matches. If this is not the behavior you want, it would be best
-   --  to use a token that can't match any legitimate string (eg:
-   --  Token.Nothing)
-   --------------------------------------------------------------------------
-   procedure Set_Default (Analyzer : in out Instance;
-                          Default  : in     Terminal_ID
-                         ) is
-   begin
+   procedure Set_Default
+     (Analyzer : in out Instance;
+      Default  : in     Terminal_ID)
+   is begin
       Analyzer.Has_Default   := True;
       Analyzer.Default_Token := Default;
    end Set_Default;
 
-   --------------------------------------------------------------------------
-   --  Reset the analyzer to have *no* default token ID. If Find_Next
-   --  doesn't find a matching token, Syntax_Error will be raised.
-   --------------------------------------------------------------------------
-   procedure Unset_Default (Analyzer : in out Instance) is
-   begin
+   procedure Unset_Default (Analyzer : in out Instance)
+   is begin
       Analyzer.Has_Default := False;
    end Unset_Default;
 
@@ -526,165 +522,216 @@ package body OpenToken.Token.Enumerated.Analyzer is
       Matched_Token  : Terminal_ID;
       Matched_Length : Natural;
 
-      Trash : Token_List_Node_Pointer;
-      procedure Dispose is new Unchecked_Deallocation
-        (OpenToken.Token.Enumerated.Class, OpenToken.Token.Enumerated.Handle);
-      procedure Dispose is new Unchecked_Deallocation
-        (Token_List_Node, Token_List_Node_Pointer);
+      Next : Token_List_Node_Pointer;
 
    begin
 
       --  Only read new tokens during lookaheads or when the lookahead list is empty
       if Look_Ahead or Analyzer.Lookahead_Queue = null then
 
-         loop
+         if Analyzer.Lookahead_Head = null then
+            loop
+               --  Find the best token match from the input stream
+               Find_Best_Match
+                 (Analyzer          => Analyzer,
+                  Best_Match_Token  => Matched_Token,
+                  Best_Match_Length => Matched_Length);
 
-            --  Find the best token match from the input stream
-            Find_Best_Match
-              (Analyzer          => Analyzer,
-               Best_Match_Token  => Matched_Token,
-               Best_Match_Length => Matched_Length);
+               --  If we didn't find a match, its a either syntax error
+               --  or a match to the default token.
 
+               if Matched_Length = 0 then
+                  if Analyzer.Has_Default then
 
-            --
-            --  If we didn't find a match, its a either syntax error
-            --  or a match to the default token.
+                     --  Find all the characters that *aren't* part of a
+                     --  match
+                     Find_Non_Match
+                       (Unmatched_Length => Matched_Length,
+                        Analyzer         => Analyzer);
+                     Matched_Token := Analyzer.Default_Token;
 
-            if Matched_Length = 0 then
-               if Analyzer.Has_Default then
-
-                  --  Find all the characters that *aren't* part of a
-                  --  match
-                  Find_Non_Match
-                    (Unmatched_Length => Matched_Length,
-                     Analyzer         => Analyzer);
-                  Matched_Token := Analyzer.Default_Token;
-
-               else
-                  raise Syntax_Error with "Unrecognized character '" & Analyzer.Buffer (Analyzer.Buffer_Head) & "'";
+                  else
+                     raise Syntax_Error with "Unrecognized character '" & Analyzer.Buffer (Analyzer.Buffer_Head) & "'";
+                  end if;
                end if;
-            end if;
 
-            --
-            --  Update the line and column count
+               --  Update the line and column count
 
-            Analyzer.Line   := Analyzer.Next_Line;
-            Analyzer.Column := Analyzer.Next_Column;
+               Analyzer.Line   := Analyzer.Next_Line;
+               Analyzer.Column := Analyzer.Next_Column;
 
-            EOLs_Found := EOLs_Buffered (Analyzer => Analyzer, Length => Matched_Length);
-            Analyzer.Next_Line := Analyzer.Next_Line + EOLs_Found;
+               EOLs_Found := EOLs_Buffered (Analyzer => Analyzer, Length => Matched_Length);
+               Analyzer.Next_Line := Analyzer.Next_Line + EOLs_Found;
 
-            if EOLs_Found = 0 then
-               Analyzer.Next_Column := Analyzer.Next_Column + Matched_Length;
-            else
-               Analyzer.Next_Column := 1 +
-                 Characters_After_Last_EOL
-                 (Analyzer => Analyzer,
-                  Length   => Matched_Length);
+               if EOLs_Found = 0 then
+                  Analyzer.Next_Column := Analyzer.Next_Column + Matched_Length;
+               else
+                  Analyzer.Next_Column := 1 +
+                    Characters_After_Last_EOL
+                    (Analyzer => Analyzer,
+                     Length   => Matched_Length);
 
-            end if;
+               end if;
 
-            --
-            --  Quit when we find a reportable token
+               --  Quit when we find a reportable token
 
-            exit when Analyzer.Syntax_List (Matched_Token).Recognizer.Report;
+               exit when Analyzer.Syntax_List (Matched_Token).Recognizer.Report;
 
-            --
-            --  Ditch the last token to make room for more parsing
+               --  Ditch the last token to make room for more parsing
 
-            Analyzer.Buffer_Head := Increment_Buffer_Index
-              (Index  => Analyzer.Buffer_Head,
-               Amount => Matched_Length
-               );
-            Analyzer.Buffer_Size := Analyzer.Buffer_Size - Matched_Length;
+               Analyzer.Buffer_Head := Increment_Buffer_Index (Analyzer.Buffer_Head, Matched_Length);
 
-         end loop;
+               Analyzer.Buffer_Size := Analyzer.Buffer_Size - Matched_Length;
 
-         --  Save off the information for the token we found
-         Analyzer.Lexeme_Head := Analyzer.Buffer_Head;
-         Analyzer.Lexeme_Tail := Increment_Buffer_Index
-           (Index  => Analyzer.Buffer_Head,
-            Amount => Matched_Length - 1
-            );
+            end loop;
 
-         Analyzer.Last_Token := Matched_Token;
+            --  Save off the information for the token we found
+            Analyzer.Lexeme_Head := Analyzer.Buffer_Head;
+            Analyzer.Lexeme_Tail := Increment_Buffer_Index (Analyzer.Buffer_Head, Matched_Length - 1);
 
-         Create (Lexeme     => Lexeme (Analyzer),
-                 ID         => Matched_Token,
-                 Recognizer => Analyzer.Syntax_List (Matched_Token).Recognizer,
-                 New_Token  => Analyzer.Syntax_List (Matched_Token).Token_Handle.all
-                );
+            Create
+              (Lexeme     => Lexeme (Analyzer),
+               ID         => Matched_Token,
+               Recognizer => Analyzer.Syntax_List (Matched_Token).Recognizer,
+               New_Token  => Analyzer.Syntax_List (Matched_Token).Token_Handle.all);
 
-         --  If we are looking ahead, push the new token on the look-aheads queue
-         if Look_Ahead then
-            if Analyzer.Lookahead_Tail = null then
-               Analyzer.Lookahead_Tail := new Token_List_Node'
-                 (Token_Handle => new OpenToken.Token.Enumerated.Class'
-                  (Analyzer.Syntax_List (Matched_Token).Token_Handle.all),
-                  Next         => null
-                  );
+            if Look_Ahead then
+               if Analyzer.Lookahead_Tail = null then
+                  --  Push the previous token on the lookahead queue
+                  --  tail, so Push_Back can restore it if necessary.
 
-               Analyzer.Lookahead_Queue := Analyzer.Lookahead_Tail;
-            else
+                  Analyzer.Lookahead_Tail := new Token_List_Node'
+                    (Token_Handle => new Enumerated.Class'(Analyzer.Syntax_List (Analyzer.Last_Token).Token_Handle.all),
+                     Prev         => null,
+                     Next         => null);
+               end if;
+
+               --  Push the matched token on the lookahead queue tail.
+
                Analyzer.Lookahead_Tail.Next := new Token_List_Node'
-                 (Token_Handle => new OpenToken.Token.Enumerated.Class'
-                  (Analyzer.Syntax_List (Matched_Token).Token_Handle.all),
-                  Next         => null
-                  );
+                 (Token_Handle => new Enumerated.Class'(Analyzer.Syntax_List (Matched_Token).Token_Handle.all),
+                  Prev         => Analyzer.Lookahead_Tail,
+                  Next         => null);
+
                Analyzer.Lookahead_Tail := Analyzer.Lookahead_Tail.Next;
+
+               if Analyzer.Lookahead_Queue = null then
+                  --  We want Lookahead_Queue to point to the first
+                  --  token read with Look_Ahead True.
+                  Analyzer.Lookahead_Queue := Analyzer.Lookahead_Tail;
+               end if;
+
+               Analyzer.Last_Token := Matched_Token;
+
+               if Trace_Parse then
+                  Trace_Put ("look ahead " & Token_ID'Image (Analyzer.Last_Token)); Ada.Text_IO.New_Line;
+               end if;
+            else
+               Analyzer.Last_Token := Matched_Token;
+            end if;
+
+            --  Ditch the buffered lexeme to make room for more parsing
+            Analyzer.Buffer_Head := Increment_Buffer_Index (Analyzer.Buffer_Head, Matched_Length);
+            Analyzer.Buffer_Size := Analyzer.Buffer_Size - Matched_Length;
+         else
+            --  Read from lookahead_head
+            Analyzer.Last_Token := Analyzer.Lookahead_Head.Token_Handle.ID;
+            Analyzer.Syntax_List (Analyzer.Last_Token).Token_Handle.all := Analyzer.Lookahead_Head.Token_Handle.all;
+            Analyzer.Lookahead_Head := Analyzer.Lookahead_Head.Next;
+
+            if Trace_Parse then
+               Trace_Put ("look ahead " & Token_ID'Image (Analyzer.Last_Token)); Ada.Text_IO.New_Line;
             end if;
          end if;
+      else
+         --  Read the next token from the lookahead queue head
 
-         --  Ditch the buffered lexeme to make room for more parsing
-         Analyzer.Buffer_Head := Increment_Buffer_Index
-           (Index  => Analyzer.Buffer_Head,
-            Amount => Matched_Length
-            );
-         Analyzer.Buffer_Size := Analyzer.Buffer_Size - Matched_Length;
+         if Analyzer.Lookahead_Queue.Prev /= null then
+            --  The first token pushed needs to be freed; it was there
+            --  for Push_Back, which won't need it now.
+            Free (Analyzer.Lookahead_Queue.Prev.Token_Handle);
+            Free (Analyzer.Lookahead_Queue.Prev);
+         end if;
 
-      else -- Read the next token from the lookahead queue
+         --  Keep track of Lookahead_Head in case the next call with
+         --  Look_Ahead => True happens before the queue is emptied.
+         if Analyzer.Lookahead_Queue = Analyzer.Lookahead_Head then
+            Analyzer.Lookahead_Head := Analyzer.Lookahead_Queue.Next;
+         end if;
 
-         --  Pop the firt item off the queue and put it into the syntax list
+         --  Pop the first item off the queue and put it into the syntax list
          Analyzer.Last_Token := Analyzer.Lookahead_Queue.Token_Handle.ID;
-         Analyzer.Syntax_List (Analyzer.Last_Token).Token_Handle.all :=
-           Analyzer.Lookahead_Queue.Token_Handle.all;
-         Trash := Analyzer.Lookahead_Queue;
-         Analyzer.Lookahead_Queue := Analyzer.Lookahead_Queue.Next;
-         Dispose (Trash.Token_Handle);
-         Dispose (Trash);
+         Analyzer.Syntax_List (Analyzer.Last_Token).Token_Handle.all := Analyzer.Lookahead_Queue.Token_Handle.all;
+         Next := Analyzer.Lookahead_Queue.Next;
+         Free (Analyzer.Lookahead_Queue.Token_Handle);
+         Free (Analyzer.Lookahead_Queue);
+         Analyzer.Lookahead_Queue := Next;
+         Analyzer.Lookahead_Queue.Prev := null;
+
+         if Analyzer.Lookahead_Queue = null then
+            Analyzer.Lookahead_Tail := null;
+         end if;
       end if;
    end Find_Next;
 
-   ----------------------------------------------------------------------------
-   --  Returns True if the next token will be at the start of its text line.
-   ----------------------------------------------------------------------------
+   overriding procedure Push_Back (Analyzer : in out Instance; Count : in Integer)
+   is begin
+      if Trace_Parse then
+         Trace_Put ("...push back" & Integer'Image (Count) & " ");
+      end if;
+
+      --  We must preserve the pushed back items in the queue; we are
+      --  not reseting the text source, so they can't be recognized
+      --  again.
+      --
+      --  If user calls with Count to high, they'll get Constraint_Error.
+
+      for I in 1 .. Count loop
+         if Analyzer.Lookahead_Head = null then
+            --  Last_Token => last_token_read (with or without Look_Ahead => True)
+            --  Lookahead_Tail => previous_token
+            --  We want Last_Token to be previous_token, Lookahead_Head to be Last_Token
+            Analyzer.Lookahead_Tail.Next := new Token_List_Node'
+              (Token_Handle => new Enumerated.Class'(Analyzer.Syntax_List (Analyzer.Last_Token).Token_Handle.all),
+               Prev         => Analyzer.Lookahead_Tail,
+               Next         => null);
+
+            Analyzer.Last_Token := Analyzer.Lookahead_Tail.Token_Handle.ID;
+
+            Analyzer.Syntax_List (Analyzer.Last_Token).Token_Handle.all := Analyzer.Lookahead_Tail.Token_Handle.all;
+
+            Analyzer.Lookahead_Tail := Analyzer.Lookahead_Tail.Next;
+            Analyzer.Lookahead_Head := Analyzer.Lookahead_Tail;
+         else
+            Analyzer.Lookahead_Head := Analyzer.Lookahead_Head.Prev;
+
+            Analyzer.Last_Token := Analyzer.Lookahead_Head.Token_Handle.ID;
+
+            Analyzer.Syntax_List (Analyzer.Last_Token).Token_Handle.all := Analyzer.Lookahead_Head.Token_Handle.all;
+         end if;
+
+      end loop;
+
+      if Trace_Parse then
+         Ada.Text_IO.Put_Line ("; current token " & Token_ID'Image (Analyzer.Last_Token));
+      end if;
+   end Push_Back;
+
    function First_Column (Analyzer : in Instance) return Boolean is
    begin
       return Analyzer.Next_Column = 1;
    end First_Column;
 
-   --------------------------------------------------------------------------
-   --  Returns the column at which the the next token start on its
-   --  text line. The main purpose of this routine is to assist in
-   --  writing recognizers for tokens that must start on a specific
-   --  column
-   --------------------------------------------------------------------------
    function Next_Token_Column (Analyzer : in Instance) return Integer is
    begin
       return Analyzer.Next_Column;
    end Next_Token_Column;
 
-   ----------------------------------------------------------------------------
-   --  Returns the current text line at which processing will resume.
-   ----------------------------------------------------------------------------
    function Line (Analyzer : in Instance) return Natural is
    begin
       return Analyzer.Line;
    end Line;
 
-   ----------------------------------------------------------------------------
-   --  Returns the current text column at which processing will resume.
-   ----------------------------------------------------------------------------
    function Column (Analyzer : in Instance) return Natural is
    begin
       return Analyzer.Column;

@@ -1,20 +1,21 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2002, 2003, 2009 Stephe Leake
--- Copyright (C) 1999 FlightSafety International and Ted Dennison
+--  Copyright (C) 2002, 2003, 2009 Stephe Leake
+--  Copyright (C) 1999 FlightSafety International and Ted Dennison
 --
--- This file is part of the OpenToken package.
+--  This file is part of the OpenToken package.
 --
--- The OpenToken package is free software; you can redistribute it and/or
--- modify it under the terms of the  GNU General Public License as published
--- by the Free Software Foundation; either version 3, or (at your option)
--- any later version. The OpenToken package is distributed in the hope that
--- it will be useful, but WITHOUT ANY WARRANTY; without even the implied
--- warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
--- GNU General Public License for  more details.  You should have received
--- a copy of the GNU General Public License  distributed with the OpenToken
--- package;  see file GPL.txt.  If not, write to  the Free Software Foundation,
--- 59 Temple Place - Suite 330,  Boston, MA 02111-1307, USA.
+--  The OpenToken package is free software; you can redistribute it
+--  and/or modify it under the terms of the GNU General Public License
+--  as published by the Free Software Foundation; either version 3, or
+--  (at your option) any later version. The OpenToken package is
+--  distributed in the hope that it will be useful, but WITHOUT ANY
+--  WARRANTY; without even the implied warranty of MERCHANTABILITY or
+--  FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public
+--  License for more details. You should have received a copy of the
+--  GNU General Public License distributed with the OpenToken package;
+--  see file GPL.txt. If not, write to the Free Software Foundation,
+--  59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 --
 --  As a special exception, if other files instantiate generics from
 --  this unit, or you link this unit with other files to produce an
@@ -171,9 +172,9 @@ package OpenToken.Token.Enumerated.Analyzer is
    --  to use a token that can't match any legitimate string (eg:
    --  Opentoken.Recognizer.Nothing)
    --------------------------------------------------------------------------
-   procedure Set_Default (Analyzer : in out Instance;
-                          Default  : in     Terminal_ID
-                         );
+   procedure Set_Default
+     (Analyzer : in out Instance;
+      Default  : in     Terminal_ID);
 
    --------------------------------------------------------------------------
    --  Reset the analyzer to have *no* default token ID. If Find_Next
@@ -181,7 +182,7 @@ package OpenToken.Token.Enumerated.Analyzer is
    --------------------------------------------------------------------------
    procedure Unset_Default (Analyzer : in out Instance);
 
-   ----------------------------------------------------------------------------
+   --------------------------------------------------------------------------
    --  Locate the next token.
    --
    --  The next token will be the token that matches the *longest*
@@ -198,6 +199,14 @@ package OpenToken.Token.Enumerated.Analyzer is
    overriding procedure Find_Next
      (Analyzer   : in out Instance;
       Look_Ahead : in     Boolean := False);
+
+   --------------------------------------------------------------------
+   --  Push back Count tokens that were found with Look_Ahead True.
+   --  The pushed back tokens will be returned by subsequent calls to
+   --  Find_Next (Look_Ahead => True). This allows a recursive descent
+   --  parser to backtrack.
+   --------------------------------------------------------------------
+   overriding procedure Push_Back (Analyzer : in out Instance; Count : in Integer);
 
    --------------------------------------------------------------------------
    --  Returns the current text line at which processing will resume.
@@ -278,8 +287,9 @@ private
       Next_Line    : Natural := 1;
       Next_Column  : Natural := 1;
 
-      Lookahead_Queue : Token_List_Node_Pointer;
-      Lookahead_Tail  : Token_List_Node_Pointer;
+      Lookahead_Queue : Token_List_Node_Pointer; --  Read from here or text source when Look_Ahead is false
+      Lookahead_Head  : Token_List_Node_Pointer; --  Read from here or text source when Look_Ahead is true
+      Lookahead_Tail  : Token_List_Node_Pointer; --  Most recent token read from text source with Look_Ahead true
    end record;
 
 end OpenToken.Token.Enumerated.Analyzer;

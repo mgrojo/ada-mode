@@ -25,8 +25,6 @@
 --
 -------------------------------------------------------------------------------
 
-with OpenToken.Recognizer;
-
 -----------------------------------------------------------------------------
 --  This package is the top of a generic hierarchy. Based on the list
 --  of IDs it is instantiated with, a user can create tokens and token
@@ -40,6 +38,9 @@ with OpenToken.Recognizer;
 --  constructor for the token analyzer and any nessecary utility
 --  routines their parser may require.
 -----------------------------------------------------------------------------
+
+with Ada.Unchecked_Deallocation;
+with OpenToken.Recognizer;
 generic
 
    type Token_ID is (<>);
@@ -98,13 +99,8 @@ package OpenToken.Token.Enumerated is
 
    overriding procedure Parse
      (Match    : access Instance;
-      Analyzer : access Source_Class;
+      Analyzer : in out Source_Class;
       Actively : in     Boolean      := True);
-
-   overriding function Could_Parse_To
-     (Match    : access Instance;
-      Analyzer : access Source_Class)
-     return Boolean;
 
    overriding function Name (Token : in Instance) return String;
 
@@ -124,5 +120,7 @@ private
    type Instance is new OpenToken.Token.Instance with record
       ID : Token_ID;
    end record;
+
+   procedure Free is new Ada.Unchecked_Deallocation (Class, Handle);
 
 end OpenToken.Token.Enumerated;

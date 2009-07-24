@@ -27,43 +27,34 @@
 with Ada.Text_IO; use Ada.Text_IO;
 procedure ASU_Example_5_10_RD_No_Mixin.Run is
 begin
-   --  If we implement the grammar literally, the parser enters an
-   --  infinite loop; see asu_example_5_10_rd_no_mixin-run_bad.adb.
+   --  Define the grammar. This first naive implementation exhibits
+   --  infinite recursion, as expected.
    --
    --  The problem is that the first element of a production is the
-   --  same as the result of the production.
-   --
-   --  So we rearrange the grammar to avoid this:
-   --
-   --  L -> E         print (L.val)
-   --  E -> T + E     E.val := E1.val + T.val
-   --  E -> T
-   --  T -> F * T     T.val := T1.val * F.val
-   --  T -> F
-   --  F -> ( E )     F.val := E.val
-   --  F -> digit
+   --  same as the result of the production. Parse gets stuck in loop
+   --  where Selection.Could_Parse_To calls Sequence.Could_Parse_To
+   --  which calls Selection.Could_Parse_To ... without making
+   --  progress. FIXME: explain more, include a reference to the
+   --  dragon book.
+   begin
+      L.all := E & EOF;
 
-   L.all := E & EOF;
+      E.all := New_Expression_Instance ("E + T", E & Plus & T) or T;
 
-   E.all := New_Expression_Instance ("T + E", T & Plus & E) or T;
-   E.Name := new String'("E");
+      T.all := New_Expression_Instance ("T * F", T & Times & F) or F;
 
-   T.all := New_Expression_Instance ("F * T", F & Times & T) or F;
-   T.Name := new String'("T");
+      F.all := New_Expression_Instance ("( E )", Left_Paren & E & Right_Paren) or Int_Literal;
 
-   F.all := New_Expression_Instance ("( E )", Left_Paren & E & Right_Paren) or Int_Literal;
-   F.Name := new String'("F");
+      OpenToken.Text_Feeder.String.Set (Feeder, "10 + 5 * 6");
 
-   OpenToken.Text_Feeder.String.Set (Feeder, "10 + 5 * 6");
+      Tokenizer.Find_Next (Analyzer);
 
-   Tokenizer.Reset (Analyzer);
+      Parse (L, Analyzer);
 
-   Tokenizer.Find_Next (Analyzer);
+      Put_Line ("Hmm, didn't get Storage_Error!");
+   exception
+   when Storage_Error =>
+      Put_Line ("Got Storage_Error, as expected");
+   end;
 
-   OpenToken.Token.Trace_Parse := True;
-   Parse (L, Analyzer);
-
-exception
-when Ada.Text_IO.End_Error =>
-   null;
 end ASU_Example_5_10_RD_No_Mixin.Run;

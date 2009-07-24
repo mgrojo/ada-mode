@@ -60,10 +60,10 @@ package body OpenToken.Token.Enumerated is
 
    overriding procedure Parse
      (Match    : access Instance;
-      Analyzer : access Source_Class;
+      Analyzer : in out Source_Class;
       Actively : in     Boolean      := True)
    is
-      Next_Token : constant OpenToken.Token.Class := Get (Analyzer.all);
+      Next_Token : constant OpenToken.Token.Class := Get (Analyzer);
    begin
       if Trace_Parse then
          Trace_Indent := Trace_Indent + 1;
@@ -76,27 +76,31 @@ package body OpenToken.Token.Enumerated is
       end if;
 
       if Instance (Next_Token).ID = Match.ID then
-         begin
-            Match.all := Instance (Next_Token);
-         exception
-         when Constraint_Error =>
-            raise Parse_Error with
-              "Expected a token of type" & Ada.Tags.Expanded_Name (Instance'Tag) & " but found a " &
-              Ada.Tags.Expanded_Name (Next_Token'Tag);
-         end;
-
          if Actively then
+            begin
+               Match.all := Instance (Next_Token);
+            exception
+            when Constraint_Error =>
+               raise Parse_Error with
+                 "Expected a token of type" & Ada.Tags.Expanded_Name (Instance'Tag) & " but found a " &
+                 Ada.Tags.Expanded_Name (Next_Token'Tag);
+            end;
+
             Create
-              (Lexeme     => Lexeme (Source'Class (Analyzer.all)),
+              (Lexeme     => Lexeme (Source'Class (Analyzer)),
                ID         => Match.ID,
-               Recognizer => Last_Recognizer (Source'Class (Analyzer.all)),
+               Recognizer => Last_Recognizer (Source'Class (Analyzer)),
                New_Token  => Class (Match.all));
          end if;
       else
-         raise Parse_Error with "Expected " & Name_Dispatch (Match) & " but found " & Name_Dispatch (Next_Token);
+         if Actively then
+            raise Parse_Error with "Expected " & Name_Dispatch (Match) & " but found " & Name_Dispatch (Next_Token);
+         else
+            raise Parse_Error;
+         end if;
       end if;
 
-      Find_Next (Analyzer.all, Look_Ahead => not Actively);
+      Find_Next (Analyzer, Look_Ahead => not Actively);
 
       if Trace_Parse then
          Trace_Put ("...succeeded"); Ada.Text_IO.New_Line;
@@ -110,14 +114,6 @@ package body OpenToken.Token.Enumerated is
       end if;
       raise;
    end Parse;
-
-   overriding function Could_Parse_To
-     (Match    : access Instance;
-      Analyzer : access Source_Class)
-     return Boolean
-   is begin
-      return Instance (Get (Analyzer.all)).ID = Match.ID;
-   end Could_Parse_To;
 
    overriding function Name (Token : in Instance) return String
    is begin

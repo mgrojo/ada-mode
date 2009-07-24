@@ -30,7 +30,7 @@ package body OpenToken.Token.Sequence is
 
    overriding procedure Parse
      (Match    : access Instance;
-      Analyzer : access Source_Class;
+      Analyzer : in out Source_Class;
       Actively : in     Boolean := True)
    is
       use Token.Linked_List;
@@ -45,16 +45,34 @@ package body OpenToken.Token.Sequence is
             Trace_Put ("trying");
          end if;
          Ada.Text_IO.Put_Line (" sequence " & Name_Dispatch (Match) &
-              "'(" & Names (Match.Members) & ") match " & Name_Dispatch (Get (Analyzer.all)));
+              "'(" & Names (Match.Members) & ") match " & Name_Dispatch (Get (Analyzer)));
       end if;
 
-      while I /= Null_Iterator loop
-         Parse (Token_Handle (I), Analyzer, Actively);
-         Next_Token (I);
-      end loop;
-
       if Actively then
+         while I /= Null_Iterator loop
+            Parse (Token_Handle (I), Analyzer, Actively);
+            Next_Token (I);
+         end loop;
+
          Build (Match.all, Match.Members);
+      else
+         if Match.First_Only then
+            Parse (Token_Handle (First (Match.Members)), Analyzer, Actively => False);
+         else
+            declare
+               Count : Integer := 0;
+            begin
+               while I /= Null_Iterator loop
+                  Parse (Token_Handle (I), Analyzer, Actively => False);
+                  Count := Count + 1;
+                  Next_Token (I);
+               end loop;
+            exception
+            when Parse_Error =>
+               Push_Back (Analyzer, Count);
+               raise;
+            end;
+         end if;
       end if;
 
       if Trace_Parse then
@@ -78,8 +96,8 @@ package body OpenToken.Token.Sequence is
       use type Linked_List.Instance;
    begin
       return
-        (Members              => OpenToken.Token.Handle (Left) & OpenToken.Token.Handle (Right),
-         Could_Parse_To_First => False);
+        (Members    => OpenToken.Token.Handle (Left) & OpenToken.Token.Handle (Right),
+         First_Only => False);
    end "&";
 
    function "&"
@@ -90,8 +108,8 @@ package body OpenToken.Token.Sequence is
       use Linked_List;
    begin
       return
-        (Members              => OpenToken.Token.Handle (Left) & Right.Members,
-         Could_Parse_To_First => False);
+        (Members    => OpenToken.Token.Handle (Left) & Right.Members,
+         First_Only => False);
    end "&";
 
    function "&"
@@ -102,8 +120,8 @@ package body OpenToken.Token.Sequence is
       use Linked_List;
    begin
       return
-        (Members              => Left.Members & OpenToken.Token.Handle (Right),
-         Could_Parse_To_First => False);
+        (Members    => Left.Members & OpenToken.Token.Handle (Right),
+         First_Only => False);
    end "&";
 
    function "&"
@@ -114,34 +132,14 @@ package body OpenToken.Token.Sequence is
       use Linked_List;
    begin
       return
-        (Members              => Left.Members & Right.Members,
-         Could_Parse_To_First => False);
+        (Members    => Left.Members & Right.Members,
+         First_Only => False);
    end "&";
 
    function New_Instance (Old_Instance : in Instance) return Handle
    is begin
       return new Class'(Class (Old_Instance));
    end New_Instance;
-
-   overriding function Could_Parse_To
-     (Match    : access Instance;
-      Analyzer : access Source_Class)
-     return Boolean
-   is
-      use Token.Linked_List;
-   begin
-      if Match.Could_Parse_To_First then
-         return Could_Parse_To (Token_Handle (Initial_Iterator (Match.Members)), Analyzer);
-      else
-         begin
-            Parse (Match, Analyzer, Actively => False);
-            return True;
-         exception
-         when Parse_Error =>
-            return False;
-         end;
-      end if;
-   end Could_Parse_To;
 
    overriding procedure Expecting (Token : access Instance; List : in out Linked_List.Instance)
    is
@@ -150,9 +148,9 @@ package body OpenToken.Token.Sequence is
       Add (List, Token_Handle (First (Token.Members)));
    end Expecting;
 
-   procedure Set_Could_Parse_To_First (Token : in out Instance; First_Only : in Boolean)
+   procedure Set_First_Only (Token : in out Instance; First_Only : in Boolean)
    is begin
-      Token.Could_Parse_To_First := First_Only;
-   end Set_Could_Parse_To_First;
+      Token.First_Only := First_Only;
+   end Set_First_Only;
 
 end OpenToken.Token.Sequence;
