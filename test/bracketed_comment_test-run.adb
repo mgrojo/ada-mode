@@ -1,5 +1,6 @@
 -------------------------------------------------------------------------------
 --
+-- Copyright (C) 2009 Stephe Leake
 -- Copyright (C) 1999 Christoph Karl Walter Grein
 --
 -- This file is part of the OpenToken package.
@@ -24,19 +25,15 @@
 --
 -------------------------------------------------------------------------------
 
-with Ada.Text_IO;
+with Ada.Text_IO; use Ada.Text_IO;
 with Ada.Exceptions;
-
 with OpenToken.Text_Feeder.Text_IO;
-
 procedure Bracketed_Comment_Test.Run is
 
    Analyzer : Tokenizer.Instance := Tokenizer.Initialize (Syntax);
 
    --  Global text file for reading parse data
-   File      : Ada.Text_IO.File_Type;
-   File_Name : constant String := "Bracketed_Comment_Test.txt";
-
+   File : File_Type;
 
 begin
 
@@ -52,46 +49,48 @@ begin
       Text2 : constant String := "/* Another comment that ends a bit later *.*.*.*..";
       Text3 : constant String := "/* It ends here *.*..";
 
+      File_Name : constant String := "Bracketed_Comment_Test_1.txt";
+
       Passed : Boolean := True;
    begin
-      Ada.Text_IO.Put ("Valid bracketed comment test...");
-      Ada.Text_IO.Flush;
+      Put ("Valid bracketed comment test 1...");
+      Flush;
 
-      Ada.Text_IO.Create
+      Create
         (File => File,
-         Mode => Ada.Text_IO.Out_File,
+         Mode => Out_File,
          Name => File_Name
         );
-      Ada.Text_IO.Put_Line (File, Text1);
-      Ada.Text_IO.Put_Line (File, Text2);
-      Ada.Text_IO.Put_Line (File, (1 .. 30 => ' ') & Text3);
-      Ada.Text_IO.Close (File);
+      Put_Line (File, Text1);
+      Put_Line (File, Text2);
+      Put_Line (File, (1 .. 30 => ' ') & Text3);
+      Close (File);
 
-      Ada.Text_IO.Open
+      Open
         (File => File,
-         Mode => Ada.Text_IO.In_File,
+         Mode => In_File,
          Name => File_Name);
 
-      Ada.Text_IO.Set_Input (File);
+      Set_Input (File);
       Tokenizer.Input_Feeder := OpenToken.Text_Feeder.Text_IO.Create;
 
       Tokenizer.Find_Next (Analyzer);
       if Tokenizer.ID (Analyzer) /= EmbeddedComment_T or Tokenizer.Lexeme (Analyzer) /= Text1 then
          Passed := False;
-         Ada.Text_IO.Put_Line ("failed.");
-         Ada.Text_IO.Put_Line ("Found " & Test_Token'Image (Tokenizer.ID (Analyzer)));
-         Ada.Text_IO.Put_Line ("  (Value = """ & Tokenizer.Lexeme (Analyzer) & """)");
-         Ada.Text_IO.Put_Line ("when expecting an EmbeddedComment_T");
+         Put_Line ("failed.");
+         Put_Line ("Found " & Test_Token'Image (Tokenizer.ID (Analyzer)));
+         Put_Line ("  (Value = """ & Tokenizer.Lexeme (Analyzer) & """)");
+         Put_Line ("when expecting an EmbeddedComment_T");
       end if;
 
       if Passed then
          Tokenizer.Find_Next (Analyzer);
          if Tokenizer.ID (Analyzer) /= EmbeddedComment_T or Tokenizer.Lexeme (Analyzer) /= Text2 then
             Passed := False;
-            Ada.Text_IO.Put_Line ("failed.");
-            Ada.Text_IO.Put_Line ("Found " & Test_Token'Image (Tokenizer.ID (Analyzer)));
-            Ada.Text_IO.Put_Line ("  (Value = """ & Tokenizer.Lexeme (Analyzer) & """)");
-            Ada.Text_IO.Put_Line ("when expecting an EmbeddedComment_T");
+            Put_Line ("failed.");
+            Put_Line ("Found " & Test_Token'Image (Tokenizer.ID (Analyzer)));
+            Put_Line ("  (Value = """ & Tokenizer.Lexeme (Analyzer) & """)");
+            Put_Line ("when expecting an EmbeddedComment_T");
          end if;
       end if;
 
@@ -99,10 +98,10 @@ begin
          Tokenizer.Find_Next (Analyzer);
          if Tokenizer.ID (Analyzer) /= EmbeddedComment_T or Tokenizer.Lexeme (Analyzer) /= Text3 then
             Passed := False;
-            Ada.Text_IO.Put_Line ("failed.");
-            Ada.Text_IO.Put_Line ("Found " & Test_Token'Image (Tokenizer.ID (Analyzer)));
-            Ada.Text_IO.Put_Line ("  (Value = """ & Tokenizer.Lexeme (Analyzer) & """)");
-            Ada.Text_IO.Put_Line ("when expecting an EmbeddedComment_T");
+            Put_Line ("failed.");
+            Put_Line ("Found " & Test_Token'Image (Tokenizer.ID (Analyzer)));
+            Put_Line ("  (Value = """ & Tokenizer.Lexeme (Analyzer) & """)");
+            Put_Line ("when expecting an EmbeddedComment_T");
          end if;
       end if;
 
@@ -110,24 +109,73 @@ begin
          Tokenizer.Find_Next (Analyzer);
          if Tokenizer.ID (Analyzer) /= End_Of_File_T then
             Passed := False;
-            Ada.Text_IO.Put_Line ("failed.");
-            Ada.Text_IO.Put_Line ("Found " & Test_Token'Image (Tokenizer.ID (Analyzer)));
-            Ada.Text_IO.Put_Line ("  (Value = """ & Tokenizer.Lexeme (Analyzer) & """)");
-            Ada.Text_IO.Put_Line ("when expecting an End_Of_File_T");
+            Put_Line ("failed.");
+            Put_Line ("Found " & Test_Token'Image (Tokenizer.ID (Analyzer)));
+            Put_Line ("  (Value = """ & Tokenizer.Lexeme (Analyzer) & """)");
+            Put_Line ("when expecting an End_Of_File_T");
          end if;
       end if;
 
       if Passed then
-         Ada.Text_IO.Put_Line ("passed.");
+         Put_Line ("1 passed.");
+      end if;
+
+      Close (File);
+   exception
+   when Error : others =>
+      Put_Line ("failed.");
+      Put_Line ("Exception:");
+      Put_Line (Ada.Exceptions.Exception_Information (Error));
+   end Case_1;
+
+   --  Multi-line comment
+   Case_2 :
+   declare
+      Text1 : constant String := "/* A comment that starts here";
+      Text2 : constant String := "   and keeps going";
+      Text3 : constant String := "   and finally ends here *.*..";
+
+      Expected_Lexeme : constant String := Text1 & OpenToken.EOL_Character & Text2 & OpenToken.EOL_Character & Text3;
+
+      File_Name : constant String := "Bracketed_Comment_Test_2.txt";
+
+      Passed : Boolean := True;
+   begin
+      Put ("Valid bracketed comment test 2...");
+      Flush;
+
+      Create (File, Out_File, File_Name);
+      Put_Line (File, Text1);
+      Put_Line (File, Text2);
+      Put_Line (File, Text3);
+      Close (File);
+
+      Open (File, In_File, File_Name);
+
+      Set_Input (File);
+      Tokenizer.Input_Feeder := OpenToken.Text_Feeder.Text_IO.Create;
+
+      Tokenizer.Find_Next (Analyzer);
+      if Tokenizer.ID (Analyzer) /= EmbeddedComment_T or Tokenizer.Lexeme (Analyzer) /= Expected_Lexeme then
+         Passed := False;
+         Put_Line ("failed.");
+         Put_Line ("Found " & Test_Token'Image (Tokenizer.ID (Analyzer)));
+         Put_Line ("  (Value = """ & Tokenizer.Lexeme (Analyzer) & """)");
+         Put_Line ("when expecting");
+         Put_Line ("  (Value = """ & Expected_Lexeme & """)");
+      end if;
+
+      if Passed then
+         Put_Line ("passed.");
       end if;
 
 
-      Ada.Text_IO.Close (File);
+      Close (File);
    exception
    when Error : others =>
-      Ada.Text_IO.Put_Line ("failed.");
-      Ada.Text_IO.Put_Line ("Exception:");
-      Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (Error));
-   end Case_1;
+      Put_Line ("failed.");
+      Put_Line ("Exception:");
+      Put_Line (Ada.Exceptions.Exception_Information (Error));
+   end Case_2;
 
 end Bracketed_Comment_Test.Run;

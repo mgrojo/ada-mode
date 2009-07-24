@@ -1,8 +1,9 @@
 all: dirs tests examples
 
 # ../../Test/test_one_harness.adb
-#one : test_one_harness.run
-one : test_html_lexer_safe.run
+t_one : test_one_harness.run
+
+one : bracketed_comment_test-run.run
 
 trace :
 	addr2line -e asu_example_5_10_rd-run.exe 0x411a82 0x411aec 0x416f34 0x401783 0x401235 0x401286 0x7c817075
@@ -19,15 +20,10 @@ tree : force
 clean ::
 	rm -f obj_tree/*
 
-distclean:
-	@rm -rf obj
-
 include ../common.make
 
 GNAT_PROJECT := opentoken_test.gpr
 GNAT_VERSION := 6.2.1
-
-export ADA_PROJECT_PATH := ..;../../../GDS/main/sal/build/x86_gnu_windows_release;../../../GDS/main/makerules
 
 # Local Variables:
 # eval: (ada-parse-prj-file "opentoken.prj")

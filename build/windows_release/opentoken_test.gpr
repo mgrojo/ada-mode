@@ -1,6 +1,6 @@
 --  For running OpenToken tests.
 with "aunit";
-with "common";
+with "../common";
 with "opentoken";
 project OpenToken_Test is
 
