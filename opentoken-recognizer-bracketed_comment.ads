@@ -28,7 +28,11 @@
 --  This package implements a token recognizer for a comment that is
 --  bracketed by special comment opening and closing character
 --  strings. The text in between may extend over several lines.
------------------------------------------------------------------------------
+--
+--  A line ending in the returned Lexeme is represented by
+--  OpenToken.EOL_Character, which may be different from what your
+--  current operating system uses.
+------------------------------------------------------------------------------
 package OpenToken.Recognizer.Bracketed_Comment is
 
    Max_Bracket_Length : constant := 5;

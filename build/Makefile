@@ -13,12 +13,12 @@ linux-clean :
 	make -C linux_release distclean
 	make -C linux_debug distclean
 
-ZIPFILE := opentoken-$(ZIP_VERSION).tar.gz
-zip : linux-clean source-clean $(ZIPFILE)
+zip : linux-clean source-clean gzipfile zipfile
 
-zipfile : $(ZIPFILE)
+gzipfile : force
+	tar -zcf opentoken-$(ZIP_VERSION).tar.gz -C ../.. --exclude=_MTN --exclude=*.tar.gz --exclude=*.zip --no-anchor opentoken
 
-$(ZIPFILE) : force
-	tar -zcf $(ZIPFILE) -C ../.. --exclude=_MTN --exclude=*.tar.gz --exclude=*.tar --no-anchor opentoken
+zipfile : force
+	cd ../..; zip -q -r opentoken/Build/opentoken-$(ZIP_VERSION).zip opentoken -x "opentoken/_MTN/*" -x "*.tar.gz" -x "*.zip"
 
 # end of file

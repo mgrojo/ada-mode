@@ -15,6 +15,10 @@ bump version, doc changes
     ~/Web/Makefile
         OPENTOKEN_ZIP_VERSION
 
+    if user-visible changes, bump Debian library version number
+        linux_release/opentoken_lib.gpr
+            Version
+
 review Debian bugs
     http://packages.qa.debian.org/o/opentoken.html
 
