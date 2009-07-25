@@ -77,25 +77,33 @@ package OpenToken.Token is
    --  Locate the next token.
    --
    --  If Look_Ahead is set, the next token after the current one will
-   --  be returned, but the current one will not be discarded.
-   --  Subsequent Look_Ahead calls will return later and later tokens.
+   --  be returned, but the current one will not be discarded; they
+   --  are saved in the lookahead queue. Subsequent Look_Ahead calls
+   --  will return later and later tokens.
    --------------------------------------------------------------------------
    procedure Find_Next
      (Analyzer   : in out Source;
       Look_Ahead : in     Boolean := False)
       is abstract;
 
-   --------------------------------------------------------------------
-   --  Push back Count tokens that were found with Look_Ahead True.
-   --  The pushed back tokens will be returned by subsequent calls to
-   --  Find_Next.
-   --------------------------------------------------------------------
-   procedure Push_Back (Analyzer : in out Source; Count : in Integer) is abstract;
-
    ----------------------------------------------------------------------------
    --  Returns the last token that was matched.
    ----------------------------------------------------------------------------
    function Get (Analyzer : in Source) return Class is abstract;
+
+   type Queue_Mark is abstract tagged limited null record;
+
+   --------------------------------------------------------------------
+   --  Mark a point in the lookahead queue.
+   --------------------------------------------------------------------
+   function Mark_Push_Back (Analyzer : in Source) return Queue_Mark'Class is abstract;
+
+   ------------------------------------------------------------------
+   --  Restore the input point in the lookahead queue. Subsequent
+   --  calls to Get will return the token that was current when Mark
+   --  was set. This allows a recursive descent parser to backtrack.
+   ------------------------------------------------------------------
+   procedure Push_Back (Analyzer : in out Source; Mark : in Queue_Mark'Class) is abstract;
 
    ----------------------------------------------------------------------
    --  Return the name of Token, for error messages

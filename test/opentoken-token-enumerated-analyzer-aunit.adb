@@ -34,6 +34,7 @@ package body OpenToken.Token.Enumerated.Analyzer.AUnit is
       Prev : Token_List_Node_Pointer := Analyzer.Lookahead_Tail;
    begin
       Check_Token_ID (Label & ".last", Analyzer.Last_Token, Last_Token);
+      Check_Token_ID (Label & ".syntax_list", Analyzer.Syntax_List (Last_Token).Token_Handle.ID, Last_Token);
 
       if Tail_Null then
          Assert (Analyzer.Lookahead_Tail = null, Label & ".tail not null");

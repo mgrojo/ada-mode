@@ -96,7 +96,14 @@ package body OpenToken.Token.Enumerated is
          if Actively then
             raise Parse_Error with "Expected " & Name_Dispatch (Match) & " but found " & Name_Dispatch (Next_Token);
          else
-            raise Parse_Error;
+            --  The spec says "raise Parse_Error with no message". If
+            --  we leave out 'with' here, GNAT attaches a message
+            --  giving the line number. That's useful in general, but
+            --  fails our unit test. So we override it in this case.
+            --
+            --  The point of "raise with no message" is to not spend
+            --  time computing a nice user message.
+            raise Parse_Error with "";
          end if;
       end if;
 

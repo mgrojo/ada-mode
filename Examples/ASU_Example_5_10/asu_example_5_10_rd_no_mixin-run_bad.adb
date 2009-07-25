@@ -28,14 +28,13 @@ with Ada.Text_IO; use Ada.Text_IO;
 procedure ASU_Example_5_10_RD_No_Mixin.Run is
 begin
    --  Define the grammar. This first naive implementation exhibits
-   --  infinite recursion, as expected.
+   --  infinite recursion, as expected (see the dragon book, section
+   --  2.4, page 47).
    --
-   --  The problem is that the first element of a production is the
-   --  same as the result of the production. Parse gets stuck in loop
-   --  where Selection.Could_Parse_To calls Sequence.Could_Parse_To
-   --  which calls Selection.Could_Parse_To ... without making
-   --  progress. FIXME: explain more, include a reference to the
-   --  dragon book.
+   --  The problem is that the first element of the production E is
+   --  the same as the result of the production. Parse gets stuck in
+   --  loop where Selection.Parse (E) calls Sequence.Parse (E) which
+   --  calls Selection.Parse (E) ... without consuming any input.
    begin
       L.all := E & EOF;
 

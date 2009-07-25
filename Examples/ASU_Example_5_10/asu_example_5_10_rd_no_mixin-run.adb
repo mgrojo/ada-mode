@@ -26,6 +26,8 @@
 
 with Ada.Text_IO; use Ada.Text_IO;
 procedure ASU_Example_5_10_RD_No_Mixin.Run is
+   Input_String : constant String := "10 + 5 * 6";
+
 begin
    --  If we implement the grammar literally, the parser enters an
    --  infinite loop; see asu_example_5_10_rd_no_mixin-run_bad.adb.
@@ -33,7 +35,12 @@ begin
    --  The problem is that the first element of a production is the
    --  same as the result of the production.
    --
-   --  So we rearrange the grammar to avoid this:
+   --  So we rearrange the grammar to avoid this. Note that this
+   --  rearrangement is not the same given in [1] section 2.5; that
+   --  would require the action Build to be called in the middle of
+   --  parsing a sequence, rather than at the end of the sequence.
+   --
+   --  Instead, we take advantage of the commutivity of + and *.
    --
    --  L -> E         print (L.val)
    --  E -> T + E     E.val := E1.val + T.val
@@ -42,6 +49,12 @@ begin
    --  T -> F
    --  F -> ( E )     F.val := E.val
    --  F -> digit
+   --
+   --  However, this grammar requires 2 lookaheads; it needs to see
+   --  the + or * of the sequences for E and T. If we had used the
+   --  rearrangement from [1] 2.5, it would only need 1 lookahead.
+
+   Sequence.Default_Lookahead := 2;
 
    L.all := E & EOF;
 
@@ -53,6 +66,8 @@ begin
 
    F.all := New_Expression_Instance ("( E )", Left_Paren & E & Right_Paren) or Int_Literal;
    F.Name := new String'("F");
+
+   Put_Line ("Input_String => " & Input_String);
 
    OpenToken.Text_Feeder.String.Set (Feeder, "10 + 5 * 6");
 

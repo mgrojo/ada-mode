@@ -611,7 +611,8 @@ package body OpenToken.Token.Enumerated.Analyzer is
             Analyzer.Lookahead_Head := Analyzer.Lookahead_Head.Next;
 
             if Trace_Parse then
-               Trace_Put ("look ahead " & Token_ID'Image (Analyzer.Last_Token)); Ada.Text_IO.New_Line;
+               Trace_Put ("look ahead " &  Name (Analyzer.Syntax_List (Analyzer.Last_Token).Token_Handle.all));
+               Ada.Text_IO.New_Line;
             end if;
          end if;
       else
@@ -640,19 +641,40 @@ package body OpenToken.Token.Enumerated.Analyzer is
       end if;
    end Find_Next;
 
-   overriding procedure Push_Back (Analyzer : in out Instance; Count : in Integer)
+   overriding function Mark_Push_Back (Analyzer : in Instance) return Token.Queue_Mark'Class
    is begin
+      return Queue_Mark'
+        (Head => Analyzer.Lookahead_Head,
+         Tail => Analyzer.Lookahead_Tail);
+   end Mark_Push_Back;
+
+   overriding procedure Push_Back (Analyzer : in out Instance; Mark : in Token.Queue_Mark'Class)
+   is
+      My_Mark  : Queue_Mark renames Queue_Mark (Mark);
+      End_Mark : Token_List_Node_Pointer;
+   begin
       if Trace_Parse then
-         Trace_Put ("...push back" & Integer'Image (Count) & " ");
+         Trace_Put ("...push back");
       end if;
 
       --  We must preserve the pushed back items in the queue; we are
       --  not reseting the text source, so they can't be recognized
       --  again.
-      --
-      --  If user calls with Count to high, they'll get Constraint_Error.
 
-      for I in 1 .. Count loop
+      if My_Mark.Head = null then
+         if My_Mark.Tail = null then
+            --  Push back all of the queue
+            End_Mark := Analyzer.Lookahead_Queue;
+         else
+            End_Mark := My_Mark.Tail.Next;
+         end if;
+      else
+         End_Mark := My_Mark.Head;
+      end if;
+
+      loop
+         exit when Analyzer.Lookahead_Head = End_Mark;
+
          if Analyzer.Lookahead_Head = null then
 
             Analyzer.Last_Token := Analyzer.Lookahead_Tail.Prev.Token_Handle.ID;
@@ -666,14 +688,15 @@ package body OpenToken.Token.Enumerated.Analyzer is
 
             Analyzer.Last_Token := Analyzer.Lookahead_Head.Prev.Token_Handle.ID;
 
-            Analyzer.Syntax_List (Analyzer.Last_Token).Token_Handle.all := Analyzer.Lookahead_Head.Token_Handle.all;
+            Analyzer.Syntax_List (Analyzer.Last_Token).Token_Handle.all :=
+              Analyzer.Lookahead_Head.Prev.Token_Handle.all;
 
          end if;
 
       end loop;
 
       if Trace_Parse then
-         Ada.Text_IO.Put_Line ("; current token " & Token_ID'Image (Analyzer.Last_Token));
+         Ada.Text_IO.Put_Line ("; current token " & Name (Analyzer.Syntax_List (Analyzer.Last_Token).Token_Handle.all));
       end if;
    end Push_Back;
 

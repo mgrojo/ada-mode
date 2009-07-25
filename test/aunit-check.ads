@@ -26,7 +26,6 @@
 pragma License (Modified_GPL);
 
 package AUnit.Check is
-   pragma Preelaborate; -- Aunit.Assertions
 
    generic
       type Item_Type is (<>);
@@ -34,5 +33,10 @@ package AUnit.Check is
      (Label    : in String;
       Computed : in Item_Type;
       Expected : in Item_Type);
+
+   procedure Check
+     (Label    : in String;
+      Computed : in String;
+      Expected : in String);
 
 end AUnit.Check;

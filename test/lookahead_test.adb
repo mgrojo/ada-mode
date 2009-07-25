@@ -125,16 +125,20 @@ package body Lookahead_Test is
          Queue_Null  => True,
          Head_Null   => True);
 
-      Step ("2", True, Then_ID);
+      declare
+         Mark : OpenToken.Token.Queue_Mark'Class renames Tokenizer.Mark_Push_Back (Analyzer);
+      begin
+         Step ("2", True, Then_ID);
 
-      Analyzer_AUnit.Check
-        ("2a", Analyzer,
-         Last_Token  => Then_ID,
-         Tail_Tokens => (If_ID, Then_ID),
-         Queue_Token => Then_ID,
-         Head_Null   => True);
+         Analyzer_AUnit.Check
+           ("2a", Analyzer,
+            Last_Token  => Then_ID,
+            Tail_Tokens => (If_ID, Then_ID),
+            Queue_Token => Then_ID,
+            Head_Null   => True);
 
-      Push_Back (Analyzer, 1);
+         Push_Back (Analyzer, Mark);
+      end;
 
       Analyzer_AUnit.Check
         ("3", Analyzer,
@@ -143,35 +147,51 @@ package body Lookahead_Test is
          Queue_Token => Then_ID,
          Head_Token  => Then_ID);
 
-      Step ("4", True, Then_ID);
+      declare
+         Mark_2 : OpenToken.Token.Queue_Mark'Class renames Tokenizer.Mark_Push_Back (Analyzer);
+      begin
+         Step ("4", True, Then_ID);
 
-      Analyzer_AUnit.Check
-        ("4a", Analyzer,
-         Last_Token  => Then_ID,
-         Tail_Tokens => (If_ID, Then_ID),
-         Queue_Token => Then_ID,
-         Head_Null   => True);
+         Analyzer_AUnit.Check
+           ("4a", Analyzer,
+            Last_Token  => Then_ID,
+            Tail_Tokens => (If_ID, Then_ID),
+            Queue_Token => Then_ID,
+            Head_Null   => True);
 
-      Step ("5", True, String_ID);
-      Step ("6", True, Quit_ID);
+         Step ("5", True, String_ID);
 
-      Analyzer_AUnit.Check
-        ("6a", Analyzer,
-         Last_Token  => Quit_ID,
-         Tail_Tokens => (If_ID, Then_ID, String_ID, Quit_ID),
-         Queue_Token => Then_ID,
-         Head_Null   => True);
+         Analyzer_AUnit.Check
+           ("5a", Analyzer,
+            Last_Token  => String_ID,
+            Tail_Tokens => (If_ID, Then_ID, String_ID),
+            Queue_Token => Then_ID,
+            Head_Null   => True);
 
-      Push_Back (Analyzer, 1);
+         declare
+            Mark_1 : OpenToken.Token.Queue_Mark'Class renames Tokenizer.Mark_Push_Back (Analyzer);
+         begin
+            Step ("6", True, Quit_ID);
 
-      Analyzer_AUnit.Check
-        ("7", Analyzer,
-         Last_Token  => String_ID,
-         Tail_Tokens => (If_ID, Then_ID, String_ID, Quit_ID),
-         Queue_Token => Then_ID,
-         Head_Token  => Quit_ID);
+            Analyzer_AUnit.Check
+              ("6a", Analyzer,
+               Last_Token  => Quit_ID,
+               Tail_Tokens => (If_ID, Then_ID, String_ID, Quit_ID),
+               Queue_Token => Then_ID,
+               Head_Null   => True);
 
-      Push_Back (Analyzer, 2);
+            Push_Back (Analyzer, Mark_1);
+         end;
+
+         Analyzer_AUnit.Check
+           ("7", Analyzer,
+            Last_Token  => String_ID,
+            Tail_Tokens => (If_ID, Then_ID, String_ID, Quit_ID),
+            Queue_Token => Then_ID,
+            Head_Token  => Quit_ID);
+
+         Push_Back (Analyzer, Mark_2);
+      end;
 
       Analyzer_AUnit.Check
         ("7a", Analyzer,
@@ -192,16 +212,20 @@ package body Lookahead_Test is
 
       Step ("10", False, String_ID);
 
-      Step ("11", True, Quit_ID);
+      declare
+         Mark : OpenToken.Token.Queue_Mark'Class renames Tokenizer.Mark_Push_Back (Analyzer);
+      begin
+         Step ("11", True, Quit_ID);
 
-      Analyzer_AUnit.Check
-        ("11a", Analyzer,
-         Last_Token  => Quit_ID,
-         Tail_Tokens => (String_ID, Quit_ID),
-         Queue_Token => Quit_ID,
-         Head_Null   => True);
+         Analyzer_AUnit.Check
+           ("11a", Analyzer,
+            Last_Token  => Quit_ID,
+            Tail_Tokens => (String_ID, Quit_ID),
+            Queue_Token => Quit_ID,
+            Head_Null   => True);
 
-      Push_Back (Analyzer, 1);
+         Push_Back (Analyzer, Mark);
+      end;
 
       Analyzer_AUnit.Check
         ("11b", Analyzer,

@@ -50,12 +50,15 @@ package body OpenToken.Token.Selection is
 
       Find_Match :
       loop
+         declare
+            Mark : Queue_Mark'Class renames Mark_Push_Back (Analyzer);
          begin
             Parse (Token_Handle (I), Analyzer, Actively => False);
+            Push_Back (Analyzer, Mark);
             exit Find_Match;
          exception
          when Parse_Error =>
-            null;
+            Push_Back (Analyzer, Mark);
          end;
 
          Next_Token (I);
@@ -99,7 +102,9 @@ package body OpenToken.Token.Selection is
    is
       use type Linked_List.Instance;
    begin
-      return (Members => OpenToken.Token.Handle (Left) & OpenToken.Token.Handle (Right));
+      return
+        (Members => OpenToken.Token.Handle (Left) & OpenToken.Token.Handle (Right),
+         Name    => null);
    end "or";
 
    function "or"
@@ -109,7 +114,9 @@ package body OpenToken.Token.Selection is
    is
       use type Linked_List.Instance;
    begin
-      return (Members => OpenToken.Token.Handle (Left) & Right.Members);
+      return
+        (Members => OpenToken.Token.Handle (Left) & Right.Members,
+         Name    => null);
    end "or";
 
    function "or"
@@ -119,7 +126,9 @@ package body OpenToken.Token.Selection is
    is
       use type Linked_List.Instance;
    begin
-      return (Members => Left.Members & OpenToken.Token.Handle (Right));
+      return
+        (Members => Left.Members & OpenToken.Token.Handle (Right),
+         Name    => null);
    end "or";
 
    function "or"
@@ -129,13 +138,37 @@ package body OpenToken.Token.Selection is
    is
       use type Linked_List.Instance;
    begin
-      return (Members => Left.Members & Right.Members);
+      return
+        (Members => Left.Members & Right.Members,
+         Name    => null);
    end "or";
 
-   function New_Instance (Old_Instance : in Instance) return Handle
-   is begin
-      return new Class'(Class (Old_Instance));
+   function New_Instance
+     (Old_Instance : in Instance;
+      Name         : in String   := "")
+     return Handle
+   is
+      New_Token : constant Handle := new Class'(Class (Old_Instance));
+   begin
+      if Name /= "" then
+         New_Token.Name := new String'(Name);
+      end if;
+      return New_Token;
    end New_Instance;
+
+   procedure Set_Name (Token : in out Instance; Name : in String)
+   is begin
+      Token.Name := new String'(Name);
+   end Set_Name;
+
+   overriding function Name (Token : in Instance) return String
+   is begin
+      if Token.Name = null then
+         return OpenToken.Token.Name (OpenToken.Token.Instance (Token));
+      else
+         return Token.Name.all;
+      end if;
+   end Name;
 
    overriding procedure Expecting (Token : access Instance; List : in out Linked_List.Instance)
    is

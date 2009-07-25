@@ -90,9 +90,25 @@ package OpenToken.Token.Selection is
      return Instance;
 
    ----------------------------------------------------------------------------
-   --  Return a newly allocated instance which is a copy of the given instance.
+   --  Return a newly allocated instance which is a copy of the given
+   --  instance, with an optional new name.
    ----------------------------------------------------------------------------
-   function New_Instance (Old_Instance : in Instance) return Handle;
+   function New_Instance
+     (Old_Instance : in Instance;
+      Name         : in String   := "")
+     return Handle;
+
+   --------------------------------------------------------------------
+   --  Set the name of Token; useful when it is created with "or"
+   --  rather than New_Instance.
+   --------------------------------------------------------------------
+   procedure Set_Name (Token : in out Instance; Name : in String);
+
+   --------------------------------------------------------------------
+   --  Return the name specified in New_Instance. If that's null,
+   --  return OpenToken.Token.Name (Token).
+   --------------------------------------------------------------------
+   overriding function Name (Token : in Instance) return String;
 
    overriding procedure Expecting (Token : access Instance; List : in out Linked_List.Instance);
 
@@ -112,6 +128,7 @@ private
 
    type Instance is new Token.Instance with record
       Members : Token.Linked_List.Instance;
+      Name    : access String;
    end record;
 
 end OpenToken.Token.Selection;

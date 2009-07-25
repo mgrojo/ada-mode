@@ -26,7 +26,7 @@
 
 -------------------------------------------------------------------------------
 --  This example is a recursive-decent implementation of Example 5.10 from
---  "Compilers Principles, Techniques, and Tools" by Aho, Sethi, and Ullman
+--  [1] "Compilers Principles, Techniques, and Tools" by Aho, Sethi, and Ullman
 --  (aka: "The Dragon Book"). It demonstrates handling of synthesized
 --  attributes, without using the mixin packages.
 -------------------------------------------------------------------------------

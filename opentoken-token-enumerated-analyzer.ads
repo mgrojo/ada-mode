@@ -200,13 +200,10 @@ package OpenToken.Token.Enumerated.Analyzer is
      (Analyzer   : in out Instance;
       Look_Ahead : in     Boolean := False);
 
-   --------------------------------------------------------------------
-   --  Push back Count tokens that were found with Look_Ahead True.
-   --  The pushed back tokens will be returned by subsequent calls to
-   --  Find_Next (Look_Ahead => True). This allows a recursive descent
-   --  parser to backtrack.
-   --------------------------------------------------------------------
-   overriding procedure Push_Back (Analyzer : in out Instance; Count : in Integer);
+   type Queue_Mark is new Token.Queue_Mark with private;
+
+   overriding function Mark_Push_Back (Analyzer : in Instance) return Token.Queue_Mark'Class;
+   overriding procedure Push_Back (Analyzer : in out Instance; Mark : in Token.Queue_Mark'Class);
 
    --------------------------------------------------------------------------
    --  Returns the current text line at which processing will resume.
@@ -299,6 +296,11 @@ private
       Lookahead_Queue : Token_List_Node_Pointer; --  Read from here or text source when Look_Ahead is false
       Lookahead_Head  : Token_List_Node_Pointer; --  Read from here or text source when Look_Ahead is true
       Lookahead_Tail  : Token_List_Node_Pointer; --  Most recent token read from text source with Look_Ahead true
+   end record;
+
+   type Queue_Mark is new Token.Queue_Mark with record
+      Head : Token_List_Node_Pointer;
+      Tail : Token_List_Node_Pointer;
    end record;
 
 end OpenToken.Token.Enumerated.Analyzer;

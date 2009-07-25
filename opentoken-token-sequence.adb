@@ -28,6 +28,11 @@
 with Ada.Text_IO;
 package body OpenToken.Token.Sequence is
 
+   procedure Set_Lookahead (Token : in out Instance; Lookahead : in Integer)
+   is begin
+      Token.Lookahead := Lookahead;
+   end Set_Lookahead;
+
    overriding procedure Parse
      (Match    : access Instance;
       Analyzer : in out Source_Class;
@@ -35,7 +40,7 @@ package body OpenToken.Token.Sequence is
    is
       use Token.Linked_List;
 
-      I : List_Iterator := Initial_Iterator (Match.Members);
+      I : List_Iterator := First (Match.Members);
    begin
       if Trace_Parse then
          Trace_Indent := Trace_Indent + 1;
@@ -56,23 +61,11 @@ package body OpenToken.Token.Sequence is
 
          Build (Match.all, Match.Members);
       else
-         if Match.First_Only then
-            Parse (Token_Handle (First (Match.Members)), Analyzer, Actively => False);
-         else
-            declare
-               Count : Integer := 0;
-            begin
-               while I /= Null_Iterator loop
-                  Parse (Token_Handle (I), Analyzer, Actively => False);
-                  Count := Count + 1;
-                  Next_Token (I);
-               end loop;
-            exception
-            when Parse_Error =>
-               Push_Back (Analyzer, Count);
-               raise;
-            end;
-         end if;
+         for J in 1 .. Match.Lookahead loop
+            Parse (Token_Handle (I), Analyzer, Actively => False);
+            Next_Token (I);
+            exit when I = Null_Iterator;
+         end loop;
       end if;
 
       if Trace_Parse then
@@ -96,8 +89,9 @@ package body OpenToken.Token.Sequence is
       use type Linked_List.Instance;
    begin
       return
-        (Members    => OpenToken.Token.Handle (Left) & OpenToken.Token.Handle (Right),
-         First_Only => False);
+        (Members   => OpenToken.Token.Handle (Left) & OpenToken.Token.Handle (Right),
+         Lookahead => Default_Lookahead,
+         Name      => null);
    end "&";
 
    function "&"
@@ -108,8 +102,9 @@ package body OpenToken.Token.Sequence is
       use Linked_List;
    begin
       return
-        (Members    => OpenToken.Token.Handle (Left) & Right.Members,
-         First_Only => False);
+        (Members   => OpenToken.Token.Handle (Left) & Right.Members,
+         Lookahead => Default_Lookahead,
+         Name      => null);
    end "&";
 
    function "&"
@@ -120,8 +115,9 @@ package body OpenToken.Token.Sequence is
       use Linked_List;
    begin
       return
-        (Members    => Left.Members & OpenToken.Token.Handle (Right),
-         First_Only => False);
+        (Members   => Left.Members & OpenToken.Token.Handle (Right),
+         Lookahead => Default_Lookahead,
+         Name      => null);
    end "&";
 
    function "&"
@@ -132,14 +128,37 @@ package body OpenToken.Token.Sequence is
       use Linked_List;
    begin
       return
-        (Members    => Left.Members & Right.Members,
-         First_Only => False);
+        (Members   => Left.Members & Right.Members,
+         Lookahead => Default_Lookahead,
+         Name      => null);
    end "&";
 
-   function New_Instance (Old_Instance : in Instance) return Handle
-   is begin
-      return new Class'(Class (Old_Instance));
+   function New_Instance
+     (Old_Instance : in Instance;
+      Name         : in String   := "")
+     return Handle
+   is
+      New_Token : constant Handle := new Class'(Class (Old_Instance));
+   begin
+      if Name /= "" then
+         New_Token.Name := new String'(Name);
+      end if;
+      return New_Token;
    end New_Instance;
+
+   procedure Set_Name (Token : in out Instance; Name : in String)
+   is begin
+      Token.Name := new String'(Name);
+   end Set_Name;
+
+   overriding function Name (Token : in Instance) return String
+   is begin
+      if Token.Name = null then
+         return OpenToken.Token.Name (OpenToken.Token.Instance (Token));
+      else
+         return Token.Name.all;
+      end if;
+   end Name;
 
    overriding procedure Expecting (Token : access Instance; List : in out Linked_List.Instance)
    is
@@ -147,10 +166,5 @@ package body OpenToken.Token.Sequence is
    begin
       Add (List, Token_Handle (First (Token.Members)));
    end Expecting;
-
-   procedure Set_First_Only (Token : in out Instance; First_Only : in Boolean)
-   is begin
-      Token.First_Only := First_Only;
-   end Set_First_Only;
 
 end OpenToken.Token.Sequence;

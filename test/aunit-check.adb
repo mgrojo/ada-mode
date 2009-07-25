@@ -36,4 +36,16 @@ package body AUnit.Check is
          Label & " got " & Item_Type'Image (Computed) & " expecting " & Item_Type'Image (Expected));
    end Gen_Check_Discrete;
 
+   procedure Check
+     (Label    : in String;
+      Computed : in String;
+      Expected : in String)
+   is begin
+      Standard.AUnit.Assertions.Assert
+        (Computed = Expected,
+         Label & ASCII.LF &
+           "got       '" & Computed & "'" & ASCII.LF &
+           "expecting '" & Expected & "'");
+   end Check;
+
 end AUnit.Check;

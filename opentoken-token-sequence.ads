@@ -25,8 +25,6 @@
 --
 -------------------------------------------------------------------------------
 
-with OpenToken.Token.Linked_List;
-
 -----------------------------------------------------------------------------
 --  This package defines a reusable token for a simple sequence of
 --  tokens. These a quite easy to create yourself, of course. But
@@ -34,6 +32,8 @@ with OpenToken.Token.Linked_List;
 --  for other tokens.
 --
 -------------------------------------------------------------------------------
+
+with OpenToken.Token.Linked_List;
 package OpenToken.Token.Sequence is
 
    type Instance is new Token.Instance with private;
@@ -42,24 +42,24 @@ package OpenToken.Token.Sequence is
 
    type Handle is access all Class;
 
-   ------------------------------------------------------------------------
-   --  The behavior of this procedure when called with Actively =>
-   --  False depends on the setting of First_Only; see Set_First_Only
-   --  below.
-   ------------------------------------------------------------------------
+   Default_Lookahead : Integer := 1;
+
+   -------------------------------------------------------------------
+   --  Default_Lookahead should be set to the number of lookaheads
+   --  required by the grammar. However, it may be possible to reduce
+   --  that for some tokens.
+   -------------------------------------------------------------------
+   procedure Set_Lookahead (Token : in out Instance; Lookahead : in Integer);
+
+   ----------------------------------------------------------------------
+   --  When called with Actively => False, the number of tokens to
+   --  lookahead is given by Match.Lookahead, which defaults to
+   --  Default_Lookahead, but may be overridden by Set_Lookahead.
+   ----------------------------------------------------------------------
    overriding procedure Parse
      (Match    : access Instance;
       Analyzer : in out Source_Class;
       Actively : in     Boolean := True);
-
-   ---------------------------------------------------------------------
-   --  First_Only should be True if the grammar is carefully designed
-   --  so that checking the first element of the sequence is all that
-   --  is necessary in Parse (Actively => False). If False (the
-   --  default), Parse (Actively => False) will look ahead for the
-   --  entire sequence, until one raises Parse_Error.
-   ---------------------------------------------------------------------
-   procedure Set_First_Only (Token : in out Instance; First_Only : in Boolean);
 
    -----------------------------------------------------------------------
    --  Create a token sequence from a pair of token handles.
@@ -105,9 +105,25 @@ package OpenToken.Token.Sequence is
      return Instance;
 
    ----------------------------------------------------------------------------
-   --  Return a newly allocated instance which is a copy of the given instance.
+   --  Return a newly allocated instance which is a copy of the given
+   --  instance, with an optional new name.
    ----------------------------------------------------------------------------
-   function New_Instance (Old_Instance : in Instance) return Handle;
+   function New_Instance
+     (Old_Instance : in Instance;
+      Name         : in String   := "")
+     return Handle;
+
+   --------------------------------------------------------------------
+   --  Set the name of Token; useful when it is created with "or"
+   --  rather than New_Instance.
+   --------------------------------------------------------------------
+   procedure Set_Name (Token : in out Instance; Name : in String);
+
+   --------------------------------------------------------------------
+   --  Return the name specified in New_Instance. If that's null,
+   --  return OpenToken.Token.Name (Token).
+   --------------------------------------------------------------------
+   overriding function Name (Token : in Instance) return String;
 
    overriding procedure Expecting (Token : access Instance; List : in out Linked_List.Instance);
 
@@ -122,8 +138,9 @@ package OpenToken.Token.Sequence is
 
 private
    type Instance is new Token.Instance with record
-      First_Only : Boolean := False;
-      Members    : Token.Linked_List.Instance;
+      Lookahead : Integer := Default_Lookahead;
+      Members   : Token.Linked_List.Instance;
+      Name      : access String;
    end record;
 
 end OpenToken.Token.Sequence;
