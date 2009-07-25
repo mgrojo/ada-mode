@@ -40,17 +40,6 @@ package body OpenToken.Token.Enumerated.Analyzer is
    type Match_List is array (Terminal_ID) of Recognizer.Analysis_Verdict;
 
    -------------------------------------------------------------------------
-   --  type for handling token lookaheads.
-   --
-   type Token_List_Node is record
-      Token_Handle : OpenToken.Token.Enumerated.Handle;
-      Prev         : Token_List_Node_Pointer;
-      Next         : Token_List_Node_Pointer;
-   end record;
-
-   procedure Free is new Ada.Unchecked_Deallocation (Token_List_Node, Token_List_Node_Pointer);
-
-   -------------------------------------------------------------------------
    --  Routines to handle indexes in a circular ring buffer
    --
 
@@ -376,26 +365,9 @@ package body OpenToken.Token.Enumerated.Analyzer is
       Feeder          : in Text_Feeder_Ptr := Input_Feeder'Access)
      return Instance
    is
-      New_Analyzer : Instance;
+      New_Analyzer : Instance := Initialize (Language_Syntax, Terminal_ID'First, Feeder);
    begin
-      --  Initialize the syntax
-      New_Analyzer.Syntax_List := Language_Syntax;
-      for ID in Syntax'Range loop
-         New_Analyzer.Syntax_List (ID).Token_Handle.ID := ID;
-      end loop;
-
-      New_Analyzer.Feeder        := Feeder;
-      New_Analyzer.Has_Default   := False;
-
-      New_Analyzer.Line        := 1;
-      New_Analyzer.Column      := 1;
-      New_Analyzer.Lexeme_Head := 1;
-      New_Analyzer.Lexeme_Tail := 0;
-      New_Analyzer.Buffer_Head := New_Analyzer.Buffer'First;
-      New_Analyzer.Buffer_Tail := New_Analyzer.Buffer'Last;
-      New_Analyzer.Buffer_Size := 0;
-      New_Analyzer.Next_Line   := 1;
-      New_Analyzer.Next_Column := 1;
+      New_Analyzer.Has_Default := False;
 
       return New_Analyzer;
    end Initialize;
@@ -418,15 +390,16 @@ package body OpenToken.Token.Enumerated.Analyzer is
       New_Analyzer.Has_Default   := True;
       New_Analyzer.Default_Token := Default;
 
-      New_Analyzer.Line        := 1;
-      New_Analyzer.Column      := 1;
-      New_Analyzer.Lexeme_Head := 1;
-      New_Analyzer.Lexeme_Tail := 0;
-      New_Analyzer.Buffer_Head := New_Analyzer.Buffer'First;
-      New_Analyzer.Buffer_Tail := New_Analyzer.Buffer'Last;
-      New_Analyzer.Buffer_Size := 0;
-      New_Analyzer.Next_Line   := 1;
-      New_Analyzer.Next_Column := 1;
+      New_Analyzer.Line            := 1;
+      New_Analyzer.Column          := 1;
+      New_Analyzer.Lexeme_Head     := 1;
+      New_Analyzer.Lexeme_Tail     := 0;
+      New_Analyzer.Last_Token      := Default;
+      New_Analyzer.Buffer_Head     := New_Analyzer.Buffer'First;
+      New_Analyzer.Buffer_Tail     := New_Analyzer.Buffer'Last;
+      New_Analyzer.Buffer_Size     := 0;
+      New_Analyzer.Next_Line       := 1;
+      New_Analyzer.Next_Column     := 1;
       New_Analyzer.Lookahead_Queue := null;
       New_Analyzer.Lookahead_Head  := null;
       New_Analyzer.Lookahead_Tail  := null;
@@ -442,6 +415,7 @@ package body OpenToken.Token.Enumerated.Analyzer is
       Analyzer.Column      := 1;
       Analyzer.Lexeme_Head := 1;
       Analyzer.Lexeme_Tail := 0;
+      Analyzer.Last_Token  := Analyzer.Default_Token;
       Analyzer.Buffer_Head := Analyzer.Buffer'First;
       Analyzer.Buffer_Tail := Analyzer.Buffer'Last;
       Analyzer.Buffer_Size := 0;
@@ -521,9 +495,6 @@ package body OpenToken.Token.Enumerated.Analyzer is
 
       Matched_Token  : Terminal_ID;
       Matched_Length : Natural;
-
-      Next : Token_List_Node_Pointer;
-
    begin
 
       --  Only read new tokens during lookaheads or when the lookahead list is empty
@@ -646,12 +617,11 @@ package body OpenToken.Token.Enumerated.Analyzer is
       else
          --  Read the next token from the lookahead queue head
 
-         if Analyzer.Lookahead_Queue.Prev /= null then
-            --  The first token pushed needs to be freed; it was there
-            --  for Push_Back, which won't need it now.
-            Free (Analyzer.Lookahead_Queue.Prev.Token_Handle);
-            Free (Analyzer.Lookahead_Queue.Prev);
-         end if;
+         --  Free the previous token. Note that the queue contains one
+         --  token behind lookahead_queue, in case Push_Back needs it.
+         --  That's the one we free.
+         Free (Analyzer.Lookahead_Queue.Prev.Token_Handle);
+         Free (Analyzer.Lookahead_Queue.Prev);
 
          --  Keep track of Lookahead_Head in case the next call with
          --  Look_Ahead => True happens before the queue is emptied.
@@ -662,11 +632,7 @@ package body OpenToken.Token.Enumerated.Analyzer is
          --  Pop the first item off the queue and put it into the syntax list
          Analyzer.Last_Token := Analyzer.Lookahead_Queue.Token_Handle.ID;
          Analyzer.Syntax_List (Analyzer.Last_Token).Token_Handle.all := Analyzer.Lookahead_Queue.Token_Handle.all;
-         Next := Analyzer.Lookahead_Queue.Next;
-         Free (Analyzer.Lookahead_Queue.Token_Handle);
-         Free (Analyzer.Lookahead_Queue);
-         Analyzer.Lookahead_Queue := Next;
-         Analyzer.Lookahead_Queue.Prev := null;
+         Analyzer.Lookahead_Queue := Analyzer.Lookahead_Queue.Next;
 
          if Analyzer.Lookahead_Queue = null then
             Analyzer.Lookahead_Tail := null;
@@ -688,26 +654,20 @@ package body OpenToken.Token.Enumerated.Analyzer is
 
       for I in 1 .. Count loop
          if Analyzer.Lookahead_Head = null then
-            --  Last_Token => last_token_read (with or without Look_Ahead => True)
-            --  Lookahead_Tail => previous_token
-            --  We want Last_Token to be previous_token, Lookahead_Head to be Last_Token
-            Analyzer.Lookahead_Tail.Next := new Token_List_Node'
-              (Token_Handle => new Enumerated.Class'(Analyzer.Syntax_List (Analyzer.Last_Token).Token_Handle.all),
-               Prev         => Analyzer.Lookahead_Tail,
-               Next         => null);
 
-            Analyzer.Last_Token := Analyzer.Lookahead_Tail.Token_Handle.ID;
+            Analyzer.Last_Token := Analyzer.Lookahead_Tail.Prev.Token_Handle.ID;
 
-            Analyzer.Syntax_List (Analyzer.Last_Token).Token_Handle.all := Analyzer.Lookahead_Tail.Token_Handle.all;
+            Analyzer.Syntax_List (Analyzer.Last_Token).Token_Handle.all :=
+              Analyzer.Lookahead_Tail.Prev.Token_Handle.all;
 
-            Analyzer.Lookahead_Tail := Analyzer.Lookahead_Tail.Next;
             Analyzer.Lookahead_Head := Analyzer.Lookahead_Tail;
          else
             Analyzer.Lookahead_Head := Analyzer.Lookahead_Head.Prev;
 
-            Analyzer.Last_Token := Analyzer.Lookahead_Head.Token_Handle.ID;
+            Analyzer.Last_Token := Analyzer.Lookahead_Head.Prev.Token_Handle.ID;
 
             Analyzer.Syntax_List (Analyzer.Last_Token).Token_Handle.all := Analyzer.Lookahead_Head.Token_Handle.all;
+
          end if;
 
       end loop;
@@ -742,9 +702,6 @@ package body OpenToken.Token.Enumerated.Analyzer is
       return Analyzer.Syntax_List (Analyzer.Last_Token).Token_Handle.all;
    end Get;
 
-   ----------------------------------------------------------------------------
-   --  Returns the last token ID that was matched.
-   ----------------------------------------------------------------------------
    function ID (Analyzer : in Instance) return Terminal_ID is
    begin
       return Analyzer.Last_Token;
@@ -769,9 +726,9 @@ package body OpenToken.Token.Enumerated.Analyzer is
       New_Token  : in OpenToken.Token.Enumerated.Class := OpenToken.Token.Enumerated.Get)
      return Recognizable_Token
    is begin
-      return (Recognizer   => new OpenToken.Recognizer.Class'(Recognizer),
-              Token_Handle => new OpenToken.Token.Enumerated.Class'(New_Token)
-              );
+      return
+        (Recognizer   => new OpenToken.Recognizer.Class'(Recognizer),
+         Token_Handle => new OpenToken.Token.Enumerated.Class'(New_Token));
    end Get;
 
    overriding function Last_Recognizer (Analyzer : in Instance) return Recognizer_Handle

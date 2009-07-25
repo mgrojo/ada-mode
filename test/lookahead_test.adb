@@ -25,13 +25,17 @@ with OpenToken.Recognizer.End_Of_File;
 with OpenToken.Recognizer.Keyword;
 with OpenToken.Recognizer.String;
 with OpenToken.Text_Feeder.String;
-with OpenToken.Token.Enumerated.Analyzer;
+with OpenToken.Token.Enumerated.Analyzer.AUnit;
 package body Lookahead_Test is
 
    type Example_Token_ID is (If_ID, Then_ID, Quit_ID, String_ID, Whitespace, EOF);
 
    package Master_Example_Token is new OpenToken.Token.Enumerated (Example_Token_ID);
    package Tokenizer is new Master_Example_Token.Analyzer;
+
+   procedure Check is new AUnit.Check.Gen_Check_Discrete (Example_Token_ID);
+
+   package Analyzer_AUnit is new Tokenizer.AUnit (Check);
 
    Syntax : constant Tokenizer.Syntax :=
      (If_ID      => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("if")),
@@ -45,9 +49,10 @@ package body Lookahead_Test is
    Feeder   : aliased OpenToken.Text_Feeder.String.Instance;
    Analyzer : Tokenizer.Instance := Tokenizer.Initialize (Syntax, Feeder'Access);
 
-   procedure Check is new AUnit.Check.Gen_Check_Discrete (Example_Token_ID);
-
-   procedure Step (Label : in String; Lookahead : in Boolean; Expected_ID : in Example_Token_ID)
+   procedure Step
+     (Label       : in String;
+      Lookahead   : in Boolean;
+      Expected_ID : in Example_Token_ID)
    is
       use Tokenizer;
    begin
@@ -104,62 +109,117 @@ package body Lookahead_Test is
       OpenToken.Text_Feeder.String.Set (Feeder, "if then ""string"" quit");
       Reset (Analyzer);
 
+      Analyzer_AUnit.Check
+        ("0", Analyzer,
+         Last_Token  => If_ID,
+         Tail_Null   => True,
+         Queue_Null  => True,
+         Head_Null   => True);
+
       Step ("1", False, If_ID);
 
+      Analyzer_AUnit.Check
+        ("1a", Analyzer,
+         Last_Token  => If_ID,
+         Tail_Null   => True,
+         Queue_Null  => True,
+         Head_Null   => True);
+
       Step ("2", True, Then_ID);
-      --  last_token => Then_ID
-      --  tail => If_ID
-      --  tail.prev => null
-      --  queue => null
-      --  head => null
 
-      Push_Back (Analyzer, 1);
-      --  last_token => If_ID
-      --  tail => then_id
-      --  tail.prev => if_id
-      --  tail.prev.prev => null
-      --  queue => null
-      --  head => then
-
-      Check ("2a", ID (Analyzer), If_ID);
-      Step ("2b", True, Then_ID);
-      --  last_token => Then_ID
-      --  tail => Then_ID
-      --  tail.prev => null
-      --  queue => null
-      --  head => null
-
-      Step ("3", True, String_ID);
-      Step ("4", True, Quit_ID);
-
-      --  last_token => Quit_ID
-      --  tail => String_ID
-      --  tail.prev => Then_ID
-      --  tail.prev.prev => If_ID
-      --  tail.prev.prev.prev => null
-      --  queue => If_ID
-      --  head => null
-
-      Push_Back (Analyzer, 3);
-      --  last_token => Quit_ID
-      --  tail => String_ID
-      --  tail.prev => Then_ID
-      --  tail.prev.prev => If_ID
-      --  tail.prev.prev.prev => null
-      --  queue => If_ID
-      --  head => null
-
-      Check ("4a", ID (Analyzer), If_ID);
-
-      Step ("5", True, Then_ID);    --  Read from Lookahead_Head
-      Step ("6", False, Then_ID);   --  Read from Lookahead_Queue
-      Step ("7", False, String_ID); --  Read from Lookahead_Queue, update Lookahead_Head
-      Step ("8", True, Quit_ID);    --  Read from Lookahead_Head
+      Analyzer_AUnit.Check
+        ("2a", Analyzer,
+         Last_Token  => Then_ID,
+         Tail_Tokens => (If_ID, Then_ID),
+         Queue_Token => Then_ID,
+         Head_Null   => True);
 
       Push_Back (Analyzer, 1);
 
-      Step ("9", False, Quit_ID);
-      Step ("10", False, EOF);
+      Analyzer_AUnit.Check
+        ("3", Analyzer,
+         Last_Token  => If_ID,
+         Tail_Tokens => (If_ID, Then_ID),
+         Queue_Token => Then_ID,
+         Head_Token  => Then_ID);
+
+      Step ("4", True, Then_ID);
+
+      Analyzer_AUnit.Check
+        ("4a", Analyzer,
+         Last_Token  => Then_ID,
+         Tail_Tokens => (If_ID, Then_ID),
+         Queue_Token => Then_ID,
+         Head_Null   => True);
+
+      Step ("5", True, String_ID);
+      Step ("6", True, Quit_ID);
+
+      Analyzer_AUnit.Check
+        ("6a", Analyzer,
+         Last_Token  => Quit_ID,
+         Tail_Tokens => (If_ID, Then_ID, String_ID, Quit_ID),
+         Queue_Token => Then_ID,
+         Head_Null   => True);
+
+      Push_Back (Analyzer, 1);
+
+      Analyzer_AUnit.Check
+        ("7", Analyzer,
+         Last_Token  => String_ID,
+         Tail_Tokens => (If_ID, Then_ID, String_ID, Quit_ID),
+         Queue_Token => Then_ID,
+         Head_Token  => Quit_ID);
+
+      Push_Back (Analyzer, 2);
+
+      Analyzer_AUnit.Check
+        ("7a", Analyzer,
+         Last_Token  => If_ID,
+         Tail_Tokens => (If_ID, Then_ID, String_ID, Quit_ID),
+         Queue_Token => Then_ID,
+         Head_Token  => Then_ID);
+
+      Step ("8", True, Then_ID);
+      Step ("9", False, Then_ID);
+
+      Analyzer_AUnit.Check
+        ("9a", Analyzer,
+         Last_Token  => Then_ID,
+         Tail_Tokens => (Then_ID, String_ID, Quit_ID),
+         Queue_Token => String_ID,
+         Head_Token  => String_ID);
+
+      Step ("10", False, String_ID);
+
+      Step ("11", True, Quit_ID);
+
+      Analyzer_AUnit.Check
+        ("11a", Analyzer,
+         Last_Token  => Quit_ID,
+         Tail_Tokens => (String_ID, Quit_ID),
+         Queue_Token => Quit_ID,
+         Head_Null   => True);
+
+      Push_Back (Analyzer, 1);
+
+      Analyzer_AUnit.Check
+        ("11b", Analyzer,
+         Last_Token  => String_ID,
+         Tail_Tokens => (String_ID, Quit_ID),
+         Queue_Token => Quit_ID,
+         Head_Token  => Quit_ID);
+
+      Step ("12", False, Quit_ID);
+      Step ("13", False, EOF);
+
+      Analyzer_AUnit.Check
+        ("13a", Analyzer,
+         Last_Token => EOF,
+         Tail_Null  => True,
+         Queue_Null => True,
+         Head_Null  => True);
+
    end Lookahead_Push_Back;
 
    ----------

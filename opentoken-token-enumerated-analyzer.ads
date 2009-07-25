@@ -262,6 +262,15 @@ private
    type Token_List_Node;
    type Token_List_Node_Pointer is access Token_List_Node;
 
+   --  Visible for unit tests
+   type Token_List_Node is record
+      Token_Handle : OpenToken.Token.Enumerated.Handle;
+      Prev         : Token_List_Node_Pointer;
+      Next         : Token_List_Node_Pointer;
+   end record;
+
+   procedure Free is new Ada.Unchecked_Deallocation (Token_List_Node, Token_List_Node_Pointer);
+
    --  Put all the Analyzer's state information in here, so there can
    --  be several Analyzers running at once.
    type Instance is new Source with record
