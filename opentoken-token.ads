@@ -47,6 +47,8 @@ package OpenToken.Token is
 
    type Source_Handle is access all Source_Class;
 
+   Default_Lookahead : Integer := 1;
+
    --------------------------------------------------------------------
    --  Verify that token in Analyzer matches the token Match, possibly
    --  take some action.
@@ -55,8 +57,11 @@ package OpenToken.Token is
    --  whether the parse would fail or succeed, and raise Parse_Error
    --  with no message if it would fail. Depending on the grammar
    --  design, only checking the current Analyzer token would be
-   --  enough, but it may be necessary to look ahead. When called in
-   --  this way, a higher level parse is choosing between options.
+   --  enough, but it may be necessary to look ahead. In that case,
+   --  Default_Lookahead should be used to specify the default
+   --  lookahead count, and the user should be able to override it for
+   --  specific tokens. When called in this way, a higher level parse
+   --  is choosing between options.
    --
    --  If Actively, upon successful completion, update Match with the
    --  value of the token, and advance Analyzer across all matched

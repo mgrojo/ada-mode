@@ -1,19 +1,21 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2000 Ted Dennison
+--  Copyright (C) 2009 Stephe Leake
+--  Copyright (C) 2000 Ted Dennison
 --
--- This file is part of the OpenToken package.
+--  This file is part of the OpenToken package.
 --
--- The OpenToken package is free software; you can redistribute it and/or
--- modify it under the terms of the  GNU General Public License as published
--- by the Free Software Foundation; either version 3, or (at your option)
--- any later version. The OpenToken package is distributed in the hope that
--- it will be useful, but WITHOUT ANY WARRANTY; without even the implied
--- warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
--- GNU General Public License for  more details.  You should have received
--- a copy of the GNU General Public License  distributed with the OpenToken
--- package;  see file GPL.txt.  If not, write to  the Free Software Foundation,
--- 59 Temple Place - Suite 330,  Boston, MA 02111-1307, USA.
+--  The OpenToken package is free software; you can redistribute it
+--  and/or modify it under the terms of the GNU General Public License
+--  as published by the Free Software Foundation; either version 3, or
+--  (at your option) any later version. The OpenToken package is
+--  distributed in the hope that it will be useful, but WITHOUT ANY
+--  WARRANTY; without even the implied warranty of MERCHANTABILITY or
+--  FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public
+--  License for more details. You should have received a copy of the
+--  GNU General Public License distributed with the OpenToken package;
+--  see file GPL.txt. If not, write to the Free Software Foundation,
+--  59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 --
 --  As a special exception, if other files instantiate generics from
 --  this unit, or you link this unit with other files to produce an
@@ -23,118 +25,152 @@
 --  executable file might be covered by the GNU Public License.
 -------------------------------------------------------------------------------
 
--------------------------------------------------------------------------------
---  This package defines a reusable token for a simple sequence of tokens.
---  These a quite easy to create yourself, of course. But having a prebuilt one
---  allows you to easily use it in constructors for other tokens.
--------------------------------------------------------------------------------
+with Ada.Text_IO;
 package body OpenToken.Token.Sequence_Mixin is
 
-   use type Token.Linked_List.List_Iterator;
-   use type Token.Linked_List.Instance;
+   procedure Set_Lookahead (Token : in out Instance; Lookahead : in Integer)
+   is begin
+      Token.Lookahead := Lookahead;
+   end Set_Lookahead;
 
-   ----------------------------------------------------------------------------
-   --  Externally visible routines
-   --
-
-   ----------------------------------------------------------------------------
-   --  Retrieve the given sequence token from the analyzer.
-   --  The private routine Build is called when the entire operation
-   --  has been recognized.
-   --  An a non active parse does not comsume any input from the analyzer,
-   --  and does not call any of the private routines.
-   ----------------------------------------------------------------------------
    overriding procedure Parse
-     (Match    : in out Instance;
+     (Match    : access Instance;
       Analyzer : in out Source_Class;
-      Actively : in     Boolean := True
-     ) is
+      Actively : in     Boolean      := True)
+   is
+      use Token.Linked_List;
 
-      List_Iterator : Token.Linked_List.List_Iterator :=
-        Token.Linked_List.Initial_Iterator (Match.Members);
+      I : List_Iterator := First (Match.Members);
    begin
-
-      while List_Iterator /= Token.Linked_List.Null_Iterator loop
-         Parse
-           (Match    => Token.Linked_List.Token_Handle (List_Iterator).all,
-            Analyzer => Analyzer,
-            Actively => Actively
-            );
-
-         Token.Linked_List.Next_Token (List_Iterator);
-      end loop;
-
-      if Actively then
-         Build (Class (Match));
+      if Trace_Parse then
+         Trace_Indent := Trace_Indent + 1;
+         if Actively then
+            Trace_Put ("parsing");
+         else
+            Trace_Put ("trying");
+         end if;
+         Ada.Text_IO.Put_Line (" sequence " & Name_Dispatch (Match) &
+              "'(" & Names (Match.Members) & ") match " & Name_Dispatch (Get (Analyzer)));
       end if;
 
+      if Actively then
+         while I /= Null_Iterator loop
+            Parse (Token_Handle (I), Analyzer, Actively => True);
+            Next_Token (I);
+         end loop;
+
+         Build (Class (Match.all), Match.Members);
+      else
+         for J in 1 .. Match.Lookahead loop
+            Parse (Token_Handle (I), Analyzer, Actively => False);
+            Next_Token (I);
+            exit when I = Null_Iterator;
+         end loop;
+      end if;
+
+      if Trace_Parse then
+         Trace_Put ("...succeeded"); Ada.Text_IO.New_Line;
+         Trace_Indent := Trace_Indent - 1;
+      end if;
+   exception
+   when others =>
+      if Trace_Parse then
+         Trace_Put ("...failed"); Ada.Text_IO.New_Line;
+         Trace_Indent := Trace_Indent - 1;
+      end if;
+      raise;
    end Parse;
 
-   ----------------------------------------------------------------------------
-   --  Create a token sequence from a pair of token handles.
-   ----------------------------------------------------------------------------
-   function "&" (Left  : access OpenToken.Token.Class;
-                 Right : access OpenToken.Token.Class) return Instance is
-      Result : Instance;
+   function "&"
+     (Left  : access OpenToken.Token.Class;
+      Right : access OpenToken.Token.Class)
+     return Instance
+   is
+      use type Linked_List.Instance;
    begin
-      Result.Members := OpenToken.Token.Handle (Left) & OpenToken.Token.Handle (Right);
-      return Result;
+      return
+        (Parent_Token with
+         Members   => OpenToken.Token.Handle (Left) & OpenToken.Token.Handle (Right),
+         Lookahead => Default_Lookahead,
+         Name      => null);
    end "&";
 
-   ----------------------------------------------------------------------------
-   --  Create a token sequence from a token handle and a token sequence.
-   ----------------------------------------------------------------------------
-   function "&" (Left  : access OpenToken.Token.Class;
-                 Right : in     Instance) return Instance is
-      Result : Instance;
+   function "&"
+     (Left  : access OpenToken.Token.Class;
+      Right : in     Instance)
+     return Instance
+   is
+      use Linked_List;
    begin
-      Result.Members := OpenToken.Token.Handle (Left) & Right.Members;
-      return Result;
+      return
+        (Parent_Token with
+         Members   => OpenToken.Token.Handle (Left) & Right.Members,
+         Lookahead => Default_Lookahead,
+         Name      => null);
    end "&";
 
-   function "&" (Left  : in     Instance;
-                 Right : access OpenToken.Token.Class) return Instance is
-      Result : Instance;
+   function "&"
+     (Left  : in     Instance;
+      Right : access OpenToken.Token.Class)
+     return Instance
+   is
+      use Linked_List;
    begin
-      Result.Members := Left.Members & OpenToken.Token.Handle (Right);
-      return Result;
+      return
+        (Parent_Token with
+         Members   => Left.Members & OpenToken.Token.Handle (Right),
+         Lookahead => Default_Lookahead,
+         Name      => null);
    end "&";
 
-   ----------------------------------------------------------------------------
-   --  Create a token sequence from a pair of token sequences.
-   ----------------------------------------------------------------------------
-   function "&" (Left  : in Instance;
-                 Right : in Instance) return Instance is
-      Result : Instance;
+   function "&"
+     (Left  : in Instance;
+      Right : in Instance)
+     return Instance
+   is
+      use Linked_List;
    begin
-      Result.Members := Left.Members & Right.Members;
-      return Result;
+      return
+        (Parent_Token with
+         Members   => Left.Members & Right.Members,
+         Lookahead => Default_Lookahead,
+         Name      => null);
    end "&";
 
-   ----------------------------------------------------------------------------
-   --  Return a newly allocated instance which is a copy of the given instance.
-   ----------------------------------------------------------------------------
-   function New_Instance (Old_Instance : in Instance) return Handle is
+   function New_Instance
+     (Old_Instance : in Instance;
+      Name         : in String   := "";
+      Lookahead    : in Integer  := Default_Lookahead)
+     return Handle
+   is
+      New_Token : constant Handle := new Class'(Class (Old_Instance));
    begin
-      return new Class'(Class (Old_Instance));
+      New_Token.Lookahead := Lookahead;
+      if Name /= "" then
+         New_Token.Name := new String'(Name);
+      end if;
+      return New_Token;
    end New_Instance;
 
-   ----------------------------------------------------------------------------
-   --  This routine should is a quick check to verify that the given operation
-   --  token can possibly succesfully parse from what's sitting in the analyzer.
-   --  This routine is meant to be used for choosing between parsing options.
-   --  It simply checks Could_Parse_To for this token's Element token.
-   ----------------------------------------------------------------------------
-   overriding function Could_Parse_To
-     (Match    : in Instance;
-      Analyzer : in Source_Class
-     ) return Boolean is
+   procedure Set_Name (Token : in out Instance; Name : in String)
+   is begin
+      Token.Name := new String'(Name);
+   end Set_Name;
+
+   overriding function Name (Token : in Instance) return String
+   is begin
+      if Token.Name = null then
+         return OpenToken.Token.Name (OpenToken.Token.Instance (Token));
+      else
+         return Token.Name.all;
+      end if;
+   end Name;
+
+   overriding procedure Expecting (Token : access Instance; List : in out Linked_List.Instance)
+   is
+      use Linked_List;
    begin
-      return Could_Parse_To
-        (Match    => Token.Linked_List.Token_Handle
-         (Token.Linked_List.Initial_Iterator (Match.Members)).all,
-         Analyzer => Analyzer
-         );
-   end Could_Parse_To;
+      Add (List, Token_Handle (First (Token.Members)));
+   end Expecting;
 
 end OpenToken.Token.Sequence_Mixin;

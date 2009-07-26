@@ -1,19 +1,21 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2000 Ted Dennison
+--  Copyright (C) 2009 Stephe Leake
+--  Copyright (C) 2000 Ted Dennison
 --
--- This file is part of the OpenToken package.
+--  This file is part of the OpenToken package.
 --
--- The OpenToken package is free software; you can redistribute it and/or
--- modify it under the terms of the  GNU General Public License as published
--- by the Free Software Foundation; either version 3, or (at your option)
--- any later version. The OpenToken package is distributed in the hope that
--- it will be useful, but WITHOUT ANY WARRANTY; without even the implied
--- warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
--- GNU General Public License for  more details.  You should have received
--- a copy of the GNU General Public License  distributed with the OpenToken
--- package;  see file GPL.txt.  If not, write to  the Free Software Foundation,
--- 59 Temple Place - Suite 330,  Boston, MA 02111-1307, USA.
+--  The OpenToken package is free software; you can redistribute it
+--  and/or modify it under the terms of the GNU General Public License
+--  as published by the Free Software Foundation; either version 3, or
+--  (at your option) any later version. The OpenToken package is
+--  distributed in the hope that it will be useful, but WITHOUT ANY
+--  WARRANTY; without even the implied warranty of MERCHANTABILITY or
+--  FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public
+--  License for more details. You should have received a copy of the
+--  GNU General Public License distributed with the OpenToken package;
+--  see file GPL.txt. If not, write to the Free Software Foundation,
+--  59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 --
 --  As a special exception, if other files instantiate generics from
 --  this unit, or you link this unit with other files to produce an
@@ -23,185 +25,180 @@
 --  executable file might be covered by the GNU Public License.
 -------------------------------------------------------------------------------
 
-with Ada.Exceptions;
-with Ada.Tags;
-
--------------------------------------------------------------------------------
---  This package defines a reusable token for a simple selection between tokens.
---  These a quite easy to create yourself, of course. But having a prebuilt one
---  allows you to easily use it in constructors for other tokens.
--------------------------------------------------------------------------------
+with Ada.Text_IO;
 package body OpenToken.Token.Selection_Mixin is
 
-   use type Token.Linked_List.List_Iterator;
-   use type Token.Linked_List.Instance;
-
-   ----------------------------------------------------------------------------
-   --  Internal Helper routines
-
-   ----------------------------------------------------------------------------
-   --  Returns with the name of every token in the given list
-   ----------------------------------------------------------------------------
-   function Names_Of (List : Token.Linked_List.List_Iterator) return String is
-      Next_Iteration : Token.Linked_List.List_Iterator := List;
-
-      This_Name : constant String := Ada.Tags.External_Tag
-        (Token.Linked_List.Token_Handle (List).all'Tag);
-   begin
-      --  Find the next token in the list.
-      Token.Linked_List.Next_Token (Next_Iteration);
-
-      --  Return with this token's external tag, along with the tags of the rest
-      --  of the tokens in the list.
-      if Next_Iteration = Token.Linked_List.Null_Iterator then
-         return This_Name;
-      else
-         return This_Name & ", " & Names_Of (Next_Iteration);
-      end if;
-
-   end Names_Of;
-
-   ----------------------------------------------------------------------------
-   --  Externally visible routines
-   --
-
-   ----------------------------------------------------------------------------
-   --  This routine is called when none of the sequence's tokens return true for
-   --  Could_Parse_To.
-   ----------------------------------------------------------------------------
-   procedure Raise_Parse_Error
-     (Match    : in out Instance;
-      Analyzer : in out Source_Class;
-      Actively : in     Boolean := True
-     ) is
-   begin
-      if Actively then
-         Ada.Exceptions.Raise_Exception
-           (Parse_Error'Identity, "Unexpected token found. Expected one of " &
-            Names_Of (Token.Linked_List.Initial_Iterator (Match.Members)) & ".");
-      else
-         --  Don't waste time since this is probably *not* an error condition in
-         --  this mode, and it will probably be handled so no one will ever see
-         --  the message anyway.
-         raise Parse_Error;
-      end if;
-   end Raise_Parse_Error;
-
-   ----------------------------------------------------------------------------
-   --  Retrieve the given selection token from the analyzer.
-   --  The private routine Build is called when the entire operation
-   --  has been recognized.
-   --  An a non active parse does not comsume any input from the analyzer,
-   --  and does not call any of the private routines.
-   ----------------------------------------------------------------------------
    overriding procedure Parse
-     (Match    : in out Instance;
+     (Match    : access Instance;
       Analyzer : in out Source_Class;
-      Actively : in     Boolean := True
-     ) is
-
-      List_Iterator : Token.Linked_List.List_Iterator :=
-        Token.Linked_List.Initial_Iterator (Match.Members);
+      Actively : in     Boolean      := True)
+   is
+      use Linked_List;
+      I : List_Iterator := First (Match.Members);
    begin
-
-      while
-        not Token.Could_Parse_To
-        (Match    => Token.Linked_List.Token_Handle (List_Iterator).all,
-         Analyzer => Analyzer)
-      loop
-         Token.Linked_List.Next_Token (List_Iterator);
-         if List_Iterator = Token.Linked_List.Null_Iterator then
-            Raise_Parse_Error (Match    => Match,
-                               Analyzer => Analyzer,
-                               Actively => Actively
-                               );
+      if Trace_Parse then
+         Trace_Indent := Trace_Indent + 1;
+         if Actively then
+            Trace_Put ("parsing");
+         else
+            Trace_Put ("trying");
          end if;
-
-      end loop;
-
-      Parse
-        (Match    => Token.Linked_List.Token_Handle (List_Iterator).all,
-         Analyzer => Analyzer,
-         Actively => Actively
-         );
-
-      if Actively then
-         Build (Match => Instance'Class (Match),
-                From  => Component_Token'Class (Token.Linked_List.Token_Handle (List_Iterator).all)
-                );
+         Ada.Text_IO.Put_Line
+           (" selection " & Name_Dispatch (Match) &
+              "'(" & Names (Match.Members) & ") match " & Name_Dispatch (Get (Analyzer)));
       end if;
 
+      Find_Match :
+      loop
+         declare
+            Mark : Queue_Mark'Class renames Mark_Push_Back (Analyzer);
+         begin
+            Parse (Token_Handle (I), Analyzer, Actively => False);
+            if Actively then
+               Push_Back (Analyzer, Mark);
+            end if;
+            exit Find_Match;
+
+         exception
+         when Parse_Error =>
+            --  We don't need to call Push_Back here if Next_Token (I)
+            --  is null, but we can't tell, and it doesn't hurt.
+            Push_Back (Analyzer, Mark);
+         end;
+
+         Next_Token (I);
+
+         if I = Null_Iterator then
+            if Actively then
+               declare
+                  Expected : Linked_List.Instance;
+               begin
+                  Expecting (Match, Expected);
+                  raise Parse_Error with "Found " & Name_Dispatch (Get (Analyzer)) & "; expected one of " &
+                    Token.Linked_List.Names (Expected) & ".";
+               end;
+            else
+               --  The spec says "raise Parse_Error with no message".
+               --  If we leave out 'with ""' here, GNAT attaches a
+               --  message giving the line number. That's useful in
+               --  general, but fails our unit test. So we override it
+               --  in this case.
+               --
+               --  The point of "raise with no message" is to not
+               --  spend time computing a nice user message, because
+               --  it will be thrown away. I'm not clear whether 'with
+               --  ""' or the GNAT default is faster, but it probably
+               --  doesn't matter much.
+               raise Parse_Error with "";
+            end if;
+         end if;
+      end loop Find_Match;
+
+      if Actively then
+         Parse (Token_Handle (I), Analyzer, Actively);
+         Build (Class (Match.all), Component_Token'Class (Token_Handle (I).all));
+      end if;
+
+      if Trace_Parse then
+         Trace_Put ("...succeeded"); Ada.Text_IO.New_Line;
+         Trace_Indent := Trace_Indent - 1;
+      end if;
+   exception
+   when others =>
+      if Trace_Parse then
+         Trace_Put ("...failed"); Ada.Text_IO.New_Line;
+         Trace_Indent := Trace_Indent - 1;
+      end if;
+      raise;
    end Parse;
 
-   ----------------------------------------------------------------------------
-   --  Create a token selection from a pair of token instances.
-   ----------------------------------------------------------------------------
    function "or"
      (Left  : access Component_Token'Class;
       Right : access Component_Token'Class)
      return Instance
    is
-      Result : Instance;
+      use type Linked_List.Instance;
    begin
-      Result.Members := OpenToken.Token.Handle (Left) & OpenToken.Token.Handle (Right);
-      return Result;
+      return
+        (Parent_Token with
+         Members => OpenToken.Token.Handle (Left) & OpenToken.Token.Handle (Right),
+         Name    => null);
    end "or";
 
-   ----------------------------------------------------------------------------
-   --  Create a token selection from a token handle and a token selection.
-   ----------------------------------------------------------------------------
-   function "or" (Left  : access Component_Token'Class;
-                  Right : in     Instance) return Instance is
-      Result : Instance;
+   function "or"
+     (Left  : access Component_Token'Class;
+      Right : in     Instance) return Instance
+   is
+      use type Linked_List.Instance;
    begin
-      Result.Members := OpenToken.Token.Handle (Left) & Right.Members;
-      return Result;
-   end "or";
-   function "or" (Left  : in     Instance;
-                  Right : access Component_Token'Class) return Instance is
-      Result : Instance;
-   begin
-      Result.Members := Left.Members & OpenToken.Token.Handle (Right);
-      return Result;
+      return
+        (Parent_Token with
+         Members => OpenToken.Token.Handle (Left) & Right.Members,
+         Name    => null);
    end "or";
 
-   ----------------------------------------------------------------------------
-   --  Create a token selection from a pair of selection tokens
-   ----------------------------------------------------------------------------
-   function "or" (Left  : in Instance;
-                  Right : in Instance) return Instance is
-      Result : Instance;
+   function "or"
+     (Left  : in     Instance;
+      Right : access Component_Token'Class) return Instance
+   is
+      use type Linked_List.Instance;
    begin
-      Result.Members := Left.Members & Right.Members;
-      return Result;
+      return
+        (Parent_Token with
+         Members => Left.Members & OpenToken.Token.Handle (Right),
+         Name    => null);
    end "or";
 
-   ----------------------------------------------------------------------------
-   --  This routine should is a quick check to verify that the given operation
-   --  token can possibly succesfully parse from what's sitting in the analyzer.
-   --  This routine is meant to be used for choosing between parsing options.
-   --  It simply checks Could_Parse_To for this token's Element token.
-   ----------------------------------------------------------------------------
-   overriding function Could_Parse_To
-     (Match    : in Instance;
-      Analyzer : in Source_Class
-     ) return Boolean is
-
-      List_Iterator : Token.Linked_List.List_Iterator :=
-        Token.Linked_List.Initial_Iterator (Match.Members);
+   function "or"
+     (Left  : in Instance;
+      Right : in Instance)
+     return Instance
+   is
+      use type Linked_List.Instance;
    begin
+      return
+        (Parent_Token with
+         Members => Left.Members & Right.Members,
+         Name    => null);
+   end "or";
 
-      while List_Iterator /= Token.Linked_List.Null_Iterator loop
-         if Could_Parse_To
-           (Match    => Token.Linked_List.Token_Handle (List_Iterator).all,
-            Analyzer => Analyzer
-            )
-         then
-            return True;
-         end if;
-         Token.Linked_List.Next_Token (List_Iterator);
+   function New_Instance
+     (Old_Instance : in Instance;
+      Name         : in String   := "")
+     return Handle
+   is
+      New_Token : constant Handle := new Class'(Class (Old_Instance));
+   begin
+      if Name /= "" then
+         New_Token.Name := new String'(Name);
+      end if;
+      return New_Token;
+   end New_Instance;
+
+   procedure Set_Name (Token : in out Instance; Name : in String)
+   is begin
+      Token.Name := new String'(Name);
+   end Set_Name;
+
+   overriding function Name (Token : in Instance) return String
+   is begin
+      if Token.Name = null then
+         return OpenToken.Token.Name (OpenToken.Token.Instance (Token));
+      else
+         return Token.Name.all;
+      end if;
+   end Name;
+
+   overriding procedure Expecting (Token : access Instance; List : in out Linked_List.Instance)
+   is
+      use Linked_List;
+      I : List_Iterator := First (Token.Members);
+   begin
+      loop
+         exit when I = Null_Iterator;
+         Expecting (Token_Handle (I), List);
+         Next_Token (I);
       end loop;
-      return False;
-   end Could_Parse_To;
+   end Expecting;
 
 end OpenToken.Token.Selection_Mixin;

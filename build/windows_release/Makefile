@@ -1,9 +1,10 @@
 all: dirs tests examples
 
 # ../../Test/test_one_harness.adb
-#one : test_one_harness.run
-#one : asu_example_4_46_rd-run.run
-#one : asu_example_5_10-run.run
+#t_one : RUN_ARGS := -v
+t_one : test_one_harness.run
+
+#one : token_selection_test-run.run
 #one : asu_example_5_10_rd-run.run
 one : asu_example_5_10_rd-run_bad.run
 

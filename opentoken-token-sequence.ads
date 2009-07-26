@@ -39,19 +39,12 @@ package OpenToken.Token.Sequence is
 
    type Handle is access all Class;
 
-   Default_Lookahead : Integer := 1;
-
-   -------------------------------------------------------------------
-   --  Default_Lookahead should be set to the number of lookaheads
-   --  required by the grammar. However, it may be possible to reduce
-   --  that for some tokens.
-   -------------------------------------------------------------------
    procedure Set_Lookahead (Token : in out Instance; Lookahead : in Integer);
 
    ----------------------------------------------------------------------
    --  When called with Actively => False, the number of tokens to
    --  lookahead is given by Match.Lookahead, which defaults to
-   --  Default_Lookahead, but may be overridden by Set_Lookahead.
+   --  Token.Default_Lookahead, but may be overridden by Set_Lookahead.
    ----------------------------------------------------------------------
    overriding procedure Parse
      (Match    : access Instance;
@@ -136,7 +129,7 @@ package OpenToken.Token.Sequence is
 
 private
    type Instance is new Token.Instance with record
-      Lookahead : Integer := Default_Lookahead;
+      Lookahead : Integer;
       Members   : Token.Linked_List.Instance;
       Name      : access String;
    end record;
