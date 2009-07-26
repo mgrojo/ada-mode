@@ -88,7 +88,7 @@ begin
       Tokenizer.Find_Next (Analyzer);
 
       OpenToken.Token.Parse
-        (Match    => OpenToken.Token.Class (L.all),
+        (Match    => OpenToken.Token.Handle (L),
          Analyzer => Analyzer);
 
    end loop;

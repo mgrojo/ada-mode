@@ -22,14 +22,11 @@
 --  executable to be covered by the GNU General Public License. This
 --  exception does not however invalidate any other reasons why the
 --  executable file might be covered by the GNU Public License.
---
 -------------------------------------------------------------------------------
 
 -----------------------------------------------------------------------------
 --  This package defines a reusable token for a simple sequence of
---  tokens. These a quite easy to create yourself, of course. But
---  having a prebuilt one allows you to easily use it in constructors
---  for other tokens.
+--  tokens.
 --
 -------------------------------------------------------------------------------
 

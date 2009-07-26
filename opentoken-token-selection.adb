@@ -95,7 +95,7 @@ package body OpenToken.Token.Selection is
 
       if Actively then
          Parse (Token_Handle (I), Analyzer, Actively);
-         Build (Match.all, Token_Handle (I).all);
+         Build (Class (Match.all), Token_Handle (I).all);
       end if;
 
       if Trace_Parse then

@@ -60,7 +60,13 @@ package OpenToken.Token.Enumerated.Analyzer is
 
    subtype Terminal_ID is Token_ID range Token_ID'First .. Last_Terminal;
 
-   --  Descriptor for what an individual token in this language looks like.
+   --  Descriptor for what an individual token in this language looks
+   --  like. Also provides storage for Lexeme and Recognizer from
+   --  recognized tokens. This is required by lookahead; the lexeme
+   --  and recognizer are only available when the token is recognized
+   --  in the input stream, not later when it is read from the
+   --  lookahead queue. Copies of the recognized token are pushed onto
+   --  the lookahead queue, after Create is called.
    type Recognizable_Token is record
       Recognizer   : Recognizer_Handle;
       Token_Handle : Handle;
@@ -84,9 +90,9 @@ package OpenToken.Token.Enumerated.Analyzer is
    Input_Feeder : aliased OpenToken.Text_Feeder.Text_IO.Instance;
 
    --------------------------------------------------------------------------
-   --  Retrieve a new recognizable token, using the given token
-   --  values. This is a convienence routine for more easliy creating
-   --  Syntaxes. It will dynamicly allocate the memory for the
+   --  Return a new recognizable token, using the given token
+   --  values. This is a convienence routine for more easily creating
+   --  Syntaxes. It will dynamically allocate the memory for the
    --  recognizer and token.
    --------------------------------------------------------------------------
    function Get
@@ -189,10 +195,6 @@ package OpenToken.Token.Enumerated.Analyzer is
    --  sequence of characters before failing. Ties go to the token
    --  with the smallest Terminal_Id.
    --
-   --  If Look_Ahead is set, the next token after the current one will
-   --  be returned, but the current one will not be discarded.
-   --  Subsequent Look_Ahead calls will return later and later tokens.
-   --
    --  Raises Syntax_Error if no token could be found (unless there is
    --  a default token defined).
    --------------------------------------------------------------------------
@@ -244,14 +246,8 @@ package OpenToken.Token.Enumerated.Analyzer is
    ----------------------------------------------------------------------------
    function ID (Analyzer : in Instance) return Terminal_ID;
 
-   ----------------------------------------------------------------------------
-   --  Returns the actual text of the last token that was matched.
-   ----------------------------------------------------------------------------
    overriding function Lexeme (Analyzer : in Instance) return String;
 
-   ----------------------------------------------------------------------------
-   --  Returns the recognizer handle of the last token that was matched.
-   ----------------------------------------------------------------------------
    overriding function Last_Recognizer (Analyzer : in Instance) return Recognizer_Handle;
 
 private
@@ -283,6 +279,8 @@ private
       Lexeme_Head : Natural := 1;
       Lexeme_Tail : Natural := 0;
       Last_Token  : Terminal_ID;
+
+      Read_From_Lookahead : Boolean;
 
       --  Internal state information
       Buffer       : String (1 .. Max_String_Length);

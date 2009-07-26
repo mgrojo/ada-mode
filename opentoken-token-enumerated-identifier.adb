@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2002 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2002, 2009 Stephen Leake.  All Rights Reserved.
 --
 --  This library is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -37,16 +37,19 @@ package body OpenToken.Token.Enumerated.Identifier is
 
    overriding procedure Create
      (Lexeme     : in     String;
-      ID         : in     Token_ID;
       Recognizer : in     Recognizer_Handle;
-      New_Token  :    out Instance)
+      New_Token  : in out Instance)
    is
       pragma Unreferenced (Recognizer);
    begin
-      New_Token :=
-        (Token.Instance with
-         ID         => ID,
-         Identifier => OpenToken.Buffers.To_Bounded_String (Lexeme));
+      New_Token.Identifier := OpenToken.Buffers.To_Bounded_String (Lexeme);
    end Create;
+
+   overriding procedure Copy
+     (To   : in out Instance;
+      From : in     Token.Class)
+   is begin
+      To.Identifier := Instance (From).Identifier;
+   end Copy;
 
 end OpenToken.Token.Enumerated.Identifier;

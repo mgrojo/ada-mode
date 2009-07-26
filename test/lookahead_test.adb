@@ -18,20 +18,25 @@
 --  59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 -----------------------------------------------------------------------------
 
+with AUnit.Assertions;
 with AUnit.Check;
 with AUnit.Test_Cases.Registration;
+with Ada.Tags;
+with Ada.Text_IO;
 with OpenToken.Recognizer.Character_Set;
 with OpenToken.Recognizer.End_Of_File;
 with OpenToken.Recognizer.Keyword;
 with OpenToken.Recognizer.String;
 with OpenToken.Text_Feeder.String;
 with OpenToken.Token.Enumerated.Analyzer.AUnit;
+with OpenToken.Token.Enumerated.String_Literal;
 package body Lookahead_Test is
 
    type Example_Token_ID is (If_ID, Then_ID, Quit_ID, String_ID, Whitespace, EOF);
 
    package Master_Example_Token is new OpenToken.Token.Enumerated (Example_Token_ID);
    package Tokenizer is new Master_Example_Token.Analyzer;
+   package String_Literal is new Master_Example_Token.String_Literal;
 
    procedure Check is new AUnit.Check.Gen_Check_Discrete (Example_Token_ID);
 
@@ -41,7 +46,8 @@ package body Lookahead_Test is
      (If_ID      => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("if")),
       Then_ID    => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("then")),
       Quit_ID    => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("quit")),
-      String_ID  => Tokenizer.Get (OpenToken.Recognizer.String.Get),
+      String_ID  => Tokenizer.Get (OpenToken.Recognizer.String.Get,
+                                   New_Token => String_Literal.Get (String_ID)),
       Whitespace => Tokenizer.Get (OpenToken.Recognizer.Character_Set.Get
                                      (OpenToken.Recognizer.Character_Set.Standard_Whitespace)),
       EOF => Tokenizer.Get (OpenToken.Recognizer.End_Of_File.Get));
@@ -246,6 +252,123 @@ package body Lookahead_Test is
 
    end Lookahead_Push_Back;
 
+   procedure Check_Lexeme
+     (Label           : in     String;
+      Token           : in     Master_Example_Token.Handle;
+      Expected_Lexeme : access String)
+   is
+      use AUnit.Check;
+   begin
+      if Expected_Lexeme /= null then
+         declare
+            String_Token : String_Literal.Instance renames String_Literal.Instance (Token.all);
+         begin
+            Check (Label & ".lexeme", String_Literal.Value (String_Token), Expected_Lexeme.all);
+         end;
+      end if;
+   end Check_Lexeme;
+
+   procedure Lookahead_Lexemes (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      Text : constant String := """string 1"" ""string 2"" ";
+
+      String_1_Value : aliased String := "string 1";
+      String_2_Value : aliased String := "string 2";
+
+      String_Token : aliased String_Literal.Instance := String_Literal.Instance (String_Literal.Get (String_ID));
+
+      procedure Test
+        (Label           : in     String;
+         Actively        : in     Boolean;
+         Token           : access Master_Example_Token.Class;
+         Expected_Lexeme : in     String                := "")
+      is
+         use AUnit.Check;
+         use type Ada.Tags.Tag;
+      begin
+         Master_Example_Token.Parse (Token, Analyzer, Actively);
+         Check (Label & ".lexeme", String_Literal.Value (String_Literal.Instance (Token.all)), Expected_Lexeme);
+      end Test;
+
+   begin
+      --  Verify that tokens preserve lexemes when parsing inactively,
+      --  even if the tokens are repeated.
+
+      if Test_Case (T).Debug then
+         Ada.Text_IO.Put_Line ("Lookahead_Lexemes");
+      end if;
+
+      OpenToken.Text_Feeder.String.Set (Feeder, Text);
+      Tokenizer.Reset (Analyzer);
+
+      --  The very first call to find_next can't be look_ahead =>
+      --  true, since no real parser would do that.
+      Tokenizer.Find_Next (Analyzer, Look_Ahead => False);
+
+      declare
+         Mark : OpenToken.Token.Queue_Mark'Class renames Tokenizer.Mark_Push_Back (Analyzer);
+      begin
+         --  Lexemes are not copied to tokens during inactive parse,
+         --  but they are copied into the tokens pushed on the queue,
+         --  so we check that here.
+         String_Literal.Parse (String_Token'Access, Analyzer, Actively => False);
+
+         Analyzer_AUnit.Check
+           ("1p", Analyzer,
+            Last_Token   => String_ID,
+            Tail_Tokens  => (String_ID, String_ID),
+            Tail_Lexemes => (String_1_Value'Unchecked_Access, String_2_Value'Unchecked_Access),
+            Queue_Token  => String_ID,
+            Head_Null    => True,
+            Check_Token  => Check_Lexeme'Access);
+
+         String_Literal.Parse (String_Token'Access, Analyzer, Actively => False);
+
+         Analyzer_AUnit.Check
+           ("2p", Analyzer,
+            Last_Token   => EOF,
+            Tail_Tokens  => (String_ID, String_ID, EOF),
+            Tail_Lexemes => (String_1_Value'Unchecked_Access, String_2_Value'Unchecked_Access, null),
+            Queue_Token  => String_ID,
+            Head_Null    => True,
+            Check_Token  => Check_Lexeme'Access);
+
+         Tokenizer.Push_Back (Analyzer, Mark);
+      end;
+
+      --  The lexemes were preserved by Copy, so they are correct here
+      Test ("1a", True, String_Token'Access, "string 1");
+      Test ("2a", True, String_Token'Access, "string 2");
+
+   end Lookahead_Lexemes;
+
+   procedure Mismatched_Tokens (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+
+      Text : constant String := """string 1"" ";
+
+      Bad_String_Token : aliased Master_Example_Token.Class := Master_Example_Token.Get (String_ID);
+
+   begin
+      --  Verify the error from Parse when called with a token type
+      --  that doesn't match the one in Syntax_List. This test doesn't
+      --  do lookahead, but it tests a run-time check required by the
+      --  lookahead design.
+
+      OpenToken.Text_Feeder.String.Set (Feeder, Text);
+      Tokenizer.Reset (Analyzer);
+      Tokenizer.Find_Next (Analyzer, Look_Ahead => False);
+
+      begin
+         Master_Example_Token.Parse (Bad_String_Token'Access, Analyzer, Actively => True);
+         AUnit.Assertions.Assert (False, "did not get exception");
+      exception
+      when OpenToken.Programmer_Error =>
+         null;
+      end;
+   end Mismatched_Tokens;
+
    ----------
    --  Public subprograms
 
@@ -262,6 +385,8 @@ package body Lookahead_Test is
    begin
       Register_Routine (T, Lookahead'Access, "Lookahead");
       Register_Routine (T, Lookahead_Push_Back'Access, "Lookahead_Push_Back");
+      Register_Routine (T, Lookahead_Lexemes'Access, "Lookahead_Lexemes");
+      Register_Routine (T, Mismatched_Tokens'Access, "Mismatched_Tokens");
    end Register_Tests;
 
 end Lookahead_Test;

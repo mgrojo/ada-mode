@@ -27,12 +27,13 @@
 
 with OpenToken.Token.Linked_List;
 
--------------------------------------------------------------------------------
+---------------------------------------------------------------------------
 --  This package defines a reusable token for a simple selection
---  between tokens. These a quite easy to create yourself, of course.
---  But having a prebuilt one allows you to easily use it in
---  constructors for other tokens.
--------------------------------------------------------------------------------
+--  between tokens.
+--
+--  Use OpenToken.Token.Selection_Mixin if you need more specific
+--  types as parent and component.
+---------------------------------------------------------------------------
 package OpenToken.Token.Selection is
 
    type Instance is new Token.Instance with private;

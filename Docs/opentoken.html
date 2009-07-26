@@ -68,6 +68,64 @@ properly, and easier to understand.
 
 <h2> History</h2>
 
+<h3>Version 4.0 future</h3>
+<ul>
+
+  <li>Lookahead and backtracking is actually supported in recursive
+      descent parsers. This required several changes:
+
+      <ul>
+
+        <li>Could_Parse_To is gone; the same purpose is served by
+            Parse (Actively => False).
+
+        <li>Raise_Parse_Error is gone; the message composed by the
+            provided packages is already excellent.
+
+        <li>Token types derived from Enumerated.Instance that need to
+            store the Lexeme and/or Recognizer passed in Create need
+            to override the new procedure Copy. This is because Create
+            is called only by Analyzer.Find_Next, not by
+            Enmerated.Parse; it used to be called by both.
+
+        <li>Enumerated.Create profile is changed; ID is not needed,
+            since New_Token is in out. When you fix Create, remember
+            to consider adding Copy.
+
+        <li>Token.Sequence tokens each store a lookahead count, with a
+            global default.
+
+        <li>User defined token types that do backtracking must call
+            Analyzer.Mark_Push_Back and Analyzer.Push_Back to manage
+            the lookahead queue; see Token.Selection for an example.
+
+      </ul>
+
+  <li>Other enhancements
+      <ul>
+
+        <li>Parse errors reported by Token.Selected include the list
+            of expected tokens. This requires the Match argument to
+            Parse to be of mode 'access' instead of 'in out'.
+
+        <li>There is a dispatching Name function to allow tokens to
+            identify themselves in the list of expected tokens.
+
+        <li>The examples have been improved to more clearly
+            demonstrate the differences and similarities between LR
+            parsing and recursive descent parsing with OpenToken.
+
+        <li>There are new examples of recursive descent parsing,
+            showing that naive grammars can work, if inefficiently.
+
+      </ul>
+
+  <li>other bugs fixed
+      <ul>
+      </ul>
+</ul>
+
+
 <h3>Version 3.1 sometime soon</h3>
 <ul>
   <li>bugs fixed
@@ -333,6 +391,6 @@ agree. Bravo!
 <img src="../images/emacs.png" alt="Created with Emacs" width="100" height="30"></a>
 <a href="http://www.adaic.org/">
 <img src="../images/adapowered2.png" alt="powered by Ada" width="200" height="50"></a>
-<!-- hhmts start --> Last modified: Sun Jul 19 16:47:02 EDT 2009 <!-- hhmts end -->
+<!-- hhmts start --> Last modified: Sun Jul 26 10:43:57 -0400 2009 <!-- hhmts end -->
 </body>
 </html>

@@ -1,5 +1,6 @@
 -------------------------------------------------------------------------------
 --
+--  Copyright (C) 2009 Stephe Leake
 --  Copyright (C) 1999 FlightSafety International and Ted Dennison
 --
 --  This file is part of the OpenToken package.
@@ -45,6 +46,9 @@ package OpenToken is
 
    --  Exception raised by the parser when no match could be found.
    Parse_Error  : exception;
+
+   --  Exception raised when a programming convention has been violated
+   Programmer_Error : exception;
 
    --  Set this to the text end-of-line indicator for this platform (DOS = CR, Unix = LF)
    EOL_Character : constant Character := Ada.Characters.Latin_1.CR;

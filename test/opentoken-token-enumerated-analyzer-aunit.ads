@@ -26,20 +26,31 @@ generic
 
 package OpenToken.Token.Enumerated.Analyzer.AUnit is
 
-   type Token_Array is array (Integer range <>) of Token_ID;
+   type Token_Array is array (Natural range <>) of Token_ID;
 
    Null_Tokens : constant Token_Array := (1 .. 0 => Token_ID'First);
 
+   type Lexeme_Array is array (Natural range <>) of access String;
+
+   Null_Lexemes : constant Lexeme_Array := (1 .. 0 => null);
+
+   type Check_Token_Proc is access procedure
+     (Label           : in     String;
+      Token           : in     Handle;
+      Expected_Lexeme : access String);
+
    procedure Check
-     (Label       : in String;
-      Analyzer    : in Instance;
-      Last_Token  : in Token_ID;
-      Tail_Null   : in Boolean     := False;
-      Tail_Tokens : in Token_Array := Null_Tokens;
-      Queue_Null  : in Boolean     := False;
-      Queue_Token : in Token_ID    := Token_ID'First;
-      Head_Null   : in Boolean     := False;
-      Head_Token  : in Token_ID    := Token_ID'First);
+     (Label        : in String;
+      Analyzer     : in Instance;
+      Last_Token   : in Token_ID;
+      Tail_Null    : in Boolean          := False;
+      Tail_Tokens  : in Token_Array      := Null_Tokens;
+      Tail_Lexemes : in Lexeme_Array     := Null_Lexemes;
+      Queue_Null   : in Boolean          := False;
+      Queue_Token  : in Token_ID         := Token_ID'First;
+      Head_Null    : in Boolean          := False;
+      Head_Token   : in Token_ID         := Token_ID'First;
+      Check_Token  : in Check_Token_Proc := null);
    --  Raise AUnit.Assert_Error if Analyzer lookahead queue does not
    --  match the given state.
 

@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2002 Stephen Leake
+-- Copyright (C) 2002, 2009 Stephen Leake
 --
 -- This file is part of the OpenToken package.
 --
@@ -24,23 +24,30 @@
 
 package body OpenToken.Token.Enumerated.Real_Literal is
 
-   function Get (ID     : in Token_ID;
-                 Value  : in Real_Type := 0.0) return Instance'Class is
-   begin
+   function Get
+     (ID     : in Token_ID;
+      Value  : in Real_Type := 0.0)
+     return Instance'Class
+   is begin
       return Instance'Class (Instance'(ID => ID, Value => Value));
    end Get;
 
-   overriding procedure
-     Create (Lexeme     : in     String;
-             ID         : in     Token_ID;
-             Recognizer : in     Recognizer_Handle;
-             New_Token  :    out Instance)
+   overriding procedure Create
+     (Lexeme     : in     String;
+      Recognizer : in     Recognizer_Handle;
+      New_Token  : in out Instance)
    is
       pragma Unreferenced (Recognizer);
    begin
-      New_Token.ID := ID;
       New_Token.Value := Real_Type'Value (Lexeme);
    end Create;
+
+   overriding procedure Copy
+     (To   : in out Instance;
+      From : in     Token.Class)
+   is begin
+      To.Value := Instance (From).Value;
+   end Copy;
 
    function Value (Subject : in Instance) return Real_Type is
    begin

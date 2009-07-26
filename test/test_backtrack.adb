@@ -157,14 +157,14 @@ package body Test_Backtrack is
 
       OpenToken.Text_Feeder.String.Set (Feeder, Text);
       Tokenizer.Reset (Analyzer);
+      --  The very first call to find_next can't be look_ahead =>
+      --  true, since no real parser would do that.
+      Tokenizer.Find_Next (Analyzer, Look_Ahead => False);
 
       --  The higher level parser does this:
       declare
          Mark : OpenToken.Token.Queue_Mark'Class renames Tokenizer.Mark_Push_Back (Analyzer);
       begin
-         --  The very first call to find_next can't be look_ahead =>
-         --  true, since no real parser would do that.
-         Tokenizer.Find_Next (Analyzer, Look_Ahead => False);
          Master_Token.Parse (T0_Token, Analyzer, Actively => False);
 
          Analyzer_AUnit.Check
@@ -260,12 +260,12 @@ package body Test_Backtrack is
 
       OpenToken.Text_Feeder.String.Set (Feeder, Text);
       Tokenizer.Reset (Analyzer);
+      Tokenizer.Find_Next (Analyzer, Look_Ahead => False);
 
       --  The higher level parser does this:
       declare
          Mark : OpenToken.Token.Queue_Mark'Class renames Tokenizer.Mark_Push_Back (Analyzer);
       begin
-         Tokenizer.Find_Next (Analyzer, Look_Ahead => False);
          Master_Token.Parse (T0_Token, Analyzer, Actively => False);
 
          declare
@@ -332,12 +332,12 @@ package body Test_Backtrack is
 
       OpenToken.Text_Feeder.String.Set (Feeder, Text);
       Tokenizer.Reset (Analyzer);
+      Tokenizer.Find_Next (Analyzer, Look_Ahead => False);
 
       --  The higher level parser does this:
       declare
          Mark : OpenToken.Token.Queue_Mark'Class renames Tokenizer.Mark_Push_Back (Analyzer);
       begin
-         Tokenizer.Find_Next (Analyzer, Look_Ahead => False);
          Master_Token.Parse (T0_Token, Analyzer, Actively => False);
          declare
             Mark : OpenToken.Token.Queue_Mark'Class renames Tokenizer.Mark_Push_Back (Analyzer);
@@ -413,12 +413,12 @@ package body Test_Backtrack is
 
       OpenToken.Text_Feeder.String.Set (Feeder, Text);
       Tokenizer.Reset (Analyzer);
+      Tokenizer.Find_Next (Analyzer, Look_Ahead => False);
 
       --  The higher level parser does this:
       declare
          Mark : OpenToken.Token.Queue_Mark'Class renames Tokenizer.Mark_Push_Back (Analyzer);
       begin
-         Tokenizer.Find_Next (Analyzer, Look_Ahead => False);
          Master_Token.Parse (T0_Token, Analyzer, Actively => False);
 
          --  Now we do this:

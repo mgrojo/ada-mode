@@ -27,21 +27,21 @@
 
 package body OpenToken.Token.Enumerated.Integer_Literal is
 
-   function Get (ID     : in Token_ID;
-                 Value  : in Integer := 0) return Instance'Class is
-   begin
+   function Get
+     (ID     : in Token_ID;
+      Value  : in Integer := 0)
+     return Instance'Class
+   is begin
       return Instance'Class (Instance'(ID => ID, Value => Value));
    end Get;
 
    overriding procedure Create
      (Lexeme     : in     String;
-      ID         : in     Token_ID;
       Recognizer : in     Recognizer_Handle;
-      New_Token  :    out Instance)
+      New_Token  : in out Instance)
    is
       pragma Unreferenced (Recognizer);
    begin
-      New_Token.ID := ID;
       New_Token.Value := Integer'Value (Lexeme);
 
    exception
@@ -49,6 +49,13 @@ package body OpenToken.Token.Enumerated.Integer_Literal is
       raise Syntax_Error with
         Lexeme & " not in range: " & Integer'Image (Integer'First) & " .. " & Integer'Image (Integer'Last);
    end Create;
+
+   overriding procedure Copy
+     (To   : in out Instance;
+      From : in     Token.Class)
+   is begin
+      To.Value := Instance (From).Value;
+   end Copy;
 
    overriding function Name (Token : in Instance) return String
    is begin

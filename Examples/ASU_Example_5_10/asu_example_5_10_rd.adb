@@ -1,5 +1,6 @@
 -------------------------------------------------------------------------------
 --
+-- Copyright (C) 2009 Stephe Leake
 -- Copyright (C) 2000 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -108,9 +109,6 @@ package body ASU_Example_5_10_RD is
       Match.Value := Integer_Token_Handle (OpenToken.Token.Linked_List.Token_Handle (Iterator)).Value;
    end Build;
 
-   ----------------------------------------------------------------------------
-   --  Extensions for the (implicitly) abstract "&" functions.
-   ----------------------------------------------------------------------------
    overriding function "&"
      (Left  : access OpenToken.Token.Class;
       Right : access OpenToken.Token.Class)
@@ -118,6 +116,7 @@ package body ASU_Example_5_10_RD is
    is begin
       return (Integer_Sequence_Token."&"(Left, Right) with null record);
    end "&";
+
    overriding function "&"
      (Left  : access OpenToken.Token.Class;
       Right : in     Expression_Sequence)
@@ -125,6 +124,7 @@ package body ASU_Example_5_10_RD is
    is begin
       return (Integer_Sequence_Token."&"(Left, Integer_Sequence_Token.Instance (Right)) with null record);
    end "&";
+
    overriding function "&"
      (Left  : in     Expression_Sequence;
       Right : access OpenToken.Token.Class)
@@ -132,14 +132,16 @@ package body ASU_Example_5_10_RD is
    is begin
       return (Integer_Sequence_Token."&"(Integer_Sequence_Token.Instance (Left), Right) with null record);
    end "&";
+
    overriding function "&"
      (Left  : in Expression_Sequence;
       Right : in Expression_Sequence)
      return Expression_Sequence
    is begin
-      return (Integer_Sequence_Token."&"
-              (Integer_Sequence_Token.Instance (Left), Integer_Sequence_Token.Instance (Right))
-              with null record);
+      return
+        (Integer_Sequence_Token."&"
+           (Integer_Sequence_Token.Instance (Left), Integer_Sequence_Token.Instance (Right))
+           with null record);
    end "&";
 
    --------------------------------------------------------------------------

@@ -47,8 +47,6 @@ generic
 
 package OpenToken.Token.Enumerated is
 
-   subtype Token_ID_Type is Token_ID; --  Make it visible for children
-
    type Instance is new OpenToken.Token.Instance with private;
 
    subtype Class is Instance'Class;
@@ -65,22 +63,44 @@ package OpenToken.Token.Enumerated is
    ----------------------------------------------------------------------------
    function Get (ID : in Token_ID := Token_ID'First) return Instance'Class;
 
-   ----------------------------------------------------------------------------
-   --  This procedure will be called when a token is recognized.
+   ----------------------------------------------------------------------
+   --  Create will be called from Find_Next when a token is
+   --  recognized, whether Look_Ahead is True or not.
    --
-   --  The Token's ID will be set to the given value. The Lexeme and
-   --  Recognizer fields aren't used for this instance of the type.
-   --  But they will be filled in by the analyzer. The recognizer is
-   --  useful in creating tighly coupled pairs of tokens and
-   --  recognizers. This allows communication of user-defined
-   --  information global to the analyzer instance while maintaining
-   --  overall re-entrancy.
-   --------------------------------------------------------------------------
+   --  Lexeme is the matched input text. Recognizer is the recognizer
+   --  that matched it.
+   --
+   --  New_Token is the token that the analyzer associates with
+   --  Recognizer (specified when the syntax is created).
+   --
+   --  Create is called even when Look_Ahead is true (when the parse
+   --  is inactive), so that Lexeme and Recognizer can be preserved in
+   --  the lookahead queue if needed; New_Token is pushed on the
+   --  lookahead queue if another token is read with Look_Ahead True.
+   --
+   --  The recognizer is useful in creating tightly coupled pairs of
+   --  tokens and recognizers. This allows communication of
+   --  user-defined information global to the analyzer instance while
+   --  maintaining overall re-entrancy.
+   ----------------------------------------------------------------------
    procedure Create
      (Lexeme     : in     String;
-      ID         : in     Token_ID;
       Recognizer : in     Recognizer_Handle;
-      New_Token  :    out Instance);
+      New_Token  : in out Instance)
+   is null;
+
+   --------------------------------------------------------------------
+   --  Copy From to To. Called by Parse when a token matches, whether
+   --  Actively is true or not. This is just a dispatching version of
+   --  ':='; see the comments in Parse for more rationale.
+   --
+   --  Parse has verified that From'Tag = To'Tag, and that From.ID =
+   --  To.ID.
+   --------------------------------------------------------------------
+   procedure Copy
+     (To   : in out Instance;
+      From : in     OpenToken.Token.Class)
+   is null;
 
    --------------------------------------------------------------------------
    --  This function returns the ID of the token. This is made
@@ -97,6 +117,10 @@ package OpenToken.Token.Enumerated is
      (Token : in out Instance'Class;
       ID    : in     Token_ID);
 
+   ------------------------------------------------------------------
+   --  If Match matches the current token, and Actively is True,
+   --  copies the results of the earlier call to Create to Match.
+   ------------------------------------------------------------------
    overriding procedure Parse
      (Match    : access Instance;
       Analyzer : in out Source_Class;
@@ -106,14 +130,20 @@ package OpenToken.Token.Enumerated is
 
    type Source is abstract new OpenToken.Token.Source with null record;
 
-   ----------------------------------------------------------------------------
+   --------------------------------------------------------------------------
    --  Returns the actual text of the last token that was matched.
-   ----------------------------------------------------------------------------
+   --
+   --  Raises Programmer_Error when the last token was read from the
+   --  lookahead queue.
+   --------------------------------------------------------------------------
    function Lexeme (Analyzer : in Source) return String is abstract;
 
-   ----------------------------------------------------------------------------
+   --------------------------------------------------------------------------
    --  Returns the recognizer handle of the last token that was matched.
-   ----------------------------------------------------------------------------
+   --
+   --  Raises Programmer_Error when the last token was read from the
+   --  lookahead queue.
+   --------------------------------------------------------------------------
    function Last_Recognizer (Analyzer : in Source) return Recognizer_Handle is abstract;
 
 private

@@ -46,7 +46,7 @@ begin
    Tokenizer.Find_Next (Analyzer);
 
    OpenToken.Token.Parse
-     (Match    => S_Prime.all,
+     (Match    => S_Prime,
       Analyzer => Analyzer);
 
    Put_Line ("passed");

@@ -47,9 +47,12 @@ package OpenToken.Token.Enumerated.Integer_Literal is
 
    overriding procedure Create
      (Lexeme     : in     String;
-      ID         : in     Token_ID;
       Recognizer : in     Recognizer_Handle;
-      New_Token  :    out Instance);
+      New_Token  : in out Instance);
+
+   overriding procedure Copy
+     (To   : in out Instance;
+      From : in     Token.Class);
 
    --------------------------------------------------------------------
    --  If Trace_Parse, include the current value in the name, to help

@@ -59,7 +59,7 @@ package body OpenToken.Token.Sequence is
             Next_Token (I);
          end loop;
 
-         Build (Match.all, Match.Members);
+         Build (Class (Match.all), Match.Members);
       else
          for J in 1 .. Match.Lookahead loop
             Parse (Token_Handle (I), Analyzer, Actively => False);

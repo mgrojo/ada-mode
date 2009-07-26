@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
---  Copyright (C) 2003, 2008 Stephen Leake
+--  Copyright (C) 2003, 2008, 2009 Stephen Leake
 --
 --  This file is part of the OpenToken package.
 --
@@ -37,15 +37,20 @@ package body OpenToken.Token.Enumerated.String_Literal is
 
    overriding procedure Create
      (Lexeme     : in     String;
-      ID         : in     Token_ID;
       Recognizer : in     Recognizer_Handle;
-      New_Token  :    out Instance)
+      New_Token  : in out Instance)
    is
       pragma Unreferenced (Recognizer);
    begin
-      New_Token.ID    := ID;
       New_Token.Value := Buffers.To_Bounded_String (Lexeme);
    end Create;
+
+   overriding procedure Copy
+     (To   : in out Instance;
+      From : in     Token.Class)
+   is begin
+      To.Value := Instance (From).Value;
+   end Copy;
 
    function Value (Subject : in Instance) return String
    is

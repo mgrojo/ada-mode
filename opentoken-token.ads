@@ -47,8 +47,9 @@ package OpenToken.Token is
 
    type Source_Handle is access all Source_Class;
 
-   ----------------------------------------------------------------------
-   --  Verify that token in Analyzer matches the token Match.
+   --------------------------------------------------------------------
+   --  Verify that token in Analyzer matches the token Match, possibly
+   --  take some action.
    --
    --  If not Actively, this should determine as quickly as possible
    --  whether the parse would fail or succeed, and raise Parse_Error
@@ -80,6 +81,12 @@ package OpenToken.Token is
    --  be returned, but the current one will not be discarded; they
    --  are saved in the lookahead queue. Subsequent Look_Ahead calls
    --  will return later and later tokens.
+   --
+   --  The very first call to Find_Next, immediately after Analyzer is
+   --  created, cannot have Look_Ahead True. No real parser needs
+   --  Look_Ahead True on the first call in a real parse, and this lets
+   --  the Analyzer assume there is one actively recognized token to
+   --  start the lookahead queue with.
    --------------------------------------------------------------------------
    procedure Find_Next
      (Analyzer   : in out Source;
