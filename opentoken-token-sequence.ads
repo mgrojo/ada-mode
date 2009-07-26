@@ -106,11 +106,12 @@ package OpenToken.Token.Sequence is
 
    ----------------------------------------------------------------------------
    --  Return a newly allocated instance which is a copy of the given
-   --  instance, with an optional new name.
+   --  instance, with an optional new name and lookahead.
    ----------------------------------------------------------------------------
    function New_Instance
      (Old_Instance : in Instance;
-      Name         : in String   := "")
+      Name         : in String   := "";
+      Lookahead    : in Integer  := Default_Lookahead)
      return Handle;
 
    --------------------------------------------------------------------

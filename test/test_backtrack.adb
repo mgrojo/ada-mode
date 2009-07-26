@@ -21,6 +21,7 @@ with AUnit.Assertions;
 with AUnit.Check;
 with AUnit.Test_Cases.Registration;
 with Ada.Exceptions;
+with Ada.Text_IO;
 with OpenToken.Recognizer.Character_Set;
 with OpenToken.Recognizer.End_Of_File;
 with OpenToken.Recognizer.Separator;
@@ -129,12 +130,12 @@ package body Test_Backtrack is
    T5_Token : constant Master_Token.Handle := Syntax (T5).Token_Handle;
 
    --  Nonterminal tokens
-   G : constant Sequence.Handle  := Sequence.New_Instance (T1_Token & T2_Token & T5_Token, "G");
-   F : constant Sequence.Handle  := Sequence.New_Instance (T1_Token & T2_Token & T4_Token, "F");
-   E : constant Sequence.Handle  := Sequence.New_Instance (T1_Token & T2_Token & T3_Token, "E");
+   G : constant Sequence.Handle  := Sequence.New_Instance (T1_Token & T2_Token & T5_Token, "G", 3);
+   F : constant Sequence.Handle  := Sequence.New_Instance (T1_Token & T2_Token & T4_Token, "F", 3);
+   E : constant Sequence.Handle  := Sequence.New_Instance (T1_Token & T2_Token & T3_Token, "E", 3);
    C : constant Selection.Handle := Selection.New_Instance (E or G, "C");
    B : constant Selection.Handle := Selection.New_Instance (E or F, "B");
-   A : constant Sequence.Handle  := Sequence.New_Instance (B & C, "A");
+   A : constant Sequence.Handle  := Sequence.New_Instance (B & C, "A", 3);
 
    ----------
    --  Test procedures
@@ -241,7 +242,7 @@ package body Test_Backtrack is
 
    procedure Sequence_Lookahead (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
-      pragma Unreferenced (T);
+      Test : Test_Case renames Test_Case (T);
       use AUnit.Assertions;
       use AUnit.Check;
 
@@ -253,45 +254,54 @@ package body Test_Backtrack is
 
       --  This parse does lookahead, but not backtracking.
 
+      if Test.Debug then
+         Ada.Text_IO.Put_Line ("Sequence_Lookahead " & Text);
+      end if;
+
       OpenToken.Text_Feeder.String.Set (Feeder, Text);
       Tokenizer.Reset (Analyzer);
 
       --  The higher level parser does this:
-      Tokenizer.Find_Next (Analyzer, Look_Ahead => True);
-      Master_Token.Parse (T0_Token, Analyzer, Actively => False);
-
       declare
          Mark : OpenToken.Token.Queue_Mark'Class renames Tokenizer.Mark_Push_Back (Analyzer);
       begin
-         --  Now we do this:
+         Tokenizer.Find_Next (Analyzer, Look_Ahead => False);
+         Master_Token.Parse (T0_Token, Analyzer, Actively => False);
+
+         declare
+            Mark : OpenToken.Token.Queue_Mark'Class renames Tokenizer.Mark_Push_Back (Analyzer);
          begin
-            Sequence.Parse (F, Analyzer, Actively => False);
-            Assert (False, "F did not raise exception");
-         exception
-         when E : OpenToken.Parse_Error =>
-            Check ("F.exception message", Ada.Exceptions.Exception_Message (E), "");
+            --  Now we do this:
+            begin
+               Sequence.Parse (F, Analyzer, Actively => False);
+               Assert (False, "F did not raise exception");
+            exception
+            when E : OpenToken.Parse_Error =>
+               Check ("F.exception message", Ada.Exceptions.Exception_Message (E), "");
+            end;
+
+            Analyzer_AUnit.Check
+              ("F", Analyzer,
+               Last_Token  => T3,
+               Tail_Tokens => (T0, T1, T2, T3),
+               Queue_Token => T1,
+               Head_Null   => True);
+
+            Tokenizer.Push_Back (Analyzer, Mark);
          end;
+
+         Sequence.Parse (E, Analyzer, Actively => False);
 
          Analyzer_AUnit.Check
            ("F", Analyzer,
             Last_Token  => EOF,
             Tail_Tokens => (T0, T1, T2, T3, EOF),
-            Queue_Token => T0,
+            Queue_Token => T1,
             Head_Null   => True);
 
+         --  And finally the active parse
          Tokenizer.Push_Back (Analyzer, Mark);
       end;
-
-      Sequence.Parse (E, Analyzer, Actively => False);
-
-      Analyzer_AUnit.Check
-        ("F", Analyzer,
-         Last_Token  => EOF,
-         Tail_Tokens => (T0, T1, T2, T3, EOF),
-         Queue_Token => T0,
-         Head_Null   => True);
-
-      --  And finally the active parse
       Master_Token.Parse (T0_Token, Analyzer);
       Sequence.Parse (E, Analyzer);
 
@@ -306,7 +316,7 @@ package body Test_Backtrack is
 
    procedure Selection_Backtrack (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
-      pragma Unreferenced (T);
+      Test : Test_Case renames Test_Case (T);
       use AUnit.Assertions;
       use AUnit.Check;
       --  Match T0 C C, on the second and then first selection. Does
@@ -316,54 +326,65 @@ package body Test_Backtrack is
       --  Verify that Selection.Parse returns the analyzer to the
       --  proper state with Actively => False.
 
+      if Test.Debug then
+         Ada.Text_IO.Put_Line ("Selection_Backtrack " & Text);
+      end if;
+
       OpenToken.Text_Feeder.String.Set (Feeder, Text);
       Tokenizer.Reset (Analyzer);
 
       --  The higher level parser does this:
-      Tokenizer.Find_Next (Analyzer, Look_Ahead => True);
-      Master_Token.Parse (T0_Token, Analyzer, Actively => False);
       declare
          Mark : OpenToken.Token.Queue_Mark'Class renames Tokenizer.Mark_Push_Back (Analyzer);
       begin
-         --  Now we do this:
+         Tokenizer.Find_Next (Analyzer, Look_Ahead => False);
+         Master_Token.Parse (T0_Token, Analyzer, Actively => False);
+         declare
+            Mark : OpenToken.Token.Queue_Mark'Class renames Tokenizer.Mark_Push_Back (Analyzer);
          begin
-            --  This requires backtracking to check the second selection
-            Selection.Parse (B, Analyzer, Actively => False);
-            Assert (False, "B did not raise exception");
-         exception
-         when E : OpenToken.Parse_Error =>
-            Check ("B.exception message", Ada.Exceptions.Exception_Message (E), "");
+            --  Now we do this:
+            begin
+               --  This requires backtracking to check the second selection
+               Selection.Parse (B, Analyzer, Actively => False);
+               Assert (False, "B did not raise exception");
+            exception
+            when E : OpenToken.Parse_Error =>
+               Check ("B.exception message", Ada.Exceptions.Exception_Message (E), "");
+            end;
+
+            --  Selection.Parse called Push_Back after the error
+            Analyzer_AUnit.Check
+              ("B", Analyzer,
+               Last_Token  => T1,
+               Tail_Tokens => (T0, T1, T2, T5),
+               Queue_Token => T1,
+               Head_Token  => T2);
+
+            Tokenizer.Push_Back (Analyzer, Mark);
          end;
 
+         Selection.Parse (C, Analyzer, Actively => False);
+
+         --  Selection.Parse did _not_ call Push_Back
          Analyzer_AUnit.Check
-           ("B", Analyzer,
-            Last_Token  => EOF,
+           ("C", Analyzer,
+            Last_Token  => T1,
             Tail_Tokens => (T0, T1, T2, T5, T1),
-            Queue_Token => T0,
+            Queue_Token => T1,
             Head_Null   => True);
 
+         Selection.Parse (C, Analyzer, Actively => False);
+
+         Analyzer_AUnit.Check
+           ("C2", Analyzer,
+            Last_Token  => EOF,
+            Tail_Tokens => (T0, T1, T2, T5, T1, T2, T3, EOF),
+            Queue_Token => T1,
+            Head_Null   => True);
+
+         --  And finally the active parse
          Tokenizer.Push_Back (Analyzer, Mark);
       end;
-
-      Selection.Parse (C, Analyzer, Actively => False);
-
-      Analyzer_AUnit.Check
-        ("C", Analyzer,
-         Last_Token  => T1,
-         Tail_Tokens => (T0, T1, T2, T5, T1),
-         Queue_Token => T0,
-         Head_Null   => True);
-
-      Selection.Parse (C, Analyzer, Actively => False);
-
-      Analyzer_AUnit.Check
-        ("C2", Analyzer,
-         Last_Token  => EOF,
-         Tail_Tokens => (T0, T1, T2, T5, T1, T2, T3, EOF),
-         Queue_Token => T0,
-         Head_Null   => True);
-
-      --  And finally the active parse
       Master_Token.Parse (T0_Token, Analyzer);
       Selection.Parse (C, Analyzer);
       Selection.Parse (C, Analyzer);
@@ -394,19 +415,25 @@ package body Test_Backtrack is
       Tokenizer.Reset (Analyzer);
 
       --  The higher level parser does this:
-      Tokenizer.Find_Next (Analyzer, Look_Ahead => True);
+      declare
+         Mark : OpenToken.Token.Queue_Mark'Class renames Tokenizer.Mark_Push_Back (Analyzer);
+      begin
+         Tokenizer.Find_Next (Analyzer, Look_Ahead => False);
+         Master_Token.Parse (T0_Token, Analyzer, Actively => False);
 
-      --  Now we do this:
-      Sequence.Parse (A, Analyzer, Actively => False);
+         --  Now we do this:
+         Sequence.Parse (A, Analyzer, Actively => False);
 
-      Analyzer_AUnit.Check
-        ("A", Analyzer,
-         Last_Token  => EOF,
-         Tail_Tokens => (T0, T1, T2, T4, T1, T2, T3, EOF),
-         Queue_Token => T0,
-         Head_Null   => True);
+         Analyzer_AUnit.Check
+           ("A", Analyzer,
+            Last_Token  => EOF,
+            Tail_Tokens => (T0, T1, T2, T4, T1, T2, T3, EOF),
+            Queue_Token => T1,
+            Head_Null   => True);
 
-      --  And finally the active parse
+         --  And finally the active parse
+         Tokenizer.Push_Back (Analyzer, Mark);
+      end;
       Master_Token.Parse (T0_Token, Analyzer);
       Sequence.Parse (A, Analyzer);
 

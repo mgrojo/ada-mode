@@ -54,10 +54,15 @@ package body OpenToken.Token.Selection is
             Mark : Queue_Mark'Class renames Mark_Push_Back (Analyzer);
          begin
             Parse (Token_Handle (I), Analyzer, Actively => False);
-            Push_Back (Analyzer, Mark);
+            if Actively then
+               Push_Back (Analyzer, Mark);
+            end if;
             exit Find_Match;
+
          exception
          when Parse_Error =>
+            --  We don't need to call Push_Back here if Next_Token (I)
+            --  is null, but we can't tell, and it doesn't hurt.
             Push_Back (Analyzer, Mark);
          end;
 
@@ -72,7 +77,18 @@ package body OpenToken.Token.Selection is
                     Token.Linked_List.Names (Expected) & ".";
                end;
             else
-               raise Parse_Error;
+               --  The spec says "raise Parse_Error with no message".
+               --  If we leave out 'with ""' here, GNAT attaches a
+               --  message giving the line number. That's useful in
+               --  general, but fails our unit test. So we override it
+               --  in this case.
+               --
+               --  The point of "raise with no message" is to not
+               --  spend time computing a nice user message, because
+               --  it will be thrown away. I'm not clear whether 'with
+               --  ""' or the GNAT default is faster, but it probably
+               --  doesn't matter much.
+               raise Parse_Error with "";
             end if;
          end if;
       end loop Find_Match;

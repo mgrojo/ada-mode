@@ -135,11 +135,13 @@ package body OpenToken.Token.Sequence is
 
    function New_Instance
      (Old_Instance : in Instance;
-      Name         : in String   := "")
+      Name         : in String   := "";
+      Lookahead    : in Integer  := Default_Lookahead)
      return Handle
    is
       New_Token : constant Handle := new Class'(Class (Old_Instance));
    begin
+      New_Token.Lookahead := Lookahead;
       if Name /= "" then
          New_Token.Name := new String'(Name);
       end if;
