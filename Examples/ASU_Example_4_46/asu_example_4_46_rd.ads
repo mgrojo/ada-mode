@@ -32,7 +32,7 @@ with OpenToken.Recognizer.Character_Set;
 with OpenToken.Token.Selection;
 
 -------------------------------------------------------------------------------
---  This package contains the library-level object for the recursive-decent
+--  This package contains the library-level objects for the recursive-decent
 --  version of Example 4.46 from the Dragon Book.
 -------------------------------------------------------------------------------
 package ASU_Example_4_46_RD is
@@ -75,6 +75,3 @@ package ASU_Example_4_46_RD is
    Analyzer : Tokenizer.Instance := Tokenizer.Initialize (Syntax, Feeder'Access);
 
 end ASU_Example_4_46_RD;
-
-
-

@@ -10,6 +10,10 @@ project Common is
 
    GNAT_Version : GNAT_Version_Type := External ("GNAT_VERSION");
 
+   type Build_Type is ("Developer", "User");
+
+   Build : Build_Type := External ("BUILD", "User");
+
    package Compiler is
       -- Switches for gcc
 
@@ -36,7 +40,7 @@ project Common is
          "-O2",
          "-gnat05",
          "-gnatfnoqQ",
-         "-gnatwaBeL",
+         "-gnatwaeL",
          "-fstack-check");
 
       --  The project file syntax does not let us set a variable in a
@@ -45,10 +49,18 @@ project Common is
       --  accessible in child project files via 'Default_Switches.
       case GNAT_Version is
          when "GPL-2009" | "6.2.1" =>
-            --  -gnatwa turns on -gnatwb and -gnatwm, but we want them off.
+            --  -gnatwa turns on -gnatwb but we want it off.
             --  -gnatyO enforces use of 'overriding'
             --  Not valid options for earlier compilers.
-            for Default_Switches ("Ada") use ("-gnatwB", "-gnatwM", "-gnatyO");
+
+            case Build is
+               when "Developer" =>
+                  -- -gnatyO requires patching the compiler runtime source
+                  for Default_Switches ("Ada") use ("-gnatyO");
+
+               when "User" =>
+
+            end case;
 
          when "4.3.2" =>
 

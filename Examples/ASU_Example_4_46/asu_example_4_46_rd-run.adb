@@ -24,12 +24,13 @@
 -------------------------------------------------------------------------------
 
 
+-------------------------------------------------------------------------------
+--  This example is an implementation of Example 4.46 from "Compilers
+--  Principles, Techniques, and Tools" by Aho, Sethi, and Ullman (aka: "The
 --  Dragon Book"). The example was meant to demonstrate basic LALR(1) parsing.
 --  Here we show to to perform LL(n) parsing with it.
---  Principles, Techniques, and Tools" by Aho, Sethi, and Ullman (aka: "The
---  This example is an implementation of Example 4.46 from "Compilers
 -------------------------------------------------------------------------------
--------------------------------------------------------------------------------
+
 with Ada.Exceptions;
 with Ada.Text_IO;
 with OpenToken.Token.Selection;
@@ -54,25 +55,25 @@ begin
    --
 
    S_Prime := S;
-   S.all   := OpenToken.Token.Selection.Class (OpenToken.Token.Sequence.New_Instance (L & Equals & R & EOF) or
-              OpenToken.Token.Sequence.New_Instance (R & EOF));
-   --  Note the following line should probably work, but won't w/ gnat 3.12p or 3.13p. Try it on your
-   --  system and see if it compiles:
+   S.all   := OpenToken.Token.Selection.Class
+     (OpenToken.Token.Sequence.New_Instance (L & Equals & R & EOF) or
+        OpenToken.Token.Sequence.New_Instance (R & EOF));
+
+   --  Note the following would produce an accessiblity error;
+   --  'new foo' is an anonymous access type declared in a procedure,
+   --  so it can't be stored in a global access type.
    --  S.all   := new OpenToken.Token.Sequence.Instance'(L & Equals & R & EOF) or
    --            new OpenToken.Token.Sequence.Instance'(R & EOF);
-   --  If it works, you can transform L's assignment this way as well.
 
    L.all   := OpenToken.Token.Selection.Class (OpenToken.Token.Sequence.New_Instance (Asterix & R) or ID);
    R.all   := L.all;
-
 
    Ada.Text_IO.Put ("Parsing file " & Test_File_Name & "...");
    Ada.Text_IO.Flush;
 
    Ada.Text_IO.Open (File => Input_File,
                      Name => Test_File_Name,
-                     Mode => Ada.Text_IO.In_File
-                     );
+                     Mode => Ada.Text_IO.In_File);
 
    --  Load up the first token
    Tokenizer.Find_Next (Analyzer);
