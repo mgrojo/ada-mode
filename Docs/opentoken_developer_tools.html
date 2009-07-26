@@ -7,6 +7,44 @@
 </head>
 <body>
 
+<h1>OpenToken Developer tools</h1>
+Running the OpenToken tests requires AUnit. Compiling with the
+'-gnatyO' switch requires patching the compiler run-time sources.
+
+<h2>AUnit</h2>
+
+<p>The version of AUnit in Debian 5.0 is 1.03. The version distributed
+by AdaCore with GNAT 6.2.1 and GNAT GPL-2009 is 3.1.1. They have
+different user interfaces; the later version is compatible with the
+Ravenscar profile.
+
+<p>The tests in OpenToken use AUnit 1.03. So on Debian, just install
+the AUnit package, and everything works.
+
+<p>On Windows, it's a little more complicated, because the Makefile in
+AUnit 1.03 doesn't install the library. So we have to do that part by
+hand.
+
+<ol>
+  <li>Download <tt>aunit-1.03-src.zip</tt>, either from <a
+  href="aunit-1.03-src.zip">here</a>, or from the <a
+  href="https://libre.adacore.com/libre/download/">GNAT Libre</a>
+  website; it's grouped under GPL-2005.
+  <li>Assuming your GNAT compiler is installed in <tt>c:/GNAT</tt>,
+  unzip the source to <tt>c:/GNAT/aunit-1.03-src</tt>
+  <li>Copy <tt>c:/GNAT/aunit-1.03-src/aunit.gpr</tt> to
+  <tt>c:/GNAT/lib/gnat</tt>
+  <li>Edit <tt>c:/GNAT/lib/gnat/aunit.gpr</tt>; change the Source_Dirs
+  line to:
+<pre>
+   for Source_Dirs use
+     ("../../aunit-1.03-src/aunit/framework/",
+      "../../aunit-1.03-src/aunit/text_reporter/");
+</pre>
+   <li>Create an empty directory <tt>c:/GNAT/lib/gnat/aunit</tt> to
+  hold the aunit object files.
+ </ol>
+
 <h2>GNAT Compiler patches</h2>
 
 <p>GNAT 6.2.1, GPL-2008, and GPL-2009 support the "-gnatyO" style
@@ -64,6 +102,6 @@ chmod -w *.ali
 <img src="/images/emacs.png" alt="Created with Emacs" width="100" height="30"></a>
 <a href="http://www.adaic.org/">
 <img src="/images/adapowered2.png" alt="powered by Ada" width="200" height="50"></a>
-<!-- hhmts start --> Last modified: Mon Jul 20 06:12:36 EDT 2009 <!-- hhmts end -->
+<!-- hhmts start --> Last modified: Sat Jul 25 15:21:53 EDT 2009 <!-- hhmts end -->
 </body>
 </html>

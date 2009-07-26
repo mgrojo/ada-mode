@@ -84,7 +84,23 @@ OpenToken is on the newsgroup comp.lang.ada.
   <li>Windows XP 32 bit GNAT GPL-2009
 </ul>
 
-<p>A few compiler provided files must be patched to support the GNAT "-gnatyO" option, which enforces use of the "overriding" keyword. See the <a href="compiler_patch.html">compiler patch instructions</a>.
+<p>The simplest way to use the source distribution is to install it in
+the standard GNAT directories, where the compiler will find it by
+default. Then just put 'with "OpenToken";' in your project file. To
+install it on Windows, using a DOS shell, and assuming GNAT and 'make'
+are in your PATH:
+
+<pre>
+cd opentoken/Build/windows_release
+make -f Makefile.install install
+</pre>
+
+<p>On GNU/Linux, use 'linux_release' instead of 'windows_release'.
+This assumes you have write permission in the GNAT directory tree.
+
+<p>See <a href="opentoken_developer_tools.html">developer
+instructions</a> if you want to run the tests or work on OpenToken.
+
 <p>Ted's <a
 href="http://www.telepath.com/~dennison/Ted/OpenToken/OpenToken.html">original
 OpenToken web page</a> is no longer being maintained. The AdaPower
@@ -369,6 +385,6 @@ agree. Bravo!
 <img src="../images/emacs.png" alt="Created with Emacs" width="100" height="30"></a>
 <a href="http://www.adaic.org/">
 <img src="../images/adapowered2.png" alt="powered by Ada" width="200" height="50"></a>
-<!-- hhmts start --> Last modified: Wed Jul 22 22:14:48 -0400 2009 <!-- hhmts end -->
+<!-- hhmts start --> Last modified: Sun Jul 26 19:50:57 EDT 2009 <!-- hhmts end -->
 </body>
 </html>
