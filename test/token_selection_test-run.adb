@@ -1,5 +1,6 @@
 -------------------------------------------------------------------------------
 --
+-- Copyright (C) 2009 Stephe Leake
 -- Copyright (C) 2000 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -24,14 +25,15 @@
 --
 -------------------------------------------------------------------------------
 
-with Ada.Exceptions;
-with Ada.Text_IO;
-with OpenToken.Token.Selection;
-with OpenToken.Text_Feeder.String;
-
 -------------------------------------------------------------------------------
 --  Test driver for the token selection handling code.
 -------------------------------------------------------------------------------
+
+with Ada.Command_Line;
+with Ada.Exceptions;
+with Ada.Text_IO;
+with OpenToken.Text_Feeder.String;
+with OpenToken.Token.Selection;
 procedure Token_Selection_Test.Run is
 begin
 
@@ -73,10 +75,7 @@ begin
 
       for String_Token in 1 .. 8 loop
          --  Perform the parse
-         OpenToken.Token.Selection.Parse
-           (Match    => Selection,
-            Analyzer => Analyzer
-            );
+         OpenToken.Token.Selection.Parse (Selection, Analyzer);
 
       end loop;
 
@@ -84,15 +83,17 @@ begin
          Ada.Text_IO.Put_Line ("passed");
       else
          Ada.Text_IO.Put_Line ("failed.");
-         Ada.Text_IO.Put_Line ("There was an unexpected " &
-                               Token_IDs'Image (Tokenizer.ID (Analyzer)) &
-                               " left on the input stream.");
+         Ada.Text_IO.Put_Line
+           ("There was an unexpected " &
+              Token_IDs'Image (Tokenizer.ID (Analyzer)) &
+              " left on the input stream.");
       end if;
 
    exception
-      when Error : others =>
-         Ada.Text_IO.Put_Line ("failed due to parse exception:");
-         Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (Error));
+   when Error : others =>
+      Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
+      Ada.Text_IO.Put_Line ("failed due to parse exception:");
+      Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (Error));
    end Test_Case_1;
 
    ----------------------------------------------------------------------------
@@ -124,25 +125,23 @@ begin
       --  Put the parse string into the analyzer's text feeder.
       OpenToken.Text_Feeder.String.Set
         (Feeder => String_Feeder,
-         Value  => Parse_String
-         );
+         Value  => Parse_String);
 
       --  Load up the first token
       Tokenizer.Find_Next (Analyzer);
 
       --  Parse token selection
-      OpenToken.Token.Selection.Parse
-        (Match    => Selection,
-         Analyzer => Analyzer
-         );
+      OpenToken.Token.Selection.Parse (Selection, Analyzer);
 
       Ada.Text_IO.Put_Line ("failed.");
+      Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
 
    exception
    when OpenToken.Parse_Error =>
       Ada.Text_IO.Put_Line ("passed.");
 
    when Error : others =>
+      Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
       Ada.Text_IO.Put_Line ("failed due to parse exception:");
       Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (Error));
    end Test_Case_2;

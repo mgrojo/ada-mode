@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2000 Ted Dennison
+-- Copyright (C) 2000, 2009 Ted Dennison
 --
 -- This file is part of the OpenToken package.
 --
@@ -23,15 +23,16 @@
 --  executable file might be covered by the GNU Public License.
 --
 -------------------------------------------------------------------------------
+
+
+with Ada.Command_Line;
 with Ada.Exceptions;
 with Ada.Text_IO;
-
 with OpenToken.Recognizer.Character_Set;
 with OpenToken.Recognizer.End_Of_File;
 with OpenToken.Recognizer.Keyword;
 with OpenToken.Recognizer.String;
 with OpenToken.Text_Feeder.Text_IO;
-
 procedure Lookahead_Test.Run is
    --  Global text file for reading parse data
    File : Ada.Text_IO.File_Type;
@@ -209,13 +210,15 @@ begin
 
       if Passed then
          Ada.Text_IO.Put_Line ("passed.");
+      else
+         Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
       end if;
-
 
       Ada.Text_IO.Close (File);
 
    exception
    when Error : others =>
+      Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
       Ada.Text_IO.Put_Line ("failed.");
       Ada.Text_IO.Put_Line ("Exception:");
       Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (Error));

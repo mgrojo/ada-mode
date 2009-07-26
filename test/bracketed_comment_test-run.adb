@@ -25,8 +25,9 @@
 --
 -------------------------------------------------------------------------------
 
-with Ada.Text_IO; use Ada.Text_IO;
+with Ada.Command_Line;
 with Ada.Exceptions;
+with Ada.Text_IO; use Ada.Text_IO;
 with OpenToken.Text_Feeder.Text_IO;
 procedure Bracketed_Comment_Test.Run is
 
@@ -118,11 +119,14 @@ begin
 
       if Passed then
          Put_Line ("1 passed.");
+      else
+         Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
       end if;
 
       Close (File);
    exception
    when Error : others =>
+      Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
       Put_Line ("failed.");
       Put_Line ("Exception:");
       Put_Line (Ada.Exceptions.Exception_Information (Error));
@@ -167,12 +171,15 @@ begin
 
       if Passed then
          Put_Line ("passed.");
+      else
+         Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
       end if;
 
 
       Close (File);
    exception
    when Error : others =>
+      Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
       Put_Line ("failed.");
       Put_Line ("Exception:");
       Put_Line (Ada.Exceptions.Exception_Information (Error));

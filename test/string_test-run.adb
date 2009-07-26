@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 1999,2000 Ted Dennison
+-- Copyright (C) 1999,2000,2009 Ted Dennison
 --
 -- This file is part of the OpenToken package.
 --
@@ -25,6 +25,7 @@
 -------------------------------------------------------------------------------
 
 with Ada.Characters.Latin_1;
+with Ada.Command_Line;
 with Ada.Exceptions;
 with Ada.Text_IO;
 with OpenToken.Text_Feeder.Text_IO;
@@ -108,13 +109,15 @@ procedure String_Test.Run is
 
       if Passed then
          Ada.Text_IO.Put_Line ("passed.");
+      else
+         Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
       end if;
-
 
       Ada.Text_IO.Close (File);
 
    exception
    when Error : others =>
+      Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
       Ada.Text_IO.Put_Line ("failed.");
       Ada.Text_IO.Put_Line ("Exception:");
       Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (Error));
@@ -168,24 +171,33 @@ procedure String_Test.Run is
       end if;
 
       if Passed then
-         Tokenizer.Find_Next (Analyzer);
+         begin
+            Tokenizer.Find_Next (Analyzer);
 
-         Passed := False;
-         Ada.Text_IO.Put_Line ("failed.");
-         Ada.Text_IO.Put_Line ("Found " & Example_Token_ID'Image (Tokenizer.ID (Analyzer)));
-         Ada.Text_IO.Put_Line ("  (Value = """ & OpenToken.Recognizer.String.Value
-                                 (OpenToken.Recognizer.String.Instance (Ada_Syntax (String_ID).Recognizer.all)) &
-                                 """)");
-         Ada.Text_IO.Put_Line ("when expecting a Syntax Error");
+            Passed := False;
+            Ada.Text_IO.Put_Line ("failed.");
+            Ada.Text_IO.Put_Line ("Found " & Example_Token_ID'Image (Tokenizer.ID (Analyzer)));
+            Ada.Text_IO.Put_Line ("  (Value = """ & OpenToken.Recognizer.String.Value
+                                    (OpenToken.Recognizer.String.Instance (Ada_Syntax (String_ID).Recognizer.all)) &
+                                    """)");
+            Ada.Text_IO.Put_Line ("when expecting a Syntax Error");
+         exception
+         when OpenToken.Syntax_Error =>
+            Ada.Text_IO.Put_Line ("passed.");
+         end;
+      end if;
+
+      if Passed then
+         Ada.Text_IO.Put_Line ("passed.");
+      else
+         Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
       end if;
 
       Ada.Text_IO.Close (File);
 
    exception
-   when OpenToken.Syntax_Error =>
-      Ada.Text_IO.Put_Line ("passed.");
-      Ada.Text_IO.Close (File);
    when Error : others =>
+      Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
       Ada.Text_IO.Put_Line ("failed.");
       Ada.Text_IO.Put_Line ("Exception:");
       Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (Error));
@@ -289,13 +301,15 @@ procedure String_Test.Run is
 
       if Passed then
          Ada.Text_IO.Put_Line ("passed.");
+      else
+         Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
       end if;
-
 
       Ada.Text_IO.Close (File);
 
    exception
    when Error : others =>
+      Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
       Ada.Text_IO.Put_Line ("failed.");
       Ada.Text_IO.Put_Line ("Exception:");
       Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (Error));
@@ -364,13 +378,15 @@ procedure String_Test.Run is
 
       if Passed then
          Ada.Text_IO.Put_Line ("passed.");
+      else
+         Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
       end if;
-
 
       Ada.Text_IO.Close (File);
 
    exception
    when Error : others =>
+      Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
       Ada.Text_IO.Put_Line ("failed.");
       Ada.Text_IO.Put_Line ("Exception:");
       Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (Error));
