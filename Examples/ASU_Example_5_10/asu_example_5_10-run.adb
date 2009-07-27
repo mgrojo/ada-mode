@@ -32,16 +32,13 @@ with Ada.Text_IO;
 procedure ASU_Example_5_10.Run is
 
    --  Create a user-settable text feeder, and a string buffer to fill it with
-   Line       :         String (1 .. 1024);
-   Line_Length :        Natural;
+   Line        : String (1 .. 1024);
+   Line_Length : Natural;
 
 
    --  The lalr parser instance.
    Test_Parser : LALR_Parser.Instance :=
-     LALR_Parser.Generate (Grammar  => Grammar,
-                           Analyzer => Analyzer
-                           );
-
+     LALR_Parser.Generate (Grammar, Analyzer);
 
 begin
 
@@ -50,6 +47,7 @@ begin
    Ada.Text_IO.New_Line;
    Ada.Text_IO.Put_Line ("""+"", ""*"", and ""( num )"" are understood.");
    Ada.Text_IO.Put_Line ("(Enter a blank line to quit)");
+
    --  Uncomment the following line to get a look at the parse table
 --   LALR_Parser.Print_Table (Test_Parser);
 
