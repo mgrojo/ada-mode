@@ -45,15 +45,16 @@ package OpenToken is
    Syntax_Error : exception;
 
    --  Exception raised by the parser when no match could be found.
-   Parse_Error  : exception;
+   Parse_Error : exception;
 
    --  Exception raised when a programming convention has been violated
    Programmer_Error : exception;
 
-   --  Set this to the text end-of-line indicator for this platform (DOS = CR, Unix = LF)
+   --  We use this regardless of OS, since we need a standard way of
+   --  representing an end of line in a string buffer
    EOL_Character : constant Character := Ada.Characters.Latin_1.CR;
 
-   --  Set this to the end-of-file indicator for this platform/system.
+   --  Similarly, this is independent of OS
    EOF_Character : constant Character := Ada.Characters.Latin_1.EOT;
 
    --  The maximum length of a token. Token.Analizer.Get_More_Text

@@ -36,6 +36,7 @@ tests : string_test-run.run
 tests : string_token_test-run.diff
 tests : test_all_harness.diff
 tests : test_html_lexer_safe.diff
+tests : test_html_lexer_safe-syntax_error.diff
 tests : token_analyzer_ctd-run.run
 tests : token_list_test-run.run
 tests : token_selection_test-run.run
@@ -74,6 +75,9 @@ test_ada_lexer.run : test_ada_lexer.exe
 	./test_ada_lexer.exe ../../Examples/Language_Lexer_Examples/test_ada_lexer.adb
 
 test_html_lexer_safe.out : test_html_lexer_safe.exe test_html_scan.html
+	./$^ $(RUN_ARGS) > $@
+
+test_html_lexer_safe-syntax_error.out : test_html_lexer_safe.exe test_html_scan-syntax_error.html
 	./$^ $(RUN_ARGS) > $@
 
 test_html_lexer_unsafe.run : test_html_lexer_unsafe.exe

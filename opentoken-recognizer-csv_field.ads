@@ -15,49 +15,50 @@
 -- package;  see file GPL.txt.  If not, write to  the Free Software Foundation,
 -- 59 Temple Place - Suite 330,  Boston, MA 02111-1307, USA.
 --
--- As a special exception,  if other files  instantiate  generics from this
--- unit, or you link this unit with other files to produce an executable,
--- this unit does not by itself cause the resulting executable to be
--- covered by the GNU General Public License.  This exception does not
--- however invalidate any other reasons why the executable file might be
--- covered by the GNU Public License.
+--  As a special exception, if other files instantiate generics from
+--  this unit, or you link this unit with other files to produce an
+--  executable, this unit does not by itself cause the resulting
+--  executable to be covered by the GNU General Public License. This
+--  exception does not however invalidate any other reasons why the
+--  executable file might be covered by the GNU Public License.
 --
--- This software was originally developed by the following company, and was
--- released as open-source software as a service to the community:
+--  This software was originally developed by the following company,
+--  and was released as open-source software as a service to the
+--  community:
 --
 --           FlightSafety International Simulation Systems Division
 --                    Broken Arrow, OK  USA  918-259-4000
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
--- This package implements a token recognizer for comma-separated-value (CSV)
--- fields of any type. Due to its general nature, it should be declared later
--- in the syntax than more specific CSV field recognizers, so that it will work
--- as a default match. To facilitate that, it does not match any leading or
--- trailing whitespace.
+--  This package implements a token recognizer for comma-separated-value (CSV)
+--  fields of any type. Due to its general nature, it should be declared later
+--  in the syntax than more specific CSV field recognizers, so that it will work
+--  as a default match. To facilitate that, it does not match any leading or
+--  trailing whitespace.
 -------------------------------------------------------------------------------
-package Opentoken.Recognizer.CSV_Field is
+package OpenToken.Recognizer.CSV_Field is
 
-   type Instance is new Opentoken.Recognizer.Instance with private;
+   type Instance is new OpenToken.Recognizer.Instance with private;
 
    ----------------------------------------------------------------------------
-   -- This procedure will be called to perform further analysis on a token
-   -- based on the given next character. It is declared here to override the
-   -- inherited version.
+   --  This procedure will be called to perform further analysis on a token
+   --  based on the given next character. It is declared here to override the
+   --  inherited version.
    ----------------------------------------------------------------------------
    procedure Analyze (The_Token : in out Instance;
                       Next_Char : in     Character;
                       Verdict   : out    Analysis_Verdict);
 
    ----------------------------------------------------------------------------
-   -- This procedure will be called when analysis on a new candidate string
-   -- is started. The Token needs to clear its state (if any).
+   --  This procedure will be called when analysis on a new candidate string
+   --  is started. The Token needs to clear its state (if any).
    ----------------------------------------------------------------------------
    procedure Clear (The_Token : in out Instance);
 
 
    ----------------------------------------------------------------------------
-   -- This procedure will be called to create an Identifier token.
+   --  This procedure will be called to create an Identifier token.
    ----------------------------------------------------------------------------
    function Get return Instance;
 
@@ -65,12 +66,12 @@ private
 
    type State_ID is (First_Char, Text, Done);
 
-   type Instance is new Opentoken.Recognizer.Instance with record
+   type Instance is new OpenToken.Recognizer.Instance with record
 
-      -- The finite state machine state
+      --  The finite state machine state
       State : State_ID := First_Char;
 
    end record;
 
 
-end Opentoken.Recognizer.CSV_Field;
+end OpenToken.Recognizer.CSV_Field;

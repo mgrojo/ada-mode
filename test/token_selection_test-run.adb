@@ -25,14 +25,15 @@
 --
 -------------------------------------------------------------------------------
 
-with Ada.Exceptions;
-with Ada.Text_IO;
-with OpenToken.Token.Selection;
-with OpenToken.Text_Feeder.String;
-
 -------------------------------------------------------------------------------
 --  Test driver for the token selection handling code.
 -------------------------------------------------------------------------------
+
+with Ada.Command_Line;
+with Ada.Exceptions;
+with Ada.Text_IO;
+with OpenToken.Text_Feeder.String;
+with OpenToken.Token.Selection;
 procedure Token_Selection_Test.Run is
 begin
 
@@ -90,6 +91,7 @@ begin
 
    exception
    when Error : others =>
+      Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
       Ada.Text_IO.Put_Line ("failed due to parse exception:");
       Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (Error));
    end Test_Case_1;
@@ -132,12 +134,14 @@ begin
       OpenToken.Token.Selection.Parse (Selection'Access, Analyzer);
 
       Ada.Text_IO.Put_Line ("failed.");
+      Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
 
    exception
    when OpenToken.Parse_Error =>
       Ada.Text_IO.Put_Line ("passed.");
 
    when Error : others =>
+      Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
       Ada.Text_IO.Put_Line ("failed due to parse exception:");
       Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (Error));
    end Test_Case_2;

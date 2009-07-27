@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 1999,2000 Ted Dennison
+-- Copyright (C) 1999,2000,2009 Ted Dennison
 --
 -- This file is part of the OpenToken package.
 --
@@ -23,15 +23,16 @@
 --  executable file might be covered by the GNU Public License.
 --
 -------------------------------------------------------------------------------
+
+--  Test driver for the token list handling code.
+-------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
+with Ada.Command_Line;
 with Ada.Text_IO;
 with OpenToken.Recognizer.Integer;
 with OpenToken.Recognizer.Keyword;
-with OpenToken.Recognizer.String;
 with OpenToken.Recognizer.Real;
-
--------------------------------------------------------------------------------
---  Test driver for the token list handling code.
--------------------------------------------------------------------------------
+with OpenToken.Recognizer.String;
 procedure Production_Test.Run is
 begin
 
@@ -112,6 +113,8 @@ begin
 
       if Passed then
          Ada.Text_IO.Put_Line ("passed");
+      else
+         Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
       end if;
    end Test_Case_1;
 end Production_Test.Run;

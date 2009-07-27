@@ -25,15 +25,16 @@
 --
 -------------------------------------------------------------------------------
 
-
+-------------------------------------------------------------------------------
 --  Test driver for the token sequence handling code.
 -------------------------------------------------------------------------------
--------------------------------------------------------------------------------
+
+with Ada.Command_Line;
 with Ada.Exceptions;
 with Ada.Text_IO;
 with OpenToken.Text_Feeder.String;
-with OpenToken.Token;
 with OpenToken.Token.Sequence;
+with OpenToken.Token;
 procedure Token_Sequence_Test.Run is
 begin
 
@@ -75,6 +76,7 @@ begin
       if Tokenizer.ID (Analyzer) = EOF then
          Ada.Text_IO.Put_Line ("passed");
       else
+         Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
          Ada.Text_IO.Put_Line ("failed.");
          Ada.Text_IO.Put_Line
            ("There was an unexpected " &
@@ -84,6 +86,7 @@ begin
 
    exception
    when Error : others =>
+      Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
       Ada.Text_IO.Put_Line ("failed due to parse exception:");
       Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (Error));
    end Test_Case_1;
@@ -125,12 +128,14 @@ begin
       OpenToken.Token.Sequence.Parse (Sequence'Access, Analyzer);
 
       Ada.Text_IO.Put_Line ("failed.");
+      Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
 
    exception
    when OpenToken.Parse_Error =>
       Ada.Text_IO.Put_Line ("passed.");
 
    when Error : others =>
+      Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
       Ada.Text_IO.Put_Line ("failed due to parse exception:");
       Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (Error));
    end Test_Case_2;

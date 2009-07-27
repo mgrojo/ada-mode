@@ -15,15 +15,16 @@
 -- package;  see file GPL.txt.  If not, write to  the Free Software Foundation,
 -- 59 Temple Place - Suite 330,  Boston, MA 02111-1307, USA.
 --
--- As a special exception,  if other files  instantiate  generics from this
--- unit, or you link this unit with other files to produce an executable,
--- this unit does not by itself cause the resulting executable to be
--- covered by the GNU General Public License.  This exception does not
--- however invalidate any other reasons why the executable file might be
--- covered by the GNU Public License.
+--  As a special exception, if other files instantiate generics from
+--  this unit, or you link this unit with other files to produce an
+--  executable, this unit does not by itself cause the resulting
+--  executable to be covered by the GNU General Public License. This
+--  exception does not however invalidate any other reasons why the
+--  executable file might be covered by the GNU Public License.
 --
--- This software was originally developed by the following company, and was
--- released as open-source software as a service to the community:
+--  This software was originally developed by the following company,
+--  and was released as open-source software as a service to the
+--  community:
 --
 --           FlightSafety International Simulation Systems Division
 --                    Broken Arrow, OK  USA  918-259-4000
@@ -35,29 +36,30 @@ with Ada.Strings.Maps.Constants;
 
 use type Ada.Strings.Maps.Character_Set;
 
--------------------------------------------------------------------------------
--- This package implements a token recognizer for comma-separated-value (CSV)
--- fields of any type. Due to its general nature, it should be declared later
--- in the syntax than more specific CSV field recognizers, so that it will work
--- as a default match. To facilitate that, it does not match any leading or
--- trailing whitespace.
--------------------------------------------------------------------------------
-package body Opentoken.Recognizer.CSV_Field is
+-----------------------------------------------------------------------------
+--  This package implements a token recognizer for
+--  comma-separated-value (CSV) fields of any type. Due to its general
+--  nature, it should be declared later in the syntax than more
+--  specific CSV field recognizers, so that it will work as a default
+--  match. To facilitate that, it does not match any leading or
+--  trailing whitespace.
+-----------------------------------------------------------------------------
+package body OpenToken.Recognizer.CSV_Field is
 
-   -- Characters that can be inside the field, but not at the ends
+   --  Characters that can be inside the field, but not at the ends
    Inner_Characters : constant Ada.Strings.Maps.Character_Set :=
      Ada.Strings.Maps.To_Set (Ada.Characters.Latin_1.HT &
                               Ada.Characters.Latin_1.Space);
 
-   -- Characters that may appear anywhere in the field
+   --  Characters that may appear anywhere in the field
    Match_Characters : constant Ada.Strings.Maps.Character_Set :=
       (Ada.Strings.Maps.Constants.Graphic_Set - Inner_Characters) -
       Ada.Strings.Maps.To_Set (',');
 
-   ----------------------------------------------------------------------------
-   -- This procedure will be called when analysis on a new candidate string
-   -- is started. The Token needs to clear its state (if any).
-   ----------------------------------------------------------------------------
+   --------------------------------------------------------------------------
+   --  This procedure will be called when analysis on a new candidate
+   --  string is started. The Token needs to clear its state (if any).
+   --------------------------------------------------------------------------
    procedure Clear (The_Token : in out Instance) is
    begin
 
@@ -67,8 +69,8 @@ package body Opentoken.Recognizer.CSV_Field is
 
 
    ----------------------------------------------------------------------------
-   -- This procedure will be called to perform further analysis on a token
-   -- based on the given next character.
+   --  This procedure will be called to perform further analysis on a token
+   --  based on the given next character.
    ----------------------------------------------------------------------------
    procedure Analyze (The_Token : in out Instance;
                       Next_Char : in     Character;
@@ -98,7 +100,7 @@ package body Opentoken.Recognizer.CSV_Field is
 
       when Done =>
 
-         -- We shouldn't get called from here.
+         --  We shouldn't get called from here.
          Verdict := Failed;
 
       end case;
@@ -106,7 +108,7 @@ package body Opentoken.Recognizer.CSV_Field is
    end Analyze;
 
    ----------------------------------------------------------------------------
-   -- This procedure will be called to create an identifier token
+   --  This procedure will be called to create an identifier token
    ----------------------------------------------------------------------------
    function Get return Instance is
    begin
@@ -116,4 +118,4 @@ package body Opentoken.Recognizer.CSV_Field is
 
    end Get;
 
-end Opentoken.Recognizer.CSV_Field;
+end OpenToken.Recognizer.CSV_Field;

@@ -1,5 +1,4 @@
 ada_project_path=../
-ada_project_path=/Apps/GNAT-6.2.1/lib/gnat
 ada_project_path=../../../GDS/main/makerules
 gpr_file=opentoken_test.gpr
 

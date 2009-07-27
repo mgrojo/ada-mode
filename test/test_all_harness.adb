@@ -20,6 +20,7 @@ pragma License (GPL);
 
 with AUnit.Test_Results.Text_Reporter;
 with AUnit.Test_Suites; use AUnit.Test_Suites;
+with OpenToken.Recognizer.CSV_Field.Test;
 with Lookahead_Test;
 with Test_Backtrack;
 with Test_LR0_Kernels;
@@ -33,6 +34,7 @@ is
 begin
    --  Test cases; test package alphabetical order, unless otherwise noted.
 
+   Add_Test (Suite, new OpenToken.Recognizer.CSV_Field.Test.Test_Case);
    Add_Test (Suite, new Lookahead_Test.Test_Case (Debug => False));
    Add_Test (Suite, new Test_Backtrack.Test_Case (Debug => False));
    Add_Test (Suite, new Test_LR0_Kernels.Test_Case (Debug => False));
