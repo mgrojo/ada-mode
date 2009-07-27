@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2002, 2003 Stephen Leake
+-- Copyright (C) 2002, 2003, 2009 Stephen Leake
 --
 -- This file is part of the OpenToken package.
 --
@@ -38,22 +38,19 @@ package OpenToken.Token.Enumerated.Real_Literal is
    ----------------------------------------------------------------------------
    --  Get a real literal token with the given ID and value.
    ----------------------------------------------------------------------------
-   function Get (ID     : in Token_ID;
-                 Value  : in Real_Type := 0.0
-                ) return Instance'Class;
+   function Get
+     (ID     : in Token_ID;
+      Value  : in Real_Type := 0.0)
+     return Instance'Class;
 
-   ----------------------------------------------------------------------------
-   --  This procedure will be called when a token is recognized.
-   --
-   --  The Token's ID will be set to the given value. The literal's value will
-   --  be set to the real value of the Lexeme. The Recognizer field isn't
-   --  used for this instance of the type.
-   ----------------------------------------------------------------------------
    overriding procedure Create
      (Lexeme     : in     String;
-      ID         : in     Token_ID;
       Recognizer : in     Recognizer_Handle;
-      New_Token  :    out Instance);
+      New_Token  : in out Instance);
+
+   overriding procedure Copy
+     (To   : in out Instance;
+      From : in     Token.Class);
 
    ----------------------------------------------------------------------------
    --  Return the value of the given token.

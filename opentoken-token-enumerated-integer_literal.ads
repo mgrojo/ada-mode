@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2003 Stephen Leake
+-- Copyright (C) 2003, 2009 Stephen Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -40,22 +40,27 @@ package OpenToken.Token.Enumerated.Integer_Literal is
    ----------------------------------------------------------------------------
    --  Get an integer literal token with the given ID and value.
    ----------------------------------------------------------------------------
-   function Get (ID     : in Token_ID;
-                 Value  : in Integer := 0
-                ) return Instance'Class;
+   function Get
+     (ID     : in Token_ID;
+      Value  : in Integer := 0)
+     return Instance'Class;
 
-   ----------------------------------------------------------------------------
-   --  This procedure will be called when a token is recognized.
-   --
-   --  The Token's ID will be set to the given value. The literal's
-   --  value will be set to the integer value of the Lexeme. The
-   --  Recognizer filed isn't used for this instance of the type.
-   --------------------------------------------------------------------------
    overriding procedure Create
      (Lexeme     : in     String;
-      ID         : in     Token_ID;
       Recognizer : in     Recognizer_Handle;
-      New_Token  :    out Instance);
+      New_Token  : in out Instance);
+
+   overriding procedure Copy
+     (To   : in out Instance;
+      From : in     Token.Class);
+
+   --------------------------------------------------------------------
+   --  If Trace_Parse, include the current value in the name, to help
+   --  decipher parser trace output. We don't include it otherwise
+   --  since it is confusing as part of an "expected ..." error
+   --  message.
+   --------------------------------------------------------------------
+   overriding function Name (Token : in Instance) return String;
 
    ----------------------------------------------------------------------------
    --  Return the value of the given integer token.

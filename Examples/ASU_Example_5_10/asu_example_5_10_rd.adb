@@ -1,5 +1,6 @@
 -------------------------------------------------------------------------------
 --
+-- Copyright (C) 2009 Stephe Leake
 -- Copyright (C) 2000 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -25,15 +26,6 @@
 
 with Ada.Text_IO;
 with Ada.Tags;
-
-with OpenToken.Token.Linked_List;
-
--------------------------------------------------------------------------------
---  This example is a recursive-decent implementation of Example 5.10 from
---  "Compilers Principles, Techniques, and Tools" by Aho, Sethi, and Ullman
---  (aka: "The Dragon Book"). It demonstrates handling of synthesized
---  attributes.
--------------------------------------------------------------------------------
 package body ASU_Example_5_10_RD is
 
    --------------------------------------------------------------------------
@@ -99,18 +91,17 @@ package body ASU_Example_5_10_RD is
    --  This should be a three-token sequence where the token we draw from is
    --  the second one.
    --------------------------------------------------------------------------
-   overriding procedure Build (Match : in out Expression_Sequence)
+   overriding procedure Build
+     (Match : in out Expression_Sequence;
+      Using : in     OpenToken.Token.Linked_List.Instance)
    is
       Iterator : OpenToken.Token.Linked_List.List_Iterator :=
-        OpenToken.Token.Linked_List.Initial_Iterator (Match.Members);
+        OpenToken.Token.Linked_List.Initial_Iterator (Using);
    begin
       OpenToken.Token.Linked_List.Next_Token (Iterator);
       Match.Value := Integer_Token_Handle (OpenToken.Token.Linked_List.Token_Handle (Iterator)).Value;
    end Build;
 
-   ----------------------------------------------------------------------------
-   --  Extensions for the (implicitly) abstract "&" functions.
-   ----------------------------------------------------------------------------
    overriding function "&"
      (Left  : access OpenToken.Token.Class;
       Right : access OpenToken.Token.Class)
@@ -118,6 +109,7 @@ package body ASU_Example_5_10_RD is
    is begin
       return (Integer_Sequence_Token."&"(Left, Right) with null record);
    end "&";
+
    overriding function "&"
      (Left  : access OpenToken.Token.Class;
       Right : in     Expression_Sequence)
@@ -125,6 +117,7 @@ package body ASU_Example_5_10_RD is
    is begin
       return (Integer_Sequence_Token."&"(Left, Integer_Sequence_Token.Instance (Right)) with null record);
    end "&";
+
    overriding function "&"
      (Left  : in     Expression_Sequence;
       Right : access OpenToken.Token.Class)
@@ -132,40 +125,38 @@ package body ASU_Example_5_10_RD is
    is begin
       return (Integer_Sequence_Token."&"(Integer_Sequence_Token.Instance (Left), Right) with null record);
    end "&";
+
    overriding function "&"
      (Left  : in Expression_Sequence;
       Right : in Expression_Sequence)
      return Expression_Sequence
    is begin
-      return (Integer_Sequence_Token."&"
-              (Integer_Sequence_Token.Instance (Left), Integer_Sequence_Token.Instance (Right))
-              with null record);
+      return
+        (Integer_Sequence_Token."&"
+           (Integer_Sequence_Token.Instance (Left), Integer_Sequence_Token.Instance (Right))
+           with null record);
    end "&";
 
-   --------------------------------------------------------------------------
-   --  Creation of tokens for mathematical operations.
-   --------------------------------------------------------------------------
    overriding procedure Initialize (Match : in out Multiply_Operation_List) is
    begin
       Match.Value := 1;
    end Initialize;
+
    overriding procedure Add_List_Element
      (Match   : in out Multiply_Operation_List;
-      Element : in out Integer_Token'Class
-     ) is
-   begin
+      Element : in out Integer_Token'Class)
+   is begin
       Match.Value := Match.Value * Element.Value;
    end Add_List_Element;
+
    overriding function Get
      (Element   : access Integer_Token'Class;
-      Separator : access OpenToken.Token.Class
-     ) return Multiply_Operation_List is
-   begin
-      return (Operation_List.Get
-              (Element   => Element,
-               Separator => Separator
-               )
-              with null record);
+      Separator : access OpenToken.Token.Class;
+      Name      : in     String                := "";
+      Lookahead : in     Integer               := OpenToken.Token.Default_Lookahead)
+     return Multiply_Operation_List
+   is begin
+      return (Operation_List.Get (Element, Separator, Name, Lookahead) with null record);
    end Get;
 
    overriding procedure Initialize (Match : in out Add_Operation_List) is
@@ -182,14 +173,12 @@ package body ASU_Example_5_10_RD is
 
    overriding function Get
      (Element   : access Integer_Token'Class;
-      Separator : access OpenToken.Token.Class
-     ) return Add_Operation_List is
-   begin
-      return (Operation_List.Get
-              (Element   => Element,
-               Separator => Separator
-               )
-              with null record);
+      Separator : access OpenToken.Token.Class;
+      Name      : in     String                := "";
+      Lookahead : in     Integer               := OpenToken.Token.Default_Lookahead)
+     return Add_Operation_List
+   is begin
+      return (Operation_List.Get (Element, Separator, Name, Lookahead) with null record);
    end Get;
 
    --------------------------------------------------------------------------
@@ -197,10 +186,12 @@ package body ASU_Example_5_10_RD is
    --  This should be a two-token sequence where the token we draw from is
    --  the first one.
    --------------------------------------------------------------------------
-   overriding procedure Build (Match : in out L_Sequence)
+   overriding procedure Build
+     (Match : in out L_Sequence;
+      Using : in     OpenToken.Token.Linked_List.Instance)
    is
       Iterator : constant OpenToken.Token.Linked_List.List_Iterator :=
-        OpenToken.Token.Linked_List.Initial_Iterator (Match.Members);
+        OpenToken.Token.Linked_List.Initial_Iterator (Using);
    begin
       Match.Value := Integer_Token_Handle (OpenToken.Token.Linked_List.Token_Handle (Iterator)).Value;
       Ada.Text_IO.Put_Line (Integer'Image (Match.Value));

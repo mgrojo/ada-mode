@@ -1076,7 +1076,7 @@ package body OpenToken.Production.Parser.LALR is
             Ada.Text_IO.Put
               (Ada.Text_IO.Standard_Error,
                State_Index'Image (Current_State.State) &
-                 " : " & Token.Token_ID_Type'Image (Token.ID (Current_State.Seen_Token.all)) &
+                 " : " & Token.Token_ID'Image (Token.ID (Current_State.Seen_Token.all)) &
                  " : " & Parse_Action_Verbs'Image (Action.Verb));
          end if;
 
@@ -1129,7 +1129,7 @@ package body OpenToken.Production.Parser.LALR is
                     (Ada.Text_IO.Standard_Error,
                      " to state" &
                        State_Index'Image (Current_State.State) &
-                       " : " & Token.Token_ID_Type'Image (Token.ID (Action.Production.LHS.all)));
+                       " : " & Token.Token_ID'Image (Token.ID (Action.Production.LHS.all)));
                end if;
 
             when Accept_It =>

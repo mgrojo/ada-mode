@@ -1,0 +1,37 @@
+# install OpenToken in GNAT tree
+
+include Makefile.stub
+
+all: install
+
+I_BIN	= $(prefix)/bin
+I_INC	= $(prefix)/include/opentoken
+I_LIB	= $(prefix)/lib/opentoken
+I_GPR	= $(prefix)/lib/gnat
+
+install: lib lib/libopentoken$(arext)
+	$(RMDIR) $(I_INC)
+	$(RMDIR) $(I_LIB)
+	$(MKDIR) $(I_BIN)
+	$(MKDIR) $(I_INC)
+	$(MKDIR) $(I_LIB)
+	$(MKDIR) $(I_GPR)
+	$(INSTALL_FILES) lib/*.ali $(I_LIB)
+	$(CHMOD) a-w $(I_LIB)/*.ali
+	$(INSTALL_FILES) lib/libopentoken$(arext) $(I_LIB)
+	$(CHMOD) a-w $(I_LIB)/libopentoken$(arext)
+	$(INSTALL_FILES) ../../*.ads ../../*.adb $(I_INC)
+	$(INSTALL_FILES) opentoken.gpr $(I_GPR)
+
+lib/libopentoken$(arext): force
+	$(GNATMAKE) -Popentoken_lib -XBLD=$(BLD) -XOPSYS=$(OPSYS)
+
+lib:
+	mkdir lib
+
+clean:
+	gnat clean -Pasis_bld
+
+force:
+
+# end of file

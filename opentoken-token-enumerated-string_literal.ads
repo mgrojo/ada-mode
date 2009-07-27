@@ -1,5 +1,5 @@
 --
---  Copyright (C) 2003 Stephen Leake
+--  Copyright (C) 2003, 2009 Stephen Leake
 --
 --  This file is part of the OpenToken package.
 --
@@ -38,15 +38,19 @@ package OpenToken.Token.Enumerated.String_Literal is
    ----------------------------------------------------------------------------
    --  Get a string literal token with the given ID and value.
    ----------------------------------------------------------------------------
-   function Get (ID     : in Token_ID;
-                 Value  : in String := ""
-                ) return Instance'Class;
+   function Get
+     (ID     : in Token_ID;
+      Value  : in String := "")
+     return Instance'Class;
 
    overriding procedure Create
      (Lexeme     : in     String;
-      ID         : in     Token_ID;
       Recognizer : in     Recognizer_Handle;
-      New_Token  :    out Instance);
+      New_Token  : in out Instance);
+
+   overriding procedure Copy
+     (To   : in out Instance;
+      From : in     Token.Class);
 
    ----------------------------------------------------------------------------
    --  Return the value of the given token, with quotes removed (assumes Ada syntax).

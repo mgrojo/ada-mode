@@ -76,7 +76,7 @@ package body HTML_Lexer is
          End_Tag_Opener       => Tokenizer.Get (OpenToken.Recognizer.Separator.Get ("</")),
          Text                 => Tokenizer.Get
            (OpenToken.Recognizer.Character_Set.Get
-              (Ada.Strings.Maps.Constants.Graphic_Set - Ada.Strings.Maps.To_Set ("<>""&"),
+              (Ada.Strings.Maps.Constants.Graphic_Set - Ada.Strings.Maps.To_Set ("<&"),
                Reportable     => True)),
          Entity               => Tokenizer.Get (OpenToken.Recognizer.HTML_Entity.Get),
          Comment              => Tokenizer.Get

@@ -2,7 +2,9 @@
 with "../common";
 project OpenToken is
 
-   for Source_Dirs use ("../..");
+   for Source_Dirs use
+     ("../..",
+      "../../Language_Lexers");
 
    for Object_Dir use "obj";
 

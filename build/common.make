@@ -28,7 +28,6 @@ tests : dirs
 tests : association_token_test-run.diff
 tests : bracketed_comment_test-run.run
 tests : enumerated_token_list_test.run
-tests : lookahead_test-run.run
 tests : name_token_test-run.diff
 tests : production_test-run.run
 tests : recognizer_based_integer_test.run
@@ -37,6 +36,7 @@ tests : string_test-run.run
 tests : string_token_test-run.diff
 tests : test_all_harness.diff
 tests : test_html_lexer_safe.diff
+tests : test_html_lexer_safe-syntax_error.diff
 tests : token_analyzer_ctd-run.run
 tests : token_list_test-run.run
 tests : token_selection_test-run.run
@@ -77,8 +77,11 @@ test_ada_lexer.run : test_ada_lexer.exe
 test_html_lexer_safe.out : test_html_lexer_safe.exe test_html_scan.html
 	./$^ $(RUN_ARGS) > $@
 
+test_html_lexer_safe-syntax_error.out : test_html_lexer_safe.exe test_html_scan-syntax_error.html
+	./$^ $(RUN_ARGS) > $@
+
 test_html_lexer_unsafe.run : test_html_lexer_unsafe.exe
-	./test_html_lexer_unsafe.exe ../../readme.html
+	./test_html_lexer_unsafe.exe ../../Docs/opentoken.html
 
 test_java_lexer.run : test_java_lexer.exe
 	./test_java_lexer.exe ../../Examples/Language_Lexer_Examples/something.java
@@ -88,8 +91,11 @@ test_m3_lexer.run : test_m3_lexer.exe
 	./test_m3_lexer.exe ../../Examples/Language_Lexer_Examples/something.java
 
 clean :: test-clean
-	rm -f *.exe
+	rm -f *.diff *.exe *.out *.txt
 	rm -f obj/*
+
+distclean :: clean
+	rm -rf obj obj_tree
 
 test-clean :
 	rm -f *.diff *.out *.txt

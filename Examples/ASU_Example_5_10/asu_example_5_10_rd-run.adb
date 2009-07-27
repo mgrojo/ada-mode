@@ -1,6 +1,7 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 1999,2000 Ted Dennison
+--  Copyright (C) 2009 Stephen Leake.
+--  Copyright (C) 1999,2000 Ted Dennison
 --
 -- This file is part of the OpenToken package.
 --
@@ -48,12 +49,25 @@ begin
    --  F -> ( E )     F.val := E.val
    --  F -> digit
    --
-   --  For Recursive-decent (LL) parsing we can't have recursive references
-   --  in the first token in a token's definition. That would cause infinite
-   --  recursion! This is the case in the definitions above for E and T.
-   --  In most cases you can fix this by rearranging the grammar a bit so that
-   --  the first token isn't a self-reference. But in this particular case
-   --  one of the canned tokens, the List token, will do the job.
+   --  For Recursive-decent (LL) parsing we can't have recursive
+   --  references in the first token in a token's definition. That
+   --  would cause infinite recursion! This is the case in the
+   --  definitions above for E and T. In most cases you can fix this
+   --  by rearranging the grammar a bit so that the first token isn't
+   --  a self-reference. We do this by extending the meta-syntax for
+   --  grammars defined in [1] section 4.2 p 166, by using {} to
+   --  indicate possible repetition (as in Extended Backus-Naur form;
+   --  see
+   --  http://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_Form):
+   --
+   --  L -> E              print (L.val)
+   --  E -> T {+ T}     E.val := E1.val + T.val
+   --  T -> F {* F}     T.val := T1.val * F.val
+   --  F -> ( E )          F.val := E.val
+   --  F -> digit
+   --
+   --  The List token implements {}.
+
    L.all := E & EOF;
    E.all := Operation_List.Class (Add_Operation_List'(Get (T, Plus)));
    T.all := Operation_List.Class (Multiply_Operation_List'(Get (F, Times)));
@@ -88,7 +102,7 @@ begin
       Tokenizer.Find_Next (Analyzer);
 
       OpenToken.Token.Parse
-        (Match    => OpenToken.Token.Class (L.all),
+        (Match    => OpenToken.Token.Handle (L),
          Analyzer => Analyzer);
 
    end loop;

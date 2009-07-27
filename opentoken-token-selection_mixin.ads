@@ -1,5 +1,6 @@
 -------------------------------------------------------------------------------
 --
+-- Copyright (C) 2009 Stephe Leake
 -- Copyright (C) 2000 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -23,13 +24,16 @@
 --  executable file might be covered by the GNU Public License.
 -------------------------------------------------------------------------------
 
-with OpenToken.Token.Linked_List;
+-----------------------------------------------------------------------------
+--  This package defines a reusable token for a simple selection
+--  between tokens of specific types.
+--
+--  Compare to opentoken-token-selection.ads; that is
+--  derived from OpenToken.Token.Instance, and holds compenents of
+--  type OpenToken.Token.Handle.
+-----------------------------------------------------------------------------
 
--------------------------------------------------------------------------------
---  This package defines a reusable token for a simple selection between tokens.
---  These a quite easy to create yourself, of course. But having a prebuilt one
---  allows you to easily use it in constructors for other tokens.
--------------------------------------------------------------------------------
+with OpenToken.Token.Linked_List;
 generic
    type Parent_Token is abstract new OpenToken.Token.Instance with private;
    type Component_Token is abstract new OpenToken.Token.Instance with private;
@@ -42,99 +46,96 @@ package OpenToken.Token.Selection_Mixin is
 
    type Handle is access all Class;
 
-   ----------------------------------------------------------------------------
-   --  Retrieve the given selection token from the analyzer.
-   --  The default implementaition chooses which token to parse by calling
-   --  Could_Parse_To on every token in the selection until one returns true.
-   --  If the token is not LL(1), that is, if it needs to examine more than one
-   --  token from the input stream to determine which selection to make, then
-   --  this behavior won't parse correctly. This is a problem because all the
-   --  supplied Parse and Could_Parse_To routines only check the first token.
-   --  To fix this, you have a several options. You can:
-   --    o  Implement your own token type to do the parsing. You can look ahead
-   --       multiple tokens by setting the Actively flag on the parse routine.
-   --    o  Derive a type from Instance, and provide your own Parse routine.
-   --       This routine should examine enough tokens ahead (using the Actively
-   --       flag where it needs to) in order to make the proper decision.
-   --    o  Override the default implementations of Could_Parse_To for the
-   --       tokens in the selection (not the selection token itself). The
-   --       overridden routines can check multiple tokens ahead instead of
-   --       just one.
-   --    o  Rearrange your token defintions so that only one token of
-   --       lookahead is required.
-   --  The private routine Build is called when the entire operation
-   --  has been recognized.
-   --  An a non active parse does not comsume any input from the analyzer,
-   --  and does not call any of the private routines.
-   ----------------------------------------------------------------------------
+   --------------------------------------------------------------------------
+   --  Build is called when the entire list has been recognized.
+   --------------------------------------------------------------------------
    overriding procedure Parse
-     (Match    : in out Instance;
+     (Match    : access Instance;
       Analyzer : in out Source_Class;
-      Actively : in     Boolean := True);
+      Actively : in     Boolean      := True);
 
-   ----------------------------------------------------------------------------
+   --------------------------------------------------------------------
    --  Create a token selection from a pair of token instances.
-   ----------------------------------------------------------------------------
-   function "or" (Left  : access Component_Token'Class;
-                  Right : access Component_Token'Class) return Instance;
+   --
+   --  If either is a selection, it is included by reference; the
+   --  member list is _not_ examined. Together with returning Instance
+   --  rather than Handle, this allows for controlled recursion. It
+   --  also requires the use of New_Selection to return an object
+   --  compatible with Sequence and other tokens, which has the effect
+   --  of making it clear when recursion is desired.
+   --
+   --  These arguments must be 'access OpenToken.Token.Class', rather
+   --  than 'in OpenToken.Token.Handle', in order to accept any
+   --  derived type Handle (Ada is annoying in this case!). However,
+   --  they are immediately converted to OpenToken.Token.Handle in the
+   --  body, so they must have library accessibility level.
+   ---------------------------------------------------------------------
+   function "or"
+     (Left  : access Component_Token'Class;
+      Right : access Component_Token'Class)
+     return Instance;
+
+   -------------------------------------------------------------------
+   --  Create a token selection from a selection and a token handle.
+   --  The token is added to the selection.
+   -------------------------------------------------------------------
+   function "or"
+     (Left  : access Component_Token'Class;
+      Right : in     Instance)
+     return Instance;
+   function "or"
+     (Left  : in     Instance;
+      Right : access Component_Token'Class)
+     return Instance;
+
+   -----------------------------------------------------------------
+   --  Create a token selection from a pair of selections. The
+   --  selections are combined to return a single selection.
+   -----------------------------------------------------------------
+   function "or"
+     (Left  : in Instance;
+      Right : in Instance)
+     return Instance;
 
    ----------------------------------------------------------------------------
-   --  Create a token selection from a token handle and a token selection.
+   --  Return a newly allocated instance which is a copy of the given
+   --  instance, with an optional new name.
    ----------------------------------------------------------------------------
-   function "or" (Left  : access Component_Token'Class;
-                  Right : in     Instance) return Instance;
-   function "or" (Left  : in     Instance;
-                  Right : access Component_Token'Class) return Instance;
+   function New_Instance
+     (Old_Instance : in Instance;
+      Name         : in String   := "")
+     return Handle;
 
-   ----------------------------------------------------------------------------
-   --  Create a token selection from a pair of selection tokens
-   ----------------------------------------------------------------------------
-   function "or" (Left  : in Instance;
-                  Right : in Instance) return Instance;
+   --------------------------------------------------------------------
+   --  Set the name of Token; useful when it is created with "or"
+   --  rather than New_Instance.
+   --------------------------------------------------------------------
+   procedure Set_Name (Token : in out Instance; Name : in String);
 
+   --------------------------------------------------------------------
+   --  Return the name specified in New_Instance. If that's null,
+   --  return OpenToken.Token.Name (Token).
+   --------------------------------------------------------------------
+   overriding function Name (Token : in Instance) return String;
 
-   ----------------------------------------------------------------------------
-   --  This routine should is a quick check to verify that the given operation
-   --  token can possibly succesfully parse from what's sitting in the analyzer.
-   --  This routine is meant to be used for choosing between parsing options.
-   --  It simply checks Could_Parse_To for this token's Element token.
-   --  The default implementation calls Could_Parse_To for every token in the
-   --  selection.
-   ----------------------------------------------------------------------------
-   overriding function Could_Parse_To
-     (Match    : in Instance;
-      Analyzer : in Source_Class)
-     return Boolean;
+   overriding procedure Expecting (Token : access Instance; List : in out Linked_List.Instance);
 
+   ----------------------------------------------------------------------
+   --  This routine is called when an entire selection has been
+   --  actively parsed. From is the token that was selected. An
+   --  implementation of this routine could then check the 'tag or ID
+   --  of From to figure out which selection was matched.
    ----------------------------------------------------------------------------
-   --  This routine is called when none of the sequence's tokens return true for
-   --  Could_Parse_To. It raises parse error. If Actively is set, it includes
-   --  a descriptive exception message in the exception.
-   --  The default version of this routine tries to identify the possible tokens
-   --  by their tag name. This is a pretty lame scheme if reusable tokens are
-   --  used, so you will probably either want to override this, or handle the
-   --  parse error in the calling routine and print out a better message there.
-   ----------------------------------------------------------------------------
-   procedure Raise_Parse_Error
-     (Match    : in out Instance;
-      Analyzer : in out Source_Class;
-      Actively : in     Boolean := True
-     );
-
-   ----------------------------------------------------------------------------
-   --  This routine is called when an entire selection has been actively
-   --  parsed. The second parameter contains the token that was parsed. An
-   --  implementation of this routine could then check the 'tag or ID of From to
-   --  figure out which selection was matched.
-   --  The default implementation does nothing.
-   ----------------------------------------------------------------------------
-   procedure Build (Match : in out Instance;
-                    From  : in     Component_Token'Class) is null;
+   procedure Build
+     (Match : in out Instance;
+      From  : in     Component_Token'Class)
+   is null;
 
 private
 
    type Instance is new Parent_Token with record
       Members : Token.Linked_List.Instance;
+      Name    : access String;
    end record;
 
 end OpenToken.Token.Selection_Mixin;

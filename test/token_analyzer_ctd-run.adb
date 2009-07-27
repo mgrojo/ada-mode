@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 1999 FlightSafety International and Ted Dennison
+-- Copyright (C) 1999, 2009 FlightSafety International and Ted Dennison
 --
 -- This file is part of the OpenToken package.
 --
@@ -23,12 +23,13 @@
 --  executable file might be covered by the GNU Public License.
 --
 -------------------------------------------------------------------------------
-with Ada.Text_IO;
-with OpenToken.Text_Feeder.Text_IO;
 
--------------------------------------------------------------------------------
 --  Test driver for the token anlayzer's default token functionality
 -------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
+with Ada.Command_Line;
+with Ada.Text_IO;
+with OpenToken.Text_Feeder.Text_IO;
 procedure Token_Analyzer_CTD.Run is
    Test_File_Name : constant String := "Test.txt";
 begin
@@ -80,12 +81,14 @@ begin
       if Tokenizer.ID (Analyzer) /= Default then
          Ada.Text_IO.Put_Line ("failed.");
          Ada.Text_IO.Put_Line ("First token was not default.");
+         Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
          return;
       end if;
       if Tokenizer.Lexeme (Analyzer) /= Text_Line_1 then
          Ada.Text_IO.Put_Line ("failed.");
          Ada.Text_IO.Put_Line ("First lexeme was """ & Tokenizer.Lexeme (Analyzer) &
                                """ not """ & Text_Line_1 & """.");
+         Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
          return;
       end if;
 
@@ -94,6 +97,7 @@ begin
       if Tokenizer.ID (Analyzer) /= Normal then
          Ada.Text_IO.Put_Line ("failed.");
          Ada.Text_IO.Put_Line ("Second token was not Normal.");
+         Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
          return;
       end if;
 
@@ -102,12 +106,14 @@ begin
       if Tokenizer.ID (Analyzer) /= Default then
          Ada.Text_IO.Put_Line ("failed.");
          Ada.Text_IO.Put_Line ("Third token was not default.");
+         Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
          return;
       end if;
       if Tokenizer.Lexeme (Analyzer) /= OpenToken.EOL_Character & Text_Line_2 & OpenToken.EOF_Character then
          Ada.Text_IO.Put_Line ("failed.");
          Ada.Text_IO.Put_Line ("Third lexeme was """ & Tokenizer.Lexeme (Analyzer) &
                                """ not """ & OpenToken.EOL_Character & Text_Line_2 & OpenToken.EOF_Character & """.");
+         Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
          return;
       end if;
 

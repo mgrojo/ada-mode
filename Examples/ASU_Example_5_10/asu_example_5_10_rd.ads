@@ -1,19 +1,21 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2000 Ted Dennison
+--  Copyright (C) 2009 Stephe Leake
+--  Copyright (C) 2000 Ted Dennison
 --
--- This file is part of the OpenToken package.
+--  This file is part of the OpenToken package.
 --
--- The OpenToken package is free software; you can redistribute it and/or
--- modify it under the terms of the  GNU General Public License as published
--- by the Free Software Foundation; either version 3, or (at your option)
--- any later version. The OpenToken package is distributed in the hope that
--- it will be useful, but WITHOUT ANY WARRANTY; without even the implied
--- warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
--- GNU General Public License for  more details.  You should have received
--- a copy of the GNU General Public License  distributed with the OpenToken
--- package;  see file GPL.txt.  If not, write to  the Free Software Foundation,
--- 59 Temple Place - Suite 330,  Boston, MA 02111-1307, USA.
+--  The OpenToken package is free software; you can redistribute it
+--  and/or modify it under the terms of the GNU General Public License
+--  as published by the Free Software Foundation; either version 3, or
+--  (at your option) any later version. The OpenToken package is
+--  distributed in the hope that it will be useful, but WITHOUT ANY
+--  WARRANTY; without even the implied warranty of MERCHANTABILITY or
+--  FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public
+--  License for more details. You should have received a copy of the
+--  GNU General Public License distributed with the OpenToken package;
+--  see file GPL.txt. If not, write to the Free Software Foundation,
+--  59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 --
 --  As a special exception, if other files instantiate generics from
 --  this unit, or you link this unit with other files to produce an
@@ -23,23 +25,24 @@
 --  executable file might be covered by the GNU Public License.
 -------------------------------------------------------------------------------
 
-with OpenToken.Token.Enumerated.Analyzer;
-with OpenToken.Token.Enumerated.Integer_Literal;
-with OpenToken.Recognizer.Integer;
-with OpenToken.Recognizer.Separator;
-with OpenToken.Recognizer.End_Of_File;
-with OpenToken.Recognizer.Character_Set;
-with OpenToken.Text_Feeder.String;
-with OpenToken.Token.Selection_Mixin;
-with OpenToken.Token.Sequence_Mixin;
-with OpenToken.Token.List_Mixin;
-
 -------------------------------------------------------------------------------
 --  This example is a recursive-decent implementation of Example 5.10 from
 --  "Compilers Principles, Techniques, and Tools" by Aho, Sethi, and Ullman
 --  (aka: "The Dragon Book"). It demonstrates handling of synthesized
 --  attributes.
 -------------------------------------------------------------------------------
+
+with OpenToken.Recognizer.Character_Set;
+with OpenToken.Recognizer.End_Of_File;
+with OpenToken.Recognizer.Integer;
+with OpenToken.Recognizer.Separator;
+with OpenToken.Text_Feeder.String;
+with OpenToken.Token.Enumerated.Analyzer;
+with OpenToken.Token.Enumerated.Integer_Literal;
+with OpenToken.Token.Linked_List;
+with OpenToken.Token.List_Mixin;
+with OpenToken.Token.Selection_Mixin;
+with OpenToken.Token.Sequence_Mixin;
 package ASU_Example_5_10_RD is
 
    --  The complete list of tokens, with the terminals listed first.
@@ -106,13 +109,13 @@ package ASU_Example_5_10_RD is
      return Integer_Selection;
    type Integer_Selection_Handle is access all Integer_Selection;
 
-
-
    --  A token type for groupings of expressions
    package Integer_Sequence_Token is new OpenToken.Token.Sequence_Mixin (Integer_Token);
    type Expression_Sequence is new Integer_Sequence_Token.Instance with null record;
    type Expression_Sequence_Handle is access all Expression_Sequence;
-   overriding procedure Build (Match : in out Expression_Sequence);
+   overriding procedure Build
+     (Match : in out Expression_Sequence;
+      Using : in     OpenToken.Token.Linked_List.Instance);
    overriding function "&"
      (Left  : access OpenToken.Token.Class;
       Right : access OpenToken.Token.Class)
@@ -139,7 +142,9 @@ package ASU_Example_5_10_RD is
       Element : in out Integer_Token'Class);
    overriding function Get
      (Element   : access Integer_Token'Class;
-      Separator : access OpenToken.Token.Class)
+      Separator : access OpenToken.Token.Class;
+      Name      : in     String                := "";
+      Lookahead : in     Integer               := OpenToken.Token.Default_Lookahead)
      return Multiply_Operation_List;
 
    type Add_Operation_List is new Operation_List.Instance with null record;
@@ -149,12 +154,16 @@ package ASU_Example_5_10_RD is
       Element : in out Integer_Token'Class);
    overriding function Get
      (Element   : access Integer_Token'Class;
-      Separator : access OpenToken.Token.Class)
+      Separator : access OpenToken.Token.Class;
+      Name      : in     String                := "";
+      Lookahead : in     Integer               := OpenToken.Token.Default_Lookahead)
      return Add_Operation_List;
 
    type L_Sequence is new Integer_Sequence_Token.Instance with null record;
    type L_Sequence_Handle is access all L_Sequence;
-   overriding procedure Build (Match : in out L_Sequence);
+   overriding procedure Build
+     (Match : in out L_Sequence;
+      Using : in     OpenToken.Token.Linked_List.Instance);
    overriding function "&"
      (Left  : access OpenToken.Token.Class;
       Right : access OpenToken.Token.Class)
