@@ -40,8 +40,8 @@ package body Test_Backtrack is
    --   F -> T1 T2 T4  : sequence of terminals
    --   G -> T1 T2 T5  : sequence of terminals
    --
-   --  This is really horrible grammar, but we want OpenToken to cope
-   --  with it. We assume the user is naive, and is just getting
+   --  This is a really horrible grammar, but we want OpenToken to
+   --  cope with it. We assume the user is naive, and is just getting
    --  started with grammars; they want it to "just work", and will
    --  worry about optimizing things later.
    --

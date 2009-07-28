@@ -48,4 +48,26 @@ package body AUnit.Check is
            "expecting '" & Expected & "'");
    end Check;
 
+   procedure Check
+     (Label    : in String;
+      Computed : in Integer;
+      Expected : in Integer)
+   is begin
+      Standard.AUnit.Assertions.Assert
+        (Computed = Expected,
+         Label & " got " & Integer'Image (Computed) & " expecting " & Integer'Image (Expected));
+   end Check;
+
+   procedure Check
+     (Label    : in String;
+      Computed : in Ada.Tags.Tag;
+      Expected : in Ada.Tags.Tag)
+   is
+      use Ada.Tags;
+   begin
+      Standard.AUnit.Assertions.Assert
+        (Computed = Expected,
+         Label & " got " & External_Tag (Computed) & " expecting " & External_Tag (Expected));
+   end Check;
+
 end AUnit.Check;

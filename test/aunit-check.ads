@@ -25,6 +25,7 @@
 
 pragma License (Modified_GPL);
 
+with Ada.Tags;
 package AUnit.Check is
 
    generic
@@ -38,5 +39,15 @@ package AUnit.Check is
      (Label    : in String;
       Computed : in String;
       Expected : in String);
+
+   procedure Check
+     (Label    : in String;
+      Computed : in Integer;
+      Expected : in Integer);
+
+   procedure Check
+     (Label    : in String;
+      Computed : in Ada.Tags.Tag;
+      Expected : in Ada.Tags.Tag);
 
 end AUnit.Check;

@@ -25,11 +25,11 @@
 --
 -------------------------------------------------------------------------------
 
-package body OpenToken.Token.Enumerated.Integer_Literal is
+package body OpenToken.Token.Enumerated.Integer is
 
    function Get
      (ID     : in Token_ID;
-      Value  : in Integer := 0)
+      Value  : in Standard.Integer := 0)
      return Instance'Class
    is begin
       return Instance'Class (Instance'(ID => ID, Value => Value));
@@ -42,12 +42,12 @@ package body OpenToken.Token.Enumerated.Integer_Literal is
    is
       pragma Unreferenced (Recognizer);
    begin
-      New_Token.Value := Integer'Value (Lexeme);
-
+      New_Token.Value := Standard.Integer'Value (Lexeme);
    exception
    when Constraint_Error =>
       raise Syntax_Error with
-        Lexeme & " not in range: " & Integer'Image (Integer'First) & " .. " & Integer'Image (Integer'Last);
+        Lexeme & " not in range: " &
+        Standard.Integer'Image (Standard.Integer'First) & " .. " & Standard.Integer'Image (Standard.Integer'Last);
    end Create;
 
    overriding procedure Copy
@@ -60,15 +60,10 @@ package body OpenToken.Token.Enumerated.Integer_Literal is
    overriding function Name (Token : in Instance) return String
    is begin
       if Trace_Parse then
-         return Token_ID'Image (Token.ID) & Integer'Image (Token.Value);
+         return Token_ID'Image (Token.ID) & Standard.Integer'Image (Token.Value);
       else
          return Token_ID'Image (Token.ID);
       end if;
    end Name;
 
-   function Value (Subject : in Instance) return Integer is
-   begin
-      return Subject.Value;
-   end Value;
-
-end OpenToken.Token.Enumerated.Integer_Literal;
+end OpenToken.Token.Enumerated.Integer;

@@ -25,24 +25,28 @@
 --
 -------------------------------------------------------------------------------
 
--------------------------------------------------------------------------------
---  This package declares a type for designating an integer literal.
--------------------------------------------------------------------------------
+-----------------------------------------------------------------------------
+--  This package declares a type for designating an integer. Useful as
+--  a literal in LR parsers, or an integer value in recursive descent
+--  parsers.
+-----------------------------------------------------------------------------
 generic
-package OpenToken.Token.Enumerated.Integer_Literal is
+package OpenToken.Token.Enumerated.Integer is
 
-   type Instance is new OpenToken.Token.Enumerated.Instance with private;
+   type Instance is new OpenToken.Token.Enumerated.Instance with record
+      Value : Standard.Integer;
+   end record;
 
    subtype Class is Instance'Class;
 
    type Handle is access all Class;
 
    ----------------------------------------------------------------------------
-   --  Get an integer literal token with the given ID and value.
+   --  Get an integer token with the given ID and value.
    ----------------------------------------------------------------------------
    function Get
      (ID     : in Token_ID;
-      Value  : in Integer := 0)
+      Value  : in Standard.Integer := 0)
      return Instance'Class;
 
    overriding procedure Create
@@ -62,14 +66,4 @@ package OpenToken.Token.Enumerated.Integer_Literal is
    --------------------------------------------------------------------
    overriding function Name (Token : in Instance) return String;
 
-   ----------------------------------------------------------------------------
-   --  Return the value of the given integer token.
-   ----------------------------------------------------------------------------
-   function Value (Subject : in Instance) return Integer;
-
-private
-   type Instance is new OpenToken.Token.Enumerated.Instance with record
-      Value : Integer;
-   end record;
-
-end OpenToken.Token.Enumerated.Integer_Literal;
+end OpenToken.Token.Enumerated.Integer;
