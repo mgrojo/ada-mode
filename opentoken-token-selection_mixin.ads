@@ -46,13 +46,9 @@ package OpenToken.Token.Selection_Mixin is
 
    type Handle is access all Class;
 
-   --------------------------------------------------------------------------
-   --  Build is called when the entire list has been recognized.
-   --------------------------------------------------------------------------
-   overriding procedure Parse
-     (Match    : access Instance;
-      Analyzer : in out Source_Class;
-      Actively : in     Boolean      := True);
+   type Action is access procedure
+     (Match : in out Instance;
+      From  : in     Component_Token'Class);
 
    --------------------------------------------------------------------
    --  Create a token selection from a pair of token instances.
@@ -60,7 +56,7 @@ package OpenToken.Token.Selection_Mixin is
    --  If either is a selection, it is included by reference; the
    --  member list is _not_ examined. Together with returning Instance
    --  rather than Handle, this allows for controlled recursion. It
-   --  also requires the use of New_Selection to return an object
+   --  also requires the use of New_Selection or "+" to return an object
    --  compatible with Sequence and other tokens, which has the effect
    --  of making it clear when recursion is desired.
    --
@@ -97,13 +93,22 @@ package OpenToken.Token.Selection_Mixin is
       Right : in Instance)
      return Instance;
 
+   ----------------------------------------------------------------------
+   --  Add a Build action to the instance
+   ----------------------------------------------------------------------
+   function "+"
+     (Selection : in Instance;
+      Build     : in Action)
+     return Instance;
+
    ----------------------------------------------------------------------------
    --  Return a newly allocated instance which is a copy of the given
    --  instance, with an optional new name.
    ----------------------------------------------------------------------------
    function New_Instance
      (Old_Instance : in Instance;
-      Name         : in String   := "")
+      Name         : in String   := "";
+      Build        : in Action   := null)
      return Handle;
 
    --------------------------------------------------------------------
@@ -113,6 +118,16 @@ package OpenToken.Token.Selection_Mixin is
    procedure Set_Name (Token : in out Instance; Name : in String);
 
    --------------------------------------------------------------------
+   --  The Build action specified in New_Instance or "+" is called when
+   --  an entire selection has been actively parsed. From is the token
+   --  that was selected.
+   --------------------------------------------------------------------------
+   overriding procedure Parse
+     (Match    : access Instance;
+      Analyzer : in out Source_Class;
+      Actively : in     Boolean      := True);
+
+   --------------------------------------------------------------------
    --  Return the name specified in New_Instance. If that's null,
    --  return OpenToken.Token.Name (Token).
    --------------------------------------------------------------------
@@ -120,22 +135,12 @@ package OpenToken.Token.Selection_Mixin is
 
    overriding procedure Expecting (Token : access Instance; List : in out Linked_List.Instance);
 
-   ----------------------------------------------------------------------
-   --  This routine is called when an entire selection has been
-   --  actively parsed. From is the token that was selected. An
-   --  implementation of this routine could then check the 'tag or ID
-   --  of From to figure out which selection was matched.
-   ----------------------------------------------------------------------------
-   procedure Build
-     (Match : in out Instance;
-      From  : in     Component_Token'Class)
-   is null;
-
 private
 
    type Instance is new Parent_Token with record
       Members : Token.Linked_List.Instance;
       Name    : access String;
+      Build   : Action;
    end record;
 
 end OpenToken.Token.Selection_Mixin;

@@ -25,12 +25,12 @@
 --  executable file might be covered by the GNU Public License.
 -------------------------------------------------------------------------------
 
--------------------------------------------------------------------------------
---  This example is a recursive-decent implementation of Example 5.10 from
---  "Compilers Principles, Techniques, and Tools" by Aho, Sethi, and Ullman
---  (aka: "The Dragon Book"). It demonstrates handling of synthesized
---  attributes.
--------------------------------------------------------------------------------
+-----------------------------------------------------------------------------
+--  This example is a recursive-decent implementation of Example 5.10,
+--  section 5.3, page 295 from [1] "Compilers Principles, Techniques,
+--  and Tools" by Aho, Sethi, and Ullman (aka: "The Dragon Book"). It
+--  demonstrates handling of synthesized attributes.
+-----------------------------------------------------------------------------
 
 with OpenToken.Recognizer.Character_Set;
 with OpenToken.Recognizer.End_Of_File;
@@ -38,161 +38,117 @@ with OpenToken.Recognizer.Integer;
 with OpenToken.Recognizer.Separator;
 with OpenToken.Text_Feeder.String;
 with OpenToken.Token.Enumerated.Analyzer;
-with OpenToken.Token.Enumerated.Integer_Literal;
+with OpenToken.Token.Enumerated.Integer;
 with OpenToken.Token.Linked_List;
 with OpenToken.Token.List_Mixin;
 with OpenToken.Token.Selection_Mixin;
 with OpenToken.Token.Sequence_Mixin;
 package ASU_Example_5_10_RD is
 
-   --  The complete list of tokens, with the terminals listed first.
+   --  The complete list of tokens. No non-terminals in recursive descent.
    type Token_IDs is (Integer_ID, Left_Paren_ID, Right_Paren_ID, Plus_Sign_ID,
                       Multiply_ID, EOF_ID, Whitespace_ID);
 
-   --  Instantiate all the nessecary packages
    package Master_Token is new OpenToken.Token.Enumerated (Token_IDs);
    package Tokenizer is new Master_Token.Analyzer (Whitespace_ID);
-   package Integer_Literal is new Master_Token.Integer_Literal;
+   package Integer_Token is new Master_Token.Integer;
 
-   --  Define a lexer syntax for the terminals
    Syntax : constant Tokenizer.Syntax :=
-     (Multiply_ID    => Tokenizer.Get (Recognizer => OpenToken.Recognizer.Separator.Get ("*")),
-      Left_Paren_ID  => Tokenizer.Get (Recognizer => OpenToken.Recognizer.Separator.Get ("(")),
-      Right_Paren_ID => Tokenizer.Get (Recognizer => OpenToken.Recognizer.Separator.Get (")")),
-      Plus_Sign_ID   => Tokenizer.Get (Recognizer => OpenToken.Recognizer.Separator.Get ("+")),
-      Integer_ID     => Tokenizer.Get (Recognizer => OpenToken.Recognizer.Integer.Get
-                                       (Allow_Signs => False),
-                                       New_Token  => Integer_Literal.Get (Integer_ID)
-                                       ),
-      EOF_ID         => Tokenizer.Get (Recognizer => OpenToken.Recognizer.End_Of_File.Get),
-      Whitespace_ID  => Tokenizer.Get (Recognizer => OpenToken.Recognizer.Character_Set.Get
-                                       (OpenToken.Recognizer.Character_Set.Standard_Whitespace))
+     (Multiply_ID       => Tokenizer.Get (OpenToken.Recognizer.Separator.Get ("*")),
+      Left_Paren_ID     => Tokenizer.Get (OpenToken.Recognizer.Separator.Get ("(")),
+      Right_Paren_ID    => Tokenizer.Get (OpenToken.Recognizer.Separator.Get (")")),
+      Plus_Sign_ID      => Tokenizer.Get (OpenToken.Recognizer.Separator.Get ("+")),
+      Integer_ID        => Tokenizer.Get
+        (OpenToken.Recognizer.Integer.Get
+           (Allow_Signs => False),
+         Integer_Token.Get (Integer_ID)),
+      EOF_ID            => Tokenizer.Get (OpenToken.Recognizer.End_Of_File.Get),
+      Whitespace_ID     => Tokenizer.Get
+        (OpenToken.Recognizer.Character_Set.Get (OpenToken.Recognizer.Character_Set.Standard_Whitespace))
       );
 
    Feeder   : aliased OpenToken.Text_Feeder.String.Instance;
    Analyzer : Tokenizer.Instance := Tokenizer.Initialize (Syntax, Feeder'Access);
 
    --------------------------------------------------------------------------
-   --  Our custom token types.
+   --  Our custom token types. The grammar is:
    --
-   --  For the most part we just build them from sequences and selections
-   --  using
+   --  L -> E         print (L.val)
+   --  E -> E + T     E.val := E1.val + T.val
+   --  E -> T
+   --  T -> T * F     T.val := T1.val * F.val
+   --  T -> F
+   --  F -> ( E )     F.val := E.val
+   --  F -> digit
+   --
+   --  For Recursive-decent (LL) parsing we can't have recursive
+   --  references in the first token in a token's definition; that
+   --  would cause infinite recursion. This is the case in the
+   --  definitions above for E and T. We fix this by extending the
+   --  meta-syntax for grammars defined in [1] section 4.2 p 166, by
+   --  using {} to indicate possible repetition (as in Extended
+   --  Backus-Naur form; see
+   --  http://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_Form):
+   --
+   --  L -> E  EOF      print (L.val)
+   --  E -> T {+ T}     E.val := T1.val + T2.val ...
+   --  T -> F {* F}     T.val := F1.val * F2.val ...
+   --  F -> ( E )       F.val := E.val
+   --  F -> digit
+   --
+   --  The List token implements {}.
 
-   --  A base token type for integer-valued tokens
-   type Integer_Token is abstract new OpenToken.Token.Instance with record
-      Value : Integer;
-   end record;
-   type Integer_Token_Handle is access all Integer_Token'Class;
+   --  Create a custom selection token which has integers for
+   --  components and returns an integer with the value of the
+   --  selected component from a parse; used for F -> ( E ) | digit.
+   package Integer_Selection is new OpenToken.Token.Selection_Mixin
+     (Parent_Token    => Integer_Token.Instance,
+      Component_Token => Integer_Token.Instance);
+   procedure Build_Selection
+     (Match : in out Integer_Selection.Instance;
+      From  : in     Integer_Token.Class);
 
-   --  Create a custom selection token which has integers for components and returns
-   --  an integer with the value of the selected component from a parse.
-   package Integer_Selection_Token is new OpenToken.Token.Selection_Mixin (Integer_Token, OpenToken.Token.Instance);
-   type Integer_Selection is new Integer_Selection_Token.Instance with null record;
-   overriding procedure
-     Build (Match : in out Integer_Selection;
-            From  : in     OpenToken.Token.Instance'Class);
-   overriding function "or"
-     (Left  : access OpenToken.Token.Instance'Class;
-      Right : access OpenToken.Token.Instance'Class)
-     return Integer_Selection;
-   overriding function "or"
-     (Left  : access OpenToken.Token.Instance'Class;
-      Right : in     Integer_Selection)
-     return Integer_Selection;
-   overriding function "or"
-     (Left  : in     Integer_Selection;
-      Right : access OpenToken.Token.Instance'Class)
-     return Integer_Selection;
-   overriding function "or"
-     (Left  : in Integer_Selection;
-      Right : in Integer_Selection)
-     return Integer_Selection;
-   type Integer_Selection_Handle is access all Integer_Selection;
-
-   --  A token type for groupings of expressions
-   package Integer_Sequence_Token is new OpenToken.Token.Sequence_Mixin (Integer_Token);
-   type Expression_Sequence is new Integer_Sequence_Token.Instance with null record;
-   type Expression_Sequence_Handle is access all Expression_Sequence;
-   overriding procedure Build
-     (Match : in out Expression_Sequence;
+   --  A token type for a sequence of tokens; used for ( E ), E EOF
+   package Integer_Sequence is new OpenToken.Token.Sequence_Mixin (Integer_Token.Instance);
+   procedure Build_Parens
+     (Match : in out Integer_Sequence.Instance;
       Using : in     OpenToken.Token.Linked_List.Instance);
-   overriding function "&"
-     (Left  : access OpenToken.Token.Class;
-      Right : access OpenToken.Token.Class)
-     return Expression_Sequence;
-   overriding function "&"
-     (Left  : access OpenToken.Token.Class;
-      Right : in     Expression_Sequence)
-     return Expression_Sequence;
-   overriding function "&"
-     (Left  : in     Expression_Sequence;
-      Right : access OpenToken.Token.Class)
-     return Expression_Sequence;
-   overriding function "&"
-     (Left  : in Expression_Sequence;
-      Right : in Expression_Sequence)
-     return Expression_Sequence;
-
-   --  Token types for mathematical operations
-   package Operation_List is new OpenToken.Token.List_Mixin (Integer_Token, Integer_Token);
-   type Multiply_Operation_List is new Operation_List.Instance with null record;
-   overriding procedure Initialize (Match : in out Multiply_Operation_List);
-   overriding procedure Add_List_Element
-     (Match   : in out Multiply_Operation_List;
-      Element : in out Integer_Token'Class);
-   overriding function Get
-     (Element   : access Integer_Token'Class;
-      Separator : access OpenToken.Token.Class;
-      Name      : in     String                := "";
-      Lookahead : in     Integer               := OpenToken.Token.Default_Lookahead)
-     return Multiply_Operation_List;
-
-   type Add_Operation_List is new Operation_List.Instance with null record;
-   overriding procedure Initialize (Match : in out Add_Operation_List);
-   overriding procedure Add_List_Element
-     (Match   : in out Add_Operation_List;
-      Element : in out Integer_Token'Class);
-   overriding function Get
-     (Element   : access Integer_Token'Class;
-      Separator : access OpenToken.Token.Class;
-      Name      : in     String                := "";
-      Lookahead : in     Integer               := OpenToken.Token.Default_Lookahead)
-     return Add_Operation_List;
-
-   type L_Sequence is new Integer_Sequence_Token.Instance with null record;
-   type L_Sequence_Handle is access all L_Sequence;
-   overriding procedure Build
-     (Match : in out L_Sequence;
+   procedure Build_Print
+     (Match : in out Integer_Sequence.Instance;
       Using : in     OpenToken.Token.Linked_List.Instance);
-   overriding function "&"
-     (Left  : access OpenToken.Token.Class;
-      Right : access OpenToken.Token.Class)
-     return L_Sequence;
-   overriding function "&"
-     (Left  : access OpenToken.Token.Class;
-      Right : in     L_Sequence)
-     return L_Sequence;
-   overriding function "&"
-     (Left  : in     L_Sequence;
-      Right : access OpenToken.Token.Class)
-     return L_Sequence;
-   overriding function "&"
-     (Left  : in L_Sequence;
-      Right : in L_Sequence)
-     return L_Sequence;
+
+   --  Token type for repeating lists; {+ T}, {* F}
+   package Operation_List is new OpenToken.Token.List_Mixin (Integer_Token.Instance, Integer_Token.Instance);
+
+   procedure Init_Plus (Match : in out Operation_List.Instance);
+   procedure Plus_Element
+     (Match   : in out Operation_List.Instance;
+      Element : in     Integer_Token.Class);
+   procedure Init_Multiply (Match : in out Operation_List.Instance);
+   procedure Multiply_Element
+     (Match   : in out Operation_List.Instance;
+      Element : in     Integer_Token.Class);
 
    --  Define all our tokens
    --  ...terminals
-   Times       : constant Master_Token.Handle := Syntax (Multiply_ID).Token_Handle;
-   Left_Paren  : constant Master_Token.Handle := Syntax (Left_Paren_ID).Token_Handle;
-   Right_Paren : constant Master_Token.Handle := Syntax (Right_Paren_ID).Token_Handle;
-   Plus        : constant Master_Token.Handle := Syntax (Plus_Sign_ID).Token_Handle;
-   Int_Literal : constant Master_Token.Handle := Syntax (Integer_ID).Token_Handle;
-   EOF         : constant Master_Token.Handle := Syntax (EOF_ID).Token_Handle;
+   Times       : constant Master_Token.Handle  := Syntax (Multiply_ID).Token_Handle;
+   Left_Paren  : constant Master_Token.Handle  := Syntax (Left_Paren_ID).Token_Handle;
+   Right_Paren : constant Master_Token.Handle  := Syntax (Right_Paren_ID).Token_Handle;
+   Plus        : constant Master_Token.Handle  := Syntax (Plus_Sign_ID).Token_Handle;
+   Int         : constant Integer_Token.Handle := new Integer_Token.Class'(Integer_Token.Get (Integer_ID));
+   EOF         : constant Master_Token.Handle  := Syntax (EOF_ID).Token_Handle;
+
    --  ...and nonterminals.
-   L           : constant L_Sequence_Handle        := new L_Sequence;
-   E           : constant OpenToken.Token.Handle   := new Add_Operation_List;
-   T           : constant Integer_Token_Handle     := new Multiply_Operation_List;
-   F           : constant Integer_Selection_Handle := new Integer_Selection;
+   use type Integer_Selection.Instance;
+   use type Integer_Sequence.Instance;
+   use Operation_List;
+
+   --  Because of the recursion, we defer the full definition of E to the body.
+   --  We declare F1 to allow giving it a name for debug
+   E : constant Operation_List.Handle    := new Operation_List.Instance;
+   F1 : constant Integer_Sequence.Handle := Left_Paren & E & Right_Paren + Build_Parens'Access;
+   F : constant Integer_Selection.Handle := (F1 or Int) + Build_Selection'Access;
+   T : constant Operation_List.Handle    := F ** Times * Multiply_Element'Access + Init_Multiply'Access;
+   L : constant Integer_Sequence.Handle  := E & EOF + Build_Print'Access;
 
 end ASU_Example_5_10_RD;

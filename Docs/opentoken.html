@@ -164,6 +164,17 @@ verify that the HTML lexer handles valid HTML 4.01.
             demonstrate the differences and similarities between LR
             parsing and recursive descent parsing with OpenToken.
 
+        <li>The OpenToken.Token.List_Mixin, .Sequence_Mixin,
+            .Selection_Mixin packages have been enhanced to support
+            backtracking; the non-mixin versions are instantiations of
+            them.
+
+        <li>The OpenToken.Token.List_Mixin, .Sequence_Mixin,
+            .Selection_Mixin now specify actions via procedure
+            pointers at run-time, rather than via overloaded
+            procedures. This significantly simplifies specifying
+            recursive descent grammars.
+
         <li>There are new examples of recursive descent parsing,
             showing that naive grammars can work, if inefficiently.
 
@@ -443,6 +454,6 @@ agree. Bravo!
 <img src="../images/emacs.png" alt="Created with Emacs" width="100" height="30"></a>
 <a href="http://www.adaic.org/">
 <img src="../images/adapowered2.png" alt="powered by Ada" width="200" height="50"></a>
-<!-- hhmts start --> Last modified: Sun Jul 26 19:50:57 EDT 2009 <!-- hhmts end -->
+<!-- hhmts start --> Last modified: Tue Jul 28 20:28:35 -0400 2009 <!-- hhmts end -->
 </body>
 </html>

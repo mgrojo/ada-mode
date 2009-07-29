@@ -42,6 +42,15 @@ package OpenToken.Token.Sequence_Mixin is
 
    type Handle is access all Class;
 
+   --------------------------------------------------------------------------
+   --  A Build action specified in New_Instance or "+" is called when an
+   --  entire sequence has been actively parsed. Using is the sequence
+   --  of tokens.
+   --------------------------------------------------------------------------
+   type Build is access procedure
+      (Match : in out Instance;
+       Using : in     Token.Linked_List.Instance);
+
    procedure Set_Lookahead (Token : in out Instance; Lookahead : in Integer);
 
    ----------------------------------------------------------------------
@@ -60,9 +69,9 @@ package OpenToken.Token.Sequence_Mixin is
    --  If either is a sequence, it is included by reference; the
    --  member list is _not_ examined. Together with returning Instance
    --  rather than Handle, this allows for controlled recursion. It
-   --  also requires the use of New_Selection to return an object
-   --  compatible with Selection and other tokens, which has the
-   --  effect of making it clear when recursion is desired.
+   --  also requires the use of New_Selection or "+" to return an
+   --  object compatible with Selection and other tokens, which has
+   --  the effect of making it clear when recursion is desired.
    --
    --  These arguments must be 'access OpenToken.Token.Class', rather
    --  than 'in OpenToken.Token.Handle', in order to accept any
@@ -97,6 +106,14 @@ package OpenToken.Token.Sequence_Mixin is
       Right : in Instance)
      return Instance;
 
+   ----------------------------------------------------------------------
+   --  Add a Build action to the instance
+   ----------------------------------------------------------------------
+   function "+"
+     (Left  : in Instance;
+      Right : in Build)
+     return Instance;
+
    ----------------------------------------------------------------------------
    --  Return a newly allocated instance which is a copy of the given
    --  instance, with an optional new name and lookahead.
@@ -104,7 +121,8 @@ package OpenToken.Token.Sequence_Mixin is
    function New_Instance
      (Old_Instance : in Instance;
       Name         : in String   := "";
-      Lookahead    : in Integer  := Default_Lookahead)
+      Lookahead    : in Integer  := Default_Lookahead;
+      Action       : in Build    := null)
      return Handle;
 
    --------------------------------------------------------------------
@@ -121,20 +139,12 @@ package OpenToken.Token.Sequence_Mixin is
 
    overriding procedure Expecting (Token : access Instance; List : in out Linked_List.Instance);
 
-   ----------------------------------------------------------------------------
-   --  This routine is called when an entire sequence has been actively
-   --  parsed. Using is the sequence of tokens.
-   ----------------------------------------------------------------------------
-   procedure Build
-     (Match : in out Instance;
-      Using : in     Token.Linked_List.Instance)
-   is null;
-
 private
    type Instance is new Parent_Token with record
       Lookahead : Integer;
       Members   : Token.Linked_List.Instance;
       Name      : access String;
+      Action    : Build;
    end record;
 
 end OpenToken.Token.Sequence_Mixin;
