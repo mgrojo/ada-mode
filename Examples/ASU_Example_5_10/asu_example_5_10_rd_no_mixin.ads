@@ -88,13 +88,16 @@ package ASU_Example_5_10_RD_No_Mixin is
    --  So we rearrange the grammar to avoid this, taking advantage of
    --  the commutivity of + and *.
    --
-   --  L -> E         print (L.val)
-   --  E -> T + E     E.val := E1.val + T.val
+   --  This grammar enforces operator precedence, but because of the
+   --  multiple recursion, requires a separate stack of operands.
+   --
+   --  L -> E         print (pop)
+   --  E -> T + E     push (pop + pop)
    --  E -> T
-   --  T -> F * T     T.val := T1.val * F.val
+   --  T -> F * T     push (pop * pop)
    --  T -> F
-   --  F -> ( E )     F.val := E.val
-   --  F -> digit
+   --  F -> ( E )
+   --  F -> integer   push (integer)
    --
    --  This grammar requires 2 lookaheads; it needs to see
    --  the + or * of the sequences for E and T.

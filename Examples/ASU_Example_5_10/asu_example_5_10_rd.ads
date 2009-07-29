@@ -94,9 +94,14 @@ package ASU_Example_5_10_RD is
    --  E -> T {+ T}     E.val := T1.val + T2.val ...
    --  T -> F {* F}     T.val := F1.val * F2.val ...
    --  F -> ( E )       F.val := E.val
-   --  F -> digit
+   --  F -> integer
    --
    --  The List token implements {}.
+   --
+   --  This grammar enforces operator precedence. Because the only
+   --  recursion is in F -> ( E ), each production can be evaluated as
+   --  soon as it is parsed, eliminating the need for a separate stack
+   --  of operands.
 
    --  Create a custom selection token which has integers for
    --  components and returns an integer with the value of the

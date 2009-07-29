@@ -26,7 +26,7 @@
 with OpenToken.Token.Enumerated.List;
 with OpenToken.Token.Enumerated.Analyzer;
 with OpenToken.Token.Enumerated.Nonterminal;
-with OpenToken.Token.Enumerated.Integer_Literal;
+with OpenToken.Token.Enumerated.Integer;
 with OpenToken.Production.List;
 with OpenToken.Production.Parser.LALR;
 with OpenToken.Production.Parser.LRk_Item;
@@ -61,7 +61,7 @@ package ASU_Example_5_10 is
    package LRK_Item is new Parser.LRK_Item (1);
 
    --  Instantiate our tokens
-   package Integer_Literal is new Master_Token.Integer_Literal;
+   package Integer_Literal is new Master_Token.Integer;
    package Simple_Integer is new Simple_Integer_Token (Master_Token, Token_List, Nonterminal, Integer_Literal);
 
    --  Allow infix operators for building productions
@@ -89,18 +89,14 @@ package ASU_Example_5_10 is
       Left_Paren_ID  => Tokenizer.Get (Recognizer => OpenToken.Recognizer.Separator.Get ("("),
                                        New_Token  => Left_Paren),
       Right_Paren_ID => Tokenizer.Get (Recognizer => OpenToken.Recognizer.Separator.Get (")"),
-                                       New_Token  => Right_Paren
-                                       ),
+                                       New_Token  => Right_Paren),
       Plus_Sign_ID   => Tokenizer.Get (Recognizer => OpenToken.Recognizer.Separator.Get ("+"),
-                                       New_Token  => Plus
-                                       ),
+                                       New_Token  => Plus),
       Integer_ID => Tokenizer.Get (Recognizer => OpenToken.Recognizer.Integer.Get
                                                    (Allow_Signs => False),
-                                   New_Token  => Int_Literal
-                                   ),
+                                   New_Token  => Int_Literal),
       EOF_ID        => Tokenizer.Get (Recognizer => OpenToken.Recognizer.End_Of_File.Get,
-                                      New_Token  => EOF
-                                      ),
+                                      New_Token  => EOF),
       Whitespace_ID => Tokenizer.Get (Recognizer => OpenToken.Recognizer.Character_Set.Get
                                       (OpenToken.Recognizer.Character_Set.Standard_Whitespace))
       );
@@ -120,6 +116,9 @@ package ASU_Example_5_10 is
    --  F -> ( E )     F.val := E.val
    --  F -> digit
    --
+   --  The grammar enforces operator precedence, and the parser
+   --  maintains a stack of tokens (using dynamic memory allocation
+   --  and deallocation), so we don't need to program that separately.
    Grammar : constant Production_List.Instance :=
      L <= E & EOF                      + Simple_Integer.Print_Value'Access and
      E <= E & Plus & T                 + Simple_Integer.Add_Integers       and
