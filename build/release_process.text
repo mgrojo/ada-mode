@@ -36,6 +36,7 @@ loop until no changes:
             distclean
             all
 
+        (sal-standard)
         (dvc-status ".")
 
         mtn sync --ticker=count

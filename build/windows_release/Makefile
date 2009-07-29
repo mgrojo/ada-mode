@@ -1,5 +1,8 @@
 all: dirs tests examples
 
+install:
+	make -f Makefile.install install
+
 # ../../Test/test_one_harness.adb
 t_one : test_one_harness.run
 
