@@ -59,7 +59,9 @@ package body OpenToken.Token.Sequence_Mixin is
             Next_Token (I);
          end loop;
 
-         Match.Action (Match.all, Match.Members);
+         if Match.Build /= null then
+            Match.Build (Match.all, Match.Members);
+         end if;
       else
          for J in 1 .. Match.Lookahead loop
             Parse (Token_Handle (I), Analyzer, Actively => False);
@@ -93,7 +95,7 @@ package body OpenToken.Token.Sequence_Mixin is
          Members   => OpenToken.Token.Handle (Left) & OpenToken.Token.Handle (Right),
          Lookahead => Default_Lookahead,
          Name      => null,
-         Action    => null);
+         Build    => null);
    end "&";
 
    function "&"
@@ -108,7 +110,7 @@ package body OpenToken.Token.Sequence_Mixin is
          Members   => OpenToken.Token.Handle (Left) & Right.Members,
          Lookahead => Default_Lookahead,
          Name      => null,
-         Action    => null);
+         Build    => null);
    end "&";
 
    function "&"
@@ -123,7 +125,7 @@ package body OpenToken.Token.Sequence_Mixin is
          Members   => Left.Members & OpenToken.Token.Handle (Right),
          Lookahead => Default_Lookahead,
          Name      => null,
-         Action    => null);
+         Build    => null);
    end "&";
 
    function "&"
@@ -138,22 +140,28 @@ package body OpenToken.Token.Sequence_Mixin is
          Members   => Left.Members & Right.Members,
          Lookahead => Default_Lookahead,
          Name      => null,
-         Action    => null);
+         Build    => null);
    end "&";
 
    function "+"
-     (Left  : in Instance;
-      Right : in Build)
+     (Sequence : in Instance;
+      Build    : in Action)
      return Handle
    is begin
-      return New_Instance (Left, Action => Right);
+      return New_Instance (Sequence, Build => Build);
    end "+";
+
+   function "and" (Sequence : in Handle; Name : in String) return Handle
+   is begin
+      Set_Name (Sequence.all, Name);
+      return Sequence;
+   end "and";
 
    function New_Instance
      (Old_Instance : in Instance;
       Name         : in String   := "";
       Lookahead    : in Integer  := Default_Lookahead;
-      Action       : in Build    := null)
+      Build        : in Action   := null)
      return Handle
    is
       New_Token : constant Handle := new Class'(Class (Old_Instance));
@@ -162,11 +170,16 @@ package body OpenToken.Token.Sequence_Mixin is
       if Name /= "" then
          New_Token.Name := new String'(Name);
       end if;
-      if Action /= null then
-         New_Token.Action := Action;
+      if Build /= null then
+         New_Token.Build := Build;
       end if;
       return New_Token;
    end New_Instance;
+
+   function Copy (Token : in Handle) return Handle
+   is begin
+      return Token;
+   end Copy;
 
    procedure Set_Name (Token : in out Instance; Name : in String)
    is begin

@@ -96,7 +96,9 @@ package body OpenToken.Token.Selection_Mixin is
 
       if Actively then
          Parse (Token_Handle (I), Analyzer, Actively);
-         Match.Build (Match.all, Component_Token'Class (Token_Handle (I).all));
+         if Match.Build /= null then
+            Match.Build (Match.all, Component_Token'Class (Token_Handle (I).all));
+         end if;
       end if;
 
       if Trace_Parse then
@@ -174,6 +176,12 @@ package body OpenToken.Token.Selection_Mixin is
       return New_Instance (Selection, Build => Build);
    end "+";
 
+   function "and" (Selection : in Handle; Name : in String) return Handle
+   is begin
+      Set_Name (Selection.all, Name);
+      return Selection;
+   end "and";
+
    function New_Instance
      (Old_Instance : in Instance;
       Name         : in String   := "";
@@ -190,6 +198,11 @@ package body OpenToken.Token.Selection_Mixin is
       end if;
       return New_Token;
    end New_Instance;
+
+   function Copy (Token : in Handle) return Handle
+   is begin
+      return Token;
+   end Copy;
 
    procedure Set_Name (Token : in out Instance; Name : in String)
    is begin

@@ -65,11 +65,29 @@ package OpenToken.Token.Selection_Mixin is
    --  derived type Handle (Ada is annoying in this case!). However,
    --  they are immediately converted to OpenToken.Token.Handle in the
    --  body, so they must have library accessibility level.
-   ---------------------------------------------------------------------
+   --
+   --  We rename each "or" as "/", because "/" has higher precedence
+   --  than "+", while "or" has lower. Thus when specifying a build
+   --  action, we can use either:
+   --
+   --     E := (A or B) + Build'Access;
+   --     E := A / B + Build'Access;
+   --
+   --  "/" is close to "|", the selection operator in Backus-Naur
+   --  form, but "or" is closer in English meaning.
+   --
+   --  GNAT warns about the odd renaming, so we suppress that warning.
+   -------------------------------------------------------------------
    function "or"
      (Left  : access Component_Token'Class;
       Right : access Component_Token'Class)
      return Instance;
+   pragma Warnings (Off);
+   function "/"
+     (Left  : access Component_Token'Class;
+      Right : access Component_Token'Class)
+     return Instance renames "or";
+   pragma Warnings (On);
 
    -------------------------------------------------------------------
    --  Create a token selection from a selection and a token handle.
@@ -79,10 +97,22 @@ package OpenToken.Token.Selection_Mixin is
      (Left  : access Component_Token'Class;
       Right : in     Instance)
      return Instance;
+   pragma Warnings (Off);
+   function "/"
+     (Left  : access Component_Token'Class;
+      Right : in     Instance)
+     return Instance renames "or";
+   pragma Warnings (On);
    function "or"
      (Left  : in     Instance;
       Right : access Component_Token'Class)
      return Instance;
+   pragma Warnings (Off);
+   function "/"
+     (Left  : in     Instance;
+      Right : access Component_Token'Class)
+     return Instance renames "or";
+   pragma Warnings (On);
 
    -----------------------------------------------------------------
    --  Create a token selection from a pair of selections. The
@@ -92,6 +122,12 @@ package OpenToken.Token.Selection_Mixin is
      (Left  : in Instance;
       Right : in Instance)
      return Instance;
+   pragma Warnings (Off);
+   function "/"
+     (Left  : in Instance;
+      Right : in Instance)
+     return Instance renames "or";
+   pragma Warnings (On);
 
    ----------------------------------------------------------------------
    --  Add a Build action to the instance
@@ -99,7 +135,12 @@ package OpenToken.Token.Selection_Mixin is
    function "+"
      (Selection : in Instance;
       Build     : in Action)
-     return Instance;
+     return Handle;
+
+   ----------------------------------------------------------------------
+   --  Set the name
+   ----------------------------------------------------------------------
+   function "and" (Selection : in Handle; Name : in String) return Handle;
 
    ----------------------------------------------------------------------------
    --  Return a newly allocated instance which is a copy of the given
@@ -110,6 +151,14 @@ package OpenToken.Token.Selection_Mixin is
       Name         : in String   := "";
       Build        : in Action   := null)
      return Handle;
+
+   --------------------------------------------------------------------
+   --  Allow dereferencing an expression that returns Handle; needed
+   --  when resolving recursion. Just returns Token.
+   --
+   --  For example : L.all := Copy (A & B + Build'Access).all;
+   --------------------------------------------------------------------
+   function Copy (Token : in Handle) return Handle;
 
    --------------------------------------------------------------------
    --  Set the name of Token; useful when it is created with "or"

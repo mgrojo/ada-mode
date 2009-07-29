@@ -28,44 +28,20 @@ with Ada.Text_IO; use Ada.Text_IO;
 procedure ASU_Example_5_10_RD_No_Mixin.Run is
    Input_String : constant String := "10 + 5 * 6";
 
+   use Integer_Sequence;
+   use Integer_Selection;
 begin
-   --  If we implement the grammar literally, the parser enters an
-   --  infinite loop; see asu_example_5_10_rd_no_mixin-run_bad.adb.
-   --
-   --  The problem is that the first element of a production is the
-   --  same as the result of the production.
-   --
-   --  So we rearrange the grammar to avoid this. Note that this
-   --  rearrangement is not the same given in [1] section 2.5; that
-   --  would require the action Build to be called in the middle of
-   --  parsing a sequence, rather than at the end of the sequence.
-   --
-   --  Instead, we take advantage of the commutivity of + and *.
-   --
-   --  L -> E         print (L.val)
-   --  E -> T + E     E.val := E1.val + T.val
-   --  E -> T
-   --  T -> F * T     T.val := T1.val * F.val
-   --  T -> F
-   --  F -> ( E )     F.val := E.val
-   --  F -> digit
-   --
-   --  However, this grammar requires 2 lookaheads; it needs to see
-   --  the + or * of the sequences for E and T. If we had used the
-   --  rearrangement from [1] 2.5, it would only need 1 lookahead.
 
-   Sequence.Default_Lookahead := 2;
+   OpenToken.Token.Default_Lookahead := 2;
 
-   L.all := E & EOF;
+   L.all := Copy (E & EOF + Build_Print'Access).all;
 
-   E.all := New_Expression_Instance ("T + E", T & Plus & E) or T;
-   E.Name := new String'("E");
+   E.all := Copy ((T & Plus & E + Build_Plus'Access and "T + T") / T + Build_Selection'Access and "E").all;
 
-   T.all := New_Expression_Instance ("F * T", F & Times & T) or F;
-   T.Name := new String'("T");
+   T.all := Copy ((F & Times & T + Build_Multiply'Access and "F * F") / F + Build_Selection'Access and "T").all;
 
-   F.all := New_Expression_Instance ("( E )", Left_Paren & E & Right_Paren) or Int_Literal;
-   F.Name := new String'("F");
+   F.all :=
+     Copy ((Left_Paren & E & Right_Paren + Build_Parens'Access and "( E )") / Int + Build_Selection'Access and "F").all;
 
    Put_Line ("Input_String => " & Input_String);
 
@@ -76,7 +52,12 @@ begin
    Tokenizer.Find_Next (Analyzer);
 
    OpenToken.Token.Trace_Parse := True;
-   Parse (L, Analyzer);
+   Integer_Sequence.Parse (L, Analyzer);
+
+   if L.Value /= 40 then
+      Ada.Text_IO.Put_Line ("ERROR: expecting 40");
+      Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
+   end if;
 
 exception
 when Ada.Text_IO.End_Error =>

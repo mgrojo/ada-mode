@@ -145,13 +145,13 @@ package OpenToken.Token is
    ----------------------------------------------------------------------
    Trace_Parse : Boolean := False;
 
+   --  Put Message, indented by 3 * Trace_Indent; no new_line
+   procedure Trace_Put (Message : in String);
+
 private
    type Instance is abstract tagged null record;
    type Source   is abstract tagged null record;
 
    Trace_Indent : Integer := 0;
-
-   --  Put Message, indented by 3 * Trace_Indent; no new_line
-   procedure Trace_Put (Message : in String);
 
 end OpenToken.Token;

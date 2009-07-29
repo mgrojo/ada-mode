@@ -58,9 +58,10 @@ package OpenToken.Token.Enumerated is
    --  instantiation.
    type Recognizer_Handle is access all OpenToken.Recognizer.Class;
 
-   ----------------------------------------------------------------------------
-   --  Get a token with the given ID.
-   ----------------------------------------------------------------------------
+   --------------------------------------------------------------------------
+   --  Get a token with the given ID. Result is class-wide so derived
+   --  types don't have to override Get.
+   --------------------------------------------------------------------------
    function Get (ID : in Token_ID := Token_ID'First) return Instance'Class;
 
    ----------------------------------------------------------------------

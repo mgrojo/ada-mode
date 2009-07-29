@@ -47,7 +47,7 @@ package OpenToken.Token.Sequence_Mixin is
    --  entire sequence has been actively parsed. Using is the sequence
    --  of tokens.
    --------------------------------------------------------------------------
-   type Build is access procedure
+   type Action is access procedure
       (Match : in out Instance;
        Using : in     Token.Linked_List.Instance);
 
@@ -109,10 +109,12 @@ package OpenToken.Token.Sequence_Mixin is
    ----------------------------------------------------------------------
    --  Add a Build action to the instance
    ----------------------------------------------------------------------
-   function "+"
-     (Left  : in Instance;
-      Right : in Build)
-     return Instance;
+   function "+" (Sequence : in Instance; Build : in Action) return Handle;
+
+   ----------------------------------------------------------------------
+   --  Set the name
+   ----------------------------------------------------------------------
+   function "and" (Sequence : in Handle; Name : in String) return Handle;
 
    ----------------------------------------------------------------------------
    --  Return a newly allocated instance which is a copy of the given
@@ -122,8 +124,16 @@ package OpenToken.Token.Sequence_Mixin is
      (Old_Instance : in Instance;
       Name         : in String   := "";
       Lookahead    : in Integer  := Default_Lookahead;
-      Action       : in Build    := null)
+      Build        : in Action   := null)
      return Handle;
+
+   --------------------------------------------------------------------
+   --  Allow dereferencing an expression that returns Handle; needed
+   --  when resolving recursion. Just returns Token.
+   --
+   --  For example : L.all := Copy (A & B + Build'Access).all;
+   --------------------------------------------------------------------
+   function Copy (Token : in Handle) return Handle;
 
    --------------------------------------------------------------------
    --  Set the name of Token; useful when it is created with "or"
@@ -144,7 +154,7 @@ private
       Lookahead : Integer;
       Members   : Token.Linked_List.Instance;
       Name      : access String;
-      Action    : Build;
+      Build     : Action;
    end record;
 
 end OpenToken.Token.Sequence_Mixin;
