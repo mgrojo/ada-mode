@@ -1,18 +1,13 @@
-all: dirs tests examples library
+all: tests examples library
 
 library:
-	@gnatmake -Popentoken_lib
+	@gnatmake -p -Popentoken_lib
 
 install:
 	make -f Makefile.install install
 
 # ../../Test/test_one_harness.adb
 one : test_one_harness.run
-
-dirs :: lib
-
-lib:
-	@mkdir -p lib
 
 clean ::
 	@rm -rf lib/*
