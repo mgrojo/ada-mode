@@ -3,7 +3,7 @@ all: tests examples library
 library:
 	@gnatmake -p -Popentoken_lib
 
-install:
+install: library
 	make -f Makefile.install install
 
 # ../../Test/test_one_harness.adb

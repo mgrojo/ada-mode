@@ -9,7 +9,7 @@ I_INC	= $(prefix)/include/opentoken
 I_LIB	= $(prefix)/lib/opentoken
 I_GPR	= $(prefix)/lib/gnat
 
-install: lib lib/libopentoken$(arext)
+install:
 	$(RMDIR) $(I_INC)
 	$(RMDIR) $(I_LIB)
 	$(MKDIR) $(I_BIN)
@@ -22,12 +22,6 @@ install: lib lib/libopentoken$(arext)
 	$(CHMOD) a-w $(I_LIB)/libopentoken$(arext)
 	$(INSTALL_FILES) ../../*.ads ../../*.adb $(I_INC)
 	$(INSTALL_FILES) opentoken.gpr $(I_GPR)
-
-lib/libopentoken$(arext): force
-	$(GNATMAKE) -Popentoken_lib -XBLD=$(BLD) -XOPSYS=$(OPSYS)
-
-lib:
-	mkdir lib
 
 clean:
 	gnat clean -Pasis_bld
