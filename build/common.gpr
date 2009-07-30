@@ -42,6 +42,7 @@ project Common is
       Release_Switches :=
         ("-g",
          "-O2",
+         "-fPIC",
          "-gnat05",
          "-gnatfnoqQ",
          "-gnatwaeL",
