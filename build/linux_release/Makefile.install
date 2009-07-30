@@ -25,7 +25,3 @@ install:
 
 clean:
 	gnat clean -Pasis_bld
-
-force:
-
-# end of file
