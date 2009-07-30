@@ -1,9 +1,9 @@
 #host system
 host := $(shell gcc -dumpmachine)
 
-# Where Asis library should be installed
+# Where opentoken library should be installed
 # Default is into current GNAT directory
-INSTALL_DIR = $(dir $(shell which gnatls))..
+INSTALL_DIR ?= $(dir $(shell which gnatls))..
 prefix=$(INSTALL_DIR)
 
 # Asis specific directories

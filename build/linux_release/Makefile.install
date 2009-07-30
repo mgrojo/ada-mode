@@ -4,7 +4,6 @@ include Makefile.stub
 
 all: install
 
-I_BIN	= $(prefix)/bin
 I_INC	= $(prefix)/include/opentoken
 I_LIB	= $(prefix)/lib/opentoken
 I_GPR	= $(prefix)/lib/gnat
@@ -12,15 +11,16 @@ I_GPR	= $(prefix)/lib/gnat
 install:
 	$(RMDIR) $(I_INC)
 	$(RMDIR) $(I_LIB)
-	$(MKDIR) $(I_BIN)
 	$(MKDIR) $(I_INC)
 	$(MKDIR) $(I_LIB)
 	$(MKDIR) $(I_GPR)
 	$(INSTALL_FILES) lib/*.ali $(I_LIB)
 	$(CHMOD) a-w $(I_LIB)/*.ali
-	$(INSTALL_FILES) lib/libopentoken$(arext) $(I_LIB)
-	$(CHMOD) a-w $(I_LIB)/libopentoken$(arext)
-	$(INSTALL_FILES) ../../*.ads ../../*.adb $(I_INC)
+	$(INSTALL_FILES) lib/libopentoken* $(I_LIB)
+	$(CHMOD) 644 $(I_LIB)/libopentoken*
+	@cd $(I_LIB) && ln -sf libopentoken.so.* libopentoken.so
+	$(INSTALL_FILES) ../../*.ad[bs] $(I_INC)
+	$(INSTALL_FILES) ../../Language_Lexers/*.ad[bs] $(I_INC)
 	$(INSTALL_FILES) opentoken.gpr $(I_GPR)
 
 clean:
