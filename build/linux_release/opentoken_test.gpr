@@ -1,15 +1,14 @@
 --  For running OpenToken tests.
 with "aunit";
 with "../common";
+with "opentoken";
 project OpenToken_Test is
 
    for Source_Dirs use
-     ("../..",
-      "../../Examples/ASU_Example_3_6",
+     ("../../Examples/ASU_Example_3_6",
       "../../Examples/ASU_Example_4_46",
       "../../Examples/ASU_Example_5_10",
       "../../Examples/Language_Lexer_Examples",
-      "../../Language_Lexers",
       "../../Test");
 
    for Object_Dir use "obj";
@@ -17,9 +16,7 @@ project OpenToken_Test is
 
    package Compiler is
       for Default_Switches ("Ada") use
-        Common.Compiler.Release_Switches &
-        Common.Compiler.Style_Checks &
-        Common.Compiler'Default_Switches ("Ada");
+        OpenToken.Compiler'Default_Switches ("Ada");
 
    end Compiler;
 
