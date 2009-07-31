@@ -14,6 +14,19 @@ project Opentoken_Lib is
    for Library_Name use "opentoken";
    for Library_Dir use "lib";
    for Library_Kind use Common.Libtype;
+
+   --  Library_Version is not used when Library_Kind is "static"
    for Library_Version use "libopentoken.so." & Version;
+
+   package Compiler is
+      for Default_Switches ("Ada") use
+        ("-g",
+         "-O2",
+         "-gnat05",
+         "-gnatfnoqQ",
+         "-fstack-check",
+         "-FPIC");
+
+   end Compiler;
 
 end Opentoken_Lib;
