@@ -23,5 +23,4 @@ install:
 	$(INSTALL_FILES) ../../Language_Lexers/*.ad[bs] $(I_INC)
 	$(INSTALL_FILES) opentoken.gpr $(I_GPR)
 
-clean:
-	gnat clean -Pasis_bld
+# end of file

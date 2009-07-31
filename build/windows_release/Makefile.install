@@ -29,9 +29,6 @@ lib/libopentoken$(arext): force
 lib:
 	mkdir lib
 
-clean:
-	gnat clean -Pasis_bld
-
 force:
 
 # end of file

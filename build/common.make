@@ -15,14 +15,6 @@ VPATH += ../../Examples/ASU_Example_5_10
 VPATH += ../../Examples/Language_Lexer_Examples
 VPATH += ../../Language_Lexers
 
-dirs :: obj obj_tree
-
-obj:
-	mkdir -p obj
-
-obj_tree:
-	mkdir -p obj_tree
-
 tests : dirs
 
 tests : association_token_test-run.diff
@@ -106,7 +98,7 @@ source-clean ::
 	-find $(SOURCE_ROOT) -name ".#*" -print | xargs rm -v
 	-find $(SOURCE_ROOT) -name "*,t" -print | xargs rm -v
 
-%.exe : %.adb force; gnatmake -k -C -P$(GNAT_PROJECT) $(GNATMAKE_ARGS) $* $(GNATMAKE_POST_ARGS)
+%.exe : %.adb force; gnatmake -p -k -C -P$(GNAT_PROJECT) $(GNATMAKE_ARGS) $* $(GNATMAKE_POST_ARGS)
 
 %.out : %.exe ;	./$*.exe > $*.out 2>&1
 

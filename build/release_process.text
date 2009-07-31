@@ -5,7 +5,7 @@ sync with gds, ada-france
 (dvc-status ".")
 
 bump version, doc changes
-    ../opentoken.html
+    ../Docs/opentoken.html
         current version
         opentoken-*.tar.gz
 

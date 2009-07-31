@@ -1,6 +1,6 @@
 # common tasks; see subdirectories for Ada builds
 
-ZIP_VERSION := 3.1w
+ZIP_VERSION := 3.1a
 
 .PHONY : zip force
 

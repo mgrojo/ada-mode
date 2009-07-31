@@ -1,4 +1,4 @@
-all: dirs tests examples
+all: tests examples
 
 install:
 	make -f Makefile.install install
