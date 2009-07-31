@@ -71,7 +71,7 @@ publish:
 
 announce:
     comp.lang.ada
-    Reto Buerki (Debian maintainer) buerki@swiss-it.ch
+    Reto Buerki (Debian maintainer) reet@codelabs.ch
 
 Debian bugs updated by Reto or someone else
 
