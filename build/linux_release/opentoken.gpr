@@ -12,7 +12,7 @@ project OpenToken is
       for Default_Switches ("Ada") use
         Common.Compiler.Release_Switches &
         Common.Compiler.Style_Checks &
-        Common.Compiler'Default_Switches ("Ada");
+        Common.Compiler'Default_Switches ("Ada") & ("-fPIC");
    end Compiler;
 
 end OpenToken;

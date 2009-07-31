@@ -21,7 +21,10 @@ tree : force
 	gnatmake -P opentoken_tree.gpr
 
 clean ::
-	rm -f obj_tree/*
+	rm -f obj_tree/* lib/*
+
+distclean ::
+	rm -rf lib
 
 include ../common.make
 

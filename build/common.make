@@ -15,8 +15,6 @@ VPATH += ../../Examples/ASU_Example_5_10
 VPATH += ../../Examples/Language_Lexer_Examples
 VPATH += ../../Language_Lexers
 
-tests : dirs
-
 tests : association_token_test-run.diff
 tests : bracketed_comment_test-run.run
 tests : enumerated_token_list_test.run
