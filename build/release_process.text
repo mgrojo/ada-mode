@@ -31,6 +31,11 @@ loop until no changes:
         windows_release/Makefile
             distclean
             all
+            install
+
+        ../../webcheck/build/windows_release/Makefile
+            maintainer-clean
+            all BUILD=User
 
         (dvc-status ".")
 
@@ -43,6 +48,14 @@ loop until no changes:
         ; sal-standard uses GNAT GPL 2009; it provides an incompatible
         ; version of AUnit. Could put in a choice to use SAL AUnit,
         ; but it's not worth it.
+        ;
+        ; However, webcheck needs the GPL 2009 version installed
+
+        (sal-standard)
+        linux_release/Makefile
+            distclean
+            install
+
 
         (sal-debian)
         linux_release/Makefile
@@ -64,6 +77,7 @@ end loop
 
 Makefile
     zip
+    tag
 
 publish:
     ~/Web/Makefile
