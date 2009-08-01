@@ -28,8 +28,8 @@ with Ada.Text_IO; use Ada.Text_IO;
 procedure ASU_Example_5_10_RD_No_Mixin.Run is
    Input_String : constant String := "10 + 5 * 6";
 
-   use Integer_Sequence;
-   use Integer_Selection;
+   use OpenToken.Token.Sequence;
+   use OpenToken.Token.Selection;
 begin
 
    OpenToken.Token.Default_Lookahead := 2;
@@ -43,6 +43,8 @@ begin
    F.all :=
      Copy ((Left_Paren & E & Right_Paren + Build_Parens'Access and "( E )") / Int + Build_Selection'Access and "F").all;
 
+   Master_Token.Set_Build (Int.all, Build_Integer'Access);
+
    Put_Line ("Input_String => " & Input_String);
 
    OpenToken.Text_Feeder.String.Set (Feeder, "10 + 5 * 6");
@@ -51,13 +53,10 @@ begin
 
    Tokenizer.Find_Next (Analyzer);
 
-   OpenToken.Token.Trace_Parse := True;
-   Integer_Sequence.Parse (L, Analyzer);
+   Clear_Stack;
 
-   if L.Value /= 40 then
-      Ada.Text_IO.Put_Line ("ERROR: expecting 40");
-      Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
-   end if;
+   OpenToken.Token.Trace_Parse := True;
+   OpenToken.Token.Sequence.Parse (L, Analyzer);
 
 exception
 when Ada.Text_IO.End_Error =>

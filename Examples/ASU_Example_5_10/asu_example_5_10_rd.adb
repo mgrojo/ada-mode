@@ -31,6 +31,12 @@ package body ASU_Example_5_10_RD is
      (Match : in out Integer_Selection.Instance;
       From  : in     Integer_Token.Class)
    is begin
+      if OpenToken.Token.Trace_Parse then
+         OpenToken.Token.Trace_Put
+           ("Build_Selection:" & Integer'Image (Match.Value) & " =>" & Integer'Image (From.Value));
+         Ada.Text_IO.New_Line;
+      end if;
+
       Match.Value := From.Value;
    end Build_Selection;
 
@@ -43,6 +49,11 @@ package body ASU_Example_5_10_RD is
    begin
       Next_Token (Iterator); -- E
       Match.Value := Integer_Token.Handle (Token_Handle (Iterator)).Value;
+
+      if OpenToken.Token.Trace_Parse then
+         OpenToken.Token.Trace_Put ("Build_Parens:" & Integer'Image (Match.Value));
+         Ada.Text_IO.New_Line;
+      end if;
    end Build_Parens;
 
    procedure Build_Print
@@ -58,6 +69,10 @@ package body ASU_Example_5_10_RD is
 
    procedure Init_Plus (Match : in out Operation_List.Instance)
    is begin
+      if OpenToken.Token.Trace_Parse then
+         OpenToken.Token.Trace_Put ("Init_Plus:" & Integer'Image (Match.Value) & " => 0");
+         Ada.Text_IO.New_Line;
+      end if;
       Match.Value := 0;
    end Init_Plus;
 
@@ -65,19 +80,43 @@ package body ASU_Example_5_10_RD is
      (Match   : in out Operation_List.Instance;
       Element : in     Integer_Token.Class)
    is begin
+      if OpenToken.Token.Trace_Parse then
+         OpenToken.Token.Trace_Put
+           ("Plus_Element:" & Integer'Image (Match.Value) & " +" &
+              Integer'Image (Element.Value) & " =>");
+      end if;
+
       Match.Value := Match.Value + Element.Value;
+
+      if OpenToken.Token.Trace_Parse then
+         Ada.Text_IO.Put_Line (Integer'Image (Match.Value));
+      end if;
    end Plus_Element;
 
    procedure Init_Multiply (Match : in out Operation_List.Instance)
    is begin
       Match.Value := 1;
+      if OpenToken.Token.Trace_Parse then
+         OpenToken.Token.Trace_Put ("Init_Multiply:" & Integer'Image (Match.Value) & " => 1");
+         Ada.Text_IO.New_Line;
+      end if;
    end Init_Multiply;
 
    procedure Multiply_Element
      (Match   : in out Operation_List.Instance;
       Element : in     Integer_Token.Class)
    is begin
+      if OpenToken.Token.Trace_Parse then
+         OpenToken.Token.Trace_Put
+           ("Multiply_Element:" & Integer'Image (Match.Value) & " *" &
+              Integer'Image (Element.Value) & " =>");
+      end if;
+
       Match.Value := Match.Value * Element.Value;
+
+      if OpenToken.Token.Trace_Parse then
+         Ada.Text_IO.Put_Line (Integer'Image (Match.Value));
+      end if;
    end Multiply_Element;
 
 end ASU_Example_5_10_RD;

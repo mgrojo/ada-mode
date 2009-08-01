@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2002, 2003, 2009 Stephen Leake
+-- Copyright (C) 2002, 2009 Stephen Leake
 --
 -- This file is part of the OpenToken package.
 --
@@ -22,44 +22,32 @@
 --  exception does not however invalidate any other reasons why the
 --  executable file might be covered by the GNU Public License.
 
--------------------------------------------------------------------------------
---  This package declares a type for designating a real literal.
--------------------------------------------------------------------------------
-generic
-   type Real_Type is digits <>;
-package OpenToken.Token.Enumerated.Real_Literal is
+package body OpenToken.Token.Enumerated.Real is
 
-   type Instance is new OpenToken.Token.Enumerated.Instance with private;
-
-   subtype Class is Instance'Class;
-
-   type Handle is access all Class;
-
-   ----------------------------------------------------------------------------
-   --  Get a real literal token with the given ID and value.
-   ----------------------------------------------------------------------------
    function Get
-     (ID     : in Token_ID;
-      Value  : in Real_Type := 0.0)
-     return Instance'Class;
+     (ID    : in Token_ID;
+      Value : in Real_Type := 0.0;
+      Build : in Action    := null)
+     return Instance'Class
+   is begin
+      return Instance'Class (Instance'(ID, Build, Value));
+   end Get;
 
    overriding procedure Create
      (Lexeme     : in     String;
       Recognizer : in     Recognizer_Handle;
-      New_Token  : in out Instance);
+      New_Token  : in out Instance)
+   is
+      pragma Unreferenced (Recognizer);
+   begin
+      New_Token.Value := Real_Type'Value (Lexeme);
+   end Create;
 
    overriding procedure Copy
      (To   : in out Instance;
-      From : in     Token.Class);
+      From : in     Token.Class)
+   is begin
+      To.Value := Instance (From).Value;
+   end Copy;
 
-   ----------------------------------------------------------------------------
-   --  Return the value of the given token.
-   ----------------------------------------------------------------------------
-   function Value (Subject : in Instance) return Real_Type;
-
-private
-   type Instance is new OpenToken.Token.Enumerated.Instance with record
-      Value : Real_Type;
-   end record;
-
-end OpenToken.Token.Enumerated.Real_Literal;
+end OpenToken.Token.Enumerated.Real;

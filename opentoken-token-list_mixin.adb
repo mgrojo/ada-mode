@@ -149,8 +149,9 @@ package body OpenToken.Token.List_Mixin is
       Analyzer : in out Source_Class;
       Actively : in     Boolean      := True)
    is
-      --  Since this routine can be called recursively, we have to
-      --  keep the working copy on the stack.
+      --  Since this routine can be called recursively, we keep the
+      --  working copy on the stack. This provides the operand stack
+      --  for the actions.
       Local_Match : Instance := Match.all;
    begin
       if Trace_Parse then

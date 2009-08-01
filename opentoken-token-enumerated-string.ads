@@ -24,27 +24,32 @@
 --
 
 -------------------------------------------------------------------------------
---  This package declares a type for designating a string literal.
+--  This package declares a type for designating a string. Useful as
+--  a literal in LR parsers, or an integer value in recursive descent
+--  parsers.
 -------------------------------------------------------------------------------
 generic
-package OpenToken.Token.Enumerated.String_Literal is
+package OpenToken.Token.Enumerated.String is
 
-   type Instance is new OpenToken.Token.Enumerated.Instance with private;
+   type Instance is new OpenToken.Token.Enumerated.Instance with record
+      Value : Buffers.Bounded_String;
+   end record;
 
    subtype Class is Instance'Class;
 
    type Handle is access all Class;
 
    ----------------------------------------------------------------------------
-   --  Get a string literal token with the given ID and value.
+   --  Get a string token.
    ----------------------------------------------------------------------------
    function Get
-     (ID     : in Token_ID;
-      Value  : in String := "")
+     (ID    : in Token_ID;
+      Value : in Standard.String := "";
+      Build : in Action          := null)
      return Instance'Class;
 
    overriding procedure Create
-     (Lexeme     : in     String;
+     (Lexeme     : in     Standard.String;
       Recognizer : in     Recognizer_Handle;
       New_Token  : in out Instance);
 
@@ -52,14 +57,10 @@ package OpenToken.Token.Enumerated.String_Literal is
      (To   : in out Instance;
       From : in     Token.Class);
 
-   ----------------------------------------------------------------------------
-   --  Return the value of the given token, with quotes removed (assumes Ada syntax).
-   ----------------------------------------------------------------------------
-   function Value (Subject : in Instance) return String;
+   --------------------------------------------------------------------------
+   --  Return the value of the given token, with quotes removed
+   --  (assumes Ada syntax).
+   --------------------------------------------------------------------------
+   function Unquote (Subject : in Instance) return Standard.String;
 
-private
-   type Instance is new OpenToken.Token.Enumerated.Instance with record
-      Value : Buffers.Bounded_String;
-   end record;
-
-end OpenToken.Token.Enumerated.String_Literal;
+end OpenToken.Token.Enumerated.String;

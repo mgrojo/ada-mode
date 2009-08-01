@@ -25,12 +25,16 @@
 
 package body OpenToken.Token.Enumerated.Identifier is
 
-   function Get (ID : in Token_ID) return Instance'Class
+   function Get
+     (ID    : in Token_ID;
+      Build : in Action := null)
+     return Instance'Class
    is begin
       return Instance'Class
         (Instance'
            (Token.Instance with
             ID         => ID,
+            Build      => Build,
             Identifier => OpenToken.Buffers.Null_Bounded_String));
 
    end Get;

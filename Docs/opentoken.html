@@ -178,6 +178,12 @@ verify that the HTML lexer handles valid HTML 4.01.
         <li>There are new examples of recursive descent parsing,
             showing that naive grammars can work, if inefficiently.
 
+        <li>OpenToken.Token.Enumerated.Integer_Literal, .Real_Literal,
+        and .String_Literal are renamed to .Integer, .Real, and
+        .String, and the Value component made publicly visible. This
+        allows them to be used as valued tokens in recursive descent
+        parsers.
+
       </ul>
 
   <li>other bugs fixed
@@ -454,6 +460,6 @@ agree. Bravo!
 <img src="../images/emacs.png" alt="Created with Emacs" width="100" height="30"></a>
 <a href="http://www.adaic.org/">
 <img src="../images/adapowered2.png" alt="powered by Ada" width="200" height="50"></a>
-<!-- hhmts start --> Last modified: Tue Jul 28 20:28:35 -0400 2009 <!-- hhmts end -->
+<!-- hhmts start --> Last modified: Fri Jul 31 01:38:39 -0400 2009 <!-- hhmts end -->
 </body>
 </html>

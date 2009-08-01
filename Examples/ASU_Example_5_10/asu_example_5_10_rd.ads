@@ -91,15 +91,21 @@ package ASU_Example_5_10_RD is
    --  http://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_Form):
    --
    --  L -> E  EOF      print (L.val)
-   --  E -> T {+ T}     E.val := T1.val + T2.val ...
-   --  T -> F {* F}     T.val := F1.val * F2.val ...
+   --  E -> T {+ T}     + action: E.val := E.val + T.val
+   --  T -> F {* F}     * action: T.val := T.val * F.val
    --  F -> ( E )       F.val := E.val
    --  F -> integer
    --
-   --  The List token implements {}.
+   --  E is initialized to 0, F to 1.
    --
-   --  This grammar enforces operator precedence. Because the only
-   --  recursion is in F -> ( E ), each production can be evaluated as
+   --  The List token implements {}. It keeps a local copy of the
+   --  result token on the CPU stack; that implements an operand
+   --  stack.
+   --
+   --  This grammar enforces operator precedence. The only operations
+   --  are in List tokens, and the only recursion is in the
+   --  parentheses. The List token provides an operand stack that
+   --  handles the parentheses, so each operation can be evaluated as
    --  soon as it is parsed, eliminating the need for a separate stack
    --  of operands.
 

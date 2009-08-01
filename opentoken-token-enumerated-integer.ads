@@ -30,6 +30,7 @@
 --  a literal in LR parsers, or an integer value in recursive descent
 --  parsers.
 -----------------------------------------------------------------------------
+
 generic
 package OpenToken.Token.Enumerated.Integer is
 
@@ -42,11 +43,12 @@ package OpenToken.Token.Enumerated.Integer is
    type Handle is access all Class;
 
    ----------------------------------------------------------------------------
-   --  Get an integer token with the given ID and value.
+   --  Get an integer token
    ----------------------------------------------------------------------------
    function Get
-     (ID     : in Token_ID;
-      Value  : in Standard.Integer := 0)
+     (ID    : in Token_ID;
+      Value : in Standard.Integer := 0;
+      Build : in Action           := null)
      return Instance'Class;
 
    overriding procedure Create

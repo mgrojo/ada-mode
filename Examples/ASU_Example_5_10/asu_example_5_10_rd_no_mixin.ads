@@ -39,8 +39,8 @@ with OpenToken.Text_Feeder.String;
 with OpenToken.Token.Enumerated.Analyzer;
 with OpenToken.Token.Enumerated.Integer;
 with OpenToken.Token.Linked_List;
-with OpenToken.Token.Selection_Mixin;
-with OpenToken.Token.Sequence_Mixin;
+with OpenToken.Token.Selection;
+with OpenToken.Token.Sequence;
 package ASU_Example_5_10_RD_No_Mixin is
 
    --  The complete list of tokens. No non-terminals in recursive descent.
@@ -89,7 +89,9 @@ package ASU_Example_5_10_RD_No_Mixin is
    --  the commutivity of + and *.
    --
    --  This grammar enforces operator precedence, but because of the
-   --  multiple recursion, requires a separate stack of operands.
+   --  multiple recursion, it requires a separate stack of operands.
+   --  The sequence and selection tokens cannot provide the stack for
+   --  us.
    --
    --  L -> E         print (pop)
    --  E -> T + E     push (pop + pop)
@@ -102,34 +104,28 @@ package ASU_Example_5_10_RD_No_Mixin is
    --  This grammar requires 2 lookaheads; it needs to see
    --  the + or * of the sequences for E and T.
 
-   --  Create a custom selection token which has integers for
-   --  components and returns an integer with the value of the
-   --  selected component from a parse; used for F -> ( E ) | digit.
-   package Integer_Selection is new OpenToken.Token.Selection_Mixin
-     (Parent_Token    => Integer_Token.Instance,
-      Component_Token => Integer_Token.Instance);
-   procedure Build_Selection
-     (Match : in out Integer_Selection.Instance;
-      From  : in     Integer_Token.Class);
+   --  Since we are providing our own operand stack, we can use the
+   --  root Selection and Sequence token types. Here we declare the
+   --  actions we need.
 
-   --  A token type for a sequence of tokens; used for:
-   --  E EOF
-   --  E + T
-   --  T * F
-   --  ( E )
-   package Integer_Sequence is new OpenToken.Token.Sequence_Mixin (Integer_Token.Instance);
+   procedure Clear_Stack;
+
+   procedure Build_Selection
+     (Match : in out OpenToken.Token.Selection.Instance;
+      From  : in     OpenToken.Token.Class);
    procedure Build_Print
-     (Match : in out Integer_Sequence.Instance;
+     (Match : in out OpenToken.Token.Sequence.Instance;
       Using : in     OpenToken.Token.Linked_List.Instance);
    procedure Build_Plus
-     (Match : in out Integer_Sequence.Instance;
+     (Match : in out OpenToken.Token.Sequence.Instance;
       Using : in     OpenToken.Token.Linked_List.Instance);
    procedure Build_Multiply
-     (Match : in out Integer_Sequence.Instance;
+     (Match : in out OpenToken.Token.Sequence.Instance;
       Using : in     OpenToken.Token.Linked_List.Instance);
    procedure Build_Parens
-     (Match : in out Integer_Sequence.Instance;
+     (Match : in out OpenToken.Token.Sequence.Instance;
       Using : in     OpenToken.Token.Linked_List.Instance);
+   procedure Build_Integer (Token : in out Master_Token.Instance'Class);
 
    --  Define all our tokens
    --  ...terminals
@@ -142,9 +138,9 @@ package ASU_Example_5_10_RD_No_Mixin is
 
    --  ...and nonterminals. Since we have lots of recursion, we do
    --  them all in the body.
-   L : constant Integer_Sequence.Handle  := new Integer_Sequence.Instance;
-   E : constant Integer_Selection.Handle := new Integer_Selection.Instance;
-   T : constant Integer_Selection.Handle := new Integer_Selection.Instance;
-   F : constant Integer_Selection.Handle := new Integer_Selection.Instance;
+   L : constant OpenToken.Token.Sequence.Handle  := new OpenToken.Token.Sequence.Instance;
+   E : constant OpenToken.Token.Selection.Handle := new OpenToken.Token.Selection.Instance;
+   T : constant OpenToken.Token.Selection.Handle := new OpenToken.Token.Selection.Instance;
+   F : constant OpenToken.Token.Selection.Handle := new OpenToken.Token.Selection.Instance;
 
 end ASU_Example_5_10_RD_No_Mixin;

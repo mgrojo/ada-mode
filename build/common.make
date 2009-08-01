@@ -33,7 +33,6 @@ tests : production_test-run.run
 tests : recognizer_based_integer_test.run
 tests : recognizer_integer_test.run
 tests : string_test-run.run
-tests : string_token_test-run.diff
 tests : test_all_harness.diff
 tests : test_html_lexer_safe.diff
 tests : test_html_lexer_safe-syntax_error.diff

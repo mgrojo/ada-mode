@@ -28,11 +28,12 @@
 package body OpenToken.Token.Enumerated.Integer is
 
    function Get
-     (ID     : in Token_ID;
-      Value  : in Standard.Integer := 0)
+     (ID    : in Token_ID;
+      Value : in Standard.Integer := 0;
+      Build : in Action           := null)
      return Instance'Class
    is begin
-      return Instance'Class (Instance'(ID => ID, Value => Value));
+      return Instance'Class (Instance'(ID, Build, Value));
    end Get;
 
    overriding procedure Create

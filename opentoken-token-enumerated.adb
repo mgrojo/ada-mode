@@ -29,10 +29,18 @@ with Ada.Tags;
 with Ada.Text_IO;
 package body OpenToken.Token.Enumerated is
 
-   function Get (ID : in Token_ID := Token_ID'First) return Instance'Class
+   function Get
+     (ID    : in Token_ID := Token_ID'First;
+      Build : in Action   := null)
+     return Instance'Class
    is begin
-      return Instance'Class (Instance'(ID => ID));
+      return Instance'Class (Instance'(ID, Build));
    end Get;
+
+   procedure Set_Build (Token : in out Instance'Class; Build : in Action)
+   is begin
+      Token.Build := Build;
+   end Set_Build;
 
    function ID (Token : in Instance'Class) return Token_ID is
    begin
@@ -88,6 +96,9 @@ package body OpenToken.Token.Enumerated is
          if Actively then
             if Next_Token'Tag = Class (Match.all)'Tag then
                Copy (To => Class (Match.all), From => Next_Token);
+               if Match.Build /= null then
+                  Match.Build (Match.all);
+               end if;
             else
                --  It is the parser programmer's job to ensure these types match.
                raise Programmer_Error with

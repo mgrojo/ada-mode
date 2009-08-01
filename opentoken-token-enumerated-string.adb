@@ -22,21 +22,21 @@
 --  executable to be covered by the GNU General Public License. This
 --  exception does not however invalidate any other reasons why the
 --  executable file might be covered by the GNU Public License.
---
---  Maintainer: Stephen Leake (stephen.leake@gsfc.nasa.gov)
---
 -------------------------------------------------------------------------------
 
-package body OpenToken.Token.Enumerated.String_Literal is
+package body OpenToken.Token.Enumerated.String is
 
-   function Get (ID     : in Token_ID;
-                 Value  : in String := "") return Instance'Class is
-   begin
-      return Instance'Class (Instance'(ID => ID, Value => Buffers.To_Bounded_String (Value)));
+   function Get
+     (ID    : in Token_ID;
+      Value : in Standard.String := "";
+      Build : in Action          := null)
+     return Instance'Class
+   is begin
+      return Instance'Class (Instance'(ID, Build, Buffers.To_Bounded_String (Value)));
    end Get;
 
    overriding procedure Create
-     (Lexeme     : in     String;
+     (Lexeme     : in     Standard.String;
       Recognizer : in     Recognizer_Handle;
       New_Token  : in out Instance)
    is
@@ -52,11 +52,11 @@ package body OpenToken.Token.Enumerated.String_Literal is
       To.Value := Instance (From).Value;
    end Copy;
 
-   function Value (Subject : in Instance) return String
+   function Unquote (Subject : in Instance) return Standard.String
    is
       use Buffers;
       Value_Next  : Natural := 1;
-      Result      : String (1 .. Length (Subject.Value));
+      Result      : Standard.String (1 .. Length (Subject.Value));
       Result_Last : Natural := Result'First - 1;
       C           : Character;
    begin
@@ -78,6 +78,6 @@ package body OpenToken.Token.Enumerated.String_Literal is
       end loop;
 
       return Result (1 .. Result_Last);
-   end Value;
+   end Unquote;
 
-end OpenToken.Token.Enumerated.String_Literal;
+end OpenToken.Token.Enumerated.String;

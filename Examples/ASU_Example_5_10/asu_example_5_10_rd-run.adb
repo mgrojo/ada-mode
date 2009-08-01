@@ -44,7 +44,7 @@ begin
       Separator   => Plus,
       Initialize  => Init_Plus'Access,
       Add_Element => Plus_Element'Access,
-      Name        => "T {+ T}");
+      Name        => "E");
 
    Ada.Text_IO.Put_Line ("A simple calculator, as specified in example 5.10 in Aho, Sethi, and Ullman's");
    Ada.Text_IO.Put_Line ("""Compilers Principles, Techniques and Tools""");
@@ -54,9 +54,9 @@ begin
 
    --  Set debugging info
    Integer_Sequence.Set_Name (L.all, "L");
-   Integer_Sequence.Set_Name (F1.all, "( E )");
+   Integer_Sequence.Set_Name (F1.all, "F1");
    Integer_Selection.Set_Name (F.all, "F");
-   Operation_List.Set_Name (T.all, "F {* F}");
+   Operation_List.Set_Name (T.all, "T");
    OpenToken.Token.Trace_Parse := True;
 
    --  Read and parse lines from Current_Input until an empty line is read.
@@ -64,6 +64,17 @@ begin
       Ada.Text_IO.Get_Line (Line, Line_Length);
 
       exit when Line_Length = 0;
+
+      if OpenToken.Token.Trace_Parse then
+         Ada.Text_IO.Put_Line (Line (1 .. Line_Length));
+
+         --  reset initial state of tokens, to help interpret the trace
+         L.Value  := -1;
+         F1.Value := -1;
+         F.Value  := -1;
+         T.Value  := -1;
+         E.Value  := -1;
+      end if;
 
       OpenToken.Text_Feeder.String.Set
         (Feeder => Feeder,

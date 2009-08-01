@@ -24,113 +24,153 @@
 --  executable file might be covered by the GNU Public License.
 -------------------------------------------------------------------------------
 
+with Ada.Strings.Unbounded;
 with Ada.Text_IO;
+with Gen_Stacks_Bounded;
 package body ASU_Example_5_10_RD_No_Mixin is
 
-   procedure Build_Selection
-     (Match : in out Integer_Selection.Instance;
-      From  : in     Integer_Token.Class)
+   package Integer_Stacks is new Gen_Stacks_Bounded
+     (Item_Type => Integer,
+      Null_Item => -1);
+
+   Stack : Integer_Stacks.Stack_Type (100);
+
+   function Image (Stack : in Integer_Stacks.Stack_Type) return String
+   is
+      use Ada.Strings.Unbounded;
+      use Integer_Stacks;
+      Result : Unbounded_String;
+   begin
+      for I in 1 .. Depth (Stack) loop
+         Result := Result & Integer'Image (Peek (Stack, I));
+         if I /= Depth (Stack) then
+            Result := Result & ", ";
+         end if;
+      end loop;
+      return To_String (Result);
+   end Image;
+
+   procedure Clear_Stack
    is begin
-      Match.Value := From.Value;
+      Integer_Stacks.Clear (Stack);
+   end Clear_Stack;
+
+   procedure Build_Selection
+     (Match : in out OpenToken.Token.Selection.Instance;
+      From  : in     OpenToken.Token.Class)
+   is
+      pragma Unreferenced (From);
+      pragma Unreferenced (Match);
+      use Integer_Stacks;
+   begin
+      --  No stack operations; just trace
 
       if OpenToken.Token.Trace_Parse then
-         OpenToken.Token.Trace_Put ("Build_Selection:" & Integer'Image (Match.Value));
+         OpenToken.Token.Trace_Put
+           ("Build_Selection:" & Integer'Image (Top (Stack)));
          Ada.Text_IO.New_Line;
       end if;
    end Build_Selection;
 
    procedure Build_Print
-     (Match : in out Integer_Sequence.Instance;
+     (Match : in out OpenToken.Token.Sequence.Instance;
       Using : in     OpenToken.Token.Linked_List.Instance)
    is
+      pragma Unreferenced (Using);
       pragma Unreferenced (Match);
-      use OpenToken.Token.Linked_List;
-      I          : constant List_Iterator := First (Using); -- E
-      Left_Token : Integer_Selection.Instance renames Integer_Selection.Instance (Token_Handle (I).all);
+      use Integer_Stacks;
    begin
-      Ada.Text_IO.Put_Line (Integer'Image (Left_Token.Value));
+      Ada.Text_IO.Put_Line (Integer'Image (Top (Stack)));
+      Pop (Stack);
+
+      if OpenToken.Token.Trace_Parse then
+         OpenToken.Token.Trace_Put ("Stack: " & Image (Stack));
+         Ada.Text_IO.New_Line;
+      end if;
    end Build_Print;
 
    procedure Build_Plus
-     (Match : in out Integer_Sequence.Instance;
+     (Match : in out OpenToken.Token.Sequence.Instance;
       Using : in     OpenToken.Token.Linked_List.Instance)
    is
-      use OpenToken.Token.Linked_List;
-
-      I    : List_Iterator          := First (Using);
-      Left : constant List_Iterator := I;
+      pragma Unreferenced (Using);
+      pragma Unreferenced (Match);
+      use Integer_Stacks;
+      Left   : constant Integer := Top (Stack);
+      Right  : Integer;
+      Result : Integer;
    begin
-      Next_Token (I); -- +
-      Next_Token (I); -- T
+      Pop (Stack);
+      Right := Top (Stack);
+      Pop (Stack);
 
-      declare
-         Left_Token  : Integer_Selection.Instance renames Integer_Selection.Instance (Token_Handle (Left).all);
-         Right_Token : Integer_Selection.Instance renames Integer_Selection.Instance (Token_Handle (I).all);
-      begin
-         Match.Value := Left_Token.Value + Right_Token.Value;
+      Result := Left + Right;
 
-         if OpenToken.Token.Trace_Parse then
-            OpenToken.Token.Trace_Put
-              ("Build_Plus:" & Integer'Image (Left_Token.Value) & " +" &
-                 Integer'Image (Right_Token.Value) & " =>" & Integer'Image (Match.Value));
-         end if;
-      end;
+      Push (Stack, Result);
+
+      if OpenToken.Token.Trace_Parse then
+         OpenToken.Token.Trace_Put
+           ("Build_Plus:" & Integer'Image (Left) & " +" & Integer'Image (Right) & " =>" & Integer'Image (Result));
+         Ada.Text_IO.New_Line;
+         OpenToken.Token.Trace_Put ("Stack: " & Image (Stack));
+         Ada.Text_IO.New_Line;
+      end if;
 
    end Build_Plus;
 
    procedure Build_Multiply
-     (Match : in out Integer_Sequence.Instance;
+     (Match : in out OpenToken.Token.Sequence.Instance;
       Using : in     OpenToken.Token.Linked_List.Instance)
    is
-      use OpenToken.Token.Linked_List;
-
-      I      : List_Iterator          := Initial_Iterator (Using); -- T
-      Left   : constant List_Iterator := I;
+      pragma Unreferenced (Using);
+      pragma Unreferenced (Match);
+      use Integer_Stacks;
+      Left   : constant Integer := Top (Stack);
+      Right  : Integer;
+      Result : Integer;
    begin
-      Next_Token (I); -- *
+      Pop (Stack);
+      Right := Top (Stack);
+      Pop (Stack);
 
-      if Master_Token.ID (Master_Token.Class (Token_Handle (I).all)) /= Multiply_ID then
-         raise OpenToken.Programmer_Error;
+      Result := Left * Right;
+
+      Push (Stack, Result);
+
+      if OpenToken.Token.Trace_Parse then
+         OpenToken.Token.Trace_Put
+           ("Build_Multiply:" & Integer'Image (Left) & " *" & Integer'Image (Right) & " =>" & Integer'Image (Result));
+         Ada.Text_IO.New_Line;
+         OpenToken.Token.Trace_Put ("Stack: " & Image (Stack));
+         Ada.Text_IO.New_Line;
       end if;
-
-      Next_Token (I); -- F
-
-      declare
-         Left_Token  : Integer_Selection.Instance renames Integer_Selection.Instance (Token_Handle (Left).all);
-         Right_Token : Integer_Selection.Instance renames Integer_Selection.Instance (Token_Handle (I).all);
-      begin
-         Match.Value := Left_Token.Value * Right_Token.Value;
-
-         if OpenToken.Token.Trace_Parse then
-            OpenToken.Token.Trace_Put
-              ("Build_Multiply:" & Integer'Image (Left_Token.Value) & " *" &
-                 Integer'Image (Right_Token.Value) & " =>" & Integer'Image (Match.Value));
-            Ada.Text_IO.New_Line;
-         end if;
-      end;
 
    end Build_Multiply;
 
    procedure Build_Parens
-     (Match : in out Integer_Sequence.Instance;
+     (Match : in out OpenToken.Token.Sequence.Instance;
       Using : in     OpenToken.Token.Linked_List.Instance)
    is
-      use OpenToken.Token.Linked_List;
-
-      I : List_Iterator := Initial_Iterator (Using); -- (
+      pragma Unreferenced (Using);
+      pragma Unreferenced (Match);
+      use Integer_Stacks;
    begin
-      Next_Token (I); -- E
-
-      declare
-         Middle_Token : Integer_Selection.Instance renames Integer_Selection.Instance (Token_Handle (I).all);
-      begin
-         Match.Value := Middle_Token.Value;
-      end;
-
+      --  No stack operations; just trace
       if OpenToken.Token.Trace_Parse then
-         OpenToken.Token.Trace_Put ("Build_Parens:" & Integer'Image (Match.Value));
+         OpenToken.Token.Trace_Put ("Build_Parens:" & Integer'Image (Top (Stack)));
          Ada.Text_IO.New_Line;
       end if;
    end Build_Parens;
+
+   procedure Build_Integer (Token : in out Master_Token.Instance'Class)
+   is
+      Int : Integer_Token.Instance renames Integer_Token.Instance (Token);
+   begin
+      Integer_Stacks.Push (Stack, Int.Value);
+      if OpenToken.Token.Trace_Parse then
+         OpenToken.Token.Trace_Put ("Stack: " & Image (Stack));
+         Ada.Text_IO.New_Line;
+      end if;
+   end Build_Integer;
 
 end ASU_Example_5_10_RD_No_Mixin;
