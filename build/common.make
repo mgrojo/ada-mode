@@ -81,9 +81,16 @@ test_java_lexer.run : test_java_lexer.exe
 test_m3_lexer.run : test_m3_lexer.exe
 	./test_m3_lexer.exe ../../Examples/Language_Lexer_Examples/something.java
 
+install: library
+	make -f Makefile.install install
+
+library:
+	gnatmake -p -Popentoken_lib
+
 clean :: test-clean
 	rm -f *.diff *.exe *.out *.txt
 	rm -f obj/*
+	rm -rf lib/*
 
 distclean :: clean
 	rm -rf obj obj_tree
@@ -96,7 +103,7 @@ source-clean ::
 	-find $(SOURCE_ROOT) -name ".#*" -print | xargs rm -v
 	-find $(SOURCE_ROOT) -name "*,t" -print | xargs rm -v
 
-%.exe : %.adb force; gnatmake -p -k -C -P$(GNAT_PROJECT) $(GNATMAKE_ARGS) $* $(GNATMAKE_POST_ARGS)
+%.exe : %.adb force; gnatmake -p -k -C -Popentoken_test.gpr $(GNATMAKE_ARGS) $* $(GNATMAKE_POST_ARGS)
 
 %.out : %.exe ;	./$*.exe > $*.out 2>&1
 

@@ -1,7 +1,6 @@
-all: tests examples
+# (ediff "../windows_release/Makefile" "../linux_release/Makefile")
 
-install:
-	make -f Makefile.install install
+all: tests examples library
 
 # ../../Test/test_one_harness.adb
 t_one : test_one_harness.run
@@ -21,15 +20,9 @@ tree : force
 	gnatmake -P opentoken_tree.gpr
 
 clean ::
-	rm -f obj_tree/* lib/*
-
-distclean ::
-	rm -rf lib
+	rm -f obj_tree/*
 
 include ../common.make
-
-GNAT_PROJECT := opentoken_test.gpr
-GNAT_VERSION := 6.2.1
 
 # Local Variables:
 # eval: (ada-parse-prj-file "opentoken.prj")
