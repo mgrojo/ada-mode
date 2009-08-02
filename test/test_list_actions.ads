@@ -1,7 +1,6 @@
 --  Abstract :
 --
---  Test actions in OpenToken.Token.Selection_Mixin, .Sequence_Mixin,
---  and .List_Mixin.
+--  Test actions in OpenToken.Token.List_Mixin.
 --
 --  Copyright (C) 2009 Stephen Leake.  All Rights Reserved.
 --

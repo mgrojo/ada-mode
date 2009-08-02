@@ -93,22 +93,22 @@ package body ASU_Example_5_10_RD is
       end if;
    end Plus_Element;
 
-   procedure Init_Multiply (Match : in out Operation_List.Instance)
+   procedure Init_Times (Match : in out Operation_List.Instance)
    is begin
       Match.Value := 1;
       if OpenToken.Token.Trace_Parse then
-         OpenToken.Token.Trace_Put ("Init_Multiply:" & Integer'Image (Match.Value) & " => 1");
+         OpenToken.Token.Trace_Put ("Init_Times:" & Integer'Image (Match.Value) & " => 1");
          Ada.Text_IO.New_Line;
       end if;
-   end Init_Multiply;
+   end Init_Times;
 
-   procedure Multiply_Element
+   procedure Times_Element
      (Match   : in out Operation_List.Instance;
       Element : in     Integer_Token.Class)
    is begin
       if OpenToken.Token.Trace_Parse then
          OpenToken.Token.Trace_Put
-           ("Multiply_Element:" & Integer'Image (Match.Value) & " *" &
+           ("Times_Element:" & Integer'Image (Match.Value) & " *" &
               Integer'Image (Element.Value) & " =>");
       end if;
 
@@ -117,6 +117,6 @@ package body ASU_Example_5_10_RD is
       if OpenToken.Token.Trace_Parse then
          Ada.Text_IO.Put_Line (Integer'Image (Match.Value));
       end if;
-   end Multiply_Element;
+   end Times_Element;
 
 end ASU_Example_5_10_RD;

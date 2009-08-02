@@ -25,6 +25,7 @@ with OpenToken.Recognizer.CSV_Field.Test;
 with Test_Backtrack;
 with Test_LR0_Kernels;
 with Test_List_Actions;
+with Test_List_Stack;
 with Test_Selection_Actions;
 with Test_Sequence_Actions;
 with Test_Statement_Actions;
@@ -42,6 +43,7 @@ begin
    Add_Test (Suite, new Test_Backtrack.Test_Case (Debug => False));
    Add_Test (Suite, new Test_LR0_Kernels.Test_Case (Debug => False));
    Add_Test (Suite, new Test_List_Actions.Test_Case (Debug => False));
+   Add_Test (Suite, new Test_List_Stack.Test_Case);
    Add_Test (Suite, new Test_Selection_Actions.Test_Case (Debug => False));
    Add_Test (Suite, new Test_Sequence_Actions.Test_Case (Debug => False));
    Add_Test (Suite, new Test_Statement_Actions.Test_Case (Debug => False));

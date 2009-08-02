@@ -1,6 +1,6 @@
 --  Abstract :
 --
---  Test actions in OpenToken.Token.Selection_Mixin.
+--  Test the operand stack in OpenToken.Token.List_Mixin.
 --
 --  Copyright (C) 2009 Stephen Leake.  All Rights Reserved.
 --
@@ -18,9 +18,9 @@
 
 with Ada.Strings.Unbounded;
 with AUnit.Test_Cases;
-package Test_Selection_Actions is
+package Test_List_Stack is
 
-   type Test_Case (Debug : Boolean) is new AUnit.Test_Cases.Test_Case with null record;
+   type Test_Case is new AUnit.Test_Cases.Test_Case with null record;
 
    type Test_Case_Access is access all Test_Case;
 
@@ -30,5 +30,4 @@ package Test_Selection_Actions is
 
    overriding procedure Set_Up_Case (T : in out Test_Case);
 
-end Test_Selection_Actions;
-
+end Test_List_Stack;

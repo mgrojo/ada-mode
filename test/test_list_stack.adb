@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 --
---  Copyright (C) 2009 Stephe Leake
---  Copyright (C) 2000 Ted Dennison
+--  Copyright (C) 2009 Stephen Leake
 --
 --  This file is part of the OpenToken package.
 --
@@ -16,22 +15,10 @@
 --  GNU General Public License distributed with the OpenToken package;
 --  see file GPL.txt. If not, write to the Free Software Foundation,
 --  59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
---
---  As a special exception, if other files instantiate generics from
---  this unit, or you link this unit with other files to produce an
---  executable, this unit does not by itself cause the resulting
---  executable to be covered by the GNU General Public License. This
---  exception does not however invalidate any other reasons why the
---  executable file might be covered by the GNU Public License.
--------------------------------------------------------------------------------
-
------------------------------------------------------------------------------
---  This example is a recursive-decent implementation of Example 5.10,
---  section 5.3, page 295 from [1] "Compilers Principles, Techniques,
---  and Tools" by Aho, Sethi, and Ullman (aka: "The Dragon Book"). It
---  demonstrates handling of synthesized attributes.
 -----------------------------------------------------------------------------
 
+with AUnit.Check;
+with AUnit.Test_Cases.Registration;
 with OpenToken.Recognizer.Character_Set;
 with OpenToken.Recognizer.End_Of_File;
 with OpenToken.Recognizer.Integer;
@@ -43,14 +30,32 @@ with OpenToken.Token.Linked_List;
 with OpenToken.Token.List_Mixin;
 with OpenToken.Token.Selection_Mixin;
 with OpenToken.Token.Sequence_Mixin;
-package ASU_Example_5_10_RD is
+package body Test_List_Stack is
 
-   --  The complete list of tokens. No non-terminals in recursive descent.
-   type Token_IDs is
-     (Integer_ID, Left_Paren_ID, Right_Paren_ID, Plus_ID, Times_ID, EOF_ID, Whitespace_ID);
+   --  Just enough machinery to show that the operand stack in List is
+   --  required, and works.
+   --
+   --  A grammar that requires a stack is:
+   --
+   --  L -> E  EOF      print (L.val)
+   --  E -> T {+ T}     + action: E.val := E.val + T.val
+   --  T -> F {* F}     * action: T.val := T.val * F.val
+   --  F -> ( E )       F.val := E.val
+   --  F -> integer     F.val := integer
+   --
+   --  E is initialized to 0, F to 1.
+   --
+   --  Consider the input (10 + 5) * (2 + 3). If there is no operand
+   --  stack, parsing (2 +3) throws away the results of parsing (10 +
+   --  5), and the wrong answer results.
+   --
+   --  See Examples/ASU_Example_5_10 for a version of this that has
+   --  useful trace output.
+
+   type Token_IDs is (Integer_ID, Left_Paren_ID, Right_Paren_ID, Plus_ID, Times_ID, EOF_ID, Whitespace_ID);
 
    package Master_Token is new OpenToken.Token.Enumerated (Token_IDs);
-   package Tokenizer is new Master_Token.Analyzer (Whitespace_ID);
+   package Tokenizer is new Master_Token.Analyzer;
    package Integer_Token is new Master_Token.Integer;
 
    Syntax : constant Tokenizer.Syntax :=
@@ -69,78 +74,67 @@ package ASU_Example_5_10_RD is
    Feeder   : aliased OpenToken.Text_Feeder.String.Instance;
    Analyzer : Tokenizer.Instance := Tokenizer.Initialize (Syntax, Feeder'Access);
 
-   --------------------------------------------------------------------------
-   --  Our custom token types. The grammar is:
-   --
-   --  L -> E         print (L.val)
-   --  E -> E + T     E.val := E1.val + T.val
-   --  E -> T
-   --  T -> T * F     T.val := T1.val * F.val
-   --  T -> F
-   --  F -> ( E )     F.val := E.val
-   --  F -> digit
-   --
-   --  For Recursive-decent (LL) parsing we can't have recursive
-   --  references in the first token in a token's definition; that
-   --  would cause infinite recursion. This is the case in the
-   --  definitions above for E and T. We fix this by extending the
-   --  meta-syntax for grammars defined in [1] section 4.2 p 166, by
-   --  using {} to indicate possible repetition (as in Extended
-   --  Backus-Naur form; see
-   --  http://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_Form):
-   --
-   --  L -> E  EOF      print (L.val)
-   --  E -> T {+ T}     + action: E.val := E.val + T.val
-   --  T -> F {* F}     * action: T.val := T.val * F.val
-   --  F -> ( E )       F.val := E.val
-   --  F -> integer
-   --
-   --  E is initialized to 0, F to 1.
-   --
-   --  The List token implements {}. It keeps a local copy of the
-   --  result token on the CPU stack; that implements an operand
-   --  stack.
-   --
-   --  This grammar enforces operator precedence. The only operations
-   --  are in List tokens, and the only recursion is in the
-   --  parentheses. The List token provides an operand stack that
-   --  handles the parentheses, so each operation can be evaluated as
-   --  soon as it is parsed, eliminating the need for a separate stack
-   --  of operands.
-
-   --  Create a custom selection token which has integers for
-   --  components and returns an integer with the value of the
-   --  selected component from a parse; used for F -> ( E ) | digit.
    package Integer_Selection is new OpenToken.Token.Selection_Mixin
      (Parent_Token    => Integer_Token.Instance,
       Component_Token => Integer_Token.Instance);
    procedure Build_Selection
      (Match : in out Integer_Selection.Instance;
-      From  : in     Integer_Token.Class);
+      From  : in     Integer_Token.Class)
+   is begin
+      Match.Value := From.Value;
+   end Build_Selection;
 
-   --  A token type for a sequence of tokens; used for ( E ), E EOF
    package Integer_Sequence is new OpenToken.Token.Sequence_Mixin (Integer_Token.Instance);
    procedure Build_Parens
      (Match : in out Integer_Sequence.Instance;
-      Using : in     OpenToken.Token.Linked_List.Instance);
+      Using : in     OpenToken.Token.Linked_List.Instance)
+   is
+      use OpenToken.Token.Linked_List;
+      Iterator : List_Iterator := First (Using); -- (
+   begin
+      Next_Token (Iterator); -- E
+      Match.Value := Integer_Token.Handle (Token_Handle (Iterator)).Value;
+   end Build_Parens;
+
+   Expected_Value : Integer;
    procedure Build_Print
      (Match : in out Integer_Sequence.Instance;
-      Using : in     OpenToken.Token.Linked_List.Instance);
+      Using : in     OpenToken.Token.Linked_List.Instance)
+   is
+      use OpenToken.Token.Linked_List;
+      Iterator : constant List_Iterator := First (Using); -- E
+   begin
+      Match.Value := Integer_Token.Handle (OpenToken.Token.Linked_List.Token_Handle (Iterator)).Value;
+      AUnit.Check.Check ("expected result", Match.Value, Expected_Value);
+   end Build_Print;
 
-   --  Token type for repeating lists; {+ T}, {* F}
    package Operation_List is new OpenToken.Token.List_Mixin (Integer_Token.Instance, Integer_Token.Instance);
 
-   procedure Init_Plus (Match : in out Operation_List.Instance);
+   procedure Init_Plus (Match : in out Operation_List.Instance)
+   is begin
+      Match.Value := 0;
+   end Init_Plus;
+
    procedure Plus_Element
      (Match   : in out Operation_List.Instance;
-      Element : in     Integer_Token.Class);
-   procedure Init_Times (Match : in out Operation_List.Instance);
+      Element : in     Integer_Token.Class)
+   is begin
+      Match.Value := Match.Value + Element.Value;
+   end Plus_Element;
+
+   procedure Init_Times (Match : in out Operation_List.Instance)
+   is begin
+      Match.Value := 1;
+   end Init_Times;
+
    procedure Times_Element
      (Match   : in out Operation_List.Instance;
-      Element : in     Integer_Token.Class);
+      Element : in     Integer_Token.Class)
+   is begin
+      Match.Value := Match.Value * Element.Value;
+   end Times_Element;
 
-   --  Define all our tokens
-   --  ...terminals
+   --  Terminal tokens
    Int         : constant Integer_Token.Handle := new Integer_Token.Class'(Integer_Token.Get (Integer_ID));
    Left_Paren  : constant Master_Token.Handle  := Syntax (Left_Paren_ID).Token_Handle;
    Right_Paren : constant Master_Token.Handle  := Syntax (Right_Paren_ID).Token_Handle;
@@ -148,17 +142,60 @@ package ASU_Example_5_10_RD is
    Times       : constant Master_Token.Handle  := Syntax (Times_ID).Token_Handle;
    EOF         : constant Master_Token.Handle  := Syntax (EOF_ID).Token_Handle;
 
-   --  ...and nonterminals.
    use type Integer_Selection.Instance;
    use type Integer_Sequence.Instance;
    use Operation_List;
 
-   --  Because of the recursion, we defer the full definition of E to the body.
-   --  We declare F1 to allow giving it a name for debug
+   --  Because of the recursion, we defer the full definition of E to the Set_Up_Case.
    E : constant Operation_List.Handle    := new Operation_List.Instance;
-   F1 : constant Integer_Sequence.Handle := Left_Paren & E & Right_Paren + Build_Parens'Access;
-   F : constant Integer_Selection.Handle := (F1 or Int) + Build_Selection'Access;
+   F : constant Integer_Selection.Handle :=
+     (Left_Paren & E & Right_Paren + Build_Parens'Access or Int) + Build_Selection'Access;
    T : constant Operation_List.Handle    := F ** Times * Times_Element'Access + Init_Times'Access;
    L : constant Integer_Sequence.Handle  := E & EOF + Build_Print'Access;
 
-end ASU_Example_5_10_RD;
+   ----------
+   --  Test procedures
+
+   procedure List_Stack (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+      use AUnit.Check;
+   begin
+      OpenToken.Text_Feeder.String.Set (Feeder, "(10 + 5) * (2 + 3)");
+      Tokenizer.Reset (Analyzer);
+      Tokenizer.Find_Next (Analyzer);
+
+      Expected_Value := 75;
+      Integer_Sequence.Parse (L, Analyzer);
+   end List_Stack;
+
+   ----------
+   --  Public subprograms
+
+   overriding function Name (T : in Test_Case) return Ada.Strings.Unbounded.String_Access
+   is
+      pragma Unreferenced (T);
+   begin
+      return new String'("Test_List_Stack");
+   end Name;
+
+   overriding procedure Register_Tests (T : in out Test_Case)
+   is
+      use AUnit.Test_Cases.Registration;
+   begin
+      Register_Routine (T, List_Stack'Access, "List_Stack");
+   end Register_Tests;
+
+   overriding procedure Set_Up_Case (T : in out Test_Case)
+   is
+      pragma Unreferenced (T);
+   begin
+      E.all := Operation_List.Get
+        (Element     => Test_List_Stack.T,
+         Separator   => Plus,
+         Initialize  => Init_Plus'Access,
+         Add_Element => Plus_Element'Access);
+
+   end Set_Up_Case;
+
+end Test_List_Stack;
