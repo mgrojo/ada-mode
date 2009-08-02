@@ -27,8 +27,7 @@
 -------------------------------------------------------------------------------
 --  This example is a recursive-decent implementation of Example 5.10 from
 --  [1] "Compilers Principles, Techniques, and Tools" by Aho, Sethi, and Ullman
---  (aka: "The Dragon Book"). It demonstrates handling of synthesized
---  attributes, without using the mixin packages.
+--  (aka: "The Dragon Book"). See README.text for more discussion.
 -------------------------------------------------------------------------------
 
 with OpenToken.Recognizer.Character_Set;
@@ -101,8 +100,8 @@ package ASU_Example_5_10_RD_Commute is
    --  F -> ( E )
    --  F -> integer   push (integer)
    --
-   --  This grammar requires 2 lookaheads; it needs to see
-   --  the + or * of the sequences for E and T.
+   --  This grammar requires infinite lookaheads; it needs to see the
+   --  + or * of the sequences for E and T, _after_ a parentheses.
 
    --  Since we are providing our own operand stack, we can use the
    --  root Selection and Sequence token types. Here we declare the

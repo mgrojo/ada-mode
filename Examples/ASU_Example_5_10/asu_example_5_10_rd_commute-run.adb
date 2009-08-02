@@ -84,7 +84,17 @@ begin
       end case;
    end;
 
-   OpenToken.Token.Default_Lookahead := 2;
+   --  Token E must parse the closing paren, in order for the parent
+   --  sequence to see the following operator. That means the operator
+   --  tokens must also parse all of their input.
+   --
+   --  Note that this results in always looking ahead to the end of
+   --  the input, for every step along the way.
+   OpenToken.Token.Default_Lookahead := 3;
+
+   --  We'd like to arrange the selection order so that integers are
+   --  accepted as quickly as possible. But then the operators are not
+   --  considered, and the parse fails.
 
    L.all := Copy (E & EOF + Build_Print'Access).all;
 
@@ -93,7 +103,7 @@ begin
    T.all := Copy ((F & Times & T + Build_Multiply'Access and "F * F") / F + Build_Selection'Access and "T").all;
 
    F.all :=
-     Copy ((Left_Paren & E & Right_Paren + Build_Parens'Access and "( E )") / Int + Build_Selection'Access and "F").all;
+     Copy (Int / (Left_Paren & E & Right_Paren + Build_Parens'Access and "( E )") + Build_Selection'Access and "F").all;
 
    Master_Token.Set_Build (Int.all, Build_Integer'Access);
 

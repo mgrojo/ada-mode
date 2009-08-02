@@ -131,6 +131,8 @@ begin
         (Feeder => Feeder,
          Value  => Line (1 .. Line_Length));
 
+      Put_Line ("Input_String => " & Line (1 .. Line_Length));
+
       --  Load up the first token
       Tokenizer.Find_Next (Analyzer);
 

@@ -60,14 +60,13 @@ package body ASU_Example_5_10_RD_Commute is
       From  : in     OpenToken.Token.Class)
    is
       pragma Unreferenced (From);
-      pragma Unreferenced (Match);
       use Integer_Stacks;
    begin
       --  No stack operations; just trace
 
       if OpenToken.Token.Trace_Parse then
          OpenToken.Token.Trace_Put
-           ("Build_Selection:" & Integer'Image (Top (Stack)));
+           ("Build_Selection " & OpenToken.Token.Selection.Name (Match) & ": " & Integer'Image (Top (Stack)));
          Ada.Text_IO.New_Line;
       end if;
    end Build_Selection;

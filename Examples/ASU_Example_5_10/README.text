@@ -28,7 +28,8 @@ asu_example_5_10_rd_list-run     rewrite grammar to use List tokens
 
 Each of these versions is provided as an executable, that can accept
 input from the console or from a file. In addition, if the -t option
-is given, it will output appropriate trace information.
+is given, it will output appropriate trace information, which is very
+useful in understanding how the parsers operate.
 
 The LR version uses the OpenToken Production type to represent the
 productions, and the OpenToken LALR Parser generator to generate a
@@ -43,9 +44,9 @@ left recursive, so it cannot be used directly for recursive descent;
 parsing E requires looking for E, which requires looking for E, etc.
 So the grammar must be rewritten.
 
-The rd_commutative version also uses recursive descent implemented by
-the OpenToken List, Selection, and Sequence tokens. It rewrites the
-grammar as follows, taking advantage of the commutivity of + and *:
+The rd_commute version uses recursive descent implemented by the
+OpenToken Selection and Sequence tokens. It rewrites the grammar as
+follows, taking advantage of the commutivity of + and *:
 
 L -> E EOF     print (pop)
 E -> T + E     push (pop + pop)
@@ -58,11 +59,23 @@ F -> integer   push (integer)
 Here the operand stack is provided by the user, in the Build actions
 for the 'T + E' and 'F * T' sequence tokens, and the integer token.
 
-This parser requires two lookaheads. It also requires backtracking
-during lookahead; it backs up to retry the alternatives for E and T.
+This parser requires infinite lookaheads; it needs to see the + or *
+of the sequences for E and T, _after_ a parentheses. This means it
+always looks ahead to the end of input, at each step in the parse. It
+also requires backtracking during lookahead; it backs up to retry the
+alternatives for E and T. OpenToken can handle this, as long as there
+is memory space.
+
+Note that E and T are implemented by Selection tokens, and the order
+of the tokens is important, because selection tokens accept the first
+choice that matches. If E is implemented as T | T + E, then it will
+never choose T + E.
 
 This implementation is very inefficient, as can be seen by running it
-with -t and comparing the output to the other two.
+with -t and comparing the output to the other two. It is included as
+an illustration that OpenToken allows implementing naive grammars that
+still work, which can be an advantage when you are just getting
+started with parsers.
 
 The rd_list version uses recursive descent implemented by the
 OpenToken List, Selection, and Sequence tokens. It rewrites the
@@ -71,17 +84,20 @@ Extended Backus-Naur form; see
 http://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_Form):
 
 L -> E  EOF      print (L.val)
-E -> T {+ T}     + action: E.val := E.val + T.val
-T -> F {* F}     * action: T.val := T.val * F.val
+E -> T {+ T}     element action: E.val := E.val + T.val
+T -> F {* F}     element action: T.val := T.val * F.val
 F -> ( E )       F.val := E.val
 F -> integer
 
 E is initialized to 0, F to 1.
 
-The List token implements the repetition {}. It keeps a local copy of
-the result token on the CPU function call stack; that implements the
-operand stack.
+The List token implements the repetition {}, and executes an action
+every time the non-operator token is recognized. It keeps a local copy
+of the result token on the CPU function call stack; that implements
+the operand stack.
 
 This parser requires two lookaheads, to distinguish E from T. However,
-it does not require backtracking during lookahead.
+it does not require backtracking during lookahead. It gets around the
+parenthesis lookahead problem in the commute version by _always_
+looking for the operator after an element of a list is parsed.
 

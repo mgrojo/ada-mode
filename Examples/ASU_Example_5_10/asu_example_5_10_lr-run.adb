@@ -95,6 +95,7 @@ begin
 
    if OpenToken.Token.Trace_Parse then
       LALR_Parser.Print_Table (Test_Parser);
+      LALR_Parser.Set_Trace (Test_Parser, True);
    end if;
 
    if not Is_Open (Input_File) then
@@ -110,9 +111,12 @@ begin
       Get_Line (Line, Line_Length);
 
       exit when Line_Length = 0;
+
       OpenToken.Text_Feeder.String.Set
         (Feeder => Feeder,
          Value  => Line (1 .. Line_Length));
+
+      Put_Line ("Input_String => " & Line (1 .. Line_Length));
 
       LALR_Parser.Parse (Test_Parser);
    end loop;

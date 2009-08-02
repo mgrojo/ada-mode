@@ -25,12 +25,13 @@
 --  executable file might be covered by the GNU Public License.
 -------------------------------------------------------------------------------
 
------------------------------------------------------------------------------
+---------------------------------------------------------------------------
 --  This example is a recursive-decent implementation of Example 5.10,
 --  section 5.3, page 295 from [1] "Compilers Principles, Techniques,
 --  and Tools" by Aho, Sethi, and Ullman (aka: "The Dragon Book"). It
---  demonstrates handling of synthesized attributes.
------------------------------------------------------------------------------
+--  demonstrates handling of synthesized attributes. See README.text
+--  for more discussion.
+---------------------------------------------------------------------------
 
 with OpenToken.Recognizer.Character_Set;
 with OpenToken.Recognizer.End_Of_File;
@@ -72,26 +73,9 @@ package ASU_Example_5_10_RD_List is
    --------------------------------------------------------------------------
    --  Our custom token types. The grammar is:
    --
-   --  L -> E EOF     print (L.val)
-   --  E -> E + T     E.val := E1.val + T.val
-   --  E -> T
-   --  T -> T * F     T.val := T1.val * F.val
-   --  T -> F
-   --  F -> ( E )     F.val := E.val
-   --  F -> digit
-   --
-   --  For Recursive-decent (LL) parsing we can't have recursive
-   --  references in the first token in a token's definition; that
-   --  would cause infinite recursion. This is the case in the
-   --  definitions above for E and T. We fix this by extending the
-   --  meta-syntax for grammars defined in [1] section 4.2 p 166, by
-   --  using {} to indicate possible repetition (as in Extended
-   --  Backus-Naur form; see
-   --  http://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_Form):
-   --
    --  L -> E  EOF      print (L.val)
-   --  E -> T {+ T}     + action: E.val := E.val + T.val
-   --  T -> F {* F}     * action: T.val := T.val * F.val
+   --  E -> T {+ T}     element action: E.val := E.val + T.val
+   --  T -> F {* F}     element action: T.val := T.val * F.val
    --  F -> ( E )       F.val := E.val
    --  F -> integer
    --
