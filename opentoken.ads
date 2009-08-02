@@ -47,6 +47,9 @@ package OpenToken is
    --  Exception raised by the parser when no match could be found.
    Parse_Error : exception;
 
+   --  Exception raised when a programming convention has been violated
+   Programmer_Error : exception;
+
    --  We use this regardless of OS, since we need a standard way of
    --  representing an end of line in a string buffer
    EOL_Character : constant Character := Ada.Characters.Latin_1.CR;

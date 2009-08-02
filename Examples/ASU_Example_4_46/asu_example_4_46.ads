@@ -1,5 +1,6 @@
 -------------------------------------------------------------------------------
 --
+-- Copyright (C) 2009 Stephe Leake
 -- Copyright (C) 2000 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -22,25 +23,31 @@
 --  exception does not however invalidate any other reasons why the
 --  executable file might be covered by the GNU Public License.
 -------------------------------------------------------------------------------
+
+
+-----------------------------------------------------------------------------
+--  This example is an implementation of Example 4.46 from "Compilers
+--  Principles, Techniques, and Tools" by Aho, Sethi, and Ullman (aka: "The
+--  Dragon Book"). The example was meant to demonstrate basic LALR(1) parsing.
+--  Here we show to to perform LL(n) parsing with it.
+-------------------------------------------------------------------------------
+
 with Ada.Text_IO;
-with OpenToken.Text_Feeder.Text_IO;
-
-with OpenToken.Token.Enumerated.List;
-with OpenToken.Token.Enumerated.Analyzer;
-with OpenToken.Token.Enumerated.Nonterminal;
 with OpenToken.Production.List;
-with OpenToken.Production.Parser;
 with OpenToken.Production.Parser.LALR;
-with OpenToken.Recognizer.Keyword;
-with OpenToken.Recognizer.End_Of_File;
+with OpenToken.Production.Parser;
 with OpenToken.Recognizer.Character_Set;
-
+with OpenToken.Recognizer.End_Of_File;
+with OpenToken.Recognizer.Keyword;
+with OpenToken.Text_Feeder.Text_IO;
+with OpenToken.Token.Enumerated.Analyzer;
+with OpenToken.Token.Enumerated.List;
+with OpenToken.Token.Enumerated.Nonterminal;
 package ASU_Example_4_46 is
 
    --  The complete list of tokens, with the terminals listed first.
    type Token_IDs is (Asterix_ID, ID_ID, Equals_ID, EOF_ID, Whitespace_ID, S_ID, L_ID, R_ID, S_Prime_ID);
 
-   --  Instantiate all the nessecary packages
    package Master_Token is new OpenToken.Token.Enumerated (Token_IDs);
    package Tokenizer is new Master_Token.Analyzer (Whitespace_ID);
    package Token_List is new Master_Token.List;
@@ -50,41 +57,41 @@ package ASU_Example_4_46 is
    package Parser is new Production.Parser (Production_List, Tokenizer);
    package LALR_Parser is new Parser.LALR;
 
+   Syntax : constant Tokenizer.Syntax :=
+     (Asterix_ID    => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("*")),
+      ID_ID         => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("id")),
+      Equals_ID     => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("=")),
+      EOF_ID        => Tokenizer.Get (OpenToken.Recognizer.End_Of_File.Get),
+      Whitespace_ID => Tokenizer.Get (OpenToken.Recognizer.Character_Set.Get
+                                        (OpenToken.Recognizer.Character_Set.Standard_Whitespace)));
+
+   --  Define all tokens, for use in declaring the grammar. Note that
+   --  these may be constants; the parser stores intermediate results
+   --  in the non-terminal tokens, but it allocates new tokens for
+   --  that.
+   --
+   --  Terminal tokens
+   Asterix : constant Master_Token.Class := Master_Token.Get (Asterix_ID);
+   ID      : constant Master_Token.Class := Master_Token.Get (ID_ID);
+   Equals  : constant Master_Token.Class := Master_Token.Get (Equals_ID);
+   EOF     : constant Master_Token.Class := Master_Token.Get (EOF_ID);
+
+   --  Non-terminal tokens.
+   S       : constant Nonterminal.Class := Nonterminal.Get (S_ID);
+   L       : constant Nonterminal.Class := Nonterminal.Get (L_ID);
+   R       : constant Nonterminal.Class := Nonterminal.Get (R_ID);
+   S_Prime : constant Nonterminal.Class := Nonterminal.Get (S_Prime_ID);
+
    --  Allow infix operators for building productions
    use type Token_List.Instance;
    use type Production.Right_Hand_Side;
    use type Production.Instance;
    use type Production_List.Instance;
 
-   --  Define all our tokens
-   Asterix : aliased Master_Token.Class := Master_Token.Get (Asterix_ID);
-   ID      : aliased Master_Token.Class := Master_Token.Get (ID_ID);
-   Equals  : aliased Master_Token.Class := Master_Token.Get (Equals_ID);
-   EOF     : aliased Master_Token.Class := Master_Token.Get (EOF_ID);
-   S       : aliased Nonterminal.Class := Nonterminal.Get (S_ID);
-   L       : aliased Nonterminal.Class := Nonterminal.Get (L_ID);
-   R       : aliased Nonterminal.Class := Nonterminal.Get (R_ID);
-   S_Prime : aliased Nonterminal.Class := Nonterminal.Get (S_Prime_ID);
-
-   --  Define a lexer syntax for the terminals
-   Syntax : constant Tokenizer.Syntax :=
-     (Asterix_ID => Tokenizer.Get (Recognizer => OpenToken.Recognizer.Keyword.Get ("*"),
-                                   New_Token  => Asterix),
-      ID_ID      => Tokenizer.Get (Recognizer => OpenToken.Recognizer.Keyword.Get ("id"),
-                                   New_Token  => ID),
-      Equals_ID     => Tokenizer.Get (Recognizer => OpenToken.Recognizer.Keyword.Get ("="),
-                                      New_Token  => Equals
-                                      ),
-      EOF_ID        => Tokenizer.Get (Recognizer => OpenToken.Recognizer.End_Of_File.Get,
-                                      New_Token  => EOF
-                                      ),
-      Whitespace_ID => Tokenizer.Get (Recognizer => OpenToken.Recognizer.Character_Set.Get
-                                      (OpenToken.Recognizer.Character_Set.Standard_Whitespace))
-      );
-
-   --------------------------------------------------------------------------
-   --  Define the Grammar. The text in the example in the book looks something
-   --  like:
+   ------------------------------------------------------------------------
+   --  Define the Grammar productions.
+   --
+   --  The text in the example in the book looks something like:
    --
    --  S' -> S
    --  S  -> L = R | R
@@ -102,7 +109,7 @@ package ASU_Example_4_46 is
    --  Create a text feeder for our Input_File.
    Input_File : aliased Ada.Text_IO.File_Type;
    Feeder     : aliased OpenToken.Text_Feeder.Text_IO.Instance :=
-     OpenToken.Text_Feeder.Text_IO.Create (Input_File'Unchecked_Access);
+     OpenToken.Text_Feeder.Text_IO.Create (Input_File'Access);
 
    Analyzer : Tokenizer.Instance := Tokenizer.Initialize (Syntax, Feeder'Access);
 

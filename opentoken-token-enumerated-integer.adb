@@ -1,6 +1,7 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2002 Stephen Leake
+-- Copyright (C) 2009 Stephe Leake
+-- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
 --
@@ -21,30 +22,49 @@
 --  executable to be covered by the GNU General Public License. This
 --  exception does not however invalidate any other reasons why the
 --  executable file might be covered by the GNU Public License.
+--
+-------------------------------------------------------------------------------
 
-package body OpenToken.Token.Enumerated.Real_Literal is
+package body OpenToken.Token.Enumerated.Integer is
 
-   function Get (ID     : in Token_ID;
-                 Value  : in Real_Type := 0.0) return Instance'Class is
-   begin
-      return Instance'Class (Instance'(ID => ID, Value => Value));
+   function Get
+     (ID    : in Token_ID;
+      Value : in Standard.Integer := 0;
+      Build : in Action           := null)
+     return Instance'Class
+   is begin
+      return Instance'Class (Instance'(ID, Build, Value));
    end Get;
 
-   overriding procedure
-     Create (Lexeme     : in     String;
-             ID         : in     Token_ID;
-             Recognizer : in     Recognizer_Handle;
-             New_Token  :    out Instance)
+   overriding procedure Create
+     (Lexeme     : in     String;
+      Recognizer : in     Recognizer_Handle;
+      New_Token  : in out Instance)
    is
       pragma Unreferenced (Recognizer);
    begin
-      New_Token.ID := ID;
-      New_Token.Value := Real_Type'Value (Lexeme);
+      New_Token.Value := Standard.Integer'Value (Lexeme);
+   exception
+   when Constraint_Error =>
+      raise Syntax_Error with
+        Lexeme & " not in range: " &
+        Standard.Integer'Image (Standard.Integer'First) & " .. " & Standard.Integer'Image (Standard.Integer'Last);
    end Create;
 
-   function Value (Subject : in Instance) return Real_Type is
-   begin
-      return Subject.Value;
-   end Value;
+   overriding procedure Copy
+     (To   : in out Instance;
+      From : in     Token.Class)
+   is begin
+      To.Value := Instance (From).Value;
+   end Copy;
 
-end OpenToken.Token.Enumerated.Real_Literal;
+   overriding function Name (Token : in Instance) return String
+   is begin
+      if Trace_Parse then
+         return Token_ID'Image (Token.ID) & Standard.Integer'Image (Token.Value);
+      else
+         return Token_ID'Image (Token.ID);
+      end if;
+   end Name;
+
+end OpenToken.Token.Enumerated.Integer;

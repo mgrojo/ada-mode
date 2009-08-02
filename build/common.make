@@ -18,13 +18,11 @@ VPATH += ../../Language_Lexers
 tests : association_token_test-run.diff
 tests : bracketed_comment_test-run.run
 tests : enumerated_token_list_test.run
-tests : lookahead_test-run.run
 tests : name_token_test-run.diff
 tests : production_test-run.run
 tests : recognizer_based_integer_test.run
 tests : recognizer_integer_test.run
 tests : string_test-run.run
-tests : string_token_test-run.diff
 tests : test_all_harness.diff
 tests : test_html_lexer_safe.diff
 tests : test_html_lexer_safe-syntax_error.diff

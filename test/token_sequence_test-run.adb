@@ -1,6 +1,7 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2000, 2009 Ted Dennison
+-- Copyright (C) 2009 Stephen Leake
+-- Copyright (C) 2000 Ted Dennison
 --
 -- This file is part of the OpenToken package.
 --
@@ -24,10 +25,10 @@
 --
 -------------------------------------------------------------------------------
 
-
+-------------------------------------------------------------------------------
 --  Test driver for the token sequence handling code.
 -------------------------------------------------------------------------------
--------------------------------------------------------------------------------
+
 with Ada.Command_Line;
 with Ada.Exceptions;
 with Ada.Text_IO;
@@ -53,7 +54,7 @@ begin
 
       Analyzer : Tokenizer.Instance := Tokenizer.Initialize (Syntax, String_Feeder'Access);
 
-      Sequence : OpenToken.Token.Sequence.Class :=
+      Sequence : aliased OpenToken.Token.Sequence.Class :=
         Do_Keyword & Several_Keyword & Things_Keyword &
         Int_Literal & Times_Keyword &
         In_Keyword & A_Keyword & Row_Keyword;
@@ -70,7 +71,7 @@ begin
       Tokenizer.Find_Next (Analyzer);
 
       --  Perform the parse
-      OpenToken.Token.Sequence.Parse (Sequence, Analyzer);
+      OpenToken.Token.Sequence.Parse (Sequence'Access, Analyzer);
 
       if Tokenizer.ID (Analyzer) = EOF then
          Ada.Text_IO.Put_Line ("passed");
@@ -107,7 +108,7 @@ begin
 
       Analyzer : Tokenizer.Instance := Tokenizer.Initialize (Syntax, String_Feeder'Access);
 
-      Sequence : OpenToken.Token.Sequence.Class :=
+      Sequence : aliased OpenToken.Token.Sequence.Class :=
         Do_Keyword & Several_Keyword & Things_Keyword &
         Int_Literal & Times_Keyword & In_Keyword &
         A_Keyword & Row_Keyword;
@@ -124,7 +125,7 @@ begin
       Tokenizer.Find_Next (Analyzer);
 
       --  Parse token sequence
-      OpenToken.Token.Sequence.Parse (Sequence, Analyzer);
+      OpenToken.Token.Sequence.Parse (Sequence'Access, Analyzer);
 
       Ada.Text_IO.Put_Line ("failed.");
       Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);

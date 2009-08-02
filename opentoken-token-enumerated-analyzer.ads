@@ -1,20 +1,21 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2002, 2003, 2009 Stephe Leake
--- Copyright (C) 1999 FlightSafety International and Ted Dennison
+--  Copyright (C) 2002, 2003, 2009 Stephe Leake
+--  Copyright (C) 1999 FlightSafety International and Ted Dennison
 --
--- This file is part of the OpenToken package.
+--  This file is part of the OpenToken package.
 --
--- The OpenToken package is free software; you can redistribute it and/or
--- modify it under the terms of the  GNU General Public License as published
--- by the Free Software Foundation; either version 3, or (at your option)
--- any later version. The OpenToken package is distributed in the hope that
--- it will be useful, but WITHOUT ANY WARRANTY; without even the implied
--- warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
--- GNU General Public License for  more details.  You should have received
--- a copy of the GNU General Public License  distributed with the OpenToken
--- package;  see file GPL.txt.  If not, write to  the Free Software Foundation,
--- 59 Temple Place - Suite 330,  Boston, MA 02111-1307, USA.
+--  The OpenToken package is free software; you can redistribute it
+--  and/or modify it under the terms of the GNU General Public License
+--  as published by the Free Software Foundation; either version 3, or
+--  (at your option) any later version. The OpenToken package is
+--  distributed in the hope that it will be useful, but WITHOUT ANY
+--  WARRANTY; without even the implied warranty of MERCHANTABILITY or
+--  FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public
+--  License for more details. You should have received a copy of the
+--  GNU General Public License distributed with the OpenToken package;
+--  see file GPL.txt. If not, write to the Free Software Foundation,
+--  59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 --
 --  As a special exception, if other files instantiate generics from
 --  this unit, or you link this unit with other files to produce an
@@ -59,7 +60,13 @@ package OpenToken.Token.Enumerated.Analyzer is
 
    subtype Terminal_ID is Token_ID range Token_ID'First .. Last_Terminal;
 
-   --  Descriptor for what an individual token in this language looks like.
+   --  Descriptor for what an individual token in this language looks
+   --  like. Also provides storage for Lexeme and Recognizer from
+   --  recognized tokens. This is required by lookahead; the lexeme
+   --  and recognizer are only available when the token is recognized
+   --  in the input stream, not later when it is read from the
+   --  lookahead queue. Copies of the recognized token are pushed onto
+   --  the lookahead queue, after Create is called.
    type Recognizable_Token is record
       Recognizer   : Recognizer_Handle;
       Token_Handle : Handle;
@@ -83,9 +90,9 @@ package OpenToken.Token.Enumerated.Analyzer is
    Input_Feeder : aliased OpenToken.Text_Feeder.Text_IO.Instance;
 
    --------------------------------------------------------------------------
-   --  Retrieve a new recognizable token, using the given token
-   --  values. This is a convienence routine for more easliy creating
-   --  Syntaxes. It will dynamicly allocate the memory for the
+   --  Return a new recognizable token, using the given token
+   --  values. This is a convienence routine for more easily creating
+   --  Syntaxes. It will dynamically allocate the memory for the
    --  recognizer and token.
    --------------------------------------------------------------------------
    function Get
@@ -96,13 +103,21 @@ package OpenToken.Token.Enumerated.Analyzer is
    ----------------------------------------------------------------------------
    --  Return an Analyzer with the given syntax and text feeder.
    ----------------------------------------------------------------------------
-   function Initialize (Language_Syntax : in Syntax;
-                        Feeder          : in Text_Feeder_Ptr := Input_Feeder'Access
-                       ) return Instance;
-   function Initialize (Language_Syntax : in Syntax;
-                        Default         : in Terminal_ID;
-                        Feeder          : in Text_Feeder_Ptr := Input_Feeder'Access
-                       ) return Instance;
+   function Initialize
+     (Language_Syntax : in Syntax;
+      Feeder          : in Text_Feeder_Ptr := Input_Feeder'Access)
+     return Instance;
+   function Initialize
+     (Language_Syntax : in Syntax;
+      Default         : in Terminal_ID;
+      Feeder          : in Text_Feeder_Ptr := Input_Feeder'Access)
+     return Instance;
+
+   --------------------------------------------------------------------
+   --  Reset Analyzer, to start finding tokens. This is appropriate
+   --  when the Feeder text has been changed.
+   --------------------------------------------------------------------
+   procedure Reset (Analyzer : in out Instance);
 
    ----------------------------------------------------------------------------
    --  Set the Analyzer's syntax to the given value.
@@ -163,9 +178,9 @@ package OpenToken.Token.Enumerated.Analyzer is
    --  to use a token that can't match any legitimate string (eg:
    --  Opentoken.Recognizer.Nothing)
    --------------------------------------------------------------------------
-   procedure Set_Default (Analyzer : in out Instance;
-                          Default  : in     Terminal_ID
-                         );
+   procedure Set_Default
+     (Analyzer : in out Instance;
+      Default  : in     Terminal_ID);
 
    --------------------------------------------------------------------------
    --  Reset the analyzer to have *no* default token ID. If Find_Next
@@ -173,16 +188,12 @@ package OpenToken.Token.Enumerated.Analyzer is
    --------------------------------------------------------------------------
    procedure Unset_Default (Analyzer : in out Instance);
 
-   ----------------------------------------------------------------------------
+   --------------------------------------------------------------------------
    --  Locate the next token.
    --
    --  The next token will be the token that matches the *longest*
    --  sequence of characters before failing. Ties go to the token
    --  with the smallest Terminal_Id.
-   --
-   --  If Look_Ahead is set, the next token after the current one will
-   --  be returned, but the current one will not be discarded.
-   --  Subsequent Look_Ahead calls will return later and later tokens.
    --
    --  Raises Syntax_Error if no token could be found (unless there is
    --  a default token defined).
@@ -190,6 +201,11 @@ package OpenToken.Token.Enumerated.Analyzer is
    overriding procedure Find_Next
      (Analyzer   : in out Instance;
       Look_Ahead : in     Boolean := False);
+
+   type Queue_Mark is new Token.Queue_Mark with private;
+
+   overriding function Mark_Push_Back (Analyzer : in Instance) return Token.Queue_Mark'Class;
+   overriding procedure Push_Back (Analyzer : in out Instance; Mark : in Token.Queue_Mark'Class);
 
    --------------------------------------------------------------------------
    --  Returns the current text line at which processing will resume.
@@ -230,20 +246,23 @@ package OpenToken.Token.Enumerated.Analyzer is
    ----------------------------------------------------------------------------
    function ID (Analyzer : in Instance) return Terminal_ID;
 
-   ----------------------------------------------------------------------------
-   --  Returns the actual text of the last token that was matched.
-   ----------------------------------------------------------------------------
    overriding function Lexeme (Analyzer : in Instance) return String;
 
-   ----------------------------------------------------------------------------
-   --  Returns the recognizer handle of the last token that was matched.
-   ----------------------------------------------------------------------------
    overriding function Last_Recognizer (Analyzer : in Instance) return Recognizer_Handle;
 
 private
 
    type Token_List_Node;
    type Token_List_Node_Pointer is access Token_List_Node;
+
+   --  Visible for unit tests
+   type Token_List_Node is record
+      Token_Handle : OpenToken.Token.Enumerated.Handle;
+      Prev         : Token_List_Node_Pointer;
+      Next         : Token_List_Node_Pointer;
+   end record;
+
+   procedure Free is new Ada.Unchecked_Deallocation (Token_List_Node, Token_List_Node_Pointer);
 
    --  Put all the Analyzer's state information in here, so there can
    --  be several Analyzers running at once.
@@ -261,6 +280,8 @@ private
       Lexeme_Tail : Natural := 0;
       Last_Token  : Terminal_ID;
 
+      Read_From_Lookahead : Boolean;
+
       --  Internal state information
       Buffer       : String (1 .. Max_String_Length);
       Buffer_Head  : Natural := 1;
@@ -270,8 +291,14 @@ private
       Next_Line    : Natural := 1;
       Next_Column  : Natural := 1;
 
-      Lookahead_Queue : Token_List_Node_Pointer;
-      Lookahead_Tail  : Token_List_Node_Pointer;
+      Lookahead_Queue : Token_List_Node_Pointer; --  Read from here or text source when Look_Ahead is false
+      Lookahead_Head  : Token_List_Node_Pointer; --  Read from here or text source when Look_Ahead is true
+      Lookahead_Tail  : Token_List_Node_Pointer; --  Most recent token read from text source with Look_Ahead true
+   end record;
+
+   type Queue_Mark is new Token.Queue_Mark with record
+      Head : Token_List_Node_Pointer;
+      Tail : Token_List_Node_Pointer;
    end record;
 
 end OpenToken.Token.Enumerated.Analyzer;

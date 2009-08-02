@@ -1,5 +1,6 @@
 -------------------------------------------------------------------------------
 --
+-- Copyright (C) 2009 Stephe Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -24,14 +25,12 @@
 --
 -------------------------------------------------------------------------------
 
-with OpenToken.Recognizer;
-
 -----------------------------------------------------------------------------
 --  This package is the top of a generic hierarchy. Based on the list
 --  of IDs it is instantiated with, a user can create tokens and token
 --  analyzers.
 --
---  This package declares an type for designating a single token. It
+--  This package declares a type for designating a single token. It
 --  is designed to be created by an instance of the Token.Analyzer
 --  class when a particular kind of token is recognized.
 --
@@ -39,13 +38,14 @@ with OpenToken.Recognizer;
 --  constructor for the token analyzer and any nessecary utility
 --  routines their parser may require.
 -----------------------------------------------------------------------------
+
+with Ada.Unchecked_Deallocation;
+with OpenToken.Recognizer;
 generic
 
    type Token_ID is (<>);
 
 package OpenToken.Token.Enumerated is
-
-   subtype Token_ID_Type is Token_ID; --  Make it visible for children
 
    type Instance is new OpenToken.Token.Instance with private;
 
@@ -53,31 +53,65 @@ package OpenToken.Token.Enumerated is
 
    type Handle is access all Class;
 
-   --  Recognizer handle type. Defined here to allow access's of
-   --  objects declared at the same level as this package's
-   --  instantiation.
+   ----------------------------------------------------------------------
+   --  Recognizer handle type. Defined here rather than in
+   --  Opentoken.Recognizer to allow access's of objects declared at
+   --  the same level as this package's instantiation.
+   ----------------------------------------------------------------------
    type Recognizer_Handle is access all OpenToken.Recognizer.Class;
 
-   ----------------------------------------------------------------------------
-   --  Get a token with the given ID.
-   ----------------------------------------------------------------------------
-   function Get (ID : in Token_ID := Token_ID'First) return Instance'Class;
+   type Action is access procedure (Token : in out Instance'Class);
 
-   ----------------------------------------------------------------------------
-   --  This procedure will be called when a token is recognized.
+   ----------------------------------------------------------------------
+   --  Get a token with the given ID and Build action. Build will be
+   --  called by Parse. Result is class-wide so derived types
+   --  don't have to override Get.
+   ----------------------------------------------------------------------
+   function Get
+     (ID    : in Token_ID := Token_ID'First;
+      Build : in Action   := null)
+     return Instance'Class;
+
+   procedure Set_Build (Token : in out Instance'Class; Build : in Action);
+
+   ----------------------------------------------------------------------
+   --  Create will be called from Find_Next when a token is
+   --  recognized, whether Look_Ahead is True or not.
    --
-   --  The Token's ID will be set to the given value. The Lexeme and
-   --  Recognizer fields aren't used for this instance of the type.
-   --  But they will be filled in by the analyzer. The recognizer is
-   --  useful in creating tighly coupled pairs of tokens and
-   --  recognizers. This allows communication of user-defined
-   --  information global to the analyzer instance while maintaining
-   --  overall re-entrancy.
-   --------------------------------------------------------------------------
-   procedure Create (Lexeme     : in     String;
-                     ID         : in     Token_ID;
-                     Recognizer : in     Recognizer_Handle;
-                     New_Token  :    out Instance);
+   --  Lexeme is the matched input text. Recognizer is the recognizer
+   --  that matched it.
+   --
+   --  New_Token is the token that the analyzer associates with
+   --  Recognizer (specified when the syntax is created).
+   --
+   --  Create is called even when Look_Ahead is true (when the parse
+   --  is inactive), so that Lexeme and Recognizer can be preserved in
+   --  the lookahead queue if needed; New_Token is pushed on the
+   --  lookahead queue if another token is read with Look_Ahead True.
+   --
+   --  The recognizer is useful in creating tightly coupled pairs of
+   --  tokens and recognizers. This allows communication of
+   --  user-defined information global to the analyzer instance while
+   --  maintaining overall re-entrancy.
+   ----------------------------------------------------------------------
+   procedure Create
+     (Lexeme     : in     String;
+      Recognizer : in     Recognizer_Handle;
+      New_Token  : in out Instance)
+   is null;
+
+   --------------------------------------------------------------------
+   --  Copy From to To. Called by Parse when a token matches, whether
+   --  Actively is true or not. This is just a dispatching version of
+   --  ':='; see the comments in Parse for more rationale.
+   --
+   --  Parse has verified that From'Tag = To'Tag, and that From.ID =
+   --  To.ID.
+   --------------------------------------------------------------------
+   procedure Copy
+     (To   : in out Instance;
+      From : in     OpenToken.Token.Class)
+   is null;
 
    --------------------------------------------------------------------------
    --  This function returns the ID of the token. This is made
@@ -90,34 +124,46 @@ package OpenToken.Token.Enumerated is
    ----------------------------------------------------------------------------
    --  Set the given token's ID to the given value
    ----------------------------------------------------------------------------
-   procedure Set_ID (Token : in out Instance'Class;
-                     ID    : in     Token_ID);
+   procedure Set_ID
+     (Token : in out Instance'Class;
+      ID    : in     Token_ID);
 
+   --------------------------------------------------------------------
+   --  If Match matches the current token, and Actively is True,
+   --  copies the results of the earlier call to Create to Match, and
+   --  calls Build (if not null).
+   --------------------------------------------------------------------
    overriding procedure Parse
-     (Match    : in out Instance;
+     (Match    : access Instance;
       Analyzer : in out Source_Class;
       Actively : in     Boolean      := True);
 
-   overriding function Could_Parse_To
-     (Match    : in Instance;
-      Analyzer : in Source_Class)
-     return Boolean;
+   overriding function Name (Token : in Instance) return String;
 
    type Source is abstract new OpenToken.Token.Source with null record;
 
-   ----------------------------------------------------------------------------
+   --------------------------------------------------------------------------
    --  Returns the actual text of the last token that was matched.
-   ----------------------------------------------------------------------------
+   --
+   --  Raises Programmer_Error when the last token was read from the
+   --  lookahead queue.
+   --------------------------------------------------------------------------
    function Lexeme (Analyzer : in Source) return String is abstract;
 
-   ----------------------------------------------------------------------------
+   --------------------------------------------------------------------------
    --  Returns the recognizer handle of the last token that was matched.
-   ----------------------------------------------------------------------------
+   --
+   --  Raises Programmer_Error when the last token was read from the
+   --  lookahead queue.
+   --------------------------------------------------------------------------
    function Last_Recognizer (Analyzer : in Source) return Recognizer_Handle is abstract;
 
 private
    type Instance is new OpenToken.Token.Instance with record
-      ID : Token_ID;
+      ID    : Token_ID;
+      Build : Action;
    end record;
+
+   procedure Free is new Ada.Unchecked_Deallocation (Class, Handle);
 
 end OpenToken.Token.Enumerated;

@@ -1,5 +1,6 @@
 -------------------------------------------------------------------------------
 --
+-- Copyright (C) 2009 Stephe Leake
 -- Copyright (C) 2000 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -28,6 +29,7 @@
 --  up of any number of repetitions of other tokens, separated by a given
 --  separator token.
 -------------------------------------------------------------------------------
+
 generic
    type Parent_Token is abstract new OpenToken.Token.Instance with private;
    type Component_Token is abstract new OpenToken.Token.Instance with private;
@@ -39,64 +41,90 @@ package OpenToken.Token.List_Mixin is
 
    type Handle is access all Class;
 
-   ----------------------------------------------------------------------------
-   --  Retrieve a list token from the analyzer.
-   --  The private routine Add_List_Element is called with every successive list
-   --  element that is recognized. The private routine Build is called when the
-   --  entire list has been recognized.
-   --  An a non active parse does not comsume any input from the analyzer,
-   --  and does not call any of the private routines.
-   ----------------------------------------------------------------------------
-   overriding procedure Parse
-     (Match    : in out Instance;
-      Analyzer : in out Source_Class;
-      Actively : in     Boolean := True);
+   type List_Action is access procedure (List : in out Instance);
+
+   type Element_Action is access procedure
+     (List    : in out Instance;
+      Element : in     Component_Token'Class);
 
    ----------------------------------------------------------------------------
-   --  Construct a new list token, using the given Element and Separator tokens.
+   --  Return a new list token
    ----------------------------------------------------------------------------
-   function Get
+   function "**"
      (Element   : access Component_Token'Class;
-      Separator : access OpenToken.Token.Class
-     ) return Instance;
+      Separator : access OpenToken.Token.Class)
+     return Instance;
 
-   ----------------------------------------------------------------------------
-   --  This routine should is a quick check to verify that the given list token
-   --  can possibly succesfully parse from what's sitting in the analyzer.
-   --  This routine is meant to be used for choosing between parsing options.
-   --  It simply checks Could_Parse_To for this token's Element token.
-   ----------------------------------------------------------------------------
-   overriding function Could_Parse_To
-     (Match    : in Instance;
-      Analyzer : in Source_Class)
-     return Boolean;
+   function "*"
+     (Token       : in Instance;
+      Add_Element : in Element_Action)
+     return Handle;
 
-   ----------------------------------------------------------------------------
-   --  This routine is called when a parse starts to clean up any saved data.
-   --  The default implementation does nothing.
-   ----------------------------------------------------------------------------
-   procedure Initialize (Match : in out Instance) is null;
+   function "+"
+     (Token      : in Handle;
+      Initialize : in List_Action)
+     return Handle;
 
-   ----------------------------------------------------------------------------
-   --  This routine is called every time a list element is actively parsed.
-   --  The default implementation does nothing.
-   ----------------------------------------------------------------------------
-   procedure Add_List_Element
-     (Match   : in out Instance;
-      Element : in out Component_Token'Class) is null;
+   function "-"
+     (Token : in Handle;
+      Build : in List_Action)
+     return Handle;
 
-   ----------------------------------------------------------------------------
-   --  This routine is called when an entire list has been actively parsed.
-   --  The default implementation does nothing.
-   ----------------------------------------------------------------------------
-   procedure Build (Match : in out Instance) is null;
+   function Get
+     (Element     : access Component_Token'Class;
+      Separator   : access OpenToken.Token.Class;
+      Name        : in     String                := "";
+      Lookahead   : in     Integer               := Default_Lookahead;
+      Initialize  : in     List_Action           := null;
+      Add_Element : in     Element_Action        := null;
+      Build       : in     List_Action           := null)
+     return Instance;
+
+   function New_Instance
+     (Token       : in Instance;
+      Name        : in String         := "";
+      Lookahead   : in Integer        := Default_Lookahead;
+      Initialize  : in List_Action    := null;
+      Add_Element : in Element_Action := null;
+      Build       : in List_Action    := null)
+     return Handle;
+
+   procedure Set_Name (Token : in out Instance; Name : in String);
+
+   procedure Set_Lookahead (Token : in out Instance; Lookahead : in Integer);
+
+   --------------------------------------------------------------------------
+   --  Initialize is called before anything else happens.
+   --
+   --  Add_Element is called with every successive list element
+   --  that is recognized.
+   --
+   --  Build is called when the entire list has been recognized.
+   --------------------------------------------------------------------------
+   overriding procedure Parse
+     (Match    : access Instance;
+      Analyzer : in out Source_Class;
+      Actively : in     Boolean      := True);
+
+   --------------------------------------------------------------------
+   --  Return the name specified in Get or New_Instance. If that's null,
+   --  return OpenToken.Token.Name (Token).
+   --------------------------------------------------------------------
+   overriding function Name (Token : in Instance) return String;
+
+   overriding procedure Expecting (Token : access Instance; List : in out Linked_List.Instance);
 
 private
    type Component_Handle is access all Component_Token'Class;
 
    type Instance is new Parent_Token with record
-      Element   : Component_Handle;
-      Separator : OpenToken.Token.Handle;
+      Element     : Component_Handle;
+      Separator   : OpenToken.Token.Handle;
+      Name        : access String;
+      Lookahead   : Integer;
+      Initialize  : List_Action;
+      Add_Element : Element_Action;
+      Build       : List_Action;
    end record;
 
 end OpenToken.Token.List_Mixin;

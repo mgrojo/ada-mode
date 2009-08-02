@@ -1,6 +1,6 @@
 # common tasks; see subdirectories for Ada builds
 
-ZIP_VERSION := 3.1a
+ZIP_VERSION := 4.0w
 
 .PHONY : zip force
 
@@ -20,5 +20,9 @@ gzipfile : force
 
 zipfile : force
 	cd ../..; zip -q -r opentoken/Build/opentoken-$(ZIP_VERSION).zip opentoken -x "opentoken/_MTN/*" -x "*.tar.gz" -x "*.zip"
+
+# GDS targets
+windows-all :
+	make -C windows_release all
 
 # end of file

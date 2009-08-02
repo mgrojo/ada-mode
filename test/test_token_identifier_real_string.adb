@@ -34,8 +34,8 @@ with OpenToken.Token.Enumerated.Analyzer;
 with OpenToken.Token.Enumerated.Identifier;
 with OpenToken.Token.Enumerated.List.Print;
 with OpenToken.Token.Enumerated.Nonterminal;
-with OpenToken.Token.Enumerated.Real_Literal;
-with OpenToken.Token.Enumerated.String_Literal;
+with OpenToken.Token.Enumerated.Real;
+with OpenToken.Token.Enumerated.String;
 package body Test_Token_Identifier_Real_String is
 
    type Token_ID_Type is
@@ -54,8 +54,8 @@ package body Test_Token_Identifier_Real_String is
    package Nonterminal is new Master_Token.Nonterminal (Token_List);
 
    package Identifier_Tokens is new Master_Token.Identifier;
-   package Real_Tokens is new Master_Token.Real_Literal (Float);
-   package String_Tokens is new Master_Token.String_Literal;
+   package Real_Tokens is new Master_Token.Real (Float);
+   package String_Tokens is new Master_Token.String;
 
    package Production is new OpenToken.Production (Master_Token, Token_List, Nonterminal);
    package Production_List is new Production.List;
@@ -116,7 +116,7 @@ package body Test_Token_Identifier_Real_String is
             --  Note that this check only works for reals with exact
             --  representations; good enough for this purpose.
             AUnit.Assertions.Assert
-              (Expected_Real = Real_Tokens.Value (Real), "real mismatch");
+              (Expected_Real = Real.Value, "real mismatch");
          end;
 
       when String_ID =>
@@ -124,8 +124,8 @@ package body Test_Token_Identifier_Real_String is
             String : String_Tokens.Instance renames String_Tokens.Instance (Token_Handle (I).all);
          begin
             AUnit.Assertions.Assert
-              (To_String (Expected_String) = String_Tokens.Value (String),
-               "string mismatch; got '" & String_Tokens.Value (String) & "'");
+              (To_String (Expected_String) = String_Tokens.To_String (String.Value),
+               "string mismatch; got '" & String_Tokens.To_String (String.Value) & "'");
          end;
 
       when others =>
@@ -232,8 +232,9 @@ package body Test_Token_Identifier_Real_String is
       One_Real ("1.0");
       One_Real ("-4.5");
 
-      One_String ("""foo""", "foo");
+      One_String (" ""foo"" ", "foo");
       One_String ("""foo""""bar""", "foo""bar");
+      One_String (" """" ", "");
    end Nominal;
 
    ----------

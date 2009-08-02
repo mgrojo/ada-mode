@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 1999 Ted Dennison
+-- Copyright (C) 2002, 2003, 2009 Stephen Leake
 --
 -- This file is part of the OpenToken package.
 --
@@ -25,42 +25,39 @@
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
---  This package declares a type for designating an integer literal.
+--  This package declares a type for designating a real. Useful as
+--  a literal in LR parsers, or an integer value in recursive descent
+--  parsers.
 -------------------------------------------------------------------------------
-package body OpenToken.Token.Enumerated.Integer_Literal is
+
+generic
+   type Real_Type is digits <>;
+package OpenToken.Token.Enumerated.Real is
+
+   type Instance is new OpenToken.Token.Enumerated.Instance with record
+      Value : Real_Type;
+   end record;
+
+   subtype Class is Instance'Class;
+
+   type Handle is access all Class;
 
    ----------------------------------------------------------------------------
-   --  Get a nonterminal token with the given ID.
+   --  Get a real token
    ----------------------------------------------------------------------------
-   function Get (ID     : in Token_ID;
-                 Value  : in Integer := 0) return Instance'Class is
-   begin
-      return Instance'Class (Instance'(ID => ID, Value => Value));
-   end Get;
+   function Get
+     (ID    : in Token_ID;
+      Value : in Real_Type := 0.0;
+      Build : in Action    := null)
+     return Instance'Class;
 
    overriding procedure Create
      (Lexeme     : in     String;
-      ID         : in     Token_ID;
       Recognizer : in     Recognizer_Handle;
-      New_Token  :    out Instance)
-   is
-      pragma Unreferenced (Recognizer);
-   begin
-      New_Token.ID := ID;
-      New_Token.Value := Integer'Value (Lexeme);
+      New_Token  : in out Instance);
 
-   exception
-   when Constraint_Error =>
-      raise Syntax_Error with
-        Lexeme & " not in range: " & Integer'Image (Integer'First) & " .. " & Integer'Image (Integer'Last);
-   end Create;
+   overriding procedure Copy
+     (To   : in out Instance;
+      From : in     Token.Class);
 
-   ----------------------------------------------------------------------------
-   --  Return the value of the given integer token.
-   ----------------------------------------------------------------------------
-   function Value (Subject : in Instance) return Integer is
-   begin
-      return Subject.Value;
-   end Value;
-
-end OpenToken.Token.Enumerated.Integer_Literal;
+end OpenToken.Token.Enumerated.Real;

@@ -37,51 +37,14 @@ procedure ASU_Example_5_10_RD.Run is
    Line_Length : Natural;
 
 begin
-   --------------------------------------------------------------------------
-   --  Define the non-terminals. The text in the example in the book looks
-   --  something like:
-   --
-   --  L -> E         print (L.val)
-   --  E -> E + T     E.val := E1.val + T.val
-   --  E -> T
-   --  T -> T * F     T.val := T1.val * F.val
-   --  T -> F
-   --  F -> ( E )     F.val := E.val
-   --  F -> digit
-   --
-   --  For Recursive-decent (LL) parsing we can't have recursive
-   --  references in the first token in a token's definition. That
-   --  would cause infinite recursion! This is the case in the
-   --  definitions above for E and T. In most cases you can fix this
-   --  by rearranging the grammar a bit so that the first token isn't
-   --  a self-reference. We do this by extending the meta-syntax for
-   --  grammars defined in [1] section 4.2 p 166, by using {} to
-   --  indicate possible repetition (as in Extended Backus-Naur form;
-   --  see
-   --  http://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_Form):
-   --
-   --  L -> E              print (L.val)
-   --  E -> T {+ T}     E.val := E1.val + T.val
-   --  T -> F {* F}     T.val := T1.val * F.val
-   --  F -> ( E )          F.val := E.val
-   --  F -> digit
-   --
-   --  The List token implements {}.
 
-   L.all := E & EOF;
-   E.all := Operation_List.Class (Add_Operation_List'(Get (T, Plus)));
-   T.all := Operation_List.Class (Multiply_Operation_List'(Get (F, Times)));
-
-   --  We'd like to use this simpler expression:
-   --
-   --     Int_Literal or new Expression_Sequence'(Left_Paren & E & Right_Paren);
-   --
-   --  But the type of 'new Expression_Sequence' is an anonymous
-   --  access type declared in a procedure (not at library level), so
-   --  its accessiblity level is lower than T's, and we get an
-   --  accessibility error in GNAT 6.2.1. Using a type qualifier of a
-   --  global access type fixes this.
-   F.all := Int_Literal or Expression_Sequence_Handle'(new Expression_Sequence'(Left_Paren & E & Right_Paren));
+   --  Finish the non-terminals
+   E.all := Operation_List.Get
+     (Element     => T,
+      Separator   => Plus,
+      Initialize  => Init_Plus'Access,
+      Add_Element => Plus_Element'Access,
+      Name        => "E");
 
    Ada.Text_IO.Put_Line ("A simple calculator, as specified in example 5.10 in Aho, Sethi, and Ullman's");
    Ada.Text_IO.Put_Line ("""Compilers Principles, Techniques and Tools""");
@@ -89,11 +52,30 @@ begin
    Ada.Text_IO.Put_Line ("""+"", ""*"", and ""( num )"" are understood.");
    Ada.Text_IO.Put_Line ("(Enter a blank line to quit)");
 
-   --  Read and parse lines from the console until an empty line is read.
+   --  Set debugging info
+   Integer_Sequence.Set_Name (L.all, "L");
+   Integer_Sequence.Set_Name (F1.all, "F1");
+   Integer_Selection.Set_Name (F.all, "F");
+   Operation_List.Set_Name (T.all, "T");
+   OpenToken.Token.Trace_Parse := True;
+
+   --  Read and parse lines from Current_Input until an empty line is read.
    loop
       Ada.Text_IO.Get_Line (Line, Line_Length);
 
       exit when Line_Length = 0;
+
+      if OpenToken.Token.Trace_Parse then
+         Ada.Text_IO.Put_Line (Line (1 .. Line_Length));
+
+         --  reset initial state of tokens, to help interpret the trace
+         L.Value  := -1;
+         F1.Value := -1;
+         F.Value  := -1;
+         T.Value  := -1;
+         E.Value  := -1;
+      end if;
+
       OpenToken.Text_Feeder.String.Set
         (Feeder => Feeder,
          Value  => Line (1 .. Line_Length));
@@ -101,9 +83,7 @@ begin
       --  Load up the first token
       Tokenizer.Find_Next (Analyzer);
 
-      OpenToken.Token.Parse
-        (Match    => OpenToken.Token.Class (L.all),
-         Analyzer => Analyzer);
+      Integer_Sequence.Parse (L, Analyzer);
 
    end loop;
 

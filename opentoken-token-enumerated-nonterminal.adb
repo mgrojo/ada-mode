@@ -1,5 +1,6 @@
 -------------------------------------------------------------------------------
 --
+-- Copyright (C) 2009 Stephe Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -24,31 +25,21 @@
 --
 -------------------------------------------------------------------------------
 
-
------------------------------------------------------------------------------
---  This package provides a type and operatoions for building grammar
---  productions.
------------------------------------------------------------------------------
 package body OpenToken.Token.Enumerated.Nonterminal is
 
-   ----------------------------------------------------------------------------
-   --  Get a token with the given ID.
-   ----------------------------------------------------------------------------
-   function Get (ID : in Token_ID := Token_ID'First) return Instance'Class is
-   begin
-      return Instance'Class (Instance'(ID => ID));
+   function Get
+     (ID : in Token_ID := Token_ID'First;
+      Build : in Action   := null)
+     return Instance'Class
+   is begin
+      return Instance'Class (Instance'(ID, Build));
    end Get;
 
-   --------------------------------------------------------------------------
-   --  Create a token by simply up-converting the given token, and
-   --  changing its ID to match the given ID. For this default
-   --  implementation, the Source must be in Instance'Class.
-   --------------------------------------------------------------------------
-   procedure Synthesize_By_Copying (New_Token : out Instance;
-                                    Source    : in  OpenToken.Token.Enumerated.Instance'Class;
-                                    To_ID     : in  OpenToken.Token.Enumerated.Token_ID) is
-
-   begin
+   procedure Synthesize_By_Copying
+     (New_Token : out Instance;
+      Source    : in  OpenToken.Token.Enumerated.Instance'Class;
+      To_ID     : in  OpenToken.Token.Enumerated.Token_ID)
+   is begin
       New_Token := Instance (Source);
       New_Token.ID := To_ID;
 
@@ -62,55 +53,32 @@ package body OpenToken.Token.Enumerated.Nonterminal is
 
    end Synthesize_By_Copying;
 
-   --------------------------------------------------------------------------
-   --  The default attribute synthesization routine. If no
-   --  synthesization routine is specified by users when they make a
-   --  production, this routine will be dispatched to. The default
-   --  implementation provided in this package has the same effect as
-   --  Synthesize_First.
-   --------------------------------------------------------------------------
-   procedure Default_Synthesize (New_Token : out Instance;
-                                 Source    : in  Token_List.Instance'Class;
-                                 To_ID     : in  OpenToken.Token.Enumerated.Token_ID) is
-   begin
+   procedure Default_Synthesize
+     (New_Token : out Instance;
+      Source    : in  Token_List.Instance'Class;
+      To_ID     : in  OpenToken.Token.Enumerated.Token_ID)
+   is begin
       Synthesize_By_Copying
         (New_Token => Class (New_Token),
          Source    => Token_List.Token_Handle (Token_List.Initial_Iterator (Source)).all,
-         To_ID     => To_ID
-         );
+         To_ID     => To_ID);
    end Default_Synthesize;
 
-   --------------------------------------------------------------------------
-   --  Optional synthesization routine. It Creates a new version of a
-   --  Nonterminal token, ex nihilo. It just fills in the ID using the
-   --  To_ID and returns the result. For this package, this should be
-   --  the same result, but much faster than, Synthesize_First. But
-   --  since this isn't in general possible for more complex tokens,
-   --  it wasn't made inheritable. Thus this routine can only produce
-   --  Nonterminal.Instance's.
-   --------------------------------------------------------------------------
-   procedure Self_Synthesize (New_Token : out Class;
-                              Source    : in  Token_List.Instance'Class;
-                              To_ID     : in  OpenToken.Token.Enumerated.Token_ID)
+   procedure Self_Synthesize
+     (New_Token : out Class;
+      Source    : in  Token_List.Instance'Class;
+      To_ID     : in  OpenToken.Token.Enumerated.Token_ID)
    is
       pragma Unreferenced (Source);
    begin
       New_Token.ID := To_ID;
    end Self_Synthesize;
 
-   --------------------------------------------------------------------------
-   --  Optional synthesization routine. Passes the first token in the
-   --  list to the instance's Synthesize_By_Copying routine, which by
-   --  default will up-convert it into the proper nonterminal instance
-   --  type, set the ID to the given value, and return it. If the
-   --  first token in the source list is not a nonterminal in the
-   --  return production target's Instance'Class, Constraint_Error
-   --  will be raised.
-   --------------------------------------------------------------------------
-   procedure Synthesize_From_First (New_Token : out Class;
-                                    Source    : in  Token_List.Instance'Class;
-                                    To_ID     : in  OpenToken.Token.Enumerated.Token_ID) is
-
+   procedure Synthesize_From_First
+     (New_Token : out Class;
+      Source    : in  Token_List.Instance'Class;
+      To_ID     : in  OpenToken.Token.Enumerated.Token_ID)
+   is
       Checked_Source : Handle;
    begin
       begin
@@ -128,24 +96,15 @@ package body OpenToken.Token.Enumerated.Nonterminal is
       Synthesize_By_Copying
         (New_Token => New_Token,
          Source    => Checked_Source.all,
-         To_ID     => To_ID
-         );
+         To_ID     => To_ID);
    end Synthesize_From_First;
 
-
-   --------------------------------------------------------------------------
-   --  Default synthesization routine. This routine dispatches to the
-   --  return instance type's Default_Synthesize routine. To change
-   --  the default synthesization behavior, override the
-   --  Default_Synthesize routine.
-   --------------------------------------------------------------------------
-   procedure Default_Synthesize_Class (New_Token : out Class;
-                                       Source    : in  Token_List.Instance'Class;
-                                       To_ID     : in  OpenToken.Token.Enumerated.Token_ID) is
-   begin
-      Default_Synthesize (New_Token => New_Token,
-                          Source    => Source,
-                          To_ID     => To_ID);
+   procedure Default_Synthesize_Class
+     (New_Token : out Class;
+      Source    : in  Token_List.Instance'Class;
+      To_ID     : in  OpenToken.Token.Enumerated.Token_ID)
+   is begin
+      Default_Synthesize (New_Token, Source, To_ID);
    end Default_Synthesize_Class;
 
 end OpenToken.Token.Enumerated.Nonterminal;

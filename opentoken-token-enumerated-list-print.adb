@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2002 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2002, 2009 Stephen Leake.  All Rights Reserved.
 --
 --  This library is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -32,7 +32,7 @@ package body OpenToken.Token.Enumerated.List.Print is
    begin
       loop
          exit when I = Null_Iterator;
-         Ada.Text_IO.Put (Enumerated.Token_ID_Type'Image (Enumerated.ID (Token_Handle (I).all)));
+         Ada.Text_IO.Put (Enumerated.Token_ID'Image (Enumerated.ID (Token_Handle (I).all)));
          Next_Token (I);
          if I /= Null_Iterator then
             Ada.Text_IO.Put (", ");
