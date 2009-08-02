@@ -1072,7 +1072,7 @@ package body OpenToken.Production.Parser.LALR is
             ID    => Token.ID (Current_State.Seen_Token.all)
             );
 
-         if Parser.Trace then
+         if Trace_Parse then
             Ada.Text_IO.Put
               (Ada.Text_IO.Standard_Error,
                State_Index'Image (Current_State.State) &
@@ -1104,7 +1104,7 @@ package body OpenToken.Production.Parser.LALR is
 
                Current_State.State := Action.State;
 
-               if Parser.Trace then
+               if Trace_Parse then
                   Ada.Text_IO.New_Line (Ada.Text_IO.Standard_Error);
                end if;
 
@@ -1124,7 +1124,7 @@ package body OpenToken.Production.Parser.LALR is
                            State => Stack.State,
                            ID    => Token.ID (Action.Production.LHS.all));
 
-               if Parser.Trace then
+               if Trace_Parse then
                   Ada.Text_IO.Put_Line
                     (Ada.Text_IO.Standard_Error,
                      " to state" &
@@ -1140,7 +1140,7 @@ package body OpenToken.Production.Parser.LALR is
                   Production       => Action.Production
                   );
 
-               if Parser.Trace then
+               if Trace_Parse then
                   Ada.Text_IO.New_Line (Ada.Text_IO.Standard_Error);
                end if;
 
@@ -1156,7 +1156,7 @@ package body OpenToken.Production.Parser.LALR is
                return;
 
             when Error =>
-               if Parser.Trace then
+               if Trace_Parse then
                   Ada.Text_IO.New_Line (Ada.Text_IO.Standard_Error);
                end if;
 
@@ -1188,20 +1188,10 @@ package body OpenToken.Production.Parser.LALR is
       end loop;
    end Parse;
 
-   ----------------------------------------------------------------------------
-   --  This routine displays the parse table for the parser to
-   --  Ada.Text_IO.Current_Output. This may be useful for debugging grammars
-   --  (or, heaven forbid, the parser itself).
-   ----------------------------------------------------------------------------
    procedure Print_Table (Parser : in Instance) is
    begin
       Ada.Text_IO.Put_Line ("Parse Table:");
       Print_Parse_Table (Parser.Table.all);
    end Print_Table;
-
-   procedure Set_Trace (Parser : in out Instance; Enabled : in Boolean)
-   is begin
-      Parser.Trace := Enabled;
-   end Set_Trace;
 
 end OpenToken.Production.Parser.LALR;

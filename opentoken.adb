@@ -22,31 +22,17 @@
 --  executable to be covered by the GNU General Public License. This
 --  exception does not however invalidate any other reasons why the
 --  executable file might be covered by the GNU Public License.
---
 -------------------------------------------------------------------------------
 
-with Ada.Tags;
-with OpenToken.Token.Linked_List;
-package body OpenToken.Token is
+with Ada.Strings.Fixed;
+with Ada.Text_IO;
+package body OpenToken is
 
-   function Name (Token : in Instance) return String is
+   procedure Trace_Put (Message : in String)
+   is
+      use Ada.Strings.Fixed;
    begin
-      return Ada.Tags.External_Tag (Class (Token)'Tag);
-   end Name;
+      Ada.Text_IO.Put (Trace_Indent * 3 * ' ' & Message);
+   end Trace_Put;
 
-   function Name_Dispatch (Token : in Class) return String
-   is begin
-      return Name (Token);
-   end Name_Dispatch;
-
-   function Name_Dispatch (Token : access constant Instance'Class) return String
-   is begin
-      return Name (Token.all);
-   end Name_Dispatch;
-
-   procedure Expecting (Token : access Instance; List : in out Linked_List.Instance)
-   is begin
-      Linked_List.Add (List, Handle (Token));
-   end Expecting;
-
-end OpenToken.Token;
+end OpenToken;

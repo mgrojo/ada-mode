@@ -66,7 +66,7 @@ begin
 
       when 1 =>
          if Argument (1) = "-t" then
-            OpenToken.Token.Trace_Parse := True;
+            OpenToken.Trace_Parse := True;
 
          else
             Use_File (Argument (1));
@@ -74,7 +74,7 @@ begin
 
       when 2 =>
          if Argument (1) = "-t" then
-            OpenToken.Token.Trace_Parse := True;
+            OpenToken.Trace_Parse := True;
 
          else
             Set_Exit_Status (Failure);
@@ -91,11 +91,10 @@ begin
       end case;
    end;
 
-   Test_Parser := LALR_Parser.Generate (Grammar, Analyzer, OpenToken.Token.Trace_Parse);
+   Test_Parser := LALR_Parser.Generate (Grammar, Analyzer, OpenToken.Trace_Parse);
 
-   if OpenToken.Token.Trace_Parse then
+   if OpenToken.Trace_Parse then
       LALR_Parser.Print_Table (Test_Parser);
-      LALR_Parser.Set_Trace (Test_Parser, True);
    end if;
 
    if not Is_Open (Input_File) then

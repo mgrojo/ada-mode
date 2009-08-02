@@ -2,7 +2,7 @@
 --
 --  Run Name_Token_Test
 --
---  Copyright (C) 2002, 2003 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2002, 2003, 2009 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -49,6 +49,9 @@ is
    end Parse_Command;
 
 begin
+   --  The test is that the parse trace matches the known good trace.
+   OpenToken.Trace_Parse := True;
+
    Put_Line ("Simple Parser");
    declare
       Simple_Parser : LALR_Parser.Instance := LALR_Parser.Generate (Simple_Grammar, The_Analyzer, Trace => Trace);
@@ -56,8 +59,6 @@ begin
       if Trace then
          LALR_Parser.Print_Table (Simple_Parser);
       end if;
-
-      LALR_Parser.Set_Trace (Simple_Parser, True);
 
       Parse_Command (Simple_Parser, "Module (Index)");
       Parse_Command (Simple_Parser, "Module.Component");
@@ -72,8 +73,6 @@ begin
          LALR_Parser.Print_Table (Medium_Parser);
       end if;
 
-      LALR_Parser.Set_Trace (Medium_Parser, True);
-
       Parse_Command (Medium_Parser, "Module.Symbol (Index)");
       Parse_Command (Medium_Parser, "Module.Symbol.Component");
    end;
@@ -86,8 +85,6 @@ begin
       if Trace then
          LALR_Parser.Print_Table (Full_Parser);
       end if;
-
-      LALR_Parser.Set_Trace (Full_Parser, True);
 
       Parse_Command (Full_Parser, "Module.Symbol");
       Parse_Command (Full_Parser, "Module.Symbol (Index)");

@@ -103,7 +103,7 @@ package body Test_Selection_Actions is
 
    overriding procedure Set_Up_Case (T : in out Test_Case)
    is begin
-      OpenToken.Token.Trace_Parse := T.Debug;
+      OpenToken.Trace_Parse := T.Debug;
    end Set_Up_Case;
 
 end Test_Selection_Actions;

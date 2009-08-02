@@ -224,7 +224,7 @@ package body Test_Token_Identifier_Real_String is
 
       LALR_Parser.Set_Text_Feeder (Parser, String_Feeder'Unchecked_Access);
 
-      LALR_Parser.Set_Trace (Parser, Test.Debug);
+      OpenToken.Trace_Parse := Test.Debug;
 
       One_Identifier ("An_Identifier");
       One_Identifier ("Another_Identifier");

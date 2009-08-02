@@ -260,7 +260,7 @@ package body Test_LR0_Kernels is
       if Test.Debug then
          Dump_Grammar;
          Dump_Parse_Table;
-         LALR_Parser.Set_Trace (Command_Parser, True);
+         OpenToken.Trace_Parse := True;
       end if;
 
       --  The test is that we get no exceptions. Note that the

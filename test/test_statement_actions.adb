@@ -207,7 +207,7 @@ package body Test_Statement_Actions is
       if Test.Debug then
          Dump_Grammar;
          Dump_Parse_Table;
-         LALR_Parser.Set_Trace (Command_Parser, True);
+         OpenToken.Trace_Parse := True;
       end if;
 
       Execute_Command ("set 2;");

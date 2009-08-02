@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2002, 2003 Stephe Leake
+-- Copyright (C) 2002, 2003, 2009 Stephe Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -36,6 +36,8 @@ package OpenToken.Production.Parser.LALR is
 
    type Instance is new OpenToken.Production.Parser.Instance with private;
 
+   --  We don't use OpenToken.Trace here; we often want to see a trace
+   --  of the parser execution without the parser generation.
    overriding function Generate
      (Grammar  : in Production_List.Instance;
       Analyzer : in Tokenizer.Instance;
@@ -56,10 +58,6 @@ package OpenToken.Production.Parser.LALR is
    --  grammars (or, heaven forbid, the parser itself).
    --------------------------------------------------------------------------
    procedure Print_Table (Parser : in Instance);
-
-   procedure Set_Trace (Parser : in out Instance; Enabled : in Boolean);
-   --  If Enabled, print trace of state transitions to
-   --  Ada.Text_IO.Standard_Error when Parse is called.
 
 private
 
@@ -83,7 +81,6 @@ private
 
    type Instance is new OpenToken.Production.Parser.Instance with record
       Table : Parse_Table_Ptr;
-      Trace : Boolean := False;
    end record;
 
 end OpenToken.Production.Parser.LALR;

@@ -110,7 +110,7 @@ package body Lookahead_Test is
    begin
       --  Verify that Push_Back works.
 
-      OpenToken.Token.Trace_Parse := Test.Debug;
+      OpenToken.Trace_Parse := Test.Debug;
 
       OpenToken.Text_Feeder.String.Set (Feeder, "if then ""string"" quit");
       Reset (Analyzer);
