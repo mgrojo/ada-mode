@@ -26,6 +26,38 @@
 
 package body OpenToken.Token.Enumerated.String is
 
+   --------------------------------------------------------------------------
+   --  Return the value of Item with quotes removed
+   --  (assumes Ada syntax).
+   --------------------------------------------------------------------------
+   function Unquote (Item : in Standard.String) return Standard.String
+   is
+      use Buffers;
+      Item_Next  : Natural := Item'First;
+      Result      : Standard.String (1 .. Item'Length);
+      Result_Last : Natural := Result'First - 1;
+      C           : Character;
+   begin
+      loop
+         exit when Item_Next > Item'Last;
+         C := Item (Item_Next);
+         if C = '"' then
+            --  First " starts string, last " ends it.
+            --  Doubled "" before last is an embedded "
+            exit when Item_Next = Item'Last;
+            Item_Next := Item_Next + 1;
+            C := Item (Item_Next);
+            --  This might be the last "
+            exit when C = '"' and Item_Next = Item'Last;
+         end if;
+         Result_Last          := Result_Last + 1;
+         Result (Result_Last) := C;
+         Item_Next            := Item_Next + 1;
+      end loop;
+
+      return Result (1 .. Result_Last);
+   end Unquote;
+
    function Get
      (ID    : in Token_ID;
       Value : in Standard.String := "";
@@ -42,7 +74,7 @@ package body OpenToken.Token.Enumerated.String is
    is
       pragma Unreferenced (Recognizer);
    begin
-      New_Token.Value := Buffers.To_Bounded_String (Lexeme);
+      New_Token.Value := Buffers.To_Bounded_String (Unquote (Lexeme));
    end Create;
 
    overriding procedure Copy
@@ -51,33 +83,5 @@ package body OpenToken.Token.Enumerated.String is
    is begin
       To.Value := Instance (From).Value;
    end Copy;
-
-   function Unquote (Subject : in Instance) return Standard.String
-   is
-      use Buffers;
-      Value_Next  : Natural := 1;
-      Result      : Standard.String (1 .. Length (Subject.Value));
-      Result_Last : Natural := Result'First - 1;
-      C           : Character;
-   begin
-      loop
-         exit when Value_Next > Length (Subject.Value);
-         C := Element (Subject.Value, Value_Next);
-         if C = '"' then
-            --  First " starts string, last " ends it.
-            --  Doubled "" before last is an embedded "
-            exit when Value_Next = Length (Subject.Value);
-            Value_Next := Value_Next + 1;
-            C := Element (Subject.Value, Value_Next);
-            --  This might be the last "
-            exit when C = '"' and Value_Next = Length (Subject.Value);
-         end if;
-         Result_Last          := Result_Last + 1;
-         Result (Result_Last) := C;
-         Value_Next           := Value_Next + 1;
-      end loop;
-
-      return Result (1 .. Result_Last);
-   end Unquote;
 
 end OpenToken.Token.Enumerated.String;

@@ -124,8 +124,8 @@ package body Test_Token_Identifier_Real_String is
             String : String_Tokens.Instance renames String_Tokens.Instance (Token_Handle (I).all);
          begin
             AUnit.Assertions.Assert
-              (To_String (Expected_String) = String_Tokens.Unquote (String),
-               "string mismatch; got '" & String_Tokens.Unquote (String) & "'");
+              (To_String (Expected_String) = String_Tokens.To_String (String.Value),
+               "string mismatch; got '" & String_Tokens.To_String (String.Value) & "'");
          end;
 
       when others =>

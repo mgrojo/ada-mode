@@ -48,6 +48,9 @@ package OpenToken.Token.Enumerated.String is
       Build : in Action          := null)
      return Instance'Class;
 
+   ----------------------------------------------------------------------
+   --  Strips quotes from Lexeme
+   ----------------------------------------------------------------------
    overriding procedure Create
      (Lexeme     : in     Standard.String;
       Recognizer : in     Recognizer_Handle;
@@ -57,10 +60,13 @@ package OpenToken.Token.Enumerated.String is
      (To   : in out Instance;
       From : in     Token.Class);
 
-   --------------------------------------------------------------------------
-   --  Return the value of the given token, with quotes removed
-   --  (assumes Ada syntax).
-   --------------------------------------------------------------------------
-   function Unquote (Subject : in Instance) return Standard.String;
+   function To_String (Value : in Buffers.Bounded_String) return Standard.String
+     renames Buffers.To_String;
+
+   function To_Bounded_String
+     (Value : in Standard.String;
+      Drop  : in Ada.Strings.Truncation := Ada.Strings.Error)
+     return Buffers.Bounded_String
+     renames Buffers.To_Bounded_String;
 
 end OpenToken.Token.Enumerated.String;
