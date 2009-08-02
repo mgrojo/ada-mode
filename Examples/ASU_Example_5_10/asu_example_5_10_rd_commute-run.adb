@@ -24,13 +24,65 @@
 --  executable file might be covered by the GNU Public License.
 -------------------------------------------------------------------------------
 
+with Ada.Command_Line;
 with Ada.Text_IO; use Ada.Text_IO;
-procedure ASU_Example_5_10_RD_No_Mixin.Run is
-   Input_String : constant String := "10 + 5 * 6";
+procedure ASU_Example_5_10_RD_Commute.Run is
+
+   procedure Put_Usage
+   is begin
+      Put_Line ("asu_example_5_10_rd_commute-run [-t] [filename]");
+      Put_Line ("  -t : output trace of parser generation, execution");
+      Put_Line ("  if no filename given, parse standard input");
+   end Put_Usage;
+
+   Input_File : File_Type;
+
+   procedure Use_File (File_Name : in String)
+   is begin
+      Open (Input_File, In_File, File_Name);
+      Set_Input (Input_File);
+   end Use_File;
+
+   Line        : String (1 .. 1024);
+   Line_Length : Natural;
 
    use OpenToken.Token.Sequence;
    use OpenToken.Token.Selection;
 begin
+
+   declare
+      use Ada.Command_Line;
+   begin
+      case Argument_Count is
+      when 0 =>
+         null;
+
+      when 1 =>
+         if Argument (1) = "-t" then
+            OpenToken.Token.Trace_Parse := True;
+
+         else
+            Use_File (Argument (1));
+         end if;
+
+      when 2 =>
+         if Argument (1) = "-t" then
+            OpenToken.Token.Trace_Parse := True;
+
+         else
+            Set_Exit_Status (Failure);
+            Put_Usage;
+            return;
+         end if;
+
+         Use_File (Argument (2));
+
+      when others =>
+         Set_Exit_Status (Failure);
+         Put_Usage;
+         return;
+      end case;
+   end;
 
    OpenToken.Token.Default_Lookahead := 2;
 
@@ -45,20 +97,36 @@ begin
 
    Master_Token.Set_Build (Int.all, Build_Integer'Access);
 
-   Put_Line ("Input_String => " & Input_String);
+   if not Is_Open (Input_File) then
+      Put_Line ("A simple calculator, as specified in example 5.10 in Aho, Sethi, and Ullman's");
+      Put_Line ("""Compilers Principles, Techniques and Tools""");
+      New_Line;
+      Put_Line ("""+"", ""*"", and ""( num )"" are understood.");
+      Put_Line ("(Enter a blank line to quit)");
+   end if;
 
-   OpenToken.Text_Feeder.String.Set (Feeder, "10 + 5 * 6");
+   --  Exit on null line or end of file
+   loop
+      Get_Line (Line, Line_Length);
 
-   Tokenizer.Reset (Analyzer);
+      exit when Line_Length = 0;
 
-   Tokenizer.Find_Next (Analyzer);
+      OpenToken.Text_Feeder.String.Set
+        (Feeder => Feeder,
+         Value  => Line (1 .. Line_Length));
 
-   Clear_Stack;
+      Put_Line ("Input_String => " & Line (1 .. Line_Length));
 
-   OpenToken.Token.Trace_Parse := True;
-   OpenToken.Token.Sequence.Parse (L, Analyzer);
+      Tokenizer.Reset (Analyzer);
+
+      Tokenizer.Find_Next (Analyzer);
+
+      Clear_Stack;
+
+      OpenToken.Token.Sequence.Parse (L, Analyzer);
+   end loop;
 
 exception
 when Ada.Text_IO.End_Error =>
    null;
-end ASU_Example_5_10_RD_No_Mixin.Run;
+end ASU_Example_5_10_RD_Commute.Run;

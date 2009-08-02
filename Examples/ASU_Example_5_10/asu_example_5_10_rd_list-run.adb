@@ -23,20 +23,70 @@
 --  exception does not however invalidate any other reasons why the
 --  executable file might be covered by the GNU Public License.
 -------------------------------------------------------------------------------
-with Ada.Text_IO;
-
 -------------------------------------------------------------------------------
 --  This example is an implementation of Example 5.10 from "Compilers
 --  Principles, Techniques, and Tools" by Aho, Sethi, and Ullman (aka: "The
 --  Dragon Book"). It demonstrates handling of synthesized attributes
 -------------------------------------------------------------------------------
-procedure ASU_Example_5_10_RD.Run is
+
+with Ada.Command_Line;
+with Ada.Text_IO; use Ada.Text_IO;
+procedure ASU_Example_5_10_RD_List.Run is
+
+   procedure Put_Usage
+   is begin
+      Put_Line ("asu_example_5_10_rd_list-run [-t] [filename]");
+      Put_Line ("  -t : output trace of parser generation, execution");
+      Put_Line ("  if no filename given, parse standard input");
+   end Put_Usage;
+
+   Input_File : File_Type;
+
+   procedure Use_File (File_Name : in String)
+   is begin
+      Open (Input_File, In_File, File_Name);
+      Set_Input (Input_File);
+   end Use_File;
 
    --  Create a user-settable text feeder, and a string buffer to fill it with
    Line        : String (1 .. 1024);
    Line_Length : Natural;
 
 begin
+
+   declare
+      use Ada.Command_Line;
+   begin
+      case Argument_Count is
+      when 0 =>
+         null;
+
+      when 1 =>
+         if Argument (1) = "-t" then
+            OpenToken.Token.Trace_Parse := True;
+
+         else
+            Use_File (Argument (1));
+         end if;
+
+      when 2 =>
+         if Argument (1) = "-t" then
+            OpenToken.Token.Trace_Parse := True;
+
+         else
+            Set_Exit_Status (Failure);
+            Put_Usage;
+            return;
+         end if;
+
+         Use_File (Argument (2));
+
+      when others =>
+         Set_Exit_Status (Failure);
+         Put_Usage;
+         return;
+      end case;
+   end;
 
    --  Finish the non-terminals
    E.all := Operation_List.Get
@@ -46,27 +96,28 @@ begin
       Add_Element => Plus_Element'Access,
       Name        => "E");
 
-   Ada.Text_IO.Put_Line ("A simple calculator, as specified in example 5.10 in Aho, Sethi, and Ullman's");
-   Ada.Text_IO.Put_Line ("""Compilers Principles, Techniques and Tools""");
-   Ada.Text_IO.New_Line;
-   Ada.Text_IO.Put_Line ("""+"", ""*"", and ""( num )"" are understood.");
-   Ada.Text_IO.Put_Line ("(Enter a blank line to quit)");
+   if not Is_Open (Input_File) then
+      Put_Line ("A simple calculator, as specified in example 5.10 in Aho, Sethi, and Ullman's");
+      Put_Line ("""Compilers Principles, Techniques and Tools""");
+      New_Line;
+      Put_Line ("""+"", ""*"", and ""( num )"" are understood.");
+      Put_Line ("(Enter a blank line to quit)");
+   end if;
 
    --  Set debugging info
    Integer_Sequence.Set_Name (L.all, "L");
    Integer_Sequence.Set_Name (F1.all, "F1");
    Integer_Selection.Set_Name (F.all, "F");
    Operation_List.Set_Name (T.all, "T");
-   OpenToken.Token.Trace_Parse := True;
 
    --  Read and parse lines from Current_Input until an empty line is read.
    loop
-      Ada.Text_IO.Get_Line (Line, Line_Length);
+      Get_Line (Line, Line_Length);
 
       exit when Line_Length = 0;
 
       if OpenToken.Token.Trace_Parse then
-         Ada.Text_IO.Put_Line (Line (1 .. Line_Length));
+         Put_Line (Line (1 .. Line_Length));
 
          --  reset initial state of tokens, to help interpret the trace
          L.Value  := -1;
@@ -88,6 +139,6 @@ begin
    end loop;
 
 exception
-when Ada.Text_IO.End_Error =>
+when End_Error =>
    null;
-end ASU_Example_5_10_RD.Run;
+end ASU_Example_5_10_RD_List.Run;

@@ -408,6 +408,8 @@ package body OpenToken.Token.Enumerated.Analyzer is
       New_Analyzer.Lookahead_Queue := null;
       New_Analyzer.Lookahead_Head  := null;
       New_Analyzer.Lookahead_Tail  := null;
+      New_Analyzer.Lookahead_Count := 0;
+      New_Analyzer.Max_Lookahead   := 0;
 
       return New_Analyzer;
    end Initialize;
@@ -440,6 +442,9 @@ package body OpenToken.Token.Enumerated.Analyzer is
 
       Analyzer.Lookahead_Head  := null;
       Analyzer.Lookahead_Queue := null;
+
+      Analyzer.Lookahead_Count := 0;
+      Analyzer.Max_Lookahead   := 0;
    end Reset;
 
    procedure Set_Text_Feeder (Analyzer : in out Instance; Feeder : in Text_Feeder_Ptr) is
@@ -606,6 +611,12 @@ package body OpenToken.Token.Enumerated.Analyzer is
 
                if Trace_Parse then
                   Trace_Put ("look ahead " & Token_ID'Image (Analyzer.Last_Token)); Ada.Text_IO.New_Line;
+                  Analyzer.Lookahead_Count := Analyzer.Lookahead_Count + 1;
+                  if Analyzer.Lookahead_Count > Analyzer.Max_Lookahead then
+                     Analyzer.Max_Lookahead := Analyzer.Lookahead_Count;
+                     Trace_Put ("max look ahead" & Integer'Image (Analyzer.Max_Lookahead));
+                     Ada.Text_IO.New_Line;
+                  end if;
                end if;
             else
                --  Save off the information for the token we found
@@ -660,6 +671,10 @@ package body OpenToken.Token.Enumerated.Analyzer is
 
          if Analyzer.Lookahead_Queue = null then
             Analyzer.Lookahead_Tail := null;
+         end if;
+
+         if Trace_Parse then
+            Analyzer.Lookahead_Count := Analyzer.Lookahead_Count - 1;
          end if;
       end if;
    end Find_Next;

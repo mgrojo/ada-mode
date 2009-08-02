@@ -1,5 +1,6 @@
 -------------------------------------------------------------------------------
 --
+-- Copyright (C) 2009 Stephe Leake
 -- Copyright (C) 1999,2000 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -22,38 +23,91 @@
 --  exception does not however invalidate any other reasons why the
 --  executable file might be covered by the GNU Public License.
 -------------------------------------------------------------------------------
-with Ada.Text_IO;
 
 -------------------------------------------------------------------------------
 --  This example is an implementation of Example 5.10 from "Compilers
 --  Principles, Techniques, and Tools" by Aho, Sethi, and Ullman (aka: "The
 --  Dragon Book"). It demonstrates handling of synthesized attributes
 -------------------------------------------------------------------------------
-procedure ASU_Example_5_10.Run is
+
+with Ada.Command_Line;
+with Ada.Text_IO; use Ada.Text_IO;
+procedure ASU_Example_5_10_LR.Run is
+
+   procedure Put_Usage
+   is begin
+      Put_Line ("asu_example_5_10_lr-run [-t] [filename]");
+      Put_Line ("  -t : output trace of parser generation, execution");
+      Put_Line ("  if no filename given, parse standard input");
+   end Put_Usage;
 
    --  Create a user-settable text feeder, and a string buffer to fill it with
    Line        : String (1 .. 1024);
    Line_Length : Natural;
 
+   Test_Parser : LALR_Parser.Instance;
 
-   --  The lalr parser instance.
-   Test_Parser : LALR_Parser.Instance :=
-     LALR_Parser.Generate (Grammar, Analyzer);
+   Input_File : File_Type;
+
+   procedure Use_File (File_Name : in String)
+   is begin
+      Open (Input_File, In_File, File_Name);
+      Set_Input (Input_File);
+   end Use_File;
 
 begin
 
-   Ada.Text_IO.Put_Line ("A simple calculator, as specified in example 5.10 in Aho, Sethi, and Ullman's");
-   Ada.Text_IO.Put_Line ("""Compilers Principles, Techniques and Tools""");
-   Ada.Text_IO.New_Line;
-   Ada.Text_IO.Put_Line ("""+"", ""*"", and ""( num )"" are understood.");
-   Ada.Text_IO.Put_Line ("(Enter a blank line to quit)");
+   declare
+      use Ada.Command_Line;
+   begin
+      case Argument_Count is
+      when 0 =>
+         null;
 
-   --  Uncomment the following line to get a look at the parse table
---   LALR_Parser.Print_Table (Test_Parser);
+      when 1 =>
+         if Argument (1) = "-t" then
+            OpenToken.Token.Trace_Parse := True;
+
+         else
+            Use_File (Argument (1));
+         end if;
+
+      when 2 =>
+         if Argument (1) = "-t" then
+            OpenToken.Token.Trace_Parse := True;
+
+         else
+            Set_Exit_Status (Failure);
+            Put_Usage;
+            return;
+         end if;
+
+         Use_File (Argument (2));
+
+      when others =>
+         Set_Exit_Status (Failure);
+         Put_Usage;
+         return;
+      end case;
+   end;
+
+   Test_Parser := LALR_Parser.Generate (Grammar, Analyzer, OpenToken.Token.Trace_Parse);
+
+   if OpenToken.Token.Trace_Parse then
+      LALR_Parser.Print_Table (Test_Parser);
+   end if;
+
+   if not Is_Open (Input_File) then
+      Put_Line ("A simple calculator, as specified in example 5.10 in Aho, Sethi, and Ullman's");
+      Put_Line ("""Compilers Principles, Techniques and Tools""");
+      New_Line;
+      Put_Line ("""+"", ""*"", and ""( num )"" are understood.");
+      Put_Line ("(Enter a blank line to quit)");
+   end if;
 
    --  Read and parse lines from the console until an empty line or end of file is read.
    loop
-      Ada.Text_IO.Get_Line (Line, Line_Length);
+      Get_Line (Line, Line_Length);
 
       exit when Line_Length = 0;
       OpenToken.Text_Feeder.String.Set
@@ -64,6 +118,6 @@ begin
    end loop;
 
 exception
-when Ada.Text_IO.End_Error =>
+when End_Error =>
    null;
-end ASU_Example_5_10.Run;
+end ASU_Example_5_10_LR.Run;

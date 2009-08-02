@@ -41,7 +41,7 @@ with OpenToken.Token.Enumerated.Integer;
 with OpenToken.Token.Linked_List;
 with OpenToken.Token.Selection;
 with OpenToken.Token.Sequence;
-package ASU_Example_5_10_RD_No_Mixin is
+package ASU_Example_5_10_RD_Commute is
 
    --  The complete list of tokens. No non-terminals in recursive descent.
    type Token_IDs is (Integer_ID, Left_Paren_ID, Right_Paren_ID, Plus_Sign_ID,
@@ -80,7 +80,7 @@ package ASU_Example_5_10_RD_No_Mixin is
    --  F -> digit
    --
    --  If we implement the grammar literally, the parser enters an
-   --  infinite loop; see asu_example_5_10_rd_no_mixin-run_bad.adb.
+   --  infinite loop.
    --
    --  The problem is that the first element of a production is the
    --  same as the result of the production.
@@ -93,7 +93,7 @@ package ASU_Example_5_10_RD_No_Mixin is
    --  The sequence and selection tokens cannot provide the stack for
    --  us.
    --
-   --  L -> E         print (pop)
+   --  L -> E EOF     print (pop)
    --  E -> T + E     push (pop + pop)
    --  E -> T
    --  T -> F * T     push (pop * pop)
@@ -143,4 +143,4 @@ package ASU_Example_5_10_RD_No_Mixin is
    T : constant OpenToken.Token.Selection.Handle := new OpenToken.Token.Selection.Instance;
    F : constant OpenToken.Token.Selection.Handle := new OpenToken.Token.Selection.Instance;
 
-end ASU_Example_5_10_RD_No_Mixin;
+end ASU_Example_5_10_RD_Commute;

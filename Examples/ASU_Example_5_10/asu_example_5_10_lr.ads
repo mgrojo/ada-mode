@@ -43,7 +43,7 @@ with Simple_Integer_Token;
 --  Principles, Techniques, and Tools" by Aho, Sethi, and Ullman (aka: "The
 --  Dragon Book"). It demonstrates handling of synthesized attributes
 -------------------------------------------------------------------------------
-package ASU_Example_5_10 is
+package ASU_Example_5_10_LR is
 
    --  The complete list of tokens, with the terminals listed first.
    type Token_IDs is (Integer_ID, Left_Paren_ID, Right_Paren_ID, Plus_Sign_ID,
@@ -128,5 +128,4 @@ package ASU_Example_5_10 is
      F <= Left_Paren & E & Right_Paren + Simple_Integer.Synthesize_Second  and
      F <= Int_Literal;
 
-end ASU_Example_5_10;
-
+end ASU_Example_5_10_LR;

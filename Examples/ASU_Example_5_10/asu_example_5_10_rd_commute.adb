@@ -27,7 +27,7 @@
 with Ada.Strings.Unbounded;
 with Ada.Text_IO;
 with Gen_Stacks_Bounded;
-package body ASU_Example_5_10_RD_No_Mixin is
+package body ASU_Example_5_10_RD_Commute is
 
    package Integer_Stacks is new Gen_Stacks_Bounded
      (Item_Type => Integer,
@@ -173,4 +173,4 @@ package body ASU_Example_5_10_RD_No_Mixin is
       end if;
    end Build_Integer;
 
-end ASU_Example_5_10_RD_No_Mixin;
+end ASU_Example_5_10_RD_Commute;

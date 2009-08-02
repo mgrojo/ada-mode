@@ -294,6 +294,8 @@ private
       Lookahead_Queue : Token_List_Node_Pointer; --  Read from here or text source when Look_Ahead is false
       Lookahead_Head  : Token_List_Node_Pointer; --  Read from here or text source when Look_Ahead is true
       Lookahead_Tail  : Token_List_Node_Pointer; --  Most recent token read from text source with Look_Ahead true
+      Lookahead_Count : Integer;
+      Max_Lookahead   : Integer;
    end record;
 
    type Queue_Mark is new Token.Queue_Mark with record

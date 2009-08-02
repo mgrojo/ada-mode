@@ -25,7 +25,7 @@
 -------------------------------------------------------------------------------
 
 with Ada.Text_IO;
-package body ASU_Example_5_10_RD is
+package body ASU_Example_5_10_RD_List is
 
    procedure Build_Selection
      (Match : in out Integer_Selection.Instance;
@@ -119,4 +119,4 @@ package body ASU_Example_5_10_RD is
       end if;
    end Times_Element;
 
-end ASU_Example_5_10_RD;
+end ASU_Example_5_10_RD_List;

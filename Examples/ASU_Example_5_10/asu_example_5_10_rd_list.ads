@@ -43,7 +43,7 @@ with OpenToken.Token.Linked_List;
 with OpenToken.Token.List_Mixin;
 with OpenToken.Token.Selection_Mixin;
 with OpenToken.Token.Sequence_Mixin;
-package ASU_Example_5_10_RD is
+package ASU_Example_5_10_RD_List is
 
    --  The complete list of tokens. No non-terminals in recursive descent.
    type Token_IDs is
@@ -72,7 +72,7 @@ package ASU_Example_5_10_RD is
    --------------------------------------------------------------------------
    --  Our custom token types. The grammar is:
    --
-   --  L -> E         print (L.val)
+   --  L -> E EOF     print (L.val)
    --  E -> E + T     E.val := E1.val + T.val
    --  E -> T
    --  T -> T * F     T.val := T1.val * F.val
@@ -98,15 +98,8 @@ package ASU_Example_5_10_RD is
    --  E is initialized to 0, F to 1.
    --
    --  The List token implements {}. It keeps a local copy of the
-   --  result token on the CPU stack; that implements an operand
+   --  result token on the CPU stack; that implements the operand
    --  stack.
-   --
-   --  This grammar enforces operator precedence. The only operations
-   --  are in List tokens, and the only recursion is in the
-   --  parentheses. The List token provides an operand stack that
-   --  handles the parentheses, so each operation can be evaluated as
-   --  soon as it is parsed, eliminating the need for a separate stack
-   --  of operands.
 
    --  Create a custom selection token which has integers for
    --  components and returns an integer with the value of the
@@ -161,4 +154,4 @@ package ASU_Example_5_10_RD is
    T : constant Operation_List.Handle    := F ** Times * Times_Element'Access + Init_Times'Access;
    L : constant Integer_Sequence.Handle  := E & EOF + Build_Print'Access;
 
-end ASU_Example_5_10_RD;
+end ASU_Example_5_10_RD_List;
