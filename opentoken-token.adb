@@ -31,7 +31,11 @@ package body OpenToken.Token is
 
    function Name (Token : in Instance) return String is
    begin
-      return Ada.Tags.External_Tag (Class (Token)'Tag);
+      if Token.Name = null then
+         return Ada.Tags.External_Tag (Class (Token)'Tag);
+      else
+         return Token.Name.all;
+      end if;
    end Name;
 
    function Name_Dispatch (Token : in Class) return String

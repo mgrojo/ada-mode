@@ -48,6 +48,7 @@ package OpenToken.Token.Enumerated.Integer is
    function Get
      (ID    : in Token_ID;
       Value : in Standard.Integer := 0;
+      Name  : in String           := "";
       Build : in Action           := null)
      return Instance'Class;
 

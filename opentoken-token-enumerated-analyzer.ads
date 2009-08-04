@@ -113,6 +113,11 @@ package OpenToken.Token.Enumerated.Analyzer is
       Feeder          : in Text_Feeder_Ptr := Input_Feeder'Access)
      return Instance;
 
+   ----------------------------------------------------------------------
+   --  Return name of ID token in Analyzer.Syntax
+   ----------------------------------------------------------------------
+   function Name (Analyzer : in Instance; ID : in Token_ID) return String;
+
    --------------------------------------------------------------------
    --  Reset Analyzer, to start finding tokens. This is appropriate
    --  when the Feeder text has been changed.

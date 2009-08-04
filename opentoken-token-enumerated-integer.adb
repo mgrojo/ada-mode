@@ -30,10 +30,15 @@ package body OpenToken.Token.Enumerated.Integer is
    function Get
      (ID    : in Token_ID;
       Value : in Standard.Integer := 0;
+      Name  : in String           := "";
       Build : in Action           := null)
      return Instance'Class
    is begin
-      return Instance'Class (Instance'(ID, Build, Value));
+      if Name = "" then
+         return Instance'Class (Instance'(null, ID, Build, Value));
+      else
+         return Instance'Class (Instance'(new String'(Name), ID, Build, Value));
+      end if;
    end Get;
 
    overriding procedure Create
@@ -61,9 +66,9 @@ package body OpenToken.Token.Enumerated.Integer is
    overriding function Name (Token : in Instance) return String
    is begin
       if Trace_Parse then
-         return Token_ID'Image (Token.ID) & Standard.Integer'Image (Token.Value);
+         return Enumerated.Name (Enumerated.Instance (Token)) & " " & Standard.Integer'Image (Token.Value);
       else
-         return Token_ID'Image (Token.ID);
+         return Enumerated.Name (Enumerated.Instance (Token));
       end if;
    end Name;
 

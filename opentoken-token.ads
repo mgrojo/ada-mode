@@ -141,7 +141,10 @@ package OpenToken.Token is
    --  hard.
 
 private
-   type Instance is abstract tagged null record;
+   type Instance is abstract tagged record
+      Name : access String;
+   end record;
+
    type Source   is abstract tagged null record;
 
 end OpenToken.Token;

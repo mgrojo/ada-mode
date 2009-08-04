@@ -31,10 +31,15 @@ package body OpenToken.Token.Enumerated is
 
    function Get
      (ID    : in Token_ID := Token_ID'First;
+      Name  : in String   := "";
       Build : in Action   := null)
      return Instance'Class
    is begin
-      return Instance'Class (Instance'(ID, Build));
+      if Name = "" then
+         return Instance'Class (Instance'(Name => null, ID => ID, Build => Build));
+      else
+         return Instance'Class (Instance'(Name => new String'(Name), ID => ID, Build => Build));
+      end if;
    end Get;
 
    procedure Set_Build (Token : in out Instance'Class; Build : in Action)
@@ -144,7 +149,11 @@ package body OpenToken.Token.Enumerated is
 
    overriding function Name (Token : in Instance) return String
    is begin
-      return Token_ID'Image (Token.ID);
+      if Token.Name = null then
+         return Token_ID'Image (Token.ID);
+      else
+         return Token.Name.all;
+      end if;
    end Name;
 
 end OpenToken.Token.Enumerated;

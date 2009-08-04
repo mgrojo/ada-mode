@@ -73,12 +73,10 @@ package body OpenToken.Recognizer.Separator is
 
    end Analyze;
 
-
-   ----------------------------------------------------------------------------
-   --  This procedure will be called to create a separator token
-   ----------------------------------------------------------------------------
-   function Get (Separator_Literal : in String;
-                 Reportable        : in Boolean := True) return Instance
+   function Get
+     (Separator_Literal : in String;
+      Reportable        : in Boolean := True)
+     return Instance
    is
       New_Token : Instance;
    begin

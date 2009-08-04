@@ -48,6 +48,7 @@ package OpenToken.Token.Enumerated.Nonterminal is
    ----------------------------------------------------------------------------
    function Get
      (ID    : in Token_ID := Token_ID'First;
+      Name  : in String   := "";
       Build : in Action   := null)
      return Instance'Class;
 

@@ -28,11 +28,16 @@
 package body OpenToken.Token.Enumerated.Nonterminal is
 
    function Get
-     (ID : in Token_ID := Token_ID'First;
+     (ID    : in Token_ID := Token_ID'First;
+      Name  : in String   := "";
       Build : in Action   := null)
      return Instance'Class
    is begin
-      return Instance'Class (Instance'(ID, Build));
+      if Name = "" then
+         return Instance'Class (Instance'(null, ID, Build));
+      else
+         return Instance'Class (Instance'(new String'(Name), ID, Build));
+      end if;
    end Get;
 
    procedure Synthesize_By_Copying

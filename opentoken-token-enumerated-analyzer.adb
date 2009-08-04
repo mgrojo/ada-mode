@@ -414,6 +414,11 @@ package body OpenToken.Token.Enumerated.Analyzer is
       return New_Analyzer;
    end Initialize;
 
+   function Name (Analyzer : in Instance; ID : in Token_ID) return String
+   is begin
+      return Name (Analyzer.Syntax_List (ID).Token_Handle.all);
+   end Name;
+
    procedure Reset (Analyzer : in out Instance)
    is
       Prev : Token_List_Node_Pointer;
