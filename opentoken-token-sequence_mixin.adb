@@ -94,8 +94,7 @@ package body OpenToken.Token.Sequence_Mixin is
         (Parent_Token with
          Members   => OpenToken.Token.Handle (Left) & OpenToken.Token.Handle (Right),
          Lookahead => Default_Lookahead,
-         Name      => null,
-         Build    => null);
+         Build     => null);
    end "&";
 
    function "&"
@@ -109,8 +108,7 @@ package body OpenToken.Token.Sequence_Mixin is
         (Parent_Token with
          Members   => OpenToken.Token.Handle (Left) & Right.Members,
          Lookahead => Default_Lookahead,
-         Name      => null,
-         Build    => null);
+         Build     => null);
    end "&";
 
    function "&"
@@ -124,8 +122,7 @@ package body OpenToken.Token.Sequence_Mixin is
         (Parent_Token with
          Members   => Left.Members & OpenToken.Token.Handle (Right),
          Lookahead => Default_Lookahead,
-         Name      => null,
-         Build    => null);
+         Build     => null);
    end "&";
 
    function "&"
@@ -139,8 +136,7 @@ package body OpenToken.Token.Sequence_Mixin is
         (Parent_Token with
          Members   => Left.Members & Right.Members,
          Lookahead => Default_Lookahead,
-         Name      => null,
-         Build    => null);
+         Build     => null);
    end "&";
 
    function "+"
@@ -166,10 +162,10 @@ package body OpenToken.Token.Sequence_Mixin is
    is
       New_Token : constant Handle := new Class'(Class (Old_Instance));
    begin
+      Set_Name (OpenToken.Token.Instance (New_Token.all), Name);
+
       New_Token.Lookahead := Lookahead;
-      if Name /= "" then
-         New_Token.Name := new String'(Name);
-      end if;
+
       if Build /= null then
          New_Token.Build := Build;
       end if;
@@ -180,20 +176,6 @@ package body OpenToken.Token.Sequence_Mixin is
    is begin
       return Token;
    end Copy;
-
-   procedure Set_Name (Token : in out Instance; Name : in String)
-   is begin
-      Token.Name := new String'(Name);
-   end Set_Name;
-
-   overriding function Name (Token : in Instance) return String
-   is begin
-      if Token.Name = null then
-         return OpenToken.Token.Name (OpenToken.Token.Instance (Token));
-      else
-         return Token.Name.all;
-      end if;
-   end Name;
 
    overriding procedure Expecting (Token : access Instance; List : in out Linked_List.Instance)
    is

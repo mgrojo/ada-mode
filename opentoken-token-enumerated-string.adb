@@ -61,10 +61,15 @@ package body OpenToken.Token.Enumerated.String is
    function Get
      (ID    : in Token_ID;
       Value : in Standard.String := "";
+      Name  : in Standard.String := "";
       Build : in Action          := null)
      return Instance'Class
    is begin
-      return Instance'Class (Instance'(ID, Build, Buffers.To_Bounded_String (Value)));
+      if Name = "" then
+         return Instance'Class (Instance'(null, ID, Build, Buffers.To_Bounded_String (Value)));
+      else
+         return Instance'Class (Instance'(new Standard.String'(Name), ID, Build, Buffers.To_Bounded_String (Value)));
+      end if;
    end Get;
 
    overriding procedure Create

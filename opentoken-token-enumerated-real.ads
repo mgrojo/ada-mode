@@ -48,6 +48,7 @@ package OpenToken.Token.Enumerated.Real is
    function Get
      (ID    : in Token_ID;
       Value : in Real_Type := 0.0;
+      Name  : in String    := "";
       Build : in Action    := null)
      return Instance'Class;
 

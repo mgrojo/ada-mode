@@ -55,16 +55,25 @@ package OpenToken.Token.List_Mixin is
       Separator : access OpenToken.Token.Class)
      return Instance;
 
+   ----------------------------------------------------------------------
+   --  Add an Add_Element action to the instance
+   ----------------------------------------------------------------------
    function "*"
      (Token       : in Instance;
       Add_Element : in Element_Action)
      return Handle;
 
+   ----------------------------------------------------------------------
+   --  Add an Initialize action to the instance
+   ----------------------------------------------------------------------
    function "+"
      (Token      : in Handle;
       Initialize : in List_Action)
      return Handle;
 
+   ----------------------------------------------------------------------
+   --  Add a Build action to the instance
+   ----------------------------------------------------------------------
    function "-"
      (Token : in Handle;
       Build : in List_Action)
@@ -89,8 +98,6 @@ package OpenToken.Token.List_Mixin is
       Build       : in List_Action    := null)
      return Handle;
 
-   procedure Set_Name (Token : in out Instance; Name : in String);
-
    procedure Set_Lookahead (Token : in out Instance; Lookahead : in Integer);
 
    --------------------------------------------------------------------------
@@ -106,12 +113,6 @@ package OpenToken.Token.List_Mixin is
       Analyzer : in out Source_Class;
       Actively : in     Boolean      := True);
 
-   --------------------------------------------------------------------
-   --  Return the name specified in Get or New_Instance. If that's null,
-   --  return OpenToken.Token.Name (Token).
-   --------------------------------------------------------------------
-   overriding function Name (Token : in Instance) return String;
-
    overriding procedure Expecting (Token : access Instance; List : in out Linked_List.Instance);
 
 private
@@ -120,7 +121,6 @@ private
    type Instance is new Parent_Token with record
       Element     : Component_Handle;
       Separator   : OpenToken.Token.Handle;
-      Name        : access String;
       Lookahead   : Integer;
       Initialize  : List_Action;
       Add_Element : Element_Action;

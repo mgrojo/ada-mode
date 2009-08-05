@@ -29,6 +29,13 @@ with Ada.Tags;
 with OpenToken.Token.Linked_List;
 package body OpenToken.Token is
 
+   procedure Set_Name (Token : in out Class; Name : in String)
+   is begin
+      if Name /= "" then
+         Token.Name := new String'(Name);
+      end if;
+   end Set_Name;
+
    function Name (Token : in Instance) return String is
    begin
       if Token.Name = null then

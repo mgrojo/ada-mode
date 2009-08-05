@@ -51,18 +51,6 @@ package OpenToken.Token.Sequence_Mixin is
       (Match : in out Instance;
        Using : in     Token.Linked_List.Instance);
 
-   procedure Set_Lookahead (Token : in out Instance; Lookahead : in Integer);
-
-   ----------------------------------------------------------------------
-   --  When called with Actively => False, the number of tokens to
-   --  lookahead is given by Match.Lookahead, which defaults to
-   --  Token.Default_Lookahead, but may be overridden by Set_Lookahead.
-   ----------------------------------------------------------------------
-   overriding procedure Parse
-     (Match    : access Instance;
-      Analyzer : in out Source_Class;
-      Actively : in     Boolean := True);
-
    -----------------------------------------------------------------------
    --  Create a token sequence from a pair of token handles.
    --
@@ -135,17 +123,17 @@ package OpenToken.Token.Sequence_Mixin is
    --------------------------------------------------------------------
    function Copy (Token : in Handle) return Handle;
 
-   --------------------------------------------------------------------
-   --  Set the name of Token; useful when it is created with "or"
-   --  rather than New_Instance.
-   --------------------------------------------------------------------
-   procedure Set_Name (Token : in out Instance; Name : in String);
+   procedure Set_Lookahead (Token : in out Instance; Lookahead : in Integer);
 
-   --------------------------------------------------------------------
-   --  Return the name specified in New_Instance. If that's null,
-   --  return OpenToken.Token.Name (Token).
-   --------------------------------------------------------------------
-   overriding function Name (Token : in Instance) return String;
+   ----------------------------------------------------------------------
+   --  When called with Actively => False, the number of tokens to
+   --  lookahead is given by Match.Lookahead, which defaults to
+   --  Token.Default_Lookahead, but may be overridden by Set_Lookahead.
+   ----------------------------------------------------------------------
+   overriding procedure Parse
+     (Match    : access Instance;
+      Analyzer : in out Source_Class;
+      Actively : in     Boolean := True);
 
    overriding procedure Expecting (Token : access Instance; List : in out Linked_List.Instance);
 
@@ -153,7 +141,6 @@ private
    type Instance is new Parent_Token with record
       Lookahead : Integer;
       Members   : Token.Linked_List.Instance;
-      Name      : access String;
       Build     : Action;
    end record;
 

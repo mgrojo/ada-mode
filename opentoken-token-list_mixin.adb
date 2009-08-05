@@ -38,7 +38,6 @@ package body OpenToken.Token.List_Mixin is
         (Parent_Token with
          Element     => Component_Handle (Element),
          Separator   => OpenToken.Token.Handle (Separator),
-         Name        => null,
          Lookahead   => Default_Lookahead,
          Initialize  => null,
          Add_Element => null,
@@ -71,8 +70,6 @@ package body OpenToken.Token.List_Mixin is
       return Token;
    end "-";
 
-   type String_Access is access String;
-
    function Get
      (Element     : access Component_Token'Class;
       Separator   : access OpenToken.Token.Class;
@@ -83,23 +80,18 @@ package body OpenToken.Token.List_Mixin is
       Build       : in     List_Action           := null)
      return Instance
    is
-      New_Name : String_Access;
-   begin
-      if Name = "" then
-         New_Name := null;
-      else
-         New_Name := new String'(Name);
-      end if;
-
-      return
+      New_Token : Instance :=
         (Parent_Token with
          Element     => Component_Handle (Element),
          Separator   => OpenToken.Token.Handle (Separator),
-         Name        => New_Name,
          Lookahead   => Lookahead,
          Initialize  => Initialize,
          Add_Element => Add_Element,
          Build       => Build);
+   begin
+      Set_Name (OpenToken.Token.Instance (New_Token), Name);
+
+      return New_Token;
    end Get;
 
    function New_Instance
@@ -111,11 +103,9 @@ package body OpenToken.Token.List_Mixin is
       Build       : in List_Action    := null)
      return Handle
    is
-      New_Token : constant Handle := new Class'(Class (Token));
+      New_Token : Handle := new Class'(Class (Token));
    begin
-      if Name /= "" then
-         New_Token.Name := new String'(Name);
-      end if;
+      Set_Name (OpenToken.Token.Instance (New_Token.all), Name);
 
       if Lookahead /= Default_Lookahead then
          New_Token.Lookahead := Lookahead;
@@ -133,11 +123,6 @@ package body OpenToken.Token.List_Mixin is
 
       return New_Token;
    end New_Instance;
-
-   procedure Set_Name (Token : in out Instance; Name : in String)
-   is begin
-      Token.Name := new String'(Name);
-   end Set_Name;
 
    procedure Set_Lookahead (Token : in out Instance; Lookahead : in Integer)
    is begin
@@ -227,15 +212,6 @@ package body OpenToken.Token.List_Mixin is
       end if;
       raise;
    end Parse;
-
-   overriding function Name (Token : in Instance) return String
-   is begin
-      if Token.Name = null then
-         return OpenToken.Token.Name (OpenToken.Token.Instance (Token));
-      else
-         return Token.Name.all;
-      end if;
-   end Name;
 
    overriding procedure Expecting (Token : access Instance; List : in out Linked_List.Instance)
    is begin

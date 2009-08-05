@@ -105,10 +105,10 @@ begin
    end if;
 
    --  Set debugging info
-   Integer_Sequence.Set_Name (L.all, "L");
-   Integer_Sequence.Set_Name (F1.all, "F1");
-   Integer_Selection.Set_Name (F.all, "F");
-   Operation_List.Set_Name (T.all, "T");
+   OpenToken.Token.Set_Name (L.all, "L");
+   OpenToken.Token.Set_Name (F1.all, "F1");
+   OpenToken.Token.Set_Name (F.all, "F");
+   OpenToken.Token.Set_Name (T.all, "T");
 
    --  Read and parse lines from Current_Input until an empty line is read.
    loop

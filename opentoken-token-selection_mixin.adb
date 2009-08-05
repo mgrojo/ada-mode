@@ -124,7 +124,6 @@ package body OpenToken.Token.Selection_Mixin is
       return
         (Parent_Token with
          Members => OpenToken.Token.Handle (Left) & OpenToken.Token.Handle (Right),
-         Name    => null,
          Build   => null);
    end "or";
 
@@ -137,7 +136,6 @@ package body OpenToken.Token.Selection_Mixin is
       return
         (Parent_Token with
          Members => OpenToken.Token.Handle (Left) & Right.Members,
-         Name    => null,
          Build   => null);
    end "or";
 
@@ -150,7 +148,6 @@ package body OpenToken.Token.Selection_Mixin is
       return
         (Parent_Token with
          Members => Left.Members & OpenToken.Token.Handle (Right),
-         Name    => null,
          Build   => null);
    end "or";
 
@@ -164,7 +161,6 @@ package body OpenToken.Token.Selection_Mixin is
       return
         (Parent_Token with
          Members => Left.Members & Right.Members,
-         Name    => null,
          Build   => null);
    end "or";
 
@@ -190,9 +186,7 @@ package body OpenToken.Token.Selection_Mixin is
    is
       New_Token : constant Handle := new Class'(Class (Old_Instance));
    begin
-      if Name /= "" then
-         New_Token.Name := new String'(Name);
-      end if;
+      Set_Name (OpenToken.Token.Instance (New_Token.all), Name);
       if Build /= null then
          New_Token.Build := Build;
       end if;
@@ -203,20 +197,6 @@ package body OpenToken.Token.Selection_Mixin is
    is begin
       return Token;
    end Copy;
-
-   procedure Set_Name (Token : in out Instance; Name : in String)
-   is begin
-      Token.Name := new String'(Name);
-   end Set_Name;
-
-   overriding function Name (Token : in Instance) return String
-   is begin
-      if Token.Name = null then
-         return OpenToken.Token.Name (OpenToken.Token.Instance (Token));
-      else
-         return Token.Name.all;
-      end if;
-   end Name;
 
    overriding procedure Expecting (Token : access Instance; List : in out Linked_List.Instance)
    is

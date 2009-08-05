@@ -27,10 +27,15 @@ package body OpenToken.Token.Enumerated.Real is
    function Get
      (ID    : in Token_ID;
       Value : in Real_Type := 0.0;
+      Name  : in String    := "";
       Build : in Action    := null)
      return Instance'Class
    is begin
-      return Instance'Class (Instance'(ID, Build, Value));
+      if Name = "" then
+         return Instance'Class (Instance'(null, ID, Build, Value));
+      else
+         return Instance'Class (Instance'(new String'(Name), ID, Build, Value));
+      end if;
    end Get;
 
    overriding procedure Create

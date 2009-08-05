@@ -118,6 +118,11 @@ package OpenToken.Token is
    procedure Push_Back (Analyzer : in out Source; Mark : in Queue_Mark'Class) is abstract;
 
    ----------------------------------------------------------------------
+   --  If Name is not "", set the token name to Name.
+   ----------------------------------------------------------------------
+   procedure Set_Name (Token : in out Class; Name : in String);
+
+   ----------------------------------------------------------------------
    --  Return the name of Token, for error messages
    ----------------------------------------------------------------------
    function Name (Token : in Instance) return String;

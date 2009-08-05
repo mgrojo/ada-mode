@@ -45,6 +45,7 @@ package OpenToken.Token.Enumerated.String is
    function Get
      (ID    : in Token_ID;
       Value : in Standard.String := "";
+      Name  : in Standard.String := "";
       Build : in Action          := null)
      return Instance'Class;
 

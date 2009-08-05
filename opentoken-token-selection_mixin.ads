@@ -161,12 +161,6 @@ package OpenToken.Token.Selection_Mixin is
    function Copy (Token : in Handle) return Handle;
 
    --------------------------------------------------------------------
-   --  Set the name of Token; useful when it is created with "or"
-   --  rather than New_Instance.
-   --------------------------------------------------------------------
-   procedure Set_Name (Token : in out Instance; Name : in String);
-
-   --------------------------------------------------------------------
    --  The Build action specified in New_Instance or "+" is called when
    --  an entire selection has been actively parsed. From is the token
    --  that was selected.
@@ -176,19 +170,12 @@ package OpenToken.Token.Selection_Mixin is
       Analyzer : in out Source_Class;
       Actively : in     Boolean      := True);
 
-   --------------------------------------------------------------------
-   --  Return the name specified in New_Instance. If that's null,
-   --  return OpenToken.Token.Name (Token).
-   --------------------------------------------------------------------
-   overriding function Name (Token : in Instance) return String;
-
    overriding procedure Expecting (Token : access Instance; List : in out Linked_List.Instance);
 
 private
 
    type Instance is new Parent_Token with record
       Members : Token.Linked_List.Instance;
-      Name    : access String;
       Build   : Action;
    end record;
 
