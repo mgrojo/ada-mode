@@ -53,15 +53,27 @@ package OpenToken.Token.Enumerated is
 
    type Handle is access all Class;
 
-   --  Recognizer handle type. Defined here to allow access's of
-   --  objects declared at the same level as this package's
-   --  instantiation.
+   ----------------------------------------------------------------------
+   --  Recognizer handle type. Defined here rather than in
+   --  Opentoken.Recognizer to allow access's of objects declared at
+   --  the same level as this package's instantiation.
+   ----------------------------------------------------------------------
    type Recognizer_Handle is access all OpenToken.Recognizer.Class;
 
-   ----------------------------------------------------------------------------
-   --  Get a token with the given ID.
-   ----------------------------------------------------------------------------
-   function Get (ID : in Token_ID := Token_ID'First) return Instance'Class;
+   type Action is access procedure (Token : in out Instance'Class);
+
+   ----------------------------------------------------------------------
+   --  Get a token with the given ID and Build action. Build will be
+   --  called by Parse. Result is class-wide so derived types
+   --  don't have to override Get.
+   ----------------------------------------------------------------------
+   function Get
+     (ID    : in Token_ID := Token_ID'First;
+      Name  : in String   := "";
+      Build : in Action   := null)
+     return Instance'Class;
+
+   procedure Set_Build (Token : in out Instance'Class; Build : in Action);
 
    ----------------------------------------------------------------------
    --  Create will be called from Find_Next when a token is
@@ -117,10 +129,11 @@ package OpenToken.Token.Enumerated is
      (Token : in out Instance'Class;
       ID    : in     Token_ID);
 
-   ------------------------------------------------------------------
+   --------------------------------------------------------------------
    --  If Match matches the current token, and Actively is True,
-   --  copies the results of the earlier call to Create to Match.
-   ------------------------------------------------------------------
+   --  copies the results of the earlier call to Create to Match, and
+   --  calls Build (if not null).
+   --------------------------------------------------------------------
    overriding procedure Parse
      (Match    : access Instance;
       Analyzer : in out Source_Class;
@@ -148,7 +161,8 @@ package OpenToken.Token.Enumerated is
 
 private
    type Instance is new OpenToken.Token.Instance with record
-      ID : Token_ID;
+      ID    : Token_ID;
+      Build : Action;
    end record;
 
    procedure Free is new Ada.Unchecked_Deallocation (Class, Handle);

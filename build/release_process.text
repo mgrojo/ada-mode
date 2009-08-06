@@ -5,7 +5,7 @@ sync with gds, ada-france
 (dvc-status ".")
 
 bump version, doc changes
-    ../opentoken.html
+    ../Docs/opentoken.html
         current version
         opentoken-*.tar.gz
 
@@ -25,7 +25,20 @@ review Debian bugs
     tests implemented, fixed?
 
 loop until no changes:
+    Windows:
+        mtn_sync_ada_france.sh
+
+        windows_release/Makefile
+            distclean
+            all
+
+        (dvc-status ".")
+
+        mtn sync
+
     Debian:
+
+        mtn sync --ticker=count
 
         ; sal-standard uses GNAT GPL 2009; it provides an incompatible
         ; version of AUnit. Could put in a choice to use SAL AUnit,
@@ -36,20 +49,17 @@ loop until no changes:
             distclean
             all
 
+        (sal-standard)
+        Makefile
+            zip
+
+        ~/Web/Makefile
+            opentoken sync check
+
         (dvc-status ".")
 
         mtn sync --ticker=count
 
-    Windows:
-        mtn_sync_ada_france.sh
-
-        windows_release/Makefile
-            distclean
-            all
-
-        (dvc-status ".")
-
-        mtn_sync_opentoken_shevek.sh
 end loop
 
 Makefile
@@ -61,9 +71,8 @@ publish:
 
 announce:
     comp.lang.ada
-    Reto Buerki (Debian maintainer) buerki@swiss-it.ch
+    Reto Buerki (Debian maintainer) reet@codelabs.ch
 
-update Debian bugs?
-    http://packages.qa.debian.org/o/opentoken.html
+Debian bugs updated by Reto or someone else
 
 (end of file)

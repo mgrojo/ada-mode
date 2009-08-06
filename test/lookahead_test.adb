@@ -29,14 +29,14 @@ with OpenToken.Recognizer.Keyword;
 with OpenToken.Recognizer.String;
 with OpenToken.Text_Feeder.String;
 with OpenToken.Token.Enumerated.Analyzer.AUnit;
-with OpenToken.Token.Enumerated.String_Literal;
+with OpenToken.Token.Enumerated.String;
 package body Lookahead_Test is
 
    type Example_Token_ID is (If_ID, Then_ID, Quit_ID, String_ID, Whitespace, EOF);
 
    package Master_Example_Token is new OpenToken.Token.Enumerated (Example_Token_ID);
    package Tokenizer is new Master_Example_Token.Analyzer;
-   package String_Literal is new Master_Example_Token.String_Literal;
+   package String_Literal is new Master_Example_Token.String;
 
    procedure Check is new AUnit.Check.Gen_Check_Discrete (Example_Token_ID);
 
@@ -110,7 +110,7 @@ package body Lookahead_Test is
    begin
       --  Verify that Push_Back works.
 
-      OpenToken.Token.Trace_Parse := Test.Debug;
+      OpenToken.Trace_Parse := Test.Debug;
 
       OpenToken.Text_Feeder.String.Set (Feeder, "if then ""string"" quit");
       Reset (Analyzer);
@@ -263,7 +263,7 @@ package body Lookahead_Test is
          declare
             String_Token : String_Literal.Instance renames String_Literal.Instance (Token.all);
          begin
-            Check (Label & ".lexeme", String_Literal.Value (String_Token), Expected_Lexeme.all);
+            Check (Label & ".lexeme", String_Literal.To_String (String_Token.Value), Expected_Lexeme.all);
          end;
       end if;
    end Check_Lexeme;
@@ -287,7 +287,8 @@ package body Lookahead_Test is
          use type Ada.Tags.Tag;
       begin
          Master_Example_Token.Parse (Token, Analyzer, Actively);
-         Check (Label & ".lexeme", String_Literal.Value (String_Literal.Instance (Token.all)), Expected_Lexeme);
+         Check
+           (Label & ".lexeme", String_Literal.To_String (String_Literal.Instance (Token.all).Value), Expected_Lexeme);
       end Test;
 
    begin

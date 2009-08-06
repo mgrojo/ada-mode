@@ -29,7 +29,7 @@ with OpenToken.Recognizer.Keyword;
 with OpenToken.Recognizer.Separator;
 with OpenToken.Text_Feeder.String;
 with OpenToken.Token.Enumerated.Analyzer;
-with OpenToken.Token.Enumerated.Integer_Literal;
+with OpenToken.Token.Enumerated.Integer;
 with OpenToken.Token.Enumerated.List.Print;
 with OpenToken.Token.Enumerated.Nonterminal;
 package body Test_Statement_Actions is
@@ -54,7 +54,7 @@ package body Test_Statement_Actions is
    package Token_List is new Master_Token.List;
    package Nonterminal is new Master_Token.Nonterminal (Token_List);
 
-   package Integer_Literal is new Master_Token.Integer_Literal;
+   package Integer_Literal is new Master_Token.Integer;
 
    package Production is new OpenToken.Production (Master_Token, Token_List, Nonterminal);
    package Production_List is new Production.List;
@@ -207,7 +207,7 @@ package body Test_Statement_Actions is
       if Test.Debug then
          Dump_Grammar;
          Dump_Parse_Table;
-         LALR_Parser.Set_Trace (Command_Parser, True);
+         OpenToken.Trace_Parse := True;
       end if;
 
       Execute_Command ("set 2;");

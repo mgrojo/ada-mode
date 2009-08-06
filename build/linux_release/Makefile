@@ -1,26 +1,13 @@
-all: dirs tests examples library
+# (ediff "../windows_release/Makefile" "../linux_release/Makefile")
 
-library:
-	@gnatmake -Popentoken_lib
+all: tests examples library
 
 # ../../Test/test_one_harness.adb
-one : test_one_harness.run
+t_one : test_one_harness.run
 
-dirs :: lib
-
-lib:
-	@mkdir -p lib
-
-clean ::
-	@rm -rf lib/*
-
-distclean :: clean
-	@rm -rf lib
+one : bracketed_comment_test-run.run
 
 include ../common.make
-
-GNAT_PROJECT := opentoken_test.gpr
-GNAT_VERSION := 4.3.2
 
 # Local Variables:
 # eval: (ada-parse-prj-file "opentoken.prj")

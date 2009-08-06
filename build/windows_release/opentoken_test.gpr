@@ -16,9 +16,7 @@ project OpenToken_Test is
 
    package Compiler is
       for Default_Switches ("Ada") use
-        Common.Compiler.Release_Switches &
-        Common.Compiler.Style_Checks &
-        Common.Compiler'Default_Switches ("Ada");
+        OpenToken.Compiler'Default_Switches ("Ada");
 
    end Compiler;
 

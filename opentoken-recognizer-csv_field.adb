@@ -1,5 +1,6 @@
 -------------------------------------------------------------------------------
 --
+-- Copyright (C) 2009 Stephe Leake
 -- Copyright (C) 1999 FlightSafety International and Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -56,26 +57,16 @@ package body OpenToken.Recognizer.CSV_Field is
       (Ada.Strings.Maps.Constants.Graphic_Set - Inner_Characters) -
       Ada.Strings.Maps.To_Set (',');
 
-   --------------------------------------------------------------------------
-   --  This procedure will be called when analysis on a new candidate
-   --  string is started. The Token needs to clear its state (if any).
-   --------------------------------------------------------------------------
-   procedure Clear (The_Token : in out Instance) is
-   begin
-
+   overriding procedure Clear (The_Token : in out Instance)
+   is begin
       The_Token.State := First_Char;
-
    end Clear;
 
-
-   ----------------------------------------------------------------------------
-   --  This procedure will be called to perform further analysis on a token
-   --  based on the given next character.
-   ----------------------------------------------------------------------------
-   procedure Analyze (The_Token : in out Instance;
-                      Next_Char : in     Character;
-                      Verdict   : out    Analysis_Verdict) is
-   begin
+   overriding procedure Analyze
+     (The_Token : in out Instance;
+      Next_Char : in     Character;
+      Verdict   : out    Analysis_Verdict)
+   is begin
 
       case The_Token.State is
       when First_Char =>
@@ -107,15 +98,9 @@ package body OpenToken.Recognizer.CSV_Field is
 
    end Analyze;
 
-   ----------------------------------------------------------------------------
-   --  This procedure will be called to create an identifier token
-   ----------------------------------------------------------------------------
-   function Get return Instance is
-   begin
-
-      return (Report => True,
-              State  => First_Char);
-
+   function Get return Instance
+   is begin
+      return (Report => True, State  => First_Char);
    end Get;
 
 end OpenToken.Recognizer.CSV_Field;

@@ -118,6 +118,11 @@ package OpenToken.Token is
    procedure Push_Back (Analyzer : in out Source; Mark : in Queue_Mark'Class) is abstract;
 
    ----------------------------------------------------------------------
+   --  If Name is not "", set the token name to Name.
+   ----------------------------------------------------------------------
+   procedure Set_Name (Token : in out Class; Name : in String);
+
+   ----------------------------------------------------------------------
    --  Return the name of Token, for error messages
    ----------------------------------------------------------------------
    function Name (Token : in Instance) return String;
@@ -140,18 +145,11 @@ package OpenToken.Token is
    --  to infinite loops in Print, and dealing with such loops is too
    --  hard.
 
-   ----------------------------------------------------------------------
-   --  If Trace_Parse, Parse prints helpful messages
-   ----------------------------------------------------------------------
-   Trace_Parse : Boolean := False;
-
 private
-   type Instance is abstract tagged null record;
+   type Instance is abstract tagged record
+      Name : access String;
+   end record;
+
    type Source   is abstract tagged null record;
-
-   Trace_Indent : Integer := 0;
-
-   --  Put Message, indented by 3 * Trace_Indent; no new_line
-   procedure Trace_Put (Message : in String);
 
 end OpenToken.Token;

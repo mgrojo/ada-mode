@@ -1,5 +1,6 @@
 -------------------------------------------------------------------------------
 --
+-- Copyright (C) 2009 Stephe Leake
 -- Copyright (C) 1999 FlightSafety International and Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -46,16 +47,16 @@ package OpenToken.Recognizer.CSV_Field is
    --  based on the given next character. It is declared here to override the
    --  inherited version.
    ----------------------------------------------------------------------------
-   procedure Analyze (The_Token : in out Instance;
-                      Next_Char : in     Character;
-                      Verdict   : out    Analysis_Verdict);
+   overriding procedure Analyze
+     (The_Token : in out Instance;
+      Next_Char : in     Character;
+      Verdict   : out    Analysis_Verdict);
 
    ----------------------------------------------------------------------------
    --  This procedure will be called when analysis on a new candidate string
    --  is started. The Token needs to clear its state (if any).
    ----------------------------------------------------------------------------
-   procedure Clear (The_Token : in out Instance);
-
+   overriding procedure Clear (The_Token : in out Instance);
 
    ----------------------------------------------------------------------------
    --  This procedure will be called to create an Identifier token.

@@ -25,15 +25,24 @@
 --
 -------------------------------------------------------------------------------
 
-with Ada.Strings.Fixed;
 with Ada.Tags;
-with Ada.Text_IO;
 with OpenToken.Token.Linked_List;
 package body OpenToken.Token is
 
+   procedure Set_Name (Token : in out Class; Name : in String)
+   is begin
+      if Name /= "" then
+         Token.Name := new String'(Name);
+      end if;
+   end Set_Name;
+
    function Name (Token : in Instance) return String is
    begin
-      return Ada.Tags.External_Tag (Class (Token)'Tag);
+      if Token.Name = null then
+         return Ada.Tags.External_Tag (Class (Token)'Tag);
+      else
+         return Token.Name.all;
+      end if;
    end Name;
 
    function Name_Dispatch (Token : in Class) return String
@@ -50,12 +59,5 @@ package body OpenToken.Token is
    is begin
       Linked_List.Add (List, Handle (Token));
    end Expecting;
-
-   procedure Trace_Put (Message : in String)
-   is
-      use Ada.Strings.Fixed;
-   begin
-      Ada.Text_IO.Put (Trace_Indent * 3 * ' ' & Message);
-   end Trace_Put;
 
 end OpenToken.Token;

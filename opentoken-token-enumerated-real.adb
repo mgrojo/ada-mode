@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2009 Stephe Leake
--- Copyright (C) 1999 Ted Dennison
+-- Copyright (C) 2002, 2009 Stephen Leake
 --
 -- This file is part of the OpenToken package.
 --
@@ -22,17 +21,21 @@
 --  executable to be covered by the GNU General Public License. This
 --  exception does not however invalidate any other reasons why the
 --  executable file might be covered by the GNU Public License.
---
--------------------------------------------------------------------------------
 
-package body OpenToken.Token.Enumerated.Integer_Literal is
+package body OpenToken.Token.Enumerated.Real is
 
    function Get
-     (ID     : in Token_ID;
-      Value  : in Integer := 0)
+     (ID    : in Token_ID;
+      Value : in Real_Type := 0.0;
+      Name  : in String    := "";
+      Build : in Action    := null)
      return Instance'Class
    is begin
-      return Instance'Class (Instance'(ID => ID, Value => Value));
+      if Name = "" then
+         return Instance'Class (Instance'(null, ID, Build, Value));
+      else
+         return Instance'Class (Instance'(new String'(Name), ID, Build, Value));
+      end if;
    end Get;
 
    overriding procedure Create
@@ -42,12 +45,7 @@ package body OpenToken.Token.Enumerated.Integer_Literal is
    is
       pragma Unreferenced (Recognizer);
    begin
-      New_Token.Value := Integer'Value (Lexeme);
-
-   exception
-   when Constraint_Error =>
-      raise Syntax_Error with
-        Lexeme & " not in range: " & Integer'Image (Integer'First) & " .. " & Integer'Image (Integer'Last);
+      New_Token.Value := Real_Type'Value (Lexeme);
    end Create;
 
    overriding procedure Copy
@@ -57,18 +55,4 @@ package body OpenToken.Token.Enumerated.Integer_Literal is
       To.Value := Instance (From).Value;
    end Copy;
 
-   overriding function Name (Token : in Instance) return String
-   is begin
-      if Trace_Parse then
-         return Token_ID'Image (Token.ID) & Integer'Image (Token.Value);
-      else
-         return Token_ID'Image (Token.ID);
-      end if;
-   end Name;
-
-   function Value (Subject : in Instance) return Integer is
-   begin
-      return Subject.Value;
-   end Value;
-
-end OpenToken.Token.Enumerated.Integer_Literal;
+end OpenToken.Token.Enumerated.Real;

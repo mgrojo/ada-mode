@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2003, 2009 Stephen Leake
--- Copyright (C) 1999 Ted Dennison
+-- Copyright (C) 2002, 2003, 2009 Stephen Leake
 --
 -- This file is part of the OpenToken package.
 --
@@ -26,23 +25,31 @@
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
---  This package declares a type for designating an integer literal.
+--  This package declares a type for designating a real. Useful as
+--  a literal in LR parsers, or an integer value in recursive descent
+--  parsers.
 -------------------------------------------------------------------------------
-generic
-package OpenToken.Token.Enumerated.Integer_Literal is
 
-   type Instance is new OpenToken.Token.Enumerated.Instance with private;
+generic
+   type Real_Type is digits <>;
+package OpenToken.Token.Enumerated.Real is
+
+   type Instance is new OpenToken.Token.Enumerated.Instance with record
+      Value : Real_Type;
+   end record;
 
    subtype Class is Instance'Class;
 
    type Handle is access all Class;
 
    ----------------------------------------------------------------------------
-   --  Get an integer literal token with the given ID and value.
+   --  Get a real token
    ----------------------------------------------------------------------------
    function Get
-     (ID     : in Token_ID;
-      Value  : in Integer := 0)
+     (ID    : in Token_ID;
+      Value : in Real_Type := 0.0;
+      Name  : in String    := "";
+      Build : in Action    := null)
      return Instance'Class;
 
    overriding procedure Create
@@ -54,22 +61,4 @@ package OpenToken.Token.Enumerated.Integer_Literal is
      (To   : in out Instance;
       From : in     Token.Class);
 
-   --------------------------------------------------------------------
-   --  If Trace_Parse, include the current value in the name, to help
-   --  decipher parser trace output. We don't include it otherwise
-   --  since it is confusing as part of an "expected ..." error
-   --  message.
-   --------------------------------------------------------------------
-   overriding function Name (Token : in Instance) return String;
-
-   ----------------------------------------------------------------------------
-   --  Return the value of the given integer token.
-   ----------------------------------------------------------------------------
-   function Value (Subject : in Instance) return Integer;
-
-private
-   type Instance is new OpenToken.Token.Enumerated.Instance with record
-      Value : Integer;
-   end record;
-
-end OpenToken.Token.Enumerated.Integer_Literal;
+end OpenToken.Token.Enumerated.Real;

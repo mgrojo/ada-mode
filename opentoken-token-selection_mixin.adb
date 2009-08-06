@@ -96,7 +96,9 @@ package body OpenToken.Token.Selection_Mixin is
 
       if Actively then
          Parse (Token_Handle (I), Analyzer, Actively);
-         Build (Class (Match.all), Component_Token'Class (Token_Handle (I).all));
+         if Match.Build /= null then
+            Match.Build (Match.all, Component_Token'Class (Token_Handle (I).all));
+         end if;
       end if;
 
       if Trace_Parse then
@@ -122,7 +124,7 @@ package body OpenToken.Token.Selection_Mixin is
       return
         (Parent_Token with
          Members => OpenToken.Token.Handle (Left) & OpenToken.Token.Handle (Right),
-         Name    => null);
+         Build   => null);
    end "or";
 
    function "or"
@@ -134,7 +136,7 @@ package body OpenToken.Token.Selection_Mixin is
       return
         (Parent_Token with
          Members => OpenToken.Token.Handle (Left) & Right.Members,
-         Name    => null);
+         Build   => null);
    end "or";
 
    function "or"
@@ -146,7 +148,7 @@ package body OpenToken.Token.Selection_Mixin is
       return
         (Parent_Token with
          Members => Left.Members & OpenToken.Token.Handle (Right),
-         Name    => null);
+         Build   => null);
    end "or";
 
    function "or"
@@ -159,35 +161,42 @@ package body OpenToken.Token.Selection_Mixin is
       return
         (Parent_Token with
          Members => Left.Members & Right.Members,
-         Name    => null);
+         Build   => null);
    end "or";
+
+   function "+"
+     (Selection : in Instance;
+      Build     : in Action)
+     return Handle
+   is begin
+      return New_Instance (Selection, Build => Build);
+   end "+";
+
+   function "and" (Selection : in Handle; Name : in String) return Handle
+   is begin
+      Set_Name (Selection.all, Name);
+      return Selection;
+   end "and";
 
    function New_Instance
      (Old_Instance : in Instance;
-      Name         : in String   := "")
+      Name         : in String   := "";
+      Build        : in Action   := null)
      return Handle
    is
       New_Token : constant Handle := new Class'(Class (Old_Instance));
    begin
-      if Name /= "" then
-         New_Token.Name := new String'(Name);
+      Set_Name (OpenToken.Token.Instance (New_Token.all), Name);
+      if Build /= null then
+         New_Token.Build := Build;
       end if;
       return New_Token;
    end New_Instance;
 
-   procedure Set_Name (Token : in out Instance; Name : in String)
+   function Copy (Token : in Handle) return Handle
    is begin
-      Token.Name := new String'(Name);
-   end Set_Name;
-
-   overriding function Name (Token : in Instance) return String
-   is begin
-      if Token.Name = null then
-         return OpenToken.Token.Name (OpenToken.Token.Instance (Token));
-      else
-         return Token.Name.all;
-      end if;
-   end Name;
+      return Token;
+   end Copy;
 
    overriding procedure Expecting (Token : access Instance; List : in out Linked_List.Instance)
    is

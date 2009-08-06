@@ -46,13 +46,9 @@ package OpenToken.Token.Selection_Mixin is
 
    type Handle is access all Class;
 
-   --------------------------------------------------------------------------
-   --  Build is called when the entire list has been recognized.
-   --------------------------------------------------------------------------
-   overriding procedure Parse
-     (Match    : access Instance;
-      Analyzer : in out Source_Class;
-      Actively : in     Boolean      := True);
+   type Action is access procedure
+     (Match : in out Instance;
+      From  : in     Component_Token'Class);
 
    --------------------------------------------------------------------
    --  Create a token selection from a pair of token instances.
@@ -60,7 +56,7 @@ package OpenToken.Token.Selection_Mixin is
    --  If either is a selection, it is included by reference; the
    --  member list is _not_ examined. Together with returning Instance
    --  rather than Handle, this allows for controlled recursion. It
-   --  also requires the use of New_Selection to return an object
+   --  also requires the use of New_Selection or "+" to return an object
    --  compatible with Sequence and other tokens, which has the effect
    --  of making it clear when recursion is desired.
    --
@@ -69,11 +65,29 @@ package OpenToken.Token.Selection_Mixin is
    --  derived type Handle (Ada is annoying in this case!). However,
    --  they are immediately converted to OpenToken.Token.Handle in the
    --  body, so they must have library accessibility level.
-   ---------------------------------------------------------------------
+   --
+   --  We rename each "or" as "/", because "/" has higher precedence
+   --  than "+", while "or" has lower. Thus when specifying a build
+   --  action, we can use either:
+   --
+   --     E := (A or B) + Build'Access;
+   --     E := A / B + Build'Access;
+   --
+   --  "/" is close to "|", the selection operator in Backus-Naur
+   --  form, but "or" is closer in English meaning.
+   --
+   --  GNAT warns about the odd renaming, so we suppress that warning.
+   -------------------------------------------------------------------
    function "or"
      (Left  : access Component_Token'Class;
       Right : access Component_Token'Class)
      return Instance;
+   pragma Warnings (Off);
+   function "/"
+     (Left  : access Component_Token'Class;
+      Right : access Component_Token'Class)
+     return Instance renames "or";
+   pragma Warnings (On);
 
    -------------------------------------------------------------------
    --  Create a token selection from a selection and a token handle.
@@ -83,10 +97,22 @@ package OpenToken.Token.Selection_Mixin is
      (Left  : access Component_Token'Class;
       Right : in     Instance)
      return Instance;
+   pragma Warnings (Off);
+   function "/"
+     (Left  : access Component_Token'Class;
+      Right : in     Instance)
+     return Instance renames "or";
+   pragma Warnings (On);
    function "or"
      (Left  : in     Instance;
       Right : access Component_Token'Class)
      return Instance;
+   pragma Warnings (Off);
+   function "/"
+     (Left  : in     Instance;
+      Right : access Component_Token'Class)
+     return Instance renames "or";
+   pragma Warnings (On);
 
    -----------------------------------------------------------------
    --  Create a token selection from a pair of selections. The
@@ -96,6 +122,25 @@ package OpenToken.Token.Selection_Mixin is
      (Left  : in Instance;
       Right : in Instance)
      return Instance;
+   pragma Warnings (Off);
+   function "/"
+     (Left  : in Instance;
+      Right : in Instance)
+     return Instance renames "or";
+   pragma Warnings (On);
+
+   ----------------------------------------------------------------------
+   --  Add a Build action to the instance
+   ----------------------------------------------------------------------
+   function "+"
+     (Selection : in Instance;
+      Build     : in Action)
+     return Handle;
+
+   ----------------------------------------------------------------------
+   --  Set the name
+   ----------------------------------------------------------------------
+   function "and" (Selection : in Handle; Name : in String) return Handle;
 
    ----------------------------------------------------------------------------
    --  Return a newly allocated instance which is a copy of the given
@@ -103,39 +148,35 @@ package OpenToken.Token.Selection_Mixin is
    ----------------------------------------------------------------------------
    function New_Instance
      (Old_Instance : in Instance;
-      Name         : in String   := "")
+      Name         : in String   := "";
+      Build        : in Action   := null)
      return Handle;
 
    --------------------------------------------------------------------
-   --  Set the name of Token; useful when it is created with "or"
-   --  rather than New_Instance.
+   --  Allow dereferencing an expression that returns Handle; needed
+   --  when resolving recursion. Just returns Token.
+   --
+   --  For example : L.all := Copy (A & B + Build'Access).all;
    --------------------------------------------------------------------
-   procedure Set_Name (Token : in out Instance; Name : in String);
+   function Copy (Token : in Handle) return Handle;
 
    --------------------------------------------------------------------
-   --  Return the name specified in New_Instance. If that's null,
-   --  return OpenToken.Token.Name (Token).
-   --------------------------------------------------------------------
-   overriding function Name (Token : in Instance) return String;
+   --  The Build action specified in New_Instance or "+" is called when
+   --  an entire selection has been actively parsed. From is the token
+   --  that was selected.
+   --------------------------------------------------------------------------
+   overriding procedure Parse
+     (Match    : access Instance;
+      Analyzer : in out Source_Class;
+      Actively : in     Boolean      := True);
 
    overriding procedure Expecting (Token : access Instance; List : in out Linked_List.Instance);
-
-   ----------------------------------------------------------------------
-   --  This routine is called when an entire selection has been
-   --  actively parsed. From is the token that was selected. An
-   --  implementation of this routine could then check the 'tag or ID
-   --  of From to figure out which selection was matched.
-   ----------------------------------------------------------------------------
-   procedure Build
-     (Match : in out Instance;
-      From  : in     Component_Token'Class)
-   is null;
 
 private
 
    type Instance is new Parent_Token with record
       Members : Token.Linked_List.Instance;
-      Name    : access String;
+      Build   : Action;
    end record;
 
 end OpenToken.Token.Selection_Mixin;

@@ -209,15 +209,14 @@ procedure String_Test.Run is
 
    ---------------------------------------------------------------------------
    --  Purpose          : Verify that a valid C string is read correctly.
-   --  Input            : A string with embedded doubled quotations and a C
-   --                     escape sequence. A valid token immediately after
-   --  Expected Results : The same string with the double quotes replaced by
-   --                     single qoutes and the escaped strings properly
-   --                     replaced. Then the next token.
+   --  Input            : A string with embedded C escape sequences. A valid
+   --                     token immediately after.
+   --  Expected Results : The same string with the escapes properly replaced.
+   --                     Then the next token.
    ---------------------------------------------------------------------------
    procedure Case_3
    is
-      Text : constant String := """This is a standard """"C"""" string \n.""if";
+      Text : constant String := """This is a standard \""C\"" string \n.""if";
       Expected_Result : constant String := "This is a standard ""C"" string " & Ada.Characters.Latin_1.LF & '.';
       Passed : Boolean := True;
       Analyzer : Tokenizer.Instance := Tokenizer.Initialize (C_Syntax);

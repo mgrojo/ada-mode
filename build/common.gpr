@@ -1,18 +1,15 @@
 -- Common settings
 project Common is
 
-   for Source_Dirs use (); -- avoids spurios error about "no Ada sources"
-
-   type GNAT_Version_Type is ("4.3.2", "6.2.1", "GPL-2009");
-   --  4.3.2 is the Ada included in the current Debian stable distribution
-   --  6.x.x are the supported AdaCore releases.
-   --  GPL-200x are the current AdaCore public releases
-
-   GNAT_Version : GNAT_Version_Type := External ("GNAT_VERSION");
+   for Source_Dirs use (); -- avoids spurious error about "no Ada sources"
 
    type Build_Type is ("Developer", "User");
 
    Build : Build_Type := External ("BUILD", "User");
+
+   type Lib_Type is ("static", "dynamic");
+
+   Libtype : Lib_Type := external ("LIBTYPE", "dynamic");
 
    package Compiler is
       -- Switches for gcc
@@ -53,21 +50,14 @@ project Common is
       --  case statement. So we set the Default_Switches attribute to
       --  contain the version-dependent switches. This is then
       --  accessible in child project files via 'Default_Switches.
-      case GNAT_Version is
-         when "GPL-2009" | "6.2.1" =>
-            --  -gnatyO enforces use of 'overriding'
-            --  Not valid options for earlier compilers.
 
-            case Build is
-               when "Developer" =>
-                  -- -gnatyO requires patching the compiler runtime source
-                  for Default_Switches ("Ada") use ("-gnatyO");
+      case Build is
+         when "Developer" =>
+            -- -gnatyO requires patching the compiler runtime source
+            -- It is not valid for GNAT 4.x and earlier
+            for Default_Switches ("Ada") use ("-gnatyO");
 
-               when "User" =>
-
-            end case;
-
-         when "4.3.2" =>
+         when "User" =>
 
       end case;
 

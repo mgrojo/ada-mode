@@ -24,36 +24,15 @@
 --  executable file might be covered by the GNU Public License.
 -------------------------------------------------------------------------------
 
-with Ada.Text_IO; use Ada.Text_IO;
-procedure ASU_Example_5_10_RD_No_Mixin.Run is
-begin
-   --  Define the grammar. This first naive implementation exhibits
-   --  infinite recursion, as expected (see the dragon book, section
-   --  2.4, page 47).
-   --
-   --  The problem is that the first element of the production E is
-   --  the same as the result of the production. Parse gets stuck in
-   --  loop where Selection.Parse (E) calls Sequence.Parse (E) which
-   --  calls Selection.Parse (E) ... without consuming any input.
+with Ada.Strings.Fixed;
+with Ada.Text_IO;
+package body OpenToken is
+
+   procedure Trace_Put (Message : in String)
+   is
+      use Ada.Strings.Fixed;
    begin
-      L.all := E & EOF;
+      Ada.Text_IO.Put (Trace_Indent * 3 * ' ' & Message);
+   end Trace_Put;
 
-      E.all := New_Expression_Instance ("E + T", E & Plus & T) or T;
-
-      T.all := New_Expression_Instance ("T * F", T & Times & F) or F;
-
-      F.all := New_Expression_Instance ("( E )", Left_Paren & E & Right_Paren) or Int_Literal;
-
-      OpenToken.Text_Feeder.String.Set (Feeder, "10 + 5 * 6");
-
-      Tokenizer.Find_Next (Analyzer);
-
-      Parse (L, Analyzer);
-
-      Put_Line ("Hmm, didn't get Storage_Error!");
-   exception
-   when Storage_Error =>
-      Put_Line ("Got Storage_Error, as expected");
-   end;
-
-end ASU_Example_5_10_RD_No_Mixin.Run;
+end OpenToken;

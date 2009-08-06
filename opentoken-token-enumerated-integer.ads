@@ -1,6 +1,7 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2002, 2003, 2009 Stephen Leake
+-- Copyright (C) 2003, 2009 Stephen Leake
+-- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
 --
@@ -21,26 +22,34 @@
 --  executable to be covered by the GNU General Public License. This
 --  exception does not however invalidate any other reasons why the
 --  executable file might be covered by the GNU Public License.
+--
+-------------------------------------------------------------------------------
 
--------------------------------------------------------------------------------
---  This package declares a type for designating a real literal.
--------------------------------------------------------------------------------
+-----------------------------------------------------------------------------
+--  This package declares a type for designating an integer. Useful as
+--  a literal in LR parsers, or an integer value in recursive descent
+--  parsers.
+-----------------------------------------------------------------------------
+
 generic
-   type Real_Type is digits <>;
-package OpenToken.Token.Enumerated.Real_Literal is
+package OpenToken.Token.Enumerated.Integer is
 
-   type Instance is new OpenToken.Token.Enumerated.Instance with private;
+   type Instance is new OpenToken.Token.Enumerated.Instance with record
+      Value : Standard.Integer;
+   end record;
 
    subtype Class is Instance'Class;
 
    type Handle is access all Class;
 
    ----------------------------------------------------------------------------
-   --  Get a real literal token with the given ID and value.
+   --  Get an integer token
    ----------------------------------------------------------------------------
    function Get
-     (ID     : in Token_ID;
-      Value  : in Real_Type := 0.0)
+     (ID    : in Token_ID;
+      Value : in Standard.Integer := 0;
+      Name  : in String           := "";
+      Build : in Action           := null)
      return Instance'Class;
 
    overriding procedure Create
@@ -52,14 +61,12 @@ package OpenToken.Token.Enumerated.Real_Literal is
      (To   : in out Instance;
       From : in     Token.Class);
 
-   ----------------------------------------------------------------------------
-   --  Return the value of the given token.
-   ----------------------------------------------------------------------------
-   function Value (Subject : in Instance) return Real_Type;
+   --------------------------------------------------------------------
+   --  If Trace_Parse, include the current value in the name, to help
+   --  decipher parser trace output. We don't include it otherwise
+   --  since it is confusing as part of an "expected ..." error
+   --  message.
+   --------------------------------------------------------------------
+   overriding function Name (Token : in Instance) return String;
 
-private
-   type Instance is new OpenToken.Token.Enumerated.Instance with record
-      Value : Real_Type;
-   end record;
-
-end OpenToken.Token.Enumerated.Real_Literal;
+end OpenToken.Token.Enumerated.Integer;

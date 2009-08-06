@@ -40,8 +40,8 @@ package body Test_Backtrack is
    --   F -> T1 T2 T4  : sequence of terminals
    --   G -> T1 T2 T5  : sequence of terminals
    --
-   --  This is really horrible grammar, but we want OpenToken to cope
-   --  with it. We assume the user is naive, and is just getting
+   --  This is a really horrible grammar, but we want OpenToken to
+   --  cope with it. We assume the user is naive, and is just getting
    --  started with grammars; they want it to "just work", and will
    --  worry about optimizing things later.
    --
@@ -67,7 +67,7 @@ package body Test_Backtrack is
    --           terminal.parse (T1)
    --           success, current token = T2
    --           terminal.parse (T2)
-   --           success, current token = T5
+   --           success, current token = T4
    --           terminal.parse (T3)
    --           fails
    --        push_back_to_mark, current token = T1
@@ -75,7 +75,7 @@ package body Test_Backtrack is
    --           terminal.parse (T1)
    --           success, current token = T2
    --           terminal.parse (T2)
-   --           success, current token = T5
+   --           success, current token = T4
    --           terminal.parse (T4)
    --           success
    --        success
@@ -85,10 +85,10 @@ package body Test_Backtrack is
    --  success
    --
    --  The only place backtracking is needed is in the selection
-   --  token, when it tries the next selection. It has no idea how
-   --  many tokens might need to be pushed back, so it marks the
-   --  lookahead queue when it starts, and restores to that mark
-   --  before each lower-level parse.
+   --  token, when it tries the next selection or switches to active
+   --  parse. It has no idea how many tokens might need to be pushed
+   --  back, so it marks the lookahead queue when it starts, and
+   --  restores to that mark before each lower-level parse.
 
    type Token_ID is (T0, T1, T2, T3, T4, T5, EOF, Whitespace);
 
@@ -468,7 +468,7 @@ package body Test_Backtrack is
 
    overriding procedure Set_Up_Case (T : in out Test_Case)
    is begin
-      OpenToken.Token.Trace_Parse := T.Debug;
+      OpenToken.Trace_Parse := T.Debug;
    end Set_Up_Case;
 
 end Test_Backtrack;

@@ -79,10 +79,16 @@ package body HTML_Lexer is
               (Ada.Strings.Maps.Constants.Graphic_Set - Ada.Strings.Maps.To_Set ("<&"),
                Reportable     => True)),
          Entity               => Tokenizer.Get (OpenToken.Recognizer.HTML_Entity.Get),
+
+         --  HTML syntax actually allows whitespace in the comment
+         --  closer: "-- >" is a closer. That also means that "<!--
+         --  foo -- bar>" is invalid syntax. But we don't have a
+         --  recognizer that can deal with that, and this is good
+         --  enough for common usage.
          Comment              => Tokenizer.Get
            (OpenToken.Recognizer.Bracketed_Comment.Get
               (Comment_Opener => "<!--",
-               Comment_Closer => " -->",
+               Comment_Closer => "-->",
                Reportable     => True)),
          Whitespace           => Tokenizer.Get (OpenToken.Recognizer.Character_Set.Get (HTML_Whitespace)),
          Bad_Token            => Tokenizer.Get (OpenToken.Recognizer.Nothing.Get),

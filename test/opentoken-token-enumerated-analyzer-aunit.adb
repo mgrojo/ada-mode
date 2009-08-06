@@ -53,6 +53,7 @@ package body OpenToken.Token.Enumerated.Analyzer.AUnit is
             Prev := Prev.Prev;
          end loop;
       end if;
+      Assert (Prev = null, Label & ".tail longer than expected");
 
       if Queue_Null then
          Assert (Analyzer.Lookahead_Queue = null, Label & ".queue not null");

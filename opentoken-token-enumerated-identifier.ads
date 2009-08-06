@@ -33,7 +33,10 @@ package OpenToken.Token.Enumerated.Identifier is
       Identifier : OpenToken.Buffers.Bounded_String;
    end record;
 
-   function Get (ID : in Token_ID) return Instance'Class;
+   function Get
+     (ID    : in Token_ID;
+      Build : in Action := null)
+     return Instance'Class;
 
    overriding procedure Create
      (Lexeme     : in     String;

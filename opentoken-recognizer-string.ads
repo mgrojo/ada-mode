@@ -1,5 +1,6 @@
 -------------------------------------------------------------------------------
 --
+-- Copyright (C) 2009 Stephen Leake.  All Rights Reserved.
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -30,25 +31,25 @@ with Ada.Characters.Latin_1;
 -----------------------------------------------------------------------------
 --  This package implements a token recognizer for a string literal.
 --  It can optionally use an escape character to introduce special
---  character mappings, and can thus be used to recognize either Ada
---  or C-style strings.
+--  character mappings, and can thus be used to recognize Ada, C or Java
+--  strings.
 -----------------------------------------------------------------------------
 package OpenToken.Recognizer.String is
 
-   --  The following mapping from escape codes (the character after
-   --  the backslash) to "escape" characters matches the mapping C
-   --  uses.
-
+   --  \n mapping is operating system dependent; we pick the Unix
+   --  convention here.
    C_Style_Escape_Code_Map : constant Ada.Strings.Maps.Character_Mapping :=
      Ada.Strings.Maps.To_Mapping
-     (From => "abfnrtv",
+     (From => "abfnrtv""'\",
       To   => Ada.Characters.Latin_1.BEL &
               Ada.Characters.Latin_1.BS &
               Ada.Characters.Latin_1.FF &
               Ada.Characters.Latin_1.LF &
               Ada.Characters.Latin_1.CR &
               Ada.Characters.Latin_1.HT &
-              Ada.Characters.Latin_1.VT);
+              Ada.Characters.Latin_1.VT &
+              '"' & ''' & '\');
+
    Java_Style_Escape_Code_Map : constant Ada.Strings.Maps.Character_Mapping :=
      Ada.Strings.Maps.To_Mapping
      (From => "bfnrt""'\",
@@ -67,12 +68,16 @@ package OpenToken.Recognizer.String is
    --  character as any other character.
    --
    --  If all parameters are defaulted, an Ada-style string token will
-   --  be created. If Escapeable is set to True and all other
-   --  parameters are defaulted, a C-style string token will be
-   --  created. If Escapeable is set to True, Double_Delimiter set to
-   --  false, Escape_Mapping uses Java_Style_Escape_Code_Map, the
-   --  remaining parameters are defaulted, a Java-style string token
+   --  be created.
+   --
+   --  If Escapeable is set to True, Double_Delimiter set to false,
+   --  and all other parameters are defaulted, a C-style string token
    --  will be created.
+   --
+   --  If Escapeable is set to True, Double_Delimiter set to false,
+   --  Escape_Mapping to Java_Style_Escape_Code_Map, the remaining
+   --  parameters are defaulted, a Java-style string token will be
+   --  created.
    --------------------------------------------------------------------------
    function Get
      (Delimiter        : in Character                          := '"';

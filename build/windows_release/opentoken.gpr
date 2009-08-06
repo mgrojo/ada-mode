@@ -1,4 +1,10 @@
 --  For using OpenToken in other projects
+--
+--  This is not in Build because the object and executable paths are
+--  relative to this file.
+--
+--  (ediff "../windows_release/opentoken.gpr" "../linux_release/opentoken.gpr")
+
 with "../common";
 project OpenToken is
 

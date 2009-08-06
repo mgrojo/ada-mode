@@ -42,17 +42,14 @@ package OpenToken.Token.Sequence_Mixin is
 
    type Handle is access all Class;
 
-   procedure Set_Lookahead (Token : in out Instance; Lookahead : in Integer);
-
-   ----------------------------------------------------------------------
-   --  When called with Actively => False, the number of tokens to
-   --  lookahead is given by Match.Lookahead, which defaults to
-   --  Token.Default_Lookahead, but may be overridden by Set_Lookahead.
-   ----------------------------------------------------------------------
-   overriding procedure Parse
-     (Match    : access Instance;
-      Analyzer : in out Source_Class;
-      Actively : in     Boolean := True);
+   --------------------------------------------------------------------------
+   --  A Build action specified in New_Instance or "+" is called when an
+   --  entire sequence has been actively parsed. Using is the sequence
+   --  of tokens.
+   --------------------------------------------------------------------------
+   type Action is access procedure
+      (Match : in out Instance;
+       Using : in     Token.Linked_List.Instance);
 
    -----------------------------------------------------------------------
    --  Create a token sequence from a pair of token handles.
@@ -60,9 +57,9 @@ package OpenToken.Token.Sequence_Mixin is
    --  If either is a sequence, it is included by reference; the
    --  member list is _not_ examined. Together with returning Instance
    --  rather than Handle, this allows for controlled recursion. It
-   --  also requires the use of New_Selection to return an object
-   --  compatible with Selection and other tokens, which has the
-   --  effect of making it clear when recursion is desired.
+   --  also requires the use of New_Selection or "+" to return an
+   --  object compatible with Selection and other tokens, which has
+   --  the effect of making it clear when recursion is desired.
    --
    --  These arguments must be 'access OpenToken.Token.Class', rather
    --  than 'in OpenToken.Token.Handle', in order to accept any
@@ -97,6 +94,16 @@ package OpenToken.Token.Sequence_Mixin is
       Right : in Instance)
      return Instance;
 
+   ----------------------------------------------------------------------
+   --  Add a Build action to the instance
+   ----------------------------------------------------------------------
+   function "+" (Sequence : in Instance; Build : in Action) return Handle;
+
+   ----------------------------------------------------------------------
+   --  Set the name
+   ----------------------------------------------------------------------
+   function "and" (Sequence : in Handle; Name : in String) return Handle;
+
    ----------------------------------------------------------------------------
    --  Return a newly allocated instance which is a copy of the given
    --  instance, with an optional new name and lookahead.
@@ -104,37 +111,37 @@ package OpenToken.Token.Sequence_Mixin is
    function New_Instance
      (Old_Instance : in Instance;
       Name         : in String   := "";
-      Lookahead    : in Integer  := Default_Lookahead)
+      Lookahead    : in Integer  := Default_Lookahead;
+      Build        : in Action   := null)
      return Handle;
 
    --------------------------------------------------------------------
-   --  Set the name of Token; useful when it is created with "or"
-   --  rather than New_Instance.
+   --  Allow dereferencing an expression that returns Handle; needed
+   --  when resolving recursion. Just returns Token.
+   --
+   --  For example : L.all := Copy (A & B + Build'Access).all;
    --------------------------------------------------------------------
-   procedure Set_Name (Token : in out Instance; Name : in String);
+   function Copy (Token : in Handle) return Handle;
 
-   --------------------------------------------------------------------
-   --  Return the name specified in New_Instance. If that's null,
-   --  return OpenToken.Token.Name (Token).
-   --------------------------------------------------------------------
-   overriding function Name (Token : in Instance) return String;
+   procedure Set_Lookahead (Token : in out Instance; Lookahead : in Integer);
+
+   ----------------------------------------------------------------------
+   --  When called with Actively => False, the number of tokens to
+   --  lookahead is given by Match.Lookahead, which defaults to
+   --  Token.Default_Lookahead, but may be overridden by Set_Lookahead.
+   ----------------------------------------------------------------------
+   overriding procedure Parse
+     (Match    : access Instance;
+      Analyzer : in out Source_Class;
+      Actively : in     Boolean := True);
 
    overriding procedure Expecting (Token : access Instance; List : in out Linked_List.Instance);
-
-   ----------------------------------------------------------------------------
-   --  This routine is called when an entire sequence has been actively
-   --  parsed. Using is the sequence of tokens.
-   ----------------------------------------------------------------------------
-   procedure Build
-     (Match : in out Instance;
-      Using : in     Token.Linked_List.Instance)
-   is null;
 
 private
    type Instance is new Parent_Token with record
       Lookahead : Integer;
       Members   : Token.Linked_List.Instance;
-      Name      : access String;
+      Build     : Action;
    end record;
 
 end OpenToken.Token.Sequence_Mixin;

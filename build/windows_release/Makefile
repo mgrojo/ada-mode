@@ -1,4 +1,6 @@
-all: dirs tests examples
+# (ediff "../windows_release/Makefile" "../linux_release/Makefile")
+
+all: tests examples library
 
 # ../../Test/test_one_harness.adb
 #t_one : RUN_ARGS := -v
@@ -24,9 +26,6 @@ clean ::
 	rm -f obj_tree/*
 
 include ../common.make
-
-GNAT_PROJECT := opentoken_test.gpr
-GNAT_VERSION := 6.2.1
 
 # Local Variables:
 # eval: (ada-parse-prj-file "opentoken.prj")
