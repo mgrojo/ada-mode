@@ -2,7 +2,7 @@
 --
 --  Identifier token
 --
---  Copyright (C) 2002 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2002, 2009 Stephen Leake.  All Rights Reserved.
 --
 --  This library is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -33,12 +33,18 @@ package OpenToken.Token.Enumerated.Identifier is
       Identifier : OpenToken.Buffers.Bounded_String;
    end record;
 
-   function Get (ID : in Token_ID) return Instance'Class;
+   function Get
+     (ID    : in Token_ID;
+      Build : in Action := null)
+     return Instance'Class;
 
    overriding procedure Create
      (Lexeme     : in     String;
-      ID         : in     Token_ID;
       Recognizer : in     Recognizer_Handle;
-      New_Token  :    out Instance);
+      New_Token  : in out Instance);
+
+   overriding procedure Copy
+     (To   : in out Instance;
+      From : in     Token.Class);
 
 end OpenToken.Token.Enumerated.Identifier;

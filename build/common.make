@@ -18,13 +18,11 @@ VPATH += ../../Language_Lexers
 tests : association_token_test-run.diff
 tests : bracketed_comment_test-run.run
 tests : enumerated_token_list_test.run
-tests : lookahead_test-run.run
 tests : name_token_test-run.diff
 tests : production_test-run.run
 tests : recognizer_based_integer_test.run
 tests : recognizer_integer_test.run
 tests : string_test-run.run
-tests : string_token_test-run.diff
 tests : test_all_harness.diff
 tests : test_html_lexer_safe.diff
 tests : test_html_lexer_safe-syntax_error.diff
@@ -36,8 +34,9 @@ tests : token_sequence_test-run.run
 examples : asu_example_3_6-run.run
 examples : asu_example_4_46-run.run
 examples : asu_example_4_46_rd-run.run
-examples : asu_example_5_10-run.run
-examples : asu_example_5_10_rd-run.run
+examples : asu_example_5_10_lr-run.run
+examples : asu_example_5_10_rd_commute-run.run
+examples : asu_example_5_10_rd_list-run.run
 examples : ada_count.run
 examples : test_ada_lexer.run
 examples : test_html_lexer_unsafe.run
@@ -53,11 +52,14 @@ asu_example_4_46-run.run : asu_example_4_46-run.exe
 asu_example_4_46_rd-run.run : asu_example_4_46_rd-run.exe
 	cd ../../Examples/ASU_Example_4_46; $(CURDIR)/asu_example_4_46_rd-run.exe
 
-asu_example_5_10-run.run : asu_example_5_10-run.exe
-	cd ../../Examples/ASU_Example_5_10; $(CURDIR)/asu_example_5_10-run.exe < Example.txt
+asu_example_5_10_lr-run.run : asu_example_5_10_lr-run.exe
+	cd ../../Examples/ASU_Example_5_10; $(CURDIR)/asu_example_5_10_lr-run.exe Example.txt
 
-asu_example_5_10_rd-run.run : asu_example_5_10_rd-run.exe
-	cd ../../Examples/ASU_Example_5_10; $(CURDIR)/asu_example_5_10_rd-run.exe < Example.txt
+asu_example_5_10_rd_commute-run.run : asu_example_5_10_rd_commute-run.exe
+	cd ../../Examples/ASU_Example_5_10; $(CURDIR)/asu_example_5_10_rd_commute-run.exe Example.txt
+
+asu_example_5_10_rd_list-run.run : asu_example_5_10_rd_list-run.exe
+	cd ../../Examples/ASU_Example_5_10; $(CURDIR)/asu_example_5_10_rd_list-run.exe Example.txt
 
 ada_count.run : ada_count.exe
 	./ada_count.exe ../../Examples/Language_Lexer_Examples/ada_count.adb ../../Examples/Language_Lexer_Examples/test_ada_lexer.adb

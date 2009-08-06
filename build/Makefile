@@ -1,6 +1,6 @@
 # common tasks; see subdirectories for Ada builds
 
-ZIP_VERSION := 3.1a
+ZIP_VERSION := 4.0w
 
 .PHONY : zip force
 
@@ -23,5 +23,12 @@ zipfile : force
 
 tag :
 	mtn tag -h:org.opentoken version_$(ZIP_VERSION)
+
+# GDS targets
+lynx-all :
+	make -C lynx_release all
+
+windows-all :
+	make -C windows_release all
 
 # end of file

@@ -34,11 +34,10 @@ package OpenToken.Recognizer.Separator is
 
    type Instance is new OpenToken.Recognizer.Instance with private;
 
-   ----------------------------------------------------------------------------
-   --  This procedure will be called to create a separator token.
-   ----------------------------------------------------------------------------
-   function Get (Separator_Literal : in String;
-                 Reportable        : in Boolean := True) return Instance;
+   function Get
+     (Separator_Literal : in String;
+      Reportable        : in Boolean := True)
+     return Instance;
 
 private
 

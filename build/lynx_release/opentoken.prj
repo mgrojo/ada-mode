@@ -1,0 +1,6 @@
+ada_project_path=../
+ada_project_path=../../../sal/build/x86_gnu_lynx_release
+ada_project_path=../../../makerules
+gpr_file=opentoken_test.gpr
+
+casing=../emacs_case_exceptions

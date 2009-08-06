@@ -1,5 +1,5 @@
 --
---  Copyright (C) 2003 Stephen Leake
+--  Copyright (C) 2003, 2009 Stephen Leake
 --
 --  This file is part of the OpenToken package.
 --
@@ -24,38 +24,50 @@
 --
 
 -------------------------------------------------------------------------------
---  This package declares a type for designating a string literal.
+--  This package declares a type for designating a string. Useful as
+--  a literal in LR parsers, or an integer value in recursive descent
+--  parsers.
 -------------------------------------------------------------------------------
 generic
-package OpenToken.Token.Enumerated.String_Literal is
+package OpenToken.Token.Enumerated.String is
 
-   type Instance is new OpenToken.Token.Enumerated.Instance with private;
+   type Instance is new OpenToken.Token.Enumerated.Instance with record
+      Value : Buffers.Bounded_String;
+   end record;
 
    subtype Class is Instance'Class;
 
    type Handle is access all Class;
 
    ----------------------------------------------------------------------------
-   --  Get a string literal token with the given ID and value.
+   --  Get a string token.
    ----------------------------------------------------------------------------
-   function Get (ID     : in Token_ID;
-                 Value  : in String := ""
-                ) return Instance'Class;
+   function Get
+     (ID    : in Token_ID;
+      Value : in Standard.String := "";
+      Name  : in Standard.String := "";
+      Build : in Action          := null)
+     return Instance'Class;
 
+   ----------------------------------------------------------------------
+   --  Strips quotes from Lexeme
+   ----------------------------------------------------------------------
    overriding procedure Create
-     (Lexeme     : in     String;
-      ID         : in     Token_ID;
+     (Lexeme     : in     Standard.String;
       Recognizer : in     Recognizer_Handle;
-      New_Token  :    out Instance);
+      New_Token  : in out Instance);
 
-   ----------------------------------------------------------------------------
-   --  Return the value of the given token, with quotes removed (assumes Ada syntax).
-   ----------------------------------------------------------------------------
-   function Value (Subject : in Instance) return String;
+   overriding procedure Copy
+     (To   : in out Instance;
+      From : in     Token.Class);
 
-private
-   type Instance is new OpenToken.Token.Enumerated.Instance with record
-      Value : Buffers.Bounded_String;
-   end record;
+   function To_String (Value : in Buffers.Bounded_String) return Standard.String
+     renames Buffers.To_String;
 
-end OpenToken.Token.Enumerated.String_Literal;
+   function To_Bounded_String
+     (Value : in Standard.String;
+      Drop  : in Ada.Strings.Truncation := Ada.Strings.Error)
+     return Buffers.Bounded_String
+     renames Buffers.To_Bounded_String;
+
+end OpenToken.Token.Enumerated.String;

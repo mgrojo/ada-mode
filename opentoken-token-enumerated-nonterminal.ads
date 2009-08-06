@@ -1,5 +1,6 @@
 -------------------------------------------------------------------------------
 --
+-- Copyright (C) 2009 Stephe Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -45,7 +46,11 @@ package OpenToken.Token.Enumerated.Nonterminal is
    ----------------------------------------------------------------------------
    --  Get a nonterminal token with the given ID.
    ----------------------------------------------------------------------------
-   function Get (ID : in Token_ID := Token_ID'First) return Instance'Class;
+   function Get
+     (ID    : in Token_ID := Token_ID'First;
+      Name  : in String   := "";
+      Build : in Action   := null)
+     return Instance'Class;
 
    --------------------------------------------------------------------------
    --  The following primitive routines provide overloadable
