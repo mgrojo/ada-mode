@@ -24,11 +24,4 @@ zipfile : force
 tag :
 	mtn tag -h:org.opentoken version_$(ZIP_VERSION)
 
-# GDS targets
-lynx-all :
-	make -C lynx_release all
-
-windows-all :
-	make -C windows_release all
-
 # end of file
