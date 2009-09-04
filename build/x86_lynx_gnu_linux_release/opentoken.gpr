@@ -1,0 +1,26 @@
+--  For using OpenToken in GDS with cross compiler
+with "standard_common";
+project OpenToken is
+
+   for Source_Dirs use
+     ("../..",
+      "../../Language_Lexers");
+
+   for Object_Dir use "obj";
+
+   package Compiler is
+      --  WORKAROUND: GNAT-6.2.2 cross linux to lynx makes it too hard
+      --  to rebuild the runtime, so we suppress the 'overriding'
+      --  check. Note there is no way to turn it off; we just don't
+      --  turn it on, at the risk of also not turning something else
+      --  on.
+      --
+      --  WORKAROUND: GNAT-6.2.2 uses non-default and un-documented
+      --  exception handling for runtime, so we need to specify it
+      --  here and in the binder.
+      for Default_Switches ("Ada") use
+        Standard_Common.Compiler.Release_Switches &
+        Standard_Common.Compiler.Style_Checks; -- & ("--RTS=pthread");
+   end Compiler;
+
+end OpenToken;
