@@ -1,0 +1,52 @@
+Source: opentoken
+Section: libs
+Priority: optional
+Maintainer: Reto Buerki <reet@codelabs.ch>
+Build-Depends: debhelper (>= 7), gnat, dpatch
+Standards-Version: 3.8.2
+Homepage: http://www.telepath.com/~dennison/Ted/OpenToken/OpenToken.html
+
+Package: libopentoken4
+Architecture: alpha amd64 hppa i386 ia64 kfreebsd-i386 mips mipsel powerpc s390 sparc
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: OpenToken lexical analysis library for Ada (runtime)
+ OpenToken is a facility for performing token analysis within the Ada language.
+ It is designed to provide all the functionality of a traditional lexical
+ analyzer generator, such as lex. But due to the magic of inheritance and
+ runtime polymorphism it is implemented entirely in Ada as withed-in code. No
+ precompilation step is required, and no messy tool-generated source code is
+ created.
+ .
+ This package contains the runtime shared library for programs that use
+ OpenToken.
+
+Package: libopentoken-dev
+Section: libdevel
+Architecture: alpha amd64 hppa i386 ia64 kfreebsd-i386 mips mipsel powerpc s390 sparc
+Depends: libopentoken4 (= ${binary:Version}), gnat-4.3
+Description: OpenToken lexical analysis library for Ada (development)
+ OpenToken is a facility for performing token analysis within the Ada language.
+ It is designed to provide all the functionality of a traditional lexical
+ analyzer generator, such as lex. But due to the magic of inheritance and
+ runtime polymorphism it is implemented entirely in Ada as withed-in code. No
+ precompilation step is required, and no messy tool-generated source code is
+ created.
+ .
+ This package contains the development files and associated documentation.
+ Install it if you want to build applications that use OpenToken.
+
+Package: opentoken-dbg
+Section: debug
+Priority: extra
+Architecture: alpha amd64 hppa i386 ia64 kfreebsd-i386 mips mipsel powerpc s390 sparc
+Depends: libopentoken4 (= ${binary:Version}),
+ libopentoken-dev (= ${binary:Version})
+Description: OpenToken lexical analysis library for Ada (debug)
+ OpenToken is a facility for performing token analysis within the Ada language.
+ It is designed to provide all the functionality of a traditional lexical
+ analyzer generator, such as lex. But due to the magic of inheritance and
+ runtime polymorphism it is implemented entirely in Ada as withed-in code. No
+ precompilation step is required, and no messy tool-generated source code is
+ created.
+ .
+ This package contains the debug symbols.

@@ -1,0 +1,5 @@
+*.ad[bs] /usr/share/ada/adainclude/opentoken
+Language_Lexers/*.ad[bs] /usr/share/ada/adainclude/opentoken
+obj/*.ali /usr/lib/ada/adalib/opentoken
+debian/opentoken.gpr /usr/share/ada/adainclude
+libopentoken.a /usr/lib

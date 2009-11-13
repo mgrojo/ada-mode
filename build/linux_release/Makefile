@@ -1,4 +1,5 @@
 # (ediff "../windows_release/Makefile" "../linux_release/Makefile")
+# schroot --chroot=unstable -- make -r all
 
 all: tests examples library
 

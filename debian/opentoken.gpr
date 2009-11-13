@@ -1,0 +1,32 @@
+--  OpenToken project file for use with GCC 4.3
+--  Copyright (c) 2004 Ludovic Brenta <ludovic.brenta@insalien.org>
+--  Copyright (c) 2009 Reto Buerki <reet@codelabs.ch>
+--
+--  This program is free software; you can redistribute it and/or modify
+--  it under the terms of the GNU General Public License as published by
+--  the Free Software Foundation; either version 2 of the License, or
+--  (at your option) any later version.
+--
+--  This program is distributed in the hope that it will be useful,
+--  but WITHOUT ANY WARRANTY; without even the implied warranty of
+--  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+--  GNU General Public License for more details.
+--
+--  This project file is designed to help build applications that use
+--  OpenToken.  Here is an example of how to use this project file:
+--
+--  with "opentoken";
+--  project Example is
+--     for Object_Dir use "obj";
+--     for Exec_Dir use ".";
+--     for Main use ("example");
+--  end Example;
+
+project OpenToken is
+   for Library_Name use "opentoken";
+   for Library_Dir use "/usr/lib";
+   for Library_Kind use "dynamic";
+   for Source_Dirs use ("/usr/share/ada/adainclude/opentoken");
+   for Library_ALI_Dir use "/usr/lib/ada/adalib/opentoken";
+   for Externally_Built use "true";
+end OpenToken;

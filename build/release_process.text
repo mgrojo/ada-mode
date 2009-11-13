@@ -19,6 +19,9 @@ bump version, doc changes
         linux_release/opentoken_lib.gpr
             Version
 
+    /home/Projects/Web/stephe-leake/ada/
+        delete old *.zip, *.gz
+
 review Debian bugs
     http://packages.qa.debian.org/o/opentoken.html
 
@@ -81,7 +84,7 @@ Makefile
 
 publish:
     ~/Web/Makefile
-        opentoken
+        opentoken sync
 
 announce:
     comp.lang.ada

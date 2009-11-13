@@ -22,6 +22,6 @@ zipfile : force
 	cd ../..; zip -q -r opentoken/Build/opentoken-$(ZIP_VERSION).zip opentoken -x "opentoken/_MTN/*" -x "*.tar.gz" -x "*.zip"
 
 tag :
-	mtn tag -h:org.opentoken version_$(ZIP_VERSION)
+	mtn tag h:org.opentoken opentoken-$(ZIP_VERSION)
 
 # end of file

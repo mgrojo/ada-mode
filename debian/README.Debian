@@ -1,0 +1,33 @@
+libopentoken for Debian
+-----------------------
+
+The source files for the entire library are in
+/usr/share/ada/adainclude/opentoken.
+
+The *.ali files are in /usr/lib/ada/adalib/opentoken.
+
+The object files are in the static library, /usr/lib/libopentoken.a, and in the
+shared library, /usr/lib/libopentoken.so.
+
+There is a project file for use with GNAT (>= 3.15p) in
+/usr/share/ada/adainclude/opentoken.gpr. To use it, you must first write your
+own project file, starting with a line like this:
+
+with "/usr/share/ada/adainclude/opentoken.gpr";
+project My_Project is
+   [...]
+end My_Project;
+
+(see the comments in the supplied project file for details). Then, compile your
+program like this:
+
+gnatmake -Pmy_project
+
+Alternatively, you can also use OpenToken in your programs like this:
+
+gnatmake [other flags] \
+	-aI/usr/share/ada/adainclude/opentoken \
+	-aO/usr/lib/ada/adalib/opentoken \
+	-largs -lopentoken
+
+ -- Ludovic Brenta <ludovic.brenta@insalien.org>  Fri, 13 Feb 2004 02:39:47 +0100
