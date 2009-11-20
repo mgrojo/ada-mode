@@ -23,13 +23,7 @@ project Common is
         ("-g",
          "-O0",
          "-gnat05",
-         --  WORKAROUND: gnat stub in GNAT 6.2.1 can't handle
-         --  -gnatafoqQ here, although gprbuild and gnatmake can.
-         "-gnata",
-         "-gnatf",
-         "-gnato",
-         "-gnatq",
-         "-gnatQ",
+         "-gnatfoqQ",
          "-gnatVa",
          "-gnatwaeLP",
          "-fstack-check");
