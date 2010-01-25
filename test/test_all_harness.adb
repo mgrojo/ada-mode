@@ -2,7 +2,7 @@
 --
 --  Run all OpenToken AUnit tests; see Makefile for other tests.
 --
---  Copyright (C) 2009 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2009, 2010 Stephen Leake.  All Rights Reserved.
 --
 --  This library is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -18,8 +18,9 @@
 
 pragma License (GPL);
 
-with AUnit.Test_Results.Text_Reporter;
+with AUnit.Reporter.Text;
 with AUnit.Test_Suites; use AUnit.Test_Suites;
+with AUnit.Test_Results;
 with OpenToken.Recognizer.CSV_Field.Test;
 with Test_LR0_Kernels;
 with Test_Statement_Actions;
@@ -27,8 +28,9 @@ with Test_Token_Identifier_Real_String;
 procedure Test_All_Harness
 is
    Suite  : constant Access_Test_Suite := new Test_Suite;
-   Result : AUnit.Test_Results.Result;
-
+   Result : constant AUnit.Test_Results.Result_Access := new AUnit.Test_Results.Result;
+   Status : AUnit.Status;
+   Engine : AUnit.Reporter.Text.Text_Reporter;
 begin
    --  Test cases; test package alphabetical order, unless otherwise noted.
 
@@ -39,9 +41,9 @@ begin
 
    --  end test cases
 
-   Run (Suite.all, Result);
+   Run (Suite, Result, Status);
 
    --  Provide command line option -v to set verbose mode
-   AUnit.Test_Results.Text_Reporter.Report (Result);
+   AUnit.Reporter.Text.Report (Engine, Result.all);
 
 end Test_All_Harness;

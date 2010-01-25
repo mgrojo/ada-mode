@@ -24,7 +24,6 @@
 -------------------------------------------------------------------------------
 
 with Ada.Strings.Maps.Constants;
-with Ada.Strings.Unbounded;
 
 with OpenToken.Text_Feeder;
 with OpenToken.Text_Feeder.String;

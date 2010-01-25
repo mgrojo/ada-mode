@@ -5,6 +5,7 @@ all: tests examples library
 
 # ../../Test/test_one_harness.adb
 t_one : test_one_harness.run
+t_all : test_all_harness.run
 
 one : bracketed_comment_test-run.run
 

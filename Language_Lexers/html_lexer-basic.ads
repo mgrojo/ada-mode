@@ -31,7 +31,6 @@ with OpenToken.Recognizer.Bracketed_Comment;
 with OpenToken.Recognizer.Character_Set;
 with OpenToken.Recognizer.End_Of_File;
 with OpenToken.Recognizer.HTML_Entity;
-with OpenToken.Recognizer.Identifier;
 with OpenToken.Recognizer.Nothing;
 
 pragma Elaborate_All (OpenToken.Recognizer.Bracketed_Comment, OpenToken.Recognizer.Character_Set,
