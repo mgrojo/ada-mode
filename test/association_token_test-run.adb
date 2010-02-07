@@ -34,12 +34,8 @@ is
 
       Set_Text_Feeder (Parser, String_Feeder'Unchecked_Access);
 
-      --  Read and parse statements from the string until end of string
-      loop
-         exit when End_Of_Text (Parser);
+      Parse (Parser);
 
-         Parse (Parser);
-      end loop;
       Put_Line ("success");
       New_Line;
    exception
@@ -54,7 +50,9 @@ begin
       LALR_Parser.Print_Table (Parser);
    end if;
 
-   LALR_Parser.Set_Trace (Parser, True); --  Always produce a trace for this test.
+   --  The test is that there are no exceptions, and that the parse
+   --  trace matches the known good trace.
+   OpenToken.Trace_Parse := True;
 
    Parse_Command ("(identifier)");
    Parse_Command ("(identifier, identifier)");

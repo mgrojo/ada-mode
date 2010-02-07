@@ -1,5 +1,6 @@
 -------------------------------------------------------------------------------
 --
+-- Copyright (C) 2009 Stephe Leake
 -- Copyright (C) 2000 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -32,65 +33,35 @@
 -------------------------------------------------------------------------------
 
 with Ada.Exceptions;
-with Ada.Text_IO;
-with OpenToken.Token.Selection;
-with OpenToken.Token.Sequence;
+with Ada.Text_IO; use Ada.Text_IO;
 procedure ASU_Example_4_46_RD.Run is
-
-   use OpenToken.Token.Selection;
-   use OpenToken.Token.Sequence;
 
    Test_File_Name : constant String := "Example.txt";
 
 begin
 
-   --------------------------------------------------------------------------
-   --  Define the Grammar. The text in the example in the book looks something
-   --  like:
-   --
-   --  S' -> S
-   --  S  -> L = R | R
-   --  L  -> * R | id
-   --  R  -> L
-   --
+   R.all := L.all;
 
-   S_Prime := S;
-   S.all   := OpenToken.Token.Selection.Class
-     (OpenToken.Token.Sequence.New_Instance (L & Equals & R & EOF) or
-        OpenToken.Token.Sequence.New_Instance (R & EOF));
+   Put ("Parsing file " & Test_File_Name & "...");
+   Flush;
 
-   --  Note the following would produce an accessiblity error;
-   --  'new foo' is an anonymous access type declared in a procedure,
-   --  so it can't be stored in a global access type.
-   --  S.all   := new OpenToken.Token.Sequence.Instance'(L & Equals & R & EOF) or
-   --            new OpenToken.Token.Sequence.Instance'(R & EOF);
-
-   L.all   := OpenToken.Token.Selection.Class (OpenToken.Token.Sequence.New_Instance (Asterix & R) or ID);
-   R.all   := L.all;
-
-   Ada.Text_IO.Put ("Parsing file " & Test_File_Name & "...");
-   Ada.Text_IO.Flush;
-
-   Ada.Text_IO.Open (File => Input_File,
-                     Name => Test_File_Name,
-                     Mode => Ada.Text_IO.In_File);
+   Open
+     (File => Input_File,
+      Name => Test_File_Name,
+      Mode => In_File);
 
    --  Load up the first token
    Tokenizer.Find_Next (Analyzer);
 
    OpenToken.Token.Parse
-     (Match    => S_Prime.all,
-      Analyzer => Analyzer
-      );
+     (Match    => S_Prime,
+      Analyzer => Analyzer);
 
-   Ada.Text_IO.Put_Line ("passed");
+   Put_Line ("passed");
 exception
-   when Error : OpenToken.Parse_Error =>
-      Ada.Text_IO.Put_Line ("failed at line" & Integer'Image (Tokenizer.Line (Analyzer)) &
-                            ", column" & Integer'Image (Tokenizer.Column (Analyzer)) &
-                            " due to parse exception:");
-      Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (Error));
+when Error : OpenToken.Parse_Error =>
+   Put_Line ("failed at line" & Integer'Image (Tokenizer.Line (Analyzer)) &
+               ", column" & Integer'Image (Tokenizer.Column (Analyzer)) &
+               " due to parse exception:");
+   Put_Line (Ada.Exceptions.Exception_Information (Error));
 end ASU_Example_4_46_RD.Run;
-
-
-

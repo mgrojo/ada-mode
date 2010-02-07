@@ -13,6 +13,18 @@
 ^Build/linux_release/lib$
 ^Build/linux_release/obj$
 ^Build/linux_release/obj_tree$
+^Build/lynx_release/.*\.diff$
+^Build/lynx_release/.*\.exe$
+^Build/lynx_release/.*\.out$
+^Build/lynx_release/.*\.txt$
+^Build/lynx_release/obj$
+^Build/lynx_release/obj_tree$
+^Build/windows_debug/.*\.diff$
+^Build/windows_debug/.*\.exe$
+^Build/windows_debug/.*\.out$
+^Build/windows_debug/.*\.txt$
+^Build/windows_debug/obj$
+^Build/windows_debug/obj_tree$
 ^Build/windows_release/.*\.diff$
 ^Build/windows_release/.*\.exe$
 ^Build/windows_release/.*\.out$
@@ -20,3 +32,4 @@
 ^Build/windows_release/lib$
 ^Build/windows_release/obj$
 ^Build/windows_release/obj_tree$
+^Build/x86_lynx_gnu_linux_release/obj$

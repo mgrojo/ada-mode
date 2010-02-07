@@ -1,5 +1,5 @@
 --  For using OpenToken in other projects
-with "common";
+with "../common";
 project OpenToken is
 
    for Source_Dirs use ("../..");

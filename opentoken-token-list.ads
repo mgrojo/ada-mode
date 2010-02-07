@@ -1,5 +1,6 @@
 -------------------------------------------------------------------------------
 --
+-- Copyright (C) 2009 Stephen Leake
 -- Copyright (C) 2000 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -21,58 +22,9 @@
 --  executable to be covered by the GNU General Public License. This
 --  exception does not however invalidate any other reasons why the
 --  executable file might be covered by the GNU Public License.
---
 -------------------------------------------------------------------------------
 
------------------------------------------------------------------------------
---  This package defines a generic list token. A list is a token that
---  is made up of any number of repetitions of other tokens, separated
---  by a given separator token.
------------------------------------------------------------------------------
-package OpenToken.Token.List is
-
-   type Instance is new Token.Instance with private;
-
-   subtype Class is Instance'Class;
-
-   type Handle is access all Class;
-
-   overriding procedure Parse
-     (Match    : in out Instance;
-      Analyzer : in out Source_Class;
-      Actively : in     Boolean := True);
-
-   ----------------------------------------------------------------------------
-   --  Construct a new list token, using the given Element and Separator tokens.
-   ----------------------------------------------------------------------------
-   function Get
-     (Element   : access OpenToken.Token.Class;
-      Separator : access OpenToken.Token.Class)
-     return Class;
-
-   overriding function Could_Parse_To
-     (Match    : in Instance;
-      Analyzer : in Source_Class)
-     return Boolean;
-
-private
-
-   type Instance is new Token.Instance with record
-      Element   : OpenToken.Token.Handle;
-      Separator : OpenToken.Token.Handle;
-   end record;
-
-   ----------------------------------------------------------------------------
-   --  This routine is called every time a list element is actively parsed.
-   ----------------------------------------------------------------------------
-   procedure Add_List_Element
-     (Match   : in out Instance;
-      Element : in out OpenToken.Token.Class
-     ) is null;
-
-   ----------------------------------------------------------------------------
-   --  This routine is called when an entire list has been actively parsed.
-   ----------------------------------------------------------------------------
-   procedure Build (Match : in out Instance) is null;
-
-end OpenToken.Token.List;
+with OpenToken.Token.List_Mixin;
+package OpenToken.Token.List is new OpenToken.Token.List_Mixin
+  (Parent_Token => OpenToken.Token.Instance,
+   Component_Token => OpenToken.Token.Instance);

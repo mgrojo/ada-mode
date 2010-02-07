@@ -4,7 +4,7 @@
 --  earlier version of OpenToken, this grammar reported spurious
 --  conflicts.
 --
---  Copyright (C) 2002, 2003 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2002, 2003, 2009 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -31,7 +31,7 @@ with OpenToken.Text_Feeder.String;
 with OpenToken.Token.Enumerated.Analyzer;
 with OpenToken.Token.Enumerated.List;
 with OpenToken.Token.Enumerated.Identifier;
-with OpenToken.Token.Enumerated.Integer_Literal;
+with OpenToken.Token.Enumerated.Integer;
 with OpenToken.Token.Enumerated.Nonterminal;
 package Association_Token_Test is
 
@@ -61,7 +61,7 @@ package Association_Token_Test is
    package Nonterminal is new Master_Token.Nonterminal (Token_List);
 
    package Identifier_Token is new Master_Token.Identifier;
-   package Integer_Literal is new Master_Token.Integer_Literal;
+   package Integer_Literal is new Master_Token.Integer;
 
    package Production is new OpenToken.Production (Master_Token, Token_List, Nonterminal);
    package Production_List is new Production.List;

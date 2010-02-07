@@ -23,7 +23,7 @@ project Common is
         ("-g",
          "-O0",
          "-gnat05",
-         "-gnatafoqQ",
+         "-gnatfoqQ",
          "-gnatVa",
          "-gnatwaeLP",
          "-fstack-check");

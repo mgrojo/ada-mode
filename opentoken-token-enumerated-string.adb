@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
---  Copyright (C) 2003, 2008 Stephen Leake
+--  Copyright (C) 2003, 2008, 2009 Stephen Leake
 --
 --  This file is part of the OpenToken package.
 --
@@ -22,57 +22,71 @@
 --  executable to be covered by the GNU General Public License. This
 --  exception does not however invalidate any other reasons why the
 --  executable file might be covered by the GNU Public License.
---
---  Maintainer: Stephen Leake (stephen.leake@gsfc.nasa.gov)
---
 -------------------------------------------------------------------------------
 
-package body OpenToken.Token.Enumerated.String_Literal is
+package body OpenToken.Token.Enumerated.String is
 
-   function Get (ID     : in Token_ID;
-                 Value  : in String := "") return Instance'Class is
-   begin
-      return Instance'Class (Instance'(ID => ID, Value => Buffers.To_Bounded_String (Value)));
-   end Get;
-
-   overriding procedure Create
-     (Lexeme     : in     String;
-      ID         : in     Token_ID;
-      Recognizer : in     Recognizer_Handle;
-      New_Token  :    out Instance)
-   is
-      pragma Unreferenced (Recognizer);
-   begin
-      New_Token.ID    := ID;
-      New_Token.Value := Buffers.To_Bounded_String (Lexeme);
-   end Create;
-
-   function Value (Subject : in Instance) return String
+   --------------------------------------------------------------------------
+   --  Return the value of Item with quotes removed
+   --  (assumes Ada syntax).
+   --------------------------------------------------------------------------
+   function Unquote (Item : in Standard.String) return Standard.String
    is
       use Buffers;
-      Value_Next  : Natural := 1;
-      Result      : String (1 .. Length (Subject.Value));
+      Item_Next  : Natural := Item'First;
+      Result      : Standard.String (1 .. Item'Length);
       Result_Last : Natural := Result'First - 1;
       C           : Character;
    begin
       loop
-         exit when Value_Next > Length (Subject.Value);
-         C := Element (Subject.Value, Value_Next);
+         exit when Item_Next > Item'Last;
+         C := Item (Item_Next);
          if C = '"' then
             --  First " starts string, last " ends it.
             --  Doubled "" before last is an embedded "
-            exit when Value_Next = Length (Subject.Value);
-            Value_Next := Value_Next + 1;
-            C := Element (Subject.Value, Value_Next);
+            exit when Item_Next = Item'Last;
+            Item_Next := Item_Next + 1;
+            C := Item (Item_Next);
             --  This might be the last "
-            exit when C = '"' and Value_Next = Length (Subject.Value);
+            exit when C = '"' and Item_Next = Item'Last;
          end if;
          Result_Last          := Result_Last + 1;
          Result (Result_Last) := C;
-         Value_Next           := Value_Next + 1;
+         Item_Next            := Item_Next + 1;
       end loop;
 
       return Result (1 .. Result_Last);
-   end Value;
+   end Unquote;
 
-end OpenToken.Token.Enumerated.String_Literal;
+   function Get
+     (ID    : in Token_ID;
+      Value : in Standard.String := "";
+      Name  : in Standard.String := "";
+      Build : in Action          := null)
+     return Instance'Class
+   is begin
+      if Name = "" then
+         return Instance'Class (Instance'(null, ID, Build, Buffers.To_Bounded_String (Value)));
+      else
+         return Instance'Class (Instance'(new Standard.String'(Name), ID, Build, Buffers.To_Bounded_String (Value)));
+      end if;
+   end Get;
+
+   overriding procedure Create
+     (Lexeme     : in     Standard.String;
+      Recognizer : in     Recognizer_Handle;
+      New_Token  : in out Instance)
+   is
+      pragma Unreferenced (Recognizer);
+   begin
+      New_Token.Value := Buffers.To_Bounded_String (Unquote (Lexeme));
+   end Create;
+
+   overriding procedure Copy
+     (To   : in out Instance;
+      From : in     Token.Class)
+   is begin
+      To.Value := Instance (From).Value;
+   end Copy;
+
+end OpenToken.Token.Enumerated.String;

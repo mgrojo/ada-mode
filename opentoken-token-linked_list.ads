@@ -1,5 +1,6 @@
 -------------------------------------------------------------------------------
 --
+-- Copyright (C) 2009 Stephe Leake
 -- Copyright (C) 2000 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -72,6 +73,7 @@ package OpenToken.Token.Linked_List is
    --  Return an initialized iterator for traversing the token list
    ----------------------------------------------------------------------------
    function Initial_Iterator (List : in Instance) return List_Iterator;
+   function First (List : in Instance) return List_Iterator renames Initial_Iterator;
 
    ----------------------------------------------------------------------------
    --  Move the iterator down the list to the next token.
@@ -83,6 +85,11 @@ package OpenToken.Token.Linked_List is
    ----------------------------------------------------------------------------
    function Token_Handle (Iterator : in List_Iterator) return OpenToken.Token.Handle;
 
+   ----------------------------------------------------------------------
+   --  Return names of tokens in list, for error messages
+   ----------------------------------------------------------------------
+   function Names (List : in Instance) return String;
+
    ---------------------------
    -- Table Parser Routines --
 
@@ -92,9 +99,8 @@ package OpenToken.Token.Linked_List is
    --  in. Do not delete it while the list is still using it!
    --
    ----------------------------------------------------------------------------
-   procedure Enqueue
-     (List  : in out Instance;
-      Token : in     OpenToken.Token.Handle);
+   procedure Enqueue (List : in out Instance; Token : in OpenToken.Token.Handle);
+   procedure Add (List : in out Instance; Token : in OpenToken.Token.Handle) renames Enqueue;
 
 private
    type List_Node;
@@ -111,7 +117,7 @@ private
    end record;
 
    --------------------------------------------------------------------------
-   --  Overriding of controled operations to provide for automatic
+   --  Overriding of controlled operations to provide for automatic
    --  cleanup of list nodes.
    --
    ----------------------------------------------------------------------------
