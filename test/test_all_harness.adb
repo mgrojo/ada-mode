@@ -37,6 +37,7 @@ is
    Suite  : constant Access_Test_Suite := new Test_Suite;
    Result : constant AUnit.Test_Results.Result_Access := new AUnit.Test_Results.Result;
    Status : AUnit.Status;
+   pragma Unreferenced (Status);
    Engine : AUnit.Reporter.Text.Text_Reporter;
 begin
    --  Test cases; test package alphabetical order, unless otherwise noted.

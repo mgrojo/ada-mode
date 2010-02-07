@@ -1,5 +1,7 @@
 --  For running OpenToken tests.
-with "aunit";
+
+--  WORKAROUND: if we use the pre-compiled libaunit.so.4, we get
+--  bizarre behavior. So we compile the AUnit source.
 with "../common";
 with "opentoken";
 project OpenToken_Test is
@@ -9,14 +11,16 @@ project OpenToken_Test is
       "../../Examples/ASU_Example_4_46",
       "../../Examples/ASU_Example_5_10",
       "../../Examples/Language_Lexer_Examples",
-      "../../Test");
+      "../../Test",
+      "/usr/share/ada/adainclude/aunit");
 
    for Object_Dir use "obj";
    for Exec_Dir use ".";
 
    package Compiler is
       for Default_Switches ("Ada") use
-        OpenToken.Compiler'Default_Switches ("Ada");
+        --  AUnit requires -fno-strict-aliasing
+        OpenToken.Compiler'Default_Switches ("Ada") & ("-fno-strict-aliasing");
 
    end Compiler;
 

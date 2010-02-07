@@ -1,26 +1,8 @@
-sync with gds, ada-france
+sync with gds, ada-france, on shevek
     ~/bin/mtn_sync_ada_france_gds.sh
     ~/bin/mtn_sync_ada_france.sh
 
 (dvc-status ".")
-
-bump version, doc changes
-    ../Docs/opentoken.html
-        current version
-        opentoken-*.tar.gz
-
-    ../Build/Makefile
-        ZIP_VERSION
-
-    ~/Web/Makefile
-        OPENTOKEN_ZIP_VERSION
-
-    if user-visible changes, bump Debian library version number
-        linux_release/opentoken_lib.gpr
-            Version
-
-    /home/Projects/Web/stephe-leake/ada/
-        delete old *.zip, *.gz
 
 review Debian bugs
     http://packages.qa.debian.org/o/opentoken.html
@@ -29,6 +11,8 @@ review Debian bugs
 
 loop until no changes:
     Windows:
+        (gnat-2009)
+
         mtn_sync_ada_france.sh
 
         windows_release/Makefile
@@ -46,24 +30,12 @@ loop until no changes:
 
     Debian:
 
-        mtn sync --ticker=count
-
-        ; sal-standard uses GNAT GPL 2009; it provides an incompatible
-        ; version of AUnit. Could put in a choice to use SAL AUnit,
-        ; but it's not worth it.
-        ;
-        ; However, webcheck needs the GPL 2009 version installed
-
-        (sal-standard)
-        linux_release/Makefile
-            distclean
-            install
-
+        mtn sync
 
         (sal-debian)
         linux_release/Makefile
-            distclean
-            all
+            make -r distclean
+            schroot -- make -r all
 
         (sal-standard)
         Makefile
@@ -74,13 +46,41 @@ loop until no changes:
 
         (dvc-status ".")
 
-        mtn sync --ticker=count
+        mtn sync
 
 end loop
 
+bump version, doc changes
+    ../Docs/opentoken.html
+        current version
+        opentoken-*.tar.gz
+
+    ../Build/Makefile
+        ZIP_VERSION
+
+    ~/Web/Makefile
+        OPENTOKEN_ZIP_VERSION
+
+    ../../opentoken-3.1a-current/opentoken-3.1a/debian/changelog
+        ChangeLog | New Version
+
+    if user-visible changes, bump Debian soversion (libopentoken<soversion>)
+    if ali changes, bump Debian aliversion (libpentoken<aliversion>-dev
+        ../../opentoken-3.1a-current/opentoken-3.1a/debian/control
+        ../../opentoken-3.1a-current/opentoken-3.1a/debian/test_installed.sh
+        linux_release/opentoken_lib.gpr
+
+    /home/Projects/Web/stephe-leake/ada/
+        delete old *.zip, *.gz
+
 Makefile
     zip
-    tag
+
+Debian
+    (dvc-status "../../opentoken-3.1a-current/opentoken-3.1a/debian")
+    cd /home/Projects/opentoken
+    mkdir opentoken-4.0-current
+
 
 publish:
     ~/Web/Makefile
@@ -88,8 +88,5 @@ publish:
 
 announce:
     comp.lang.ada
-    Reto Buerki (Debian maintainer) reet@codelabs.ch
-
-Debian bugs updated by Reto or someone else
 
 (end of file)

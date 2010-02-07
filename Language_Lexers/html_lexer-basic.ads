@@ -32,11 +32,6 @@ with OpenToken.Recognizer.Character_Set;
 with OpenToken.Recognizer.End_Of_File;
 with OpenToken.Recognizer.HTML_Entity;
 with OpenToken.Recognizer.Nothing;
-
-pragma Elaborate_All (OpenToken.Recognizer.Bracketed_Comment, OpenToken.Recognizer.Character_Set,
-                      OpenToken.Recognizer.End_Of_File, OpenToken.Recognizer.HTML_Entity,
-                      OpenToken.Recognizer.Identifier, OpenToken.Recognizer.Nothing);
-
 private package HTML_Lexer.Basic is
 
    type Basic_Token is (Whitespace,
