@@ -16,10 +16,18 @@ linux-clean :
 zip : linux-clean source-clean gzipfile zipfile
 
 gzipfile : force
-	tar -zcf opentoken-$(ZIP_VERSION).tar.gz -C ../.. --exclude=_MTN --exclude=*.tar.gz --exclude=*.zip --no-anchor opentoken
+	rm -rf ../../opentoken-$(ZIP_VERSION)
+	mtn checkout --branch org.opentoken ../../opentoken-$(ZIP_VERSION)
+	tar -zcf opentoken-$(ZIP_VERSION).tar.gz -C ../.. --exclude=_MTN --exclude=.mtn-ignore --exclude=.dvc-exclude --no-anchor opentoken-$(ZIP_VERSION)
 
 zipfile : force
-	cd ../..; zip -q -r opentoken/Build/opentoken-$(ZIP_VERSION).zip opentoken -x "opentoken/_MTN/*" -x "*.tar.gz" -x "*.zip"
+	cd ../..; zip -q -r opentoken.main/Build/opentoken-$(ZIP_VERSION).zip opentoken-$(ZIP_VERSION) -x "opentoken-$(ZIP_VERSION)/_MTN/*" -x "opentoken-$(ZIP_VERSION)/.mtn-ignore"
+
+debian :
+	cp opentoken-$(ZIP_VERSION).tar.gz ../../opentoken-$(ZIP_VERSION)-current/opentoken_$(ZIP_VERSION).orig.tar.gz
+	rm -rf ../../opentoken-$(ZIP_VERSION)-current/opentoken-$(ZIP_VERSION)
+	mtn checkout --branch org.debian.libopentoken ../../opentoken-$(ZIP_VERSION)-current/opentoken-$(ZIP_VERSION)
+	cd ../../opentoken-$(ZIP_VERSION)-current; tar zxf opentoken_$(ZIP_VERSION).orig.tar.gz
 
 tag :
 	mtn tag h:org.opentoken opentoken-$(ZIP_VERSION)

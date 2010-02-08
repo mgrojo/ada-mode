@@ -9,6 +9,41 @@ review Debian bugs
 
     tests implemented, fixed?
 
+bump version, doc changes
+    ../Docs/opentoken.html
+        current version
+        opentoken-*.tar.gz
+
+    ../Build/Makefile
+        ZIP_VERSION
+
+    ~/Web/Makefile
+        OPENTOKEN_ZIP_VERSION
+
+    ../../opentoken-4.0a-current/opentoken-4.0a/debian/changelog
+        ChangeLog | New Version
+
+    if user-visible changes, bump Debian soversion (libopentoken<soversion>)
+    if ali changes, bump Debian aliversion (libpentoken<aliversion>-dev)
+        ../../opentoken-4.0a-current/opentoken-4.0a/debian/control
+            update conflicts, replaces on -dev
+            use query-replace for depends
+
+        ../../opentoken-4.0a-current/opentoken-4.0a/debian/test_installed.sh
+        linux_release/opentoken_lib.gpr
+        ../../opentoken-4.0a-current/opentoken-4.0a/debian/rules
+            verify-versions
+
+    /home/Projects/Web/stephe-leake/ada/
+        delete old *.zip, *.gz
+
+    Debian
+        (dvc-status "../../opentoken-4.0a-current/opentoken-4.0a/debian")
+        cd /home/Projects/opentoken
+        mkdir opentoken-4.0-current
+
+    this file
+
 loop until no changes:
     Windows:
         (gnat-2009)
@@ -17,7 +52,7 @@ loop until no changes:
 
         windows_release/Makefile
             distclean
-            all
+            all BUILD=User
             install
 
         ../../webcheck/build/windows_release/Makefile
@@ -40,46 +75,25 @@ loop until no changes:
         (sal-standard)
         Makefile
             zip
+            debian
 
-        ~/Web/Makefile
-            opentoken sync check
+        ../../opentoken-4.0a-current/opentoken-4.0a/debian/rules
+            sudo schroot -d `cd ..; pwd` --chroot=unstable -- dpkg-buildpackage -uc -us -i"_MTN|\\.mtn-ignore"
+            schroot -d `cd ..; pwd` --chroot=unstable -- make -f debian/rules lint
+            sudo schroot --chroot=unstable -- ./test_installed.sh
 
+        (dvc-status "../../opentoken-4.0a-current/opentoken-4.0a/debian")
         (dvc-status ".")
 
         mtn sync
 
 end loop
 
-bump version, doc changes
-    ../Docs/opentoken.html
-        current version
-        opentoken-*.tar.gz
-
-    ../Build/Makefile
-        ZIP_VERSION
-
-    ~/Web/Makefile
-        OPENTOKEN_ZIP_VERSION
-
-    ../../opentoken-3.1a-current/opentoken-3.1a/debian/changelog
-        ChangeLog | New Version
-
-    if user-visible changes, bump Debian soversion (libopentoken<soversion>)
-    if ali changes, bump Debian aliversion (libpentoken<aliversion>-dev
-        ../../opentoken-3.1a-current/opentoken-3.1a/debian/control
-        ../../opentoken-3.1a-current/opentoken-3.1a/debian/test_installed.sh
-        linux_release/opentoken_lib.gpr
-
-    /home/Projects/Web/stephe-leake/ada/
-        delete old *.zip, *.gz
-
 Makefile
     zip
 
-Debian
-    (dvc-status "../../opentoken-3.1a-current/opentoken-3.1a/debian")
-    cd /home/Projects/opentoken
-    mkdir opentoken-4.0-current
+~/Web/Makefile
+    opentoken sync check
 
 
 publish:
