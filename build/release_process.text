@@ -41,6 +41,8 @@ bump version, doc changes
         (dvc-status "../../opentoken-4.0a-current/opentoken-4.0a/debian")
         cd /home/Projects/opentoken
         mkdir opentoken-4.0-current
+        sudo schroot aptitude update
+        sudo schroot aptitude full-upgrade
 
     this file
 
@@ -74,15 +76,14 @@ loop until no changes:
 
         (sal-standard)
         Makefile
-            zip
-            debian
+            make -r zip debian
 
         ../../opentoken-4.0a-current/opentoken-4.0a/debian/rules
             sudo schroot -d `cd ..; pwd` --chroot=unstable -- dpkg-buildpackage -uc -us -i"_MTN|\\.mtn-ignore"
             schroot -d `cd ..; pwd` --chroot=unstable -- make -f debian/rules lint
             sudo schroot --chroot=unstable -- ./test_installed.sh
 
-        (dvc-status "../../opentoken-4.0a-current/opentoken-4.0a/debian")
+        (dvc-status "../../opentoken-4.0a-current/opentoken-4.0a/")
         (dvc-status ".")
 
         mtn sync
@@ -95,10 +96,11 @@ Makefile
 ~/Web/Makefile
     opentoken sync check
 
+Makefile
+    tag
 
-publish:
-    ~/Web/Makefile
-        opentoken sync
+(dvc-status ".")
+mtn_sync_ada_france.sh
 
 announce:
     comp.lang.ada

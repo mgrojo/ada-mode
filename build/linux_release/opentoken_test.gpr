@@ -1,7 +1,19 @@
+--  Copyright (c) 2009, 2010 Stephen Leake <stephen_leake@stephe-leake.org>
+--
+--  This program is free software; you can redistribute it and/or modify
+--  it under the terms of the GNU General Public License as published by
+--  the Free Software Foundation; either version 3 of the License, or
+--  (at your option) any later version.
+--
+--  This program is distributed in the hope that it will be useful,
+--  but WITHOUT ANY WARRANTY; without even the implied warranty of
+--  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+--  GNU General Public License for more details.
+
 --  For running OpenToken tests.
 
 --  WORKAROUND: if we use the pre-compiled libaunit.so.4, we get
---  bizarre behavior. So we compile the AUnit source.
+--  bizarre behavior. So we compile the installed AUnit source.
 with "../common";
 with "opentoken";
 project OpenToken_Test is

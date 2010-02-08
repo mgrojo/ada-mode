@@ -25,7 +25,7 @@ zipfile : force
 
 debian :
 	cp opentoken-$(ZIP_VERSION).tar.gz ../../opentoken-$(ZIP_VERSION)-current/opentoken_$(ZIP_VERSION).orig.tar.gz
-	rm -rf ../../opentoken-$(ZIP_VERSION)-current/opentoken-$(ZIP_VERSION)
+	sudo rm -rf ../../opentoken-$(ZIP_VERSION)-current/opentoken-$(ZIP_VERSION)
 	mtn checkout --branch org.debian.libopentoken ../../opentoken-$(ZIP_VERSION)-current/opentoken-$(ZIP_VERSION)
 	cd ../../opentoken-$(ZIP_VERSION)-current; tar zxf opentoken_$(ZIP_VERSION).orig.tar.gz
 
