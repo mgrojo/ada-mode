@@ -1,5 +1,6 @@
 -------------------------------------------------------------------------------
 --
+-- Copyright (C) 2010 Stephen Leake
 -- Copyright (C) 1999 Christoph Karl Walter Grein
 --
 -- This file is part of the OpenToken package.
@@ -175,32 +176,25 @@ package body OpenToken.Recognizer.Bracketed_Comment is
 
    end Analyze;
 
-   ----------------------------------------------------------------------------
-   --  This procedure will be called to create a Line Comment token
-   ----------------------------------------------------------------------------
-   function Get (Comment_Opener : String;
-                 Comment_Closer : String;
-                 Reportable     : Boolean := False;
-                 Nested         : Boolean := False) return Instance is
-
-
-      New_Token : Instance;
-
+   function Get
+     (Comment_Opener : in String;
+      Comment_Closer : in String;
+      Reportable     : in Boolean := False;
+      Nested         : in Boolean := False)
+     return Instance
+   is
    begin
 
-      New_Token.Report := Reportable;
-      New_Token.Nested := Nested;
-
-      New_Token.Opener_Text (1 .. Comment_Opener'Length) := Comment_Opener;
-      New_Token.Closer_Text (1 .. Comment_Closer'Length) := Comment_Closer;
-      New_Token.Opener_Length := Comment_Opener'Length;
-      New_Token.Closer_Length := Comment_Closer'Length;
-
-      New_Token.State         := Opener;
-      New_Token.Bracket_State := 1;
-
-      return New_Token;
-
+      return
+        (Report        => Reportable,
+         Nested        => Nested,
+         Opener_Text   => Comment_Opener & (Comment_Opener'Length + 1 .. Max_Bracket_Length => ' '),
+         Closer_Text   => Comment_Closer & (Comment_Closer'Length + 1 .. Max_Bracket_Length => ' '),
+         Opener_Length => Comment_Opener'Length,
+         Closer_Length => Comment_Closer'Length,
+         State         => Opener,
+         Bracket_State => 1,
+         Nested_Depth  => 0);
    end Get;
 
 end OpenToken.Recognizer.Bracketed_Comment;

@@ -35,7 +35,7 @@
 ------------------------------------------------------------------------------
 package OpenToken.Recognizer.Bracketed_Comment is
 
-   Max_Bracket_Length : constant := 5;
+   Max_Bracket_Length : constant := 10;
 
    type Instance is new OpenToken.Recognizer.Instance with private;
 
@@ -52,6 +52,12 @@ package OpenToken.Recognizer.Bracketed_Comment is
 private
 
    type State_ID is (Opener, Nest_Opener, Text, Nest_Closer, Closer, Done);
+
+   --  An alternate design, to avoid the hard-coded
+   --  Max_Bracket_Length, would be to declare a discriminated
+   --  Delimiters_Type holding Opener_Text and Closer_Text. Then
+   --  Instance would contain a Delimeter_Type'Access, and Get would
+   --  allocate an object of that type.
 
    subtype Bracketed_String is String (1 .. Max_Bracket_Length);
    type Instance is new OpenToken.Recognizer.Instance with record

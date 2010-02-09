@@ -113,43 +113,44 @@
 ../../Test/test_html_scan.html:19:3: VALUE: p
 ../../Test/test_html_scan.html:19:4: TAG_CLOSER: >
 ../../Test/test_html_scan.html:19:5: TEXT: A paragraph with a "quote" and => in it.
-../../Test/test_html_scan.html:21:2: START_TAG_OPENER: <
-../../Test/test_html_scan.html:21:3: VALUE: hr
-../../Test/test_html_scan.html:21:5: TAG_CLOSER: >
-../../Test/test_html_scan.html:22:2: START_TAG_OPENER: <
-../../Test/test_html_scan.html:22:3: VALUE: p
-../../Test/test_html_scan.html:22:4: TAG_CLOSER: >
-../../Test/test_html_scan.html:23:2: START_TAG_OPENER: <
-../../Test/test_html_scan.html:23:3: ANCHOR: a
-../../Test/test_html_scan.html:23:5: HYPER_REFERENCE: href
-../../Test/test_html_scan.html:23:9: ASSIGNMENT: =
-../../Test/test_html_scan.html:23:10: STRING: "http://validator.w3.org/check?uri=referer"
-../../Test/test_html_scan.html:23:53: TAG_CLOSER: >
-../../Test/test_html_scan.html:24:2: START_TAG_OPENER: <
-../../Test/test_html_scan.html:24:3: IMAGE: img
-../../Test/test_html_scan.html:24:7: SOURCE: src
-../../Test/test_html_scan.html:24:10: ASSIGNMENT: =
-../../Test/test_html_scan.html:24:11: STRING: "/images/valid-html401.png"
-../../Test/test_html_scan.html:24:39: VALUE: alt
-../../Test/test_html_scan.html:24:42: ASSIGNMENT: =
-../../Test/test_html_scan.html:24:43: STRING: "Valid HTML 4.01!"
-../../Test/test_html_scan.html:24:62: VALUE: height
-../../Test/test_html_scan.html:24:68: ASSIGNMENT: =
-../../Test/test_html_scan.html:24:69: VALUE: 31
-../../Test/test_html_scan.html:24:72: VALUE: width
-../../Test/test_html_scan.html:24:77: ASSIGNMENT: =
-../../Test/test_html_scan.html:24:78: VALUE: 88
-../../Test/test_html_scan.html:24:80: TAG_CLOSER: >
-../../Test/test_html_scan.html:24:81: END_TAG_OPENER: </
-../../Test/test_html_scan.html:24:83: ANCHOR: a
-../../Test/test_html_scan.html:24:84: TAG_CLOSER: >
-../../Test/test_html_scan.html:25:2: COMMENT: <!-- hhmts start -->
-../../Test/test_html_scan.html:25:22: TEXT:  Last modified: Mon Jul 20 05:20:45 EDT 2009
-../../Test/test_html_scan.html:25:67: COMMENT: <!-- hhmts end -->
-../../Test/test_html_scan.html:26:2: END_TAG_OPENER: </
-../../Test/test_html_scan.html:26:4: HTML_BODY: body
-../../Test/test_html_scan.html:26:8: TAG_CLOSER: >
-../../Test/test_html_scan.html:26:10: END_TAG_OPENER: </
-../../Test/test_html_scan.html:26:12: HTML: html
-../../Test/test_html_scan.html:26:16: TAG_CLOSER: >
-../../Test/test_html_scan.html:26:17: END_OF_FILE: 
+../../Test/test_html_scan.html:21:2: PRE: <pre>    C := "A" & 'B' <= foo;</pre>
+../../Test/test_html_scan.html:25:2: START_TAG_OPENER: <
+../../Test/test_html_scan.html:25:3: VALUE: hr
+../../Test/test_html_scan.html:25:5: TAG_CLOSER: >
+../../Test/test_html_scan.html:26:2: START_TAG_OPENER: <
+../../Test/test_html_scan.html:26:3: VALUE: p
+../../Test/test_html_scan.html:26:4: TAG_CLOSER: >
+../../Test/test_html_scan.html:27:2: START_TAG_OPENER: <
+../../Test/test_html_scan.html:27:3: ANCHOR: a
+../../Test/test_html_scan.html:27:5: HYPER_REFERENCE: href
+../../Test/test_html_scan.html:27:9: ASSIGNMENT: =
+../../Test/test_html_scan.html:27:10: STRING: "http://validator.w3.org/check?uri=referer"
+../../Test/test_html_scan.html:27:53: TAG_CLOSER: >
+../../Test/test_html_scan.html:28:2: START_TAG_OPENER: <
+../../Test/test_html_scan.html:28:3: IMAGE: img
+../../Test/test_html_scan.html:28:7: SOURCE: src
+../../Test/test_html_scan.html:28:10: ASSIGNMENT: =
+../../Test/test_html_scan.html:28:11: STRING: "/images/valid-html401.png"
+../../Test/test_html_scan.html:28:39: VALUE: alt
+../../Test/test_html_scan.html:28:42: ASSIGNMENT: =
+../../Test/test_html_scan.html:28:43: STRING: "Valid HTML 4.01!"
+../../Test/test_html_scan.html:28:62: VALUE: height
+../../Test/test_html_scan.html:28:68: ASSIGNMENT: =
+../../Test/test_html_scan.html:28:69: VALUE: 31
+../../Test/test_html_scan.html:28:72: VALUE: width
+../../Test/test_html_scan.html:28:77: ASSIGNMENT: =
+../../Test/test_html_scan.html:28:78: VALUE: 88
+../../Test/test_html_scan.html:28:80: TAG_CLOSER: >
+../../Test/test_html_scan.html:28:81: END_TAG_OPENER: </
+../../Test/test_html_scan.html:28:83: ANCHOR: a
+../../Test/test_html_scan.html:28:84: TAG_CLOSER: >
+../../Test/test_html_scan.html:29:2: COMMENT: <!-- hhmts start -->
+../../Test/test_html_scan.html:29:22: TEXT:  Last modified: Tue Feb  9 06:32:52 EST 2010 
+../../Test/test_html_scan.html:29:67: COMMENT: <!-- hhmts end -->
+../../Test/test_html_scan.html:30:2: END_TAG_OPENER: </
+../../Test/test_html_scan.html:30:4: HTML_BODY: body
+../../Test/test_html_scan.html:30:8: TAG_CLOSER: >
+../../Test/test_html_scan.html:30:10: END_TAG_OPENER: </
+../../Test/test_html_scan.html:30:12: HTML: html
+../../Test/test_html_scan.html:30:16: TAG_CLOSER: >
+../../Test/test_html_scan.html:30:17: END_OF_FILE: 

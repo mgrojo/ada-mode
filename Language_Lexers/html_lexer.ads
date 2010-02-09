@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2009 Stephen Leake
+-- Copyright (C) 2009, 2010 Stephen Leake
 -- Copyright (C) 1999, 2000 Christoph Karl Walter Grein
 --
 -- This file is part of the OpenToken package.
@@ -46,7 +46,7 @@ package HTML_Lexer is
       Whitespace,
 
       --  Document Type Declaration <!DOCTYPE attributes>
-      Document_Type,
+      Document_Type, --  treated as a comment
 
       --  Tag delimiters
       Start_Tag_Opener,  -- <
@@ -54,16 +54,16 @@ package HTML_Lexer is
       Tag_Closer,        -- >
 
       --  Tags (without delimiters), not all tags may have attributes
-      HTML,              -- <HTML attributes>
-      Head,              -- <HEAD attributes>
-      Title,             -- <TITLE attributes>
-      Meta,              -- <META attributes>
-      HTML_Body,         -- <BODY attributes>
-      Heading_1,         -- <H1 attributes>
       Anchor,            -- <A attributes>
+      HTML,              -- <HTML attributes>
+      HTML_Body,         -- <BODY attributes>
+      Head,              -- <HEAD attributes>
+      Heading_1,         -- <H1 attributes>
       Image,             -- <IMG attributes>
+      Meta,              -- <META attributes>
+      Pre,               -- <pre> ... </pre>, treated as a comment
+      Title,             -- <TITLE attributes>
 
-      --  add further tags here
       --  Attributes (Attribute=value)
       Content,           -- CONTENT
       Hyper_Reference,   -- HREF
@@ -71,7 +71,6 @@ package HTML_Lexer is
       Link_Type,         -- TYPE
       Source,            -- SRC
 
-      --  add further attributes here
       --  The assignment character in attributes
       Assignment,        -- =
 

@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2009 Stephen Leake
+-- Copyright (C) 2009, 2010 Stephen Leake
 -- Copyright (C) 1999, 2000 Christoph Karl Walter Grein
 --
 -- This file is part of the OpenToken package.
@@ -80,11 +80,11 @@ package body HTML_Lexer is
                Reportable     => True)),
          Entity               => Tokenizer.Get (OpenToken.Recognizer.HTML_Entity.Get),
 
-         --  HTML syntax actually allows whitespace in the comment
-         --  closer: "-- >" is a closer. That also means that "<!--
-         --  foo -- bar>" is invalid syntax. But we don't have a
-         --  recognizer that can deal with that, and this is good
-         --  enough for common usage.
+         --  See HTML definition section 3.2.4 Comments; HTML syntax
+         --  actually allows whitespace in the comment closer: "-- >"
+         --  is a closer. That also means that "<! foo -- bar>" is
+         --  invalid syntax. But we don't have a recognizer that can
+         --  deal with that, and this is good enough for common usage.
          Comment              => Tokenizer.Get
            (OpenToken.Recognizer.Bracketed_Comment.Get
               (Comment_Opener => "<!--",
@@ -93,6 +93,11 @@ package body HTML_Lexer is
          Whitespace           => Tokenizer.Get (OpenToken.Recognizer.Character_Set.Get (HTML_Whitespace)),
          Bad_Token            => Tokenizer.Get (OpenToken.Recognizer.Nothing.Get),
          End_Of_File          => Tokenizer.Get (OpenToken.Recognizer.End_Of_File.Get),
+         Pre                  => Tokenizer.Get
+           (OpenToken.Recognizer.Bracketed_Comment.Get
+              (Comment_Opener => "<pre>",
+               Comment_Closer => "</pre>",
+               Reportable     => True)),
          others               => Tokenizer.Get (OpenToken.Recognizer.Nothing.Get));
    end Text_Syntax;
 

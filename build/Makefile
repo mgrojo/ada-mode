@@ -13,7 +13,7 @@ linux-clean :
 	make -C linux_release distclean
 	make -C linux_debug distclean
 
-zip : linux-clean source-clean gzipfile zipfile
+zip : gzipfile zipfile
 
 gzipfile : force
 	rm -rf ../../opentoken-$(ZIP_VERSION)

@@ -9,6 +9,9 @@ review Debian bugs
 
     tests implemented, fixed?
 
+review todo list
+    ~/Projects/opentoken.text
+
 bump version, doc changes
     ../Docs/opentoken.html
         current version
