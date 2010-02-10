@@ -4,7 +4,7 @@
 --  earlier version of OpenToken, this grammar reported spurious
 --  conflicts.
 --
---  Copyright (C) 2002, 2003, 2009 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2002, 2003, 2009, 2010 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -53,7 +53,6 @@ package Association_Token_Test is
       Aggregate_ID,
       Association_ID,
       Association_List_ID,
-      Parse_Sequence_ID,
       Statement_ID);
 
    package Master_Token is new OpenToken.Token.Enumerated (Token_ID_Type);
@@ -113,7 +112,6 @@ package Association_Token_Test is
    Aggregate        : constant Nonterminal.Class := Nonterminal.Get (Aggregate_ID);
    Association      : constant Nonterminal.Class := Nonterminal.Get (Association_ID);
    Association_List : constant Nonterminal.Class := Nonterminal.Get (Association_List_ID);
-   Parse_Sequence   : constant Nonterminal.Class := Nonterminal.Get (Parse_Sequence_ID);
    Statement        : constant Nonterminal.Class := Nonterminal.Get (Statement_ID);
 
    --  valid syntax:
@@ -123,7 +121,6 @@ package Association_Token_Test is
    --  (integer => identifier)
    --  (identifier => identifier, integer => identifier)
    Full_Grammar : constant Production_List.Instance :=
-     Parse_Sequence   <= Statement and
      Statement        <= Aggregate & Tokens.EOF and
      Aggregate        <= Tokens.Paren_Left & Association_List & Tokens.Paren_Right + Nonterminal.Synthesize_Self and
      Association_List <= Association & Tokens.Comma & Association_List + Nonterminal.Synthesize_Self and

@@ -58,7 +58,6 @@ package body Test_LR0_Kernels is
       Association_ID,
       Value_ID,
       Statement_ID,
-      Statement_Semi_ID,
       Parse_Sequence_ID);
 
    package Master_Token is new OpenToken.Token.Enumerated (Token_ID_Type);
@@ -89,7 +88,6 @@ package body Test_LR0_Kernels is
       Association    : constant Nonterminal.Class := Nonterminal.Get (Association_ID);
       Parse_Sequence : constant Nonterminal.Class := Nonterminal.Get (Parse_Sequence_ID);
       Statement      : constant Nonterminal.Class := Nonterminal.Get (Statement_ID);
-      Statement_Semi : constant Nonterminal.Class := Nonterminal.Get (Statement_Semi_ID);
       Value          : constant Nonterminal.Class := Nonterminal.Get (Value_ID);
    end Tokens;
 
@@ -196,8 +194,7 @@ package body Test_LR0_Kernels is
      );
 
    Grammar : constant Production_List.Instance :=
-     Tokens.Parse_Sequence <= Tokens.Statement_Semi and
-     Tokens.Statement_Semi <= Tokens.Statement & Tokens.Semicolon and
+     Tokens.Parse_Sequence <= Tokens.Statement & Tokens.Semicolon and
 
      Set_Statement.Grammar and
      Verify_Statement.Grammar and

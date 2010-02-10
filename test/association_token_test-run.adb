@@ -2,7 +2,7 @@
 --
 --  Run Association_Token_Test
 --
---  Copyright (C) 2002, 2003, 2009 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2002, 2003, 2009, 2010 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -23,7 +23,7 @@ procedure Association_Token_Test.Run
 is
    use LALR_Parser;
 
-   Trace : constant Boolean := Ada.Command_Line.Argument_Count > 1;
+   Trace : constant Boolean := Ada.Command_Line.Argument_Count > 0;
 
    Parser : LALR_Parser.Instance := LALR_Parser.Generate (Full_Grammar, The_Analyzer, Trace => Trace);
 

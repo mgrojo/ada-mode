@@ -2,7 +2,7 @@
 --
 --  Test grammar generator with an Ada-like Name syntax
 --
---  Copyright (C) 2002, 2003 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2002, 2003, 2010 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -44,7 +44,6 @@ package Name_Token_Test is
       Component_ID,
       Component_List_ID,
       Name_ID,
-      Parse_Sequence_ID,
       Statement_ID,
       Symbol_Name_ID);
 
@@ -97,7 +96,6 @@ package Name_Token_Test is
    use type Token_List.Instance;        --  "&"
 
    --  For use in right or left hand sides
-   Parse_Sequence : constant Nonterminal.Class := Nonterminal.Get (Parse_Sequence_ID);
    Statement      : constant Nonterminal.Class := Nonterminal.Get (Statement_ID);
    Name           : constant Nonterminal.Class := Nonterminal.Get (Name_ID);
    Symbol_Name    : constant Nonterminal.Class := Nonterminal.Get (Symbol_Name_ID);
@@ -108,7 +106,6 @@ package Name_Token_Test is
    --  Module (Index)
    --  Module.Component
    Simple_Grammar : constant Production_List.Instance :=
-     Parse_Sequence <= Statement and
      Statement      <= Name & Tokens.EOF and
      Name           <= Tokens.Identifier & Component + Nonterminal.Synthesize_Self and
      Component      <= Tokens.Dot & Tokens.Identifier + Nonterminal.Synthesize_Self and
@@ -121,7 +118,6 @@ package Name_Token_Test is
    --  Module.Symbol (Index)
    --  Module.Symbol.Component
    Medium_Grammar : constant Production_List.Instance :=
-     Parse_Sequence <= Statement and
      Statement      <= Name & Tokens.EOF and
      Name           <= Symbol_Name & Component + Nonterminal.Synthesize_Self and
      Symbol_Name    <= Tokens.Identifier & Tokens.Dot & Tokens.Identifier + Nonterminal.Synthesize_Self and
@@ -137,7 +133,6 @@ package Name_Token_Test is
    --  Module.Symbol (Index).Component
    --  Module.Symbol.Component (Index) ...
    Full_Grammar : constant Production_List.Instance :=
-     Parse_Sequence <= Statement and
      Statement      <= Name & Tokens.EOF and
      Name           <= Symbol_Name & Component_List + Nonterminal.Synthesize_Self and
      Name           <= Symbol_Name + Nonterminal.Synthesize_Self and

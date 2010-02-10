@@ -1,9 +1,14 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2002 - 2005, 2008, 2009 Stephe Leake
+-- Copyright (C) 2002 - 2005, 2008 - 2010 Stephe Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
+--
+-- References:
+--
+-- [dragon] "Compilers Principles, Techniques, and Tools" by Aho,
+--  Sethi, and Ullman (aka: "The Dragon Book").
 --
 -- The OpenToken package is free software; you can redistribute it and/or
 -- modify it under the terms of the  GNU General Public License as published
@@ -331,8 +336,8 @@ package body OpenToken.Production.Parser.LALR is
      (Source_Item  : in     LRk.Item_Ptr;
       Source_Set   : in     LRk.Item_Set;
       Closure_Item : in     LRk.Item_Node;
-      Grammar      : in     Production_List.Instance;
       Kernels      : in     LRk.Item_Set_List;
+      Accept_Index : in     Integer;
       Propagations : in out Item_Item_List_Mapping_Ptr;
       Trace        : in     Boolean)
    is
@@ -348,24 +353,9 @@ package body OpenToken.Production.Parser.LALR is
       use type LRk.Item_Lookahead_Ptr;
    begin
 
-      --  Verify that the closure item has a token past the pointer
-      if Token_List.Token_Handle (Closure_Item.Pointer) = null then
-         return;
-      end if;
-
-      Next_Token := Closure_Item.Pointer;
-      Token_List.Next_Token (Next_Token); --  First token after pointer
-      Next_Item :=
-        (Prod          => Closure_Item.Prod,
-         Pointer       => Next_Token,
-         Lookahead_Set => null,
-         Next          => null
-         );
-
-      --  If this is the first production with the pointer on the last
-      --  item, it gets a lookahead for each terminal. (so it will
-      --  reduce on anything).
-      if Source_Set.Index = 1 and Token_List.Token_Handle (Next_Token) = null then
+      --  If this is the start symbol production, it gets a lookahead
+      --  for each terminal, so it will reduce on anything.
+      if Source_Set.Index = Accept_Index then
          for Token_ID in Tokenizer.Terminal_ID loop
             declare
                Lookahead : constant LRk.Item_Lookahead :=
@@ -386,6 +376,20 @@ package body OpenToken.Production.Parser.LALR is
             end;
          end loop;
       end if;
+
+      --  If the closure item doesn't have a token after the pointer,
+      --  there's nothing else to do.
+      if Token_List.Token_Handle (Closure_Item.Pointer) = null then
+         return;
+      end if;
+
+      Next_Token := Closure_Item.Pointer;
+      Token_List.Next_Token (Next_Token); --  First token after pointer
+      Next_Item :=
+        (Prod          => Closure_Item.Prod,
+         Pointer       => Next_Token,
+         Lookahead_Set => null,
+         Next          => null);
 
       --  Check all of the closure item's lookaheads
       while Lookahead /= null loop
@@ -497,10 +501,11 @@ package body OpenToken.Production.Parser.LALR is
    --  become the set of LR(1) kernels on output.
    --------------------------------------------------------------------------
    procedure Fill_In_Lookaheads
-     (Grammar : in     Production_List.Instance;
-      First   : in     LRk.Derivation_Matrix;
-      Kernels : in out LRk.Item_Set_List;
-      Trace   : in     Boolean)
+     (Grammar      : in     Production_List.Instance;
+      First        : in     LRk.Derivation_Matrix;
+      Kernels      : in out LRk.Item_Set_List;
+      Accept_Index : in     Integer;
+      Trace        : in     Boolean)
    is
 
       Kernel           : LRk.Item_Set_Ptr := Kernels.Head;
@@ -533,6 +538,9 @@ package body OpenToken.Production.Parser.LALR is
 
       --  Go through all the kernel sets
       while Kernel /= null loop
+         if Trace then
+            Ada.Text_IO.Put_Line ("Adding lookaheads for kernel" & Integer'Image (Kernel.Index));
+         end if;
 
          --  Go through every item in the kernel set
          Kernel_Item     := Kernel.Set;
@@ -550,13 +558,7 @@ package body OpenToken.Production.Parser.LALR is
             while Closure_Item /= null loop
 
                Generate_Lookahead_Info
-                 (Source_Item  => Kernel_Item,
-                  Source_Set   => Kernel.all,
-                  Closure_Item => Closure_Item.all,
-                  Grammar      => Grammar,
-                  Kernels      => Kernels,
-                  Propagations => Propagation_List,
-                  Trace        => Trace);
+                 (Kernel_Item, Kernel.all, Closure_Item.all, Kernels, Accept_Index, Propagation_List, Trace);
 
                Closure_Item := Closure_Item.Next;
             end loop;
@@ -777,11 +779,12 @@ package body OpenToken.Production.Parser.LALR is
    --  Fill in the parse table using the given LR(k) kernel sets.
    ----------------------------------------------------------------------------
    procedure Fill_In_Parse_Table
-     (LRk_Kernels : in     LRk.Item_Set_List;
-      Grammar     : in     Production_List.Instance;
-      First       : in     LRk.Derivation_Matrix;
-      Table       : in out Parse_Table;
-      Trace       : in     Boolean)
+     (LRk_Kernels  : in     LRk.Item_Set_List;
+      Accept_Index : in     Integer;
+      Grammar      : in     Production_List.Instance;
+      First        : in     LRk.Derivation_Matrix;
+      Table        : in out Parse_Table;
+      Trace        : in     Boolean)
    is
       use Ada.Strings.Unbounded;
 
@@ -842,7 +845,12 @@ package body OpenToken.Production.Parser.LALR is
                Lookahead := Item.Lookahead_Set;
                while Lookahead /= null loop
                   --  Add reduction/accept action
-                  if Production_List.Get_Production (Production_List.Initial_Iterator (Grammar)) = Item.Prod then
+
+                  --  Only the start symbol kernel gets accept; the
+                  --  rest get reduce. See [dragon] algorithm 4.11
+                  --  page 238, 4.10 page 234, except that here the
+                  --  augmenting production is implicit.
+                  if Kernel.Index = Accept_Index then
                      if Trace then
                         Ada.Text_IO.Put_Line ("adding Accept_It");
                      end if;
@@ -933,10 +941,19 @@ package body OpenToken.Production.Parser.LALR is
          Last_Action := Table (State_Index (Kernel.Index)).Action_List;
 
          if Last_Action = null then
-            Table (State_Index (Kernel.Index)).Action_List := new Action_Node'(Default_Action);
-            Ada.Text_IO.Put_Line
-              (Ada.Text_IO.Standard_Error,
-               "Generating parser: state" & Integer'Image (Kernel.Index) & " has no actions");
+            --  This happens if the first production in the grammar is
+            --  not the start symbol production; that violates the
+            --  assumptions Generate_Lookahead_Info makes when
+            --  computing lookaheads, and Fill_In_Parse_Table makes
+            --  when assigning accept/reduce actions.
+            --
+            --  It also happens when there is any trivial production
+            --  (A -> B), or when there is more than one production
+            --  that has the start symbol on the left hand side.
+            raise Programmer_Error with
+              "Generating parser: state" & Integer'Image (Kernel.Index) &
+              " has no actions; first production in grammar must be the start symbol production" &
+              ", all productions must be non-trivial.";
          else
             while Last_Action.Next /= null loop
                Last_Action := Last_Action.Next;
@@ -993,9 +1010,6 @@ package body OpenToken.Production.Parser.LALR is
       Stack.Seen_Token := new Nonterminal.Class'(Production.LHS.all);
    end Reduce_Stack;
 
-   ----------------------------------------------------------------------------
-   --  Create a new parser from the given grammar with the given token analyzer.
-   ----------------------------------------------------------------------------
    overriding function Generate
      (Grammar  : in Production_List.Instance;
       Analyzer : in Tokenizer.Instance;
@@ -1006,32 +1020,50 @@ package body OpenToken.Production.Parser.LALR is
 
       First_Tokens : constant LRk.Derivation_Matrix := LRk.First_Derivations (Grammar, Trace);
 
-      Kernels : LRk.Item_Set_List := LRk.LR0_Kernels (Grammar, First_Tokens, Trace);
+      Kernels      : LRk.Item_Set_List := LRk.LR0_Kernels (Grammar, First_Tokens, Trace);
+      I            : LRk.Item_Set_Ptr  := Kernels.Head;
+      Accept_Index : Integer := 0;
 
+      First_Production : OpenToken.Production.Instance renames
+        Production_List.Get_Production (Production_List.Initial_Iterator (Grammar));
+
+      use type LRk.Item_Set_Ptr;
    begin
       New_Parser.Analyzer := Analyzer;
 
-      Fill_In_Lookaheads
-        (Grammar => Grammar,
-         First   => First_Tokens,
-         Kernels => Kernels,
-         Trace   => Trace);
+      --  Accept_Index identifies the kernel that is the start symbol
+      --  production, which must be the first production in Grammar.
+      --  That does not guarrantee its position in Kernels, so we
+      --  search for it.
+      loop
+         exit when I = null;
+         if I.Set.Prod = First_Production then
+            Accept_Index := I.Index;
+            exit;
+         end if;
+         I := I.Next;
+      end loop;
+
+      if Accept_Index = 0 then
+         raise Programmer_Error with
+           "Accept_Index = 0; something wrong with Grammar?";
+      end if;
+
+      if Trace then
+         Ada.Text_IO.Put_Line ("Accept_Index:" & Integer'Image (Accept_Index));
+      end if;
+
+      Fill_In_Lookaheads (Grammar, First_Tokens, Kernels, Accept_Index, Trace);
 
       if Trace then
          Ada.Text_IO.Put_Line ("LR(1) Kernels:");
          LRk.Print_Item_Set_List (Kernels);
-         Ada.Text_IO.New_Line;
       end if;
 
       New_Parser.Table := new Parse_Table (1 .. State_Index (Kernels.Size));
 
       --  Add actions
-      Fill_In_Parse_Table
-        (LRk_Kernels => Kernels,
-         Grammar     => Grammar,
-         First       => First_Tokens,
-         Table       => New_Parser.Table.all,
-         Trace       => Trace);
+      Fill_In_Parse_Table (Kernels, Accept_Index, Grammar, First_Tokens, New_Parser.Table.all, Trace);
 
       LRk.Free (Kernels);
       return New_Parser;

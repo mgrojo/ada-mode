@@ -1,5 +1,6 @@
 -------------------------------------------------------------------------------
 --
+-- Copyright (C) 2010 Stephe Leake
 -- Copyright (C) 2000 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -23,26 +24,24 @@
 --  executable file might be covered by the GNU Public License.
 -------------------------------------------------------------------------------
 
-with OpenToken.Token.Enumerated.List;
-with OpenToken.Token.Enumerated.Analyzer;
-with OpenToken.Token.Enumerated.Nonterminal;
-with OpenToken.Token.Enumerated.Integer;
-with OpenToken.Production.List;
-with OpenToken.Production.Parser.LALR;
-with OpenToken.Production.Parser.LRk_Item;
-with OpenToken.Recognizer.Integer;
-with OpenToken.Recognizer.Separator;
-with OpenToken.Recognizer.End_Of_File;
-with OpenToken.Recognizer.Character_Set;
-with OpenToken.Text_Feeder.String;
-
-with Simple_Integer_Token;
-
 -------------------------------------------------------------------------------
 --  This example is an implementation of Example 5.10 from "Compilers
 --  Principles, Techniques, and Tools" by Aho, Sethi, and Ullman (aka: "The
 --  Dragon Book"). It demonstrates handling of synthesized attributes
 -------------------------------------------------------------------------------
+
+with OpenToken.Production.List;
+with OpenToken.Production.Parser.LALR;
+with OpenToken.Recognizer.Character_Set;
+with OpenToken.Recognizer.End_Of_File;
+with OpenToken.Recognizer.Integer;
+with OpenToken.Recognizer.Separator;
+with OpenToken.Text_Feeder.String;
+with OpenToken.Token.Enumerated.Analyzer;
+with OpenToken.Token.Enumerated.Integer;
+with OpenToken.Token.Enumerated.List;
+with OpenToken.Token.Enumerated.Nonterminal;
+with Simple_Integer_Token;
 package ASU_Example_5_10_LR is
 
    --  The complete list of tokens, with the terminals listed first.
@@ -58,7 +57,6 @@ package ASU_Example_5_10_LR is
    package Production_List is new Production.List;
    package Parser is new Production.Parser (Production_List, Tokenizer);
    package LALR_Parser is new Parser.LALR;
-   package LRK_Item is new Parser.LRK_Item (1);
 
    --  Instantiate our tokens
    package Integer_Literal is new Master_Token.Integer;
@@ -71,35 +69,27 @@ package ASU_Example_5_10_LR is
    use type Production_List.Instance;
 
    --  Define all our tokens
-   Times       : aliased Master_Token.Class := Master_Token.Get (Multiply_ID);
-   Left_Paren  : aliased Master_Token.Class := Master_Token.Get (Left_Paren_ID);
-   Right_Paren : aliased Master_Token.Class := Master_Token.Get (Right_Paren_ID);
-   Plus        : aliased Master_Token.Class := Master_Token.Get (Plus_Sign_ID);
-   Int_Literal : aliased Master_Token.Class := Integer_Literal.Get (Integer_ID);
-   EOF         : aliased Master_Token.Class := Master_Token.Get (EOF_ID);
-   L           : aliased Simple_Integer.Class := Simple_Integer.Get (L_ID);
-   E           : aliased Simple_Integer.Class := Simple_Integer.Get (E_ID);
-   T           : aliased Simple_Integer.Class := Simple_Integer.Get (T_ID);
-   F           : aliased Simple_Integer.Class := Simple_Integer.Get (F_ID);
+   Times       : aliased constant Master_Token.Class   := Master_Token.Get (Multiply_ID);
+   Left_Paren  : aliased constant Master_Token.Class   := Master_Token.Get (Left_Paren_ID);
+   Right_Paren : aliased constant Master_Token.Class   := Master_Token.Get (Right_Paren_ID);
+   Plus        : aliased constant Master_Token.Class   := Master_Token.Get (Plus_Sign_ID);
+   Int_Literal : aliased constant Master_Token.Class   := Integer_Literal.Get (Integer_ID);
+   EOF         : aliased constant Master_Token.Class   := Master_Token.Get (EOF_ID);
+   L           : aliased constant Simple_Integer.Class := Simple_Integer.Get (L_ID);
+   E           : aliased constant Simple_Integer.Class := Simple_Integer.Get (E_ID);
+   T           : aliased constant Simple_Integer.Class := Simple_Integer.Get (T_ID);
+   F           : aliased constant Simple_Integer.Class := Simple_Integer.Get (F_ID);
 
    --  Define a lexer syntax for the terminals
    Syntax : constant Tokenizer.Syntax :=
-     (Multiply_ID    => Tokenizer.Get (Recognizer => OpenToken.Recognizer.Separator.Get ("*"),
-                                       New_Token  => Times),
-      Left_Paren_ID  => Tokenizer.Get (Recognizer => OpenToken.Recognizer.Separator.Get ("("),
-                                       New_Token  => Left_Paren),
-      Right_Paren_ID => Tokenizer.Get (Recognizer => OpenToken.Recognizer.Separator.Get (")"),
-                                       New_Token  => Right_Paren),
-      Plus_Sign_ID   => Tokenizer.Get (Recognizer => OpenToken.Recognizer.Separator.Get ("+"),
-                                       New_Token  => Plus),
-      Integer_ID => Tokenizer.Get (Recognizer => OpenToken.Recognizer.Integer.Get
-                                                   (Allow_Signs => False),
-                                   New_Token  => Int_Literal),
-      EOF_ID        => Tokenizer.Get (Recognizer => OpenToken.Recognizer.End_Of_File.Get,
-                                      New_Token  => EOF),
-      Whitespace_ID => Tokenizer.Get (Recognizer => OpenToken.Recognizer.Character_Set.Get
-                                      (OpenToken.Recognizer.Character_Set.Standard_Whitespace))
-      );
+     (Multiply_ID    => Tokenizer.Get (OpenToken.Recognizer.Separator.Get ("*"), Times),
+      Left_Paren_ID  => Tokenizer.Get (OpenToken.Recognizer.Separator.Get ("("), Left_Paren),
+      Right_Paren_ID => Tokenizer.Get (OpenToken.Recognizer.Separator.Get (")"), Right_Paren),
+      Plus_Sign_ID   => Tokenizer.Get (OpenToken.Recognizer.Separator.Get ("+"), Plus),
+      Integer_ID     => Tokenizer.Get (OpenToken.Recognizer.Integer.Get (Allow_Signs => False), Int_Literal),
+      EOF_ID         => Tokenizer.Get (OpenToken.Recognizer.End_Of_File.Get, EOF),
+      Whitespace_ID  => Tokenizer.Get (OpenToken.Recognizer.Character_Set.Get
+                                      (OpenToken.Recognizer.Character_Set.Standard_Whitespace)));
 
    Feeder   : aliased OpenToken.Text_Feeder.String.Instance;
    Analyzer : Tokenizer.Instance := Tokenizer.Initialize (Syntax, Feeder'Access);

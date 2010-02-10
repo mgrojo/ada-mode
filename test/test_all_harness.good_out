@@ -1,14 +1,14 @@
-Generating parser: state 5 has no actions
 --------------------
 
-   Total Tests Run: 17
+   Total Tests Run: 18
 
-   Successful Tests: 17
+   Successful Tests: 18
       OpenToken.Recognizer.CSV_Field.Test : Nominal
       Lookahead_Test : Lookahead
       Lookahead_Test : Lookahead_Push_Back
       Lookahead_Test : Lookahead_Lexemes
       Lookahead_Test : Mismatched_Tokens
+      Test_Accept_Index : Nominal
       Test_Backtrack : Enumerated_Lookahead
       Test_Backtrack : Sequence_Lookahead
       Test_Backtrack : Selection_Backtrack

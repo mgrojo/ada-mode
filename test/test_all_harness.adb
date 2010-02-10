@@ -23,6 +23,7 @@ with AUnit.Test_Results;
 with AUnit.Test_Suites; use AUnit.Test_Suites;
 with Lookahead_Test;
 with OpenToken.Recognizer.CSV_Field.Test;
+with Test_Accept_Index;
 with Test_Backtrack;
 with Test_LR0_Kernels;
 with Test_LR_Expecting;
@@ -44,6 +45,7 @@ begin
 
    Add_Test (Suite, new OpenToken.Recognizer.CSV_Field.Test.Test_Case);
    Add_Test (Suite, new Lookahead_Test.Test_Case (Debug => False));
+   Add_Test (Suite, new Test_Accept_Index.Test_Case (Debug => False));
    Add_Test (Suite, new Test_Backtrack.Test_Case (Debug => False));
    Add_Test (Suite, new Test_LR0_Kernels.Test_Case (Debug => False));
    Add_Test (Suite, new Test_LR_Expecting.Test_Case (Debug => False));

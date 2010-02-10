@@ -1,5 +1,6 @@
 -------------------------------------------------------------------------------
 --
+-- Copyright (C) 2010 Stephe Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -62,7 +63,10 @@ begin
          Keyword => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("whatever"))
          );
 
-      Analyzer : constant Tokenizer.Instance := Tokenizer.Initialize (Syntax);
+      --  We don't need the Analyzer; we run Initialize because it
+      --  sets the correct tokens in Syntax.
+      Analyzer : constant Tokenizer.Instance :=
+        Tokenizer.Initialize (Syntax);
       pragma Unreferenced (Analyzer);
 
       List : Token_List.Instance;

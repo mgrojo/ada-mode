@@ -1,5 +1,6 @@
 -------------------------------------------------------------------------------
 --
+-- Copyright (C) 2010 Stephe Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -27,7 +28,8 @@
 --  This package provides a type and operations for building lists of
 --  productions for use in grammars.
 -----------------------------------------------------------------------------
-generic package OpenToken.Production.List is
+generic
+package OpenToken.Production.List is
 
    type Instance is tagged private;
 
@@ -77,7 +79,7 @@ generic package OpenToken.Production.List is
    procedure Next_Production (Iterator : in out List_Iterator);
 
    ----------------------------------------------------------------------------
-   --  Return the next Token in the list.
+   --  Return the current Production in the list.
    ----------------------------------------------------------------------------
    function Get_Production (Iterator : in List_Iterator) return OpenToken.Production.Instance;
 

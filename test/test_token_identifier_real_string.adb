@@ -18,9 +18,10 @@
 
 pragma License (GPL);
 
+with AUnit.Assertions;
+with Ada.Exceptions;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO;
-with AUnit.Assertions;
 with OpenToken.Production.List.Print;
 with OpenToken.Production.Parser.LALR;
 with OpenToken.Production.Print;
@@ -139,7 +140,9 @@ package body Test_Token_Identifier_Real_String is
    use type Token_List.Instance;        --  "&"
 
    Grammar : constant Production_List.Instance :=
-     Tokens.Parse_Sequence <= Tokens.Value and
+     --  Start symbol must only be in first production, all
+     --  productions must be non-trivial.
+     Tokens.Parse_Sequence <= Tokens.Value & Tokens.EOF and
      Tokens.Value <= Tokens.Identifier + Test_Action'Access  and
      Tokens.Value <= Tokens.Real + Test_Action'Access  and
      Tokens.Value <= Tokens.String + Test_Action'Access;
@@ -163,7 +166,6 @@ package body Test_Token_Identifier_Real_String is
       end if;
    end Print_Action;
 
-
    procedure Dump_Grammar
    is
       package Print_Token_List is new Token_List.Print;
@@ -185,6 +187,13 @@ package body Test_Token_Identifier_Real_String is
       OpenToken.Text_Feeder.String.Set (String_Feeder, Input);
 
       LALR_Parser.Parse (Parser);
+   exception
+   when E : others =>
+      declare
+         use Ada.Exceptions;
+      begin
+         AUnit.Assertions.Assert (False, Exception_Name (E) & ": " & Exception_Message (E));
+      end;
    end Execute;
 
    ----------
@@ -216,7 +225,16 @@ package body Test_Token_Identifier_Real_String is
       --  We assume the recognizer works; just show that the
       --  identifier gets stored in the token properly.
 
-      Parser := LALR_Parser.Generate (Grammar, An_Analyzer, Trace => Test.Debug);
+      begin
+         Parser := LALR_Parser.Generate (Grammar, An_Analyzer, Trace => Test.Debug);
+      exception
+      when E : others =>
+         declare
+            use Ada.Exceptions;
+         begin
+            AUnit.Assertions.Assert (False, Exception_Name (E) & ": " & Exception_Message (E));
+         end;
+      end;
 
       if Test.Debug then
          Dump_Grammar;
