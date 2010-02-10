@@ -29,6 +29,7 @@ with Test_LR0_Kernels;
 with Test_LR_Expecting;
 with Test_List_Actions;
 with Test_List_Stack;
+with Test_Multi_Parse_LALR;
 with Test_Selection_Actions;
 with Test_Sequence_Actions;
 with Test_Statement_Actions;
@@ -51,6 +52,7 @@ begin
    Add_Test (Suite, new Test_LR_Expecting.Test_Case (Debug => False));
    Add_Test (Suite, new Test_List_Actions.Test_Case (Debug => False));
    Add_Test (Suite, new Test_List_Stack.Test_Case);
+   Add_Test (Suite, new Test_Multi_Parse_LALR.Test_Case (Debug => False));
    Add_Test (Suite, new Test_Selection_Actions.Test_Case (Debug => False));
    Add_Test (Suite, new Test_Sequence_Actions.Test_Case (Debug => False));
    Add_Test (Suite, new Test_Statement_Actions.Test_Case (Debug => False));

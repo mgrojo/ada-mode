@@ -2,7 +2,7 @@
 --
 --  Generic Check routines for AUnit
 --
---  Copyright (C) 2009 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2009, 2010 Stephen Leake.  All Rights Reserved.
 --
 --  This library is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -28,26 +28,32 @@ pragma License (Modified_GPL);
 with Ada.Tags;
 package AUnit.Check is
 
+   Default_Continue : Boolean := False;
+
    generic
       type Item_Type is (<>);
    procedure Gen_Check_Discrete
      (Label    : in String;
       Computed : in Item_Type;
-      Expected : in Item_Type);
+      Expected : in Item_Type;
+      Continue : in Boolean   := Default_Continue);
 
    procedure Check
      (Label    : in String;
       Computed : in String;
-      Expected : in String);
+      Expected : in String;
+      Continue : in Boolean := Default_Continue);
 
    procedure Check
      (Label    : in String;
       Computed : in Integer;
-      Expected : in Integer);
+      Expected : in Integer;
+      Continue : in Boolean := Default_Continue);
 
    procedure Check
      (Label    : in String;
       Computed : in Ada.Tags.Tag;
-      Expected : in Ada.Tags.Tag);
+      Expected : in Ada.Tags.Tag;
+      Continue : in Boolean      := Default_Continue);
 
 end AUnit.Check;

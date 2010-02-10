@@ -2,7 +2,7 @@
 --
 --  AUnit stuff for analyzer unit tests
 --
---  Copyright (C) 2009 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2009, 2010 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -22,7 +22,8 @@ generic
    with procedure Check_Token_ID
      (Label    : in String;
       Computed : in Token_ID;
-      Expected : in Token_ID);
+      Expected : in Token_ID;
+      Continue : in Boolean := False);
 
 package OpenToken.Token.Enumerated.Analyzer.AUnit is
 

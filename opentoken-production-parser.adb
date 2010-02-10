@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2002, 2003 Stephe Leake
+-- Copyright (C) 2002, 2003, 2010 Stephe Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -27,6 +27,11 @@
 
 with Ada.Exceptions;
 package body OpenToken.Production.Parser is
+
+   procedure Reset (Parser : in out Instance)
+   is begin
+      Tokenizer.Reset (Parser.Analyzer);
+   end Reset;
 
    procedure Set_Text_Feeder (Parser : in out Instance; Feeder : in Tokenizer.Text_Feeder_Ptr)
    is begin
