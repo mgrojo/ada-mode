@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2002, 2003 Stephe Leake
+-- Copyright (C) 2002, 2003, 2010 Stephe Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -55,6 +55,12 @@ package OpenToken.Production.Parser is
    --  first production has been parsed. (or an exception is raised)
    ----------------------------------------------------------------------------
    procedure Parse (Parser : in out Instance) is abstract;
+
+   --------------------------------------------------------------------------
+   --  Reset the internal Analyzer. Appropriate if the Text_Feeder's
+   --  input has changed.
+   --------------------------------------------------------------------------
+   procedure Reset (Parser : in out Instance);
 
    --------------------------------------------------------------------------
    --  Set the parser's text feeder. Raises Parse_Error if current

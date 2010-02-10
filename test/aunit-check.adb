@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2009 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2009, 2010 Stephen Leake.  All Rights Reserved.
 --
 --  This library is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -27,47 +27,67 @@ with AUnit.Assertions;
 package body AUnit.Check is
 
    procedure Gen_Check_Discrete
-       (Label    : in String;
-        Computed : in Item_Type;
-        Expected : in Item_Type)
-   is begin
-      Standard.AUnit.Assertions.Assert
+     (Label    : in String;
+      Computed : in Item_Type;
+      Expected : in Item_Type;
+      Continue : in Boolean   := Default_Continue)
+   is
+      Result : constant Boolean := Standard.AUnit.Assertions.Assert
         (Computed = Expected,
          Label & " got " & Item_Type'Image (Computed) & " expecting " & Item_Type'Image (Expected));
+   begin
+      if (not Continue) and (not Result) then
+         raise Standard.AUnit.Assertions.Assertion_Error;
+      end if;
    end Gen_Check_Discrete;
 
    procedure Check
      (Label    : in String;
       Computed : in String;
-      Expected : in String)
-   is begin
-      Standard.AUnit.Assertions.Assert
+      Expected : in String;
+      Continue : in Boolean := Default_Continue)
+   is
+      Result : constant Boolean := Standard.AUnit.Assertions.Assert
         (Computed = Expected,
          Label & ASCII.LF &
            "got       '" & Computed & "'" & ASCII.LF &
            "expecting '" & Expected & "'");
+   begin
+      if (not Continue) and (not Result) then
+         raise Standard.AUnit.Assertions.Assertion_Error;
+      end if;
    end Check;
 
    procedure Check
      (Label    : in String;
       Computed : in Integer;
-      Expected : in Integer)
-   is begin
-      Standard.AUnit.Assertions.Assert
+      Expected : in Integer;
+      Continue : in Boolean := Default_Continue)
+   is
+      Result : constant Boolean := Standard.AUnit.Assertions.Assert
         (Computed = Expected,
          Label & " got " & Integer'Image (Computed) & " expecting " & Integer'Image (Expected));
+   begin
+      if (not Continue) and not (Result) then
+         raise Standard.AUnit.Assertions.Assertion_Error;
+      end if;
    end Check;
 
    procedure Check
      (Label    : in String;
       Computed : in Ada.Tags.Tag;
-      Expected : in Ada.Tags.Tag)
+      Expected : in Ada.Tags.Tag;
+      Continue : in Boolean      := Default_Continue)
    is
       use Ada.Tags;
-   begin
-      Standard.AUnit.Assertions.Assert
+
+      Result : constant Boolean := Standard.AUnit.Assertions.Assert
         (Computed = Expected,
          Label & " got " & External_Tag (Computed) & " expecting " & External_Tag (Expected));
+   begin
+      if (not Continue) and not (Result) then
+         raise Standard.AUnit.Assertions.Assertion_Error;
+      end if;
    end Check;
 
 end AUnit.Check;

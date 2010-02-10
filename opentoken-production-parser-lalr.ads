@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2002, 2003, 2009 Stephe Leake
+-- Copyright (C) 2002, 2003, 2009, 2010 Stephe Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -38,6 +38,7 @@ package OpenToken.Production.Parser.LALR is
 
    --  We don't use OpenToken.Trace here; we often want to see a trace
    --  of the parser execution without the parser generation.
+   --  Analyzer is copied.
    overriding function Generate
      (Grammar  : in Production_List.Instance;
       Analyzer : in Tokenizer.Instance;
