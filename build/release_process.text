@@ -86,6 +86,10 @@ loop until no changes:
             schroot -d `cd ..; pwd` --chroot=unstable -- make -f debian/rules lint
             sudo schroot --chroot=unstable -- ./test_installed.sh
 
+        ../../../webcheck.main/build/linux_release/Makefile
+            maintainer-clean
+            schroot -- make -r all BUILD=User
+
         (dvc-status "../../opentoken-4.0a-current/opentoken-4.0a/")
         (dvc-status ".")
 
