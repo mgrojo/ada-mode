@@ -60,7 +60,7 @@ loop until no changes:
             all BUILD=User
             install
 
-        ../../webcheck/build/windows_release/Makefile
+        ../../webcheck.main/build/windows_release/Makefile
             maintainer-clean
             all BUILD=User
 

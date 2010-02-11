@@ -1,8 +1,8 @@
 --------------------
 
-   Total Tests Run: 18
+   Total Tests Run: 19
 
-   Successful Tests: 18
+   Successful Tests: 19
       OpenToken.Recognizer.CSV_Field.Test : Nominal
       Lookahead_Test : Lookahead
       Lookahead_Test : Lookahead_Push_Back
@@ -17,6 +17,7 @@
       Test_LR_Expecting : Nominal
       Test_List_Actions : List_Action
       Test_List_Stack : List_Stack
+      test_multi_parse_lalr.adb : Nominal
       Test_Selection_Actions : Selection_Action
       Test_Sequence_Actions : Sequence_Action
       Test_Statement_Actions : Nominal
