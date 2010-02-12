@@ -1,5 +1,6 @@
 -------------------------------------------------------------------------------
 --
+-- Copyright (C) 2009 Stephe Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -25,7 +26,7 @@
 
 with OpenToken.Token.Enumerated;
 with OpenToken.Token.Enumerated.Nonterminal;
-with OpenToken.Token.Enumerated.Integer_Literal;
+with OpenToken.Token.Enumerated.Integer;
 with OpenToken.Token.Enumerated.List;
 
 -------------------------------------------------------------------------------
@@ -35,7 +36,7 @@ generic
    with package Token           is new OpenToken.Token.Enumerated (<>);
    with package Token_List      is new Token.List;
    with package Nonterminal     is new Token.Nonterminal (Token_List);
-   with package Integer_Literal is new Token.Integer_Literal;
+   with package Integer_Literal is new Token.Integer;
 package Simple_Integer_Token is
 
    type Instance is new Nonterminal.Instance with private;

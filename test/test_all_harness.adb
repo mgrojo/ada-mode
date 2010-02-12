@@ -18,32 +18,44 @@
 
 pragma License (GPL);
 
-with AUnit.Reporter.Text;
+with AUnit.Test_Results.Text_Reporter;
 with AUnit.Test_Suites; use AUnit.Test_Suites;
-with AUnit.Test_Results;
+with Lookahead_Test;
 with OpenToken.Recognizer.CSV_Field.Test;
+with Test_Backtrack;
 with Test_LR0_Kernels;
+with Test_LR_Expecting;
+with Test_List_Actions;
+with Test_List_Stack;
+with Test_Selection_Actions;
+with Test_Sequence_Actions;
 with Test_Statement_Actions;
 with Test_Token_Identifier_Real_String;
 procedure Test_All_Harness
 is
    Suite  : constant Access_Test_Suite := new Test_Suite;
-   Result : constant AUnit.Test_Results.Result_Access := new AUnit.Test_Results.Result;
-   Status : AUnit.Status;
-   Engine : AUnit.Reporter.Text.Text_Reporter;
+   Result : AUnit.Test_Results.Result;
+
 begin
    --  Test cases; test package alphabetical order, unless otherwise noted.
 
    Add_Test (Suite, new OpenToken.Recognizer.CSV_Field.Test.Test_Case);
+   Add_Test (Suite, new Lookahead_Test.Test_Case (Debug => False));
+   Add_Test (Suite, new Test_Backtrack.Test_Case (Debug => False));
    Add_Test (Suite, new Test_LR0_Kernels.Test_Case (Debug => False));
+   Add_Test (Suite, new Test_LR_Expecting.Test_Case (Debug => False));
+   Add_Test (Suite, new Test_List_Actions.Test_Case (Debug => False));
+   Add_Test (Suite, new Test_List_Stack.Test_Case);
+   Add_Test (Suite, new Test_Selection_Actions.Test_Case (Debug => False));
+   Add_Test (Suite, new Test_Sequence_Actions.Test_Case (Debug => False));
    Add_Test (Suite, new Test_Statement_Actions.Test_Case (Debug => False));
    Add_Test (Suite, new Test_Token_Identifier_Real_String.Test_Case (Debug => False));
 
    --  end test cases
 
-   Run (Suite, Result, Status);
+   Run (Suite.all, Result);
 
    --  Provide command line option -v to set verbose mode
-   AUnit.Reporter.Text.Report (Engine, Result.all);
+   AUnit.Test_Results.Text_Reporter.Report (Result);
 
 end Test_All_Harness;

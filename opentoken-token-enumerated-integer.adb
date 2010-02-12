@@ -1,5 +1,6 @@
 -------------------------------------------------------------------------------
 --
+-- Copyright (C) 2009 Stephe Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -24,43 +25,51 @@
 --
 -------------------------------------------------------------------------------
 
--------------------------------------------------------------------------------
---  This package declares a type for designating an integer literal.
--------------------------------------------------------------------------------
-package body OpenToken.Token.Enumerated.Integer_Literal is
+package body OpenToken.Token.Enumerated.Integer is
 
-   ----------------------------------------------------------------------------
-   --  Get a nonterminal token with the given ID.
-   ----------------------------------------------------------------------------
-   function Get (ID     : in Token_ID;
-                 Value  : in Integer := 0) return Instance'Class is
-   begin
-      return Instance'Class (Instance'(ID => ID, Value => Value));
+   function Get
+     (ID    : in Token_ID;
+      Value : in Standard.Integer := 0;
+      Name  : in String           := "";
+      Build : in Action           := null)
+     return Instance'Class
+   is begin
+      if Name = "" then
+         return Instance'Class (Instance'(null, ID, Build, Value));
+      else
+         return Instance'Class (Instance'(new String'(Name), ID, Build, Value));
+      end if;
    end Get;
 
    overriding procedure Create
      (Lexeme     : in     String;
-      ID         : in     Token_ID;
       Recognizer : in     Recognizer_Handle;
-      New_Token  :    out Instance)
+      New_Token  : in out Instance)
    is
       pragma Unreferenced (Recognizer);
    begin
-      New_Token.ID := ID;
-      New_Token.Value := Integer'Value (Lexeme);
-
+      New_Token.Value := Standard.Integer'Value (Lexeme);
    exception
    when Constraint_Error =>
       raise Syntax_Error with
-        Lexeme & " not in range: " & Integer'Image (Integer'First) & " .. " & Integer'Image (Integer'Last);
+        Lexeme & " not in range: " &
+        Standard.Integer'Image (Standard.Integer'First) & " .. " & Standard.Integer'Image (Standard.Integer'Last);
    end Create;
 
-   ----------------------------------------------------------------------------
-   --  Return the value of the given integer token.
-   ----------------------------------------------------------------------------
-   function Value (Subject : in Instance) return Integer is
-   begin
-      return Subject.Value;
-   end Value;
+   overriding procedure Copy
+     (To   : in out Instance;
+      From : in     Token.Class)
+   is begin
+      To.Value := Instance (From).Value;
+   end Copy;
 
-end OpenToken.Token.Enumerated.Integer_Literal;
+   overriding function Name (Token : in Instance) return String
+   is begin
+      if Trace_Parse then
+         return Enumerated.Name (Enumerated.Instance (Token)) & " " & Standard.Integer'Image (Token.Value);
+      else
+         return Enumerated.Name (Enumerated.Instance (Token));
+      end if;
+   end Name;
+
+end OpenToken.Token.Enumerated.Integer;

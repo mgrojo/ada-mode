@@ -55,7 +55,7 @@ begin
 
       Analyzer : Tokenizer.Instance := Tokenizer.Initialize (Syntax, String_Feeder'Access);
 
-      Selection : OpenToken.Token.Selection.Class :=
+      Selection : aliased OpenToken.Token.Selection.Class :=
         Do_Keyword or Several_Keyword or Things_Keyword or Int_Literal or Times_Keyword or
         In_Keyword or A_Keyword or Row_Keyword;
 
@@ -75,7 +75,7 @@ begin
 
       for String_Token in 1 .. 8 loop
          --  Perform the parse
-         OpenToken.Token.Selection.Parse (Selection, Analyzer);
+         OpenToken.Token.Selection.Parse (Selection'Access, Analyzer);
 
       end loop;
 
@@ -113,7 +113,7 @@ begin
 
       Analyzer : Tokenizer.Instance := Tokenizer.Initialize (Syntax, String_Feeder'Access);
 
-      Selection : OpenToken.Token.Selection.Class :=
+      Selection : aliased OpenToken.Token.Selection.Class :=
         Several_Keyword or Things_Keyword or Int_Literal or Times_Keyword or
         In_Keyword or A_Keyword or Row_Keyword;
 
@@ -131,7 +131,7 @@ begin
       Tokenizer.Find_Next (Analyzer);
 
       --  Parse token selection
-      OpenToken.Token.Selection.Parse (Selection, Analyzer);
+      OpenToken.Token.Selection.Parse (Selection'Access, Analyzer);
 
       Ada.Text_IO.Put_Line ("failed.");
       Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);

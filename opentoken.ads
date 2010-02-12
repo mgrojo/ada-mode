@@ -47,6 +47,9 @@ package OpenToken is
    --  Exception raised by the parser when no match could be found.
    Parse_Error : exception;
 
+   --  Exception raised when a programming convention has been violated
+   Programmer_Error : exception;
+
    --  We use this regardless of OS, since we need a standard way of
    --  representing an end of line in a string buffer
    EOL_Character : constant Character := Ada.Characters.Latin_1.CR;
@@ -61,4 +64,14 @@ package OpenToken is
 
    package Buffers is new Ada.Strings.Bounded.Generic_Bounded_Length (Max_String_Length);
 
+   ----------------------------------------------------------------------
+   --  If Trace_Parse, Parse prints helpful messages
+   ----------------------------------------------------------------------
+   Trace_Parse : Boolean := False;
+
+   --  Put Message, indented by 3 * Trace_Indent; no new_line
+   procedure Trace_Put (Message : in String);
+
+private
+   Trace_Indent : Integer := 0;
 end OpenToken;

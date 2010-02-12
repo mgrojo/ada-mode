@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2003 Stephen Leake
+-- Copyright (C) 2003, 2009 Stephen Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -25,46 +25,48 @@
 --
 -------------------------------------------------------------------------------
 
--------------------------------------------------------------------------------
---  This package declares a type for designating an integer literal.
--------------------------------------------------------------------------------
-generic
-package OpenToken.Token.Enumerated.Integer_Literal is
+-----------------------------------------------------------------------------
+--  This package declares a type for designating an integer. Useful as
+--  a literal in LR parsers, or an integer value in recursive descent
+--  parsers.
+-----------------------------------------------------------------------------
 
-   type Instance is new OpenToken.Token.Enumerated.Instance with private;
+generic
+package OpenToken.Token.Enumerated.Integer is
+
+   type Instance is new OpenToken.Token.Enumerated.Instance with record
+      Value : Standard.Integer;
+   end record;
 
    subtype Class is Instance'Class;
 
    type Handle is access all Class;
 
    ----------------------------------------------------------------------------
-   --  Get an integer literal token with the given ID and value.
+   --  Get an integer token
    ----------------------------------------------------------------------------
-   function Get (ID     : in Token_ID;
-                 Value  : in Integer := 0
-                ) return Instance'Class;
+   function Get
+     (ID    : in Token_ID;
+      Value : in Standard.Integer := 0;
+      Name  : in String           := "";
+      Build : in Action           := null)
+     return Instance'Class;
 
-   ----------------------------------------------------------------------------
-   --  This procedure will be called when a token is recognized.
-   --
-   --  The Token's ID will be set to the given value. The literal's
-   --  value will be set to the integer value of the Lexeme. The
-   --  Recognizer filed isn't used for this instance of the type.
-   --------------------------------------------------------------------------
    overriding procedure Create
      (Lexeme     : in     String;
-      ID         : in     Token_ID;
       Recognizer : in     Recognizer_Handle;
-      New_Token  :    out Instance);
+      New_Token  : in out Instance);
 
-   ----------------------------------------------------------------------------
-   --  Return the value of the given integer token.
-   ----------------------------------------------------------------------------
-   function Value (Subject : in Instance) return Integer;
+   overriding procedure Copy
+     (To   : in out Instance;
+      From : in     Token.Class);
 
-private
-   type Instance is new OpenToken.Token.Enumerated.Instance with record
-      Value : Integer;
-   end record;
+   --------------------------------------------------------------------
+   --  If Trace_Parse, include the current value in the name, to help
+   --  decipher parser trace output. We don't include it otherwise
+   --  since it is confusing as part of an "expected ..." error
+   --  message.
+   --------------------------------------------------------------------
+   overriding function Name (Token : in Instance) return String;
 
-end OpenToken.Token.Enumerated.Integer_Literal;
+end OpenToken.Token.Enumerated.Integer;
