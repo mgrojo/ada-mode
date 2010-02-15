@@ -18,6 +18,7 @@
 
 pragma License (GPL);
 
+with AUnit.Test_Cases.Registration;
 with Ada.Exceptions;
 with Ada.Text_IO;
 with AUnit.Assertions;
@@ -155,7 +156,7 @@ package body Test_Accept_Index is
    ----------
    --  Public subprograms
 
-   overriding function Name (T : Test_Case) return AUnit.Message_String
+   overriding function Name (T : Test_Case) return Ada.Strings.Unbounded.String_Access
    is
       pragma Unreferenced (T);
    begin

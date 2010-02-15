@@ -17,6 +17,9 @@
 --  59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 -----------------------------------------------------------------------------
 
+pragma License (GPL);
+
+with AUnit.Test_Cases.Registration;
 with AUnit.Assertions;
 with AUnit.Check;
 with Ada.Exceptions;
@@ -448,7 +451,7 @@ package body Test_Backtrack is
    ----------
    --  Public subprograms
 
-   overriding function Name (T : in Test_Case) return AUnit.Message_String
+   overriding function Name (T : in Test_Case) return Ada.Strings.Unbounded.String_Access
    is
       pragma Unreferenced (T);
    begin

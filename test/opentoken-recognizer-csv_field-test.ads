@@ -18,6 +18,7 @@
 
 pragma License (GPL);
 
+with Ada.Strings.Unbounded;
 with AUnit.Test_Cases;
 package OpenToken.Recognizer.CSV_Field.Test is
 
@@ -27,6 +28,6 @@ package OpenToken.Recognizer.CSV_Field.Test is
 
    overriding procedure Register_Tests (T : in out Test_Case);
 
-   overriding function Name (T : Test_Case) return AUnit.Message_String;
+   overriding function Name (T : Test_Case) return Ada.Strings.Unbounded.String_Access;
 
 end OpenToken.Recognizer.CSV_Field.Test;

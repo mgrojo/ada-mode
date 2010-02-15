@@ -16,6 +16,9 @@
 --  the Free Software Foundation, 59 Temple Place - Suite 330, Boston,
 --  MA 02111-1307, USA.
 
+pragma License (GPL);
+
+with AUnit.Test_Cases.Registration;
 with AUnit.Assertions;
 with Ada.Exceptions;
 with OpenToken.Production.List.Print;
@@ -222,7 +225,7 @@ package body Test_Statement_Actions is
    ----------
    --  Public subprograms
 
-   overriding function Name (T : Test_Case) return AUnit.Message_String
+   overriding function Name (T : Test_Case) return Ada.Strings.Unbounded.String_Access
    is
       pragma Unreferenced (T);
    begin

@@ -18,9 +18,9 @@
 
 pragma License (GPL);
 
+with AUnit.Test_Cases.Registration;
 with AUnit.Assertions;
 with Ada.Exceptions;
-with Ada.Strings.Unbounded;
 with Ada.Text_IO;
 with OpenToken.Production.List.Print;
 with OpenToken.Production.Parser.LALR;
@@ -258,7 +258,7 @@ package body Test_Token_Identifier_Real_String is
    ----------
    --  Public subprograms
 
-   overriding function Name (T : Test_Case) return AUnit.Message_String
+   overriding function Name (T : Test_Case) return Ada.Strings.Unbounded.String_Access
    is
       pragma Unreferenced (T);
    begin

@@ -18,6 +18,7 @@
 
 pragma License (GPL);
 
+with AUnit.Test_Cases.Registration;
 with AUnit.Assertions;
 with AUnit.Check;
 with Ada.Exceptions;
@@ -141,8 +142,6 @@ package body Test_Multi_Parse_LALR is
    procedure Execute (Command : in String)
    is
       use AUnit.Check;
-      Junk : Boolean;
-      pragma Unreferenced (Junk);
 
       Expected_Statement_Count : Integer;
       I                        : Integer := 0;
@@ -160,7 +159,7 @@ package body Test_Multi_Parse_LALR is
 
    exception
    when E : OpenToken.Syntax_Error =>
-      Junk := AUnit.Assertions.Assert
+      AUnit.Assertions.Assert
         (False, "SYNTAX_ERROR: " & Command & " :" & Integer'Image (I) & " : " & Ada.Exceptions.Exception_Message (E));
    end Execute;
 
@@ -171,8 +170,6 @@ package body Test_Multi_Parse_LALR is
    is
       Test : Test_Case renames Test_Case (T);
    begin
-      AUnit.Check.Default_Continue := True;
-
       Parser := LALR_Parser.Generate (Grammar, Tokenizer.Initialize (Syntax), Trace => Test.Debug);
 
       if Test.Debug then
@@ -192,7 +189,7 @@ package body Test_Multi_Parse_LALR is
    ----------
    --  Public subprograms
 
-   overriding function Name (T : Test_Case) return AUnit.Message_String
+   overriding function Name (T : Test_Case) return Ada.Strings.Unbounded.String_Access
    is
       pragma Unreferenced (T);
    begin

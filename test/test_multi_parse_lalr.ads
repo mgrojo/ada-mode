@@ -17,6 +17,7 @@
 --  the Free Software Foundation, 59 Temple Place - Suite 330, Boston,
 --  MA 02111-1307, USA.
 
+with Ada.Strings.Unbounded;
 with AUnit.Test_Cases;
 package Test_Multi_Parse_LALR is
 
@@ -26,6 +27,6 @@ package Test_Multi_Parse_LALR is
 
    overriding procedure Register_Tests (T : in out Test_Case);
 
-   overriding function Name (T : Test_Case) return AUnit.Message_String;
+   overriding function Name (T : Test_Case) return Ada.Strings.Unbounded.String_Access;
 
 end Test_Multi_Parse_LALR;

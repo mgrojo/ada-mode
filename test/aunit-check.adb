@@ -29,65 +29,45 @@ package body AUnit.Check is
    procedure Gen_Check_Discrete
      (Label    : in String;
       Computed : in Item_Type;
-      Expected : in Item_Type;
-      Continue : in Boolean   := Default_Continue)
-   is
-      Result : constant Boolean := Standard.AUnit.Assertions.Assert
+      Expected : in Item_Type)
+   is begin
+      Standard.AUnit.Assertions.Assert
         (Computed = Expected,
          Label & " got " & Item_Type'Image (Computed) & " expecting " & Item_Type'Image (Expected));
-   begin
-      if (not Continue) and (not Result) then
-         raise Standard.AUnit.Assertions.Assertion_Error;
-      end if;
    end Gen_Check_Discrete;
 
    procedure Check
      (Label    : in String;
       Computed : in String;
-      Expected : in String;
-      Continue : in Boolean := Default_Continue)
-   is
-      Result : constant Boolean := Standard.AUnit.Assertions.Assert
+      Expected : in String)
+   is begin
+      Standard.AUnit.Assertions.Assert
         (Computed = Expected,
          Label & ASCII.LF &
            "got       '" & Computed & "'" & ASCII.LF &
            "expecting '" & Expected & "'");
-   begin
-      if (not Continue) and (not Result) then
-         raise Standard.AUnit.Assertions.Assertion_Error;
-      end if;
    end Check;
 
    procedure Check
      (Label    : in String;
       Computed : in Integer;
-      Expected : in Integer;
-      Continue : in Boolean := Default_Continue)
-   is
-      Result : constant Boolean := Standard.AUnit.Assertions.Assert
+      Expected : in Integer)
+   is begin
+      Standard.AUnit.Assertions.Assert
         (Computed = Expected,
          Label & " got " & Integer'Image (Computed) & " expecting " & Integer'Image (Expected));
-   begin
-      if (not Continue) and not (Result) then
-         raise Standard.AUnit.Assertions.Assertion_Error;
-      end if;
    end Check;
 
    procedure Check
      (Label    : in String;
       Computed : in Ada.Tags.Tag;
-      Expected : in Ada.Tags.Tag;
-      Continue : in Boolean      := Default_Continue)
+      Expected : in Ada.Tags.Tag)
    is
       use Ada.Tags;
-
-      Result : constant Boolean := Standard.AUnit.Assertions.Assert
+   begin
+      Standard.AUnit.Assertions.Assert
         (Computed = Expected,
          Label & " got " & External_Tag (Computed) & " expecting " & External_Tag (Expected));
-   begin
-      if (not Continue) and not (Result) then
-         raise Standard.AUnit.Assertions.Assertion_Error;
-      end if;
    end Check;
 
 end AUnit.Check;

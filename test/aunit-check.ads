@@ -28,32 +28,26 @@ pragma License (Modified_GPL);
 with Ada.Tags;
 package AUnit.Check is
 
-   Default_Continue : Boolean := False;
-
    generic
       type Item_Type is (<>);
    procedure Gen_Check_Discrete
      (Label    : in String;
       Computed : in Item_Type;
-      Expected : in Item_Type;
-      Continue : in Boolean   := Default_Continue);
+      Expected : in Item_Type);
 
    procedure Check
      (Label    : in String;
       Computed : in String;
-      Expected : in String;
-      Continue : in Boolean := Default_Continue);
+      Expected : in String);
 
    procedure Check
      (Label    : in String;
       Computed : in Integer;
-      Expected : in Integer;
-      Continue : in Boolean := Default_Continue);
+      Expected : in Integer);
 
    procedure Check
      (Label    : in String;
       Computed : in Ada.Tags.Tag;
-      Expected : in Ada.Tags.Tag;
-      Continue : in Boolean      := Default_Continue);
+      Expected : in Ada.Tags.Tag);
 
 end AUnit.Check;

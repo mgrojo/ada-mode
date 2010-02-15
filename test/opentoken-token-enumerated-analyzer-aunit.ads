@@ -22,8 +22,7 @@ generic
    with procedure Check_Token_ID
      (Label    : in String;
       Computed : in Token_ID;
-      Expected : in Token_ID;
-      Continue : in Boolean := False);
+      Expected : in Token_ID);
 
 package OpenToken.Token.Enumerated.Analyzer.AUnit is
 

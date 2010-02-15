@@ -16,7 +16,9 @@
 --  see file GPL.txt. If not, write to the Free Software Foundation,
 --  59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 -----------------------------------------------------------------------------
+pragma License (GPL);
 
+with AUnit.Test_Cases.Registration;
 with AUnit.Check;
 with OpenToken.Recognizer.Based_Integer;
 with OpenToken.Recognizer.Character_Set;
@@ -120,9 +122,9 @@ package body Test_List_Actions is
    end List_Action;
 
    ----------
-   --  Public subprograms
+   --  Public  subprograms
 
-   overriding function Name (T : in Test_Case) return AUnit.Message_String
+   overriding function Name (T : in Test_Case) return Ada.Strings.Unbounded.String_Access
    is
       pragma Unreferenced (T);
    begin

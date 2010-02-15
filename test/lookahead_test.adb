@@ -18,6 +18,7 @@
 --  59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 -----------------------------------------------------------------------------
 
+with AUnit.Test_Cases.Registration;
 with AUnit.Assertions;
 with AUnit.Check;
 with Ada.Tags;
@@ -372,7 +373,7 @@ package body Lookahead_Test is
    ----------
    --  Public subprograms
 
-   overriding function Name (T : Test_Case) return AUnit.Message_String
+   overriding function Name (T : Test_Case) return Ada.Strings.Unbounded.String_Access
    is
       pragma Unreferenced (T);
    begin

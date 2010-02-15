@@ -18,8 +18,7 @@
 
 pragma License (GPL);
 
-with AUnit.Reporter.Text;
-with AUnit.Test_Results;
+with AUnit.Test_Results.Text_Reporter;
 with AUnit.Test_Suites; use AUnit.Test_Suites;
 with Lookahead_Test;
 with OpenToken.Recognizer.CSV_Field.Test;
@@ -37,10 +36,7 @@ with Test_Token_Identifier_Real_String;
 procedure Test_All_Harness
 is
    Suite  : constant Access_Test_Suite := new Test_Suite;
-   Result : constant AUnit.Test_Results.Result_Access := new AUnit.Test_Results.Result;
-   Status : AUnit.Status;
-   pragma Unreferenced (Status);
-   Engine : AUnit.Reporter.Text.Text_Reporter;
+   Result : AUnit.Test_Results.Result;
 begin
    --  Test cases; test package alphabetical order, unless otherwise noted.
 
@@ -60,9 +56,9 @@ begin
 
    --  end test cases
 
-   Run (Suite, Result, Status);
+   Run (Suite.all, Result);
 
    --  Provide command line option -v to set verbose mode
-   AUnit.Reporter.Text.Report (Engine, Result.all);
+   AUnit.Test_Results.Text_Reporter.Report (Result);
 
 end Test_All_Harness;
