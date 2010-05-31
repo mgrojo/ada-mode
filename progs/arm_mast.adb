@@ -1,17 +1,15 @@
-with Ada.Text_IO,
-     Ada.Characters.Handling,
-     Ada.Strings.Fixed,
-     Ada.Strings.Unbounded;
-with ARM_Input,
-     ARM_File,
-     ARM_Format,
-     ARM_Output,
-     ARM_Text,
-     ARM_HTML,
-     ARM_RTF,
-     ARM_Corr,
-     ARM_Master,
-     ARM_Contents;
+with Ada.Text_IO;
+with Ada.Characters.Handling;
+with Ada.Strings.Fixed;
+with Ada.Strings.Unbounded;
+with ARM_Input;
+with ARM_File;
+with ARM_Output;
+with ARM_TexInfo;
+with ARM_Text;
+with ARM_HTML;
+with ARM_RTF;
+with ARM_Corr;
 package body ARM_Master is
 
     --
@@ -297,7 +295,6 @@ package body ARM_Master is
 
 	    function Get_Single_String return String is
 		-- Returns the (single) parameter of a command.
-		Ch : Character;
 	        Item : String(1..2000);
 	        ILen : Natural := 0;
 	    begin
@@ -1284,14 +1281,16 @@ package body ARM_Master is
 		    ARM_Corr.Close (Output);
 	        end;
 	    when Info =>
-	        null; -- Future use.
-	        --declare
-	        --	Output : ARM_Info.Info_Output_Type;
-	        --begin
-		--      Create (Output, Use_Large_Files => False); -- The latter is not used.
-	        --	Generate_Sources (Output);
-	        --	ARM_Info.Close (Output);
-	        --end;
+                declare
+                    Output : ARM_TexInfo.Texinfo_Output_Type;
+                begin
+                   ARM_TexInfo.Create
+                     (Output,
+                      File_Prefix => +Output_File_Prefix,
+                      Title       => Get_Versioned_Item(Document_Title,Change_Version));
+                    Generate_Sources (Output);
+                    ARM_TexInfo.Close (Output);
+                end;
         end case;
 
     end Read_and_Process_Master_File;

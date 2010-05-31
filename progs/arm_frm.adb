@@ -1,15 +1,10 @@
-with ARM_Output,
-     ARM_Input,
-     ARM_File,
-     ARM_String,
-     ARM_Contents,
-     ARM_Database,
-     ARM_Syntax,
-     ARM_Index,
-     ARM_Subindex,
-     Ada.Text_IO,
-     Ada.Characters.Handling,
-     Ada.Strings.Fixed;
+with ARM_File;
+with ARM_String;
+with ARM_Syntax;
+with ARM_Index;
+with Ada.Text_IO;
+with Ada.Characters.Handling;
+with Ada.Strings.Fixed;
 package body ARM_Format is
 
     --
@@ -2920,7 +2915,7 @@ Ada.Text_IO.Put_Line ("%% No indentation for Display paragraph (Code Indented Ne
 			-- Nothing at all should be showm.
 			-- ** Warning ** If we lie here, the program will crash!
 		        Format_Object.No_Start_Paragraph := True;
-Ada.Text_IO.Put_Line("    -- No Start Paragraph (DelNoMsg)");
+--  Ada.Text_IO.Put_Line("    -- No Start Paragraph (DelNoMsg)");
 		    else
 		        ARM_Output.Start_Paragraph (Output_Object,
 					            Format => Format_Object.Format,
@@ -3245,16 +3240,16 @@ Ada.Text_IO.Put_Line("    -- No Start Paragraph (DelNoMsg)");
 		if Tabs.Stops(Tabs.Number).Stop = 0 then
 		    Tabs.Number := Tabs.Number - 1;
 		    Ada.Text_IO.Put_Line ("  ** Bad tab stop format, position" & Natural'Image(Loc) &
-			" in [" & Stops(1..Stops'Length) & "] from line " &
-		        ARM_Input.Line_String (Input_Object));
+			" in [" & Stops(Stops'First..Stops'Last) & "] from line " &
+			ARM_Input.Line_String (Input_Object));
 		    exit; -- Give up on this tabset.
 		elsif Tabs.Number < 1 and then
 			Tabs.Stops(Tabs.Number-1).Stop >=
 			Tabs.Stops(Tabs.Number).Stop then
 		    Tabs.Number := Tabs.Number - 1;
 		    Ada.Text_IO.Put_Line ("  ** Bad tab stop, less than previous, at position" & Natural'Image(Loc) &
-			" in [" & Stops(1..Stops'Length) & "] from line " &
-		        ARM_Input.Line_String (Input_Object));
+			" in [" & Stops(Stops'First..Stops'Last) & "] from line " &
+			ARM_Input.Line_String (Input_Object));
 		    exit; -- Give up on this tabset.
 		end if;
 		if Loc > Stops'Length then
@@ -3262,10 +3257,10 @@ Ada.Text_IO.Put_Line("    -- No Start Paragraph (DelNoMsg)");
 		elsif Stops(Loc) = ',' then
 		    Loc := Loc + 1;
 		    if Loc > Stops'Length then
-		        Ada.Text_IO.Put_Line ("  ** Bad tab stop set format, ends with comma in [" &
-			    Stops(1..Stops'Length) & "] from line " &
-		            ARM_Input.Line_String (Input_Object));
-		        exit; -- Give up on this tabset.
+			Ada.Text_IO.Put_Line (ASCII.HT & " ** Bad tab stop set format, ends with comma in [" &
+			    Stops(Stops'First..Stops'Last) & "] from line " &
+			    ARM_Input.Line_String (Input_Object));
+			exit; -- Give up on this tabset.
 		    end if;
 	        end if;
 		-- Skip any blanks in between.
@@ -8079,8 +8074,8 @@ Ada.Text_IO.Put_Line("    -- No Start Paragraph (DelNoMsg)");
 		    -- conditionally handle paragraph formatting (which
 		    -- otherwise would come too late).
 		    declare
-		        Which_Param : ARM_Input.Param_Num;
-		        Ch, Close_Ch : Character;
+			Which_Param : ARM_Input.Param_Num;
+			Close_Ch : Character;
 
 			NoPrefix, Noparanum, Keepnext : Boolean := False;
 			Space_After : ARM_Output.Space_After_Type := ARM_Output.Normal;

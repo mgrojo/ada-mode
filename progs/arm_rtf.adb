@@ -1,12 +1,10 @@
-with ARM_Output,
-     ARM_Contents,
-     Ada.Text_IO,
-     Ada.Exceptions,
-     Ada.Streams.Stream_IO,
-     Ada.Strings.Maps,
-     Ada.Strings.Fixed,
-     Ada.Characters.Handling,
-     Ada.Calendar;
+with Ada.Calendar;
+with Ada.Characters.Handling;
+with Ada.Exceptions;
+with Ada.Streams.Stream_IO;
+with Ada.Strings.Fixed;
+with Ada.Strings.Maps;
+with Ada.Unchecked_Conversion;
 package body ARM_RTF is
 
     --
@@ -258,7 +256,8 @@ package body ARM_RTF is
 
     procedure Write_Headers (Output_Object : in out RTF_Output_Type) is
 	-- Write the page headers for this object into the current file.
-	Junk : Natural;
+       Junk : Natural;
+       pragma Unreferenced (Junk);
     begin
         -- Default header/footer:
         Ada.Text_IO.Put (Output_Object.Output_File, "{\headerl ");
@@ -2711,7 +2710,8 @@ package body ARM_RTF is
 	-- (Note: We did not use a enumeration here to insure that these
 	-- headers are spelled the same in all output versions).
 	-- Raises Not_Valid_Error if in a paragraph.
-	Count : Natural; -- Not used after being set.
+       Count : Natural; -- Not used after being set.
+       pragma Unreferenced (Count);
     begin
 	if not Output_Object.Is_Valid then
 	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
