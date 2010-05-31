@@ -3,7 +3,7 @@
 VERSION := 2005.2
 ZIP_DATE := 20100521
 
-all : dirs info html
+all : bootstrap info
 
 html : arm2005.html
 html : aarm2005.html
@@ -12,40 +12,40 @@ info : aarm2005.info
 
 TEXI_INFO_OPTS := --no-validate --no-split --no-number-sections
 
-arm2005.texinfo : arm_form.exe | ../ada-reference-manual-$(VERSION)
+../ada-reference-manual-$(VERSION)/arm2005.texinfo : arm_form.exe | ../ada-reference-manual-$(VERSION)
 	cd ../source_2005; ../build/arm_form.exe RM info New-Only 2
 	mv ../source_2005/RM.texinfo ../ada-reference-manual-$(VERSION)/arm2005.texinfo
 
-aarm2005.texinfo : arm_form.exe | ../ada-reference-manual-$(VERSION)
+../ada-reference-manual-$(VERSION)/aarm2005.texinfo : arm_form.exe | ../ada-reference-manual-$(VERSION)
 	cd ../source_2005; ../build/arm_form.exe AARM info New-Only 2
 	mv ../source_2005/AA.texinfo ../ada-reference-manual-$(VERSION)/aarm2005.texinfo
 
-arm2005.html : arm_form.exe | ../ada-reference-manual-$(VERSION)/html ../source_2005/Output
+../ada-reference-manual-$(VERSION)/html/arm2005/RM-TOC.html : arm_form.exe | ../ada-reference-manual-$(VERSION)/html ../source_2005/Output
 	cd ../source_2005; ../build/arm_form.exe RM HTML New-Only 2
 	rm -rf ../ada-reference-manual-$(VERSION)/html/arm2005
 	mv ../source_2005/Output ../ada-reference-manual-$(VERSION)/html/arm2005
 	mkdir ../source_2005/Output
 
-aarm2005.html : arm_form.exe | ../ada-reference-manual-$(VERSION)/html ../source_2005/Output
+../ada-reference-manual-$(VERSION)/html/aarm2005/AA-TOC.html : arm_form.exe | ../ada-reference-manual-$(VERSION)/html ../source_2005/Output
 	cd ../source_2005; ../build/arm_form.exe AARM HTML New-Only 2
 	rm -rf ../ada-reference-manual-$(VERSION)/html/aarm2005
 	mv ../source_2005/Output ../ada-reference-manual-$(VERSION)/html/aarm2005
 	mkdir ../source_2005/Output
 
-arm2005.txt : arm_form.exe | ../ada-reference-manual-$(VERSION)/txt ../source_2005/Output
+../ada-reference-manual-$(VERSION)/txt/arm2005/RM-TOC.TXT : arm_form.exe | ../ada-reference-manual-$(VERSION)/txt ../source_2005/Output
 	cd ../source_2005; ../build/arm_form.exe RM Text New-Only 2
 	rm -rf ../ada-reference-manual-$(VERSION)/txt/arm2005
 	mv ../source_2005/Output ../ada-reference-manual-$(VERSION)/txt/arm2005
 	mkdir ../source_2005/Output
 
-aarm2005.txt : arm_form.exe | ../ada-reference-manual-$(VERSION)/txt ../source_2005/Output
+../ada-reference-manual-$(VERSION)/txt/aarm2005/AA-TOC.TXT : arm_form.exe | ../ada-reference-manual-$(VERSION)/txt ../source_2005/Output
 	cd ../source_2005; ../build/arm_form.exe AARM Text New-Only 2
 	rm -rf ../ada-reference-manual-$(VERSION)/txt/aarm2005
 	mv ../source_2005/Output ../ada-reference-manual-$(VERSION)/txt/aarm2005
 	mkdir ../source_2005/Output
 
 arm_form.exe : force
-	gnatmake -p -k -Parm_info.gpr
+	gnatmake -p -k -P arm_info.gpr
 
 ../ada-reference-manual-$(VERSION) :
 	mkdir -p ../ada-reference-manual-$(VERSION)
@@ -73,16 +73,31 @@ publish-info : aarm2005.info arm2005.info
 publish-zip :
 	tar zcf arm_form-$(ZIP_DATE)-src.tar.gz -C .. --exclude="*~" --exclude=source_2005/Output --exclude=CVS progs build/Makefile build/arm_info.prj
 
-VPATH : ../ada-reference-manual-$(VERSION)
-
-debian-free : | ada-reference-manual-$(VERSION)
-debian-free : source.stamp patch.stamp
-debian-free : aarm2005.texinfo arm2005.texinfo
-debian-free : html/aarm2005/AA-TOC.html html/arm2005/RM-TOC.html
-debian-free : txt/aarm2005/AA-TOC.txt txt/arm2005/RM-TOC.txt
-debian-free : AA-Final.pdf RM-Final.pdf
+# starting from a mtn checkout, generate the Debian source tarball
+bootstrap : | ../ada-reference-manual-$(VERSION)
+bootstrap : ../ada-reference-manual-$(VERSION)/AA-Final.pdf
+bootstrap : ../ada-reference-manual-$(VERSION)/RM-Final.pdf
+bootstrap : ../ada-reference-manual-$(VERSION)/arm_info.diff
+bootstrap : ../ada-reference-manual-$(VERSION)/arm2005.texinfo
+bootstrap : ../ada-reference-manual-$(VERSION)/aarm2005.texinfo
+bootstrap : ../ada-reference-manual-$(VERSION)/html/arm2005/RM-TOC.html
+bootstrap : ../ada-reference-manual-$(VERSION)/html/aarm2005/AA-TOC.html
+bootstrap : ../ada-reference-manual-$(VERSION)/txt/aarm2005/AA-TOC.TXT
+bootstrap : ../ada-reference-manual-$(VERSION)/txt/arm2005/RM-TOC.TXT
 	tar zcf ada-reference-manual-$(VERSION)_orig.tar.gz -C .. ada-reference-manual-$(VERSION)
 	mv ada-reference-manual-$(VERSION)_orig.tar.gz ../../ada-reference-manual-2005.2-current
+
+arm_info-src.tar.gz :
+	cd ..; tar zcf build/arm_info-src.tar.gz --exclude objects --exclude arm_form.exe build ada-reference-manual-$(VERSION)/arm_info.diff
+
+# starting from an upacked Debian source tarball, regenerate the
+# Debian source tarball
+debian-free : | ../ada-reference-manual-$(VERSION)
+debian-free : source_ada.stamp source_scheme.stamp patch.stamp
+debian-free : aarm2005.texinfo arm2005.texinfo
+debian-free : AA-TOC.html RM-TOC.html
+debian-free : AA-TOC.TXT RM-TOC.TXT
+	tar zcf ada-reference-manual-$(VERSION)_orig.tar.gz -C .. ada-reference-manual-$(VERSION) --exclude objects --exclude arm_form.exe build
 
 UPSTREAM_ADA := arm_cont.adb
 UPSTREAM_ADA += arm_cont.ads
@@ -169,17 +184,25 @@ patch.stamp : source_ada.stamp source_scheme.stamp
 AA-Final.pdf :
 	cd ../ada-reference-manual-$(VERSION); wget "http://www.adaic.com/standards/05aarm/AA-Final.pdf"
 
-RM-final.pdf :
+RM-Final.pdf :
 	cd ../ada-reference-manual-$(VERSION); wget "http://www.adaic.com/standards/05rm/RM-Final.pdf"
 
-arm_info.diff.gz :
-	mtn diff -r "h:arm_info.upstream" -r "h:arm_info" > arm_info.diff
-	tar zcf arm_info.diff.gz arm_info.diff
+arm_info.diff :
+	mtn diff --exclude "." --exclude "../.mtn-ignore" -r "h:arm_info.upstream" -r "h:arm_info" > arm_info.diff
+	mv arm_info.diff ../ada-reference-manual-$(VERSION)
 
+# delete everything created by debian-free, except downloaded sources
 clean ::
+	rm -rf objects
 	rm -f *.info* *.texinfo
-	rm -f ../source_2005/Output/*
-	rm -rf ../ada-reference-manual-$(VERSION)/*
+	rm -rf ../source_2005/Output
+	rm -rf ../ada-reference-manual-$(VERSION)/txt/*
+	rm -rf ../ada-reference-manual-$(VERSION)/html/*
+
+# delete everything created by bootstrap (back to mtn checkout)
+maintainer-clean :: clean
+	rm -rf ../ada-reference-manual-$(VERSION)
+
 
 export GNAT_VERSION := $(shell gcc -dumpversion)
 include ../../../GDS/main/makerules/common_rules.make
