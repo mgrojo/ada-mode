@@ -533,33 +533,6 @@ package body ARM_Contents is
 	raise Not_Found_Error;
     end Next_Clause;
 
-    function Parent_Clause (Clause : in String) return String is
-       Clause_Number : Clause_Number_Type;
-    begin
-	Make_Clause (Clause, Clause_Number);
-
-	if Clause_Number.Clause = 0 then
-	   -- Clause is a section; no parent
-	   return "";
-
-	elsif Clause_Number.Subclause = 0 then
-	   -- Clause is a clause; parent is Section or Annex
-	   if Clause_Number.Section >= ANNEX_START then
-	      return Make_Clause_Number (Normative_Annex, (Clause_Number.Section, 0, 0, 0));
-	   else
-	      return Make_Clause_Number (Section, (Clause_Number.Section, 0, 0, 0));
-	   end if;
-
-	elsif Clause_Number.Subsubclause = 0 then
-	   -- Clause is a subclause; clause is parent
-	   return Make_Clause_Number (ARM_Contents.Clause, (Clause_Number.Section, Clause_Number.Clause, 0, 0));
-
-	else
-	   -- Clause is a subsubclause; subclause is parent
-	   return Make_Clause_Number
-	     (Subclause, (Clause_Number.Section, Clause_Number.Clause, Clause_Number.Subclause, 0));
-	end if;
-    end Parent_Clause;
 
     procedure For_Each is
 	-- Call Operate for each title in the contents, in the order that

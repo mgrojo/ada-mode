@@ -295,8 +295,8 @@ private
         Font : ARM_Output.Font_Family_Type; -- What is the current font family?
         Size : ARM_Output.Size_Type; -- What is the current font size?
         Change : ARM_Output.Change_Type; -- What is the current kind of change?
-	Current_Change_Version : ARM_Contents.Change_Version_Type := '0'; -- What is the current version of change?
-	Current_Old_Change_Version : ARM_Contents.Change_Version_Type := '0'; -- What is the current old version of change? (Only used if Change is Both).
+        Current_Change_Version : ARM_Contents.Change_Version_Type; -- What is the current version of change?
+        Current_Old_Change_Version : ARM_Contents.Change_Version_Type; -- What is the current old version of change? (Only used if Change is Both).
         Location : ARM_Output.Location_Type; -- What is the current (vertical) location?
         Format : ARM_Output.Paragraph_Type; -- What is the current paragraph type?
         In_Paragraph : Boolean; -- Are we currently in a paragraph?
@@ -356,7 +356,7 @@ private
         Glossary_Term_Len : Natural := 0; -- processing [Chg]ToGlossary[Also] commands.
         Glossary_Change_Kind : ARM_Database.Paragraph_Change_Kind_Type;
                         -- The change kind of the ToGlossary.
-        Glossary_Version : ARM_Contents.Change_Version_Type := '0';
+        Glossary_Version : ARM_Contents.Change_Version_Type;
                         -- If the kind is not "None", this is the version
                         -- number of the changed paragraph.
         Add_to_Glossary : Boolean;

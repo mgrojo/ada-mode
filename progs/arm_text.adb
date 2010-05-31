@@ -1,5 +1,8 @@
-with Ada.Exceptions;
-with Ada.Strings.Fixed;
+with ARM_Output,
+     ARM_Contents,
+     Ada.Text_IO,
+     Ada.Exceptions,
+     Ada.Strings.Fixed;
 package body ARM_Text is
 
     --
@@ -170,7 +173,7 @@ package body ARM_Text is
         end if;
         -- Create a new file for this section:
         Ada.Text_IO.Create (Output_Object.Output_File, Ada.Text_IO.Out_File,
-            "Output/" & Ada.Strings.Fixed.Trim (Output_Object.File_Prefix, Ada.Strings.Right) &
+            ".\Output\" & Ada.Strings.Fixed.Trim (Output_Object.File_Prefix, Ada.Strings.Right) &
                 "-" & Section_Name & ".TXT");
         Ada.Text_IO.New_Line (Output_Object.Output_File);
     end Section;
