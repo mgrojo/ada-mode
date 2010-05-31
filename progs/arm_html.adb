@@ -1,10 +1,7 @@
-with ARM_Output,
-     ARM_Contents,
-     Ada.Text_IO,
-     Ada.Exceptions,
-     Ada.Strings.Maps.Constants,
-     Ada.Strings.Fixed,
-     Ada.Unchecked_Deallocation;
+with Ada.Exceptions;
+with Ada.Strings.Maps.Constants;
+with Ada.Strings.Fixed;
+with Ada.Unchecked_Deallocation;
 package body ARM_HTML is
 
     --
@@ -1329,11 +1326,11 @@ package body ARM_HTML is
     begin
         if Output_Object.HTML_Kind > HTML_3 then
             Ada.Text_IO.Create (Output_Object.Output_File, Ada.Text_IO.Out_File,
-                ".\Output\" & File_Name & ".$$$");
+                "Output/" & File_Name & ".$$$");
 --Ada.Text_IO.Put_Line ("--Creating " & File_Name & ".html");
         else
             Ada.Text_IO.Create (Output_Object.Output_File, Ada.Text_IO.Out_File,
-                ".\Output\" & File_Name & ".html");
+                "Output/" & File_Name & ".html");
         end if;
         -- Save the current clause:
         Output_Object.Current_Clause :=

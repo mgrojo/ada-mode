@@ -4,11 +4,6 @@ with Ada.Text_IO,
      Ada.Characters.Handling,
      Ada.Command_Line;
 with ARM_Format,
-     ARM_Output,
-     ARM_Text,
-     ARM_HTML,
-     ARM_RTF,
-     ARM_Corr,
      ARM_Master,
      ARM_Contents;
 procedure ARM_Formatter is
@@ -114,7 +109,6 @@ procedure ARM_Formatter is
     Master_File : Ada.Strings.Unbounded.Unbounded_String; -- Master file for document to generate.
     Change_Kind : ARM_Format.Change_Kind; -- Changes to generate.
     Change_Version : ARM_Contents.Change_Version_Type; -- Change version.
-    Display_Index_Entries : Boolean; -- Should Index entries be displayed?
 
     procedure Get_Commands is
 	-- Process the command line for this program.
