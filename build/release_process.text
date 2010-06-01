@@ -80,6 +80,7 @@ loop until no changes:
         (sal-standard)
         Makefile
             make -r zip debian
+                deletes debian/*; be sure to do dvc-status first!
 
         ../../opentoken-4.0a-current/opentoken-4.0a/debian/rules
             sudo schroot -d `cd ..; pwd` --chroot=unstable -- dpkg-buildpackage -uc -us -i"_MTN|\\.mtn-ignore"
@@ -96,9 +97,6 @@ loop until no changes:
         mtn sync
 
 end loop
-
-Makefile
-    zip
 
 ~/Web/Makefile
     opentoken sync check
