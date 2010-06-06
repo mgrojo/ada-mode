@@ -1,5 +1,6 @@
 ^ada-reference-manual-2005\.2$
 ^build/.*\.exe$
+^build/.*\.gz$
 ^build/.*\.info$
 ^build/.*\.log$
 ^build/.*\.pdf$

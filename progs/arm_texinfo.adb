@@ -28,6 +28,13 @@ package body ARM_Texinfo is
 
    Indentation : constant := 5;
 
+   --  VERSION: This is fragile; it changes with each version of the manual.
+   Index_Clause      : constant String    := "0.5";
+   Index_Clause_Name : constant String    := "Index";
+   Index_Clause_Next : constant String    := "operators";
+   Operators_Clause  : constant String    := "operators";
+   Last_Index_Clause : constant Character := 'Y';
+
    ----------
    --  local subprograms
 
@@ -144,7 +151,8 @@ package body ARM_Texinfo is
       Put_Line (Output_Object.File, "* Index ::    Index"); --  Not in ARM sources
       Put_Line (Output_Object.File, "@end menu");
 
-      Put_Line (Output_Object.File, "@node Front Matter");
+      -- @node current, next, prev, up
+      Put_Line (Output_Object.File, "@node Front Matter, 0.1, Top, Top");
       Put_Line (Output_Object.File, "@chapter Front Matter");
    end End_Title_Page;
 
@@ -369,9 +377,16 @@ package body ARM_Texinfo is
       Put_Line (Output_Object.File, "* W::");
       Put_Line (Output_Object.File, "* X::");
       Put_Line (Output_Object.File, "* Y::");
-      --  Put_Line (Output_Object.File, "* Z::"); --  No entries in Z
+      --  Put_Line (Output_Object.File, "* Z::"); --  VERSION: No entries in Z
       Put_Line (Output_Object.File, "@end menu");
-      Put_Line (Output_Object.File, "@node operators");
+
+      --  @node current, next, prev, up
+      Put_Line
+        (Output_Object.File,
+         "@node " & Operators_Clause &
+           ", A, " & Index_Clause_Name &
+           ", " & Index_Clause_Name);
+
       Put_Line (Output_Object.File, "@section operators");
    end Index_Menu;
 
@@ -500,7 +515,19 @@ package body ARM_Texinfo is
 
       function Safe_Next_Clause (Clause : in String) return String
       is begin
-         return ARM_Contents.Next_Clause (Clause);
+         if Clause = Index_Clause then
+            return Index_Clause_Next;
+         else
+            declare
+               Result : constant String := ARM_Contents.Next_Clause (Clause);
+            begin
+               if Result = Index_Clause then
+                  return Index_Clause_Name;
+               else
+                  return Result;
+               end if;
+            end;
+         end if;
       exception
       when Not_Found_Error =>
          return "";
@@ -514,16 +541,16 @@ package body ARM_Texinfo is
          return "";
       end Safe_Previous_Clause;
 
-      function Parent_Clause (Clause : in String) return String
+      function Safe_Parent_Clause (Clause : in String) return String
       is
          Temp : constant String := ARM_Contents.Parent_Clause (Clause_Number);
       begin
-         if Temp'Length = 0 then
+         if Temp'Length = 0 or Temp = "0" then
             return "Top";
          else
             return Temp;
          end if;
-      end Parent_Clause;
+      end Safe_Parent_Clause;
 
    begin
       Check_Not_In_Paragraph (Output_Object);
@@ -537,11 +564,15 @@ package body ARM_Texinfo is
          --  This section has no content; don't confuse makeinfo.
          return;
 
-      elsif Clause_Number = "0.5" and Header_Text = "Index" then
-         --  Clause_Number was 0.29 for Ada95
-         --  This would be simpler if the source divided the index into sections.
+      elsif Clause_Number = Index_Clause and Header_Text = Index_Clause_Name then
 
-         Put_Line (Output_Object.File, "@node Index");
+         Put_Line
+           (Output_Object.File,
+            "@node " & Index_Clause_Name &
+              ", " & Index_Clause_Next &
+              ", " & Safe_Previous_Clause (Clause_Number) &
+              ", " & Safe_Parent_Clause (Clause_Number));
+
          Put_Line (Output_Object.File, "@chapter Index");
          Output_Object.State := Index_Start;
 
@@ -564,7 +595,7 @@ package body ARM_Texinfo is
             Put_Line (Output_Object.File, "* 0.1 :: Foreword to this version of the Ada Reference Manual");
             Put_Line (Output_Object.File, "* 0.2 :: Foreword");
             Put_Line (Output_Object.File, "* 0.3 :: Introduction");
-            Put_Line (Output_Object.File, "* 0.9 :: International Standard");
+            Put_Line (Output_Object.File, "* 0.99 :: International Standard");
             Put_Line (Output_Object.File, "@end menu");
          end if;
 
@@ -602,7 +633,7 @@ package body ARM_Texinfo is
          "@node " & Clause_Number &
            ", " & Safe_Next_Clause (Clause_Number) &
            ", " & Safe_Previous_Clause (Clause_Number) &
-           ", " & Parent_Clause (Clause_Number));
+           ", " & Safe_Parent_Clause (Clause_Number));
 
       case Level is
       when Section =>
@@ -1224,9 +1255,34 @@ package body ARM_Texinfo is
          when ' ' | ',' | '[' | ']' =>
             Put (Output_Object.File, Char);
 
-         when 'A' .. 'Z' =>
+         when 'A' .. Last_Index_Clause =>
             --  Index section heading
-            Put_Line (Output_Object.File, "@node " & Char);
+
+            --  @node current, next, prev, up
+            case Char is
+            when 'A' =>
+               Put_Line
+                 (Output_Object.File,
+                  "@node " & Char &
+                    ", B, " & Operators_Clause &
+                    ", " & Index_Clause_Name);
+
+            when Last_Index_Clause =>
+               Put_Line
+                 (Output_Object.File,
+                  "@node " & Char &
+                    ", , " & Character'Pred (Char) &
+                    ", " & Index_Clause_Name);
+
+            when others =>
+               Put_Line
+                 (Output_Object.File,
+                  "@node " & Char &
+                    ", " & Character'Succ (Char) &
+                    ", " & Character'Pred (Char) &
+                    ", " & Index_Clause_Name);
+            end case;
+
             --  Add non-break space so Emacs info will use big bold
             --  font for single letter titles.
             Put_Line (Output_Object.File, "@section " & Char & "@w{ }");

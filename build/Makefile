@@ -1,16 +1,20 @@
-# Build info version of Ada RM
+# Build info version of Ada RM, orig.tar.gz for Debian package, and tar.gz for my web page
 
 VERSION := 2005.2
 ZIP_DATE := 20100521
 
-all : bootstrap info
+all : debian-free info publish
 
 html : arm2005.html
 html : aarm2005.html
 info : arm2005.info
 info : aarm2005.info
 
-TEXI_INFO_OPTS := --no-validate --no-split --no-number-sections
+# We have been unable to get rid of all the section ref violations. We
+# specify --force to output the info even with some violations. We
+# don't specify --no-validate so we catch new ones and are inspired to
+# work harder on the old ones.
+TEXI_INFO_OPTS := --no-split --no-number-sections --force
 
 ../ada-reference-manual-$(VERSION)/arm2005.texinfo : arm_form.exe | ../ada-reference-manual-$(VERSION)
 	cd ../source_2005; ../build/arm_form.exe RM info New-Only 2
@@ -70,34 +74,17 @@ publish : publish-info publish-zip
 publish-info : aarm2005.info arm2005.info
 	tar zcf arm2005-$(ZIP_DATE).tar.gz aarm2005.info arm2005.info
 
-publish-zip :
-	tar zcf arm_form-$(ZIP_DATE)-src.tar.gz -C .. --exclude="*~" --exclude=source_2005/Output --exclude=CVS progs build/Makefile build/arm_info.prj
+publish-zip : ../ada-reference-manual-$(VERSION)/arm_info.diff
+publish-zip : ../ada-reference-manual-$(VERSION)/arm2005.texinfo
+publish-zip : ../ada-reference-manual-$(VERSION)/aarm2005.texinfo
+	tar zcf arm_info-$(ZIP_DATE)-src.tar.gz -C .. --exclude "*~" --exclude "*.gz" --exclude "*.info" --exclude objects --exclude arm_form.exe build ada-reference-manual-$(VERSION)
 
 # starting from a mtn checkout, generate the Debian source tarball
-bootstrap : | ../ada-reference-manual-$(VERSION)
-bootstrap : ../ada-reference-manual-$(VERSION)/AA-Final.pdf
-bootstrap : ../ada-reference-manual-$(VERSION)/RM-Final.pdf
-bootstrap : ../ada-reference-manual-$(VERSION)/arm_info.diff
-bootstrap : ../ada-reference-manual-$(VERSION)/arm2005.texinfo
-bootstrap : ../ada-reference-manual-$(VERSION)/aarm2005.texinfo
-bootstrap : ../ada-reference-manual-$(VERSION)/html/arm2005/RM-TOC.html
-bootstrap : ../ada-reference-manual-$(VERSION)/html/aarm2005/AA-TOC.html
-bootstrap : ../ada-reference-manual-$(VERSION)/txt/aarm2005/AA-TOC.TXT
-bootstrap : ../ada-reference-manual-$(VERSION)/txt/arm2005/RM-TOC.TXT
-	tar zcf ada-reference-manual-$(VERSION)_orig.tar.gz -C .. ada-reference-manual-$(VERSION)
-	mv ada-reference-manual-$(VERSION)_orig.tar.gz ../../ada-reference-manual-2005.2-current
-
-arm_info-src.tar.gz :
-	cd ..; tar zcf build/arm_info-src.tar.gz --exclude objects --exclude arm_form.exe build ada-reference-manual-$(VERSION)/arm_info.diff
-
-# starting from an upacked Debian source tarball, regenerate the
-# Debian source tarball
 debian-free : | ../ada-reference-manual-$(VERSION)
-debian-free : source_ada.stamp source_scheme.stamp patch.stamp
-debian-free : aarm2005.texinfo arm2005.texinfo
-debian-free : AA-TOC.html RM-TOC.html
-debian-free : AA-TOC.TXT RM-TOC.TXT
-	tar zcf ada-reference-manual-$(VERSION)_orig.tar.gz -C .. ada-reference-manual-$(VERSION) --exclude objects --exclude arm_form.exe build
+debian-free : ../ada-reference-manual-$(VERSION)/arm2005.texinfo
+debian-free : ../ada-reference-manual-$(VERSION)/aarm2005.texinfo
+	tar zcf ada-reference-manual-$(VERSION).orig.tar.gz -C .. ada-reference-manual-$(VERSION)
+	mv ada-reference-manual-$(VERSION).orig.tar.gz ../../ada-reference-manual-2005.2-current
 
 UPSTREAM_ADA := arm_cont.adb
 UPSTREAM_ADA += arm_cont.ads
@@ -138,7 +125,7 @@ source_ada.stamp :
 
 # CVS web interface doesn't support retrieve by tag. These revs are
 # for tag Amend_Final, which is the Ada 2005 version.
-source_ada_2005 :
+source_ada_2005.stamp :
 	wget -O ../../arm_info.upstream/progs/arm_cont.adb "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_cont.adb?rev=1.8"
 	wget -O ../../arm_info.upstream/progs/arm_cont.ads "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_cont.ads?rev=1.3"
 	wget -O ../../arm_info.upstream/progs/arm_corr.adb "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_corr.adb?rev=1.8"
@@ -170,6 +157,7 @@ source_ada_2005 :
 	wget -O ../../arm_info.upstream/progs/arm_syn.ads "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_syn.ads?rev=1.3"
 	wget -O ../../arm_info.upstream/progs/arm_text.adb "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_text.adb?rev=1.17"
 	wget -O ../../arm_info.upstream/progs/arm_text.ads "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_text.ads?rev=1.10"
+	touch source_ada_2005.stamp
 
 2005-SRC.zip :
 	wget http://www.ada-auth.org/arm-files/2005-SRC.zip
@@ -178,31 +166,21 @@ source_scheme.stamp : 2005-SRC.zip
 	cd ../source_2005; unzip ../build/2005-SRC.zip; rm arm_form.exe; ../build/convert_to_unix.sh
 	touch source_scheme.stamp
 
-patch.stamp : source_ada.stamp source_scheme.stamp
+patch.stamp : source_ada_2005.stamp source_scheme.stamp
 	cd ..; patch -0 < ../arm_info.diff
 
-AA-Final.pdf :
-	cd ../ada-reference-manual-$(VERSION); wget "http://www.adaic.com/standards/05aarm/AA-Final.pdf"
+../ada-reference-manual-$(VERSION)/arm_info.diff :
+	mtn diff --exclude "." --exclude "../.mtn-ignore" -r "h:arm_info.upstream" -r "h:arm_info" > ../ada-reference-manual-$(VERSION)/arm_info.diff
 
-RM-Final.pdf :
-	cd ../ada-reference-manual-$(VERSION); wget "http://www.adaic.com/standards/05rm/RM-Final.pdf"
-
-arm_info.diff :
-	mtn diff --exclude "." --exclude "../.mtn-ignore" -r "h:arm_info.upstream" -r "h:arm_info" > arm_info.diff
-	mv arm_info.diff ../ada-reference-manual-$(VERSION)
-
-# delete everything created by debian-free, except downloaded sources
+# delete everything back to mtn checkout
 clean ::
 	rm -rf objects
 	rm -f *.info* *.texinfo
 	rm -rf ../source_2005/Output
-	rm -rf ../ada-reference-manual-$(VERSION)/txt/*
-	rm -rf ../ada-reference-manual-$(VERSION)/html/*
-
-# delete everything created by bootstrap (back to mtn checkout)
-maintainer-clean :: clean
 	rm -rf ../ada-reference-manual-$(VERSION)
 
+info-clean :
+	rm -f *.info*
 
 export GNAT_VERSION := $(shell gcc -dumpversion)
 include ../../../GDS/main/makerules/common_rules.make
