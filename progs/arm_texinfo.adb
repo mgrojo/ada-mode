@@ -87,10 +87,8 @@ package body ARM_Texinfo is
          --  Don't allow collapsing spaces
          Put (Output_Object.File, "@w{ }");
       elsif Char = '\' then
-         --  This confuses texi2dvi, and there doesn't seem to be a
-         --  good way to escape it. Only used in table of literals for
-         --  Character, so not a big problem.
-         Put (Output_Object.File, " ");
+         --  This confuses texi2dvi if not escaped.
+         Put (Output_Object.File, "@code{\}");
       else
          Put (Output_Object.File, Char);
       end if;

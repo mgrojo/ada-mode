@@ -1,7 +1,7 @@
 # Build info version of Ada RM, orig.tar.gz for Debian package, and tar.gz for my web page
 
 VERSION := 2005.2
-ZIP_DATE := 20100521
+ZIP_DATE := 20100608
 
 all : debian-free info publish
 
@@ -12,11 +12,10 @@ info : aarm2005.info
 pdf  : arm2005.pdf
 pdf  : aarm2005.pdf
 
-# We have been unable to get rid of all the section ref violations. We
-# specify --force to output the info even with some violations. We
-# don't specify --no-validate so we catch new ones and are inspired to
-# work harder on the old ones.
-TEXI_INFO_OPTS := --no-split --no-number-sections --force
+# We have been unable to get rid of all the section ref violations, so we
+# specify --no-validate. Delete that to see the errors.
+TEXI_INFO_OPTS := --no-split --no-number-sections --no-validate
+TEXI_DVI_OPTS := --quiet
 
 ../ada-reference-manual-$(VERSION)/arm2005.texinfo : arm_form.exe | ../ada-reference-manual-$(VERSION)
 	cd ../source_2005; ../build/arm_form.exe RM info New-Only 2
@@ -190,9 +189,8 @@ include ../../../GDS/main/makerules/gnat_project_rules.make
 
 # This produces a PDF, but it has no hyperlinks, so it is suitable
 # only for printing.
-TEXI_OPTIONS := --quiet
 %.dvi : ../ada-reference-manual-$(VERSION)/%.texinfo
-	texi2dvi $(TEXI_OPTIONS) $<
+	texi2dvi $(TEXI_DVI_OPTS) $<
 
 %.ps : %.dvi
 	dvips $<
