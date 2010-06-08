@@ -9,6 +9,8 @@ html : arm2005.html
 html : aarm2005.html
 info : arm2005.info
 info : aarm2005.info
+pdf  : arm2005.pdf
+pdf  : aarm2005.pdf
 
 # We have been unable to get rid of all the section ref violations. We
 # specify --force to output the info even with some violations. We
@@ -83,8 +85,8 @@ publish-zip : ../ada-reference-manual-$(VERSION)/aarm2005.texinfo
 debian-free : | ../ada-reference-manual-$(VERSION)
 debian-free : ../ada-reference-manual-$(VERSION)/arm2005.texinfo
 debian-free : ../ada-reference-manual-$(VERSION)/aarm2005.texinfo
-	tar zcf ada-reference-manual-$(VERSION).orig.tar.gz -C .. ada-reference-manual-$(VERSION)
-	mv ada-reference-manual-$(VERSION).orig.tar.gz ../../ada-reference-manual-2005.2-current
+	tar zcf ada-reference-manual_$(VERSION).orig.tar.gz -C .. --exclude arm_info.diff ada-reference-manual-$(VERSION)
+	mv ada-reference-manual_$(VERSION).orig.tar.gz ../../ada-reference-manual-2005.2-current
 
 UPSTREAM_ADA := arm_cont.adb
 UPSTREAM_ADA += arm_cont.ads
@@ -188,8 +190,9 @@ include ../../../GDS/main/makerules/gnat_project_rules.make
 
 # This produces a PDF, but it has no hyperlinks, so it is suitable
 # only for printing.
-%.dvi : %.texinfo
-	texi2dvi --quiet $<
+TEXI_OPTIONS := --quiet
+%.dvi : ../ada-reference-manual-$(VERSION)/%.texinfo
+	texi2dvi $(TEXI_OPTIONS) $<
 
 %.ps : %.dvi
 	dvips $<
