@@ -1,4 +1,4 @@
-^Build/.*\.gz$
+^Build/.*\.bz2$
 ^Build/.*\.zip$
 ^Build/linux_debug/.*\.diff$
 ^Build/linux_debug/.*\.exe$
