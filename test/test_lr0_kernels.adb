@@ -18,7 +18,6 @@
 
 pragma License (GPL);
 
-with AUnit.Test_Cases.Registration;
 with Ada.Text_IO;
 with OpenToken.Production.List.Print;
 with OpenToken.Production.List;
@@ -273,7 +272,7 @@ package body Test_LR0_Kernels is
    ----------
    --  Public subprograms
 
-   overriding function Name (T : Test_Case) return Ada.Strings.Unbounded.String_Access
+   overriding function Name (T : Test_Case) return AUnit.Message_String
    is
       pragma Unreferenced (T);
    begin

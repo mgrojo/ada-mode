@@ -225,7 +225,7 @@ package body Test_Statement_Actions is
    ----------
    --  Public subprograms
 
-   overriding function Name (T : Test_Case) return Ada.Strings.Unbounded.String_Access
+   overriding function Name (T : Test_Case) return AUnit.Message_String
    is
       pragma Unreferenced (T);
    begin
