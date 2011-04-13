@@ -33,4 +33,5 @@
 ^Build/windows_release/lib$
 ^Build/windows_release/obj$
 ^Build/windows_release/obj_tree$
+^Build/x86_lynx_gnu_linux_debug/obj$
 ^Build/x86_lynx_gnu_linux_release/obj$
