@@ -55,6 +55,9 @@ arm_form.exe : force
 ../ada-reference-manual-$(VERSION) :
 	mkdir -p ../ada-reference-manual-$(VERSION)
 
+../../ada-reference-manual-$(VERSION)-current :
+	mkdir -p $@
+
 ../ada-reference-manual-$(VERSION)/html :
 	mkdir -p ../ada-reference-manual-$(VERSION)/html
 
@@ -80,12 +83,15 @@ publish-zip : ../ada-reference-manual-$(VERSION)/arm2005.texinfo
 publish-zip : ../ada-reference-manual-$(VERSION)/aarm2005.texinfo
 	tar zcf arm_info-$(ZIP_DATE)-src.tar.gz -C .. --exclude "*~" --exclude "*.gz" --exclude "*.info" --exclude objects --exclude arm_form.exe build ada-reference-manual-$(VERSION)
 
-# starting from a mtn checkout, generate the Debian source tarball
+# starting from a mtn checkout of arm_info, generate the Debian source tarball, set up for building Debian package
 debian-free : | ../ada-reference-manual-$(VERSION)
+debian-free : | ../../ada-reference-manual-$(VERSION)-current
 debian-free : ../ada-reference-manual-$(VERSION)/arm2005.texinfo
 debian-free : ../ada-reference-manual-$(VERSION)/aarm2005.texinfo
 	tar zcf ada-reference-manual_$(VERSION).orig.tar.gz -C .. --exclude arm_info.diff ada-reference-manual-$(VERSION)
-	mv ada-reference-manual_$(VERSION).orig.tar.gz ../../ada-reference-manual-2005.2-current
+	mv ada-reference-manual_$(VERSION).orig.tar.gz ../../ada-reference-manual-$(VERSION)-current
+	mtn -d ~/monotone-dbs/ada-france.db checkout --branch org.debian.ada-reference-manual ../../ada-reference-manual-$(VERSION)-current/ada-reference-manual-$(VERSION)
+	cd ../../ada-reference-manual-$(VERSION)-current; tar zxf ada-reference-manual_$(VERSION).orig.tar.gz
 
 UPSTREAM_ADA := arm_cont.adb
 UPSTREAM_ADA += arm_cont.ads

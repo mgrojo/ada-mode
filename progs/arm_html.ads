@@ -13,7 +13,7 @@ package ARM_HTML is
     -- a particular format.
     --
     -- ---------------------------------------
-    -- Copyright 2000, 2001, 2002, 2004, 2005, 2006  AXE Consultants.
+    -- Copyright 2000, 2001, 2002, 2004, 2005, 2006, 2011  AXE Consultants.
     -- P.O. Box 1512, Madison WI  53701
     -- E-Mail: randy@rrsoftware.com
     --
@@ -178,24 +178,24 @@ package ARM_HTML is
 	-- default color of active (in the act of clinking) links.
 
 
-    procedure Close (Output_Object : in out HTML_Output_Type);
+    overriding procedure Close (Output_Object : in out HTML_Output_Type);
 	-- Close an Output_Object. No further output to the object is
 	-- allowed after this call.
 
 
-    procedure Section (Output_Object : in out HTML_Output_Type;
+    overriding procedure Section (Output_Object : in out HTML_Output_Type;
 		       Section_Title : in String;
 		       Section_Name : in String);
 	-- Start a new section. The title is Section_Title (this is
 	-- intended for humans). The name is Section_Name (this is
 	-- intended to be suitable to be a portion of a file name).
 
-    procedure Set_Columns (Output_Object : in out HTML_Output_Type;
+    overriding procedure Set_Columns (Output_Object : in out HTML_Output_Type;
 			   Number_of_Columns : in ARM_Output.Column_Count);
 	-- Set the number of columns.
 	-- Raises Not_Valid_Error if in a paragraph.
 
-    procedure Start_Paragraph (Output_Object : in out HTML_Output_Type;
+    overriding procedure Start_Paragraph (Output_Object : in out HTML_Output_Type;
 			       Format : in ARM_Output.Paragraph_Type;
 			       Number : in String;
 			       No_Prefix : in Boolean := False;
@@ -219,10 +219,10 @@ package ARM_HTML is
 	-- specifies the text justification for the paragraph. Not_Valid_Error
 	-- is raised if Tab_Stops /= NO_TABS for a hanging or bulleted format.
 
-    procedure End_Paragraph (Output_Object : in out HTML_Output_Type);
+    overriding procedure End_Paragraph (Output_Object : in out HTML_Output_Type);
 	-- End a paragraph.
 
-    procedure Category_Header (Output_Object : in out HTML_Output_Type;
+    overriding procedure Category_Header (Output_Object : in out HTML_Output_Type;
 			       Header_Text : String);
 	-- Output a Category header (that is, "Legality Rules",
 	-- "Dynamic Semantics", etc.)
@@ -230,7 +230,7 @@ package ARM_HTML is
 	-- headers are spelled the same in all output versions).
 	-- Raises Not_Valid_Error if in a paragraph.
 
-    procedure Clause_Header (Output_Object : in out HTML_Output_Type;
+    overriding procedure Clause_Header (Output_Object : in out HTML_Output_Type;
 			     Header_Text : in String;
 			     Level : in ARM_Contents.Level_Type;
 			     Clause_Number : in String;
@@ -242,7 +242,7 @@ package ARM_HTML is
 	-- If No_Page_Break is True, suppress any page breaks.
 	-- Raises Not_Valid_Error if in a paragraph.
 
-    procedure Revised_Clause_Header (Output_Object : in out HTML_Output_Type;
+    overriding procedure Revised_Clause_Header (Output_Object : in out HTML_Output_Type;
 			     New_Header_Text : in String;
 			     Old_Header_Text : in String;
 			     Level : in ARM_Contents.Level_Type;
@@ -257,14 +257,14 @@ package ARM_HTML is
 	-- If No_Page_Break is True, suppress any page breaks.
 	-- Raises Not_Valid_Error if in a paragraph.
 
-    procedure TOC_Marker (Output_Object : in out HTML_Output_Type;
+    overriding procedure TOC_Marker (Output_Object : in out HTML_Output_Type;
 			  For_Start : in Boolean);
 	-- Mark the start (if For_Start is True) or end (if For_Start is
 	-- False) of the table of contents data. Output objects that
 	-- auto-generate the table of contents can use this to do needed
 	-- actions.
 
-    procedure New_Page (Output_Object : in out HTML_Output_Type;
+    overriding procedure New_Page (Output_Object : in out HTML_Output_Type;
 			Kind : ARM_Output.Page_Kind_Type := ARM_Output.Any_Page);
 	-- Output a page break.
 	-- Note that this has no effect on non-printing formats.
@@ -275,17 +275,17 @@ package ARM_HTML is
 	-- Raises Not_Valid_Error if in a paragraph if Kind = Any_Page or
 	-- Odd_Page, and if not in a paragraph if Kind = Soft_Page.
 
-    procedure New_Column (Output_Object : in out HTML_Output_Type);
+    overriding procedure New_Column (Output_Object : in out HTML_Output_Type);
 	-- Output a column break.
 	-- Raises Not_Valid_Error if in a paragraph, or if the number of
 	-- columns is 1.
 
-    procedure Separator_Line (Output_Object : in out HTML_Output_Type;
+    overriding procedure Separator_Line (Output_Object : in out HTML_Output_Type;
 			      Is_Thin : Boolean := True);
 	-- Output a separator line. It is thin if "Is_Thin" is true.
 	-- Raises Not_Valid_Error if in a paragraph.
 
-    procedure Start_Table (Output_Object : in out HTML_Output_Type;
+    overriding procedure Start_Table (Output_Object : in out HTML_Output_Type;
 			   Columns : in ARM_Output.Column_Count;
 			   First_Column_Width : in ARM_Output.Column_Count;
 			   Last_Column_Width : in ARM_Output.Column_Count;
@@ -309,7 +309,7 @@ package ARM_HTML is
 	-- next table marker call.
 	-- Raises Not_Valid_Error if in a paragraph.
 
-    procedure Table_Marker (Output_Object : in out HTML_Output_Type;
+    overriding procedure Table_Marker (Output_Object : in out HTML_Output_Type;
 			    Marker : in ARM_Output.Table_Marker_Type);
 	-- Marks the end of an entity in a table.
 	-- If Marker is End_Caption, the table caption ends and the
@@ -327,24 +327,24 @@ package ARM_HTML is
     -- before any End_Paragraph. Raises Not_Valid_Error if not in a paragraph,
     -- or another error.
 
-    procedure Ordinary_Text (Output_Object : in out HTML_Output_Type;
+    overriding procedure Ordinary_Text (Output_Object : in out HTML_Output_Type;
 			     Text : in String);
 	-- Output ordinary text.
 	-- The text must end at a word break, never in the middle of a word.
 
-    procedure Ordinary_Character (Output_Object : in out HTML_Output_Type;
+    overriding procedure Ordinary_Character (Output_Object : in out HTML_Output_Type;
 			          Char : in Character);
 	-- Output an ordinary character.
 	-- Spaces will be used to break lines as needed.
 
-    procedure Hard_Space (Output_Object : in out HTML_Output_Type);
+    overriding procedure Hard_Space (Output_Object : in out HTML_Output_Type);
 	-- Output a hard space. No line break should happen at a hard space.
 
-    procedure Line_Break (Output_Object : in out HTML_Output_Type);
+    overriding procedure Line_Break (Output_Object : in out HTML_Output_Type);
 	-- Output a line break. This does not start a new paragraph.
 	-- This corresponds to a "<BR>" in HTML.
 
-    procedure Index_Line_Break (Output_Object : in out HTML_Output_Type;
+    overriding procedure Index_Line_Break (Output_Object : in out HTML_Output_Type;
 				Clear_Keep_with_Next : in Boolean);
 	-- Output a line break for the index. This does not start a new
 	-- paragraph in terms of spacing. This corresponds to a "<BR>"
@@ -352,37 +352,37 @@ package ARM_HTML is
 	-- line does not require the following line to stay with it.
 	-- Raises Not_Valid_Error if the paragraph is not in the index format.
 
-    procedure Soft_Line_Break (Output_Object : in out HTML_Output_Type);
+    overriding procedure Soft_Line_Break (Output_Object : in out HTML_Output_Type);
 	-- Output a soft line break. This is a place (in the middle of a
 	-- "word") that we allow a line break. It is usually used after
 	-- underscores in long non-terminals.
 
-    procedure Soft_Hyphen_Break (Output_Object : in out HTML_Output_Type);
+    overriding procedure Soft_Hyphen_Break (Output_Object : in out HTML_Output_Type);
 	-- Output a soft line break, with a hyphen. This is a place (in the middle of
 	-- a "word") that we allow a line break. If the line break is used,
 	-- a hyphen will be added to the text.
 
-    procedure Tab (Output_Object : in out HTML_Output_Type);
+    overriding procedure Tab (Output_Object : in out HTML_Output_Type);
 	-- Output a tab, inserting space up to the next tab stop.
 	-- Raises Not_Valid_Error if the paragraph was created with
 	-- Tab_Stops = ARM_Output.NO_TABS.
 
-    procedure Special_Character (Output_Object : in out HTML_Output_Type;
+    overriding procedure Special_Character (Output_Object : in out HTML_Output_Type;
 			         Char : in ARM_Output.Special_Character_Type);
 	-- Output an special character.
 
-    procedure Unicode_Character (Output_Object : in out HTML_Output_Type;
+    overriding procedure Unicode_Character (Output_Object : in out HTML_Output_Type;
 			         Char : in ARM_Output.Unicode_Type);
 	-- Output a Unicode character, with code position Char.
 
-    procedure End_Hang_Item (Output_Object : in out HTML_Output_Type);
+    overriding procedure End_Hang_Item (Output_Object : in out HTML_Output_Type);
 	-- Marks the end of a hanging item. Call only once per paragraph.
 	-- Raises Not_Valid_Error if the paragraph format is not
 	-- Hanging .. Small_Nested_Enumerated, or if this has already been
 	-- called for the current paragraph, or if the paragraph was started
 	-- with No_Prefix = True.
 
-    procedure Text_Format (Output_Object : in out HTML_Output_Type;
+    overriding procedure Text_Format (Output_Object : in out HTML_Output_Type;
 			   Bold : in Boolean;
 			   Italic : in Boolean;
 			   Font : in ARM_Output.Font_Family_Type;
@@ -400,7 +400,7 @@ package ARM_HTML is
 	-- Bold on, Italic on, Italic off, Bold off is OK; Bold on, Italic on,
 	-- Bold off, Italic off should be avoided (as separate commands).
 
-    procedure Clause_Reference (Output_Object : in out HTML_Output_Type;
+    overriding procedure Clause_Reference (Output_Object : in out HTML_Output_Type;
 				Text : in String;
 				Clause_Number : in String);
 	-- Generate a reference to a clause in the standard. The text of
@@ -408,14 +408,14 @@ package ARM_HTML is
 	-- Clause_Number. For hyperlinked formats, this should generate
 	-- a link; for other formats, the text alone is generated.
 
-    procedure Index_Target (Output_Object : in out HTML_Output_Type;
+    overriding procedure Index_Target (Output_Object : in out HTML_Output_Type;
 			    Index_Key : in Natural);
 	-- Generate a index target. This marks the location where an index
 	-- reference occurs. Index_Key names the index item involved.
 	-- For hyperlinked formats, this should generate a link target;
 	-- for other formats, nothing is generated.
 
-    procedure Index_Reference (Output_Object : in out HTML_Output_Type;
+    overriding procedure Index_Reference (Output_Object : in out HTML_Output_Type;
 			       Text : in String;
 			       Index_Key : in Natural;
 			       Clause_Number : in String);
@@ -424,7 +424,7 @@ package ARM_HTML is
 	-- the target. For hyperlinked formats, this should generate
 	-- a link; for other formats, the text alone is generated.
 
-    procedure DR_Reference (Output_Object : in out HTML_Output_Type;
+    overriding procedure DR_Reference (Output_Object : in out HTML_Output_Type;
 			    Text : in String;
 			    DR_Number : in String);
 	-- Generate a reference to an DR from the standard. The text
@@ -432,7 +432,7 @@ package ARM_HTML is
 	-- the target. For hyperlinked formats, this should generate
 	-- a link; for other formats, the text alone is generated.
 
-    procedure AI_Reference (Output_Object : in out HTML_Output_Type;
+    overriding procedure AI_Reference (Output_Object : in out HTML_Output_Type;
 			    Text : in String;
 			    AI_Number : in String);
 	-- Generate a reference to an AI from the standard. The text
@@ -440,7 +440,7 @@ package ARM_HTML is
 	-- the target (in folded format). For hyperlinked formats, this should
 	-- generate a link; for other formats, the text alone is generated.
 
-    procedure Local_Target (Output_Object : in out HTML_Output_Type;
+    overriding procedure Local_Target (Output_Object : in out HTML_Output_Type;
 			    Text : in String;
 			    Target : in String);
 	-- Generate a local target. This marks the potential target of local
@@ -448,7 +448,7 @@ package ARM_HTML is
 	-- For hyperlinked formats, this should generate a link target;
 	-- for other formats, only the text is generated.
 
-    procedure Local_Link (Output_Object : in out HTML_Output_Type;
+    overriding procedure Local_Link (Output_Object : in out HTML_Output_Type;
 			  Text : in String;
 			  Target : in String;
 			  Clause_Number : in String);
@@ -457,7 +457,7 @@ package ARM_HTML is
 	-- For hyperlinked formats, this should generate a link;
 	-- for other formats, only the text is generated.
 
-    procedure Local_Link_Start (Output_Object : in out HTML_Output_Type;
+    overriding procedure Local_Link_Start (Output_Object : in out HTML_Output_Type;
 				Target : in String;
 				Clause_Number : in String);
 	-- Generate a local link to the target and clause given.
@@ -466,7 +466,7 @@ package ARM_HTML is
 	-- For hyperlinked formats, this should generate a link;
 	-- for other formats, only the text is generated.
 
-    procedure Local_Link_End (Output_Object : in out HTML_Output_Type;
+    overriding procedure Local_Link_End (Output_Object : in out HTML_Output_Type;
 			      Target : in String;
 			      Clause_Number : in String);
 	-- End a local link for the target and clause given.
@@ -474,7 +474,7 @@ package ARM_HTML is
 	-- For hyperlinked formats, this should generate a link;
 	-- for other formats, only the text is generated.
 
-    procedure URL_Link (Output_Object : in out HTML_Output_Type;
+    overriding procedure URL_Link (Output_Object : in out HTML_Output_Type;
 			Text : in String;
 			URL : in String);
 	-- Generate a link to the URL given.
@@ -482,7 +482,7 @@ package ARM_HTML is
 	-- For hyperlinked formats, this should generate a link;
 	-- for other formats, only the text is generated.
 
-    procedure Picture  (Output_Object : in out HTML_Output_Type;
+    overriding procedure Picture  (Output_Object : in out HTML_Output_Type;
 			Name  : in String;
 			Descr : in String;
 			Alignment : in ARM_Output.Picture_Alignment;

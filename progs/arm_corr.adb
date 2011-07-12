@@ -11,7 +11,7 @@ package body ARM_Corr is
     -- a particular format.
     --
     -- ---------------------------------------
-    -- Copyright 2000, 2002, 2004, 2005, 2006  AXE Consultants.
+    -- Copyright 2000, 2002, 2004, 2005, 2006, 2011  AXE Consultants.
     -- P.O. Box 1512, Madison WI  53701
     -- E-Mail: rbrukardt@bix.com
     --
@@ -82,7 +82,7 @@ package body ARM_Corr is
     end Create;
 
 
-    procedure Close (Output_Object : in out Corr_Output_Type) is
+    overriding procedure Close (Output_Object : in out Corr_Output_Type) is
         -- Close an Output_Object. No further output to the object is
         -- allowed after this call.
     begin
@@ -97,7 +97,7 @@ package body ARM_Corr is
     end Close;
 
 
-    procedure Section (Output_Object : in out Corr_Output_Type;
+    overriding procedure Section (Output_Object : in out Corr_Output_Type;
                        Section_Title : in String;
                        Section_Name : in String) is
         -- Start a new section. The title is Section_Title (this is
@@ -123,7 +123,7 @@ package body ARM_Corr is
     end Section;
 
 
-    procedure Set_Columns (Output_Object : in out Corr_Output_Type;
+    overriding procedure Set_Columns (Output_Object : in out Corr_Output_Type;
                            Number_of_Columns : in ARM_Output.Column_Count) is
         -- Set the number of columns.
         -- Raises Not_Valid_Error if in a paragraph.
@@ -216,7 +216,7 @@ package body ARM_Corr is
     end Buffer;
 
 
-    procedure Start_Paragraph (Output_Object : in out Corr_Output_Type;
+    overriding procedure Start_Paragraph (Output_Object : in out Corr_Output_Type;
                                Format : in ARM_Output.Paragraph_Type;
                                Number : in String;
                                No_Prefix : in Boolean := False;
@@ -570,7 +570,7 @@ package body ARM_Corr is
     end Start_Paragraph;
 
 
-    procedure End_Paragraph (Output_Object : in out Corr_Output_Type) is
+    overriding procedure End_Paragraph (Output_Object : in out Corr_Output_Type) is
         -- End a paragraph.
     begin
         if not Output_Object.Is_Valid then
@@ -645,7 +645,7 @@ package body ARM_Corr is
     end End_Paragraph;
 
 
-    procedure Category_Header (Output_Object : in out Corr_Output_Type;
+    overriding procedure Category_Header (Output_Object : in out Corr_Output_Type;
                                Header_Text : String) is
         -- Output a Category header (that is, "Legality Rules",
         -- "Dynamic Semantics", etc.)
@@ -684,7 +684,7 @@ package body ARM_Corr is
     end Category_Header;
 
 
-    procedure Clause_Header (Output_Object : in out Corr_Output_Type;
+    overriding procedure Clause_Header (Output_Object : in out Corr_Output_Type;
                              Header_Text : in String;
                              Level : in ARM_Contents.Level_Type;
                              Clause_Number : in String;
@@ -762,7 +762,7 @@ package body ARM_Corr is
     end Clause_Header;
 
 
-    procedure Revised_Clause_Header (Output_Object : in out Corr_Output_Type;
+    overriding procedure Revised_Clause_Header (Output_Object : in out Corr_Output_Type;
                              New_Header_Text : in String;
                              Old_Header_Text : in String;
                              Level : in ARM_Contents.Level_Type;
@@ -848,7 +848,7 @@ package body ARM_Corr is
     end Revised_Clause_Header;
 
 
-    procedure TOC_Marker (Output_Object : in out Corr_Output_Type;
+    overriding procedure TOC_Marker (Output_Object : in out Corr_Output_Type;
                           For_Start : in Boolean) is
         -- Mark the start (if For_Start is True) or end (if For_Start is
         -- False) of the table of contents data. Output objects that
@@ -863,7 +863,7 @@ package body ARM_Corr is
     end TOC_Marker;
 
 
-    procedure New_Page (Output_Object : in out Corr_Output_Type;
+    overriding procedure New_Page (Output_Object : in out Corr_Output_Type;
                         Kind : ARM_Output.Page_Kind_Type := ARM_Output.Any_Page) is
         -- Output a page break.
         -- Note that this has no effect on non-printing formats.
@@ -896,7 +896,7 @@ package body ARM_Corr is
     end New_Page;
 
 
-    procedure New_Column (Output_Object : in out Corr_Output_Type) is
+    overriding procedure New_Column (Output_Object : in out Corr_Output_Type) is
         -- Output a column break.
         -- Raises Not_Valid_Error if in a paragraph, or if the number of
         -- columns is 1.
@@ -914,7 +914,7 @@ package body ARM_Corr is
     end New_Column;
 
 
-    procedure Start_Table (Output_Object : in out Corr_Output_Type;
+    overriding procedure Start_Table (Output_Object : in out Corr_Output_Type;
                            Columns : in ARM_Output.Column_Count;
                            First_Column_Width : in ARM_Output.Column_Count;
                            Last_Column_Width : in ARM_Output.Column_Count;
@@ -975,7 +975,7 @@ package body ARM_Corr is
     end Start_Table;
 
 
-    procedure Table_Marker (Output_Object : in out Corr_Output_Type;
+    overriding procedure Table_Marker (Output_Object : in out Corr_Output_Type;
                             Marker : in ARM_Output.Table_Marker_Type) is
         -- Marks the end of an entity in a table.
         -- If Marker is End_Caption, the table caption ends and the
@@ -1044,7 +1044,7 @@ package body ARM_Corr is
     end Table_Marker;
 
 
-    procedure Separator_Line (Output_Object : in out Corr_Output_Type;
+    overriding procedure Separator_Line (Output_Object : in out Corr_Output_Type;
                               Is_Thin : Boolean := True) is
         -- Output a separator line. It is thin if "Is_Thin" is true.
         -- Raises Not_Valid_Error if in a paragraph.
@@ -1070,7 +1070,7 @@ package body ARM_Corr is
     -- Text output: These are only allowed after a Start_Paragraph and
     -- before any End_Paragraph. Raises Not_Valid_Error if not allowed.
 
-    procedure Ordinary_Text (Output_Object : in out Corr_Output_Type;
+    overriding procedure Ordinary_Text (Output_Object : in out Corr_Output_Type;
                              Text : in String) is
         -- Output ordinary text.
         -- The text must end at a word break, never in the middle of a word.
@@ -1122,7 +1122,7 @@ package body ARM_Corr is
     end Ordinary_Text;
 
 
-    procedure Ordinary_Character (Output_Object : in out Corr_Output_Type;
+    overriding procedure Ordinary_Character (Output_Object : in out Corr_Output_Type;
                                   Char : in Character) is
         -- Output an ordinary character.
         -- Spaces will be used to break lines as needed.
@@ -1183,7 +1183,7 @@ package body ARM_Corr is
     end Ordinary_Character;
 
 
-    procedure Hard_Space (Output_Object : in out Corr_Output_Type) is
+    overriding procedure Hard_Space (Output_Object : in out Corr_Output_Type) is
         -- Output a hard space. No line break should happen at a hard space.
     begin
         if not Output_Object.Is_Valid then
@@ -1203,7 +1203,7 @@ package body ARM_Corr is
     end Hard_Space;
 
 
-    procedure Line_Break (Output_Object : in out Corr_Output_Type) is
+    overriding procedure Line_Break (Output_Object : in out Corr_Output_Type) is
         -- Output a line break. This does not start a new paragraph.
         -- This corresponds to a "<BR>" in HTML.
     begin
@@ -1230,7 +1230,7 @@ package body ARM_Corr is
     end Line_Break;
 
 
-    procedure Index_Line_Break (Output_Object : in out Corr_Output_Type;
+    overriding procedure Index_Line_Break (Output_Object : in out Corr_Output_Type;
                                 Clear_Keep_with_Next : in Boolean) is
         -- Output a line break for the index. This does not start a new
         -- paragraph in terms of spacing. This corresponds to a "<BR>"
@@ -1242,7 +1242,7 @@ package body ARM_Corr is
     end Index_Line_Break;
 
 
-    procedure Soft_Line_Break (Output_Object : in out Corr_Output_Type) is
+    overriding procedure Soft_Line_Break (Output_Object : in out Corr_Output_Type) is
         -- Output a soft line break. This is a place (in the middle of a
         -- "word") that we allow a line break. It is usually used after
         -- underscores in long non-terminals.
@@ -1267,7 +1267,7 @@ package body ARM_Corr is
     end Soft_Line_Break;
 
 
-    procedure Soft_Hyphen_Break (Output_Object : in out Corr_Output_Type) is
+    overriding procedure Soft_Hyphen_Break (Output_Object : in out Corr_Output_Type) is
         -- Output a soft line break, with a hyphen. This is a place (in the middle of
         -- a "word") that we allow a line break. If the line break is used,
         -- a hyphen will be added to the text.
@@ -1290,7 +1290,7 @@ package body ARM_Corr is
     end Soft_Hyphen_Break;
 
 
-    procedure Tab (Output_Object : in out Corr_Output_Type) is
+    overriding procedure Tab (Output_Object : in out Corr_Output_Type) is
         -- Output a tab, inserting space up to the next tab stop.
         -- Raises Not_Valid_Error if the paragraph was created with
         -- Tab_Stops = ARM_Output.NO_TABS.
@@ -1317,7 +1317,7 @@ package body ARM_Corr is
     end Tab;
 
 
-    procedure Special_Character (Output_Object : in out Corr_Output_Type;
+    overriding procedure Special_Character (Output_Object : in out Corr_Output_Type;
                                  Char : in ARM_Output.Special_Character_Type) is
         -- Output an special character.
     begin
@@ -1361,7 +1361,7 @@ package body ARM_Corr is
     end Special_Character;
 
 
-    procedure Unicode_Character (Output_Object : in out Corr_Output_Type;
+    overriding procedure Unicode_Character (Output_Object : in out Corr_Output_Type;
                                  Char : in ARM_Output.Unicode_Type) is
         -- Output a Unicode character, with code position Char.
         Char_Code : constant String := ARM_Output.Unicode_Type'Image(Char);
@@ -1371,7 +1371,7 @@ package body ARM_Corr is
     end Unicode_Character;
 
 
-    procedure End_Hang_Item (Output_Object : in out Corr_Output_Type) is
+    overriding procedure End_Hang_Item (Output_Object : in out Corr_Output_Type) is
         -- Marks the end of a hanging item. Call only once per paragraph.
         -- Raises Not_Valid_Error if the paragraph format is not
         -- Hanging .. Small_Nested_Enumerated, or if this has already been
@@ -1400,7 +1400,7 @@ package body ARM_Corr is
     end End_Hang_Item;
 
 
-    procedure Text_Format (Output_Object : in out Corr_Output_Type;
+    overriding procedure Text_Format (Output_Object : in out Corr_Output_Type;
                            Bold : in Boolean;
                            Italic : in Boolean;
                            Font : in ARM_Output.Font_Family_Type;
@@ -1574,7 +1574,7 @@ package body ARM_Corr is
     end Text_Format;
 
 
-    procedure Clause_Reference (Output_Object : in out Corr_Output_Type;
+    overriding procedure Clause_Reference (Output_Object : in out Corr_Output_Type;
                                 Text : in String;
                                 Clause_Number : in String) is
         -- Generate a reference to a clause in the standard. The text of
@@ -1586,7 +1586,7 @@ package body ARM_Corr is
     end Clause_Reference;
 
 
-    procedure Index_Target (Output_Object : in out Corr_Output_Type;
+    overriding procedure Index_Target (Output_Object : in out Corr_Output_Type;
                             Index_Key : in Natural) is
         -- Generate a index target. This marks the location where an index
         -- reference occurs. Index_Key names the index item involved.
@@ -1605,7 +1605,7 @@ package body ARM_Corr is
     end Index_Target;
 
 
-    procedure Index_Reference (Output_Object : in out Corr_Output_Type;
+    overriding procedure Index_Reference (Output_Object : in out Corr_Output_Type;
                                Text : in String;
                                Index_Key : in Natural;
                                Clause_Number : in String) is
@@ -1618,7 +1618,7 @@ package body ARM_Corr is
     end Index_Reference;
 
 
-    procedure DR_Reference (Output_Object : in out Corr_Output_Type;
+    overriding procedure DR_Reference (Output_Object : in out Corr_Output_Type;
                             Text : in String;
                             DR_Number : in String) is
         -- Generate a reference to an DR from the standard. The text
@@ -1630,7 +1630,7 @@ package body ARM_Corr is
     end DR_Reference;
 
 
-    procedure AI_Reference (Output_Object : in out Corr_Output_Type;
+    overriding procedure AI_Reference (Output_Object : in out Corr_Output_Type;
                             Text : in String;
                             AI_Number : in String) is
         -- Generate a reference to an AI from the standard. The text
@@ -1642,7 +1642,7 @@ package body ARM_Corr is
     end AI_Reference;
 
 
-    procedure Local_Target (Output_Object : in out Corr_Output_Type;
+    overriding procedure Local_Target (Output_Object : in out Corr_Output_Type;
                             Text : in String;
                             Target : in String) is
         -- Generate a local target. This marks the potential target of local
@@ -1654,7 +1654,7 @@ package body ARM_Corr is
     end Local_Target;
 
 
-    procedure Local_Link (Output_Object : in out Corr_Output_Type;
+    overriding procedure Local_Link (Output_Object : in out Corr_Output_Type;
                           Text : in String;
                           Target : in String;
                           Clause_Number : in String) is
@@ -1667,7 +1667,7 @@ package body ARM_Corr is
     end Local_Link;
 
 
-    procedure Local_Link_Start (Output_Object : in out Corr_Output_Type;
+    overriding procedure Local_Link_Start (Output_Object : in out Corr_Output_Type;
                                 Target : in String;
                                 Clause_Number : in String) is
         -- Generate a local link to the target and clause given.
@@ -1680,7 +1680,7 @@ package body ARM_Corr is
     end Local_Link_Start;
 
 
-    procedure Local_Link_End (Output_Object : in out Corr_Output_Type;
+    overriding procedure Local_Link_End (Output_Object : in out Corr_Output_Type;
                               Target : in String;
                               Clause_Number : in String) is
         -- End a local link for the target and clause given.
@@ -1692,7 +1692,7 @@ package body ARM_Corr is
     end Local_Link_End;
 
 
-    procedure URL_Link (Output_Object : in out Corr_Output_Type;
+    overriding procedure URL_Link (Output_Object : in out Corr_Output_Type;
                         Text : in String;
                         URL : in String) is
         -- Generate a link to the URL given.
@@ -1704,7 +1704,7 @@ package body ARM_Corr is
     end URL_Link;
 
 
-    procedure Picture  (Output_Object : in out Corr_Output_Type;
+    overriding procedure Picture  (Output_Object : in out Corr_Output_Type;
                         Name  : in String;
                         Descr : in String;
                         Alignment : in ARM_Output.Picture_Alignment;

@@ -14,7 +14,7 @@ package body ARM_Format is
     -- determine what to output.
     --
     -- ---------------------------------------
-    -- Copyright 2000, 2002, 2003, 2004, 2005, 2006  AXE Consultants.
+    -- Copyright 2000, 2002, 2003, 2004, 2005, 2006, 2011  AXE Consultants.
     -- P.O. Box 1512, Madison WI  53701
     -- E-Mail: randy@rrsoftware.com
     --
@@ -2008,7 +2008,6 @@ Ada.Text_IO.Put_Line ("%% Oops, can't find out if AARM paragraph, line " & ARM_I
 	            Format_Object.Current_Paragraph_String(1 .. PNum_Pred'Last-1) :=
 		        PNum_Pred(2..PNum_Pred'Last);
 		    AARM_Sub_Num (Format_Object.Next_AARM_Sub);
-	            Format_Object.Current_Paragraph_Len := Format_Object.Current_Paragraph_Len;
 	            if Update_Numbers then
 		        Format_Object.Next_AARM_Sub := Character'Succ(Format_Object.Next_AARM_Sub);
 			Format_Object.Next_AARM_Insert_Para := 1;
