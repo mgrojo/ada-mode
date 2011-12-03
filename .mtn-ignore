@@ -11,5 +11,6 @@
 ^build/arm_info\.diff$
 ^build/arm_info\.diff.gz$
 ^build/objects$
+^build/source_ada\.stamp$
 ^source_2005/Output$
 ^source_2005/RM\.texinfo$

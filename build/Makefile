@@ -125,7 +125,7 @@ UPSTREAM_ADA += arm_syn.ads
 UPSTREAM_ADA += arm_text.adb
 UPSTREAM_ADA += arm_text.ads
 
-# This retrieves CVS HEAD, for the next Ada version
+# This retrieves CVS HEAD, for the next Ada version (commit to mtn branch arm_info.upstream)
 source_ada.stamp :
 	for file in $(UPSTREAM_ADA); do wget -O ../../arm_info.upstream/progs/$$file "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/$$file?rev=HEAD"; done
 	touch source_ada.stamp
@@ -166,11 +166,70 @@ source_ada_2005.stamp :
 	wget -O ../../arm_info.upstream/progs/arm_text.ads "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_text.ads?rev=1.10"
 	touch source_ada_2005.stamp
 
+UPSTREAM_SCHEME := 01.MSS
+UPSTREAM_SCHEME += 02.MSS
+UPSTREAM_SCHEME += 03A.MSS
+UPSTREAM_SCHEME += 03B.MSS
+UPSTREAM_SCHEME += 03C.MSS
+UPSTREAM_SCHEME += 04A.MSS
+UPSTREAM_SCHEME += 04B.MSS
+UPSTREAM_SCHEME += 05.MSS
+UPSTREAM_SCHEME += 06.MSS
+UPSTREAM_SCHEME += 07.MSS
+UPSTREAM_SCHEME += 08.MSS
+UPSTREAM_SCHEME += 09.MSS
+UPSTREAM_SCHEME += 10.MSS
+UPSTREAM_SCHEME += 11.MSS
+UPSTREAM_SCHEME += 12.MSS
+UPSTREAM_SCHEME += 13A.MSS
+UPSTREAM_SCHEME += 13B.MSS
+UPSTREAM_SCHEME += AARM.MSM
+UPSTREAM_SCHEME += ATTRIBS.MSS
+UPSTREAM_SCHEME += DS.MSS
+UPSTREAM_SCHEME += GLOSSARY.MSS
+UPSTREAM_SCHEME += IMPLDEF.MSS
+UPSTREAM_SCHEME += INDEX.MSS
+UPSTREAM_SCHEME += INFOSYS.MSS
+UPSTREAM_SCHEME += LANGDEF.MSS
+UPSTREAM_SCHEME += LIBRARY.MSS
+UPSTREAM_SCHEME += NALL.BAT
+UPSTREAM_SCHEME += NUMERICS.MSS
+UPSTREAM_SCHEME += PRAGMAS.MSS
+UPSTREAM_SCHEME += PRE.MSS
+UPSTREAM_SCHEME += PRE_ADA.MSS
+UPSTREAM_SCHEME += PRE_DIRS.MSS
+UPSTREAM_SCHEME += PRE_IO.MSS
+UPSTREAM_SCHEME += PRE_MATH.MSS
+UPSTREAM_SCHEME += Pre_Containers.MSS
+UPSTREAM_SCHEME += Pre_Environ.MSS
+UPSTREAM_SCHEME += RM.MSM
+UPSTREAM_SCHEME += RT.MSS
+UPSTREAM_SCHEME += Real_attribs.mss
+UPSTREAM_SCHEME += SAFETY.MSS
+UPSTREAM_SCHEME += SP.MSS
+UPSTREAM_SCHEME += SYNTAX.MSS
+UPSTREAM_SCHEME += TITLE.MSS
+UPSTREAM_SCHEME += ansi_cover.mss
+UPSTREAM_SCHEME += ansi_title.mss
+UPSTREAM_SCHEME += front_matter.mss
+UPSTREAM_SCHEME += interface.mss
+UPSTREAM_SCHEME += iso-rm.msm
+UPSTREAM_SCHEME += obsolescent.mss
+UPSTREAM_SCHEME += pre_chars.mss
+UPSTREAM_SCHEME += pre_cmdln.mss
+UPSTREAM_SCHEME += pre_standard.mss
+UPSTREAM_SCHEME += pre_strings.mss
+
+# This retrieves CVS HEAD, for the next Ada version (commit to mtn branch arm_info.upstream)
+source_scheme.stamp :
+	for file in $(UPSTREAM_SCHEME); do wget -O ../../arm_info.upstream/source/$$file "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/source/$$file?rev=HEAD"; done
+	touch source_ada.stamp
+
 2005-SRC.zip :
 	wget http://www.ada-auth.org/arm-files/2005-SRC.zip
 
-source_scheme.stamp : 2005-SRC.zip
-	cd ../source_2005; unzip ../build/2005-SRC.zip; rm arm_form.exe; ../build/convert_to_unix.sh
+source_scheme_2005.stamp : 2005-SRC.zip
+	cd ../../arm_info.upstream/source_2005; unzip ../build/2005-SRC.zip; rm arm_form.exe; $(CURDIR)/convert_to_unix.sh
 	touch source_scheme.stamp
 
 patch.stamp : source_ada_2005.stamp source_scheme.stamp
