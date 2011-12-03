@@ -7,6 +7,7 @@ with ARM_Input,
      ARM_Format,
      ARM_Output,
      ARM_Text,
+     ARM_Texinfo,
      ARM_HTML,
      ARM_RTF,
      ARM_Corr,
@@ -15,31 +16,20 @@ with ARM_Input,
 package body ARM_Master is
 
     --
-    -- Ada reference manual formatter.
+    -- Ada reference manual formatter (ARM_Form).
     --
     -- This package contains the routines to parse the master file, and
     -- execute it.
     --
     -- ---------------------------------------
-    -- Copyright 2006  AXE Consultants.
+    -- Copyright 2006, 2007, 2009, 2011
+    --   AXE Consultants. All rights reserved.
     -- P.O. Box 1512, Madison WI  53701
     -- E-Mail: randy@rrsoftware.com
     --
-    -- AXE Consultants grants to all users the right to use/modify this
-    -- formatting tool for non-commercial purposes. (ISO/IEC JTC 1 SC 22 WG 9
-    -- activities are explicitly included as "non-commercial purposes".)
-    -- Commercial uses of this software and its source code, including but not
-    -- limited to documents for sale and sales of modified versions of this
-    -- tool, are prohibited without the prior written permission of
-    -- AXE Consultants. All rights not explicitly granted above are reserved
-    -- by AXE Consultants.
-    --
-    -- You use this tool and/or its source code on the condition that you indemnify and hold harmless
-    -- AXE Consultants, its agents, and employees, from any and all liability
-    -- or damages to yourself or your hardware or software, or third parties,
-    -- including attorneys' fees, court costs, and other related costs and
-    -- expenses, arising out of your use of this tool and/or source code irrespective of the
-    -- cause of said liability.
+    -- ARM_Form is free software: you can redistribute it and/or modify
+    -- it under the terms of the GNU General Public License version 3
+    -- as published by the Free Software Foundation.
     --
     -- AXE CONSULTANTS MAKES THIS TOOL AND SOURCE CODE AVAILABLE ON AN "AS IS"
     -- BASIS AND MAKES NO WARRANTY, EXPRESS OR IMPLIED, AS TO THE ACCURACY,
@@ -48,6 +38,15 @@ package body ARM_Master is
     -- CONSEQUENTIAL, INDIRECT, INCIDENTAL, EXEMPLARY, OR SPECIAL DAMAGES,
     -- EVEN IF AXE CONSULTANTS HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
     -- DAMAGES.
+    --
+    -- A copy of the GNU General Public License is available in the file
+    -- gpl-3-0.txt in the standard distribution of the ARM_Form tool.
+    -- Otherwise, see <http://www.gnu.org/licenses/>.
+    --
+    -- If the GPLv3 license is not satisfactory for your needs, a commercial
+    -- use license is available for this tool. Contact Randy at AXE Consultants
+    -- for more information.
+    --
     -- ---------------------------------------
     --
     -- Edit History:
@@ -65,6 +64,11 @@ package body ARM_Master is
     --  9/25/06 - RLB - Added the Contents_Format command.
     -- 10/04/06 - RLB - Added the List_Format command.
     -- 10/13/06 - RLB - Added specifiable default HTML colors.
+    -- 12/19/07 - RLB - Added MS-DOS file names.
+    --  5/04/09 - RLB - Added the RTFFooter command.
+    --  5/06/09 - RLB - Added the RTFVersionName command.
+    -- 10/18/11 - RLB - Changed to GPLv3 license.
+    -- 10/19/11 - RLB - Added Texinfo output (from Stephen Leake).
 
     type Command_Type is (
 	-- Source commands:
@@ -88,6 +92,7 @@ package body ARM_Master is
 
 	-- HTML properties:
 	Single_HTML_Output_File,
+	Use_MS_DOS_Names,
 	HTML_Kind_Command,
 	HTML_Nav_Bar,
 	HTML_Tabs,
@@ -97,8 +102,11 @@ package body ARM_Master is
 	-- RTF properties:
 	Single_RTF_Output_File,
 	RTF_Header_Prefix,
+	RTF_Footer_Text,
+	RTF_Footer,
 	RTF_Page_Size,
 	RTF_Fonts,
+	RTF_Version_Name,
 	-- Other commands:
 	Comment, Unknown);
 
@@ -124,16 +132,13 @@ package body ARM_Master is
     Source_Data : array (Source_Index) of Source_Item;
     Source_Length : Source_Count := 0;
 
-    type Versioned_Item is array (ARM_Contents.Change_Version_Type) of
-	Ada.Strings.Unbounded.Unbounded_String;
-
     -- Command line (global) properties:
     Change_Kind : ARM_Format.Change_Kind; -- Changes to generate.
     Change_Version : ARM_Contents.Change_Version_Type; -- Change version.
 
     -- Global properties:
     Display_Index_Entries : Boolean := False; -- Should Index entries be displayed?
-    Document_Title : Versioned_Item; -- Document title.
+    Document_Title : ARM_Contents.Versioned_String; -- Document title.
     Output_File_Prefix : Ada.Strings.Unbounded.Unbounded_String; -- Output file prefix.
     Include_Annotations : Boolean := False; -- Should annotations be included in the output?
     Include_ISO_Text : Boolean := False; -- Should ISO text be included in the output?
@@ -155,6 +160,7 @@ package body ARM_Master is
 
     -- HTML properties:
     Use_Large_HTML_Files : Boolean := False; -- Use small output files by default.
+    Use_MS_DOS_Filenames : Boolean := False; -- Use long file names by default.
     HTML_Kind : ARM_HTML.HTML_Type := ARM_HTML.HTML_4_Compatible;
     HTML_Use_Unicode : Boolean := False;
     HTML_Index_URL : Ada.Strings.Unbounded.Unbounded_String;
@@ -174,7 +180,13 @@ package body ARM_Master is
 
     -- RTF properties:
     Use_Large_RTF_Files : Boolean := False; -- Use small output files by default.
-    Header_Prefix : Versioned_Item;
+    Header_Prefix : ARM_Contents.Versioned_String;
+    Footer_Text   : ARM_Contents.Versioned_String;
+    Footer_Use_Date : Boolean := True; -- Use the date by default.
+    Footer_Use_Clause_Name : Boolean := True; -- Use the clause name rather than the text above by default.
+    Footer_Use_ISO_Format : Boolean := False; -- Use the normal format.
+    Version_Name  : ARM_Contents.Versioned_String;
+
     Page_Size : ARM_RTF.Page_Size := ARM_RTF.Letter; -- Use Letter size by default.
     Serif_Font : ARM_RTF.Serif_Fonts := ARM_RTF.Times_New_Roman; -- Use Times by default.
     Sans_Serif_Font : ARM_RTF.Sans_Serif_Fonts := ARM_RTF.Arial; -- Use Arial by default.
@@ -226,6 +238,8 @@ package body ARM_Master is
 	    return List_Format;
 	elsif Canonical_Name = "singlehtmloutputfile" then
 	    return Single_HTML_Output_File;
+	elsif Canonical_Name = "usemsdosfilenames" then
+	    return Use_MS_DOS_Names;
 	elsif Canonical_Name = "htmlkind" then
 	    return HTML_Kind_Command;
 	elsif Canonical_Name = "htmlnavbar" then
@@ -242,10 +256,16 @@ package body ARM_Master is
 	    return Single_RTF_Output_File;
 	elsif Canonical_Name = "rtfheaderprefix" then
 	    return RTF_Header_Prefix;
+	elsif Canonical_Name = "rtffootertext" then
+	    return RTF_Footer_Text;
+	elsif Canonical_Name = "rtffooter" then
+	    return RTF_Footer;
 	elsif Canonical_Name = "rtfpagesize" then
 	    return RTF_Page_Size;
 	elsif Canonical_Name = "rtffonts" then
 	    return RTF_Fonts;
+	elsif Canonical_Name = "rtfversionname" then
+	    return RTF_Version_Name;
 	elsif Canonical_Name = "comment" then
 	    return Comment;
 	else
@@ -254,7 +274,7 @@ package body ARM_Master is
     end Decode_Command;
 
 
-    function Get_Versioned_Item (Item_Details : in Versioned_Item;
+    function Get_Versioned_String (Item_Details : in ARM_Contents.Versioned_String;
 			         For_Version  : in ARM_Contents.Change_Version_Type)
 	return String is
 	-- Get a versioned item for the appropriate version.
@@ -267,7 +287,7 @@ package body ARM_Master is
 	    end if;
 	end loop;
 	return ""; -- Not defined for any version.
-    end Get_Versioned_Item;
+    end Get_Versioned_String;
 
 
     procedure Read_Master_File (Input_Object : in out ARM_Input.Input_Type'Class) is
@@ -297,7 +317,6 @@ package body ARM_Master is
 
 	    function Get_Single_String return String is
 		-- Returns the (single) parameter of a command.
-		Ch : Character;
 	        Item : String(1..2000);
 	        ILen : Natural := 0;
 	    begin
@@ -316,13 +335,14 @@ package body ARM_Master is
 	    end Get_Single_String;
 
 	    procedure Get_Boolean (Param_Name : in ARM_Input.Command_Name_Type;
-				   Result : out Boolean) is
+				   Result : out Boolean;
+				   Is_First : in Boolean := False) is
 		-- Get a boolean value from a parameter named Param_Name.
 		Ch, Close_Ch : Character;
 	    begin
 		ARM_Input.Check_Parameter_Name (Input_Object,
 		    Param_Name => Param_Name,
-		    Is_First => False,
+		    Is_First => Is_First,
 		    Param_Close_Bracket => Close_Ch);
 		if Close_Ch /= ' ' then
 		    -- Get the Boolean character:
@@ -349,7 +369,7 @@ package body ARM_Master is
 		end if;
 	    end Get_Boolean;
 
-	    procedure Process_Versioned_Item (Item : in out Versioned_Item) is
+	    procedure Process_Versioned_String (Item : in out ARM_Contents.Versioned_String) is
 		-- @Command{Version=[<Version>],Text=[<Text>]}
 	        Param_Close_Ch, Ch : Character;
 	        Text : String(1..80);
@@ -398,7 +418,7 @@ package body ARM_Master is
 		    Ada.Text_IO.Put_Line ("** Missing closing character for command on line" & ARM_Input.Line_String (Input_Object));
 	            ARM_Input.Replace_Char (Input_Object);
 		end if;
- 	    end Process_Versioned_Item;
+ 	    end Process_Versioned_String;
 
 	    procedure Process_RTF_Fonts is
 	        -- @RTFFonts{Serif=[Times|Souvenir]},SansSerif=[Arial|Helvetica]}
@@ -856,7 +876,7 @@ package body ARM_Master is
 
 		when Title =>
 		    -- @Title{Version=[<version>],Text=[<title_text>]}
-		    Process_Versioned_Item (Document_Title);
+		    Process_Versioned_String (Document_Title);
 
 		when File_Prefix =>
 		    -- @FilePrefix{<File_Prefix>}
@@ -969,6 +989,11 @@ package body ARM_Master is
 		    Use_Large_HTML_Files := True;
 		    Ada.Text_IO.Put_Line("Single HTML Output File");
 
+		when Use_MS_DOS_Names =>
+		    -- @Single_HTML_Output_File
+		    Use_MS_DOS_Filenames := True;
+		    Ada.Text_IO.Put_Line("Use MS-DOS (8.3) file names for HTML output files");
+
 		when HTML_Kind_Command =>
 		    --@HTMLKind{Version=[3|4Comp|4],Unicode=[T|F]}
 		    Process_HTML_Kind;
@@ -1023,7 +1048,53 @@ package body ARM_Master is
 
 		when RTF_Header_Prefix =>
 		    -- @RTFHeaderPrefix{Version=[<version>],Text=[<title_text>]}
-		    Process_Versioned_Item (Header_Prefix);
+		    Process_Versioned_String (Header_Prefix);
+
+		when RTF_Footer_Text =>
+		    -- @RTFFooterPrefix{Version=[<version>],Text=[<title_text>]}
+		    Process_Versioned_String (Footer_Text);
+
+		when RTF_Footer =>
+		    -- @RTFFooter{UseDate=[T|F],UseClauseName=[T|F],UseISOFormat=[T|F]}
+		    begin
+			Get_Open_Char;
+--Ada.Text_IO.Put_Line("Process RTF Footer");
+		        Get_Boolean ("UseDate" & (8..ARM_Input.Command_Name_Type'Last => ' '),
+				     Footer_Use_Date, Is_First => True);
+			if Footer_Use_Date then
+			    Ada.Text_IO.Put_Line("RTF footer will include the date");
+			else
+			    Ada.Text_IO.Put_Line("RTF footer will omit the date");
+			end if;
+
+		        Get_Boolean ("UseClauseName" & (14..ARM_Input.Command_Name_Type'Last => ' '),
+				     Footer_Use_Clause_Name);
+			if Footer_Use_Clause_Name then
+			    Ada.Text_IO.Put_Line("RTF footer will include the name of the clause that starts the page");
+			else
+			    Ada.Text_IO.Put_Line("RTF footer will include the fixed footer text");
+			end if;
+
+		        Get_Boolean ("UseISOFormat" & (13..ARM_Input.Command_Name_Type'Last => ' '),
+				     Footer_Use_ISO_Format);
+			if Footer_Use_ISO_Format then
+			    Ada.Text_IO.Put_Line("RTF footer will use the ISO format (swiss font, multiple sizes)");
+			else
+			    Ada.Text_IO.Put_Line("RTF footer will use the normal format (body fond, one size)");
+			end if;
+
+		        ARM_Input.Get_Char (Input_Object, Ch);
+		        if Ch = Close_Ch then
+			    null;
+		        else
+			    Ada.Text_IO.Put_Line ("** Missing closing character for command on line" & ARM_Input.Line_String (Input_Object));
+		            ARM_Input.Replace_Char (Input_Object);
+		        end if;
+		    end;
+
+		when RTF_Version_Name =>
+		    -- @RTFVersionName{Version=[<version>],Text=[<title_text>]}
+		    Process_Versioned_String (Version_Name);
 
 		when RTF_Page_Size =>
 		    -- @RTFPageSize{Letter|A4|HalfLetter|Ada95}
@@ -1210,6 +1281,7 @@ package body ARM_Master is
 		    ARM_HTML.Create (Output,
 				     Big_Files => Use_Large_HTML_Files,
 				     File_Prefix => +Output_File_Prefix,
+				     DOS_Filenames => Use_MS_DOS_Filenames,
 				     HTML_Kind => HTML_Kind,
 				     Use_Unicode => HTML_Use_Unicode,
 				     Number_Paragraphs => Should_Number_Paragraphs,
@@ -1222,7 +1294,7 @@ package body ARM_Master is
 				     Tab_Emulation => HTML_Tab_Emulation,
 			             Header_HTML => +HTML_Header_Text,
 			             Footer_HTML => +HTML_Footer_Text,
-				     Title => Get_Versioned_Item(Document_Title,Change_Version),
+				     Title => Get_Versioned_String(Document_Title,Change_Version),
 				     Body_Font => Font_of_Body,
 				     Text_Color => HTML_Text_Color,
 				     Background_Color => HTML_Background_Color,
@@ -1245,9 +1317,14 @@ package body ARM_Master is
 				        Primary_Serif_Font => Serif_Font,
 				        Primary_Sans_Serif_Font => Sans_Serif_Font,
 				        File_Prefix => +Output_File_Prefix,
-				        Title => Get_Versioned_Item(Document_Title,Change_Version),
-				        Header_Prefix => Get_Versioned_Item(Header_Prefix,Change_Version),
-				        Body_Font => Font_of_Body);
+				        Title => Get_Versioned_String(Document_Title,Change_Version),
+				        Header_Prefix => Get_Versioned_String(Header_Prefix,Change_Version),
+					Footer_Use_Date => Footer_Use_Date,
+					Footer_Use_Clause_Name => Footer_Use_Clause_Name,
+					Footer_Use_ISO_Format=> Footer_Use_ISO_Format,
+				        Footer_Text => Get_Versioned_String (Footer_Text, Change_Version),
+				        Body_Font => Font_of_Body,
+					Version_Names => Version_Name);
 		    else
 		        ARM_RTF.Create (Output,
 				        Page_Size => Page_Size,
@@ -1256,9 +1333,14 @@ package body ARM_Master is
 				        Primary_Serif_Font => Serif_Font,
 				        Primary_Sans_Serif_Font => Sans_Serif_Font,
 				        File_Prefix => +Output_File_Prefix,
-				        Title => Get_Versioned_Item(Document_Title,Change_Version),
-				        Header_Prefix => Get_Versioned_Item(Header_Prefix,Change_Version),
-				        Body_Font => Font_of_Body);
+				        Title => Get_Versioned_String (Document_Title, Change_Version),
+				        Header_Prefix => Get_Versioned_String (Header_Prefix, Change_Version),
+					Footer_Use_Date => Footer_Use_Date,
+					Footer_Use_Clause_Name => Footer_Use_Clause_Name,
+					Footer_Use_ISO_Format=> Footer_Use_ISO_Format,
+				        Footer_Text => Get_Versioned_String (Footer_Text, Change_Version),
+				        Body_Font => Font_of_Body,
+					Version_Names => Version_Name);
 		    end if;
 		    Generate_Sources (Output);
 		    ARM_RTF.Close (Output);
@@ -1269,7 +1351,7 @@ package body ARM_Master is
 	        begin
 		    ARM_Text.Create (Output,
 				     File_Prefix => +Output_File_Prefix,
-				     Title => Get_Versioned_Item(Document_Title,Change_Version));
+				     Title => Get_Versioned_String (Document_Title, Change_Version));
 		    Generate_Sources (Output);
 		    ARM_Text.Close (Output);
 	        end;
@@ -1279,19 +1361,20 @@ package body ARM_Master is
 	        begin
 		    ARM_Corr.Create (Output,
 				     File_Prefix => +Output_File_Prefix,
-				     Title => Get_Versioned_Item(Document_Title,Change_Version));
+				     Title => Get_Versioned_String (Document_Title, Change_Version));
 		    Generate_Sources (Output);
 		    ARM_Corr.Close (Output);
 	        end;
 	    when Info =>
-	        null; -- Future use.
-	        --declare
-	        --	Output : ARM_Info.Info_Output_Type;
-	        --begin
-		--      Create (Output, Use_Large_Files => False); -- The latter is not used.
-	        --	Generate_Sources (Output);
-	        --	ARM_Info.Close (Output);
-	        --end;
+	        declare
+	            Output : ARM_TexInfo.Texinfo_Output_Type;
+	        begin
+		    ARM_TexInfo.Create (Output,
+				        File_Prefix => +Output_File_Prefix,
+				        Title => Get_Versioned_String (Document_Title, Change_Version));
+	            Generate_Sources (Output);
+	            ARM_TexInfo.Close (Output);
+	        end;
         end case;
 
     end Read_and_Process_Master_File;

@@ -9,30 +9,19 @@ with ARM_Output,
 package body ARM_Index is
 
     --
-    -- Ada reference manual formatter.
+    -- Ada reference manual formatter (ARM_Form).
     --
     -- This package contains the routines to manage and generate the index.
     --
     -- ---------------------------------------
-    -- Copyright 2000, 2002, 2003, 2004, 2005, 2006 AXE Consultants.
+    -- Copyright 2000, 2002, 2003, 2004, 2005, 2006, 2007, 2010, 2011
+    --   AXE Consultants. All rights reserved.
     -- P.O. Box 1512, Madison WI  53701
     -- E-Mail: randy@rrsoftware.com
     --
-    -- AXE Consultants grants to all users the right to use/modify this
-    -- formatting tool for non-commercial purposes. (ISO/IEC JTC 1 SC 22 WG 9
-    -- activities are explicitly included as "non-commercial purposes".)
-    -- Commercial uses of this software and its source code, including but not
-    -- limited to documents for sale and sales of modified versions of this
-    -- tool, are prohibited without the prior written permission of
-    -- AXE Consultants. All rights not explicitly granted above are reserved
-    -- by AXE Consultants.
-    --
-    -- You use this tool and/or its source code on the condition that you indemnify and hold harmless
-    -- AXE Consultants, its agents, and employees, from any and all liability
-    -- or damages to yourself or your hardware or software, or third parties,
-    -- including attorneys' fees, court costs, and other related costs and
-    -- expenses, arising out of your use of this tool and/or source code irrespective of the
-    -- cause of said liability.
+    -- ARM_Form is free software: you can redistribute it and/or modify
+    -- it under the terms of the GNU General Public License version 3
+    -- as published by the Free Software Foundation.
     --
     -- AXE CONSULTANTS MAKES THIS TOOL AND SOURCE CODE AVAILABLE ON AN "AS IS"
     -- BASIS AND MAKES NO WARRANTY, EXPRESS OR IMPLIED, AS TO THE ACCURACY,
@@ -41,6 +30,15 @@ package body ARM_Index is
     -- CONSEQUENTIAL, INDIRECT, INCIDENTAL, EXEMPLARY, OR SPECIAL DAMAGES,
     -- EVEN IF AXE CONSULTANTS HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
     -- DAMAGES.
+    --
+    -- A copy of the GNU General Public License is available in the file
+    -- gpl-3-0.txt in the standard distribution of the ARM_Form tool.
+    -- Otherwise, see <http://www.gnu.org/licenses/>.
+    --
+    -- If the GPLv3 license is not satisfactory for your needs, a commercial
+    -- use license is available for this tool. Contact Randy at AXE Consultants
+    -- for more information.
+    --
     -- ---------------------------------------
     --
     -- Edit History:
@@ -57,6 +55,11 @@ package body ARM_Index is
     --			indexed item starts with a letter.
     --  2/17/06 - RLB - Added Remove_Soft_Hyphens flag to Clean (for output).
     --  9/22/06 - RLB - Changed to use Clause_Number_Type.
+    --  2/13/07 - RLB - Changed Start_Paragraph to use explicit indents.
+    -- 12/19/07 - RLB - Revised Text_Format calls.
+    --  3/31/10 - RLB - Fixed sorting to ignore embedded commands (like
+    --			soft hyphens).
+    -- 10/18/11 - RLB - Changed to GPLv3 license.
 
     Next_Index_Key : Index_Key;
 
@@ -106,7 +109,8 @@ package body ARM_Index is
     function Clean (Item : in String;
 		    Remove_Soft_Hyphens : in Boolean) return String is
 	-- Remove any commands from Item. (Except for soft hyphens
-	-- if Remove_Soft_Hyphens is False.)
+	-- if Remove_Soft_Hyphens is False.) We keep the contents of any
+	-- commands (we assume the commands are basic formatting).
 	Result : String (1 .. Item'Length);
 	Len : Natural := 0;
 	In_Command : Boolean := False;
@@ -148,7 +152,7 @@ package body ARM_Index is
 		    -- Skip it.
 		end if;
 	    elsif Skip_Next_Char then
-		Skip_Next_Char := True;
+		Skip_Next_Char := False;
 	    elsif In_Command then
 		if Item(I) = '{' then
 		    Close_Char := '}';
@@ -347,12 +351,20 @@ package body ARM_Index is
 	procedure Italic_Text (Text : in String) is
 	begin
 	    ARM_Output.Text_Format (Output_Object,
-		   Bold => False, Italic => True, Font => ARM_Output.Default,
-		   Size => 0, Change => ARM_Output.None, Location => ARM_Output.Normal);
+		   Format => (Bold => False, Italic => True,
+			      Font => ARM_Output.Default,
+		   	      Size => 0, Color => ARM_Output.Default,
+			      Change => ARM_Output.None,
+			      Version | Added_Version => '0',
+			      Location => ARM_Output.Normal));
             ARM_Output.Ordinary_Text (Output_Object, Text);
 	    ARM_Output.Text_Format (Output_Object,
-		   Bold => False, Italic => False, Font => ARM_Output.Default,
-		   Size => 0, Change => ARM_Output.None, Location => ARM_Output.Normal);
+		   Format => (Bold => False, Italic => False,
+			      Font => ARM_Output.Default,
+		   	      Size => 0, Color => ARM_Output.Default,
+			      Change => ARM_Output.None,
+			      Version | Added_Version => '0',
+			      Location => ARM_Output.Normal));
 	end Italic_Text;
 
 	procedure Term_Text (Text : in String) is
@@ -587,21 +599,82 @@ package body ARM_Index is
 
 		type Compare_Result is (Less, Greater, Equal);
 		function Compare (Left, Right : in String) return Compare_Result is
-		    -- By binding the arguments, we cut the heap usage by
-		    -- nearly half, and thus the runtime of the compare routine.
+		    -- Compare two items; the compare is case insensitive and
+		    -- ignores embedded commands.
 		begin
-		    if Left < Right then
-			return Less;
-		    elsif Left > Right then
+		    -- Simple cases in order to increase performance.
+		    -- Check for null cases so we don't have to worry about them
+		    -- later.
+		    if Left = Right then
+		        return Equal;
+		    elsif Left'Length = 0 then
+		        return Less; -- Right can't be null or they'd be equal.
+		    elsif Right'Length = 0 then
 			return Greater;
-		    else
-			return Equal;
 		    end if;
+		    -- Both strings are non-null.
+		    if Left(Left'First) in '0'..'9' or else
+		       Left(Left'First) in 'A'..'Z' then
+			if Right(Right'First) in '0'..'9' or else
+			   Right(Right'First) in 'A'..'Z' then
+			   if Left(Left'First) < Right(Right'First) then
+			       return Less;
+			   elsif Left(Left'First) > Right(Right'First) then
+			       return Greater;
+			   -- else continue below.
+			   end if;
+			elsif Right(Right'First) in 'a'..'z' then
+			   if Left(Left'First) < Character'Val(Character'Pos(Right(Right'First))+Character'Pos('A')-Character'Pos('a')) then
+			       return Less;
+			   elsif Left(Left'First) > Character'Val(Character'Pos(Right(Right'First))+Character'Pos('A')-Character'Pos('a')) then
+			       return Greater;
+			   end if;
+			-- else continue below.
+			end if;
+		    elsif Left(Left'First) in 'a'..'z' then
+			if Right(Right'First) in '0'..'9' or else
+			   Right(Right'First) in 'A'..'Z' then
+			   if Character'Val(Character'Pos(Left(Left'First))+Character'Pos('A')-Character'Pos('a')) < Right(Right'First) then
+			       return Less;
+			   elsif Character'Val(Character'Pos(Left(Left'First))+Character'Pos('A')-Character'Pos('a')) > Right(Right'First) then
+			       return Greater;
+			   -- else continue below.
+			   end if;
+			elsif Right(Right'First) in 'a'..'z' then -- Both lower.
+			   if Left(Left'First) < Right(Right'First) then
+			       return Less;
+			   elsif Left(Left'First) > Right(Right'First) then
+			       return Greater;
+			   end if;
+			-- else continue below.
+			end if;
+		    -- else continue below.
+		    end if;
+
+		    -- OK, do a full compare:
+		    declare
+		        -- %% Warning: This has terrible performance, too much heap use.
+		        L : constant String := Clean (To_Lower (Left), Remove_Soft_Hyphens => True);
+		        R : constant String := Clean (To_Lower (Right), Remove_Soft_Hyphens => True);
+		    begin
+--Ada.Text_IO.Put_Line("Full compare: Left=" & Left & "; Right=" & Right);
+--Ada.Text_IO.Put_Line("   Clean Left=" & L & "; Clean Right=" & R);
+		        if L < R then
+--Ada.Text_IO.Put_Line("   Result=Less");
+			    return Less;
+		        elsif L > R then
+--Ada.Text_IO.Put_Line("   Result=Greater");
+			    return Greater;
+		        else
+--Ada.Text_IO.Put_Line("   Result=Equal");
+			    return Equal;
+		        end if;
+		    end;
 		end Compare;
 	    begin
 		-- We sort first on "Term", then on "Kind", then on "Subterm",
 		-- then on "Clause", and finally on "Paragraph".
-		case Compare (To_Lower (Left.Term (1..Left.Term_Len)), To_Lower (Right.Term (1..Right.Term_Len))) is
+		case Compare (Left.Term (1..Left.Term_Len), Right.Term (1..Right.Term_Len)) is
 		    when Less => return True;
 		    when Greater => return False;
 		    when Equal => null; -- Continue to next compare.
@@ -620,7 +693,7 @@ package body ARM_Index is
 		else --if Left.Kind > Right.Kind then
 		    return False;
 		end if;
-		case Compare (To_Lower (Left.Subterm (1..Left.Subterm_Len)), To_Lower (Right.Subterm (1..Right.Subterm_Len))) is
+		case Compare (Left.Subterm (1..Left.Subterm_Len), Right.Subterm (1..Right.Subterm_Len)) is
 		    when Less => return True;
 		    when Greater => return False;
 		    when Equal => null; -- Continue to next compare.
@@ -813,7 +886,8 @@ package body ARM_Index is
 	Ada.Text_IO.Put_Line ("  -- Finish index sorting - " & Duration'Image (
 	    Ada.Calendar."-" (Ada.Calendar.Clock, Start)) & " secs.");
 
-	ARM_Output.Start_Paragraph (Output_Object, ARM_Output.Index, Number => "", No_Breaks => True);
+	ARM_Output.Start_Paragraph (Output_Object, ARM_Output.Index, Indent => 0,
+				    Number => "", No_Breaks => True);
 	Keep_Set := False;
 
 	Temp := Index_List;
@@ -826,18 +900,27 @@ package body ARM_Index is
 		-- We only generate letters, so we try not to come here for
 		-- non-letters.
 		ARM_Output.End_Paragraph (Output_Object);
-		ARM_Output.Start_Paragraph (Output_Object, ARM_Output.Index, Number => "");
+		ARM_Output.Start_Paragraph (Output_Object, ARM_Output.Index,
+					    Indent => 0, Number => "");
 		Keep_Set := False;
 		if To_Lower(Temp.Term(1)) in 'a' .. 'z' then
 		    ARM_Output.Index_Line_Break (Output_Object, Clear_Keep_with_Next => False);
 		    ARM_Output.Text_Format (Output_Object,
-			   Bold => True, Italic => False, Font => ARM_Output.Default,
-			   Size => 2, Change => ARM_Output.None, Location => ARM_Output.Normal);
+			   Format => (Bold => True, Italic => False,
+				      Font => ARM_Output.Default,
+			   	      Size => 2, Color => ARM_Output.Default,
+				      Change => ARM_Output.None,
+				      Version | Added_Version => '0',
+				      Location => ARM_Output.Normal));
 		    ARM_Output.Ordinary_Character (Output_Object,
 			Ada.Characters.Handling.To_Upper(Temp.Term(1)));
 		    ARM_Output.Text_Format (Output_Object,
-			   Bold => False, Italic => False, Font => ARM_Output.Default,
-			   Size => 0, Change => ARM_Output.None, Location => ARM_Output.Normal);
+			   Format => (Bold => False, Italic => False,
+				      Font => ARM_Output.Default,
+			   	      Size => 0, Color => ARM_Output.Default,
+				      Change => ARM_Output.None,
+				      Version | Added_Version => '0',
+				      Location => ARM_Output.Normal));
 		    ARM_Output.Index_Line_Break (Output_Object, Clear_Keep_with_Next => False);
 		else
 		    ARM_Output.Hard_Space (Output_Object);
@@ -853,11 +936,13 @@ package body ARM_Index is
 		if Last /= null then
 		    ARM_Output.End_Paragraph (Output_Object);
 		    if Temp.Kind = Primary_Term then
-		        ARM_Output.Start_Paragraph (Output_Object, ARM_Output.Index, Number => "",
+		        ARM_Output.Start_Paragraph (Output_Object, ARM_Output.Index,
+						    Indent => 0, Number => "",
 					            No_Breaks => True);
 			Keep_Set := False;
 		    else -- The item has at least two lines; keep them together.
-		        ARM_Output.Start_Paragraph (Output_Object, ARM_Output.Index, Number => "",
+		        ARM_Output.Start_Paragraph (Output_Object, ARM_Output.Index,
+						    Indent => 0, Number => "",
 					            No_Breaks => True, Keep_with_Next => True);
 			Keep_Set := True;
 		    end if;

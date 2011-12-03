@@ -4,32 +4,21 @@ with ARM_Output,
 package ARM_Corr is
 
     --
-    -- Ada reference manual formatter.
+    -- Ada reference manual formatter (ARM_Form).
     --
     -- This package defines the text output object.
     -- Output objects are responsible for implementing the details of
     -- a particular format.
     --
     -- ---------------------------------------
-    -- Copyright 2000, 2002, 2004, 2005, 2006  AXE Consultants.
+    -- Copyright 2000, 2002, 2004, 2005, 2006, 2007, 2011
+    --   AXE Consultants. All rights reserved.
     -- P.O. Box 1512, Madison WI  53701
-    -- E-Mail: rbrukardt@bix.com
+    -- E-Mail: randy@rrsoftware.com
     --
-    -- AXE Consultants grants to all users the right to use/modify this
-    -- formatting tool for non-commercial purposes. (ISO/IEC JTC 1 SC 22 WG 9
-    -- activities are explicitly included as "non-commercial purposes".)
-    -- Commercial uses of this software and its source code, including but not
-    -- limited to documents for sale and sales of modified versions of this
-    -- tool, are prohibited without the prior written permission of
-    -- AXE Consultants. All rights not explicitly granted above are reserved
-    -- by AXE Consultants.
-    --
-    -- You use this tool and/or its source code on the condition that you indemnify and hold harmless
-    -- AXE Consultants, its agents, and employees, from any and all liability
-    -- or damages to yourself or your hardware or software, or third parties,
-    -- including attorneys' fees, court costs, and other related costs and
-    -- expenses, arising out of your use of this tool and/or source code irrespective of the
-    -- cause of said liability.
+    -- ARM_Form is free software: you can redistribute it and/or modify
+    -- it under the terms of the GNU General Public License version 3
+    -- as published by the Free Software Foundation.
     --
     -- AXE CONSULTANTS MAKES THIS TOOL AND SOURCE CODE AVAILABLE ON AN "AS IS"
     -- BASIS AND MAKES NO WARRANTY, EXPRESS OR IMPLIED, AS TO THE ACCURACY,
@@ -38,6 +27,15 @@ package ARM_Corr is
     -- CONSEQUENTIAL, INDIRECT, INCIDENTAL, EXEMPLARY, OR SPECIAL DAMAGES,
     -- EVEN IF AXE CONSULTANTS HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
     -- DAMAGES.
+    --
+    -- A copy of the GNU General Public License is available in the file
+    -- gpl-3-0.txt in the standard distribution of the ARM_Form tool.
+    -- Otherwise, see <http://www.gnu.org/licenses/>.
+    --
+    -- If the GPLv3 license is not satisfactory for your needs, a commercial
+    -- use license is available for this tool. Contact Randy at AXE Consultants
+    -- for more information.
+    --
     -- ---------------------------------------
     --
     -- Edit History:
@@ -53,6 +51,12 @@ package ARM_Corr is
     --  9/25/06 - RLB - Added Last_Column_Width to Start_Table.
     -- 10/13/06 - RLB - Added Local_Link_Start and Local_Link_End to allow
     --			formatting in the linked text.
+    --  2/ 9/07 - RLB - Changed comments on AI_Reference.
+    --  2/13/07 - RLB - Revised to separate style and indent information
+    --			for paragraphs.
+    -- 12/19/07 - RLB - Added limited colors to Text_Format.
+    -- 10/18/11 - RLB - Changed to GPLv3 license.
+    -- 10/25/11 - RLB - Added old insertion version to Revised_Clause_Header.
 
     type Corr_Output_Type is new ARM_Output.Output_Type with private;
 
@@ -82,8 +86,9 @@ package ARM_Corr is
 	-- Raises Not_Valid_Error if in a paragraph.
 
     procedure Start_Paragraph (Output_Object : in out Corr_Output_Type;
-			       Format : in ARM_Output.Paragraph_Type;
-			       Number : in String;
+			       Style     : in ARM_Output.Paragraph_Style_Type;
+			       Indent    : in ARM_Output.Paragraph_Indent_Type;
+			       Number    : in String;
 			       No_Prefix : in Boolean := False;
 			       Tab_Stops : in ARM_Output.Tab_Info := ARM_Output.NO_TABS;
 			       No_Breaks : in Boolean := False;
@@ -92,12 +97,12 @@ package ARM_Corr is
 				   := ARM_Output.Normal;
 			       Justification : in ARM_Output.Justification_Type
 				   := ARM_Output.Default);
-	-- Start a new paragraph. The format of the paragraph is as specified.
-	-- The (AA)RM paragraph number (which might include update and version
-	-- numbers as well: [12.1/1]) is Number. If the format is a type with
-	-- a prefix (bullets, hangining items), the prefix is omitted if
-	-- No_Prefix is true. Tab_Stops defines the tab stops for the
-	-- paragraph. If No_Breaks is True, we will try to avoid page breaks
+	-- Start a new paragraph. The style and indent of the paragraph is as
+	-- specified. The (AA)RM paragraph number (which might include update
+	-- and version numbers as well: [12.1/1]) is Number. If the format is
+	-- a type with a prefix (bullets, hangining items), the prefix is
+	-- omitted if No_Prefix is true. Tab_Stops defines the tab stops for
+	-- the paragraph. If No_Breaks is True, we will try to avoid page breaks
 	-- in the paragraph. If Keep_with_Next is true, we will try to avoid
 	-- separating this paragraph and the next one. (These may have no
 	-- effect in formats that don't have page breaks). Space_After
@@ -134,12 +139,15 @@ package ARM_Corr is
 			     Level : in ARM_Contents.Level_Type;
 			     Clause_Number : in String;
 			     Version : in ARM_Contents.Change_Version_Type;
-			     No_Page_Break : in Boolean := False);
+			     Old_Version : in ARM_Contents.Change_Version_Type;
+        		     No_Page_Break : in Boolean := False);
 	-- Output a revised clause header. Both the original and new text will
 	-- be output. The level of the header is specified in Level. The Clause
 	-- Number is as specified.
 	-- These should appear in the table of contents.
 	-- For hyperlinked formats, this should generate a link target.
+	-- Version is the insertion version of the new text; Old_Version is
+	-- the insertion version of the old text.
 	-- If No_Page_Break is True, suppress any page breaks.
 	-- Raises Not_Valid_Error if in a paragraph.
 
@@ -261,25 +269,14 @@ package ARM_Corr is
 
     procedure End_Hang_Item (Output_Object : in out Corr_Output_Type);
 	-- Marks the end of a hanging item. Call only once per paragraph.
-	-- Raises Not_Valid_Error if the paragraph format is not
-	-- Hanging .. Small_Nested_Enumerated, or if this has already been
+	-- Raises Not_Valid_Error if the paragraph style is not in
+	-- Text_Prefixed_Style_Subtype, or if this has already been
 	-- called for the current paragraph, or if the paragraph was started
 	-- with No_Prefix = True.
 
     procedure Text_Format (Output_Object : in out Corr_Output_Type;
-			   Bold : in Boolean;
-			   Italic : in Boolean;
-			   Font : in ARM_Output.Font_Family_Type;
-			   Size : in ARM_Output.Size_Type;
-			   Change : in ARM_Output.Change_Type;
-			   Version : in ARM_Contents.Change_Version_Type := '0';
-			   Added_Version : in ARM_Contents.Change_Version_Type := '0';
-			   Location : in ARM_Output.Location_Type);
-	-- Change the text format so that Bold, Italics, the font family,
-	-- the text size, and the change state are as specified.
-	-- Added_Version is only used when the change state is "Both"; it's
-	-- the version of the insertion; Version is the version of the (newer)
-	-- deletion.
+			   Format : in ARM_Output.Format_Type);
+	-- Change the text format so that all of the properties are as specified.
 	-- Note: Changes to these properties ought be stack-like; that is,
 	-- Bold on, Italic on, Italic off, Bold off is OK; Bold on, Italic on,
 	-- Bold off, Italic off should be avoided (as separate commands).
@@ -321,7 +318,7 @@ package ARM_Corr is
 			    AI_Number : in String);
 	-- Generate a reference to an AI from the standard. The text
 	-- of the reference is "Text", and AI_Number denotes
-	-- the target (in folded format). For hyperlinked formats, this should
+	-- the target (in unfolded format). For hyperlinked formats, this should
 	-- generate a link; for other formats, the text alone is generated.
 
     procedure Local_Target (Output_Object : in out Corr_Output_Type;
@@ -407,7 +404,8 @@ private
 	Char_Count : Natural := 0; -- Characters on current line.
 	Out_Char_Count : Natural := 0; -- Characters output on current line.
 	Indent_Amount : Natural := 0; -- Amount to indent paragraphs.
-	Para_Format : ARM_Output.Paragraph_Type := ARM_Output.Normal;
+	Para_Style : ARM_Output.Paragraph_Style_Type := ARM_Output.Normal;
+	Para_Indent : ARM_Output.Paragraph_Indent_Type := 0; -- Specified indent.
 	Is_Fixed_Format : Boolean; -- Is the text currently in a fixed format? (@Xcode)
 	Is_Bold : Boolean; -- Is the text currently bold?
 	Is_Italic : Boolean; -- Is the text current italics?

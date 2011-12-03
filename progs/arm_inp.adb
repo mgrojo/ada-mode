@@ -4,31 +4,20 @@ with Ada.Text_IO,
 package body ARM_Input is
 
     --
-    -- Ada reference manual formatter.
+    -- Ada reference manual formatter (ARM_Form).
     --
     -- This package contains the abstract definition of reading an input file
     -- or other entity, and routines to lex the input entities.
     --
     -- ---------------------------------------
-    -- Copyright 2000, 2002, 2004, 2005  AXE Consultants.
+    -- Copyright 2000, 2002, 2004, 2005, 2011
+    --   AXE Consultants. All rights reserved.
     -- P.O. Box 1512, Madison WI  53701
     -- E-Mail: randy@rrsoftware.com
     --
-    -- AXE Consultants grants to all users the right to use/modify this
-    -- formatting tool for non-commercial purposes. (ISO/IEC JTC 1 SC 22 WG 9
-    -- activities are explicitly included as "non-commercial purposes".)
-    -- Commercial uses of this software and its source code, including but not
-    -- limited to documents for sale and sales of modified versions of this
-    -- tool, are prohibited without the prior written permission of
-    -- AXE Consultants. All rights not explicitly granted above are reserved
-    -- by AXE Consultants.
-    --
-    -- You use this tool and/or its source code on the condition that you indemnify and hold harmless
-    -- AXE Consultants, its agents, and employees, from any and all liability
-    -- or damages to yourself or your hardware or software, or third parties,
-    -- including attorneys' fees, court costs, and other related costs and
-    -- expenses, arising out of your use of this tool and/or source code irrespective of the
-    -- cause of said liability.
+    -- ARM_Form is free software: you can redistribute it and/or modify
+    -- it under the terms of the GNU General Public License version 3
+    -- as published by the Free Software Foundation.
     --
     -- AXE CONSULTANTS MAKES THIS TOOL AND SOURCE CODE AVAILABLE ON AN "AS IS"
     -- BASIS AND MAKES NO WARRANTY, EXPRESS OR IMPLIED, AS TO THE ACCURACY,
@@ -37,6 +26,15 @@ package body ARM_Input is
     -- CONSEQUENTIAL, INDIRECT, INCIDENTAL, EXEMPLARY, OR SPECIAL DAMAGES,
     -- EVEN IF AXE CONSULTANTS HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
     -- DAMAGES.
+    --
+    -- A copy of the GNU General Public License is available in the file
+    -- gpl-3-0.txt in the standard distribution of the ARM_Form tool.
+    -- Otherwise, see <http://www.gnu.org/licenses/>.
+    --
+    -- If the GPLv3 license is not satisfactory for your needs, a commercial
+    -- use license is available for this tool. Contact Randy at AXE Consultants
+    -- for more information.
+    --
     -- ---------------------------------------
     --
     -- Edit History:
@@ -47,6 +45,10 @@ package body ARM_Input is
     -- 12/06/04 - RLB - Expanded Check_One_of_Parameter_Names to take up to
     --			five names.
     --  1/26/05 - RLB - Fixed so that quoted parameters can be skipped.
+    --  8/16/11 - RLB - Added code so that looping operations stop when
+    --			the input is empty. (Otherwise, bad comments cause
+    --			an infinite loop.)
+    -- 10/18/11 - RLB - Changed to GPLv3 license.
 
     function Is_Open_Char (Open_Char : in Character) return Boolean is
 	-- Return True if character is a parameter opening character
@@ -155,6 +157,10 @@ package body ARM_Input is
 	    elsif Ch = Close_Char then
 	        exit when Start_Ch_Count = 0;
 	        Start_Ch_Count := Start_Ch_Count - 1;
+	    elsif Ch = Ascii.SUB then -- End of file, quit immediately.
+	        Ada.Text_IO.Put_Line ("  ** End of file when recording string on line " &
+			ARM_Input.Line_String (Input_Object));
+		exit;
 	    end if;
 	    if Len >= Buffer'Length then
 	        Ada.Text_IO.Put_Line ("  ** String buffer overflow on line " &
@@ -179,6 +185,8 @@ package body ARM_Input is
         Ch : Character;
         Start_Ch : Character;
         Start_Ch_Count : Natural := 0;
+	Start_Line : constant String := ARM_Input.Line_String (Input_Object);
+	    -- Save this in case of severe error.
     begin
 	if Close_Char = '"' then
 	    Start_Ch := Character'Val(128);
@@ -189,18 +197,32 @@ package body ARM_Input is
 	else
 	    Start_Ch := ARM_Input.Get_Open_Char (Close_Char);
 	end if;
+--Ada.Text_IO.Put_Line ("?? Skip: Start=" & Start_Ch & "; Close=" & Close_Char & " on line " &
+--   ARM_Input.Line_String (Input_Object));
         ARM_Input.Get_Char (Input_Object, Ch);
         loop
 	    if Ch = Start_Ch then
 	        -- In case an inner command uses the same
 	        -- start/end character.
 	        Start_Ch_Count := Start_Ch_Count + 1;
+--Ada.Text_IO.Put_Line ("?? Skip: Start found, cnt=" & Natural'Image(Start_Ch_Count) & " on line " &
+--   ARM_Input.Line_String (Input_Object));
 	    elsif Ch = Close_Char then
+--if Start_Ch_Count = 0 then
+--Ada.Text_IO.Put_Line ("?? Skip: Close found on line " &
+--   ARM_Input.Line_String (Input_Object));
+--end if;
 	        exit when Start_Ch_Count = 0;
 	        Start_Ch_Count := Start_Ch_Count - 1;
+--Ada.Text_IO.Put_Line ("?? Skip: Close found, cnt=" & Natural'Image(Start_Ch_Count) & " on line " &
+--   ARM_Input.Line_String (Input_Object));
+	    elsif Ch = Ascii.SUB then -- End of file, quit immediately.
+	        Ada.Text_IO.Put_Line ("  ** End of file when skipping to end, started on line " &
+			Start_Line);
+		exit;
 	    end if;
 	    -- Ignore everything until the end character
-	    -- turns up.
+	    -- turns up (or the end of file).
 	    ARM_Input.Get_Char (Input_Object, Ch);
         end loop;
     end Skip_until_Close_Char;

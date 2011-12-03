@@ -3,35 +3,25 @@ with ARM_Index;
 with ARM_Contents;
 with Ada.Characters.Handling;
 with Ada.Strings.Fixed;
-with Ada.Text_IO; -- ** Temp.
+with Ada.Unchecked_Deallocation;
+--with Ada.Text_IO; -- ** Temp.
 package body ARM_Subindex is
 
     --
-    -- Ada reference manual formatter.
+    -- Ada reference manual formatter (ARM_Form).
     --
     -- This package contains the database to store subindex items for
     -- non-normative appendixes.
     --
     -- ---------------------------------------
-    -- Copyright 2005, 2006  AXE Consultants.
+    -- Copyright 2005, 2006, 2007, 2011
+    --   AXE Consultants. All rights reserved.
     -- P.O. Box 1512, Madison WI  53701
     -- E-Mail: randy@rrsoftware.com
     --
-    -- AXE Consultants grants to all users the right to use/modify this
-    -- formatting tool for non-commercial purposes. (ISO/IEC JTC 1 SC 22 WG 9
-    -- activities are explicitly included as "non-commercial purposes".)
-    -- Commercial uses of this software and its source code, including but not
-    -- limited to documents for sale and sales of modified versions of this
-    -- tool, are prohibited without the prior written permission of
-    -- AXE Consultants. All rights not explicitly granted above are reserved
-    -- by AXE Consultants.
-    --
-    -- You use this tool and/or its source code on the condition that you indemnify and hold harmless
-    -- AXE Consultants, its agents, and employees, from any and all liability
-    -- or damages to yourself or your hardware or software, or third parties,
-    -- including attorneys' fees, court costs, and other related costs and
-    -- expenses, arising out of your use of this tool and/or source code irrespective of the
-    -- cause of said liability.
+    -- ARM_Form is free software: you can redistribute it and/or modify
+    -- it under the terms of the GNU General Public License version 3
+    -- as published by the Free Software Foundation.
     --
     -- AXE CONSULTANTS MAKES THIS TOOL AND SOURCE CODE AVAILABLE ON AN "AS IS"
     -- BASIS AND MAKES NO WARRANTY, EXPRESS OR IMPLIED, AS TO THE ACCURACY,
@@ -40,6 +30,15 @@ package body ARM_Subindex is
     -- CONSEQUENTIAL, INDIRECT, INCIDENTAL, EXEMPLARY, OR SPECIAL DAMAGES,
     -- EVEN IF AXE CONSULTANTS HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
     -- DAMAGES.
+    --
+    -- A copy of the GNU General Public License is available in the file
+    -- gpl-3-0.txt in the standard distribution of the ARM_Form tool.
+    -- Otherwise, see <http://www.gnu.org/licenses/>.
+    --
+    -- If the GPLv3 license is not satisfactory for your needs, a commercial
+    -- use license is available for this tool. Contact Randy at AXE Consultants
+    -- for more information.
+    --
     -- ---------------------------------------
     --
     -- Edit History:
@@ -47,6 +46,9 @@ package body ARM_Subindex is
     -- 10/28/05 - RLB - Created package.
     --  8/ 4/06 - RLB - Fixed problems if unit was missing.
     --  9/22/06 - RLB - Changed to use Clause_Number_Type.
+    --  2/13/07 - RLB - Changed Start_Paragraph to use explicit indents.
+    -- 12/19/07 - RLB - Revised Text_Format calls.
+    -- 10/18/11 - RLB - Changed to GPLv3 license.
 
     type String_Ptr is access String;
     type Item is record
@@ -411,12 +413,20 @@ package body ARM_Subindex is
 	procedure Italic_Text (Text : in String) is
 	begin
 	    ARM_Output.Text_Format (Output_Object,
-		   Bold => False, Italic => True, Font => ARM_Output.Default,
-		   Size => 0, Change => ARM_Output.None, Location => ARM_Output.Normal);
+		   Format => (Bold => False, Italic => True,
+			      Font => ARM_Output.Default,
+		   	      Size => 0, Color => ARM_Output.Default,
+			      Change => ARM_Output.None,
+			      Version | Added_Version => '0',
+			      Location => ARM_Output.Normal));
             ARM_Output.Ordinary_Text (Output_Object, Text);
 	    ARM_Output.Text_Format (Output_Object,
-		   Bold => False, Italic => False, Font => ARM_Output.Default,
-		   Size => 0, Change => ARM_Output.None, Location => ARM_Output.Normal);
+		   Format => (Bold => False, Italic => False,
+			      Font => ARM_Output.Default,
+		   	      Size => 0, Color => ARM_Output.Default,
+			      Change => ARM_Output.None,
+			      Version | Added_Version => '0',
+			      Location => ARM_Output.Normal));
 	end Italic_Text;
 
 
@@ -606,7 +616,8 @@ package body ARM_Subindex is
 	    Subindex_Object.List := null;
         end if;
 
-	ARM_Output.Start_Paragraph (Output_Object, ARM_Output.Index, Number => "", No_Breaks => True);
+	ARM_Output.Start_Paragraph (Output_Object, ARM_Output.Index,
+		Indent => 0, Number => "", No_Breaks => True);
 
 	Temp := Subindex_Object.List;
 	while Temp /= null loop
@@ -618,7 +629,8 @@ package body ARM_Subindex is
 		if Last /= null then
 		    ARM_Output.End_Paragraph (Output_Object);
 		    if Temp.Kind = Top_Level then
-		        ARM_Output.Start_Paragraph (Output_Object, ARM_Output.Index, Number => "",
+		        ARM_Output.Start_Paragraph (Output_Object, ARM_Output.Index,
+						    Indent => 0, Number => "",
 					            No_Breaks => True);
 			Keep_Set := False;
 --Ada.Text_IO.Put_Line("New Item: Entity=" & Temp.Entity.all &
@@ -628,14 +640,16 @@ package body ARM_Subindex is
 		          Temp.Kind = In_Unit and then
 		          Temp.Entity'Length + 4 + Temp.From_Unit'Length < CHARS_ON_SINGLE_LINE then
 			-- Write as a single line.
-		        ARM_Output.Start_Paragraph (Output_Object, ARM_Output.Index, Number => "",
+		        ARM_Output.Start_Paragraph (Output_Object, ARM_Output.Index,
+						    Indent => 0, Number => "",
 					            No_Breaks => True);
 			Keep_Set := False;
 --Ada.Text_IO.Put_Line("New Item: Entity=" & Temp.Entity.all &
 --" Kind=" & Subindex_Item_Kind_Type'Image(Temp.Kind) &
 --" From_Unit=" & Temp.From_Unit.all & " Keep_Set=" & Boolean'Image(Keep_Set));
 		    else -- The item has at least two lines; keep them together.
-		        ARM_Output.Start_Paragraph (Output_Object, ARM_Output.Index, Number => "",
+		        ARM_Output.Start_Paragraph (Output_Object, ARM_Output.Index,
+						    Indent => 0, Number => "",
 					            No_Breaks => True, Keep_with_Next => True);
 			Keep_Set := True;
 --Ada.Text_IO.Put_Line("New Item: Entity=" & Temp.Entity.all &

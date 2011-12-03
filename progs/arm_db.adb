@@ -5,31 +5,20 @@ with Ada.Unchecked_Deallocation,
 package body ARM_Database is
 
     --
-    -- Ada reference manual formatter.
+    -- Ada reference manual formatter (ARM_Form).
     --
     -- This package contains the database to store items for non-normative
     -- appendixes.
     --
     -- ---------------------------------------
-    -- Copyright 2000, 2004, 2005, 2006  AXE Consultants.
+    -- Copyright 2000, 2004, 2005, 2006, 2009, 2011
+    --   AXE Consultants. All rights reserved.
     -- P.O. Box 1512, Madison WI  53701
     -- E-Mail: randy@rrsoftware.com
     --
-    -- AXE Consultants grants to all users the right to use/modify this
-    -- formatting tool for non-commercial purposes. (ISO/IEC JTC 1 SC 22 WG 9
-    -- activities are explicitly included as "non-commercial purposes".)
-    -- Commercial uses of this software and its source code, including but not
-    -- limited to documents for sale and sales of modified versions of this
-    -- tool, are prohibited without the prior written permission of
-    -- AXE Consultants. All rights not explicitly granted above are reserved
-    -- by AXE Consultants.
-    --
-    -- You use this tool and/or its source code on the condition that you indemnify and hold harmless
-    -- AXE Consultants, its agents, and employees, from any and all liability
-    -- or damages to yourself or your hardware or software, or third parties,
-    -- including attorneys' fees, court costs, and other related costs and
-    -- expenses, arising out of your use of this tool and/or source code irrespective of the
-    -- cause of said liability.
+    -- ARM_Form is free software: you can redistribute it and/or modify
+    -- it under the terms of the GNU General Public License version 3
+    -- as published by the Free Software Foundation.
     --
     -- AXE CONSULTANTS MAKES THIS TOOL AND SOURCE CODE AVAILABLE ON AN "AS IS"
     -- BASIS AND MAKES NO WARRANTY, EXPRESS OR IMPLIED, AS TO THE ACCURACY,
@@ -38,6 +27,15 @@ package body ARM_Database is
     -- CONSEQUENTIAL, INDIRECT, INCIDENTAL, EXEMPLARY, OR SPECIAL DAMAGES,
     -- EVEN IF AXE CONSULTANTS HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
     -- DAMAGES.
+    --
+    -- A copy of the GNU General Public License is available in the file
+    -- gpl-3-0.txt in the standard distribution of the ARM_Form tool.
+    -- Otherwise, see <http://www.gnu.org/licenses/>.
+    --
+    -- If the GPLv3 license is not satisfactory for your needs, a commercial
+    -- use license is available for this tool. Contact Randy at AXE Consultants
+    -- for more information.
+    --
     -- ---------------------------------------
     --
     -- Edit History:
@@ -51,16 +49,21 @@ package body ARM_Database is
     --  1/19/05 - RLB - Added Added_Version.
     -- 10/17/05 - RLB - Fixed indexing of the Glossary.
     -- 10/18/06 - RLB - Added No_Deleted_Paragraph_Messages to Report.
+    -- 11/30/09 - RLB - Made the hang item bigger again (to make room to
+    --			handle commands like @ChgAdded).
+    -- 10/18/11 - RLB - Changed to GPLv3 license.
+    -- 10/20/11 - RLB - Added Initial_Version parameter.
 
     type String_Ptr is access String;
     type Item is record
 	Next : Item_List;
 	Sort_Key : String(1 .. 50);
-	Hang : String(1 .. 50);
+	Hang : String(1 .. 75);
 	Hang_Len : Natural;
 	Text : String_Ptr;
 	Change_Kind : Paragraph_Change_Kind_Type;
 	Version : Character;
+	Initial_Version : Character;
     end record;
 
     procedure Free is new Ada.Unchecked_Deallocation (Item, Item_List);
@@ -97,13 +100,15 @@ package body ARM_Database is
 		      Hang_Item : in String;
 		      Text : in String;
 		      Change_Kind : in Paragraph_Change_Kind_Type := ARM_Database.None;
-		      Version : in Character := '0') is
+		      Version : in Character := '0';
+		      Initial_Version : in Character := '0') is
 	-- Insert an item into the database object.
 	-- Sort_Key is the string on which this item will be sorted (if it
 	-- is sorted). Hang_Item is the item which hangs out for the item
 	-- in the report (if any). Text is the text for the item; the text
 	-- may include formatting codes. Change_Kind and Version are the
-	-- revision status for this item.
+	-- revision status for this item. Initial_Version is the version of
+	-- the initial text for this item.
 	Temp_Item : Item;
     begin
 	if not Database_Object.Is_Valid then
@@ -123,6 +128,7 @@ package body ARM_Database is
 	Temp_Item.Text := new String'(Text);
 	Temp_Item.Change_Kind := Change_Kind;
 	Temp_Item.Version := Version;
+	Temp_Item.Initial_Version := Initial_Version;
 	Temp_Item.Next := Database_Object.List;
         Database_Object.List := new Item'(Temp_Item);
 	Database_Object.Item_Count := Database_Object.Item_Count + 1;
@@ -153,49 +159,54 @@ package body ARM_Database is
 
 	function Change_if_Needed (Item : in Item_List) return String is
 	begin
+	    -- Note: In the report, we always decide inserted/not inserted
+	    -- determined by the initial version number, and not the
+	    -- original class.
 	    case Item.Change_Kind is
 		when None => return "";
 		when Inserted | Inserted_Normal_Number =>
-		    if Item.Version <= Added_Version then
+		    if Item.Initial_Version <= Added_Version then
 		        return "@ChgRef{Version=[" & Item.Version &
 			    "],Kind=[AddedNormal]}";
 		    else
 		        return "@ChgRef{Version=[" & Item.Version &
 			    "],Kind=[Added]}";
 		    end if;
-		    -- Note: In the report, we always use the insert determined
-		    -- by the version number, and not the original class.
-		when Revised =>
-		    return "@ChgRef{Version=[" & Item.Version &
-			"],Kind=[Revised]}";
-		when Revised_Inserted_Number =>
-		    -- Previously inserted.
-		    return "@ChgRef{Version=[" & Item.Version &
-			"],Kind=[RevisedInserted]}";
-		when Deleted =>
-		    if No_Deleted_Paragraph_Messages then
+		when Revised | Revised_Inserted_Number =>
+		    if Item.Initial_Version <= Added_Version then
 		        return "@ChgRef{Version=[" & Item.Version &
-			    "],Kind=[DeletedNoDelMsg]}";
+			    "],Kind=[Revised]}";
 		    else
 		        return "@ChgRef{Version=[" & Item.Version &
-			    "],Kind=[Deleted]}";
+			    "],Kind=[RevisedAdded]}";
 		    end if;
-		when Deleted_Inserted_Number =>
-		    -- Previously inserted.
-		    if No_Deleted_Paragraph_Messages then
+		when Deleted | Deleted_Inserted_Number =>
+		    if Item.Initial_Version <= Added_Version then
+		        if No_Deleted_Paragraph_Messages then
+		            return "@ChgRef{Version=[" & Item.Version &
+			        "],Kind=[DeletedNoDelMsg]}";
+		        else
+		            return "@ChgRef{Version=[" & Item.Version &
+			        "],Kind=[Deleted]}";
+		        end if;
+		    else
+		        if No_Deleted_Paragraph_Messages then
+		            return "@ChgRef{Version=[" & Item.Version &
+			        "],Kind=[DeletedAddedNoDelMsg]}";
+		        else
+		            return "@ChgRef{Version=[" & Item.Version &
+			        "],Kind=[DeletedAdded]}";
+		        end if;
+		    end if;
+		when Deleted_No_Delete_Message |
+		     Deleted_Inserted_Number_No_Delete_Message =>
+		    if Item.Initial_Version <= Added_Version then
 		        return "@ChgRef{Version=[" & Item.Version &
-			    "],Kind=[DeletedInsertedNoDelMsg]}";
+		            "],Kind=[DeletedNoDelMsg]}";
 		    else
 		        return "@ChgRef{Version=[" & Item.Version &
-			    "],Kind=[DeletedInserted]}";
+			    "],Kind=[DeletedAddedNoDelMsg]}";
 		    end if;
-		when Deleted_No_Delete_Message =>
-		    return "@ChgRef{Version=[" & Item.Version &
-		        "],Kind=[DeletedNoDelMsg]}";
-		when Deleted_Inserted_Number_No_Delete_Message =>
-		    -- Previously inserted.
-		    return "@ChgRef{Version=[" & Item.Version &
-			"],Kind=[DeletedInsertedNoDelMsg]}";
 	    end case;
 	end Change_if_Needed;
 

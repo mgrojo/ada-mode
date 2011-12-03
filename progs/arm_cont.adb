@@ -3,31 +3,20 @@ with Ada.Characters.Handling;
 package body ARM_Contents is
 
     --
-    -- Ada reference manual formatter.
+    -- Ada reference manual formatter (ARM_Form).
     --
     -- This package contains the routines to manage section/clause/subclause
     -- references.
     --
     -- ---------------------------------------
-    -- Copyright 2000, 2004, 2005, 2006  AXE Consultants.
+    -- Copyright 2000, 2004, 2005, 2006, 2007, 2008, 2009, 2011
+    --   AXE Consultants. All rights reserved.
     -- P.O. Box 1512, Madison WI  53701
-    -- E-Mail: rbrukardt@bix.com
+    -- E-Mail: randy@rrsoftware.com
     --
-    -- AXE Consultants grants to all users the right to use/modify this
-    -- formatting tool for non-commercial purposes. (ISO/IEC JTC 1 SC 22 WG 9
-    -- activities are explicitly included as "non-commercial purposes".)
-    -- Commercial uses of this software and its source code, including but not
-    -- limited to documents for sale and sales of modified versions of this
-    -- tool, are prohibited without the prior written permission of
-    -- AXE Consultants. All rights not explicitly granted above are reserved
-    -- by AXE Consultants.
-    --
-    -- You use this tool and/or its source code on the condition that you indemnify and hold harmless
-    -- AXE Consultants, its agents, and employees, from any and all liability
-    -- or damages to yourself or your hardware or software, or third parties,
-    -- including attorneys' fees, court costs, and other related costs and
-    -- expenses, arising out of your use of this tool and/or source code irrespective of the
-    -- cause of said liability.
+    -- ARM_Form is free software: you can redistribute it and/or modify
+    -- it under the terms of the GNU General Public License version 3
+    -- as published by the Free Software Foundation.
     --
     -- AXE CONSULTANTS MAKES THIS TOOL AND SOURCE CODE AVAILABLE ON AN "AS IS"
     -- BASIS AND MAKES NO WARRANTY, EXPRESS OR IMPLIED, AS TO THE ACCURACY,
@@ -36,6 +25,15 @@ package body ARM_Contents is
     -- CONSEQUENTIAL, INDIRECT, INCIDENTAL, EXEMPLARY, OR SPECIAL DAMAGES,
     -- EVEN IF AXE CONSULTANTS HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
     -- DAMAGES.
+    --
+    -- A copy of the GNU General Public License is available in the file
+    -- gpl-3-0.txt in the standard distribution of the ARM_Form tool.
+    -- Otherwise, see <http://www.gnu.org/licenses/>.
+    --
+    -- If the GPLv3 license is not satisfactory for your needs, a commercial
+    -- use license is available for this tool. Contact Randy at AXE Consultants
+    -- for more information.
+    --
     -- ---------------------------------------
     --
     -- Edit History:
@@ -49,6 +47,13 @@ package body ARM_Contents is
     --  2/ 2/05 - RLB - Allowed more old titles.
     --  1/16/06 - RLB - Added debugging.
     --  9/22/06 - RLB - Created type Clause_Number_Type and added SubSubClause.
+    -- 10/12/07 - RLB - Extended the range of properly formatted clause numbers.
+    -- 12/18/07 - RLB - Added Plain_Annex.
+    -- 10/24/08 - RLB - More old titles.
+    --  5/07/09 - RLB - Added Dead_Clause.
+    -- 10/18/11 - RLB - Changed to GPLv3 license.
+    -- 10/19/11 - RLB - Added Parent_Clause from Stephen Leake's version.
+    -- 10/25/11 - RLB - Added version to Old name strings.
 
     function "<" (Left, Right : Clause_Number_Type) return Boolean is
 	-- True if Left comes before Right in the collating order.
@@ -101,10 +106,10 @@ package body ARM_Contents is
         Version : ARM_Contents.Change_Version_Type := '0';
     end record;
 
-    Title_List : array (1 .. 750) of Title_Record;
+    Title_List : array (1 .. 900) of Title_Record;
     Last_Title : Natural;
 
-    Old_Title_List : array (1 .. 100) of Title_Record;
+    Old_Title_List : array (1 .. 300) of Title_Record;
     Last_Old_Title : Natural;
 
     procedure Initialize is
@@ -129,7 +134,8 @@ package body ARM_Contents is
 	    raise Program_Error;
 	end if;
 	if (Level /= Subsubclause and then Level /= Subclause and then
-	    Level /= Clause and then Level /= Unnumbered_Section) and then
+	    Level /= Clause and then Level /= Unnumbered_Section and then
+	    Level /= Dead_Clause) and then
 	   Clause_Number.Clause /= 0 then
 	    raise Program_Error;
 	end if;
@@ -150,9 +156,11 @@ package body ARM_Contents is
 
     procedure Add_Old (Old_Title : in Title_Type;
 		       Level : in Level_Type;
-		       Clause_Number : in Clause_Number_Type) is
+		       Clause_Number : in Clause_Number_Type;
+                       Version : in ARM_Contents.Change_Version_Type := '0') is
 	-- Add an old title for a section or clause to the contents. It has
-	-- the specified characteristics.
+	-- the specified characteristics; the version is the version for which
+	-- it first was present in the document.
     begin
 	if Level /= Subsubclause and then Clause_Number.Subsubclause /= 0 then
 	    raise Program_Error;
@@ -162,7 +170,8 @@ package body ARM_Contents is
 	    raise Program_Error;
 	end if;
 	if (Level /= Subsubclause and then Level /= Subclause and then
-	    Level /= Clause and then Level /= Unnumbered_Section) and then
+	    Level /= Clause and then Level /= Unnumbered_Section and then
+	    Level /= Dead_Clause) and then
 	   Clause_Number.Clause /= 0 then
 	    raise Program_Error;
 	end if;
@@ -172,7 +181,7 @@ package body ARM_Contents is
 	     Search_Title => Ada.Characters.Handling.To_Lower (Old_Title),
 	     Level => Level,
 	     Clause_Number => Clause_Number,
-             Version => '0');
+             Version => Version);
 --Ada.Text_IO.Put_Line ("  Add_Old " & Old_Title &
 -- " Index=" & Natural'Image(Last_Old_Title) & " Level=" & Level_Type'Image(Level));
 --Ada.Text_IO.Put_Line ("    Section" & Section_Number_Type'Image(Section_Number) &
@@ -186,7 +195,7 @@ package body ARM_Contents is
 	-- Returns a properly formatted Section or clause number reference.
     begin
 	case Level is
-	    when Normative_Annex | Informative_Annex =>
+	    when Plain_Annex | Normative_Annex | Informative_Annex =>
 		if Clause_Number.Clause /= 0 or else Clause_Number.Subclause /= 0 or else
 		   Clause_Number.Subsubclause /= 0 or else Clause_Number.Section <= 30 then
 		    raise Program_Error; -- Illegal numbers.
@@ -237,9 +246,14 @@ package body ARM_Contents is
 		    elsif Clause_Number.Clause < 40 then
 		        return Character'Val (Character'Pos('0') + Clause_Number.Section) &
 		            ".3" & Character'Val (Character'Pos('0') + Clause_Number.Clause - 30);
-		    else
+		    elsif Clause_Number.Clause < 50 then
 		        return Character'Val (Character'Pos('0') + Clause_Number.Section) &
 		            ".4" & Character'Val (Character'Pos('0') + Clause_Number.Clause - 40);
+		    elsif Clause_Number.Clause < 60 then
+		        return Character'Val (Character'Pos('0') + Clause_Number.Section) &
+		            ".5" & Character'Val (Character'Pos('0') + Clause_Number.Clause - 50);
+		    else
+			raise Program_Error; -- Out of range.
 		    end if;
 		elsif Clause_Number.Section < 20 then
 		    if Clause_Number.Clause < 10 then
@@ -254,9 +268,14 @@ package body ARM_Contents is
 		    elsif Clause_Number.Clause < 40 then
 		        return "1" & Character'Val (Character'Pos('0') + Clause_Number.Section - 10) &
 		            ".3" & Character'Val (Character'Pos('0') + Clause_Number.Clause - 30);
-		    else
+		    elsif Clause_Number.Clause < 50 then
 		        return "1" & Character'Val (Character'Pos('0') + Clause_Number.Section - 10) &
 		            ".4" & Character'Val (Character'Pos('0') + Clause_Number.Clause - 40);
+		    elsif Clause_Number.Clause < 60 then
+		        return "1" & Character'Val (Character'Pos('0') + Clause_Number.Section - 10) &
+		            ".5" & Character'Val (Character'Pos('0') + Clause_Number.Clause - 50);
+		    else
+			raise Program_Error; -- Out of range.
 		    end if;
 		elsif Clause_Number.Section < 30 then
 		    if Clause_Number.Clause < 10 then
@@ -271,9 +290,14 @@ package body ARM_Contents is
 		    elsif Clause_Number.Clause < 40 then
 		        return "2" & Character'Val (Character'Pos('0') + Clause_Number.Section - 20) &
 		            ".3" & Character'Val (Character'Pos('0') + Clause_Number.Clause - 30);
-		    else
+		    elsif Clause_Number.Clause < 50 then
 		        return "2" & Character'Val (Character'Pos('0') + Clause_Number.Section - 20) &
 		            ".4" & Character'Val (Character'Pos('0') + Clause_Number.Clause - 40);
+		    elsif Clause_Number.Clause < 60 then
+		        return "2" & Character'Val (Character'Pos('0') + Clause_Number.Section - 20) &
+		            ".5" & Character'Val (Character'Pos('0') + Clause_Number.Clause - 50);
+		    else
+			raise Program_Error; -- Out of range.
 		    end if;
 		elsif Clause_Number.Section = 30 then
 		    if Clause_Number.Clause < 10 then
@@ -284,8 +308,12 @@ package body ARM_Contents is
 		        return "30.2" & Character'Val (Character'Pos('0') + Clause_Number.Clause - 20);
 		    elsif Clause_Number.Clause < 40 then
 		        return "30.3" & Character'Val (Character'Pos('0') + Clause_Number.Clause - 30);
-		    else
+		    elsif Clause_Number.Clause < 50 then
 		        return "30.4" & Character'Val (Character'Pos('0') + Clause_Number.Clause - 40);
+		    elsif Clause_Number.Clause < 60 then
+		        return "30.5" & Character'Val (Character'Pos('0') + Clause_Number.Clause - 50);
+		    else
+			raise Program_Error; -- Out of range.
 		    end if;
 		else
 		    if Clause_Number.Clause < 10 then
@@ -300,9 +328,14 @@ package body ARM_Contents is
 		    elsif Clause_Number.Clause < 40 then
 			return Character'Val (Character'Pos('A') + (Clause_Number.Section - ANNEX_START)) &
 		            ".3" & Character'Val (Character'Pos('0') + Clause_Number.Clause - 30);
-		    else
+		    elsif Clause_Number.Clause < 50 then
 			return Character'Val (Character'Pos('A') + (Clause_Number.Section - ANNEX_START)) &
 		            ".4" & Character'Val (Character'Pos('0') + Clause_Number.Clause - 40);
+		    elsif Clause_Number.Clause < 60 then
+			return Character'Val (Character'Pos('A') + (Clause_Number.Section - ANNEX_START)) &
+		            ".4" & Character'Val (Character'Pos('0') + Clause_Number.Clause - 50);
+		    else
+			raise Program_Error; -- Out of range.
 		    end if;
 		end if;
 	    when Subclause =>
@@ -315,9 +348,14 @@ package body ARM_Contents is
 		elsif Clause_Number.Subclause < 30 then
 		    return Make_Clause_Number (Clause, (Clause_Number.Section, Clause_Number.Clause, 0, 0)) &
 		        ".2" & Character'Val (Character'Pos('0') + Clause_Number.Subclause - 20);
-		else
+		elsif Clause_Number.Subclause < 40 then
 		    return Make_Clause_Number (Clause, (Clause_Number.Section, Clause_Number.Clause, 0, 0)) &
 		        ".3" & Character'Val (Character'Pos('0') + Clause_Number.Subclause - 30);
+		elsif Clause_Number.Subclause < 50 then
+		    return Make_Clause_Number (Clause, (Clause_Number.Section, Clause_Number.Clause, 0, 0)) &
+		        ".4" & Character'Val (Character'Pos('0') + Clause_Number.Subclause - 40);
+	        else
+		    raise Program_Error; -- Out of range.
 		end if;
 	    when Subsubclause =>
 		if Clause_Number.Subsubclause < 10 then
@@ -329,10 +367,17 @@ package body ARM_Contents is
 		elsif Clause_Number.Subclause < 30 then
 		    return Make_Clause_Number (Subclause, (Clause_Number.Section, Clause_Number.Clause, Clause_Number.Subclause, 0)) &
 		        ".2" & Character'Val (Character'Pos('0') + Clause_Number.Subsubclause - 20);
-		else
+		elsif Clause_Number.Subclause < 40 then
 		    return Make_Clause_Number (Subclause, (Clause_Number.Section, Clause_Number.Clause, Clause_Number.Subclause, 0)) &
 		        ".3" & Character'Val (Character'Pos('0') + Clause_Number.Subsubclause - 30);
+		elsif Clause_Number.Subclause < 50 then
+		    return Make_Clause_Number (Subclause, (Clause_Number.Section, Clause_Number.Clause, Clause_Number.Subclause, 0)) &
+		        ".4" & Character'Val (Character'Pos('0') + Clause_Number.Subsubclause - 40);
+	        else
+		    raise Program_Error; -- Out of range.
 		end if;
+	    when Dead_Clause =>
+		return "X.X";
 	end case;
     end Make_Clause_Number;
 
@@ -501,12 +546,15 @@ package body ARM_Contents is
 	Make_Clause (Clause, Clause_Number);
 	for I in 1 .. Last_Title loop
 	    if Title_List(I).Clause_Number = Clause_Number then
-		if I = 1 then
-		    raise Not_Found_Error;
-		else
-		    return Make_Clause_Number (Title_List(I-1).Level,
-					       Title_List(I-1).Clause_Number);
-	        end if;
+		for J in reverse 1 .. I - 1 loop
+		    if Title_List(J).Level /= Dead_Clause then
+		        return Make_Clause_Number (Title_List(J).Level,
+					           Title_List(J).Clause_Number);
+		    -- else skip it and continue.
+		    end if;
+		end loop;
+		-- If we get here, it was not found.
+		raise Not_Found_Error;
 	    end if;
 	end loop;
 	raise Not_Found_Error;
@@ -522,30 +570,72 @@ package body ARM_Contents is
 	Make_Clause (Clause, Clause_Number);
 	for I in 1 .. Last_Title loop
 	    if Title_List(I).Clause_Number = Clause_Number then
-		if I = Last_Title then
-		    raise Not_Found_Error;
-		else
-		    return Make_Clause_Number (Title_List(I+1).Level,
-					       Title_List(I+1).Clause_Number);
-	        end if;
+		for J in I + 1 .. Last_Title loop
+		    if Title_List(J).Level /= Dead_Clause then
+		        return Make_Clause_Number (Title_List(J).Level,
+					           Title_List(J).Clause_Number);
+		    -- else skip it and continue.
+		    end if;
+		end loop;
+		-- If we get here, it was not found.
+		raise Not_Found_Error;
 	    end if;
 	end loop;
 	raise Not_Found_Error;
     end Next_Clause;
 
 
+    function Parent_Clause (Clause : in String) return String is
+        -- Returns the string of the parent clause (in the table of contents)
+        -- for the properly formatted clause string Clause.
+        --
+        -- Result is a null string if Clause is a top level clause;
+        -- Section, Unnumbered_Section, Normative_Annex,
+        -- Informative_Annex, Plain_Annex.
+        Clause_Number : Clause_Number_Type;
+    begin
+	Make_Clause (Clause, Clause_Number);
+
+	if Clause_Number.Clause = 0 then
+	   -- Clause is a section; no parent
+	   return "";
+
+	elsif Clause_Number.Subclause = 0 then
+	   -- Clause is a clause; parent is Section or Annex
+	   if Clause_Number.Section >= ANNEX_START then
+	      return Make_Clause_Number (Normative_Annex, (Clause_Number.Section, 0, 0, 0));
+	   else
+	      return Make_Clause_Number (Section, (Clause_Number.Section, 0, 0, 0));
+	   end if;
+
+	elsif Clause_Number.Subsubclause = 0 then
+	   -- Clause is a subclause; clause is parent
+	   return Make_Clause_Number (ARM_Contents.Clause, (Clause_Number.Section, Clause_Number.Clause, 0, 0));
+
+	else
+	   -- Clause is a subsubclause; subclause is parent
+	   return Make_Clause_Number
+	     (Subclause, (Clause_Number.Section, Clause_Number.Clause, Clause_Number.Subclause, 0));
+	end if;
+    end Parent_Clause;
+
+
     procedure For_Each is
 	-- Call Operate for each title in the contents, in the order that
-	-- they were added to the contents. If the Quit parameter to Operate
-	-- is True when Operate returns, the iteration is abandoned.
+	-- they were added to the contents (other than dead clauses). If the
+	-- Quit parameter to Operate is True when Operate returns, the
+	-- iteration is abandoned.
 	Quit : Boolean := False;
     begin
 	for I in 1 .. Last_Title loop
-	    Operate (Title_List(I).Title,
-		     Title_List(I).Level,
-		     Title_List(I).Clause_Number,
-		     Title_List(I).Version,
-		     Quit);
+	    if Title_List(I).Level /= Dead_Clause then
+	        Operate (Title_List(I).Title,
+		         Title_List(I).Level,
+		         Title_List(I).Clause_Number,
+		         Title_List(I).Version,
+		         Quit);
+	    -- else skip it.
+	    end if;
 	    if Quit then
 		return;
 	    end if;
