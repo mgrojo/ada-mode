@@ -1,8 +1,8 @@
-@comment{ $Source: d:\\CvsRoot/ARM/Source/PRE_MATH.MSS,v $ }
-@comment{ $Revision: 1.37 $ $Date: 2006/02/16 06:49:06 $ $Author: Randy $ }
+@comment{ $Source: e:\\cvsroot/ARM/Source/pre_math.mss,v $ }
+@comment{ $Revision: 1.40 $ $Date: 2011/10/21 06:41:25 $ $Author: randy $ }
 @Part(predefmath, Root="ada.mss")
 
-@Comment{$Date: 2006/02/16 06:49:06 $}
+@Comment{$Date: 2011/10/21 06:41:25 $}
 
 @LabeledClause{The Numerics Packages}
 
@@ -474,8 +474,9 @@ sequences (for debugging) to unique sequences in each execution of a program.
 @end{Example}
 
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00360-01]}
-@ChgAdded{Version=[2],Text=[The type Generator needs finalization
-(see @RefSecNum{User-Defined Assignment and Finalization}).]}
+@ChgAdded{Version=[2],Text=[The type Generator
+needs finalization@PDefn2{Term=<needs finalization>,Sec=<language-defined type>}
+(see @RefSecNum{Assignment and Finalization}).]}
 
 The generic library package Numerics.Discrete_Random has the following
 declaration:
@@ -556,8 +557,9 @@ cannot be declared pure.
 @end{ImplNote}
 
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00360-01]}
-@ChgAdded{Version=[2],Text=[The type Generator needs finalization
-(see @RefSecNum{User-Defined Assignment and Finalization})
+@ChgAdded{Version=[2],Text=[The type Generator
+needs finalization@PDefn2{Term=<needs finalization>,Sec=<language-defined type>}
+(see @RefSecNum{Assignment and Finalization})
 in every instantiation of Numerics.Discrete_Random.]}
 
 An object of the limited private type Generator is associated with a sequence
@@ -596,7 +598,8 @@ Float having a range of
 The result of the function in an
 instantiation of Numerics.Discrete_Random is delivered as a value of the
 generic formal subtype Result_Subtype.
-@ChgImplDef{Version=[2],Kind=[Deleted],Text=[@ChgDeleted{Version=[2],Text=[The
+@ChgImplDef{Version=[2],Kind=[Deleted],InitialVersion=[0],
+Text=[@ChgDeleted{Version=[2],Text=[The
 algorithms for random number generation.]}]}
 @begin{Discussion}
   @ChgRef{Version=[2],Kind=[Added]}
@@ -711,7 +714,8 @@ The implementation also shall document the minimum time interval between calls
 to the time-dependent Reset procedure that are guaranteed to initiate
 different sequences, and it shall document the nature of the strings that
 Value will accept without raising Constraint_Error.
-@ChgImplDef{Version=[2],Kind=[Deleted],Text=[@ChgDeleted{Version=[2],Text=[The
+@ChgImplDef{Version=[2],Kind=[Deleted],InitialVersion=[0],
+Text=[@ChgDeleted{Version=[2],Text=[The
 minimum time interval between
 calls to the time-dependent Reset procedure that are guaranteed to initiate
 different random number sequences.]}]}

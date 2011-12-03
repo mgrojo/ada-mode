@@ -1,10 +1,10 @@
 @Part(09, Root="ada.mss")
 
-@Comment{$Date: 2006/11/09 06:29:48 $}
+@Comment{$Date: 2011/11/01 23:14:14 $}
 @LabeledSection{Tasks and Synchronization}
 
-@Comment{$Source: d:\\CvsRoot/ARM/Source/09.MSS,v $}
-@Comment{$Revision: 1.84 $}
+@Comment{$Source: e:\\cvsroot/ARM/Source/09.mss,v $}
+@Comment{$Revision: 1.111 $}
 
 @begin{Intro}
 
@@ -89,12 +89,14 @@ of some task interaction) or @i(ready) to run.
 While ready, a task competes for the available
 @i(execution resources) that it requires to run.
 @begin(Discussion)
+  @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1]}
   @Defn{task dispatching policy}
   @Defn{dispatching policy for tasks}
   The means for selecting which of the ready tasks to run,
   given the currently available execution resources, is determined by the
   @i(task dispatching policy) in effect, which is generally
-  implementation defined, but may be controlled by pragmas
+  implementation defined, but may be controlled by
+  @Chg{Version=[3],New=[aspects, ],Old=[]}pragmas@Chg{Version=[3],New=[, ],Old=[]}
   and operations defined in the Real-Time Annex
   (see @RefSecNum(Priority Scheduling) and @RefSecNum(Dynamic Priorities)).
 @end(Discussion)
@@ -136,14 +138,18 @@ a named task object of that type.
 
 @begin{Syntax}
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00345-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0183-1]}
 @Syn{lhs=<task_type_declaration>,rhs="
-   @key{task} @key{type} @Syn2{defining_identifier} [@Syn2{known_discriminant_part}] [@key{is}@Chg{Version=[2],New=<
+   @key{task} @key{type} @Syn2{defining_identifier} [@Syn2{known_discriminant_part}]@Chg{Version=[3],New=<
+        [@Syn2{aspect_specification}]>,Old=[]} [@key{is}@Chg{Version=[2],New=<
      [@key{new} @Syn2{interface_list} @key{with}]
     >,Old=<>} @Syn2{task_definition}];"}
 
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00399-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0183-1]}
 @Syn{lhs=<single_task_declaration>,rhs="
-   @key{task} @Syn2{defining_identifier} [@key{is}@Chg{Version=[2],New=<
+   @key{task} @Syn2{defining_identifier} @Chg{Version=[3],New=<
+        [@Syn2{aspect_specification}]>,Old=[]}[@key{is}@Chg{Version=[2],New=<
      [@key{new} @Syn2{interface_list} @key{with}]
     >,Old=<>} @Syn2{task_definition}];"}
 
@@ -206,6 +212,7 @@ Private part is defined in Section 8.
 @nt{task_definition} without @nt{task_item}s is assumed.]}
 
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00345-01],ARef=[AI95-00397-01],ARef=[AI95-00399-01],ARef=[AI95-00419-01]}
+@ChgRef{Version=[3],Kind=[RevisedAdded],ARef=[AI05-0042-1]}
 @ChgAdded{Version=[2],Text=[For a task declaration
 with an @nt{interface_list}, the task type
 inherits user-defined primitive subprograms from each progenitor
@@ -217,13 +224,28 @@ parameter designating the task type, and there is an @nt{entry_declaration} for
 a single entry with the same identifier within the task declaration,
 whose profile is type conformant with the
 prefixed view profile of the inherited subprogram, the inherited subprogram is
-said to be @i{implemented} by the conforming task entry.@PDefn2{Term=[implemented],
+said to be @i{implemented} by the conforming task entry@Chg{Version=[3],
+New=[ using an implicitly declared non-abstract subprogram which
+has the same profile as the inherited subprogram and which
+overrides it@PDefn2{Term=[override],Sec=[when implemented by]}],
+Old=[]}.@PDefn2{Term=[implemented],
 Sec=[by a task entry]}@Defn2{Term=[type conformance],Sec=(required)}]}
 @begin{Ramification}
   @ChgRef{Version=[2],Kind=[AddedNormal]}
   @ChgAdded{Version=[2],Text=[The inherited subprograms can only come from an
   interface given as part of the task declaration.]}
 @end{Ramification}
+@begin{Reason}
+  @ChgRef{Version=[3],Kind=[Added],Aref=[AI05-0042-1]}
+  @ChgAdded{Version=[3],Text=[The part about the implicitly declared
+  subprogram is needed so that a subprogram implemented by an entry is
+  considered to be overridden for the purpose of the other rules of the
+  language. Without it, it would for instance be illegal for an abstract
+  subprogram to be implemented by an entry, because the abstract subprogram
+  would not be overridden. The @LegalityTitle below
+  ensure that there is no conflict between the implicit overriding subprogram
+  and a user-defined overriding subprogram.]}
+@end{Reason}
 @end{StaticSem}
 
 @begin{Legality}
@@ -235,8 +257,12 @@ and every @nt{task_body} shall be the completion of some
 task declaration.]}
 @begin(Honest)
   @ChgRef{Version=[2],Kind=[AddedNormal]}
-  @ChgAdded{Version=[2],Text=[The completion can be a @nt{pragma} Import,
-  if the implementation supports it.]}
+  @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1]}
+  @ChgAdded{Version=[2],Text=[@Chg{Version=[3],New=[If],Old=[The completion
+  can be a @nt{pragma} Import, if]} the implementation supports
+  it@Chg{Version=[3],New=[, the task body can be imported
+  (using aspect Import, see @RefSecNum{Interfacing Aspects}),
+  in which case no explicit @nt{task_body} is allowed],Old=[]}.]}
 @end(Honest)
 
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00345-01],ARef=[AI95-00399-01]}
@@ -254,11 +280,13 @@ a limited interface type that is not a protected interface.]]}
 @end(TheProof)
 
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00397-01]}
+@ChgRef{Version=[3],Kind=[RevisedAdded],ARef=[AI05-0090-1]}
 @ChgAdded{Version=[2],Text=[The prefixed view profile of an explicitly
 declared primitive subprogram of a tagged task type shall not be type
-conformant with any entry of the task type, if the first
+conformant with any entry of the task type, if the @Chg{Version=[3],New=[
+subprogram has the same defining name as the entry and the ],Old=[]}first
 parameter of the subprogram is of the task type or is an
-access parameter designating the task type.]}
+access parameter designating the task type.@Defn2{Term=[type conformance],Sec=(required)}]}
 @begin(Reason)
   @ChgRef{Version=[2],Kind=[AddedNormal]}
   @ChgAdded{Version=[2],Text=[This prevents the existence of two operations
@@ -450,18 +478,18 @@ Old=[@RefSecNum(Task Information)]}).
 @key(task) User;  --@RI[  has no entries]
 @end{Example}
 
-@begin{wide}
+@begin{WideAbove}
 @leading@keepnext@i{Examples of task objects:}
-@end{wide}
+@end{WideAbove}
 @begin{Example}
 Agent    : Server;
 Teletype : Keyboard_Driver(TTY_ID);
 Pool     : @key(array)(1 .. 10) @key(of) Keyboard_Driver;
 @end{Example}
 
-@begin{wide}
+@begin{WideAbove}
 @leading@keepnext@i{Example of access type designating task objects:}
-@end{wide}
+@end{WideAbove}
 @begin{Example}
 @key(type) Keyboard @key(is) @key(access) Keyboard_Driver;
 Terminal : Keyboard := @key(new) Keyboard_Driver(Term_ID);
@@ -524,6 +552,25 @@ because a @nt{declarative_part} can be empty.
   a task type within itself to reflect the exception for anonymous
   access types.]}
 @end{DiffWord95}
+
+@begin{Extend2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0183-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 2005}
+  An optional @nt{aspect_specification} can be used in a
+  @nt{task_type_declaration} and a @nt{single_task_declaration}.
+  This is described in @RefSecNum{Aspect Specifications}.]}
+@end{Extend2005}
+
+@begin{DiffWord2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0042-1]}
+  @ChgAdded{Version=[3],Text=[@b<Correction:> Clarified that an
+  inherited procedure of a progenitor is overridden when it is
+  implemented by an entry.]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0090-1]}
+  @ChgAdded{Version=[3],Text=[@b<Correction:> Added the missing
+  defining name in the no conflicting primitive operation rule.]}
+@end{DiffWord2005}
 
 
 @LabeledClause{Task Execution - Task Activation}
@@ -656,11 +703,35 @@ whether to raise Tasking_Error.
   many of these rules.]}
 @end{Honest}
 
-Should the task that created
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0045-1]}
+@Chg{Version=[3],New=[If the master that directly encloses the point where the
+activation of a task @i<T> would be initiated, completes before the activation
+of @i<T> is initiated, @i<T> becomes terminated and is never activated.
+Furthermore, if a return statement is left such that the return object is not
+returned to the caller, any task that was created as a part of the return
+object or one of its coextensions immediately becomes],
+Old=[Should the task that created
 the new tasks never reach the point
-where it would initiate the activations (due to an abort or the
-raising of an exception),
-the newly created tasks become terminated and are never activated.
+where it would initiate the activations (due to an abort or
+the raising of an exception),
+the newly created tasks become]}
+terminated @Chg{Version=[3],New=[and is],Old=[are]}
+never activated.
+@begin{Ramification}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0045-1]}
+@ChgAdded{Version=[3],Text=[The first case can only happen if the activation
+   point of T is not reached due to an exception being raised or a task or
+   statement being aborted. Note that this is exclusive; if the master
+   completes normally and starts finalization, we're already past the
+   activation point.]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0045-1]}
+@ChgAdded{Version=[3],Text=[The second case can happen with an exception being
+   raised in a return statement, by an exit or goto from an
+   @nt{extended_return_statement}, or by a return statement being aborted. Any
+   tasks created for the return object of such a return statement are never
+   activated.]}
+@end{Ramification}
 @end{RunTime}
 
 @begin{Notes}
@@ -708,6 +779,14 @@ This clause has been rewritten in an attempt to improve presentation.
   we don't want to be waiting for the tasks in a return object when we exit
   the function normally.]}
 @end{DiffWord95}
+
+@begin{DiffWord2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0045-1]}
+  @ChgAdded{Version=[3],Text=[@b<Correction:> Corrected the wording that
+  handles tasks that are never activated to ensure that no lookahead is implied
+  and to make it clear that tasks created by return statements that never
+  return are never activated.]}
+@end{DiffWord2005}
 
 
 @LabeledClause{Task Dependence - Termination of Tasks}
@@ -885,7 +964,7 @@ selecting the @nt<terminate_alternative>, but before termination.
 @end{DiffWord95}
 
 
-@RMNewPage@Comment{For printed RM Ada 2005}
+@RMNewPageVer{Version=[2]}@Comment{For printed version of Ada 2005 RM}
 @LabeledClause{Protected Units and Protected Objects}
 
 @begin{Intro}
@@ -912,15 +991,19 @@ a named protected object of that type.
 
 @begin{Syntax}
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00345-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0183-1]}
 @Syn{lhs=<protected_type_declaration>,rhs="
-  @key{protected} @key{type} @Syn2{defining_identifier} [@Syn2{known_discriminant_part}] @key{is}@Chg{Version=[2],New=<
+  @key{protected} @key{type} @Syn2{defining_identifier} [@Syn2{known_discriminant_part}]@Chg{Version=[3],New=<
+        [@Syn2{aspect_specification}]>,Old=[]} @key{is}@Chg{Version=[2],New=<
      [@key{new} @Syn2{interface_list} @key{with}]
     >,Old=<>} @Syn2{protected_definition};"}
 
 
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00399-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0183-1]}
 @Syn{lhs=<single_protected_declaration>,rhs="
-  @key{protected} @Syn2{defining_identifier} @key{is}@Chg{Version=[2],New=<
+  @key{protected} @Syn2{defining_identifier}@Chg{Version=[3],New=<
+        [@Syn2{aspect_specification}]>,Old=[]} @key{is}@Chg{Version=[2],New=<
      [@key{new} @Syn2{interface_list} @key{with}]
     >,Old=<>} @Syn2{protected_definition};"}
 
@@ -968,7 +1051,7 @@ it shall repeat the @nt{defining_identifier}.
 @end{Syntax}
 
 @begin{Legality}
-@ChgRef{Version=[2],Kind=[Deleted],ARef=[AI95-00345-01]}@ChgNote{This was just moved below}
+@ChgRef{Version=[2],Kind=[DeletedNoDelMsg],ARef=[AI95-00345-01]}@ChgNote{This was just moved below}
 @ChgDeleted{Version=[2],Text=[@PDefn2{Term=[requires a completion], Sec=(@nt{@nt{protected_declaration}})}
 A protected declaration requires a completion@redundant[,
 which shall be a @nt{protected_@!body},]
@@ -980,6 +1063,11 @@ protected declaration.]}
   if the implementation supports it.]}
 @end(Honest)
 @end{Legality}
+@begin{NotIso}
+@ChgAdded{Version=[3],Noparanum=[T],Text=[@Shrink{@i<Paragraph 10 was
+deleted.>}]}@Comment{This message should be deleted if the paragraphs
+are ever renumbered.}
+@end{NotIso}
 
 @begin{StaticSem}
 
@@ -1000,6 +1088,7 @@ Private part is defined in Section 8.
 @end{theproof}
 
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00345-01],ARef=[AI95-00397-01],ARef=[AI95-00399-01],ARef=[AI95-00419-01]}
+@ChgRef{Version=[3],Kind=[RevisedAdded],ARef=[AI05-0042-1]}
 @ChgAdded{Version=[2],Text=[For a protected declaration
 with an @nt{interface_list}, the protected type inherits user-defined primitive
 subprograms from each progenitor type (see @RefSecNum{Interface Types}), in the
@@ -1012,7 +1101,10 @@ with the same identifier within the protected declaration, whose
 profile is type conformant with the prefixed view profile of the
 inherited subprogram, the inherited subprogram is said to be
 @i{implemented} by the conforming protected subprogram or
-entry.@PDefn2{Term=[implemented],
+entry@Chg{Version=[3],New=[ using an implicitly declared non-abstract
+subprogram which has the same profile as the inherited subprogram and which
+overrides it@PDefn2{Term=[override],Sec=[when implemented by]}],
+Old=[]}.@PDefn2{Term=[implemented],
 Sec=[by a protected subprogram]}@PDefn2{Term=[implemented],
 Sec=[by a protected entry]}
 @Defn2{Term=[type conformance],Sec=(required)}]}
@@ -1022,7 +1114,17 @@ Sec=[by a protected entry]}
   @ChgAdded{Version=[2],Text=[The inherited subprograms can only come from an
   interface given as part of the protected declaration.]}
 @end{Ramification}
-
+@begin{Reason}
+  @ChgRef{Version=[3],Kind=[Added],Aref=[AI05-0042-1]}
+  @ChgAdded{Version=[3],Text=[The part about the implicitly declared
+  subprogram is needed so that a subprogram implemented by an entry or
+  subprogram is considered to be overridden for the purpose of the
+  other rules of the language. Without it, it would for instance be illegal
+  for an abstract subprogram to be implemented by an entry, because the
+  abstract subprogram would not be overridden. The @LegalityTitle below
+  ensure that there is no conflict between the implicit overriding subprogram
+  and a user-defined overriding subprogram.]}
+@end{Reason}
 
 @end{StaticSem}
 
@@ -1035,8 +1137,12 @@ and every @nt{protected_@!body} shall be the completion of some
 protected declaration.]}
 @begin(Honest)
   @ChgRef{Version=[2],Kind=[AddedNormal]}
-  @ChgAdded{Version=[2],Text=[The completion can be a @nt{pragma} Import,
-  if the implementation supports it.]}
+  @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1]}
+  @ChgAdded{Version=[2],Text=[@Chg{Version=[3],New=[If],Old=[The completion
+  can be a @nt{pragma} Import, if]} the implementation supports
+  it@Chg{Version=[3],New=[, the protected body can be imported
+  (using aspect Import, see @RefSecNum{Interfacing Aspects}),
+  in which case no explicit @nt{protected_body} is allowed],Old=[]}.]}
 @end(Honest)
 
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00345-01],ARef=[AI95-00399-01]}
@@ -1054,9 +1160,12 @@ limited interface type that is not a task interface.]]}
 @end(TheProof)
 
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00397-01]}
+@ChgRef{Version=[3],Kind=[RevisedAdded],ARef=[AI05-0042-1]}
 @ChgAdded{Version=[2],Text=[The prefixed view profile of an explicitly declared
 primitive subprogram of a tagged protected type shall not be type conformant
-with any protected operation of the protected type, if the first parameter of
+with any protected operation of the protected type, if the@Chg{Version=[3],New=[
+subprogram has the same defining name as the protected operation and
+the],Old=[]} first parameter of
 the subprogram is of the protected type or is an access parameter designating
 the protected type.@Defn2{Term=[type conformance],Sec=(required)}]}
 @begin(Reason)
@@ -1118,7 +1227,7 @@ access-to-variable parameter.]}
 @ChgRef{Version=[2],Kind=[AddedNormal]}
 @ChgAdded{Version=[2],Text=[For a protected procedure or entry, the protected
 object can be read or written (see
-@RefSecNum{Protected Subprograms and Protected Actions}}. A subprogram
+@RefSecNum{Protected Subprograms and Protected Actions}). A subprogram
 that is implemented by a protected procedure or entry must have a profile
 which reflects that in order to avoid confusion.]}
 @end{Reason}
@@ -1161,8 +1270,8 @@ of an instance of a generic unit.]}
 @end{Legality}
 
 @begin{RunTime}
-@redundant[@PDefn2{Term=[elaboration], Sec=(protected declaration)}
-The elaboration of a protected declaration
+@redundant[@PDefn2{Term=[elaboration], Sec=(protected declaration)}The
+elaboration of a protected declaration
 elaborates the @nt<protected_definition>.
 @PDefn2{Term=[elaboration], Sec=(single_protected_declaration)}
 The elaboration of a @nt<single_@!protected_@!declaration> also creates
@@ -1179,8 +1288,8 @@ subtype;] it also includes the elaboration of the
 @nt<component_declaration>s and @nt<protected_operation_declaration>s
 in the given order.
 
-@redundant[@PDefn2{Term=[initialization], Sec=(of a protected object)}
-As part of the initialization of a protected object,
+@redundant[@PDefn2{Term=[initialization], Sec=(of a protected object)}As
+part of the initialization of a protected object,
 any per-object constraints (see @RefSecNum{Record Types}) are elaborated.]
 @begin{Discussion}
   We do not mention pragmas since each pragma has its
@@ -1258,7 +1367,9 @@ Program_Error is raised at the place of the corresponding
 @key[end] Main;
 @end{Example}
 
-The environment task is queued on PO.EE when PO is finalized.
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0005-1]}
+The environment task is queued on PO.@Chg{Version=[3],New=[Ee],Old=[EE]}
+when PO is finalized.
 
 In a real example, a server task might park callers on a local protected
 object for some useful purpose, so we didn't want to disallow this case.
@@ -1405,9 +1516,9 @@ since an entry involves an implicit component @em the entry queue.
 @key(end) Resource;
 @end{Example}
 
-@begin{wide}
+@begin{WideAbove}
 @leading@keepnext@i{Example of a single protected declaration and corresponding body:}
-@end{wide}
+@end{WideAbove}
 @begin{Example}
 @key(protected) Shared_Array @key(is)
    --@RI[  Index, Item, and Item_Array are global types]
@@ -1430,9 +1541,9 @@ since an entry involves an implicit component @em the entry queue.
 @key(end) Shared_Array;
 @end{Example}
 
-@begin{wide}
+@begin{WideAbove}
 @leading@keepnext@i{Examples of protected objects:}
-@end{wide}
+@end{WideAbove}
 @begin{Example}
 Control  : Resource;
 Flags    : @key(array)(1 .. 100) @key(of) Resource;
@@ -1477,6 +1588,25 @@ protected units do not exist in Ada 83.
   access types.]}
 @end{DiffWord95}
 
+@begin{Extend2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0183-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 2005}
+  An optional @nt{aspect_specification} can be used in a
+  @nt{protected_type_declaration} and a @nt{single_protected_declaration}.
+  This is described in @RefSecNum{Aspect Specifications}.]}
+@end{Extend2005}
+
+@begin{DiffWord2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0042-1]}
+  @ChgAdded{Version=[3],Text=[@b<Correction:> Clarified that an
+  inherited subprogram of a progenitor is overridden when it is
+  implemented by an entry or subprogram.]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0090-1]}
+  @ChgAdded{Version=[3],Text=[@b<Correction:> Added the missing
+  defining name in the no conflicting primitive operation rule.]}
+@end{DiffWord2005}
+
 
 @LabeledClause{Intertask Communication}
 
@@ -1498,15 +1628,23 @@ indirectly via a shared protected object.
 @end{Intro}
 
 @begin{StaticSem}
-@leading@Defn2{Term=[target object],
-  Sec=(of a call on an entry or a protected subprogram)}
-Any call on an entry or on a protected subprogram
-identifies a @i(target object) for the operation,
-which is either a task (for an entry call) or a protected
-object (for an entry call or a protected subprogram call).
-The target object is considered an implicit parameter to the operation,
-and is determined by the operation
-@nt<name> (or @nt<prefix>) used in the call on the operation, as follows:
+@leading@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0225-1]}
+@Chg{Version=[3],New=[@Defn2{Term=[target object],
+  Sec=(of the name of an entry or a protected subprogram)}],
+Old=[@Defn2{Term=[target object],
+  Sec=(of a call on an entry or a protected subprogram)}]}
+Any @Chg{Version=[3],New=[@nt{name} that denotes],Old=[call on]} an entry
+or @Chg{Version=[3],New=[],Old=[on ]}a protected subprogram
+identifies a @i(target object)@Chg{Version=[3],New=[],Old=[ for the operation]},
+which is either a task (for an entry@Chg{Version=[3],New=[],Old=[ call]}) or
+a protected object (for an entry@Chg{Version=[3],New=[],Old=[ call]} or a
+protected subprogram@Chg{Version=[3],New=[],Old=[ call]}). The target object
+@Chg{Version=[3],New=[identified],Old=[is considered an implicit parameter
+to the operation, and is determined]} by the operation
+@nt<name> (or @nt<prefix>) used in @Chg{Version=[3],New=[a],Old=[the]} call
+on @Chg{Version=[3],New=[an entry or a protected subprogram is considered an
+implicit parameter to the call. The target object is determined],Old=[the
+operation,]} as follows:
 @begin(Itemize)
   If it is a @nt<direct_name> or expanded name
   that denotes the declaration (or body) of the operation, then
@@ -1575,8 +1713,22 @@ and an @i(external requeue).
 
 @begin{Legality}
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00345-01]}
-@ChgAdded{Version=[2],Text=[The view of the target protected object associated
-with a call of a protected procedure or entry shall be a variable.]}
+@ChgRef{Version=[3],Kind=[RevisedAdded],ARef=[AI05-0225-1]}
+@ChgAdded{Version=[2],Text=[@Chg{Version=[3],New=[For a @nt{name} that denotes a
+protected procedure, the],Old=[The]} view of the target
+@Chg{Version=[3],New=[],Old=[protected ]}object@Chg{Version=[3],New=[],Old=[associated
+with a call of a protected procedure or entry]} shall be a
+variable.@Chg{Version=[3],New=[ For a @nt{name}
+that denotes a protected entry, the view of the target object shall be a
+variable unless the @nt{name} is the @nt{prefix} of a reference to the Count
+attribute.],Old=[]}]}
+@begin{Reason}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0225-1]}
+  @ChgAdded{Version=[3],Text=[The point is to prevent any calls to such a
+  @nt{name}, directly, or via an access value, renames, or generic formal
+  subprogram. It is, however, legal to say P'Count in a protected function body,
+  even though the protected object is a constant view there.]}
+@end{Reason}
 @end{Legality}
 
 
@@ -1606,6 +1758,74 @@ as is a requeue on such an entry.
 @end(Reason)
 @end{RunTime}
 
+@begin{Syntax}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0030-2],ARef=[AI05-0215-1]}
+@AddedSyn{Version=[3],lhs=<@Chg{Version=[3],New=<synchronization_kind>,Old=<>}>,
+rhs="@Chg{Version=[3],New=<By_Entry | By_Protected_Procedure | Optional>,Old=<>}"}
+@end{Syntax}
+
+@begin{StaticSem}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0215-1]}
+@ChgAdded{Version=[3],Type=[Leading],Text=[For the declaration of a primitive
+procedure of a synchronized tagged type the following language-defined
+representation aspect may be specified with an @nt{aspect_specification} (see
+@RefSecNum{Aspect Specifications}):]}
+
+@begin{Description}
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[Synchronization@\If specified, the aspect definition
+shall be a @nt{synchronization_kind}.@AspectDefn{Synchronization}]}
+
+@ChgAspectDesc{Version=[3],Kind=[AddedNormal],Aspect=[Synchronization],
+  Text=[@ChgAdded{Version=[3],Text=[Defines whether a given primitive operation
+    of a synchronized interface must be implemented by an entry or protected
+    procedure.]}]}
+
+@end{Description}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0030-2],ARef=[AI05-0215-1]}
+@ChgAdded{Version=[3],Text=[Inherited subprograms inherit the Synchronization
+aspect, if any, from the corresponding subprogram of the parent or progenitor
+type. If an overriding operation does not have a directly specified
+Synchronization aspect then the Synchronization aspect of the inherited
+operation is inherited by the overriding operation.]}
+@end{StaticSem}
+
+@begin{Legality}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0030-2],ARef=[AI05-0215-1]}
+@ChgAdded{Version=[3],Text=[The @nt{synchronization_kind}
+By_Protected_Procedure shall not be applied to a primitive procedure of a task
+interface.]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0030-2],ARef=[AI05-0215-1]}
+@ChgAdded{Version=[3],Text=[A procedure for which the specified
+@nt{synchronization_kind} is By_Entry shall be implemented by an entry. A
+procedure for which the specified @nt{synchronization_kind} is
+By_Protected_Procedure shall be implemented by a protected procedure. A
+procedure for which the specified @nt{synchronization_kind} is Optional may be
+implemented by an entry or by a procedure (including a protected procedure).]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0030-2],ARef=[AI05-0215-1]}
+@ChgAdded{Version=[3],Text=[If a primitive procedure overrides an inherited
+operation for which the Synchronization aspect has been specified to be By_Entry
+or By_Protected_Procedure, then any specification of the aspect Synchronization
+applied to the overriding operation shall have the same
+@nt{synchronization_kind}.]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0030-2]}
+@ChgAdded{Version=[3],Text=[@PDefn{generic contract issue}In addition to the
+places where @LegalityTitle normally apply (see
+@RefSecNum{Generic Instantiation}), these rules also apply in the
+private part of an instance of a generic unit.]}
+@end{Legality}
+
+@begin{Notes}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0030-2],ARef=[AI05-0215-1]}
+@ChgAdded{Version=[3],Text=[The @nt{synchronization_kind} By_Protected_Procedure
+implies that the operation will not block.]}
+@end{Notes}
+
 @begin{DiffWord95}
   @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00345-01]}
   @ChgAdded{Version=[2],Text=[Added a @LegalityName to make it crystal-clear
@@ -1616,6 +1836,22 @@ as is a requeue on such an entry.
   wrong, this is not an incompatibility @em allowing updates of protected
   constants has always been wrong.]}
 @end{DiffWord95}
+
+@begin{Extend2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0030-2],ARef=[AI05-0215-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 2005}
+  Added the Synchronization aspect to allow
+  specifying that an interface procedure is really an entry or a
+  protected procedure.]}
+@end{Extend2005}
+
+@begin{DiffWord2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0225-1]}
+  @ChgAdded{Version=[3],Text=[@b<Correction:> Clarified that the target object
+  of any name denoted a protected procedure or entry can never be a constant
+  (other than for the 'Count attribute). This closes holes involving calls to
+  access-to-protected, renaming as a procedure, and generic formal subprograms.]}
+@end{DiffWord2005}
 
 
 @LabeledSubClause{Protected Subprograms and Protected Actions}
@@ -1637,16 +1873,22 @@ See @RefSec{Conformance Rules}.
 @end{Intro}
 
 @begin{StaticSem}
-Within the body of a protected function
+@Redundant[Within the body of a protected function
 (or a function declared immediately within a @nt<protected_body>),
 the current instance of the enclosing protected unit is defined to be a
 constant
-@Redundant[(that is, its subcomponents may be read but not updated)].
+(that is, its subcomponents may be read but not updated).
 Within the body of a protected procedure
 (or a procedure declared immediately within a @nt<protected_body>),
 and within an @nt<entry_body>,
 the current instance is defined to be a variable
-@Redundant[(updating is permitted)].
+(updating is permitted).]
+@begin(TheProof)
+  @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0120-1]}
+  @ChgAdded{Version=[3],Text=[All constant views are defined in
+  @RefSec{Objects and Named Numbers}, anything not named there
+  is a variable view.]}
+@end(TheProof)
 @begin(Ramification)
   The current instance is like an implicit parameter,
   of mode @key(in) for a protected function, and of mode @key(in out)
@@ -1861,9 +2103,11 @@ tasks and protected objects.
 
 @begin{Syntax}
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00397-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0183-1]}
 @Syn{lhs=<entry_declaration>,rhs="@Chg{Version=[2],New=<
    [@Syn2{overriding_indicator}]>,Old=[]}
-   @key{entry} @Syn2{defining_identifier} [(@Syn2{discrete_subtype_definition})] @Syn2{parameter_profile};"}
+   @key{entry} @Syn2{defining_identifier} [(@Syn2{discrete_subtype_definition})] @Syn2{parameter_profile}@Chg{Version=[3],New=<
+      [@Syn2{aspect_specification}]>,Old=[]};"}
 
 
 @Syn{lhs=<accept_statement>,rhs="
@@ -2097,8 +2341,12 @@ An @nt<entry_declaration>, unlike a @nt<subprogram_declaration>,
 cannot be completed with a @nt<renaming_@!declaration>.
 @end{Ramification}
 @begin(Honest)
-  The completion can be a @nt{pragma} Import,
-  if the implementation supports it.
+  @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1]}
+  @Chg{Version=[3],New=[If],Old=[The completion
+  can be a @nt{pragma} Import, if]} the implementation supports
+  it@Chg{Version=[3],New=[, the entry body can be imported
+  (using aspect Import, see @RefSecNum{Interfacing Aspects}),
+  in which case no explicit @nt{entry_body} is allowed],Old=[]}.
 @end(Honest)
 @begin{Discussion}
 The above applies only to protected entries,
@@ -2316,9 +2564,9 @@ when its parameters indicate that it cannot be handled immediately.
 @key(entry) Request(Level)(D : Item);  --@RI[  a family of entries]
 @end{Example}
 
-@begin{Wide}
+@begin{WideAbove}
 @leading@keepnext@i{Examples of accept statements:}
-@end{Wide}
+@end{WideAbove}
 @begin{Example}
 @key(accept) Shut_Down;
 
@@ -2350,6 +2598,13 @@ The syntax rule for @nt{entry_body} is new.
   entries; this is only useful when a task or protected type inherits
   from an interface.]}
 @end{DiffWord95}
+
+@begin{Extend2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0183-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 2005}
+  An optional @nt{aspect_specification} can be used in an @nt{entry_declaration}.
+  This is described in @RefSecNum{Aspect Specifications}.]}
+@end{Extend2005}
 
 
 @LabeledSubClause{Entry Calls}
@@ -2395,6 +2650,7 @@ Under certain circumstances (detailed below), an entry of a task
 or protected
 object is checked to see whether it is @i(open) or @i(closed):
 @begin(Itemize)
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0264-1]}
 @Defn2{Term=[open entry], Sec=(of a task)}
 @Defn2{Term=[closed entry], Sec=(of a task)}
 An entry of a task is open if the task
@@ -2402,14 +2658,16 @@ is blocked on an @nt<accept_statement>
 that corresponds to the entry (see @RefSecNum(Entries and Accept Statements)),
 or on a @nt<selective_accept>
 (see @RefSecNum(Selective Accept)) with an open
-@nt<accept_alternative> that corresponds to the entry; otherwise
-it is closed.
+@nt<accept_alternative> that corresponds to the entry;
+otherwise@Chg{Version=[3],New=[,],Old=[]} it is closed.
 
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0264-1]}
 @Defn2{Term=[open entry], Sec=(of a protected object)}
 @Defn2{Term=[closed entry], Sec=(of a protected object)}
 An entry of a protected object is open if
 the @nt<condition> of the @nt<entry_barrier> of the
-corresponding @nt<entry_body> evaluates to True; otherwise it is closed.
+corresponding @nt<entry_body> evaluates to True;
+otherwise@Chg{Version=[3],New=[,],Old=[]} it is closed.
 @Defn2{Term=[Program_Error],Sec=(raised by failure of run-time check)}
 If the evaluation of the @nt<condition> propagates an exception, the
 exception Program_Error is propagated
@@ -2768,21 +3026,27 @@ the expiration of a delay.
 @end{Intro}
 
 @begin{Syntax}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0030-2]}
 @Syn{lhs=<requeue_statement>,
-  rhs="@key{requeue} @SynI{entry_}@Syn2{name} [@key{with} @key{abort}];"}
+  rhs="@key{requeue} @SynI{@Chg{Version=[3],New=[procedure_or_entry_],Old=[entry_]}}@Syn2{name} [@key{with} @key{abort}];"}
 @end{Syntax}
 
 @begin{Resolution}
 
-@Defn2{Term=[target entry], Sec=(of a @nt<requeue_statement>)}
-The @i(entry_)@nt{name} of a @nt{requeue_statement} shall resolve
-to denote an entry (the @i(target entry))
-that either has no parameters, or that has
-a profile that is type conformant (see @RefSecNum(Conformance Rules)) with
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0030-2],ARef=[AI05-0215-1]}
+@Chg{Version=[3],New=[@Defn{requeue target}],Old=[@Defn2{Term=[target entry], Sec=(of a @nt<requeue_statement>)}]}
+The @Chg{Version=[3],New=[@SynI{procedure_or_entry_}],Old=[@SynI(entry_)]}@nt{name}
+of a @nt{requeue_statement} shall resolve
+to denote @Chg{Version=[3],New=[a procedure or ],Old=[]}an entry (the
+@Chg{Version=[3],New=[@i{requeue }],Old=[]}@i{target}@Chg{Version=[3],New=[],
+Old=[@i{ entry}]})@Chg{Version=[3],New=[. The profile of
+the entry, or the profile or prefixed profile of the procedure, shall],Old=[that]}
+either @Chg{Version=[3],New=[have],Old=[has]} no parameters, or @Chg{Version=[3],
+New=[be],Old=[that has
+a profile that is]} type conformant (see @RefSecNum(Conformance Rules)) with
 the profile of the innermost enclosing @nt<entry_@!body> or
 @nt<accept_@!statement>.
 @Defn2{Term=[type conformance],Sec=(required)}
-
 @end{Resolution}
 
 @begin{Legality}
@@ -2792,11 +3056,23 @@ construct that is either an @nt{entry_body} or an
 @nt{accept_statement}, and this construct shall
 be the innermost enclosing body or callable construct.
 
-If the target entry has parameters,
-then its profile shall be subtype conformant with
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0030-2],ARef=[AI05-0215-1]}
+If the
+@Chg{Version=[3],New=[requeue ],Old=[]}target@Chg{Version=[3],New=[],Old=[ entry]}
+has parameters, then its @Chg{Version=[3],New=[(prefixed) ],Old=[]}profile
+shall be subtype conformant with
 the profile of the innermost enclosing callable construct.
 @Defn2{Term=[subtype conformance],Sec=(required)}
 
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0030-2],ARef=[AI05-0215-1]}
+@ChgAdded{Version=[3],Text=[If the target is a procedure, the name shall
+denote a renaming of an entry, or shall denote a view or prefixed view of a
+primitive subprogram of a synchronized interface, where the first parameter
+of the unprefixed view of the primitive subprogram shall be a
+controlling parameter, and the Synchronization aspect shall be specified
+with @nt{synchronization_kind} By_Entry for the primitive subprogram.]}
+
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0030-2]}
 @PDefn2{Term=[accessibility rule],Sec=(requeue statement)}
 In a @nt<requeue_statement> of an @nt<accept_statement> of
 some task unit, either the target object shall be a part of a
@@ -2809,7 +3085,7 @@ of some protected unit, either the target object shall be
 a part of a formal parameter of the @nt<entry_@!body>,
 or the accessibility level of the target object
 shall not be statically deeper than that
-of the @nt<entry_declaration>.
+of the @nt<entry_declaration>@Chg{Version=[3],New=[ for the @nt{entry_body}],Old=[]}.
 
 @begin{Ramification}
   In the @nt{entry_body} case, the intent is that the target object can
@@ -2850,10 +3126,11 @@ of the @nt<entry_declaration>.
 
 @begin{RunTime}
 
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0030-2]}
 @PDefn2{Term=[execution], Sec=(requeue_statement)}
 The execution of a @nt{requeue_statement} proceeds by first evaluating the
-@i(entry_)@nt<name>@Redundant[, including the @nt<prefix>
-identifying the target task
+@Chg{Version=[3],New=[@SynI{procedure_or_entry_}],Old=[@SynI(entry_)]}@nt<name>@Redundant[,
+including the @nt<prefix> identifying the target task
 or protected object and the @nt<expression>
 identifying the entry
 within an entry family, if any].
@@ -2894,7 +3171,9 @@ object, after leaving the enclosing callable construct:
   as for a normal entry call (see @RefSecNum(Entry Calls)).
 @end(Itemize)
 
-If the new entry named in the @nt<requeue_statement>
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0030-2]}
+If the @Chg{Version=[3],New=[requeue target],Old=[new entry]}
+named in the @nt<requeue_statement>
 has formal parameters, then during the execution of the
 @nt<accept_statement> or @nt<entry_body> corresponding to the new entry,
 the formal parameters denote the same objects as
@@ -2963,6 +3242,14 @@ is part of the @i(entry_)@nt<name> for an entry of a family.
 The @nt<requeue_statement> is new.
 @end{Extend83}
 
+@begin{Extend2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0030-2],ARef=[AI05-0215-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 2005}
+  Added the ability
+  to requeue on operations of synchronized interfaces that are
+  declared to be an entry.]}
+@end{Extend2005}
+
 
 @LabeledClause{Delay Statements, Duration, and Time}
 
@@ -3007,6 +3294,7 @@ is expected to be of any nonlimited type.
 
 @begin{Legality}
 
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0092-1]}
 @Defn{time type}
 @Defn{time base}
 @Defn{clock}
@@ -3014,9 +3302,11 @@ There can be multiple time bases, each with a corresponding
 clock, and a corresponding @i{time type}.
 The type of the @i(delay_)@nt<expression>
 in a @nt{delay_until_statement} shall be a time type @em either the
-type Time defined in the language-defined package Calendar (see below),
-or some other implementation-defined time type
-(see @RefSecNum(Monotonic Time)).
+type Time defined in the language-defined package Calendar (see
+below),@Chg{Version=[3],New=[ the type Time in the package Real_Time
+(see @RefSecNum(Monotonic Time)),],Old=[]}
+or some other implementation-defined time type@Chg{Version=[3],New=[],Old=[
+(see @RefSecNum(Monotonic Time))]}.
 @ImplDef{Any implementation-defined time types.}
 @end{Legality}
 
@@ -3028,9 +3318,10 @@ of an interval of time, expressed in seconds.
 @Redundant[The type Duration is not specific to a particular time base,
 but can be used with any time base.]
 
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0092-1]}
 A value of the type Time in package Calendar, or of some other
-implementation-defined time type, represents a time as reported
-by a corresponding clock.
+@Chg{Version=[3],New=[],Old=[implementation-defined ]}time type,
+represents a time as reported by a corresponding clock.
 
 @leading@keepnext@;The following language-defined library package exists:
 @begin{Example}
@@ -3134,13 +3425,14 @@ has already passed, the task is not blocked.
   See @RefSec(Priority Scheduling).
 @end(Discussion)
 
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0092-1]}
 @Defn2{Term=[cancellation], Sec=(of a @nt<delay_statement>)}
 If an attempt is made to @i(cancel) the @nt<delay_statement>
 @Redundant[(as part of an @nt<asynchronous_@!select> or abort @em
 see @RefSecNum{Asynchronous Transfer of Control} and
 @RefSecNum{Abort of a Task - Abort of a Sequence of Statements})],
-the @ntf<_statement> is cancelled if
-the expiration time has not yet passed,
+the @Chg{Version=[3],New=[statement],Old=[@ntf<_statement>]}
+is cancelled if the expiration time has not yet passed,
 thereby completing the @nt<delay_statement>.
 @begin(Reason)
   This is worded this way so that in an @nt<asynchronous_select>
@@ -3171,9 +3463,24 @@ year number, a month number, a day number, and a duration, into
 a value of type Time. The operators "+" and "@en@;" for addition
 and subtraction of times and durations, and the relational operators
 for times, have the conventional meaning.
-@ChgImplDef{Version=[2],Kind=[Revised],
+@ChgImplDef{Version=[2],Kind=[Revised],InitialVersion=[0],
 Text=[The @Chg{Version=[2],New=[time zone],Old=[timezone]} used for
 package Calendar operations.]}
+
+@begin{Ramification}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0119-1]}
+  @ChgAdded{Version=[3],Text=[The behavior of these values and subprograms if
+  the time zone changes is also implementation-defined. In particular, the
+  changes associated with summer time adjustments (like Daylight Savings Time in
+  the United States) should be treated as a change in the implementation-defined
+  time zone. The language does not specify whether the time zone information is
+  stored in values of type Time; therefore the results of binary operators are
+  unspecified when the operands are the two values with different
+  effective time zones. In particular, the results of "-" may differ from the
+  "real" result by the difference in the time zone adjustment. Similarly, the
+  result of UTC_Time_Offset (see 9.6.1) may or may not reflect a time zone
+  adjustment.]}
+@end{Ramification}
 
 If Time_Of is called with a seconds value of 86_400.0, the value
 returned is equal to the value of Time_Of for the next day
@@ -3225,8 +3532,9 @@ may allow representation of other dates as well (both earlier and later).]
 
 @begin{ImplPerm}
 
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0092-1]}
 An implementation may define additional time
-types (see @RefSecNum{Monotonic Time}).
+types@Chg{Version=[3],New=[],Old=[ (see @RefSecNum{Monotonic Time})]}.
 
 An implementation may raise Time_Error if the
 value of a @i{delay_}@nt<expression> in a @nt<delay_until_statement>
@@ -3308,11 +3616,11 @@ are given in @RefSec(Delay Accuracy).
 @key(delay) 3.0;  --@RI[ delay 3.0 seconds]
 @end{example}
 
-@begin{Wide}
+@begin{WideAbove}
 @leading@keepnext@Defn2{Term=[periodic task],Sec=(example)}
 @IndexSee{Term=[periodic task],See=(delay_until_statement)}
 @i{Example of a periodic task:}
-@end{Wide}
+@end{WideAbove}
 @begin{example}
 @key(declare)
    @key(use) Ada.Calendar;
@@ -3624,10 +3932,17 @@ and another time zone.]}
 @ChgAdded{Version=[2],Keepnext=[T],Text=[@key<function> UTC_Time_Offset (Date : Time := Clock) @key<return> Time_Offset;]}
 @end{Example}
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00351-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0119-1]}
 @ChgAdded{Version=[2],Type=[Trailing],Text=[Returns, as a number of minutes, the
-difference between the implementation-defined time zone of Calendar, and
+@Chg{Version=[3],New=[result of subtracting],Old=[difference between]}
+the implementation-defined time zone of Calendar, and
 UTC time, at the time Date. If the time zone of the Calendar implementation is
 unknown, then Unknown_Zone_Error is raised.]}
+@begin{Ramification}
+    @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0119-1]}
+    @ChgAdded{Version=[3],Text=[In North America, the result will be negative;
+    in Europe, the result will be zero or positive.]}
+@end{Ramification}
 @begin{Discussion}
     @ChgRef{Version=[2],Kind=[AddedNormal]}
     @ChgAdded{Version=[2],Text=[The Date parameter is needed to take
@@ -3786,16 +4101,26 @@ of Seconds_Of for the next second with a Sub_Second value of 0.0.]}
                  Sub_Second : @key<out> Second_Duration);]}
 @end{Example}
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00351-01],ARef=[AI95-00427-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0238-1]}
 @ChgAdded{Version=[2],Type=[Trailing],Text=[Splits Seconds into Hour, Minute,
 Second and Sub_Second in such a way that the resulting values all belong to
 their respective subtypes. The value returned in the Sub_Second
-parameter is always less than 1.0.]}
+parameter is always less than 1.0.@Chg{Version=[3],New=[ If Seconds = 86400.0,
+Split propagates Time_Error.],Old=[]}]}
 
 @begin{Ramification}
   @ChgRef{Version=[2],Kind=[AddedNormal]}
   @ChgAdded{Version=[2],Text=[There is only one way to do the split which
   meets all of the requirements.]}
 @end{Ramification}
+
+@begin{Reason}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0238-1]}
+  @ChgAdded{Version=[3],Text=[If Seconds = 86400.0, one of the returned values
+  would have to be out of its defined range (either Sub_Second = 1.0 or Hour =
+  24 with the other value being 0). This doesn't seem worth breaking the
+  invariants.]}
+@end{Reason}
 
 @begin{Example}@ChgRef{Version=[2],Kind=[AddedNormal]}
 @ChgAdded{Version=[2],Keepnext=[T],Text=[@key<function> Time_Of (Year       : Year_Number;
@@ -3956,13 +4281,14 @@ given string as a Time value.]}
 
 @begin{Discussion}
   @ChgRef{Version=[2],Kind=[AddedNormal]}
+  @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0005-1]}
   @ChgAdded{Version=[2],Text=[The intent is that the implementation
   enforce the same range rules on the string as the appropriate function
   Time_Of, except for the hour, so
   @lquotes@;cannot interpret the given string as a Time value@rquotes
   happens when one of the values is out of the required range.
-  For example, "2005-08-31 24:0:0" should raise Constraint_Error (the hour
-  is out of range).]}
+  For example, "2005-08-31 @Chg{Version=[3],New=[24:00:00],Old=[24:0:0]}"
+  should raise Constraint_Error (the hour is out of range).]}
 @end{Discussion}
 
 @begin{Example}@ChgRef{Version=[2],Kind=[AddedNormal]}
@@ -4082,6 +4408,21 @@ UTC_Time_Offset will generally be negative.]}
   Packages Calendar.Time_Zones, Calendar.Arithmetic, and Calendar.Formatting
   are new.]}
 @end{Extend95}
+
+@begin{Inconsistent2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0238-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{inconsistencies with Ada 2005}@b<Correction:>
+  Defined that Split for Seconds raises Time_Error for a value of exactly
+  86400.0, rather than breaking some invariant or raising some other exception.
+  Ada 2005 left this unspecified; a program that depended on what some
+  implementation does might break, but such a program is not portable anyway.]}
+@end{Inconsistent2005}
+
+@begin{Diffword2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0119-1]}
+  @ChgAdded{Version=[3],Text=[@b<Correction:> Clarified the sign of
+  UTC_Time_Offset.]}
+@end{Diffword2005}
 
 
 @LabeledClause{Select Statements}
@@ -4205,7 +4546,7 @@ a @i(delay_)@nt<expression> or @nt<entry_index> is not evaluated until
 after evaluating the corresponding @nt<condition>, if any.
 Selection and execution of one open alternative, or of the else part, then
 completes the execution of the @nt{selective_accept}; the rules for
-this selection are described below.
+this selection are described below.@PDefn2{Term=[arbitrary order],Sec=[allowed]}
 
 Open @nt{accept_alternative}s are first considered. Selection of one such
 alternative takes place immediately if the corresponding
@@ -4522,7 +4863,7 @@ a requeue-with-abort.
 @end{DiffWord83}
 
 
-@RMNewPage@Comment{For printed Ada 2005 RM}
+@RMNewPageVer{Version=[2]}@Comment{For printed version of Ada 2005 RM}
 @LabeledSubClause{Asynchronous Transfer of Control}
 
 @begin{Intro}
@@ -4647,14 +4988,14 @@ executed after the @nt<abortable_part> is left.
 @key(end) @key(loop);
 @end(Example)
 
-@begin{Wide}
+@begin{WideAbove}
 @leading@keepnext@i(Example of a time-limited calculation:)
 @IndexSee{Term=[time-out],See=(asynchronous_select)}
 @Defn2{Term=[time-out],Sec=(example)}
 @Defn2{Term=[time limit],Sec=(example)}
 @Defn2{Term=[interrupt],Sec=(example using @nt<asynchronous_select>)}
 @Defn2{Term=[timer interrupt],Sec=(example)}
-@end{Wide}
+@end{WideAbove}
 @begin(Example)
 @key(select)
    @key(delay) 5.0;
@@ -4708,7 +5049,7 @@ type@Redundant[; they need not all be of the same task type.]
 
 @PDefn2{Term=[execution], Sec=(abort_statement)}
 For the execution of an @nt<abort_statement>, the given @i(task_)@nt<name>s
-are evaluated in an arbitrary order.
+are evaluated in an arbitrary order.@PDefn2{Term=[arbitrary order],Sec=[allowed]}
 @Defn2{Term=[abort], Sec=(of a task)}
 @Defn{abnormal task}
 @PDefn2{Term=[task state], Sec=(abnormal)}
@@ -4760,7 +5101,7 @@ the following are the abort-deferred operations:
 @end(Itemize)
 
 @Redundant[The last three of these are discussed further in
-@RefSecNum(User-Defined Assignment and Finalization).]
+@RefSecNum(Assignment and Finalization).]
 @begin{Reason}
   Deferring abort during Initialize and finalization allows,
   for example, the result of an allocator performed in
@@ -4847,6 +5188,7 @@ the following are abort completion points for an execution:
 @end{RunTime}
 
 @begin{Bounded}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0264-1]}
 @PDefn2{Term=(bounded error),Sec=(cause)}
 An attempt to execute an @nt<asynchronous_select> as
 part of the execution of an abort-deferred operation is a bounded error.
@@ -4855,8 +5197,8 @@ that is included entirely within the execution of
 an abort-deferred operation is a bounded error.
 @Defn2{Term=[Program_Error],Sec=(raised by failure of run-time check)}
 In both cases, Program_Error is raised if the error is detected
-by the implementation; otherwise the operations proceed
-as they would outside an abort-deferred operation, except
+by the implementation; otherwise@Chg{Version=[3],New=[,],Old=[]} the
+operations proceed as they would outside an abort-deferred operation, except
 that an abort of the @nt<abortable_part>
 or the created task might or might not have an effect.
 @begin(Reason)
@@ -4982,25 +5324,39 @@ and after queuing a given caller.
 @LabeledClause{Shared Variables}
 
 @begin{StaticSem}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0009-1],ARef=[AI05-0201-1],ARef=[AI05-0229-1]}
 @Defn2{Term=[shared variable], Sec=(protection of)}
 @Defn{independently addressable}
 If two different objects, including nonoverlapping
 parts of the same object, are @i{independently addressable},
 they can be manipulated concurrently by two different tasks
 without synchronization.
-Normally, any two nonoverlapping objects are independently addressable.
+@Chg{Version=[3],New=[Any two nonoverlapping objects are independently
+addressable if either object is specified as independently addressable (see
+@RefSecNum{Shared Variable Control}). Otherwise,
+two nonoverlapping objects are independently addressable
+except when they are both parts of a composite object for which
+a non-confirming representation item is used to specify
+record layout, Component_Size, Pack, Atomic, or convention, in which case
+it is unspecified whether the parts are independently
+addressable.@PDefn{unspecified}],
+Old=[Normally, any two
+nonoverlapping objects are independently addressable.
 However, if packing, record layout, or Component_Size
 is specified for a given composite object,
 then it is implementation defined whether or not
 two nonoverlapping parts of that composite object
-are independently addressable.
-@ImplDef{Whether or not two nonoverlapping parts of a composite
+are independently addressable.]}
+@ChgImplDef{Version=[3],Kind=[Deleted],InitialVersion=[0],
+Text=[@Chg{Version=[3],New=[],Old=[Whether or not two
+nonoverlapping parts of a composite
 object are independently addressable,
 in the case where packing, record layout, or Component_Size
-is specified for the object.}
+is specified for the object.]}]}
 @begin{ImplNote}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1]}
 Independent addressability is the only high level semantic effect of
-a @nt{pragma} Pack.
+@Chg{Version=[3],New=[aspect],Old=[a @nt{pragma}]} Pack.
 If two objects are independently addressable,
 the implementation should allocate them in such a way
 that each can be written by the hardware without writing the other.
@@ -5013,10 +5369,21 @@ concurrently,
 and locking operations on all subcomponents is generally not a good
 idea.
 
-Even if packing or one of the other above-mentioned aspects is specified,
-subcomponents should still be updated independently if the
-hardware efficiently supports it.
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1]}
+Even if @Chg{Version=[3],New=[Pack],Old=[packing]} or one of the other
+above-mentioned aspects is specified, subcomponents should still be updated
+independently if the hardware efficiently supports it.
 @end{ImplNote}
+
+@begin{Ramification}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0009-1],ARef=[AI05-0201-1]}
+@ChgAdded{Version=[3],Text=[An atomic object (including atomic
+components) is always independently addressable from any other nonoverlapping
+object. Any representation item which would prevent this from being true should
+be rejected, notwithstanding what this Standard says elsewhere.
+Note, however, that the components of an atomic object are not necessarily
+atomic.]}
+@end{Ramification}
 @end{StaticSem}
 
 @begin{RunTime}
@@ -5047,14 +5414,18 @@ circumstances:
   the action of waiting for the termination of the task;
 
   @ChgRef{Version=[1],Kind=[Added],Ref=[8652/0031],ARef=[AI95-00118-01]}
+  @ChgRef{Version=[3],Kind=[RevisedAdded],ARef=[AI05-0072-1]}
   @ChgAdded{Version=[1],Text=[If A1 is the termination of a task T, and A2 is
-  either the evaluation of the expression T'Terminated or a call to
-  Ada.Task_Identification.Is_Terminated with an actual parameter that
-  identifies T (see @RefSecNum(The Package Task_Identification));]}
+  either @Chg{Version=[3],New=[an],Old=[the]} evaluation of the expression
+  T'Terminated@Chg{Version=[3],New=[ that results in True,],Old=[]} or
+  a call to Ada.Task_Identification.Is_Terminated with an actual parameter that
+  identifies T @Chg{Version=[3],New=[and a result of True ],Old=[]}(see
+  @RefSecNum(The Package Task_Identification));]}
 
+  @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0262-1]}
   If A1 is the action of issuing an entry call, and A2 is
   part of the corresponding execution of the appropriate
-  @nt<entry_body> or @nt<accept_statement>.
+  @nt<entry_body> or @nt<accept_statement>@Chg{Version=[3],New=[;],Old=[.]}
   @begin(Ramification)
     Evaluating the @nt<entry_index> of an @nt<accept_statement>
     is not synchronized with a corresponding entry call,
@@ -5140,7 +5511,10 @@ Two actions are sequential if one of the following is true:
   @end(Ramification)
 @end(Itemize)
 
-A @nt{pragma} Atomic or Atomic_Components may also be used to
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1]}
+@Chg{Version=[3],New=[Aspect],Old=[A @nt{pragma}]}
+Atomic or @Chg{Version=[3],New=[aspect ],Old=[]}Atomic_Components may also
+be @Chg{Version=[3],New=[specified],Old=[used]} to
 ensure that certain reads and updates are sequential @em
 see @RefSecNum(Shared Variable Control).
 @begin(Ramification)
@@ -5175,6 +5549,19 @@ see @RefSecNum(Shared Variable Control).
   values of variables that are updated by another task T1, if task T2 first
   verifies that T1'Terminated is True.]}
 @end{DiffWord95}
+
+@begin{DiffWord2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0009-1],ARef=[AI05-0201-1]}
+  @ChgAdded{Version=[3],Text=[@b<Correction:> Revised the definition of
+  independent addressability to exclude conforming representation clauses
+  and to require that atomic and independent objects always have
+  independent addressability. This should not change behavior that the
+  user sees for any Ada program, so it is not an inconsistency.]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0072-1]}
+  @ChgAdded{Version=[3],Text=[@b<Correction:> Corrected the wording of
+  AI95-00118-01 to actually say what was intended (as described above).]}
+@end{DiffWord2005}
 
 
 @LabeledClause{Example of Tasking and Synchronization}

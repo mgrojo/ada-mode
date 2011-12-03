@@ -3,7 +3,7 @@
 @Comment{$Date: 2005/05/07 05:18:29 $}
 @LabeledRevisedInformativeAnnex{Version=[2],New=[Summary of Documentation Requirements],Old=[Implementation-Defined Characteristics]}
 
-@comment{$Source: d:\\CvsRoot/ARM/Source/IMPLDEF.MSS,v $}
+@comment{$Source: e:\\cvsroot/ARM/Source/impldef.mss,v $}
 @comment{$Revision: 1.16 $}
 
 @begin{Intro}

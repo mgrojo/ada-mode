@@ -1,9 +1,9 @@
 @Part(predefio, Root="ada.mss")
 
-@Comment{$Date: 2006/10/18 00:25:26 $}
+@Comment{$Date: 2011/11/01 05:34:03 $}
 
-@Comment{$Source: d:\\CvsRoot/ARM/Source/PRE_IO.MSS,v $}
-@Comment{$Revision: 1.48 $}
+@Comment{$Source: e:\\cvsroot/ARM/Source/pre_io.mss,v $}
+@Comment{$Revision: 1.59 $}
 @LabeledClause{Input-Output}
 @begin{Intro}
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00285-01]}
@@ -155,7 +155,8 @@ The exceptions Storage_Error and Program_Error may be propagated.
 (Program_Error can only be propagated due to errors made by the
 caller of the subprogram.) Finally, exceptions can be propagated
 in certain implementation-defined situations.
-@ChgImplDef{Version=[2],Kind=[Deleted],Text=[@ChgDeleted{Version=[2],
+@ChgImplDef{Version=[2],Kind=[Deleted],InitialVersion=[0],
+Text=[@ChgDeleted{Version=[2],
 Text=[Any implementation-defined characteristics of the
 input-output packages.]}]}
 @begin{Discussion}
@@ -186,7 +187,7 @@ be associated with a given external file.
 @end{Diffword95}
 
 
-@Comment{@RMNewPage Break here so printed Ada 95 w/ corrigendum RM looks better.}
+@RMNewPageVer{Version=[1]}@Comment{Break here so printed Ada 95 w/ corrigendum RM looks better.}
 @LabeledClause{Sequential and Direct Files}
 
 @begin{StaticSem}
@@ -320,8 +321,9 @@ a property of a file object, not of an external file.
 @end{Example}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00360-01]}
-@ChgAdded{Version=[2],Text=[The type File_Type needs finalization
-(see @RefSecNum{User-Defined Assignment and Finalization})
+@ChgAdded{Version=[2],Text=[The type File_Type
+needs finalization@PDefn2{Term=<needs finalization>,Sec=<language-defined type>}
+(see @RefSecNum{Assignment and Finalization})
 in every instantiation of Sequential_IO.]}
 
 @end{StaticSem}
@@ -528,8 +530,10 @@ additional effects described in subclause
 @begin{Example}@Keepnext
 @key[function] Is_Open(File : @key[in] File_Type) @key[return] Boolean;
 @end{Example}
+    @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0264-1]}
     Returns True if the file is open (that is, if it is associated
-    with an external file), otherwise returns False.
+    with an external file)@Chg{Version=[3],New=[;],Old=[,]}
+    otherwise@Chg{Version=[3],New=[,],Old=[]} returns False.
 @end{DescribeCode}
 @end{StaticSem}
 
@@ -618,8 +622,10 @@ of the external file is exceeded.
 @begin{Example}@Keepnext
 @key[function] End_Of_File(File : @key[in] File_Type) @key[return] Boolean;
 @end{Example}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0264-1]}
 Operates on a file of mode In_File. Returns True if no more
-elements can be read from the given file; otherwise returns False.
+elements can be read from the given file;
+otherwise@Chg{Version=[3],New=[,],Old=[]} returns False.
 
 The exception Mode_Error is propagated if the mode is not In_File.
 @end{DescribeCode}
@@ -703,8 +709,9 @@ uninitialized variables of the type.
 @end{Reason}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00360-01]}
-@ChgAdded{Version=[2],Text=[The type File_Type needs finalization
-(see @RefSecNum{User-Defined Assignment and Finalization})
+@ChgAdded{Version=[2],Text=[The type File_Type
+needs finalization@PDefn2{Term=<needs finalization>,Sec=<language-defined type>}
+(see @RefSecNum{Assignment and Finalization})
 in every instantiation of Direct_IO.]}
 
 @begin{ImplNote}
@@ -798,9 +805,10 @@ the external file that is associated with the given file.
 @begin{Example}@Keepnext
 @key[function] End_Of_File(File : @key[in] File_Type) @key[return] Boolean;
 @end{Example}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0264-1]}
 Operates on a file of mode In_File or Inout_File. Returns
 True if the current index exceeds the size of the external
-file; otherwise returns False.
+file; otherwise@Chg{Version=[3],New=[,],Old=[]} returns False.
 
 The exception Mode_Error is propagated if the mode of the given file is
 Out_File.
@@ -890,6 +898,13 @@ A buffer used for Storage_IO holds only one element at a time; an external
 file used for Direct_IO holds a sequence of elements.
 @end{Notes}
 
+@begin{Extend83}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0005-1]}
+@ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 83}
+Storage_IO is new in Ada 95.]}
+@end{Extend83}
+
+
 @LabeledClause{Text Input-Output}
 
 @begin{StaticSem}
@@ -940,7 +955,8 @@ Out_File, and are associated with two implementation-defined external
 files. Procedures are provided to change the current default input file
 and the current default output file.
 @ChgNote{The following was poorly formatted.}
-@ChgImplDef{Version=[2],Kind=[Revised],Text=[@Chg{Version=[2],New=[The ],
+@ChgImplDef{Version=[2],Kind=[Revised],InitialVersion=[0],
+Text=[@Chg{Version=[2],New=[The ],
 Old=[]}external files @Chg{Version=[2],New=[associated with the],Old=[for]} standard
 input, standard output, and standard error@Chg{Version=[2],New=[ files.],Old=[]}]}
 @begin{ImplNote}
@@ -1408,8 +1424,9 @@ Append_File is new in Ada 95.
 @end{Example}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00360-01]}
-@ChgAdded{Version=[2],Text=[The type File_Type needs finalization
-(see @RefSecNum{User-Defined Assignment and Finalization}).]}
+@ChgAdded{Version=[2],Text=[The type File_Type
+needs finalization@PDefn2{Term=<needs finalization>,Sec=<language-defined type>}
+(see @RefSecNum{Assignment and Finalization}).]}
 
 @end{StaticSem}
 
@@ -1777,8 +1794,10 @@ used is not open.
 @key[function] End_Of_Line(File : @key[in] File_Type) @key[return] Boolean;
 @key[function] End_Of_Line @key[return] Boolean;
 @end{Example}
+  @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0264-1]}
   Operates on a file of mode In_File. Returns True if a line
-  terminator or a file terminator is next; otherwise returns False.
+  terminator or a file terminator is next;
+  otherwise@Chg{Version=[3],New=[,],Old=[]} returns False.
 
   @Trailing@;The exception Mode_Error is propagated if the mode is not In_File.
 
@@ -1815,10 +1834,11 @@ used is not open.
 @key[function] End_Of_Page(File : @key[in] File_Type) @key[return] Boolean;
 @key[function] End_Of_Page @key[return] Boolean;
 @end{Example}
+  @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0264-1]}
   Operates on a file of mode In_File. Returns True if the
   combination of a line terminator and a page terminator is
-  next, or if a file terminator is next; otherwise returns
-  False.
+  next, or if a file terminator is next;
+  otherwise@Chg{Version=[3],New=[,],Old=[]} returns False.
 
   @Trailing@;The exception Mode_Error is propagated if the mode is not In_File.
 
@@ -1827,9 +1847,11 @@ used is not open.
 @key[function] End_Of_File @key[return] Boolean;
 @end{Example}
 
+  @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0264-1]}
   Operates on a file of mode In_File. Returns True if a file
   terminator is next, or if the combination of a line, a page,
-  and a file terminator is next; otherwise returns False.
+  and a file terminator is next;
+  otherwise@Chg{Version=[3],New=[,],Old=[]} returns False.
 
   @Trailing@;The exception Mode_Error is propagated if the mode is not In_File.
 
@@ -1890,6 +1912,7 @@ file is the current output file.
 
   @Leading@;If the file mode is Out_File or Append_File:
 @begin{itemize}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0038-1]}
                If the value specified by To is greater than the current
                line number, has the effect of repeatedly calling
                New_Line (with a spacing of one), until the current line
@@ -1897,7 +1920,8 @@ file is the current output file.
                specified by To is equal to the current line number,
                there is no effect. If the value specified by To is less
                than the current line number, has the effect of calling
-               New_Page followed by a call of New_Line with a spacing
+               New_Page followed@Chg{Version=[3],New=[, if To is greater
+               than 1,],Old=[]} by a call of New_Line with a spacing
                equal to (To @en 1).
 
                The exception Layout_Error is propagated if the value
@@ -1963,6 +1987,16 @@ terminator is skipped. An implementation may represent the combination
 of these terminators by a single character, provided that it is properly
 recognized on input.
 @end{Notes}
+
+@begin{Inconsistent2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0038-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{inconsistencies with Ada 2005}@b<Correction:>
+  Fixed a glitch in Set_Line such that we could have called New_Line(0), which
+  would have to raise Constraint_Error. It's now defined to work. The bug
+  occurred in Ada 95 and Ada 2005. It's very unlikely that
+  any real programs depend on this exception being raised.]}
+@end{Inconsistent2005}
+
 
 @LabeledSubClause{Get and Put Procedures}
 
@@ -2087,9 +2121,9 @@ Get(N);
 @RI[--  @\bb12_535e; @\12_535e @\(none) Data_Error raised]
 @end{Example}
 
-@begin{Wide}
+@begin{WideAbove}
 @Leading@;Example of overridden width parameter:
-@end{Wide}
+@end{WideAbove}
 
 @begin{Example}
 Put(Item => -23, Width => 2);  --@RI{  "@en@|23"}
@@ -2137,12 +2171,15 @@ provided:
 @key[procedure] Look_Ahead (Item        : @key[out] Character;
                       End_Of_Line : @key[out] Boolean);
 @end{Example}
-  @Trailing@ChgRef{Version=[1],Kind=[Revised]}Mode_Error is propagated if
+  @Trailing@ChgRef{Version=[1],Kind=[Revised]}
+  @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0038-1],ARef=[AI05-0264-1]}@Chg{Version=[3],
+  New=[Status_Error is propagated if the file is not open. ],Old=[]}Mode_Error
+  is propagated if
   the mode of the file is not In_File. Sets End_Of_Line to True if at end of
   line, including if at end of page or at end of file; in each of these cases
   the value of Item is not specified.
   @PDefn{unspecified}
-  Otherwise End_Of_Line is set to
+  Otherwise@Chg{Version=[3],New=[,],Old=[]} End_Of_Line is set to
   False and Item is set to @Chg{New=[],Old=[the ]}the next character (without
   consuming it) from the file.
 
@@ -2151,8 +2188,11 @@ provided:
                         Item : @key[out] Character);
 @key[procedure] Get_Immediate(Item : @key[out] Character);
 @end{Example}
-@Trailing@;Reads the next character, either control or graphic, from the specified
-File or the default input file. Mode_Error is propagated if the mode of the
+@Trailing@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0038-1]}Reads
+the next character, either control or graphic, from the specified
+File or the default input file. @Chg{Version=[3],New=[Status_Error is
+propagated if the file is not open. ],Old=[]}Mode_Error is propagated
+if the mode of the
 file is not In_File. End_Error is propagated if at the end of the file.
 The current column, line and page numbers for the file are not affected.
 
@@ -2163,13 +2203,15 @@ The current column, line and page numbers for the file are not affected.
 @key[procedure] Get_Immediate(Item      : @key[out] Character;
                         Available : @key[out] Boolean);
 @end{Example}
-@Trailing@;If a character, either control or graphic, is available from the
+@Trailing@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0038-1]}If
+a character, either control or graphic, is available from the
 specified File or the default input file, then the character is read;
 Available is True and Item contains the value of this character. If a character
 is not available, then Available is False and the value of
 Item is not specified.
 @PDefn{unspecified}
-Mode_Error is propagated if the mode of the
+@Chg{Version=[3],New=[Status_Error is propagated if the file is
+not open. ],Old=[]}Mode_Error is propagated if the mode of the
 file is not In_File. End_Error is propagated if at the end of the file.
 The current column, line and page numbers for the file are not affected.
 
@@ -2230,9 +2272,10 @@ Old=[procedures]} are provided:
 
 @begin{Example}@Keepnext
 @key[procedure] Get_Line(File : @key[in] File_Type;
-                              Item : @key[out] String;
-                              Last : @key[out] Natural);
-@key[procedure] Get_Line(Item : @key[out] String;   Last : @key[out] Natural);
+                   Item : @key[out] String;
+                   Last : @key[out] Natural);
+@key[procedure] Get_Line(Item : @key[out] String;
+                   Last : @key[out] Natural);
 @end{Example}
   Reads successive characters from the specified input file and assigns
   them to successive characters of the specified string.
@@ -2304,6 +2347,13 @@ return as soon as a line terminator is read.
   The Text_IO.Get_Line functions are new.]}
 @end{Extend95}
 
+@begin{DiffWord2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0038-1]}
+  @ChgAdded{Version=[3],Text=[@b<Correction:> Added missing wording about
+  raising Status_Error to Look_Ahead and Get_Immediate.]}
+@end{DiffWord2005}
+
+
 
 @LabeledSubClause{Input-Output for Integer Types}
 
@@ -2354,10 +2404,11 @@ Default_Base  : Number_Base := 10;
       Returns, in the parameter Item, the value of type Num
       that corresponds to the sequence input.
 
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0038-1]}
       @Trailing@;The exception Data_Error is propagated if the sequence of characters
       read does not form a legal integer literal or if the value obtained is
-      not of the subtype Num (for Integer_IO) or is not in the base
-      range of Num (for Modular_IO).
+      not of the subtype Num@Chg{Version=[3],New=[],Old=[ (for Integer_IO) or
+      is not in the base range of Num (for Modular_IO)]}.
 
 @begin{Example}@Keepnext
 @key[procedure] Put(File  : @key[in] File_Type;
@@ -2431,10 +2482,11 @@ predefined type.
 @end{ImplPerm}
 
 @begin{Notes}
-For Modular_IO, execution of Get propagates
- Data_Error if the sequence of
+@ChgRef{Version=[3],Kind=[Deleted],ARef=[AI05-0038-1]}
+@ChgDeleted{Version=[3],Text=[For Modular_IO, execution of Get propagates
+Data_Error if the sequence of
 characters read forms an integer literal outside the range
-0..Num'Last.
+0..Num'Last.]}
 @end{Notes}
 
 @begin{Examples}
@@ -2451,6 +2503,20 @@ Put(-126, 7);                        --@RI{ "bbb@en@|126"}
 Put(126, Width => 13, Base => 2);    --@RI{ "bbb2#1111110#"}
 @end{Example}
 @end{Examples}
+
+@begin{Inconsistent2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0038-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{inconsistencies with Ada 2005}@b<Correction:>
+  Changed wording to make Integer_IO and Modular_IO raise Data_Error in the same
+  way when the bounds of the subtype are exceeded. There is no value to
+  different behavior, and all surveyed compilers already treat integer and
+  modular values the same way. This could only cause a problem if a
+  program was compiled with some unsurveyed compiler, and the Ada 95-defined
+  behavior is expected for Modular_IO. But note that such code is not portable
+  anyway, as most widely used compilers behave consistently with the
+  new wording, so it is unlikely that such code exists.]}
+@end{Inconsistent2005}
+
 
 @LabeledSubClause{Input-Output for Real Types}
 
@@ -2631,8 +2697,10 @@ An implementation may extend Get @Redundant[and Put] for floating point
 types to support special values such as infinities and NaNs.
 
 @begin{Discussion}
-See also the similar permission for the Wide_Value attribute in
-@RefSecNum{Scalar Types}.
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0005-1]}
+See also the similar permission for the @Chg{Version=[3],New=[Wide_Wide_Value, ],Old=[]}
+Wide_Value@Chg{Version=[3],New=[, and Value attributes],Old=[attribute]}
+in @RefSecNum{Scalar Types}.
 @end{Discussion}
 
 
@@ -2751,10 +2819,18 @@ Default_Setting : Type_Set := Upper_Case;
           Enum'Image(Item), as modified by the Width
           and Set parameters.
 @begin{Discussion}
-  For a character type, the literal might be a Wide_Character
+  @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0005-1]}
+  For a character type, the literal might be a
+  @Chg{Version=[3],New=[Wide_Wide_Character, ],Old=[]}Wide_Character@Chg{Version=[3],New=[,],Old=[]}
   or a control character.
   Whatever Image does for these things is appropriate here,
   too.
+
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0036-1]}
+  @ChgAdded{Version=[3],Text=[The @ldquote@;characters produced@rdquote@;
+  defines the @ldquote@;characters to be output@rdquote in the sense of
+  @RefSecNum{Get and Put Procedures}, so a result that cannot fit on any bounded
+  line will raise Layout_Error.]}
 @end{Discussion}
 
 @begin{Example}@Keepnext
@@ -2773,9 +2849,11 @@ Default_Setting : Type_Set := Upper_Case;
           character literal does not correspond to a value of the
           subtype Enum.
 @begin{Honest}
+  @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0005-1]}
   For a character type, it is permissible for the implementation to make
   Get do the inverse of what Put does,
-  in the case of wide @nt{character_literal}s and control characters.
+  in the case of wide@Chg{Version=[3],New=[ and wide_wide],Old=[]}
+  @nt{character_literal}s and control characters.
 @end{Honest}
 
 @begin{Example}@Keepnext
@@ -3189,29 +3267,43 @@ Ada.Float_@!Wide_Text_IO,
 Ada.Long_@!Float_@!Wide_Text_IO.]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00285-01],ARef=[AI95-00428-01]}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0004-1],ARef=[AI05-0092-1]}
 @ChgAdded{Version=[2],Text=[
 @ChildUnit{Parent=[Ada.Wide_@!Text_IO],Child=[Bounded_IO]}
 @ChildUnit{Parent=[Ada.Wide_Wide_@!Text_IO],Child=[Bounded_IO]}
 The specification of package Wide_Text_IO.Wide_@!Bounded_IO is the same as that
 for Text_IO.Bounded_IO, except that any occurrence of Bounded_String is
-replaced by Wide_@!Bounded_@!String, and any occurrence of package Bounded is
+replaced by @Chg{Version=[3],New=[Bounded_@!Wide_@!String],Old=[Wide_@!Bounded_@!String]},
+and any occurrence of package Bounded is
 replaced by Wide_Bounded. The specification of package
-Wide_Wide_@!Text_IO.Wide_Wide_@!Bounded_IO is the same as that for
+@Chg{Version=[3],New=[Wide_Wide_@!Text_IO.Wide_Wide_@!Bounded_IO],
+Old=[Wide_Wide_@!Text_IO.Wide_@!Bounded_IO]} is the same as that for
 Text_IO.@!Bounded_IO, except that any occurrence of Bounded_@!String is
-replaced by Wide_Wide_@!Bounded_String, and any occurrence of package Bounded
+replaced by @Chg{Version=[3],New=[Bounded_@!Wide_Wide_@!String],
+Old=[Wide_Wide_@!Bounded_@!String]}, and any occurrence of package Bounded
 is replaced by Wide_Wide_@!Bounded.]}
 
+@begin{Honest}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0005-1]}
+  @ChgAdded{Version=[3],Text=[@ldquote@;package Bounded@rdquote refers
+  to both the package Ada.Strings.Bounded and the formal package
+  parameter named Bounded.]}
+@end{Honest}
+
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00285-01],ARef=[AI95-00301-01]}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0092-1]}
 @ChgAdded{Version=[2],Text=[
 @ChildUnit{Parent=[Ada.Wide_@!Text_IO],Child=[Unbounded_IO]}
 @ChildUnit{Parent=[Ada.Wide_Wide_@!Text_IO],Child=[Unbounded_IO]}
 The specification of package Wide_Text_IO.@!Wide_Unbounded_IO is the same as that
 for Text_IO.@!Unbounded_IO, except that any occurrence of Unbounded_@!String is
-replaced by Wide_@!Unbounded_@!String, and any occurrence of package Unbounded is
+replaced by @Chg{Version=[3],New=[Unbounded_@!Wide_@!String],Old=[Wide_@!Unbounded_@!String]},
+and any occurrence of package Unbounded is
 replaced by Wide_@!Unbounded. The specification of package
 Wide_Wide_Text_IO.Wide_Wide_@!Unbounded_IO is the same as that for
 Text_IO.Unbounded_IO, except that any occurrence of Unbounded_String is
-replaced by Wide_Wide_@!Unbounded_@!String, and any occurrence of package Unbounded
+replaced by @Chg{Version=[3],New=[Unbounded_@!Wide_Wide_@!String],
+Old=[Wide_Wide_@!Unbounded_@!String]}, and any occurrence of package Unbounded
 is replaced by Wide_Wide_@!Unbounded.]}
 @end{StaticSem}
 
@@ -3236,6 +3328,15 @@ Support for Wide_Character and Wide_String I/O is new in Ada 95.
   Wide_Text_IO.Wide_Bounded_IO and
   Wide_Wide_Text_IO.Wide_Wide_Bounded_IO are new as well.]}
 @end{Extend95}
+
+
+@begin{DiffWord2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0092-1]}
+  @ChgAdded{Version=[3],Text=[@B<Correction>: Corrected the names of
+  various entities in the above description. Since the previously named
+  entities don't exist and the intent is obvious, this is just considered
+  a presentation change.]}
+@end{DiffWord2005}
 
 
 @LabeledClause{Stream Input-Output}
@@ -3377,8 +3478,9 @@ Text=[Current size for a stream file for which positioning is not supported.]}]}
 @end(example)
 
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00360-01]}
-@ChgAdded{Version=[2],Text=[The type File_Type needs finalization
-(see @RefSecNum{User-Defined Assignment and Finalization}).]}
+@ChgAdded{Version=[2],Text=[The type File_Type
+needs finalization@PDefn2{Term=<needs finalization>,Sec=<language-defined type>}
+(see @RefSecNum{Assignment and Finalization}).]}
 
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00283-01]}
 The subprograms @Chg{Version=[2],New=[given in subclause
@@ -3396,14 +3498,18 @@ subprograms in Sequential_IO (see @RefSecNum(File Management))]}.
 is not In_File;]}
 
 @ChgRef{Version=[2],Kind=[Added]}
+@ChgRef{Version=[3],Kind=[RevisedAdded],ARef=[AI05-0264-1]}
 @ChgAdded{Version=[2],Text=[If positioning is supported for the given external
 file, the function returns True if the current index exceeds the size of the
-external file; otherwise it returns False;]}
+external file; otherwise@Chg{Version=[3],New=[,],Old=[]}
+it returns False;]}
 
 @ChgRef{Version=[2],Kind=[Added]}
+@ChgRef{Version=[3],Kind=[RevisedAdded],ARef=[AI05-0264-1]}
 @ChgAdded{Version=[2],Text=[If positioning is not supported for the given
 external file, the function returns True if no more elements can be read from
-the given file; otherwise it returns False.]}
+the given file; otherwise@Chg{Version=[3],New=[,],Old=[]}
+it returns False.]}
 @end{Itemize}
 
 @ChgRef{Version=[1],Kind=[Added],Ref=[8652/0055],ARef=[AI95-00026-01]}
@@ -3758,6 +3864,24 @@ Layout_Error is also propagated on output by an attempt to set column or
 line numbers in excess of specified maximum line or page lengths,
 respectively (excluding the unbounded cases). It is also propagated by an
 attempt to Put too many characters to a string.
+
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0262-1]}
+@ChgAdded{Version=[3],Text=[These exceptions are also propagated by various
+other language-defined packages and operations, see the definition of those
+entities for other reasons that these exceptions are propagated.]}
+
+@begin{Reason}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[This clause is based in Ada 95. Later versions of
+  Ada (starting with Technical Corrigendum 1) have added a number of additional
+  places and reasons that cause these exceptions. In particular, TC1 says that
+  stream attributes need to raise End_Error in some circumstances; Amendment 1
+  adds Ada.Directories and a number of new places and reasons that Name_Error and
+  Use_Error are raised. There are more. We don't want to try to update this text
+  (or even this note!) for every possible reason and place that might raise one
+  of these exceptions, so we add this blanket statement.]}
+@end{Reason}
+
 @end{StaticSem}
 
 

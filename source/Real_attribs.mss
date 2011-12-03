@@ -1,9 +1,9 @@
 @Part(realattribs, Root="ada.mss")
 
-@Comment{$Date: 2005/08/17 00:07:41 $}
+@Comment{$Date: 2011/09/29 06:37:25 $}
 
-@comment{$Source: d:\\CvsRoot/ARM/Source/Real_attribs.mss,v $}
-@comment{$Revision: 1.25 $}
+@comment{$Source: e:\\cvsroot/ARM/Source/real_attribs.mss,v $}
+@comment{$Revision: 1.27 $}
 
 @LabeledSubClause{Attributes of Floating Point Types}
 
@@ -167,11 +167,11 @@ For every value @RI{x} of a floating point type @i{T}, the
    @i{T}'Machine_Emin.
 @end{Ramification}
 
-@begin{Wide}
+@begin{WideAbove}
 @Leading@Defn{primitive function}
 The following @i{primitive function attributes} are defined for any subtype
 S of a floating point type @i{T}.
-@end{Wide}
+@end{WideAbove}
 @begin(Description)
 @AttributeLeading{Prefix=<S>, AttrName=<Exponent>,
   Text=[S'Exponent denotes a function with the following
@@ -494,9 +494,11 @@ truncating @i{X} to the precision
    of the machine numbers results in a value outside the base range of S.
    A zero result has the sign of @i{X} when S'Signed_Zeros is True.]}
 @begin{Discussion}
+   @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0005-1]}
    All of the primitive function attributes except Rounding and Machine
    correspond to subprograms in the Generic_Primitive_Functions
-   generic package proposed as a separate ISO standard (ISO/IEC DIS 11729) for
+   generic package @Chg{Version=[3],New=[that was ],Old=[]}proposed
+   as a separate ISO standard (ISO/IEC DIS 11729) for
    Ada 83. The Scaling, Unbiased_Rounding, and Truncation attributes
    correspond to the Scale, Round, and Truncate functions, respectively, in
    Generic_Primitive_Functions. The Rounding attribute rounds away from zero;
@@ -523,12 +525,12 @@ truncating @i{X} to the precision
 @end{ImplNote}
 @end(Description)
 
-@begin{Wide}
+@begin{WideAbove}
 @Leading@Defn2{Term=[model-oriented attributes],
                 Sec=[of a floating point subtype]}
 The following @i{model-oriented attributes} are defined for any subtype S of
 a floating point type @i{T}.
-@end{Wide}
+@end{WideAbove}
 @begin{Description}
 @Attribute{Prefix=<S>, AttrName=<Model_Mantissa>,
   Text=[If the Numerics Annex is not supported,

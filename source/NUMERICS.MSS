@@ -1,8 +1,8 @@
-@comment{ $Source: d:\\CvsRoot/ARM/Source/NUMERICS.MSS,v $ }
-@comment{ $Revision: 1.54 $ $Date: 2006/10/19 06:40:29 $ $Author: Randy $ }
+@comment{ $Source: e:\\cvsroot/ARM/Source/numerics.mss,v $ }
+@comment{ $Revision: 1.67 $ $Date: 2011/11/01 23:14:15 $ $Author: randy $ }
 @Part(numerics, Root="ada.mss")
 
-@Comment{$Date: 2006/10/19 06:40:29 $}
+@Comment{$Date: 2011/11/01 23:14:15 $}
 
 @LabeledNormativeAnnex{Numerics}
 @begin{Intro}
@@ -36,12 +36,14 @@ The Numerics Annex specifies
 @end{Intro}
 
 @begin{ImplAdvice}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1]}
 If Fortran (respectively, C) is widely supported in the target environment,
 implementations supporting the Numerics Annex should provide the child package
 Interfaces.Fortran (respectively, Interfaces.C) specified in
 @RefSecNum{Interface to Other Languages}
 and should support a @i{convention_}@nt{identifier} of
-Fortran (respectively, C) in the interfacing pragmas
+Fortran (respectively, C) @Chg{Version=[3],New=[for],Old=[in]}
+the @Chg{Version=[3],New=[Convention aspect],Old=[interfacing pragmas]}
 (see @RefSecNum{Interface to Other Languages}),
 thus allowing Ada programs to interface with programs written in
 that language.
@@ -538,8 +540,9 @@ parameter lies on the positive real axis; as another, the sign of the imaginary
 component of the Compose_@!From_@!Polar function should be the same as (resp., the
 opposite of) that of the Argument parameter when that parameter has a value of
 zero and the Modulus parameter has a nonnegative (resp., negative) value.
-@ChgImplAdvice{Version=[2],Kind=[Added],Text=[@ChgAdded{Version=[2],
-Text=[If Real'Signed_Zeros is true for Numerics.@!Generic_@!Complex_@!Types,
+@ChgImplAdvice{Version=[3],Kind=[RevisedAdded],InitialVersion=[2],
+Text=[@ChgAdded{Version=[2],
+Text=[If Real'Signed_Zeros is @Chg{Version=[3],New=[True],Old=[true]} for Numerics.@!Generic_@!Complex_@!Types,
 a rational treatment of the signs of
 zero results and result components should be provided.]}]}
 @end{ImplAdvice}
@@ -938,8 +941,10 @@ cases, the result component should have the sign of the parameter component at
 the origin. Other complex elementary functions have zero components whose sign
 is opposite that of a parameter component at the origin, or is always positive
 or always negative.
-@ChgImplAdvice{Version=[2],Kind=[Added],Text=[@ChgAdded{Version=[2],
-Text=[If Complex_Types.Real'Signed_Zeros is true for
+@ChgImplAdvice{Version=[3],Kind=[RevisedAdded],InitialVersion=[2],
+Text=[@ChgAdded{Version=[2],
+Text=[If Complex_Types.Real'Signed_Zeros
+is @Chg{Version=[3],New=[True],Old=[true]} for
 Numerics.@!Generic_@!Complex_@!Elementary_@!Functions,
 a rational treatment of the signs of
 zero results and result components should be provided.]}]}
@@ -1362,7 +1367,8 @@ Ada 83.
 @end{Extend83}
 
 
-@RMNewPage@Comment{For printed version of Ada 2007 RM}
+@RMNewPageVer{Version=[2]}@Comment{For printed version of Ada 2005 RM}
+@RMNewPageVer{Version=[3]}@Comment{For printed version of Ada 2012 RM}
 @LabeledSubClause{Model of Floating Point Arithmetic}
 
 @begin{Intro}
@@ -1676,7 +1682,9 @@ satisfies the strict-mode requirements of
 numbers and safe range induced by these attributes and the previously
 determined value of S'Model_Mantissa.
 
-Finally, S'Safe_First and S'Safe_last are set (in either order) to the
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0092-1]}
+Finally, S'Safe_First and S'@Chg{Version=[3],New=[Safe_Last],Old=[Safe_last]}
+are set (in either order) to the
 smallest and largest values, respectively, for which the
 implementation satisfies the strict-mode requirements of
 @RefSecNum{Model of Floating Point Arithmetic} in
@@ -1837,12 +1845,13 @@ are defined as follows:
          then the perfect result set contains
          only the value @RI{v};
 
-         otherwise, if truncation applies then it contains only the integer
+         @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0264-1]}
+         otherwise, if truncation applies@Chg{Version=[3],New=[,],Old=[]}
+         then it contains only the integer
          multiple of @RI{s} in the direction toward zero,
-         whereas if rounding
-         applies then it contains only the nearest integer multiple of
-         @RI{s} (with
-         ties broken by rounding away from zero).
+         whereas if rounding applies@Chg{Version=[3],New=[,],Old=[]}
+         then it contains only the nearest integer multiple of
+         @RI{s} (with ties broken by rounding away from zero).
       @end(InnerItemize)
 
       @NoPrefix@;The close result set is an implementation-defined set of consecutive
@@ -3043,6 +3052,7 @@ A is not symmetric.]}
 @end{Example}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00296-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0047-1]}
 @ChgAdded{Version=[2],Text=[This procedure computes both the eigenvalues and
 eigenvectors of the symmetric matrix A. The out parameter Values is the same as
 that obtained by calling the function Eigenvalues. The out parameter Vectors is
@@ -3050,8 +3060,19 @@ a matrix whose columns are the eigenvectors of the matrix A. The order of the
 columns corresponds to the order of the eigenvalues. The eigenvectors are
 normalized and mutually orthogonal (they are orthonormal), including when there
 are repeated eigenvalues. Constraint_Error is raised if A'Length(1) is not
-equal to A'Length(2). The index ranges of the parameter Vectors are those of A.
-Argument_Error is raised if the matrix A is not symmetric.]}
+equal to A'Length(2)@Chg{Version=[3],New=[, or if Values'Range is not equal to
+A'Range(1), or if the],Old=[. The]} index ranges of the parameter Vectors are
+@Chg{Version=[3],New=[not equal to ],Old=[]}those of A. Argument_Error is
+raised if the matrix A is not symmetric.@Chg{Version=[3],New=[ Constraint_Error
+is also raised in implementation-defined circumstances if the algorithm used
+does not converge quickly enough.],Old=[]}]}
+
+@begin{Ramification}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0047-1]}
+  @ChgAdded{Version=[3],Text=[There is no requirement on the absolute direction
+  of the returned eigenvectors. Thus they might be multiplied by -1. It is only
+  the ratios of the components that matter. This is standard practice.]}
+@end{Ramification}
 
 @begin{Example}
 @ChgRef{Version=[2],Kind=[AddedNormal]}
@@ -3131,6 +3152,15 @@ Numerics.Generic_Real_Arrays shall be documented.]}]}
   although these may be fast they may not meet the accuracy requirement
   specified. See Accuracy and Stability of Numerical Algorithms By N J Higham
   (ISBN 0-89871-355-2), Section 3.1.]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0047-1]}
+  @ChgAdded{Version=[3],Text=[Note moreover that the componentwise accuracy
+  requirements are not met by subcubic methods for matrix multiplication such
+  as that devised by Strassen. These methods, which are typically used for the
+  fast multiplication of very large matrices (e.g. order more than a few
+  thousands), have normwise accuracy properties. If it is desired to use such
+  methods, then distinct subprograms should be provided (perhaps in a child
+  package). See Section 22.2.2 in the above reference.]}
 @end{ImplNote}
 @end{DocReq}
 
@@ -3146,11 +3176,12 @@ predefined type.]}
 @begin{ImplAdvice}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00296-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0264-1]}
 @ChgAdded{Version=[2],Text=[Implementations should implement the Solve and
 Inverse functions using established techniques such as LU decomposition with
 row interchanges followed by back and forward substitution. Implementations are
 recommended to refine the result by performing an iteration on the residuals;
-if this is done then it should be documented.]}
+if this is done@Chg{Version=[3],New=[,],Old=[]} then it should be documented.]}
 @ChgImplAdvice{Version=[2],Kind=[AddedNormal],Text=[@ChgAdded{Version=[2],
 Text=[Solve and Inverse for Numerics.Generic_Real_Arrays should be
 implemented using established techniques such as LU decomposition and
@@ -3173,8 +3204,25 @@ document with this paragraph.]}
 performed by using the equality operator to compare the relevant components.]}
 @ChgImplAdvice{Version=[2],Kind=[AddedNormal],Text=[@ChgAdded{Version=[2],
 Text=[The equality operator should be used to test that a matrix in
-Numerics.Generic_Real_Matrix is symmetric.]}]}
+Numerics.Generic_Real_Arrays is symmetric.]}]}
 
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0047-1]}
+@ChgAdded{Version=[3],Text=[An implementation should minimize the circumstances
+under which the algorithm used for Eigenvalues and Eigensystem fails to
+converge.]}
+@ChgImplAdvice{Version=[3],Kind=[Added],Text=[@ChgAdded{Version=[3],
+Text=[An implementation should minimize the circumstances
+under which the algorithm used for Numerics.Generic_Real_Arrays.Eigenvalues
+and Numerics.Generic_Real_Arrays.Eigensystem fails to converge.]}]}
+
+@begin{ImplNote}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[J. H. Wilkinson is the acknowledged expert in
+  this area. See for example
+  Wilkinson, J. H., and Reinsch, C. , Linear Algebra , vol II of Handbook
+  for Automatic Computation, Springer-Verlag, or Wilkinson, J. H., The
+  Algebraic Eigenvalue Problem, Oxford University Press.]}
+@end{ImplNote}
 @end{ImplAdvice}
 
 @begin{Extend95}
@@ -3183,6 +3231,12 @@ Numerics.Generic_Real_Matrix is symmetric.]}]}
   The package Numerics.Generic_Real_Arrays and its nongeneric equivalents
   are new.]}
 @end{Extend95}
+
+@begin{Diffword2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0047-1]}
+  @ChgAdded{Version=[3],Text=[@b<Correction:> Corrected various
+  accuracy and definition issues.]}
+@end{Diffword2005}
 
 
 @LabeledAddedSubClause{Version=[2],Name=[Complex Vectors and Matrices]}
@@ -3266,7 +3320,8 @@ package Numerics.Generic_Complex_Arrays has the following declaration:]}
 @ChgAdded{Version=[2],Text=[   @key{function} "*"  (Left, Right : Complex_Vector) @key{return} Complex;]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal]}
-@ChgAdded{Version=[2],Text=[   @key{function} "@key{abs}"     (Right : Complex_Vector) @key{return} Complex;]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0047-1]}
+@ChgAdded{Version=[2],Text=[   @key{function} "@key{abs}"     (Right : Complex_Vector) @key{return} @Chg{Version=[3],New=[Real'Base],Old=[Complex]};]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal]}
 @ChgAdded{Version=[2],Text=[   -- @RI{Mixed Real_Vector and Complex_Vector arithmetic operations}]}
@@ -3497,6 +3552,14 @@ to @i{involve an inner product}, Constraint_Error may be raised if an intermedia
 result has a component outside the range of Real'Base even though the final
 mathematical result would not.@Defn2{Term=[involve an inner product],Sec=[complex]}]}
 
+@begin{Discussion}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0047-1]}
+  @ChgAdded{Version=[3],Text=[An inner product never involves implicit complex
+  conjugation. If the product of a vector with the conjugate of another (or the
+  same) vector is required, then this has to be stated explicitly by writing for
+  example X * Conjugate(Y). This mimics the usual mathematical notation.]}
+@end{Discussion}
+
 @begin{DescribeCode}
 
 @begin{Example}
@@ -3616,7 +3679,8 @@ Right'Length. This operation involves an inner product.]}
 
 @begin{Example}
 @ChgRef{Version=[2],Kind=[AddedNormal]}
-@ChgAdded{Version=[2],KeepNext=[T],Text=[@key{function} "@key{abs}" (Right : Complex_Vector) @key{return} Complex;]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0047-1]}
+@ChgAdded{Version=[2],KeepNext=[T],Text=[@key{function} "@key{abs}" (Right : Complex_Vector) @key{return} @Chg{Version=[3],New=[Real'Base],Old=[Complex]};]}
 @end{Example}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00418-01]}
@@ -4118,15 +4182,29 @@ A is not Hermitian.]}
 @end{Example}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00296-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0047-1]}
 @ChgAdded{Version=[2],Text=[This procedure computes both the eigenvalues and
 eigenvectors of the Hermitian matrix A. The out parameter Values is the same as
 that obtained by calling the function Eigenvalues. The out parameter Vectors is
 a matrix whose columns are the eigenvectors of the matrix A. The order of the
 columns corresponds to the order of the eigenvalues. The eigenvectors are
 mutually orthonormal, including when there are repeated eigenvalues.
-Constraint_Error is raised if A'Length(1) is not equal to A'Length(2). The
-index ranges of the parameter Vectors are those of A. Argument_Error is raised
-if the matrix A is not Hermitian.]}
+Constraint_Error is raised if A'Length(1) is not
+equal to A'Length(2)@Chg{Version=[3],New=[, or if Values'Range is not equal to
+A'Range(1), or if the],Old=[. The]} index ranges of the parameter Vectors are
+@Chg{Version=[3],New=[not equal to ],Old=[]}those of A. Argument_Error is
+raised if the matrix A is not Hermitian.@Chg{Version=[3],New=[ Constraint_Error
+is also raised in implementation-defined circumstances if the algorithm used
+does not converge quickly enough.],Old=[]}]}
+
+@begin{Ramification}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0047-1]}
+  @ChgAdded{Version=[3],Text=[There is no requirement on the absolute direction
+  of the returned eigenvectors. Thus they might be multiplied by any complex
+  number whose modulus is 1. It is only the ratios of the components that
+  matter. This is standard practice.]}
+@end{Ramification}
+
 
 @begin{Example}
 @ChgRef{Version=[2],Kind=[AddedNormal]}
@@ -4226,10 +4304,11 @@ calling those operations provided that the effect is the same.]}
 @begin{ImplAdvice}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00296-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0264-1]}
 @ChgAdded{Version=[2],Text=[Implementations should implement the Solve and
 Inverse functions using established techniques. Implementations are recommended
 to refine the result by performing an iteration on the residuals; if this is
-done then it should be documented.]}
+done@Chg{Version=[3],New=[,],Old=[]} then it should be documented.]}
 @ChgImplAdvice{Version=[2],Kind=[AddedNormal],Text=[@ChgAdded{Version=[2],
 Text=[Solve and Inverse for Numerics.Generic_Complex_Arrays should be
 implemented using established techniques and the result should be refined
@@ -4256,6 +4335,24 @@ equality to compare the imaginary components
 Text=[The equality and negation operators should be used to test that a matrix is
 Hermitian.]}]}
 
+@ChgRef{Version=[3],Kind=[Added]}
+@ChgAdded{Version=[3],Text=[An implementation should minimize the circumstances
+under which the algorithm used for Eigenvalues and Eigensystem fails to
+converge.]}
+@ChgImplAdvice{Version=[3],Kind=[Added],Text=[@ChgAdded{Version=[3],
+Text=[An implementation should minimize the circumstances
+under which the algorithm used for Numerics.Generic_Complex_Arrays.Eigenvalues
+and Numerics.Generic_Complex_Arrays.Eigensystem fails to converge.]}]}
+
+@begin{ImplNote}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[J. H. Wilkinson is the acknowledged expert in
+  this area. See for example
+  Wilkinson, J. H., and Reinsch, C. , Linear Algebra , vol II of Handbook
+  for Automatic Computation, Springer-Verlag, or Wilkinson, J. H., The
+  Algebraic Eigenvalue Problem, Oxford University Press.]}
+@end{ImplNote}
+
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00296-01]}
 @ChgAdded{Version=[2],Text=[Implementations should not perform operations on
 mixed complex and real operands by first converting the real operand to
@@ -4276,4 +4373,8 @@ the real operand to complex.]}]}
   Just checking if anyone reads this stuff.}]}
 @end{Extend95}
 
-
+@begin{Diffword2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0047-1]}
+  @ChgAdded{Version=[3],Text=[@b<Correction:> Corrected various
+  accuracy and definition issues.]}
+@end{Diffword2005}

@@ -1,10 +1,10 @@
 @Part(12, Root="ada.mss")
 
-@Comment{$Date: 2006/10/18 00:25:25 $}
+@Comment{$Date: 2011/11/01 23:14:14 $}
 @LabeledSection{Generic Units}
 
-@Comment{$Source: d:\\CvsRoot/ARM/Source/12.MSS,v $}
-@Comment{$Revision: 1.65 $}
+@Comment{$Source: e:\\cvsroot/ARM/Source/12.mss,v $}
+@Comment{$Revision: 1.86 $}
 
 @begin{Intro}
 @Defn{generic unit}
@@ -63,11 +63,20 @@ a subprogram, or a package.]
 @Syn{lhs=<generic_declaration>,rhs="@Syn2{generic_subprogram_declaration} | @Syn2{generic_package_declaration}"}
 
 
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0183-1]}
 @Syn{lhs=<generic_subprogram_declaration>,rhs="
-     @Syn2{generic_formal_part}  @Syn2{subprogram_specification};"}
+     @Syn2{generic_formal_part}  @Syn2{subprogram_specification}@Chg{Version=[3],New=<
+        [@Syn2{aspect_specification}]>,Old=[]};"}
 
 @Syn{lhs=<generic_package_declaration>,rhs="
      @Syn2{generic_formal_part}  @Syn2{package_specification};"}
+
+@begin{Ramification}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0183-1]}
+  @ChgAdded{Version=[3],Text=[No syntax change is needed here to allow an
+  @nt{aspect_specification}; a generic package can have an @nt{aspect_specification}
+  because a @nt{package_specification} allows an @nt{aspect_specification}.]}
+@end{Ramification}
 
 @Syn{lhs=<generic_formal_part>,rhs="@key{generic} {@Syn2{generic_formal_parameter_declaration} | @Syn2{use_clause}}"}
 
@@ -166,10 +175,10 @@ expression.)
    @key[with] @key[function] "<"(X, Y : Item) @key[return] Boolean;    --@RI{ formal subprogram }
 @end{Example}
 
-@begin{Wide}
+@begin{WideAbove}
 @leading@keepnext@i{Examples of generic declarations declaring generic subprograms
 Exchange and Squaring:}
-@end{Wide}
+@end{WideAbove}
 @begin{Example}
 @key[generic]
    @key[type] Elem @key[is] @key[private];
@@ -181,9 +190,9 @@ Exchange and Squaring:}
 @key[function] Squaring(X : Item) @key[return] Item;
 @end{Example}
 
-@begin{Wide}
+@begin{WideAbove}
 @leading@keepnext@i{Example of a generic declaration declaring a generic package:}
-@end{Wide}
+@end{WideAbove}
 @begin{Example}
 @key[generic]
    @key[type] Item   @key[is] @key[private];
@@ -223,6 +232,13 @@ We can't do that for @nt{generic_formal_parameter_declaration},
 because of confusion with normal formal parameters of subprograms.
 @end{DiffWord83}
 
+@begin{Extend2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0183-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 2005}
+  An optional @nt{aspect_specification} can be used in a
+  @nt{generic_subprogram_declaration} (as well as a @nt{generic_package_declaration}).
+  This is described in @RefSecNum{Aspect Specifications}.]}
+@end{Extend2005}
 
 
 @RmNewPage@Comment{Insert page break so printed RM's look better.}
@@ -268,9 +284,9 @@ is always the completion of a declaration.
 @key[end] Exchange;
 @end{Example}
 
-@begin{Wide}
+@begin{WideAbove}
 @leading@keepnext@i{Example of a generic function body:}
-@end{Wide}
+@end{WideAbove}
 @begin{Example}
 @key[function] Squaring(X : Item) @key[return] Item @key[is]  --@RI{  see @RefSecNum{Generic Declarations}}
 @key[begin]
@@ -278,9 +294,9 @@ is always the completion of a declaration.
 @key[end] Squaring;
 @end{Example}
 
-@begin{Wide}
+@begin{WideAbove}
 @leading@keepnext@i{Example of a generic package body:}
-@end{Wide}
+@end{WideAbove}
 @begin{Example}
 @key[package] @key[body] On_Vectors @key[is]  --@RI{  see @RefSecNum{Generic Declarations}}
 
@@ -344,15 +360,19 @@ Similarly, the contract model does not apply to @LinkTimeTitle.
 
 @begin{Syntax}
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00218-03]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0183-1]}
 @Syn{lhs=<generic_instantiation>,rhs="
      @key{package} @Syn2{defining_program_unit_name} @key{is}
-         @key{new} @SynI{generic_package_}@Syn2{name} [@Syn2{generic_actual_part}];
+         @key{new} @SynI{generic_package_}@Syn2{name} [@Syn2{generic_actual_part}]@Chg{Version=[3],New=<
+            [@Syn2{aspect_specification}]>,Old=[]};
    | @Chg{Version=[2],New=<[@Syn2{overriding_indicator}]
      >,Old=<>}@key{procedure} @Syn2{defining_program_unit_name} @key{is}
-         @key{new} @SynI{generic_procedure_}@Syn2{name} [@Syn2{generic_actual_part}];
+         @key{new} @SynI{generic_procedure_}@Syn2{name} [@Syn2{generic_actual_part}]@Chg{Version=[3],New=<
+            [@Syn2{aspect_specification}]>,Old=[]};
    | @Chg{Version=[2],New=<[@Syn2{overriding_indicator}]
      >,Old=<>}@key{function} @Syn2{defining_designator} @key{is}
-         @key{new} @SynI{generic_function_}@Syn2{name} [@Syn2{generic_actual_part}];"}
+         @key{new} @SynI{generic_function_}@Syn2{name} [@Syn2{generic_actual_part}]@Chg{Version=[3],New=<
+            [@Syn2{aspect_specification}]>,Old=[]};"}
 
 
 @Syn{lhs=<generic_actual_part>,rhs="
@@ -376,16 +396,16 @@ named associations.
 @end{Syntax}
 
 @begin{Intro}
-@ChgRef{Version=[2],Kind=[Revised]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0004-1]}
 @Defn{generic actual parameter}
 @Defn{generic actual}
 @Defn{actual}
 The @i{generic actual parameter} is either the
 @nt{explicit_generic_actual_parameter} given in a
-@Chg{Version=[2],New=[@nt{generic_@!association}],Old=[@ntf{generic_@!parameter_@!association}]}
+@Chg{Version=[3],New=[@nt{generic_@!association}],Old=[@ntf{generic_@!parameter_@!association}]}
 for each formal,
 or the corresponding @nt{default_@!expression} or @nt{default_@!name} if no
-@Chg{Version=[2],New=[@nt{generic_@!association}],Old=[@ntf{generic_@!parameter_@!association}]}
+@Chg{Version=[3],New=[@nt{generic_@!association}],Old=[@ntf{generic_@!parameter_@!association}]}
 is given for the formal.
 When the meaning is clear from context,
 the term @lquotes@;generic actual,@rquotes@; or simply @lquotes@;actual,@rquotes@; is used as a synonym for
@@ -401,13 +421,21 @@ unit of the corresponding kind @Redundant[(generic package,
 generic procedure, or generic
 function, respectively)].
 
-The @SynI{generic_formal_parameter_}@nt{selector_name} of a
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0118-1]}
+The @SynI{generic_formal_parameter_}@nt{selector_name} of
+a@Chg{Version=[3],New=[ named],Old=[]}
 @nt{generic_association} shall denote a
 @nt{generic_formal_parameter_declaration}
 of the generic unit being instantiated.
 If two or more formal subprograms have the same defining name, then
 named associations are not allowed for the corresponding
 actuals.
+
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0118-1]}
+@ChgAdded{Version=[3],Text=[The @nt{generic_formal_parameter_declaration}
+for a positional @nt{generic_association} is the parameter with the
+corresponding position in the @nt{generic_formal_part} of the
+generic unit being instantiated.]}
 
 A @nt{generic_instantiation} shall contain at
 most one @nt<generic_association> for each formal.
@@ -441,6 +469,16 @@ runs into this problem.
 Such rules are rare; in most cases, the rules for matching of formals
 and actuals guarantee that if the rule is obeyed in the generic unit,
 then it has to be obeyed in the instance.
+
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0005-1]}
+@ChgAdded{Version=[3],Text=[Ada 2012 addendum: Such @LegalityTitle are not
+as rare as the authors of Ada 95 hoped; there are more than 30 of them known
+at this point. They are indexed under "generic contract issue" and
+are associated with the boilerplate "In addition to the places where
+@LegalityTitle normally apply...". Indeed, there is only one known rule
+where rechecking in the specification is needed and where rechecking in the
+private part is @i<not> wanted (it is in @RefSecNum{Derived Types and Classes},
+but even it needs rechecking when tagged types are involved).]}
 @end{Reason}
 @begin{Ramification}
 @leading@;The @lquotes@;properties@rquotes@; of the formals are determined
@@ -476,7 +514,8 @@ The subtype of a formal parameter of
 a formal subprogram does not
 provide an applicable index constraint.
 
-The profile of a formal subprogram is not subtype-conformant
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0239-1]}
+The profile of a formal subprogram is not @Chg{Version=[3],New=[subtype conformant],Old=[subtype-conformant]}
 with any other profile.
 @Defn{subtype conformance}
 
@@ -499,11 +538,14 @@ The parent type of a private extension has to be specific
 This rule is not checked in the instance body.
 
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00402-01]}
-A type with @Chg{Version=[2],New=[a @nt{default_expression} of ],Old=[]}an
-access discriminant has to be a
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0093-1]}
+A type with an access discriminant @Chg{Version=[2],New=[with a
+@nt{default_expression} ],Old=[]}has to be @Chg{Version=[3],New=[immutably
+limited. In the generic body, the definition of immutably limited is adjusted
+in an assume-the-worst manner (thus the rule is checked that way)],Old=[a
 descendant of @Chg{Version=[2],New=[an explicitly limited record type],Old=[a
 type declared with @key[limited]]}, or be a task or protected
-type. This rule is irrelevant in the instance body.]}
+type. This rule is irrelevant in the instance body]}.
 
 In the declaration of a record extension,
 if the parent type is nonlimited, then each of the
@@ -522,7 +564,7 @@ manner.
 @ChgAdded{Version=[2],NoPrefix=[T],Text=[The corrections made by the
 Corrigendum added a number of such rules, and the Amendment added many more.
 There doesn't seem to be much value in repeating all of these rules here (as
-of this writing, there are roughly 17 such rules).
+of this writing, there are roughly 33 such rules).
 As noted below, all such rules are indexed in the AARM.]}
 
 @PDefn2{Term=[accessibility rule],Sec=(checking in generic units)}
@@ -1002,7 +1044,7 @@ an implicit @nt{generic_association} is assumed for this rule.
 These evaluations are done in an arbitrary order, except that the
 evaluation for a default actual takes place after the evaluation
 for another actual if the default includes a @nt{name}
-that denotes the other one.
+that denotes the other one.@PDefn2{Term=[arbitrary order],Sec=[allowed]}
 Finally, the instance declaration and body are elaborated.
 @begin{Ramification}
 Note that if the evaluation of a default depends on some side-effect
@@ -1136,9 +1178,9 @@ but the declaration of Bool_4 calls "="@-{5}.
 @key[package] Int_Vectors @key[is] @key[new] On_Vectors(Integer, Table, "+");
 @end{Example}
 
-@begin{Wide}
+@begin{WideAbove}
 @leading@keepnext@i{Examples of uses of instantiated units:}
-@end{Wide}
+@end{WideAbove}
 @begin{Example}
 Swap(A, B);
 A := Square(A);
@@ -1225,6 +1267,19 @@ generic parameters.
   @RefSecNum{Overriding Indicators}) is allowed on a subprogram instantiation.]}
 @end{Extend95}
 
+@begin{Extend2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0183-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 2005}
+  An optional @nt{aspect_specification} can be used in a @nt{generic_instantiation}.
+  This is described in @RefSecNum{Aspect Specifications}.]}
+@end{Extend2005}
+
+@begin{Diffword2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0118-1]}
+  @ChgAdded{Version=[3],Text=[@b<Correction:> Added a definition for
+  positional parameters, as this is missing from Ada 95 and Ada 2005.]}
+@end{Diffword2005}
+
 
 @LabeledClause{Formal Objects}
 
@@ -1245,9 +1300,12 @@ of the @nt{explicit_generic_actual_parameter}.
 
 @begin{Syntax}
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00423-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0005-1],ARef=[AI05-0183-1]}
 @Syn{lhs=<formal_object_declaration>,rhs="
-    @Syn2{defining_identifier_list} : @Syn2{mode} @Chg{Version=[2],New=<[@Syn2{null_exclusion}] >,Old=<>}@Syn2{subtype_mark} [:= @Syn2{default_expression}];@Chg{Version=[2],New=<
-    @Syn2{defining_identifier_list} : @Syn2{mode} @Syn2{access_definition} [:= @Syn2{default_expression}];>,Old=<>}"}
+    @Syn2{defining_identifier_list} : @Syn2{mode} @Chg{Version=[2],New=<[@Syn2{null_exclusion}] >,Old=<>}@Syn2{subtype_mark} [:= @Syn2{default_expression}]@Chg{Version=[3],New=<
+        [@Syn2{aspect_specification}]>,Old=[]};@Chg{Version=[2],New=<
+  @Chg{Version=[3],New=[|],Old=[ ]}  @Syn2{defining_identifier_list} : @Syn2{mode} @Syn2{access_definition} [:= @Syn2{default_expression}]@Chg{Version=[3],New=<
+        [@Syn2{aspect_specification}]>,Old=[]};>,Old=<>}"}
 @end{Syntax}
 
 @begin{Resolution}
@@ -1272,7 +1330,7 @@ have the same designated type as that of the @nt{access_definition}.
 If the anonymous access type is an access-to-subprogram type, the type
 of the actual shall have a designated profile which
 is type conformant with that of the @nt{access_definition}.
-@Defn2{Term=[type conformance],Sec=(required)}],Old=[of the formal]}.
+@Defn2{Term=[type conformance],Sec=(required)}],Old=[of the formal.]}
 @begin{Reason}
 See the corresponding rule for @nt{object_renaming_declaration}s for a
 discussion of the reason for this rule.
@@ -1426,7 +1484,7 @@ reference.
 Initialization and finalization happen for the constant declared by
 a @nt{formal_object_declaration} of mode @key{in} as for any constant;
 see @RefSec{Object Declarations}
-and @RefSec{User-Defined Assignment and Finalization}.
+and @RefSec{Assignment and Finalization}.
 
 @PDefn2{Term=[subtype], Sec=(of a generic formal object)}
 In an instance,
@@ -1448,7 +1506,7 @@ for a formal object of mode @key{in},
 a constant object is created, the value of the actual parameter
 is converted to the nominal subtype of the formal object,
 and assigned to the object@Redundant[, including any value adjustment @em
-see @RefSecNum{User-Defined Assignment and Finalization}].
+see @RefSecNum{Assignment and Finalization}].
 @PDefn2{Term=[implicit subtype conversion],Sec=(generic formal object of mode @key[in])}
 @begin{Ramification}
 This includes evaluating the actual
@@ -1529,8 +1587,15 @@ important benefit, and any change has some cost.
   such an object to be a full constant declaration).]}
 @end{DiffWord95}
 
+@begin{Extend2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0183-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 2005}
+  An optional @nt{aspect_specification} can be used in a @nt{formal_object_declaration}.
+  This is described in @RefSecNum{Aspect Specifications}.]}
+@end{Extend2005}
 
-@RMNewPage@Comment{For printed RM Ada 2005}
+
+@RMNewPageVer{Version=[2]}@Comment{For printed version of Ada 2005 RM}
 @LabeledClause{Formal Types}
 
 @begin{Intro}
@@ -1553,9 +1618,19 @@ scheme very well.
 @end{Intro}
 
 @begin{Syntax}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0213-1]}
 @Syn{lhs=<formal_type_declaration>,rhs="
-    @key{type} @Syn2{defining_identifier}[@Syn2{discriminant_part}] @key{is} @Syn2{formal_type_definition};"}
+    @Chg{Version=[3],New=[  @Syn2{formal_complete_type_declaration}
+    | @Syn2{formal_incomplete_type_declaration}],Old=<@key{type} @Syn2{defining_identifier}[@Syn2{discriminant_part}] @key{is} @Syn2{formal_type_definition};>}"}
 
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0183-1],ARef=[AI05-0213-1]}
+@AddedSyn{Version=[3],lhs=<@Chg{Version=[3],New=<formal_complete_type_declaration>,Old=<>}>,rhs="@Chg{Version=[3],New=<
+    @key{type} @Syn2{defining_identifier}[@Syn2{discriminant_part}] @key{is} @Syn2{formal_type_definition}
+        [@Syn2{aspect_specification}];>,Old=<>}"}
+
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0213-1]}
+@AddedSyn{Version=[3],lhs=<@Chg{Version=[3],New=<formal_incomplete_type_declaration>,Old=<>}>,rhs="@Chg{Version=[3],New=<
+    @key{type} @Syn2{defining_identifier}[@Syn2{discriminant_part}] [@key{is tagged}];>,Old=<>}"}
 
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00251-01]}
 @Syn{lhs=<formal_type_definition>,rhs="
@@ -1602,6 +1677,7 @@ of a generic formal type is not a generic formal subtype.
 @end{Ramification}
 
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00442-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0213-1]}
 @Chg{Version=[2],New=[@Defn{determined category for a formal type}
 @Defn{category determined for a formal type}],
 Old=[@Defn{determined class for a formal type}
@@ -1611,7 +1687,9 @@ The form of a @nt{formal_type_definition} @i{determines a
 formal type belongs.
 For a @nt{formal_private_type_definition} the reserved words
 @key{tagged} and @key{limited} indicate the @Chg{Version=[2],New=[category of types],Old=[class]}
-(see @RefSecNum{Formal Private and Derived Types}).
+(see @RefSecNum{Formal Private and Derived Types}).@Chg{Version=[3],New=[
+The reserved word @key{tagged} also plays this role in the case of a
+@nt{formal_incomplete_type_declaration}.],Old=[]}
 For a @nt{formal_derived_type_definition} the
 @Chg{Version=[2],New=[category of types],Old=[class]} is
 the derivation class rooted at the ancestor type.
@@ -1684,6 +1762,7 @@ so long as the formal has unknown discriminants.
 @begin{StaticSem}
 @ChgRef{Version=[1],Kind=[Revised],Ref=[8652/0037],ARef=[AI95-00043-01]}
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00233-01],ARef=[AI95-00442-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0029-1]}
 @Redundant[The formal type also belongs to each
 @Chg{Version=[2],New=[category],Old=[class]} that contains
 the determined @Chg{Version=[2],New=[category],Old=[class]}.]
@@ -1702,7 +1781,8 @@ Old=[; they are implicitly declared immediately after the declaration
 of the formal type.]} In an instance, the copy of such an
 implicit declaration declares a view of the predefined operator
 of the actual type, even if this operator has been overridden for
-the actual type.
+the actual type@Chg{Version=[3],New=[ and even if it is never declared
+for the actual type],Old=[]}.
 @Redundant[The rules specific to formal derived types are given
 in @RefSecNum{Formal Private and Derived Types}.]
 @begin{Ramification}
@@ -1719,6 +1799,44 @@ private type, or as a type derived from a (visibly) tagged type.
 (Note that the actual type might be tagged even if the formal type is
 not.)
 @end{Ramification}
+@begin{Reason}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0029-1]}
+@ChgAdded{Version=[3],Type=[Leading],Keepnext=[T],Text=[The somewhat
+  cryptic phrase @ldquote@;even if it is never declared@rdquote@; is
+  intended to deal with the following oddity:]}
+@begin{Example}
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[@key[package] Q @key[is]
+    @key[type] T @key[is limited private];
+@key[private]
+    @key[type] T @key[is range] 1 .. 10;
+@key[end] Q;]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[@key[generic]
+    @key[type] A @key[is array] (Positive @key[range] <>) @key[of] T;
+@key[package] Q.G @key[is]
+    A1, A2 : A (1 .. 1);
+@key[private]
+    B : Boolean := A1 = A2;
+@key[end] Q.G;]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[@key[with] Q.G;
+@key[package] R @key[is]
+   @key[type] C @key[is array] (Positive @key[range] <>) @key[of] Q.T;]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[   @key[package] I @key[is new] Q.G (C); --@RI{ Where is the predefined "=" for C?}
+@key[end] R;]}
+@end{Example}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[An "=" is available for the formal type A in the
+private part of Q.G. However, no "=" operator is ever declared for type C,
+because its component type Q.T is limited. Still, in the instance I the name
+"=" declares a view of the "=" for C which exists-but-is-never-declared.]}
+@end{Reason}
 @end{StaticSem}
 
 
@@ -1759,10 +1877,10 @@ Similar terminology applies to the other kinds of
 @key[type] Table @key[is] @key[array] (Enum) @key[of] Item;
 @end{Example}
 
-@begin{Wide}
+@begin{WideAbove}
 @leading@keepnext@i{Example of a generic formal part declaring a
 formal integer type:}
-@end{Wide}
+@end{WideAbove}
 @begin{Example}
 @key[generic]
    @key[type] Rank @key[is] @key[range] <>;
@@ -1810,32 +1928,63 @@ had to.
   rather than class, since not all interesting properties form a class.]}
 @end{DiffWord95}
 
+@begin{Extend2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0183-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 2005}
+  An optional @nt{aspect_specification} can be used in a @nt{formal_type_declaration}.
+  This is described in @RefSecNum{Aspect Specifications}.]}
+@end{Extend2005}
+
+@begin{DiffWord2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0029-1]}
+  @ChgAdded{Version=[3],Text=[@b<Correction>: Updated the wording to
+  acknowledge the possibility of operations that are never declared for an
+  actual type but still can be used inside of a generic unit.]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0215-1]}
+  @ChgAdded{Version=[3],Text=[Formal incomplete types are added; these
+  are documented as an extension in the next clause.]}
+@end{DiffWord2005}
+
 
 @LabeledSubClause{Formal Private and Derived Types}
 
 @begin{Intro}
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00442-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0213-1]}
 @Redundant[@Chg{Version=[2],New=[In its most general form, the category],
 Old=[The class]}
 determined for a formal private type @Chg{Version=[2],New=[is all types,
-but it can be restricted to only nonlimited types or to only tagged types],
+but @Chg{Version=[2],New=[the category],Old=[it]} can be restricted to
+only nonlimited types or to only tagged types],
 Old=[can be either limited or nonlimited, and either tagged or untagged;
-no more specific class is known for such a type]}.
+no more specific class is known for such a type]}.@Chg{Version=[2],New=[
+Similarly, the category for a formal incomplete type is all types but the
+category can be restricted to only tagged types; unlike other formal types,
+the actual type does not need to be able to be frozen (see @RefSecNum{Freezing Rules}).],Old=[]}
 The @Chg{Version=[2],New=[category],Old=[class]} determined for a formal
 derived type is the derivation class rooted at the ancestor type.]
 @begin{TheProof}
   @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00442-01]}
-  @ChgAdded{Version=[2],Text=[The first rule is given normatively below,
-  and the second rule is given normatively in
-  @RefSecNum{Formal Types}; they are repeated here to give a capsule
+  @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0213-1]}
+  @ChgAdded{Version=[2],Text=[The first @Chg{Version=[3],New=[two rules
+  are],Old=[rule is]} given normatively below,
+  and the @Chg{Version=[3],New=[third],Old=[second]} rule is given normatively
+  in @RefSecNum{Formal Types}; they are repeated here to give a capsule
   summary of what this subclause is about.]}
 @end{TheProof}
+
+@begin{Ramification}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0213-1]}
+  @ChgAdded{Version=[3],Text=[Since the actual of a formal incomplete type
+  does not need to be able to be frozen, the actual can be an incomplete
+  type or a partial view before it's completion.]}
+@end{Ramification}
 @end{Intro}
 
 @begin{Syntax}
 @Syn{lhs=<formal_private_type_definition>,
   rhs="[[@key{abstract}] @key{tagged}] [@key{limited}] @key{private}"}
-
 
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00251-01],ARef=[AI95-00419-01],ARef=[AI95-00443-01]}
 @Syn{lhs=<formal_derived_type_definition>,
@@ -1856,6 +2005,7 @@ on such a subtype, either explicitly, or by its initial value.
 @end{Ramification}
 
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00401-01],ARef=[AI95-00419-01],ARef=[AI95-00443-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0237-1]}
 @Defn2{Term=[ancestor subtype], Sec=(of a formal derived type)}
 @PDefn{private extension}
 The @i(ancestor subtype) of a formal derived type is the
@@ -1875,7 +2025,8 @@ New=[ The reserved word @key{limited} or @key{synchronized} shall appear
 only if the ancestor type @Redundant[and any progenitor types] are limited types.
 The reserved word @key{synchronized} shall appear (rather than @key{limited}) if
 the ancestor type or any of the progenitor types are
-synchronized interfaces.],Old=[]}
+synchronized interfaces.],Old=[]}@Chg{Version=[3],New=[ The ancestor type shall be a limited interface if the reserved
+word @key{synchronized} appears.],Old=[]}
 
 @begin{Reason}
 We use the term @lquotes@;ancestor@rquotes@; here instead of @lquotes@;parent@rquotes@;
@@ -1883,8 +2034,10 @@ because the actual can be any descendant of the ancestor,
 not necessarily a direct descendant.
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00419-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0005-1]}
 @ChgAdded{Version=[2],Text=[We require the ancestor type to be limited when
-@key{limited} appears so that we avoid oddies like limited integer types.
+@key{limited} appears so that we avoid
+@Chg{Version=[3],New=[oddities],Old=[oddies]} like limited integer types.
 Normally, @key{limited} means @lquotes@;match anything@rquotes for a generic
 formal, but it was felt that allowing limited elementary types to be declared
 was just too weird. Integer still matches a formal limited private type;
@@ -1902,9 +2055,12 @@ are synchronized.]}
 @end{Reason}
 
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00251-01],ARef=[AI95-00401-01],ARef=[AI95-00443-01]}
+@ChgRef{Version=[3],Kind=[RevisedAdded],ARef=[AI05-0087-1]}
 @ChgAdded{Version=[2],Text=[The actual type for a formal derived type
 shall be a descendant of @Redundant[the ancestor type and] every progenitor of
-the formal type. If the reserved word @key[synchronized] appears
+the formal type. @Chg{Version=[3],New=[If the formal type is nonlimited,
+the actual type shall be nonlimited. ],Old=[]}If the reserved word
+@key[synchronized] appears
 in the declaration of the formal derived type, the actual
 type shall be a synchronized tagged type.]}
 @begin{TheProof}
@@ -1916,12 +2072,14 @@ type shall be a synchronized tagged type.]}
 
 @begin{Discussion}
   @ChgRef{Version=[2],Kind=[AddedNormal]}
+  @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0005-1]}
   @ChgAdded{Version=[2],Text=[For a non-formal private extension, we
   require the partial view to be synchronized if the full view is synchronized
   tagged. This does not apply to a formal private extension @em it is OK if
   the formal is not synchronized. Any attempt to extend the formal
   type will be rechecked in the instance, where the rule disallowing
-  extending a sychronized non-interface type will be enforced. This is
+  extending a @Chg{Version=[3],New=[synchronized],Old=[sychronized]}
+  non-interface type will be enforced. This is
   consistent with the @lquotes@;no hidden interfaces@rquotes rule also
   applying only to non-formal private extensions, as well as the rule that
   a limited non-formal private extension implies a limited full type.
@@ -1930,14 +2088,29 @@ type shall be a synchronized tagged type.]}
   possible range of types. In particular, an indefinite tagged
   limited formal private type can match any @lquotes@;concrete@rquotes
   actual tagged type.]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0087-1]}
+  @ChgAdded{Version=[3],Text=[A type (including formal types) derived from a
+  limited interface could be nonlimited; we do not want a limited type derived
+  from such an interface to match a nonlimited formal derived type.
+  Otherwise, we could assign limited objects. Thus, we have to explicitly
+  ban this case.]}
 @end{Discussion}
 
-If the formal subtype is definite, then the actual subtype shall
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0213-1]}
+If @Chg{Version=[3],New=[a],Old=[the]} formal@Chg{Version=[3],New=[ private or
+derived],Old=[]} subtype is definite, then the actual subtype shall
 also be definite.
 @begin{Ramification}
 On the other hand, for an indefinite formal subtype,
 the actual can be either definite or indefinite.
 @end{Ramification}
+
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0213-1]}
+@ChgAdded{Version=[3],Text=[A @nt{formal_incomplete_type_declaration} declares
+a formal incomplete type. The only view of a formal incomplete type is an
+incomplete view. @Redundant[Thus, a formal incomplete type is subject to the same
+usage restrictions as any other incomplete type @em see @RefSecNum{Incomplete Type Declarations}.]]}
 
 @leading@;For a generic formal derived type with no @nt<discriminant_part>:
 @begin(Itemize)
@@ -1992,10 +2165,11 @@ the actual can be either definite or indefinite.
 
 @end(Itemize)
 
-@Leading@;The declaration of a formal derived type shall not have a
+@Leading@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0213-1]}
+The declaration of a formal derived type shall not have a
 @nt{known_discriminant_part}.
-For a generic formal private type with a
-@nt{known_discriminant_part}:
+For a generic formal private @Chg{Version=[3],New=[or incomplete ],Old=[]}type
+with a @nt{known_discriminant_part}:
 @begin{Itemize}
 The actual type shall be a type with the same number of discriminants.
 
@@ -2037,6 +2211,12 @@ private type is as follows:
 @Redundant[The presence of the reserved word @key{abstract} determines
 whether the actual type may be abstract.]
 
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0213-1]}
+@ChgAdded{Version=[3],Text=[The category determined for a formal incomplete type is the
+category of all types, unless the @nt{formal_type_declaration}
+includes the reserved word @key[tagged]; in this case, it is the
+category of all tagged types.]}
+
 A formal private or derived type is a private or derived type,
 respectively.
 A formal derived tagged type is a private extension.
@@ -2044,17 +2224,28 @@ A formal derived tagged type is a private extension.
 word @key(abstract) appears in its declaration.]
 
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00233-01]}
-If the ancestor type is a composite type that is not an
-array type, the formal type inherits components from the ancestor
-type (including
-discriminants if a new @nt<discriminant_part> is not specified),
-as for a derived type defined by a @nt<derived_type_definition>
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI95-0110-1]}
+@Chg{Version=[3],New=[For a formal derived type, the characteristics],Old=[If
+the ancestor type is a composite type that is not an array type, the formal type
+inherits components from the ancestor type]} (including
+@Chg{Version=[3],New=[components, but excluding ],Old=[]}discriminants if
+@Chg{Version=[3],New=[there is ],Old=[]}a new
+@nt<discriminant_part>@Chg{Version=[3],New=[],Old=[ is not specified]}),
+@Chg{Version=[3],New=[predefined operators,
+and inherited user-defined primitive subprograms are determined
+by its ancestor type and its progenitor types (if any), in the
+same way that those of],Old=[as for]}
+a derived type
+@Chg{Version=[3],New=[are determined by those of its parent type and its
+progenitor types],Old=[defined by a @nt<derived_type_definition>]}
 (see @RefSecNum(Derived Types and Classes)@Chg{Version=[2],New=[ and
 @RefSecNum{Private Operations}],Old=[]}).
 
+
 @ChgRef{Version=[1],Kind=[Revised],Ref=[8652/0038],ARef=[AI95-00202]}
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00233-01],ARef=[AI95-00401-01]}
-For a formal derived type,
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0029-1],ARef=[AI05-0110-1]}
+@Chg{Version=[3],New=[],Old=[For a formal derived type,
 the predefined operators and inherited user-defined subprograms are determined
 by the ancestor type@Chg{Version=[2],New=[ and any progenitor types],Old=[]}, and
 are implicitly declared at the earliest place, if any,
@@ -2062,11 +2253,15 @@ are implicitly declared at the earliest place, if any,
 Old=[within the immediate scope of]} the formal
 type@Chg{Version=[2],New=[ is declared],Old=[]}, where the corresponding
 primitive subprogram of the ancestor @Chg{Version=[2],New=[or progenitor
-],Old=[]}is visible (see @RefSecNum{Private Operations}). In an instance, the
-copy of such an implicit declaration declares a view of the corresponding
+],Old=[]}is visible (see @RefSecNum{Private Operations}). ]}In an instance,
+the
+copy of @Chg{Version=[3],New=[],Old=[such ]}an implicit declaration
+@Chg{Version=[3],New=[of a primitive subprogram of a formal derived type ],
+Old=[]}declares a view of the corresponding
 primitive subprogram of the ancestor@Chg{New=[@Chg{Version=[2], New=[ or
 progenitor],Old=[]} of the formal derived type],Old=[]}, even if this primitive
-has been overridden for the actual type. @Chg{New=[When the
+has been overridden for the actual type@Chg{Version=[3],New=[ and even if it is
+never declared for the actual type],Old=[]}. @Chg{New=[When the
 ancestor@Chg{Version=[2], New=[ or progenitor],Old=[]} of the formal derived
 type is itself a formal type, the copy of the implicit declaration declares a
 view of the corresponding copied operation of the ancestor@Chg{Version=[2],
@@ -2076,12 +2271,13 @@ type, so if the tag in a call is statically determined to be that of the formal
 type, the body executed will be that corresponding to the actual type.]
 @begin{Ramification}
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00401-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0239-1]}
 The above rule defining the properties of primitive subprograms in an
 instance applies even if the subprogram has been overridden or
 hidden for the actual type.
 This rule is necessary for untagged types,
 because their primitive subprograms might have been overridden by
-operations that are not subtype-conformant with the operations
+operations that are not @Chg{Version=[3],New=[subtype conformant],Old=[subtype-conformant]} with the operations
 defined for the class.
 For tagged types, the rule still applies, but the primitive
 subprograms will dispatch to the appropriate implementation based on
@@ -2098,9 +2294,10 @@ inherited from an interface type)],Old=[]}.
 @Chg{New=[@nt{prefix}],Old=[prefix]} S that denotes a formal indefinite subtype]},
 the following attribute is defined:
 @begin{Description}
-@Attribute{Prefix=<S>, AttrName=<Definite>,
+@ChgAttribute{Version=[3],Kind=(Revised),ChginAnnex=[T],Leading=[F],
+Prefix=<S>, AttrName=<Definite>,ARef=[AI05-0264-1],
   Text=[S'Definite yields True if the actual subtype corresponding
-    to S is definite; otherwise it yields False. The value of this
+    to S is definite; otherwise@Chg{Version=[3],New=[,],Old=[]} it yields False. The value of this
     attribute is of the predefined type Boolean.]}
 @begin{Discussion}
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00114-01]}
@@ -2119,9 +2316,10 @@ which is now considered obsolete.
 
 @begin{RunTime}
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00158-01]}
-@ChgAdded{Version=[2],Type=[Leading],Text=[In the case where a formal type is
-tagged with unknown discriminants, and the actual type is a class-wide type
-@i<T>'Class:]}
+@ChgRef{Version=[3],Kind=[RevisedAdded],ARef=[AI05-0071-1]}
+@ChgAdded{Version=[2],Type=[Leading],Text=[In the case where a formal type
+@Chg{Version=[3],New=[has],Old=[is tagged with]} unknown discriminants,
+and the actual type is a class-wide type @i<T>'Class:]}
 
 @begin{Itemize}
 
@@ -2245,6 +2443,7 @@ The check for discriminant subtype matching is changed from a
 run-time check to a compile-time check.
 @end{Incompatible83}
 
+
 @begin{Extend95}
   @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00251-01],ARef=[AI95-00401-01],ARef=[AI95-00419-01],ARef=[AI95-00443-01]}
   @ChgAdded{Version=[2],Text=[@Defn{extensions to Ada 95}
@@ -2280,7 +2479,50 @@ run-time check to a compile-time check.
   (it avoids confusion, since not all interesting properties form a class).]}
 @end{DiffWord95}
 
+@begin{Incompatible2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0087-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{incompatibilities with Ada 2005}@b<Correction:>
+  Added wording to
+  prevent a limited type from being passed to a nonlimited formal
+  derived type. While this was allowed, it would break the contract
+  for the limited type, so hopefully no programs actually depend on that.]}
+@end{Incompatible2005}
 
+@begin{Extend2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0215-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 2005}
+  Formal incomplete types are a new kind of generic formal; these can
+  be instantiated with incomplete types and unfrozen private types.]}
+@end{Extend2005}
+
+@begin{DiffWord2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0029-1]}
+  @ChgAdded{Version=[3],Text=[@b<Correction:> Updated the wording to
+  acknowledge the possibility of operations that are never declared for an
+  actual type but still can be used inside of a generic unit.]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0071-1]}
+  @ChgAdded{Version=[3],Text=[@b<Correction:> Fixed hole that failed
+  to define what happened for "=" for an untagged private type whose
+  actual is class-wide.]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0110-1]}
+  @ChgAdded{Version=[3],Text=[@b<Correction:> Revised the wording for
+  inheritance of characteristics and operations of formal derived types
+  to be reuse the rules as defined for derived types; this should eliminate
+  holes which have plagued us with this wording (it has been changed five
+  times since Ada 95 was defined).]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0237-1]}
+  @ChgAdded{Version=[3],Text=[@b<Correction:> Added missing rule for the
+  ancestors of formal derived types. The added rule would formally be
+  incompatible, but since it would be impossible to instantiate any such
+  generic, this cannot happen outside of test suites and thus is not
+  documented as an incompatibility.]}
+@end{DiffWord2005}
+
+
+@RMNewPageVer{Version=[3]}@Comment{For printed version of Ada 2012 RM}
 @LabeledSubClause{Formal Scalar Types}
 
 @begin{Intro}
@@ -2454,7 +2696,7 @@ the same is subsumed.
 @end{DiffWord95}
 
 
-@RMNewPage@Comment{For printed RM Ada 2005}
+@RMNewPageVer{Version=[2]}@Comment{For printed version of Ada 2005 RM}
 @LabeledSubClause{Formal Access Types}
 
 @begin{Intro}
@@ -2512,9 +2754,10 @@ for subtypes that exclude null. We would rather that this sort of requirement
 be reflected in the contract of the generic.]}
 @end{Reason}
 
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0239-1]}
 For a formal access-to-subprogram subtype,
 the designated profiles of the formal and the actual
-shall be mode-conformant,
+shall be @Chg{Version=[3],New=[mode conformant],Old=[mode-conformant]},
 and the calling convention of the actual shall be @i{protected}
 if and only if that of the formal is @i{protected}.
 @Defn2{Term=[mode conformance],Sec=(required)}
@@ -2687,14 +2930,18 @@ New=<@Syn2{formal_concrete_subprogram_declaration}
 Old=<@key{with} @Syn2{subprogram_specification} [@key{is} @Syn2{subprogram_default}];>}"}
 
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00260-02]}
+@ChgRef{Version=[3],Kind=[RevisedAdded],ARef=[AI05-0183-1]}
 @AddedSyn{Version=[2],lhs=<@Chg{Version=[2],New=<formal_concrete_subprogram_declaration>,Old=<>}>,
 rhs="@Chg{Version=[2],New=<
-     @key{with} @Syn2{subprogram_specification} [@key{is} @Syn2{subprogram_default}];>,Old=<>}"}
+     @key{with} @Syn2{subprogram_specification} [@key{is} @Syn2{subprogram_default}]@Chg{Version=[3],New=<
+        [@Syn2{aspect_specification}]>,Old=[]};>,Old=<>}"}
 
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00260-02]}
+@ChgRef{Version=[3],Kind=[RevisedAdded],ARef=[AI05-0183-1]}
 @AddedSyn{Version=[2],lhs=<@Chg{Version=[2],New=<formal_abstract_subprogram_declaration>,Old=<>}>,
 rhs="@Chg{Version=[2],New=<
-     @key{with} @Syn2{subprogram_specification} @key{is abstract} [@Syn2{subprogram_default}];>,Old=<>}"}
+     @key{with} @Syn2{subprogram_specification} @key{is abstract} [@Syn2{subprogram_default}]@Chg{Version=[3],New=<
+        [@Syn2{aspect_specification}]>,Old=[]};>,Old=<>}"}
 
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00348-01]}
 @Syn{lhs=<subprogram_default>,rhs="@Syn2{default_name} | <>@Chg{Version=[2],New=< | @key{null}>,Old=<>}"}
@@ -2743,15 +2990,18 @@ the expected profile for the actual is that of the formal subprogram.
 @end{Resolution}
 
 @begin{Legality}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0239-1]}
 The profiles of the formal and any named default shall be
-mode-conformant.
+@Chg{Version=[3],New=[mode conformant],Old=[mode-conformant]}.
 @Defn2{Term=[mode conformance],Sec=(required)}
 @begin{Ramification}
 This rule, unlike others in this clause, is checked at compile
 time of the @nt{generic_declaration}.
 @end{Ramification}
 
-The profiles of the formal and actual shall be mode-conformant.
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0239-1]}
+The profiles of the formal and actual shall be
+@Chg{Version=[3],New=[mode conformant],Old=[mode-conformant]}.
 @Defn2{Term=[mode conformance],Sec=(required)}
 
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00423-01]}
@@ -2929,6 +3179,57 @@ is analogous to a renaming-as-declaration,
 and the actual is analogous to the renamed view.
 @end{Discussion}
 
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0071-1],ARef=[AI05-0131-1]}
+@ChgAdded{Version=[3],Type=[Leading],Text=[If a @nt{subtype_mark} in the profile
+of the @nt{formal_subprogram_declaration} denotes a formal private or formal
+derived type and the actual type for this formal type is a class-wide type
+@i{T}'Class, then for the purposes of resolving the corresponding actual
+subprogram at the point of the instantiation, certain implicit declarations may
+be available as possible resolutions as follows:]}
+
+@begin{DescribeCode}
+  @ChgRef{Version=[3],Kind=[Added]}
+  @ChgAdded{Version=[3],Text=[For each primitive subprogram of @i{T} that is
+  directly visible at the point of the instantiation, and that has at least one
+  controlling formal parameter, a corresponding implicitly declared subprogram
+  with the same defining name, and having the same profile as the primitive
+  subprogram except that @i{T} is systematically replaced by @i{T}'Class in the
+  types of its profile, is potentially use-visible. The body of such a
+  subprogram is as defined in @RefSecNum{Formal Private and Derived Types} for
+  primitive subprograms of a formal type when the actual type is
+  class-wide.@PDefn{potentially use-visible}]}
+@end{DescribeCode}
+
+@begin{Reason}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0071-1],ARef=[AI05-0131-1]}
+  @ChgAdded{Version=[3],Text=[This gives the same capabilities to formal
+  subprograms as those that primitive operations of the formal type have
+  when the actual type is class-wide. We do not want to discourage the use of
+  explicit declarations for (formal) subprograms!]}
+@end{Reason}
+
+@begin{ImplNote}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0071-1],ARef=[AI05-0131-1]}
+  @ChgAdded{Version=[3],Text=[Although the above wording seems to require
+  constructing implicit versions of all of the primitive subprograms of type
+  @i{T}, it should be clear that a compiler only needs to consider those that
+  could possibly resolve to the corresponding actual subprogram. For instance,
+  if the formal subprogram is a procedure with two parameters, and the actual
+  subprogram name is Bar (either given explicitly or by default), the compiler
+  need not consider primitives that are functions, that have the wrong number of
+  parameters, that have defining names other than Bar, and so on; thus it does
+  not need to construct implicit declarations for those primitives.]}
+@end{ImplNote}
+
+@begin{Ramification}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0071-1],ARef=[AI05-0131-1]}
+  @ChgAdded{Version=[3],Text=[Functions that only have a controlling result
+  and do not have a controlling parameter of @i<T> are not covered by this
+  rule, as any call would be required to raise Program_Error by
+  @RefSecNum{Formal Private and Derived Types}. It is better to detect the
+  error earlier than at runtime.]}
+@end{Ramification}
+
 If a generic unit has a @nt<subprogram_default> specified by a box, and
 the corresponding actual parameter is omitted, then it is equivalent to
 an explicit actual parameter that is a usage name identical to the
@@ -2946,7 +3247,7 @@ that is a null procedure having the profile given in the
 @nt{formal_@!abstract_@!subprogram_@!declaration} with a controlling type @i<T>
 is a dispatching operation of type @i<T>.]}
 @begin{Reason}
-@ChgRef{Version=[2],Kind=[Added]}
+@ChgRef{Version=[2],Kind=[AddedNormal]}
 @ChgAdded{Version=[2],Text=[This is necessary to trigger all of the
 dispatching operation
 rules. It otherwise would not be considered a dispatching operation, as
@@ -3063,6 +3364,24 @@ so it has convention Intrinsic as defined in @RefSecNum{Conformance Rules}.]}
   @ChgAdded{Version=[2],Text=[Added matching rules for @nt{null_exclusion}s.]}
 @end{Diffword95}
 
+@begin{Extend2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0071-1],ARef=[AI05-0131-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 2005}@b<Correction:>
+  Added construction of implicit subprograms for primitives of class-wide actual
+  types, to make it possible to import subprograms via formal subprograms as
+  well as by implicit primitive operations of a formal type. (This is a
+  @b<Correction> as it is very important for the usability of indefinite
+  containers when instantiated with class-wide types; thus we want Ada 2005
+  implementations to support it.)]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0183-1]}
+  @ChgAdded{Version=[3],Text=[An optional @nt{aspect_specification} can be
+  used in a @nt{formal_concrete_subprogram_declaration} and a
+  @nt{formal_abstract_subprogram_declaration}.
+  This is described in @RefSecNum{Aspect Specifications}.]}
+@end{Extend2005}
+
+
 
 @LabeledClause{Formal Packages}
 
@@ -3077,8 +3396,10 @@ of that generic package.]
 @end{Intro}
 
 @begin{Syntax}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0183-1]}
 @Syn{lhs=<formal_package_declaration>,rhs="
-    @key{with} @key{package} @Syn2{defining_identifier} @key{is} @key{new} @SynI{generic_package_}@Syn2{name}  @Syn2{formal_package_actual_part};"}
+    @key{with} @key{package} @Syn2{defining_identifier} @key{is} @key{new} @SynI{generic_package_}@Syn2{name}  @Syn2{formal_package_actual_part}@Chg{Version=[3],New=<
+        [@Syn2{aspect_specification}]>,Old=[]};"}
 
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00317-01]}
 @Syn{lhs=<formal_package_actual_part>,rhs="
@@ -3106,13 +3427,56 @@ The @i(generic_package_)@nt<name> shall denote a generic package
 (the @i(template) for the formal package);
 the formal package is an instance of the template.
 
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0025-1]}
+@ChgAdded{Version=[3],Text=[The @i(generic_formal_parameter_)@nt{selector_name}
+of a @nt{formal_package_association} shall
+denote a @nt{generic_formal_parameter_declaration} of the template. If two or
+more formal subprograms of the template have the same defining name, then named
+associations are not allowed for the corresponding actuals.]}
+
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00398-01]}
+@ChgRef{Version=[3],Kind=[RevisedAdded]}@Comment{Because this is renumbered by the above}
 @ChgAdded{Version=[2],Text=[A @nt<formal_package_actual_part> shall contain
 at most one @nt<formal_package_association> for each formal parameter. If the
 @nt<formal_package_actual_part> does not include
 @lquotes@key[others] => <>@rquotes, each
 formal parameter without an association shall have a @nt<default_expression>
 or @nt<subprogram_default>.]}
+
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0200-1]}
+@ChgAdded{Version=[3],Text=[The rules for matching between
+@nt{formal_package_association}s and the generic formals of the template are as
+follows:]}
+@begin{Itemize}
+
+  @ChgRef{Version=[3],Kind=[Added]}
+  @ChgAdded{Version=[3],Text=[If all of the @nt{formal_package_association}s are
+  given by generic associations, the @nt{explicit_generic_actual_parameter}s of
+  the @nt{formal_package_association}s shall be legal for an instantiation of the
+  template.]}
+
+  @ChgRef{Version=[3],Kind=[Added]}
+  @ChgAdded{Version=[3],Text=[If a @nt{formal_package_association} for a formal
+  type @i<T> of the template is given by <>, then the
+  @nt{formal_package_association} for any other
+  @nt{generic_formal_parameter_declaration} of
+  the template that mentions @i<T> directly or indirectly must be
+  given by <> as well.]}
+
+@end{Itemize}
+@begin{Discussion}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0200-1]}
+  @ChgAdded{Version=[3],Text=[The above rule is simple to state, though it does
+  not reflect the fact that the formal package functions like an instantiation
+  of a special kind, where each box association for a
+  @nt{generic_formal_parameter_declaration} @i<F> is replaced with a new entity
+  @i<F>' that has the same characteristics as @i<F>: if @i<F> is a formal
+  discrete type then @i<F>' is a discrete type, if @i<F> is a formal subprogram
+  then @i<F>' is a subprogram with a similar signature, etc. In practice this is
+  achieved by making the association into a copy of the declaration of the
+  generic formal.]}
+
+@end{Discussion}
 
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00317-01]}
 @Leading@;The actual shall be an instance of the template.
@@ -3203,9 +3567,12 @@ given by <>, then the declaration corresponding to those parameters (but
 not the others) are made visible.],Old=[]}
 @end{Ramification}
 @begin{Reason}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0005-1]}
 We always want either the actuals
-or the formals of an instance to be namable from outside, but never both.
-If both were namable, one would get some funny anomalies since
+or the formals of an instance to be
+@Chg{Version=[3],New=[nameable],Old=[namable]} from outside, but never both.
+If both were @Chg{Version=[3],New=[nameable],Old=[namable]}, one would get
+some funny anomalies since
 they denote the same entity, but, in the case of types at least,
 they might have different and inconsistent sets of primitive operators
 due to predefined operator @lquotes@;reemergence.@rquotes@; Formal derived types
@@ -3236,7 +3603,7 @@ package with formal package parameters:}]}
 
 @begin{Example}
 @ChgRef{Version=[2],Kind=[AddedNormal]}
-@ChgAdded{Version=[2],Text=[@key[with] Ada.Containers.Ordered_Maps;  --@RI[ see @RefSecNum{The Package Containers.Ordered_Maps}]
+@ChgAdded{Version=[2],Text=[@key[with] Ada.Containers.Ordered_Maps;  --@RI[ see @RefSecNum{The Generic Package Containers.Ordered_Maps}]
 @key[generic]
    @key[with package] Mapping_1 @key[is new] Ada.Containers.Ordered_Maps(<>);
    @key[with package] Mapping_2 @key[is new] Ada.Containers.Ordered_Maps
@@ -3257,7 +3624,7 @@ package with formal package parameters:}]}
 @key[end] Ordered_Join;]}
 @end{Example}
 
-@RMNewPage@Comment{For printed Ada 2005 RM only}
+@RMNewPageVer{Version=[2]}@Comment{For printed version of Ada 2005 RM}
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00433-01]}
 @ChgAdded{Version=[2],Type=[Leading],Keepnext=[T],Text=[@i{Example of
 an instantiation of a package with formal packages:}]}
@@ -3323,6 +3690,27 @@ an instantiation of a package with formal packages:}]}
   is done when the actual is a formal package.]}
 @end{DiffWord95}
 
+@begin{Incompatible2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0025-1],ARef=[AI05-0200-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{incompatibilities with Ada 2005}@b<Correction:>
+  Added missing rules for parameters of generic formal package that
+  parallel those in @RefSecNum{Generic Instantiation}, as well as some
+  specific to <> parameters. These are technically incompatibilities because
+  generic formal package parameters that Ada 95
+  and Ada 2005 would have considered legal now have to be rejected. But this
+  should not be an issue in practice as such formal parameters could not have
+  matched any actual generics. And it is quite likely that implementations
+  already enforce some of these rules.]}
+@end{Incompatible2005}
+
+@begin{Extend2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0183-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 2005}
+  An optional @nt{aspect_specification} can be used in
+  a @nt{formal_package_declaration}.
+  This is described in @RefSecNum{Aspect Specifications}.]}
+@end{Extend2005}
+
 
 @LabeledClause{Example of a Generic Package}
 
@@ -3374,27 +3762,27 @@ as generic formal parameters.
 @key[end] Stack;
 @end{Example}
 
-@begin{Wide}
+@begin{WideAbove}
 @Leading@Keepnext@;Instances of this generic package can be obtained as follows:
-@end{Wide}
+@end{WideAbove}
 @begin{Example}
 @key[package] Stack_Int  @key[is] @key[new] Stack(Size => 200, Item => Integer);
 @key[package] Stack_Bool @key[is] @key[new] Stack(100, Boolean);
 @end{Example}
 
-@begin{Wide}
+@begin{WideAbove}
 @Leading@Keepnext@;Thereafter, the procedures of the instantiated packages can be called as
 follows:
-@end{Wide}
+@end{WideAbove}
 @begin{Example}
 Stack_Int.Push(N);
 Stack_Bool.Push(True);
 @end{Example}
 
-@begin{Wide}
+@begin{WideAbove}
 @Leading@Keepnext@;Alternatively, a generic formulation of the type Stack can be given as
 follows (package body omitted):
-@end{Wide}
+@end{WideAbove}
 @begin{Example}
 @key[generic]
    @key[type] Item @key[is] @key[private];
@@ -3413,10 +3801,10 @@ follows (package body omitted):
 @key[end] On_Stacks;
 @end{Example}
 
-@begin{Wide}
+@begin{WideAbove}
 @Leading@Keepnext@;In order to use such a package, an instance has to be created and
 thereafter stacks of the corresponding type can be declared:
-@end{Wide}
+@end{WideAbove}
 @begin{Example}
 @key[declare]
    @key[package] Stack_Real @key[is] @key[new] On_Stacks(Real); @key[use] Stack_Real;

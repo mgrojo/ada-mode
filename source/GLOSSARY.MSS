@@ -3,7 +3,7 @@
 @Comment{$Date: 2005/11/24 02:15:07 $}
 @LabeledInformativeAnnex{Glossary}
 
-@comment{$Source: d:\\CvsRoot/ARM/Source/GLOSSARY.MSS,v $}
+@comment{$Source: e:\\cvsroot/ARM/Source/glossary.mss,v $}
 @comment{$Revision: 1.16 $}
 
 @begin{Intro}

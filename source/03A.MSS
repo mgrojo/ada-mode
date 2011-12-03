@@ -1,10 +1,10 @@
 @Part(03, Root="ada.mss")
 
-@Comment{$Date: 2006/10/17 05:29:41 $}
+@Comment{$Date: 2011/11/01 05:34:02 $}
 @LabeledSection{Declarations and Types}
 
-@Comment{$Source: d:\\CvsRoot/ARM/Source/03A.MSS,v $}
-@Comment{$Revision: 1.83 $}
+@Comment{$Source: e:\\cvsroot/ARM/Source/03a.mss,v $}
+@Comment{$Revision: 1.114 $}
 
 @begin{Intro}
 This section describes the types in the language and the rules
@@ -31,16 +31,19 @@ is a form of declaration defined as follows.
 
 @begin{Syntax}
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00348-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0177-1]}
 @Syn{tabs=[P27], lhs=<basic_declaration>,rhs="
      @Syn2{type_declaration}@\| @Syn2{subtype_declaration}
    | @Syn2{object_declaration}@\| @Syn2{number_declaration}
    | @Syn2{subprogram_declaration}@\| @Syn2{abstract_subprogram_declaration}
-   | @Chg{Version=[2],New=[@Syn2{null_procedure_declaration}@\| ],Old=[]}@Syn2{package_declaration}@Chg{Version=[2],New=[
-   |],Old=[@\|]} @Syn2{renaming_declaration}@Chg{Version=[2],New=[@\|],Old=[
-   |]} @Syn2{exception_declaration}@Chg{Version=[2],New=[
-   |],Old=[@\|]} @Syn2{generic_declaration}@Chg{Version=[2],New=[@\|],Old=[
-   |]} @Syn2{generic_instantiation}"}
-
+   | @Chg{Version=[2],New=[@Syn2{null_procedure_declaration}@\| @Chg{Version=<3>,New=<@Syn2{expression_function_declaration}
+   | >,Old=<>}],Old=[]}@Syn2{package_declaration}@Chg{Version=[2],New=[@Chg{Version=[3],New=[@\|],Old=[
+   |]}],Old=[@\|]} @Syn2{renaming_declaration}@Chg{Version=[2],New=[@Chg{Version=[3],New=[
+   | ],Old=[@\|]}],Old=[
+   | ]}@Syn2{exception_declaration}@Chg{Version=[2],New=[@Chg{Version=[3],New=[@\|],Old=[
+   |]}],Old=[@\|]} @Syn2{generic_declaration}@Chg{Version=[2],New=[@Chg{Version=[3],New=[
+   | ],Old=[@\|]}],Old=[
+   | ]}@Syn2{generic_instantiation}"}
 
 @Syn{lhs=<defining_identifier>,rhs="@Syn2{identifier}"}
 @end{Syntax}
@@ -65,13 +68,15 @@ declaration).>}
 @end{Discussion}
 
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00318-02]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0255-1]}
 @Defn{declaration}
 Each of the following is defined to be a declaration:
 any @nt{basic_@!declaration};
 an @nt{enumeration_@!literal_@!specification};
 a @nt{discriminant_@!specification};
 a @nt{component_@!declaration};
-a @nt{loop_@!parameter_@!specification};
+a @nt{loop_@!parameter_@!specification};@Chg{Version=[3],New=[
+an @nt{iterator_@!specification};],Old=[]}
 a @nt{parameter_@!specification};
 a @nt{subprogram_@!body};
 an @nt{entry_@!declaration};
@@ -137,6 +142,29 @@ entity itself (a @nt(renaming_declaration) is an example of a declaration
 that does not define a new entity,
 but instead defines a view of an existing entity
 (see @RefSecNum(Renaming Declarations))).]}>}
+
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0080-1]}
+@ChgAdded{Version=[3],Text=[When it is clear from context, the term @i<object>
+is used in place of @i<view of an object>. Similarly, the terms @i<type> and
+@i<subtype> are used in place of @i<view of a type> and @i<view of a subtype>,
+respectively.@Defn2{Term=[view],Sec=[of an object (implied)]}@Defn2{Term=[view],
+Sec=[of a type (implied)]}@Defn2{Term=[view],Sec=[of a subtype (implied)]}]}
+
+@begin{Discussion}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[Rules interpreted at compile time generally
+  refer to views of entities, rather than the entities themselves. This is
+  necessary to preserve privacy; characteristics that are not visible should
+  not be used in compile-time rules. Thus, @StaticSemTitle and
+  @LegalityTitle generally implicitly have @ldquote@;view of@rdquote.
+  @LegalityTitle that need to look into the private part
+  are the exception to this interpretation.]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[On the other hand, run-time rules can work
+  either way, so @ldquote@;view of@rdquote should not be assumed
+  in @RunTimeTitle rules.]}
+@end{Discussion}
 
 @PDefn2{Term=[scope], Sec=(informal definition)}
 For each declaration, the language rules define a certain
@@ -411,6 +439,13 @@ the task creation.
   (see @RefSecNum{Null Procedures}) to the syntax.]}
 @end{DiffWord95}
 
+@begin{DiffWord2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0177-1]}
+  @ChgAdded{Version=[3],Text=[Added expression functions
+  (see @RefSecNum{Expression Functions}) to the syntax.]}
+@end{DiffWord2005}
+
+
 
 @LabeledClause{Types and Subtypes}
 
@@ -435,12 +470,14 @@ a value of the type.
   @Defn(closed under derivation) Classes are closed under derivation;
   that is, if a type is in a class, then all of its derivatives
   are in that class]}.>}
-@ChgToGlossary{Version=[2],Kind=[Revised],Term=<Subtype>,
-  Text=<A subtype is a type together with a constraint@Chg{Version=[2],
-  New=[ or null exclusion],Old=[]},
-  which constrains the values of the subtype to satisfy a certain
-  condition.
-  The values of a subtype are a subset of the values of its type.>}
+@ChgToGlossary{Version=[3],Kind=[Revised],Term=<Subtype>,
+  Text=<A subtype is a type together with @Chg{Version=[3],New=[optional
+  constraints, null exclusions, and predicates],
+  Old=[a constraint@Chg{Version=[2],New=[ or null exclusion],Old=[]}]},
+  which @Chg{Version=[3],New=[constrain],Old=[constrains]}
+  the values of the subtype to satisfy @Chg{Version=[3],New=[],Old=[a ]}certain
+  @Chg{Version=[3],New=[conditions],Old=[condition]}. The values of a subtype
+  are a subset of the values of its type.>}
 
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00442-01]}
 @Chg{Version=[2],New=[@Defn2{Term=[category], Sec=(of types)}],
@@ -641,7 +678,8 @@ are excluded, the term component is used instead.
 Similarly, a @i(part) of an object or value is used to mean
 the whole object or value, or any set of its subcomponents.@Chg{Version=[2],
 New=[ The terms component, subcomponent, and part are also applied to a type
-meaning the component, subcomponent, or part of objects and values of the type.],Old=[]}
+meaning the component, subcomponent, or part of objects and values of the
+type.@Defn2{Term=[part], Sec=(of a type)}@Defn2{Term=[component], Sec=(of a type)}],Old=[]}
 @begin{Discussion}
   The definition of @lquotes@;part@rquotes@; here is designed to simplify rules
   elsewhere. By design, the intuitive meaning of
@@ -955,12 +993,14 @@ A @nt<type_declaration> declares a type and its first subtype.
    | @Syn2{private_extension_declaration}"}
 
 
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0183-1]}
 @Syn{lhs=<full_type_declaration>,rhs="
-     @key{type} @Syn2{defining_identifier} [@Syn2{known_discriminant_part}] @key{is} @Syn2{type_definition};
+     @key{type} @Syn2{defining_identifier} [@Syn2{known_discriminant_part}] @key{is} @Syn2{type_definition}@Chg{Version=[3],New=<
+        [@Syn2{aspect_specification}]>,Old=[]};
    | @Syn2{task_type_declaration}
    | @Syn2{protected_type_declaration}"}
 
-@ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00251-01]}
+@ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00251-01]}
 @Syn{tabs=[P29], lhs=<type_definition>,rhs="
      @Syn2{enumeration_type_definition}@\| @Syn2{integer_type_definition}
    | @Syn2{real_type_definition}@\| @Syn2{array_type_definition}
@@ -1098,9 +1138,9 @@ creates a distinct type and its first subtype.
 @key(array)(1 .. 10) @key(of) Integer
 @end(Example)
 
-@begin{Wide}
+@begin{WideAbove}
 @leading@keepnext@i(Examples of type declarations:)
-@end{Wide}
+@end{WideAbove}
 @begin(Example)
 @key(type) Color  @key(is) (White, Red, Yellow, Green, Blue, Brown, Black);
 @key(type) Column @key(is) @key(range) 1 .. 72;
@@ -1159,6 +1199,12 @@ created@Chg{Version=[2],New=[ (for a limited type)],Old=[]}.
   all types have a well-defined full view.]}
 @end{DiffWord95}
 
+@begin{Extend2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0183-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 2005}
+  An optional @nt{aspect_specification} can be used in a @nt{full_type_declaration}.
+  This is described in @RefSecNum{Aspect Specifications}.]}
+@end{Extend2005}
 
 @LabeledSubClause{Subtype Declarations}
 
@@ -1168,9 +1214,10 @@ declared type, as defined by a @nt<subtype_indication>.
 @end{Intro}
 
 @begin{Syntax}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0183-1]}
 @Syn{lhs=<subtype_declaration>,rhs="
-   @key{subtype} @Syn2{defining_identifier} @key{is} @Syn2{subtype_indication};"}
-
+   @key{subtype} @Syn2{defining_identifier} @key{is} @Syn2{subtype_indication}@Chg{Version=[3],New=<
+        [@Syn2{aspect_specification}]>,Old=[]};"}
 
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00231-01]}
 @Syn{lhs=<subtype_indication>,rhs=" @Chg{Version=[2],New=<[@Syn2{null_exclusion}] >,Old=<>}@Syn2{subtype_mark} [@Syn2{constraint}]"}
@@ -1200,11 +1247,13 @@ A @nt{subtype_mark} shall resolve to denote a subtype.
 The type @i(determined by) a @nt<subtype_mark> is the
 type of the subtype denoted by the @nt{subtype_mark}.
 @begin{Ramification}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0005-1]}
   Types are never directly named; all @nt{subtype_mark}s denote
   subtypes @em possibly an unconstrained (base) subtype,
   but never the type.
   When we use the term @i(anonymous type) we really
-  mean a type with no namable subtypes.
+  mean a type with no @Chg{Version=[3],New=[nameable],Old=[namable]}
+  subtypes.
 @end{Ramification}
 @end{Resolution}
 
@@ -1305,8 +1354,17 @@ since it always denotes a subtype.
   @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00231-01]}
   @ChgAdded{Version=[2],Text=[@Defn{extensions to Ada 95}
   An optional @nt{null_exclusion} can be used in a @nt{subtype_indication}.
-  This is described in @RefSecNum{Access Types}]}
+  This is described in @RefSecNum{Access Types}.]}
 @end{Extend95}
+
+@begin{Extend2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0183-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 2005}
+  An optional @nt{aspect_specification} can be used in a @nt{subtype_declaration}.
+  This is described in @RefSecNum{Aspect Specifications}.]}
+@end{Extend2005}
+
+
 
 
 @LabeledSubClause{Classification of Operations}
@@ -1378,6 +1436,12 @@ specific type are defined as follows:
   that are
   explicitly declared immediately within the same
   @nt<package_specification> and that operate on the type;
+
+  @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0128-1]}
+  @ChgAdded{Version=[3],Text=[For a specific type with an
+  explicitly declared primitive "=" operator whose result type
+  is Boolean, the corresponding "/=" operator (see
+  @RefSecNum{Overloading of Operators});]}
 
   @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00200-01]}
   @Defn2{Term=[override], Sec=(a primitive subprogram)}
@@ -1459,6 +1523,228 @@ The description of S'Base has been moved to
   in the kinds of operations that operate on a type T.]}
 @end{DiffWord95}
 
+@begin{DiffWord2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0128-1]}
+  @ChgAdded{Version=[3],Text=[@b<Correction:> The implicitly declared "/="
+  for a primitive "=" operator is also primitive; this makes it eligible
+  to be made visible by a @key[use type] clause.]}
+@end{DiffWord2005}
+
+
+@LabeledAddedSubClause{Version=[3],Name=[Subtype Predicates]}
+
+@begin{Intro}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0153-3]}
+@ChgAdded{Version=[3],Text=[The language-defined @i{predicate aspects}
+Static_Predicate and Dynamic_Predicate may be used to define properties of
+subtypes. A @i{predicate specification} is an @nt{aspect_specification}
+for one of the two predicate aspects.@Defn{predicate aspect}@Defn{predicate specification}@PDefn2{Term=[aspect],Sec=(predicate)}@AspectDefn{Static_Predicate}@AspectDefn{Dynamic_Predicate}]}
+@ChgAspectDesc{Version=[3],Kind=[AddedNormal],Aspect=[Static_Predicate],
+  Text=[@ChgAdded{Version=[3],Text=[Condition that must hold true for objects of
+    a given subtype; the subtype may be static.]}]}
+
+@ChgAspectDesc{Version=[3],Kind=[AddedNormal],Aspect=[Dynamic_Predicate],
+  Text=[@ChgAdded{Version=[3],Text=[Condition that must hold true for objects of
+    a given subtype; the subtype is not static.]}]}
+@end{Intro}
+
+@begin{Resolution}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0153-3]}
+@ChgAdded{Version=[3],Text=[The expected type for a predicate aspect
+@nt{expression} is any boolean
+type.@PDefn2{Term=[expected type],Sec=[@nt{expression} of a predicate aspect]}]}
+
+@end{Resolution}
+
+@begin{StaticSem}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0153-3]}
+@ChgAdded{Version=[3],Type=[Leading],Text=[A predicate specification may be
+given on a @nt{type_declaration} or a @nt{subtype_declaration}, and applies
+to the declared subtype. In addition, predicate specifications apply to
+certain other subtypes:]}
+@begin{Itemize}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[For a (first) subtype defined by a derived
+  type declaration, the predicates of the parent subtype and the progenitor
+  subtypes apply.]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[For a subtype created by a @nt{subtype_indication},
+  the predicate of the subtype denoted by the @nt{subtype_mark} applies.]}
+@end{Itemize}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0153-3]}
+@ChgAdded{Version=[3],Text=[The @i<predicate> of a subtype consists of all
+predicate specifications that apply, and-ed together; if no predicate
+specifications apply, the predicate is True @Redundant[(in particular, the
+predicate of a base subtype is True)].@Defn2{Term=[Predicate],Sec=(of a subtype)}]}
+@end{StaticSem}
+
+@begin{Legality}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0153-3]}
+@ChgAdded{Version=[3],Type=[Leading],Text=[The @nt{expression} of a
+Static_Predicate specification shall be @i<predicate-static>; that is, one of
+the following:@Defn{predicate-static}@Defn2{Term=[expression],Sec=[predicate-static]}]}
+@begin{Itemize}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[a static expression that does not raise
+  any exception;]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[a membership test whose @nt{simple_expression}
+  is the current instance, and whose @nt{membership_choice_list} meets the
+  requirements for a static membership test
+  (see @RefSecNum{Static Expressions and Static Subtypes});]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[a @nt{case_expression} whose
+  @SynI{selecting_}@nt{expression} is the current instance,
+  and whose @SynI{dependent_}@nt{expression}s are static expressions;]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[a call to a predefined equality or ordering
+  operator, where one operand is the current instance, and the other is a
+  static expression;]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[a call to a predefined boolean logical operator,
+  where both operands are predicate-static; or]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[a parenthesized predicate-static @nt{expression}.]}
+@end{Itemize}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0262-1]}
+@ChgAdded{Version=[3],Text=[A predicate shall not be specified for an incomplete
+subtype.]}
+
+@begin{Reason}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[The expression of such a predicate could not
+  depend on the properties of the value of the type (since it doesn't have
+  any), so it is useless and we don't want to require the added complexity
+  needed to support it.]}
+@end{Reason}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0153-3]}
+@ChgAdded{Version=[3],Text=[An index subtype, @nt{discrete_range} of an
+@nt{index_constraint} or @nt{slice}, or a
+@nt{discrete_subtype_definition} of a @nt{constrained_array_definition},
+@nt{entry_declaration}, or @nt{entry_index_specification} shall not denote a
+subtype to which predicate specifications apply.]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0153-3]}
+@ChgAdded{Version=[3],Text=[The @nt{prefix} of an @nt{attribute_reference}
+whose @nt{attribute_designator} is First, Last, or Range shall not denote a
+scalar subtype to which predicate specifications apply.]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0153-3],ARef=[AI05-0262-1]}
+@ChgAdded{Version=[3],Text=[The @nt{discrete_subtype_definition} of a
+@nt{loop_parameter_specification} shall not denote a subtype to which
+Dynamic_Predicate specifications apply.]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0153-3],ARef=[AI05-0262-1]}
+@ChgAdded{Version=[3],Text=[The @nt{discrete_choice} of a
+@nt{named_array_aggregate} shall not denote a non-static subtype to which
+predicate specifications apply.]}
+
+@begin{Reason}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0262-1]}
+  @ChgAdded{Version=[3],Text=[This rule prevents non-contiguous
+  dynamically bounded array aggregates, which could be expensive to check for.
+  (Array aggregates have rules to prevent problems with static subtypes.) We
+  define this rule here so that the runtime generic body check applies.]}
+@end{Reason}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0262-1]}
+@ChgAdded{Version=[3],Text=[In addition to the places
+where @LegalityTitle normally apply (see @RefSecNum{Generic Instantiation}),
+these rules apply also in the private part of an instance of a generic
+unit.@PDefn{generic contract issue}]}
+@end{Legality}
+
+@begin{Runtime}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0153-3]}
+@ChgAdded{Version=[3],Type=[Leading],Text=[If the assertion policy (see
+@RefSecNum{Pragmas Assert and Assertion_Policy}) in effect is Check, then:]}
+@begin{DescribeCode}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[@Redundant[On every subtype conversion, the
+  predicate of the target subtype is evaluated, and a check is made that the
+  predicate is True. This includes all parameter passing, except for certain
+  parameters passed by reference, which are covered by the following rule: ] After
+  normal completion and leaving of a subprogram, for each @key[in out] or
+  @key[out] parameter
+  that is passed by reference, the predicate of the subtype of the actual is
+  evaluated, and a check is made that the predicate is True. For an object created
+  by an @nt{object_declaration} with no explicit initialization @nt{expression},
+  or by an uninitialized @nt{allocator}, if any subcomponents have
+  @nt{default_expression}s, the predicate of the
+  nominal subtype of the created object is evaluated, and a check is made
+  that the predicate is True. Assertions.Assertion_Error is raised if any
+  of these checks fail.@Defn2{Term=[assertion policy],
+  Sec=[predicate check]}@Defn2{Term=[predicate check],
+  Sec=[@key[in out] parameters]}@Defn2{Term=[predicate check],
+  Sec=[@nt{object_declaration}]}@Defn2{Term=[predicate check],
+  Sec=[@nt{allocator}]}@Defn2{Term=[check, language-defined],
+  Sec=[controlled by assertion policy]}@Defn2{Term=(Assertion_Error),
+  Sec=(raised by failure of run-time check)}]}
+
+
+@begin{Ramification}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=<Predicates are not evaluated at the point of the
+  [sub]type declaration.>}
+@end{Ramification}
+
+@begin{ImplNote}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[Static_Predicate checks can be removed even in the
+  presence of potentially invalid values, just as constraint checks can be
+  removed.]}
+@end{ImplNote}
+@end{DescribeCode}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0262-1]}
+@ChgAdded{Version=[3],Text=[A value @i<satisfies> a predicate if the
+predicate is True for that value.@PDefn2{Term=[satisfies], Sec=(a subtype predicate)}]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0153-3]}
+@ChgAdded{Version=[3],Text=[If any of the above @LegalityTitle is violated in an
+instance of a generic unit, Program_Error is raised.]}
+
+@begin{Discussion}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[This is the usual way around the contract model;
+  this applies even in generic bodies.]}
+@end{Discussion}
+@end{Runtime}
+
+@begin{Notes}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0153-3]}
+@ChgAdded{Version=[3],Text=[A predicate specification does not cause a subtype
+to be considered constrained.]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0153-3]}
+@ChgAdded{Version=[3],Text=[A Static_Predicate, like a constraint, always
+remains True for all objects of the subtype, except in the case of uninitialized
+variables and other invalid values. A Dynamic_Predicate, on the other hand, is
+checked as specified above, but can become False at other times. For example,
+the predicate of a record subtype is not checked when a subcomponent is
+modified.]}
+@end{Notes}
+
+
+@begin{Extend2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0153-3]}
+  @ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 2005}
+  Predicate aspects are new in Ada 2012.]}
+@end{Extend2005}
+
+
 
 @LabeledClause{Objects and Named Numbers}
 
@@ -1503,30 +1789,43 @@ All of the following are objects:
   access-to-object value (see @RefSecNum{Names});
 
   @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00416-01]}
-  the @Chg{Version=[2],New=[return object created as the ],Old=[]}result
+  @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0015-1]}
+  the @Chg{Version=[2],New=[return object ],Old=[]}@Chg{Version=[3],
+  New=[of a function],Old=[@Chg{Version=[2],New=[created as the ],Old=[]}result
   of evaluating a @nt<function_call> (or the equivalent
-  operator invocation @em see @RefSecNum{Overloading of Operators});
+  operator invocation @em see @RefSecNum{Overloading of Operators})]};
 
   the result of evaluating an @nt<aggregate>;
+
+  @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0003-1]}
+  @ChgAdded{Version=[3],Text=[a @nt{qualified_expression} whose operand denotes an object;]}
 
   a component, slice, or view conversion of another object.
 @end(itemize)
 
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0054-2]}
 @Defn{constant}
 @Defn{variable}
 @Defn{constant object}
 @Defn{variable object}
 @Defn{constant view}
 @Defn{variable view}
-An object is either a @i(constant) object or a @i(variable) object.
-The value of a constant object cannot be changed
-between its initialization
+An object is either a @i(constant) object or a @i(variable)
+object.@Chg{Version=[3],New=[],Old=[ The value of a constant object
+cannot be changed between its initialization
 and its finalization, whereas the value of a variable object can be
-changed.
+changed.]}
 Similarly, a view of an object is either a @i(constant) or
-a @i(variable). All views of a constant object are constant.
-A constant view of a variable object cannot be used to modify
-the value of the variable. The terms constant and variable by themselves
+a @i(variable). All views of a constant
+@Chg{Version=[3],New=[elementary ],Old=[]}object are constant.
+@Chg{Version=[3],New=[All views of a constant composite object are
+constant, except for parts that are of controlled or immutably limited
+types; variable views of those parts and their subcomponents
+may exist. In this sense, objects of controlled and immutably
+limited types are @i<inherently mutable>@Defn{inherently mutable object}. ],Old=[]}A
+constant view of @Chg{Version=[3],New=[an],Old=[a variable]} object
+cannot be used to modify @Chg{Version=[3],New=[its value],Old=[the value
+of the variable]}. The terms constant and variable by themselves
 refer to constant and variable views of objects.
 
 @Defn2{Term=[read], Sec=(the value of an object)}
@@ -1578,11 +1877,31 @@ The following (and no others) represent constants:
 
   a discriminant;
 
-  a loop parameter, choice parameter, or entry index;
+  @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0262-1]}
+  @ChgAdded{Version=[3],Text=[a loop parameter unless specified to be a variable
+  for a generalized loop (see @RefSecNum{Generalized Loop Iteration});]}
+
+  @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0262-1]}
+  a @Chg{Version=[3],New=[],Old=[loop parameter, ]}choice
+  parameter@Chg{Version=[3],New=[],Old=[,]} or entry index;
 
   the dereference of an access-to-constant value;
 
-  the result of evaluating a @nt<function_call> or an @nt<aggregate>;
+  @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0015-1]}
+  @ChgAdded{Version=[3],Text=[the return object declared by an
+  @nt{extended_return_statement} with the reserved word @key[constant];]}
+
+  @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0015-1]}
+  the @Chg{Version=[3],New=[object denoted by],Old=[result of evaluating]}
+  a @nt<function_call> or an @nt<aggregate>;
+
+  @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0003-1]}
+  @ChgAdded{Version=[3],Text=[the result of evaluating a @nt{qualified_expression};]}
+
+  @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0120-1]}
+  @ChgAdded{Version=[3],Text=[within the body of a protected function (or a
+  function declared immediately within a @nt{protected_body}), the current
+  instance of the enclosing protected unit;]}
 
   a @nt<selected_component>, @nt<indexed_component>,
   @nt<slice>, or view conversion of a constant.
@@ -1596,6 +1915,7 @@ The following (and no others) represent constants:
 
 @end(itemize)
 
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0264-1]}
 @Defn{nominal subtype}
 At the place where a view of an
 object is defined, a @i(nominal subtype) is associated
@@ -1611,8 +1931,8 @@ is an @i(indefinite subtype).
 A subtype is an indefinite subtype if it is an unconstrained array
 subtype, or if it has unknown discriminants or unconstrained
 discriminants without defaults (see @RefSecNum(Discriminants));
-otherwise the subtype is a @i{definite} subtype @Redundant[(all
-elementary subtypes are definite subtypes)].
+otherwise@Chg{Version=[3],New=[,],Old=[]} the subtype is a @i{definite}
+subtype @Redundant[(all elementary subtypes are definite subtypes)].
 @redundant[A class-wide subtype is defined to have unknown discriminants,
 and is therefore an indefinite subtype.
 An indefinite subtype does not by itself
@@ -1621,6 +1941,78 @@ an additional @nt<constraint> or
 explicit initialization @nt<expression>
 is necessary (see @RefSecNum(Object Declarations)).
 A component cannot have an indefinite nominal subtype.]
+
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0008-1]}
+@ChgAdded{Version=[3],Type=[Leading],Text=[A view of a composite object is
+@i<known to be constrained> if:]}
+
+@begin{Itemize}
+
+@ChgRef{Version=[3],Kind=[Added]}
+@ChgAdded{Version=[3],Text=[its nominal subtype is constrained, and is not an
+untagged partial view; or]}
+
+@ChgRef{Version=[3],Kind=[Added]}
+@ChgAdded{Version=[3],Text=[its nominal subtype is indefinite; or]}
+
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0008-1],ARef=[AI05-0093-1]}
+@ChgAdded{Version=[3],Text=[its type is immutably limited (see @RefSecNum{Limited Types}); or]}
+
+@ChgRef{Version=[3],Kind=[Added]}
+@ChgAdded{Version=[3],Text=[it is part of a stand-alone constant (including a
+generic formal object of mode @key[in]); or]}
+
+@ChgRef{Version=[3],Kind=[Added]}
+@ChgAdded{Version=[3],Text=[it is part of a formal parameter of mode @key[in]; or]}
+
+@ChgRef{Version=[3],Kind=[Added]}
+@ChgAdded{Version=[3],Text=[it is part of the object denoted by a
+@nt{function_call} or @nt{aggregate}; or]}
+
+@ChgRef{Version=[3],Kind=[Added]}
+@ChgAdded{Version=[3],Text=[it is part of a constant return object of an
+@nt{extended_return_statement}; or]}
+
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0008-1],ARef=[AI05-0041-1]}
+@ChgAdded{Version=[3],Text=[it is a dereference of a pool-specific access type,
+and there is no ancestor of its type that has a constrained partial view.]}
+
+@end{Itemize}
+
+@begin{Discussion}
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[We do not include dereferences of general access
+types because they might denote stand-alone aliased unconstrained variables.
+That's true even for access-to-constant types (the denoted object does not
+have to be a constant).]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[There are other cases that could have been
+included in this definition (view conversions, the current instance of
+a type, implementation-defined attributes, objects of a formal discriminated
+private type), but these are not relevant to the places this term is
+used, so they were not included. If this term is used in additional places,
+the definition should be checked to see if any of these additional cases
+are relevant and appropriate wording added if necessary.]}
+@end{Discussion}
+
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0008-1],ARef=[AI05-0041-1]}
+@ChgAdded{Version=[3],Type=[Leading],Keepnext=[T],Text=[For the purposes of
+determining within a generic body whether an object is known
+to be constrained:]}
+@begin{Itemize}
+@ChgRef{Version=[3],Kind=[Added]}
+@ChgAdded{Version=[3],Text=[if a subtype is a descendant of an untagged generic
+formal private or derived type, and the subtype is not an unconstrained array
+subtype, it is not considered indefinite and is considered to have a
+constrained partial view;]}
+
+@ChgRef{Version=[3],Kind=[Added]}
+@ChgAdded{Version=[3],Text=[if a subtype is a descendant of a formal access type, it is not
+considered pool-specific.]}
+
+@end{Itemize}
+
 
 @Defn{named number}
 A @i(named number) provides a name for a numeric value known
@@ -1632,10 +2024,18 @@ A constant cannot be the target of an assignment operation, nor be
 passed as an @key(in) @key(out) or @key(out)
 parameter, between its initialization and finalization, if any.
 
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0054-2]}
+@ChgAdded{Version=[3],Text=[The value of a constant object cannot be
+changed after its initialization, except in some cases where the
+object has a controlled or immutably limited part (see
+@RefSecNum{Limited Types}, @RefSecNum{Assignment and Finalization},
+and @RefSecNum{Data Validity}).]}
+
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0264-1]}
 The nominal and actual subtypes of an elementary object are
 always the same. For a discriminated or array object,
-if the nominal subtype is constrained then so is the actual
-subtype.
+if the nominal subtype is constrained@Chg{Version=[3],New=[,],Old=[]} then so is
+the actual subtype.
 @end{Notes}
 
 @begin{Extend83}
@@ -1690,9 +2090,43 @@ assigning to an enclosing object.
   created by a function call.]}
 @end{DiffWord95}
 
+@begin{Extend2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0015-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 2005}
+  Added wording to allow
+  return objects to be declared as constants, and corrected the definition
+  of return objects as objects.]}
+@end{Extend2005}
+
+@begin{DiffWord2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0008-1],ARef=[AI05-0041-1],ARef=[AI05-0093-1]}
+  @ChgAdded{Version=[3],Text=[@b<Correction:> Added a definition of
+  @i<known to be constrained>, for use in other rules.]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0054-2]}
+  @ChgAdded{Version=[3],Text=[@b<Correction:> We now recognize the fact
+  that not all declared constant objects are immutable; for those that
+  a variable view can be constructed, they can be changed via that view.]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0120-1]}
+  @ChgAdded{Version=[3],Text=[@b<Correction:> Added the current instance of
+  a protected object to the list of constant views; since the list
+  claims to include all possibilities, it had better include that one.]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0003-1]}
+  @ChgAdded{Version=[3],Text=[The result of a
+  @nt{qualified_expression} is defined to be a constant view and is defined
+  to be an object if the operand of the @nt{qualified_expression} is an object.
+  These definitions, combined with some grammar changes, allow
+  @nt{qualified_expression}s to be used in more places. See
+  @RefSecNum{Names} for details.]}@ChgNote{This is defined an extension in @RefSecNum{Names}.}
+@end{DiffWord2005}
+
+
 @LabeledSubClause{Object Declarations}
 
 @begin{Intro}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0262-1]}
 @RootDefn{stand-alone object}
 @Defn{explicit initial value}
 @Defn{initialization expression}
@@ -1702,17 +2136,21 @@ value given by an initialization expression.
 @Defn{anonymous array type}
 @Defn{anonymous task type}
 @Defn{anonymous protected type}
-For an array, task, or protected object,
+For an array, @Chg{Version=[3],New=[access, ],Old=[]}task, or protected object,
 the @nt<object_declaration> may include the definition
 of the (anonymous) type of the object.
 @end{Intro}
 
 @begin{Syntax}
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00385-01],ARef=[AI95-00406-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0183-1]}
 @Syn{lhs=<object_declaration>,rhs="
-    @Syn2{defining_identifier_list} : [@key{aliased}] [@key{constant}] @Syn2{subtype_indication} [:= @Syn2{expression}];@Chg{Version=[2],New=<
-  | @Syn2{defining_identifier_list} : [@key{aliased}] [@key{constant}] @Syn2{access_definition} [:= @Syn2{expression}];>,Old=<>}
-  | @Syn2{defining_identifier_list} : [@key{aliased}] [@key{constant}] @Syn2{array_type_definition} [:= @Syn2{expression}];
+    @Syn2{defining_identifier_list} : [@key{aliased}] [@key{constant}] @Syn2{subtype_indication} [:= @Syn2{expression}]@Chg{Version=[3],New=<
+        [@Syn2{aspect_specification}]>,Old=[]};@Chg{Version=[2],New=<
+  | @Syn2{defining_identifier_list} : [@key{aliased}] [@key{constant}] @Syn2{access_definition} [:= @Syn2{expression}]@Chg{Version=[3],New=<
+        [@Syn2{aspect_specification}]>,Old=[]};>,Old=<>}
+  | @Syn2{defining_identifier_list} : [@key{aliased}] [@key{constant}] @Syn2{array_type_definition} [:= @Syn2{expression}]@Chg{Version=[3],New=<
+        [@Syn2{aspect_specification}]>,Old=[]};
   | @Syn2{single_task_declaration}
   | @Syn2{single_protected_declaration}"}
 
@@ -1743,13 +2181,15 @@ of a limited type.]}
 @end{Legality}
 
 @begin{StaticSem}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0264-1]}
 An @nt<object_declaration> with the reserved word @key(constant)
 declares a constant object.
 @Defn{full constant declaration}
 If it has an initialization expression,
 then it is called a @i(full constant declaration).
 @Defn{deferred constant declaration}
-Otherwise it is called a @i(deferred constant declaration).
+Otherwise@Chg{Version=[3],New=[,],Old=[]} it is called
+a @i(deferred constant declaration).
 The rules for deferred constant declarations are given in clause
 @RefSecNum(Deferred Constants). The rules for full constant declarations
 are given in this subclause.
@@ -1829,22 +2269,42 @@ its nominal subtype, as follows:
   The implicit initial value for an access subtype is the
   null value of the access type.
 
+  @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0228-1]}
+  @ChgAdded{Version=[3],Text=[The implicit initial value for a scalar subtype
+  that has the Default_Value aspect specified is the value of that aspect
+  converted to the nominal subtype (which might raise Constraint_Error @em see
+  @RefSec{Type Conversions});@PDefn2{Term=[implicit subtype conversion],
+  Sec=(default value of a scalar)}]}
+
+  @begin{Ramification}
+    @ChgRef{Version=[3],Kind=[Added]}
+    @ChgAdded{Version=[3],Text=[This is a @RuntimeTitle rule, so the
+    visibility of the @nt{aspect_specification} is not relevant @em if the full
+    type for a private type has the Default_Value aspect specified, partial
+    views of the type also have this implicit initial value.]}
+  @end{Ramification}
+
   The implicit initial (and only) value for each discriminant
   of a constrained discriminated subtype is defined by the subtype.
 
+  @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0228-1]}
   For a (definite) composite subtype,
   the implicit initial value of each component
   with a @nt<default_expression> is obtained by
   evaluation of this expression and conversion to the
   component's nominal subtype (which might raise
-  Constraint_Error @em see @RefSec{Type Conversions}),
-  unless the component is a
+  Constraint_Error@Chg{Version=[3],New=[],Old=[ @em see
+  @RefSec{Type Conversions}]}), unless the component is a
   discriminant of a constrained subtype (the previous case),
   or is in an excluded @nt<variant>
   (see @RefSecNum(Variant Parts and Discrete Choices)).
   @PDefn2{Term=[implicit subtype conversion],Sec=(component defaults)}
-  For each component that does not have a @nt<default_expression>, any implicit
-  initial values are those determined by the component's nominal subtype.
+  For each component that does not have a @nt<default_expression>,
+  @Chg{Version=[3],New=[if the composite subtype has the Default_Component_Value
+  aspect specified, the implicit initial value is the value of that aspect
+  converted to the component's nominal subtype; otherwise, ],Old=[]}any
+  implicit initial values are those determined by the component's
+  nominal subtype.
 
   For a protected or task subtype, there is an implicit component
   (an entry queue) corresponding to each entry, with its implicit
@@ -1891,7 +2351,7 @@ sequence of steps:
   Any initial values (whether explicit or implicit) are assigned
   to the object or to the corresponding subcomponents.
   As described in @RefSecNum{Assignment Statements}
-  and @RefSecNum{User-Defined Assignment and Finalization},
+  and @RefSecNum{Assignment and Finalization},
   Initialize and Adjust procedures can be called.
   @IndexSee{Term=[constructor],See=[initialization]}],Old=[]}
   @begin(Discussion)
@@ -1926,7 +2386,7 @@ sequence of steps:
   Any initial values (whether explicit or implicit) are assigned
   to the object or to the corresponding subcomponents.
   As described in @RefSecNum{Assignment Statements}
-  and @RefSecNum{User-Defined Assignment and Finalization},
+  and @RefSecNum{Assignment and Finalization},
   Initialize and Adjust procedures can be called.
   @IndexSee{Term=[constructor],See=[initialization]}]}
   @begin(Ramification)
@@ -1954,7 +2414,7 @@ includes the name of the discriminant.
 The evaluations of the third step and the assignments of the fourth step
 are performed in an arbitrary order,
 except that each evaluation is performed before the resulting value is
-assigned.]}
+assigned.]}@PDefn2{Term=[arbitrary order],Sec=[allowed]}
 @begin(Itemize)
 
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00373-01]}
@@ -1998,12 +2458,15 @@ it is important that F be evaluated before the aggregate.
 @end{Reason}
 
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00373-01]}
+@ChgRef{Version=[3],Kind=[RevisedAdded],ARef=[AI05-0092-1]}
 @ChgAdded{Version=[2],Text=[The assignments to any components, including
-implicit components, not requiring late initialization must precede the
+implicit components, not requiring late initialization
+@Chg{Version=[3],New=[],Old=[must ]}precede the
 initial value evaluations for any components requiring late initialization;
 if two components both require late initialization, then assignments to parts
 of the component occurring earlier in the order of the component declarations
-must precede the initial value evaluations of the component occurring later.]}
+@Chg{Version=[3],New=[],Old=[must ]}precede the
+initial value evaluations of the component occurring later.]}
 @begin{Reason}
 @ChgRef{Version=[2],Kind=[AddedNormal]}
 @ChgAdded{Version=[2],Type=[Leading],Text=[Components that require late
@@ -2038,10 +2501,13 @@ component, @RefSecNum{Data Validity} defines the execution to be erroneous.]}
 @end{Reason}
 @end{Itemize}
 
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0228-1]}
 @Redundant[There is no implicit initial
-value defined for a scalar subtype.]
+value defined for a scalar subtype@Chg{Version=[3],New=[ unless the
+Default_Value aspect has been specified for the type],Old=[]}.]
 @PDefn{uninitialized variables}
-In the absence of an explicit initialization, a newly created
+In the absence of an explicit initialization@Chg{Version=[3],New=[ or the
+specification of the Default_Value aspect],Old=[]}, a newly created
 scalar object might have a value that does not belong to its subtype
 (see @RefSecNum{Data Validity} and @RefSecNum{Pragma Normalize_Scalars}).
 @begin{Honest}
@@ -2072,6 +2538,7 @@ for an indefinite subtype,
 because if an object's nominal subtype is indefinite,
 an explicit initial value is required.
 
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0092-1],ARef=[AI05-0255-1]}
 @Defn{stand-alone constant}
 @Defn{stand-alone variable}
 As indicated above,
@@ -2081,10 +2548,12 @@ Similar definitions apply to
 A subcomponent of an object is not a stand-alone object,
 nor is an object that is created by an @nt<allocator>.
 An object declared by a
-@nt<loop_parameter_specification>, @nt<parameter_specification>,
+@nt<loop_parameter_specification>,
+@Chg{Version=[3],New=[@nt{iterator_specification}, ],Old=[]}@nt<parameter_specification>,
 @nt<entry_index_specification>, @nt<choice_parameter_specification>,
-or a @nt<formal_object_declaration> is not called a
-stand-alone object.
+@Chg{Version=[3],New=[@nt{extended_return_statement}, ],Old=[]}or
+a @nt{formal_object_declaration} @Chg{Version=[3],New=[of mode @key[in out] ],Old=[]}is
+not @Chg{Version=[3],New=[considered],Old=[called]} a stand-alone object.
 
 The type of a stand-alone object cannot
 be abstract (see @RefSecNum{Abstract Types and Subprograms}).
@@ -2105,9 +2574,9 @@ John : @Chg{Version=[2],New=[@key{not null} ],Old=[]}Person_Name := @key(new) Pe
 Paul : @Chg{Version=[2],New=[@key{not null} ],Old=[]}Person_Name := @key(new) Person(Sex => M);
 @end(Example)
 
-@begin{Wide}
+@begin{WideAbove}
 @leading@keepnext@i(Examples of variable declarations:)
-@end{Wide}
+@end{WideAbove}
 @begin(Example)
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00433-01]}
 Count, Sum  : Integer;
@@ -2119,9 +2588,9 @@ Hello       : @Chg{Version=[2],New=[@key(aliased)],Old=[@key(constant)]} String 
 @unicode(952), @unicode(966)        : Float @b<range> -@pi .. +@pi;],Old=[]}
 @end(Example)
 
-@begin{Wide}
+@begin{WideAbove}
 @leading@keepnext@i(Examples of constant declarations:)
-@end{Wide}
+@end{WideAbove}
 @begin(Example)
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00433-01]}
 Limit     : @key(constant) Integer := 10_000;
@@ -2209,6 +2678,22 @@ without an initialization expression.
   @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00433-01]}
   @ChgAdded{Version=[2],Text=[Added examples of various new constructs.]}
 @end{DiffWord95}
+
+@begin{Extend2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0183-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 2005}
+  An optional @nt{aspect_specification} can be used in an @nt{object_declaration}.
+  This is described in @RefSecNum{Aspect Specifications}.]}
+@end{Extend2005}
+
+@begin{DiffWord2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0228-1]}
+  @ChgAdded{Version=[3],Text=[Implicit initial values can now be given
+  for scalar types and for scalar array components, using the Default_Value
+  (see @RefSecNum{Scalar Types}) and Default_Component_Value
+  (see @RefSecNum{Array Types}) aspects; the extension is documented there.]}
+@end{DiffWord2005}
+
 
 
 @LabeledSubClause{Number Declarations}
@@ -2448,8 +2933,14 @@ the parent type is a tagged type.]],Old=[]}
 @end{Ramification}
 
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00419-01]}
+@ChgRef{Version=[3],Kind=[RevisedAdded],ARef=[AI05-0096-1]}
 @ChgAdded{Version=[2],Text=[If the reserved word @key{limited} appears in a
-@nt{derived_type_definition}, the parent type shall be a limited type.]}
+@nt{derived_type_definition}, the parent type shall be a limited
+type.@Chg{Version=[3],New=[ If the parent type is a tagged formal type,
+then in addition to the places where @LegalityTitle normally apply
+(see @RefSecNum{Generic Instantiation}), this rule applies also in
+the private part of an instance of a
+generic unit.@PDefn{generic contract issue}],Old=[]}]}
 @begin{Reason}
   @ChgRef{Version=[2],Kind=[AddedNormal]}
   @ChgAdded{Version=[2],Text=[We allow @key{limited} because we don't inherit
@@ -2463,6 +2954,20 @@ the parent type is a tagged type.]],Old=[]}
   @ChgAdded{Version=[2],Text=[However, we do not want to allow @key{limited}
   when the parent is nonlimited: limitedness cannot change in a derivation
   tree.]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[If the parent type is an untagged limited formal
+  type with an actual type that is nonlimited, we allow derivation as a limited
+  type in the private part or body as no place could have visibility on the
+  resulting type where it was known to be nonlimited (outside of the instance).
+  (See the previous paragraph's annotations for an explanation of this.)
+  However, if the parent type is a tagged limited formal type with an actual
+  type that is nonlimited, it would be possible to pass a value of the limited
+  type extension to a class-wide type of the parent, which would be nonlimited.
+  That's too weird to allow (even though all of the extension components would
+  have to be nonlimited because the rules of @RefSecNum{Type Extensions} are
+  rechecked), so we have a special rule to prevent that in the private part
+  (type extension from a formal type is illegal in a generic package body).]}
 @end{Reason}
 @end{Legality}
 
@@ -2491,7 +2996,18 @@ of the derived type.
 @ChgAdded{Version=[2],Text=[The first subtype of the derived type excludes null
 (see @RefSecNum{Access Types}) if and only if the parent subtype excludes null.]}
 
-@Leading@keepnext@;The characteristics of the derived type are defined as follows:
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0110-1]}
+@Leading@keepnext@;The @Chg{Version=[3],New=[@i{characteristics}@PDefn{characteristics}
+and implicitly declared primitive subprograms],Old=[characteristics]} of the
+derived type are defined as follows:
+@begin{Ramification}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0110-1]}
+  @ChgAdded{Version=[3],Text=[The characteristics of a type do not include its
+  primitive subprograms (primitive subprograms include predefined operators).
+  The rules governing availability/visibility and inheritance of characteristics
+  are separate from those for primitive subprograms.]}
+@end{Ramification}
+
 @begin(itemize)
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00251-01],ARef=[AI95-00401-01],ARef=[AI95-00442-01]}
 @Chg{Version=[2],New=[@Redundant[If the parent type or a progenitor type
@@ -2602,8 +3118,8 @@ following the parent @nt<subtype_indication>.
 @ChgRef{Version=[2],Kind=[Deleted],ARef=[AI95-00419-01]}
 @ChgDeleted{Version=[2],Text=[The derived type is limited if and
 only if the parent type is limited.]}
-@ChgNote{This rule is normatively in 7.5, and we don't want it scattered
-everywhere.}
+@ChgNote{This rule is normatively in @RefSecNum{Limited Types}, and we don't
+want it scattered everywhere.}
 @begin{Honest}
   @ChgRef{Version=[2],Kind=[DeletedNoDelMsg],ARef=[AI95-00419-01]}
   @ChgDeleted{Version=[2],Text=[The derived type can become nonlimited if
@@ -2697,13 +3213,17 @@ the implementation of the predefined equality operator of the record extension
 @end{Discussion}
 
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00401-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0164-1],ARef=[AI05-0240-1]}
 @noprefix@;The profile of an inherited subprogram
 (including an inherited enumeration literal) is obtained
 from the profile of the corresponding
 (user-defined) primitive subprogram of the parent@Chg{Version=[2],New=[ or progenitor],Old=[]}
 type, after systematic replacement of each
-subtype of its profile (see @RefSecNum{Subprogram Declarations})
-that is of the parent@Chg{Version=[2],New=[ or progenitor],Old=[]} type
+subtype of its profile (see
+@RefSecNum{Subprogram Declarations})
+that is of the parent@Chg{Version=[2],New=[ or progenitor],Old=[]}
+type@Chg{Version=[3],New=[, other than those subtypes
+found in the designated profile of an @nt{access_definition},],Old=[]}
 with a @i(corresponding subtype) of the derived type.
 @Defn{corresponding subtype}
 For a given subtype of the parent@Chg{Version=[2],New=[ or progenitor],Old=[]} type,
@@ -2732,6 +3252,13 @@ the corresponding subtype of the derived type is defined as follows:
     all required constraint checks on an indirect call to such
     an inherited subprogram was felt to impose an undesirable
     implementation burden.
+
+    @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0164-1]}
+    @ChgAdded{Version=[3],Text=[Note that the exception to substitution of the
+    parent or progenitor type applies only in the profiles of anonymous
+    access-to-subprogram types. The exception is necessary to avoid calling
+    an access-to-subprogram with types and/or constraints different than
+    expected by the actual routine.]}
   @end{Reason}
 @end(inneritemize)
 
@@ -2792,7 +3319,7 @@ are evaluated.
 @begin{Discussion}
   @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00251-01]}
   @ChgAdded{Version=[2],Text=[We don't mention the @nt{interface_list}, because
-  it does not need elaboration (see @RefSecNum{Interface Types}. This is
+  it does not need elaboration (see @RefSecNum{Interface Types}). This is
   consistent with the handling of @nt{discriminant_part}s, which aren't
   elaborated either.]}
 @end{Discussion}
@@ -2981,9 +3508,11 @@ See @RefSecNum(Classification of Operations).
 We now talk about the classes to which a type belongs, rather than
 a single class.
 
-As explained in Section 13, the concept of "storage pool"
-replaces the Ada 83 concept of "collection."
-These concepts are similar, but not the same.
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0190-1]}@ChgNote{Irrelevant here,
+and broken since 7.6.1 defined "collection"}
+@ChgDeleted{Version=[3],Text=[As explained in Section 13, the concept of
+"storage pool" replaces the Ada 83 concept of "collection." These concepts are
+similar, but not the same.]}
 @end{DiffWord83}
 
 @begin{Extend95}
@@ -3008,8 +3537,30 @@ These concepts are similar, but not the same.
   @ChgAdded{Version=[2],Text=[Defined the term @lquotes@;category of
   types@rquotes and used it in wording elsewhere; also specified the
   language-defined categories that form classes of types (this was never
-  normatively specified in Ada 95.]}
+  normatively specified in Ada 95).]}
 @end{DiffWord95}
+
+@begin{Incompatible2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0096-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{incompatibilities with Ada 2005}@b<Correction:>
+  Added a (re)check that limited type extensions never are derived from
+  non-limited types in generic private parts. This is disallowed as it would
+  make it possible to pass a limited object to a non-limited class-wide type,
+  which could then be copied. This is only possible using Ada 2005 syntax,
+  so examples in existing programs should be very rare.]}
+@end{Incompatible2005}
+
+@begin{DiffWord2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0110-1]}
+  @ChgAdded{Version=[3],Text=[@b<Correction:> Added wording to clarify that
+  the characteristics of derived types are formally defined here. (This is the
+  only place in the Standard that actually spells out what sorts of things
+  are actually characteristics, which is rather important.)]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0164-1]}
+  @ChgAdded{Version=[3],Text=[@b<Correction:> Added wording to ensure that
+  anonymous access-to-subprogram types don't get modified on derivation.]}
+@end{DiffWord2005}
 
 
 @LabeledSubClause{Derivation Classes}
@@ -3110,7 +3661,8 @@ New=[, and access],Old=[]} classes,
 and are referred to in this standard as respectively,
 @i(universal_integer), @i(universal_real), @Chg{Version=[2],New=[],
 Old=[and ]}@i(universal_fixed)@Chg{Version=[2],
-New=[, and @i(universal_access)],Old=[]}.
+New=[, and @i(universal_access)@Chg{Version=[3],
+New=[@PDefn{universal_integer}@PDefn{universal_real}@PDefn{universal_fixed}@PDefn{universal_access}],Old=[]}],Old=[]}.
 These are analogous to class-wide types for these language-defined
 @Chg{Version=[2],New=[elementary],Old=[numeric]} classes.
 As with class-wide types, if a formal parameter is of a universal type,
@@ -3459,7 +4011,7 @@ evaluation of the @nt{range}.
 The evaluation of a @nt{range} determines a lower bound and an upper bound.
 If @nt<simple_expression>s are given to specify bounds, the evaluation of
 the @nt<range> evaluates these @nt<simple_expression>s in an arbitrary order,
-and converts them to the type of the @nt<range>.
+and converts them to the type of the @nt<range>.@PDefn2{Term=[arbitrary order],Sec=[allowed]}
 @PDefn2{Term=[implicit subtype conversion],Sec=(bounds of a range)}
 If a @nt<range_attribute_reference> is given, the evaluation
 of the @nt<range>
@@ -3637,7 +4189,7 @@ S'Pred for a modular integer subtype wraps around
        T'Wide_Image should raise Program_Error if the value
        is one of the holes (which is a bounded error anyway,
        since holes can be generated only via uninitialized variables and
-       similar things.]}
+       similar things).]}
      @end{ImplNote}
 
      @ChgRef{Version=[2],Kind=[Added]}
@@ -3709,15 +4261,18 @@ S'Pred for a modular integer subtype wraps around
 @end(Descexample)
 
      @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00285-01]}
+     @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0262-1],ARef=[AI05-0264-1]}
      @NoPrefix@Defn2{Term=[image], Sec=(of a value)}
      The function returns an @Chg{Version=[2],New=[image],Old=[@i(image)]} of
      the value of @i(Arg)@Chg{Version=[2],New=[ as a Wide_String],Old=[,
      that is, a sequence of characters representing the value in display
      form]}.]}
      The lower bound of the result is one.@Chg{Version=[2],
-     New=[ The image has the same sequence of character as
+     New=[ The image has the same sequence of @Chg{Version=[3],New=[graphic
+     characters],Old=[character]} as
      defined for S'Wide_Wide_Image if all the graphic characters are defined in
-     Wide_Character; otherwise the sequence of characters is
+     Wide_Character; otherwise@Chg{Version=[3],New=[,],Old=[]}
+     the sequence of characters is
      implementation defined (but no shorter than that of S'Wide_Wide_Image for
      the same value of Arg).],Old=[]}
      @ChgImplDef{Version=[2],Kind=[AddedNormal],Text=[@ChgAdded{Version=[2],
@@ -3770,7 +4325,7 @@ deleted if the paragraphs are ever renumbered.}
        T'Wide_Image should raise Program_Error if the value
        is one of the holes (which is a bounded error anyway,
        since holes can be generated only via uninitialized variables and
-       similar things.]}
+       similar things).]}
      @end{ImplNote}
 
      @ChgRef{Version=[2],Kind=[DeletedNoDelMsg],ARef=[AI95-00285-01]}
@@ -3842,16 +4397,18 @@ deleted if the paragraphs are ever renumbered.}
 @end(Descexample)
 
      @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00285-01]}
+     @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0264-1]}
      @NoPrefix@;The function returns an image of the value of @i(Arg)
      as a String.]}
      The lower bound of the result is one. The image has the
      same sequence of graphic characters as that defined
      for S'@Chg{Version=[2],New=[Wide_Wide_Image],Old=[Wide_Image]} if all
      the graphic characters are defined in Character;
-     otherwise the sequence of characters is implementation defined (but
+     otherwise@Chg{Version=[3],New=[,],Old=[]}
+     the sequence of characters is implementation defined (but
      no shorter than that of S'@Chg{Version=[2],New=[Wide_Wide_Image],
      Old=[Wide_Image]} for the same value of @i(Arg)).
-     @ChgImplDef{Version=[2],Kind=[Revised],Text=[The
+     @ChgImplDef{Version=[2],Kind=[Revised],InitialVersion=[0],Text=[The
      sequence of characters of the value returned by
      S'Image when some of the graphic characters of
      S'@Chg{Version=[2],New=[Wide_Wide_Image],Old=[Wide_Image]} are not
@@ -3892,6 +4449,7 @@ deleted if the paragraphs are ever renumbered.}
     as a Wide_Wide_String, ignoring any leading or trailing spaces.]}]}
 
     @ChgRef{Version=[2],Kind=[Added]}
+    @ChgRef{Version=[3],Kind=[RevisedAdded],ARef=[AI05-0264-1]}
     @ChgAdded{Version=[2],NoPrefix=[T],Text=[@PDefn2{Term=[evaluation], Sec=(Wide_Wide_Value)}
     @Defn2{Term=(Constraint_Error),Sec=(raised by failure of run-time check)}
     For the evaluation of a call on S'Wide_Wide_Value
@@ -3903,7 +4461,8 @@ deleted if the paragraphs are ever renumbered.}
     for a nongraphic character of the type),
     the result is the corresponding enumeration value;
     @IndexCheck{Range_Check}
-    otherwise Constraint_Error is raised.]}
+    otherwise@Chg{Version=[3],New=[,],Old=[]}
+    Constraint_Error is raised.]}
     @begin{Discussion}
       @ChgRef{Version=[2],Kind=[Added]}
       @ChgAdded{Version=[2],Text=[It's not crystal clear that Range_Check
@@ -3923,6 +4482,7 @@ deleted if the paragraphs are ever renumbered.}
     @end{Honest}
 
     @ChgRef{Version=[2],Kind=[Added]}
+    @ChgRef{Version=[3],Kind=[RevisedAdded],ARef=[AI05-0264-1]}
     @ChgAdded{Version=[2],NoPrefix=[T],Text=[@Defn2{Term=(Constraint_Error),
     Sec=(raised by failure of run-time check)}
     For the evaluation of a call on S'Wide_Wide_Value for an integer
@@ -3935,7 +4495,8 @@ deleted if the paragraphs are ever renumbered.}
     corresponding numeric value belongs to the base range of the
     type of S, then that value is the result;
     @IndexCheck{Range_Check}
-    otherwise Constraint_Error is raised.]}
+    otherwise@Chg{Version=[3],New=[,],Old=[]}
+    Constraint_Error is raised.]}
 
     @begin(Discussion)
       @ChgRef{Version=[2],Kind=[Added]}
@@ -3976,13 +4537,15 @@ deleted if the paragraphs are ever renumbered.}
 @end{Itemize}
 
     @ChgRef{Version=[2],Kind=[Added]}
+    @ChgRef{Version=[3],Kind=[RevisedAdded],ARef=[AI05-0264-1]}
     @ChgAdded{Version=[2],NoPrefix=[T],Text=[@Defn2{Term=(Constraint_Error),
     Sec=(raised by failure of run-time check)}
     with an optional leading sign character (plus or minus), and if the
     corresponding numeric value belongs to the base range of the
     type of S, then that value is the result;
     @IndexCheck{Range_Check}
-    otherwise Constraint_Error is raised.
+    otherwise@Chg{Version=[3],New=[,],Old=[]}
+    Constraint_Error is raised.
     The sign of a zero value is preserved
     (positive if none has been specified)
     if S'Signed_Zeros is True.]}
@@ -4001,6 +4564,7 @@ deleted if the paragraphs are ever renumbered.}
     spaces.]}@Comment{This marks the end of the Annex text.}
 
     @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00285-01]}
+    @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0264-1]}
     @NoPrefix@PDefn2{Term=[evaluation], Sec=(Wide_Value)}
     @Defn2{Term=(Constraint_Error),Sec=(raised by failure of run-time check)}
     For the evaluation of a call on S'Wide_Value
@@ -4012,7 +4576,7 @@ deleted if the paragraphs are ever renumbered.}
     for a @Chg{Version=[2],New=[value],Old=[nongraphic character]} of the type),
     the result is the corresponding enumeration value;
     @IndexCheck{Range_Check}
-    otherwise Constraint_Error is raised.
+    otherwise@Chg{Version=[3],New=[,],Old=[]} Constraint_Error is raised.
     @Chg{Version=[2],New=[For a numeric subtype S,
     the evaluation of a call on S'Wide_Value with @i(Arg) of type Wide_String
     is equivalent to a call on S'Wide_Wide_Value for a corresponding
@@ -4131,6 +4695,7 @@ paragraphs are ever renumbered.}
     as a String, ignoring any leading or trailing spaces.]}
 
     @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00285-01]}
+    @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0264-1]}
     @NoPrefix@PDefn2{Term=[evaluation], Sec=(Value)}
     @Defn2{Term=(Constraint_Error),Sec=(raised by failure of run-time check)}
     For the evaluation of a call on S'Value
@@ -4142,7 +4707,7 @@ paragraphs are ever renumbered.}
     for a value of the type),
     the result is the corresponding enumeration value;
     @IndexCheck{Range_Check}
-    otherwise Constraint_Error is raised.
+    otherwise@Chg{Version=[3],New=[,],Old=[]} Constraint_Error is raised.
     For a numeric subtype S,
     the evaluation of a call on S'Value with @i(Arg) of type String
     is equivalent to a call on S'@Chg{Version=[2],New=[Wide_Wide_Value],Old=[Wide_Value]} for a corresponding
@@ -4192,7 +4757,57 @@ arithmetic.
 See also the similar permission for Get in
 @RefSecNum{Input-Output for Real Types}.
 @end{Reason}
+
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0182-1]}
+@ChgAdded{Version=[3],Text=[An implementation may extend the Wide_Wide_Value, Wide_Value, and Value
+attributes of a character type to accept strings starting with "Hex_"
+(ignoring case) for graphics characters and those with a code
+position smaller than 16#100#, and three character strings of the form
+"'@i<nongraphic character>'".]}
 @end{ImplPerm}
+
+@begin{StaticSem}
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0228-1]}
+@ChgAdded{Version=[3],Type=[Leading],Text=[For a scalar type,
+the following language-defined representation aspect
+may be specified with an @nt{aspect_specification} (see
+@RefSecNum{Aspect Specifications}):]}
+@begin{Description}
+@ChgRef{Version=[3],Kind=[Added]}
+@ChgAdded{Version=[3],Text=[Default_Value@\This aspect
+shall be specified by a static expression, and that
+expression shall be explicit, even if the aspect has a boolean type.
+Default_Value shall be specified only on a
+@nt{full_type_declaration}.@AspectDefn{Default_Value}]}
+@begin{Reason}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[The part about requiring an explicit expression is
+  to disallow omitting the value for this aspect, which would otherwise be
+  allowed by the rules of @RefSecNum{Aspect Specifications}.]}
+@end{Reason}
+@ChgAspectDesc{Version=[3],Kind=[AddedNormal],Aspect=[Default_Value],
+  Text=[@ChgAdded{Version=[3],Text=[Default value for a scalar subtype.]}]}
+@end{Description}
+
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0228-1]}
+@ChgAdded{Version=[3],Text=[If a derived type with no primitive subprograms
+inherits a boolean Default_Value aspect, the aspect may be specified to have any
+value for the derived type.]}
+@begin{Reason}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[This overrides the
+  @RefSecNum{Aspect Specifications} rule that says that a boolean aspect
+with a value True cannot be changed.]}
+@end{Reason}
+@end{StaticSem}
+
+@begin{Resolution}
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0228-1]}
+@ChgAdded{Version=[3],Text=[The expected type for the @nt{expression}
+specified for the Default_Value aspect is the type defined by the
+@nt{full_type_declaration} on which it
+appears.@PDefn2{Term=[expected type],Sec=[@nt{expression} of a Default_Value aspect]}]}
+@end{Resolution}
 
 @begin{Notes}
 The evaluation of S'First or S'Last never raises an exception.
@@ -4315,6 +4930,38 @@ More explicit rules are provided for nongraphic characters.
   have not changed.]}
 @end{DiffWord95}
 
+@begin{Inconsistent2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0181-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{inconsistencies with Ada 2005}@b<Correction:>
+  Soft hyphen (position 173) is nongraphic in ISO/IEC 10646:2003. Thus, we have given it
+  the language-defined name @i{soft_hyphen}. This changes the result of
+  Character'Image (and all of the related types and Image attributes)
+  for this character, and changes the behavior of Character'Value (and all of
+  the related types and Value attributes) for this character, and
+  (in unusual circumstances), changes the result for Character'Width (and all
+  of the related types and Width attributes). The vast majority of programs
+  won't see any difference, as they are already prepared to handle nongraphic
+  characters.]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0182-1]}
+  @ChgAdded{Version=[3],Text=[@b<Correction:>
+  Added an @ImplPermTitle to let Wide_Wide_Value, Wide_Value, and Value accept
+  strings in the form of literals containing non-graphic characters and
+  "Hex_hhhhhhhh" for Latin-1 and graphic characters. These were required to
+  raise Constraint_Error in Ada 2005. Since these attributes aren't very
+  useful, implementations were inconsistent as to whether these were accepted,
+  and code that would care why the attribute failed seems unlikely, this should
+  not be a problem in practice.]}
+@end{Inconsistent2005}
+
+@begin{Extend2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0228-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 2005}
+  The new aspect Default_Value allows defining implicit initial values (see
+  @RefSecNum{Object Declarations}) for scalar types.]}
+@end{Extend2005}
+
+
 
 @LabeledSubClause{Enumeration Types}
 
@@ -4335,23 +4982,36 @@ An @nt<enumeration_type_definition> defines an enumeration type.]
 @end{Syntax}
 
 @begin{Legality}
-@Redundant[The @nt<defining_identifier>s and
-@nt<defining_character_literal>s listed in an
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0227-1]}
+The @nt<defining_identifier>s@Chg{Version=[3],New=[ in upper case],Old=[]}
+@Redundant[and@Chg{Version=[3],New=[ the],Old=[]}
+@nt<defining_character_literal>s] listed in an
 @nt<enumeration_type_definition> shall be distinct.]
   @begin{TheProof}
-This is a ramification of the normal disallowance
+    @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0227-1]}
+    @Chg{Version=[3],New=[For character literals, this],Old=[This]}
+    is a ramification of the normal disallowance
     of homographs explicitly declared immediately in the same
-    declarative region.@end{theproof}
+    declarative region.
+  @end{TheProof}
+  @begin{Reason}
+    @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0227-1]}
+    @ChgAdded{Version=[3],Text=[To ease implementation of the attribute
+    Wide_Wide_Value, we require that all enumeration literals have distinct
+    images.]}
+  @end{Reason}
 @end{Legality}
 
 @begin{StaticSem}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0006-1]}
 @Defn{enumeration literal}
 Each @nt<enumeration_literal_specification> is the explicit declaration
 of the corresponding @i(enumeration literal): it declares
 a parameterless function,
 whose defining name is the @nt<defining_@!identifier>
-or @nt<defining_@!character_@!literal>, and whose result type
-is the enumeration type.
+or @nt<defining_@!character_@!literal>, and whose result
+@Chg{Version=[3],New=[subtype is the base subtype of],Old=[type
+is]} the enumeration type.
 @begin{Reason}
   This rule defines the profile of the enumeration literal,
   which is used in the various types of conformance.
@@ -4362,6 +5022,13 @@ is the enumeration type.
   a body is not permitted for it,
   and it never fails the Elaboration_Check when called.
 @end{Ramification}
+@begin{Discussion}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0006-1]}
+  @ChgAdded{Version=[3],Text=[The result subtype is primarily a concern
+  when an enumeration literal is used as the @nt{expression} of a
+  case statement, due to the full coverage requirement based on the
+  nominal subtype.]}
+@end{Discussion}
 
 Each enumeration literal corresponds to a distinct value
 of the enumeration type, and to a distinct position number.
@@ -4440,6 +5107,26 @@ We emphasize the fact that an enumeration literal denotes
 a function, which is called to produce a value.
 @end{DiffWord83}
 
+@begin{Incompatible2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0227-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{incompatibilities with Ada 2005}@b<Correction:>
+  Required that all enumeration
+  literals in a type have distinct images; this might not be the case since
+  upper case conversion can map distinct characters to the same upper case
+  character. This can only happen for identifiers using Unicode characters first
+  allowed by Ada 2005; moreover, the original definition of Ada 2005 was
+  confused and appeared to require inconsistent results from the Image
+  attribute, so implementations that allowed problematic cases are rare; the
+  problematic cases are very rare; so it is expected that this change would
+  only affect test programs.]}
+@end{Incompatible2005}
+
+@begin{DiffWord2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0006-1]}
+  @ChgAdded{Version=[3],Text=[@b<Correction:> Defined the result
+  subtype of an enumeration literal to close a minor language hole.]}
+@end{DiffWord2005}
+
 
 @LabeledSubClause{Character Types}
 
@@ -4449,6 +5136,7 @@ An enumeration type is said to be a @i(character type) if at least
 one of its enumeration literals is a @nt<character_literal>.
 
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00285-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0181-1]}
 @Defn{Latin-1}
 @Defn{BMP}
 @Chg{Version=[2],New=[@Defn{ISO/IEC 10646:2003}],Old=[@Defn{ISO 10646}]}
@@ -4460,7 +5148,7 @@ Old=[ISO 10646]}
 Basic Multilingual Plane (BMP).
 Each of the graphic characters of Row 00 of the BMP has
 a corresponding @nt<character_literal> in Character.
-Each of the nongraphic positions of Row 00 (0000-001F and 007F-009F)
+Each of the nongraphic positions of Row 00@Chg{Version=[3],New=[],Old=[ (0000-001F and 007F-009F)]}
 has a corresponding language-defined name, which is not usable as an
 enumeration literal,
 but which is usable with the attributes @Chg{Version=[2],New=[Image,
@@ -4641,6 +5329,7 @@ Context is used to resolve their type.
   Wide_Character'Wide_Image will change for such non-graphic characters.]}
 
   @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00395-01]}
+  @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0005-1]}
   @ChgAdded{Version=[2],Text=[The language-defined names FFFE and FFFF were
   replaced by a consistent set of language-defined names for all non-graphic
   characters with positions greater than 16#FF#. That means that
@@ -4648,7 +5337,8 @@ Context is used to resolve their type.
   while Ada 95 would have accepted it. Similarly, the result of
   Wide_Character'Wide_Image will change for the position numbers 16#FFFE#
   and 16#FFFF#. It is very unlikely that this will matter in practice,
-  as these names do not represent useable characters.]}
+  as these names do not represent @Chg{Version=[3],New=[usable],Old=[useable]}
+  characters.]}
 
   @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00285-01],ARef=[AI95-00395-01]}
   @ChgAdded{Version=[2],Text=[Because of the previously mentioned changes to
@@ -4678,11 +5368,20 @@ Context is used to resolve their type.
   the entire ISO/IEC 10646:2003 character set.]}
 
   @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00285-01]}
+  @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0248-1]}
   @ChgAdded{Version=[2],Text=[We dropped the @ImplAdviceTitle for
-  non-standard interpretation of character sets; an implementation can
-  do what it wants in a non-standard mode, so there isn't much point to
-  any advice.]}
+  @Chg{Version=[3],New=[nonstandard],Old=[non-standard]} interpretation of
+  character sets; an implementation can do what it wants in a
+  @Chg{Version=[3],New=[nonstandard],Old=[non-standard]} mode, so there isn't
+  much point to any advice.]}
 @end{DiffWord95}
+
+@begin{DiffWord2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0181-1]}
+  @ChgAdded{Version=[3],Text=[@b<Correction:> Removed the position numbers
+  of nongraphic characters from the text, as it is wrong and thus
+  misleading.]}
+@end{DiffWord2005}
 
 
 @LabeledSubClause{Boolean Types}
@@ -4916,11 +5615,11 @@ the operations of any integer type.]
 @PDefn2{Term=[position number], Sec=(of an integer value)}
 The @i(position number) of an integer value is equal to the value.
 
-@begin{Wide}
+@begin{WideAbove}
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00340-01]}
 @Leading@keepnext@;For @PrefixType{every modular subtype S},
 the following @Chg{Version=[2],New=[attributes are],Old=[attribute is]} defined:
-@end{Wide}
+@end{WideAbove}
 @begin(description)
 @ChgAttribute{Version=[2],Kind=[Added],ChginAnnex=[T],
   Leading=<T>, Prefix=<S>, AttrName=<Mod>, ARef=[AI95-00340-01],
@@ -5105,7 +5804,7 @@ to Integer'Last should be supported.]}]}
 @end{ImplAdvice}
 
 @begin{Notes}
-@Defn{universal_integer}
+@PDefn{universal_integer}
 @Defn{integer literals}
 Integer literals are of the anonymous predefined
 integer type @i(universal_integer). Other integer types
@@ -6083,10 +6782,12 @@ the same as it was in Ada 83.
 @end{Inconsistent83}
 
 @begin{Extend83}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0005-1]}
 @Defn{extensions to Ada 83}
 Decimal fixed point types are new, though their
 capabilities are essentially similar to that available
-in Ada 83 with a fixed point type whose @i(small) equals its @i(delta) equals
+in Ada 83 with a fixed point type whose @i(small) equals its @i(delta)
+@Chg{Version=[3],New=[and both are],Old=[equals]}
 a power of 10. However, in the Information Systems Annex, additional
 requirements are placed on the support of decimal fixed point types
 (e.g. a minimum of 18 digits of precision).
@@ -6126,7 +6827,11 @@ evaluation rules.]}
      for nonderived@Chg{New=[ ordinary],Old=[]} fixed point types
      via an @nt{attribute_@!definition_@!clause}
      (see @RefSecNum{Operational and Representation Attributes});
-     the expression of such a clause shall be static.
+     the expression of such a clause shall be
+     static.@Chg{Version=[3],New=[@AspectDefn{Small}],Old=[]}
+
+  @ChgAspectDesc{Version=[3],Kind=[AddedNormal],Aspect=[Small],
+    Text=[@ChgAdded{Version=[3],Text=[Scale factor for a fixed point type.]}]}
 
 @Attribute{Prefix=<S>, AttrName=<Delta>,
   Text=[S'Delta
@@ -6159,10 +6864,10 @@ evaluation rules.]}
 @end(description)
 @EndPrefixType{}
 
-@begin{Wide}
+@begin{WideAbove}
 @Leading@;The following additional attributes are defined for
 @PrefixType{every decimal fixed point subtype S}:
-@end{Wide}
+@end{WideAbove}
 @begin(description)
 @Attribute{Prefix=<S>, AttrName=<Digits>,
   Text=[S'Digits denotes the @i(digits) of the decimal

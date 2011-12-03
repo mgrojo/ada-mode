@@ -1,10 +1,10 @@
 @Part(05, Root="ada.mss")
 
-@Comment{$Date: 2006/10/17 05:29:45 $}
+@Comment{$Date: 2011/11/01 23:14:14 $}
 @LabeledSection{Statements}
 
-@Comment{$Source: d:\\CvsRoot/ARM/Source/05.MSS,v $}
-@Comment{$Revision: 1.31 $}
+@Comment{$Source: e:\\cvsroot/ARM/Source/05.mss,v $}
+@Comment{$Revision: 1.53 $}
 
 @begin{Intro}
 @Redundant[A @nt{statement} defines an action to be performed upon
@@ -47,7 +47,8 @@ no other @nt<statement>. A @nt<compound_statement> can enclose
 @end{Intro}
 
 @begin{Syntax}
-@Syn{lhs=<sequence_of_statements>,rhs="@Syn2{statement} {@Syn2{statement}}"}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0179-1]}
+@Syn{lhs=<sequence_of_statements>,rhs="@Syn2{statement} {@Syn2{statement}}@Chg{Version=[3],New=[ {@Syn2{label}}],Old=[]}"}
 
 
 @Syn{lhs=<statement>,rhs="
@@ -157,6 +158,19 @@ or @nt<block_statement> with the given @nt<statement_identifier>.
   labels.
   However, that would confuse the rules in Section 8, so we didn't do it.
 @end{Reason}
+
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0179-1]}
+@ChgAdded{Version=[3],Text=[If one or more @nt{label}s end a
+@nt{sequence_of_statements}, an implicit @nt{null_statement}
+follows the @nt{label}s before any following constructs.]}
+
+@begin{Reason}
+  @ChgRef{Version=[3],Kind=[Added]}
+  @ChgAdded{Version=[3],Text=[The semantics of a @nt{goto_statement} is
+  defined in terms of the statement having (following) that label. Thus
+  we ensure that every label has a following statement, which might be
+  implicit.]}
+@end{Reason}
 @end{StaticSem}
 
 @begin{RunTime}
@@ -265,6 +279,14 @@ although RM83-5.1(6) did not take this view.
   is merely renamed).]}
 @end{Extend95}
 
+@begin{Extend2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI95-0179-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 2005}
+  A @nt{label} can end a @nt{sequence_of_statements},
+  eliminating the requirement for having an explicit @key[null]; statement
+  after an ending label (a common use).]}
+@end{Extend2005}
+
 
 @LabeledClause{Assignment Statements}
 
@@ -371,7 +393,7 @@ or of type @i(T) and tag-indeterminate
 @PDefn2{Term=[execution], Sec=(assignment_statement)}
 For the execution of an @nt{assignment_statement},
 the @i(variable_)@nt<name> and the @nt<expression>
-are first evaluated in an arbitrary order.
+are first evaluated in an arbitrary order.@PDefn2{Term=[arbitrary order],Sec=[allowed]}
 @begin{Ramification}
   Other rules of the language may require that the
   bounds of the variable be determined prior to evaluating
@@ -381,8 +403,7 @@ are first evaluated in an arbitrary order.
 
 @Leading@keepnext@;When the type of the target is class-wide:
 @begin(itemize)
-  @PDefn2{Term=[controlling tag value], Sec=(for the @nt{expression}
-    in an @nt{assignment_statement})}
+  @PDefn2{Term=[controlling tag value], Sec=(for the @nt{expression} in an @nt{assignment_statement})}
   If the @nt<expression> is tag-indeterminate
   (see @RefSecNum{Dispatching Operations of Tagged Types}), then the controlling
   tag value for the @nt<expression> is the tag of the target;
@@ -434,7 +455,7 @@ nothing.
 
   If any part of the target is controlled, its value
   is adjusted as explained in
-  clause @RefSecNum{User-Defined Assignment and Finalization}.
+  clause @RefSecNum{Assignment and Finalization}.
 @PDefn2{Term=[adjustment], Sec=(as part of assignment)}
 @begin{Ramification}
     If any parts of the object are controlled,
@@ -487,9 +508,9 @@ Writer := (Status => Open, Unit => Printer, Line_Count => 60);  --@RI{ see @RefS
 Next_Car.@key[all] := (72074, @key[null]);    --@RI{  see @RefSecNum{Incomplete Type Declarations}}
 @end{Example}
 
-@begin{Wide}
+@begin{WideAbove}
 @Leading@keepnext@i{Examples involving scalar subtype conversions:}
-@end{Wide}
+@end{WideAbove}
 @begin{Example}
 I, J : Integer @key[range] 1 .. 10 := 5;
 K    : Integer @key[range] 1 .. 20 := 15;
@@ -500,9 +521,10 @@ K := J;  --@RI{  compatible ranges}
 J := K;  --@RI{  will raise Constraint_Error if K > 10}
 @end{Example}
 
-@begin{Wide}
+@RMNewPageVer{Version=[3]}@Comment{For printed version of Ada 2012 RM}
+@begin{WideAbove}
 @leading@keepnext@i{Examples involving array subtype conversions:}
-@end{Wide}
+@end{WideAbove}
 @begin{Example}
 A : String(1 .. 31);
 B : String(3 .. 33);
@@ -530,7 +552,7 @@ incorrect.
 @Defn{extensions to Ada 83}
 We now allow user-defined finalization and value adjustment actions
 as part of @nt{assignment_statement}s
-(see @RefSec{User-Defined Assignment and Finalization}).
+(see @RefSec{Assignment and Finalization}).
 @end{Extend83}
 
 @begin{DiffWord83}
@@ -592,15 +614,24 @@ value of one or more corresponding @nt{condition}s.]
     @key{end} @key{if};"}
 
 
-@Syn{lhs=<condition>,rhs="@SynI{boolean_}@Syn2{expression}"}
+@ChgRef{Version=[3],Kind=[DeletedNoDelMsg],ARef=[AI05-0147-1]}
+@DeletedSyn{Version=[3],LHS=<@Chg{Version=[3],New=[],Old=[condition]}>,
+RHS="@Chg{Version=[3],New=[],Old=[@SynI{boolean_}@Syn2{expression}]}"}
 @end{Syntax}
 
 @begin{Resolution}
-@PDefn2{Term=[expected type], Sec=(condition)}
-A @nt{condition} is expected to be of any boolean type.
+@ChgRef{Version=[3],Kind=[DeletedNoDelMsg],ARef=[AI05-0147-1]}
+@ChgDeleted{Version=[3],Text=[@PDefn2{Term=[expected type], Sec=(condition)}
+A @nt{condition} is expected to be of any boolean type.]}
 @end{Resolution}
+@begin{NotIso}
+@ChgAdded{Version=[3],Noparanum=[T],Text=[@Shrink{@i<Paragraphs 3 and 4
+were deleted.>}]}@Comment{This message should be
+deleted if the paragraphs are ever renumbered.}
+@end{NotIso}
 
 @begin{RunTime}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0264-1]}
 @PDefn2{Term=[execution], Sec=(if_statement)}
 For the execution of an @nt{if_statement}, the @nt{condition} specified
 after @key{if}, and any @nt{condition}s specified after @key{elsif}, are
@@ -609,8 +640,9 @@ evaluated in succession (treating a final @key{else} as @key{elsif} True
 all @nt{condition}s are evaluated and
 yield False.
 If a @nt{condition} evaluates to True, then the
-corresponding @nt{sequence_of_statements} is executed; otherwise none of
-them is executed.
+corresponding @nt{sequence_of_statements} is executed;
+otherwise@Chg{Version=[3],New=[,],Old=[]}
+none of them is executed.
 @begin{Ramification}
   The part about all evaluating to False can't happen if
   there is an @key{else}, since that is herein considered equivalent to
@@ -642,6 +674,13 @@ them is executed.
 @end{Example}
 @end{Examples}
 
+@begin{Diffword2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0147-1]}
+  @ChgAdded{Version=[3],Text=[Moved definition of @nt{condition} to
+  @RefSecNum{Conditional Expressions} in order to eliminate a forward reference.]}
+@end{Diffword2005}
+
+
 @LabeledClause{Case Statements}
 
 @begin{Intro}
@@ -651,8 +690,9 @@ alternative is defined by the value of an expression.]
 @end{Intro}
 
 @begin{Syntax}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0188-1]}
 @Syn{lhs=<case_statement>,rhs="
-   @key{case} @Syn2{expression} @key{is}
+   @key{case} @Chg{Version=[3],New=[@SynI{selecting_}],Old=[]}@Syn2{expression} @key{is}
        @Syn2{case_statement_alternative}
       {@Syn2{case_statement_alternative}}
    @key{end} @key{case};"}
@@ -664,31 +704,52 @@ alternative is defined by the value of an expression.]
 @end{Syntax}
 
 @begin{Resolution}
-@PDefn2{Term=[expected type], Sec=(case expression)}
-The @nt{expression} is expected to be of any discrete type.
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0188-1]}
+@Chg{Version=[3],New=[@PDefn2{Term=[expected type], Sec=(case_statement selecting_expression)}
+@PDefn2{Term=[expected type], Sec=(selecting_expression case_statement)}],Old=[@PDefn2{Term=[expected type], Sec=(case expression)}]}
+The @Chg{Version=[3],New=[@SynI{selecting_}],Old=[]}@nt{expression} is
+expected to be of any discrete type.
 @PDefn2{Term=[expected type],
   Sec=(case_statement_alternative discrete_choice)}
 The expected type for each @nt{discrete_choice} is the type of the
-@nt{expression}.
+@Chg{Version=[3],New=[@SynI{selecting_}],Old=[]}@nt{expression}.
 @end{Resolution}
 
 @begin{Legality}
-The @nt{expression}s and @nt{discrete_range}s given as
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0153-3]}
+The @Chg{Version=[3],New=[@nt{choice_expression}s,
+@nt{subtype_indication}s,],Old=[@nt{expression}s]} and
+@Chg{Version=[3],New=[@nt{range}s],Old=[@nt{discrete_range}s]} given as
 @nt{discrete_choice}s of a @nt{case_statement} shall be static.
 @Redundant[A @nt{discrete_choice} @key(others), if present,
 shall appear alone and in the last @nt{discrete_choice_list}.]
 
-The possible values of the @nt{expression} shall be covered as follows:
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0188-1],ARef=[AI05-0240-1]}
+The possible values of the
+@Chg{Version=[3],New=[@SynI{selecting_}],Old=[]}@nt{expression} shall be
+covered @Chg{Version=[3],New=[(see @RefSecNum{Variant Parts and Discrete Choices}) ],
+Old=[]}as follows:
+  @begin{Discussion}
+    @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0240-1]}
+    @ChgAdded{Version=[3],Text=[The meaning of "covered" here and in the
+    following rules is that of the term "cover a value" that is defined in
+    @RefSecNum{Variant Parts and Discrete Choices}.]}
+  @end{Discussion}
 @begin{itemize}
-  If the @nt{expression} is a @nt{name} @Redundant[(including a
-  @nt<type_conversion> or a @nt<function_call>)] having
-  a static and constrained nominal subtype, or
+  @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0003-1],ARef=[AI05-0153-3],ARef=[AI05-0188-1],ARef=[AI05-0262-1]}
+  If the @Chg{Version=[3],New=[@SynI{selecting_}],Old=[]}@nt{expression} is a @nt{name}
+  @Redundant[(including a
+  @nt<type_conversion>@Chg{Version=[3],New=[, @nt{qualified_expression},],Old=[]}
+  or @Chg{Version=[3],New=[],Old=[a ]}@nt<function_call>)] having
+  a static and constrained nominal subtype,@Chg{Version=[3],New=[],Old=[ or
   is a @nt{qualified_expression} whose
   @nt{subtype_mark} denotes a static and constrained
-  scalar subtype,
+  scalar subtype,]}
   then each non-@key{others} @nt{discrete_choice} shall cover only values in
-  that subtype, and each value of that subtype shall
-  be covered by some @nt{discrete_choice}
+  that subtype@Chg{Version=[3],New=[ that satisfy its
+  predicate (see @RefSecNum{Subtype Predicates})],Old=[]},
+  and each value of that subtype@Chg{Version=[3],New=[ that satisfies its
+  predicate],Old=[]} shall be covered by some @nt{discrete_choice}
   @Redundant[(either explicitly or by @key(others))].
   @begin{Ramification}
     Although not official @nt<name>s of objects, a value conversion
@@ -696,7 +757,8 @@ The possible values of the @nt{expression} shall be covered as follows:
     See @RefSecNum{Type Conversions}.
   @end{Ramification}
 
-  If the type of the @nt{expression} is
+  @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0188-1]}
+  If the type of the @Chg{Version=[3],New=[@SynI{selecting_}],Old=[]}@nt{expression} is
   @i(root_integer), @i(universal_integer), or a descendant of a
   formal scalar type,
   then the @nt{case_statement} shall have an @key{others}
@@ -707,8 +769,9 @@ The possible values of the @nt{expression} shall be covered as follows:
   and not known statically in the case of a formal scalar type.
 @end{Reason}
 
-  Otherwise,
-  each value of the base range of the type of the @nt{expression} shall
+  @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0188-1]}
+  Otherwise, each value of the base range of the type of the
+  @Chg{Version=[3],New=[@SynI{selecting_}],Old=[]}@nt{expression} shall
   be covered
   @Redundant[(either explicitly or by @key(others))].
 @end{itemize}
@@ -716,8 +779,9 @@ The possible values of the @nt{expression} shall be covered as follows:
 Two distinct @nt{discrete_choice}s of a
 @nt{case_statement} shall not cover the same value.
 @begin{Ramification}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0188-1]}
 The goal of these coverage rules is
-that any possible value of the @nt{expression} of a
+that any possible value of the @Chg{Version=[3],New=[@SynI{selecting_}],Old=[]}@nt{expression} of a
 @nt{case_statement} should be covered by exactly one
 @nt{discrete_choice} of the
 @nt{case_statement}, and that this should be checked at compile time.
@@ -734,10 +798,11 @@ It cannot, however, happen if the @nt{case_statement} has the
 even those outside the subtype.
 
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00114-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0188-1]}
 If the compiler chooses to represent the value of an expression of an
 unconstrained subtype in a way that includes values outside the bounds of the
 subtype, then those values can be outside the covered range.
-For example, if X: Integer := Integer'Last;, and the case @nt{expression} is
+For example, if X: Integer := Integer'Last;, and the case @Chg{Version=[3],New=[@SynI{selecting_}],Old=[]}@nt{expression} is
 X+1, then the implementation might choose to produce the correct value, which
 is outside the bounds of Integer.
 (It might raise Constraint_Error instead.)
@@ -768,15 +833,17 @@ there is no @lquotes@;out-of-range@rquotes@; situation that can produce them.
 @end{Legality}
 
 @begin{RunTime}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0188-1]}
 @PDefn2{Term=[execution], Sec=(case_statement)}
 For the execution of a @nt{case_statement} the
-@nt{expression} is first evaluated.
+@Chg{Version=[3],New=[@SynI{selecting_}],Old=[]}@nt{expression}
+is first evaluated.
 
-If the value of the @nt{expression} is covered by the
-@nt{discrete_@!choice_@!list} of some
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0188-1]}
+If the value of the @Chg{Version=[3],New=[@SynI{selecting_}],Old=[]}@nt{expression}
+is covered by the @nt{discrete_@!choice_@!list} of some
 @nt{case_@!statement_@!alternative}, then the
-@nt{sequence_of_@!statements} of the @ntf{_alternative} is
-executed.
+@nt{sequence_of_@!statements} of the @ntf{_alternative} is executed.
 
 @IndexCheck{Overflow_Check}
 @Defn2{Term=[Constraint_Error],Sec=(raised by failure of run-time check)}
@@ -872,6 +939,7 @@ This change makes the following @nt{case_statement} legal:
 @key[end] @key[case];
 @end{Example}
 
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0005-1]}
 Note that the result subtype given in a function
 @nt{renaming_declaration} is ignored;
 for a @nt{case_statement} whose expression calls a such a function, the
@@ -881,7 +949,7 @@ Note that predefined operators such as "+" have an unconstrained result
 subtype (see @RefSecNum{Logical Operators and Short-circuit Control Forms}).
 Note that generic formal functions do not have static result subtypes.
 Note that the result subtype of an inherited subprogram need not
-correspond to any namable subtype;
+correspond to any @Chg{Version=[3],New=[nameable],Old=[namable]} subtype;
 there is still a perfectly good result subtype, though.
 @end{Extend83}
 
@@ -905,6 +973,24 @@ for @nt<name>s, rather than being separated out along with
 @nt<qualified_expression>s.
 @end{DiffWord83}
 
+
+@begin{DiffWord2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0003-1]}
+  @ChgAdded{Version=[3],Text=[Rewording to reflect that
+  a @nt{qualified_expression} is now a @nt{name}.]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0153-3]}
+  @ChgAdded{Version=[3],Text=[Revised for changes to @nt{discrete_choice}s
+  made to allow static predicates (see @RefSecNum{Subtype Predicates}) as
+  case choices (see @RefSecNum{Variant Parts and Discrete Choices}).]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0188-1]}
+  @ChgAdded{Version=[3],Text=[Added the @SynI{selecting_} prefix to
+  make this wording consistent with @nt{case_expression}, and to clarify
+  which @nt{expression} is being talked about in the wording.]}
+@end{Diffword2005}
+
+
 @LabeledClause{Loop Statements}
 
 @begin{Intro}
@@ -921,8 +1007,10 @@ zero or more times.]
        @key{end} @key{loop} [@SynI{loop_}@Syn2{identifier}];"}
 
 
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0139-2]}
 @Syn{lhs=<iteration_scheme>,rhs="@key{while} @Syn2{condition}
-   | @key{for} @Syn2{loop_parameter_specification}"}
+   | @key{for} @Syn2{loop_parameter_specification}@Chg{Version=[3],New=[
+   | @key{for} @Syn2{iterator_specification}],Old=[]}"}
 
 @Syn{lhs=<loop_parameter_specification>,rhs="
    @Syn2{defining_identifier} @key{in} [@key{reverse}] @Syn2{discrete_subtype_definition}"}
@@ -960,11 +1048,14 @@ execution of the @nt{sequence_of_@!statements}; if the value of the
 @nt{condition} is True, the @nt{sequence_of_@!statements} is executed;
 if False, the execution of the @nt{loop_@!statement} is complete.
 
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0139-2],ARef=[AI05-0262-1]}
 @PDefn2{Term=[execution],
   Sec=(loop_statement with a for iteration_scheme)}
 @PDefn2{Term=[elaboration], Sec=(loop_parameter_specification)}
-For the execution of a @nt{loop_statement} with a @key{for}
-@nt{iteration_scheme},
+For the execution of a @nt{loop_statement} with
+@Chg{Version=[3],New=[the],Old=[a @key{for}]}
+@nt{iteration_scheme}@Chg{Version=[3],New=[ being @key[for]
+@nt{loop_@!parameter_@!specification}],Old=[]},
 the @nt{loop_@!parameter_@!specification} is first elaborated. This
 elaboration creates the loop parameter and elaborates the
 @nt{discrete_@!subtype_@!definition}.
@@ -974,8 +1065,9 @@ the execution of the
 @nt{loop_statement} is complete. Otherwise, the
 @nt{sequence_of_@!statements} is executed once for each value of the
 discrete subtype defined by the
-@nt{discrete_@!subtype_@!definition} (or until the loop is left as a
-consequence of a transfer of control).
+@nt{discrete_@!subtype_@!definition}
+@Chg{Version=[3],New=[that satisfies the predicate of the subtype ],Old=[]}(or
+until the loop is left as a consequence of a transfer of control).
 @Defn2{Term=[assignment operation], Sec=(during execution of a @key{for} loop)}
 Prior to each such iteration,
 the corresponding value of the discrete subtype is assigned to the
@@ -987,7 +1079,19 @@ The order of creating the loop parameter and evaluating the
 @nt{discrete_subtype_definition} doesn't matter,
 since the creation of the loop parameter has no side effects (other
 than possibly raising Storage_Error, but anything can do that).
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0262-1]}
+@ChgAdded{Version=[3],Text=[The predicate (if any) necessarily has to be a
+static predicate as a dynamic predicate is explicitly disallowed @em
+see @RefSecNum{Subtype Predicates}.]}
+
 @end{Ramification}
+
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0262-1]}
+@ChgAdded{Version=[3],Text=[@Redundant[For details about the execution of a
+@nt{loop_statement} with the @nt{iteration_scheme} being @key[for]
+@nt{iterator_specification}, see @RefSecNum{Generalized Loop Iteration}.]]}
+
 @end{RunTime}
 
 @begin{Notes}
@@ -995,7 +1099,6 @@ A loop parameter is a constant;
 it cannot be updated within the
 @nt{sequence_of_statements} of the loop
 (see @RefSecNum{Objects and Named Numbers}).
-
 
 An @nt{object_declaration} should not be given for a loop parameter,
 since the loop parameter is automatically declared by
@@ -1034,9 +1137,9 @@ the subtype of the loop parameter is static.
 @key[end] @key[loop];
 @end{Example}
 
-@begin{Wide}
+@begin{WideAbove}
 @leading@keepnext@i{Example of a loop statement with a @key[while] iteration scheme:}
-@end{Wide}
+@end{WideAbove}
 @begin{Example}
 @key[while] Bid(N).Price < Cut_Off.Price @key[loop]
    Record_Bid(Bid(N).Price);
@@ -1044,9 +1147,9 @@ the subtype of the loop parameter is static.
 @key[end] @key[loop];
 @end{Example}
 
-@begin{Wide}
+@begin{WideAbove}
 @leading@keepnext@i{Example of a loop statement with a @key[for] iteration scheme:}
-@end{Wide}
+@end{WideAbove}
 @begin{Example}
 @key[for] J @key[in] Buffer'Range @key[loop]     --@RI{  works even with a null range}
    @key[if] Buffer(J) /= Space @key[then]
@@ -1055,9 +1158,9 @@ the subtype of the loop parameter is static.
 @key[end] @key[loop];
 @end{Example}
 
-@begin{Wide}
+@begin{WideAbove}
 @leading@keepnext@i{Example of a loop statement with a name:}
-@end{Wide}
+@end{WideAbove}
 @begin{Example}
 Summation:
    @key[while] Next /= Head @key[loop]       --@RI{ see @RefSecNum{Incomplete Type Declarations}}
@@ -1072,7 +1175,356 @@ The constant-ness of loop parameters is specified in
 @RefSec{Objects and Named Numbers}.
 @end{DiffWord83}
 
-@RMNewPage
+@begin{DiffWord2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0139-2],ARef=[AI05-0262-1]}
+  @ChgAdded{Version=[3],Text=[Generalized @nt{iterator_specification}s are
+  allowed in @key[for] loops; these are documented as an extension in the
+  appropriate clause.]}
+@end{DiffWord2005}
+
+
+@LabeledAddedSubClause{Version=[3],Name=[User-Defined Iterator Types]}
+
+@begin{StaticSem}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0139-2]}
+@ChgAdded{Version=[3],Type=[Leading],Keepnext=[T],Text=[The following
+language-defined generic library package exists:]}
+@begin{Example}
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[@ChildUnit{Parent=[Ada],Child=[Iterator_Interfaces]}@key[generic]
+   @key[type] Cursor;
+   @key[with function] Has_Element (Position : Cursor) @key[return] Boolean;
+@key[package] Ada.Iterator_Interfaces @key[is]
+   @key[pragma] Pure (Iterator_Interfaces);]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[   @key[type] @AdaTypeDefn{Forward_Iterator} @key[is limited interface];
+   @key[function] @AdaSubDefn{First} (Object : Forward_Iterator) @key[return] Cursor @key[is abstract];
+   @key[function] @AdaSubDefn{Next} (Object : Forward_Iterator; Position : Cursor)
+      @key[return] Cursor @key[is abstract];]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[   @key[type] @AdaTypeDefn{Reversible_Iterator} @key[is limited interface and] Forward_Iterator;
+   @key[function] @AdaSubDefn{Last} (Object : Reversible_Iterator) @key[return] Cursor @key[is abstract];
+   @key[function] @AdaSubDefn{Previous} (Object : Reversible_Iterator; Position : Cursor)
+      @key[return] Cursor @key[is abstract];]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[@key[end] Ada.Iterator_Interfaces;]}
+@end{Example}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0139-2]}
+@ChgAdded{Version=[3],Text=[An @i<iterator type> is a type descended from
+the Forward_Iterator interface from some instance of
+Ada.Iterator_Interfaces.@Defn{iterator type}
+A @i<reversible iterator type> is a type descended from the Reversible_Iterator
+interface from some instance of Ada.Iterator_Interfaces.@Defn{reversible iterator type}
+An @i<iterator object> is an object of an iterator type.@Defn{iterator object}
+A @i<reversible iterator object> is an object
+of a reversible iterator type.@Defn{reversible iterator object}
+The formal subtype Cursor from the associated
+instance of Ada.Iterator_Interfaces is the @i<iteration cursor subtype> for the
+iterator type.@Defn{iteration cursor subtype}]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0139-2]}
+@ChgAdded{Version=[3],Type=[Leading],Text=[The following type-related
+operational aspects may be specified for an indexable type @i<T> (see
+@RefSecNum{User-Defined Indexing}):]}
+
+@begin{Description}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[Default_Iterator@\This aspect is specified
+    by a @nt{name} that denotes exactly one function declared immediately within
+    the same declaration list in which @i<T> is declared, whose first parameter
+    is of type @i<T> or @i<T>'Class or an access parameter whose designated type
+    is type @i<T> or @i<T>'Class, whose other parameters, if any, have default
+    expressions, and whose result type is an iterator type. This function is the
+    @i<default iterator function> for @i<T>.@Defn{default iterator function}
+    Its result subtype is the @i<default iterator subtype> for
+    @i<T>.@Defn{default iterator subtype} The iteration cursor subtype for
+    the default iterator subtype is the @i<default cursor subtype>
+    for @i<T>.@Defn{default cursor subtype}@AspectDefn{Default_Iterator}]}
+
+  @ChgAspectDesc{Version=[3],Kind=[AddedNormal],Aspect=[Default_Iterator],
+    Text=[@ChgAdded{Version=[3],Text=[Default iterator to be used in @key[for]
+    loops.]}]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[Iterator_Element@\This aspect is specified by a
+    @nt{name} that denotes a subtype. This is the @i<default element subtype>
+    for @i<T>.@Defn{default element subtype}@AspectDefn{Iterator_Element}]}
+
+  @ChgAspectDesc{Version=[3],Kind=[AddedNormal],Aspect=[Iterator_Element],
+    Text=[@ChgAdded{Version=[3],Text=[Element type to be used for user-defined
+      iterators.]}]}
+@end{Description}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[These aspects are inherited by descendants of
+type @i<T> (including @i<T>'Class).]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0139-2]}
+@ChgAdded{Version=[3],Text=[An @i<iterable type> is an indexable type
+with specified Default_Iterator and Iterator_Element aspects.@Defn{iterable type}
+A @i<reversible iterable type> is an iterable type with the default iterator type
+being a reversible iterator type.@Defn{reversible iterable type}
+An @i<iterable object> is an object of an iterable type.@Defn{iterable object}
+A @i<reversible iterable object> is an object of a reversible iterable
+type.@Defn{reversible iterable object}]}
+
+@end{StaticSem}
+
+@begin{Legality}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0139-2]}
+@ChgAdded{Version=[3],Type=[Leading],Text=[The Constant_Indexing aspect (if any)
+of an iterable type @i<T> shall denote exactly one function with the following
+properties:]}
+
+@begin{Itemize}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[the result type of the function is covered by the
+    default element type of @i<T> or is a reference type (see
+    @RefSecNum{User-Defined References}) with an access discriminant designating
+    a type covered by the default element type of @i<T>;]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[the type of the second parameter of the function
+    covers the default cursor type for @i<T>;]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[if there are more than two parameters, the
+    additional parameters all have default expressions.]}
+
+@end{Itemize}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[This function (if any) is the
+@i<default constant indexing function> for @i<T>.@Defn{default constant indexing function}]}
+
+@begin{Ramification}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[This does not mean that Constant_Indexing has to
+  designate only one subprogram, only that there is only one routine that meets
+  all of these properties. There can be other routines designated by
+  Constant_Indexing, but they cannot have the profile described above. For
+  instance, map containers have a version of Constant_Indexing that takes a
+  key instead of a cursor; this is allowed.]}
+@end{Ramification}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0139-2]}
+@ChgAdded{Version=[3],Type=[Leading],Text=[The Variable_Indexing aspect (if any)
+of an iterable type @i<T> shall denote exactly one function with the following
+properties:]}
+
+@begin{Itemize}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[the result type of the function is a reference
+    type (see @RefSecNum{User-Defined References}) with an access discriminant
+    designating a type covered by the default element type of @i<T>;]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[the type of the second parameter of the function
+    covers the default cursor type for @i<T>;]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[if there are more than two parameters, the
+    additional parameters all have default expressions.]}
+
+@end{Itemize}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[This function (if any) is the
+@i<default variable indexing function> for @i<T>.@Defn{default variable indexing function}]}
+
+@end{Legality}
+
+
+@begin{Extend2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0139-2]}
+  @ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 2005}User-defined
+  iterator types are new in Ada 2012.]}
+@end{Extend2005}
+
+
+@LabeledAddedSubClause{Version=[3],Name=[Generalized Loop Iteration]}
+
+@begin{Intro}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0139-2]}
+@ChgAdded{Version=[3],Text=[Generalized forms of loop iteration are provided by
+an @nt{iterator_specification}.]}
+@end{Intro}
+
+@begin{Syntax}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0139-2]}
+@AddedSyn{Version=[3],lhs=<@Chg{Version=[3],New=<iterator_specification>,Old=<>}>,
+rhs="@Chg{Version=[3],New=<
+    @Syn2{defining_identifier} @key[in] [@key{reverse}] @SynI{iterator_}@Syn2{name}
+  | @Syn2{defining_identifier} [: @Syn2{subtype_indication}] @key[of] [@key{reverse}] @SynI{array_}@Syn2{name}
+  | @Syn2{defining_identifier} [: @Syn2{subtype_indication}] @key[of] [@key{reverse}] @SynI{iterable_}@Syn2{name}>,Old=<>}"}
+@end{Syntax}
+
+@begin{Resolution}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0139-2]}
+@ChgAdded{Version=[3],Text=[The first form of @nt{iterator_specification} is
+called a @i<generalized iterator>;@Defn{generalized iterator}@Defn2{Term=[iterator],Sec=[generalized]}
+the
+expected type for the @SynI<iterator_>@nt{name} is any iterator
+type.@PDefn2{Term=[expected type],Sec=[@SynI<iterator_>@nt{name}]}
+The second form of @nt{iterator_specification} is called an @i<array
+component iterator>;@Defn{array component iterator}@Defn2{Term=[iterator],Sec=[array component]}
+the expected type for the @SynI<array_>@nt{name} is any array
+type.@PDefn2{Term=[expected type],Sec=[@SynI<array_>@nt{name} in an iterator]}
+The third form of @nt{iterator_specification} is called a
+@i<container element iterator>;@Defn{container element iterator}@Defn2{Term=[iterator],Sec=[container element]}
+the expected type for the @SynI<iterable_>@nt{name} is any iterable
+type.@PDefn2{Term=[expected type],Sec=[@SynI<iterable_>@nt{name}]}]}
+@end{Resolution}
+
+@begin{Legality}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0139-2]}
+@ChgAdded{Version=[3],Text=[If the reserved word @key[reverse] appears,
+the @nt{iterator_specification} is a @i<reverse iterator>;@Defn{reverse iterator}@Defn2{Term=[iterator],Sec=[reverse]}
+otherwise it is a @i<forward iterator>.@Defn{forward iterator}@Defn2{Term=[iterator],Sec=[forward]}
+In a reverse generalized iterator, the
+@SynI<iterator_>@nt{name} shall be of a reversible iterator type.
+In a reverse container element iterator, the default iterator type for the type
+of the @SynI<iterable_>@nt{name} shall be a reversible iterator type.]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0139-2]}
+@ChgAdded{Version=[3],Text=[The type of the @nt{subtype_indication}, if any,
+of an array component iterator shall cover the component type of the type
+of the @SynI<array_>@nt{name}. The type of the @nt{subtype_indication},
+if any, of a container element iterator shall cover the default element type
+for the type of the @SynI<iterable_>@nt{name}.]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0139-2]}
+@ChgAdded{Version=[3],Text=[In a container element iterator whose
+@SynI<iterable_>@nt{name} has type @i<T>, if the @SynI<iterable_>@nt{name}
+denotes a constant or the Variable_Indexing aspect is not specified for @i<T>,
+then the Constant_Indexing aspect shall be specified for @i<T>.]}
+
+@end{Legality}
+
+@begin{StaticSem}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0139-2]}
+@ChgAdded{Version=[3],Text=[An @nt{iterator_specification} declares a
+@i<loop parameter>.@Defn{loop parameter}
+In a generalized iterator, the nominal subtype of the loop parameter is
+the iterator cursor subtype. In an array component iterator or a
+container element iterator, if a @nt{subtype_indication} is present, it
+determines the nominal subtype of the loop parameter. In an array
+component iterator, if a @nt{subtype_indication} is not present, the
+nominal subtype of the loop parameter is the component subtype of the
+type of the @SynI{array_}@nt{name}. In a container element iterator, if a
+@nt{subtype_indication} is not present, the nominal subtype of the loop
+parameter is the default element subtype for the type of the
+@SynI{iterable_}@nt{name}.]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0139-2]}
+@ChgAdded{Version=[3],Text=[In a generalized iterator, the loop parameter
+is a constant. In an array component iterator, the loop parameter
+is a constant if the @SynI<array_>@nt{name} denotes a constant; otherwise
+it denotes a variable. In a container element iterator, the loop parameter
+is a constant if the @SynI{iterable_}@nt{name} denotes a constant, or if
+the Variable_Indexing aspect is not specified for the type of the
+@SynI{iterable_}@nt{name}; otherwise it is a variable.]}
+
+@end{StaticSem}
+
+@begin{Runtime}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0139-2]}
+@ChgAdded{Version=[3],Text=[For the execution of a @nt{loop_statement} with
+an @nt{iterator_specification}, the @nt{iterator_specification} is
+first elaborated. This elaboration elaborates the @nt{subtype_indication},
+if any.]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0139-2]}
+@ChgAdded{Version=[3],Text=[For a generalized iterator, the loop parameter is
+created, the @SynI{iterator_}@nt{name} is evaluated, and the denoted iterator
+object becomes the @i<loop iterator>.@Defn{loop iterator} In a forward
+generalized iterator, the operation First of the iterator type is called on the
+loop iterator, to produce the initial value for the loop parameter. If the
+result of calling Has_Element on the initial value is False, then the execution
+of the @nt{loop_statement} is complete. Otherwise, the
+@nt{sequence_of_statements} is executed and then the Next operation of the
+iterator type is called with the loop iterator and the current value of the loop
+parameter to produce the next value to be assigned to the loop parameter. This
+repeats until the result of calling Has_Element on the loop parameter is False,
+or the loop is left as a consequence of a transfer of control. For a reverse
+generalized iterator, the operations Last and Previous are called rather than
+First and Next.]}
+
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0139-2]}
+@ChgAdded{Version=[3],Text=[For an array component iterator, the
+@SynI<array_>@nt{name} is evaluated and
+the array object denoted by the name becomes the @i<array for the
+loop>.@Defn{array for a loop} If the array for the loop is a null array,
+then the execution of the @nt{loop_statement} is complete. Otherwise, the
+@nt{sequence_of_statements} is executed with the loop parameter denoting
+each component of the array for the loop, using a @i<canonical> order
+of components,@Defn{canonical order of array components}
+which is last dimension varying fastest (unless the
+array has convention Fortran, in which case it is first dimension
+varying fastest). For a
+forward array component iterator, the iteration starts with the
+component whose index values are each the first in their index range,
+and continues in the canonical order. For a reverse array component
+iterator, the iteration starts with the component whose index values
+are each the last in their index range, and continues in the reverse
+of the canonical order. The loop iteration proceeds until the
+@nt{sequence_of_statements} has been executed for each component of the
+array for the loop, or until the loop is left as a consequence of a
+transfer of control.]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0139-2]}
+@ChgAdded{Version=[3],Text=[For a container element iterator, the @SynI<iterable_>@nt{name} is evaluated
+and the iterable object denoted by the name becomes the @i<iterable
+object for the loop>.@Defn{iterable object for a loop}
+The default iterator function for the type of
+the iterable object for the loop is called on the iterable object
+and the result is the @i<loop iterator>.@Defn2{Term=[loop iterator],Sec=[container element iterator]}
+An object of the default cursor subtype is created (the @i<loop cursor>).@Defn{loop cursor}]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0139-2]}
+@ChgAdded{Version=[3],Text=[For a forward container element iterator, the
+operation First of the iterator type is called on the loop iterator, to produce
+the initial value for the loop cursor. If the result of calling Has_Element on
+the initial value is False, then the execution of the @nt{loop_statement} is
+complete. Otherwise, the @nt{sequence_of_statements} is executed with the loop
+parameter denoting an indexing (see @RefSecNum{User-Defined Indexing}) into the
+iterable object for the loop, with the only parameter to the indexing being the
+current value of the loop cursor; then the Next operation of the iterator type
+is called with the loop iterator and the loop cursor to produce the next value
+to be assigned to the loop cursor. This repeats until the result of calling
+Has_Element on the loop cursor is False, or until the loop is left as a
+consequence of a transfer of control. For a reverse container element iterator,
+the operations Last and Previous are called rather than First and Next. If the
+loop parameter is a constant (see above), then the indexing uses the default
+constant indexing function for the type of the iterable object for the loop;
+otherwise it uses the default variable indexing function.]}
+
+@end{Runtime}
+
+
+@begin{Extend2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0139-2]}
+  @ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 2005}Generalized forms
+  of loop iteration are new.]}
+@end{Extend2005}
+
+
+
+
+@RMNewPageVer{Version=[0]}@Comment{For printed version of Ada 95}
+@RMNewPageVer{Version=[1]}@Comment{For printed version of Ada 95 + TC1 RM}
+@RMNewPageVer{Version=[2]}@Comment{For printed version of Ada 2005 RM}
 @LabeledClause{Block Statements}
 
 @begin{Intro}
@@ -1128,7 +1580,7 @@ Swap:
 If task objects are declared within a @nt{block_statement} whose execution
 is completed, the @nt{block_statement} is not left until all its dependent
 tasks are terminated
-(see @RefSecNum{User-Defined Assignment and Finalization}).
+(see @RefSecNum{Assignment and Finalization}).
 This rule applies to completion caused by a transfer of control.
 
 Within a @nt{block_statement}, the block name can be used in expanded

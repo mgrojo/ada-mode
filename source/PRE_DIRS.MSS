@@ -1,10 +1,10 @@
-@comment{ $Source: d:\\CvsRoot/ARM/Source/PRE_DIRS.MSS,v $ }
-@comment{ $Revision: 1.28 $ $Date: 2006/10/19 06:40:30 $ $Author: Randy $ }
+@comment{ $Source: e:\\cvsroot/ARM/Source/pre_dirs.mss,v $ }
+@comment{ $Revision: 1.43 $ $Date: 2011/11/01 05:34:03 $ $Author: randy $ }
 @Part(predefdirs, Root="ada.mss")
 
-@Comment{$Date: 2006/10/19 06:40:30 $}
+@Comment{$Date: 2011/11/01 05:34:03 $}
 
-@RMNewPage@Comment{For printed RM Ada 2007}
+@RMNewPageVer{Version=[2]}@Comment{For printed version of Ada 2005 RM}
 @LabeledAddedClause{Version=[2],Name=[The Package Directories]}
 
 @begin{Intro}
@@ -89,6 +89,13 @@ Directories has the following declaration:]}
 @ChgAdded{Version=[2],Text=[   @key{function} @AdaSubDefn{Compose} (Containing_Directory : @key{in} String := "";
                      Name                 : @key{in} String;
                      Extension            : @key{in} String := "") @key{return} String;]}
+
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0049-1]}
+@ChgAdded{Version=[3],Text=[   @Key{type} @AdaTypeDefn{Name_Case_Kind} @key{is}
+      (Unknown, Case_Sensitive, Case_Insensitive, Case_Preserving);]}
+
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0049-1]}
+@ChgAdded{Version=[3],Text=[   @key{function} @AdaSubDefn{Name_Case_Equivalence} (Name : @key{in} String) @key{return} Name_Case_Kind;]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal]}
 @ChgAdded{Version=[2],Text=[   -- @RI{File and directory queries:}]}
@@ -177,8 +184,9 @@ Directories has the following declaration:]}
    @AdaExcDefn{Device_Error} : @key{exception renames} Ada.IO_Exceptions.Device_Error;]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0092-1]}
 @ChgAdded{Version=[2],Text=[@key{private}
-    -- @RI{Not specified by the language.}
+    @Chg{Version=[3],New=[... ],Old=[]}-- @RI{@Chg{Version=[3],New=[not],Old=[Not]} specified by the language@Chg{Version=[3],New=[],Old=[.]}}
 @key{end} Ada.Directories;]}
 
 @end{Example}
@@ -321,12 +329,15 @@ form.]}
 @ChgAdded{Version=[2],Keepnext=[T],Text=[@key{procedure} Delete_Directory (Directory : @key{in} String);]}
 @end{Example}
 @ChgRef{Version=[2],Kind=[AddedNormal]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0231-1]}
 @ChgAdded{Version=[2],Type=[Trailing],Text=[Deletes an existing empty directory
 with name Directory. The exception
 Name_Error is propagated if the string given as Directory does not identify an
-existing directory. The exception Use_Error is propagated if the external
-environment does not support the deletion of the directory (or some portion of
-its contents) with the given name (in the absence of Name_Error).]}
+existing directory. The exception Use_Error is propagated if the
+@Chg{Version=[3],New=[directory is not empty or the ],Old=[]}external
+environment does not support the deletion of the directory
+@Chg{Version=[3],New=[],Old=[(or some portion of its contents) ]}with
+the given name (in the absence of Name_Error).]}
 
 @begin{Example}@ChgRef{Version=[2],Kind=[AddedNormal]}
 @ChgAdded{Version=[2],Keepnext=[T],Text=[@key{procedure} Create_Path (New_Directory : @key{in} String;
@@ -376,10 +387,13 @@ file with the given name (in the absence of Name_Error).]}
 @ChgAdded{Version=[2],Keepnext=[T],Text=[@key{procedure} Rename (Old_Name, New_Name : @key{in} String);]}
 @end{Example}
 @ChgRef{Version=[2],Kind=[AddedNormal]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0231-1]}
 @ChgAdded{Version=[2],Type=[Trailing],Text=[Renames an existing external file
 (including directories) with name Old_Name
 to New_Name. The exception Name_Error is propagated if the string given as
-Old_Name does not identify an existing external file. The exception Use_Error
+Old_Name does not identify an existing external file@Chg{Version=[3],New=[
+or if the string given as New_Name does not allow the identification
+of an external file],Old=[]}. The exception Use_Error
 is propagated if the external environment does not support the renaming of the
 file with the given name (in the absence of Name_Error). In particular,
 Use_Error is propagated if a file or directory already exists with name
@@ -398,9 +412,10 @@ New_Name.]}
 @end{ImplNote}
 
 @begin{Example}@ChgRef{Version=[2],Kind=[AddedNormal]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0092-1]}
 @ChgAdded{Version=[2],Keepnext=[T],Text=[@key{procedure} Copy_File (Source_Name,
                      Target_Name : @key{in} String;
-                     Form        : @key{in} String);]}
+                     Form        : @key{in} String@Chg{Version=[3],New=[ := ""],Old=[]});]}
 @end{Example}
 @ChgRef{Version=[2],Kind=[AddedNormal]}
 @ChgAdded{Version=[2],Type=[Trailing],Text=[Copies the contents of the existing
@@ -522,10 +537,12 @@ special files).]}
                   Extension            : @key{in} String := "") @key{return} String;]}
 @end{Example}
 @ChgRef{Version=[2],Kind=[AddedNormal]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0264-1]}
 @ChgAdded{Version=[2],Type=[Trailing],Text=[Returns the name of the external
 file with the specified
 Containing_Directory, Name, and Extension. If Extension is the null string,
-then Name is interpreted as a simple name; otherwise Name is interpreted as a
+then Name is interpreted as a simple name;
+otherwise@Chg{Version=[3],New=[,],Old=[]} Name is interpreted as a
 base name. The exception Name_Error is propagated if the string given as
 Containing_Directory is not null and does not allow the identification of a
 directory, or if the string given as Extension is not null and is not a
@@ -554,6 +571,29 @@ name (if Extension is null) or base name (if Extension is non-null).]}
   program.)]}
 @end{Discussion}
 
+@begin{Example}
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0049-1]}
+@ChgAdded{Version=[3],Keepnext=[T],Text=[@key{function} Name_Case_Equivalence (Name : @key{in} String) @key{return} Name_Case_Kind;]}
+@end{Example}
+
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0049-1],ARef=[AI05-0248-1]}
+@ChgAdded{Version=[3],Text=[Returns the file name equivalence rule for the
+directory containing Name. Raises Name_Error if Name is not a full name. Returns
+Case_Sensitive if file names that differ only in the case of letters are
+considered different names. If file names that differ only in the case of
+letters are considered the same name, then Case_Preserving is returned if
+names have the case of the file name used when a file is created; and
+Case_Insensitive is returned otherwise. Returns Unknown if the file name
+equivalence is not known.]}
+@begin{ImplNote}
+  @ChgRef{Version=[3],Kind=[Added]}
+  @ChgAdded{Version=[3],Text=[Unix, Linux, and their relatives are Case_Sensitive
+  systems. Microsoft@latin1(174) Windows@latin1(174) is a Case_Preserving system
+  (unless the rarely used POSIX mode is used). Ancient systems like CP/M and
+  early MS-DOS were Case_Insensitive systems (file names were always in UPPER
+  CASE). Unknown is provided in case it is impossible to tell (such as could be
+  the case for network files).]}
+@end{ImplNote}
 @end{DescribeCode}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00248-01]}
@@ -671,8 +711,9 @@ component is True, directory entries representing special files are provided.]}
 @ChgAdded{Version=[2],Type=[Trailing],Text=[The type Search_Type contains the
 state of a directory search. A
 default-initialized Search_Type object has no entries available (function
-More_Entries returns False). Type Search_Type needs finalization
-(see @RefSecNum{User-Defined Assignment and Finalization}).]}
+More_Entries returns False). Type Search_Type
+needs finalization@PDefn2{Term=<needs finalization>,Sec=<language-defined type>}
+(see @RefSecNum{Assignment and Finalization}).]}
 
 @begin{Example}@ChgRef{Version=[2],Kind=[AddedNormal]}
 @ChgAdded{Version=[2],Keepnext=[T],Text=[@key{procedure} Start_Search (Search    : @key{in out} Search_Type;
@@ -681,10 +722,13 @@ More_Entries returns False). Type Search_Type needs finalization
                         Filter    : @key{in} Filter_Type := (@key{others} => True));]}
 @end{Example}
 @ChgRef{Version=[2],Kind=[AddedNormal]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0092-1],ARef=[AI05-0262-1]}
 @ChgAdded{Version=[2],Type=[Trailing],Text=[Starts a search
 in the directory named by
-Directory for entries matching Pattern. Pattern represents a pattern for
-matching file names. If Pattern is null, all items in the directory are matched; otherwise,
+Directory for entries matching Pattern@Chg{Version=[3],New=[ and Filter],Old=[]}.
+Pattern represents a pattern for matching file names. If Pattern is
+@Chg{Version=[3],New=[the ],Old=[]}null@Chg{Version=[3],New=[ string],Old=[]},
+all items in the directory are matched; otherwise,
 the interpretation of Pattern is implementation-defined. Only items that match
 Filter will be returned. After a successful call on Start_Search, the object
 Search may have entries available, but it may have no entries available if no
@@ -726,11 +770,13 @@ to Get_Next_Entry for the specified search object, and False otherwise.]}
                           Directory_Entry : @key{out} Directory_Entry_Type);]}
 @end{Example}
 @ChgRef{Version=[2],Kind=[AddedNormal]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0262-1]}
 @ChgAdded{Version=[2],Type=[Trailing],Text=[Returns the next Directory_Entry
 for the search described by Search
 that matches the pattern and filter. If no further matches are available,
 Status_Error is raised. It is implementation-defined as to whether the results
-returned by this routine are altered if the contents of the directory are
+returned by this @Chg{Version=[3],New=[subprogram],Old=[routine]} are altered
+if the contents of the directory are
 altered while the Search object is valid (for example, by another program). The
 exception Use_Error is propagated if the external environment does not support
 continued searching of the directory represented by Search.]}
@@ -747,10 +793,13 @@ altered while a search is in progress.],Old=[]}]}
         Directory_Entry : @key{in} Directory_Entry_Type));]}
 @end{Example}
 @ChgRef{Version=[2],Kind=[AddedNormal]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0092-1],ARef=[AI05-0262-1]}
 @ChgAdded{Version=[2],Type=[Trailing],Text=[Searches in the directory named by
-Directory for entries matching Pattern. The subprogram designated by Process
-is called with each matching entry in turn. Pattern represents a pattern for
-matching file names. If Pattern is null, all items in the directory are matched;
+Directory for entries matching Pattern@Chg{Version=[3],New=[ and Filter],Old=[]}.
+The subprogram designated by Process is called with each matching entry in
+turn. Pattern represents a pattern for matching file names. If Pattern is
+@Chg{Version=[3],New=[the ],Old=[]}null@Chg{Version=[3],New=[ string],Old=[]},
+all items in the directory are matched;
 otherwise, the interpretation of Pattern is implementation-defined. Only
 items that match Filter will be returned.
 The exception Name_Error is propagated if the string given by Directory
@@ -991,8 +1040,9 @@ following routines:]}
         -- @RI[returning User_Id should also be defined.]]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0005-1]}
 @ChgAdded{Version=[2],Text=[    @key{function} Group (Name : @key{in} String) @key{return} String;
-        -- @RI[Returns the image of the User_Id. If a definition of Group_Id]
+        -- @RI[Returns the image of the @Chg{Version=[3],New=[Group_Id],Old=[User_Id]}. If a definition of Group_Id]
         -- @RI[is available, an implementation-defined version of Group]
         -- @RI[returning Group_Id should also be defined.]]}
 
@@ -1064,12 +1114,15 @@ these as possible.]}
 
 
 @ChgRef{Version=[2],Kind=[AddedNormal]}
-@ChgAdded{Version=[2],Text=[Start_Search and Search should raise Use_Error if
-Pattern is malformed, but not if it could represent a file in the directory but
-does not actually do so.]}
-@ChgImplAdvice{Version=[2],Kind=[AddedNormal],Text=[@ChgAdded{Version=[2],
-Text=[Directories.Start_Search and Directories.Search should raise Use_Error
-for malformed patterns.]}]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0231-1]}
+@ChgAdded{Version=[2],Text=[Start_Search and Search should raise
+@Chg{Version=[3],New=[Name_Error],Old=[Use_Error]} if Pattern is malformed, but
+not if it could represent a file in the directory but does not actually do so.]}
+
+@ChgImplAdvice{Version=[3],Kind=[Revised],InitialVersion=[2],
+Text=[@ChgAdded{Version=[2],
+Text=[Directories.Start_Search and Directories.Search should raise
+@Chg{Version=[3],New=[Name_Error],Old=[Use_Error]} for malformed patterns.]}]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal]}
 @ChgAdded{Version=[2],Text=[Rename should be supported at least when both
@@ -1146,8 +1199,336 @@ should be deleted first.]}
 @end{Notes}
 
 @begin{Extend95}
-@ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00248-01]}
-@ChgAdded{Version=[2],Text=[@Defn{extensions to Ada 95}
-Package Ada.Directories is new.]}
+  @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00248-01]}
+  @ChgAdded{Version=[2],Text=[@Defn{extensions to Ada 95}
+  Package Ada.Directories is new.]}
 @end{Extend95}
+
+@begin{Inconsistent2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0231-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{inconsistencies with Ada 2005}@b<Correction>:
+  Clarified when and which
+  exceptions are raised for Start_Search, Search, Delete_Directory, and
+  Rename. If an implementation followed the original incorrect wording, it might
+  raise Use_Error instead of Name_Error for Start_Search and Search,
+  Name_Error instead of Use_Error for Rename, and might have deleted a
+  non-empty directory instead of raising Use_Error for Delete_Directory.
+  The first two cases are very unlikely to matter in practice, and it unlikely
+  that an implementation would have followed the latter implementation
+  strategy, as it would be more work and would make Delete_Directory
+  identical to Delete_Tree (which is obvious nonsense).]}
+@end{Inconsistent2005}
+
+@begin{Incompatible2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0049-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{incompatibilities with Ada 2005}
+  A new enumeration type Name_Case_Kind and a new function
+  Name_Case_Equivalence is newly added to Directories. If Directories
+  is referenced in a @nt{use_clause}, and an
+  entity @i<E> with a @nt{defining_identifier} of one of the new entities is
+  defined in a package that is also referenced in a @nt{use_clause}, the entity
+  @i<E> may no longer be use-visible, resulting in errors. This should be rare
+  and is easily fixed if it does occur.]}
+@end{Incompatible2005}
+
+
+
+@LabeledAddedSubClause{Version=[3],Name=[The Package Directories.Hierarchical_File_Names]}
+
+@begin{Intro}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0049-1]}
+@ChgAdded{Version=[3],Text=[The library package Directories.Hierarchical_File_Names is an optional package
+providing operations for file name construction and decomposition for
+targets with hierarchical file naming.]}
+@end{Intro}
+
+@begin{StaticSem}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0049-1]}
+@ChgAdded{Version=[3],Type=[Leading],Text=[If provided, the library package
+Directories.Hierarchical_File_Names has the following declaration:]}
+
+@begin{Example}
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[@key{package} Ada.Directories.Hierarchical_File_Names @key{is}@ChildUnit{Parent=[Ada.Directories],Child=[Hierarchical_File_Names]}]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[   @key{function} @AdaSubDefn{Is_Simple_Name} (Name : @key{in} String) @key{return} Boolean;]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[   @key{function} @AdaSubDefn{Is_Root_Directory_Name} (Name : @key{in} String) @key{return} Boolean;]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[   @key{function} @AdaSubDefn{Is_Parent_Directory_Name} (Name : @key{in} String) @key{return} Boolean;]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[   @key{function} @AdaSubDefn{Is_Current_Directory_Name} (Name : @key{in} String) @key{return} Boolean;]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[   @key{function} @AdaSubDefn{Is_Full_Name} (Name : @key{in} String) @key{return} Boolean;]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[   @key{function} @AdaSubDefn{Is_Relative_Name} (Name : @key{in} String) @key{return} Boolean;]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[   @key{function} @AdaSubDefn{Simple_Name} (Name : @key{in} String) @key{return} String
+      @key{renames} Ada.Directories.Simple_Name;]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[   @key{function} @AdaSubDefn{Containing_Directory} (Name : @key{in} String) @key{return} String
+      @key{renames} Ada.Directories.Containing_Directory;]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[   @key{function} @AdaSubDefn{Initial_Directory} (Name : @key{in} String) @key{return} String;]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[   @key{function} @AdaSubDefn{Relative_Name} (Name : @key{in} String) @key{return} String;]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[   @key{function} @AdaSubDefn{Compose} (Directory      : @key{in} String := "";
+                     Relative_Name  : @key{in} String;
+                     Extension      : @key{in} String := "") @key{return} String;]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[@key{end} Ada.Directories.Hierarchical_File_Names;]}
+@end{Example}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0049-1]}
+@ChgAdded{Version=[3],Text=[In addition to the operations provided in package
+Directories.Hierarchical_File_Names, operations in package Directories
+can be used. In particular, functions Full_Name, Base_Name, and Extension are
+usable with hierarchical file names.]}
+
+@begin{DescribeCode}
+@begin{Example}
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[@key{function} Is_Simple_Name (Name : @key{in} String) @key{return} Boolean;]}
+@end{Example}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[Returns True if Name is a simple name, and returns
+False otherwise.]}
+
+@begin{Example}
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[@key{function} Is_Root_Directory_Name (Name : @key{in} String) @key{return} Boolean;]}
+@end{Example}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[Returns True if Name is syntactically a root (a
+directory that cannot be decomposed further), and returns False otherwise.]}
+
+@begin{ImplNote}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[For Unix and Unix-like systems, "/" is the root.
+  For Windows, "C:\" and "\\Computer\Share" are roots.]}
+@end{ImplNote}
+
+@begin{Example}
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[@key{function} Is_Parent_Directory_Name (Name : @key{in} String) @key{return} Boolean;]}
+@end{Example}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[Returns True if Name can be used to indicate
+symbolically the parent directory of any directory, and returns False
+otherwise.]}
+
+@begin{ImplNote}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[Is_Parent_Directory_Name returns True if and only
+  if Name is ".." for both Unix and Windows.]}
+@end{ImplNote}
+
+@begin{Example}
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[@key{function} Is_Current_Directory_Name (Name : @key{in} String) @key{return} Boolean;]}
+@end{Example}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[Returns True if Name can be used to indicate
+symbolically the directory itself for any directory, and returns False
+otherwise.]}
+
+@begin{ImplNote}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[Is_Current_Directory_Name returns True if and only
+  if Name is "." for both Unix and Windows.]}
+@end{ImplNote}
+
+@begin{Example}
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[@key{function} Is_Full_Name (Name : @key{in} String) @key{return} Boolean;]}
+@end{Example}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[Returns True if the leftmost directory part of Name
+is a root, and returns False otherwise.]}
+
+@begin{Example}
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[@key{function} Is_Relative_Name (Name : @key{in} String) @key{return} Boolean;]}
+@end{Example}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[Returns True if Name allows the identification of an
+external file but is not a full name, and returns False otherwise.]}
+
+@begin{Ramification}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[Relative names include simple names as a special case.
+  This function returns False if the syntax of the name is incorrect.]}
+@end{Ramification}
+
+@begin{Example}
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[@key{function} Initial_Directory (Name : @key{in} String) @key{return} String;]}
+@end{Example}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0049-1],ARef=[AI05-0248-1]}
+@ChgAdded{Version=[3],Text=[Returns the leftmost directory
+part in Name. @Redundant[That is, it returns a root directory name (for a full
+name), or one of a parent directory name, a current directory name, or a simple
+name (for a relative name).] The exception Name_Error is propagated if the
+string given as Name does not allow the identification of an external file
+(including directories and special files).]}
+
+@begin{Example}
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[@key{function} Relative_Name (Name : @key{in} String) @key{return} String;]}
+@end{Example}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[Returns the entire file name except
+the Initial_Directory portion. The exception Name_Error is propagated if the
+string given as Name does not allow the identification of an external file
+(including directories and special files), or if Name has a single part (this
+includes if any of Is_Simple_Name, Is_Root_Directory_Name,
+Is_Parent_Directory_Name, or Is_Current_Directory_Name are True).]}
+
+@begin{Ramification}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[The result might be a simple name.]}
+@end{Ramification}
+
+@begin{Example}
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[@key{function} Compose (Directory      : @key{in} String := "";
+                  Relative_Name  : @key{in} String;
+                  Extension      : @key{in} String := "") @key{return} String;]}
+@end{Example}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[Returns the name of the external file with the
+specified Directory, Relative_Name, and Extension. The exception Name_Error is
+propagated if the string given as Directory is not the null string and does
+not allow the identification of a directory, or if Is_Relative_Name
+(Relative_Name) is False, or if the string given as Extension is not the null
+string and is not a possible extension, or if Extension is not the null string
+and Simple_Name (Relative_Name) is not a base name.]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[The result of Compose is a full name if Is_Full_Name
+(Directory) is True; result is a relative name otherwise.]}
+
+@begin{Ramification}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[Name_Error is raised by Compose if Directory is
+  not the null string, and both Is_Full_Name and Is_Relative_Name return
+  False.]}
+@end{Ramification}
+
+@begin{Discussion}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[A common security problem is to include a parent
+  directory name in the middle of a file name; this is often used to navigate
+  outside of an intended root directory. We considered attempting to prevent
+  that case by having Compose detect it and raise an exception. But the extra
+  rules necessary were more confusing than helpful.]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[We can say more about the details of these
+  operations by adopting the notation of a subscript to specify how many path
+  fragments a particular result has. Then, we can abbreviate "Full Name" as
+  "Full" and "Relative Name" as "Rel". In this notation, Unix file name "a/b" is
+  a Rel(2), "../c/d" is a Rel(3), and "/a/b" is a Full(2). Rel(1) is equivalent
+  to a simple name; thus we don't have to describe that separately.]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Type=[Leading],Text=[In this notation,]}
+  @begin{Example}
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[For N>1,
+Containing_Directory(Rel(N)) = Leftmost Rel(N-1),
+Containing_Directory(Full(N)) = Leftmost Full(N-1),
+Else if N = 1, raise Name_Error.]}
+  @end{Example}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Type=[Leading],Text=[Similarly,]}
+  @begin{Example}
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[For N>1,
+Relative_Name(Rel(N)) = Rightmost Rel(N-1),
+Relative_Name(Full(N)) = Rightmost Full(N-1),
+Else if N = 1, raise Name_Error.]}
+  @end{Example}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Type=[Leading],Text=[Finally, for Compose (ignoring the extension here):]}
+  @begin{Example}
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[Compose (Directory => Full(N), Relative_Name => Rel(M)) => Full(N+M)
+Compose (Directory => Rel(N), Relative_Name => Rel(M)) => Rel(N+M)
+Name_Error if Relative_Name is a Full(M).]}
+  @end{Example}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[We didn't try to write wording to reflect these
+  details of these functions.]}
+@end{Discussion}
+
+@end{DescribeCode}
+@end{StaticSem}
+
+@begin{ImplAdvice}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0049-1]}
+@ChgAdded{Version=[3],Text=[Directories.Hierarchical_File_Names should be
+provided for systems with hierarchical file naming, and should not be provided
+on other systems.]}
+@ChgImplAdvice{Version=[3],Kind=[AddedNormal],Text=[@ChgAdded{Version=[3],
+Text=[Directories.Hierarchical_File_Names should be
+provided for systems with hierarchical file naming, and should not be provided
+on other systems.]}]}
+
+@begin{ImplNote}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[This package should be provided when targeting
+  Microsoft@latin1(174) Windows@latin1(174), Unix, Linux, and most Unix-like
+  systems.]}
+@end{ImplNote}
+
+@end{ImplAdvice}
+
+
+@begin{Notes}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0049-1]}
+@ChgAdded{Version=[3],Text=[These operations operate on file names, not external
+files. The files identified by these operations do not need to exist. Name_Error
+is raised only as specified or if the file name is malformed and cannot possibly
+identify a file. The result of these operations depends only on their
+parameters.]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0049-1]}
+@ChgAdded{Version=[3],Text=[Containing_Directory raises Use_Error if Name does
+not have a containing directory, including when any of Is_Simple_Name,
+Is_Root_Directory_Name, Is_Parent_Directory_Name, or Is_Current_Directory_Name
+are True.]}
+@end{Notes}
+
+@begin{Extend2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0049-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 2005}
+  Package Ada.Directories.Hierarchical_File_Names is new.]}
+@end{Extend2005}
 

@@ -1,10 +1,10 @@
 @Part(08, Root="ada.mss")
 
-@Comment{$Date: 2006/10/19 06:40:28 $}
+@Comment{$Date: 2011/11/01 23:14:14 $}
 @LabeledSection{Visibility Rules}
 
-@Comment{$Source: d:\\CvsRoot/ARM/Source/08.MSS,v $}
-@Comment{$Revision: 1.73 $}
+@Comment{$Source: e:\\cvsroot/ARM/Source/08.mss,v $}
+@Comment{$Revision: 1.95 $}
 
 @begin{Intro}
 @redundant[The rules defining the scope of declarations and the rules defining
@@ -63,7 +63,11 @@ called its @i{declarative region},
 
   a @nt{loop_statement};
 
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0255-1]}
+  @ChgAdded{Version=[3],Text=[a @nt{quantified_expression};]}
+
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00318-02]}
+@ChgRef{Version=[3],Kind=[RevisedAdded]}@Comment{Paragraph number changed}
   @ChgAdded{Version=[2],Text=[an @nt{extended_return_statement};]}
 
   an @nt{accept_statement};
@@ -71,11 +75,11 @@ called its @i{declarative region},
   an @nt{exception_handler}.
 @end(itemize)
 
-@begin{Wide}
+@begin{WideAbove}
 @leading@;The declarative region includes the text of the construct
 together with additional text determined @Redundant[(recursively)],
 as follows:
-@end{Wide}
+@end{WideAbove}
 @begin{Itemize}
 If a declaration is included, so is its completion, if any.
 
@@ -470,10 +474,13 @@ even if P.Q is visible at the place where X is declared.
 @end{Ramification}
 
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00408-01]}
+@ChgRef{Version=[3],Kind=[RevisedAdded],ARef=[AI05-0183-1]}
 @ChgAdded{Version=[2],Text=[@Defn2{Term=[scope], Sec=(of an attribute_@!definition_@!clause)}
 The scope of an @nt{attribute_definition_clause} is identical to the scope of a
 declaration that would occur at the point of the
-@nt{attribute_definition_clause}.]}
+@nt{attribute_definition_clause}.@Chg{Version=[3],New=[ The scope of an
+@nt{aspect_specification} is identical to the scope of the associated
+declaration.@Defn2{Term=[scope], Sec=(of an aspect_@!specification)}],Old=[]}]}
 
 @Defn2{Term=[immediate scope], Sec=[of (a view of) an entity]}
 The immediate scope of a declaration is also the immediate scope
@@ -613,6 +620,14 @@ because R does not mention Q in a @nt{with_clause}.
   so @i<that> can be used by the stream attribute availability rules
   (see @RefSecNum{Stream-Oriented Attributes}).]}
 @end{DiffWord95}
+
+@begin{DiffWord2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0183-1]}
+  @ChgAdded{Version=[3],Text=[The scope of an @nt{aspect_specification}
+  is defined for similar reasons that we did that for
+  @nt{attribute_definition_clause}s.]}
+@end{DiffWord2005}
+
 
 @LabeledClause{Visibility}
 
@@ -880,6 +895,13 @@ In addition, this is also stated redundantly (again),
 and is repeated, in @RefSec{Generic Instantiation}.
 The rationale for the rule is explained there.
 @end{Discussion}
+@begin{Honest}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0042-1]}
+@ChgAdded{Version=[3],Text=[The implicit subprograms declared when an
+operation of a progenitor is implemented by an entry or subprogram also
+override the appropriate implicitly declared inherited operations of the
+progenitor.@PDefn2{Term=[override],Sec=[when implemented by]}]}
+@end{Honest}
 @end{Itemize}
 
 @leading@Defn{visible}
@@ -908,11 +930,19 @@ declaration, except:
   the declaration is hidden from all visibility only
   until the reserved word @b(record);
 
+  @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0205-1]}
+  @ChgAdded{Version=[3],Text=[For an @nt{extended_return_statement}, the
+  declaration is hidden from all visibility only until the reserved word
+  @key[do] of the statement;]}
+
   @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00345-01]}
+  @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0177-1]}
   For a @nt{package_declaration}, @Chg{Version=[2],New=[],Old=[task declaration,
   protected declaration, ]}@nt{generic_@!package_@!declaration},
-  or @nt{subprogram_@!body}, the declaration is
-  hidden from all visibility only until the reserved word @key(is)
+  @Chg{Version=[3],New=[],Old=[or ]}@nt{subprogram_@!body},
+  @Chg{Version=[3],New=[or @nt{expression_@!function_@!declaration}, ],Old=[]}the
+  declaration is hidden from all visibility only until the
+  reserved word @key(is)
   of the declaration@Chg{Version=[2],New=[;],Old=[.]}
   @begin{Ramification}
     We're talking about the @key{is} of the construct itself, here,
@@ -943,8 +973,7 @@ declaration, except:
 
 @end(InnerItemize)
 
-@PDefn2{Term=[hidden from all visibility], Sec=(for a declaration completed
-  by a subsequent declaration)}
+@PDefn2{Term=[hidden from all visibility], Sec=(for a declaration completed by a subsequent declaration)}
 If the completion of a declaration is a declaration,
 then within the scope of the completion,
 the first declaration is hidden from all visibility.
@@ -965,8 +994,7 @@ and you can't denote it.
 @end{Ramification}
 
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00217-06],ARef=[AI95-00412-01]}
-@PDefn2{Term=[hidden from all visibility], Sec=(by lack of a
-@nt{with_clause})}
+@PDefn2{Term=[hidden from all visibility], Sec=(by lack of a @nt{with_clause})}
 The declaration of a library unit
 (including a @nt{library_unit_renaming_declaration})
 is hidden from all visibility @Chg{Version=[2],New=[],Old=[except ]}at
@@ -1025,16 +1053,17 @@ from direct visibility, as follows:
   declaration, if the homograph occurs within an inner declarative
   region;
 
-  @PDefn2{Term=[hidden from direct visibility],
-    Sec=(where hidden from all visibility)}
+  @PDefn2{Term=[hidden from direct visibility], Sec=(where hidden from all visibility)}
   A declaration is also hidden from direct visibility
   where hidden from all visibility.
 @end{Itemize}
 
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00195-01],ARef=[AI95-00408-01]}
+@ChgRef{Version=[3],Kind=[RevisedAdded],ARef=[AI05-0183-1]}
 @ChgAdded{Version=[2],Text=[@PDefn2{Term=[visible], Sec=(attribute_@!definition_@!clause)}
-An @nt{attribute_definition_clause} is @i{visible}
-everywhere within its scope.]}
+An @nt{attribute_definition_clause} @Chg{Version=[3],New=[or an
+@nt{aspect_specification}@PDefn2{Term=[visible], Sec=(aspect_@!specification)}
+],Old=[]}is @i{visible} everywhere within its scope.]}
 
 @end{StaticSem}
 
@@ -1309,6 +1338,13 @@ A @SynI{pragma_argument_}@nt{identifier}.
 
 An @nt{identifier} specific to a
 pragma used in a pragma argument.
+
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0183-1]}
+@ChgAdded{Version=[3],Text=[An @nt{aspect_mark};]}
+
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0183-1]}
+@ChgAdded{Version=[3],Text=[An @nt{identifier} specific to an aspect used
+in an @nt{aspect_definition}.]}
 @end{enumerate}
 
 The visibility rules have nothing to do with the above cases;
@@ -1424,27 +1460,48 @@ complex than they already are.]}
 @end{Incompatible95}
 
 @begin{DiffWord95}
-@ChgRef{Version=[2],Kind=[AddedNormal],Ref=[8652/0025],ARef=[AI95-00044-01]}
-@Chg{Version=[2],New=[@b<Corrigendum:> Clarified the overriding rules so that
-"/=" and @nt{statement_identifier}s are covered.],Old=[]}
+  @ChgRef{Version=[2],Kind=[AddedNormal],Ref=[8652/0025],ARef=[AI95-00044-01]}
+  @ChgAdded{Version=[2],Text=[@b<Corrigendum:> Clarified the overriding rules so
+  that "/=" and @nt{statement_identifier}s are covered.]}
 
-@ChgRef{Version=[2],Kind=[AddedNormal],Ref=[8652/0026],ARef=[AI95-00150-01]}
-@Chg{Version=[2],New=[@b<Corrigendum:> Clarified that is it never possible
-for two components with the same name to be visible; any such program is
-illegal.],Old=[]}
+  @ChgRef{Version=[2],Kind=[AddedNormal],Ref=[8652/0026],ARef=[AI95-00150-01]}
+  @ChgAdded{Version=[2],Text=[@b<Corrigendum:> Clarified that is it never
+  possible for two components with the same name to be visible; any such program
+  is illegal.]}
 
-@ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00195-01],ARef=[AI95-00408-01]}
-@ChgAdded{Version=[2],Text=[The visibility of an @nt{attribute_definition_clause} is
-defined so that it can be used by the stream attribute availability rules
-(see @RefSecNum{Stream-Oriented Attributes}).]}
+  @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00195-01],ARef=[AI95-00408-01]}
+  @ChgAdded{Version=[2],Text=[The visibility of an
+  @nt{attribute_definition_clause} is defined so that it can be used by the
+  stream attribute availability rules (see @RefSecNum{Stream-Oriented Attributes}).]}
 
-@ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00217-06]}
-@Chg{Version=[2],New=[The visibility of a limited view of a library package
-is defined (see @RefSecNum{Compilation Units - Library Units}).],Old=[]}
+  @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00217-06]}
+  @ChgAdded{Version=[2],Text=[The visibility of a limited view of a library
+  package is defined (see @RefSecNum{Compilation Units - Library Units}).]}
 @end{DiffWord95}
 
+@begin{DiffWord2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0177-1]}
+  @ChgAdded{Version=[3],Text=[Added wording so that the parameters of an
+  @nt{expression_@!function_@!declaration} are visible in the @nt{expression}
+  of the function. (It would be pretty useless without such a rule.)]}
 
-@RMNewPage@Comment{For printed Ada 2005 only}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0183-1]}
+  @ChgAdded{Version=[3],Text=[The visibility of an
+  @nt{aspect_specification} is defined so that it can be used in various other
+  rules.]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0205-1]}
+  @ChgAdded{Version=[3],Text=[@b{Correction:} Added a rule allowing
+  visibility of the declared return object within an
+  @nt{extended_return_statement}. While this is technically an extension (since
+  the wording said that the return object was always hidden from all
+  visibility), this is so obviously not intended (a declaration that can never
+  be used is pointless) that the actual language rule was never implemented. So
+  this just makes the wording consistent with practice.]}
+@end{DiffWord2005}
+
+
+@RMNewPageVer{Version=[2]}@Comment{For printed version of Ada 2005 RM}
 @LabeledAddedSubClause{Version=[2],Name=[Overriding Indicators]}
 
 @begin{Intro}
@@ -1462,8 +1519,11 @@ rhs="@Chg{Version=[2],New=<[@key{not}] @key{overriding}>,Old=<>}"}
 
 @begin{Legality}
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00218-03],ARef=[AI95-00348-01],ARef=[AI95-00397-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0177-1]}
 @ChgAdded{Version=[2],Type=[Leading],Text=[If an
-@nt{abstract_@!subprogram_@!declaration}, @nt{null_@!procedure_@!declaration},
+@nt{abstract_@!subprogram_@!declaration},
+@nt{null_@!procedure_@!declaration},@Chg{Version=[3],New=[
+@nt{expression_@!function_@!declaration},],Old=[]}
 @nt{subprogram_body}, @nt{subprogram_@!body_stub},
 @nt{subprogram_@!renaming_@!declaration}, @nt{generic_@!instantiation} of a
 subprogram, or @nt{subprogram_@!declaration}
@@ -1478,6 +1538,15 @@ type;]}
 @ChgAdded{Version=[2],Text=[if the @nt{overriding_indicator} is
 @key{overriding}, then the operation shall override a homograph at the place of
 the declaration or body;]}
+
+@begin{Honest}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0005-1]}
+@ChgAdded{Version=[3],Text=[This doesn't require that the overriding happen
+at precisely the place of the declaration or body; it only requires that the
+region in  which the overriding is known to have happened includes this
+place. That is, the overriding can happen at or before the place of the
+declaration or body.]}
+@end{Honest}
 
 @ChgRef{Version=[2],Kind=[AddedNormal]}
 @ChgAdded{Version=[2],Text=[if the @nt{overriding_indicator} is
@@ -1577,8 +1646,14 @@ this is a new operation.]}
   disagrees, an error will be produced rather than a hard to find bug.]}
 @end{Extend95}
 
+@begin{DiffWord2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI95-0177-1]}
+  @ChgAdded{Version=[3],Text=[Expression functions can have overriding
+  indicators.]}
+@end{DiffWord2005}
 
-@RMNewPage@Comment{For printed RM Ada 2005}
+
+@RMNewPageVer{Version=[2]}@Comment{For printed version of Ada 2005 RM}
 @LabeledClause{Use Clauses}
 
 @begin{Intro}
@@ -1613,7 +1688,8 @@ change the meaning of a program from one legal interpretation to another.
 
 @Syn{lhs=<use_package_clause>,rhs="@key{use} @SynI{package_}@Syn2{name} {, @SynI{package_}@Syn2{name}};"}
 
-@Syn{lhs=<use_type_clause>,rhs="@key{use type} @Syn2{subtype_mark} {, @Syn2{subtype_mark}};"}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0150-1]}
+@Syn{lhs=<use_type_clause>,rhs="@key[use] @Chg{Version=[3],New={[@key[all]] },Old=[]}@key[type] @Syn2{subtype_mark} {, @Syn2{subtype_mark}};"}
 @end{Syntax}
 
 @begin{Legality}
@@ -1683,6 +1759,8 @@ in a @nt{use_type_clause} if it is determined by a @nt{subtype_mark} of that
 clause.@Defn2{Term=[named],Sec=[in a use clause]}],Old=[]}
 
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00217-06]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0150-1]}
+@ChgAdded{Version=[3],Type=[Leading],Text=[]}@Comment{Dummy to add conditional leading}
 @Defn{potentially use-visible}
 For each package @Chg{Version=[2],New=[named in ],Old=[denoted by
 a @SynI{package_}@nt{name} of ]}a @nt{use_package_clause} whose scope
@@ -1694,11 +1772,28 @@ For each type @i(T) or @i(T)'Class @Chg{Version=[2],New=[named in ],Old=[
 determined by a @nt<subtype_mark> of ]}a @nt{use_type_clause} whose scope
 encloses a place, the declaration of each primitive operator of type @i(T)
 is potentially use-visible at this place
-if its declaration is visible at this place.
+if its declaration is visible at this place.@Chg{Version=[3], New=[ If a
+@nt{use_type_clause} whose scope encloses a place includes the reserved
+word @key[all], then the following entities are also potentially use-visible
+at this place if the declaration of the entity is visible at this place:],Old=[]}
+@begin{Itemize}
+  @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0150-1]}
+  @ChgAdded{Version=[3],Text=[Each primitive subprogram of @i<T> including each
+  enumeration literal (if any);]}
+
+  @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0150-1]}
+  @ChgAdded{Version=[3],Text=[Each subprogram that is declared immediately
+  within the declarative region in which an ancestor type of @i<T> is declared
+  and that operates on a class-wide type that covers @i<T>.]}
+@end{Itemize}
+
   @begin{Ramification}
+  @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0150-1]}
   Primitive subprograms whose defining name is an @nt{identifier} are
-  @i{not} made potentially visible by a @nt{use_type_clause}.
-  A @nt{use_type_clause} is only for operators.
+  @i{not} made potentially visible by a
+  @nt{use_type_clause}@Chg{Version=[3],New=[ unless reserved word @key[all] is
+  included],Old=[]}.
+  A @nt{use_type_clause} @Chg{Version=[3],New=[without @key[all] ],Old=[]}is only for operators.
 
   The semantics described here should be similar
   to the semantics for expanded names given
@@ -1722,6 +1817,12 @@ if its declaration is visible at this place.
   "@key[use type] T'Class;" is equivalent to "@key[use type] T;",
   which helps avoid breaking the generic contract model.
   @end{Ramification}
+
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0131-1]}
+@ChgAdded{Version=[3],Text=[Certain implicit declarations may become
+potentially use-visible in certain contexts as described in
+@RefSecNum{Formal Subprograms}.]}
+
 
 @leading@Defn{use-visible}
 @Defn2{Term=[visibility],Sec=(use clause)}
@@ -1761,9 +1862,9 @@ The elaboration of a @nt{use_clause} has no effect.
 @key[with] Ada.Calendar; @key[use] Ada;
 @end{Example}
 
-@begin{Wide}
+@begin{WideAbove}
 @leading@keepnext@i{Example of a use type clause:}
-@end{Wide}
+@end{WideAbove}
 @begin{Example}
 @key[use type] Rational_Numbers.Rational; --@RI{ see @RefSecNum{Package Specifications and Declarations}}
 Two_Thirds: Rational_Numbers.Rational := 2/3;
@@ -1825,11 +1926,26 @@ potentially use-visible.
 
 
 @begin{DiffWord95}
-@ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00217-06]}
-@Chg{Version=[2],New=[Limited views of packages are not allowed in use clauses.
-Defined @i<named in a use clause> for use in other limited view rules (see
-@RefSecNum{Context Clauses - With Clauses}).],Old=[]}
+  @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00217-06]}
+  @ChgAdded{Version=[2],Text=[Limited views of packages are not allowed in use clauses.
+  Defined @i<named in a use clause> for use in other limited view rules (see
+  @RefSecNum{Context Clauses - With Clauses}).]}
 @end{DiffWord95}
+
+@begin{Extend2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0150-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 2005}The
+  @key[use all type] version of the @nt{use_type_clause} is new to Ada 2012.
+  It works similarly to prefixed views.]}
+@end{Extend2005}
+
+@begin{DiffWord2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0131-1]}
+  @ChgAdded{Version=[3],Text=[@b<Correction:> Added wording to allow other
+  declarations to be potentially use-visible, to support corrections to
+  formal subprograms.]}
+@end{DiffWord2005}
+
 
 
 @LabeledClause{Renaming Declarations}
@@ -1914,9 +2030,12 @@ irrelevant, since failing these tests is highly unlikely.
 
 @begin{Syntax}
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00230-01],ARef=[AI95-00423-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0183-1]}
 @Syn{lhs=<object_renaming_declaration>,rhs="@Chg{Version=[2],New=[
-    ],Old=[]}@Syn2{defining_identifier} : @Chg{Version=[2],New=<[@Syn2{null_exclusion}] >,Old=<>}@Syn2{subtype_mark} @key{renames} @SynI{object_}@Syn2{name};@Chg{Version=[2],New=[
-  | @Syn2{defining_identifier} : @Syn2{access_definition} @key{renames} @SynI{object_}@Syn2{name};],Old=[]}"}
+    ],Old=[]}@Syn2{defining_identifier} : @Chg{Version=[2],New=<[@Syn2{null_exclusion}] >,Old=<>}@Syn2{subtype_mark} @key{renames} @SynI{object_}@Syn2{name}@Chg{Version=[3],New=<
+        [@Syn2{aspect_specification}]>,Old=[]};@Chg{Version=[2],New=[
+  | @Syn2{defining_identifier} : @Syn2{access_definition} @key{renames} @SynI{object_}@Syn2{name}@Chg{Version=[3],New=<
+        [@Syn2{aspect_specification}]>,Old=[]};],Old=[]}"}
 @end{Syntax}
 
 @begin{Resolution}
@@ -2048,27 +2167,34 @@ Obj : Acc_I := @key{null};]}
 
 @ChgRef{Version=[1],Kind=[Revised],Ref=[8652/0017],ARef=[AI95-00184-01]}
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00363-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0008-1]}
 The renamed entity shall not be a subcomponent that depends on
-discriminants of a variable whose nominal subtype is unconstrained,
-unless this subtype is indefinite, or the variable is @Chg{Version=[2],
-New=[constrained by its initial value],Old=[aliased]}.
+discriminants of @Chg{Version=[3],New=[an object],Old=[a variable]}
+whose nominal subtype is unconstrained@Chg{Version=[3],New=[],Old=[,]}
+unless @Chg{Version=[3],New=[the object is known to be constrained],
+Old=[this subtype is indefinite, or the variable is @Chg{Version=[2],
+New=[constrained by its initial value],Old=[aliased]}]}.
 A @nt{slice} of an array shall not be renamed if
 this restriction disallows renaming of the array.
-@Chg{New=[In addition to the places where Legality Rules normally apply, these
-rules apply also in the private part of an instance of a generic unit. These
-rules also apply for a renaming that appears in the body of a generic unit,
-with the additional requirement that even if the nominal subtype of the
-variable is indefinite, its type shall not be a descendant of an untagged
-generic formal derived type.],Old=[]}
+@Chg{New=[@PDefn{generic contract issue}In addition to the places where
+Legality Rules normally apply, these rules apply also in the private part of an
+instance of a generic unit.@Chg{Version=[3],New=[],Old=[ These rules also apply for a renaming that appears
+in the body of a generic unit, with the additional requirement that even if the
+nominal subtype of the variable is indefinite, its type shall not be a
+descendant of an untagged generic formal derived type.]}],Old=[]}
+
 @begin{Reason}
 This prevents renaming of subcomponents that might
 disappear, which might leave dangling references.
 Similar restrictions exist for the Access attribute.
 
 @ChgRef{Version=[1],Kind=[Added],Ref=[8652/0017],ARef=[AI95-00184-01]}
+@ChgRef{Version=[3],Kind=[RevisedAdded],ARef=[AI05-0008-1]}
 @ChgAdded{Version=[1],Type=[Leading],Text=[The @lquotes@;recheck on
-instantiation@rquotes@; and @lquotes@;assume-the-worst in the body@rquotes@;
-restrictions on generics are necessary to avoid renaming of components which
+instantiation@rquotes@; @Chg{Version=[3],New=[requirement], Old=[and
+@lquotes@;assume-the-worst in the body@rquotes@;
+restrictions]} on generics @Chg{Version=[3],New=[is],Old=[are]}
+necessary to avoid renaming of components which
 could disappear even when the nominal subtype would prevent the problem:]}
 
 @begin{Example}
@@ -2101,6 +2227,10 @@ Y : T2;
 Y := (D1 => True); -- @RI[Oops!  What happened to I.C1_Ren?]],Old=[]}
 @end{Example}
 
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0008-1]}
+@ChgAdded{Version=[3],Text=[In addition, the @ldquote@;known to be constrained@rdquote
+rules include assume-the-worst rules for generic bodies partially to
+prevent such problems.]}
 
 @end{Reason}
 @begin{ImplNote}
@@ -2115,24 +2245,6 @@ If it is a generic formal object,
 then the assume-the-best or assume-the-worst rules are applied as
 appropriate.
 @end{Ramification}
-@begin{Honest}
-  @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00363-01]}
-  @ChgAdded{Version=[2],Text=[If renamed entity is a subcomponent that
-  depends on discriminants, and the subcomponent is a dereference of a
-  general access type whose designated type is unconstrained and whose
-  discriminants have defaults, the renaming is illegal. Such a
-  general access type can designate an unconstrained (stack) object.
-  Since such a type might not designate an object
-  constrained by its initial value, the renaming is illegal @em the rule
-  says @lquotes@;is@rquotes constrained by its initial value, not
-  @lquotes@;might be@rquotes constrained by its initial value.
-  No other interpretation makes sense, as we can't have legality depending
-  on something (which object is designated) that is not known at
-  compile-time, and we surely can't allow this for unconstrained objects.
-  The wording of the rule
-  should be much clearer on this point, but this was discovered after the
-  completion of Amendment 1 when it was too late to fix it.]}
-@end{Honest}
 @end{Legality}
 
 @begin{StaticSem}
@@ -2210,13 +2322,13 @@ using the type T2 of the previous example:]}
   @ChgAdded{Version=[2],Text=[@Defn{extensions to Ada 95}
   A renaming can have an anonymous access type. In that case, the accessibility
   of the renaming is that of the original object (accessibility is not
-  lost as it is for a component or stand-alone object).]}
+  lost as it is for assignment to a component or stand-alone object).]}
 
   @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00231-01],ARef=[AI95-00423-01]}
   @ChgAdded{Version=[2],Text=[A renaming can have a @nt{null_exclusion}; if so,
   the renamed object must also exclude null, so that the @nt{null_exclusion}
   does not lie. On the other hand, if the renaming does not have a
-  @nt{null_exclusion}. it excludes null of the renamed object does.]}
+  @nt{null_exclusion}. it excludes null if the renamed object does.]}
 @end{Extend95}
 
 @begin{DiffWord95}
@@ -2225,7 +2337,30 @@ using the type T2 of the previous example:]}
   depends-on-discriminant components if the type @i{might} be definite.]}
 @end{DiffWord95}
 
+@begin{Incompatible2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0008-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{incompatibilities with Ada 2005}@b<Correction:>
+  Simplified the description of when a discriminant-dependent component is
+  allowed to be renamed @em it's now simply when the object is
+  known to be constrained. This
+  fixes a confusion as to whether a subcomponent of an object that is not
+  certain to be constrained can be renamed. The fix introduces an
+  incompatibility, as the rule did not apply in Ada 95 if the prefix was a
+  constant; but it now applies no matter what kind of object is involved. The
+  incompatibility is not too bad, since most kinds of constants are known to be
+  constrained.]}
+@end{Incompatible2005}
 
+@begin{Extend2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0183-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 2005}
+  An optional @nt{aspect_specification} can be used in an
+  @nt{object_renaming_declaration}.
+  This is described in @RefSecNum{Aspect Specifications}.]}
+@end{Extend2005}
+
+
+@RMNewPageVer{Version=[3]}@Comment{For printed version of Ada 2012 RM}
 @LabeledSubClause{Exception Renaming Declarations}
 
 @begin{Intro}
@@ -2233,7 +2368,9 @@ using the type T2 of the previous example:]}
 @end{Intro}
 
 @begin{Syntax}
-@Syn{lhs=<exception_renaming_declaration>,rhs="@Syn2{defining_identifier} : @key{exception} @key{renames} @SynI{exception_}@Syn2{name};"}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0183-1]}
+@Syn{lhs=<exception_renaming_declaration>,rhs="@Syn2{defining_identifier} : @key{exception} @key{renames} @SynI{exception_}@Syn2{name}@Chg{Version=[3],New=<
+   [@Syn2{aspect_specification}]>,Old=[]};"}
 @end{Syntax}
 
 @begin{Legality}
@@ -2252,6 +2389,14 @@ EOF : @key[exception] @key[renames] Ada.IO_Exceptions.End_Error; @RI{-- see @Ref
 @end{Example}
 @end{Examples}
 
+@begin{Extend2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0183-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 2005}
+  An optional @nt{aspect_specification} can be used in an
+  @nt{exception_renaming_declaration}.
+  This is described in @RefSecNum{Aspect Specifications}.]}
+@end{Extend2005}
+
 
 @LabeledSubClause{Package Renaming Declarations}
 
@@ -2260,7 +2405,9 @@ EOF : @key[exception] @key[renames] Ada.IO_Exceptions.End_Error; @RI{-- see @Ref
 @end{Intro}
 
 @begin{Syntax}
-@Syn{lhs=<package_renaming_declaration>,rhs="@key{package} @Syn2{defining_program_unit_name} @key{renames} @SynI{package_}@Syn2{name};"}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0183-1]}
+@Syn{lhs=<package_renaming_declaration>,rhs="@key{package} @Syn2{defining_program_unit_name} @key{renames} @SynI{package_}@Syn2{name}@Chg{Version=[3],New=<
+   [@Syn2{aspect_specification}]>,Old=[]};"}
 @end{Syntax}
 
 @begin{Legality}
@@ -2312,7 +2459,16 @@ limited view of the renamed package is visible, a @nt{name} that denotes the
   only be used within the scope of a with_clause for the renamed package.]}
 @end{DiffWord95}
 
+@begin{Extend2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0183-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 2005}
+  An optional @nt{aspect_specification} can be used in a
+  @nt{package_renaming_declaration}.
+  This is described in @RefSecNum{Aspect Specifications}.]}
+@end{Extend2005}
 
+
+@RMNewPageVer{Version=[3]}@Comment{For printed version of Ada 2012 RM}
 @LabeledSubClause{Subprogram Renaming Declarations}
 
 @begin{Intro}
@@ -2333,9 +2489,11 @@ as defined in Section 3.
 
 @begin{Syntax}
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00218-03]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0183-1]}
 @Syn{lhs=<subprogram_renaming_declaration>,rhs="@Chg{Version=[2],New=<
     [@Syn2{overriding_indicator}]
-    >,Old=<>}@Syn2{subprogram_specification} @key{renames} @SynI{callable_entity_}@Syn2{name};"}
+    >,Old=<>}@Syn2{subprogram_specification} @key{renames} @SynI{callable_entity_}@Syn2{name}@Chg{Version=[3],New=<
+        [@Syn2{aspect_specification}]>,Old=[]};"}
 @end{Syntax}
 
 @begin{Resolution}
@@ -2346,8 +2504,10 @@ is the profile given in the @nt<subprogram_specification>.
 @end{Resolution}
 
 @begin{Legality}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0239-1]}
 The profile of a renaming-as-declaration
-shall be mode-conformant with that of the renamed callable entity.
+shall be @Chg{Version=[3],New=[mode conformant],Old=[mode-conformant]},
+ with that of the renamed callable entity.
 @Defn2{Term=[mode conformance],Sec=(required)}
 
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00423-01]}
@@ -2385,6 +2545,7 @@ the @nt{subprogram_specification} that has an explicit @nt{null_exclusion}:]}
 @end{Reason}
 
 @ChgRef{Version=[1],Kind=[Revised],Ref=[8652/0027],Ref=[8652/0028],ARef=[AI95-00135-01],ARef=[AI95-00145-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0239-1]}
 The profile of a renaming-as-body
 @Chg{New=[],Old=[shall be subtype-conformant with that of the renamed
 callable entity, and ]}shall conform fully to that of the declaration it
@@ -2392,11 +2553,12 @@ completes.
 @Defn2{Term=[full conformance],Sec=(required)}
 If the renaming-as-body completes that declaration
 before the subprogram it declares is frozen,
-@Chg{New=[the profile shall be mode-conformant
+@Chg{New=[the profile shall be @Chg{Version=[3],New=[mode conformant],Old=[mode-conformant]}
 @Defn2{Term=[mode conformance],Sec=(required)}with that of the renamed
 callable entity and ],Old=[]}the subprogram it declares
 takes its convention from the renamed subprogram;
-otherwise@Chg{New=[, the profile shall be subtype-conformant with that of the
+otherwise@Chg{New=[, the profile shall be @Chg{Version=[3],New=[subtype conformant],Old=[subtype-conformant]}
+with that of the
 renamed callable entity and],Old=[]} the convention of the renamed subprogram
 shall not be Intrinsic.
 @Defn2{Term=[subtype conformance],Sec=(required)}
@@ -2481,10 +2643,10 @@ is not allowed within the @Syni{callable_entity_}@nt{name}.
 @key[function] F(X : Integer) @key[return] Integer @key[renames] Table(X).@key[all];
 @end{Example}
 
-@begin{Wide}
+@begin{WideAbove}
 @leading@;A similar rule in @RefSecNum{Subprogram Declarations}
 forbids things like this:
-@end{Wide}
+@end{WideAbove}
 @begin{Example}
 @key[function] F(X : Integer; Y : Integer := X) @key[return] Integer;
 @end{Example}
@@ -2513,6 +2675,7 @@ waiting.
 
 @ChgRef{Version=[1],Kind=[Added],Ref=[8652/0105],ARef=[AI95-00211-01]}
 @ChgRef{Version=[2],Kind=[RevisedAdded],ARef=[AI95-00228-01]}
+@ChgRef{Version=[3],Kind=[RevisedAdded],ARef=[AI05-0095-1]}
 @Chg{New=[All properties of the renamed entity are inherited by the new view
 unless otherwise stated by this International Standard. In particular, if the
 renamed entity is abstract@Chg{Version=[2],New=[],Old=[ or requires
@@ -2520,6 +2683,9 @@ overriding (see @RefSecNum{Abstract Types and Subprograms})]}, the new view
 also is abstract@Chg{Version=[2],New=[.],Old=[ or requires overriding. (The
 renaming will often be illegal in these cases,
 as a renaming cannot be overridden.)]}],Old=[]}
+@ChgAdded{Version=[3],Text=[Similarly, if the renamed entity is not a program
+unit, then neither is the renaming. (Implicitly declared subprograms are not
+program units, see @RefSecNum{Separate Compilation}).]}
 @end{Ramification}
 @end{StaticSem}
 
@@ -2536,16 +2702,21 @@ value of the call.],Old=[]}
 renaming-as-body has its own elaboration check.]}
 @end{Ramification}
 
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0123-1]}
 For a call on a renaming of a dispatching subprogram that is overridden,
 if the overriding occurred before the renaming, then the body executed
 is that of the overriding declaration,
 even if the overriding declaration is not visible at the place of the renaming;
-otherwise, the inherited or predefined subprogram is called.
+otherwise, the inherited or predefined subprogram is
+called.@Chg{Version=[3],New=[ A corresponding rule applies to a call on a
+renaming of a predefined equality operator for an untagged record type.],Old=[]}
 @begin{Discussion}
 Note that whether or not the renaming is itself primitive has
 nothing to do with the renamed subprogram.
 
-Note that the above rule is only for tagged types.
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0123-1]}
+Note that the above rule is only for tagged types@Chg{Version=[3],New=[ and
+equality of untagged record types],Old=[]}.
 
 @leading@keepnext@;Consider the following example:
 @begin{Example}
@@ -2650,16 +2821,16 @@ We'll live with the oddity.
 @key[function] Next(X : Color) @key[return] Color @key[renames] Color'Succ; --@RI{ see @RefSecNum{Enumeration Types}}
 @end{Example}
 
-@begin{Wide}
+@begin{WideAbove}
 @leading@keepnext@i{Example of a subprogram renaming declaration with new parameter names:}
-@end{Wide}
+@end{WideAbove}
 @begin{Example}
 @key[function] "*" (X,Y : Vector) @key[return] Real @key[renames] Dot_Product; --@RI{ see @RefSecNum{Subprogram Declarations}}
 @end{Example}
 
-@begin{Wide}
+@begin{WideAbove}
 @leading@keepnext@i{Example of a subprogram renaming declaration with a new default expression:}
-@end{Wide}
+@end{WideAbove}
 @begin{Example}
 @key[function] Minimum(L : Link := Head) @key[return] Cell @key[renames] Min_Cell; --@RI{ see @RefSecNum{Subprogram Declarations}}
 @end{Example}
@@ -2696,6 +2867,27 @@ We'll live with the oddity.
   @ChgAdded{Version=[2],Text=[Added matching rules for @nt{null_exclusion}s.]}
 @end{DiffWord95}
 
+@begin{Inconsistent2005}
+  @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0123-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{inconsistencies with Ada 2005}
+  Renaming of user-defined untagged record equality is now defined to call the
+  overridden body so long as the overriding occurred before the renames.
+  This could change the body called in unusual cases; the change is necessary
+  to preserve the principle that the body called for an explicit call to
+  "=" (via a renames in this case) is the same as the one inherited for a
+  derived type and used in generics. Note that any renamings before the
+  overriding will be unchanged. Any differences caused by the change will be
+  rare and most likely will fix a bug.]}
+@end{Inconsistent2005}
+
+@begin{Extend2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0183-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 2005}
+  An optional @nt{aspect_specification} can be used in a
+  @nt{subprogram_renaming_declaration}.
+  This is described in @RefSecNum{Aspect Specifications}.]}
+@end{Extend2005}
+
 
 @LabeledSubClause{Generic Renaming Declarations}
 
@@ -2704,10 +2896,14 @@ We'll live with the oddity.
 @end{Intro}
 
 @begin{Syntax}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0183-1]}
 @Syn{tabs=[P22], lhs=<generic_renaming_declaration>,rhs="
-    @key{generic package}@\@Syn2{defining_program_unit_name} @key{renames} @SynI{generic_package_}@Syn2{name};
-  | @key{generic procedure}@\@Syn2{defining_program_unit_name} @key{renames} @SynI{generic_procedure_}@Syn2{name};
-  | @key{generic function}@\@Syn2{defining_program_unit_name} @key{renames} @SynI{generic_function_}@Syn2{name};"}
+    @key{generic package}@\@Syn2{defining_program_unit_name} @key{renames} @SynI{generic_package_}@Syn2{name}@Chg{Version=[3],New=<
+        [@Syn2{aspect_specification}]>,Old=[]};
+  | @key{generic procedure}@\@Syn2{defining_program_unit_name} @key{renames} @SynI{generic_procedure_}@Syn2{name}@Chg{Version=[3],New=<
+        [@Syn2{aspect_specification}]>,Old=[]};
+  | @key{generic function}@\@Syn2{defining_program_unit_name} @key{renames} @SynI{generic_function_}@Syn2{name}@Chg{Version=[3],New=<
+        [@Syn2{aspect_specification}]>,Old=[]};"}
 @end{Syntax}
 
 @begin{Legality}
@@ -2752,6 +2948,15 @@ and moved to @RefSecNum{Predefined Language Environment},
 except for the definition of @lquotes@;predefined type,@rquotes@;
 which has been moved to @RefSecNum{Type Declarations}.
 @end{DiffWord83}
+
+@begin{Extend2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0183-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 2005}
+  An optional @nt{aspect_specification} can be used in a
+  @nt{generic_renaming_declaration}.
+  This is described in @RefSecNum{Aspect Specifications}.]}
+@end{Extend2005}
+
 
 @LabeledClause{The Context of Overload Resolution}
 
@@ -3082,10 +3287,17 @@ type @em such a preference would cause Beaujolais effects.
       Note that that rule is not a @ResolutionName.
 @end{Ramification}
 
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0149-1]}
+@ChgAdded{Version=[3],Text=[when @i(T) is a named general access-to-object type
+    (see @RefSecNum{Access Types}) with designated type @i(D), to an anonymous
+    access-to-object type whose designated type covers or is covered by @i(D);
+    or]}
+
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00254-01],ARef=[AI95-00409-01]}
+@ChgRef{Version=[3],Kind=[RevisedAdded],ARef=[AI05-0239-1]}
 @ChgAdded{Version=[2],Text=[when @i(T) is an anonymous access-to-subprogram
      type (see @RefSecNum{Access Types}), to an access-to-subprogram type
-     whose designated profile is type-conformant with that of @i{T}.]}
+     whose designated profile is @Chg{Version=[3],New=[type conformant],Old=[type-conformant]} with that of @i{T}.]}
 
 @end(Inneritemize)
 @end{Itemize}
@@ -3103,11 +3315,12 @@ shall resolve to the name of a callable entity whose profile is type
 conformant with the expected profile.
 @Defn2{Term=[type conformance],Sec=(required)}
 @begin{Ramification}
+  @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0239-1]}
   The parameter and result @i{sub}types are not used in overload
   resolution.
   Only type conformance of profiles
   is considered during overload resolution.
-  Legality rules generally require at least mode-conformance
+  Legality rules generally require at least @Chg{Version=[3],New=[mode conformance],Old=[mode-conformance]}
   in addition, but those rules are not used in overload resolution.
 @end{Ramification}
 @end{Resolution}
@@ -3158,6 +3371,42 @@ in a class in scope.
   on.]}
 @end{Discussion}
 
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0102-1],ARef=[AI05-0149-1]}
+@ChgAdded{Version=[3],Text=[Other than for the @nt{simple_expression} of a
+membership test, if the expected type for a @nt{name} or @nt{expression} is not
+the same as the actual type of the @nt{name} or @nt{expression}, the actual type
+shall be convertible to the expected type (see
+@RefSecNum{Type Conversions});@Defn2{Term=[implicit conversion],
+Sec=[legality]}@PDefn2{Term=[convertible],Sec=(required)} further, if the
+expected type is a named access-to-object type with designated type @i<D1> and
+the actual type is an anonymous access-to-object type with designated type
+@i<D2>, then @i<D1> shall cover @i<D2>, and the @nt{name} or @nt{expression}
+shall denote a view with an accessibility level for which the statically deeper
+relationship applies@Redundant[; in particular it shall not denote an access
+parameter nor a standalone access object].]}
+
+@begin{Reason}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[This rule prevents an implicit conversion that
+  would be illegal if it was an explicit conversion. For instance, this
+  prevents assigning an access-to-constant value into a stand-alone anonymous
+  access-to-variable object. It also covers convertibility of the designated
+  type and accessibility checks.]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[The rule also minimizes cases of implicit
+  conversions when the tag check or the accessibility check might fail. We
+  word it this way because access discriminants should also be disallowed if
+  their enclosing object is designated by an access parameter.]}
+@end{Reason}
+@begin{Ramification}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[This rule does not apply to expressions that
+  don't have expected types (such as the operand of a qualified expression or
+  the expression of a renames). We don't need a rule like this in those cases,
+  as the type needs to be the same; there is no implicit conversion.]}
+@end{Ramification}
+
 A complete context shall have at least one acceptable interpretation;
 if there is exactly one, then that one is chosen.
 @begin{Ramification}
@@ -3178,6 +3427,7 @@ context differ only in that one is for a primitive operator (or
 type @i{root_integer} or @i{root_real}, and the other is not,
 the interpretation using the primitive operator (or @nt<range>)
 of the root numeric type is @i{preferred}.
+
 @begin{Reason}
 @leading@;The reason for this preference is so that expressions involving
 literals and named numbers can be unambiguous.
@@ -3189,6 +3439,24 @@ N : @key[constant] := 123;
     ...
 @key[end] @key[if];
 @end{Example}
+@end{Reason}
+
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0149-1]}
+@ChgAdded{Version=[3],Text=[Similarly,
+there is a preference for the equality operators of the @i{universal_access}
+type (see @RefSecNum{Relational Operators and Membership Tests}). If two
+acceptable interpretations of a constituent of a
+complete context differ only in that one is for an equality operator of the
+@i{universal_access} type, and the other is not, the interpretation using the
+equality operator of the @i{universal_access} type is
+preferred.@Defn2{Term=[preference], Sec=(for universal access equality operators)}]}
+
+@begin{Reason}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[This preference is necessary because of
+  implicit conversion from an anonymous access type to a named access type,
+  which would allow the equality operator of any named access type to be used
+  to compare anonymous access values (and that way lies madness).]}
 @end{Reason}
 
 For a complete context, if there is exactly one
@@ -3214,6 +3482,7 @@ all of the declarations determined by its interpretations,
 and all of the views declared by these declarations.
 @begin{Ramification}
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00224-01]}@ChgNote{Pragma is obsolete}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1]}
 This applies to Inline, Suppress,
 Import, Export, and Convention @nt{pragma}s.
 For example, it is OK to say @lquotes@;@key[pragma] @Chg{Version=[2],
@@ -3225,6 +3494,13 @@ This rule also applies to certain pragmas defined in the
 Specialized Needs Annexes.
 It almost applies to Pure, Elaborate_Body, and Elaborate_All @nt{pragma}s,
 but those can't have overloading for other reasons.
+@Chg{Version=[3],New=[ Note that almost all of
+these pragmas are obsolescent (see @RefSecNum{Specific Suppression of Checks} and
+@RefSecNum{Aspect-related Pragmas}), and a major reason is that this rule
+has proven to be too broad in practice (it is common to want to specify something
+on a single subprogram of an overloaded set, that can't be done easily with this
+rule). @nt{Aspect_specification}s,
+which are given on individual declarations, are preferred in Ada 2012.],Old=[]}
 
 Note that if a pragma argument denotes a @i{call} to a callable
 entity, rather than the entity itself,
@@ -3437,4 +3713,33 @@ Proc (List); -- @RI[OK in Ada 95, ambiguous in Ada 2005.]]}
   that appears to prohibit using @nt{aggregate}s, 'Access, character literals,
   string literals, and @nt{allocator}s in qualified expressions.]}
 @end{DiffWord95}
+
+@begin{Incompatible2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0149-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{incompatibilities with Ada 2005}Implicit
+  conversion is now allowed from anonymous access-to-object types to
+  general access-to-object types. Such conversions can make calls ambiguous.
+  That can only happen when there are two visible subprograms with the same name
+  and have profiles that differ only by a parameter that is of a named or
+  anonymous access type, and the actual argument is of an anonymous access type.
+  This should be rare, as many possible calls would be ambiguous even in Ada
+  2005 (including @nt{allocator}s and any actual of a named access type if the
+  designated types are the same).]}
+@end{Incompatible2005}
+
+@begin{Extend2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0149-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 2005}Implicit conversion
+  is allowed from anonymous access-to-object types to general access-to-object
+  types if the designated type is convertible and runtime checks are minimized.
+  See also the incompatibilities section.]}
+@end{Extend2005}
+
+@begin{DiffWord2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0102-1]}
+  @ChgAdded{Version=[3],Text=[Added a requirement
+  here that implicit conversions are convertible to the appropriate type.
+  This rule was scattered about the Standard, we moved a single generalized
+  version here.]}
+@end{DiffWord2005}
 

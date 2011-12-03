@@ -1,4 +1,4 @@
-@comment{ $Source: d:\\CvsRoot/ARM/Source/PRE_ADA.MSS,v $ }
+@comment{ $Source: e:\\cvsroot/ARM/Source/pre_ada.mss,v $ }
 @comment{ $Revision: 1.15 $ $Date: 00/03/08 Created by RLB to avoid Includes }
 @Part(predefstandard, Root="ada.mss")
 

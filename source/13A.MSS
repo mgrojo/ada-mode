@@ -1,10 +1,10 @@
 @Part(13, Root="ada.mss")
 
-@Comment{$Date: 2006/10/19 06:40:29 $}
+@Comment{$Date: 2011/11/01 23:14:14 $}
 @LabeledSection{Representation Issues}
 
-@Comment{$Source: d:\\CvsRoot/ARM/Source/13A.MSS,v $}
-@Comment{$Revision: 1.69 $}
+@Comment{$Source: e:\\cvsroot/ARM/Source/13a.mss,v $}
+@Comment{$Revision: 1.99 $}
 
 @begin{Intro}
 @ChgRef{Version=[1],Kind=[Revised],Ref=[8652/0009],ARef=[AI95-00137-01]}
@@ -23,12 +23,16 @@ given the new Ada 95 semantics given in this section.
 
 @begin{Intro}
 @ChgRef{Version=[1],Kind=[Added],Ref=[8652/0009],ARef=[AI95-00137-01]}
+@ChgRef{Version=[3],Kind=[RevisedAdded],ARef=[AI05-0183-1]}
 @ChgAdded{Version=[1],Text=[@Redundant[Representation and operational items can
 be used to specify aspects of entities. Two kinds of aspects of entities can be
 specified: aspects of representation and operational aspects. Representation
 items specify how the types and other entities of the language are to be mapped
 onto the underlying machine. Operational items specify other properties of
-entities.]]}
+entities.@Chg{Version=[3],New=[ In addition to representation and operational
+items, aspects of entities may be specified using an @nt{aspect_specification} (see
+@RefSecNum{Aspect Specifications}), which is an optional element of certain
+kinds of declarations.@Defn{aspect}],Old=[]}]]}
 
 @ChgRef{Version=[1],Kind=[Revised],Ref=[8652/0009],ARef=[AI95-00137-01]}
 @Defn{representation item}
@@ -252,9 +256,11 @@ same value.
 For example, an implementation might use a biased representation in
 some cases but not others:
 @begin{Example}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1]}
 @key[subtype] S @key[is] Integer @key[range] 1..256;
-@key[type] A @key[is] @key[array](Natural @key[range] 1..4) @key[of] S;
-@key[pragma] Pack(A);
+@key[type] A @key[is] @key[array](Natural @key[range] 1..4) @key[of] S@Chg{Version=[3],New=[
+   @key[with] Pack],Old=[;
+@key[pragma] Pack(A)]};
 X : S := 3;
 Y : A := (1, 2, 3, 4);
 @end{Example}
@@ -275,6 +281,7 @@ Such tricks are not required, but are allowed.
   or a sign extension.
 @end{Discussion}
 @begin{Ramification}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1]}
 For example, suppose S'Size = 2, and an object X is of subtype S.
 If the machine code typically uses a 32-bit load instruction to load the
 value of X, then X'Size should be 32, even though 30 bits of the value
@@ -282,7 +289,8 @@ are just zeros or sign-extension bits.
 On the other hand, if the machine code typically masks out those 30
 bits, then X'Size should be 2.
 Usually, such masking only happens for components of a composite type
-for which packing, Component_Size, or record layout is specified.
+for which @Chg{Version=[3],New=[Pack],Old=[packing]}, Component_Size, or
+record layout is specified.
 
 Note, however, that the formal parameter of an instance of
 Unchecked_Conversion is a special case.
@@ -295,6 +303,7 @@ without any particular representation.
 An object is considered to be more concrete.
 @end{Ramification}
 
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0112-1]}
 @RootDefn{aspect of representation}
 @Defn{representation aspect}
 @Defn2{Term=[directly specified],
@@ -314,7 +323,11 @@ A representation item that names a subtype is either
 @i(subtype-specific) (Size and Alignment clauses)
 or @i{type-related} (all others).
 @Redundant[Subtype-specific aspects may differ for
-different subtypes of the same type.]
+different subtypes of the same type.]@Chg{Version=[3],New=[ Unless otherwise
+specified, the name of the aspect of representation specified by a
+representation pragma is the name of the pragma.],Old=[]}
+
+
 @begin{Honest}
 @i{Type-related} and @i{subtype-specific} are defined likewise for
 the corresponding aspects of representation.
@@ -323,9 +336,13 @@ the corresponding aspects of representation.
 Some representation items directly specify more than one aspect.
 @end{Honest}
 @begin{Discussion}
-For example, a @nt{pragma} Export specifies the convention
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1]}
+For example, a @nt{pragma} Export
+@Chg{Version=[3],New=[(see @RefSecNum{Interfacing Pragmas}) ],Old=[]}specifies the convention
 of an entity,
-and also specifies that it is exported.
+and also specifies that it is exported.@Chg{Version=[3],New=[ Such items are
+obsolescent; directly specifying
+the associated aspects is preferred.],Old=[]}
 @end{Discussion}
 @begin{Ramification}
 Each specifiable attribute constitutes a separate aspect.
@@ -339,6 +356,14 @@ We don't need to say that an @nt{at_clause} or a
 @nt{mod_clause} specify separate aspects,
 because these are equivalent to @nt{attribute_definition_clause}s.
 See @RefSec{At Clauses}, and @RefSec{Mod Clauses}.
+
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0112-1]}
+@ChgAdded{Version=[3],Text=[We give a default naming for representation
+aspects of representation pragmas so we don't have to do that for every
+pragma. Operational and representation attributes are given a default naming
+in @RefSecNum{Operational and Representation Attributes}.
+We don't want any anonymous aspects; that would make other rules
+more difficult to write and understand.]}
 @end{Reason}
 @begin{Ramification}
 @Leading@;The following representation items are type-related:
@@ -381,9 +406,14 @@ pragma Pack
 
 pragmas Import, Export, and Convention (when applied to a type)
 
-pragmas Atomic and Volatile (when applied to a type)
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0009-1]}
+pragmas Atomic@Chg{Version=[3],New=[, Independent,],Old=[]} and Volatile
+(when applied to a type)
 
-pragmas Atomic_Components and Volatile_Components (when applied to an array type)
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0009-1]}
+pragmas Atomic_Components@Chg{Version=[3],New=[, Independent_Components,],Old=[]}
+and Volatile_Components (when applied to @Chg{Version=[3],New=[a],Old=[an
+array]} type)
 
 pragma Discard_Names (when applied to an enumeration or tagged type)
 @end{Itemize}
@@ -409,23 +439,35 @@ than a type)
 
 pragmas Atomic and Volatile (when applied to an object or a component)
 
-pragmas Atomic_Components and Volatile_Components (when applied to an
-array object)
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0009-1]}
+pragmas Atomic_Components@Chg{Version=[3],New=[, Independent_Components,],Old=[]}
+and Volatile_Components (when applied to an array object)
 
 pragma Discard_Names (when applied to an exception)
 
 pragma Asynchronous (applies to procedures)
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00414-01]}
-@ChgAdded{Version=[2],Text=[pragma No_Return (applies to procedures)]}
+@ChgAdded{Version=[2],Text=[pragma No_Return (applies to subprograms)]}
 @end{Itemize}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0229-1]}
+@ChgAdded{Version=[3],Text=[While an @nt{aspect_specification} is not
+a representation item, a similar categorization applies to the aspect
+that corresponds to each of these representation items (along with
+aspects that do not have associated representation items).]}
 @end{Ramification}
 
 @ChgRef{Version=[1],Kind=[Added],Ref=[8652/0009],ARef=[AI95-00137-01]}
+@ChgRef{Version=[3],Kind=[RevisedAdded],ARef=[AI05-0183-1]}
 @ChgAdded{Version=[1],Text=[An operational item @i<directly specifies> an @i<operational aspect>
-of the type of the subtype denoted by the @nt{local_name}. The @nt{local_name}
+of the @Chg{Version=[3],New=[entity],Old=[type of the subtype]} denoted by
+the @nt{local_name}@Chg{Version=[3],New=[, except in
+the case of a type-related operational item, whose @nt{local_name} shall
+denote a first subtype, and which directly specifies an aspect of the
+type of the subtype],Old=[. The @nt{local_name}
 of an operational item shall denote a first subtype. An operational item that
-names a subtype is type-related.
+names a subtype is type-related]}.
 @RootDefn{operational aspect}
 @Defn2{Term=[directly specified],
   Sec=(of an operational aspect of an entity)}
@@ -457,12 +499,15 @@ type-related:]}
 @end{Ramification}
 
 
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0183-1]}
 A representation item that directly specifies an aspect of a subtype or
 type shall appear after the type is completely defined
 (see @RefSecNum{Completions of Declarations}),
 and before the subtype or type is frozen (see @RefSecNum{Freezing Rules}).
-If a representation item is given that directly specifies an aspect of an
-entity, then it is illegal to give another representation item that
+If a representation item @Chg{Version=[3],New=[or @nt{aspect_specification} ],Old=[]}is
+given that directly specifies an aspect of an
+entity, then it is illegal to give another representation item
+@Chg{Version=[3],New=[or @nt{aspect_specification} ],Old=[]}that
 directly specifies the same aspect of the entity.
 @begin{Ramification}
 @ChgRef{Version=[1],Kind=[Revised],Ref=[8652/0009],ARef=[AI95-00137-01]}
@@ -472,21 +517,51 @@ an aspect of an entity is required to appear before the entity is frozen
 prevents changing the representation of an entity
 after using the entity in ways that require the representation to be known.
 @end{Ramification}
+@begin{Honest}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0183-1]}
+  @ChgAdded{Version=[3],Text=[The rule preventing multiple specification
+  is also intended to cover other ways to specify representation aspects,
+  such as obsolescent @nt{pragma} Priority. Priority is not a representation
+  pragma, and as such is neither a representation item nor an
+  @nt{aspect_specification}. Regardless, giving both a @nt{pragma} Priority
+  and an @nt{aspect_specification} for Priority is illegal. We didn't want
+  to complicate the wording solely to support obsolescent features.]}
+@end{Honest}
 
 @ChgRef{Version=[1],Kind=[Added],Ref=[8652/0009],ARef=[AI95-00137-01]}
+@ChgRef{Version=[3],Kind=[RevisedAdded],ARef=[AI05-0183-1]}
 @ChgAdded{Version=[1],Text=[An operational item that directly specifies an
-aspect of a type
-shall appear before the type is frozen (see @RefSecNum{Freezing Rules}).
-If an operational item is given that directly specifies an aspect of a type,
-then it is illegal to give another operational item that directly specifies
-the same aspect of the type.]}
+aspect of @Chg{Version=[3],New=[an entity],Old=[a type]} shall appear before the
+@Chg{Version=[3],New=[entity],Old=[type]} is frozen (see
+@RefSecNum{Freezing Rules}). If an operational item @Chg{Version=[3],New=[or
+@nt{aspect_specification} ],Old=[]}is given that directly specifies an aspect of
+@Chg{Version=[3],New=[an entity],Old=[a type]}, then it is illegal to give
+another operational item @Chg{Version=[3],New=[or @nt{aspect_specification}
+],Old=[]}that directly specifies the same aspect of the
+@Chg{Version=[3],New=[entity],Old=[type]}.]}
 @begin{Ramification}
-  @ChgRef{Version=[1],Kind=[Added]}
+  @ChgRef{Version=[1],Kind=[AddedNormal]}
   @ChgAdded{Version=[1],Text=[Unlike representation items, operational
   items can be specified on
   partial views. Since they don't affect the representation, the full
   declaration need not be known to determine their legality.]}
 @end{Ramification}
+
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0106-1]}
+@ChgAdded{Version=[3],Text=[Unless otherwise specified, an operational or
+representation item shall not specify an aspect of a generic formal
+parameter.]}
+@begin{Reason}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[Specifying an aspect on a generic formal
+  parameter implies an added contract for a generic unit. That contract
+  needs to be defined via generic parameter matching rules, and, as
+  aspects vary widely, that has to be done for each such aspect. Since
+  most aspects do not need this complexity (including all language-defined
+  aspects as of this writing), we avoid the complexity by saying that
+  such contract-forming aspect specifications are banned unless the
+  rules defining them explicitly exist.]}
+@end{Reason}
 
 For an untagged derived type, no type-related representation items
 are allowed if the parent type is a by-reference type,
@@ -498,6 +573,7 @@ or has any user-defined primitive subprograms.
   Old=[]}.
 @end{Ramification}
 @begin{Reason}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1]}
   The reason for forbidding type-related representation items on
   untagged by-reference types is because a change of representation
   is impossible when passing by reference (to an inherited subprogram).
@@ -514,16 +590,16 @@ or has any user-defined primitive subprograms.
   from changing the representation of the parent part;
   we want to allow a type-related representation item on a type extension
   to specify aspects of the extension part.
-  For example, a @nt{pragma} Pack will cause packing of the extension
-  part, but not of the parent part.
+  For example, @Chg{Version=[3],New=[specifying aspect],Old=[a @nt{pragma}]}
+  Pack will cause packing of the extension part, but not of the parent part.
 @end{Reason}
 
 @ChgRef{Version=[1],Kind=[Revised],Ref=[8652/0009],ARef=[AI95-00137-01],Ref=[8652/0011],ARef=[AI95-00117-01]}
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00326-01]}
-@Chg{New=[Operational and r],Old=[R]}epresentation aspects of a generic formal
-parameter are the same as those of the actual.
-@Chg{New=[Operational and representation aspects @Chg{Version=[2],New=[],
-Old=[of a partial view ]}are the
+@Chg{New=[Operational and representation],Old=[Representation]} aspects of
+a generic formal parameter are the same as those of the actual.
+@Chg{New=[Operational and representation aspects
+@Chg{Version=[2],New=[],Old=[of a partial view ]}are the
 same @Chg{Version=[2],New=[for all views of a type],Old=[as those of the full view]}.],Old=[]}
 A type-related representation item is not allowed for a
 descendant of a generic formal untagged type.
@@ -548,6 +624,15 @@ and partial views, have the same operational and representation aspects.
 That's important so that the properties don't change when changing views.
 While most aspects are not available for an incomplete view, we don't want
 to leave any holes by not saying that they are the same.]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0083-1]}
+@ChgAdded{Version=[3],Text=[However, this does not apply to objects.
+Different views of an object can have
+different representation aspects. For instance, an actual object passed
+by reference and the associated formal parameter may have different values for
+Alignment even though the formal parameter is merely a view of the
+actual object. This is necessary to maintain the language design principle
+that Alignments are always known at compile time.]}
 @end{Ramification}
 
 A representation item that specifies the Size for a given subtype,
@@ -620,7 +705,7 @@ the ancestors of a @nt{type_declaration}.]}]}
 @begin{ImplNote}
   @ChgRef{Version=[2],Kind=[AddedNormal]}
   @ChgAdded{Version=[2],Text=[An implementation can only use this rule to
-  reject @nt{type_declaration}s where one its ancestors has a representation
+  reject @nt{type_declaration}s where one of its ancestors has a representation
   item. An implementation must ensure that
   the default representations of ancestors cannot conflict.]}
 @end{ImplNote}
@@ -642,33 +727,36 @@ for a nonfirst subtype.
 @begin{Example}
 @ChgRef{Version=[1],Kind=[Revised]}@ChgNote{Presentation AI-00114}
 @key[package] P1 @key[is]
-    @key[subtype] S1 @key[is] Integer @key[range] 0..2**16-1;
-    @key[for] S1'Size @key[use] 16; --@RI{ Illegal!}
-        --@RI{ S1'Size would be 16 by default.}
-    @key[type] A1 @key[is] @key[access] @Chg{New=[@Key[all] ],Old=[]}S1;
-    X1: A1;
+   @key[subtype] S1 @key[is] Integer @key[range] 0..2**16-1;
+   @key[for] S1'Size @key[use] 16; --@RI{ Illegal!}
+      --@RI{ S1'Size would be 16 by default.}
+   @key[type] A1 @key[is] @key[access] @Chg{New=[@Key[all] ],Old=[]}S1;
+   X1: A1;
 @key[end] P1;
 
 @ChgRef{Version=[1],Kind=[Revised]}@ChgNote{Presentation AI-00114}
 @key[package] P2 @key[is]
-    @key[subtype] S2 @key[is] Integer @key[range] 0..2**16-1;
-    @key[for] S2'Size @key[use] 32; --@RI{ Illegal!}
-    @key[type] A2 @key[is] @key[access] @Chg{New=[@Key[all] ],Old=[]}S2;
-    X2: A2;
+   @key[subtype] S2 @key[is] Integer @key[range] 0..2**16-1;
+   @key[for] S2'Size @key[use] 32; --@RI{ Illegal!}
+   @key[type] A2 @key[is] @key[access] @Chg{New=[@Key[all] ],Old=[]}S2;
+   X2: A2;
 @key[end] P2;
 
 @ChgRef{Version=[1],Kind=[Revised]}@ChgNote{Presentation AI-00114}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1]}
 @key[procedure] Q @key[is]
-    @key[use] P1, P2;
-    @key[type] Array1 @key[is] @key[array](Integer @key[range] <>) @key[of] @key[aliased] S1;
-    @key[pragma] Pack(Array1);
-    Obj1: Array1(1..100);
-    @key[type] Array2 @key[is] @key[array](Integer @key[range] <>) @key[of] @key[aliased] S2;
-    @key[pragma] Pack(Array2);
-    Obj2: Array2(1..100);
+   @key[use] P1, P2;
+   @key[type] Array1 @key[is] @key[array](Integer @key[range] <>) @key[of] @key[aliased] S1@Chg{Version=[3],New=[
+      @key[with] Pack],Old=[;
+   @key[pragma] Pack(Array1)]};
+   Obj1: Array1(1..100);
+   @key[type] Array2 @key[is] @key[array](Integer @key[range] <>) @key[of] @key[aliased] S2@Chg{Version=[3],New=[
+      @key[with] Pack],Old=[;
+   @key[pragma] Pack(Array2)]};
+   Obj2: Array2(1..100);
 @key[begin]
-    X1 := Obj2(17)'@Chg{New=[Unchecked_],Old=[]}Access;
-    X2 := Obj1(17)'@Chg{New=[Unchecked_],Old=[]}Access;
+   X1 := Obj2(17)'@Chg{New=[Unchecked_],Old=[]}Access;
+   X2 := Obj1(17)'@Chg{New=[Unchecked_],Old=[]}Access;
 @key[end] Q;
 @end{Example}
 
@@ -691,6 +779,7 @@ The same issues apply to Alignment.
 @end{Reason}
 
 @ChgRef{Version=[1],Kind=[Revised],Ref=[8652/0040],ARef=[AI95-00108-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0009-1]}
 A derived type inherits each type-related aspect
 @Chg{New=[of representation ],Old=[]}of its parent type that
 was directly specified before the declaration of the derived type,
@@ -704,8 +793,9 @@ that was inherited by the parent subtype from the grandparent subtype,
 but only if the parent subtype statically matches the first subtype of
 the parent type.
 An inherited aspect of representation is overridden by a subsequent
-representation item that specifies the same aspect of the type or
-subtype.
+representation item that specifies
+@Chg{Version=[3],New=[a different value for ],Old=[]}the same aspect of
+the type or subtype.
 @begin{Honest}
 A @nt{record_representation_clause} for a record extension
 does not override the layout of the parent part;
@@ -716,16 +806,26 @@ it is inherited by the record extension.
 If a representation item for the parent appears after the
 @nt{derived_@!type_@!definition},
 then inheritance does not happen for that representation item.
+
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0009-1]}
+@ChgAdded{Version=[3],Text=[If an inherited aspect is confirmed by a later
+representation item for a derived type, the confirming representation item does
+not override the inherited one. Thus the derived type has both a specified
+confirming and an inherited non-confirming representation item @em this means
+that rules that apply only to non-confirming representation items still apply
+to this type.]}
 @end{Ramification}
 
 @ChgRef{Version=[1],Kind=[Added],Ref=[8652/0040],ARef=[AI95-00108-01]}
 @ChgRef{Version=[2],Kind=[RevisedAdded],ARef=[AI95-00444-01]}
+@ChgRef{Version=[3],Kind=[RevisedAdded],ARef=[AI05-0183-1]}
 @ChgAdded{Version=[1],Text=[In contrast, whether operational aspects are
-inherited by @Chg{Version=[2],New=[an untagged],Old=[a]}
-derived type depends on each specific aspect.
-@Chg{Version=[2],New=[@Redundant[Operational aspects are never inherited
-for a tagged type.] ],Old=[]}When operational aspects are
-inherited by @Chg{Version=[2],New=[an untagged],Old=[a]} derived type,
+inherited by @Chg{Version=[3],New=[a],Old=[@Chg{Version=[2],New=[an untagged],Old=[a]}]}
+derived type depends on each specific aspect@Chg{Version=[3],New=[; unless specified,
+an operational aspect is not inherited],Old=[]}. @Chg{Version=[3],New=[],
+Old=[@Chg{Version=[2],New=[@Redundant[Operational aspects are never inherited
+for a tagged type.] ],Old=[]}]}When operational aspects are
+inherited by @Chg{Version=[3],New=[a],Old=[@Chg{Version=[2],New=[an untagged],Old=[a]}]} derived type,
 aspects that were directly specified @Chg{Version=[2],New=[by operational
 items that are visible at the point],Old=[before the declaration]} of
 the derived type@Chg{Version=[2],New=[ declaration],Old=[]}, or
@@ -742,7 +842,8 @@ inheritance does not happen for that operational item.]}
 @begin{Discussion}
 @ChgRef{Version=[1],Kind=[Added]}
 @ChgRef{Version=[2],Kind=[RevisedAdded],ARef=[AI95-00444-01]}
-@ChgAdded{Version=[1],Text=[@Chg{Version=[2],New=[Only],Old=[Currently, only]}
+@ChgRef{Version=[3],Kind=[DeletedAddedNoDelMsg],ARef=[AI05-0183-1]}
+@ChgDeleted{Version=[3],Text=[@Chg{Version=[1],New=[@Chg{Version=[2],New=[Only],Old=[Currently, only]}
 untagged types inherit operational aspects.
 @Chg{Version=[2],New=[Inheritance from tagged types causes problems, as the
 different views can have different visibility on operational items @em
@@ -755,7 +856,7 @@ also handles any extension components.],Old=[We considered writing this rule
 that way, but rejected it as that could be too
 specific for future operational aspects. (After all, that is precisely the
 problem that caused us to introduce @lquotes@;operational aspects@rquotes in
-the first place.)]}]}
+the first place.)]}],Old=[]}]}
 @end{Discussion}
 
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00444-01]}
@@ -806,6 +907,17 @@ components of a composite value in the same way for all subtypes of a
 given composite type.
 Hence, Component_Size and record layout are type-related aspects.
 @end{Discussion}
+@begin{Ramification}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0083-1]}
+@ChgAdded{Version=[3],Text=[As noted previously, in the case of an
+object, the entity mentioned in this text is a specific view of an object. That
+means that only references to the same view of an object that has a specified
+value for a representation aspect @i<R> necessarily have that value for the
+aspect @i<R>. The value of the aspect @i<R> for a different view of that object
+is unspecified. In particular, this means that the representation values for
+by-reference parameters is unspecified; they do not have to be the same as those
+of the underlying object.]}
+@end{Ramification}
 
 @ChgRef{Version=[1],Kind=[Added],Ref=[8652/0040],ARef=[AI95-00108-01]}
 @ChgAdded{Version=[1],Text=[@Defn2{Term=[specified], Sec=(of an operational aspect of an entity)}
@@ -994,7 +1106,10 @@ an indefinite or abstract subtype.]}
 @begin{Ramification}
 @ChgRef{Version=[1],Kind=[Revised]}@ChgNote{Presentation AI-00075}
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00291-02]}
-A pragma Pack will typically not pack so tightly as to disobey the above
+@ChgRef{Version=[2],Kind=[Revised],ARef=[AI05-0229-1]}
+@Chg{Version=[3],New=[A type with the Pack aspect specified],Old=[A pragma Pack]}
+will typically not @Chg{Version=[3],New=[be packed],Old=[pack]} so tightly as to
+disobey the above
 @Chg{Version=[2],New=[rules],Old=[rule]}. A Component_Size clause or
 @nt{record_representation_clause} will typically @Chg{New=[be],Old=[by]}
 illegal if it disobeys the above @Chg{Version=[2],New=[rules],Old=[rule]}.
@@ -1013,6 +1128,14 @@ that minimally aligned objects of this type might be declared at some point.]}
 Text=[The recommended level of support for all representation items should be
 followed.]}]}
 @end{ImplAdvice}
+
+@begin{Notes}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0229-1]}
+  @ChgAdded{Version=[3],Text=[Aspects that can be specified are defined
+    throughout this International Standard, and are summarized in
+    @RefSecNum{Language-Defined Aspects}.]}
+@end{Notes}
+
 
 @begin{Incompatible83}
 @Defn{incompatibilities with Ada 83}
@@ -1117,40 +1240,90 @@ Some of the more stringent requirements are moved to
   otherwise. This wording matches the rules with reality.]}
 
   @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00444-01]}
+  @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0005-1]}
   @ChgAdded{Version=[2],Text=[Added wording so that inheritance depends on
   whether operational items are visible rather than whether they occur before
   the declaration (we don't want to look into private parts). Limited
-  operational inheritance to untagged types to avoid anomolies with private
-  extensions (this is not incompatible, no existing operational attribute
-  used this capability). Also added
-  wording to clearly define that subprogram inheritance works like derivation
-  of subprograms.]}
+  operational inheritance to untagged types to avoid
+  @Chg{Version=[3],New=[anomalies],Old=[anomolies]} with private extensions
+  (this is not incompatible, no existing operational attribute used this
+  capability). Also added wording to clearly define that subprogram inheritance
+  works like derivation of subprograms.]}
 @end{DiffWord95}
 
+@begin{Incompatible2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0106-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{incompatibilities with Ada 2005}@b<Correction 2:>
+  Specifying a language-defined aspect for a generic formal parameter is no
+  longer allowed. Most aspects could not be specified on these anyway; moreover,
+  this was not allowed in Ada 83, so it is unlikely that compilers are
+  supporting this as a capability (and it is not likely that they have a
+  consistent definition of what it means if it is allowed). Thus, we expect
+  this to occur rarely in existing programs.]}
+@end{Incompatible2005}
 
-@LabeledClause{Pragma Pack}
+@begin{DiffWord2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0009-1]}
+  @ChgAdded{Version=[3],Text=[@b<Correction:> Defined that overriding of
+  an aspect of representation only happens for a non-confirming representation
+  item. This prevents a derived type from being considered to have
+  only a confirming representation item when the value would be non-confirming
+  if given on a type that does not inherit any aspects of representation.
+  This change just eliminates a wording confusion and ought not change any
+  behavior.]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0112-1]}
+  @ChgAdded{Version=[3],Text=[@b<Correction:> Defined a default naming for
+  representation aspects that are representation pragmas.]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0183-1]}
+  @ChgAdded{Version=[3],Text=[Added text ensuring that the rules for
+  representational and operational items also apply appropriately to
+  @nt{aspect_specification}s; generalized operational aspects so that they
+  can be defined for entities other than types. Any extensions are documented
+  elsewhere.]}
+@end{DiffWord2005}
+
+
+@LabeledRevisedClause{Version=[3],New=[Packed Types],Old=[Pragma Pack]}
 
 @begin{Intro}
-@redundant[A @nt{pragma} Pack specifies that storage
-minimization should be the main criterion when
-selecting the representation of a composite type.]
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1]}
+@redundant[@Chg{Version=[3],New=[The Pack aspect having the value True],Old=[A
+@nt{pragma} Pack]} specifies that storage minimization should be the main
+criterion when selecting the representation of a composite type.]
 @end{Intro}
+
+@begin{NotIso}
+@ChgAdded{Version=[3],Noprefix=[T],Noparanum=[T],Text=[@Shrink{@i<Paragraphs 2
+through 4 were moved to @RefSec{Obsolescent Features}.>}]}@Comment{This message
+should be deleted if the paragraphs are ever renumbered.}
+@end{NotIso}
 
 @begin{Syntax}
 @begin{SyntaxText}
-@Leading@Keepnext@;The form of a @nt{pragma} Pack is as follows:
+@ChgRef{Version=[3],Kind=[DeletedNoDelMsg],ARef=[AI05-0229-1]}
+@ChgDeleted{Version=[3],Type=[Leading],KeepNext=[T],Text=[The form of a
+@nt{pragma} Pack is as follows:]}
 @end{SyntaxText}
 
-@PragmaSyn`@key{pragma} @prag(Pack)(@SynI{first_subtype_}@Syn2{local_name});'
+@ChgRef{Version=[3],Kind=[DeletedNoDelMsg]}
+@DeletedPragmaSyn<Version=[3],InitialVersion=[0],@ChgDeleted{Version=[3],
+Text=[@key{pragma} @prag(Pack)(@SynI{first_subtype_}@Syn2{local_name});]}>
 @end{Syntax}
 
 @begin{Legality}
-The @SynI{first_subtype_}@nt{local_name} of a @nt{pragma} Pack
-shall denote a composite subtype.
+@ChgRef{Version=[3],Kind=[DeletedNoDelMsg],ARef=[AI05-0229-1]}
+@ChgDeleted{Version=[3],Text=[The @SynI{first_subtype_}@nt{local_name} of a
+@nt{pragma} Pack shall denote a composite subtype.]}
 @end{Legality}
 
 @begin{StaticSem}
-@PDefn2{Term=[representation pragma], Sec=(Pack)}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1]}
+@ChgAdded{Version=[3],Type=[Leading],Text=[]}@Comment{A fake to get a conditional Leading}
+@Chg{Version=[3],New=[For a full type declaration of a composite type, the
+following language-defined representation aspect may be specified:],
+Old=[@PDefn2{Term=[representation pragma], Sec=(Pack)}
 @PDefn2{Term=[pragma, representation], Sec=(Pack)}
 @PDefn2{Term=[aspect of representation], Sec=(packing)}
 @Defn2{Term=[packing], Sec=(aspect of representation)}
@@ -1158,10 +1331,32 @@ shall denote a composite subtype.
 A @nt{pragma} Pack specifies the @i{packing} aspect of representation;
 the type (or the extension part) is said to be @i{packed}.
 For a type extension, the parent part is packed as for the parent
-type, and a @nt{pragma} Pack causes packing only of the extension part.
+type, and a @nt{pragma} Pack causes packing only of the extension part.]}
+
+@begin{Description}
+@ChgRef{Version=[3],Kind=[Added]}
+@ChgAdded{Version=[3],Text=[Pack@\The type of aspect Pack is Boolean. When
+  aspect Pack is True for a type, the type (or the extension part) is said to be
+  @i{packed}. For a type extension, the parent part is packed as for the parent
+  type, and specifying Pack causes packing only of the extension part.
+@Defn{packed}@AspectDefn{Pack}]}
+
+  @ChgAspectDesc{Version=[3],Kind=[AddedNormal],Aspect=[Pack],
+    Text=[@ChgAdded{Version=[3],Text=[Minimize storage when laying out records
+      and arrays.]}]}
+
+@ChgRef{Version=[3],Kind=[Added]}
+  @ChgAdded{Version=[3],NoPrefix=[T],Text=[If directly specified, the
+  @nt{aspect_definition} shall be a static expression. If not specified
+  (including by inheritance), the aspect is False.]}
+@end{Description}
+
 @begin{Ramification}
-The only high level semantic effect of a @nt{pragma} Pack
-is independent addressability (see @RefSec{Shared Variables}).
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1]}
+The only high level semantic effect of @Chg{Version=[3],New=[specifying the],Old=[a @nt{pragma}]
+Pack@Chg{Version=[3],New=[ aspect],Old=[]}
+is @Chg{Version=[3],New=[potential loss of ],Old=[]}independent
+addressability (see @RefSec{Shared Variables}).]}
 @end{Ramification}
 @end{StaticSem}
 
@@ -1173,14 +1368,17 @@ subject to reasonable complexity in addressing calculations.
 @ChgImplAdvice{Version=[2],Kind=[Added],Text=[@ChgAdded{Version=[2],
 Text=[Storage allocated to objects of a packed type should be minimized.]}]}
 @begin{Ramification}
-A @nt{pragma} Pack is for gaining space efficiency,
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1]}
+@Chg{Version=[3],New=[Specifying the],Old=[A @nt{pragma}]}
+Pack@Chg{Version=[3],New=[ aspect],Old=[]} is for gaining space efficiency,
 possibly at the expense of time.
 If more explicit control over representation is desired,
 then a @nt{record_representation_clause},
 a Component_Size clause,
 or a Size clause should be used instead of,
 or in addition to,
-a @nt{pragma} Pack.
+@Chg{Version=[3],New=[the],Old=[a @nt{pragma}]}
+Pack@Chg{Version=[3],New=[ aspect],Old=[]}.
 @end{Ramification}
 
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00291-02]}
@@ -1191,8 +1389,12 @@ need not be allocated on a storage element boundary.]}
 @Comment{No "should" here; thus no ImplAdvice entry. This really qualifies the
 item above}
 
-@Leading@PDefn2{Term=[recommended level of support], Sec=(pragma Pack)}
-The recommended level of support for pragma Pack is:
+@Leading@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1]}
+@Chg{Version=[3],New=[@PDefn2{Term=[recommended level of support], Sec=(aspect Pack)}],
+Old=[@PDefn2{Term=[recommended level of support], Sec=(pragma Pack)}]}
+The recommended level of support for
+@Chg{Version=[3],New=[the],Old=[@nt{pragma}]}
+Pack@Chg{Version=[3],New=[ aspect],Old=[]} is:
 @begin{Itemize}
 For a packed record type,
 the components should be packed as tightly as possible
@@ -1212,9 +1414,12 @@ probably more efficient than a component of size 7 plus a 1-bit gap
 (assuming the gap is needed anyway).
 @end{Ramification}
 
-For a packed array type, if the component subtype's Size is less
-than or equal to the word size, and Component_Size is not
-specified for the type, Component_Size should be less than or
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0009-1]}
+For a packed array type, if the @Chg{Version=[3],New=[],
+Old=[component subtype's ]}Size@Chg{Version=[3],New=[ of the
+component subtype],Old=[]} is less
+than or equal to the word size@Chg{Version=[3],New=[],Old=[, and
+Component_Size is not specified for the type]}, Component_Size should be less than or
 equal to the Size of the component subtype, rounded up to the nearest
 factor of the word size.
 @begin{Ramification}
@@ -1223,18 +1428,35 @@ its Size will generally be a multiple of Storage_Unit,
 so it probably won't get packed very tightly.
 @end{Ramification}
 @end{Itemize}
-@ChgImplAdvice{Version=[2],Kind=[AddedNormal],Text=[@ChgAdded{Version=[2],
-Text=[The recommended level of support for pragma Pack should be
+@ChgImplAdvice{Version=[3],Kind=[Revised],InitialVersion=[2],
+Text=[@ChgAdded{Version=[2],
+Text=[The recommended level of support for @Chg{Version=[3],New=[the],Old=[pragma]}
+Pack@Chg{Version=[3],New=[ aspect],Old=[]} should be
 followed.]}]}
 @end{ImplAdvice}
 
 @begin{DiffWord95}
   @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00291-02]}
-  @ChgAdded{Version=[2],Text=[Added clarification that pragma Pack can
+  @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1]}
+  @ChgAdded{Version=[2],Text=[Added clarification that
+  @Chg{Version=[3],New=[the],Old=[pragma]} Pack@Chg{Version=[3],New=[ aspect],Old=[]} can
   ignore alignment requirements on types that don't have by-reference or
   aliased parts. This was always intended, but there was no wording to that
   effect.]}
 @end{DiffWord95}
+
+@begin{Extend2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0229-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 2005}
+  Aspect Pack is new; @nt{pragma} Pack is now obsolescent.]}
+@end{Extend2005}
+
+@begin{DiffWord2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0009-1]}
+  @ChgAdded{Version=[3],Text=[@b<Correction:> Fixed so that the
+  presence or absence of a confirming Component_Size representation
+  clause does not change the meaning of the Pack aspect.]}
+@end{DiffWord2005}
 
 
 
@@ -1310,6 +1532,7 @@ For example, the following kinds of things are allowed:
 
 @begin{Legality}
 @ChgRef{Version=[1],Kind=[Revised],Ref=[8652/0009],ARef=[AI95-00137-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0183-1]}
 @RootDefn{specifiable (of an attribute and for an entity)}
 @RootDefn2{Term=[attribute], Sec=(specifiable)}
 An @nt{attribute_designator} is allowed in an
@@ -1320,7 +1543,8 @@ if the implementation allows it.
 @PDefn2{Term=[aspect of representation], Sec=(specifiable attributes)}
 Each specifiable attribute constitutes an
 @Chg{New=[@PDefn2{Term=[operational aspect], Sec=(specifiable attributes)}
-operational aspect or ],Old=[]}aspect of representation.
+operational aspect or ],Old=[]}aspect of representation@Chg{Version=[3],New=[;
+the name of the aspect is that of the attribute],Old=[]}.
 @begin{Discussion}
 For each specifiable attribute,
 we generally say something like,
@@ -1420,19 +1644,32 @@ Words are expected to be independently addressable.
 @end{Discussion}
 
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00133-01]}
+@ChgRef{Version=[3],Kind=[RevisedAdded],ARef=[AI05-0092-1]}
 @ChgAdded{Version=[2],Text=[@Defn{machine scalar}
 A @i{machine scalar} is an amount of storage that can be conveniently and
 efficiently loaded, stored, or operated upon by the hardware. Machine scalars
 consist of an integral number of storage elements. The set of machine scalars
-is implementation defined, but must include at least the storage element and
+is implementation defined, but @Chg{Version=[3],New=[includes],Old=[must include]}
+at least the storage element and
 the word. Machine scalars are used to interpret @nt{component_clause}s when the
 nondefault bit ordering applies.]}
 @ChgImplDef{Version=[2],Kind=[Added],Text=[@ChgAdded{Version=[2],
 Text=[The set of machine scalars.]}]}
+@begin{Ramification}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0092-1]}
+  @ChgAdded{Version=[3],Text=[A single storage element is a machine scalar
+  in all Ada implementations. Similarly, a word is a machine scalar in
+  all implementations (although it might be the same as a storage element).
+  An implementation may define other machine scalars that make sense on the
+  target (a half-word, for instance).]}
+@end{Ramification}
 
 @ChgRef{Version=[1],Kind=[Revised],Ref=[8652/0009],ARef=[AI95-00137-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0191-1]}
 @Chg{New=[The following representation attributes are defined: Address,
-Alignment, Size, Storage_Size, and Component_Size.],
+Alignment, Size, Storage_Size,
+@Chg{Version=[3],New=[],Old=[and ]}Component_Size@Chg{Version=[3],New=[,
+Has_Same_Storage, and Overlaps_Storage],Old=[]}.],
 Old=[@Leading@;The following attributes are defined:]}
 
 @ChgRef{Version=[1],Kind=[Revised]}@ChgNote{To be consistent with 8652/0006}
@@ -1446,33 +1683,46 @@ allocated to X. For a program unit or
 label, this value refers to the machine code associated with
 the corresponding body or @nt{statement}.
 The value of this attribute is of type System.Address.>}
+
 @begin{Ramification}
-
-  Here, the @lquotes@;first of the storage elements@rquotes@; is intended to mean
-  the one with the lowest address;
+  Here, the @lquotes@;first of the storage elements@rquotes@; is intended
+  to mean the one with the lowest address;
   the endianness of the machine doesn't matter.
-
 @end{Ramification}
 
-@NoPrefix@;@PDefn2{Term=[specifiable], Sec=(of Address for stand-alone
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0095-1]}
+@ChgAdded{Version=[3],NoPrefix=[T],Text=[The prefix of X'Address shall not statically denote
+a subprogram that has convention Intrinsic. X'Address raises Program_Error if X
+denotes a subprogram that has convention Intrinsic.]}
+
+@NoPrefix@PDefn2{Term=[specifiable], Sec=(of Address for stand-alone
 objects and for program units)}
 @Defn{Address clause}
 @ChgNote{Removed Redundant here, as per AI-00114. Did not mark change, as it is
 AARM-only, not to the text of the item.}Address may be specified for
 stand-alone objects and for program units via an
-@nt{attribute_definition_clause}.
+@nt{attribute_definition_clause}.@Chg{Version=[3],New=[@AspectDefn{Address}],Old=[]}
   @begin{Ramification}
   Address is not allowed for enumeration literals,
   predefined operators, derived task types,
   or derived protected types, since they are not program units.
 
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[Address is not allowed for intrinsic subprograms,
+  either. That can be checked statically unless the prefix is a generic formal
+  subprogram and the attribute reference is in the body of a generic unit.
+  We define that case to raise Program_Error, in order that the compiler
+  does not have to build a wrapper for intrinsic subprograms.]}
+
   The validity of a given address depends on the run-time model;
   thus, in order to use Address clauses correctly,
   one needs intimate knowledge of the run-time model.
 
+  @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1]}
   If the Address of an object is specified,
   any explicit or implicit initialization takes place as usual,
-  unless a @nt{pragma} Import is also specified for the object
+  unless @Chg{Version=[3],New=[the],Old=[a @nt{pragma}]} Import
+  @Chg{Version=[3],New=[aspect ],Old=[]}is also specified for the object
   (in which case any necessary initialization is presumably
   done in the foreign language).
 
@@ -1502,14 +1752,31 @@ stand-alone objects and for program units via an
   This is important for the definition of the Position
   attribute to be sensible.
   @end{Ramification}
+
+  @ChgAspectDesc{Version=[3],Kind=[AddedNormal],Aspect=[Address],
+    Text=[@ChgAdded{Version=[3],Text=[Machine address of an entity.]}]}
+
 @end{Description}
 @EndPrefixType{}
 @end{StaticSem}
 
 @begin{Erron}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0009-1]}
 @PDefn2{Term=(erroneous execution),Sec=(cause)}If an Address is specified,
 it is the programmer's responsibility to ensure that
-the address is valid; otherwise, program execution is erroneous.
+the address is valid@Chg{Version=[3],New=[ and appropriate for the entity and
+its use],Old=[]}; otherwise, program execution is erroneous.
+
+@begin{Discussion}
+@ChgAdded{Version=[3],Text=[@ldquote@;Appropriate for the entity and its
+use@rdquote covers cases such as
+misaligned addresses, read-only code addresses for variable data objects (and
+non-executable data addresses for code units), and addresses which would
+force objects that are supposed to be independently addressable to not be.
+Such addresses may be @ldquote@;valid@rdquote as they designate locations that
+are accessible to the program, but the program execution is still erroneous
+(meaning that implementations do not have to worry about these cases).]}
+@end{Discussion}
 @end{Erron}
 
 @begin{ImplAdvice}
@@ -1579,8 +1846,9 @@ followed.]}]}
 @end{ImplAdvice}
 
 @begin{Notes}
-The specification of a link name in a @nt{pragma} Export
-(see @RefSecNum{Interfacing Pragmas})
+The specification of a link name @Chg{Version=[3],New=[with the Link_Name
+aspect],Old=[in a @nt{pragma} Export]}
+(see @RefSecNum{Interfacing Aspects})
 for a subprogram or object is an alternative to explicit
 specification of its link-time address, allowing a link-time directive
 to place the subprogram or object within memory.
@@ -1607,6 +1875,13 @@ The attributes defined in RM83-13.7.3 are moved to
 @RefSecNum{Attributes of Floating Point Types}, and
 @RefSecNum{Attributes of Fixed Point Types}.
 @end{DiffWord83}
+
+@begin{DiffWord2005}
+  @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0183-1]}
+  @ChgAdded{Version=[3],Text=[Defined that the names of aspects are the same as
+  the name of the attribute; that gives a name to use in @nt{aspect_specification}s
+  (see @RefSecNum{Aspect Specifications}).]}
+@end{DiffWord2005}
 
 @begin{MetaRules}
 By default, the Alignment of a subtype should
@@ -1696,7 +1971,10 @@ nonnegative.@Chg{Version=[2],New=[],Old=[If the Alignment of a subtype is
 specified, then the Alignment of an object of the subtype is at least as
 strict, unless the object's Alignment is also specified.
 The Alignment of an object created by an allocator is that of the
-designated subtype.]}
+designated subtype.@Chg{Version=[3],New=[@AspectDefn{Alignment (object)}],Old=[]}]}
+
+  @ChgAspectDesc{Version=[3],Kind=[AddedNormal],Aspect=[Alignment (object)],
+    Text=[@ChgAdded{Version=[3],Text=[Alignment of an object.]}]}
 
 @ChgRef{Version=[2],Kind=[Deleted],ARef=[AI95-00247-01]}
 @ChgDeleted{Version=[2],NoPrefix=[T],Text=[If an Alignment is specified
@@ -1718,7 +1996,8 @@ Text=[For @PrefixType{every subtype S}:]}
   @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00051-02],ARef=[AI95-00291-02]}
   @ChgAdded{Version=[2],NoPrefix=[T], Text=[For an object X of subtype S,
   if S'Alignment is not zero, then X'Alignment is a nonzero integral multiple
-  of S'Alignment unless specified otherwise by a representation item.]}]}@Comment{End S'Alignment}
+  of S'Alignment unless specified otherwise by a representation
+  item.]}]}@Comment{End S'Alignment}
 
   @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00291-02]}
   @ChgAdded{Version=[2],NoPrefix=[T], Text=[@PDefn2{Term=[specifiable], Sec=(of Alignment for first subtypes)}
@@ -1726,7 +2005,10 @@ Text=[For @PrefixType{every subtype S}:]}
   Alignment may be specified for first subtypes via an
   @nt{attribute_@!definition_@!clause};
   the expression of such a clause shall be static, and its value
-  nonnegative.]}
+  nonnegative.@Chg{Version=[3],New=[@AspectDefn{Alignment (subtype)}],Old=[]}]}
+
+  @ChgAspectDesc{Version=[3],Kind=[AddedNormal],Aspect=[Alignment (subtype)],
+    Text=[@ChgAdded{Version=[3],Text=[Alignment of a subtype.]}]}
 
 @end{Description}
 
@@ -1751,6 +2033,27 @@ execution is erroneous if the object is not aligned according to
 @end{Erron}
 
 @begin{ImplAdvice}
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0116-1]}
+@ChgAdded{Version=[3],Text=[For any tagged specific subtype @i<S>,
+@i<S>'Class'Alignment should equal @i<S>'Alignment.]}
+
+@begin{Reason}
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[A tagged object should never be less aligned than
+the alignment of the type of its view, so for a class-wide type T'Class, the
+alignment should be no greater than that of any type covered by T'Class. If the
+implementation only supports alignments that are required by the recommended
+level of support (and this is most likely), then the alignment of any covered
+type has to be the same or greater than that of T @em which leaves the only
+reasonable value of T'Class'Alignment being T'Alignment. Thus we recommend this,
+but don't require it so that in the unlikely case that the implementation does
+support smaller alignments for covered types, it can select a smaller value
+for T'Class'Alignment.]}
+@end{Reason}
+@ChgImplAdvice{Version=[3],Kind=[Added],Text=[@ChgAdded{Version=[3],
+Text=[For any tagged specific subtype @i<S>,
+@i<S>'Class'Alignment should equal @i<S>'Alignment.]}]}
+
 @PDefn2{Term=[recommended level of support], Sec=(Alignment attribute
 for subtypes)}
 @Leading@;The recommended level of support for the Alignment attribute for
@@ -1796,6 +2099,15 @@ nonconfirming Alignment specified for a derived untagged by-reference type.]}
   @RefSecNum{Operational and Representation Items} requires support for
   confirming Alignment clauses for all types.]}
 @end{Ramification}
+@begin{ImplNote}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0116-1]}
+  @ChgAdded{Version=[3],Text=[An implementation that tries to support other
+  alignments for derived tagged types will need to allow inherited subprograms
+  to be passed objects that are less aligned than expected by the parent
+  subprogram and type. This is unlikely to work if alignment has any effect on
+  code selection. Similar issues arise for untagged derived types whose
+  parameters are passed by reference.]}
+@end{ImplNote}
 @end{Itemize}
 
 @Leading@PDefn2{Term=[recommended level of support], Sec=(Alignment attribute
@@ -1841,8 +2153,11 @@ semantics of Alignment. For specified Alignments, it follows from a
 @LegalityName stated above.]}
 @end{Discussion}
 
-A @nt{component_clause}, Component_Size clause, or a @nt{pragma} Pack
-can override a specified Alignment.
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1]}
+A @nt{component_clause}, Component_Size clause, or
+@Chg{Version=[3],New=[specifying the],Old=[a @nt{pragma}]} Pack
+@Chg{Version=[3],New=[aspect to True ],Old=[]}can override a specified
+Alignment.
 @begin{Discussion}
 Most objects are allocated by the implementation; for these, the
 implementation obeys the Alignment. The implementation is of course
@@ -1868,6 +2183,7 @@ about where an address @lquotes@;came from@rquotes@; can be lost to the compiler
 separate compilation.
 
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00114-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1]}
 The Alignment of an object that is a component of a packed
 composite object will usually be 0, to indicate that the component is
 not necessarily aligned on a storage element boundary.
@@ -1875,7 +2191,8 @@ For a subtype, an Alignment of 0 means that objects of the subtype are
 not normally aligned on a storage element boundary at all.
 For example, an implementation might choose to make Component_Size be
 @Chg{Version=[2],New=[1],Old=[0]}
-for an array of Booleans, even when @nt{pragma} Pack has not been
+for an array of Booleans, even
+when @Chg{Version=[3],New=[the aspect],Old=[@nt{pragma}]} Pack has not been
 specified for the array.
 In this case, Boolean'Alignment would be 0.
 (In the presence of tasking, this would in general be feasible only on a
@@ -1961,7 +2278,12 @@ as some number of bits.
 @Defn{Size clause}
 Size may be specified for @Redundant[stand-alone] objects
 via an @nt{attribute_definition_clause};
-the expression of such a clause shall be static and its value nonnegative.
+the expression of such a clause shall be static and its
+value nonnegative.@Chg{Version=[3],New=[@AspectDefn{Size (object)}],Old=[]}
+
+  @ChgAspectDesc{Version=[3],Kind=[AddedNormal],Aspect=[Size (object)],
+    Text=[@ChgAdded{Version=[3],Text=[Size in bits of an object.]}]}
+
 @end{Description}
 @end{StaticSem}
 
@@ -2018,7 +2340,7 @@ a component_clause, or a Component_Size clause.
 Size may be specified for first subtypes
 via an @nt{attribute_@!definition_@!clause};
 the expression of such a clause shall be static
-and its value nonnegative.
+and its value nonnegative.@Chg{Version=[3],New=[@AspectDefn{Size (subtype)}],Old=[]}
 @ImplDef{The meaning of Size for indefinite subtypes.}
   @begin{Reason}
   @Leading@;The effects of specifying the Size of a subtype are:
@@ -2036,9 +2358,11 @@ and its value nonnegative.
     (unless a @nt{component_clause} or a Component_Size clause applies).
   @end{Itemize}
 
+  @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1]}
   A @nt{component_clause} or a Component_Size clause can cause an object
   to be smaller than its subtype's specified size.
-  A @nt{pragma} Pack cannot; if a component subtype's size is specified,
+  @Chg{Version=[3],New=[The aspect],Old=[A @nt{pragma}]}
+  Pack cannot; if a component subtype's size is specified,
   this limits how tightly the composite object can be packed.
 
   The Size of a class-wide (tagged) subtype is unspecified,
@@ -2079,6 +2403,10 @@ and its value nonnegative.
   There is no requirement that the largest integer type be able to
   represent the size in bits of the largest possible object.
   @end{Ramification}
+
+  @ChgAspectDesc{Version=[3],Kind=[AddedNormal],Aspect=[Size (subtype)],
+    Text=[@ChgAdded{Version=[3],Text=[Size in bits of a subtype.]}]}
+
 @end{Description}
 @EndPrefixType{}
 @end{StaticSem}
@@ -2161,7 +2489,9 @@ the internal layout of components.
 Text=[A Size clause on a composite subtype should not affect
 the internal layout of components.]}]}
 @begin{Reason}
-That's what Pack @nt{pragma}s, @nt{record_representation_clause}s,
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1]}
+That's what Pack @Chg{Version=[3],New=[aspects],Old=[@nt{pragma}s]},
+@nt{record_representation_clause}s,
 and Component_Size clauses are for.
 @end{Reason}
 
@@ -2204,6 +2534,7 @@ reflects this representation.
   However, it might, for example, choose a biased representation,
   in which case it could choose a smaller value.
 
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1]}
   On most machines, it is in general not a good idea to pack (parts of)
   multiple stand-alone objects into the same storage element,
   because (1) it usually doesn't save much space,
@@ -2216,7 +2547,8 @@ reflects this representation.
   It might, for example, be 8, 16 or 32, depending on the availability
   and efficiency of various machine instructions.
   The same applies to components of composite types,
-  unless packing, Component_Size, or record layout is specified.
+  unless @Chg{Version=[3],New=[Pack],Old=[packing]},
+  Component_Size, or record layout is specified.
 
   For an unconstrained discriminated object,
   if the implementation allocates the maximum
@@ -2360,6 +2692,15 @@ enumeration types, record types, and array types.]}
   size supported for arrays.]}
 @end{Discussion}
 
+@begin{Ramification}
+  @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0155-1]}
+  @ChgAdded{Version=[3],Text=[Only Size clauses with a size greater than or
+  equal to the Size that would be chosen by default may be safely presumed to be
+  supported on non-static elementary subtypes. Implementations may choose to
+  support smaller sizes, but only if the Size allows any value of the subtype to
+  be represented, for any possible value of the bounds.]}
+@end{Ramification}
+
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00291-02]}
 @ChgAdded{Version=[2],Text=[A nonconfirming size clause for the first subtype
 of a derived untagged by-reference type need not be supported.]}
@@ -2381,14 +2722,16 @@ followed.]}]}
 @begin{Notes}
 Size is a subtype-specific attribute.
 
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1]}
 A @nt{component_clause} or Component_Size clause
 can override a specified Size.
-A @nt{pragma} Pack cannot.
+@Chg{Version=[3],New=[Aspect],Old=[A @nt{pragma}]} Pack cannot.
 @end{Notes}
 
 @begin{Inconsistent83}
   @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00114-01]}
-  @ChgAdded{Version=[2],Text=[We specify the meaning of Size in much more
+  @ChgAdded{Version=[2],Text=[@Defn{inconsistencies with Ada 83}We specify
+  the meaning of Size in much more
   detail than Ada 83. This is not technically an inconsistency, but it is in
   practice, as most Ada 83 compilers use a different definition for Size than
   is required here. This should have been documented more explicitly during
@@ -2408,7 +2751,8 @@ rather than letting implementations define their meaning.
 @Chg{New=[@nt{prefix}],Old=[prefix]} T that denotes a task
 object @Redundant[(after any implicit dereference)]]}:
 @begin{Description}
-@Attribute{Prefix=<T>, AttrName=<Storage_Size>,
+@ChgAttribute{Version=[3], Kind=[Revised], ChginAnnex=[F], Leading=[F],
+  Prefix=<T>, AttrName=<Storage_Size>, ARef=[AI05-0229-1],
   Text=<Denotes the number of storage elements reserved for
   the task.
 The value of this attribute is of the type
@@ -2418,9 +2762,11 @@ if any. The language does not specify whether or
 not it includes other storage associated with the task
 (such as the @lquotes@;task control block@rquotes@; used by some
 implementations.)>}
-If a @nt{pragma} Storage_Size is given,
+If @Chg{Version=[3],New=[the aspect],Old=[a @nt{pragma}]} Storage_Size is
+@Chg{Version=[3],New=[specified for the type of the object],Old=[given]},
 the value of the Storage_Size attribute is at least
-the value specified in the @nt{pragma}.
+the value @Chg{Version=[3],New=[determined by the aspect],Old=[specified
+in the @nt{pragma}]}.
 @EndPrefixType{}
   @begin{Ramification}
   The value of this attribute is never negative,
@@ -2443,39 +2789,96 @@ the value specified in the @nt{pragma}.
 @end{StaticSem}
 
 @begin{Intro}
-@redundant[@IndexSeeAlso{Term=[Storage_Size clause],See=[pragma Storage_Size]}
-A @nt{pragma} Storage_Size specifies the amount of storage to be
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI95-0229-1]}
+@redundant[@Chg{Version=[3],New=[Aspect],Old=[@IndexSeeAlso{Term=[Storage_Size clause],See=[pragma Storage_Size]}
+A @nt{pragma}]} Storage_Size specifies the amount of storage to be
 reserved for the execution of a task.]
 @end{Intro}
 
+@begin{NotIso}
+@ChgAdded{Version=[3],Noprefix=[T],Noparanum=[T],Text=[@Shrink{@i<Paragraphs 62
+through 65 were moved to @RefSec{Obsolescent Features}.>}]}@Comment{This message
+should be deleted if the paragraphs are ever renumbered.}
+@end{NotIso}
+
 @begin{Syntax}
 @begin{SyntaxText}
-@Leading@;The form of a @nt{pragma} Storage_Size is as follows:
+@ChgRef{Version=[3],Kind=[DeletedNoDelMsg],ARef=[AI05-0229-1]}
+@ChgDeleted{Version=[3],Type=[Leading],KeepNext=[T],Text=[The form of a
+@nt{pragma} Storage_Size is as follows:]}
 @end{SyntaxText}
 
-@PragmaSyn`@key{pragma} @prag(Storage_Size)(@Syn2{expression});'
+@ChgRef{Version=[3],Kind=[DeletedNoDelMsg]}
+@DeletedPragmaSyn<Version=[3],InitialVersion=[0],@ChgDeleted{Version=[3],
+Text=[@key{pragma} @prag(Storage_Size)(@Syn2{expression});]}>
 
 @begin{SyntaxText}
-A @nt{pragma} Storage_Size is allowed only immediately within a
-@nt{task_definition}.
+@ChgRef{Version=[3],Kind=[DeletedNoDelMsg],ARef=[AI05-0229-1]}
+@ChgDeleted{Version=[3],Text=[A @nt{pragma} Storage_Size is allowed only
+immediately within a @nt{task_definition}.]}
 @end{SyntaxText}
 @end{Syntax}
 
 @begin{Resolution}
-@PDefn2{Term=[expected type],
+@ChgRef{Version=[3],Kind=[DeletedNoDelMsg],ARef=[AI05-0229-1]}
+@ChgDeleted{Version=[3],Text=[@PDefn2{Term=[expected type],
   Sec=(Storage_Size pragma argument)}
 The @nt{expression} of a @nt<pragma> Storage_Size
-is expected to be of any integer type.
+is expected to be of any integer type.]}
 @end{Resolution}
 
+@begin{StaticSem}
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0229-1]}
+@ChgAdded{Version=[3],Type=[Leading],Text=[For a task type (including the
+anonymous type of a @nt{single_task_declaration}),
+the following language-defined representation aspect may be specified:]}
+
+@begin{Description}
+@ChgRef{Version=[3],Kind=[Added]}
+@ChgAdded{Version=[3],Text=[Storage_Size@\The aspect Storage_Size is
+an @nt{expression}, which shall be of any integer
+type.@AspectDefn{Storage_Size (task)}]}
+
+@begin{Honest}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[This definition somewhat conflicts with the
+  "automatic" one for the obsolescent attribute Storage_Size (which can be
+  specified). The only difference is where the given expression is evaluated.
+  We intend for the above definition to supersede that "automatic"
+  definition for this attribute.]}
+@end{Honest}
+@begin{Ramification}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[Note that the value of the Storage_Size aspect
+  @i<is> an @nt{expression}; it is not the @i<value> of an @nt{expression}.
+  The @nt{expression} is evaluated for each object of the type (see below).]}
+@end{Ramification}
+
+@ChgAspectDesc{Version=[3],Kind=[AddedNormal],Aspect=[Storage_Size (task)],
+  Text=[@ChgAdded{Version=[3],Text=[Size in storage elements reserved for a task
+    type or single task object.]}]}
+
+@end{Description}
+@end{StaticSem}
+
+@begin{Legality}
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0229-1]}
+@ChgAdded{Version=[3],Text=[The Storage_Size aspect shall not be specified for a
+task interface type.]}
+@end{Legality}
+
 @begin{RunTime}
-A @nt<pragma> Storage_Size is elaborated when an object
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1]}
+@Chg{Version=[3],New=[When a task object is created, the @nt{expression}
+(if any) associated with the Storage_Size aspect of its
+type],Old=[A @nt<pragma> Storage_Size is elaborated when an object
 of the type defined by the immediately enclosing @nt<task_definition>
 is created.
 @PDefn2{Term=[elaboration],Sec=(Storage_Size pragma)}
-For the elaboration of a @nt<pragma> Storage_Size, the @nt<expression>
+For the elaboration of a @nt<pragma> Storage_Size, the @nt<expression>]}
 is evaluated; the Storage_Size attribute of the newly created task object
 is at least the value of the @nt<expression>.
+
 @begin{Ramification}
   The implementation is allowed to round up a specified Storage_Size
   amount.
@@ -2484,6 +2887,11 @@ is at least the value of the @nt<expression>.
   up to 4096. Also, if the user specifies a negative
   number, the implementation has to normalize this to 0,
   or perhaps to a positive number.
+
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0229-1]}
+  @ChgAdded{Version=[3],Text=[If the Storage_Size aspect is not specified for
+  the type of the task object, the value of the Storage_Size attribute is
+  unspecified.]}
 @end{Ramification}
 
 @IndexCheck{Storage_Check}
@@ -2510,7 +2918,8 @@ array types)}@Defn{Component_Size clause}
 Component_Size may be specified for array types
 via an @nt{attribute_@!definition_@!clause};
 the expression of such a clause shall be static,
-and its value nonnegative.
+and its value nonnegative.@Chg{Version=[3],New=[@AspectDefn{Component_Size}],Old=[]}
+
 @begin{ImplNote}
 The intent is that the value of X'Component_Size is always nonnegative.
 If the array is stored @lquotes@;backwards@rquotes@; in memory
@@ -2520,6 +2929,10 @@ X'Component_Size is still positive.
 @begin{Ramification}
 For an array object A, A'Component_Size = A(I)'Size for any index I.
 @end{Ramification}
+
+@ChgAspectDesc{Version=[3],Kind=[AddedNormal],Aspect=[Component_Size],
+  Text=[@ChgAdded{Version=[3],Text=[Size in bits of a component of an array type.]}]}
+
 @end{Description}
 @end{StaticSem}
 
@@ -2530,15 +2943,18 @@ The recommended level of support for the Component_Size attribute is:
 An implementation need not support specified Component_Sizes that
 are less than the Size of the component subtype.
 
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1]}
 An implementation should support specified Component_Sizes that
 are factors and multiples of the word size.
 For such Component_Sizes, the array should contain no gaps between
 components.
 For other Component_Sizes (if supported), the array should
-contain no gaps between components when packing is also specified;
+contain no gaps between components when
+@Chg{Version=[3],New=[Pack],Old=[packing]} is also specified;
 the implementation should forbid this combination in cases where it
 cannot support a no-gaps representation.
 @begin{Ramification}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1]}
 For example, if Storage_Unit = 8, and Word_Size = 32,
 then the user is allowed to specify a Component_Size of
 1, 2, 4, 8, 16, and 32, with no gaps.
@@ -2547,7 +2963,7 @@ again with no gaps.
 If the implementation accepts Component_Size = 3,
 then it might allocate 10 components per word,
 with a 2-bit gap at the end of each word
-(unless packing is also specified),
+(unless @Chg{Version=[3],New=[Pack],Old=[packing]} is also specified),
 or it might not have any internal gaps at all.
 (There can be gaps at either end of the array.)
 @end{Ramification}
@@ -2558,9 +2974,78 @@ be followed.]}]}
 @end{ImplAdvice}
 
 @begin{StaticSem}
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0191-1]}
+@ChgAdded{Version=[3],Type=[Leading],Text=[For @PrefixType{a @nt{prefix} X that
+denotes an object}:]}
+@begin(description)
+@ChgAttribute{Version=[3],Kind=[Added],ChginAnnex=[T],
+  Leading=<F>, Prefix=<X>, AttrName=<Has_Same_Storage>, ARef=[AI05-0191-1],
+  Text=[@Chg{Version=[3],New=[X'Has_Same_Storage denotes a function with the
+  following specification:],Old=[]}
+
+@begin(Descexample)
+@ChgRef{Version=[3],Kind=[Added]}
+@ChgAdded{Version=[3],Text=[@key(function) X'Has_Same_Storage (@RI{Arg} : @RI{any_type})
+  @key(return) Boolean]}
+@end(Descexample)
+
+   @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0191-1],ARef=[AI05-0264-1]}
+   @ChgAdded{Version=[3],NoPrefix=[T],Text=[The actual parameter shall be a name
+   that denotes an object. The object denoted by the actual parameter can be of
+   any type. This function evaluates the names of the objects involved and
+   returns True if the representation of the object denoted by the actual
+   parameter occupies exactly the same bits as the representation of the object
+   denoted by X; otherwise, it returns False.]}]}@Comment{End of Annex text here.}
+
+@begin{Discussion}
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[Has_Same_Storage means that, if the representation
+  is contiguous, the objects sit at the same address and occupy the same length
+  of memory.]}
+@end{Discussion}
+@end(description)
+
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0191-1]}
+@ChgAdded{Version=[3],Type=[Leading],Text=[For @PrefixType{a @nt{prefix} X that
+denotes an object}:]}
+@begin(description)
+@ChgAttribute{Version=[3],Kind=[Added],ChginAnnex=[T],
+  Leading=<F>, Prefix=<X>, AttrName=<Overlaps_Storage>, ARef=[AI05-0191-1],
+  Text=[@Chg{Version=[3],New=[X'Overlaps_Storage denotes a function with the
+  following specification:],Old=[]}
+
+@begin(Descexample)
+@ChgRef{Version=[3],Kind=[Added]}
+@ChgAdded{Version=[3],Text=[@key(function) X'Overlaps_Storage (@RI{Arg} : @RI{any_type})
+  @key(return) Boolean]}
+@end(Descexample)
+
+   @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0191-1],ARef=[AI05-0264-1]}
+   @ChgAdded{Version=[3],NoPrefix=[T],Text=[The actual parameter shall be a name
+   that denotes an object. The object denoted by the actual parameter can be of
+   any type. This function evaluates the names of the objects involved and
+   returns True if the representation of the object denoted by the actual
+   parameter shares at least one bit with the representation of the object
+   denoted by X; otherwise, it returns False.]}]}@Comment{End of Annex text here.}
+@end(description)
+@end{StaticSem}
+
+@begin{Notes}
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0191-1]}
+@ChgAdded{Version=[3],Text=[X'Has_Same_Storage(Y) implies X'Overlaps_Storage(Y).]}
+
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0191-1]}
+@ChgAdded{Version=[3],Text=[X'Has_Same_Storage(Y) and X'Overlaps_Storage(Y) are
+not considered to be reads of X and Y.]}
+@end{Notes}
+
+@begin{StaticSem}
 
 @ChgRef{Version=[1],Kind=[Added],Ref=[8652/0009],ARef=[AI95-00137-01]}
-@ChgAdded{Version=[1],Text=[The following operational attribute is defined: External_Tag.]}
+@ChgRef{Version=[3],Kind=[RevisedAdded],ARef=[AI05-0183-1]}
+@ChgAdded{Version=[1],Text=[The following
+@Chg{Version=[3],New=[type-related ],Old=[]}operational attribute is
+defined: External_Tag.]}
 
 @ChgRef{Version=[1],Kind=[Revised],Ref=[8652/0009],ARef=[AI95-00137-01]}
 @Leading@;For @PrefixType{every subtype S of a tagged type @i(T)
@@ -2568,25 +3053,65 @@ be followed.]}]}
 attribute is defined]}:
 
 @begin{Description}
-@ChgAttribute{Version=[1], Kind=[Revised], ChginAnnex=[F], Leading=[F],
-  Prefix=<S>, AttrName=<External_Tag>, Ref=[8652/0040], ARef=[AI95-00108-01],
+@Comment{Original. @ChgAttribute{Version=[1], Kind=[Revised], ChginAnnex=[F], Leading=[F],
+  Prefix=<S>, AttrName=<External_Tag>, Ref=[8652/0040], ARef=[AI95-00108-01], ...}
+  We don't have a way to change multiple versions for attributes.}
+@ChgAttribute{Version=[3], Kind=[Revised], ChginAnnex=[F], Leading=[F],
+  Prefix=<S>, AttrName=<External_Tag>, Ref=[8652/0040], ARef=[AI95-00108-01], ARef=[AI05-0092-1],
   Text=[@Defn{External_Tag clause}
   @PDefn2{Term=(specifiable), Sec=(of External_Tag for a tagged type)}
   S'External_Tag denotes an external string representation
   for S'Tag; it is of the predefined type String.
   External_Tag may be specified for a specific tagged type
   via an @nt{attribute_definition_clause};
-  the expression of such a clause shall be static.
+  the expression of such a clause shall be static.@Chg{Version=[3],New=[@AspectDefn{External_Tag}],Old=[]}
   The default external tag representation is implementation defined.
-  See @RefSecNum{Dispatching Operations of Tagged Types} and
-  @RefSecNum{Stream-Oriented Attributes}.]}
+  See @Chg{Version=[3],New=[],Old=[@RefSecNum{Dispatching Operations of Tagged Types}
+  and ]}@RefSecNum{Stream-Oriented Attributes}.]}
   @Chg{New=[The value of External_Tag is never inherited@Redundant[; the
   default value is always used unless a new value is directly specified
   for a type].],Old=[]}
   @ImplDef{The default external representation for a type tag.}
   @end{Description}
 @EndPrefixType()
+
+  @ChgAspectDesc{Version=[3],Kind=[AddedNormal],Aspect=[External_Tag],
+    Text=[@ChgAdded{Version=[3],Text=[Unique identifier for a tagged type in
+      streams.]}]}
+
 @end{StaticSem}
+
+@begin{RunTime}
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0113-1]}
+@ChgAdded{Version=[3],Text=[If a user-specified external tag S'External_Tag is
+the same as T'External_Tag for some other tagged type declared by a different
+declaration in the partition, Program_Error is raised by the elaboration of the
+@nt{attribute_definition_clause}.]}
+
+@begin{Ramification}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[This rule does not depend on the visibility of the
+  other tagged type, but it does depend on the existence of the other tagged
+  type. The other tagged type could have the default external tag or a
+  user-specified external tag.]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[This rule allows the same declaration to be
+  elaborated multiple times. In that case, different types could have the same
+  external tag. If that happens, Internal_Tag would return some unspecified tag,
+  and Descendant_Tag probably would return the intended tag (using the given
+  ancestor to determine which type is intended). However, in some cases (such as
+  multiple instantiations of a derived tagged type declared in a generic body),
+  Tag_Error might be raised by Descendant_Tag if multiple types are identified.]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[Note that while there is a race condition inherent
+  in this definition (which attribute_definition_clause raises Program_Error
+  depends on the order of elaboration), it doesn't matter as a program with two
+  such clauses is simply wrong. Two types that both come from the same
+  declaration are allowed, as noted previously.]}
+@end{Ramification}
+@end{RunTime}
 
 @begin{ImplReq}
 In an implementation, the default external tag for each specific tagged type
@@ -2629,6 +3154,23 @@ same in two different partitions.}
   8-bit bytes.
 @end{Ramification}
 @end{ImplReq}
+
+@begin{ImplPerm}
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0113-1]}
+@ChgAdded{Version=[3],Text=[If a user-specified external tag S'External_Tag is
+the same as T'External_Tag for some other tagged type declared by a different
+declaration in the partition, the partition may be rejected.]}
+
+@begin{Ramification}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[This is, in general, a post-compilation check.
+  This permission is intended for implementations that do link-time construction
+  of the external tag lookup table; implementations that dynamically construct
+  the table will likely prefer to raise Program_Error upon elaboration of the
+  problem construct. We don't want this check to require any implementation
+  complexity, as it will be very rare that there would be a problem.]}
+@end{Ramification}
+@end{ImplPerm}
 
 @begin{Notes}
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00270-01]}
@@ -2757,6 +3299,426 @@ except for certain explicit exceptions.
   to both.]}
 @end{DiffWord95}
 
+@begin{Inconsistent2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI95-0095-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{inconsistencies with Ada 2005}
+  @b<Correction:> An address attribute with a prefix of a generic formal
+  subprogram whose actual parameter has convention Intrinsic now raises
+  Program_Error. Since it is unlikely that such an attribute would have done
+  anything useful (a subprogram with convention Intrinsic is not expected to
+  have a normal subprogram body), it is highly unlikely that any existing
+  programs would notice the difference, and any that do probably are buggy.]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI95-0113-1]}
+  @ChgAdded{Version=[3],Text=[@b<Correction:> User-specified
+  external tags that conflict with other external tags raise Program_Error
+  (or are optionally illegal). This was legal and did not raise an exception
+  in the past, although the effects were not defined. So while a program
+  might depend on such behavior, the results were not portable (even to
+  different versions of the same implementation). Such programs should be
+  rare.]}
+@end{Inconsistent2005}
+
+@begin{Incompatible2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0095-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{incompatibilities with Ada 2005}@b[Correction:]
+  An address attribute with a prefix of a subprogram with convention Intrinsic is
+  now illegal. Such attributes are very unlikely to have provided a useful
+  answer (the intended meaning
+  of convention Intrinsic is that there is no actual subprogram body for
+  the operation), so this is highly unlikely to affect any existing programs
+  unless they have a hidden bug.]}
+@end{Incompatible2005}
+
+@begin{Extend2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0191-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 2005}
+  Attributes Has_Same_Storage and Overlaps_Storage are new.]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0229-1]}
+  @ChgAdded{Version=[3],Text=[Aspect Storage_Size is new;
+  @nt{pragma} Storage_Size is now obsolescent, joining attribute
+  Storage_Size for task types.]}
+@end{Extend2005}
+
+@begin{DiffWord2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0009-1]}
+  @ChgAdded{Version=[3],Text=[@b<Correction:> Improved the description
+  of erroneous execution for address clauses to make it clear that
+  specifying an address inappropriate for the entity will lead to
+  erroneous execution.]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0116-1]}
+  @ChgAdded{Version=[3],Text=[@b<Correction:> Added @ImplAdviceTitle for
+  the alignment of class-wide types.]}
+@end{DiffWord2005}
+
+
+@LabeledAddedSubClause{Version=[3],Name=[Aspect Specifications]}
+
+@begin{Intro}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0183-1]}
+@ChgAdded{Version=[3],Text=[@Redundant[Certain representation or operational
+aspects of an entity may be specified as part of its declaration using an
+@nt{aspect_specification}, rather than using a separate representation or operational
+item.] The declaration with the @nt{aspect_specification} is termed the
+@i{associated declaration}.@Defn2{Term=[associated declaration],Sec=[of an aspect specification]}]}
+@end{Intro}
+
+@begin{Syntax}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0183-1]}
+@AddedSyn{Version=[3],lhs=<@Chg{Version=[3],New=<aspect_specification>,Old=<>}>,
+rhs=`@Chg{Version=[3],New="
+   @key[with] @Syn2{aspect_mark} [=> @Syn2{aspect_definition}] {,
+           @Syn2{aspect_mark} [=> @Syn2{aspect_definition}] }",Old=<>}'}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0183-1]}
+@AddedSyn{Version=[3],lhs=<@Chg{Version=[3],New=<aspect_mark>,Old=<>}>,
+rhs="@Chg{Version=[3],New=<@SynI<aspect_>@Syn2<identifier>['Class]>,Old=<>}"}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0183-1]}
+@AddedSyn{Version=[3],lhs=<@Chg{Version=[3],New=<aspect_definition>,Old=<>}>,
+rhs="@Chg{Version=[3],New=<@Syn2<name> | @Syn2<expression> | @Syn2<identifier>>,Old=<>}"}
+
+@begin{Discussion}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0183-1]}
+  @ChgAdded{Version=[3],Text=[The @nt{aspect_specification} is an
+   optional element in most kinds of declarations. Here is a list
+   of all kinds of declarations and an indication
+   of whether or not they allow aspect clauses, and in some cases
+   a short discussion of why (* = allowed, NO = not allowed). Kinds
+   of declarations with no indication are followed by their subdivisions
+   (which have indications).]}
+
+@begin{Display}
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[@nt{basic_declaration}
+  @nt{type_declaration}
+    @nt{full_type_declaration}
+      @i<type declaration syntax>*
+      @nt{task_type_declaration}*
+      @nt{protected_type_declaration}*
+    @nt{incomplete_type_declaration}  --  NO
+      -- @Examcom{Incomplete type aspects cannot be read by an attribute or specified by @nt{attribute_definition_clause}s }
+      -- @Examcom{(the attribute name is illegal), so it would not make sense to allow this in another way.}
+    @nt{private_type_declaration}*
+    @nt{private_extension_declaration}*
+  @nt{subtype_declaration}*
+  @nt{object_declaration}
+    @i<object declaration syntax>*
+    @nt{single_task_declaration}*
+    @nt{single_protected_declaration}*
+  @nt{number_declaration}  --  NO
+  @nt{subprogram_declaration}*
+  @nt{abstract_subprogram_declaration}*
+  @nt{null_procedure_declaration}*
+  @nt{package_declaration}*  -- @Examcom{via} @nt{package_specification}
+  @nt{renaming_declaration}*
+    -- @Examcom{There are no language-defined aspects that may be specified}
+    -- @Examcom{on renames, but implementations might support some.}
+  @nt{exception_declaration}*
+  @nt{generic_declaration}
+    @nt{generic_subprogram_declaration}*
+    @nt{generic_package_declaration}* -- @Examcom{via} @nt{package_specification}
+  @nt{generic_instantiation}*
+@nt{enumeration_literal_specification}  --  NO
+@nt{discriminant_specification}  --  NO
+@nt{component_declaration}*
+@nt{loop_parameter_specification}  --  NO
+@nt{iterator_specification}  --  NO
+@nt{parameter_specification}  --  NO
+@nt{subprogram_body}*  --  @Examcom{ - but only if there is no explicit specification}
+@nt{entry_declaration}*
+@nt{entry_index_specification}  --  NO
+@nt{choice_parameter_specification}  --  NO
+@nt{generic_formal_parameter_declaration}
+    -- @Examcom{There are no language-defined aspects that may be specified}
+    -- @Examcom{on generic formals, but implementations might support some.}
+  @nt{formal_object_declaration}*
+  @nt{formal_type_declaration}*
+  @nt{formal_subprogram_declaration}
+    @nt{formal_concrete_subprogram_declaration}*
+    @nt{formal_abstract_subprogram_declaration}*
+  @nt{formal_package_declaration}*
+@nt{extended_return_statement}  --  NO]}
+@end{Display}
+
+@end{Discussion}
+
+@end{Syntax}
+
+@begin{Resolution}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0183-1]}
+@ChgAdded{Version=[3],Type=[Leading],Text=[An @nt{aspect_mark} identifies an
+aspect of the entity defined by the associated declaration (the @i<associated
+entity>@Defn2{Term=[associated entity],Sec=[of an aspect specification]}); the
+aspect denotes an object, a value, an expression, a subprogram, or some other
+kind of entity. If the @nt{aspect_mark} identifies:]}
+@begin{Itemize}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[an aspect that denotes an
+object, the @nt{aspect_definition} shall be a @nt{name}. The expected type for
+the @nt{name} is the type of the identified aspect of the associated
+entity;@PDefn2{Term=[expected type], Sec=[object in an @nt{aspect_specification}]}]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[an aspect that is
+a value or an expression, the @nt{aspect_definition} shall be an @nt{expression}.
+The expected type for the @nt{expression} is the type of the identified aspect
+of the associated
+entity;@PDefn2{Term=[expected type],
+Sec=[@nt{name} in an @nt{aspect_specification}]}@PDefn2{Term=[expected type],
+Sec=[@nt{expression} in an @nt{aspect_specification}]}]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[an aspect that denotes a subprogram, the
+@nt{aspect_definition} shall be a @nt{name}; the expected profile for the @nt{name}
+is the profile required for the aspect of the associated
+entity;@PDefn2{Term=[expected profile], Sec=[@nt{name} in an @nt{aspect_specification}]}]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[an aspect that
+denotes some other kind of entity, the @nt{aspect_definition} shall be a
+@nt{name}, and the name shall resolve to denote an entity of the appropriate
+kind;]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[an aspect that is given by an identifier specific to
+the aspect, the @nt{aspect_definition} shall be an @nt{identifier}, and the
+@nt{identifier} shall be one of the identifiers specific to the identified
+aspect.]}
+@end{Itemize}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0183-1]}
+@ChgAdded{Version=[3],Text=[The usage names in an @nt{aspect_definition}
+@Redundant[ are not resolved at the point of the associated declaration, but
+rather] are resolved at the end of the immediately enclosing declaration list.]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0183-1]}
+@ChgAdded{Version=[3],Text=[If the associated declaration is for a subprogram or
+entry, the names of the formal parameters are directly visible within the
+@nt{aspect_definition}, as are certain attributes, as specified elsewhere in
+this International Standard for the identified aspect. If the associated
+declaration is a @nt{type_declaration}, within the @nt{aspect_definition} the
+names of any components are directly visible, and the name of the first subtype
+denotes the current instance of the type (see
+@RefSecNum{The Context of Overload Resolution}). If the associated declaration
+is a @nt{subtype_declaration}, within the @nt{aspect_definition} the name of
+the new subtype denotes the current instance of the subtype.]}
+@end{Resolution}
+
+@begin{Legality}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0183-1]}
+@ChgAdded{Version=[3],Text=[If the first freezing point of the associated entity
+comes before the end of the immediately enclosing declaration list, then each
+usage name in the @nt{aspect_definition} shall resolve to the same entity at the
+first freezing point as it does at the end of the immediately enclosing
+declaration list.]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0183-1]}
+@ChgAdded{Version=[3],Text=[At most one occurrence of each @nt{aspect_mark} is
+allowed within a single @nt{aspect_specification}. The aspect identified by the
+@nt{aspect_mark} shall be an aspect that can be specified for the associated
+entity (or view of the entity defined by the associated declaration).]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0183-1]}
+@ChgAdded{Version=[3],Text=[The @nt{aspect_definition} associated with a given
+@nt{aspect_mark} may be omitted only when the @nt{aspect_mark} identifies an
+aspect of a boolean type, in which case it is equivalent to the
+@nt{aspect_definition} being specified as True.]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0183-1]}
+@ChgAdded{Version=[3],Text=[If the @nt{aspect_mark} includes 'Class, then the
+associated entity shall be a tagged type or a primitive subprogram of a tagged
+type.]}
+@end{Legality}
+
+@begin{StaticSem}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0183-1]}
+@ChgAdded{Version=[3],Type=[Leading],Text=[Depending on which aspect is
+identified by the @nt{aspect_mark}, an @nt{aspect_definition} specifies:]}
+@begin{Itemize}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[a @nt{name} that denotes a subprogram, object, or
+  other kind of entity;]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[an @nt{expression}, which is either evaluated to
+  produce a single value, or which (as in a precondition) is to be evaluated at
+  particular points during later execution; or]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[an @nt{identifier} specific to the aspect.]}
+@end{Itemize}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0183-1]}
+@ChgAdded{Version=[3],Type=[Leading],Text=[The identified aspect of the
+associated entity, or in some cases, the view of the entity defined by the
+declaration, is as specified by the @nt{aspect_definition} (or by the default of
+True when boolean). Whether an @nt{aspect_specification} @i<applies> to an entity or
+only to the particular view of the entity defined by the declaration is
+determined by the @nt{aspect_mark} and the kind of entity. The following aspects
+are view specific:@PDefn2{Term=[applies],Sec=[aspect]}]}
+
+@begin{Itemize}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[An aspect specified on an @nt{object_declaration};]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[An aspect specified on a @nt{subprogram_declaration};]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[An aspect specified on a @nt{renaming_declaration}.]}
+
+@end{Itemize}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0183-1]}
+@ChgAdded{Version=[3],Text=[All other @nt{aspect_specification}s are associated
+with the entity, and @i<apply> to all views of the entity, unless otherwise
+specified in this International Standard.@PDefn2{Term=[applies],Sec=[aspect]}]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0183-1]}
+@ChgAdded{Version=[3],Type=[Leading],Text=[If the aspect_mark includes 'Class,
+then:]}
+@begin{Itemize}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[if the associated entity is a tagged type, the
+  specification @i<applies> to all descendants of the type;@PDefn2{Term=[applies],Sec=[aspect]}]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[if the associated entity is a primitive subprogram
+  of a tagged type @i<T>, the specification @i<applies> to the corresponding primitive
+  subprogram of all descendants of @i<T>.@PDefn2{Term=[applies],Sec=[aspect]}]}
+@end{Itemize}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0183-1],ARef=[AI05-0229-1]}
+@ChgAdded{Version=[3],Text=[All specifiable operational and representation
+attributes may be specified with an @nt{aspect_specification} instead of an
+@nt{attribute_definition_clause} (see
+@RefSecNum{Operational and Representation Attributes}).]}
+
+@begin{Ramification}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[The name of the aspect is the same as that of the attribute
+  (see @RefSecNum{Operational and Representation Attributes}), so the @nt{aspect_mark}
+  is the @nt{attribute_designator} of the attribute.]}
+@end{Ramification}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0229-1]}
+@ChgAdded{Version=[3],Text=[Any aspect specified by a representation pragma
+or library unit pragma that has a @nt{local_name} as its single argument
+may be specified by an @nt{aspect_specification}, with the entity being the
+@nt{local_name}. The @nt{aspect_definition} is expected to be of type Boolean.
+The expression shall be static.]}
+
+@begin{Ramification}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[The name of the aspect is the same as that of the
+  pragma (see @RefSecNum{Operational and Representation Items}), so the
+  @nt{aspect_mark} is the name of the pragma.]}
+@end{Ramification}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0229-1]}
+@ChgAdded{Version=[3],Text=[In addition, certain
+other operational and representation aspects not associated with specifiable
+attributes or representation pragmas may be specified, as specified elsewhere
+in this International Standard.]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0183-1]}
+@ChgAdded{Version=[3],Text=[If an aspect of a derived type is inherited from an
+ancestor type and has the boolean value True, the inherited value shall not be
+overridden to have the value False for the derived type, unless otherwise
+specified in this International Standard.]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0183-1]}
+@ChgAdded{Version=[3],Text=[If a @LegalityName or @StaticSemTitle rule only
+applies when a particular aspect has been specified, the aspect is considered to
+have been specified only when the aspect_specification or
+attribute_definition_clause is visible (see @RefSecNum{Visibility}) at the point
+of the application of the rule.]}
+
+@begin{Reason}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[Some rules only apply when an aspect has been
+  specified (for instance, an indexable type is one that has aspect
+  Variable_Indexing specified). In order to prevent privacy breaking, this can
+  only be true when the specification of the aspect is visible. In particular,
+  if the Variable_Indexing aspect is specified on the full view of a private
+  type, the private type is not considered an indexable type.]}
+@end{Reason}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0183-1]}
+@ChgAdded{Version=[3],Text=[There are no language-defined aspects that may be
+specified on a @nt{renaming_declaration} or on a @nt{formal_type_declaration}.]}
+
+@begin{Discussion}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[Implementation-defined aspects can be allowed on
+  these, of course; the implementation will need to define the semantics. In
+  particular, the implementation will need to define actual type matching
+  rules for any aspects allowed on formal types; there are no default matching
+  rules defined by the language.]}
+@end{Discussion}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0183-1]}
+@ChgAdded{Version=[3],Text=[An aspect shall not be specified in an
+@nt{aspect_specification} given on a @nt{subprogram_body} that is a
+completion of another declaration.]}
+
+@begin{Reason}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[Most aspects (for example, preconditions) are intended to be
+    available to callers, and specifying them on a body that has a separate
+    declaration hides them from callers. Specific aspects (both language-defined
+    and implementation-defined) may allow this, but they have to do so
+    explicitly (by appealing to the following rule or the @ImplPermTitle),
+    and provide any needed rules about visibility.]}
+@end{Reason}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0183-1]}
+@ChgAdded{Version=[3],Text=[Alternative legality and semantics rules may apply
+for particular aspects, as specified elsewhere in this International Standard.]}
+
+@end{StaticSem}
+
+@begin{Runtime}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0183-1]}
+@ChgAdded{Version=[3],Text=[At the freezing point of the associated entity, the
+@nt{aspect_specification} is elaborated. The elaboration of the
+@nt{aspect_specification} includes the evaluation of the @nt{name} or
+@nt{expression}, if any, unless the aspect itself is an expression. If the
+corresponding aspect represents an expression (as in a precondition), the
+elaboration has no effect; the expression is evaluated later at points
+within the execution as specified elsewhere in this International Standard for
+the particular aspect.]}
+@end{Runtime}
+
+@begin{ImplPerm}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0183-1]}
+@ChgAdded{Version=[3],Text=[Implementations may support implementation-defined
+aspects. The @nt{aspect_specification} for an implementation-defined aspect may
+use an implementation-defined syntax for the @nt{aspect_definition}, and may
+follow implementation-defined legality and semantics rules.]}
+@begin{Discussion}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[The intent is to allow implementations to support
+  aspects that are defined, for example, by a @nt{subtype_indication} rather
+  than an @nt{expression} or a @nt{name}. We chose not to try to enumerate all
+  possible @nt{aspect_definition} syntaxes, but to give implementations maximum
+  freedom.]}
+@end{Discussion}
+@end{ImplPerm}
+
+@begin{Extend2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0183-1],ARef=[AI05-0229-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 2005}
+  Aspect specifications are new.]}
+@end{Extend2005}
 
 
 @LabeledClause{Enumeration Representation Clauses}
@@ -2821,7 +3783,12 @@ An @nt{enumeration_representation_clause} specifies the
 @Defn{internal code}
 The coding consists of the @i{internal code} for each enumeration
 literal, that is, the integral value used internally to
-represent each literal.
+represent each literal.@Chg{Version=[3],New=[@AspectDefn{Coding}],Old=[]}
+
+  @ChgAspectDesc{Version=[3],Kind=[AddedNormal],Aspect=[Coding],
+    Text=[@ChgAdded{Version=[3],Text=[Internal representation of enumeration
+      literals. Specified by an @nt{enumeration_representation_clause}, not
+      by an @nt{aspect_specification}.]}]}
 
 @end{StaticSem}
 
@@ -3116,7 +4083,15 @@ are taken from the
 values of the @nt{position}, @nt{first_bit},
 and @nt{last_bit} expressions
 after normalizing those values so that
-@nt{first_bit} is less than Storage_Unit.]}
+@nt{first_bit} is less than
+Storage_Unit.@Chg{Version=[3],New=[@AspectDefn{Layout (record)}],Old=[]}]}
+
+  @ChgAspectDesc{Version=[3],Kind=[AddedNormal],Aspect=[Layout (record)],
+    Text=[@ChgAdded{Version=[3],Text=[Layout of record components. Specified by
+      a @nt{record_representation_clause}, not by an @nt{aspect_specification}.]}]}
+
+  @ChgAspectDesc{Version=[3],Kind=[AddedNormal],Aspect=[Record layout],
+    Text=[@ChgAdded{Version=[3],Text=[See Layout.]}]}
 
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00133-01]}
 @ChgAdded{Version=[2],Text=[If the default bit ordering applies to the type,
@@ -3125,8 +4100,10 @@ the @nt{position}, @nt{first_bit}, and @nt{last_bit} of each
 the position and size of the corresponding component.]}
 
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00133-01]}
+@ChgRef{Version=[3],Kind=[RevisedAdded],ARef=[AI05-0264-1]}
 @ChgAdded{Version=[2],Type=[Leading],Text=[If the nondefault bit ordering
-applies to the type then the layout is determined as follows:]}
+applies to the type@Chg{Version=[3],New=[,],Old=[]} then
+the layout is determined as follows:]}
 @begin{Itemize}
 @ChgRef{Version=[2],Kind=[Added]}
 @ChgAdded{Version=[2],Text=[the @nt{component_clause}s for which the value of
@@ -3206,6 +4183,7 @@ place is not specified explicitly in the @nt<record_@!representation_@!clause>.
 @end{Reason}
 @end{ImplPerm}
 
+@RMNewPageVer{Version=[3]}@Comment{For printed version of Ada 2012 RM}
 @begin{ImplAdvice}
 @Leading@PDefn2{Term=[recommended level of support], Sec=(@nt{record_representation_clause})}
 The recommended level of support for @nt{record_representation_clause}s is:
@@ -3564,7 +4542,13 @@ record extensions)}
 @Defn{Bit_Order clause}
 Bit_Order may be specified for specific record types
 via an @nt{attribute_definition_clause};
-the expression of such a clause shall be static.
+the expression of such a clause shall be
+static.@Chg{Version=[3],New=[@AspectDefn{Bit_Order}],Old=[]}
+
+@ChgAspectDesc{Version=[3],Kind=[AddedNormal],Aspect=[Bit_Order],
+  Text=[@ChgAdded{Version=[3],Text=[Order of bit numbering in a
+    @nt{record_representation_clause}.]}]}
+
 @end{Description}
 
 If Word_Size = Storage_Unit,
@@ -3659,10 +4643,11 @@ The Bit_Order attribute is new to Ada 95.
 
 
 
-@RMNewPage@Comment{For printed RM Ada 2005}
+@RMNewPageVer{Version=[2]}@Comment{For printed version of Ada 2005 RM}
 @LabeledClause{Change of Representation}
 
 @begin{Intro}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1]}
 @redundant[@Defn{change of representation}
 @Defn2{Term=[representation], Sec=(change of)}
 A @nt{type_conversion} (see @RefSecNum{Type Conversions})
@@ -3671,7 +4656,8 @@ representations of the same array or record.
 To convert an array from one representation to another,
 two array types need to be declared with
 matching component subtypes, and convertible index types.
-If one type has packing specified and the other does not,
+If one type has @Chg{Version=[3],New=[Pack],Old=[packing]}
+specified and the other does not,
 then explicit conversion can be used to pack or unpack an array.
 
 To convert a record from one representation to another,

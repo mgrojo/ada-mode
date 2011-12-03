@@ -1,7 +1,7 @@
-@Comment{ $Source: d:\\CvsRoot/ARM/Source/RT.MSS,v $ }
-@comment{ $Revision: 1.75 $ $Date: 2006/10/19 06:40:31 $ $Author: Randy $ }
+@Comment{ $Source: e:\\cvsroot/ARM/Source/rt.mss,v $ }
+@comment{ $Revision: 1.105 $ $Date: 2011/11/01 23:14:15 $ $Author: randy $ }
 @Part(realtime, Root="ada.mss")
-@Comment{$Date: 2006/10/19 06:40:31 $}
+@Comment{$Date: 2011/11/01 23:14:15 $}
 
 @LabeledNormativeAnnex{Real-Time Systems}
 
@@ -19,7 +19,8 @@ The metrics are documentation requirements; an implementation shall
 document the values of the language-defined metrics for at least one
 configuration @Redundant[of hardware or an underlying system] supported by
 the implementation, and shall document the details of that configuration.
-@ChgImplDef{Version=[2],Kind=[Deleted],Text=[@ChgDeleted{Version=[2],
+@ChgImplDef{Version=[2],Kind=[Deleted],InitialVersion=[0],
+Text=[@ChgDeleted{Version=[2],
 Text=[Values of all @MetricsTitle.]}]}@ChgNote{We're going to document the
 individual metrics sections.}
 @ChgDocReq{Version=[2],Kind=[Added],Text=[@ChgAdded{Version=[2],
@@ -99,45 +100,111 @@ This Annex is new to Ada 95.
 In addition, the methods for specifying priorities are defined.]
 @end{Intro}
 
+@begin{NotIso}
+@ChgAdded{Version=[3],Noprefix=[T],Noparanum=[T],Text=[@Shrink{@i<Paragraphs 2
+through 6 were moved to @RefSec{Obsolescent Features}.>}]}@Comment{This message
+should be deleted if the paragraphs are ever renumbered.}
+@end{NotIso}
+
 @begin{Syntax}
 @begin{SyntaxText}
-@leading@keepnext@;The form of a @nt{pragma} Priority is as follows:
+@ChgRef{Version=[3],Kind=[DeletedNoDelMsg],ARef=[AI05-0229-1]}
+@ChgDeleted{Version=[3],Type=[Leading],KeepNext=[T],Text=[The form of a
+@nt{pragma} Priority is as follows:]}
 @end{SyntaxText}
 
-@PragmaSyn`@key{pragma} @prag(Priority)(@Syn2{expression});'
+@ChgRef{Version=[3],Kind=[DeletedNoDelMsg]}
+@DeletedPragmaSyn<Version=[3],InitialVersion=[0],@ChgDeleted{Version=[3],
+Text=[@key{pragma} @prag(Priority)(@Syn2{expression});]}>
 
 @begin{SyntaxText}
-@leading@keepnext@;The form of a @nt{pragma} Interrupt_Priority is as follows:
+@ChgRef{Version=[3],Kind=[DeletedNoDelMsg],ARef=[AI05-0229-1]}
+@ChgDeleted{Version=[3],Type=[Leading],KeepNext=[T],Text=[The form of a
+@nt{pragma} Interrupt_Priority is as follows:]}
 @end{SyntaxText}
 
-@PragmaSyn`@key{pragma} @prag(Interrupt_Priority)[(@Syn2{expression})];'
+@ChgRef{Version=[3],Kind=[DeletedNoDelMsg]}
+@DeletedPragmaSyn<Version=[3],InitialVersion=[0],@ChgDeleted{Version=[3],
+Text=[@key{pragma} @prag(Interrupt_Priority)[(@Syn2{expression})];]}>
 @end{Syntax}
 
 @begin{Resolution}
 
-@PDefn2{Term=[expected type],
+@ChgRef{Version=[3],Kind=[DeletedNoDelMsg],ARef=[AI05-0229-1]}
+@ChgDeleted{Version=[3],Text=[@PDefn2{Term=[expected type],
   Sec=(Priority pragma argument)}
 @PDefn2{Term=[expected type],
   Sec=(Interrupt_Priority pragma argument)}
 The expected type for the @nt{expression} in a Priority
-or Interrupt_Priority pragma is Integer.
+or Interrupt_Priority pragma is Integer.]}
 @end{Resolution}
+
+@begin{StaticSem}
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0229-1]}
+@ChgAdded{Version=[3],Type=[Leading],Text=[For a task type (including the
+anonymous type of a @nt{single_task_declaration}), protected type (including the
+anonymous type of a @nt{single_protected_declaration}), or subprogram,
+the following language-defined representation aspects may be specified:]}
+
+@begin{Description}
+@ChgRef{Version=[3],Kind=[Added]}
+@ChgAdded{Version=[3],Text=[Priority@\The aspect Priority is
+an @nt{expression}, which shall be of type Integer.@AspectDefn{Priority}]}
+
+  @ChgAspectDesc{Version=[3],Kind=[AddedNormal],Aspect=[Priority],
+    Text=[@ChgAdded{Version=[3],Text=[Priority of a task object or type, or
+      priority of a protected object or type; the priority is not in the
+      interrupt range.]}]}
+
+@ChgRef{Version=[3],Kind=[Added]}
+@ChgAdded{Version=[3],Text=[Interrupt_Priority@\The aspect
+Interrupt_Priority is an @nt{expression}, which shall be of type
+Integer.@AspectDefn{Interrupt_Priority}]}
+
+  @ChgAspectDesc{Version=[3],Kind=[AddedNormal],Aspect=[Interrupt_Priority],
+    Text=[@ChgAdded{Version=[3],Text=[Priority of a task object or type, or
+      priority of a protected object or type; the priority is in the
+      interrupt range.]}]}
+
+@end{Description}
+@end{StaticSem}
+
 
 @begin{Legality}
 
-A Priority pragma is allowed only immediately within a @nt{task_definition},
-a @nt{protected_definition}, or the @nt{declarative_part} of a
-@nt{subprogram_body}. An Interrupt_Priority pragma is allowed only
-immediately within a @nt{task_definition} or a @nt{protected_definition}.
-At most one such pragma shall appear within a given construct.
+@ChgRef{Version=[3],Kind=[Deleted],ARef=[AI05-0229-1]}
+@ChgDeleted{Version=[3],Text=[A Priority pragma is allowed only immediately
+within a @nt{task_definition}, a @nt{protected_definition}, or the
+@nt{declarative_part} of a @nt{subprogram_body}. An Interrupt_Priority pragma is
+allowed only immediately within a @nt{task_definition} or a
+@nt{protected_definition}. At most one such pragma shall appear within a given
+construct.]}
 
-For a Priority pragma that appears in the @nt{declarative_part} of a
-@nt{subprogram_body}, the @nt{expression} shall be static, and its value shall
-be in the range of System.Priority.
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1]}
+@Chg{Version=[3],New=[If the],Old=[For a]} Priority @Chg{Version=[3],New=[aspect
+is specified for a subprogram],Old=[pragma that appears in the
+@nt{declarative_part} of a @nt{subprogram_body}]}, the @nt{expression} shall be
+static, and its value shall be in the range of System.Priority.
 @begin{Reason}
 This value is needed before it gets elaborated, when the environment task
 starts executing.
 @end{Reason}
+
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0229-1]}
+@ChgAdded{Version=[3],Text=[At most one of the Priority and Interrupt_Priority
+aspects may be specified for a given entity.]}
+
+@begin{Ramification}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[This includes specifying via pragmas
+  (see @RefSecNum{Pragmas Priority and Interrupt_Priority}). Note that
+  @RefSecNum{Operational and Representation Items} prevents multiple
+  specifications of a single representation aspect by any means.]}
+@end{Ramification}
+
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0229-1]}
+@ChgAdded{Version=[3],Text=[Neither of the Priority or Interrupt_Priority
+aspects shall be specified for a synchronized interface type.]}
 
 @end{Legality}
 
@@ -161,18 +228,23 @@ enough to require the blocking of one or more interrupts is specified by the
 subtype Interrupt_@!Priority. @Redundant[The subrange of priority values below
 System.@!Interrupt_@!Priority'First is specified by the subtype System.@!Priority.]
 
-The priority specified by a Priority or Interrupt_Priority pragma is the
-value of the @nt{expression} in the pragma, if any. If there is no
-@nt{expression} in an Interrupt_Priority pragma, the priority value is
-Interrupt_Priority'Last.
+@ChgRef{Version=[3],Kind=[Deleted],ARef=[AI05-0229-1]}
+@ChgDeleted{Version=[3],Text=[The priority specified by a Priority or
+Interrupt_Priority pragma is the value of the @nt{expression} in the pragma, if
+any. If there is no @nt{expression} in an Interrupt_Priority pragma, the
+priority value is Interrupt_Priority'Last.]}
 
 @end{StaticSem}
 
 @begin{RunTime}
 
-A Priority pragma has no effect
-if it occurs in the @nt{declarative_part} of the @nt{subprogram_body} of a
-subprogram other than the main subprogram.
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1]}
+@Chg{Version=[3],New=[The],Old=[A]} Priority
+@Chg{Version=[3],New=[aspect],Old=[pragma]} has no effect
+if it @Chg{Version=[3],New=[is specified for],Old=[it occurs
+in the @nt{declarative_part} of the @nt{subprogram_body} of]} a
+subprogram other than the main subprogram@Chg{Version=[3],New=[; the Priority
+value is not associated with any task],Old=[]}.
 
 @Defn{task priority}
 @Defn{priority}
@@ -196,34 +268,52 @@ see @RefSecNum{Priority Ceiling Locking}) is used in the evaluation of another
 task's active priority.
 @ImplDef{Implementation-defined execution resources.}
 
-The effect of specifying such a pragma in a @nt{protected_definition}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1]}
+The effect of specifying @Chg{Version=[3],New=[a Priority or
+Interrupt_Priority aspect for a protected type or
+@nt{single_protected_declaration}],Old=[such a pragma
+in a @nt{protected_definition}]}
 is discussed in @RefSecNum{Priority Ceiling Locking}.
 
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1]}
 @Defn2{Term=[creation], Sec=(of a task object)}
-The @nt{expression} in a Priority or Interrupt_Priority pragma that
-appears in a @nt{task_definition} is evaluated for each task object
+The @nt{expression} @Chg{Version=[3],New=[specified for the],Old=[in a]}
+Priority or Interrupt_Priority @Chg{Version=[3],New=[aspect of a task],
+Old=[pragma that
+appears in a @nt{task_definition}]} is evaluated for each task object
 (see @RefSecNum{Task Units and Task Objects}).
-For a Priority pragma, the
-value of the @nt{expression} is converted to the subtype Priority; for an
-Interrupt_Priority pragma, this value is converted to the subtype Any_Priority.
+For @Chg{Version=[3],New=[the],Old=[a]} Priority @Chg{Version=[3],New=[aspect],Old=[pragma]},
+the value of the @nt{expression} is converted to the subtype Priority;
+for @Chg{Version=[3],New=[the],Old=[an]}
+Interrupt_Priority @Chg{Version=[3],New=[aspect],Old=[pragma]}, this value
+is converted to the subtype Any_Priority.
 The priority value is then associated with the task object whose
-@nt{task_definition} contains the pragma.
-@PDefn2{Term=[implicit subtype conversion],Sec=(pragma Priority)}
-@PDefn2{Term=[implicit subtype conversion],Sec=(pragma Interrupt_Priority)}
+@Chg{Version=[3],New=[task declaration specifies the
+aspect],Old=[@nt{task_definition} contains the pragma]}.
+@Chg{Version=[3],New=[@PDefn2{Term=[implicit subtype conversion],Sec=(Priority aspect)}
+@PDefn2{Term=[implicit subtype conversion],Sec=(Interrupt_Priority aspect)}],
+Old=[@PDefn2{Term=[implicit subtype conversion],Sec=(pragma Priority)}
+@PDefn2{Term=[implicit subtype conversion],Sec=(pragma Interrupt_Priority)}]}
 
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1]}
 Likewise, the priority value is associated with the environment task if the
-pragma appears in the @nt{declarative_part} of the main subprogram.
+@Chg{Version=[3],New=[aspect is specified for],Old=[pragma appears in the
+@nt{declarative_part}]} of the main subprogram.
 
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1]}
 The initial value of a task's base priority is specified by default or
-by means of a Priority or Interrupt_Priority pragma.
+by means of a Priority or Interrupt_Priority
+@Chg{Version=[3],New=[aspect],Old=[pragma]}.
 @Redundant[After a task is created,
 its base priority can be changed only by a call to
 Dynamic_Priorities.Set_Priority (see @RefSecNum{Dynamic Priorities}).]
-The initial base priority of a task in the absence of a pragma is the
+The initial base priority of a task in the absence of
+@Chg{Version=[3],New=[an aspect],Old=[a pragma]}. is the
 base priority of the task that creates it at the time of creation
 (see @RefSecNum{Task Units and Task Objects}).
-If a pragma Priority does not apply to the main subprogram,
-the initial base priority of the environment task is
+If @Chg{Version=[3],New=[the aspect],Old=[a pragma]} Priority
+@Chg{Version=[3],New=[is not specified for],Old=[does not apply to]} the
+main subprogram, the initial base priority of the environment task is
 System.Default_Priority.
 @Redundant[The task's active priority is used when the task competes for
 processors.
@@ -288,11 +378,14 @@ a task stops inheriting a priority from another source, its active priority
 is re-evaluated. This is in addition to other instances described in this
 Annex for such re-evaluation.
 
-An implementation may provide a non-standard mode in which tasks
-inherit priorities under conditions other than those specified
-above.
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0248-1]}
+An implementation may provide a
+@Chg{Version=[3],New=[nonstandard],Old=[non-standard]} mode in which tasks
+inherit priorities under conditions other than those specified above.
 @begin{Ramification}
-The use of a Priority or Interrupt_Priority pragma does not
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1]}
+The use of a Priority or Interrupt_Priority
+@Chg{Version=[3],New=[aspect],Old=[pragma]} does not
 require the package System to be named in a @nt{with_clause} for the
 enclosing @nt{compilation_unit}.
 @end{Ramification}
@@ -325,6 +418,13 @@ The description of the Priority pragma has been moved to this annex.
   inheritance to take into account the differences between the existing and
   new dispatching policies.]}
 @end{DiffWord95}
+
+@begin{Extend2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0229-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 2005}
+  Aspects Priority and Interrupt_Priority are new; @nt{pragma}s
+  Priority and Interrupt_Priority are now obsolescent.]}
+@end{Extend2005}
 
 
 @LabeledClause{Priority Scheduling}
@@ -363,9 +463,17 @@ priority-ordered ready queues.]
 language-defined library package exists:]}
 @begin{Example}
 @ChgRef{Version=[2],Kind=[Added]}
+@ChgRef{Version=[3],Kind=[RevisedAdded],ARef=[AI05-0166-1]}
 @ChgAdded{Version=[2],Text=[@key<package> Ada.Dispatching @key<is>@ChildUnit{Parent=[Ada],Child=[Dispatching]}
-  @key<pragma> Pure(Dispatching);
+  @key<pragma> @Chg{Version=[3],New=[Preelaborate],Old=[Pure]}(Dispatching);@Chg{Version=[3],New=[],Old=[
   @AdaExcDefn{Dispatching_Policy_Error} : @key<exception>;
+@key<end> Ada.Dispatching;]}]}
+
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0166-1]}
+@ChgAdded{Version=[3],Text=[  @key<procedure> @AdaSubDefn{Yield};]}
+
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0166-1]}
+@ChgAdded{Version=[3],Text=[  @AdaExcDefn{Dispatching_Policy_Error} : @key<exception>;
 @key<end> Ada.Dispatching;]}
 @end{Example}
 
@@ -457,6 +565,7 @@ if we count the idle task.
 @end{Discussion}
 
 @ChgRef{Version=[2],Kind=[Deleted],ARef=[AI95-00321-01]}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0166-1]}
 @ChgDeleted{Version=[2],Text=[@Defn{preemptible resource}
 A preemptible resource is a resource that while allocated
 to one task can be allocated (temporarily) to another
@@ -468,6 +577,8 @@ is a nonpreemptible resource.
 When a higher-priority task is dispatched to the processor, and the previously
 running task is placed on the appropriate ready queue, the latter task
 is said to be @i{preempted}.]}
+@ChgAdded{Version=[3],Text=[A call of Yield is a task dispatching point. Yield
+is a potentially blocking operation (see @RefSecNum{Protected Subprograms and Protected Actions}).]}
 @begin{Reason}
   @ChgRef{Version=[2],Kind=[Deleted]}
   @ChgDeleted{Version=[2],Text=[A processor that is executing a task is available
@@ -500,7 +611,7 @@ resources, and to define the corresponding allocation policies for them.
 Such resources may have an implementation@Chg{Version=[2],New=[-],Old=[ ]}defined
 effect on task dispatching@Chg{Version=[2],New=[],
 Old=[ (see @RefSecNum{Task Dispatching Pragmas})]}.
-@ChgImplDef{Version=[2],Kind=[Revised],
+@ChgImplDef{Version=[2],Kind=[Revised],InitialVersion=[0],
 Text=[The @Chg{Version=[2],New=[effect],Old=[affect]} of
 implementation@Chg{Version=[2],New=[-],Old=[ ]}defined
 execution resources on task dispatching.]}
@@ -508,10 +619,11 @@ execution resources on task dispatching.]}
 An implementation may place implementation-defined restrictions on
 tasks whose active priority is in the Interrupt_Priority range.
 @begin{Ramification}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1]}
 For example, on some operating systems,
 it might be necessary to disallow them altogether.
 This permission applies to tasks whose priority is set to interrupt
-level for any reason: via a pragma,
+level for any reason: via @Chg{Version=[3],New=[an aspect],Old=[a pragma]},
 via a call to Dynamic_Priorities.Set_Priority,
 or via priority inheritance.
 @end{Ramification}
@@ -576,6 +688,17 @@ deferred while the affected task performs a protected action.]}
   it easier to add other policies (which may not involve preemption).]}
 @end{DiffWord95}
 
+@begin{Incompatible2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0166-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{incompatibilities with Ada 2005}
+  Procedure Yield is newly added to Dispatching.
+  If Dispatching is referenced in a @nt{use_clause}, and an
+  entity @i<E> with a @nt{defining_identifier} of Yield is
+  defined in a package that is also referenced in a @nt{use_clause}, the entity
+  @i<E> may no longer be use-visible, resulting in errors. This should be rare
+  and is easily fixed if it does occur.]}
+@end{Incompatible2005}
+
 
 @LabeledRevisedSubClause{Version=[2],
 New=[Task Dispatching Pragmas],
@@ -603,8 +726,8 @@ policies.]]}
 @end{SyntaxText}
 
 @ChgRef{Version=[2],Kind=[Added]}
-@ChgAdded{Version=[2],Text=`@AddedPragmaSyn`Version=[2],@key{pragma} @prag<Priority_Specific_Dispatching> (@*
-@ @ @ @ @ @SynI{policy_}@Syn2{identifier}, @SynI{first_priority_}@Syn2{expression}, @SynI{last_priority_}@Syn2{expression});''}
+@AddedPragmaSyn<Version=[2],@ChgAdded{Version=[2],Text=`@key{pragma} @prag<Priority_Specific_Dispatching> (@*
+@ @ @ @ @ @SynI{policy_}@Syn2{identifier}, @SynI{first_priority_}@Syn2{expression}, @SynI{last_priority_}@Syn2{expression});'}>
 
 @end{Syntax}
 
@@ -622,7 +745,8 @@ The @SynI{policy_}@nt{identifier} @Chg{Version=[2],New=[used in a @nt{pragma}
 Task_Dispatching_Policy shall be the name of a task dispatching policy],
 Old=[shall either be FIFO_Within_Priorities or
 an implementation-defined @Syn2{identifier}]}.
-@ChgImplDef{Version=[2],Kind=[Deleted],Text=[@ChgDeleted{Version=[2],
+@ChgImplDef{Version=[2],Kind=[Deleted],InitialVersion=[0],
+Text=[@ChgDeleted{Version=[2],
 Text=[Implementation-defined @SynI{policy_}@Syn2{identifier}s allowed
 in a @nt{pragma} Task_Dispatching_Policy.]}]}
 
@@ -664,8 +788,10 @@ pragma are dispatched according to the specified dispatching policy.]}
 @end{Reason}
 
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00355-01]}
+@ChgRef{Version=[3],Kind=[RevisedAdded],ARef=[AI05-0262-1]}
 @ChgAdded{Version=[2],Text=[If a partition contains one or more
-Priority_Specific_Dispatching pragmas the dispatching policy for priorities not
+Priority_Specific_Dispatching pragmas@Chg{Version=[3],New=[,],Old=[]}
+the dispatching policy for priorities not
 covered by any Priority_Specific_Dispatching pragmas is
 FIFO_Within_Priorities.]}
 
@@ -723,8 +849,10 @@ to any of the program units comprising a partition, the task dispatching policy
 for that partition is unspecified.]}
 
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00355-01]}
+@ChgRef{Version=[3],Kind=[RevisedAdded],ARef=[AI05-0262-1]}
 @ChgAdded{Version=[2],Text=[If a partition contains one or more
-Priority_Specific_Dispatching pragmas a task dispatching point occurs for the
+Priority_Specific_Dispatching pragmas@Chg{Version=[3],New=[,],Old=[]}
+a task dispatching point occurs for the
 currently running task of a processor whenever there is a non-empty ready queue
 for that processor with a higher priority than the priority of the running
 task.]}
@@ -839,7 +967,8 @@ of the implementation (on behalf of lower priority tasks), and]}
 @ChgDeleted{Version=[2],Text=[whether execution of a task can be preempted by
 the implementation processing of delay
 expirations for lower priority tasks, and if so, for how long.]}
-@ChgImplDef{Version=[2],Kind=[Deleted],Text=[@ChgDeleted{Version=[2],
+@ChgImplDef{Version=[2],Kind=[Deleted],InitialVersion=[0],
+Text=[@ChgDeleted{Version=[2],
 Text=[Implementation-defined aspects of priority inversion.]}]}
 @end{Itemize}
 
@@ -862,7 +991,8 @@ in an implementation defined manner.
 However, a @nt{delay_statement} always corresponds to at least one task
 dispatching point.]}
 
-@ChgImplDef{Version=[2],Kind=[Revised],Text=[Implementation defined task
+@ChgImplDef{Version=[2],Kind=[Revised],InitialVersion=[0],
+Text=[Implementation defined task
 dispatching@Chg{Version=[2],New=[ policies],Old=[]}.]}
 
 @end{ImplPerm}
@@ -903,8 +1033,10 @@ regardless of whether the active priority of the task actually changes.]}
   implementations @i<allow> them to be used together.]}
 
   @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00355-01]}
+  @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0005-1]}
   @ChgAdded{Version=[2],Text=[@key{Pragma} Priority_Specific_Dispatching is
-  new; it allows specifying different policies for different priorities.]}
+  new; it allows @Chg{Version=[3],New=[the specification of],Old=[specifying]}
+  different policies for different priorities.]}
 @end{Extend95}
 
 @begin{DiffWord95}
@@ -921,6 +1053,7 @@ regardless of whether the active priority of the task actually changes.]}
 @end{DiffWord95}
 
 
+@RMNewPageVer{Version=[3]}@Comment{For printed version of Ada 2012 RM}
 @LabeledAddedSubClause{Version=[2],Name=[Preemptive Dispatching]}
 
 @begin{Intro}
@@ -933,7 +1066,10 @@ dispatching policy.]]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00355-01]}
 @ChgAdded{Version=[2],Text=[The @SynI{policy_}@nt{identifier}
-FIFO_Within_Priorities is a task dispatching policy.]}
+FIFO_Within_Priorities is a task dispatching
+policy.@Chg{Version=[3],New=[@Defn2{Term=[task dispatching policy],
+Sec=(FIFO_Within_Priorities)}@Defn{FIFO_Within_Priorities task dispatching policy}],
+Old=[]}]}
 
 @end{StaticSem}
 
@@ -1067,6 +1203,7 @@ regardless of whether the active priority of the task actually changes.]}
 @end{DiffWord95}
 
 
+@RMNewPageVer{Version=[3]}@Comment{For printed version of Ada 2012 RM}
 @LabeledAddedSubClause{Version=[2],Name=[Non-Preemptive Dispatching]}
 
 @begin{Intro}
@@ -1079,8 +1216,45 @@ dispatching policy.]]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00298-01],ARef=[AI95-00355-01]}
 @ChgAdded{Version=[2],Text=[The @SynI{policy_}@nt{identifier}
-Non_Preemptive_FIFO_Within_Priorities is a task dispatching policy.]}
+Non_Preemptive_FIFO_Within_Priorities is a task dispatching
+policy.@Chg{Version=[3],New=[@Defn2{Term=[task dispatching policy],
+Sec=(Non_Preemptive_@!FIFO_@!Within_@!Priorities)}@Defn{Non_Preemptive_FIFO_@!Within_@!Priorities task disp. policy}],
+Old=[]}]}
 
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0166-1]}
+@ChgAdded{Version=[3],KeepNext=[T],Type=[Leading],Text=[The following
+language-defined library package exists:]}
+@begin{Example}
+@ChgRef{Version=[3],Kind=[Added]}
+@ChgAdded{Version=[3],Text=[@key<package> Ada.Dispatching.Non_Preemptive @key<is>@ChildUnit{Parent=[Ada.Dispatching],Child=[Non_Preemptive]}
+  @key<pragma> Preelaborate(Non_Preemptive);
+  @key<procedure> @AdaSubDefn{Yield_To_Higher};
+  @key<procedure> @AdaSubDefn{Yield_To_Same_Or_Higher} @key<renames> Yield;
+@key<end> Ada.Dispatching.Non_Preemptive;]}
+@end{Example}
+
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0166-1],ARef=[AI05-0264-1]}
+@ChgAdded{Version=[3],Text=[A call of Yield_To_Higher is a task dispatching
+point for this policy. If the task at the head of the highest priority ready
+queue has a higher active priority than the calling task, then the calling task
+is preempted.]}
+
+@begin{Ramification}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[For language-defined policies other than
+  Non_Preemptive, a higher priority task should never be on a ready queue while
+  a lower priority task is executed. Thus, for such policies, Yield_To_Higher
+  does nothing.]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[Yield_To_Higher is @i<not> a potentially blocking
+  operation; it can be used during a protected operation. That is allowed,
+  as under the predefined Ceiling_Locking policy any
+  task with a higher priority than the protected operation cannot call the
+  operation (that would violate the locking policy). An
+  implementation-defined locking policy may need to define the semantics of
+  Yield_To_Higher differently.]}
+@end{Ramification}
 @end{StaticSem}
 
 @begin{Legality}
@@ -1137,11 +1311,24 @@ its active priority.]}
 @end{itemize}
 
 @ChgRef{Version=[2],Kind=[AddedNormal]}
-@ChgAdded{Version=[2],Text=[For this policy, a non-blocking @nt{delay_statement}
-is the only non-blocking event that is a task dispatching point (see
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0166-1]}
+@ChgAdded{Version=[2],Text=[For this policy, @Chg{Version=[3],New=[blocking
+or termination of a task, ],Old=[]}a@Chg{Version=[3],New=[],Old=[ non-blocking]}
+@nt{delay_statement}@Chg{Version=[3],New=[, a call to Yield_To_Higher, and
+a call to Yield_To_Same_Or_Higher or Yield are],Old=[ is]}
+the only@Chg{Version=[3],New=[],Old=[ non-blocking event that is a]}
+task dispatching @Chg{Version=[3],New=[points],Old=[point]} (see
 @RefSecNum{The Task Dispatching Model}).@PDefn{task dispatching point}
 @PDefn{dispatching point}]}
 
+@begin{Ramification}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0166-1]}
+  @ChgAdded{Version=[3],Text=[A @nt{delay_statement} is always a task
+  dispatching point even if it is not blocking. Similarly, a call to
+  Yield_To_Higher is never blocking, but it is a task dispatching point
+  In each of these cases, they can cause the current task to stop running (it is
+  still ready). Otherwise, the running task continues to run until it is blocked.]}
+@end{Ramification}
 @end{RunTime}
 
 @begin{ImplReq}
@@ -1160,12 +1347,16 @@ Non_Preemptive_FIFO_Within_Priorities and also the locking policy (see
 
 @begin{ImplPerm}
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00298-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1]}
 @ChgAdded{Version=[2],Text=[Since implementations are allowed to round all
 ceiling priorities in subrange System.Priority to System.Priority'Last (see
 @RefSecNum{Priority Ceiling Locking}), an implementation may allow a task to
 execute within a protected object without raising its active priority provided
-the associated protected unit does not contain pragma Interrupt_Priority,
-Interrupt_Handler, or Attach_Handler.]}
+the associated protected unit does not contain @Chg{Version=[3],New=[any
+subprograms with Interrupt_Handler or Attach_Handler specified nor does the
+unit have aspect],Old=[pragma]} Interrupt_Priority
+@Chg{Version=[3],New=[ specified],Old=[,
+Interrupt_Handler, or Attach_Handler]}.]}
 
 @end{ImplPerm}
 
@@ -1175,7 +1366,14 @@ Interrupt_Handler, or Attach_Handler.]}
   Policy Non_Preemptive_FIFO_Within_Priorities is new.]}
 @end{Extend95}
 
+@begin{Extend2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0166-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 2005}Package
+  Dispatching.Non_Preemptive is new.]}
+@end{Extend2005}
 
+
+@RMNewPageVer{Version=[3]}@Comment{For printed RM Ada 2012}
 @LabeledAddedSubClause{Version=[2],Name=[Round Robin Dispatching]}
 
 @begin{Intro}
@@ -1188,7 +1386,10 @@ policy Round_Robin_Within_Priorities and the package Round_Robin.]]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00355-01]}
 @ChgAdded{Version=[2],Text=[The @SynI{policy}_@nt{identifier}
-Round_Robin_Within_Priorities is a task dispatching policy.]}
+Round_Robin_Within_Priorities is a task dispatching
+policy.@Chg{Version=[3],New=[@Defn2{Term=[task dispatching policy],
+Sec=(Round_Robin_Within_Priorities)}@Defn{Round_Robin_Within_Priorities task dispatching policy}],
+Old=[]}]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00355-01]}
 @ChgAdded{Version=[2],KeepNext=[T],Type=[Leading],Text=[The following
@@ -1204,7 +1405,8 @@ language-defined library package exists:]}
                          Quantum : @key{in} Ada.Real_Time.Time_Span);
   @key{procedure} @AdaSubDefn{Set_Quantum} (Low, High : @key{in} System.Priority;
                          Quantum   : @key{in} Ada.Real_Time.Time_Span);
-  @key{function} @AdaSubDefn{Actual_Quantum} (Pri : System.Priority) @key{return} Ada.Real_Time.Time_Span;
+  @key{function} @AdaSubDefn{Actual_Quantum} (Pri : System.Priority)
+             @key{return} Ada.Real_Time.Time_Span;
   @key{function} @AdaSubDefn{Is_Round_Robin} (Pri : System.Priority) @key{return} Boolean;
 @key{end} Ada.Dispatching.Round_Robin;]}
 @end{Example}
@@ -1231,9 +1433,11 @@ If no quantum is set for a Round Robin priority level, Default_Quantum is used.]
 quantum used by the implementation for the priority level Pri.]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00355-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0264-1]}
 @ChgAdded{Version=[2],Text=[The function Is_Round_Robin returns True if
 priority Pri is covered by task dispatching policy
-Round_Robin_Within_Priorities; otherwise it returns False.]}
+Round_Robin_Within_Priorities; otherwise@Chg{Version=[3],New=[,],Old=[]}
+it returns False.]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00355-01]}
 @ChgAdded{Version=[2],Text=[A call of Actual_Quantum or Set_Quantum raises
@@ -1346,7 +1550,7 @@ priority will not be subject to round robin dispatching.]}
 @end{Extend95}
 
 
-@RMNewPage@Comment{For printed Ada 2005 RM}
+@RMNewPageVer{Version=[2]}@Comment{For printed RM Ada 2005}
 @LabeledAddedSubClause{Version=[2],Name=[Earliest Deadline First Dispatching]}
 
 @begin{Intro}
@@ -1356,16 +1560,20 @@ urgency of the task; it represents a point on an ideal physical time line.
 The deadline might affect how resources are allocated to the task.]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00357-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1]}
 @ChgAdded{Version=[2],Text=[This clause defines a package for representing the
 deadline of a task and a dispatching policy that defines Earliest Deadline
-First (EDF) dispatching. A pragma is defined to assign an initial deadline to a
-task.]}
+First (EDF) dispatching. @Chg{Version=[3],New=[An aspect],Old=[A pragma]}
+is defined to assign an initial deadline to a task.]}
 
 @begin{Discussion}
   @ChgRef{Version=[2],Kind=[AddedNormal]}
-  @ChgAdded{Version=[2],Text=[This pragma is the only way of assigning an
+  @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1]}
+  @ChgAdded{Version=[2],Text=[This @Chg{Version=[3],New=[aspect],Old=[pragma]}
+  is the only way of assigning an
   initial deadline to a task so that its activation can be controlled by EDF
-  scheduling. This is similar to the way pragma Priority is used to give an
+  scheduling. This is similar to the way
+  @Chg{Version=[3],New=[aspect],Old=[pragma]} Priority is used to give an
   initial priority to a task.]}
 @end{Discussion}
 
@@ -1390,34 +1598,45 @@ this scheme including the case where the newly released task should execute
 before some existing tasks but not preempt the currently executing task.]}
 @end{MetaRules}
 
+@begin{NotIso}
+@ChgAdded{Version=[3],Noprefix=[T],Noparanum=[T],Text=[@Shrink{@i<Paragraphs 3
+through 6 were moved to @RefSec{Obsolescent Features}.>}]}@Comment{This message
+should be deleted if the paragraphs are ever renumbered.}
+@end{NotIso}
+
 @begin{Syntax}
 
 @begin{SyntaxText}
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00357-01]}
-@ChgAdded{Version=[2],Type=[Leading],Keepnext=[T],Text=[The form of a
-@nt{pragma} Relative_Deadline is as follows:]}
+@ChgRef{Version=[3],Kind=[DeletedNoDelMsg],ARef=[AI05-0229-1]}
+@ChgDeleted{Version=[3],Type=[Leading],Keepnext=[T],Text=[@Chg{Version=[2],New=[The
+form of a @nt{pragma} Relative_Deadline is as follows:],Old=[]}]}
 @end{SyntaxText}
 
 @ChgRef{Version=[2],Kind=[AddedNormal]}
-@ChgAdded{Version=[2],Text=`@AddedPragmaSyn`Version=[2],@key{pragma} @prag<Relative_Deadline> (@SynI{relative_deadline_}@Syn2{expression});''}
+@ChgRef{Version=[3],Kind=[DeletedNoDelMsg]}
+@DeletedPragmaSyn<Version=[3],InitialVersion=[2],@ChgDeleted{Version=[3],
+Text=`@Chg{Version=[2],New=[@key{pragma} @prag<Relative_Deadline> (@SynI{relative_deadline_}@Syn2{expression});],Old=[]}'}>
 
 @end{Syntax}
 
 @begin{Resolution}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00357-01]}
-@ChgAdded{Version=[2],Text=[The expected type for
-@SynI{relative_deadline_}@nt{expression} is Real_Time.Time_Span.]}
+@ChgRef{Version=[3],Kind=[DeletedNoDelMsg],ARef=[AI05-0229-1]}
+@ChgDeleted{Version=[3],Text=[@Chg{Version=[2],New=[The expected type for
+@SynI{relative_deadline_}@nt{expression} is Real_Time.Time_Span.],Old=[]}]}
 
 @end{Resolution}
 
 @begin{Legality}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00357-01]}
-@ChgAdded{Version=[2],Text=[A Relative_Deadline pragma is allowed only
-immediately within a @nt{task_definition} or the @nt{declarative_part} of a
-@nt{subprogram_body}. At most one such pragma shall appear within a given
-construct.]}
+@ChgRef{Version=[3],Kind=[DeletedNoDelMsg],ARef=[AI05-0229-1]}
+@ChgDeleted{Version=[3],Text=[@Chg{Version=[2],New=[A Relative_Deadline pragma
+is allowed only immediately within a @nt{task_definition} or
+the @nt{declarative_part} of a @nt{subprogram_body}. At most one such pragma
+shall appear within a given construct.],Old=[]}]}
 
 @end{Legality}
 
@@ -1425,7 +1644,10 @@ construct.]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00357-01]}
 @ChgAdded{Version=[2],Text=[The @SynI{policy_}@nt{identifier}
-EDF_Across_Priorities is a task dispatching policy.]}
+EDF_Across_Priorities is a task dispatching
+policy.@Chg{Version=[3],New=[@Defn2{Term=[task dispatching policy],
+Sec=(EDF_Across_Priorities)}@Defn{EDF_Across_Priorities task dispatching policy}],
+Old=[]}]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00357-01]}
 @ChgAdded{Version=[2],KeepNext=[T],Type=[Leading],Text=[The following
@@ -1449,7 +1671,30 @@ language-defined library package exists:]}
 @key{end} Ada.Dispatching.EDF;]}
 @end{Example}
 
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0229-1]}
+@ChgAdded{Version=[3],Type=[Leading],Text=[For a task type (including the
+anonymous type of a @nt{single_task_declaration}) or subprogram, the following
+language-defined representation aspect may be specified:]}
+
+@begin{Description}
+@ChgRef{Version=[3],Kind=[Added]}
+@ChgAdded{Version=[3],Text=[Relative_Deadline@\The aspect
+Relative_Deadline is an @nt{expression}, which shall be of
+type Real_Time.Time_Span.@AspectDefn{Relative_Deadline}]}
+
+  @ChgAspectDesc{Version=[3],Kind=[AddedNormal],Aspect=[Relative_Deadline],
+    Text=[@ChgAdded{Version=[3],Text=[Task parameter used in Earliest Deadline
+      First Dispatching.]}]}
+
+@end{Description}
+
 @end{StaticSem}
+
+@begin{Legality}
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0229-1]}
+@ChgAdded{Version=[3],Text=[The Relative_Deadline aspect shall not be specified
+on a task interface type.]}
+@end{Legality}
 
 @begin{LinkTime}
 
@@ -1481,18 +1726,30 @@ be specified for the partition.]}
 @begin{RunTime}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00357-01]}
-@ChgAdded{Version=[2],Text=[A Relative_Deadline pragma has no effect if it
-occurs in the @nt{declarative_part} of the @nt{subprogram_body} of a
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1]}
+@ChgAdded{Version=[2],Text=[@Chg{Version=[3],New=[The],Old=[A]}
+Relative_Deadline @Chg{Version=[3],New=[aspect],Old=[pragma]} has no effect
+if it @Chg{Version=[3],New=[is specified for],
+Old=[occurs in the @nt{declarative_part} of the @nt{subprogram_body} of]} a
 subprogram other than the main subprogram.]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00357-01]}
-@ChgAdded{Version=[2],Text=[The initial absolute deadline of a task containing
-pragma Relative_Deadline is the value of Real_Time.Clock +
-@SynI{relative_deadline_}@nt{expression}, where the call of Real_Time.Clock is made
-between task creation and the start of its activation. If there is no
-Relative_Deadline pragma then the initial absolute deadline of a task is the
-value of Default_Deadline. @Redundant[The environment task is also given
-an initial deadline by this rule.]]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1]}
+@ChgAdded{Version=[2],Text=[The initial absolute deadline of a task
+@Chg{Version=[3],New=[for which aspect],Old=[containing
+pragma]} Relative_Deadline@Chg{Version=[3],New=[ is specified],Old=[]} is
+the value of Real_Time.Clock +
+@Chg{Version=[3],New=[the @nt{expression} that is the value of the
+aspect],Old=[@SynI{relative_deadline_}@nt{expression}]}, where
+@Chg{Version=[3],New=[this entire expression, including ],Old=[]}the
+call of Real_Time.Clock@Chg{Version=[3],New=[, is evaluated],Old=[ is made]}
+between task creation and the start of its activation. If
+@Chg{Version=[3],New=[the aspect],Old=[there is no]}
+Relative_Deadline @Chg{Version=[3],New=[is not specified,],Old=[pragma]}
+then the initial absolute deadline of a task is the
+value of Default_Deadline. The environment task is also given
+an initial deadline by this rule@Chg{Version=[3],New=[, using the value of
+the Relative_Deadline aspect of the main subprogram],Old=[]}.]}
 
 @begin{TheProof}
   @ChgRef{Version=[2],Kind=[AddedNormal]}
@@ -1564,10 +1821,14 @@ EDF_Across_Priorities that includes the base priority of @i<T>;]}
 @i<T>;]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal]}
+@ChgRef{Version=[3],Kind=[Revised], ARef=[AI05-0055-1]}
 @ChgAdded{Version=[2],Text=[the highest priority @i<P>, if any, less than the
 base priority of @i<T> such that one or more tasks are executing within a
 protected object with ceiling priority @i<P> and task @i<T>
-has an earlier deadline than all such tasks.]}
+has an earlier deadline than all such tasks@Chg{Version=[3],New=[;
+and furthermore @i<T> has an earlier deadline than all other tasks on
+ready queues with priorities in the given EDF_Across_Priorities range that
+are strictly less than @i<P>],Old=[]}.]}
 @end{Itemize}
 
 @begin{Ramification}
@@ -1640,9 +1901,11 @@ of a task to be delayed for a multiprocessor.]}]}
 
 @begin{Notes}
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00357-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0264-1]}
 @ChgAdded{Version=[2],Text=[If two adjacent priority ranges, @i<A>..@i<B> and
 @i<B>+1..@i<C> are specified to have policy
-EDF_Across_Priorities then this is not equivalent to this policy being
+EDF_Across_Priorities@Chg{Version=[3],New=[,],Old=[]} then
+this is not equivalent to this policy being
 specified for the single range, @i<A>..@i<C>.]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00357-01]}
@@ -1666,6 +1929,19 @@ follows the existing rules for ceiling locking.]}
   @ChgAdded{Version=[2],Text=[@Defn{extensions to Ada 95}
   Policy EDF_Across_Priorities and package Dispatching.EDF are new.]}
 @end{Extend95}
+
+@begin{Extend2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0229-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 2005}
+  Aspect Relative_Deadline is new; @nt{pragma} Relative_Deadline
+  is now obsolescent.]}
+@end{Extend2005}
+
+@begin{Diffword2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0055-1]}
+  @ChgAdded{Version=[3],Text=[@b<Correction:> Corrected definition
+  of active priority to avoid deadline inversion in an unusual case.]}
+@end{Diffword2005}
 
 
 @LabeledClause{Priority Ceiling Locking}
@@ -1732,25 +2008,35 @@ Text=[The locking policy if no Locking_Policy pragma applies to any unit of
 a partition.]}]}
 
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00327-01]}
-@ChgAdded{Version=[2],Text=[The @nt{expression} of a Priority or Interrupt_Priority
-pragma (see @RefSecNum{Task Priorities}) is evaluated as part of the creation
+@ChgRef{Version=[3],Kind=[RevisedAdded],ARef=[AI05-0229-1]}
+@ChgAdded{Version=[2],Text=[The @nt{expression} @Chg{Version=[3],New=[specified
+for the],Old=[of a]} Priority or Interrupt_Priority
+@Chg{Version=[3],New=[aspect],Old=[pragma]}
+(see @RefSecNum{Task Priorities}) is evaluated as part of the creation
 of the corresponding
 protected object and converted to the subtype System.Any_Priority or
 System.Interrupt_Priority, respectively. The value of the expression is the
 initial priority of the corresponding protected object. If no Priority or
-Interrupt_Priority pragma applies to a protected object, the initial priority
+Interrupt_Priority @Chg{Version=[3],New=[aspect is specified for],Old=[pragma
+applies to]} a protected object, the initial priority
 is specified by the locking policy.
-@PDefn2{Term=[implicit subtype conversion],Sec=(pragma Priority)}
-@PDefn2{Term=[implicit subtype conversion],Sec=(pragma Interrupt_Priority)}]}
+@Chg{Version=[3],New=[@PDefn2{Term=[implicit subtype conversion],Sec=(Priority aspect)}
+@PDefn2{Term=[implicit subtype conversion],Sec=(Interrupt_Priority aspect)}],
+Old=[@PDefn2{Term=[implicit subtype conversion],Sec=(pragma Priority)}
+@PDefn2{Term=[implicit subtype conversion],Sec=(pragma Interrupt_Priority)}]}]}
 
 @Leading@;There is one predefined locking policy, Ceiling_Locking; this policy is
-defined as follows:
+defined as follows:@Chg{Version=[3],New=[@Defn2{Term=[locking policy],
+Sec=(Ceiling_Locking)}@Defn{Ceiling_Locking locking policy}],
+Old=[]}
 @begin{itemize}
 
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00327-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1]}
 @Defn2{Term=[ceiling priority], Sec=(of a protected object)}
 Every protected object has a @i{ceiling priority}, which
-is determined by either a Priority or Interrupt_Priority pragma as
+is determined by either a Priority or Interrupt_Priority
+@Chg{Version=[3],New=[aspect],Old=[pragma]} as
 defined in @RefSecNum{Task Priorities}@Chg{Version=[2],New=[, or by
 assignment to the Priority attribute as described
 in @RefSecNum{Dynamic Priorities for Protected Objects}],Old=[]}.
@@ -1760,8 +2046,7 @@ it calls protected operations of that protected object.
 
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00327-01]}
 The @Chg{Version=[2],New=[initial ceiling priority of a],Old=[@nt{expression}
-of a Priority or Interrupt_Priority pragma is evaluated
-as part of the creation of the corresponding]}
+of a Priority or Interrupt_Priority pragma is evaluated as part of the creation of the corresponding]}
 protected object
 @Chg{Version=[2],New=[is
 equal to the initial priority for that object.],Old=[and converted
@@ -1772,19 +2057,30 @@ the corresponding protected object.
 @PDefn2{Term=[implicit subtype conversion],Sec=(pragma Interrupt_Priority)}]}
 
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00327-01]}
-If an Interrupt_Handler or Attach_Handler pragma
-(see @RefSecNum{Protected Procedure Handlers}) appears in a
-@nt{protected_definition} without an Interrupt_Priority pragma, the
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1]}
+If an Interrupt_Handler or Attach_Handler @Chg{Version=[3],New=[aspect],
+Old=[pragma]} (see @RefSecNum{Protected Procedure Handlers})
+@Chg{Version=[3],New=[is specified for a protected subprogram of a
+protected type that does not have the ],Old=[appears in a
+@nt{protected_definition} without an]} Interrupt_Priority
+@Chg{Version=[3],New=[aspect specified],Old=[pragma]}, the
 @Chg{Version=[2],New=[initial],Old=[ceiling]} priority of protected objects
 of that type is implementation defined,
 but in the range of the subtype System.Interrupt_Priority.
 @ImplDef{Default ceiling priorities.}
 
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00327-01]}
-If no @nt{pragma} Priority, Interrupt_Priority,
-Interrupt_Handler, or Attach_Handler is specified in the
-@nt{protected_definition}, then the @Chg{Version=[2],New=[initial],Old=[ceiling]}
-priority of the corresponding protected object is System.Priority'Last.
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1]}
+If @Chg{Version=[3],New=[neither aspect],Old=[no @nt{pragma}]}
+Priority@Chg{Version=[3],New=[ nor],Old=[,]}
+Interrupt_Priority@Chg{Version=[3],New=[],Old=[, Interrupt_Handler,
+or Attach_Handler]} is specified
+@Chg{Version=[3],New=[for a protected type, and no protected subprogram
+of the type has aspect Interrupt_Handler or
+Attach_Handler specified],Old=[in the
+@nt{protected_definition}]}, then the
+@Chg{Version=[2],New=[initial],Old=[ceiling]} priority of the corresponding
+protected object is System.Priority'Last.
 
 While a task executes a protected action, it inherits the ceiling
 priority of the corresponding protected object.
@@ -1974,8 +2270,15 @@ calls another protected operation on the same protected object).
   situation arises.]}
 @end{DiffWord95}
 
+@begin{DiffWord2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0229-1]}
+  @ChgAdded{Version=[3],Text=[Revised to use aspects Priority and
+  Interrupt_Priority as @nt{pragma}s
+  Priority and Interrupt_Priority are now obsolescent.]}
+@end{DiffWord2005}
 
-@Comment{@RMNewPage  Break here so printed Ada 95 RM looks better.}
+
+@RMNewPageVer{Version=[2]}@Comment{For printed RM Ada 2005}
 @LabeledClause{Entry Queuing Policies}
 
 @begin{Intro}
@@ -2029,11 +2332,15 @@ Two queuing policies, FIFO_Queuing and Priority_Queuing,
 are language defined. If no Queuing_Policy pragma
 @Chg{Version=[2],New=[applies to],Old=[appears in]} any of the program units
 comprising the partition, the queuing policy for that partition
-is FIFO_Queuing. The rules for this policy are specified in
+is FIFO_Queuing.@Chg{Version=[3],New=[@Defn2{Term=[queuing policy],
+Sec=(FIFO_Queuing)}@Defn{FIFO_Queuing queuing policy}],
+Old=[]} The rules for this policy are specified in
 @RefSecNum{Entry Calls} and @RefSecNum{Selective Accept}.
 
-@Leading@Keepnext@;The Priority_Queuing policy is defined as follows:
-@begin{itemize}
+@Leading@Keepnext@;The Priority_Queuing policy is defined as
+follows:@Chg{Version=[3],New=[@Defn2{Term=[queuing policy],
+Sec=(Priority_Queuing)}@Defn{Priority_Queuing queuing policy}],
+Old=[]}@begin{itemize}
 
 @Defn{priority of an entry call}
 The calls to an entry @Redundant[(including a member of an entry family)]
@@ -2208,6 +2515,7 @@ implementation-defined queuing policies.]}]}
 @end{DiffWord95}
 
 
+@RMNewPageVer{Version=[3]}@Comment{For printed version of Ada 2012 RM}
 @LabeledClause{Dynamic Priorities}
 
 
@@ -2451,11 +2759,15 @@ This follows from the general reentrancy requirements stated near the
 beginning of @RefSec{Predefined Language Environment}.
 @end{TheProof}
 
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0092-1]}
 The rule for when Tasking_Error is raised for Set_Priority or Get_Priority is
 different from the rule for when Tasking_Error is raised on an
-entry call (see @RefSecNum{Entry Calls}). In particular, setting or
-querying the priority of a completed or an abnormal
-task is allowed, so long as the task is not yet terminated.
+entry call (see @RefSecNum{Entry Calls}). In particular,
+@Chg{Version=[3],New=[],Old=[setting or ]}querying the priority of
+a completed or an abnormal
+task is allowed, so long as the task is not yet
+terminated@Chg{Version=[3],New=[, and setting the priority of a task
+is allowed for any task state (including for terminated tasks)],Old=[]}.
 
 Changing the priorities of a set of tasks can be performed by a
 series of calls to Set_Priority for each task separately. For
@@ -2497,7 +2809,7 @@ affected tasks.
 @end{DiffWord95}
 
 
-@RMNewPage@Comment{For printed Ada 2005 RM}
+@RMNewPageVer{Version=[2]}@Comment{For printed RM Ada 2005}
 @LabeledAddedSubClause{Version=[2],Name=[Dynamic Priorities for Protected Objects]}
 
 @begin{Intro}
@@ -2531,15 +2843,18 @@ be changed by an assignment].]}
 
 @begin{Runtime}
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00327-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0264-1]}
 @ChgAdded{Version=[2],Text=[If the locking policy Ceiling_Locking (see
-@RefSecNum{Priority Ceiling Locking}) is in effect
+@RefSecNum{Priority Ceiling Locking}) is in effect@Chg{Version=[3],New=[,],Old=[]}
 then the ceiling priority of a protected object @i<P> is set to the value of
 @i<P>'Priority at the end of each protected action of @i<P>.]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00445-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1]}
 @ChgAdded{Version=[2],Text=[If the locking policy Ceiling_Locking is in effect,
 then for a protected object @i<P> with either an Attach_Handler or
-Interrupt_Handler pragma applying to one of its procedures, a check is made
+Interrupt_Handler @Chg{Version=[3],New=[aspect specified
+for],Old=[pragma applying to]} one of its procedures, a check is made
 that the value to be assigned to @i<P>'Priority is in the range
 System.Interrupt_Priority. If the check fails, Program_Error is
 raised.@Defn2{Term=[Program_Error],Sec=(raised by failure of run-time check)}]}
@@ -2596,8 +2911,7 @@ completion of the protected action in which it is executed.]}
 @end{Extend95}
 
 
-
-@RMNewPage@Comment{For printed RM Ada 2005 only}
+@RMNewPageVer{Version=[2]}@Comment{For printed RM Ada 2005}
 @LabeledClause{Preemptive Abort}
 
 @begin{Intro}
@@ -2617,7 +2931,8 @@ abort-deferred operation.
 On a multiprocessor, the implementation shall document any conditions that
 cause the completion of an aborted construct to be delayed later than
 what is specified for a single processor.
-@ChgImplDef{Version=[2],Kind=[Deleted],Text=[@ChgDeleted{Version=[2],
+@ChgImplDef{Version=[2],Kind=[Deleted],InitialVersion=[0],
+Text=[@ChgDeleted{Version=[2],
 Text=[On a multiprocessor, any conditions that
 cause the completion of an aborted construct to be delayed later than
 what is specified for a single processor.]}]}
@@ -2705,43 +3020,91 @@ deferral of abortion during finalization and in protected actions.
 
 @begin{Intro}
 @Redundant[This clause defines restrictions that can be used with a
-pragma Restrictions (see @RefSecNum{Pragma Restrictions}) to facilitate the
+pragma Restrictions (see @RefSecNum{Pragma Restrictions and Pragma Profile}) to facilitate the
 construction of highly efficient tasking run-time systems.]
 @end{Intro}
 
 @begin{StaticSem}
 @Leading@;The following @SynI{restriction_}@nt{identifier}s are language defined:
 @begin{Description}
-@Defn2{Term=[Restrictions],Sec=(No_Task_Hierarchy)}No_Task_Hierarchy @\All (nonenvironment) tasks depend directly on
-                        the environment task of the partition.
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0013-1],ARef=[AI05-0216-1]}
+@Defn2{Term=[restrictions],Sec=(No_Task_Hierarchy)}@Chg{Version=[3],New=[@Defn{No_Task_Hierarchy restriction}],
+   Old=[]}No_Task_Hierarchy @\@Chg{Version=[3],
+  New=[No task depends on a master other than the library-level master],Old=[All
+  (nonenvironment) tasks depend directly on
+  the environment task of the partition]}.
+
+@begin{Ramification}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0216-1]}
+@ChgAdded{Version=[3],Text=[This is equivalent to saying @ldquote@;no task
+   depends on a master other than the
+   master that is the execution of the body of the environment task of the
+   partition@rdquote, but it is much easier to understand. This is a
+   post-compilation check, which can be checked at compile-time.]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0013-1]}
+@ChgAdded{Version=[3],Text=[This disallows any function returning an
+    object with a task part or coextension, even if called at the library level,
+    as such a task would temporarily depend on a nested master (the master
+    of the return statement), which is disallowed by this restriction.]}
+@end{Ramification}
 
 @ChgRef{Version=[1],Kind=[Revised],Ref=[8652/0042],ARef=[AI95-00130-01]}
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00360-01]}
-@Defn2{Term=[Restrictions],Sec=(No_Nested_Finalization)}No_Nested_Finalization @\Objects
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0013-1]}
+@Defn2{Term=[restrictions],Sec=(No_Nested_Finalization)}@Chg{Version=[3],New=[@Defn{No_Nested_Finalization restriction}],
+   Old=[]}No_Nested_Finalization @\Objects
   @Chg{Version=[2],New=[of a type that needs finalization (see
-  @RefSecNum{User-Defined Assignment and Finalization})],Old=[with
-  controlled@Chg{New=[, protected, or task],Old=[]} parts]} and
+  @RefSecNum{Assignment and Finalization})],Old=[with
+  controlled@Chg{New=[, protected, or task],Old=[]} parts]}
+  @Chg{Version=[3],New=[are],Old=[and
   access types that designate @Chg{Version=[2],New=[a type that needs
-  finalization],Old=[such objects@Chg{New=[,],Old=[]}]} shall be
-  declared only at library level.
+  finalization],Old=[such objects@Chg{New=[,],Old=[]}]} shall be]}
+  declared only at library level.@Chg{Version=[3],New=[ If an access type
+  does not have library-level accessibility, then there are
+  no @nt{allocator}s of the type where the type determined by the
+  @nt{subtype_mark} of the @nt{subtype_indication} or
+  @nt{qualified_expression} needs finalization.],Old=[]}
     @begin{Ramification}
 @ChgRef{Version=[1],Kind=[Deleted],Ref=[8652/0042],ARef=[AI95-00130-01]}
     @ChgNote{This is no longer true.}
     @ChgDeleted{Version=[1],Text=[Note that protected types with entries and
     interrupt-handling protected types have nontrivial finalization actions.
     However, this restriction does not restrict those things.]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0013-1]}
+    @ChgAdded{Version=[3],Text=[The second sentence prevents the declaration
+    of objects of access types which would require nested finalization. It
+    also prevents the declarations of coextensions that need
+    finalization in a nested scope. The latter cannot be done by preventing
+    the declaration of the objects, as it is not necessarily known if the
+    coextension type needs finalization (it could be a limited view).]}
     @end{Ramification}
 
-@Defn2{Term=[Restrictions],Sec=(No_Abort_Statements)}No_Abort_Statements @\There are no @nt{abort_statement}s, and there are no
-calls on Task_Identification.Abort_Task.
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0211-1]}
+@Defn2{Term=[restrictions],Sec=(No_Abort_Statements)}@Chg{Version=[3],New=[@Defn{No_Abort_Statements restriction}],
+   Old=[]}No_Abort_Statements @\There are no @nt{abort_statement}s, and there
+@Chg{Version=[3],New=[is no use of a @nt{name} denoting],Old=[are no calls on]}
+Task_Identification.Abort_Task.
 
-@Defn2{Term=[Restrictions],Sec=(No_Terminate_Alternatives)}No_Terminate_Alternatives @\There are no @nt{selective_accept}s with
+@Defn2{Term=[restrictions],Sec=(No_Terminate_Alternatives)}@Chg{Version=[3],New=[@Defn{No_Terminate_Alternatives restriction}],
+   Old=[]}No_Terminate_Alternatives @\There are no @nt{selective_accept}s with
                         @nt{terminate_alternative}s.
 
-@Defn2{Term=[Restrictions],Sec=(No_Task_Allocators)}No_Task_Allocators @\There are no @nt{allocator}s for task types or types
+@Defn2{Term=[restrictions],Sec=(No_Task_Allocators)}@Chg{Version=[3],New=[@Defn{No_Task_Allocators restriction}],
+   Old=[]}No_Task_Allocators @\There are no @nt{allocator}s for task types or types
                         containing task subcomponents.
 
-@Defn2{Term=[Restrictions],Sec=(No_Implicit_Heap_Allocations)}No_Implicit_Heap_Allocations @\There are no operations that implicitly require
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0224-1]}
+@ChgAdded{Version=[3],NoPrefix=[T],Text=[In the case of an initialized
+   @nt{allocator} of an access type whose designated type is class-wide and
+   limited, a check is made that the specific type of the allocated object has
+   no task subcomponents. Program_Error is raised if this check
+   fails.@Defn2{Term=[Program_Error],Sec=(raised by failure of run-time check)}]}
+   @Comment{We don't index this "check" as it doesn't have a name.}
+
+@Defn2{Term=[restrictions],Sec=(No_Implicit_Heap_Allocations)}@Chg{Version=[3],New=[@Defn{No_Implicit_Heap_Allocations restriction}],
+   Old=[]}No_Implicit_Heap_Allocations @\There are no operations that implicitly require
                         heap storage allocation to be performed by the
                         implementation. The operations that implicitly
                         require heap storage allocation are
@@ -2753,61 +3116,104 @@ require heap storage allocation.}
 No_Dynamic_Priorities @\There are no semantic dependences on the package
                 Dynamic_Priorities@Chg{Version=[2],New=[, and no occurrences
                 of the attribute Priority],Old=[]}.
-@Defn2{Term=[Restrictions],Sec=(No_Dynamic_Priorities)}
+@Defn2{Term=[restrictions],Sec=(No_Dynamic_Priorities)}@Chg{Version=[3],New=[@Defn{No_Dynamic_Priorities restriction}],
+Old=[]}
 
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00305-01],ARef=[AI95-00394-01]}
-@Chg{Version=[2],New=[@Defn2{Term=[Restrictions],Sec=(No_Dynamic_Attachment)}No_Dynamic_Attachment],
-Old=[@Defn2{Term=[Restrictions],Sec=(No_Asynchronous_Control)}No_Asynchronous_Control]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0013-1],ARef=[AI05-0211-1]}
+@Chg{Version=[2],New=[@Defn2{Term=[restrictions],
+   Sec=(No_Dynamic_Attachment)}@Chg{Version=[3],New=[@Defn{No_Dynamic_Attachment restriction}],
+   Old=[]}No_Dynamic_Attachment],
+Old=[@Defn2{Term=[restrictions],Sec=(No_Asynchronous_Control)}No_Asynchronous_Control]}
     @\There
-    @Chg{Version=[2],New=[is no call to any of the operations defined
+    @Chg{Version=[2],New=[is no @Chg{Version=[3],New=[use of a @nt{name}
+    denoting],Old=[call to]} any of the operations defined
     in package Interrupts (Is_Reserved, Is_Attached, Current_Handler,
     Attach_Handler, Exchange_Handler, Detach_Handler, and Reference).],
     Old=[are no semantic dependences on the package Asynchronous_Task_Control.]}
+@begin{Ramification}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0013-1]}
+@ChgAdded{Version=[3],Text=[This includes 'Access and 'Address of any
+    of these operations, as well as inherited versions of these operations.]}
+@end{Ramification}
+
 
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00305-01]}
-@ChgAdded{Version=[2],Text=[@Defn2{Term=[Restrictions],Sec=(No_Local_Protected_Objects)}No_Local_Protected_Objects @\Protected
-   objects shall be declared only at library level.]}
+@ChgRef{Version=[3],Kind=[RevisedAdded],ARef=[AI05-0013-1]}
+@ChgAdded{Version=[2],Text=[@Defn2{Term=[restrictions],Sec=(No_Local_Protected_Objects)}@Chg{Version=[3],New=[@Defn{No_Local_Protected_Objects restriction}],
+   Old=[]}No_Local_Protected_Objects @\Protected
+   objects @Chg{Version=[2],New=[are],Old=[shall be]} declared only at
+   library level.]}
 
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00297-01]}
-@ChgAdded{Version=[2],Text=[@Defn2{Term=[Restrictions],Sec=(No_Local_Timing_Events)}No_Local_Timing_Events @\Timing_Events
-   shall be declared only at library level.]}
+@ChgRef{Version=[3],Kind=[RevisedAdded],ARef=[AI05-0013-1]}
+@ChgAdded{Version=[2],Text=[@Defn2{Term=[restrictions],Sec=(No_Local_Timing_Events)}@Chg{Version=[3],New=[@Defn{No_Local_Timing_Events restriction}],
+   Old=[]}No_Local_Timing_Events @\Timing_Events
+   @Chg{Version=[2],New=[are],Old=[shall be]} declared only at library level.]}
 
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00305-01]}
-@ChgAdded{Version=[2],Text=[@Defn2{Term=[Restrictions],Sec=(No_Protected_Type_Allocators)}No_Protected_Type_Allocators @\There
+@ChgAdded{Version=[2],Text=[@Defn2{Term=[restrictions],Sec=(No_Protected_Type_Allocators)}@Chg{Version=[3],New=[@Defn{No_Protected_Type_Allocators restriction}],
+   Old=[]}No_Protected_Type_Allocators @\There
    are no @nt{allocator}s for protected types or types
    containing protected type subcomponents.]}
 
-@ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00305-01]}
-@ChgAdded{Version=[2],Text=[@Defn2{Term=[Restrictions],Sec=(No_Relative_Delay)}No_Relative_Delay @\There
-   are no @nt{delay_relative_statement}s.]}
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0224-1]}
+@ChgAdded{Version=[3],NoPrefix=[T],Text=[In the case of an initialized
+   @nt{allocator} of an access type whose designated type is class-wide and
+   limited, a check is made that the specific type of the allocated object has
+   no protected subcomponents. Program_Error is raised if this check
+   fails.@Defn2{Term=[Program_Error],Sec=(raised by failure of run-time check)}]}
+   @Comment{We don't index this "check" as it doesn't have a name.}
 
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00305-01]}
-@ChgAdded{Version=[2],Text=[@Defn2{Term=[Restrictions],Sec=(No_Requeue_Statements)}No_Requeue_Statements @\There
+@ChgRef{Version=[3],Kind=[RevisedAdded],ARef=[AI05-0211-1]}
+@ChgAdded{Version=[2],Text=[@Defn2{Term=[restrictions],Sec=(No_Relative_Delay)}@Chg{Version=[3],New=[@Defn{No_Relative_Delay restriction}],
+   Old=[]}No_Relative_Delay @\There
+   are no @nt{delay_relative_statement}s@Chg{Version=[3],New=[, and there is no
+   use of a @nt{name} that denotes the Timing_Events.Set_Handler
+   subprogram that has a Time_Span parameter],Old=[]}.]}
+
+@ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00305-01]}
+@ChgRef{Version=[3],Kind=[RevisedAdded]}@Comment{Number changed due to insertion above}
+@ChgAdded{Version=[2],Text=[@Defn2{Term=[restrictions],Sec=(No_Requeue_Statements)}@Chg{Version=[3],New=[@Defn{No_Requeue_Statements restriction}],
+   Old=[]}No_Requeue_Statements @\There
    are no @nt{requeue_statement}s.]}
 
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00305-01]}
-@ChgAdded{Version=[2],Text=[@Defn2{Term=[Restrictions],Sec=(No_Select_Statements)}No_Select_Statements @\There
+@ChgRef{Version=[3],Kind=[RevisedAdded]}@Comment{Number changed due to insertion above}
+@ChgAdded{Version=[2],Text=[@Defn2{Term=[restrictions],Sec=(No_Select_Statements)}@Chg{Version=[3],New=[@Defn{No_Select_Statements restriction}],
+   Old=[]}No_Select_Statements @\There
    are no @nt{select_statement}s.]}
 
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00394-01]}
-@ChgAdded{Version=[2],Text=[@Defn2{Term=[Restrictions],Sec=(No_Specific_Termination_Handlers)}No_Specific_Termination_Handlers @\There
-  are no calls to the Set_Specific_Handler and Specific_Handler subprograms
+@ChgRef{Version=[3],Kind=[RevisedAdded],ARef=[AI05-0211-1]}
+@ChgAdded{Version=[2],Text=[@Defn2{Term=[restrictions],Sec=(No_Specific_Termination_Handlers)}@Chg{Version=[3],New=[@Defn{No_Specific_Termination_Handlers restriction}],
+   Old=[]}No_Specific_Termination_Handlers @\There
+  @Chg{Version=[3],New=[is no use of a @nt{name} denoting],Old=[are no calls to]}
+  the Set_Specific_Handler and Specific_Handler subprograms
   in Task_Termination.]}
 
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00305-01]}
-@ChgAdded{Version=[2],Text=[@Defn2{Term=[Restrictions],Sec=(Simple_Barriers)}Simple_Barriers @\The
-   Boolean expression in an entry barrier shall be either a static Boolean
-   expression or a Boolean component of the enclosing protected object.]}
+@ChgRef{Version=[3],Kind=[RevisedAdded],ARef=[AI05-0013-1]}
+@ChgAdded{Version=[2],Text=[@Defn2{Term=[restrictions],Sec=(Simple_Barriers)}@Chg{Version=[3],New=[@Defn{Simple_Barriers restriction}],
+   Old=[]}Simple_Barriers @\The
+   Boolean expression in @Chg{Version=[3],New=[each],Old=[an]} entry barrier
+   @Chg{Version=[3],New=[is],Old=[shall be]} either a static
+   @Chg{Version=[3],New=[],Old=[Boolean ]}expression or a
+   @Chg{Version=[3],New=[name that statically denotes a],Old=[Boolean]}
+   component of the enclosing protected object.]}
 
 @end{Description}
 
 @Leading@;The following @SynI{restriction_parameter_}@nt{identifier}s are
 language defined:
 @begin{Description}
-@Defn2{Term=[Restrictions],Sec=(Max_Select_Alternatives)}Max_Select_Alternatives @\Specifies the maximum number of alternatives
+@Defn2{Term=[restrictions],Sec=(Max_Select_Alternatives)}@Chg{Version=[3],New=[@Defn{Max_Select_Alternatives restriction}],
+   Old=[]}Max_Select_Alternatives @\Specifies the maximum number of alternatives
                 in a @nt{selective_accept}.
 
-@Defn2{Term=[Restrictions],Sec=(Max_Task_Entries)}Max_Task_Entries @\Specifies the maximum number of entries per task.
+@Defn2{Term=[restrictions],Sec=(Max_Task_Entries)}@Chg{Version=[3],New=[@Defn{Max_Task_Entries restriction}],
+   Old=[]}Max_Task_Entries @\Specifies the maximum number of entries per task.
     The bounds of every entry family
     of a task unit shall be static,
     or shall be defined by a discriminant of a subtype whose
@@ -2821,7 +3227,8 @@ Max_Protected_Entries @\Specifies the maximum number of entries per
     of a protected unit shall be static,
     or shall be defined by a discriminant of a subtype whose
     corresponding bound is static.
-@Defn2{Term=[Restrictions],Sec=(Max_Protected_Entries)}
+@Defn2{Term=[restrictions],Sec=(Max_Protected_Entries)}@Chg{Version=[3],New=[@Defn{Max_Protected_Entries restriction}],
+Old=[]}
 @end{Description}
 @end{StaticSem}
 
@@ -2840,7 +3247,8 @@ Storage_Error should be raised.]}
 
 @begin{Description}
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00305-01],ARef=[AI95-00394-01]}
-@ChgAdded{Version=[2],Text=[@Defn2{Term=[Restrictions],Sec=(No_Task_Termination)}No_Task_Termination @\All
+@ChgAdded{Version=[2],Text=[@Defn2{Term=[restrictions],Sec=(No_Task_Termination)}@Chg{Version=[3],New=[@Defn{No_Task_Termination restriction}],
+   Old=[]}No_Task_Termination @\All
    tasks are non-terminating. It is implementation-defined what happens if
    a task attempts to terminate. If there is a fall-back handler (see C.7.3)
    set for the partition it should be called when the first task attempts to
@@ -2854,7 +3262,8 @@ Text=[When restriction No_Task_Termination applies to a partition, what
 language defined:
 @begin{Description}
 @ChgRef{Version=[1],Kind=[Revised],Ref=[8652/0076],ARef=[AI95-00067-01]}
-@Defn2{Term=[Restrictions],Sec=(Max_Storage_At_Blocking)}Max_Storage_At_Blocking @\Specifies
+@Defn2{Term=[restrictions],Sec=(Max_Storage_At_Blocking)}@Chg{Version=[3],New=[@Defn{Max_Storage_At_Blocking restriction}],
+   Old=[]}Max_Storage_At_Blocking @\Specifies
   the maximum portion @redundant[(in storage elements)]
   of a task's Storage_Size that can be retained by a blocked task@Chg{New=[.
   If an implementation chooses to detect a violation of this
@@ -2866,7 +3275,8 @@ language defined:
 Text=[The behavior when restriction Max_Storage_At_Blocking is violated.]}]}
 
 @ChgRef{Version=[1],Kind=[Revised],Ref=[8652/0076],ARef=[AI95-00067-01]}
-@Defn2{Term=[Restrictions],Sec=(Max_Asynchronous_Select_Nesting)}Max_Asynchronous_Select_Nesting @\Specifies
+@Defn2{Term=[restrictions],Sec=(Max_Asynchronous_Select_Nesting)}@Chg{Version=[3],New=[@Defn{Max_Asynchronous_Select_Nesting restriction}],
+   Old=[]}Max_Asynchronous_Select_Nesting @\Specifies
   the maximum dynamic nesting level of @nt{asynchronous_select}s.
   A value of zero prevents the use of any @nt{asynchronous_@!select}@Chg{New=[ and,
   if a program contains an @nt{asynchronous_@!select}, it is illegal.
@@ -2881,7 +3291,8 @@ Text=[The behavior when restriction Max_Storage_At_Blocking is violated.]}]}
 Text=[The behavior when restriction Max_Asynchronous_Select_Nesting is violated.]}]}
 
 @ChgRef{Version=[1],Kind=[Revised],Ref=[8652/0076],ARef=[AI95-00067-01]}
-@Defn2{Term=[Restrictions],Sec=(Max_Tasks)}Max_Tasks @\Specifies the maximum
+@Defn2{Term=[restrictions],Sec=(Max_Tasks)}@Chg{Version=[3],New=[@Defn{Max_Tasks restriction}],
+   Old=[]}Max_Tasks @\Specifies the maximum
   number of task creations that may be executed over the lifetime of a
   partition, not counting the creation of the environment task@Chg{New=[.
   A value of zero prevents any task creation and, if a program contains a
@@ -2903,19 +3314,37 @@ Text=[The behavior when restriction Max_Asynchronous_Select_Nesting is violated.
 Text=[The behavior when restriction Max_Tasks is violated.]}]}
 
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00305-01]}
-@ChgAdded{Version=[2],Text=[@Defn2{Term=[Restrictions],
-Sec=(Max_Entry_Queue_Length)}Max_Entry_Queue_Length @\Max_Entry_Queue_Length
+@ChgAdded{Version=[2],Text=[@Defn2{Term=[restrictions],
+Sec=(Max_Entry_Queue_Length)}@Chg{Version=[3],New=[@Defn{Max_Entry_Queue_Length restriction}],
+Old=[]}Max_Entry_Queue_Length @\Max_Entry_Queue_Length
   defines the maximum number of calls
   that are queued on an entry. Violation of this restriction
   results in the raising of Program_Error at the point of the call or
   requeue.@Defn2{Term=[Program_Error],Sec=(raised by failure of run-time check)}]}
+
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0189-1]}
+@ChgAdded{Version=[3],Text=[@Defn2{Term=[restrictions],
+Sec=(No_Standard_Allocators_After_Elaboration)}@Defn{No_Standard_Allocators_After_Elaboration restriction}
+No_Standard_Allocators_After_Elaboration @\Specifies that an @nt{allocator} using
+a standard storage pool (see @RefSecNum{Storage Management}) shall not occur
+within a parameterless library subprogram, nor within the
+@nt{handled_sequence_of_statements} of a task body. For the purposes of this rule, an
+@nt{allocator} of a type derived from a formal access type does not use a standard
+storage pool.]}
+
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0189-1],ARef=[AI05-0262-1]}
+@ChgAdded{Version=[3],NoPrefix=[T],Text=[At run time, Storage_Error is raised if
+an @nt{allocator} using a standard storage pool is evaluated after the elaboration of
+the @nt{library_item}s of the partition has completed.@Defn2{Term=[Storage_Error],
+Sec=(raised by failure of run-time check)}]}
 @end{Description}
 
 It is implementation defined whether the use of pragma Restrictions
 results in a reduction in executable program size, storage requirements,
 or execution time. If possible, the implementation should provide
 quantitative descriptions of such effects for each restriction.
-@ChgImplDef{Version=[2],Kind=[Revised],Text=[@Chg{Version=[2],
+@ChgImplDef{Version=[2],Kind=[Revised],InitialVersion=[0],
+Text=[@Chg{Version=[2],
 New=[Whether the use of],Old=[Implementation-defined aspects of]}
 pragma Restrictions@Chg{Version=[2],New=[ results in a reduction in
 program code or data size or execution time],Old=[]}.]}
@@ -2976,6 +3405,60 @@ The above Storage_Checks can be suppressed with pragma Suppress.
   @ChgAdded{Version=[2],Text=[Restriction No_Asynchronous_Control is now
   obsolescent.]}
 @end{DiffWord95}
+
+@begin{Incompatible2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0013-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{incompatibilities with Ada 2005}@b<Correction:>
+  Changed so that coextensions of types that require nested finalization are
+  also prohibited; this is done by prohibiting @nt{allocator}s rather than
+  objects of specific access types. It seems unlikely that any program depending
+  on this restriction would violate it in this blatant manner, so it is expected
+  that very few programs will be affected by this change.]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0211-1]}
+  @ChgAdded{Version=[3],Text=[@b<Correction:>
+  The restriction No_Relative_Delay was changed to include the Timing_Events
+  routine that uses a relative delay. This means that a program that uses
+  that routine and this restriction will now be rejected. However, such a
+  program violates the spirit and intent of the restriction and as such the
+  program should never have been allowed. Moreover, it is unlikely that
+  any program depending on this restriction would violate it in such an obvious
+  manner, so it is expected that very few programs will be affected by this
+  change.]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0211-1]}
+  @ChgAdded{Version=[3],Text=[@b<Correction:> A number of restrictions were
+  changed from "no calls" on some subprogram to "no use of a @nt{name} that
+  denotes" that subprogram. This closes a hole where renames, uses as the prefix
+  of 'Access, and the like, would not be rejected by the restriction, possibly
+  allowing backdoor access to the prohibited subprogram. A program that
+  uses one of these restrictions and using such backdoor access will now be
+  rejected; however, it is extremely unlikely that any program that relies
+  on these restrictions would also use an end-run around the restriction, so
+  it is expected that very few programs will be affected by this change.]}
+@end{Incompatible2005}
+
+@begin{Extend2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0189-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 2005}
+  Restriction No_Standard_Allocators_After_Elaboration is newly
+  added to Ada.]}
+@end{Extend2005}
+
+@begin{DiffWord2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0013-1],ARef=[AI05-0216-1]}
+  @ChgAdded{Version=[3],Text=[@b<Correction:> Improved the wording
+  of various restrictions to make it clearer that they prohibit
+  things that would otherwise be legal, and to word them as
+  definitions, not @LegalityTitle;.]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0192-1]}
+  @ChgAdded{Version=[3],Text=[@b<Correction:> Added wording to explain
+  how No_Task_Allocators and No_Protected_Type_Allocators are checked
+  for class-wide types. This might be an extension if the compiler
+  assumed the worst in the past (it is now a runtime check).]}
+@end{DiffWord2005}
+
 
 
 @LabeledClause{Monotonic Time}
@@ -3059,7 +3542,8 @@ monotonic clock package.]
    ... -- @RI{not specified by the language}
 @key[end] Ada.Real_Time;
 @end{example}
-@ChgImplDef{Version=[2],Kind=[Deleted],Text=[@ChgDeleted{Version=[2],
+@ChgImplDef{Version=[2],Kind=[Deleted],InitialVersion=[0],
+Text=[@ChgDeleted{Version=[2],
 Text=[Implementation-defined aspects of package Real_Time.]}]}
 
 @Defn{real time}
@@ -3412,6 +3896,7 @@ There is no requirement that these be the same.
 @end{DiffWord95}
 
 
+@RMNewPageVer{Version=[3]}@Comment{For printed version of Ada 2012 RM}
 @LabeledClause{Delay Accuracy}
 
 @begin{Intro}
@@ -3444,12 +3929,12 @@ expiration time does not cause the calling task to be blocked; it is
 nevertheless a potentially blocking operation
 (see @RefSecNum{Protected Subprograms and Protected Actions}).
 
-@ChgRef{Version=[2],Kind=[Revised]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0004-1]}
 When a @nt{delay_statement} appears in a @nt{delay_alternative} of a
 @nt{timed_entry_call} the selection of the entry call is attempted,
 regardless of the specified expiration time.
 When a @nt{delay_statement} appears in a
-@Chg{Version=[2],New=[@nt{select_alternative}],Old=[@ntf{selective_accept_alternative}]},
+@Chg{Version=[3],New=[@nt{select_alternative}],Old=[@ntf{selective_accept_alternative}]},
 and a call is queued on one of the open entries, the selection of that
 entry call proceeds, regardless of the value of the delay expression.
 @begin{Ramification}
@@ -3472,7 +3957,8 @@ Text=[The minimum value of the delay expression of a
 The implementation shall document the minimum difference between the value of
 the delay expression of a @nt{delay_until_statement} and the value of
 Real_Time.Clock, that causes the task to actually be blocked.
-@ChgImplDef{Version=[2],Kind=[Deleted],Text=[@ChgDeleted{Version=[2],
+@ChgImplDef{Version=[2],Kind=[Deleted],InitialVersion=[0],
+Text=[@ChgDeleted{Version=[2],
 Text=[Implementation-defined aspects of @nt{delay_statement}s.]}]}
 @ChgDocReq{Version=[2],Kind=[AddedNormal],Text=[@ChgAdded{Version=[2],
 Text=[The minimum difference between the value of the delay expression of a
@@ -3523,7 +4009,7 @@ Text=[The metrics for delay statements.]}]}
 
 @begin{Notes}
 
-@ChgRef{Version=[2],Kind=[Deleted],ARef=[AI95-00355-01]}
+@ChgRef{Version=[2],Kind=[DeletedNoDelMsg],ARef=[AI95-00355-01]}
 @ChgDeleted{Version=[2],Text=[The execution time of a @nt{delay_statement} that
 does not cause the task to be blocked (e.g. @lquotes@;@key[delay]
 0.0;@rquotes@; ) is of interest in situations where delays are used to achieve
@@ -3583,6 +4069,18 @@ The implementation can ensure this by, for example, making the full view
 @Chg{Version=[2],New=[an explicitly],Old=[a]}
 limited record type.@end{implnote}
 
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0168-1]}
+@ChgAdded{Version=[3],Type=[Leading],Text=[The following language-defined package
+exists:]}
+@begin{example}
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0168-1]}
+@ChgAdded{Version=[3],Text=[@key{package} Ada.Synchronous_Task_Control.EDF @key{is}@ChildUnit{Parent=[Ada.Synchronous_Task_Control],Child=[EDF]}
+   @key{procedure} @AdaSubDefn{Suspend_Until_True_And_Set_Deadline}
+      (S  : @key{in out} Suspension_Object;
+       TS : @key{in}     Ada.Real_Time.Time_Span);
+@key{end} Ada.Synchronous_Task_Control.EDF;]}
+@end{example}
+
 @end{StaticSem}
 
 @begin{RunTime}
@@ -3623,6 +4121,13 @@ Program_Error is raised upon calling Suspend_Until_True if another
 task is already waiting on that suspension object.
 Suspend_Until_True is a potentially blocking operation
 (see @RefSecNum{Protected Subprograms and Protected Actions}).
+
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0168-1]}
+@ChgAdded{Version=[3],Text=[The procedure Suspend_Until_True_And_Set_Deadline
+blocks the calling task until the state of the object S is True; at that point
+the task becomes ready with a deadline of Ada.Real_Time.Clock + TS, and the
+state of the object becomes False. Suspend_Until_True_And_Set_Deadline is a
+potentially blocking operation.]}
 @end{RunTime}
 
 @begin{ImplReq}
@@ -3633,6 +4138,13 @@ in the Interrupt_Priority range.
 
 @end{ImplReq}
 
+@begin{Notes}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0168-1]}
+@ChgAdded{Version=[3],Text=[More complex schemes, such as setting the deadline
+relative to when Set_True is called, can be programmed using a protected
+object.]}
+@end{Notes}
+
 @begin{Extend95}
   @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00362-01]}
   @ChgAdded{Version=[2],Text=[@Defn{extensions to Ada 95}
@@ -3640,8 +4152,108 @@ in the Interrupt_Priority range.
   so it can be used in preelaborated units.]}
 @end{Extend95}
 
+@begin{Extend2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0168-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 2005}Child
+  package Ada.Synchronous_Task_Control.EDF is new.]}
+@end{Extend2005}
 
 
+@LabeledAddedSubClause{Version=[3],Name=[Synchronous Barriers]}
+
+@begin{Intro}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0174-1]}
+@ChgAdded{Version=[3],Text=[This clause introduces a language-defined package to
+synchronously release a group of tasks after the number of blocked tasks reaches
+a specified count value.]}
+@end{Intro}
+
+@begin{StaticSem}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0174-1]}
+@ChgAdded{Version=[3],KeepNext=[T],Type=[Leading],Text=[The following
+language-defined library package exists:]}
+@begin{Example}
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[@key[package] Ada.Synchronous_Barriers @key{is}@ChildUnit{Parent=[Ada],Child=[Synchronous_Barriers]}
+   @key[pragma] Preelaborate(Synchronous_Barriers);]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[   @key[subtype] @AdaSubtypeDefn{Name=[Barrier_Limit],Of=[Positive]} @key[is] Positive @key[range] 1 .. @RI<implementation-defined>;]}
+@ChgImplDef{Version=[3],Kind=[Added],Text=[@ChgAdded{Version=[3],
+Text=[The value of Barrier_Limit'Last in Synchronous_Barriers.]}]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[   @key[type] @AdaTypeDefn{Synchronous_Barrier} (Release_Threshold : Barrier_Limit) @key[is limited private];]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[   @key[procedure] @AdaSubDefn{Wait_For_Release} (The_Barrier : @key[in out] Synchronous_Barrier;
+                               Notified    :    @key[out] Boolean);]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[@key[private]
+   -- @RI{not specified by the language}
+@key[end] Ada.Synchronous_Barriers;]}
+@end{Example}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0174-1]}
+@ChgAdded{Version=[3],Text=[Type Synchronous_Barrier needs finalization (see
+@RefSecNum{Assignment and Finalization}).]}
+@end{StaticSem}
+
+@begin{Runtime}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0174-1]}
+@ChgAdded{Version=[3],Text=[Each call to Wait_For_Release blocks the calling
+task until the number of blocked tasks associated with the Synchronous_Barrier
+object is equal to Release_Threshold, at which time all blocked tasks are released.
+Notified is set to True for one of the released tasks, and set to False for all
+other released tasks.]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0174-1]}
+@ChgAdded{Version=[3],Text=[The mechanism for determining which task sets
+Notified to True is implementation defined.]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0174-1]}
+@ChgAdded{Version=[3],Text=[Once all tasks have been released, a
+Synchronous_Barrier object may be reused to block another Release_Threshold number
+of tasks.]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0174-1]}
+@ChgAdded{Version=[3],Text=[As the first step of the finalization of a
+Synchronous_Barrier, each blocked task is unblocked and Program_Error is raised
+at the place of the call to Wait_For_Release.]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0174-1]}
+@ChgAdded{Version=[3],Text=[It is implementation defined whether an abnormal
+task which is waiting on a Synchronous_Barrier object is aborted immediately or
+aborted when the tasks waiting on the object are released.]}
+@ChgImplDef{Version=[3],Kind=[Added],Text=[@ChgAdded{Version=[3],
+Text=[When an aborted task that is waiting on a Synchronous_Barrier is aborted.]}]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0174-1]}
+@ChgAdded{Version=[3],Text=[Wait_For_Release is a potentially blocking operation
+(see @RefSecNum{Protected Subprograms and Protected Actions}).]}
+@end{Runtime}
+
+@begin{Bounded}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0174-1]}
+@ChgAdded{Version=[3],Text=[It is a bounded error to call Wait_For_Release on a
+Synchronous_Barrier object after that object is finalized. If the error is
+detected, Program_Error is raised. Otherwise, the call proceeds normally, which
+may leave a task blocked forever.]}
+@end{Bounded}
+
+
+@begin{Extend2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0174-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 2005}
+  The package Ada.Synchronous_Barriers is new.]}
+@end{Extend2005}
+
+
+
+@RMNewPageVer{Version=[3]}@Comment{For printed version of Ada 2012 RM}
 @LabeledClause{Asynchronous Task Control}
 
 @begin{Intro}
@@ -3871,7 +4483,8 @@ The implementation shall document the
 upper bound on the duration of interrupt blocking caused by the
 implementation. If this is different for different interrupts or
 interrupt priority levels, it should be documented for each case.
-@ChgImplDef{Version=[2],Kind=[Deleted],Text=[@ChgDeleted{Version=[2],
+@ChgImplDef{Version=[2],Kind=[Deleted],InitialVersion=[0],
+Text=[@ChgDeleted{Version=[2],
 Text=[The upper bound on the duration of interrupt blocking caused by
 the implementation.]}]}
 @ChgDocReq{Version=[2],Kind=[AddedNormal],Text=[@ChgAdded{Version=[2],
@@ -3928,57 +4541,165 @@ Text=[The metrics for entry-less protected objects.]}]}
 @end{Metrics}
 
 
-@LabeledAddedClause{Version=[2],Name=[Run-time Profiles]}
+@LabeledRevisedClause{Version=[3],InitialVersion=[2],New=[The Ravenscar Profile],Old=[Run-time Profiles]}
 
 @begin{Intro}
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00249-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0246-1]}
 @ChgAdded{Version=[2],Text=[@Redundant[This clause
-specifies a mechanism for defining run-time profiles.]]}
+@Chg{Version=[3],New=[defines the Ravenscar profile.@Defn{Ravenscar}],
+Old=[specifies a mechanism for defining run-time profiles.]}]]}
 @end{Intro}
+
+@begin{NotIso}
+@ChgAdded{Version=[3],Noprefix=[T],Noparanum=[T],Text=[@Shrink{@i<Paragraphs 2
+and 3 were moved to @RefSec{Pragma Restrictions and Pragma Profile}.>}]}@Comment{This message
+should be deleted if the paragraphs are ever renumbered.}
+@end{NotIso}
 
 @begin{Syntax}
 @begin{SyntaxText}
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00249-01]}
-@ChgAdded{Version=[2],Type=[Leading],Keepnext=[T],Text=[The form of a
-@nt{pragma} Profile is as follows:]}
+@ChgRef{Version=[3],Kind=[DeletedNoDelMsg],ARef=[AI05-0246-1]}
+@ChgDeleted{Version=[3],Type=[Leading],Keepnext=[T],Text=[@Chg{Version=[2],New=[The
+form of a @nt{pragma} Profile is as follows:],Old=[]}]}
 @end{SyntaxText}
 
 @ChgRef{Version=[2],Kind=[AddedNormal]}
-@ChgAdded{Version=[2],Text=`@AddedPragmaSyn`Version=[2],@key{pragma} @prag<Profile> (@SynI{profile_}@Syn2{identifier} {, @SynI{profile_}@Syn2{pragma_argument_association}});''}
+@ChgRef{Version=[3],Kind=[DeletedNoDelMsg]}
+@DeletedPragmaSyn<Version=[3],InitialVersion=[2],@ChgDeleted{Version=[3],
+Text=`@Chg[Version=[2],New=[@key{pragma} @prag<Profile> (@SynI{profile_}@Syn2{identifier} {, @SynI{profile_}@Syn2{pragma_argument_association}});],Old=[]]'}>
 
 @end{Syntax}
 
 @begin{Legality}
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00249-01]}
-@ChgAdded{Version=[2],Text=[The @SynI{profile_}@nt{identifier} shall be the name
-of a run-time profile. The semantics of any
-@SynI{profile_}@nt{pragma_@!argument_@!association}s are defined by
-the run-time profile specified by the @SynI{profile_}@nt{identifier}.]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0246-1]}
+@ChgAdded{Version=[2],Text=[The @SynI{profile_}@nt{identifier}
+@Chg{Version=[3],New=[Ravenscar is a usage profile (see @RefSecNum{Pragma Restrictions and Pragma Profile}).
+For usage profile Ravenscar, there shall be no],Old=[shall be the name
+of a run-time profile. The semantics of any]}
+@SynI{profile_}@nt{pragma_@!argument_@!association}s@Chg{Version=[3],New=[],Old=[
+are defined by
+the run-time profile specified by the @SynI{profile_}@nt{identifier}]}.]}
 @end{Legality}
 
 @begin{StaticSem}
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00249-01]}
-@ChgAdded{Version=[2],Text=[
-A profile is equivalent to the set of configuration pragmas that is
-defined for each run-time profile.]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0246-1]}
+@ChgAdded{Version=[2],Type=[Leading],Text=[@Chg{Version=[3],New=[The
+usage profile Ravenscar is equivalent to the following set of
+pragmas:],Old=[A profile is equivalent to the set of configuration
+pragmas that is defined for each run-time profile.]}]}
+
+@begin{Example}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI95-00249-01],ARef=[AI95-00297-01],ARef=[AI95-00394-01],ARef=[AI05-0171-1],ARef=[AI05-0246-1]}
+@ChgAdded{Version=[3],Text=[
+@key{pragma} Task_Dispatching_Policy (FIFO_Within_Priorities);
+@key{pragma} Locking_Policy (Ceiling_Locking);
+@key{pragma} Detect_Blocking;
+@key{pragma} Restrictions (
+              No_Abort_Statements,
+              No_Dynamic_Attachment,
+              No_Dynamic_Priorities,
+              No_Implicit_Heap_Allocations,
+              No_Local_Protected_Objects,
+              No_Local_Timing_Events,
+              No_Protected_Type_Allocators,
+              No_Relative_Delay,
+              No_Requeue_Statements,
+              No_Select_Statements,
+              No_Specific_Termination_Handlers,
+              No_Task_Allocators,
+              No_Task_Hierarchy,
+              No_Task_Termination,
+              Simple_Barriers,
+              Max_Entry_Queue_Length => 1,
+              Max_Protected_Entries => 1,
+              Max_Task_Entries => 0,
+              No_Dependence => Ada.Asynchronous_Task_Control,
+              No_Dependence => Ada.Calendar,
+              No_Dependence => Ada.Execution_Time.Group_Budgets,
+              No_Dependence => Ada.Execution_Time.Timers,
+              No_Dependence => Ada.Task_Attributes@Chg{Version=[3],New=[,
+              No_Dependence => System.Multiprocessors.Dispatching_Domains],Old=[]});]}
+@end{Example}
+
+@begin{Discussion}
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[The Ravenscar profile is named for the location
+of the meeting that defined its initial version. The name is now in widespread
+use, so we stick with existing practice, rather than using a more descriptive
+name.@Comment{ This is another example of Ada's lousy marketing sense; casual
+readers, especially those outside of Ada, have no conception of what
+@lquotes@;Ravenscar@rquotes@; is, and thus are much less likely to investigate
+it to find out how it can help them.}]}
+@end{Discussion}
 @end{StaticSem}
 
 @begin{Linktime}
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00249-01]}
-@ChgAdded{Version=[2],Text=[@PDefn2{Term=[configuration pragma], Sec=(Profile)}
+@ChgRef{Version=[3],Kind=[Deleted],ARef=[AI05-0246-1]}
+@ChgAdded{Version=[2],Text=[@Chg{Version=[3],New=[],Old=[@PDefn2{Term=[configuration pragma], Sec=(Profile)}
 @PDefn2{Term=[pragma, configuration], Sec=(Profile)}
 A @nt{pragma} Profile is a configuration pragma.
-There may be more than one @nt{pragma} Profile for a partition.]}
+There may be more than one @nt{pragma} Profile for a partition.]}]}
 @end{Linktime}
+
+@begin{ImplReq}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0171-1],ARef=[AI05-0229-1]}
+@ChgAdded{Version=[3],Text=[A task shall only be on the ready queues of one
+processor, and the
+processor to which a task belongs shall be defined statically.
+Whenever a task running on a processor reaches a task dispatching point,
+it goes back to the ready queues of the same processor. A task with
+a CPU value of Not_A_Specific_CPU will execute on an implementation
+defined processor. @Redundant[A task without a CPU aspect will activate and
+execute on the same processor as its activating task.]]}
+@begin{TheProof}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[The processor of a task without a aspect CPU is
+  defined in @RefSecNum{Multiprocessor Implementation}.]}
+@end{TheProof}
+@ChgImplDef{Version=[3],Kind=[Added],Text=[@ChgAdded{Version=[3],
+Text=[The processor on which a task with a CPU value of a Not_A_Specific_CPU
+will execute when the Ravenscar profile is in effect.]}]}
+@end{ImplReq}
+
+@begin{ImplAdvice}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0171-1]}
+@ChgAdded{Version=[3],Text=[On a multiprocessor system, an implementation should
+support a fully partitioned approach. Each processor should have separate and
+disjoint ready queues.]}
+
+@ChgImplAdvice{Version=[3],Kind=[Added],Text=[@ChgAdded{Version=[3],
+Text=[On a multiprocessor system, each processor should have a separate
+and disjoint ready queue.]}]}
+@end{ImplAdvice}
+
+@begin{Notes}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI95-00249-01],ARef=[AI05-0246-1]}
+@ChgAdded{Version=[3],Text=[The effect of the Max_Entry_Queue_Length => 1
+restriction applies only to protected entry queues due to the accompanying
+restriction of Max_Task_Entries => 0.]}
+@end{Notes}
 
 @begin{Extend95}
   @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00249-01]}
+  @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0246-1]}
   @ChgAdded{Version=[2],Text=[@Defn{extensions to Ada 95}
-  @nt{Pragma} Profile is new.]}
+  @Chg{Version=[3],New=[The Ravenscar profile is new; it was moved here by Ada
+  2012],Old=[@nt{Pragma} Profile is new]}.]}
 @end{Extend95}
 
+@begin{DiffWord2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0171-1]}
+  @ChgAdded{Version=[3],Text=[How Ravenscar behaves on a multiprocessor
+  system is now defined.]}
+@end{DiffWord2005}
 
-@RMNewPage
+@Comment{Moved the following to the previous clause...
+@RMNewPageVer{Version=[2]}@Comment{For printed RM Ada 2005}
 @LabeledAddedSubClause{Version=[2],Name=[The Ravenscar Profile]}
 
 @begin{Intro}
@@ -4002,34 +4723,36 @@ Ravenscar is equivalent to the following set of pragmas:]}
 
 @begin{Example}
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00249-01],ARef=[AI95-00297-01],ARef=[AI95-00394-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0171-1]}
 @ChgAdded{Version=[2],Text=[
 @key{pragma} Task_Dispatching_Policy (FIFO_Within_Priorities);
 @key{pragma} Locking_Policy (Ceiling_Locking);
 @key{pragma} Detect_Blocking;
 @key{pragma} Restrictions (
-                No_Abort_Statements,
-                No_Dynamic_Attachment,
-                No_Dynamic_Priorities,
-                No_Implicit_Heap_Allocations,
-                No_Local_Protected_Objects,
-                No_Local_Timing_Events,
-                No_Protected_Type_Allocators,
-                No_Relative_Delay,
-                No_Requeue_Statements,
-                No_Select_Statements,
-                No_Specific_Termination_Handlers,
-                No_Task_Allocators,
-                No_Task_Hierarchy,
-                No_Task_Termination,
-                Simple_Barriers,
-                Max_Entry_Queue_Length => 1,
-                Max_Protected_Entries => 1,
-                Max_Task_Entries => 0,
-                No_Dependence => Ada.Asynchronous_Task_Control,
-                No_Dependence => Ada.Calendar,
-                No_Dependence => Ada.Execution_Time.Group_Budget,
-                No_Dependence => Ada.Execution_Time.Timers,
-                No_Dependence => Ada.Task_Attributes);]}
+              No_Abort_Statements,
+              No_Dynamic_Attachment,
+              No_Dynamic_Priorities,
+              No_Implicit_Heap_Allocations,
+              No_Local_Protected_Objects,
+              No_Local_Timing_Events,
+              No_Protected_Type_Allocators,
+              No_Relative_Delay,
+              No_Requeue_Statements,
+              No_Select_Statements,
+              No_Specific_Termination_Handlers,
+              No_Task_Allocators,
+              No_Task_Hierarchy,
+              No_Task_Termination,
+              Simple_Barriers,
+              Max_Entry_Queue_Length => 1,
+              Max_Protected_Entries => 1,
+              Max_Task_Entries => 0,
+              No_Dependence => Ada.Asynchronous_Task_Control,
+              No_Dependence => Ada.Calendar,
+              No_Dependence => Ada.Execution_Time.Group_Budgets,
+              No_Dependence => Ada.Execution_Time.Timers,
+              No_Dependence => Ada.Task_Attributes@Chg{Version=[3],New=[,
+              No_Dependence => System.Multiprocessors.Dispatching_Domains],Old=[]});]}
 @end{Example}
 
 @begin{Discussion}
@@ -4045,6 +4768,37 @@ it to find out how it can help them.}]}
 
 @end{StaticSem}
 
+@begin{ImplReq}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0171-1]}
+@ChgAdded{Version=[3],Text=[A task shall only be on the ready queues of one
+processor, and the
+processor to which a task belongs shall be defined statically.
+Whenever a task running on a processor reaches a task dispatching point,
+it goes back to the ready queues of the same processor. A task with
+a CPU value of Not_A_Specific_CPU will execute on an implementation
+defined processor. @Redundant[A task without a CPU aspect will activate and
+execute on the same processor as its activating task.]]}
+@begin{TheProof}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[The processor of a task without an aspect CPU is
+  defined in @RefSecNum{Multiprocessor Implementation}.]}
+@end{TheProof}
+@ChgImplDef{Version=[3],Kind=[Added],Text=[@ChgAdded{Version=[3],
+Text=[The processor on which a task with a CPU value of a Not_A_Specific_CPU
+will execute when the Ravenscar profile is in effect.]}]}
+@end{ImplReq}
+
+@begin{ImplAdvice}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0171-1]}
+@ChgAdded{Version=[3],Text=[On a multiprocessor system, an implementation should
+support a fully partitioned approach. Each processor should have separate and
+disjoint ready queues.]}
+
+@ChgImplAdvice{Version=[3],Kind=[Added],Text=[@ChgAdded{Version=[3],
+Text=[On a multiprocessor system, each processor should have a separate
+and disjoint ready queue.]}]}
+@end{ImplAdvice}
+
 @begin{Notes}
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00249-01]}
 @ChgAdded{Version=[2],Text=[
@@ -4054,13 +4808,20 @@ Max_Task_Entries => 0.]}
 @end{Notes}
 
 @begin{Extend95}
-  @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00296-01]}
+  @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00249-01]}
   @ChgAdded{Version=[2],Text=[@Defn{extensions to Ada 95}
   The Ravenscar profile is new.]}
 @end{Extend95}
 
+@begin{DiffWord2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0171-1]}
+  @ChgAdded{Version=[3],Text=[How Ravenscar behaves on a multiprocessor
+  system is now defined.]}
+@end{DiffWord2005}
+end commented out text...}@Comment{End of original Ravenscar}
 
-@RMNewPage@Comment{For printed Ada 2007 RM}
+
+@RMNewPageVer{Version=[2]}@Comment{For printed RM Ada 2005}
 @LabeledAddedClause{Version=[2],Name=[Execution Time]}
 
 @begin{Intro}
@@ -4112,6 +4873,16 @@ language-defined library package exists:]}
 @ChgAdded{Version=[2],Text=[   @key{function} @AdaSubDefn{Time_Of} (SC : Seconds_Count;
                      TS : Time_Span := Time_Span_Zero) @key{return} CPU_Time;]}
 
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0170-1]}
+@ChgAdded{Version=[3],Text=[   @AdaObjDefn{Interrupt_Clocks_Supported} : @key[constant] Boolean := @RI<implementation-defined>;]}
+
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0170-1]}
+@ChgAdded{Version=[3],Text=[   @AdaObjDefn{Separate_Interrupt_Clocks_Supported} : @key[constant] Boolean :=
+     @RI<implementation-defined>;]}
+
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0170-1]}
+@ChgAdded{Version=[3],Text=[   @key[function] @AdaSubDefn{Clock_For_Interrupts} @key[return] CPU_Time;]}
+
 @ChgRef{Version=[2],Kind=[AddedNormal]}
 @ChgAdded{Version=[2],Text=[@key{private}
    ... -- @RI[not specified by the language]
@@ -4120,14 +4891,20 @@ language-defined library package exists:]}
 @end{Example}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00307-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0170-1]}
 @ChgAdded{Version=[2],Text=[@Defn2{Term=[execution time],Sec=[of a task]}
 @Defn2{Term=[CPU time],Sec=[of a task]}
 The @i<execution time> or CPU time of a given task is defined as the time spent by
 the system executing that task, including the time spent executing run-time or
 system services on its behalf. The mechanism used to measure execution time is
-implementation defined. It is implementation defined which task, if any, is
-charged the execution time that is consumed by interrupt handlers and run-time
-services on behalf of the system.]}
+implementation defined. @Chg{Version=[3],New=[The Boolean constant Interrupt_Clocks_Supported is
+set to True if the implementation separately accounts for the execution time
+of interrupt handlers. If it is set to False it],Old=[It]} is implementation
+defined which task, if any, is charged the execution time that is consumed by
+interrupt handlers@Chg{Version=[3],New=[. The Boolean constant
+Separate_Interrupt_Clocks_Supported is set to True if the implementation
+separately accounts for the execution time of individual interrupt
+handlers],Old=[ and run-time services on behalf of the system]}.]}
 @begin{Discussion}
   @ChgRef{Version=[2],Kind=[AddedNormal]}
   @ChgAdded{Version=[2],Text=[The implementation-defined properties above
@@ -4159,6 +4936,10 @@ the creation of the task.]}
 and largest values of the CPU_Time type, respectively.]}
 @end{StaticSem}
 
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0170-1]}
+@ChgAdded{Version=[3],Text=[The execution time value for the
+function Clock_For_Interrupts is initialized to zero.]}
+
 @begin{RunTime}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00307-01]}
@@ -4187,6 +4968,12 @@ TS) is to set SC and TS to values such that T*CPU_Time_Unit = SC*1.0 +
 TS*CPU_Time_Unit, and 0.0 <= TS*CPU_Time_Unit < 1.0. The value
 returned by Time_Of(SC,TS) is the execution-time value T such that
 T*CPU_Time_Unit=SC*1.0 + TS*CPU_Time_Unit.]}
+
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0170-1]}
+@ChgAdded{Version=[3],Text=[The function Clock_For_Interrupts returns the total
+cumulative time spent executing within all interrupt handlers. This time is not
+allocated to any task execution time clock. If Interrupt_Clocks_Supported is set
+to False the function raises Program_Error.]}
 
 @end{RunTime}
 
@@ -4219,8 +5006,11 @@ of package Execution_Time.]}]}
 the underlying mechanism used to measure execution times, such as the range of
 values supported and any relevant aspects of the underlying hardware or
 operating system facilities used.]}
-@ChgDocReq{Version=[2],Kind=[AddedNormal],Text=[@ChgAdded{Version=[2],
-Text=[The properties of the mechanism used to implement package Execution_Time.]}]}
+@ChgDocReq{Version=[3],Kind=[Revised],InitialVersion=[2],
+Text=[@ChgAdded{Version=[2],
+Text=[The properties of the mechanism used to implement
+package Execution_Time@Chg{Version=[3],New=[,
+including the values of the constants defined in the package],Old=[]}.]}]}
 
 @end{DocReq}
 
@@ -4282,6 +5072,26 @@ configuration mechanisms to change the value of Execution_Time.CPU_Tick.]}]}
   The package Execution_Time is new.]}
 @end{Extend95}
 
+@begin{Incompatible2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0170-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{incompatibilities with Ada 2005}
+  Function Clock_For_Interrupts, and constants Interrupt_Clocks_Supported and
+  Separate_Interrupt_Clocks_Supported are newly added to Execution_Time.
+  If Execution_Time is referenced in a @nt{use_clause}, and an
+  entity @i<E> with a @nt{defining_identifier} of one of the newly added entities
+  is defined in a package that is also referenced in a @nt{use_clause}, the entity
+  @i<E> may no longer be use-visible, resulting in errors. This should be rare
+  and is easily fixed if it does occur.]}
+@end{Incompatible2005}
+
+@begin{Diffword2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0170-1]}
+  @ChgAdded{Version=[3],Text=[If Interrupt_Clocks_Supported is True, it is
+  now possible to determine the execution time of interrupt handlers. This
+  is not an inconsistency, as not charging any task for such time was a
+  legitimate implementation for Ada 2005.]}
+@end{Diffword2005}
+
 
 @LabeledAddedSubclause{Version=[2],Name=[Execution Time Timers]}
 
@@ -4333,7 +5143,7 @@ language-defined library package exists:]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal]}
 @ChgAdded{Version=[2],Text=[@key{private}
-   ... --  not specified by the language
+   ... -- @RI{not specified by the language}
 @key{end} Ada.Execution_Time.Timers;]}
 
 @end{Example}
@@ -4342,7 +5152,7 @@ language-defined library package exists:]}
 @ChgAdded{Version=[2],Text=[The type Timer represents an execution-time event
 for a single task and is capable of detecting execution-time overruns. The
 access discriminant T identifies the task concerned. The type Timer needs
-finalization (see @RefSecNum{User-Defined Assignment and Finalization}).]}
+finalization (see @RefSecNum{Assignment and Finalization}).]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00307-01]}
 @ChgAdded{Version=[2],Text=[An object of type Timer is said to be @i<set> if it
@@ -4380,18 +5190,20 @@ execution-time clock are allocated and initialized. If this operation would
 exceed the available resources, Timer_Resource_Error is raised.]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00307-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0264-1]}
 @ChgAdded{Version=[2],Text=[The procedures Set_Handler associate the handler
-Handler with the timer TM; if Handler is @key[null], the timer is cleared,
-otherwise it is set. The first procedure Set_Handler loads the timer TM with an
-interval specified by the Time_Span parameter. In this mode, the timer TM
-@i<expires> when the execution time of the task identified by TM.T.@key[all]
-has increased by In_Time; if In_Time is less than or equal to zero, the timer
-expires immediately. The second procedure Set_Handler loads the timer TM with
-the absolute value specified by At_Time. In this mode, the timer TM expires
-when the execution time of the task identified by TM.T.@key[all] reaches
-At_Time; if the value of At_Time has already been reached when Set_Handler is
-called, the timer expires immediately.@Defn2{Term=[expires],
-Sec=[execution timer]}]}
+Handler with the timer TM@Chg{Version=[3],New=[:],Old=[;]}
+if Handler is @key[null], the timer is cleared@Chg{Version=[3],New=[;],Old=[,]}
+otherwise@Chg{Version=[3],New=[,],Old=[]} it is set. The first procedure
+Set_Handler loads the timer TM with an interval specified by the Time_Span
+parameter. In this mode, the timer TM @i<expires> when the execution time of the
+task identified by TM.T.@key[all] has increased by In_Time; if In_Time is less
+than or equal to zero, the timer expires immediately. The second procedure
+Set_Handler loads the timer TM with the absolute value specified by At_Time. In
+this mode, the timer TM expires when the execution time of the task identified
+by TM.T.@key[all] reaches At_Time; if the value of At_Time has already been
+reached when Set_Handler is called, the timer expires
+immediately.@Defn2{Term=[expires], Sec=[execution timer]}]}
 
 @begin{ImplNote}
   @ChgRef{Version=[2],Kind=[AddedNormal]}
@@ -4401,7 +5213,7 @@ Sec=[execution timer]}]}
   cannot use the value of the Task_Id other than where this Standard specifies.
   For instance, the Task_Id should be read when the timer is set, but it
   should not be used when the timer expires (as it may designate a different
-  task at that point.]}
+  task at that point).]}
 @end{ImplNote}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00307-01]}
@@ -4415,19 +5227,23 @@ executed, passing the timer as parameter. The initial action of the execution
 of the handler is to clear the event.]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00307-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0264-1]}
 @ChgAdded{Version=[2],Text=[The function Current_Handler returns the handler
-associated with the timer TM if that timer is set; otherwise it returns
-@b<null>.]}
+associated with the timer TM if that timer is set;
+otherwise@Chg{Version=[3],New=[,],Old=[]} it returns @b<null>.]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00307-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0264-1]}
 @ChgAdded{Version=[2],Text=[The procedure Cancel_Handler clears the timer if it
 is set. Cancelled is assigned True if the timer was set prior to it being
-cleared; otherwise it is assigned False.]}
+cleared; otherwise@Chg{Version=[3],New=[,],Old=[]}
+it is assigned False.]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00307-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0264-1]}
 @ChgAdded{Version=[2],Text=[The function Time_Remaining returns the execution
 time interval that remains until the timer TM would expire, if that timer is
-set; otherwise it returns Time_Span_Zero.]}
+set; otherwise@Chg{Version=[3],New=[,],Old=[]} it returns Time_Span_Zero.]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00307-01]}
 @ChgAdded{Version=[2],Text=[The constant Min_Handler_Ceiling is the
@@ -4487,9 +5303,10 @@ system resources used by the timer shall be deallocated.]}
 @begin{ImplPerm}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00307-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0264-1]}
 @ChgAdded{Version=[2],Text=[Implementations may limit the number of timers that
-can be defined for each task. If this limit is exceeded then
-Timer_Resource_Error is raised.]}
+can be defined for each task. If this limit is exceeded@Chg{Version=[3],New=[,],Old=[]}
+then Timer_Resource_Error is raised.]}
 
 @end{ImplPerm}
 
@@ -4508,7 +5325,7 @@ Timer objects.]}
 @end{Extend95}
 
 
-@RMNewPage@Comment{For printed Ada 2007 RM}
+@RMNewPageVer{Version=[2]}@Comment{For printed RM Ada 2005}
 @LabeledAddedSubclause{Version=[2],Name=[Group Execution Time Budgets]}
 
 @begin{Intro}
@@ -4523,11 +5340,16 @@ assign execution time budgets to groups of tasks.]}
 language-defined library package exists:]}
 @begin{Example}
 @ChgRef{Version=[2],Kind=[AddedNormal]}
-@ChgAdded{Version=[2],Text=[@key{with} System;
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0169-1]}
+@ChgAdded{Version=[2],Text=[@key{with} System;@Chg{Version=[3],New=[
+@key{with} System.Multiprocessors;],Old=[]}
 @key{package} Ada.Execution_Time.Group_Budgets @key{is}@ChildUnit{Parent=[Ada.Execution_Time],Child=[Group_Budgets]}]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal]}
-@ChgAdded{Version=[2],Text=[  @key{type} @AdaTypeDefn{Group_Budget} @key{is tagged limited private};]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0092-1],ARef=[AI05-0169-1]}
+@ChgAdded{Version=[2],Text=[  @key{type} @AdaTypeDefn{Group_Budget}@Chg{Version=[3],New=[(CPU : System.Multiprocessors.CPU :=
+                                  System.Multiprocessors.CPU'First)
+   ],Old=[]} @key{is tagged limited private};]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal]}
 @ChgAdded{Version=[2],Text=[  @key{type} @AdaTypeDefn{Group_Budget_Handler} @key{is access}
@@ -4540,6 +5362,8 @@ language-defined library package exists:]}
 @ChgRef{Version=[2],Kind=[AddedNormal]}
 @ChgAdded{Version=[2],Text=[  @AdaObjDefn{Min_Handler_Ceiling} : @key{constant} System.Any_Priority :=
     @RI[implementation-defined];]}
+@ChgImplDef{Version=[3],Kind=[Added],Text=[@ChgAdded{Version=[3],
+Text=[The value of Min_Handler_Ceiling in Execution_Time.Group_Budgets.]}]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal]}
 @ChgAdded{Version=[2],Text=[  @key{procedure} @AdaSubDefn{Add_Task} (GB : @key{in out} Group_Budget;
@@ -4571,15 +5395,16 @@ language-defined library package exists:]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal]}
 @ChgAdded{Version=[2],Text=[@key{private}
-    --  not specified by the language
+    --  @RI{not specified by the language}
 @key{end} Ada.Execution_Time.Group_Budgets;]}
 
 @end{Example}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00354-01]}
 @ChgAdded{Version=[2],Text=[The type Group_Budget represents an execution time
-budget to be used by a group of tasks. The type Group_Budget needs finalization
-(see @RefSecNum{User-Defined Assignment and Finalization}). A task can belong
+budget to be used by a group of tasks. The type Group_Budget
+needs finalization@PDefn2{Term=<needs finalization>,Sec=<language-defined type>}
+(see @RefSecNum{Assignment and Finalization}). A task can belong
 to at most one group. Tasks of any priority can be added to a group.]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00354-01]}
@@ -4626,12 +5451,17 @@ GB, Group_Budget_Error is raised. After successful execution of this procedure,
 the task is no longer a member of any group.]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00354-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0264-1]}
 @ChgAdded{Version=[2],Text=[The function Is_Member returns True if the task
-identified by T is a member of the group GB; otherwise it return False.]}
+identified by T is a member of the group GB;
+otherwise@Chg{Version=[3],New=[,],Old=[]} it
+@Chg{Version=[3],New=[returns],Old=[return]} False.]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00354-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0264-1]}
 @ChgAdded{Version=[2],Text=[The function Is_A_Group_Member returns True if the
-task identified by T is a member of some group; otherwise it returns False.]}
+task identified by T is a member of some group;
+otherwise@Chg{Version=[3],New=[,],Old=[]} it returns False.]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00354-01]}
 @ChgAdded{Version=[2],Text=[The function Members returns an array of values of
@@ -4639,9 +5469,11 @@ type Task_Identification.Task_Id identifying the members of the group GB. The
 order of the components of the array is unspecified.]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00354-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0092-1],ARef=[AI05-0169-1]}
 @ChgAdded{Version=[2],Text=[The procedure Replenish loads the group budget GB
 with To as the Time_Span value. The exception Group_Budget_Error is raised if
-the Time_Span value To is non-positive. Any execution of any member of the
+the Time_Span value To is non-positive. Any execution @Chg{Version=[3],New=[on
+CPU ],Old=[]}of any member of the
 group of tasks results in the budget counting down, unless exhausted. When the
 budget becomes exhausted (reaches Time_Span_Zero), the associated handler is
 executed if the handler of group budget GB is set. Nevertheless, the tasks
@@ -4656,9 +5488,10 @@ the budget going to Time_Span_Zero causes the associated handler to be executed
 if the handler of the group budget GB is set.]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00354-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0264-1]}
 @ChgAdded{Version=[2],Text=[The function Budget_Has_Expired returns True if the
-budget of group GB is exhausted (equal to Time_Span_Zero); otherwise it
-returns False.]}
+budget of group GB is exhausted (equal to Time_Span_Zero);
+otherwise@Chg{Version=[3],New=[,],Old=[]} it returns False.]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00354-01]}
 @ChgAdded{Version=[2],Text=[The function Budget_Remaining returns the remaining
@@ -4666,9 +5499,12 @@ budget for the group GB. If the budget is exhausted it returns Time_Span_Zero.
 This is the minimum value for a budget.]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00354-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0264-1]}
 @ChgAdded{Version=[2],Text=[The procedure Set_Handler associates the handler
-Handler with the Group_Budget GB; if Handler is @b<null>, the handler of
-Group_Budget is cleared, otherwise it is set.]}
+Handler with the Group_Budget GB@Chg{Version=[3],New=[:],Old=[;]}
+if Handler is @b<null>, the handler of
+Group_Budget is cleared@Chg{Version=[3],New=[;],Old=[,]}
+otherwise@Chg{Version=[3],New=[,],Old=[]} it is set.]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00354-01]}
 @ChgAdded{Version=[2],Text=[A call of Set_Handler for a Group_Budget that
@@ -4676,15 +5512,17 @@ already has a handler set replaces the handler; if Handler is not @b<null>, the
 handler for Group_Budget remains set.]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00354-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0264-1]}
 @ChgAdded{Version=[2],Text=[The function Current_Handler returns the handler
 associated with the group budget GB if the handler for that group budget is
-set; otherwise it returns @b<null>.]}
+set; otherwise@Chg{Version=[3],New=[,],Old=[]} it returns @b<null>.]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00354-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0264-1]}
 @ChgAdded{Version=[2],Text=[The procedure Cancel_Handler clears the handler for
 the group budget if it is set. Cancelled is assigned True if the handler for
-the group budget was set prior to it being cleared; otherwise it is assigned
-False.]}
+the group budget was set prior to it being cleared;
+otherwise@Chg{Version=[3],New=[,],Old=[]} it is assigned False.]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00354-01]}
 @ChgAdded{Version=[2],Text=[The constant Min_Handler_Ceiling is the
@@ -4702,9 +5540,10 @@ Group_Budget all member tasks are removed from the group identified by that
 object.]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00354-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0264-1]}
 @ChgAdded{Version=[2],Text=[If a task is a member of a Group_Budget when it
-terminates then as part of the finalization of the task it is removed from the
-group.]}
+terminates@Chg{Version=[3],New=[,],Old=[]} then
+as part of the finalization of the task it is removed from the group.]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00354-01]}
 @ChgAdded{Version=[2],Text=[For all the operations defined in this package,
@@ -4759,6 +5598,84 @@ several Group_Budget objects.]}
   The package Execution_Time.Group_Budgets is new.]}
 @end{Extend95}
 
+@begin{Inconsistent2005}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0169-1]}
+@ChgAdded{Version=[3],Text=[@Defn{inconsistencies with Ada 2005}
+A Group_Budget is now defined to work on a single processor.
+If an implementation managed to make this package work on for
+programs running on a multiprocessor system, and a program
+depends on that fact, it could fail when ported to Ada 2012.
+We believe it is unlikely that such an implementation exists
+because of the difficulty of signalling other processors when
+the time reaches zero; in any case, depending on such an
+implementation is not portable.]}
+@end{Inconsistent2005}
+
+
+@LabeledAddedSubClause{Version=[3],Name=[Execution Time of Interrupt Handlers]}
+
+@begin{Intro}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0170-1]}
+@ChgAdded{Version=[3],Text=[This clause describes a language-defined package to
+measure the execution time of interrupt handlers.]}
+@end{Intro}
+
+@begin{StaticSem}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0170-1]}
+@ChgAdded{Version=[3],KeepNext=[T],Type=[Leading],Text=[The following
+language-defined library package exists:]}
+@begin{Example}
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[@key{with} Ada.Interrupts;
+@key{package} Ada.Execution_Time.Interrupts @key{is}@ChildUnit{Parent=[Ada.Execution_Time],Child=[Interrupts]}
+   @key{function} @AdaSubDefn{Clock} (Interrupt : Ada.Interrupts.Interrupt_Id)
+        @key{return} CPU_Time;
+   @key{function} @AdaSubDefn{Supported} (Interrupt : Ada.Interrupts.Interrupt_Id)
+        @key{return} Boolean;
+@key{end} Ada.Execution_Time.Interrupts;]}
+@end{Example}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0170-1]}
+@ChgAdded{Version=[3],Text=[The execution time or CPU time of a given interrupt
+Interrupt is defined as the time spent by the system executing interrupt
+handlers identified by Interrupt, including the time spent executing run-time or
+system services on its behalf. The mechanism used to measure execution time is
+implementation defined. Time spent executing interrupt handlers is distinct from
+time spent executing any task.]}
+@begin{Discussion}
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[The implementation-defined mechanism here is the
+same as that covered by the @DocReqTitle of @RefSecNum{Execution Time}, so we
+don't repeat that requirement here.]}
+@end{Discussion}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0170-1]}
+@ChgAdded{Version=[3],Text=[For each interrupt, the execution time value
+is initially set to zero.]}
+@end{StaticSem}
+
+@begin{RunTime}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0170-1]}
+@ChgAdded{Version=[3],Text=[The function Clock returns the current cumulative
+execution time of the interrupt identified by Interrupt. If
+Separate_Interrupt_Clocks_Supported is set to False the function raises
+Program_Error.]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0170-1],ARef=[AI05-0264-1]}
+@ChgAdded{Version=[3],Text=[The function Supported returns True if the
+implementation is monitoring the execution time of the interrupt identified by
+Interrupt; otherwise, it returns False. For any Interrupt_Id Interrupt for which
+Supported(Interrupt) returns False, the function Clock(Interrupt) will return a
+value equal to Ada.Execution_Time.Time_Of(0).]}
+
+@end{RunTime}
+
+@begin{Extend2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0170-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 2005}
+  The package Execution_Time.Interrupts is new.]}
+@end{Extend2005}
+
 
 @LabeledAddedClause{Version=[2],Name=[Timing Events]}
 
@@ -4805,8 +5722,9 @@ language-defined library package exists:]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00297-01]}
 @ChgAdded{Version=[2],Text=[The type Timing_Event represents a time in the future
-when an event is to occur. The type Timing_Event needs finalization (see
-@RefSecNum{User-Defined Assignment and Finalization}).]}
+when an event is to occur. The type Timing_Event
+needs finalization@PDefn2{Term=<needs finalization>,Sec=<language-defined type>}
+(see @RefSecNum{Assignment and Finalization}).]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00297-01]}
 @ChgAdded{Version=[2],Text=[An object of type Timing_Event is said to be
@@ -4844,7 +5762,7 @@ occurs. Such a protected procedure is called a @i{handler}.
 @ChgAdded{Version=[2],Text=[@key{protected body} Toaster @key{is}]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal]}
-@ChgAdded{Version=[2],Text=[   @key{procedure} Timer(Event : @key{in out} Timing_Event) @key{is}
+@ChgAdded{Version=[2],Text=[   @key{procedure} Timer (Event : @key{in out} Timing_Event) @key{is}
    @key{begin}
       Pop_Up_Toast (Toaster_Timing_Event(Timing_Event'Class(Event)).Slot);
    @key{end} Timer;]}
@@ -4867,11 +5785,14 @@ occurs. Such a protected procedure is called a @i{handler}.
 @begin{Runtime}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00297-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0264-1]}
 @ChgAdded{Version=[2],Text=[The procedures Set_Handler associate the handler
-Handler with the event Event; if Handler is @key{null}, the event is cleared,
-otherwise it is set. The first procedure Set_Handler sets the execution time
-for the event to be At_Time. The second procedure Set_Handler sets the
-execution time for the event to be Real_Time.Clock + In_Time.]}
+Handler with the event Event@Chg{Version=[3],New=[:],Old=[;]} if Handler
+is @key{null}, the event is cleared@Chg{Version=[3],New=[;],Old=[,]}
+otherwise@Chg{Version=[3],New=[,],Old=[]} it is set. The first procedure
+Set_Handler sets the execution time for the event to be At_Time. The second
+procedure Set_Handler sets the execution time for the event to be
+Real_Time.Clock + In_Time.]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00297-01]}
 @ChgAdded{Version=[2],Text=[A call of a procedure Set_Handler for an event that
@@ -4900,24 +5821,45 @@ Handler.@key{all} is Interrupt_Priority'Last. If the check fails, Program_Error
 is raised.]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00297-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0094-1],ARef=[AI05-0264-1]}
 @ChgAdded{Version=[2],Text=[If a procedure Set_Handler is called with zero or
-negative In_Time or with At_Time indicating a time in the past then the handler
-is executed immediately by the task executing the call of Set_Handler. The
-timing event Event is cleared.]}
+negative In_Time or with At_Time indicating a time in the
+past@Chg{Version=[3],New=[,],Old=[]} then the handler
+is executed @Chg{Version=[3],New=[as soon as possible after the completion of],
+Old=[immediately by the task executing]} the call of Set_Handler.@Chg{Version=[3],
+New=[],Old=[ The timing event Event is cleared.]}]}
+
+@begin{Ramification}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0094-1]}
+@ChgAdded{Version=[3],Text=[The handler will still be executed. Under no
+circumstances is a scheduled call of a handler lost.]}
+@end{Ramification}
+
+@begin{Discussion}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0094-1]}
+@ChgAdded{Version=[3],Text=[We say @ldquote@;as soon as possible@rdquote
+so that we do not deadlock if we are executing the handler when Set_Handler is
+called. In that case, the current invocation of the handler must complete
+before the new handler can start executing.]}
+@end{Discussion}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00297-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0264-1]}
 @ChgAdded{Version=[2],Text=[The function Current_Handler returns the handler
-associated with the event Event if that event is set; otherwise it returns
-@key{null}.]}
+associated with the event Event if that event is set;
+otherwise@Chg{Version=[3],New=[,],Old=[]} it returns @key{null}.]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00297-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0264-1]}
 @ChgAdded{Version=[2],Text=[The procedure Cancel_Handler clears the event if it
 is set. Cancelled is assigned True if the event was set prior to it being
-cleared; otherwise it is assigned False.]}
+cleared; otherwise@Chg{Version=[3],New=[,],Old=[]} it is assigned False.]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00297-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0264-1]}
 @ChgAdded{Version=[2],Text=[The function Time_Of_Event returns the time of the
-event if the event is set; otherwise it returns Real_Time.Time_First.]}
+event if the event is set;
+otherwise@Chg{Version=[3],New=[,],Old=[]} it returns Real_Time.Time_First.]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00297-01]}
 @ChgAdded{Version=[2],Text=[As part of the finalization of an object
@@ -4969,9 +5911,13 @@ the following metric:]}
 @begin{Itemize}
 
 @ChgRef{Version=[2],Kind=[AddedNormal]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0210-1]}
 @ChgAdded{Version=[2],Text=[An upper bound on the lateness of the execution of
-a handler. That is, the maximum time between when a handler is actually
-executed and the time specified when the event was set.]}
+a handler. That is, the maximum time between @Chg{Version=[3],New=[the time specified
+for the event and ],Old=[]}when a handler is actually
+@Chg{Version=[3],New=[invoked assuming no other handler or task is executing
+during this interval],Old=[executed and the time specified when the event was
+set]}.]}
 
 @end{Itemize}
 @ChgDocReq{Version=[2],Kind=[AddedNormal],Text=[@ChgAdded{Version=[2],
@@ -5007,4 +5953,349 @@ Timing_Event objects.]}
   @ChgAdded{Version=[2],Text=[@Defn{extensions to Ada 95}
   The package Real_Time.Timing_Events is new.]}
 @end{Extend95}
+
+@begin{Diffword2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0094-1]}
+  @ChgAdded{Version=[3],Text=[@b<Correction:> Reworded to eliminate a
+  deadlock condition if the event time is in the past and a handler is currently
+  executing. This is technically an inconsistency, but only if a program is
+  depending on deadlocking; since it is impossible to imagine how that could
+  be useful, we have not documented this as an inconsistency.]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0210-1]}
+  @ChgAdded{Version=[3],Text=[@b<Correction:> Clarified the metric for lateness
+  of a timing event to exclude interference from other handlers and tasks.
+  This change might change the documentation of an implementation, but not
+  the implementation itself, so there is no inconsistency.]}
+@end{Diffword2005}
+
+
+@RMNewPageVer{Version=[3]}@Comment{For printed version of Ada 2012 RM}
+@LabeledAddedClause{Version=[3],Name=[Multiprocessor Implementation]}
+
+@begin{Intro}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0171-1]}
+@ChgAdded{Version=[3],Text=[This clause allows implementations on multiprocessor
+platforms to be configured.]}
+@end{Intro}
+
+@begin{StaticSem}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0171-1]}
+@ChgAdded{Version=[3],KeepNext=[T],Type=[Leading],Text=[The following
+language-defined library package exists:]}
+@begin{Example}
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[@key[package] System.Multiprocessors @key{is}@ChildUnit{Parent=[System],Child=[Multiprocessors]}
+   @key[pragma] Preelaborate(Multiprocessors);]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[   @key[type] @AdaTypeDefn{CPU_Range} @key[is range] 0 .. @RI<implementation-defined>;
+   @AdaObjDefn{Not_A_Specific_CPU} : @key[constant] CPU_Range := 0;
+   @key[subtype] @AdaSubtypeDefn{Name=[CPU],Of=[CPU_Range]} @key[is] CPU_Range @key[range] 1 .. CPU_Range'Last;]}
+@ChgImplDef{Version=[3],Kind=[Added],Text=[@ChgAdded{Version=[3],
+Text=[The value of CPU_Range'Last in System.Multiprocessors.]}]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[   @key[function] @AdaSubDefn{Number_Of_CPUs} @key[return] CPU;
+@key[end] System.Multiprocessors;]}
+@end{Example}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0171-1]}
+@ChgAdded{Version=[3],Text=[A call of Number_Of_CPUs returns the number of
+processors available to the program. Within a given partition, each call on
+Number_Of_CPUs will return the same value.]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0229-1]}
+@ChgAdded{Version=[3],Type=[Leading],Text=[For a task type (including the
+anonymous type of a @nt{single_task_declaration}) or subprogram, the following
+language-defined representation aspect may be specified:]}
+
+@begin{Description}
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[CPU@\The aspect CPU is an @nt{expression},
+which shall be of type System.Multiprocessors.CPU_Range.@AspectDefn{CPU}]}
+
+@ChgAspectDesc{Version=[3],Kind=[AddedNormal],Aspect=[CPU],
+  Text=[@ChgAdded{Version=[3],Text=[Processor on which a given task should
+    run.]}]}
+
+@end{Description}
+@end{StaticSem}
+
+@begin{Legality}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0171-1],ARef=[AI05-0229-1]}
+@ChgAdded{Version=[3],Text=[If the CPU aspect is specified for a subprogram,
+the @nt{expression} shall be static.]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0229-1]}
+@ChgAdded{Version=[3],Text=[The CPU aspect shall not be specified on a task
+interface type.]}
+
+@end{Legality}
+
+@begin{Runtime}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0171-1],ARef=[AI05-0229-1]}
+@ChgAdded{Version=[3],Text=[The @nt{expression} specified for the CPU aspect
+of a task is evaluated for each task object (see
+@RefSecNum{Task Units and Task Objects}). The CPU value is then associated with
+the task object whose task declaration specifies the aspect.]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0171-1],ARef=[AI05-0229-1]}
+@ChgAdded{Version=[3],Text=[The CPU aspect has no effect if it is specified for
+a subprogram other than the main subprogram;
+the CPU value is not associated with any task.]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0171-1],ARef=[AI05-0229-1]}
+@ChgAdded{Version=[3],Text=[The CPU value is associated with the environment
+task if the CPU aspect is specified for the main subprogram.
+If the CPU aspect is not specified for the main subprogram it is implementation
+defined on which processor the environment task executes.]}
+@ChgImplDef{Version=[3],Kind=[Added],Text=[@ChgAdded{Version=[3],
+Text=[The processor on which the environment task executes in the absence of a
+value for the aspect CPU.]}]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0171-1],ARef=[AI05-0264-1]}
+@ChgAdded{Version=[3],Text=[The CPU value determines the processor on which the
+task will activate and execute; the task is said to be assigned to that
+processor. If the CPU value is Not_A_Specific_CPU, then the task is not assigned
+to a processor. A task without a CPU aspect specified will activate and execute on the
+same processor as its activating task if the activating task is assigned a
+processor. If the CPU value is not in the range of
+System.Multiprocessors.CPU_Range or is greater than Number_Of_CPUs the task is
+defined to have failed, and it becomes a completed task (see
+@RefSecNum{Task Execution - Task Activation}).]}
+
+@end{Runtime}
+
+@begin{Extend2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0171-1],ARef=[AI05-0229-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 2005}
+  The package System.Multiprocessors and the CPU aspect are new.]}
+@end{Extend2005}
+
+@LabeledAddedSubClause{Version=[3],Name=[Multiprocessor Dispatching Domains]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0167-1]}
+@ChgAdded{Version=[3],Text=[This clause allows implementations on multiprocessor
+platforms to be partitioned into distinct dispatching domains during program
+startup.]}
+
+@begin{StaticSem}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0167-1]}
+@ChgAdded{Version=[3],KeepNext=[T],Type=[Leading],Text=[The following
+language-defined library package exists:]}
+@begin{Example}
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[@key[with] Ada.Real_Time;
+@key[package] System.Multiprocessors.Dispatching_Domains @key{is}@ChildUnit{Parent=[System.Multiprocessors],Child=[Dispatching_Domains]}
+   @key[pragma] Preelaborate(Dispatching_Domains);]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[   @AdaExcDefn{Dispatching_Domain_Error} : @key[exception];]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[   @key[type] @AdaTypeDefn{Dispatching_Domain} (<>) @key[is limited private];]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[   @AdaObjDefn{System_Dispatching_Domain} : @key[constant] Dispatching_Domain;]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[   @key[function] @AdaSubDefn{Create} (First, Last : CPU) @key[return] Dispatching_Domain;]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[   @key[function] @AdaSubDefn{Get_First_CPU} (Domain : Dispatching_Domain) @key[return] CPU;]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[   @key[function] @AdaSubDefn{Get_Last_CPU}  (Domain : Dispatching_Domain) @key[return] CPU;]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[   @key[function] @AdaSubDefn{Get_Dispatching_Domain} (T : Task_Id := Current_Task)
+            @key[return] Dispatching_Domain;]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[   @key[procedure] @AdaSubDefn{Assign_Task} (Domain : @key[in out] Dispatching_Domain;
+                          CPU    : @key[in]     CPU_Range := Not_A_Specific_CPU;
+                          T      : @key[in]     Task_Id   := Current_Task);]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[   @key[procedure] @AdaSubDefn{Set_CPU} (CPU : @key[in] CPU_Range; T : @key[in] Task_Id := Current_Task);]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[   @key[function] @AdaSubDefn{Get_CPU} (T : Task_Id := Current_Task) @key[return] CPU_Range;]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[   @key[procedure] @AdaSubDefn{Delay_Until_And_Set_CPU} (
+       Delay_Until_Time : @key[in] Ada.Real_Time.Time; CPU : @key[in] CPU_Range);]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[@key[private]
+   ... -- @RI[not specified by the language]
+@key[end] System.Multiprocessors.Dispatching_Domains;]}
+@end{Example}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0167-1]}
+@ChgAdded{Version=[3],Text=[The type Dispatching_Domain represents a series of
+processors on which a task may execute. Each processor is contained within
+exactly one Dispatching_Domain. System_Dispatching_Domain contains the processor
+or processors on which the environment task executes. At program start-up all
+processors are contained within System_Dispatching_Domain.]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0167-1]}
+@ChgAdded{Version=[3],Type=[Leading],Text=[For a task type (including the
+anonymous type of a @nt{single_task_declaration}), the following language-defined
+representation aspect may be specified:]}
+
+@begin{Description}
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[Dispatching_Domain@\The value of
+aspect Dispatching_Domain is an @nt{expression}, which shall be of
+type Dispatching_Domains.Dispatching_Domain. This aspect is the domain to
+which the task (or all objects of the task type) are
+assigned.@AspectDefn{Dispatching_Domain}]}
+
+@ChgAspectDesc{Version=[3],Kind=[AddedNormal],Aspect=[Dispatching_Domain],
+  Text=[@ChgAdded{Version=[3],Text=[Domain (group of processors) on which a
+    given task should run.]}]}
+
+@end{Description}
+@end{StaticSem}
+
+@begin{Legality}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0167-1]}
+@ChgAdded{Version=[3],Text=[The Dispatching_Domain aspect shall not be specified
+for a task interface.]}
+
+@end{Legality}
+
+@begin{Runtime}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0167-1]}
+@ChgAdded{Version=[3],Text=[The expression specified for the Dispatching_Domain
+aspect of a task is evaluated for each task object (see
+@RefSecNum{Task Units and Task Objects}). The Dispatching_Domain value is then
+associated with the task object whose task declaration specifies the aspect.]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0167-1]}
+@ChgAdded{Version=[3],Text=[If a task is not explicitly assigned to any domain,
+it is assigned to that of the activating task. A task always executes on some
+CPU in its domain.]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0167-1]}
+@ChgAdded{Version=[3],Text=[If both Dispatching_Domain and CPU are specified for
+a task, and the CPU value is not contained within the range of processors for
+the domain (and is not Not_A_Specific_CPU), the activation of the task is
+defined to have failed, and it becomes a completed task (see
+@RefSecNum{Task Execution - Task Activation}).]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0167-1]}
+@ChgAdded{Version=[3],Text=[The function Create creates and returns a
+Dispatching_Domain containing all the processors in the range First .. Last.
+These processors are removed from System_Dispatching_Domain. A call of Create
+will raise Dispatching_Domain_Error if any designated processor is not currently
+in System_Dispatching_Domain, or if the system cannot support a distinct domain
+over the processors identified, or if a processor has a task assigned to it, or
+if the allocation would leave System_Dispatching_Domain empty. A call of Create
+will raise Dispatching_Domain_Error if the calling task is not the environment
+task, or if Create is called after the call to the main subprogram.]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0167-1]}
+@ChgAdded{Version=[3],Text=[The function Get_First_CPU returns the first CPU in
+Domain; Get_Last_CPU returns the last one.]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0167-1]}
+@ChgAdded{Version=[3],Text=[The function Get_Dispatching_Domain returns the
+Dispatching_Domain on which the task is assigned.]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0167-1]}
+@ChgAdded{Version=[3],Text=[A call of the procedure Assign_Task assigns task T
+to the CPU within Dispatching_Domain Domain. Task T can now execute only on CPU
+unless CPU designates Not_A_Specific_CPU, in which case it can execute on any
+processor within Domain. The exception Dispatching_Domain_Error is propagated if
+T is already assigned to a Dispatching_Domain other than
+System_Dispatching_Domain, or if CPU is not one of the processors of Domain (and
+is not Not_A_Specific_CPU). A call of Assign_Task is a task dispatching point
+for task T. If T is the Current_Task the effect is immediate, otherwise the
+effect is as soon as practical. Assigning a task to System_Dispatching_Domain
+that is already assigned to that domain has no effect.]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0167-1]}
+@ChgAdded{Version=[3],Text=[A call of procedure Set_CPU assigns task T to the
+CPU. Task T can now execute only on CPU, unless CPU designates
+Not_A_Specific_CPU, in which case it can execute on any processor within its
+Dispatching_Domain. The exception Dispatching_Domain_Error is propagated if CPU
+is not one of the processors of the Dispatching_Domain on which T is assigned
+(and is not Not_A_Specific_CPU). A call of Set_CPU is a task dispatching point
+for task T. If T is the Current_Task the effect is immediate, otherwise the
+effect is as soon as practical.]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0167-1]}
+@ChgAdded{Version=[3],Text=[The function Get_CPU returns the processor assigned
+to task T, or Not_A_Specific_CPU if the task is not assigned to a processor.]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0167-1]}
+@ChgAdded{Version=[3],Text=[A call of Delay_Until_And_Set_CPU delays the calling
+task for the designated time and then assigns the task to the specified
+processor when the delay expires. The exception Dispatching_Domain_Error is
+propagated if P is not one of the processors of the calling task's
+Dispatching_Domain (and is not Not_A_Specific_CPU).]}
+
+@end{Runtime}
+
+@begin{ImplReq}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0167-1]}
+@ChgAdded{Version=[3],Text=[The implementation shall perform the operations
+Assign_Task, Set_CPU, Get_CPU and Delay_Until_And_Set_CPU atomically with
+respect to any of these operations on the same dispatching_domain, processor or
+task.]}
+
+@end{ImplReq}
+
+@begin{ImplAdvice}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0167-1]}
+@ChgAdded{Version=[3],Text=[Each dispatching domain should have separate and
+disjoint ready queues.]}
+
+@ChgImplAdvice{Version=[3],Kind=[AddedNormal],Text=[@ChgAdded{Version=[3],
+Text=[Each dispatching domain should have separate and
+disjoint ready queues.]}]}
+
+@end{ImplAdvice}
+
+@begin{DocReq}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0167-1]}
+@ChgAdded{Version=[3],Text=[The implementation shall document the processor(s)
+on which the clock interrupt is handled and hence where delay queue and ready
+queue manipulations occur. For any Interrupt_Id whose handler can execute on
+more than one processor the implementation shall also document this set of
+processors.]}
+
+@ChgDocReq{Version=[3],Kind=[AddedNormal],Text=[@ChgAdded{Version=[3],
+Text=[The processor(s) on which the clock interrupt is handled; the processors
+on which each Interrupt_Id can be handled.]}]}
+
+@end{DocReq}
+
+@begin{ImplPerm}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0167-1]}
+@ChgAdded{Version=[3],Text=[An implementation may limit the number of
+dispatching domains that can be created and raise Dispatching_Domain_Error if an
+attempt is made to exceed this number.]}
+
+@end{ImplPerm}
+
+@begin{Extend2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0167-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 2005}
+  The package System.Multiprocessors.Dispatching_Domains and the aspect
+  Dispatching_Domains are new.]}
+@end{Extend2005}
 

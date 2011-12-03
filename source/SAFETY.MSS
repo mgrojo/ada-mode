@@ -1,8 +1,8 @@
-@Comment{ $Source: d:\\CvsRoot/ARM/Source/SAFETY.MSS,v $ }
-@Comment{ $Revision: 1.39 $ $Date: 2006/10/19 06:40:32 $ $Author: Randy $ }
+@Comment{ $Source: e:\\cvsroot/ARM/Source/safety.mss,v $ }
+@Comment{ $Revision: 1.55 $ $Date: 2011/11/01 05:34:04 $ $Author: randy $ }
 @Part(safety, Root="ada.mss")
 
-@Comment{$Date: 2006/10/19 06:40:32 $}
+@Comment{$Date: 2011/11/01 05:34:04 $}
 @LabeledRevisedNormativeAnnex{Version=[2],
 New=[High Integrity Systems], Old=[Safety and Security]}
 
@@ -167,7 +167,7 @@ The initialization requirement does not apply to a scalar for which
 pragma Import has been specified,
 since initialization of an imported object is performed
 solely by the foreign language environment
- (see @RefSecNum[Interfacing Pragmas]).
+ (see @RefSecNum[Interfacing Aspects]).
 
 The use of pragma Normalize_Scalars in conjunction with
 Pragma Restrictions(No_Exceptions) may result in erroneous execution
@@ -198,7 +198,8 @@ independently of any compilation unit or partition, or as part of an annotated
 listing for a given unit or partition.
 See also @RefSecNum(Conformity of an Implementation with the Standard), and
 @RefSecNum(Structure).]
-@ChgImplDef{Version=[2],Kind=[Deleted],Text=[@ChgDeleted{Version=[2],
+@ChgImplDef{Version=[2],Kind=[Deleted],InitialVersion=[0],
+Text=[@ChgDeleted{Version=[2],
 Text=[Information regarding bounded errors and erroneous execution.]}]}
 @ChgDocReq{Version=[2],Kind=[AddedNormal],Text=[@ChgAdded{Version=[2],Text=[
 The range of effects for each bounded error and each unspecified effect.
@@ -606,7 +607,8 @@ For each inspection point,
 identify a mapping between each inspectable object and the machine resources
 (such as memory locations or registers) from which the object's value
 can be obtained.
-@ChgImplDef{Version=[2],Kind=[Deleted],Text=[@ChgDeleted{Version=[2],
+@ChgImplDef{Version=[2],Kind=[Deleted],InitialVersion=[0],
+Text=[@ChgDeleted{Version=[2],
 Text=[Implementation-defined aspects of pragma Inspection_Point.]}]}
 @ChgDocReq{Version=[2],Kind=[AddedNormal],Text=[@ChgAdded{Version=[2],
 Text=[For each inspection point, a mapping between each inspectable object
@@ -663,8 +665,8 @@ optimizations (such as unused object elimination).]}
 @LabeledRevisedClause{Version=[2],New=[High Integrity Restrictions],Old=[Safety and Security Restrictions]}
 @begin{Intro}
 This clause defines restrictions that can be used with pragma
-Restrictions (see @RefSecNum(Pragma Restrictions)); these facilitate
-the demonstration of program correctness by allowing
+Restrictions (see @RefSecNum(Pragma Restrictions and Pragma Profile)); these
+facilitate the demonstration of program correctness by allowing
 tailored versions of the run-time system.
 @begin{Discussion}
 
@@ -698,18 +700,21 @@ language defined:],Old=[additional restrictions apply in this Annex.]}
 @leading@keepnext@b{Tasking-related restriction:}
 
 @begin{Description}
-@Trailing@;@Defn2{Term=[Restrictions],Sec=(No_Protected_Types)}No_Protected_Types @\There
+@Trailing@;@Defn2{Term=[restrictions],Sec=(No_Protected_Types)}@Chg{Version=[3],New=[@Defn{No_Protected_Types restriction}],
+Old=[]}No_Protected_Types @\There
 are no declarations of protected types or protected objects.
 @end{Description}
 
 @leading@keepnext@b{Memory-management related restrictions:}
 
 @begin{Description}
-@Defn2{Term=[Restrictions],Sec=(No_Allocators)}No_Allocators @\There are no
+@Defn2{Term=[restrictions],Sec=(No_Allocators)}@Chg{Version=[3],New=[@Defn{No_Allocators restriction}],
+   Old=[]}No_Allocators @\There are no
 occurrences of an @nt{allocator}.
 
 @ChgRef{Version=[1],Kind=[Revised],Ref=[8652/0042],ARef=[AI95-00130]}
-@Defn2{Term=[Restrictions],Sec=(No_Local_Allocators)}No_Local_Allocators @\@nt{Allocator}s
+@Defn2{Term=[restrictions],Sec=(No_Local_Allocators)}@Chg{Version=[3],New=[@Defn{No_Local_Allocators restriction}],
+Old=[]}No_Local_Allocators @\@nt{Allocator}s
 are prohibited in subprograms, generic subprograms,
 tasks, and entry bodies@Chg{New=[],Old=[; instantiations of generic packages
 are also prohibited in these contexts]}.
@@ -730,12 +735,30 @@ rather than inhibiting what can be in the generic while
 liberalizing where they can be instantiated.]}
 @end[Reason]
 
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0152-1],ARef=[AI05-0262-1]}
+@ChgAdded{Version=[3],Text=[@Defn2{Term=[restrictions],Sec=(No_Anonymous_Allocators)}@Defn{No_Anonymous_Allocators restriction}
+No_Anonymous_Allocators @\There are no @nt{allocator}s of anonymous access types.]}
+
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0190-1]}
+@ChgAdded{Version=[3],Text=[@Defn2{Term=[restrictions],Sec=(No_Coextensions)}@Defn{No_Coextensions restriction}
+No_Coextensions @\There are no coextensions. See @RefSecNum{Operations of Access Types}.]}
+
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0190-1]}
+@ChgAdded{Version=[3],Text=[@Defn2{Term=[restrictions],
+Sec=(No_Access_Parameter_Allocators)}@Defn{No_Access_Parameter_Allocators restriction}
+No_Access_Parameter_Allocators @\@nt{Allocator}s
+are not permitted as the actual parameter to an access parameter.
+See @RefSecNum{Subprogram Declarations}.]}
+
 @ChgRef{Version=[2],Kind=[Deleted],ARef=[AI95-00394-01]}
-@ChgDeleted{Version=[2],Text=[@Defn2{Term=[Restrictions],
+@Comment{We can't reuse this paragraph for the above, because there is no
+way to have the hanging marker in both the added and deleted text (and since it
+isn't in Ada 2005 at all).}
+@ChgDeleted{Version=[2],Text=[@Defn2{Term=[restrictions],
 Sec=(No_Unchecked_Deallocation)}No_Unchecked_Deallocation @\Semantic
 dependence on Unchecked_Deallocation is not allowed.]}
 @begin{Discussion}
-  @ChgRef{Version=[2],Kind=[Deleted]}
+  @ChgRef{Version=[2],Kind=[DeletedNoDelMsg]}
   @ChgDeleted{Version=[2],Text=[This restriction would be useful in those
   contexts in which heap storage is needed on program start-up, but need not be
   increased subsequently. The danger of a dangling pointer can therefore be
@@ -746,7 +769,8 @@ dependence on Unchecked_Deallocation is not allowed.]}
 @nt{allocator}s and not deallocated via unchecked deallocation, any storage
 reserved at run time for an object is immediately reclaimed when the
 object no longer exists.
-@Defn2{Term=[Restrictions],Sec=(Immediate_Reclamation)}
+@Defn2{Term=[restrictions],Sec=(Immediate_Reclamation)}@Chg{Version=[3],New=[@Defn{Immediate_Reclamation restriction}],
+Old=[]}
 @begin{Discussion}
 Immediate reclamation would apply to storage created by the compiler, such
 as for a return value from a function whose size is not known at the
@@ -757,7 +781,8 @@ call site.
 @leading@keepnext@b{Exception-related restriction:}
 
 @begin{Description}
-@Trailing@Defn2{Term=[Restrictions],Sec=(No_Exceptions)}No_Exceptions @\@nt{Raise_statement}s
+@Trailing@Defn2{Term=[restrictions],Sec=(No_Exceptions)}@Chg{Version=[3],New=[@Defn{No_Exceptions restriction}],
+   Old=[]}No_Exceptions @\@nt{Raise_statement}s
 and @nt{exception_handler}s are not allowed.
 No language-defined run-time checks are generated;
 however, a run-time check performed automatically by the hardware
@@ -779,7 +804,8 @@ programming at the assembler level.
 @leading@keepnext@b{Other restrictions:}
 
 @begin{Description}
-@Defn2{Term=[Restrictions],Sec=(No_Floating_Point)}No_Floating_Point @\Uses of predefined floating point types and
+@Defn2{Term=[restrictions],Sec=(No_Floating_Point)}@Chg{Version=[3],New=[@Defn{No_Floating_Point restriction}],
+   Old=[]}No_Floating_Point @\Uses of predefined floating point types and
 operations, and declarations of new floating point types, are
 not allowed.
 @begin{Discussion}
@@ -797,7 +823,8 @@ not have floating point instructions.
 
 @end{Discussion}
 
-@Defn2{Term=[Restrictions],Sec=(No_Fixed_Point)}No_Fixed_Point @\Uses of predefined fixed point types and
+@Defn2{Term=[restrictions],Sec=(No_Fixed_Point)}@Chg{Version=[3],New=[@Defn{No_Fixed_Point restriction}],
+   Old=[]}No_Fixed_Point @\Uses of predefined fixed point types and
 operations, and declarations of new fixed point types, are
 not allowed.
 @begin{Discussion}
@@ -812,11 +839,11 @@ machine level, fixed point is virtually the same as integer arithmetic.
 @end{Discussion}
 
 @ChgRef{Version=[2],Kind=[Deleted],ARef=[AI95-00394-01]}
-@ChgDeleted{Version=[2],Text=[@Defn2{Term=[Restrictions],
+@ChgDeleted{Version=[2],Text=[@Defn2{Term=[restrictions],
 Sec=(No_Unchecked_Conversion)}No_Unchecked_Conversion @\Semantic dependence
 on the predefined generic Unchecked_Conversion is not allowed.]}
 @begin{Discussion}
-  @ChgRef{Version=[2],Kind=[Deleted]}
+  @ChgRef{Version=[2],Kind=[DeletedNoDelMsg]}
   @ChgDeleted{Version=[2],Text=[Most critical applications would require
   some restrictions or additional validation checks on uses of unchecked
   conversion. If the application does not require the functionality, then
@@ -826,7 +853,8 @@ on the predefined generic Unchecked_Conversion is not allowed.]}
 
 No_Access_Subprograms @\The declaration of access-to-subprogram types
 is not allowed.
-@Defn2{Term=[Restrictions],Sec=(No_Access_Subprograms)}
+@Defn2{Term=[restrictions],Sec=(No_Access_Subprograms)}@Chg{Version=[3],New=[@Defn{No_Access_Subprograms restriction}],
+Old=[]}
 @begin{Discussion}@ChgNote{Moved from above}
   @ChgRef{Version=[2],Kind=[Added]}
   @ChgAdded{Version=[2],Text=[Most critical applications would require
@@ -837,15 +865,18 @@ is not allowed.
   restrictions, and to restriction No_Dependence => Ada.Unchecked_Conversion.]}
 @end{Discussion}
 
-@Defn2{Term=[Restrictions],Sec=(No_Unchecked_Access)}No_Unchecked_Access @\The @attr[Unchecked_Access] attribute
+@Defn2{Term=[restrictions],Sec=(No_Unchecked_Access)}@Chg{Version=[3],New=[@Defn{No_Unchecked_Access restriction}],
+   Old=[]}No_Unchecked_Access @\The @attr[Unchecked_Access] attribute
 is not allowed.
 
-@Defn2{Term=[Restrictions],Sec=(No_Dispatch)}No_Dispatch @\Occurrences of T'Class are not allowed, for any
+@Defn2{Term=[restrictions],Sec=(No_Dispatch)}@Chg{Version=[3],New=[@Defn{No_Dispatch restriction}],
+Old=[]}No_Dispatch @\Occurrences of T'Class are not allowed, for any
 (tagged)
 subtype T.
 
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00285-01]}
-@Defn2{Term=[Restrictions],Sec=(No_IO)}No_IO @\Semantic dependence on
+@Defn2{Term=[restrictions],Sec=(No_IO)}@Chg{Version=[3],New=[@Defn{No_IO restriction}],
+   Old=[]}No_IO @\Semantic dependence on
 any of the library units
 Sequential_IO, Direct_IO, Text_IO, Wide_Text_IO, @Chg{Version=[2],
 New=[Wide_Wide_Text_IO, ],Old=[]}or Stream_IO is not allowed.
@@ -858,7 +889,8 @@ facilities or a call on a non-Ada feature.
 
 @end{Discussion}
 
-@Defn2{Term=[Restrictions],Sec=(No_Delay)}No_Delay @\@nt[Delay_Statement]s
+@Defn2{Term=[restrictions],Sec=(No_Delay)}@Chg{Version=[3],New=[@Defn{No_Delay restriction}],
+Old=[]}No_Delay @\@nt[Delay_Statement]s
 and semantic dependence on package Calendar
 are not allowed.
 @begin[Ramification]
@@ -870,10 +902,12 @@ within the run-time system.
 
 @end[ramification]
 
-@Defn2{Term=[Restrictions],Sec=(No_Recursion)}No_Recursion @\As part of the execution of a subprogram, the same
+@Defn2{Term=[restrictions],Sec=(No_Recursion)}@Chg{Version=[3],New=[@Defn{No_Recursion restriction}],
+   Old=[]}No_Recursion @\As part of the execution of a subprogram, the same
 subprogram is not invoked.
 
-@Defn2{Term=[Restrictions],Sec=(No_Reentrancy)}No_Reentrancy @\During the execution of a subprogram by a task, no other
+@Defn2{Term=[restrictions],Sec=(No_Reentrancy)}@Chg{Version=[3],New=[@Defn{No_Reentrancy restriction}],
+   Old=[]}No_Reentrancy @\During the execution of a subprogram by a task, no other
 task invokes the same subprogram.
 
 @end{description}
@@ -889,9 +923,11 @@ shall support:]}
 @ChgAdded{Version=[2],Text=[the restrictions defined in this subclause; and]}
 
 @ChgRef{Version=[2],Kind=[Added]}
+@ChgRef{Version=[3],Kind=[RevisedAdded],ARef=[AI05-0189-1]}
 @ChgAdded{Version=[2],Text=[the following restrictions defined in
 @RefSecNum{Tasking Restrictions}: No_Task_Hierarchy,
-No_Abort_Statement, No_Implicit_Heap_Allocation; and]}
+No_Abort_Statement, No_Implicit_Heap_Allocation@Chg{Version=[3],New=[,
+No_Standard_Allocators_After_Elaboration], Old=[]}; and]}
 
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00347-01]}
 @ChgAdded{Version=[2],Text=[the @key{pragma} Profile(Ravenscar); and]}
@@ -920,11 +956,13 @@ prior to program execution]:]}
 @end{InnerItemize}
 @end{Itemize}
 
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0263-1]}
 If an implementation supports @nt[pragma] Restrictions for a particular
 argument, then except for the restrictions No_Unchecked_Deallocation,
-No_Unchecked_Conversion, No_Access_Subprograms, and No_Unchecked_Access,
- the associated restriction applies to the
-run-time system.
+No_Unchecked_Conversion, No_Access_Subprograms,
+@Chg{Version=[3],New=[],Old=[and ]}No_Unchecked_Access,
+@Chg{Version=[3],New=[and the equivalent use of No_Dependence, ],Old=[]}the
+associated restriction applies to the run-time system.
 @begin[reason]
 Permission is granted for the run-time system to use the specified
 otherwise-restricted features, since the use of these features may
@@ -958,7 +996,8 @@ If a pragma Restrictions(No_Exceptions) is specified, the implementation
 shall document the effects of all constructs where language-defined checks are
 still performed automatically (for example, an overflow check performed
 by the processor).
-@ChgImplDef{Version=[2],Kind=[Deleted],Text=[@ChgDeleted{Version=[2],
+@ChgImplDef{Version=[2],Kind=[Deleted],InitialVersion=[0],
+Text=[@ChgDeleted{Version=[2],
 Text=[Implementation-defined aspects of pragma Restrictions.]}]}
 @ChgDocReq{Version=[2],Kind=[AddedNormal],Text=[@ChgAdded{Version=[2],Text=[
 If a pragma Restrictions(No_Exceptions) is specified, the effects of all
@@ -1011,14 +1050,15 @@ still formally erroneous.
 
 @ChgNote{I can't find any reason in the normative wording for this item;
 therefore I've removed it. The notes below (commented out anyway) refer only
-to a non-standard mode, which is irrelevant in the Standard.}
-@ChgImplDef{Version=[2],Kind=[Deleted],Text=[@ChgDeleted{Version=[2],
+to a nonstandard mode, which is irrelevant in the Standard.}
+@ChgImplDef{Version=[2],Kind=[Deleted],InitialVersion=[0],
+Text=[@ChgDeleted{Version=[2],
 Text=[Any restrictions on pragma Restrictions.]}]}
 
 @begin{Notes}
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00394-01]}
 @ChgAdded{Version=[2],Text=[Uses of @Syni{restriction_parameter_}@nt{identifier}
-No_Dependence defined in @RefSecNum{Language-Defined Restrictions}:
+No_Dependence defined in @RefSecNum{Language-Defined Restrictions and Profiles}:
 No_Dependence => Ada.@!Unchecked_@!Deallocation and No_Dependence =>
 Ada.@!Unchecked_@!Conversion may be appropriate for high-integrity systems.
 Other uses of No_Dependence can also be appropriate for high-integrity
@@ -1096,6 +1136,25 @@ proscribed
   Annex@rquotes (which no one quite can explain the meaning of) is banished.]}
 @end{DiffWord95}
 
+@begin{Extend2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0152-1],ARef=[AI05-0190-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 95}Restrictions
+  No_Anonymous_Allocators, No_Coextensions, and No_Access_Parameter_Allocators
+  are new.]}
+@end{Extend2005}
+
+@begin{DiffWord2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0189-1]}
+  @ChgAdded{Version=[3],Text=[New restriction
+  No_Standard_Allocators_After_Elaboration is added to the list of
+  restrictions that are required by this annex.]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0263-1]}
+  @ChgAdded{Version=[3],Text=[@b<Correction:> Ada 2005 restriction No_Dependence
+  is added where needed (this was missed in Ada 2005).]}
+@end{DiffWord2005}
+
+
 @LabeledAddedClause{Version=[2],Name=[Pragma Detect_Blocking]}
 
 @begin{Intro}
@@ -1111,7 +1170,8 @@ to detect potentially blocking operations within a protected operation.]}
 @nt{pragma} Detect_Blocking is as follows:]}
 @end{SyntaxText}
 @ChgRef{Version=[2],Kind=[AddedNormal]}
-@ChgAdded{Version=[2],Text=[@AddedPragmaSyn`Version=[2],@key{pragma} @prag<Detect_Blocking>;']}
+@AddedPragmaSyn<Version=[2],@ChgAdded{Version=[2],
+Text=[@key{pragma} @prag<Detect_Blocking>;]}>
 @end{Syntax}
 
 @begin{LinkTime}
@@ -1149,7 +1209,7 @@ and need not be detected.]}
   Pragma Detect_Blocking is new.]}
 @end{Extend95}
 
-@RMNewPage@Comment{For printed version of Ada 2007 RM}
+@RMNewPageVer{Version=[2]}@Comment{For printed version of Ada 2005 RM}
 @LabeledAddedClause{Version=[2],Name=[Pragma Partition_Elaboration_Policy]}
 
 @begin{Intro}
@@ -1165,7 +1225,8 @@ for user control over elaboration policy.]}
 @nt{pragma} Partition_Elaboration_Policy is as follows:]}
 @end{SyntaxText}
 @ChgRef{Version=[2],Kind=[AddedNormal]}
-@ChgAdded{Version=[2],Text=[@AddedPragmaSyn`Version=[2],@key{pragma} @prag<Partition_Elaboration_Policy> (@SynI<policy_>@Syn2<identifier>);']}
+@AddedPragmaSyn<Version=[2],@ChgAdded{Version=[2],
+Text=[@key{pragma} @prag<Partition_Elaboration_Policy> (@SynI<policy_>@Syn2<identifier>);]}>
 
 @begin{SyntaxText}
 @ChgRef{Version=[2],Kind=[AddedNormal]}
@@ -1185,14 +1246,16 @@ It specifies the elaboration policy for a partition.
 At most one elaboration policy shall be specified for a partition.]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00265-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0264-1]}
 @ChgAdded{Version=[2],Text=[If the Sequential policy is
-specified for a partition then pragma Restrictions (No_Task_Hierarchy) shall
-also be specified for the partition.]}
+specified for a partition@Chg{Version=[3],New=[,],Old=[]} then pragma
+Restrictions (No_Task_Hierarchy) shall also be specified for the partition.]}
 @end{LinkTime}
 
 @begin{RunTime}
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00265-01]}
-@ChgAdded{Version=[2],Text=[Notwithstanding what this International Standard
+@ChgAdded{Version=[2],Text=[Notwithstanding@Defn{notwithstanding} what this
+International Standard
 says elsewhere, this @nt{pragma} allows partition elaboration rules concerning
 task activation and interrupt attachment to be changed. If the
 @SynI{policy_}@nt{identifier} is Concurrent, or if there is no pragma
@@ -1238,23 +1301,27 @@ main subprogram.]}
 
 @begin{ImplAdvice}
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00265-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0264-1]}
 @ChgAdded{Version=[2],Text=[If the partition elaboration policy is Sequential
-and the Environment task becomes permanently blocked during elaboration then
-the partition is deadlocked and it is recommended that the partition be
-immediately terminated.]}
-@ChgImplAdvice{Version=[2],Kind=[AddedNormal],Text=[@ChgAdded{Version=[2],
+and the Environment task becomes permanently blocked during
+elaboration@Chg{Version=[3],New=[,],Old=[]} then the partition is deadlocked and
+it is recommended that the partition be immediately terminated.]}
+@ChgImplAdvice{Version=[3],Kind=[Revised],InitialVersion=[2],
+Text=[@ChgAdded{Version=[2],
 Text=[If the partition elaboration policy is Sequential
-and the Environment task becomes permanently blocked during elaboration then
+and the Environment task becomes permanently blocked during
+elaboration@Chg{Version=[3],New=[,],Old=[]} then
 the partition should be immediately terminated.]}]}
 
 @end{ImplAdvice}
 
 @begin{ImplPerm}
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00265-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0264-1]}
 @ChgAdded{Version=[2],Text=[If the partition elaboration policy is Sequential
-and any task activation fails then an implementation may immediately terminate
-the active partition to mitigate the hazard posed by continuing to execute with
-a subset of the tasks being active.]}
+and any task activation fails@Chg{Version=[3],New=[,],Old=[]} then an
+implementation may immediately terminate the active partition to mitigate the
+hazard posed by continuing to execute with a subset of the tasks being active.]}
 @end{ImplPerm}
 
 @begin{Notes}

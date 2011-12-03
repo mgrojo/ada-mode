@@ -1,9 +1,9 @@
 @Part(03, Root="ada.mss")
 
-@Comment{$Date: 2006/10/17 05:29:42 $}
+@Comment{$Date: 2011/11/01 23:14:13 $}
 
-@Comment{$Source: d:\\CvsRoot/ARM/Source/03B.MSS,v $}
-@Comment{$Revision: 1.66 $}
+@Comment{$Source: e:\\cvsroot/ARM/Source/03b.mss,v $}
+@Comment{$Revision: 1.95 $}
 
 @LabeledClause{Array Types}
 
@@ -206,7 +206,8 @@ constrained first subtype.
 The @i(constraint) of the first subtype consists of the bounds
 of the index ranges.
 @begin{Discussion}
-  Although there is no namable
+  @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0005-1]}
+  Although there is no @Chg{Version=[3],New=[nameable],Old=[namable]}
   unconstrained array subtype in this case, the predefined slicing
   and concatenation operations can operate on and yield
   values that do not necessarily belong to the first array subtype.
@@ -278,8 +279,61 @@ The elaboration of a @nt{component_@!definition} in an
 of the @nt{subtype_@!indication}@Chg{Version=[2],New=[ or @nt{access_definition}],Old=[]}.
 The elaboration of any @nt{discrete_@!subtype_@!definition}s
 and the elaboration of the
-@nt{component_@!definition} are performed in an arbitrary order.
+@nt{component_@!definition} are performed in an arbitrary order.@PDefn2{Term=[arbitrary order],Sec=[allowed]}
 @end{RunTime}
+
+@begin{StaticSem}
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0228-1]}
+@ChgAdded{Version=[3],Type=[Leading],Text=[For an array type with a
+scalar component type, the following language-defined representation aspect
+may be specified with an @nt{aspect_specification} (see
+@RefSecNum{Aspect Specifications}):]}
+@begin{Description}
+@ChgRef{Version=[3],Kind=[Added]}
+@ChgAdded{Version=[3],Text=[Default_Component_Value@\This aspect
+shall be specified by a static expression, and that
+expression shall be explicit, even if the aspect has a boolean type.
+Default_Value shall be specified only on
+a @nt{full_type_declaration}.@AspectDefn{Default_Component_Value}]}
+@begin{Reason}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[The part about requiring an explicit expression is
+  to disallow omitting the value for this aspect, which would otherwise be
+  allowed by the rules of @RefSecNum{Aspect Specifications}.]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[This is a representation attribute in order to
+  disallow specifying it on a derived type that has inherited primitive
+  subprograms; that is necessary as the sizes of @key[out] parameters could be
+  different whether or not a Default_Value is specified (see
+  @RefSecNum{Parameter Associations}).]}
+@end{Reason}
+
+@ChgAspectDesc{Version=[3],Kind=[AddedNormal],Aspect=[Default_Component_Value],
+  Text=[@ChgAdded{Version=[3],Text=[Default value for the components of an
+    array-of-scalar subtype.]}]}
+@end{Description}
+
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0228-1]}
+@ChgAdded{Version=[3],Text=[If a derived type with no primitive subprograms
+inherits a boolean Default_Value aspect, the aspect may be specified to have any
+value for the derived type.]}
+@begin{Reason}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[This overrides the
+  @RefSecNum{Aspect Specifications} rule that says that a boolean aspect
+with a value True cannot be changed.]}
+@end{Reason}
+@end{StaticSem}
+
+@begin{Resolution}
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0228-1]}
+@ChgAdded{Version=[3],Text=[The expected type for the @nt{expression}
+specified for the Default_Component_Value aspect is the component type of the
+array type defined by the
+@nt{full_type_declaration} on which it
+appears.@PDefn2{Term=[expected type],Sec=[@nt{expression} of a Default_Component_Value aspect]}]}
+@end{Resolution}
 
 @begin{Notes}
 All components of an array have the same subtype. In particular, for an array
@@ -301,18 +355,18 @@ is of its own unique type.
 @key(type) Roman      @key(is) @key(array)(Positive @key(range) <>) @key(of) Roman_Digit; --@RI[ see @RefSecNum(Character Types)]
 @end(Example)
 
-@begin{Wide}
+@begin{WideAbove}
 @leading@keepnext@i(Examples of type declarations with constrained array definitions: )
-@end{Wide}
+@end{WideAbove}
 @begin(Example)
 @key(type) Table    @key(is) @key(array)(1 .. 10) @key(of) Integer;
 @key(type) Schedule @key(is) @key(array)(Day) @key(of) Boolean;
 @key(type) Line     @key(is) @key(array)(1 .. Max_Line_Size) @key(of) Character;
 @end(Example)
 
-@begin{Wide}
+@begin{WideAbove}
 @leading@keepnext@i(Examples of object declarations with array type definitions: )
-@end{Wide}
+@end{WideAbove}
 @begin(Example)
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00433-01]}
 Grid @Chg{Version=[2],New=[     ],Old=[]}: @key(array)(1 .. 80, 1 .. 100) @key(of) Boolean;
@@ -381,6 +435,13 @@ RM83-3.7.
   @ChgAdded{Version=[2],Text=[@b<Corrigendum:> Added wording to allow
   the elaboration of per-object constraints for constrained arrays.]}
 @end{DiffWord95}
+
+@begin{Extend2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0228-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 2005}
+  The new aspect Default_Component_Value allows defining implicit initial
+  values (see @RefSecNum{Object Declarations}) for arrays of scalar types.]}
+@end{Extend2005}
 
 
 @LabeledSubClause{Index Constraints and Discrete Ranges}
@@ -480,16 +541,16 @@ Inverse   : Matrix(1 .. N,  1 .. N);  --@RI[  N need not be static ]
 Filter    : Bit_Vector(0 .. 31);
 @end(Example)
 
-@begin{Wide}
+@begin{WideAbove}
 @leading@keepnext@i(Example of array declaration with a constrained array subtype: )
-@end{Wide}
+@end{WideAbove}
 @begin(Example)
 My_Schedule : Schedule;  --@RI[  all arrays of type Schedule have the same bounds]
 @end(Example)
 
-@begin{Wide}
+@begin{WideAbove}
 @leading@keepnext@i(Example of record type with a component that is an array: )
-@end{Wide}
+@end{WideAbove}
 @begin(Example)
 @key(type) Var_Line(Length : Natural) @key(is)
    @key(record)
@@ -581,10 +642,13 @@ These attributes are not defined if A is a subtype-mark
 @end{StaticSem}
 
 @begin{ImplAdvice}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1]}
 An implementation should normally represent
 multidimensional arrays in row-major order, consistent with the notation used
 for multidimensional array aggregates (see @RefSecNum(Array Aggregates)).
-However, if a @key<pragma> Convention(Fortran, ...) applies to a
+However, if @Chg{Version=[3],New=[convention ],Old=[a @key<pragma>
+Convention(]}Fortran@Chg{Version=[3],New=[ is specified
+for],Old=[, ...) applies to]} a
 multidimensional array type, then column-major order should be used
 instead (see @RefSec{Interfacing with Fortran}).
 @ChgImplAdvice{Version=[2],Kind=[AddedNormal],Text=[@ChgAdded{Version=[2],
@@ -733,6 +797,7 @@ the meaning of the program will be different.]}
   The type Wide_Wide_String is new.]}
 @end{Extend95}
 
+@RMNewPageVer{Version=[3]}@Comment{For printed version of Ada 2012 RM}
 
 @LabeledClause{Discriminants}
 
@@ -899,11 +964,13 @@ denoted by the @nt<subtype_mark> of the @nt<access_definition>]}.
 
 @ChgNote{This paragraph is just moved up}
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00402-01]}
+@ChgRef{Version=[3],Kind=[RevisedAdded],ARef=[AI05-0214-1]}
 @ChgAdded{Version=[2],Text=[@nt{Default_expression}s shall be provided either
 for all or for none
 of the discriminants of a @nt{known_@!discriminant_@!part}.
 No @nt<default_@!expression>s are permitted in a
-@nt<known_@!discriminant_@!part> in a declaration of a tagged
+@nt<known_@!discriminant_@!part> in a declaration of a
+@Chg{Version=[3],New=[nonlimited ],Old=[]}tagged
 type @Redundant[or a generic formal type].]}
 
 @begin(Reason)
@@ -918,49 +985,63 @@ type @Redundant[or a generic formal type].]}
   assigning to the object.]}
 
   @ChgRef{Version=[2],Kind=[AddedNormal]}
+  @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0214-1]}
   @ChgAdded{Version=[2],Text=[Defaults for discriminants of tagged types
   are disallowed so that every object of a
-  tagged type is constrained,
+  @Chg{Version=[3],New=[nonlimited ],Old=[]}tagged type is constrained,
   either by an explicit constraint,
   or by its initial discriminant values.
   This substantially simplifies the semantic rules
   and the implementation of inherited
-  dispatching operations. For generic formal types,
-  the restriction simplifies the type matching rules.
+  dispatching operations. @Chg{Version=[3],New=[We don't need this rule for
+  limited tagged types, as the discriminants of such objects cannot be changed
+  after the object is created in any case @em no full-object assignment is
+  supported, and that is required to change discriminant values. ],Old=[]}For
+  generic formal types, the restriction simplifies the type matching rules.
   If one simply wants a "default" value for the discriminants,
   a constrained subtype can be declared for future use.]}
 @end(Reason)
 
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00230-01],ARef=[AI95-00402-01],ARef=[AI95-00419-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0063-1]}
 A @nt<discriminant_specification> for
 an access discriminant
 @Chg{Version=[2],New=[may have a @nt{default_expression}],Old=[shall appear]}
-only in the declaration for a task or protected type,
+only in the declaration for @Chg{Version=[3],New=[an immutably limited type
+(see @RefSecNum{Limited Types})],Old=[a task or protected type,
 or for a type @Chg{Version=[2],New=[that is a descendant of an explicitly
 limited record type],Old=[with the reserved word @key[limited] in its
 @Redundant[(full)] definition
-or in that of one of its ancestors]}.
+or in that of one of its ancestors]}]}.
 In addition to the places where @LegalityTitle normally apply
 (see @RefSecNum{Generic Instantiation}),
 this rule applies also in the private part of an
 instance of a generic unit.@PDefn{generic contract issue}
 @begin{Discussion}
   @ChgRef{Version=[2],Kind=[Revised]}
+  @ChgRef{Version=[3],Kind=[Revised]}
   This rule implies that a type can have @Chg{Version=[2],
   New=[a default for ],Old=[]}an access discriminant
   if the type is limited,
   but not if the only reason it's limited is because of a limited component.
-  Compare with the definition of limited type in
-  @RefSecNum{Limited Types}.@Chg{Version=[2],New=[ Also, recall that a
-  @lquotes@;descendant@rquote includes the type itself, so an explicitly
-  limited record type can have defaults.],Old=[]}
+  Compare @Chg{Version=[3],New=[],Old=[with ]}the definition of limited type
+  @Chg{Version=[3],New=[and immutably limited type ],Old=[]}in
+  @RefSecNum{Limited Types}.@Chg{Version=[3],New=[],Old=[@Chg{Version=[2],New=[ Also,
+  recall that a @ldquote@;descendant@rdquote includes the type itself, so
+  an explicitly limited record type can have defaults.],Old=[]}]}
 @end{Discussion}
 @begin{Ramification}
-  @ChgRef{Version=[2],Kind=[Deleted]}
-  @ChgDeleted{Version=[2],Text=[
-  It is a consequence of this rule that only a return-by-reference
+  @ChgRef{Version=[2],Kind=[Revised]}
+  @ChgRef{Version=[3],Kind=[Revised]}
+  @ChgDeleted{Version=[2],Text=[It is a consequence
+  of this rule that only a return-by-reference
   type can have an access discriminant (see @RefSecNum{Return Statements}).
   This is important to avoid dangling references to local variables.]}
+  @ChgAdded{Version=[3],Text=[A (non-formal) limited private type can always
+  have a default for an access discriminant, because having the default itself
+  makes the type immutably limited. Such a private type must necessarily
+  have a full type with the same access discriminant with a default, and
+  thus the full type will always be immutably limited (if legal).]}
 @end{Ramification}
 @begin{Reason}
   @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00230-01]}
@@ -988,9 +1069,11 @@ instance of a generic unit.@PDefn{generic contract issue}
     limited types that @lquotes@;become nonlimited@rquotes@;.
 
     @ChgRef{Version=[2],Kind=[AddedNormal]}
+    @ChgRef{Version=[3],Kind=[RevisedAdded],ARef=[AI05-0063-1]}
     @ChgAdded{Version=[2],Text=[A type may have an access discriminant if
-    it is a limited partial view, or a task, protected, or
-    explicitly limited record type. This was the rule chosen for Ada 95.]}
+    it is @Chg{Version=[3],New=[an immutably limited],Old=[a limited partial
+    view, or a task, protected, or explicitly limited record]} type. This
+    was the rule chosen for Ada 95.]}
 
     @ChgRef{Version=[2],Kind=[AddedNormal]}
     @ChgAdded{Version=[2],Text=[Any type may have an access discriminant.
@@ -1001,18 +1084,22 @@ instance of a generic unit.@PDefn{generic contract issue}
     full view -- giving the two views different accessibility.]}
 
     @ChgRef{Version=[2],Kind=[AddedNormal]}
+    @ChgRef{Version=[3],Kind=[RevisedAdded],ARef=[AI05-0063-1]}
     @ChgAdded{Version=[2],Text=[Any type may have an access discriminant,
     as above. However, special accessibility rules only apply to types
-    that are @lquotes@;really@rquotes@; limited (task, protected, and
+    that are @Chg{Version=[3],New=[immutably],Old=[@lquotes@;really@rquotes@;]}
+    limited (task, protected, and
     explicitly limited records). However, this breaks privacy; worse,
     @LegalityTitle depend on the definition of accessibility.]}
 
     @ChgRef{Version=[2],Kind=[AddedNormal]}
+    @ChgRef{Version=[3],Kind=[RevisedAdded],ARef=[AI05-0063-1]}
     @ChgAdded{Version=[2],Text=[Any type may have an access discriminant,
     as above. Limited types have special accessibility, while nonlimited
     types have normal accessibility. However, a limited partial view with an
-    access discriminant can only be completed by a task, protected, or
-    explicitly limited record type. That prevents accessibility from changing.
+    access discriminant can only be completed by @Chg{Version=[3],New=[an
+    immutably limited],Old=[a task, protected, or
+    explicitly limited record]} type. That prevents accessibility from changing.
     A runtime accessibility check is required on generic formal types with
     access discriminants. However, changing between limited and nonlimited
     types would have far-reaching consequences for access discriminants @em
@@ -1036,9 +1123,11 @@ instance of a generic unit.@PDefn{generic contract issue}
     Ada 95.]}
 
     @ChgRef{Version=[2],Kind=[AddedNormal]}
+    @ChgRef{Version=[3],Kind=[RevisedAdded],ARef=[AI05-0063-1]}
     @ChgAdded{Version=[2],Text=[Any type may have an access discriminant,
-    but access discriminants may have defaults only if they are a
-    @lquotes@;really@rquotes@; limited type. This is the rule chosen for
+    but access discriminants may have defaults only if they are
+    @Chg{Version=[3],New=[of an immutably], Old=[a
+    @lquotes@;really@rquotes@;]} limited type. This is the rule chosen for
     Ada 2005, as it is not incompatible, and it doesn't require weird
     accessibility checks.]}
   @end{Itemize}
@@ -1103,13 +1192,15 @@ subtype of the corresponding parent discriminant.
 @end(Ramification)
 @end{Itemize}
 
-The type of the @nt<default_expression>, if any, for an access discriminant
-shall be convertible to the anonymous access type of the discriminant
-(see @RefSecNum{Type Conversions}).
-@PDefn2{Term=[convertible],Sec=(required)}
+@ChgRef{Version=[3],Kind=[Deleted],ARef=[AI05-0102-1]}
+@ChgDeleted{Version=[3],Text=[The type of the @nt<default_expression>, if any,
+for an access discriminant shall be convertible to the anonymous access type of
+the discriminant (see @RefSecNum{Type Conversions}).
+@PDefn2{Term=[convertible],Sec=(required)}]}
 @begin{Ramification}
-This requires convertibility
-of the designated subtypes.
+@ChgRef{Version=[3],Kind=[Deleted]}
+@ChgDeleted{Version=[3],Text=[This requires convertibility
+of the designated subtypes.]}
 @end{ramification}
 @end{Legality}
 
@@ -1413,9 +1504,11 @@ used only for discriminants defined by an @nt<access_definition>.
    @key(end) @key(record);
 
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00433-01]}
-@Chg{Version=[2],New=[@key(task type) Worker(Prio : System.Priority; Buf : @key(access) Buffer) @key(is)
-   --@RI[ discriminants used to parameterize the task type (see @RefSecNum{Task Units and Task Objects})]
-   @key(pragma) Priority(Prio);  --@RI[ see @RefSecNum{Task Priorities}]
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1]}
+@Chg{Version=[2],New=[@key(task type) Worker(Prio : System.Priority; Buf : @key(access) Buffer)@Chg{Version=[3],New=[
+   @key(with) Priority => Prio @key(is) --@RI[ see @RefSecNum{Task Priorities}]],Old=[@key(is)]}
+   --@RI[ discriminants used to parameterize the task type (see @RefSecNum{Task Units and Task Objects})]@Chg{Version=[3],New=[],Old=[
+   @key(pragma) Priority(Prio);  --@RI[ see @RefSecNum{Task Priorities}]]}
    @key(entry) Fill;
    @key(entry) Drain;
 @key(end) Worker;],Old=[@key(type) Item(Number : Positive) @key(is)
@@ -1484,8 +1577,31 @@ when the discriminant is initialized.
   @ChgAdded{Version=[2],Text=[Changed the wording to use the new term
   @lquotes@;explicitly limited record@rquotes, which makes the intent
   much clearer (and eliminates confusion with derived types that happen to
-  contain the reserved word @key(limited).]}
+  contain the reserved word @key[limited]).]}
 @end{DiffWord95}
+
+@begin{Incompatible2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0063-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{incompatibilities with Ada 2005}@b<Correction:>
+  Changed the rules for when access discriminants can have defaults to depend
+  on the new definition for immutably limited types; this will help ensure that
+  unusual corner cases are properly handled. Note that the Ada 2005 rule was
+  unintentionally incompatible with the Ada 95 rule (as enforced by the ACATS);
+  this change brings it back into alignment with actual practice. So there
+  should be no practical incompatibility.]}
+@end{Incompatible2005}
+
+@begin{Extend2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0214-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 2005}
+  A limited tagged type may now have defaults for its discriminants.]}
+@end{Extend2005}
+
+@begin{DiffWord2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0102-1]}
+  @ChgAdded{Version=[3],Text=[@b<Correction:> Moved implicit conversion
+  @LegalityName to @RefSecNum{The Context of Overload Resolution}.]}
+@end{DiffWord2005}
 
 
 @LabeledSubClause{Discriminant Constraints}
@@ -1545,27 +1661,31 @@ is that of the associated discriminant(s).
 @begin{Legality}
 @ChgRef{Version=[1],Kind=[Revised],Ref=[8652/0008],ARef=[AI95-00168-01]}
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00363-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0041-1]}
 A @nt{discriminant_constraint} is only allowed in a
 @nt{subtype_indication} whose @nt{subtype_mark} denotes
 either an unconstrained discriminated subtype, or an
 unconstrained access subtype whose designated subtype is
 an unconstrained discriminated subtype.
 @Chg{New=[However, in the case of @Chg{Version=[2],New=[an],Old=[a general]}
-access subtype, a @nt{discriminant_@!constraint} is illegal
-if @Chg{Version=[2],New=[the
+access subtype, a @nt{discriminant_@!constraint} is
+@Chg{Version=[3],New=[legal only if any dereference of a value of the access
+type is known to be constrained (see @RefSecNum{Objects and Named Numbers})],
+Old=[illegal if @Chg{Version=[2],New=[the
 designated type has a partial view that is constrained or, for a general
-access subtype, has @nt{default_expression}s for its discriminants.
-In addition to the places where @LegalityTitle@; normally apply
-(see @RefSecNum{Generic Instantiation}),
-these rules apply also in the private part of an instance
-of a generic unit. In a generic body, this rule is checked presuming all
-formal access types of the generic might be general access types, and all
-untagged discriminated formal types of the generic might have
-@nt{default_expression}s for their discriminants.
-@PDefn{generic contract issue}],
+access subtype, has @nt{default_expression}s for its discriminants],Old=[]}]}],
 Old=[there is a place within the
 immediate scope of the designated subtype where the designated subtype's view
-is constrained.]}],Old=[]}
+is constrained]}.
+@Chg{Version=[2],New=[In addition to the places where @LegalityTitle@;
+normally apply (see @RefSecNum{Generic Instantiation}),
+these rules apply also in the private part of an instance
+of a generic unit.@PDefn{generic contract issue}],Old=[]}@Chg{Version=[3],
+New=[],Old=[@Chg{Version=[2],
+New=[ In a generic body, this rule is checked presuming all
+formal access types of the generic might be general access types, and all
+untagged discriminated formal types of the generic might have
+@nt{default_expression}s for their discriminants.],Old=[]}]}
 
 @begin{Reason}
 @ChgRef{Version=[1],Kind=[Added],Ref=[8652/0008],ARef=[AI95-00168-01]}
@@ -1589,19 +1709,34 @@ access subtype that can point to an item whose discriminants can be changed by
 assignment@rquotes@;.]}
 @end{Reason}
 
+@begin{Discussion}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0041-1]}
+@ChgAdded{Version=[3],Text=[The second rule will only use the indefinite or
+dereference bullets in the definition of @ldquote@;known to be constrained@rdquote.
+The rule is worded in terms of @ldquote@;known to be constrained@rdquote in
+order to capture the special rules that apply in generic bodies (rather than
+repeating them and getting them subtly wrong).]}
+@end{Discussion}
+
 A named @nt<discriminant_association> with more than one
 @nt<selector_name> is allowed only if the named discriminants
 are all of the same type.
 A @nt<discriminant_constraint> shall provide exactly one value for each
 discriminant of the subtype being constrained.
 
-The @nt<expression> associated with an access discriminant
-shall be of a type convertible to the anonymous access type.
-@PDefn2{Term=[convertible],Sec=(required)}
+@ChgRef{Version=[3],Kind=[Deleted],ARef=[AI05-0102-1]}
+@ChgDeleted{Version=[3],Text=[The @nt<expression> associated with an access
+discriminant shall be of a type convertible to the anonymous access type.
+@PDefn2{Term=[convertible],Sec=(required)}]}
+
 @begin(Ramification)
 
-  This implies both convertibility of designated types, and
-  static accessibility.
+  @ChgRef{Version=[3],Kind=[Revised]}
+  @Chg{Version=[3],New=[In addition, @RefSecNum{The Context of Overload Resolution}
+  requires that the @nt{expression} associated with an access discriminant
+  is convertible (see @RefSecNum{Type Conversions}) to the anonymous
+  access type. ],Old=[]}This implies both convertibility of designated
+  types, and static accessibility.
   This implies that if an object of type T with an
   access discriminant is created
   by an allocator for an access type A, then it requires that the
@@ -1714,6 +1849,19 @@ of such subtypes is rare (they can only happen within the package and its
 child units).]}
 @end{Incompatible95}
 
+@begin{Diffword2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0041-1]}
+  @ChgAdded{Version=[3],Text=[@b<Correction:> Revised the rules on
+  access subtypes having discriminant constraints to depend on the
+  @ldquote@;known to be constrained@rdquote rules. This centralizes
+  the rules so that future fixes only need to be made in one place,
+  as well as fixing bugs in obscure cases.]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0102-1]}
+  @ChgAdded{Version=[3],Text=[@b<Correction:> Moved implicit conversion
+  @LegalityName to @RefSecNum{The Context of Overload Resolution}.]}
+@end{Diffword2005}
+
 
 @LabeledSubClause{Operations of Discriminated Types}
 
@@ -1727,30 +1875,53 @@ is constrained or unconstrained.]
 @end{Intro}
 
 @begin{StaticSem}
-For @PrefixType{a @nt<prefix> A that is of a
+@Leading@Keepnext@;For @PrefixType{a @nt<prefix> A that is of a
 discriminated type @Redundant[(after any implicit dereference)]},
 the following attribute is defined:
 @begin(description)
-@Attribute{Prefix=<A>, AttrName=<Constrained>,
+@ChgAttribute{Version=[3], Kind=[Revised], ChginAnnex=[T],
+  Leading=[F], Prefix=<A>, AttrName=<Constrained>, ARef=[AI05-0214-1],
   Text=[Yields the value True if A denotes a constant, a value,
-  or a constrained variable,
+  @Chg{Version=[3],New=[a tagged object, ],Old=[]}or a constrained variable,
   and False otherwise.]}
 @begin(ImplNote)
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0214-1]}
  This attribute is primarily used on parameters, to determine whether
  the discriminants can be changed as part of an assignment.
  The Constrained attribute is statically True for @key(in) parameters.
  For @key(in out) and @key(out) parameters of a discriminated type,
  the value of this attribute needs to be passed as an implicit
- parameter, in general. However, if the type does not have
+ parameter, in general. However, if the type @Chg{Version=[3],New=[is
+ tagged or ],Old=[]}does not have
  defaults for its discriminants, the attribute is statically True,
  so no implicit parameter is needed.
- Parameters of a limited type
+ Parameters of a limited @Chg{Version=[3],New=[untagged ],Old=[]}type
  with defaulted discriminants need this implicit parameter,
  unless there are no nonlimited views,
  because they might be passed to a subprogram whose body has
  visibility on a nonlimited view of the type, and hence might be
  able to assign to the object and change its discriminants.
 @end(ImplNote)
+
+@begin{Reason}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0214-1]}
+@ChgAdded{Version=[3],Text=[All tagged objects are known to be constrained (as
+ nonlimited tagged types cannot have discriminant defaults, and limited tagged
+ objects are immutably limited), and are always considered constrained by this
+ attribute to avoid distributed overhead for parameters of limited classwide
+ types, as limited tagged objects may technically be unconstrained if they use
+ defaulted discriminants. Such objects still cannot have their discriminants
+ changed, as assignment is not supported for them, so there is no use for this
+ attribute that would justify the overhead of passing it with all classwide
+ parameters.]}
+@end{Reason}
+
+@begin{Discussion}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0214-1]}
+@ChgAdded{Version=[3],Text=[If the type of A is a type derived from an untagged
+ partial view of a tagged type such that it is not a tagged type, then A is not
+ considered a tagged object, and A'Constrained can return either True or False.]}
+@end{Discussion}
 @end(description)
 @EndPrefixType{}
 @end{StaticSem}
@@ -1803,6 +1974,14 @@ appear separately under @nt{assignment_statement}s and
 subprogram calls.
 @end{DiffWord83}
 
+@begin{DiffWord2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0214-1]}
+  @ChgAdded{Version=[3],Text=[A'Constrained is now defined to return
+  True for any A that is a tagged object. This doesn't change the result
+  for any A allowed by previous versions of Ada; the change is necessary to
+  avoid unnecessary overhead for limited tagged parameters.]}
+@end{DiffWord2005}
+
 
 @LabeledClause{Record Types}
 
@@ -1832,8 +2011,10 @@ values of the components.
 @ChgRef{Version=[1],Kind=[Revised],Ref=[8652/0009],ARef=[AI95-00137-01]}
 @Syn{lhs=<component_item>,rhs="@Syn2{component_declaration} | @Chg{New=[@Syn2{aspect_clause}],Old=[@Syn2{representation_clause}]}"}
 
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0183-1]}
 @Syn{lhs=<component_declaration>,rhs="
-   @Syn2{defining_identifier_list} : @Syn2{component_definition} [:= @Syn2{default_expression}];"}
+   @Syn2{defining_identifier_list} : @Syn2{component_definition} [:= @Syn2{default_expression}]@Chg{Version=[3],New=<
+        [@Syn2{aspect_specification}]>,Old=[]};"}
 @end{Syntax}
 
 @begin{Resolution}
@@ -1869,17 +2050,19 @@ a @nt{name} that denotes a component, protected subprogram,
 or entry of the type is allowed only in the following cases:
 
 @begin{Itemize}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0004-1]}
 A @nt{name} that denotes any component, protected subprogram,
-or entry is allowed within a
+or entry is allowed within @Chg{Version=[3],New=[an operational or],Old=[a]}
 representation item that occurs within the declaration of the composite type.
 
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0264-1]}
 A @nt{name} that denotes a noninherited discriminant
 is allowed within the declaration of the type,
 but not within the @nt{discriminant_part}.
 If the discriminant is used to define the constraint of
 a component, the bounds of an entry family, or
 the constraint of the parent subtype in a
-@nt<derived_type_definition>
+@nt<derived_type_definition>@Chg{Version=[3],New=[,],Old=[]}
 then its name shall appear alone as a @nt<direct_name> (not as
 part of a larger expression or expanded name).
 A discriminant shall not be used to define the constraint of
@@ -1943,10 +2126,11 @@ and the @nt{attribute_reference} shall appear alone.
 
 @begin{StaticSem}
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00318-02]}
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0004-1]}
 @ChgAdded{Version=[2],Text=[@Defn{explicitly limited record}
 @Defn2{Term=[record],Sec=(explicitly limited)}
-If a @nt{record_type_definition} includes the
-reserved word @key{limited}, the type is called an
+If a @Chg{Version=[3],New=[@nt{record_type_definition}],Old=[@ntf{record_type_declaration}]}
+includes the reserved word @key{limited}, the type is called an
 @i<explicitly limited record> type.]}
 
 @PDefn2{Term=[nominal subtype], Sec=(of a record component)}
@@ -2108,9 +2292,9 @@ New=[],Old=[, unless the record type is limited]}.
    @key(end) @key(record);
 @end(Example)
 
-@begin{Wide}
+@begin{WideAbove}
 @leading@keepnext@i(Examples of record variables: )
-@end{Wide}
+@end{WideAbove}
 @begin(Example)
 Tomorrow, Yesterday : Date;
 A, B, C : Complex;
@@ -2182,6 +2366,14 @@ representation pragmas to be as similar as possible.
   use in other rules.]}
 @end{DiffWord95}
 
+@begin{Extend2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0183-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 2005}
+  An optional @nt{aspect_specification} can be used in a @nt{component_declaration}.
+  This is described in @RefSecNum{Aspect Specifications}.]}
+@end{Extend2005}
+
+
 
 @LabeledSubClause{Variant Parts and Discrete Choices}
 
@@ -2226,7 +2418,8 @@ parallel those for case statements.
 
 @Syn{lhs=<discrete_choice_list>,rhs="@Syn2{discrete_choice} {| @Syn2{discrete_choice}}"}
 
-@Syn{lhs=<discrete_choice>,rhs="@Syn2{expression} | @Syn2{discrete_range} | @key{others}"}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0153-3],ARef=[AI05-0158-1]}
+@Syn{lhs=<discrete_choice>,rhs="@Chg{Version=[3],New=[@Syn2{choice_expression}],Old=[@Syn2{expression}]} | @Chg{Version=[3],New=[@SynI{discrete_}@Syn2{subtype_indication} | @Syn2{range}],Old=[@Syn2{discrete_range}]} | @key{others}"}
 @end{Syntax}
 
 @begin{Resolution}
@@ -2254,7 +2447,9 @@ be of a discrete type.
 It shall not be of an access type,
   named or anonymous.@end{ramification}
 
-The @nt{expression}s and @nt{discrete_range}s given as
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0153-3]}
+The @Chg{Version=[3],New=[@nt{choice_expression}s, @nt{subtype_indication}s,
+and @nt{range}s],Old=[@nt{expression}s and @nt{discrete_range}s]} given as
 @nt{discrete_choice}s in a @nt{variant_part} shall be static.
 The @nt{discrete_choice} @key(others) shall appear alone
 in a @nt{discrete_choice_list}, and such a @nt{discrete_choice_list},
@@ -2264,11 +2459,33 @@ if it appears, shall be the last one in the enclosing construct.
 A @nt<discrete_choice> is defined to @i(cover a value) in the
 following cases:
 @begin(itemize)
-  A @nt{discrete_choice} that is an @nt{expression} covers a value if
-  the value equals the value of the @nt{expression}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0262-1]}
+  A @nt{discrete_choice} that is
+  @Chg{Version=[3],New=[a @nt{choice_expression}],Old=[an @nt{expression}]}
+  covers a value if
+  the value equals the value of
+  the @Chg{Version=[3],New=[@nt{choice_expression}],Old=[@nt{expression}]}
   converted to the expected type.
 
-  A @nt{discrete_choice} that is a @nt{discrete_range} covers all values
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0153-3],ARef=[AI05-0262-1]}
+  @ChgAdded{Version=[3],Text=[A @nt{discrete_choice} that is a
+  @nt{subtype_indication} covers all values (possibly none) that belong to the
+  subtype and that satisfy the static predicate of the subtype
+  (see @RefSecnum{Subtype Predicates}).]}
+
+  @begin{Ramification}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0262-1]}
+    @ChgAdded{Version=[3],Text=[A dynamic predicate is never allowed in this case
+    (for @nt{variant}s, @nt{case_statement}s, and @nt{case_expression}s,
+    a subtype with a dynamic
+    predicate isn't static and thus isn't allowed in a @nt{discrete_choice},
+    and for a choice in an @nt{array_aggregate}, a dynamic predicate
+    is explicitly disallowed @em see @RefSecnum{Subtype Predicates}).]}
+  @end{Ramification}
+
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0153-3]}
+  A @nt{discrete_choice} that is a
+  @Chg{Version=[3],New=[@nt{range}],Old=[@nt{discrete_range}]} covers all values
   (possibly none) that belong to the range.
 
   The @nt{discrete_choice} @key{others} covers all values of its
@@ -2292,18 +2509,49 @@ its @nt{discrete_choice}s covers the value.
 @Leading@keepnext@;The possible values of the discriminant of a @nt{variant_part}
 shall be covered as follows:
 @begin{itemize}
-  If the discriminant is of a static constrained scalar subtype,
-  then each non-@key{others} @nt{discrete_@!choice} shall cover only values in
-  that subtype, and each value of that subtype shall be covered
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0153-3],ARef=[AI05-0188-1],ARef=[AI05-0262-1]}
+  If the discriminant is of a static constrained scalar
+  subtype@Chg{Version=[3],New=[],Old=[,]}
+  then@Chg{Version=[3],New=[, except within an instance of a generic
+  unit,],Old=[]} each non-@key{others} @nt{discrete_@!choice} shall cover
+  only values in that subtype@Chg{Version=[3],New=[ that satisfy its
+  predicate],Old=[]}, and each value
+  of that subtype @Chg{Version=[3],New=[that
+  satisfies its predicate ],Old=[]}shall be covered
   by some @nt{discrete_@!choice} @Redundant[(either explicitly or
   by @key<others>)];
 
+@begin{Reason}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0188-1]}
+@ChgAdded{Version=[3],Type=[Leading],Text=[The exemption for a discriminated type declared in an instance
+  allows the following example:]}
+@begin{Example}
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[@key[generic]
+   @key[type] T @key[is new] Integer;
+@key[package] G @key[is]
+   @key[type] Rec (Discrim : T) @key[is record]
+      @key[case] Discrim @key[is]
+         @key[when] -10 .. -1 =>
+            Foo : Float;
+         @key[when others] =>
+            @key[null];
+      @key[end case];
+   @key[end record];
+@key[end] G;]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[@key{package} I @key{is new} G (Natural); -- @Examcom{Legal}]}
+@end{Example}
+@end{Reason}
+  @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0264-1]}
   If the type of the discriminant is a
-  descendant of a generic formal scalar type
+  descendant of a generic formal scalar type@Chg{Version=[3],New=[,],Old=[]}
   then the @nt{variant_part} shall have an @key{others}
-  @nt{discrete_choice};@begin{Reason}
-The base range is not known statically in this
-  case.@end{reason}
+  @nt{discrete_choice};
+@begin{Reason}
+  The base range is not known statically in this case.
+@end{Reason}
 
   Otherwise,
   each value of the base range of the type of the discriminant shall
@@ -2363,17 +2611,17 @@ of the elaboration of the @nt{component_list} of each
       @key(end) @key(record);
 @end(Example)
 
-@begin{Wide}
+@begin{WideAbove}
 @leading@keepnext@i(Examples of record subtypes:)
-@end{Wide}
+@end{WideAbove}
 @begin(Example)
 @key(subtype) Drum_Unit @key(is) Peripheral(Drum);
 @key(subtype) Disk_Unit @key(is) Peripheral(Disk);
 @end(Example)
 
-@begin{Wide}
+@begin{WideAbove}
 @leading@keepnext@i(Examples of constrained record variables:)
-@end{Wide}
+@end{WideAbove}
 @begin(Example)
 Writer   : Peripheral(Unit  => Printer);
 Archive  : Disk_Unit;
@@ -2407,3 +2655,24 @@ a discriminant of the type being defined seems to have been
 left implicit in RM83.
 @end{DiffWord83}
 
+@begin{Incompatible2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0158-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{incompatibilities with Ada 2005}
+  Membership tests are no longer allowed as a @nt{discrete_choice}, in
+  order that those tests can be expanded to allow multiple tests in a
+  single expression without ambiguity. Since a membership test has a
+  boolean type, they are very unlikely to be used as a @nt{discrete_choice}.]}
+@end{Incompatible2005}
+
+@begin{Extend2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0153-3]}
+  @ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 2005}
+  Subtypes with static predicates can be used in @nt{discrete_choice}s,
+  and the coverage rules are modified to respect the predicates.]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0188-1]}
+  @ChgAdded{Version=[3],Text=[Variants in generic specifications are no
+  longer rejected if the subtype
+  of the actual type does not include all of the case choices. This probably
+  isn't useful, but it is consistent with the treatment of @nt{case_expression}s.]}
+@end{Extend2005}

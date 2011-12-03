@@ -1,13 +1,14 @@
-@comment{ $Source: d:\\CvsRoot/ARM/Source/pre_cmdln.mss,v $ }
-@comment{ $Revision: 1.24 $ $Date: 2005/10/31 17:34:29 $ $Author: Randy $ }
+@comment{ $Source: e:\\cvsroot/ARM/Source/pre_cmdln.mss,v $ }
+@comment{ $Revision: 1.26 $ $Date: 2011/10/21 06:41:26 $ $Author: randy $ }
 @Part(predefcmdln, Root="ada.mss")
 
-@Comment{$Date: 2005/10/31 17:34:29 $}
+@Comment{$Date: 2011/10/21 06:41:26 $}
 @LabeledClause{The Package Command_Line}
 @begin{Intro}
 The package Command_Line allows a program to obtain the values of its
 arguments and to set the exit status code to be returned on normal termination.
-@ChgImplDef{Version=[2],Kind=[Revised],Text=[The meaning of Argument_Count,
+@ChgImplDef{Version=[2],Kind=[Revised],InitialVersion=[0],
+Text=[The meaning of Argument_Count,
 Argument, and Command_Name@Chg{Version=[2],New=[ for package Command_Line. The
 bounds of type Command_Line.Exit_Status],Old=[]}.]}
 @end{Intro}
@@ -40,11 +41,12 @@ bounds of type Command_Line.Exit_Status],Old=[]}.]}
 @begin{Example}@Keepnext
 @key[function] Argument_Count @key[return] Natural;
 @end{Example}
-@Trailing@;If the external execution environment supports passing arguments to
-a program, then
-Argument_Count returns
+@Trailing@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0264-1]}
+If the external execution environment supports passing arguments to
+a program, then Argument_Count returns
 the number of arguments passed to the program
-invoking the function. Otherwise it returns 0.
+invoking the function. Otherwise@Chg{Version=[3],New=[,],Old=[]}
+it returns 0.
 The meaning of @lquotes@;number of arguments@rquotes@; is implementation defined.
 
 @begin{Example}@Keepnext
@@ -65,11 +67,13 @@ raise Constraint_Error, since Argument_Count is 0.@end{ramification}
 @begin{Example}@Keepnext
 @key[function] Command_Name @key[return] String;
 @end{Example}
-@Trailing@;If the external execution environment supports passing arguments to
+@Trailing@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0264-1]}
+If the external execution environment supports passing arguments to
 a program, then
 Command_Name returns an implementation-defined value corresponding to
 the name of the command invoking the program;
-otherwise Command_Name returns the null string.
+otherwise@Chg{Version=[3],New=[,],Old=[]}
+Command_Name returns the null string.
 
 @Comment{This is missing; leading the following paragraph glued to "Command_Name"}
 @begin{Example}@Keepnext

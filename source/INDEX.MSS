@@ -2,7 +2,7 @@
 
 @Comment{$Date: 2006/01/17 07:20:58 $}
 
-@comment{$Source: d:\\CvsRoot/ARM/Source/INDEX.MSS,v $}
+@comment{$Source: e:\\cvsroot/ARM/Source/index.mss,v $}
 @comment{$Revision: 1.1 $}
 
 @UnnumberedSection{Index}

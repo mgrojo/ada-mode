@@ -1,10 +1,10 @@
 @Part(04, Root="ada.mss")
 
-@Comment{$Date: 2006/10/18 00:25:24 $}
+@Comment{$Date: 2011/11/01 23:14:14 $}
 @LabeledSection{Names and Expressions}
 
-@Comment{$Source: d:\\CvsRoot/ARM/Source/04A.MSS,v $}
-@Comment{$Revision: 1.83 $}
+@Comment{$Source: e:\\cvsroot/ARM/Source/04a.mss,v $}
+@Comment{$Revision: 1.123 $}
 
 @begin{Intro}
 @Redundant[The rules applicable to the different forms of @nt<name> and
@@ -25,12 +25,14 @@ Finally, @nt<name>s can denote attributes of any of the foregoing.]
 @end{Intro}
 
 @begin{Syntax}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0003-1],ARef=[AI05-0139-2]}
 @Syn{tabs=[P22], lhs=<name>,rhs="
      @Syn2{direct_name}@\| @Syn2{explicit_dereference}
    | @Syn2{indexed_component}@\| @Syn2{slice}
    | @Syn2{selected_component}@\| @Syn2{attribute_reference}
    | @Syn2{type_conversion}@\| @Syn2{function_call}
-   | @Syn2{character_literal}"}
+   | @Syn2{character_literal}@Chg{Version=[3],New=[@\| @Syn2{qualified_expression}
+   | @Syn2{generalized_reference}@\| @Syn2{generalized_indexing}],Old=[]}"}
 
 
 @Syn{lhs=<direct_name>,
@@ -53,10 +55,10 @@ rhs="@Syn2{identifier} | @Syn2{operator_symbol}"}
 @end{Syntax}
 
 @begin{Intro}
-@ChgRef{Version=[2],Kind=[Revised]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0004-1]}
 @Redundant[Certain forms of @nt<name> (@nt<indexed_component>s,
 @nt<selected_component>s, @nt<slice>s, and
-@Chg{Version=[2],New=[@nt<attribute_reference>s],Old=[@ntf<attribute>s]})
+@Chg{Version=[3],New=[@nt<attribute_reference>s],Old=[@ntf<attribute>s]})
 include a @nt<prefix> that is either itself a @nt<name> that denotes
 some related entity, or an @nt<implicit_dereference> of an access
 value that designates some related entity.]
@@ -72,17 +74,24 @@ is expected to be of any access type.
 @end{Resolution}
 
 @begin{StaticSem}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0008-1]}
 @PDefn2{Term=[nominal subtype], Sec=(associated with a dereference)}
 If the type of the @nt{name} in a dereference is some access-to-object
 type @i(T), then the dereference denotes a view of an object, the
-@i(nominal subtype) of the view being the designated subtype of @i(T).
+@i(nominal subtype) of the view being the designated subtype
+of @i(T).@Chg{Version=[3],New=[ If the designated subtype has
+unconstrained discriminants, the (actual) subtype of the view is constrained
+by the values of the discriminants of the designated object, except when
+there is a partial view of the type of the designated subtype that does not
+have discriminants, in which case the dereference is not constrained by its
+discriminant values.],Old=[]}
 @begin{Ramification}
-If the
-value of the @nt<name> is the result of an access type conversion, the
-dereference denotes a view created as part of the conversion.
-The nominal subtype of the view is not necessarily
-the same as that used to create the designated object.
-See @RefSecNum{Type Conversions}.
+  If the
+  value of the @nt<name> is the result of an access type conversion, the
+  dereference denotes a view created as part of the conversion.
+  The nominal subtype of the view is not necessarily
+  the same as that used to create the designated object.
+  See @RefSecNum{Type Conversions}.
 @end{Ramification}
 @begin{Honest}
   @PDefn2{Term=[nominal subtype], Sec=(of a @nt<name>)}
@@ -91,23 +100,27 @@ See @RefSecNum{Type Conversions}.
   the @nt<name> (presuming the @nt<name> denotes a view of an object).
   These two uses of nominal subtype are intended to mean the same
   thing.
-
-  @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00363-01]}
-  @ChgAdded{Version=[2],Text=[If an @nt{allocator} for the access-to-object
-  type @i(T) is one that creates objects that are constrained by their
-  initial value (see @RefSecNum{Allocators}), the subtype of the dereference is
-  constrained even if the designated subtype of @i(T) is not. We don't want
-  the effect of the dereference to depend on the
-  designated object. This matters because general access-to-unconstrained
-  can designate both allocated objects (which are constrained at birth) and
-  aliased stack objects (which aren't necessarily constrained).
-  This is a wording bug that was discovered after the completion of
-  Amendment 1 when it was too late to fix it; we expect that it will
-  be corrected by an early Ada 2005 AI.]}
 @end{Honest}
+
+@begin{Reason}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0008-1]}
+  @ChgAdded{Version=[3],Text=[The last sentence was not present in Ada 95;
+    it is necessary in Ada 2005 because general access types can designate
+    unconstrained objects (that was not possible in Ada 95). Thus, the rules
+    that had this effect in Ada 95 (the object being constrained by its initial
+    value) don't work in Ada 2005 and we have to say this explicitly.]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0008-1]}
+  @ChgAdded{Version=[3],Text=[The @ldquote@;except@rdquote@; part of the
+   last sentence prevents privacy
+    @ldquote@;breaking@rdquote@;, so that
+    if a private type has discriminants only in the full view, they don't
+    interfere with freely interassigning values between objects of the type,
+    even when the objects live in the heap.]}
+@end{Reason}
 @begin{ImplNote}
-  @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00363-01]}
-  @ChgAdded{Version=[2],Text=[Since we don't depend on whether the designated
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0008-1]}
+  @ChgAdded{Version=[3],Text=[Since we don't depend on whether the designated
   object is constrained, it is not necessary to include a constrained
   bit in every object that could be designated by a general access type.]}
 @end{ImplNote}
@@ -170,9 +183,9 @@ Random @\@RI(-- the direct name of a function) @\(see @RefSecNum(Subprogram Decl
 Error @\@RI(-- the direct name of an exception) @\(see @RefSecNum(Exception Declarations))
 @end(Example)
 
-@begin{Wide}
+@begin{WideAbove}
 @leading@keepnext@i{Examples of dereferences:}
-@end{Wide}
+@end{WideAbove}
 @begin{Example}@tabclear()@tabset(P19)
 Next_Car.@key[all]@\--@RI[  explicit dereference denoting the object designated by]
                @\--@RI[  the access variable Next_Car (see @RefSecNum{Incomplete Type Declarations})]
@@ -263,6 +276,32 @@ since we now describe the semantics of a prefix in terms
 of implicit dereference.
 @end{DiffWord83}
 
+@begin{Extend2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0003-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 2005}A
+  @nt{qualified_expression} is now a @nt{name} representing a constant view;
+  this allows them to be used as a prefix and to be renamed as an object.
+  They are often used to remove ambiguity from function calls, and there
+  may be no other way to do that. Interestingly, a @nt{type_conversion} of
+  a @nt{qualified_expression} is already legal in these contexts, so this
+  change mainly reduces clutter by eliminating an otherwise unneeded
+  @nt{type_conversion} from some expressions.]}
+@end{Extend2005}
+
+@begin{DiffWord2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0008-1]}
+  @ChgAdded{Version=[3],Text=[@b<Correction:> Added a missing rule so
+  that most dereferences are assumed constrained (without determining whether
+  the designated object is). This is just confirming the Ada 95 rules;
+  Ada 2005 failed to ensure that this property was unchanged.]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0139-2]}
+  @ChgAdded{Version=[3],Text=[Added @nt{generalized_reference} and
+  @nt{generalized_indexing} as types of @nt{name}; these are documented
+  as extensions in the appropriate clauses.]}
+@end{DiffWord2005}
+
+
 @LabeledSubClause{Indexed Components}
 
 @begin{Intro}
@@ -318,7 +357,8 @@ the individual entry of the entry family with the specified index value.
 @begin{RunTime}
 @PDefn2{Term=[evaluation], Sec=(indexed_component)}
 For the evaluation of an @nt<indexed_component>, the @nt{prefix} and the
-@nt{expression}s are evaluated in an arbitrary order. The value of
+@nt{expression}s are evaluated in an arbitrary order.@PDefn2{Term=[arbitrary order],Sec=[allowed]}
+The value of
 each @nt<expression> is converted to the corresponding index type.
 @PDefn2{Term=[implicit subtype conversion],Sec=(array index)}
 @IndexCheck{Index_Check}
@@ -393,7 +433,7 @@ Its bounds are those defined by the @nt{discrete_range}.
 @PDefn2{Term=[evaluation], Sec=(slice)}
 For the evaluation of a @nt{slice},
 the @nt{prefix} and the @nt{discrete_range}
-are evaluated in an arbitrary order.
+are evaluated in an arbitrary order.@PDefn2{Term=[arbitrary order],Sec=[allowed]}
 @IndexCheck{Index_Check}
 @Defn{null slice}
 If the @nt{slice} is not a @i(null slice)
@@ -524,7 +564,8 @@ corresponding entry, entry family, or protected subprogram.
 @ChgAdded{Version=[2],Text=[A view of a subprogram whose first formal parameter is of
 a tagged type or is an access parameter whose designated type is tagged:]}
 
-@ChgRef{Version=[2],Kind=[Added]}
+@ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00252-01],ARef=[AI95-00407-01]}
+@ChgRef{Version=[3],Kind=[RevisedAdded],ARef=[AI05-0090-1]}
 @ChgAdded{Version=[2],NoPrefix=[T],Text=[The @nt<prefix> (after any implicit
 dereference) shall resolve to denote an object or value of a specific tagged
 type @i<T> or class-wide type @i<T>'Class. The @nt<selector_name> shall resolve
@@ -533,13 +574,34 @@ region in which an ancestor of the type @i<T> is declared. The first formal
 parameter of the subprogram shall be of type @i<T>, or a class-wide type that
 covers @i<T>, or an access parameter designating one of these types. The
 designator of the subprogram shall not be the same as that of a component of
-the tagged type visible at the point of the @nt<selected_component>. The
+the tagged type visible at the point of the @nt<selected_component>.
+@Chg{Version=[3],New=[The subprogram shall not
+be an implicitly declared primitive operation of type @i<T> that overrides
+an inherited subprogram implemented by an entry or protected subprogram
+visible at the point of the @nt{selected_component}. ],Old=[]}The
 @nt<selected_component> denotes a view of this subprogram that omits the first
 formal parameter. This view is called a @i{prefixed view} of the subprogram,
 and the @nt{prefix} of the @nt<selected_component> (after any implicit
 dereference) is called the @i<prefix> of the prefixed view.
 @Defn{prefixed view}@Defn2{Term=[prefix],Sec=[of a prefixed view]}]}
 
+@begin{Discussion}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0090-1]}
+  @ChgAdded{Version=[3],Text=[The part of the rule that excludes a primitive
+  overriding subprogram as a selector applies only to the wrapper subprogram
+  that is implicitly declared to override a subprogram inherited from a
+  synchronized interface that is implemented by an operation of a task or
+  protected type (see @RefSecNum{Task Units and Task Objects} and
+  @RefSecNum{Protected Units and Protected Objects}). We don't want
+  calls that use a prefixed view to be ambiguous between the wrapper
+  subprogram and the implementing entry or protected operation. Note that
+  it is illegal to declare an explicit primitive that has a prefixed view
+  that is homographic with one of the type's operations, so
+  in normal cases it isn't possible to have an ambiguity in a prefix call.
+  However, a class-wide operation of an ancestor type that is declared in the
+  same declaration list with the ancestor type is also considered, and that
+  can still make a call ambiguous.]}
+@end{Discussion}
 @end{Itemize}
 
 @Leading@;An expanded name shall resolve to denote a declaration that
@@ -633,9 +695,9 @@ The exception Constraint_Error is raised if this check fails.
   Pool(K).Write      --@RI[  an entry of the task Pool(K) @\(see @RefSecNum{Protected Units and Protected Objects})]
 @end{Example}
 
-@begin{Wide}
+@begin{WideAbove}
 @leading@keepnext@i(Examples of expanded names:)
-@end{Wide}
+@end{WideAbove}
 @begin{Example}
 @tabclear()@tabset(P67)
   Key_Manager."<"      --@RI[  an operator of the visible part of a package @\(see @RefSecNum{Private Operations})]
@@ -706,8 +768,15 @@ My_Object.Do_Something_Else (Flag => True);]}
 @end{Example}
 @end{Extend95}
 
+@begin{DiffWord2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0090-1]}
+  @ChgAdded{Version=[3],Text=[@b<Correction:> Corrected the definition of
+  a prefixed view to ignore the implicit subprograms declared for
+  @ldquote@;implemented by@rdquote entries and protected subprograms.]}
+@end{DiffWord2005}
 
-@RMNewPage@ChgNote{Only needed for Ada 2005 version}
+
+@RMNewPageVer{Version=[2]}@Comment{For printed version of Ada 2005 RM}
 @LabeledSubClause{Attributes}
 
 @begin{Intro}
@@ -721,9 +790,10 @@ or a @nt<range_@!attribute_@!reference>.]
 @Syn{lhs=<attribute_reference>,
   rhs="@Syn2{prefix}@SingleQuote@Syn2{attribute_designator}"}
 
+@ChgRef{Version=[2],Kind=[Revised],ARef=[AI05-0004-1]}
 @Syn{lhs=<attribute_designator>,rhs="
     @Syn2{identifier}[(@SynI{static_}@Syn2{expression})]
-  | Access | Delta | Digits"}
+  | Access | Delta | Digits@Chg{Version=[3],New=[ | Mod],Old=[]}"}
 
 
 @Syn{lhs=<range_attribute_reference>,
@@ -790,12 +860,13 @@ resolved and is illegal:]}
 @ChgAdded{Version=[2],Text=[  @key[if] Get_It'Valid @key[then]]}
 @end{Example}
 @ChgRef{Version=[2],Kind=[AddedNormal]}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0005-1]}
   @ChgAdded{Version=[2],Text=[even though the Valid attribute is only defined
   for objects of scalar types, and thus cannot be applied to the result of
   function (2). That information cannot be used to resolve the @nt{prefix}.
-  The same would be true if (2) was been a procedure; even though the
-  procedure does not denote an object, the @nt{attribute_reference} is
-  still illegal.]}
+  The same would be true if (2) @Chg{Version=[3],New=[had],Old=[was]} been
+  a procedure; even though the procedure does not denote an object, the
+  @nt{attribute_reference} is still illegal.]}
 @end{Discussion}
 
 @PDefn2{Term=[expected type],
@@ -813,14 +884,55 @@ or @nt{range_attribute_designator} shall be static.
 @end{Legality}
 
 @begin{StaticSem}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0006-1]}
 An @nt{attribute_reference} denotes a
 value, an object, a subprogram, or some
-other kind of program entity.
+other kind of program entity.@Chg{Version=[3],New=[ For an
+@nt{attribute_reference} that denotes a value or an object, if
+its type is scalar, then its nominal subtype is the base subtype of
+the type; if its type is tagged, its nominal subtype is the first
+subtype of the type; otherwise, its nominal subtype is a subtype of the type
+without any constraint or @nt{null_exclusion}.
+Similarly, unless explicitly specified otherwise, for an
+@nt{attribute_reference} that denotes a function, when its result
+type is scalar, its result subtype is the base subtype of the type,
+when its result type is tagged, the result subtype is the first
+subtype of the type, and when the result type is some other type,
+the result subtype is a subtype of the type without any constraint or
+@nt{null_exclusion}.],Old=[]}
 @begin{Ramification}
-The attributes defined by the language are summarized in
-@RefSecNum{Language-Defined Attributes}.
-Implementations can define additional attributes.
+  The attributes defined by the language are summarized in
+  @RefSecNum{Language-Defined Attributes}.
+  Implementations can define additional attributes.
 @end{Ramification}
+@begin{Discussion}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0006-1]}
+  @ChgAdded{Version=[3],Text=[The nominal subtype is primarily
+  a concern when an @nt{attribute_reference}, or
+  a call on an @nt{attribute_reference}, is used as the @nt{expression}
+  of a case statement, due to the full coverage requirement based on
+  the nominal subtype. For non-discrete cases, we define the
+  nominal subtype mainly for completeness. Implementations may
+  specify otherwise for implementation-defined attribute functions.]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[The rule is written to match the meaning
+  of the italicized @i{T} in the definition of attributes such as Input;
+  see @RefSecNum{Logical Operators and Short-circuit Control Forms}.]}
+@end{Discussion}
+@begin{Honest}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0006-1]}
+  @ChgAdded{Version=[3],Text=[We don't worry about the fact that
+  @ldquote@;base subtype@rdquote is not explicitly defined for the
+  universal types. Since it is
+  not possible to constrain a universal numeric type, all subtypes
+  are unconstrained, and hence can be considered base subtypes.
+  The wording above could be altered to bypass this issue, but it
+  doesn't seem necessary, since universal integer is handled
+  specially in the rules for case expression full coverage, and
+  we don't allow user-defined functions for attribute functions
+  whose result type is universal.]}
+@end{Honest}
 
 @Redundant[A @nt{range_attribute_reference}
 X'Range(N) is equivalent to the @nt<range> X'First(N) ..
@@ -970,6 +1082,320 @@ The Ada 83 rule said that the
   expected type (see @RefSecNum{Operations of Access Types}).]}
 @end{DiffWord95}
 
+@begin{DiffWord2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0006-1]}
+  @ChgAdded{Version=[3],Text=[@b<Correction:> Defined the nominal
+  subtype of an @nt{attribute_reference} to close a minor language hole.]}
+@end{DiffWord2005}
+
+
+@LabeledAddedSubClause{Version=[3],Name=[User-Defined References]}
+
+@begin{StaticSem}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0139-2]}
+@ChgAdded{Version=[3],Type=[Leading],Text=[Given a discriminated type @i<T>,
+the following type-related operational aspect may be specified:]}
+
+@begin{Description}
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[Implicit_Dereference@\This aspect is specified by a
+name that denotes an access discriminant declared for the
+type @i<T>.@AspectDefn{Implicit_Dereference}]}
+
+  @ChgAspectDesc{Version=[3],Kind=[AddedNormal],Aspect=[Implicit_Dereference],
+    Text=[@ChgAdded{Version=[3],Text=[Mechanism for user-defined implicit .@key[all].]}]}
+
+@end{Description}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0139-2]}
+@ChgAdded{Version=[3],Text=[A (view of a) type with a specified
+Implicit_Dereference aspect is a @i{reference type}.@Defn{reference type}
+A @i{reference object} is an object of a reference type.@Defn{reference object}
+The discriminant named by the Implicit_Dereference aspect is the @i{reference
+discriminant} of the reference type or reference object.@Defn{reference discriminant}
+@Redundant[A @nt{generalized_reference} is a @nt{name} that identifies a
+reference object, and denotes the object or subprogram designated by the
+reference discriminant of the reference object.]]}
+@end{StaticSem}
+
+@begin{Syntax}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0139-2]}
+@AddedSyn{Version=[3],lhs=<@Chg{Version=[3],New=<generalized_reference>,Old=<>}>,
+rhs="@Chg{Version=[3],New=<@SynI{reference_object_}@Syn2{name}>,Old=<>}"}
+
+@end{Syntax}
+
+@begin{Resolution}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0139-2]}
+@ChgAdded{Version=[3],Text=[The expected type for the @SynI{reference_object_}@nt{name}
+in a @nt{generalized_reference} is expected to be of any reference type.@PDefn2{Term=[expected type],
+  Sec=(@SynI{reference_object_}@nt{name})}]}
+@end{Resolution}
+
+@begin{StaticSem}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0139-2]}
+@ChgAdded{Version=[3],Text=[A @nt{generalized_reference} denotes a view
+equivalent to that of a dereference of the reference discriminant of the
+reference object.]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0139-2]}
+@ChgAdded{Version=[3],Text=[Given a reference type @i<T>, the
+Implicit_Dereference aspect is inherited by descendants of type @i<T> if not
+overridden. If a descendant type constrains the value of the reference
+discriminant of @i<T> by a new discriminant, that new discriminant is the
+reference discriminant of the descendant. @Redundant[If the descendant type
+constrains the value of the reference discriminant of @i<T> by an
+@nt{expression} other than the @nt{name} of a new discriminant, a
+@nt{generalized_reference} that identifies an object of the descendant type
+denotes the object or subprogram designated by the value of this constraining
+expression.]]}
+
+@end{StaticSem}
+
+@begin{RunTime}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0139-2]}
+@ChgAdded{Version=[3],Text=[@PDefn2{Term=[evaluation], Sec=(generalized_reference)}
+The evaluation of a @nt{generalized_reference}
+consists of the evaluation of the @SynI{reference_object_}@nt{name} and
+a determination of the object or subprogram designated by the
+reference discriminant of the named reference object.
+@IndexCheck{Access_Check}
+A check is made that the value of the reference
+discriminant is not the null access value.
+@Defn2{Term=[Constraint_Error],Sec=(raised by failure of run-time check)}
+Constraint_Error is raised if this check fails. The
+@nt{generalized_reference} denotes the object or
+subprogram designated by the value of the reference discriminant of the
+named reference object.]}
+
+@end{RunTime}
+
+@begin{Examples}
+@begin{Example}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0139-2]}
+@ChgAdded{Version=[3],Text=[@key[type] Ref_Element(Data : @key[access] Element) @key[is]
+   @key[new] Ada.Finalization.Limited_Controlled @key[with private]
+      @key[with] Implicit_Dereference => Data;
+        -- @Examcom{This Ref_Element type is a "reference" type.}
+        -- @ExamCom{"Data" is its reference discriminant.}]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[@key[function] Find(C : @key[access] Container; Key : String) @key[return] Ref_Element;
+   -- @Examcom{Return a reference to an element of a container}]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[...]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[Find(C, "abc") := Element'(...);  -- @Examcom{Assign through a reference}]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[-- @Examcom{This is equivalent to:}
+--   Find(C, "abc").Data.@key[all] := Element'(...);]}
+
+@end{Example}
+@end{Examples}
+
+@begin{Extend2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0139-2]}
+  @ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 2005}The aspect
+  Implicit_Dereference and the @nt{generalized_reference} are new.]}
+@end{Extend2005}
+
+
+@LabeledAddedSubClause{Version=[3],Name=[User-Defined Indexing]}
+
+@begin{StaticSem}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0139-2]}
+@ChgAdded{Version=[3],Type=[Leading],Text=[Given a tagged type @i<T>,
+the following type-related, operational aspects
+may be specified:]}
+
+@begin{Description}
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[Constant_Indexing@\This aspect shall be specified by
+a @nt{name} that denotes one or more functions declared immediately within the
+same declaration list in which @i<T> is declared. All such functions shall
+have at least two parameters, the first of which is of type @i<T> or
+@i<T>'Class, or is an access-to-constant parameter with designated type @i<T> or
+@i<T>'Class.@AspectDefn{Constant_Indexing}]}
+
+  @ChgAspectDesc{Version=[3],Kind=[AddedNormal],Aspect=[Constant_Indexing],
+    Text=[@ChgAdded{Version=[3],Text=[Defines function(s) to implement
+      user-defined @nt{indexed_component}s.]}]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[Variable_Indexing@\This aspect shall be specified
+by a @nt{name} that denotes one or more functions declared immediately within
+the same declaration list in which @i<T> is declared. All such functions
+shall have at least two parameters, the first of which is of type @i<T> or
+@i<T>'Class, or is an access parameter with designated type @i<T> or @i<T>'Class.
+All of such functions shall have a return type that is a reference
+type (see @RefSecNum{User-Defined References}), whose reference discriminant
+is of an access-to-variable type.@AspectDefn{Variable_Indexing}]}
+@begin{Reason}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[We require these functions to return a reference
+  type so that the object returned from the function can act like a variable.
+  We need no similar rule for Constant_Indexing, since all functions return
+  constant objects.]}
+@end{Reason}
+
+  @ChgAspectDesc{Version=[3],Kind=[AddedNormal],Aspect=[Variable_Indexing],
+    Text=[@ChgAdded{Version=[3],Text=[Defines function(s) to implement
+      user-defined @nt{indexed_component}s.]}]}
+
+@end{Description}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[These aspects are inherited by descendants of @i<T>
+(including the class-wide type @i<T>'Class). @Redundant[The aspects shall not
+be overridden, but the functions they denote may be.]]}
+
+@begin{Ramification}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[Indexing can be provided for multiple index types
+  by overloading routines with different parameter profiles. For instance, the
+  map containers provide indexing on both cursors and keys by providing
+  pairs of overloaded routines to the Constant_Indexing and Variable_Indexing
+  aspects.]}
+@end{Ramification}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0139-2]}
+@ChgAdded{Version=[3],Text=[An @i<indexable type> is (a view of) a
+tagged type with at least one of the aspects Constant_Indexing or
+Variable_Indexing specified.@Defn{indexable type}
+An @i<indexable object> is an object of an indexable type.@Defn{indexable object}
+@Redundant[A @nt{generalized_indexing} is a @nt{name} that denotes the result
+of calling a function named by a Constant_Indexing or Variable_Indexing aspect.]]}
+
+@end{StaticSem}
+
+@RMNewPageVer{Version=[3]}@Comment{For printed version of Ada 2012 RM}
+@begin{Legality}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0139-2]}
+@ChgAdded{Version=[3],Type=[Leading],Text=[The Constant_Indexing or
+Variable_Indexing aspect shall not be specified:]}
+@begin{Itemize}
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[on a derived type if the parent type has the
+corresponding aspect specified or inherited; or]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[on a @nt{full_type_declaration} if the type has
+a tagged partial view.]}
+@end{Itemize}
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[@PDefn{generic contract issue}
+In addition to the places where @LegalityTitle normally apply
+(see @RefSecNum{Generic Instantiation}),
+these rules apply also in the private part of an instance of a generic unit.]}
+
+@begin{Ramification}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[In order to enforce these rules without breaking
+  privacy, we cannot allow a tagged private type to have hidden indexing
+  aspects. There is no problem if the private type is not tagged (as the
+  indexing aspects cannot be specified on descendants in that case).]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[We don't need an assume-the-worst rule as deriving
+  from formal tagged type is not allowed in generic bodies.]}
+@end{Ramification}
+
+@end{Legality}
+
+@begin{Syntax}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0139-2]}
+@AddedSyn{Version=[3],lhs=<@Chg{Version=[3],New=<generalized_indexing>,Old=<>}>,
+rhs="@Chg{Version=[3],New=<@SynI{indexable_object_}@Syn2{prefix} @Syn2{actual_parameter_part}>,Old=<>}"}
+
+@end{Syntax}
+
+@begin{Resolution}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0139-2]}
+@ChgAdded{Version=[3],Text=[The expected type for the
+@Syni{indexable_object_}@nt{prefix} of a @nt{generalized_indexing}
+is any indexable type.@PDefn2{Term=[expected type],
+  Sec=(@SynI{indexable_object_}@nt{prefix})}]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0139-2]}
+@ChgAdded{Version=[3],Type=[Leading],Text=[If the Constant_Indexing aspect is
+specified for the type of the @SynI{indexable_object_}@nt{prefix} of a
+@nt{generalized_indexing}, then the @nt{generalized_indexing} is interpreted as
+a @i<constant indexing> under the following
+circumstances:@Defn{constant indexing}@Defn2{Term=[indexing],Sec=[constant]}]}
+
+@begin{Itemize}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[when the Variable_Indexing aspect is not specified
+     for the type of the @SynI{indexable_object_}@nt{prefix};]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[when the @SynI{indexable_object_}@nt{prefix}
+    denotes a constant;]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[when the @nt{generalized_indexing} is used within
+    a @nt{primary} where a @nt{name} denoting a constant is permitted.]}
+
+    @begin{Ramification}
+      @ChgRef{Version=[3],Kind=[AddedNormal]}
+      @ChgAdded{Version=[3],Text=[This means it is not interpreted as a
+        constant indexing for the @SynI{variable_}@nt{name} in the LHS of an
+        assignment (not inside a @nt{primary}), nor for the @nt{name} used
+        for an @key[out] or @key[in out] parameter (not allowed to be
+        a constant), nor for the @nt{name} in an object renaming
+        (not inside a primary), unless
+        there is no Variable_Indexing aspect defined.]}
+    @end{Ramification}
+
+@end{Itemize}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[Otherwise, the @nt{generalized_indexing} is
+interpreted as a
+@i{variable indexing}.@Defn{variable indexing}@Defn2{Term=[indexing],Sec=[variable]}]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[When a @nt{generalized_indexing} is interpreted as a
+constant (or variable) indexing, it is equivalent to a call on a prefixed view
+of one of the functions named by the Constant_Indexing (or Variable_Indexing)
+aspect of the type of the @Syni{indexable_object_}@nt{prefix} with the given
+@nt{actual_parameter_part}, and with the @Syni{indexable_object_}@nt{prefix} as
+the @nt{prefix} of the prefixed view.]}
+
+@begin{Ramification}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Type=[Leading],Text=[In other words, the
+    @nt{generalized_indexing} is equivalent to:]}
+
+@begin{Example}
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[@SynI{indexable_object_}@nt{prefix}.Indexing @nt{actual_parameter_part}]}
+@end{Example}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Type=[Trailing],Text=[where Indexing is the name
+    specified for the Constant_Indexing or Variable_Indexing aspect.]}
+@end{Ramification}
+
+@end{Resolution}
+
+@begin{Extend2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0139-2]}
+  @ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 2005}Aspects
+  Constant_Indexing and Variable_Indexing, and the @nt{generalized_indexing}
+  syntax are new.]}
+@end{Extend2005}
+
 
 @LabeledClause{Literals}
 
@@ -1054,7 +1480,8 @@ rule, to simplify implementations.]}
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00230-01]}
 An integer literal is of type @i{universal_integer}.
 A real literal is of type @i{universal_real}.@Chg{Version=[2],New=[ The literal
-@key<null> is of type @i<universal_access>.],Old=[]}
+@key<null> is of type @i<universal_access>.@Chg{Version=[3],
+New=[@PDefn{universal_integer}@PDefn{universal_real}@PDefn{universal_access}],Old=[]}],Old=[]}
 @end{StaticSem}
 
 @begin{RunTime}
@@ -1171,6 +1598,14 @@ type, record type, or record extension.
 See @RefSec{The Context of Overload Resolution}
 for the meaning of @lquotes@;shall be a single ... type.@rquotes@;
 @end{Discussion}
+@begin{Ramification}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0005-1]}
+@ChgAdded{Version=[3],Text=[There are additional rules for each kind of
+aggregate. These aggregate rules are additive; a legal expression needs to
+satisfy all of the applicable rules. That means the rule given here must be
+satisfied even when it is syntactically possible to tell which specific kind of
+aggregate is being used.]}
+@end{Ramification}
 @end{Resolution}
 
 @begin{Legality}
@@ -1204,7 +1639,7 @@ components or ancestor part of the anonymous object.
 @Defn2{Term=[assignment operation],
   Sec=(during evaluation of an @nt{aggregate})}
 Obtaining the values and the assignments occur in an
-arbitrary order.
+arbitrary order.@PDefn2{Term=[arbitrary order],Sec=[allowed]}
 The value of the @nt{aggregate} is the value of this object.
 @begin{Discussion}
   The ancestor part is the set of components inherited from the
@@ -1215,17 +1650,17 @@ The value of the @nt{aggregate} is the value of this object.
 @begin{Ramification}
   The assignment operations do the necessary
   value adjustment, as described in
-  @RefSecNum{User-Defined Assignment and Finalization}.
+  @RefSecNum{Assignment and Finalization}.
   Note that the value as a whole is not adjusted
   @em just the subcomponents (and ancestor part, if any).
-  @RefSecNum{User-Defined Assignment and Finalization} also describes
+  @RefSecNum{Assignment and Finalization} also describes
   when this anonymous object is finalized.
 
   If the @nt<ancestor_part> is a @nt<subtype_mark>
   the Initialize procedure for the ancestor type is applied
   to the ancestor part after default-initializing it,
   unless the procedure is abstract, as described
-  in @RefSecNum{User-Defined Assignment and Finalization}.
+  in @RefSecNum{Assignment and Finalization}.
   The Adjust procedure for the ancestor type is not called
   in this case, since there is no assignment to the ancestor
   part as a whole.
@@ -1261,7 +1696,7 @@ it is nonlimited record (extension) or array.
 
 An @nt{aggregate} now creates an anonymous object.
 This is necessary so that controlled types
-will work (see @RefSecNum{User-Defined Assignment and Finalization}).
+will work (see @RefSecNum{Assignment and Finalization}).
 @end{DiffWord83}
 
 @begin{Incompatible95}
@@ -1356,8 +1791,9 @@ These rules were
 In the @nt<record_@!component_@!association_@!list> for a @nt<record_@!aggregate>,
 if there is only one association, it shall be a named association.
 @begin{Reason}
-  Otherwise the construct would be interpreted as a parenthesized
-  expression.
+  @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0264-1]}
+  Otherwise@Chg{Version=[3],New=[,],Old=[]} the construct would be interpreted
+  as a parenthesized expression.
   This is considered a syntax rule, since it is relevant to
   overload resolution. We choose not to express it with BNF so we
   can share the definition of @nt<record_component_association_list>
@@ -1436,6 +1872,12 @@ the associated component(s) are as follows:
     an association list of an @nt<extension_aggregate>,
     only noninherited components are counted to determine
     the position.
+
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0005-1]}
+  @ChgAdded{Version=[3],Text=[For a derived type (including type extensions),
+  the order of declaration is defined in @RefSec{Derived Types and Classes}.
+  In particular, all discriminants come first, regardless of whether they are
+  defined for the parent type or are newly added to the derived type.]}
 @end{Ramification}
 
   For a named association with one or more
@@ -1454,18 +1896,28 @@ If the type of a @nt{record_aggregate} is a record extension,
 then it shall be a descendant of a record type, through one
 or more record extensions (and no private extensions).
 
-If there are no components needed in a given
-@nt<record_@!component_@!association_@!list>,
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0016-1]}
+@Chg{Version=[3],New=[The reserved words @key[null record] may appear only if],
+Old=[If]} there are no components needed in a given
+@nt<record_@!component_@!association_@!list>@Chg{Version=[3],New=[],Old=[,
 then the reserved words @key(null record) shall appear rather
-than a list of @nt<record_@!component_@!association>s.
+than a list of @nt<record_@!component_@!association>s]}.
 @begin{Ramification}
   For example, "(@key(null record))" is a @nt<record_aggregate>
   for a null record type. Similarly, "(T'(A) @key(with null record))" is
   an @nt<extension_aggregate> for a type defined as a null
   record extension of T.
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0016-1]}
+@ChgAdded{Version=[3],Text=[If no components are needed and @key[null record]
+  is not used, the @nt{record_@!component_@!association} must necessarily be
+  @key[others] => <>, as that is the only
+  @nt{record_@!component_@!association} that does not require an associated
+  component.]}
 @end{Ramification}
 
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00287-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0199-1]}
 Each @nt<record_component_association>@Chg{Version=[2],New=[ other than an
 @key{others} choice with a <>],Old=[]} shall have at least
 one associated component, and each needed component
@@ -1473,13 +1925,14 @@ shall be associated with exactly
 one @nt<record_@!component_@!association>.
 If a @nt<record_@!component_@!association> @Chg{Version=[2],New=[with an
 @nt{expression} ],Old=[]}has two or more associated components, all of them
-shall be of the same type.
+shall be of the same type@Chg{Version=[3],New=[, or all of them shall be of
+anonymous access types whose subtypes statically match],Old=[]}.
 @begin{Ramification}
   @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00287-01]}
   These rules apply to an association with an @key(others)
   choice@Chg{Version=[2],New=[ with an expression. An @key(others) choice with
   a <> can match zero components or several components with different
-  types.],Old=[]}.
+  types],Old=[]}.
 @end{Ramification}
 @begin{Reason}
   @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00287-01]}
@@ -1518,9 +1971,14 @@ shall be of the same type.
   nor specified twice.
 @end{Ramification}
 
-If the components of a @nt{variant_part} are needed, then the value
-of a discriminant that governs the @nt{variant_part} shall be given
-by a static expression.
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0220-1]}
+@Chg{Version=[3],New=[The],Old=[If the components of a @nt{variant_part}
+are needed, then the]} value of a discriminant that governs
+@Chg{Version=[3],New=[a],Old=[the]} @nt{variant_part}
+@Chg{Version=[3],New=[@i<P> ],Old=[]}shall be given
+by a static expression@Chg{Version=[3],New=[, unless @i<P> is nested within
+a @nt{variant} @i<V> that is not selected by the discriminant value
+governing the @nt{variant_part} enclosing @i<V>],Old=[]}.
 @begin{Ramification}
 This expression might either be given within the aggregate itself,
 or in a constraint on the parent subtype in a @nt<derived_type_definition>
@@ -1557,7 +2015,7 @@ occur in an arbitrary order, except that the @nt<expression>
 for a discriminant is evaluated (and converted) prior to the
 elaboration of any per-object constraint that depends on it, which in
 turn occurs prior to the evaluation and conversion of the @nt{expression} for
-the component with the per-object constraint.
+the component with the per-object constraint.@PDefn2{Term=[arbitrary order],Sec=[allowed]}
 @begin{Ramification}
 The conversion in the first rule might raise Constraint_Error.
 @end{Ramification}
@@ -1579,6 +2037,16 @@ stand-alone object of the component subtype
 The @nt<expression> of a @nt{record_component_association}
 is evaluated (and converted) once for each associated component.
 
+@begin{Ramification}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0005-1]}
+@ChgAdded{Version=[3],Text=[We don't need similar language for <>,
+as we're considering the value of <> for each individual component.
+Each component has its own default expression or its own
+default initialization (they can be different for each component;
+the components even could have different types), and each one
+has to be evaluated. So there is no need to repeat that.]}
+@end{Ramification}
+
 @end{RunTime}
 
 @begin{Notes}
@@ -1595,9 +2063,9 @@ be in the same order as in the @nt<known_discriminant_part>.
 (4, July, 1776)                                       --@RI[  see @RefSecNum{Record Types} ]
 @end{Example}
 
-@begin{Wide}
+@begin{WideAbove}
 @leading@keepnext@i(Examples of record aggregates with named associations:)
-@end{Wide}
+@end{WideAbove}
 @begin{Example}
 (Day => 4, Month => July, Year => 1776)
 (Month => July, Day => 4, Year => 1776)
@@ -1606,12 +2074,12 @@ be in the same order as in the @nt<known_discriminant_part>.
 (Unit => Disk, Status => Closed, Cylinder => 9, Track => 1)
 @end{Example}
 
-@begin{Wide}
+@begin{WideAbove}
 @leading@keepnext@ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00287-01]}
 @i(@Chg{Version=[2],New=[Examples],Old=[Example]} of component
 @Chg{Version=[2],New=[associations],Old=[association]} with
 several choices:)
-@end{Wide}
+@end{WideAbove}
 @begin{Example}
 @tabclear()@tabset(P50)
 (Value => 0, Succ|Pred => @key(new) Cell'(0, @key(null), @key(null))) @\--@RI[  see @RefSecNum{Incomplete Type Declarations}]
@@ -1626,11 +2094,11 @@ several choices:)
 
 @end{Example}
 
-@begin{Wide}
+@begin{WideAbove}
 @leading@keepnext@i{Examples of record aggregates for tagged types
 (see @RefSecNum(Tagged Types and Type Extensions)
 and @RefSecNum{Type Extensions}):}
-@end{Wide}
+@end{WideAbove}
 @begin{Example}
 Expression'(@key{null record})
 Literal'(Value => 0.0)
@@ -1665,8 +2133,34 @@ a record aggregate. Now we do.
   all kinds of aggregates can now be limited, see @RefSecNum{Aggregates}).]}
 @end{DiffWord95}
 
+@begin{Incompatible2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0220-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{incompatibilities with Ada 2005}@b<Correction:>
+  Corrected wording so that the rule for discriminants governing @nt{variant_part}s
+  was not effectively circular. The change makes a few @nt{aggregate}s where a
+  non-static discriminant governs an empty @nt{variant_part} illegal. However,
+  most Ada implementations already enforce some version of the new rule and
+  already reject these @nt{aggregate}s. So it is unlikely that any
+  incompatibility will be noticed in practice.]}
+@end{Incompatible2005}
 
-@RmNewPage
+@begin{Extend2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0016-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 2005}@b<Correction:> Fixed the wording so that
+  @key[others] => <> can be used in place of @key[null record].
+  This is needed to avoid a generic contract issue for generic bodies:
+  we do not want to have to assume the worst to disallow @key[others] => <>
+  if the record type @i{might} be a null record.]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0199-1]}
+  @ChgAdded{Version=[3],Text=[@b<Correction:> We now allow multiple components
+  with anonymous access types to be specified with a single component
+  association. This is to be consistent with the capabilities of a named
+  access type.]}
+@end{Extend2005}
+
+
+@RMNewPageVer{Version=[2]}@Comment{For printed version of Ada 2005 RM}
 @LabeledSubClause{Extension Aggregates}
 
 @begin{Intro}
@@ -1715,23 +2209,76 @@ specific than that. However, if the overload resolution rules
 get too complicated, the implementation gets more difficult and
 it becomes harder to produce good error messages.
 @end{Reason}
+@begin{Ramification}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0005-1]}
+@ChgAdded{Version=[3],Text=[This rule is additive with the rule given in
+@RefSecNum{Aggregates}. That means the @RefSecNum{Aggregates} rule must be
+satisfied even though it is always syntactically possible to tell that
+something is an extension aggregate rather than another kind of aggregate.
+Specifically, that means that an extension aggregate is ambiguous if the
+context is overloaded on array and/or untagged record types, even though
+those are never legal contexts for an extension aggregate. Thus, this rule
+acts more like a @LegalityTitle than a @ResolutionTitle.]}
+@end{Ramification}
 @end{Resolution}
 
 @begin{Legality}
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00306-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0115-1]}
 If the @nt<ancestor_part> is a @nt<subtype_mark>, it shall
 denote a specific tagged subtype.
 @Chg{Version=[2],New=[If the @nt{ancestor_part} is an @nt{expression}, it
 shall not be dynamically tagged. ],Old=[]}
-The type of the @nt{extension_aggregate} shall be derived from the type of the
-@nt<ancestor_part>, through one
-or more record extensions (and no private extensions).
+The type of the @nt{extension_aggregate} shall be
+@Chg{Version=[3],New=[a descendant of],Old=[derived from]} the type of the
+@nt<ancestor_part>@Chg{Version=[3],New=[ (the @i<ancestor> type)@Defn2{Term=[ancestor type],
+Sec=<of an @nt<extension_aggregate>>}],Old=[]},
+through one or more record extensions (and no private
+extensions).@Chg{Version=[3],New=[ If the @nt{ancestor_part} is a
+@nt{subtype_mark}, the view of the ancestor type from which the type
+is descended (see @RefSecNum{Private Operations})
+shall not have unknown discriminants.],Old=[]}
 @begin{Reason}
   @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00306-01]}
   @ChgAdded{Version=[2],Text=[The expression cannot be dynamically tagged to
   prevent implicit "truncation" of a dynamically-tagged value to the specific
   ancestor type. This is similar to the
   rules in @RefSecNum{Dispatching Operations of Tagged Types}.]}
+@end{Reason}
+
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0067-1],ARef=[AI05-0244-1]}
+@ChgAdded{Version=[3],Type=[Leading],Text=[If the type of the @nt{ancestor_part}
+is limited and at least one component is needed
+in the @nt{record_component_association_list}, then the @nt{ancestor_part}
+shall not be:]}
+@begin{Itemize}
+@ChgRef{Version=[3],Kind=[Added]}
+  @ChgAdded{Version=[3],Text=[a call to a function with an unconstrained result
+  subtype; nor]}
+
+@ChgRef{Version=[3],Kind=[Added]}
+  @ChgAdded{Version=[3],Text=[a parenthesized or qualified expression whose
+  operand would violate this rule; nor]}
+
+@ChgRef{Version=[3],Kind=[Added]}
+  @ChgAdded{Version=[3],Text=[a @nt{conditional_expression} having at least one
+  @SynI{dependent_}@nt{expression} that would violate this rule.]}
+@end{Itemize}
+@begin{Reason}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0067-1],ARef=[AI05-0244-1]}
+  @ChgAdded{Version=[3],Text=[This restriction simplifies implementation,
+  because it ensures that either the caller or the callee knows the size to
+  allocate for the aggregate. Without this restriction, information from both
+  caller and callee would have to be combined to determine the appropriate
+  size.]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0067-1]}
+  @ChgAdded{Version=[3],Text=[The (F(...) with null record) case is exempt from
+  this rule, because such extension
+  aggregates are created internally for inherited functions returning
+  null-extension types @em we can't very well make those illegal. Moreover, we
+  don't need the rule for null extensions, as the result can simply use
+  the space returned by the function call.]}
 @end{Reason}
 @end{Legality}
 
@@ -1759,7 +2306,7 @@ as for an object of the ancestor type.
 Any implicit initializations or evaluations are performed
 in an arbitrary order, except that the @nt<expression>
 for a discriminant is evaluated prior to any other evaluation
-or initialization that depends on it.
+or initialization that depends on it.@PDefn2{Term=[arbitrary order],Sec=[allowed]}
 
 @IndexCheck{Discriminant_Check}
 If the type of the @nt<ancestor_part> has
@@ -1796,7 +2343,7 @@ then its type can be abstract. If its type is controlled,
 then as the last step of evaluating the aggregate,
 the Initialize procedure of the ancestor type is called,
 unless the Initialize procedure is abstract
-(see @RefSecNum{User-Defined Assignment and Finalization}).
+(see @RefSecNum{Assignment and Finalization}).
 @end{Notes}
 
 @begin{Examples}
@@ -1833,6 +2380,25 @@ The extension aggregate syntax is new.
   @ChgAdded{Version=[2],Text=[Limited @nt{extension_aggregate}s are allowed (since
   all kinds of aggregates can now be limited, see @RefSecNum{Aggregates}).]}
 @end{DiffWord95}
+
+@begin{Incompatible2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0067-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{incompatibilities with Ada 2005}@b[Correction:]
+  A limited unconstrained ancestor expression that is a function call is now
+  illegal unless the extension part is null.
+  Such @nt{aggregate}s were first introduced in Ada 2005 and are very complex
+  to implement as they must be built-in-place with an unknown size; as such,
+  it is unlikely that they are implemented correctly in existing compilers and
+  thus not often used in existing code.]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0115-1]}
+  @ChgAdded{Version=[3],Text=[@b[Correction:] An @nt{ancestor_part} that is a
+  subtype with unknown discriminants is now explicitly illegal. Such a
+  subtype should not be used to declare an object, and the @nt{ancestor_part}
+  acts like an object. The Ada 95 rules did not disallow such cases, so it
+  is possible that code exists that uses such an ancestor, but this should
+  be rare.]}
+@end{Incompatible2005}
 
 
 @LabeledSubClause{Array Aggregates}
@@ -2009,14 +2575,19 @@ defines an applicable index constraint:
   is being used within a larger aggregate.
   @end{Discussion}
 
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0147-1]}
   For a parenthesized @nt{expression}, the
   applicable index constraint is that, if any, defined for the
-  @nt{expression}.
+  @nt{expression}@Chg{Version=[3],New=[;],Old=[.]}
 @begin{Discussion}
 RM83 omitted this
   case, presumably as an oversight. We want to minimize situations
   where an @nt{expression} becomes illegal if parenthesized.
 @end{Discussion}
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0147-1]}
+@ChgAdded{Version=[3],Text=[For a @nt{conditional_expression}, the
+applicable index constraint for each @SynI<dependent_>@nt{expression} is that,
+if any, defined for the @nt{conditional_expression}.]}
 @end(itemize)
 
 The applicable index constraint @i(applies) to an @nt{array_aggregate}
@@ -2030,20 +2601,25 @@ no applicable index constraint is defined.
   actual subprograms with generic formal subprograms.
 @end(Reason)
 
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0153-3]}
 The @nt{discrete_choice_list} of an
 @nt{array_component_association} is allowed to
-have a @nt{discrete_choice} that is a nonstatic @nt<expression>
-or that is a @nt{discrete_range} that defines a nonstatic or
+have a @nt{discrete_choice} that is a nonstatic
+@Chg{Version=[3],New=[@nt<choice_expression>],Old=[@nt<expression>]}
+or that is a @Chg{Version=[3],New=[@nt{subtype_indication} or @nt{range}],
+Old=[@nt{discrete_range}]} that defines a nonstatic or
 null range, only if it is the single @nt{discrete_choice} of
 its @nt{discrete_choice_list}, and there is only one
 @nt{array_component_association} in the @nt<array_aggregate>.
 @begin{Discussion}
-We now
-allow a nonstatic @key(others) choice even if there are
+We now allow a nonstatic @key(others) choice even if there are
 other array component expressions as well.
 @end{Discussion}
 
-In a @nt<named_array_aggregate> with more than one @nt<discrete_choice>,
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0262-1]}
+In a @nt<named_array_aggregate>
+@Chg{Version=[3],New=[where all @nt{discrete_choice}s are
+static],Old=[with more than one @nt<discrete_choice>]},
 no two @nt<discrete_choice>s are allowed to
 cover the same value (see @RefSecNum{Variant Parts and Discrete Choices});
 if there is no @key[others] choice, the @nt<discrete_choice>s taken
@@ -2053,6 +2629,16 @@ exactly cover a contiguous sequence of values of the corresponding index type.
   This implies that each component must be
   specified exactly once. See AI83-309.
 @end{Ramification}
+@begin{Reason}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0262-1]}
+  @ChgAdded{Version=[3],Text=[This has to apply even if there is only one
+  static @nt{discrete_choice}; a single choice has to represent a contiguous
+  range (a @nt{subtype_mark} with a static predicate might represent a
+  discontiguous set of values). If the (single) choice is a dynamic subtype, we
+  don't need to make this check as no predicates are allowed (see
+  @RefSecNum{Subtype Predicates}) and
+  thus the range has to be contiguous.]}
+@end{Reason}
 
 A bottom level subaggregate of a multidimensional @nt<array_aggregate>
 of a given array type
@@ -2076,7 +2662,7 @@ proceeds in two steps:
 @begin(enumerate)
   Any @nt{discrete_choice}s of this aggregate and of its subaggregates
   are evaluated in an arbitrary order, and converted to the corresponding
-  index type;
+  index type;@PDefn2{Term=[arbitrary order],Sec=[allowed]}
   @PDefn2{Term=[implicit subtype conversion],Sec=(choices of aggregate)}
 
   The array component expressions of the aggregate
@@ -2085,11 +2671,22 @@ proceeds in two steps:
   the array type; an array component expression
   is evaluated once for each associated component.
   @PDefn2{Term=[implicit subtype conversion],Sec=(expressions of aggregate)}
+  @PDefn2{Term=[arbitrary order],Sec=[allowed]}
 @end(enumerate)
 @begin(Ramification)
   Subaggregates are not separately evaluated.
   The conversion of the value of the component expressions
   to the component subtype might raise Constraint_Error.
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0005-1]}
+@ChgAdded{Version=[3],Text=[We don't need to say that <> is
+  evaluated once for each component, as <> means that each component
+  is @i{initialized by default}. That means that the actions defined
+  for default initialization are applied to each component individually.
+  Initializing one component by default and copying
+  that to the others would be an incorrect implementation in general
+  (although it might be OK if the default initialization is known
+  to be constant).]}
 @end(Ramification)
 
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00287-01]}
@@ -2145,10 +2742,11 @@ take advantage of that definition.
   a subtype. See AI83-00313.
 @end(Ramification)
 
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0037-1]}
 @IndexCheck{Index_Check}
 For an @nt{array_aggregate} with an @key(others) choice,
-a check is made that no @nt<expression> is specified
-for an index value outside the bounds determined by the
+a check is made that no @nt<expression>@Chg{Version=[3],New=[ or <>],Old=[]}
+is specified for an index value outside the bounds determined by the
 applicable index constraint.
 @begin{Discussion}
 RM83 omitted this case,
@@ -2178,11 +2776,11 @@ checks fail.
 @end{RunTime}
 
 @begin{Notes}
-@ChgRef{Version=[2],Kind=[Revised]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0004-1]}
 In an @nt<array_aggregate>, positional notation may only be used
 with two or more @nt<expression>s; a single @nt<expression>
 in parentheses is interpreted as a
-@Chg{Version=[2],New=[parenthesized expression],Old=[@ntf{parenthesized_expression}]}.
+@Chg{Version=[3],New=[parenthesized expression],Old=[@ntf{parenthesized_expression}]}.
 A @nt<named_array_aggregate>, such as (1 => X), may be used to specify
 an array with a single component.
 @end{Notes}
@@ -2194,9 +2792,9 @@ an array with a single component.
 Table'(5, 8, 4, 1, @key(others) => 0)  --@RI[  see @RefSecNum{Array Types} ]
 @end{Example}
 
-@begin{Wide}
+@begin{WideAbove}
 @leading@keepnext@i(Examples of array aggregates with named associations:)
-@end{Wide}
+@end{WideAbove}
 @begin{Example}
 (1 .. 5 => (1 .. 8 => 0.0))      --@RI[  two-dimensional]
 (1 .. N => @key(new) Cell)             --@RI[  N new cells, in particular for N = 0]
@@ -2207,9 +2805,9 @@ Schedule'(Wed | Sun  => False, @key(others) => True)
 Vector'(1 => 2.5)                                --@RI[  single-component vector]
 @end{Example}
 
-@begin{Wide}
+@begin{WideAbove}
 @leading@keepnext@i(Examples of two-dimensional array aggregates:)
-@end{Wide}
+@end{WideAbove}
 @begin{Example}
 --@RI[ Three aggregates for the same value of subtype Matrix(1..2,1..3) (see @RefSecNum{Array Types}):]
 
@@ -2218,9 +2816,9 @@ Vector'(1 => 2.5)                                --@RI[  single-component vector
 (1 => (1 => 1.1, 2 => 1.2, 3 => 1.3), 2 => (1 => 2.1, 2 => 2.2, 3 => 2.3))
 @end{Example}
 
-@begin{Wide}
+@begin{WideAbove}
 @leading@keepnext@i(Examples of aggregates as initial values:)
-@end{Wide}
+@end{WideAbove}
 @begin{Example}
 A : Table := (7, 9, 5, 1, 3, 2, 4, 8, 6, 0);        --@RI[ A(1)=7, A(10)=0]
 B : Table := (2 | 4 | 10 => 1, @key(others) => 0);        --@RI[ B(1)=0, B(10)=1]
@@ -2295,6 +2893,7 @@ multidimensional and one-dimensional aggregates more uniformly,
 and to incorporate the rulings of AI83-00019, AI83-00309, etc.
 @end{DiffWord83}
 
+
 @begin{Extend95}
   @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00287-01]}
   @ChgAdded{Version=[2],Text=[@Defn{extensions to Ada 95}<> can be used in
@@ -2315,16 +2914,38 @@ and to incorporate the rulings of AI83-00019, AI83-00309, etc.
   @nt{expression}.]}
 @end{DiffWord95}
 
+@begin{Inconsistent2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0037-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{inconsistencies with Ada 2005}@b<Correction:>
+  Fixed so the check
+  for components outside of the array applies to both @nt<expression>s and
+  <>s. As <> was a new feature in Ada 2005, there should be little existing
+  code that depends on a <> component that is specified outside of the array
+  (and that is nonsense anyway, that a compiler is likely to detect even
+  without an explicit language rule disallowing it).]}
+@end{Inconsistent2005}
+
+@begin{DiffWord2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0147-1]}
+  @ChgAdded{Version=[3],Text=[Added a definition of the applicable index
+  constraint for @nt{conditional_expression}s (which are new).]}
+@end{DiffWord2005}
+
+
 
 @LabeledClause{Expressions}
 
 @begin{Intro}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0147-1],ARef=[AI05-0158-1],ARef=[AI05-0176-1]}
 @Defn{expression}
 An @i(expression) is a formula that defines the computation or retrieval
 of a value.
 In this International Standard, the term @lquotes@;expression@rquotes@; refers to a construct
-of the syntactic category @nt<expression> or
-of any of the other five syntactic categories defined below.
+of the syntactic category @nt<expression> or of any of the
+@Chg{Version=[3],New=[following categories: @nt{choice_expression}, @nt{choice_relation},
+@nt{relation}, @nt{simple_expression}, @nt{term}, @nt{factor}, @nt{primary},
+@nt{conditional_expression}, @nt{quantified_expression}],Old=[other five syntactic categories defined
+below]}.
 @Defn{and operator}@Defn2{Term=[operator],Sec=(and)}
 @Defn{or operator}@Defn2{Term=[operator],Sec=(or)}
 @Defn{xor operator}@Defn2{Term=[operator],Sec=(xor)}
@@ -2372,12 +2993,33 @@ of any of the other five syntactic categories defined below.
    | @Syn2{relation} {@key{or} @Syn2{relation}} @\| @Syn2{relation} {@key{or} @key{else} @Syn2{relation}}
    | @Syn2{relation} {@key{xor} @Syn2{relation}}"}
 
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0158-1]}
+@AddedSyn{Version=[3],lhs=<@Chg{Version=[3],New=<choice_expression>,Old=<>}>,
+rhs="@Chg{Version=[3],New=<
+     @Syn2[choice_relation] {@key[and] @Syn2[choice_relation]}
+   | @Syn2[choice_relation] {@key[or] @Syn2[choice_relation]}
+   | @Syn2[choice_relation] {@key[xor] @Syn2[choice_relation]}
+   | @Syn2[choice_relation] {@key[and then] @Syn2[choice_relation]}
+   | @Syn2[choice_relation] {@key[or else] @Syn2[choice_relation]}>,Old=<>}"}
 
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0158-1]}
+@AddedSyn{Version=[3],lhs=<@Chg{Version=[3],New=<choice_relation>,Old=<>}>,
+rhs="@Chg{Version=[3],New=<
+     @Syn2{simple_expression} [@Syn2{relational_operator} @Syn2{simple_expression}]>,Old=<>}"}
+
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0158-1]}
 @Syn{lhs=<relation>,rhs="
      @Syn2{simple_expression} [@Syn2{relational_operator} @Syn2{simple_expression}]
-   | @Syn2{simple_expression} [@key{not}] @key{in} @Syn2{range}
-   | @Syn2{simple_expression} [@key{not}] @key{in} @Syn2{subtype_mark}"}
+   | @Syn2{simple_expression} [@key{not}] @key{in} @Chg{Version=[3],New=[@Syn2{membership_choice_list}],Old="@Syn2{range}
+   | @Syn2{simple_expression} [@key{not}] @key{in} @Syn2{subtype_mark}"}"}
 
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0158-1]}
+@AddedSyn{Version=[3],lhs=<@Chg{Version=[3],New=<membership_choice_list>,Old=<>}>,
+rhs="@Chg{Version=[3],New=<@Syn2{membership_choice} {| @Syn2{membership_choice}}>,Old=<>}"}
+
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0158-1]}
+@AddedSyn{Version=[3],lhs=<@Chg{Version=[3],New=<membership_choice>,Old=<>}>,
+rhs="@Chg{Version=[3],New=<@Syn2{choice_expression} | @Syn2{range} | @Syn2{subtype_mark}>,Old=<>}"}
 
 @Syn{lhs=<simple_expression>,rhs="[@Syn2{unary_adding_operator}] @Syn2{term} {@Syn2{binary_adding_operator} @Syn2{term}}"}
 
@@ -2387,9 +3029,11 @@ of any of the other five syntactic categories defined below.
 
 @Syn{lhs=<factor>,rhs="@Syn2{primary} [** @Syn2{primary}] | @key{abs} @Syn2{primary} | @key{not} @Syn2{primary}"}
 
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0003-1],ARef=[AI05-0147-1],ARef=[AI05-0176-1]}
 @Syn{lhs=<primary>,rhs="
    @Syn2{numeric_literal} | @key{null} | @Syn2{string_literal} | @Syn2{aggregate}
- | @Syn2{name} | @Syn2{qualified_expression} | @Syn2{allocator} | (@Syn2{expression})"}
+ | @Syn2{name} | @Chg{Version=[3],New=[],Old=[@Syn2{qualified_expression} | ]}@Syn2{allocator} | (@Syn2{expression})@Chg{Version=[3],New=[
+ | (@Syn2{conditional_expression}) | (@Syn2{quantified_expression})],Old=[]}"}
 @end{Syntax}
 
 @begin{Resolution}
@@ -2512,6 +3156,21 @@ Essentially, the operation ".." is of higher precedence than the
 logical operators, and hence uses of logical operators
 still have to be parenthesized when used in a bound of a range.
 @end{Extend83}
+
+@begin{DiffWord2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0003-1]}
+  @ChgAdded{Version=[3],Text=[Moved @nt{qualified_expression}
+  from @nt{primary} to @nt{name} (see @RefSecNum{Names}). This allows the
+  use of @nt{qualified_expression}s in more places.]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0147-1],ARef=[AI05-0176-1]}
+  @ChgAdded{Version=[3],Text=[Added @nt{conditional_expression} and
+  @nt{quantified_expression} to @nt{primary}.]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0158-1]}
+  @ChgAdded{Version=[3],Text=[Expanded membership test syntax (see
+  @RefSecNum{Relational Operators and Membership Tests}).]}
+@end{DiffWord2005}
 
 
 @LabeledClause{Operators and Expression Evaluation}
@@ -2642,6 +3301,7 @@ left-to-right or chosen order of association.
 The two operands of an expression of the form X op Y, where
 op is a binary operator, are evaluated in an arbitrary order,
 as for any @nt<function_call> (see @RefSecNum(Subprogram Calls)).
+
 @end{Notes}
 
 @begin{Examples}
@@ -2805,6 +3465,7 @@ either of the above checks fails.
 
 @end{RunTime}
 
+@RMNewPageVer{Version=[3]}@Comment{For printed version of Ada 2012 RM}
 @begin{Notes}
 @Leading@;The conventional meaning of the logical operators is given by the
 following truth table:
@@ -2826,9 +3487,9 @@ Sunny @key(or) Warm
 Filter(1 .. 10) @key(and) Filter(15 .. 24)   --@RI[   see @RefSecNum{Index Constraints and Discrete Ranges} ]
 @end{Example}
 
-@begin{Wide}
+@begin{WideAbove}
 @leading@keepnext@i(Examples of short-circuit control forms:)
-@end{Wide}
+@end{WideAbove}
 @begin{Example}
 Next_Car.Owner /= @key(null) @key(and) @key(then) Next_Car.Owner.Age > 25   --@RI[   see @RefSecNum{Incomplete Type Declarations}]
 N = 0 @key(or) @key(else) A(N) = Hit_Value
@@ -2870,31 +3531,48 @@ The equality operators are not defined for @i{every} nonlimited
 type @em see below for the exact rule.
 @end{Ramification}
 
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0262-1]}
 @Defn{membership test}
 @Defn{in (membership test)}
 @Defn{not in (membership test)}
 A @i(membership test), using @key(in) or @key(not in),
 determines whether or not a value
-belongs to a given subtype or range, or has a tag that identifies
-a type that is covered by a given type.
-Membership tests are allowed for all types.]
+belongs to @chg{Version=[3],New=[any],Old=[a]} given subtype or range,
+@chg{Version=[3],New=[is equal to any given value,],Old=[or]} has a tag
+that identifies a type that is covered by a given type@chg{Version=[3],New=[,
+or is convertible to and with accessibility level appropriate for a given
+access type],Old=[]}. Membership tests are allowed for all types.]
 
 @end{Intro}
 
 @begin{Resolution}
 
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00251-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0158-1]}
 @PDefn2{Term=[expected type],
   Sec=(membership test simple_expression)}
 @Defn2{Term=[tested type], Sec=(of a membership test)}
 The @i(tested type) of a membership test
-is the type of the @nt<range> or the type
-determined by the @nt<subtype_mark>.
-If the tested type is tagged, then the @nt<simple_expression> shall resolve to
-be of a type that @Chg{Version=[2],New=[is convertible (see
-@RefSecNum{Type Conversions}) to],Old=[covers or is covered by]} the tested
-type; if untagged, the expected type for the @nt<simple_expression> is
-the tested type.
+is@Chg{Version=[3],New=[],Old=[ the type of the @nt<range> or the type]}
+determined by the @Chg{Version=[3],New=[@nt<membership_choice>s of the
+@nt<membership_choice_list>. Either all @nt{membership_choice}s of the
+@nt{membership_choice_list} shall resolve to the same type, which is the tested
+type; or each @nt{membership_choice} shall be of an elementary type, and the
+tested type shall be covered by each of these elementary
+types.],Old=[@nt<subtype_mark>. If the tested type is tagged, then the
+@nt<simple_expression> shall resolve to be of a type that
+@Chg{Version=[2],New=[is convertible (see @RefSecNum{Type Conversions})
+to],Old=[covers or is covered by]} the tested type; if untagged, the expected
+type for the @nt<simple_expression> is the tested type.]}
+
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0158-1]}
+@ChgAdded{Version=[3],Text=[If the tested type is tagged, then the
+@nt{simple_expression} shall resolve to be of a type that is
+convertible (see @RefSecNum{Type Conversions}) to the tested
+type; if untagged, the expected type for the @nt{simple_expression} is
+the tested type. The expected type of a @nt{choice_expression} in a
+@nt{membership_choice}, and of a @nt{simple_expression} of a @nt{range} in a
+@nt{membership_choice}, is the tested type of the membership operation.]}
 
 @begin{Reason}
   @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00230-01]}
@@ -2911,6 +3589,12 @@ the tested type.
   one rooted at the tested type.@Chg{Version=[2],New=[ This includes any
   class-wide type that covers the tested type, along with class-wide interfaces
   in some cases.],Old=[]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0158-1]}
+@ChgAdded{Version=[3],Text=[The special rule for determining the tested type for
+  elementary types is to allow numeric literals in @nt{membership_choice_list}s.
+  Without the rule, @exam{A @key[in] B | 1} would be illegal as B and 1 would
+  have different types (the literal having type @i<universal integer>).]}
 @end{Reason}
 
 @end{Resolution}
@@ -2928,6 +3612,18 @@ Untagged types covered by the tagged class-wide type
   from one another at run time once converted to a covering
   class-wide type.
 @end{Ramification}
+
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0158-1]}
+@ChgAdded{Version=[3],Text=[If a membership test includes one or more
+@nt{choice_expression}s and the tested type of the membership test is limited, then the
+tested type of the membership test shall have a visible primitive equality
+operator.]}
+@begin{Reason}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0158-1]}
+@ChgAdded{Version=[3],Text=[A visible equality operator is required in order
+to avoid breaking privacy; that is, we don't want to depend on a hidden
+equality operator.]}
+@end{Reason}
 @end{Legality}
 
 @begin{StaticSem}
@@ -2977,8 +3673,10 @@ access-to-object type whose designated type is @i<D> or @i<D>'Class, where
   @ChgAdded{Version=[2],Text=[its result type is Boolean;]}
 
   @ChgRef{Version=[2],Kind=[Added]}
+  @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0020-1]}
   @ChgAdded{Version=[2],Text=[it is declared immediately within the same
-  declaration list as @i<D>; and]}
+  declaration list as @i<D>@Chg{Version=[3],New=[ or any partial or incomplete
+  view of @i<D>],Old=[]}; and]}
 
   @ChgRef{Version=[2],Kind=[Added]}
   @ChgAdded{Version=[2],Text=[at least one of its operands is an
@@ -3039,6 +3737,18 @@ the designated profiles shall be subtype conformant.]}
   and any reasonable meaning for "=" would allow using it in such a subprogram,
   this doesn't impose any further restrictions on Ada implementations.]}
 @end{Reason}
+
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0123-1]}
+@ChgAdded{Version=[3],Text=[If the profile of an explicitly declared primitive
+equality operator of an untagged record type is type conformant with that of the
+corresponding predefined equality operator, the declaration shall occur before
+the type is frozen. In addition, if the untagged record type has a nonlimited
+partial view, then the declaration shall occur in the visible part
+of the enclosing package.
+@PDefn{generic contract issue}
+In addition to the places where @LegalityTitle normally apply
+(see @RefSecNum{Generic Instantiation}),
+this rule applies also in the private part of an instance of a generic unit.]}
 @end{Legality}
 
 @begin{RunTime}
@@ -3085,12 +3795,15 @@ This allows each Access @nt<attribute_reference>
   if necessary to support an indirect call.
 @end{Reason}
 
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0123-1]}
 @Defn2{Term=[equality operator],Sec=(special inheritance rule for tagged types)}
 For a type extension, predefined equality
 is defined in terms of the primitive @Redundant[(possibly
 user-defined)] equals operator
-of the parent type and of any tagged components of the
-extension part, and predefined equality
+@Chg{Version=[3],New=[for],Old=[of]} the parent type and
+@Chg{Version=[3],New=[for],Old=[of]} any @Chg{Version=[3],New=[],Old=[tagged ]}components
+@Chg{Version=[3],New=[ that have a record type in],Old=[of]} the extension part, and
+predefined equality
 for any other components not inherited from the parent type.
 @begin{Ramification}
   Two values of a type extension are not equal if there is
@@ -3123,10 +3836,23 @@ for any other components not inherited from the parent type.
   Typ3.],Old=[]}
 @end{Ramification}
 
-For a private type, if its full type is tagged, predefined
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0123-1]}
+@ChgAdded{Version=[3],Text=[For a derived type whose parent is an untagged
+record type, predefined equality is defined in terms of the primitive (possibly
+user-defined) equals operator of the parent type.]}
+@begin{Reason}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[This prevents predefined equality from
+  reemerging in generic units for untagged record types. For other uses
+  the primitive equality is inherited and the inherited routine is primitive.]}
+@end{Reason}
+
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0123-1]}
+For a private type, if its full type is
+@Chg{Version=[3],New=[a record type],Old=[tagged]}, predefined
 equality is defined in terms of the primitive equals operator of the
-full type; if the full type is untagged, predefined equality
-for the private type is that of its full type.
+full type; @Chg{Version=[3],New=[otherwise],Old=[if the full type is untagged]},
+predefined equality for the private type is that of its full type.
 
 @Leading@Defn{matching components}
 For other composite types, the predefined equality operators
@@ -3166,18 +3892,24 @@ for those composite types covered earlier) is defined as follows:
 
   If there are unmatched components, the result is defined to be False;
 
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0123-1]}
   Otherwise, the result is defined in terms of
   the primitive equals operator for any
-  matching tagged components, and the predefined equals for any
-  matching untagged components.
+  matching @Chg{Version=[3],New=[],Old=[tagged ]}components@Chg{Version=[3],New=[ that
+  are records],Old=[]}, and
+  the predefined equals for any @Chg{Version=[3],New=[other ],Old=[]}matching
+  @Chg{Version=[3],New=[],Old=[untagged ]}components.
   @begin{Reason}
-    This asymmetry between tagged and untagged components is
-    necessary to preserve upward compatibility and corresponds
+    @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0123-1]}
+    This asymmetry between @Chg{Version=[3],New=[],Old=[tagged and
+    untagged ]}components @Chg{Version=[3],New=[with and without a record type ],Old=[]}is
+    necessary to preserve @Chg{Version=[3],New=[most ],Old=[]}upward compatibility and corresponds
     with the corresponding situation with generics, where the
     predefined operations @lquotes@;reemerge@rquotes@; in a generic for
-    untagged types, but do not for tagged types. Also, only
+    @Chg{Version=[3],New=[non-record],Old=[untagged]} types, but do not
+    for @Chg{Version=[3],New=[record],Old=[tagged]} types. Also, only
     tagged types support user-defined assignment
-    (see @RefSecNum{User-Defined Assignment and Finalization}),
+    (see @RefSecNum{Assignment and Finalization}),
     so only tagged types
     can fully handle levels of indirection in the implementation
     of the type. For untagged types, one reason for
@@ -3192,12 +3924,15 @@ for those composite types covered earlier) is defined as follows:
   Two null arrays of the same type are always equal;
   two null records of the same type are always equal.
 
+  @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0123-1]}
   Note that if a composite object has a component
   of a floating point type, and the floating point type
   has both a plus and minus zero, which are considered
   equal by the predefined equality, then a block compare
   cannot be used for the predefined composite equality.
-  Of course, with user-defined equals operators for tagged components,
+  Of course, with user-defined equals operators for
+  @Chg{Version=[3],New=[],Old=[tagged ]}components@Chg{Version=[3],New=[ that
+  are records],Old=[]},
   a block compare breaks down anyway, so this is not the only
   special case that requires component-by-component comparisons.
   On a one's complement machine, a similar situation might
@@ -3212,11 +3947,28 @@ for those composite types covered earlier) is defined as follows:
   of their own).]}
 
   @ChgRef{Version=[2],Kind=[AddedNormal]}
-  @ChgAdded{Version=[2],Text=[For a component with a tagged type @i{T},
+  @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0123-1]}
+  @ChgAdded{Version=[2],Text=[For a component with a @Chg{Version=[3],New=[record],
+  Old=[tagged]} type @i{T},
   @lquotes@;the primitive equals operator@rquotes@; is the one with two
   parameters of @i(T) which returns Boolean. We're not talking about some
   random other primitive function named "=".]}
 @end{Honest}
+
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0123-1]}
+@ChgAdded{Version=[3],Text=[If the primitive equals operator for an untagged
+record type is abstract, then Program_Error is raised at the point of any
+(implicit) call to that abstract subprogram.]}
+@begin{Reason}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[An explicit call to an abstract subprogram is
+  illegal. This rule is needed in order to define the effect of an implicit call
+  such as a call that is part of the predefined equality operation for an
+  enclosing composite type that has a component of an untagged record type that
+  has an abstract primitive equals operator. For tagged types, an abstract
+  primitive equals operator is only allowed for an abstract type, and abstract
+  types cannot be components, so this case does not occur.]}
+@end{Reason}
 
 @ChgRef{Version=[1],Kind=[Added],Ref=[8652/0016],ARef=[AI95-00123-01]}
 @ChgAdded{Version=[1],Text=[For any composite type, the order in which "="
@@ -3234,6 +3986,7 @@ Furthermore,
   result. See @RefSecNum(Overloading of Operators).
 @end{Ramification}
 
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0264-1]}
 @Defn{lexicographic order}
 For a discrete array type, the predefined ordering operators
 correspond to @i(lexicographic order) using the predefined order
@@ -3241,26 +3994,64 @@ relation of the component type: A null array is lexicographically
 less than any array having at least one component.
 In the case of nonnull arrays, the left operand is lexicographically
 less than the right operand if the first component of
-the left operand is less than that of the right; otherwise
+the left operand is less than that of the right; otherwise@Chg{Version=[3],New=[,],Old=[]}
 the left operand is lexicographically less than the right operand
 only if their first components are equal and the tail of the
 left operand is lexicographically less than that of the right (the
 @i(tail) consists of the remaining components beyond the first and
 can be null).
 
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0158-1]}
 @PDefn2{Term=[evaluation], Sec=(membership test)}
-For the evaluation of a membership test,
-the @nt<simple_expression> and the @nt<range> (if any) are evaluated
-in an arbitrary order.
+For the evaluation of a membership test@Chg{Version=[3],New=[ using @key[in]
+whose @nt{membership_choice_list} has a single @nt{membership_choice}],Old=[]},
+the @nt<simple_expression> and the
+@Chg{Version=[3],New=[@nt{membership_choice}],Old=[@nt<range> (if any)]} are
+evaluated in an arbitrary order@Chg{Version=[3],New=[; the result is the
+result of the individual membership test for
+the @nt{membership_choice}],Old=[]}.@PDefn2{Term=[arbitrary order],Sec=[allowed]}
 
-@Leading@;A membership test using
-@key(in) yields the result True if:
-@begin(itemize)
-  The tested type is scalar, and the value of
-  the @nt<simple_expression> belongs to the given @nt<range>, or
-  the range of the named subtype; or
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0158-1]}
+@ChgAdded{Version=[3],Text=[For the evaluation of a membership test using
+@key[in] whose @nt{membership_choice_list} has more than one @nt{membership_choice},
+the @nt{simple_expression} of the membership test is evaluated first and the
+result of the operation is equivalent to that of a sequence consisting
+of an individual membership test on each @nt{membership_choice}
+combined with the short-circuit control form @b[or else].]}
+
 @begin{Ramification}
-    The scalar membership test only does a range check.
+  @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0158-1]}
+  @ChgAdded{Version=[3],Text=[This equivalence includes the evaluation of the
+  @nt{membership_choice}s; evaluation stops as soon as an individual choice
+  evaluates to True.]}
+@end{Ramification}
+
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0158-1]}
+@Leading@;@Chg{Version=[3],New=[An @i{individual membership test}@Defn{individual membership test}],Old=[A
+membership test using @key(in)]} yields the result True if:
+@begin(itemize)
+  @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0158-1],ARef=[AI05-0264-1]}
+  @ChgAdded{Version=[3],Text=[The @nt{membership_choice} is a @nt{choice_expression},
+  and the @nt{simple_expression} is equal to the value of the @nt{membership_choice}.
+  If the tested type is a record type or a limited type, the test uses the
+  primitive equality for the type; otherwise, the test uses predefined equality.]}
+
+  @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0153-3],ARef=[AI05-0158-1]}
+  @ChgAdded{Version=[3],Text=[The @nt{membership_choice} is a @nt{range}
+  and the value of the @nt<simple_expression> belongs
+  to the given @nt<range>.]}
+
+  @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0153-3],ARef=[AI05-0158-1]}
+  @Chg{Version=[3],New=[The @nt{membership_choice} is a @nt{subtype_mark},
+  the],Old=[The]} tested type is scalar, @Chg{Version=[3],New=[],Old=[and ]}the
+  value of the @nt<simple_expression> belongs to the
+  @Chg{Version=[3],New=[],Old=[given @nt<range>, or the ]}range of the
+  named subtype@Chg{Version=[3],New=[, and the predicate of the
+  named subtype evaluates to True.@Defn2{Term=[predicate evaluated],Sec=[membership]}],Old=[; or]}
+@begin{Ramification}
+    @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0153-3]}
+    The scalar membership test only does a range check@Chg{Version=[3],New=[
+    and a predicate check],Old=[]}.
     It does not perform any other check, such as whether
     a value falls in a @lquotes@;hole@rquotes@; of a @lquotes@;holey@rquotes@; enumeration type.
     The Pos attribute function can be used for that purpose.
@@ -3272,10 +4063,13 @@ in an arbitrary order.
 @end{Ramification}
 
   @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00231-01]}
+  @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0153-3],ARef=[AI05-0158-1]}
   @ChgAdded{Version=[2],Type=[Leading],Text=[]}@ChgNote{To get conditional Leading}
-  The tested type is not scalar, and
+  @Chg{Version=[3],New=[The @nt<membership_choice> is a
+  @nt<subtype_mark>, the],Old=[The]} tested type is not scalar, @Chg{Version=[3],New=[],Old=[and ]}
   the value of the @nt<simple_expression> satisfies any constraints
-  of the named subtype, and@Chg{Version=[2],New=[:],Old=[, if the type of
+  of the named subtype, @Chg{Version=[3],New=[the predicate of the named subtype
+  evaluates to True, ],Old=[]}and@Chg{Version=[2],New=[:],Old=[, if the type of
   the @nt{simple_expression}
   is class-wide, the value has a tag that identifies a type covered by
   the tested type.]}
@@ -3289,16 +4083,35 @@ in an arbitrary order.
       specific type.
     @end{Ramification}
     @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00231-01]}
+    @ChgRef{Version=[3],Kind=[RevisedAdded],ARef=[AI05-0149-1]}
     @ChgAdded{Version=[2],Text=[if the tested type is an access type and the
     named subtype excludes null, the value of the @nt{simple_expression} is
-    not null.]}
+    not null@Chg{Version=[3],New=[;],Old=[.]}]}
+
+    @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0149-1]}
+    @ChgAdded{Version=[3],Text=[if the tested type is a general access-to-object
+    type, the type of the @nt{simple_expression} is convertible to the tested
+    type and its accessibility level is no deeper than that of the tested type;
+    further, if the designated type is tagged and the @nt{simple_expression} is
+    non-null, the tag of the object designated by the value of the
+    @nt{simple_expression} is covered by the designated type of the tested
+    type.]}
   @end{Inneritemize}
 @end(itemize)
 
-Otherwise the test yields the result False.
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0264-1]}
+Otherwise@Chg{Version=[3],New=[,],Old=[]} the test yields the result False.
 
 A membership test using @key(not in) gives the complementary result to
 the corresponding membership test using @key(in).
+
+@begin{Honest}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0158-1]}
+  @ChgAdded{Version=[3],Text=[@exam{@i<X> @key[not in] @i<A> | @i<B> | @i<C>}
+  is intended to be exactly equivalent to @exam{@key[not] (@i<X> @key[in] @i<A> | @i<B> | @i<C>)},
+  including in the order of evaluation of the @nt{simple_expression} and
+  @nt{membership_choice}s.]}
+@end{Honest}
 @end{RunTime}
 
 @begin{ImplReq}
@@ -3308,13 +4121,14 @@ language-defined packages, the "=" and "/=" operators of the type shall behave
 as if they were the predefined equality operators for the purposes of the
 equality of composite types and generic formal types.]}
 @begin{Ramification}
-@ChgRef{Version=[1],Kind=[Added]}
+@ChgRef{Version=[1],Kind=[Added],ARef=[AI95-00123-01]}
+@ChgRef{Version=[3],Kind=[RevisedAdded],ARef=[AI05-0123-1]}
 @ChgAdded{Version=[1],Text=[If any language-defined types are implemented with
-a user-defined "=" operator, then either the full type must be tagged, or
-the compiler must
+a user-defined "=" operator, then either the full type must be @Chg{Version=[3],
+New=[a record type],Old=[tagged]}, or the compiler must
 use @lquotes@;magic@rquotes@; to implement equality for this type. A normal
-user-defined "=" operator for an untagged type does @i{not} meet this
-requirement.]}
+user-defined "=" operator for @Chg{Version=[3],New=[a non-record],Old=[an untagged]}
+type does @i{not} meet this requirement.]}
 @end{Ramification}
 @end{ImplReq}
 
@@ -3342,13 +4156,16 @@ X /= Y
 "" < "A" @key(and) "A" < "Aa"     --@RI[  True]
 "Aa" < "B" @key(and) "A" < "A  "  --@RI[  True]
 
-My_Car = @key(null)               --@RI[ true if My_Car has been set to null (see @RefSecNum{Incomplete Type Declarations})]
-My_Car = Your_Car           --@RI[ true if we both share the same car]
-My_Car.@key[all] = Your_Car.@key[all]   --@RI[ true if the two cars are identical]
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0264-1]}
+My_Car = @key(null)               --@RI[ @Chg{Version=[3],New=[True],Old=[true]} if My_Car has been set to null (see @RefSecNum{Incomplete Type Declarations})]
+My_Car = Your_Car           --@RI[ @Chg{Version=[3],New=[True],Old=[true]} if we both share the same car]
+My_Car.@key[all] = Your_Car.@key[all]   --@RI[ @Chg{Version=[3],New=[True],Old=[true]} if the two cars are identical]
 
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0158-1]}
 N @key(not) @key(in) 1 .. 10            --@RI[ range membership test]
 Today @key(in) Mon .. Fri         --@RI[ range membership test]
-Today @key(in) Weekday            --@RI[ subtype membership test (see @RefSecNum{Enumeration Types})]
+Today @key(in) Weekday            --@RI[ subtype membership test (see @RefSecNum{Enumeration Types})]@Chg{Version=[3],New=[
+Card @key(in) Clubs | Spades      --@RI[ list membership test (see @RefSecNum{Enumeration Types})]],Old=[]}
 Archive @key(in) Disk_Unit        --@RI[ subtype membership test (see @RefSecNum{Variant Parts and Discrete Choices})]
 Tree.@key(all) @key(in) Addition'Class  --@RI[ class membership test (see @RefSecNum{Type Extensions})]
 @end{Example}
@@ -3379,10 +4196,10 @@ We have changed the term @lquotes@;catenate@rquotes@; to @lquotes@;concatenate@r
 @end{DiffWord83}
 
 @begin{Extend95}
-@ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00230-01],ARef=[AI95-00420-01]}
-@Chg{Version=[2],New=[@Defn{extensions to Ada 95}The @i{universal_access}
-equality operators are new. They provide equality operations (most importantly,
-testing against @key{null}) for anonymous access types.],Old=[]}
+  @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00230-01],ARef=[AI95-00420-01]}
+  @ChgAdded{Version=[2],Text=[@Defn{extensions to Ada 95}The @i{universal_access}
+  equality operators are new. They provide equality operations (most
+  importantly, testing against @key{null}) for anonymous access types.]}
 @end{Extend95}
 
 @begin{DiffWord95}
@@ -3397,6 +4214,56 @@ language-defined types.],Old=[]}
 cover the tested type, in order to be consistent with type
 conversions.],Old=[]}
 @end{DiffWord95}
+
+@begin{Inconsistent2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0123-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{inconsistencies with Ada 2005}
+  User-defined untagged record equality is now defined to compose and be used in
+  generics. Any code which assumes that the predefined equality reemerges
+  in generics and in predefined equals for composite types could fail.
+  However, it is much more likely that this change will fix bugs, as the
+  behavior that would be expected (the user-defined "=" is used) will be
+  true in more cases.]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0123-1]}
+  @ChgAdded{Version=[3],Text=[If a composite type contains
+  a component of an untagged record type with an abstract equality operation,
+  calling "=" on the composite type will raise Program_Error, while in the
+  past a result will be returned using the predefined equality. This is
+  quite possible in ASIS programs; it will detect a bug in such programs but
+  of course the programs will need to be fixed before they will work.]}
+@end{Inconsistent2005}
+
+@begin{Incompatible2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0123-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{incompatibilities with Ada 2005}
+  Late and hidden overriding of equality for untagged record types is now
+  prohibited. This is necessary to make composition of equality predictable.
+  It should always be possible to move the overriding to an earlier spot
+  where it will be legal.]}
+@end{Incompatible2005}
+
+@begin{Extend2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0149-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 2005}Membership tests
+  for the accessibility and designated tags for general access types are new.]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0153-3]}
+  @ChgAdded{Version=[3],Text=[Membership tests now include a predicate check.]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0158-1]}
+  @ChgAdded{Version=[3],Text=[Membership tests now allow multiple choices.]}
+@end{Extend2005}
+
+@begin{DiffWord2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0020-1]}
+  @ChgAdded{Version=[3],Text=[@b<Correction:> Wording was added to clarify
+  that @i{universal_access} "=" does not apply if an appropriate operator is
+  declared for a partial or incomplete view of the designated type.
+  Otherwise, adding a partial or incomplete view could make some "=" operators
+  ambiguous.]}
+@end{DiffWord2005}
+
 
 
 @LabeledSubClause{Binary Adding Operators}
@@ -3486,7 +4353,7 @@ assignment to an anonymous object,
 as for any function call (see @RefSecNum{Return Statements}).
 @begin{Ramification}
 This implies that value adjustment is performed as appropriate
-@em see @RefSecNum{User-Defined Assignment and Finalization}.
+@em see @RefSecNum{Assignment and Finalization}.
 We don't bother saying this for other predefined operators,
 even though they are all function calls,
 because this is the only one where it matters.
@@ -3610,11 +4477,12 @@ the absolute value of B. Signed integer division satisfies the identity:
 (-A)/B = -(A/B) = A/(-B)
 @end(example)
 
-@begin{Wide}
-@Leading@;The signed integer modulus operator is defined such
-that the result of A @key(mod) B has
-the sign of B and an absolute value less than the absolute value
-of B; in addition, for some signed integer value N, this result
+@begin{WideAbove}
+@Leading@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0260-1]}
+The signed integer modulus operator is defined such
+that the result of A @key(mod) B @Chg{Version=[3],New=[is either zero,
+or ],Old=[]}has the sign of B and an absolute value less than the
+absolute value of B; in addition, for some signed integer value N, this result
 satisfies the relation:
 @begin(example)
 A = B*N + (A @key(mod) B)
@@ -3630,7 +4498,7 @@ The above identity satisfied by signed integer
 division is not satisfied by modular division
 because of the difference in effect of negation.
 @end{Ramification}
-@end{Wide}
+@end{WideAbove}
 
 @Leading@;Multiplication and division operators are predefined for
 every specific floating point type @i(T):
@@ -3706,8 +4574,10 @@ multiplication operator if either operand is of a type having a user-defined
 primitive multiplication operator such that:]}
 @begin{Itemize}
   @ChgRef{Version=[2],Kind=[Added]}
+  @ChgRef{Version=[3],Kind=[RevisedAdded],ARef=[AI05-0020-1],ARef=[AI05-0209-1]}
   @ChgAdded{Version=[2],Text=[it is declared immediately within the same
-  declaration list as the type; and]}
+  declaration list as the type@Chg{Version=[3],New=[ or any partial
+  or incomplete view thereof],Old=[]}; and]}
 
   @ChgRef{Version=[2],Kind=[Added]}
   @ChgAdded{Version=[2],Text=[both of its formal parameters are of a
@@ -3795,7 +4665,7 @@ True, division by zero raises Constraint_Error.]
 @end{RunTime}
 
 @begin{Notes}
-@Leading@;For positive A and B, A/B is the quotient and A @key(rem) B is
+@Leading@Keepnext@;For positive A and B, A/B is the quotient and A @key(rem) B is
 the remainder when A is divided by B. The following relations are satisfied
 by the rem operator:
 @begin{Example}
@@ -3904,6 +4774,20 @@ it causes, since it is unlikely that the user wanted to use predefined
 operators when they had defined user-defined versions.],Old=[]}
 @end{Incompatible95}
 
+@begin{DiffWord2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0020-1],ARef=[AI05-0209-1]}
+  @ChgAdded{Version=[3],Text=[@b<Correction:> Wording was added to clarify
+  that @i{universal_fixed} "*" and "/" does not apply if an appropriate
+  operator is declared for a partial (or incomplete) view of the designated type.
+  Otherwise, adding a partial (or incomplete) view could make some
+  "*" and "/" operators ambiguous.]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0260-1]}
+  @ChgAdded{Version=[3],Text=[@b<Correction:> The wording for the @key[mod]
+  operator was corrected so that a result of 0 does not have to have
+  "the sign of B" (which is impossible if B is negative).]}
+@end{DiffWord2005}
+
 
 @LabeledSubClause{Highest Precedence Operators}
 
@@ -3971,11 +4855,13 @@ or the floating point type):
 @key(function) "**"(Left : @RI(T); Right : Integer'Base) @key(return) @RI(T)
 @end(example)
 
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0088-1]}
 @Defn{exponent}
 The right operand of an exponentiation is the @i(exponent).
-The expression X**N with the value of the exponent
-N positive is equivalent to the
-expression X*X*...X (with N@en@;1 multiplications) except that the multiplications
+The @Chg{Version=[3],New=[value of],Old=[expression]} X**N with the value of
+the exponent N positive is @Chg{Version=[3],New=[the same as the value of],
+Old=[equivalent to the expression]} X*X*...X (with N@en@;1 multiplications)
+except that the multiplications
 are associated in an arbitrary order. With N equal to zero, the result is one.
 With the value of N negative
 @Redundant[(only defined for a floating point operand)],
@@ -4028,4 +4914,446 @@ with a parameter subtype of Natural rather than Integer for the exponent.
 This reflects the fact that Constraint_Error is raised if
 a negative value is provided for the exponent.
 @end{DiffWord83}
+
+@begin{DiffWord2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0088-1]}
+  @ChgAdded{Version=[3],Text=[@b<Correction:> The equivalence definition
+  for "**" was corrected so that it does not imply that the operands
+  are evaluated multiple times.]}
+@end{DiffWord2005}
+
+
+@RMNewPageVer{Version=[3]}@Comment{For printed version of Ada 2012 RM}
+@LabeledAddedSubclause{Version=[3],Name=[Conditional Expressions]}
+
+@begin{Intro}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0147-1],ARef=[AI05-0188-1],ARef=[AI05-0262-1]}
+@ChgAdded{Version=[3],Text=[A @nt{conditional_expression} selects for evaluation
+at most one of the enclosed @SynI<dependent_>@nt{expression}s, depending on
+a decision among the alternatives. One
+kind of @nt{conditional_expression} is the @nt{if_expression}, which selects for
+evaluation a @SynI<dependent_>@nt{expression} depending on the value of one or more
+corresponding conditions. The other kind of @nt{conditional_expression} is the
+@nt{case_expression}, which selects for evaluation one of a number of alternative
+@SynI<dependent_>@nt{expression}s; the chosen alternative is determined by the
+value of a @SynI<selecting_>@nt{expression}.]}
+@end{Intro}
+
+@begin{MetaRules}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0188-1]}
+  @ChgAdded{Version=[3],Text=[As previously noted, there are two kinds of
+  @nt{conditional_expression}, @nt{if_expression}s and @nt{case_expression}s.
+  Whenever possible, we have written the rules in terms of
+  @nt{conditional_expression}s to avoid duplication.]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0147-1]}
+  @ChgAdded{Version=[3],Text=[The rules for @nt{conditional_expression}s
+  have been designed as much as possible to work similarly to a parenthesized
+  expression. The intent is that as much as possible, wherever a parenthesized
+  expression would be allowed, a @nt{conditional_expression} would be allowed,
+  and it should work the same way.]}
+@end{MetaRules}
+
+@begin{Syntax}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0188-1]}
+@AddedSyn{Version=[3],lhs=<@Chg{Version=[3],New=<conditional_expression>,Old=<>}>,
+rhs="@Chg{Version=[3],New=<@Syn2{if_expression} | @Syn2{case_expression}>,Old=<>}"}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0147-1],ARef=[AI05-0188-1]}
+@AddedSyn{Version=[3],lhs=<@Chg{Version=[3],New=<if_expression>,Old=<>}>,
+rhs="
+   @Chg{Version=[3],New=<@key[if] @Syn2{condition} @key[then] @SynI{dependent_}@Syn2{expression}
+   {@key[elsif] @Syn2{condition} @key[then] @SynI{dependent_}@Syn2{expression}}
+   [@key[else] @SynI{dependent_}@Syn2{expression}]>,Old=<>}"}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0147-1]}
+@AddedSyn{Version=[3],lhs=<@Chg{Version=[3],New=<condition>,Old=<>}>,
+rhs="@Chg{Version=[3],New=<@SynI{boolean_}@Syn2{expression}>,Old=<>}"}
+@Comment{Moved from "If Statements"}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0188-1]}
+@AddedSyn{Version=[3],lhs=<@Chg{Version=[3],New=<case_expression>,Old=<>}>,
+rhs="@Chg{Version=[3],New=<
+    @key[case] @SynI{selecting_}@Syn2{expression} @key[is]
+    @Syn2[case_expression_alternative] {,
+    @Syn2[case_expression_alternative]}>,Old=<>}"}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0188-1]}
+@AddedSyn{Version=[3],lhs=<@Chg{Version=[3],New=<case_expression_alternative>,Old=<>}>,
+rhs="@Chg{Version=[3],New=[
+    @key[when] @Syn2{discrete_choice_list} =>
+        @SynI{dependent_}@Syn2{expression}],Old=<>}"}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0147-1]}
+@ChgAdded{Version=[3],Text=[Wherever the Syntax Rules allow an @nt{expression},
+a @nt{conditional_expression} may be used in place of the @nt{expression}, so
+long as it is immediately surrounded by parentheses.]}
+
+@begin{Discussion}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0147-1]}
+  @ChgAdded{Version=[3],Text=[The syntactic category @nt{conditional_expression}
+  appears only as a primary that is parenthesized. The above rule allows it to
+  additionally be used in other contexts where it would be directly surrounded
+  by parentheses.]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Type=[Leading],Text=[The grammar makes the following directly legal:]}
+
+@begin{Example}
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[A := (@key[if] X @key[then] Y @key[else] Z); --@examcom{ parentheses required}
+A := B + (@key[if] X @key[then] Y @key[else] Z) + C; --@examcom{ parentheses required}]}
+@end{Example}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Type=[Leading],Text=[The following procedure calls are
+  syntactically legal; the first uses the above rule to eliminate the redundant
+  parentheses found in the second:]}
+
+@begin{Example}
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[P(@key[if] X @key[then] Y @key[else] Z);
+P((@key[if] X @key[then] Y @key[else] Z)); --@Examcom{ redundant parentheses}]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[P((@key[if] X @key[then] Y @key[else] Z), Some_Other_Param);
+P(Some_Other_Param, (@key[if] X @key[then] Y @key[else] Z));
+P(Formal => (@key[if] X @key[then] Y @key[else] Z));]}
+@end{Example}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Type=[Leading],Text=[whereas the following are illegal:]}
+
+@begin{Example}
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[P(@key[if] X @key[then] Y @key[else] Z, Some_Other_Param);
+P(Some_Other_Param, @key[if] X @key[then] Y @key[else] Z);
+P(Formal => @key[if] X @key[then] Y @key[else] Z);]}
+@end{Example}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[because in these latter cases, the
+  @nt{conditional_expression} is not immediately surrounded by parentheses (which
+  means on both sides!).]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[The English-language rule applies in all places
+  that could surround an expression with parentheses, including pragma
+  arguments, type conversion and qualified expression operands, and array index
+  expressions.]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[This English-language rule could have been
+  implemented instead by adding a non-terminal
+  @ntf{expression_within_parentheses}, which would consist of @nt{expression}s
+  and @nt{conditional_expression}s. Then, that could be used in all of the
+  syntax which could consist of parens directly around an @nt{expression}. We
+  did not do that because of the large amount of change required. A complete
+  grammar is given in @AILink{AI=[AI05-0147-1],Text=[AI05-0147-1]}.]}
+@end{Discussion}
+
+@begin{ImplNote}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0147-1]}
+  @ChgAdded{Version=[3],Text=[Implementers are cautioned to consider error
+  detection when implementing the syntax for @nt{conditional_expression}s. An
+  @nt{if_expression} and an @nt{if_statement} are very similar syntactically, (as
+  are a @nt{case_expression} and a @nt{case_statement}) and simple mistakes can
+  appear to change one into the other, potentially causing errors to be moved
+  far away from their actual location. The absence of @key[end if] to terminate
+  an @nt{if_expression} (and @key[end case] for a @nt{case_expression}) also
+  may make error handling harder.]}
+@end{ImplNote}
+
+@end{Syntax}
+
+@begin{Resolution}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0147-1]}
+@ChgAdded{Version=[3],Type=[Leading],Text=[If a @nt{conditional_expression} is
+expected to be of a type @i<T>, then each @SynI{dependent_}@nt{expression} of
+the @nt{conditional_expression} is expected to be of type @i<T>. Similarly, if a
+@nt{conditional_expression} is expected to be of some class of types, then each
+@SynI{dependent_}@nt{expression} of the @nt{conditional_expression} is subject
+to the same expectation. If a @nt{conditional_expression} shall resolve to be of
+a type @i<T>, then each @SynI{dependent_}@nt{expression} shall resolve to be of
+type @i<T>.@PDefn2{Term=[expected type],Sec=[dependent_expression]}]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0147-1]}
+@ChgAdded{Version=[3],Type=[Leading],Text=[The possible types of a
+@nt{conditional_expression} are further determined as follows:]}
+
+@begin{Itemize}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[If the @nt{conditional_expression} is the operand
+  of a type conversion, the type of the @nt{conditional_expression} is the
+  target type of the conversion; otherwise,]}
+
+@begin{Reason}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Type=[Leading],Text=[This rule distributes an enclosing
+  type conversion to the @SynI{dependent_}@nt{expression}s. This means that]}
+@begin{Example}
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[T(@key[if] C @key[then] A @key[else] B)]}
+@end{Example}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Type=[Leading],Text=[has the same semantics as]}
+@begin{Example}
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[(@key[if] C @key[then] T(A) @key[else] T(B))]}
+@end{Example}
+@end{Reason}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[If all of the @SynI{dependent_}@nt{expression}s
+  are of the same type, the type of the @nt{conditional_expression} is that
+  type; otherwise,]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[If a @SynI{dependent_}@nt{expression} is of an
+  elementary type, the type of the @nt{conditional_expression} shall be covered
+  by that type; otherwise,]}
+
+@begin{Reason}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[This rule supports the use of
+  numeric literals and universal expressions within a
+  @nt{conditional_expression}.]}
+@end{Reason}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[If the @nt{conditional_expression} is expected to
+  be of type @i<T> or shall resolve to type @i<T>, then the
+  @nt{conditional_expression} is of type @i<T>.]}
+
+@begin{Ramification}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[If the type of the @nt{conditional_expression}
+  cannot be determined by one of these rules, the Name Resolution has failed for
+  that expression, even if the @SynI{dependent_}@nt{expression}s would
+  resolve individually.]}
+@end{Ramification}
+@end{Itemize}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0147-1]}
+@ChgAdded{Version=[3],Text=[@PDefn2{Term=[expected type], Sec=(condition)}
+A @nt{condition} is expected to be of any boolean type.]}
+@Comment{Moved from "If Statements"}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0188-1]}
+@ChgAdded{Version=[3],Text=[The expected type for the
+@SynI<selecting_>@nt{expression} and the @nt{discrete_choice}s are as for case
+statements
+(see @RefSecNum{Case Statements}).@PDefn2{Term=[expected type],Sec=[case_expression selecting_expression]}
+@PDefn2{Term=[expected type],Sec=[case_expression_alternative discrete_choice]}
+@PDefn2{Term=[expected type],Sec=[selecting_expression case_expression]}]}
+
+@end{Resolution}
+
+@begin{Legality}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0147-1],ARef=[AI05-0188-1]}
+@ChgAdded{Version=[3],Text=[All of the @SynI{dependent_}@nt{expression}s
+shall be convertible (see @RefSecNum{Type Conversions}) to the type of the
+@nt{conditional_expression}.]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0147-1],ARef=[AI05-0188-1]}
+@ChgAdded{Version=[3],Text=[If the expected type of a
+@nt{conditional_expression} is a specific tagged type, all of the
+@SynI{dependent_}@nt{expression}s of the @nt{conditional_expression} shall be
+dynamically tagged, or none shall be dynamically tagged; the
+@nt{conditional_expression} is dynamically tagged if all of the
+@SynI{dependent_}@nt{expression}s are dynamically tagged, is tag-indeterminate
+if all of the @SynI{dependent_}@nt{expression}s are tag-indeterminate, and is
+statically tagged otherwise.]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0147-1],ARef=[AI05-0262-1]}
+@ChgAdded{Version=[3],Text=[If there is no @key[else]
+@SynI{dependent_}@nt{expression}, the @nt{if_expression} shall be of
+a boolean type.]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0188-1]}
+@ChgAdded{Version=[3],Text=[All @LegalityTitle that apply to the
+@nt{discrete_choice}s of a @nt{case_statement} (see @RefSecNum{Case Statements}),
+apply to the @nt{discrete_choice}s of a @nt{case_expression} except
+within an instance of a generic unit.]}
+@begin{Reason}
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Type=[Leading],Text=[The exemption for a case expression
+that occurs in an instance allows the following example:]}
+@begin{Example}
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[@key[generic]
+   @key[with function] Int_Func @key[return] Integer;
+@key[package] G @key[is]
+   X : Float := (@key[case] Int_Func @key[is]
+                  @key[when] Integer'First .. -1 => -1.0,
+                  @key[when] 0 => 0.0,
+                  @key[when] Positive => 1.0);
+@key[end] G;]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[@key[function] Nat_Func @key[return] Natural @key[is] (123);]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[@key[package] I @key[is new] G (Int_Func => Nat_Func); -- @Examcom{Legal}]}
+@end{Example}
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[Note that the @LegalityTitle still apply in the
+generic unit itself; they are just not enforced in an instance of the unit.]}
+@end{Reason}
+@end{Legality}
+
+@begin{Runtime}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0147-1],ARef=[AI05-0188-1]}
+@ChgAdded{Version=[3],Text=[For the evaluation of an @nt{if_expression}, the
+@nt{condition} specified after @key[if], and any @nt{condition}s specified
+after @key[elsif], are evaluated in succession (treating a final @key[else]
+as @key[elsif] True @key[then]), until one evaluates to True or
+all @nt{condition}s are evaluated and yield False. If a @nt{condition}
+evaluates to True, the associated @synI{dependent_}@nt{expression} is evaluated,
+converted to the type of the @nt{if_expression}, and the resulting value is the
+value of the @nt{if_expression}. Otherwise (when there is no @key[else] clause),
+the value of the @nt{if_expression} is True.@PDefn2{Term=[evaluation],Sec=[if_expression]}]}
+
+@begin{Ramification}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[@key[Else] is required unless the
+  @nt{if_expression} has a boolean type, so the last sentence can only apply to
+  @nt{if_expression}s with a boolean type.]}
+@end{Ramification}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0188-1]}
+@ChgAdded{Version=[3],Text=[For the evaluation of a @nt{case_expression}, the
+@SynI<selecting_>@nt{expression} is first evaluated.
+If the value of the @SynI<selecting_>@nt{expression}
+is covered by the @nt{discrete_choice_list} of some
+@nt{case_expression_alternative}, then the @SynI<dependent_>@nt{expression} of
+the @nt{case_expression_alternative} is evaluated, converted to the type of the
+@nt{case_expression}, and the resulting value is the value of the
+@nt{case_expression}.@IndexCheck{Overflow_Check}
+@Defn2{Term=[Constraint_Error],Sec=(raised by failure of run-time check)}
+Otherwise (the value is not covered by any
+@nt{discrete_choice_list}, perhaps due to being outside the base range),
+Constraint_Error is raised.@PDefn2{Term=[evaluation],Sec=[case_expression]}]}
+
+@end{Runtime}
+
+
+@begin{Extend2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0147-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 2005}If expressions
+  and case expressions are new.]}
+@end{Extend2005}
+
+
+@LabeledAddedSubclause{Version=[3],Name=[Quantified Expressions]}
+
+@begin{Syntax}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0176-1]}
+@AddedSyn{Version=[3],lhs=<@Chg{Version=[3],New=<quantified_expression>,Old=<>}>,
+rhs="@Chg{Version=[3],New=[@key[for] @Syn2{quantifier} @Syn2{loop_parameter_specification} => @Syn2{predicate}
+  | @key[for] @Syn2{quantifier} @Syn2{iterator_specification} => @Syn2{predicate}],Old=<>}"}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@AddedSyn{Version=[3],lhs=<@Chg{Version=[3],New=<quantifier>,Old=<>}>,
+rhs="@Chg{Version=[3],New=<@key[all] | @key[some]>,Old=<>}"}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@AddedSyn{Version=[3],lhs=<@Chg{Version=[3],New=<predicate>,Old=<>}>,
+rhs="@Chg{Version=[3],New=<@SynI<boolean_>@Syn2{expression}>,Old=<>}"}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0176-1]}
+@ChgAdded{Version=[3],Text=[Wherever the Syntax Rules allow an @nt{expression}, a
+@nt{quantified_expression} may be used in place of the @nt{expression}, so
+long as it is immediately surrounded by parentheses.]}
+
+@begin{Discussion}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[The syntactic category @nt{quantified_expression}
+  appears only as a @nt{primary} that is parenthesized. The above rule allows it to additionally
+  be used in other contexts where it would be directly surrounded by
+  parentheses. This is the same rule that is used for @nt{conditional_expression}s;
+  see @RefSecNum{Conditional Expressions} for a detailed discussion of the
+  meaning and effects of this rule.]}
+@end{Discussion}
+@end{Syntax}
+
+@begin{Resolution}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0176-1]}
+@ChgAdded{Version=[3],Text=[@PDefn2{Term=[expected type],Sec=[quantified_expression]}
+The expected type of a @nt{quantified_expression} is
+any Boolean type. The @nt{predicate} in a @nt{quantified_expression} is
+expected to be of the same type.@Defn{quantified expressions}]}
+@end{Resolution}
+
+@begin{Runtime}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0176-1]}
+@ChgAdded{Version=[3],Text=[For the evaluation of a @nt{quantified_expression},
+the @nt{loop_parameter_specification} or @nt{iterator_specification} is first elaborated. The evaluation of a
+@nt{quantified_expression} then evaluates the @nt{predicate} for each value of
+the loop parameter. These values are examined in the order specified by the
+@nt{loop_parameter_specification} (see @RefSecNum{Loop Statements}) or
+@nt{iterator_specification} (see @RefSecNum{Generalized Loop Iteration}).@PDefn2{Term=[evaluation],Sec=[quantified_expression]}]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0176-1]}
+@ChgAdded{Version=[3],Type=[Leading],Text=[The value of the
+@nt{quantified_expression} is determined as follows:]}
+
+@begin{Itemize}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[If the @nt{quantifier} is @key[all], the
+  expression is True if the evaluation of the @nt{predicate} yields True for
+  each value of the loop parameter. It is False otherwise. Evaluation of
+  the @nt{quantified_expression} stops when all values of the domain have been
+  examined, or when the @nt{predicate} yields False for a given value. Any
+  exception raised by evaluation of the @nt{predicate} is propagated.]}
+
+@begin{Ramification}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[The @nt{expression} is True if the domain contains no values.]}
+@end{Ramification}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[If the @nt{quantifier} is @key[some], the
+  expression is True if the evaluation of the @nt{predicate} yields True for
+  some value of the loop parameter. It is False otherwise. Evaluation of
+  the @nt{quantified_expression} stops when all values of the domain have been
+  examined, or when the @nt{predicate} yields True for a given value. Any
+  exception raised by evaluation of the @nt{predicate} is propagated.]}
+
+@begin{Ramification}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[The @nt{expression} is False if the domain contains no values.]}
+@end{Ramification}
+@end{Itemize}
+@end{Runtime}
+
+@begin{Examples}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0176-1]}
+@ChgAdded{Version=[3],Type=[Leading],Text=[The postcondition for a sorting
+routine on an array A with an index subtype T can be written:]}
+
+@begin{Example}
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[Post => (A'Length < 2 @key[or else]
+   (@key[for all] I @key[in] A'First .. T'Pred(A'Last) => A (I) <= A (T'Succ (I))))]}
+@end{Example}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0176-1]}
+@ChgAdded{Version=[3],Type=[Leading],Text=[The assertion that a positive number
+is composite (as opposed to prime) can be written:]}
+
+@begin{Example}
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[@key[pragma] Assert (@key[for some] X @key[in] 2 .. N / 2 => N @key[mod] X = 0);]}
+@end{Example}
+
+@end{Examples}
+
+@begin{Extend2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0176-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 2005}Quantified
+  expressions are new.]}
+@end{Extend2005}
 

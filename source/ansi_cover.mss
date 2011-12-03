@@ -7,7 +7,7 @@
 @Define(I2CR, Copy Copyright, Fixed 8.5inches,
         AfterExit "Reprinting permitted if accompanied by this statement")
 
-@comment{$Source: d:\\CvsRoot/ARM/Source/ansi_cover.mss,v $}
+@comment{$Source: e:\\cvsroot/ARM/Source/ansi_cover.mss,v $}
 @comment{$Revision: 1.12 $ $Date: 2000/05/27 04:44:03 $}
 @begin(I2Title)
 @begin{FlushRight, Fixed 0.75inch}

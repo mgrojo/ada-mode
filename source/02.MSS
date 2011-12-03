@@ -1,10 +1,10 @@
 @Part(02, Root="ada.mss")
 
-@Comment{$Date: 2006/10/18 00:25:23 $}
+@Comment{$Date: 2011/11/01 05:34:02 $}
 @LabeledSection{Lexical Elements}
 
-@Comment{$Source: d:\\CvsRoot/ARM/Source/02.MSS,v $}
-@Comment{$Revision: 1.60 $}
+@Comment{$Source: e:\\cvsroot/ARM/Source/02.mss,v $}
+@Comment{$Revision: 1.78 $}
 
 @begin{Intro}
 @redundant[The text of a program consists of the texts of one or more
@@ -55,7 +55,7 @@ New=[],Old=[Note that our definition for
 
 @begin{Syntax}
 @begin{NotIso}
-@ChgAdded{Version=[2],Noprefix=[T],Noparanum=[T],Text=[@Shrink{@i<Paragraphs 2 and 3
+@ChgAdded{Version=[2],Noparanum=[T],Text=[@Shrink{@i<Paragraphs 2 and 3
 were deleted.>}]}@Comment{This message should be
 deleted if the paragraphs are ever renumbered.}
 @end{NotIso}
@@ -78,6 +78,7 @@ cell.]}
 
 @begin{StaticSem}
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00285-01],ARef=[AI95-00395-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0079-1]}
 The@Chg{Version=[2],New=[],Old=[ character repertoire for the text of
 an Ada program consists of the
 collection of characters
@@ -91,7 +92,9 @@ a set of @ntf<other_control_function>s; the]} coded representation for
 representation defined within @Chg{Version=[2],New=[ISO/IEC 10646:2003],
 Old=[ISO-10646-1]})].@Chg{Version=[2],New=[ A character whose relative
 code position in its plane is 16#FFFE# or 16#FFFF# is not allowed anywhere
-in the text of a program.],Old=[]}
+in the text of a program.],Old=[]}@Chg{Version=[3],New=[ The only
+characters allowed outside of comments are those in categories
+@ntf{other_format}, @ntf{format_effector}, and @ntf{graphic_character}.],Old=[]}
 @ImplDef{The coded representation for the text of an Ada program.}
 
 @begin{Ramification}@ChgNote{Moved from above}
@@ -282,8 +285,8 @@ Old=[Any control function,
 other than a @ntf<format_effector>, that is allowed in a comment; the set of
 @ntf<other_control_function>s allowed in comments is implementation defined.
 @IndexSeeAlso{Term=[control character],See=(other_control_function)}]}
-@ChgImplDef{Version=[2],Kind=[Deleted],Text=[@ChgDeleted{Version=[2],Text=[The
-control functions allowed in comments.]}]}
+@ChgImplDef{Version=[2],Kind=[Deleted],InitialVersion=[0],
+Text=[@ChgDeleted{Version=[2],Text=[The control functions allowed in comments.]}]}
 
 @begin{Discussion}
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00285-01]}
@@ -546,7 +549,19 @@ that are not even linear sequences of characters.
 It is also the intent to allow different fonts:
 reserved words might be in bold face,
 and that should be irrelevant to the semantics.
+
 @end(Discussion)
+@begin{ImplNote}
+  @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0079-1]}
+  @ChgAdded{Version=[3],Text=[In order to process the ACATS, an implementation
+  will have to have the ability to process Latin-1 and UTF-8 formatted files.
+  UTF-8 files by convention start with the character zero width no-break space
+  (16#0000FEFF#), also known as byte order mark (BOM); Latin-1 Ada source files
+  do not start with these characters (the BOM is encoded as 16#EF# 16#BB#
+  16#BF# for UTF-8; the last two characters are not legal in Ada programs
+  outside of comments). That means it is possible for a compiler to determine
+  which of these file formats is used without operator intervention.]}
+@end{ImplNote}
 @end{Notes}
 
 @begin{Extend83}
@@ -591,6 +606,14 @@ permitted in identifiers (in the standard mode).]}
   clause has been rewritten to use the categories defined in that Standard.
   This should ease programming in languages other than English.]}
 @end{Extend95}
+
+@begin{Diffword2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0079-1]}
+  @ChgAdded{Version=[3],Text=[@b<Correction:> Clarified that only
+  characters in the categories defined here are allowed in the source
+  of an Ada program. This was clear in Ada 95, but Amendment 1 dropped
+  the wording instead of correcting it.]}
+@end{Diffword2005}
 
 
 @LabeledClause{Lexical Elements, Separators, and Delimiters}
@@ -657,6 +680,11 @@ At least one separator is required between an @nt{identifier},
 a reserved word, or a @nt{numeric_literal} and an adjacent
 @nt{identifier}, reserved word, or @nt{numeric_literal}.
 
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0079-1]}
+@ChgAdded{Version=[3],Text=[One or more @ntf{other_format} characters
+are allowed anywhere that a separator is@Redundant[; any such characters
+have no effect on the meaning of an Ada program].]}
+
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00285-01]}
 @Defn{delimiter}
 A @i{delimiter} is either one of the following@Chg{Version=[2],New=[],Old=[ special]}
@@ -678,7 +706,9 @@ of a compound delimiter, or as a character of a @nt{comment},
 @nt{string_literal}, @nt{character_literal}, or
 @nt{numeric_literal}.
 
-@rmnewpage@ChgNote{Ada 2005 only}
+@RMNewPageVer{Version=[2]}@Comment{For printed version of Ada 2005 RM}
+@RMNewPageVer{Version=[3]}@Comment{For printed version of Ada 2012 RM}
+
 @Leading@keepnext@;The following names are used when referring to compound
 delimiters:@table{Columns=[2],
 Alignment=[Allleft],FirstColWidth=[1],LastColWidth=[4],
@@ -716,6 +746,16 @@ From URG recommendation.
   categories defined in the preceding clause.]}
 @end{Diffword95}
 
+@begin{Extend2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0079-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 2005}@b<Correction:>
+  Clarified that
+  @ntf{other_format} characters are allowed anywhere that separators
+  are allowed. This was intended in Ada 2005, but didn't actually
+  make it into the wording.]}
+@end{Extend2005}
+
+
 
 @LabeledClause{Identifiers}
 
@@ -740,84 +780,123 @@ rhs="@Chg{Version=[2],New=<
    | @Synf{number_letter}>,Old=<@Synf{identifier_letter} | @Synf{digit}>}"}
 
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00285-01],ARef=[AI95-00395-01]}
+@ChgRef{Version=[3],Kind=[RevisedAdded],ARef=[AI05-0091-1]}
 @AddedSyn{Version=[2],lhs=<@Chg{Version=[2],New=<identifier_extend>,Old=<>}>,
 rhs="@Chg{Version=[2],New=<
      @Synf{mark_non_spacing}
    | @Synf{mark_spacing_combining}
    | @Synf{number_decimal}
-   | @Synf{punctuation_connector}
-   | @Synf{other_format}>,Old=<>}"}
+   | @Synf{punctuation_connector}@Chg{Version=[3],New=<>,Old=<
+   | @Synf{other_format}>}>,Old=<>}"}
 
 @begin{SyntaxText}
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00395-01]}
-@Chg{Version=[2],New=[After eliminating the characters in category
-@ntf{other_format}, an @nt{identifier} shall not contain two consecutive
-characters in category punctuation_connector, or end with a character
-in that category.],Old=[An @nt{identifier} shall not be a reserved word.]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0091-1]}
+@Chg{Version=[2],New=[@Chg{Version=[3],New=[An],Old=[After eliminating the
+characters in category @ntf{other_format}, an]} @nt{identifier} shall not
+contain two consecutive characters in category
+@Chg{Version=[3],New=[@ntf{punctuation_connector}],Old=[punctuation_connector]},
+or end with a character in that category.],Old=[An @nt{identifier} shall not be
+a reserved word.]}
 @begin{Reason}
   @ChgRef{Version=[2],Kind=[AddedNormal]}
+  @ChgRef{Version=[3],Kind=[Revised]}
   @ChgAdded{Version=[2],Text=[This rule was stated in the syntax in Ada 95,
-  but that has gotten too complex in Ada 2005. Since @ntf{other_format}
+  but that has gotten too complex in Ada 2005.@Chg{Version=[3],New=[],
+  Old=[ Since @ntf{other_format}
   characters usually do not display, we do not want to count them as separating
-  two underscores.]}
+  two underscores.]}]}
 @end{Reason}
 @end{SyntaxText}
 @end{Syntax}
 
 @begin{StaticSem}
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00285-01]}
-@ChgAdded{Version=[2],Type=[Leading],Text=[Two @nt{identifier}s are ]}@Chg{Version=[2],
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0091-1],ARef=[AI05-0227-1]}
+@Comment{Removed the "Type=[Leading]" along with the bullets. Don't have
+a way to make it doubly conditional (only in Version=[2]), and since it is
+mainly for spacing, we just forget it.}
+@ChgAdded{Version=[2],Text=[Two @nt{identifier}s are ]}@Chg{Version=[2],
 New=[considered the same if they consist of the same sequence of characters
-after applying the following transformations (in this order):],Old=[All
-characters of an @nt{identifier} are significant, including any
-underline character.
+after applying @Chg{Version=[3],New=[locale-independent simple case folding,
+as defined by documents referenced in the note in section 1 of
+ISO/IEC 10646:2003.@Defn{case insensitive}],Old=[the following transformations
+(in this order):]}],Old=[All characters of an @nt{identifier} are significant,
+including any underline character.
 @Defn{case insensitive}
 @nt{Identifier}s differing only in the use of
 corresponding upper and lower case letters are considered the same.]}
 @begin{Itemize}
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00285-01]}
-@ChgAdded{Version=[2],Text=[The characters in category @ntf{other_format}
-are eliminated.]}
+@ChgRef{Version=[3],Kind=[DeletedAddedNoDelMsg],ARef=[AI05-0091-1]}
+@ChgAdded{Version=[2],Text=[@Chg{Version=[3],New=[],Old=[The characters
+in category @ntf{other_format} are eliminated.]}]}
 
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00285-01],ARef=[AI95-00395-01]}
-@ChgAdded{Version=[2],Text=[The remaining sequence of characters is
-converted to upper case.
-@Defn{case insensitive}]}
+@ChgRef{Version=[3],Kind=[DeletedAddedNoDelMsg],ARef=[AI05-0091-1]}
+@ChgAdded{Version=[2],Text=[@Chg{Version=[3],New=[],Old=[The remaining sequence of
+characters is converted to upper case.
+@Defn{case insensitive}]}]}
 @end{Itemize}
 @begin(Discussion)
   @ChgRef{Version=[2],Kind=[DeletedNoDelMsg]}
-  @ChgDeleted{Version=[2],Text=[Two of the letters of ISO 8859-1
-  appear only as lower case,
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0227-1]}
+  @Chg{Version=[3],New=[Simple case folding is a mapping to lower case, so this
+  is matching the defining (lower case) version of a reserved word. We could
+  have mentioned case folding of the reserved words, but as that is an identity
+  function, it would have no effect.],Old=[@Chg{Version=[2],New=[],Old=[Two of
+  the letters of ISO 8859-1 appear only as lower case,
   "sharp s" and "y with diaeresis." These two letters have
   no corresponding upper case letter (in particular, they
-  are not considered equivalent to one another).]}
+  are not considered equivalent to one another).]}]}
+
+  @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0227-1]}
+  @ChgAdded{Version=[3],Text=[The @ldquote@;documents referenced@rdquote means
+  Unicode. Note that simple case folding is supposed to be compatible between
+  Unicode versions, so the Unicode version used doesn't
+  matter.]}
 @end(Discussion)
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00395-01]}
-@ChgAdded{Version=[2],Text=[After applying these transformations, an
-@nt{identifier} shall not be identical to a reserved word (in upper case).]}
+@ChgRef{Version=[3],Kind=[RevisedAdded],ARef=[AI05-0091-1],ARef=[AI05-0227-1]}
+@ChgAdded{Version=[2],Text=[After applying @Chg{Version=[3],New=[simple
+case folding],Old=[these transformations]}, an
+@nt{identifier} shall not be identical to a reserved
+word@Chg{Version=[3],New=[],Old=[ (in upper case)]}.]}
 @begin(ImplNote)
   @ChgRef{Version=[2],Kind=[AddedNormal]}
-  @ChgAdded{Version=[2],Text=[We match the reserved words after doing these
-  transformations so that the rules for @nt{identifier}s and reserved words are
-  the same. (This allows @ntf{other_format} characters, which usually don't
-  display, in a reserved word without changing it to an @nt{identifier}.) Since
+  @ChgRef{Version=[3],Kind=[Revised]}
+  @ChgAdded{Version=[2],Text=[We match the reserved words after
+  @Chg{Version=[3],New=[applying case folding],Old=[doing these
+  transformations]} so that the rules for @nt{identifier}s and reserved words are
+  the same. @Chg{Version=[3],New=[],Old=[(This allows @ntf{other_format}
+  characters, which usually don't display, in a reserved word
+  without changing it to an @nt{identifier}.) ]}Since
   a compiler usually will lexically process @nt{identifier}s and reserved words the
   same way (often with the same code), this will prevent a lot of headaches.]}
 @end(ImplNote)
 @begin(Ramification)
   @ChgRef{Version=[2],Kind=[AddedNormal]}
+  @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0227-1]}
   @ChgAdded{Version=[2],Text=[The rules for reserved words differ in one way:
   they define case conversion on letters rather than sequences. This means that
-  some unusual sequences are neither @nt{identifier}s nor reserved words.
-  For instance, @lquotes@;@smldotlessi@;f@rquotes@; and
+  @Chg{Version=[3],New=[it is possible that there exist ],Old=[]}some
+  unusual sequences @Chg{Version=[3],New=[that ],Old=[]}are neither
+  @nt{identifier}s nor reserved words.
+  @Chg{Version=[3],New=[We are not aware of any such sequences so long as we use
+  simple case folding (as opposed to full case folding), but we have defined the
+  rules in case any are introduced in future character set standards. This
+  originally was a problem when converting to upper case:],Old=[For instance,]}
+  @lquotes@;@smldotlessi@;f@rquotes@; and
   @lquotes@;acce@latin1(223)@rquotes@; have upper case conversions of
   @lquotes@;IF@rquotes@; and @lquotes@;ACCESS@rquotes@; respectively.
-  These are not @nt{identifier}s, because the transformed values are identical
-  to a reserved word. But they are not reserved words, either, because the
-  original values do not match any reserved word as defined or with any number
+  @Chg{Version=[3],New=[We would not want these to be treated as reserved words.
+  But neither of these cases exist when using simple case folding.], Old=[These
+  are not @nt{identifier}s, because the transformed values are
+  identical to a reserved word. But they are not reserved words, either, because
+  the original values do not match any reserved word as defined or with any number
   of characters of the reserved word in upper case. Thus, these odd
   constructions are just illegal, and should not appear in the source of
-  a program.]}
+  a program.]}]}
 @end(Ramification)
 @end{StaticSem}
 
@@ -830,31 +909,58 @@ to accommodate local conventions].
 
 @begin(Discussion)
   @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00285-01]}
+  @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0227-1]}
   @ChgAdded{Version=[2],Type=[Leading],Text=[For instance, in most languages,
-  the uppercase
-  equivalent of LATIN SMALL LETTER I (a lower case letter with a dot above) is
-  LATIN CAPITAL LETTER I (an upper case letter without a dot above). In
-  Turkish, though, LATIN SMALL LETTER I and LATIN SMALL LETTER DOTLESS I are
-  two distinct letters, so the upper case equivalent of LATIN SMALL LETTER I is
-  LATIN CAPITAL LETTER I WITH DOT ABOVE, and the upper case equivalent of LATIN
-  SMALL LETTER DOTLESS I is LATIN CAPITAL LETTER I. Take for instance the
-  following identifier (which is the name of a city on the Tigris river in
-  Eastern Anatolia):]}
+  the @Chg{Version=[3],New=[simple case folded],Old=[uppercase]}
+  equivalent of LATIN @Chg{Version=[3],New=[CAPITAL],Old=[SMALL]} LETTER I
+  (@Chg{Version=[3],New=[an upper],Old=[a lower]} case letter
+  @Chg{Version=[3],New=[without],Old=[with]} a dot above) is
+  LATIN @Chg{Version=[3],New=[SMALL],Old=[CAPITAL]} LETTER I
+  (@Chg{Version=[3],New=[a lower],Old=[an upper]} case letter
+  @Chg{Version=[3],New=[with],Old=[without]} a dot above). In
+  Turkish, though, LATIN @Chg{Version=[3],New=[CAPITAL],Old=[SMALL]} LETTER I
+  and LATIN @Chg{Version=[3],New=[CAPITAL],Old=[SMALL]} LETTER
+  @Chg{Version=[3],New=[],Old=[DOTLESS ]}I@Chg{Version=[3],New=[ WITH DOT
+  ABOVE],Old=[]} are two distinct letters, so the @Chg{Version=[3],New=[case
+  folded],Old=[upper case]} equivalent of LATIN
+  @Chg{Version=[3],New=[CAPITAL],Old=[SMALL]} LETTER I is LATIN
+  @Chg{Version=[3],New=[SMALL],Old=[CAPITAL]} LETTER
+  @Chg{Version=[3],New=[DOTLESS ],Old=[]}I@Chg{Version=[3],New=[],Old=[ WITH DOT
+  ABOVE]}, and the @Chg{Version=[3],New=[case folded],Old=[upper case]}
+  equivalent of LATIN @Chg{Version=[3],New=[CAPITAL],Old=[SMALL]} LETTER
+  @Chg{Version=[3],New=[],Old=[DOTLESS ]}I@Chg{Version=[3],New=[ WITH DOT
+  ABOVE],Old=[]} is LATIN @Chg{Version=[3],New=[SMALL],Old=[CAPITAL]} LETTER I.
+  Take for instance the following identifier (which is the name of a city on the
+  Tigris river in Eastern Anatolia):]}
+
 @begin{Example}
 @ChgRef{Version=[2],Kind=[AddedNormal]}
-@ChgAdded{Version=[2],Text=[diyarbak@smldotlessi@;r -- @RI[The first i is dotted, the second isn't.]]}
+@ChgRef{Version=[3],Kind=[Revised]}
+@ChgAdded{Version=[2],Text=[@Chg{Version=[3],New=[D@capdottedi@;YARBAKIR],Old=[diyarbak@smldotlessi@;r]} -- @RI[The first i is dotted, the second isn't.]]}
 @end{Example}
   @ChgRef{Version=[2],Kind=[AddedNormal]}
-  @ChgAdded{Version=[2],Type=[Leading],Text=[Locale-independent conversion to
-  upper case results in:]}
+  @ChgRef{Version=[3],Kind=[Revised]}
+  @ChgAdded{Version=[2],Type=[Leading],Text=[@Chg{Version=[3],New=[A Turkish
+  reader would expect that the above identifier is equivalent to],Old=[Locale-independent conversion to
+  upper case results in]}:]}
 @begin{Example}
 @ChgRef{Version=[2],Kind=[AddedNormal]}
-@ChgAdded{Version=[2],Text=[DIYARBAKIR -- @RI[Both Is are dotless.]]}
+@ChgRef{Version=[3],Kind=[Revised]}
+@ChgAdded{Version=[2],Text=[@Chg{Version=[3],New=[diyarbak@smldotlessi@;r],Old=[DIYARBAKIR -- @RI[Both Is are dotless.]]}]}
+@end{Example}
+  @ChgRef{Version=[3],Kind=[Added]}
+  @ChgAdded{Version=[3],Type=[Leading],Text=[However, locale-independent simple case folding (and thus Ada)
+  maps this to:]}
+@begin{Example}
+@ChgRef{Version=[3],Kind=[Added]}
+@ChgAdded{Version=[3],Text=[d@capdottedi@;yarbakir]}
 @end{Example}
   @ChgRef{Version=[2],Kind=[AddedNormal]}
-  @ChgAdded{Version=[2],Type=[Leading],Text=[This means that the four following
-  sequences of characters represent the same identifier, even though for a
-  locutor of Turkish they would probably be considered distinct words:]}
+  @ChgRef{Version=[3],Kind=[Revised]}
+  @ChgAdded{Version=[2],Type=[Leading],Text=[@Chg{Version=[3],New=[which is
+  different from any of the following identifiers],Old=[This means that the four
+  following sequences of characters represent the same identifier, even though
+  for a locutor of Turkish they would probably be considered distinct words]}:]}
 @begin{Example}
 @ChgRef{Version=[2],Kind=[AddedNormal]}
 @ChgAdded{Version=[2],Text=[diyarbakir
@@ -862,18 +968,30 @@ diyarbak@smldotlessi@;r
 d@smldotlessi@;yarbakir
 d@smldotlessi@;yarbak@smldotlessi@;r]}
 @end{Example}
+  @ChgRef{Version=[3],Kind=[Added]}
+  @ChgAdded{Version=[3],Text=<including the @ldquote@;correct@rdquote matching
+  identifier for Turkish. Upper case conversion (used in '[Wide_]Wide_Image)
+  introduces additional problems.>}
+
   @ChgRef{Version=[2],Kind=[AddedNormal]}
-  @ChgAdded{Version=[2],Type=[Leading],Text=[An implementation targeting the
+  @ChgRef{Version=[3],Kind=[Revised]}
+  @Comment{Removed the "Type=[Leading]" along with the example. Don't have
+  a way to make it doubly conditional (only in Version=[2]), and since it is
+  mainly for spacing, we just forget it.}
+  @ChgAdded{Version=[2],Text=[An implementation targeting the
   Turkish market is allowed (in fact, expected) to provide a nonstandard mode
-  where case folding is appropriate for Turkish.  This would cause the original
-  identifier to be converted to:]}
+  where case folding is appropriate for Turkish.@Chg{Version=[3],New=[],Old=[ This
+  would cause the original identifier to be converted to:]}]}
 @begin{Example}
 @ChgRef{Version=[2],Kind=[AddedNormal]}
-@ChgAdded{Version=[2],Text=[D@capdottedi@;YARBAKIR -- @RI[The first I is dotted, the second isn't.]]}
+@ChgRef{Version=[3],Kind=[DeletedNoDelMsg]}
+@ChgAdded{Version=[2],Text=[@Chg{Version=[3],New=[],Old=[D@capdottedi@;YARBAKIR -- @RI[The first I is dotted, the second isn't.]]}]}
 @end{Example}
   @ChgRef{Version=[2],Kind=[AddedNormal]}
-  @ChgAdded{Version=[2],Text=[and the four sequences of characters shown above
-  would represent four distinct identifiers.]}
+  @ChgRef{Version=[3],Kind=[DeletedNoDelMsg]}
+  @ChgAdded{Version=[2],Text=[@Chg{Version=[3],New=[],Old=[and the four
+  sequences of characters shown above would represent four distinct
+  identifiers.]}]}
 
   @ChgRef{Version=[2],Kind=[AddedNormal]}
   @ChgAdded{Version=[2],Text=[Lithuanian and Azeri are two other languages that
@@ -928,6 +1046,25 @@ implementation-defined attributes or pragma names.
   with several other categories. This should ease programming in languages
   other than English.]}
 @end{Extend95}
+
+@begin{Incompatible2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0091-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{incompatibilities with Ada 2005}@B<Correction:>
+  @ntf{other_format} characters were removed from identifiers as the Unicode
+  recommendations have changed. This change can only affect programs
+  written for the original Ada 2005, so there should be few such programs.]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0227-1]}
+  @ChgAdded{Version=[3],Text=[@B<Correction:> We now specify simple case
+  folding rather than full case folding. That potentially could change
+  identifier equivalence, although it is more likely that identifiers that
+  are considered the same in original Ada 2005 will now be considered different.
+  This change was made because the original Ada 2005 definition was incompatible
+  (and even inconsistent in unusual cases) with the Ada 95 identifier
+  equivalence rules. As such, the Ada 2005 rules were rarely fully implemented,
+  and in any case, only Ada 2005 identifiers containing wide characters could
+  be affected.]}
+@end{Incompatible2005}
 
 
 @LabeledClause{Numeric Literals}
@@ -1195,8 +1332,8 @@ sequence of characters of a @nt{string_literal}.]}
 " "   "A"   """"      --@RI{  three string literals of length 1}
 @comment{Blank line}
 "Characters such as $, %, and } are allowed in string literals"
-"Archimedes said ""@unicode(917)@unicode(973)@unicode(961)@unicode(951)@unicode(954)@unicode(945)"""
-"Volume of cylinder (@pi@;r@latin1(178)h) = "
+@Chg{Version=[2],New=["Archimedes said ""@unicode(917)@unicode(973)@unicode(961)@unicode(951)@unicode(954)@unicode(945)"""
+"Volume of cylinder (@pi@;r@latin1(178)h) = "],Old=[]}
 @end{Example}
 @end{Examples}
 
@@ -1264,6 +1401,7 @@ of a program; their sole purpose is the enlightenment of the human reader.
 @end{Example}
 @end{Examples}
 
+
 @LabeledClause{Pragmas}
 
 @begin{Intro}
@@ -1274,6 +1412,18 @@ of a program; their sole purpose is the enlightenment of the human reader.
   An implementation may support additional
   (implementation-defined) pragmas.>}
 @end{Intro}
+
+@begin{MetaRules}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0100-1],ARef=[AI05-0163-1]}
+  @ChgAdded{Version=[3],Text=[In general, if all @nt{pragma}s are treated as
+  unrecognized @nt{pragma}s, the program should remain both syntactically and
+  semantically legal. There are a few exceptions to this general principle (for
+  example, @nt{pragma} Import can eliminate the need for a completion), but the
+  principle remains, and is strictly true at the syntactic level. Certainly any
+  implementation-defined @nt{pragma}s should obey this principle both
+  syntactically and semantically, so that if the @nt{pragma}s are not recognized
+  by some other implementation, the program will remain legal.]}
+@end{MetaRules}
 
 @begin{Syntax}
 @Syn{lhs=<pragma>,rhs="
@@ -1297,12 +1447,25 @@ After a semicolon delimiter, but not within a
 or @nt{discriminant_part}.
 
 
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0100-1],ARef=[AI05-0163-1]}
 At any place where the syntax rules allow a construct defined by a
-syntactic category whose name ends with "@ntf{declaration}", "@ntf{statement}",
-"@ntf{clause}", or "@ntf{alternative}", or one of the syntactic categories
+syntactic category whose name ends with @ldquote@ntf{declaration}@rdquote,
+@Chg{Version=[3],New=[@ldquote@ntf{item}@rdquote, ],Old=[]}@ldquote@ntf{statement}@rdquote,
+@ldquote@ntf{clause}@rdquote, or
+@ldquote@ntf{alternative}@rdquote, or one of the syntactic categories
 @nt{variant} or @nt{exception_handler};
-but not in place of such a construct.
-Also at any place where a @nt{compilation_unit} would be allowed.
+but not in place of such a construct@Chg{Version=[3],New=[ if the construct
+is required, or is part of a list that is required to have at least one such
+construct],Old=[. Also at any place where a @nt{compilation_unit} would be
+allowed]}.
+
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0163-1]}
+@ChgAdded{Version=[3],Text=[In place of a @nt{statement} in a
+@nt{sequence_of_statements}.]}
+
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0100-1]}
+@ChgAdded{Version=[3],Text=[At any place where a @nt{compilation_unit}
+is allowed.]}
 @end{Itemize}
 
 Additional syntax rules and placement restrictions
@@ -1332,7 +1495,7 @@ is a @i{pragma argument}.
 @begin{Honest}
   @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00284-02]}
   @ChgAdded{Version=[2],Text=[For compatibility with Ada 83, the name of a
-  pragma may also be @lquotes@key{interface}@rquotes@;, which is not an
+  @nt{pragma} may also be @lquotes@key{interface}@rquotes@;, which is not an
   identifier (because it is a reserved word).
   See @RefSecNum{Pragma Interface}.]}
 @end{Honest}
@@ -1396,16 +1559,18 @@ The syntax of individual pragmas overrides the general
 syntax for @nt{pragma}.
 @end{Honest}
 @begin{Ramification}
-Thus, an identifier specific to a pragma is not a @nt{name},
+Thus, an identifier specific to a @nt{pragma} is not a @nt{name},
 syntactically; if it were, the visibility rules would be invoked,
 which is not what we want.
 
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1]}
 This also implies that named associations do not allow one to give the
 arguments in an arbitrary order @em the order given in the syntax rule
 for each individual pragma must be obeyed.
 However, it is generally possible to leave out earlier arguments when
 later ones are given; for example, this is allowed by the syntax rule
-for pragma Import (see @RefSec{Interfacing Pragmas}).
+for pragma Import (see @Chg{Version=[3],New=[@RefSec{Interfacing Pragmas}],
+Old=[@RefSec{Interfacing Aspects}]}).
 As for subprogram calls, positional notation precedes named
 notation.
 
@@ -1427,7 +1592,7 @@ Any @nt{pragma} that appears at the place of an executable construct is
 executed.
 Unless otherwise specified for a particular pragma,
 this execution consists of the evaluation of each evaluable pragma
-argument in an arbitrary order.
+argument in an arbitrary order.@PDefn2{Term=[arbitrary order],Sec=[allowed]}
 @begin{Ramification}
 For a @nt{pragma} that appears at the place of an elaborable
 construct, execution is elaboration.
@@ -1485,11 +1650,13 @@ syntax error is too complex.
 @end{ImplPerm}
 
 @begin{ImplAdvice}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0163-1]}
 Normally,
 implementation-defined pragmas should have no semantic effect
 for error-free programs;
-that is, if the implementation-defined pragmas are removed from a
-working program,
+that is, if the implementation-defined pragmas
+@Chg{Version=[3],New=[in a working program are replaced
+with unrecognized pragmas],Old=[are removed from a working program]},
 the program should still be legal, and should still have the same
 semantics.
 @ChgImplAdvice{Version=[2],Kind=[Added],Text=[@ChgAdded{Version=[2],
@@ -1514,7 +1681,17 @@ this paragraph is merely a recommendation.
 an implementation should not define pragmas that can make an illegal
 program legal, except as follows:
 @begin(Itemize)
-  A @nt<pragma> used to complete a declaration, such as a @nt{pragma} Import;
+  @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1]}
+  A @nt<pragma> used to complete a
+  declaration@Chg{Version=[3],New=[],Old=[, such as a @nt{pragma} Import]};
+
+@begin{Discussion}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0229-1]}
+  @ChgAdded{Version=[3],Text=[There are no language-defined pragmas which
+  can be completions; @nt{pragma} Import was defined this way in Ada 95
+  and Ada 2005, but in Ada 2012 @nt{pragma} Import just sets aspect Import
+  which disallows having any completion.]}
+@end{Discussion}
 
   A @nt<pragma> used to configure the environment
   by adding, removing, or replacing @nt{library_item}s.
@@ -1562,6 +1739,20 @@ This was always true in Ada 83 (since it was not explicitly forbidden by
 RM83), but it was not clear, because there was no definition of
 @lquotes@;executing@rquotes@; or @lquotes@;elaborating@rquotes@; a @nt{pragma}.
 @end{DiffWord83}
+
+@begin{Extend2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0163-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 2005}@b<Correction:>
+  Allow @nt{pragma}s in place of a @nt{statement}, even if there are no
+  other @nt{statement}s in a @nt{sequence_of_statements}.]}
+@end{Extend2005}
+
+@begin{DiffWord2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0100-1]}
+  @ChgAdded{Version=[3],Text=[@b{Correction:} Clarified where @nt{pragma}s
+  are (and are not) allowed.]}
+@end{DiffWord2005}
+
 
 @begin{Syntax}
 @Leading@keepnext@;The forms of List, Page, and Optimize @nt{pragma}s are as follows:
@@ -1637,11 +1828,15 @@ Some compilers might even ignore the pragma altogether.
 @Leading@keepnext@i{Examples of pragmas:}
 @begin{Example}
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00433-01]}
-@key[pragma] List(Off); --@RI{ turn off listing generation}
-@key[pragma] Optimize(Off); --@RI{ turn off optional optimizations}
-@key[pragma] Inline(Set_Mask); --@RI{ generate code for Set_Mask inline}
-@Chg{Version=[2],New=[@key[pragma] Import(C, Put_Char, External_Name => "putchar"); --@RI{ import C putchar function}],
-Old=[@key[pragma] Suppress(Range_Check, On => Index); --@RI{ turn off range checking on Index}]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1]}
+@key[pragma] List(Off); --@Examcom{ turn off listing generation}
+@key[pragma] Optimize(Off); --@Examcom{ turn off optional optimizations}
+@Chg{Version=[3],New=[@key[pragma] Pure(Rational_Numbers); --@Examcom{ set categorization for package}
+@key[pragma] Assert(Exists(File_Name),
+              Message => "Nonexistent file"); --@Examcom{ assert file exists}],
+Old=[@key[pragma] Inline(Set_Mask); --@Examcom{ generate code for Set_Mask inline}
+@Chg{Version=[2],New=[@key[pragma] Import(C, Put_Char, External_Name => "putchar"); --@Examcom{ import C putchar function}],
+Old=[@key[pragma] Suppress(Range_Check, On => Index); --@Examcom{ turn off range checking on Index}]}]}
 @end{Example}
 @end{Examples}
 
@@ -1666,6 +1861,12 @@ informative annex.
   because the second parameter of @nt{pragma} Suppress is obsolescent.]}
 @end{DiffWord95}
 
+@begin{DiffWord2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0229-1]}
+  @ChgAdded{Version=[3],Text=[Updated the example of pragmas, because both
+  @nt{pragma}s Inline and Import are obsolescent.]}
+@end{DiffWord2005}
+
 
 @LabeledClause{Reserved Words}
 
@@ -1675,14 +1876,16 @@ informative annex.
 @ChgDeleted[Version=[1],Type=[Leading],Text=<@ @;@comment{Empty paragraph to hang junk paragraph number from original RM}>]
 
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00284-02],ARef=[AI95-00395-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0091-1]}
 @ChgNote{The table of words has no paragraph number, so we need to put the
 change here}
 @Leading
 @Defn{reserved word}
 The following are the @i{reserved words}@Chg{Version=[2],New=[. Within a program,
-some or all of the letters of a reserved word may be in upper case, and one or
+some or all of the letters of a reserved word may be in
+upper case@Chg{Version=[3],New=[],Old=[, and one or
 more characters in category @ntf{other_format} may be inserted within or at the
-end of the reserved word.],Old=[ (ignoring upper/lower case distinctions):]}
+end of the reserved word]}.],Old=[ (ignoring upper/lower case distinctions):]}
 @begin{Discussion}
   Reserved words have special meaning in the syntax.
   In addition, certain reserved words are used as attribute names.
@@ -1777,6 +1980,7 @@ end of the reserved word.],Old=[ (ignoring upper/lower case distinctions):]}
 
 @noparanum@key{select}
 @key{separate}
+@Chg{Version=[3],New=[@key{some}],Old=[]}
 @key{subtype}
 @Chg{Version=[2],New=[@key{synchronized}],Old=[]}
 
@@ -1840,3 +2044,20 @@ to @RefSec(Obsolescent Features).
   This change has no effect on the character sequences that are reserved
   words, but does make some unusual sequences of characters illegal.]}
 @end{DiffWord95}
+
+@begin{Incompatible2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0091-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{incompatibilities with Ada 2005}@b<Correction:>
+  Removed @ntf{other_format}
+  characters from reserved words in order to be compatible with the latest
+  Unicode recommendations. This change can only affect programs
+  written for original Ada 2005, and there is little reason to put
+  @ntf{other_format} characters into reserved words in the first place,
+  so there should be very few such programs.]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0176-1]}
+  @ChgAdded{Version=[3],Text=[The following word is not reserved in Ada 2005, but is
+  reserved in Ada 2012: @key{some}. Uses of this word as an identifier will need
+  to be changed, but we do not expect them to be common.]}
+@end{Incompatible2005}
+

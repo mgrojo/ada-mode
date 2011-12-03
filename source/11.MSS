@@ -1,10 +1,10 @@
 @Part(11, Root="ada.mss")
 
-@Comment{$Date: 2006/10/19 20:44:13 $}
+@Comment{$Date: 2011/11/01 23:14:14 $}
 @LabeledSection{Exceptions}
 
-@Comment{$Source: d:\\CvsRoot/ARM/Source/11.MSS,v $}
-@Comment{$Revision: 1.64 $}
+@Comment{$Source: e:\\cvsroot/ARM/Source/11.mss,v $}
+@Comment{$Revision: 1.79 $}
 
 @begin{Intro}
 @redundant[This section defines the facilities for dealing with errors or other
@@ -43,9 +43,13 @@ we sometimes use @lquotes@;@i{occurrence}@rquotes@; as a
 short-hand for @lquotes@;exception occurrence.@rquotes@;
 @end{Honest}
 
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0043-1],ARef=[AI05-0258-1]}
 @redundant[An @nt{exception_declaration} declares a name for an exception.
-An exception is raised initially either by a @nt{raise_statement}
-or by the failure of a language-defined check.
+An exception @Chg{Version=[3],New=[can be],Old=[is]} raised
+@Chg{Version=[3],New=[explicitly (for example,],Old=[initially either]}
+by a @nt{raise_statement}@Chg{Version=[3],New=[)],Old=[]}
+or@Chg{Version=[3],New=[ implicitly (for example,],Old=[]}
+by the failure of a language-defined check@Chg{Version=[3],New=[)],Old=[]}.
 When an exception arises, control can be transferred to a
 user-provided @nt{exception_handler} at the end of a
 @nt{handled_@!sequence_of_@!statements},
@@ -66,6 +70,14 @@ In order to understand these semantics,
 we have to make this distinction.
 @end{DiffWord83}
 
+@begin{DiffWord2005}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0043-1]}
+  @ChgAdded{Version=[3],Text=[@b<Correction:> Generalized the introductory
+  description of how an exception can be raised so that it does not appear
+  to cover all of the cases.]}
+@end{DiffWord2005}
+
+
 @LabeledClause{Exception Declarations}
 
 @begin{Intro}
@@ -75,7 +87,9 @@ exception.
 @end{Intro}
 
 @begin{Syntax}
-@Syn{lhs=<exception_declaration>,rhs="@Syn2{defining_identifier_list} : @key{exception};"}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0183-1]}
+@Syn{lhs=<exception_declaration>,rhs="@Syn2{defining_identifier_list} : @key{exception}@Chg{Version=[3],New=<
+   [@Syn2{aspect_specification}]>,Old=[]};"}
 @end{Syntax}
 
 @begin{StaticSem}
@@ -179,6 +193,15 @@ the exception will now be caught by that handler.
 We explicitly define elaboration for @nt{exception_declaration}s.
 @end{DiffWord83}
 
+@begin{Extend2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0183-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 2005}
+  An optional @nt{aspect_specification} can be used in a @nt{exception_declaration}.
+  This is described in @RefSecNum{Aspect Specifications}.]}
+@end{Extend2005}
+
+
+@RMNewPageVer{Version=[3]}@Comment{For printed version of Ada 2012 RM}
 @LabeledClause{Exception Handlers}
 
 @begin{Intro}
@@ -309,6 +332,7 @@ Note that there are more such cases in Ada 95.
 The syntax rule for @nt{choice_parameter_specification} is new.
 @end{DiffWord83}
 
+@RMNewPageVer{Version=[3]}@Comment{For printed version of Ada 2012 RM}
 @LabeledClause{Raise Statements}
 
 @begin{Intro}
@@ -580,9 +604,10 @@ are not handled by the handlers of the
     @AdaObjDefn{Null_Occurrence} : @key[constant] Exception_Occurrence;
 
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00329-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1]}
     @key[procedure] @AdaSubDefn{Raise_Exception}(E : @key[in] Exception_Id;
-                              Message : @key[in] String := "");@Chg{Version=[2],New=[
-        @key[pragma] No_Return(Raise_Exception);],Old=[]}
+                              Message : @key[in] String := "")@Chg{Version=[3],New=[],Old=[;]}@Chg{Version=[2],New=[
+        @Chg{Version=[3],New=[@key[with]],Old=[@key[pragma]]} No_Return@Chg{Version=[3],New=[],Old=[(Raise_Exception)]};],Old=[]}
     @key[function] @AdaSubDefn{Exception_Message}(X : Exception_Occurrence) @key[return] String;
     @key[procedure] @AdaSubDefn{Reraise_Occurrence}(X : @key[in] Exception_Occurrence);
 
@@ -663,6 +688,7 @@ about the exception occurrence.
 Reraise_Occurrence reraises the specified exception occurrence.]}
 
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00361-01],ARef=[AI95-00378-01]}
+@ChgRef{Version=[3],Kind=[RevisedAdded],ARef=[AI05-0043-1],ARef=[AI05-0248-1]}
 @ChgAdded{Version=[2],Text=[Exception_Message returns the message associated
 with the given Exception_Occurrence. For an occurrence raised by a call to
 Raise_Exception, the message is the Message parameter passed to Raise_Exception.
@@ -672,10 +698,18 @@ the @Syni{string_}@nt{expression}. For the occurrence raised by a
 @nt{raise_statement} with
 an @Syni{exception_}@nt{name} but without a @Syni{string_}@nt{expression},
 the message is a string giving implementation-defined information about the
-exception occurrence. In all cases, Exception_Message returns a string with
-lower bound 1.]}
+exception occurrence. @Chg{Version=[3],New=[For an occurrence originally raised
+in some other manner (including by the failure of a language-defined check),
+the message is an unspecified
+string.@PDefn{unspecified} ],Old=[]}In all cases, Exception_Message
+returns a string with lower bound 1.]}
 @ImplDef{The information returned by Exception_Message.}
 
+@begin{Discussion}
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0043-1]}
+  @ChgAdded{Version=[3],Text=[There is @ImplAdviceName about the contents
+  of this string for language-defined checks.]}
+@end{Discussion}
 @begin{Ramification}
 @Leading@Keepnext@;Given an exception E, the @nt{raise_statement}:
 @begin{Example}
@@ -716,9 +750,9 @@ occurrence.]}
     @key[raise];
 @end{Example}
 
-@begin{Wide}
+@begin{WideAbove}
 @Leading@keepnext@;is equivalent to this one:
-@end{Wide}
+@end{WideAbove}
 @begin{Example}
 @key[when] X : @key[others] =>
     Cleanup;
@@ -745,7 +779,8 @@ an unnamed @nt{block_statement}.
   This name, as well as each @nt{prefix} of it,
   does not denote a @nt{renaming_declaration}.
 @end{Honest}
-@ChgImplDef{Version=[2],Kind=[Revised],Text=[The result of @Chg{Version=[2],
+@ChgImplDef{Version=[2],Kind=[Revised],InitialVersion=[0],
+Text=[The result of @Chg{Version=[2],
 New=[Exceptions.@!Wide_@!Wide_@!Exception_@!Name],Old=[Exceptions.@!Exception_@!Name]}
 for @Chg{Version=[2],New=[exceptions],Old=[types]} declared within
 an unnamed @nt{block_statement}.]}
@@ -1153,6 +1188,13 @@ exception contains such a character.]}
   because identifiers can now contain characters outside of Latin-1.]}
 @end{DiffWord95}
 
+@begin{DiffWord2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0043-1]}
+  @ChgAdded{Version=[3],Text=[@b<Correction:> Added explicit wording
+  that the exception message for language-defined checks is unspecified.
+  The old wording appeared inclusive, but it was not.]}
+@end{DiffWord2005}
+
 
 @LabeledAddedSubClause{Version=[2],Name=[Pragmas Assert and Assertion_Policy]}
 
@@ -1173,7 +1215,8 @@ some implementation-defined manner.]}
 @end{SyntaxText}
 
 @ChgRef{Version=[2],Kind=[AddedNormal]}
-@ChgAdded{Version=[2],Text=`@AddedPragmaSyn`Version=[2],@key{pragma} @prag<Assert>([Check =>] @SynI{boolean_}@Syn2{expression}[, [Message =>] @SynI{string_}@Syn2{expression}]);''}
+@AddedPragmaSyn<Version=[2],@ChgAdded{Version=[2],
+Text=`@key{pragma} @prag<Assert>([Check =>] @SynI{boolean_}@Syn2{expression}[, [Message =>] @SynI{string_}@Syn2{expression}]);'}>
 
 @begin{SyntaxText}
 @ChgRef{Version=[2],Kind=[AddedNormal]}
@@ -1186,7 +1229,8 @@ some implementation-defined manner.]}
 @end{SyntaxText}
 
 @ChgRef{Version=[2],Kind=[AddedNormal]}
-@ChgAdded{Version=[2],Text=<@AddedPragmaSyn`Version=[2],@key{pragma} @prag<Assertion_Policy>(@SynI{policy_}@Syn2{identifier});'>}
+@AddedPragmaSyn<Version=[2],@ChgAdded{Version=[2],
+Text=<@key{pragma} @prag<Assertion_Policy>(@SynI{policy_}@Syn2{identifier});>}>
 
 @ChgRef{Version=[2],Kind=[AddedNormal]}
 @ChgAdded{Version=[2],Text=[@PDefn2{Term=[configuration pragma], Sec=(Assertion_Policy)}
@@ -1239,11 +1283,11 @@ language-defined library package exists:]}
    @key[pragma] Pure(Assertions);]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal]}
-@ChgAdded{Version=[2],Text=[   Assertion_Error : @key<exception>;]}
+@ChgAdded{Version=[2],Text=[   @AdaExcDefn{Assertion_Error} : @key<exception>;]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal]}
-@ChgAdded{Version=[2],Text=[   @key<procedure> Assert(Check : @key<in> Boolean);
-   @key<procedure> Assert(Check : @key<in> Boolean; Message : @key<in> String);]}
+@ChgAdded{Version=[2],Text=[   @key<procedure> @AdaSubDefn{Assert}(Check : @key<in> Boolean);
+   @key<procedure> @AdaSubDefn{Assert}(Check : @key<in> Boolean; Message : @key<in> String);]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal]}
 @ChgAdded{Version=[2],Text=[@key<end> Ada.Assertions;]}
@@ -1268,7 +1312,8 @@ If the assertion policy is Check at the point of a @nt{pragma} Assert, the
 elaboration of the pragma consists of evaluating the boolean expression, and if
 the result is False, evaluating the Message argument, if any, and raising the
 exception Assertions.Assertion_Error, with a message if the Message
-argument is provided.]}
+argument is provided.@Defn2{Term=[assertion policy],Sec=[Assert pragma]}@Defn2{Term=(Assertion_Error),
+Sec=(raised by failure of assertion)}]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00286-01]}
 @ChgAdded{Version=[2],Type=[Leading],Keepnext=[T],Text=[Calling the procedure
@@ -1327,6 +1372,7 @@ effect will not affect normal operation of the program.]}
 Pragmas Assert and Assertion_Policy, and package Assertions are new.]}
 @end{Extend95}
 
+@RMNewPageVer{Version=[3]}@Comment{For printed version of Ada 2012 RM}
 @LabeledSubClause{Example of Exception Handling}
 
 @begin{Examples}
@@ -1420,12 +1466,13 @@ and by parts of Section 9.
 
 @begin{Intro}
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00224-01]}
-@Chg{Version=[2],New=[@i{Checking pragmas}@Defn{Checking pragmas} give
+@Chg{Version=[2],New=[@i{Checking pragmas}@Defn{checking pragmas} give
 instructions to an implementation on handling language-defined checks.],Old=[]}
 A @nt{pragma} Suppress gives permission to an
 implementation to omit certain language-defined checks@Chg{Version=[2],
 New=[, while a @nt<pragma> Unsuppress revokes the permission to omit checks.],Old=[]}.
 
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0264-1]}
 @Defn{language-defined check}
 @Defn2{Term=[check], Sec=(language-defined)}
 @IndexSee{Term=[run-time check],See=(language-defined check)}
@@ -1436,7 +1483,8 @@ one of the situations defined by this International Standard that requires a che
 be made at run time to determine whether some
 condition is true.
 @Defn2{Term=[failure],Sec=(of a language-defined check)}
-A check @i{fails} when the condition being checked is false,
+A check @i{fails} when the condition being checked is
+@Chg{Version=[3],New=[False],Old=[false]},
 causing an exception to be raised.
 @begin{Discussion}
 All such checks are defined under @lquotes@;@RunTimeTitle@rquotes@;
@@ -1454,7 +1502,8 @@ in clauses and subclauses throughout the standard.
 @PragmaSyn`@key{pragma} @prag(Suppress)(@Syn2{identifier}@Chg{Version=[2],New=<>,Old=( [, [On =>] @Syn2{name}])});'
 
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00224-01]}
-@ChgAdded{Version=[2],Text=<@AddedPragmaSyn`Version=[2],@key{pragma} @prag(Unsuppress)(@Syn2{identifier});'>}
+@AddedPragmaSyn<Version=[2],@ChgAdded{Version=[2],
+Text=<@key{pragma} @prag(Unsuppress)(@Syn2{identifier});>}>
 
 @begin{SyntaxText}
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00224-01]}
@@ -1494,9 +1543,11 @@ pragma is the declarative region for the entire compilation unit (or units) to
 which it applies.]}
 
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00224-01]}
+@ChgRef{Version=[3],Kind=[RevisedAdded],ARef=[AI05-0229-1]}
 @ChgAdded{Version=[2],Text=[If a checking pragma applies to a generic instantiation, then the checking
 pragma also applies to the instance. If a checking pragma applies to a call to
-a subprogram that has a @nt<pragma> Inline applied to it, then the checking
+a subprogram @Chg{Version=[3],New=[for which aspect],Old=[that has a @nt<pragma>]}
+Inline @Chg{Version=[3],New=[is True],Old=[applied to it]}, then the checking
 pragma also applies to the inlined subprogram body.]}
 
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00224-01]}
@@ -1667,6 +1718,14 @@ All_Checks @\Represents the union of all checks;
 All_Checks includes both language-defined and implementation-defined
 checks.
 @end{Ramification}
+@begin{Honest}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0005-1]}
+@ChgAdded{Version=[3],Text=[There are additional checks defined in
+various Specialized Needs Annexes that are not listed here. Nevertheless, they
+are included in All_Checks and named in a Suppress pragma on implementations
+that support the relevant annex. Look up @ldquote@;check,
+language-defined@rdquote in the index to find the complete list.]}
+@end{Honest}
 @end{Description}
 @end{Itemize}
 @end{StaticSem}
@@ -1985,6 +2044,7 @@ This follows from the canonical semantics.
   that X.all belongs to the subtype Str10, without even "looking."
 @end{ImplNote}
 
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1]}
 @Defn{extra permission to reorder actions}
 If an exception is raised due to the failure
 of a language-defined check,
@@ -2005,7 +2065,8 @@ whose check failed.
 @Defn{independent subprogram}
 An independent subprogram is one that is
 defined outside the library unit containing the construct whose check
-failed, and has no Inline @nt<pragma> applied to it.
+failed, and @Chg{Version=[3],New=[for which the],Old=[has no]} Inline
+@Chg{Version=[3],New=[aspect is False],Old=[@nt<pragma> applied to it]}.
 @Defn{normal state of an object}
 @PDefn{abnormal state of an object}
 @PDefn{disruption of an assignment}

@@ -1,8 +1,8 @@
-@comment{ $Source: d:\\CvsRoot/ARM/Source/PRE_Environ.MSS,v $ }
-@comment{ $Revision: 1.8 $ $Date: 2005/12/06 06:34:05 $ $Author: Randy $ }
+@comment{ $Source: e:\\cvsroot/ARM/Source/pre_environ.mss,v $ }
+@comment{ $Revision: 1.10 $ $Date: 2011/08/17 00:29:40 $ $Author: randy $ }
 @Part(predefenviron, Root="ada.mss")
 
-@Comment{$Date: 2005/12/06 06:34:05 $}
+@Comment{$Date: 2011/08/17 00:29:40 $}
 
 @LabeledAddedClause{Version=[2],Name=[The Package Environment_Variables]}
 
@@ -41,8 +41,9 @@ Environment_Variables has the following declaration:]}
    @key{procedure} @AdaSubDefn{Clear};]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal]}
-@ChgAdded{Version=[2],Text=[   @key{procedure} @AdaSubDefn{Iterate} (
-       Process : @key{not null access procedure} (Name, Value : @key{in} String));]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0248-1]}
+@ChgAdded{Version=[2],Text=[   @key{procedure} @AdaSubDefn{Iterate}@Chg{Version=[3],New=[],Old=[ (]}
+      @Chg{Version=[3],New=[(],Old=[ ]}Process : @key{not null access procedure} (Name, Value : @key{in} String));]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal]}
 @ChgAdded{Version=[2],Type=[Trailing],Text=[@key{end} Ada.Environment_Variables;]}
@@ -69,9 +70,12 @@ propagated.]}
 @end{Example}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00370-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0264-1]}
 @ChgAdded{Version=[2],Type=[Trailing],Text=[If the external execution environment
 supports environment variables and an environment variable with the given name
-currently exists, then Exists returns True; otherwise it returns False.]}
+currently exists, then Exists returns True;
+otherwise@Chg{Version=[3],New=[,],Old=[]}
+it returns False.]}
 
 @begin{Example}
 @ChgRef{Version=[2],Kind=[AddedNormal]}
@@ -79,10 +83,12 @@ currently exists, then Exists returns True; otherwise it returns False.]}
 @end{Example}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00370-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0264-1]}
 @ChgAdded{Version=[2],Text=[If the external execution
 environment supports environment variables, then Set first clears any existing
 environment variable with the given name, and then defines a single new
-environment variable with the given name and value. Otherwise Program_Error is
+environment variable with the given name and value.
+Otherwise@Chg{Version=[3],New=[,],Old=[]} Program_Error is
 propagated.]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal]}
@@ -107,9 +113,11 @@ Clear.],Old=[]}]}
 @end{Example}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00370-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0264-1]}
 @ChgAdded{Version=[2],Type=[Trailing],Text=[If the external execution
 environment supports environment variables, then Clear deletes all existing
-environment variable with the given name. Otherwise Program_Error is
+environment variable with the given name.
+Otherwise@Chg{Version=[3],New=[,],Old=[]} Program_Error is
 propagated.]}
 
 @begin{Example}
@@ -118,22 +126,28 @@ propagated.]}
 @end{Example}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00370-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0264-1]}
 @ChgAdded{Version=[2],Type=[Trailing],Text=[If the external execution
 environment supports environment variables,
-then Clear deletes all existing environment variables. Otherwise Program_Error
-is propagated.]}
+then Clear deletes all existing environment variables.
+Otherwise@Chg{Version=[3],New=[,],Old=[]} Program_Error is
+propagated.]}
 
 @begin{Example}
 @ChgRef{Version=[2],Kind=[AddedNormal]}
-@ChgAdded{Version=[2],KeepNext=[T],Text=[@key{procedure} Iterate (
-     Process : @key{not null access procedure} (Name, Value : @key{in} String));]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0248-1]}
+@ChgAdded{Version=[2],Text=[@key{procedure} Iterate@Chg{Version=[3],New=[],Old=[ (]}
+   @Chg{Version=[3],New=[(],Old=[  ]}Process : @key{not null access procedure} (Name, Value : @key{in} String));]}
 @end{Example}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00370-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0264-1]}
 @ChgAdded{Version=[2],Text=[If the external execution environment supports
 environment variables, then Iterate calls the subprogram designated by Process
 for each existing environment variable, passing the name and value of that
-environment variable. Otherwise Program_Error is propagated.]}
+environment variable.
+Otherwise@Chg{Version=[3],New=[,],Old=[]} Program_Error is
+propagated.]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal]}
 @ChgAdded{Version=[2],Text=[If several environment variables exist that have

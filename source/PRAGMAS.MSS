@@ -3,7 +3,7 @@
 @Comment{$Date: 2000/08/12 00:40:17 $}
 @LabeledInformativeAnnex{Language-Defined Pragmas}
 
-@comment{$Source: d:\\CvsRoot/ARM/Source/PRAGMAS.MSS,v $}
+@comment{$Source: e:\\cvsroot/ARM/Source/pragmas.mss,v $}
 @comment{$Revision: 1.14 $}
 
 @begin{Intro}

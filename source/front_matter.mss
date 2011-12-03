@@ -1,7 +1,9 @@
 @Part(frontmatter, root="ada.mss")
-@comment{$Source: d:\\CvsRoot/ARM/Source/front_matter.mss,v $}
-@comment{$Revision: 1.57 $ $Date: 2006/11/09 06:29:49 $}
+@comment{$Source: e:\\cvsroot/ARM/Source/front_matter.mss,v $}
+@comment{$Revision: 1.73 $ $Date: 2011/11/01 05:34:04 $}
 
+@comment{@begin{Comment} (*Removed the below for Ada 2012, which is supposely going
+to be processed as a revision*)
 @ChgNote{Following is a foreword for the consolidated edition of the RM/AARM.}
 @UnNumberedSection(Foreword to this version of the Ada Reference Manual)
 @ChgNote{The above has to be manually commented out if creating "original" RMs.
@@ -25,11 +27,20 @@ SC 22 for ISO approval, which was granted in February 2001. Technical
 Corrigendum 1 was published in June 2001.]}
 
 @ChgRef{Version=[2],Kind=[Added]}
+@ChgRef{Version=[3],Kind=[RevisedAdded]}
 @ChgAdded{Version=[2],Text=[In October 2002, WG 9 approved a schedule and
 guidelines for the preparation of an Amendment to the International Standard.
 WG 9 approved the scope of the Amendment in June 2004. In April 2006, WG 9
 approved and forwarded the Amendment to SC 22 for approval, which was granted
-in August 2006. Final ISO/IEC approval is expected by early 2007.]}
+in August 2006. Final ISO/IEC approval @Chg{Version=[3],New=[came in January 2007,
+and the Amendment was published as ISO/IEC 8652:1995/Amd 1:2007(E) in March],Old=[is expected
+by early]} 2007.]}
+
+@ChgRef{Version=[3],Kind=[Added]}
+@ChgAdded{Version=[3],Text=[In November 2008, WG 9 requested
+the preparation of a second Amendment to the International Standard.
+The completion of Amendment 2 is expected at the end of 2010, with
+final approval in 2011.]}
 
 @ChgRef{Version=[1],Kind=[Added]}
 @ChgAdded{Version=[1],Text=[The Technical Corrigendum lists the individual
@@ -39,18 +50,26 @@ Technical Corrigendum 1 are
 part of the International Standard ISO/IEC 8652:1995(E).]}
 
 @ChgRef{Version=[2],Kind=[Added]}
-@ChgAdded{Version=[2],Text=[Similarly, Amendment 1 lists the individual changes that
+@ChgRef{Version=[3],Kind=[RevisedAdded]}
+@ChgAdded{Version=[2],Text=[Similarly, Amendment 1 @Chg{Version=[3],New=[and
+Amendment 2 list],Old=[lists]} the individual changes that
 need to be made to the text of the International Standard to add new features
 as well as correct errors.]}
 
 @ChgRef{Version=[1],Kind=[Added]}
 @ChgRef{Version=[2],Kind=[RevisedAdded]}
+@ChgRef{Version=[3],Kind=[RevisedAdded]}
 @Chg{New=[When ISO published Technical Corrigendum 1, it did not also publish
 a document that merges the @Chg{Version=[2],New=[changes from the ],Old=[]}Technical
 Corrigendum @Chg{Version=[2],New=[],Old=[changes ]}into
-the text of the International Standard.@Chg{Version=[2],New=[ It is not
-known whether ISO will publish a document that merges the changes from
+the text of the International Standard.@Chg{Version=[2],New=[ @Chg{Version=[3],
+New=[Similarly,],Old=[It is not
+known whether]} ISO @Chg{Version=[3],New=[did not],Old=[will]} publish a
+document that merges the changes from
 Technical Corrigendum and Amendment 1 into the text of the International
+Standard.],Old=[]}@Chg{Version=[3],New=[ It is not known whether ISO will
+publish a document that merges the changes from Technical Corrigendum 1,
+Amendment 1, and Amendment 2 into the text of the International
 Standard.],Old=[]}
 However, ISO rules require that the
 project editor for the @Chg{Version=[2],New=[International Standard],
@@ -59,9 +78,11 @@ on demand.],Old=[]}
 
 @ChgRef{Version=[1],Kind=[Added]}
 @ChgRef{Version=[2],Kind=[RevisedAdded]}
+@ChgRef{Version=[3],Kind=[RevisedAdded]}
 @Chg{New=[This version of the Ada Reference Manual is what the project editor would
 provide to ISO in response to such a request. It incorporates the changes
-specified in the Technical Corrigendum @Chg{Version=[2],New=[and Amendment ],Old=[]}into
+specified in the Technical Corrigendum @Chg{Version=[2],New=[and
+@Chg{Version=[3],New=[Amendments 1 and 2],Old=[Amendment]} ],Old=[]}into
 the text of ISO/IEC 8652:1995(E).
 It should be understood that the publication of any ISO document involves
 changes in general format, boilerplate, headers, etc., as well as a review by professional
@@ -69,32 +90,43 @@ editors that may introduce editorial changes to the text. This version of the
 Ada Reference Manual is therefore neither an official ISO document, nor a
 version guaranteed to be identical to an official ISO document, should ISO
 decide to reprint the International Standard incorporating an approved Technical
-Corrigendum@Chg{Version=[2],New=[ and Amendment],Old=[]}. It is nevertheless a
+Corrigendum@Chg{Version=[2],New=[ and @Chg{Version=[3],New=[Amendments],Old=[Amendment]}],
+Old=[]}. It is nevertheless a
 best effort to be as close as possible to the
 technical content of such an updated document. In the case of a conflict between this
 document and @Chg{Version=[2],New=[Amendment],Old=[Technical Corrigendum]}
-1 as approved by ISO (or between this document
-and @Chg{Version=[2],New=[Technical Corrigendum 1 in the case of paragraphs
-not changed by Amendment 1; or between this document and ],Old=[]}the
+@Chg{Version=[3],New=[2],Old=[1]} as approved by ISO (or between this document
+and@Chg{Version=[3],New=[ Amendment 1 in the case of paragraphs
+not changed by Amendment 2; or between this document and],Old=[]}
+@Chg{Version=[2],New=[Technical Corrigendum 1 in the case of paragraphs
+not changed by @Chg{Version=[3],New=[either ],Old=[]}Amendment@Chg{Version=[3],New=[],Old=[ 1]};
+or between this document and ],Old=[]}the
 original 8652:1995 in the case of paragraphs not changed by @Chg{Version=[2],
-New=[either Amendment 1 or ],Old=[]}Technical
-Corrigendum 1), the other documents contain the official text of the
+New=[either Amendment@Chg{Version=[3],New=[],Old=[ 1]} or ],
+Old=[]}Technical Corrigendum 1), the other documents contain the official
+text of the
 International Standard ISO/IEC 8652:1995(E)@Chg{Version=[2],New=[ and
-its Amendment],Old=[]}.],Old=[]}
+its @Chg{Version=[3],New=[Amendments],Old=[Amendment]}],Old=[]}.],Old=[]}
 
 @ChgRef{Version=[1],Kind=[Added]}
 @ChgRef{Version=[2],Kind=[RevisedAdded]}
+@ChgRef{Version=[3],Kind=[RevisedAdded]}
 @Chg{New=[As it is very inconvenient to have the Reference Manual for Ada
-specified in @Chg{Version=[2],New=[three],Old=[two]} documents, this
+specified in @Chg{Version=[2],New=[@Chg{Version=[3],New=[four],Old=[three]}],
+Old=[two]} documents, this
 consolidated version of the Ada Reference
 Manual is made available to the public.],Old=[]}
 
 @end{NotISO}
 @end{Intro}
+(*End of Foreword Foreword, not needed for Ada 2012*)
+@end{Comment}}
+
 
 @UnNumberedSection(Foreword)
 @begin{Intro}
 
+@ChgRef{Version=[3],Kind=[Revised]}@ChgNote{Updated boilerplate}
 ISO (the International Organization for Standardization)
 and IEC (the International Electrotechnical Commission)
 form the specialized system for worldwide standardization.
@@ -105,32 +137,53 @@ with particular fields of technical activity.
 ISO and IEC technical committees collaborate in fields of mutual
 interest.
 Other international organizations, governmental and non-governmental,
-in liaison with ISO and IEC, also take part in the work.
+in liaison with ISO and IEC, also take part in the work.@Chg{Version=[3],New=[ In
+the field of information technology,
+ISO and IEC have established a joint technical committee, ISO/IEC JTC 1.],Old=[]}
 
-In the field of information technology,
-ISO and IEC have established a joint technical committee, ISO/IEC JTC 1.
+@ChgRef{Version=[3],Kind=[Added]}@ChgNote{Updated boilerplate}
+@ChgAdded{Version=[3],Text=[International Standards are drafted in accordance
+with the rules given in the ISO/IEC Directives, Part 2.]}
+
+@ChgRef{Version=[3],Kind=[Revised]}@ChgNote{Updated boilerplate}
+@Chg{Version=[3],New=[The main task of the],Old=[In the field of information
+technology, ISO and IEC have established a]} joint technical
+committee@Chg{Version=[3],New=[ is to prepare
+International Standards],Old=[, ISO/IEC JTC 1]}.
 Draft International Standards adopted by the joint technical committee
 are circulated to national bodies for voting.
 Publication as an International Standard requires approval by
 at least 75 % of the national bodies casting a vote.
 
+@ChgRef{Version=[3],Kind=[Added]}@ChgNote{Updated boilerplate}
+@ChgAdded{Version=[3],Text=[Attention is drawn to the possibility that some of
+the elements of this document may be the subject of patent rights. ISO and IEC
+shall not be held responsible for identifying any or all such patent rights.]}
+
+@ChgRef{Version=[3],Kind=[Revised]}
 International Standard ISO/IEC 8652 was prepared by
 Joint Technical Committee ISO/IEC JTC 1,
-@i{Information Technology}.
+@i{Information Technology}@Chg{Version=[3],New=[ Subcommittee SC22, @i{Programming
+languages, their environments and system software interfaces}],Old=[]}.
 
 @ChgRef{Version=[2],Kind=[Revised]}
-This @Chg{Version=[2],New=[consolidated],Old=[second]} edition @Chg{Version=[2],
-New=[updates],Old=[cancels and replaces]} the @Chg{Version=[2],New=[second],Old=[first]}
-edition (ISO 8652:@Chg{Version=[2],New=[1995)],Old=[1987), of which it constitutes
-a technical revision]}.
+@ChgRef{Version=[3],Kind=[Revised]}
+This @Chg{Version=[3],New=[third],Old=[@Chg{Version=[2],New=[consolidated],Old=[second]}]}
+edition @Chg{Version=[3],New=[cancels and replaces],Old=[@Chg{Version=[2],
+New=[updates],Old=[cancels and replaces]}]} the @Chg{Version=[2],New=[second],Old=[first]}
+edition (ISO@Chg{Version=[3],New=[/IEC],Old=[]} 8652:@Chg{Version=[2],New=[1995)],Old=[1987), of which it constitutes
+a technical revision]}@Chg{Version=[3],New=[, of which it constitutes
+a technical revision. This edition incorporates the contents of Technical Corrigendum 1
+(ISO/IEC 8652:1995:COR.1:2001) and Amendment 1 (ISO/IEC 8652:1995:AMD 1:2007)],Old=[]}.
 @begin{Discussion}
 @ChgRef{Version=[2],Kind=[AddedNormal]}
-@ChgAdded{Version=[2],Text=[The above is unofficial wording added just to avoid
-confusion. If ISO decides
+@ChgRef{Version=[3],Kind=[DeletedNoDelMsg]}
+@ChgAdded{Version=[2],Text=[@Chg{Version=[3],New=[],Old=[The above is
+unofficial wording added just to avoid confusion. If ISO decides
 to publish a new standard, the above would be replaced by @ldquote@;This third
 edition cancels and replaces the second edition (ISO 8652:1995), of which it
 constitutes a technical revision@rdquote. The first three paragraphs in this
-section also would be replaced by the current ISO boilerplate.]}
+section also would be replaced by the current ISO boilerplate.]}]}
 @end{Discussion}
 
 
@@ -141,9 +194,11 @@ Annexes K to @Chg{Version=[2],New=[Q],Old=[P]} are for information only.
 
 
 @begin{Discussion}
+@ChgRef{Version=[3],Kind=[Revised]}
 This document is the Annotated Ada Reference Manual (AARM).
-It contains the entire text of the Ada 95 standard
-(ISO/IEC 8652:1995), plus various annotations.
+It contains the entire text of the Ada @Chg{Version=[3],New=[2012],Old=[95]}
+standard
+(ISO/IEC 8652:@Chg{Version=[3],New=[201x],Old=[1995]}), plus various annotations.
 It is intended primarily for compiler writers,
 validation test writers, and other language lawyers.
 The annotations include detailed rationale for individual rules
@@ -161,6 +216,7 @@ This document lists in detail the changes introduced in the second
 with respect to the first (Ada 83) edition (ISO 8652:1987).
 
 @end{Comment}
+
 
 @UnNumberedSection{Introduction}
 
@@ -197,21 +253,27 @@ before reading this Standard in depth.]}
 @ChgDeleted{Version=[1],Text=[Changes to Ada @em 1987 to 1995. This document
 lists in detail the changes made to the 1987 edition of the standard.]}
 
+@ChgRef{Version=[3],Kind=[Revised]}
 The Ada Reference Manual (RM).
-This is the International Standard @em ISO/IEC 8652:1995.
+This is the International Standard @em ISO/IEC 8652:@Chg{Version=[3],New=[201x],Old=[1995]}.
 
 @ChgRef{Version=[2],Kind=[Added]}
-@ChgAdded{Version=[2],Text=[Technical Corrigendum 1 @em ISO/IEC 8652:1995:COR.1:2001.
-This document lists corrections to the International Standard.]}
+@ChgRef{Version=[3],Kind=[DeletedAddedNoDelMsg]}
+@ChgAdded{Version=[2],Text=[@Chg{Version=[3],New=[],Old=[Technical Corrigendum 1
+@em ISO/IEC 8652:1995:COR.1:2001. This document lists corrections to the
+International Standard.]}]}@ChgNote{This is consolidated into the Ada 2012 RM}
 
 @ChgRef{Version=[2],Kind=[Added]}
-@ChgAdded{Version=[2],Text=[Amendment 1 @em ISO/IEC 8652:1995:AMD.1:2007. This
-document outlines additional features and corrections to the International
-Standard.]}
+@ChgRef{Version=[3],Kind=[DeletedAddedNoDelMsg]}
+@ChgAdded{Version=[2],Text=[@Chg{Version=[3],New=[],Old=[Amendment 1 @em ISO/IEC
+8652:1995:AMD 1:2007. This document outlines additional features and corrections
+to the International Standard.]}]}@ChgNote{This is consolidated into the Ada 2012 RM}
 
 @ChgRef{Version=[2],Kind=[Added]}
-@ChgAdded{Version=[2],Text=[The consolidated Ada Reference Manual. An @i{unofficial}
-document combining the above three documents into a single document.]}
+@ChgRef{Version=[3],Kind=[DeletedAddedNoDelMsg]}
+@ChgAdded{Version=[2],Text=[@Chg{Version=[3],New=[],Old=[The consolidated Ada Reference Manual. An @i{unofficial}
+document combining the above three
+documents into a single document.]}]}
 @end{Itemize}
 @end{AARMOnly}
 
@@ -235,11 +297,15 @@ before reading this Standard in depth.]}
 detail the changes made to the 1987 edition of the standard.]}
 
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00387-01]}
+@ChgRef{Version=[3],Kind=[Revised]}
 The Annotated Ada Reference Manual (AARM).@Defn{Annotated Ada Reference Manual}
 @Defn{AARM}The AARM contains all of the text
-in @Chg{Version=[2],New=[the consolidated Ada Reference Manual],Old=[the RM95]},
-@ChgNote{John had "this International Standard", but it's really related to the
-unofficial document. Change it back if ISO decides to publish this consolidated RM.}
+in @Chg{Version=[3],New=[this International Standard],
+Old=[@Chg{Version=[2],New=[the consolidated Ada Reference Manual],Old=[the RM95]}]},
+@ChgNote{Version=[2]: John had "this International Standard", but it's really
+related to the unofficial document. Change it back if ISO decides to publish
+this consolidated RM.}
+@ChgNote{Version=[3]: Changed back for Ada 2012.}
 plus various annotations. It is intended primarily for compiler writers,
 validation test writers,
 and others who wish to study the fine details.
@@ -254,6 +320,7 @@ rules.
 
 @begin{Intro}
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00387-01]}
+@ChgRef{Version=[3],Kind=[Revised]}
 Ada was originally designed with three overriding concerns:
 program reliability and maintenance, programming as a human
 activity, and efficiency. @Chg{Version=[2],New=[The 1995],Old=[This]} revision
@@ -262,7 +329,8 @@ additional control over storage management and
 synchronization, and standardized packages oriented toward
 supporting important application areas, while at the same
 time retaining the original emphasis on reliability,
-maintainability, and efficiency.@Chg{Version=[2],New=[ This amended version
+maintainability, and efficiency.@Chg{Version=[2],New=[ This
+@Chg{Version=[3],New=[third edition],Old=[amended version]}
 provides further flexibility and adds more standardized packages within the
 framework provided by the 1995 revision.],Old=[]}
 
@@ -595,25 +663,35 @@ applicable to all types of a given class.
 
 @begin{Intro}
 
+@begin{NotIso}
+@ChgAdded{Version=[2],Noprefix=[T],Noparanum=[T],Text=[@Shrink{@i<Paragraphs 44
+through 57 have been removed as they described differences from the first edition
+of Ada (Ada 83).>}]}@Comment{This message should be
+deleted if the paragraphs are ever renumbered.}
+@end{NotIso}
+
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00387-01]}
-@Leading@;This @Chg{Version=[2],New=[amended ],Old=[]}International Standard
+@ChgRef{Version=[3],Kind=[DeletedNoDelMsg]}
+@ChgDeleted{Version=[3],Type=[Leading],Text=[This @Chg{Version=[2],New=[amended ],Old=[]}International Standard
 @Chg{Version=[2],New=[updates the edition of 1995 which replaced],
-Old=[International Standard replaces]} the first edition of 1987.
+Old=[replaces]} the first edition of 1987.
 In @Chg{Version=[2],New=[the 1995],Old=[this]} edition, the following major
-language changes @Chg{Version=[2],New=[were],Old=[have been]} incorporated:
+language changes @Chg{Version=[2],New=[were],Old=[have been]} incorporated:]}
 @begin{Itemize}
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00387-01]}
-Support for standard 8-bit and 16-bit
+@ChgRef{Version=[3],Kind=[DeletedNoDelMsg]}
+@ChgDeleted{Version=[3],Text=[Support for standard 8-bit and 16-bit
 character@Chg{Version=[2],New=[s was added],Old=[ sets]}.
 See @Chg{Version=[2],New=[clauses @RefSecNum{Character Set}],Old=[Section 2]},
 @RefSecNum{Character Types},
 @RefSecNum{String Types},
 @RefSecNum{The Package Standard},
 @RefSecNum{Character Handling}, and
-@RefSecNum{String Handling}.
+@RefSecNum{String Handling}.]}
 
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00387-01]}
-@Chg{Version=[2],New=[The type model was extended to include facilities
+@ChgRef{Version=[3],Kind=[DeletedNoDelMsg]}
+@ChgDeleted{Version=[3],Text=[@Chg{Version=[2],New=[The type model was extended to include facilities
 for o],Old=[O]}bject-oriented programming
 with @Chg{Version=[2],New=[dynamic],Old=[run-time]} polymorphism.
 See the discussions of classes, derived types, tagged types,
@@ -625,62 +703,81 @@ in clauses @RefSecNum{Derived Types and Classes},
 formal parameters @Chg{Version=[2],New=[were],Old=[that are]} allowed
 @Chg{Version=[2],New=[as described in clauses
 @RefSecNum{Formal Private and Derived Types} and @RefSecNum{Formal Packages}],
-Old=[by @RefSec{Formal Private and Derived Types} and @RefSec{Formal Packages}]}.
+Old=[by @RefSec{Formal Private and Derived Types} and @RefSec{Formal Packages}]}.]}
 
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00387-01]}
-Access types @Chg{Version=[2],New=[were],Old=[have been]} extended to allow
+@ChgRef{Version=[3],Kind=[DeletedNoDelMsg]}
+@ChgDeleted{Version=[3],Text=[Access types @Chg{Version=[2],New=[were],Old=[have been]} extended to allow
 an access value to designate a subprogram or an object declared by an
 object declaration @Chg{Version=[2],New=[],Old=[(]}as opposed to just
 @Chg{Version=[2],New=[an object ],Old=[a heap-]}allocated
 @Chg{Version=[2],New=[on a heap],Old=[object)]}.
-See @Chg{Version=[2],New=[clause ],Old=[]}@RefSecNum{Access Types}.
+See @Chg{Version=[2],New=[clause ],Old=[]}@RefSecNum{Access Types}.]}
 
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00387-01]}
-Efficient data-oriented synchronization @Chg{Version=[2],New=[was],
+@ChgRef{Version=[3],Kind=[DeletedNoDelMsg]}
+@ChgDeleted{Version=[3],Text=[Efficient data-oriented synchronization @Chg{Version=[2],New=[was],
 Old=[is]} provided @Chg{Version=[2],New=[by the introduction of],
 Old=[via]} protected types. See @Chg{Version=[2],
-New=[clause @RefSecNum{Protected Units and Protected Objects}],Old=[Section 9]}.
+New=[clause @RefSecNum{Protected Units and Protected Objects}],Old=[Section 9]}.]}
 
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00387-01]}
-The library @Chg{Version=[2],New=[structure was extended to allow
+@ChgRef{Version=[3],Kind=[DeletedNoDelMsg]}
+@ChgDeleted{Version=[3],Text=[The library @Chg{Version=[2],New=[structure was extended to allow
 library units to],Old=[units of a library may]} be organized into a
 hierarchy of parent and child units.
 See @Chg{Version=[2], New=[clause @RefSecNum{Separate Compilation}],
-Old=[Section 10]}.
+Old=[Section 10]}.]}
 
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00387-01]}
-Additional support @Chg{Version=[2],New=[was],Old=[has been]} added for
-interfacing to other languages. See @RefSecNum{Interface to Other Languages}.
+@ChgRef{Version=[3],Kind=[DeletedNoDelMsg]}
+@ChgDeleted{Version=[3],Text=[Additional support
+@Chg{Version=[2],New=[was],Old=[has been]} added for interfacing to other
+languages. See @RefSecNum{Interface to Other Languages}.]}
 
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00387-01]}
-@leading@;The Specialized Needs Annexes
+@ChgRef{Version=[3],Kind=[DeletedNoDelMsg]}
+@ChgDeleted{Version=[3],Type=[Leading],Text=[The Specialized Needs Annexes
 @Chg{Version=[2],New=[were],Old=[have been]} added
-to provide specific support for certain application areas:
+to provide specific support for certain application areas:]}
 @begin{InnerItemize}
-@RefSec{Systems Programming}
+@ChgRef{Version=[3],Kind=[DeletedNoDelMsg]}
+@ChgDeleted{Version=[3],Text=[@RefSec{Systems Programming}]}
 
-@RefSec{Real-Time Systems}
+@ChgRef{Version=[3],Kind=[DeletedNoDelMsg]}
+@ChgDeleted{Version=[3],Text=[@RefSec{Real-Time Systems}]}
 
-@RefSec{Distributed Systems}
+@ChgRef{Version=[3],Kind=[DeletedNoDelMsg]}
+@ChgDeleted{Version=[3],Text=[@RefSec{Distributed Systems}]}
 
-@RefSec{Information Systems}
+@ChgRef{Version=[3],Kind=[DeletedNoDelMsg]}
+@ChgDeleted{Version=[3],Text=[@RefSec{Information Systems}]}
 
-@RefSec{Numerics}
+@ChgRef{Version=[3],Kind=[DeletedNoDelMsg]}
+@ChgDeleted{Version=[3],Text=[@RefSec{Numerics}]}
 
-@RefSec{High Integrity Systems}
+@ChgRef{Version=[3],Kind=[DeletedNoDelMsg]}
+@ChgDeleted{Version=[3],Text=[@RefSec{High Integrity Systems}]}
 @end{InnerItemize}
 @end{Itemize}
 
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00387-01]}
-@ChgAdded{Version=[2],Text=[Amendment 1 modifies the 1995 International Standard by
+@ChgRef{Version=[3],Kind=[RevisedAdded]}
+@ChgAdded{Version=[2],Text=[@Chg{Version=[3],New=[This International Standard
+replaces the second edition of 1995. It],Old=[Amendment 1]} modifies the
+@Chg{Version=[3],New=[previous edition],Old=[1995 International Standard]} by
 making changes and additions that improve the capability of the language and
-the reliability of programs written in the language. In particular the changes
+the reliability of programs written in the language.@Chg{Version=[3],New=[ This
+edition incorporates the changes from Amendment 1 (ISO/IEC 8652:1995:AMD 1:2007),
+which],Old=[In particular the changes]}
 were designed to improve the portability of programs, interfacing to other
 languages, and both the object-oriented and real-time capabilities.]}
 
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00387-01]}
-@ChgAdded{Version=[2],Type=[Leading],Text=[The following significant changes
-with respect to the 1995 edition are incorporated:]}
+@ChgRef{Version=[3],Kind=[RevisedAdded]}
+@ChgAdded{Version=[2],Type=[Leading],Text=[@Chg{Version=[3],New=[Significant],
+Old=[The following significant]} changes@Chg{Version=[3],New=[ originating
+in Amendment 1],Old=[with respect to the 1995 edition]} are incorporated:]}
 
 @begin{Itemize}
 @ChgRef{Version=[2],Kind=[Added]}
@@ -745,7 +842,7 @@ The Real-Time Systems Annex now includes the Ravenscar profile for
 high-integrity systems, further dispatching policies such as Round Robin
 and Earliest Deadline First, support for timing events, and support for
 control of CPU time utilization. See clauses @RefSecNum{Priority Scheduling},
-@RefSecNum{Run-time Profiles},
+@RefSecNum{The Ravenscar Profile},
 @RefSecNum{Execution Time}, and
 @RefSecNum{Timing Events}.],Old=[]}
 
@@ -769,9 +866,91 @@ giving better control over the suppression of checks. See clauses
 
 @end{Itemize}
 
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0245-1]}
+@ChgAdded{Version=[3],Text=[In addition, this third edition makes
+enhancements to address two important issues, namely, the particular problems of
+multiprocessor architectures, and the need to further increase the capabilities
+regarding assertions for correctness.]}
 
+@ChgNote{The original "Amendment 2" version of this text follows:
+Amendment 2 modifies the 1995 International Standard
+by making changes and additions that improve the capability of the language and
+the reliability of programs written in the language. In particular, enhancements
+are made to address two important issues, namely, the particular problems of
+multiprocessor architectures, and the need to further increase the capabilities
+regarding assertions for correctness.}
 
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0245-1]}
+@ChgAdded{Version=[3],Type=[Leading],Text=[The following significant changes
+with respect to the 1995 edition as amended by Amendment 1 are incorporated:]}
 
+@begin{Itemize}
+@ChgRef{Version=[3],Kind=[Added]}
+@ChgAdded{Version=[3],Text=[New syntax (the aspect specification) is introduced
+to enable properties to be specified for various entities in a more structured
+manner than through pragmas. See clause @RefSecNum{Aspect Specifications}.]}
+
+@ChgRef{Version=[3],Kind=[Added]}
+@ChgAdded{Version=[3],Text=[The concept of assertions introduced in the 2005
+edition is extended with the ability to specify preconditions and postconditions
+for subprograms, and invariants for private types. The concept of constraints in
+defining subtypes is supplemented with subtype predicates that enable subsets
+to be specified other than as simple ranges. These properties are all indicated
+using aspect specifications. See clauses @RefSecNum{Subtype Predicates},
+@RefSecNum{Preconditions and Postconditions}, and @RefSecNum{Type Invariants}.]}
+
+@ChgRef{Version=[3],Kind=[Added]}
+@ChgAdded{Version=[3],Text=[New forms of expressions are introduced. These are
+if expressions, case expressions, quantified expressions, and expression
+functions. As well as being useful for programming in general by avoiding the
+introduction of unnecessary assignments, they are especially valuable in
+conditions and invariants since they avoid the need to introduce auxiliary
+functions. See clauses @RefSecNum{Conditional Expressions},
+@RefSecNum{Quantified Expressions}, and @RefSecNum{Expression Functions}.
+Membership tests are also made more flexible. See clauses
+@RefSecNum{Expressions} and @RefSecNum{Relational Operators and Membership Tests}.]}
+
+@ChgRef{Version=[3],Kind=[Added]}
+@ChgAdded{Version=[3],Text=[A number of changes are made to parameters.
+Functions may now have parameters of all modes. In order to mitigate consequent
+(and indeed existing) problems of inadvertent order dependence, rules are
+introduced to reduce aliasing. A parameter may now be explicitly marked as
+aliased and the type of a parameter may be incomplete in
+certain circumstances. See clauses @RefSecNum{Incomplete Type Declarations},
+@RefSecNum{Subprogram Declarations}, and @RefSecNum{Parameter Associations}.]}
+
+@ChgRef{Version=[3],Kind=[Added]}
+@ChgAdded{Version=[3],Text=[The use of access types is now more flexible. The
+rules for accessibility and certain conversions are improved. See clauses
+@RefSecNum{Operations of Access Types}, @RefSecNum{Relational Operators and Membership Tests},
+@RefSecNum{Type Conversions}, and @RefSecNum{The Context of Overload Resolution}.
+Furthermore, better control of storage pools is
+provided. See clause @RefSecNum{Storage Subpools}.]}
+
+@ChgRef{Version=[3],Kind=[Added]}
+@ChgAdded{Version=[3],Text=[The Real-Time Systems Annex now includes facilities
+for defining domains of processors and assigning tasks to them. Improvements are
+made to scheduling and budgeting facilities. See clauses @RefSecNum{Synchronous Barriers},
+@RefSecNum{Execution Time}, and @RefSecNum{Multiprocessor Implementation}.]}
+
+@ChgRef{Version=[3],Kind=[Added]}
+@ChgAdded{Version=[3],Text=[A number of important improvements are made to the
+standard library. These include packages for conversions between strings and UTF
+encodings, and classification functions for wide and wide wide characters.
+Internationalization is catered for by a package giving locale information. See
+clauses @RefSecNum{Character Handling}, @RefSecNum{String Encoding}, and
+@RefSecNum{The Package Locales}. The container library is extended to include
+bounded forms of the existing containers and new containers for indefinite
+objects, multiway trees, and queues. See clause @RefSecNum{Containers}.]}
+
+@ChgRef{Version=[3],Kind=[Added]}
+@ChgAdded{Version=[3],Text=[Finally, certain features are added primarily to
+ease the use of containers, such as the ability to iterate over all elements in a
+container without having to encode the iteration. These can also be used for
+iteration over arrays. See clauses @RefSecNum{User-Defined References},
+@RefSecNum{User-Defined Indexing},  @RefSecNum{User-Defined Iterator Types},
+and @RefSecNum{Generalized Loop Iteration}.]}
+@end{Itemize}
 @end{Intro}
 
 @NewPage
@@ -793,8 +972,9 @@ the defect correction procedure.
 Comments should use the following format:
 @begin(display)
 @ChgRef{Version=[2],Kind=[Revised]}
+@ChgRef{Version=[3],Kind=[Revised]}
 @TabSet(L6)@\@b(!topic) @i[Title summarizing comment]
-@\@b(!reference) @Chg{Version=[2],New=[Ada 2005 RM],Old=[RM95-]}@i{ss.ss(pp)}
+@\@b(!reference) @Chg{Version=[2],New=[Ada @Chg{Version=[3],New=[2012],Old=[2005]} RM],Old=[RM95-]}@i{ss.ss(pp)}
 @\@b(!from) @i{Author Name yy-mm-dd}
 @\@b(!keywords) @i{keywords related to topic}
 @\@b(!discussion)
@@ -837,7 +1017,90 @@ a Technical Corrigendum will be issued in accordance with the procedures.
 
 @begin{NotISO}
 @NewPage
-@SubHeading(Acknowledgements@Chg{Version=[2],New=[ for the Ada 95 edition of the Ada Reference Manual],Old=[]})
+@AddedSubHeading{Version=[3],Acknowledgements for the Ada 83 edition}
+
+@ChgRef{Version=[3],Kind=[Added]}
+@ChgAdded{Version=[3],Text=[Ada is the result of a collective effort to design a
+common language for programming large scale and real-time systems.]}
+
+@ChgRef{Version=[3],Kind=[Added]}
+@ChgAdded{Version=[3],Text=[The common high order language program began in
+1974. The requirements of the United States Department of Defense were
+formalized in a series of documents which were extensively reviewed by the
+Services, industrial organizations, universities, and foreign military
+departments. The Ada language was designed in accordance with the final (1978)
+form of these requirements, embodied in the Steelman specification.]}
+
+@ChgRef{Version=[3],Kind=[Added]}
+@ChgAdded{Version=[3],Text=[The Ada design team was led by Jean D. Ichbiah and
+has included Bernd Krieg-Brueckner, Brian A. Wichmann, Henry F. Ledgard,
+Jean-Claude Heliard, Jean-Loup Gailly, Jean-Raymond Abrial, John G.P. Barnes,
+Mike Woodger, Olivier Roubine, Paul N. Hilfinger, and Robert Firth.]}
+
+@ChgRef{Version=[3],Kind=[Added]}
+@ChgAdded{Version=[3],Text=[At various stages of the project, several people
+closely associated with the design team made major contributions. They include
+J.B. Goodenough, R.F. Brender, M.W. Davis, G. Ferran, K. Lester, L. MacLaren, E.
+Morel, I.R. Nassi, I.C. Pyle, S.A. Schuman, and S.C. Vestal.]}
+
+@ChgRef{Version=[3],Kind=[Added]}
+@ChgAdded{Version=[3],Text=[Two parallel efforts that were started in the second
+phase of this design had a deep influence on the language. One was the
+development of a formal definition using denotational semantics, with the
+participation of V. Donzeau-Gouge, G. Kahn, and B. Lang. The other was the
+design of a test translator with the participation of K. Ripken, P. Boullier, P.
+Cadiou, J. Holden, J.F. Hueras, R.G. Lange, and D.T. Cornhill. The entire effort
+benefitted from the dedicated assistance of Lyn Churchill and Marion Myers, and
+the effective technical support of B. Gravem, W.L. Heimerdinger, and P. Cleve.
+H.G. Schmitz served as program manager.]}
+
+@ChgRef{Version=[3],Kind=[Added]}
+@ChgAdded{Version=[3],Text=[Over the five years spent on this project, several
+intense week-long design reviews were conducted, with the participation of P.
+Belmont, B. Brosgol, P. Cohen, R. Dewar, A. Evans, G. Fisher, H. Harte, A.L.
+Hisgen, P. Knueven, M. Kronental, N. Lomuto, E. Ploedereder, G. Seegmueller, V.
+Stenning, D. Taffs, and also F. Belz, R. Converse, K. Correll, A.N. Habermann,
+J. Sammet, S. Squires, J. Teller, P. Wegner, and P.R. Wetherall.]}
+
+@ChgRef{Version=[3],Kind=[Added]}
+@ChgAdded{Version=[3],Text=[Several persons had a constructive influence with
+their comments, criticisms and suggestions. They include P. Brinch Hansen, G.
+Goos, C.A.R. Hoare, Mark Rain, W.A. Wulf, and also E. Boebert, P. Bonnard, H.
+Clausen, M. Cox, G. Dismukes, R. Eachus, T. Froggatt, H. Ganzinger, C. Hewitt,
+S. Kamin, R. Kotler, O. Lecarme, J.A.N. Lee, J.L. Mansion, F. Minel, T. Phinney,
+J. Roehrich, V. Schneider, A. Singer, D. Slosberg, I.C. Wand, the reviewers of
+Ada-Europe, AdaTech, Afcet, those of the LMSC review team, and those of the Ada
+Tokyo Study Group.]}
+
+@ChgRef{Version=[3],Kind=[Added]}
+@ChgAdded{Version=[3],Text=[These reviews and comments, the numerous evaluation
+reports received at the end of the first and second phase, the nine hundred
+language issue reports and test and evaluation reports received from fifteen
+different countries during the third phase of the project, the thousands of
+comments received during the ANSI Canvass, and the on-going work of the IFIP
+Working Group 2.4 on system implementation languages and that of the Purdue
+Europe LTPL-E committee, all had a substantial influence on the final definition
+of Ada.]}
+
+@ChgRef{Version=[3],Kind=[Added]}
+@ChgAdded{Version=[3],Text=[The Military Departments and Agencies have provided
+a broad base of support including funding, extensive reviews, and countless
+individual contributions by the members of the High Order Language Working Group
+and other interested personnel. In particular, William A. Whitaker provided
+leadership for the program during the formative stages. David A. Fisher was
+responsible for the successful development and refinement of the language
+requirement documents that led to the Steelman specification.]}
+
+@ChgRef{Version=[3],Kind=[Added]}
+@ChgAdded{Version=[3],Text=[The Ada 83 language definition was developed by Cii
+Honeywell Bull and later Alsys, and by Honeywell Systems and Research Center,
+under contract to the United States Department of Defense. William E. Carlson
+and later Larry E. Druffel served as the technical representatives of the United
+States Government and effectively coordinated the efforts of all participants in
+the Ada program.]}
+
+
+@SubHeading(Acknowledgements@Chg{Version=[2],New=[ for the Ada 95 edition],Old=[]})
 
 @begin{Intro}
 
@@ -923,11 +1186,13 @@ The Ada 9X Project was sponsored by the Ada Joint Program Office.
 Christine M. Anderson at the Air Force Phillips Laboratory (Kirtland
 AFB, NM) was the project manager.
 
-@AddedSubHeading{Version=[1],Acknowledgements for the Corrigendum version of the Ada Reference Manual}
+@AddedSubHeading{Version=[1],Acknowledgements for the Corrigendum version}
 
 @ChgRef{Version=[1],Kind=[Added]}
+@ChgRef{Version=[3],Kind=[RevisedAdded]}
 @Chg{New=<The editor [R. Brukardt (USA)] would like to thank the many people
-whose hard work and assistance has made this revision possible.>,Old=[]}
+whose hard work and assistance has made this
+@Chg{Version=[3],New=[update],Old=[revision]} possible.>,Old=[]}
 
 @ChgRef{Version=[1],Kind=[Added]}
 @Chg{New=[Thanks go out to all of the members of the ISO/IEC JTC 1/SC 22/WG 9
@@ -942,15 +1207,17 @@ J. Tokar (USA), and other members too numerous to mention.],Old=[]}
 @ChgRef{Version=[1],Kind=[Added]}
 @Chg{New=[Special thanks go to R. Duff (USA) for his explanations of the
 previous system of formatting of these documents during the tedious conversion
-to more modern formats. Special thanks also go to the convener of
+to more modern formats. Special thanks also go to the convenor of
 ISO/IEC JTC 1/SC 22/WG 9, J. Moore (USA), without whose help and support
-the corrigendum and this consolidated reference manual would not have been possible.],Old=[]}
+the Corrigendum and this consolidated reference manual would not have been possible.],Old=[]}
 
-@AddedSubHeading{Version=[2],Acknowledgements for the Amendment version of the Ada Reference Manual}
+@AddedSubHeading{Version=[2],Acknowledgements for the Amendment 1 version}
 
 @ChgRef{Version=[2],Kind=[Added]}
+@ChgRef{Version=[3],Kind=[RevisedAdded]}
 @Chg{Version=[2],New=<The editor [R. Brukardt (USA)] would like to thank the many
-people whose hard work and assistance has made this revision possible.>,Old=[]}
+people whose hard work and assistance has made this
+@Chg{Version=[3],New=[update],Old=[revision]} possible.>,Old=[]}
 
 @ChgRef{Version=[2],Kind=[Added]}
 @ChgAdded{Version=[2],Text=[Thanks go out to all of the members of the
@@ -973,10 +1240,44 @@ Michell (Canada), E. Ploedereder (Germany), J.P. Rosen (France), E. Schonberg
 Association, without whose help and support the Amendment and this consolidated
 reference manual would not have been possible. M. Heaney (USA) requires special
 thanks for his tireless work on the containers packages. Finally, special
-thanks go to the convener of ISO/IEC JTC 1/SC 22/WG 9, J. Moore (USA), who
+thanks go to the convenor of ISO/IEC JTC 1/SC 22/WG 9, J. Moore (USA), who
 guided the document through the standardization process.],Old=[]}
 
 @end{Intro}
+
+@AddedSubHeading{Version=[3],Acknowledgements for the Ada 2012 edition}
+
+@ChgRef{Version=[3],Kind=[Added]}
+@ChgAdded{Version=[3],Text=<The editor [R. Brukardt (USA)] would like to thank the many
+people whose hard work and assistance has made this revision possible.>}
+
+@ChgRef{Version=[3],Kind=[Added]}
+@ChgAdded{Version=[3],Text=[Thanks go out to all of the members of the
+ISO/IEC JTC 1/SC 22/WG 9
+Ada Rapporteur Group, whose work on creating and editing the wording
+changes was critical to the entire process. Especially valuable
+contributions came from the chairman of the ARG, E. Schonberg (USA), who
+guided the work; T. Taft (USA), whose insights broke many logjams, both in
+design and wording; J. Barnes (UK) whose careful reviews uncovered many
+editorial errors; S. Baird (USA), who
+repeatedly found obscure interactions with the proposals that the rest of
+us missed. Other ARG members who contributed were:
+A. Burns (UK), J. Cousins (UK), R. Dewar (USA), G. Dismukes (USA), R. Duff (USA), P. Leroy
+(France), B. Moore (Canada), E. Ploedereder (Germany), J.P. Rosen (France),
+B. Thomas (USA), and T. Vardanega (Italy).]}@Comment{Pascal Leroy worked
+extensively on this work in the early days, although he hasn't participated
+recently.}
+
+@ChgRef{Version=[3],Kind=[Added]}
+@Chg{Version=[3],New=[Special thanks go to Ada-Europe and the Ada Resource
+Association, without whose help and support this third edition of the
+Ada Standard would not have been possible. A special mention has to go to
+A. Beneschan (USA) for his efforts in eliminating sloppiness in our wording.
+M. Heaney (USA) also requires a mention for his efforts to improve the
+containers packages. Finally, special thanks go to the convenor of ISO/IEC JTC
+1/SC 22/WG 9, J. Tokar (USA), who guided the document through the
+standardization process.],Old=[]} @Comment{The other financial contributors
+wanted to remain anonymous, so they are not mentioned here.}
 
 @NewPage
 @SubHeading{Changes}
@@ -1006,8 +1307,12 @@ thus, the page breaks are in different places.
 clause is not included in the International Standard.],Old=[]}
 
 @ChgRef{Version=[2],Kind=[Added]}
-@Chg{Version=[2],New=[The @lquotes@;Using this version of the Ada Reference Manual@rquotes
-clause is not included in the International Standard.],Old=[]}
+@ChgAdded{Version=[2],Text=[The @lquotes@;Using this version of the Ada
+Reference Manual@rquotes clause is not included in the International Standard.]}
+
+@ChgRef{Version=[3],Kind=[Added]}
+@ChgAdded{Version=[3],Text=[Paragraph numbers are not included
+in the International Standard.]}
 @end{Itemize}
 @end{Intro}
 @end{NotISO}
@@ -1019,54 +1324,71 @@ clause is not included in the International Standard.],Old=[]}
 @begin{RMOnly}
 @ChgRef{Version=[1],Kind=[Added]}
 @ChgRef{Version=[2],Kind=[RevisedAdded]}
+@ChgRef{Version=[3],Kind=[RevisedAdded]}
 @Chg{New=[This document has been revised with the corrections specified in Technical Corrigendum 1
-(ISO/IEC 8652:1995/COR.1:2001)@Chg{Version=[2],New=[ and Amendment 1 (ISO/IEC 8652/AMD.1:2007)],Old=[]}.
+(ISO/IEC 8652:1995/COR.1:2001)@Chg{Version=[2],New=[ and
+Amendment 1 (ISO/IEC 8652/AMD 1:2007)@Chg{Version=[3],New=[, along with
+changes specifically for this third edition],Old=[]}],Old=[]}.
 In addition, a variety of editorial errors have been corrected.],Old=[]}
 @end{RMOnly}
 @begin{AARMOnly}
 @ChgRef{Version=[1],Kind=[Added]}
 @ChgRef{Version=[2],Kind=[RevisedAdded]}
+@ChgRef{Version=[3],Kind=[RevisedAdded]}
 @Chg{New=[This document has been revised with the corrections specified in Technical Corrigendum 1
-(ISO/IEC 8652:1995/COR.1:2001)@Chg{Version=[2],New=[ and Amendment 1 (ISO/IEC 8652/AMD.1:2007)],Old=[]}.
-In addition, additional annotations have been added and
-a variety of editorial errors have been corrected.],Old=[]}
+(ISO/IEC 8652:1995/COR.1:2001)@Chg{Version=[2],New=[ and
+Amendment 1 (ISO/IEC 8652/AMD 1:2007)@Chg{Version=[3],New=[, along with
+changes specifically for this third edition],Old=[]}],Old=[]}.
+In addition, @Chg{Version=[3],New=[more],Old=[additional]} annotations
+have been added and a variety of editorial errors have been corrected.],Old=[]}
 @end{AARMOnly}
 
 @begin{RMOnly}
 @ChgRef{Version=[1],Kind=[Added]}
 @ChgRef{Version=[2],Kind=[RevisedAdded]}
+@ChgRef{Version=[3],Kind=[RevisedAdded]}
 @Chg{New=[Changes to the original 8652:1995 can be identified by the version
 number @Chg{Version=[2],New=[],Old=[/1 ]}following the paragraph
 number.@Chg{Version=[2],New=[ Paragraphs with a version number of /1 were
 changed by Technical Corrigendum 1 or were editorial corrections at that time,
 while paragraphs with a version number of /2 were changed by Amendment 1 or were
-more recent editorial corrections.],Old=[]} Paragraphs not so marked are
-unchanged by @Chg{Version=[2],New=[Amendment 1, ],Old=[]}Technical Corrigendum
+more recent editorial corrections@Chg{Version=[3],New=[, and paragraphs with a
+version number of /3 were changed by the third (2012) edition of the Standard
+or were still
+more recent editorial corrections],Old=[]}.],Old=[]} Paragraphs not so marked are
+unchanged by @Chg{Version=[2],New=[@Chg{Version=[3],New=[the third edition, ],Old=[]}Amendment 1, ],Old=[]}Technical Corrigendum
 1@Chg{Version=[2],New=[,],Old=[]} or editorial corrections. Paragraph numbers
-of unchanged paragraphs are the same as in the original Ada Reference Manual.
-In addition, some versions of this document include revision bars near the
+of unchanged paragraphs are the same as in
+the @Chg{Version=[3],New=[1995 edition of the],Old=[original]} Ada Reference
+Manual. In addition, some versions of this document include revision bars near the
 paragraph numbers. Where paragraphs are inserted, the paragraph numbers are of
 the form pp.nn, where pp is the number of the preceding paragraph, and nn is an
 insertion number. For instance, the first paragraph inserted after paragraph 8
 is numbered 8.1, the second paragraph inserted is numbered 8.2, and so on.
 Deleted paragraphs are indicated by the text @i{@shrink{This paragraph was
 deleted.}} Deleted paragraphs include empty paragraphs that were numbered in
-the original Ada Reference Manual.],Old=[]}
+the @Chg{Version=[3],New=[1995 edition of the],Old=[original]}
+Ada Reference Manual.],Old=[]}
 @end{RMOnly}
 @begin{AARMOnly}
 @ChgRef{Version=[1],Kind=[Added]}
 @ChgRef{Version=[2],Kind=[RevisedAdded]}
+@ChgRef{Version=[3],Kind=[RevisedAdded]}
 @Chg{New=[Changes to the original 8652:1995 can be identified by the version
 number @Chg{Version=[2],New=[],Old=[/1 ]}following the paragraph
 number.@Chg{Version=[2],New=[ Paragraphs with a version number of /1 were
 changed by Technical Corrigendum 1 or were editorial corrections at that time,
 while paragraphs with a version number of /2 were changed by Amendment 1 or were
-more recent editorial corrections.],Old=[]} Paragraphs not so marked are
-unchanged by @Chg{Version=[2],New=[Amendment 1, ],Old=[]}Technical Corrigendum
-1@Chg{Version=[2],New=[,],Old=[]} or editorial corrections@Chg{Version=[2],New=[;
-that is, they are identical to the 1995 version],Old=[]}. Paragraph numbers
-of unchanged paragraphs are the same as in the original International
-Standard. Inserted text is indicated by underlining, and deleted text is
+more recent editorial corrections@Chg{Version=[3],New=[, and paragraphs with a
+version number of /3 were changed by the third (2012) edition of the Standard
+or were still
+more recent editorial corrections],Old=[]}.],Old=[]} Paragraphs not so marked are
+unchanged by @Chg{Version=[2],New=[@Chg{Version=[3],New=[the third edition,
+],Old=[]}Amendment 1, ],Old=[]}Technical Corrigendum
+1@Chg{Version=[2],New=[,],Old=[]} or editorial corrections. Paragraph numbers
+of unchanged paragraphs are the same as in the @Chg{Version=[3],New=[1995
+edition of the],Old=[original]} Ada Reference Manual. Inserted text is indicated
+by underlining, and deleted text is
 indicated by strikethroughs. @Chg{Version=[2],New=[Some versions also use
 color to indicate the version of the change.],Old=[]}Where paragraphs are
 inserted, the paragraph numbers are of the form pp.nn, where pp is the number
@@ -1074,8 +1396,15 @@ of the preceding paragraph, and nn is an insertion number. For instance, the
 first paragraph inserted after paragraph 8 is numbered 8.1, the second
 paragraph inserted is numbered 8.2, and so on. Deleted paragraphs are indicated
 by the text @i{@shrink{This paragraph was deleted.}} Deleted paragraphs include
-empty paragraphs that were numbered in the original Ada Reference Manual.
-Similar markings and numbering is used for changes to annotations.],Old=[]}
+empty paragraphs that were numbered in the @Chg{Version=[3],New=[1995 edition of
+the],Old=[original]} Ada Reference Manual. Similar markings and numbering
+@Chg{Version=[3],New=[are],Old=[is]} used for changes to annotations.],Old=[]}
+@begin{Honest}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[The paragraph number is considered part of the
+  paragraph; when a paragraph is moved to a different paragraph number, it is
+  marked as changed even if the contents have not changed.]}
+@end{Honest}
 @end{AARMOnly}
 @end{Intro}
 @end{NotISO}
