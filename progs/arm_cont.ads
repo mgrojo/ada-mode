@@ -70,7 +70,7 @@ package ARM_Contents is
 	Ada.Strings.Unbounded.Unbounded_String;
 
     type Clause_Number_Type is record
-	Section : Section_Number_Type;
+	Section : Section_Number_Type := 0;
 	Clause : Natural := 0;
 	Subclause : Natural := 0;
 	Subsubclause : Natural := 0;
@@ -152,7 +152,15 @@ package ARM_Contents is
 	-- for the properly formatted clause string Clause.
 	-- Raises Not_Found_Error if not found.
 
-    function Next_Clause (Clause : in String) return String;
+   function Parent_Clause (Clause : in String) return String;
+        -- Returns the string of the parent clause (in the table of contents)
+        -- for the properly formatted clause string Clause.
+        --
+        -- Result is a null string if Clause is a top level clause;
+        -- Section, Unnumbered_Section, Normative_Annex,
+        -- Informative_Annex.
+
+   function Next_Clause (Clause : in String) return String;
 	-- Returns the string of the next clause (in the table of contents)
 	-- for the properly formatted clause string Clause.
 	-- Raises Not_Found_Error if not found.

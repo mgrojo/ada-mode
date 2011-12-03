@@ -1,8 +1,5 @@
-with ARM_Output,
-     ARM_Contents,
-     Ada.Text_IO,
-     Ada.Exceptions,
-     Ada.Strings.Fixed;
+with Ada.Exceptions;
+with Ada.Strings.Fixed;
 package body ARM_Text is
 
     --
@@ -145,7 +142,7 @@ package body ARM_Text is
     end Create;
 
 
-    procedure Close (Output_Object : in out Text_Output_Type) is
+    overriding procedure Close (Output_Object : in out Text_Output_Type) is
 	-- Close an Output_Object. No further output to the object is
 	-- allowed after this call.
     begin
@@ -160,46 +157,46 @@ package body ARM_Text is
     end Close;
 
 
-    procedure Section (Output_Object : in out Text_Output_Type;
-		       Section_Title : in String;
-		       Section_Name : in String) is
-	-- Start a new section. The title is Section_Title (this is
-	-- intended for humans). The name is Section_Name (this is
-	-- intended to be suitable to be a portion of a file name).
+    overriding procedure Section (Output_Object : in out Text_Output_Type;
+                       Section_Title : in String;
+                       Section_Name : in String) is
+        -- Start a new section. The title is Section_Title (this is
+        -- intended for humans). The name is Section_Name (this is
+        -- intended to be suitable to be a portion of a file name).
     begin
-	if not Output_Object.Is_Valid then
-	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
-		"Not valid object");
-	end if;
-	if Output_Object.Is_In_Paragraph then
-	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
-		"Section in paragraph");
-	end if;
-	if Ada.Text_IO.Is_Open (Output_Object.Output_File) then
-	    Ada.Text_IO.Close (Output_Object.Output_File);
-	end if;
-	-- Create a new file for this section:
-	Ada.Text_IO.Create (Output_Object.Output_File, Ada.Text_IO.Out_File,
-	    ".\Output\" & Ada.Strings.Fixed.Trim (Output_Object.File_Prefix, Ada.Strings.Right) &
-		"-" & Section_Name & ".TXT");
-	Ada.Text_IO.New_Line (Output_Object.Output_File);
+        if not Output_Object.Is_Valid then
+            Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
+                "Not valid object");
+        end if;
+        if Output_Object.Is_In_Paragraph then
+            Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
+                "Section in paragraph");
+        end if;
+        if Ada.Text_IO.Is_Open (Output_Object.Output_File) then
+            Ada.Text_IO.Close (Output_Object.Output_File);
+        end if;
+        -- Create a new file for this section:
+        Ada.Text_IO.Create (Output_Object.Output_File, Ada.Text_IO.Out_File,
+            "Output/" & Ada.Strings.Fixed.Trim (Output_Object.File_Prefix, Ada.Strings.Right) &
+                "-" & Section_Name & ".TXT");
+        Ada.Text_IO.New_Line (Output_Object.Output_File);
     end Section;
 
 
-    procedure Set_Columns (Output_Object : in out Text_Output_Type;
-			   Number_of_Columns : in ARM_Output.Column_Count) is
-	-- Set the number of columns.
-	-- Raises Not_Valid_Error if in a paragraph.
+    overriding procedure Set_Columns (Output_Object : in out Text_Output_Type;
+                           Number_of_Columns : in ARM_Output.Column_Count) is
+        -- Set the number of columns.
+        -- Raises Not_Valid_Error if in a paragraph.
     begin
-	if not Output_Object.Is_Valid then
-	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
-		"Not valid object");
-	end if;
-	if Output_Object.Is_In_Paragraph then
-	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
-		"In paragraph");
-	end if;
-	-- No columns in text format.
+        if not Output_Object.Is_Valid then
+            Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
+                "Not valid object");
+        end if;
+        if Output_Object.Is_In_Paragraph then
+            Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
+                "In paragraph");
+        end if;
+        -- No columns in text format.
     end Set_Columns;
 
 
@@ -260,7 +257,7 @@ package body ARM_Text is
     end Buffer;
 
 
-    procedure Start_Paragraph (Output_Object : in out Text_Output_Type;
+    overriding procedure Start_Paragraph (Output_Object : in out Text_Output_Type;
 			       Style     : in ARM_Output.Paragraph_Style_Type;
 			       Indent    : in ARM_Output.Paragraph_Indent_Type;
 			       Number    : in String;
@@ -483,8 +480,8 @@ package body ARM_Text is
     end Start_Paragraph;
 
 
-    procedure End_Paragraph (Output_Object : in out Text_Output_Type) is
-	-- End a paragraph.
+    overriding procedure End_Paragraph (Output_Object : in out Text_Output_Type) is
+        -- End a paragraph.
     begin
 	if not Output_Object.Is_Valid then
 	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
@@ -502,50 +499,50 @@ package body ARM_Text is
     end End_Paragraph;
 
 
-    procedure Category_Header (Output_Object : in out Text_Output_Type;
-			       Header_Text : String) is
-	-- Output a Category header (that is, "Legality Rules",
-	-- "Dynamic Semantics", etc.)
-	-- (Note: We did not use a enumeration here to insure that these
-	-- headers are spelled the same in all output versions).
-	-- Raises Not_Valid_Error if in a paragraph.
+    overriding procedure Category_Header (Output_Object : in out Text_Output_Type;
+                               Header_Text : String) is
+        -- Output a Category header (that is, "Legality Rules",
+        -- "Dynamic Semantics", etc.)
+        -- (Note: We did not use a enumeration here to insure that these
+        -- headers are spelled the same in all output versions).
+        -- Raises Not_Valid_Error if in a paragraph.
     begin
-	if not Output_Object.Is_Valid then
-	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
-		"Not valid object");
-	end if;
-	if Output_Object.Is_In_Paragraph then
-	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
-		"Header in paragraph");
-	end if;
-	Ada.Text_IO.New_Line (Output_Object.Output_File);
-	Put_Line_Centered (Output_Object.Output_File, Header_Text);
-	Ada.Text_IO.New_Line (Output_Object.Output_File);
-	Output_Object.Char_Count := 0;
-	Output_Object.Out_Char_Count := 0;
+        if not Output_Object.Is_Valid then
+            Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
+                "Not valid object");
+        end if;
+        if Output_Object.Is_In_Paragraph then
+            Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
+                "Header in paragraph");
+        end if;
+        Ada.Text_IO.New_Line (Output_Object.Output_File);
+        Put_Line_Centered (Output_Object.Output_File, Header_Text);
+        Ada.Text_IO.New_Line (Output_Object.Output_File);
+        Output_Object.Char_Count := 0;
+        Output_Object.Out_Char_Count := 0;
     end Category_Header;
 
 
-    procedure Clause_Header (Output_Object : in out Text_Output_Type;
-			     Header_Text : in String;
-			     Level : in ARM_Contents.Level_Type;
-			     Clause_Number : in String;
-			     No_Page_Break : in Boolean := False) is
-	-- Output a Clause header. The level of the header is specified
-	-- in Level. The Clause Number is as specified.
-	-- These should appear in the table of contents.
-	-- For hyperlinked formats, this should generate a link target.
-	-- If No_Page_Break is True, suppress any page breaks.
-	-- Raises Not_Valid_Error if in a paragraph.
+    overriding procedure Clause_Header (Output_Object : in out Text_Output_Type;
+                             Header_Text : in String;
+                             Level : in ARM_Contents.Level_Type;
+                             Clause_Number : in String;
+                             No_Page_Break : in Boolean := False) is
+        -- Output a Clause header. The level of the header is specified
+        -- in Level. The Clause Number is as specified.
+        -- These should appear in the table of contents.
+        -- For hyperlinked formats, this should generate a link target.
+        -- If No_Page_Break is True, suppress any page breaks.
+        -- Raises Not_Valid_Error if in a paragraph.
     begin
-	if not Output_Object.Is_Valid then
-	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
-		"Not valid object");
-	end if;
-	if Output_Object.Is_In_Paragraph then
-	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
-		"Header in paragraph");
-	end if;
+        if not Output_Object.Is_Valid then
+            Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
+                "Not valid object");
+        end if;
+        if Output_Object.Is_In_Paragraph then
+            Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
+                "Header in paragraph");
+        end if;
         Ada.Text_IO.New_Line (Output_Object.Output_File);
 
 	-- Special for table of contents:
@@ -604,7 +601,7 @@ package body ARM_Text is
     end Clause_Header;
 
 
-    procedure Revised_Clause_Header (Output_Object : in out Text_Output_Type;
+    overriding procedure Revised_Clause_Header (Output_Object : in out Text_Output_Type;
 			     New_Header_Text : in String;
 			     Old_Header_Text : in String;
 			     Level : in ARM_Contents.Level_Type;
@@ -693,73 +690,73 @@ package body ARM_Text is
     end Revised_Clause_Header;
 
 
-    procedure TOC_Marker (Output_Object : in out Text_Output_Type;
-			  For_Start : in Boolean) is
-	-- Mark the start (if For_Start is True) or end (if For_Start is
-	-- False) of the table of contents data. Output objects that
-	-- auto-generate the table of contents can use this to do needed
-	-- actions.
+    overriding procedure TOC_Marker (Output_Object : in out Text_Output_Type;
+                          For_Start : in Boolean) is
+        -- Mark the start (if For_Start is True) or end (if For_Start is
+        -- False) of the table of contents data. Output objects that
+        -- auto-generate the table of contents can use this to do needed
+        -- actions.
     begin
-	if not Output_Object.Is_Valid then
-	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
-		"Not valid object");
-	end if;
-	null; -- We don't care about this.
+        if not Output_Object.Is_Valid then
+            Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
+                "Not valid object");
+        end if;
+        null; -- We don't care about this.
     end TOC_Marker;
 
 
-    procedure New_Page (Output_Object : in out Text_Output_Type;
-			Kind : ARM_Output.Page_Kind_Type := ARM_Output.Any_Page) is
-	-- Output a page break.
-	-- Note that this has no effect on non-printing formats.
-	-- Any_Page breaks to the top of the next page (whatever it is);
-	-- Odd_Page_Only breaks to the top of the odd-numbered page;
-	-- Soft_Page allows a page break but does not force one (use in
-	-- "No_Breaks" paragraphs.)
-	-- Raises Not_Valid_Error if in a paragraph if Kind = Any_Page or
-	-- Odd_Page, and if not in a paragraph if Kind = Soft_Page.
+    overriding procedure New_Page (Output_Object : in out Text_Output_Type;
+                        Kind : ARM_Output.Page_Kind_Type := ARM_Output.Any_Page) is
+        -- Output a page break.
+        -- Note that this has no effect on non-printing formats.
+        -- Any_Page breaks to the top of the next page (whatever it is);
+        -- Odd_Page_Only breaks to the top of the odd-numbered page;
+        -- Soft_Page allows a page break but does not force one (use in
+        -- "No_Breaks" paragraphs.)
+        -- Raises Not_Valid_Error if in a paragraph if Kind = Any_Page or
+        -- Odd_Page, and if not in a paragraph if Kind = Soft_Page.
     begin
-	if not Output_Object.Is_Valid then
-	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
-		"Not valid object");
-	end if;
-	case Kind is
-	    when ARM_Output.Any_Page | ARM_Output.Odd_Page_Only =>
-		if Output_Object.Is_In_Paragraph then
-		    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
-			"Page in paragraph");
-		end if;
-		Ada.Text_IO.New_Line (Output_Object.Output_File, 2);
-	    when ARM_Output.Soft_Page =>
-		if not Output_Object.Is_In_Paragraph then
-		    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
-			"Soft page not in paragraph");
-		end if;
-		null; -- No page breaks.
-		Spill (Output_Object);
-	end case;
+        if not Output_Object.Is_Valid then
+            Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
+                "Not valid object");
+        end if;
+        case Kind is
+            when ARM_Output.Any_Page | ARM_Output.Odd_Page_Only =>
+                if Output_Object.Is_In_Paragraph then
+                    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
+                        "Page in paragraph");
+                end if;
+                Ada.Text_IO.New_Line (Output_Object.Output_File, 2);
+            when ARM_Output.Soft_Page =>
+                if not Output_Object.Is_In_Paragraph then
+                    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
+                        "Soft page not in paragraph");
+                end if;
+                null; -- No page breaks.
+                Spill (Output_Object);
+        end case;
     end New_Page;
 
 
-    procedure New_Column (Output_Object : in out Text_Output_Type) is
-	-- Output a column break.
-	-- Raises Not_Valid_Error if in a paragraph, or if the number of
-	-- columns is 1.
+    overriding procedure New_Column (Output_Object : in out Text_Output_Type) is
+        -- Output a column break.
+        -- Raises Not_Valid_Error if in a paragraph, or if the number of
+        -- columns is 1.
     begin
-	if not Output_Object.Is_Valid then
-	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
-		"Not valid object");
-	end if;
-	if Output_Object.Is_In_Paragraph then
-	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
-		"New column in paragraph");
-	end if;
-	-- No columns in text format.
-	Ada.Text_IO.New_Line (Output_Object.Output_File);
+        if not Output_Object.Is_Valid then
+            Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
+                "Not valid object");
+        end if;
+        if Output_Object.Is_In_Paragraph then
+            Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
+                "New column in paragraph");
+        end if;
+        -- No columns in text format.
+        Ada.Text_IO.New_Line (Output_Object.Output_File);
     end New_Column;
 
 
-    procedure Start_Table (Output_Object : in out Text_Output_Type;
+    overriding procedure Start_Table (Output_Object : in out Text_Output_Type;
 			   Columns : in ARM_Output.Column_Count;
 			   First_Column_Width : in ARM_Output.Column_Count;
 			   Last_Column_Width : in ARM_Output.Column_Count;
@@ -820,7 +817,7 @@ package body ARM_Text is
     end Start_Table;
 
 
-    procedure Table_Marker (Output_Object : in out Text_Output_Type;
+    overriding procedure Table_Marker (Output_Object : in out Text_Output_Type;
 			    Marker : in ARM_Output.Table_Marker_Type) is
 	-- Marks the end of an entity in a table.
 	-- If Marker is End_Caption, the table caption ends and the
@@ -889,45 +886,45 @@ package body ARM_Text is
     end Table_Marker;
 
 
-    procedure Separator_Line (Output_Object : in out Text_Output_Type;
-			      Is_Thin : Boolean := True) is
-	-- Output a separator line. It is thin if "Is_Thin" is true.
-	-- Raises Not_Valid_Error if in a paragraph.
+    overriding procedure Separator_Line (Output_Object : in out Text_Output_Type;
+                              Is_Thin : Boolean := True) is
+        -- Output a separator line. It is thin if "Is_Thin" is true.
+        -- Raises Not_Valid_Error if in a paragraph.
     begin
-	if not Output_Object.Is_Valid then
-	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
-		"Not valid object");
-	end if;
-	if Output_Object.Is_In_Paragraph then
-	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
-		"Separator in paragraph");
-	end if;
-	Ada.Text_IO.New_Line (Output_Object.Output_File);
-	if Is_Thin then
-	    Ada.Text_IO.Put_Line (Output_Object.Output_File, "---------------------------------------------------------------------");
-	else
-	    Ada.Text_IO.Put_Line (Output_Object.Output_File, "=====================================================================");
-	end if;
-	Ada.Text_IO.New_Line (Output_Object.Output_File);
+        if not Output_Object.Is_Valid then
+            Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
+                "Not valid object");
+        end if;
+        if Output_Object.Is_In_Paragraph then
+            Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
+                "Separator in paragraph");
+        end if;
+        Ada.Text_IO.New_Line (Output_Object.Output_File);
+        if Is_Thin then
+            Ada.Text_IO.Put_Line (Output_Object.Output_File, "---------------------------------------------------------------------");
+        else
+            Ada.Text_IO.Put_Line (Output_Object.Output_File, "=====================================================================");
+        end if;
+        Ada.Text_IO.New_Line (Output_Object.Output_File);
     end Separator_Line;
 
 
     -- Text output: These are only allowed after a Start_Paragraph and
     -- before any End_Paragraph. Raises Not_Valid_Error if not allowed.
 
-    procedure Ordinary_Text (Output_Object : in out Text_Output_Type;
-			     Text : in String) is
-	-- Output ordinary text.
-	-- The text must end at a word break, never in the middle of a word.
+    overriding procedure Ordinary_Text (Output_Object : in out Text_Output_Type;
+                             Text : in String) is
+        -- Output ordinary text.
+        -- The text must end at a word break, never in the middle of a word.
     begin
-	if not Output_Object.Is_Valid then
-	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
-		"Not valid object");
-	end if;
-	if not Output_Object.Is_In_Paragraph then
-	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
-		"Not in paragraph");
-	end if;
+        if not Output_Object.Is_Valid then
+            Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
+                "Not valid object");
+        end if;
+        if not Output_Object.Is_In_Paragraph then
+            Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
+                "Not in paragraph");
+        end if;
 --Ada.Text_IO.Put_Line ("Ordinary_Text: Cnt=" & Natural'Image(Output_Object.Char_Count) &
 --" Buffer=" & Natural'Image(Output_Object.Output_Buffer_Len));
 	if Output_Object.Char_Count + Text'Length >= LINE_LENGTH - 2 and then
@@ -949,24 +946,24 @@ package body ARM_Text is
     end Ordinary_Text;
 
 
-    procedure Ordinary_Character (Output_Object : in out Text_Output_Type;
-			          Char : in Character) is
-	-- Output an ordinary character.
-	-- Spaces will be used to break lines as needed.
+    overriding procedure Ordinary_Character (Output_Object : in out Text_Output_Type;
+                                  Char : in Character) is
+        -- Output an ordinary character.
+        -- Spaces will be used to break lines as needed.
     begin
-	if not Output_Object.Is_Valid then
-	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
-		"Not valid object");
-	end if;
-	if not Output_Object.Is_In_Paragraph then
-	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
-		"Not in paragraph");
-	end if;
+        if not Output_Object.Is_Valid then
+            Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
+                "Not valid object");
+        end if;
+        if not Output_Object.Is_In_Paragraph then
+            Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
+                "Not in paragraph");
+        end if;
 
-	if Output_Object.Char_Count >= LINE_LENGTH and then
-	   Output_Object.Out_Char_Count > Output_Object.Indent_Amount then
-	    -- Insert a break here if anything has been output (but don't
-	    -- Spill the buffer):
+        if Output_Object.Char_Count >= LINE_LENGTH and then
+           Output_Object.Out_Char_Count > Output_Object.Indent_Amount then
+            -- Insert a break here if anything has been output (but don't
+            -- Spill the buffer):
 --Ada.Text_IO.Put_Line ("Ordinary_Char [Break, no spill]: Cnt=" & Natural'Image(Output_Object.Char_Count));
 	    Ada.Text_IO.New_Line (Output_Object.Output_File);
 	    Make_Indent (Output_Object);
@@ -1002,8 +999,8 @@ package body ARM_Text is
     end Ordinary_Character;
 
 
-    procedure Hard_Space (Output_Object : in out Text_Output_Type) is
-	-- Output a hard space. No line break should happen at a hard space.
+    overriding procedure Hard_Space (Output_Object : in out Text_Output_Type) is
+        -- Output a hard space. No line break should happen at a hard space.
     begin
 	if not Output_Object.Is_Valid then
 	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
@@ -1017,9 +1014,9 @@ package body ARM_Text is
     end Hard_Space;
 
 
-    procedure Line_Break (Output_Object : in out Text_Output_Type) is
-	-- Output a line break. This does not start a new paragraph.
-	-- This corresponds to a "<BR>" in HTML.
+    overriding procedure Line_Break (Output_Object : in out Text_Output_Type) is
+        -- Output a line break. This does not start a new paragraph.
+        -- This corresponds to a "<BR>" in HTML.
     begin
 	if not Output_Object.Is_Valid then
 	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
@@ -1038,85 +1035,85 @@ package body ARM_Text is
     end Line_Break;
 
 
-    procedure Index_Line_Break (Output_Object : in out Text_Output_Type;
-				Clear_Keep_with_Next : in Boolean) is
-	-- Output a line break for the index. This does not start a new
-	-- paragraph in terms of spacing. This corresponds to a "<BR>"
-	-- in HTML. If Clear_Keep_with_Next is true, insure that the next
-	-- line does not require the following line to stay with it.
-	-- Raises Not_Valid_Error if the paragraph is not in the index format.
+    overriding procedure Index_Line_Break (Output_Object : in out Text_Output_Type;
+                                Clear_Keep_with_Next : in Boolean) is
+        -- Output a line break for the index. This does not start a new
+        -- paragraph in terms of spacing. This corresponds to a "<BR>"
+        -- in HTML. If Clear_Keep_with_Next is true, insure that the next
+        -- line does not require the following line to stay with it.
+        -- Raises Not_Valid_Error if the paragraph is not in the index format.
     begin
 	Line_Break (Output_Object);
     end Index_Line_Break;
 
 
-    procedure Soft_Line_Break (Output_Object : in out Text_Output_Type) is
-	-- Output a soft line break. This is a place (in the middle of a
-	-- "word") that we allow a line break. It is usually used after
-	-- underscores in long non-terminals.
+    overriding procedure Soft_Line_Break (Output_Object : in out Text_Output_Type) is
+        -- Output a soft line break. This is a place (in the middle of a
+        -- "word") that we allow a line break. It is usually used after
+        -- underscores in long non-terminals.
     begin
-	if not Output_Object.Is_Valid then
-	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
-		"Not valid object");
-	end if;
-	if not Output_Object.Is_In_Paragraph then
-	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
-		"Not in paragraph");
-	end if;
-	if Output_Object.Char_Count >= LINE_LENGTH - 10 then
-	    if Output_Object.Output_Buffer_Len /= 0 then
-	        Spill (Output_Object);
-	    end if;
-	    Ada.Text_IO.New_Line (Output_Object.Output_File);
+        if not Output_Object.Is_Valid then
+            Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
+                "Not valid object");
+        end if;
+        if not Output_Object.Is_In_Paragraph then
+            Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
+                "Not in paragraph");
+        end if;
+        if Output_Object.Char_Count >= LINE_LENGTH - 10 then
+            if Output_Object.Output_Buffer_Len /= 0 then
+                Spill (Output_Object);
+            end if;
+            Ada.Text_IO.New_Line (Output_Object.Output_File);
             Make_Indent (Output_Object);
 	-- else we don't need a line break.
 	end if;
     end Soft_Line_Break;
 
 
-    procedure Soft_Hyphen_Break (Output_Object : in out Text_Output_Type) is
-	-- Output a soft line break, with a hyphen. This is a place (in the middle of
-	-- a "word") that we allow a line break. If the line break is used,
-	-- a hyphen will be added to the text.
+    overriding procedure Soft_Hyphen_Break (Output_Object : in out Text_Output_Type) is
+        -- Output a soft line break, with a hyphen. This is a place (in the middle of
+        -- a "word") that we allow a line break. If the line break is used,
+        -- a hyphen will be added to the text.
     begin
-	if not Output_Object.Is_Valid then
-	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
-		"Not valid object");
-	end if;
-	if not Output_Object.Is_In_Paragraph then
-	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
-		"Not in paragraph");
-	end if;
-	if Output_Object.Char_Count >= LINE_LENGTH - 8 then
-	    Spill (Output_Object);
-	    Ada.Text_IO.Put_Line (Output_Object.Output_File, "-"); -- Add the hyphen and break.
+        if not Output_Object.Is_Valid then
+            Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
+                "Not valid object");
+        end if;
+        if not Output_Object.Is_In_Paragraph then
+            Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
+                "Not in paragraph");
+        end if;
+        if Output_Object.Char_Count >= LINE_LENGTH - 8 then
+            Spill (Output_Object);
+            Ada.Text_IO.Put_Line (Output_Object.Output_File, "-"); -- Add the hyphen and break.
             Make_Indent (Output_Object);
 	-- else we don't need a line break.
 	end if;
     end Soft_Hyphen_Break;
 
 
-    procedure Tab (Output_Object : in out Text_Output_Type) is
-	-- Output a tab, inserting space up to the next tab stop.
-	-- Raises Not_Valid_Error if the paragraph was created with
-	-- Tab_Stops = ARM_Output.NO_TABS.
+    overriding procedure Tab (Output_Object : in out Text_Output_Type) is
+        -- Output a tab, inserting space up to the next tab stop.
+        -- Raises Not_Valid_Error if the paragraph was created with
+        -- Tab_Stops = ARM_Output.NO_TABS.
     begin
-	if not Output_Object.Is_Valid then
-	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
-		"Not valid object");
-	end if;
-	if not Output_Object.Is_In_Paragraph then
-	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
-		"Not in paragraph");
-	end if;
-	if ARM_Output."="(Output_Object.Tab_Stops, ARM_Output.NO_TABS) then
-	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
-		"Tab, but none set");
-	end if;
-	-- We use the tab stops as characters here, and fixed and proportional
-	-- stops are treated identically.
-	-- Find the first stop greater than the current character count. (After
-	-- writing a space).
+        if not Output_Object.Is_Valid then
+            Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
+                "Not valid object");
+        end if;
+        if not Output_Object.Is_In_Paragraph then
+            Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
+                "Not in paragraph");
+        end if;
+        if ARM_Output."="(Output_Object.Tab_Stops, ARM_Output.NO_TABS) then
+            Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
+                "Tab, but none set");
+        end if;
+        -- We use the tab stops as characters here, and fixed and proportional
+        -- stops are treated identically.
+        -- Find the first stop greater than the current character count. (After
+        -- writing a space).
 --Ada.Text_IO.Put_Line ("Tab");
 	Spill (Output_Object);
         Ada.Text_IO.Put (Output_Object.Output_File, " ");
@@ -1139,9 +1136,9 @@ package body ARM_Text is
     end Tab;
 
 
-    procedure Special_Character (Output_Object : in out Text_Output_Type;
-			         Char : in ARM_Output.Special_Character_Type) is
-	-- Output an special character.
+    overriding procedure Special_Character (Output_Object : in out Text_Output_Type;
+                                 Char : in ARM_Output.Special_Character_Type) is
+        -- Output an special character.
     begin
 	case Char is
 	    when ARM_Output.EM_Dash =>
@@ -1182,17 +1179,17 @@ package body ARM_Text is
     end Special_Character;
 
 
-    procedure Unicode_Character (Output_Object : in out Text_Output_Type;
-			         Char : in ARM_Output.Unicode_Type) is
-	-- Output a Unicode character, with code position Char.
-	Char_Code : constant String := ARM_Output.Unicode_Type'Image(Char);
+    overriding procedure Unicode_Character (Output_Object : in out Text_Output_Type;
+                                 Char : in ARM_Output.Unicode_Type) is
+        -- Output a Unicode character, with code position Char.
+        Char_Code : constant String := ARM_Output.Unicode_Type'Image(Char);
     begin
 	-- We don't check, but we assume this is not a normal character.
 	Ordinary_Text (Output_Object, "<Unicode-" & Char_Code(2..Char_Code'Last) & ">");
     end Unicode_Character;
 
 
-    procedure End_Hang_Item (Output_Object : in out Text_Output_Type) is
+    overriding procedure End_Hang_Item (Output_Object : in out Text_Output_Type) is
 	-- Marks the end of a hanging item. Call only once per paragraph.
 	-- Raises Not_Valid_Error if the paragraph style is not in
 	-- Text_Prefixed_Style_Subtype, or if this has already been
@@ -1236,7 +1233,7 @@ package body ARM_Text is
     end End_Hang_Item;
 
 
-    procedure Text_Format (Output_Object : in out Text_Output_Type;
+    overriding procedure Text_Format (Output_Object : in out Text_Output_Type;
 			   Format : in ARM_Output.Format_Type) is
 	-- Change the text format so that all of the properties are as specified.
 	-- Note: Changes to these properties ought be stack-like; that is,
@@ -1328,63 +1325,63 @@ package body ARM_Text is
     end Text_Format;
 
 
-    procedure Clause_Reference (Output_Object : in out Text_Output_Type;
-				Text : in String;
-				Clause_Number : in String) is
-	-- Generate a reference to a clause in the standard. The text of
-	-- the reference is "Text", and the number of the clause is
-	-- Clause_Number. For hyperlinked formats, this should generate
-	-- a link; for other formats, the text alone is generated.
+    overriding procedure Clause_Reference (Output_Object : in out Text_Output_Type;
+                                Text : in String;
+                                Clause_Number : in String) is
+        -- Generate a reference to a clause in the standard. The text of
+        -- the reference is "Text", and the number of the clause is
+        -- Clause_Number. For hyperlinked formats, this should generate
+        -- a link; for other formats, the text alone is generated.
     begin
 	Ordinary_Text (Output_Object, Text); -- Nothing special in this format.
     end Clause_Reference;
 
 
-    procedure Index_Target (Output_Object : in out Text_Output_Type;
-			    Index_Key : in Natural) is
-	-- Generate a index target. This marks the location where an index
-	-- reference occurs. Index_Key names the index item involved.
-	-- For hyperlinked formats, this should generate a link target;
-	-- for other formats, nothing is generated.
+    overriding procedure Index_Target (Output_Object : in out Text_Output_Type;
+                            Index_Key : in Natural) is
+        -- Generate a index target. This marks the location where an index
+        -- reference occurs. Index_Key names the index item involved.
+        -- For hyperlinked formats, this should generate a link target;
+        -- for other formats, nothing is generated.
     begin
-	if not Output_Object.Is_Valid then
-	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
-		"Not valid object");
-	end if;
-	if not Output_Object.Is_In_Paragraph then
-	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
-		"Not in paragraph");
-	end if;
-	null; -- Nothing to do for plain text.
+        if not Output_Object.Is_Valid then
+            Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
+                "Not valid object");
+        end if;
+        if not Output_Object.Is_In_Paragraph then
+            Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
+                "Not in paragraph");
+        end if;
+        null; -- Nothing to do for plain text.
     end Index_Target;
 
 
-    procedure Index_Reference (Output_Object : in out Text_Output_Type;
-			       Text : in String;
-			       Index_Key : in Natural;
-			       Clause_Number : in String) is
-	-- Generate a reference to an index target in the standard. The text
-	-- of the reference is "Text", and Index_Key and Clause_Number denotes
-	-- the target. For hyperlinked formats, this should generate
-	-- a link; for other formats, the text alone is generated.
+    overriding procedure Index_Reference (Output_Object : in out Text_Output_Type;
+                               Text : in String;
+                               Index_Key : in Natural;
+                               Clause_Number : in String) is
+        -- Generate a reference to an index target in the standard. The text
+        -- of the reference is "Text", and Index_Key and Clause_Number denotes
+        -- the target. For hyperlinked formats, this should generate
+        -- a link; for other formats, the text alone is generated.
     begin
 	Ordinary_Text (Output_Object, Text); -- Nothing special in this format.
     end Index_Reference;
 
 
-    procedure DR_Reference (Output_Object : in out Text_Output_Type;
-			    Text : in String;
-			    DR_Number : in String) is
-	-- Generate a reference to an DR from the standard. The text
-	-- of the reference is "Text", and DR_Number denotes
-	-- the target. For hyperlinked formats, this should generate
-	-- a link; for other formats, the text alone is generated.
+    overriding procedure DR_Reference (Output_Object : in out Text_Output_Type;
+                            Text : in String;
+                            DR_Number : in String) is
+        -- Generate a reference to an DR from the standard. The text
+        -- of the reference is "Text", and DR_Number denotes
+        -- the target. For hyperlinked formats, this should generate
+        -- a link; for other formats, the text alone is generated.
     begin
 	Ordinary_Text (Output_Object, Text); -- Nothing special in this format.
     end DR_Reference;
 
 
-    procedure AI_Reference (Output_Object : in out Text_Output_Type;
+    overriding procedure AI_Reference (Output_Object : in out Text_Output_Type;
 			    Text : in String;
 			    AI_Number : in String) is
 	-- Generate a reference to an AI from the standard. The text
@@ -1396,69 +1393,69 @@ package body ARM_Text is
     end AI_Reference;
 
 
-    procedure Local_Target (Output_Object : in out Text_Output_Type;
-			    Text : in String;
-			    Target : in String) is
-	-- Generate a local target. This marks the potential target of local
-	-- links identified by "Target". Text is the text of the target.
-	-- For hyperlinked formats, this should generate a link target;
-	-- for other formats, only the text is generated.
+    overriding procedure Local_Target (Output_Object : in out Text_Output_Type;
+                            Text : in String;
+                            Target : in String) is
+        -- Generate a local target. This marks the potential target of local
+        -- links identified by "Target". Text is the text of the target.
+        -- For hyperlinked formats, this should generate a link target;
+        -- for other formats, only the text is generated.
     begin
 	Ordinary_Text (Output_Object, Text); -- Nothing special in this format.
     end Local_Target;
 
 
-    procedure Local_Link (Output_Object : in out Text_Output_Type;
-			  Text : in String;
-			  Target : in String;
-			  Clause_Number : in String) is
-	-- Generate a local link to the target and clause given.
-	-- Text is the text of the link.
-	-- For hyperlinked formats, this should generate a link;
-	-- for other formats, only the text is generated.
+    overriding procedure Local_Link (Output_Object : in out Text_Output_Type;
+                          Text : in String;
+                          Target : in String;
+                          Clause_Number : in String) is
+        -- Generate a local link to the target and clause given.
+        -- Text is the text of the link.
+        -- For hyperlinked formats, this should generate a link;
+        -- for other formats, only the text is generated.
     begin
 	Ordinary_Text (Output_Object, Text); -- Nothing special in this format.
     end Local_Link;
 
 
-    procedure Local_Link_Start (Output_Object : in out Text_Output_Type;
-				Target : in String;
-				Clause_Number : in String) is
-	-- Generate a local link to the target and clause given.
-	-- The link will surround text until Local_Link_End is called.
-	-- Local_Link_End must be called before this routine can be used again.
-	-- For hyperlinked formats, this should generate a link;
-	-- for other formats, only the text is generated.
+    overriding procedure Local_Link_Start (Output_Object : in out Text_Output_Type;
+                                Target : in String;
+                                Clause_Number : in String) is
+        -- Generate a local link to the target and clause given.
+        -- The link will surround text until Local_Link_End is called.
+        -- Local_Link_End must be called before this routine can be used again.
+        -- For hyperlinked formats, this should generate a link;
+        -- for other formats, only the text is generated.
     begin
 	null; -- No link, nothing to do.
     end Local_Link_Start;
 
 
-    procedure Local_Link_End (Output_Object : in out Text_Output_Type;
-			      Target : in String;
-			      Clause_Number : in String) is
-	-- End a local link for the target and clause given.
-	-- This must be in the same paragraph as the Local_Link_Start.
-	-- For hyperlinked formats, this should generate a link;
-	-- for other formats, only the text is generated.
+    overriding procedure Local_Link_End (Output_Object : in out Text_Output_Type;
+                              Target : in String;
+                              Clause_Number : in String) is
+        -- End a local link for the target and clause given.
+        -- This must be in the same paragraph as the Local_Link_Start.
+        -- For hyperlinked formats, this should generate a link;
+        -- for other formats, only the text is generated.
     begin
 	null; -- No link, nothing to do.
     end Local_Link_End;
 
 
-    procedure URL_Link (Output_Object : in out Text_Output_Type;
-			Text : in String;
-			URL : in String) is
-	-- Generate a link to the URL given.
-	-- Text is the text of the link.
-	-- For hyperlinked formats, this should generate a link;
-	-- for other formats, only the text is generated.
+    overriding procedure URL_Link (Output_Object : in out Text_Output_Type;
+                        Text : in String;
+                        URL : in String) is
+        -- Generate a link to the URL given.
+        -- Text is the text of the link.
+        -- For hyperlinked formats, this should generate a link;
+        -- for other formats, only the text is generated.
     begin
 	Ordinary_Text (Output_Object, Text); -- Nothing special in this format.
     end URL_Link;
 
 
-    procedure Picture  (Output_Object : in out Text_Output_Type;
+    overriding procedure Picture  (Output_Object : in out Text_Output_Type;
 			Name  : in String;
 			Descr : in String;
 			Alignment : in ARM_Output.Picture_Alignment;

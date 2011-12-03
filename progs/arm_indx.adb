@@ -1,11 +1,10 @@
-with ARM_Output,
-     ARM_Contents,
-     Ada.Exceptions,
-     Ada.Characters.Handling,
-     Ada.Strings.Fixed,
-     Ada.Text_IO,
-     Ada.Calendar,
-     Ada.Unchecked_Deallocation;
+with ARM_Contents;
+with Ada.Exceptions;
+with Ada.Characters.Handling;
+with Ada.Strings.Fixed;
+with Ada.Text_IO;
+with Ada.Calendar;
+with Ada.Unchecked_Deallocation;
 package body ARM_Index is
 
     --

@@ -1,0 +1,16 @@
+^ada-reference-manual-2005\.2$
+^build/.*\.exe$
+^build/.*\.gz$
+^build/.*\.info$
+^build/.*\.log$
+^build/.*\.pdf$
+^build/.*\.tex$
+^build/.*\.texinfo$
+^build/.*\.toc$
+^build/\.gdbinit$
+^build/arm_info\.diff$
+^build/arm_info\.diff.gz$
+^build/objects$
+^build/source_ada\.stamp$
+^source_2005/Output$
+^source_2005/RM\.texinfo$

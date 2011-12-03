@@ -1,10 +1,7 @@
-with ARM_Output;
-with ARM_Index;
 with ARM_Contents;
 with Ada.Characters.Handling;
 with Ada.Strings.Fixed;
 with Ada.Unchecked_Deallocation;
---with Ada.Text_IO; -- ** Temp.
 package body ARM_Subindex is
 
     --
@@ -167,8 +164,6 @@ package body ARM_Subindex is
 	    -- "Minimize_Lines" is True.
 
 	function To_Lower (A : in String) return String renames
-	    Ada.Characters.Handling.To_Lower;
-	function To_Lower (A : in Character) return Character renames
 	    Ada.Characters.Handling.To_Lower;
 
 

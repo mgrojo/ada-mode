@@ -1,18 +1,15 @@
-with Ada.Text_IO,
-     Ada.Characters.Handling,
-     Ada.Strings.Fixed,
-     Ada.Strings.Unbounded;
-with ARM_Input,
-     ARM_File,
-     ARM_Format,
-     ARM_Output,
-     ARM_Text,
-     ARM_Texinfo,
-     ARM_HTML,
-     ARM_RTF,
-     ARM_Corr,
-     ARM_Master,
-     ARM_Contents;
+with Ada.Text_IO;
+with Ada.Characters.Handling;
+with Ada.Strings.Fixed;
+with Ada.Strings.Unbounded;
+with ARM_Input;
+with ARM_File;
+with ARM_Output;
+with ARM_TexInfo;
+with ARM_Text;
+with ARM_HTML;
+with ARM_RTF;
+with ARM_Corr;
 package body ARM_Master is
 
     --

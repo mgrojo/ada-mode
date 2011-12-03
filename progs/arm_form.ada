@@ -112,7 +112,6 @@ procedure ARM_Formatter is
     Master_File : Ada.Strings.Unbounded.Unbounded_String; -- Master file for document to generate.
     Change_Kind : ARM_Format.Change_Kind; -- Changes to generate.
     Change_Version : ARM_Contents.Change_Version_Type; -- Change version.
-    Display_Index_Entries : Boolean; -- Should Index entries be displayed?
 
     procedure Get_Commands is
 	-- Process the command line for this program.
