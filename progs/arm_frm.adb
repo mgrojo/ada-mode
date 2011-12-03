@@ -1,16 +1,10 @@
-with ARM_Output,
-     ARM_Input,
-     ARM_File,
-     ARM_String,
-     ARM_Contents,
-     ARM_Database,
-     ARM_Syntax,
-     ARM_Index,
-     ARM_Subindex,
-     ARM_Format.Data,
-     Ada.Text_IO,
-     Ada.Characters.Handling,
-     Ada.Strings.Fixed;
+with ARM_File;
+with ARM_String;
+with ARM_Syntax;
+with ARM_Index;
+with Ada.Text_IO;
+with Ada.Characters.Handling;
+with Ada.Strings.Fixed;
 package body ARM_Format is
 
     --
@@ -1369,7 +1363,6 @@ Ada.Text_IO.Put_Line ("%% Oops, can't find out if AARM paragraph, line " & ARM_I
 	            Format_Object.Current_Paragraph_String(1 .. PNum_Pred'Last-1) :=
 		        PNum_Pred(2..PNum_Pred'Last);
 		    AARM_Sub_Num (Format_Object.Next_AARM_Sub);
-	            Format_Object.Current_Paragraph_Len := Format_Object.Current_Paragraph_Len;
 	            if Update_Numbers then
 		        Format_Object.Next_AARM_Sub := Character'Succ(Format_Object.Next_AARM_Sub);
 			Format_Object.Next_AARM_Insert_Para := 1;
@@ -2089,7 +2082,7 @@ end if;
 			-- Nothing at all should be showm.
 			-- ** Warning ** If we lie here, the program will crash!
 		        Format_Object.No_Start_Paragraph := True;
-Ada.Text_IO.Put_Line("    -- No Start Paragraph (DelNoMsg)");
+--  Ada.Text_IO.Put_Line("    -- No Start Paragraph (DelNoMsg)");
 		    else
 		        ARM_Output.Start_Paragraph (Output_Object,
 					            Style     => Format_Object.Style,
@@ -7657,8 +7650,8 @@ Ada.Text_IO.Put_Line("    -- No Start Paragraph (Del-NewOnly)");
 		    -- conditionally handle paragraph formatting (which
 		    -- otherwise would come too late).
 		    declare
-		        Which_Param : ARM_Input.Param_Num;
-		        Ch, Close_Ch : Character;
+			Which_Param : ARM_Input.Param_Num;
+			Close_Ch : Character;
 
 			NoPrefix, Noparanum, Keepnext : Boolean := False;
 			Space_After : ARM_Output.Space_After_Type := ARM_Output.Normal;

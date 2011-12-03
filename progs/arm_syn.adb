@@ -101,8 +101,6 @@ package body ARM_Syntax is
     NT_Count : Natural := 0;
 
     procedure Free is new Ada.Unchecked_Deallocation (Rule_Type, Rule_Ptr);
-    procedure Free is new Ada.Unchecked_Deallocation (XRef_Type, XRef_Ptr);
-    procedure Free is new Ada.Unchecked_Deallocation (NT_Type, NT_Ptr);
     procedure Free is new Ada.Unchecked_Deallocation (String, String_Ptr);
 
     procedure Create is
