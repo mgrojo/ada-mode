@@ -24,6 +24,9 @@ project ARM_Info is
      for Spec ("ARM_Format") use "arm_frm.ads";
      for Body ("ARM_Format") use "arm_frm.adb";
 
+     for Spec ("ARM_Format.Data") use "arm_frmd.ads";
+     for Body ("ARM_Format.Data") use "arm_frmd.adb";
+
      for Body ("ARM_Format.Scan") use "arm_frms.adb";
 
      for body ("ARM_Formatter") use "arm_form.ada";

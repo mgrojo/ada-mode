@@ -152,15 +152,7 @@ package ARM_Contents is
 	-- for the properly formatted clause string Clause.
 	-- Raises Not_Found_Error if not found.
 
-   function Parent_Clause (Clause : in String) return String;
-        -- Returns the string of the parent clause (in the table of contents)
-        -- for the properly formatted clause string Clause.
-        --
-        -- Result is a null string if Clause is a top level clause;
-        -- Section, Unnumbered_Section, Normative_Annex,
-        -- Informative_Annex.
-
-   function Next_Clause (Clause : in String) return String;
+    function Next_Clause (Clause : in String) return String;
 	-- Returns the string of the next clause (in the table of contents)
 	-- for the properly formatted clause string Clause.
 	-- Raises Not_Found_Error if not found.

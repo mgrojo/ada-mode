@@ -56,14 +56,15 @@ package ARM_Texinfo is
 
    overriding procedure Start_Paragraph
      (Output_Object  : in out Texinfo_Output_Type;
-      Format         : in     ARM_Output.Paragraph_Type;
+      Style          : in     ARM_Output.Paragraph_Style_Type;
+      Indent         : in     ARM_Output.Paragraph_Indent_Type;
       Number         : in     String;
-      No_Prefix      : in     Boolean                       := False;
-      Tab_Stops      : in     ARM_Output.Tab_Info           := ARM_Output.NO_TABS;
-      No_Breaks      : in     Boolean                       := False;
-      Keep_with_Next : in     Boolean                       := False;
-      Space_After    : in     ARM_Output.Space_After_Type   := ARM_Output.Normal;
-      Justification  : in     ARM_Output.Justification_Type := ARM_Output.Default);
+      No_Prefix      : in     Boolean                          := False;
+      Tab_Stops      : in     ARM_Output.Tab_Info              := ARM_Output.NO_TABS;
+      No_Breaks      : in     Boolean                          := False;
+      Keep_with_Next : in     Boolean                          := False;
+      Space_After    : in     ARM_Output.Space_After_Type      := ARM_Output.Normal;
+      Justification  : in     ARM_Output.Justification_Type    := ARM_Output.Default);
 
    overriding procedure End_Paragraph (Output_Object : in out Texinfo_Output_Type);
 
@@ -85,6 +86,7 @@ package ARM_Texinfo is
       Level           : in     ARM_Contents.Level_Type;
       Clause_Number   : in     String;
       Version         : in     ARM_Contents.Change_Version_Type;
+      Old_Version     : in     ARM_Contents.Change_Version_Type;
       No_Page_Break   : in     Boolean                          := False);
 
    overriding procedure TOC_Marker (Output_Object : in out Texinfo_Output_Type;
@@ -143,14 +145,8 @@ package ARM_Texinfo is
 
    overriding procedure Text_Format
      (Output_Object : in out Texinfo_Output_Type;
-      Bold          : in     Boolean;
-      Italic        : in     Boolean;
-      Font          : in     ARM_Output.Font_Family_Type;
-      Size          : in     ARM_Output.Size_Type;
-      Change        : in     ARM_Output.Change_Type;
-      Version       : in     ARM_Contents.Change_Version_Type := '0';
-      Added_Version : in     ARM_Contents.Change_Version_Type := '0';
-      Location      : in     ARM_Output.Location_Type);
+      Format        : in     ARM_Output.Format_Type)
+     is null;
 
    overriding procedure Clause_Reference (Output_Object : in out Texinfo_Output_Type;
                                Text : in String;
@@ -232,10 +228,11 @@ private
       File     : Ada.Text_IO.File_Type;
       Is_Valid : Boolean := False;
 
-      State            : State_Type;
-      In_Paragraph     : Boolean := False; --  Sub-state within major states
-      Paragraph_Format : ARM_Output.Paragraph_Type;
-      End_Hang_Seen    : Boolean;
+      State         : State_Type;
+      In_Paragraph  : Boolean := False; --  Sub-state within major states
+      Style         : ARM_Output.Paragraph_Style_Type;
+      Indent        : ARM_Output.Paragraph_Indent_Type;
+      End_Hang_Seen : Boolean;
 
       --  Detecting end of title page
       Line_Empty      : Boolean := False; --  True if current line contains only whitespace.

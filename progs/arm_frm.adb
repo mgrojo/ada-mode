@@ -1,10 +1,11 @@
 with ARM_File;
+with ARM_Format.Data;
+with ARM_Index;
 with ARM_String;
 with ARM_Syntax;
-with ARM_Index;
-with Ada.Text_IO;
 with Ada.Characters.Handling;
 with Ada.Strings.Fixed;
+with Ada.Text_IO;
 package body ARM_Format is
 
     --
@@ -3432,7 +3433,6 @@ Ada.Text_IO.Put_Line("    -- No Start Paragraph (Del-NewOnly)");
 		use type ARM_Database.Paragraph_Change_Kind_Type;
 		Local_Change : ARM_Output.Change_Type;
 		Skip_Header  : Boolean := False;
-		Key          : ARM_Index.Index_Key;
 	    begin
 	        Get_Change_Version (Is_First => True,
 		    Version => Version);

@@ -1,53 +1,54 @@
 # Build info version of Ada RM, orig.tar.gz for Debian package, and tar.gz for my web page
 
-VERSION := 2005.2
-ZIP_DATE := 20100608
+ARM_VERSION    := 2012
+DEBIAN_VERSION := $(ARM_VERSION).2
+ZIP_DATE       := 20100608
 
 all : debian-free info publish
 
-html : arm2005.html
-html : aarm2005.html
-info : arm2005.info
-info : aarm2005.info
-pdf  : arm2005.pdf
-pdf  : aarm2005.pdf
+html : arm$(ARM_VERSION).html
+html : aarm$(ARM_VERSION).html
+info : arm$(ARM_VERSION).info
+info : aarm$(ARM_VERSION).info
+pdf  : arm$(ARM_VERSION).pdf
+pdf  : aarm$(ARM_VERSION).pdf
 
 # We have been unable to get rid of all the section ref violations, so we
 # specify --no-validate. Delete that to see the errors.
 TEXI_INFO_OPTS := --no-split --no-number-sections --no-validate
 TEXI_DVI_OPTS := --quiet
 
-../ada-reference-manual-$(VERSION)/arm2005.texinfo : arm_form.exe | ../ada-reference-manual-$(VERSION)
-	cd ../source_2005; ../build/arm_form.exe RM info New-Only 2
-	mv ../source_2005/RM.texinfo ../ada-reference-manual-$(VERSION)/arm2005.texinfo
+../ada-reference-manual-$(VERSION)/arm$(ARM_VERSION).texinfo : arm_form.exe | ../ada-reference-manual-$(VERSION)
+	cd ../source; ../build/arm_form.exe RM info New-Only 2
+	mv ../source/RM.texinfo ../ada-reference-manual-$(VERSION)/arm$(ARM_VERSION).texinfo
 
-../ada-reference-manual-$(VERSION)/aarm2005.texinfo : arm_form.exe | ../ada-reference-manual-$(VERSION)
-	cd ../source_2005; ../build/arm_form.exe AARM info New-Only 2
-	mv ../source_2005/AA.texinfo ../ada-reference-manual-$(VERSION)/aarm2005.texinfo
+../ada-reference-manual-$(VERSION)/aarm$(ARM_VERSION).texinfo : arm_form.exe | ../ada-reference-manual-$(VERSION)
+	cd ../source; ../build/arm_form.exe AARM info New-Only 2
+	mv ../source/AA.texinfo ../ada-reference-manual-$(VERSION)/aarm$(ARM_VERSION).texinfo
 
-../ada-reference-manual-$(VERSION)/html/arm2005/RM-TOC.html : arm_form.exe | ../ada-reference-manual-$(VERSION)/html ../source_2005/Output
-	cd ../source_2005; ../build/arm_form.exe RM HTML New-Only 2
-	rm -rf ../ada-reference-manual-$(VERSION)/html/arm2005
-	mv ../source_2005/Output ../ada-reference-manual-$(VERSION)/html/arm2005
-	mkdir ../source_2005/Output
+../ada-reference-manual-$(VERSION)/html/arm$(ARM_VERSION)/RM-TOC.html : arm_form.exe | ../ada-reference-manual-$(VERSION)/html ../source/Output
+	cd ../source; ../build/arm_form.exe RM HTML New-Only 2
+	rm -rf ../ada-reference-manual-$(VERSION)/html/arm$(ARM_VERSION)
+	mv ../source/Output ../ada-reference-manual-$(VERSION)/html/arm$(ARM_VERSION)
+	mkdir ../source/Output
 
-../ada-reference-manual-$(VERSION)/html/aarm2005/AA-TOC.html : arm_form.exe | ../ada-reference-manual-$(VERSION)/html ../source_2005/Output
-	cd ../source_2005; ../build/arm_form.exe AARM HTML New-Only 2
-	rm -rf ../ada-reference-manual-$(VERSION)/html/aarm2005
-	mv ../source_2005/Output ../ada-reference-manual-$(VERSION)/html/aarm2005
-	mkdir ../source_2005/Output
+../ada-reference-manual-$(VERSION)/html/aarm$(ARM_VERSION)/AA-TOC.html : arm_form.exe | ../ada-reference-manual-$(VERSION)/html ../source/Output
+	cd ../source; ../build/arm_form.exe AARM HTML New-Only 2
+	rm -rf ../ada-reference-manual-$(VERSION)/html/aarm$(ARM_VERSION)
+	mv ../source/Output ../ada-reference-manual-$(VERSION)/html/aarm$(ARM_VERSION)
+	mkdir ../source/Output
 
-../ada-reference-manual-$(VERSION)/txt/arm2005/RM-TOC.TXT : arm_form.exe | ../ada-reference-manual-$(VERSION)/txt ../source_2005/Output
-	cd ../source_2005; ../build/arm_form.exe RM Text New-Only 2
-	rm -rf ../ada-reference-manual-$(VERSION)/txt/arm2005
-	mv ../source_2005/Output ../ada-reference-manual-$(VERSION)/txt/arm2005
-	mkdir ../source_2005/Output
+../ada-reference-manual-$(VERSION)/txt/arm$(ARM_VERSION)/RM-TOC.TXT : arm_form.exe | ../ada-reference-manual-$(VERSION)/txt ../source/Output
+	cd ../source; ../build/arm_form.exe RM Text New-Only 2
+	rm -rf ../ada-reference-manual-$(VERSION)/txt/arm$(ARM_VERSION)
+	mv ../source/Output ../ada-reference-manual-$(VERSION)/txt/arm$(ARM_VERSION)
+	mkdir ../source/Output
 
-../ada-reference-manual-$(VERSION)/txt/aarm2005/AA-TOC.TXT : arm_form.exe | ../ada-reference-manual-$(VERSION)/txt ../source_2005/Output
-	cd ../source_2005; ../build/arm_form.exe AARM Text New-Only 2
-	rm -rf ../ada-reference-manual-$(VERSION)/txt/aarm2005
-	mv ../source_2005/Output ../ada-reference-manual-$(VERSION)/txt/aarm2005
-	mkdir ../source_2005/Output
+../ada-reference-manual-$(VERSION)/txt/aarm$(ARM_VERSION)/AA-TOC.TXT : arm_form.exe | ../ada-reference-manual-$(VERSION)/txt ../source/Output
+	cd ../source; ../build/arm_form.exe AARM Text New-Only 2
+	rm -rf ../ada-reference-manual-$(VERSION)/txt/aarm$(ARM_VERSION)
+	mv ../source/Output ../ada-reference-manual-$(VERSION)/txt/aarm$(ARM_VERSION)
+	mkdir ../source/Output
 
 arm_form.exe : force
 	gnatmake -p -k -P arm_info.gpr
@@ -64,30 +65,30 @@ arm_form.exe : force
 ../ada-reference-manual-$(VERSION)/txt :
 	mkdir -p ../ada-reference-manual-$(VERSION)/txt
 
-../source_2005/Output :
-	mkdir ../source_2005/Output
+../source/Output :
+	mkdir ../source/Output
 
-../source_2005 :
-	mkdir ../source_2005
+../source :
+	mkdir ../source
 
 ../progs :
 	mkdir ../progs
 
 publish : publish-info publish-zip
 
-publish-info : aarm2005.info arm2005.info
-	tar zcf arm2005-$(ZIP_DATE).tar.gz aarm2005.info arm2005.info
+publish-info : aarm$(ARM_VERSION).info arm$(ARM_VERSION).info
+	tar zcf arm$(ARM_VERSION)-$(ZIP_DATE).tar.gz aarm$(ARM_VERSION).info arm$(ARM_VERSION).info
 
 publish-zip : ../ada-reference-manual-$(VERSION)/arm_info.diff
-publish-zip : ../ada-reference-manual-$(VERSION)/arm2005.texinfo
-publish-zip : ../ada-reference-manual-$(VERSION)/aarm2005.texinfo
+publish-zip : ../ada-reference-manual-$(VERSION)/arm$(ARM_VERSION).texinfo
+publish-zip : ../ada-reference-manual-$(VERSION)/aarm$(ARM_VERSION).texinfo
 	tar zcf arm_info-$(ZIP_DATE)-src.tar.gz -C .. --exclude "*~" --exclude "*.gz" --exclude "*.info" --exclude objects --exclude arm_form.exe build ada-reference-manual-$(VERSION)
 
 # starting from a mtn checkout of arm_info, generate the Debian source tarball, set up for building Debian package
 debian-free : | ../ada-reference-manual-$(VERSION)
 debian-free : | ../../ada-reference-manual-$(VERSION)-current
-debian-free : ../ada-reference-manual-$(VERSION)/arm2005.texinfo
-debian-free : ../ada-reference-manual-$(VERSION)/aarm2005.texinfo
+debian-free : ../ada-reference-manual-$(VERSION)/arm$(ARM_VERSION).texinfo
+debian-free : ../ada-reference-manual-$(VERSION)/aarm$(ARM_VERSION).texinfo
 	tar zcf ada-reference-manual_$(VERSION).orig.tar.gz -C .. --exclude arm_info.diff ada-reference-manual-$(VERSION)
 	mv ada-reference-manual_$(VERSION).orig.tar.gz ../../ada-reference-manual-$(VERSION)-current
 	mtn -d ~/monotone-dbs/ada-france.db checkout --branch org.debian.ada-reference-manual ../../ada-reference-manual-$(VERSION)-current/ada-reference-manual-$(VERSION)
@@ -104,6 +105,8 @@ UPSTREAM_ADA += arm_file.ads
 UPSTREAM_ADA += arm_form.ada
 UPSTREAM_ADA += arm_frm.adb
 UPSTREAM_ADA += arm_frm.ads
+UPSTREAM_ADA += arm_frmd.adb
+UPSTREAM_ADA += arm_frmd.ads
 UPSTREAM_ADA += arm_frms.adb
 UPSTREAM_ADA += arm_html.adb
 UPSTREAM_ADA += arm_html.ads
@@ -199,9 +202,12 @@ UPSTREAM_SCHEME += PRE.MSS
 UPSTREAM_SCHEME += PRE_ADA.MSS
 UPSTREAM_SCHEME += PRE_DIRS.MSS
 UPSTREAM_SCHEME += PRE_IO.MSS
+UPSTREAM_SCHEME += PRE_Locales.MSS
 UPSTREAM_SCHEME += PRE_MATH.MSS
 UPSTREAM_SCHEME += Pre_Containers.MSS
+UPSTREAM_SCHEME += Pre_Con2.MSS
 UPSTREAM_SCHEME += Pre_Environ.MSS
+UPSTREAM_SCHEME += Pre_Con2.MSS
 UPSTREAM_SCHEME += RM.MSM
 UPSTREAM_SCHEME += RT.MSS
 UPSTREAM_SCHEME += Real_attribs.mss
@@ -223,13 +229,14 @@ UPSTREAM_SCHEME += pre_strings.mss
 # This retrieves CVS HEAD, for the next Ada version (commit to mtn branch arm_info.upstream)
 source_scheme.stamp :
 	for file in $(UPSTREAM_SCHEME); do wget -O ../../arm_info.upstream/source/$$file "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/source/$$file?rev=HEAD"; done
-	touch source_ada.stamp
+	cd ../../arm_info.upstream/source; $(CURDIR)/convert_to_unix.sh
+	touch source_scheme.stamp
 
 2005-SRC.zip :
 	wget http://www.ada-auth.org/arm-files/2005-SRC.zip
 
 source_scheme_2005.stamp : 2005-SRC.zip
-	cd ../../arm_info.upstream/source_2005; unzip ../build/2005-SRC.zip; rm arm_form.exe; $(CURDIR)/convert_to_unix.sh
+	cd ../../arm_info.upstream/source; unzip ../build/2005-SRC.zip; rm arm_form.exe; $(CURDIR)/convert_to_unix.sh
 	touch source_scheme.stamp
 
 patch.stamp : source_ada_2005.stamp source_scheme.stamp
@@ -242,7 +249,7 @@ patch.stamp : source_ada_2005.stamp source_scheme.stamp
 clean ::
 	rm -rf objects
 	rm -f *.info* *.texinfo
-	rm -rf ../source_2005/Output
+	rm -rf ../source/Output
 	rm -rf ../ada-reference-manual-$(VERSION)
 
 info-clean :

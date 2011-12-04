@@ -121,7 +121,7 @@ package body ARM_Texinfo is
          Quit := False;
 
          case Level is
-         when Section | Normative_Annex | Informative_Annex =>
+         when Section | Plain_Annex | Normative_Annex | Informative_Annex =>
             Ada.Strings.Fixed.Move
               (Source =>
                  "* " &
@@ -131,7 +131,7 @@ package body ARM_Texinfo is
 
             Put_Line (Output_Object.File, First_Part & Title);
 
-         when Unnumbered_Section | Clause | Subclause | Subsubclause =>
+         when Unnumbered_Section | Clause | Subclause | Subsubclause | Dead_Clause =>
             null;
 
          end case;
@@ -446,7 +446,9 @@ package body ARM_Texinfo is
          Quit := False;
 
          case Item_Level is
-         when Section | Unnumbered_Section | Normative_Annex | Informative_Annex | Subclause | Subsubclause =>
+         when Section | Unnumbered_Section | Plain_Annex | Normative_Annex |
+           Informative_Annex | Subclause | Subsubclause | Dead_Clause
+           =>
             --  We are doing Clause here
             null;
 
@@ -484,7 +486,8 @@ package body ARM_Texinfo is
          Quit := False;
 
          case Item_Level is
-            when Section | Unnumbered_Section | Normative_Annex | Informative_Annex | Clause | Subsubclause =>
+            when Section | Unnumbered_Section | Plain_Annex | Normative_Annex |
+              Informative_Annex | Clause | Subsubclause | Dead_Clause =>
                --  We are doing Subclause here
                null;
 
@@ -583,7 +586,7 @@ package body ARM_Texinfo is
       end if;
 
       case Level is
-      when Section | Normative_Annex | Informative_Annex =>
+      when Section | Plain_Annex | Normative_Annex | Informative_Annex =>
          --  Menu of these done at @node Top
          null;
 
@@ -629,6 +632,10 @@ package body ARM_Texinfo is
 
       when Subsubclause =>
          Put_Line (Output_Object.File, "FIXME: Clause_Header: Subsubclause");
+
+      when Dead_Clause =>
+         Put_Line (Output_Object.File, "FIXME: Clause_Header: Dead_clause");
+
       end case;
 
       Put_Line
@@ -642,7 +649,7 @@ package body ARM_Texinfo is
       when Section =>
          Put_Line (Output_Object.File, "@chapter " & Title);
 
-      when Normative_Annex | Informative_Annex =>
+      when Plain_Annex | Normative_Annex | Informative_Annex =>
          Put_Line (Output_Object.File, "@chapter " & Title);
 
       when Clause | Unnumbered_Section =>
@@ -654,6 +661,8 @@ package body ARM_Texinfo is
       when Subsubclause =>
          Put_Line (Output_Object.File, "@subsubsection " & Title);
 
+      when Dead_Clause =>
+         raise Program_Error;
       end case;
 
    end Clause_Header;
@@ -748,53 +757,41 @@ package body ARM_Texinfo is
    is
       use ARM_Output;
    begin
-      case Output_Object.Paragraph_Format is
-      when
-        Swiss_Examples | Small_Swiss_Examples |
-        Swiss_Indented_Examples | Small_Swiss_Indented_Examples |
-        Small_Syntax_Indented |
-        Nested_X2_Bulleted | Small_Nested_X2_Bulleted |
-        Indented_Nested_Bulleted |
-        Inner_Indented | Small_Inner_Indented =>
-         Put_Line
-           (Output_Object.File,
-            "FIXME: End_Hang_Item: hanging? "& Paragraph_Type'Image (Output_Object.Paragraph_Format));
-
+      case Output_Object.Style is
       when Normal |
-        Wide |
-        Notes |
-        Notes_Header |
-        Annotations |
-        Wide_Annotations |
-        Index |
+        Wide_Above |
+        Small |
+        Small_Wide_Above |
+        Header |
+        Small_Header |
         Syntax_Summary |
+        Index |
+        Title |
         Examples |
         Small_Examples |
-        Indented_Examples |
-        Small_Indented_Examples |
-        Syntax_Indented |
-        Code_Indented |
-        Small_Code_Indented |
-        Indented |
-        Small_Indented |
+        Swiss_Examples |
+        Small_Swiss_Examples |
         Bulleted |
         Nested_Bulleted |
         Small_Bulleted |
-        Small_Nested_Bulleted |
-        Indented_Bulleted |
-        Code_Indented_Bulleted |
-        Code_Indented_Nested_Bulleted |
-        Syntax_Indented_Bulleted |
-        Notes_Bulleted |
-        Notes_Nested_Bulleted =>
+        Small_Nested_Bulleted =>
 
          null;
 
-      when Hanging |
-        Small_Hanging |
-        Indented_Hanging |
-        Small_Indented_Hanging |
-        Hanging_in_Bulleted |
+      when Enumerated |
+        Small_Enumerated =>
+
+         --  Number has just been output; start text.
+         Put (Output_Object.File, "@w{  }");
+
+      when Wide_Hanging |
+        Small_Wide_Hanging |
+        Narrow_Hanging |
+        Small_Narrow_Hanging =>
+
+         null;
+
+      when Hanging_in_Bulleted |
         Small_Hanging_in_Bulleted =>
 
          --  End of term in definition list; indent rest of paragraph.
@@ -805,14 +802,6 @@ package body ARM_Texinfo is
 
          New_Line (Output_Object.File);
          Put_Line (Output_Object.File, "@quotation");
-
-      when Enumerated |
-        Small_Enumerated |
-        Nested_Enumerated |
-        Small_Nested_Enumerated =>
-
-         --  Number has just been output; start text.
-         Put (Output_Object.File, "@w{  }");
 
       end case;
 
@@ -842,60 +831,35 @@ package body ARM_Texinfo is
          end if;
 
       when Normal =>
-         case Output_Object.Paragraph_Format is
-         when
-           Swiss_Examples | Small_Swiss_Examples |
-           Swiss_Indented_Examples | Small_Swiss_Indented_Examples |
-           Small_Syntax_Indented |
-           Small_Nested_X2_Bulleted |
-           Small_Inner_Indented =>
-            Put_Line
-              (Output_Object.File, "FIXME : End_Paragraph: " & Paragraph_Type'Image (Output_Object.Paragraph_Format));
-
+         case Output_Object.Style is
          when Normal |
-           Wide |
-           Index =>
+           Wide_Above |
+           Small |
+           Small_Wide_Above |
+           Header |
+           Small_Header =>
 
             New_Line (Output_Object.File, 2);
 
-         when Notes |
-           Syntax_Summary |
-           Syntax_Indented =>
+         when Syntax_Summary =>
 
             New_Line (Output_Object.File);
             Put_Line (Output_Object.File, "@end quotation");
             New_Line (Output_Object.File);
 
-         when Annotations |
-           Wide_Annotations |
-           Code_Indented |
-           Small_Code_Indented |
-           Inner_Indented |
-           Indented |
-           Small_Indented =>
+         when Index |
+           Title =>
 
-            New_Line (Output_Object.File);
-            Put_Line (Output_Object.File, "@end quotation");
-            Put_Line (Output_Object.File, "@end quotation");
-            New_Line (Output_Object.File);
+            New_Line (Output_Object.File, 2);
 
          when Examples |
-           Small_Examples =>
+           Small_Examples |
+           Swiss_Examples |
+           Small_Swiss_Examples =>
 
             New_Line (Output_Object.File);
             Put_Line (Output_Object.File, "@end example");
             New_Line (Output_Object.File);
-
-         when Indented_Examples |
-           Small_Indented_Examples =>
-
-            New_Line (Output_Object.File);
-            Put_Line (Output_Object.File, "@end example");
-            Put_Line (Output_Object.File, "@end quotation");
-            New_Line (Output_Object.File);
-
-         when Notes_Header =>
-            New_Line (Output_Object.File, 2);
 
          when Bulleted |
            Small_Bulleted =>
@@ -912,44 +876,17 @@ package body ARM_Texinfo is
             Put_Line (Output_Object.File, "@end itemize");
             New_Line (Output_Object.File);
 
-         when Nested_X2_Bulleted =>
+         when Enumerated |
+           Small_Enumerated =>
 
             New_Line (Output_Object.File);
             Put_Line (Output_Object.File, "@end itemize");
-            Put_Line (Output_Object.File, "@end itemize");
-            Put_Line (Output_Object.File, "@end itemize");
             New_Line (Output_Object.File);
 
-         when Indented_Bulleted |
-           Code_Indented_Bulleted |
-           Notes_Bulleted =>
-
-            New_Line (Output_Object.File);
-            Put_Line (Output_Object.File, "@end itemize");
-            Put_Line (Output_Object.File, "@end quotation");
-            New_Line (Output_Object.File);
-
-         when Code_Indented_Nested_Bulleted |
-           Indented_Nested_Bulleted |
-           Notes_Nested_Bulleted =>
-
-            New_Line (Output_Object.File);
-            Put_Line (Output_Object.File, "@end itemize");
-            Put_Line (Output_Object.File, "@end itemize");
-            Put_Line (Output_Object.File, "@end quotation");
-            New_Line (Output_Object.File);
-
-         when Syntax_Indented_Bulleted =>
-
-            New_Line (Output_Object.File);
-            Put_Line (Output_Object.File, "@end itemize");
-            Put_Line (Output_Object.File, "@end quotation");
-            New_Line (Output_Object.File);
-
-         when Hanging |
-           Small_Hanging |
-           Indented_Hanging |
-           Small_Indented_Hanging |
+         when Wide_Hanging |
+           Small_Wide_Hanging |
+           Narrow_Hanging |
+           Small_Narrow_Hanging |
            Hanging_in_Bulleted |
            Small_Hanging_in_Bulleted =>
 
@@ -959,14 +896,6 @@ package body ARM_Texinfo is
             end if;
             New_Line (Output_Object.File);
 
-         when Enumerated |
-           Small_Enumerated |
-           Nested_Enumerated |
-           Small_Nested_Enumerated =>
-
-            New_Line (Output_Object.File);
-            Put_Line (Output_Object.File, "@end itemize");
-            New_Line (Output_Object.File);
          end case;
 
       when Index_Start =>
@@ -1061,59 +990,40 @@ package body ARM_Texinfo is
          Put_Line (Output_Object.File, "FIXME: Line_Break Index_Start");
 
       when Normal | Index =>
-         case Output_Object.Paragraph_Format is
-         when
-           Swiss_Examples | Small_Swiss_Examples |
-           Swiss_Indented_Examples | Small_Swiss_Indented_Examples |
-           Small_Syntax_Indented |
-           Nested_X2_Bulleted |
-           Small_Nested_X2_Bulleted | Indented_Nested_Bulleted |
-           Inner_Indented | Small_Inner_Indented =>
-            Put_Line
-              (Output_Object.File, "FIXME: Line_Break: "& Paragraph_Type'Image (Output_Object.Paragraph_Format));
-
+         case Output_Object.Style is
          when Normal |
-           Wide |
-           Notes |
-           Notes_Header |
-           Annotations |
-           Wide_Annotations |
-           Index |
+           Wide_Above |
+           Small |
+           Small_Wide_Above |
+           Header |
+           Small_Header |
            Syntax_Summary |
-           Syntax_Indented |
-           Code_Indented |
-           Small_Code_Indented |
-           Indented |
-           Small_Indented |
-           Bulleted |
-           Nested_Bulleted |
-           Small_Bulleted |
-           Small_Nested_Bulleted |
-           Indented_Bulleted |
-           Code_Indented_Bulleted |
-           Code_Indented_Nested_Bulleted |
-           Syntax_Indented_Bulleted |
-           Notes_Bulleted |
-           Notes_Nested_Bulleted |
-           Hanging |
-           Small_Hanging |
-           Indented_Hanging |
-           Small_Indented_Hanging |
-           Hanging_in_Bulleted |
-           Small_Hanging_in_Bulleted |
-           Enumerated |
-           Small_Enumerated |
-           Nested_Enumerated |
-           Small_Nested_Enumerated =>
+           Index |
+           Title =>
 
             Put_Line (Output_Object.File, "@*");
 
          when Examples |
            Small_Examples |
-           Indented_Examples |
-           Small_Indented_Examples =>
+           Swiss_Examples |
+           Small_Swiss_Examples =>
 
             New_Line (Output_Object.File);
+
+         when Bulleted |
+           Small_Bulleted |
+           Nested_Bulleted |
+           Small_Nested_Bulleted |
+           Enumerated |
+           Small_Enumerated |
+           Wide_Hanging |
+           Small_Wide_Hanging |
+           Narrow_Hanging |
+           Small_Narrow_Hanging |
+           Hanging_in_Bulleted |
+           Small_Hanging_in_Bulleted =>
+
+            Put_Line (Output_Object.File, "@*");
 
          end case;
 
@@ -1338,9 +1248,11 @@ package body ARM_Texinfo is
       Level           : in     ARM_Contents.Level_Type;
       Clause_Number   : in     String;
       Version         : in     ARM_Contents.Change_Version_Type;
+      Old_Version     : in     ARM_Contents.Change_Version_Type;
       No_Page_Break   : in     Boolean                          := False)
    is
       pragma Unreferenced (Version);
+      pragma Unreferenced (Old_Version);
       pragma Unreferenced (Old_Header_Text);
    begin
       Clause_Header (Output_Object, New_Header_Text, Level, Clause_Number, No_Page_Break);
@@ -1560,7 +1472,8 @@ package body ARM_Texinfo is
 
    overriding procedure Start_Paragraph
      (Output_Object  : in out Texinfo_Output_Type;
-      Format         : in     ARM_Output.Paragraph_Type;
+      Style          : in     ARM_Output.Paragraph_Style_Type;
+      Indent         : in     ARM_Output.Paragraph_Indent_Type;
       Number         : in     String;
       No_Prefix      : in     Boolean                       := False;
       Tab_Stops      : in     ARM_Output.Tab_Info           := ARM_Output.NO_TABS;
@@ -1584,7 +1497,7 @@ package body ARM_Texinfo is
       --  Note: makeinfo will do most of the formatting, so No_Breaks,
       --  Keep_with_Next, Space_After, and Justification have no
       --  effect here. In addition, info format has no support for
-      --  fonts, so the font aspects of Format is ignored as well. But
+      --  fonts, so the font aspects of Style are ignored as well. But
       --  we try to respect the indentation and margin aspects.
 
       --  TexInfo does not directly support tabs, but does use a fixed
@@ -1600,58 +1513,36 @@ package body ARM_Texinfo is
             Put_Line (Output_Object.File, Number & " @*");
          end if;
 
-         Output_Object.In_Paragraph     := True;
-         Output_Object.Paragraph_Format := Format;
+         Output_Object.In_Paragraph := True;
+         Output_Object.Style        := Style;
+         Output_Object.Indent       := Indent;
 
-         case Format is
-         when
-           Swiss_Examples | Small_Swiss_Examples |
-           Swiss_Indented_Examples | Small_Swiss_Indented_Examples |
-           Small_Syntax_Indented |
-           Small_Nested_X2_Bulleted |
-           Small_Inner_Indented =>
-            Put_Line (Output_Object.File, "FIXME: Start_Paragraph " & ARM_Output.Paragraph_Type'Image (Format));
-
+         case Style is
          when Normal |
-           Wide |
-           Index =>
+           Wide_Above |
+           Small |
+           Small_Wide_Above |
+           Header |
+           Small_Header  =>
 
             null;
 
-         when Notes |
-           Syntax_Summary |
-           Syntax_Indented =>
+         when Syntax_Summary  =>
 
             Put_Line (Output_Object.File, "@quotation");
 
-         when Annotations |
-           Wide_Annotations |
-           Code_Indented |
-           Small_Code_Indented |
-           Indented |
-           Inner_Indented |
-           Small_Indented =>
 
-            Put_Line (Output_Object.File, "@quotation");
-            Put_Line (Output_Object.File, "@quotation");
+         when Index |
+           Title =>
+
+            null;
 
          when Examples |
-           Small_Examples =>
+           Small_Examples |
+           Swiss_Examples |
+           Small_Swiss_Examples =>
 
             Put_Line (Output_Object.File, "@example");
-
-         when Indented_Examples |
-           Small_Indented_Examples =>
-
-            Put_Line (Output_Object.File, "@quotation");
-            Put_Line (Output_Object.File, "@example");
-
-         when Notes_Header =>
-            Put
-              (Output_Object.File,
-               "@w{" &
-                 String'(1 .. Indentation => ' ') &
-                 "}");
 
          when Bulleted |
            Small_Bulleted =>
@@ -1670,47 +1561,16 @@ package body ARM_Texinfo is
                Put (Output_Object.File, "@item ");
             end if;
 
-         when Nested_X2_Bulleted =>
-            Put_Line (Output_Object.File, "@itemize @bullet");
-            Put_Line (Output_Object.File, "@itemize @bullet");
-            Put_Line (Output_Object.File, "@itemize @bullet");
-            if not No_Prefix then
-               Put (Output_Object.File, "@item ");
-            end if;
+         when Enumerated |
+           Small_Enumerated =>
 
-         when Indented_Bulleted |
-           Code_Indented_Bulleted |
-           Notes_Bulleted =>
+            Put_Line (Output_Object.File, "@itemize @w{}");
+            Put (Output_Object.File, "@item ");
 
-            Put_Line (Output_Object.File, "@quotation");
-            Put_Line (Output_Object.File, "@itemize @bullet");
-            if not No_Prefix then
-               Put (Output_Object.File, "@item ");
-            end if;
-
-         when Code_Indented_Nested_Bulleted |
-           Indented_Nested_Bulleted |
-           Notes_Nested_Bulleted =>
-
-            Put_Line (Output_Object.File, "@quotation");
-            Put_Line (Output_Object.File, "@itemize @bullet");
-            Put_Line (Output_Object.File, "@itemize @bullet");
-            if not No_Prefix then
-               Put (Output_Object.File, "@item ");
-            end if;
-
-         when Syntax_Indented_Bulleted =>
-
-            Put_Line (Output_Object.File, "@quotation");
-            Put_Line (Output_Object.File, "@itemize @bullet");
-            if not No_Prefix then
-               Put (Output_Object.File, "@item ");
-            end if;
-
-         when Hanging |
-           Small_Hanging |
-           Indented_Hanging |
-           Small_Indented_Hanging |
+         when Wide_Hanging |
+           Small_Wide_Hanging |
+           Narrow_Hanging |
+           Small_Narrow_Hanging |
            Hanging_in_Bulleted |
            Small_Hanging_in_Bulleted =>
 
@@ -1722,14 +1582,6 @@ package body ARM_Texinfo is
                Output_Object.End_Hang_Seen := False;
             end if;
 
-         when Enumerated |
-           Small_Enumerated |
-           Nested_Enumerated |
-           Small_Nested_Enumerated =>
-
-            Put_Line (Output_Object.File, "@itemize @w{}");
-            Put (Output_Object.File, "@item ");
-
          end case;
 
       when Index_Start | Index | Title | Multi_Column | Table_Header =>
@@ -1737,8 +1589,9 @@ package body ARM_Texinfo is
             Unexpected_State (Output_Object);
          end if;
 
-         Output_Object.In_Paragraph     := True;
-         Output_Object.Paragraph_Format := Format;
+         Output_Object.In_Paragraph := True;
+         Output_Object.Style        := Style;
+         Output_Object.Indent       := Indent;
 
       end case;
 
@@ -1927,32 +1780,6 @@ package body ARM_Texinfo is
 
       end case;
    end Table_Marker;
-
-   overriding procedure Text_Format
-     (Output_Object : in out Texinfo_Output_Type;
-      Bold          : in     Boolean;
-      Italic        : in     Boolean;
-      Font          : in     ARM_Output.Font_Family_Type;
-      Size          : in     ARM_Output.Size_Type;
-      Change        : in     ARM_Output.Change_Type;
-      Version       : in     ARM_Contents.Change_Version_Type := '0';
-      Added_Version : in     ARM_Contents.Change_Version_Type := '0';
-      Location      : in     ARM_Output.Location_Type)
-   is
-      pragma Unreferenced (Location);
-      pragma Unreferenced (Version);
-      pragma Unreferenced (Added_Version);
-      pragma Unreferenced (Change);
-      pragma Unreferenced (Size);
-      pragma Unreferenced (Font);
-      pragma Unreferenced (Italic);
-      pragma Unreferenced (Bold);
-      pragma Unreferenced (Output_Object);
-   begin
-      --  Info does not support formats; Emacs info-mode font-lock
-      --  does some, but doesn't need any help from here.
-      null;
-   end Text_Format;
 
    overriding procedure TOC_Marker
      (Output_Object : in out Texinfo_Output_Type;

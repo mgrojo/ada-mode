@@ -2446,7 +2446,7 @@ package body ARM_RTF is
 	       Ada.Strings.Unbounded.To_String(Output_Object.Version_Names('0')) &
 		";}");
 	end if;
-	for Version in '1' .. '9' loop
+	for Version in Character'('1') .. '9' loop
             if Ada.Strings.Unbounded.Length (Output_Object.Version_Names(Version)) /= 0 then
                 Ada.Text_IO.Put (Output_Object.Output_File, "{" &
 	           Ada.Strings.Unbounded.To_String(Output_Object.Version_Names(Version)) &
