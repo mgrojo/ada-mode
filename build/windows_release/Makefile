@@ -27,6 +27,10 @@ clean ::
 
 include ../common.make
 
+# use AdaCore aunit 1.03 (not SAL aunit) in alternate install
+# directory (so it doesn't conflict with SAL aunit).
+export ADA_PROJECT_PATH := /tmp/aunit-1.03-src/lib/gnat
+
 # Local Variables:
 # eval: (ada-parse-prj-file "opentoken.prj")
 # eval: (ada-select-prj-file "opentoken.prj")
