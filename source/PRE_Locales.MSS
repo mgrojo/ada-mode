@@ -1,90 +1,101 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-<HTML>
-<TITLE>CVS log for arm/source/pre_locales.mss</TITLE>
-<h1><font color="#008000">CVS log for arm/source/pre_locales.mss</font></h1>
-<div style="font-size: 120%; margin-top: 1.0em; margin-bottom: 0.5em">
-<img src="/icons/back.gif" style="float: left">
-<a href="/cgi-bin/cvsweb.cgi/arm/source/">to arm/source/</a></div>
-<div style="margin-top: 0.5em; margin-bottom: 0.7em">
-<a href="#diff">Request differences between arbitrary revisions</a></div>
-<hr noshade>
-<span style="font-size: 120%"><b><a href="/cgi-bin/cvsweb.cgi/arm/source/pre_locales.mss?rev=1.6">1.6</a></b></span><br>
-Modified <i>2011/11/01 05:34:04</i>
-by <i>randy</i> with line changes <i>+3 -3</i><br>
-CVS Tags: <b>HEAD, Amend2_D14</b><br>
-<a href="/cgi-bin/cvsweb.cgi/arm/source/pre_locales.mss?diffbase=1.5&rev=1.6">Differences from 1.5</a><br>
-<div style="font-family: sans-serif; margin-top: 1.0em; margin-bottom: 0.5em">
-Various corrections from ARG editorial reviews; Amendment-Standard comparison tool;
-and spell checking (thanks to Dan Eilers).
-</div><hr noshade>
-<span style="font-size: 120%"><b><a href="/cgi-bin/cvsweb.cgi/arm/source/pre_locales.mss?rev=1.5">1.5</a></b></span><br>
-Modified <i>2011/10/21 06:41:25</i>
-by <i>randy</i> with line changes <i>+15 -15</i><br>
-<a href="/cgi-bin/cvsweb.cgi/arm/source/pre_locales.mss?diffbase=1.4&rev=1.5">Differences from 1.4</a><br>
-<div style="font-family: sans-serif; margin-top: 1.0em; margin-bottom: 0.5em">
-Various editorial fixes, along with uses of new commands and parameters.
-</div><hr noshade>
-<span style="font-size: 120%"><b><a href="/cgi-bin/cvsweb.cgi/arm/source/pre_locales.mss?rev=1.4">1.4</a></b></span><br>
-Modified <i>2011/04/07 06:18:37</i>
-by <i>randy</i> with line changes <i>+10 -10</i><br>
-CVS Tags: <b>Amend2_D13, Amend2_D12</b><br>
-<a href="/cgi-bin/cvsweb.cgi/arm/source/pre_locales.mss?diffbase=1.3&rev=1.4">Differences from 1.3</a><br>
-<div style="font-family: sans-serif; margin-top: 1.0em; margin-bottom: 0.5em">
-Applied various editorial review changes and updates to a few AIs.
-</div><hr noshade>
-<span style="font-size: 120%"><b><a href="/cgi-bin/cvsweb.cgi/arm/source/pre_locales.mss?rev=1.3">1.3</a></b></span><br>
-Modified <i>2010/11/25 03:11:50</i>
-by <i>randy</i> with line changes <i>+13 -5</i><br>
-<a href="/cgi-bin/cvsweb.cgi/arm/source/pre_locales.mss?diffbase=1.2&rev=1.3">Differences from 1.2</a><br>
-<div style="font-family: sans-serif; margin-top: 1.0em; margin-bottom: 0.5em">
-Various updates, mostly related to ARG meeting #42.
-</div><hr noshade>
-<span style="font-size: 120%"><b><a href="/cgi-bin/cvsweb.cgi/arm/source/pre_locales.mss?rev=1.2">1.2</a></b></span><br>
-Modified <i>2010/10/15 07:05:38</i>
-by <i>randy</i> with line changes <i>+9 -9</i><br>
-<a href="/cgi-bin/cvsweb.cgi/arm/source/pre_locales.mss?diffbase=1.1&rev=1.2">Differences from 1.1</a><br>
-<div style="font-family: sans-serif; margin-top: 1.0em; margin-bottom: 0.5em">
-Editorial changes from a number of people.
-</div><hr noshade>
-<span style="font-size: 120%"><b><a href="/cgi-bin/cvsweb.cgi/arm/source/pre_locales.mss?rev=1.1">1.1</a></b></span><br>
-Modified <i>2010/08/13 05:23:14</i>
-by <i>randy</i><br>
-CVS Tags: <b>Amend2_10</b><br>
-<div style="font-family: sans-serif; margin-top: 1.0em; margin-bottom: 0.5em">
-Added text for various AIs approved in Valencia.
-</div>
-<hr noshade>
-<p><a name="diff">This form</a> allows you to request differences between any
-two revisions of a file, by number or by tag.</p>
-<form method="GET" action="/cgi-bin/cvsweb.cgi/arm/source/pre_locales.mss">
-Differences between
-<select name="diffbase">
-<option selected value="1.6">1.6
-<option value="1.5">1.5
-<option value="1.4">1.4
-<option value="1.3">1.3
-<option value="1.2">1.2
-<option value="1.1">1.1
-<option value="1.6">HEAD
-<option value="1.6">Amend2_D14
-<option value="1.4">Amend2_D13
-<option value="1.4">Amend2_D12
-<option value="1.1">Amend2_10
-</select>
-<select name="rev">
-<option selected value="1.6">1.6
-<option value="1.5">1.5
-<option value="1.4">1.4
-<option value="1.3">1.3
-<option value="1.2">1.2
-<option value="1.1">1.1
-<option value="1.6">HEAD
-<option value="1.6">Amend2_D14
-<option value="1.4">Amend2_D13
-<option value="1.4">Amend2_D12
-<option value="1.1">Amend2_10
-</select>
-<div style="margin-top: 0.5em"><input type="submit" value="Get Differences"></div>
-</form>
-<hr><address>Questions? Ask the <a href="/mailto.html">ACAA Technical Agent</a><br></address>
-</BODY></HTML>
+@comment{ $Source: e:\\cvsroot/ARM/Source/pre_locales.mss,v $ }
+@comment{ $Revision: 1.6 $ $Date: 2011/11/01 05:34:04 $ $Author: randy $ }
+@Part(predefenviron, Root="ada.mss")
+
+@Comment{$Date: 2011/11/01 05:34:04 $}
+
+@LabeledAddedClause{Version=[3],Name=[The Package Locales]}
+
+@begin{Intro}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0127-2],ARef=[AI05-0248-1]}
+@ChgAdded{Version=[3],Text=[A @i{locale}@Defn{locale} identifies a geopolitical
+place or region and its associated language, which can be used to determine
+other internationalization-related characteristics.]}
+@end{Intro}
+
+@begin{StaticSem}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0127-2]}
+@ChgAdded{Version=[3],KeepNext=[T],Type=[Leading],Text=[The library package
+Locales has the following declaration:]}
+@begin{Example}
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[@key{package} Ada.Locales @key{is}@ChildUnit{Parent=[Ada],Child=[Locales]}
+   @key{pragma} Preelaborate(Locales);
+   @key{pragma} Remote_Types(Locales);]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[   @key[type] @AdaTypeDefn{Language_Code} @key[is array] (1 .. 3) @key[of] Character @key[range] 'a' .. 'z';
+   @key[type] @AdaTypeDefn{Country_Code} @key[is array] (1 .. 2) @key[of] Character @key[range] 'A' .. 'Z';]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[   @AdaObjDefn{Language_Unknown} : @key[constant] Language_Code := "und";
+   @AdaObjDefn{Country_Unknown} : @key[constant] Country_Code := "ZZ";]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[   @key[function] @AdaSubDefn{Language} @key[return] Language_Code;
+   @key[function] @AdaSubDefn{Country} @key[return] Country_Code;]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[@key[end] Ada.Locales;]}
+@end{Example}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0127-2],ARef=[AI05-0233-1]}
+@ChgAdded{Version=[3],Text=[The @i{active locale}@Defn{active
+locale}@Defn2{Term=[locale],Sec=[active]} is the locale associated with the
+partition of the current task.]}
+
+@begin{ImplNote}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0233-1]}
+  @ChgAdded{Version=[3],Text=[Some environments define both a system locale and
+  the locale of the current user. For such environments, the active locale is
+  that of current user if any; otherwise (as in a partition running on a server
+  without a user), the system locale should be used.]}
+@end{ImplNote}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0127-2]}
+@ChgAdded{Version=[3],Text=[Language_Code is a lower-case string representation
+of an ISO 639-3 alpha-3 code that identifies a language.]}
+
+@begin{Discussion}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[Some common language codes are: "eng" @en English;
+  "fra" @en French; "deu" @en German; "zho" @en Chinese. These are the same
+  codes as used by POSIX systems. We considered including
+  constants for the most common languages, but that was rejected as the
+  likely source of continual arguments about the constant names and which
+  languages are important enough to include.]}
+@end{Discussion}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0127-2]}
+@ChgAdded{Version=[3],Text=[Country_Code is an upper-case string representation
+of an ISO 3166-1 alpha-2 code that identifies a country.]}
+
+@begin{Discussion}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[Some common country codes are: "CA" @en Canada;
+  "FR" @en France; "DE" @en Germany; "IT" @en Italy; "ES" @en Spain;
+  "GB" @en United Kingdom; "US" @en United States. These are the same codes
+  as used by POSIX systems. We didn't include any
+  country constants for the same reasons that we didn't include any language
+  constants.]}
+@end{Discussion}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0127-2],ARef=[AI05-0248-1]}
+@ChgAdded{Version=[3],Text=[Function Language returns the code of the language
+associated with the active locale. If the Language_Code associated with the
+active locale cannot be determined from the environment, then Language returns
+Language_Unknown.]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0127-2],ARef=[AI05-0248-1]}
+@ChgAdded{Version=[3],Text=[Function Country returns the code of the country
+associated with the active locale. If the Country_Code associated with the
+active locale cannot be determined from the environment, then Country returns
+Country_Unknown.]}
+
+@end{StaticSem}
+
+@begin{Extend2005}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0127-2],ARef=[AI05-0233-1]}
+@ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 2005}
+Package Locales is new.]}
+@end{Extend2005}
