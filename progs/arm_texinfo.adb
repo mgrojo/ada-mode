@@ -2,7 +2,7 @@ with Ada.Exceptions;
 with Ada.Strings.Fixed;
 package body ARM_Texinfo is
 
-   --  Copyright (C) 2003, 2007, 2010, 2011 Stephen Leake.  All Rights Reserved.
+   --  Copyright (C) 2003, 2007, 2010, 2011, 2012 Stephen Leake.  All Rights Reserved.
    --  E-Mail: stephen_leake@acm.org
    --
    --  This library is free software; you can redistribute it and/or
@@ -29,7 +29,7 @@ package body ARM_Texinfo is
    Indentation : constant := 5;
 
    --  VERSION: This is fragile; it changes with each version of the manual.
-   Index_Clause      : constant String    := "0.5";
+   Index_Clause      : constant String    := "0.4";
    Index_Clause_Name : constant String    := "Index";
    Index_Clause_Next : constant String    := "operators";
    Operators_Clause  : constant String    := "operators";
@@ -201,6 +201,18 @@ package body ARM_Texinfo is
            (Clause_String (Section_Dot + 1 .. Clause_Dot - 1));
       end if;
    end Get_Clause_Section;
+
+   procedure Handle_Indent
+     (Output_Object : in Texinfo_Output_Type;
+      Texinfo_Item  : in String;
+      Extra_Indent  : in ARM_Output.Paragraph_Indent_Type := 0)
+   is
+      use type ARM_Output.Paragraph_Indent_Type;
+   begin
+      for I in 1 .. Output_Object.Indent + Extra_Indent loop
+         Put_Line (Output_Object.File, Texinfo_Item);
+      end loop;
+   end Handle_Indent;
 
    procedure Add_To_Column_Item (Output_Object : in out Texinfo_Output_Type; Text : in String)
    is begin
@@ -757,51 +769,55 @@ package body ARM_Texinfo is
    is
       use ARM_Output;
    begin
+      Output_Object.End_Hang_Seen := True;
+
       case Output_Object.Style is
-      when Normal |
-        Wide_Above |
-        Small |
-        Small_Wide_Above |
-        Header |
-        Small_Header |
-        Syntax_Summary |
-        Index |
-        Title |
-        Examples |
-        Small_Examples |
-        Swiss_Examples |
-        Small_Swiss_Examples |
-        Bulleted |
-        Nested_Bulleted |
-        Small_Bulleted |
-        Small_Nested_Bulleted =>
+         when Normal |
+           Wide_Above |
+           Small |
+           Small_Wide_Above |
+           Header |
+           Small_Header |
+           Syntax_Summary =>
 
-         null;
+            Handle_Indent (Output_Object, "@quotation");
 
-      when Enumerated |
-        Small_Enumerated =>
+         when Index |
+           Title =>
+            null;
 
-         --  Number has just been output; start text.
-         Put (Output_Object.File, "@w{  }");
+         when Examples |
+           Small_Examples |
+           Swiss_Examples |
+           Small_Swiss_Examples =>
 
-      when Wide_Hanging |
-        Small_Wide_Hanging |
-        Narrow_Hanging |
-        Small_Narrow_Hanging =>
+            Handle_Indent (Output_Object, "@example");
 
-         null;
+         when Bulleted |
+           Small_Bulleted =>
 
-      when Hanging_in_Bulleted |
-        Small_Hanging_in_Bulleted =>
+            Handle_Indent (Output_Object, "@itemize");
 
-         --  End of term in definition list; indent rest of paragraph.
-         --  But sometimes we never get an "end_hang_item" in a
-         --  hanging paragraph, so let End_Paragraph know we got one
-         --  this time.
-         Output_Object.End_Hang_Seen := True;
+         when Nested_Bulleted |
+           Small_Nested_Bulleted =>
 
-         New_Line (Output_Object.File);
-         Put_Line (Output_Object.File, "@quotation");
+            Handle_Indent (Output_Object, "@itemize", Extra_Indent => 1);
+
+         when Enumerated |
+           Small_Enumerated =>
+
+            --  Number has just been output; start text.
+            Put (Output_Object.File, "@w{  }");
+
+         when Wide_Hanging |
+           Small_Wide_Hanging |
+           Narrow_Hanging |
+           Small_Narrow_Hanging |
+           Hanging_in_Bulleted |
+           Small_Hanging_in_Bulleted =>
+
+            New_Line (Output_Object.File);
+            Handle_Indent (Output_Object, "@quotation");
 
       end case;
 
@@ -837,14 +853,11 @@ package body ARM_Texinfo is
            Small |
            Small_Wide_Above |
            Header |
-           Small_Header =>
-
-            New_Line (Output_Object.File, 2);
-
-         when Syntax_Summary =>
+           Small_Header |
+           Syntax_Summary =>
 
             New_Line (Output_Object.File);
-            Put_Line (Output_Object.File, "@end quotation");
+            Handle_Indent (Output_Object, "@end quotation");
             New_Line (Output_Object.File);
 
          when Index |
@@ -858,29 +871,28 @@ package body ARM_Texinfo is
            Small_Swiss_Examples =>
 
             New_Line (Output_Object.File);
-            Put_Line (Output_Object.File, "@end example");
+            Handle_Indent (Output_Object, "@end example");
             New_Line (Output_Object.File);
 
          when Bulleted |
            Small_Bulleted =>
 
             New_Line (Output_Object.File);
-            Put_Line (Output_Object.File, "@end itemize");
+            Handle_Indent (Output_Object, "@end itemize");
             New_Line (Output_Object.File);
 
          when Nested_Bulleted |
            Small_Nested_Bulleted =>
 
             New_Line (Output_Object.File);
-            Put_Line (Output_Object.File, "@end itemize");
-            Put_Line (Output_Object.File, "@end itemize");
+            Handle_Indent (Output_Object, "@end itemize", Extra_Indent => 1);
             New_Line (Output_Object.File);
 
          when Enumerated |
            Small_Enumerated =>
 
             New_Line (Output_Object.File);
-            Put_Line (Output_Object.File, "@end itemize");
+            Handle_Indent (Output_Object, "@end itemize");
             New_Line (Output_Object.File);
 
          when Wide_Hanging |
@@ -892,7 +904,7 @@ package body ARM_Texinfo is
 
             New_Line (Output_Object.File);
             if Output_Object.End_Hang_Seen then
-               Put_Line (Output_Object.File, "@end quotation");
+               Handle_Indent (Output_Object, "@end quotation");
             end if;
             New_Line (Output_Object.File);
 
@@ -987,7 +999,9 @@ package body ARM_Texinfo is
 
       when Index_Start =>
          --  This doesn't happen
-         Put_Line (Output_Object.File, "FIXME: Line_Break Index_Start");
+         Ada.Exceptions.Raise_Exception
+           (ARM_Output.Not_Valid_Error'Identity,
+            "Line_Break Index_Start");
 
       when Normal | Index =>
          case Output_Object.Style is
@@ -1523,14 +1537,10 @@ package body ARM_Texinfo is
            Small |
            Small_Wide_Above |
            Header |
-           Small_Header  =>
+           Small_Header |
+           Syntax_Summary  =>
 
-            null;
-
-         when Syntax_Summary  =>
-
-            Put_Line (Output_Object.File, "@quotation");
-
+            Handle_Indent (Output_Object, "@quotation");
 
          when Index |
            Title =>
@@ -1542,12 +1552,12 @@ package body ARM_Texinfo is
            Swiss_Examples |
            Small_Swiss_Examples =>
 
-            Put_Line (Output_Object.File, "@example");
+            Handle_Indent (Output_Object, "@example");
 
          when Bulleted |
            Small_Bulleted =>
 
-            Put_Line (Output_Object.File, "@itemize @bullet");
+            Handle_Indent (Output_Object, "@itemize @bullet");
             if not No_Prefix then
                Put (Output_Object.File, "@item ");
             end if;
@@ -1555,8 +1565,7 @@ package body ARM_Texinfo is
          when Nested_Bulleted |
            Small_Nested_Bulleted =>
 
-            Put_Line (Output_Object.File, "@itemize @bullet");
-            Put_Line (Output_Object.File, "@itemize @bullet");
+            Handle_Indent (Output_Object, "@itemize @bullet", Extra_Indent => 1);
             if not No_Prefix then
                Put (Output_Object.File, "@item ");
             end if;
@@ -1564,7 +1573,7 @@ package body ARM_Texinfo is
          when Enumerated |
            Small_Enumerated =>
 
-            Put_Line (Output_Object.File, "@itemize @w{}");
+            Handle_Indent (Output_Object, "@itemize @w{}");
             Put (Output_Object.File, "@item ");
 
          when Wide_Hanging |
@@ -1576,7 +1585,7 @@ package body ARM_Texinfo is
 
             if No_Prefix then
                --  Still in hanging part
-               Put_Line (Output_Object.File, "@quotation");
+               Handle_Indent (Output_Object, "@quotation");
                Output_Object.End_Hang_Seen := True;
             else
                Output_Object.End_Hang_Seen := False;

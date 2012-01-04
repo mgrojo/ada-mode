@@ -1,4 +1,4 @@
-^ada-reference-manual-2005\.2$
+^ada-reference-manual-.*$
 ^build/.*\.exe$
 ^build/.*\.gz$
 ^build/.*\.info$
@@ -12,5 +12,7 @@
 ^build/arm_info\.diff.gz$
 ^build/objects$
 ^build/source_ada\.stamp$
+^build/source_scheme\.stamp$
+^source/Output$
 ^source_2005/Output$
 ^source_2005/RM\.texinfo$
