@@ -643,10 +643,14 @@ package body ARM_Texinfo is
          end if;
 
       when Subsubclause =>
-         Put_Line (Output_Object.File, "FIXME: Clause_Header: Subsubclause");
+         Ada.Exceptions.Raise_Exception
+           (ARM_Output.Not_Valid_Error'Identity,
+            "Clause_Header: Subsubclause");
 
       when Dead_Clause =>
-         Put_Line (Output_Object.File, "FIXME: Clause_Header: Dead_clause");
+         Ada.Exceptions.Raise_Exception
+           (ARM_Output.Not_Valid_Error'Identity,
+            "Clause_Header: Dead_clause");
 
       end case;
 
@@ -1252,7 +1256,9 @@ package body ARM_Texinfo is
       pragma Unreferenced (Alignment);
       pragma Unreferenced (Name);
    begin
-      Put_Line (Output_Object.File, "FIXME: Picture: " & Descr);
+      Ada.Exceptions.Raise_Exception
+        (ARM_Output.Not_Valid_Error'Identity,
+         "Picture: " & Descr);
    end Picture;
 
    overriding procedure Revised_Clause_Header
