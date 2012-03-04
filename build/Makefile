@@ -141,6 +141,9 @@ source_ada.stamp :
 	for file in $(UPSTREAM_ADA); do wget -O ../../arm_info.upstream/progs/$$file "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/$$file?rev=HEAD"; done
 	touch source_ada.stamp
 
+source_ada.clean :
+	rm -f source_ada.stamp
+
 # CVS web interface doesn't support retrieve by tag. These revs are
 # for tag Amend_Final, which is the Ada 2005 version.
 source_ada_2005.stamp :
@@ -239,6 +242,9 @@ source_scheme.stamp :
 	for file in $(UPSTREAM_SCHEME); do wget -O ../../arm_info.upstream/source/$$file "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/source/$$file?rev=HEAD"; done
 	cd ../../arm_info.upstream/source; $(CURDIR)/convert_to_unix.sh
 	touch source_scheme.stamp
+
+source_scheme.clean :
+	rm source_scheme.stamp
 
 2005-SRC.zip :
 	wget http://www.ada-auth.org/arm-files/2005-SRC.zip
