@@ -1,8 +1,8 @@
 @comment{ $Source: e:\\cvsroot/ARM/Source/interface.mss,v $ }
-@comment{ $Revision: 1.61 $ $Date: 2011/11/01 23:14:15 $ $Author: randy $ }
+@comment{ $Revision: 1.65 $ $Date: 2012/02/19 01:58:37 $ $Author: randy $ }
 @Part(interface, Root="ada.mss")
 
-@Comment{$Date: 2011/11/01 23:14:15 $}
+@Comment{$Date: 2012/02/19 01:58:37 $}
 @LabeledNormativeAnnex{Interface to Other Languages}
 
 @begin{Intro}
@@ -16,7 +16,7 @@ in terms of language interface packages for each of
 these languages.
 @begin{Ramification}
 This Annex is not a @lquotes@;Specialized Needs@rquotes@; annex.
-Every implementation must support all non-optional features defined here
+Every implementation must support all nonoptional features defined here
 (mainly the package Interfaces).
 @end{Ramification}
 @end{Intro}
@@ -24,6 +24,27 @@ Every implementation must support all non-optional features defined here
 @begin{MetaRules}
 Ada should have strong support for mixed-language programming.
 @end{MetaRules}
+
+@begin{ImplReq}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0229-1],ARef=[AI05-0262-1]}
+@ChgAdded{Version=[3],Text=[Support for interfacing to any foreign language is
+optional. However, an implementation shall not provide any optional
+aspect, attribute, library unit, or pragma having the same name as an
+aspect, attribute, library unit, or pragma (respectively) specified in
+the clauses of this Annex unless the provided construct is either as specified
+in those clauses or is more limited in capability than that required by those
+clauses. A program that attempts to use an unsupported capability of this Annex
+shall either be identified by the implementation before run time or shall raise
+an exception at run time.]}
+@begin{Discussion}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[The intent is that the same rules apply for
+  the optional parts of language interfacing as apply for Specialized
+  Needs Annexes. See
+  @RefSecNum{Conformity of an Implementation with the Standard} for a
+  discussion of the purpose of these rules.]}
+@end{Discussion}
+@end{ImplReq}
 
 @begin{Extend83}
 @Defn{extensions to Ada 83}
@@ -34,6 +55,13 @@ Much of the functionality in this Annex is new to Ada 95.
 This Annex contains what used to be RM83-13.8.
 @end{DiffWord83}
 
+@begin{DiffWord2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0262-1]}
+  @ChgAdded{Version=[3],Text=[Moved the clarification that interfacing to
+  foreign languages is optional and has the same restrictions as a Specialized
+  Needs Annex here.]}
+@end{DiffWord2005}
+
 
 @LabeledRevisedClause{Version=[3],New=[Interfacing Aspects],Old=[Interfacing Pragmas]}
 
@@ -43,17 +71,16 @@ This Annex contains what used to be RM83-13.8.
 aspect that is one of the aspects Import, Export, Link_Name, External_Name, or
 Convention.@Defn{interfacing aspect}@Defn2{Term=[aspect],Sec=[interfacing]}]}
 
-@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1]}
-@Chg{Version=[3],New=[@AspectDefn{Import}Specifying aspect],Old=[A @nt{pragma}]} Import
-@Chg{Version=[3],New=[to have the value True ],Old=[]}is used to import
-an entity defined in a foreign language into an Ada program,
-thus allowing
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1],ARef=[AI05-0269-1]}
+@Chg{Version=[3],New=[@AspectDefn{Import}Specifying the],Old=[A @nt{pragma}]} Import
+@Chg{Version=[3],New=[aspect  to have the value True ],Old=[]}is used to import
+an entity defined in a foreign language into an Ada program, thus allowing
 a foreign-language subprogram to be called from Ada,
 or a foreign-language variable to be accessed from Ada.
 In contrast,
-@Chg{Version=[3],New=[@AspectDefn{Export}specifying aspect],Old=[a @nt{pragma}]}
-Export @Chg{Version=[3],New=[to have the value True ],Old=[]}is used to export
-an Ada entity to a foreign language, thus allowing
+@Chg{Version=[3],New=[@AspectDefn{Export}specifying the],Old=[a @nt{pragma}]}
+Export @Chg{Version=[3],New=[aspect to have the value True ],Old=[]}is used
+to export an Ada entity to a foreign language, thus allowing
 an Ada subprogram to be called from a foreign language,
 or an Ada object to be accessed from a foreign language.
 The@Chg{Version=[3],New=[],Old=[ @nt[pragma]s]}
@@ -63,7 +90,12 @@ subprograms, although implementations are allowed to support other
 entities.@Chg{Version=[3],New=[ The Link_Name and External_Name aspects are
 used to specify the link name and external name, respectively, to be
 used to identify imported or exported entities in the external
-environment.@AspectDefn{Link_Name}@AspectDefn{External_Name}],Old=[]}
+environment.@AspectDefn{Link_Name}@AspectDefn{External_Name}
+@PDefn2{Term=[representation aspect], Sec=(convention, calling convention)}
+@PDefn2{Term=[representation aspect], Sec=(import)}
+@PDefn2{Term=[representation aspect], Sec=(export)}
+@PDefn2{Term=[representation aspect], Sec=(external_name)}
+@PDefn2{Term=[representation aspect], Sec=(link_name)}],Old=[]}
 
   @ChgAspectDesc{Version=[3],Kind=[AddedNormal],Aspect=[Import],
     Text=[@ChgAdded{Version=[3],Text=[Entity is imported from another
@@ -275,7 +307,8 @@ If @Chg{Version=[3],New=[the],Old=[@nt[pragma]]} Convention
 @Chg{Version=[3],New=[aspect is specified for],Old=[applies to]} a type,
 then the type shall either be
 compatible with or eligible for
-the convention specified in the pragma.
+the @Chg{Version=[3],New=[specified ],Old=[]}convention@Chg{Version=[3],
+New=[],Old=[ specified in the pragma]}.
 @begin[ramification]
   @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1]}
   If a type is derived from an @i[L]-compatible type, the derived type
@@ -559,15 +592,15 @@ should be provided for elaboration and finalization of the environment task.]}]}
   and adafinal after the last.
 @end{ramification}
 
-@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1],ARef=[AI05-0269-1]}
 Automatic elaboration of preelaborated packages should be provided
-when @Chg{Version=[3],New=[specifying],Old=[@nt[pragma]]} Export
-@Chg{Version=[3],New=[as True ],Old=[]}is supported.
+when @Chg{Version=[3],New=[specifying the],Old=[@nt[pragma]]} Export
+@Chg{Version=[3],New=[aspect as True ],Old=[]}is supported.
 @ChgImplAdvice{Version=[3],Kind=[RevisedAdded],InitialVersion=[2],
 Text=[@ChgAdded{Version=[2],
 Text=[Automatic elaboration of preelaborated packages should be provided
-when @Chg{Version=[3],New=[specifying],Old=[@nt[pragma]]} Export
-@Chg{Version=[3],New=[as True ],Old=[]}is supported.]}]}
+when @Chg{Version=[3],New=[specifying the],Old=[@nt[pragma]]} Export
+@Chg{Version=[3],New=[aspect as True ],Old=[]}is supported.]}]}
 
 @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1]}
 For each supported convention @i[L] other than Intrinsic,
@@ -621,7 +654,7 @@ for example, requiring each exported entity to be declared
 at the library level.
 @begin{TheProof}
 Arbitrary restrictions are allowed by
-@RefSecNum{Operational and Representation Items}.
+@RefSecNum{Operational and Representation Aspects}.
 @end{TheProof}
 @begin{Ramification}
 Such a restriction might be to disallow them altogether.
@@ -704,12 +737,14 @@ that violates Ada semantics.]}
 @begin{Examples}
 @leading@keepnext@i{Example of interfacing pragmas:}
 @begin{Example}
-@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1],ARef=[AI05-0269-1]}
 @key[package] Fortran_Library @key[is]
   @key[function] Sqrt (X : Float) @key[return] Float@Chg{Version=[3],New=[
-     @key[with] Import => True, Convention => Fortran],Old=[]};
-  @key[function] Exp  (X : Float) @key[return] Float@Chg{Version=[3],New=[
-     @key[with] Import => True, Convention => Fortran],Old=[]};@Chg{Version=[3],New=[],Old=[
+    @key[with] Import => True, Convention => Fortran],Old=[]};
+  @Chg{Version=[3],New=[@key[type] Matrix @key[is array] (Natural @key[range] <>, Natural @key[range] <>) @key[of] Float
+    @key[with] Convention => Fortran;
+  ],Old=[]}@key[function] @Chg{Version=[3],New=[Invert (M : Matrix],Old=[Exp  (X : Float]}) @key[return] @Chg{Version=[3],New=[Matrix
+    @key[with] Import => True, Convention => Fortran],Old=[Float]};@Chg{Version=[3],New=[],Old=[
 @key[private]
   @key[pragma] Import(Fortran, Sqrt);
   @key[pragma] Import(Fortran, Exp);]}
@@ -845,7 +880,7 @@ should be operators (not functions named by identifiers).
 but it was changed to a reserved word operator before standardization of
 Ada 83.)
 This is important because the implicit declarations would hide
-non-overloadable declarations with the same name,
+nonoverloadable declarations with the same name,
 whereas operators are always overloadable.
 Therefore, we would have had to make shift and rotate
 into reserved words,
@@ -868,24 +903,25 @@ precision, respectively.
 @end{Itemize}
 
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00204-01]}
-@ChgRef{Version=[3],Kind=[RevisedAdded],ARef=[AI05-0229-1],ARef=[AI05-0262-1]}
-@ChgAdded{Version=[2],Text=[Support for interfacing to any foreign language is
-optional. However, an implementation shall not provide any
-@Chg{Version=[3],New=[aspect, ],Old=[]}attribute, library
-unit, or pragma having the same name as an
-@Chg{Version=[3],New=[aspect, ],Old=[]}attribute, library unit, or pragma
-(respectively) specified in the @Chg{Version=[3],New=[],Old=[following ]}clauses
+@ChgRef{Version=[3],Kind=[DeletedAdded],ARef=[AI05-0262-1]}
+@ChgAdded{Version=[2],Text=[@Chg{Version=[3],New=[],Old=[Support for
+interfacing to any foreign language is optional. However, an implementation
+shall not provide any attribute, library
+unit, or pragma having the same name as an attribute, library unit, or pragma
+(respectively) specified in the following clauses
 of this Annex unless the
 provided construct is either as specified in those clauses or is more limited
 in capability than that required by those clauses. A program that attempts to
 use an unsupported capability of this Annex shall either be identified by the
-implementation before run time or shall raise an exception at run time.]}
+implementation before run time or shall raise an exception at run time.]}]}
 @begin{Discussion}
   @ChgRef{Version=[2],Kind=[AddedNormal]}
-  @ChgAdded{Version=[2],Text=[The intent is that the same rules apply for
+  @ChgRef{Version=[3],Kind=[Deleted]}
+  @ChgAdded{Version=[2],Text=[@Chg{Version=[3],New=[],Old=[The intent is that
+  the same rules apply for
   language interfacing as apply for Specialized Needs Annexes. See
   @RefSecNum{Conformity of an Implementation with the Standard} for a
-  discussion of the purpose of these rules.]}
+  discussion of the purpose of these rules.]}]}
 @end{Discussion}
 @end{ImplReq}
 
@@ -962,6 +998,12 @@ should be declared as a renaming:
   @ChgAdded{Version=[2],Text=[Clarified that interfacing to foreign languages
   is optional and has the same restrictions as a Specialized Needs Annex.]}
 @end{DiffWord95}
+
+@begin{DiffWord2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0262-1]}
+  @ChgAdded{Version=[3],Text=[Move the restrictions on implementations of
+  optional features to the start of this Annex.]}
+@end{DiffWord2005}
 
 
 @LabeledRevisedClause{Version=[2],New=[Interfacing with C and C++],
@@ -1715,9 +1757,11 @@ specific numbers and types of parameters.
 
 @begin{Incompatible95}
   @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00285-01]}
+  @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0005-1]}
   @ChgAdded{Version=[2],Text=[@Defn{incompatibilities with Ada 95}
   Types char16_t and char32_t and their related
-  types and operations are newly added to Interfaces.C. If Interfaces.C is
+  types and operations are @Chg{Version=[3],New=[],Old=[newly ]}added to
+  Interfaces.C. If Interfaces.C is
   referenced in a @nt{use_clause}, and an entity @i<E> with the same
   @nt{defining_identifier} as a new entity in Interfaces.C is defined in a
   package that is also referenced in a @nt{use_clause}, the entity @i<E> may no
@@ -2108,6 +2152,7 @@ Free, not by a called C function.
 @end{DiffWord95}
 
 
+@RMNewPageVer{Version=[3]}@Comment{For printed version of Ada 2012 RM}
 @LabeledSubClause{The Generic Package Interfaces.C.Pointers}
 @begin{Intro}
 The generic package Interfaces.C.Pointers allows the Ada programmer to
@@ -2369,12 +2414,11 @@ Some_Pointer : Pointer := Some_Array(0)'Access;
 
 
 
-@RMNewPageVer{Version=[3]}@Comment{For printed version of Ada 2012 RM}
 @LabeledRevisedSubClause{Version=[3],InitialVersion=[2],New=[Unchecked Union Types],Old=[Pragma Unchecked_Union]}
 
 @begin{Intro}
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00216-01]}
-@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1],ARef=[AI05-0269-1]}
 @ChgAdded{Version=[2],Text=[@Defn2{Term=[union],Sec=[C]}
 @Redundant[@Chg{Version=[3],New=[Specifying aspect],Old=[A pragma]}
 Unchecked_Union @Chg{Version=[3],New=[to have the value True
@@ -2382,7 +2426,8 @@ defines],Old=[specifies]} an interface correspondence
 between a given discriminated type and some C union. The
 @Chg{Version=[3],New=[aspect requires],Old=[pragma specifies]}
 that the associated type shall be given a representation
-that leaves no space for its discriminant(s).]]}
+that @Chg{Version=[3],New=[allocates],Old=[leaves]} no space
+for its discriminant(s).]]}
 @end{Intro}
 
 

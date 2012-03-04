@@ -1,10 +1,10 @@
 @Part(08, Root="ada.mss")
 
-@Comment{$Date: 2011/11/01 23:14:14 $}
+@Comment{$Date: 2012/02/19 01:58:36 $}
 @LabeledSection{Visibility Rules}
 
 @Comment{$Source: e:\\cvsroot/ARM/Source/08.mss,v $}
-@Comment{$Revision: 1.95 $}
+@Comment{$Revision: 1.98 $}
 
 @begin{Intro}
 @redundant[The rules defining the scope of declarations and the rules defining
@@ -624,7 +624,7 @@ because R does not mention Q in a @nt{with_clause}.
 @begin{DiffWord2005}
   @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0183-1]}
   @ChgAdded{Version=[3],Text=[The scope of an @nt{aspect_specification}
-  is defined for similar reasons that we did that for
+  is defined for similar reasons that it was defined for
   @nt{attribute_definition_clause}s.]}
 @end{DiffWord2005}
 
@@ -691,7 +691,7 @@ they all have the same defining name
 and there is a place where they are all directly visible.]
 @begin{Ramification}
 Note that a @nt{name} can have more than one possible interpretation
-even if it denotes a non-overloadable entity.
+even if it denotes a nonoverloadable entity.
 For example, if there are two functions F that return records,
 both containing a component called C, then
 the name F.C has two possible interpretations,
@@ -747,7 +747,7 @@ Old=[An explicit declaration overrides an implicit declaration of a primitive
 subprogram]}, @Redundant[regardless of which declaration occurs first];
 @begin{Ramification}
 @ChgRef{Version=[1],Kind=[Revised],Ref=[8652/0025],ARef=[AI95-00044-01]}
-And regardless of whether the @Chg{New=[non-overridable],Old=[explicit]}
+And regardless of whether the @Chg{New=[nonoverridable],Old=[explicit]}
 declaration is overloadable or not.
 @Chg{New=[For example, @nt{statement_identifier}s are covered by this rule.],Old=[]}
 
@@ -930,11 +930,6 @@ declaration, except:
   the declaration is hidden from all visibility only
   until the reserved word @b(record);
 
-  @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0205-1]}
-  @ChgAdded{Version=[3],Text=[For an @nt{extended_return_statement}, the
-  declaration is hidden from all visibility only until the reserved word
-  @key[do] of the statement;]}
-
   @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00345-01]}
   @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0177-1]}
   For a @nt{package_declaration}, @Chg{Version=[2],New=[],Old=[task declaration,
@@ -1101,11 +1096,11 @@ hiding, since there is no way to declare homographs.
 @begin{Legality}
 @ChgRef{Version=[1],Kind=[Revised],Ref=[8652/0025],Ref=[8652/0026],ARef=[AI95-00044-01],ARef=[AI95-00150-01]}
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00377-01]}
-@Chg{New=[A non-overridable],Old=[An explicit]} declaration is illegal if there is a
+@Chg{New=[A nonoverridable],Old=[An explicit]} declaration is illegal if there is a
 homograph occurring immediately within the same
 declarative region that is visible at the place of the
 declaration, and is not hidden from all visibility by the
-@Chg{New=[non-overridable],Old=[explicit]} declaration.
+@Chg{New=[nonoverridable],Old=[explicit]} declaration.
 @Chg{New=[In addition, a type extension is illegal if somewhere within its
 immediate scope it has two visible components with the same name.],Old=[]}
 Similarly, the @nt<context_clause> for a @Chg{Version=[2],
@@ -1167,7 +1162,7 @@ and is therefore illegal.
 @NoPrefix@;A previous version of Ada 9X allowed the subunit,
 and said that references to P.Q would tend to be ambiguous.
 However, that was a bad idea, because it requires overload resolution
-to resolve references to directly visible non-overloadable
+to resolve references to directly visible nonoverloadable
 homographs, which is something compilers have never before been
 required to do.
 
@@ -1354,7 +1349,7 @@ the visibility rules don't apply to them either.
 
 Because of the way we have defined "declaration",
 it is possible for a usage name to denote a @nt{subprogram_body}, either
-within that body, or (for a non-library unit) after it
+within that body, or (for a nonlibrary unit) after it
 (since the body hides the corresponding declaration, if any).
 Other bodies do not work that way.
 Completions of @nt{type_declaration}s and
@@ -1489,15 +1484,6 @@ complex than they already are.]}
   @ChgAdded{Version=[3],Text=[The visibility of an
   @nt{aspect_specification} is defined so that it can be used in various other
   rules.]}
-
-  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0205-1]}
-  @ChgAdded{Version=[3],Text=[@b{Correction:} Added a rule allowing
-  visibility of the declared return object within an
-  @nt{extended_return_statement}. While this is technically an extension (since
-  the wording said that the return object was always hidden from all
-  visibility), this is so obviously not intended (a declaration that can never
-  be used is pointless) that the actual language rule was never implemented. So
-  this just makes the wording consistent with practice.]}
 @end{DiffWord2005}
 
 
@@ -1903,7 +1889,7 @@ neither one is use-visible.
 The considered rule would have made just one of them use-visible.
 We gave up on this idea due to the complexity of the rule.
 It would have had to account for both overloadable and
-non-overloadable @nt{renaming_declaration}s,
+nonoverloadable @nt{renaming_declaration}s,
 the case where the rule should apply only to some subset of the
 declarations with the same defining name,
 and the case of @nt{subtype_declaration}s
@@ -2793,7 +2779,7 @@ profile, and by where it occurs, as for any declaration of
 primitiveness is not determined by the renamed view.
 In order to perform a dispatching call,
 the subprogram name has to denote a primitive subprogram,
-not a non-primitive renaming of a primitive subprogram.
+not a nonprimitive renaming of a primitive subprogram.
 @begin{Reason}
 A @nt{subprogram_renaming_declaration} could more properly be called
 @ntf{renaming_@!as_@!subprogram_@!declaration}, since you're renaming something
@@ -2977,7 +2963,7 @@ it is assumed not to be the intended interpretation;
 some other possible interpretation
 is assumed to be the actual interpretation.
 On the other hand,
-violations of non-overloading rules do not affect which
+violations of nonoverloading rules do not affect which
 interpretation is chosen; instead,
 they cause the construct to be illegal.
 To be legal, there usually has to be exactly one acceptable
@@ -3144,6 +3130,7 @@ and all of the views declared by those declarations.
 @end{Ramification}
 @begin(itemize)
   @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00382-01]}
+  @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0287-1]}
   @Defn2{Term=[current instance], Sec=(of a type)}
   If a usage name appears within the declarative region of a
   @nt{type_declaration} and denotes that same @nt{type_declaration},
@@ -3151,8 +3138,11 @@ and all of the views declared by those declarations.
   the type itself)@Chg{Version=[2],New=[; the],Old=[. The]} current
   instance of a type is the object or value
   of the type that is associated with the execution that
-  evaluates the usage name.@Chg{Version=[2],New=[ This rule does not apply
-  if the usage name appears within the @nt{subtype_mark} of an
+  evaluates the usage name.@Chg{Version=[2],New=[ @Chg{Version=[3],
+  New=[ Similarly, if a usage name appears within the declarative region
+  of a @nt{subtype_declaration} and denotes that same @nt{subtype_declaration},
+  then it denotes the current instance of the subtype. These rules do],
+  Old=[This rule does]} not apply if the usage name appears within the @nt{subtype_mark} of an
   @nt{access_definition} for an access-to-object type, or within the subtype
   of a parameter or result of an access-to-subprogram type.],Old=[]}
   @begin{Reason}

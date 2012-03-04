@@ -1,10 +1,10 @@
 @Part(09, Root="ada.mss")
 
-@Comment{$Date: 2011/11/01 23:14:14 $}
+@Comment{$Date: 2012/02/19 01:58:36 $}
 @LabeledSection{Tasks and Synchronization}
 
 @Comment{$Source: e:\\cvsroot/ARM/Source/09.mss,v $}
-@Comment{$Revision: 1.111 $}
+@Comment{$Revision: 1.116 $}
 
 @begin{Intro}
 
@@ -163,9 +163,10 @@ a named task object of that type.
 @ChgRef{Version=[1],Kind=[Revised],Ref=[8652/0009],ARef=[AI95-00137-01]}
 @Syn{lhs=<task_item>,rhs="@Syn2{entry_declaration} | @Chg{New=[@Syn2{aspect_clause}],Old=[@Syn2{representation_clause}]}"}
 
-@Softpage
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0267-1]}
 @Syn{lhs=<task_body>,rhs="
-   @key{task} @key{body} @Syn2{defining_identifier} @key{is}
+   @key{task} @key{body} @Syn2{defining_identifier}@Chg{Version=[3],New=<
+        [@Syn2{aspect_specification}]>,Old=[]} @key{is}
      @Syn2{declarative_part}
    @key{begin}
      @Syn2{handled_sequence_of_statements}
@@ -179,7 +180,7 @@ it shall repeat the @nt{defining_identifier}.
 @end{Syntax}
 
 @begin{Legality}
-@ChgRef{Version=[2],Kind=[Deleted],ARef=[AI95-00345-01]}@ChgNote{This was just moved below}
+@ChgRef{Version=[2],Kind=[DeletedNoDelMsg],ARef=[AI95-00345-01]}@ChgNote{This was just moved below}
 @ChgDeleted{Version=[2],Text=[@PDefn2{Term=[requires a completion], Sec=(@nt{@nt{task_declaration}})}
 A task declaration requires a completion@redundant[,
 which shall be a @nt{task_body},]
@@ -191,6 +192,12 @@ task declaration.]}
   if the implementation supports it.]}
 @end(Honest)
 @end{Legality}
+@begin{NotIso}
+@ChgAdded{Version=[3],Noparanum=[T],Text=[@Shrink{@i<Paragraph 8 was
+deleted.>}]}@Comment{This message should be deleted if the paragraphs
+are ever renumbered.}
+@end{NotIso}
+
 
 @begin{StaticSem}
 
@@ -225,7 +232,7 @@ a single entry with the same identifier within the task declaration,
 whose profile is type conformant with the
 prefixed view profile of the inherited subprogram, the inherited subprogram is
 said to be @i{implemented} by the conforming task entry@Chg{Version=[3],
-New=[ using an implicitly declared non-abstract subprogram which
+New=[ using an implicitly declared nonabstract subprogram which
 has the same profile as the inherited subprogram and which
 overrides it@PDefn2{Term=[override],Sec=[when implemented by]}],
 Old=[]}.@PDefn2{Term=[implemented],
@@ -292,7 +299,7 @@ access parameter designating the task type.@Defn2{Term=[type conformance],Sec=(r
   @ChgAdded{Version=[2],Text=[This prevents the existence of two operations
   with the same name and profile which could be called with a prefixed view.
   If the operation was inherited, this would be illegal by the following rules;
-  this rule puts inherited and non-inherited routines on the same footing.
+  this rule puts inherited and noninherited routines on the same footing.
   Note that this only applies to tagged task types (that is, those with an
   interface in their declaration); we do that as there is no problem with
   prefixed view calls of primitive operations for @lquotes@;normal@rquotes
@@ -554,11 +561,11 @@ because a @nt{declarative_part} can be empty.
 @end{DiffWord95}
 
 @begin{Extend2005}
-  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0183-1]}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0183-1],ARef=[AI05-0267-1]}
   @ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 2005}
   An optional @nt{aspect_specification} can be used in a
-  @nt{task_type_declaration} and a @nt{single_task_declaration}.
-  This is described in @RefSecNum{Aspect Specifications}.]}
+  @nt{task_type_declaration}, a @nt{single_task_declaration}, and a
+  @nt{task_body}. This is described in @RefSecNum{Aspect Specifications}.]}
 @end{Extend2005}
 
 @begin{DiffWord2005}
@@ -1031,8 +1038,10 @@ a named protected object of that type.
 @end{Reason}
 
 
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0267-1]}
 @Syn{lhs=<protected_body>,rhs="
-  @key{protected} @key{body} @Syn2{defining_identifier} @key{is}
+  @key{protected} @key{body} @Syn2{defining_identifier}@Chg{Version=[3],New=<
+        [@Syn2{aspect_specification}]>,Old=[]} @key{is}
    { @Syn2{protected_operation_item} }
   @key{end} [@SynI{protected_}@Syn2{identifier}];"}
 
@@ -1101,7 +1110,7 @@ with the same identifier within the protected declaration, whose
 profile is type conformant with the prefixed view profile of the
 inherited subprogram, the inherited subprogram is said to be
 @i{implemented} by the conforming protected subprogram or
-entry@Chg{Version=[3],New=[ using an implicitly declared non-abstract
+entry@Chg{Version=[3],New=[ using an implicitly declared nonabstract
 subprogram which has the same profile as the inherited subprogram and which
 overrides it@PDefn2{Term=[override],Sec=[when implemented by]}],
 Old=[]}.@PDefn2{Term=[implemented],
@@ -1173,7 +1182,7 @@ the protected type.@Defn2{Term=[type conformance],Sec=(required)}]}
   @ChgAdded{Version=[2],Text=[This prevents the existence of two operations
   with the same name and profile which could be called with a prefixed view.
   If the operation was inherited, this would be illegal by the following rules;
-  this rule puts inherited and non-inherited routines on the same footing.
+  this rule puts inherited and noninherited routines on the same footing.
   Note that this only applies to tagged protected types (that is, those with an
   interface in their declaration); we do that as there is no problem with
   prefixed view calls of primitive operations for @lquotes@;normal@rquotes
@@ -1219,17 +1228,24 @@ these rules also apply in the private part of an instance of a generic unit.]}
 @end{Reason}
 
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00345-01]}
+@ChgRef{Version=[3],Kind=[RevisedAdded],ARef=[AI05-0291-1]}
 @ChgAdded{Version=[2],Text=[If an inherited subprogram is implemented by a
 protected procedure or an entry, then the first parameter of the inherited
 subprogram shall be of mode @key{out} or @key{in out}, or an
-access-to-variable parameter.]}
+access-to-variable parameter.@Chg{Version=[3],New=[
+If an inherited subprogram is implemented by a protected function, then the
+first parameter of the inherited subprogram shall be of mode @key{in}, but not
+an access-to-variable parameter.],Old=[]}]}
 @begin{Reason}
 @ChgRef{Version=[2],Kind=[AddedNormal]}
+@ChgRef{Version=[3],Kind=[Revised]}
 @ChgAdded{Version=[2],Text=[For a protected procedure or entry, the protected
 object can be read or written (see
 @RefSecNum{Protected Subprograms and Protected Actions}). A subprogram
 that is implemented by a protected procedure or entry must have a profile
-which reflects that in order to avoid confusion.]}
+which reflects that in order to avoid confusion.@Chg{Version=[3],New=[
+Similarly, a protected function has a parameter that is a constant,
+and the inherited routine should reflect that.],Old=[]}]}
 @end{Reason}
 
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00397-01]}
@@ -1589,11 +1605,11 @@ protected units do not exist in Ada 83.
 @end{DiffWord95}
 
 @begin{Extend2005}
-  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0183-1]}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0183-1],ARef=[AI05-0267-1]}
   @ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 2005}
   An optional @nt{aspect_specification} can be used in a
-  @nt{protected_type_declaration} and a @nt{single_protected_declaration}.
-  This is described in @RefSecNum{Aspect Specifications}.]}
+  @nt{protected_type_declaration}, a @nt{single_protected_declaration},
+  and a @nt{protected_body}. This is described in @RefSecNum{Aspect Specifications}.]}
 @end{Extend2005}
 
 @begin{DiffWord2005}
@@ -1628,7 +1644,8 @@ indirectly via a shared protected object.
 @end{Intro}
 
 @begin{StaticSem}
-@leading@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0225-1]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0225-1],ARef=[AI05-0291-1]}
+@ChgDeleted{Version=[3],Type=[Leading],Text=[]}@Comment{Fake for conditional Leading}.
 @Chg{Version=[3],New=[@Defn2{Term=[target object],
   Sec=(of the name of an entry or a protected subprogram)}],
 Old=[@Defn2{Term=[target object],
@@ -1643,8 +1660,25 @@ protected subprogram@Chg{Version=[3],New=[],Old=[ call]}). The target object
 to the operation, and is determined]} by the operation
 @nt<name> (or @nt<prefix>) used in @Chg{Version=[3],New=[a],Old=[the]} call
 on @Chg{Version=[3],New=[an entry or a protected subprogram is considered an
-implicit parameter to the call. The target object is determined],Old=[the
-operation,]} as follows:
+implicit parameter to the call. In addition, a primitive subprogram
+of a limited interface can be implemented by an entry or a protected subprogram,
+and a @nt{name} denoting such a subprogram also identifies a target object.],
+Old=[the operation, as follows:]}
+
+@begin{Honest}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0291-1]}
+  @ChgAdded{Version=[3],Text=[This wording uses "denotes" to mean "denotes a
+  view of an entity" (when the term is used in Legality Rules), and "denotes an
+  entity" (when the term is used in Dynamic Semantics rules). It does not mean
+  "view of a declaration", as that would not include renames (a renames is not
+  an entry or protected subprogram).]}
+@end{Honest}
+
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0291-1]}
+@ChgAdded{Version=[3],Type=[Leading],Text=[When the @nt{name} denotes an entry,
+protected subprogram, or a prefixed view of a primitive subprogram of a limited
+interface whose first parameter is a controlling parameter, the target object is
+determined as follows:]}
 @begin(Itemize)
   If it is a @nt<direct_name> or expanded name
   that denotes the declaration (or body) of the operation, then
@@ -1654,9 +1688,10 @@ operation,]} as follows:
   @Defn{internal call}
   such a call is defined to be an @i(internal call);
 
-  @leading@;If it is a @nt<selected_component> that is not
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0291-1]}
+  If it is a @nt<selected_component> that is not
   an expanded name, then the target object is explicitly
-  specified to be the task or protected object
+  specified to be the @Chg{Version=[3],New=[],Old=[task or protected]} object
   denoted by the @nt<prefix> of the @nt<name>;
   @Defn{external call}
   such a call is defined to be an @i(external call);
@@ -1701,6 +1736,25 @@ Other_Object : Some_Other_Protected_Type;
 
 @end(Itemize)
 
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0291-1]}
+@ChgAdded{Version=[3],Text=[Any call that might be on an entry or protected
+subprogram and that is not included above is an @i<external call>. For a call
+other than via a prefixed view on a
+primitive subprogram of a limited interface whose first parameter is a
+controlling parameter, the first parameter of the call is the target object of
+the call. For a call on a subprogram rename, the @nt{name} of the renamed item
+and possibly the first parameter determine the target object of the call. For a
+call on a generic formal subprogram, the @nt{name} of the actual callable entity
+and possibly the first parameter determine the target object of the call.]}
+@begin{Discussion}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[The above says "possibly the first parameter",
+  because Ada allows entries and protected subprograms to be renamed and passed
+  as formal subprograms. In those cases, the target object can be (but is not
+  required to be in the case of subprograms) implicit in the name of the
+  routine; otherwise the object is an explicit parameter to the call.]}
+@end{Discussion}
+
 @Defn2{Term=[target object],
   Sec=(of a @nt<requeue_statement>)}
 @Defn{internal requeue}
@@ -1709,6 +1763,7 @@ A corresponding definition of target object applies
 to a @nt<requeue_statement> (see @RefSecNum(Requeue Statements)),
 with a corresponding distinction between an @i(internal requeue)
 and an @i(external requeue).
+
 @end{StaticSem}
 
 @begin{Legality}
@@ -1725,7 +1780,8 @@ attribute.],Old=[]}]}
 @begin{Reason}
   @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0225-1]}
   @ChgAdded{Version=[3],Text=[The point is to prevent any calls to such a
-  @nt{name}, directly, or via an access value, renames, or generic formal
+  @nt{name} whose target object is a constant view of a protected object,
+  directly, or via an access value, renames, or generic formal
   subprogram. It is, however, legal to say P'Count in a protected function body,
   even though the protected object is a constant view there.]}
 @end{Reason}
@@ -3066,7 +3122,7 @@ the profile of the innermost enclosing callable construct.
 
 @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0030-2],ARef=[AI05-0215-1]}
 @ChgAdded{Version=[3],Text=[If the target is a procedure, the name shall
-denote a renaming of an entry, or shall denote a view or prefixed view of a
+denote a renaming of an entry, or shall denote a view or a prefixed view of a
 primitive subprogram of a synchronized interface, where the first parameter
 of the unprefixed view of the primitive subprogram shall be a
 controlling parameter, and the Synchronization aspect shall be specified
@@ -3932,10 +3988,10 @@ and another time zone.]}
 @ChgAdded{Version=[2],Keepnext=[T],Text=[@key<function> UTC_Time_Offset (Date : Time := Clock) @key<return> Time_Offset;]}
 @end{Example}
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00351-01]}
-@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0119-1]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0119-1],ARef=[AI05-0269-1]}
 @ChgAdded{Version=[2],Type=[Trailing],Text=[Returns, as a number of minutes, the
 @Chg{Version=[3],New=[result of subtracting],Old=[difference between]}
-the implementation-defined time zone of Calendar, and
+the implementation-defined time zone of Calendar@Chg{Version=[3],New=[ from],Old=[, and]}
 UTC time, at the time Date. If the time zone of the Calendar implementation is
 unknown, then Unknown_Zone_Error is raised.]}
 @begin{Ramification}
@@ -4625,8 +4681,8 @@ to have several open
       @key(select)
          @key(accept) Next_Work_Item(WI : @key(in) Work_Item) @key(do)
             Current_Work_Item := WI;
-          @key(end);
-          Process_Work_Item(Current_Work_Item);
+         @key(end);
+         Process_Work_Item(Current_Work_Item);
       @key(or)
          @key(accept) Shut_Down;
          @key(exit);       --@RI[ Premature shut down requested]
@@ -4703,18 +4759,22 @@ possible.]}
 
 @begin{StaticSem}
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00345-01]}
-@ChgAdded{Version=[2],Text=[If a @nt{procedure_call_statement} is used for a
-@nt{procedure_or_entry_call}, and the procedure is implemented by an entry,
-then the @SynI{procedure_}@nt{name}, or @SynI{procedure_}@nt{prefix} and
-possibly the first parameter of the @nt{procedure_call_statement}, determine
-the target object of the call and the entry to be called.]}
+@ChgRef{Version=[3],Kind=[DeletedNoDelMsg],ARef=[AI05-0291-1]}@Comment{
+We don't need a message here, as this is the last inserted paragraph}
+@ChgAdded{Version=[2],Text=[@Chg{Version=[3],New=[],Old=[If a
+@nt{procedure_call_statement} is used for a @nt{procedure_or_entry_call}, and
+the procedure is implemented by an entry, then the @SynI{procedure_}@nt{name},
+or @SynI{procedure_}@nt{prefix} and possibly the first parameter of the
+@nt{procedure_call_statement}, determine the target object of the call and the
+entry to be called.]}]}
 @begin{Discussion}
   @ChgRef{Version=[2],Kind=[AddedNormal]}
-  @ChgAdded{Version=[2],Text=[The above says @lquotes@;possibly the first
-    parameter@rquotes@;, because Ada allows entries
-    to be renamed and passed as formal subprograms. In those cases, the
-    task or protected object is implicit in the name of the routine; otherwise
-    the object is an explicit parameter to the call.]}
+  @ChgRef{Version=[3],Kind=[DeletedNoDelMsg]}
+  @ChgAdded{Version=[2],Text=[@Chg{Version=[3],New=[],Old=[The above says @lquotes@;possibly the first
+    parameter@rquotes@;, because Ada allows entries to be renamed and passed as
+    formal subprograms. In those cases, the task or protected object is implicit
+    in the name of the routine; otherwise the object is an explicit parameter to
+    the call.]}]}
 @end{Discussion}
 @end{StaticSem}
 
@@ -4780,8 +4840,10 @@ so we can define conditional entry calls in terms of timed entry calls.
 
 @begin{Incompatible95}
   @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00345-01]}
+  @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0005-1]}
   @ChgAdded{Version=[2],Text=[@Defn{incompatibilities with Ada 95}
-  A procedure can be used as the in a timed or
+  A procedure @Chg{Version=[3],New=[call ],Old=[]}can be used as the
+  @Chg{Version=[3],New=[@nt{entry_call_alternative} ],Old=[]}in a timed or
   conditional entry call, if the procedure
   might actually be an entry. Since the fact that something is an entry
   could be used in resolving these calls in Ada 95, it is possible for
@@ -4976,15 +5038,15 @@ executed after the @nt<abortable_part> is left.
 @i(Example of a main command loop for a command interpreter:)
 @begin(Example)
 @key(loop)
-    @key(select)
-        Terminal.Wait_For_Interrupt;
-        Put_Line("Interrupted");
-    @key(then abort)
-        -- @RI(This will be abandoned upon terminal interrupt)
-        Put_Line("-> ");
-        Get_Line(Command, Last);
-        Process_Command(Command(1..Last));
-    @key(end) @key(select);
+   @key(select)
+      Terminal.Wait_For_Interrupt;
+      Put_Line("Interrupted");
+   @key(then abort)
+      -- @RI(This will be abandoned upon terminal interrupt)
+      Put_Line("-> ");
+      Get_Line(Command, Last);
+      Process_Command(Command(1..Last));
+   @key(end) @key(select);
 @key(end) @key(loop);
 @end(Example)
 
@@ -5019,7 +5081,7 @@ executed after the @nt<abortable_part> is left.
   @ChgAdded{Version=[2],Text=[@Defn{extensions to Ada 95}
   A procedure can be used as the
   @nt{triggering_@!statement} of an @nt<asynchronous_select>, if the procedure
-  might actually be an entry]}
+  might actually be an entry.]}
 @end{Extend95}
 
 
@@ -5324,7 +5386,7 @@ and after queuing a given caller.
 @LabeledClause{Shared Variables}
 
 @begin{StaticSem}
-@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0009-1],ARef=[AI05-0201-1],ARef=[AI05-0229-1]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0009-1],ARef=[AI05-0201-1],ARef=[AI05-0229-1],ARef=[AI05-0295-1]}
 @Defn2{Term=[shared variable], Sec=(protection of)}
 @Defn{independently addressable}
 If two different objects, including nonoverlapping
@@ -5336,8 +5398,9 @@ addressable if either object is specified as independently addressable (see
 @RefSecNum{Shared Variable Control}). Otherwise,
 two nonoverlapping objects are independently addressable
 except when they are both parts of a composite object for which
-a non-confirming representation item is used to specify
-record layout, Component_Size, Pack, Atomic, or convention, in which case
+a nonconfirming representation value is specified for any of the
+following aspects: (record) Layout, Component_Size, Pack, Atomic, or
+Convention; in this case
 it is unspecified whether the parts are independently
 addressable.@PDefn{unspecified}],
 Old=[Normally, any two
@@ -5379,10 +5442,10 @@ independently if the hardware efficiently supports it.
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0009-1],ARef=[AI05-0201-1]}
 @ChgAdded{Version=[3],Text=[An atomic object (including atomic
 components) is always independently addressable from any other nonoverlapping
-object. Any representation item which would prevent this from being true should
-be rejected, notwithstanding what this Standard says elsewhere.
-Note, however, that the components of an atomic object are not necessarily
-atomic.]}
+object. Any @nt{aspect_specification} or representation item which would prevent
+this from being true should be rejected, notwithstanding what this Standard says
+elsewhere. Note, however, that the components of an atomic object are not
+necessarily atomic.]}
 @end{Ramification}
 @end{StaticSem}
 

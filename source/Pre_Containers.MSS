@@ -1,8 +1,8 @@
 @comment{ $Source: e:\\cvsroot/ARM/Source/pre_containers.mss,v $ }
-@comment{ $Revision: 1.86 $ $Date: 2011/11/01 23:14:15 $ $Author: randy $ }
+@comment{ $Revision: 1.92 $ $Date: 2012/02/19 01:58:37 $ $Author: randy $ }
 @Part(precontainers, Root="ada.mss")
 
-@Comment{$Date: 2011/11/01 23:14:15 $}
+@Comment{$Date: 2012/02/19 01:58:37 $}
 
 @RMNewPage
 @LabeledAddedClause{Version=[2],Name=[Containers]}
@@ -12,6 +12,11 @@
 @ChgAdded{Version=[2],Text=[This clause presents the specifications of the package
 Containers and several child packages, which provide facilities for storing
 collections of elements.]}
+
+@ChgToGlossary{Version=[3],Kind=[Added],Term=<Container>,
+Text=<@ChgAdded{Version=[3],Text=[A container type is one whose objects contain
+other objects. Several predefined container types are provided by the children
+of package Ada.Containers (see @RefSecNum{The Package Containers}).]}>}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00302-03]}
 @ChgAdded{Version=[2],Text=[A variety of sequence and associative containers are
@@ -326,7 +331,7 @@ properly on machines with native sizes that are not 32 bits. For instance, a
 @begin{Incompatible2005}
   @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0001-1]}
   @ChgAdded{Version=[3],Text=[@Defn{incompatibilities with Ada 2005}Exception Capacity_Error
-  is newly added to Containers. If Containers is referenced in a @nt{use_clause},
+  is added to Containers. If Containers is referenced in a @nt{use_clause},
   and an entity with the name Capacity_Error is defined in a package that is
   also referenced in a @nt{use_clause}, the entity Capacity_Error may no
   longer be use-visible, resulting in errors. This should be rare and is
@@ -843,15 +848,19 @@ Input, Output, Read, or Write attribute of type Cursor raises Program_Error.]}
 @end{Reason}
 
 @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0001-1],ARef=[AI05-0262-1]}
-@ChgAdded{Version=[3],Text=[Vector'Write writes exactly Length(Vector) elements
-of the vector to the stream. It may write additional information about the
-vector as well. Vector'Read reads exactly Length(Vector) elements of Vector from
-the stream and consumes any additional information written by Vector'Write.]}
+@ChgAdded{Version=[3],Text=[Vector'Write for a Vector object @i<V> writes
+Length(@i<V>) elements of the vector to the stream. It also may write
+additional information about the vector.]}
+
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0001-1],ARef=[AI05-0262-1]}
+@ChgAdded{Version=[3],Text=[Vector'Read reads the representation of a vector
+from the stream, and assigns to @i<Item> a vector with the same length and
+elements as was written by Vector'Write.]}
 
 @begin{ImplNote}
   @ChgRef{Version=[3],Kind=[AddedNormal]}
   @ChgAdded{Version=[3],Text=[The Standard requires streaming of all
-  language-defined non-limited types (including containers) to "work" (see
+  language-defined nonlimited types (including containers) to "work" (see
   @RefSecNum{Stream-Oriented Attributes}). In addition, we do not want all
   of the elements that make up the
   capacity of the vector streamed, as those beyond the length of the container
@@ -859,7 +868,9 @@ the stream and consumes any additional information written by Vector'Write.]}
   This will require a custom stream attribute
   implementation; the language-defined default implementation will not work
   (even for a bounded form, as that would most likely stream the entire
-  capacity of the vector).]}
+  capacity of the vector). There is a separate requirement that the unbounded
+  and Bounded form use the same streaming representation for the same element
+  type, see @RefSecNum{The Generic Package Containers.Bounded_Vectors}.]}
 @end{ImplNote}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00302-03]}
@@ -925,6 +936,14 @@ it calls the Insert, Insert_Space, Clear, Delete, or Set_Length procedures with
 @ChgAdded{Version=[3],Text=[it calls the Assign procedure with @i<V> as the Target parameter;
 or]}
 
+@begin{Ramification}
+  @ChgRef{Version=[3],Kind=[Added]}
+  @ChgAdded{Version=[3],Text=[We don't need to explicitly mention
+  @nt{assignment_statement}, because that finalizes the target object
+  as part of the operation, and finalization of an object is already defined
+  as tampering with cursors.]}
+@end{Ramification}
+
 @ChgRef{Version=[2],Kind=[AddedNormal]}
 @ChgAdded{Version=[2],Text=[it calls the Move procedure with @i<V> as
 a parameter.]}
@@ -965,12 +984,18 @@ parameter.]}
 @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0265-1]}
 @ChgAdded{Version=[3],Text=[@Defn2{Term=[prohibited],Sec=[tampering with a vector]}
 @Defn2{Term=[tampering],Sec=[prohibited for a vector]}
-If tampering with cursors is @i<prohibited> for a particular vector
-object @i<V>, Program_Error is propagated by any language-defined subprogram
-that is defined to tamper with the cursors of @i<V>. Similarly, if tampering with
-elements is @i<prohibited> for a particular vector object @i<V>,
-Program_Error is propagated by any language-defined subprogram that is defined
-to tamper with the elements of @i<V>.]}
+When tampering with cursors is @i<prohibited> for a particular vector object
+@i<V>, Program_Error is propagated by a call of any language-defined subprogram
+that is defined to tamper with the cursors of @i<V>, leaving @i<V> unmodified.
+Similarly, when tampering with elements is @i<prohibited> for a particular vector
+object @i<V>, Program_Error is propagated by a call of any language-defined
+subprogram that is defined to tamper with the elements of @i<V> @Redundant[(or
+tamper with the cursors of @i<V>)], leaving @i<V> unmodified.]}
+@begin{TheProof}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[Tampering with elements includes tampering with
+  cursors, so we mention it only from completeness in the second sentence.]}
+@end{TheProof}
 
 @begin{DescribeCode}
 
@@ -984,8 +1009,8 @@ to tamper with the elements of @i<V>.]}
 an element, and returns False otherwise.]}
 
 @begin{Honest}
-  @ChgRef{Version=[3],Kind=[AddedNormal]}
-  @ChgAdded{Version=[3],Text=[This function may not detect cursors that
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0005-1],ARef=[AI05-0212-1]}
+  @ChgAdded{Version=[3],Text=[This function might not detect cursors that
   designate deleted elements; such cursors are invalid (see below) and the
   result of calling Has_Element with an invalid cursor is unspecified (but
   not erroneous).]}
@@ -1273,7 +1298,7 @@ element after successful call to Replace_Element.]}
   @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0212-1]}
   @ChgAdded{Version=[2],Text=[Replace_Element@Chg{Version=[3],New=[,],Old=[ and]}
   Update_Element@Chg{Version=[3],New=[, and Reference],Old=[]} are the only
-  ways that an element can change from empty to non-empty. Also see the note
+  ways that an element can change from empty to nonempty. Also see the note
   following Update_Element.]}
 @end{Ramification}
 
@@ -1294,14 +1319,14 @@ position Index as the argument.
 @Chg{Version=[3],New=[Tampering],Old=[Program_Error
 is propagated if Process.@key{all} tampers]}
 with the elements of Container@Chg{Version=[3],New=[ is prohibited during the
-execution of Process.@key{all}],Old=[]}. Any exception raised by
+execution of the call on Process.@key{all}],Old=[]}. Any exception raised by
 Process.@key{all} is propagated.]}
 
 @begin{Reason}
-  @ChgRef{Version=[2],Kind=[AddedNormal]}
+  @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI05-0005-1]}
   @ChgAdded{Version=[2],Text=[The @lquotes@;tamper with the elements@rquotes@;
   check is intended to prevent the Element parameter of Process from being
-  modified or deleted
+  @Chg{Version=[3],New=[replaced],Old=[modified]} or deleted
   outside of Process. The check prevents data loss (if Element_Type is passed by
   copy) or erroneous execution (if Element_Type is an unconstrained type in an
   indefinite container).]}
@@ -1323,8 +1348,8 @@ Process.@key{all} with the element designated by Position as the argument.
 is propagated if Process.@key{all} tampers]}
 with the elements of @Chg{Version=[3],New=[the vector that contains the
 element designated by Position is prohibited during the
-execution of Process.@key{all}],Old=[Container]}. Any exception raised by
-Process.@key{all} is propagated.]}
+execution of the call on Process.@key{all}],Old=[Container]}. Any
+exception raised by Process.@key{all} is propagated.]}
 
 @begin{Example}
 @ChgRef{Version=[2],Kind=[AddedNormal]}
@@ -1343,7 +1368,7 @@ at position Index as the argument.
 @Chg{Version=[3],New=[Tampering],Old=[Program_Error
 is propagated if Process.@key{all} tampers]}
 with the elements of Container@Chg{Version=[3],New=[ is prohibited during the
-execution of Process.@key{all}],Old=[]}. Any exception raised by
+execution of the call on Process.@key{all}],Old=[]}. Any exception raised by
 Process.@key{all} is propagated.]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal]}
@@ -1386,7 +1411,7 @@ Process.@key{all} with the element designated by Position as the argument.
 @Chg{Version=[3],New=[Tampering],Old=[Program_Error
 is propagated if Process.@key{all} tampers]}
 with the elements of Container@Chg{Version=[3],New=[ is prohibited during the
-execution of Process.@key{all}],Old=[]}. Any exception raised by
+execution of the call on Process.@key{all}],Old=[]}. Any exception raised by
 Process.@key{all} is propagated.]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal]}
@@ -1434,10 +1459,10 @@ Constant_Reference_Type or Reference_Type propagates Program_Error.]}
    @key[return] Constant_Reference_Type;]}
 @end{Example}
 
-@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0212-1]}
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0212-1],ARef=[AI05-0269-1]}
 @ChgAdded{Version=[3],Type=[Trailing],Text=[This function (combined with the
 Constant_Indexing and Implicit_Dereference aspects) provides a convenient way to
-gain read access to the individual elements of a container starting with an
+gain read access to an individual element of a vector given an
 index value.]}
 
 @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0212-1],ARef=[AI05-0265-1]}
@@ -1455,11 +1480,11 @@ and has not been finalized.]}
    @key[return] Reference_Type;]}
 @end{Example}
 
-@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0212-1]}
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0212-1],ARef=[AI05-0269-1]}
 @ChgAdded{Version=[3],Type=[Trailing],Text=[This function (combined with the
 Variable_Indexing and Implicit_Dereference aspects) provides a convenient way to
-gain read and write access to the individual elements of a container starting
-with an index value.]}
+gain read and write access to an individual element of a vector given
+an index value.]}
 
 @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0212-1],ARef=[AI05-0265-1]}
 @ChgAdded{Version=[3],Text=[If Index is not in the range First_Index (Container)
@@ -1480,11 +1505,10 @@ element after successful completion of this operation.]}
    @key[return] Constant_Reference_Type;]}
 @end{Example}
 
-@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0212-1]}
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0212-1],ARef=[AI05-0269-1]}
 @ChgAdded{Version=[3],Type=[Trailing],Text=[This function (combined with the
 Constant_Indexing and Implicit_Dereference aspects) provides a convenient way to
-gain read access to the individual elements of a container starting with a
-cursor.]}
+gain read access to an individual element of a vector given a cursor.]}
 
 @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0212-1],ARef=[AI05-0265-1]}
 @ChgAdded{Version=[3],Text=[If Position equals No_Element, then Constraint_Error
@@ -1501,11 +1525,11 @@ object returned by Constant_Reference exists and has not been finalized.]}
    @key[return] Reference_Type;]}
 @end{Example}
 
-@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0212-1]}
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0212-1],ARef=[AI05-0269-1]}
 @ChgAdded{Version=[3],Type=[Trailing],Text=[This function (combined with the
 Variable_Indexing and Implicit_Dereference aspects) provides a convenient way to
-gain read and write access to the individual elements of a container starting
-with a cursor.]}
+gain read and write access to an individual element of a vector given
+a cursor.]}
 
 @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0212-1],ARef=[AI05-0265-1]}
 @ChgAdded{Version=[3],Text=[If Position equals No_Element, then Constraint_Error
@@ -2177,7 +2201,7 @@ cursor that designates each element in Container, in index order.
 @Chg{Version=[3],New=[Tampering],Old=[Program_Error
 is propagated if Process.@key{all} tampers]}
 with the cursors of Container@Chg{Version=[3],New=[ is prohibited during the
-execution of Process.@key{all}],Old=[]}. Any exception raised by
+execution of a call on Process.@key{all}],Old=[]}. Any exception raised by
 Process.@key{all} is propagated.]}
 
 @begin{Discussion}
@@ -2222,9 +2246,11 @@ except that elements are traversed in reverse index order.]}
    @key[return] Vector_Iterator_Interfaces.Reversible_Iterator'Class;]}
 @end{Example}
 
-@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0212-1],ARef=[AI05-0265-1]}
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0212-1],ARef=[AI05-0265-1],ARef=[AI05-0269-1]}
 @ChgAdded{Version=[3],Type=[Trailing],Text=[Iterate returns a reversible
-iterator object that will generate a value for the loop parameter designating
+iterator object (see @RefSecNum{User-Defined Iterator Types}) that
+will generate a value for a loop parameter (see
+@RefSecNum{Generalized Loop Iteration}) designating
 each node in Container, starting with the first node and moving the cursor as
 per the Next function when used as a forward iterator, and starting with the
 last node and moving the cursor as per the Previous function when used as a
@@ -2240,12 +2266,14 @@ finalization.]}
    @key[return] Vector_Iterator_Interfaces.Reversible_Iterator'Class;]}
 @end{Example}
 
-@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0212-1],ARef=[AI05-0265-1]}
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0212-1],ARef=[AI05-0262-1],ARef=[AI05-0265-1],ARef=[AI05-0269-1]}
 @ChgAdded{Version=[3],Type=[Trailing],Text=[If Start is not No_Element and does
 not designate an item in Container, then Program_Error is propagated. If Start
-is No_Element, the call is equivalent to Iterate (Container). Otherwise, Iterate
-returns a reversible iterator object that will generate a value for the
-loop parameter designating each node in Container, starting with the node
+is No_Element, then Constraint_Error is propagated. Otherwise, Iterate
+returns a reversible iterator object
+(see @RefSecNum{User-Defined Iterator Types}) that will generate
+a value for a loop parameter (see @RefSecNum{Generalized Loop Iteration})
+designating each node in Container, starting with the node
 designated by Start and moving the cursor as per the Next function when used as
 a forward iterator, or moving the cursor as per the Previous function when used
 as a reverse iterator. Tampering with the cursors of Container is prohibited
@@ -2265,7 +2293,7 @@ finalization.]}
 @end{Example}
   @ChgRef{Version=[3],Kind=[AddedNormal]}
   @ChgAdded{Version=[3],Type=[Trailing],Text=[in the body of the loop (assuming
-  the @exam{Cur} is the loop parameter and @exam{Stop} is the cursor that you
+  that @exam{Cur} is the loop parameter and @exam{Stop} is the cursor that you
   want to stop at).]}
 @end{Discussion}
 
@@ -2336,7 +2364,7 @@ provided. Any exception raised during evaluation of "<" is propagated.]}
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00302-03]}
 @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0021-1]}
 @ChgAdded{Version=[2],Type=[Trailing],Text=[@Chg{Version=[3],New=[If Source is
-empty, then Merge does nothing. If Source and Target are the same non-empty
+empty, then Merge does nothing. If Source and Target are the same nonempty
 container object, then Program_Error is propagated. Otherwise, ],Old=[]}Merge
 removes elements from Source and inserts them into Target; afterwards, Target
 contains the union of the elements that were initially in Source and Target;
@@ -2556,7 +2584,7 @@ by the call to Reference or Constant_Reference is finalized.]}
   container. If that container is prematurely finalized (which is only possible
   via Unchecked_Deallocation, as accessibility checks prevent passing a
   container to Reference that will not live as long as the result), the
-  finalization of the object of Reference_Type will try to access a non-existent
+  finalization of the object of Reference_Type will try to access a nonexistent
   object. This is a normal case of a dangling pointer created by
   Unchecked_Deallocation; we have to explicitly mention it here as the pointer
   in question is not visible in the specification of the type. (This is the same
@@ -2729,7 +2757,7 @@ value of Last_Index.]}
 @begin{Incompatible2005}
   @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0001-1]}
   @ChgAdded{Version=[3],Text=[@Defn{incompatibilities with Ada 2005}Subprograms Assign and Copy
-  are newly added to Containers.Vectors. If an instance of Containers.Vectors
+  are added to Containers.Vectors. If an instance of Containers.Vectors
   is referenced in a @nt{use_clause}, and an entity @i<E> with the same
   @nt{defining_identifier} as a new entity in Containers.Vectors is
   defined in a package that is also referenced in a @nt{use_clause}, the
@@ -2756,7 +2784,7 @@ value of Last_Index.]}
 
   @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0027-1]}
   @ChgAdded{Version=[3],Text=[@b<Correction:> Added a @BoundedName
-  to cover access to finalized Vector containers.]}
+  to cover access to finalized vector containers.]}
 
   @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0044-1]}
   @ChgAdded{Version=[3],Text=[@b<Correction:> Redefined "<" actuals
@@ -3124,10 +3152,14 @@ Input, Output, Read, or Write attribute of type Cursor raises Program_Error.]}
 @end{Reason}
 
 @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0001-1],ARef=[AI05-0262-1]}
-@ChgAdded{Version=[3],Text=[List'Write writes exactly Length(List) elements of
-the list to the stream. It may write additional information about the list as
-well. List'Read reads exactly Length(List) elements of List from the stream and
-consumes any additional information written by List'Write.]}
+@ChgAdded{Version=[3],Text=[List'Write for a List object @i<L> writes
+Length(@i<L>) elements of the list to the stream. It also may write
+additional information about the list.]}
+
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0001-1],ARef=[AI05-0262-1]}
+@ChgAdded{Version=[3],Text=[List'Read reads the representation of a list
+from the stream, and assigns to @i<Item> a list with the same length and
+elements as was written by List'Write.]}
 
 @begin{Ramification}
   @ChgRef{Version=[3],Kind=[AddedNormal]}
@@ -3176,6 +3208,14 @@ Merge procedures of an instance of Generic_Sorting with @i<L> as a parameter; or
 @ChgAdded{Version=[3],Text=[it calls the Assign procedure with @i<L> as the
 Target parameter; or]}
 
+@begin{Ramification}
+  @ChgRef{Version=[3],Kind=[Added]}
+  @ChgAdded{Version=[3],Text=[We don't need to explicitly mention
+  @nt{assignment_statement}, because that finalizes the target object
+  as part of the operation, and finalization of an object is already defined
+  as tampering with cursors.]}
+@end{Ramification}
+
 @ChgRef{Version=[2],Kind=[AddedNormal]}
 @ChgAdded{Version=[2],Text=[it calls the Move procedure with @i<L> as a
 parameter.]}
@@ -3216,12 +3256,18 @@ a parameter.]}
 @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0265-1]}
 @ChgAdded{Version=[3],Text=[@Defn2{Term=[prohibited],Sec=[tampering with a list]}
 @Defn2{Term=[tampering],Sec=[prohibited for a list]}
-If tampering with cursors is @i<prohibited> for a particular list
-object @i<L>, Program_Error is propagated by any language-defined subprogram
-that is defined to tamper with the cursors of @i<L>. Similarly, if tampering with
-elements is @i<prohibited> for a particular list object @i<L>,
-Program_Error is propagated by any language-defined subprogram that is defined
-to tamper with the elements of @i<L>.]}
+When tampering with cursors is @i<prohibited> for a particular list object
+@i<L>, Program_Error is propagated by a call of any language-defined subprogram
+that is defined to tamper with the cursors of @i<L>, leaving @i<L> unmodified.
+Similarly, when tampering with elements is @i<prohibited> for a particular list
+object @i<L>, Program_Error is propagated by a call of any language-defined
+subprogram that is defined to tamper with the elements of @i<L> @Redundant[(or
+tamper with the cursors of @i<L>)], leaving @i<L> unmodified.]}
+@begin{TheProof}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[Tampering with elements includes tampering with
+  cursors, so we mention it only from completeness in the second sentence.]}
+@end{TheProof}
 
 @begin{DescribeCode}
 
@@ -3235,8 +3281,8 @@ to tamper with the elements of @i<L>.]}
 an element, and returns False otherwise.]}
 
 @begin{Honest}
-  @ChgRef{Version=[3],Kind=[AddedNormal]}
-  @ChgAdded{Version=[3],Text=[This function may not detect cursors that
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0005-1],ARef=[AI05-0212-1]}
+  @ChgAdded{Version=[3],Text=[This function might not detect cursors that
   designate deleted elements; such cursors are invalid (see below) and the
   result of calling Has_Element with an invalid cursor is unspecified (but
   not erroneous).]}
@@ -3334,7 +3380,7 @@ Process.@key{all} with the element designated by Position as the argument.
 is propagated if Process.@key{all} tampers]}
 with the elements of @Chg{Version=[3],New=[the list that contains the
 element designated by Position is prohibited during the
-execution of Process.@key{all}],Old=[Container]}. Any exception raised by
+execution of the call on Process.@key{all}],Old=[Container]}. Any exception raised by
 Process.@key{all} is propagated.]}
 
 @begin{Example}
@@ -3355,7 +3401,7 @@ Process.@key{all} with the element designated by Position as the
 argument. @Chg{Version=[3],New=[Tampering],Old=[Program_Error
 is propagated if Process.@key{all} tampers]}
 with the elements of Container@Chg{Version=[3],New=[ is prohibited during the
-execution of Process.@key{all}],Old=[]}. Any exception raised by
+execution of the call on Process.@key{all}],Old=[]}. Any exception raised by
 Process.@key{all} is propagated.]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal]}
@@ -3407,10 +3453,10 @@ Constant_Reference_Type or Reference_Type propagates Program_Error.]}
    @key[return] Constant_Reference_Type;]}
 @end{Example}
 
-@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0212-1]}
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0212-1],ARef=[AI05-0269-1]}
 @ChgAdded{Version=[3],Type=[Trailing],Text=[This function (combined with the
 Constant_Indexing and Implicit_Dereference aspects) provides a convenient way to
-gain read access to the individual elements of a container starting with a
+gain read access to an individual element of a list given a
 cursor.]}
 
 @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0212-1],ARef=[AI05-0265-1]}
@@ -3428,11 +3474,11 @@ object returned by Constant_Reference exists and has not been finalized.]}
    @key[return] Reference_Type;]}
 @end{Example}
 
-@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0212-1]}
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0212-1],ARef=[AI05-0269-1]}
 @ChgAdded{Version=[3],Type=[Trailing],Text=[This function (combined with the
 Variable_Indexing and Implicit_Dereference aspects) provides a convenient way to
-gain read and write access to the individual elements of a container starting
-with a cursor.]}
+gain read and write access to an individual element of a list given
+a cursor.]}
 
 @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0212-1],ARef=[AI05-0265-1]}
 @ChgAdded{Version=[3],Text=[If Position equals No_Element, then Constraint_Error
@@ -3444,8 +3490,7 @@ object returned by Reference exists and has not been finalized.]}
 
 @begin{Example}
 @ChgRef{Version=[3],Kind=[Added]}
-@ChgAdded{Version=[3],KeepNext=[T],Text=[@key{procedure} Assign (Target : @key{in out} List;
-                Source : @key{in} List);]}
+@ChgAdded{Version=[3],KeepNext=[T],Text=[@key{procedure} Assign (Target : @key{in out} List; Source : @key{in} List);]}
 @end{Example}
 
 @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0001-1],ARef=[AI05-0248-1]}
@@ -3920,7 +3965,7 @@ node and moving the cursor as per the Next function.
 @Chg{Version=[3],New=[Tampering],Old=[Program_Error
 is propagated if Process.@key{all} tampers]}
 with the cursors of Container@Chg{Version=[3],New=[ is prohibited during the
-execution of Process.@key{all}],Old=[]}. Any exception raised by
+execution of a call on Process.@key{all}],Old=[]}. Any exception raised by
 Process.@key{all} is propagated.]}
 
 @begin{ImplNote}
@@ -3960,9 +4005,11 @@ function.]}
    @key[return] List_Iterator_Interfaces.Reversible_Iterator'Class;]}
 @end{Example}
 
-@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0212-1],ARef=[AI05-0265-1]}
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0212-1],ARef=[AI05-0265-1],ARef=[AI05-0269-1]}
 @ChgAdded{Version=[3],Type=[Trailing],Text=[Iterate returns a reversible
-iterator object that will generate a value for the loop parameter designating
+iterator object (see @RefSecNum{User-Defined Iterator Types}) that
+will generate a value for a loop parameter (see
+@RefSecNum{Generalized Loop Iteration}) designating
 each node in Container, starting with the first node and moving the cursor as
 per the Next function when used as a forward iterator, and starting with the
 last node and moving the cursor as per the Previous function when used as a
@@ -3978,12 +4025,15 @@ finalization.]}
    @key[return] List_Iterator_Interfaces.Reversible_Iterator'Class;]}
 @end{Example}
 
-@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0212-1],ARef=[AI05-0265-1]}
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0212-1],ARef=[AI05-0262-1],ARef=[AI05-0265-1],ARef=[AI05-0269-1]}
 @ChgAdded{Version=[3],Type=[Trailing],Text=[If Start is not No_Element and does
 not designate an item in Container, then Program_Error is propagated. If Start
-is No_Element, the call is equivalent to Iterate (Container). Otherwise, Iterate
-returns a reversible iterator object that will generate a value for the loop
-parameter designating each node in Container, starting with the node designated
+is No_Element, then Constraint_Error is propagated. Otherwise, Iterate
+returns a reversible iterator object
+(see @RefSecNum{User-Defined Iterator Types}) that
+will generate a value for a loop parameter (see
+@RefSecNum{Generalized Loop Iteration}) designating
+each node in Container, starting with the node designated
 by Start and moving the cursor as per the Next function when used as a forward
 iterator, or moving the cursor as per the Previous function when used as a
 reverse iterator. Tampering with the cursors of Container is prohibited while
@@ -4003,7 +4053,7 @@ finalization.]}
 @end{Example}
   @ChgRef{Version=[3],Kind=[AddedNormal]}
   @ChgAdded{Version=[3],Type=[Trailing],Text=[in the body of the loop (assuming
-  the @exam{Cur} is the loop parameter and @exam{Stop} is the cursor that you
+  that @exam{Cur} is the loop parameter and @exam{Stop} is the cursor that you
   want to stop at).]}
 @end{Discussion}
 
@@ -4067,7 +4117,7 @@ evaluation of "<" is propagated.]}
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00302-03]}
 @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0021-1]}
 @ChgAdded{Version=[2],Type=[Trailing],Text=[@Chg{Version=[3],New=[If Source is
-empty, then Merge does nothing. If Source and Target are the same non-empty
+empty, then Merge does nothing. If Source and Target are the same nonempty
 container object, then Program_Error is propagated. Otherwise, ],Old=[]}Merge
 removes elements from Source
 and inserts them into Target; afterwards,
@@ -4110,7 +4160,7 @@ all of the modifications to the List.]}
 @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0027-1]}
 @ChgAdded{Version=[3],Text=[@PDefn2{Term=(bounded error),Sec=(cause)}
 It is a bounded error to call any subprogram
-declared in the visible part of Containers.Doubly_Linked_List
+declared in the visible part of Containers.Doubly_Linked_Lists
 when the associated container has been finalized. If the operation takes
 Container as an @key[in out] parameter, then it raises Constraint_Error or
 Program_Error. Otherwise, the operation either proceeds as it would
@@ -4198,7 +4248,7 @@ finalized.]}
   container. If that container is prematurely finalized (which is only possible
   via Unchecked_Deallocation, as accessibility checks prevent passing a
   container to Reference that will not live as long as the result), the
-  finalization of the object of Reference_Type will try to access a non-existent
+  finalization of the object of Reference_Type will try to access a nonexistent
   object. This is a normal case of a dangling pointer created by
   Unchecked_Deallocation; we have to explicitly mention it here as the pointer
   in question is not visible in the specification of the type. (This is the same
@@ -4329,7 +4379,7 @@ probably not a stable sort.]}
 @begin{Incompatible2005}
   @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0001-1]}
   @ChgAdded{Version=[3],Text=[@Defn{incompatibilities with Ada 2005}Subprograms Assign and Copy
-  are newly added to Containers.Doubly_Linked_Lists. If an instance of Containers.Doubly_Linked_Lists
+  are added to Containers.Doubly_Linked_Lists. If an instance of Containers.Doubly_Linked_Lists
   is referenced in a @nt{use_clause}, and an entity @i<E> with the same
   @nt{defining_identifier} as a new entity in Containers.Doubly_Linked_Lists is
   defined in a package that is also referenced in a @nt{use_clause}, the
@@ -4486,6 +4536,14 @@ as a parameter; or]}
 @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0001-1]}
 @ChgAdded{Version=[3],Text=[it calls the Assign procedure with @i<M> as the Target parameter; or]}
 
+@begin{Ramification}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[We don't need to explicitly mention
+  @nt{assignment_statement}, because that finalizes the target object
+  as part of the operation, and finalization of an object is already defined
+  as tampering with cursors.]}
+@end{Ramification}
+
 @ChgRef{Version=[2],Kind=[AddedNormal]}
 @ChgAdded{Version=[2],Text=[it calls the Move procedure with @i<M> as a
 parameter; or]}
@@ -4530,12 +4588,18 @@ as a parameter.]}
 @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0265-1]}
 @ChgAdded{Version=[3],Text=[@Defn2{Term=[prohibited],Sec=[tampering with a map]}
 @Defn2{Term=[tampering],Sec=[prohibited for a map]}
-If tampering with cursors is @i<prohibited> for a particular map
-object @i<M>, Program_Error is propagated by any language-defined subprogram
-that is defined to tamper with the cursors of @i<M>. Similarly, if tampering with
-elements is @i<prohibited> for a particular map object @i<M>,
-Program_Error is propagated by any language-defined subprogram that is defined
-to tamper with the elements of @i<M>.]}
+When tampering with cursors is @i<prohibited> for a particular map object
+@i<M>, Program_Error is propagated by a call of any language-defined subprogram
+that is defined to tamper with the cursors of @i<M>, leaving @i<M> unmodified.
+Similarly, when tampering with elements is @i<prohibited> for a particular map
+object @i<M>, Program_Error is propagated by a call of any language-defined
+subprogram that is defined to tamper with the elements of @i<M> @Redundant[(or
+tamper with the cursors of @i<M>)], leaving @i<M> unmodified.]}
+@begin{TheProof}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[Tampering with elements includes tampering with
+  cursors, so we mention it only from completeness in the second sentence.]}
+@end{TheProof}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00302-03]}
 @ChgAdded{Version=[2],Text=[Empty_Map represents the empty Map object. It has a
@@ -4566,10 +4630,14 @@ Input, Output, Read, or Write attribute of type Cursor raises Program_Error.]}
 @end{Reason}
 
 @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0001-1],ARef=[AI05-0262-1]}
-@ChgAdded{Version=[3],Text=[Map'Write writes exactly Length(Map) elements of the
-map to the stream. It may write additional information about the map as well.
-Map'Read reads exactly Length(Map) elements of Map from the stream and consumes
-any additional information written by Map'Write.]}
+@ChgAdded{Version=[3],Text=[Map'Write for a Map object @i<M> writes
+Length(@i<M>) elements of the map to the stream. It also may write
+additional information about the map.]}
+
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0001-1],ARef=[AI05-0262-1]}
+@ChgAdded{Version=[3],Text=[Map'Read reads the representation of a map
+from the stream, and assigns to @i<Item> a map with the same length and
+elements as was written by Map'Write.]}
 
 @begin{Ramification}
   @ChgRef{Version=[3],Kind=[AddedNormal]}
@@ -4591,8 +4659,8 @@ any additional information written by Map'Write.]}
 an element, and returns False otherwise.]}
 
 @begin{Honest}
-  @ChgRef{Version=[3],Kind=[AddedNormal]}
-  @ChgAdded{Version=[3],Text=[This function may not detect cursors that
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0005-1],ARef=[AI05-0212-1]}
+  @ChgAdded{Version=[3],Text=[This function might not detect cursors that
   designate deleted elements; such cursors are invalid (see below) and the
   result of calling Has_Element with an invalid cursor is unspecified (but
   not erroneous).]}
@@ -4711,7 +4779,7 @@ as the arguments.
 is propagated if Process.@key{all} tampers]}
 with the elements of @Chg{Version=[3],New=[the map that contains the
 element designated by Position is prohibited during the
-execution of Process.@key{all}],Old=[Container]}. Any exception raised by
+execution of the call on Process.@key{all}],Old=[Container]}. Any exception raised by
 Process.@key{all} is propagated.]}
 
 @begin{Example}
@@ -4733,7 +4801,7 @@ Process.@key{all} with the key and element from the node designated by Position
 as the arguments. @Chg{Version=[3],New=[Tampering],Old=[Program_Error
 is propagated if Process.@key{all} tampers]}
 with the elements of Container@Chg{Version=[3],New=[ is prohibited during the
-execution of Process.@key{all}],Old=[]}. Any exception raised by
+execution of the call on Process.@key{all}],Old=[]}. Any exception raised by
 Process.@key{all} is propagated.]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal]}
@@ -4785,11 +4853,10 @@ Constant_Reference_Type or Reference_Type propagates Program_Error.]}
    @key[return] Constant_Reference_Type;]}
 @end{Example}
 
-@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0212-1]}
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0212-1],ARef=[AI05-0269-1]}
 @ChgAdded{Version=[3],Type=[Trailing],Text=[This function (combined with the
 Constant_Indexing and Implicit_Dereference aspects) provides a convenient way to
-gain read access to the individual elements of a container starting with a
-cursor.]}
+gain read access to an individual element of a map given a cursor.]}
 
 @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0212-1],ARef=[AI05-0265-1]}
 @ChgAdded{Version=[3],Text=[If Position equals No_Element, then Constraint_Error
@@ -4806,11 +4873,11 @@ object returned by Constant_Reference exists and has not been finalized.]}
    @key[return] Reference_Type;]}
 @end{Example}
 
-@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0212-1]}
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0212-1],ARef=[AI05-0269-1]}
 @ChgAdded{Version=[3],Type=[Trailing],Text=[This function (combined with the
 Variable_Indexing and Implicit_Dereference aspects) provides a convenient way to
-gain read and write access to the individual elements of a container starting
-with a cursor.]}
+gain read and write access to an individual element of a map given
+a cursor.]}
 
 @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0212-1],ARef=[AI05-0265-1]}
 @ChgAdded{Version=[3],Text=[If Position equals No_Element, then Constraint_Error
@@ -4827,11 +4894,10 @@ object returned by Reference exists and has not been finalized.]}
    @key[return] Constant_Reference_Type;]}
 @end{Example}
 
-@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0212-1]}
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0212-1],ARef=[AI05-0269-1]}
 @ChgAdded{Version=[3],Type=[Trailing],Text=[This function (combined with the
 Constant_Indexing and Implicit_Dereference aspects) provides a convenient way to
-gain read access to the individual elements of a container starting with a
-key value.]}
+gain read access to an individual element of a map given a key value.]}
 
 @ChgRef{Version=[3],Kind=[Added]}
 @ChgAdded{Version=[3],Text=[Equivalent to
@@ -4844,11 +4910,11 @@ Constant_Reference (Container, Find (Container, Key)).]}
    @key[return] Reference_Type;]}
 @end{Example}
 
-@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0212-1]}
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0212-1],ARef=[AI05-0269-1]}
 @ChgAdded{Version=[3],Type=[Trailing],Text=[This function (combined with the
 Variable_Indexing and Implicit_Dereference aspects) provides a convenient way to
-gain read and write access to the individual elements of a container starting
-with a key value.]}
+gain read and write access to an individual element of a map given
+a key value.]}
 
 @ChgRef{Version=[3],Kind=[Added]}
 @ChgAdded{Version=[3],Text=[Equivalent to Reference (Container, Find (Container, Key)).]}
@@ -5153,7 +5219,7 @@ node and moving the cursor according to the successor relation.
 @Chg{Version=[3],New=[Tampering],Old=[Program_Error
 is propagated if Process.@key{all} tampers]}
 with the cursors of Container@Chg{Version=[3],New=[ is prohibited during the
-execution of Process.@key{all}],Old=[]}. Any exception raised by
+execution of a call on Process.@key{all}],Old=[]}. Any exception raised by
 Process.@key{all} is propagated.]}
 
 @begin{ImplNote}
@@ -5256,7 +5322,7 @@ finalized.]}
   container. If that container is prematurely finalized (which is only possible
   via Unchecked_Deallocation, as accessibility checks prevent passing a
   container to Reference that will not live as long as the result), the
-  finalization of the object of Reference_Type will try to access a non-existent
+  finalization of the object of Reference_Type will try to access a nonexistent
   object. This is a normal case of a dangling pointer created by
   Unchecked_Deallocation; we have to explicitly mention it here as the pointer
   in question is not visible in the specification of the type. (This is the same
@@ -5897,7 +5963,7 @@ hash bucket that contains a node.]}
 @ChgRef{Version=[2],Kind=[AddedNormal]}
 @ChgAdded{Version=[2],Text=[In a typical implementation, this will return the next node in a bucket; if
 Position is the last node in a bucket, this will return the first node in the
-next non-empty bucket.]}
+next nonempty bucket.]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal]}
 @ChgAdded{Version=[2],Text=[A typical implementation will need to a keep a pointer at the map container
@@ -5954,9 +6020,11 @@ in the cursor in order to implement this function.]}
    @key[return] Map_Iterator_Interfaces.Forward_Iterator'Class;]}
 @end{Example}
 
-@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0212-1],ARef=[AI05-0265-1]}
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0212-1],ARef=[AI05-0265-1],ARef=[AI05-0269-1]}
 @ChgAdded{Version=[3],Type=[Trailing],Text=[Iterate returns an
-iterator object that will generate a value for the loop parameter designating
+iterator object (see @RefSecNum{User-Defined Iterator Types}) that
+will generate a value for a loop parameter (see
+@RefSecNum{Generalized Loop Iteration}) designating
 each node in Container, starting with the first node and moving the cursor
 according to the successor relation.
 Tampering with the cursors of Container is prohibited while
@@ -6007,7 +6075,7 @@ Containers.Hashed_Maps.Reserve_Capacity should be @i{O}(@i<N>).]}]}
 @begin{Incompatible2005}
   @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0001-1]}
   @ChgAdded{Version=[3],Text=[@Defn{incompatibilities with Ada 2005}Subprograms Assign and Copy
-  are newly added to Containers.Hashed_Maps. If an instance of Containers.Hashed_Maps
+  are added to Containers.Hashed_Maps. If an instance of Containers.Hashed_Maps
   is referenced in a @nt{use_clause}, and an entity @i<E> with the same
   @nt{defining_identifier} as a new entity in Containers.Hashed_Maps is
   defined in a package that is also referenced in a @nt{use_clause}, the
@@ -6284,6 +6352,10 @@ package Containers.Ordered_Maps has the following declaration:]}
 
 @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0212-1]}
 @ChgAdded{Version=[3],Text=[   @key[function] Iterate (Container : @key[in] Map)
+      @key[return] Map_Iterator_Interfaces.Reversible_Iterator'Class;]}
+
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0262-1]}
+@ChgAdded{Version=[3],Text=[   @key[function] Iterate (Container : @key[in] Map; Start : @key[in] Cursor)
       @key[return] Map_Iterator_Interfaces.Reversible_Iterator'Class;]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal]}
@@ -6574,9 +6646,11 @@ predecessor order, starting with the last node.]}
    @key[return] Map_Iterator_Interfaces.Reversible_Iterator'Class;]}
 @end{Example}
 
-@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0212-1],ARef=[AI05-0265-1]}
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0212-1],ARef=[AI05-0265-1],ARef=[AI05-0269-1]}
 @ChgAdded{Version=[3],Type=[Trailing],Text=[Iterate returns a reversible
-iterator object that will generate a value for the loop parameter designating
+iterator object (see @RefSecNum{User-Defined Iterator Types}) that
+will generate a value for a loop parameter
+(see @RefSecNum{Generalized Loop Iteration}) designating
 each node in Container, starting with the first node and moving the cursor
 according to the successor relation when used as a forward iterator, and
 starting with the last node and moving the cursor according to the predecessor
@@ -6587,6 +6661,41 @@ the @nt{sequence_of_statements} of the @nt{loop_statement} whose
 @nt{iterator_specification} denotes this object). The iterator object needs
 finalization.]}
 
+@begin{Example}
+@ChgRef{Version=[3],Kind=[Added]}
+@ChgAdded{Version=[3],KeepNext=[T],Text=[@key[function] Iterate (Container : @key[in] Map; Start : @key[in] Cursor)
+   @key[return] Map_Iterator_Interfaces.Reversible_Iterator'Class;]}
+@end{Example}
+
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0262-1],ARef=[AI05-0265-1],ARef=[AI05-0269-1]}
+@ChgAdded{Version=[3],Type=[Trailing],Text=[If Start is not No_Element and does not designate an item in Container,
+then Program_Error is propagated. If Start is No_Element, then Constraint_Error
+is propagated. Otherwise, Iterate returns a reversible iterator object
+(see @RefSecNum{User-Defined Iterator Types}) that will generate
+a value for a loop parameter (see @RefSecNum{Generalized Loop Iteration})
+designating each node in Container, starting with
+the node designated by Start and moving the cursor according to the successor
+relation when used as a forward iterator, or moving the cursor according to the
+predecessor relation when used as a reverse iterator. Tampering with the cursors
+of Container is prohibited while the iterator object exists (in particular, in
+the @nt{sequence_of_statements} of the @nt{loop_statement} whose
+@nt{iterator_specification} denotes this object). The iterator object needs
+finalization.]}
+
+@begin{Discussion}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Type=[Leading],Text=[Exits are allowed from the loops
+  created using the iterator objects. In particular, to stop the iteration at a
+  particular cursor, just add]}
+@begin{Example}
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[@key[exit when] Cur = Stop;]}
+@end{Example}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Type=[Trailing],Text=[in the body of the loop (assuming
+  that @exam{Cur} is the loop parameter and @exam{Stop} is the cursor that you
+  want to stop at).]}
+@end{Discussion}
 @end{DescribeCode}
 @end{StaticSem}
 
@@ -6636,7 +6745,7 @@ a cursor parameter should be @i{O}(1).]}]}
 @begin{Incompatible2005}
   @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0001-1]}
   @ChgAdded{Version=[3],Text=[@Defn{incompatibilities with Ada 2005}Subprograms Assign and Copy
-  are newly added to Containers.Ordered_Maps. If an instance of Containers.Ordered_Maps
+  are added to Containers.Ordered_Maps. If an instance of Containers.Ordered_Maps
   is referenced in a @nt{use_clause}, and an entity @i<E> with the same
   @nt{defining_identifier} as a new entity in Containers.Ordered_Maps is
   defined in a package that is also referenced in a @nt{use_clause}, the
@@ -6775,6 +6884,14 @@ procedures with @i{S} as a parameter; or]}
 @ChgAdded{Version=[3],Text=[it calls the Assign procedure with @i<S> as the Target parameter;
 or]}
 
+@begin{Ramification}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[We don't need to explicitly mention
+  @nt{assignment_statement}, because that finalizes the target object
+  as part of the operation, and finalization of an object is already defined
+  as tampering with cursors.]}
+@end{Ramification}
+
 @ChgRef{Version=[2],Kind=[AddedNormal]}
 @ChgAdded{Version=[2],Text=[it calls the Move procedure with @i<S> as a
 parameter; or]}
@@ -6816,12 +6933,18 @@ object @i<S> if:]}
 @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0265-1]}
 @ChgAdded{Version=[3],Text=[@Defn2{Term=[prohibited],Sec=[tampering with a set]}
 @Defn2{Term=[tampering],Sec=[prohibited for a set]}
-If tampering with cursors is @i<prohibited> for a particular set
-object @i<S>, Program_Error is propagated by any language-defined subprogram
-that is defined to tamper with the cursors of @i<S>. Similarly, if tampering with
-elements is @i<prohibited> for a particular set object @i<S>,
-Program_Error is propagated by any language-defined subprogram that is defined
-to tamper with the elements of @i<S>.]}
+When tampering with cursors is @i<prohibited> for a particular set object
+@i<S>, Program_Error is propagated by a call of any language-defined subprogram
+that is defined to tamper with the cursors of @i<S>, leaving @i<S> unmodified.
+Similarly, when tampering with elements is @i<prohibited> for a particular set
+object @i<S>, Program_Error is propagated by a call of any language-defined
+subprogram that is defined to tamper with the elements of @i<S> @Redundant[(or
+tamper with the cursors of @i<S>)], leaving @i<S> unmodified.]}
+@begin{TheProof}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[Tampering with elements includes tampering with
+  cursors, so we mention it only from completeness in the second sentence.]}
+@end{TheProof}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00302-03]}
 @ChgAdded{Version=[2],Text=[Empty_Set represents the empty Set object. It has a
@@ -6852,10 +6975,14 @@ Input, Output, Read, or Write attribute of type Cursor raises Program_Error.]}
 @end{Reason}
 
 @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0001-1],ARef=[AI05-0262-1]}
-@ChgAdded{Version=[3],Text=[Set'Write writes exactly Length(Set) elements of the
-set to the stream. It may write additional information about the set as well.
-Set'Read reads exactly Length(Set) elements of Set from the stream and consumes
-any additional information written by Set'Write.]}
+@ChgAdded{Version=[3],Text=[Set'Write for a Set object @i<S> writes
+Length(@i<S>) elements of the set to the stream. It also may write
+additional information about the set.]}
+
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0001-1],ARef=[AI05-0262-1]}
+@ChgAdded{Version=[3],Text=[Set'Read reads the representation of a set
+from the stream, and assigns to @i<Item> a set with the same length and
+elements as was written by Set'Write.]}
 
 @begin{Ramification}
   @ChgRef{Version=[3],Kind=[AddedNormal]}
@@ -6876,8 +7003,8 @@ any additional information written by Set'Write.]}
 an element, and returns False otherwise.]}
 
 @begin{Honest}
-  @ChgRef{Version=[3],Kind=[AddedNormal]}
-  @ChgAdded{Version=[3],Text=[This function may not detect cursors that
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0005-1],ARef=[AI05-0212-1]}
+  @ChgAdded{Version=[3],Text=[This function might not detect cursors that
   designate deleted elements; such cursors are invalid (see below) and the
   result of calling Has_Element with an invalid cursor is unspecified (but
   not erroneous).]}
@@ -7014,8 +7141,8 @@ Process.@key{all} with the element designated by Position as the argument.
 is propagated if Process.@key{all} tampers]}
 with the elements of @Chg{Version=[3],New=[the set that contains the
 element designated by Position is prohibited during the
-execution of Process.@key{all}],Old=[Container]}. Any exception raised by
-Process.@key{all} is propagated.]}
+execution of the call on Process.@key{all}],Old=[Container]}. Any exception
+raised by Process.@key{all} is propagated.]}
 
 @begin{Example}
 @ChgRef{Version=[3],Kind=[Added]}
@@ -7050,11 +7177,10 @@ Constant_Reference_Type propagates Program_Error.]}
    @key[return] Constant_Reference_Type;]}
 @end{Example}
 
-@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0212-1]}
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0212-1],ARef=[AI05-0269-1]}
 @ChgAdded{Version=[3],Type=[Trailing],Text=[This function (combined with the
 Constant_Indexing and Implicit_Dereference aspects) provides a convenient way to
-gain read access to the individual elements of a container starting with a
-cursor.]}
+gain read access to an individual element of a set given a cursor.]}
 
 @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0212-1],ARef=[AI05-0265-1]}
 @ChgAdded{Version=[3],Text=[If Position equals No_Element, then Constraint_Error
@@ -7440,7 +7566,7 @@ first element and moving the cursor according to the successor relation.
 @Chg{Version=[3],New=[Tampering],Old=[Program_Error
 is propagated if Process.@key{all} tampers]}
 with the cursors of Container@Chg{Version=[3],New=[ is prohibited during the
-execution of Process.@key{all}],Old=[]}. Any exception raised by
+execution of a call on Process.@key{all}],Old=[]}. Any exception raised by
 Process.@key{all} is propagated.]}
 
 @begin{ImplNote}
@@ -7520,7 +7646,7 @@ Process.@key{all} with that element as the argument.
 @Chg{Version=[3],New=[Tampering],Old=[Program_Error
 is propagated if Process.@key{all} tampers]}
 with the elements of Container@Chg{Version=[3],New=[ is prohibited during the
-execution of Process.@key{all}],Old=[]}. Any
+execution of the call on Process.@key{all}],Old=[]}. Any
 exception raised by Process.@key{all} is propagated. After Process.@key{all}
 returns, Update_@!Element_@!Preserving_Key checks if @i<K> determines the same
 equivalence class as that for the new element; if not, the element is removed
@@ -7568,11 +7694,10 @@ Reference_Type propagates Program_Error.]}
    @key[return] Reference_Type;]}
 @end{Example}
 
-@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0212-1]}
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0212-1],ARef=[AI05-0269-1]}
 @ChgAdded{Version=[3],Type=[Trailing],Text=[This function (combined with the
 Implicit_Dereference aspect) provides a convenient way to
-gain read and write access to the individual elements of a container starting
-with a cursor.]}
+gain read and write access to an individual element of a set given a cursor.]}
 
 @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0212-1],ARef=[AI05-0265-1]}
 @ChgAdded{Version=[3],Text=[If Position equals No_Element, then Constraint_Error
@@ -7593,11 +7718,10 @@ if not, the element is removed from the set and Program_Error is propagated.]}
    @key[return] Constant_Reference_Type;]}
 @end{Example}
 
-@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0212-1]}
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0212-1],ARef=[AI05-0269-1]}
 @ChgAdded{Version=[3],Type=[Trailing],Text=[This function (combined with the
 Implicit_Dereference aspect) provides a convenient way to
-gain read access to the individual elements of a container starting with a
-key value.]}
+gain read access to an individual element of a set given a key value.]}
 
 @ChgRef{Version=[3],Kind=[Added]}
 @ChgAdded{Version=[3],Text=[Equivalent to
@@ -7610,11 +7734,10 @@ Constant_Reference (Container, Find (Container, Key)).]}
    @key[return] Reference_Type;]}
 @end{Example}
 
-@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0212-1]}
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0212-1],ARef=[AI05-0269-1]}
 @ChgAdded{Version=[3],Type=[Trailing],Text=[This function (combined with the
-Implicit_Dereference aspect) provides a convenient way to
-gain read and write access to the individual elements of a container starting
-with a key value.]}
+Implicit_Dereference aspect) provides a convenient way to gain
+read and write access to an individual element of a set given a key value.]}
 
 @ChgRef{Version=[3],Kind=[Added]}
 @ChgAdded{Version=[3],Text=[Equivalent to Reference_Preserving_Key (Container, Find (Container, Key)).]}
@@ -7710,7 +7833,7 @@ finalized.]}
   container. If that container is prematurely finalized (which is only possible
   via Unchecked_Deallocation, as accessibility checks prevent passing a
   container to Reference that will not live as long as the result), the
-  finalization of the object of Reference_Type will try to access a non-existent
+  finalization of the object of Reference_Type will try to access a nonexistent
   object. This is a normal case of a dangling pointer created by
   Unchecked_Deallocation; we have to explicitly mention it here as the pointer
   in question is not visible in the specification of the type. (This is the same
@@ -8158,7 +8281,7 @@ unspecified.@PDefn{unspecified}]}
 
 @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0044-1]}
 @ChgAdded{Version=[3],Text=[If the actual function for the generic formal
-function "=" returns True for any pair of non-equivalent elements, then the
+function "=" returns True for any pair of nonequivalent elements, then the
 behavior of the container function "=" is unspecified.@PDefn{unspecified}]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00302-03]}
@@ -8312,9 +8435,11 @@ first hashed element in Container.]}
    @key[return] Set_Iterator_Interfaces.Forward_Iterator'Class;]}
 @end{Example}
 
-@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0212-1],ARef=[AI05-0265-1]}
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0212-1],ARef=[AI05-0265-1],ARef=[AI05-0269-1]}
 @ChgAdded{Version=[3],Type=[Trailing],Text=[Iterate returns an
-iterator object that will generate a value for the loop parameter designating
+iterator object (see @RefSecNum{User-Defined Iterator Types}) that
+will generate a value for a loop parameter
+(see @RefSecNum{Generalized Loop Iteration}) designating
 each element in Container, starting with the first element and moving the cursor
 according to the successor relation.
 Tampering with the cursors of Container is prohibited while
@@ -8376,7 +8501,7 @@ average time complexity of Containers.@!Hashed_Sets.@!Reserve_Capacity should be
 @begin{Incompatible2005}
   @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0001-1]}
   @ChgAdded{Version=[3],Text=[@Defn{incompatibilities with Ada 2005}Subprograms Assign and Copy
-  are newly added to Containers.Hashed_Sets. If an instance of Containers.Hashed_Sets
+  are added to Containers.Hashed_Sets. If an instance of Containers.Hashed_Sets
   is referenced in a @nt{use_clause}, and an entity @i<E> with the same
   @nt{defining_identifier} as a new entity in Containers.Hashed_Sets is
   defined in a package that is also referenced in a @nt{use_clause}, the
@@ -8668,6 +8793,10 @@ package Containers.Ordered_Sets has the following declaration:]}
 @ChgAdded{Version=[3],Text=[   @key[function] Iterate (Container : @key[in] Set)
       @key[return] Set_Iterator_Interfaces.Reversible_Iterator'Class;]}
 
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0262-1]}
+@ChgAdded{Version=[3],Text=[   @key[function] Iterate (Container : @key[in] Set; Start : @key[in] Cursor)
+      @key[return] Set_Iterator_Interfaces.Reversible_Iterator'Class;]}
+
 @ChgRef{Version=[2],Kind=[AddedNormal]}
 @ChgAdded{Version=[2],Text=[   @key{generic}
       @key{type} Key_Type (<>) @key{is private};
@@ -8762,7 +8891,7 @@ package Containers.Ordered_Sets has the following declaration:]}
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00302-03]}
 @ChgAdded{Version=[2],Text=[Two elements @i<E1> and @i<E2> are @i<equivalent>
 if both @i<E1> < @i<E2> and @i<E2> < @i<E1> return False, using the generic
-formal "<" operator for elements.@Defn2{Term=[equivalent element],Sec=[of a ordered set]}
+formal "<" operator for elements.@Defn2{Term=[equivalent element],Sec=[of an ordered set]}
 Function Equivalent_Elements returns True if Left and Right are equivalent,
 and False otherwise.]}
 
@@ -8780,7 +8909,7 @@ call it, is unspecified.@PDefn{unspecified}]}
 
 @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0044-1]}
 @ChgAdded{Version=[3],Text=[If the actual function for the generic formal
-function "=" returns True for any pair of non-equivalent elements, then the
+function "=" returns True for any pair of nonequivalent elements, then the
 behavior of the container function "=" is unspecified.@PDefn{unspecified}]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00302-03]}
@@ -8799,10 +8928,10 @@ key/element pairs.]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00302-03]}
 @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0262-1]}
-@ChgAdded{Version=[2],Text=[@Defn2{Term=[first element],Sec=[of a ordered set]}
-@Defn2{Term=[last element],Sec=[of a ordered set]}
-@Defn2{Term=[successor element],Sec=[of a ordered set]}@Chg{Version=[3],New=[
-@Defn2{Term=[predecessor element],Sec=[of a ordered set]}],Old=[]}
+@ChgAdded{Version=[2],Text=[@Defn2{Term=[first element],Sec=[of an ordered set]}
+@Defn2{Term=[last element],Sec=[of an ordered set]}
+@Defn2{Term=[successor element],Sec=[of an ordered set]}@Chg{Version=[3],New=[
+@Defn2{Term=[predecessor element],Sec=[of an ordered set]}],Old=[]}
 The @Chg{Version=[3],New=[@i<first element>],Old=[first element]}
 of a nonempty set is the one
 which is less than all the other elements in the set.
@@ -8993,9 +9122,11 @@ in predecessor order, starting with the last element.]}
    @key[return] Set_Iterator_Interfaces.Reversible_Iterator'Class;]}
 @end{Example}
 
-@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0212-1],ARef=[AI05-0265-1]}
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0212-1],ARef=[AI05-0265-1],ARef=[AI05-0269-1]}
 @ChgAdded{Version=[3],Type=[Trailing],Text=[Iterate returns a reversible
-iterator object that will generate a value for the loop parameter designating
+iterator object (see @RefSecNum{User-Defined Iterator Types}) that
+will generate a value for a loop parameter
+(see @RefSecNum{Generalized Loop Iteration}) designating
 each element in Container, starting with the first element and moving the cursor
 according to the successor relation when used as a forward iterator, and
 starting with the last element and moving the cursor according to the
@@ -9006,6 +9137,42 @@ the @nt{sequence_of_statements} of the @nt{loop_statement} whose
 @nt{iterator_specification} denotes this object). The iterator object needs
 finalization.]}
 
+@begin{Example}
+@ChgRef{Version=[3],Kind=[Added]}
+@ChgAdded{Version=[3],KeepNext=[T],Text=[@key[function] Iterate (Container : @key[in] Set; Start : @key[in] Cursor)
+   @key[return] Set_Iterator_Interfaces.Reversible_Iterator'Class;]}
+@end{Example}
+
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0262-1],ARef=[AI05-0265-1],ARef=[AI05-0269-1]}
+@ChgAdded{Version=[3],Type=[Trailing],Text=[If Start is not No_Element and does
+not designate an item in Container, then Program_Error is propagated. If Start
+is No_Element, then Constraint_Error is propagated. Otherwise, Iterate returns
+a reversible iterator object (see @RefSecNum{User-Defined Iterator Types}) that
+will generate a value for a loop parameter
+(see @RefSecNum{Generalized Loop Iteration}) designating
+each element in Container, starting with the element designated by Start and
+moving the cursor according to the successor relation when used as a forward
+iterator, or moving the cursor according to the predecessor relation when used
+as a reverse iterator. Tampering with the cursors of Container is prohibited
+while the iterator object exists (in particular, in the
+@nt{sequence_of_statements} of the @nt{loop_statement} whose
+@nt{iterator_specification} denotes this object). The iterator object needs
+finalization.]}
+
+@begin{Discussion}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Type=[Leading],Text=[Exits are allowed from the loops
+  created using the iterator objects. In particular, to stop the iteration at a
+  particular cursor, just add]}
+@begin{Example}
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[@key[exit when] Cur = Stop;]}
+@end{Example}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Type=[Trailing],Text=[in the body of the loop (assuming
+  that @exam{Cur} is the loop parameter and @exam{Stop} is the cursor that you
+  want to stop at).]}
+@end{Discussion}
 @end{DescribeCode}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00302-03]}
@@ -9058,7 +9225,7 @@ of Containers.Ordered_Sets that take a cursor parameter should be @i{O}(1).]}]}
 @begin{Incompatible2005}
   @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0001-1]}
   @ChgAdded{Version=[3],Text=[@Defn{incompatibilities with Ada 2005}Subprograms Assign and Copy
-  are newly added to Containers.Ordered_Sets. If an instance of Containers.Ordered_Sets
+  are added to Containers.Ordered_Sets. If an instance of Containers.Ordered_Sets
   is referenced in a @nt{use_clause}, and an entity @i<E> with the same
   @nt{defining_identifier} as a new entity in Containers.Ordered_Sets is
   defined in a package that is also referenced in a @nt{use_clause}, the

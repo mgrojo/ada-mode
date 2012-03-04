@@ -1,10 +1,10 @@
 @Part(12, Root="ada.mss")
 
-@Comment{$Date: 2011/11/01 23:14:14 $}
+@Comment{$Date: 2012/02/19 01:58:36 $}
 @LabeledSection{Generic Units}
 
 @Comment{$Source: e:\\cvsroot/ARM/Source/12.mss,v $}
-@Comment{$Revision: 1.86 $}
+@Comment{$Revision: 1.89 $}
 
 @begin{Intro}
 @Defn{generic unit}
@@ -1955,10 +1955,10 @@ had to.
 @Redundant[@Chg{Version=[2],New=[In its most general form, the category],
 Old=[The class]}
 determined for a formal private type @Chg{Version=[2],New=[is all types,
-but @Chg{Version=[2],New=[the category],Old=[it]} can be restricted to
+but @Chg{Version=[3],New=[the category],Old=[it]} can be restricted to
 only nonlimited types or to only tagged types],
 Old=[can be either limited or nonlimited, and either tagged or untagged;
-no more specific class is known for such a type]}.@Chg{Version=[2],New=[
+no more specific class is known for such a type]}.@Chg{Version=[3],New=[
 Similarly, the category for a formal incomplete type is all types but the
 category can be restricted to only tagged types; unlike other formal types,
 the actual type does not need to be able to be frozen (see @RefSecNum{Freezing Rules}).],Old=[]}
@@ -1978,7 +1978,7 @@ derived type is the derivation class rooted at the ancestor type.]
   @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0213-1]}
   @ChgAdded{Version=[3],Text=[Since the actual of a formal incomplete type
   does not need to be able to be frozen, the actual can be an incomplete
-  type or a partial view before it's completion.]}
+  type or a partial view before its completion.]}
 @end{Ramification}
 @end{Intro}
 
@@ -2073,16 +2073,16 @@ type shall be a synchronized tagged type.]}
 @begin{Discussion}
   @ChgRef{Version=[2],Kind=[AddedNormal]}
   @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0005-1]}
-  @ChgAdded{Version=[2],Text=[For a non-formal private extension, we
+  @ChgAdded{Version=[2],Text=[For a nonformal private extension, we
   require the partial view to be synchronized if the full view is synchronized
   tagged. This does not apply to a formal private extension @em it is OK if
   the formal is not synchronized. Any attempt to extend the formal
   type will be rechecked in the instance, where the rule disallowing
   extending a @Chg{Version=[3],New=[synchronized],Old=[sychronized]}
-  non-interface type will be enforced. This is
+  noninterface type will be enforced. This is
   consistent with the @lquotes@;no hidden interfaces@rquotes rule also
-  applying only to non-formal private extensions, as well as the rule that
-  a limited non-formal private extension implies a limited full type.
+  applying only to nonformal private extensions, as well as the rule that
+  a limited nonformal private extension implies a limited full type.
   Formal private extensions are exempted from all these rules to
   enable the construction of generics that can be used with the widest
   possible range of types. In particular, an indefinite tagged
@@ -2224,7 +2224,7 @@ A formal derived tagged type is a private extension.
 word @key(abstract) appears in its declaration.]
 
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00233-01]}
-@ChgRef{Version=[3],Kind=[Revised],ARef=[AI95-0110-1]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0110-1]}
 @Chg{Version=[3],New=[For a formal derived type, the characteristics],Old=[If
 the ancestor type is a composite type that is not an array type, the formal type
 inherits components from the ancestor type]} (including
@@ -2414,7 +2414,7 @@ it is forbidden to create objects of the type,
 or to declare functions returning the type.
 @end{Reason}
 @begin{Ramification}
-On the other hand, it is OK to pass a non-abstract actual to an abstract
+On the other hand, it is OK to pass a nonabstract actual to an abstract
 formal @em @key[abstract] on the formal indicates that the actual might
 be abstract.
 @end{Ramification}
@@ -2489,7 +2489,7 @@ run-time check to a compile-time check.
 @end{Incompatible2005}
 
 @begin{Extend2005}
-  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0215-1]}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0213-1]}
   @ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 2005}
   Formal incomplete types are a new kind of generic formal; these can
   be instantiated with incomplete types and unfrozen private types.]}
@@ -2510,8 +2510,8 @@ run-time check to a compile-time check.
   @ChgAdded{Version=[3],Text=[@b<Correction:> Revised the wording for
   inheritance of characteristics and operations of formal derived types
   to be reuse the rules as defined for derived types; this should eliminate
-  holes which have plagued us with this wording (it has been changed five
-  times since Ada 95 was defined).]}
+  holes in the wording which have plagued us since Ada 95 was defined
+  (it has been "corrected" four previous times).]}
 
   @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0237-1]}
   @ChgAdded{Version=[3],Text=[@b<Correction:> Added missing rule for the
@@ -2754,18 +2754,19 @@ for subtypes that exclude null. We would rather that this sort of requirement
 be reflected in the contract of the generic.]}
 @end{Reason}
 
-@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0239-1]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0239-1],ARef=[AI05-0288-1]}
 For a formal access-to-subprogram subtype,
 the designated profiles of the formal and the actual
-shall be @Chg{Version=[3],New=[mode conformant],Old=[mode-conformant]},
+shall be @Chg{Version=[3],New=[subtype conformant],Old=[mode-conformant,
 and the calling convention of the actual shall be @i{protected}
-if and only if that of the formal is @i{protected}.
-@Defn2{Term=[mode conformance],Sec=(required)}
+if and only if that of the formal is @i{protected}]}.
+@Chg{Version=[3],New=[@Defn2{Term=[subtype conformance],Sec=(required)}],
+Old=[@Defn2{Term=[mode conformance],Sec=(required)}]}
 @begin{Reason}
-We considered requiring subtype conformance here,
-but mode conformance is more flexible,
-given that there is no way in general to specify the convention of
-the formal.
+@ChgRef{Version=[3],Kind=[DeletedNoDelMsg],ARef=[AI05-0288-1]}
+  @ChgDeleted{Version=[3],Text=[We considered requiring subtype conformance
+  here, but mode conformance is more flexible, given that there is no way in
+  general to specify the convention of the formal.]}
 @end{Reason}
 @end{Legality}
 
@@ -3227,7 +3228,7 @@ be available as possible resolutions as follows:]}
   and do not have a controlling parameter of @i<T> are not covered by this
   rule, as any call would be required to raise Program_Error by
   @RefSecNum{Formal Private and Derived Types}. It is better to detect the
-  error earlier than at runtime.]}
+  error earlier than at run time.]}
 @end{Ramification}
 
 If a generic unit has a @nt<subprogram_default> specified by a box, and

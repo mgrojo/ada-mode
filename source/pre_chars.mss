@@ -1,8 +1,8 @@
 @comment{ $Source: e:\\cvsroot/ARM/Source/pre_chars.mss,v $ }
-@comment{ $Revision: 1.42 $ $Date: 2011/11/01 23:14:15 $ $Author: randy $ }
+@comment{ $Revision: 1.45 $ $Date: 2012/02/18 02:17:39 $ $Author: randy $ }
 @Part(predefchars, Root="ada.mss")
 
-@Comment{$Date: 2011/11/01 23:14:15 $}
+@Comment{$Date: 2012/02/18 02:17:39 $}
 
 @LabeledClause{Character Handling}
 @begin{Intro}
@@ -411,18 +411,16 @@ are not considered lower case letters by Ada.Characters.Handling.]}
   @ChgAdded{Version=[3],Text=[This is to maintain runtime compatibility with
   the Ada 95 definitions of these functions. We don't list the exact characters
   involved because they're likely to change in future character set standards;
-  the list for ISO 10646:2003 can be found in
+  the list for ISO 10646:2011 can be found in
   @AILink{AI=[AI05-0114-1],Text=[AI05-0114-1]}.]}
 @end{Reason}
 @begin{Ramification}
   @ChgRef{Version=[3],Kind=[AddedNormal]}
   @ChgAdded{Version=[3],Text=[No version of Characters.Handling is intended
   to do portable (Ada-version independent) manipulation of Ada identifiers.
-  Specifically for Ada 2012, Wide_Characters.Handling has the correct
-  classification of characters, but that is unlikely to be true in future
-  Ada standards (it will have to remain tied to the classifications of
-  ISO 10646:2003 forever in order to avoid breaking programs at runtime, while
-  future Ada standards will move to newer character set standards.]}
+  The classification given by Wide_Characters.Handling will be correct for
+  the current implementation for Ada 2012 identifiers, but it might not be
+  correct for a different implementation or version of Ada.]}
 @end{Ramification}
 @end{Notes}
 
@@ -1001,8 +999,12 @@ Wide_Characters.Handling has the following declaration:]}
 
 @begin{Example}
 
-@ChgRef{Version=[3],Kind=[AddedNormal]}
-@ChgAdded{Version=[3],Text=[@key[package] Ada.Wide_Characters.Handling @key[is]@ChildUnit{Parent=[Ada.Wide_Characters],Child=[Handling]}]}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0185-1],ARef=[AI05-0266-1]}
+@ChgAdded{Version=[3],Text=[@key[package] Ada.Wide_Characters.Handling @key[is]@ChildUnit{Parent=[Ada.Wide_Characters],Child=[Handling]}
+   @key[pragma] Pure(Handling);]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0266-1]}
+@ChgAdded{Version=[3],Text=[   @key[function] @AdaSubDefn{Character_Set_Version} @key[return] String;]}
 
 @ChgRef{Version=[3],Kind=[AddedNormal]}
 @ChgAdded{Version=[3],Text=[   @key[function] @AdaSubDefn{Is_Control} (Item : Wide_Character) @key[return] Boolean;]}
@@ -1059,6 +1061,9 @@ Wide_Characters.Handling has the following declaration:]}
    @key[function] @AdaSubDefn{To_Upper} (Item : Wide_String) @key[return] Wide_String;]}
 
 @ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[   @key[function] @AdaSubDefn{Equal_Case_Insensitive} (Left, Right : Wide_String) @key[return] Boolean;]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal]}
 @ChgAdded{Version=[3],Text=[@key[end] Ada.Wide_Characters.Handling;]}
 @end{Example}
 
@@ -1069,12 +1074,22 @@ Wide_Characters.Handling has the following declaration:]}
 
 @begin{Example}
 @ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[@key[function] Character_Set_Version @key[return] String;]}
+@end{Example}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0266-1]}
+@ChgAdded{Version=[3],Type=[Trailing],Text=[Returns an implementation-defined
+identifier that identifies the version of the character set standard that is
+used for categorizing characters by the implementation.]}
+
+@begin{Example}
+@ChgRef{Version=[3],Kind=[AddedNormal]}
 @ChgAdded{Version=[3],Text=[@key[function] Is_Control (Item : Wide_Character) @key[return] Boolean;]}
 @end{Example}
 
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0185-1]}
 @ChgAdded{Version=[3],Type=[Trailing],Text=[Returns True if the Wide_Character
-designated by Item is categorized as @ntf{other_control}, otherwise returns False.]}
+designated by Item is categorized as @ntf{other_control}; otherwise returns False.]}
 
 @begin{Example}
 @ChgRef{Version=[3],Kind=[AddedNormal]}
@@ -1094,7 +1109,7 @@ designated by Item is categorized as @ntf{letter_uppercase},
 
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0185-1]}
 @ChgAdded{Version=[3],Type=[Trailing],Text=[Returns True if the Wide_Character
-designated by Item is categorized as @ntf{letter_lowercase}, otherwise returns
+designated by Item is categorized as @ntf{letter_lowercase}; otherwise returns
 False.]}
 
 @begin{Example}
@@ -1104,7 +1119,7 @@ False.]}
 
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0185-1]}
 @ChgAdded{Version=[3],Type=[Trailing],Text=[Returns True if the Wide_Character
-designated by Item is categorized as @ntf{letter_uppercase}, otherwise returns
+designated by Item is categorized as @ntf{letter_uppercase}; otherwise returns
 False.]}
 
 @begin{Example}
@@ -1114,7 +1129,7 @@ False.]}
 
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0185-1]}
 @ChgAdded{Version=[3],Type=[Trailing],Text=[Returns True if the Wide_Character
-designated by Item is categorized as @ntf{number_decimal}, otherwise returns
+designated by Item is categorized as @ntf{number_decimal}; otherwise returns
 False.]}
 
 @begin{Example}
@@ -1125,7 +1140,7 @@ False.]}
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0185-1]}
 @ChgAdded{Version=[3],Type=[Trailing],Text=[Returns True if the Wide_Character
 designated by Item is categorized as @ntf{number_decimal}, or is in the range
-'A' .. 'F' or 'a' .. 'f', otherwise returns False.]}
+'A' .. 'F' or 'a' .. 'f'; otherwise returns False.]}
 
 @begin{Example}
 @ChgRef{Version=[3],Kind=[AddedNormal]}
@@ -1171,7 +1186,7 @@ Carriage_Return, Next_Line); otherwise returns False.]}
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0185-1]}
 @ChgAdded{Version=[3],Type=[Trailing],Text=[Returns True if the Wide_Character
 designated by Item is categorized as @ntf{mark_non_spacing} or
-@ntf{mark_spacing_combining}, otherwise returns False.]}
+@ntf{mark_spacing_combining}; otherwise returns False.]}
 
 @begin{Example}
 @ChgRef{Version=[3],Kind=[AddedNormal]}
@@ -1180,7 +1195,7 @@ designated by Item is categorized as @ntf{mark_non_spacing} or
 
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0185-1]}
 @ChgAdded{Version=[3],Type=[Trailing],Text=[Returns True if the Wide_Character
-designated by Item is categorized as @ntf{other_format}, otherwise returns False.]}
+designated by Item is categorized as @ntf{other_format}; otherwise returns False.]}
 
 @begin{Example}
 @ChgRef{Version=[3],Kind=[AddedNormal]}
@@ -1189,7 +1204,7 @@ designated by Item is categorized as @ntf{other_format}, otherwise returns False
 
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0185-1]}
 @ChgAdded{Version=[3],Type=[Trailing],Text=[Returns True if the Wide_Character
-designated by Item is categorized as @ntf{punctuation_connector}, otherwise
+designated by Item is categorized as @ntf{punctuation_connector}; otherwise
 returns False.]}
 
 @begin{Example}
@@ -1199,7 +1214,7 @@ returns False.]}
 
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0185-1]}
 @ChgAdded{Version=[3],Type=[Trailing],Text=[Returns True if the Wide_Character
-designated by Item is categorized as @ntf{separator_space}, otherwise returns
+designated by Item is categorized as @ntf{separator_space}; otherwise returns
 False.]}
 
 @begin{Example}
@@ -1209,7 +1224,7 @@ False.]}
 
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0185-1]}
 @ChgAdded{Version=[3],Type=[Trailing],Text=[Returns True if the Wide_Character
-designated by Item is categorized as @ntf{graphic_character}, otherwise returns
+designated by Item is categorized as @ntf{graphic_character}; otherwise returns
 False.]}
 
 @begin{Example}
@@ -1217,9 +1232,9 @@ False.]}
 @ChgAdded{Version=[3],Text=[@key[function] To_Lower (Item : Wide_Character) @key[return] Wide_Character;]}
 @end{Example}
 
-@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0185-1]}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0185-1],ARef=[AI05-0266-1]}
 @ChgAdded{Version=[3],Type=[Trailing],Text=[Returns the Simple Lowercase Mapping
-as defined by documents referenced in the note in section 1 of ISO/IEC 10646:2003
+as defined by documents referenced in the note in section 1 of ISO/IEC 10646:2011
 of the Wide_Character designated by Item. If the Simple Lowercase Mapping does
 not exist for the Wide_Character designated by Item, then the value of Item is
 returned.]}
@@ -1227,7 +1242,7 @@ returned.]}
 @begin{Discussion}
   @ChgRef{Version=[3],Kind=[AddedNormal]}
   @ChgAdded{Version=[3],Text=[The case mappings come from Unicode as
-  ISO/IEC 10646:2003 does not include case mappings (but rather references
+  ISO/IEC 10646:2011 does not include case mappings (but rather references
   the Unicode ones as above).]}
 @end{Discussion}
 
@@ -1248,9 +1263,9 @@ Wide_String is 1.]}
 @ChgAdded{Version=[3],Text=[@key[function] To_Upper (Item : Wide_Character) @key[return] Wide_Character;]}
 @end{Example}
 
-@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0185-1]}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0185-1],ARef=[AI05-0266-1]}
 @ChgAdded{Version=[3],Type=[Trailing],Text=[Returns the Simple Uppercase Mapping
-as defined by documents referenced in the note in section 1 of ISO/IEC 10646:2003
+as defined by documents referenced in the note in section 1 of ISO/IEC 10646:2011
 of the Wide_Character designated by Item. If the Simple Uppercase
 Mapping does not exist for the Wide_Character designated by Item, then the value
 of Item is returned.]}
@@ -1267,12 +1282,57 @@ Wide_String designated by Item. The result is the null Wide_String if the value
 of the formal parameter is the null Wide_String. The lower bound of the result
 Wide_String is 1.]}
 
+@begin{Example}
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[@key[function] Equal_Case_Insensitive (Left, Right : Wide_String) @key[return] Boolean;]}
+@end{Example}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0286-1]}
+@ChgAdded{Version=[3],Type=[Trailing],Text=[Returns True if the strings are the same, that is if they consist of the same
+sequence of characters after applying locale-independent simple case folding,
+as defined by documents referenced in the note in section 1 of ISO/IEC
+10646:2011. Otherwise, returns False. This function uses the same method
+as is used to determine whether two identifiers are the same. Note that
+this result is a more accurate comparison than converting the strings to
+upper case and comparing the results; it is possible that the upper case
+conversions are the same but this routine will report the strings as
+different.]}
+
 @end{DescribeCode}
 @end{StaticSem}
 
+@begin{ImplAdvice}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0266-1]}
+@ChgAdded{Version=[3],Text=[The string returned by Character_Set_Version should include
+either @ldquote@;10646:@rdquote or @ldquote@;Unicode@rdquote@;.]}
+
+@ChgImplAdvice{Version=[3],Kind=[Added],Text=[@ChgAdded{Version=[3],
+Text=[The string returned by Wide_Characters.Handling.Character_Set_Version
+should include either @ldquote@;10646:@rdquote or @ldquote@;Unicode@rdquote@;.]}]}
+
+@begin{Discussion}
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=<The intent is that the returned string include the
+year for 10646 (as in "10646:2011"), and the version number for Unicode (as in
+"Unicode 6.0"). We don't try to specify that further so we don't need to decide
+how to represent Corrigenda for 10646, nor which of these is preferred.
+(Giving a Unicode version is more accurate, as the case folding and mapping
+rules always come from a Unicode version [10646 just tells one to look at
+Unicode to get those], and the character classifications ought to be the same
+for equivalent versions, but we don't want to talk about non-ISO standards
+in an ISO standard.)>}
+@end{Discussion}
+@end{ImplAdvice}
+
+@begin{Notes}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0266-1]}
+@ChgAdded{Version=[3],Text=[The results returned by these functions may depend
+on which particular version of the 10646 standard is supported by the
+implementation (see @RefSecNum{Character Set}).]}
+@end{Notes}
 
 @begin{Extend2005}
-  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0185-1]}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0185-1],ARef=[AI05-0266-1]}
   @ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 2005}
   The package Wide_Characters.Handling is new.]}
 @end{Extend2005}

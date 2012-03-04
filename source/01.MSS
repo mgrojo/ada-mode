@@ -27,10 +27,10 @@ I probably ought to add a style just for this purpose)
 @end{Title}
 
 @LabeledSectionNoBreak{General}
-@Comment{$Date: 2011/11/01 05:34:02 $}
+@Comment{$Date: 2012/02/19 01:58:35 $}
 
 @Comment{$Source: e:\\cvsroot/ARM/Source/01.mss,v $}
-@Comment{$Revision: 1.77 $}
+@Comment{$Revision: 1.81 $}
 
 @begin{Intro}
 Ada is a programming language designed to support the construction of
@@ -47,6 +47,7 @@ of concurrent threads of control as part of their invocation.
 The language treats modularity in the physical
 sense as well, with a facility to support separate compilation.
 
+@Chgref{Version=[3],Kind=[Revised],ARef=[AI05-0269-1]}
 The language includes a complete facility for
 the support of real-time, concurrent programming.
 Errors can be signaled as exceptions and handled explicitly.
@@ -55,7 +56,9 @@ covers systems programming; this requires precise control over the
 representation of data and access to system-dependent properties. Finally,
 a predefined environment of standard packages is provided, including
 facilities for, among others, input-output, string manipulation,
-numeric elementary functions, and random number generation.
+numeric elementary functions, @Chg{Version=[3],New=[],Old=[and ]}random
+number generation@Chg{Version=[3],New=[, and definition and use of
+containers],Old=[]}.
 @begin{Discussion}
 @ChgRef{Version=[2],Kind=[Revised]}
 @ChgRef{Version=[3],Kind=[Revised]}
@@ -64,7 +67,7 @@ the @Chg{Version=[3],New=[third edition of the ],Old=[]}Ada Reference
 Manual @Chg{Version=[3],New=[ (the Ada 2012 RM],Old=[@Chg{Version=[2],New=[ with Amendment 1 (the Ada 2005 RM],Old=[(RM95]}]}),
 plus certain annotations.
 The annotations give a more in-depth analysis of the language.
-They describe the reason for each non-obvious rule,
+They describe the reason for each nonobvious rule,
 and point out interesting ramifications of the rules
 and interactions among the rules
 (interesting to language lawyers, that is).
@@ -93,7 +96,7 @@ Technically, such text could be written as a @NotesName
 in the @Chg{Version=[2],New=[Ada @Chg{Version=[3],New=[2012],Old=[2005]} RM
 (and the Ada 95 @Chg{Version=[3],New=[and 2005 RMs],Old=[RM]} before it)],Old=[RM95]},
 since it is really a theorem that can
-be proven from the non-redundant rules of the language.
+be proven from the nonredundant rules of the language.
 We use the square brackets instead when it seems to make the
 @Chg{Version=[2],New=[Ada @Chg{Version=[3],New=[2012],Old=[2005]} RM],Old=[RM95]} more readable.
 
@@ -371,7 +374,7 @@ Specialized Needs Annexes.
 
 @begin{WideAbove}
 @Leading@Keepnext@Defn{informative}
-@IndexSee{Term=[non-normative],See=(informative)}
+@IndexSee{Term=[nonnormative],See=(informative)}
 @Defn2{Term=[Annex],Sec=(informative)}
 The following Annexes are informative:
 @end{WideAbove}
@@ -403,7 +406,7 @@ The Specialized Needs Annexes extend the core language only in ways that
 users, implementations, and standards bodies are allowed to extend the
 language;
 for example, via additional library units,
-attributes, representation items (see @RefSecNum{Operational and Representation Items}),
+attributes, representation items (see @RefSecNum{Operational and Representation Aspects}),
 @nt{pragma}s,
 and constraints on semantic details that are left unspecified by the
 core language.
@@ -504,7 +507,7 @@ of a complete context.)
 The only rules used in overload resolution are the @SyntaxName@;s
 and the @ResolutionName@;s.
 
-When dealing with non-overloadable declarations it sometimes makes no
+When dealing with nonoverloadable declarations it sometimes makes no
 semantic difference whether a given rule is a @ResolutionName
 or a @LegalityName,
 and it is sometimes difficult to decide which it should be.
@@ -786,7 +789,7 @@ the next heading does not represent any language change:
 @begin{DiffWord83}
 @ChgRef{Version=[2],Kind=[Revised]}
 @Defn{wording changes from Ada 83}
-This heading lists some of the non-semantic changes between @Chg{Version=[2],
+This heading lists some of the nonsemantic changes between @Chg{Version=[2],
 New=[the Ada 83 RM],Old=[RM83]} and
 the @Chg{Version=[2],New=[Ada 95 RM],Old=[RM95]}.
 It is incomplete; we have not attempted to list all wording
@@ -818,6 +821,7 @@ This heading lists all of the upward inconsistencies between Ada 95 and Ada
 is a legal Ada 2005 program with different semantics.]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0005-1]}
 @ChgAdded{Version=[2],Text=[Inconsistencies marked with
 @b[Corrigendum:]@Defn{Corrigendum} are corrections to the original Ada 95
 definition introduced by Corrigendum 1. Inconsistencies marked with
@@ -827,7 +831,8 @@ inconsistencies caused by Ada Issues classified as Binding Interpretations;
 implementations of Ada 95 are supposed to follow these corrections, not the
 original flawed language definition. Thus, these strictly speaking are not
 inconsistencies between Ada 95 and Ada 2005. Practically, however, they very
-well may be, as early Ada 95 implementations may not follow the recommendation.
+well may be, as early Ada 95 implementations @Chg{Version=[3],New=[might],Old=[may]}
+not follow the recommendation.
 Inconsistencies so marked are not portable between Ada 95 implementations,
 while usually Ada 2005 will have more clearly defined behavior. Therefore, we
 document these for completeness.]}
@@ -847,6 +852,7 @@ above. These are the situations in which a legal Ada 95 program is
 illegal in Ada 2005.]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0005-1]}
 @ChgAdded{Version=[2],Text=[As with inconsistencies, incompatibilities
 marked with @b[Corrigendum:]
 are corrections to the original Ada 95 definition introduced by Corrigendum
@@ -857,8 +863,10 @@ implementations of Ada 95 are supposed to follow these corrections, not the
 original flawed language definition. Thus,
 these strictly speaking are not incompatibilities between Ada 95 and Ada 2005.
 Practically, however, they very well may be, as early Ada 95 implementations
-may not follow the recommendation. Therefore, some Ada 95 implementations
-may be able to compile the examples, while others may not. In
+@Chg{Version=[3],New=[might],Old=[may]} not follow the recommendation.
+Therefore, some Ada 95 implementations
+may be able to compile the examples, while others
+@Chg{Version=[3],New=[might],Old=[may]} not. In
 @Chg{Version=[3],New=[contrast],Old=[constrast]},
 Ada 2005 compilers will have consistent behavior. Therefore, we document these
 for completeness.]}
@@ -879,6 +887,7 @@ legal Ada 95 program.
 The vast majority of language changes fall into this category.],Old=[]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0005-1]}
 @ChgAdded{Version=[2],Text=[As with incompatibilities, extensions
 marked with @b[Corrigendum:]
 are corrections to the original Ada 95 definition introduced by Corrigendum
@@ -888,9 +897,10 @@ extensions allowed by Ada Issues classified as Binding Interpretations.
 As corrections, implementations of Ada 95 are allowed to implement these
 extensions. Thus, these strictly speaking are not extensions of Ada 95;
 they're part of Ada 95. Practically, however, they very well may be extensions,
-as early Ada 95 implementations may not implement the extension. Therefore,
-some Ada 95 implementations may be able to compile the examples, while others
-may not. In @Chg{Version=[3],New=[contrast],Old=[constrast]},
+as early Ada 95 implementations @Chg{Version=[3],New=[might],Old=[may]} not
+implement the extension. Therefore, some Ada 95 implementations may be able
+to compile the examples, while others @Chg{Version=[3],New=[might],Old=[may]}
+not. In @Chg{Version=[3],New=[contrast],Old=[constrast]},
 Ada 2005 compilers will always support the extensions.
 Therefore, we document these for completeness.]}
 
@@ -909,7 +919,7 @@ the next heading does not represent any language change:]}
 @begin{DiffWord95}
 @ChgRef{Version=[2],Kind=[AddedNormal]}
 @Chg{Version=[2],New=[@Defn{wording changes from Ada 95}
-This heading lists some of the non-semantic changes between the Ada 95 RM and
+This heading lists some of the nonsemantic changes between the Ada 95 RM and
 the Ada 2005 RM. This heading lists only @lquotes@;interesting@rquotes@; changes
 (for instance, editorial corrections are not listed). Changes which
 come from Technical Corrigendum 1 are marked @b{Corrigendum}; unmarked changes
@@ -950,7 +960,7 @@ inconsistencies caused by Ada Issues classified as Binding Interpretations;
 implementations of Ada 2005 are supposed to follow these corrections, not the
 original flawed language definition. Thus, these strictly speaking are not
 inconsistencies between Ada 2005 and Ada 2012. Practically, however, they very
-well may be, as early Ada 2005 implementations may not follow the recommendation.
+well may be, as early Ada 2005 implementations might not follow the recommendation.
 Inconsistencies so marked are not portable between Ada 2005 implementations,
 while usually Ada 2012 will have more clearly defined behavior. Therefore, we
 document these for completeness.]}
@@ -977,8 +987,8 @@ implementations of Ada 2005 are supposed to follow these corrections, not the
 original flawed language definition. Thus,
 these strictly speaking are not incompatibilities between Ada 2005 and Ada 2012.
 Practically, however, they very well may be, as early Ada 2005 implementations
-may not follow the recommendation. Therefore, some Ada 2005 implementations
-may be able to compile the examples, while others may not. In
+might not follow the recommendation. Therefore, some Ada 2005 implementations
+may be able to compile the examples, while others might not. In
 @Chg{Version=[3],New=[contrast],Old=[constrast]},
 Ada 2012 compilers will have consistent behavior. Therefore, we document these
 for completeness.]}
@@ -1005,9 +1015,9 @@ Formally, these are extensions allowed by Ada Issues classified as Binding
 Interpretations. As corrections, implementations of Ada 2005 (and sometimes Ada 95)
 are allowed to implement these extensions. Thus, these strictly speaking are not
 extensions of Ada 2005; they're part of Ada 2005. Practically, however, they
-very well may be extensions, as early Ada 2005 implementations may not implement
+very well may be extensions, as early Ada 2005 implementations might not implement
 the extension. Therefore, some Ada 2005 implementations may be able to compile
-the examples, while others may not. In contrast, Ada 2012 compilers will always
+the examples, while others might not. In contrast, Ada 2012 compilers will always
 support the extensions. Therefore, we document these for completeness.]}
 
 @ChgRef{Version=[3],Kind=[AddedNormal]}
@@ -1023,7 +1033,7 @@ As explained above, the next heading does not represent any language change:]}
 @begin{DiffWord2005}
 @ChgRef{Version=[3],Kind=[AddedNormal]}
 @ChgAdded{Version=[3],Text=[@Defn{wording changes from Ada 2005}
-This heading lists some of the non-semantic changes between the Ada 2005 RM and
+This heading lists some of the nonsemantic changes between the Ada 2005 RM and
 the Ada 2012 RM. This heading lists only @lquotes@;interesting@rquotes@; changes
 (for instance, editorial corrections are not listed). Items marked
 @b[Correction:] come from Ada Issues classified
@@ -1542,10 +1552,11 @@ Duration the user might have declared.
 
 @begin{WideAbove}
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00285-01]}
-@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0004-1]}
+@ChgRef{Version=[3],Kind=[RevisedAdded],ARef=[AI05-0004-1],ARef=[AI05-0262-1]}
 @ChgAdded{Version=[2],Text=[The delimiters, compound delimiters, reserved words, and
 @nt{numeric_literal}s are exclusively made of the
-characters whose code position is between 16#20# and 16#7E#, inclusively.
+characters whose code @Chg{Version=[3],New=[point],Old=[position]} is
+between 16#20# and 16#7E#, inclusively.
 The special characters for which names are defined in this
 International Standard (see @RefSecNum{Character Set}) belong to the same range.
 @Redundant[For example, the character E in the definition of @Chg{Version=[3],
@@ -1565,7 +1576,7 @@ conversion of some character or sequence of characters to upper case, it means
 the character or sequence of characters obtained by using
 @Chg{Version=[3],New=[simple upper case mapping],Old=[locale-independent
 full case folding]}, as defined by documents referenced in the note in section 1
-of ISO/IEC 10646:2003.]}
+of ISO/IEC 10646:@Chg{Version=[3],New=[2011],Old=[2003]}.]}
 @begin{Discussion}
   @ChgRef{Version=[2],Kind=[AddedNormal]}
   @ChgRef{Version=[3],Kind=[DeletedAdded]}
@@ -1597,7 +1608,7 @@ whereas the thing declared by a declaration is an @lquotes@;entity.@rquotes@;
 @lquotes@;Explicit@rquotes@; and @lquotes@;implicit@rquotes@; don't mean exactly what you might think
 they mean: The text of an instance of a generic is
 considered explicit, even though it does not appear explicitly (in
-the non-technical sense) in the program text,
+the nontechnical sense) in the program text,
 and even though its meaning is not defined entirely in terms of that
 text.
 @end{Discussion}
@@ -1839,7 +1850,7 @@ should be raised.]}]}
 Some situations that are erroneous in Ada 83 are no longer errors
 at all.
 For example, depending on the parameter passing mechanism when
-unspecified is possibly non-portable, but not erroneous.
+unspecified is possibly nonportable, but not erroneous.
 
 Other situations that are erroneous in Ada 83 are changed
 to be bounded errors.
@@ -1859,7 +1870,7 @@ range.
 Violating a check that is suppressed remains erroneous.
 
 The @lquotes@;incorrect order dependences@rquotes@; category of errors is removed.
-All such situations are simply considered potential non-portabilities.
+All such situations are simply considered potential nonportabilities.
 This category was removed due to the difficulty of defining
 what it means for two executions to have a @lquotes@;different effect.@rquotes@;
 For example, if a function with a side-effect is called twice in a single
@@ -1947,30 +1958,36 @@ ISO/IEC 8859-1:1987,
     character sets @em Part 1: Latin alphabet No. 1}.
 
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00415-01]}
-@Chg{Version=[2],New=[@Defn{ISO/IEC 9899:1999}
-@Defn{9899:1999, ISO/IEC standard}],
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0266-1]}
+@Chg{Version=[2],New=[@Chg{Version=[3],New=[@Defn{ISO/IEC 9899:2011}
+@Defn{9899:2011, ISO/IEC standard}],Old=[@Defn{ISO/IEC 9899:1999}
+@Defn{9899:1999, ISO/IEC standard}]}],
 Old=[@Defn{ISO/IEC 9899:1990}
 @Defn{9899:1990, ISO/IEC standard}]}
 @Defn{C standard}
-ISO/IEC 9899:@Chg{Version=[2],New=[1999],Old=[1990]},
-@i{Programming
-languages @em C}@Chg{Version=[2],New=[, supplemented by Technical
-Corrigendum 1:2001 and Technical Corrigendum 2:2004],Old=[]}.
+ISO/IEC 9899:@Chg{Version=[2],New=[@Chg{Version=[3],New=[2011],Old=[1999]}],
+Old=[1990]},
+@i{@Chg{Version=[3],New=[Information technology @em ],Old=[]}Programming
+languages @em C}@Chg{Version=[2],New=[@Chg{Version=[3],New=[],Old=[, supplemented by Technical
+Corrigendum 1:2001 and Technical Corrigendum 2:2004]}],Old=[]}.
 @begin{Discussion}
   @ChgRef{Version=[2],Kind=[AddedNormal]}
-  @ChgAdded{Version=[2],Text=[Unlike Fortran and COBOL, which added the
-  @i{Information technology} prefix to the titles of their standard, C did
-  not. This was confirmed in the list of standards titles on the ISO web site.
-  No idea why ISO allowed that@Comment{, or whether C is planning to secede
-  from SC22}.]}
+  @ChgRef{Version=[3],Kind=[DeletedNoDelMsg]}
+  @ChgAdded{Version=[2],Text=[@Chg{Version=[3],New=[],Old=[Unlike Fortran and
+  COBOL, which added the @i{Information technology} prefix to the titles of
+  their standard, C did not. This was confirmed in the list of standards titles
+  on the ISO web site. No idea why ISO allowed that@Comment{, or whether C is
+  planning to secede from SC22}.]}]}
 @end{Discussion}
 
 @ChgRef{Version=[1],Kind=[Revised],Ref=[8652/0001],ARef=[AI95-00124-01]}
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00285-01]}
-@Chg{Version=[2],New=[@Defn{ISO/IEC 10646:2003}
-@Defn{10646:2003, ISO/IEC standard}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0266-1]}
+@Chg{Version=[2],New=[@Chg{Version=[3],New=[@Defn{ISO/IEC 10646:2011}
+@Defn{10646:2011, ISO/IEC standard}],Old=[@Defn{ISO/IEC 10646:2003}
+@Defn{10646:2003, ISO/IEC standard}]}
 @Defn2{Term=[character set standard],Sec=(16 and 32-bit)}
-ISO/IEC 10646:2003, @i{Information technology @em Universal Multiple-Octet
+ISO/IEC 10646:@Chg{Version=[3],New=[2011],Old=[2003]}, @i{Information technology @em Universal Multiple-Octet
 Coded Character Set (UCS)}.],
 Old=[@Defn{ISO/IEC 10646-1:1993}
 @Defn{10646-1:1993, ISO/IEC standard}
@@ -1995,15 +2012,19 @@ which would exclude them from being letters as defined in
 @end{Reason}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00376-01]}
-@ChgAdded{Version=[2],Text=[@Defn{ISO/IEC 14882:2003}
-@Defn{14882:2003, ISO/IEC standard}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0266-1]}
+@ChgAdded{Version=[2],Text=[@Chg{Version=[3],New=[@Defn{ISO/IEC 14882:2011}
+@Defn{14882:2011, ISO/IEC standard}],Old=[@Defn{ISO/IEC 14882:2003}
+@Defn{14882:2003, ISO/IEC standard}]}
 @Defn{C++ standard}
-ISO/IEC 14882:2003, @i{Programming languages @em C++}.]}
+ISO/IEC 14882:@Chg{Version=[3],New=[2011],Old=[2003]},
+@i{@Chg{Version=[3],New=[Information technology @em ],Old=[]}Programming languages @em C++}.]}
 @begin{Discussion}
   @ChgRef{Version=[2],Kind=[AddedNormal]}
-  @ChgAdded{Version=[2],Text=[This title is also missing the
+  @ChgRef{Version=[3],Kind=[DeletedNoDelMsg]}
+  @ChgAdded{Version=[2],Text=[@Chg{Version=[3],New=[],Old=[This title is also missing the
   @i{Information technology} part. That was confirmed in the list of standards
-  titles on the ISO web site.]}
+  titles on the ISO web site.]}]}
 @end{Discussion}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00285-01]}
@@ -2034,6 +2055,10 @@ POSIX,
   @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0127-2]}
   @ChgAdded{Version=[3],Text=[Added language and country code standards for
   locale support.]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0266-1]}
+  @ChgAdded{Version=[3],Text=[Updated references to the most recent versions
+  of these standards.]}
 @end{DiffWord2005}
 
 

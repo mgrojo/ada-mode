@@ -1,10 +1,10 @@
 @Part(10, Root="ada.mss")
 
-@Comment{$Date: 2011/11/01 05:34:03 $}
+@Comment{$Date: 2012/02/19 01:58:36 $}
 @LabeledSection{Program Structure and Compilation Issues}
 
 @Comment{$Source: e:\\cvsroot/ARM/Source/10.mss,v $}
-@Comment{$Revision: 1.98 $}
+@Comment{$Revision: 1.100 $}
 @Comment{Corrigendum changes added, 2000/04/24, RLB}
 
 @begin{Intro}
@@ -417,16 +417,16 @@ limited view of a package contains:]}
 
 @begin(Itemize)
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00217-06]}
-@ChgRef{Version=[3],Kind=[RevisedAdded],ARef=[AI05-0129-1]}
-@ChgAdded{Version=[2],Text=[For each nested
-@nt{package_declaration}@Chg{Version=[3],New=[ immediately within the visible part],Old=[]},
-a declaration of the limited view of that package, with the
-same @nt{defining_program_unit_name}.]}
+@ChgRef{Version=[3],Kind=[RevisedAdded],ARef=[AI05-0129-1],ARef=[AI05-0262-1]}
+@ChgAdded{Version=[2],Text=[For each@Chg{Version=[3],New=[],Old=[ nested]}
+@nt{package_declaration}@Chg{Version=[3],New=[ occurring immediately within
+the visible part],Old=[]}, a declaration of the limited view of that package,
+with the same @nt{defining_program_unit_name}.]}
 
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00217-06],ARef=[AI95-00326-01]}
-@ChgRef{Version=[3],Kind=[RevisedAdded],ARef=[AI05-0108-1],ARef=[AI05-0129-1]}
+@ChgRef{Version=[3],Kind=[RevisedAdded],ARef=[AI05-0108-1],ARef=[AI05-0129-1],ARef=[AI05-0262-1]}
 @ChgAdded{Version=[2],Text=[For each @nt{type_declaration}
-@Chg{Version=[3],New=[immediately within],Old=[in]} the visible
+@Chg{Version=[3],New=[occurring immediately within],Old=[in]} the visible
 part@Chg{Version=[3],New=[ that is not an
 @nt{incomplete_type_declaration}],Old=[]}, an incomplete view
 of the type@Chg{Version=[3],New=[ with no @nt{discriminant_part}],Old=[]};
@@ -1062,7 +1062,7 @@ The scope of a @nt{with_clause} that appears on a
 body consists of the body@Redundant[, which includes all subunits].
 @begin{Discussion}
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00262-01]}
-Suppose a @Chg{Version=[2],New=[non-private ],Old=[]} @nt{with_clause} of a
+Suppose a @Chg{Version=[2],New=[nonprivate ],Old=[]} @nt{with_clause} of a
 public library unit mentions one of its private siblings.
 (This is only allowed on the body of the public library unit.)
 We considered making the scope of that @nt{with_clause}
@@ -1107,7 +1107,7 @@ the @nt{with_clause}.],Old=[]}
 declarations or renamings of library units.
 Mentioning a root library unit in a
 @nt{with_clause} makes its declaration
-directly visible. Mentioning a non-root library unit
+directly visible. Mentioning a nonroot library unit
 makes its declaration visible.
 See Section 8 for details.
 
@@ -1223,7 +1223,7 @@ so @lquotes@;@key[with] A.B.C.D;@rquotes@; is illegal in the same places as
   if a @nt{subprogram_body} has no preceding @nt{subprogram_declaration},
   the @nt{subprogram_body} should be considered a declaration and not a body.
   Thus, it is illegal for such a @nt{subprogram_body} to mention one of
-  its siblings in a @Chg{Version=[2],New=[non-private ],Old=[]}@nt{with_clause}
+  its siblings in a @Chg{Version=[2],New=[nonprivate ],Old=[]}@nt{with_clause}
   if the sibling is a private library unit.]}
 @end{Honest}
 
@@ -1633,9 +1633,11 @@ can be visible within the subunits.]
 
 
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00218-03]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0267-1]}
 @Syn{lhs=<subprogram_body_stub>,rhs="@Chg{Version=[2],New=<
    [@Syn2{overriding_indicator}]
-   >,Old=[]}@Syn2{subprogram_specification} @key{is} @key{separate};"}
+   >,Old=[]}@Syn2{subprogram_specification} @key{is} @key{separate}@Chg{Version=[3],New=<
+      [@Syn2{aspect_specification}]>,Old=[]};"}
 
 @begin{Discussion}
 Although this syntax allows a @nt{parent_unit_name},
@@ -1643,13 +1645,19 @@ that is disallowed by @RefSec{Compilation Units - Library Units}.
 @end{Discussion}
 
 
-@Syn{lhs=<package_body_stub>,rhs="@key{package} @key{body} @Syn2{defining_identifier} @key{is} @key{separate};"}
+@Syn{lhs=<package_body_stub>,rhs="@Chg{Version=[3],New=<
+   >,Old=[]}@key{package} @key{body} @Syn2{defining_identifier} @key{is} @key{separate}@Chg{Version=[3],New=<
+      [@Syn2{aspect_specification}]>,Old=[]};"}
 
 
-@Syn{lhs=<task_body_stub>,rhs="@key{task} @key{body} @Syn2{defining_identifier} @key{is} @key{separate};"}
+@Syn{lhs=<task_body_stub>,rhs="@Chg{Version=[3],New=<
+   >,Old=[]}@key{task} @key{body} @Syn2{defining_identifier} @key{is} @key{separate}@Chg{Version=[3],New=<
+      [@Syn2{aspect_specification}]>,Old=[]};"}
 
 
-@Syn{lhs=<protected_body_stub>,rhs="@key{protected} @key{body} @Syn2{defining_identifier} @key{is} @key{separate};"}
+@Syn{lhs=<protected_body_stub>,rhs="@Chg{Version=[3],New=<
+   >,Old=[]}@key{protected} @key{body} @Syn2{defining_identifier} @key{is} @key{separate}@Chg{Version=[3],New=<
+      [@Syn2{aspect_specification}]>,Old=[]};"}
 
 
 @Syn{lhs=<subunit>,rhs="@key{separate} (@Syn2{parent_unit_name}) @Syn2{proper_body}"}
@@ -1832,6 +1840,13 @@ Instead, we require only that the full expanded names be distinct.
   @ChgAdded{Version=[2],Text=[Clarified that a subunit of a subunit is still a
   subunit.]}
 @end{DiffWord95}
+
+@begin{Extend2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0267-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 2005}
+  An optional @nt{aspect_specification} can be used in a
+  @nt{body_stub}. This is described in @RefSecNum{Aspect Specifications}.]}
+@end{Extend2005}
 
 
 @LabeledSubClause{The Compilation Process}
@@ -3228,10 +3243,10 @@ an ancestor @nt<subtype_@!mark> denoting a subtype of such a type.
 One can declare these kinds of types,
 but one cannot create objects of those types.
 
-It is also non-preelaborable to create an object if that will cause the
+It is also nonpreelaborable to create an object if that will cause the
 evaluation of a default expression that will call a user-defined
 function.
-This follows from the rule above forbidding non-null statements.
+This follows from the rule above forbidding nonnull statements.
 @end{Ramification}
 @begin{Reason}
 @ChgRef{Version=[2],Kind=[Deleted],ARef=[AI95-00161-01]}
@@ -3284,7 +3299,7 @@ user-defined subprogram.]}
   part is what happens when you elaborate @lquotes@;any instantiation@rquotes
   of the generic. For instance, declaring an object of a limited formal private
   type might well start tasks, call functions, and do all sorts of
-  non-preelaborable things. We prevent these situations by assuming that the
+  nonpreelaborable things. We prevent these situations by assuming that the
   actual parameters are as badly behaved as possible.]}
 @end{Discussion}
 @begin{Reason}
@@ -3308,7 +3323,7 @@ library unit are preelaborated],Old=[]}.
 @RootDefn{preelaborated}
 If a library unit is preelaborated, then its declaration, if any,
 and body, if any, are elaborated
-prior to all non-preelaborated @nt{library_item}s of the partition.]
+prior to all nonpreelaborated @nt{library_item}s of the partition.]
 ]}@Chg{New=[The declaration and body of a preelaborated library
 unit, and all subunits that are elaborated as part of elaborating the library
 unit,], Old=[All compilation units of a preelaborated
@@ -3325,7 +3340,7 @@ in the private part of an instance of a generic unit.
 @RootDefn{preelaborated}
 If a library unit is preelaborated, then its declaration, if any,
 and body, if any, are elaborated
-prior to all non-preelaborated @nt{library_item}s of the partition.]],
+prior to all nonpreelaborated @nt{library_item}s of the partition.]],
 Old=[In addition, all compilation units of a preelaborated library unit
 shall depend semantically only on
 compilation units of other preelaborated library units.]}
@@ -3339,7 +3354,7 @@ do not need
 to be preelaborable. This is needed in order to be consistent with units
 nested in a subprogram body, which do not need to be preelaborable even if
 the subprogram is preelaborated. However, such subunits cannot depend
-semantically on non-preelaborated units, which is also consistent with
+semantically on nonpreelaborated units, which is also consistent with
 nested units.]}
 @end{Ramification}
 
@@ -3375,7 +3390,7 @@ initialization.]}
 @ChgAdded{Version=[2],Text=[A derived type has preelaborable initialization
 if its parent type has preelaborable initialization and
 @Chg{Version=[3],New=[],Old=[(in the case of a
-derived record extension) ]}if the non-inherited components all have
+derived record extension) ]}if the noninherited components all have
 preelaborable initialization. However, a @Chg{Version=[3],New=[],
 Old=[user-defined ]}controlled type with an
 @Chg{Version=[3],New=[],Old=[overriding ]}Initialize procedure
@@ -3423,7 +3438,7 @@ also in the private part of an instance of a generic unit.]}
   properties of the full view determine whether the type has preelaborable
   initialization or not; in order to preserve privacy we need a way to express
   on the partial view that the full view is well-behaved. The reason why we
-  need the pragma for other composite types is more subtle: a non-null override
+  need the pragma for other composite types is more subtle: a nonnull override
   for Initialize might occur in the private part, even for a nonprivate type;
   in order to preserve privacy, we need a way to express on a type declared in
   a visible part that the private part does not contain any nasty override of
@@ -3489,7 +3504,7 @@ elaboration does not perform any of the following actions:]}
 @ChgRef{Version=[2],Kind=[Added]}
 @ChgAdded{Version=[2],Text=[the evaluation of an @nt{allocator} of an
 access-to-variable type; for the purposes of this rule, the partial view of a
-type is presumed to have non-visible components whose default initialization
+type is presumed to have nonvisible components whose default initialization
 evaluates such an @nt{allocator};]}
 
 @begin{Reason}
@@ -3529,7 +3544,7 @@ evaluates such an @nt{allocator};]}
 @ChgRef{Version=[2],Kind=[Added]}
 @ChgRef{Version=[3],Kind=[RevisedAdded],ARef=[AI05-0035-1]}
 @ChgAdded{Version=[2],Text=[the elaboration of the declaration of a
-@Chg{Version=[3],New=[non-derived ],Old=[]}named
+@Chg{Version=[3],New=[nonderived ],Old=[]}named
 access-to-variable type unless the Storage_Size of the type
 has been specified by a static expression with value zero or
 is defined by the language to be zero;]}
@@ -3555,15 +3570,15 @@ is defined by the language to be zero;]}
 @ChgRef{Version=[2],Kind=[Added]}
 @ChgRef{Version=[3],Kind=[RevisedAdded],ARef=[AI05-0035-1]}
 @ChgAdded{Version=[2],Text=[the elaboration of the declaration of a
-@Chg{Version=[3],New=[non-derived ],Old=[]}named
+@Chg{Version=[3],New=[nonderived ],Old=[]}named
 access-to-constant type for which the Storage_Size has been specified by an
 expression other than a static expression with value zero.]}
 
 @begin{Discussion}
   @ChgRef{Version=[2],Kind=[AddedNormal]}
   @ChgAdded{Version=[2],Text=[We allow access-to-constant types so long as
-  there is no user-specified non-zero Storage_Size; if there were a
-  user-specified non-zero Storage_Size restricting the size of the storage
+  there is no user-specified nonzero Storage_Size; if there were a
+  user-specified nonzero Storage_Size restricting the size of the storage
   pool, allocators would be problematic since the package is supposedly
   @lquote@;stateless@rquote, and the allocated size count for the storage pool
   would represent state.]}
@@ -3574,7 +3589,7 @@ expression other than a static expression with value zero.]}
 @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0035-1]}
 @ChgAdded{Version=[3],Text=[A generic body is pure only if elaboration of a
 corresponding instance body would not perform any such actions presuming any
-composite formal types have non-visible components whose default initialization
+composite formal types have nonvisible components whose default initialization
 evaluates an @nt{allocator} of an access-to-variable type.]}
 
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00366-01]}
@@ -3722,17 +3737,23 @@ the same as they were at the earlier call.
 produces other side effects when called.]
 @begin{Discussion}
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00366-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0005-1]}
 A declared-pure @nt{library_item} has no variable state.
 Hence, a call on one of its (nonnested) subprograms cannot
 @Chg{Version=[2],New=[normally],Old=[@lquotes@;normally@rquotes]}
-have side effects.
-The only possible side effects from such a call would be
-through machine code insertions,@Chg{Version=[2],New=[ imported subprograms,],
-Old=[]}unchecked conversion to an access type declared within the
-subprogram, and similar features.
-The compiler may omit a call to such a subprogram even if such
-side effects exist, so the writer of such a subprogram
-has to keep this in mind.
+have side effects. @Chg{Version=[3],New=[Side effects are still possible
+via dispatching calls and via indirect calls through access-to-subprogram
+values. Other mechanisms that might be used to modify variable state
+include],Old=[The only possible side effects from such a call would be
+through]}
+machine code insertions,@Chg{Version=[2],New=[ imported subprograms,
+@Chg{Version=[3],New=[ and ],Old=[]}],Old=[]}unchecked conversion to an access type declared within the
+subprogram@Chg{Version=[3],New=[; this list is not exhaustive],Old=[, and
+similar features]}.@Chg{Version=[3],New=[ Thus, the permissions described
+in this section may apply to a subprogram whose execution has
+side-effects.],Old=[]} The compiler may omit a call to such a subprogram
+even if @Chg{Version=[3],New=[],Old=[such]} side effects exist, so the
+writer of such a subprogram has to keep this in mind.
 @end{Discussion}
 
 @end{ImplPerm}
@@ -3868,12 +3889,12 @@ previous @nt{with_clause} of the same @nt{context_clause}.
 @end{StaticSem}
 
 @begin{Notes}
-A preelaborated library unit is allowed to have non-preelaborable
+A preelaborated library unit is allowed to have nonpreelaborable
 children.
 @begin{Ramification}
 @ChgRef{Version=[1],Kind=[Revised],Ref=[8652/0035],ARef=[AI95-00002-01]}
-But @Chg{New=[generally ], Old=[]}not non-preelaborated subunits.
-@Chg{New=[(Non-preelaborated subunits of subprograms are allowed as
+But @Chg{New=[generally ], Old=[]}not nonpreelaborated subunits.
+@Chg{New=[(Nonpreelaborated subunits of subprograms are allowed as
 discussed above.)], Old=[]}
 @end{Ramification}
 
@@ -3988,7 +4009,7 @@ required to appear last.
 
   @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0035-1]}
   @ChgAdded{Version=[3],Text=[@B<Correction:> Adjusted wording so
-  that the rules for access types only apply to non-derived types
+  that the rules for access types only apply to nonderived types
   (derived types share their storage pool with their parent, so if
   the parent access type is legal, so is any derived type.)]}
 
