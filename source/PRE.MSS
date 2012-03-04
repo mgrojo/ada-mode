@@ -1,10 +1,10 @@
 @Part(predef, Root="ada.mss")
 
-@Comment{$Date: 2011/11/01 05:34:05 $}
+@Comment{$Date: 2012/02/19 01:58:38 $}
 @LabeledNormativeAnnex{Predefined Language Environment}
 
 @comment{$Source: e:\\cvsroot/ARM/Source/pre.mss,v $}
-@comment{$Revision: 1.47 $}
+@comment{$Revision: 1.49 $}
 @comment{$RLB: Eliminated includes. $}
 
 @begin{Intro}
@@ -252,7 +252,7 @@ the parent of a given library unit.
 However, we have tried to place as many things as possible under Ada,
 except that interfacing is a separate category,
 and we have tried to place library units whose use is highly
-non-portable under System.
+nonportable under System.
 @end{Reason}
 @end{Intro}
 
@@ -285,7 +285,7 @@ denote nonoverlapping objects.
 @end{Ramification}
 
 @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0048-1]}
-@ChgAdded{Version=[3],Text=[If a descendent of a language-defined tagged
+@ChgAdded{Version=[3],Text=[If a descendant of a language-defined tagged
 type is declared, the implementation
 shall ensure that each inherited language-defined subprogram behaves as
 described in this International Standard. In particular, overriding

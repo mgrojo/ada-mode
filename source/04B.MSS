@@ -1,9 +1,9 @@
 @Part(04, Root="ada.mss")
 
-@Comment{$Date: 2011/11/01 05:34:02 $}
+@Comment{$Date: 2012/02/19 01:58:36 $}
 
 @Comment{$Source: e:\\cvsroot/ARM/Source/04b.mss,v $}
-@Comment{$Revision: 1.56 $}
+@Comment{$Revision: 1.60 $}
 
 @LabeledClause{Type Conversions}
 
@@ -921,6 +921,11 @@ Sec=(raised by failure of run-time check)}],Old=[]}
   for discriminated subtypes. The Length_Check for an array conversion is
   performed as part of the conversion to the target type.@Chg{Version=[2],
   New=[ The check for exclusion of null is an Access_Check.],Old=[]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI95-0153-3]}
+  @ChgAdded{Version=[3],Text=[Note that the predicate evaluation is not
+  defined to be a @i{check}, as the failure of a check is defined below to
+  always raise Constraint_Error, and we want this to raise Assertion_Error.]}
 @end{Ramification}
 
 @PDefn2{Term=[evaluation], Sec=(view conversion)}
@@ -1376,7 +1381,7 @@ uninitialized case illegal as well.]}
 
 @begin{Resolution}
 @ChgRef{Version=[1],Kind=[Revised],Ref=[8652/0010],ARef=[AI95-00127-01]}
-@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0111-3]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0111-3],ARef=[AI05-0269-1]}
 @PDefn2{Term=[expected type],Sec=(allocator)}
 The expected type for an @nt<allocator> shall be a single access-to-object
 type @Chg{New=[with],Old=[whose]} designated type
@@ -1385,8 +1390,8 @@ by the @nt<subtype_mark> of the @nt<subtype_@!indication> or
 @nt<qualified_@!expression>@Chg{New=[, or the expected type is anonymous and
 the determined type is @i<D>'Class],Old=[]}.@Chg{Version=[3],New=[
 A @SynI{subpool_handle_}@nt{name} is expected to be of any type descended from
-Subpool_Handle, the type used to identify a subpool, declared in package
-System.Storage_Pools.Subpools
+Subpool_Handle, which is the type used to identify a subpool, declared
+in package System.Storage_Pools.Subpools
 (see @RefSecNum{Storage Subpools}).@PDefn2{Term=[expected type],Sec=(subpool_handle_name)}],Old=[]}
 @begin{Discussion}
   See @RefSec(The Context of Overload Resolution) for the meaning
@@ -1669,7 +1674,7 @@ if either such check fails.@IndexCheck{Accessibility_Check}
   @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00344-01]}
   @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0024-1]}
   @ChgAdded{Version=[2],Text=[The
-  @Chg{Version=[3],New=[master],Old=[accessibility check]} on class-wide types
+  @Chg{Version=[3],New=[master],Old=[accessibility]} check on class-wide types
   prevents the allocated object from outliving its type. We need the run-time
   check in instance bodies, or when the type of the @nt{qualified_expression}
   is class-wide (other cases are statically detected).]}
@@ -1714,7 +1719,7 @@ started, Program_Error is raised.@IndexCheck{Allocation_Check}
 @begin{Reason}
   @ChgRef{Version=[2],Kind=[AddedNormal]}
   @ChgAdded{Version=[2],Text=[If the object has a controlled or protected part, its
-  finalization is likely to be non-trivial. If the allocation was allowed,
+  finalization is likely to be nontrivial. If the allocation was allowed,
   we could not know whether the finalization would actually be performed.
   That would be dangerous to otherwise safe abstractions, so we mandate
   a check here. On the other hand, if the finalization of the object will
@@ -2087,12 +2092,12 @@ Adding qualification to an expression shouldn't make it nonstatic, even
 for strings.
 @end{Reason}
 
-@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0158-1]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0158-1],ARef=[AI05-0269-1]}
 a membership test
 whose @nt{simple_expression} is a static expression,
 and whose @Chg{Version=[3],New=[@nt{membership_choice_list} consists only of
-@nt{membership_choice}s each of which is either a static @nt{choice_expression},
-a static @nt{range}, or a @nt{subtype_mark} that denotes],Old=[@nt{range}
+@nt{membership_choice}s that are either static @nt{choice_expression}s,
+static @nt{range}s, or @nt{subtype_mark}s that denote],Old=[@nt{range}
 is a static range or whose @nt{subtype_mark} denotes]} a
 static @Redundant[(scalar or string)] subtype;
 @begin{Reason}
@@ -2345,10 +2350,10 @@ the @nt{condition}s and @Syni{dependent_}@nt{expression}s of a single
 reasoning applies to the "of a @nt{case_expression}" of the last bullet.]}
 @end{Discussion}
 
-@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0188-1]}
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0188-1],ARef=[AI05-0269-1]}
 @ChgAdded{Version=[3],Text=[a @SynI{dependent_}@nt{expression} of a
-@nt{case_expression} whose @SynI{selecting_}@nt{expression} is static and is
-not covered by the corresponding @nt{discrete_choice_list}; or]}
+@nt{case_expression} whose @SynI{selecting_}@nt{expression} is static and
+whose value is not covered by the corresponding @nt{discrete_choice_list}; or]}
 
 @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0158-1]}
 @ChgAdded{Version=[3],Text=[a @nt{choice_expression} (or a @nt{simple_expression}
@@ -2521,7 +2526,7 @@ larger static expression, and whose expected type is not a descendant of a
 formal type, the rounding should be the same as the default rounding
 for the target system.]}
 @ChgImplAdvice{Version=[2],Kind=[AddedNormal],Text=[@ChgAdded{Version=[2],
-Text=[A real static expression with a non-formal type that is not part of a
+Text=[A real static expression with a nonformal type that is not part of a
 larger static expression should be rounded the same as the target system.]}]}
 @end{ImplAdvice}
 
@@ -2723,7 +2728,7 @@ raising.
 
   @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00311-01]}
   @ChgAdded{Version=[2],Text=[We clarify that the first subtype of a scalar
-  formal type has a nonstatic, non-null constraint.]}
+  formal type has a nonstatic, nonnull constraint.]}
 @end{DiffWord95}
 
 @begin{DiffWord2005}
@@ -2743,6 +2748,7 @@ raising.
 
 
 
+@RMNewPageVer{Version=[3]}@Comment{For printed version of Ada 2012 RM}
 @LabeledSubClause{Statically Matching Constraints and Subtypes}
 
 @begin{StaticSem}

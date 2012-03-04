@@ -1,8 +1,8 @@
 @Comment{ $Source: e:\\cvsroot/ARM/Source/safety.mss,v $ }
-@Comment{ $Revision: 1.55 $ $Date: 2011/11/01 05:34:04 $ $Author: randy $ }
+@Comment{ $Revision: 1.57 $ $Date: 2012/01/28 08:23:03 $ $Author: randy $ }
 @Part(safety, Root="ada.mss")
 
-@Comment{$Date: 2011/11/01 05:34:04 $}
+@Comment{$Date: 2012/01/28 08:23:03 $}
 @LabeledRevisedNormativeAnnex{Version=[2],
 New=[High Integrity Systems], Old=[Safety and Security]}
 
@@ -670,12 +670,13 @@ facilitate the demonstration of program correctness by allowing
 tailored versions of the run-time system.
 @begin{Discussion}
 
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0005-1]}
 Note that the restrictions are absolute. If a partition has 100 library
 units and just one needs Unchecked_Conversion, then the pragma cannot be
 used to ensure the other 99 units do not use Unchecked_Conversion. Note also
 that these are restrictions on all Ada code within a partition, and
-therefore it may not be evident from the specification of a package whether
-a restriction can be imposed.
+therefore it @Chg{Version=[3],New=[might],Old=[may]} not be evident
+from the specification of a package whether a restriction can be imposed.
 
 @end{Discussion}
 @end{Intro}
@@ -956,12 +957,13 @@ prior to program execution]:]}
 @end{InnerItemize}
 @end{Itemize}
 
-@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0263-1]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0263-1],ARef=[AI05-0272-1]}
 If an implementation supports @nt[pragma] Restrictions for a particular
 argument, then except for the restrictions No_Unchecked_Deallocation,
 No_Unchecked_Conversion, No_Access_Subprograms,
 @Chg{Version=[3],New=[],Old=[and ]}No_Unchecked_Access,
-@Chg{Version=[3],New=[and the equivalent use of No_Dependence, ],Old=[]}the
+@Chg{Version=[3],New=[No_Specification_of_Aspect, No_Use_of_Attribute,
+No_Use_of_Pragma, and the equivalent use of No_Dependence, ],Old=[]}the
 associated restriction applies to the run-time system.
 @begin[reason]
 Permission is granted for the run-time system to use the specified
@@ -987,6 +989,11 @@ could be envisaged.
 
 If the run-time system is not written in Ada, then the wording needs to be
 applied in an appropriate fashion.
+
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0263-1]}
+@ChgAdded{Version=[3],Text=["the equivalent use of No_Dependence" refers
+to @exam{No_Dependence => Ada.Unchecked_Conversion} and the like, not all
+uses of No_Dependence.]}
 
 @end{Discussion}
 @end{ImplReq}
@@ -1040,7 +1047,9 @@ during the execution of a subprogram by a task, another task invokes
 the same subprogram.
 @begin{Discussion}
 
-In practice, many implementations may not exploit the absence of recursion
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0005-1]}
+In practice, many implementations @Chg{Version=[3],New=[might],Old=[may]}
+not exploit the absence of recursion
 or need for reentrancy, in which case the program execution would be
 unaffected by the use of recursion or reentrancy, even though the program is
 still formally erroneous.
@@ -1152,6 +1161,14 @@ proscribed
   @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0263-1]}
   @ChgAdded{Version=[3],Text=[@b<Correction:> Ada 2005 restriction No_Dependence
   is added where needed (this was missed in Ada 2005).]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0272-1]}
+  @ChgAdded{Version=[3],Text=[Restrictions against individual aspects, pragmas,
+  and attributes do not apply to the run-time system, in order that an
+  implementation can use whatever aspects, pragmas, and attributes are needed
+  to do the job. For instance, attempting to write a run-time system for Linux
+  that does not use the Import aspect would be very difficult and probably is
+  not what the user is trying to prevent anyway.]}
 @end{DiffWord2005}
 
 

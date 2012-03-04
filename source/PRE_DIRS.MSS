@@ -1,8 +1,8 @@
 @comment{ $Source: e:\\cvsroot/ARM/Source/pre_dirs.mss,v $ }
-@comment{ $Revision: 1.43 $ $Date: 2011/11/01 05:34:03 $ $Author: randy $ }
+@comment{ $Revision: 1.47 $ $Date: 2012/02/19 01:58:37 $ $Author: randy $ }
 @Part(predefdirs, Root="ada.mss")
 
-@Comment{$Date: 2011/11/01 05:34:03 $}
+@Comment{$Date: 2012/02/19 01:58:37 $}
 
 @RMNewPageVer{Version=[2]}@Comment{For printed version of Ada 2005 RM}
 @LabeledAddedClause{Version=[2],Name=[The Package Directories]}
@@ -344,9 +344,10 @@ the given name (in the absence of Name_Error).]}
                        Form          : @key{in} String := "");]}
 @end{Example}
 @ChgRef{Version=[2],Kind=[AddedNormal]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0271-1]}
 @ChgAdded{Version=[2],Type=[Trailing],Text=[Creates zero or more directories with
 name New_Directory. Each
-non-existent directory named by New_Directory is created.@Redundant[ For example, on a
+nonexistent directory named by New_Directory is created.@Redundant[ For example, on a
 typical Unix system, Create_Path ("/usr/me/my"); would create directory "me" in
 directory "usr", then create directory "my" in directory "me".] The Form parameter
 can be used to give system-dependent characteristics of the directory; the
@@ -356,7 +357,8 @@ new directory. The exception Name_Error is propagated if the string given as
 New_Directory does not allow the identification of any directory. The exception
 Use_Error is propagated if the external environment does not support the
 creation of any directories with the given name (in the absence of Name_Error)
-and form.]}
+and form.@Chg{Version=[3],New=[ If Use_Error is propagated, it is unspecified
+whether a portion of the directory path is created.],Old=[]}]}
 
 @begin{Example}@ChgRef{Version=[2],Kind=[AddedNormal]}
 @ChgAdded{Version=[2],Keepnext=[T],Text=[@key{procedure} Delete_Tree (Directory : @key{in} String);]}
@@ -402,7 +404,7 @@ New_Name.]}
 @begin{ImplNote}
   @ChgRef{Version=[2],Kind=[AddedNormal]}
   @ChgAdded{Version=[2],Text=[This operation is expected to work within a
-  a single directory, and implementers are encouraged to support it across
+  single directory, and implementers are encouraged to support it across
   directories on a single device. Copying files from one device to another
   is discouraged (that's what Copy_File is for). However, there is no
   requirement to detect file copying by the target system. If the target
@@ -418,6 +420,7 @@ New_Name.]}
                      Form        : @key{in} String@Chg{Version=[3],New=[ := ""],Old=[]});]}
 @end{Example}
 @ChgRef{Version=[2],Kind=[AddedNormal]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0271-1]}
 @ChgAdded{Version=[2],Type=[Trailing],Text=[Copies the contents of the existing
 external file with name Source_Name to an external file with name Target_Name.
 The resulting external file is a duplicate of the source external file. The
@@ -429,7 +432,9 @@ or if the string given as Target_Name does not allow the identification of an
 external file. The exception Use_Error is propagated if the external
 environment does not support creating the file with the name given by
 Target_Name and form given by Form, or copying of the file with the name given
-by Source_Name (in the absence of Name_Error).]}
+by Source_Name (in the absence of Name_Error).@Chg{Version=[3],New=[ If
+Use_Error is propagated, it is unspecified whether a portion of the file
+is copied.],Old=[]}]}
 @begin{Ramification}
   @ChgRef{Version=[2],Kind=[AddedNormal]}
   @ChgAdded{Version=[2],Text=[Name_Error is always raised if Source_Name
@@ -547,7 +552,7 @@ base name. The exception Name_Error is propagated if the string given as
 Containing_Directory is not null and does not allow the identification of a
 directory, or if the string given as Extension is not null and is not a
 possible extension, or if the string given as Name is not a possible simple
-name (if Extension is null) or base name (if Extension is non-null).]}
+name (if Extension is null) or base name (if Extension is nonnull).]}
 
 @begin{Ramification}
   @ChgRef{Version=[2],Kind=[AddedNormal]}
@@ -740,7 +745,7 @@ external environment does not support the searching of the directory with the
 given name (in the absence of Name_Error). When Start_Search propagates
 Name_Error or Use_Error, the object Search will have no entries available.]}
 @ChgImplDef{Version=[2],Kind=[AddedNormal],Text=[@Chg{Version=[2],New=[The
-interpretation of a non-null search pattern in Directories.],Old=[]}]}
+interpretation of a nonnull search pattern in Directories.],Old=[]}]}
 
 @begin{Example}@ChgRef{Version=[2],Kind=[AddedNormal]}
 @ChgAdded{Version=[2],Keepnext=[T],Text=[@key{procedure} End_Search (Search : @key{in out} Search_Type);]}
@@ -788,7 +793,7 @@ altered while a search is in progress.],Old=[]}]}
 @ChgAdded{Version=[2],Keepnext=[T],Text=[@key{procedure} Search (
     Directory : @key{in} String;
     Pattern   : @key{in} String;
-    Filter    : @key{in} Filter_Type := (others => True);
+    Filter    : @key{in} Filter_Type := (@key{others} => True);
     Process   : @key{not null access procedure} (
         Directory_Entry : @key{in} Directory_Entry_Type));]}
 @end{Example}
@@ -1142,6 +1147,26 @@ external file.]}]}
   implementers that simply raising Use_Error isn't acceptable.]}
 @end{Discussion}
 
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0286-1]}
+@ChgAdded{Version=[3],Text=[Subprograms in the package Directories and its
+children that accept a string should allow the use of UTF-8 encoded strings that
+start with a BOM (see @RefSecNum{String Encoding}) if the target file system
+allows characters with code points greater than 255 in any part of a full name.
+Functions in the package Directories and its children that return a string
+should return a UTF-8 encoded string starting with a BOM if and only if the
+result includes characters with code points greater than 255.]}
+
+@begin{Reason}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0286-1]}
+@ChgAdded{Version=[3],Text=[We require that functions only return UTF-8
+representations when absolutely necessary to maximize compatibility with code
+that is not aware of the possibility of UTF-8 encoded results.]}
+@end{Reason}
+@ChgImplAdvice{Version=[3],Kind=[Added],Text=[@ChgAdded{Version=[3],
+Text=[Subprograms in the package Directories and its children that accept
+or return a string should allow the use of UTF-8 encoded strings that start with
+a BOM.]}]}
+
 @end{ImplAdvice}
 
 @begin{Notes}
@@ -1212,7 +1237,7 @@ should be deleted first.]}
   Rename. If an implementation followed the original incorrect wording, it might
   raise Use_Error instead of Name_Error for Start_Search and Search,
   Name_Error instead of Use_Error for Rename, and might have deleted a
-  non-empty directory instead of raising Use_Error for Delete_Directory.
+  nonempty directory instead of raising Use_Error for Delete_Directory.
   The first two cases are very unlikely to matter in practice, and it unlikely
   that an implementation would have followed the latter implementation
   strategy, as it would be more work and would make Delete_Directory
@@ -1223,13 +1248,21 @@ should be deleted first.]}
   @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0049-1]}
   @ChgAdded{Version=[3],Text=[@Defn{incompatibilities with Ada 2005}
   A new enumeration type Name_Case_Kind and a new function
-  Name_Case_Equivalence is newly added to Directories. If Directories
+  Name_Case_Equivalence is added to Directories. If Directories
   is referenced in a @nt{use_clause}, and an
   entity @i<E> with a @nt{defining_identifier} of one of the new entities is
   defined in a package that is also referenced in a @nt{use_clause}, the entity
   @i<E> may no longer be use-visible, resulting in errors. This should be rare
   and is easily fixed if it does occur.]}
 @end{Incompatible2005}
+
+@begin{Diffword2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0271-1]}
+  @ChgAdded{Version=[3],Text=[@b<Correction:> We now explicitly say that
+  the behavior of Create_Path and Copy_File is unspecified when Use_Error
+  is raised. Nothing has changed here, as the behavior was (implicitly)
+  unspecified in the 2007 Amendment.]}
+@end{Diffword2005}
 
 
 
@@ -1293,11 +1326,12 @@ Directories.Hierarchical_File_Names has the following declaration:]}
 @ChgAdded{Version=[3],Text=[@key{end} Ada.Directories.Hierarchical_File_Names;]}
 @end{Example}
 
-@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0049-1]}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0049-1],ARef=[AI05-0269-1]}
 @ChgAdded{Version=[3],Text=[In addition to the operations provided in package
-Directories.Hierarchical_File_Names, operations in package Directories
-can be used. In particular, functions Full_Name, Base_Name, and Extension are
-usable with hierarchical file names.]}
+Directories.Hierarchical_File_Names, the operations in package Directories can
+be used with hierarchical file names. In particular, functions Full_Name,
+Base_Name, and Extension are provide additional capabilities for hierarchical
+file names.]}
 
 @begin{DescribeCode}
 @begin{Example}
@@ -1370,9 +1404,10 @@ is a root, and returns False otherwise.]}
 @ChgAdded{Version=[3],Text=[@key{function} Is_Relative_Name (Name : @key{in} String) @key{return} Boolean;]}
 @end{Example}
 
-@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0049-1],ARef=[AI05-0269-1]}
 @ChgAdded{Version=[3],Text=[Returns True if Name allows the identification of an
-external file but is not a full name, and returns False otherwise.]}
+external file (including directories and special files) but is not a full name,
+and returns False otherwise.]}
 
 @begin{Ramification}
   @ChgRef{Version=[3],Kind=[AddedNormal]}
@@ -1524,6 +1559,16 @@ parameters.]}
 not have a containing directory, including when any of Is_Simple_Name,
 Is_Root_Directory_Name, Is_Parent_Directory_Name, or Is_Current_Directory_Name
 are True.]}
+
+@begin{Ramification}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[In particular, the default directory is not used
+  to find the containing directory either when Is_Parent_Directory_Name or
+  Is_Current_Directory_Name is True. As noted above, these functions operate
+  purely on the syntax of the file names and do not attempt to interpret them.
+  If interpretation is needed, Directories.Full_Name can be to expand any
+  shorthands used before calling Containing_Directory.]}
+@end{Ramification}
 @end{Notes}
 
 @begin{Extend2005}

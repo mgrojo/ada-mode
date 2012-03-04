@@ -1,10 +1,10 @@
 @Part(03, Root="ada.mss")
 
-@Comment{$Date: 2011/11/01 05:34:02 $}
+@Comment{$Date: 2012/02/19 01:58:35 $}
 @LabeledSection{Declarations and Types}
 
 @Comment{$Source: e:\\cvsroot/ARM/Source/03a.mss,v $}
-@Comment{$Revision: 1.114 $}
+@Comment{$Revision: 1.119 $}
 
 @begin{Intro}
 This section describes the types in the language and the rules
@@ -68,7 +68,7 @@ declaration).>}
 @end{Discussion}
 
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00318-02]}
-@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0255-1]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0255-1],ARef=[AI05-0277-1]}
 @Defn{declaration}
 Each of the following is defined to be a declaration:
 any @nt{basic_@!declaration};
@@ -78,13 +78,14 @@ a @nt{component_@!declaration};
 a @nt{loop_@!parameter_@!specification};@Chg{Version=[3],New=[
 an @nt{iterator_@!specification};],Old=[]}
 a @nt{parameter_@!specification};
-a @nt{subprogram_@!body};
+a @nt{subprogram_@!body};@Chg{Version=[3],New=[
+an @nt{extended_@!return_@!object_@!declaration};],Old=[]}
 an @nt{entry_@!declaration};
 an @nt{entry_@!index_@!specification};
 a @nt{choice_@!parameter_@!specification};
-a @nt{generic_@!formal_@!parameter_@!declaration}.@Chg{Version=[2],New=[
+a @nt{generic_@!formal_@!parameter_@!declaration}.@Chg{Version=[3],New=[],Old=[@Chg{Version=[2],New=[
 In addition, an @nt{extended_return_statement} is a declaration of its
-@nt{defining_identifier}.],Old=[]}
+@nt{defining_identifier}.],Old=[]}]}
 @begin(Discussion)
   This list (when @nt<basic_declaration> is expanded out)
   contains all syntactic categories that end in "_declaration"
@@ -262,8 +263,8 @@ we are implicitly defining execution of that construct.
 
 We also use the term "execution" for things like @nt{statement}s,
 which are executable, but neither elaborable nor evaluable.
-We considered using the term "execution" only for non-elaborable,
-non-evaluable constructs, and defining the term "action" to mean what
+We considered using the term "execution" only for nonelaborable,
+nonevaluable constructs, and defining the term "action" to mean what
 we have defined "execution" to mean.
 We rejected this idea because we thought three terms that mean the
 same thing was enough @em four would be overkill.
@@ -783,13 +784,13 @@ otherwise, the subtype is called a @i(constrained) subtype
 (since it has no unconstrained characteristics).
 @begin{Discussion}
   In an earlier version of Ada 9X,
-  "constrained" meant "has a non-null
+  "constrained" meant "has a nonnull
   constraint." However, we changed to this definition
   since we kept having to special
-  case composite non-array/non-discriminated types. It also corresponds
+  case composite non-array/nondiscriminated types. It also corresponds
   better to the (now obsolescent) attribute 'Constrained.
 
-  For scalar types, @lquotes@;constrained@rquotes@; means @lquotes@;has a non-null
+  For scalar types, @lquotes@;constrained@rquotes@; means @lquotes@;has a nonnull
   constraint@rquotes@;.
   For composite types, in implementation terms, @lquotes@;constrained@rquotes@; means
   that the size of all objects of the subtype is the same, assuming a
@@ -1487,9 +1488,9 @@ is called a @i(primitive operator).
 @begin{Incompatible83}
 @Defn{incompatibilities with Ada 83}
 The attribute S'Base is no longer defined for
-non-scalar subtypes. Since this was only permitted
+nonscalar subtypes. Since this was only permitted
 as the prefix of another attribute, and there are no
-interesting non-scalar attributes defined for an unconstrained
+interesting nonscalar attributes defined for an unconstrained
 composite or access subtype, this should not affect any
 existing programs.
 @end{Incompatible83}
@@ -1534,11 +1535,15 @@ The description of S'Base has been moved to
 @LabeledAddedSubClause{Version=[3],Name=[Subtype Predicates]}
 
 @begin{Intro}
-@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0153-3]}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0153-3],ARef=[AI05-0269-1]}
 @ChgAdded{Version=[3],Text=[The language-defined @i{predicate aspects}
 Static_Predicate and Dynamic_Predicate may be used to define properties of
 subtypes. A @i{predicate specification} is an @nt{aspect_specification}
-for one of the two predicate aspects.@Defn{predicate aspect}@Defn{predicate specification}@PDefn2{Term=[aspect],Sec=(predicate)}@AspectDefn{Static_Predicate}@AspectDefn{Dynamic_Predicate}]}
+for one of the two predicate
+aspects.@Defn{predicate aspect}@Defn{predicate specification}@PDefn2{Term=[aspect],Sec=(predicate)}@AspectDefn{Static_Predicate}@AspectDefn{Dynamic_Predicate}
+General rules for aspects and @nt{aspect_specification}s are found in
+Section @RefSecNum{Representation Issues} (@RefSecNum{Operational and Representation Aspects}
+and @RefSecNum{Aspect Specifications} respectively).]}
 @ChgAspectDesc{Version=[3],Kind=[AddedNormal],Aspect=[Static_Predicate],
   Text=[@ChgAdded{Version=[3],Text=[Condition that must hold true for objects of
     a given subtype; the subtype may be static.]}]}
@@ -1583,14 +1588,13 @@ predicate of a base subtype is True)].@Defn2{Term=[Predicate],Sec=(of a subtype)
 
 @begin{Legality}
 
-@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0153-3]}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0153-3],ARef=[AI05-0269-1]}
 @ChgAdded{Version=[3],Type=[Leading],Text=[The @nt{expression} of a
 Static_Predicate specification shall be @i<predicate-static>; that is, one of
 the following:@Defn{predicate-static}@Defn2{Term=[expression],Sec=[predicate-static]}]}
 @begin{Itemize}
   @ChgRef{Version=[3],Kind=[AddedNormal]}
-  @ChgAdded{Version=[3],Text=[a static expression that does not raise
-  any exception;]}
+  @ChgAdded{Version=[3],Text=[a static expression;]}
 
   @ChgRef{Version=[3],Kind=[AddedNormal]}
   @ChgAdded{Version=[3],Text=[a membership test whose @nt{simple_expression}
@@ -1608,9 +1612,13 @@ the following:@Defn{predicate-static}@Defn2{Term=[expression],Sec=[predicate-sta
   operator, where one operand is the current instance, and the other is a
   static expression;]}
 
-  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0262-1]}
   @ChgAdded{Version=[3],Text=[a call to a predefined boolean logical operator,
-  where both operands are predicate-static; or]}
+  where each operand is predicate-static;]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0269-1]}
+  @ChgAdded{Version=[3],Text=[a short-circuit control form where both operands
+  are predicate-static; or]}
 
   @ChgRef{Version=[3],Kind=[AddedNormal]}
   @ChgAdded{Version=[3],Text=[a parenthesized predicate-static @nt{expression}.]}
@@ -1628,6 +1636,29 @@ subtype.]}
   needed to support it.]}
 @end{Reason}
 
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0287-1]}
+@ChgAdded{Version=[3],Text=[If a predicate applies to a subtype, then that
+predicate shall not mention any other subtype to which the same predicate
+applies.]}
+
+@begin{Reason}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Type=[Leading],Text=[This is intended to prevent
+  recursive predicates, which cause definitional problems for static predicates.
+  Inside of the predicate, the subtype name refers to the current instance of
+  the subtype, which is an object, so a direct use of the subtype name cannot be
+  recursive. But other subtypes naming the same type might:]}
+@begin{Example}
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[   @key[type] Really_Ugly @key[is private];
+@key[private]
+   @key[subtype] Ugly @key[is] Really_Ugly;
+   @key[type] Really_Ugly @key[is new] Integer
+      @key[with] Static_Predicate => Really_Ugly @key[not in] Ugly; --@ExamCom{ Illegal!}]}
+@end{Example}
+@end{Reason}
+
+
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0153-3]}
 @ChgAdded{Version=[3],Text=[An index subtype, @nt{discrete_range} of an
 @nt{index_constraint} or @nt{slice}, or a
@@ -1642,17 +1673,18 @@ scalar subtype to which predicate specifications apply.]}
 
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0153-3],ARef=[AI05-0262-1]}
 @ChgAdded{Version=[3],Text=[The @nt{discrete_subtype_definition} of a
-@nt{loop_parameter_specification} shall not denote a subtype to which
-Dynamic_Predicate specifications apply.]}
+@nt{loop_parameter_specification} shall not denote a
+nonstatic subtype to which predicate specifications apply or any
+subtype to which Dynamic_Predicate specifications apply.]}
 
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0153-3],ARef=[AI05-0262-1]}
 @ChgAdded{Version=[3],Text=[The @nt{discrete_choice} of a
-@nt{named_array_aggregate} shall not denote a non-static subtype to which
+@nt{named_array_aggregate} shall not denote a nonstatic subtype to which
 predicate specifications apply.]}
 
 @begin{Reason}
   @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0262-1]}
-  @ChgAdded{Version=[3],Text=[This rule prevents non-contiguous
+  @ChgAdded{Version=[3],Text=[This rule prevents noncontiguous
   dynamically bounded array aggregates, which could be expensive to check for.
   (Array aggregates have rules to prevent problems with static subtypes.) We
   define this rule here so that the runtime generic body check applies.]}
@@ -1697,7 +1729,7 @@ unit.@PDefn{generic contract issue}]}
 @begin{Ramification}
   @ChgRef{Version=[3],Kind=[AddedNormal]}
   @ChgAdded{Version=[3],Text=<Predicates are not evaluated at the point of the
-  [sub]type declaration.>}
+  (sub)type declaration.>}
 @end{Ramification}
 
 @begin{ImplNote}
@@ -1712,14 +1744,17 @@ unit.@PDefn{generic contract issue}]}
 @ChgAdded{Version=[3],Text=[A value @i<satisfies> a predicate if the
 predicate is True for that value.@PDefn2{Term=[satisfies], Sec=(a subtype predicate)}]}
 
-@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0153-3]}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0153-3],ARef=[AI05-0276-1]}
 @ChgAdded{Version=[3],Text=[If any of the above @LegalityTitle is violated in an
-instance of a generic unit, Program_Error is raised.]}
+instance of a generic unit, Program_Error is raised at the point of the
+violation.]}
 
 @begin{Discussion}
   @ChgRef{Version=[3],Kind=[AddedNormal]}
   @ChgAdded{Version=[3],Text=[This is the usual way around the contract model;
-  this applies even in generic bodies.]}
+  this applies even in instance bodies. Note that errors in instance
+  specifications will be detected at compile-time by the "re-check" of the
+  specification, only errors in the body should raise Program_Error.]}
 @end{Discussion}
 @end{Runtime}
 
@@ -1739,7 +1774,7 @@ modified.]}
 
 
 @begin{Extend2005}
-  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0153-3]}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0153-3],ARef=[AI05-0262-1],ARef=[AI05-0276-1]}
   @ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 2005}
   Predicate aspects are new in Ada 2012.]}
 @end{Extend2005}
@@ -1986,10 +2021,10 @@ types because they might denote stand-alone aliased unconstrained variables.
 That's true even for access-to-constant types (the denoted object does not
 have to be a constant).]}
 
-@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0005-1],ARef=[AI05-0008-1]}
 @ChgAdded{Version=[3],Text=[There are other cases that could have been
 included in this definition (view conversions, the current instance of
-a type, implementation-defined attributes, objects of a formal discriminated
+a type, objects of a formal discriminated
 private type), but these are not relevant to the places this term is
 used, so they were not included. If this term is used in additional places,
 the definition should be checked to see if any of these additional cases
@@ -2770,7 +2805,7 @@ We now allow a static expression of any numeric type
 to initialize a named
 number. For integer types, it was possible in Ada 83
 to use 'Pos to define a named number, but there was
-no way to use a static expression of some non-universal
+no way to use a static expression of some nonuniversal
 real type to define a named number. This change is
 upward compatible because of the preference rule for
 the operators of the root numeric types.
@@ -3344,7 +3379,7 @@ and @key{null record} as the @nt{record_component_association_list}],Old=[]}.
 @begin(Discussion)
   @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00391-01]}
   If an inherited function returns the derived type, and the type
-  is a @Chg{Version=[2],New=[non-null ],Old=[]}record extension, then the
+  is a @Chg{Version=[2],New=[nonnull ],Old=[]}record extension, then the
   inherited function @Chg{Version=[2],New=[shall be overridden, unless
   the type is abstract (in which case the function ],Old=[]}is abstract,
   and (unless overridden) cannot be called except via
@@ -3544,10 +3579,10 @@ similar, but not the same.]}
   @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0096-1]}
   @ChgAdded{Version=[3],Text=[@Defn{incompatibilities with Ada 2005}@b<Correction:>
   Added a (re)check that limited type extensions never are derived from
-  non-limited types in generic private parts. This is disallowed as it would
-  make it possible to pass a limited object to a non-limited class-wide type,
+  nonlimited types in generic private parts. This is disallowed as it would
+  make it possible to pass a limited object to a nonlimited class-wide type,
   which could then be copied. This is only possible using Ada 2005 syntax,
-  so examples in existing programs should be very rare.]}
+  so examples in existing programs should be rare.]}
 @end{Incompatible2005}
 
 @begin{DiffWord2005}
@@ -4758,12 +4793,14 @@ See also the similar permission for Get in
 @RefSecNum{Input-Output for Real Types}.
 @end{Reason}
 
-@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0182-1]}
-@ChgAdded{Version=[3],Text=[An implementation may extend the Wide_Wide_Value, Wide_Value, and Value
-attributes of a character type to accept strings starting with "Hex_"
-(ignoring case) for graphics characters and those with a code
-position smaller than 16#100#, and three character strings of the form
-"'@i<nongraphic character>'".]}
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0182-1],ARef=[AI05-0262-1],ARef=[AI05-0269-1]}
+@ChgAdded{Version=[3],Text=[An implementation may extend the Wide_Wide_Value,
+Wide_Value, and Value attributes of a character type to accept
+strings of the form @ldquote@;Hex_@i<hhhhhhhh>@rdquote (ignoring case) for any
+character (not just the ones for which Wide_Wide_Image would produce that form
+@em see @RefSecNum{Character Types}), as well as three-character strings of
+the form @ldquote@;'@i<X>'@rdquote, where @i<X> is any character, including
+nongraphic characters.]}
 @end{ImplPerm}
 
 @begin{StaticSem}
@@ -4784,6 +4821,12 @@ Default_Value shall be specified only on a
   @ChgAdded{Version=[3],Text=[The part about requiring an explicit expression is
   to disallow omitting the value for this aspect, which would otherwise be
   allowed by the rules of @RefSecNum{Aspect Specifications}.]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[This is a representation aspect in order to
+  disallow specifying it on a derived type that has inherited primitive
+  subprograms; that is necessary as the sizes of @key[out] parameters could be
+  different whether or not a Default_Value is specified (see @RefSecNum{Parameter Associations}).]}
 @end{Reason}
 @ChgAspectDesc{Version=[3],Kind=[AddedNormal],Aspect=[Default_Value],
   Text=[@ChgAdded{Version=[3],Text=[Default value for a scalar subtype.]}]}
@@ -4933,9 +4976,10 @@ More explicit rules are provided for nongraphic characters.
 @begin{Inconsistent2005}
   @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0181-1]}
   @ChgAdded{Version=[3],Text=[@Defn{inconsistencies with Ada 2005}@b<Correction:>
-  Soft hyphen (position 173) is nongraphic in ISO/IEC 10646:2003. Thus, we have given it
-  the language-defined name @i{soft_hyphen}. This changes the result of
-  Character'Image (and all of the related types and Image attributes)
+  Soft hyphen (code point 173) is nongraphic in ISO/IEC 10646:2011 (and also
+  in the 2003 version of that standard). Thus, we
+  have given it the language-defined name @i{soft_hyphen}. This changes the
+  result of Character'Image (and all of the related types and Image attributes)
   for this character, and changes the behavior of Character'Value (and all of
   the related types and Value attributes) for this character, and
   (in unusual circumstances), changes the result for Character'Width (and all
@@ -4946,12 +4990,12 @@ More explicit rules are provided for nongraphic characters.
   @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0182-1]}
   @ChgAdded{Version=[3],Text=[@b<Correction:>
   Added an @ImplPermTitle to let Wide_Wide_Value, Wide_Value, and Value accept
-  strings in the form of literals containing non-graphic characters and
+  strings in the form of literals containing nongraphic characters and
   "Hex_hhhhhhhh" for Latin-1 and graphic characters. These were required to
   raise Constraint_Error in Ada 2005. Since these attributes aren't very
   useful, implementations were inconsistent as to whether these were accepted,
-  and code that would care why the attribute failed seems unlikely, this should
-  not be a problem in practice.]}
+  and since code that would care why the attribute failed seems unlikely,
+  this should not be a problem in practice.]}
 @end{Inconsistent2005}
 
 @begin{Extend2005}
@@ -5136,19 +5180,21 @@ An enumeration type is said to be a @i(character type) if at least
 one of its enumeration literals is a @nt<character_literal>.
 
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00285-01]}
-@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0181-1]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0181-1],ARef=[AI05-0262-1],ARef=[AI05-0266-1]}
 @Defn{Latin-1}
 @Defn{BMP}
-@Chg{Version=[2],New=[@Defn{ISO/IEC 10646:2003}],Old=[@Defn{ISO 10646}]}
+@Chg{Version=[2],New=[@Chg{Version=[3],New=[@Defn{ISO/IEC 10646:2011}],
+Old=[@Defn{ISO/IEC 10646:2003}]}],Old=[@Defn{ISO 10646}]}
 @Defn{Character}
 The predefined type Character is a character type whose values
-correspond to the 256 code positions of Row 00 (also
-known as Latin-1) of the @Chg{Version=[2],New=[ISO/IEC 10646:2003],
-Old=[ISO 10646]}
+correspond to the 256 code @Chg{Version=[3],New=[points],Old=[positions]}
+of Row 00 (also known as Latin-1) of the
+@Chg{Version=[2],New=[ISO/IEC 10646:@Chg{Version=[3],New=[2011],Old=[2003]}],Old=[ISO 10646]}
 Basic Multilingual Plane (BMP).
 Each of the graphic characters of Row 00 of the BMP has
 a corresponding @nt<character_literal> in Character.
-Each of the nongraphic positions of Row 00@Chg{Version=[3],New=[],Old=[ (0000-001F and 007F-009F)]}
+Each of the nongraphic @Chg{Version=[3],New=[characters],Old=[positions]}
+of Row 00@Chg{Version=[3],New=[],Old=[ (0000-001F and 007F-009F)]}
 has a corresponding language-defined name, which is not usable as an
 enumeration literal,
 but which is usable with the attributes @Chg{Version=[2],New=[Image,
@@ -5157,14 +5203,23 @@ Old=[(Wide_)Image and (Wide_)Value]};
 these names are given in the definition of type Character
 in @RefSec{The Package Standard}, but are set in @i{italics}.
 @Defn2{Term=[italics],Sec=(nongraphic characters)}
+@Chg{Version=[3],New=[@PDefn2{Term=[code point],Sec=[for characters]}],Old=[]}
+
+@begin{Discussion}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0262-1]}
+@ChgAdded{Version=[3],Text=[@i{Code point} is defined in ISO/IEC 10646:2011.]}
+@end{Discussion}
 
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00285-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0262-1]}
 @Defn{Wide_Character}
 @Defn{BMP}
-@Chg{Version=[2],New=[@Defn{ISO/IEC 10646:2003}],Old=[@Defn{ISO 10646}]}
+@Chg{Version=[2],New=[@Chg{Version=[3],New=[@Defn{ISO/IEC 10646:2011}],
+Old=[@Defn{ISO/IEC 10646:2003}]}],Old=[@Defn{ISO 10646}]}
 The predefined type Wide_Character is a character type whose
-values correspond to the 65536 code positions of the @Chg{Version=[2],
-New=[ISO/IEC 10646:2003],Old=[ISO 10646]}
+values correspond to the 65536 code
+@Chg{Version=[3],New=[points],Old=[positions]} of the @Chg{Version=[2],
+New=[ISO/IEC 10646:@Chg{Version=[3],New=[2011],Old=[2003]}],Old=[ISO 10646]}
 Basic Multilingual Plane (BMP).
 Each of the graphic characters of the BMP has
 a corresponding @nt<character_literal> in Wide_Character.
@@ -5184,22 +5239,27 @@ All other values of Wide_Character are considered graphic characters,
 and have]} a corresponding @nt<character_literal>.
 
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00285-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0262-1]}
 @ChgAdded{Version=[2],Text=[@Defn{Wide_Wide_Character}
-@Defn{BMP}
-@Chg{Version=[2],New=[@Defn{ISO/IEC 10646:2003}],Old=[@Defn{ISO 10646}]}
+@Chg{Version=[2],New=[@Chg{Version=[3],New=[@Defn{ISO/IEC 10646:2011}],
+Old=[@Defn{ISO/IEC 10646:2003}]}],Old=[@Defn{ISO 10646}]}
 The predefined type Wide_Wide_Character is a character type whose values
-correspond to the 2147483648 code positions of the ISO/IEC 10646:2003 character
-set. Each of the @ntf{graphic_character}s has a corresponding
-@nt{character_literal} in
+correspond to the 2147483648 code @Chg{Version=[3],New=[points],Old=[positions]}
+of the ISO/IEC 10646:@Chg{Version=[3],New=[2011],Old=[2003]} character set.
+Each of the @ntf{graphic_character}s
+has a corresponding @nt{character_literal} in
 Wide_Wide_Character. The first 65536 values of Wide_Wide_Character have the
 same @nt{character_literal} or language-defined name as defined for
 Wide_Character.]}
 
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00285-01]}
-@ChgAdded{Version=[2],Text=[The characters whose code position is larger
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0262-1]}
+@ChgAdded{Version=[2],Text=[The characters whose code
+@Chg{Version=[3],New=[point],Old=[position]} is larger
 than 16#FF# and which are not @ntf{graphic_character}s have language-defined
 names which are formed by appending to the string "Hex_" the
-representation of their code position in hexadecimal as eight extended digits.
+representation of their code @Chg{Version=[3],New=[point],Old=[position]}
+in hexadecimal as eight extended digits.
 As with other language-defined names, these names are usable only with the
 attributes (Wide_)Wide_Image and (Wide_)Wide_Value; they are not usable as
 enumeration literals.]}
@@ -5322,17 +5382,18 @@ Context is used to resolve their type.
   @ChgAdded{Version=[2],Text=[@Defn{inconsistencies with Ada 95}
   Ada 95 defined most characters in Wide_Character to be graphic characters,
   while Ada 2005 uses the categorizations from ISO-10646:2003. It also
-  provides language-defined names for all non-graphic characters. That
+  provides language-defined names for all nongraphic characters. That
   means that in Ada 2005, Wide_Character'Wide_Value will raise Constraint_Error
-  for a string representing a @nt{character_literal} of a non-graphic character,
+  for a string representing a @nt{character_literal} of a nongraphic character,
   while Ada 95 would have accepted it. Similarly, the result of
-  Wide_Character'Wide_Image will change for such non-graphic characters.]}
+  Wide_Character'Wide_Image will change for such nongraphic characters.]}
 
   @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00395-01]}
-  @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0005-1]}
+  @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0005-1],ARef=[AI05-0262-1]}
   @ChgAdded{Version=[2],Text=[The language-defined names FFFE and FFFF were
-  replaced by a consistent set of language-defined names for all non-graphic
-  characters with positions greater than 16#FF#. That means that
+  replaced by a consistent set of language-defined names for all nongraphic
+  characters with @Chg{Version=[3],New=[code points],Old=[positions]}
+  greater than 16#FF#. That means that
   in Ada 2005, Wide_Character'Wide_Value("FFFE") will raise Constraint_Error
   while Ada 95 would have accepted it. Similarly, the result of
   Wide_Character'Wide_Image will change for the position numbers 16#FFFE#
@@ -5381,6 +5442,15 @@ Context is used to resolve their type.
   @ChgAdded{Version=[3],Text=[@b<Correction:> Removed the position numbers
   of nongraphic characters from the text, as it is wrong and thus
   misleading.]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0262-1]}
+  @ChgAdded{Version=[3],Text=[Changed "code position" to "code point"
+  consistently throughout the standard, as ISO/IEC 10646:2011 prefers
+  "code point" and we are referring to the definition in that Standard.
+  This change also reduces confusion between "code point"
+  and "position number"; while these have the same values for the predefined
+  character types, there is no required relationship for other character
+  types.@PDefn2{Term=[code point],Sec=[for characters]}]}
 @end{DiffWord2005}
 
 
@@ -5732,7 +5802,7 @@ It is implementation defined for which powers of 2, if any, this
 permission is exercised.
 
 @ChgRef{Version=[1],Kind=[Added],Ref=[8652/0003],ARef=[AI95-00095-01]}
-@Chg{New=[For a one's complement machine, implementations may support non-binary
+@Chg{New=[For a one's complement machine, implementations may support nonbinary
 modulus values greater than System.Max_Nonbinary_Modulus. It is implementation
 defined which specific values greater than System.Max_Nonbinary_Modulus, if
 any, are supported.],Old=[]}

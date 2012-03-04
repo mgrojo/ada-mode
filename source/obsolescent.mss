@@ -1,10 +1,10 @@
 @Part(obsolescent, Root="ada.mss")
 
-@Comment{$Date: 2011/11/01 23:14:15 $}
+@Comment{$Date: 2012/02/19 01:58:37 $}
 @LabeledNormativeAnnex{Obsolescent Features}
 
 @Comment{$Source: e:\\cvsroot/ARM/Source/obsolescent.mss,v $}
-@Comment{$Revision: 1.54 $}
+@Comment{$Revision: 1.56 $}
 
 @begin{Intro}
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00368-01]}
@@ -224,7 +224,7 @@ that only allows a decimal fixed point subtype).
 @begin(Discussion)
   @ChgRef{Version=[2],Kind=[Deleted],ARef=[AI95-00114-01]}
   @ChgDeleted{Version=[2],Text=[We may need a better way to deal with
-  obsolescent features with rules that contradict those of the non-obsolescent
+  obsolescent features with rules that contradict those of the nonobsolescent
   parts of the standard.]}
 @end(Discussion)
 @end{Legality}
@@ -1080,7 +1080,7 @@ all of the denoted entities.]}
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0229-1]}
 @ChgAdded{Version=[3],Type=[Leading],Text=[The form of a @nt{pragma}
 No_Return, which is a representation pragma
-(see @RefSecNum{Operational and Representation Items}),
+(see @RefSecNum{Operational and Representation Aspects}),
 is as follows:@PDefn2{Term=[representation pragma], Sec=(No_Return)}
 @PDefn2{Term=[pragma, representation], Sec=(No_Return)}]}
 @end{SyntaxText}
@@ -1101,14 +1101,14 @@ procedure nor an instance of a generic unit.]]}
 @begin{StaticSem}
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0229-1]}
 @ChgAdded{Version=[3],Text=[@nt{Pragma} No_Return specifies that the No_Return
-aspect (see @RefSecNum{Non-returning Procedures}) for each procedure denoted
+aspect (see @RefSecNum{Nonreturning Procedures}) for each procedure denoted
 by each @nt{local_name} given in the @nt{pragma} has the value True.]}
 @end{StaticSem}
 
 @begin{DiffWord2005}
   @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0229-1]}
   @ChgAdded{Version=[3],Text=[This clause is new. Pragma No_Return was moved
-  here from @RefSecNum{Non-returning Procedures}; aspect No_Return lives
+  here from @RefSecNum{Nonreturning Procedures}; aspect No_Return lives
   there now.]}
 @end{DiffWord2005}
 
@@ -1120,7 +1120,7 @@ by each @nt{local_name} given in the @nt{pragma} has the value True.]}
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0229-1]}
 @ChgAdded{Version=[3],Type=[Leading],Text=[The form of a @nt{pragma}
 Pack, which is a representation pragma
-(see @RefSecNum{Operational and Representation Items}),
+(see @RefSecNum{Operational and Representation Aspects}),
 is as follows:@PDefn2{Term=[representation pragma], Sec=(Pack)}
 @PDefn2{Term=[pragma, representation], Sec=(Pack)}]}
 @end{SyntaxText}
@@ -1248,7 +1248,7 @@ unless the argument for External_Name is given.]}
 @begin{Resolution}
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0229-1]}
 @ChgAdded{Version=[3],Text=[@PDefn2{Term=[expected type],Sec=(link name)}
-@PDefn2{Term=[expected type],Sec=(external name)} The expected type for a
+@PDefn2{Term=[expected type],Sec=(external name)} The expected type for an
 @SynI{external_name_string_}@nt{expression} and a
 @SynI{link_name_string_}@nt{expression} in an interfacing pragma is String.]}
 @end{Resolution}
@@ -1311,9 +1311,9 @@ various aspects of the entity denoted by the @nt{local_name} as follows:]}
 
 @begin{DiffWord2005}
   @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0229-1]}
-  @ChgAdded{Version=[3],Text=[This clause is new. Pragma Unchecked_Union was
-  moved here from @RefSecNum{Unchecked Union Types}; aspect Unchecked_Union
-  lives there now.]}
+  @ChgAdded{Version=[3],Text=[This clause is new. Pragmas Import, Export, and
+  Convention were moved here from @RefSecNum{Interfacing Aspects}; aspects
+  Import, Export, Convention, Link_Name, and External_Name live there now.]}
 @end{DiffWord2005}
 
 
@@ -1324,7 +1324,7 @@ various aspects of the entity denoted by the @nt{local_name} as follows:]}
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0229-1]}
 @ChgAdded{Version=[3],Type=[Leading],Text=[The form of a @nt{pragma}
 Unchecked_Union, which is a representation pragma
-(see @RefSecNum{Operational and Representation Items}),
+(see @RefSecNum{Operational and Representation Aspects}),
 is as follows:@PDefn2{Term=[representation pragma], Sec=(Unchecked_Union)}
 @PDefn2{Term=[pragma, representation], Sec=(Unchecked_Union)}]}
 @end{SyntaxText}
@@ -1502,10 +1502,10 @@ Text=[@key{pragma} @prag<Independent_Components> (@Syn2[local_name]);]}>
 @begin{Resolution}
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0009-1],ARef=[AI05-0229-1]}
 @ChgAdded{Version=[3],Text=[The @nt{local_name} in an Atomic or Volatile pragma
-shall resolve to denote either an @nt{object_declaration}, a non-inherited
+shall resolve to denote either an @nt{object_declaration}, a noninherited
 @nt{component_declaration}, or a @nt{full_type_declaration}. The
 @SynI{component_}@nt{local_name} in an Independent pragma shall resolve to
-denote a non-inherited @nt{component_declaration}. The @SynI{array_}@nt{local_name}
+denote a noninherited @nt{component_declaration}. The @SynI{array_}@nt{local_name}
 in an Atomic_Components or Volatile_Components pragma shall resolve to denote
 the declaration of an array type or an array object of an anonymous type. The
 @nt{local_name} in an Independent_Components pragma shall resolve to denote the
@@ -1516,7 +1516,7 @@ type.]}
 @begin{StaticSem}
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0229-1]}
 @ChgAdded{Version=[3],Text=[These @nt{pragma}s are representation pragmas
-(see @RefSecNum{Operational and Representation Items}).
+(see @RefSecNum{Operational and Representation Aspects}).
 Each of these @nt{pragma}s specifies that the similarly named aspect
 (see @RefSecNum{Shared Variable Control}) of the
 type, object, or component denoted by its argument is True.
@@ -1806,7 +1806,7 @@ for the subprogram that contains the @nt{pragma}.]}
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0229-1]}
 @ChgAdded{Version=[3],Type=[Leading],Text=[The form of a @nt{pragma}
 Asynchronous, which is a representation pragma
-(see @RefSecNum{Operational and Representation Items}),
+(see @RefSecNum{Operational and Representation Aspects}),
 is as follows:@PDefn2{Term=[representation pragma], Sec=(Asynchronous)}
 @PDefn2{Term=[pragma, representation], Sec=(Asynchronous)}]}
 @end{SyntaxText}

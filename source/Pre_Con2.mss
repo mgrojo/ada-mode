@@ -1,6 +1,6 @@
-@Part(precontainers-2, Root="ada.mss")
+ @Part(precontainers-2, Root="ada.mss")
 @comment{ $Source: e:\\cvsroot/ARM/Source/pre_con2.mss,v $ }
-@comment{ $Revision: 1.15 $ $Date: 2011/11/01 23:14:15 $ $Author: randy $ }
+@comment{ $Revision: 1.21 $ $Date: 2012/02/19 01:58:37 $ $Author: randy $ }
 
 @LabeledAddedSubclause{Version=[3],Name=[The Generic Package Containers.Multiway_Trees]}
 
@@ -30,28 +30,28 @@ node, if any). A cursor keeps designating the same node (and element) as long as
 the node is part of the container, even if the node is moved within
 the container.]}
 
-@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0136-1],ARef=[AI05-0269-1]}
 @ChgAdded{Version=[3],Text=[A @i<subtree> is a particular node (which @i<roots the subtree>) and all of its child
 nodes (including all of the children of the child nodes, recursively).
 @Defn2{Term=[subtree],Sec=[of a tree]}@Defn{roots the subtree}@Defn2{Term=[subtree],Sec=[node which roots]} There is
 a special node, the @i<root>, which is always present and has neither an
 associated element value nor any parent node. The root node provides a place
 to add nodes to an otherwise empty tree and
-represents the bottom of the tree.@Defn2{Term=[root],Sec=[of a tree]}@Defn2{Term=[root node],Sec=[of a tree]}]}
+represents the base of the tree.@Defn2{Term=[root],Sec=[of a tree]}@Defn2{Term=[root node],Sec=[of a tree]}]}
 
-@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0136-1],ARef=[AI05-0269-1]}
 @ChgAdded{Version=[3],Text=[A node that has no children is called a
-@i<leaf node>.@Defn2{Term=[leaf node],Sec=[of a tree]} The @i<ancestors> of a node
-are the parent node, the parent of the parent node, and so on until a node with
-no parent is reached.@Defn2{Term=[ancestor],Sec=[of a tree node]} Similarly,
-the @i<descendants> of a node are the child nodes,
+@i<leaf node>.@Defn2{Term=[leaf node],Sec=[of a tree]} The @i<ancestors> of
+a node are the node itself, its parent node, the parent of the parent node,
+and so on until a node with no parent is reached.@Defn2{Term=[ancestor],Sec=[of a tree node]}
+Similarly, the @i<descendants> of a node are the node itself, its child nodes,
 the children of each child node, and so on.@Defn2{Term=[descendant],Sec=[of a tree node]}]}
 
-@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0136-1],ARef=[AI05-0262-1],ARef=[AI05-0269-1]}
 @ChgAdded{Version=[3],Text=[The nodes of a subtree can be visited in several
-different orders. For a @i<depth-first order>, the last step of visiting a node
-is to visit the nodes of its child list in order, recursively.@Defn{depth-first
-order}]}
+different orders. For a @i<depth-first order>, after visiting a node, the nodes
+of its child list are each visited in depth-first order, with each child node
+visited in natural order (first child to last child).@Defn{depth-first order}]}
 
 @begin{Ramification}
   @ChgRef{Version=[3],Kind=[AddedNormal]}
@@ -388,16 +388,20 @@ container.]}
 @ChgAdded{Version=[3],Text=[Execution of the default implementation of the
 Input, Output, Read, or Write attribute of type Cursor raises Program_Error.]}
 
-@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0136-1],ARef=[AI05-0248-1]}
-@ChgAdded{Version=[3],Text=[Tree'Write writes exactly Node_Count (Tree) - 1
-elements of the tree to the stream. It may write additional information about
-the tree as well. Tree'Read reads exactly Node_Count (Tree) - 1 elements of Tree
-from the stream and consumes any additional information written by Tree'Write.]}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0136-1],ARef=[AI05-0248-1],ARef=[AI05-0262-1]}
+@ChgAdded{Version=[3],Text=[Tree'Write for a Tree object @i<T> writes
+Node_Count(@i<T>) - 1 elements of the tree to the stream. It also may write
+additional information about the tree.]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0136-1],ARef=[AI05-0248-1],ARef=[AI05-0262-1]}
+@ChgAdded{Version=[3],Text=[Tree'Read reads the representation of a tree
+from the stream, and assigns to @i<Item> a tree with the same elements and
+structure as was written by Tree'Write.]}
 
 @begin{Ramification}
   @ChgRef{Version=[3],Kind=[AddedNormal]}
   @ChgAdded{Version=[3],Text=[Streaming more elements than the container
-  length is wrong. For implementation implications of this rule, see the Implementation Note in
+  holds is wrong. For implementation implications of this rule, see the Implementation Note in
   @RefSecNum{The Generic Package Containers.Vectors}.]}
 @end{Ramification}
 
@@ -442,6 +446,14 @@ A subprogram is said to
 @ChgRef{Version=[3],Kind=[AddedNormal]}
   @ChgAdded{Version=[3],Text=[it calls Assign with @i<T> as the Target parameter; or]}
 
+@begin{Ramification}
+  @ChgRef{Version=[3],Kind=[Added]}
+  @ChgAdded{Version=[3],Text=[We don't need to explicitly mention
+  @nt{assignment_statement}, because that finalizes the target object
+  as part of the operation, and finalization of an object is already defined
+  as tampering with cursors.]}
+@end{Ramification}
+
 @ChgRef{Version=[3],Kind=[AddedNormal]}
   @ChgAdded{Version=[3],Text=[it calls the Move procedure with @i<T> as a parameter.]}
 
@@ -472,18 +484,31 @@ A subprogram is said to
     to it. That can't be allowed. However, a simple modification of (part of) an
     element is not a problem, so Update_Element does not cause a problem.]}
 @end{Reason}
+@begin{Ramification}
+  @ChgRef{Version=[3],Kind=[Added]}
+  @ChgAdded{Version=[3],Text=[Assign is defined in terms of Clear and Replace_Element,
+  so we don't need to mention it explicitly. Similarly, we don't need to
+  explicitly mention @nt{assignment_statement}, because that finalizes the
+  target object as part of the operation, and finalization of an object is
+  already defined as tampering with the element.]}
+@end{Ramification}
 @end{Itemize}
 
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0265-1]}
 @ChgAdded{Version=[3],Text=[@Defn2{Term=[prohibited],Sec=[tampering with a tree]}
 @Defn2{Term=[tampering],Sec=[prohibited for a tree]}
-If tampering with cursors is @i<prohibited> for a particular tree
-object @i<T>, Program_Error is propagated by any language-defined subprogram
-that is defined to tamper with the cursors of @i<T>. Similarly, if tampering with
-elements is @i<prohibited> for a particular tree object @i<T>,
-Program_Error is propagated by any language-defined subprogram that is defined
-to tamper with the elements of @i<T>.]}
-
+When tampering with cursors is @i<prohibited> for a particular tree object
+@i<T>, Program_Error is propagated by a call of any language-defined subprogram
+that is defined to tamper with the cursors of @i<T>, leaving @i<T> unmodified.
+Similarly, when tampering with elements is @i<prohibited> for a particular tree
+object @i<T>, Program_Error is propagated by a call of any language-defined
+subprogram that is defined to tamper with the elements of @i<T> @Redundant[(or
+tamper with the cursors of @i<T>)], leaving @i<T> unmodified.]}
+@begin{TheProof}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[Tampering with elements includes tampering with
+  cursors, so we mention it only from completeness in the second sentence.]}
+@end{TheProof}
 
 @begin{DescribeCode}
 
@@ -494,11 +519,12 @@ to tamper with the elements of @i<T>.]}
 
 @ChgRef{Version=[3],Kind=[AddedNormal]}
 @ChgAdded{Version=[3],Type=[Trailing],Text=[Returns True if Position designates
-an element, and returns False otherwise.]}
+an element, and returns False otherwise. @Redundant[In particular, Has_Element
+returns False if the cursor designates a root node or equals No_Element.]]}
 
 @begin{Honest}
-  @ChgRef{Version=[3],Kind=[AddedNormal]}
-  @ChgAdded{Version=[3],Text=[This function may not detect cursors that
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0005-1],ARef=[AI05-0136-1]}
+  @ChgAdded{Version=[3],Text=[This function might not detect cursors that
   designate deleted elements; such cursors are invalid (see below) and the
   result of calling Has_Element with an invalid cursor is unspecified (but
   not erroneous).]}
@@ -724,8 +750,8 @@ an element, and returns False otherwise.]}
   tree, then Program_Error is propagated. Otherwise, Query_Element calls
   Process.@key{all} with the element designated by Position as the argument.
   Tampering with the elements of the tree that contains the element designated
-  by Position is prohibited during the execution of Process.@key{all}. Any
-  exception raised by Process.@key{all} is propagated.]}
+  by Position is prohibited during the execution of the call on
+  Process.@key{all}. Any exception raised by Process.@key{all} is propagated.]}
 
 @begin{Example}
 @ChgRef{Version=[3],Kind=[AddedNormal]}
@@ -742,7 +768,7 @@ an element, and returns False otherwise.]}
   in Container (including if it designates the root node), then Program_Error is
   propagated. Otherwise, Update_Element calls Process.@key{all} with the element
   designated by Position as the argument. Tampering with the elements of
-  Container is prohibited during the execution of Process.@key{all}.
+  Container is prohibited during the execution of the call on Process.@key{all}.
   Any exception raised by Process.@key{all} is propagated.]}
 
 @ChgRef{Version=[3],Kind=[AddedNormal]}
@@ -793,10 +819,10 @@ an element, and returns False otherwise.]}
    @key[return] Constant_Reference_Type;]}
 @end{Example}
 
-@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0212-1]}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0212-1],ARef=[AI05-0269-1]}
   @ChgAdded{Version=[3],Type=[Trailing],Text=[This function (combined with the
   Constant_Indexing and Implicit_Dereference aspects) provides a convenient way
-  to gain read access to the individual elements of a container starting with a
+  to gain read access to an individual element of a tree given a
   cursor.]}
 
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0212-1],ARef=[AI05-0265-1]}
@@ -815,11 +841,11 @@ an element, and returns False otherwise.]}
    @key[return] Reference_Type;]}
 @end{Example}
 
-@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0212-1]}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0212-1],ARef=[AI05-0269-1]}
   @ChgAdded{Version=[3],Type=[Trailing],Text=[This function (combined with the
   Variable_Indexing and Implicit_Dereference aspects) provides a convenient way
-  to gain read and write access to the individual elements of a container
-  starting with a cursor.]}
+  to gain read and write access to an individual element of a tree
+  given a cursor.]}
 
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0212-1],ARef=[AI05-0265-1]}
   @ChgAdded{Version=[3],Text=[If Position equals No_Element, then
@@ -913,13 +939,13 @@ an element, and returns False otherwise.]}
                           Position  : @key{in out} Cursor);]}
 @end{Example}
 
-@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0136-1],ARef=[AI05-0264-1]}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0136-1],ARef=[AI05-0264-1],ARef=[AI05-0269-1]}
   @ChgAdded{Version=[3],Type=[Trailing],Text=[If Position equals No_Element,
   then Constraint_Error is propagated. If Position does not designate an element
   in Container (including if it designates the root node), then Program_Error is
   propagated. Otherwise, Delete_Subtree removes (from Container) the subtree
-  designated by Position (that is, the node designated by Position and all of
-  the descendant nodes of that node), and Position is set to No_Element.]}
+  designated by Position (that is, all descendants of the node designated
+  by Position including the node itself), and Position is set to No_Element.]}
 
 @begin{Ramification}
     @ChgRef{Version=[3],Kind=[AddedNormal]}
@@ -1040,7 +1066,7 @@ an element, and returns False otherwise.]}
   @ChgAdded{Version=[3],Type=[Trailing],Text=[Iterate calls Process.@key{all}
   with a cursor that designates each element in Container, starting with the
   root node and proceeding in a depth-first order. Tampering with the cursors
-  of Container is prohibited during the execution of Process.@key{all}.
+  of Container is prohibited during the execution of a call on Process.@key{all}.
   Any exception raised by Process.@key{all} is propagated.]}
 
 @begin{Ramification}
@@ -1074,12 +1100,14 @@ an element, and returns False otherwise.]}
 
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0136-1],ARef=[AI05-0265-1]}
   @ChgAdded{Version=[3],Type=[Trailing],Text=[If Position equals No_Element,
-  then Constraint_Error is propagated. Iterate_Subtree calls Process.@key{all}
+  then Constraint_Error is propagated. Otherwise, Iterate_Subtree calls
+  Process.@key{all}
   with a cursor that designates each element in the subtree rooted by the node
   designated by Position, starting with the node designated by Position and
   proceeding in a depth-first order.
-  Tampering with the cursors of the tree containing Position
-  is prohibited during the execution of Process.@key{all}.
+  Tampering with the cursors of the tree that contains the element
+  designated by Position
+  is prohibited during the execution of a call on Process.@key{all}.
   Any exception raised by Process.@key{all} is propagated.]}
 
 @begin{Ramification}
@@ -1095,9 +1123,11 @@ an element, and returns False otherwise.]}
    @key{return} Tree_Iterator_Interfaces.Forward_Iterator'Class;]}
 @end{Example}
 
-@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0212-1],ARef=[AI05-0265-1]}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0212-1],ARef=[AI05-0265-1],ARef=[AI05-0269-1]}
   @ChgAdded{Version=[3],Type=[Trailing],Text=[Iterate returns an iterator object
-  that will generate a value for the loop parameter designating each node in
+  (see @RefSecNum{User-Defined Iterator Types}) that will
+  generate a value for a loop parameter (see @RefSecNum{Generalized Loop Iteration})
+  designating each node in
   Container, starting with the root node and proceeding in a depth-first order.
   Tampering with the cursors of Container is prohibited while the iterator
   object exists (in particular, in the
@@ -1105,16 +1135,33 @@ an element, and returns False otherwise.]}
   @nt{iterator_specification} denotes this object). The iterator object needs
   finalization.]}
 
+@begin{Discussion}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Type=[Leading],Text=[Exits are allowed from the loops
+  created using the iterator objects. In particular, to stop the iteration at a
+  particular cursor, just add]}
+@begin{Example}
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[@key[exit when] Cur = Stop;]}
+@end{Example}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Type=[Trailing],Text=[in the body of the loop (assuming
+  that @exam{Cur} is the loop parameter and @exam{Stop} is the cursor that you
+  want to stop at).]}
+@end{Discussion}
+
 @begin{Example}
 @ChgRef{Version=[3],Kind=[AddedNormal]}
 @ChgAdded{Version=[3],KeepNext=[T],Text=[@key{function} Iterate_Subtree (Position : @key{in} Cursor)
    @key{return} Tree_Iterator_Interfaces.Forward_Iterator'Class;]}
 @end{Example}
 
-@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0212-1],ARef=[AI05-0265-1]}
-  @ChgAdded{Version=[3],Type=[Trailing],Text=[Iterate_Subtree returns an
-  iterator object that will generate a value for the loop parameter designating
-  each element in the subtree rooted by the node designated by Position,
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0212-1],ARef=[AI05-0265-1],ARef=[AI05-0269-1]}
+  @ChgAdded{Version=[3],Type=[Trailing],Text=[If Position equals No_Element,
+  then Constraint_Error is propagated. Otherwise, Iterate_Subtree returns an
+  iterator object (see @RefSecNum{User-Defined Iterator Types}) that will
+  generate a value for a loop parameter (see @RefSecNum{Generalized Loop Iteration})
+  designating each element in the subtree rooted by the node designated by Position,
   starting with the node designated by Position and proceeding in a depth-first
   order. If Position equals No_Element, then Constraint_Error is propagated.
   Tampering with the cursors of the container that contains the node
@@ -1267,8 +1314,7 @@ an element, and returns False otherwise.]}
   @ChgAdded{Version=[3],Type=[Trailing],Text=[If Parent equals No_Element, then
   Constraint_Error is propagated. If Parent does not designate a node in
   Container, Program_Error is propagated. Otherwise, Delete_Children removes
-  (from Container) all of the child nodes of Parent along with their
-  descendant nodes.]}
+  (from Container) all of the descendants of Parent other than Parent itself.]}
 
 @begin{Discussion}
     @ChgRef{Version=[3],Kind=[AddedNormal]}
@@ -1329,7 +1375,7 @@ an element, and returns False otherwise.]}
                           Position : @key{in out} Cursor);]}
 @end{Example}
 
-@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0136-1],ARef=[AI05-0248-1],ARef=[AI05-0262-1]}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0136-1],ARef=[AI05-0248-1],ARef=[AI05-0262-1],ARef=[AI05-0269-1]}
   @ChgAdded{Version=[3],Type=[Trailing],Text=[If Parent equals No_Element, then
   Constraint_Error is propagated. If Parent does not designate a node in Target,
   then Program_Error is propagated. If Before is not equal to No_Element, and
@@ -1341,7 +1387,7 @@ an element, and returns False otherwise.]}
   Source or designates a root node, then Program_Error is propagated. If Source
   denotes the same object as Target, then:
   if Position equals Before there is no effect; if Position designates an
-  ancestor of Parent or is equal to Parent, Constraint_Error is propagated;
+  ancestor of Parent (including Parent itself), Constraint_Error is propagated;
   otherwise, the subtree rooted by the element designated by Position is
   moved to be a child of Parent. If Parent already has child nodes, then the
   moved nodes are inserted prior to the node designated by Before, or, if Before
@@ -1353,7 +1399,7 @@ an element, and returns False otherwise.]}
 @begin{Reason}
     @ChgRef{Version=[3],Kind=[AddedNormal]}
     @ChgAdded{Version=[3],Text=[We can't allow moving the subtree of Position to
-    a descendant node of the subtree, as the descendant node will be part of the
+    a proper descendant node of the subtree, as the descendant node will be part of the
     subtree being moved. The result would be a circularly linked tree, or one
     with inaccessible nodes. Thus we have to check Position against Parent, even
     though such a check is @i<O>(Depth(Source)).]}
@@ -1394,7 +1440,7 @@ an element, and returns False otherwise.]}
                           Position : @key{in}     Cursor);]}
 @end{Example}
 
-@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0136-1],ARef=[AI05-0248-1],ARef=[AI05-0262-1]}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0136-1],ARef=[AI05-0248-1],ARef=[AI05-0262-1],ARef=[AI05-0269-1]}
   @ChgAdded{Version=[3],Type=[Trailing],Text=[If Parent equals No_Element, then
   Constraint_Error is propagated. If Parent does not designate a node in
   Container, then Program_Error is propagated. If Before is not equal to
@@ -1405,7 +1451,7 @@ an element, and returns False otherwise.]}
   equals No_Element, Constraint_Error is propagated. If Position does not
   designate a node in Container or designates a root node, then Program_Error is
   propagated. If Position equals Before, there is no effect. If Position
-  designates an ancestor of Parent or is equal to Parent, Constraint_Error is
+  designates an ancestor of Parent (including Parent itself), Constraint_Error is
   propagated. Otherwise, the subtree rooted by the element designated by
   Position is moved to be a child of Parent. If Parent already has child nodes,
   then the moved nodes are inserted prior to the node designated by Before, or,
@@ -1416,7 +1462,7 @@ an element, and returns False otherwise.]}
 @begin{Reason}
     @ChgRef{Version=[3],Kind=[AddedNormal]}
     @ChgAdded{Version=[3],Text=[We can't allow moving the subtree of Position to
-    a descendant node of the subtree, as the descendant node will be part of the
+    a proper descendant node of the subtree, as the descendant node will be part of the
     subtree being moved.]}
 @end{Reason}
 
@@ -1449,12 +1495,12 @@ an element, and returns False otherwise.]}
     @ChgAdded{Version=[3],Text=[if Target_Parent equals Source_Parent there is
     no effect; else]}
 
-    @ChgRef{Version=[3],Kind=[AddedNormal]}
+    @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0136-1],ARef=[AI05-0269-1]}
     @ChgAdded{Version=[3],Text=[if Source_Parent is an ancestor of
-    Target_Parent, then Constraint_Error is propagated; else]}
+    Target_Parent other than Target_Parent itself, then Constraint_Error is propagated; else]}
 
-    @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0136-1],ARef=[AI05-0248-1]}
-    @ChgAdded{Version=[3],Text=[the child elements (and their descendants) of
+    @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0136-1],ARef=[AI05-0248-1],ARef=[AI05-0269-1]}
+    @ChgAdded{Version=[3],Text=[the child elements (and the further descendants) of
     Source_Parent are moved to be child elements of Target_Parent. If
     Target_Parent already has child elements, then the moved elements are
     inserted prior to the node designated by Before, or, if Before equals
@@ -1465,22 +1511,22 @@ an element, and returns False otherwise.]}
 
 @begin{Reason}
     @ChgRef{Version=[3],Kind=[AddedNormal]}
-    @ChgAdded{Version=[3],Text=[We can't allow moving the children of Source_Parent to a
-   descendant node, as the descendant node will be part of one of the
-   subtrees being moved.]}
+    @ChgAdded{Version=[3],Text=[We can't allow moving the children of
+    Source_Parent to a proper descendant node, as the descendant node will be
+    part of one of the subtrees being moved.]}
 @end{Reason}
 
-  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0136-1],ARef=[AI05-0248-1]}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0136-1],ARef=[AI05-0248-1],ARef=[AI05-0269-1]}
   @ChgAdded{Version=[3],Text=[Otherwise (if Source does not denote the same
-  object as Target), the child elements (and their descendants) of Source_Parent
+  object as Target), the child elements (and the further descendants) of Source_Parent
   are removed from Source and moved to Target. The child elements are inserted
   as children of Target_Parent. If Target_Parent already has child elements, then
   the moved elements are inserted prior to the node designated by Before, or, if
   Before equals No_Element, the moved elements are inserted after the last
   existing child node of Target_Parent. In each of these cases, the overall
-  count of Target is incremented by Subtree_Count (Source_Node_Parent)-1, and
-  the overall count of Source is decremented by Subtree_Count
-  (Source_Node_Parent)-1.]}
+  count of Target is incremented by Subtree_Node_Count (Source_Parent)-1, and
+  the overall count of Source is decremented by Subtree_Node_Count
+  (Source_Parent)-1.]}
 
 @begin{Ramification}
     @ChgRef{Version=[3],Kind=[AddedNormal]}
@@ -1500,7 +1546,7 @@ an element, and returns False otherwise.]}
                            Source_Parent   : @key{in}     Cursor);]}
 @end{Example}
 
-@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0136-1],ARef=[AI05-0248-1],ARef=[AI05-0262-1],ARef=[AI05-0264-1]}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0136-1],ARef=[AI05-0248-1],ARef=[AI05-0262-1],ARef=[AI05-0264-1],ARef=[AI05-0269-1]}
   @ChgAdded{Version=[3],Type=[Trailing],Text=[If Target_Parent equals
   No_Element, then Constraint_Error is propagated. If Target_Parent does not
   designate a node in Container, then Program_Error is propagated. If Before is
@@ -1511,8 +1557,9 @@ an element, and returns False otherwise.]}
   No_Element, and Target_Parent does not designate the parent node of the
   node designated by Before, then Constraint_Error is propagated.
   If Target_Parent equals Source_Parent there is
-  no effect. If Source_Parent is an ancestor of Target_Parent, then
-  Constraint_Error is propagated. Otherwise, the child elements (and their
+  no effect. If Source_Parent is an ancestor of Target_Parent other than
+  Target_Parent itself, then
+  Constraint_Error is propagated. Otherwise, the child elements (and the further
   descendants) of Source_Parent are moved to be child elements of Target_Parent.
   If Target_Parent already has child elements, then the moved elements are
   inserted prior to the node designated by Before, or, if Before equals
@@ -1624,8 +1671,8 @@ node and moving the cursor as per the Next_Sibling function.]}
 
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0265-1]}
 @ChgAdded{Version=[3],Text=[Tampering with the cursors of the tree containing
-Parent is prohibited during the execution of Process.@key{all}. Any exception
-raised by Process.@key{all} is propagated.]}
+Parent is prohibited during the execution of a call on Process.@key{all}.
+Any exception raised by Process.@key{all} is propagated.]}
 
 @begin{Example}
 @ChgRef{Version=[3],Kind=[AddedNormal]}
@@ -1645,8 +1692,8 @@ child node and moving the cursor as per the Previous_Sibling function.]}
 
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0265-1]}
 @ChgAdded{Version=[3],Text=[Tampering with the cursors of the tree containing
-Parent is prohibited during the execution of Process.@key{all}. Any exception
-raised by Process.@key{all} is propagated.]}
+Parent is prohibited during the execution of a call on Process.@key{all}.
+Any exception raised by Process.@key{all} is propagated.]}
 
 @begin{Example}
 @ChgRef{Version=[3],Kind=[AddedNormal]}
@@ -1656,7 +1703,9 @@ raised by Process.@key{all} is propagated.]}
 
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0212-1],ARef=[AI05-0265-1]}
 @ChgAdded{Version=[3],Type=[Trailing],Text=[Iterate_Children returns a
-reversible iterator object that will generate a value for the loop parameter
+reversible iterator object
+(see @RefSecNum{User-Defined Iterator Types}) that will generate
+a value for a loop parameter (see @RefSecNum{Generalized Loop Iteration})
 designating each child node of Parent. If Parent equals No_Element, then
 Constraint_Error is propagated. If Parent does not designate a node in
 Container, then Program_Error is propagated. Otherwise, when used as a forward
@@ -1759,7 +1808,7 @@ finalized.]}
   container. If that container is prematurely finalized (which is only possible
   via Unchecked_Deallocation, as accessibility checks prevent passing a
   container to Reference that will not live as long as the result), the
-  finalization of the object of Reference_Type will try to access a non-existent
+  finalization of the object of Reference_Type will try to access a nonexistent
   object. This is a normal case of a dangling pointer created by
   Unchecked_Deallocation; we have to explicitly mention it here as the pointer
   in question is not visible in the specification of the type. (This is the same
@@ -1782,7 +1831,7 @@ object to that of the source object.]}
 @begin{ImplNote}
   @ChgRef{Version=[3],Kind=[AddedNormal]}
   @ChgAdded{Version=[3],Text=[An assignment of a Tree is a @lquotes@;deep@rquotes
-  copy; that is the elements are copied as well as the data structures.
+  copy; that is the elements are copied as well the data structures.
   We say @lquotes@;effect of@rquotes in order to allow the implementation to
   avoid copying elements immediately if it wishes. For instance, an
   implementation that avoided copying until one of the containers is modified
@@ -1848,7 +1897,7 @@ unless specified by the operation.]}]}
 @end{ImplAdvice}
 
 @begin{Extend2005}
-  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0136-1],ARef=[AI05-0257-1],ARef=[AI05-0265-1]}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0136-1],ARef=[AI05-0257-1],ARef=[AI05-0265-1],ARef=[AI05-0269-1]}
   @ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 2005}
   The generic package Containers.Multiway_Trees is new.]}
 @end{Extend2005}
@@ -2432,9 +2481,9 @@ it calls the Replace_Element procedure with @i<H> as a parameter;]}
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0265-1]}
 @ChgAdded{Version=[3],Text=[@Defn2{Term=[prohibited],Sec=[tampering with a holder]}
 @Defn2{Term=[tampering],Sec=[prohibited for a holder]}
-If tampering with the element is @i<prohibited> for a particular holder object
-@i<H>, Program_Error is propagated by any language-defined subprogram that is defined
-to tamper with the element of @i<H>.]}
+When tampering with the element is @i<prohibited> for a particular holder object
+@i<H>, Program_Error is propagated by a call of any language-defined subprogram
+that is defined to tamper with the element of @i<H>, leaving @i<H> unmodified.]}
 
 @begin{DescribeCode}
 
@@ -2464,7 +2513,7 @@ exception raised during the evaluation of element equality is propagated.]}
 @end{Example}
 
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0069-1]}
-@ChgAdded{Version=[3],Type=[Trailing],Text=[Returns a non-empty holder
+@ChgAdded{Version=[3],Type=[Trailing],Text=[Returns a nonempty holder
 containing an element initialized to New_Item.]}
 
 @begin{Example}
@@ -2473,7 +2522,7 @@ containing an element initialized to New_Item.]}
 @end{Example}
 
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0069-1]}
-@ChgAdded{Version=[3],Type=[Trailing],Text=[Returns True if the holder is
+@ChgAdded{Version=[3],Type=[Trailing],Text=[Returns True if Container is
 empty, and False if it contains an element.]}
 
 @begin{Example}
@@ -2518,14 +2567,14 @@ Container is not empty after a successful call to Replace_Element.]}
 Constraint_Error is propagated. Otherwise, Query_Element calls
 Process.@key[all] with the contained element as the argument.
 Tampering with the element
-of Container is prohibited during the execution of Process.@key[all]. Any
-exception raised by Process.@key[all] is propagated.]}
+of Container is prohibited during the execution of the call on
+Process.@key[all]. Any exception raised by Process.@key[all] is propagated.]}
 
 @begin{ImplNote}
-  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0005-1]}
   @ChgAdded{Version=[3],Text=[The @ldquote@;tamper with the element@rdquote
   check is intended to prevent the Element parameter of Process from being
-  modified or deleted outside of Process. The check prevents data loss (if
+  replaced or deleted outside of Process. The check prevents data loss (if
   Element_Type is passed by copy) or erroneous execution (if Element_Type is an
   unconstrained type).]}
 @end{ImplNote}
@@ -2542,8 +2591,8 @@ exception raised by Process.@key[all] is propagated.]}
 Constraint_Error is propagated. Otherwise, Update_Element calls
 Process.@key[all] with the contained element as the argument.
 Tampering with the element
-of Container is prohibited during the execution of Process.@key[all]. Any
-exception raised by Process.@key[all] is propagated.]}
+of Container is prohibited during the execution of the call on Process.@key[all].
+Any exception raised by Process.@key[all] is propagated.]}
 
 @begin{ImplNote}
   @ChgRef{Version=[3],Kind=[AddedNormal]}
@@ -2628,7 +2677,8 @@ called. Otherwise, Replace_Element (Target, Element (Source)) is called.]}
   @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0005-1]}
   @ChgAdded{Version=[3],Text=[This routine exists for compatibility with the
   other containers. For a holder, @exam{Assign(A, B)} and
-  @exam{A := B} behave identically.]}
+  @exam{A := B} behave effectively the same. (Assign Clears the Target, while
+  := finalizes the Target, but these should have similar effects.)]}
 @end{Discussion}
 
 @begin{Example}
@@ -2638,7 +2688,7 @@ called. Otherwise, Replace_Element (Target, Element (Source)) is called.]}
 
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0001-1]}
 @ChgAdded{Version=[3],Type=[Trailing],Text=[If Source is empty, returns an empty
-holder; otherwise, returns To_Holder (Element (Source)).]}
+holder container; otherwise, returns To_Holder (Element (Source)).]}
 
 @begin{Example}
 @ChgRef{Version=[3],Kind=[AddedNormal]}
@@ -2677,11 +2727,11 @@ Constraint_Error or Program_Error.]}
 @end{Bounded}
 
 @begin{Erron}
-@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0212-1]}
-@ChgAdded{Version=[3],Text=[Execution is erroneous if the holder associated with
-the result of a call to Reference or Constant_Reference is finalized before the
-result object returned by the call to Reference or Constant_Reference is
-finalized.@PDefn2{Term=(erroneous execution),Sec=(cause)}]}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0212-1],ARef=[AI05-0269-1]}
+@ChgAdded{Version=[3],Text=[Execution is erroneous if the holder container
+associated with the result of a call to Reference or Constant_Reference is
+finalized before the result object returned by the call to Reference or
+Constant_Reference is finalized.@PDefn2{Term=(erroneous execution),Sec=(cause)}]}
 
 @begin{Reason}
   @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0212-1]}
@@ -2690,7 +2740,7 @@ finalized.@PDefn2{Term=(erroneous execution),Sec=(cause)}]}
   container. If that container is prematurely finalized (which is only possible
   via Unchecked_Deallocation, as accessibility checks prevent passing a
   container to Reference that will not live as long as the result), the
-  finalization of the object of Reference_Type will try to access a non-existent
+  finalization of the object of Reference_Type will try to access a nonexistent
   object. This is a normal case of a dangling pointer created by
   Unchecked_Deallocation; we have to explicitly mention it here as the pointer
   in question is not visible in the specification of the type. (This is the same
@@ -2706,17 +2756,17 @@ finalized.@PDefn2{Term=(erroneous execution),Sec=(cause)}]}
 @ChgAdded{Version=[3],Text=[No storage associated with a holder object shall be
 lost upon assignment or scope exit.]}
 
-@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0069-1]}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0069-1],ARef=[AI05-0269-1]}
 @ChgAdded{Version=[3],Text=[The execution of an @nt{assignment_statement}
-for a holder shall have the effect of copying the element (if any) from the
-source holder object to the target holder object.]}
+for a holder container shall have the effect of copying the element (if any)
+from the source holder object to the target holder object.]}
 
 @begin{ImplNote}
   @ChgRef{Version=[3],Kind=[AddedNormal]}
-  @ChgAdded{Version=[3],Text=[An assignment of a holder is a
-  @ldquote@;deep@rdquote copy; that is the elements are copied as well as the
+  @ChgAdded{Version=[3],Text=[An assignment of a holder container is a
+  @ldquote@;deep@rdquote copy; that is the element is copied as well as any
   data structures. We say @ldquote@;effect of@rdquote in order to allow the
-  implementation to avoid copying elements immediately if it wishes. For
+  implementation to avoid copying the element immediately if it wishes. For
   instance, an implementation that avoided copying until one of the containers
   is modified would be allowed.]}
 @end{ImplNote}
@@ -2724,11 +2774,11 @@ source holder object to the target holder object.]}
 
 @begin{ImplAdvice}
 
-@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0069-1]}
-@ChgAdded{Version=[3],Text=[Move should not copy elements, and should minimize
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0069-1],ARef=[AI05-0269-1]}
+@ChgAdded{Version=[3],Text=[Move should not copy the element, and should minimize
 copying of internal data structures.]}
 @ChgImplAdvice{Version=[3],Kind=[Added],Text=[@ChgAdded{Version=[3],
-Text=[Containers.Indefinite_Holders.Move should not copy elements, and should
+Text=[Containers.Indefinite_Holders.Move should not copy the element, and should
 minimize copying of internal data structures.]}]}
 
 @begin{ImplNote}
@@ -2738,14 +2788,14 @@ minimize copying of internal data structures.]}]}
   Target holder.]}
 @end{ImplNote}
 
-@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0069-1]}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0069-1],ARef=[AI05-0269-1]}
 @ChgAdded{Version=[3],Text=[If an exception is propagated from a holder
 operation, no storage should be lost, nor should the element be removed from a
-holder unless specified by the operation.]}
+holder container unless specified by the operation.]}
 @ChgImplAdvice{Version=[3],Kind=[Added],Text=[@ChgAdded{Version=[3],
 Text=[If an exception is propagated from a holder
 operation, no storage should be lost, nor should the element be removed from a
-holder unless specified by the operation.]}]}
+holder container unless specified by the operation.]}]}
 
 @begin{Reason}
   @ChgRef{Version=[3],Kind=[AddedNormal]}
@@ -2823,11 +2873,39 @@ as Containers.Vectors except:]}
 @begin{Bounded}
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0160-1],ARef=[AI05-0265-1]}
 @ChgAdded{Version=[3],Text=[@PDefn2{Term=(bounded error),Sec=(cause)}
-It is a bounded error to use a bounded vector
-if it was the target of an @nt{assignment_statement} whose source was in the middle of
-an operation that prohibits tampering with elements @Redundant[or cursors].
-Either Program_Error is raised, or the operation proceeds as defined.]}
+It is a bounded error to assign from a bounded vector object while tampering
+with elements @Redundant[or cursors] of that object is prohibited. Either
+Program_Error is raised by the assignment, execution proceeds with the target
+object prohibiting tampering with elements @Redundant[or cursors], or execution
+proceeds normally.]}
+@begin{TheProof}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[Tampering with elements includes tampering
+  with cursors, so we only really need to talk about tampering with elements
+  here; we mention cursors for clarity.]}
+@end{TheProof}
 @end{Bounded}
+
+@begin{Erron}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0265-1]}
+@ChgAdded{Version=[3],Text=[When a bounded vector object @i<V> is
+finalized, if tampering with cursors is prohibited for @i<V> other than due
+to an assignment from another vector, then execution is erroneous.
+@PDefn2{Term=(erroneous execution),Sec=(cause)}]}
+
+@begin{Reason}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[This is a tampering event, but since the
+  implementation is not allowed to use Ada.Finalization, it is not possible in a
+  pure Ada implementation to detect this error. (There is no Finalize routine
+  that will be called that could make the check.) Since the check probably
+  cannot be made, the bad effects that could occur (such as an iterator going
+  into an infinite loop or accessing a nonexistent element) cannot be prevented
+  and we have to allow anything. We do allow re-assigning an object that only
+  prohibits tampering because it was copied from another object as that cannot
+  cause any negative effects.]}
+@end{Reason}
+@end{Erron}
 
 @begin{ImplReq}
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0184-1],ARef=[AI05-0264-1]}
@@ -2964,11 +3042,40 @@ as Containers.Doubly_Linked_Lists except:]}
 @begin{Bounded}
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0160-1],ARef=[AI05-0265-1]}
 @ChgAdded{Version=[3],Text=[@PDefn2{Term=(bounded error),Sec=(cause)}
-It is a bounded error to use a bounded list if it was the
-target of an @nt{assignment_statement} whose source was in the middle of
-an operation that prohibits tampering with elements @Redundant[or cursors].
-Either Program_Error is raised, or the operation proceeds as defined.]}
+It is a bounded error to assign from a bounded list object while tampering
+with elements @Redundant[or cursors] of that object is prohibited. Either
+Program_Error is raised by the assignment, execution proceeds with the target
+object prohibiting tampering with elements @Redundant[or cursors], or execution
+proceeds normally.]}
+@begin{TheProof}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[Tampering with elements includes tampering
+  with cursors, so we only really need to talk about tampering with elements
+  here; we mention cursors for clarity.]}
+@end{TheProof}
 @end{Bounded}
+
+@begin{Erron}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0265-1]}
+@ChgAdded{Version=[3],Text=[When a bounded list object @i<L> is
+finalized, if tampering with cursors is prohibited for @i<L> other than due
+to an assignment from another list, then execution is erroneous.
+@PDefn2{Term=(erroneous execution),Sec=(cause)}]}
+
+@begin{Reason}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[This is a tampering event, but since the
+  implementation is not allowed to use Ada.Finalization, it is not possible in a
+  pure Ada implementation to detect this error. (There is no Finalize routine
+  that will be called that could make the check.) Since the check probably
+  cannot be made, the bad effects that could occur (such as an iterator going
+  into an infinite loop or accessing a nonexistent element) cannot be prevented
+  and we have to allow anything. We do allow re-assigning an object that only
+  prohibits tampering because it was copied from another object as that cannot
+  cause any negative effects.]}
+@end{Reason}
+@end{Erron}
+
 
 @begin{ImplReq}
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0184-1],ARef=[AI05-0264-1]}
@@ -3090,7 +3197,7 @@ as Containers.Hashed_Maps except:]}
   @ChgAdded{Version=[3],Type=[Leading],Text=[The function Copy is replaced with:]}
 @begin{Example}
 @ChgRef{Version=[3],Kind=[AddedNormal]}
-@ChgAdded{Version=[3],Noprefix=[T],Text=[  @key[function] @AdaSubDefn{Copy} (Source : Map;
+@ChgAdded{Version=[3],Noprefix=[T],Text=[  @key[function] @AdaSubDefn{Copy} (Source   : Map;
                  Capacity : Count_Type := 0;
                  Modulus  : Hash_Type := 0) @key[return] Map;]}
 @end{Example}
@@ -3112,11 +3219,39 @@ as Containers.Hashed_Maps except:]}
 @begin{Bounded}
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0160-1],ARef=[AI05-0265-1]}
 @ChgAdded{Version=[3],Text=[@PDefn2{Term=(bounded error),Sec=(cause)}
-It is a bounded error to use a bounded map if it was the
-target of an @nt{assignment_statement} whose source was in the middle of
-an operation that prohibits tampering with elements @Redundant[or cursors].
-Either Program_Error is raised, or the operation proceeds as defined.]}
+It is a bounded error to assign from a bounded map object while tampering
+with elements @Redundant[or cursors] of that object is prohibited. Either
+Program_Error is raised by the assignment, execution proceeds with the target
+object prohibiting tampering with elements @Redundant[or cursors], or execution
+proceeds normally.]}
+@begin{TheProof}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[Tampering with elements includes tampering
+  with cursors, so we only really need to talk about tampering with elements
+  here; we mention cursors for clarity.]}
+@end{TheProof}
 @end{Bounded}
+
+@begin{Erron}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0265-1]}
+@ChgAdded{Version=[3],Text=[When a bounded map object @i<M> is
+finalized, if tampering with cursors is prohibited for @i<M> other than due
+to an assignment from another map, then execution is erroneous.
+@PDefn2{Term=(erroneous execution),Sec=(cause)}]}
+
+@begin{Reason}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[This is a tampering event, but since the
+  implementation is not allowed to use Ada.Finalization, it is not possible in a
+  pure Ada implementation to detect this error. (There is no Finalize routine
+  that will be called that could make the check.) Since the check probably
+  cannot be made, the bad effects that could occur (such as an iterator going
+  into an infinite loop or accessing a nonexistent element) cannot be prevented
+  and we have to allow anything. We do allow re-assigning an object that only
+  prohibits tampering because it was copied from another object as that cannot
+  cause any negative effects.]}
+@end{Reason}
+@end{Erron}
 
 @begin{ImplReq}
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0184-1],ARef=[AI05-0264-1]}
@@ -3146,11 +3281,11 @@ or Map'Read of the other instance, respectively:]}
 @end{ImplReq}
 
 @begin{ImplAdvice}
-@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0001-1]}
-@ChgAdded{Version=[3],Text=[Bounded map objects should be implemented without
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0001-1],ARef=[AI05-0269-1]}
+@ChgAdded{Version=[3],Text=[Bounded hashed map objects should be implemented without
 implicit pointers or dynamic allocation.]}
 @ChgImplAdvice{Version=[3],Kind=[Added],Text=[@ChgAdded{Version=[3],
-Text=[Bounded map objects should be implemented without
+Text=[Bounded hashed map objects should be implemented without
 implicit pointers or dynamic allocation.]}]}
 
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0001-1]}
@@ -3158,7 +3293,7 @@ implicit pointers or dynamic allocation.]}]}
 minimize copying does not apply.]}
 @ChgImplAdvice{Version=[3],Kind=[Added],Text=[@ChgAdded{Version=[3],
 Text=[The implementation advice for procedure Move to
-minimize copying does not apply to bounded maps.]}]}
+minimize copying does not apply to bounded hashed maps.]}]}
 
 @end{ImplAdvice}
 
@@ -3225,7 +3360,7 @@ as Containers.Ordered_Maps except:]}
   @ChgAdded{Version=[3],Type=[Leading],Text=[The function Copy is replaced with:]}
 @begin{Example}
 @ChgRef{Version=[3],Kind=[AddedNormal]}
-@ChgAdded{Version=[3],Noprefix=[T],Text=[  @key[function] @AdaSubDefn{Copy} (Source : Map;
+@ChgAdded{Version=[3],Noprefix=[T],Text=[  @key[function] @AdaSubDefn{Copy} (Source   : Map;
                  Capacity : Count_Type := 0) @key[return] Map;]}
 @end{Example}
 @begin{Indent}
@@ -3243,11 +3378,39 @@ as Containers.Ordered_Maps except:]}
 @begin{Bounded}
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0160-1],ARef=[AI05-0265-1]}
 @ChgAdded{Version=[3],Text=[@PDefn2{Term=(bounded error),Sec=(cause)}
-It is a bounded error to use a bounded map if it was the
-target of an @nt{assignment_statement} whose source was in the middle of
-an operation that prohibits tampering with elements @Redundant[or cursors].
-Either Program_Error is raised, or the operation proceeds as defined.]}
+It is a bounded error to assign from a bounded map object while tampering
+with elements @Redundant[or cursors] of that object is prohibited. Either
+Program_Error is raised by the assignment, execution proceeds with the target
+object prohibiting tampering with elements @Redundant[or cursors], or execution
+proceeds normally.]}
+@begin{TheProof}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[Tampering with elements includes tampering
+  with cursors, so we only really need to talk about tampering with elements
+  here; we mention cursors for clarity.]}
+@end{TheProof}
 @end{Bounded}
+
+@begin{Erron}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0265-1]}
+@ChgAdded{Version=[3],Text=[When a bounded map object @i<M> is
+finalized, if tampering with cursors is prohibited for @i<M> other than due
+to an assignment from another map, then execution is erroneous.
+@PDefn2{Term=(erroneous execution),Sec=(cause)}]}
+
+@begin{Reason}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[This is a tampering event, but since the
+  implementation is not allowed to use Ada.Finalization, it is not possible in a
+  pure Ada implementation to detect this error. (There is no Finalize routine
+  that will be called that could make the check.) Since the check probably
+  cannot be made, the bad effects that could occur (such as an iterator going
+  into an infinite loop or accessing a nonexistent element) cannot be prevented
+  and we have to allow anything. We do allow re-assigning an object that only
+  prohibits tampering because it was copied from another object as that cannot
+  cause any negative effects.]}
+@end{Reason}
+@end{Erron}
 
 @begin{ImplReq}
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0184-1],ARef=[AI05-0264-1]}
@@ -3277,15 +3440,19 @@ or Map'Read of the other instance, respectively:]}
 @end{ImplReq}
 
 @begin{ImplAdvice}
-@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0001-1]}
-@ChgAdded{Version=[3],Text=[Bounded map objects should be implemented without
-implicit pointers or dynamic allocation.]}
-@Comment{We omit the @ChgImplAdvice as it is identical to that of the previous clause.}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0001-1],ARef=[AI05-0269-1]}
+@ChgAdded{Version=[3],Text=[Bounded ordered map objects should be implemented
+without implicit pointers or dynamic allocation.]}
+@ChgImplAdvice{Version=[3],Kind=[Added],Text=[@ChgAdded{Version=[3],
+Text=[Bounded ordered map objects should be implemented without
+implicit pointers or dynamic allocation.]}]}
 
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0001-1]}
 @ChgAdded{Version=[3],Text=[The implementation advice for procedure Move to
 minimize copying does not apply.]}
-@Comment{We omit the @ChgImplAdvice as it is identical to that of the previous clause.}
+@ChgImplAdvice{Version=[3],Kind=[Added],Text=[@ChgAdded{Version=[3],
+Text=[The implementation advice for procedure Move to
+minimize copying does not apply to bounded ordered maps.]}]}
 
 @end{ImplAdvice}
 
@@ -3367,7 +3534,7 @@ as Containers.Hashed_Sets except:]}
   @ChgAdded{Version=[3],Type=[Leading],Text=[The function Copy is replaced with:]}
 @begin{Example}
 @ChgRef{Version=[3],Kind=[AddedNormal]}
-@ChgAdded{Version=[3],Noprefix=[T],Text=[  @key[function] @AdaSubDefn{Copy} (Source : Set;
+@ChgAdded{Version=[3],Noprefix=[T],Text=[  @key[function] @AdaSubDefn{Copy} (Source   : Set;
                  Capacity : Count_Type := 0;
                  Modulus  : Hash_Type := 0) @key[return] Set;]}
 @end{Example}
@@ -3389,11 +3556,39 @@ as Containers.Hashed_Sets except:]}
 @begin{Bounded}
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0160-1],ARef=[AI05-0265-1]}
 @ChgAdded{Version=[3],Text=[@PDefn2{Term=(bounded error),Sec=(cause)}
-It is a bounded error to use a bounded set if it was the
-target of an @nt{assignment_statement} whose source was in the middle of
-an operation that prohibits tampering with elements @Redundant[or cursors].
-Either Program_Error is raised, or the operation proceeds as defined.]}
+It is a bounded error to assign from a bounded set object while tampering
+with elements @Redundant[or cursors] of that object is prohibited. Either
+Program_Error is raised by the assignment, execution proceeds with the target
+object prohibiting tampering with elements @Redundant[or cursors], or execution
+proceeds normally.]}
+@begin{TheProof}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[Tampering with elements includes tampering
+  with cursors, so we only really need to talk about tampering with elements
+  here; we mention cursors for clarity.]}
+@end{TheProof}
 @end{Bounded}
+
+@begin{Erron}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0265-1]}
+@ChgAdded{Version=[3],Text=[When a bounded set object @i<S> is
+finalized, if tampering with cursors is prohibited for @i<S> other than due
+to an assignment from another set, then execution is erroneous.
+@PDefn2{Term=(erroneous execution),Sec=(cause)}]}
+
+@begin{Reason}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[This is a tampering event, but since the
+  implementation is not allowed to use Ada.Finalization, it is not possible in a
+  pure Ada implementation to detect this error. (There is no Finalize routine
+  that will be called that could make the check.) Since the check probably
+  cannot be made, the bad effects that could occur (such as an iterator going
+  into an infinite loop or accessing a nonexistent element) cannot be prevented
+  and we have to allow anything. We do allow re-assigning an object that only
+  prohibits tampering because it was copied from another object as that cannot
+  cause any negative effects.]}
+@end{Reason}
+@end{Erron}
 
 @begin{ImplReq}
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0184-1],ARef=[AI05-0264-1]}
@@ -3419,11 +3614,11 @@ or Set'Read of the other instance, respectively:]}
 @end{ImplReq}
 
 @begin{ImplAdvice}
-@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0001-1]}
-@ChgAdded{Version=[3],Text=[Bounded set objects should be implemented without
-implicit pointers or dynamic allocation.]}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0001-1],ARef=[AI05-0269-1]}
+@ChgAdded{Version=[3],Text=[Bounded hashed set objects should be implemented
+without implicit pointers or dynamic allocation.]}
 @ChgImplAdvice{Version=[3],Kind=[Added],Text=[@ChgAdded{Version=[3],
-Text=[Bounded set objects should be implemented without
+Text=[Bounded hashed set objects should be implemented without
 implicit pointers or dynamic allocation.]}]}
 
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0001-1]}
@@ -3431,7 +3626,7 @@ implicit pointers or dynamic allocation.]}]}
 minimize copying does not apply.]}
 @ChgImplAdvice{Version=[3],Kind=[Added],Text=[@ChgAdded{Version=[3],
 Text=[The implementation advice for procedure Move to
-minimize copying does not apply to bounded sets.]}]}
+minimize copying does not apply to bounded hashed sets.]}]}
 
 @end{ImplAdvice}
 
@@ -3498,7 +3693,7 @@ as Containers.Ordered_Sets except:]}
   @ChgAdded{Version=[3],Type=[Leading],Text=[The function Copy is replaced with:]}
 @begin{Example}
 @ChgRef{Version=[3],Kind=[AddedNormal]}
-@ChgAdded{Version=[3],Noprefix=[T],Text=[  @key[function] @AdaSubDefn{Copy} (Source : Set;
+@ChgAdded{Version=[3],Noprefix=[T],Text=[  @key[function] @AdaSubDefn{Copy} (Source   : Set;
                  Capacity : Count_Type := 0) @key[return] Set;]}
 @end{Example}
 @begin{Indent}
@@ -3516,11 +3711,39 @@ as Containers.Ordered_Sets except:]}
 @begin{Bounded}
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0160-1],ARef=[AI05-0265-1]}
 @ChgAdded{Version=[3],Text=[@PDefn2{Term=(bounded error),Sec=(cause)}
-It is a bounded error to use a bounded set if it was the
-target of an @nt{assignment_statement} whose source was in the middle of
-an operation that prohibits tampering with elements @Redundant[or cursors].
-Either Program_Error is raised, or the operation proceeds as defined.]}
+It is a bounded error to assign from a bounded set object while tampering
+with elements @Redundant[or cursors] of that object is prohibited. Either
+Program_Error is raised by the assignment, execution proceeds with the target
+object prohibiting tampering with elements @Redundant[or cursors], or execution
+proceeds normally.]}
+@begin{TheProof}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[Tampering with elements includes tampering
+  with cursors, so we only really need to talk about tampering with elements
+  here; we mention cursors for clarity.]}
+@end{TheProof}
 @end{Bounded}
+
+@begin{Erron}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0265-1]}
+@ChgAdded{Version=[3],Text=[When a bounded set object @i<S> is
+finalized, if tampering with cursors is prohibited for @i<S> other than due
+to an assignment from another set, then execution is erroneous.
+@PDefn2{Term=(erroneous execution),Sec=(cause)}]}
+
+@begin{Reason}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[This is a tampering event, but since the
+  implementation is not allowed to use Ada.Finalization, it is not possible in a
+  pure Ada implementation to detect this error. (There is no Finalize routine
+  that will be called that could make the check.) Since the check probably
+  cannot be made, the bad effects that could occur (such as an iterator going
+  into an infinite loop or accessing a nonexistent element) cannot be prevented
+  and we have to allow anything. We do allow re-assigning an object that only
+  prohibits tampering because it was copied from another object as that cannot
+  cause any negative effects.]}
+@end{Reason}
+@end{Erron}
 
 @begin{ImplReq}
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0184-1],ARef=[AI05-0264-1]}
@@ -3546,15 +3769,19 @@ or Set'Read of the other instance, respectively:]}
 @end{ImplReq}
 
 @begin{ImplAdvice}
-@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0001-1]}
-@ChgAdded{Version=[3],Text=[Bounded set objects should be implemented without
-implicit pointers or dynamic allocation.]}
-@Comment{We omit the @ChgImplAdvice as it is identical to that of the previous clause.}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0001-1],ARef=[AI05-0269-1]}
+@ChgAdded{Version=[3],Text=[Bounded ordered set objects should be implemented
+without implicit pointers or dynamic allocation.]}
+@ChgImplAdvice{Version=[3],Kind=[Added],Text=[@ChgAdded{Version=[3],
+Text=[Bounded ordered set objects should be implemented without
+implicit pointers or dynamic allocation.]}]}
 
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0001-1]}
 @ChgAdded{Version=[3],Text=[The implementation advice for procedure Move to
 minimize copying does not apply.]}
-@Comment{We omit the @ChgImplAdvice as it is identical to that of the previous clause.}
+@ChgImplAdvice{Version=[3],Kind=[Added],Text=[@ChgAdded{Version=[3],
+Text=[The implementation advice for procedure Move to
+minimize copying does not apply to bounded ordered sets.]}]}
 
 @end{ImplAdvice}
 
@@ -3649,13 +3876,41 @@ semantics as Containers.Multiway_Trees except:]}
 @end{StaticSem}
 
 @begin{Bounded}
-@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0136-1],ARef=[AI05-0265-1]}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0160-1],ARef=[AI05-0265-1]}
 @ChgAdded{Version=[3],Text=[@PDefn2{Term=(bounded error),Sec=(cause)}
-It is a bounded error to use a bounded tree if it was the
-target of an @nt{assignment_statement} whose source was in the middle of
-an operation that prohibits tampering with elements @Redundant[or cursors].
-Either Program_Error is raised, or the operation proceeds as defined.]}
+It is a bounded error to assign from a bounded tree object while tampering
+with elements @Redundant[or cursors] of that object is prohibited. Either
+Program_Error is raised by the assignment, execution proceeds with the target
+object prohibiting tampering with elements @Redundant[or cursors], or execution
+proceeds normally.]}
+@begin{TheProof}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[Tampering with elements includes tampering
+  with cursors, so we only really need to talk about tampering with elements
+  here; we mention cursors for clarity.]}
+@end{TheProof}
 @end{Bounded}
+
+@begin{Erron}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0265-1]}
+@ChgAdded{Version=[3],Text=[When a bounded tree object @i<T> is
+finalized, if tampering with cursors is prohibited for @i<T> other than due
+to an assignment from another tree, then execution is erroneous.
+@PDefn2{Term=(erroneous execution),Sec=(cause)}]}
+
+@begin{Reason}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[This is a tampering event, but since the
+  implementation is not allowed to use Ada.Finalization, it is not possible in a
+  pure Ada implementation to detect this error. (There is no Finalize routine
+  that will be called that could make the check.) Since the check probably
+  cannot be made, the bad effects that could occur (such as an iterator going
+  into an infinite loop or accessing a nonexistent element) cannot be prevented
+  and we have to allow anything. We do allow re-assigning an object that only
+  prohibits tampering because it was copied from another object as that cannot
+  cause any negative effects.]}
+@end{Reason}
+@end{Erron}
 
 @begin{ImplReq}
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0184-1],ARef=[AI05-0264-1]}
@@ -3984,7 +4239,7 @@ package Containers.Synchronized_Queue_Interfaces has the following declaration:]
 
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0159-1],ARef=[AI05-0262-1],ARef=[AI05-0264-1]}
 @ChgAdded{Version=[3],Type=[Trailing],Text=[A queue type that implements this
-interface may have a bounded @i<capacity>@Defn2{Term=[capacity],Sec=[of a queue]}.
+interface is allowed to have a bounded @i<capacity>@Defn2{Term=[capacity],Sec=[of a queue]}.
 If the queue object has a bounded
 capacity, and the number of existing elements equals the capacity, then Enqueue
 blocks until storage becomes available; otherwise, Enqueue does not block. In any
@@ -4078,7 +4333,7 @@ the interface type Containers.Synchronized_Queue_Interfaces.Queue.]}
 
 @ChgRef{Version=[3],Kind=[AddedNormal]}
 @ChgAdded{Version=[3],Text=[   @key[protected type] @AdaTypeDefn{Queue}
-        (Ceiling: System.Any_Priority := Default_Ceiling)
+        (Ceiling : System.Any_Priority := Default_Ceiling)
            @key[with] Priority => Ceiling @key[is]
         @key[new] Queue_Interfaces.Queue @key[with]]}
 
@@ -4172,7 +4427,7 @@ the interface type Containers.Synchronized_Queue_Interfaces.Queue.]}
 @ChgRef{Version=[3],Kind=[AddedNormal]}
 @ChgAdded{Version=[3],Text=[   @key[protected type] @AdaTypeDefn{Queue}
         (Capacity : Count_Type := Default_Capacity;
-         Ceiling: System.Any_Priority := Default_Ceiling)
+         Ceiling  : System.Any_Priority := Default_Ceiling)
            @key[with] Priority => Ceiling @key[is]
         @key[new] Queue_Interfaces.Queue @key[with]]}
 
@@ -4255,9 +4510,9 @@ the interface type Containers.Synchronized_Queue_Interfaces.Queue.]}
    @key[with package] Queue_Interfaces @key[is new] Ada.Containers.Synchronized_Queue_Interfaces (<>);
    @key[type] Queue_Priority @key[is private];
    @key[with] @key[function] Get_Priority
-     (Element: Queue_Interfaces.Element_Type) @key[return] Queue_Priority is <>;
+     (Element : Queue_Interfaces.Element_Type) @key[return] Queue_Priority @key[is] <>;
    @key[with] @key[function] Before
-     (Left, Right : Queue_Priority) @key[return] Boolean is <>;
+     (Left, Right : Queue_Priority) @key[return] Boolean @key[is] <>;
    Default_Ceiling : System.Any_Priority := System.Priority'Last;
 @key[package] Ada.Containers.Unbounded_Priority_Queues @key[is]@ChildUnit{Parent=[Ada.Containers],Child=[Unbounded_Priority_Queues]}
    @key[pragma] Preelaborate(Unbounded_Priority_Queues);]}
@@ -4269,7 +4524,7 @@ the interface type Containers.Synchronized_Queue_Interfaces.Queue.]}
 
 @ChgRef{Version=[3],Kind=[AddedNormal]}
 @ChgAdded{Version=[3],Text=[   @key[protected type] @AdaTypeDefn{Queue}
-        (Ceiling: System.Any_Priority := Default_Ceiling)
+        (Ceiling : System.Any_Priority := Default_Ceiling)
            @key[with] Priority => Ceiling @key[is]
         @key[new] Queue_Interfaces.Queue @key[with]]}
 
@@ -4344,7 +4599,7 @@ inserted after the existing equivalent elements.]}
 
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0159-1],ARef=[AI05-0251-1],ARef=[AI05-0262-1]}
 @ChgAdded{Version=[3],Text=[For a call on Dequeue_Only_High_Priority, if the
-head of the non-empty queue is @i<E>, and the function Before(At_Least,
+head of the nonempty queue is @i<E>, and the function Before(At_Least,
 Get_Priority(@i<E>)) returns False, then @i<E> is assigned to
 Element and then removed from the queue, and Success is set to True;
 otherwise, Success is set to False and Element is unchanged.]}
@@ -4387,9 +4642,9 @@ the interface type Containers.Synchronized_Queue_Interfaces.Queue.]}
    @key[with package] Queue_Interfaces @key[is new] Ada.Containers.Synchronized_Queue_Interfaces (<>);
    @key[type] Queue_Priority @key[is private];
    @key[with function] Get_Priority
-     (Element: Queue_Interfaces.Element_Type) @key[return] Queue_Priority is <>;
+     (Element : Queue_Interfaces.Element_Type) @key[return] Queue_Priority @key[is] <>;
    @key[with function] Before
-     (Left, Right : Queue_Priority) @key[return] Boolean is <>;
+     (Left, Right : Queue_Priority) @key[return] Boolean @key[is] <>;
    Default_Capacity : Count_Type;
    Default_Ceiling  : System.Any_Priority := System.Priority'Last;
 @key[package] Ada.Containers.Bounded_Priority_Queues @key[is]@ChildUnit{Parent=[Ada.Containers],Child=[Bounded_Priority_Queues]}
@@ -4403,7 +4658,7 @@ the interface type Containers.Synchronized_Queue_Interfaces.Queue.]}
 @ChgRef{Version=[3],Kind=[AddedNormal]}
 @ChgAdded{Version=[3],Text=[   @key[protected type] @AdaTypeDefn{Queue}
         (Capacity : Count_Type := Default_Capacity;
-         Ceiling: System.Any_Priority := Default_Ceiling)
+         Ceiling  : System.Any_Priority := Default_Ceiling)
            @key[with] Priority => Ceiling @key[is]
       @key[new] Queue_Interfaces.Queue @key[with]]}
 

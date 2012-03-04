@@ -1,9 +1,9 @@
 @Part(predefio, Root="ada.mss")
 
-@Comment{$Date: 2011/11/01 05:34:03 $}
+@Comment{$Date: 2012/02/19 01:58:37 $}
 
 @Comment{$Source: e:\\cvsroot/ARM/Source/pre_io.mss,v $}
-@Comment{$Revision: 1.59 $}
+@Comment{$Revision: 1.63 $}
 @LabeledClause{Input-Output}
 @begin{Intro}
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00285-01]}
@@ -166,6 +166,30 @@ documentation requirements in @RefSec{Exceptions in Input-Output}, and
 the documentation summary item is provided there.]}
 @end{Discussion}
 @end{StaticSem}
+
+@begin{ImplAdvice}
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0286-1]}
+@ChgAdded{Version=[3],Text=[Subprograms that accept the name or form of an
+external file should allow the use of UTF-8 encoded strings that start with a
+BOM (see @RefSecNum{String Encoding}) if the target file system allows
+characters with code points greater than 255 in names. Functions that return
+name or form of an external file should return a UTF-8 encoded string starting
+with a BOM if and only if the result includes characters with code points
+greater than 255.]}
+
+@begin{Reason}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0286-1]}
+@ChgAdded{Version=[3],Text=[We require that functions only return UTF-8
+representations when absolutely necessary to maximize compatibility with code
+that is not aware of the possibility of UTF-8 encoded results.]}
+@end{Reason}
+@ChgImplAdvice{Version=[3],Kind=[Added],Text=[@ChgAdded{Version=[3],
+Text=[Subprograms that accept or return the name or form of an
+external file should allow the use of UTF-8 encoded strings that start with a
+BOM.]}]}
+@end{ImplAdvice}
+
+
 
 @begin{Notes}
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00285-01]}
@@ -342,7 +366,7 @@ or execute with a different effect in Ada 95.
 @ChgDeleted{Version=[2],Text=[@Chg{Version=[1],New=[File_Type cannot be
 implemented as a (directly) controlled type, as Ada.Sequential_IO can be
 instantiated at any nesting depth. File_Type could have a component of a
-controlled type, as long as that type is declared in some other (non-generic)
+controlled type, as long as that type is declared in some other (nongeneric)
 package.],Old=[]}]}@ChgNote{AI-344 allows controlled types to be declared at
 any nesting depth, so this note is obsolete.}
 @end{ImplNote}
@@ -721,7 +745,7 @@ in every instantiation of Direct_IO.]}
 implemented as a (directly)
 controlled type, as Ada.Direct_IO can be instantiated at any nesting depth.
 File_Type could have a component of a controlled type, as long as that type is
-declared in some other (non-generic) package.],Old=[]}]}
+declared in some other (nongeneric) package.],Old=[]}]}
 @end{ImplNote}
 
 @end{StaticSem}
@@ -2333,8 +2357,10 @@ return as soon as a line terminator is read.
 
 @begin{Incompatible95}
   @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00301-01]}
+  @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0005-1]}
   @ChgAdded{Version=[2],Text=[@Defn{incompatibilities with Ada 95}
-  The Get_Line functions are newly added to Ada.Text_IO.
+  The Get_Line functions are @Chg{Version=[3],New=[],Old=[newly ]}added
+  to Ada.Text_IO.
   If Ada.Text_IO is referenced in a @nt{use_clause}, and a function Get_Line
   is defined in a package that is also referenced in a @nt{use_clause}, the
   user-defined Get_Line may no longer be use-visible, resulting in errors.
@@ -3654,17 +3680,19 @@ closed file.]}
 
 @begin{Inconsistent95}
   @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00283-01]}
+  @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0005-1]}
   @ChgAdded{Version=[2],Text=[@Defn{inconsistencies with Ada 95}
   @b[Amendment Correction:] The description of the subprograms for
   managing files was corrected so that they do not require truncation of the
   external file @em a stream file is not a sequential file. An Ada 95
-  program that expects truncation of the stream file may not work under
-  Ada 2005.
+  program that expects truncation of the stream file
+  @Chg{Version=[3],New=[might],Old=[may]} not work under Ada 2005.
   Note that the Ada 95 standard was ambiguous on this point (the normative
   wording seemed to require truncation, but didn't explain where; the
   AARM notes seemed to expect behavior like Direct_IO), and implementations
   varied widely. Therefore, as a practical matter, code that depends on
-  stream truncation may not work even in Ada 95; deleting the file before
+  stream truncation @Chg{Version=[3],New=[might],Old=[may]} not work
+  even in Ada 95; deleting the file before
   opening it provides truncation that works in both Ada 95 and Ada 2005.]}
 @end{Inconsistent95}
 

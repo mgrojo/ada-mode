@@ -1,10 +1,10 @@
 @Part(11, Root="ada.mss")
 
-@Comment{$Date: 2011/11/01 23:14:14 $}
+@Comment{$Date: 2012/02/19 01:58:36 $}
 @LabeledSection{Exceptions}
 
 @Comment{$Source: e:\\cvsroot/ARM/Source/11.mss,v $}
-@Comment{$Revision: 1.79 $}
+@Comment{$Revision: 1.84 $}
 
 @begin{Intro}
 @redundant[This section defines the facilities for dealing with errors or other
@@ -958,6 +958,14 @@ whereas Exception_Information can be long.
 Exception_Message should not include the Exception_Name.
 Exception_Information should include both the Exception_Name and the
 Exception_Message.
+
+
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0286-1]}
+@ChgAdded{Version=[3],Text=[Function Exception_Message and Exception_Information
+should return a UTF-8 encoded string starting with a BOM (see
+@RefSecNum{String Encoding}) if and only if the result includes characters with
+code points greater than 255.]}
+
 @ChgImplAdvice{Version=[2],Kind=[Added],Text=[@ChgAdded{Version=[2],
 Text=[Exception_Information should provide
 information useful for debugging, and should include the Exception_Name
@@ -965,6 +973,10 @@ and Exception_Message.]}]}
 @ChgImplAdvice{Version=[2],Kind=[Added],Text=[@ChgAdded{Version=[2],
 Text=[Exception_Message by default should be short, provide
 information useful for debugging, and should not include the Exception_Name.]}]}
+@ChgImplAdvice{Version=[3],Kind=[Added],Text=[@ChgAdded{Version=[3],
+Text=[Exception_Message and Exception_Information should return a UTF-8 encoded
+string that starts with a BOM if any characters with a code point greater than
+255.]}]}
 
 @begin{Reason}
 It may seem strange to define two subprograms whose semantics is
@@ -1117,6 +1129,15 @@ which it supports non-Latin-1 characters in identifiers, then it needs to
 define what the above functions return in the case where the name of an
 exception contains such a character.]}
 @end{ImplNote}
+@begin{Discussion}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0286-1]}
+@ChgAdded{Version=[3],Text=[Since all of the routines and operations that raise
+and set the exception message take a string but do not interpret it, we need to
+say nothing to allow passing UTF-8 encoded strings with a BOM. Since encoding in
+this string is a common programming idiom, implementations should not modify any
+exception message string unless it starts with a BOM and does not contain any
+characters with code points greater than 255.]}
+@end{Discussion}
 @end{ImplAdvice}
 
 @begin{Extend83}
@@ -1157,10 +1178,12 @@ exception contains such a character.]}
 
 @begin{Incompatible95}
   @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00400-01],ARef=[AI95-00438-01]}
+  @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0005-1]}
   @ChgAdded{Version=[2],Text=[@Defn{incompatibilities with Ada 95}
   Functions Wide_Exception_Name and Wide_Wide_Exception_Name, and procedures
   Read_Exception_Occurrence and Write_Exception_Occurrence
-  are newly added to Exceptions. If Exceptions is referenced in a
+  are @Chg{Version=[3],New=[],Old=[newly ]}added
+  to Exceptions. If Exceptions is referenced in a
   @nt{use_clause}, and an entity @i<E> with the same @nt{defining_identifier}
   as a new entity in Exceptions is defined in a
   package that is also referenced in a @nt{use_clause}, the entity @i<E> may no
@@ -1200,11 +1223,54 @@ exception contains such a character.]}
 
 @begin{Intro}
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00286-01]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0274-1]}
 @ChgAdded{Version=[2],Text=[Pragma Assert is used to assert the truth of a
-Boolean expression at any point within a sequence of declarations or statements.
-Pragma Assertion_Policy is used to control whether such assertions@Defn{Assertions}
-are to be ignored by the implementation, checked at run-time, or handled in
-some implementation-defined manner.]}
+@Chg{Version=[3],New=[boolean],Old=[Boolean]} expression at
+@Chg{Version=[3],New=[a],Old=[any]} point within a sequence of declarations or
+statements.@Chg{Version=[3],New=[],Old=[ Pragma Assertion_Policy is used to
+control whether such assertions@Defn{Assertions} are to be ignored by the
+implementation, checked at run-time, or handled in some implementation-defined
+manner.]}]}
+
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0274-1]}
+@ChgAdded{Version=[3],Text=[Assert pragmas, subtype predicates (see
+@RefSecNum{Subtype Predicates}), preconditions and postconditions (see
+@RefSecNum{Preconditions and Postconditions}), and type invariants (see
+@RefSecNum{Type Invariants}) are collectively referred to as
+@i{assertions}; their boolean expressions are referred to as @i{assertion
+expressions}.@Defn{assertions}@Defn{assertion expressions}]}
+
+@ChgToGlossary{Version=[3],Kind=[Added],Term=<Predicate>,
+Text=<@ChgAdded{Version=[3],Text=[A predicate is an assertion that gives a
+boolean expression that is expected to be True for all objects of a given
+subtype.]}>}
+
+@ChgToGlossary{Version=[3],Kind=[Added],Term=<Precondition>,
+Text=<@ChgAdded{Version=[3],Text=[A precondition is an assertion that gives a
+boolean expression that is expected to be True when a given subprogram is
+called.]}>}
+
+@ChgToGlossary{Version=[3],Kind=[Added],Term=<Postcondition>,
+Text=<@ChgAdded{Version=[3],Text=[A postcondition is an assertion that gives a
+boolean expression that is expected to be True when a given subprogram returns
+normally.]}>}
+
+@ChgToGlossary{Version=[3],Kind=[Added],Term=<Invariant>,
+Text=<@ChgAdded{Version=[3],Text=[A invariant is an assertion that gives a
+boolean expression that is expected to be True for all objects of a given
+private type when viewed from outside the enclosing package.]}>}
+
+@ChgToGlossary{Version=[3],Kind=[Added],Term=<Assertion>,
+Text=<@ChgAdded{Version=[3],Text=[An assertion is any of the following: a pragma
+Assert, a predicate, a precondition, a postcondition, an invariant, a
+constraint, or a null exclusion. Assertions may be used to specify
+boolean expressions that are expected to be True at run time at certain
+places.]}>}
+
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0274-1]}
+@ChgAdded{Version=[3],Text=[Pragma Assertion_Policy is used to control whether
+assertions are to be ignored by the implementation, checked at run time, or
+handled in some implementation-defined manner.]}
 @end{Intro}
 
 @begin{Syntax}
@@ -1343,6 +1409,55 @@ effects independently of the assertion policy in effect.]}
 
 @end{RunTime}
 
+@begin{Bounded}
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0274-1]}
+@ChgAdded{Version=[3],Text=[It is a bounded error to invoke a potentially
+blocking operation (see @RefSecNum{Protected Subprograms and Protected Actions})
+during the evaluation of an assertion expression. If the bounded error is
+detected, Program_Error is raised. If not detected, execution proceeds normally,
+but if it is invoked within a protected action, it might result in deadlock or a
+(nested) protected action.]}
+
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0274-1]}
+@ChgAdded{Version=[3],Text=[It is a bounded error in an assertion expression to
+alter the value of any variable that could alter the value of the assertion
+expression. If the bounded error is detected, Program_Error is raised.
+Otherwise, execution proceeds normally with the affected assertion, but the
+assertion expression need not hold if immediately reevaluated.]}
+
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0274-1]}
+@ChgAdded{Version=[3],Text=[It is a bounded error in an assertion expression
+associated with a call of or return from a callable entity @i{C} to alter the
+value of any variable that could alter the value of any other such assertion
+expression of the callable entry @i{C}. If the bounded error is detected,
+Program_Error is raised. Otherwise, execution proceeds normally with the
+affected assertion expressions. @Redundant[Possible consequences of not
+detecting the bounded error are that the value denoted by @i{X}'Old for
+any @nt{prefix} @i{X} might no longer denote the value denoted by @i{X} at the
+beginning of the subprogram call with the affected postcondition, or that a
+condition that evaluated to true is no longer true after evaluation of the
+affected precondition or postcondition.]]}
+
+@begin{Discussion}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[The intended effect is that an evaluation of
+  the involved assertion expressions (subtype predicates, type invariants,
+  preconditions and postconditions) in any order yields identical results.]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[The rule above is intended to apply to all of the
+  assertion expressions that are evaluated at the start of call (and similarly
+  for the assertion expressions that are evaluated during the return from a
+  call), but not other assertions actually given in the body, nor between the
+  expressions given at the start and end. Specifically, a side effect that
+  alters a variable in a function called from a precondition expression that
+  changes the result of a postcondition expression of the same subprogram
+  does @i<not> trigger this rule.]}
+@end{Discussion}
+
+
+@end{Bounded}
+
 @begin{ImplPerm}
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00286-01]}
 @ChgAdded{Version=[2],Text=[Assertion_Error may be declared by renaming an
@@ -1356,6 +1471,12 @@ would be incorrect, as Exception_Name would return the wrong name.]}
 @end{Reason}
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00286-01]}
 @ChgAdded{Version=[2],Text=[Implementations may define their own assertion policies.]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0274-1]}
+@ChgAdded{Version=[3],Text=[If the result of a function call in an assertion is
+not needed to determine the value of the assertion expression, an implementation
+is permitted to omit the function call. @Redundant[This permission applies even
+if the function has side effects.]]}
 @end{ImplPerm}
 
 @begin{Notes}
@@ -1372,7 +1493,21 @@ effect will not affect normal operation of the program.]}
 Pragmas Assert and Assertion_Policy, and package Assertions are new.]}
 @end{Extend95}
 
-@RMNewPageVer{Version=[3]}@Comment{For printed version of Ada 2012 RM}
+@begin{Inconsistent2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0274-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{inconsistencies with Ada 2005}
+  It is now a bounded error for an assertion expression to call a function
+  that has a side-effect that could change the value of the assertion.
+  This means that a pragma Assert that works in Ada 2005 might raise
+  Program_Error in Ada 2012 in the unlikely event that the compiler detected
+  such an error. This should be unlikely to occur in practice, and it
+  is considered a good thing, as the original expression was tricky and
+  probably was not portable (as order of evaluation is unspecified within
+  an expression). Moreover, no compiler is required to detect a bounded
+  error, so there is no need for any compiler to change behavior.]}
+@end{Inconsistent2005}
+
+
 @LabeledSubClause{Example of Exception Handling}
 
 @begin{Examples}
@@ -1856,7 +1991,7 @@ costs more than overflow checking,
 but overflow checking still costs something.
 Different compilers will suppress different checks when asked to
 suppress Overflow_Check @em
-the non-uniformity in this case is not harmful,
+the nonuniformity in this case is not harmful,
 and removing it would have a serious impact on optimizers.
 
 Under Access_Check,
@@ -1886,7 +2021,7 @@ null in Ada 2005.]}
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00224-01]}
 @ChgAdded{Version=[2],Text=[The On parameter of pragma Suppress was moved to
 Annex J.
-This feature's effect is inherently non-portable, depending on the
+This feature's effect is inherently nonportable, depending on the
 implementation's model of computation. Compiler surveys demonstrated this,
 showing that implementations vary widely in the interpretation of these
 parameters, even on the same target. While this is relatively harmless for
@@ -1923,7 +2058,7 @@ set of possible external effects that can result from the execution of
 the program with given inputs.]
 @begin{Ramification}
 Note that the canonical semantics is a set of possible behaviors,
-since some reordering, parallelism, and non-determinism is allowed by
+since some reordering, parallelism, and nondeterminism is allowed by
 the canonical semantics.
 @end{Ramification}
 @begin{Discussion}

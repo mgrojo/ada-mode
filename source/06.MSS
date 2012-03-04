@@ -1,10 +1,10 @@
 @Part(06, Root="ada.mss")
 
-@Comment{$Date: 2011/11/01 23:14:14 $}
+@Comment{$Date: 2012/02/19 01:58:36 $}
 @LabeledSection{Subprograms}
 
 @Comment{$Source: e:\\cvsroot/ARM/Source/06.mss,v $}
-@Comment{$Revision: 1.120 $}
+@Comment{$Revision: 1.125 $}
 
 @begin{Intro}
 @Defn{subprogram}
@@ -147,7 +147,7 @@ is not significant)]}.
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00231-01]}
 @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0142-4]}
 @Syn{lhs=<parameter_specification>,rhs="
-    @Syn2{defining_identifier_list} : @Chg{Version=[3],New=<[@key[aliased]]>,Old=<>}@Syn2{mode} @Chg{Version=[2],New=<[@Syn2{null_exclusion}]>,Old=<>} @Syn2{subtype_mark} [:= @Syn2{default_expression}]
+    @Syn2{defining_identifier_list} : @Chg{Version=[3],New=<[@key[aliased]] >,Old=<>}@Syn2{mode} @Chg{Version=[2],New=<[@Syn2{null_exclusion}]>,Old=<>} @Syn2{subtype_mark} [:= @Syn2{default_expression}]
   | @Syn2{defining_identifier_list} : @Syn2{access_definition} [:= @Syn2{default_expression}]"}
 
 @Syn{lhs=<mode>,rhs="[@key{in}] | @key{in} @key{out} | @key{out}"}
@@ -735,29 +735,59 @@ assertion policy in effect at the point of a subprogram or entry declaration is
 Check, then preconditions and postconditions are considered to be @i<enabled>
 for that subprogram or entry.@Defn2{Term=[enabled],Sec=[precondition]}@Defn2{Term=[enabled],Sec=[postcondition]}]}
 
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0273-1]}
+@ChgAdded{Version=[3],Type=[Leading],Text=[An @nt{expression} is
+@i{potentially unevaluated} if it occurs within:@Defn{potentially unevaluated expression}]}
+
+@begin{Itemize}
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[any part of an @nt{if_expression} other than the
+  first @nt{condition};]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[a @SynI{dependent_}@nt{expression} of a
+  @nt{case_expression};]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[the right operand of a short-circuit control
+  form; or]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[a @nt{membership_choice} other than the first
+  of a membership operation.]}
+@end{Itemize}
+
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0145-2]}
 @ChgAdded{Version=[3],Type=[Leading],Text=[For @PrefixType{a @nt{prefix} X that
 denotes an object of a nonlimited type}, the following attribute is defined:]}
 @begin(description)
 @ChgAttribute{Version=[3],Kind=[AddedNormal],ChginAnnex=[T],
-  Leading=<F>, Prefix=<X>, AttrName=<Old>, ARef=[AI05-0145-2], ARef=[AI05-0262-1],
-  Text=[@Chg{Version=[3],New=[Within a postcondition expression, denotes the value
-  of X at the beginning of the execution of the subprogram or entry to which the
-  postcondition applies. For each X'Old in a postcondition
-  expression that is enabled, a constant is implicitly declared at the beginning
-  of the subprogram or entry, of the type of X, initialized to X. The value of
-  X'Old in the postcondition expression is the value of this constant. The type
-  of X'Old is the type of X. These implicit declarations occur in an arbitrary
-  order.@PDefn2{Term=[arbitrary order],Sec=[allowed]}],Old=[]}]}@Comment{End of Annex text here.}
+  Leading=<F>, Prefix=<X>, AttrName=<Old>, ARef=[AI05-0145-2], ARef=[AI05-0262-1], ARef=[AI05-0273-1],
+  Text=[@Chg{Version=[3],New=[For each X'Old in a postcondition expression that
+   is enabled, a constant is implicitly declared at the beginning of the subprogram
+   or entry. The constant is of the type of X and is initialized to the result
+   of evaluating X (as an expression) at the point of the constant declaration.
+   The value of X'Old in the postcondition expression is the value of this
+   constant; the type of X'Old is the type of X. These implicit constant
+   declarations occur in an
+   arbitrary order.@PDefn2{Term=[arbitrary order],Sec=[allowed]}],Old=[]}]}@Comment{End of Annex text here.}
 
-  @ChgRef{Version=[3],Kind=[AddedNormal]}
-  @ChgAdded{Version=[3],NoPrefix=[T],Text=[Use of this attribute is allowed only
-  within a postcondition expression.]}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0145-2], ARef=[AI05-0262-1], ARef=[AI05-0273-1]}
+  @ChgAdded{Version=[3],NoPrefix=[T],Text=[Reference to this attribute is only
+  allowed within a postcondition expression. The @nt{prefix} of an Old
+  @nt{attribute_reference} shall not contain a Result @nt{attribute_reference},
+  nor an Old @nt{attribute_reference}, nor a use of an entity declared within
+  the postcondition expression but not within @nt{prefix} itself (for example,
+  the loop parameter of an enclosing @nt{quantified_expression}).
+  The @nt{prefix} of an Old @nt{attribute_reference} that is
+  potentially unevaluated shall statically denote an entity.]}
+
 @begin{Discussion}
   @ChgRef{Version=[3],Kind=[AddedNormal]}
   @ChgAdded{Version=[3],Text=<The @nt{prefix} X can be any
-  nonlimited object that obeys the syntax for prefix. Useful cases are: the name
-  of a formal parameter of mode [@key[in]] @key[out], the name of a global
+  nonlimited object that obeys the syntax for prefix other than the few
+  exceptions given above (discussed below). Useful cases are: the @nt{name}
+  of a formal parameter of mode [@key[in]] @key[out], the @nt{name} of a global
   variable updated by the subprogram, a function call passing those as
   parameters, a subcomponent of those things, etc.>}
 
@@ -773,7 +803,7 @@ denotes an object of a nonlimited type}, the following attribute is defined:]}
   necessarily equal. The former calls F(X) and saves that value for later use
   during the postcondition. The latter saves the value of X, and during the
   postcondition, passes that saved value to F. In most cases, the former is what
-  one wants.]}
+  one wants (but it is not always legal, see below).]}
 
   @ChgRef{Version=[3],Kind=[AddedNormal]}
   @ChgAdded{Version=[3],Text=[If X has controlled parts, adjustment and
@@ -787,8 +817,57 @@ denotes an object of a nonlimited type}, the following attribute is defined:]}
   @ChgAdded{Version=[3],Text=['Old makes no sense for limited types, because its
   implementation involves copying. It might make semantic sense to allow
   build-in-place, but it's not worth the trouble.]}
-
 @end{Discussion}
+
+@begin{Reason}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0273-1]}
+  @ChgAdded{Version=[3],Text=[Since the @nt{prefix} is evaluated unconditionally
+  when the subprogram is called, we cannot allow it to include values that do
+  not exist at that time (like 'Result and loop parameters of @nt{quantified_expression}s).
+  We also do not allow it to include 'Old references, as those would be
+  redundant (the entire @nt{prefix} is evaluated when the subprogram is called),
+  and allowing them would require some sort of order to the implicit constant
+  declarations (because in A(I'Old)'Old, we surely would want the value of
+  I'Old evaluated before the A(I'Old) is evaluated).]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0273-1]}
+  @ChgAdded{Version=[3],Type=[Leading],Text=[In addition, we only allow simple names as the
+  @nt{prefix} of the Old attribute if the @nt{attribute_reference} might not
+  be evaluated when the postcondition expression is evaluated. This is necessary because
+  the Old @nt{prefix}es have to be unconditionally evaluated when the subprogram
+  is called; the compiler cannot in general know whether they will be needed
+  in the postcondition expression. To see the problem, consider:]}
+
+@begin{Example}
+@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgAdded{Version=[3],Text=[Table : @key[array] (1..10) @key[of] Integer := ...
+@key[procedure] Bar (I : @key[in out] Natural)
+   @key[with] Post => I > 0 @key[and then] Tab(I)'Old = 1; -- @Examcom{Illegal}]}
+@end{Example}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Type=[Trailing],Text=[In this example, the compiler
+  cannot know the value of I when the subprogram returns (since the subprogram
+  execution can change it), and thus it does not know whether Tab(I)'Old will
+  be needed then. Thus it has to always create an implicit constant
+  and evaluate Tab(I) when Bar is called (because not having the value when
+  it is needed is not acceptable). But if I = 0 when the subprogram is called,
+  that evaluation will raise Constraint_Error, and that will happen even if I
+  is unchanged by the subprogram and the value of Tab(I)'Old is not ultimately
+  needed. It's easy to see how a similar problem could occur for a dereference
+  of an access type. This would be mystifying (since the point of the short
+  circuit is to eliminate this possibility, but it cannot do so). Therefore, we
+  require the @nt{prefix} of any Old attribute in such a context to statically
+  denote an object, which eliminates anything that could change at during
+  execution.]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgAdded{Version=[3],Text=[It is easy to work around most errors that occur
+  because of this rule. Just move the 'Old to the outer object, before any
+  indexing, dereferences, or components. (That does not work for function calls,
+  however, nor does it work for array indexing if the index can change during
+  the execution of the subprogram.)]}
+@end{Reason}
 @end(description)
 @EndPrefixType{}
 
@@ -849,8 +928,9 @@ precondition checks are performed as follows:@Defn2{Term=[assertion policy],
 @end{Ramification}
 @end{Itemize}
 
-@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0145-2],ARef=[AI05-0247-1],ARef=[AI05-0254-1]}
-@ChgAdded{Version=[3],Text=[The checks are performed in an arbitrary order,
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0145-2],ARef=[AI05-0247-1],ARef=[AI05-0254-1],ARef=[AI05-0269-1]}
+@ChgAdded{Version=[3],Text=[The precondition checks are performed in an
+arbitrary order,
 and if any of the class-wide precondition expressions evaluate to True, it is
 not specified whether the other class-wide precondition expressions are
 evaluated. The precondition checks and any check for elaboration of the
@@ -900,10 +980,10 @@ parameters are performed in an arbitrary order.@Defn2{Term=[assertion policy],
 
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0145-2],ARef=[AI05-0262-1]}
 @ChgAdded{Version=[3],Text=[If a precondition or postcondition check fails, the
-exception is raised at the point of the call. @Redundant[The exception cannot
-be handled inside the called subprogram or entry.] An exception raised by the
-evaluation of a precondition or postcondition expression is also raised at the
-point of call.]}
+exception is raised at the point of the call@Redundant[; the exception cannot
+be handled inside the called subprogram or entry]. Similarly, any exception
+raised by the evaluation of a precondition or postcondition expression is
+raised at the point of call.]}
 
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0145-2],ARef=[AI05-0247-1],ARef=[AI05-0254-1],ARef=[AI05-0262-1]}
 @ChgAdded{Version=[3],Text=[For any subprogram or entry call (including dispatching calls), the checks
@@ -911,10 +991,10 @@ that are performed to verify specific precondition expressions and specific
 and class-wide postcondition expressions are determined by those for the subprogram
 or entry actually invoked. Note that the class-wide postcondition expressions
 verified by the postcondition check that is part of a call on a primitive
-of type @i<T> includes all class-wide postcondition expressions originating
-in any progenitor of @i<T>@Redundant[, even if the primitive called
-is inherited from a type @i<T1> and some of the postcondition expressions do
-not apply to the corresponding primitive of @i<T1>].]}
+subprogram of type @i<T> includes all class-wide postcondition expressions
+originating in any progenitor of @i<T>@Redundant[, even if the primitive
+subprogram called is inherited from a type @i<T1> and some of the postcondition
+expressions do not apply to the corresponding primitive subprogram of @i<T1>].]}
 
 @begin{Ramification}
   @ChgRef{Version=[3],Kind=[AddedNormal]}
@@ -994,32 +1074,17 @@ check is performed on a call on that subprogram or entry.
 For a dispatching call, if the assertion policy in effect at the point of the
 declaration of the denoted callable entity is not the same as the assertion
 policy in effect at the point of the declaration of the invoked callable entity,
-it is implementation defined whether any precondition or postcondition checks
-are made.]}
+it is unspecified whether any precondition or postcondition checks are
+made.@PDefn{unspecified}]}
 
 @begin{Discussion}
   @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0262-1]}
   @ChgAdded{Version=[3],Text=[For a dispatching call with different policies,
   whether a check is made probably will be different for different checks,
-  depending on whether the implementation makes them at the call site, in a
-  wrapper, or inside the called subprogram or entry.]}
+  depending on whether the implementation makes the check at the call site,
+  in a wrapper, or inside the called subprogram or entry.]}
 @end{Discussion}
-@ChgImplDef{Version=[3],Kind=[Added],Text=[@Chg{Version=[3],New=[Whether
-precondition or postcondition checks are made for a dispatching call when
-the assertion policy differs between the denoted and
-invoked entity.],Old=[]}]}
 @end{Runtime}
-
-@begin{Bounded}
-@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0145-2]}
-@ChgAdded{Version=[3],Text=[@PDefn2{Term=(bounded error),Sec=(cause)}
-It is a bounded error to invoke a potentially blocking operation (see
-@RefSecNum{Protected Subprograms and Protected Actions}) during the evaluation
-of a precondition or postcondition expression. If the bounded error is detected,
-Program_Error is raised. If not detected, execution proceeds normally, but if it
-is invoked within a protected action, it might result in deadlock or a (nested)
-protected action.]}
-@end{Bounded}
 
 @begin{Notes}
   @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0145-2],ARef=[AI05-0262-1]}
@@ -1029,13 +1094,13 @@ protected action.]}
 @end{Notes}
 
 @begin{Extend2005}
-  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0145-2],ARef=[AI05-0230-1],ARef=[AI05-0247-1],ARef=[AI05-0254-1]}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0145-2],ARef=[AI05-0230-1],ARef=[AI05-0247-1],ARef=[AI05-0254-1],ARef=[AI05-0262-1],ARef=[AI05-0273-1],ARef=[AI05-0274-1]}
   @ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 2005}
   Pre and Post aspects are new.]}
 @end{Extend2005}
 
 
-
+@RMNewPageVer{Version=[3]}@Comment{For printed version of Ada 2012 RM}
 @LabeledClause{Formal Parameter Modes}
 
 @begin{Intro}
@@ -1370,8 +1435,8 @@ or itself be the initial declaration of the subprogram.
 @end{StaticSem}
 
 @begin{RunTime}
-@PDefn2{Term=[elaboration], Sec=(non-generic subprogram_body)}
-The elaboration of a non-generic
+@PDefn2{Term=[elaboration], Sec=(nongeneric subprogram_body)}
+The elaboration of a nongeneric
 @nt{subprogram_body} has no other effect than to establish
 that the subprogram can from then on be called without
 failing the Elaboration_Check.
@@ -1435,7 +1500,7 @@ because a @nt{declarative_part} can be empty.
 We have incorporated some rules from RM83-6.5 here.
 
 RM83 forgot to restrict the definition of elaboration of a
-@nt{subprogram_body} to non-generics.
+@nt{subprogram_body} to nongenerics.
 @end{DiffWord83}
 
 @begin{DiffWord95}
@@ -1829,7 +1894,7 @@ are equivalent to calls using prefix notation.
 @key[with] A;
 @key[package] B @key[is]
     @key[package] A_View @key[renames] A;
-    @key[function] F_View(X : Integer := 9999) @key[return] Boolean @key[renames] @Chg{Version=[3],New=[A.],Old=[]}F;
+    @key[function] F_View(X : Integer := 9999) @key[return] Boolean @key[renames] @Chg{Version=[3],New=[A.F],Old=[F]};
 @key[end] B;
 
 @key[with] A, B; @key[use] A, B;
@@ -1994,6 +2059,7 @@ and "(X: T)" conforms fully with "(X: @key[in] T)".
 @end{Diffword2005}
 
 
+@RMNewPageVer{Version=[3]}@Comment{For printed version of Ada 2012 RM}
 @LabeledSubClause{Inline Expansion of Subprograms}
 
 @begin{Intro}
@@ -2657,8 +2723,8 @@ or]}
 @ChgRef{Version=[3],Kind=[Added]}
 @ChgAdded{Version=[3],Text=[both @nt{name}s are @nt{indexed_component}s, their
 @nt{prefix}es are known to denote the same object, and each of the pairs of
-corresponding index values are either bodt static expressions with the same
-value or both @nt{name}s that are known to denote the same object; or]}
+corresponding index values are either both static expressions with the same
+static value or both @nt{name}s that are known to denote the same object; or]}
 
 @ChgRef{Version=[3],Kind=[Added]}
 @ChgAdded{Version=[3],Text=[both @nt{name}s are @nt{slice}s, their
@@ -3132,7 +3198,7 @@ as it is subsumed by earlier clauses and subclauses.
   object to more than one @key[in out] or @key[out] parameters of the same
   call. In this case, the result in the object could depend on the compiler
   version, optimization settings, and potentially the phase of the moon, so
-  this check will mostly reject programs that are non-portable and could
+  this check will mostly reject programs that are nonportable and could
   fail with any change. Even when the result is expected to be the same in both
   parameters, the code is unnecessarily tricky. Programs which fail this
   new check should be rare and are easily fixed by adding a temporary object.]}
@@ -3190,11 +3256,16 @@ innermost enclosing @nt{subprogram_@!body},
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00318-02]}
 @Syn{lhs=<@Chg{Version=[2],New=[simple_return_statement],Old=[return_statement]}>,rhs="@key{return} [@Syn2{expression}];"}
 
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0277-1]}
+@AddedSyn{Version=[3],lhs=<@Chg{Version=[3],New=[extended_return_object_declaration],Old=[]}>,
+rhs="@Chg{Version=[3],New=<
+    @Syn2{defining_identifier} : [@key{aliased}][@key{constant}] @Syn2{return_subtype_indication} [:= @Syn2{expression}]>,Old=[]}"}
+
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00318-02]}
-@ChgRef{Version=[3],Kind=[RevisedAdded],ARef=[AI05-0015-1],ARef=[AI05-0053-1]}
+@ChgRef{Version=[3],Kind=[RevisedAdded],ARef=[AI05-0015-1],ARef=[AI05-0053-1],ARef=[AI05-0277-1]}
 @AddedSyn{Version=[2],lhs=<@Chg{Version=[2],New=[extended_return_statement],Old=[]}>,
 rhs="@Chg{Version=[2],New=<
-    @key{return} @Syn2{defining_identifier} : [@Chg{Version=[3],New=<@Key{constant}>,Old=[@Key{aliased}]}] @Syn2{return_subtype_indication} [:= @Syn2{expression}] [@Key{do}
+    @Chg{Version=[3],New=<@Syn2{extended_return_object_declaration}>,Old=<@key{return} @Syn2{defining_identifier} : [@Chg{Version=[3],New=<@Key{constant}>,Old=[@Key{aliased}]}] @Syn2{return_subtype_indication} [:= @Syn2{expression}]>} [@Key{do}
         @Syn2{handled_sequence_of_statements}
     @key{end} @key{return}];>,Old=[]}"}
 
@@ -3367,8 +3438,8 @@ statically deeper than that of the master that elaborated the function body.]}]}
   return statement@Chg{Version=[3],New=[ unless this is
   an @nt{extended_return_statement} whose @nt{return_subtype_indication} is
   a specific type. We have a separate rule to cover that case. Note that
-  if an @nt{extended_return_statement} has an @nt{expression}, then both rules
-  must be satisfied],Old=[. Similarly, if
+  if an @nt{extended_return_statement} has an @nt{expression}, then both this
+  rule and the next one must be satisfied],Old=[. Similarly, if
   the result subtype is unconstrained, then either the
   @nt{return_@!subtype_@!indication} (if any) is constrained, or
   there must be an @nt{expression}]}.]}
@@ -3390,6 +3461,10 @@ of the master that elaborated the function body.]}
 @end{Discussion}
 @end{Itemize}
 
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0277-1]}
+@ChgAdded{Version=[3],Text=[If the keyword @key[aliased] is present in an
+@nt{extended_return_object_declaration},
+the type of the extended return object shall be immutably limited.]}
 @end{Legality}
 
 @begin{StaticSem}
@@ -3734,8 +3809,8 @@ that object.]}
   @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0234-1]}
   @ChgAdded{Version=[3],Text=[The reason for saying @ldquote@;any part of
   the specific type@rdquote is to simplify implementation. In the case of
-  class-wide result objects this allows the testing of a simple flag in the
-  tagged type descriptor that indicates whether specific type has any parts with
+  class-wide result objects, this allows the testing of a simple flag in the
+  tagged type descriptor that indicates whether the specific type has any parts with
   access discriminants. By basing the test on the type of the object rather than
   the object itself, we avoid concerns about whether subcomponents in variant
   parts and of arrays (which might be empty) are present.]}
@@ -3753,10 +3828,10 @@ that object.]}
    initialized descriptor of some kind for each specific tagged type, then an
    additional Boolean could be added to this descriptor.]}
 
-  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0005-1],ARef=[AI05-0234-1]}
   @ChgAdded{Version=[3],Text=[Note that the flag should only be queried in the
-   case where any access discriminants which the result object might have
-   subtypes with "bad" accessibility levels (as determined by the rules of
+   case where the result object might have access discriminants that might
+   have subtypes with "bad" accessibility levels (as determined by the rules of
    @RefSecNum{Operations of Access Types} for determining the accessibility
    level of the type of an access discriminant in the @nt{expression} or
    @nt{return_subtype_indication} of a return statement).]}
@@ -3775,7 +3850,9 @@ that object.]}
 
   @ChgRef{Version=[3],Kind=[AddedNormal]}
   @ChgAdded{Version=[3],Type=[Trailing],Text=[there is no need for a run-time
-    accessibility check. The setting of the bit doesn't matter and there is no
+    accessibility check. While an object of T'Class "might have" access
+    discriminants, the accessibility of those potential discriminants
+    cannot be bad. The setting of the bit doesn't matter and there is no
     need to query it.]}
 
   @ChgRef{Version=[3],Kind=[AddedNormal]}
@@ -3841,8 +3918,8 @@ that object.]}
 @nt{extended_@!return_@!statement} causes a transfer of control that completes
 the @nt{extended_@!return_@!statement}. Upon completion
 of a return statement that applies to a callable construct@Chg{Version=[3],
-New=[ by the normal completion of a @nt{simple_return_statement} or
-by reaching the @key[end return] of an @nt{extended_return_statement}],
+New=[ by the normal completion of a @nt{simple_@!return_@!statement} or
+by reaching the @key[end return] of an @nt{extended_@!return_@!statement}],
 Old=[]}],Old=[Finally]}, a
 transfer of control is performed which completes the execution of the callable
 construct@Chg{Version=[2],New=[], Old=[ to which the @nt{return_@!statement}
@@ -3955,7 +4032,6 @@ subtype of this object.]}]}
 
 @end{ImplPerm}
 
-@RMNewPageVer{Version=[3]}@Comment{For printed version of Ada 2012 RM}
 @begin{Examples}
 @leading@keepnext@i{Examples of return statements:}
 @begin{Example}
@@ -4121,14 +4197,15 @@ syntactic, and refers exactly to @lquotes@;@nt{subprogram_body}@rquotes@;.
 @end{Inconsistent2005}
 
 @begin{Incompatible2005}
-  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0053-1]}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0053-1],ARef=[AI05-0277-1]}
   @ChgAdded{Version=[3],Text=[@Defn{incompatibilities with Ada 2005}@b<Correction:>
-  Eliminated the @key{aliased} keyword from the syntax of
-  @nt{extended_return_statement}s, as this would provide a way to get
-  an aliased view of an object that is not
-  necessarily aliased. This is technically incompatible, but since the
-  feature was added in Ada 2005 and not widely implemented, it is
-  very unlikely that it appears in existing programs.]}
+  The @key{aliased} keyword can now only appear on extended return objects
+  with an immutably limited type. Other types would provide a way to get
+  an aliased view of an object that is not necessarily aliased, which would be
+  very bad. This is incompatible, but since the feature was added in
+  Ada 2005, the keyword had no defined meaning in Ada 2005
+  (a significant oversight), and most sensible uses involve immutably limited
+  types, it is unlikely that it appears meaningfully in existing programs.]}
 
   @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0103-1]}
   @ChgAdded{Version=[3],Text=[@b<Correction:> Added wording to require
@@ -4167,10 +4244,16 @@ syntactic, and refers exactly to @lquotes@;@nt{subprogram_body}@rquotes@;.
   defining returns for @nt{extended_return_statement}s, since leaving by
   an exit or goto is considered @ldquote@;normal@rdquote completion of the
   statement.]}
+
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0205-1],ARef=[AI05-0277-1]}
+  @ChgAdded{Version=[3],Text=[@b<Correction:> Added the
+  @nt{extended_return_object_declaration} to make other rules easier to write
+  and eliminate the problem described in AI05-0205-1.]}
 @end{DiffWord2005}
 
 
-@LabeledRevisedSubClause{Version=[3],InitialVersion=[2],New=[Non-returning Procedures],Old=[Pragma No_Return]}
+@RMNewPageVer{Version=[3]}@Comment{For printed version of Ada 2012 RM}
+@LabeledRevisedSubClause{Version=[3],InitialVersion=[2],New=[Nonreturning Procedures],Old=[Pragma No_Return]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00329-01],ARef=[AI95-00414-01]}
 @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1]}
@@ -4198,7 +4281,7 @@ should be deleted if the paragraphs are ever renumbered.}
 @ChgRef{Version=[3],Kind=[DeletedNoDelMsg],ARef=[AI05-0229-1]}
 @ChgAdded{Version=[2],Type=[Leading],Text=[@Chg{Version=[3],New=[],Old=[The form
 of a @nt{pragma} No_Return, which is a
-representation pragma (see @RefSecNum{Operational and Representation Items}),
+representation pragma (see @RefSecNum{Operational and Representation Aspects}),
 is as follows:]}]}
 @end{SyntaxText}
 
@@ -4217,7 +4300,7 @@ language-defined representation aspect may be specified:]}
 @ChgRef{Version=[3],Kind=[Added]}
 @ChgAdded{Version=[3],Text=[No_Return@\The type of aspect No_Return is Boolean.
 When aspect No_Return is True for an entity, the entity is said to be
-@i<non-returning>.@Defn{non-returning}@AspectDefn{No_Return}]}
+@i<nonreturning>.@Defn{nonreturning}@AspectDefn{No_Return}]}
 
 @ChgRef{Version=[3],Kind=[Added]}
 @ChgAdded{Version=[3],NoPrefix=[T],Text=[If directly specified, the
@@ -4229,8 +4312,8 @@ never inherited;] if not directly specified, the aspect is False.]}
 @end{Description}
 
 @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0229-1]}@ChgNote{Moved from below}
-@ChgAdded{Version=[3],Text=[If a generic procedure is non-returning, then so are
-its instances. If a procedure declared within a generic unit is non-returning,
+@ChgAdded{Version=[3],Text=[If a generic procedure is nonreturning, then so are
+its instances. If a procedure declared within a generic unit is nonreturning,
 then so are the corresponding copies of that procedure in instances.]}
 
 @end{StaticSem}
@@ -4240,16 +4323,16 @@ then so are the corresponding copies of that procedure in instances.]}
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00329-01],ARef=[AI95-00414-01]}
 @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1]}
 @ChgAdded{Version=[2],Text=[@Chg{Version=[3],New=[Aspect No_Return],
-Old=[@Defn{non-returning}Each @SynI{procedure_}@nt{local_name} shall denote one
+Old=[@Defn{nonreturning}Each @SynI{procedure_}@nt{local_name} shall denote one
 or more procedures or generic procedures; the denoted entities are
-@i<non-returning>. The @SynI{procedure_}@nt{local_name}]} shall not
+@i<nonreturning>. The @SynI{procedure_}@nt{local_name}]} shall not
 @Chg{Version=[3],New=[be specified for],Old=[denote]} a
 null procedure nor an instance of a generic unit.]}
 
 @begin{Reason}
   @ChgRef{Version=[2],Kind=[AddedNormal]}
   @ChgAdded{Version=[2],Text=[A null procedure cannot have the appropriate
-  non-returning semantics, as it does not raise an exception or loop forever.]}
+  nonreturning semantics, as it does not raise an exception or loop forever.]}
 @end{Reason}
 
 @begin{Ramification}
@@ -4258,18 +4341,18 @@ null procedure nor an instance of a generic unit.]}
   @ChgAdded{Version=[2],Text=[The procedure can be abstract.@Chg{Version=[3],New=[],
   Old=[ The denoted declaration can be a @nt{renaming_declaration} if it obeys the usual rules
   for representation pragmas: the renaming has to occur immediately within the
-  same declarative region as the renamed subprogram.]} If a non-returning
+  same declarative region as the renamed subprogram.]} If a nonreturning
   procedure is renamed (anywhere) calls through the new name still have the
-  non-returning semantics.]}
+  nonreturning semantics.]}
 @end{Ramification}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00329-01],ARef=[AI95-00414-01]}
 @ChgAdded{Version=[2],Text=[A return statement shall not apply to a
-non-returning procedure or generic procedure.]}
+nonreturning procedure or generic procedure.]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00414-01]}
-@ChgAdded{Version=[2],Text=[A procedure shall be non-returning if it overrides
-a dispatching non-returning procedure.
+@ChgAdded{Version=[2],Text=[A procedure shall be nonreturning if it overrides
+a dispatching nonreturning procedure.
 @PDefn{generic contract issue}
 In addition to the places where
 @LegalityTitle normally apply (see @RefSecNum{Generic Instantiation}),
@@ -4278,12 +4361,12 @@ this rule applies also in the private part of an instance of a generic unit.]}
 @begin{Reason}
   @ChgRef{Version=[2],Kind=[AddedNormal]}
   @ChgAdded{Version=[2],Text=[This ensures that dispatching calls to
-  non-returning procedures will, in fact, not return.]}
+  nonreturning procedures will, in fact, not return.]}
 @end{Reason}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00414-01]}
-@ChgAdded{Version=[2],Text=[If a renaming-as-body completes a non-returning
-procedure declaration, then the renamed procedure shall be non-returning.]}
+@ChgAdded{Version=[2],Text=[If a renaming-as-body completes a nonreturning
+procedure declaration, then the renamed procedure shall be nonreturning.]}
 
 @begin{Reason}
   @ChgRef{Version=[2],Kind=[AddedNormal]}
@@ -4305,14 +4388,14 @@ the old, now unused, subheader}
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00329-01],ARef=[AI95-00414-01]}
 @ChgRef{Version=[3],Kind=[DeletedNoDelMsg],ARef=[AI05-0229-1]}
 @ChgAdded{Version=[2],Text=[@Chg{Version=[3],New=[],Old=[If a generic procedure
-is non-returning, then so are its instances. If a procedure declared within
-a generic unit is non-returning, then so are the corresponding copies of
+is nonreturning, then so are its instances. If a procedure declared within
+a generic unit is nonreturning, then so are the corresponding copies of
 that procedure in instances.]}]}
 @end{StaticSem}
 
 @begin{RunTime}
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00329-01],ARef=[AI95-00414-01]}
-@ChgAdded{Version=[2],Text=[If the body of a non-returning procedure completes
+@ChgAdded{Version=[2],Text=[If the body of a nonreturning procedure completes
 normally, Program_Error is raised at the point of the call.
 @Defn2{Term=[Program_Error],Sec=(raised by failure of run-time check)}]}
 @end{RunTime}
@@ -4325,7 +4408,7 @@ normally, Program_Error is raised at the point of the call.
 @end{Discussion}
 @begin{ImplNote}
   @ChgRef{Version=[2],Kind=[AddedNormal]}
-  @ChgAdded{Version=[2],Text=[If a non-returning procedure tries to return, we
+  @ChgAdded{Version=[2],Text=[If a nonreturning procedure tries to return, we
   raise Program_Error. This is stated as happening at the call site, because we
   do not wish to allow the procedure to handle the exception (and then,
   perhaps, try to return again!). However, the expected run-time model is that
@@ -4334,11 +4417,11 @@ normally, Program_Error is raised at the point of the call.
   doing it at the call site. (This is just like the typical run-time model for
   functions that fall off the end without returning a value). The reason is
   indirect calls: in P.@key{all}(...);, the compiler cannot know whether P
-  designates a non-returning procedure or a normal one. Putting the @key{raise}
+  designates a nonreturning procedure or a normal one. Putting the @key{raise}
   Program_Error in the procedure's generated code solves this problem neatly.]}
 
   @ChgRef{Version=[2],Kind=[AddedNormal]}
-  @ChgAdded{Version=[2],Text=[Similarly, if one passes a non-returning
+  @ChgAdded{Version=[2],Text=[Similarly, if one passes a nonreturning
   procedure to a generic formal parameter, the compiler cannot know this at
   call sites (in shared code implementations); the raise-in-body solution
   deals with this neatly.]}

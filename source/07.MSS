@@ -1,10 +1,10 @@
 @Part(07, Root="ada.mss")
 
-@Comment{$Date: 2011/11/01 23:14:14 $}
+@Comment{$Date: 2012/02/19 01:58:36 $}
 @LabeledSection{Packages}
 
 @Comment{$Source: e:\\cvsroot/ARM/Source/07.mss,v $}
-@Comment{$Revision: 1.121 $}
+@Comment{$Revision: 1.127 $}
 
 @begin{Intro}
 @redundant[@ToGlossaryAlso{Term=<Package>,
@@ -224,8 +224,11 @@ isolated from the internal entities.]
 @end{Intro}
 
 @begin{Syntax}
+
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0267-1]}
 @Syn{lhs=<package_body>,rhs="
-    @key{package} @key{body} @Syn2{defining_program_unit_name} @key{is}
+    @key{package} @key{body} @Syn2{defining_program_unit_name}@Chg{Version=[3],New=<
+        [@Syn2{aspect_specification}]>,Old=[]} @key{is}
        @Syn2{declarative_part}
    [@key{begin}
         @Syn2{handled_sequence_of_statements}]
@@ -378,6 +381,13 @@ We have corrected that omission.
 The rule about implicit bodies (from RM83-9.3(5))
 is moved here, since it is more generally applicable.
 @end{DiffWord83}
+
+@begin{Extend2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0267-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 2005}
+  An optional @nt{aspect_specification} can be used in a @nt{package_body}.
+  This is described in @RefSecNum{Aspect Specifications}.]}
+@end{Extend2005}
 
 @LabeledClause{Private Types and Private Extensions}
 
@@ -930,6 +940,7 @@ declared by a @nt<private_extension_declaration>.
 These terms are not used in the RM95 version of this document.
 @end{Discussion}
 
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0269-1]}
 A declaration of a partial view and the corresponding
 @nt{full_type_declaration} define two views of a single type.
 The declaration of a partial view
@@ -938,9 +949,11 @@ available to outside program units;
 the declaration of the full view together with
 the private part define other operations whose direct use is
 possible only within the declarative region of the package itself.
-@PDefn{characteristics}
-Moreover, within the scope of the declaration of the full view, the
-@i{characteristics} of the type are determined by the full view;
+@Chg{Version=[3],New=[],Old=[@PDefn{characteristics}]}Moreover,
+within the scope of the declaration of the full view, the
+@Chg{Version=[3],New=[characteristics (see
+@RefSecNum{Derived Types and Classes})],Old=[@i{characteristics}]}
+of the type are determined by the full view;
 in particular, within its scope, the full view determines
 the classes that include the type,
 which components, entries, and protected subprograms are visible,
@@ -1243,7 +1256,7 @@ Old=[within the immediate scope of the array type.]}
 In such a case, the predefined "=" operator is implicitly declared at
 that place, and assignment is allowed after that place.]
 
-@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0115-1]}
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0115-1],ARef=[AI05-0269-1]}
 @ChgAdded{Version=[3],Text=[A type is a @i<descendant>@Defn2{Term=[descendant],
 Sec=[of the full view of a type]} of the full view of some ancestor
 of its parent type only if the current view it has of its parent is a
@@ -1252,7 +1265,7 @@ place, a type is descended from the same view of an ancestor as that from which
 the current view of its parent is descended. This view determines what
 characteristics are inherited from the ancestor@Redundant[, and, for example,
 whether the type is considered to be a descendant of a record type, or a
-descendant only through record extensions of some more distant ancestor].]}
+descendant only through record extensions of a more distant ancestor].]}
 
 @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0115-1]}
 @ChgAdded{Version=[3],Text=[@Redundant[It is possible for there to be places
@@ -1296,7 +1309,7 @@ Sec=[of an incomplete view]}]]}
     W : T3 := T3(Int);  -- @Examcom{Legal: conversion allowed}
     X : T3 := T3(42);   -- @Examcom{Error: T3 is not a numeric type}
     Y : T3 := X + 1;    -- @Examcom{Error: no visible "+" operator}
-    Z : T3 := T3(Integer(X) + 1);   -- @Examcom{Legal: convert to Int first}
+    Z : T3 := T3(Integer(W) + 1);   -- @Examcom{Legal: convert to Integer first}
 @key[end] P.Child;]}
 @end{Example}
 @end{Discussion}
@@ -1642,8 +1655,8 @@ extension, the following language-defined aspects may be specified with an
 @ChgAdded{Version=[3],Text=[Type_Invariant@\This aspect
    shall be specified by an @nt{expression}, called an @i<invariant
    expression>.@Defn{invariant expression}
-   Type_Invariant may be specified on a @nt{private_type_declaration}, on a
-   @nt{private_extension_declaration}, or on a @nt{full_type_declaration} that
+   Type_Invariant may be specified on a @nt{private_@!type_@!declaration}, on a
+   @nt{private_@!extension_@!declaration}, or on a @nt{full_@!type_@!declaration} that
    declares the completion of a private type or private
    extension.@AspectDefn{Type_Invariant}]}
 
@@ -1655,8 +1668,8 @@ extension, the following language-defined aspects may be specified with an
 @ChgAdded{Version=[3],Text=[Type_Invariant'Class@\This aspect
    shall be specified by an @nt{expression}, called an @i<invariant
    expression>.
-   Type_Invariant'Class may be specified on a @nt{private_type_declaration} or a
-   @nt{private_extension_declaration}.@AspectDefn{Type_Invariant'Class}]}
+   Type_Invariant'Class may be specified on a @nt{private_@!type_@!declaration} or a
+   @nt{private_@!extension_@!declaration}.@AspectDefn{Type_Invariant'Class}]}
 
 @begin{Reason}
   @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0254-1]}
@@ -1746,26 +1759,56 @@ following places, on the specified object(s):@Defn2{Term=[assertion policy],
   @ChgAdded{Version=[3],Text=[After successful conversion to type @i<T>, the
     check is performed on the result of the conversion;]}
 
-  @ChgRef{Version=[3],Kind=[AddedNormal]}
-  @ChgAdded{Version=[3],Text=[After assigning to a view conversion, outside the
-    immediate scope of @i<T>, that converts from @i<T> or one or more record
-    extensions (and no private extensions) of @i<T> to an ancestor of type
-    @i<T>, a check is performed on the part of the object that is of type @i<T>;
-    similarly, for passing a view conversion as an @key[out] or @key[in out]
-    parameter outside the immediate scope of @i<T>, this check is performed upon
-    successful return;]}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0146-1],ARef=[AI05-0269-1]}
+  @ChgAdded{Version=[3],Text=[For a view conversion, outside the immediate scope
+  of @i<T>, that converts from a descendant of @i<T> (including @i<T> itself) to
+  an ancestor of type @i<T> (other than @i<T> itself), a check is performed on
+  the part of the object that is of type @i<T>:]}
+
+  @begin{InnerItemize}
+    @ChgRef{Version=[3],Kind=[AddedNormal]}
+    @ChgAdded{Version=[3],Text=[after assigning to the view conversion; and]}
+
+    @ChgRef{Version=[3],Kind=[AddedNormal]}
+    @ChgAdded{Version=[3],Text=[after successful return from a call that passes the view conversion
+    as an @key[in out] or @key[out] parameter.]}
+  @end{InnerItemize}
+
+  @begin{Ramification}
+    @ChgRef{Version=[3],Kind=[AddedNormal]}
+    @ChgAdded{Version=[3],Text=[For a single view conversion that converts
+    between distantly related types, this rule could be triggered for
+    multiple types and thus multiple invariant checks may be needed.]}
+  @end{Ramification}
+  @begin{ImplNote}
+    @ChgRef{Version=[3],Kind=[AddedNormal]}
+    @ChgAdded{Version=[3],Text=[For calls to inherited subprograms (including
+    dispatching calls), the implied view conversions mean that a wrapper is
+    probably needed. (See the Note at the bottom of this clause for more
+    on the model of checked for inherited subprograms.)]}
+
+    @ChgRef{Version=[3],Kind=[AddedNormal]}
+    @ChgAdded{Version=[3],Text=[For view conversions involving class-wide
+    types, the exact checks needed may not be known at compile-time. One
+    way to deal with this is to have an implicit dispatching operation
+    that is given the object to check and the tag of the target of the
+    conversion, and which first checks if the passed tag is not for itself,
+    and if not, checks the its invariant on the object and then calls
+    the operation of its parent type. If the tag is for itself, the
+    operation is complete.]}
+  @end{ImplNote}
 
   @ChgRef{Version=[3],Kind=[AddedNormal]}
   @ChgAdded{Version=[3],Text=[After a successful call on the Read or Input
     stream attribute of the type @i<T>, the check is performed on the object
     initialized by the stream attribute;]}
 
-  @ChgRef{Version=[3],Kind=[AddedNormal]}
-  @ChgAdded{Version=[3],Type=[Leading],Text=[Upon successful return from a call
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0146-1],ARef=[AI05-0269-1]}
+  @ChgAdded{Version=[3],Type=[Leading],Text=[An invariant is checked upon successful return from a call
   on any subprogram or entry that:]}
   @begin{Itemize}
-    @ChgRef{Version=[3],Kind=[AddedNormal]}
-    @ChgAdded{Version=[3],Text=[is explicitly declared within the immediate
+    @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0146-1],ARef=[AI05-0269-1]}
+    @ChgAdded{Version=[3],Text=[is declared within the immediate
       scope of type @i<T> (or by an instance of a generic unit, and the generic
       is declared within the immediate scope of type @i<T>), and]}
 
@@ -1780,8 +1823,8 @@ following places, on the specified object(s):@Defn2{Term=[assertion policy],
       an access to variable parameter whose designated type has a part of type
       @i<T>.]}
   @end{Itemize}
-  @ChgRef{Version=[3],Kind=[AddedNormal]}
-  @ChgAdded{Version=[3],NoPrefix=[T],Text=[the check is performed on each such
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0146-1],ARef=[AI05-0269-1]}
+  @ChgAdded{Version=[3],NoPrefix=[T],Text=[The check is performed on each such
   part of type @i<T>.]}
 @end{Itemize}
 
@@ -1835,22 +1878,35 @@ performed on a call on that subprogram or entry.]]}
 @end{Runtime}
 
 @begin{Notes}
-  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0250-1]}
-  @ChgAdded{Version=[3],Text=[A call of a primitive subprogram of type @i<NT>
-  that is inherited from type @i<T> needs to satisfy the specific invariants
-  of both the types @i<NT> and @i<T>. A call of a primitive subprogram of type
-  @i<NT> that is overridden for type @i<NT> needs to satisfy only the specific
-  invariants of type @i<NT>.]}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0250-1],ARef=[AI05-0269-1]}
+  @ChgAdded{Version=[3],Text=[For a call of a primitive subprogram of type
+  @i<NT> that is inherited from type @i<T>, the specified checks of the specific
+  invariants of both the types @i<NT> and @i<T> are performed. For a call of a
+  primitive subprogram of type @i<NT> that is overridden for type @i<NT>, the
+  specified checks of the specific invariants of only type @i<NT> are
+  performed.]}
 
 @begin{TheProof}
   @ChgRef{Version=[3],Kind=[AddedNormal]}
-  @ChgAdded{Version=[3],Text=[This follows from the definition of inheritance
-  as view conversions of the parameters of the type, along with the rule
-  require checks on such view conversions. We require this in order that the
-  semantics of an explicitly defined wrapper that does nothing but call the
-  original routine is the same as that of an inherited routine.]}
+  @ChgAdded{Version=[3],Text=[This follows from the definition of a call on
+  an inherited subprogram as view conversions of the parameters of the type
+  and a call to the original subprogram
+  (see @RefSecNum{Derived Types and Classes}), along with the normal invariant
+  checking rules. In particular, the call to the original subprogram takes
+  care of any checks needed on type @i<T>, and the checks required
+  on view conversions take care of any checks needed on type @i<NT>,
+  specifically on @key[in out] and @key[out] parameters. We require this in
+  order that the semantics of an explicitly defined wrapper that does nothing
+  but call the original subprogram is the same as that of an inherited
+  subprogram.]}
 @end{TheProof}
 
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0289-1]}
+  @ChgAdded{Version=[3],Text=[Invariants are not checked after a call for
+  @Key[in] parameters of a type. If the logical properties of an @Key[in]
+  parameter are modified by a subprogram (possibly via an embedded access
+  value), the invariant may not hold on the object after the call. Generally,
+  such parameters should be declared as @Key[in out] parameters.]}
 
 @end{Notes}
 
@@ -1874,7 +1930,7 @@ languages (see @RefSecNum{Interface to Other Languages}).]
 @end{Intro}
 
 @begin{Legality}
-@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1],ARef=[AI05-0269-1]}
 @Redundant[@Defn{deferred constant declaration}
 A @i(deferred constant declaration) is an @nt<object_declaration>
 with the reserved word @key(constant) but no initialization expression.]
@@ -1882,19 +1938,20 @@ with the reserved word @key(constant) but no initialization expression.]
 The constant declared by a deferred constant declaration is called
 a @i{deferred constant}.
 @PDefn2{Term=[requires a completion], Sec=(deferred constant declaration)}
-A deferred constant declaration requires a completion,
+@Chg{Version=[3],New=[@Redundant[Unless the Import aspect
+(see @RefSecNum{Interfacing Aspects}) is True for a deferred constant
+declaration, the ]],Old=[A]} deferred constant declaration requires a completion,
 which shall be a full constant declaration
-(called the @i{full declaration} of the deferred constant)@Chg{Version=[3],New=[,
-@Redundant[unless the Import aspect (see @RefSecNum{Interfacing Aspects})
-is True for the deferred constant declaration]],Old=[,
+(called the @i{full declaration} of the deferred
+constant)@Chg{Version=[3],New=[],Old=[,
 or a @nt{pragma} Import (see @RefSecNum(Interface to Other Languages))]}.
 @Defn{full declaration}
 @begin{TheProof}
 The first sentence is redundant, as it is stated officially in
 @RefSecNum(Object Declarations).
 
-@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0229-1]}
-@ChgAdded{Version=[3],Text=[The last part of the last sentence is redundant,
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0229-1],ARef=[AI05-0269-1]}
+@ChgAdded{Version=[3],Text=[The first part of the last sentence is redundant,
 as no imported entity may have a completion, as stated in
 @RefSecNum{Interfacing Aspects}.]}
 @end{TheProof}
@@ -1983,7 +2040,7 @@ elaborates the @nt<subtype_indication>@Chg{Version=[3],New=[,
 imported constant) the @nt<array_type_definition>.
 @begin{Ramification}
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0004-1]}
-  @ChgAdded{Version=[3],Text=[For non-imported constants, these elaborations
+  @ChgAdded{Version=[3],Text=[For nonimported constants, these elaborations
   cannot require any code or checks for a legal program, because the given
   @nt<subtype_indication> has to be indefinite or statically match that of
   the full constant, meaning that either it is a @nt<subtype_mark> or it has
@@ -2359,7 +2416,7 @@ following:@Defn{immutably limited}@Defn2{Term=[limited type],Sec=[immutably]}]}
 @key[limited];]}
 
 @ChgRef{Version=[3],Kind=[Added]}
-@ChgAdded{Version=[3],Text=[A non-formal limited private type that is
+@ChgAdded{Version=[3],Text=[A nonformal limited private type that is
 tagged or has at least one access discriminant with a @nt{default_expression};]}
 
 @begin{Reason}
@@ -2391,7 +2448,7 @@ synchronized interface;]}
 
 @begin{Ramification}
   @ChgRef{Version=[3],Kind=[AddedNormal]}
-  @ChgAdded{Version=[3],Text=[A non-synchronized limited interface type is
+  @ChgAdded{Version=[3],Text=[A nonsynchronized limited interface type is
   not immutably limited; a type derived from it can be nonlimited.]}
 @end{Ramification}
 
@@ -3034,9 +3091,10 @@ contract model violations.
 or @nt{aggregate} is used to initialize an object, the
 result of the function call or @nt{aggregate} is an anonymous object, which
 is assigned into the newly-created object. For such an assignment,
-the anonymous object might be built in place. Under certain circumstances,
-the anonymous object is required to be @i<built in place>,@Defn{built in place}
-in which case the assignment does not involve any copying. In particular:]}
+the anonymous object might be @i<built in place>,@Defn{built in place}@Seeother{Primary=[build-in-place],Other=[built in place]}
+in which case the assignment does not involve any copying.
+Under certain circumstances, the anonymous object is required to be built in
+place. In particular:]}
 
 @begin{Discussion}
   @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0067-1]}
@@ -3059,9 +3117,9 @@ in which case the assignment does not involve any copying. In particular:]}
   is for determining the technique of parameter passing). That is, privacy is
   ignored for this purpose.]}
 
-  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0067-1]}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0005-1],ARef=[AI05-0067-1]}
   @ChgAdded{Version=[3],Text=[For function calls, we only require building in
-  place for immutable types. These are the types that would have been
+  place for immutably limited types. These are the types that would have been
   return-by-reference types in Ada 95. We limited the requirement because
   we want to minimize disruption to Ada 95 implementations and users.]}
 @end{Reason}
@@ -3236,7 +3294,7 @@ built in place:]}
 @begin{ImplReq}
 @ChgRef{Version=[1],Kind=[Added],Ref=[8652/0022],ARef=[AI95-00083-01]}
 @ChgRef{Version=[2],Kind=[RevisedAdded],ARef=[AI95-00318-02]}
-@ChgRef{Version=[3],Kind=[DeletedAdded],ARef=[AI05-0067-1]}
+@ChgRef{Version=[3],Kind=[DeletedAddedNoDelMsg],ARef=[AI05-0067-1]}
 @ChgDeleted{Version=[3],Text=[@Chg{Version=[1],New=[For an @nt{aggregate} of a
 controlled type whose value is assigned,
 other than by an @nt{assignment_statement}@Chg{Version=[2],New=[],Old=[ or
@@ -3247,14 +3305,14 @@ of the assignment operation and Adjust is not called on the target object.],Old=
 @begin{Reason}
 @ChgRef{Version=[1],Kind=[Added]}
 @ChgRef{Version=[2],Kind=[RevisedAdded],ARef=[AI95-00318-02]}
-@ChgRef{Version=[3],Kind=[DeletedAdded],ARef=[AI05-0067-1]}
+@ChgRef{Version=[3],Kind=[DeletedAddedNoDelMsg],ARef=[AI05-0067-1]}
 @ChgDeleted{Version=[3],Type=[Leading],Text=[@Chg{Version=[1],New=[@Chg{Version=[2],
 New=[@PDefn{build-in-place}],Old=[]}This@Chg{Version=[2],
 New=[ @i<build-in-place> requirement],Old=[]} is necessary to prevent
 elaboration problems with deferred constants of controlled types. Consider:],Old=[]}]}
 @begin{Example}
 @ChgRef{Version=[1],Kind=[Added]}
-@ChgRef{Version=[3],Kind=[DeletedAdded]}
+@ChgRef{Version=[3],Kind=[DeletedAddedNoDelMsg]}
 @ChgDeleted{Version=[3],Text=[@Chg{New=[@key[package] P @key[is]
    @key[type] Dyn_String @key[is private];
    Null_String : @key[constant] Dyn_String;
@@ -3270,7 +3328,7 @@ elaboration problems with deferred constants of controlled types. Consider:],Old
 @key[end] P;],Old=[]}]}
 @end{Example}
 @ChgRef{Version=[1],Kind=[Added]}
-@ChgRef{Version=[3],Kind=[DeletedAdded]}
+@ChgRef{Version=[3],Kind=[DeletedAddedNoDelMsg]}
 @ChgDeleted{Version=[3],Text=[@Chg{New=[When Null_String is elaborated, the bodies of Finalize and Adjust
 clearly have not been elaborated. Without this rule, this declaration would
 necessarily raise Program_Error (unless the permissions given below are
@@ -3278,7 +3336,7 @@ used by the implementation).],Old=[]}]}
 @end{Reason}
 @begin{Ramification}
 @ChgRef{Version=[2],Kind=[AddedNormal]}
-@ChgRef{Version=[3],Kind=[DeletedAdded]}
+@ChgRef{Version=[3],Kind=[DeletedAddedNoDelMsg]}
 @ChgDeleted{Version=[3],Text=[@Chg{Version=[2],New=[An @nt{aggregate} of a controlled type
 used in the return expression
 of a @nt{simple_@!return_@!statement} has to be built-in-place in the anonymous
@@ -3923,11 +3981,11 @@ contains the @nt{allocator}.]}
 @ChgAdded{Version=[3],Text=[For the type of an access result, within the master of
 the call (see @RefSecNum{Operations of Access Types}).]}
 @begin{Honest}
-  @ChgRef{Version=[3],Kind=[AddedNormal]}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0005-1],ARef=[AI05-0190-1]}
   @ChgAdded{Version=[3],Text=[We mean at a place within the master consistent
   with the execution of the call within the master. We don't say that
   normatively, as it is difficult to explain that when the master of the call
-  may not be the master that immediately includes the call (such as when an
+  need not be the master that immediately includes the call (such as when an
   anonymous result is converted to a named access type).]}
 @end{Honest}
 
@@ -3946,19 +4004,20 @@ in @RefSecNum{Assignment and Finalization}.
 
 @ChgRef{Version=[1],Kind=[Revised],Ref=[8652/0021],ARef=[AI95-00182-01]}
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00162-01]}
-@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0066-1],ARef=[AI05-0142-4]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0066-1],ARef=[AI05-0142-4],ARef=[AI05-0269-1]}
 @Chg{Version=[2],New=[The master of an object is the master enclosing its
 creation whose accessibility level (see @RefSecNum{Operations of Access Types})
 is equal to that of the object@Chg{Version=[3],New=[, except
 in the case of an anonymous object representing the result of
 an @nt{aggregate} or function call. If such an anonymous object
-is part of the actual parameter expression for an explicitly aliased
+is part of the result of evaluating the actual parameter expression for
+an explicitly aliased
 parameter of a function call, the master of the object is the innermost
 master enclosing the evaluation of the @nt{aggregate} or function call, excluding
 the @nt{aggregate} or function call itself. Otherwise, the master of such
 an anonymous object is the innermost master enclosing the evaluation of the
 @nt{aggregate} or function call, which may be the @nt{aggregate} or function
-call itself.],Old=[]}.],
+call itself],Old=[]}.],
 Old=[@Chg{New=[If the @i{object_}@nt{name} in an @nt{object_renaming_declaration}, or
 the actual parameter for a generic formal @key[in out] parameter in a
 @nt{generic_instantiation}, denotes any part of an anonymous object created by

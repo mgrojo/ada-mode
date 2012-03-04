@@ -1,8 +1,8 @@
 @comment{ $Source: e:\\cvsroot/ARM/Source/numerics.mss,v $ }
-@comment{ $Revision: 1.67 $ $Date: 2011/11/01 23:14:15 $ $Author: randy $ }
+@comment{ $Revision: 1.69 $ $Date: 2012/02/19 01:58:37 $ $Author: randy $ }
 @Part(numerics, Root="ada.mss")
 
-@Comment{$Date: 2011/11/01 23:14:15 $}
+@Comment{$Date: 2012/02/19 01:58:37 $}
 
 @LabeledNormativeAnnex{Numerics}
 @begin{Intro}
@@ -1062,7 +1062,7 @@ The library package Complex_Text_IO defines the
 same subprograms as Text_IO.Complex_IO, except that the predefined type Float
 is systematically substituted for Real, and the type
 Numerics.Complex_Types.Complex is systematically substituted for Complex
-throughout. Non-generic equivalents of Text_IO.Complex_IO corresponding to each
+throughout. Nongeneric equivalents of Text_IO.Complex_IO corresponding to each
 of the other predefined floating point types are defined similarly, with the
 names Short_Complex_Text_IO, Long_Complex_Text_IO, etc.]}
 @begin{Reason}
@@ -1085,10 +1085,10 @@ The semantics of the Get and Put procedures are as follows:
 @ChgRef{Version=[1],Kind=[Revised],Ref=[8652/0092],ARef=[AI95-00029-01]}
 @Leading@;The input sequence is a pair of
 optionally signed real literals representing
-the real and imaginary components of a complex value@Chg{New=[ These components
+the real and imaginary components of a complex value@Chg{New=[. These components
 have the format defined for the corresponding Get procedure of an instance of
 Text_IO.Float_IO (see @RefSecNum{Input-Output for Real Types}) for the base
-subtype of Complex_Types.Real. T],Old=[; optionally, t]}he pair of components
+subtype of Complex_Types.Real. The],Old=[; optionally, the]} pair of components
 may be separated by a comma @Chg{New=[],Old=[and/]}or surrounded by a pair of
 parentheses@Chg{New=[ or both],Old=[]}. Blanks are freely allowed before each
 of the components and before the parentheses and comma, if either is used.
@@ -1967,7 +1967,7 @@ default @i{small} than before. Of course, if it does so for a type T then
 T'Small will have a different value than it previously had.
 
 The accuracy requirements in the case of incompatible @i{smalls} are relaxed to
-foster wider support for non-binary @i{smalls}. If this relaxation is
+foster wider support for nonbinary @i{smalls}. If this relaxation is
 exploited for a type that was previously supported, lower accuracy could
 result; however, there is no particular incentive to exploit the relaxation in
 such a case.

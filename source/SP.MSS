@@ -1,7 +1,7 @@
 @comment{ $Source: e:\\cvsroot/ARM/Source/sp.mss,v $ }
-@comment{ $Revision: 1.67 $ $Date: 2011/11/01 05:34:04 $ $Author: randy $ }
+@comment{ $Revision: 1.72 $ $Date: 2012/02/19 01:58:37 $ $Author: randy $ }
 @Part(sysprog, Root="ada.mss")
-@Comment{$Date: 2011/11/01 05:34:04 $}
+@Comment{$Date: 2012/02/19 01:58:37 $}
 
 @LabeledNormativeAnnex{Systems Programming}
 
@@ -211,7 +211,7 @@ implementation defined. A reserved interrupt is either an interrupt for
 which user-defined handlers are not supported, or one which
 already has an attached handler by some other implementation-defined means.
 @Defn{interrupt handler}@PDefn2{Term=[handler],Sec=[interrupt]}
-Program units can be connected to non-reserved interrupts. While
+Program units can be connected to nonreserved interrupts. While
 connected, the program unit is said to be @i{attached} to that interrupt.
 The execution of that program unit, the @i{interrupt handler}, is invoked upon
 delivery of the interrupt occurrence.
@@ -293,7 +293,7 @@ reading device registers, acknowledging devices).
 
 Any timing or other limitations imposed on the execution of interrupt handlers.
 
-The state (blocked/unblocked) of the non-reserved interrupts
+The state (blocked/unblocked) of the nonreserved interrupts
 when the program starts; if some interrupts are unblocked, what
 is the mechanism a program can use to protect itself before it
 can attach the corresponding handlers.
@@ -1027,7 +1027,7 @@ Device_5_Driver : Device_Interface(5);
 @begin{Incompatible2005}
   @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0167-1]}
   @ChgAdded{Version=[3],Text=[@Defn{incompatibilities with Ada 2005}
-  Functions Get_CPU is newly added to Interrupts. If Interrupts is referenced in
+  Functions Get_CPU is added to Interrupts. If Interrupts is referenced in
   a @nt{use_clause}, and an entity @i<E> with a @nt{defining_identifier} of
   Get_CPU is defined in a package that is also referenced in a @nt{use_clause},
   the entity @i<E> may no longer be use-visible, resulting in errors. This
@@ -1188,7 +1188,7 @@ or as a configuration pragma.
 @end{Syntax}
 
 @begin{Legality}
-The @nt{local_name} (if present) shall denote a non-derived
+The @nt{local_name} (if present) shall denote a nonderived
 enumeration @Redundant[first] subtype,
 a tagged @Redundant[first] subtype, or an exception.
 The pragma applies to the type or exception.
@@ -1490,7 +1490,7 @@ subheader}
 @ChgRef{Version=[3],Kind=[DeletedNoDelMsg],ARef=[AI05-0229-1]}
 @ChgDeleted{Version=[3],Text=[The @nt{local_name} in an Atomic or Volatile
 pragma shall resolve to denote either an @nt{object_declaration}, a
-non-inherited @nt{component_@!declaration}, or a @nt{full_type_@!declaration}.
+noninherited @nt{component_@!declaration}, or a @nt{full_type_@!declaration}.
 The @SynI{array_}@nt{local_name} in an Atomic_@!Components or
 Volatile_@!Components pragma shall resolve to denote the declaration of an array
 type or an array object of an anonymous type.]}
@@ -1609,7 +1609,7 @@ subheader}
 @PDefn2{Term=[representation pragma], Sec=(Volatile_Components)}
 @PDefn2{Term=[pragma, representation], Sec=(Volatile_Components)}
 These @nt{pragma}s are representation pragmas
-(see @RefSecNum{Operational and Representation Items}).]}
+(see @RefSecNum{Operational and Representation Aspects}).]}
 @end{StaticSem}
 
 @begin{RunTime}
@@ -1617,16 +1617,19 @@ These @nt{pragma}s are representation pragmas
 For an atomic object (including an atomic component) all reads and
 updates of the object as a whole are indivisible.
 
-@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0117-1]}
-@Chg{Version=[3],New=[All tasks of the program (on all processors) that read or update volatile
-variables see the same order of updates to the variables.
-],Old=[For a volatile object all reads and updates of the
-object as a whole are performed directly to memory.]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0117-1],ARef=[AI05-0275-1]}
+@Chg{Version=[3],New=[All tasks of the program (on all processors) that
+read or update volatile variables see the same order of
+updates to the variables. A use of an atomic variable or other mechanism may be
+necessary to avoid erroneous execution and to ensure that access to
+nonatomic volatile variables is sequential (see @RefSecNum{Shared Variables}).],
+Old=[For a volatile object all reads and updates of the object as a whole are
+performed directly to memory.]}
 
 @begin{ImplNote}
-@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0117-1]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0117-1],ARef=[AI05-0275-1]}
 @Chg{Version=[3],New=[To ensure this, on a multiprocessor, any read or
-update of a volatile object should involve the use of an appropriate memory
+update of an atomic object may require the use of an appropriate memory
 barrier.],Old=[This precludes any use of register temporaries,
 caches, and other similar optimizations for that object.]}
 @end{ImplNote}
@@ -1782,7 +1785,7 @@ because the pragma was not used to mark variables as shared.
   @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0218-1]}
   @ChgAdded{Version=[3],Text=[@Defn{incompatibilities with Ada 2005}@b<Correction:>
   Plugged a hole involving volatile components of formal types when the formal
-  type's component has a non-volatile type. This was done by making certain
+  type's component has a nonvolatile type. This was done by making certain
   actual types illegal for formal derived and formal array types; these types
   were allowed for Ada 95 and Ada 2005.]}
 @end{Incompatible2005}
@@ -1801,7 +1804,7 @@ because the pragma was not used to mark variables as shared.
 @end{Extend2005}
 
 @begin{DiffWord2005}
-  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0117-1]}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0117-1],ARef=[AI05-0275-1]}
   @ChgAdded{Version=[3],Text=[Revised the definition of volatile to
   eliminate overspecification and simply focus on the root requirement (that
   all tasks see the same view of volatile objects). This is not an
@@ -1928,9 +1931,10 @@ the following attribute is defined:
     Text=[Yields a value of the type Task_Id that identifies the task
        whose call is now being serviced. Use of this attribute is
        allowed only inside an
-       @Chg{Version=[3],New=[],Old=[@nt{entry_body} or ]}@nt{accept_statement}
-       @Chg{Version=[3],New=[or @nt{entry_body} (after the
-       @nt{entry_barrier}) ],Old=[]}corresponding
+       @Chg{Version=[3],New=[],Old=[@nt{entry_body}
+       or ]}@nt{accept_statement}@Chg{Version=[3],New=[,
+       or @nt{entry_body} after the
+       @nt{entry_barrier}, ],Old=[]}corresponding
        to the @nt{entry_declaration} denoted by E.]}
 @end{Description}
 @EndPrefixType{}
@@ -2025,7 +2029,7 @@ Task_Id value that identifies the environment task.
 @begin{Incompatible2005}
   @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0189-1]}
   @ChgAdded{Version=[3],Text=[@Defn{incompatibilities with Ada 2005}
-  Functions Environment_Task and Activation_Is_Complete are newly added to
+  Functions Environment_Task and Activation_Is_Complete are added to
   Task_Identification. If Task_Identification is referenced in a @nt{use_clause}, and an
   entity @i<E> with a @nt{defining_identifier} of Environment_Task or
   Activation_Is_Complete is defined in a package that is also referenced in a
@@ -2232,7 +2236,7 @@ predefined @Chg{Version=[2],New=[type Integer],Old=[integer size]}.
 For each measurement, two cases shall be documented: one
 where the accessed attributes are of the calling task @Redundant[(that is,
 the default value for the T parameter is used)], and the other, where T
-identifies another, non-terminated, task.
+identifies another, nonterminated, task.
 
 @Leading@;The following calls (to subprograms in the Task_Attributes package)
 shall be measured:
@@ -2442,7 +2446,7 @@ Each task has two termination handlers, a @i<fall-back handler> and a
 @i<specific handler>. The specific handler applies only to the task itself,
 while the fall-back handler applies only to the dependent tasks of the task.
 A handler is said to be @i<set> if it is associated
-with a non-null value of type Termination_Handler, and @i<cleared> otherwise.
+with a nonnull value of type Termination_Handler, and @i<cleared> otherwise.
 When a task is created, its specific handler and fall-back handler are cleared.]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00266-02]}

@@ -1,10 +1,10 @@
 @Part(04, Root="ada.mss")
 
-@Comment{$Date: 2011/11/01 23:14:14 $}
+@Comment{$Date: 2012/02/19 01:58:36 $}
 @LabeledSection{Names and Expressions}
 
 @Comment{$Source: e:\\cvsroot/ARM/Source/04a.mss,v $}
-@Comment{$Revision: 1.123 $}
+@Comment{$Revision: 1.129 $}
 
 @begin{Intro}
 @Redundant[The rules applicable to the different forms of @nt<name> and
@@ -106,7 +106,7 @@ discriminant values.],Old=[]}
   @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0008-1]}
   @ChgAdded{Version=[3],Text=[The last sentence was not present in Ada 95;
     it is necessary in Ada 2005 because general access types can designate
-    unconstrained objects (that was not possible in Ada 95). Thus, the rules
+    unconstrained objects, which was not possible in Ada 95. Thus, the rules
     that had this effect in Ada 95 (the object being constrained by its initial
     value) don't work in Ada 2005 and we have to say this explicitly.]}
 
@@ -279,7 +279,7 @@ of implicit dereference.
 @begin{Extend2005}
   @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0003-1]}
   @ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 2005}A
-  @nt{qualified_expression} is now a @nt{name} representing a constant view;
+  @nt{qualified_expression} is now a @nt{name} denoting a constant view;
   this allows them to be used as a prefix and to be renamed as an object.
   They are often used to remove ambiguity from function calls, and there
   may be no other way to do that. Interestingly, a @nt{type_conversion} of
@@ -530,9 +530,11 @@ of the type. The @nt{selected_component} denotes the
 corresponding component of the object or value.
 @begin{Reason}
   @ChgRef{Version=[1],Kind=[Revised]}@ChgNote{Presentation AI-00015}
+  @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0005-1]}
   The components of a protected object cannot be named except
   by an expanded name, even from within the corresponding protected body.
-  The protected body may not reference @Chg{New=[],Old=[the ]}the private
+  The protected body @Chg{Version=[3],New=[cannot],Old=[may not]} reference
+  @Chg{New=[],Old=[the ]}the private
   components of some arbitrary object of the protected
   type; the protected body may reference components of the current
   instance only (by an expanded name or a @nt<direct_name>).
@@ -911,7 +913,7 @@ the result subtype is a subtype of the type without any constraint or
   a concern when an @nt{attribute_reference}, or
   a call on an @nt{attribute_reference}, is used as the @nt{expression}
   of a case statement, due to the full coverage requirement based on
-  the nominal subtype. For non-discrete cases, we define the
+  the nominal subtype. For nondiscrete cases, we define the
   nominal subtype mainly for completeness. Implementations may
   specify otherwise for implementation-defined attribute functions.]}
 
@@ -1099,7 +1101,7 @@ the following type-related operational aspect may be specified:]}
 @begin{Description}
 @ChgRef{Version=[3],Kind=[AddedNormal]}
 @ChgAdded{Version=[3],Text=[Implicit_Dereference@\This aspect is specified by a
-name that denotes an access discriminant declared for the
+@nt{name} that denotes an access discriminant declared for the
 type @i<T>.@AspectDefn{Implicit_Dereference}]}
 
   @ChgAspectDesc{Version=[3],Kind=[AddedNormal],Aspect=[Implicit_Dereference],
@@ -1116,6 +1118,11 @@ discriminant} of the reference type or reference object.@Defn{reference discrimi
 @Redundant[A @nt{generalized_reference} is a @nt{name} that identifies a
 reference object, and denotes the object or subprogram designated by the
 reference discriminant of the reference object.]]}
+
+@ChgToGlossary{Version=[3],Kind=[Added],Term=<Reference type>,
+Text=<@ChgAdded{Version=[3],Text=[A reference type is one that has user-defined
+semantics for @ldquote.@key[all]@rdquote, defined by the
+Implicit_Dereference aspect.]}>}
 @end{StaticSem}
 
 @begin{Syntax}
@@ -1128,9 +1135,9 @@ rhs="@Chg{Version=[3],New=<@SynI{reference_object_}@Syn2{name}>,Old=<>}"}
 
 @begin{Resolution}
 
-@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0139-2]}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0139-2],ARef=[AI05-0269-1]}
 @ChgAdded{Version=[3],Text=[The expected type for the @SynI{reference_object_}@nt{name}
-in a @nt{generalized_reference} is expected to be of any reference type.@PDefn2{Term=[expected type],
+in a @nt{generalized_reference} is any reference type.@PDefn2{Term=[expected type],
   Sec=(@SynI{reference_object_}@nt{name})}]}
 @end{Resolution}
 
@@ -1175,6 +1182,12 @@ named reference object.]}
 
 @begin{Examples}
 @begin{Example}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0268-1]}
+@ChgAdded{Version=[3],Text=[@key[type] Barrel @key[is tagged] ...  -- @Examcom{holds objects of type Element}]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0268-1]}
+@ChgAdded{Version=[3],Text=[B: @key[aliased] Barrel;]}
+
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0139-2]}
 @ChgAdded{Version=[3],Text=[@key[type] Ref_Element(Data : @key[access] Element) @key[is]
    @key[new] Ada.Finalization.Limited_Controlled @key[with private]
@@ -1182,19 +1195,19 @@ named reference object.]}
         -- @Examcom{This Ref_Element type is a "reference" type.}
         -- @ExamCom{"Data" is its reference discriminant.}]}
 
-@ChgRef{Version=[3],Kind=[AddedNormal]}
-@ChgAdded{Version=[3],Text=[@key[function] Find(C : @key[access] Container; Key : String) @key[return] Ref_Element;
-   -- @Examcom{Return a reference to an element of a container}]}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0139-2],ARef=[AI05-0268-1]}
+@ChgAdded{Version=[3],Text=[@key[function] Find (B : @key[aliased in out] Barrel; Key : String) @key[return] Ref_Element;
+   -- @Examcom{Return a reference to an element of a barrel.}]}
 
-@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0139-2]}
 @ChgAdded{Version=[3],Text=[...]}
 
-@ChgRef{Version=[3],Kind=[AddedNormal]}
-@ChgAdded{Version=[3],Text=[Find(C, "abc") := Element'(...);  -- @Examcom{Assign through a reference}]}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0139-2],ARef=[AI05-0268-1]}
+@ChgAdded{Version=[3],Text=[Find (B, "grape") := Element'(...);  -- @Examcom{Assign through a reference.}]}
 
-@ChgRef{Version=[3],Kind=[AddedNormal]}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0139-2],ARef=[AI05-0268-1]}
 @ChgAdded{Version=[3],Text=[-- @Examcom{This is equivalent to:}
---   Find(C, "abc").Data.@key[all] := Element'(...);]}
+Find (B, "grape").Data.@key[all] := Element'(...);]}
 
 @end{Example}
 @end{Examples}
@@ -1234,7 +1247,7 @@ by a @nt{name} that denotes one or more functions declared immediately within
 the same declaration list in which @i<T> is declared. All such functions
 shall have at least two parameters, the first of which is of type @i<T> or
 @i<T>'Class, or is an access parameter with designated type @i<T> or @i<T>'Class.
-All of such functions shall have a return type that is a reference
+All such functions shall have a return type that is a reference
 type (see @RefSecNum{User-Defined References}), whose reference discriminant
 is of an access-to-variable type.@AspectDefn{Variable_Indexing}]}
 @begin{Reason}
@@ -1265,13 +1278,19 @@ be overridden, but the functions they denote may be.]]}
   aspects.]}
 @end{Ramification}
 
-@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0139-2]}
-@ChgAdded{Version=[3],Text=[An @i<indexable type> is (a view of) a
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0139-2],ARef=[AI05-0292-1]}
+@ChgAdded{Version=[3],Text=[An @i<indexable container type> is (a view of) a
 tagged type with at least one of the aspects Constant_Indexing or
-Variable_Indexing specified.@Defn{indexable type}
-An @i<indexable object> is an object of an indexable type.@Defn{indexable object}
-@Redundant[A @nt{generalized_indexing} is a @nt{name} that denotes the result
-of calling a function named by a Constant_Indexing or Variable_Indexing aspect.]]}
+Variable_Indexing specified.@Defn{indexable container type}
+An @i<indexable container object> is an object of an indexable container
+type.@Defn{indexable container object} @Redundant[A @nt{generalized_indexing} is
+a @nt{name} that denotes the result of calling a function named by a
+Constant_Indexing or Variable_Indexing aspect.]]}
+
+@ChgToGlossary{Version=[3],Kind=[Added],Term=<Indexable container type>,
+Text=<@ChgAdded{Version=[3],Text=[An indexable container type is one that has
+user-defined semantics for indexing, via the Constant_Indexing or
+Variable_Indexing aspects.]}>}
 
 @end{StaticSem}
 
@@ -1311,23 +1330,23 @@ these rules apply also in the private part of an instance of a generic unit.]}
 
 @begin{Syntax}
 
-@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0139-2]}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0139-2],ARef=[AI05-0292-1]}
 @AddedSyn{Version=[3],lhs=<@Chg{Version=[3],New=<generalized_indexing>,Old=<>}>,
-rhs="@Chg{Version=[3],New=<@SynI{indexable_object_}@Syn2{prefix} @Syn2{actual_parameter_part}>,Old=<>}"}
+rhs="@Chg{Version=[3],New=<@SynI{indexable_container_object_}@Syn2{prefix} @Syn2{actual_parameter_part}>,Old=<>}"}
 
 @end{Syntax}
 
 @begin{Resolution}
 
-@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0139-2]}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0139-2],ARef=[AI05-0292-1]}
 @ChgAdded{Version=[3],Text=[The expected type for the
-@Syni{indexable_object_}@nt{prefix} of a @nt{generalized_indexing}
-is any indexable type.@PDefn2{Term=[expected type],
-  Sec=(@SynI{indexable_object_}@nt{prefix})}]}
+@Syni{indexable_container_object_}@nt{prefix} of a @nt{generalized_indexing}
+is any indexable container type.@PDefn2{Term=[expected type],
+  Sec=(@SynI{indexable_container_object_}@nt{prefix})}]}
 
-@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0139-2]}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0139-2],ARef=[AI05-0292-1]}
 @ChgAdded{Version=[3],Type=[Leading],Text=[If the Constant_Indexing aspect is
-specified for the type of the @SynI{indexable_object_}@nt{prefix} of a
+specified for the type of the @SynI{indexable_container_object_}@nt{prefix} of a
 @nt{generalized_indexing}, then the @nt{generalized_indexing} is interpreted as
 a @i<constant indexing> under the following
 circumstances:@Defn{constant indexing}@Defn2{Term=[indexing],Sec=[constant]}]}
@@ -1336,10 +1355,10 @@ circumstances:@Defn{constant indexing}@Defn2{Term=[indexing],Sec=[constant]}]}
 
   @ChgRef{Version=[3],Kind=[AddedNormal]}
   @ChgAdded{Version=[3],Text=[when the Variable_Indexing aspect is not specified
-     for the type of the @SynI{indexable_object_}@nt{prefix};]}
+     for the type of the @SynI{indexable_container_object_}@nt{prefix};]}
 
   @ChgRef{Version=[3],Kind=[AddedNormal]}
-  @ChgAdded{Version=[3],Text=[when the @SynI{indexable_object_}@nt{prefix}
+  @ChgAdded{Version=[3],Text=[when the @SynI{indexable_container_object_}@nt{prefix}
     denotes a constant;]}
 
   @ChgRef{Version=[3],Kind=[AddedNormal]}
@@ -1368,8 +1387,8 @@ interpreted as a
 @ChgAdded{Version=[3],Text=[When a @nt{generalized_indexing} is interpreted as a
 constant (or variable) indexing, it is equivalent to a call on a prefixed view
 of one of the functions named by the Constant_Indexing (or Variable_Indexing)
-aspect of the type of the @Syni{indexable_object_}@nt{prefix} with the given
-@nt{actual_parameter_part}, and with the @Syni{indexable_object_}@nt{prefix} as
+aspect of the type of the @Syni{indexable_container_object_}@nt{prefix} with the given
+@nt{actual_parameter_part}, and with the @Syni{indexable_container_object_}@nt{prefix} as
 the @nt{prefix} of the prefixed view.]}
 
 @begin{Ramification}
@@ -1379,7 +1398,7 @@ the @nt{prefix} of the prefixed view.]}
 
 @begin{Example}
 @ChgRef{Version=[3],Kind=[AddedNormal]}
-@ChgAdded{Version=[3],Text=[@SynI{indexable_object_}@nt{prefix}.Indexing @nt{actual_parameter_part}]}
+@ChgAdded{Version=[3],Text=[@SynI{indexable_container_object_}@nt{prefix}.Indexing @nt{actual_parameter_part}]}
 @end{Example}
 
   @ChgRef{Version=[3],Kind=[AddedNormal]}
@@ -1388,6 +1407,33 @@ the @nt{prefix} of the prefixed view.]}
 @end{Ramification}
 
 @end{Resolution}
+
+@begin{Examples}
+@begin{Example}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0268-1],ARef=[AI05-0292-1]}
+@ChgAdded{Version=[3],Text=[@key[type] Indexed_Barrel @key[is tagged] ...
+  @key[with] Variable_Indexing => Find;
+  -- @Examcom{Indexed_Barrel is an indexable container type,}
+  -- @Examcom{Find is the generalized indexing operation.}]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0268-1]}
+@ChgAdded{Version=[3],Text=[@key[function] Find (B : @key[aliased in out] Indexed_Barrel; Key : String) @key[return] Ref_Element;
+   -- @Examcom{Return a reference to an element of a barrel (see @RefSecNum{User-Defined References}).}]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0268-1]}
+@ChgAdded{Version=[3],Text=[IB: @key[aliased] Indexed_Barrel;]}
+
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0268-1]}
+@ChgAdded{Version=[3],Text=[-- @Examcom{All of the following calls are then equivalent:}
+Find (IB,"pear").Data.@key[all] := Element'(...); -- @Examcom{Traditional call}
+IB.Find ("pear").Data.@key[all] := Element'(...); -- @Examcom{Call of prefixed view}
+IB.Find ("pear")          := Element'(...); -- @Examcom{Implicit dereference (see @RefSecNum{User-Defined References})}
+IB      ("pear")          := Element'(...); -- @Examcom{Implicit indexing and dereference}
+IB      ("pear").Data.@key[all] := Element'(...); -- @Examcom{Implicit indexing only}]}
+
+@end{Example}
+@end{Examples}
 
 @begin{Extend2005}
   @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0139-2]}
@@ -1465,7 +1511,7 @@ the component type of the expected string type.
 
 @ChgRef{Version=[2],Kind=[Deleted],ARef=[AI95-00230-01],ARef=[AI95-00231-01]}
 @ChgDeleted{Version=[2],Text=[A literal @s<null>@ChgNote{We use @S since this
-isn't a non-terminal, and since it is deleted we don't want to fix it.} shall
+isn't a nonterminal, and since it is deleted we don't want to fix it.} shall
 not be of an anonymous
 access type@Redundant[, since such types do not have a null value
 (see @RefSecNum{Access Types})].]}
@@ -2138,7 +2184,7 @@ a record aggregate. Now we do.
   @ChgAdded{Version=[3],Text=[@Defn{incompatibilities with Ada 2005}@b<Correction:>
   Corrected wording so that the rule for discriminants governing @nt{variant_part}s
   was not effectively circular. The change makes a few @nt{aggregate}s where a
-  non-static discriminant governs an empty @nt{variant_part} illegal. However,
+  nonstatic discriminant governs an empty @nt{variant_part} illegal. However,
   most Ada implementations already enforce some version of the new rule and
   already reject these @nt{aggregate}s. So it is unlikely that any
   incompatibility will be noticed in practice.]}
@@ -2308,27 +2354,35 @@ in an arbitrary order, except that the @nt<expression>
 for a discriminant is evaluated prior to any other evaluation
 or initialization that depends on it.@PDefn2{Term=[arbitrary order],Sec=[allowed]}
 
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0282-1]}
 @IndexCheck{Discriminant_Check}
 If the type of the @nt<ancestor_part> has
-discriminants that are not inherited by the
+discriminants @Chg{Version=[3],New=[and],Old=[that are not inherited by the
 type of the @nt{extension_aggregate},
-then, unless the @nt<ancestor_part> is a @nt<subtype_mark> that
-denotes an unconstrained subtype,
-a check is made that each discriminant of the ancestor
-has the value specified for a corresponding discriminant,
+then, unless]} the @nt<ancestor_part> is@Chg{Version=[3],New=[ not],Old=[]}
+a @nt<subtype_mark> that
+denotes an unconstrained subtype,@Chg{Version=[3],New=[ then],Old=[]}
+a check is made that each discriminant @Chg{Version=[3],New=[determined by the
+@nt{ancestor_part}],Old=[of the ancestor]}
+has the value specified for a corresponding discriminant,@Chg{Version=[3],New=[ if any,],Old=[]}
 either in the @nt{record_@!component_@!association_@!list}, or in
 the @nt<derived_type_definition> for some ancestor of the type of
 the @nt{extension_aggregate}.
 @Defn2{Term=[Constraint_Error],Sec=(raised by failure of run-time check)}
 Constraint_Error is raised if this check fails.
 @begin{Ramification}
-Corresponding and specified
-discriminants are defined in @RefSecNum{Discriminants}.
-The rules requiring static compatibility between
-new discriminants of a derived type
-and the parent discriminant(s) they constrain
-ensure that at most one check is required per discriminant
-of the ancestor expression.
+  Corresponding and specified
+  discriminants are defined in @RefSecNum{Discriminants}.
+  The rules requiring static compatibility between
+  new discriminants of a derived type
+  and the parent discriminant(s) they constrain
+  ensure that at most one check is required per discriminant
+  of the ancestor expression.
+
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0282-1]}
+  @ChgAdded{Version=[3],Text=[The check needs to be made any time that the
+  ancestor is constrained; the source of the discriminants or the constraints
+  is irrelevant.]}
 @end{Ramification}
 @end{RunTime}
 
@@ -2380,6 +2434,22 @@ The extension aggregate syntax is new.
   @ChgAdded{Version=[2],Text=[Limited @nt{extension_aggregate}s are allowed (since
   all kinds of aggregates can now be limited, see @RefSecNum{Aggregates}).]}
 @end{DiffWord95}
+
+@begin{Inconsistent2005}
+  @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0282-1]}
+  @ChgAdded{Version=[3],Text=[@Defn{inconsistencies with Ada 2005}@b[Correction:]
+  An @nt{extension_aggregate} with an @nt{ancestor_part} whose discriminants
+  are constrained and inherited might now raise Constraint_Error if the
+  @nt{aggregate}'s type is constrained, while it was OK in Ada 2005. In almost
+  all cases, this will make no difference as the constraint will be checked
+  by the immediately following use of the @nt{aggregate}, but it is possible to
+  compare such an aggregate for equality;
+  in this case, no exception would be raised by Ada 2005, while Ada 2012 will
+  raise Constraint_Error. This should be very rare, and having the possibility
+  means that the representation of the aggregate type has to be able to support
+  unconstrained values of the type, even if the first subtype is constrained
+  and no such objects can be created any other way.]}
+@end{Inconsistent2005}
 
 @begin{Incompatible2005}
   @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0067-1]}
@@ -3465,7 +3535,6 @@ either of the above checks fails.
 
 @end{RunTime}
 
-@RMNewPageVer{Version=[3]}@Comment{For printed version of Ada 2012 RM}
 @begin{Notes}
 @Leading@;The conventional meaning of the logical operators is given by the
 following truth table:
@@ -3531,7 +3600,7 @@ The equality operators are not defined for @i{every} nonlimited
 type @em see below for the exact rule.
 @end{Ramification}
 
-@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0262-1]}
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0262-1],ARef=[AI05-0269-1]}
 @Defn{membership test}
 @Defn{in (membership test)}
 @Defn{not in (membership test)}
@@ -3540,7 +3609,7 @@ determines whether or not a value
 belongs to @chg{Version=[3],New=[any],Old=[a]} given subtype or range,
 @chg{Version=[3],New=[is equal to any given value,],Old=[or]} has a tag
 that identifies a type that is covered by a given type@chg{Version=[3],New=[,
-or is convertible to and with accessibility level appropriate for a given
+or is convertible to and has accessibility level appropriate for a given
 access type],Old=[]}. Membership tests are allowed for all types.]
 
 @end{Intro}
@@ -3703,7 +3772,7 @@ access-to-object type whose designated type is @i<D> or @i<D>'Class, where
   @ChgRef{Version=[2],Kind=[AddedNormal]}
   @ChgAdded{Version=[2],Text=[We don't need a similar rule for anonymous
   access-to-subprogram types because they can't be primitive for any type.
-  Note that any non-primitive user-defined equality operators still are hidden
+  Note that any nonprimitive user-defined equality operators still are hidden
   by the universal operators; they'll have to be called with a package
   prefix, but they are likely to be very uncommon.]}
 @end{Ramification}
@@ -3802,7 +3871,7 @@ is defined in terms of the primitive @Redundant[(possibly
 user-defined)] equals operator
 @Chg{Version=[3],New=[for],Old=[of]} the parent type and
 @Chg{Version=[3],New=[for],Old=[of]} any @Chg{Version=[3],New=[],Old=[tagged ]}components
-@Chg{Version=[3],New=[ that have a record type in],Old=[of]} the extension part, and
+@Chg{Version=[3],New=[that have a record type in],Old=[of]} the extension part, and
 predefined equality
 for any other components not inherited from the parent type.
 @begin{Ramification}
@@ -4001,6 +4070,10 @@ left operand is lexicographically less than that of the right (the
 @i(tail) consists of the remaining components beyond the first and
 can be null).
 
+@ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0269-1]}
+@ChgAdded{Version=[3],Text=[An @i<individual membership test> is the
+membership test of a single @nt{membership_choice}.@Defn{individual membership test}]}
+
 @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0158-1]}
 @PDefn2{Term=[evaluation], Sec=(membership test)}
 For the evaluation of a membership test@Chg{Version=[3],New=[ using @key[in]
@@ -4026,8 +4099,8 @@ combined with the short-circuit control form @b[or else].]}
   evaluates to True.]}
 @end{Ramification}
 
-@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0158-1]}
-@Leading@;@Chg{Version=[3],New=[An @i{individual membership test}@Defn{individual membership test}],Old=[A
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0158-1],ARef=[AI05-0269-1]}
+@Leading@;@Chg{Version=[3],New=[An individual membership test],Old=[A
 membership test using @key(in)]} yields the result True if:
 @begin(itemize)
   @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0158-1],ARef=[AI05-0264-1]}
@@ -4092,10 +4165,10 @@ membership test using @key(in)]} yields the result True if:
     @ChgAdded{Version=[3],Text=[if the tested type is a general access-to-object
     type, the type of the @nt{simple_expression} is convertible to the tested
     type and its accessibility level is no deeper than that of the tested type;
-    further, if the designated type is tagged and the @nt{simple_expression} is
-    non-null, the tag of the object designated by the value of the
-    @nt{simple_expression} is covered by the designated type of the tested
-    type.]}
+    further, if the designated type of the tested type is tagged and the
+    @nt{simple_expression} is nonnull, the tag of the object designated by the
+    value of the @nt{simple_expression} is covered by the designated type of the
+    tested type.]}
   @end{Inneritemize}
 @end(itemize)
 
@@ -4109,7 +4182,7 @@ the corresponding membership test using @key(in).
   @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0158-1]}
   @ChgAdded{Version=[3],Text=[@exam{@i<X> @key[not in] @i<A> | @i<B> | @i<C>}
   is intended to be exactly equivalent to @exam{@key[not] (@i<X> @key[in] @i<A> | @i<B> | @i<C>)},
-  including in the order of evaluation of the @nt{simple_expression} and
+  including the order of evaluation of the @nt{simple_expression} and
   @nt{membership_choice}s.]}
 @end{Honest}
 @end{RunTime}
@@ -4246,7 +4319,8 @@ conversions.],Old=[]}
 @begin{Extend2005}
   @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0149-1]}
   @ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 2005}Membership tests
-  for the accessibility and designated tags for general access types are new.]}
+  for valid accessibility levels and tag coverage by the designated type
+  for general access types are new.]}
 
   @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0153-3]}
   @ChgAdded{Version=[3],Text=[Membership tests now include a predicate check.]}
@@ -5044,7 +5118,7 @@ P(Formal => @key[if] X @key[then] Y @key[else] Z);]}
 
   @ChgRef{Version=[3],Kind=[AddedNormal]}
   @ChgAdded{Version=[3],Text=[This English-language rule could have been
-  implemented instead by adding a non-terminal
+  implemented instead by adding a nonterminal
   @ntf{expression_within_parentheses}, which would consist of @nt{expression}s
   and @nt{conditional_expression}s. Then, that could be used in all of the
   syntax which could consist of parens directly around an @nt{expression}. We
@@ -5155,11 +5229,11 @@ statements
 shall be convertible (see @RefSecNum{Type Conversions}) to the type of the
 @nt{conditional_expression}.]}
 
-@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0147-1],ARef=[AI05-0188-1]}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0147-1],ARef=[AI05-0188-1],ARef=[AI05-0269-1]}
 @ChgAdded{Version=[3],Text=[If the expected type of a
 @nt{conditional_expression} is a specific tagged type, all of the
 @SynI{dependent_}@nt{expression}s of the @nt{conditional_expression} shall be
-dynamically tagged, or none shall be dynamically tagged; the
+dynamically tagged, or none shall be dynamically tagged. In this case, the
 @nt{conditional_expression} is dynamically tagged if all of the
 @SynI{dependent_}@nt{expression}s are dynamically tagged, is tag-indeterminate
 if all of the @SynI{dependent_}@nt{expression}s are tag-indeterminate, and is
@@ -5170,10 +5244,10 @@ statically tagged otherwise.]}
 @SynI{dependent_}@nt{expression}, the @nt{if_expression} shall be of
 a boolean type.]}
 
-@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0188-1]}
+@ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0188-1],ARef=[AI05-0269-1]}
 @ChgAdded{Version=[3],Text=[All @LegalityTitle that apply to the
-@nt{discrete_choice}s of a @nt{case_statement} (see @RefSecNum{Case Statements}),
-apply to the @nt{discrete_choice}s of a @nt{case_expression} except
+@nt{discrete_choice}s of a @nt{case_statement} (see @RefSecNum{Case Statements})
+also apply to the @nt{discrete_choice}s of a @nt{case_expression} except
 within an instance of a generic unit.]}
 @begin{Reason}
 @ChgRef{Version=[3],Kind=[AddedNormal]}
