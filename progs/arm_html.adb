@@ -1,10 +1,7 @@
-with ARM_Output,
-     ARM_Contents,
-     Ada.Text_IO,
-     Ada.Exceptions,
-     Ada.Strings.Maps.Constants,
-     Ada.Strings.Fixed,
-     Ada.Unchecked_Deallocation;
+with Ada.Exceptions;
+with Ada.Strings.Maps.Constants;
+with Ada.Strings.Fixed;
+with Ada.Unchecked_Deallocation;
 package body ARM_HTML is
 
     --
@@ -1311,13 +1308,13 @@ package body ARM_HTML is
 --Ada.Text_IO.Put_Line ("--Creating " & File_Name & ".html");
 	if Output_Object.HTML_Kind > HTML_3 then
 	    Ada.Text_IO.Create (Output_Object.Output_File, Ada.Text_IO.Out_File,
-	        ".\Output\" & File_Name & ".$$$");
+	        "Output/" & File_Name & ".$$$");
 	elsif Output_Object.DOS_Filenames then
 	    Ada.Text_IO.Create (Output_Object.Output_File, Ada.Text_IO.Out_File,
-	        ".\Output\" & File_Name & ".HTM");
+	        "Output/" & File_Name & ".HTM");
 	else
 	    Ada.Text_IO.Create (Output_Object.Output_File, Ada.Text_IO.Out_File,
-	        ".\Output\" & File_Name & ".html");
+	        "Output/" & File_Name & ".html");
 	end if;
 	-- Save the current clause:
 	Output_Object.Current_Clause :=
@@ -1651,9 +1648,9 @@ package body ARM_HTML is
     end Create;
 
 
-    procedure Close (Output_Object : in out HTML_Output_Type) is
-	-- Close an Output_Object. No further output to the object is
-	-- allowed after this call.
+    overriding procedure Close (Output_Object : in out HTML_Output_Type) is
+        -- Close an Output_Object. No further output to the object is
+        -- allowed after this call.
     begin
 	if not Output_Object.Is_Valid then
 	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
@@ -1666,33 +1663,33 @@ package body ARM_HTML is
     end Close;
 
 
-    procedure Section (Output_Object : in out HTML_Output_Type;
-		       Section_Title : in String;
-		       Section_Name : in String) is
-	-- Start a new section. The title is Section_Title (this is
-	-- intended for humans). The name is Section_Name (this is
-	-- intended to be suitable to be a portion of a file name).
+    overriding procedure Section (Output_Object : in out HTML_Output_Type;
+                       Section_Title : in String;
+                       Section_Name : in String) is
+        -- Start a new section. The title is Section_Title (this is
+        -- intended for humans). The name is Section_Name (this is
+        -- intended to be suitable to be a portion of a file name).
     begin
-	if not Output_Object.Is_Valid then
-	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
-		"Not valid object");
-	end if;
-	if Output_Object.Is_In_Paragraph then
-	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
-		"Section in paragraph");
-	end if;
-	-- We don't generate a file here for HTML. We generate a file for each
-	-- clause.
-	if Section_Name'Length > 3 then
-	    Output_Object.Section_Name := Section_Name (Section_Name'First .. Section_Name'First + 2);
-	else
-	    Output_Object.Section_Name := (others => '-');
-	    Output_Object.Section_Name (1 .. Section_Name'Length) := Section_Name;
-	end if;
+        if not Output_Object.Is_Valid then
+            Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
+                "Not valid object");
+        end if;
+        if Output_Object.Is_In_Paragraph then
+            Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
+                "Section in paragraph");
+        end if;
+        -- We don't generate a file here for HTML. We generate a file for each
+        -- clause.
+        if Section_Name'Length > 3 then
+            Output_Object.Section_Name := Section_Name (Section_Name'First .. Section_Name'First + 2);
+        else
+            Output_Object.Section_Name := (others => '-');
+            Output_Object.Section_Name (1 .. Section_Name'Length) := Section_Name;
+        end if;
     end Section;
 
 
-    procedure Set_Columns (Output_Object : in out HTML_Output_Type;
+    overriding procedure Set_Columns (Output_Object : in out HTML_Output_Type;
 			   Number_of_Columns : in ARM_Output.Column_Count) is
 	-- Set the number of columns.
 	-- Raises Not_Valid_Error if in a paragraph.
@@ -1943,7 +1940,7 @@ Ada.Text_IO.Put_Line("  @@ Calc columns for" & Natural'Image(Output_Object.Colum
     end Put_End_Compatibility_Font_Info;
 
 
-    procedure Start_Paragraph (Output_Object : in out HTML_Output_Type;
+    overriding procedure Start_Paragraph (Output_Object : in out HTML_Output_Type;
 			       Style     : in ARM_Output.Paragraph_Style_Type;
 			       Indent    : in ARM_Output.Paragraph_Indent_Type;
 			       Number    : in String;
@@ -2432,8 +2429,8 @@ Ada.Text_IO.Put_Line("  @@ Calc columns for" & Natural'Image(Output_Object.Colum
     end Start_Paragraph;
 
 
-    procedure End_Paragraph (Output_Object : in out HTML_Output_Type) is
-	-- End a paragraph.
+    overriding procedure End_Paragraph (Output_Object : in out HTML_Output_Type) is
+        -- End a paragraph.
 
 	procedure Put_End_Style (Style  : in ARM_Output.Paragraph_Style_Type;
 				 Indent : in ARM_Output.Paragraph_Indent_Type;
@@ -2609,30 +2606,30 @@ Ada.Text_IO.Put_Line("  @@ Calc columns for" & Natural'Image(Output_Object.Colum
     end End_Paragraph;
 
 
-    procedure Category_Header (Output_Object : in out HTML_Output_Type;
-			       Header_Text : String) is
-	-- Output a Category header (that is, "Legality Rules",
-	-- "Dynamic Semantics", etc.)
-	-- (Note: We did not use a enumeration here to insure that these
-	-- headers are spelled the same in all output versions).
-	-- Raises Not_Valid_Error if in a paragraph.
+    overriding procedure Category_Header (Output_Object : in out HTML_Output_Type;
+                               Header_Text : String) is
+        -- Output a Category header (that is, "Legality Rules",
+        -- "Dynamic Semantics", etc.)
+        -- (Note: We did not use a enumeration here to insure that these
+        -- headers are spelled the same in all output versions).
+        -- Raises Not_Valid_Error if in a paragraph.
     begin
-	if not Output_Object.Is_Valid then
-	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
-		"Not valid object");
-	end if;
-	if Output_Object.Is_In_Paragraph then
-	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
-		"Header in paragraph");
-	end if;
-	Ada.Text_IO.New_Line (Output_Object.Output_File);
-	if Output_Object.HTML_Kind = HTML_4_Only then
-	    Ada.Text_IO.Put_Line (Output_Object.Output_File, "<H4 Class=""centered"">" & Header_Text & "</H4>");
-	else
-	    Ada.Text_IO.Put_Line (Output_Object.Output_File, "<H4 ALIGN=CENTER>" & Header_Text & "</H4>");
-	end if;
-	Output_Object.Char_Count := 0;
-	Output_Object.Disp_Char_Count := 0;
+        if not Output_Object.Is_Valid then
+            Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
+                "Not valid object");
+        end if;
+        if Output_Object.Is_In_Paragraph then
+            Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
+                "Header in paragraph");
+        end if;
+        Ada.Text_IO.New_Line (Output_Object.Output_File);
+        if Output_Object.HTML_Kind = HTML_4_Only then
+            Ada.Text_IO.Put_Line (Output_Object.Output_File, "<H4 Class=""centered"">" & Header_Text & "</H4>");
+        else
+            Ada.Text_IO.Put_Line (Output_Object.Output_File, "<H4 ALIGN=CENTER>" & Header_Text & "</H4>");
+        end if;
+        Output_Object.Char_Count := 0;
+        Output_Object.Disp_Char_Count := 0;
         Output_Object.Disp_Large_Char_Count := 0;
 	Output_Object.Any_Nonspace := False;
         Output_Object.Last_Was_Space := True; -- Start of line.
@@ -2640,36 +2637,36 @@ Ada.Text_IO.Put_Line("  @@ Calc columns for" & Natural'Image(Output_Object.Colum
     end Category_Header;
 
 
-    procedure Clause_Header (Output_Object : in out HTML_Output_Type;
-			     Header_Text : in String;
-			     Level : in ARM_Contents.Level_Type;
-			     Clause_Number : in String;
-			     No_Page_Break : in Boolean := False) is
-	-- Output a Clause header. The level of the header is specified
-	-- in Level. The Clause Number is as specified.
-	-- These should appear in the table of contents.
-	-- For hyperlinked formats, this should generate a link target.
-	-- If No_Page_Break is True, suppress any page breaks.
-	-- Raises Not_Valid_Error if in a paragraph.
+    overriding procedure Clause_Header (Output_Object : in out HTML_Output_Type;
+                             Header_Text : in String;
+                             Level : in ARM_Contents.Level_Type;
+                             Clause_Number : in String;
+                             No_Page_Break : in Boolean := False) is
+        -- Output a Clause header. The level of the header is specified
+        -- in Level. The Clause Number is as specified.
+        -- These should appear in the table of contents.
+        -- For hyperlinked formats, this should generate a link target.
+        -- If No_Page_Break is True, suppress any page breaks.
+        -- Raises Not_Valid_Error if in a paragraph.
     begin
-	if not Output_Object.Is_Valid then
-	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
-		"Not valid object");
-	end if;
-	if Output_Object.Is_In_Paragraph then
-	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
-		"Header in paragraph");
-	end if;
+        if not Output_Object.Is_Valid then
+            Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
+                "Not valid object");
+        end if;
+        if Output_Object.Is_In_Paragraph then
+            Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
+                "Header in paragraph");
+        end if;
 
-	if not Output_Object.Big_Files then
-	    if Ada.Text_IO.Is_Open (Output_Object.Output_File) then
-	        End_HTML_File (Output_Object);
-	    end if;
+        if not Output_Object.Big_Files then
+            if Ada.Text_IO.Is_Open (Output_Object.Output_File) then
+                End_HTML_File (Output_Object);
+            end if;
 
-	    -- Special for table of contents:
-	    if Clause_Number = "" and then
-		(Header_Text = "Table of Contents" or else -- Ada 95 format
-		 Header_Text = "Contents") then -- ISO 2004 format.
+            -- Special for table of contents:
+            if Clause_Number = "" and then
+                (Header_Text = "Table of Contents" or else -- Ada 95 format
+                 Header_Text = "Contents") then -- ISO 2004 format.
                 Start_HTML_File (Output_Object,
 		    Ada.Strings.Fixed.Trim (Output_Object.File_Prefix, Ada.Strings.Right) &
 			"-TOC", Header_Text, "");
@@ -2756,7 +2753,7 @@ Ada.Text_IO.Put_Line("  @@ Calc columns for" & Natural'Image(Output_Object.Colum
     end Clause_Header;
 
 
-    procedure Revised_Clause_Header (Output_Object : in out HTML_Output_Type;
+    overriding procedure Revised_Clause_Header (Output_Object : in out HTML_Output_Type;
 			     New_Header_Text : in String;
 			     Old_Header_Text : in String;
 			     Level : in ARM_Contents.Level_Type;
@@ -2859,31 +2856,31 @@ Ada.Text_IO.Put_Line("  @@ Calc columns for" & Natural'Image(Output_Object.Colum
     end Revised_Clause_Header;
 
 
-    procedure TOC_Marker (Output_Object : in out HTML_Output_Type;
-			  For_Start : in Boolean) is
-	-- Mark the start (if For_Start is True) or end (if For_Start is
-	-- False) of the table of contents data. Output objects that
-	-- auto-generate the table of contents can use this to do needed
-	-- actions.
+    overriding procedure TOC_Marker (Output_Object : in out HTML_Output_Type;
+                          For_Start : in Boolean) is
+        -- Mark the start (if For_Start is True) or end (if For_Start is
+        -- False) of the table of contents data. Output objects that
+        -- auto-generate the table of contents can use this to do needed
+        -- actions.
     begin
-	if not Output_Object.Is_Valid then
-	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
-		"Not valid object");
-	end if;
-	null; -- We don't care about this.
+        if not Output_Object.Is_Valid then
+            Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
+                "Not valid object");
+        end if;
+        null; -- We don't care about this.
     end TOC_Marker;
 
 
-    procedure New_Page (Output_Object : in out HTML_Output_Type;
-			Kind : ARM_Output.Page_Kind_Type := ARM_Output.Any_Page) is
-	-- Output a page break.
-	-- Note that this has no effect on non-printing formats.
-	-- Any_Page breaks to the top of the next page (whatever it is);
-	-- Odd_Page_Only breaks to the top of the odd-numbered page;
-	-- Soft_Page allows a page break but does not force one (use in
-	-- "No_Breaks" paragraphs.)
-	-- Raises Not_Valid_Error if in a paragraph if Kind = Any_Page or
-	-- Odd_Page, and if not in a paragraph if Kind = Soft_Page.
+    overriding procedure New_Page (Output_Object : in out HTML_Output_Type;
+                        Kind : ARM_Output.Page_Kind_Type := ARM_Output.Any_Page) is
+        -- Output a page break.
+        -- Note that this has no effect on non-printing formats.
+        -- Any_Page breaks to the top of the next page (whatever it is);
+        -- Odd_Page_Only breaks to the top of the odd-numbered page;
+        -- Soft_Page allows a page break but does not force one (use in
+        -- "No_Breaks" paragraphs.)
+        -- Raises Not_Valid_Error if in a paragraph if Kind = Any_Page or
+        -- Odd_Page, and if not in a paragraph if Kind = Soft_Page.
     begin
 	if not Output_Object.Is_Valid then
 	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
@@ -2914,30 +2911,30 @@ Ada.Text_IO.Put_Line("  @@ Calc columns for" & Natural'Image(Output_Object.Colum
     end New_Page;
 
 
-    procedure Separator_Line (Output_Object : in out HTML_Output_Type;
-			      Is_Thin : Boolean := True) is
-	-- Output a separator line. It is thin if "Is_Thin" is true.
-	-- Raises Not_Valid_Error if in a paragraph.
+    overriding procedure Separator_Line (Output_Object : in out HTML_Output_Type;
+                              Is_Thin : Boolean := True) is
+        -- Output a separator line. It is thin if "Is_Thin" is true.
+        -- Raises Not_Valid_Error if in a paragraph.
     begin
-	if not Output_Object.Is_Valid then
-	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
-		"Not valid object");
-	end if;
-	if Output_Object.Is_In_Paragraph then
-	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
-		"Separator in paragraph");
-	end if;
-	Ada.Text_IO.New_Line (Output_Object.Output_File);
-	if Is_Thin then
-	    Ada.Text_IO.Put_Line (Output_Object.Output_File, "<HR SIZE=1>"); -- Horizontal line.
-	else
-	    Ada.Text_IO.Put_Line (Output_Object.Output_File, "<HR SIZE=2>"); -- Horizontal line.
-	end if;
-	Ada.Text_IO.New_Line (Output_Object.Output_File);
+        if not Output_Object.Is_Valid then
+            Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
+                "Not valid object");
+        end if;
+        if Output_Object.Is_In_Paragraph then
+            Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
+                "Separator in paragraph");
+        end if;
+        Ada.Text_IO.New_Line (Output_Object.Output_File);
+        if Is_Thin then
+            Ada.Text_IO.Put_Line (Output_Object.Output_File, "<HR SIZE=1>"); -- Horizontal line.
+        else
+            Ada.Text_IO.Put_Line (Output_Object.Output_File, "<HR SIZE=2>"); -- Horizontal line.
+        end if;
+        Ada.Text_IO.New_Line (Output_Object.Output_File);
     end Separator_Line;
 
 
-    procedure Start_Table (Output_Object : in out HTML_Output_Type;
+    overriding procedure Start_Table (Output_Object : in out HTML_Output_Type;
 			   Columns : in ARM_Output.Column_Count;
 			   First_Column_Width : in ARM_Output.Column_Count;
 			   Last_Column_Width : in ARM_Output.Column_Count;
@@ -3031,7 +3028,7 @@ Ada.Text_IO.Put_Line("  @@ Calc columns for" & Natural'Image(Output_Object.Colum
     end Start_Table;
 
 
-    procedure Table_Marker (Output_Object : in out HTML_Output_Type;
+    overriding procedure Table_Marker (Output_Object : in out HTML_Output_Type;
 			    Marker : in ARM_Output.Table_Marker_Type) is
 	-- Marks the end of an entity in a table.
 	-- If Marker is End_Caption, the table caption ends and the
@@ -3230,7 +3227,7 @@ Ada.Text_IO.Put_Line("  @@ Calc columns for" & Natural'Image(Output_Object.Colum
     end Output_Text;
 
 
-    procedure Ordinary_Text (Output_Object : in out HTML_Output_Type;
+    overriding procedure Ordinary_Text (Output_Object : in out HTML_Output_Type;
 			     Text : in String) is
 	-- Output ordinary text.
 	-- The text must end at a word break, never in the middle of a word.
@@ -3279,7 +3276,7 @@ Ada.Text_IO.Put_Line("  @@ Calc columns for" & Natural'Image(Output_Object.Colum
     end Ordinary_Text;
 
 
-    procedure Ordinary_Character (Output_Object : in out HTML_Output_Type;
+    overriding procedure Ordinary_Character (Output_Object : in out HTML_Output_Type;
 			          Char : in Character) is
 	-- Output an ordinary character.
 	-- Spaces will be used to break lines as needed.
@@ -3568,7 +3565,7 @@ Ada.Text_IO.Put_Line("  @@ Calc columns for" & Natural'Image(Output_Object.Colum
     end Ordinary_Character;
 
 
-    procedure Hard_Space (Output_Object : in out HTML_Output_Type) is
+    overriding procedure Hard_Space (Output_Object : in out HTML_Output_Type) is
         -- Output a hard space. No line break should happen at a hard space.
     begin
 	if not Output_Object.Is_Valid then
@@ -3588,9 +3585,9 @@ Ada.Text_IO.Put_Line("  @@ Calc columns for" & Natural'Image(Output_Object.Colum
     end Hard_Space;
 
 
-    procedure Line_Break (Output_Object : in out HTML_Output_Type) is
-	-- Output a line break. This does not start a new paragraph.
-	-- This corresponds to a "<BR>" in HTML.
+    overriding procedure Line_Break (Output_Object : in out HTML_Output_Type) is
+        -- Output a line break. This does not start a new paragraph.
+        -- This corresponds to a "<BR>" in HTML.
     begin
 	if not Output_Object.Is_Valid then
 	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
@@ -3625,7 +3622,7 @@ Ada.Text_IO.Put_Line("  @@ Calc columns for" & Natural'Image(Output_Object.Colum
     end Line_Break;
 
 
-    procedure Index_Line_Break (Output_Object : in out HTML_Output_Type;
+    overriding procedure Index_Line_Break (Output_Object : in out HTML_Output_Type;
 				Clear_Keep_with_Next : in Boolean) is
 	-- Output a line break for the index. This does not start a new
 	-- paragraph in terms of spacing. This corresponds to a "<BR>"
@@ -3641,39 +3638,39 @@ Ada.Text_IO.Put_Line("  @@ Calc columns for" & Natural'Image(Output_Object.Colum
     end Index_Line_Break;
 
 
-    procedure Soft_Line_Break (Output_Object : in out HTML_Output_Type) is
-	-- Output a soft line break. This is a place (in the middle of a
-	-- "word") that we allow a line break. It is usually used after
-	-- underscores in long non-terminals.
+    overriding procedure Soft_Line_Break (Output_Object : in out HTML_Output_Type) is
+        -- Output a soft line break. This is a place (in the middle of a
+        -- "word") that we allow a line break. It is usually used after
+        -- underscores in long non-terminals.
     begin
-	if not Output_Object.Is_Valid then
-	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
-		"Not valid object");
-	end if;
-	if not Output_Object.Is_In_Paragraph then
-	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
-		"Not in paragraph");
-	end if;
-	if Output_Object.HTML_Kind > HTML_3 and then Output_Object.Use_Unicode then
+        if not Output_Object.Is_Valid then
+            Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
+                "Not valid object");
+        end if;
+        if not Output_Object.Is_In_Paragraph then
+            Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
+                "Not in paragraph");
+        end if;
+        if Output_Object.HTML_Kind > HTML_3 and then Output_Object.Use_Unicode then
             Output_Text (Output_Object, "&#8203;");
 	-- else no Soft break in HTML 3.2.
 	end if;
     end Soft_Line_Break;
 
 
-    procedure Soft_Hyphen_Break (Output_Object : in out HTML_Output_Type) is
-	-- Output a soft line break, with a hyphen. This is a place (in the middle of
-	-- a "word") that we allow a line break. If the line break is used,
-	-- a hyphen will be added to the text.
+    overriding procedure Soft_Hyphen_Break (Output_Object : in out HTML_Output_Type) is
+        -- Output a soft line break, with a hyphen. This is a place (in the middle of
+        -- a "word") that we allow a line break. If the line break is used,
+        -- a hyphen will be added to the text.
     begin
-	if not Output_Object.Is_Valid then
-	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
-		"Not valid object");
-	end if;
-	if not Output_Object.Is_In_Paragraph then
-	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
-		"Not in paragraph");
-	end if;
+        if not Output_Object.Is_Valid then
+            Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
+                "Not valid object");
+        end if;
+        if not Output_Object.Is_In_Paragraph then
+            Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
+                "Not in paragraph");
+        end if;
         null; -- Soft hyphens exist, but don't work on either Internet Exploder 4
 	      -- or Netcrash 3. That is, they are always displayed. (They should
 	      -- only be displayed at the location of a line break).
@@ -3681,25 +3678,25 @@ Ada.Text_IO.Put_Line("  @@ Calc columns for" & Natural'Image(Output_Object.Colum
     end Soft_Hyphen_Break;
 
 
-    procedure Tab (Output_Object : in out HTML_Output_Type) is
-	-- Output a tab, inserting space up to the next tab stop.
-	-- Raises Not_Valid_Error if the paragraph was created with
-	-- Tab_Stops = ARM_Output.NO_TABS.
+    overriding procedure Tab (Output_Object : in out HTML_Output_Type) is
+        -- Output a tab, inserting space up to the next tab stop.
+        -- Raises Not_Valid_Error if the paragraph was created with
+        -- Tab_Stops = ARM_Output.NO_TABS.
     begin
-	-- HTML does not have tabs. Emulation is not successful on proportional
-	-- fonts, so we let the user select how to do it.
-	if not Output_Object.Is_Valid then
-	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
-		"Not valid object");
-	end if;
-	if not Output_Object.Is_In_Paragraph then
-	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
-		"Not in paragraph");
-	end if;
-	if ARM_Output."="(Output_Object.Tab_Stops, ARM_Output.NO_TABS) then
-	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
-		"Tab, but none set");
-	end if;
+        -- HTML does not have tabs. Emulation is not successful on proportional
+        -- fonts, so we let the user select how to do it.
+        if not Output_Object.Is_Valid then
+            Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
+                "Not valid object");
+        end if;
+        if not Output_Object.Is_In_Paragraph then
+            Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
+                "Not in paragraph");
+        end if;
+        if ARM_Output."="(Output_Object.Tab_Stops, ARM_Output.NO_TABS) then
+            Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
+                "Tab, but none set");
+        end if;
 
         Output_Object.Conditional_Space := False; -- Never need a conditional space here.
         Output_Object.Last_was_Space := True; -- Treat this as a space.
@@ -3766,9 +3763,9 @@ Ada.Text_IO.Put_Line("  @@ Calc columns for" & Natural'Image(Output_Object.Colum
     end Tab;
 
 
-    procedure Special_Character (Output_Object : in out HTML_Output_Type;
-			         Char : in ARM_Output.Special_Character_Type) is
-	-- Output an special character.
+    overriding procedure Special_Character (Output_Object : in out HTML_Output_Type;
+                                 Char : in ARM_Output.Special_Character_Type) is
+        -- Output an special character.
     begin
 	if not Output_Object.Is_Valid then
 	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
@@ -3959,30 +3956,30 @@ Ada.Text_IO.Put_Line("  @@ Calc columns for" & Natural'Image(Output_Object.Colum
     end Special_Character;
 
 
-    procedure Unicode_Character (Output_Object : in out HTML_Output_Type;
-			         Char : in ARM_Output.Unicode_Type) is
-	-- Output a Unicode character, with code position Char.
-	Char_Code : constant String := ARM_Output.Unicode_Type'Image(Char);
+    overriding procedure Unicode_Character (Output_Object : in out HTML_Output_Type;
+                                 Char : in ARM_Output.Unicode_Type) is
+        -- Output a Unicode character, with code position Char.
+        Char_Code : constant String := ARM_Output.Unicode_Type'Image(Char);
     begin
-	if not Output_Object.Is_Valid then
-	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
-		"Not valid object");
-	end if;
-	if not Output_Object.Is_In_Paragraph then
-	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
-		"Not in paragraph");
-	end if;
-	if Output_Object.HTML_Kind = HTML_3 then
-	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
-		"Unicode not available for HTML 3");
-	end if;
-	if Output_Object.Conditional_Space then
-	    Output_Object.Conditional_Space := False;
-	    Output_Text (Output_Object, " ");
-	    Output_Object.Disp_Char_Count := Output_Object.Disp_Char_Count + 1;
-	    --Output_Object.Disp_Large_Char_Count := <unchanged>;
-	end if;
-	-- We don't check if this is valid, we just use it. So be sparing!
+        if not Output_Object.Is_Valid then
+            Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
+                "Not valid object");
+        end if;
+        if not Output_Object.Is_In_Paragraph then
+            Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
+                "Not in paragraph");
+        end if;
+        if Output_Object.HTML_Kind = HTML_3 then
+            Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
+                "Unicode not available for HTML 3");
+        end if;
+        if Output_Object.Conditional_Space then
+            Output_Object.Conditional_Space := False;
+            Output_Text (Output_Object, " ");
+            Output_Object.Disp_Char_Count := Output_Object.Disp_Char_Count + 1;
+            --Output_Object.Disp_Large_Char_Count := <unchanged>;
+        end if;
+        -- We don't check if this is valid, we just use it. So be sparing!
         Output_Text (Output_Object, "&#" & Char_Code(2..Char_Code'Length) & ';');
 	Output_Object.Disp_Char_Count := Output_Object.Disp_Char_Count + 1;
 	Output_Object.Disp_Large_Char_Count := Output_Object.Disp_Large_Char_Count + 1; -- Assume it is large.
@@ -3991,7 +3988,7 @@ Ada.Text_IO.Put_Line("  @@ Calc columns for" & Natural'Image(Output_Object.Colum
     end Unicode_Character;
 
 
-    procedure End_Hang_Item (Output_Object : in out HTML_Output_Type) is
+    overriding procedure End_Hang_Item (Output_Object : in out HTML_Output_Type) is
 	-- Marks the end of a hanging item. Call only once per paragraph.
 	-- Raises Not_Valid_Error if the paragraph style is not in
 	-- Text_Prefixed_Style_Subtype, or if this has already been
@@ -4098,32 +4095,32 @@ Ada.Text_IO.Put_Line("  @@ Calc columns for" & Natural'Image(Output_Object.Colum
     end End_Hang_Item;
 
 
-    procedure New_Column (Output_Object : in out HTML_Output_Type) is
-	-- Output a column break.
-	-- Raises Not_Valid_Error if in a paragraph, or if the number of
-	-- columns is 1.
+    overriding procedure New_Column (Output_Object : in out HTML_Output_Type) is
+        -- Output a column break.
+        -- Raises Not_Valid_Error if in a paragraph, or if the number of
+        -- columns is 1.
     begin
-	if not Output_Object.Is_Valid then
-	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
-		"Not valid object");
-	end if;
-	if Output_Object.Is_In_Paragraph then
-	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
-		"New Column in paragraph");
-	end if;
-	if Output_Object.Column_Count <= 1 then
-	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
-		"Not in a multi-column area");
-	end if;
-	if Output_Object.Column_Count >= 4 then
-	    Output_Object.Current_Column := Output_Object.Current_Column + 1;
-	    Output_Object.Current_Item := 1;
-	-- else ignore it, no columns will be used.
-	end if;
+        if not Output_Object.Is_Valid then
+            Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
+                "Not valid object");
+        end if;
+        if Output_Object.Is_In_Paragraph then
+            Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
+                "New Column in paragraph");
+        end if;
+        if Output_Object.Column_Count <= 1 then
+            Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
+                "Not in a multi-column area");
+        end if;
+        if Output_Object.Column_Count >= 4 then
+            Output_Object.Current_Column := Output_Object.Current_Column + 1;
+            Output_Object.Current_Item := 1;
+        -- else ignore it, no columns will be used.
+        end if;
     end New_Column;
 
 
-    procedure Text_Format (Output_Object : in out HTML_Output_Type;
+    overriding procedure Text_Format (Output_Object : in out HTML_Output_Type;
 			   Format : in ARM_Output.Format_Type) is
 	-- Change the text format so that all of the properties are as specified.
 	-- Note: Changes to these properties ought be stack-like; that is,
@@ -4542,7 +4539,7 @@ Ada.Text_IO.Put_Line("  @@ Calc columns for" & Natural'Image(Output_Object.Colum
     end Text_Format;
 
 
-    procedure Clause_Reference (Output_Object : in out HTML_Output_Type;
+    overriding procedure Clause_Reference (Output_Object : in out HTML_Output_Type;
 				Text : in String;
 				Clause_Number : in String) is
 	-- Generate a reference to a clause in the standard. The text of
@@ -4577,33 +4574,33 @@ Ada.Text_IO.Put_Line("  @@ Calc columns for" & Natural'Image(Output_Object.Colum
     end Clause_Reference;
 
 
-    procedure Index_Target (Output_Object : in out HTML_Output_Type;
-			    Index_Key : in Natural) is
-	-- Generate a index target. This marks the location where an index
-	-- reference occurs. Index_Key names the index item involved.
-	-- For hyperlinked formats, this should generate a link target;
-	-- for other formats, nothing is generated.
+    overriding procedure Index_Target (Output_Object : in out HTML_Output_Type;
+                            Index_Key : in Natural) is
+        -- Generate a index target. This marks the location where an index
+        -- reference occurs. Index_Key names the index item involved.
+        -- For hyperlinked formats, this should generate a link target;
+        -- for other formats, nothing is generated.
     begin
-	if not Output_Object.Is_Valid then
-	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
-		"Not valid object");
-	end if;
-	if not Output_Object.Is_In_Paragraph then
-	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
-		"Not in paragraph");
-	end if;
-	-- Insert an anchor:
-	Output_Text (Output_Object, "<A NAME=""I");
-	declare
-	    Key_Name : constant String := Natural'Image(Index_Key);
-	begin
-	    Output_Text (Output_Object, Key_Name(2..Key_Name'Last));
-	end;
-	Output_Text (Output_Object, """></A>");
+        if not Output_Object.Is_Valid then
+            Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
+                "Not valid object");
+        end if;
+        if not Output_Object.Is_In_Paragraph then
+            Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
+                "Not in paragraph");
+        end if;
+        -- Insert an anchor:
+        Output_Text (Output_Object, "<A NAME=""I");
+        declare
+            Key_Name : constant String := Natural'Image(Index_Key);
+        begin
+            Output_Text (Output_Object, Key_Name(2..Key_Name'Last));
+        end;
+        Output_Text (Output_Object, """></A>");
     end Index_Target;
 
 
-    procedure Index_Reference (Output_Object : in out HTML_Output_Type;
+    overriding procedure Index_Reference (Output_Object : in out HTML_Output_Type;
 			       Text : in String;
 			       Index_Key : in Natural;
 			       Clause_Number : in String) is
@@ -4646,34 +4643,34 @@ Ada.Text_IO.Put_Line("  @@ Calc columns for" & Natural'Image(Output_Object.Colum
     end Index_Reference;
 
 
-    procedure DR_Reference (Output_Object : in out HTML_Output_Type;
-			    Text : in String;
-			    DR_Number : in String) is
-	-- Generate a reference to an DR from the standard. The text
-	-- of the reference is "Text", and DR_Number denotes
-	-- the target. For hyperlinked formats, this should generate
-	-- a link; for other formats, the text alone is generated.
+    overriding procedure DR_Reference (Output_Object : in out HTML_Output_Type;
+                            Text : in String;
+                            DR_Number : in String) is
+        -- Generate a reference to an DR from the standard. The text
+        -- of the reference is "Text", and DR_Number denotes
+        -- the target. For hyperlinked formats, this should generate
+        -- a link; for other formats, the text alone is generated.
     begin
-	if not Output_Object.Is_Valid then
-	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
-		"Not valid object");
-	end if;
-	if not Output_Object.Is_In_Paragraph then
-	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
-		"Not in paragraph");
-	end if;
-	declare
-	    Num : Integer := Integer'Value(DR_Number(DR_Number'Last-3 .. DR_Number'Last));
-	begin
-	    Output_Text (Output_Object, "<A HREF=""");
-	    if Num <= 93 then -- In Defect Reports 1. -- %%%% Update if changed.
-		Output_Text (Output_Object, "defect1.html");
-	    else -- In Defect Reports 2.
-		Output_Text (Output_Object, "defect2.html");
-	    end if;
-	    Output_Text (Output_Object, "#");
-	    Output_Text (Output_Object, DR_Number);
-	end;
+        if not Output_Object.Is_Valid then
+            Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
+                "Not valid object");
+        end if;
+        if not Output_Object.Is_In_Paragraph then
+            Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
+                "Not in paragraph");
+        end if;
+        declare
+            Num : Integer := Integer'Value(DR_Number(DR_Number'Last-3 .. DR_Number'Last));
+        begin
+            Output_Text (Output_Object, "<A HREF=""");
+            if Num <= 93 then -- In Defect Reports 1. -- %%%% Update if changed.
+                Output_Text (Output_Object, "defect1.html");
+            else -- In Defect Reports 2.
+                Output_Text (Output_Object, "defect2.html");
+            end if;
+            Output_Text (Output_Object, "#");
+            Output_Text (Output_Object, DR_Number);
+        end;
         Output_Text (Output_Object, """>");
         Ordinary_Text (Output_Object, Text);
         Output_Text (Output_Object, "</A>");
@@ -4853,24 +4850,24 @@ Ada.Text_IO.Put_Line("  @@ Calc columns for" & Natural'Image(Output_Object.Colum
     end AI_Reference;
 
 
-    procedure Local_Target (Output_Object : in out HTML_Output_Type;
-			    Text : in String;
-			    Target : in String) is
-	-- Generate a local target. This marks the potential target of local
-	-- links identified by "Target". Text is the text of the target.
-	-- For hyperlinked formats, this should generate a link target;
-	-- for other formats, only the text is generated.
+    overriding procedure Local_Target (Output_Object : in out HTML_Output_Type;
+                            Text : in String;
+                            Target : in String) is
+        -- Generate a local target. This marks the potential target of local
+        -- links identified by "Target". Text is the text of the target.
+        -- For hyperlinked formats, this should generate a link target;
+        -- for other formats, only the text is generated.
     begin
-	if not Output_Object.Is_Valid then
-	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
-		"Not valid object");
-	end if;
-	if not Output_Object.Is_In_Paragraph then
-	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
-		"Not in paragraph");
-	end if;
-	-- Insert an anchor:
-	Output_Text (Output_Object, "<A NAME=""");
+        if not Output_Object.Is_Valid then
+            Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
+                "Not valid object");
+        end if;
+        if not Output_Object.Is_In_Paragraph then
+            Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
+                "Not in paragraph");
+        end if;
+        -- Insert an anchor:
+        Output_Text (Output_Object, "<A NAME=""");
         Output_Text (Output_Object, Target);
 	Output_Text (Output_Object, """>");
         Ordinary_Text (Output_Object, Text);
@@ -4878,7 +4875,7 @@ Ada.Text_IO.Put_Line("  @@ Calc columns for" & Natural'Image(Output_Object.Colum
     end Local_Target;
 
 
-    procedure Local_Link (Output_Object : in out HTML_Output_Type;
+    overriding procedure Local_Link (Output_Object : in out HTML_Output_Type;
 			  Text : in String;
 			  Target : in String;
 			  Clause_Number : in String) is
@@ -4917,27 +4914,27 @@ Ada.Text_IO.Put_Line("  @@ Calc columns for" & Natural'Image(Output_Object.Colum
     end Local_Link;
 
 
-    procedure Local_Link_Start (Output_Object : in out HTML_Output_Type;
-				Target : in String;
-				Clause_Number : in String) is
-	-- Generate a local link to the target and clause given.
-	-- The link will surround text until Local_Link_End is called.
-	-- Local_Link_End must be called before this routine can be used again.
-	-- For hyperlinked formats, this should generate a link;
-	-- for other formats, only the text is generated.
+    overriding procedure Local_Link_Start (Output_Object : in out HTML_Output_Type;
+                                Target : in String;
+                                Clause_Number : in String) is
+        -- Generate a local link to the target and clause given.
+        -- The link will surround text until Local_Link_End is called.
+        -- Local_Link_End must be called before this routine can be used again.
+        -- For hyperlinked formats, this should generate a link;
+        -- for other formats, only the text is generated.
     begin
-	if not Output_Object.Is_Valid then
-	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
-		"Not valid object");
-	end if;
-	if not Output_Object.Is_In_Paragraph then
-	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
-		"Not in paragraph");
-	end if;
-	if Output_Object.In_Local_Link then
-	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
-		"Already in a local link");
-	end if;
+        if not Output_Object.Is_Valid then
+            Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
+                "Not valid object");
+        end if;
+        if not Output_Object.Is_In_Paragraph then
+            Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
+                "Not in paragraph");
+        end if;
+        if Output_Object.In_Local_Link then
+            Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
+                "Already in a local link");
+        end if;
         Output_Object.In_Local_Link := True;
 	-- Insert an anchor:
 	Output_Text (Output_Object, "<A HREF=""");
@@ -4959,49 +4956,49 @@ Ada.Text_IO.Put_Line("  @@ Calc columns for" & Natural'Image(Output_Object.Colum
     end Local_Link_Start;
 
 
-    procedure Local_Link_End (Output_Object : in out HTML_Output_Type;
-			      Target : in String;
-			      Clause_Number : in String) is
-	-- End a local link for the target and clause given.
-	-- This must be in the same paragraph as the Local_Link_Start.
-	-- For hyperlinked formats, this should generate a link;
-	-- for other formats, only the text is generated.
+    overriding procedure Local_Link_End (Output_Object : in out HTML_Output_Type;
+                              Target : in String;
+                              Clause_Number : in String) is
+        -- End a local link for the target and clause given.
+        -- This must be in the same paragraph as the Local_Link_Start.
+        -- For hyperlinked formats, this should generate a link;
+        -- for other formats, only the text is generated.
     begin
-	if not Output_Object.Is_Valid then
-	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
-		"Not valid object");
-	end if;
-	if not Output_Object.Is_In_Paragraph then
-	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
-		"Not in paragraph");
-	end if;
-	if not Output_Object.In_Local_Link then
-	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
-		"Not in a local link");
-	end if;
-	Output_Text (Output_Object, "</A>");
+        if not Output_Object.Is_Valid then
+            Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
+                "Not valid object");
+        end if;
+        if not Output_Object.Is_In_Paragraph then
+            Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
+                "Not in paragraph");
+        end if;
+        if not Output_Object.In_Local_Link then
+            Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
+                "Not in a local link");
+        end if;
+        Output_Text (Output_Object, "</A>");
         Output_Object.In_Local_Link := False;
     end Local_Link_End;
 
 
-    procedure URL_Link (Output_Object : in out HTML_Output_Type;
-			Text : in String;
-			URL : in String) is
-	-- Generate a link to the URL given.
-	-- Text is the text of the link.
-	-- For hyperlinked formats, this should generate a link;
-	-- for other formats, only the text is generated.
+    overriding procedure URL_Link (Output_Object : in out HTML_Output_Type;
+                        Text : in String;
+                        URL : in String) is
+        -- Generate a link to the URL given.
+        -- Text is the text of the link.
+        -- For hyperlinked formats, this should generate a link;
+        -- for other formats, only the text is generated.
     begin
-	if not Output_Object.Is_Valid then
-	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
-		"Not valid object");
-	end if;
-	if not Output_Object.Is_In_Paragraph then
-	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
-		"Not in paragraph");
-	end if;
-	-- Insert an anchor:
-	Output_Text (Output_Object, "<A HREF=""");
+        if not Output_Object.Is_Valid then
+            Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
+                "Not valid object");
+        end if;
+        if not Output_Object.Is_In_Paragraph then
+            Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
+                "Not in paragraph");
+        end if;
+        -- Insert an anchor:
+        Output_Text (Output_Object, "<A HREF=""");
         Output_Text (Output_Object, URL);
 	Output_Text (Output_Object, """>");
         Ordinary_Text (Output_Object, Text);
@@ -5009,7 +5006,7 @@ Ada.Text_IO.Put_Line("  @@ Calc columns for" & Natural'Image(Output_Object.Colum
     end URL_Link;
 
 
-    procedure Picture  (Output_Object : in out HTML_Output_Type;
+    overriding procedure Picture  (Output_Object : in out HTML_Output_Type;
 			Name : in String;
 			Descr : in String;
 			Alignment : in ARM_Output.Picture_Alignment;

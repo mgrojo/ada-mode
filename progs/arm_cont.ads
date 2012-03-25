@@ -70,7 +70,7 @@ package ARM_Contents is
 	Ada.Strings.Unbounded.Unbounded_String;
 
     type Clause_Number_Type is record
-	Section : Section_Number_Type;
+	Section : Section_Number_Type := 0;
 	Clause : Natural := 0;
 	Subclause : Natural := 0;
 	Subsubclause : Natural := 0;

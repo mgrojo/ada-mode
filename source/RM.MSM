@@ -42,9 +42,9 @@
 @HTMLColor{Text=[#000000],Background=[#FFFFF0],Link=[#000080],VLink=[#330033],ALink=[#0000FF]}
 
 @Comment{Source files and related items, in collating order}
-@Source{Name=<Title.MSS>,SectionName=<Ttl>,SectionNumber=[0],NewSection=[T]}
+@Source{Name=<TITLE.MSS>,SectionName=<Ttl>,SectionNumber=[0],NewSection=[T]}
 @TOC @Comment{The table of contents goes here in the collating order}
-@Source{Name=<Front_Matter.MSS>,SectionName=<00>,SectionNumber=[0],NewSection=[T]}
+@Source{Name=<front_matter.mss>,SectionName=<00>,SectionNumber=[0],NewSection=[T]}
 @Source{Name=<01.MSS>,SectionName=<01>,SectionNumber=[1],NewSection=[T]}
 @Source{Name=<02.MSS>,SectionName=<02>,SectionNumber=[2],NewSection=[T]}
 @Source{Name=<03A.MSS>,SectionName=<03>,SectionNumber=[3],NewSection=[T]}
@@ -66,36 +66,36 @@
 @Source{Name=<LIBRARY.MSS>,SectionName=<Lib>,SectionNumber=[0],NewSection=[T]}
 @Comment{Annex A; all of the files starting with "Pre_" are part of Annex A.}
 @Source{Name=<PRE.MSS>,SectionName=<A>,SectionNumber=[A],NewSection=[T]}
-@Source{Name=<PRE_Standard.MSS>,SectionName=<A>,SectionNumber=[A],NewSection=[F]}
-@Source{Name=<PRE_Ada.MSS>,SectionName=<A>,SectionNumber=[A],NewSection=[F]}
-@Source{Name=<PRE_Chars.MSS>,SectionName=<A>,SectionNumber=[A],NewSection=[F]}
-@Source{Name=<PRE_Strings.MSS>,SectionName=<A>,SectionNumber=[A],NewSection=[F]}
-@Source{Name=<PRE_Math.MSS>,SectionName=<A>,SectionNumber=[A],NewSection=[F]}
-@Source{Name=<Real_Attribs.MSS>,SectionName=<A>,SectionNumber=[A],NewSection=[F]}
+@Source{Name=<pre_standard.mss>,SectionName=<A>,SectionNumber=[A],NewSection=[F]}
+@Source{Name=<PRE_ADA.MSS>,SectionName=<A>,SectionNumber=[A],NewSection=[F]}
+@Source{Name=<pre_chars.mss>,SectionName=<A>,SectionNumber=[A],NewSection=[F]}
+@Source{Name=<pre_strings.mss>,SectionName=<A>,SectionNumber=[A],NewSection=[F]}
+@Source{Name=<PRE_MATH.MSS>,SectionName=<A>,SectionNumber=[A],NewSection=[F]}
+@Source{Name=<Real_attribs.mss>,SectionName=<A>,SectionNumber=[A],NewSection=[F]}
 @Source{Name=<PRE_IO.MSS>,SectionName=<A>,SectionNumber=[A],NewSection=[F]}
-@Source{Name=<PRE_Cmdln.MSS>,SectionName=<A>,SectionNumber=[A],NewSection=[F]}
-@Source{Name=<PRE_Dirs.MSS>,SectionName=<A>,SectionNumber=[A],NewSection=[F]}
-@Source{Name=<PRE_Environ.MSS>,SectionName=<A>,SectionNumber=[A],NewSection=[F]}
-@Source{Name=<PRE_Containers.MSS>,SectionName=<A>,SectionNumber=[A],NewSection=[F]}
-@Source{Name=<PRE_Con2.MSS>,SectionName=<A>,SectionNumber=[A],NewSection=[F]}
+@Source{Name=<pre_cmdln.mss>,SectionName=<A>,SectionNumber=[A],NewSection=[F]}
+@Source{Name=<PRE_DIRS.MSS>,SectionName=<A>,SectionNumber=[A],NewSection=[F]}
+@Source{Name=<Pre_Environ.MSS>,SectionName=<A>,SectionNumber=[A],NewSection=[F]}
+@Source{Name=<Pre_Containers.MSS>,SectionName=<A>,SectionNumber=[A],NewSection=[F]}
+@Source{Name=<Pre_Con2.MSS>,SectionName=<A>,SectionNumber=[A],NewSection=[F]}
 @Source{Name=<PRE_Locales.MSS>,SectionName=<A>,SectionNumber=[A],NewSection=[F]}
 @Comment{Other normative annexes:}
-@Source{Name=<Interface.MSS>,SectionName=<B>,SectionNumber=[B],NewSection=[T]}
+@Source{Name=<interface.mss>,SectionName=<B>,SectionNumber=[B],NewSection=[T]}
 @Source{Name=<SP.MSS>,SectionName=<C>,SectionNumber=[C],NewSection=[T]}
 @Source{Name=<RT.MSS>,SectionName=<D>,SectionNumber=[D],NewSection=[T]}
 @Source{Name=<DS.MSS>,SectionName=<E>,SectionNumber=[E],NewSection=[T]}
-@Source{Name=<InfoSys.MSS>,SectionName=<F>,SectionNumber=[F],NewSection=[T]}
-@Source{Name=<Numerics.MSS>,SectionName=<G>,SectionNumber=[G],NewSection=[T]}
-@Source{Name=<Safety.MSS>,SectionName=<H>,SectionNumber=[H],NewSection=[T]}
+@Source{Name=<INFOSYS.MSS>,SectionName=<F>,SectionNumber=[F],NewSection=[T]}
+@Source{Name=<NUMERICS.MSS>,SectionName=<G>,SectionNumber=[G],NewSection=[T]}
+@Source{Name=<SAFETY.MSS>,SectionName=<H>,SectionNumber=[H],NewSection=[T]}
 @Comment{We don't use Annex I, as ISO requires skipping I and O}
-@Source{Name=<Obsolescent.MSS>,SectionName=<J>,SectionNumber=[J],NewSection=[T]}
+@Source{Name=<obsolescent.mss>,SectionName=<J>,SectionNumber=[J],NewSection=[T]}
 @Comment{Informative annexes:}
-@Source{Name=<Attribs.MSS>,SectionName=<K>,SectionNumber=[K],NewSection=[T]}
-@Source{Name=<Pragmas.MSS>,SectionName=<L>,SectionNumber=[L],NewSection=[T]}
-@Source{Name=<Impldef.MSS>,SectionName=<M>,SectionNumber=[M],NewSection=[T]}
-@Source{Name=<Glossary.MSS>,SectionName=<N>,SectionNumber=[N],NewSection=[T]}
+@Source{Name=<ATTRIBS.MSS>,SectionName=<K>,SectionNumber=[K],NewSection=[T]}
+@Source{Name=<PRAGMAS.MSS>,SectionName=<L>,SectionNumber=[L],NewSection=[T]}
+@Source{Name=<IMPLDEF.MSS>,SectionName=<M>,SectionNumber=[M],NewSection=[T]}
+@Source{Name=<GLOSSARY.MSS>,SectionName=<N>,SectionNumber=[N],NewSection=[T]}
 @Comment{We don't use Annex O, as ISO requires skipping I and O}
-@Source{Name=<Syntax.MSS>,SectionName=<P>,SectionNumber=[P],NewSection=[T]}
-@Source{Name=<Langdef.MSS>,SectionName=<Q>,SectionNumber=[Q],NewSection=[T]}
-@Source{Name=<Index.MSS>,SectionName=<IDX>,SectionNumber=[0],NewSection=[T]}
+@Source{Name=<SYNTAX.MSS>,SectionName=<P>,SectionNumber=[P],NewSection=[T]}
+@Source{Name=<LANGDEF.MSS>,SectionName=<Q>,SectionNumber=[Q],NewSection=[T]}
+@Source{Name=<INDEX.MSS>,SectionName=<IDX>,SectionNumber=[0],NewSection=[T]}
 
