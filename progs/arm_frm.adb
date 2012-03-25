@@ -1,12 +1,12 @@
-with ARM_Output,
-     ARM_Input,
+with -- ARM_Output, -- redudant with spec
+--   ARM_Input,
      ARM_File,
      ARM_String,
-     ARM_Contents,
-     ARM_Database,
+--   ARM_Contents,
+--   ARM_Database,
      ARM_Syntax,
      ARM_Index,
-     ARM_Subindex,
+--   ARM_Subindex,
      ARM_Format.Data,
      Ada.Text_IO,
      Ada.Characters.Handling,
@@ -3441,7 +3441,7 @@ Ada.Text_IO.Put_Line("    -- No Start Paragraph (Del-NewOnly)");
 		use type ARM_Database.Paragraph_Change_Kind_Type;
 		Local_Change : ARM_Output.Change_Type;
 		Skip_Header  : Boolean := False;
-		Key          : ARM_Index.Index_Key;
+		-- Key          : ARM_Index.Index_Key; never read and never assigned
 	    begin
 	        Get_Change_Version (Is_First => True,
 		    Version => Version);
@@ -7660,7 +7660,8 @@ Ada.Text_IO.Put_Line("    -- No Start Paragraph (Del-NewOnly)");
 		    -- otherwise would come too late).
 		    declare
 		        Which_Param : ARM_Input.Param_Num;
-		        Ch, Close_Ch : Character;
+		        -- Ch, never read and never assigned
+                        Close_Ch : Character;
 
 			NoPrefix, Noparanum, Keepnext : Boolean := False;
 			Space_After : ARM_Output.Space_After_Type := ARM_Output.Normal;

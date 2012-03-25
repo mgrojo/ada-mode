@@ -1,4 +1,3 @@
-with "standard_common";
 project ARM_Info is
   for Source_Dirs use
     ("../progs");
@@ -63,23 +62,24 @@ project ARM_Info is
   end Naming;
 
   package Compiler is
+     --  upstream wants Ada 95 syntax, no GNAT-specific pragmas.
+     --  We disable some warnings to minimize source diff with upstream.
      for Default_Switches ("Ada") use
-       Standard_Common.Compiler'Default_Switches ("Ada") &
-       Standard_Common.Compiler.Debug_Switches &
-       ("-gnatwCFK", "-gnatybefip");
-
-     for Switches ("ARM_Info") use
-       Standard_Common.Compiler'Default_Switches ("Ada") &
-       Standard_Common.Compiler.Debug_Switches &
-       Standard_Common.Compiler.Style_Checks;
+       ("-g",
+        "-O0",
+        "-gnatfoqQ",
+        "-gnatVa",
+        "-gnatwaCeFKLP",
+        "-fstack-check",
+        "-gnatybefip");
   end Compiler;
 
   package Binder is
-     for Default_Switches ("Ada") use Standard_Common.Binder'Default_Switches ("Ada");
+     for Default_Switches ("Ada") use ("-E");
   end Binder;
 
    package Builder is
-      for Default_Switches ("Ada") use Standard_Common.Builder'Default_Switches ("Ada");
+      for Default_Switches ("Ada") use ("-C");
 
       --  We use ".exe" extension even on non-Windows, to simplify the makefiles.
       for Executable_Suffix use ".exe";

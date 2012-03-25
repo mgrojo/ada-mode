@@ -58,7 +58,7 @@ package body ARM_File is
     end Open;
 
 
-    overriding procedure Close (Input_Object : in out File_Input_Type) is
+    procedure Close (Input_Object : in out File_Input_Type) is
 	-- Close the input object (entity).
 	-- May propagate exceptions from the underlying implementation
 	-- (that is, I/O exceptions).
@@ -71,7 +71,7 @@ package body ARM_File is
     end Close;
 
 
-    overriding procedure Get_Char (Input_Object : in out File_Input_Type;
+    procedure Get_Char (Input_Object : in out File_Input_Type;
 			Char : out Character) is
         -- We represent end of line by Ascii.LF.
         -- Raises: End_Error when the end of file is reached.
@@ -115,7 +115,7 @@ package body ARM_File is
     end Get_Char;
 
 
-    overriding procedure Replace_Char (Input_Object : in out File_Input_Type) is
+    procedure Replace_Char (Input_Object : in out File_Input_Type) is
 	-- Replaces the last character read (with Get_Char); the next call
 	-- to Get_Char will return it.
         -- Raises: Not_Valid_Error if Input_Object is not valid (open).
@@ -133,7 +133,7 @@ package body ARM_File is
     end Replace_Char;
 
 
-    overriding function Line_String (Input_Object : in File_Input_Type) return String is
+    function Line_String (Input_Object : in File_Input_Type) return String is
         -- Returns a string representing the line number and entity.
 	-- Usually used in error messages.
         -- Raises: Not_Valid_Error if Input_Object is not valid (open).
@@ -146,7 +146,7 @@ package body ARM_File is
     end Line_String;
 
 
-    overriding procedure Start_Recording (Input_Object : in out File_Input_Type) is
+    procedure Start_Recording (Input_Object : in out File_Input_Type) is
         -- Start recording all characters read into a local buffer.
         -- Use this when text needs to be formatted into the output
         -- file *and* be saved for future use.
@@ -160,7 +160,7 @@ package body ARM_File is
     end Start_Recording;
 
 
-    overriding procedure Stop_Recording_and_Read_Result
+    procedure Stop_Recording_and_Read_Result
         (Input_Object : in out File_Input_Type; Result : out String;
 	 Len : out Natural) is
         -- Stop recording characters read. Put the result into Result,

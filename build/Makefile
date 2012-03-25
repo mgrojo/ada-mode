@@ -298,11 +298,7 @@ include ../../../GDS/main/makerules/gnat_project_rules.make
 %.info : ../ada-reference-manual-$(DEBIAN_VERSION)/%.texinfo
 	makeinfo $(TEXI_INFO_OPTS) $<
 
-
-export ADA_PROJECT_PATH := ../../../GDS/main/makerules
-
 VPATH = ../source ../progs
-
 
 #Local Variables:
 #eval: (ada-parse-prj-file "arm_info.prj")

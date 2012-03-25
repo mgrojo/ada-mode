@@ -408,7 +408,7 @@ package body ARM_Texinfo is
    ----------
    --  Public subprograms. Alphabetical order
 
-   overriding procedure AI_Reference
+   procedure AI_Reference
      (Output_Object : in out Texinfo_Output_Type;
       Text          : in     String;
       AI_Number     : in     String)
@@ -416,7 +416,7 @@ package body ARM_Texinfo is
       Ordinary_Text (Output_Object, AI_Number & Text);
    end AI_Reference;
 
-   overriding procedure Category_Header
+   procedure Category_Header
      (Output_Object : in out Texinfo_Output_Type;
       Header_Text   :        String)
    is begin
@@ -430,7 +430,7 @@ package body ARM_Texinfo is
       New_Line (Output_Object.File, 2);
    end Category_Header;
 
-   overriding procedure Clause_Header
+   procedure Clause_Header
      (Output_Object : in out Texinfo_Output_Type;
       Header_Text   : in     String;
       Level         : in     ARM_Contents.Level_Type;
@@ -683,7 +683,7 @@ package body ARM_Texinfo is
 
    end Clause_Header;
 
-   overriding procedure Clause_Reference
+   procedure Clause_Reference
      (Output_Object : in out Texinfo_Output_Type;
       Text          : in     String;
       Clause_Number : in     String)
@@ -720,7 +720,7 @@ package body ARM_Texinfo is
       end case;
    end Clause_Reference;
 
-   overriding procedure Close (Output_Object : in out Texinfo_Output_Type)
+   procedure Close (Output_Object : in out Texinfo_Output_Type)
    is begin
       Check_Valid (Output_Object);
 
@@ -761,7 +761,7 @@ package body ARM_Texinfo is
 
    end Create;
 
-   overriding procedure DR_Reference
+   procedure DR_Reference
      (Output_Object : in out Texinfo_Output_Type;
       Text          : in     String;
       DR_Number     : in     String)
@@ -769,7 +769,7 @@ package body ARM_Texinfo is
       Ordinary_Text (Output_Object, DR_Number & Text);
    end DR_Reference;
 
-   overriding procedure End_Hang_Item (Output_Object : in out Texinfo_Output_Type)
+   procedure End_Hang_Item (Output_Object : in out Texinfo_Output_Type)
    is
       use ARM_Output;
    begin
@@ -827,7 +827,14 @@ package body ARM_Texinfo is
 
    end End_Hang_Item;
 
-   overriding procedure End_Paragraph (Output_Object : in out Texinfo_Output_Type)
+   procedure Text_Format
+     (Output_Object : in out Texinfo_Output_Type;
+      Format        : in     ARM_Output.Format_Type)
+   is begin
+      null;
+   end Text_Format;
+
+   procedure End_Paragraph (Output_Object : in out Texinfo_Output_Type)
    is
       use ARM_Output;
    begin
@@ -929,7 +936,7 @@ package body ARM_Texinfo is
       end case;
    end End_Paragraph;
 
-   overriding procedure Hard_Space (Output_Object : in out Texinfo_Output_Type)
+   procedure Hard_Space (Output_Object : in out Texinfo_Output_Type)
    is begin
       case Output_Object.State is
       when Contents =>
@@ -951,7 +958,7 @@ package body ARM_Texinfo is
       end case;
    end Hard_Space;
 
-   overriding procedure Index_Line_Break
+   procedure Index_Line_Break
      (Output_Object        : in out Texinfo_Output_Type;
       Clear_Keep_with_Next : in     Boolean)
    is
@@ -960,7 +967,7 @@ package body ARM_Texinfo is
       Put_Line (Output_Object.File, "@*");
    end Index_Line_Break;
 
-   overriding procedure Index_Reference
+   procedure Index_Reference
      (Output_Object : in out Texinfo_Output_Type;
       Text          : in     String;
       Index_Key     : in     Natural;
@@ -972,14 +979,14 @@ package body ARM_Texinfo is
       Put (Output_Object.File, "@ref{" & Integer'Image (Index_Key) & ", " & Text & "}");
    end Index_Reference;
 
-   overriding procedure Index_Target
+   procedure Index_Target
      (Output_Object : in out Texinfo_Output_Type;
       Index_Key     : in     Natural)
    is begin
       Put (Output_Object.File, "@anchor{" & Integer'Image (Index_Key) & "}");
    end Index_Target;
 
-   overriding procedure Line_Break (Output_Object : in out Texinfo_Output_Type)
+   procedure Line_Break (Output_Object : in out Texinfo_Output_Type)
    is
       use ARM_Output;
    begin
@@ -1048,7 +1055,7 @@ package body ARM_Texinfo is
       end case;
    end Line_Break;
 
-   overriding procedure Local_Link
+   procedure Local_Link
      (Output_Object : in out Texinfo_Output_Type;
       Text          : in     String;
       Target        : in     String;
@@ -1070,7 +1077,7 @@ package body ARM_Texinfo is
       Ordinary_Text (Output_Object, Text);
    end Local_Link;
 
-   overriding procedure Local_Link_End
+   procedure Local_Link_End
      (Output_Object : in out Texinfo_Output_Type;
       Target        : in     String;
       Clause_Number : in     String)
@@ -1080,7 +1087,7 @@ package body ARM_Texinfo is
       Put (Output_Object.File, " (@pxref{" & Target & "," & Clause_Number & "})");
    end Local_Link_End;
 
-   overriding procedure Local_Link_Start
+   procedure Local_Link_Start
      (Output_Object : in out Texinfo_Output_Type;
       Target        : in     String;
       Clause_Number : in     String)
@@ -1093,7 +1100,7 @@ package body ARM_Texinfo is
       null;
    end Local_Link_Start;
 
-   overriding procedure Local_Target
+   procedure Local_Target
      (Output_Object : in out Texinfo_Output_Type;
       Text          : in     String;
       Target        : in     String)
@@ -1102,7 +1109,7 @@ package body ARM_Texinfo is
       Ordinary_Text (Output_Object, Text);
    end Local_Target;
 
-   overriding procedure New_Column (Output_Object : in out Texinfo_Output_Type)
+   procedure New_Column (Output_Object : in out Texinfo_Output_Type)
    is begin
       if Output_Object.Column_Count >= 4 then
          Output_Object.Current_Column := Output_Object.Current_Column + 1;
@@ -1110,7 +1117,7 @@ package body ARM_Texinfo is
       end if;
    end New_Column;
 
-   overriding procedure New_Page
+   procedure New_Page
      (Output_Object : in out Texinfo_Output_Type;
       Kind          :        ARM_Output.Page_Kind_Type := ARM_Output.Any_Page)
    is
@@ -1121,7 +1128,7 @@ package body ARM_Texinfo is
       null;
    end New_Page;
 
-   overriding procedure Ordinary_Character
+   procedure Ordinary_Character
      (Output_Object : in out Texinfo_Output_Type;
       Char          : in     Character)
    is
@@ -1224,7 +1231,7 @@ package body ARM_Texinfo is
       end case;
    end Ordinary_Character;
 
-   overriding procedure Ordinary_Text
+   procedure Ordinary_Text
      (Output_Object : in out Texinfo_Output_Type;
       Text          : in     String)
    is begin
@@ -1242,7 +1249,7 @@ package body ARM_Texinfo is
       end case;
    end Ordinary_Text;
 
-   overriding procedure Picture
+   procedure Picture
      (Output_Object : in out Texinfo_Output_Type;
       Name          : in     String;
       Descr         : in     String;
@@ -1261,7 +1268,7 @@ package body ARM_Texinfo is
          "Picture: " & Descr);
    end Picture;
 
-   overriding procedure Revised_Clause_Header
+   procedure Revised_Clause_Header
      (Output_Object   : in out Texinfo_Output_Type;
       New_Header_Text : in     String;
       Old_Header_Text : in     String;
@@ -1278,7 +1285,7 @@ package body ARM_Texinfo is
       Clause_Header (Output_Object, New_Header_Text, Level, Clause_Number, No_Page_Break);
    end Revised_Clause_Header;
 
-   overriding procedure Section
+   procedure Section
      (Output_Object : in out Texinfo_Output_Type;
       Section_Title : in     String;
       Section_Name  : in     String)
@@ -1291,7 +1298,7 @@ package body ARM_Texinfo is
       null;
    end Section;
 
-   overriding procedure Separator_Line
+   procedure Separator_Line
      (Output_Object : in out Texinfo_Output_Type;
       Is_Thin       :        Boolean             := True)
    is begin
@@ -1304,7 +1311,7 @@ package body ARM_Texinfo is
       end if;
    end Separator_Line;
 
-   overriding procedure Set_Columns
+   procedure Set_Columns
      (Output_Object     : in out Texinfo_Output_Type;
       Number_of_Columns : in     ARM_Output.Column_Count)
    is begin
@@ -1360,12 +1367,12 @@ package body ARM_Texinfo is
       Output_Object.Column_Count := Number_of_Columns;
    end Set_Columns;
 
-   overriding procedure Soft_Hyphen_Break (Output_Object : in out Texinfo_Output_Type)
+   procedure Soft_Hyphen_Break (Output_Object : in out Texinfo_Output_Type)
    is begin
       Put (Output_Object.File, "@-");
    end Soft_Hyphen_Break;
 
-   overriding procedure Soft_Line_Break (Output_Object : in out Texinfo_Output_Type)
+   procedure Soft_Line_Break (Output_Object : in out Texinfo_Output_Type)
    is begin
       case Output_Object.State is
       when Contents | Title =>
@@ -1380,7 +1387,7 @@ package body ARM_Texinfo is
       end case;
    end Soft_Line_Break;
 
-   overriding procedure Special_Character
+   procedure Special_Character
      (Output_Object : in out Texinfo_Output_Type;
       Char          : in     ARM_Output.Special_Character_Type)
    is begin
@@ -1490,7 +1497,7 @@ package body ARM_Texinfo is
       end case;
    end Special_Character;
 
-   overriding procedure Start_Paragraph
+   procedure Start_Paragraph
      (Output_Object  : in out Texinfo_Output_Type;
       Style          : in     ARM_Output.Paragraph_Style_Type;
       Indent         : in     ARM_Output.Paragraph_Indent_Type;
@@ -1612,7 +1619,7 @@ package body ARM_Texinfo is
 
    end Start_Paragraph;
 
-   overriding procedure Start_Table
+   procedure Start_Table
      (Output_Object      : in out Texinfo_Output_Type;
       Columns            : in     ARM_Output.Column_Count;
       First_Column_Width : in     ARM_Output.Column_Count;
@@ -1671,7 +1678,7 @@ package body ARM_Texinfo is
       end case;
    end Start_Table;
 
-   overriding procedure Tab (Output_Object : in out Texinfo_Output_Type)
+   procedure Tab (Output_Object : in out Texinfo_Output_Type)
    is begin
       case Output_Object.State is
       when Contents =>
@@ -1696,7 +1703,7 @@ package body ARM_Texinfo is
       end case;
    end Tab;
 
-   overriding procedure Table_Marker
+   procedure Table_Marker
      (Output_Object : in out Texinfo_Output_Type;
       Marker        : in     ARM_Output.Table_Marker_Type)
    is begin
@@ -1796,7 +1803,7 @@ package body ARM_Texinfo is
       end case;
    end Table_Marker;
 
-   overriding procedure TOC_Marker
+   procedure TOC_Marker
      (Output_Object : in out Texinfo_Output_Type;
       For_Start     : in     Boolean)
    is begin
@@ -1813,7 +1820,7 @@ package body ARM_Texinfo is
       end if;
    end TOC_Marker;
 
-   overriding procedure Unicode_Character
+   procedure Unicode_Character
      (Output_Object : in out Texinfo_Output_Type;
       Char          : in     ARM_Output.Unicode_Type)
    is begin
@@ -1823,7 +1830,7 @@ package body ARM_Texinfo is
       Put_Line (Output_Object.File, "[Unicode" & ARM_Output.Unicode_Type'Image (Char) & "]");
    end Unicode_Character;
 
-   overriding procedure URL_Link
+   procedure URL_Link
      (Output_Object : in out Texinfo_Output_Type;
       Text          : in     String;
       URL           : in     String)
