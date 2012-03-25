@@ -69,7 +69,7 @@ project ARM_Info is
         "-O0",
         "-gnatfoqQ",
         "-gnatVa",
-        "-gnatwaCeFKLP",
+        "-gnatwaCeFKLMP",
         "-fstack-check",
         "-gnatybefip");
   end Compiler;

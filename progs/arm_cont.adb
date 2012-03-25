@@ -584,6 +584,7 @@ package body ARM_Contents is
 	raise Not_Found_Error;
     end Next_Clause;
 
+
     function Parent_Clause (Clause : in String) return String is
         -- Returns the string of the parent clause (in the table of contents)
         -- for the properly formatted clause string Clause.

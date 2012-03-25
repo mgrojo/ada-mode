@@ -1,3 +1,5 @@
+--with ARM_Input,
+--     Ada.Text_IO;
 package body ARM_File is
 
     --
