@@ -102,6 +102,11 @@ debian-free : ../ada-reference-manual-$(DEBIAN_VERSION)/aarm$(ARM_VERSION).texin
 	mtn -d ~/monotone-dbs/ada-france.db checkout --branch org.debian.ada-reference-manual ../../ada-reference-manual-$(DEBIAN_VERSION)-current/ada-reference-manual-$(DEBIAN_VERSION)
 	cd ../../ada-reference-manual-$(DEBIAN_VERSION)-current; tar zxf ada-reference-manual_$(DEBIAN_VERSION).orig.tar.gz
 
+# This retrieves CVS HEAD, for both Ada and Scheme source, for the
+# next Ada version (dvc-status "../../arm_info.upstream")
+#
+update-upstream : source_ada.clean source_scheme.clean source_ada.stamp source_scheme.stamp
+
 UPSTREAM_ADA := arm_cont.adb
 UPSTREAM_ADA += arm_cont.ads
 UPSTREAM_ADA += arm_corr.adb
@@ -136,9 +141,11 @@ UPSTREAM_ADA += arm_syn.ads
 UPSTREAM_ADA += arm_text.adb
 UPSTREAM_ADA += arm_text.ads
 
-# This retrieves CVS HEAD, for the next Ada version (commit to mtn branch arm_info.upstream)
+# We do not convert to unix line endings here to minimize the diff
+# with upstream; the Ada compiler on Debian can handle DOS line
+# endings.
 source_ada.stamp :
-	for file in $(UPSTREAM_ADA); do wget -O ../../arm_info.upstream/progs/$$file "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/$$file?rev=HEAD"; done
+	for file in $(UPSTREAM_ADA); do wget -nv -O ../../arm_info.upstream/progs/$$file "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/$$file?rev=HEAD"; done
 	touch source_ada.stamp
 
 source_ada.clean :
@@ -238,8 +245,11 @@ UPSTREAM_SCHEME += pre_standard.mss
 UPSTREAM_SCHEME += pre_strings.mss
 
 # This retrieves CVS HEAD, for the next Ada version (commit to mtn branch arm_info.upstream)
+#
+# We convert to unix line endings because the scheme processor insists
+# on uniform formatting; this works for both Windows and Debian.
 source_scheme.stamp :
-	for file in $(UPSTREAM_SCHEME); do wget -O ../../arm_info.upstream/source/$$file "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/source/$$file?rev=HEAD"; done
+	for file in $(UPSTREAM_SCHEME); do wget -nv -O ../../arm_info.upstream/source/$$file "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/source/$$file?rev=HEAD"; done
 	cd ../../arm_info.upstream/source; $(CURDIR)/convert_to_unix.sh
 	touch source_scheme.stamp
 
