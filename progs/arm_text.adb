@@ -167,23 +167,23 @@ package body ARM_Text is
 	-- intended for humans). The name is Section_Name (this is
 	-- intended to be suitable to be a portion of a file name).
     begin
-        if not Output_Object.Is_Valid then
-            Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
-                "Not valid object");
-        end if;
-        if Output_Object.Is_In_Paragraph then
-            Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
-                "Section in paragraph");
-        end if;
-        if Ada.Text_IO.Is_Open (Output_Object.Output_File) then
-            Ada.Text_IO.Close (Output_Object.Output_File);
-        end if;
-        -- Create a new file for this section:
+	if not Output_Object.Is_Valid then
+	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
+		"Not valid object");
+	end if;
+	if Output_Object.Is_In_Paragraph then
+	    Ada.Exceptions.Raise_Exception (ARM_Output.Not_Valid_Error'Identity,
+		"Section in paragraph");
+	end if;
+	if Ada.Text_IO.Is_Open (Output_Object.Output_File) then
+	    Ada.Text_IO.Close (Output_Object.Output_File);
+	end if;
+	-- Create a new file for this section:
         -- Unix directory separators for Windows and Debian
-        Ada.Text_IO.Create (Output_Object.Output_File, Ada.Text_IO.Out_File,
-            "Output/" & Ada.Strings.Fixed.Trim (Output_Object.File_Prefix, Ada.Strings.Right) &
-                "-" & Section_Name & ".TXT");
-        Ada.Text_IO.New_Line (Output_Object.Output_File);
+	Ada.Text_IO.Create (Output_Object.Output_File, Ada.Text_IO.Out_File,
+	    ".\Output\" & Ada.Strings.Fixed.Trim (Output_Object.File_Prefix, Ada.Strings.Right) &
+		"-" & Section_Name & ".TXT");
+	Ada.Text_IO.New_Line (Output_Object.Output_File);
     end Section;
 
 

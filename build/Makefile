@@ -107,6 +107,8 @@ debian-free : ../ada-reference-manual-$(DEBIAN_VERSION)/aarm$(ARM_VERSION).texin
 #
 update-upstream : source_ada.clean source_scheme.clean source_ada.stamp source_scheme.stamp
 
+upstream-diff : ../ada-reference-manual-$(DEBIAN_VERSION)/arm_info.diff
+
 UPSTREAM_ADA := arm_cont.adb
 UPSTREAM_ADA += arm_cont.ads
 UPSTREAM_ADA += arm_corr.adb
