@@ -140,6 +140,8 @@ UPSTREAM_ADA += arm_sub.adb
 UPSTREAM_ADA += arm_sub.ads
 UPSTREAM_ADA += arm_syn.adb
 UPSTREAM_ADA += arm_syn.ads
+UPSTREAM_ADA += arm_texi.adb
+UPSTREAM_ADA += arm_texi.ads
 UPSTREAM_ADA += arm_text.adb
 UPSTREAM_ADA += arm_text.ads
 
