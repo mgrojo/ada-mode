@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2002, 2003 Stephe Leake
+-- Copyright (C) 2002, 2003, 2012 Stephe Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -41,6 +41,20 @@ package body OpenToken.Token.Enumerated.List is
    procedure Free is new Ada.Unchecked_Deallocation (List_Node, List_Node_Ptr);
    procedure Free is new Ada.Unchecked_Deallocation
      (OpenToken.Token.Enumerated.Class, OpenToken.Token.Enumerated.Handle);
+
+   function Length (Item : in Instance) return Natural
+   is
+      Node   : List_Node_Ptr := Item.Head;
+      Result : Natural      := 0;
+   begin
+      loop
+         exit when Node = null;
+         Result := Result + 1;
+         Node   := Node.Next;
+      end loop;
+
+      return Result;
+   end Length;
 
    ----------------------------------------------------------------------------
    --  Create a token list from a single instance.

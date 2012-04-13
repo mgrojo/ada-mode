@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 1999 Ted Dennison
+-- Copyright (C) 1999, 2012 Ted Dennison
 --
 -- This file is part of the OpenToken package.
 --
@@ -35,6 +35,8 @@ package OpenToken.Token.Enumerated.List is
    type Instance is tagged private;
 
    Null_List : constant Instance;
+
+   function Length (Item : in Instance) return Natural;
 
    ----------------------------------------------------------------------------
    --  Create a token list from a single instance.
@@ -102,7 +104,6 @@ private
    type List_Node_Ptr is access List_Node;
    type List_Node is record
       Token : Handle;
---       Count : Natural;
       Next  : List_Node_Ptr;
    end record;
 
