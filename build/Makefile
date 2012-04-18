@@ -12,95 +12,82 @@ ARM_VERSION_OPTION := 3
 DEBIAN_VERSION := $(ARM_VERSION).1
 ZIP_DATE       := 20100608
 
-all : debian-free info publish
+all : html info pdf TXT publish debian-free
 
-html : ../ada-reference-manual-$(DEBIAN_VERSION)/html/arm$(ARM_VERSION)/RM-TOC.html
-html : ../ada-reference-manual-$(DEBIAN_VERSION)/html/aarm$(ARM_VERSION)/AA-TOC.html
+html : html/arm$(ARM_VERSION)/RM-TOC.html
+html : html/aarm$(ARM_VERSION)/AA-TOC.html
 info : arm$(ARM_VERSION).info
 info : aarm$(ARM_VERSION).info
 pdf  : arm$(ARM_VERSION).pdf
 pdf  : aarm$(ARM_VERSION).pdf
+TXT  : txt/arm$(ARM_VERSION)/RM-TOC.TXT
+TXT  : txt/aarm$(ARM_VERSION)/AA-TOC.TXT
 
 # We have been unable to get rid of all the section ref violations, so we
 # specify --no-validate. Delete that to see the errors.
 TEXI_INFO_OPTS := --no-split --no-number-sections --no-validate
 TEXI_DVI_OPTS := --quiet
 
-../ada-reference-manual-$(DEBIAN_VERSION)/arm$(ARM_VERSION).texinfo : arm_form.exe | ../ada-reference-manual-$(DEBIAN_VERSION)
+arm$(ARM_VERSION).texinfo : arm_form.exe
 	cd ../source; ../build/arm_form.exe RM info New-Only $(ARM_VERSION_OPTION)
-	mv ../source/RM.texinfo ../ada-reference-manual-$(DEBIAN_VERSION)/arm$(ARM_VERSION).texinfo
+	mv ../source/RM.texinfo ./arm$(ARM_VERSION).texinfo
 
-../ada-reference-manual-$(DEBIAN_VERSION)/aarm$(ARM_VERSION).texinfo : arm_form.exe | ../ada-reference-manual-$(DEBIAN_VERSION)
+aarm$(ARM_VERSION).texinfo : arm_form.exe
 	cd ../source; ../build/arm_form.exe AARM info New-Only $(ARM_VERSION_OPTION)
-	mv ../source/AA.texinfo ../ada-reference-manual-$(DEBIAN_VERSION)/aarm$(ARM_VERSION).texinfo
+	mv ../source/AA.texinfo ./aarm$(ARM_VERSION).texinfo
 
-../ada-reference-manual-$(DEBIAN_VERSION)/html/arm$(ARM_VERSION)/RM-TOC.html : arm_form.exe | ../ada-reference-manual-$(DEBIAN_VERSION)/html ../source/Output
+html/arm$(ARM_VERSION)/RM-TOC.html : arm_form.exe | html/arm$(ARM_VERSION) ../source/Output
 	cd ../source; ../build/arm_form.exe RM HTML New-Only $(ARM_VERSION_OPTION)
-	rm -rf ../ada-reference-manual-$(DEBIAN_VERSION)/html/arm$(ARM_VERSION)
-	mv ../source/Output ../ada-reference-manual-$(DEBIAN_VERSION)/html/arm$(ARM_VERSION)
+	rm -rf html/arm$(ARM_VERSION)
+	mv ../source/Output html/arm$(ARM_VERSION)
 	mkdir ../source/Output
 
-../ada-reference-manual-$(DEBIAN_VERSION)/html/aarm$(ARM_VERSION)/AA-TOC.html : arm_form.exe | ../ada-reference-manual-$(DEBIAN_VERSION)/html ../source/Output
+html/aarm$(ARM_VERSION)/AA-TOC.html : arm_form.exe | html/aarm$(ARM_VERSION) ../source/Output
 	cd ../source; ../build/arm_form.exe AARM HTML New-Only $(ARM_VERSION_OPTION)
-	rm -rf ../ada-reference-manual-$(DEBIAN_VERSION)/html/aarm$(ARM_VERSION)
-	mv ../source/Output ../ada-reference-manual-$(DEBIAN_VERSION)/html/aarm$(ARM_VERSION)
+	rm -rf html/aarm$(ARM_VERSION)
+	mv ../source/Output html/aarm$(ARM_VERSION)
 	mkdir ../source/Output
 
-../ada-reference-manual-$(DEBIAN_VERSION)/txt/arm$(ARM_VERSION)/RM-TOC.TXT : arm_form.exe | ../ada-reference-manual-$(DEBIAN_VERSION)/txt ../source/Output
+txt/arm$(ARM_VERSION)/RM-TOC.TXT : arm_form.exe | txt/arm$(ARM_VERSION) ../source/Output
 	cd ../source; ../build/arm_form.exe RM Text New-Only $(ARM_VERSION_OPTION)
-	rm -rf ../ada-reference-manual-$(DEBIAN_VERSION)/txt/arm$(ARM_VERSION)
-	mv ../source/Output ../ada-reference-manual-$(DEBIAN_VERSION)/txt/arm$(ARM_VERSION)
+	rm -rf txt/arm$(ARM_VERSION)
+	mv ../source/Output txt/arm$(ARM_VERSION)
 	mkdir ../source/Output
 
-../ada-reference-manual-$(DEBIAN_VERSION)/txt/aarm$(ARM_VERSION)/AA-TOC.TXT : arm_form.exe | ../ada-reference-manual-$(DEBIAN_VERSION)/txt ../source/Output
+txt/aarm$(ARM_VERSION)/AA-TOC.TXT : arm_form.exe | txt/aarm$(ARM_VERSION) ../source/Output
 	cd ../source; ../build/arm_form.exe AARM Text New-Only $(ARM_VERSION_OPTION)
-	rm -rf ../ada-reference-manual-$(DEBIAN_VERSION)/txt/aarm$(ARM_VERSION)
-	mv ../source/Output ../ada-reference-manual-$(DEBIAN_VERSION)/txt/aarm$(ARM_VERSION)
+	rm -rf txt/aarm$(ARM_VERSION)
+	mv ../source/Output txt/aarm$(ARM_VERSION)
 	mkdir ../source/Output
 
 arm_form.exe : force
 	gnatmake -p -k -P arm_info.gpr
 
-../ada-reference-manual-$(DEBIAN_VERSION) :
-	mkdir -p ../ada-reference-manual-$(DEBIAN_VERSION)
-
-../../ada-reference-manual-$(DEBIAN_VERSION)-current :
+html/arm$(ARM_VERSION) html/aarm$(ARM_VERSION) txt/arm$(ARM_VERSION) txt/aarm$(ARM_VERSION) :
 	mkdir -p $@
-
-../ada-reference-manual-$(DEBIAN_VERSION)/html :
-	mkdir -p ../ada-reference-manual-$(DEBIAN_VERSION)/html
-
-../ada-reference-manual-$(DEBIAN_VERSION)/txt :
-	mkdir -p ../ada-reference-manual-$(DEBIAN_VERSION)/txt
 
 ../source/Output :
 	mkdir ../source/Output
-
-../source :
-	mkdir ../source
-
-../progs :
-	mkdir ../progs
 
 publish : publish-info publish-zip
 
 publish-info : aarm$(ARM_VERSION).info arm$(ARM_VERSION).info
 	tar zcf arm$(ARM_VERSION)-$(ZIP_DATE).tar.gz aarm$(ARM_VERSION).info arm$(ARM_VERSION).info
 
-publish-zip : ../ada-reference-manual-$(DEBIAN_VERSION)/arm_info.diff
-publish-zip : ../ada-reference-manual-$(DEBIAN_VERSION)/arm$(ARM_VERSION).texinfo
-publish-zip : ../ada-reference-manual-$(DEBIAN_VERSION)/aarm$(ARM_VERSION).texinfo
-	tar zcf arm_info-$(ZIP_DATE)-src.tar.gz -C .. --exclude "*~" --exclude "*.gz" --exclude "*.info" --exclude objects --exclude arm_form.exe build ada-reference-manual-$(DEBIAN_VERSION)
+publish-zip : arm_info-$(ZIP_DATE)-src.tar.gz
+
+arm_info-$(ZIP_DATE)-src.tar.gz :
+	tar zcf arm_info-$(ZIP_DATE)-src.tar.gz -C ../.. --exclude "*~" --exclude "*.gz" --exclude "*.info" --exclude objects --exclude arm_form.exe --exclude _MTN --exclude .mtn-ignore arm_info
 
 # starting from a mtn checkout of arm_info, generate the Debian source tarball, set up for building Debian package
-debian-free : | ../ada-reference-manual-$(DEBIAN_VERSION)
 debian-free : | ../../ada-reference-manual-$(DEBIAN_VERSION)-current
-debian-free : ../ada-reference-manual-$(DEBIAN_VERSION)/arm$(ARM_VERSION).texinfo
-debian-free : ../ada-reference-manual-$(DEBIAN_VERSION)/aarm$(ARM_VERSION).texinfo
-	tar zcf ada-reference-manual_$(DEBIAN_VERSION).orig.tar.gz -C .. --exclude arm_info.diff ada-reference-manual-$(DEBIAN_VERSION)
-	mv ada-reference-manual_$(DEBIAN_VERSION).orig.tar.gz ../../ada-reference-manual-$(DEBIAN_VERSION)-current
+debian-free : arm_info-$(ZIP_DATE)-src.tar.gz
+	cp $^ ../../ada-reference-manual-$(DEBIAN_VERSION)-current/ada-reference-manual_$(DEBIAN_VERSION).orig.tar.gz
 	mtn -d ~/monotone-dbs/ada-france.db checkout --branch org.debian.ada-reference-manual ../../ada-reference-manual-$(DEBIAN_VERSION)-current/ada-reference-manual-$(DEBIAN_VERSION)
 	cd ../../ada-reference-manual-$(DEBIAN_VERSION)-current; tar zxf ada-reference-manual_$(DEBIAN_VERSION).orig.tar.gz
+
+../../ada-reference-manual-$(DEBIAN_VERSION)-current :
+	mkdir -p $@
 
 # This retrieves CVS HEAD, for both Ada and Scheme source, for the
 # next Ada version (dvc-status "../../arm_info.upstream")
@@ -265,29 +252,21 @@ source_scheme_2005.stamp : 2005-SRC.zip
 	cd ../../arm_info.upstream/source; unzip ../build/2005-SRC.zip; rm arm_form.exe; $(CURDIR)/convert_to_unix.sh
 	touch source_scheme.stamp
 
-patch.stamp : source_ada_2005.stamp source_scheme.stamp
-	cd ..; patch -0 < ../arm_info.diff
-
-../ada-reference-manual-$(DEBIAN_VERSION)/arm_info.diff :
-	mtn diff --exclude "." --exclude "../.mtn-ignore" -r "h:arm_info.upstream" -r "h:arm_info" > ../ada-reference-manual-$(DEBIAN_VERSION)/arm_info.diff
-
 # delete everything back to mtn checkout
 clean ::
-	rm -rf objects
+	rm -rf objects html txt
 	rm -f *.info* *.texinfo
 	rm -rf ../source/Output
-	rm -rf ../ada-reference-manual-$(DEBIAN_VERSION)
 
 info-clean :
 	rm -f *.info*
 
-export GNAT_VERSION := $(shell gcc -dumpversion)
 include ../../../GDS/main/makerules/common_rules.make
 include ../../../GDS/main/makerules/gnat_project_rules.make
 
 # This produces a PDF, but it has no hyperlinks, so it is suitable
 # only for printing.
-%.dvi : ../ada-reference-manual-$(DEBIAN_VERSION)/%.texinfo
+%.dvi : %.texinfo
 	texi2dvi $(TEXI_DVI_OPTS) $<
 
 %.ps : %.dvi
@@ -297,7 +276,7 @@ include ../../../GDS/main/makerules/gnat_project_rules.make
 	ps2pdf $<
 
 # we don't want all the rules in texinfo_rules.make; they collide with latex_rules.make.
-%.info : ../ada-reference-manual-$(DEBIAN_VERSION)/%.texinfo
+%.info : %.texinfo
 	makeinfo $(TEXI_INFO_OPTS) $<
 
 VPATH = ../source ../progs

@@ -10,9 +10,9 @@
 ^build/\.gdbinit$
 ^build/arm_info\.diff$
 ^build/arm_info\.diff.gz$
+^build/html$
 ^build/objects$
 ^build/source_ada\.stamp$
 ^build/source_scheme\.stamp$
+^build/txt$
 ^source/Output$
-^source_2005/Output$
-^source_2005/RM\.texinfo$
