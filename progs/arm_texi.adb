@@ -13,7 +13,7 @@ package body ARM_Texinfo is
    --  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
    --  PURPOSE. See the GNU General Public License for more details. You
    --  should have received a copy of the GNU General Public License
-   --  distributed with this program; see file COPYING. If not, write to
+   --  distributed with this program; see file gnu-3-0.txt. If not, write to
    --  the Free Software Foundation, 59 Temple Place - Suite 330, Boston,
    --  MA 02111-1307, USA.
    --
@@ -23,6 +23,19 @@ package body ARM_Texinfo is
    --  executable to be covered by the GNU General Public License. This
    --  exception does not however invalidate any other reasons why the
    --  executable file  might be covered by the  GNU Public License.
+
+   -- ---------------------------------------
+   --
+   -- Edit History:
+   --
+   -- Ancient  - S L - Developed package as add-on to Arm_Form.
+   -- 10/19/11 - RLB - Integrated outside-developed package into Arm_Form.
+   --                  Commented out/replaced Ada 2005 features (this is
+   --		       Ada 95 code). Updated for a few other changes since
+   --		       the last update.
+   -- 10/25/11 - RLB - Added old insertion version to Revised_Clause_Header.
+   --  4/ 1/12 - S L - Implemented remaining Texinfo implementation.
+
 
    use Ada.Text_IO;
 
@@ -121,7 +134,7 @@ package body ARM_Texinfo is
          Quit := False;
 
          case Level is
-         when Section | Plain_Annex | Normative_Annex | Informative_Annex =>
+         when Section | Normative_Annex | Informative_Annex | Plain_Annex =>
             Ada.Strings.Fixed.Move
               (Source =>
                  "* " &
@@ -131,8 +144,12 @@ package body ARM_Texinfo is
 
             Put_Line (Output_Object.File, First_Part & Title);
 
-         when Unnumbered_Section | Clause | Subclause | Subsubclause | Dead_Clause =>
+         when Unnumbered_Section | Clause | Subclause | Subsubclause =>
             null;
+
+	 when ARM_Contents.Dead_Clause  =>
+	    Ada.Exceptions.Raise_Exception (Program_Error'Identity, "Dead_Clause header??");
+		-- No headers for dead clauses.
 
          end case;
       end Put_Top_Menu_Item;
@@ -458,9 +475,9 @@ package body ARM_Texinfo is
          Quit := False;
 
          case Item_Level is
-         when Section | Unnumbered_Section | Plain_Annex | Normative_Annex |
-           Informative_Annex | Subclause | Subsubclause | Dead_Clause
-           =>
+         when Section | Unnumbered_Section |
+	      Normative_Annex | Informative_Annex | Plain_Annex |
+	      Subclause | Subsubclause =>
             --  We are doing Clause here
             null;
 
@@ -480,6 +497,9 @@ package body ARM_Texinfo is
             else
                Quit := True;
             end if;
+         when Dead_Clause =>
+            Ada.Exceptions.Raise_Exception (Program_Error'Identity, "Dead Clause in menu??");
+            --  No dead clauses should be output.
          end case;
       end Put_Clause_Menu_Item;
 
@@ -498,8 +518,9 @@ package body ARM_Texinfo is
          Quit := False;
 
          case Item_Level is
-            when Section | Unnumbered_Section | Plain_Annex | Normative_Annex |
-              Informative_Annex | Clause | Subsubclause | Dead_Clause =>
+            when Section | Unnumbered_Section |
+		 Normative_Annex | Informative_Annex | Plain_Annex |
+		 Clause | Subsubclause =>
                --  We are doing Subclause here
                null;
 
@@ -526,6 +547,9 @@ package body ARM_Texinfo is
             else
                Quit := True;
             end if;
+         when Dead_Clause =>
+            Ada.Exceptions.Raise_Exception (Program_Error'Identity, "Dead clause in submenu??");
+            --  No dead clauses should be output.
          end case;
       end Put_Subclause_Menu_Item;
 
@@ -598,7 +622,7 @@ package body ARM_Texinfo is
       end if;
 
       case Level is
-      when Section | Plain_Annex | Normative_Annex | Informative_Annex =>
+      when Section | Normative_Annex | Informative_Annex | Plain_Annex =>
          --  Menu of these done at @node Top
          null;
 
@@ -665,7 +689,7 @@ package body ARM_Texinfo is
       when Section =>
          Put_Line (Output_Object.File, "@chapter " & Title);
 
-      when Plain_Annex | Normative_Annex | Informative_Annex =>
+      when Normative_Annex | Informative_Annex | Plain_Annex =>
          Put_Line (Output_Object.File, "@chapter " & Title);
 
       when Clause | Unnumbered_Section =>
@@ -678,7 +702,8 @@ package body ARM_Texinfo is
          Put_Line (Output_Object.File, "@subsubsection " & Title);
 
       when Dead_Clause =>
-         raise Program_Error;
+         Ada.Exceptions.Raise_Exception (Program_Error'Identity, "Dead_Clause in header?");
+         --  No output of dead clauses.
       end case;
 
    end Clause_Header;

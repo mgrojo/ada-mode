@@ -13,7 +13,7 @@ package ARM_Texinfo is
    --
    -- ---------------------------------------
    --
-   --  Copyright (C) 2003, 2007, 2011 Stephen Leake.  All Rights Reserved.
+   --  Copyright (C) 2003, 2007, 2011, 2012 Stephen Leake.  All Rights Reserved.
    --  E-Mail: stephen_leake@stephe-leake.org
    --
    --  This library is free software; you can redistribute it and/or
@@ -24,7 +24,7 @@ package ARM_Texinfo is
    --  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
    --  PURPOSE. See the GNU General Public License for more details. You
    --  should have received a copy of the GNU General Public License
-   --  distributed with this program; see file COPYING. If not, write to
+   --  distributed with this program; see file gnu-3-0.txt. If not, write to
    --  the Free Software Foundation, 59 Temple Place - Suite 330, Boston,
    --  MA 02111-1307, USA.
    --
