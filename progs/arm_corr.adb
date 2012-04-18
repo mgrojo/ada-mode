@@ -14,7 +14,7 @@ package body ARM_Corr is
     -- a particular format.
     --
     -- ---------------------------------------
-    -- Copyright 2000, 2002, 2004, 2005, 2006, 2007, 2011
+    -- Copyright 2000, 2002, 2004, 2005, 2006, 2007, 2011, 2012
     --   AXE Consultants. All rights reserved.
     -- P.O. Box 1512, Madison WI  53701
     -- E-Mail: randy@rrsoftware.com
@@ -126,7 +126,7 @@ package body ARM_Corr is
 	-- Create a new file for this section:
         -- Unix directory separator for Windows and Debian
 	Ada.Text_IO.Create (Output_Object.Output_File, Ada.Text_IO.Out_File,
-	    ".Output/" & Ada.Strings.Fixed.Trim (Output_Object.File_Prefix, Ada.Strings.Right) &
+	    "./Output/" & Ada.Strings.Fixed.Trim (Output_Object.File_Prefix, Ada.Strings.Right) &
 		"-Corr-" & Section_Name & ".TXT");
 	Ada.Text_IO.New_Line (Output_Object.Output_File);
     end Section;

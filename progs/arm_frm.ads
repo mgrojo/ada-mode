@@ -369,7 +369,7 @@ private
 	Glossary_Term_Len : Natural := 0; -- processing [Chg]ToGlossary[Also] commands.
 	Glossary_Change_Kind : ARM_Database.Paragraph_Change_Kind_Type := ARM_Database.None;
 			-- The change kind of the ToGlossary.
-	Glossary_Version : ARM_Contents.Change_Version_Type := '0'; -- init to avoid compiler warnings
+	Glossary_Version : ARM_Contents.Change_Version_Type := '0'; -- init to avoid uninitialized variable
 			-- If the kind is not "None", this is the version
 			-- number of the changed paragraph.
 	Add_to_Glossary : Boolean;
