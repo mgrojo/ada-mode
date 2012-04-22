@@ -80,9 +80,9 @@ publish-info : aarm$(ARM_VERSION).info arm$(ARM_VERSION).info
 publish-zip : arm_info-$(ZIP_DATE)-src.tar.gz
 
 arm_info-$(ZIP_DATE)-src.tar.gz :
-	tar zcf arm_info-$(ZIP_DATE)-src.tar.gz -C ../.. --exclude "*~" --exclude "*.gz" --exclude "*.info" --exclude objects --exclude arm_form.exe --exclude _MTN --exclude .mtn-ignore --exclude=.dvc-exclude arm_info
+	tar zcf arm_info-$(ZIP_DATE)-src.tar.gz -C ../.. --exclude "*~" --exclude "*.gz" --exclude "*.info" --exclude objects --exclude arm_form.exe --exclude _MTN --exclude .mtn-ignore --exclude=.dvc-exclude org.adaic.arm_form
 
-# starting from a mtn checkout of arm_info, generate the Debian source tarball, set up for building Debian package
+# starting from a mtn checkout of org.adaic.arm_form, generate the Debian source tarball, set up for building Debian package
 # ../../ada-reference-manual-2012.1-current/ada-reference-manual-2012.1/debian/rules
 debian-free : debian-clean debian-update
 	mtn -d ~/monotone-dbs/ada-france.db checkout --branch org.debian.ada-reference-manual ../../ada-reference-manual-$(DEBIAN_VERSION)-current/ada-reference-manual-$(DEBIAN_VERSION)
@@ -92,7 +92,7 @@ debian-zip : ada-reference-manual_$(DEBIAN_VERSION).orig.tar.bz2
 
 ada-reference-manual_$(DEBIAN_VERSION).orig.tar.bz2 :
 	rm -rf ../../ada-reference-manual-$(DEBIAN_VERSION)
-	mtn checkout --branch arm_info ../../ada-reference-manual-$(DEBIAN_VERSION)
+	mtn checkout --branch org.adaic.arm_form ../../ada-reference-manual-$(DEBIAN_VERSION)
 	tar -c -O  -C ../.. --exclude "*~" --exclude "*.gz" --exclude "*.info" --exclude objects --exclude arm_form.exe --exclude _MTN --exclude .mtn-ignore --no-anchor ada-reference-manual-$(DEBIAN_VERSION) | bzip2 -9 > ada-reference-manual_$(DEBIAN_VERSION).orig.tar.bz2
 
 debian-update : ada-reference-manual_$(DEBIAN_VERSION).orig.tar.bz2
@@ -106,7 +106,7 @@ debian-clean :
 	mkdir -p $@
 
 # This retrieves CVS HEAD, for both Ada and Scheme source, for the
-# next Ada version (dvc-status "../../arm_info.upstream")
+# next Ada version (dvc-status "../../org.adaic.arm_form.upstream")
 #
 update-upstream : source_ada.clean source_scheme.clean source_ada.stamp source_scheme.stamp
 
@@ -152,7 +152,7 @@ UPSTREAM_ADA += arm_text.ads
 # with upstream; the Ada compiler on Debian can handle DOS line
 # endings.
 source_ada.stamp :
-	for file in $(UPSTREAM_ADA); do wget -nv -O ../../arm_info.upstream/progs/$$file "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/$$file?rev=HEAD"; done
+	for file in $(UPSTREAM_ADA); do wget -nv -O ../../org.adaic.arm_form.upstream/progs/$$file "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/$$file?rev=HEAD"; done
 	touch source_ada.stamp
 
 source_ada.clean :
@@ -161,37 +161,37 @@ source_ada.clean :
 # CVS web interface doesn't support retrieve by tag. These revs are
 # for tag Amend_Final, which is the Ada 2005 version.
 source_ada_2005.stamp :
-	wget -O ../../arm_info.upstream/progs/arm_cont.adb "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_cont.adb?rev=1.8"
-	wget -O ../../arm_info.upstream/progs/arm_cont.ads "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_cont.ads?rev=1.3"
-	wget -O ../../arm_info.upstream/progs/arm_corr.adb "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_corr.adb?rev=1.8"
-	wget -O ../../arm_info.upstream/progs/arm_corr.ads "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_corr.ads?rev=1.6"
-	wget -O ../../arm_info.upstream/progs/arm_db.adb "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_db.adb?rev=1.11"
-	wget -O ../../arm_info.upstream/progs/arm_db.ads "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_db.ads?rev=1.7"
-	wget -O ../../arm_info.upstream/progs/arm_file.adb "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_file.adb?rev=1.1"
-	wget -O ../../arm_info.upstream/progs/arm_file.ads "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_file.ads?rev=1.1"
-	wget -O ../../arm_info.upstream/progs/arm_form.ada "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_form.ada?rev=1.12"
-	wget -O ../../arm_info.upstream/progs/arm_frm.adb "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_frm.adb?rev=1.50"
-	wget -O ../../arm_info.upstream/progs/arm_frm.ads "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_frm.ads?rev=1.21"
-	wget -O ../../arm_info.upstream/progs/arm_frms.adb "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_frms.adb?rev=1.4"
-	wget -O ../../arm_info.upstream/progs/arm_html.adb "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_html.adb?rev=1.39"
-	wget -O ../../arm_info.upstream/progs/arm_html.ads "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_html.ads?rev=1.20"
-	wget -O ../../arm_info.upstream/progs/arm_indx.adb "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_indx.adb?rev=1.9"
-	wget -O ../../arm_info.upstream/progs/arm_indx.ads "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_indx.ads?rev=1.4"
-	wget -O ../../arm_info.upstream/progs/arm_inp.adb "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_inp.adb?rev=1.6"
-	wget -O ../../arm_info.upstream/progs/arm_inp.ads "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_inp.ads?rev=1.3"
-	wget -O ../../arm_info.upstream/progs/arm_mast.adb "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_mast.adb?rev=1.10"
-	wget -O ../../arm_info.upstream/progs/arm_mast.ads "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_mast.ads?rev=1.2"
-	wget -O ../../arm_info.upstream/progs/arm_out.ads "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_out.ads?rev=1.17"
-	wget -O ../../arm_info.upstream/progs/arm_rtf.adb "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_rtf.adb?rev=1.26"
-	wget -O ../../arm_info.upstream/progs/arm_rtf.ads "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_rtf.ads?rev=1.12"
-	wget -O ../../arm_info.upstream/progs/arm_str.adb "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_str.adb?rev=1.1"
-	wget -O ../../arm_info.upstream/progs/arm_str.ads "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_str.ads?rev=1.1"
-	wget -O ../../arm_info.upstream/progs/arm_sub.adb "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_sub.adb?rev=1.4"
-	wget -O ../../arm_info.upstream/progs/arm_sub.ads "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_sub.ads?rev=1.2"
-	wget -O ../../arm_info.upstream/progs/arm_syn.adb "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_syn.adb?rev=1.7"
-	wget -O ../../arm_info.upstream/progs/arm_syn.ads "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_syn.ads?rev=1.3"
-	wget -O ../../arm_info.upstream/progs/arm_text.adb "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_text.adb?rev=1.17"
-	wget -O ../../arm_info.upstream/progs/arm_text.ads "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_text.ads?rev=1.10"
+	wget -O ../../org.adaic.arm_form.upstream/progs/arm_cont.adb "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_cont.adb?rev=1.8"
+	wget -O ../../org.adaic.arm_form.upstream/progs/arm_cont.ads "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_cont.ads?rev=1.3"
+	wget -O ../../org.adaic.arm_form.upstream/progs/arm_corr.adb "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_corr.adb?rev=1.8"
+	wget -O ../../org.adaic.arm_form.upstream/progs/arm_corr.ads "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_corr.ads?rev=1.6"
+	wget -O ../../org.adaic.arm_form.upstream/progs/arm_db.adb "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_db.adb?rev=1.11"
+	wget -O ../../org.adaic.arm_form.upstream/progs/arm_db.ads "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_db.ads?rev=1.7"
+	wget -O ../../org.adaic.arm_form.upstream/progs/arm_file.adb "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_file.adb?rev=1.1"
+	wget -O ../../org.adaic.arm_form.upstream/progs/arm_file.ads "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_file.ads?rev=1.1"
+	wget -O ../../org.adaic.arm_form.upstream/progs/arm_form.ada "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_form.ada?rev=1.12"
+	wget -O ../../org.adaic.arm_form.upstream/progs/arm_frm.adb "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_frm.adb?rev=1.50"
+	wget -O ../../org.adaic.arm_form.upstream/progs/arm_frm.ads "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_frm.ads?rev=1.21"
+	wget -O ../../org.adaic.arm_form.upstream/progs/arm_frms.adb "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_frms.adb?rev=1.4"
+	wget -O ../../org.adaic.arm_form.upstream/progs/arm_html.adb "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_html.adb?rev=1.39"
+	wget -O ../../org.adaic.arm_form.upstream/progs/arm_html.ads "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_html.ads?rev=1.20"
+	wget -O ../../org.adaic.arm_form.upstream/progs/arm_indx.adb "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_indx.adb?rev=1.9"
+	wget -O ../../org.adaic.arm_form.upstream/progs/arm_indx.ads "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_indx.ads?rev=1.4"
+	wget -O ../../org.adaic.arm_form.upstream/progs/arm_inp.adb "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_inp.adb?rev=1.6"
+	wget -O ../../org.adaic.arm_form.upstream/progs/arm_inp.ads "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_inp.ads?rev=1.3"
+	wget -O ../../org.adaic.arm_form.upstream/progs/arm_mast.adb "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_mast.adb?rev=1.10"
+	wget -O ../../org.adaic.arm_form.upstream/progs/arm_mast.ads "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_mast.ads?rev=1.2"
+	wget -O ../../org.adaic.arm_form.upstream/progs/arm_out.ads "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_out.ads?rev=1.17"
+	wget -O ../../org.adaic.arm_form.upstream/progs/arm_rtf.adb "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_rtf.adb?rev=1.26"
+	wget -O ../../org.adaic.arm_form.upstream/progs/arm_rtf.ads "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_rtf.ads?rev=1.12"
+	wget -O ../../org.adaic.arm_form.upstream/progs/arm_str.adb "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_str.adb?rev=1.1"
+	wget -O ../../org.adaic.arm_form.upstream/progs/arm_str.ads "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_str.ads?rev=1.1"
+	wget -O ../../org.adaic.arm_form.upstream/progs/arm_sub.adb "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_sub.adb?rev=1.4"
+	wget -O ../../org.adaic.arm_form.upstream/progs/arm_sub.ads "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_sub.ads?rev=1.2"
+	wget -O ../../org.adaic.arm_form.upstream/progs/arm_syn.adb "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_syn.adb?rev=1.7"
+	wget -O ../../org.adaic.arm_form.upstream/progs/arm_syn.ads "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_syn.ads?rev=1.3"
+	wget -O ../../org.adaic.arm_form.upstream/progs/arm_text.adb "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_text.adb?rev=1.17"
+	wget -O ../../org.adaic.arm_form.upstream/progs/arm_text.ads "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_text.ads?rev=1.10"
 	touch source_ada_2005.stamp
 
 UPSTREAM_SCHEME := 01.MSS
@@ -251,13 +251,13 @@ UPSTREAM_SCHEME += pre_cmdln.mss
 UPSTREAM_SCHEME += pre_standard.mss
 UPSTREAM_SCHEME += pre_strings.mss
 
-# This retrieves CVS HEAD, for the next Ada version (commit to mtn branch arm_info.upstream)
+# This retrieves CVS HEAD, for the next Ada version (commit to mtn branch org.adaic.arm_form.upstream)
 #
 # We convert to unix line endings because the scheme processor insists
 # on uniform formatting; this works for both Windows and Debian.
 source_scheme.stamp :
-	for file in $(UPSTREAM_SCHEME); do wget -nv -O ../../arm_info.upstream/source/$$file "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/source/$$file?rev=HEAD"; done
-	cd ../../arm_info.upstream/source; $(CURDIR)/convert_to_unix.sh
+	for file in $(UPSTREAM_SCHEME); do wget -nv -O ../../org.adaic.arm_form.upstream/source/$$file "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/source/$$file?rev=HEAD"; done
+	cd ../../org.adaic.arm_form.upstream/source; $(CURDIR)/convert_to_unix.sh
 	touch source_scheme.stamp
 
 source_scheme.clean :
@@ -267,7 +267,7 @@ source_scheme.clean :
 	wget http://www.ada-auth.org/arm-files/2005-SRC.zip
 
 source_scheme_2005.stamp : 2005-SRC.zip
-	cd ../../arm_info.upstream/source; unzip ../build/2005-SRC.zip; rm arm_form.exe; $(CURDIR)/convert_to_unix.sh
+	cd ../../org.adaic.arm_form.upstream/source; unzip ../build/2005-SRC.zip; rm arm_form.exe; $(CURDIR)/convert_to_unix.sh
 	touch source_scheme.stamp
 
 # delete everything back to mtn checkout
