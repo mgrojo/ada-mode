@@ -8,6 +8,7 @@
 ^build/.*\.texinfo$
 ^build/.*\.toc$
 ^build/\.gdbinit$
+^build/ada-reference-manual_2012\.1\.orig\.tar\.bz2$
 ^build/arm_info\.diff$
 ^build/arm_info\.diff.gz$
 ^build/html$

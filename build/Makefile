@@ -2,15 +2,18 @@
 
 # see ../README.txt for list of things to change when scheme or Ada source changes.
 
-ARM_VERSION := 2012
+# select one arm version:
 
-# 1 = 1995
-# 2 = 2005
-# 3 = 2012
+# 1 = 1995, not tested
+
+#ARM_VERSION_OPTION := 2
+#ARM_VERSION        := 2005
+
 ARM_VERSION_OPTION := 3
+ARM_VERSION        := 2012
 
 DEBIAN_VERSION := $(ARM_VERSION).1
-ZIP_DATE       := 20100608
+ZIP_DATE       := 20120422
 
 all : html info pdf TXT publish debian-free
 
@@ -77,14 +80,27 @@ publish-info : aarm$(ARM_VERSION).info arm$(ARM_VERSION).info
 publish-zip : arm_info-$(ZIP_DATE)-src.tar.gz
 
 arm_info-$(ZIP_DATE)-src.tar.gz :
-	tar zcf arm_info-$(ZIP_DATE)-src.tar.gz -C ../.. --exclude "*~" --exclude "*.gz" --exclude "*.info" --exclude objects --exclude arm_form.exe --exclude _MTN --exclude .mtn-ignore arm_info
+	tar zcf arm_info-$(ZIP_DATE)-src.tar.gz -C ../.. --exclude "*~" --exclude "*.gz" --exclude "*.info" --exclude objects --exclude arm_form.exe --exclude _MTN --exclude .mtn-ignore --exclude=.dvc-exclude arm_info
 
 # starting from a mtn checkout of arm_info, generate the Debian source tarball, set up for building Debian package
-debian-free : | ../../ada-reference-manual-$(DEBIAN_VERSION)-current
-debian-free : arm_info-$(ZIP_DATE)-src.tar.gz
-	cp $^ ../../ada-reference-manual-$(DEBIAN_VERSION)-current/ada-reference-manual_$(DEBIAN_VERSION).orig.tar.gz
+# ../../ada-reference-manual-2012.1-current/ada-reference-manual-2012.1/debian/rules
+debian-free : debian-clean debian-update
 	mtn -d ~/monotone-dbs/ada-france.db checkout --branch org.debian.ada-reference-manual ../../ada-reference-manual-$(DEBIAN_VERSION)-current/ada-reference-manual-$(DEBIAN_VERSION)
-	cd ../../ada-reference-manual-$(DEBIAN_VERSION)-current; tar zxf ada-reference-manual_$(DEBIAN_VERSION).orig.tar.gz
+	cd ../../ada-reference-manual-$(DEBIAN_VERSION)-current; tar jxf ada-reference-manual_$(DEBIAN_VERSION).orig.tar.bz2
+
+debian-zip : ada-reference-manual_$(DEBIAN_VERSION).orig.tar.bz2
+
+ada-reference-manual_$(DEBIAN_VERSION).orig.tar.bz2 :
+	rm -rf ../../ada-reference-manual-$(DEBIAN_VERSION)
+	mtn checkout --branch arm_info ../../ada-reference-manual-$(DEBIAN_VERSION)
+	tar -c -O  -C ../.. --exclude "*~" --exclude "*.gz" --exclude "*.info" --exclude objects --exclude arm_form.exe --exclude _MTN --exclude .mtn-ignore --no-anchor ada-reference-manual-$(DEBIAN_VERSION) | bzip2 -9 > ada-reference-manual_$(DEBIAN_VERSION).orig.tar.bz2
+
+debian-update : ada-reference-manual_$(DEBIAN_VERSION).orig.tar.bz2
+debian-update : | ../../ada-reference-manual-$(DEBIAN_VERSION)-current
+	cp $^ ../../ada-reference-manual-$(DEBIAN_VERSION)-current/
+
+debian-clean :
+	rm -rf ../../ada-reference-manual-$(DEBIAN_VERSION)-current
 
 ../../ada-reference-manual-$(DEBIAN_VERSION)-current :
 	mkdir -p $@
@@ -257,7 +273,7 @@ source_scheme_2005.stamp : 2005-SRC.zip
 # delete everything back to mtn checkout
 clean ::
 	rm -rf objects html txt
-	rm -f *.info* *.texinfo
+	rm -f *.info* *.texinfo *.log *.pdf *.toc *.tar.gz
 	rm -rf ../source/Output
 
 info-clean :
