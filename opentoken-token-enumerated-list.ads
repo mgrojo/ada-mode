@@ -78,7 +78,8 @@ package OpenToken.Token.Enumerated.List is
    function Initial_Iterator (List : in Instance) return List_Iterator;
 
    ----------------------------------------------------------------------------
-   --  Move the iterator down the list to the next token.
+   --  Move the iterator down the list to the next token, or to
+   --  Null_Iterator if there is no next token.
    ----------------------------------------------------------------------------
    procedure Next_Token (Iterator : in out List_Iterator);
 
