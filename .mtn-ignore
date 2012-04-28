@@ -7,6 +7,7 @@
 ^build/.*\.tex$
 ^build/.*\.texinfo$
 ^build/.*\.toc$
+^build/2005-SRC\.zip$
 ^build/\.gdbinit$
 ^build/ada-reference-manual_2012\.1\.orig\.tar\.bz2$
 ^build/arm_info\.diff$
@@ -15,5 +16,7 @@
 ^build/objects$
 ^build/source_ada\.stamp$
 ^build/source_scheme\.stamp$
+^build/source_scheme_2005\.stamp$
 ^build/txt$
 ^source/Output$
+^source_2005$

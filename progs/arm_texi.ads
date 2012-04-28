@@ -27,6 +27,18 @@ package ARM_Texinfo is
    --  distributed with this program; see file gnu-3-0.txt. If not, write to
    --  the Free Software Foundation, 59 Temple Place - Suite 330, Boston,
    --  MA 02111-1307, USA.
+   --
+   -- ---------------------------------------
+   --
+   -- Edit History:
+   --
+   -- Ancient  - S L - Developed package as add-on to Arm_Form.
+   -- 10/19/11 - RLB - Integrated outside-developed package into Arm_Form.
+   --                  Commented out/replaced Ada 2005 features (this is
+   --		       Ada 95 code). Updated for a few other changes since
+   --		       the last update.
+   -- 10/25/11 - RLB - Added old insertion version to Revised_Clause_Header.
+   --  4/ 1/12 - S L - Various revisions.
 
    type Texinfo_Output_Type is new ARM_Output.Output_Type with private;
 

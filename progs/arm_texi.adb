@@ -28,7 +28,8 @@ package body ARM_Texinfo is
    --		       the last update.
    -- 10/25/11 - RLB - Added old insertion version to Revised_Clause_Header.
    --  4/ 1/12 - S L - Implemented remaining Texinfo implementation.
-   --  4/22/12 - S L - move @dircategory, @direntry before first @node
+   --  4/22/12 - S L - move @dircategory, @direntry before first @node. Use Ada95 syntax for exceptions.
+   --  4/28/12 - S L - add @w{} after @anchor; otherwise following whitespace is dropped.
 
    use Ada.Text_IO;
 
@@ -1001,7 +1002,10 @@ package body ARM_Texinfo is
      (Output_Object : in out Texinfo_Output_Type;
       Index_Key     : in     Natural)
    is begin
-      Put (Output_Object.File, "@anchor{" & Integer'Image (Index_Key) & "}");
+      --  Add an empty non-break object, because @anchor ignores
+      --  whitespace after it, which often occurs in the current
+      --  Scheme source.
+      Put (Output_Object.File, "@anchor{" & Integer'Image (Index_Key) & "}@w{}");
    end Index_Target;
 
    procedure Line_Break (Output_Object : in out Texinfo_Output_Type)
@@ -1123,7 +1127,10 @@ package body ARM_Texinfo is
       Text          : in     String;
       Target        : in     String)
    is begin
-      Put (Output_Object.File, "@anchor{" & Target & "}");
+      --  Add an empty non-break object, because @anchor ignores
+      --  whitespace after it, which often occurs in the current
+      --  Scheme source.
+      Put (Output_Object.File, "@anchor{" & Target & "}@w{}");
       Ordinary_Text (Output_Object, Text);
    end Local_Target;
 

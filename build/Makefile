@@ -2,80 +2,113 @@
 
 # see ../README.txt for list of things to change when scheme or Ada source changes.
 
-# select one arm version:
-
-# 1 = 1995, not tested
-
-#ARM_VERSION_OPTION := 2
-#ARM_VERSION        := 2005
-
-ARM_VERSION_OPTION := 3
-ARM_VERSION        := 2012
-
-DEBIAN_VERSION := $(ARM_VERSION).1
+DEBIAN_VERSION := 2012.1
 ZIP_DATE       := 20120422
 
-all : html info pdf TXT publish debian-free
+# debian-free is _not_ in all
+all : html info pdf TXT publish
 
-html : html/arm$(ARM_VERSION)/RM-TOC.html
-html : html/aarm$(ARM_VERSION)/AA-TOC.html
-info : arm$(ARM_VERSION).info
-info : aarm$(ARM_VERSION).info
-pdf  : arm$(ARM_VERSION).pdf
-pdf  : aarm$(ARM_VERSION).pdf
-TXT  : txt/arm$(ARM_VERSION)/RM-TOC.TXT
-TXT  : txt/aarm$(ARM_VERSION)/AA-TOC.TXT
+html : html/arm2012/RM-TOC.html
+html : html/aarm2012/AA-TOC.html
+html : html/arm2005/RM-TOC.html
+html : html/aarm2005/AA-TOC.html
+info : arm2012.info
+info : aarm2012.info
+info : arm2005.info
+info : aarm2005.info
+pdf  : arm2012.pdf
+pdf  : aarm2012.pdf
+pdf  : arm2005.pdf
+pdf  : aarm2005.pdf
+TXT  : txt/arm2012/RM-TOC.TXT
+TXT  : txt/aarm2012/AA-TOC.TXT
+TXT  : txt/arm2005/RM-TOC.TXT
+TXT  : txt/aarm2005/AA-TOC.TXT
 
 # We have been unable to get rid of all the section ref violations, so we
 # specify --no-validate. Delete that to see the errors.
 TEXI_INFO_OPTS := --no-split --no-number-sections --no-validate
 TEXI_DVI_OPTS := --quiet
 
-arm$(ARM_VERSION).texinfo : arm_form.exe
-	cd ../source; ../build/arm_form.exe RM info New-Only $(ARM_VERSION_OPTION)
-	mv ../source/RM.texinfo ./arm$(ARM_VERSION).texinfo
+arm2012.texinfo : arm_form.exe
+	cd ../source; ../build/arm_form.exe RM info New-Only 3
+	mv ../source/RM.texinfo ./arm2012.texinfo
 
-aarm$(ARM_VERSION).texinfo : arm_form.exe
-	cd ../source; ../build/arm_form.exe AARM info New-Only $(ARM_VERSION_OPTION)
-	mv ../source/AA.texinfo ./aarm$(ARM_VERSION).texinfo
+arm2005.texinfo : arm_form.exe
+	cd ../source_2005; ../build/arm_form.exe RM info New-Only 2
+	mv ../source_2005/RM.texinfo ./arm2005.texinfo
 
-html/arm$(ARM_VERSION)/RM-TOC.html : arm_form.exe | html/arm$(ARM_VERSION) ../source/Output
-	cd ../source; ../build/arm_form.exe RM HTML New-Only $(ARM_VERSION_OPTION)
-	rm -rf html/arm$(ARM_VERSION)
-	mv ../source/Output html/arm$(ARM_VERSION)
+aarm2012.texinfo : arm_form.exe
+	cd ../source; ../build/arm_form.exe AARM info New-Only 3
+	mv ../source/AA.texinfo ./aarm2012.texinfo
+
+aarm2005.texinfo : arm_form.exe
+	cd ../source_2005; ../build/arm_form.exe AARM info New-Only 2
+	mv ../source_2005/AA.texinfo ./aarm2005.texinfo
+
+html/arm2012/RM-TOC.html : arm_form.exe | html/arm2012 ../source/Output
+	cd ../source; ../build/arm_form.exe RM HTML New-Only 3
+	rm -rf html/arm2012
+	mv ../source/Output html/arm2012
 	mkdir ../source/Output
 
-html/aarm$(ARM_VERSION)/AA-TOC.html : arm_form.exe | html/aarm$(ARM_VERSION) ../source/Output
-	cd ../source; ../build/arm_form.exe AARM HTML New-Only $(ARM_VERSION_OPTION)
-	rm -rf html/aarm$(ARM_VERSION)
-	mv ../source/Output html/aarm$(ARM_VERSION)
+html/arm2005/RM-TOC.html : arm_form.exe | html/arm2005 ../source_2005/Output
+	cd ../source_2005; ../build/arm_form.exe RM HTML New-Only 2
+	rm -rf html/arm2005
+	mv ../source_2005/Output html/arm2005
+	mkdir ../source_2005/Output
+
+html/aarm2012/AA-TOC.html : arm_form.exe | html/aarm2012 ../source/Output
+	cd ../source; ../build/arm_form.exe AARM HTML New-Only 3
+	rm -rf html/aarm2012
+	mv ../source/Output html/aarm2012
 	mkdir ../source/Output
 
-txt/arm$(ARM_VERSION)/RM-TOC.TXT : arm_form.exe | txt/arm$(ARM_VERSION) ../source/Output
-	cd ../source; ../build/arm_form.exe RM Text New-Only $(ARM_VERSION_OPTION)
-	rm -rf txt/arm$(ARM_VERSION)
-	mv ../source/Output txt/arm$(ARM_VERSION)
+html/aarm2005/AA-TOC.html : arm_form.exe | html/aarm2005 ../source_2005/Output
+	cd ../source_2005; ../build/arm_form.exe AARM HTML New-Only 2
+	rm -rf html/aarm2005
+	mv ../source_2005/Output html/aarm2005
+	mkdir ../source_2005/Output
+
+txt/arm2012/RM-TOC.TXT : arm_form.exe | txt/arm2012 ../source/Output
+	cd ../source; ../build/arm_form.exe RM Text New-Only 3
+	rm -rf txt/arm2012
+	mv ../source/Output txt/arm2012
 	mkdir ../source/Output
 
-txt/aarm$(ARM_VERSION)/AA-TOC.TXT : arm_form.exe | txt/aarm$(ARM_VERSION) ../source/Output
-	cd ../source; ../build/arm_form.exe AARM Text New-Only $(ARM_VERSION_OPTION)
-	rm -rf txt/aarm$(ARM_VERSION)
-	mv ../source/Output txt/aarm$(ARM_VERSION)
+txt/arm2005/RM-TOC.TXT : arm_form.exe | txt/arm2005 ../source_2005/Output
+	cd ../source_2005; ../build/arm_form.exe RM Text New-Only 2
+	rm -rf txt/arm2005
+	mv ../source_2005/Output txt/arm2005
+	mkdir ../source_2005/Output
+
+txt/aarm2012/AA-TOC.TXT : arm_form.exe | txt/aarm2012 ../source/Output
+	cd ../source; ../build/arm_form.exe AARM Text New-Only 3
+	rm -rf txt/aarm2012
+	mv ../source/Output txt/aarm2012
 	mkdir ../source/Output
+
+txt/aarm2005/AA-TOC.TXT : arm_form.exe | txt/aarm2005 ../source_2005/Output
+	cd ../source_2005; ../build/arm_form.exe AARM Text New-Only 2
+	rm -rf txt/aarm2005
+	mv ../source_2005/Output txt/aarm2005
+	mkdir ../source_2005/Output
 
 arm_form.exe : force
 	gnatmake -p -k -P arm_info.gpr
 
-html/arm$(ARM_VERSION) html/aarm$(ARM_VERSION) txt/arm$(ARM_VERSION) txt/aarm$(ARM_VERSION) :
-	mkdir -p $@
+trace :
+	addr2line -e arm_form.exe 0x5c12e7 0x5c598e 0x43e05b 0x446c5b 0x448369 0x545205 0x4e9221 0x4e3b1a 0x5831a1 0x5ad295 0x5adee9 0x4cb3f5 0x401850 0x401235 0x401286 0x7c817075
 
-../source/Output :
-	mkdir ../source/Output
+html/arm2005 html/arm2012 html/aarm2005 html/aarm2012 :
+txt/arm2005 txt/arm2012 txt/aarm2005 txt/aarm2012 :
+../source/Output ../source_2005/Output :
+	mkdir -p $@
 
 publish : publish-info publish-zip
 
-publish-info : aarm$(ARM_VERSION).info arm$(ARM_VERSION).info
-	tar zcf arm$(ARM_VERSION)-$(ZIP_DATE).tar.gz aarm$(ARM_VERSION).info arm$(ARM_VERSION).info
+publish-info : aarm2012.info arm2012.info aarm2005.info arm2005.info
+	tar zcf arm2012-$(ZIP_DATE).tar.gz aarm*.info arm*.info
 
 publish-zip : arm_info-$(ZIP_DATE)-src.tar.gz
 
@@ -90,10 +123,11 @@ debian-free : debian-clean debian-update
 
 debian-zip : ada-reference-manual_$(DEBIAN_VERSION).orig.tar.bz2
 
-ada-reference-manual_$(DEBIAN_VERSION).orig.tar.bz2 :
+# we include the 2005 scheme source in the Debian tarball; simpler than including 2005-SRC.zip
+ada-reference-manual_$(DEBIAN_VERSION).orig.tar.bz2 : source_scheme_2005.stamp
 	rm -rf ../../ada-reference-manual-$(DEBIAN_VERSION)
 	mtn checkout --branch org.adaic.arm_form ../../ada-reference-manual-$(DEBIAN_VERSION)
-	tar -c -O  -C ../.. --exclude "*~" --exclude "*.gz" --exclude "*.info" --exclude objects --exclude arm_form.exe --exclude _MTN --exclude .mtn-ignore --no-anchor ada-reference-manual-$(DEBIAN_VERSION) | bzip2 -9 > ada-reference-manual_$(DEBIAN_VERSION).orig.tar.bz2
+	tar -c -O  -C ../.. --exclude "*~" --exclude "*.gz" --exclude "*.info" --exclude objects --exclude arm_form.exe --exclude _MTN --exclude .mtn-ignore --exclude 2005-SRC.zip --no-anchor ada-reference-manual-$(DEBIAN_VERSION) | bzip2 -9 > ada-reference-manual_$(DEBIAN_VERSION).orig.tar.bz2
 
 debian-update : ada-reference-manual_$(DEBIAN_VERSION).orig.tar.bz2
 debian-update : | ../../ada-reference-manual-$(DEBIAN_VERSION)-current
@@ -158,42 +192,6 @@ source_ada.stamp :
 source_ada.clean :
 	rm -f source_ada.stamp
 
-# CVS web interface doesn't support retrieve by tag. These revs are
-# for tag Amend_Final, which is the Ada 2005 version.
-source_ada_2005.stamp :
-	wget -O ../../org.adaic.arm_form.upstream/progs/arm_cont.adb "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_cont.adb?rev=1.8"
-	wget -O ../../org.adaic.arm_form.upstream/progs/arm_cont.ads "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_cont.ads?rev=1.3"
-	wget -O ../../org.adaic.arm_form.upstream/progs/arm_corr.adb "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_corr.adb?rev=1.8"
-	wget -O ../../org.adaic.arm_form.upstream/progs/arm_corr.ads "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_corr.ads?rev=1.6"
-	wget -O ../../org.adaic.arm_form.upstream/progs/arm_db.adb "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_db.adb?rev=1.11"
-	wget -O ../../org.adaic.arm_form.upstream/progs/arm_db.ads "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_db.ads?rev=1.7"
-	wget -O ../../org.adaic.arm_form.upstream/progs/arm_file.adb "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_file.adb?rev=1.1"
-	wget -O ../../org.adaic.arm_form.upstream/progs/arm_file.ads "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_file.ads?rev=1.1"
-	wget -O ../../org.adaic.arm_form.upstream/progs/arm_form.ada "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_form.ada?rev=1.12"
-	wget -O ../../org.adaic.arm_form.upstream/progs/arm_frm.adb "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_frm.adb?rev=1.50"
-	wget -O ../../org.adaic.arm_form.upstream/progs/arm_frm.ads "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_frm.ads?rev=1.21"
-	wget -O ../../org.adaic.arm_form.upstream/progs/arm_frms.adb "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_frms.adb?rev=1.4"
-	wget -O ../../org.adaic.arm_form.upstream/progs/arm_html.adb "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_html.adb?rev=1.39"
-	wget -O ../../org.adaic.arm_form.upstream/progs/arm_html.ads "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_html.ads?rev=1.20"
-	wget -O ../../org.adaic.arm_form.upstream/progs/arm_indx.adb "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_indx.adb?rev=1.9"
-	wget -O ../../org.adaic.arm_form.upstream/progs/arm_indx.ads "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_indx.ads?rev=1.4"
-	wget -O ../../org.adaic.arm_form.upstream/progs/arm_inp.adb "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_inp.adb?rev=1.6"
-	wget -O ../../org.adaic.arm_form.upstream/progs/arm_inp.ads "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_inp.ads?rev=1.3"
-	wget -O ../../org.adaic.arm_form.upstream/progs/arm_mast.adb "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_mast.adb?rev=1.10"
-	wget -O ../../org.adaic.arm_form.upstream/progs/arm_mast.ads "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_mast.ads?rev=1.2"
-	wget -O ../../org.adaic.arm_form.upstream/progs/arm_out.ads "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_out.ads?rev=1.17"
-	wget -O ../../org.adaic.arm_form.upstream/progs/arm_rtf.adb "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_rtf.adb?rev=1.26"
-	wget -O ../../org.adaic.arm_form.upstream/progs/arm_rtf.ads "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_rtf.ads?rev=1.12"
-	wget -O ../../org.adaic.arm_form.upstream/progs/arm_str.adb "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_str.adb?rev=1.1"
-	wget -O ../../org.adaic.arm_form.upstream/progs/arm_str.ads "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_str.ads?rev=1.1"
-	wget -O ../../org.adaic.arm_form.upstream/progs/arm_sub.adb "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_sub.adb?rev=1.4"
-	wget -O ../../org.adaic.arm_form.upstream/progs/arm_sub.ads "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_sub.ads?rev=1.2"
-	wget -O ../../org.adaic.arm_form.upstream/progs/arm_syn.adb "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_syn.adb?rev=1.7"
-	wget -O ../../org.adaic.arm_form.upstream/progs/arm_syn.ads "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_syn.ads?rev=1.3"
-	wget -O ../../org.adaic.arm_form.upstream/progs/arm_text.adb "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_text.adb?rev=1.17"
-	wget -O ../../org.adaic.arm_form.upstream/progs/arm_text.ads "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/arm_text.ads?rev=1.10"
-	touch source_ada_2005.stamp
-
 UPSTREAM_SCHEME := 01.MSS
 UPSTREAM_SCHEME += 02.MSS
 UPSTREAM_SCHEME += 03A.MSS
@@ -220,7 +218,6 @@ UPSTREAM_SCHEME += INDEX.MSS
 UPSTREAM_SCHEME += INFOSYS.MSS
 UPSTREAM_SCHEME += LANGDEF.MSS
 UPSTREAM_SCHEME += LIBRARY.MSS
-UPSTREAM_SCHEME += NALL.BAT
 UPSTREAM_SCHEME += NUMERICS.MSS
 UPSTREAM_SCHEME += PRAGMAS.MSS
 UPSTREAM_SCHEME += PRE.MSS
@@ -261,20 +258,26 @@ source_scheme.stamp :
 	touch source_scheme.stamp
 
 source_scheme.clean :
-	rm source_scheme.stamp
+	rm -f source_scheme.stamp
 
 2005-SRC.zip :
 	wget http://www.ada-auth.org/arm-files/2005-SRC.zip
 
-source_scheme_2005.stamp : 2005-SRC.zip
-	cd ../../org.adaic.arm_form.upstream/source; unzip ../build/2005-SRC.zip; rm arm_form.exe; $(CURDIR)/convert_to_unix.sh
-	touch source_scheme.stamp
+source_scheme_2005.stamp : 2005-SRC.zip | source_2005
+	cd ../source_2005; unzip ../build/2005-SRC.zip; rm arm_form.exe; $(CURDIR)/convert_to_unix.sh
+	cd ..; patch < build/source_2005.diff
+	touch source_scheme_2005.stamp
+
+source_2005.diff :
+	mkdir ../source_2005_orig
+	cd ../source_2005_orig; unzip ../build/2005-SRC.zip; rm arm_form.exe; $(CURDIR)/convert_to_unix.sh
+	cd ../; diff -u source_2005_orig source_2005 > build/source_2005.diff
 
 # delete everything back to mtn checkout
 clean ::
 	rm -rf objects html txt
 	rm -f *.info* *.texinfo *.log *.pdf *.toc *.tar.gz
-	rm -rf ../source/Output
+	rm -rf ../source/Output ../source_2005/Output
 
 info-clean :
 	rm -f *.info*
