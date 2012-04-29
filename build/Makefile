@@ -94,7 +94,7 @@ arm_form.exe : force
 trace :
 	addr2line -e arm_form.exe 0x5c12e7 0x5c598e 0x43e05b 0x446c5b 0x448369 0x545205 0x4e9221 0x4e3b1a 0x5831a1 0x5ad295 0x5adee9 0x4cb3f5 0x401850 0x401235 0x401286 0x7c817075
 
-html/arm2005 html/arm2012 html/aarm2005 html/aarm2012 txt/arm2005 txt/arm2012 txt/aarm2005 txt/aarm2012 ../source/Output ../source_2005/Output :
+html/arm2005 html/arm2012 html/aarm2005 html/aarm2012 txt/arm2005 txt/arm2012 txt/aarm2005 txt/aarm2012 ../source/Output ../source_2005 ../source_2005/Output :
 	mkdir -p $@
 
 publish : publish-info publish-zip
@@ -105,7 +105,7 @@ publish-info : aarm2012.info arm2012.info aarm2005.info arm2005.info
 publish-zip : arm_info-$(ZIP_DATE)-src.tar.gz
 
 arm_info-$(ZIP_DATE)-src.tar.gz :
-	tar zcf arm_info-$(ZIP_DATE)-src.tar.gz -C ../.. --exclude "*~" --exclude "*.dvi" --exclude "*.gz" --exclude "*.info" --exclude "*.log" --exclude "*.pdf" --exclude "*.ps" --exclude "*.texinfo" --exclude "*.toc" --exclude "*.stamp" --exclude html --exclude objects --exclude txt --exclude arm_form.exe --exclude _MTN --exclude .mtn-ignore --exclude=.dvc-exclude org.adaic.arm_form
+	tar zcf arm_info-$(ZIP_DATE)-src.tar.gz -C ../.. --exclude "*~" --exclude "*.dvi" --exclude "*.gz" --exclude "*.info" --exclude "*.log" --exclude "*.pdf" --exclude "*.ps" --exclude "*.texinfo" --exclude "*.toc" --exclude "*.stamp" --exclude "*.zip" --exclude html --exclude objects --exclude txt --exclude arm_form.exe --exclude _MTN --exclude .mtn-ignore --exclude=.dvc-exclude org.adaic.arm_form
 
 # starting from a mtn checkout of org.adaic.arm_form, generate the Debian source tarball, set up for building Debian package
 # ../../ada-reference-manual-2012.1-current/ada-reference-manual-2012.1/debian/rules
@@ -127,6 +127,7 @@ debian-update : | ../../ada-reference-manual-$(DEBIAN_VERSION)-current
 	cp $^ ../../ada-reference-manual-$(DEBIAN_VERSION)-current/
 
 debian-clean :
+	rm ada-reference-manual_$(DEBIAN_VERSION).orig.tar.bz2
 	rm -rf ../../ada-reference-manual-$(DEBIAN_VERSION)-current
 
 ../../ada-reference-manual-$(DEBIAN_VERSION)-current :
@@ -254,19 +255,21 @@ source_scheme.clean :
 2005-SRC.zip :
 	wget http://www.ada-auth.org/arm-files/2005-SRC.zip
 
-source_scheme_2005.stamp : 2005-SRC.zip | source_2005
+source_scheme_2005.stamp : 2005-SRC.zip | ../source_2005
+	rm -rf ../source_2005/*
 	cd ../source_2005; unzip ../build/2005-SRC.zip; rm arm_form.exe; $(CURDIR)/convert_to_unix.sh
-	cd ..; patch < build/source_2005.diff
-	rm 2005-SRC.zip
+	cd ../source_2005; patch -p 1 < ../build/source_2005.diff
 	touch source_scheme_2005.stamp
 
-source_2005.diff :
-	mkdir ../source_2005_orig
+../source_2005_orig :
 	cd ../source_2005_orig; unzip ../build/2005-SRC.zip; rm arm_form.exe; $(CURDIR)/convert_to_unix.sh
-	cd ../; diff -u source_2005_orig source_2005 > build/source_2005.diff
+
+source_2005.diff : ../source_2005_orig
+	-cd ../; diff -u source_2005_orig source_2005 > build/source_2005.diff
 
 # delete everything back to mtn checkout plus source_2005.
 clean ::
+	rm 2005-SRC.zip
 	rm -rf objects html txt
 	rm -f *.dvi *.info* *.texinfo *.log *.pdf *.stamp *.tar.gz *.toc *.zip
 	rm -rf ../source/Output ../source_2005/Output

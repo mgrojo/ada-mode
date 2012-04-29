@@ -10778,7 +10778,7 @@ Ada.Text_IO.Put_Line ("Attempt to write into a deleted paragraph, on line " & AR
 	exception
 	    when others =>
 		Ada.Text_IO.Put_Line ("** Unable to open file " & File_Name);
-		return;
+		raise;
 	end;
 	if Starts_New_Section then
 	    Format_Object.Clause_Number := (Section => Section_Number,

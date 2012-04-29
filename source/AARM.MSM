@@ -77,7 +77,7 @@
 @Source{Name=<PRE_DIRS.MSS>,SectionName=<A>,SectionNumber=[A],NewSection=[F]}
 @Source{Name=<Pre_Environ.MSS>,SectionName=<A>,SectionNumber=[A],NewSection=[F]}
 @Source{Name=<Pre_Containers.MSS>,SectionName=<A>,SectionNumber=[A],NewSection=[F]}
-@Source{Name=<Pre_Con2.MSS>,SectionName=<A>,SectionNumber=[A],NewSection=[F]}
+@Source{Name=<Pre_Con2.mss>,SectionName=<A>,SectionNumber=[A],NewSection=[F]}
 @Source{Name=<PRE_Locales.MSS>,SectionName=<A>,SectionNumber=[A],NewSection=[F]}
 @Comment{Other normative annexes:}
 @Source{Name=<interface.mss>,SectionName=<B>,SectionNumber=[B],NewSection=[T]}
