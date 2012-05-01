@@ -110,7 +110,7 @@ arm_info-$(ZIP_DATE)-src.tar.gz :
 # starting from a mtn checkout of org.adaic.arm_form, generate the Debian source tarball, set up for building Debian package
 # ../../ada-reference-manual-2012.1-current/ada-reference-manual-2012.1/debian/rules
 debian-free : debian-clean debian-update
-	mtn -d ~/monotone-dbs/ada-france.db checkout --branch org.debian.ada-reference-manual ../../ada-reference-manual-$(DEBIAN_VERSION)-current/ada-reference-manual-$(DEBIAN_VERSION)
+	mtn checkout --branch org.debian.ada-reference-manual ../../ada-reference-manual-$(DEBIAN_VERSION)-current/ada-reference-manual-$(DEBIAN_VERSION)
 	cd ../../ada-reference-manual-$(DEBIAN_VERSION)-current; tar jxf ada-reference-manual_$(DEBIAN_VERSION).orig.tar.bz2
 
 debian-zip : ada-reference-manual_$(DEBIAN_VERSION).orig.tar.bz2
@@ -277,8 +277,9 @@ clean ::
 info-clean :
 	rm -f *.info*
 
-include ../../../GDS/main/makerules/common_rules.make
-include ../../../GDS/main/makerules/gnat_project_rules.make
+.PHONY : force
+#include ../../../GDS/main/makerules/common_rules.make
+#include ../../../GDS/main/makerules/gnat_project_rules.make
 
 # This produces a PDF, but it has no hyperlinks, so it is suitable
 # only for printing.
