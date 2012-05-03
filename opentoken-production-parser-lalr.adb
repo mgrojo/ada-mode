@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2002 - 2005, 2008 - 2010 Stephe Leake
+-- Copyright (C) 2002 - 2005, 2008 - 2011 Stephe Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -255,8 +255,9 @@ package body OpenToken.Production.Parser.LALR is
       To           : in     LRk.Item_Node;
       For_Token    : in     Token.Token_ID;
       Kernels      : in     LRk.Item_Set_List;
-      Propagations : in out Item_Item_List_Mapping_Ptr
-     ) is
+      Propagations : in out Item_Item_List_Mapping_Ptr)
+   is
+      pragma Unreferenced (Kernels);
 
       To_Kernel  : LRk.Item_Ptr;
 

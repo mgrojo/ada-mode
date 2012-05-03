@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
---  Copyright (C) 2009 Stephe Leake
+--  Copyright (C) 2009, 2010 Stephe Leake
 --  Copyright (C) 1999 FlightSafety International and Ted Dennison
 --
 --  This file is part of the OpenToken package.
@@ -62,7 +62,9 @@ package OpenToken is
    --  largest reasonable token string. Tune it up if it bugs you.
    Max_String_Length : constant := 1024;
 
+   pragma Style_Checks ("-O"); -- WORKAROUND: GNAT 6.4.1 runtime source does not have 'overriding'
    package Buffers is new Ada.Strings.Bounded.Generic_Bounded_Length (Max_String_Length);
+   pragma Style_Checks ("O"); -- WORKAROUND: GNAT 6.4.1 runtime source does not have 'overriding'
 
    ----------------------------------------------------------------------
    --  If Trace_Parse, Parse prints helpful messages
