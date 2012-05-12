@@ -174,6 +174,7 @@ package body ARM_HTML is
     --			they never are necessary and cause weird looks for
     --			breaks put in solely to make the "final" version look
     --			good in PDF form.
+    --  5/12/12 - S W   add anchors for each paragraph
 
     LINE_LENGTH : constant := 78;
 	-- Maximum intended line length.
@@ -2254,7 +2255,11 @@ Ada.Text_IO.Put_Line("  @@ Calc columns for" & Natural'Image(Output_Object.Colum
 		Paranum_Used := True;
 		Ada.Text_IO.Put (Output_Object.Output_File, "<div class=""paranum"">");
 	        Ada.Text_IO.Put (Output_Object.Output_File, "<font size=-2>");
+                Ada.Text_IO.Put (Output_Object.Output_File, "<a name=""p");
 	        Ada.Text_IO.Put (Output_Object.Output_File, Number);
+                Ada.Text_IO.Put (Output_Object.Output_File, """>");
+	        Ada.Text_IO.Put (Output_Object.Output_File, Number);
+                Ada.Text_IO.Put (Output_Object.Output_File, "</a>");
 	        Ada.Text_IO.Put (Output_Object.Output_File, "</font>");
 	        Ada.Text_IO.Put_Line (Output_Object.Output_File, "</div>");
 	        Output_Object.Char_Count := 0;
@@ -2345,7 +2350,11 @@ Ada.Text_IO.Put_Line("  @@ Calc columns for" & Natural'Image(Output_Object.Colum
 	    if Number /= "" then -- Has paragraph number.
 		Paranum_Used := True;
 	        Ada.Text_IO.Put (Output_Object.Output_File, "<div class=""paranum"">");
+                Ada.Text_IO.Put (Output_Object.Output_File, "<a name=""p");
 	        Ada.Text_IO.Put (Output_Object.Output_File, Number);
+                Ada.Text_IO.Put (Output_Object.Output_File, """>");
+	        Ada.Text_IO.Put (Output_Object.Output_File, Number);
+                Ada.Text_IO.Put (Output_Object.Output_File, "</a>");
 	        Ada.Text_IO.Put_Line (Output_Object.Output_File, "</div>");
 	        Output_Object.Char_Count := 0;
 	        Output_Object.Disp_Char_Count := 0;
