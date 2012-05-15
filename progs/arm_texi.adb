@@ -1004,7 +1004,7 @@ package body ARM_Texinfo is
    is begin
       --  Add an empty non-break object, because @anchor ignores
       --  whitespace after it, which often occurs in the current
-      --  Scheme source.
+      --  Scribe source.
       Put (Output_Object.File, "@anchor{" & Integer'Image (Index_Key) & "}@w{}");
    end Index_Target;
 
@@ -1129,7 +1129,7 @@ package body ARM_Texinfo is
    is begin
       --  Add an empty non-break object, because @anchor ignores
       --  whitespace after it, which often occurs in the current
-      --  Scheme source.
+      --  Scribe source.
       Put (Output_Object.File, "@anchor{" & Target & "}@w{}");
       Ordinary_Text (Output_Object, Text);
    end Local_Target;

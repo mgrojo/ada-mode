@@ -2251,7 +2251,14 @@ Ada.Text_IO.Put_Line("  @@ Calc columns for" & Natural'Image(Output_Object.Colum
 	    end if;
 
 	elsif Output_Object.HTML_Kind = HTML_4_Compatible then
-	    if Number /= "" then -- Has paragraph number.
+	    if Number /= "" then
+		-- Has paragraph number.
+		--
+		-- Add an anchor, so external URLs can reference
+		-- paragraphs directly. If Number contains a '/', this
+		-- is not stricly legal HTML 4, but popular browsers
+		-- support it. Could replace the '/' in the anchor by
+		-- some legal character.
 		Paranum_Used := True;
 		Ada.Text_IO.Put (Output_Object.Output_File, "<div class=""paranum"">");
 	        Ada.Text_IO.Put (Output_Object.Output_File, "<font size=-2>");
@@ -2347,15 +2354,17 @@ Ada.Text_IO.Put_Line("  @@ Calc columns for" & Natural'Image(Output_Object.Colum
 		end if;
 	    end if;
 	else -- HTML_4_Only.
-	    if Number /= "" then -- Has paragraph number.
+	    if Number /= "" then
+		-- Has paragraph number; add anchor. See comment above
+		-- (at HMTL_4_Compatible) about '.' in anchor.
 		Paranum_Used := True;
-	        Ada.Text_IO.Put (Output_Object.Output_File, "<div class=""paranum"">");
-                Ada.Text_IO.Put (Output_Object.Output_File, "<a name=""p");
-	        Ada.Text_IO.Put (Output_Object.Output_File, Number);
-                Ada.Text_IO.Put (Output_Object.Output_File, """>");
-	        Ada.Text_IO.Put (Output_Object.Output_File, Number);
-                Ada.Text_IO.Put (Output_Object.Output_File, "</a>");
-	        Ada.Text_IO.Put_Line (Output_Object.Output_File, "</div>");
+		Ada.Text_IO.Put (Output_Object.Output_File, "<div class=""paranum"">");
+		Ada.Text_IO.Put (Output_Object.Output_File, "<a name=""p");
+		Ada.Text_IO.Put (Output_Object.Output_File, Number);
+		Ada.Text_IO.Put (Output_Object.Output_File, """>");
+		Ada.Text_IO.Put (Output_Object.Output_File, Number);
+		Ada.Text_IO.Put (Output_Object.Output_File, "</a>");
+		Ada.Text_IO.Put_Line (Output_Object.Output_File, "</div>");
 	        Output_Object.Char_Count := 0;
 	        Output_Object.Disp_Char_Count := 0;
 	        Output_Object.Disp_Large_Char_Count := 0;
