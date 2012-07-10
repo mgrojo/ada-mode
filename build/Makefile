@@ -1,6 +1,6 @@
 # Build info version of Ada RM, orig.tar.gz for Debian package, and tar.gz for my web page
 
-# see ../README.txt for list of things to change when scheme or Ada source changes.
+# see ../README.txt for list of things to change when scribe or Ada source changes.
 #
 # On Windows, use MikTex, not Cygwin tex (at least not version texi2dvi (GNU Texinfo 4.13) 1.135)
 
@@ -115,8 +115,8 @@ debian-free : debian-clean debian-update
 
 debian-zip : ada-reference-manual_$(DEBIAN_VERSION).orig.tar.bz2
 
-# we include the 2005 scheme source in the Debian tarball; simpler than including 2005-SRC.zip
-ada-reference-manual_$(DEBIAN_VERSION).orig.tar.bz2 : source_scheme_2005.stamp
+# we include the 2005 scribe source in the Debian tarball; simpler than including 2005-SRC.zip
+ada-reference-manual_$(DEBIAN_VERSION).orig.tar.bz2 : source_scribe_2005.stamp
 	rm -rf ../../ada-reference-manual-$(DEBIAN_VERSION)
 	mtn checkout --branch org.adaic.arm_form ../../ada-reference-manual-$(DEBIAN_VERSION)
 	cp -r ../source_2005 ../../ada-reference-manual-$(DEBIAN_VERSION)
@@ -132,10 +132,10 @@ debian-clean :
 ../../ada-reference-manual-$(DEBIAN_VERSION)-current :
 	mkdir -p $@
 
-# This retrieves CVS HEAD, for both Ada and Scheme source, for the
+# This retrieves CVS HEAD, for both Ada and Scribe source, for the
 # next Ada version (dvc-status "../../org.adaic.arm_form.upstream")
 #
-update-upstream : source_ada.clean source_scheme.clean source_ada.stamp source_scheme.stamp
+update-upstream : source_ada.clean source_scribe.clean source_ada.stamp source_scribe.stamp
 
 UPSTREAM_ADA := arm_cont.adb
 UPSTREAM_ADA += arm_cont.ads
@@ -183,82 +183,82 @@ source_ada.stamp :
 source_ada.clean :
 	rm -f source_ada.stamp
 
-UPSTREAM_SCHEME := 01.MSS
-UPSTREAM_SCHEME += 02.MSS
-UPSTREAM_SCHEME += 03A.MSS
-UPSTREAM_SCHEME += 03B.MSS
-UPSTREAM_SCHEME += 03C.MSS
-UPSTREAM_SCHEME += 04A.MSS
-UPSTREAM_SCHEME += 04B.MSS
-UPSTREAM_SCHEME += 05.MSS
-UPSTREAM_SCHEME += 06.MSS
-UPSTREAM_SCHEME += 07.MSS
-UPSTREAM_SCHEME += 08.MSS
-UPSTREAM_SCHEME += 09.MSS
-UPSTREAM_SCHEME += 10.MSS
-UPSTREAM_SCHEME += 11.MSS
-UPSTREAM_SCHEME += 12.MSS
-UPSTREAM_SCHEME += 13A.MSS
-UPSTREAM_SCHEME += 13B.MSS
-UPSTREAM_SCHEME += AARM.MSM
-UPSTREAM_SCHEME += ATTRIBS.MSS
-UPSTREAM_SCHEME += DS.MSS
-UPSTREAM_SCHEME += GLOSSARY.MSS
-UPSTREAM_SCHEME += IMPLDEF.MSS
-UPSTREAM_SCHEME += INDEX.MSS
-UPSTREAM_SCHEME += INFOSYS.MSS
-UPSTREAM_SCHEME += LANGDEF.MSS
-UPSTREAM_SCHEME += LIBRARY.MSS
-UPSTREAM_SCHEME += NUMERICS.MSS
-UPSTREAM_SCHEME += PRAGMAS.MSS
-UPSTREAM_SCHEME += PRE.MSS
-UPSTREAM_SCHEME += PRE_ADA.MSS
-UPSTREAM_SCHEME += PRE_DIRS.MSS
-UPSTREAM_SCHEME += PRE_IO.MSS
-UPSTREAM_SCHEME += PRE_Locales.MSS
-UPSTREAM_SCHEME += PRE_MATH.MSS
-UPSTREAM_SCHEME += Pre_Containers.MSS
-UPSTREAM_SCHEME += Pre_Con2.MSS
-UPSTREAM_SCHEME += Pre_Environ.MSS
-UPSTREAM_SCHEME += Pre_Con2.MSS
-UPSTREAM_SCHEME += RM.MSM
-UPSTREAM_SCHEME += RT.MSS
-UPSTREAM_SCHEME += Real_attribs.mss
-UPSTREAM_SCHEME += SAFETY.MSS
-UPSTREAM_SCHEME += SP.MSS
-UPSTREAM_SCHEME += SYNTAX.MSS
-UPSTREAM_SCHEME += TITLE.MSS
-UPSTREAM_SCHEME += ansi_cover.mss
-UPSTREAM_SCHEME += ansi_title.mss
-UPSTREAM_SCHEME += front_matter.mss
-UPSTREAM_SCHEME += interface.mss
-UPSTREAM_SCHEME += iso-rm.msm
-UPSTREAM_SCHEME += obsolescent.mss
-UPSTREAM_SCHEME += pre_chars.mss
-UPSTREAM_SCHEME += pre_cmdln.mss
-UPSTREAM_SCHEME += pre_standard.mss
-UPSTREAM_SCHEME += pre_strings.mss
+UPSTREAM_SCRIBE := 01.MSS
+UPSTREAM_SCRIBE += 02.MSS
+UPSTREAM_SCRIBE += 03A.MSS
+UPSTREAM_SCRIBE += 03B.MSS
+UPSTREAM_SCRIBE += 03C.MSS
+UPSTREAM_SCRIBE += 04A.MSS
+UPSTREAM_SCRIBE += 04B.MSS
+UPSTREAM_SCRIBE += 05.MSS
+UPSTREAM_SCRIBE += 06.MSS
+UPSTREAM_SCRIBE += 07.MSS
+UPSTREAM_SCRIBE += 08.MSS
+UPSTREAM_SCRIBE += 09.MSS
+UPSTREAM_SCRIBE += 10.MSS
+UPSTREAM_SCRIBE += 11.MSS
+UPSTREAM_SCRIBE += 12.MSS
+UPSTREAM_SCRIBE += 13A.MSS
+UPSTREAM_SCRIBE += 13B.MSS
+UPSTREAM_SCRIBE += AARM.MSM
+UPSTREAM_SCRIBE += ATTRIBS.MSS
+UPSTREAM_SCRIBE += DS.MSS
+UPSTREAM_SCRIBE += GLOSSARY.MSS
+UPSTREAM_SCRIBE += IMPLDEF.MSS
+UPSTREAM_SCRIBE += INDEX.MSS
+UPSTREAM_SCRIBE += INFOSYS.MSS
+UPSTREAM_SCRIBE += LANGDEF.MSS
+UPSTREAM_SCRIBE += LIBRARY.MSS
+UPSTREAM_SCRIBE += NUMERICS.MSS
+UPSTREAM_SCRIBE += PRAGMAS.MSS
+UPSTREAM_SCRIBE += PRE.MSS
+UPSTREAM_SCRIBE += PRE_ADA.MSS
+UPSTREAM_SCRIBE += PRE_DIRS.MSS
+UPSTREAM_SCRIBE += PRE_IO.MSS
+UPSTREAM_SCRIBE += PRE_Locales.MSS
+UPSTREAM_SCRIBE += PRE_MATH.MSS
+UPSTREAM_SCRIBE += Pre_Containers.MSS
+UPSTREAM_SCRIBE += Pre_Con2.MSS
+UPSTREAM_SCRIBE += Pre_Environ.MSS
+UPSTREAM_SCRIBE += Pre_Con2.MSS
+UPSTREAM_SCRIBE += RM.MSM
+UPSTREAM_SCRIBE += RT.MSS
+UPSTREAM_SCRIBE += Real_attribs.mss
+UPSTREAM_SCRIBE += SAFETY.MSS
+UPSTREAM_SCRIBE += SP.MSS
+UPSTREAM_SCRIBE += SYNTAX.MSS
+UPSTREAM_SCRIBE += TITLE.MSS
+UPSTREAM_SCRIBE += ansi_cover.mss
+UPSTREAM_SCRIBE += ansi_title.mss
+UPSTREAM_SCRIBE += front_matter.mss
+UPSTREAM_SCRIBE += interface.mss
+UPSTREAM_SCRIBE += iso-rm.msm
+UPSTREAM_SCRIBE += obsolescent.mss
+UPSTREAM_SCRIBE += pre_chars.mss
+UPSTREAM_SCRIBE += pre_cmdln.mss
+UPSTREAM_SCRIBE += pre_standard.mss
+UPSTREAM_SCRIBE += pre_strings.mss
 
 # This retrieves CVS HEAD, for the next Ada version (commit to mtn branch org.adaic.arm_form.upstream)
 #
-# We convert to unix line endings because the scheme processor insists
+# We convert to unix line endings because the scribe processor insists
 # on uniform formatting; this works for both Windows and Debian.
-source_scheme.stamp :
-	for file in $(UPSTREAM_SCHEME); do wget -nv -O ../../org.adaic.arm_form.upstream/source/$$file "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/source/$$file?rev=HEAD"; done
+source_scribe.stamp :
+	for file in $(UPSTREAM_SCRIBE); do wget -nv -O ../../org.adaic.arm_form.upstream/source/$$file "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/source/$$file?rev=HEAD"; done
 	cd ../../org.adaic.arm_form.upstream/source; $(CURDIR)/convert_to_unix.sh
-	touch source_scheme.stamp
+	touch source_scribe.stamp
 
-source_scheme.clean :
-	rm -f source_scheme.stamp
+source_scribe.clean :
+	rm -f source_scribe.stamp
 
 2005-SRC.zip :
 	wget http://www.ada-auth.org/arm-files/2005-SRC.zip
 
-source_scheme_2005.stamp : 2005-SRC.zip | source_2005
+source_scribe_2005.stamp : 2005-SRC.zip | source_2005
 	cd ../source_2005; unzip ../build/2005-SRC.zip; rm arm_form.exe; $(CURDIR)/convert_to_unix.sh
 	cd ..; patch < build/source_2005.diff
 	rm 2005-SRC.zip
-	touch source_scheme_2005.stamp
+	touch source_scribe_2005.stamp
 
 source_2005.diff :
 	mkdir ../source_2005_orig
@@ -295,6 +295,7 @@ include ../../../GDS/main/makerules/gnat_project_rules.make
 VPATH = ../source ../progs
 
 #Local Variables:
+#eval: (delete '("\\.mss\\'" . scribe-mode) auto-mode-alist)
 #eval: (ada-parse-prj-file "arm_info.prj")
 #eval: (ada-select-prj-file "arm_info.prj")
 #eval: (makefile-mode)
