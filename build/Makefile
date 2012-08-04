@@ -2,13 +2,13 @@
 
 # see ../README.txt for list of things to change when scribe or Ada source changes.
 #
-# On Windows, use MikTex, not Cygwin tex (at least not version texi2dvi (GNU Texinfo 4.13) 1.135)
+# Cygwin texi2dvi (GNU Texinfo 4.13) 1.135 fails silently!
 
 DEBIAN_VERSION := 2012.1
 ZIP_DATE       := 20120428
 
 # debian-free is _not_ in all
-all : html info pdf TXT publish
+all : source_scribe_2005.stamp html info pdf TXT publish
 
 html : html/arm2012/RM-TOC.html
 html : html/aarm2012/AA-TOC.html
@@ -94,7 +94,7 @@ arm_form.exe : force
 trace :
 	addr2line -e arm_form.exe 0x5c12e7 0x5c598e 0x43e05b 0x446c5b 0x448369 0x545205 0x4e9221 0x4e3b1a 0x5831a1 0x5ad295 0x5adee9 0x4cb3f5 0x401850 0x401235 0x401286 0x7c817075
 
-html/arm2005 html/arm2012 html/aarm2005 html/aarm2012 txt/arm2005 txt/arm2012 txt/aarm2005 txt/aarm2012 ../source/Output ../source_2005/Output :
+html/arm2005 html/arm2012 html/aarm2005 html/aarm2012 txt/arm2005 txt/arm2012 txt/aarm2005 txt/aarm2012 ../source/Output ../source_2005 ../source_2005/Output :
 	mkdir -p $@
 
 publish : publish-info publish-zip
@@ -254,16 +254,20 @@ source_scribe.clean :
 2005-SRC.zip :
 	wget http://www.ada-auth.org/arm-files/2005-SRC.zip
 
-source_scribe_2005.stamp : 2005-SRC.zip | source_2005
-	cd ../source_2005; unzip ../build/2005-SRC.zip; rm arm_form.exe; $(CURDIR)/convert_to_unix.sh
-	cd ..; patch < build/source_2005.diff
+source_scribe_2005.stamp : 2005-SRC.zip | ../source_2005
+	cd ../source_2005; unzip ../build/2005-SRC.zip; rm arm_form.exe
+	cd ../source_2005; dos2unix -f *.MSS *.mss *.MSM
+	cd ../source_2005; patch -p 1 < ../build/source_2005.diff
 	rm 2005-SRC.zip
 	touch source_scribe_2005.stamp
 
-source_2005.diff :
-	mkdir ../source_2005_orig
-	cd ../source_2005_orig; unzip ../build/2005-SRC.zip; rm arm_form.exe; $(CURDIR)/convert_to_unix.sh
-	cd ../; diff -u source_2005_orig source_2005 > build/source_2005.diff
+source_2005.diff : source_2005_orig.stamp
+	-cd ../; diff -u source_2005_orig source_2005 > build/source_2005.diff
+
+source_2005_orig.stamp : | ../source_2005_orig
+	cd ../source_2005_orig; unzip ../build/2005-SRC.zip; rm arm_form.exe
+	cd ../source_2005_orig; dos2unix -f *.MSS *.mss *.MSM
+	touch source_2005_orig.stamp
 
 # delete everything back to mtn checkout plus source_2005.
 clean ::

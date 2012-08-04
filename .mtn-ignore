@@ -14,10 +14,13 @@
 ^build/arm_info\.diff.gz$
 ^build/html$
 ^build/objects$
+^build/source_2005_orig\.stamp$
 ^build/source_ada\.stamp$
 ^build/source_scheme\.stamp$
 ^build/source_scheme_2005\.stamp$
 ^build/source_scribe\.stamp$
+^build/source_scribe_2005\.stamp$
 ^build/txt$
 ^source/Output$
 ^source_2005$
+^source_2005_orig$

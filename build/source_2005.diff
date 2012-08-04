@@ -1,7 +1,6 @@
-Only in source_2005: Output
 diff -u source_2005_orig/RM.MSM source_2005/RM.MSM
---- source_2005_orig/RM.MSM	2012-04-28 14:38:43.468750000 -0400
-+++ source_2005/RM.MSM	2012-04-26 05:26:08.185351200 -0400
+--- source_2005_orig/RM.MSM	2012-08-04 09:36:19.315720400 -0400
++++ source_2005/RM.MSM	2012-08-04 09:43:46.123276400 -0400
 @@ -36,9 +36,9 @@
  @HTMLColor{Text=[#000000],Background=[#FFFFF0],Link=[#000080],VLink=[#330033],ALink=[#0000FF]}
  
@@ -14,7 +13,7 @@ diff -u source_2005_orig/RM.MSM source_2005/RM.MSM
  @Source{Name=<01.MSS>,SectionName=<01>,SectionNumber=[1],NewSection=[T]}
  @Source{Name=<02.MSS>,SectionName=<02>,SectionNumber=[2],NewSection=[T]}
  @Source{Name=<03A.MSS>,SectionName=<03>,SectionNumber=[3],NewSection=[T]}
-@@ -60,35 +60,34 @@
+@@ -60,35 +60,35 @@
  @Source{Name=<LIBRARY.MSS>,SectionName=<Lib>,SectionNumber=[0],NewSection=[T]}
  @Comment{Annex A; all of the files starting with "Pre_" are part of Annex A.}
  @Source{Name=<PRE.MSS>,SectionName=<A>,SectionNumber=[A],NewSection=[T]}
@@ -68,5 +67,3 @@ diff -u source_2005_orig/RM.MSM source_2005/RM.MSM
 +@Source{Name=<SYNTAX.MSS>,SectionName=<P>,SectionNumber=[P],NewSection=[T]}
 +@Source{Name=<LANGDEF.MSS>,SectionName=<Q>,SectionNumber=[Q],NewSection=[T]}
 +@Source{Name=<INDEX.MSS>,SectionName=<IDX>,SectionNumber=[0],NewSection=[T]}
- 
--
