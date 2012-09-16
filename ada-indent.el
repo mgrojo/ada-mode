@@ -4,6 +4,15 @@
 
 (require 'smie)
 
+(defcustom ada-indent 3
+  "*Size of Ada default indentation, when no other indentation is used.
+
+An example is :
+procedure Foo is
+begin
+>>>null;"
+  :type 'integer  :group 'ada)
+
 (defconst ada-indent-grammar
   (smie-prec2->grammar
    (smie-merge-prec2s
@@ -154,12 +163,10 @@ Return value has the same structure as smie-backward-sexp"
 	(smie-rule-parent ada-indent))
        (`";"
 	;; indent relative to the start of the block or parameter list
-	(smie-rule-parent ada-indent))))
-     ))
-    ))
+	(smie-rule-parent ada-indent)))
+     )))
 
 (defun ada-indent-setup ()
-  (setq comment-start "--") ; FIXME: not clear why ada-mode doesn't set this
   (smie-setup ada-indent-grammar #'ada-indent-rules
 	      :forward-token #'ada-indent-forward-token
 	      :backward-token #'ada-indent-backward-token))
@@ -168,5 +175,7 @@ Return value has the same structure as smie-backward-sexp"
 
 (define-key ada-mode-map "\t" 'indent-for-tab-command)
 ;; TAB will now use smie indentation in Ada mode buffers
+
+(provide 'ada-indent)
 
 ;;; end of file

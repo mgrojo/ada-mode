@@ -10,11 +10,11 @@ package body Ada_Mode is
    -- Integer ici est souligne
    type Type_1 is array (1 .. 10, 1 .. 10) of Integer;
 
-                protected type Protected_1 is
+   protected type Protected_1 is
 
-                        function F1 return Integer;
-                        entry E1 (X : Integer);
-   procedure P1;
+      function F1 return Integer;
+      entry E1 (X : Integer);
+      procedure P1;
 
    private
 

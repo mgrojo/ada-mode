@@ -1,13 +1,22 @@
 General notes on porting Emacs Ada mode indentation engine to smie
 
+(progn
+    (toggle-debug-on-error nil)
+    (add-to-list 'load-path (expand-file-name "."))
+    (load "test/runtest.el"))
+
+test/ada-test.adb
+
+test/Makefile
+
+c:/Projects/emacs_stephe.work/emacs_stephe/ada-mode-keys.el
+
 c:/apps/emacs-24.1/lisp/emacs-lisp/smie.el
+c:/Projects/emacs_stephe.main/emacs_stephe_site_lisp/ada-mode.el
 (info "(elisp)SMIE" "*info-smie*")
 (info "(aarm2012)Annex P" "*info-aarm*")
 http://dickgrune.com/Books/PTAPG_2nd_Edition/
     used by modula2-mode, octave-mode in emacs 24
-
-"smie keywords cannot appear consecutively"
-    bad for Ada; is record, protected type
 
  access to ada-france:
 

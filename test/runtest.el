@@ -5,7 +5,6 @@
 
 (require 'ada-mode)
 (require 'ada-indent)
-(setq ada-language-version 'ada2012)
 
 (defun run-test-here ()
   "Run an ada-mode test on the current buffer."
@@ -42,8 +41,8 @@
 
   ;; Reindent and recase the buffer
   (setq ada-clean-buffer-before-saving nil)
-  (ada-indent-region (point-min) (point-max))
-  (ada-adjust-case-buffer)
+  (indent-region (point-min) (point-max))
+  ;; FIXME: put this back (and fix it!) (ada-adjust-case-buffer)
 
   ;; Cleanup the buffer; indenting often leaves trailing whitespace;
   ;; files must be saved without any.
