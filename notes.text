@@ -1,188 +1,26 @@
-build/release_process.text
-build/Makefile
+General notes on porting Emacs Ada mode indentation engine to smie
 
- current work
+c:/apps/emacs-24.1/lisp/emacs-lisp/smie.el
+(info "(elisp)SMIE" "*info-smie*")
+(info "(aarm2012)Annex P" "*info-aarm*")
+http://dickgrune.com/Books/PTAPG_2nd_Edition/
+    used by modula2-mode, octave-mode in emacs 24
 
-integrate with emacs process
-    do follow histogram for Ada
+"smie keywords cannot appear consecutively"
+    bad for Ada; is record, protected type
 
-    get wisi to cope with invalid regions
+ access to ada-france:
 
-    see how much panic mode helps
+anonymous (read only) access:
+    mtn --db ~/monotone-dbs/ada-france.db --key '' pull www.ada-france.org "org.emacs.*"
 
-rename to adatoken
+read/write access requires a public key:
+    send output of 'mtn pubkey' to Ludovic Brenta
+    <ludovic@ludovic-brenta.org> or Stephe Leake
+    <stephen_leake@stephe-leake.org>
 
-some .wy in wisi_wy_test.adb, some in rules.make
-    be more consistent
-        easier to update in rules.make
+    add it to monotone db via 'mtn read'
+    add it to /etc/monotone/write-permissions
+    /etc/init.d/monotone restart
 
-ada_grammar.adb very slow to compile
-    eliminating all but one action subprograms; not much help
-
-    read state transitions from text file?
-    -> .exe is independent of language
-
-need better lexer for fasttoken
-    handle tick character literal
-    handle utf-8
-
-    lexer used by libadalang?
-
-need case insensitive flag in .wy
-    use for keywords
-    pass to lexers
-
-better syntax error handling
-    d:/Books/eBooks/Parsing/Grune 321 - Error repair in shift reduce parsers.pdf
-        does this do:
-            if expecting has exactly one token, insert that
-                "if then end;"
-
-    write tests using Ada-like grammar with example syntax errors
-        partial 'if' statement
-        missing ;
-        missing )
-
-    if needed, speed up
-
-    try check all stacked states for current input symbol in goto/Follow;
-        works for typical "missing trailing tokens"
-
-    then to elisp parser?
-
-    or Emacs sub-process parser
-        that was too slow with ada-mode 5.2, should be better with 6.x
-
-        using hashtable lookup for elisp id => ada id'pos
-            adapt gperf to emit elisp?
-
-    or Emacs module
-        use elisp lexer; time aflex vs wisi 5, 6 lexers
-        elisp lexer supports utf-8, other encodings; tick/char_literal
-
-    Leaves some sections uncached - OK if not user line (not typical editing case).
-    If indent cache nil, use previous line.
-
-move output_ada_emacs, output_elisp to ada-mode source tree?
-    extendable dispatch?
-
-wisi-generate lr1 way too slow for Ada
-    time lalr generating Ada
-    time lr1 generating ada_lite (1634 states, tens of seconds)
-    time lr1 generating Ada to first 1000 states; increase as it gets better
-
-    implement profile, get data
-
-    don't iterate on non-reporting
-
-    lookahead list vs boolean array:
-        time opentoken vs fasttoken
-        or old fasttoken
-
-    closure needs:
-        fast access to all productions that have dot_id as the LHS
-            => array (nonterminal) of list of prod
-
-        fast access to First (beta) => array (nonterminal) of list of terminal
-
-        use multiple threads?
-
-    lr1_goto_transitions needs:
-        fast closure
-        cache?
-
-        use optimizations from lalr_goto_transitions?
-
-    LR1_Item_Sets needs:
-        fast goto_transitions (state, token)
-            => use cache; invalidate when ?
-
-        fast find (set, states)
-            => Store states in red/black tree sorted on concat LHS/dot position
-                or hash table on that key
-                    keeps changing, not clear if it's worth finding a perfect hash table
-                each node has a list of states that differ only in lookahead
-                => one for LALR
-
-            c:/org.stephe-leake.misc/source/rb_tree_V0_1
-                bounded, not generic, but proved by Spark
-                at least use key_trees-test.adb Tree_Invariant for test
-                use to generate test cases?
-
-            c:/org.stephe-leake.sal/source/sal-gen_red_black.ads
-                write tests
-
-        no 'free'; don't allocate item on heap until we know we need it
-
-    lalr_goto_transitions needs:
-        fast find prod, dot in goto_set
-            null result is common
-            small set; linear search of list sorted on lhs
-
-        fast access to all productions where:
-            (Dot_ID = Nonterminal.ID (Prod.LHS) or First (Dot_ID)(Nonterminal.ID (Prod.LHS))) and
-                       (RHS.first /= Null_Iterator and then ID (RHS.first) = Symbol)
-            => array (nonterminal) of list of productions, sorted on rhs.first
-
-    lalr_kernels needs:
-        same as lr1_item_sets
-
-    need more warm-fuzzy
-    command line option
-    dots for "adding state n", n every 100
-    dots for "lookaheads state n", n every 100?
-    dynamically monitor how long things take, keep dot time period constant
-        everything slows down as more states added
-
-    rename to opentoken7
-        _not_ "fast" :(
-        or speed it up
-
-integrate with emacs module
-    split out ada_grammar from ada_grammar_process, _module
-
-Test case gathering - wisi fallback email first use each day.
-
-lalr calls closure on each kernel more than once!
-    save the closure the first time?
-
-need to_token_wy_name
-    for reporting conflicts
-
-Ada lexer
-    number:
-        add _
-        add leading integer to distinguish 16 from identifier
-
-    identifier: add leading letter
-
-review FIXME
-    ./fasttoken-parser-lalr-parser.adb:346:            --  FIXME: free everything
-        add Controlled to stuff
-
-change dragon examples
-    lexer.regexp; should be easy
-
-    lexer.aflex/wisi-generate
-        need support for different actions
-        move code from tokens to actions
-        change .wy action syntax to require {} (for elisp as well)
-        use Ada code in actions; reference New_Token, Source, To_ID
-            or whatever than changes to
-        add Ada output language to wisi-generate
-            just copy text between {} to action function
-                add constant space prefix to each line; source must meet style check
-
-change wisi tests to use Ada code?
-
- aflex
-    /Projects/aflex/build/Makefile
-    /Projects/aflex/aflex.adb
-    source from http://sourceforge.net/projects/p2ada/
-
-    better error messages; gnu syntax
-
-    regenerate aflex.l
-        start with flex.l?
-
-# end of file
+    mtn --db ~/monotone-dbs/ada-france.db sync "mtn://www.ada-france.org?org.emacs.*"
