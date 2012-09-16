@@ -536,6 +536,8 @@ point is where the mouse button was clicked."
 
   (set (make-local-variable 'comment-multi-line) nil)
 
+  ;; smie settings
+  (set (make-local-variable 'smie-blink-matching-inners) nil); too annoying to blink to 'package' on 'is', etc.
 
   (add-hook 'compilation-mode-hook
 	    (lambda()
@@ -557,8 +559,6 @@ point is where the mouse button was clicked."
 
   (set (make-local-variable 'ff-other-file-alist)
        'ada-other-file-alist)
-  (set (make-local-variable 'ff-search-directories)
-       'ada-search-directories-internal)
   (setq ff-post-load-hook    'ada-set-point-accordingly
 	ff-file-created-hook 'ada-make-body)
   (add-hook 'ff-pre-load-hook 'ada-which-function-are-we-in)
@@ -647,6 +647,8 @@ point is where the mouse button was clicked."
 
   ;; (if ada-auto-case
   ;;     (ada-activate-keys-for-case))
+
+  ;; FIXME: ask about after-change-major-mode-hook
   )
 
 (defun ada-region-selected ()
@@ -1089,6 +1091,14 @@ Return nil if no body was found."
 ;; Setup auto-loading of the other Ada mode files.
 ;; FIXME: add some here?
 
+;; provide some dummy functions so other code can at least run
+;; FIXME: make these real, somewhere
+(defun ada-adjust-case-identifier ())
+(defun ada-adjust-case ())
+(defun ada-find-other-file ()
+  (interactive)
+  (ff-find-other-file))
+(defun ada-which-function-are-we-in () "")
 (provide 'ada-mode)
 
 ;;; end of file

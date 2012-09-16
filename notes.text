@@ -5,7 +5,7 @@ General notes on porting Emacs Ada mode indentation engine to smie
     (add-to-list 'load-path (expand-file-name "."))
     (load "test/runtest.el"))
 
-test/ada-test.adb
+test/ada_mode.adb
 
 test/Makefile
 

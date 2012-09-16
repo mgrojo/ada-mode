@@ -22,6 +22,7 @@ begin
        (exp) ; FIXME: expand this
 
        ;; BNF from [1] appendix P, vastly simplified
+       ;; (info "(aarm2012)Annex P")
        ;;
        ;; We only need enough of the grammar to allow indentation to work; see
        ;; (info "(elisp)SMIE Grammar")
@@ -50,7 +51,13 @@ begin
        ;; parent. We solve that by declaring it as the separator for
        ;; those constructs.
 
-       (package ("package" "body" identifier "is-package" declarations "begin" statements "end"))
+       (package_declaration
+	("package" identifier "is-package_declaration" declarations "begin" statements "end"))
+       ;; FIXME: "identifier" should be "name", with dots
+
+       (package_body
+	("package" "body" identifier "is-package_body" declarations "begin" statements "end"))
+       ;; FIXME: "identifier" should be "name", with dots
 
        (declarations
 	(declaration)
@@ -59,8 +66,8 @@ begin
        (declaration
 	(array_type_definition)
 	(record_type_definition)
-	(protected_type_definition)
-	;(entry_declaration)
+	(protected_type_declaration)
+	(protected_body)
 	)
 
        (array_type_definition ("type" identifier "is-type" "array" exp "of" identifier))
@@ -73,14 +80,14 @@ begin
 
        (component (identifier ":" identifier)) ; discriminants are a balanced paren; FIXME: constraints?
 
-       (protected_type_definition
+       (protected_type_declaration
 	;; prefixing "protected" gives a precedence conflict: 'token
 	;; type is both neither and opener', so "protected type" is
 	;; combined into one token in
 	;; ada-indent-forward/backward-token.
 	("protected_type" identifier "is-type" declarations "private" declarations "end"))
 
-;       (entry_declaration ("entry" identifier)); family subtype, parameter_profile are balanced parens
+       (protected-body ("protected" "body" identifier "is-protected_body" declarations "end"))
 
        (statements
 	(statement)
@@ -105,42 +112,47 @@ begin
        ))
     )))
 
-(defun ada-indent-goto-parent ()
-  "Go to the parent of the current token.
-Return value has the same structure as smie-backward-sexp"
-  (let (smie--parent smie--after smie--token)
-    (smie-indent--parent)))
+(defun ada-token-refine-is (direction)
+  (save-excursion
+    ;; ada-indent-forward-token calls us with point after token;
+    ;; ada-indent-backward with point before token.
+    ;;
+    (when (eq direction 'forward) (smie-default-backward-token))
 
-(defun ada-token-refine-is ()
-  (cond
-   ;; using ada-indent-goto-parent to get to the parent token screws
-   ;; up here; not clear why. FIXME: because that relies on
-   ;; recognizing 'is', which is what we are trying to do; try going
-   ;; back one token, then call goto-parent.
-   ;;
-   ;; "package" "body" identifier "is" FIXME: "identifier" could have dots!
-   ((equal "package" (save-excursion
-		       (smie-default-backward-token)
-		       (smie-default-backward-token)
-		       (smie-default-backward-token)))
-    "is-package")
-   ;; "type" identifier "is"
-   ((equal "type" (save-excursion
-		    (smie-default-backward-token)
-		    (smie-default-backward-token)))
-    "is-type")
-   (t
-    (error "ada-indent-backward-token: unrecognized 'is'"))))
+    (let ((token
+	   (progn
+	     (smie-default-backward-token)
+	     (smie-default-backward-token))))
+      (pcase token
+	(`"package" "is-package_spec")
+	;; "package" name ^ "is" FIXME: "name" could have dots!
+
+	(`"type" "is-type")
+	;; "type" identifier ^ "is"
+	;; covers "protected type"; that's lexed as the token "type"
+
+	(`"body"
+	 (setq token (smie-default-backward-token))
+	 (pcase token
+	   (`"package" "is-package_body")
+	   ;; "package" "body" name ^ "is" FIXME: "name" could have dots!
+
+	   (`"protected" "is-protected_body")
+	   ;; "protected" "body" identifier ^ "is"
+	   (t
+	    (error "ada-indent-backward-token: unrecognized 'is'"))))
+	(t
+	 (error "ada-indent-backward-token: unrecognized 'is'"))))))
 
 (defun ada-indent-forward-token ()
   (pcase (smie-default-forward-token)
-    (`"is" (ada-token-refine-is))
+    (`"is" (ada-token-refine-is 'forward))
     (`"protected" (if (equal "type" (save-excursion (smie-default-forward-token))) "protected_type" "type"))
     (token token)))
 
 (defun ada-indent-backward-token ()
   (pcase (smie-default-backward-token)
-    (`"is" (ada-token-refine-is))
+    (`"is" (ada-token-refine-is 'backward))
 
     (`"type" (if (equal "protected" (save-excursion (smie-default-backward-token)))
 		 (progn
@@ -158,7 +170,10 @@ Return value has the same structure as smie-backward-sexp"
      )
     (:after
      (pcase arg
-       ((or `"is-type" `"is-package")
+       ((or `"is-type"
+	    `"is-package_body"
+	    `"is-package_spec"
+	    `"is-protected_body")
 	;; indent relative to the start of the declaration, which is the parent of 'is'
 	(smie-rule-parent ada-indent))
        (`";"
