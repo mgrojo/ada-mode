@@ -62,9 +62,8 @@
 ;;
 ;; By default, ada-mode is configured to take full advantage of the
 ;; GNAT compiler (the menus will include the cross-referencing
-;; features,...).  If you are using another compiler, you might want
-;; to set the following variable (FIXME: do not set this in the
-;; ada-mode-hook, it won't work) : (setq ada-which-compiler 'generic)
+;; features,...).  FIXME: If you are using another compiler, you
+;; should ...
 
 ;;; History:
 ;; The first Ada mode for GNU Emacs was written by V. Broman in
@@ -689,14 +688,6 @@ point is where the mouse button was clicked."
   (let ((m '("Ada"
 	     ("Help"
 	      ["Ada Mode"               (info "ada-mode") t]
-	      ["GNAT User's Guide"      (info "gnat_ugn")
-	       (eq ada-which-compiler 'gnat)]
-	      ["GNAT Reference Manual"  (info "gnat_rm")
-	       (eq ada-which-compiler 'gnat)]
-	      ["Gcc Documentation"      (info "gcc")
-	       (eq ada-which-compiler 'gnat)]
-	      ["Gdb Documentation"      (info "gdb")
-	       (eq ada-which-compiler 'gnat)]
 	      ["Ada Reference Manual" (info "arm2012") t]
 	      )
 
@@ -1099,6 +1090,8 @@ Return nil if no body was found."
   (interactive)
   (ff-find-other-file))
 (defun ada-which-function-are-we-in () "")
+(defvar ada-case-exception-file nil)
+
 (provide 'ada-mode)
 
 ;;; end of file

@@ -9,9 +9,11 @@ test/ada_mode.adb
 
 test/Makefile
 
+ada-indent.el
+
 c:/Projects/emacs_stephe.work/emacs_stephe/ada-mode-keys.el
 
-c:/apps/emacs-24.1/lisp/emacs-lisp/smie.el
+c:/apps/emacs-24.2/lisp/emacs-lisp/smie.el
 c:/Projects/emacs_stephe.main/emacs_stephe_site_lisp/ada-mode.el
 (info "(elisp)SMIE" "*info-smie*")
 (info "(aarm2012)Annex P" "*info-aarm*")

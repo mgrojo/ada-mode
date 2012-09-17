@@ -81,4 +81,7 @@ compile-clean :
 test-clean :
 	rm -f *.diff *.tmp
 
+zip :
+	tar zcf org.emacs.ada-mode.smie-WORKING.tar.gz --exclude _MTN --exclude "*~" --exclude "*.diff" --exclude "*.tmp" --exclude "*.ali" --exclude "*.tar.gz" -C ../.. org.emacs.ada-mode.smie
+
 # end of file
