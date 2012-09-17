@@ -57,7 +57,7 @@ test : $(addsuffix .diff, $(TEST_FILES))
 	$(EMACS) -Q -batch -L .. -l runtest.el --eval '(run-test "$<")'
 
 %.ads.tmp : %.ads
-	$(EMACS) -Q -batch $(LOAD_PATH) -l runtest.el --eval '(run-test "$<")'
+	$(EMACS) -Q -batch -L .. -l runtest.el --eval '(run-test "$<")'
 
 COMPILE_FILES := $(COMPILE_FILES:.adb=.ali)
 COMPILE_FILES := $(COMPILE_FILES:.ads=.ali)

@@ -5,7 +5,10 @@ General notes on porting Emacs Ada mode indentation engine to smie
     (add-to-list 'load-path (expand-file-name "."))
     (load "test/runtest.el"))
 
-test/ada_mode.adb
+test/ada_mode.adb passes!
+    rewrite refine-is to pass expected "is-*" to backward-sexp
+
+    report ediff-buffers-wordwise bug; mark-active set, but no mark!
 
 test/Makefile
 
@@ -14,6 +17,7 @@ ada-indent.el
 c:/Projects/emacs_stephe.work/emacs_stephe/ada-mode-keys.el
 
 c:/apps/emacs-24.2/lisp/emacs-lisp/smie.el
+c:/apps/emacs-24.2/lisp/progmodes/modula2.el
 c:/Projects/emacs_stephe.main/emacs_stephe_site_lisp/ada-mode.el
 (info "(elisp)SMIE" "*info-smie*")
 (info "(aarm2012)Annex P" "*info-aarm*")

@@ -3,6 +3,7 @@
 ;; [1] ISO/IEC 8652:201z (draft 18); Ada 2012 reference manual
 
 (require 'smie)
+(eval-when-compile (require 'cl))
 
 (defcustom ada-indent 3
   "*Size of Ada default indentation, when no other indentation is used.
@@ -19,7 +20,6 @@ begin
     (smie-bnf->prec2
      '(;; non-terminal syntax terms not otherwise expanded
        (identifier)
-       (exp) ; FIXME: expand this
 
        ;; BNF from [1] appendix P, vastly simplified
        ;; (info "(aarm2012)Annex P")
@@ -54,7 +54,7 @@ begin
 
        ;; alphabetical order, since there isn't any more reasonable order
        ;; we use the same names as [1] Annex P as much as possible
-       (array_type_definition ("type" identifier "is-type" "array" exp "of" identifier))
+       (array_type_definition ("type" identifier "is-type" "array" expression "of" identifier))
 
        (component (identifier ":" identifier)) ; discriminants are a balanced paren; FIXME: constraints?
 
@@ -64,10 +64,10 @@ begin
 
        (declaration
 	(array_type_definition)
+	(protected_body)
+	(protected_type_declaration)
 	(record_type_definition)
 	(subprogram_body)
-	(protected_type_declaration)
-	(protected_body)
 	)
 
        (declarations
@@ -75,7 +75,24 @@ begin
 	(declaration ";" declaration))
 
        (entry_body
-	("entry" identifier "when" exp "is-entry_body" declarations "begin" statements "end"))
+	("entry" identifier "when" expression "is-entry_body" declarations "begin" statements "end"))
+
+       (expression
+	;; The expression syntax rules in [1] mostly serve to express
+	;; the operator precedence; we do that in the precedence table
+	;; below.
+	;;
+	;; Here "-operator-" is a fake operator that ties this BNF
+	;; grammar to that precedence table (stole this idea from the
+	;; modula2 smie grammar).
+	;;
+	;; Note that we declare := to be an operator; that way this
+	;; covers assignment statements as well. We are not enforcing
+	;; Ada legality rules, just computing indentation.
+	(identifier "-operator-" identifier)
+	("(" expression ")"))
+       ;; FIXME: membership_choice_list?
+       ;; FIXME: unary operators?
 
        (package_declaration
 	("package" identifier "is-package_declaration" declarations "begin" statements "end"))
@@ -93,11 +110,14 @@ begin
 	;; combined into one token in
 	;; ada-indent-forward/backward-token.
 	("protected_type" identifier "is-type" declarations "private" declarations "end"))
+       ;; also covers single_protected_declaration
+       ;; FIXME: [new interface_list with]
+       ;; FIXME: [aspect_specification]
 
        (record_type_definition ("type" identifier "is-type" "record" components "end"))
 
        (statement
-	(exp); matches procedure calls
+	(expression); matches procedure calls, assignment
 	; FIXME: more
 	)
 
@@ -115,34 +135,31 @@ begin
     ;; operators and similar things
     ;; FIXME: ref RM, get it right
     (smie-precs->prec2
-     '((assoc ",")
-       (nonassoc "<" "<=" ">=" ">" "/=" "in")
-       (assoc "or" "+" "-")
-       (assoc "and" "mod" "rem" "*" "/" "&")
-       (nonassoc "not")
-       (left "." "^")
+     '((nonassoc "-operator-")
+       ;; The structure of this table is stolen from the modula2 smie grammar.
+       ;;
+       ;; We can merge the relational, math, and other operators in
+       ;; these levels, because we don't care about legality.
+       ;; FIXME: do we need any precedence hierarchy for these at all (ask Stefan)?
+       ;;
+       (nonassoc "=" "/=" "<" "<=" ">" ">=" "in") ; relational_operator, membership
+       (assoc "or" "or_else" "xor" "+" "-" "&")
+       (assoc "and" "and_then" "mod" "rem" "*" "/")
+       (right "abs" "not")
+       (left "'" "." "**") ; Qualifier, selector, exponent
+       (nonassoc ":=") ; assignment statement (always done last)
        ))
     )))
 
 (defun ada-indent-refine-entry_body ()
   "Return token if current token is the 'is' of an entry body, else nil"
   (save-excursion
-    ;; entry body with params: "entry" identifier  "("...")" "when" exp "is"
-    ;; skip to "entry" with smie-backward-sexp
-    (let* ((token
-	    ;; first significant token
-	    (or (smie-backward-sexp 'halfsexp)
-		(let (res)
-		  (while (null (setq res (smie-backward-sexp))))
-		  (nth 2 res)))))
-
-      (if (not (equal "when" token))
-	  nil
-	;; keep going
-	(setq token (nth 2 (smie-backward-sexp 'halfsexp)))
+    ;; entry body with params: "entry" identifier "("...")" "when" exp "is"
+    ;; FIXME: try this in refine-is
+    (let* ((token (nth 2 (smie-backward-sexp "is-entry_body"))))
 	(if (equal "entry" token)
 	    "is-entry_body"
-	  nil)))))
+	  nil))))
 
 (defun ada-indent-refine-is (direction)
   (save-excursion
@@ -152,59 +169,69 @@ begin
     (when (eq direction 'forward) (smie-default-backward-token))
 
     (or
+     ;; first try simple, common constructs.  we don't use
+     ;; smie-backward-sexp for these, because it is often too greedy.
+     (save-excursion
+       (let ((token
+	      (progn
+		(smie-default-backward-token)
+		(smie-default-backward-token))))
+	 (pcase token
+	   (`"body"
+	    (setq token (smie-default-backward-token))
+	    (pcase token
+	      (`"package" "is-package_body")
+	      ;; "package" "body" name ^ "is" FIXME: "name" could have dots!
+
+	      (`"protected" "is-protected_body")
+	      ;; "protected" "body" identifier ^ "is"
+
+	      (t nil)))
+
+	   (`"package" "is-package_spec")
+	   ;; "package" name ^ "is" FIXME: "name" could have dots!
+
+	   (`"procedure" "is-subprogram_body")
+	   ;; "procedure" identifier ^ "is"
+	   ;; FIXME: test procedure with parameter list
+
+	   (`"protected" "is-type")
+	   ;; "protected" identifier ^ "is"
+
+	   (`"return"
+	    (setq token
+		  (progn
+		    (smie-default-backward-token)
+		    (smie-default-backward-token)))
+	    (pcase token
+	      (`"function" "is-subprogram_body")
+	      ;; "function" identifier "return" identifier  ^ "is"
+	      ;; FIXME: test procedure with parameter list
+	      (t nil)))
+
+	   (`"type" "is-type")
+	   ;; "type" identifier ^ "is"
+	   ;; covers "protected type"; that's lexed as the token "type"
+	   )))
+
+     ;; now more complicated things
      (ada-indent-refine-entry_body)
-     ;; else try simpler constructs
-     ;; FIXME: if that works, use it for all of these!
-     (let ((token
-	    (progn
-	      (smie-default-backward-token)
-	      (smie-default-backward-token))))
-       (pcase token
-	 (`"body"
-	  (setq token (smie-default-backward-token))
-	  (pcase token
-	    (`"package" "is-package_body")
-	    ;; "package" "body" name ^ "is" FIXME: "name" could have dots!
 
-	    (`"protected" "is-protected_body")
-	    ;; "protected" "body" identifier ^ "is"
-	    (t
-	     (error "ada-indent-backward-token: unrecognized 'is'"))))
-
-	 (`"package" "is-package_spec")
-	 ;; "package" name ^ "is" FIXME: "name" could have dots!
-
-	 (`"procedure" "is-subprogram_body")
-	 ;; "procedure" identifier ^ "is"
-	 ;; FIXME: test procedure with parameter list
-
-	 (`"return"
-	  (setq token
-		(progn
-		  (smie-default-backward-token)
-		  (smie-default-backward-token)))
-	  (pcase token
-	    (`"function" "is-subprogram_body")
-	    ;; "function" identifier "return" identifier  ^ "is"
-	    ;; FIXME: test procedure with parameter list
-	    (t
-	     (error "ada-indent-backward-token: unrecognized 'is'"))))
-
-	 (`"type" "is-type")
-	 ;; "type" identifier ^ "is"
-	 ;; covers "protected type"; that's lexed as the token "type"
-
-	 (t
-	  (error "ada-indent-backward-token: unrecognized 'is'")))))))
+     (error "ada-indent-backward-token: unrecognized 'is'"))))
 
 (defun ada-indent-forward-token ()
   (pcase (smie-default-forward-token)
+    ;; FIXME: and_then, or_else
     (`"is" (ada-indent-refine-is 'forward))
-    (`"protected" (if (equal "type" (save-excursion (smie-default-forward-token))) "protected_type" "type"))
+
+    ;; FIXME: this is not the inverse of ada-indent-backward-token. It
+    ;; does make single_protected_type work (ada_test.adb)
+    (`"protected" (if (equal "body" (save-excursion (smie-default-forward-token))) "protected" "protected_type"))
     (token token)))
 
 (defun ada-indent-backward-token ()
   (pcase (smie-default-backward-token)
+    ;; FIXME: and_then, or_else
     (`"is" (ada-indent-refine-is 'backward))
 
     (`"type" (if (equal "protected" (save-excursion (smie-default-backward-token)))
