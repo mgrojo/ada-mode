@@ -67,6 +67,7 @@ begin
 	(protected_body)
 	(protected_type_declaration)
 	(record_type_definition)
+	(subprogram_declaration)
 	(subprogram_body)
 	)
 
@@ -123,6 +124,10 @@ begin
 
        (statement
 	(expression); matches procedure calls, assignment
+	("return")
+	("return-exp" expression)
+	("return-do" identifier ":" name)
+	("return-do" identifier ":" name "do" statements "end_return")
 	)
 
        (statements
@@ -131,12 +136,17 @@ begin
 
        (subprogram_body
 	;; factoring out subprogram_specification here breaks something.
-	("function" name "return" name "is-subprogram_body" declarations "begin" statements "end")
+	("function" name "return-spec" name "is-subprogram_body" declarations "begin" statements "end")
 	("procedure" name "is-subprogram_body" declarations "begin" statements "end"))
        ;; FIXME: test overriding_indicator
        ;; FIXME: test aspect_specification
        ;; FIXME: test exception handler
 
+       (subprogram_declaration
+	;; factoring out subprogram_specification here breaks something.
+	("function" name "return-spec" name)
+	("procedure" name))
+       ;; FIXME: is abstract
        ))
 
     ;; operators and similar things
@@ -158,26 +168,19 @@ begin
        ))
     )))
 
-(defun ada-indent-backwards-unit_name ()
+(defun ada-indent-backward-unit_name ()
   "Skip backwards over a unit_name, consisting of just
 identifiers and dots. Return the token before the name."
   (let (token)
     (while
 	(progn
 	  (setq token (assoc (ada-indent-backward-token) smie-grammar))
+	  ;; FIXME: this gets stuck in an infinite loop if it hits a
+	  ;; parameter list; (ada-indent-backward-token) makes no
+	  ;; progress!
 	  (or (not token); not a keyword, so it must be an identifier
 	      (equal (nth 0 token) "."))))
     (nth 0 token)))
-
-(defun ada-indent-refine-entry_body ()
-  "Return token if current token is the 'is' of an entry body, else nil"
-  (save-excursion
-    ;; entry body with params: "entry" identifier "("...")" "when" exp "is"
-    ;; We have to use smie-backward-sexp to parse the exp.
-    (let* ((token (nth 2 (smie-backward-sexp "is-entry_body"))))
-	(if (equal "entry" token)
-	    "is-entry_body"
-	  nil))))
 
 (defun ada-indent-refine-is (direction)
   (save-excursion
@@ -187,12 +190,12 @@ identifiers and dots. Return the token before the name."
     (when (eq direction 'forward) (smie-default-backward-token))
 
     (or
-     ;; first try simple, common constructs.  we don't use
+     ;; First try simple, common constructs.  We don't use
      ;; smie-backward-sexp for these, because it is often too greedy;
      ;; it leads to horrible recursive parsing with wrong guesses,
      ;; and ends up reporting no match.
      (save-excursion
-       (let ((token (ada-indent-backwards-unit_name)))
+       (let ((token (ada-indent-backward-unit_name)))
 	 (pcase token
 	   (`"package" "is-package_declaration")
 	   ;; "package" name ^ "is" FIXME: "name" could have dots!
@@ -210,16 +213,8 @@ identifiers and dots. Return the token before the name."
 	   (`"protected_body" "is-protected_body")
 	   ;; "protected" "body" identifier ^ "is"
 
-	   (`"return"
-	    (setq token
-		  (progn
-		    (smie-default-backward-token)
-		    (smie-default-backward-token)))
-	    (pcase token
-	      (`"function" "is-subprogram_body")
-	      ;; "function" identifier "return" identifier  ^ "is"
-	      ;; FIXME: test procedure with parameter list
-	      (t nil)))
+	   (`"return-spec" "is-subprogram_body")
+	      ;; "function" identifier "return" name ^ "is"
 
 	   (`"type" "is-type")
 	   ;; "type" identifier ^ "is"
@@ -227,13 +222,109 @@ identifiers and dots. Return the token before the name."
 	   )))
 
      ;; now more complicated things
-     (ada-indent-refine-entry_body)
+     (save-excursion
+       ;; entry body with params: "entry" identifier "("...")" "when" exp "is"
+       ;;
+       ;; FIXME: if we can be guessing wrong here, we can't use
+       ;; smie-backward-sexp (because it will just get confused). So
+       ;; far, this is the only possibility at this point, so we don't
+       ;; really need to check, but we want to identify missing cases.
+       (if (equal "entry" (nth 2 (smie-backward-sexp "is-entry_body"))) "is-entry_body"))
 
-     (error "ada-indent-backward-token: unrecognized 'is'"))))
+     (error "unrecognized 'is'"))))
+
+(defun ada-indent-refine-return (direction)
+  (save-excursion
+    (when (eq direction 'forward) (smie-default-backward-token))
+
+    ;; return occurs in several places;
+    ;; 1) a function declaration:
+    ;;
+    ;;      function identifier (...) return name;
+    ;;
+    ;;    token: "return-spec"
+    ;;
+    ;; 2) a function body:
+    ;;
+    ;;      function identifier (...) return name is
+    ;;
+    ;;    token: "return-spec"
+    ;;
+    ;; 3) a return statement:
+    ;;
+    ;;      return;
+    ;;
+    ;;    token: "return"
+    ;;
+    ;;      return exp;
+    ;;
+    ;;    token: "return-exp"
+    ;;
+    ;; 4) an extended return statement:
+    ;;
+    ;;       return identifier : name;
+    ;;
+    ;;    token: "return" (4a)
+    ;;
+    ;;       return identifier : name do statements end return;
+    ;;
+    ;;    token: "return-do" (4b) or "end_return" (4c)
+    ;;
+    ;; So we have to look both forward and backward to resolve this.
+    (or
+     (save-excursion (if (equal "end" (smie-default-backward-token)) "end_return")); 4c
+
+     ;; do this before parsing forward, otherwise can't distinguish between:
+     ;; function F1 return Integer;
+     ;; return 0;
+     ;;
+     ;; It would be simpler to do (smie-backward-sexp "return-spec")
+     ;; here, but if we are wrong, we'd get totally confused.
+     (save-excursion
+	(if (equal "function"
+		   ;; no parameter list
+		   (ada-indent-backward-unit_name))
+	    "return-spec")); 1 or 2
+
+     (save-excursion
+	(if (equal "function"
+		   (progn
+		     (smie-backward-sexp); parameter list
+		     (ada-indent-backward-unit_name)))
+	    "return-spec")); 1 or 2
+
+     (save-excursion
+       ;; FIXME: test this at end of buffer (not very
+       ;; likely to happen, but possible while entering code)
+       (if (equal ";"
+		  (progn
+		    (smie-default-forward-token); return
+		    (smie-default-forward-token)))
+	   "return"; 3a
+	 (pcase (smie-default-forward-token)
+	   (`";" "return-exp") ; special case of 3b with expression = identifier or literal
+
+	   (`":"
+	     (if (equal (ada-indent-forward-name) ";")
+		 "return"; 4a
+	       "return-do")); 4b
+
+	   (`"is" "return-spec"); special case of 2, with name = identifier
+
+	   (_ "return-exp"); 3b
+	   )))
+     )))
 
 (defun ada-indent-forward-token ()
   (pcase (smie-default-forward-token)
     ;; FIXME: and_then, or_else
+    (`"end"
+     (if (equal "return" (save-excursion (smie-default-forward-token)))
+	 (progn
+	   (smie-default-forward-token)
+	   "end_return")
+       "end"))
+
     (`"is" (ada-indent-refine-is 'forward))
 
     (`"protected"
@@ -242,6 +333,9 @@ identifiers and dots. Return the token before the name."
 	   (smie-default-forward-token)
 	   "protected_body")
        "protected_type"))
+
+    (`"return" (ada-indent-refine-return 'forward))
+
     (token token)))
 
 (defun ada-indent-backward-token ()
@@ -261,6 +355,8 @@ identifiers and dots. Return the token before the name."
        (token (error "unrecognized 'body': %s" token))))
 
     (`"is" (ada-indent-refine-is 'backward))
+
+    (`"return" (ada-indent-refine-return 'backward))
 
     (`"type"
      (if (equal "protected" (save-excursion (smie-default-backward-token)))

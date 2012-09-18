@@ -11,6 +11,7 @@ package body Ada_Mode.Work is
    protected type Protected_1 is
 
       function F1 return Integer;
+      function F2 (A : Float; B : Float) return Integer;
       entry E1 (X : Integer);
       procedure P1;
 
@@ -31,6 +32,14 @@ package body Ada_Mode.Work is
       begin
          return 0;
       end F1;
+
+      function F2 (A : Float; B : Float) return Float
+      is begin
+         return C : Float do
+            C := (A * B);
+            C := C * C;
+         end return;
+      end; -- no F2 on purpose
 
       entry E1 (X : Integer) when Local = 0 is
          Tmp : Integer := 0;
