@@ -1,3 +1,5 @@
+--  Tests a main procedure, also various cases of string concatenation.
+
 procedure Main_Procedure is
    procedure Put_Line (A : in Integer; B : in String)
    is begin

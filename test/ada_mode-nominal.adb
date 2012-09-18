@@ -1,18 +1,8 @@
--- Called "Ada_Mode.Nominal" because this was written to test the SMIE
--- grammar while the grammar was being written. It contains structures
--- that have a major influence on the grammar structure, such as
--- extended return, protected types.
---
--- Other Ada_Mode.* test smaller parts of the grammar.
---
--- Other files are mostly bug reports from earlier versions of Ada
--- mode. They must still work, and may test corner cases not otherwise
--- tested.
+-- A comment before the first code
 
 package body Ada_Mode.Nominal is
 
    -- Integer ici est souligne (Integer is highlighted here)
-   -- FIXME: highlighting is not checked in the automated test
    type Type_1 is array (1 .. 10, 1 .. 10) of Integer;
 
    protected type Protected_1 is
@@ -21,19 +11,20 @@ package body Ada_Mode.Nominal is
       function F2 (A : Float; B : Float) return Float;
       entry E1 (X : Integer);
       procedure P1;
+      procedure P2 (A : Float; B : Float);
 
+      --  FIXME: test type names with dots, where that matters to the grammar
+
+      -- This is a comment just before 'private'; default smie
+      -- indentation doesn't do what we want here.
    private
 
       Local : Integer;
 
+      -- A comment just before 'end'
    end Protected_1;
 
    protected body Protected_1 is
-
-      procedure P1 is
-      begin
-         null;
-      end P1;
 
       function F1 return Integer is
       begin
@@ -51,9 +42,22 @@ package body Ada_Mode.Nominal is
       entry E1 (X : Integer) when Local = 0 is
          Tmp : Integer := 0;
       begin
-         Local := X + Tmp;
+         Local :=
+            X + Tmp; -- an indented line
+
+         -- A comment after an indented line
+
       end E1;
 
+      procedure P1 is
+      begin
+         null;
+      end P1;
+
+      procedure P2 (A : Float; B : Float)
+      is begin
+         null;
+      end; -- no P2
    end Protected_1;
 
    --------------------------------------------------------------

@@ -43,6 +43,7 @@
   (setq ada-clean-buffer-before-saving nil)
   (indent-region (point-min) (point-max))
   ;; FIXME: put this back (and fix it!) (ada-adjust-case-buffer)
+  ;; FIXME: also test case-exceptions (ie GDS, Text_IO)
 
   ;; Cleanup the buffer; indenting often leaves trailing whitespace;
   ;; files must be saved without any.

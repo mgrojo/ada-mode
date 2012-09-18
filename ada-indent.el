@@ -205,6 +205,11 @@ name (may be before any name is seen)."
      (save-excursion
        (let ((token (ada-indent-backward-unit_name)))
 	 (pcase token
+	   (`"" ;; we hit a parameter list
+	    (smie-backward-sexp)
+	    (if (equal "procedure" (ada-indent-backward-unit_name))
+		"is-subprogram_body"))
+
 	   (`"package" "is-package_declaration")
 	   ;; "package" name ^ "is" FIXME: "name" could have dots!
 
@@ -213,7 +218,6 @@ name (may be before any name is seen)."
 
 	   (`"procedure" "is-subprogram_body")
 	   ;; "procedure" name ^ "is"
-	   ;; FIXME: test procedure with parameter list
 
 	   (`"protected_type" "is-type")
 	   ;; "protected" identifier ^ "is"
@@ -391,24 +395,33 @@ name (may be before any name is seen)."
        (`"end"
 	(smie-rule-parent 0))))
     (:after
-     (pcase arg
-       ((or `"is-type"
-	    `"is-package_body"
-	    `"is-package_declaration"
-	    `"is-protected_body"
-	    `"is-subprogram_body")
-	;; indent relative to the start of the declaration or body,
-	;; which is the parent of 'is'.
-	(smie-rule-parent ada-indent))
-       (`";"
-	(if (smie-rule-sibling-p)
-	    nil
-	  ;; indent relative to the start of the block or parameter
-	  ;; list, which is the parent of ';'
-	  (smie-rule-parent ada-indent)))
-       ))))
+     (or
+      (pcase arg
+	((or `"is-type"
+	     `"is-package_body"
+	     `"is-package_declaration"
+	     `"is-protected_body"
+	     `"is-subprogram_body")
+	 ;; indent relative to the start of the declaration or body,
+	 ;; which is the parent of 'is'.
+	 (smie-rule-parent ada-indent))
+	(`";"
+	 (if (smie-rule-sibling-p)
+	     nil
+	   ;; indent relative to the start of the block or parameter
+	   ;; list, which is the parent of ';'
+	   (smie-rule-parent ada-indent)))
+	)
+      (if (smie-indent--hanging-p) ada-indent)
+      ))))
 
 (defun ada-indent-setup ()
+   ;; smie-indent-comment doesn't do what we want, but
+   ;; smie-indent-after-keyword does what we want for comments; it
+   ;; indents the comment as a simple single-line statement.
+  (set (make-local-variable 'smie-indent-functions)
+       (remove 'smie-indent-comment smie-indent-functions))
+
   (smie-setup ada-indent-grammar #'ada-indent-rules
 	      :forward-token #'ada-indent-forward-token
 	      :backward-token #'ada-indent-backward-token))

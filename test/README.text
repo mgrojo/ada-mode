@@ -1,0 +1,21 @@
+This directory provides a test of Emacs Ada mode indentation,
+capitalization, and other issues.
+
+runtest.el provides the Emacs lisp code that tests one file; it
+outputs a copy of the file, indented and capitalized. It also defines
+special comments that can be used to test other things.
+
+Makefile runs runtest.el agains all the Ada files in this directory,
+and diffs the result against the original. FIXME: provide a target
+that users can easily use to run against their code.
+
+The Ada files that are children of Ada_Mode were written (or renamed
+from existing tests) to test the SMIE grammar while the grammar was
+being written. Ada_Mode.Nominal contains structures that have a major
+influence on the grammar structure, such as names with dots, extended
+return, protected types. Other Ada_Mode.* test smaller parts of the
+grammar.
+
+Other Ada files are mostly bug reports from earlier versions of
+Ada mode. They must still work, and may test corner cases not
+otherwise tested.
