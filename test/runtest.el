@@ -66,6 +66,9 @@
   (run-test-here)
 
   ;; Write the result file; makefile will diff.
+  ;;
+  ;; FIXME: if run-test-here fails, generate some sort of error so we
+  ;; see it when running from the Makefile.
   (write-file (concat file-name ".tmp"))
   )
 ;; Local Variables:

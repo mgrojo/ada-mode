@@ -1,4 +1,4 @@
-procedure A is
+procedure Main_Procedure is
    procedure Put_Line (A : in Integer; B : in String)
    is begin
       null;
@@ -19,4 +19,4 @@ begin
    Put_Line (A => Adas,
              B => Fsfsdfsdf &
                Fsfdsfsd);
-end A;
+end Main_Procedure;

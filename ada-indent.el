@@ -168,19 +168,27 @@ begin
        ))
     )))
 
-(defun ada-indent-backward-unit_name ()
-  "Skip backwards over a unit_name, consisting of just
-identifiers and dots. Return the token before the name."
+(defun ada-indent-next-unit_name (next-token)
+  "Skip over a unit_name using NEXT-TOKEN, consisting of just
+identifiers and dots. Return the token that isn't part of the
+name (may be before any name is seen)."
   (let (token)
     (while
 	(progn
-	  (setq token (assoc (ada-indent-backward-token) smie-grammar))
-	  ;; FIXME: this gets stuck in an infinite loop if it hits a
-	  ;; parameter list; (ada-indent-backward-token) makes no
-	  ;; progress!
-	  (or (not token); not a keyword, so it must be an identifier
-	      (equal (nth 0 token) "."))))
-    (nth 0 token)))
+	  (setq token (funcall next-token))
+	  (if (equal "" token)
+	      ;; we hit a parameter list or something similar
+	      nil
+	    (setq token (nth 0 (assoc token smie-grammar)))
+	    (or (not token); not a keyword, so it must be an identifier
+		(equal token ".")))))
+    token))
+
+(defun ada-indent-backward-unit_name ()
+  (ada-indent-next-unit_name 'ada-indent-backward-token))
+
+(defun ada-indent-forward-unit_name ()
+  (ada-indent-next-unit_name 'ada-indent-forward-token))
 
 (defun ada-indent-refine-is (direction)
   (save-excursion
@@ -305,7 +313,7 @@ identifiers and dots. Return the token before the name."
 	   (`";" "return-exp") ; special case of 3b with expression = identifier or literal
 
 	   (`":"
-	     (if (equal (ada-indent-forward-name) ";")
+	     (if (equal (ada-indent-forward-unit_name) ";")
 		 "return"; 4a
 	       "return-do")); 4b
 
@@ -355,6 +363,10 @@ identifiers and dots. Return the token before the name."
        (token (error "unrecognized 'body': %s" token))))
 
     (`"is" (ada-indent-refine-is 'backward))
+
+    (`"protected" "protected_type")
+    ;; single_protected_declaration. we don't have to check for 'body'
+    ;; here; we would have already hit that.
 
     (`"return" (ada-indent-refine-return 'backward))
 

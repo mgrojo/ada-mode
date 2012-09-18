@@ -1,8 +1,15 @@
--- Comments at the very beginning of the buffer (_before_ any code)
---EMACSCMD: (setq ada-indent-align-comments nil)
+-- Called "Ada_Mode.Nominal" because this was written to test the SMIE
+-- grammar while the grammar was being written. It contains structures
+-- that have a major influence on the grammar structure, such as
+-- extended return, protected types.
+--
+-- Other Ada_Mode.* test smaller parts of the grammar.
+--
+-- Other files are mostly bug reports from earlier versions of Ada
+-- mode. They must still work, and may test corner cases not otherwise
+-- tested.
 
-
-package body Ada_Mode.Work is
+package body Ada_Mode.Nominal is
 
    -- Integer ici est souligne (Integer is highlighted here)
    -- FIXME: highlighting is not checked in the automated test
@@ -11,7 +18,7 @@ package body Ada_Mode.Work is
    protected type Protected_1 is
 
       function F1 return Integer;
-      function F2 (A : Float; B : Float) return Integer;
+      function F2 (A : Float; B : Float) return Float;
       entry E1 (X : Integer);
       procedure P1;
 
@@ -83,4 +90,4 @@ package body Ada_Mode.Work is
 
 begin
    null;
-end Ada_Mode.Work;
+end Ada_Mode.Nominal;

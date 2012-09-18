@@ -15,7 +15,7 @@ EMACS := $(EMACSPATH)/emacs.exe
 
 #one : EMACS := /usr/bin/emacs
 one : test_overriding_indent.adb
-	gnatmake -gnatc $<
+	gnatmake -gnat2012 -gnatc $<
 	rm -rf $<.tmp $<.diff
 	make $<.diff
 
@@ -68,10 +68,10 @@ COMPILE_FILES := $(sort $(COMPILE_FILES))
 compile : $(COMPILE_FILES)
 
 %.ali : %.adb
-	gnatmake -gnatc $<
+	gnatmake -gnat2012 -gnatc $<
 
 %.ali : %.ads
-	gnatmake -gnatc $<
+	gnatmake -gnat2012 -gnatc $<
 
 clean : compile-clean test-clean
 
