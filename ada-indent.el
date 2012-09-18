@@ -54,9 +54,9 @@ begin
 
        ;; alphabetical order, since there isn't any more reasonable order
        ;; we use the same names as [1] Annex P as much as possible
-       (array_type_definition ("type" identifier "is-type" "array" expression "of" identifier))
+       (array_type_definition ("type" identifier "is-type" "array" expression "of" name))
 
-       (component (identifier ":" identifier)) ; discriminants are a balanced paren; FIXME: constraints?
+       (component (identifier ":" name)) ; discriminants are a balanced paren; FIXME: constraints?
 
        (components
 	(component)
@@ -89,20 +89,25 @@ begin
 	;; Note that we declare := to be an operator; that way this
 	;; covers assignment statements as well. We are not enforcing
 	;; Ada legality rules, just computing indentation.
-	(identifier "-operator-" identifier)
+	(name "-operator-" name)
 	("(" expression ")"))
        ;; FIXME: membership_choice_list?
        ;; FIXME: unary operators?
+       ;; FIXME: if expressions?
+
+       (name
+	(identifier)
+	(name "." identifier) ; selected_component
+	)
 
        (package_declaration
-	("package" identifier "is-package_declaration" declarations "begin" statements "end"))
-       ;; FIXME: "identifier" should be "name", with dots
+	("package" name "is-package_declaration" declarations "begin" statements "end"))
 
        (package_body
-	("package" "body" identifier "is-package_body" declarations "begin" statements "end"))
-       ;; FIXME: "identifier" should be "name", with dots
+	;; Leaving 'package body' as separate tokens causes problems in refine-is
+	("package_body" name "is-package_body" declarations "begin" statements "end"))
 
-       (protected_body ("protected" "body" identifier "is-protected_body" declarations "end"))
+       (protected_body ("protected_body" identifier "is-protected_body" declarations "end"))
 
        (protected_type_declaration
 	;; prefixing "protected" gives a precedence conflict: 'token
@@ -118,7 +123,6 @@ begin
 
        (statement
 	(expression); matches procedure calls, assignment
-	; FIXME: more
 	)
 
        (statements
@@ -126,10 +130,13 @@ begin
 	(statement ";" statement))
 
        (subprogram_body
-	(subprogram_specification "is-subprogram_body" declarations "begin" statements "end"))
+	;; factoring out subprogram_specification here breaks something.
+	("function" name "return" name "is-subprogram_body" declarations "begin" statements "end")
+	("procedure" name "is-subprogram_body" declarations "begin" statements "end"))
        ;; FIXME: test overriding_indicator
        ;; FIXME: test aspect_specification
        ;; FIXME: test exception handler
+
        ))
 
     ;; operators and similar things
@@ -151,11 +158,22 @@ begin
        ))
     )))
 
+(defun ada-indent-backwards-unit_name ()
+  "Skip backwards over a unit_name, consisting of just
+identifiers and dots. Return the token before the name."
+  (let (token)
+    (while
+	(progn
+	  (setq token (assoc (ada-indent-backward-token) smie-grammar))
+	  (or (not token); not a keyword, so it must be an identifier
+	      (equal (nth 0 token) "."))))
+    (nth 0 token)))
+
 (defun ada-indent-refine-entry_body ()
   "Return token if current token is the 'is' of an entry body, else nil"
   (save-excursion
     ;; entry body with params: "entry" identifier "("...")" "when" exp "is"
-    ;; FIXME: try this in refine-is
+    ;; We have to use smie-backward-sexp to parse the exp.
     (let* ((token (nth 2 (smie-backward-sexp "is-entry_body"))))
 	(if (equal "entry" token)
 	    "is-entry_body"
@@ -170,33 +188,27 @@ begin
 
     (or
      ;; first try simple, common constructs.  we don't use
-     ;; smie-backward-sexp for these, because it is often too greedy.
+     ;; smie-backward-sexp for these, because it is often too greedy;
+     ;; it leads to horrible recursive parsing with wrong guesses,
+     ;; and ends up reporting no match.
      (save-excursion
-       (let ((token
-	      (progn
-		(smie-default-backward-token)
-		(smie-default-backward-token))))
+       (let ((token (ada-indent-backwards-unit_name)))
 	 (pcase token
-	   (`"body"
-	    (setq token (smie-default-backward-token))
-	    (pcase token
-	      (`"package" "is-package_body")
-	      ;; "package" "body" name ^ "is" FIXME: "name" could have dots!
-
-	      (`"protected" "is-protected_body")
-	      ;; "protected" "body" identifier ^ "is"
-
-	      (t nil)))
-
-	   (`"package" "is-package_spec")
+	   (`"package" "is-package_declaration")
 	   ;; "package" name ^ "is" FIXME: "name" could have dots!
 
+	   (`"package_body" "is-package_body")
+	   ;; "package" "body" name ^ "is" FIXME: "name" could have dots!
+
 	   (`"procedure" "is-subprogram_body")
-	   ;; "procedure" identifier ^ "is"
+	   ;; "procedure" name ^ "is"
 	   ;; FIXME: test procedure with parameter list
 
-	   (`"protected" "is-type")
+	   (`"protected_type" "is-type")
 	   ;; "protected" identifier ^ "is"
+
+	   (`"protected_body" "is-protected_body")
+	   ;; "protected" "body" identifier ^ "is"
 
 	   (`"return"
 	    (setq token
@@ -224,21 +236,39 @@ begin
     ;; FIXME: and_then, or_else
     (`"is" (ada-indent-refine-is 'forward))
 
-    ;; FIXME: this is not the inverse of ada-indent-backward-token. It
-    ;; does make single_protected_type work (ada_test.adb)
-    (`"protected" (if (equal "body" (save-excursion (smie-default-forward-token))) "protected" "protected_type"))
+    (`"protected"
+     (if (equal "body" (save-excursion (smie-default-forward-token)))
+	 (progn
+	   (smie-default-forward-token)
+	   "protected_body")
+       "protected_type"))
     (token token)))
 
 (defun ada-indent-backward-token ()
   (pcase (smie-default-backward-token)
     ;; FIXME: and_then, or_else
+    (`"body"
+     (pcase (save-excursion (smie-default-backward-token))
+       (`"package"
+	 (progn
+	   (smie-default-backward-token)
+	   "package_body"))
+
+       (`"protected"
+	 (progn
+	   (smie-default-backward-token)
+	   "protected_body"))
+       (token (error "unrecognized 'body': %s" token))))
+
     (`"is" (ada-indent-refine-is 'backward))
 
-    (`"type" (if (equal "protected" (save-excursion (smie-default-backward-token)))
-		 (progn
-		   (smie-default-backward-token)
-		   "protected_type")
-	       "type"))
+    (`"type"
+     (if (equal "protected" (save-excursion (smie-default-backward-token)))
+	 (progn
+	   (smie-default-backward-token)
+	   "protected_type")
+       "type"))
+
     (token token)))
 
 (defun ada-indent-rules (method arg)
@@ -248,15 +278,19 @@ begin
        (basic ada-indent)
        (args 0))
      )
+    (:before
+     (pcase arg
+       (`"end"
+	(smie-rule-parent 0))))
     (:after
      (pcase arg
        ((or `"is-type"
 	    `"is-package_body"
-	    `"is-package_spec"
+	    `"is-package_declaration"
 	    `"is-protected_body"
 	    `"is-subprogram_body")
 	;; indent relative to the start of the declaration or body,
-	;; which is the parent of 'is'
+	;; which is the parent of 'is'.
 	(smie-rule-parent ada-indent))
        (`";"
 	(if (smie-rule-sibling-p)

@@ -5,12 +5,8 @@ General notes on porting Emacs Ada mode indentation engine to smie
     (add-to-list 'load-path (expand-file-name "."))
     (load "test/runtest.el"))
 
-test/ada_mode.adb passes!
-    rewrite refine-is to pass expected "is-*" to backward-sexp
-
-    report ediff-buffers-wordwise bug; mark-active set, but no mark!
-
 test/Makefile
+    test/ada_mode-work.adb
 
 ada-indent.el
 
@@ -23,6 +19,15 @@ c:/Projects/emacs_stephe.main/emacs_stephe_site_lisp/ada-mode.el
 (info "(aarm2012)Annex P" "*info-aarm*")
 http://dickgrune.com/Books/PTAPG_2nd_Edition/
     used by modula2-mode, octave-mode in emacs 24
+
+ to do
+
+report ediff-buffers-wordwise bug; mark-active set, but no mark!
+    try trunk http://alpha.gnu.org/gnu/emacs/windows/
+
+rewrite refine-is to pass expected "is-*" to backward-sexp
+    use a list of pairs (is-token parent-token)
+
 
  access to ada-france:
 

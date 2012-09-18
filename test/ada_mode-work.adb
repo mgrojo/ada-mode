@@ -2,8 +2,7 @@
 --EMACSCMD: (setq ada-indent-align-comments nil)
 
 
-package body Ada_Mode is
-   -- FIXME: rename to nested package, to test name with dots
+package body Ada_Mode.Work is
 
    -- Integer ici est souligne (Integer is highlighted here)
    -- FIXME: highlighting is not checked in the automated test
@@ -75,4 +74,4 @@ package body Ada_Mode is
 
 begin
    null;
-end Ada_Mode;
+end Ada_Mode.Work;
