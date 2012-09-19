@@ -409,13 +409,25 @@ name (may be before any name is seen)."
   (pcase (smie-default-backward-token)
     ;; FIXME: and_then, or_else
     (`":"
-     ;; ':' occurs in object declarations and extended return statements.
-     (if (equal ";"
-		(save-excursion
-		  (smie-default-forward-token); ":"
-		  (ada-indent-forward-unit_name))) ;; FIXME: a full subtype_definition is more complicated!
-	 ":"
-       ":-do"))
+     ;; ':' occurs in object declarations and extended return statements:
+     ;; defining_identifier_list : [aliased] [constant] subtype_indication [:= expression] [aspect_specification];
+     ;; defining_identifier : [aliased][constant] return_subtype_indication [:= expression]
+     ;;    [do handled_sequence_of_statements end return];
+     ;;
+     ;; To complex to sort out syntacticly. But 'do' and ';' are
+     ;; unique, so we can use search-forward-regexp. We might find
+     ;; neither, if the user is typing new code at the end of the
+     ;; buffer.
+     ;;
+     ;; We have to allow for newline, which search-forward-regexp does
+     ;; not. So first we search for just ';', since there must be
+     ;; one. Then we use that as the bound to search for 'do'.
+     (save-excursion
+       (let ((bound (save-excursion (search-forward ";" nil t))))
+	 (if (and bound
+		  (search-forward "do" bound t))
+	     ":-do"
+	   ":"))))
 
     (`"body"
      (pcase (save-excursion (smie-default-backward-token))
@@ -472,16 +484,17 @@ name (may be before any name is seen)."
     (:after
      (or
       (pcase arg
-	((or `"is-type"
-	     `"is-package_body"
+	(`";" 0)
+
+	(`"do" ada-indent)
+
+	((or `"is-package_body"
 	     `"is-package_declaration"
 	     `"is-protected_body"
 	     `"is-subprogram_body")
 	 ;; indent relative to the start of the declaration or body,
 	 ;; which is the parent of 'is'.
 	 (smie-rule-parent ada-indent))
-
-	(`";" 0)
 	)
       (if (smie-indent--hanging-p) ada-indent)
       ))))

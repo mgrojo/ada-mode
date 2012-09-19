@@ -16,10 +16,10 @@ generic
       function
          (A_Param : in Float)
          return Standard.Float;
-   -- access to function
+   -- access to function (aligned with 'type', which is the start of the previous statement)
 
    type Unconstrained_Formal_Array_Type is
-      array (Integer range <>, Standard.Character range <>) of Object_Formal_Access_Type;
+      array (Integer range <>, Standard.Character range <>) of Object_Formal_Access_Type_1;
 
    type Constrained_Formal_Array_Type is array (Character) of Ada.Text_IO.Count;
 

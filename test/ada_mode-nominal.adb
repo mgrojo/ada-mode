@@ -13,8 +13,6 @@ package body Ada_Mode.Nominal is
       procedure P1;
       procedure P2 (A : Float; B : Float);
 
-      --  FIXME: test type names with dots, where that matters to the grammar
-
       -- This is a comment just before 'private'; default smie
       -- indentation doesn't do what we want here.
    private
@@ -44,10 +42,10 @@ package body Ada_Mode.Nominal is
          end return;
       end; -- no F2 on purpose
 
-      entry E1 (X : Integer) when Local = 0 is
+      entry E1 (X : Integer) when Local_1 = 0 is
          Tmp : Integer := 0;
       begin
-         Local :=
+         Local_1 :=
             X + Tmp; -- an indented line
 
          -- A comment after an indented line
