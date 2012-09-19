@@ -51,16 +51,35 @@ begin
        ;;
        ;; We don't include any tokens after "end" in the grammar, so
        ;; it is always a closer. SMIE allows extra tokens!
+       ;;
+       ;; For all ';' separated non-terminals, the first and last
+       ;; tokens in the syntax should be a keyword, so the
+       ;; non-terminal is a single sexp when parsing forwards or
+       ;; backwards. An exception is when there is a single keyword in
+       ;; the syntax; then a trailing name is ok, and can reduce the
+       ;; number of special keywords we need.
 
        ;; alphabetical order, since there isn't any more reasonable order
        ;; we use the same names as [1] Annex P as much as possible
-       (array_type_definition ("type" identifier "is-type" "array" expression "of" name))
 
-       (component (identifier ":" name)) ; discriminants are a balanced paren; FIXME: constraints?
+       (access_type_definition ("type" identifier "is-type" "access"))
+       ;; don't need "not null all"; they are just ignored (treated as identifiers)
+
+       (array_type_definition ("type" identifier "is-type" "array" expression "of"))
+
+       (component (identifier ":")) ; discriminants are a balanced paren; FIXME: constraints?
 
        (components
 	(component)
 	(component ";" component))
+
+       (context_clause
+	(context_item)
+	(context_item ";" context_item))
+
+       (context_item
+	("with");; FIXME: limited [private] with library_unit_name {, library_unit_name};
+	("use"));; FIXME: use [all] type subtype_mark {, subtype_mark};
 
        (declaration
 	(array_type_definition)
@@ -69,6 +88,11 @@ begin
 	(record_type_definition)
 	(subprogram_declaration)
 	(subprogram_body)
+
+	;; we use 'declarations' in the place of
+	;; 'generic_formal_parameter_declarations'; no need to
+	;; complicate the grammar with another non-terminal
+	;; FIXME: none needed yet
 	)
 
        (declarations
@@ -95,6 +119,24 @@ begin
        ;; FIXME: membership_choice_list?
        ;; FIXME: unary operators?
        ;; FIXME: if expressions?
+
+       ;; generic_formal_parameter_declaration
+       ;; (formal_object_declaration) is the same syntax as a normal object
+       ;; declaration, plus optional mode, which we can ignore.
+
+       ;; formal_type_declarations are all the same as the normal type declarations, except:
+       ;; FIXME: numeric types have <> insted of numbers
+       ;; FIXME: formal_derived_type_definition ::=
+       ;; [abstract] [limited | synchronized] new subtype_mark [[and interface_list]with private]
+       ;; FIXME: formal_discrete_type_definition ::= (<>)
+       ;; FIXME: formal_private_type_definition ::= [[abstract] tagged] [limited] private
+       ;; FIXME: formal_subprogram_declaration
+       ;; FIXME: formal_package_declaration
+
+       (generic_package_declaration
+	;; FIXME: let's see how far we get with 'declarations' instead of 'generic_formal_parameter_declarations'
+	("generic" declarations
+	 "package-generic" name "is-package_declaration" declarations "begin" statements "end"))
 
        (name
 	(identifier)
@@ -125,9 +167,9 @@ begin
        (statement
 	(expression); matches procedure calls, assignment
 	("return")
-	("return-exp" expression)
-	("return-do" identifier ":" name)
-	("return-do" identifier ":" name "do" statements "end_return")
+	("return-exp")
+	("return-do" identifier ":")
+	("return-do" identifier ":-do" name "do" statements "end_return")
 	)
 
        (statements
@@ -136,7 +178,7 @@ begin
 
        (subprogram_body
 	;; factoring out subprogram_specification here breaks something.
-	("function" name "return-spec" name "is-subprogram_body" declarations "begin" statements "end")
+	("function" name "return-spec-2" name "is-subprogram_body" declarations "begin" statements "end")
 	("procedure" name "is-subprogram_body" declarations "begin" statements "end"))
        ;; FIXME: test overriding_indicator
        ;; FIXME: test aspect_specification
@@ -144,8 +186,8 @@ begin
 
        (subprogram_declaration
 	;; factoring out subprogram_specification here breaks something.
-	("function" name "return-spec" name)
-	("procedure" name))
+	("function" name "return-spec-1")
+	("procedure" name)); same as procedure name is-subprogram_body
        ;; FIXME: is abstract
        ))
 
@@ -167,6 +209,20 @@ begin
        (nonassoc ":=") ; assignment statement (always done last)
        ))
     )))
+
+(defun ada-indent-skip-param_list (direction)
+  ;; While refining tokens, we don't want to call smie-next-sexp,
+  ;; because it relies on refined tokens. So we just call the C
+  ;; scanner (see the lisp source for forward-sexp).
+  ;;
+  ;; We could call (smie-backward-sexp), which would be safe, and
+  ;; would call the C scanner on the second iteration (it also binds
+  ;; forward-sexp-function nil when it hits a paren), but this is
+  ;; clearer.
+  (let ((forward-sexp-function nil))
+    (if (eq direction 'forward)
+	(forward-sexp)
+    (backward-sexp))))
 
 (defun ada-indent-next-unit_name (next-token)
   "Skip over a unit_name using NEXT-TOKEN, consisting of just
@@ -206,7 +262,7 @@ name (may be before any name is seen)."
        (let ((token (ada-indent-backward-unit_name)))
 	 (pcase token
 	   (`"" ;; we hit a parameter list
-	    (smie-backward-sexp)
+	    (ada-indent-skip-param_list 'backward)
 	    (if (equal "procedure" (ada-indent-backward-unit_name))
 		"is-subprogram_body"))
 
@@ -225,7 +281,7 @@ name (may be before any name is seen)."
 	   (`"protected_body" "is-protected_body")
 	   ;; "protected" "body" identifier ^ "is"
 
-	   (`"return-spec" "is-subprogram_body")
+	   (`"return-spec-2" "is-subprogram_body")
 	      ;; "function" identifier "return" name ^ "is"
 
 	   (`"type" "is-type")
@@ -254,13 +310,13 @@ name (may be before any name is seen)."
     ;;
     ;;      function identifier (...) return name;
     ;;
-    ;;    token: "return-spec"
+    ;;    token: "return-spec-1"
     ;;
     ;; 2) a function body:
     ;;
     ;;      function identifier (...) return name is
     ;;
-    ;;    token: "return-spec"
+    ;;    token: "return-spec-2"
     ;;
     ;; 3) a return statement:
     ;;
@@ -286,24 +342,30 @@ name (may be before any name is seen)."
     (or
      (save-excursion (if (equal "end" (smie-default-backward-token)) "end_return")); 4c
 
-     ;; do this before parsing forward, otherwise can't distinguish between:
+     ;; do this before first, otherwise can't distinguish between:
      ;; function F1 return Integer;
      ;; return 0;
      ;;
-     ;; It would be simpler to do (smie-backward-sexp "return-spec")
-     ;; here, but if we are wrong, we'd get totally confused.
-     (save-excursion
-	(if (equal "function"
-		   ;; no parameter list
-		   (ada-indent-backward-unit_name))
-	    "return-spec")); 1 or 2
+     (if (equal "function"
+		;; no parameter list
+		(save-excursion (ada-indent-backward-unit_name)))
+	 (if (equal "is-subprogram_body"
+		    (save-excursion
+		      (smie-default-forward-token); return
+		      (ada-indent-forward-unit_name)))
+	     "return-spec-2"; 2
+	   "return-spec-1")); 1
 
-     (save-excursion
-	(if (equal "function"
-		   (progn
-		     (smie-backward-sexp); parameter list
-		     (ada-indent-backward-unit_name)))
-	    "return-spec")); 1 or 2
+     (if (equal "function"
+		(save-excursion
+		  (ada-indent-skip-param_list 'backward)
+		  (ada-indent-backward-unit_name)))
+	 (if (equal "is-subprogram_body"
+		    (save-excursion
+		       (smie-default-forward-token); return
+		       (ada-indent-forward-unit_name)))
+	     "return-spec-2"; 2
+	   "return-spec-1")); 1
 
      (save-excursion
        ;; FIXME: test this at end of buffer (not very
@@ -315,14 +377,9 @@ name (may be before any name is seen)."
 	   "return"; 3a
 	 (pcase (smie-default-forward-token)
 	   (`";" "return-exp") ; special case of 3b with expression = identifier or literal
-
-	   (`":"
-	     (if (equal (ada-indent-forward-unit_name) ";")
-		 "return"; 4a
-	       "return-do")); 4b
-
+	   (`":" "return"); 4a
+	   (`":-do" "return-do"); 4b
 	   (`"is" "return-spec"); special case of 2, with name = identifier
-
 	   (_ "return-exp"); 3b
 	   )))
      )))
@@ -339,6 +396,9 @@ name (may be before any name is seen)."
 
     (`"is" (ada-indent-refine-is 'forward))
 
+    ;; we don't need to handle 'package_body' here, apparently; we
+    ;; never parse forward over that.
+
     (`"protected"
      (if (equal "body" (save-excursion (smie-default-forward-token)))
 	 (progn
@@ -353,6 +413,12 @@ name (may be before any name is seen)."
 (defun ada-indent-backward-token ()
   (pcase (smie-default-backward-token)
     ;; FIXME: and_then, or_else
+    (`":"
+     ;; ':' occurs in object declarations and extended return statements.
+     (if (equal (ada-indent-forward-unit_name) ";")
+	 ":"
+       ":-do"))
+
     (`"body"
      (pcase (save-excursion (smie-default-backward-token))
        (`"package"
@@ -367,6 +433,14 @@ name (may be before any name is seen)."
        (token (error "unrecognized 'body': %s" token))))
 
     (`"is" (ada-indent-refine-is 'backward))
+
+    (`"package"
+     ;; FIXME: this is ok for a library level [generic] package alone in
+     ;; a file. But it could be a problem for a nested [generic]
+     ;; package.
+     (if (equal "generic" (smie-backward-sexp "package-generic"))
+	 "package-generic"
+       "package"))
 
     (`"protected" "protected_type")
     ;; single_protected_declaration. we don't have to check for 'body'
@@ -392,7 +466,10 @@ name (may be before any name is seen)."
      )
     (:before
      (pcase arg
-       (`"end"
+       ((or
+	 `"end"
+	 `"generic"
+	 `"with") ; context clause; FIXME: also used in derived record declaration
 	(smie-rule-parent 0))))
     (:after
      (or
@@ -405,12 +482,8 @@ name (may be before any name is seen)."
 	 ;; indent relative to the start of the declaration or body,
 	 ;; which is the parent of 'is'.
 	 (smie-rule-parent ada-indent))
-	(`";"
-	 (if (smie-rule-sibling-p)
-	     nil
-	   ;; indent relative to the start of the block or parameter
-	   ;; list, which is the parent of ';'
-	   (smie-rule-parent ada-indent)))
+
+	(`";" 0)
 	)
       (if (smie-indent--hanging-p) ada-indent)
       ))))

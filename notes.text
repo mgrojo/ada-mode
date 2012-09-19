@@ -1,13 +1,22 @@
 General notes on porting Emacs Ada mode indentation engine to smie
 
 (progn
-    (toggle-debug-on-error nil)
     (add-to-list 'load-path (expand-file-name "."))
     (load "test/runtest.el")
     (add-hook 'ada-mode-hook
        (lambda () (define-key ada-mode-map "\C-w" 'capitalize-word))))
+(edebug-toggle-save-all-windows)
+(setq edebug-unwrap-results t)
 
 test/Makefile
+    test/ada_mode-nominal.adb
+incorrect indent after Local : Integer;
+    smie-indent--hanging-p is t
+    no syntax for object_declaration; only for component
+        just use declarations for components
+
+smie-default-backward-token returns empty string for )
+
     test/ada_mode-generic_package.ads
 
 ada-indent.el

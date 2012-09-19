@@ -5,7 +5,8 @@ generic
    -- one of each kind of generic_formal_parameter_definition from arm Annex P
 
    -- Types
-   type Object_Formal_Access_Type is not null access all Integer; -- access to object
+   type Object_Formal_Access_Type_1 is not null access all Integer; -- access to object
+   type Object_Formal_Access_Type_2 is access Integer; -- access to object
    type Procedure_Formal_Access_Type is
       access protected procedure
          (A_Param : out Integer); -- access to procedure
