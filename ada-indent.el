@@ -57,7 +57,8 @@ begin
        ;; non-terminal is a single sexp when parsing forwards or
        ;; backwards. An exception is when there is a single keyword in
        ;; the syntax; then a trailing name is ok, and can reduce the
-       ;; number of special keywords we need.
+       ;; number of refined keywords we need. There are a couple of
+       ;; other exceptions, noted below.
 
        ;; alphabetical order, since there isn't any more reasonable order
        ;; we use the same names as [1] Annex P as much as possible
@@ -66,12 +67,6 @@ begin
        ;; don't need "not null all"; they are just ignored (treated as identifiers)
 
        (array_type_definition ("type" identifier "is-type" "array" expression "of"))
-
-       (component (identifier ":")) ; discriminants are a balanced paren; FIXME: constraints?
-
-       (components
-	(component)
-	(component ";" component))
 
        (context_clause
 	(context_item)
@@ -88,6 +83,7 @@ begin
 	(record_type_definition)
 	(subprogram_declaration)
 	(subprogram_body)
+	(identifier ":") ; object; FIXME: constraints?
 
 	;; we use 'declarations' in the place of
 	;; 'generic_formal_parameter_declarations'; no need to
@@ -162,7 +158,10 @@ begin
        ;; FIXME: [new interface_list with]
        ;; FIXME: [aspect_specification]
 
-       (record_type_definition ("type" identifier "is-type" "record" components "end"))
+       (record_type_definition ("type" identifier "is-type" "record" "end"))
+       ;; FIXME: using nothing instead of components, because SMIE
+       ;; already allows lists of sexps; heading towards getting rid
+       ;; of all list non-terminals
 
        (statement
 	(expression); matches procedure calls, assignment
@@ -178,7 +177,7 @@ begin
 
        (subprogram_body
 	;; factoring out subprogram_specification here breaks something.
-	("function" name "return-spec-2" name "is-subprogram_body" declarations "begin" statements "end")
+	("function" name "return-spec" name "is-subprogram_body" declarations "begin" statements "end")
 	("procedure" name "is-subprogram_body" declarations "begin" statements "end"))
        ;; FIXME: test overriding_indicator
        ;; FIXME: test aspect_specification
@@ -186,8 +185,13 @@ begin
 
        (subprogram_declaration
 	;; factoring out subprogram_specification here breaks something.
-	("function" name "return-spec-1")
-	("procedure" name)); same as procedure name is-subprogram_body
+
+	("function" name "return-spec" name)
+	;; trailing name makes this return-spec the same as same as
+	;; 'function name return-spec name is-subprogram-body'; that
+	;; avoids recursion between refine-is and refine-return
+
+	("procedure" name)); same as 'procedure name is-subprogram_body'
        ;; FIXME: is abstract
        ))
 
@@ -259,35 +263,34 @@ name (may be before any name is seen)."
      ;; it leads to horrible recursive parsing with wrong guesses,
      ;; and ends up reporting no match.
      (save-excursion
-       (let ((token (ada-indent-backward-unit_name)))
-	 (pcase token
-	   (`"" ;; we hit a parameter list
-	    (ada-indent-skip-param_list 'backward)
-	    (if (equal "procedure" (ada-indent-backward-unit_name))
-		"is-subprogram_body"))
+       (pcase (ada-indent-backward-unit_name)
+	 (`"" ;; we hit a parameter list
+	  (ada-indent-skip-param_list 'backward); FIXME: include this in ada-indent-backward-unit_name?
+	  (if (equal "procedure" (ada-indent-backward-unit_name))
+	      "is-subprogram_body"))
 
-	   (`"package" "is-package_declaration")
-	   ;; "package" name ^ "is" FIXME: "name" could have dots!
+	 (`"package" "is-package_declaration")
+	 ;; "package" name ^ "is" FIXME: "name" could have dots!
 
-	   (`"package_body" "is-package_body")
-	   ;; "package" "body" name ^ "is" FIXME: "name" could have dots!
+	 (`"package_body" "is-package_body")
+	 ;; "package" "body" name ^ "is" FIXME: "name" could have dots!
 
-	   (`"procedure" "is-subprogram_body")
-	   ;; "procedure" name ^ "is"
+	 (`"procedure" "is-subprogram_body")
+	 ;; "procedure" name ^ "is"
 
-	   (`"protected_type" "is-type")
-	   ;; "protected" identifier ^ "is"
+	 (`"protected_type" "is-type")
+	 ;; "protected" identifier ^ "is"
 
-	   (`"protected_body" "is-protected_body")
-	   ;; "protected" "body" identifier ^ "is"
+	 (`"protected_body" "is-protected_body")
+	 ;; "protected" "body" identifier ^ "is"
 
-	   (`"return-spec-2" "is-subprogram_body")
-	      ;; "function" identifier "return" name ^ "is"
+	 (`"return-spec" "is-subprogram_body")
+	 ;; "function" identifier "return" name ^ "is"
 
-	   (`"type" "is-type")
-	   ;; "type" identifier ^ "is"
-	   ;; covers "protected type"; that's lexed as the token "type"
-	   )))
+	 (`"type" "is-type")
+	 ;; "type" identifier ^ "is"
+	 ;; covers "protected type"; that's lexed as the token "type"
+	 ))
 
      ;; now more complicated things
      (save-excursion
@@ -310,13 +313,13 @@ name (may be before any name is seen)."
     ;;
     ;;      function identifier (...) return name;
     ;;
-    ;;    token: "return-spec-1"
+    ;;    token: "return-spec"
     ;;
     ;; 2) a function body:
     ;;
     ;;      function identifier (...) return name is
     ;;
-    ;;    token: "return-spec-2"
+    ;;    token: "return-spec"
     ;;
     ;; 3) a return statement:
     ;;
@@ -346,26 +349,18 @@ name (may be before any name is seen)."
      ;; function F1 return Integer;
      ;; return 0;
      ;;
-     (if (equal "function"
-		;; no parameter list
-		(save-excursion (ada-indent-backward-unit_name)))
-	 (if (equal "is-subprogram_body"
-		    (save-excursion
-		      (smie-default-forward-token); return
-		      (ada-indent-forward-unit_name)))
-	     "return-spec-2"; 2
-	   "return-spec-1")); 1
+     (save-excursion
+	(if (equal "function"
+		   ;; no parameter list
+		   (ada-indent-backward-unit_name))
+	    "return-spec")); 1 or 2
 
-     (if (equal "function"
-		(save-excursion
-		  (ada-indent-skip-param_list 'backward)
-		  (ada-indent-backward-unit_name)))
-	 (if (equal "is-subprogram_body"
-		    (save-excursion
-		       (smie-default-forward-token); return
-		       (ada-indent-forward-unit_name)))
-	     "return-spec-2"; 2
-	   "return-spec-1")); 1
+     (save-excursion
+	(if (equal "function"
+		   (progn
+		     (smie-backward-sexp); parameter list
+		     (ada-indent-backward-unit_name)))
+	    "return-spec")); 1 or 2
 
      (save-excursion
        ;; FIXME: test this at end of buffer (not very
@@ -415,7 +410,10 @@ name (may be before any name is seen)."
     ;; FIXME: and_then, or_else
     (`":"
      ;; ':' occurs in object declarations and extended return statements.
-     (if (equal (ada-indent-forward-unit_name) ";")
+     (if (equal ";"
+		(save-excursion
+		  (smie-default-forward-token); ":"
+		  (ada-indent-forward-unit_name))) ;; FIXME: a full subtype_definition is more complicated!
 	 ":"
        ":-do"))
 

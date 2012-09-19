@@ -19,7 +19,12 @@ package body Ada_Mode.Nominal is
       -- indentation doesn't do what we want here.
    private
 
-      Local : Integer;
+      -- More than three objects, to be sure we are handling
+      -- indefinite lists of objects properly
+      Local_1 : Integer;
+      Local_2 : Integer;
+      Local_3 : Integer;
+      Local_4 : Integer;
 
       -- A comment just before 'end'
    end Protected_1;

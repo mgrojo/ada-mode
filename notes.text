@@ -10,12 +10,14 @@ General notes on porting Emacs Ada mode indentation engine to smie
 
 test/Makefile
     test/ada_mode-nominal.adb
-incorrect indent after Local : Integer;
-    smie-indent--hanging-p is t
-    no syntax for object_declaration; only for component
-        just use declarations for components
+incorrect indent after Pool      : String(1 .. 100);
+    : terminates ;?
+    got :-do again!
+    string constraint confuses things
+        document full object : type syntax, figure it out.
 
-smie-default-backward-token returns empty string for )
+(";" 23 22)
+(":" 136 (152))
 
     test/ada_mode-generic_package.ads
 
