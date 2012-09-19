@@ -1084,8 +1084,8 @@ Return nil if no body was found."
 
 ;; provide some dummy functions so other code can at least run
 ;; FIXME: make these real, somewhere
-(defun ada-adjust-case-identifier ())
-(defun ada-adjust-case ())
+(defun ada-adjust-case-identifier ()); get this from emacs_stephe/ada-mode-keys.el
+(defun ada-adjust-case () (capitalize-word 1))
 (defun ada-find-other-file ()
   (interactive)
   (ff-find-other-file))
