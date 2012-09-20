@@ -1,6 +1,33 @@
 ;;; Ada mode indentation engine, based on SMIE
 ;;
 ;; [1] ISO/IEC 8652:201z (draft 18); Ada 2012 reference manual
+;;
+;; Copyright (C) 2012  Free Software Foundation, Inc.
+;;
+;; Author: Stephen Leake <stephen_leake@member.fsf.org>
+;; Keywords: languages ada
+
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+
+;;; History: see ada_mode.el
+
+;;; debugging hints:
+;;
+;; Put an edebug break in smie-next-sexp, just after 'toklevels' is
+;; set. Then you can see which tokens are processed.
 
 (require 'smie)
 (eval-when-compile (require 'cl))
@@ -63,8 +90,13 @@ begin
        ;; alphabetical order, since there isn't any more reasonable order
        ;; we use the same names as [1] Annex P as much as possible
 
-       (access_type_definition ("type" identifier "is-type" "access"))
-       ;; don't need "not null all"; they are just ignored (treated as identifiers)
+       (access_type_definition
+	("type" identifier "is-type" "access" name)
+	;; trailing 'name' to match 'access protected procedure'.
+	;; don't need "not null all"; they are just ignored (treated as identifiers)
+
+	("type" identifier "is-type" "access" "protected-access" "procedure-access")
+	("type" identifier "is-type" "access" "protected-access" "function-access" "return-access"))
 
        (array_type_definition ("type" identifier "is-type" "array" expression "of"))
 
@@ -73,27 +105,34 @@ begin
 	(context_item ";" context_item))
 
        (context_item
-	("with");; FIXME: limited [private] with library_unit_name {, library_unit_name};
-	("use"));; FIXME: use [all] type subtype_mark {, subtype_mark};
+	("with-context")
+	("use"))
 
        (declaration
+	(access_type_definition)
 	(array_type_definition)
+	(derived_type_declaration)
+	(interface_type_definition)
+	(private_extension_declaration)
+	(private_type_declaration)
 	(protected_body)
 	(protected_type_declaration)
 	(record_type_definition)
 	(subprogram_declaration)
 	(subprogram_body)
-	(identifier ":") ; object; FIXME: constraints?
-
-	;; we use 'declarations' in the place of
-	;; 'generic_formal_parameter_declarations'; no need to
-	;; complicate the grammar with another non-terminal
-	;; FIXME: none needed yet
+	(identifier ":") ; object_declaration
 	)
 
        (declarations
 	(declaration)
 	(declaration ";" declaration))
+
+       (derived_type_declaration
+	("type" identifier "is-type" "new" name); same as the following
+	("type" identifier "is-type" "new" name "with" "null_record")
+	("type" identifier "is-type" "new" name "with" "record" declarations "end_record")
+	("type" identifier "is-type" "new" name "and-interface" interface_list
+	 "with" "record" declarations "end_record"))
 
        (entry_body
 	("entry" identifier "when" expression "is-entry_body" declarations "begin" statements "end"))
@@ -112,27 +151,22 @@ begin
 	;; Ada legality rules, just computing indentation.
 	(name "-operator-" name)
 	("(" expression ")"))
-       ;; FIXME: membership_choice_list?
-       ;; FIXME: unary operators?
-       ;; FIXME: if expressions?
-
-       ;; generic_formal_parameter_declaration
-       ;; (formal_object_declaration) is the same syntax as a normal object
-       ;; declaration, plus optional mode, which we can ignore.
-
-       ;; formal_type_declarations are all the same as the normal type declarations, except:
-       ;; FIXME: numeric types have <> insted of numbers
-       ;; FIXME: formal_derived_type_definition ::=
-       ;; [abstract] [limited | synchronized] new subtype_mark [[and interface_list]with private]
-       ;; FIXME: formal_discrete_type_definition ::= (<>)
-       ;; FIXME: formal_private_type_definition ::= [[abstract] tagged] [limited] private
-       ;; FIXME: formal_subprogram_declaration
-       ;; FIXME: formal_package_declaration
 
        (generic_package_declaration
-	;; FIXME: let's see how far we get with 'declarations' instead of 'generic_formal_parameter_declarations'
+	;; no need to distinguish between 'declarations' and
+	;; 'generic_formal_parameter_declaration' for our purposes.
 	("generic" declarations
 	 "package-generic" name "is-package_declaration" declarations "begin" statements "end"))
+
+       (interface_list
+	(name)
+	(interface_list "and-interface_list" name))
+
+       (interface_type_definition
+	("type" name "is-type" "interface")
+	("type" name "is-type" "interface_and" interface_list))
+       ;; [limited | task | protected | synchronized] ignored
+       ;; also covers formal_interface_type_definition
 
        (name
 	(identifier)
@@ -146,6 +180,13 @@ begin
 	;; Leaving 'package body' as separate tokens causes problems in refine-is
 	("package_body" name "is-package_body" declarations "begin" statements "end"))
 
+       (private_extension_declaration
+	("type" identifier "is-type" "new" name "with_private")
+	("type" identifier "is-type" "new" name "and-interface" interface_list "with_private"))
+       ;; leaving 'with' and 'private' as separate tokens causes conflicts
+
+       (private_type_declaration ("type" identifier "is-type" "private-type"))
+
        (protected_body ("protected_body" identifier "is-protected_body" declarations "end"))
 
        (protected_type_declaration
@@ -153,15 +194,13 @@ begin
 	;; type is both neither and opener', so "protected type" is
 	;; combined into one token in
 	;; ada-indent-forward/backward-token.
-	("protected_type" identifier "is-type" declarations "private" declarations "end"))
+	("protected_type" identifier "is-type" declarations "private" declarations "end")
+	("protected_type" identifier "is-type" "new" interface_list "with" declarations
+	 "private" declarations "end"))
        ;; also covers single_protected_declaration
-       ;; FIXME: [new interface_list with]
-       ;; FIXME: [aspect_specification]
 
-       (record_type_definition ("type" identifier "is-type" "record" "end"))
-       ;; FIXME: using nothing instead of components, because SMIE
-       ;; already allows lists of sexps; heading towards getting rid
-       ;; of all list non-terminals
+       (record_type_definition ("type" identifier "is-type" "record" declarations "end_record"))
+       ;; no need to distinguish between 'declarations' and 'component_list'
 
        (statement
 	(expression); matches procedure calls, assignment
@@ -179,9 +218,6 @@ begin
 	;; factoring out subprogram_specification here breaks something.
 	("function" name "return-spec" name "is-subprogram_body" declarations "begin" statements "end")
 	("procedure" name "is-subprogram_body" declarations "begin" statements "end"))
-       ;; FIXME: test overriding_indicator
-       ;; FIXME: test aspect_specification
-       ;; FIXME: test exception handler
 
        (subprogram_declaration
 	;; factoring out subprogram_specification here breaks something.
@@ -192,18 +228,17 @@ begin
 	;; avoids recursion between refine-is and refine-return
 
 	("procedure" name)); same as 'procedure name is-subprogram_body'
-       ;; FIXME: is abstract
        ))
 
     ;; operators and similar things
-    ;; FIXME: ref RM, get it right
     (smie-precs->prec2
      '((nonassoc "-operator-")
        ;; The structure of this table is stolen from the modula2 smie grammar.
        ;;
        ;; We can merge the relational, math, and other operators in
-       ;; these levels, because we don't care about legality.
-       ;; FIXME: do we need any precedence hierarchy for these at all (ask Stefan)?
+       ;; these levels, because we don't care about legality.  Which
+       ;; means we really don't need any precedence hierarchy for
+       ;; these at all, but it also doesn't hurt.
        ;;
        (nonassoc "=" "/=" "<" "<=" ">" ">=" "in") ; relational_operator, membership
        (assoc "or" "or_else" "xor" "+" "-" "&")
@@ -214,7 +249,7 @@ begin
        ))
     )))
 
-(defun ada-indent-skip-param_list (direction)
+(defun ada-indent-skip-param_list (next-token direction)
   ;; While refining tokens, we don't want to call smie-next-sexp,
   ;; because it relies on refined tokens. So we just call the C
   ;; scanner (see the lisp source for forward-sexp).
@@ -224,31 +259,36 @@ begin
   ;; forward-sexp-function nil when it hits a paren), but this is
   ;; clearer.
   (let ((forward-sexp-function nil))
-    (if (eq direction 'forward)
-	(forward-sexp)
-    (backward-sexp))))
+    (if (eq direction 'ada-indent-backward-name)
+	(backward-sexp)
+    (forward-sexp))))
 
-(defun ada-indent-next-unit_name (next-token)
-  "Skip over a unit_name using NEXT-TOKEN, consisting of just
-identifiers and dots. Return the token that isn't part of the
+(defun ada-indent-next-name (next-token)
+  "Skip over a name using NEXT-TOKEN. A 'name' consists of
+identifiers, dots, and anything that looks like a parameter
+list (could be an array index). Note that Ada 2012 keywords that
+don't actually appear in the grammar look like identifiers, so
+this also skips them. Return the token that isn't part of the
 name (may be before any name is seen)."
   (let (token)
     (while
 	(progn
 	  (setq token (funcall next-token))
 	  (if (equal "" token)
-	      ;; we hit a parameter list or something similar
-	      nil
-	    (setq token (nth 0 (assoc token smie-grammar)))
-	    (or (not token); not a keyword, so it must be an identifier
-		(equal token ".")))))
+	      ;; we hit a parameter list or something similar; use the lower level scanner
+	      (progn
+		(ada-indent-skip-param_list next-token 'ada-indent-backward-name)
+		(setq token (funcall next-token))))
+	  (setq token (nth 0 (assoc token smie-grammar)))
+	  (or (not token); not a keyword, so it must be an identifier
+	      (equal token "."))))
     token))
 
-(defun ada-indent-backward-unit_name ()
-  (ada-indent-next-unit_name 'ada-indent-backward-token))
+(defun ada-indent-backward-name ()
+  (ada-indent-next-name 'ada-indent-backward-token))
 
-(defun ada-indent-forward-unit_name ()
-  (ada-indent-next-unit_name 'ada-indent-forward-token))
+;; (defun ada-indent-forward-name ()
+;;   (ada-indent-next-name 'ada-indent-forward-token))
 
 (defun ada-indent-refine-is (direction)
   (save-excursion
@@ -263,17 +303,12 @@ name (may be before any name is seen)."
      ;; it leads to horrible recursive parsing with wrong guesses,
      ;; and ends up reporting no match.
      (save-excursion
-       (pcase (ada-indent-backward-unit_name)
-	 (`"" ;; we hit a parameter list
-	  (ada-indent-skip-param_list 'backward); FIXME: include this in ada-indent-backward-unit_name?
-	  (if (equal "procedure" (ada-indent-backward-unit_name))
-	      "is-subprogram_body"))
-
+       (pcase (ada-indent-backward-name)
 	 (`"package" "is-package_declaration")
-	 ;; "package" name ^ "is" FIXME: "name" could have dots!
+	 ;; "package" name ^ "is"
 
 	 (`"package_body" "is-package_body")
-	 ;; "package" "body" name ^ "is" FIXME: "name" could have dots!
+	 ;; "package" "body" name ^ "is"
 
 	 (`"procedure" "is-subprogram_body")
 	 ;; "procedure" name ^ "is"
@@ -341,26 +376,26 @@ name (may be before any name is seen)."
     ;;
     ;;    token: "return-do" (4b) or "end_return" (4c)
     ;;
+    ;; 5) an access function type declaration:
+    ;;
+    ;;      type name is access [protected] function identifier (...) return name;
+    ;;
+    ;;    token: "return-access"
+    ;;
     ;; So we have to look both forward and backward to resolve this.
     (or
      (save-excursion (if (equal "end" (smie-default-backward-token)) "end_return")); 4c
 
-     ;; do this before first, otherwise can't distinguish between:
+     ;; do this before now, otherwise can't distinguish between:
      ;; function F1 return Integer;
      ;; return 0;
      ;;
      (save-excursion
-	(if (equal "function"
-		   ;; no parameter list
-		   (ada-indent-backward-unit_name))
-	    "return-spec")); 1 or 2
-
-     (save-excursion
-	(if (equal "function"
-		   (progn
-		     (smie-backward-sexp); parameter list
-		     (ada-indent-backward-unit_name)))
-	    "return-spec")); 1 or 2
+	(if (equal "function" (ada-indent-backward-name))
+	    (if (or (equal "access" (smie-default-backward-token))
+		    (equal "access" (smie-default-backward-token)))
+		"return-access"; 5
+	      "return-spec"))); 1 or 2
 
      (save-excursion
        ;; FIXME: test this at end of buffer (not very
@@ -379,9 +414,19 @@ name (may be before any name is seen)."
 	   )))
      )))
 
+(defun ada-indent-refine-subprogram (subprogram forward)
+  ;; "procedure" or "function"
+  (save-excursion
+    (if forward (smie-default-backward-token)); procedure/function
+    (if (or (equal "access" (smie-default-backward-token))
+	    (equal "access" (smie-default-backward-token)))
+	(concat subprogram "-access")
+      subprogram)))
+
 (defun ada-indent-forward-token ()
+  ;; this is not a complete inverse of ada-indent-backward-token; we
+  ;; parse forwards much less than we parse backwards.
   (pcase (smie-default-forward-token)
-    ;; FIXME: and_then, or_else
     (`"end"
      (if (equal "return" (save-excursion (smie-default-forward-token)))
 	 (progn
@@ -389,17 +434,27 @@ name (may be before any name is seen)."
 	   "end_return")
        "end"))
 
+    (`"function"
+     ;; type identifier is access [protected] function
+     (ada-indent-refine-subprogram "function" t))
+
     (`"is" (ada-indent-refine-is 'forward))
 
     ;; we don't need to handle 'package_body' here, apparently; we
     ;; never parse forward over that.
 
+    (`"procedure"
+     ;; type identifier is access [protected] procedure
+     (ada-indent-refine-subprogram "procedure" t))
+
     (`"protected"
-     (if (equal "body" (save-excursion (smie-default-forward-token)))
-	 (progn
-	   (smie-default-forward-token)
-	   "protected_body")
-       "protected_type"))
+     (if (save-excursion (equal "access" (smie-default-backward-token)))
+	 "protected-access"
+       (if (equal "body" (save-excursion (smie-default-forward-token)))
+	   (progn
+	     (smie-default-forward-token)
+	     "protected_body")
+	 "protected_type")))
 
     (`"return" (ada-indent-refine-return 'forward))
 
@@ -407,7 +462,6 @@ name (may be before any name is seen)."
 
 (defun ada-indent-backward-token ()
   (pcase (smie-default-backward-token)
-    ;; FIXME: and_then, or_else
     (`":"
      ;; ':' occurs in object declarations and extended return statements:
      ;; defining_identifier_list : [aliased] [constant] subtype_indication [:= expression] [aspect_specification];
@@ -429,6 +483,81 @@ name (may be before any name is seen)."
 	     ":-do"
 	   ":"))))
 
+    (`"and"
+     ;; 'and' occurs in interface types and logical expressions
+     ;; (search for interface_list in [1] annex P):
+     ;;
+     ;; 1) [formal_]derived_type_definition ::=
+     ;;    (type identifier is) [abstract] [limited] new parent_subtype_indication
+     ;;    [[and interface_list] record_extension_part]
+     ;;
+     ;;    preceding keyword: "is-type" [abstract] [limited] "new"
+     ;;    skip: name, then [abstract] [limited]
+     ;;    keyword: "and-interface"
+     ;;
+     ;; 2) interface_type_definition ::=
+     ;;    (type identifier is) [limited | task | protected | synchronized] interface [and interface_list]
+     ;;
+     ;;    preceding lower level keyword: "interface"
+     ;;    skip: nothing
+     ;;    keyword: "interface_and"
+     ;;
+     ;; 3) interface_list ::= interface_subtype_mark {and interface_subtype_mark}
+     ;;
+     ;;    preceding keyword: "interface_and", "and-interface_list", "and-interface"
+     ;;    skip: name
+     ;;    keyword: "and-interface_list"
+     ;;
+     ;; 4) private_extension_declaration ::=
+     ;;    type defining_identifier [discriminant_part] is
+     ;;       [abstract] [limited | synchronized] new ancestor_subtype_indication
+     ;;       [and interface_list] with private
+     ;;       [aspect_specification];
+     ;;
+     ;;    preceding keyword: "new"
+     ;;    skip: name
+     ;;    keyword: "and-interface"
+     ;;
+     ;; 5) task_type_declaration, single_task_declaration ::=
+     ;;       task [type] defining_identifier [known_discriminant_part] [aspect_specification]
+     ;;       [is [new interface_list with] task_definition];
+     ;;
+     ;;    preceding keyword: 'is' "new"
+     ;;    skip: name, low-level 'is'
+     ;;    keyword: "and-interface_list"
+     ;;
+     ;; 6) protected_type_declaration ::=
+     ;;    protected type defining_identifier [known_discriminant_part] [aspect_specification] is
+     ;;       [new interface_list with] protected_definition;
+     ;;
+     ;;    preceding keyword: 'is' "new"
+     ;;    skip: name, low-level 'is'
+     ;;    keyword: "and-interface_list"
+     ;;
+     ;; 7) single_protected_declaration ::=
+     ;;    protected defining_identifier [aspect_specification] is
+     ;;    [new interface_list with] protected_definition;
+     ;;
+     ;;    preceding keyword: 'is' "new"
+     ;;    skip: name, low-level 'is'
+     ;;    keyword: "and-interface_list"
+     ;;
+     ;; All other occurances are logical expressions, returning "and".
+     (or
+      (when (equal "interface" (save-excursion (smie-default-backward-token)))
+	  (smie-default-backward-token)
+	  "interface_and"); 2
+
+      (save-excursion
+	(pcase (ada-indent-backward-name)
+	  ((or `"interface_and" `"and-interface_list" `"and-interface") "and-interface_list"); 3
+
+	  (`"new"
+	   (if (equal "is-type" (ada-indent-backward-name))
+	       "and-interface_list"; 1, 5, 6, 7
+	     "and-interface")); 4
+	  (_ "and")))))
+
     (`"body"
      (pcase (save-excursion (smie-default-backward-token))
        (`"package"
@@ -444,6 +573,10 @@ name (may be before any name is seen)."
 
     (`"is" (ada-indent-refine-is 'backward))
 
+    (`"function"
+     ;; type identifier is access [protected] function
+     (ada-indent-refine-subprogram "function" nil))
+
     (`"package"
      ;; FIXME: this is ok for a library level [generic] package alone in
      ;; a file. But it could be a problem for a nested [generic]
@@ -452,9 +585,68 @@ name (may be before any name is seen)."
 	 "package-generic"
        "package"))
 
-    (`"protected" "protected_type")
-    ;; single_protected_declaration. we don't have to check for 'body'
-    ;; here; we would have already hit that.
+    (`"private"
+     ;; 'private' occurs in:
+     ;;
+     ;; 1) [formal_]private_type_declaration
+     ;;
+     ;;   type defining_identifier [discriminant_part] is [[abstract] tagged] [limited] private
+     ;;      [aspect_specification];
+     ;;
+     ;;   token: private-type
+     ;;
+     ;; 2) [non]limited_with_clause
+     ;; 3) formal_derived_type_definition
+     ;; 4) library_item
+     ;; 5) package_specification
+     ;; 6) private_extension_declaration
+     ;;
+     ;;    type defining_identifier [discriminant_part] is
+     ;;       [abstract] [limited | synchronized] new ancestor_subtype_indication
+     ;;       [and interface_list] with private
+     ;;       [aspect_specification];
+     ;;
+     ;;    token: with_private
+     ;;
+     ;; 7) protected_definition
+     ;; 8) task_definition
+     ;;
+     (cond
+      ((equal "with" (save-excursion (smie-default-backward-token)))
+       "with_private"); 5
+
+      ((equal "is-type" (save-excursion (ada-indent-backward-name)))
+       "private-type"); 1
+
+      (t "private"))); all others
+
+    (`"procedure"
+     ;; type identifier is access [protected] procedure
+     (ada-indent-refine-subprogram "procedure" nil))
+
+    (`"protected"
+     ;; 'protected' occurs in:
+     ;; access_definition
+     ;; access_to_subprogram_definition
+     ;; interface_type_definition
+     ;; protected_body
+     ;; protected_body_stub
+     ;; protected_type_declaration
+     ;; single_protected_declaration
+     ;;
+     ;; We don't have to check for 'body' here; we would have already
+     ;; hit that (we never stop on the 'body').
+     ;;
+     ;; We can get here after stopping on 'procedure'
+     (if (save-excursion
+	   (equal "access" (smie-default-backward-token)))
+	 "protected-access"
+     "protected_type"))
+
+    (`"record"
+     (pcase (save-excursion (smie-default-backward-token))
+       (`"end"  (smie-default-backward-token) "end_record")
+       (`"null" (smie-default-backward-token) "null_record"))
 
     (`"return" (ada-indent-refine-return 'backward))
 
@@ -465,7 +657,75 @@ name (may be before any name is seen)."
 	   "protected_type")
        "type"))
 
-    (token token)))
+    (`"with"
+     ;; 'with' occurs in:
+     ;;
+     ;; 1) record_extension_part in a [formal_]derived_type_definition in a type_declaration:
+     ;;    type ... is ... new parent_subtype_indication [[and interface_list] with record_definition]
+     ;;
+     ;;    preceding keyword: "new", "and-interface_list"
+     ;;    skip: name
+     ;;    keyword: "with"
+     ;;
+     ;; 2) extension_aggregate ::=
+     ;;    (ancestor_part with record_component_association_list)
+     ;;
+     ;;    not implemented yet
+     ;;
+     ;; 3) private_extension_declaration (see "private" above)
+     ;;
+     ;;    parsed as "with_private" by "private" above.
+     ;;
+     ;; 4) task_type_declaration, single_task_declaration (see "and" above)
+     ;;
+     ;;    parsed as "with_private" by "private" above.
+     ;;
+     ;; 5) protected_type_declaration, single_protected_declaration ::=
+     ;;    protected [type] defining_identifier [known_discriminant_part] [aspect_specification] is
+     ;;       [new interface_list with] protected_definition;
+     ;;
+     ;;    preceding keyword: "new", "and-interface_list"
+     ;;    skip: name
+     ;;    keyword: "with"
+     ;;
+     ;; 6) requeue_statement ::= requeue procedure_or_entry_name [with abort];
+     ;;
+     ;;    not implemented yet; will be parsed as "with_abort"
+     ;;
+     ;; 7) with_clause ::= [limited] [private] with library_unit_name {, library_unit_name};
+     ;;
+     ;;    preceding keyword: "private", ";", beginning of buffer
+     ;;    keyword: "with-context"
+     ;;
+     ;; 8) raise_statement ::= raise;
+     ;;       | raise exception_name [with string_expression];
+     ;;
+     ;;    not implemented yet
+     ;;
+     ;; 9) formal_concrete_subprogram_declaration, formal_abstract_subprogram_declaration ::=
+     ;;    with subprogram_specification [is [abstract] subprogram_default] [aspect_specification];
+     ;;
+     ;;    not implemented yet
+     ;;    followed by "function", "procedure"
+     ;;
+     ;; 10) formal_package_declaration ::=
+     ;;        with package defining_identifier is new generic_package_name  formal_package_actual_part
+     ;;        [aspect_specification];
+     ;;
+     ;;    not implemented yet
+     ;;    followed by "package"
+     ;;
+     ;; 11) aspect_specification ::= with aspect_mark [=> aspect_definition] {,aspect_mark [=> aspect_definition] }
+     ;;
+     ;;    not implemented yet
+     ;;    followed by "=>", ",", ";"
+     ;;
+     (pcase (ada-indent-backward-name)
+       ((or `"new" `"and-interface_list") "with"); 1, 5
+       ((or `"private" `";") "with-context"); 7 FIXME: test beginning of buffer
+       ))
+
+    (token token))))
 
 (defun ada-indent-rules (method arg)
   (case method
@@ -477,16 +737,31 @@ name (may be before any name is seen)."
     (:before
      (pcase arg
        ((or
+	 `"access"
+	 `"array")
+	(smie-rule-parent ada-indent))
+
+       ((or
 	 `"end"
 	 `"generic"
 	 `"with") ; context clause; FIXME: also used in derived record declaration
-	(smie-rule-parent 0))))
+	(smie-rule-parent 0))
+
+       (`"function-access"
+	;; We are in an access_to_subprogram type_definition; we
+	;; want to indent 'function' relative to 'type'
+	(smie-rule-parent ada-indent))
+       ))
     (:after
      (or
       (pcase arg
 	(`";" 0)
 
 	(`"do" ada-indent)
+
+	(`"procedure-access"
+	 ;; always indent the parameter list relative to the line 'procedure' is on, not to a parent token
+	 (cons 'column (+ (save-excursion (back-to-indentation) (current-column)) ada-indent)))
 
 	((or `"is-package_body"
 	     `"is-package_declaration"
@@ -496,6 +771,7 @@ name (may be before any name is seen)."
 	 ;; which is the parent of 'is'.
 	 (smie-rule-parent ada-indent))
 	)
+
       (if (smie-indent--hanging-p) ada-indent)
       ))))
 

@@ -5,6 +5,7 @@ generic
    -- one of each kind of generic_formal_parameter_definition from arm Annex P
 
    -- Types
+   -- FIXME: be systematic about newline between each successive token here
    type Object_Formal_Access_Type_1 is not null access all Integer; -- access to object
    type Object_Formal_Access_Type_2 is access Integer; -- access to object
    type Procedure_Formal_Access_Type is
@@ -16,7 +17,7 @@ generic
       function
          (A_Param : in Float)
          return Standard.Float;
-   -- access to function (aligned with 'type', which is the start of the previous statement)
+   -- access to function (comment aligned with 'type', which is the start of the previous statement)
 
    type Unconstrained_Formal_Array_Type is
       array (Integer range <>, Standard.Character range <>) of Object_Formal_Access_Type_1;
@@ -26,12 +27,17 @@ generic
    type Formal_Private_Type is abstract tagged limited private;
    type Interface_Type is task interface;
    type Limited_Formal_Derived_Type is abstract limited new Formal_Private_Type with private;
-   type Synchronized_Formal_Derived_Type is
+   type Synchronized_Formal_Derived_Type_1 is
       abstract synchronized new Formal_Private_Type and Interface_Type with private;
+   type Synchronized_Formal_Derived_Type_2 is
+      abstract synchronized new Formal_Private_Type and
+ Interface_Type with private;
+
+-- FIXME: add 'null record'
 
    type Incomplete_Type (<>) is tagged;
 
-   type Formal_Discrete_Type is (<>);
+type Formal_Discrete_Type is (<>);
 
 
    -- Numeric types

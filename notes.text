@@ -6,17 +6,21 @@ General notes on porting Emacs Ada mode indentation engine to smie
     (add-hook 'ada-mode-hook
        (lambda () (define-key ada-mode-map "\C-w" 'capitalize-word))))
 (edebug-toggle-save-all-windows)
-(setq edebug-unwrap-results t)
 
 test/Makefile
-    test/ada_mode-nominal.adb
-wrong in list of object decls
+    test/ada_mode-generic_package.ads
+
+concrete_defaulted_procedure_1 reports 'is-subprogram-body'
+("is-subprogram_body" 36 0); not good - < ;
+("procedure" (157) 36)
+
+do aspects next; may be very hard
 
 ada-indent.el
+c:/apps/emacs-24.2/lisp/emacs-lisp/smie.el
 
 c:/Projects/emacs_stephe.work/emacs_stephe/ada-mode-keys.el
 
-c:/apps/emacs-24.2/lisp/emacs-lisp/smie.el
 c:/apps/emacs-24.2/lisp/progmodes/modula2.el
 c:/Projects/emacs_stephe.main/emacs_stephe_site_lisp/ada-mode.el
 (info "(elisp)SMIE" "*info-smie*")
