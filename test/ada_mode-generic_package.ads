@@ -24,20 +24,61 @@ generic
 
    type Constrained_Formal_Array_Type is array (Character) of Ada.Text_IO.Count;
 
-   type Formal_Private_Type is abstract tagged limited private;
+   type Formal_Private_Type_1 is abstract tagged limited private;
+   type Formal_Private_Type_2 is abstract tagged limited
+      private;
+   type Formal_Private_Type_3 is abstract tagged
+      limited private;
+   type Formal_Private_Type_4 is abstract
+      tagged limited private;
+   type Formal_Private_Type_5 is
+      abstract tagged limited private;
+   type Formal_Private_Type_6
+      is abstract tagged limited private;
+   type
+      Formal_Private_Type_7 is abstract tagged limited private;
+
    type Interface_Type is task interface;
    type Limited_Formal_Derived_Type is abstract limited new Formal_Private_Type with private;
-   type Synchronized_Formal_Derived_Type_1 is
+
+   type Synchronized_Formal_Derived_Type_1 is abstract synchronized new Formal_Private_Type and Interface_Type with private;
+   type Synchronized_Formal_Derived_Type_2 is abstract synchronized new Formal_Private_Type and Interface_Type with
+      private;
+   type Synchronized_Formal_Derived_Type_3 is abstract synchronized new Formal_Private_Type and Interface_Type
+      with private;
+   type Synchronized_Formal_Derived_Type_4 is abstract synchronized new Formal_Private_Type and
+      Interface_Type with private;
+   type Synchronized_Formal_Derived_Type_5 is abstract synchronized new Formal_Private_Type
+      and Interface_Type with private;
+   type Synchronized_Formal_Derived_Type_6 is abstract synchronized new
+      Formal_Private_Type and Interface_Type with private;
+   type Synchronized_Formal_Derived_Type_7 is abstract synchronized
+      new Formal_Private_Type and Interface_Type with private;
+   type Synchronized_Formal_Derived_Type_8 is abstract
+      synchronized new Formal_Private_Type and Interface_Type with private;
+   type Synchronized_Formal_Derived_Type_9 is
       abstract synchronized new Formal_Private_Type and Interface_Type with private;
-   type Synchronized_Formal_Derived_Type_2 is
-      abstract synchronized new Formal_Private_Type and
- Interface_Type with private;
+   type Synchronized_Formal_Derived_Type_10
+      is abstract synchronized new Formal_Private_Type and Interface_Type with private;
+   type
+      Synchronized_Formal_Derived_Type_11 is abstract synchronized new Formal_Private_Type and Interface_Type with private;
+   type
+      Synchronized_Formal_Derived_Type_12
+      is
+      abstract
+      synchronized
+      new
+      Formal_Private_Type
+      and
+      Interface_Type
+      with
+      private;
 
 -- FIXME: add 'null record'
 
    type Incomplete_Type (<>) is tagged;
 
-type Formal_Discrete_Type is (<>);
+                                type Formal_Discrete_Type is (<>);
 
 
    -- Numeric types
