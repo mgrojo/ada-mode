@@ -10,7 +10,7 @@ General notes on porting Emacs Ada mode indentation engine to smie
 
 test/Makefile
     test/ada_mode-nominal.adb
-Protected_1.E1 begin
+function_1c local_3
 
 
 do aspects next; may be very hard

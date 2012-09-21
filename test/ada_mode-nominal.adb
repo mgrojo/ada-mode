@@ -48,16 +48,19 @@ package body Ada_Mode.Nominal is
 
          -- A comment after an indented line
 
+         Local_1 := Local_1 + Local_1;
+
+         -- A comment before 'end'
       end E1;
 
       entry E2
          (X : Integer)
-         when Local_1 = 0 and
-            Local_2
+      when Local_1 = 0 and
+         Local_2 = 1
       is
          Tmp : Integer := 0;
       begin
-         X := Tmp;
+         Local_2 := Tmp;
       end E2;
 
       procedure P1 is
@@ -92,9 +95,9 @@ package body Ada_Mode.Nominal is
    ----------
    -- subprograms
    procedure Procedure_1a (Item  : in out Ada.Strings.Unbounded.Unbounded_String; New_Item : Character)
-      is begin
-         null;
-         end Procedure_1a;
+   is begin
+      null;
+   end Procedure_1a;
    procedure Procedure_2a is begin null; end;
 
    -- Functions can't be 'is null', so we test some indentation issues
