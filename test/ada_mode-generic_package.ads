@@ -1,85 +1,27 @@
---  This is to test the indentation of declarations in generics package declarations
+-- This is to test the indentation of declarations in generics package declarations
+
+pragma License (GPL);
+
 with Ada.Text_IO;
 with Ada.Strings.Unbounded;
 generic
    -- one of each kind of generic_formal_parameter_definition from arm Annex P
 
    -- Types
-   -- FIXME: be systematic about newline between each successive token here
-   type Object_Formal_Access_Type_1 is not null access all Integer; -- access to object
-   type Object_Formal_Access_Type_2 is access Integer; -- access to object
-   type Procedure_Formal_Access_Type is
-      access protected procedure
-         (A_Param : out Integer); -- access to procedure
 
-   type Function_Formal_Access_Type is
-      access protected
-      function
-         (A_Param : in Float)
-         return Standard.Float;
-   -- access to function (comment aligned with 'type', which is the start of the previous statement)
-
-   type Unconstrained_Formal_Array_Type is
-      array (Integer range <>, Standard.Character range <>) of Object_Formal_Access_Type_1;
-
+   type Object_Formal_Access_Type is not null access all Integer;
+   type Procedure_Formal_Access_Type is access protected procedure (A_Param : out Integer);
+   type Function_Formal_Access_Type is access protected function (A_Param : in Float) return Standard.Float;
+   type Unconstrained_Formal_Array_Type is array (Integer range <>, Standard.Character range <>) of
+      Object_Formal_Access_Type;
    type Constrained_Formal_Array_Type is array (Character) of Ada.Text_IO.Count;
-
-   type Formal_Private_Type_1 is abstract tagged limited private;
-   type Formal_Private_Type_2 is abstract tagged limited
-      private;
-   type Formal_Private_Type_3 is abstract tagged
-      limited private;
-   type Formal_Private_Type_4 is abstract
-      tagged limited private;
-   type Formal_Private_Type_5 is
-      abstract tagged limited private;
-   type Formal_Private_Type_6
-      is abstract tagged limited private;
-   type
-      Formal_Private_Type_7 is abstract tagged limited private;
-
+   type Formal_Private_Type is abstract tagged limited private;
    type Interface_Type is task interface;
    type Limited_Formal_Derived_Type is abstract limited new Formal_Private_Type with private;
-
-   type Synchronized_Formal_Derived_Type_1 is abstract synchronized new Formal_Private_Type and Interface_Type with private;
-   type Synchronized_Formal_Derived_Type_2 is abstract synchronized new Formal_Private_Type and Interface_Type with
-      private;
-   type Synchronized_Formal_Derived_Type_3 is abstract synchronized new Formal_Private_Type and Interface_Type
+   type Synchronized_Formal_Derived_Type is abstract synchronized new Formal_Private_Type and Interface_Type
       with private;
-   type Synchronized_Formal_Derived_Type_4 is abstract synchronized new Formal_Private_Type and
-      Interface_Type with private;
-   type Synchronized_Formal_Derived_Type_5 is abstract synchronized new Formal_Private_Type
-      and Interface_Type with private;
-   type Synchronized_Formal_Derived_Type_6 is abstract synchronized new
-      Formal_Private_Type and Interface_Type with private;
-   type Synchronized_Formal_Derived_Type_7 is abstract synchronized
-      new Formal_Private_Type and Interface_Type with private;
-   type Synchronized_Formal_Derived_Type_8 is abstract
-      synchronized new Formal_Private_Type and Interface_Type with private;
-   type Synchronized_Formal_Derived_Type_9 is
-      abstract synchronized new Formal_Private_Type and Interface_Type with private;
-   type Synchronized_Formal_Derived_Type_10
-      is abstract synchronized new Formal_Private_Type and Interface_Type with private;
-   type
-      Synchronized_Formal_Derived_Type_11 is abstract synchronized new Formal_Private_Type and Interface_Type with private;
-   type
-      Synchronized_Formal_Derived_Type_12
-      is
-      abstract
-      synchronized
-      new
-      Formal_Private_Type
-      and
-      Interface_Type
-      with
-      private;
-
--- FIXME: add 'null record'
-
    type Incomplete_Type (<>) is tagged;
-
-                                type Formal_Discrete_Type is (<>);
-
+   type Formal_Discrete_Type is (<>);
 
    -- Numeric types
    type Formal_Decimal_Fixed_Point is delta <> digits <>;
@@ -88,13 +30,13 @@ generic
    type Formal_Ordinary_Fixed_Point is delta <>;
    type Formal_Signed_Integer_Type is range <>;
 
-   -- Objects FIXME: add aspects to some
+   -- Objects
    A, B, C : Integer;
    F : in out Float;
    P : in not null Ada.Strings.Unbounded.String_Access;
 
    -- Subprograms
-   with procedure Concrete_Defaulted_Procedure_1
+   with procedure Concrete_Defaulted_Procedure
       (Item  : in out Ada.Strings.Unbounded.Unbounded_String;
        New_Item : Character)
       is Ada.Strings.Unbounded.Append;

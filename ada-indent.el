@@ -37,6 +37,7 @@
 ;; set. Then you can see which tokens are processed.
 
 (require 'smie)
+(eval-when-compile (require 'cl)); 'case'
 
 ;;; user variables
 
@@ -557,7 +558,7 @@ name (may be before any name is seen)."
 	    ((equal token ":") "return"); 4a
 	    ((equal token ":-do") "return-do"); 4b
 	    ((equal token "is") "return-spec"); special case of 2, with name = identifier
-	    (t_ "return-exp"); 3b
+	    (t "return-exp"); 3b
 	    )))))
      ))
 
@@ -596,6 +597,7 @@ name (may be before any name is seen)."
 	  "end_return"); 4c
 
 	 (t "end")); all others
+	))
 
      ((equal token "function")
       ;; type identifier is access [protected] function
@@ -614,7 +616,7 @@ name (may be before any name is seen)."
       (ada-indent-refine-is t))
 
      ((equal token "null")
-      (when (equal token "record") (smie-default-forward-token) "null_record"))))
+      (when (equal token "record") (smie-default-forward-token) "null_record"))
 
      ((equal token "procedure")
       ;; type identifier is access [protected] procedure
@@ -847,6 +849,9 @@ name (may be before any name is seen)."
   (cons 'column (+ (save-excursion (back-to-indentation) (current-column)) offset)))
 
 (defun ada-indent-rules (method arg)
+  ;; If this returns a number, smie-indent--rule will do some
+  ;; complicated logic with it. So it is best to return ('column n)
+  ;; when we can.
   (case method
     (:elem
      (case arg
@@ -870,39 +875,64 @@ name (may be before any name is seen)."
 	;; We are in an access_to_subprogram type_definition; we
 	;; want to indent 'function' relative to 'type'
 	(smie-rule-parent ada-indent))
+
+       ((or
+	 (equal arg "is-package_body")
+	 (equal arg "is-package_declaration")
+	 (equal arg "is-protected_body")
+	 (equal arg "is-subprogram_body"))
+	;; indent at the same level as the start of the declaration or
+	;; body, which is the parent of 'is'.
+	(smie-rule-parent 0))
        ))
+
     (:after
-     (or
-      (cond
-	((equal arg ";") 0)
+     ;; `arg' is a keyword at the end of a line
+     (cond
+      ((equal arg ";")
+       ;; smie will essentially do 'backward-sexp' and use that indentation
+       0)
 
-	((equal arg "do") ada-indent)
+      ((or
+	(equal arg "is-package_body")
+	(equal arg "is-package_declaration")
+	(equal arg "is-protected_body")
+	(equal arg "is-subprogram_body"))
+       ;; indent relative to the start of the declaration or body,
+       ;; which is the parent of 'is'.
+       (smie-rule-parent ada-indent))
 
-	((equal arg "procedure-access")
-	 ;; always indent the parameter list relative to the line 'procedure' is on, not to a parent token
-	 (ada-indent-rule-current ada-indent))
+      ((smie-indent--hanging-p)
+       (ada-indent-rule-current ada-indent))
+      ))
+    ))
 
-	((or
-	  (equal arg "is-package_body")
-	  (equal arg "is-package_declaration")
-	  (equal arg "is-protected_body")
-	  (equal arg "is-subprogram_body"))
-	 ;; indent relative to the start of the declaration or body,
-	 ;; which is the parent of 'is'.
-	 (smie-rule-parent ada-indent))
-	)
-
-      (if (smie-indent--hanging-p) ada-indent)
-      ))))
+;;; debug
+(defun ada-indent-following-keyword()
+  "Show the grammar info for word following point."
+  (interactive)
+  (message "%s" (assoc (save-excursion (ada-indent-forward-token)) smie-grammar)))
 
 ;;; setup
 
 (defun ada-indent-setup ()
-   ;; smie-indent-comment doesn't do what we want, but
-   ;; smie-indent-after-keyword does what we want for comments; it
-   ;; indents the comment as a simple single-line statement.
+
+  ;; We don't need most of the functions in the default value for
+  ;; smie-indent-functions, so we specify it here.
+  ;;
+  ;; If ada-indent-rules returns non-nil, smie-indent-keyword will use
+  ;; the indentation of the previous line, which is not usually
+  ;; correct; often it depends on the preceding keyword.
+  ;;
+  ;; On the other hand, if So we do
+  ;; intend-after-keyword first.
+
   (set (make-local-variable 'smie-indent-functions)
-       (remove 'smie-indent-comment smie-indent-functions))
+       '(smie-indent-bob; handle first non-comment line in buffer
+	 smie-indent-close; align close paren with opening paren.
+	 smie-indent-comment
+	 smie-indent-after-keyword
+	 smie-indent-keyword))
 
   (smie-setup ada-indent-grammar #'ada-indent-rules
 	      :forward-token #'ada-indent-forward-token

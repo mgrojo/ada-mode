@@ -10,19 +10,14 @@ General notes on porting Emacs Ada mode indentation engine to smie
 
 test/Makefile
     test/ada_mode-generic_package.ads
-Synchronized_Formal_Derived_Type_2
+Procedure_Formal_Access_Type_8
 
-("with" 39 4)
-("and-interface-list" 66 78)
-("new" 4 39)
-("is-type" 8 4)
-("type" (177) 8)
 
 do aspects next; may be very hard
 
 ada-indent.el
 
-(sal-edit-library "smie.el")
+(sal-edit-library "smie")
 
 c:/Projects/emacs_stephe.work/emacs_stephe/ada-mode-keys.el
 
