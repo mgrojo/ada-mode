@@ -1,4 +1,4 @@
-with Ada.Text_IO; -- FIXME: infinite loop when typed 'with' before newline before 'package'
+with Ada.Text_IO;
 with Ada.Strings.Unbounded;
 package Ada_Mode.Nominal is
    --  No comment on the first line, to make sure we can handle that :)
@@ -10,7 +10,6 @@ package Ada_Mode.Nominal is
    -- Indenting inside parens is covered in FIXME:
    -- 'overriding' covered in FIXME:
    -- indenting inside names covered in FIXME:
-   -- FIXME: infinite loop when newline inside comment paragraph
    -- record types coverd in FIXME:
    -- synchronized coverd in FIXME:
 
@@ -168,11 +167,12 @@ package Ada_Mode.Nominal is
    type Signed_Integer_Type is range 10 .. 11;
 
    protected type Protected_1 is
-      -- only two examples, to get 'protected' into grammar
+      -- only two examples, to get 'protected' and 'is-entry_body' into grammar
 
       function F1 return Integer;
       function F2 (A : Float; B : Float) return Float;
       entry E1 (X : Integer);
+      entry E2 (X : Integer);
       procedure P1;
       procedure P2 (A : Float; B : Float);
 
@@ -305,7 +305,7 @@ private
    record
       Component_1 : Integer;
    end record;
-   
+
    type Limited_Derived_Type_2 is abstract limited new Private_Type_1 with null record;
 
    type Limited_Derived_Type_3 is abstract limited new Private_Type_1

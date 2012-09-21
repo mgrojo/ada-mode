@@ -8,20 +8,21 @@ package body Ada_Mode.Nominal is
    type Incomplete_Type_1 (Discriminant_1 : Integer) is tagged null record;
 
    type Incomplete_Type_2 (Discriminant_1 : Integer) is tagged null
-   record;
+   record; -- don't care
 
    type Incomplete_Type_3 (Discriminant_1 : Integer) is tagged
-null record;
+      null record;
+
    type Incomplete_Type_4 (Discriminant_1 : Integer) is
       tagged null record;
    -- rest of newline placement covered in spec
 
    type Incomplete_Type_5 (Discriminant_1 : access Integer) is tagged record
-      Component_1 : integer;
+      Component_1 : Integer;
       Component_2 :
-         integer;
+         Integer;
       Component_3
-      : integer;
+      : Integer; -- don't care
    end record;
 
    protected body Protected_1 is
@@ -48,6 +49,16 @@ null record;
          -- A comment after an indented line
 
       end E1;
+
+      entry E2
+         (X : Integer)
+         when Local_1 = 0 and
+            Local_2
+      is
+         Tmp : Integer := 0;
+      begin
+         X := Tmp;
+      end E2;
 
       procedure P1 is
       begin
@@ -99,7 +110,7 @@ null record;
       return Local_1;
    end
       Function_1b;
-      
+
    function Function_1c return Float
    is
       Local_1 : constant Float := 2.0;
@@ -112,7 +123,7 @@ null record;
       return
          Local_3;
    end;
-   
+
    function Function_1d return Float is begin return 1.0; end;
 
    function Function_2a (Param : in Integer) return Float is begin return Float (Param); end;
@@ -132,7 +143,7 @@ null record;
          Float (Param);
    end;
    function Function_2e (Param : in Integer) return Float is begin return Float (Param); end;
-   
+
 begin
    null;
 end Ada_Mode.Nominal;

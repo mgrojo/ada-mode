@@ -289,19 +289,23 @@ identifiers, dots, and anything that looks like a parameter
 list (could be an array index). Note that Ada 2012 keywords that
 don't actually appear in the grammar look like identifiers, so
 this also skips them. Return the token that isn't part of the
-name (may be before any name is seen)."
+name (may be before any name is seen). Return empty string if
+encounter beginning of buffer."
   (let (token)
-    (while
-	(progn
-	  (setq token (funcall next-token))
-	  (if (equal "" token)
-	      ;; we hit a parameter list or something similar; use the lower level scanner
-	      (progn
-		(ada-indent-skip-param_list next-token 'ada-indent-backward-name)
-		(setq token (funcall next-token))))
-	  (setq token (nth 0 (assoc token smie-grammar)))
-	  (or (not token); not a keyword, so it must be an identifier
-	      (equal token "."))))
+    (catch 'quit
+      (while
+	  (progn
+	    (setq token (funcall next-token))
+	    (if (equal "" token)
+		;; we hit a parameter list or something similar; use the lower level scanner
+		(progn
+		  (when (bobp) (throw 'quit nil))
+		  (ada-indent-skip-param_list next-token 'ada-indent-backward-name)
+		  (setq token (funcall next-token))))
+	    (setq token (nth 0 (assoc token smie-grammar)))
+	    (or (not token); not a keyword, so it must be an identifier
+		(equal token "."))))
+      )
     token))
 
 (defun ada-indent-backward-name ()
@@ -616,7 +620,7 @@ name (may be before any name is seen)."
       (ada-indent-refine-is t))
 
      ((equal token "null")
-      (when (equal token "record") (smie-default-forward-token) "null_record"))
+      (when (equal "record" (smie-default-forward-token)) "null_record"))
 
      ((equal token "procedure")
       ;; type identifier is access [protected] procedure
@@ -755,7 +759,9 @@ name (may be before any name is seen)."
       (let ((token (save-excursion (smie-default-backward-token))))
 	(cond
 	 ((equal token "end") (smie-default-backward-token) "end_record")
-	 ((equal token "null") (smie-default-backward-token) "null_record"))))
+	 ((equal token "null") (smie-default-backward-token) "null_record")
+	 (t "record")
+	 )))
 
      ((equal token "return") (ada-indent-refine-return nil))
 
@@ -836,8 +842,10 @@ name (may be before any name is seen)."
 	  "with"); 1, 5
 
 	 ((or (equal token "private")
-	      (equal token ";"))
-	  "with-context"); 7 FIXME: test beginning of buffer
+	      (equal token ";")
+	      (equal token "")); beginning of buffer
+
+	  "with-context"); 7
 	 )))
 
     (t token))))
@@ -858,6 +866,7 @@ name (may be before any name is seen)."
        (basic ada-indent)
        (args 0))
      )
+
     (:before
      (cond
        ((or
@@ -884,23 +893,44 @@ name (may be before any name is seen)."
 	;; indent at the same level as the start of the declaration or
 	;; body, which is the parent of 'is'.
 	(smie-rule-parent 0))
+
+       ((equal arg "null_record")
+	;; In:
+	;;    type .. is tagged
+	;;       null record;
+	;; 'tagged' is not a smie keyword, so :after is not called
+	(smie-rule-parent ada-indent))
+
        ))
 
     (:after
      ;; `arg' is a keyword at the end of a line
      (cond
       ((equal arg ";")
-       ;; smie will essentially do 'backward-sexp' and use that indentation
-       0)
+       (let ((token (save-excursion
+		      (smie-default-forward-token); ';'
+		      (smie-default-forward-token))))
+       (if (member token '("begin" "end"))
+	(smie-rule-parent 0))))
 
-      ((or
-	(equal arg "is-package_body")
-	(equal arg "is-package_declaration")
-	(equal arg "is-protected_body")
-	(equal arg "is-subprogram_body"))
+      ((member arg
+	       '("is-entry_body"
+		 "is-package_body"
+		 "is-package_declaration"
+		 "is-protected_body"
+		 ;; FIXME: "is-type"?
+		 "record"))
        ;; indent relative to the start of the declaration or body,
-       ;; which is the parent of 'is'.
+       ;; which is the parent of this token
        (smie-rule-parent ada-indent))
+
+      ((equal arg "is-subprogram_body")
+       (if (equal "begin" (save-excursion
+			    (smie-default-forward-token); 'is'
+			    (smie-default-forward-token)))
+	   ;; null declaration part
+	   (smie-rule-parent 0)
+	 (smie-rule-parent ada-indent)))
 
       ((smie-indent--hanging-p)
        (ada-indent-rule-current ada-indent))
@@ -924,7 +954,8 @@ name (may be before any name is seen)."
   ;; the indentation of the previous line, which is not usually
   ;; correct; often it depends on the preceding keyword.
   ;;
-  ;; On the other hand, if So we do
+  ;; On the other hand, if ada-indent-rules returns non-nil,
+  ;; smie-indent-after-keyword will do nothing. So we do
   ;; intend-after-keyword first.
 
   (set (make-local-variable 'smie-indent-functions)
