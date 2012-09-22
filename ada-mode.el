@@ -64,6 +64,8 @@
 ;; GNAT compiler (the menus will include the cross-referencing
 ;; features,...).  FIXME: If you are using another compiler, you
 ;; should ...
+;;
+;; FIXME: see the user guide at ....
 
 ;;; History:
 ;; The first Ada mode for GNU Emacs was written by V. Broman in

@@ -2,6 +2,7 @@
 --
 -- Indenting nested bodies is covered more thoroughly in FIXME:
 
+with Ada.Strings; -- test two context clauses
 with Ada.Strings.Unbounded;
 package body Ada_Mode.Nominal is
 
@@ -29,12 +30,14 @@ package body Ada_Mode.Nominal is
 
       function F1 return Integer is
       begin
-         return 0;
+         return B : Integer := Integer (Function_1a);
+         -- non-do extended return
       end F1;
 
       function F2 (A : Float; B : Float) return Float
       is begin
          return C : Float do
+            -- extended return
             C := (A * B);
             C := C * C;
          end return;
@@ -55,8 +58,9 @@ package body Ada_Mode.Nominal is
 
       entry E2
          (X : Integer)
-      when Local_1 = 0 and
+      when Local_1 = 0 and not
          Local_2 = 1
+        -- an expression with 'not' to see if we need that in the grammar (conflicts with 'not null')
       is
          Tmp : Integer := 0;
       begin

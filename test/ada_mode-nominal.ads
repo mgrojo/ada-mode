@@ -1,5 +1,5 @@
 with Ada.Text_IO;
-with Ada.Strings.Unbounded;
+with Ada.Strings.Unbounded; -- FIXME: test 'use' in context clause
 package Ada_Mode.Nominal is
    --  No comment on the first line, to make sure we can handle that :)
    pragma Elaborate_Body (Ada_Mode.Nominal);
@@ -25,22 +25,36 @@ package Ada_Mode.Nominal is
    -- FIXME: add discriminants
 
    -- access to object
+   type Object_Access_Type_0a is access Integer;
+   type Object_Access_Type_0b is access all Integer;
+   type Object_Access_Type_0c is not null access all Integer;
+   type Object_Access_Type_0d is not null access all Integer;
+   type Object_Access_Type_0e is access constant Integer;
+   type Object_Access_Type_0f is not null access constant Integer;
    type Object_Access_Type_1 is not null access all Integer
-   ; -- we don't really care
-   type Object_Access_Type_2 is not null access all
+      ; -- we don't really care
+   type Object_Access_Type_2a is not null access all
       Integer;
-   type Object_Access_Type_3 is not null access
+   type Object_Access_Type_2b is not null access constant
+      Integer;
+   type Object_Access_Type_2c is not null access
+      Integer;
+   type Object_Access_Type_3a is not null access
       all Integer;
+   type Object_Access_Type_3b is not null access
+      constant Integer;
    type Object_Access_Type_4 is not null
-      access all Integer;
-   type Object_Access_Type_5 is not
+      access all Integer; -- it no longer matters wither this is 'all' or 'constant'
+   type Object_Access_Type_5a is not
       null access all Integer;
    type Object_Access_Type_6 is
       not null access all Integer;
+   type Object_Access_Type_6b is
+      access all Integer;
    type Object_Access_Type_7
-      is not null access all Integer;
+      is access all Integer;
    type
-      Object_Access_Type_8 is not null access all Integer;
+      Object_Access_Type_8 is access all Integer;
 
    -- Not significantly different than previous, so we only do one.
    type Object_Access_Type_9 is access Integer;
@@ -76,12 +90,28 @@ package Ada_Mode.Nominal is
       protected procedure
          (A_Param : out Integer);
 
+   ----------
    -- access to function
    --
    -- We covered newline within paren above.
-   type Function_Access_Type_1 is access protected function (A_Param : in Float) return Standard.Float;
-   type Function_Access_Type_2 is access protected function (A_Param : in Float) return
+   type Function_Access_Type_1a is access protected function (A_Param : in Float) return Standard.Float;
+   type Function_Access_Type_1a is access protected function (A_Param : in Float) return access Standard.Float;
+   type Function_Access_Type_1c is access protected function (A_Param : in Float) return access all Standard.Float;
+   type Function_Access_Type_1d is access protected function (A_Param : in Float) return access constant Standard.Float;
+   type Function_Access_Type_2a is access protected function (A_Param : in Float) return Standard.
+      Float;
+   type Function_Access_Type_2b is access protected function (A_Param : in Float) return Standard
+      .Float; -- FIXME: 'return' is 'return-exp'; wrong
+   type Function_Access_Type_2c is access protected function (A_Param : in Float) return
       Standard.Float;
+   type Function_Access_Type_2d is access protected function (A_Param : in Float) return access
+      Standard.Float;
+   type Function_Access_Type_2e is access protected function (A_Param : in Float) return access all
+      Standard.Float;
+   type Function_Access_Type_2f is access protected function (A_Param : in Float) return access constant
+      Standard.Float;
+   type Function_Access_Type_2g is access protected function (A_Param : in Float) return
+      access Standard.Float;
    type Function_Access_Type_3 is access protected function (A_Param : in Float)
       return Standard.Float;
    type Function_Access_Type_4 is access protected function

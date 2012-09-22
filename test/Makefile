@@ -17,6 +17,7 @@ EMACS := $(EMACSPATH)/emacs.exe
 one : ada_mode-nominal.ads.diff
 one : ada_mode-nominal.adb.diff
 
+# FIXME: add target to test user directory
 
 TEST_FILES := $(shell ls *.ad?)
 

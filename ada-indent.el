@@ -62,13 +62,13 @@ begin
        ;; BNF from [1] appendix P, vastly simplified
        ;; (info "(aarm2012)Annex P")
        ;;
-       ;; We only need enough of the grammar to allow indentation to work; see
-       ;; (info "(elisp)SMIE Grammar")
+       ;; We only need enough of the grammar to allow indentation to
+       ;; work; see (info "(elisp)SMIE Grammar")
        ;;
-       ;; That means we only need enough of the grammar to specify the precedence
-       ;; relationships among keywords (operators are handled below),
-       ;; so all BNF productions that have only one keyword are left
-       ;; out.
+       ;; That means we only need enough of the grammar to specify the
+       ;; precedence relationships among keywords (operators are
+       ;; handled below), so all BNF productions that have only one
+       ;; keyword are left out.
        ;;
        ;; Rather that start with all of appendix P and then fix
        ;; problems, we start with an extremely minimal grammar, and
@@ -79,8 +79,9 @@ begin
        ;; in the grammar.
        ;;
        ;; 'is' is used at several levels, so the lexer returns several
-       ;; different tokens for it, so that smie-indent--parent will
-       ;; identify the correct parent.
+       ;; different tokens for it, to resolve grammar conflicts, and
+       ;; for use with smie-backward-sexp to get to the correct
+       ;; parent.
        ;;
        ;; ';' has a similar problem; it is used in several different
        ;; constructs, where we need to correctly identify the
@@ -103,8 +104,12 @@ begin
 
        (access_type_definition
 	("type" identifier "is-type" "access" name)
+	("type" identifier "is-type" "not_null" "access" name)
 	;; trailing 'name' to match 'access protected procedure'.
-	;; don't need "not null all"; they are just ignored (treated as identifiers)
+	;; "not_null" is present because "not" is in operator grammar
+	;;
+	;; leaving out 'all | constant'; if they have to come back,
+	;; consider -simple-keywords- like -operator-.
 
 	("type" identifier "is-type" "access" "protected-access" "procedure-access")
 	("type" identifier "is-type" "access" "protected-access" "function-access" "return-access"))
@@ -124,6 +129,7 @@ begin
 	(array_type_definition)
 	(derived_type_declaration)
 	(interface_type_definition)
+	(pragma)
 	(private_extension_declaration)
 	(private_type_declaration)
 	(protected_body)
@@ -192,6 +198,9 @@ begin
 	;; Leaving 'package body' as separate tokens causes problems in refine-is
 	("package_body" name "is-package_body" declarations "begin" statements "end"))
 
+       (pragma
+	("pragma"))
+
        (private_extension_declaration
 	("type" identifier "is-type" "new" name "with_private")
 	("type" identifier "is-type" "new" interface_list "with_private"))
@@ -216,6 +225,11 @@ begin
 
        (statement
 	(expression); matches procedure calls, assignment
+
+	;; we leave "null" as an identifier, because it appears in so
+	;; many places, and acts like a parameterless procedure call
+	;; in most.
+
 	("return")
 	("return-exp")
 	("return-do" identifier ":")
@@ -627,8 +641,25 @@ encounter beginning of buffer."
       ;; 	 "private-type"); 1
       (ada-indent-refine-is t))
 
+     ((equal token "not")
+       (when (equal "null" (save-excursion (smie-default-forward-token)))
+	 (smie-default-forward-token)
+	 "not_null"))
+
      ((equal token "null")
-      (when (equal "record" (smie-default-forward-token)) "null_record"))
+      (or
+       (when (equal "not" (save-excursion (smie-default-backward-token)))
+	 (smie-default-forward-token)
+	 "not_null")
+
+       (when (equal "record" (save-excursion (smie-default-forward-token)))
+	 (smie-default-forward-token)
+	 "null_record")
+
+       ;; We don't return "null" here; we are leaving it as an
+       ;; identifier. (see comment in `statements' in
+       ;; ada-indent-grammar)
+       ))
 
      ((equal token "procedure")
       ;; type identifier is access [protected] procedure
@@ -697,10 +728,25 @@ encounter beginning of buffer."
 
      ((equal token "is") (ada-indent-refine-is nil))
 
+     ((equal token "not")
+      (if (equal "null" (save-excursion (smie-default-forward-token)))
+	(progn
+	  (smie-default-forward-token)
+	  "not_null")
+	"not"))
+
+     ((equal token "null")
+      (if (equal "not" (save-excursion (smie-default-backward-token)))
+	  (progn
+	    (smie-default-backward-token)
+	    "not_null")
+	"null"))
+
      ((equal token "package")
-      ;; FIXME: this is ok for a library level [generic] package alone in
-      ;; a file. But it could be a problem for a nested [generic]
-      ;; package.
+      ;; FIXME: this is ok for a library level [generic] package alone
+      ;; in a file. But it could be a problem for a nested [generic]
+      ;; package. Idea: "end" can't occur in generic formal
+      ;; parameters; search for "end|generic".
       (if (equal "generic" (smie-backward-sexp "package-generic"))
 	  "package-generic"
 	"package"))
@@ -843,7 +889,7 @@ encounter beginning of buffer."
       ;;    not implemented yet
       ;;    followed by "=>", ",", ";"
       ;;
-      (let ((token (ada-indent-backward-name)))
+      (let ((token (save-excursion (ada-indent-backward-name))))
 	(cond
 	 ((or (equal token "new")
 	      (equal token "and-interface_list"))
@@ -867,15 +913,24 @@ encounter beginning of buffer."
 (defun ada-indent-keywordp (token)
   (assoc token ada-indent-grammar))
 
-(defun ada-indent-after-non-keyword ()
+(defun ada-indent-openerp (token)
+  (listp (nth 1 (assoc token ada-indent-grammar))))
+
+(defun ada-indent-after (offset)
+  ;; Find the previous smie token, find the relative parent (may be that token), indent relative to that.
   (save-excursion
     (let ((token (ada-indent-backward-name)))
-      (if (listp (nth 1 (assoc token ada-indent-grammar)))
-	  ;; token is an opener; we don't need to skip back more
-	  ;; FIXME (smie): smie-backward-sexp should do this
-	  nil
+      (if (or
+	   (ada-indent-openerp token) ;; FIXME (smie): smie-backward-sexp should do this check
+	   (= 0 (current-column));; with-context
+	   )
+	   ;; we don't need to skip back more
+	   nil
 	(smie-backward-sexp token))
-      (cons 'column (+ (current-column) ada-indent)))))
+      (if (= 0 (current-column))
+	  ;; we were called with point in the context clause; indent to 0.
+	  0
+	(cons 'column (+ (current-column) offset))))))
 
 (defun ada-indent-rules (method arg)
   ;; If this returns a number, smie-indent--rule will do some
@@ -883,13 +938,16 @@ encounter beginning of buffer."
   ;; when we can.
   (case method
     (:elem
+     ;; see comments at smie-rules-function
      (case arg
        (basic ada-indent)
-       (args 0))
+       (args
+	;; offset for function arguments.
+	0))
      )
 
     (:before
-     ;; arg is a keyword. It's at the beginning of a line, unless we
+     ;; arg is a smie keyword. It's at the beginning of a line, unless we
      ;; are in smie-indent-virtual.
      (cond
       ((equal arg "(")
@@ -922,15 +980,14 @@ encounter beginning of buffer."
 	   (if (ada-indent-keywordp (save-excursion (ada-indent-backward-token)))
 	       ;; let :after handle it
 	       nil
-	     (ada-indent-after-non-keyword))
+	     (ada-indent-after ada-indent))
 	 ;; case 2
 	 (cons 'column (+ (current-column) 1))
 	 ))
 
       ((member arg
 	       '("end"
-		 "generic"
-		 "with")) ; context clause; FIXME: also used in derived record declaration
+		 "generic"))
        (smie-rule-parent 0))
 
       ((member arg
@@ -942,15 +999,20 @@ encounter beginning of buffer."
        ;; body, which is the parent of 'is'.
        (smie-rule-parent 0))
 
-      ((and
-	(smie-indent--bolp); not already in smie-indent-virtual
-	(not (assoc (save-excursion (ada-indent-backward-token)) ada-indent-grammar)))
-       ;; previous token is not a keyword; smie-indent-after-keyword won't work.
-       ;; So we skip back to a keyword, find the parent, indent from
-       ;; there.
+      ((equal arg "with")
+       ;; context clause; FIXME: also used in derived record declaration
+       (cons 'column 0))
+
+      ((smie-indent--bolp); not already in smie-indent-virtual
+
+       ;; If the previous token is not a smie keyword,
+       ;; smie-indent-after-keyword won't work. On the other hand, if
+       ;; we return nil from here, smie-indent-keyword will simply
+       ;; align us with the previous line. So we do it ourselves.
        ;;
-       ;; We don't use smie-rule-parent because FIXME:
-       (ada-indent-after-non-keyword))
+       ;; We don't use smie-rule-parent because it doesn't do
+       ;; the right thing when the previous token is not a smie keyword.
+       (ada-indent-after ada-indent))
       ))
 ;;;
     (:after
@@ -970,8 +1032,16 @@ encounter beginning of buffer."
        (cons 'column (+ (current-column) 1)))
 
       ((equal arg ";")
-	 ;; smie will essentially do 'backward-sexp' and use that indentation
-	 0)
+       ;; Various cases:
+       ;;
+       ;; 1) with Name;
+       ;;    package Name ...
+       ;;
+       ;;    indent to 0
+       ;;    :before "with" will do the right thing
+       ;;
+       ;; 2) FIXME: ?
+       (ada-indent-after 0))
 
       ((member arg
 	       ;; keywords that start indented blocks
@@ -1022,13 +1092,12 @@ encounter beginning of buffer."
   ;;    1) type .. is not null access all
   ;;          Integer;
   ;;
-  ;; Here 'not null access all protected' are not smie grammar
-  ;; keywords. In case 1) smie-indent-keyword and
-  ;; smie-indent-after-keyword do nothing; they don't call
-  ;; ada-indent-rules.
+  ;; Here 'all Integer' are not smie grammar
+  ;; keywords. smie-indent-keyword and smie-indent-after-keyword do
+  ;; nothing; they don't call ada-indent-rules.
   ;;
   ;; So we run this after smie-indent-keyword and
-  ;; smie-indent-after-keyword, and handle the cases they don't.
+  ;; smie-indent-after-keyword, to handle the cases they don't.
   ;;
   ;; FIXME: this will probably interfere with expressions. But it's
   ;; worth a try.
@@ -1040,7 +1109,7 @@ encounter beginning of buffer."
 	  (and
 	   (< 0 (length prev-token))
 	   (< 0 (length next-token)))
-	(ada-indent-after-non-keyword)))))
+	(ada-indent-after ada-indent)))))
 
 ;;; debug
 (defun ada-indent-following-keyword()
@@ -1065,8 +1134,12 @@ encounter beginning of buffer."
   ;; indent-after-keyword. However, if (ada-indent-rules :before)
   ;; returns an offset, rather than a column, smie-indent-keyword will
   ;; offset from the indentation of the previous line, which is not
-  ;; usually correct. So we have to be aware of that in
-  ;; ada-indent-rules.
+  ;; usually correct. Even worse, if (ada-indent-rules :before)
+  ;; returns nil when it is after a smie keyword, smie-indent-keyword
+  ;; will align with the previous line (in smie-indent-virtual). So we
+  ;; have to be aware of that in ada-indent-rules. (FIXME: if this
+  ;; paragraph gets much longer, it's time to replace
+  ;; smie-indent-keyword)
   ;;
   ;; Similarly, if ada-indent-rules returns an offset, instead of a
   ;; column, smie-indent-after-keyword will do something mysterious.
