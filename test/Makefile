@@ -14,10 +14,9 @@ all : compile test
 EMACS := $(EMACSPATH)/emacs.exe
 
 #one : EMACS := /usr/bin/emacs
-one : test_overriding_indent.adb
-	gnatmake -gnat2012 -gnatc $<
-	rm -rf $<.tmp $<.diff
-	make $<.diff
+one : ada_mode-nominal.ads.diff
+one : ada_mode-nominal.adb.diff
+
 
 TEST_FILES := $(shell ls *.ad?)
 

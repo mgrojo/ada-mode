@@ -3,14 +3,15 @@ General notes on porting Emacs Ada mode indentation engine to smie
 (progn
     (add-to-list 'load-path (expand-file-name "."))
     (load "test/runtest.el")
+    (which-function-mode)
     (add-hook 'ada-mode-hook
        (lambda () (define-key ada-mode-map "\C-w" 'capitalize-word))))
 
 (edebug-toggle-save-all-windows)
 
 test/Makefile
-    test/ada_mode-nominal.adb
-function_1c local_3
+    test/ada_mode-nominal.ads Object_Access_Type_2
+
 
 
 do aspects next; may be very hard

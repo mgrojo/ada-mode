@@ -488,7 +488,15 @@ encounter beginning of buffer."
        ;; really need to check, but we want to identify missing cases.
        (if (equal "entry" (nth 2 (smie-backward-sexp "is-entry_body"))) "is-entry_body"))
 
-     (error "unrecognized 'is'"))))
+     (error
+      "unrecognized 'is': %d"
+      ;; When running from the Makefile, we'd like to report the line
+      ;; number here, but there is no 'current-line' function. So we
+      ;; show the text of the current line.
+      (buffer-substring-no-properties
+       (progn (beginning-of-line) (point))
+       (progn (end-of-line) (point))))
+     )))
 
 (defun ada-indent-refine-return (forward)
   (save-excursion
@@ -856,6 +864,19 @@ encounter beginning of buffer."
   "Indent relative to the current line"
   (cons 'column (+ (save-excursion (back-to-indentation) (current-column)) offset)))
 
+(defun ada-indent-keywordp (token)
+  (assoc token ada-indent-grammar))
+
+(defun ada-indent-after-non-keyword ()
+  (save-excursion
+    (let ((token (ada-indent-backward-name)))
+      (if (listp (nth 1 (assoc token ada-indent-grammar)))
+	  ;; token is an opener; we don't need to skip back more
+	  ;; FIXME (smie): smie-backward-sexp should do this
+	  nil
+	(smie-backward-sexp token))
+      (cons 'column (+ (current-column) ada-indent)))))
+
 (defun ada-indent-rules (method arg)
   ;; If this returns a number, smie-indent--rule will do some
   ;; complicated logic with it. So it is best to return ('column n)
@@ -868,6 +889,8 @@ encounter beginning of buffer."
      )
 
     (:before
+     ;; arg is a keyword. It's at the beginning of a line, unless we
+     ;; are in smie-indent-virtual.
      (cond
       ((equal arg "(")
        ;; parenthesis occur in expressions, and after names, as array
@@ -880,48 +903,35 @@ encounter beginning of buffer."
        ;; line, smie-indent-keyword gives up, returning nil. So then
        ;; smie-indent-after-keyword has a go, looking at the previous
        ;; token. Since that is usually a name, not a keyword, that
-       ;; does nothing as well, and we get intented to zero.
+       ;; does nothing as well, and we get indented to zero.
        ;;
-       ;; So we do it all here; skip back to a keyword, find the
+       ;; In addition, we get here in several cases:
+       ;;
+       ;;    1)    ... name
+       ;;             (args)
+       ;;
+       ;;    2)    ... name (args
+       ;;                    )
+       ;;
+       ;; In case 1, we want to skip back to a keyword, find the
        ;; parent, indent from there.
-       (save-excursion
-	 (let ((token (ada-indent-backward-name)))
-	   (if (listp (nth 1 (assoc token ada-indent-grammar)))
-	       ;; token is an opener; we don't need to skip back more
-	       ;; FIXME (smie): smie-backward-sexp should do this
-	       nil
-	     (smie-backward-sexp token))
-	   (cons 'column (+ (current-column) ada-indent)))))
-
-      ((equal arg ":=")
-       ;; Previous token is not a keyword, so intent-after doesn't work here.
        ;;
-       ;; So we skip back to a keyword, find the parent, indent from
-       ;; there.
-       ;;
-       ;; FIXME: Same code as paren; if they stay the same, factor it out.
-       (save-excursion
-	 (let ((token (ada-indent-backward-name)))
-	   (if (listp (nth 1 (assoc token ada-indent-grammar)))
-	       ;; token is an opener; we don't need to skip back more
-	       ;; FIXME (smie): smie-backward-sexp should do this
+       ;; In case 2, we want to indent 1 from where we are.
+       (if (smie-indent--bolp)
+	   ;; case 1
+	   (if (ada-indent-keywordp (save-excursion (ada-indent-backward-token)))
+	       ;; let :after handle it
 	       nil
-	     (smie-backward-sexp token))
-	   (cons 'column (+ (current-column) ada-indent)))))
-
-      ((member arg '("access" "array"))
-       (smie-rule-parent ada-indent))
+	     (ada-indent-after-non-keyword))
+	 ;; case 2
+	 (cons 'column (+ (current-column) 1))
+	 ))
 
       ((member arg
 	       '("end"
 		 "generic"
 		 "with")) ; context clause; FIXME: also used in derived record declaration
        (smie-rule-parent 0))
-
-      ((equal arg "function-access")
-       ;; We are in an access_to_subprogram type_definition; we
-       ;; want to indent 'function' relative to 'type'
-       (smie-rule-parent ada-indent))
 
       ((member arg
 	       '("is-package_body"
@@ -932,19 +942,33 @@ encounter beginning of buffer."
        ;; body, which is the parent of 'is'.
        (smie-rule-parent 0))
 
-      ((equal arg "null_record")
-       ;; In:
-       ;;    type .. is tagged
-       ;;       null record;
-       ;; 'tagged' is not a smie keyword, so :after is not called
-       (smie-rule-parent ada-indent))
-
+      ((and
+	(smie-indent--bolp); not already in smie-indent-virtual
+	(not (assoc (save-excursion (ada-indent-backward-token)) ada-indent-grammar)))
+       ;; previous token is not a keyword; smie-indent-after-keyword won't work.
+       ;; So we skip back to a keyword, find the parent, indent from
+       ;; there.
+       ;;
+       ;; We don't use smie-rule-parent because FIXME:
+       (ada-indent-after-non-keyword))
       ))
-
+;;;
     (:after
      ;; `arg' is a keyword at the end of a line
      ;; :before is checked first, so we don't need to consider those cases here
      (cond
+      ((equal arg "(")
+       ;; See comments in :before on "("
+       ;;
+       ;; We have this case:
+       ;;
+       ;;    ... name (
+       ;;              args
+       ;;
+       ;; This is from an comp.lang.ada discussion; some people like it
+       ;; because it makes it easier to rearrange the list of args.
+       (cons 'column (+ (current-column) 1)))
+
       ((equal arg ";")
 	 ;; smie will essentially do 'backward-sexp' and use that indentation
 	 0)
@@ -963,11 +987,11 @@ encounter beginning of buffer."
        (smie-rule-parent ada-indent))
 
       ((or
+	;; smie-indent--hanging-p returns nil if the keyword is alone
+	;; on the line, which is often the case for 'return', for
+	;; example.
 	(smie-indent--bolp)
 	(smie-indent--hanging-p))
-       ;; smie-indent--hanging-p returns nil if the keyword is alone
-       ;; on the line, which is often the case for 'return', for
-       ;; example.
        (ada-indent-rule-current ada-indent))
       ))
     ))
@@ -986,6 +1010,37 @@ encounter beginning of buffer."
        (save-excursion
          (forward-comment (- (point-min)))
          (smie-indent-calculate))))
+
+(defun ada-indent-non-keyword ()
+  ;; Indent between tokens that are a Ada keywords but not smie
+  ;; keywords.
+  ;;
+  ;; We hope that by not introducing all Ada keywords into the smie
+  ;; grammar we can keep things simpler. But that means smie functions
+  ;; don't handle this case:
+  ;;
+  ;;    1) type .. is not null access all
+  ;;          Integer;
+  ;;
+  ;; Here 'not null access all protected' are not smie grammar
+  ;; keywords. In case 1) smie-indent-keyword and
+  ;; smie-indent-after-keyword do nothing; they don't call
+  ;; ada-indent-rules.
+  ;;
+  ;; So we run this after smie-indent-keyword and
+  ;; smie-indent-after-keyword, and handle the cases they don't.
+  ;;
+  ;; FIXME: this will probably interfere with expressions. But it's
+  ;; worth a try.
+  (save-excursion
+    ;; make sure we are between Ada keyords or identifiers (not '()').
+    (let ((prev-token (save-excursion (ada-indent-backward-token)))
+	  (next-token (save-excursion (ada-indent-forward-token))))
+      (when
+	  (and
+	   (< 0 (length prev-token))
+	   (< 0 (length next-token)))
+	(ada-indent-after-non-keyword)))))
 
 ;;; debug
 (defun ada-indent-following-keyword()
@@ -1021,7 +1076,9 @@ encounter beginning of buffer."
 	 smie-indent-close; align close paren with opening paren.
 	 ada-indent-comment
 	 smie-indent-keyword
-	 smie-indent-after-keyword))
+	 smie-indent-after-keyword
+	 ada-indent-non-keyword
+	 smie-indent-exps));; FIXME: haven't tested expressions yet
 
   (smie-setup ada-indent-grammar #'ada-indent-rules
 	      :forward-token #'ada-indent-forward-token
