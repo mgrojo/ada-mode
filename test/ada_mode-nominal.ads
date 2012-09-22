@@ -102,7 +102,7 @@ package Ada_Mode.Nominal is
    type Function_Access_Type_2a is access protected function (A_Param : in Float) return Standard.
       Float;
    type Function_Access_Type_2b is access protected function (A_Param : in Float) return Standard
-      .Float; -- FIXME: 'return' is 'return-exp'; wrong
+      .Float;
    type Function_Access_Type_2c is access protected function (A_Param : in Float) return
       Standard.Float;
    type Function_Access_Type_2d is access protected function (A_Param : in Float) return access
@@ -163,10 +163,10 @@ package Ada_Mode.Nominal is
 
    type Limited_Derived_Type_1 is abstract limited new Private_Type_1 with private;
    type Limited_Derived_Type_2 is abstract limited new Private_Type_1 with
-   private;
+      private;
    -- rest of Limited_Derived below, due to freezing rules
 
--- FIXME: add 'null record'
+   -- FIXME: add 'null record'
 
    type Discrete_Type_1 is (A, B, C);
    type Discrete_Type_2 is

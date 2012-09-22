@@ -46,18 +46,18 @@ COMPILE_FILES := $(filter-out private.adb, $(COMPILE_FILES))
 
 test : $(addsuffix .diff, $(TEST_FILES))
 
-%.adb.diff : %.adb %.adb.tmp ../ada-indent.el
-	diff -u $*.adb $*.adb.tmp > $*.adb.diff
+%.adb.diff : %.adb %.adb.tmp
+	diff -u $^ > $*.adb.diff
 
-%.ads.diff : %.ads %.ads.tmp ../ada-indent.el
-	diff -u $*.ads $*.ads.tmp > $*.ads.diff
+%.ads.diff : %.ads %.ads.tmp
+	diff -u $^ > $*.ads.diff
 
 .PRECIOUS : %.adb.tmp %.ads.tmp
 
-%.adb.tmp : %.adb
+%.adb.tmp : %.adb ../ada-indent.el
 	$(EMACS) -Q -batch -L .. -l runtest.el --eval '(run-test "$<")'
 
-%.ads.tmp : %.ads
+%.ads.tmp : %.ads ../ada-indent.el
 	$(EMACS) -Q -batch -L .. -l runtest.el --eval '(run-test "$<")'
 
 COMPILE_FILES := $(COMPILE_FILES:.adb=.ali)

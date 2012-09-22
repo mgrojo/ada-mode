@@ -2,6 +2,8 @@
 --
 -- Indenting nested bodies is covered more thoroughly in FIXME:
 
+-- FIXME: add a function body that returns an access type
+
 with Ada.Strings; -- test two context clauses
 with Ada.Strings.Unbounded;
 package body Ada_Mode.Nominal is
