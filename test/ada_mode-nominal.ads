@@ -2,6 +2,7 @@ with Ada.Text_IO;
 with Ada.Strings.Unbounded; -- FIXME: test 'use' in context clause
 package Ada_Mode.Nominal is
    --  No comment on the first line, to make sure we can handle that :)
+
    pragma Elaborate_Body (Ada_Mode.Nominal);
 
    -- FIXME: review ARM list of declaration items, add missing.
@@ -62,13 +63,13 @@ package Ada_Mode.Nominal is
    -- access to procedure
    type Procedure_Access_Type_1 is access protected procedure (A_Param : out Integer);
    type Procedure_Access_Type_2 is access protected procedure (A_Param : out Integer
-                                                               );
+   ); -- FIXME: from smie-indent-close!
    type Procedure_Access_Type_3 is access protected procedure (A_Param : out
-                                                                             Integer); -- don't care
+                                                                  Integer); -- don't care
    type Procedure_Access_Type_4 is access protected procedure (A_Param :
-                                                                         out Integer); -- don't care
+      out Integer); -- don't care
    type Procedure_Access_Type_5 is access protected procedure (A_Param
-                                                                      : out Integer); -- don't care
+                                                                  : out Integer); -- don't care
    type Procedure_Access_Type_6 is access protected procedure (
                                                                A_Param : out Integer);
 
@@ -95,7 +96,7 @@ package Ada_Mode.Nominal is
    --
    -- We covered newline within paren above.
    type Function_Access_Type_1a is access protected function (A_Param : in Float) return Standard.Float;
-   type Function_Access_Type_1a is access protected function (A_Param : in Float) return access Standard.Float;
+   type Function_Access_Type_1b is access protected function (A_Param : in Float) return access Standard.Float;
    type Function_Access_Type_1c is access protected function (A_Param : in Float) return access all Standard.Float;
    type Function_Access_Type_1d is access protected function (A_Param : in Float) return access constant Standard.Float;
    type Function_Access_Type_2a is access protected function (A_Param : in Float) return Standard.

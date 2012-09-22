@@ -2,6 +2,7 @@ General notes on porting Emacs Ada mode indentation engine to smie
 
 (progn
     (add-to-list 'load-path (expand-file-name "."))
+    (setq debug-on-error t); see errors from smie-indent-line
     (load "test/runtest.el")
     (which-function-mode)
     (add-hook 'ada-mode-hook
@@ -10,8 +11,9 @@ General notes on porting Emacs Ada mode indentation engine to smie
 (edebug-toggle-save-all-windows)
 
 test/Makefile
-    test/ada_mode-nominal.ads
-Incomplete_Type_1
+    test/ada_mode-nominal.adb
+F1 begin
+    handle empty 'is begin' block
 
 do aspects next; may be very hard
 
@@ -29,10 +31,6 @@ http://dickgrune.com/Books/PTAPG_2nd_Edition/
     used by modula2-mode, octave-mode in emacs 24
 
  to do
-
-smie-indent-token always finds the parent when calling
-ada-indent-rules, then sometimes we find it again; we can use
-smie-parent, or rewrite smie-indent-token
 
 test with non-lowercase keywords
 

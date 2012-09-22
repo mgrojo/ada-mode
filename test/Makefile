@@ -16,6 +16,7 @@ EMACS := $(EMACSPATH)/emacs.exe
 #one : EMACS := /usr/bin/emacs
 one : ada_mode-nominal.ads.diff
 one : ada_mode-nominal.adb.diff
+one : ada_mode-generic.ads.diff
 
 # FIXME: add target to test user directory
 
@@ -45,11 +46,11 @@ COMPILE_FILES := $(filter-out private.adb, $(COMPILE_FILES))
 
 test : $(addsuffix .diff, $(TEST_FILES))
 
-%.adb.diff : %.adb %.adb.tmp
-	diff -u $^ > $*.adb.diff
+%.adb.diff : %.adb %.adb.tmp ../ada-indent.el
+	diff -u $*.adb $*.adb.tmp > $*.adb.diff
 
-%.ads.diff : %.ads %.ads.tmp
-	diff -u $^ > $*.ads.diff
+%.ads.diff : %.ads %.ads.tmp ../ada-indent.el
+	diff -u $*.ads $*.ads.tmp > $*.ads.diff
 
 .PRECIOUS : %.adb.tmp %.ads.tmp
 

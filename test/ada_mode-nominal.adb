@@ -9,7 +9,7 @@ package body Ada_Mode.Nominal is
    type Incomplete_Type_1 (Discriminant_1 : Integer) is tagged null record;
 
    type Incomplete_Type_2 (Discriminant_1 : Integer) is tagged null
-   record; -- don't care
+      record; -- don't care
 
    type Incomplete_Type_3 (Discriminant_1 : Integer) is tagged
       null record;
@@ -23,7 +23,7 @@ package body Ada_Mode.Nominal is
       Component_2 :
          Integer;
       Component_3
-      : Integer; -- don't care
+         : Integer; -- don't care
    end record;
 
    protected body Protected_1 is

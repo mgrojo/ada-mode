@@ -205,6 +205,7 @@ begin
 	("type" identifier "is-type" "new" name "with_private")
 	("type" identifier "is-type" "new" interface_list "with_private"))
        ;; leaving 'with' and 'private' as separate tokens causes conflicts
+       ;; leaving out 'abstract tagged limited'
 
        (private_type_declaration ("type" identifier "is-type" "private-type"))
 
@@ -311,9 +312,10 @@ encounter beginning of buffer."
 	  (progn
 	    (setq token (funcall next-token))
 	    (if (equal "" token)
-		;; we hit a parameter list or something similar; use the lower level scanner
+		;; We hit a parameter list or something similar
 		(progn
 		  (when (bobp) (throw 'quit nil))
+		  (when (eq (char-before) ?\() (throw 'quit "("))
 		  (ada-indent-skip-param_list next-token 'ada-indent-backward-name)
 		  (setq token (funcall next-token))))
 	    (setq token (nth 0 (assoc token smie-grammar)))
@@ -559,16 +561,15 @@ encounter beginning of buffer."
     (or
      (save-excursion (if (equal "end" (smie-default-backward-token)) "end_return")); 4c
 
-     ;; do this before now, otherwise can't distinguish between:
+     ;; do this now, otherwise can't distinguish between:
      ;; function F1 return Integer;
      ;; return 0;
      ;;
      (save-excursion
-	(if (equal "function" (ada-indent-backward-name))
-	    (if (or (equal "access" (smie-default-backward-token))
-		    (equal "access" (smie-default-backward-token)))
-		"return-access"; 5
-	      "return-spec"))); 1 or 2
+	(let ((token (ada-indent-backward-name)))
+	  (cond
+	   ((equal token "function-access") "return-access"); 5
+	   ((equal token "function") "return-spec")))); 1 or 2
 
      (save-excursion
        ;; FIXME: test this at end of buffer (not very
@@ -779,6 +780,7 @@ encounter beginning of buffer."
       ;;
       (cond
        ((equal "with" (save-excursion (smie-default-backward-token)))
+	(smie-default-backward-token)
 	"with_private"); 5
 
        ((equal "is-type" (save-excursion (ada-indent-backward-name)))
@@ -916,22 +918,56 @@ encounter beginning of buffer."
 (defun ada-indent-openerp (token)
   (listp (nth 1 (assoc token ada-indent-grammar))))
 
+(defconst ada-indent-single-token-sexps
+  '("pragma")
+  "Keywords that stand alone in an Ada statement or declaration.")
+
+(defconst ada-indent-block-start-keywords
+  '(
+    ;; FIXME: begin?
+    "is-entry_body"
+    "is-package_body"
+    "is-package_declaration"
+    "is-protected_body"
+    "is-subprogram_body"
+    ;; FIXME: "is-type"?
+    "record")
+  "Keywords that start indented blocks.")
+
 (defun ada-indent-after (offset)
   ;; Find the previous smie token, find the relative parent (may be that token), indent relative to that.
   (save-excursion
     (let ((token (ada-indent-backward-name)))
       (if (or
-	   (ada-indent-openerp token) ;; FIXME (smie): smie-backward-sexp should do this check
+	   (ada-indent-openerp token)
+	   (member token ada-indent-single-token-sexps)
 	   (= 0 (current-column));; with-context
 	   )
 	   ;; we don't need to skip back more
 	   nil
 	(smie-backward-sexp token))
       (if (= 0 (current-column))
-	  ;; we were called with point in the context clause; indent to 0.
-	  0
-	(cons 'column (+ (current-column) offset))))))
+	  ;; Two cases:
+	  ;;
+	  ;; 1) with name;
+	  ;;    package name ...
+	  ;;
+	  ;; 2) with name;
+	  ;;    with name;
+	  ;;
+	  ;; In case 1, we are at 'package'; indent relative to
+	  ;; that. In case 2, we were called with point in the context
+	  ;; clause; indent to 0.
+	  ;; FIXME: it's more complicated than just 'with' and 'package'; generic, limited with, use, private
+	  (if (looking-at "package")
+	      (cons 'column ada-indent)
+	    (cons 'column 0))
+	(cons 'column
+	      (+
+	       (if (member token ada-indent-block-start-keywords) ada-indent 0)
+	       (current-column) offset))))))
 
+;;;
 (defun ada-indent-rules (method arg)
   ;; If this returns a number, smie-indent--rule will do some
   ;; complicated logic with it. So it is best to return ('column n)
@@ -1004,15 +1040,11 @@ encounter beginning of buffer."
        (cons 'column 0))
 
       ((smie-indent--bolp); not already in smie-indent-virtual
-
        ;; If the previous token is not a smie keyword,
-       ;; smie-indent-after-keyword won't work. On the other hand, if
-       ;; we return nil from here, smie-indent-keyword will simply
-       ;; align us with the previous line. So we do it ourselves.
-       ;;
-       ;; We don't use smie-rule-parent because it doesn't do
-       ;; the right thing when the previous token is not a smie keyword.
-       (ada-indent-after ada-indent))
+       ;; smie-indent-after-keyword won't work. So handle that case
+       ;; here.
+       (if (not (ada-indent-keywordp (save-excursion (ada-indent-backward-token))))
+	   (ada-indent-after ada-indent)))
       ))
 ;;;
     (:after
@@ -1043,17 +1075,10 @@ encounter beginning of buffer."
        ;; 2) FIXME: ?
        (ada-indent-after 0))
 
-      ((member arg
-	       ;; keywords that start indented blocks
-	       '("is-entry_body"
-		 "is-package_body"
-		 "is-package_declaration"
-		 "is-protected_body"
-		 "is-subprogram_body"
-		 ;; FIXME: "is-type"?
-		 "record"))
-       ;; indent relative to the start of the declaration or body,
-       ;; which is the parent of this token
+      ((member arg ada-indent-block-start-keywords)
+       ;; Indent relative to the start of the declaration or body,
+       ;; which is the parent of this token.
+       ;; FIXME: unless the token we are indenting is the corresponding block end (ie, we are in an empty block).
        (smie-rule-parent ada-indent))
 
       ((or
@@ -1065,6 +1090,10 @@ encounter beginning of buffer."
        (ada-indent-rule-current ada-indent))
       ))
     ))
+
+;;; smie-indent-functions
+;;;
+;; each must not move point, and must return a column or nil.
 
 (defun ada-indent-comment ()
   "Compute indentation of a comment."
@@ -1093,10 +1122,10 @@ encounter beginning of buffer."
   ;;          Integer;
   ;;
   ;; Here 'all Integer' are not smie grammar
-  ;; keywords. smie-indent-keyword and smie-indent-after-keyword do
-  ;; nothing; they don't call ada-indent-rules.
+  ;; keywords. ada-indent-before-keyword and smie-indent-after-keyword
+  ;; do nothing; they don't call ada-indent-rules.
   ;;
-  ;; So we run this after smie-indent-keyword and
+  ;; So we run this after ada-indent-before-keyword and
   ;; smie-indent-after-keyword, to handle the cases they don't.
   ;;
   ;; FIXME: this will probably interfere with expressions. But it's
@@ -1109,13 +1138,68 @@ encounter beginning of buffer."
 	  (and
 	   (< 0 (length prev-token))
 	   (< 0 (length next-token)))
-	(ada-indent-after ada-indent)))))
+	(cdr (ada-indent-after ada-indent))))))
+
+(defun ada-indent-before-keyword()
+  "Replacement for `smie-indent-keyword', tailored to Ada.
+It requires `ada-indent-rule' to return nil or ('column column),
+never just an offset (since we would not know what the offset was
+relative to."
+  (save-excursion
+    (let ((token (smie-indent-forward-token))
+	  indent)
+
+      (when (ada-indent-keywordp token)
+	(setq indent (ada-indent-rules :before token))
+
+	;; here we replace smie-indent--rules
+	(cond
+	 ((null indent) nil)
+	 ((eq (car-safe indent) 'column) (cdr indent))
+	 (t (error "Invalid `ada-indent-rules' result %s" indent))))
+      )))
+
+(defun ada-indent-error ()
+  "Throw an error. Indended to be the last item in
+`smie-indent-functions', to warn when no indentation decision was
+made."
+  (error "no indent computed"))
 
 ;;; debug
 (defun ada-indent-following-keyword()
   "Show the grammar info for word following point."
   (interactive)
   (message "%s" (assoc (save-excursion (ada-indent-forward-token)) smie-grammar)))
+
+(defun ada-indent-wrapper (indent-function)
+  "Call INDENT-FUNCTION, check for errors, report non-nil."
+  (let ((pos (point))
+	(res (funcall indent-function)))
+
+    (when (not (= pos (point)))
+      (error "indent-function %s moved point" indent-function))
+
+    (unless (or (null res)
+		(integerp res))
+      (error "indent-function %s returned invalid value %s" indent-function res))
+
+    (when res
+      (message "indent-function %s returned indentation %s" indent-function res)
+      res)
+    ))
+
+(defmacro ada-indent-wrap (func)
+  (ada-indent-wrapper ,func))
+
+(defun ada-indent-wrap-indent-functions ()
+  "Replace contents of `smie-indent-functions' with wrapped functions."
+  ;; FIXME: this doesn't work
+  (let (res func)
+    (while (setq func (pop smie-indent-functions))
+      (let ((newfunc (lambda () (ada-indent-wrap func))))
+	(setq res (cons newfunc res))))
+    (setq res (cons `ada-indent-error res))
+    (setq smie-indent-functions (reverse res))))
 
 ;;; setup
 
@@ -1129,29 +1213,41 @@ encounter beginning of buffer."
   ;;
   ;; There are times (like at 'end') when it is very simple to figure
   ;; out the indent when looking at a keyword, and much harder when
-  ;; looking at the previous keyword, so we do smie-indent-keyword
-  ;; (which should have 'before' in the name) before
-  ;; indent-after-keyword. However, if (ada-indent-rules :before)
-  ;; returns an offset, rather than a column, smie-indent-keyword will
-  ;; offset from the indentation of the previous line, which is not
-  ;; usually correct. Even worse, if (ada-indent-rules :before)
-  ;; returns nil when it is after a smie keyword, smie-indent-keyword
-  ;; will align with the previous line (in smie-indent-virtual). So we
-  ;; have to be aware of that in ada-indent-rules. (FIXME: if this
-  ;; paragraph gets much longer, it's time to replace
-  ;; smie-indent-keyword)
+  ;; looking at the previous keyword, so we do
+  ;; ada-indent-before-keyword before smie-indent-after-keyword.
+  ;;
+  ;; We started out trying to use smie-indent-keyword. However, there
+  ;; are too many cases when it does the wrong thing for Ada. We keep
+  ;; the same overall structure of the code; ada-indent-before-keyword
+  ;; calls ada-indent-rules in the same way.
   ;;
   ;; Similarly, if ada-indent-rules returns an offset, instead of a
   ;; column, smie-indent-after-keyword will do something mysterious.
 
-  (set (make-local-variable 'smie-indent-functions)
-       '(smie-indent-bob; handle first non-comment line in buffer
-	 smie-indent-close; align close paren with opening paren.
-	 ada-indent-comment
-	 smie-indent-keyword
-	 smie-indent-after-keyword
-	 ada-indent-non-keyword
-	 smie-indent-exps));; FIXME: haven't tested expressions yet
+  (make-local-variable 'smie-indent-functions)
+
+  (if debug-on-error
+      (setq smie-indent-functions
+	    (list
+	     (lambda () (ada-indent-wrapper 'smie-indent-bob))
+	     (lambda () (ada-indent-wrapper 'smie-indent-close))
+	     (lambda () (ada-indent-wrapper 'ada-indent-comment))
+	     (lambda () (ada-indent-wrapper 'ada-indent-before-keyword))
+	     (lambda () (ada-indent-wrapper 'smie-indent-after-keyword))
+	     (lambda () (ada-indent-wrapper 'ada-indent-non-keyword))
+	     (lambda () (ada-indent-wrapper 'smie-indent-exps))
+	     'ada-indent-error)
+	    )
+    (setq smie-indent-functions
+	  '(smie-indent-bob; handle first non-comment line in buffer
+	    smie-indent-close; align close paren with opening paren.
+	    ada-indent-comment
+	    ada-indent-before-keyword
+	    smie-indent-after-keyword
+	    ada-indent-non-keyword
+	    smie-indent-exps);; FIXME: haven't tested expressions yet
+	  )
+    )
 
   (smie-setup ada-indent-grammar #'ada-indent-rules
 	      :forward-token #'ada-indent-forward-token
