@@ -63,7 +63,7 @@ package Ada_Mode.Nominal is
    -- access to procedure
    type Procedure_Access_Type_1 is access protected procedure (A_Param : out Integer);
    type Procedure_Access_Type_2 is access protected procedure (A_Param : out Integer
-   ); -- FIXME: from smie-indent-close!
+      ); -- FIXME: from smie-indent-close!
    type Procedure_Access_Type_3 is access protected procedure (A_Param : out
                                                                   Integer); -- don't care
    type Procedure_Access_Type_4 is access protected procedure (A_Param :
@@ -86,7 +86,9 @@ package Ada_Mode.Nominal is
    type
       Procedure_Access_Type_12 is access protected procedure (A_Param : out Integer);
 
-   -- A more typical case, not covered above (usually with multiple params)
+   -- A more typical case, not covered above (usually with multiple
+   -- params). The parameters should be indented relative to the line
+   -- 'procedure' is on.
    type Procedure_Access_Type_13 is access
       protected procedure
          (A_Param : out Integer);
