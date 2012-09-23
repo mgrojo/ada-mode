@@ -30,8 +30,8 @@ package body Ada_Mode.Nominal is
 
    protected
    body Protected_1 is
-   -- We just know some user will want to use this style.
-   -- FIXME: teach font-lock to fontify 'body' here (it doesn't in ada-mode 4.01)
+      -- We just know some user will want to use this style.
+      -- FIXME: teach font-lock to fontify 'body' here (it doesn't in ada-mode 4.01)
 
       function F1 return Integer is
       begin

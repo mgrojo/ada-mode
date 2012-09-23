@@ -5,6 +5,9 @@ package Ada_Mode.Nominal is
 
    pragma Elaborate_Body (Ada_Mode.Nominal);
 
+   -- Comment after one line of code; broken versions of the
+   -- indentation engine aligned this with 'package'.
+
    -- FIXME: review ARM list of declaration items, add missing.
    -- Aspects covered in FIXME:
    -- Constraints covered in FIXME:
@@ -43,6 +46,7 @@ package Ada_Mode.Nominal is
    type Object_Access_Type_3a is not null access
       all Integer;
    type Object_Access_Type_3b is not null access
+      -- Comment between keywords
       constant Integer;
    type Object_Access_Type_4 is not null
       access all Integer; -- it no longer matters wither this is 'all' or 'constant'
@@ -91,7 +95,7 @@ package Ada_Mode.Nominal is
    -- 'procedure' is on.
    type Procedure_Access_Type_13 is access
       protected procedure
-         (A_Param : out Integer);
+         (A_Param : out Integer); -- FIXME (later): failing
 
    ----------
    -- access to function
@@ -209,9 +213,9 @@ package Ada_Mode.Nominal is
       procedure P1;
       procedure P2 (A : Float; B : Float);
 
-      -- This is a comment just before 'private'; default smie
-      -- indentation doesn't do what we want here.
-   private
+      -- This is a comment just before 'private'; broken versions of the
+      -- indentation engine aligned this with 'private'.
+      private
 
       -- More than three objects, to be sure we are handling
       -- indefinite lists of objects properly
@@ -242,7 +246,7 @@ package Ada_Mode.Nominal is
    Integer_G, Integer_H,
       Integer_I : Integer;
    Integer_J,
-     Integer_K, Integer_L : Integer;
+      Integer_K, Integer_L : Integer;
 
    Float_1 : aliased constant Float := 1.0;
    Float_2 : aliased constant Float :=
@@ -252,18 +256,18 @@ package Ada_Mode.Nominal is
    Float_4 : aliased constant
       Float := 1.0;
    Float_5 : aliased
-     constant Float := 1.0;
+      constant Float := 1.0;
    Float_6 :
-     aliased constant Float := 1.0;
+      aliased constant Float := 1.0;
    Float_7
-     : aliased constant Float := 1.0;
+      : aliased constant Float := 1.0;
 
    -- Non-trivial type name
    P_1 : Ada.Strings.Unbounded.String_Access;
    P_2 : Ada.Strings.Unbounded.
       String_Access;
    P_3 : Ada.Strings.Unbounded
-   .String_Access;
+      .String_Access;
    P_4 : Ada.Strings.
       Unbounded.String_Access;
    P_5 : Ada.
@@ -279,8 +283,11 @@ package Ada_Mode.Nominal is
    -- Subprograms
    -- most 'is null' so we don't have to declare a body
    procedure Procedure_1a (Item  : in out Ada.Strings.Unbounded.Unbounded_String; New_Item : Character);
+
    procedure Procedure_1b
       (Item  : in out Ada.Strings.Unbounded.Unbounded_String; New_Item : Character) is null;
+   -- FIXME (later): handled by smie-indent-exps
+
    procedure
       Procedure_1c (Item  : in out Ada.Strings.Unbounded.Unbounded_String; New_Item : Character) is null;
 

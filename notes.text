@@ -12,7 +12,6 @@ General notes on porting Emacs Ada mode indentation engine to smie
 
 test/Makefile
     test/ada_mode-nominal.ads
-Procedure_Access_Type_13
 
 do aspects next; may be very hard
 
@@ -30,6 +29,21 @@ http://dickgrune.com/Books/PTAPG_2nd_Edition/
     used by modula2-mode, octave-mode in emacs 24
 
  to do
+
+why are we reindenting on space?
+
+don't call smie-indent-after-keyword?
+    in ada-intend-keyword, ignore :before/:after; just call after if no before rule works.
+
+in one invocation of smie-indent-line
+    indent-before
+    indent-after
+    rules
+
+    we categorize 'package' and 'is' three times
+    cache it?
+        knowing when to clear cache is the hard part
+        so far, indention is not slow (on my very fast machine)
 
 test with non-lowercase keywords
 

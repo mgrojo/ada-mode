@@ -203,19 +203,21 @@ begin
        (subprogram_body
 	;; factoring out subprogram_specification here breaks something.
 	("function" name "return-spec" name "is-subprogram_body" declarations "begin" statements "end")
-	("function" name "return_access-body" name "is-subprogram_body" declarations "begin" statements "end")
+	("function" name "return_access" name "is-subprogram_body" declarations "begin" statements "end")
 	("procedure" name "is-subprogram_body" declarations "begin" statements "end"))
 
        (subprogram_declaration
 	;; factoring out subprogram_specification here breaks something.
 
 	("function" name "return-spec" name)
-	;; trailing name makes this return-spec the same as same as
-	;; 'function name return-spec name is-subprogram-body'; that
+	("function" name "return+access" name)
+	;; second case is returning an anonymous access type
+	;; (return_access is too hard to distinguish from
+	;; return-access)
+	;;
+	;; trailing name makes these tokens the same as same as
+	;; 'function name return* name is-subprogram-body'; that
 	;; avoids recursion between refine-is and refine-return
-
-	("function" name "return_access")
-	;; returning an anonymous access type
 
 	("procedure" name); same as 'procedure name is-subprogram_body'
 	("procedure" name "is_abstract")
@@ -234,10 +236,10 @@ begin
 	("type" identifier "is-type_access_procedure")
 	("type" identifier "is-type_access_protected_procedure")
 	("type" identifier "is-type_access_function" "return-access")
-	("type" identifier "is-type_access_function" "return_access")
+	("type" identifier "is-type_access_function" "return+access" name); same as 'function name return access'
 	("type" identifier "is-type_access_protected_function" "return-access")
-	("type" identifier "is-type_access_protected_function" "return_access")
-	;; Note the difference between return-access and return_access;
+	("type" identifier "is-type_access_protected_function" "return+access" name)
+	;; Note the difference between return-access and return+access;
 	;; the latter is returning an anonymous access type. Perhaps
 	;; not the best convention ...
 
@@ -299,7 +301,10 @@ begin
 	"private" declarations "end")
 
        ;; record_type_definition
+       ("type" identifier "is-type" "null_record")
        ("type" identifier "is-type" "record" declarations "end_record")
+       ("type" identifier "is-type" "-type-modifiers-" "null_record")
+       ("type" identifier "is-type" "-type-modifiers-" "record" declarations "end_record")
        ;; no need to distinguish between 'declarations' and 'component_list'
 
        ); type_declaration
@@ -338,6 +343,7 @@ begin
     "is-package"
     "is-protected_body"
     "is-subprogram_body"
+    "private"
     "record")
   ;; This is not a subset of the open portion of the grammar
   ;; open/close list; that is restricted to keywords that don't bind
@@ -450,6 +456,16 @@ Return empty string if encounter beginning of buffer."
 ;;
 ;; We also try to avoid parsing forward, since that won't work while
 ;; the user is parsing code. But sometimes it can't be helped.
+
+(defun ada-indent-refine-error (msg)
+  ;; When running from the Makefile, we'd like to report the line
+  ;; number here, but there is no 'current-line' function. So we show
+  ;; the text of the current line.
+  (error
+   (concat msg ": "
+	   (buffer-substring-no-properties
+	    (progn (beginning-of-line) (point))
+	    (progn (end-of-line) (point))))))
 
 (defun ada-indent-refine-: (forward)
   (save-excursion
@@ -667,14 +683,7 @@ keywords read."
 	  ;; really need to check, but we want to identify missing cases.
 	  (if (equal "entry" (nth 2 (smie-backward-sexp "is-entry_body"))) "is-entry_body"))
 
-	(error
-	 "unrecognized 'is': %d"
-	 ;; When running from the Makefile, we'd like to report the line
-	 ;; number here, but there is no 'current-line' function. So we
-	 ;; show the text of the current line.
-	 (buffer-substring-no-properties
-	  (progn (beginning-of-line) (point))
-	  (progn (end-of-line) (point))))
+	(ada-indent-refine-error "unrecognized 'is'")
 	)))
     (if skip
 	(if forward
@@ -685,18 +694,51 @@ keywords read."
 	  ))
     res))
 
-(defun ada-indent-maybe-refine-is (forward)
+(defun ada-indent-maybe-refine-is (start-token forward)
   "Skip tokens, moving backward, that are in
-  `ada-indent-skip-type-keywords-backward'. If the next token is
-  \"is\", call (ada-indent-refine-is FORWARD)."
-  (let* ((pos (point))
-	 (token (ada-indent-skip-type-keywords-backward)))
-    (if (equal "is" token)
-	(progn
-	  (if forward (smie-default-forward-token))
-	  (ada-indent-refine-is forward))
-      (goto-char pos)
-      nil)))
+  `ada-indent-type-keywords'. If the next
+  token (possibly START-TOKEN) is \"is\",
+  call (ada-indent-refine-is FORWARD-KEYWORD)."
+  (cond
+   ((equal start-token "is")
+    (ada-indent-refine-is forward))
+
+   ((member token ada-indent-type-keywords)
+    (let ((pos (point))
+	  (token (ada-indent-skip-type-keywords-backward)))
+
+      ;; We can't just look for 'is'; consider this case:
+      ;;
+      ;;    protected type Protected_1 is
+      ;;       function F1 return Integer;
+      ;;       function F2 return Integer;
+      ;;    private
+      ;;
+      ;; vs
+      ;;    type Function_Access_Type is access function (...) return float;
+      ;;
+      ;; If we are refining 'return' in function F1, we call
+      ;; ada-indent-backward-name to look for 'function'. But that
+      ;; calls ada-indent-backward-token, which calls
+      ;; ada-indent-maybe-refine-is, and we skip the 'function' in F1
+      ;; thinking it might be the 'function' in Function_Access_Type.
+      ;;
+      (if (and (equal "is" token)
+	       (not (member (save-excursion (ada-indent-backward-name)) '("protected_type" "task_type"))))
+	  (progn
+	    (when forward
+	      ;; skip-type-keywords-backward found "is" while moving
+	      ;; backward, but ultimately called from
+	      ;; ada-indent-forward-keyword; perhaps because we
+	      ;; started between "is" and "not".
+	      ;;
+	      ;; Set point to match what refine-is expects for forward-keyword.
+	      (smie-default-forward-token))
+	    (ada-indent-refine-is forward))
+	;; not refining
+	(goto-char pos)
+	nil)))
+   ))
 
 (defun ada-indent-refine-mod (forward)
   (save-excursion
@@ -808,14 +850,14 @@ keywords read."
        ;;    function identifier (...) return [access] name;
        ;;
        ;;    preceding token: "function"
-       ;;    token: 1a) "return-spec" or 1b) "return_access"
+       ;;    token: 1a) "return-spec" or 1b) "return+access"
        ;;
        ;; 2) a function specification in function body :
        ;;
        ;;    function identifier (...) return [access] name is
        ;;
        ;;    preceding token: "function"
-       ;;    token: "return-spec" or "return_access-body"
+       ;;    token: "return-spec" or "return+access"
        ;;
        ;; 3) a return statement:
        ;;
@@ -831,13 +873,14 @@ keywords read."
        ;;
        ;;    return identifier : name do statements end return;
        ;;
-       ;;    token: "return-do" (4b) or "end_return" (4c)
+       ;;    token: "return-do" (4b), "end_return" (4c)
        ;;
        ;; 5) an access function type declaration:
        ;;
        ;;    type name is access [protected] function identifier (...) return [access] name;
        ;;
-       ;;    token: 5a) "return-access" or 5b) "return_access"
+       ;;    preceding token: "is-type_access_function", "is-type_access_protected_function"
+       ;;    token: 5a) "return-access" or 5b) "return+access"
        ;;
        ;; So we have to look both forward and backward to resolve this.
        (or
@@ -846,33 +889,28 @@ keywords read."
 	;; Do this now, otherwise we can't distinguish between:
 	;;
 	;; function F1 return Integer;
-	;;
 	;; return 0;
 	;;
 	(let ((token (save-excursion (ada-indent-backward-name))))
 	  (cond
-	   ((equal token "function-access")
+	   ((member token '("is-type_access_function" "is-type_access_protected_function"))
 	    (if (equal "access"
 		       (save-excursion
 			 (smie-default-forward-token); return
 			 (smie-default-forward-token)))
 		(progn
 		  (setq skip t)
-		  "return_access"); 5b
+		  "return+access"); 5b
 	      "return-access")); 5a
 
 	   ((equal token "function")
-	    ;; To distinquish between spec 2a and body 2b, we can
-	    ;; search forward for "is" | ";" - we have to find one or
-	    ;; the other.
 	    (if (equal "access"
 		       (save-excursion
 			 (smie-default-forward-token); return
 			 (smie-default-forward-token)))
 		(progn
 		  (setq skip t)
-		  "return_access-body"); 1b
-	      ;; FIXME: 2b not implemented
+		  "return+access"); 1b or 2b
 	      "return-spec")); 1a or 2a
 	   ))
 
@@ -889,7 +927,6 @@ keywords read."
 	       ((equal token ";") "return-exp") ; special case of 3b with expression = identifier or literal
 	       ((equal token ":") "return"); 4a
 	       ((equal token ":-do") "return-do"); 4b
-	       ((equal token "is") "return-spec"); special case of 2, with name = identifier
 	       (t "return-exp"); 3b
 	       ))))
 	)))
@@ -908,11 +945,10 @@ keywords read."
   ;; every keyword
   (let ((token (smie-default-forward-token)))
     (cond
+     ;; Alphabetical order, except ada-indent-maybe-refine-is is last
+     ;; because it's relatively slow (and it really confuses debugging
+     ;; the other rules!), and some checks must be done after that.
      ((equal token ":") (ada-indent-refine-: t))
-
-     ((ada-indent-maybe-refine-is t))
-
-     ;; FIXME: not doing "protected-access" yet, because it's recursive
 
      ((equal token "and") (ada-indent-refine-and t))
 
@@ -930,9 +966,7 @@ keywords read."
 	 (t "end")); all others
 	))
 
-     ((equal token "function") (ada-indent-refine-subprogram "function" t))
-
-     ; "is" handled by 'maybe-refine-is' above
+     ; "is" handled by 'maybe-refine-is' below
 
      ((equal token "mod") (ada-indent-refine-mod t))
 
@@ -956,8 +990,6 @@ keywords read."
        ;; ada-indent-grammar)
        ))
 
-     ((equal token "procedure") (ada-indent-refine-subprogram "procedure" t))
-
      ((equal token "package")
       (if (save-excursion (equal "access" (smie-default-backward-token)))
 	  "package-access"
@@ -968,17 +1000,6 @@ keywords read."
 	  "package_type")))
 
      ((equal token "private") (ada-indent-refine-private t))
-
-     ((equal token "protected")
-      (if (save-excursion (equal "access" (smie-default-backward-token)))
-	  "protected-access"
-	(if (equal "body" (save-excursion (smie-default-forward-token)))
-	    (progn
-	      (smie-default-forward-token)
-	      "protected_body")
-	  ;; We don't check forward for "type" because that would be recursive
-	  ;; FIXME: expand syntax for protected, verify this is correct.
-	  "protected_type")))
 
      ((equal token "return") (ada-indent-refine-return t))
 
@@ -992,23 +1013,31 @@ keywords read."
 
        (t "with")))
 
+     ((ada-indent-maybe-refine-is token t))
+
+     ((equal token "protected")
+      ;; access_definition, access_to_subprogram_definition handled by maybe-refine-is
+      (if (equal "body" (save-excursion (smie-default-forward-token)))
+	  (progn
+	    (smie-default-forward-token)
+	    "protected_body")
+	;; We don't check forward for "type" because that would be recursive
+	;; FIXME: expand syntax for protected, verify this is correct.
+	"protected_type"))
+
      (t token))))
 
 (defun ada-indent-backward-token ()
   (let ((token (smie-default-backward-token))
 	pos)
     (cond
+     ;; Alphabetical order, except ada-indent-maybe-refine-is is near
+     ;; last because it's relatively slow, and it relies on some
+     ;; tokens that can follow is being already checked. (and it
+     ;; really confuses debugging the other rules!). Some other checks
+     ;; must be done after maybe-refine-is.
+
      ((equal token ":") (ada-indent-refine-: nil))
-
-     ((ada-indent-maybe-refine-is nil))
-
-     ((equal token "access")
-      (cond
-       ((equal "return" (save-excursion (smie-default-backward-token)))
-	(smie-default-backward-token)
-	(ada-indent-refine-return nil))
-
-       (t (error "unrecognized 'access': %s " token))))
 
      ((equal token "and") (ada-indent-refine-and nil))
 
@@ -1025,9 +1054,9 @@ keywords read."
 	    (smie-default-backward-token)
 	    "protected_body"))
 
-	 (t (error "unrecognized 'body': %s " token)))))
+	 (t (ada-indent-refine-error "unrecognized 'body'")))))
 
-     ;; "function", "is" handled by maybe-refine-is above
+     ;; "function", "is" handled by maybe-refine-is below
 
      ((equal token "mod") (ada-indent-refine-mod nil))
 
@@ -1056,30 +1085,7 @@ keywords read."
 
      ((equal token "private") (ada-indent-refine-private nil))
 
-     ;; "procedure" handled by maybe-refine-is above
-
-     ((equal token "protected")
-      ;; 'protected' occurs in:
-      ;; access_definition
-      ;; access_to_subprogram_definition
-      ;; interface_type_definition
-      ;; protected_body
-      ;; protected_body_stub
-      ;; protected_type_declaration
-      ;; single_protected_declaration
-      ;;
-      ;; We don't have to check for 'body' here; we would have already
-      ;; hit that (we never stop on the 'body').
-      ;; FIXME: not true if some user does:
-      ;;
-      ;;  protected
-      ;;  body name is
-      ;;
-      ;; We can get here after stopping on 'procedure'
-      (if (save-excursion
-	    (equal "access" (smie-default-backward-token)))
-	  "protected-access"
-	"protected_type"))
+     ;; "procedure" handled by maybe-refine-is below
 
      ((equal token "record")
       (let ((token (save-excursion (smie-default-backward-token))))
@@ -1174,6 +1180,56 @@ keywords read."
 	  "with-context"); 7
 	 )))
 
+     ((ada-indent-maybe-refine-is token nil))
+
+     ((equal token "access")
+      (let ((token (save-excursion (smie-default-backward-token))))
+	(cond
+	 ((equal token "return")
+	  (smie-default-backward-token)
+	  (ada-indent-refine-return nil))
+
+	 ;; other cases handled by maybe-refine-is
+
+	 (t (ada-indent-refine-error "unrecognized 'access'")))))
+
+     ((equal token "protected")
+      ;; 'protected' occurs in:
+      ;;
+      ;; 1) interface_type_definition
+      ;;
+      ;;    not implemented
+      ;;
+      ;; 2) access_to_subprogram_definition
+      ;;
+      ;;    handled by maybe-refine-is
+      ;;
+      ;; 3) access_definition in an object_declaration
+      ;;
+      ;;    not implemented
+      ;;
+      ;; 4) protected_type_declaration
+      ;;
+      ;;    protected type defining_identifier [known_discriminant_part]
+      ;;       [aspect_specification] is [new interface_list with] protected_definition;
+      ;;
+      ;; 5) single_protected_declaration
+      ;;
+      ;;    same as protected_type_declaration, without "type"
+      ;;    not implemented
+      ;;
+      ;; 6) protected_body :=
+      ;;
+      ;;    protected body defining_identifier ...
+      ;;
+      ;; 7) protected_body_stub
+      ;;
+      ;;    not implemented
+      ;;
+      (if (equal "body" (save-excursion (smie-default-forward-token)))
+	  "protected_body"
+	"protected_type"))
+
     (t token))))
 
 ;;; indent rules
@@ -1201,35 +1257,13 @@ keywords read."
 		     (ada-indent-backward-name))))
       (if (or
 	   (ada-indent-openerp token)
-	   (member token ada-indent-single-token-sexps)
-	   ; (= 0 (current-column));; with-context;
-	   ; FIXME: this breaks on 'private', and any user code that's wrongly indented to 0
-	   )
-	   ;; we don't need to skip back more
-	   nil
+	   (member token ada-indent-single-keyword-sexps))
+	  ;; token is the parent; we don't need to skip back more
+	  nil
 	(smie-backward-sexp token))
-      (if (= 0 (current-column))
-	  ;; Two cases:
-	  ;;
-	  ;; 1) with name;
-	  ;;    package name ...
-	  ;;
-	  ;; 2) with name;
-	  ;;    with name;
-	  ;;
-	  ;; In case 1, we are at 'package'; indent relative to
-	  ;; that. In case 2, we were called with point in the context
-	  ;; clause; indent to 0.
-	  ;; FIXME: it's more complicated than just 'with' and 'package'; generic, limited with, use, private
-	  (if (looking-at "package")
-	      (cons 'column ada-indent)
-	    (cons 'column 0))
-	(cons 'column
-	      (+
-	       (if (or (member token ada-indent-block-start-keywords)
-		       (member token ada-indent-block-end-keywords))
-		   ada-indent 0)
-	       (current-column) offset))))))
+      ;; We don't consider any special cases here; the caller must
+      ;; know what they are doing!
+      (cons 'column (+ (current-column) offset)))))
 
 ;;;
 (defun ada-indent-rules (method arg)
@@ -1247,8 +1281,7 @@ keywords read."
      )
 
     (:before
-     ;; arg is a smie keyword. It's at the beginning of a line, unless we
-     ;; are in smie-indent-virtual.
+     ;; arg is a smie keyword, at the beginning of a line.
      (cond
       ((equal arg "(")
        ;; parenthesis occur in expressions, and after names, as array
@@ -1294,30 +1327,30 @@ keywords read."
        (cons 'column 0))
 
       ((member arg ada-indent-block-start-keywords)
-       ;; Two cases:
+       ;; Example:
        ;;
-       ;; 1) We are in virtual indent; the token we are indenting is
-       ;; in the block; indent relative to the block parent.
+       ;;    procedure
+       ;;       (Param_1 : Integer)
+       ;;    is
        ;;
-       ;; 2) We are not in virtual indent; the block start keyword is
-       ;; the token we are indenting. Indent at the same level as the
+       ;; We are indenting 'is'. Indent at the same level as the
        ;; parent.
-       (if (smie-indent--bolp)
-	   (ada-indent-rule-parent ada-indent arg)
-	 (ada-indent-rule-parent 0)))
+       (ada-indent-rule-parent 0))
 
       ((member arg ada-indent-block-end-keywords)
        ;; Indent relative to the start of the declaration or body,
        ;; which is the parent of this token.
        (ada-indent-rule-parent 0 arg))
 
-      ((smie-indent--bolp); not already in smie-indent-virtual
+      (t
        ;; If the previous token is not a smie keyword,
        ;; smie-indent-after-keyword won't work. So handle that case
        ;; here.
        (if (not (ada-indent-keywordp (save-excursion (ada-indent-backward-token))))
 	   ;; Indent relative to parent of current token
 	   (ada-indent-rule-parent ada-indent arg)))
+
+      ;; FIXME: might as well call ada-indent-rules :after here!
       ))
 ;;;
     ;; FIXME: split this out
@@ -1351,37 +1384,39 @@ keywords read."
 	 (ada-indent-rule-parent ada-indent arg)))
 
       ((equal arg ";")
-       ;; Various cases:
-       ;;
-       ;; 1) with Name;
-       ;;    package Name ...
-       ;;
-       ;;    indent to 0
-       ;;    :before "with" will do the right thing
-       ;;
+       ;; The parent of the sexp preceding ";" is the start of the
+       ;; corresponding Ada statement/declaration. Indent at the same
+       ;; level as that.
        (ada-indent-rule-parent 0))
 
-      ((or
-	;; We trust the indentation of the previous line. For example:
-	;;
-	;; begin
-	;;    return
-	;;       foo;
-	;;
-	;; We are indenting 'foo', and point is at the start of
-	;; 'return', because we are in smie-indent-after-keyword, or
-	;; in smie-indent-virtual called from
-	;; ada-indent-before-keyword.
-	;;
-	;; smie-indent--hanging-p returns nil if the keyword is alone
-	;; on the line, which is often the case for 'return' or
-	;; 'begin'. So we override that.
-	;;
-	(smie-indent--bolp)
-	;; FIXME: given this example, 'bolp' does _not_ mean we are
-	;; not in smie-indent-virtual, which is assumed elsewhere!
-	(smie-indent--hanging-p))
+      ;; We are left with these cases:
+      ;;
+      ;; 1) multi-token hanging:
+      ;;
+      ;;    type name is abstract
+      ;;       tagged limited null record;
+      ;;
+      ;;    indent relative to parent
+      ;;
+      ;; 2) single-token hanging:
+      ;;
+      ;;    begin
+      ;;       return
+      ;;          foo;
+      ;;
+      ;;    We are indenting 'foo', and point is at the start of
+      ;;    'return', because we are in smie-indent-after-keyword.
+      ;;
+      ;;    Indent relative to 'return'. indent-rule-parent does not
+      ;;    work here; 'return' and 'begin' are not parents of
+      ;;    anything.
+      ;;
+      ;; smie-indent--hanging-p returns nil if the keyword is alone
+      ;; on the line, which is the distinguishing criterion we need.
+      ((smie-indent--hanging-p)
        (ada-indent-rule-current ada-indent))
+
+      (t (ada-indent-rule-parent ada-indent))
       ))
     ))
 
@@ -1401,38 +1436,24 @@ keywords read."
 
        ;; yes, we are at a comment; indent to previous code
        (save-excursion
-         (forward-comment (- (point-min)))
-         (smie-indent-calculate))))
-
-(defun ada-indent-non-keyword ()
-  ;; Indent between tokens that are Ada keywords but not smie
-  ;; keywords. FIXME: are there any left?
-  ;;
-  ;; We hope that by not introducing all Ada keywords into the smie
-  ;; grammar we can keep things simpler. But that means smie functions
-  ;; don't handle this case:
-  ;;
-  ;;    1) type .. is not null access all
-  ;;          Integer;
-  ;;
-  ;; Here 'all Integer' are not smie grammar
-  ;; keywords. ada-indent-before-keyword and smie-indent-after-keyword
-  ;; do nothing; they don't call ada-indent-rules.
-  ;;
-  ;; So we run this after ada-indent-before-keyword and
-  ;; smie-indent-after-keyword, to handle the cases they don't.
-  ;;
-  ;; FIXME: this will probably interfere with expressions. But it's
-  ;; worth a try.
-  (save-excursion
-    ;; make sure we are between Ada keyords or identifiers (not '()').
-    (let ((prev-token (save-excursion (ada-indent-backward-token)))
-	  (next-token (save-excursion (ada-indent-forward-token))))
-      (when
-	  (and
-	   (< 0 (length prev-token))
-	   (< 0 (length next-token)))
-	(cdr (ada-indent-rule-parent ada-indent))))))
+         (forward-comment (- (point)))
+	 ;; indent-before-keyword will find the keyword _after_ the
+	 ;; comment, which could be 'private' for example, and that
+	 ;; would align the comment with 'private', which is
+	 ;; wrong. Other indentation functions can't work here. So we
+	 ;; call a subset of the functions.
+	 (if debug-on-error
+	     (or
+	      (ada-indent-wrapper 'smie-indent-bob)
+	      (ada-indent-wrapper 'smie-indent-after-keyword)
+	      (ada-indent-wrapper 'ada-indent-non-keyword)
+	      )
+	   (or
+	    (smie-indent-bob)
+	    (smie-indent-after-keyword)
+	    (ada-indent-non-keyword)
+	    )))
+       ))
 
 (defun ada-indent-before-keyword()
   "Replacement for `smie-indent-keyword', tailored to Ada.
@@ -1447,6 +1468,7 @@ relative to."
 
       ;; Here we replace smie-indent--rules, so ada-indent-rules
       ;; cannot use smie-rule-parent; we use ada-indent-rule-parent
+      ;; We do _not_ call smie-indent-virtual.
       (cond
        ((null indent) nil)
        ((eq (car-safe indent) 'column) (cdr indent))
@@ -1469,6 +1491,23 @@ made."
   "Show the grammar info for word preceding point, and move across it."
   (interactive)
   (message "%s" (assoc (ada-indent-backward-token) smie-grammar)))
+
+(defun ada-indent-show-parent()
+  "Show the parent of the keyword following point, and move to it."
+  (interactive)
+  (let ((token (save-excursion (ada-indent-forward-token))))
+    (when (not (ada-indent-keywordp token))
+      (setq token (ada-indent-backward-name)))
+
+    ;; Duplicate code in ada-indent-rule-parent
+    (when
+	(not
+	 (or (ada-indent-openerp token)
+	     (member token ada-indent-single-keyword-sexps)))
+      (setq token (nth 2 (smie-backward-sexp token))))
+
+    (message "%s" token)
+    ))
 
 (defun ada-indent-wrapper (indent-function)
   "Call INDENT-FUNCTION, check for errors, report non-nil."
@@ -1543,10 +1582,18 @@ This lets us know which indentation function succeeded."
 	    )
     (setq smie-indent-functions
 	  '(smie-indent-bob; handle first non-comment line in buffer
-	    smie-indent-close; align close paren with opening paren.
+
+	    smie-indent-close
+	    ;; align close paren with opening paren.  FIXME: uses
+	    ;; smie-indent-virtual, which may explain why it doesn't
+	    ;; work with our code.
+
 	    ada-indent-comment
 	    ada-indent-before-keyword
+
 	    smie-indent-after-keyword
+	    ;; FIXME: calls smie-indent-virtual if ada-indent-rules fails
+
 	    ada-indent-non-keyword
 	    smie-indent-exps);; FIXME: haven't tested expressions yet
 	  )
