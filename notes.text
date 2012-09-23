@@ -11,12 +11,8 @@ General notes on porting Emacs Ada mode indentation engine to smie
 (edebug-toggle-save-all-windows)
 
 test/Makefile
-    test/debug.ads
-private
-
-Abstract_Procedure_5
-    parsing "procedure ... is abstract;" returned "is-subprogram_body"
-    it's not a body!
+    test/ada_mode-nominal.ads
+added lots of new keywords; grammar compiles, need to edit code to match
 
 do aspects next; may be very hard
 
