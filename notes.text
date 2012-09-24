@@ -12,6 +12,7 @@ General notes on porting Emacs Ada mode indentation engine to smie
 
 test/Makefile
     test/ada_mode-nominal.ads
+see fixme in ada-indent-rule-parent
 
 do aspects next; may be very hard
 
@@ -29,6 +30,11 @@ http://dickgrune.com/Books/PTAPG_2nd_Edition/
     used by modula2-mode, octave-mode in emacs 24
 
  to do
+
+gnat 7.0.1 allows:
+   type Function_Access_Type_2e is access
+        protected function (A_Param : in Float) return access all Standard.Float;
+    but 'all' is not legal here (according to my reading of the ARM)
 
 why are we reindenting on space?
 

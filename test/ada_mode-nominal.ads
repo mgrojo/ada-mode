@@ -1,7 +1,11 @@
-with Ada.Text_IO;
+
+with
+   Ada.Text_IO;
 with Ada.Strings.Unbounded; -- FIXME: test 'use' in context clause
 package Ada_Mode.Nominal is
    --  No comment on the first line, to make sure we can handle that :)
+   --  blank on first line, to test beginning-of-buffer logic for "with-context"
+
 
    pragma Elaborate_Body (Ada_Mode.Nominal);
 
@@ -32,7 +36,7 @@ package Ada_Mode.Nominal is
    type Object_Access_Type_0a is access Integer;
    type Object_Access_Type_0b is access all Integer;
    type Object_Access_Type_0c is not null access all Integer;
-   type Object_Access_Type_0d is not null access all Integer;
+   type Object_Access_Type_0d is not null access constant Integer;
    type Object_Access_Type_0e is access constant Integer;
    type Object_Access_Type_0f is not null access constant Integer;
    type Object_Access_Type_1 is not null access all Integer
@@ -66,17 +70,7 @@ package Ada_Mode.Nominal is
 
    -- access to procedure
    type Procedure_Access_Type_1 is access protected procedure (A_Param : out Integer);
-   type Procedure_Access_Type_2 is access protected procedure (A_Param : out Integer
-      ); -- FIXME: from smie-indent-close!
-   type Procedure_Access_Type_3 is access protected procedure (A_Param : out
-                                                                  Integer); -- don't care
-   type Procedure_Access_Type_4 is access protected procedure (A_Param :
-      out Integer); -- don't care
-   type Procedure_Access_Type_5 is access protected procedure (A_Param
-                                                                  : out Integer); -- don't care
-   type Procedure_Access_Type_6 is access protected procedure (
-                                                               A_Param : out Integer);
-
+   -- we don't put newline inside the paren here; covered in FIXME:
    type Procedure_Access_Type_7 is access protected procedure
       (A_Param : out Integer);
    type Procedure_Access_Type_8 is access protected
@@ -103,7 +97,6 @@ package Ada_Mode.Nominal is
    -- We covered newline within paren above.
    type Function_Access_Type_1a is access protected function (A_Param : in Float) return Standard.Float;
    type Function_Access_Type_1b is access protected function (A_Param : in Float) return access Standard.Float;
-   type Function_Access_Type_1c is access protected function (A_Param : in Float) return access all Standard.Float;
    type Function_Access_Type_1d is access protected function (A_Param : in Float) return access constant Standard.Float;
    type Function_Access_Type_2a is access protected function (A_Param : in Float) return Standard.
       Float;
@@ -114,8 +107,6 @@ package Ada_Mode.Nominal is
    type Function_Access_Type_2d is access protected function (A_Param : in Float) return access
       Standard.Float;
    type Function_Access_Type_2e is access protected function (A_Param : in Float) return access all
-      Standard.Float;
-   type Function_Access_Type_2f is access protected function (A_Param : in Float) return access constant
       Standard.Float;
    type Function_Access_Type_2g is access protected function (A_Param : in Float) return
       access Standard.Float;
@@ -215,7 +206,7 @@ package Ada_Mode.Nominal is
 
       -- This is a comment just before 'private'; broken versions of the
       -- indentation engine aligned this with 'private'.
-      private
+   private
 
       -- More than three objects, to be sure we are handling
       -- indefinite lists of objects properly
@@ -240,11 +231,12 @@ package Ada_Mode.Nominal is
 
    ----------
    -- Objects
+
    Integer_A, Integer_B, Integer_C : Integer;
    Integer_D, Integer_E, Integer_F :
       Integer;
    Integer_G, Integer_H,
-      Integer_I : Integer;
+      Integer_I : Integer; -- FIXME: failing in smie-indent-exps
    Integer_J,
       Integer_K, Integer_L : Integer;
 
@@ -261,6 +253,8 @@ package Ada_Mode.Nominal is
       aliased constant Float := 1.0;
    Float_7
       : aliased constant Float := 1.0;
+
+   -- FIXME: anonymous array ...
 
    -- Non-trivial type name
    P_1 : Ada.Strings.Unbounded.String_Access;

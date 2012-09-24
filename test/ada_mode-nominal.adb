@@ -64,7 +64,7 @@ package body Ada_Mode.Nominal is
       entry E2
          (X : Integer)
       when Local_1 = 0 and not
-         Local_2 = 1
+         (Local_2 = 1)
         -- an expression with 'not' to see if we need that in the grammar (conflicts with 'not null')
       is
          Tmp : Integer := 0;

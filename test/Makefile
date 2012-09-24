@@ -14,8 +14,10 @@ all : compile test
 EMACS := $(EMACSPATH)/emacs.exe
 
 #one : EMACS := /usr/bin/emacs
+one : ada_mode-nominal.ali
 one : ada_mode-nominal.ads.diff
 one : ada_mode-nominal.adb.diff
+one : ada_mode-generic.ali
 one : ada_mode-generic.ads.diff
 
 # FIXME: add target to test user directory
