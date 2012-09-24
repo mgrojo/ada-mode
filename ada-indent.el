@@ -53,6 +53,8 @@ begin
 ;;; grammar
 
 (defconst ada-indent-grammar
+  ;; we ignore warnings about "is both closer and neither"; we don't care.
+  ;; FIXME: suppress warnings?
   (smie-prec2->grammar
    (smie-merge-prec2s
     (smie-bnf->prec2
@@ -252,13 +254,13 @@ begin
 
        ;; derived_type_declaration
        ("type" identifier "is-type" "new" name); same as below
-       ("type" identifier "is-type" "-type-modifiers-" "new" name)
+       ("type" identifier "is-type" "abstract" "tagged" "limited" "new" name)
        ("type" identifier "is-type" "new" name "with_null_record")
-       ("type" identifier "is-type" "-type-modifiers-" "new" name "with_null_record")
+       ("type" identifier "is-type" "abstract" "tagged" "limited" "new" name "with_null_record")
        ("type" identifier "is-type" "new" name "with" "record" declarations "end_record")
-       ("type" identifier "is-type" "-type-modifiers-" "new" name "with" "record" declarations "end_record")
+       ("type" identifier "is-type" "abstract" "tagged" "limited" "new" name "with" "record" declarations "end_record")
        ("type" identifier "is-type" "new" interface_list "with" "record" declarations "end_record")
-       ("type" identifier "is-type" "-type-modifiers-" "new" interface_list "with" "record" declarations "end_record")
+       ("type" identifier "is-type" "abstract" "tagged" "limited" "new" interface_list "with" "record" declarations "end_record")
 
        ;; enumeration_type_definition
        ("type" identifier "is-enumeration_type")
@@ -274,7 +276,7 @@ begin
 
        ;; incomplete_type_declaration
        ("type" identifier)
-       ("type" identifier "is-type_tagged")
+       ("type" identifier "is-type" "tagged")
 
        ;; integer_type_definition
        ("type" identifier "is-type_range"); ".." is an operator
@@ -289,14 +291,14 @@ begin
 
        ;; private_extension_declaration
        ("type" identifier "is-type" "new" name "with_private")
-       ("type" identifier "is-type" "-type-modifiers-" "new" name "with_private")
+       ("type" identifier "is-type" "abstract" "tagged" "limited" "new" name "with_private")
        ("type" identifier "is-type" "new" interface_list "with_private")
-       ("type" identifier "is-type" "-type-modifiers-" "new" interface_list "with_private")
+       ("type" identifier "is-type" "abstract" "tagged" "limited" "new" interface_list "with_private")
        ;; leaving 'with' and 'private' as separate tokens causes conflicts
 
        ;; private_type_declaration
        ("type" identifier "is-type" "private-type")
-       ("type" identifier "is-type" "-type-modifiers-" "private-type")
+       ("type" identifier "is-type" "abstract" "tagged" "limited" "private-type")
 
        ;; protected_type_declaration, single_protected_declaration
        ;;
@@ -311,16 +313,12 @@ begin
        ;; record_type_definition
        ("type" identifier "is-type" "null_record")
        ("type" identifier "is-type" "record" declarations "end_record")
-       ("type" identifier "is-type" "-type-modifiers-" "null_record")
-       ("type" identifier "is-type" "-type-modifiers-" "record" declarations "end_record")
+       ("type" identifier "is-type" "abstract" "tagged" "limited" "null_record")
+       ("type" identifier "is-type" "abstract" "tagged" "limited" "record" declarations "end_record")
        ;; no need to distinguish between 'declarations' and 'component_list'
 
        ); type_declaration
        )); smie-bnf->prec2
-
-    (smie-precs->prec2
-     '((nonassoc "-type-modifiers-")
-       (nonassoc "abstract" "tagged" "limited")))
 
     ;; operators and similar things
     (smie-precs->prec2
@@ -328,16 +326,19 @@ begin
        ;; The structure of this table is stolen from the modula2 smie grammar.
        ;;
        ;; We can merge the relational, math, and other operators in
-       ;; these levels, because we don't care about legality.  Which
-       ;; means we really don't need any precedence hierarchy for
-       ;; these at all, but it also doesn't hurt.
+       ;; these levels, because we don't care about legality.
        ;;
+       ;; So we set the precedence hierarchy to help with indentation;
+       ;; := is the highest level parent in expressions, so we can
+       ;; always find the start of the current expression with
+       ;; ada-indent-goto-parent.
+       ;;
+       (nonassoc ":=")
        (nonassoc "=" "/=" "<" "<=" ">" ">=" "in") ; relational_operator, membership
        (assoc "or" "or_else" "xor" "+" "-" "&")
        (assoc "and" "and_then" "mod" "rem" "*" "/")
        (right "abs" "not")
        (left "'" "." "**" "..") ; Qualifier, selector, exponent, range
-       (nonassoc ":=") ; assignment statement (always done last)
        ))
     )))
 
@@ -595,7 +596,7 @@ Return empty string if encounter beginning of buffer."
     result))
 
 (defconst ada-indent-type-keywords
-  '("delta" "digits" "range" "array" "abstract" "tagged"
+  '("delta" "digits" "range" "array" "abstract"
     "not" "null" "access" "all" "constant" "protected" "procedure" "function")
   "Kewords that can be combined with \"is\", in the (partial) order they can appear.")
 
@@ -679,10 +680,6 @@ keywords read."
 		(let ((temp (ada-indent-consume-type-keywords token)))
 		  (setq skip (cadr temp))
 		  (car temp)))
-
-	       ((equal token "tagged")
-		(setq skip 1)
-		"is-type_tagged")
 
 	       (t "is-type")); all others
 	      ))))
@@ -1346,36 +1343,113 @@ keywords read."
 
 (defconst ada-indent-single-keyword-sexps
   '("pragma")
+  ;; FIXME: 'return' can also be single? maybe the new 'goto same level' function will fix this
   "Keywords that stand alone in an Ada statement or declaration.")
 
-(defun ada-indent-rule-parent (offset &optional child)
-  ;; If child is non-nil or not a smie token, find the relative
-  ;; parent, indent relative to that.  If child is nil, find the
-  ;; previous smie token, start there; that token may be the relevant
-  ;; parent.
-  ;;
-  ;; FIXME: need to go to a parent that is also an opener:
-  ;;
-  ;;    type Private_Type_3 is abstract tagged
-  ;;        limited null record;
-  ;;
-  ;; 'is' is the parent of 'limited', 'type' is the parent of 'is'.
-  ;;
-  ;; Sometimes will want the intermediate parent? in expressions?
+(defun ada-indent-goto-token-start ()
+  "If point is in the middle of a combined token, move to start."
+  (ada-indent-forward-token)
+  (ada-indent-backward-token))
 
+(defun ada-indent-goto-parent (child up)
+  "Goto a parent.
+If CHILD is non-nil and a smie keyword, find its parent (which may be itself, if it is a parent and UP is 1).
+Otherwise, find the previous keyword, start over.
+If UP is an integer, find that generation of grand-parent.
+If UP is `t', find the statement or declaration start, or the enclosing opening paren (the first smie opener).
+Note that UP large enough can take us past the statement parent to the enclosing block parent, etc."
+  ;;
+  ;; 'parent' is defined by where smie-backward-sexp stops, which is
+  ;; determined by the grammar levels.
+  ;;
+  ;; For example:
+  ;;
+  ;; package body
+  ;;
+  ;;    type Incomplete_Type_5 (Discriminant_1 : access Integer) is tagged record
+  ;;       Component_1 : Integer;
+  ;;       Component_2 : Integer;
+  ;;    end record;
+  ;;
+  ;; ';' following 'Component_1' is the parent of the second ':'
+  ;; 'record' is the parent of that ';'
+  ;; 'type' is the parent of the syntax up to 'record'
+  ;; bob is the parent of 'record' (not 'package'!?).
+  ;;
+  ;; FIXME: starting in Component_2, we want:
+  ;;
+  ;;    up = 1: move to start of current statement/decl
+  ;;       a statement is an expression, not expanded in the bnf
+  ;;       = previous ; if in expression
+  ;;       = opener of current sexp otherwise
+  ;;
+  ;;    up = 2: leave point at start of 'type'
+  ;;        start of 'record' is _not_ ok unless it's at bol
+  ;;
+  ;;        don't stop until change grammar level
+  ;;        currently, 't goes to bob, because it doesn't stop at openers?
+  ;;
+  ;;    up = 0 move from 'end' to 'record' to 'type' (and vice-versa)
+  ;;       all in one sexp; stop when found back level = start forward level
+  ;;
+  ;;    up = t: unclear, may be useful with expressions
+  ;;
+  ;; FIXME: paren example
+  ;;
+  ;; On the other hand, in:
+  ;;
+  ;; type Procedure_Access_Type_13 is access
+  ;;    protected procedure
+  ;;       (A_Param : out Integer);
+  ;;
+  ;; 'protected' is not the parent of '(', which would be easier :) ('type' is the parent here).
+  (let ((count up)
+	(token
+	 (cond
+	  ((ada-indent-keywordp child)
+	   ;; we might be in the middle of a split token
+	   (ada-indent-goto-token-start)
+	   child)
+	  (t (ada-indent-backward-name)))))
+
+    (setq token
+	  (list (nth 1 (assoc token ada-indent-grammar)) (point) token))
+    (while (or (eq count 't) (> count 0))
+      (when (or
+	     (ada-indent-openerp (nth 2 token))
+	     (member token ada-indent-single-keyword-sexps))
+	(if (eq count 't)
+	    (setq count 0); done searching for parent
+	  (setq count (- count 1)))
+	)
+      (if (or (eq count 't) (> count 0))
+	  (progn
+	    ;; When smie-backward-sexp finds a parent that is not an
+	    ;; opener, it stops after that token; (nth 1 token) gives
+	    ;; the position at the start of the token. So to search
+	    ;; again, we first have to go there.
+	    ;; FIXME: parens?
+	    ;; FIXME: at bob, returns (t 1)
+	    (goto-char (nth 1 token))
+	    (if (listp (nth 0 token))
+		;; token is an opener; smie-backward-sexp can't handle that
+		(progn
+		  (setq token (ada-indent-backward-token))
+		  (setq token
+			(list (nth 1 (assoc token ada-indent-grammar)) (point) token)))
+	      (setq token (smie-backward-sexp (nth 2 token))))
+	    (or (eq count 't)
+		(setq count (- count 1))))
+	))
+    token))
+
+(defun ada-indent-rule-parent (offset &optional child up)
+  "Find a relevant parent using `ada-indent-goto-parent', indent by OFFSET relevant to that."
   (save-excursion
-    (let ((token (or (and (ada-indent-keywordp child)
-			  child)
-		     (ada-indent-backward-name))))
-      (if (or
-	   (ada-indent-openerp token)
-	   (member token ada-indent-single-keyword-sexps))
-	  ;; token is the parent; we don't need to skip back more
-	  nil
-	(smie-backward-sexp token))
-      ;; We don't consider any special cases here; the caller must
-      ;; know what they are doing!
-      (cons 'column (+ (current-column) offset)))))
+    (ada-indent-goto-parent child (or up 1))
+    ;; We don't consider any special cases here; the caller must
+    ;; know what they are doing!
+    (cons 'column (+ (current-column) offset))))
 
 ;;;
 (defun ada-indent-rules (method arg)
@@ -1409,8 +1483,13 @@ keywords read."
        ;; ada-indent-exps working, we may want to let that handle
        ;; this.
        ;;
-       ;; FIXME: "(" is a parent, so we need to go up one level.
-       (ada-indent-rule-parent ada-indent arg))
+       ;; "(" is a parent, so we need to go up one level.  FIXME: need
+       ;; to split more tokens to make this consistent.  or
+       ;; something. get better results with nil for now.  We actually
+       ;; want to indent this relative to line containing "procedure";
+       ;; maybe if we split enough tokens, that will be the parent.
+       ;(ada-indent-rule-parent ada-indent arg 2)
+       nil)
 
       ((equal arg "with-context")
        (cons 'column 0))
@@ -1562,14 +1641,17 @@ relative to."
       (cond
        ((null indent) nil)
        ((eq (car-safe indent) 'column) (cdr indent))
-       (t (error "Invalid `ada-indent-rules' result %s" indent))))
-    ))
+       (t (error "Invalid `ada-indent-rules' result %s" indent)))
+      ))
 
-(defun ada-indent-error ()
-  "Throw an error. Intended to be the last item in
-`smie-indent-functions', to warn when no indentation decision was
-made."
-  (error "no indent computed"))
+(defun ada-indent-default ()
+  "Unconditionally indent the same as the previous line. Intended
+to be the last item in `smie-indent-functions', used when no
+indentation decision was made."
+  (save-excursion
+    (forward-line -1)
+    (back-to-indentation)
+    (current-column)))
 
 ;;; debug
 (defun ada-indent-show-keyword-forward ()
@@ -1582,22 +1664,13 @@ made."
   (interactive)
   (message "%s" (assoc (ada-indent-backward-token) smie-grammar)))
 
-(defun ada-indent-show-parent()
-  "Show the parent of the keyword following point, and move to it."
-  (interactive)
-  (let ((token (save-excursion (ada-indent-forward-token))))
-    (when (not (ada-indent-keywordp token))
-      (setq token (ada-indent-backward-name)))
-
-    ;; Duplicate code in ada-indent-rule-parent
-    (when
-	(not
-	 (or (ada-indent-openerp token)
-	     (member token ada-indent-single-keyword-sexps)))
-      (setq token (nth 2 (smie-backward-sexp token))))
-
-    (message "%s" token)
-    ))
+(defun ada-indent-show-parent (count)
+  "Move to the parent of the word following point, and show its refined keyword and grammar levels."
+  (interactive "p")
+  (when (= count 0) (setq count 't))
+  (let ((toklevels (ada-indent-goto-parent (save-excursion (ada-indent-forward-token)) count)))
+    (goto-char (nth 1 toklevels))
+    (message "%s" (assoc (save-excursion (ada-indent-forward-token)) ada-indent-grammar))))
 
 (defun ada-indent-wrapper (indent-function)
   "Call INDENT-FUNCTION, check for errors, report non-nil."
@@ -1626,7 +1699,6 @@ This lets us know which indentation function succeeded."
     (while (setq func (pop smie-indent-functions))
       (let ((newfunc (cadr (macroexpand `(ada-indent-wrap ,func)))))
 	(setq res (cons newfunc res))))
-    (setq res (cons `ada-indent-error res))
     (setq smie-indent-functions (reverse res))))
 
 ;;; setup
@@ -1671,7 +1743,7 @@ This lets us know which indentation function succeeded."
 	  smie-indent-after-keyword
 	  ;; FIXME: calls smie-indent-virtual if ada-indent-rules fails
 
-	  smie-indent-exps);; FIXME: haven't tested expressions yet
+	  ada-indent-default)
 	)
   (if debug-on-error (ada-indent-wrap-indent-functions))
 

@@ -89,7 +89,7 @@ package Ada_Mode.Nominal is
    -- 'procedure' is on.
    type Procedure_Access_Type_13 is access
       protected procedure
-         (A_Param : out Integer); -- FIXME (later): failing
+      (A_Param : out Integer); -- FIXME (later): failing
 
    ----------
    -- access to function
@@ -105,8 +105,6 @@ package Ada_Mode.Nominal is
    type Function_Access_Type_2c is access protected function (A_Param : in Float) return
       Standard.Float;
    type Function_Access_Type_2d is access protected function (A_Param : in Float) return access
-      Standard.Float;
-   type Function_Access_Type_2e is access protected function (A_Param : in Float) return access all
       Standard.Float;
    type Function_Access_Type_2g is access protected function (A_Param : in Float) return
       access Standard.Float;

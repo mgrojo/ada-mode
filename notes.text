@@ -5,16 +5,24 @@ General notes on porting Emacs Ada mode indentation engine to smie
     (setq debug-on-error t); see errors from smie-indent-line
     (load "test/runtest.el")
     (which-function-mode)
+    (bookmark-load "~/.emacs.d/bookmarks")
     (add-hook 'ada-mode-hook
-       (lambda () (define-key ada-mode-map "\C-w" 'capitalize-word))))
+       (lambda ()
+       (define-key ada-mode-map "\C-w" 'capitalize-word)
+       (define-key ada-mode-map "\M-o" (lambda () (interactive) (ada-indent-show-parent 0)))
+       (define-key ada-mode-map "\M-p" 'ada-indent-show-parent)
+       (define-key ada-mode-map "\M-i" 'ada-indent-show-keyword-backward)
+)))
+
+(bookmark-save)
+C-x r l show list of bookmarks, jump on return
+C-x r m set bookmark
 
 (edebug-toggle-save-all-windows)
 
 test/Makefile
-    test/ada_mode-nominal.ads
-see fixme in ada-indent-rule-parent
-
-do aspects next; may be very hard
+    test/ada_mode-nominal.adb
+need to split more keywords
 
 ada-indent.el
 
@@ -30,11 +38,6 @@ http://dickgrune.com/Books/PTAPG_2nd_Edition/
     used by modula2-mode, octave-mode in emacs 24
 
  to do
-
-gnat 7.0.1 allows:
-   type Function_Access_Type_2e is access
-        protected function (A_Param : in Float) return access all Standard.Float;
-    but 'all' is not legal here (according to my reading of the ARM)
 
 why are we reindenting on space?
 
