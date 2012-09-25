@@ -130,8 +130,10 @@ package body Ada_Mode.Nominal is
          := Local_1;
       Local_3 : constant Float :=
          Local_2;
-      -- Comment
+      -- Comment after indented line
+      A_String : Ada.Strings.Unbounded.Unbounded_String;
    begin
+      Procedure_1a (A_String, 'a');
       return
          Local_1 +
          Local_2 +

@@ -179,7 +179,6 @@ begin
 
        (declaration
 	;; FIXME: (package_specification), (package_body); not tested yet.
-	(pragma)
 	(protected_body)
 	(type_declaration)
 	(subprogram_declaration)
@@ -244,9 +243,6 @@ begin
 	;; in refine-is, and combining them does not cause other
 	;; problems.
 	("package_body" name "is-package_body" declarations "begin" statements "end"))
-
-       (pragma
-	("pragma")); FIXME: delete this; it just looks like a procedure call
 
        (protected_body
 	("protected_body" identifier "is-protected_body" declarations "end"))
@@ -817,15 +813,14 @@ keywords read."
     res))
 
 (defun ada-indent-maybe-refine-is (start-token forward)
-  "Skip tokens, moving backward, that are in
-  `ada-indent-type-keywords'. If the next
-  token (possibly START-TOKEN) is \"is\",
-  call (ada-indent-refine-is FORWARD-KEYWORD)."
+  "point is in front of START-TOKEN; we are refining that. If
+START-TOKEN is part of an is-* keyword, return that keyword,
+moving point to its start."
   (cond
    ((equal start-token "is")
     (ada-indent-refine-is forward))
 
-   ((member token ada-indent-type-keywords)
+   ((member start-token ada-indent-type-keywords)
     (let ((pos (point))
 	  (token (ada-indent-skip-type-keywords-backward)))
 
@@ -844,6 +839,15 @@ keywords read."
       ;; calls ada-indent-backward-token, which calls
       ;; ada-indent-maybe-refine-is, and we skip the 'function' in F1
       ;; thinking it might be the 'function' in Function_Access_Type.
+      ;;
+      ;; The body has a similar problem:
+      ;;    protected body Protected_1 is
+      ;;       function F1 return Integer is
+      ;;
+      ;; FIXME: when indenting 'function', we get here, and return
+      ;; "is-protected_body" instead of "function". Best fix; let
+      ;; 'function' and 'procedure' be parents in these types, so we
+      ;; can indent their parameter lists appropriately.
       ;;
       (if (and (equal "is" token)
 	       (not (member (save-excursion (ada-indent-backward-name)) '("protected_type" "task_type"))))
@@ -1428,11 +1432,6 @@ keywords read."
 (defun ada-indent-openerp (token)
   (listp (nth 1 (assoc token ada-indent-grammar))))
 
-(defconst ada-indent-single-keyword-sexps
-  '("pragma")
-  ;; FIXME: 'return' can also be single? maybe the new 'goto same level' function will fix this
-  "Keywords that stand alone in an Ada statement or declaration.")
-
 (defun ada-indent-goto-token-start ()
   "If point is in the middle of a combined token, move to start."
   (ada-indent-forward-token)
@@ -1502,9 +1501,7 @@ Note that UP large enough can take us past the statement parent to the enclosing
     (setq token
 	  (list (nth 1 (assoc token ada-indent-grammar)) (point) token))
     (while (or (eq count 't) (> count 0))
-      (when (or
-	     (ada-indent-openerp (nth 2 token))
-	     (member token ada-indent-single-keyword-sexps))
+      (when (ada-indent-openerp (nth 2 token))
 	(if (eq count 't)
 	    (setq count 0); done searching for parent
 	  (setq count (- count 1)))
@@ -1597,8 +1594,7 @@ Note that UP large enough can take us past the statement parent to the enclosing
        ;; which is the parent of this token.
        (ada-indent-rule-parent 0 arg))
 
-      ((not (or (ada-indent-openerp arg)
-		(member arg ada-indent-single-keyword-sexps)))
+      ((not (ada-indent-openerp arg))
        ;; Hanging; we are not at the start of a statement/declaration.
        ;; We have a known keyword; indent relative to its parent.
        (ada-indent-rule-parent ada-indent arg))
@@ -1607,7 +1603,7 @@ Note that UP large enough can take us past the statement parent to the enclosing
 ;;; :after
     ;; FIXME: split this out
     (:after
-     ;; `arg' is a keyword at the end of a line
+     ;; `arg' is a keyword at the end of a line, point is at start of keyword
      ;; :before is checked first, so we don't need to consider those cases here
      (cond
       ((equal arg "(")
@@ -1636,10 +1632,46 @@ Note that UP large enough can take us past the statement parent to the enclosing
 	 (ada-indent-rule-parent ada-indent arg)))
 
       ((equal arg ";")
+       ;; Two cases:
+       ;;
        ;; The parent of the sexp preceding ";" is the start of the
        ;; corresponding Ada statement/declaration. Indent at the same
        ;; level as that.
-       (ada-indent-rule-parent 0))
+       ;;
+       ;; 1) procedure call or pragma:
+       ;;
+       ;;    package Ada_Mode.Nominal is
+       ;;
+       ;;       pragma Elaborate_Body (Ada_Mode.Nominal);
+       ;;
+       ;;       Procedure_1a (A_String, 'a');
+       ;;
+       ;;    There are no keywords in this sexp, so
+       ;;    ada-indent-rule-parent will find the wrong parent. To
+       ;;    find the parent of this sexp, we use
+       ;;    ada-indent-backward-name.
+       ;;
+       ;; 2) everything else has keywords, so use ada-indent-parent
+       ;;
+       ;; To distinguish between the two cases, we call
+       ;; ada-indent-backward-name and check to see if the found
+       ;; keyword makes sense as part of an Ada statement.
+
+       (save-excursion
+	 (let ((token (ada-indent-backward-name)))
+	   (if (or
+		(equal token ";")
+		(member token ada-indent-block-start-keywords))
+	       ;; this is a procedure call or pragma
+	       (progn
+		 ;; Move back to the actual parent
+		 (ada-indent-forward-token); past the found token
+		 (forward-comment (point-max)); also skips newlines and whitespace
+		 (cons 'column (+ (current-column))))
+
+	     ;; Not a procedure call or pragma; continue searching for
+	     ;; the real parent
+	     (ada-indent-rule-parent 0 token)))))
 
       ;; We are left with these cases:
       ;;
@@ -1657,7 +1689,7 @@ Note that UP large enough can take us past the statement parent to the enclosing
       ;;          foo;
       ;;
       ;;    We are indenting 'foo', and point is at the start of
-      ;;    'return', because we are in smie-indent-after-keyword.
+      ;;    'return', because we are in ada-indent-after-keyword.
       ;;
       ;;    Indent relative to 'return'. indent-rule-parent does not
       ;;    work here; 'return' and 'begin' are not parents of
@@ -1665,6 +1697,7 @@ Note that UP large enough can take us past the statement parent to the enclosing
       ;;
       ;; smie-indent--hanging-p returns nil if the keyword is alone
       ;; on the line, which is the distinguishing criterion we need.
+      ;;
       ((smie-indent--hanging-p)
        (ada-indent-rule-parent ada-indent arg))
 
@@ -1697,11 +1730,11 @@ Note that UP large enough can take us past the statement parent to the enclosing
 	 (if debug-on-error
 	     (or
 	      (ada-indent-wrapper 'smie-indent-bob)
-	      (ada-indent-wrapper 'smie-indent-after-keyword)
+	      (ada-indent-wrapper 'ada-indent-after-keyword)
 	      )
 	   (or
 	    (smie-indent-bob)
-	    (smie-indent-after-keyword)
+	    (ada-indent-after-keyword)
 	    )))
        ))
 
@@ -1709,7 +1742,7 @@ Note that UP large enough can take us past the statement parent to the enclosing
   "Replacement for `smie-indent-keyword', tailored to Ada.
 It requires `ada-indent-rule' to return nil or ('column column),
 never just an offset (since we would not know what the offset was
-relative to."
+relative to)."
   (let*
       ((token (save-excursion (ada-indent-forward-token)))
        (indent
@@ -1721,6 +1754,31 @@ relative to."
 	 (and
 	  (ada-indent-keywordp token)
 	  (ada-indent-rules :before token)))))
+
+      ;; Here we replace smie-indent--rules, so ada-indent-rules
+      ;; cannot use smie-rule-parent; we use ada-indent-rule-parent
+      ;; We do _not_ call smie-indent-virtual.
+      (cond
+       ((null indent) nil)
+       ((eq (car-safe indent) 'column) (cdr indent))
+       (t (error "Invalid `ada-indent-rules' result %s" indent)))
+      ))
+
+(defun ada-indent-after-keyword()
+  "Replacement for `smie-indent-after-keyword', tailored to Ada.
+It requires `ada-indent-rule' to return nil or ('column column),
+never just an offset (since we would not know what the offset was
+relative to)."
+  (let*
+      ((pos (point));; ada-indent-rules wants point at the start of its arg
+       (token (ada-indent-backward-token))
+       (indent
+	;; we don't check for paren here (we may need to at some point)
+	(and
+	 (ada-indent-keywordp token)
+	 (ada-indent-rules :after token))))
+
+      (goto-char pos)
 
       ;; Here we replace smie-indent--rules, so ada-indent-rules
       ;; cannot use smie-rule-parent; we use ada-indent-rule-parent
@@ -1802,35 +1860,25 @@ This lets us know which indentation function succeeded."
   ;; There are times (like at 'end') when it is very simple to figure
   ;; out the indent when looking at a keyword, and much harder when
   ;; looking at the previous keyword, so we do
-  ;; ada-indent-before-keyword before smie-indent-after-keyword.
+  ;; ada-indent-before-keyword before ada-indent-after-keyword.
   ;;
-  ;; We started out trying to use smie-indent-keyword. However, there
-  ;; are too many cases when it does the wrong thing for Ada. We keep
-  ;; the same overall structure of the code; ada-indent-before-keyword
-  ;; calls ada-indent-rules in the same way, except it assumes
+  ;; We started out trying to use smie-indent-keyword and
+  ;; smie-indent-after-keyword. However, there are too many cases when
+  ;; they do the wrong thing for Ada. We keep the same overall
+  ;; structure of the code; ada-indent-before-keyword calls
+  ;; ada-indent-rules in the same way, except it assumes
   ;; ada-indent-rules returns a column, not an offset.
   ;;
-  ;; If ada-indent-rules returns an offset, instead of a column,
-  ;; smie-indent-after-keyword will do something mysterious. So we
-  ;; require ada-indent-rules to always return a column for :before
-  ;; and :after.
+  ;; ada-indent-default works better for Ada code than
+  ;; smie-indent-exps.
 
   (make-local-variable 'smie-indent-functions)
 
   (setq smie-indent-functions
 	'(smie-indent-bob; handle first non-comment line in buffer
-
-	  smie-indent-close
-	  ;; align close paren with opening paren.  FIXME: uses
-	  ;; smie-indent-virtual, which may explain why it doesn't
-	  ;; work with our code.
-
 	  ada-indent-comment
 	  ada-indent-before-keyword
-
-	  smie-indent-after-keyword
-	  ;; FIXME: calls smie-indent-virtual if ada-indent-rules fails
-
+	  ada-indent-after-keyword
 	  ada-indent-default)
 	)
   (if debug-on-error (ada-indent-wrap-indent-functions))
