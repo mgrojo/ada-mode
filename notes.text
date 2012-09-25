@@ -12,6 +12,7 @@ General notes on porting Emacs Ada mode indentation engine to smie
        (define-key ada-mode-map "\M-o" (lambda () (interactive) (ada-indent-show-parent 0)))
        (define-key ada-mode-map "\M-p" 'ada-indent-show-parent)
        (define-key ada-mode-map "\M-i" 'ada-indent-show-keyword-backward)
+       (define-key ada-mode-map "\M-k" 'ada-indent-show-keyword-forward)
 )))
 
 (bookmark-save)
@@ -21,8 +22,23 @@ C-x r m set bookmark
 (edebug-toggle-save-all-windows)
 
 test/Makefile
+    test/ada_mode-nominal.ads
+   procedure Abstract_Procedure_3 (Item : access Private_Type_1)
+      is abstract;
+smie-indent-after-keyword calls smie-indent-backward-token, which goes inside parens
+    don't call it!
+
     test/ada_mode-nominal.adb
-need to split more keywords
+
+   protected
+   body Protected_1 is
+
+      function F1 return Integer is
+  ada-backward-name doesn't see function; refine-is swallows it? doesn't see 'body'?
+
+
+
+delete more keywords to simplify refining code; all constant
 
 ada-indent.el
 

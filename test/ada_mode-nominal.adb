@@ -133,7 +133,9 @@ package body Ada_Mode.Nominal is
       -- Comment
    begin
       return
-         Local_3;
+         Local_1 +
+         Local_2 +
+         Local_3; -- FIXME: failing; need to find 'return' as parent
    end;
 
    function Function_1d return Float is begin return 1.0; end;

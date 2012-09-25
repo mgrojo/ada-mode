@@ -6,7 +6,6 @@ package Ada_Mode.Nominal is
    --  No comment on the first line, to make sure we can handle that :)
    --  blank on first line, to test beginning-of-buffer logic for "with-context"
 
-
    pragma Elaborate_Body (Ada_Mode.Nominal);
 
    -- Comment after one line of code; broken versions of the
