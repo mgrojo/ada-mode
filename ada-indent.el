@@ -116,13 +116,12 @@ begin
        ;;
        ;; The two Ada keywords "is" and "tagged" were combined into
        ;; one SMIE keyword in order to avoid conflicts while building
-       ;; the grammar (see the comment on
-       ;; 'incomplete_type_declaration' below for the current
-       ;; resolution). However, this particular choice of conflict
+       ;; the grammar. However, this particular choice of conflict
        ;; resolution breaks the purpose of the grammar, so we must
        ;; avoid it. That is the primary work in building the grammar;
        ;; finding ways to avoid conflicts without breaking the ability
-       ;; to find parents.
+       ;; to find parents. One approach is to leave out as many
+       ;; keywords as possible; that's how we now handle "tagged".
        ;;
        ;; SMIE automatically allows balanced parens anywhere, so we
        ;; don't need to declare argument lists or discriminant lists
@@ -137,14 +136,22 @@ begin
        ;; "... record null; end record". Since "null record" occurs at
        ;; the end of a declaration, but "record null" in the middle,
        ;; they must be different keywords in the grammar, so they can
-       ;; have different left and right levels.
+       ;; have different left and right levels. We can leave "null" as
+       ;; an identifier, and refine "record" to "record-null" in this case.
        ;;
        ;; ';' has a similar problem; it is used in several different
        ;; constructs at different levels. We solve that by declaring
        ;; it as the separator for each of those constructs. (SMIE
        ;; grammars cannot properly represent statement terminators).
        ;;
-       ;; Other keywords are similarly refined to avoid grammar conflicts.
+       ;; Other keywords are similarly refined to avoid grammar
+       ;; conflicts. Sometimes it is tempting to refine two adjacent
+       ;; keywords into one token. But that causes problems; for
+       ;; example, if a user breaks a line in the middle of that
+       ;; combined token, we have to recognize that and move to the
+       ;; start before calling the regular parsing logic. It is better
+       ;; to either refine both tokens, or leave one out and refine
+       ;; the other.
        ;;
        ;; We don't include any tokens after "end" in the grammar, so
        ;; it is always a closer. Since, in "end record", the trailing
@@ -214,9 +221,9 @@ begin
 	;; no need to distinguish between 'declarations' and
 	;; 'generic_formal_parameter_declaration' for our purposes.
 	("generic" declarations
-	 "package-generic" name "is-package" declarations "private" declarations "end")
+	 "package-generic" identifier "is-package" declarations "private" declarations "end")
 	("generic" declarations
-	 "package-generic" name "is-package" declarations "end"))
+	 "package-generic" identifier "is-package" declarations "end"))
 
        (interface_list
 	;; The Ada grammar sometimes has "name and interface_list".
@@ -228,10 +235,10 @@ begin
 	(identifier)
 	(name "." identifier) ; selected_component
 	;; Remember that parenthesis are simply skipped by SMIE
-	;; (unless are indenting inside them; then they are
+	;; (unless we are indenting inside them; then they are
 	;; boundaries). So we don't need to represent subprogram
 	;; parameter lists, or array indices here (no aggregates in
-	;; 'expression').
+	;; 'expression'). FIXME: need to handle "," in aggregates
 	)
 
        (package_specification
@@ -240,8 +247,7 @@ begin
 
        (package_body
 	;; Leaving 'package body' as separate tokens causes problems
-	;; in refine-is, and combining them does not cause other
-	;; problems.
+	;; in refine-is, so we leave "body" as an identifier.
 	("package_body" name "is-package_body" declarations "begin" statements "end"))
 
        (protected_body
@@ -249,6 +255,8 @@ begin
 
        (statement
 	(expression); matches procedure calls, assignment
+
+	;; extended_return_statement
 	("return")
 	("return-exp"); FIXME: don't need this
 	("return-do" identifier ":")
@@ -306,8 +314,8 @@ begin
 	;; to them. So we allow them to be parents. This also greatly
 	;; simplifies refine-is.
 
-	;; array_type_definition
-	("type" identifier "is-type_array" expression "of")
+	;; array_type_definition; we leave "array" as an identifier
+	("type" identifier "is-type" expression "of")
 
 	;; derived_type_declaration
 	("type" identifier "is-type" "new" name); same as below
@@ -321,7 +329,7 @@ begin
 	("type" identifier "is-type" "new" interface_list "with" "record" declarations "end_record")
 
 	;; enumeration_type_definition
-	("type" identifier "is-enumeration_type")
+	("type" identifier "is-enumeration_type");; FIXME: why 'enumeration' in 'is-type'?
 	;; enumeration literals are an aggregate, which is ignored.
 
 	;; {ordinary_ | decimal_} fixed_point_definition
@@ -543,7 +551,7 @@ Return empty string if encounter beginning of buffer."
 ;; after token; ada-indent-backward with point before token.
 ;;
 ;; refine-* must not move point, unless it is returning a
-;; double token (end_return, package_body etc).
+;; combined token. FIXME: deleting all such tokens.
 ;;
 ;; So each refine defun must take a 'forward' arg, and in general
 ;; start with:
@@ -694,7 +702,7 @@ Return empty string if encounter beginning of buffer."
     result))
 
 (defconst ada-indent-type-keywords
-  '("delta" "digits" "range" "array" "not" "null" "access" "all" "constant")
+  '("delta" "digits" "range" "not" "null" "access" "all" "constant")
   "Kewords that can be combined with \"is\", in the (partial) order they can appear.")
 
 (defun ada-indent-skip-type-keywords-backward ()
@@ -743,8 +751,8 @@ keywords read."
 	   ((equal token "package") "is-package")
 	   ;; "package" name ^ "is"
 
-	   ((equal token "package_body") "is-package_body")
-	   ;; "package" "body" name ^ "is"
+	   ((equal token "package") "is-package_body")
+	   ;; "package" "body" name ^ "is"; "body" is an identifier
 
 	   ((equal token "procedure")
 	    ;;  procedure name is abstract;
@@ -774,7 +782,7 @@ keywords read."
 		     (looking-at "("))
 		"is-enumeration_type");; type identifier is (...)
 
-	       ((member token '("delta" "digits" "range" "array" "not" "access"))
+	       ((member token '("delta" "digits" "range" "not" "access"))
 		;; FIXME: why is this list not ada-indent-type-keywords?
 		(let ((temp (ada-indent-consume-type-keywords token)))
 		  (setq skip (cadr temp))
@@ -1226,20 +1234,17 @@ moving point to its start."
       (if (save-excursion (equal "access" (smie-default-backward-token)))
 	  "package-access"
 	(if (equal "body" (save-excursion (smie-default-forward-token)))
-	    (progn
-	      (smie-default-forward-token)
-	      "package_body")
-	  "package_type")))
+	      "package_body"
+	  ;; FIXME: package-generic?
+	  "package")))
 
      ((equal token "private") (ada-indent-refine-private t))
 
      ((equal token "protected")
       (if (equal "body" (save-excursion (smie-default-forward-token)))
-	  (progn
-	    (smie-default-forward-token)
-	    "protected_body")
-	;; We don't check forward for "type", because we are leaving
-	;; "protected" as a keyword.
+	    "protected_body"
+	;; "body" is an identifier. We don't check forward for "type",
+	;; because we are leaving "protected" as an identifier.
 	"protected"))
 
      ((equal token "return") (ada-indent-refine-return t))
@@ -1263,21 +1268,6 @@ moving point to its start."
      ((equal token ":") (ada-indent-refine-: nil))
 
      ((equal token "and") (ada-indent-refine-and nil))
-
-     ((equal token "body")
-      (let ((token (save-excursion (smie-default-backward-token))))
-	(cond
-	 ((equal token "package")
-	  (progn
-	    (smie-default-backward-token)
-	    "package_body"))
-
-	 ((equal token "protected")
-	  (progn
-	    (smie-default-backward-token)
-	    "protected_body"))
-
-	 (t (ada-indent-refine-error "unrecognized 'body'")))))
 
      ;; "function", "is" handled by maybe-refine-is below
 

@@ -26,9 +26,13 @@ test/Makefile
 protected now identifier, ada-indent-rule-parent rewritten; running tests
 Unconstrained_Array_Type_5
     starting in the middle of a combined keyword
-        do a commit
-        rename all combined keywords to use +
-        put them in a list, use that somehow
+        don't combine tokens; just refine them
+        is-array; fixed
+        do one at a time, to watch for grammar conflicts
+        go thru grammar in text order:
+        package_body; leave body as an identifier
+            fix protected_body as well
+
 
     test/ada_mode-nominal.adb
 
