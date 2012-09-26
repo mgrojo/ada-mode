@@ -11,7 +11,7 @@ package body Ada_Mode.Nominal is
    type Incomplete_Type_1 (Discriminant_1 : Integer) is tagged null record;
 
    type Incomplete_Type_2 (Discriminant_1 : Integer) is tagged null -- FIXME: null not refined to null_record
-      record; -- don't care
+   record; -- don't care
 
    type Incomplete_Type_3 (Discriminant_1 : Integer) is tagged
       null record;

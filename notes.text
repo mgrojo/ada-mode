@@ -23,8 +23,10 @@ C-x r m set bookmark
 
 test/Makefile
     test/ada_mode-nominal.ads
-protected now identifier, ada-indent-rule-parent rewritten; running tests
-    type Decimal_Fixed_Point_5 is
+   type Object_Access_Type_3a is not null access
+      all Integer;
+    starting in the middle of a combined keyword.
+
 
     starting in the middle of a combined keyword
         don't combine tokens; just refine them

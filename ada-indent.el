@@ -399,7 +399,7 @@ begin
 	;; it as an identifier; this simplifies access-to-subprogram
 	;; types, since we can just ignore "protected" there.  Note
 	;; that in a single_protected_declaration, we are refining
-	;; "protected" to "type.
+	;; "protected" to "type".
 	("type" identifier "is-type" declarations "private" declarations "end")
 	("type" identifier "is-type" "new" interface_list "with" declarations
 	 "private" declarations "end")
@@ -1418,8 +1418,7 @@ UP is an integer; find that many parents.
 Point must be on the start of `child', or on the start of the
 preceding unrefined token (if resuming from a previous call).
 Return same struct as `smie-backward-sexp'.
-If a closer is found, point is left on the start of the result token. If a
-higher level token is found, point is left on the previous unrefined token."
+Point is left on the start of the result token."
   (let ((count up)
 	(token
 	 (cond
@@ -1435,14 +1434,6 @@ higher level token is found, point is left on the previous unrefined token."
 	(setq count (- count 1)))
       (if (> count 0)
 	  (progn
-	    ;; When smie-backward-sexp stops because the next token
-	    ;; has a higher precedence level, it returns the token it
-	    ;; stopped on, but leaves point at the start of the higher
-	    ;; precedence token; (nth 1 token) gives the position at
-	    ;; the start of the token it stopped on. FIXME: in a
-	    ;; properly constructed grammar, that should never occur
-	    ;; here, so we should report an error if we detect that?
-	    ;;
 	    ;; When smie-backward-sexp stops because the current token
 	    ;; is an opener, it leaves point on the opener. We can't
 	    ;; call smie-backward-sexp again with that token, so we
@@ -1461,6 +1452,23 @@ higher level token is found, point is left on the previous unrefined token."
 	      (setq token (smie-backward-sexp (nth 2 token)))
 	      (setq count (- count 1))))
 	))
+    ;; If we stopped because we found an opener, point is on token,
+    ;; which is where we want it. If we stopped because the next token
+    ;; has a higher precedence level, point is on the lower precedence
+    ;; token; (nth 1 token) gives the position at the start of the
+    ;; higher precendence token. This happens in the following code:
+    ;;
+    ;; function ...
+    ;; is begin
+    ;;    return exp;
+    ;; end;
+    ;;
+    ;; 'return' is not an opener. We want point on "begin", which is
+    ;; the parent token.
+    ;;
+    ;; The solution is to always go to the start of the terminating token.
+
+    (goto-char (nth 1 token))
     token)) ;; return value is useful for a debug display
 
 (defun ada-indent-rule-parent (offset &optional child start-token)
@@ -1546,7 +1554,9 @@ searched for CHILD (defaults to CHILD)."
   ;;       -- indent relative to the statement/declaration start
   ;;       loop
   ;;          ada-indent-goto-parent 2
-  ;;          if parent not in ("procedure" "function") then
+  ;;          if not ((parent in ("procedure" "function")) and
+  ;;                  (backward-token in ("access" "protected"))
+  ;;          then
   ;;             exit loop
   ;;          end if
   ;;       end loop
@@ -1562,7 +1572,8 @@ searched for CHILD (defaults to CHILD)."
     (let ((parent (nth 2 (ada-indent-goto-parent child (or (and (equal child "(") 2) 1)))))
 
       (if (equal (or start-token child) ";")
-	(while (member parent `("procedure" "function"))
+	(while (and (member parent `("procedure" "function"))
+		    (member (save-excursion (smie-default-backward-token)) '("access" "protected")))
 	  (setq parent (nth 2 (ada-indent-goto-parent parent 2)))))
       ;; FIXME: it would probably be best to merge this loop into ada-indent-goto-parent.
 
@@ -1683,7 +1694,17 @@ searched for CHILD (defaults to CHILD)."
        ;;    find the parent of this sexp, we use
        ;;    ada-indent-backward-name.
        ;;
-       ;; 2) everything else has keywords, so use ada-indent-rule-parent
+       ;; 2) context clause:
+       ;;
+       ;;    with name;
+       ;;    package name is
+       ;;
+       ;;    When indenting 'package', ada-backward-name leaves us at
+       ;;    'with', which is where we want to stop. There is a
+       ;;    similar issue for all single-keyword
+       ;;    statement/declarations. We'll keep a list here.
+       ;;
+       ;; 3) use ada-indent-rule-parent 0
        ;;
        ;; To distinguish between the two cases, we call
        ;; ada-indent-backward-name and check to see if the found
@@ -1691,19 +1712,25 @@ searched for CHILD (defaults to CHILD)."
 
        (save-excursion
 	 (let ((token (ada-indent-backward-name)))
-	   (if (or
-		(equal token ";")
-		(member token ada-indent-block-start-keywords))
-	       ;; this is a procedure call or pragma
-	       (progn
-		 ;; Move back to the actual parent
-		 (ada-indent-forward-token); past the found token
-		 (forward-comment (point-max)); also skips newlines and whitespace
-		 (cons 'column (+ (current-column))))
+	   (cond
+	    ((or
+	      (equal token ";")
+	      (member token ada-indent-block-start-keywords))
+	     ;; this is a procedure call or pragma
+	     (progn
+	       ;; Move back to the actual parent
+	       (ada-indent-forward-token); past the found token
+	       (forward-comment (point-max)); also skips newlines and whitespace
+	       (cons 'column (+ (current-column)))))
+
+	    ((equal token "with-context")
+	     (back-to-indentation)
+	     (cons 'column (+ (current-column))))
 
 	     ;; Not a procedure call or pragma; continue searching for
 	     ;; the real parent
-	     (ada-indent-rule-parent 0 token ";")))))
+	    (t (ada-indent-rule-parent 0 token ";"))
+	    ))))
 
       ;; We are left with these cases:
       ;;
