@@ -333,12 +333,9 @@ begin
 	;; enumeration literals are an aggregate, which is ignored.
 
 	;; {ordinary_ | decimal_} fixed_point_definition
-	("type" identifier "is-type_delta" expression); match next
-	("type" identifier "is-type_delta" expression "digits")
-
-	;; floating_point_definition
-	("type" identifier "is-type_digits" expression)
-	("type" identifier "is-type_digits" expression "range")
+	;; "delta" and "digits" are left as identifiers
+	;; floating_point_definition, integer_type_definition; "range" is an identifier
+	("type" identifier "is-type-numeric")
 
 	;; incomplete_type_declaration
 	;;
@@ -377,15 +374,6 @@ begin
 	;; "is", and the one in 'procedure name is null', as an
 	;; identifier, returning plain "is". All other occurrences of
 	;; "is" are refined into one of the "is-*" keywords.
-	;;
-	;; FIXME: similarly for all the numeric types? which means they
-	;; can be left out entirely. That would not complicate
-	;; 'refine-is'; it already has to refine all of them. But at
-	;; least "digits" and "range" would not be keywords. Which
-	;; might be a bad thing? "If it ain't broke, don't fix it".
-
-	;; integer_type_definition
-	("type" identifier "is-type_range"); ".." is an operator
 
 	;; interface_type_definition, formal_interface_type_definition
 	("type" identifier "is-type" "interface")
@@ -395,8 +383,7 @@ begin
 	("type" identifier "is-type" "mod-type")
 	;; "mod" is an operator, so it has to be in the grammar. We
 	;; also want something following "is-type", unless we treat
-	;; this occurence of "is" as an identifier. FIXME: show example
-	;; code that would be confused.
+	;; this occurence of "is" as an identifier.
 
 	;; private_extension_declaration
 	("type" identifier "is-type" "new" name "with_private")
@@ -702,7 +689,7 @@ Return empty string if encounter beginning of buffer."
     result))
 
 (defconst ada-indent-type-keywords
-  '("delta" "digits" "range" "not" "null" "access" "all" "constant")
+  '("not" "null" "access" "all" "constant")
   "Kewords that can be combined with \"is\", in the (partial) order they can appear.")
 
 (defun ada-indent-skip-type-keywords-backward ()
@@ -782,11 +769,30 @@ keywords read."
 		     (looking-at "("))
 		"is-enumeration_type");; type identifier is (...)
 
-	       ((member token '("delta" "digits" "range" "not" "access"))
+	       ((member token '("not" "access"))
 		;; FIXME: why is this list not ada-indent-type-keywords?
 		(let ((temp (ada-indent-consume-type-keywords token)))
 		  (setq skip (cadr temp))
 		  (car temp)))
+
+	       ;; numeric types
+	       ;;
+	       ;; signed_integer_type_definition ::= [type identifier is] range expression .. expression
+	       ;;
+	       ;; modular_type_definition ::= [type identifier is] mod static_expression
+	       ;;
+	       ;; floating_point_definition ::= [type identifier is] digits static_expression
+	       ;;    [range expression .. expression]
+	       ;;
+	       ;; ordinary_fixed_point_definition ::= [type identifier is] delta expression
+	       ;;    range expression .. expression
+	       ;;
+	       ;; decimal_fixed_point_definition ::= [type identifier is] delta expression digits expression
+	       ;;    [   range expression .. expression]
+	       ((equal token "range") "is-type-numeric")
+	       ((equal token "mod") "is-type")
+	       ((equal token "digits") "is-type-numeric")
+	       ((equal token "delta") "is-type-numeric")
 
 	       ((equal token "tagged")
 		(if (equal ";" (smie-default-forward-token))

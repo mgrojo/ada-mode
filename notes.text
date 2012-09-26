@@ -24,11 +24,15 @@ C-x r m set bookmark
 test/Makefile
     test/ada_mode-nominal.ads
 protected now identifier, ada-indent-rule-parent rewritten; running tests
-Unconstrained_Array_Type_5
+    type Decimal_Fixed_Point_5 is
+
     starting in the middle of a combined keyword
         don't combine tokens; just refine them
-        is-array; fixed
-        do one at a time, to watch for grammar conflicts
+        is-type_array; fixed
+        delta, digits; fixed
+        protected_body (so ada_mode-nominal.adb at least runs)
+
+        do the rest one at a time, to watch for grammar conflicts
         go thru grammar in text order:
         package_body; leave body as an identifier
             fix protected_body as well
