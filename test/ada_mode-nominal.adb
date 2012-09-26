@@ -34,8 +34,14 @@ package body Ada_Mode.Nominal is
       -- FIXME: teach font-lock to fontify 'body' here (it doesn't in ada-mode 4.01)
 
       function F1 return Integer is
+         -- some people like 'is' on the line with 'function' here
+
+         function Local_Function return Integer
+         is begin
+            return Integer (Function_1a);
+         end Local_Function;
       begin
-         return B : Integer := Integer (Function_1a);
+         return B : Integer := Local_Function;
          -- non-do extended return
       end F1;
 
@@ -43,7 +49,7 @@ package body Ada_Mode.Nominal is
       is begin
          return C : Float do
             -- extended return
-            C := (A * B);
+            C := A + B * B;
             C := C * C;
          end return;
       end; -- no F2 on purpose
@@ -103,7 +109,7 @@ package body Ada_Mode.Nominal is
 
    ----------
    -- subprograms
-   procedure Procedure_1a (Item  : in out Ada.Strings.Unbounded.Unbounded_String; New_Item : Character)
+   procedure Procedure_1a (Item  : in out Parent_Type_1)
    is begin
       null;
    end Procedure_1a;
@@ -131,9 +137,9 @@ package body Ada_Mode.Nominal is
       Local_3 : constant Float :=
          Local_2;
       -- Comment after indented line
-      A_String : Ada.Strings.Unbounded.Unbounded_String;
+      Item : Parent_Type_1;
    begin
-      Procedure_1a (A_String, 'a');
+      Procedure_1a (Item);
       return
          Local_1 +
          Local_2 +
@@ -142,23 +148,31 @@ package body Ada_Mode.Nominal is
 
    function Function_1d return Float is begin return 1.0; end;
 
-   function Function_2a (Param : in Integer) return Float is begin return Float (Param); end;
-   function Function_2b (Param : in Integer) return Float
+   function Function_2a (Param : in Parent_Type_1) return Float is begin return 1.0; end;
+   
+   function Function_2b (Param : in Parent_Type_1) return Float
    is begin
-      return Float (Param);
+      return 1.0;
    end;
-   function Function_2c (Param : in Integer) return Float
-   is begin
-      return Float
-         (Param);
+   
+   function Function_2c (Param : in Parent_Type_1) return Float
+   is
+   begin
+      return 1.0;
    end;
-   function Function_2d (Param : in Integer) return Float
+   
+   function Function_2d (Param : in Parent_Type_1) return Float
    is
    begin
       return
-         Float (Param);
+         1.0;
    end;
-   function Function_2e (Param : in Integer) return Float is begin return Float (Param); end;
+   
+   function Function_2e (Param : in Parent_Type_1) return Float is begin return 1.0; end;
+   
+   function Function_2f (Param : in Parent_Type_1)
+                        return Float is
+   begin return 1.0; end;
 
 begin
    null;

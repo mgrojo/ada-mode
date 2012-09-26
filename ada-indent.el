@@ -271,8 +271,6 @@ begin
 
 	("function" name "return-spec" name)
 	("function" name "return+access" name)
-	;; FIXME: return access constant subtype
-	;; FIXME: return access protected subprogram
 	;; second case is returning an anonymous access type
 	;; (return_access is too hard to distinguish from
 	;; return-access)
@@ -302,148 +300,143 @@ begin
 	("type" identifier "is-type_not_null_access_all")
 	("type" identifier "is-type_not_null_access_constant")
 
-	;; FIXME: we want to identify 'function' and 'procedure' in
+	;; We don't include access-to-subprogram in the grammar,
+	;; because we want to identify 'function' and 'procedure' in
 	;; these types, so we can indent the parameter list relative
-	;; to them. So allow them to be parents.
-	("type" identifier "is-type_access_procedure")
-	("type" identifier "is-type_access_protected_procedure")
-	("type" identifier "is-type_access_function" "return-access")
-	("type" identifier "is-type_access_function" "return+access" name); same as 'function name return access'
-	("type" identifier "is-type_access_protected_function" "return-access")
-	("type" identifier "is-type_access_protected_function" "return+access" name)
-	;; Note the difference between return-access and return+access;
-	;; the latter is returning an anonymous access type. Perhaps
-	;; not the best convention ...
+	;; to them. So we allow them to be parents. This also greatly
+	;; simplifies refine-is.
 
-       ;; array_type_definition
-       ("type" identifier "is-type_array" expression "of")
+	;; array_type_definition
+	("type" identifier "is-type_array" expression "of")
 
-       ;; derived_type_declaration
-       ("type" identifier "is-type" "new" name); same as below
-       ("type" identifier "is-type" "new" name)
-       ("type" identifier "is-type" "new" name "with_private")
-       ("type" identifier "is-type" "new" name "with_null_record")
-       ("type" identifier "is-type" "new" name "with_null_record")
-       ("type" identifier "is-type" "new" name "with" "record" declarations "end_record")
-       ("type" identifier "is-type" "new" name "with" "record" declarations "end_record")
-       ("type" identifier "is-type" "new" interface_list "with" "record" declarations "end_record")
-       ("type" identifier "is-type" "new" interface_list "with" "record" declarations "end_record")
+	;; derived_type_declaration
+	("type" identifier "is-type" "new" name); same as below
+	("type" identifier "is-type" "new" name)
+	("type" identifier "is-type" "new" name "with_private")
+	("type" identifier "is-type" "new" name "with_null_record")
+	("type" identifier "is-type" "new" name "with_null_record")
+	("type" identifier "is-type" "new" name "with" "record" declarations "end_record")
+	("type" identifier "is-type" "new" name "with" "record" declarations "end_record")
+	("type" identifier "is-type" "new" interface_list "with" "record" declarations "end_record")
+	("type" identifier "is-type" "new" interface_list "with" "record" declarations "end_record")
 
-       ;; enumeration_type_definition
-       ("type" identifier "is-enumeration_type")
-       ;; enumeration literals are an aggregate, which is ignored.
+	;; enumeration_type_definition
+	("type" identifier "is-enumeration_type")
+	;; enumeration literals are an aggregate, which is ignored.
 
-       ;; {ordinary_ | decimal_} fixed_point_definition
-       ("type" identifier "is-type_delta" expression); match next
-       ("type" identifier "is-type_delta" expression "digits")
+	;; {ordinary_ | decimal_} fixed_point_definition
+	("type" identifier "is-type_delta" expression); match next
+	("type" identifier "is-type_delta" expression "digits")
 
-       ;; floating_point_definition
-       ("type" identifier "is-type_digits" expression)
-       ("type" identifier "is-type_digits" expression "range")
+	;; floating_point_definition
+	("type" identifier "is-type_digits" expression)
+	("type" identifier "is-type_digits" expression "range")
 
-       ;; incomplete_type_declaration
-       ;;
-       ;; The full syntax for incomplete_type_declaration is:
-       ;;
-       ;; incomplete_type_declaration ::= type defining_identifier [discriminant_part] [is tagged];
-       ;;
-       ;; We don't need the variant without "is tagged", since it has only one keyword.
-       ;;
-       ;; If we leave this out entirely, then refine-is will return
-       ;; "is-type", and since "is-type" matches "end", in this code:
-       ;;
-       ;;    type Type_2 (<>) is tagged;
-       ;;
-       ;; end Ada_Mode.Nominal;
-       ;;
-       ;; the parent of "end" is "type", instead of "package".
-       ;;
-       ;; Leaving "is-type" and "tagged" present as separate keywords
-       ;; causes the "tagged" in all the other types to be seen as a
-       ;; keyword instead of an identifier, breaking the sexp keyword
-       ;; chain.
-       ;;
-       ;; So we really want to leave out the "tagged"; adding it to
-       ;; the other sexps is likely to cause conflicts.
-       ;;
-       ;; Refining this to "is-type_tagged" breaks the corresponding
-       ;; complete type declaration:
-       ;;
-       ;;    type Type_2 (Discriminant_1 : Integer) is tagged null record;
-       ;;
-       ;; since "is-type_tagged" does not match "null record", the parent of
-       ;; 'record' here is "is tagged".
-       ;;
-       ;; The solution is to have refine-is treat this occurence of
-       ;; "is", and the one in 'procedure name is null', as an
-       ;; identifier, returning plain "is". All other occurrences of
-       ;; "is" are refined into one of the "is-*" keywords.
-       ;;
-       ;; FIXME: similarly for all the numeric types? which means they
-       ;; can be left out entirely. That would not complicate
-       ;; 'refine-is'; it already has to refine all of them. But at
-       ;; least "digits" and "range" would not be keywords. Which
-       ;; might be a bad thing? "If it ain't broke, don't fix it".
+	;; incomplete_type_declaration
+	;;
+	;; The full syntax for incomplete_type_declaration is:
+	;;
+	;; incomplete_type_declaration ::= type defining_identifier [discriminant_part] [is tagged];
+	;;
+	;; We don't need the variant without "is tagged", since it has only one keyword.
+	;;
+	;; If we leave this out entirely, then refine-is will return
+	;; "is-type", and since "is-type" matches "end", in this code:
+	;;
+	;;    type Type_2 (<>) is tagged;
+	;;
+	;; end Ada_Mode.Nominal;
+	;;
+	;; the parent of "end" is "type", instead of "package".
+	;;
+	;; Leaving "is-type" and "tagged" present as separate keywords
+	;; causes the "tagged" in all the other types to be seen as a
+	;; keyword instead of an identifier, breaking the sexp keyword
+	;; chain.
+	;;
+	;; So we really want to leave out the "tagged"; adding it to
+	;; the other sexps is likely to cause conflicts.
+	;;
+	;; Refining this to "is-type_tagged" breaks the corresponding
+	;; complete type declaration:
+	;;
+	;;    type Type_2 (Discriminant_1 : Integer) is tagged null record;
+	;;
+	;; since "is-type_tagged" does not match "null record", the parent of
+	;; 'record' here is "is tagged".
+	;;
+	;; The solution is to have refine-is treat this occurence of
+	;; "is", and the one in 'procedure name is null', as an
+	;; identifier, returning plain "is". All other occurrences of
+	;; "is" are refined into one of the "is-*" keywords.
+	;;
+	;; FIXME: similarly for all the numeric types? which means they
+	;; can be left out entirely. That would not complicate
+	;; 'refine-is'; it already has to refine all of them. But at
+	;; least "digits" and "range" would not be keywords. Which
+	;; might be a bad thing? "If it ain't broke, don't fix it".
 
-       ;; integer_type_definition
-       ("type" identifier "is-type_range"); ".." is an operator
+	;; integer_type_definition
+	("type" identifier "is-type_range"); ".." is an operator
 
-       ;; interface_type_definition, formal_interface_type_definition
-       ("type" identifier "is-type" "interface")
-       ("type" identifier "is-type" "interface_and" interface_list)
+	;; interface_type_definition, formal_interface_type_definition
+	("type" identifier "is-type" "interface")
+	("type" identifier "is-type" "interface_and" interface_list)
 
-       ;; modular_type_definition
-       ("type" identifier "is-type" "mod-type")
-       ;; "mod" is an operator, so it has to be in the grammar. We
-       ;; also want something following "is-type", unless we treat
-       ;; this occurence of "is" as an identifier. FIXME: show example
-       ;; code that would be confused.
+	;; modular_type_definition
+	("type" identifier "is-type" "mod-type")
+	;; "mod" is an operator, so it has to be in the grammar. We
+	;; also want something following "is-type", unless we treat
+	;; this occurence of "is" as an identifier. FIXME: show example
+	;; code that would be confused.
 
-       ;; private_extension_declaration
-       ("type" identifier "is-type" "new" name "with_private")
-       ("type" identifier "is-type" "new" interface_list "with_private")
-       ;; leaving 'with' and 'private' as separate tokens causes conflicts
+	;; private_extension_declaration
+	("type" identifier "is-type" "new" name "with_private")
+	("type" identifier "is-type" "new" interface_list "with_private")
+	;; leaving 'with' and 'private' as separate tokens causes conflicts
 
-       ;; private_type_declaration
-       ("type" identifier "is-type" "private-type")
+	;; private_type_declaration
+	("type" identifier "is-type" "private-type")
 
-       ;; protected_type_declaration, single_protected_declaration
-       ;;
-       ;; prefixing "protected" gives a precedence conflict: 'token
-       ;; type is both neither and opener', so "protected type" is
-       ;; combined into one token in
-       ;; ada-indent-forward/backward-token.
-       ("protected_type" identifier "is-type" declarations "private" declarations "end")
-       ("protected_type" identifier "is-type" "new" interface_list "with" declarations
-	"private" declarations "end")
+	;; protected_type_declaration, single_protected_declaration
+	;;
+	;; We don't need "protected" in the grammar anywhere, so leave
+	;; it as an identifier; this simplifies access-to-subprogram
+	;; types, since we can just ignore "protected" there.  Note
+	;; that in a single_protected_declaration, we are refining
+	;; "protected" to "type.
+	("type" identifier "is-type" declarations "private" declarations "end")
+	("type" identifier "is-type" "new" interface_list "with" declarations
+	 "private" declarations "end")
 
-       ;; record_type_definition
-       ("type" identifier "is-type" "null_record")
-       ("type" identifier "is-type" "record" declarations "end_record")
-       ;; no need to distinguish between 'declarations' and 'component_list'
+	;; record_type_definition
+	("type" identifier "is-type" "null_record")
+	("type" identifier "is-type" "record" declarations "end_record")
+	;; no need to distinguish between 'declarations' and 'component_list'
 
-       ); type_declaration
+	); type_declaration
        )); smie-bnf->prec2
 
     ;; operators and similar things
     (smie-precs->prec2
      '((nonassoc "-operator-")
-       ;; The structure of this table is stolen from the modula2 smie grammar.
-       ;;
        ;; We can merge the relational, math, and other operators in
-       ;; these levels, because we don't care about legality.
+       ;; these levels, because we don't care about legality or
+       ;; evaluation order precedence. Nor do we care about associativity.
        ;;
        ;; So we set the precedence hierarchy to help with indentation;
-       ;; := is the highest level parent in expressions, so we can
-       ;; always find the start of the current expression with
+       ;; := and => are the highest level parents, and all other
+       ;; operators are at the same level, so we can always find the
+       ;; start of an Ada assignment or association with one call to
        ;; ada-indent-goto-parent.
        ;;
-       (nonassoc ":=")
-       (nonassoc "=" "/=" "<" "<=" ">" ">=" "in") ; relational_operator, membership
-       (assoc "or" "or_else" "xor" "+" "-" "&")
-       (assoc "and" "and_then" "mod" "rem" "*" "/")
-       (right "abs" "not")
-       (left "'" "." "**" "..") ; Qualifier, selector, exponent, range
+       (nonassoc ":=" "=>")
+       (nonassoc
+	"=" "/=" "<" "<=" ">" ">=" "in"
+	"or" "or_else" "xor" "+" "-" "&"
+	"and" "and_then" "mod" "rem" "*" "/"
+	"abs" "not"
+	"'" "." "**" "..")
        ))
     )))
 
@@ -701,19 +694,18 @@ Return empty string if encounter beginning of buffer."
     result))
 
 (defconst ada-indent-type-keywords
-  '("delta" "digits" "range" "array"
-    "not" "null" "access" "all" "constant" "protected" "procedure" "function")
+  '("delta" "digits" "range" "array" "not" "null" "access" "all" "constant")
   "Kewords that can be combined with \"is\", in the (partial) order they can appear.")
 
 (defun ada-indent-skip-type-keywords-backward ()
-  "Skip tokens, using smie-default-backward-token, if they are in `ada-indent-type-keywords.
+  "Skip tokens, using smie-default-backward-token, if they are in `ada-indent-type-keywords'.
 Return next token."
   (let (token)
     (while (member (setq token (smie-default-backward-token)) ada-indent-type-keywords))
     token))
 
 (defun ada-indent-consume-type-keywords (keyword)
-  "Skip tokens forward if they are in `ada-indent-type-keywords.
+  "Skip tokens forward if they are in `ada-indent-type-keywords'.
 Return (token count), where `token' is the concatentation of
 \"is-type_KEYWORD\" and the keywords read, and `count' is the count of
 keywords read."
@@ -739,6 +731,13 @@ keywords read."
        (or
 	;; First try simple, common constructs.
 
+	(if (equal "protected"
+		    (save-excursion
+		      (smie-default-backward-token); identifier
+		      (smie-default-backward-token)))
+	    ;; This is a special case because "protected" is not a keyword
+	    "is-type")
+
 	(let ((token (save-excursion (ada-indent-backward-name))))
 	  (cond
 	   ((equal token "package") "is-package")
@@ -746,8 +745,6 @@ keywords read."
 
 	   ((equal token "package_body") "is-package_body")
 	   ;; "package" "body" name ^ "is"
-
-	   ;; FIXME: we don't handle private here yet, because that is recursive
 
 	   ((equal token "procedure")
 	    ;;  procedure name is abstract;
@@ -759,9 +756,6 @@ keywords read."
 	      (cond
 	       ((member token '("abstract" "null")) "is")
 	       (t "is-subprogram_body"))))
-
-	   ((equal token "protected_type") "is-type")
-	   ;; "protected" identifier ^ "is"
 
 	   ((equal token "protected_body") "is-protected_body")
 	   ;; "protected" "body" identifier ^ "is"
@@ -781,12 +775,18 @@ keywords read."
 		"is-enumeration_type");; type identifier is (...)
 
 	       ((member token '("delta" "digits" "range" "array" "not" "access"))
+		;; FIXME: why is this list not ada-indent-type-keywords?
 		(let ((temp (ada-indent-consume-type-keywords token)))
 		  (setq skip (cadr temp))
 		  (car temp)))
 
 	       ((equal token "tagged")
-	       	"is"); an identifier
+		(if (equal ";" (smie-default-forward-token))
+		    ;; type Incomplete_Type_1 (Discriminant_1 : Integer) is tagged; -- in spec
+		    ;; type Incomplete_Type_1 (Discriminant_1 : Integer) is tagged null record; -- in body
+		    ;; type name is tagged ...; other types
+		    "is"; an identifier
+		  "is-type"))
 
 	       (t "is-type")); all others
 	      ))))
@@ -824,33 +824,7 @@ moving point to its start."
     (let ((pos (point))
 	  (token (ada-indent-skip-type-keywords-backward)))
 
-      ;; We can't just look for 'is'; consider this case:
-      ;;
-      ;;    protected type Protected_1 is
-      ;;       function F1 return Integer;
-      ;;       function F2 return Integer;
-      ;;    private
-      ;;
-      ;; vs
-      ;;    type Function_Access_Type is access function (...) return float;
-      ;;
-      ;; If we are refining 'return' in function F1, we call
-      ;; ada-indent-backward-name to look for 'function'. But that
-      ;; calls ada-indent-backward-token, which calls
-      ;; ada-indent-maybe-refine-is, and we skip the 'function' in F1
-      ;; thinking it might be the 'function' in Function_Access_Type.
-      ;;
-      ;; The body has a similar problem:
-      ;;    protected body Protected_1 is
-      ;;       function F1 return Integer is
-      ;;
-      ;; FIXME: when indenting 'function', we get here, and return
-      ;; "is-protected_body" instead of "function". Best fix; let
-      ;; 'function' and 'procedure' be parents in these types, so we
-      ;; can indent their parameter lists appropriately.
-      ;;
-      (if (and (equal "is" token)
-	       (not (member (save-excursion (ada-indent-backward-name)) '("protected_type" "task_type"))))
+      (if (equal "is" token)
 	  (progn
 	    (when forward
 	      ;; skip-type-keywords-backward found "is" while moving
@@ -1259,21 +1233,20 @@ moving point to its start."
 
      ((equal token "private") (ada-indent-refine-private t))
 
+     ((equal token "protected")
+      (if (equal "body" (save-excursion (smie-default-forward-token)))
+	  (progn
+	    (smie-default-forward-token)
+	    "protected_body")
+	;; We don't check forward for "type", because we are leaving
+	;; "protected" as a keyword.
+	"protected"))
+
      ((equal token "return") (ada-indent-refine-return t))
 
      ((equal token "with") (ada-indent-refine-with t))
 
      ((ada-indent-maybe-refine-is token t))
-
-     ((equal token "protected")
-      ;; access_definition, access_to_subprogram_definition handled by maybe-refine-is
-      (if (equal "body" (save-excursion (smie-default-forward-token)))
-	  (progn
-	    (smie-default-forward-token)
-	    "protected_body")
-	;; We don't check forward for "type" because that would be recursive
-	;; FIXME: expand syntax for protected, verify this is correct.
-	"protected_type"))
 
      (t token))))
 
@@ -1359,13 +1332,6 @@ moving point to its start."
 
      ((equal token "return") (ada-indent-refine-return nil))
 
-     ((equal token "type")
-       (if (equal "protected" (save-excursion (smie-default-backward-token)))
-	   (progn
-	     (smie-default-backward-token)
-	     "protected_type")
-	 "type"))
-
      ((equal token "with") (ada-indent-refine-with nil))
 
      ((ada-indent-maybe-refine-is token nil))
@@ -1414,9 +1380,13 @@ moving point to its start."
       ;;
       ;;    not implemented
       ;;
-      (if (equal "body" (save-excursion (smie-default-forward-token)))
-	  "protected_body"
-	"protected_type"))
+      (let ((token (save-excursion (smie-default-forward-token))))
+	(cond
+	 ((equal token "body") "protected_body")
+	 ((equal token "type") "protected"); an identifier
+	 (t "protected"))
+	;; FIXME: need to detect a single_protected_declaration, without being infinite recursive with refine-is.
+	))
 
      (t token))))
 
@@ -1432,108 +1402,169 @@ moving point to its start."
 (defun ada-indent-openerp (token)
   (listp (nth 1 (assoc token ada-indent-grammar))))
 
-(defun ada-indent-goto-token-start ()
-  "If point is in the middle of a combined token, move to start."
-  (ada-indent-forward-token)
-  (ada-indent-backward-token))
-
 (defun ada-indent-goto-parent (child up)
-  "Goto a parent.
+  "Goto a parent (defined by where smie-backward-sexp stops).
 If CHILD is non-nil and a smie keyword, find its parent (which may be itself, if it is a parent and UP is 1).
 Otherwise, find the previous keyword, start over.
-If UP is an integer, find that generation of grand-parent.
-If UP is `t', find the statement or declaration start, or the enclosing opening paren (the first smie opener).
-Note that UP large enough can take us past the statement parent to the enclosing block parent, etc."
-  ;;
-  ;; 'parent' is defined by where smie-backward-sexp stops, which is
-  ;; determined by the grammar levels.
-  ;;
-  ;; For example:
-  ;;
-  ;; package body
-  ;;
-  ;;    type Incomplete_Type_5 (Discriminant_1 : access Integer) is tagged record
-  ;;       Component_1 : Integer;
-  ;;       Component_2 : Integer;
-  ;;    end record;
-  ;;
-  ;; ';' following 'Component_1' is the parent of the second ':'
-  ;; 'record' is the parent of that ';'
-  ;; 'type' is the parent of the syntax up to 'record'
-  ;; bob is the parent of 'record' (not 'package'!?).
-  ;;
-  ;; FIXME: starting in Component_2, we want:
-  ;;
-  ;;    up = 1: move to start of current statement/decl
-  ;;       a statement is an expression, not expanded in the bnf
-  ;;       = previous ; if in expression
-  ;;       = opener of current sexp otherwise
-  ;;
-  ;;    up = 2: leave point at start of 'type'
-  ;;        start of 'record' is _not_ ok unless it's at bol
-  ;;
-  ;;        don't stop until change grammar level
-  ;;        currently, 't goes to bob, because it doesn't stop at openers?
-  ;;
-  ;;    up = 0 move from 'end' to 'record' to 'type' (and vice-versa)
-  ;;       all in one sexp; stop when found back level = start forward level
-  ;;
-  ;;    up = t: unclear, may be useful with expressions
-  ;;
-  ;; FIXME: paren example
-  ;;
-  ;; On the other hand, in:
-  ;;
-  ;; type Procedure_Access_Type_13 is access
-  ;;    protected procedure
-  ;;       (A_Param : out Integer);
-  ;;
-  ;; 'protected' is not the parent of '(', which would be easier :) ('type' is the parent here).
+UP is an integer; find that many parents.
+Point must be on the start of `child', or on the start of the
+preceding unrefined token (if resuming from a previous call).
+Return same struct as `smie-backward-sexp'.
+If a closer is found, point is left on the start of the result token. If a
+higher level token is found, point is left on the previous unrefined token."
   (let ((count up)
 	(token
 	 (cond
 	  ((ada-indent-keywordp child)
-	   ;; we might be in the middle of a split token
-	   (ada-indent-goto-token-start)
 	   child)
 	  (t (ada-indent-backward-name)))))
 
     (setq token
 	  (list (nth 1 (assoc token ada-indent-grammar)) (point) token))
-    (while (or (eq count 't) (> count 0))
-      (when (ada-indent-openerp (nth 2 token))
-	(if (eq count 't)
-	    (setq count 0); done searching for parent
-	  (setq count (- count 1)))
-	)
-      (if (or (eq count 't) (> count 0))
+    (while (> count 0)
+      (when (listp (nth 0 token))
+	;; token is an opener; found a parent
+	(setq count (- count 1)))
+      (if (> count 0)
 	  (progn
-	    ;; When smie-backward-sexp finds a parent that is not an
-	    ;; opener, it stops after that token; (nth 1 token) gives
-	    ;; the position at the start of the token. So to search
-	    ;; again, we first have to go there.
+	    ;; When smie-backward-sexp stops because the next token
+	    ;; has a higher precedence level, it returns the token it
+	    ;; stopped on, but leaves point at the start of the higher
+	    ;; precedence token; (nth 1 token) gives the position at
+	    ;; the start of the token it stopped on. FIXME: in a
+	    ;; properly constructed grammar, that should never occur
+	    ;; here, so we should report an error if we detect that?
+	    ;;
+	    ;; When smie-backward-sexp stops because the current token
+	    ;; is an opener, it leaves point on the opener. We can't
+	    ;; call smie-backward-sexp again with that token, so we
+	    ;; have to move to the next keyword first.
+	    ;;
 	    ;; FIXME: parens?
-	    ;; FIXME: at bob, returns (t 1)
-	    (goto-char (nth 1 token))
+	    ;; FIXME: at bob, smie-backward-sexp returns (t 1)
 	    (if (listp (nth 0 token))
-		;; token is an opener; smie-backward-sexp can't handle that
+		;; token is an opener; move to the next keyword, which
+		;; might be another opener, so we loop again before
+		;; calling smie-backward-sexp
 		(progn
-		  (setq token (ada-indent-backward-token))
+		  (setq token (ada-indent-backward-name))
 		  (setq token
 			(list (nth 1 (assoc token ada-indent-grammar)) (point) token)))
-	      (setq token (smie-backward-sexp (nth 2 token))))
-	    (or (eq count 't)
-		(setq count (- count 1))))
+	      (setq token (smie-backward-sexp (nth 2 token)))
+	      (setq count (- count 1))))
 	))
-    token))
+    token)) ;; return value is useful for a debug display
 
-(defun ada-indent-rule-parent (offset &optional child up)
-  "Find a relevant parent using `ada-indent-goto-parent', indent by OFFSET relevant to that."
+(defun ada-indent-rule-parent (offset &optional child start-token)
+  "Find a relevant parent using `ada-indent-goto-parent', return
+an indent by OFFSET relevant to that parent. Preserves point.  If
+CHILD is non-nil, assume point is at the start of CHILD, which
+must be a keyword, and START-TOKEN is the token from which we
+searched for CHILD (defaults to CHILD)."
+  ;; Because we did not include access-to-subprogram in the grammar,
+  ;; we have to consider whether the first parent we find is the
+  ;; "right" one.
+  ;;
+  ;; Consider an access-to-function type declaration, with a return
+  ;; type that is access to function:
+  ;;
+  ;;    type Function_Access_Type_8 is access
+  ;;       protected function
+  ;;          (Param_1 : in Integer)
+  ;;          return access function
+  ;;             (Param_2 : in Float)
+  ;;             return Standard.Float;
+  ;;
+  ;;    type Another_Type is ...;
+  ;;
+  ;; Obviously, this could be repeated to any level. Here each
+  ;; "function" keyword is a smie parent; ada-indent-goto-parent will
+  ;; stop there.
+  ;;
+  ;; When indenting "(Param_1", we want to find the first "function",
+  ;; which is the second parent ("(" is the first). Similarly, when
+  ;; indenting the second "return", we want to find the second
+  ;; "function", which again is the second parent.
+  ;;
+  ;; When indenting the following Ada statement "type Another_Type",
+  ;; we need find "type Function_Access_Type" starting from ";", so we
+  ;; have to loop:
+  ;;
+  ;;    loop
+  ;;       ada-indent-goto-parent
+  ;;       if parent not in ("procedure" "function") then
+  ;;          exit loop
+  ;;       end if
+  ;;    end loop
+  ;;
+  ;; The same loop works for access to procedure, although it will
+  ;; only be executed once.
+  ;;
+  ;; 'overriding' and 'protected' present another problem; the parent
+  ;; is not at the beginning of the line:
+  ;;
+  ;;    overriding procedure Name;
+  ;;
+  ;;    protected type Name is ...
+  ;;
+  ;; The same is true for any other leading Ada keyword that we leave
+  ;; as an identifier. To handle this, we do `back-to-indentation'
+  ;; once we find the parent.
+  ;;
+  ;; We do _not_ need a similar loop for assignment statements:
+  ;;
+  ;;    A := B + C * D;
+  ;;
+  ;; because we set all operators to the same precedence
+  ;; level. However, to find the start of A, we must use
+  ;; ada-indent-backward-name.
+  ;;
+  ;; To find "(" from anywhere within an aggregate, we can use
+  ;; `scan-lists'. FIXME: not clear what we want to do from inside an
+  ;; aggregate.
+  ;;
+  ;;
+  ;; The following psuedo-Ada leaves point at the proper indentation:
+  ;;
+  ;;    if start-token /= ";" then
+  ;;       -- we are inside an Ada statement/declaration; indent
+  ;;       -- relative to the first or second parent
+  ;;       if child = "(" then
+  ;;          ada-indent-goto-parent child 2
+  ;;       else
+  ;;          ada-indent-goto parent child 1
+  ;;       end if
+  ;;    else
+  ;;       -- indent relative to the statement/declaration start
+  ;;       loop
+  ;;          ada-indent-goto-parent 2
+  ;;          if parent not in ("procedure" "function") then
+  ;;             exit loop
+  ;;          end if
+  ;;       end loop
+  ;;    end if
+  ;;
+  ;;    if parent = ":=" then
+  ;;       ada-indent-backward-name
+  ;;    end if
+  ;;
+  ;;    back-to-indentation
+
   (save-excursion
-    (ada-indent-goto-parent child (or up 1))
-    ;; We don't consider any special cases here; the caller must
-    ;; know what they are doing!
-    (cons 'column (+ (current-column) offset))))
+    (let ((parent (nth 2 (ada-indent-goto-parent child (or (and (equal child "(") 2) 1)))))
+
+      (if (equal (or start-token child) ";")
+	(while (member parent `("procedure" "function"))
+	  (setq parent (nth 2 (ada-indent-goto-parent parent 2)))))
+      ;; FIXME: it would probably be best to merge this loop into ada-indent-goto-parent.
+
+      (if (equal parent ":=")
+	  (ada-indent-backward-name))
+
+      (back-to-indentation)
+
+      (cons 'column (+ (current-column) offset)))
+    ))
 
 ;;;
 (defun ada-indent-rules (method arg)
@@ -1566,14 +1597,7 @@ Note that UP large enough can take us past the statement parent to the enclosing
        ;; and calls, for example). FIXME: after we get
        ;; ada-indent-exps working, we may want to let that handle
        ;; this.
-       ;;
-       ;; "(" is a parent, so we need to go up one level.  FIXME: need
-       ;; to split more tokens to make this consistent.  or
-       ;; something. get better results with nil for now.  We actually
-       ;; want to indent this relative to line containing "procedure";
-       ;; maybe if we split enough tokens, that will be the parent.
-       ;(ada-indent-rule-parent ada-indent arg 2)
-       nil)
+       (ada-indent-rule-parent ada-indent arg))
 
       ((equal arg "with-context")
        (cons 'column 0))
@@ -1600,8 +1624,8 @@ Note that UP large enough can take us past the statement parent to the enclosing
        (ada-indent-rule-parent ada-indent arg))
 
       ))
+
 ;;; :after
-    ;; FIXME: split this out
     (:after
      ;; `arg' is a keyword at the end of a line, point is at start of keyword
      ;; :before is checked first, so we don't need to consider those cases here
@@ -1651,7 +1675,7 @@ Note that UP large enough can take us past the statement parent to the enclosing
        ;;    find the parent of this sexp, we use
        ;;    ada-indent-backward-name.
        ;;
-       ;; 2) everything else has keywords, so use ada-indent-parent
+       ;; 2) everything else has keywords, so use ada-indent-rule-parent
        ;;
        ;; To distinguish between the two cases, we call
        ;; ada-indent-backward-name and check to see if the found
@@ -1671,7 +1695,7 @@ Note that UP large enough can take us past the statement parent to the enclosing
 
 	     ;; Not a procedure call or pragma; continue searching for
 	     ;; the real parent
-	     (ada-indent-rule-parent 0 token)))))
+	     (ada-indent-rule-parent 0 token ";")))))
 
       ;; We are left with these cases:
       ;;
@@ -1689,11 +1713,10 @@ Note that UP large enough can take us past the statement parent to the enclosing
       ;;          foo;
       ;;
       ;;    We are indenting 'foo', and point is at the start of
-      ;;    'return', because we are in ada-indent-after-keyword.
+      ;;    'return', because we are in :after.
       ;;
-      ;;    Indent relative to 'return'. indent-rule-parent does not
-      ;;    work here; 'return' and 'begin' are not parents of
-      ;;    anything.
+      ;;    We want to indent relative to 'return', which is on the
+      ;;    current line.
       ;;
       ;; smie-indent--hanging-p returns nil if the keyword is alone
       ;; on the line, which is the distinguishing criterion we need.
@@ -1793,11 +1816,7 @@ relative to)."
   "Unconditionally indent as `ada-indent' from the previous
 line. Intended to be the last item in `smie-indent-functions',
 used when no indentation decision was made."
-  ;; FIXME: should be from parent; more general
-  (save-excursion
-    (forward-line -1)
-    (back-to-indentation)
-    (+ (current-column) ada-indent)))
+  (cdr (ada-indent-rule-parent ada-indent)))
 
 ;;; debug
 (defun ada-indent-show-keyword-forward ()

@@ -28,8 +28,6 @@ package Ada_Mode.Nominal is
    --
    -- FIXME: see (some other file) for alignment of multiple declarations
    -- within parens.
-   --
-   -- FIXME: add discriminants
 
    -- access to object
    type Object_Access_Type_0a is access Integer;
@@ -69,26 +67,27 @@ package Ada_Mode.Nominal is
 
    -- access to procedure
    type Procedure_Access_Type_1 is access protected procedure (A_Param : out Integer);
-   -- we don't put newline inside the paren here; covered in FIXME:
-   type Procedure_Access_Type_7 is access protected procedure
+   -- we don't put newline inside the paren here
+   type Procedure_Access_Type_2 is access protected procedure
       (A_Param : out Integer);
-   type Procedure_Access_Type_8 is access protected
+   type Procedure_Access_Type_3 is access protected
       procedure (A_Param : out Integer);
-   type Procedure_Access_Type_9 is access
+   type Procedure_Access_Type_4 is access
       protected procedure (A_Param : out Integer);
-   type Procedure_Access_Type_10 is
+   type Procedure_Access_Type_5 is
       access protected procedure (A_Param : out Integer);
-   type Procedure_Access_Type_11
+   type Procedure_Access_Type_6
       is access protected procedure (A_Param : out Integer);
    type
-      Procedure_Access_Type_12 is access protected procedure (A_Param : out Integer);
+      Procedure_Access_Type_7 is access protected procedure (A_Param : out Integer);
+   --  FIXME: Procedure_Access_Type_7 not highlighted here.
 
    -- A more typical case, not covered above (usually with multiple
    -- params). The parameters should be indented relative to the line
    -- 'procedure' is on.
-   type Procedure_Access_Type_13 is access
+   type Procedure_Access_Type_8 is access
       protected procedure
-      (A_Param : out Integer); -- FIXME (later): failing
+         (A_Param : out Integer);
 
    ----------
    -- access to function
@@ -122,6 +121,21 @@ package Ada_Mode.Nominal is
    type
       Function_Access_Type_9 is access protected function (A_Param : in Float) return Standard.Float;
    -- comment aligned with 'type', which is the start of the previous statement
+
+   -- A more typical case
+   type Function_Access_Type_10 is access
+      protected function
+         (A_Param : in Float)
+         return Standard.Float;
+
+   -- a pathological case
+   type Function_Access_Type_11 is access
+      protected function
+         (A_Param : in Float)
+         return access function
+            (A_Param : in Float)
+            return
+               Standard.Float;
 
    type Unconstrained_Array_Type_1 is array (Integer range <>, Standard.Character range <>) of Object_Access_Type_1;
    type Unconstrained_Array_Type_2 is array (Integer range <>, Standard.Character range <>) of
@@ -218,6 +232,7 @@ package Ada_Mode.Nominal is
    -- Ici l'exemple du chapitre 9 du RM sur le tasking
 
    protected Buffer is
+      -- a single_protected_type
       entry Read (C : out Character);
       entry Write (C : in  Character);
    private
@@ -272,15 +287,25 @@ package Ada_Mode.Nominal is
 
    ----------
    -- Subprograms
+   --
    -- most 'is null' so we don't have to declare a body
-   procedure Procedure_1a (Item  : in out Ada.Strings.Unbounded.Unbounded_String; New_Item : Character);
+
+   -- We make these procedures primitive operations, so we can test
+   -- 'overriding' in ada_mode-nominal-child.ads
+
+   type Parent_Type_1 is tagged null record;
+
+   procedure Procedure_1a (Item  : in out Parent_Type_1);
 
    procedure Procedure_1b
-      (Item  : in out Ada.Strings.Unbounded.Unbounded_String; New_Item : Character) is null;
-   -- FIXME (later): handled by smie-indent-exps
+      (Item  : in out Parent_Type_1) is null;
 
    procedure
-      Procedure_1c (Item  : in out Ada.Strings.Unbounded.Unbounded_String; New_Item : Character) is null;
+      Procedure_1c (Item  : in out Parent_Type_1) is null;
+
+   procedure Procedure_1d
+      (Item  : in out Parent_Type_1)
+      is null;
 
    procedure Procedure_2a;
    procedure
@@ -312,15 +337,19 @@ package Ada_Mode.Nominal is
    function
       Function_1d return Float;
 
-   function Function_2a (Param : in Integer) return Float;
-   function Function_2b (Param : in Integer) return
+   function Function_2a (Param : in Parent_Type_1) return Float;
+   function Function_2b (Param : in Parent_Type_1) return
       Float;
-   function Function_2c (Param : in Integer)
+   function Function_2c (Param : in Parent_Type_1)
       return Float;
    function Function_2d
-      (Param : in Integer) return Float;
+      (Param : in Parent_Type_1) return Float;
    function
-      Function_2e (Param : in Integer) return Float;
+      Function_2e (Param : in Parent_Type_1) return Float;
+
+   function Function_2f
+      (Param : in Parent_Type_1)
+      return Float;
 
    -- FIXME: nested packages
 
