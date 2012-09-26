@@ -251,7 +251,7 @@ begin
 	("package_body" name "is-package_body" declarations "begin" statements "end"))
 
        (protected_body
-	("protected_body" identifier "is-protected_body" declarations "end"))
+	("protected-body" identifier "is-protected-body" declarations "end"))
 
        (statement
 	(expression); matches procedure calls, assignment
@@ -443,7 +443,7 @@ begin
     "is-entry_body"
     "is-package_body"
     "is-package"
-    "is-protected_body"
+    "is-protected-body"
     "is-subprogram_body"
     "private"
     "record")
@@ -726,12 +726,20 @@ keywords read."
        (or
 	;; First try simple, common constructs.
 
-	(if (equal "protected"
-		    (save-excursion
-		      (smie-default-backward-token); identifier
-		      (smie-default-backward-token)))
-	    ;; This is a special case because "protected" is not a keyword
-	    "is-type")
+	(save-excursion
+	  ;; This is a special case because "protected" not followed
+	  ;; by "body" is not a keyword, so ada-indent-backward-name
+	  ;; doesn't find it.
+	  (let ((token (progn
+			 (smie-default-backward-token); identifier
+			 (smie-default-backward-token)))) ; "protected" or "body"
+	    (cond
+	      ((equal token "protected") "is-type")
+	      ((and
+		(equal token "body")
+		(setq token (smie-default-backward-token))
+		(equal token "protected") "is-protected-body")))
+	    ))
 
 	(let ((token (save-excursion (ada-indent-backward-name))))
 	  (cond
@@ -751,9 +759,6 @@ keywords read."
 	      (cond
 	       ((member token '("abstract" "null")) "is")
 	       (t "is-subprogram_body"))))
-
-	   ((equal token "protected_body") "is-protected_body")
-	   ;; "protected" "body" identifier ^ "is"
 
 	   ((equal token "return-spec")
 	    ;; "function" identifier "return" name ^ "is" declarations "begin"
@@ -1248,7 +1253,7 @@ moving point to its start."
 
      ((equal token "protected")
       (if (equal "body" (save-excursion (smie-default-forward-token)))
-	    "protected_body"
+	    "protected-body"
 	;; "body" is an identifier. We don't check forward for "type",
 	;; because we are leaving "protected" as an identifier.
 	"protected"))
@@ -1309,6 +1314,13 @@ moving point to its start."
 	"package"))
 
      ((equal token "private") (ada-indent-refine-private nil))
+
+     ((and
+       (equal token "protected")
+       (equal "body" (save-excursion
+		       (smie-default-forward-token); "protected"
+		       (smie-default-forward-token))))
+      "protected-body")
 
      ;; "procedure" handled by maybe-refine-is below
 
@@ -1378,7 +1390,7 @@ moving point to its start."
       ;;
       (let ((token (save-excursion (smie-default-forward-token))))
 	(cond
-	 ((equal token "body") "protected_body")
+	 ((equal token "body") "protected-body")
 	 ((equal token "type") "protected"); an identifier
 	 (t "protected"))
 	;; FIXME: need to detect a single_protected_declaration, without being infinite recursive with refine-is.
