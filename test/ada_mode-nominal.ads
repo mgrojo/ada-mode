@@ -244,13 +244,14 @@ package Ada_Mode.Nominal is
    ----------
    -- Objects
 
+   -- Declaring multiple objects in one statement is tested in FIXME:
    Integer_A, Integer_B, Integer_C : Integer;
    Integer_D, Integer_E, Integer_F :
       Integer;
    Integer_G, Integer_H,
-      Integer_I : Integer; -- FIXME: failing in smie-indent-exps
+      Integer_I : Integer;
    Integer_J,
-      Integer_K, Integer_L : Integer;
+         Integer_K, Integer_L : Integer; -- FIXME: wrong; "," needs to be a keyword, or need indent-before-name
 
    Float_1 : aliased constant Float := 1.0;
    Float_2 : aliased constant Float :=

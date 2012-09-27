@@ -1,6 +1,7 @@
 -- A comment before the first code
 --
 -- Indenting nested bodies is covered more thoroughly in FIXME:
+-- Indenting expressions is covered more thoroughly in FIXME:
 
 -- FIXME: add a function body that returns an access type
 

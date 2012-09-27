@@ -372,7 +372,10 @@ begin
 	("type" identifier "is-type" "mod-type")
 	;; "mod" is an operator, so it has to be in the grammar. We
 	;; also want something following "is-type", unless we treat
-	;; this occurence of "is" as an identifier.
+	;; this occurence of "is" as an identifier. FIXME: On the
+	;; other hand, we don't really need "mod" as an operator. It
+	;; also occurs in other syntax; wait until we test those to
+	;; decide to leave it as an identifier.
 
 	;; private_extension_declaration
 	("type" identifier "is-type" "new" name "with_private")
@@ -419,7 +422,7 @@ begin
 	"=" "/=" "<" "<=" ">" ">=" "in"
 	"or" "or_else" "xor" "+" "-" "&"
 	"and" "and_then" "mod" "rem" "*" "/"
-	"abs" "not"
+	"abs"; "not" leave "not" as identifier so it is not confused with "not null"
 	"'" "." "**" "..")
        ))
     )))
@@ -492,11 +495,10 @@ that are not allowed by Ada, but we don't care."
   "Skip over a name using NEXT-TOKEN. Here a 'name' consists of
 identifiers, dots, and anything that looks like a parameter
 list (could be an array index). Note that Ada 2012 keywords that
-don't actually appear in the grammar (if there still are any)
-look like identifiers, so this also skips them.
-Return the token that isn't part of the name (which may be found
-before any name is seen).
-Return empty string if encounter beginning of buffer."
+don't appear in the grammar look like identifiers, so this also
+skips them.  Return the token that isn't part of the name (which
+may be found before any name is seen).  Return empty string if
+encounter beginning of buffer."
   (let (token)
     (catch 'quit
       (while
@@ -1158,20 +1160,11 @@ moving point to its start."
 
      ((equal token "mod") (ada-indent-refine-mod t))
 
-     ((equal token "not")
-       (when (equal "null" (save-excursion (smie-default-forward-token)))
-	 (smie-default-forward-token)
-	 "not_null"))
-
      ((equal token "null")
       (let ((token (save-excursion
 		     (smie-default-backward-token); null
 		      (smie-default-backward-token))))
 	(cond
-	 ((equal token "not")
-	  (smie-default-forward-token)
-	  "not_null")
-
 	 ((equal token "with")
 	  (smie-default-forward-token)
 	  (smie-default-forward-token)
@@ -1504,6 +1497,7 @@ searched for CHILD (defaults to CHILD)."
   ;;    end if
   ;;
   ;;    if parent = ":=" then
+  ;;       -- FIXME: this fails for initialized object.
   ;;       ada-indent-backward-name
   ;;    end if
   ;;
@@ -1630,9 +1624,9 @@ searched for CHILD (defaults to CHILD)."
        ;;
        ;;       Procedure_1a (A_String, 'a');
        ;;
-       ;;    There are no keywords in this sexp, so
+       ;;    There are no keywords in these sexp, so
        ;;    ada-indent-rule-parent will find the wrong parent. To
-       ;;    find the parent of this sexp, we use
+       ;;    find the parent of these sexp, we use
        ;;    ada-indent-backward-name.
        ;;
        ;; 2) context clause:
@@ -1645,11 +1639,36 @@ searched for CHILD (defaults to CHILD)."
        ;;    similar issue for all single-keyword
        ;;    statement/declarations. We'll keep a list here.
        ;;
-       ;; 3) use ada-indent-rule-parent 0
+       ;; 3) Non-initialized object declaration:
        ;;
-       ;; To distinguish between the two cases, we call
-       ;; ada-indent-backward-name and check to see if the found
-       ;; keyword makes sense as part of an Ada statement.
+       ;;    Object_1 : Integer;
+       ;;
+       ;;    Integer_G, Integer_H,
+       ;;       Integer_I : Integer;
+       ;;
+       ;;    Here ":" is the only keyword in the sexp. We want a
+       ;;    variant on ada-indent-backward-name; that goes one token
+       ;;    too far. So call it, then come back one.
+       ;;
+       ;;    FIXME: That fails in this case:
+       ;;
+       ;;       Integer_G, Integer_H,
+       ;;          Integer_I : Integer;
+       ;;
+       ;;       Integer_J,
+       ;;          Integer_K, Integer_L : Integer;
+       ;;
+       ;;    When indenting Integer_K, there no keywords in sight, so
+       ;;    we don't get here, and ada-indent-default does the wrong
+       ;;    thing.  We could try to implement
+       ;;    ada-indent-before-name. But "," will probably be a
+       ;;    keyword when we get to aggregates, so we'll leave this
+       ;;    for now.
+       ;;
+       ;; 4) use ada-indent-rule-parent 0
+       ;;
+       ;; To distinguish among the cases, we call
+       ;; ada-indent-backward-name and check the found keyword.
 
        (save-excursion
 	 (let ((token (ada-indent-backward-name)))
@@ -1664,12 +1683,17 @@ searched for CHILD (defaults to CHILD)."
 	       (forward-comment (point-max)); also skips newlines and whitespace
 	       (cons 'column (+ (current-column)))))
 
+	    ((equal token ":")
+	     (ada-indent-backward-name); now on the preceding ";" or block-start
+	     (smie-default-forward-token); after the ";"
+	     (smie-default-forward-token); after the first object identifier
+	     (smie-default-backward-token)
+	     (cons 'column (+ (current-column))))
+
 	    ((equal token "with-context")
 	     (back-to-indentation)
 	     (cons 'column (+ (current-column))))
 
-	     ;; Not a procedure call or pragma; continue searching for
-	     ;; the real parent
 	    (t (ada-indent-rule-parent 0 token ";"))
 	    ))))
 

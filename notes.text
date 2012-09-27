@@ -23,9 +23,12 @@ C-x r m set bookmark
 
 test/Makefile
     test/ada_mode-nominal.ads
-   type Object_Access_Type_5a is not
-      null access all Integer;
-    starting in the middle of a combined keyword.
+   Float_3 : aliased constant Float
+      := 1.0;
+   Float_4 : aliased constant
+      Float := 1.0;
+
+ada-indent-rule-parent needs to check for := in object initialization. Or the lexer needs to refine it.
 
 
     starting in the middle of a combined keyword
