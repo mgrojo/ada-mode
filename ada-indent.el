@@ -155,8 +155,8 @@ begin
        ;;
        ;; We don't include any tokens after "end" in the grammar, so
        ;; it is always a closer. Since, in "end record", the trailing
-       ;; "record" is already a SMIE keyword, we must combine that
-       ;; into one SMIE keyword "end_record".
+       ;; "record" is already a SMIE keyword, we must refine that
+       ;; into "end-record record-end".
        ;;
        ;; For all ';' separated non-terminals, the first and last
        ;; tokens in the syntax should be a keyword, so the
@@ -258,9 +258,8 @@ begin
 
 	;; extended_return_statement
 	("return")
-	("return-exp"); FIXME: don't need this
 	("return-do" identifier ":")
-	("return-do" identifier ":-do" name "do" statements "end_return")
+	("return-do" identifier ":-do" name "do" statements "end-return" "return-end")
 	;; FIXME: if/then/else, loop, declare/begin/end, ...
 	)
 
@@ -314,8 +313,8 @@ begin
 	("type" identifier "is-type" "new" name)
 	("type" identifier "is-type" "new" name "with_private")
 	("type" identifier "is-type" "new" name "with_null_record")
-	("type" identifier "is-type" "new" name "with" "record" declarations "end_record")
-	("type" identifier "is-type" "new" interface_list "with" "record" declarations "end_record")
+	("type" identifier "is-type" "new" name "with" "record" declarations "end-record" "record-end")
+	("type" identifier "is-type" "new" interface_list "with" "record" declarations "end-record" "record-end")
 
 	;; enumeration_type_definition
 	("type" identifier "is-enumeration_type");; FIXME: why 'enumeration' in 'is-type'?
@@ -398,7 +397,7 @@ begin
 
 	;; record_type_definition
 	("type" identifier "is-type" "null_record")
-	("type" identifier "is-type" "record" declarations "end_record")
+	("type" identifier "is-type" "record" declarations "end-record" "record-end")
 	;; no need to distinguish between 'declarations' and 'component_list'
 
 	); type_declaration
@@ -429,25 +428,27 @@ begin
 
 ;;; utils for refine-*, forward/backward token
 
-(defconst ada-indent-block-start-keywords
-  '(
-    ;; FIXME: "begin"?
-    ;; FIXME: "do"?
+(defconst ada-indent-block-keywords
+  '("begin"
+    ;; FIXME: declare
+    "do"
+    ;; "end" is never a block start; treated separately
     "is-entry_body"
     "is-package_body"
     "is-package"
     "is-protected-body"
     "is-subprogram_body"
     "private"
-    "record")
+    "record"
+    "when")
+  ;; We don't split this into start and end lists, because most are
+  ;; both. The only keyword that is an end but never a start is "end";
+  ;; we treat that separately. Being a start but never end is not a problem
+  ;;
   ;; This is not a subset of the open portion of the grammar
   ;; open/close list; that is restricted to keywords that don't bind
   ;; on the left.
-  ;;
-  ;; We don't need "type" here because the syntax is 'type name
-  ;; (discriminants) is', so the indentation is handled by the
-  ;; argument list logic.
-  "Keywords that start indented blocks.")
+  "Keywords that start or end indented blocks.")
 
 (defun ada-indent-matching-end (keyword)
   "Return a list of keywords that could end the block started by KEYWORD.
@@ -466,21 +467,6 @@ that are not allowed by Ada, but we don't care."
 	  (setq found (cons (nth 0 toklevels) found))
 	))
     found))
-
-(defconst ada-indent-block-end-keywords
-  ;; We don't compute this list using ada-indent-matching-end, because
-  ;; that would add all the bogus keywords, which would confuse the
-  ;; indentation logic, since that assumes legal Ada. We want only the
-  ;; keywords that actually end indented blocks. Fortunately, it's a
-  ;; short list.
-  '("end"
-    "begin"
-    "end_record"
-    "private")
-  "List of keywords that end indented blocks.")
-
-;; FIXME: compile-time check that
-;; block-start-keywords/block-end-keywords are inverse of each other.
 
 (defun ada-indent-skip-param_list (next-token direction)
   ;; While refining tokens, we don't want to call smie-next-sexp,
@@ -939,7 +925,7 @@ moving point to its start."
        ;;
        ;;    return [exp];
        ;;
-       ;;    token: "return" or "return-exp"
+       ;;    token: "return"
        ;;
        ;; 4) an extended return statement:
        ;;
@@ -949,7 +935,7 @@ moving point to its start."
        ;;
        ;;    return identifier : name do statements end return;
        ;;
-       ;;    token: "return-do" (4b), "end_return" (4c)
+       ;;    token: "return-do" (4b), "return-end" (4c)
        ;;
        ;; 5) an access function type declaration:
        ;;
@@ -960,7 +946,7 @@ moving point to its start."
        ;;
        ;; So we have to look both forward and backward to resolve this.
        (or
-	(save-excursion (if (equal "end" (smie-default-backward-token)) "end_return")); 4c
+	(save-excursion (if (equal "end" (smie-default-backward-token)) "return-end")); 4c
 
 	;; Do this now, otherwise we can't distinguish between:
 	;;
@@ -1000,10 +986,8 @@ moving point to its start."
 	      "return"; 3a
 	    (let (token (smie-default-forward-token))
 	      (cond
-	       ((equal token ";") "return-exp") ; special case of 3b with expression = identifier or literal
-	       ((equal token ":") "return"); 4a
 	       ((equal token ":-do") "return-do"); 4b
-	       (t "return-exp"); 3b
+	       (t "return"); 3b, 4a
 	       ))))
 	)))
     (if skip
@@ -1147,12 +1131,10 @@ moving point to its start."
       (let ((token (save-excursion (smie-default-forward-token))))
 	(cond
 	 ((equal "record" token)
-	  (smie-default-forward-token)
-	  "end_record")
+	  "end-record")
 
 	 ((equal "return" token)
-	  (smie-default-forward-token)
-	  "end_return")
+	  "end-return")
 
 	 (t "end")); all others
 	))
@@ -1217,6 +1199,15 @@ moving point to its start."
 
      ((equal token "and") (ada-indent-refine-and nil))
 
+     ((equal token "end")
+      (let ((token (save-excursion
+		     (smie-default-forward-token); "end"
+		     (smie-default-forward-token))))
+	(cond
+	 ((equal token "record") "end-record")
+	 ((equal token "return") "end-return")
+	 (t "end"))))
+
      ;; "function", "is" handled by maybe-refine-is below
 
      ((equal token "mod") (ada-indent-refine-mod nil))
@@ -1264,7 +1255,7 @@ moving point to its start."
      ((equal token "record")
       (let ((token (save-excursion (smie-default-backward-token))))
 	(cond
-	 ((equal token "end") (smie-default-backward-token) "end_record")
+	 ((equal token "end") "record-end")
 	 ((equal token "null")
 	  (smie-default-backward-token)
 	  (if (equal "with" (save-excursion (smie-default-backward-token)))
@@ -1518,7 +1509,10 @@ searched for CHILD."
 	;; (FIXME: this duplicates a similar list in ada-indent-rules
 	;; :after ";")
 	;;
-	;; 1) return or extended return:
+	;; 1) single keyword statements after begin:
+	;;
+	;;    FIXME: Similar cases for statements after "then", "else"
+	;;    ...? all ada-indent-block-keyords?
 	;;
 	;;    function ...
 	;;    is begin
@@ -1534,14 +1528,25 @@ searched for CHILD."
 	;;
 	;;    'return' is not an opener.
 	;;
-	;;    If we are indenting "return", we want point on
-	;;    "begin". `start-token' is "return".
+	;;    function ...
+	;;    is begin
+	;;       A :=
+	;;          B + C;
 	;;
-	;;    If we are indenting "-- comment" or "statement", we want
-	;;    point on "return". `start-token' is ";" or "do".
+	;;    1a) indenting "return" or "end-return"
 	;;
-	;;    In both cases, when we get here, `parent' is "begin",
-	;;    and point is on return. So we look at `start-token'.
+	;;        point is on "return", `parent' = "begin", `start-token' is "return" or "end-return"
+	;;        we want point on "begin"
+	;;
+	;;    1b) indenting "-- comment" or "statement"
+	;;
+	;;        point is on "return", `parent' = "begin", `start-token' is ";" or "do".
+	;;        we want point on "return".
+	;;
+	;;    1c) indenting "B"
+	;;
+	;;        point is on "A", `parent' = "begin", `start-token' is ":=".
+	;;        we want point on ":=".
 	;;
 	;; 2) object declaration following continued object declaration:
 	;;
@@ -1550,10 +1555,21 @@ searched for CHILD."
 	;;
 	;;    Float_1 : aliased constant Float := 1.0;
 	;;    Float_2 : aliased constant Float :=
+	;;       1.0;
+	;;    Float_3 : aliased constant Float
+	;;       := 1.0;
 	;;
-	;;    ":" is not an opener. When indenting Float_2, we get
-	;;    here with point before Float_1, parent = ";", and
-	;;    `start-token' = ";". We want point on Float_1.
+	;;    ":" is not an opener.
+	;;
+	;;    2a) indenting Float_2.
+	;;
+	;;        point is on Float_1, `parent' = ";", `start-token' = ";". We want point on Float_1.
+	;;
+	;;    2b) indenting ":=" after Float_3
+	;;
+	;;        point is on Float_2, `parent' = ";", `start-token' = ":=". We want point on Float_2.
+	;;
+	;;        FIXME: Similar cases for all other expression operators.
 	;;
 	;;  3) continued object declaration following continued object declaration:
 	;;
@@ -1573,13 +1589,15 @@ searched for CHILD."
 	;;
 	;;     FIXME: "," will probably be a keyword when we get to
 	;;     aggregates.
-	;;
-
 
 	(cond
-	 ((equal start-token ";") nil); 1a, 2
-	 ((equal start-token "do") nil); 1b
-	 ((equal start-token nil) nil); 3
+	 ((equal (nth 2 parent) "begin") ; FIXME: maybe ada-indent-start-keywords?
+	  (cond
+	   ((member start-token '("return" "end-return")) (goto-char (nth 1 parent))); 1a
+	   ((member start-token '(";" ":=" "do")) nil); 1b, 1c
+	   (t (error (concat "ada-indent-goto-parent unresolved: " (nth 2 parent) ", " start-token)))))
+
+	  ((equal (nth 2 parent) ";") nil); 2*, 3
 	 (t (goto-char (nth 1 parent))))
 	)
 
@@ -1627,20 +1645,29 @@ searched for CHILD."
       ((equal arg "with-context")
        (cons 'column 0))
 
-      ((member arg ada-indent-block-start-keywords)
+      ((or (equal arg "end")
+	   (equal arg "end-record")
+	   (member arg ada-indent-block-keywords))
        ;; Example:
        ;;
        ;;    procedure
        ;;       (Param_1 : Integer)
        ;;    is
+       ;;    begin
+       ;;    end;
        ;;
-       ;; We are indenting 'is'. Indent at the same level as the
-       ;; parent. FIXME: this probably won't work for 'declare', 'begin'
-       (ada-indent-rule-parent 0 arg arg))
-
-      ((member arg ada-indent-block-end-keywords)
-       ;; Indent relative to the start of the declaration or body,
-       ;; which is the parent of this token.
+       ;;    entry E2
+       ;;       (X : Integer)
+       ;;    when Local_1 = 0 and not
+       ;;       (Local_2 = 1)
+       ;;    is
+       ;;       Tmp : Integer := 0;
+       ;;    begin
+       ;;       Local_2 := Tmp;
+       ;;    end E2;
+       ;;
+       ;; We are indenting "is", "begin", etc. Indent at the same level as the
+       ;; parent. FIXME: this probably won't work for nested "declare", "begin"
        (ada-indent-rule-parent 0 arg arg))
 
       ((not (ada-indent-openerp arg))
@@ -1667,16 +1694,16 @@ searched for CHILD."
        ;; because it makes it easier to rearrange the list of args.
        (cons 'column (+ (current-column) 1)))
 
-      ((member arg ada-indent-block-start-keywords)
+      ((member arg ada-indent-block-keywords)
        (if (member (save-excursion
-		     (ada-indent-forward-token); "is"
+		     (ada-indent-forward-token); block keyword
 		     (ada-indent-forward-token))
 		   (ada-indent-matching-end arg))
 	   ;; The token we are indenting is the corresponding block
 	   ;; end; we are in an empty block.
 	   (ada-indent-rule-parent 0 arg arg)
 
-	 ;; Indent relative to the start of the declaration or body,
+	 ;; Indent relative to the start of the block,
 	 ;; which is the parent of this token.
 	 (ada-indent-rule-parent ada-indent arg arg)))
 
@@ -1734,7 +1761,7 @@ searched for CHILD."
 	   (cond
 	    ((or
 	      (equal token ";")
-	      (member token ada-indent-block-start-keywords))
+	      (member token ada-indent-block-keywords))
 	     ;; this is a procedure call or pragma
 	     (progn
 	       ;; Move back to the actual parent
@@ -1743,7 +1770,7 @@ searched for CHILD."
 	       (cons 'column (+ (current-column)))))
 
 	    ((equal token ":")
-	     (ada-indent-backward-name); now on the preceding ";" or block-start
+	     (ada-indent-backward-name); now on the preceding ";" or block start
 	     (smie-default-forward-token); after the ";"
 	     (smie-default-forward-token); after the first object identifier
 	     (smie-default-backward-token)

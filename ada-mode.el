@@ -556,6 +556,7 @@ point is where the mouse button was clicked."
 	 ((?\_ . "w") (?# . "."))
 	 beginning-of-line
 	 ;; FIXME: font-lock-syntactic-keywords is obsolete; use syntax-propertize-function
+	 ;; also see emacs-devel saved emails.
 	 (font-lock-syntactic-keywords . ada-font-lock-syntactic-keywords)))
 
   (set (make-local-variable 'ff-other-file-alist)

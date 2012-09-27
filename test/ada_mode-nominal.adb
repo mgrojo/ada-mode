@@ -50,8 +50,10 @@ package body Ada_Mode.Nominal is
       function F2 (A : Float; B : Float) return Float
       is
       begin
-         return C : Float do
+         return C : Float
+         do
             -- extended return
+            P1;
             C := A + B * B;
             C := C * C;
          end return;
@@ -74,7 +76,8 @@ package body Ada_Mode.Nominal is
          (X : Integer)
       when Local_1 = 0 and not
          (Local_2 = 1)
-        -- an expression with 'not' to see if we need that in the grammar (conflicts with 'not null')
+      -- an expression with 'not' to see if we need that in the
+      -- grammar (conflicts with 'not null')
       is
          Tmp : Integer := 0;
       begin

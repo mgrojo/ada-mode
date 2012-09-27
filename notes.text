@@ -22,27 +22,11 @@ C-x r m set bookmark
 (edebug-toggle-save-all-windows)
 
 test/Makefile
-    test/ada_mode-nominal.ads passes!
+    test/ada_mode-nominal.ads
     test/ada_mode-nominal.adb
-      end; -- no F2 on purpose
-need to split end_return
+      Local_2 : constant Float
 
-
-    starting in the middle of a combined keyword
-        don't combine tokens; just refine them
-        is-type_array; fixed
-        delta, digits; fixed
-        protected_body (so ada_mode-nominal.adb at least runs)
-
-        do the rest one at a time, to watch for grammar conflicts
-        go thru grammar in text order:
-        package_body; leave body as an identifier
-            fix protected_body as well
-
-
-    test/ada_mode-nominal.adb
-
-delete more keywords to simplify refining code; all constant
+    don't combine tokens; just refine them
 
 ada-indent.el
 
