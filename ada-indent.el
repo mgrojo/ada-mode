@@ -298,15 +298,7 @@ begin
 
        (type_declaration
 	;; access_type_definition
-	;;
-	;; FIXME: reduce all of these to just "is-type_access"; leave
-	;; the other Ada keywords as identifiers in the grammar.
-	("type" identifier "is-type_access")
-	("type" identifier "is-type_access_all")
-	("type" identifier "is-type_access_constant")
-	("type" identifier "is-type_not_null_access")
-	("type" identifier "is-type_not_null_access_all")
-	("type" identifier "is-type_not_null_access_constant")
+	("type" identifier "is-type-access")
 
 	;; We don't include access-to-subprogram in the grammar,
 	;; because we want to identify 'function' and 'procedure' in
@@ -322,10 +314,7 @@ begin
 	("type" identifier "is-type" "new" name)
 	("type" identifier "is-type" "new" name "with_private")
 	("type" identifier "is-type" "new" name "with_null_record")
-	("type" identifier "is-type" "new" name "with_null_record")
 	("type" identifier "is-type" "new" name "with" "record" declarations "end_record")
-	("type" identifier "is-type" "new" name "with" "record" declarations "end_record")
-	("type" identifier "is-type" "new" interface_list "with" "record" declarations "end_record")
 	("type" identifier "is-type" "new" interface_list "with" "record" declarations "end_record")
 
 	;; enumeration_type_definition
@@ -688,30 +677,6 @@ Return empty string if encounter beginning of buffer."
     (while (member (setq result (smie-default-forward-token)) ada-indent-type-modifiers))
     result))
 
-(defconst ada-indent-type-keywords
-  '("not" "null" "access" "all" "constant")
-  "Kewords that can be combined with \"is\", in the (partial) order they can appear.")
-
-(defun ada-indent-skip-type-keywords-backward ()
-  "Skip tokens, using smie-default-backward-token, if they are in `ada-indent-type-keywords'.
-Return next token."
-  (let (token)
-    (while (member (setq token (smie-default-backward-token)) ada-indent-type-keywords))
-    token))
-
-(defun ada-indent-consume-type-keywords (keyword)
-  "Skip tokens forward if they are in `ada-indent-type-keywords'.
-Return (token count), where `token' is the concatentation of
-\"is-type_KEYWORD\" and the keywords read, and `count' is the count of
-keywords read."
-  (let ((result (concat "is-type_" keyword))
-	(count 1)
-	token)
-    (while (member (setq token (smie-default-forward-token)) ada-indent-type-keywords)
-      (setq count (1+ count)
-	    result (concat result "_" token)))
-    (list result count)))
-
 (defun ada-indent-refine-is (forward)
   (let((skip nil)
        ;; skip = number of tokens after 'is' to skip with smie-default-*-token before returning
@@ -774,11 +739,7 @@ keywords read."
 		     (looking-at "("))
 		"is-enumeration_type");; type identifier is (...)
 
-	       ((member token '("not" "access"))
-		;; FIXME: why is this list not ada-indent-type-keywords?
-		(let ((temp (ada-indent-consume-type-keywords token)))
-		  (setq skip (cadr temp))
-		  (car temp)))
+	       ((member token '("not" "access")) "is-type-access")
 
 	       ;; numeric types
 	       ;;
@@ -838,25 +799,7 @@ moving point to its start."
   (cond
    ((equal start-token "is")
     (ada-indent-refine-is forward))
-
-   ((member start-token ada-indent-type-keywords)
-    (let ((pos (point))
-	  (token (ada-indent-skip-type-keywords-backward)))
-
-      (if (equal "is" token)
-	  (progn
-	    (when forward
-	      ;; skip-type-keywords-backward found "is" while moving
-	      ;; backward, but ultimately called from
-	      ;; ada-indent-forward-keyword; perhaps because we
-	      ;; started between "is" and "not".
-	      ;;
-	      ;; Set point to match what refine-is expects for forward-keyword.
-	      (smie-default-forward-token))
-	    (ada-indent-refine-is forward))
-	;; not refining
-	(goto-char pos)
-	nil)))
+   ;; FIXME: inline this
    ))
 
 (defun ada-indent-refine-mod (forward)
@@ -1009,7 +952,7 @@ moving point to its start."
        ;;
        ;;    type name is access [protected] function identifier (...) return [access] name;
        ;;
-       ;;    preceding token: "is-type_access_function", "is-type_access_protected_function"
+       ;;    preceding token: "is-type-access"
        ;;    token: 5a) "return-access" or 5b) "return+access"
        ;;
        ;; So we have to look both forward and backward to resolve this.
@@ -1023,7 +966,7 @@ moving point to its start."
 	;;
 	(let ((token (save-excursion (ada-indent-backward-name))))
 	  (cond
-	   ((member token '("is-type_access_function" "is-type_access_protected_function"))
+	   ((equal token "is-type-access")
 	    (if (equal "access"
 		       (save-excursion
 			 (smie-default-forward-token); return
@@ -1351,9 +1294,7 @@ moving point to its start."
 	  (smie-default-backward-token)
 	  (ada-indent-refine-return nil))
 
-	 ;; other cases handled by maybe-refine-is
-
-	 (t (ada-indent-refine-error "unrecognized 'access'")))))
+	 (t "access"))))
 
      ((equal token "protected")
       ;; 'protected' occurs in:
