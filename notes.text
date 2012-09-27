@@ -22,13 +22,10 @@ C-x r m set bookmark
 (edebug-toggle-save-all-windows)
 
 test/Makefile
-    test/ada_mode-nominal.ads
-   Float_3 : aliased constant Float
-      := 1.0;
-   Float_4 : aliased constant
-      Float := 1.0;
-
-ada-indent-rule-parent needs to check for := in object initialization. Or the lexer needs to refine it.
+    test/ada_mode-nominal.ads passes!
+    test/ada_mode-nominal.adb
+      end; -- no F2 on purpose
+need to split end_return
 
 
     starting in the middle of a combined keyword

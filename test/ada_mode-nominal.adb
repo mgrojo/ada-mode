@@ -31,7 +31,9 @@ package body Ada_Mode.Nominal is
 
    protected
       body Protected_1 is
-      -- don't care about this indentation; testing that 'protected body' is not a combined token
+      -- don't care about the indentation of 'body' (nobody should use
+      -- this style); testing that 'protected body' is not a combined
+      -- token
 
       function F1 return Integer is
          -- some people like 'is' on the line with 'function' here
@@ -46,7 +48,8 @@ package body Ada_Mode.Nominal is
       end F1;
 
       function F2 (A : Float; B : Float) return Float
-      is begin
+      is
+      begin
          return C : Float do
             -- extended return
             C := A + B * B;

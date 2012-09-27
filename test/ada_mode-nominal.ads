@@ -250,8 +250,9 @@ package Ada_Mode.Nominal is
       Integer;
    Integer_G, Integer_H,
       Integer_I : Integer;
+
    Integer_J,
-         Integer_K, Integer_L : Integer; -- FIXME: wrong; "," needs to be a keyword, or need indent-before-name
+      Integer_K, Integer_L : Integer;
 
    Float_1 : aliased constant Float := 1.0;
    Float_2 : aliased constant Float :=

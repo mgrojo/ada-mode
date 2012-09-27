@@ -431,7 +431,8 @@ begin
 
 (defconst ada-indent-block-start-keywords
   '(
-    ;; FIXME: begin?
+    ;; FIXME: "begin"?
+    ;; FIXME: "do"?
     "is-entry_body"
     "is-package_body"
     "is-package"
@@ -1338,7 +1339,7 @@ moving point to its start."
   "Indent relative to the current line"
   (cons 'column (+ (save-excursion (back-to-indentation) (current-column)) offset)))
 
-(defun ada-indent-keywordp (token)
+(defun ada-indent-keyword-p (token)
   (assoc token ada-indent-grammar))
 
 (defun ada-indent-openerp (token)
@@ -1352,11 +1353,12 @@ UP is an integer; find that many parents.
 Point must be on the start of `child', or on the start of the
 preceding unrefined token (if resuming from a previous call).
 Return same struct as `smie-backward-sexp'.
-Point is left on the start of the result token."
+Point is left on the start of the result token if it is a closer,
+otherwise on the following token."
   (let ((count up)
 	(token
 	 (cond
-	  ((ada-indent-keywordp child)
+	  ((ada-indent-keyword-p child)
 	   child)
 	  (t (ada-indent-backward-name)))))
 
@@ -1390,27 +1392,20 @@ Point is left on the start of the result token."
     ;; which is where we want it. If we stopped because the next token
     ;; has a higher precedence level, point is on the lower precedence
     ;; token; (nth 1 token) gives the position at the start of the
-    ;; higher precendence token. This happens in the following code:
+    ;; higher precendence token.
     ;;
-    ;; function ...
-    ;; is begin
-    ;;    return exp;
-    ;; end;
-    ;;
-    ;; 'return' is not an opener. We want point on "begin", which is
-    ;; the parent token.
-    ;;
-    ;; The solution is to always go to the start of the terminating token.
+    ;; See cases in ada-indent-rule parent. Since what to do depends
+    ;; on what we are indenting, we return token, leaving point alone,
+    ;; and let the caller sort it out.
 
-    (goto-char (nth 1 token))
     token)) ;; return value is useful for a debug display
 
-(defun ada-indent-rule-parent (offset &optional child start-token)
+(defun ada-indent-rule-parent (offset child start-token)
   "Find a relevant parent using `ada-indent-goto-parent', return
 an indent by OFFSET relevant to that parent. Preserves point.  If
 CHILD is non-nil, assume point is at the start of CHILD, which
 must be a keyword, and START-TOKEN is the token from which we
-searched for CHILD (defaults to CHILD)."
+searched for CHILD."
   ;; Because we did not include access-to-subprogram in the grammar,
   ;; we have to consider whether the first parent we find is the
   ;; "right" one.
@@ -1496,21 +1491,97 @@ searched for CHILD (defaults to CHILD)."
   ;;       end loop
   ;;    end if
   ;;
+  ;;    -- see below for adjustment due to single keyword statement/declaration
+  ;;
   ;;    if parent = ":=" then
-  ;;       -- FIXME: this fails for initialized object.
   ;;       ada-indent-backward-name
   ;;    end if
   ;;
   ;;    back-to-indentation
 
   (save-excursion
-    (let ((parent (nth 2 (ada-indent-goto-parent child (or (and (equal child "(") 2) 1)))))
+    (let ((parent (ada-indent-goto-parent child (or (and (equal child "(") 2) 1))))
 
       (if (equal (or start-token child) ";")
-	(while (and (member parent `("procedure" "function"))
+	(while (and (member (nth 2 parent) `("procedure" "function"))
 		    (member (save-excursion (smie-default-backward-token)) '("access" "protected")))
-	  (setq parent (nth 2 (ada-indent-goto-parent parent 2)))))
-      ;; FIXME: it would probably be best to merge this loop into ada-indent-goto-parent.
+	  (setq parent (ada-indent-goto-parent parent 2))))
+
+    (if (not (= (point) (nth 1 parent)))
+	;; ada-indent-goto-parent stopped because parent is higher
+	;; precendence than the first keyword in the sexp it skipped;
+	;; that first keyword is not a closer. This also means the
+	;; first keyword is the only keyword in the sexp.
+	;;
+	;; This happens in the following cases:
+	;;
+	;; (FIXME: this duplicates a similar list in ada-indent-rules
+	;; :after ";")
+	;;
+	;; 1) return or extended return:
+	;;
+	;;    function ...
+	;;    is begin
+	;;       return exp;
+	;;       -- comment
+	;;    end;
+	;;    function ...
+	;;    is begin
+	;;       return identifier : name do
+	;;          statement;
+	;;       end return;
+	;;    end;
+	;;
+	;;    'return' is not an opener.
+	;;
+	;;    If we are indenting "return", we want point on
+	;;    "begin". `start-token' is "return".
+	;;
+	;;    If we are indenting "-- comment" or "statement", we want
+	;;    point on "return". `start-token' is ";" or "do".
+	;;
+	;;    In both cases, when we get here, `parent' is "begin",
+	;;    and point is on return. So we look at `start-token'.
+	;;
+	;; 2) object declaration following continued object declaration:
+	;;
+	;;    Integer_G, Integer_H,
+	;;       Integer_I : Integer;
+	;;
+	;;    Float_1 : aliased constant Float := 1.0;
+	;;    Float_2 : aliased constant Float :=
+	;;
+	;;    ":" is not an opener. When indenting Float_2, we get
+	;;    here with point before Float_1, parent = ";", and
+	;;    `start-token' = ";". We want point on Float_1.
+	;;
+	;;  3) continued object declaration following continued object declaration:
+	;;
+	;;      declaration;
+	;;
+	;;      Integer_G, Integer_H,
+	;;         Integer_I : Integer;
+	;;
+	;;      Integer_J,
+	;;         Integer_K, Integer_L : Integer;
+	;;
+	;;     when indenting "Integer_K", `parent' is ";" after
+	;;     "declaration", point is on "Integer_G", `start-token'
+	;;     is nil, because we get here from ada-indent-default.
+	;;
+	;;     We want point on "Integer_G".
+	;;
+	;;     FIXME: "," will probably be a keyword when we get to
+	;;     aggregates.
+	;;
+
+
+	(cond
+	 ((equal start-token ";") nil); 1a, 2
+	 ((equal start-token "do") nil); 1b
+	 ((equal start-token nil) nil); 3
+	 (t (goto-char (nth 1 parent))))
+	)
 
       (if (equal parent ":=")
 	  (ada-indent-backward-name))
@@ -1551,7 +1622,7 @@ searched for CHILD (defaults to CHILD)."
        ;; and calls, for example). FIXME: after we get
        ;; ada-indent-exps working, we may want to let that handle
        ;; this.
-       (ada-indent-rule-parent ada-indent arg))
+       (ada-indent-rule-parent ada-indent arg arg))
 
       ((equal arg "with-context")
        (cons 'column 0))
@@ -1565,17 +1636,17 @@ searched for CHILD (defaults to CHILD)."
        ;;
        ;; We are indenting 'is'. Indent at the same level as the
        ;; parent. FIXME: this probably won't work for 'declare', 'begin'
-       (ada-indent-rule-parent 0 arg))
+       (ada-indent-rule-parent 0 arg arg))
 
       ((member arg ada-indent-block-end-keywords)
        ;; Indent relative to the start of the declaration or body,
        ;; which is the parent of this token.
-       (ada-indent-rule-parent 0 arg))
+       (ada-indent-rule-parent 0 arg arg))
 
       ((not (ada-indent-openerp arg))
        ;; Hanging; we are not at the start of a statement/declaration.
        ;; We have a known keyword; indent relative to its parent.
-       (ada-indent-rule-parent ada-indent arg))
+       (ada-indent-rule-parent ada-indent arg arg))
 
       ))
 
@@ -1603,11 +1674,11 @@ searched for CHILD (defaults to CHILD)."
 		   (ada-indent-matching-end arg))
 	   ;; The token we are indenting is the corresponding block
 	   ;; end; we are in an empty block.
-	   (ada-indent-rule-parent 0 arg)
+	   (ada-indent-rule-parent 0 arg arg)
 
 	 ;; Indent relative to the start of the declaration or body,
 	 ;; which is the parent of this token.
-	 (ada-indent-rule-parent ada-indent arg)))
+	 (ada-indent-rule-parent ada-indent arg arg)))
 
       ((equal arg ";")
        ;; Two cases:
@@ -1650,20 +1721,8 @@ searched for CHILD (defaults to CHILD)."
        ;;    variant on ada-indent-backward-name; that goes one token
        ;;    too far. So call it, then come back one.
        ;;
-       ;;    FIXME: That fails in this case:
-       ;;
-       ;;       Integer_G, Integer_H,
-       ;;          Integer_I : Integer;
-       ;;
-       ;;       Integer_J,
-       ;;          Integer_K, Integer_L : Integer;
-       ;;
-       ;;    When indenting Integer_K, there no keywords in sight, so
-       ;;    we don't get here, and ada-indent-default does the wrong
-       ;;    thing.  We could try to implement
-       ;;    ada-indent-before-name. But "," will probably be a
-       ;;    keyword when we get to aggregates, so we'll leave this
-       ;;    for now.
+       ;;    FIXME: "," will probably be a keyword when we get to
+       ;;    aggregates, so we'll leave this for now.
        ;;
        ;; 4) use ada-indent-rule-parent 0
        ;;
@@ -1722,7 +1781,7 @@ searched for CHILD (defaults to CHILD)."
       ;; on the line, which is the distinguishing criterion we need.
       ;;
       ((smie-indent--hanging-p)
-       (ada-indent-rule-parent ada-indent arg))
+       (ada-indent-rule-parent ada-indent arg arg))
 
       (t (ada-indent-rule-current ada-indent))
       ))
@@ -1747,9 +1806,8 @@ searched for CHILD (defaults to CHILD)."
          (forward-comment (- (point)))
 	 ;; indent-before-keyword will find the keyword _after_ the
 	 ;; comment, which could be 'private' for example, and that
-	 ;; would align the comment with 'private', which is
-	 ;; wrong. Other indentation functions can't work here. So we
-	 ;; call a subset of the functions.
+	 ;; would align the comment with 'private', which is wrong. So
+	 ;; we call a subset of the indentation functions.
 	 (if debug-on-error
 	     (or
 	      (ada-indent-wrapper 'smie-indent-bob)
@@ -1775,7 +1833,7 @@ relative to)."
 	  (ada-indent-rules :before "("))
 
 	 (and
-	  (ada-indent-keywordp token)
+	  (ada-indent-keyword-p token)
 	  (ada-indent-rules :before token)))))
 
       ;; Here we replace smie-indent--rules, so ada-indent-rules
@@ -1798,7 +1856,7 @@ relative to)."
        (indent
 	;; we don't check for paren here (we may need to at some point)
 	(and
-	 (ada-indent-keywordp token)
+	 (ada-indent-keyword-p token)
 	 (ada-indent-rules :after token))))
 
       (goto-char pos)
@@ -1816,7 +1874,7 @@ relative to)."
   "Unconditionally indent as `ada-indent' from the previous
 line. Intended to be the last item in `smie-indent-functions',
 used when no indentation decision was made."
-  (cdr (ada-indent-rule-parent ada-indent)))
+  (cdr (ada-indent-rule-parent ada-indent nil nil)))
 
 ;;; debug
 (defun ada-indent-show-keyword-forward ()
@@ -1834,8 +1892,7 @@ used when no indentation decision was made."
   (interactive "p")
   (when (= count 0) (setq count 't))
   (let ((toklevels (ada-indent-goto-parent (save-excursion (ada-indent-forward-token)) count)))
-    (goto-char (nth 1 toklevels))
-    (message "%s" (assoc (save-excursion (ada-indent-forward-token)) ada-indent-grammar))))
+    (message "%s; %s" toklevels (assoc (save-excursion (ada-indent-forward-token)) ada-indent-grammar))))
 
 (defun ada-indent-wrapper (indent-function)
   "Call INDENT-FUNCTION, check for errors, report non-nil."
