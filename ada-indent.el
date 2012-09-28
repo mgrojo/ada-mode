@@ -256,8 +256,9 @@ begin
        (statement
 	(expression); matches procedure calls, assignment
 
+	("return-stmt");
+
 	;; extended_return_statement
-	("return-stmt")
 	("return-ext" identifier ":")
 	("return-ext" identifier ":-do" name "do" statements "end-return" "return-end")
 	;; FIXME: if/then/else, loop, declare/begin/end, ...
@@ -277,13 +278,9 @@ begin
 	;; factoring out subprogram_specification here breaks something.
 
 	("function" name "return-spec" name)
-	;; second case is returning an anonymous access type
-	;; (return_access is too hard to distinguish from
-	;; return-access)
-	;;
-	;; trailing name makes these tokens the same as same as
-	;; 'function name return* name is-subprogram-body'; that
-	;; avoids recursion between refine-is and refine-return
+	;; trailing name makes "return-spec" have the same binding as
+	;; in subprogram_body; that avoids recursion between refine-is
+	;; and refine-return
 
 	("procedure" name); same as 'procedure name is-subprogram_body'
 	;; We keep this, because it is too jarring to not find it here :).
@@ -297,6 +294,9 @@ begin
        (type_declaration
 	;; access_type_definition
 	("type" identifier "is-type-access")
+	;; any occurance of "is-type" as the last keyword in a
+	;; declaration must be refined; otherwise it is ambiguous
+	;; with several other declarations. See "is-type-tagged" below.
 
 	;; We don't include access-to-subprogram in the grammar,
 	;; because we want to identify 'function' and 'procedure' in
@@ -309,14 +309,13 @@ begin
 
 	;; derived_type_declaration
 	("type" identifier "is-type" "new" name); same as below
-	("type" identifier "is-type" "new" name)
-	("type" identifier "is-type" "new" name "with_private")
-	("type" identifier "is-type" "new" name "with_null_record")
+	("type" identifier "is-type" "new" name "with" "private-with")
+	("type" identifier "is-type" "new" name "with" "record-null"); "null" is an identifier
 	("type" identifier "is-type" "new" name "with" "record" declarations "end-record" "record-end")
 	("type" identifier "is-type" "new" interface_list "with" "record" declarations "end-record" "record-end")
 
 	;; enumeration_type_definition
-	("type" identifier "is-enumeration_type");; FIXME: why 'enumeration' in 'is-type'?
+	("type" identifier "is-type-enumeration")
 	;; enumeration literals are an aggregate, which is ignored.
 
 	;; {ordinary_ | decimal_} fixed_point_definition
@@ -376,8 +375,8 @@ begin
 	;; decide to leave it as an identifier.
 
 	;; private_extension_declaration
-	("type" identifier "is-type" "new" name "with_private")
-	("type" identifier "is-type" "new" interface_list "with_private")
+	("type" identifier "is-type" "new" name "with" "private-with")
+	("type" identifier "is-type" "new" interface_list "with" "private-with")
 	;; leaving 'with' and 'private' as separate tokens causes conflicts
 
 	;; private_type_declaration
@@ -395,7 +394,7 @@ begin
 	 "private" declarations "end")
 
 	;; record_type_definition
-	("type" identifier "is-type" "null_record")
+	("type" identifier "is-type" "record-null")
 	("type" identifier "is-type" "record" declarations "end-record" "record-end")
 	;; no need to distinguish between 'declarations' and 'component_list'
 
@@ -725,7 +724,7 @@ encounter beginning of buffer."
 	      (cond
 	       ((and (equal token "")
 		     (looking-at "("))
-		"is-enumeration_type");; type identifier is (...)
+		"is-type-enumeration");; type identifier is (...)
 
 	       ((member token '("not" "access")) "is-type-access")
 
@@ -827,63 +826,50 @@ moving point to its start."
       "mod")))
 
 (defun ada-indent-refine-private (forward)
-  (let ((skip nil)
-	res)
-    (setq
-     res
-     (save-excursion
-       (when forward (smie-default-backward-token))
+  (save-excursion
+    (when forward (smie-default-backward-token))
 
-       ;; 'private' occurs in:
-       ;;
-       ;; 1) [formal_]private_type_declaration
-       ;;
-       ;;   type defining_identifier [discriminant_part] is [[abstract] tagged] [limited] private
-       ;;      [with aspect_mark];
-       ;;
-       ;;   preceding token: "is-type"
-       ;;      but that is recursive with forward-token refining "is"
-       ;;   following token: "with" or ";"
-       ;;   skip: nothing
-       ;;   token: private-type
-       ;;
-       ;; 2) [non]limited_with_clause
-       ;; 3) formal_derived_type_definition
-       ;; 4) library_item
-       ;; 5) package_specification
-       ;; 6) private_extension_declaration
-       ;;
-       ;;    type defining_identifier [discriminant_part] is
-       ;;       [abstract] [limited | synchronized] new ancestor_subtype_indication
-       ;;       [and interface_list] with private
-       ;;       [aspect_specification];
-       ;;
-       ;;    token: with_private
-       ;;
-       ;; 7) protected_definition
-       ;; 8) task_definition
-       ;;
-       (cond
-	((equal "with" (save-excursion (smie-default-backward-token)))
-	 (setq skip t)
-	 "with_private"); 5
+    ;; 'private' occurs in:
+    ;;
+    ;; 1) [formal_]private_type_declaration
+    ;;
+    ;;   type defining_identifier [discriminant_part] is [[abstract] tagged] [limited] private
+    ;;      [with aspect_mark];
+    ;;
+    ;;   preceding token: "is-type"
+    ;;      but that is recursive with forward-token refining "is"
+    ;;   following token: "with" or ";"
+    ;;   skip: nothing
+    ;;   token: private-type
+    ;;
+    ;; 2) [non]limited_with_clause
+    ;; 3) formal_derived_type_definition
+    ;; 4) library_item
+    ;; 5) package_specification
+    ;; 6) private_extension_declaration
+    ;;
+    ;;    type defining_identifier [discriminant_part] is
+    ;;       [abstract] [limited | synchronized] new ancestor_subtype_indication
+    ;;       [and interface_list] with private
+    ;;       [aspect_specification];
+    ;;
+    ;;    token: private-with
+    ;;
+    ;; 7) protected_definition
+    ;; 8) task_definition
+    ;;
+    (cond
+     ((equal "with" (save-excursion (smie-default-backward-token)))
+      "private-with"); 6
 
-	((member (save-excursion
-		   (smie-default-forward-token); private
-		   (smie-default-forward-token))
-		 '("with" ";"))
-	 "private-type"); 1
+     ((member (save-excursion
+		(smie-default-forward-token); private
+		(smie-default-forward-token))
+	      '("with" ";"))
+      "private-type"); 1
 
-	(t "private"))); all others
-     )
-    (if skip
-	;; with_private
-	(if forward
-	    ;; moving forwards we are in the right place
-	    nil
-	  (smie-default-backward-token)
-	  ))
-    res))
+     (t "private"))); all others
+  )
 
 (defun ada-indent-refine-return (forward)
   (save-excursion
@@ -961,119 +947,95 @@ moving point to its start."
     ))
 
 (defun ada-indent-refine-with (forward)
-  (let ((skip nil)
-	res)
-    (setq
-     res
-     (save-excursion
-       (when forward (smie-default-backward-token))
+  (save-excursion
+    (when forward (smie-default-backward-token))
 
-       ;; "with" occurs in:
-       ;;
-       ;; 1) record_extension_part in a [formal_]derived_type_definition in a type_declaration
-       ;;
-       ;;    type ... is ... new parent_subtype_indication [[and interface_list] with record_definition]
-       ;;
-       ;;    preceding keyword: "new", "and-interface_list"
-       ;;    skip: name
-       ;;    keyword: "with"
-       ;;
-       ;; 2) extension_aggregate ::=
-       ;;       (ancestor_part with record_component_association_list)
-       ;;
-       ;;    not implemented yet
-       ;;
-       ;; 3) private_extension_declaration ::=
-       ;;       type defining_identifier [discriminant_part] is
-       ;;       [abstract] [limited | synchronized] new ancestor_subtype_indication
-       ;;       [and interface_list] with private
-       ;;       [aspect_specification];
-       ;;
-       ;;    preceding keyword: "new", "and-interface_list"
-       ;;    succeeding keyword: "private"
-       ;;    skip: name
-       ;;    keyword: "with_private"
-       ;;
-       ;;    also handled by "private" in ada-indent-backward-token.
-       ;;
-       ;; 4) task_type_declaration, single_task_declaration,
-       ;;    protected_type_declaration, single_protected_declaration ::=
-       ;;       {protected | task} [type] defining_identifier [known_discriminant_part]
-       ;;       [aspect_specification] [is
-       ;;       [new interface_list with]
-       ;;       {protected | task}_definition];
-       ;;
-       ;;    preceding keyword: "new", "and-interface_list"
-       ;;    skip: name
-       ;;    keyword: "with"
-       ;;
-       ;;
-       ;; 5) requeue_statement ::= requeue procedure_or_entry_name [with abort];
-       ;;
-       ;;    not implemented yet; will be parsed as "with_abort"
-       ;;
-       ;; 6) [non]limited_with_clause in a context_clause ::=
-       ;;
-       ;;    [limited] [private] with library_unit_name {, library_unit_name};
-       ;;
-       ;;    previous token: ["limited"] ["private"] ";" bob
-       ;;    keyword: "with-context"
-       ;;
-       ;; 7) raise_statement ::= raise;
-       ;;       | raise exception_name [with string_expression];
-       ;;
-       ;;    not implemented yet
-       ;;
-       ;; 8) formal_concrete_subprogram_declaration ::=
-       ;;       with subprogram_specification [is subprogram_default]
-       ;;       [aspect_specification];
-       ;;
-       ;;    not implemented yet
-       ;;    followed by "function", "procedure"
-       ;;
-       ;; 10) formal_abstract_subprogram_declaration ::=
-       ;;       with subprogram_specification is abstract [subprogram_default]
-       ;;       [aspect_specification];
-       ;;
-       ;;    not implemented yet, same as formal_concrete
-       ;;
-       ;; 11) formal_package_declaration ::=
-       ;;       with package defining_identifier is new generic_package_name  formal_package_actual_part
-       ;;       [aspect_specification];
-       ;;
-       ;;    not implemented yet
-       ;;    followed by "package"
-       ;;
-       ;; 12) aspect_specification ::=
-       ;;       with aspect_mark [=> aspect_definition] {, aspect_mark [=> aspect_definition] }
-       ;;
-       ;;    not implemented yet
-       ;;    followed by "=>", ",", ";"
-       ;;
-       (or
-	(let ((token (save-excursion (smie-default-backward-token))))
-	  (if (or
-	       (equal token ""); bob
-	       (member token '("limited" "private" ";")))
-	      "with-context"))
-
-	(let ((token (save-excursion
-		       (smie-default-forward-token); with
-		       (smie-default-forward-token))))
-	  (cond
-	   ((equal token "null" )
-	    (setq skip 2)
-	    "with_null_record")
-
-	   ((equal token "private" ) (setq skip 1) "with_private")
-
-	   (t "with"))))))
-    (if skip
-	(if forward
-	    (smie-default-forward-token)
-	  ;; moving backwards we are in the right place
-	  ))
-    res))
+    ;; "with" occurs in:
+    ;;
+    ;; 1) record_extension_part in a [formal_]derived_type_definition in a type_declaration
+    ;;
+    ;;    type ... is ... new parent_subtype_indication [[and interface_list] with record_definition]
+    ;;
+    ;;    preceding keyword: "new", "and-interface_list"
+    ;;    skip: name
+    ;;    keyword: "with"
+    ;;
+    ;; 2) extension_aggregate ::=
+    ;;       (ancestor_part with record_component_association_list)
+    ;;
+    ;;    not implemented yet
+    ;;
+    ;; 3) private_extension_declaration ::=
+    ;;       type defining_identifier [discriminant_part] is
+    ;;       [abstract] [limited | synchronized] new ancestor_subtype_indication
+    ;;       [and interface_list] with private
+    ;;       [aspect_specification];
+    ;;
+    ;;    preceding keyword: "new", "and-interface_list"
+    ;;    succeeding keyword: "private"
+    ;;    skip: name
+    ;;    keyword: "with"
+    ;;
+    ;; 4) task_type_declaration, single_task_declaration,
+    ;;    protected_type_declaration, single_protected_declaration ::=
+    ;;       {protected | task} [type] defining_identifier [known_discriminant_part]
+    ;;       [aspect_specification] [is
+    ;;       [new interface_list with]
+    ;;       {protected | task}_definition];
+    ;;
+    ;;    preceding keyword: "new", "and-interface_list"
+    ;;    skip: name
+    ;;    keyword: "with"
+    ;;
+    ;; 5) requeue_statement ::= requeue procedure_or_entry_name [with abort];
+    ;;
+    ;;    not implemented yet
+    ;;
+    ;; 6) [non]limited_with_clause in a context_clause ::=
+    ;;
+    ;;    [limited] [private] with library_unit_name {, library_unit_name};
+    ;;
+    ;;    previous token: ["limited"] ["private"] ";" bob
+    ;;    keyword: "with-context"
+    ;;
+    ;; 7) raise_statement ::= raise;
+    ;;       | raise exception_name [with string_expression];
+    ;;
+    ;;    not implemented yet
+    ;;
+    ;; 8) formal_concrete_subprogram_declaration ::=
+    ;;       with subprogram_specification [is subprogram_default]
+    ;;       [aspect_specification];
+    ;;
+    ;;    not implemented yet
+    ;;    followed by "function", "procedure"
+    ;;
+    ;; 10) formal_abstract_subprogram_declaration ::=
+    ;;       with subprogram_specification is abstract [subprogram_default]
+    ;;       [aspect_specification];
+    ;;
+    ;;    not implemented yet, same as formal_concrete
+    ;;
+    ;; 11) formal_package_declaration ::=
+    ;;       with package defining_identifier is new generic_package_name  formal_package_actual_part
+    ;;       [aspect_specification];
+    ;;
+    ;;    not implemented yet
+    ;;    followed by "package"
+    ;;
+    ;; 12) aspect_specification ::=
+    ;;       with aspect_mark [=> aspect_definition] {, aspect_mark [=> aspect_definition] }
+    ;;
+    ;;    not implemented yet
+    ;;    followed by "=>", ",", ";"
+    ;;
+    (let ((token (save-excursion (smie-default-backward-token))))
+      (if (or
+	   (equal token ""); bob
+	   (member token '("limited" "private" ";")))
+	  "with-context"
+	"with"))
+    ))
 
 ;;; forward/backward token
 
@@ -1105,23 +1067,6 @@ moving point to its start."
      ; "is" handled by 'maybe-refine-is' below
 
      ((equal token "mod") (ada-indent-refine-mod t))
-
-     ((equal token "null")
-      (let ((token (save-excursion
-		     (smie-default-backward-token); null
-		      (smie-default-backward-token))))
-	(cond
-	 ((equal token "with")
-	  (smie-default-forward-token)
-	  (smie-default-forward-token)
-	  "with_null_record")
-
-	 ((equal "record" (save-excursion (smie-default-forward-token)))
-	  (smie-default-forward-token)
-	  "null_record")
-
-	 (t "null")
-	 )))
 
      ((equal token "package")
       (if (save-excursion (equal "access" (smie-default-backward-token)))
@@ -1189,10 +1134,6 @@ moving point to its start."
 	  (smie-default-backward-token); not
 	  "not_null")
 
-	 ((equal token "with")
-	  (smie-default-backward-token); with
-	  "with_null_record")
-
 	  (t "null"))))
 
      ((equal token "package")
@@ -1219,13 +1160,7 @@ moving point to its start."
       (let ((token (save-excursion (smie-default-backward-token))))
 	(cond
 	 ((equal token "end") "record-end")
-	 ((equal token "null")
-	  (smie-default-backward-token)
-	  (if (equal "with" (save-excursion (smie-default-backward-token)))
-	      (progn
-		(smie-default-backward-token); with
-		"with_null_record")
-	    "null_record"))
+	 ((equal token "null") "record-null")
 	 (t "record")
 	 )))
 
@@ -1273,7 +1208,6 @@ moving point to its start."
 	 ((equal token "body") "protected-body")
 	 ((equal token "type") "protected"); an identifier
 	 (t "protected"))
-	;; FIXME: need to detect a single_protected_declaration, without being infinite recursive with refine-is.
 	))
 
      (t token))))

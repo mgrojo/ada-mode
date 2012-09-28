@@ -174,7 +174,13 @@ package Ada_Mode.Nominal is
       private;
    -- rest of Limited_Derived below, due to freezing rules
 
-   -- FIXME: add 'null record'
+   type Null_Record_Type_1 is null record;
+   type Null_Record_Type_2 is null
+   record;
+   type Null_Record_Type_3 is
+      null record;
+   type Null_Record_Type_4
+      is null record;
 
    type Discrete_Type_1 is (A, B, C);
    type Discrete_Type_2 is
