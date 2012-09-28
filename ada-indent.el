@@ -1361,23 +1361,29 @@ otherwise on the following token."
 	(setq count (- count 1)))
       (if (> count 0)
 	  (progn
-	    ;; When smie-backward-sexp stops because the current token
-	    ;; is an opener, it leaves point on the opener. We can't
-	    ;; call smie-backward-sexp again with that token, so we
-	    ;; have to move to the next keyword first.
-	    ;;
-	    ;; FIXME: parens?
-	    ;; FIXME: at bob, smie-backward-sexp returns (t 1)
-	    (if (listp (nth 0 token))
-		;; token is an opener; move to the next keyword, which
-		;; might be another opener, so we loop again before
-		;; calling smie-backward-sexp
-		(progn
-		  (setq token (ada-indent-backward-name))
-		  (setq token
-			(list (nth 1 (assoc token ada-indent-grammar)) (point) token)))
+	    (cond
+	     ((listp (nth 0 token))
+	      ;; When smie-backward-sexp stops because the found
+	      ;; token is an opener, it leaves point on the
+	      ;; opener. We can't call smie-backward-sexp again
+	      ;; with that token, so we have to move to the next
+	      ;; keyword first. That might also be an opener, so
+	      ;; we loop again before calling smie-backward-sexp
+	      (progn
+		(setq token (ada-indent-backward-name))
+		(setq token
+		      (list (nth 1 (assoc token ada-indent-grammar)) (point) token))))
+
+	     (t
+	      ;; When smie-backward-sexp stops because the found token
+	      ;; is has a higher precedence level, it leaves point on
+	      ;; the following token. If we call smie-backward-sexp
+	      ;; again with point there, we won't move. So we go to
+	      ;; the found token first.
+	      (if (not (= (point) (nth 1 token)))
+		  (goto-char (nth 1 token)))
 	      (setq token (smie-backward-sexp (nth 2 token)))
-	      (setq count (- count 1))))
+	      (setq count (- count 1)))))
 	))
     ;; If we stopped because we found an opener, point is on token,
     ;; which is where we want it. If we stopped because the next token
@@ -1491,7 +1497,7 @@ searched for CHILD."
   ;;    back-to-indentation
 
   (save-excursion
-    (let ((parent (ada-indent-goto-parent child (or (and (equal child "(") 2) 1))))
+    (let ((parent (ada-indent-goto-parent child 1)))
 
       (if (equal (or start-token child) ";")
 	(while (and (member (nth 2 parent) `("procedure" "function"))
@@ -1509,17 +1515,20 @@ searched for CHILD."
 	;; (FIXME: this duplicates a similar list in ada-indent-rules
 	;; :after ";")
 	;;
-	;; 1) single keyword statements after begin:
+	;; 1) statements/declarations whose leading keyword is not an opener, after ada-indent-block-keywords:
 	;;
 	;;    FIXME: Similar cases for statements after "then", "else"
 	;;    ...? all ada-indent-block-keyords?
 	;;
-	;;    function ...
-	;;    is begin
+	;;    function Function_1 return type
+	;;    is
+	;;       Local_1 : type := exp;
+	;;       Local_2 : type := exp;
+	;;    begin
 	;;       return exp;
 	;;       -- comment
 	;;    end;
-	;;    function ...
+	;;    function Function_2 return type
 	;;    is begin
 	;;       return identifier : name do
 	;;          statement;
@@ -1528,10 +1537,18 @@ searched for CHILD."
 	;;
 	;;    'return' is not an opener.
 	;;
-	;;    function ...
+	;;    function Function_3 return type
 	;;    is begin
 	;;       A :=
 	;;          B + C;
+	;;       return A;
+	;;    end;
+	;;
+	;;    function Function_4 return type
+	;;    is begin
+	;;       Procedure_1;
+	;;       return exp;
+	;;    end;
 	;;
 	;;    1a) indenting "return" or "end-return"
 	;;
@@ -1547,6 +1564,15 @@ searched for CHILD."
 	;;
 	;;        point is on "A", `parent' = "begin", `start-token' is ":=".
 	;;        we want point on ":=".
+	;;
+	;;    1d) indenting Local_2
+	;;
+	;;        point is on ":" in Local_1, `parent' = "is-subprogram_body", `start-token' is ":=".
+	;;        we want point on ":".
+	;;
+	;;    1e) indenting "return exp;" in Function_4
+	;;
+	;;        point is on "return" (didn't move) FIXME: handle this in the loop above
 	;;
 	;; 2) object declaration following continued object declaration:
 	;;
@@ -1589,9 +1615,17 @@ searched for CHILD."
 	;;
 	;;     FIXME: "," will probably be a keyword when we get to
 	;;     aggregates.
+	;;
+	;;  4) non-opener leading keyword after no-keyword statement
+	;;
+	;;     indenting "return" in Function_4. `parent' is ";",
+	;;     point is on "return", `start-token' is "return".
+	;;
+	;;     We want point on ";".
+	;;
 
 	(cond
-	 ((equal (nth 2 parent) "begin") ; FIXME: maybe ada-indent-start-keywords?
+	 ((member (nth 2 parent) ada-indent-block-keywords)
 	  (cond
 	   ((member start-token '("return" "end-return")) (goto-char (nth 1 parent))); 1a
 	   ((member start-token '(";" ":=" "do")) nil); 1b, 1c

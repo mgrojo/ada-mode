@@ -124,6 +124,8 @@ package body Ada_Mode.Nominal is
    -- Functions can't be 'is null', so we test some indentation issues
    function Function_1a return Float
    is begin
+      Procedure_2a;
+      Procedure_2a;
       return 1.0;
    end Function_1a;
 
@@ -177,7 +179,7 @@ package body Ada_Mode.Nominal is
    function Function_2e (Param : in Parent_Type_1) return Float is begin return 1.0; end;
 
    function Function_2f (Param : in Parent_Type_1)
-                        return Float is
+      return Float is
    begin return 1.0; end;
 
 begin

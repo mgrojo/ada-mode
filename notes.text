@@ -22,15 +22,22 @@ C-x r m set bookmark
 (edebug-toggle-save-all-windows)
 
 test/Makefile
-    test/ada_mode-nominal.ads
+    test/ada_mode-nominal.ads passing!
     test/ada_mode-nominal.adb
-      Local_2 : constant Float
+function_1c
+   begin
+      Procedure_1a (Item);
+         return
+
+    split out ada-goto-statement-start
+        use ada-indent-backward-name for procedure calls
 
     don't combine tokens; just refine them
 
 ada-indent.el
 
 (sal-edit-library "smie")
+
 
 c:/Projects/emacs_stephe.work/emacs_stephe/ada-mode-keys.el
 
@@ -42,6 +49,8 @@ http://dickgrune.com/Books/PTAPG_2nd_Edition/
     used by modula2-mode, octave-mode in emacs 24
 
  to do
+
+switch to cl-macs, cl-lib
 
 why are we reindenting on space?
 
