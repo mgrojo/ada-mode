@@ -135,7 +135,9 @@ package Ada_Mode.Nominal is
          return access function
             (A_Param : in Float)
             return
-               Standard.Float;
+      Standard.Float;
+   --  We'd like the final type to be indented relative to 'return',
+   --  but who would use this style? ignoring. The rest of it is right!
 
    type Unconstrained_Array_Type_1 is array (Integer range <>, Standard.Character range <>) of Object_Access_Type_1;
    type Unconstrained_Array_Type_2 is array (Integer range <>, Standard.Character range <>) of

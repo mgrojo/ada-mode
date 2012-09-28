@@ -9,11 +9,12 @@ General notes on porting Emacs Ada mode indentation engine to smie
     (add-hook 'ada-mode-hook
        (lambda ()
        (define-key ada-mode-map "\C-w" 'capitalize-word)
-       (define-key ada-mode-map "\M-o" (lambda () (interactive) (ada-indent-show-parent 0)))
-       (define-key ada-mode-map "\M-p" 'ada-indent-show-parent)
+       (define-key ada-mode-map "\M-o" 'ada-indent-show-parent)
+       (define-key ada-mode-map "\M-p" 'ada-indent-show-statement-start)
        (define-key ada-mode-map "\M-i" 'ada-indent-show-keyword-backward)
        (define-key ada-mode-map "\M-k" 'ada-indent-show-keyword-forward)
-)))
+    ))
+)
 
 (bookmark-save)
 C-x r l show list of bookmarks, jump on return
@@ -21,16 +22,14 @@ C-x r m set bookmark
 
 (edebug-toggle-save-all-windows)
 
-finish deleting combined tokens
-
 test/Makefile
-    test/ada_mode-nominal.ads passing!
+    test/ada_mode-nominal.ads
     test/ada_mode-nominal.adb
 
-    refine return-stmt?
+final "begin" is wrong
+    prev begin return 1.0; end; return pairs with end!
 
-    split out ada-goto-statement-start?
-        use ada-indent-backward-name for procedure calls
+inline refine-is
 
 ada-indent.el
 

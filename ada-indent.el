@@ -190,7 +190,11 @@ begin
 	(type_declaration)
 	(subprogram_declaration)
 	(subprogram_body)
-	(identifier ":") ; object_declaration FIXME: anonymous array ...
+
+	;; object declarations
+	(identifier ":" name); same as ":" in extended return
+
+	;; FIXME: anonymous array ...
 	)
 
        (declarations
@@ -259,8 +263,8 @@ begin
 	("return-stmt");
 
 	;; extended_return_statement
-	("return-ext" identifier ":")
-	("return-ext" identifier ":-do" name "do" statements "end-return" "return-end")
+	("return-ext" identifier ":" name); same as initialized object declaration
+	("return-ext" identifier ":" name "do" statements "end-return" "return-end")
 	;; FIXME: if/then/else, loop, declare/begin/end, ...
 	)
 
@@ -388,8 +392,11 @@ begin
 	;; it as an identifier; this simplifies access-to-subprogram
 	;; types, since we can just ignore "protected" there.  Note
 	;; that in a single_protected_declaration, we are refining
-	;; "protected" to "type".
+	;; "protected" to "type". However, "is" in protected type
+	;; declaration is a block start keyword, while "is-type" in
+	;; general is not, so we need to make that a keyword.
 	("type" identifier "is-type" declarations "private" declarations "end")
+	("type" identifier "is-type-protected" declarations "private" declarations "end")
 	("type" identifier "is-type" "new" interface_list "with" declarations
 	 "private" declarations "end")
 
@@ -436,17 +443,25 @@ begin
     "is-package"
     "is-protected-body"
     "is-subprogram_body"
+    "is-type-protected"
     "private"
     "record"
     "when")
   ;; We don't split this into start and end lists, because most are
-  ;; both. The only keyword that is an end but never a start is "end";
-  ;; we treat that separately. Being a start but never end is not a problem
+  ;; both. The keywords that are an end but never a start are in
+  ;; ada-indent-block-end-keywords. Being a start but never end is not
+  ;; a problem.
   ;;
   ;; This is not a subset of the open portion of the grammar
   ;; open/close list; that is restricted to keywords that don't bind
   ;; on the left.
-  "Keywords that start or end indented blocks.")
+  "Keywords that start or end indented blocks, excluding keywords that always end blocks.")
+
+(defconst ada-indent-block-end-keywords
+  '("end"
+    "end-record"
+    "end-return")
+  "Keywords that always end indented blocks.")
 
 (defun ada-indent-matching-end (keyword)
   "Return a list of keywords that could end the block started by KEYWORD.
@@ -513,18 +528,13 @@ encounter beginning of buffer."
 ;; ada-indent-forward-token calls refine-* with point
 ;; after token; ada-indent-backward with point before token.
 ;;
-;; refine-* must not move point, unless it is returning a
-;; combined token. FIXME: deleting all such tokens.
+;; refine-* must not move point.
 ;;
 ;; So each refine defun must take a 'forward' arg, and in general
 ;; start with:
 ;;
 ;; (save-excursion
 ;;  (when forward (smie-default-backward-token))
-;;
-;; This makes it difficult to move point for a combined token; see
-;; ada-indent-refine-and and ada-indent-refine-private for an examples
-;; of how to do this.
 ;;
 ;; If at all possible, these functions should not use
 ;; smie-backward-sexp, especially if the starting token is a guess,
@@ -533,7 +543,7 @@ encounter beginning of buffer."
 ;; relies on refined tokens, which can lead to recursion.
 ;;
 ;; We also try to avoid parsing forward, since that won't work while
-;; the user is parsing code. But sometimes it can't be helped.
+;; the user is typing code. But sometimes it can't be helped.
 
 (defun ada-indent-refine-error (msg)
   ;; When running from the Makefile, we'd like to report the line
@@ -544,31 +554,6 @@ encounter beginning of buffer."
 	   (buffer-substring-no-properties
 	    (progn (beginning-of-line) (point))
 	    (progn (end-of-line) (point))))))
-
-(defun ada-indent-refine-: (forward)
-  (save-excursion
-    (when forward (smie-default-backward-token))
-
-    ;; ':' occurs in object declarations and extended return statements:
-    ;;
-    ;; defining_identifier_list : [aliased] [constant] subtype_indication [:= expression] [aspect_specification];
-    ;;
-    ;; defining_identifier : [aliased][constant] return_subtype_indication [:= expression]
-    ;;    [do handled_sequence_of_statements end return];
-    ;;
-    ;; This is too complex to sort out syntacticly. But 'do' and ';'
-    ;; are unique, so we can use search-forward-regexp. We might find
-    ;; neither, if the user is typing new code at the end of the
-    ;; buffer.
-    ;;
-    ;; We have to allow for newline, which search-forward-regexp does
-    ;; not. So first we search for just ';', since there must be
-    ;; one. Then we use that as the bound to search for 'do'.
-    (let ((bound (save-excursion (search-forward ";" nil t))))
-      (if (and bound
-	       (search-forward "do" bound t))
-	  ":-do"
-	":"))))
 
 (defun ada-indent-refine-and (forward)
   ;; 'and' occurs in interface types and logical expressions
@@ -665,119 +650,111 @@ encounter beginning of buffer."
     result))
 
 (defun ada-indent-refine-is (forward)
-  (let((skip nil)
-       ;; skip = number of tokens after 'is' to skip with smie-default-*-token before returning
-       res)
-    (setq
-     res
+  (save-excursion
+    (when forward (smie-default-backward-token))
+
+    ;; too many occurences to document them all.
+
+    (or
+     ;; First try simple, common constructs.
+
      (save-excursion
-       (when forward (smie-default-backward-token))
+       ;; This is a special case because "protected" not followed
+       ;; by "body" is not a keyword, so ada-indent-backward-name
+       ;; doesn't find it.
+       (let ((token (progn
+		      (smie-default-backward-token); identifier
+		      (smie-default-backward-token)))) ; "protected", "body", "type"
+	 (cond
+	  ((equal token "protected") "is-type-protected")
+	  ((and
+	    (equal token "body")
+	    (setq token (smie-default-backward-token))
+	    (equal token "protected") "is-protected-body"))
+	  ((and
+	    (equal token "type")
+	    (setq token (smie-default-backward-token))
+	    (equal token "protected") "is-type-protected"))
+	 )))
 
-       ;; too many occurences to document them all.
+     (let ((token (save-excursion (ada-indent-backward-name))))
+       (cond
+	((equal token "package") "is-package")
+	;; "package" name ^ "is"
 
-       (or
-	;; First try simple, common constructs.
+	((equal token "package") "is-package-body")
+	;; "package" "body" name ^ "is"; "body" is an identifier
 
-	(save-excursion
-	  ;; This is a special case because "protected" not followed
-	  ;; by "body" is not a keyword, so ada-indent-backward-name
-	  ;; doesn't find it.
-	  (let ((token (progn
-			 (smie-default-backward-token); identifier
-			 (smie-default-backward-token)))) ; "protected" or "body"
-	    (cond
-	      ((equal token "protected") "is-type")
-	      ((and
-		(equal token "body")
-		(setq token (smie-default-backward-token))
-		(equal token "protected") "is-protected-body")))
-	    ))
+	((equal token "procedure")
+	 ;;  procedure name is abstract;
+	 ;;  procedure name is null;
+	 ;;  procedure name is declarations begin statements end;
+	 (let ((token (save-excursion
+			(smie-default-forward-token); is
+			(smie-default-forward-token))))
+	   (cond
+	    ((member token '("abstract" "null")) "is")
+	    (t "is-subprogram_body"))))
 
-	(let ((token (save-excursion (ada-indent-backward-name))))
-	  (cond
-	   ((equal token "package") "is-package")
-	   ;; "package" name ^ "is"
+	((equal token "return-spec")
+	 ;; "function" identifier "return" name ^ "is" declarations "begin"
+	 "is-subprogram_body")
 
-	   ((equal token "package") "is-package-body")
-	   ;; "package" "body" name ^ "is"; "body" is an identifier
+	((equal token "type")
+	 (let ((token
+		(progn
+		  (smie-default-forward-token); is
+		  (smie-default-forward-token))))
+	   (cond
+	    ((and (equal token "")
+		  (looking-at "("))
+	     "is-type-enumeration");; type identifier is (...)
 
-	   ((equal token "procedure")
-	    ;;  procedure name is abstract;
-	    ;;  procedure name is null;
-	    ;;  procedure name is declarations begin statements end;
-	    (let ((token (save-excursion
-			   (smie-default-forward-token); is
-			   (smie-default-forward-token))))
-	      (cond
-	       ((member token '("abstract" "null")) "is")
-	       (t "is-subprogram_body"))))
+	    ((member token '("not" "access")) "is-type-access")
 
-	   ((equal token "return-spec")
-	    ;; "function" identifier "return" name ^ "is" declarations "begin"
-	    "is-subprogram_body")
+	    ;; numeric types
+	    ;;
+	    ;; signed_integer_type_definition ::= [type identifier is] range expression .. expression
+	    ;;
+	    ;; modular_type_definition ::= [type identifier is] mod static_expression
+	    ;;
+	    ;; floating_point_definition ::= [type identifier is] digits static_expression
+	    ;;    [range expression .. expression]
+	    ;;
+	    ;; ordinary_fixed_point_definition ::= [type identifier is] delta expression
+	    ;;    range expression .. expression
+	    ;;
+	    ;; decimal_fixed_point_definition ::= [type identifier is] delta expression digits expression
+	    ;;    [   range expression .. expression]
+	    ((equal token "range") "is-type-numeric")
+	    ((equal token "mod") "is-type")
+	    ((equal token "digits") "is-type-numeric")
+	    ((equal token "delta") "is-type-numeric")
 
-	   ((equal token "type")
-	    (let ((token
-		   (progn
-		     (smie-default-forward-token); is
-		     (smie-default-forward-token))))
-	      (cond
-	       ((and (equal token "")
-		     (looking-at "("))
-		"is-type-enumeration");; type identifier is (...)
+	    ((equal token "tagged")
+	     (if (equal ";" (smie-default-forward-token))
+		 ;; type Incomplete_Type_1 (Discriminant_1 : Integer) is tagged; -- in spec
+		 ;; type Incomplete_Type_1 (Discriminant_1 : Integer) is tagged null record; -- in body
+		 ;; type name is tagged ...; other types
+		 "is"; an identifier
+	       "is-type"))
 
-	       ((member token '("not" "access")) "is-type-access")
+	    (t "is-type")); all others
+	   ))))
 
-	       ;; numeric types
-	       ;;
-	       ;; signed_integer_type_definition ::= [type identifier is] range expression .. expression
-	       ;;
-	       ;; modular_type_definition ::= [type identifier is] mod static_expression
-	       ;;
-	       ;; floating_point_definition ::= [type identifier is] digits static_expression
-	       ;;    [range expression .. expression]
-	       ;;
-	       ;; ordinary_fixed_point_definition ::= [type identifier is] delta expression
-	       ;;    range expression .. expression
-	       ;;
-	       ;; decimal_fixed_point_definition ::= [type identifier is] delta expression digits expression
-	       ;;    [   range expression .. expression]
-	       ((equal token "range") "is-type-numeric")
-	       ((equal token "mod") "is-type")
-	       ((equal token "digits") "is-type-numeric")
-	       ((equal token "delta") "is-type-numeric")
+     ;; now more complicated things
+     (save-excursion
+       ;; entry body with params: "entry" identifier "("...")" "when" exp "is"
+       ;;
+       ;; If we can be guessing wrong here, we can't use
+       ;; smie-backward-sexp (because it will just get confused). So
+       ;; far, this is the only possibility at this point, so we don't
+       ;; really need to check, but we want to identify missing cases.
+       (if (equal "entry" (nth 2 (smie-backward-sexp "is-entry_body"))) "is-entry_body"))
 
-	       ((equal token "tagged")
-		(if (equal ";" (smie-default-forward-token))
-		    ;; type Incomplete_Type_1 (Discriminant_1 : Integer) is tagged; -- in spec
-		    ;; type Incomplete_Type_1 (Discriminant_1 : Integer) is tagged null record; -- in body
-		    ;; type name is tagged ...; other types
-		    "is"; an identifier
-		  "is-type"))
-
-	       (t "is-type")); all others
-	      ))))
-
-	;; now more complicated things
-	(save-excursion
-	  ;; entry body with params: "entry" identifier "("...")" "when" exp "is"
-	  ;;
-	  ;; If we can be guessing wrong here, we can't use
-	  ;; smie-backward-sexp (because it will just get confused). So
-	  ;; far, this is the only possibility at this point, so we don't
-	  ;; really need to check, but we want to identify missing cases.
-	  (if (equal "entry" (nth 2 (smie-backward-sexp "is-entry_body"))) "is-entry_body"))
-
-	(ada-indent-refine-error "unrecognized 'is'")
-	)))
-    (if skip
-	(if forward
-	    (dotimes (count skip)
-	      (smie-default-forward-token))
-	  ;; moving backwards we are in the right place
-	  nil
-	  ))
-    res))
+     (ada-indent-refine-error "unrecognized 'is'")
+     ))
+  )
 
 (defun ada-indent-maybe-refine-is (start-token forward)
   "point is in front of START-TOKEN; we are refining that. If
@@ -1048,8 +1025,6 @@ moving point to its start."
      ;; Alphabetical order, except ada-indent-maybe-refine-is is last
      ;; because it's relatively slow (and it really confuses debugging
      ;; the other rules!), and some checks must be done after that.
-     ((equal token ":") (ada-indent-refine-: t))
-
      ((equal token "and") (ada-indent-refine-and t))
 
      ((equal token "end")
@@ -1103,8 +1078,6 @@ moving point to its start."
      ;; really confuses debugging the other rules!). Some other checks
      ;; must be done after maybe-refine-is.
 
-     ((equal token ":") (ada-indent-refine-: nil))
-
      ((equal token "and") (ada-indent-refine-and nil))
 
      ((equal token "end")
@@ -1119,22 +1092,6 @@ moving point to its start."
      ;; "function", "is" handled by maybe-refine-is below
 
      ((equal token "mod") (ada-indent-refine-mod nil))
-
-     ((equal token "not")
-      (if (equal "null" (save-excursion (smie-default-forward-token)))
-	(progn
-	  (smie-default-forward-token)
-	  "not_null")
-	"not"))
-
-     ((equal token "null")
-      (let ((token (save-excursion (smie-default-backward-token))))
-	(cond
-	 ((equal token "not")
-	  (smie-default-backward-token); not
-	  "not_null")
-
-	  (t "null"))))
 
      ((equal token "package")
       ;; FIXME: this is ok for a library level [generic] package alone
@@ -1285,12 +1242,23 @@ otherwise on the following token."
 
     token))
 
-(defun ada-indent-rule-parent (offset child start-token)
-  "Find a relevant parent using `ada-indent-goto-parent', return
-an indent by OFFSET relevant to that parent. Preserves point.  If
-CHILD is non-nil, assume point is at the start of CHILD, which
-must be a keyword, and START-TOKEN is the token from which we
-searched for CHILD."
+(defun ada-indent-rule-parent (offset child)
+  "Find the parent of CHILD (using `ada-indent-goto-parent'),
+return an indent by OFFSET relevant to it. Preserves point.  If
+CHILD must be non-nil and a keyword or \"(\", and point must be
+at the start of CHILD."
+  (save-excursion
+    (ada-indent-goto-parent child (or (if (equal child "(") 2) 1))
+    (back-to-indentation)
+    (cons 'column (+ (current-column) offset))
+    ))
+
+(defun ada-indent-goto-statement-start (&optional child)
+  "Move point to the start of the statement/declaration
+containing point. If point is at statement start, does
+nothing. If CHILD is non-nil, it must be a keyword or \"(\",
+and point must be at the start of CHILD."
+  (interactive)
   ;; Because we did not include access-to-subprogram in the grammar,
   ;; we have to consider whether the first parent we find is the
   ;; "right" one.
@@ -1309,16 +1277,7 @@ searched for CHILD."
   ;;
   ;; Obviously, this could be repeated to any level. Here each
   ;; "function" keyword is a smie parent; ada-indent-goto-parent will
-  ;; stop there.
-  ;;
-  ;; When indenting "(Param_1", we want to find the first "function",
-  ;; which is the second parent ("(" is the first). Similarly, when
-  ;; indenting the second "return", we want to find the second
-  ;; "function", which again is the second parent.
-  ;;
-  ;; When indenting the following Ada statement "type Another_Type",
-  ;; we need find "type Function_Access_Type" starting from ";", so we
-  ;; have to loop:
+  ;; stop there. So we have to loop:
   ;;
   ;;    loop
   ;;       ada-indent-goto-parent
@@ -1331,7 +1290,7 @@ searched for CHILD."
   ;; only be executed once.
   ;;
   ;; 'overriding' and 'protected' present another problem; the parent
-  ;; is not at the beginning of the line:
+  ;; is not at the beginning of the statement:
   ;;
   ;;    overriding procedure Name;
   ;;
@@ -1339,197 +1298,96 @@ searched for CHILD."
   ;;
   ;; The same is true for any other leading Ada keyword that we leave
   ;; as an identifier. To handle this, we do `back-to-indentation'
-  ;; once we find the parent.
+  ;; once we find the right parent.
   ;;
   ;; We do _not_ need a similar loop for assignment statements:
   ;;
   ;;    A := B + C * D;
   ;;
   ;; because we set all operators to the same precedence
-  ;; level. However, to find the start of A, we must use
-  ;; ada-indent-backward-name.
+  ;; level. However, to find the start of A (which could be a complex
+  ;; name), we must use ada-indent-backward-name.
+  ;;
+  ;; Object declarations can declare multiple objects:
+  ;;
+  ;;   A,
+  ;;    B : type;
+  ;;
+  ;; The first keyword is ":"; we use ada-indent-backward-name.
   ;;
   ;; To find "(" from anywhere within an aggregate, we can use
   ;; `scan-lists'. FIXME: not clear what we want to do from inside an
-  ;; aggregate.
+  ;; aggregate, not tested.
   ;;
-  ;;
-  ;; The following psuedo-Ada leaves point at the proper indentation:
-  ;;
-  ;;    if start-token /= ";" then
-  ;;       -- we are inside an Ada statement/declaration; indent
-  ;;       -- relative to the first or second parent
-  ;;       if child = "(" then
-  ;;          ada-indent-goto-parent child 2
-  ;;       else
-  ;;          ada-indent-goto parent child 1
-  ;;       end if
-  ;;    else
-  ;;       -- indent relative to the statement/declaration start
-  ;;       loop
-  ;;          ada-indent-goto-parent 2
-  ;;          if not ((parent in ("procedure" "function")) and
-  ;;                  (backward-token in ("access" "protected"))
-  ;;          then
-  ;;             exit loop
-  ;;          end if
-  ;;       end loop
-  ;;    end if
-  ;;
-  ;;    -- see below for adjustment due to single keyword statement/declaration
-  ;;
-  ;;    if parent = ":=" then
-  ;;       ada-indent-backward-name
-  ;;    end if
-  ;;
-  ;;    back-to-indentation
+  (let (parent pos)
 
-  (save-excursion
-    (let ((parent (ada-indent-goto-parent child (or (if (equal child "(") 2) 1))))
+    (catch 'done
 
-      (if (equal (or start-token child) ";")
-	(while (and (member (nth 2 parent) `("procedure" "function"))
-		    (member (save-excursion (smie-default-backward-token)) '("access" "protected")))
-	  (setq parent (ada-indent-goto-parent parent 2))))
+      ;; We have to check the previous keyword for procedure calls,
+      ;; "procedure" and "function", and a few other cases.  Many
+      ;; statements have non-keyword tokens before the first token
+      ;; (assignent, subprogram declarations including "overriding"),
+      ;; so we have to use use ada-indent-backward-name to find the
+      ;; previous keyword.
+      (save-excursion
+	(let ((prev-token (ada-indent-backward-name)))
+	  (if (or
+	       (equal prev-token ";")
+	       (member prev-token ada-indent-block-keywords))
+	      (progn
+		(smie-default-forward-token); ";" or block start
+		(forward-comment (point-max)); also skips final whitespace
+		(setq pos (point))))))
 
-    (if (not (= (point) (nth 1 parent)))
-	;; ada-indent-goto-parent stopped because parent is higher
-	;; precendence than the first keyword in the sexp it skipped;
-	;; that first keyword is not a closer. This also means the
-	;; first keyword is the only keyword in the sexp.
-	;;
-	;; This happens in the following cases:
-	;;
-	;; (FIXME: this duplicates a similar list in ada-indent-rules
-	;; :after ";")
-	;;
-	;; 1) statements/declarations whose leading keyword is not an opener, after ada-indent-block-keywords:
-	;;
-	;;    FIXME: Similar cases for statements after "then", "else"
-	;;    ...? all ada-indent-block-keyords?
-	;;
-	;;    function Function_1 return type
-	;;    is
-	;;       Local_1 : type := exp;
-	;;       Local_2 : type := exp;
-	;;    begin
-	;;       return exp;
-	;;       -- comment
-	;;    end;
-	;;    function Function_2 return type
-	;;    is begin
-	;;       return identifier : name do
-	;;          statement;
-	;;       end return;
-	;;    end;
-	;;
-	;;    'return' is not an opener.
-	;;
-	;;    function Function_3 return type
-	;;    is begin
-	;;       A :=
-	;;          B + C;
-	;;       return A;
-	;;    end;
-	;;
-	;;    function Function_4 return type
-	;;    is begin
-	;;       Procedure_1;
-	;;       return exp;
-	;;    end;
-	;;
-	;;    1a) indenting "return" or "end-return"
-	;;
-	;;        point is on "return", `parent' = "begin", `start-token' is "return" or "end-return"
-	;;        we want point on "begin"
-	;;
-	;;    1b) indenting "-- comment" or "statement"
-	;;
-	;;        point is on "return", `parent' = "begin", `start-token' is ";" or "do".
-	;;        we want point on "return".
-	;;
-	;;    1c) indenting "B"
-	;;
-	;;        point is on "A", `parent' = "begin", `start-token' is ":=".
-	;;        we want point on ":=".
-	;;
-	;;    1d) indenting Local_2
-	;;
-	;;        point is on ":" in Local_1, `parent' = "is-subprogram_body", `start-token' is ":=".
-	;;        we want point on ":".
-	;;
-	;;    1e) indenting "return exp;" in Function_4
-	;;
-	;;        point is on "return" (didn't move) FIXME: handle this in the loop above
-	;;
-	;; 2) object declaration following continued object declaration:
-	;;
-	;;    Integer_G, Integer_H,
-	;;       Integer_I : Integer;
-	;;
-	;;    Float_1 : aliased constant Float := 1.0;
-	;;    Float_2 : aliased constant Float :=
-	;;       1.0;
-	;;    Float_3 : aliased constant Float
-	;;       := 1.0;
-	;;
-	;;    ":" is not an opener.
-	;;
-	;;    2a) indenting Float_2.
-	;;
-	;;        point is on Float_1, `parent' = ";", `start-token' = ";". We want point on Float_1.
-	;;
-	;;    2b) indenting ":=" after Float_3
-	;;
-	;;        point is on Float_2, `parent' = ";", `start-token' = ":=". We want point on Float_2.
-	;;
-	;;        FIXME: Similar cases for all other expression operators.
-	;;
-	;;  3) continued object declaration following continued object declaration:
-	;;
-	;;      declaration;
-	;;
-	;;      Integer_G, Integer_H,
-	;;         Integer_I : Integer;
-	;;
-	;;      Integer_J,
-	;;         Integer_K, Integer_L : Integer;
-	;;
-	;;     when indenting "Integer_K", `parent' is ";" after
-	;;     "declaration", point is on "Integer_G", `start-token'
-	;;     is nil, because we get here from ada-indent-default.
-	;;
-	;;     We want point on "Integer_G".
-	;;
-	;;     FIXME: "," will probably be a keyword when we get to
-	;;     aggregates.
-	;;
-	;;  4) non-opener leading keyword after no-keyword statement
-	;;
-	;;     indenting "return" in Function_4. `parent' is ";",
-	;;     point is on "return", `start-token' is "return".
-	;;
-	;;     We want point on ";".
-	;;
+      ;; Make sure going to pos would be motion. In this case:
+      ;;
+      ;;    is begin
+      ;;       return Integer (Function_1a);
+      ;;
+      ;; intending "return", goto-statement-start is called from
+      ;; indent-after-keyword with point on "begin". backward-name
+      ;; finds "is", which is a block keyword. Then we move back to
+      ;; "begin" and set pos. No other blocks may be empty.
+      (if (and pos (not (= pos (point)))) (progn (goto-char pos) (throw 'done nil)))
 
-	(cond
-	 ((member (nth 2 parent) ada-indent-block-keywords)
-	  (cond
-	   ((member start-token '("return-stmt" "end-return")) (goto-char (nth 1 parent))); 1a
-	   ((member start-token '(";" ":=" "do")) nil); 1b, 1c
-	   (t (error (concat "ada-indent-goto-parent unresolved: " (nth 2 parent) ", " start-token)))))
+      (setq parent (ada-indent-goto-parent child (or (if (member child '("." "(")) 2) 1)))
+      ;; If child is "." we are in the middle of an Ada name; the
+      ;; first parent is the start of the name.
 
-	  ((equal (nth 2 parent) ";") nil); 2*, 3
-	 (t (goto-char (nth 1 parent))))
+      (if (or
+	   (equal (nth 2 parent) ";")
+	   (member (nth 2 parent) ada-indent-block-keywords))
+	  ;; point is at statement start
+	  (throw 'done nil))
+
+      (goto-char (nth 1 parent))
+
+      ;; handle access-to-subprogram types
+      (while (and (member (nth 2 parent) `("procedure" "function"))
+		  (member (save-excursion (smie-default-backward-token)) '("access" "protected")))
+	(setq parent (ada-indent-goto-parent parent 2)))
+
+      (if (member (nth 2 parent) '(":" ":="))
+	  (progn
+	    (ada-indent-backward-name)
+	    ;; we are now on the keyword before statement start; get back.
+	    (smie-default-forward-token); ";" or block start
+	    (forward-comment (point-max)))
 	)
 
-      (if (equal parent ":=")
-	  (ada-indent-backward-name))
-
       (back-to-indentation)
+      )))
 
-      (cons 'column (+ (current-column) offset)))
-    ))
+(defun ada-indent-rule-statement (offset child)
+  "Find the start of the statement/declaration containing point (using
+`ada-indent-goto-statement-start'), return an indent by OFFSET relevant
+to it. Preserves point.  If CHILD is non-nil, point must be at
+the start of CHILD, which must be a keyword."
+
+  (save-excursion
+    (ada-indent-goto-statement-start child)
+
+    (cons 'column (+ (current-column) offset))))
 
 ;;;
 (defun ada-indent-rules (method arg)
@@ -1547,8 +1405,21 @@ searched for CHILD."
      )
 
     (:before
-     ;; arg is a smie keyword, at the beginning of a line.
+     ;; arg is a smie keyword, at the beginning of a line. point is at
+     ;; the start of the keyword.
+     ;;
+     ;; The general rule is to indent relative to the start of the
+     ;; statement containing arg; there are some exceptions that we
+     ;; check for first.
+     ;;
+     ;; If arg is at the start of the statement, we return nil; :after
+     ;; then indents relative to the previous statement start.
+
      (cond
+      ;; we could check for a list of keywords that are known to be
+      ;; always at the start of a statement, but that would be
+      ;; premature optimization.
+
       ((equal arg "(")
        ;; parenthesis occur in expressions, and after names, as array
        ;; indices, subprogram parameters, type constraints.
@@ -1557,18 +1428,16 @@ searched for CHILD."
        ;; handles it specially, returning ("" nil 0). Then
        ;; ada-indent-before-keyword passes "(" here.
        ;;
-       ;; Since we have a known token, indenting relative to the
-       ;; parent is a good idea (it works for subprogram declarations
-       ;; and calls, for example). FIXME: after we get
-       ;; ada-indent-exps working, we may want to let that handle
-       ;; this.
-       (ada-indent-rule-parent ada-indent arg arg))
+       ;; We don't want ada-indent-rule-statement here; if this is the
+       ;; parameter list for an anonymous subprogram in an access
+       ;; type, we want to indent relative to "procedure" or
+       ;; "function", not the type declaration start.
+       (ada-indent-rule-parent ada-indent arg))
 
       ((equal arg "with-context")
        (cons 'column 0))
 
-      ((or (equal arg "end")
-	   (equal arg "end-record")
+      ((or (member arg ada-indent-block-end-keywords )
 	   (member arg ada-indent-block-keywords))
        ;; Example:
        ;;
@@ -1589,23 +1458,35 @@ searched for CHILD."
        ;;    end E2;
        ;;
        ;; We are indenting "is", "begin", etc. Indent at the same level as the
-       ;; parent. FIXME: this probably won't work for nested "declare", "begin"
-       (ada-indent-rule-parent 0 arg arg))
+       ;; parent.
+       ;;
+       ;; IMPROVEME: from "end", this goes back to "procedure" and
+       ;; "entry" in these examples, but it only needs to go back to
+       ;; "begin". Could optimize. ada-indent-rule-parent is faster
+       ;; than ada-indent-rule-statement, but still goes to the same
+       ;; place in this case.
+       (ada-indent-rule-parent 0 arg))
 
-      ((not (ada-indent-openerp arg))
-       ;; Hanging; we are not at the start of a statement/declaration.
-       ;; We have a known keyword; indent relative to its parent.
-       (ada-indent-rule-parent ada-indent arg arg))
-
+      ((let ((pos (progn (save-excursion (ada-indent-goto-statement-start arg)) (point))))
+	 (if (not (= pos (point)))
+	     ;; Hanging; we are not at the start of a statement/declaration.
+	     ;; Indent relative to the statement start.
+	     (cons 'column (+ pos offset)))))
       ))
 
 ;;; :after
     (:after
-     ;; `arg' is a keyword at the end of a line, point is at start of keyword
-     ;; :before is checked first, so we don't need to consider those cases here
+     ;; `arg' is a keyword at the end of a line, point is at start of
+     ;; the keyword; we are indenting the following token, which may
+     ;; not be a keyword.  :before is checked first, so we don't need
+     ;; to consider those cases here.
+     ;;
+     ;; The general rule the start of the statement containing or
+     ;; preceding arg, indent relative to that.
+
      (cond
       ((equal arg "(")
-       ;; See comments in :before on "(" FIXME: nuh-uh!
+       ;; See comments in :before on "("
        ;;
        ;; We have this case:
        ;;
@@ -1614,125 +1495,13 @@ searched for CHILD."
        ;;
        ;; This is from an comp.lang.ada discussion; some people like it
        ;; because it makes it easier to rearrange the list of args.
+       ;; FIXME: not tested yet.
        (cons 'column (+ (current-column) 1)))
 
-      ((member arg ada-indent-block-keywords)
-       (if (member (save-excursion
-		     (ada-indent-forward-token); block keyword
-		     (ada-indent-forward-token))
-		   (ada-indent-matching-end arg))
-	   ;; The token we are indenting is the corresponding block
-	   ;; end; we are in an empty block.
-	   (ada-indent-rule-parent 0 arg arg)
-
-	 ;; Indent relative to the start of the block,
-	 ;; which is the parent of this token.
-	 (ada-indent-rule-parent ada-indent arg arg)))
-
       ((equal arg ";")
-       ;; Two cases:
-       ;;
-       ;; The parent of the sexp preceding ";" is the start of the
-       ;; corresponding Ada statement/declaration. Indent at the same
-       ;; level as that.
-       ;;
-       ;; 1) procedure call or pragma:
-       ;;
-       ;;    package Ada_Mode.Nominal is
-       ;;
-       ;;       pragma Elaborate_Body (Ada_Mode.Nominal);
-       ;;
-       ;;       Procedure_1a (A_String, 'a');
-       ;;
-       ;;    There are no keywords in these sexp, so
-       ;;    ada-indent-rule-parent will find the wrong parent. To
-       ;;    find the parent of these sexp, we use
-       ;;    ada-indent-backward-name.
-       ;;
-       ;; 2) context clause:
-       ;;
-       ;;    with name;
-       ;;    package name is
-       ;;
-       ;;    When indenting 'package', ada-backward-name leaves us at
-       ;;    'with', which is where we want to stop. There is a
-       ;;    similar issue for all single-keyword
-       ;;    statement/declarations. We'll keep a list here.
-       ;;
-       ;; 3) Non-initialized object declaration:
-       ;;
-       ;;    Object_1 : Integer;
-       ;;
-       ;;    Integer_G, Integer_H,
-       ;;       Integer_I : Integer;
-       ;;
-       ;;    Here ":" is the only keyword in the sexp. We want a
-       ;;    variant on ada-indent-backward-name; that goes one token
-       ;;    too far. So call it, then come back one.
-       ;;
-       ;;    FIXME: "," will probably be a keyword when we get to
-       ;;    aggregates, so we'll leave this for now.
-       ;;
-       ;; 4) use ada-indent-rule-parent 0
-       ;;
-       ;; To distinguish among the cases, we call
-       ;; ada-indent-backward-name and check the found keyword.
+       (ada-indent-rule-statement 0 arg))
 
-       (save-excursion
-	 (let ((token (ada-indent-backward-name)))
-	   (cond
-	    ((or
-	      (equal token ";")
-	      (member token ada-indent-block-keywords))
-	     ;; this is a procedure call or pragma
-	     (progn
-	       ;; Move back to the actual parent
-	       (ada-indent-forward-token); past the found token
-	       (forward-comment (point-max)); also skips newlines and whitespace
-	       (cons 'column (+ (current-column)))))
-
-	    ((equal token ":")
-	     (ada-indent-backward-name); now on the preceding ";" or block start
-	     (smie-default-forward-token); after the ";"
-	     (smie-default-forward-token); after the first object identifier
-	     (smie-default-backward-token)
-	     (cons 'column (+ (current-column))))
-
-	    ((equal token "with-context")
-	     (back-to-indentation)
-	     (cons 'column (+ (current-column))))
-
-	    (t (ada-indent-rule-parent 0 token ";"))
-	    ))))
-
-      ;; We are left with these cases:
-      ;;
-      ;; 1) multi-token hanging:
-      ;;
-      ;;    type name is abstract
-      ;;       tagged limited null record;
-      ;;
-      ;;    indent relative to parent
-      ;;
-      ;; 2) single-token hanging:
-      ;;
-      ;;    begin
-      ;;       return
-      ;;          foo;
-      ;;
-      ;;    We are indenting 'foo', and point is at the start of
-      ;;    'return', because we are in :after.
-      ;;
-      ;;    We want to indent relative to 'return', which is on the
-      ;;    current line.
-      ;;
-      ;; smie-indent--hanging-p returns nil if the keyword is alone
-      ;; on the line, which is the distinguishing criterion we need.
-      ;;
-      ((smie-indent--hanging-p)
-       (ada-indent-rule-parent ada-indent arg arg))
-
-      (t (ada-indent-rule-current ada-indent))
+      (t (ada-indent-rule-statement ada-indent arg))
       ))
     ))
 
@@ -1821,9 +1590,9 @@ relative to)."
 
 (defun ada-indent-default ()
   "Unconditionally indent as `ada-indent' from the previous
-line. Intended to be the last item in `smie-indent-functions',
+parent keyword. Intended to be the last item in `smie-indent-functions',
 used when no indentation decision was made."
-  (cdr (ada-indent-rule-parent ada-indent nil nil)))
+  (cdr (ada-indent-rule-parent ada-indent nil)))
 
 ;;; debug
 (defun ada-indent-show-keyword-forward ()
@@ -1842,6 +1611,12 @@ used when no indentation decision was made."
   (when (= count 0) (setq count 't))
   (let ((toklevels (ada-indent-goto-parent (save-excursion (ada-indent-forward-token)) count)))
     (message "%s; %s" toklevels (assoc (save-excursion (ada-indent-forward-token)) ada-indent-grammar))))
+
+(defun ada-indent-show-statement-start ()
+  "Move to the start of the current statement."
+  (interactive)
+  ;; this is the way ada-indent-goto-statement-start is called during indentation; better for testing
+  (ada-indent-goto-statement-start (save-excursion (ada-indent-forward-token))))
 
 (defun ada-indent-wrapper (indent-function)
   "Call INDENT-FUNCTION, check for errors, report non-nil."
