@@ -248,7 +248,7 @@ begin
        (package_body
 	;; Leaving 'package body' as separate tokens causes problems
 	;; in refine-is, so we leave "body" as an identifier.
-	("package_body" name "is-package_body" declarations "begin" statements "end"))
+	("package-body" name "is-package-body" declarations "begin" statements "end"))
 
        (protected_body
 	("protected-body" identifier "is-protected-body" declarations "end"))
@@ -257,9 +257,9 @@ begin
 	(expression); matches procedure calls, assignment
 
 	;; extended_return_statement
-	("return")
-	("return-do" identifier ":")
-	("return-do" identifier ":-do" name "do" statements "end-return" "return-end")
+	("return-stmt")
+	("return-ext" identifier ":")
+	("return-ext" identifier ":-do" name "do" statements "end-return" "return-end")
 	;; FIXME: if/then/else, loop, declare/begin/end, ...
 	)
 
@@ -269,15 +269,14 @@ begin
 
        (subprogram_body
 	;; factoring out subprogram_specification here breaks something.
+	;; access is an identifier
 	("function" name "return-spec" name "is-subprogram_body" declarations "begin" statements "end")
-	("function" name "return_access" name "is-subprogram_body" declarations "begin" statements "end")
 	("procedure" name "is-subprogram_body" declarations "begin" statements "end"))
 
        (subprogram_declaration
 	;; factoring out subprogram_specification here breaks something.
 
 	("function" name "return-spec" name)
-	("function" name "return+access" name)
 	;; second case is returning an anonymous access type
 	;; (return_access is too hard to distinguish from
 	;; return-access)
@@ -434,7 +433,7 @@ begin
     "do"
     ;; "end" is never a block start; treated separately
     "is-entry_body"
-    "is-package_body"
+    "is-package-body"
     "is-package"
     "is-protected-body"
     "is-subprogram_body"
@@ -700,7 +699,7 @@ encounter beginning of buffer."
 	   ((equal token "package") "is-package")
 	   ;; "package" name ^ "is"
 
-	   ((equal token "package") "is-package_body")
+	   ((equal token "package") "is-package-body")
 	   ;; "package" "body" name ^ "is"; "body" is an identifier
 
 	   ((equal token "procedure")
@@ -887,115 +886,79 @@ moving point to its start."
     res))
 
 (defun ada-indent-refine-return (forward)
-  (let ((skip nil)
-	res)
-    (setq
-     res
+  (save-excursion
+    (when forward (smie-default-backward-token))
+
+    ;; 'return' occurs in:
+    ;;
+    ;; 1) a function declaration:
+    ;;
+    ;;    subprogram_declaration ::= [overriding_indicator] subprogram_specification [aspect_specification];
+    ;;    function_specification ::= function defining_designator parameter_and_result_profile
+    ;;    parameter_and_result_profile ::=
+    ;;        [formal_part] return [null_exclusion] subtype_mark
+    ;;      | [formal_part] return access_definition
+    ;;
+    ;;    preceding token: "function"
+    ;;    token: "return-spec"
+    ;;
+    ;; 2) a function specification in function body :
+    ;;
+    ;;    function identifier (...) return [access] name is
+    ;;
+    ;;    preceding token: "function"
+    ;;    token: "return-spec"
+    ;;
+    ;; 3) a return statement:
+    ;;
+    ;;    3a) return;
+    ;;    3b) return exp;
+    ;;
+    ;;    token: "return-stmt"
+    ;;
+    ;; 4) an extended return statement:
+    ;;
+    ;;    return identifier : name;
+    ;;
+    ;;    token: "return-ext" (4a)
+    ;;
+    ;;    return identifier : name do statements end return;
+    ;;
+    ;;    token: "return-ext" (4b), "return-end" (4c)
+    ;;
+    ;; 5) an access function type declaration:
+    ;;
+    ;;    type name is access [protected] function identifier (...) return [access] name;
+    ;;
+    ;;    preceding token: "function"
+    ;;    token: "return-spec"
+    ;;
+    ;; So we have to look both forward and backward to resolve this.
+    (or
+     (if (equal "end" (save-excursion (smie-default-backward-token))) "return-end"); 4c
+
+     ;; Do this now, otherwise we can't distinguish between:
+     ;;
+     ;; function F1 return Integer;
+     ;; return 0;
+     ;;
+     (if (equal "function" (save-excursion (ada-indent-backward-name))) "return-spec"); 1, 2, 5
+
      (save-excursion
-       (when forward (smie-default-backward-token))
-
-       ;; 'return' occurs in:
-       ;;
-       ;; 1) a function declaration:
-       ;;
-       ;;    subprogram_declaration ::= [overriding_indicator] subprogram_specification [aspect_specification];
-       ;;    function_specification ::= function defining_designator parameter_and_result_profile
-       ;;    parameter_and_result_profile ::=
-       ;;        [formal_part] return [null_exclusion] subtype_mark
-       ;;      | [formal_part] return access_definition
-       ;;
-       ;;    access_definition ::=
-       ;;        [null_exclusion] access [constant] subtype_mark
-       ;;      | [null_exclusion] access [protected] procedure parameter_profile
-       ;;      | [null_exclusion] access [protected] function parameter_and_result_profile
-       ;;
-       ;;    preceding token: "function"
-       ;;    token: 1a) "return-spec" or 1b) "return+access"
-       ;;
-       ;;    FIXME: trailing constant, protected not implemented
-       ;;
-       ;; 2) a function specification in function body :
-       ;;
-       ;;    function identifier (...) return [access] name is
-       ;;
-       ;;    preceding token: "function"
-       ;;    token: "return-spec" or "return+access"
-       ;;
-       ;; 3) a return statement:
-       ;;
-       ;;    return [exp];
-       ;;
-       ;;    token: "return"
-       ;;
-       ;; 4) an extended return statement:
-       ;;
-       ;;    return identifier : name;
-       ;;
-       ;;    token: "return" (4a)
-       ;;
-       ;;    return identifier : name do statements end return;
-       ;;
-       ;;    token: "return-do" (4b), "return-end" (4c)
-       ;;
-       ;; 5) an access function type declaration:
-       ;;
-       ;;    type name is access [protected] function identifier (...) return [access] name;
-       ;;
-       ;;    preceding token: "is-type-access"
-       ;;    token: 5a) "return-access" or 5b) "return+access"
-       ;;
-       ;; So we have to look both forward and backward to resolve this.
-       (or
-	(save-excursion (if (equal "end" (smie-default-backward-token)) "return-end")); 4c
-
-	;; Do this now, otherwise we can't distinguish between:
-	;;
-	;; function F1 return Integer;
-	;; return 0;
-	;;
-	(let ((token (save-excursion (ada-indent-backward-name))))
-	  (cond
-	   ((equal token "is-type-access")
-	    (if (equal "access"
-		       (save-excursion
-			 (smie-default-forward-token); return
-			 (smie-default-forward-token)))
-		(progn
-		  (setq skip t)
-		  "return+access"); 5b
-	      "return-access")); 5a
-
-	   ((equal token "function")
-	    (if (equal "access"
-		       (save-excursion
-			 (smie-default-forward-token); return
-			 (smie-default-forward-token)))
-		(progn
-		  (setq skip t)
-		  "return+access"); 1b or 2b
-	      "return-spec")); 1a or 2a
-	   ))
-
-	(save-excursion
-	  ;; FIXME: test this at end of buffer (not very
-	  ;; likely to happen, but possible while entering code)
-	  (if (equal ";"
-		     (progn
-		       (smie-default-forward-token); return
-		       (smie-default-forward-token)))
-	      "return"; 3a
-	    (let (token (smie-default-forward-token))
-	      (cond
-	       ((equal token ":-do") "return-do"); 4b
-	       (t "return"); 3b, 4a
-	       ))))
-	)))
-    (if skip
-	(if forward
-	    (smie-default-forward-token)
-	  ;; moving backwards we are in the right place
-	  ))
-    res))
+       ;; FIXME: test this at end of buffer (not very
+       ;; likely to happen, but possible while entering code)
+       (let ((token (progn
+		      (smie-default-forward-token); return
+		      (smie-default-forward-token))))
+	 (cond
+	  ((equal token ";") "return-stmt"); 3a
+	  (t
+	   (setq token (smie-default-forward-token)); identifier
+	   (cond
+	    ((member token '(":" ":-do")) "return-ext"); 4a, 4b
+	    (t "return-stmt"); 3b
+	    ))))))
+    ))
 
 (defun ada-indent-refine-with (forward)
   (let ((skip nil)
@@ -1164,7 +1127,7 @@ moving point to its start."
       (if (save-excursion (equal "access" (smie-default-backward-token)))
 	  "package-access"
 	(if (equal "body" (save-excursion (smie-default-forward-token)))
-	      "package_body"
+	      "package-body"
 	  ;; FIXME: package-generic?
 	  "package")))
 
@@ -1271,15 +1234,6 @@ moving point to its start."
      ((equal token "with") (ada-indent-refine-with nil))
 
      ((ada-indent-maybe-refine-is token nil))
-
-     ((equal token "access")
-      (let ((token (save-excursion (smie-default-backward-token))))
-	(cond
-	 ((equal token "return")
-	  (smie-default-backward-token)
-	  (ada-indent-refine-return nil))
-
-	 (t "access"))))
 
      ((equal token "protected")
       ;; 'protected' occurs in:
@@ -1395,7 +1349,7 @@ otherwise on the following token."
     ;; on what we are indenting, we return token, leaving point alone,
     ;; and let the caller sort it out.
 
-    token)) ;; return value is useful for a debug display
+    token))
 
 (defun ada-indent-rule-parent (offset child start-token)
   "Find a relevant parent using `ada-indent-goto-parent', return
@@ -1497,7 +1451,7 @@ searched for CHILD."
   ;;    back-to-indentation
 
   (save-excursion
-    (let ((parent (ada-indent-goto-parent child 1)))
+    (let ((parent (ada-indent-goto-parent child (or (if (equal child "(") 2) 1))))
 
       (if (equal (or start-token child) ";")
 	(while (and (member (nth 2 parent) `("procedure" "function"))
@@ -1627,7 +1581,7 @@ searched for CHILD."
 	(cond
 	 ((member (nth 2 parent) ada-indent-block-keywords)
 	  (cond
-	   ((member start-token '("return" "end-return")) (goto-char (nth 1 parent))); 1a
+	   ((member start-token '("return-stmt" "end-return")) (goto-char (nth 1 parent))); 1a
 	   ((member start-token '(";" ":=" "do")) nil); 1b, 1c
 	   (t (error (concat "ada-indent-goto-parent unresolved: " (nth 2 parent) ", " start-token)))))
 

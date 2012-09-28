@@ -21,18 +21,16 @@ C-x r m set bookmark
 
 (edebug-toggle-save-all-windows)
 
+finish deleting combined tokens
+
 test/Makefile
     test/ada_mode-nominal.ads passing!
     test/ada_mode-nominal.adb
-function_1c
-   begin
-      Procedure_1a (Item);
-         return
 
-    split out ada-goto-statement-start
+    refine return-stmt?
+
+    split out ada-goto-statement-start?
         use ada-indent-backward-name for procedure calls
-
-    don't combine tokens; just refine them
 
 ada-indent.el
 
