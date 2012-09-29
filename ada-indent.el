@@ -6,24 +6,24 @@
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Keywords: languages ada
-
+;;
 ;; This file is part of GNU Emacs.
-
+;;
 ;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
-
+;;
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-
+;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-
+;;
 ;;; History: see ada_mode.el
-
+;;
 ;;; code style
 ;;
 ;; I don't use 'pcase', because it gives _really_ confusing errors
@@ -35,6 +35,9 @@
 ;;
 ;; Put an edebug break in smie-next-sexp, just after 'toklevels' is
 ;; set. Then you can see which tokens are processed.
+;;
+;; Use the interactive functions in the debug section below to move
+;; across small parts of the syntax.
 
 (require 'smie)
 (eval-when-compile (require 'cl)); 'case'
@@ -221,8 +224,18 @@ begin
 	(name "-operator-" name)
 	("(" expression ")"))
 
+       ;; Formal generic parameters. Most formal_* are covered in this
+       ;; grammar by the equivalent non-formal syntax.
+       (formal_subprogram_declaration
+	;; leaving "with" "function" "procedure" unrefined gives
+	;; conflicts with the non-formal use.
+
+	("with-generic" "function-generic" name "return-spec" name); trailing name same as non-formal
+	("with-generic" "procedure-generic" name); trailing name same as non-formal
+	)
+
        (generic_package_declaration
-	;; no need to distinguish between 'declarations' and
+	;; No need to distinguish between 'declarations' and
 	;; 'generic_formal_parameter_declaration' for our purposes.
 	("generic" declarations
 	 "package-generic" identifier "is-package" declarations "private" declarations "end")
@@ -682,7 +695,7 @@ encounter beginning of buffer."
 	((equal token "package") "is-package-body")
 	;; "package" "body" name ^ "is"; "body" is an identifier
 
-	((equal token "procedure")
+	((member token '("procedure" "procedure-generic"))
 	 ;;  procedure name is abstract;
 	 ;;  procedure name is null;
 	 ;;  procedure name is declarations begin statements end;
@@ -841,15 +854,11 @@ encounter beginning of buffer."
 
     ;; 'return' occurs in:
     ;;
-    ;; 1) a function declaration:
+    ;; 1) a function subprogram_declaration or formal_subprogram_declaration:
     ;;
-    ;;    subprogram_declaration ::= [overriding_indicator] subprogram_specification [aspect_specification];
     ;;    function_specification ::= function defining_designator parameter_and_result_profile
-    ;;    parameter_and_result_profile ::=
-    ;;        [formal_part] return [null_exclusion] subtype_mark
-    ;;      | [formal_part] return access_definition
     ;;
-    ;;    preceding token: "function"
+    ;;    preceding token: "function", "function-generic"
     ;;    token: "return-spec"
     ;;
     ;; 2) a function specification in function body :
@@ -892,7 +901,9 @@ encounter beginning of buffer."
      ;; function F1 return Integer;
      ;; return 0;
      ;;
-     (if (equal "function" (save-excursion (ada-indent-backward-name))) "return-spec"); 1, 2, 5
+     (if (member (save-excursion (ada-indent-backward-name))
+		 '("function" "function-generic"))
+	 "return-spec"); 1, 2, 5
 
      (save-excursion
        ;; FIXME: test this at end of buffer (not very
@@ -909,6 +920,15 @@ encounter beginning of buffer."
 	    (t "return-stmt"); 3b
 	    ))))))
     ))
+
+(defun ada-indent-refine-subprogram (token forward)
+  (save-excursion
+    (when forward (smie-default-backward-token))
+
+    (if (equal "with" (smie-default-backward-token))
+	(concat token "-generic")
+      token)
+  ))
 
 (defun ada-indent-refine-with (forward)
   (save-excursion
@@ -971,34 +991,46 @@ encounter beginning of buffer."
     ;;       with subprogram_specification [is subprogram_default]
     ;;       [aspect_specification];
     ;;
-    ;;    not implemented yet
-    ;;    followed by "function", "procedure"
+    ;;    following token: "function", "procedure"
+    ;;    skip: none
+    ;;    keyword: with-generic
     ;;
-    ;; 10) formal_abstract_subprogram_declaration ::=
+    ;; 9) formal_abstract_subprogram_declaration ::=
     ;;       with subprogram_specification is abstract [subprogram_default]
     ;;       [aspect_specification];
     ;;
-    ;;    not implemented yet, same as formal_concrete
+    ;;    same as formal_concrete
     ;;
-    ;; 11) formal_package_declaration ::=
+    ;; 10) formal_package_declaration ::=
     ;;       with package defining_identifier is new generic_package_name  formal_package_actual_part
     ;;       [aspect_specification];
     ;;
     ;;    not implemented yet
     ;;    followed by "package"
     ;;
-    ;; 12) aspect_specification ::=
+    ;; 11) aspect_specification ::=
     ;;       with aspect_mark [=> aspect_definition] {, aspect_mark [=> aspect_definition] }
     ;;
     ;;    not implemented yet
     ;;    followed by "=>", ",", ";"
     ;;
-    (let ((token (save-excursion (smie-default-backward-token))))
-      (if (or
-	   (equal token ""); bob
-	   (member token '("limited" "private" ";")))
-	  "with-context"
-	"with"))
+    (or
+     (let ((token (save-excursion
+		    (smie-default-forward-token); with
+		     (smie-default-forward-token))))
+       (if (member token '("procedure" "function"))
+	   "with-generic"); 8
+       )
+
+     ;; this checks for preceding ";", so it has to be after the above
+     (let ((token (save-excursion (smie-default-backward-token))))
+       (if (or
+	    (equal token ""); bob
+	    (member token '("limited" "private" ";")))
+	   "with-context"); 6
+       )
+
+     "with")
     ))
 
 ;;; forward/backward token
@@ -1010,6 +1042,13 @@ encounter beginning of buffer."
   (let ((token (smie-default-forward-token)))
     (cond
      ;; Alphabetical order.
+
+     ((equal token "<>;")
+      ;; These three chars all have punctuation syntax. We need that
+      ;; for expressions, so we don't change it. "<>" is an identifier
+      ;; in the grammar, so we can just refine this to ";"
+      ";")
+
      ((equal token "and") (ada-indent-refine-and t))
 
      ((equal token "end")
@@ -1024,6 +1063,8 @@ encounter beginning of buffer."
 	 (t "end")); all others
 	))
 
+     ((equal token "function") (ada-indent-refine-subprogram token t))
+
      ((equal token "is") (ada-indent-refine-is t))
 
      ((equal token "mod") (ada-indent-refine-mod t))
@@ -1037,6 +1078,8 @@ encounter beginning of buffer."
 	  "package")))
 
      ((equal token "private") (ada-indent-refine-private t))
+
+     ((equal token "procedure") (ada-indent-refine-subprogram token t))
 
      ((equal token "protected")
       (if (equal "body" (save-excursion (smie-default-forward-token)))
@@ -1066,6 +1109,12 @@ encounter beginning of buffer."
     (cond
      ;; Alphabetical order.
 
+     ((equal token "<>;")
+      ;; These three chars all have punctuation syntax. We need that
+      ;; for expressions, so we don't change it. "<>" is an identifier
+      ;; in the grammar, so we can just refine this to ";"
+      ";")
+
      ((equal token "and") (ada-indent-refine-and nil))
 
      ((equal token "end")
@@ -1077,7 +1126,9 @@ encounter beginning of buffer."
 	 ((equal token "return") "end-return")
 	 (t "end"))))
 
-     ((equal token "is") (ada-indent-refine-is t))
+     ((equal token "function") (ada-indent-refine-subprogram token nil))
+
+     ((equal token "is") (ada-indent-refine-is nil))
 
      ((equal token "mod") (ada-indent-refine-mod nil))
 
@@ -1091,6 +1142,8 @@ encounter beginning of buffer."
 	"package"))
 
      ((equal token "private") (ada-indent-refine-private nil))
+
+     ((equal token "procedure") (ada-indent-refine-subprogram token nil))
 
      ((equal token "protected")
       ;; 'protected' occurs in:
@@ -1292,9 +1345,22 @@ and point must be at the start of CHILD."
   ;;
   ;; The first keyword is ":"; we use ada-indent-backward-name.
   ;;
-  ;; To find "(" from anywhere within an aggregate, we can use
-  ;; `scan-lists'. FIXME: not clear what we want to do from inside an
-  ;; aggregate, not tested.
+  ;; If we are inside parens:
+  ;;
+  ;;    procedure Procedure_1d
+  ;;       (Item  : in out Parent_Type_1;
+  ;;        Item_1 : in Character;
+  ;;        Item_2 : out Character)
+  ;;    is null;
+  ;;
+  ;;    procedure Procedure_1e (Item  : in out Parent_Type_1;
+  ;;                            Item_1 : in Character;
+  ;;                            Item_2 : out Character)
+  ;;    is null;
+  ;;
+  ;; We want to align on the column following "(". On the line
+  ;; containing "(", we want to leave point after the paren, not
+  ;; before it. The other lines have no special considerations.
   ;;
   (let (parent pos)
 
@@ -1330,6 +1396,10 @@ and point must be at the start of CHILD."
       (setq parent (ada-indent-goto-parent child (or (if (member child '("." "(")) 2) 1)))
       ;; If child is "." we are in the middle of an Ada name; the
       ;; first parent is the start of the name.
+      ;;
+      ;; If child is "(" the first run thru smie-backward-sexp produces no motion; that causes the second run
+
+      (if (equal (nth 2 parent) "(") (throw 'done nil))
 
       (if (or
 	   (equal (nth 2 parent) ";")
@@ -1454,24 +1524,8 @@ the start of CHILD, which must be a keyword."
      ;; the keyword; we are indenting the following token, which may
      ;; not be a keyword.  :before is checked first, so we don't need
      ;; to consider those cases here.
-     ;;
-     ;; The general rule the start of the statement containing or
-     ;; preceding arg, indent relative to that.
 
      (cond
-      ((equal arg "(")
-       ;; See comments in :before on "("
-       ;;
-       ;; We have this case:
-       ;;
-       ;;    ... name (
-       ;;              args
-       ;;
-       ;; This is from an comp.lang.ada discussion; some people like it
-       ;; because it makes it easier to rearrange the list of args.
-       ;; FIXME: not tested yet.
-       (cons 'column (+ (current-column) 1)))
-
       ((equal arg ";")
        (ada-indent-rule-statement 0 arg))
 
@@ -1590,7 +1644,8 @@ used when no indentation decision was made."
   "Move to the start of the current statement."
   (interactive)
   ;; this is the way ada-indent-goto-statement-start is called during indentation; better for testing
-  (ada-indent-goto-statement-start (save-excursion (ada-indent-forward-token))))
+  (let ((token (save-excursion (ada-indent-forward-token))))
+    (ada-indent-goto-statement-start (if (equal token "") "(" token))))
 
 (defun ada-indent-wrapper (indent-function)
   "Call INDENT-FUNCTION, check for errors, report non-nil."

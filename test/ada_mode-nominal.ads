@@ -314,7 +314,14 @@ package Ada_Mode.Nominal is
       Procedure_1c (Item  : in out Parent_Type_1) is null;
 
    procedure Procedure_1d
-      (Item  : in out Parent_Type_1)
+      (Item   : in out Parent_Type_1;
+       Item_1 : in     Character;
+       Item_2 : out    Character)
+      is null;
+
+   procedure Procedure_1e (Item   : in out Parent_Type_1;
+                           Item_1 : in Character;
+                           Item_2 : out Character)
       is null;
 
    procedure Procedure_2a;

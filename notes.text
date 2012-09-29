@@ -22,16 +22,34 @@ C-x r m set bookmark
 
 (edebug-toggle-save-all-windows)
 
+ada-indent.el
+(sal-edit-library "smie")
+
 test/Makefile
+    nominal
     test/ada_mode-nominal.ads passing
     test/ada_mode-nominal.adb passing
+    test/ada_mode-nominal-child.ads
+
+   overriding
+   procedure Procedure_1c (Item  : in out Child_Type_1) is null;
+
+overriding is the first token in the declaration; this is an exception to the hanging rule
+    so overriding needs to be a token
+
     test/ada-mode-generic_package.ads
 
-<>; is a single token!
+add to one of the these file one each of:
+    aspect_clause
+    remaining statements
+    remaining expressions (if expression, that started this whole thing :)
+    pre/post conditions
+    look for remaining non-terminals in Annex P
 
-ada-indent.el
+then make rest of files work
 
-(sal-edit-library "smie")
+then ask for input/testing
+    run on my projects
 
 
 c:/Projects/emacs_stephe.work/emacs_stephe/ada-mode-keys.el
@@ -43,7 +61,12 @@ c:/Projects/emacs_stephe.main/emacs_stephe_site_lisp/ada-mode.el
 http://dickgrune.com/Books/PTAPG_2nd_Edition/
     used by modula2-mode, octave-mode in emacs 24
 
- to do
+ to do later
+  ;; To find "(" from anywhere within an aggregate, we can use
+  ;; `scan-lists'. So far, that hasn't been needed.
+
+       ;;    ... name (
+       ;;              args
 
 switch to cl-macs, cl-lib
 
