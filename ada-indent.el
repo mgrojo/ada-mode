@@ -53,6 +53,15 @@ begin
 >>>null;"
   :type 'integer  :group 'ada)
 
+(defcustom ada-broken-indent 2
+  "*Number of columns to indent the continuation of a broken line.
+
+An example is :
+   My_Var : My_Type :=
+   >>(Field1 => Value);"
+  :type 'integer :group 'ada)
+
+
 ;;; grammar
 
 (defconst ada-indent-grammar
@@ -281,7 +290,7 @@ begin
        (package_body
 	;; Leaving 'package body' as separate tokens causes problems
 	;; in refine-is, so we leave "body" as an identifier.
-	("package-body" name "is-package-body" declarations "begin" statements "end"))
+	("package" name "is-package" declarations "begin" statements "end"))
 
        (protected_body
 	("protected-body" identifier "is-protected-body" declarations "end"))
@@ -473,7 +482,6 @@ begin
     ;; "end" is never a block start; treated separately
     "generic"
     "is-entry_body"
-    "is-package-body"
     "is-package"
     "is-protected-body"
     "is-subprogram_body"
@@ -718,9 +726,6 @@ encounter beginning of buffer."
 
 	((equal token "package-formal") "is")
 
-	((equal token "package") "is-package-body") ;; FIXME: can't get here!
-	;; "package" "body" name ^ "is"; "body" is an identifier
-
 	((equal token "procedure-formal") "is"); identifier
 
 	((member token '("procedure" "procedure-overriding"))
@@ -844,9 +849,6 @@ encounter beginning of buffer."
 	((equal token "access") "package-access")
 	((equal token "with") "package-formal")
 	))
-
-     (if (equal "body" (save-excursion (smie-default-forward-token)))
-	 "package-body")
 
      ;; FIXME: this is ok for a library level [generic] package alone
      ;; in a file. But it could be a problem for a nested [generic]
@@ -1087,7 +1089,7 @@ encounter beginning of buffer."
      (let ((token (save-excursion
 		    (smie-default-forward-token); with
 		     (smie-default-forward-token))))
-       (if (member token '( "function" "package" "procedure"))
+       (if (member token '("function" "package" "procedure"))
 	   "with-formal"); 8
        )
 
@@ -1527,7 +1529,8 @@ the start of CHILD, which must be a keyword."
       ;; always at the start of a statement, but that would be
       ;; premature optimization.
 
-      ((equal arg "(")
+      ((or (equal arg "(")
+	   (equal arg "return-spec"))
        ;; parenthesis occur in expressions, and after names, as array
        ;; indices, subprogram parameters, type constraints.
        ;;
@@ -1538,8 +1541,9 @@ the start of CHILD, which must be a keyword."
        ;; We don't want ada-indent-rule-statement here; if this is the
        ;; parameter list for an anonymous subprogram in an access
        ;; type, we want to indent relative to "procedure" or
-       ;; "function", not the type declaration start.
-       (ada-indent-rule-parent ada-indent arg))
+       ;; "function", not the type declaration start. Similarly for
+       ;; the "return" in an access to function.
+       (ada-indent-rule-parent ada-broken-indent arg))
 
       ((member arg '("procedure-overriding" "function-overriding"))
        (save-excursion
@@ -1549,7 +1553,7 @@ the start of CHILD, which must be a keyword."
       ((equal arg "with-context")
        (cons 'column 0))
 
-      ((or (member arg ada-indent-block-end-keywords )
+      ((or (member arg ada-indent-block-end-keywords)
 	   (member arg ada-indent-block-keywords))
        ;; Example:
        ;;
@@ -1591,7 +1595,14 @@ the start of CHILD, which must be a keyword."
       ((equal arg ";")
        (ada-indent-rule-statement 0 arg))
 
-      (t (ada-indent-rule-statement ada-indent arg))
+      ((equal arg "return-spec")
+       ;; see comments in :before "("
+       (ada-indent-rule-parent ada-broken-indent arg))
+
+      ((member arg ada-indent-block-keywords)
+       (ada-indent-rule-statement ada-indent arg))
+
+     (t (ada-indent-rule-statement ada-broken-indent arg))
       ))
     ))
 
@@ -1682,7 +1693,7 @@ relative to)."
   "Unconditionally indent as `ada-indent' from the previous
 parent keyword. Intended to be the last item in `smie-indent-functions',
 used when no indentation decision was made."
-  (cdr (ada-indent-rule-parent ada-indent nil)))
+  (cdr (ada-indent-rule-parent ada-broken-indent nil)))
 
 ;;; debug
 (defun ada-indent-show-keyword-forward ()

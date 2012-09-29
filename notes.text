@@ -32,8 +32,9 @@ test/Makefile
     test/ada_mode-nominal-child.ads passing
     test/ada_mode-generic_package.ads passing
 
-fix FIXME: test is-package-body; is-package is ok?
+(defcustom ada-broken-indent 2
 
+look for other indent options
 
 add to one of the these files one each of:
     aspect_clause

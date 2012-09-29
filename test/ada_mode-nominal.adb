@@ -15,22 +15,22 @@ package body Ada_Mode.Nominal is
    record; -- don't care
 
    type Incomplete_Type_3 (Discriminant_1 : Integer) is tagged
-      null record;
+     null record;
 
    type Incomplete_Type_4 (Discriminant_1 : Integer) is
-      tagged null record;
+     tagged null record;
    -- rest of newline placement covered in spec
 
    type Incomplete_Type_5 (Discriminant_1 : access Integer) is tagged record
       Component_1 : Integer;
       Component_2 :
-         Integer;
+        Integer;
       Component_3
-         : Integer; -- don't care
+        : Integer; -- don't care
    end record;
 
    protected
-      body Protected_1 is
+     body Protected_1 is
       -- don't care about the indentation of 'body' (nobody should use
       -- this style); testing that 'protected body' is not a combined
       -- token
@@ -63,7 +63,7 @@ package body Ada_Mode.Nominal is
          Tmp : Integer := 0;
       begin
          Local_1 :=
-            X + Tmp; -- an indented line
+           X + Tmp; -- an indented line
 
          -- A comment after an indented line
 
@@ -73,11 +73,11 @@ package body Ada_Mode.Nominal is
       end E1;
 
       entry E2
-         (X : Integer)
-      when Local_1 = 0 and not
-         (Local_2 = 1)
+        (X : Integer)
       -- an expression with 'not' to see if we need that in the
       -- grammar (conflicts with 'not null')
+      when Local_1 = 0 and not
+        (Local_2 = 1)
       is
          Tmp : Integer := 0;
       begin
@@ -135,23 +135,23 @@ package body Ada_Mode.Nominal is
    begin
       return Local_1;
    end
-      Function_1b;
+     Function_1b;
 
    function Function_1c return Float
    is
       Local_1 : constant Float := 2.0;
       Local_2 : constant Float
-         := Local_1;
+        := Local_1;
       Local_3 : constant Float :=
-         Local_2;
+        Local_2;
       -- Comment after indented line
       Item : Parent_Type_1;
    begin
       Procedure_1a (Item);
       return
-         Local_1 +
-         Local_2 +
-         Local_3;
+        Local_1 +
+        Local_2 +
+        Local_3;
    end;
 
    function Function_1d return Float is begin return 1.0; end;
@@ -173,13 +173,13 @@ package body Ada_Mode.Nominal is
    is
    begin
       return
-         1.0;
+        1.0;
    end;
 
    function Function_2e (Param : in Parent_Type_1) return Float is begin return 1.0; end;
 
    function Function_2f (Param : in Parent_Type_1)
-      return Float is
+     return Float is
    begin return 1.0; end;
 
 begin

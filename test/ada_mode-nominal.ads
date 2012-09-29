@@ -1,6 +1,6 @@
 
 with
-   Ada.Text_IO;
+  Ada.Text_IO;
 with Ada.Strings.Unbounded; -- FIXME: test 'use' in context clause
 package Ada_Mode.Nominal is
    --  No comment on the first line, to make sure we can handle that :)
@@ -37,30 +37,30 @@ package Ada_Mode.Nominal is
    type Object_Access_Type_0e is access constant Integer;
    type Object_Access_Type_0f is not null access constant Integer;
    type Object_Access_Type_1 is not null access all Integer
-      ; -- we don't really care
+     ; -- we don't really care
    type Object_Access_Type_2a is not null access all
-      Integer;
+     Integer;
    type Object_Access_Type_2b is not null access constant
-      Integer;
+     Integer;
    type Object_Access_Type_2c is not null access
-      Integer;
+     Integer;
    type Object_Access_Type_3a is not null access
-      all Integer;
+     all Integer;
    type Object_Access_Type_3b is not null access
-      -- Comment between keywords
-      constant Integer;
+     -- Comment between keywords
+     constant Integer;
    type Object_Access_Type_4 is not null
-      access all Integer; -- it no longer matters wither this is 'all' or 'constant'
+     access all Integer; -- it no longer matters wither this is 'all' or 'constant'
    type Object_Access_Type_5a is not
-      null access all Integer;
+     null access all Integer;
    type Object_Access_Type_6 is
-      not null access all Integer;
+     not null access all Integer;
    type Object_Access_Type_6b is
-      access all Integer;
+     access all Integer;
    type Object_Access_Type_7
-      is access all Integer;
+     is access all Integer;
    type
-      Object_Access_Type_8 is access all Integer;
+     Object_Access_Type_8 is access all Integer;
 
    -- Not significantly different than previous, so we only do one.
    type Object_Access_Type_9 is access Integer;
@@ -69,25 +69,25 @@ package Ada_Mode.Nominal is
    type Procedure_Access_Type_1 is access protected procedure (A_Param : out Integer);
    -- we don't put newline inside the paren here
    type Procedure_Access_Type_2 is access protected procedure
-      (A_Param : out Integer);
+     (A_Param : out Integer);
    type Procedure_Access_Type_3 is access protected
-      procedure (A_Param : out Integer);
+     procedure (A_Param : out Integer);
    type Procedure_Access_Type_4 is access
-      protected procedure (A_Param : out Integer);
+     protected procedure (A_Param : out Integer);
    type Procedure_Access_Type_5 is
-      access protected procedure (A_Param : out Integer);
+     access protected procedure (A_Param : out Integer);
    type Procedure_Access_Type_6
-      is access protected procedure (A_Param : out Integer);
+     is access protected procedure (A_Param : out Integer);
    type
-      Procedure_Access_Type_7 is access protected procedure (A_Param : out Integer);
+     Procedure_Access_Type_7 is access protected procedure (A_Param : out Integer);
    --  FIXME: Procedure_Access_Type_7 not highlighted here.
 
    -- A more typical case, not covered above (usually with multiple
    -- params). The parameters should be indented relative to the line
    -- 'procedure' is on.
    type Procedure_Access_Type_8 is access
-      protected procedure
-         (A_Param : out Integer);
+     protected procedure
+       (A_Param : out Integer);
 
    ----------
    -- access to function
@@ -97,115 +97,113 @@ package Ada_Mode.Nominal is
    type Function_Access_Type_1b is access protected function (A_Param : in Float) return access Standard.Float;
    type Function_Access_Type_1d is access protected function (A_Param : in Float) return access constant Standard.Float;
    type Function_Access_Type_2a is access protected function (A_Param : in Float) return Standard.
-      Float;
+     Float;
    type Function_Access_Type_2b is access protected function (A_Param : in Float) return Standard
-      .Float;
+     .Float;
    type Function_Access_Type_2c is access protected function (A_Param : in Float) return
-      Standard.Float;
+     Standard.Float;
    type Function_Access_Type_2d is access protected function (A_Param : in Float) return access
-      Standard.Float;
+     Standard.Float;
    type Function_Access_Type_2g is access protected function (A_Param : in Float) return
-      access Standard.Float;
+     access Standard.Float;
    type Function_Access_Type_3 is access protected function (A_Param : in Float)
-      return Standard.Float;
+     return Standard.Float;
    type Function_Access_Type_4 is access protected function
-      (A_Param : in Float) return Standard.Float;
+     (A_Param : in Float) return Standard.Float;
    type Function_Access_Type_5 is access protected
-      function (A_Param : in Float) return Standard.Float;
+     function (A_Param : in Float) return Standard.Float;
    type Function_Access_Type_6 is access
-      protected function (A_Param : in Float) return Standard.Float;
+     protected function (A_Param : in Float) return Standard.Float;
    type Function_Access_Type_7 is
-      access protected function (A_Param : in Float) return Standard.Float;
+     access protected function (A_Param : in Float) return Standard.Float;
    type Function_Access_Type_8
-      is access protected function (A_Param : in Float) return Standard.Float;
+     is access protected function (A_Param : in Float) return Standard.Float;
    type
-      Function_Access_Type_9 is access protected function (A_Param : in Float) return Standard.Float;
+     Function_Access_Type_9 is access protected function (A_Param : in Float) return Standard.Float;
    -- comment aligned with 'type', which is the start of the previous statement
 
    -- A more typical case
    type Function_Access_Type_10 is access
-      protected function
-         (A_Param : in Float)
-         return Standard.Float;
+     protected function
+       (A_Param : in Float)
+       return Standard.Float;
 
    -- a pathological case
    type Function_Access_Type_11 is access
-      protected function
+     protected function
+       (A_Param : in Float)
+       return access function
          (A_Param : in Float)
-         return access function
-            (A_Param : in Float)
-            return
-      Standard.Float;
-   --  We'd like the final type to be indented relative to 'return',
-   --  but who would use this style? ignoring. The rest of it is right!
+         return
+         Standard.Float;
 
    type Unconstrained_Array_Type_1 is array (Integer range <>, Standard.Character range <>) of Object_Access_Type_1;
    type Unconstrained_Array_Type_2 is array (Integer range <>, Standard.Character range <>) of
-      Object_Access_Type_1;
+     Object_Access_Type_1;
    type Unconstrained_Array_Type_3 is array (Integer range <>, Standard.Character range <>)
-      of Object_Access_Type_1;
+     of Object_Access_Type_1;
    type Unconstrained_Array_Type_4 is array
-      (Integer range <>, Standard.Character range <>) of Object_Access_Type_1;
+     (Integer range <>, Standard.Character range <>) of Object_Access_Type_1;
    type Unconstrained_Array_Type_5 is
-      array (Integer range <>, Standard.Character range <>) of Object_Access_Type_1;
+     array (Integer range <>, Standard.Character range <>) of Object_Access_Type_1;
    type Unconstrained_Array_Type_6
-      is array (Integer range <>, Standard.Character range <>) of Object_Access_Type_1;
+     is array (Integer range <>, Standard.Character range <>) of Object_Access_Type_1;
    type
-      Unconstrained_Array_Type_7 is array (Integer range <>, Standard.Character range <>) of Object_Access_Type_1;
+     Unconstrained_Array_Type_7 is array (Integer range <>, Standard.Character range <>) of Object_Access_Type_1;
 
    -- not really different than unconstrained array, so we only do one.
    type Constrained_Array_Type is array (Character) of Ada.Text_IO.Count;
 
    type Private_Type_1 is abstract tagged limited private;
    type Private_Type_2 is abstract tagged limited
-      private;
+     private;
    -- Rest 'null record' to avoid declaring full type
    type Private_Type_3 is abstract tagged
-      limited null record;
+     limited null record;
    type Private_Type_4 is abstract
-      tagged limited null record;
+     tagged limited null record;
    type Private_Type_5 is
-      abstract tagged limited null record;
+     abstract tagged limited null record;
    type Private_Type_6
-      is abstract tagged limited null record;
+     is abstract tagged limited null record;
    type
-      Private_Type_7 is abstract tagged limited null record;
+     Private_Type_7 is abstract tagged limited null record;
 
    type Limited_Derived_Type_1 is abstract limited new Private_Type_1 with private;
    type Limited_Derived_Type_2 is abstract limited new Private_Type_1 with
-      private;
+     private;
    -- rest of Limited_Derived below, due to freezing rules
 
    type Null_Record_Type_1 is null record;
    type Null_Record_Type_2 is null
    record;
    type Null_Record_Type_3 is
-      null record;
+     null record;
    type Null_Record_Type_4
-      is null record;
+     is null record;
 
    type Discrete_Type_1 is (A, B, C);
    type Discrete_Type_2 is
-      (A, B, C);
+     (A, B, C);
    type Discrete_Type_3
-      is (A, B, C);
+     is (A, B, C);
    type
-      Discrete_Type_4 is (A, B, C);
+     Discrete_Type_4 is (A, B, C);
 
    -- Numeric types
    type Decimal_Fixed_Point_1 is delta 0.10 digits 10;
    type Decimal_Fixed_Point_2 is delta 0.10 digits
-      10;
+     10;
    type Decimal_Fixed_Point_3 is delta 0.10
-      digits 10;
+     digits 10;
    type Decimal_Fixed_Point_4 is delta
-      0.10 digits 10;
+     0.10 digits 10;
    type Decimal_Fixed_Point_5 is
-      delta 0.10 digits 10;
+     delta 0.10 digits 10;
    type Decimal_Fixed_Point_6
-      is delta 0.10 digits 10;
+     is delta 0.10 digits 10;
    type
-      Decimal_Fixed_Point_7 is delta 0.10 digits 10;
+     Decimal_Fixed_Point_7 is delta 0.10 digits 10;
 
    -- These are not signicantly different, so only one.
    type Floating_Point is digits 10;
@@ -255,45 +253,45 @@ package Ada_Mode.Nominal is
    -- Declaring multiple objects in one statement is tested in FIXME:
    Integer_A, Integer_B, Integer_C : Integer;
    Integer_D, Integer_E, Integer_F :
-      Integer;
+     Integer;
    Integer_G, Integer_H,
-      Integer_I : Integer;
+     Integer_I : Integer;
 
    Integer_J,
-      Integer_K, Integer_L : Integer;
+     Integer_K, Integer_L : Integer;
 
    Float_1 : aliased constant Float := 1.0;
    Float_2 : aliased constant Float :=
-      1.0;
+     1.0;
    Float_3 : aliased constant Float
-      := 1.0;
+     := 1.0;
    Float_4 : aliased constant
-      Float := 1.0;
+     Float := 1.0;
    Float_5 : aliased
-      constant Float := 1.0;
+     constant Float := 1.0;
    Float_6 :
-      aliased constant Float := 1.0;
+     aliased constant Float := 1.0;
    Float_7
-      : aliased constant Float := 1.0;
+     : aliased constant Float := 1.0;
 
    -- FIXME: anonymous array ...
 
    -- Non-trivial type name
    P_1 : Ada.Strings.Unbounded.String_Access;
    P_2 : Ada.Strings.Unbounded.
-      String_Access;
+     String_Access;
    P_3 : Ada.Strings.Unbounded
-      .String_Access;
+     .String_Access;
    P_4 : Ada.Strings.
-      Unbounded.String_Access;
+     Unbounded.String_Access;
    P_5 : Ada.
-      Strings.Unbounded.String_Access;
+     Strings.Unbounded.String_Access;
    P_6 : Ada
-      .Strings.Unbounded.String_Access;
+     .Strings.Unbounded.String_Access;
    P_7 :
-      Ada.Strings.Unbounded.String_Access;
+     Ada.Strings.Unbounded.String_Access;
    P_8
-      : Ada.Strings.Unbounded.String_Access;
+     : Ada.Strings.Unbounded.String_Access;
 
    ----------
    -- Subprograms
@@ -308,65 +306,65 @@ package Ada_Mode.Nominal is
    procedure Procedure_1a (Item  : in out Parent_Type_1);
 
    procedure Procedure_1b
-      (Item  : in out Parent_Type_1) is null;
+     (Item  : in out Parent_Type_1) is null;
 
    procedure
-      Procedure_1c (Item  : in out Parent_Type_1) is null;
+     Procedure_1c (Item  : in out Parent_Type_1) is null;
 
    procedure Procedure_1d
-      (Item   : in out Parent_Type_1;
-       Item_1 : in     Character;
-       Item_2 : out    Character)
-      is null;
+     (Item   : in out Parent_Type_1;
+      Item_1 : in     Character;
+      Item_2 : out    Character)
+     is null;
 
    procedure Procedure_1e (Item   : in out Parent_Type_1;
                            Item_1 : in Character;
                            Item_2 : out Character)
-      is null;
+     is null;
 
    procedure Procedure_2a;
    procedure
-      Procedure_2b is null;
+     Procedure_2b is null;
 
    procedure Procedure_3a is null;
    procedure Procedure_3b is
-      null;
+     null;
    procedure Procedure_3c
-      is null;
+     is null;
    procedure
-      Procedure_3d is null;
+     Procedure_3d is null;
 
    procedure Abstract_Procedure_1 (Item : access Private_Type_1) is abstract;
    procedure Abstract_Procedure_2 (Item : access Private_Type_1) is
-      abstract;
+     abstract;
    procedure Abstract_Procedure_3 (Item : access Private_Type_1)
-      is abstract;
+     is abstract;
    procedure Abstract_Procedure_4
-      (Item : access Private_Type_1) is abstract;
+     (Item : access Private_Type_1) is abstract;
    procedure
-      Abstract_Procedure_5 (Item : access Private_Type_1) is abstract;
+     Abstract_Procedure_5 (Item : access Private_Type_1) is abstract;
 
    function Function_1a return Float;
    function Function_1b return
-      Float;
+     Float;
    function Function_1c
-      return Float;
+     return Float;
    function
-      Function_1d return Float;
+     Function_1d return Float;
 
    function Function_2a (Param : in Parent_Type_1) return Float;
    function Function_2b (Param : in Parent_Type_1) return
-      Float;
+     Float;
    function Function_2c (Param : in Parent_Type_1)
-      return Float;
+     return Float;
    function Function_2d
-      (Param : in Parent_Type_1) return Float;
+     (Param : in Parent_Type_1) return Float;
    function
-      Function_2e (Param : in Parent_Type_1) return Float;
+     Function_2e (Param : in Parent_Type_1) return Float;
 
    function Function_2f
-      (Param : in Parent_Type_1)
-      return Float;
+     (Param : in Parent_Type_1)
+     return Float;
 
    -- FIXME: nested packages
 
@@ -378,7 +376,7 @@ private
    end record;
 
    type Limited_Derived_Type_1 is abstract limited
-      new Private_Type_1 with
+     new Private_Type_1 with
    record
       Component_1 : Integer;
    end record;
@@ -386,23 +384,23 @@ private
    type Limited_Derived_Type_2 is abstract limited new Private_Type_1 with null record;
 
    type Limited_Derived_Type_3 is abstract limited new Private_Type_1
-      with null record;
+     with null record;
    type Limited_Derived_Type_4 is abstract limited new
-      Private_Type_1 with null record;
+     Private_Type_1 with null record;
    type Limited_Derived_Type_5 is abstract limited
-      new Private_Type_1 with null record;
+     new Private_Type_1 with null record;
    type Limited_Derived_Type_6 is abstract
-      limited new Private_Type_1 with null record;
+     limited new Private_Type_1 with null record;
    -- rest covered by Private_Type_n
 
    type Incomplete_Type_1 (<>) is tagged;
    type Incomplete_Type_2 (<>) is
-      tagged;
+     tagged;
    type Incomplete_Type_3 (<>)
-      is tagged;
+     is tagged;
    type Incomplete_Type_4
-      (<>) is tagged;
+     (<>) is tagged;
    type
-      Incomplete_Type_5 (<>) is tagged;
+     Incomplete_Type_5 (<>) is tagged;
 
 end Ada_Mode.Nominal;

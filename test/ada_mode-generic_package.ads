@@ -13,13 +13,13 @@ generic
    type Procedure_Formal_Access_Type is access protected procedure (A_Param : out Integer);
    type Function_Formal_Access_Type is access protected function (A_Param : in Float) return Standard.Float;
    type Unconstrained_Formal_Array_Type is array (Integer range <>, Standard.Character range <>) of
-      Object_Formal_Access_Type;
+     Object_Formal_Access_Type;
    type Constrained_Formal_Array_Type is array (Character) of Ada.Text_IO.Count;
    type Formal_Private_Type is abstract tagged limited private;
    type Interface_Type is task interface;
    type Limited_Formal_Derived_Type is abstract limited new Formal_Private_Type with private;
    type Synchronized_Formal_Derived_Type is abstract synchronized new Formal_Private_Type and Interface_Type
-      with private;
+     with private;
    type Incomplete_Type (<>) is tagged;
    type Formal_Discrete_Type is (<>);
 
@@ -37,9 +37,9 @@ generic
 
    -- Subprograms
    with procedure Concrete_Defaulted_Procedure
-      (Item  : in out Ada.Strings.Unbounded.Unbounded_String;
-       New_Item : Character)
-      is Ada.Strings.Unbounded.Append;
+     (Item  : in out Ada.Strings.Unbounded.Unbounded_String;
+      New_Item : Character)
+     is Ada.Strings.Unbounded.Append;
 
    with procedure Concrete_Defaulted_Procedure_2 is <>;
    with procedure Concrete_Defaulted_Procedure_3 is null;
@@ -48,9 +48,9 @@ generic
    with procedure Abstract_Procedure (Item : out Formal_Private_Type) is abstract;
    with function Concrete_Function_1 return Float is <>;
    with function Concrete_Function_2 return Float
-      is <>;
+     is <>;
    with function Concrete_Function_3
-      return Float is <>;
+     return Float is <>;
 
    -- Packages
    with package A_Package is new Ada.Text_IO.Integer_IO (Num => Formal_Signed_Integer_Type);
