@@ -230,8 +230,9 @@ begin
 	;; leaving "with" "function" "procedure" unrefined gives
 	;; conflicts with the non-formal use.
 
-	("with-generic" "function-generic" name "return-spec" name); trailing name same as non-formal
+	("with-generic" "function-generic" name "return-generic" name); trailing name same as non-formal
 	("with-generic" "procedure-generic" name); trailing name same as non-formal
+	;; We leave out [is name], because "is" is an identifier here.
 	)
 
        (generic_package_declaration
@@ -294,6 +295,14 @@ begin
 	;; trailing name makes "return-spec" have the same binding as
 	;; in subprogram_body; that avoids recursion between refine-is
 	;; and refine-return
+
+	("overriding" "function-overriding" name "return-spec" name)
+	("overriding" "procedure-overriding" name)
+	;; We need "overriding" as a token, because the indentation
+	;; policy for it is an exception to the hanging policy:
+	;;
+	;;    overriding
+	;;    procedure (...);
 
 	("procedure" name); same as 'procedure name is-subprogram_body'
 	;; We keep this, because it is too jarring to not find it here :).
@@ -695,7 +704,9 @@ encounter beginning of buffer."
 	((equal token "package") "is-package-body")
 	;; "package" "body" name ^ "is"; "body" is an identifier
 
-	((member token '("procedure" "procedure-generic"))
+	((equal token "procedure-generic") "is"); identifier
+
+	((member token '("procedure" "procedure-overriding"))
 	 ;;  procedure name is abstract;
 	 ;;  procedure name is null;
 	 ;;  procedure name is declarations begin statements end;
@@ -706,8 +717,12 @@ encounter beginning of buffer."
 	    ((member token '("abstract" "null")) "is")
 	    (t "is-subprogram_body"))))
 
+	((equal token "return-generic")
+	 ;; with function identifier return name is name
+	 "is")
+
 	((equal token "return-spec")
-	 ;; "function" identifier "return" name ^ "is" declarations "begin"
+	 ;; function identifier return name is declarations begin
 	 "is-subprogram_body")
 
 	((equal token "type")
@@ -856,16 +871,21 @@ encounter beginning of buffer."
     ;;
     ;; 1) a function subprogram_declaration or formal_subprogram_declaration:
     ;;
-    ;;    function_specification ::= function defining_designator parameter_and_result_profile
+    ;;    1a) function_specification ::= function defining_designator parameter_and_result_profile
     ;;
-    ;;    preceding token: "function", "function-generic"
+    ;;    preceding token: "function", "function-overriding"
     ;;    token: "return-spec"
+    ;;
+    ;;    1b) formal_concrete_subprogram_declaration ::= with subprogram_specification ...
+    ;;
+    ;;    preceding token: "function-generic"
+    ;;    token: "return-generic"
     ;;
     ;; 2) a function specification in function body :
     ;;
     ;;    function identifier (...) return [access] name is
     ;;
-    ;;    preceding token: "function"
+    ;;    preceding token: "function", "function-overriding"
     ;;    token: "return-spec"
     ;;
     ;; 3) a return statement:
@@ -889,7 +909,7 @@ encounter beginning of buffer."
     ;;
     ;;    type name is access [protected] function identifier (...) return [access] name;
     ;;
-    ;;    preceding token: "function"
+    ;;    preceding token: "function"  _not_ overriding or generic
     ;;    token: "return-spec"
     ;;
     ;; So we have to look both forward and backward to resolve this.
@@ -901,9 +921,14 @@ encounter beginning of buffer."
      ;; function F1 return Integer;
      ;; return 0;
      ;;
-     (if (member (save-excursion (ada-indent-backward-name))
-		 '("function" "function-generic"))
-	 "return-spec"); 1, 2, 5
+     (let ((token (save-excursion (ada-indent-backward-name))))
+       (cond
+	((member token '("function" "function-overriding"))
+	 "return-spec"); 1a, 2, 5
+
+	((equal token "function-generic")
+	 "return-generic"); 1b
+	))
 
      (save-excursion
        ;; FIXME: test this at end of buffer (not very
@@ -925,10 +950,12 @@ encounter beginning of buffer."
   (save-excursion
     (when forward (smie-default-backward-token))
 
-    (if (equal "with" (smie-default-backward-token))
-	(concat token "-generic")
-      token)
-  ))
+    (let ((prev-token (smie-default-backward-token)))
+      (cond
+       ((equal prev-token "with")	(concat token "-generic"))
+       ((equal prev-token "overriding") (concat token "-overriding"))
+       (t token)
+  ))))
 
 (defun ada-indent-refine-with (forward)
   (save-excursion
@@ -991,7 +1018,7 @@ encounter beginning of buffer."
     ;;       with subprogram_specification [is subprogram_default]
     ;;       [aspect_specification];
     ;;
-    ;;    following token: "function", "procedure"
+    ;;    following token: "function", "procedure" (_not_ overriding or generic)
     ;;    skip: none
     ;;    keyword: with-generic
     ;;
@@ -1283,12 +1310,15 @@ at the start of CHILD."
     (cons 'column (+ (current-column) offset))
     ))
 
-(defun ada-indent-goto-statement-start (&optional child)
+(defun ada-indent-goto-statement-start (child)
   "Move point to the start of the statement/declaration
-containing point. If point is at statement start, does
-nothing. If CHILD is non-nil, it must be a keyword or \"(\",
-and point must be at the start of CHILD."
-  (interactive)
+containing point. If point is in a parenthesized list, move to
+the start of the current list element. If point is at statement
+or list element start, does nothing. If CHILD is non-nil, it must
+be a keyword, and point must be at the start of CHILD."
+  ;; See ada-indent-show-statement-start for interactive call of
+  ;; this.
+  ;;
   ;; Because we did not include access-to-subprogram in the grammar,
   ;; we have to consider whether the first parent we find is the
   ;; "right" one.
@@ -1369,9 +1399,8 @@ and point must be at the start of CHILD."
       ;; We have to check the previous keyword for procedure calls,
       ;; "procedure" and "function", and a few other cases.  Many
       ;; statements have non-keyword tokens before the first token
-      ;; (assignent, subprogram declarations including "overriding"),
-      ;; so we have to use use ada-indent-backward-name to find the
-      ;; previous keyword.
+      ;; (assignent), so we have to use use ada-indent-backward-name
+      ;; to find the previous keyword.
       (save-excursion
 	(let ((prev-token (ada-indent-backward-name)))
 	  (if (or
@@ -1413,7 +1442,7 @@ and point must be at the start of CHILD."
       (goto-char (nth 1 parent))
 
       ;; handle access-to-subprogram types
-      (while (and (member (nth 2 parent) `("procedure" "function"))
+      (while (and (member (nth 2 parent) `("procedure" "function")) ; _not -overriding -generic
 		  (member (save-excursion (smie-default-backward-token)) '("access" "protected")))
 	(setq parent (ada-indent-goto-parent parent 2)))
 
@@ -1441,9 +1470,8 @@ the start of CHILD, which must be a keyword."
 
 ;;;
 (defun ada-indent-rules (method arg)
-  ;; If this returns a number, smie-indent--rule will do some
-  ;; complicated logic with it. So it is best to return ('column n)
-  ;; when we can.
+  ;; This is called from ada-indent-{before|after}-keyword; it must
+  ;; not move point, and must return nil or ('column n).
   (case method
     (:elem
      ;; see comments at smie-rules-function
@@ -1483,6 +1511,11 @@ the start of CHILD, which must be a keyword."
        ;; type, we want to indent relative to "procedure" or
        ;; "function", not the type declaration start.
        (ada-indent-rule-parent ada-indent arg))
+
+      ((member arg '("procedure-overriding" "function-overriding"))
+       (save-excursion
+	 (smie-default-backward-token)
+	 (cons 'column (current-column))))
 
       ((equal arg "with-context")
        (cons 'column 0))

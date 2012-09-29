@@ -30,14 +30,10 @@ test/Makefile
     test/ada_mode-nominal.ads passing
     test/ada_mode-nominal.adb passing
     test/ada_mode-nominal-child.ads
-
-   overriding
-   procedure Procedure_1c (Item  : in out Child_Type_1) is null;
-
-overriding is the first token in the declaration; this is an exception to the hanging rule
-    so overriding needs to be a token
-
     test/ada-mode-generic_package.ads
+
+package Ada_Mode.Generic_Package is
+    needs to be package-generic
 
 add to one of the these file one each of:
     aspect_clause
@@ -45,6 +41,8 @@ add to one of the these file one each of:
     remaining expressions (if expression, that started this whole thing :)
     pre/post conditions
     look for remaining non-terminals in Annex P
+        subprogram call with intended param list
+        aggregate with associations
 
 then make rest of files work
 

@@ -12,7 +12,9 @@ package Ada_Mode.Nominal.Child is
 
    overriding
    procedure Procedure_1d
-      (Item  : in out Child_Type_1)
+      (Item   : in out Child_Type_1;
+       Item_1 : in     Character;
+       Item_2 : out    Character)
       is null;
 
    overriding function Function_2a (Param : in Child_Type_1) return Float;

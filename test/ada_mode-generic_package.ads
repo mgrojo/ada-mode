@@ -46,7 +46,11 @@ generic
    with procedure Concrete_Procedure;
    with procedure Abstract_Defaulted_Procedure (Item : access Formal_Private_Type) is abstract <>;
    with procedure Abstract_Procedure (Item : out Formal_Private_Type) is abstract;
-   with function Concrete_Function return Float is <>;
+   with function Concrete_Function_1 return Float is <>;
+   with function Concrete_Function_2 return Float
+      is <>;
+   with function Concrete_Function_3
+      return Float is <>;
 
    -- Packages
    with package A_Package is new Ada.Text_IO.Integer_IO (Num => Formal_Signed_Integer_Type);
