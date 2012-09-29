@@ -11,7 +11,7 @@ package body Ada_Mode.Nominal is
 
    type Incomplete_Type_1 (Discriminant_1 : Integer) is tagged null record;
 
-   type Incomplete_Type_2 (Discriminant_1 : Integer) is tagged null -- FIXME: null not refined to null_record
+   type Incomplete_Type_2 (Discriminant_1 : Integer) is tagged null
    record; -- don't care
 
    type Incomplete_Type_3 (Discriminant_1 : Integer) is tagged
@@ -151,7 +151,7 @@ package body Ada_Mode.Nominal is
       return
          Local_1 +
          Local_2 +
-         Local_3; -- FIXME: failing; need to find 'return' as parent
+         Local_3;
    end;
 
    function Function_1d return Float is begin return 1.0; end;

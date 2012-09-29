@@ -23,13 +23,11 @@ C-x r m set bookmark
 (edebug-toggle-save-all-windows)
 
 test/Makefile
-    test/ada_mode-nominal.ads
-    test/ada_mode-nominal.adb
+    test/ada_mode-nominal.ads passing
+    test/ada_mode-nominal.adb passing
+    test/ada-mode-generic_package.ads
 
-final "begin" is wrong
-    prev begin return 1.0; end; return pairs with end!
-
-inline refine-is
+<>; is a single token!
 
 ada-indent.el
 

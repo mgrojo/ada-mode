@@ -260,8 +260,7 @@ begin
        (statement
 	(expression); matches procedure calls, assignment
 
-	("return-stmt");
-
+	("return-stmt")
 	;; extended_return_statement
 	("return-ext" identifier ":" name); same as initialized object declaration
 	("return-ext" identifier ":" name "do" statements "end-return" "return-end")
@@ -273,14 +272,11 @@ begin
 	(statement ";" statement))
 
        (subprogram_body
-	;; factoring out subprogram_specification here breaks something.
 	;; access is an identifier
 	("function" name "return-spec" name "is-subprogram_body" declarations "begin" statements "end")
 	("procedure" name "is-subprogram_body" declarations "begin" statements "end"))
 
        (subprogram_declaration
-	;; factoring out subprogram_specification here breaks something.
-
 	("function" name "return-spec" name)
 	;; trailing name makes "return-spec" have the same binding as
 	;; in subprogram_body; that avoids recursion between refine-is
@@ -438,6 +434,7 @@ begin
     ;; FIXME: declare
     "do"
     ;; "end" is never a block start; treated separately
+    "generic"
     "is-entry_body"
     "is-package-body"
     "is-package"
@@ -756,16 +753,6 @@ encounter beginning of buffer."
      ))
   )
 
-(defun ada-indent-maybe-refine-is (start-token forward)
-  "point is in front of START-TOKEN; we are refining that. If
-START-TOKEN is part of an is-* keyword, return that keyword,
-moving point to its start."
-  (cond
-   ((equal start-token "is")
-    (ada-indent-refine-is forward))
-   ;; FIXME: inline this
-   ))
-
 (defun ada-indent-refine-mod (forward)
   (save-excursion
     (when forward (smie-default-backward-token))
@@ -1022,9 +1009,7 @@ moving point to its start."
   ;; every keyword
   (let ((token (smie-default-forward-token)))
     (cond
-     ;; Alphabetical order, except ada-indent-maybe-refine-is is last
-     ;; because it's relatively slow (and it really confuses debugging
-     ;; the other rules!), and some checks must be done after that.
+     ;; Alphabetical order.
      ((equal token "and") (ada-indent-refine-and t))
 
      ((equal token "end")
@@ -1039,7 +1024,7 @@ moving point to its start."
 	 (t "end")); all others
 	))
 
-     ; "is" handled by 'maybe-refine-is' below
+     ((equal token "is") (ada-indent-refine-is t))
 
      ((equal token "mod") (ada-indent-refine-mod t))
 
@@ -1060,11 +1045,18 @@ moving point to its start."
 	;; because we are leaving "protected" as an identifier.
 	"protected"))
 
+     ((equal token "record")
+      (let ((token (save-excursion (smie-default-backward-token) (smie-default-backward-token))))
+	(cond
+	 ((equal "end" token)
+	  "record-end")
+
+	 (t "record")); all others
+	))
+
      ((equal token "return") (ada-indent-refine-return t))
 
      ((equal token "with") (ada-indent-refine-with t))
-
-     ((ada-indent-maybe-refine-is token t))
 
      (t token))))
 
@@ -1072,11 +1064,7 @@ moving point to its start."
   (let ((token (smie-default-backward-token))
 	pos)
     (cond
-     ;; Alphabetical order, except ada-indent-maybe-refine-is is near
-     ;; last because it's relatively slow, and it relies on some
-     ;; tokens that can follow is being already checked. (and it
-     ;; really confuses debugging the other rules!). Some other checks
-     ;; must be done after maybe-refine-is.
+     ;; Alphabetical order.
 
      ((equal token "and") (ada-indent-refine-and nil))
 
@@ -1089,7 +1077,7 @@ moving point to its start."
 	 ((equal token "return") "end-return")
 	 (t "end"))))
 
-     ;; "function", "is" handled by maybe-refine-is below
+     ((equal token "is") (ada-indent-refine-is t))
 
      ((equal token "mod") (ada-indent-refine-mod nil))
 
@@ -1103,29 +1091,6 @@ moving point to its start."
 	"package"))
 
      ((equal token "private") (ada-indent-refine-private nil))
-
-     ((and
-       (equal token "protected")
-       (equal "body" (save-excursion
-		       (smie-default-forward-token); "protected"
-		       (smie-default-forward-token))))
-      "protected-body")
-
-     ;; "procedure" handled by maybe-refine-is below
-
-     ((equal token "record")
-      (let ((token (save-excursion (smie-default-backward-token))))
-	(cond
-	 ((equal token "end") "record-end")
-	 ((equal token "null") "record-null")
-	 (t "record")
-	 )))
-
-     ((equal token "return") (ada-indent-refine-return nil))
-
-     ((equal token "with") (ada-indent-refine-with nil))
-
-     ((ada-indent-maybe-refine-is token nil))
 
      ((equal token "protected")
       ;; 'protected' occurs in:
@@ -1166,6 +1131,18 @@ moving point to its start."
 	 ((equal token "type") "protected"); an identifier
 	 (t "protected"))
 	))
+
+     ((equal token "record")
+      (let ((token (save-excursion (smie-default-backward-token))))
+	(cond
+	 ((equal token "end") "record-end")
+	 ((equal token "null") "record-null")
+	 (t "record")
+	 )))
+
+     ((equal token "return") (ada-indent-refine-return nil))
+
+     ((equal token "with") (ada-indent-refine-with nil))
 
      (t token))))
 
@@ -1356,7 +1333,10 @@ and point must be at the start of CHILD."
 
       (if (or
 	   (equal (nth 2 parent) ";")
-	   (member (nth 2 parent) ada-indent-block-keywords))
+	   (and
+	    (not (member child ada-indent-block-keywords))
+	    (not (member child ada-indent-block-end-keywords))
+	    (member (nth 2 parent) ada-indent-block-keywords)))
 	  ;; point is at statement start
 	  (throw 'done nil))
 
@@ -1459,13 +1439,7 @@ the start of CHILD, which must be a keyword."
        ;;
        ;; We are indenting "is", "begin", etc. Indent at the same level as the
        ;; parent.
-       ;;
-       ;; IMPROVEME: from "end", this goes back to "procedure" and
-       ;; "entry" in these examples, but it only needs to go back to
-       ;; "begin". Could optimize. ada-indent-rule-parent is faster
-       ;; than ada-indent-rule-statement, but still goes to the same
-       ;; place in this case.
-       (ada-indent-rule-parent 0 arg))
+       (ada-indent-rule-statement 0 arg))
 
       ((let ((pos (progn (save-excursion (ada-indent-goto-statement-start arg)) (point))))
 	 (if (not (= pos (point)))
