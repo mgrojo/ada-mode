@@ -29,20 +29,25 @@ test/Makefile
     nominal
     test/ada_mode-nominal.ads passing
     test/ada_mode-nominal.adb passing
-    test/ada_mode-nominal-child.ads
-    test/ada-mode-generic_package.ads
+    test/ada_mode-nominal-child.ads passing
+    test/ada_mode-generic_package.ads passing
 
-package Ada_Mode.Generic_Package is
-    needs to be package-generic
+fix FIXME: test is-package-body; is-package is ok?
 
-add to one of the these file one each of:
+
+add to one of the these files one each of:
     aspect_clause
     remaining statements
     remaining expressions (if expression, that started this whole thing :)
     pre/post conditions
+
+    subprogram call with indented param list
+    aggregate with associations
+    nested package
+    nested generic subprogram, package
+    library generic subprogram
+
     look for remaining non-terminals in Annex P
-        subprogram call with intended param list
-        aggregate with associations
 
 then make rest of files work
 

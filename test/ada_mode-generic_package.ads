@@ -54,6 +54,7 @@ generic
 
    -- Packages
    with package A_Package is new Ada.Text_IO.Integer_IO (Num => Formal_Signed_Integer_Type);
+   -- FIXME: add A_Package_n, indent at each token
 
 package Ada_Mode.Generic_Package is
 end Ada_Mode.Generic_Package;

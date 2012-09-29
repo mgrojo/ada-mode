@@ -189,10 +189,16 @@ begin
 
        (declaration
 	;; FIXME: (package_specification), (package_body); not tested yet.
+	(entry_body)
+	(formal_package_declaration)
+	(formal_subprogram_declaration)
+	(generic_package_declaration)
+	(package_body)
+	(package_specification)
 	(protected_body)
-	(type_declaration)
 	(subprogram_declaration)
 	(subprogram_body)
+	(type_declaration)
 
 	;; object declarations
 	(identifier ":" name); same as ":" in extended return
@@ -226,12 +232,21 @@ begin
 
        ;; Formal generic parameters. Most formal_* are covered in this
        ;; grammar by the equivalent non-formal syntax.
+
+       (formal_package_declaration
+	;; with package defining_identifier is new generic_package_name
+	;;    formal_package_actual_part [aspect_specification];
+	("with-formal" "package-formal" identifier "new" name))
+       ;; leave "is" an identifier. name after "new" to match other
+       ;; uses. formal_package_actual_part is an association list
+       ;; FIXME: aspects not implemented yet
+
        (formal_subprogram_declaration
 	;; leaving "with" "function" "procedure" unrefined gives
 	;; conflicts with the non-formal use.
 
-	("with-generic" "function-generic" name "return-generic" name); trailing name same as non-formal
-	("with-generic" "procedure-generic" name); trailing name same as non-formal
+	("with-formal" "function-formal" name "return-formal" name); trailing name same as non-formal
+	("with-formal" "procedure-formal" name); trailing name same as non-formal
 	;; We leave out [is name], because "is" is an identifier here.
 	)
 
@@ -463,6 +478,7 @@ begin
     "is-protected-body"
     "is-subprogram_body"
     "is-type-protected"
+    "package-generic"
     "private"
     "record"
     "when")
@@ -698,13 +714,14 @@ encounter beginning of buffer."
 
      (let ((token (save-excursion (ada-indent-backward-name))))
        (cond
-	((equal token "package") "is-package")
-	;; "package" name ^ "is"
+	((member token '("package" "package-generic")) "is-package")
 
-	((equal token "package") "is-package-body")
+	((equal token "package-formal") "is")
+
+	((equal token "package") "is-package-body") ;; FIXME: can't get here!
 	;; "package" "body" name ^ "is"; "body" is an identifier
 
-	((equal token "procedure-generic") "is"); identifier
+	((equal token "procedure-formal") "is"); identifier
 
 	((member token '("procedure" "procedure-overriding"))
 	 ;;  procedure name is abstract;
@@ -717,7 +734,7 @@ encounter beginning of buffer."
 	    ((member token '("abstract" "null")) "is")
 	    (t "is-subprogram_body"))))
 
-	((equal token "return-generic")
+	((equal token "return-formal")
 	 ;; with function identifier return name is name
 	 "is")
 
@@ -817,6 +834,30 @@ encounter beginning of buffer."
 	"mod-type"
       "mod")))
 
+(defun ada-indent-refine-package (forward)
+  (save-excursion
+    (when forward (smie-default-backward-token))
+
+    (or
+     (let ((token (save-excursion (smie-default-backward-token))))
+       (cond
+	((equal token "access") "package-access")
+	((equal token "with") "package-formal")
+	))
+
+     (if (equal "body" (save-excursion (smie-default-forward-token)))
+	 "package-body")
+
+     ;; FIXME: this is ok for a library level [generic] package alone
+     ;; in a file. But it could be a problem for a nested [generic]
+     ;; package. Idea: "end" can't occur in generic formal
+     ;; parameters; search for "end|generic".
+     (if (equal "generic" (save-excursion (nth 2 (smie-backward-sexp "package-generic"))))
+	 "package-generic")
+
+     "package")
+    ))
+
 (defun ada-indent-refine-private (forward)
   (save-excursion
     (when forward (smie-default-backward-token))
@@ -878,8 +919,8 @@ encounter beginning of buffer."
     ;;
     ;;    1b) formal_concrete_subprogram_declaration ::= with subprogram_specification ...
     ;;
-    ;;    preceding token: "function-generic"
-    ;;    token: "return-generic"
+    ;;    preceding token: "function-formal"
+    ;;    token: "return-formal"
     ;;
     ;; 2) a function specification in function body :
     ;;
@@ -926,8 +967,8 @@ encounter beginning of buffer."
 	((member token '("function" "function-overriding"))
 	 "return-spec"); 1a, 2, 5
 
-	((equal token "function-generic")
-	 "return-generic"); 1b
+	((equal token "function-formal")
+	 "return-formal"); 1b
 	))
 
      (save-excursion
@@ -952,7 +993,7 @@ encounter beginning of buffer."
 
     (let ((prev-token (smie-default-backward-token)))
       (cond
-       ((equal prev-token "with")	(concat token "-generic"))
+       ((equal prev-token "with")	(concat token "-formal"))
        ((equal prev-token "overriding") (concat token "-overriding"))
        (t token)
   ))))
@@ -1018,9 +1059,9 @@ encounter beginning of buffer."
     ;;       with subprogram_specification [is subprogram_default]
     ;;       [aspect_specification];
     ;;
-    ;;    following token: "function", "procedure" (_not_ overriding or generic)
+    ;;    following unrefined token: "function", "procedure"
     ;;    skip: none
-    ;;    keyword: with-generic
+    ;;    keyword: with-formal
     ;;
     ;; 9) formal_abstract_subprogram_declaration ::=
     ;;       with subprogram_specification is abstract [subprogram_default]
@@ -1032,8 +1073,9 @@ encounter beginning of buffer."
     ;;       with package defining_identifier is new generic_package_name  formal_package_actual_part
     ;;       [aspect_specification];
     ;;
-    ;;    not implemented yet
-    ;;    followed by "package"
+    ;;    following unrefined token: "package"
+    ;;    skip: none
+    ;;    keyword: with-formal
     ;;
     ;; 11) aspect_specification ::=
     ;;       with aspect_mark [=> aspect_definition] {, aspect_mark [=> aspect_definition] }
@@ -1045,8 +1087,8 @@ encounter beginning of buffer."
      (let ((token (save-excursion
 		    (smie-default-forward-token); with
 		     (smie-default-forward-token))))
-       (if (member token '("procedure" "function"))
-	   "with-generic"); 8
+       (if (member token '( "function" "package" "procedure"))
+	   "with-formal"); 8
        )
 
      ;; this checks for preceding ";", so it has to be after the above
@@ -1096,13 +1138,7 @@ encounter beginning of buffer."
 
      ((equal token "mod") (ada-indent-refine-mod t))
 
-     ((equal token "package")
-      (if (save-excursion (equal "access" (smie-default-backward-token)))
-	  "package-access"
-	(if (equal "body" (save-excursion (smie-default-forward-token)))
-	      "package-body"
-	  ;; FIXME: package-generic?
-	  "package")))
+     ((equal token "package") (ada-indent-refine-package t))
 
      ((equal token "private") (ada-indent-refine-private t))
 
@@ -1159,14 +1195,7 @@ encounter beginning of buffer."
 
      ((equal token "mod") (ada-indent-refine-mod nil))
 
-     ((equal token "package")
-      ;; FIXME: this is ok for a library level [generic] package alone
-      ;; in a file. But it could be a problem for a nested [generic]
-      ;; package. Idea: "end" can't occur in generic formal
-      ;; parameters; search for "end|generic".
-      (if (equal "generic" (save-excursion (smie-backward-sexp "package-generic")))
-	  "package-generic"
-	"package"))
+     ((equal token "package") (ada-indent-refine-package nil))
 
      ((equal token "private") (ada-indent-refine-private nil))
 
