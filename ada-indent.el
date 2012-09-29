@@ -44,6 +44,10 @@
 
 ;;; user variables
 
+(defgroup ada-indentation nil
+  "Indentation options for Ada source."
+  :group 'ada)
+
 (defcustom ada-indent 3
   "*Size of Ada default indentation, when no other indentation is used.
 
@@ -51,7 +55,7 @@ An example is :
 procedure Foo is
 begin
 >>>null;"
-  :type 'integer  :group 'ada)
+  :type 'integer  :group 'ada-indentation)
 
 (defcustom ada-broken-indent 2
   "*Number of columns to indent the continuation of a broken line.
@@ -59,7 +63,7 @@ begin
 An example is :
    My_Var : My_Type :=
    >>(Field1 => Value);"
-  :type 'integer :group 'ada)
+  :type 'integer :group 'ada-indentation)
 
 
 ;;; grammar

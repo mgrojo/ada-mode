@@ -65,6 +65,30 @@ c:/Projects/emacs_stephe.main/emacs_stephe_site_lisp/ada-mode.el
 http://dickgrune.com/Books/PTAPG_2nd_Edition/
     used by modula2-mode, octave-mode in emacs 24
 
+ indentation options
+ada-broken-decl-indent             0
+ada-broken-indent                  2
+ada-continuation-indent            2
+ada-indent                         3
+ada-indent-after-return            t
+ada-indent-align-comments          t
+ada-indent-comment-as-code         t
+ada-indent-handle-comment-special  nil
+ada-indent-is-separate             t
+ada-indent-record-rel-type         3
+ada-indent-renames                 2
+ada-indent-return                  0
+ada-indent-to-open-paren           t
+ada-label-indent                   -4
+ada-stmt-end-indent                0
+ada-use-indent                     2
+ada-when-indent                    3
+ada-with-indent                    2
+
+my changes from default:
+      (setq ada-when-indent 0)
+      (setq ada-label-indent 0)
+
  to do later
   ;; To find "(" from anywhere within an aggregate, we can use
   ;; `scan-lists'. So far, that hasn't been needed.

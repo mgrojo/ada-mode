@@ -13,14 +13,18 @@ all : compile test
 # EMACS := /usr/local/bin/emacs
 EMACS := $(EMACSPATH)/emacs.exe
 
-#one : EMACS := /usr/bin/emacs
-one : ada_mode-nominal.ali
-one : ada_mode-nominal.ads.diff
-one : ada_mode-nominal.adb.diff
-one : ada_mode-generic_package.ali
-one : ada_mode-generic_package.ads.diff
+#nominal : EMACS := /usr/bin/emacs
+nominal : ada_mode-nominal.ali
+nominal : ada_mode-nominal.ads.diff
+nominal : ada_mode-nominal.adb.diff
+nominal : ada_mode-nominal-child.ali
+nominal : ada_mode-nominal-child.ads.diff
+nominal : ada_mode-generic_package.ali
+nominal : ada_mode-generic_package.ads.diff
 
-# FIXME: add target to test user directory
+user : /Projects/smm.main/source/smm-download.adb.diff
+
+# FIXME: add target to test user directory nicely (no clutter)
 
 TEST_FILES := $(shell ls *.ad?)
 
@@ -44,7 +48,7 @@ COMPILE_FILES := $(filter-out parent.adb, $(COMPILE_FILES))
 COMPILE_FILES := $(filter-out prime-volatilities.adb, $(COMPILE_FILES))
 COMPILE_FILES := $(filter-out private.adb, $(COMPILE_FILES))
 
-.PHONY : test one all test-clean
+.PHONY : all nominal one test test-clean
 
 test : $(addsuffix .diff, $(TEST_FILES))
 
