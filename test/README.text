@@ -14,7 +14,8 @@ from existing tests) to test the SMIE grammar while the grammar was
 being written. Ada_Mode.Nominal contains structures that have a major
 influence on the grammar structure, such as names with dots, extended
 return, protected types. Other Ada_Mode.* test smaller parts of the
-grammar.
+grammar. Ada_Mode.* files all use the default option settings; other
+files test other settings.
 
 Other Ada files are mostly bug reports from earlier versions of
 Ada mode. They must still work, and may test corner cases not

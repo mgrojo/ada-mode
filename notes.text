@@ -28,15 +28,27 @@ ada-indent.el
 test/Makefile
     nominal
     test/ada_mode-nominal.ads passing
-    test/ada_mode-nominal.adb passing
-    test/ada_mode-nominal-child.ads passing
-    test/ada_mode-generic_package.ads passing
+    test/ada_mode-nominal.adb
+end ada_mode-nominal;
+    is tagged record
+        "is" can't be identifier; it must be closer. sigh.
 
-(defcustom ada-broken-indent 2
+    test/ada_mode-nominal-child.ads
+    test/ada_mode-generic_package.ads
 
-look for other indent options
 
-add to one of the these files one each of:
+"end record" (and aspect_specification?) will be indented relative to "type", unless we leave
+record_definition out of record_type_declaration; see
+ada-indent-save.el. Investigate other tokens on line with record
+first.
+
+    In either case, don't need goto-parent in :after "record"!
+        same for procedure/function in type?
+
+make rest of files work
+    add missing features to ada_mode-*
+
+
     aspect_clause
     remaining statements
     remaining expressions (if expression, that started this whole thing :)
@@ -47,15 +59,16 @@ add to one of the these files one each of:
     nested package
     nested generic subprogram, package
     library generic subprogram
+    attribute clauses
+        record layout
 
     look for remaining non-terminals in Annex P
-
-then make rest of files work
 
 then ask for input/testing
     run on my projects
 
 
+ relevant files
 c:/Projects/emacs_stephe.work/emacs_stephe/ada-mode-keys.el
 
 c:/apps/emacs-24.2/lisp/progmodes/modula2.el
@@ -66,30 +79,38 @@ http://dickgrune.com/Books/PTAPG_2nd_Edition/
     used by modula2-mode, octave-mode in emacs 24
 
  indentation options
-ada-broken-decl-indent             0
-ada-broken-indent                  2
-ada-continuation-indent            2
-ada-indent                         3
-ada-indent-after-return            t
-ada-indent-align-comments          t
-ada-indent-comment-as-code         t
-ada-indent-handle-comment-special  nil
-ada-indent-is-separate             t
-ada-indent-record-rel-type         3
-ada-indent-renames                 2
-ada-indent-return                  0
-ada-indent-to-open-paren           t
-ada-label-indent                   -4
-ada-stmt-end-indent                0
-ada-use-indent                     2
-ada-when-indent                    3
-ada-with-indent                    2
+c:/Projects/Web/stephe-leake/emacs/ada-mode/emacs-ada-mode.html
+
+compare to GPS, gnatpp
+
+ask on comp.lang.ada
 
 my changes from default:
       (setq ada-when-indent 0)
       (setq ada-label-indent 0)
+      (setq ada-indent-record-rel-type 0)
+
+Juanma Barranquero:
+    ada-broken-indent 3
+    ada-label-indent -3
+    ada-with-indent   5
+    ada-indent-return 2
+    ada-use-indent    4
+
+Bill Greene
+
+  (setq ada-indent              3)
+  (setq ada-broken-indent       ada-indent)
+  (setq ada-broken-decl-indent  ada-indent)
+  (setq ada-indent-return       ada-indent)
+  (setq ada-continuation-indent ada-indent)
+  (setq ada-indent-is-separate  nil)
+
+
 
  to do later
+run test on GDS, with broken-paren = 2, see if anything changes
+
   ;; To find "(" from anywhere within an aggregate, we can use
   ;; `scan-lists'. So far, that hasn't been needed.
 
@@ -100,26 +121,10 @@ switch to cl-macs, cl-lib
 
 why are we reindenting on space?
 
-don't call smie-indent-after-keyword?
-    in ada-intend-keyword, ignore :before/:after; just call after if no before rule works.
-
-in one invocation of smie-indent-line
-    indent-before
-    indent-after
-    rules
-
-    we categorize 'package' and 'is' three times
-    cache it?
-        knowing when to clear cache is the hard part
-        so far, indention is not slow (on my very fast machine)
-
-test with non-lowercase keywords
+test with non-lowercase keywords in source
 
 report ediff-buffers-wordwise bug; mark-active set, but no mark!
     try trunk http://alpha.gnu.org/gnu/emacs/windows/
-
-rewrite refine-is to pass expected "is-*" to backward-sexp
-    use a list of pairs (is-token parent-token)
 
 
  access to ada-france:

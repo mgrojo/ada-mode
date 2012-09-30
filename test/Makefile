@@ -25,6 +25,9 @@ nominal : ada_mode-generic_package.ads.diff
 user : /Projects/smm.main/source/smm-download.adb.diff
 
 # FIXME: add target to test user directory nicely (no clutter)
+# FIXME: add target to run tests with Ada mode 4.01 to compare
+
+one : options.ads.diff
 
 TEST_FILES := $(shell ls *.ad?)
 
@@ -74,7 +77,7 @@ COMPILE_FILES := $(sort $(COMPILE_FILES))
 
 compile : $(COMPILE_FILES)
 
-%.ali : %.adb
+%.ali : %.adb %.ads
 	gnatmake -gnat2012 -gnatc $<
 
 %.ali : %.ads
@@ -89,6 +92,6 @@ test-clean :
 	rm -f *.diff *.tmp
 
 zip :
-	tar zcf org.emacs.ada-mode.smie-WORKING.tar.gz --exclude _MTN --exclude "*~" --exclude "*.diff" --exclude "*.tmp" --exclude "*.ali" --exclude "*.tar.gz" -C ../.. org.emacs.ada-mode.smie
+	tar zcf org.emacs.ada-mode.smie-`date +%Y-%m-%d`.tar.gz --exclude _MTN --exclude "*~" --exclude "*.diff" --exclude "*.tmp" --exclude "*.ali" --exclude "*.tar.gz" -C ../.. org.emacs.ada-mode.smie
 
 # end of file

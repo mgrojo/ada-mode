@@ -176,7 +176,7 @@ package Ada_Mode.Nominal is
 
    type Null_Record_Type_1 is null record;
    type Null_Record_Type_2 is null
-   record;
+      record;
    type Null_Record_Type_3 is
      null record;
    type Null_Record_Type_4
@@ -250,7 +250,6 @@ package Ada_Mode.Nominal is
    ----------
    -- Objects
 
-   -- Declaring multiple objects in one statement is tested in FIXME:
    Integer_A, Integer_B, Integer_C : Integer;
    Integer_D, Integer_E, Integer_F :
      Integer;
@@ -371,15 +370,47 @@ package Ada_Mode.Nominal is
 private
    type Private_Type_1 is abstract tagged limited null record;
    type Private_Type_2 is abstract tagged limited
-   record
-      Component_1 : Integer;
-   end record;
+      record
+         Component_1 : Integer;
+         Component_2 : Integer;
+         Component_3 : Integer;
+      end record; -- Ada mode 4.01 aligned this with "type"; this is better
 
-   type Limited_Derived_Type_1 is abstract limited
-     new Private_Type_1 with
-   record
-      Component_1 : Integer;
-   end record;
+   type Limited_Derived_Type_1 is abstract limited new Private_Type_1
+      with record
+         Component_1 : Integer;
+         Component_2 : Integer;
+         Component_3 : Integer;
+      end record
+      with Pack => True;
+
+   type Limited_Derived_Type_1a is abstract limited new
+      Private_Type_1 with record
+         Component_1 : Integer;
+         Component_2 : Integer;
+         Component_3 : Integer;
+      end record;
+
+   type Limited_Derived_Type_1b is abstract limited
+      new Private_Type_1 with record
+         Component_1 : Integer;
+         Component_2 : Integer;
+         Component_3 : Integer;
+      end record;
+
+   type Limited_Derived_Type_1c is abstract
+      limited new Private_Type_1 with record -- Ada mode 4.01 aligned this with "type"; this is better
+         Component_1 : Integer;
+         Component_2 : Integer;
+         Component_3 : Integer;
+      end record;
+
+   type Limited_Derived_Type_1d is
+      abstract limited new Private_Type_1 with record
+         Component_1 : Integer;
+         Component_2 : Integer;
+         Component_3 : Integer;
+      end record;
 
    type Limited_Derived_Type_2 is abstract limited new Private_Type_1 with null record;
 

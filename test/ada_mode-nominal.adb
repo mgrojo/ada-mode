@@ -12,7 +12,7 @@ package body Ada_Mode.Nominal is
    type Incomplete_Type_1 (Discriminant_1 : Integer) is tagged null record;
 
    type Incomplete_Type_2 (Discriminant_1 : Integer) is tagged null
-   record; -- don't care
+      record;
 
    type Incomplete_Type_3 (Discriminant_1 : Integer) is tagged
      null record;
@@ -22,6 +22,7 @@ package body Ada_Mode.Nominal is
    -- rest of newline placement covered in spec
 
    type Incomplete_Type_5 (Discriminant_1 : access Integer) is tagged record
+      -- "record" on same line as "type"; components indented 3 relative to "type"
       Component_1 : Integer;
       Component_2 :
         Integer;

@@ -1,4 +1,4 @@
 ^test/.*\.ali$
 ^test/.*\.diff$
 ^test/.*\.tmp$
-^test/org\.emacs\.ada-mode\.smie-WORKING\.tar\.gz$
+^test/org\.emacs\.ada-mode\.smie-.*\.tar\.gz$
