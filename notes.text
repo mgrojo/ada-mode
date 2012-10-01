@@ -28,10 +28,26 @@ ada-indent.el
 test/Makefile
     nominal
 
-ada_mode-nominal.adb
-
-adacore_6312_006.adb
+test/adacore_6312_006.adb
     nested begin
+    put block_statement in grammar
+        new revised keywords: declare-label
+            change to assoc list for refine
+	;; block_statement
+	(identifier ":" "declare-label" declarations "begin" statements "end")
+	("declare" declarations "begin" statements "end")
+
+      Block_1:
+      declare
+         Local_1 : Float := 1.0e-36;
+         Local_2 : Integer := 2;
+         Local_3 : Character := '3';
+      begin
+         Local_1 := 2.0;
+         Local_2 := 3;
+         Local_3 := '4';
+         return 1.0;
+      end Block_1;
 
 make rest of files work
     add missing features to ada_mode-*
@@ -59,9 +75,11 @@ then ask for input/testing
 
 
  relevant files
+(info "(aarm2012)Annex P" "*info Annex P*")
 c:/Projects/emacs_stephe.work/emacs_stephe/ada-mode-keys.el
 
 c:/apps/emacs-24.2/lisp/progmodes/modula2.el
+http://www.modula2.net/resources/M2R10.pdf Appendix A
 c:/Projects/emacs_stephe.main/emacs_stephe_site_lisp/ada-mode.el
 (info "(elisp)SMIE" "*info-smie*")
 (info "(aarm2012)Annex P" "*info-aarm*")
@@ -97,6 +115,10 @@ Bill Greene
   (setq ada-indent-is-separate  nil)
 
 
+
+specify options in .prj
+    keep alist of srcdir=>.prj, apply options when .ad? file opened
+        debug vs release changes .prj; check options changed, warn?
 
  to do later
 run test on GDS, with broken-paren = 2, see if anything changes

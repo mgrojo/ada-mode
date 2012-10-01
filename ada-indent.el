@@ -39,6 +39,9 @@
 ;; Use the interactive functions in the debug section below to move
 ;; across small parts of the syntax.
 
+(require 'ada-mode)
+;; FIXME: maybe ada-mode should require the default indentation engine, provide a way for user to override?
+
 (require 'smie)
 (eval-when-compile (require 'cl)); 'case'
 
@@ -103,7 +106,7 @@ An example is:
        (identifier)
 
        ;; BNF from [1] appendix P, vastly simplified
-       ;; (info "(aarm2012)Annex P")
+       ;; (info "(aarm2012)Annex P" "*info Annex P*")
        ;;
        ;; We only need enough of the grammar to allow indentation to
        ;; work; see (info "(elisp)SMIE Grammar")
@@ -617,7 +620,16 @@ beginning of buffer."
 	    (progn (beginning-of-line) (point))
 	    (progn (end-of-line) (point))))))
 
-(defun ada-indent-refine-and (forward)
+(defun ada-indent-refine-=> (token forward)
+  (let ((token (save-excursion
+		 (when forward (smie-default-backward-token))
+		 (ada-indent-backward-name))))
+
+    (if (equal token "when")
+	"=>-when"
+      "=>")))
+
+(defun ada-indent-refine-and (token forward)
   ;; 'and' occurs in interface types and logical expressions
   ;; (search for interface_list in [1] annex P):
   ;;
@@ -703,7 +715,16 @@ beginning of buffer."
 	(t "and")))))
   )
 
-(defun ada-indent-refine-end (forward)
+(defun ada-indent-refine-case (token forward)
+  (let ((token (save-excursion
+		 (when forward (smie-default-backward-token))
+		 (smie-default-backward-token))))
+
+    (if (equal token "end")
+	"case-end"
+      "case")))
+
+(defun ada-indent-refine-end (token forward)
   (save-excursion
     (when forward (smie-default-backward-token))
 
@@ -718,7 +739,7 @@ beginning of buffer."
        (t "end"))
       )))
 
-(defun ada-indent-refine-is (forward)
+(defun ada-indent-refine-is (token forward)
   (save-excursion
     (when forward (smie-default-backward-token))
 
@@ -851,7 +872,7 @@ beginning of buffer."
      ))
   )
 
-(defun ada-indent-refine-mod (forward)
+(defun ada-indent-refine-mod (token forward)
   (save-excursion
     (when forward (smie-default-backward-token))
 
@@ -887,7 +908,7 @@ beginning of buffer."
 	"mod-type"
       "mod")))
 
-(defun ada-indent-refine-package (forward)
+(defun ada-indent-refine-package (token forward)
   (save-excursion
     (when forward (smie-default-backward-token))
 
@@ -908,7 +929,7 @@ beginning of buffer."
      "package")
     ))
 
-(defun ada-indent-refine-private (forward)
+(defun ada-indent-refine-private (token forward)
   (save-excursion
     (when forward (smie-default-backward-token))
 
@@ -954,7 +975,66 @@ beginning of buffer."
      (t "private"))); all others
   )
 
-(defun ada-indent-refine-return (forward)
+(defun ada-indent-refine-protected (token forward)
+      ;; 'protected' occurs in:
+      ;;
+      ;; 1) interface_type_definition
+      ;;
+      ;;    not implemented
+      ;;
+      ;; 2) access_to_subprogram_definition
+      ;;
+      ;;    handled by maybe-refine-is
+      ;;
+      ;; 3) access_definition in an object_declaration
+      ;;
+      ;;    not implemented
+      ;;
+      ;; 4) protected_type_declaration
+      ;;
+      ;;    protected type defining_identifier [known_discriminant_part]
+      ;;       [aspect_specification] is [new interface_list with] protected_definition;
+      ;;
+      ;; 5) single_protected_declaration
+      ;;
+      ;;    same as protected_type_declaration, without "type"
+      ;;    not implemented
+      ;;
+      ;; 6) protected_body :=
+      ;;
+      ;;    protected body defining_identifier ...
+      ;;
+      ;; 7) protected_body_stub
+      ;;
+      ;;    not implemented
+      ;;
+  (let ((token (save-excursion
+		 (when (not forward) (smie-default-backward-token))
+		 (smie-default-forward-token))))
+    (cond
+     ((equal token "body") "protected-body")
+     ((equal token "type") "protected"); an identifier
+     (t "protected"))
+    ))
+
+(defun ada-indent-refine-record (token forward)
+  (save-excursion
+    (when forward (smie-default-backward-token))
+
+    (let ((token (smie-default-backward-token)))
+      (cond
+       ((equal token "end")
+	(if (equal "with" (save-excursion
+			    (smie-default-backward-token); record
+			    (smie-default-backward-token)))
+	    "record-end-aspect";
+	  "record-end"))
+       ((equal token "null") "record-null")
+       (t "record")
+       ))
+    ))
+
+(defun ada-indent-refine-return (token forward)
   (save-excursion
     (when forward (smie-default-backward-token))
 
@@ -1048,7 +1128,7 @@ beginning of buffer."
        (t token)
   ))))
 
-(defun ada-indent-refine-when (forward)
+(defun ada-indent-refine-when (token forward)
   (save-excursion
     (when forward (smie-default-backward-token))
 
@@ -1115,7 +1195,7 @@ beginning of buffer."
       "when")
     ))
 
-(defun ada-indent-refine-with (forward)
+(defun ada-indent-refine-with (token forward)
   (save-excursion
     (when forward (smie-default-backward-token))
 
@@ -1230,170 +1310,58 @@ beginning of buffer."
 
 ;;; forward/backward token
 
-;; FIXME: unify these; use an assoc keyword->refine, so we can't make them non-inverse
+;; ada-indent-forward-token must produce the same results on a string
+;; of tokens as ada-indent-backward-token. To ensure that, we use an
+;; alist to specify the refining functions.
 
-(defun ada-indent-forward-token ()
-  ;; This must be a complete inverse of ada-indent-backward-token;
-  ;; smie-indent-keyword parses forward one token, potentially at
-  ;; every keyword
-  (let ((token (smie-default-forward-token)))
+(defconst ada-indent-next-token-alist
+  ;; Alphabetical order.
+  '(("<>;" ";")
+    ;; These three chars all have punctuation syntax. We need that
+    ;; for expressions, so we don't change it. "<>" is an identifier
+    ;; in the grammar, so we can just refine this to ";"
+
+    ("=>" 	 ada-indent-refine-=>)
+    ("and" 	 ada-indent-refine-and)
+    ("case" 	 ada-indent-refine-case)
+    ("end" 	 ada-indent-refine-end)
+    ("function"  ada-indent-refine-subprogram)
+    ("is" 	 ada-indent-refine-is)
+    ("mod" 	 ada-indent-refine-mod)
+    ("package" 	 ada-indent-refine-package)
+    ("private" 	 ada-indent-refine-private)
+    ("procedure" ada-indent-refine-subprogram)
+    ("protected" ada-indent-refine-protected)
+    ("record" 	 ada-indent-refine-record)
+    ("return" 	 ada-indent-refine-return)
+    ("when" 	 ada-indent-refine-when)
+    ("with" 	 ada-indent-refine-with)
+    )
+  "Alist of (token keyword) or (token refine-defun), used by
+`ada-indent-next-token' to refine tokens.
+`token' is the string returned by smie-default-[forward|backward]-token.
+If `keyword' is a string, it is returned.
+If `keyword' is a defun, it is called with two args (token forward);
+forward is t if moving forward (point at right end of token), nil if
+moving backward (point at left end of token). It must return the
+refined token or nil.
+If a token is not in the alist, it is returned unrefined.")
+
+(defun ada-indent-next-token (forward)
+  (let* ((token (if forward
+		   (smie-default-forward-token)
+		 (smie-default-backward-token)))
+	 (refine (cadr (assoc token ada-indent-next-token-alist))))
     (cond
-     ;; Alphabetical order.
+     ((stringp refine) refine)
 
-     ((equal token "<>;")
-      ;; These three chars all have punctuation syntax. We need that
-      ;; for expressions, so we don't change it. "<>" is an identifier
-      ;; in the grammar, so we can just refine this to ";"
-      ";")
+     ((functionp refine) (funcall refine token forward))
 
-     ((equal token "=>")
-      (if (equal "when" (save-excursion (smie-default-backward-token) (ada-indent-backward-name)))
-	  "=>-when"
-	"=>"))
+     (t token))
+    ))
 
-     ((equal token "and") (ada-indent-refine-and t))
-
-     ((equal token "case")
-      (if (equal "end" (save-excursion (smie-default-backward-token) (smie-default-backward-token)))
-	  "case-end"
-	"case"))
-
-     ((equal token "end") (ada-indent-refine-end t))
-
-     ((equal token "function") (ada-indent-refine-subprogram token t))
-
-     ((equal token "is") (ada-indent-refine-is t))
-
-     ((equal token "mod") (ada-indent-refine-mod t))
-
-     ((equal token "package") (ada-indent-refine-package t))
-
-     ((equal token "private") (ada-indent-refine-private t))
-
-     ((equal token "procedure") (ada-indent-refine-subprogram token t))
-
-     ((equal token "protected")
-      (if (equal "body" (save-excursion (smie-default-forward-token)))
-	    "protected-body"
-	;; "body" is an identifier. We don't check forward for "type",
-	;; because we are leaving "protected" as an identifier.
-	"protected"))
-
-     ((equal token "record")
-      (let ((token (save-excursion (smie-default-backward-token) (smie-default-backward-token))))
-	(cond
-	 ((equal "end" token)
-	  "record-end")
-
-	 (t "record")); all others
-	))
-
-     ((equal token "return") (ada-indent-refine-return t))
-
-     ((equal token "when") (ada-indent-refine-when t))
-
-     ((equal token "with") (ada-indent-refine-with t))
-
-     (t token))))
-
-(defun ada-indent-backward-token ()
-  (let ((token (smie-default-backward-token))
-	pos)
-    (cond
-     ;; Alphabetical order.
-
-     ((equal token "<>;")
-      ;; These three chars all have punctuation syntax. We need that
-      ;; for expressions, so we don't change it. "<>" is an identifier
-      ;; in the grammar, so we can just refine this to ";"
-      ";")
-
-     ((equal token "=>")
-      (if (equal "when" (save-excursion (ada-indent-backward-name)))
-	  "=>-when"
-	"=>"))
-
-     ((equal token "and") (ada-indent-refine-and nil))
-
-     ((equal token "case")
-      (if (equal "end" (save-excursion (smie-default-backward-token)))
-	  "case-end"
-	"case"))
-
-     ((equal token "end") (ada-indent-refine-end nil))
-
-     ((equal token "function") (ada-indent-refine-subprogram token nil))
-
-     ((equal token "is") (ada-indent-refine-is nil))
-
-     ((equal token "mod") (ada-indent-refine-mod nil))
-
-     ((equal token "package") (ada-indent-refine-package nil))
-
-     ((equal token "private") (ada-indent-refine-private nil))
-
-     ((equal token "procedure") (ada-indent-refine-subprogram token nil))
-
-     ((equal token "protected")
-      ;; 'protected' occurs in:
-      ;;
-      ;; 1) interface_type_definition
-      ;;
-      ;;    not implemented
-      ;;
-      ;; 2) access_to_subprogram_definition
-      ;;
-      ;;    handled by maybe-refine-is
-      ;;
-      ;; 3) access_definition in an object_declaration
-      ;;
-      ;;    not implemented
-      ;;
-      ;; 4) protected_type_declaration
-      ;;
-      ;;    protected type defining_identifier [known_discriminant_part]
-      ;;       [aspect_specification] is [new interface_list with] protected_definition;
-      ;;
-      ;; 5) single_protected_declaration
-      ;;
-      ;;    same as protected_type_declaration, without "type"
-      ;;    not implemented
-      ;;
-      ;; 6) protected_body :=
-      ;;
-      ;;    protected body defining_identifier ...
-      ;;
-      ;; 7) protected_body_stub
-      ;;
-      ;;    not implemented
-      ;;
-      (let ((token (save-excursion (smie-default-forward-token))))
-	(cond
-	 ((equal token "body") "protected-body")
-	 ((equal token "type") "protected"); an identifier
-	 (t "protected"))
-	))
-
-     ((equal token "record")
-      (let ((token (save-excursion (smie-default-backward-token))))
-	(cond
-	 ((equal token "end")
-	  (if (equal "with" (save-excursion
-			      (smie-default-backward-token); record
-			      (smie-default-backward-token)))
-	      "record-end-aspect"; FIXME: need this in forward-token
-	    "record-end"))
-	 ((equal token "null") "record-null")
-	 (t "record")
-	 )))
-
-     ((equal token "return") (ada-indent-refine-return nil))
-
-     ((equal token "when") (ada-indent-refine-when nil))
-
-     ((equal token "with") (ada-indent-refine-with nil))
-
-     (t token))))
+(defun ada-indent-forward-token () (ada-indent-next-token t))
+(defun ada-indent-backward-token () (ada-indent-next-token nil))
 
 ;;; indent rules
 

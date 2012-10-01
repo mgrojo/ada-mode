@@ -9,7 +9,8 @@
        (statement ";" statement))
 
       (case_statement_alternative
-       ("when"))
+       (statement)
+       (statement "when" statement))
 
       (statement
        ("case" name "is" case_statement_alternative "end")

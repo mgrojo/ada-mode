@@ -10,7 +10,7 @@ begin
    case X is
       when 'a' =>
          if Y in '0' .. '9' then
-            begin  --  used to be uncorrectly indented
+begin  --  used to be uncorrectly indented
                I := Character'Pos (Y);
             end;
          end if;
