@@ -27,29 +27,18 @@ ada-indent.el
 
 test/Makefile
     nominal
-    test/ada_mode-nominal.ads passing
-    test/ada_mode-nominal.adb
-end ada_mode-nominal;
-    is tagged record
-        "is" can't be identifier; it must be closer. sigh.
 
-    test/ada_mode-nominal-child.ads
-    test/ada_mode-generic_package.ads
+ada_mode-nominal.adb
 
-
-"end record" (and aspect_specification?) will be indented relative to "type", unless we leave
-record_definition out of record_type_declaration; see
-ada-indent-save.el. Investigate other tokens on line with record
-first.
-
-    In either case, don't need goto-parent in :after "record"!
-        same for procedure/function in type?
+adacore_6312_006.adb
+    nested begin
 
 make rest of files work
     add missing features to ada_mode-*
 
 
     aspect_clause
+        record - done
     remaining statements
     remaining expressions (if expression, that started this whole thing :)
     pre/post conditions
@@ -61,6 +50,7 @@ make rest of files work
     library generic subprogram
     attribute clauses
         record layout
+    named associations
 
     look for remaining non-terminals in Annex P
 

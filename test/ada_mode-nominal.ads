@@ -215,7 +215,7 @@ package Ada_Mode.Nominal is
       -- only two examples, to get 'protected' and 'is-entry_body' into grammar
 
       function F1 return Integer;
-      function F2 (A : Float; B : Float) return Float;
+      function F2 (Param_1 : Discrete_Type_1; B : Float) return Float;
       entry E1 (X : Integer);
       entry E2 (X : Integer);
       procedure P1;

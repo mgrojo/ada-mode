@@ -57,14 +57,6 @@ begin
 >>>null;"
   :type 'integer  :group 'ada-indentation)
 
-(defcustom ada-indent-record-rel-type 3
-  "*Indentation for 'record' relative to 'type' or 'use'.
-
-An example is:
-   type A is
-   >>>record"
-  :type 'integer :group 'ada-indent)
-
 (defcustom ada-indent-broken 2
   "*Number of columns to indent the continuation of a broken line.
 
@@ -77,6 +69,28 @@ An example is :
 (make-obsolete-variable
  'ada-broken-indent
  'ada-indent-broken
+ "Emacs 24.4, Ada mode 5.0")
+
+(defcustom ada-indent-record-rel-type 3
+  "*Indentation for 'record' relative to 'type' or 'use'.
+
+An example is:
+   type A is
+   >>>record"
+  :type 'integer :group 'ada-indent)
+
+(defcustom ada-indent-when 3
+  "*Indentation for 'when' relative to 'exception' or 'case'.
+
+An example is:
+   case A is
+   >>>when B =>"
+  :type 'integer :group 'ada-indent)
+
+(defalias 'ada-when-indent 'ada-indent-when)
+(make-obsolete-variable
+ 'ada-when-indent
+ 'ada-indent-when
  "Emacs 24.4, Ada mode 5.0")
 
 ;;; grammar
@@ -186,7 +200,14 @@ An example is :
 	(aspect_list "," aspect_item))
 
        (aspect_item
-	(name "=>-aspect" name))
+	(name "=>" name))
+
+       (case_statement_alternative
+	("when" expression "=>-when" statements)); "|" is an identifier
+       ;; There are many places "when" appears that look like case
+       ;; statements; rather than try to disambiguate them all in
+       ;; refine-when, we only refine the cases that don't look like
+       ;; case statements.
 
        (context_clause
 	(context_item)
@@ -220,7 +241,7 @@ An example is :
 	(declaration ";" declaration))
 
        (entry_body
-	("entry" identifier "when" expression "is-entry_body" declarations "begin" statements "end"))
+	("entry" identifier "when-entry" expression "is-entry_body" declarations "begin" statements "end"))
 
        (expression
 	;; The expression syntax rules in [1] mostly serve to express
@@ -297,6 +318,9 @@ An example is :
 
        (statement
 	(expression); covers procedure calls, assignment
+
+	;; case_statement
+	("case" name "is-case" case_statement_alternative "end-case" "case-end")
 
 	("return-stmt")
 
@@ -448,7 +472,7 @@ An example is :
        ;; start of an Ada assignment or association with one call to
        ;; ada-indent-goto-parent.
        ;;
-       (nonassoc ":=" "=>")
+       (nonassoc ":=")
        (nonassoc
 	"=" "/=" "<" "<=" ">" ">=" "in"
 	"or" "or_else" "xor" "+" "-" "&"
@@ -461,8 +485,9 @@ An example is :
 ;;; utils for refine-*, forward/backward token
 
 (defconst ada-indent-block-keywords
-  '("begin"
-    ;; FIXME: declare
+  '("=>-when"
+    "begin"
+    ;; FIXME: declare not tested yet
     "do"
     ;; "end" is never a block start; treated separately
     "generic"
@@ -473,8 +498,7 @@ An example is :
     "is-type-protected"
     "package-generic"
     "private"
-    "record"
-    "when")
+    "record")
   ;; We don't split this into start and end lists, because most are
   ;; both. The keywords that are an end but never a start are in
   ;; ada-indent-block-end-keywords. Being a start but never end is not
@@ -487,8 +511,11 @@ An example is :
 
 (defconst ada-indent-block-end-keywords
   '("end"
+    "end-case"
     "end-record"
-    "end-return")
+    "end-return"
+    ;; "when" does not act like a block keyword; it is an opener
+    )
   "Keywords that always end indented blocks.")
 
 (defun ada-indent-matching-end (keyword)
@@ -571,6 +598,14 @@ beginning of buffer."
 ;;
 ;; We also try to avoid parsing forward, since that won't work while
 ;; the user is typing code. But sometimes it can't be helped.
+
+(defconst ada-indent-type-modifiers '("abstract" "tagged" "limited"))
+
+(defun ada-indent-skip-type-modifiers ()
+  "Skip forward tokens that are in `ada-indent-type-modifiers', return the following token."
+  (let (result)
+    (while (member (setq result (smie-default-forward-token)) ada-indent-type-modifiers))
+    result))
 
 (defun ada-indent-refine-error (msg)
   ;; When running from the Makefile, we'd like to report the line
@@ -668,19 +703,26 @@ beginning of buffer."
 	(t "and")))))
   )
 
-(defconst ada-indent-type-modifiers '("abstract" "tagged" "limited"))
+(defun ada-indent-refine-end (forward)
+  (save-excursion
+    (when forward (smie-default-backward-token))
 
-(defun ada-indent-skip-type-modifiers ()
-  "Skip forward tokens that are in `ada-indent-type-modifiers', return the following token."
-  (let (result)
-    (while (member (setq result (smie-default-forward-token)) ada-indent-type-modifiers))
-    result))
+    (let ((token (save-excursion (smie-default-forward-token) (smie-default-forward-token))))
+      (cond
+       ((equal "case" token) "end-case")
+
+       ((equal "record" token) "end-record")
+
+       ((equal "return" token) "end-return")
+
+       (t "end"))
+      )))
 
 (defun ada-indent-refine-is (forward)
   (save-excursion
     (when forward (smie-default-backward-token))
 
-    ;; too many occurences to document them all.
+    ;; too many occurences to document them all at once.
 
     (or
      ;; First try simple, common constructs.
@@ -706,6 +748,8 @@ beginning of buffer."
 
      (let ((token (save-excursion (ada-indent-backward-name))))
        (cond
+	((equal token "case") "is-case")
+
 	((member token '("package" "package-generic")) "is-package")
 
 	((equal token "package-formal") "is"); identifier
@@ -1004,6 +1048,73 @@ beginning of buffer."
        (t token)
   ))))
 
+(defun ada-indent-refine-when (forward)
+  (save-excursion
+    (when forward (smie-default-backward-token))
+
+    ;; "when" occurs in:
+    ;;
+    ;; 1) record variant part ::=
+    ;;
+    ;;       case discriminant_direct_name is
+    ;;       when discrete_choice_list => component;
+    ;;       when discrete_choice_list => component;
+    ;;
+    ;;   token: "when"
+    ;;
+    ;; 2) case_expression_alternative ::=
+    ;;       (case selecting_expression is
+    ;;        when discrete_choice_list => dependent_expression,
+    ;;        when discrete_choice_list => dependent_expression)
+    ;;
+    ;;   token: "when"
+    ;;
+    ;; 3) case_statement_alternative ::=
+    ;;       case selecting_expression is
+    ;;       when discrete_choice_list => statement;
+    ;;       when discrete_choice_list => statement;
+    ;;
+    ;;   token: "when"
+    ;;
+    ;; 4) exit_statement ::=
+    ;;       exit [loop_name] [when condition];
+    ;;
+    ;;   token: "when-exit" - not implemented yet
+    ;;
+    ;; 5) entry_barrier in an entry_body ::=
+    ;;       entry identifier (...) when condition
+    ;;
+    ;;   preceding refined token: "entry"
+    ;;   skip: name
+    ;;   token: "when-entry"
+    ;;
+    ;; 6) guard in a selective_accept :
+    ;;
+    ;;       select
+    ;;          [when expression => ]
+    ;;             select_alternative
+    ;;       {or
+    ;;          [when expression => ]
+    ;;             select_alternative }
+    ;;
+    ;;   token: "when"
+    ;;
+    ;; 7) exception_handler ::=
+    ;;
+    ;;       exception
+    ;;       when [choice_parameter_specification:] exception_choice {| exception_choice} =>
+    ;;          statement;
+    ;;       when [choice_parameter_specification:] exception_choice {| exception_choice} =>
+    ;;          statement;
+    ;;
+    ;;   token: "when"
+    ;;
+
+    (if (equal "entry" (ada-indent-backward-name))
+	"when-entry"; 5
+      "when")
+    ))
+
 (defun ada-indent-refine-with (forward)
   (save-excursion
     (when forward (smie-default-backward-token))
@@ -1119,6 +1230,8 @@ beginning of buffer."
 
 ;;; forward/backward token
 
+;; FIXME: unify these; use an assoc keyword->refine, so we can't make them non-inverse
+
 (defun ada-indent-forward-token ()
   ;; This must be a complete inverse of ada-indent-backward-token;
   ;; smie-indent-keyword parses forward one token, potentially at
@@ -1133,19 +1246,19 @@ beginning of buffer."
       ;; in the grammar, so we can just refine this to ";"
       ";")
 
+     ((equal token "=>")
+      (if (equal "when" (save-excursion (smie-default-backward-token) (ada-indent-backward-name)))
+	  "=>-when"
+	"=>"))
+
      ((equal token "and") (ada-indent-refine-and t))
 
-     ((equal token "end")
-      (let ((token (save-excursion (smie-default-forward-token))))
-	(cond
-	 ((equal "record" token)
-	  "end-record")
+     ((equal token "case")
+      (if (equal "end" (save-excursion (smie-default-backward-token) (smie-default-backward-token)))
+	  "case-end"
+	"case"))
 
-	 ((equal "return" token)
-	  "end-return")
-
-	 (t "end")); all others
-	))
+     ((equal token "end") (ada-indent-refine-end t))
 
      ((equal token "function") (ada-indent-refine-subprogram token t))
 
@@ -1177,6 +1290,8 @@ beginning of buffer."
 
      ((equal token "return") (ada-indent-refine-return t))
 
+     ((equal token "when") (ada-indent-refine-when t))
+
      ((equal token "with") (ada-indent-refine-with t))
 
      (t token))))
@@ -1193,16 +1308,19 @@ beginning of buffer."
       ;; in the grammar, so we can just refine this to ";"
       ";")
 
+     ((equal token "=>")
+      (if (equal "when" (save-excursion (ada-indent-backward-name)))
+	  "=>-when"
+	"=>"))
+
      ((equal token "and") (ada-indent-refine-and nil))
 
-     ((equal token "end")
-      (let ((token (save-excursion
-		     (smie-default-forward-token); "end"
-		     (smie-default-forward-token))))
-	(cond
-	 ((equal token "record") "end-record")
-	 ((equal token "return") "end-return")
-	 (t "end"))))
+     ((equal token "case")
+      (if (equal "end" (save-excursion (smie-default-backward-token)))
+	  "case-end"
+	"case"))
+
+     ((equal token "end") (ada-indent-refine-end nil))
 
      ((equal token "function") (ada-indent-refine-subprogram token nil))
 
@@ -1270,6 +1388,8 @@ beginning of buffer."
 	 )))
 
      ((equal token "return") (ada-indent-refine-return nil))
+
+     ((equal token "when") (ada-indent-refine-when nil))
 
      ((equal token "with") (ada-indent-refine-with nil))
 
@@ -1394,6 +1514,9 @@ be a keyword, and point must be at the start of CHILD."
   ;;
   ;; The same loop works for access to procedure, although it will
   ;; only be executed once.
+  ;;
+  ;; FIXME: need a similar loop for "when". Waiting until we finish
+  ;; more "when" uses.
   ;;
   ;; 'overriding' and 'protected' present another problem; the parent
   ;; is not at the beginning of the statement:
@@ -1598,6 +1721,7 @@ the start of CHILD, which must be a keyword."
       ((equal token "end-record")
        ;; goto-parent leaves point on "record".
        (save-excursion
+	 (ada-indent-goto-parent arg 1)
 	 (back-to-indentation)
 	 (cons 'column (current-column))))
 
@@ -1611,6 +1735,25 @@ the start of CHILD, which must be a keyword."
        (save-excursion
 	 (smie-default-backward-token)
 	 (cons 'column (current-column))))
+
+      ((equal arg "when")
+       ;; We want to indent relative to the statement start; "case",
+       ;; "exception", etc.  But "when" is an opener, so finding the
+       ;; parent is complicated; ada-indent-goto-statement-start does
+       ;; not handle it (FIXME: yet). So we just look at the previous
+       ;; token.
+       (save-excursion
+	 (let ((token (smie-default-backward-token)))
+	   (cond
+	    ((equal token ";")
+	     ;; in the middle of a sequence of "when".
+	     (back-to-indentation)
+	     (cons 'column (- (current-column) ada-indent)))
+
+	    ((equal token "is")
+	     ;; We need to give ada-indent-rule-statement the refined token
+	     (ada-indent-rule-statement ada-indent-when (save-excursion (ada-indent-forward-token))))
+	    ))))
 
       ((equal arg "with-context")
        (cons 'column 0))
@@ -1643,7 +1786,7 @@ the start of CHILD, which must be a keyword."
 	 (if (not (= pos (point)))
 	     ;; Hanging; we are not at the start of a statement/declaration.
 	     ;; Indent relative to the statement start.
-	     (cons 'column (+ pos offset)))))
+	     (cons 'column (+ pos ada-indent-broken)))))
       ))
 
 ;;; :after

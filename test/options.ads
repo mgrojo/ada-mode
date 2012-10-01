@@ -3,6 +3,7 @@
 --
 --EMACSCMD: (setq ada-indent-record-rel-type 0)
 package Options is
+   pragma Elaborate_Body (Options);
 
    type Private_Type_1 is tagged
    record

@@ -48,37 +48,50 @@ package body Ada_Mode.Nominal is
          -- non-do extended return
       end F1;
 
-      function F2 (A : Float; B : Float) return Float
+      function F2 (Param_1 : Discrete_Type_1; B : Float) return Float
       is
       begin
-         return C : Float
+         return D : Float
          do
             -- extended return
-            P1;
-            C := A + B * B;
-            C := C * C;
+            case Param_1 is
+               when A | Nominal.B =>
+                  P1;
+               when C =>
+                  D := B;
+                  D := D + B * B;
+                  D := D - Float (F1);
+            end case;
          end return;
       end; -- no F2 on purpose
 
       entry E1 (X : Integer) when Local_1 = 0 is
          Tmp : Integer := 0;
+         Local_4 : Discrete_Type_1 := A;
       begin
          Local_1 :=
            X + Tmp; -- an indented line
 
          -- A comment after an indented line
 
-         Local_1 := Local_1 + Local_1;
+         case Local_4 is
+            when
+              A | -- continuation line; ada-indent-broken = 2
+              B |
+              C
+            => -- Ada mode 4.01 aligned this with C; I like this better.
+               Local_1 := Local_1 + Local_1;
+         end case;
 
          -- A comment before 'end'
       end E1;
 
       entry E2
         (X : Integer)
-      -- an expression with 'not' to see if we need that in the
-      -- grammar (conflicts with 'not null')
-      when Local_1 = 0 and not
-        (Local_2 = 1)
+        -- an expression with 'not' to see if we need that in the
+        -- grammar (conflicts with 'not null')
+        when Local_1 = 0 and not -- Ada mode 4.01 screws this up.
+          (Local_2 = 1)
       is
          Tmp : Integer := 0;
       begin
@@ -98,7 +111,7 @@ package body Ada_Mode.Nominal is
 
    protected body Buffer is
       entry Write(C : in Character)
-      when Count < Pool'Length is
+        when Count < Pool'Length is
       begin
          Pool(In_Index) := C;
          In_Index := (In_Index mod Pool'Length) + 1;
@@ -106,7 +119,7 @@ package body Ada_Mode.Nominal is
       end Write;
 
       entry Read (C : out Character)
-      when Count > 0 is
+        when Count > 0 is
       begin
          C := Pool(Out_Index);
          Out_Index := (Out_Index mod Pool'Length) + 1;
@@ -116,6 +129,7 @@ package body Ada_Mode.Nominal is
 
    ----------
    -- subprograms
+
    procedure Procedure_1a (Item  : in out Parent_Type_1)
    is begin
       null;

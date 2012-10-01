@@ -41,8 +41,12 @@
 
   ;; Reindent and recase the buffer
   (setq ada-clean-buffer-before-saving nil)
+
+  ;; first unindent; if the indentation rules do nothing, the test would pass, otherwise!
+  (setq indent-tabs-mode nil)
+  (indent-code-rigidly (point-min) (point-max) -4)
   (indent-region (point-min) (point-max))
-  ;; FIXME: put this back (and fix it!) (ada-adjust-case-buffer)
+  ;; FIXME: put this back (and fix it!) lowercase-buffer? (ada-adjust-case-buffer)
   ;; FIXME: also test case-exceptions (ie GDS, Text_IO)
 
   ;; Cleanup the buffer; indenting often leaves trailing whitespace;
