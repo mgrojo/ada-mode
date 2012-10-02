@@ -77,7 +77,7 @@ COMPILE_FILES := $(sort $(COMPILE_FILES))
 
 compile : $(COMPILE_FILES)
 
-%.ali : %.adb %.ads
+%.ali : %.adb
 	gnatmake -gnat2012 -gnatc $<
 
 %.ali : %.ads

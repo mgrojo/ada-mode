@@ -148,7 +148,10 @@ package body Ada_Mode.Nominal is
    is
       Local_1 : constant := 3.0;
    begin
-      return Local_1;
+      declare -- no label, zero statements between begin, declare
+      begin
+         return Local_1;
+      end;
    end
      Function_1b;
 
@@ -163,40 +166,110 @@ package body Ada_Mode.Nominal is
       Item : Parent_Type_1;
    begin
       Procedure_1a (Item);
-      return
-        Local_1 +
-        Local_2 +
-        Local_3;
+      declare -- no label, one statement between begin, declare
+      begin
+         return
+           Local_1 +
+           Local_2 +
+           Local_3;
+      end;
    end;
 
-   function Function_1d return Float is begin return 1.0; end;
+   function Function_1d return Float
+   is begin
+      P1;
+      P1;
 
-   function Function_2a (Param : in Parent_Type_1) return Float is begin return 1.0; end;
+      declare -- no label, two statements between begin, declare
+      begin
+         return 1.0;
+      end;
+   end;
+
+   function Function_2a (Param : in Parent_Type_1) return Float
+   is begin
+      Block_1:
+      declare -- label, no statements between begin, label
+         Local_1 : Float := 1.0e-36;
+         Local_2 : Integer := 2;
+         Local_3 : Character := '3';
+      begin
+         Local_1 := 2.0;
+         Local_2 := 3;
+         Local_3 := '4';
+         return 1.0;
+      end Block_1;
+   end;
 
    function Function_2b (Param : in Parent_Type_1) return Float
-   is begin
-      return 1.0;
+   is
+      Local_A : Float;
+   begin
+      P1;
+      Block_1:
+      declare -- label, one statements between begin, label
+         Local_1 : Float := 1.0e-36;
+         Local_2 : Integer := 2;
+         Local_3 : Character := '3';
+      begin
+         Local_1 := 2.0;
+         Local_2 := 3;
+         Local_3 := '4';
+         return 1.0;
+      end Block_1;
    end;
 
    function Function_2c (Param : in Parent_Type_1) return Float
    is
+      type Array_Type_1 is array (1 .. 3) of Float;
+      type Array_Type_2 is array (1 .. 3) of Array_Type_1;
+      Local_A : Array_Type_2 := (others => (others => 0.0));
    begin
-      return 1.0;
+      P1;
+      P1;
+
+      Block_1 :
+      declare -- label, two statements between begin, label
+         Local_1 : constant Float := Local_A (1)(2); -- test that refine-begin can skip parens
+      begin
+         return Local_1;
+      end Block_1;
+
+      -- second begin block
+      begin
+         Local_a (1)(2) := 1;
+      end;
    end;
 
    function Function_2d (Param : in Parent_Type_1) return Float
    is
    begin
-      return
-        1.0;
+      begin -- no declare, no statements
+         return
+           1.0;
+      end;
    end;
 
-   function Function_2e (Param : in Parent_Type_1) return Float is begin return 1.0; end;
+   function Function_2e
+     (Param : in Parent_Type_1)
+     return Float
+   is begin
+      P1;
+      begin -- no declare, one statement
+         return 1.0;
+      end;
+   end;
 
    function Function_2f (Param : in Parent_Type_1)
      return Float is
-   begin return 1.0; end;
+   begin
+      P1;
+      P1;
+      begin -- no declare, two statements
+         return 1.0;
+      end;
+   end;
 
-begin
+   begin
    null;
 end Ada_Mode.Nominal;

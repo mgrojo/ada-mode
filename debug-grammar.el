@@ -1,3 +1,4 @@
+;; don't call this file 'debug'; that overrides emacs lisp edebug!
 (defconst debug-grammar
   (smie-prec2->grammar
    (smie-bnf->prec2

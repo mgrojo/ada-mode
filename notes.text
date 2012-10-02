@@ -26,28 +26,52 @@ ada-indent.el
 (sal-edit-library "smie")
 
 test/Makefile
-    nominal
+    test/ada_mode-nominal.adb
+
+implement semantic grammar of just block constructs to refine smie begin
+    maybe semantic is fast enough in the first place; no premature optimization!
+    a) if it is, drop smie :( (keep the tests)
+    b) if it's not, cache the required info as text properties that smie refine-begin uses
+        maintain "cache-valid-max-point"; move it back to current edit point, forward when call semantic parse.
+
+    work in org.emacs.ada-mode.semantic
+        implement ada-sem
+            copy test/ada_mode-nominal.ad?
+
+    if b), merge to o.e.a.smie
+        rename ada-indent to ada-smie
+
+
+
+refine-begin fails for:
+    package begin
+    local block begin after nested subprogram.
+    use backward-sexp
+    enumerate cases in ada_mode-nominal.ad?
+        => this approach can't work; _must_ scan forward from known start, keeping a stack of block keywords
+           no worse than scanning backwards to the start of the file!
+           smie-forward-sexp doesn't figure out what the tokens are; need semantic!
+
+    what does ada mode 4.01 do here?
+        ada-goto-decl-start
+        moves backward, using ada-search-ignore-string-comment
+            ad-hoc logic, will get confused by if-expressions
+
+    does modula 2 have this problem?
+        no; no explicit block statements
+
+"begin" as divider can only follow declarations, while "begin" as
+block start can only follow statements (or "begin" as divider). Maybe I
+can make the SMIE grammar keep track of declarations and statements;
+
+variant of operator precedence parser that refines next token based on stack?
+
+find out how to call a dll from elisp!
 
 test/adacore_6312_006.adb
-    nested begin
-    put block_statement in grammar
-        new revised keywords: declare-label
-            change to assoc list for refine
-	;; block_statement
-	(identifier ":" "declare-label" declarations "begin" statements "end")
-	("declare" declarations "begin" statements "end")
+    nested begin in 'if then'
+    put if then in grammar
 
-      Block_1:
-      declare
-         Local_1 : Float := 1.0e-36;
-         Local_2 : Integer := 2;
-         Local_3 : Character := '3';
-      begin
-         Local_1 := 2.0;
-         Local_2 := 3;
-         Local_3 := '4';
-         return 1.0;
-      end Block_1;
 
 make rest of files work
     add missing features to ada_mode-*
@@ -106,7 +130,6 @@ Juanma Barranquero:
     ada-use-indent    4
 
 Bill Greene
-
   (setq ada-indent              3)
   (setq ada-broken-indent       ada-indent)
   (setq ada-broken-decl-indent  ada-indent)
@@ -115,12 +138,24 @@ Bill Greene
   (setq ada-indent-is-separate  nil)
 
 
+Manuel Gómez
+'(ada-broken-indent 3)
+'(ada-indent 2)
+'(ada-indent-record-rel-type 2)
+'(ada-indent-return 3)
+'(ada-label-indent 0)
+'(ada-use-indent 4)
+'(ada-when-indent 2)
+'(ada-with-indent 5)
+
 
 specify options in .prj
     keep alist of srcdir=>.prj, apply options when .ad? file opened
         debug vs release changes .prj; check options changed, warn?
 
  to do later
+fix indent on return
+
 run test on GDS, with broken-paren = 2, see if anything changes
 
   ;; To find "(" from anywhere within an aggregate, we can use
