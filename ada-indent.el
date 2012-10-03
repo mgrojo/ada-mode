@@ -196,6 +196,13 @@ An example is:
        ;; We list the non-terminals in alphabetical order, since there
        ;; isn't any more reasonable order. We use the same names as [1]
        ;; Annex P as much as possible.
+       ;;
+       ;; Refined token naming convention:
+       ;;
+       ;; If an Ada keyword is refined, all occurances of the keyword
+       ;; in the smie grammar must be refined. Use "-other" if no
+       ;; better name is available. That way it is clear when a
+       ;; keyword is being left as an indentifier.
 
        (aspect_specification
 	("with-aspect" aspect_list))
@@ -208,11 +215,7 @@ An example is:
 	(name "=>" name))
 
        (case_statement_alternative
-	("when" expression "=>-when" statements)); "|" is an identifier
-       ;; There are many places "when" appears that look like case
-       ;; statements; rather than try to disambiguate them all in
-       ;; refine-when, we only refine the cases that don't look like
-       ;; case statements.
+	("when-case" expression "=>-when" statements)); "|" is an identifier
 
        (context_clause
 	(context_item)
@@ -310,13 +313,13 @@ An example is:
 	)
 
        (package_specification
-	("package" name "is-package" declarations "private" declarations "end")
-	("package" name "is-package" declarations "end"))
+	("package-plain" name "is-package" declarations "private" declarations "end")
+	("package-plain" name "is-package" declarations "end"))
 
        (package_body
 	;; Leaving 'package body' as separate tokens causes problems
 	;; in refine-is, so we leave "body" as an identifier.
-	("package" name "is-package" declarations "begin" statements "end"))
+	("package-plain" name "is-package" declarations "begin" statements "end"))
 
        (protected_body
 	("protected-body" identifier "is-protected-body" declarations "end"))
@@ -389,8 +392,8 @@ An example is:
 
 	;; derived_type_declaration
 	("type" identifier "is-type" "new" name); same as below
-	("type" identifier "is-type" "new" name "with" "private-with")
-	("type" identifier "is-type" "new" name "with" "record-null"); "null" is an identifier
+	("type" identifier "is-type" "new" name "with-new" "private-with")
+	("type" identifier "is-type" "new" name "with-new" "record-null"); "null" is an identifier
 	("type" identifier "is-type" "new" name "with-record")
 	;; We refine "with" to "with-record" when it is followed
 	;; by "record", so that it is a closer to match
@@ -429,8 +432,8 @@ An example is:
 	;; decide to leave it as an identifier.
 
 	;; private_extension_declaration
-	("type" identifier "is-type" "new" name "with" "private-with")
-	("type" identifier "is-type" "new" interface_list "with" "private-with")
+	("type" identifier "is-type" "new" name "with-new" "private-with")
+	("type" identifier "is-type" "new" interface_list "with-new" "private-with")
 	;; leaving 'with' and 'private' as separate tokens causes conflicts
 
 	;; private_type_declaration
@@ -447,7 +450,7 @@ An example is:
 	;; general is not, so we need to make that a keyword.
 	("type" identifier "is-type" declarations "private" declarations "end")
 	("type" identifier "is-type-protected" declarations "private" declarations "end")
-	("type" identifier "is-type" "new" interface_list "with" declarations
+	("type" identifier "is-type" "new" interface_list "with-new" declarations
 	 "private" declarations "end")
 
 	;; record_type_definition
@@ -508,7 +511,6 @@ An example is:
     "is-protected-body"
     "is-subprogram_body"
     "is-type-protected"
-    "package-generic"
     "private"
     "record")
   ;; We don't split this into start and end lists, because most are
@@ -526,7 +528,8 @@ An example is:
     "end-case"
     "end-record"
     "end-return"
-    ;; "when" does not act like a block keyword; it is an opener
+    "package-generic"
+    ;; "when-case" does not act like a block keyword; it is an opener
     )
   "Keywords that always end indented blocks.")
 
@@ -676,7 +679,7 @@ buffer."
 		 (when forward (smie-default-backward-token))
 		 (ada-indent-backward-name))))
 
-    (if (equal token "when")
+    (if (equal token "when-case")
 	"=>-when"
       "=>")))
 
@@ -899,7 +902,7 @@ buffer."
        (cond
 	((equal token "case") "is-case")
 
-	((member token '("package" "package-generic")) "is-package")
+	((member token '("package-plain" "package-generic")) "is-package")
 
 	((equal token "package-formal") "is"); identifier
 
@@ -1043,7 +1046,7 @@ buffer."
     (or
      (let ((token (save-excursion (smie-default-backward-token))))
        (cond
-	((equal token "") "package");; beginning of buffer
+	((equal token "") "package-plain");; beginning of buffer
 	((equal token "access") "package-access")
 	((equal token "with") "package-formal")
 	))
@@ -1056,7 +1059,7 @@ buffer."
      (if (equal "generic" (save-excursion (nth 2 (smie-backward-sexp "package-generic"))))
 	 "package-generic")
 
-     "package")
+     "package-plain")
     ))
 
 (defun ada-indent-refine-private (token forward)
@@ -1072,7 +1075,7 @@ buffer."
     ;;
     ;;   preceding token: "is-type"
     ;;      but that is recursive with forward-token refining "is"
-    ;;   following token: "with" or ";"
+    ;;   succeeding unrefined token: "with" or ";"
     ;;   skip: nothing
     ;;   token: private-type
     ;;
@@ -1270,21 +1273,21 @@ buffer."
     ;;       when discrete_choice_list => component;
     ;;       when discrete_choice_list => component;
     ;;
-    ;;   token: "when"
+    ;;   token: "when-case"
     ;;
     ;; 2) case_expression_alternative ::=
     ;;       (case selecting_expression is
     ;;        when discrete_choice_list => dependent_expression,
     ;;        when discrete_choice_list => dependent_expression)
     ;;
-    ;;   token: "when"
+    ;;   token: "when-TBD"
     ;;
     ;; 3) case_statement_alternative ::=
     ;;       case selecting_expression is
     ;;       when discrete_choice_list => statement;
     ;;       when discrete_choice_list => statement;
     ;;
-    ;;   token: "when"
+    ;;   token: "when-TBD"
     ;;
     ;; 4) exit_statement ::=
     ;;       exit [loop_name] [when condition];
@@ -1307,7 +1310,7 @@ buffer."
     ;;          [when expression => ]
     ;;             select_alternative }
     ;;
-    ;;   token: "when"
+    ;;   token: "when-TBD"
     ;;
     ;; 7) exception_handler ::=
     ;;
@@ -1317,12 +1320,12 @@ buffer."
     ;;       when [choice_parameter_specification:] exception_choice {| exception_choice} =>
     ;;          statement;
     ;;
-    ;;   token: "when"
+    ;;   token: "when-TBD"
     ;;
 
     (if (equal "entry" (ada-indent-backward-name))
 	"when-entry"; 5
-      "when")
+      "when-case"); 1
     ))
 
 (defun ada-indent-refine-with (token forward)
@@ -1352,7 +1355,7 @@ buffer."
     ;;
     ;;    succeeding unrefined token: "private"
     ;;    skip: nothing
-    ;;    keyword: "with"
+    ;;    keyword: "with-new"
     ;;
     ;; 4) task_type_declaration, single_task_declaration,
     ;;    protected_type_declaration, single_protected_declaration ::=
@@ -1364,7 +1367,7 @@ buffer."
     ;;    preceding refined token: "new", "and-interface_list"
     ;;    skip: name
     ;;    succeeding unrefined token: "protected", "task"
-    ;;    keyword: "with"
+    ;;    keyword: "with-new"
     ;;
     ;; 5) requeue_statement ::= requeue procedure_or_entry_name [with abort];
     ;;
@@ -1435,7 +1438,7 @@ buffer."
 	 "with-context"); 6
 	(t nil)))
 
-     "with")
+     "with-new")
     ))
 
 ;;; forward/backward token
@@ -1875,12 +1878,11 @@ the start of CHILD, which must be a keyword."
 	 (smie-default-backward-token)
 	 (cons 'column (current-column))))
 
-      ((equal arg "when")
+      ((equal arg "when-case")
        ;; We want to indent relative to the statement start; "case",
-       ;; "exception", etc.  But "when" is an opener, so finding the
-       ;; parent is complicated; ada-indent-goto-statement-start does
-       ;; not handle it (FIXME: yet). So we just look at the previous
-       ;; token.
+       ;; "exception", etc.  We assume the previous lines are properly
+       ;; indented, so just looking at the previous token works, and
+       ;; simpler than parsing back thru lots of "with"s.
        (save-excursion
 	 (let ((token (smie-default-backward-token)))
 	   (cond
@@ -1890,7 +1892,8 @@ the start of CHILD, which must be a keyword."
 	     (cons 'column (- (current-column) ada-indent)))
 
 	    ((equal token "is")
-	     ;; We need to give ada-indent-rule-statement the refined token
+	     ;; First "when" in the statement. We need to give
+	     ;; ada-indent-rule-statement the refined token
 	     (ada-indent-rule-statement ada-indent-when (save-excursion (ada-indent-forward-token))))
 	    ))))
 

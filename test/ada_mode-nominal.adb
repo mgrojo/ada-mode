@@ -53,7 +53,7 @@ package body Ada_Mode.Nominal is
       begin
          return D : Float
          do
-            -- extended return
+            -- extended return with do
             case Param_1 is
                when A | Nominal.B =>
                   P1;

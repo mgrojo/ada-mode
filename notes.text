@@ -32,23 +32,11 @@ ada-indent.el
 test/Makefile
     test/ada_mode-nominal.adb
 
-* ada-indent.el (ada-indent-grammar): add name to context clauses for refine-all
-  (ada-indent-block-keywords): add package-generic
-  (ada-indent-pre-begin-tokens): new
-  (ada-indent-refine-all): new
-  (ada-indent-refine-forward-to): new
-  (ada-indent-skip-param_list): clean up; don't need next-token
-  (ada-indent-next-name): fix loop exit bug
-  (ada-indent-refine-error): add point (duh!)
-  (ada-indent-refine-begin): use refine-all; noticeably slow, so need to cache results in text properties.
-  (ada-indent-show-child): new
-
-
-noticeably slow in test; need cache
-
 improve refined token naming convention:
     if refined, only return plain token if it is being left as an indentifier
     ie all occurances of a token in the grammar are refined, or all are un-refined
+
+    done thru "package"
 
 test/adacore_6312_006.adb
     nested begin in 'if then'
@@ -149,6 +137,7 @@ run test on GDS, with broken-paren = 2, see if anything changes
 switch to cl-macs, cl-lib
 
 why are we reindenting on space?
+    not; smie-blink-matching-open
 
 test with non-lowercase keywords in source
 
