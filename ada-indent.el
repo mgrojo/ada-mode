@@ -795,11 +795,7 @@ buffer."
   ;; called, examine `smie--levels' (which holds the token stack used
   ;; by `smie-forward-sexp) to see how to refine each "begin". When
   ;; we've reached the "begin" we are refining, throw
-  ;; `ada-indent-refine-all-quit', and resume normal operation. IMPROVEME; store
-  ;; the result in a text property cache; keep track of max valid
-  ;; cache position.
-  ;;
-  ;;
+  ;; `ada-indent-refine-all-quit', and resume normal operation.
   ;;
   (catch `local-quit
     (if ada-indent-refine-all
@@ -816,14 +812,11 @@ buffer."
 	     (t
 	      (setq token "begin-opener"))))
 
-	  ;; IMPROVEME: update cache here
-
 	  (if (>= (point) ada-indent-refine-forward-to)
 	      (throw 'ada-indent-refine-all-quit token)
 	    (throw 'local-quit token)))
 
       ;; not refining-all
-      ;; IMPROVEME: check cache here
       (when forward (smie-default-backward-token))
 
       (let ((ada-indent-refine-all t)
@@ -1050,6 +1043,7 @@ buffer."
     (or
      (let ((token (save-excursion (smie-default-backward-token))))
        (cond
+	((equal token "") "package");; beginning of buffer
 	((equal token "access") "package-access")
 	((equal token "with") "package-formal")
 	))
@@ -1485,15 +1479,59 @@ moving backward (point at left end of token). It must return the
 refined token or nil.
 If a token is not in the alist, it is returned unrefined.")
 
+;; cache operations
+
+(defvar ada-indent-cache-max 0
+  "Maximimum position in buffer where ada-indent token refinement cache is valid.")
+(make-variable-buffer-local 'ada-indent-cache-max)
+
+(defun ada-indent-invalidate-cache()
+  "Invalidate the ada-indent token cache for the current buffer."
+  (interactive)
+  (setq ada-indent-cache-max 0))
+
+(defun ada-indent-get-cache (pos)
+  "Return refined token string from the `ada-indent-cache' text property at POS."
+  (get-text-property pos 'ada-indent-cache))
+
+(defun ada-indent-put-cache (pos token)
+  "Set TOKEN as the refined token string in the `ada-indent-cache' text property at POS.
+Return TOKEN."
+  ;; IMPROVEME: we could store `smie--levels' as well, and resume
+  ;; `smie-forward-sexp' from pos, instead of from (point-min). But so
+  ;; far things are fast enough.
+  (put-text-property pos (+ 1 pos) 'ada-indent-cache token)
+  (setq ada-indent-cache-max (max ada-indent-cache-max pos))
+  token)
+
+(defun ada-indent-after-change (begin end length)
+  (setq ada-indent-cache-max (min ada-indent-cache-max begin)))
+
 (defun ada-indent-next-token (forward)
-  (let* ((token (if forward
-		   (smie-default-forward-token)
-		 (smie-default-backward-token)))
+  "Move to the next token; forward if FORWARD non-nil, backward otherwise.
+Return the token text or a refinement of it. Manage the refinement cache."
+  ;; We only need the cache for a couple tokens, but since we have the
+  ;; mechanism, it doesn't hurt to use it for all of them. So we
+  ;; implement it here.
+
+  (let* (cache-pos
+	 (token (if forward
+		    (progn
+		      (forward-comment (point-max))
+		      (setq cache-pos (point))
+		      (smie-default-forward-token))
+		  (prog1
+		      (smie-default-backward-token)
+		    (setq cache-pos (point)))))
 	 (refine (cadr (assoc token ada-indent-next-token-alist))))
     (cond
      ((stringp refine) refine)
 
-     ((functionp refine) (funcall refine token forward))
+     ((functionp refine)
+      (or (and
+	   (<= cache-pos ada-indent-cache-max)
+	   (ada-indent-get-cache cache-pos))
+	  (ada-indent-put-cache cache-pos (funcall refine token forward))))
 
      (t token))
     ))
@@ -2130,14 +2168,21 @@ used when no indentation decision was made."
   (cdr (ada-indent-rule-parent ada-indent-broken nil)))
 
 ;;; debug
+(defvar ada-indent-debug-refine t
+  "When non-nil, `ada-indent-show-keyword-forward' and
+`ada-indent-show-keyword-backward' invalidate cache first, so
+they always run the refine algorithm.")
+
 (defun ada-indent-show-keyword-forward ()
   "Show the grammar info for word following point, and move across it."
   (interactive)
+  (when ada-indent-debug-refine (ada-indent-invalidate-cache))
   (message "%s" (assoc (ada-indent-forward-token) smie-grammar)))
 
 (defun ada-indent-show-keyword-backward ()
   "Show the grammar info for word preceding point, and move across it."
   (interactive)
+  (when ada-indent-debug-refine (ada-indent-invalidate-cache))
   (message "%s" (assoc (ada-indent-backward-token) smie-grammar)))
 
 (defun ada-indent-show-parent ()
@@ -2230,7 +2275,9 @@ This lets us know which indentation function succeeded."
 
   (smie-setup ada-indent-grammar #'ada-indent-rules
 	      :forward-token #'ada-indent-forward-token
-	      :backward-token #'ada-indent-backward-token))
+	      :backward-token #'ada-indent-backward-token)
+
+  (add-hook 'after-change-functions 'ada-indent-after-change))
 
 (add-hook 'ada-mode-hook 'ada-indent-setup)
 
