@@ -1,5 +1,7 @@
 ;;; Ada mode indentation engine, based on SMIE
 ;;
+;; FIXME: not using lexical-binding because we might port this back to Emacs 23
+;;
 ;; [1] ISO/IEC 8652:201z (draft 18); Ada 2012 reference manual
 ;;
 ;; Copyright (C) 2012  Free Software Foundation, Inc.
@@ -217,8 +219,8 @@ An example is:
 	(context_item ";" context_item))
 
        (context_item
-	("with-context")
-	("use"))
+	("with-context" name); need name so `smie-forward-sexp' from beginning of buffer works
+	("use" name))
 
        (declaration
 	;; FIXME: (package_specification), (package_body); not tested yet.
@@ -506,6 +508,7 @@ An example is:
     "is-protected-body"
     "is-subprogram_body"
     "is-type-protected"
+    "package-generic"
     "private"
     "record")
   ;; We don't split this into start and end lists, because most are
@@ -527,6 +530,25 @@ An example is:
     )
   "Keywords that always end indented blocks.")
 
+(defconst ada-indent-pre-begin-tokens
+  '("declare"
+    "declare-label"
+    "is-subprogram_body"
+    "is-package"
+    "is-task"
+    "is-entry_body")
+  ;; found by searching [1] Annex P for "begin", then checking for
+  ;; refinements. Thus in Annex P order.
+  "All refined tokens that are followed by \"begin\" in an Ada declaration.")
+
+(defvar ada-indent-refine-all nil
+  "Non-nil if parsing forward from beginning of buffer to refine
+  keywords. Most tokens don't need to do this; those that do
+  let-bind this to t.")
+
+(defvar ada-indent-refine-forward-to nil
+  "Position of token that initiated refine-all.")
+
 (defun ada-indent-matching-end (keyword)
   "Return a list of keywords that could end the block started by KEYWORD.
 This is found by searching the grammar; it will produce results
@@ -545,7 +567,7 @@ that are not allowed by Ada, but we don't care."
 	))
     found))
 
-(defun ada-indent-skip-param_list (next-token forward)
+(defun ada-indent-skip-param_list (forward)
   ;; While refining tokens, we don't want to call smie-next-sexp,
   ;; because it relies on refined tokens. So we call the C scanner
   ;; directly when we need to skip a parenthesis (see the lisp source
@@ -574,9 +596,9 @@ beginning of buffer."
 		  (if forward
 		      (when (eq (char-after) ?\)) (throw 'quit ")"))
 		    (when (eq (char-before) ?\() (throw 'quit "(")))
-		  (ada-indent-skip-param_list next-token forward)
+		  (ada-indent-skip-param_list forward)
 		  ;; the next token might be another paren, so we loop
-		  )
+		  t)
 	      ;; not a paren or bob
 	      (setq token (nth 0 (assoc token smie-grammar)))
 	      (or (not token); not a keyword, so it must be an identifier
@@ -620,14 +642,12 @@ buffer."
     result))
 
 (defun ada-indent-refine-error (msg)
-  ;; When running from the Makefile, we'd like to report the line
-  ;; number here, but there is no 'current-line' function. So we show
-  ;; the text of the current line.
   (error
-   (concat msg ": "
+   (concat msg " %d : "
 	   (buffer-substring-no-properties
 	    (progn (beginning-of-line) (point))
-	    (progn (end-of-line) (point))))))
+	    (progn (end-of-line) (point))))
+   (point)))
 
 ;;; refine-*
 
@@ -749,58 +769,77 @@ buffer."
 (defun ada-indent-refine-begin (token forward)
   ;; If "begin" follows "declare" or "is", it is not an opener. Otherwise it is an opener.
   ;;
-  ;; If "begin" is not an opener, the preceding section of code is a
-  ;; declare block, and can contain function bodies or package specs,
-  ;; etc.
+  ;; Consider this code:
   ;;
-  ;; In either case, "begin" is followed by statements.
+  ;;   package body Ada_Mode.Nominal is
   ;;
-  ;; So we have to use smie-backward-sexp, guessing either "begin" or
-  ;; "begin-opener".
+  ;;	  function Function_1b return Float
+  ;;	  is
+  ;;	     Local_1 : constant := 3.0;
+  ;;	  begin
+  ;;	     declare -- no label, zero statements between begin, declare
+  ;; 	     begin
+  ;;		return Local_1;
+  ;;	     end;
+  ;; 	  end Function_1b;
+  ;;   begin
+  ;;	  null;
+  ;;   end Ada_Mode.Nominal;
   ;;
-  ;; cases from ada_mode-nominal.adb :
+  ;; To refine the final "begin", we need to look all the way back to
+  ;; "package". We can't do that while the intervening "begin"s are
+  ;; unrefined.
   ;;
-  ;; here "guess non-opener" gives the result of (goto-parent "begin" 1)
-  ;; and "guess opener" gives the result of (goto-parent "begin-opener" 2)
-  ;;
-  ;; Protected_1.F1.Local_Function: non-opener
-  ;;    guess non-opener: "function" Local_Function
-  ;;    guess opener: same.
-  ;;
-  ;; Protected_1.F1: non-opener
-  ;;    guess non-opener: "function" F1
-  ;;    guess opener: "function" Local_Function
-  ;;
-  ;; Protected_1.F2: non-opener
-  ;;    guess non-opener: "function" F2
-  ;;    guess opener: "function" F2
-  ;;
-  ;; Protected_1.E1: non-opener
-  ;;    guess non-opener: "entry" E1
-  ;;    guess opener: ";" Local_4
-  ;;
-  ;; Function_2d: opener
-  ;;    guess non-opener: previous "begin", point on guess "begin"
-  ;;    guess opener: "function" Function_2d
+  ;; So we enter a special mode; start smie-forward-sexp at the
+  ;; beginning of the buffer, and when `ada-indent-refine-begin' is
+  ;; called, examine `smie--levels' (which holds the token stack used
+  ;; by `smie-forward-sexp) to see how to refine each "begin". When
+  ;; we've reached the "begin" we are refining, throw
+  ;; `ada-indent-refine-all-quit', and resume normal operation. IMPROVEME; store
+  ;; the result in a text property cache; keep track of max valid
+  ;; cache position.
   ;;
   ;;
   ;;
-  ;;
-  ;;
-  (save-excursion
-    (when forward (smie-default-backward-token))
+  (catch `local-quit
+    (if ada-indent-refine-all
+	;; Parsing from beginning of buffer; examine stack
+	(let ((stack smie--levels)
+	      stack-token
+	      (token nil))
+	  (while (null token)
+	    (setq stack-token (nth 0 (rassoc (pop stack) ada-indent-grammar)))
+	    (cond
+	     ((equal stack-token ";") nil)
+	     ((member stack-token ada-indent-pre-begin-tokens)
+	      (setq token "begin"))
+	     (t
+	      (setq token "begin-opener"))))
 
-    ;; FIXME: this fails for package begin; it's normally preceded by ;, but is not opener.
-    ;; need to use backward-sexp, but that's recursive with refining begin!
-    (let (token)
-      (while (not (member (setq token (ada-indent-backward-token-unrefined))
-			  '("begin" "declare" "do" "else" "is" "loop" "then" "=>"))))
-			  '("begin" "do" "else" "loop" "then" "=>"))))
-	;; list composed by searching [1] Annex P for "statements"; missed "or" in select
-      (if (member token '("declare" "is"))
-	  "begin"
-	"begin-opener"))
-    ))
+	  ;; IMPROVEME: update cache here
+
+	  (if (>= (point) ada-indent-refine-forward-to)
+	      (throw 'ada-indent-refine-all-quit token)
+	    (throw 'local-quit token)))
+
+      ;; not refining-all
+      ;; IMPROVEME: check cache here
+      (when forward (smie-default-backward-token))
+
+      (let ((ada-indent-refine-all t)
+	    (ada-indent-refine-forward-to (point))
+	    toklevels)
+	(save-excursion
+	  (catch 'ada-indent-refine-all-quit
+	    (goto-char (point-min))
+	    ;; skip context clauses, parse compilation-unit.
+	    (while (equal ";" (nth 2 (setq toklevels (smie-forward-sexp))))
+	      (goto-char (nth 1 toklevels))
+	      ;; loop should exit on 'ada-indent-refine-all-quit,
+	      ;; but if we have a bug, we don't want to loop forever
+	      ;; here.
+	      ))))
+      )))
 
 (defun ada-indent-refine-case (token forward)
   (let ((token (save-excursion
@@ -1017,8 +1056,9 @@ buffer."
 
      ;; FIXME: this is ok for a library level [generic] package alone
      ;; in a file. But it could be a problem for a nested [generic]
-     ;; package. Idea: "end" can't occur in generic formal
-     ;; parameters; search for "end|generic".
+     ;; package. Idea: "end" can't occur in generic formal parameters;
+     ;; search for "end|generic". Or use ada-indent-refine-all
+     ;; approach.
      (if (equal "generic" (save-excursion (nth 2 (smie-backward-sexp "package-generic"))))
 	 "package-generic")
 
@@ -2101,11 +2141,18 @@ used when no indentation decision was made."
   (message "%s" (assoc (ada-indent-backward-token) smie-grammar)))
 
 (defun ada-indent-show-parent ()
-  "Move to the parent of the word following point, and show its refined keyword and grammar levels."
+  "Move backward to the parent of the word following point, and show its refined keyword and grammar levels."
   (interactive)
   (let* ((token (save-excursion (ada-indent-forward-token)))
 	 (count (if (ada-indent-opener-p token) 2 1))
 	 (toklevels (ada-indent-goto-parent token count)))
+    (message "%s => %s" (assoc token ada-indent-grammar) toklevels)))
+
+(defun ada-indent-show-child ()
+  "Move forward to the child of the word following point, and show its refined keyword and grammar levels."
+  (interactive)
+  (let* ((token (save-excursion (ada-indent-forward-token)))
+	 (toklevels (smie-forward-sexp token)))
     (message "%s => %s" (assoc token ada-indent-grammar) toklevels)))
 
 (defun ada-indent-show-statement-start ()

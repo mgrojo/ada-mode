@@ -10,6 +10,8 @@ General notes on porting Emacs Ada mode indentation engine to smie
        (lambda ()
        (define-key ada-mode-map "\C-w" 'capitalize-word)
        (define-key ada-mode-map "\M-o" 'ada-indent-show-parent)
+       (define-key ada-mode-map "\M-o" 'ada-indent-show-parent)
+       (define-key ada-mode-map "\M-9" 'ada-indent-show-child)
        (define-key ada-mode-map "\M-p" 'ada-indent-show-statement-start)
        (define-key ada-mode-map "\M-i" 'ada-indent-show-keyword-backward)
        (define-key ada-mode-map "\M-k" 'ada-indent-show-keyword-forward)
@@ -28,45 +30,23 @@ ada-indent.el
 test/Makefile
     test/ada_mode-nominal.adb
 
-implement semantic grammar of just block constructs to refine smie begin
-    maybe semantic is fast enough in the first place; no premature optimization!
-    a) if it is, drop smie :( (keep the tests)
-    b) if it's not, cache the required info as text properties that smie refine-begin uses
-        maintain "cache-valid-max-point"; move it back to current edit point, forward when call semantic parse.
-
-    work in org.emacs.ada-mode.semantic
-        implement ada-sem
-            copy test/ada_mode-nominal.ad?
-
-    if b), merge to o.e.a.smie
-        rename ada-indent to ada-smie
+* ada-indent.el (ada-indent-grammar): add name to context clauses for refine-all
+  (ada-indent-block-keywords): add package-generic
+  (ada-indent-pre-begin-tokens): new
+  (ada-indent-refine-all): new
+  (ada-indent-refine-forward-to): new
+  (ada-indent-skip-param_list): clean up; don't need next-token
+  (ada-indent-next-name): fix loop exit bug
+  (ada-indent-refine-error): add point (duh!)
+  (ada-indent-refine-begin): use refine-all; noticeably slow, so need to cache results in text properties.
+  (ada-indent-show-child): new
 
 
+noticeably slow in test; need cache
 
-refine-begin fails for:
-    package begin
-    local block begin after nested subprogram.
-    use backward-sexp
-    enumerate cases in ada_mode-nominal.ad?
-        => this approach can't work; _must_ scan forward from known start, keeping a stack of block keywords
-           no worse than scanning backwards to the start of the file!
-           smie-forward-sexp doesn't figure out what the tokens are; need semantic!
-
-    what does ada mode 4.01 do here?
-        ada-goto-decl-start
-        moves backward, using ada-search-ignore-string-comment
-            ad-hoc logic, will get confused by if-expressions
-
-    does modula 2 have this problem?
-        no; no explicit block statements
-
-"begin" as divider can only follow declarations, while "begin" as
-block start can only follow statements (or "begin" as divider). Maybe I
-can make the SMIE grammar keep track of declarations and statements;
-
-variant of operator precedence parser that refines next token based on stack?
-
-find out how to call a dll from elisp!
+improve refined token naming convention:
+    if refined, only return plain token if it is being left as an indentifier
+    ie all occurances of a token in the grammar are refined, or all are un-refined
 
 test/adacore_6312_006.adb
     nested begin in 'if then'

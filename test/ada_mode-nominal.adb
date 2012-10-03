@@ -177,8 +177,8 @@ package body Ada_Mode.Nominal is
 
    function Function_1d return Float
    is begin
-      P1;
-      P1;
+      Procedure_2a;
+      Procedure_2a;
 
       declare -- no label, two statements between begin, declare
       begin
@@ -203,9 +203,8 @@ package body Ada_Mode.Nominal is
 
    function Function_2b (Param : in Parent_Type_1) return Float
    is
-      Local_A : Float;
    begin
-      P1;
+      Procedure_2a;
       Block_1:
       declare -- label, one statements between begin, label
          Local_1 : Float := 1.0e-36;
@@ -225,8 +224,12 @@ package body Ada_Mode.Nominal is
       type Array_Type_2 is array (1 .. 3) of Array_Type_1;
       Local_A : Array_Type_2 := (others => (others => 0.0));
    begin
-      P1;
-      P1;
+      Procedure_2a;
+
+      -- second begin block FIXME: this comment is indented wrong!
+      begin
+         Local_a (1)(2) := 1.0;
+      end;
 
       Block_1 :
       declare -- label, two statements between begin, label
@@ -234,11 +237,6 @@ package body Ada_Mode.Nominal is
       begin
          return Local_1;
       end Block_1;
-
-      -- second begin block
-      begin
-         Local_a (1)(2) := 1;
-      end;
    end;
 
    function Function_2d (Param : in Parent_Type_1) return Float
@@ -254,7 +252,7 @@ package body Ada_Mode.Nominal is
      (Param : in Parent_Type_1)
      return Float
    is begin
-      P1;
+      Procedure_2a;
       begin -- no declare, one statement
          return 1.0;
       end;
@@ -263,13 +261,13 @@ package body Ada_Mode.Nominal is
    function Function_2f (Param : in Parent_Type_1)
      return Float is
    begin
-      P1;
-      P1;
+      Procedure_2a;
+      Procedure_2a;
       begin -- no declare, two statements
          return 1.0;
       end;
    end;
 
-   begin
+begin
    null;
 end Ada_Mode.Nominal;

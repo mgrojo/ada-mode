@@ -672,6 +672,9 @@ it should move backward to the beginning of the previous token.")
   ;; has to be careful to distinguish those different cases.
   (eq (smie-op-left toklevels) (smie-op-right toklevels)))
 
+(defvar smie--levels nil
+  "Parser token stack lambda-bound in smie-next-sexp; `next-token' can examine stack to help refine.")
+
 (defun smie-next-sexp (next-token next-sexp op-forw op-back halfsexp)
   "Skip over one sexp.
 NEXT-TOKEN is a function of no argument that moves forward by one
@@ -691,7 +694,7 @@ Possible return values:
   (nil POS TOKEN): we skipped over a paren-like pair.
   nil: we skipped over an identifier, matched parentheses, ..."
   (catch 'return
-    (let ((levels
+    (let ((smie--levels
            (if (stringp halfsexp)
                (prog1 (list (cdr (assoc halfsexp smie-grammar)))
                  (setq halfsexp nil)))))
@@ -718,32 +721,32 @@ Possible return values:
               ;; A token like a paren-close.
               (assert (numberp     ; Otherwise, why mention it in smie-grammar.
                        (funcall op-forw toklevels)))
-              (push toklevels levels))
+              (push toklevels smie--levels))
              (t
-              (while (and levels (< (funcall op-back toklevels)
-                                    (funcall op-forw (car levels))))
-                (setq levels (cdr levels)))
+              (while (and smie--levels (< (funcall op-back toklevels)
+                                    (funcall op-forw (car smie--levels))))
+                (setq smie--levels (cdr smie--levels)))
               (cond
-               ((null levels)
+               ((null smie--levels)
                 (if (and halfsexp (numberp (funcall op-forw toklevels)))
-                    (push toklevels levels)
+                    (push toklevels smie--levels)
                   (throw 'return
                          (prog1 (list (or (car toklevels) t) (point) token)
                            (goto-char pos)))))
                (t
-                (let ((lastlevels levels))
-                  (if (and levels (= (funcall op-back toklevels)
-                                     (funcall op-forw (car levels))))
-                      (setq levels (cdr levels)))
+                (let ((lastlevels smie--levels))
+                  (if (and smie--levels (= (funcall op-back toklevels)
+                                     (funcall op-forw (car smie--levels))))
+                      (setq smie--levels (cdr smie--levels)))
                   ;; We may have found a match for the previously pending
                   ;; operator.  Is this the end?
                   (cond
                    ;; Keep looking as long as we haven't matched the
                    ;; topmost operator.
-                   (levels
+                   (smie--levels
                     (cond
                      ((numberp (funcall op-forw toklevels))
-                      (push toklevels levels))
+                      (push toklevels smie--levels))
                      ;; FIXME: For some languages, we can express the grammar
                      ;; OK, but next-sexp doesn't stop where we'd want it to.
                      ;; E.g. in SML, we'd want to stop right in front of
@@ -754,8 +757,8 @@ Possible return values:
                      ;;
                      ;; ((and (functionp (cadr (funcall op-forw toklevels)))
                      ;;       (funcall (cadr (funcall op-forw toklevels))
-                     ;;                levels))
-                     ;;  (setq levels nil))
+                     ;;                smie--levels))
+                     ;;  (setq smie--levels nil))
                      ))
                    ;; We matched the topmost operator.  If the new operator
                    ;; is the last in the corresponding BNF rule, we're done.
@@ -766,7 +769,7 @@ Possible return values:
                    ;; and is not associative, it's one of the inner operators
                    ;; (like the "in" in "let .. in .. end"), so keep looking.
                    ((not (smie--associative-p toklevels))
-                    (push toklevels levels))
+                    (push toklevels smie--levels))
                    ;; The new operator is associative.  Two cases:
                    ;; - it's really just an associative operator (like + or ;)
                    ;;   in which case we should have stopped right before.
@@ -778,8 +781,8 @@ Possible return values:
                    ;; - it's an associative operator within a larger construct
                    ;;   (e.g. an "elsif"), so we should just ignore it and keep
                    ;;   looking for the closing element.
-                   (t (setq levels lastlevels))))))))
-            levels)
+                   (t (setq smie--levels lastlevels))))))))
+            smie--levels)
         (setq halfsexp nil)))))
 
 (defun smie-backward-sexp (&optional halfsexp)

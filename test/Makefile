@@ -36,6 +36,9 @@ TEST_FILES := $(shell ls *.ad?)
 
 COMPILE_FILES := $(TEST_FILES)
 
+# this is for debug only
+COMPILE_FILES := $(filter-out debug.adb, $(COMPILE_FILES))
+
 # These heritage tests don't compile, and they are too hard to fix
 COMPILE_FILES := $(filter-out ada-test.adb, $(COMPILE_FILES))
 COMPILE_FILES := $(filter-out beginindent.adb, $(COMPILE_FILES))
