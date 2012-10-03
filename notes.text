@@ -51,6 +51,7 @@ make rest of files work
         record - done
     remaining statements
     remaining expressions (if expression, that started this whole thing :)
+    "and then" "or else"
     pre/post conditions
 
     subprogram call with indented param list

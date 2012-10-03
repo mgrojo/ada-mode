@@ -200,9 +200,9 @@ An example is:
        ;; Refined token naming convention:
        ;;
        ;; If an Ada keyword is refined, all occurances of the keyword
-       ;; in the smie grammar must be refined. Use "-other" if no
-       ;; better name is available. That way it is clear when a
-       ;; keyword is being left as an indentifier.
+       ;; in the smie grammar must be refined. Use "-op" for
+       ;; operators, "-other" if no better name is available. That way
+       ;; it is clear when a keyword is being left as an indentifier.
 
        (aspect_specification
 	("with-aspect" aspect_list))
@@ -419,8 +419,8 @@ An example is:
 	;; followed by a record_definition; that's covered below.
 
 	;; interface_type_definition, formal_interface_type_definition
-	("type" identifier "is-type" "interface")
-	("type" identifier "is-type" "interface_and" interface_list)
+	("type" identifier "is-type" "interface-plain")
+	("type" identifier "is-type" "interface-and" "and-interface" interface_list)
 
 	;; modular_type_definition
 	("type" identifier "is-type" "mod-type")
@@ -489,7 +489,7 @@ An example is:
        (nonassoc
 	"=" "/=" "<" "<=" ">" ">=" "in"
 	"or" "or_else" "xor" "+" "-" "&"
-	"and" "and_then" "mod" "rem" "*" "/"
+	"and-op" "mod" "rem" "*" "/"
 	"abs"; "not" leave "not" as identifier so it is not confused with "not null"
 	"'" "." "**" "..")
        ))
@@ -693,20 +693,21 @@ buffer."
   ;;       [[and interface_list] record_extension_part]
   ;;       [aspect_specification];
   ;;
-  ;;    preceding keyword: "new"
+  ;;    preceding refined keyword: "new"
   ;;    skip: name
   ;;    keyword: "and-interface_list"
   ;;
   ;; 2) interface_type_definition ::=
   ;;    (type identifier is) [limited | task | protected | synchronized] interface [and interface_list]
   ;;
-  ;;    preceding lower level keyword: "interface"
+  ;;    preceding unrefined keyword: "interface"
+  ;;    preceding refined keyword: "interface-and"
   ;;    skip: nothing
-  ;;    keyword: "interface_and"
+  ;;    keyword: "and-interface"
   ;;
   ;; 3) interface_list ::= interface_subtype_mark {and interface_subtype_mark}
   ;;
-  ;;    preceding keyword: "interface_and", "and-interface_list"
+  ;;    preceding refined keyword: "and-interface_list"
   ;;    skip: name
   ;;    keyword: "and-interface_list"
   ;;
@@ -744,30 +745,21 @@ buffer."
   ;;    skip: name
   ;;    keyword: "and-interface_list"
   ;;
-  ;; All other occurences are logical expressions, returning "and".
-  (or
-   (and forward
-	(equal "interface" (save-excursion (smie-default-backward-token); and
-					   (smie-default-backward-token)))
-	(smie-default-backward-token)
-	"interface_and"); 2
+  ;; All other occurences are logical expressions, returning "and-op".
+  (save-excursion
+    (when forward (smie-default-backward-token))
 
-   (and (not forward)
-	(equal "interface" (save-excursion (smie-default-backward-token)))
-     (smie-default-backward-token)
-     "interface_and"); 2
-
-   (save-excursion
-     (when forward (smie-default-backward-token))
+    (or
+     (when (equal "interface" (save-excursion (smie-default-backward-token)))
+       "and-interface"); 2
 
      (let ((token (ada-indent-backward-name)))
        (cond
-	((or (equal token "interface_and"); 3
-	     (equal token "and-interface_list"); 3
+	((or (equal token "and-interface_list"); 3
 	     (equal token "new")); 1, 4, 5, 6, 7
 	   "and-interface_list")
-	(t "and")))))
-  )
+	(t "and-op")))
+     )))
 
 (defun ada-indent-refine-begin (token forward)
   ;; If "begin" follows "declare" or "is", it is not an opener. Otherwise it is an opener.
@@ -869,6 +861,16 @@ buffer."
 
        (t "end"))
       )))
+
+(defun ada-indent-refine-interface (token forward)
+  ;; see `ada-indent-refine-and' for Ada syntax cases
+  (let ((token (save-excursion
+		 (when (not forward) (smie-default-forward-token))
+		 (smie-default-forward-token))))
+
+    (if (equal token "and")
+	"interface-and"
+      "interface-plain")))
 
 (defun ada-indent-refine-is (token forward)
   (save-excursion
@@ -1461,6 +1463,7 @@ buffer."
     ("declare" 	 ada-indent-refine-declare)
     ("end" 	 ada-indent-refine-end)
     ("function"  ada-indent-refine-subprogram)
+    ("interface" ada-indent-refine-interface)
     ("is" 	 ada-indent-refine-is)
     ("mod" 	 ada-indent-refine-mod)
     ("package" 	 ada-indent-refine-package)
