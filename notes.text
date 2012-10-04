@@ -32,15 +32,8 @@ ada-indent.el
 test/Makefile
     test/ada_mode-nominal.adb
 
-improve refined token naming convention:
-    if refined, only return plain token if it is being left as an indentifier
-    ie all occurances of a token in the grammar are refined, or all are un-refined
-
-    done thru "interface_type_definition"
-
-test/adacore_6312_006.adb
-    nested begin in 'if then'
-    put if then in grammar
+C:/Apps/emacs-24.2/bin/emacs.exe -Q -batch -L .. -l runtest.el --eval '(run-test "adacore_6804_008.adb")'
+Error: (error "unrecognized 'is' 331 : task body Executive is")
 
 
 make rest of files work

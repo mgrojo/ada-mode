@@ -335,6 +335,13 @@ An example is:
 	;; case_statement
 	("case" name "is-case" case_statement_alternative "end-case" "case-end")
 
+	;; if_statement
+	("if-open" expression "then" statements "end-if" "if-end")
+	("if-open" expression "then" statements "else" statements "end-if" "if-end")
+	("if-open" expression "then" statements
+	 "elsif" expression "then" statements
+	 "else" statements "end-if" "if-end")
+
 	("return-stmt")
 
 	;; extended_return_statement
@@ -504,6 +511,7 @@ An example is:
     "declare"
     "declare-label"
     "do"
+    "else"
     ;; "end-other" is never a block start; treated separately
     "generic"
     "is-entry_body"
@@ -512,7 +520,8 @@ An example is:
     "is-subprogram_body"
     "is-type-protected"
     "private-type-body"
-    "record-open")
+    "record-open"
+    "then")
   ;; We don't split this into start and end lists, because most are
   ;; both. The keywords that are an end but never a start are in
   ;; ada-indent-block-end-keywords. Being a start but never end is not
@@ -524,8 +533,10 @@ An example is:
   "Keywords that start or end indented blocks, excluding keywords that always end blocks.")
 
 (defconst ada-indent-block-end-keywords
-  '("end-other"
+  '("elsif"
     "end-case"
+    "end-if"
+    "end-other"
     "end-record"
     "end-return"
     "package-generic"
@@ -854,12 +865,20 @@ buffer."
     (let ((token (save-excursion (smie-default-forward-token) (smie-default-forward-token))))
       (cond
        ((equal "case" token) "end-case")
-
+       ((equal "if" token) "end-if")
        ((equal "record" token) "end-record")
-
        ((equal "return" token) "end-return")
-
        (t "end-other"))
+      )))
+
+(defun ada-indent-refine-if (token forward)
+  (save-excursion
+    (when forward (smie-default-backward-token))
+
+    (let ((token (save-excursion (smie-default-backward-token))))
+      (cond
+       ((equal "end" token) "if-end")
+       (t "if-open"))
       )))
 
 (defun ada-indent-refine-interface (token forward)
@@ -1463,6 +1482,7 @@ buffer."
     ("end" 	 ada-indent-refine-end)
     ("function"  ada-indent-refine-subprogram)
     ("interface" ada-indent-refine-interface)
+    ("if" 	 ada-indent-refine-if)
     ("is" 	 ada-indent-refine-is)
     ("mod" 	 ada-indent-refine-mod)
     ("package" 	 ada-indent-refine-package)

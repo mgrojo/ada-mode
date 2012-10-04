@@ -41,7 +41,16 @@ package body Ada_Mode.Nominal is
 
          function Local_Function return Integer
          is begin
-            return Integer (Function_1a);
+            if True then
+               begin
+                  return Integer (Function_1a);
+               end;
+            elsif False
+            then
+               return 1;
+            else
+               return 0;
+            end if;
          end Local_Function;
       begin
          return B : Integer := Local_Function;
