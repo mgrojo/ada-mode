@@ -136,6 +136,49 @@ package body Ada_Mode.Nominal is
       end Read;
    end Buffer;
 
+   --------------------------------------------------------
+   --  6804-008: problem for indentation after a task declaration
+   --  The problem was caused by the task declaration with no
+   --  block attached
+   --------------------------------------------------------
+   task Executive;
+   task body Executive is
+   begin
+      null;
+   end Executive;
+
+   -- a more typical task
+   task body Task_Type_1 is
+      Local_1 : Integer;
+      Started : Boolean := False;
+   begin
+      select
+         accept Start (A) (Param_1 : in integer);
+         Started := True;
+      or
+        when Started => -- GPS indent ada-indent (not hanging-indent). Emacs Ada mode 4.01 indent 0
+         accept Middle_1 (Param_1 : in integer) do
+            Local_1 := 0;
+         end Middle_1;
+      or
+        when Started =>
+         accept Middle_2
+           (Param_1 : in integer);
+         Local_1 := 0;
+      or when Started =>
+         accept Finish;
+         local_1 := 5;
+      or terminate;
+      end select;
+
+      select -- need a separate select to test "else"
+         accept Start (A) (Param_1 : in integer);
+         Local_1 := 0;
+      else
+         Local_1 := 2;
+      end select;
+   end Task_Type_1;
+
    ----------
    -- subprograms
 

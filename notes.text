@@ -30,11 +30,13 @@ ada-indent.el
 (sal-edit-library "smie")
 
 test/Makefile
-    test/ada_mode-nominal.adb
+    test/ada_mode-nominal.ads
 
-C:/Apps/emacs-24.2/bin/emacs.exe -Q -batch -L .. -l runtest.el --eval '(run-test "adacore_6804_008.adb")'
-Error: (error "unrecognized 'is' 331 : task body Executive is")
+still have plain "begin" in block_statement!
+    change "opener" to "open"
 
+
+single_task, single_protected with discriminants; must use ada-indent-backward-name
 
 make rest of files work
     add missing features to ada_mode-*

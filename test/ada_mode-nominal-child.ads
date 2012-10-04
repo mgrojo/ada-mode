@@ -37,4 +37,5 @@ package Ada_Mode.Nominal.Child is
      (Param : in Child_Type_1)
      return Float;
 
+-- FIXME: derived task type? 'overriding entry', with aspect
 end Ada_Mode.Nominal.Child;

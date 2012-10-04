@@ -204,6 +204,10 @@ An example is:
        ;; operators, "-other" if no better name is available. That way
        ;; it is clear when a keyword is being left as an indentifier.
 
+       (accept_statement
+	("accept" identifier "do" statements "end-block")
+	("accept" identifier))
+
        (aspect_specification
 	("with-aspect" aspect_list))
 
@@ -212,7 +216,7 @@ An example is:
 	(aspect_list "," aspect_item))
 
        (aspect_item
-	(name "=>" name))
+	(name "=>-other" name))
 
        (case_statement_alternative
 	("when-case" expression "=>-when" statements)); "|" is an identifier
@@ -236,6 +240,7 @@ An example is:
 	(protected_body)
 	(subprogram_declaration)
 	(subprogram_body)
+	(task_body)
 	(type_declaration)
 
 	;; object declarations
@@ -249,7 +254,7 @@ An example is:
 	(declaration ";" declaration))
 
        (entry_body
-	("entry" identifier "when-entry" expression "is-entry_body" declarations "begin" statements "end-other"))
+	("entry" identifier "when-entry" expression "is-entry_body" declarations "begin" statements "end-block"))
 
        (expression
 	;; The expression syntax rules in [1] mostly serve to express
@@ -292,9 +297,9 @@ An example is:
 	;; No need to distinguish between 'declarations' and
 	;; 'generic_formal_parameter_declaration' for our purposes.
 	("generic" declarations
-	 "package-generic" identifier "is-package" declarations "private" declarations "end-other")
+	 "package-generic" identifier "is-package" declarations "private" declarations "end-block")
 	("generic" declarations
-	 "package-generic" identifier "is-package" declarations "end-other"))
+	 "package-generic" identifier "is-package" declarations "end-block"))
 
        (interface_list
 	;; The Ada grammar sometimes has "name and interface_list".
@@ -313,27 +318,44 @@ An example is:
 	)
 
        (package_specification
-	("package-plain" name "is-package" declarations "private" declarations "end-other")
-	("package-plain" name "is-package" declarations "end-other"))
+	("package-plain" name "is-package" declarations "private" declarations "end-block")
+	("package-plain" name "is-package" declarations "end-block"))
 
        (package_body
 	;; Leaving 'package body' as separate tokens causes problems
 	;; in refine-is, so we leave "body" as an identifier.
-	("package-plain" name "is-package" declarations "begin" statements "end-other"))
+	("package-plain" name "is-package" declarations "begin" statements "end-block"))
 
        (protected_body
-	("protected-body" identifier "is-protected-body" declarations "end-other"))
+	("protected-body" identifier "is-protected_body" declarations "end-block"))
+
+       (select_statement
+	;; accept_statement, delay_statement are covered here by
+	;; "statements". "terminate" looks like a procedure call, so
+	;; we leave it as an identifier.
+	("select-open" "when-select" expression "=>-when" statements
+	 "or-select" "when-select" expression "=>-when" statements
+	 "else" statements "end-select" "select-end")
+
+	("select-open" statements
+	 "or-select" statements
+	 "else" statements "end-select" "select-end"))
 
        (statement
 	(expression); covers procedure calls, assignment
 
+	(accept_statement)
+
 	;; block_statement
-	(identifier ":" "declare-label" declarations "begin" statements "end-other")
-	("declare" declarations "begin" statements "end-other")
-	("begin-opener" statements "end-other")
+	(identifier ":" "declare-label" declarations "begin" statements "end-block")
+	("declare" declarations "begin" statements "end-block")
+	("begin-opener" statements "end-block")
 
 	;; case_statement
 	("case" name "is-case" case_statement_alternative "end-case" "case-end")
+
+	;; delay_statement
+	("delay" expression)
 
 	;; if_statement
 	("if-open" expression "then" statements "end-if" "if-end")
@@ -347,7 +369,8 @@ An example is:
 	;; extended_return_statement
 	("return-ext" identifier ":" name); same as initialized object declaration
 	("return-ext" identifier ":" name "do" statements "end-return" "return-end")
-	;; FIXME: if/then/else, loop, declare/begin/end, ...
+
+	(select_statement)
 	)
 
        (statements
@@ -356,8 +379,8 @@ An example is:
 
        (subprogram_body
 	;; access is an identifier
-	("function" name "return-spec" name "is-subprogram_body" declarations "begin" statements "end-other")
-	("procedure" name "is-subprogram_body" declarations "begin" statements "end-other"))
+	("function" name "return-spec" name "is-subprogram_body" declarations "begin" statements "end-block")
+	("procedure" name "is-subprogram_body" declarations "begin" statements "end-block"))
 
        (subprogram_declaration
 	("function" name "return-spec" name)
@@ -380,6 +403,9 @@ An example is:
 	;; are treating a couple of occurences of "is", and most
 	;; occurences of "null", as identifiers.
 	)
+
+       (task_body
+	("task-body" identifier "is-task_body" declarations "begin" statements "end-block"))
 
        (type_declaration
 	;; access_type_definition
@@ -423,7 +449,8 @@ An example is:
 	;;
 	;; We don't need the variant without "is tagged", since it has
 	;; only one keyword.  We need "is-type-record" when this is
-	;; followed by a record_definition; that's covered below.
+	;; followed by a record_definition; that's covered below. We don't need "tagged" as a keyword.
+	("type" identifier "is-type-tagged")
 
 	;; interface_type_definition, formal_interface_type_definition
 	("type" identifier "is-type" "interface-plain")
@@ -454,11 +481,13 @@ An example is:
 	;; that in a single_protected_declaration, we are refining
 	;; "protected" to "type". However, "is" in protected type
 	;; declaration is a block start keyword, while "is-type" in
-	;; general is not, so we need to make that a keyword.
-	("type" identifier "is-type" declarations "private-type-body" declarations "end-other")
-	("type" identifier "is-type-protected" declarations "private-type-body" declarations "end-other")
+	;; general is not, so we need to make that a distinct
+	;; keyword. We use "is-type-block" instead of
+	;; "is-type-protected", because it covers task types as well.
+	("type" identifier "is-type-block" declarations "private-type-body" declarations "end-block")
+	("type" identifier "is-type-block" declarations "end-block"); task, or protected with no private part
 	("type" identifier "is-type" "new" interface_list "with-new" declarations
-	 "private-type-body" declarations "end-other")
+	 "private-type-body" declarations "end-block")
 
 	;; record_type_definition
 	("type" identifier "is-type" "record-null")
@@ -475,6 +504,13 @@ An example is:
 	;; record_type_definition or derived_type_definition, because
 	;; we want to indent "end record" relative to "record", not
 	;; "type".
+
+	;; task_type_declaration, single_task_declaration: as for
+	;; protected_type_declaration, we don't need "task" in the
+	;; grammar. Task entries can have entry families, but that's a
+	;; parenthesized expression, so we don't need it in the
+	;; grammar either. However, task_body includes "begin", while
+	;; protected_body doesn't.
 
 	); type_declaration
        )); smie-bnf->prec2
@@ -495,7 +531,7 @@ An example is:
        (nonassoc ":=")
        (nonassoc
 	"=" "/=" "<" "<=" ">" ">=" "in"
-	"or" "or_else" "xor" "+" "-" "&"
+	"or-op" "xor" "+" "-" "&"
 	"and-op" "mod-op" "rem" "*" "/"
 	"abs"; "not" leave "not" as identifier so it is not confused with "not null"
 	"'" "." "**" "..")
@@ -512,15 +548,17 @@ An example is:
     "declare-label"
     "do"
     "else"
-    ;; "end-other" is never a block start; treated separately
+    ;; "end-block" is never a block start; treated separately
     "generic"
     "is-entry_body"
     "is-package"
-    "is-protected-body"
+    "is-protected_body"
     "is-subprogram_body"
-    "is-type-protected"
+    "is-task_body"
+    "is-type-block"
     "private-type-body"
     "record-open"
+    "select-open"
     "then")
   ;; We don't split this into start and end lists, because most are
   ;; both. The keywords that are an end but never a start are in
@@ -536,9 +574,11 @@ An example is:
   '("elsif"
     "end-case"
     "end-if"
-    "end-other"
+    "end-block"
     "end-record"
     "end-return"
+    "end-select"
+    "or-select"
     "package-generic"
     ;; "when-case" does not act like a block keyword; it is an opener
     )
@@ -549,7 +589,7 @@ An example is:
     "declare-label"
     "is-subprogram_body"
     "is-package"
-    "is-task"
+    "is-task_body"
     "is-entry_body")
   ;; found by searching [1] Annex P for "begin", then checking for
   ;; refinements. Thus in Annex P order.
@@ -690,9 +730,9 @@ buffer."
 		 (when forward (smie-default-backward-token))
 		 (ada-indent-backward-name))))
 
-    (if (equal token "when-case")
+    (if (member token '("when-case" "when-select"))
 	"=>-when"
-      "=>")))
+      "=>-other")))
 
 (defun ada-indent-refine-and (token forward)
   ;; 'and' occurs in interface types and logical expressions
@@ -868,7 +908,8 @@ buffer."
        ((equal "if" token) "end-if")
        ((equal "record" token) "end-record")
        ((equal "return" token) "end-return")
-       (t "end-other"))
+       ((equal "select" token) "end-select")
+       (t "end-block"))
       )))
 
 (defun ada-indent-refine-if (token forward)
@@ -901,25 +942,26 @@ buffer."
      ;; First try simple, common constructs.
 
      (save-excursion
-       ;; This is a special case because "protected" not followed
-       ;; by "body" is not a keyword, so ada-indent-backward-name
-       ;; doesn't find it.
+       ;; This is a special case because "protected" and "task" are
+       ;; not keywords, so ada-indent-backward-name doesn't find them.
        (let ((token (progn
 		      (smie-default-backward-token); identifier
-		      (smie-default-backward-token)))) ; "protected", "body", "type"
+		      (smie-default-backward-token)))) ; "protected", "task", "body", "type"
 	 (cond
-	  ((equal token "protected") "is-type-protected")
-	  ((and
-	    (equal token "body")
+	  ((member token '("protected" "task")) "is-type-block")
+	  ((equal token "body")
 	    (setq token (smie-default-backward-token))
-	    (equal token "protected") "is-protected-body"))
-	  ((and
-	    (equal token "type")
+	    (cond
+	     ((equal token "protected") "is-protected_body")
+	     ((equal token "task") "is-task_body")
+	     ))
+	  ((equal token "type")
 	    (setq token (smie-default-backward-token))
-	    (equal token "protected") "is-type-protected"))
+	    (when (member token '("protected" "task")) "is-type-block"))
 	 )))
 
-     (let ((token (save-excursion (ada-indent-backward-name))))
+     (let* (pos
+	    (token (save-excursion (prog1 (ada-indent-backward-name) (setq pos (point))))))
        (cond
 	((equal token "case") "is-case")
 
@@ -949,66 +991,70 @@ buffer."
 	 "is-subprogram_body")
 
 	((equal token "type")
-	 (let ((token
-		(progn
-		  (smie-default-forward-token); is
-		  (smie-default-forward-token))))
-	   (cond
-	    ((and (equal token "")
-		  (looking-at "("))
-	     "is-type-enumeration");; type identifier is (...)
+	 (or
+	  (let ((token (save-excursion (goto-char pos) (smie-default-backward-token))))
+	    (when (member token '("protected" "task")) "is-type-block"))
 
-	    ((member token '("not" "access")) "is-type-access")
+	  (let* (pos
+		(token
+		 (save-excursion
+		   (smie-default-forward-token); is
+		   (prog1 (smie-default-forward-token)
+		     (setq pos (point))))))
+	    (cond
+	     ((equal token ""); paren or end of buffer; assume paren
+	      "is-type-enumeration");; type identifier is (...)
 
-	    ((equal token "record") "is-type-record")
+	     ((member token '("not" "access")) "is-type-access")
 
-	    ((and
-	      (equal token "tagged")
-	      (let ((token (save-excursion (smie-default-forward-token))))
-		(cond
-		 ((equal token ";")
-		  ;; type Incomplete_Type_1 (Discriminant_1 : Integer) is tagged; -- in spec
-		  ;; type Incomplete_Type_1 (Discriminant_1 : Integer) is tagged null record; -- in body
-		  ;; leave "is" an identifier
-		  "is")
-		 ((equal token "record") "is-type-record")
-		 (t nil))
-		)))
+	     ((equal token "record") "is-type-record")
 
-	    ((member token ada-indent-type-modifiers)
-	     ;; we could have:
-	     ;;
-	     ;;    type Derived_Type_2 is abstract tagged limited new ...
-	     ;;    type Private_Type_1 is abstract tagged limited null record;
-	     ;;    type Private_Type_2 is abstract tagged limited record ...
-	     (save-excursion
-	       (let ((token (ada-indent-skip-type-modifiers)))
+	     ((and
+	       (equal token "tagged")
+	       (let ((token (save-excursion (goto-char pos) (smie-default-forward-token))))
 		 (cond
+		  ((equal token ";")
+		   ;; type Incomplete_Type_1 (Discriminant_1 : Integer) is tagged; -- in spec
+		   ;; type Incomplete_Type_1 (Discriminant_1 : Integer) is tagged null record; -- in body
+		   "is-type-tagged")
 		  ((equal token "record") "is-type-record")
-		  (t "is-type")))
-	       ))
+		  (t nil))
+		 )))
 
-	    ;; numeric types
-	    ;;
-	    ;; signed_integer_type_definition ::= [type identifier is] range expression .. expression
-	    ;;
-	    ;; modular_type_definition ::= [type identifier is] mod static_expression
-	    ;;
-	    ;; floating_point_definition ::= [type identifier is] digits static_expression
-	    ;;    [range expression .. expression]
-	    ;;
-	    ;; ordinary_fixed_point_definition ::= [type identifier is] delta expression
-	    ;;    range expression .. expression
-	    ;;
-	    ;; decimal_fixed_point_definition ::= [type identifier is] delta expression digits expression
-	    ;;    [   range expression .. expression]
-	    ((equal token "range") "is-type-numeric")
-	    ((equal token "mod") "is-type")
-	    ((equal token "digits") "is-type-numeric")
-	    ((equal token "delta") "is-type-numeric")
+	     ((member token ada-indent-type-modifiers)
+	      ;; we could have:
+	      ;;
+	      ;;    type Derived_Type_2 is abstract tagged limited new ...
+	      ;;    type Private_Type_1 is abstract tagged limited null record;
+	      ;;    type Private_Type_2 is abstract tagged limited record ...
+	      (save-excursion
+		(let ((token (ada-indent-skip-type-modifiers)))
+		  (cond
+		   ((equal token "record") "is-type-record")
+		   (t "is-type")))
+		))
 
-	    (t "is-type")); all others
-	   ))))
+	     ;; numeric types
+	     ;;
+	     ;; signed_integer_type_definition ::= [type identifier is] range expression .. expression
+	     ;;
+	     ;; modular_type_definition ::= [type identifier is] mod static_expression
+	     ;;
+	     ;; floating_point_definition ::= [type identifier is] digits static_expression
+	     ;;    [range expression .. expression]
+	     ;;
+	     ;; ordinary_fixed_point_definition ::= [type identifier is] delta expression
+	     ;;    range expression .. expression
+	     ;;
+	     ;; decimal_fixed_point_definition ::= [type identifier is] delta expression digits expression
+	     ;;    [   range expression .. expression]
+	     ((equal token "range") "is-type-numeric")
+	     ((equal token "mod") "is-type")
+	     ((equal token "digits") "is-type-numeric")
+	     ((equal token "delta") "is-type-numeric")
+
+	     (t "is-type")); all others
+	    )))))
 
      ;; now more complicated things
      (save-excursion
@@ -1017,7 +1063,8 @@ buffer."
        ;; If we can be guessing wrong here, we can't use
        ;; smie-backward-sexp (because it will just get confused). So
        ;; far, this is the only possibility at this point, so we don't
-       ;; really need to check, but we want to identify missing cases.
+       ;; really need to check, but we want to identify missing
+       ;; cases. FIXME: use ada-indent-refine-all
        (if (equal "entry" (nth 2 (smie-backward-sexp "is-entry_body"))) "is-entry_body"))
 
      (ada-indent-refine-error "unrecognized 'is'")
@@ -1060,6 +1107,14 @@ buffer."
     (if (equal "is" (save-excursion (smie-default-backward-token)))
 	"mod-type"
       "mod-op")))
+
+(defun ada-indent-refine-or (token forward)
+  (let ((token (save-excursion
+		 (when (not forward) (smie-default-forward-token))
+		 (smie-default-forward-token))))
+    (cond
+     ((member token '("accept" "when" "terminate")) "or-select")
+     (t "or-op"))))
 
 (defun ada-indent-refine-package (token forward)
   (save-excursion
@@ -1166,8 +1221,7 @@ buffer."
 		 (smie-default-forward-token))))
     (cond
      ((equal token "body") "protected-body")
-     ((equal token "type") "protected"); an identifier
-     (t "protected"))
+     (t "protected")); an identifier
     ))
 
 (defun ada-indent-refine-record (token forward)
@@ -1270,6 +1324,16 @@ buffer."
 	    ))))))
     ))
 
+(defun ada-indent-refine-select (token forward)
+  (save-excursion
+    (when forward (smie-default-backward-token))
+
+    (let ((prev-token (smie-default-backward-token)))
+      (cond
+       ((equal prev-token "end") "select-end")
+       (t "select-open"))
+  )))
+
 (defun ada-indent-refine-subprogram (token forward)
   (save-excursion
     (when forward (smie-default-backward-token))
@@ -1280,6 +1344,15 @@ buffer."
        ((equal prev-token "overriding") (concat token "-overriding"))
        (t token)
   ))))
+
+(defun ada-indent-refine-task (token forward)
+  (let ((token (save-excursion
+		 (when (not forward) (smie-default-backward-token))
+		 (smie-default-forward-token))))
+    (cond
+     ((equal token "body") "task-body")
+     (t "task")); an identifier
+    ))
 
 (defun ada-indent-refine-when (token forward)
   (save-excursion
@@ -1330,7 +1403,9 @@ buffer."
     ;;          [when expression => ]
     ;;             select_alternative }
     ;;
-    ;;   token: "when-TBD"
+    ;;   preceding unrefined token: "select", "or"
+    ;;   skip: nothing
+    ;;   token: "when-select"
     ;;
     ;; 7) exception_handler ::=
     ;;
@@ -1343,10 +1418,14 @@ buffer."
     ;;   token: "when-TBD"
     ;;
 
-    (if (equal "entry" (ada-indent-backward-name))
-	"when-entry"; 5
-      "when-case"); 1
-    ))
+    (or
+     (if (member (save-excursion (smie-default-backward-token)) '("select" "or"))
+	 "when-select")
+
+     (if (equal "entry" (ada-indent-backward-name))
+	 "when-entry"; 5
+       "when-case"); 1
+     )))
 
 (defun ada-indent-refine-with (token forward)
   (save-excursion
@@ -1485,12 +1564,15 @@ buffer."
     ("if" 	 ada-indent-refine-if)
     ("is" 	 ada-indent-refine-is)
     ("mod" 	 ada-indent-refine-mod)
+    ("or" 	 ada-indent-refine-or)
     ("package" 	 ada-indent-refine-package)
     ("private" 	 ada-indent-refine-private)
     ("procedure" ada-indent-refine-subprogram)
     ("protected" ada-indent-refine-protected)
     ("record" 	 ada-indent-refine-record)
     ("return" 	 ada-indent-refine-return)
+    ("select" 	 ada-indent-refine-select)
+    ("task" 	 ada-indent-refine-task)
     ("when" 	 ada-indent-refine-when)
     ("with" 	 ada-indent-refine-with)
     )
