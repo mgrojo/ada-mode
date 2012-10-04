@@ -40,10 +40,21 @@ package body Ada_Mode.Nominal is
          -- some people like 'is' on the line with 'function' here
 
          function Local_Function return Integer
-         is begin
+         is
+            Bad_Thing : exception;
+         begin
             if True then
                begin
                   return Integer (Function_1a);
+               exception
+                  when E : Constraint_Error =>
+                     return 0;
+                  when
+                    Bad_Thing => -- FIXME: ask about desired alignment
+                     return 0;
+                  when
+                    E : others =>
+                     return 1;
                end;
             elsif False
             then
@@ -88,7 +99,7 @@ package body Ada_Mode.Nominal is
               A | -- continuation line; ada-indent-broken = 2
               B |
               C
-            => -- Ada mode 4.01 aligned this with C; I like this better.
+            => -- Ada mode 4.01 aligned this with C; I like this better. FIXME: ask
                Local_1 := Local_1 + Local_1;
          end case;
 

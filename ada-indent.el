@@ -232,6 +232,7 @@ An example is:
        (declaration
 	;; FIXME: (package_specification), (package_body); not tested yet.
 	(entry_body)
+	(exception_declaration)
 	(formal_package_declaration)
 	(formal_subprogram_declaration)
 	(generic_package_declaration)
@@ -242,11 +243,7 @@ An example is:
 	(subprogram_body)
 	(task_body)
 	(type_declaration)
-
-	;; object declarations
-	(identifier ":" name); same as ":" in extended return
-
-	;; FIXME: anonymous array ...
+	(object_declaration)
 	)
 
        (declarations
@@ -255,6 +252,14 @@ An example is:
 
        (entry_body
 	("entry" identifier "when-entry" expression "is-entry_body" declarations "begin-body" statements "end-block"))
+
+       (exception_declaration
+	(identifer ":" "exception-declare"))
+
+       (exception_handler
+	("when-case" object_declaration "=>-when" statements)
+	("when-case" identifier "=>-when" statements)); "|" is an identifier
+       ;; no need to distinguish between when-exception, when-case.
 
        (expression
 	;; The expression syntax rules in [1] mostly serve to express
@@ -317,6 +322,9 @@ An example is:
 	;; 'expression').
 	)
 
+       (object_declaration
+	(identifier ":" name)); same as ":" in extended return
+
        (package_specification
 	("package-plain" name "is-package" declarations "private-body" declarations "end-block")
 	("package-plain" name "is-package" declarations "end-block"))
@@ -347,9 +355,12 @@ An example is:
 	(accept_statement)
 
 	;; block_statement
-	(identifier ":" "declare-label" declarations "begin-body" statements "end-block")
-	("declare" declarations "begin-body" statements "end-block")
+	(identifier ":" "declare-label" declarations "begin-body" statements
+		    "exception-block" exception_handler "end-block")
+	("declare-open" declarations "begin-body" statements "end-block")
 	("begin-open" statements "end-block")
+	;; we don't need to repeat the exception handler in the other
+	;; cases; once is enough to establish the precendence of "exception-block".
 
 	;; case_statement
 	("case" name "is-case" case_statement_alternative "end-case" "case-end")
@@ -544,11 +555,12 @@ An example is:
   '("=>-when"
     "begin-body"
     "begin-open"
-    "declare"
+    "declare-open"
     "declare-label"
     "do"
     "else"
     ;; "end-block" is never a block start; treated separately
+    "exception-block"
     "generic"
     "is-entry_body"
     "is-package"
@@ -585,7 +597,7 @@ An example is:
   "Keywords that always end indented blocks.")
 
 (defconst ada-indent-pre-begin-tokens
-  '("declare"
+  '("declare-open"
     "declare-label"
     "is-subprogram_body"
     "is-package"
@@ -730,7 +742,7 @@ buffer."
 		 (when forward (smie-default-backward-token))
 		 (ada-indent-backward-name))))
 
-    (if (member token '("when-case" "when-select"))
+    (if (member token '(":" "when-case" "when-select"))
 	"=>-when"
       "=>-other")))
 
@@ -896,7 +908,7 @@ buffer."
 
     (if (equal token ":")
 	"declare-label"
-      "declare")))
+      "declare-open")))
 
 (defun ada-indent-refine-end (token forward)
   (save-excursion
@@ -911,6 +923,22 @@ buffer."
        ((equal "select" token) "end-select")
        (t "end-block"))
       )))
+
+(defun ada-indent-refine-exception (token forward)
+  ;; identifier : exception;
+  ;;
+  ;; begin
+  ;;    statements;
+  ;; exception
+  ;; when =>
+  (let ((token (save-excursion
+		 (when forward (smie-default-backward-token))
+		 (smie-default-backward-token))))
+    (cond
+     ((equal token ":") "exception-declare")
+     ((equal token ";") "exception-block")
+     (t (ada-indent-refine-error "unrecognized 'exception'"))
+     )))
 
 (defun ada-indent-refine-if (token forward)
   (save-excursion
@@ -943,7 +971,9 @@ buffer."
 
      (save-excursion
        ;; This is a special case because "protected" and "task" are
-       ;; not keywords, so ada-indent-backward-name doesn't find them.
+       ;; not keywords, so ada-indent-backward-name doesn't find
+       ;; them. Fortunately, single tasks and protected objects cannot
+       ;; have discriminants. FIXME: they can have aspect specs.
        (let ((token (progn
 		      (smie-default-backward-token); identifier
 		      (smie-default-backward-token)))) ; "protected", "task", "body", "type"
@@ -1390,7 +1420,7 @@ buffer."
     ;;       when discrete_choice_list => statement;
     ;;       when discrete_choice_list => statement;
     ;;
-    ;;   token: "when-TBD"
+    ;;   token: "when-case"
     ;;
     ;; 4) exit_statement ::=
     ;;       exit [loop_name] [when condition];
@@ -1524,7 +1554,6 @@ buffer."
     ;;
     ;;    preceding unrefined token: "record", FIXME: others?
     ;;    skip: nothing
-    ;;
     ;;    token: with-aspect
     ;;
     (or
@@ -1569,6 +1598,7 @@ buffer."
     ("case" 	 ada-indent-refine-case)
     ("declare" 	 ada-indent-refine-declare)
     ("end" 	 ada-indent-refine-end)
+    ("exception" ada-indent-refine-exception)
     ("function"  ada-indent-refine-subprogram)
     ("interface" ada-indent-refine-interface)
     ("if" 	 ada-indent-refine-if)
@@ -1783,8 +1813,11 @@ be a keyword, and point must be at the start of CHILD."
   ;; The same loop works for access to procedure, although it will
   ;; only be executed once.
   ;;
-  ;; FIXME: need a similar loop for "when". Waiting until we finish
-  ;; more "when" uses.
+  ;; FIXME: need a similar loop for "when-case"
+  ;; (case_statement_alternative, exception_handler). Waiting until we
+  ;; finish more "when" uses. At the moment,
+  ;; case_statement_alternative and exception_handler are treated as
+  ;; separate statements, not part of a larger statement.
   ;;
   ;; 'overriding' and 'protected' present another problem; the parent
   ;; is not at the beginning of the statement:

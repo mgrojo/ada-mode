@@ -32,11 +32,8 @@ ada-indent.el
 test/Makefile
     test/ada_mode-nominal.ads
 
-single_task, single_protected with discriminants; must use ada-indent-backward-name
-    add to ada_mode-nominal-child.ads
-
-adacore_7402_004.adb
-    exception
+test/adacore_8003_11.adb
+    procedure Aot is separate;
 
 make rest of files work
     add missing features to ada_mode-*
