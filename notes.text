@@ -36,7 +36,7 @@ improve refined token naming convention:
     if refined, only return plain token if it is being left as an indentifier
     ie all occurances of a token in the grammar are refined, or all are un-refined
 
-    done thru "package"
+    done thru "interface_type_definition"
 
 test/adacore_6312_006.adb
     nested begin in 'if then'
@@ -145,6 +145,7 @@ test with non-lowercase keywords in source
 report ediff-buffers-wordwise bug; mark-active set, but no mark!
     try trunk http://alpha.gnu.org/gnu/emacs/windows/
 
+get narrow-to-defun to work
 
  access to ada-france:
 

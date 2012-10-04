@@ -249,7 +249,7 @@ An example is:
 	(declaration ";" declaration))
 
        (entry_body
-	("entry" identifier "when-entry" expression "is-entry_body" declarations "begin" statements "end"))
+	("entry" identifier "when-entry" expression "is-entry_body" declarations "begin" statements "end-other"))
 
        (expression
 	;; The expression syntax rules in [1] mostly serve to express
@@ -292,9 +292,9 @@ An example is:
 	;; No need to distinguish between 'declarations' and
 	;; 'generic_formal_parameter_declaration' for our purposes.
 	("generic" declarations
-	 "package-generic" identifier "is-package" declarations "private" declarations "end")
+	 "package-generic" identifier "is-package" declarations "private" declarations "end-other")
 	("generic" declarations
-	 "package-generic" identifier "is-package" declarations "end"))
+	 "package-generic" identifier "is-package" declarations "end-other"))
 
        (interface_list
 	;; The Ada grammar sometimes has "name and interface_list".
@@ -313,24 +313,24 @@ An example is:
 	)
 
        (package_specification
-	("package-plain" name "is-package" declarations "private" declarations "end")
-	("package-plain" name "is-package" declarations "end"))
+	("package-plain" name "is-package" declarations "private" declarations "end-other")
+	("package-plain" name "is-package" declarations "end-other"))
 
        (package_body
 	;; Leaving 'package body' as separate tokens causes problems
 	;; in refine-is, so we leave "body" as an identifier.
-	("package-plain" name "is-package" declarations "begin" statements "end"))
+	("package-plain" name "is-package" declarations "begin" statements "end-other"))
 
        (protected_body
-	("protected-body" identifier "is-protected-body" declarations "end"))
+	("protected-body" identifier "is-protected-body" declarations "end-other"))
 
        (statement
 	(expression); covers procedure calls, assignment
 
 	;; block_statement
-	(identifier ":" "declare-label" declarations "begin" statements "end")
-	("declare" declarations "begin" statements "end")
-	("begin-opener" statements "end")
+	(identifier ":" "declare-label" declarations "begin" statements "end-other")
+	("declare" declarations "begin" statements "end-other")
+	("begin-opener" statements "end-other")
 
 	;; case_statement
 	("case" name "is-case" case_statement_alternative "end-case" "case-end")
@@ -349,8 +349,8 @@ An example is:
 
        (subprogram_body
 	;; access is an identifier
-	("function" name "return-spec" name "is-subprogram_body" declarations "begin" statements "end")
-	("procedure" name "is-subprogram_body" declarations "begin" statements "end"))
+	("function" name "return-spec" name "is-subprogram_body" declarations "begin" statements "end-other")
+	("procedure" name "is-subprogram_body" declarations "begin" statements "end-other"))
 
        (subprogram_declaration
 	("function" name "return-spec" name)
@@ -397,7 +397,7 @@ An example is:
 	("type" identifier "is-type" "new" name "with-record")
 	;; We refine "with" to "with-record" when it is followed
 	;; by "record", so that it is a closer to match
-	;; "type", since "record" is an opener.
+	;; "type", since "record-open" is an opener.
 	;;
 	;; We don't include record-definition in
 	;; derived_type_definition, because we want to indent "end
@@ -437,7 +437,7 @@ An example is:
 	;; leaving 'with' and 'private' as separate tokens causes conflicts
 
 	;; private_type_declaration
-	("type" identifier "is-type" "private-type")
+	("type" identifier "is-type" "private-type-spec")
 
 	;; protected_type_declaration, single_protected_declaration
 	;;
@@ -448,21 +448,21 @@ An example is:
 	;; "protected" to "type". However, "is" in protected type
 	;; declaration is a block start keyword, while "is-type" in
 	;; general is not, so we need to make that a keyword.
-	("type" identifier "is-type" declarations "private" declarations "end")
-	("type" identifier "is-type-protected" declarations "private" declarations "end")
+	("type" identifier "is-type" declarations "private-type-body" declarations "end-other")
+	("type" identifier "is-type-protected" declarations "private-type-body" declarations "end-other")
 	("type" identifier "is-type" "new" interface_list "with-new" declarations
-	 "private" declarations "end")
+	 "private-type-body" declarations "end-other")
 
 	;; record_type_definition
 	("type" identifier "is-type" "record-null")
 	("type" identifier "is-type-record")
 	;; We refine "is-type" to "is-type-record" when it is followed
-	;; by "record", so that it is a closer to match "type", since
-	;; "record" is an opener.
+	;; by "record-open", so that it is a closer to match "type", since
+	;; "record-open" is an opener.
 
 	;; record_definition
-	("record" declarations "end-record" "record-end")
-	("record" declarations "end-record" "record-end-aspect" aspect_specification)
+	("record-open" declarations "end-record" "record-end")
+	("record-open" declarations "end-record" "record-end-aspect" aspect_specification)
 	;; No need to distinguish between 'declarations' and
 	;; 'component_list'. We don't include record_definition in
 	;; record_type_definition or derived_type_definition, because
@@ -489,7 +489,7 @@ An example is:
        (nonassoc
 	"=" "/=" "<" "<=" ">" ">=" "in"
 	"or" "or_else" "xor" "+" "-" "&"
-	"and-op" "mod" "rem" "*" "/"
+	"and-op" "mod-op" "rem" "*" "/"
 	"abs"; "not" leave "not" as identifier so it is not confused with "not null"
 	"'" "." "**" "..")
        ))
@@ -504,15 +504,15 @@ An example is:
     "declare"
     "declare-label"
     "do"
-    ;; "end" is never a block start; treated separately
+    ;; "end-other" is never a block start; treated separately
     "generic"
     "is-entry_body"
     "is-package"
     "is-protected-body"
     "is-subprogram_body"
     "is-type-protected"
-    "private"
-    "record")
+    "private-type-body"
+    "record-open")
   ;; We don't split this into start and end lists, because most are
   ;; both. The keywords that are an end but never a start are in
   ;; ada-indent-block-end-keywords. Being a start but never end is not
@@ -524,7 +524,7 @@ An example is:
   "Keywords that start or end indented blocks, excluding keywords that always end blocks.")
 
 (defconst ada-indent-block-end-keywords
-  '("end"
+  '("end-other"
     "end-case"
     "end-record"
     "end-return"
@@ -859,7 +859,7 @@ buffer."
 
        ((equal "return" token) "end-return")
 
-       (t "end"))
+       (t "end-other"))
       )))
 
 (defun ada-indent-refine-interface (token forward)
@@ -1015,14 +1015,15 @@ buffer."
     ;;
     ;;    type identifier [known_discriminant_part] is mod expression;
     ;;
-    ;;    preceding keyword: "is-type"
+    ;;    preceding refined keyword: "is-type"
+    ;;    preceding unrefined keyword: "is"
     ;;    skip: nothing
     ;;    keyword: "mod-type"
     ;;
     ;; 2) multiplying_operator ::= * | / | mod | rem
     ;;
     ;;    preceding keyword: none, this must be the default.
-    ;;    keyword: "mod"
+    ;;    keyword: "mod-op"
     ;;
     ;; 3) formal_modular_type_definition ::= mod <>
     ;;
@@ -1039,7 +1040,7 @@ buffer."
     ;;
     (if (equal "is" (save-excursion (smie-default-backward-token)))
 	"mod-type"
-      "mod")))
+      "mod-op")))
 
 (defun ada-indent-refine-package (token forward)
   (save-excursion
@@ -1075,11 +1076,9 @@ buffer."
     ;;   type defining_identifier [discriminant_part] is [[abstract] tagged] [limited] private
     ;;      [with aspect_mark];
     ;;
-    ;;   preceding token: "is-type"
-    ;;      but that is recursive with forward-token refining "is"
     ;;   succeeding unrefined token: "with" or ";"
     ;;   skip: nothing
-    ;;   token: private-type
+    ;;   token: private-type-spec
     ;;
     ;; 2) [non]limited_with_clause
     ;; 3) formal_derived_type_definition
@@ -1105,9 +1104,9 @@ buffer."
 		(smie-default-forward-token); private
 		(smie-default-forward-token))
 	      '("with" ";"))
-      "private-type"); 1
+      "private-type-spec"); 1
 
-     (t "private"))); all others
+     (t "private-type-body"))); all others
   )
 
 (defun ada-indent-refine-protected (token forward)
@@ -1165,7 +1164,7 @@ buffer."
 	    "record-end-aspect";
 	  "record-end"))
        ((equal token "null") "record-null")
-       (t "record")
+       (t "record-open")
        ))
     ))
 
@@ -1749,7 +1748,7 @@ be a keyword, and point must be at the start of CHILD."
       (if (and pos (not (= pos (point)))) (progn (goto-char pos) (throw 'done nil)))
 
       (setq parent-count
-	    (if (member child '("." "(" "record"))
+	    (if (member child '("." "(" "record-open"))
 		2
 	      1))
       ;; If child is "." we are in the middle of an Ada name; the
@@ -1790,7 +1789,7 @@ be a keyword, and point must be at the start of CHILD."
 	  (goto-char (nth 1 parent)))
 
       ;; handle access-to-subprogram and record types.
-      (while (or (equal (nth 2 parent) "record")
+      (while (or (equal (nth 2 parent) "record-open")
 		 (and (member (nth 2 parent) `("procedure" "function")) ; _not -overriding -generic
 		      (member (save-excursion (smie-default-backward-token)) '("access" "protected"))))
 	(setq parent (ada-indent-goto-parent parent 2)))
@@ -1864,15 +1863,15 @@ the start of CHILD, which must be a keyword."
        (ada-indent-rule-parent ada-indent-broken arg))
 
       ((equal token "end-record")
-       ;; goto-parent leaves point on "record".
+       ;; goto-parent leaves point on "record-open".
        (save-excursion
 	 (ada-indent-goto-parent arg 1)
 	 (back-to-indentation)
 	 (cons 'column (current-column))))
 
-      ((equal token "record")
+      ((equal token "record-open")
        ;; This indents the first line. The components are indented
-       ;; relative to the line containing "record"; see "record" in
+       ;; relative to the line containing "record-open"; see "record-open" in
        ;; :after.
        (ada-indent-rule-statement ada-indent-record-rel-type arg))
 
@@ -2024,7 +2023,7 @@ the start of CHILD, which must be a keyword."
        (back-to-indentation)
        (cons 'column (current-column)))
 
-      ((equal arg "record")
+      ((equal arg "record-open")
        ;; We are indenting the first component in a record_definition:
        ;;
        ;; type Private_Type_1 is abstract tagged limited
@@ -2108,7 +2107,7 @@ the start of CHILD, which must be a keyword."
 		      (forward-comment -1)
 		      (ada-indent-backward-token)))
 	     (indent
-	      (if (equal token "record");; FIXME: refine this to "record-components" to be clearer?
+	      (if (equal token "record-open")
 		  (ada-indent-rule-statement ada-indent-record-rel-type token))))
 
 	  (cond
