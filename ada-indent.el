@@ -254,7 +254,7 @@ An example is:
 	(declaration ";" declaration))
 
        (entry_body
-	("entry" identifier "when-entry" expression "is-entry_body" declarations "begin" statements "end-block"))
+	("entry" identifier "when-entry" expression "is-entry_body" declarations "begin-body" statements "end-block"))
 
        (expression
 	;; The expression syntax rules in [1] mostly serve to express
@@ -318,13 +318,13 @@ An example is:
 	)
 
        (package_specification
-	("package-plain" name "is-package" declarations "private" declarations "end-block")
+	("package-plain" name "is-package" declarations "private-body" declarations "end-block")
 	("package-plain" name "is-package" declarations "end-block"))
 
        (package_body
 	;; Leaving 'package body' as separate tokens causes problems
 	;; in refine-is, so we leave "body" as an identifier.
-	("package-plain" name "is-package" declarations "begin" statements "end-block"))
+	("package-plain" name "is-package" declarations "begin-body" statements "end-block"))
 
        (protected_body
 	("protected-body" identifier "is-protected_body" declarations "end-block"))
@@ -347,9 +347,9 @@ An example is:
 	(accept_statement)
 
 	;; block_statement
-	(identifier ":" "declare-label" declarations "begin" statements "end-block")
-	("declare" declarations "begin" statements "end-block")
-	("begin-opener" statements "end-block")
+	(identifier ":" "declare-label" declarations "begin-body" statements "end-block")
+	("declare" declarations "begin-body" statements "end-block")
+	("begin-open" statements "end-block")
 
 	;; case_statement
 	("case" name "is-case" case_statement_alternative "end-case" "case-end")
@@ -379,8 +379,8 @@ An example is:
 
        (subprogram_body
 	;; access is an identifier
-	("function" name "return-spec" name "is-subprogram_body" declarations "begin" statements "end-block")
-	("procedure" name "is-subprogram_body" declarations "begin" statements "end-block"))
+	("function" name "return-spec" name "is-subprogram_body" declarations "begin-body" statements "end-block")
+	("procedure" name "is-subprogram_body" declarations "begin-body" statements "end-block"))
 
        (subprogram_declaration
 	("function" name "return-spec" name)
@@ -405,7 +405,7 @@ An example is:
 	)
 
        (task_body
-	("task-body" identifier "is-task_body" declarations "begin" statements "end-block"))
+	("task-body" identifier "is-task_body" declarations "begin-body" statements "end-block"))
 
        (type_declaration
 	;; access_type_definition
@@ -484,10 +484,10 @@ An example is:
 	;; general is not, so we need to make that a distinct
 	;; keyword. We use "is-type-block" instead of
 	;; "is-type-protected", because it covers task types as well.
-	("type" identifier "is-type-block" declarations "private-type-body" declarations "end-block")
+	("type" identifier "is-type-block" declarations "private-body" declarations "end-block")
 	("type" identifier "is-type-block" declarations "end-block"); task, or protected with no private part
 	("type" identifier "is-type" "new" interface_list "with-new" declarations
-	 "private-type-body" declarations "end-block")
+	 "private-body" declarations "end-block")
 
 	;; record_type_definition
 	("type" identifier "is-type" "record-null")
@@ -542,8 +542,8 @@ An example is:
 
 (defconst ada-indent-block-keywords
   '("=>-when"
-    "begin"
-    "begin-opener"
+    "begin-body"
+    "begin-open"
     "declare"
     "declare-label"
     "do"
@@ -556,7 +556,7 @@ An example is:
     "is-subprogram_body"
     "is-task_body"
     "is-type-block"
-    "private-type-body"
+    "private-body"
     "record-open"
     "select-open"
     "then")
@@ -854,9 +854,9 @@ buffer."
 	    (cond
 	     ((equal stack-token ";") nil)
 	     ((member stack-token ada-indent-pre-begin-tokens)
-	      (setq token "begin"))
+	      (setq token "begin-body"))
 	     (t
-	      (setq token "begin-opener"))))
+	      (setq token "begin-open"))))
 
 	  (if (>= (point) ada-indent-refine-forward-to)
 	      (throw 'ada-indent-refine-all-quit token)
@@ -1027,12 +1027,10 @@ buffer."
 	      ;;    type Derived_Type_2 is abstract tagged limited new ...
 	      ;;    type Private_Type_1 is abstract tagged limited null record;
 	      ;;    type Private_Type_2 is abstract tagged limited record ...
-	      (save-excursion
-		(let ((token (ada-indent-skip-type-modifiers)))
-		  (cond
-		   ((equal token "record") "is-type-record")
-		   (t "is-type")))
-		))
+	      (let ((token (save-excursion (goto-char pos) (ada-indent-skip-type-modifiers))))
+		(cond
+		 ((equal token "record") "is-type-record")
+		 (t "is-type"))))
 
 	     ;; numeric types
 	     ;;
@@ -1147,17 +1145,27 @@ buffer."
     ;;
     ;; 1) [formal_]private_type_declaration
     ;;
-    ;;   type defining_identifier [discriminant_part] is [[abstract] tagged] [limited] private
-    ;;      [with aspect_mark];
+    ;;    type defining_identifier [discriminant_part] is [[abstract] tagged] [limited] private
+    ;;       [with aspect_mark];
     ;;
-    ;;   succeeding unrefined token: "with" or ";"
-    ;;   skip: nothing
-    ;;   token: private-type-spec
+    ;;    succeeding unrefined token: "with" or ";"
+    ;;    skip: nothing
+    ;;    token: private-type-spec
     ;;
     ;; 2) [non]limited_with_clause
     ;; 3) formal_derived_type_definition
     ;; 4) library_item
     ;; 5) package_specification
+    ;;
+    ;;    package defining_program_unit_name [aspect_specification] is
+    ;;       {basic_declarative_item}
+    ;;    [private
+    ;;       {basic_declarative_item}]
+    ;;    end [[parent_unit_name.]identifier]
+    ;;
+    ;;    need ada-indent-refine-all
+    ;;    token: private-body
+    ;;
     ;; 6) private_extension_declaration
     ;;
     ;;    type defining_identifier [discriminant_part] is
@@ -1165,6 +1173,8 @@ buffer."
     ;;       [and interface_list] with private
     ;;       [aspect_specification];
     ;;
+    ;;    preceding unrefined token: "with" or ";"
+    ;;    skip: nothing
     ;;    token: private-with
     ;;
     ;; 7) protected_definition
@@ -1180,7 +1190,7 @@ buffer."
 	      '("with" ";"))
       "private-type-spec"); 1
 
-     (t "private-type-body"))); all others
+     (t "private-body"))); all others
   )
 
 (defun ada-indent-refine-protected (token forward)

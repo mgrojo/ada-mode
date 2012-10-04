@@ -32,11 +32,11 @@ ada-indent.el
 test/Makefile
     test/ada_mode-nominal.ads
 
-still have plain "begin" in block_statement!
-    change "opener" to "open"
-
-
 single_task, single_protected with discriminants; must use ada-indent-backward-name
+    add to ada_mode-nominal-child.ads
+
+adacore_7402_004.adb
+    exception
 
 make rest of files work
     add missing features to ada_mode-*
