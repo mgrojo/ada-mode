@@ -30,10 +30,11 @@ ada-indent.el
 (sal-edit-library "smie")
 
 test/Makefile
-    test/ada_mode-nominal.ads
 
-test/adacore_8003_11.adb
-    procedure Aot is separate;
+discuss smie--levels with Stefan/emacs-devel
+
+test/adacore_8529_012.ads
+    use
 
 make rest of files work
     add missing features to ada_mode-*

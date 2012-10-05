@@ -254,10 +254,10 @@ package Ada_Mode.Nominal is
    Integer_D, Integer_E, Integer_F :
      Integer;
    Integer_G, Integer_H,
-     Integer_I : Integer;
+   Integer_I : Integer; -- FIXME: ask
 
    Integer_J,
-     Integer_K, Integer_L : Integer;
+   Integer_K, Integer_L : Integer;
 
    Float_1 : aliased constant Float := 1.0;
    Float_2 : aliased constant Float :=

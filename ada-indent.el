@@ -208,6 +208,11 @@ An example is:
 	("accept" identifier "do" statements "end-block")
 	("accept" identifier))
 
+       (aggregate
+	("(" association_list  ")"))
+       ;; this also covers other parenthesized lists; enumeration type
+       ;; declarations, subprogram calls.
+
        (aspect_specification
 	("with-aspect" aspect_list))
 
@@ -217,6 +222,14 @@ An example is:
 
        (aspect_item
 	(name "=>-other" name))
+
+       (association_list
+	(association)
+	(association_list "," association))
+
+       (association
+	(expression)
+	(expression "=>-other" expression))
 
        (case_statement_alternative
 	("when-case" expression "=>-when" statements)); "|" is an identifier
@@ -230,7 +243,6 @@ An example is:
 	("use" name))
 
        (declaration
-	;; FIXME: (package_specification), (package_body); not tested yet.
 	(entry_body)
 	(exception_declaration)
 	(formal_package_declaration)
@@ -238,6 +250,7 @@ An example is:
 	(generic_package_declaration)
 	(package_body)
 	(package_specification)
+	(package_body)
 	(protected_body)
 	(subprogram_declaration)
 	(subprogram_body)
@@ -276,7 +289,7 @@ An example is:
 	;; the precendence so that ":=" is the parent of an assignment
 	;; statement.
 	(name "-operator-" name)
-	("(" expression ")"))
+	(aggregate))
 
        ;; Formal generic parameters. Most formal_* are covered in this
        ;; grammar by the equivalent non-formal syntax.
@@ -332,10 +345,12 @@ An example is:
        (package_body
 	;; Leaving 'package body' as separate tokens causes problems
 	;; in refine-is, so we leave "body" as an identifier.
-	("package-plain" name "is-package" declarations "begin-body" statements "end-block"))
+	("package-plain" name "is-package" declarations "begin-body" statements "end-block")
+	("package-plain" name "is-package" "separate"))
 
        (protected_body
-	("protected-body" identifier "is-protected_body" declarations "end-block"))
+	("protected-body" identifier "is-protected_body" declarations "end-block")
+	("protected-body" name "is-protected-body" "separate"))
 
        (select_statement
 	;; accept_statement, delay_statement are covered here by
@@ -391,7 +406,9 @@ An example is:
        (subprogram_body
 	;; access is an identifier
 	("function" name "return-spec" name "is-subprogram_body" declarations "begin-body" statements "end-block")
-	("procedure" name "is-subprogram_body" declarations "begin-body" statements "end-block"))
+	("function" name "return-spec" "is-subprogram_body" "separate")
+	("procedure" name "is-subprogram_body" declarations "begin-body" statements "end-block")
+	("procedure" name "is-subprogram_body" "separate"))
 
        (subprogram_declaration
 	("function" name "return-spec" name)
@@ -1987,10 +2004,6 @@ the start of CHILD, which must be a keyword."
      ;; then indents relative to the previous statement start.
 
      (cond
-      ;; we could check for a list of keywords that are known to be
-      ;; always at the start of a statement, but that would be
-      ;; premature optimization.
-
       ((or (equal arg "(")
 	   (equal arg "return-spec"))
        ;; parenthesis occur in expressions, and after names, as array
@@ -2006,6 +2019,13 @@ the start of CHILD, which must be a keyword."
        ;; "function", not the type declaration start. Similarly for
        ;; the "return" in an access to function.
        (ada-indent-rule-parent ada-indent-broken arg))
+
+      ((equal arg ")")
+       ;; find the open paren
+       (save-excursion
+	 (forward-char 1)
+	 (backward-sexp)
+	 (cons 'column (current-column))))
 
       ((equal token "end-record")
        ;; goto-parent leaves point on "record-open".
@@ -2160,7 +2180,27 @@ the start of CHILD, which must be a keyword."
      ;; to consider those cases here.
 
      (cond
-      ((equal arg ";")
+      ((equal arg "(")
+       ;; Something like this:
+       ;;
+       ;;    type Correct_Indentation is
+       ;;      (
+       ;;       Value_1,
+       ;;       Value_2
+       ;;      );
+       ;;
+       ;; In this case, point is after the paren
+       (cons 'column (current-column)))
+
+      ((equal arg ")")
+       ;; Find the open paren, then the parent. Not the statement
+       ;; start; this could be the discriminant list of a record, or
+       ;; the parameter list of an access-to-subprogram.
+       (save-excursion
+	 (backward-sexp)
+	 (ada-indent-rule-parent ada-indent-broken "(")))
+
+      ((member arg '("," ";"))
        (ada-indent-rule-statement 0 arg))
 
       ((equal arg "record-end")
@@ -2230,14 +2270,22 @@ the start of CHILD, which must be a keyword."
 	 ;; comment, which could be 'private' for example, and that
 	 ;; would align the comment with 'private', which is wrong. So
 	 ;; we call a subset of the indentation functions.
+	 ;; ada-indent-default handles this case:
+	 ;;
+	 ;;     procedure Incorrect_Sub
+	 ;;       --  comment
+	 ;;       (
+
 	 (if debug-on-error
 	     (or
 	      (ada-indent-wrapper 'smie-indent-bob)
 	      (ada-indent-wrapper 'ada-indent-after-keyword)
+	      (ada-indent-wrapper 'ada-indent-default)
 	      )
 	   (or
 	    (smie-indent-bob)
 	    (ada-indent-after-keyword)
+	    (ada-indent-default)
 	    )))
        ))
 
@@ -2271,7 +2319,7 @@ relative to)."
 	(or
 	 (and
 	  (equal token "")
-	  (ada-indent-rules :before "("))
+	  (ada-indent-rules :before (if (equal (char-after) ?\() "(" ")")))
 
 	 (and
 	  (ada-indent-keyword-p token)
@@ -2295,10 +2343,14 @@ relative to)."
       ((pos (point));; ada-indent-rules wants point at the start of its arg
        (token (ada-indent-backward-token))
        (indent
-	;; we don't check for paren here (we may need to at some point)
-	(and
-	 (ada-indent-keyword-p token)
-	 (ada-indent-rules :after token))))
+	(or
+	 (and
+	  (equal token "")
+	  (ada-indent-rules :after (if (equal (char-before) ?\() "(" ")")))
+
+	 (and
+	  (ada-indent-keyword-p token)
+	  (ada-indent-rules :after token)))))
 
       (goto-char pos)
 
