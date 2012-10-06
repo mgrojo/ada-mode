@@ -6,8 +6,10 @@
 -- FIXME: add a function body that returns an access type
 
 with Ada.Strings; -- test two context clauses
-with Ada.Strings.Unbounded;
+with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 package body Ada_Mode.Nominal is
+
+   use Ada.Strings;
 
    type Incomplete_Type_1 (Discriminant_1 : Integer) is tagged null record;
 
@@ -100,7 +102,20 @@ package body Ada_Mode.Nominal is
               B |
               C
             => -- Ada mode 4.01 aligned this with C; I like this better. FIXME: ask
-               Local_1 := Local_1 + Local_1;
+               for I in 1 .. 10 loop
+                  Local_1 := Local_1 + Local_1;
+               end loop;
+
+               Loop_1 :
+               loop
+                  Local_1 := Local_1 + Local_1;
+                  exit Loop_1 when Local_1 > 0;
+               end loop Loop_1;
+
+               loop
+                  Local_1 := Local_1 + Local_1;
+                  exit when Local_1 > 0;
+               end loop;
          end case;
 
          -- A comment before 'end'

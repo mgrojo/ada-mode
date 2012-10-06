@@ -29,12 +29,22 @@ C-x r m set bookmark
 ada-indent.el
 (sal-edit-library "smie")
 
-test/Makefile
-
 discuss smie--levels with Stefan/emacs-devel
 
-test/adacore_8529_012.ads
-    use
+test/Makefile
+    test/adacore_8910_003.adb.diff
+day'image is parent
+    leave _all_ operators out of grammar? they don't affect indentation!
+    ":=" referenced in goto-statement-start; keep that (can be in a statement)
+
+smie-default-*-token returns "" for strings, as well as parens
+
+use ada-indent-broken for multiple object declarations
+
+run with -gnaty
+    make sure it matters; not checked with only -gnatc?
+
+check effect of indentation choice on set-selective-display
 
 make rest of files work
     add missing features to ada_mode-*
