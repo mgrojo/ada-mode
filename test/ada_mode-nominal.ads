@@ -15,19 +15,16 @@ package Ada_Mode.Nominal is
    -- Aspects covered in FIXME:
    -- Constraints covered in FIXME:
    -- Indenting inside parens is covered in FIXME:
-   -- 'overriding' covered in FIXME:
+   -- 'overriding' covered in ada_mode-nominal-child.ads
    -- indenting inside names covered in FIXME:
-   -- record types coverd in FIXME:
-   -- synchronized coverd in FIXME:
+   -- record types covered in FIXME:
+   -- synchronized covered in FIXME:
 
    -- Extensive coverage of type declarations
    --
    -- Most of these indentations are not likely to occur in practice
    -- (so we really don't care if they are 'right'); we are making
    -- sure the indentation engine doesn't hang or crash for odd cases.
-   --
-   -- FIXME: see (some other file) for alignment of multiple declarations
-   -- within parens.
 
    -- access to object
    type Object_Access_Type_0a is access Integer;
@@ -190,6 +187,7 @@ package Ada_Mode.Nominal is
    type
      Discrete_Type_4 is (A, B, C);
 
+   ----------
    -- Numeric types
    type Decimal_Fixed_Point_1 is delta 0.10 digits 10;
    type Decimal_Fixed_Point_2 is delta 0.10 digits
@@ -209,7 +207,21 @@ package Ada_Mode.Nominal is
    type Floating_Point is digits 10;
    type Modular_Type is mod 10;
    type Ordinary_Fixed_Point is delta 0.10 range 10.0 .. 11.0;
-   type Signed_Integer_Type is range 10 .. 11;
+   type Signed_Integer_Type is range 10 .. 21;
+
+   subtype Subtype_1 is Signed_Integer_Type range 10 .. 20;
+   subtype Subtype_2 is Signed_Integer_Type range 10 ..
+     20;
+   subtype Subtype_3 is Signed_Integer_Type range 10
+     .. 20;
+   subtype Subtype_4 is Signed_Integer_Type range
+     10 .. 20;
+   subtype Subtype_5 is Signed_Integer_Type
+     range 10 .. 20;
+   subtype Subtype_6 is
+     Signed_Integer_Type range 10 .. 20;
+   subtype
+     Subtype_7 is Signed_Integer_Type range 10 .. 20;
 
    protected type Protected_1 is
       -- only two examples, to get 'protected' and 'is-entry_body' into grammar

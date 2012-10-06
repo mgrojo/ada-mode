@@ -28,8 +28,7 @@ procedure Which_Test is
       --EMACSCMD: (which-function)
       --EMACSRESULT: "T"
       null;  --  01/03/2000: which-function says "which_function" here.
-   end T;  --  01/03/2000: when pressing enter, got an error in
-           --  ada-goto-matching-decl-start
+   end T;
 
 begin
    null;

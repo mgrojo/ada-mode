@@ -1,11 +1,10 @@
---EMACSCMD: (setq ada-stmt-end-indent 3)
-with Ada.Text_Io;
+with Ada.Text_IO;
 package Adacore_9717_001 is
    subtype A_Long_Name
-      is Ada.Text_Io.Count; --  ada-stmt-end-indent
+     is Ada.Text_Io.Count;
    use type A_Long_Name;
    subtype Another_Long_Name is
-     Ada.Text_Io.Number_Base; --  ada-broken-indent
+     Ada.Text_Io.Number_Base;
    use type Another_Long_Name;
    subtype X is Integer;
 end Adacore_9717_001;

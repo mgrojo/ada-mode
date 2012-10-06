@@ -40,6 +40,7 @@ COMPILE_FILES := $(TEST_FILES)
 COMPILE_FILES := $(filter-out debug.adb, $(COMPILE_FILES))
 
 # These heritage tests don't compile, and they are too hard to fix
+# FIXME: review these
 COMPILE_FILES := $(filter-out ada-test.adb, $(COMPILE_FILES))
 COMPILE_FILES := $(filter-out beginindent.adb, $(COMPILE_FILES))
 COMPILE_FILES := $(filter-out gnatprep.adb, $(COMPILE_FILES))
@@ -80,11 +81,28 @@ COMPILE_FILES := $(sort $(COMPILE_FILES))
 
 compile : $(COMPILE_FILES)
 
+# we compile with -gnatyN3 to be sure our indentation meets gnat's
+# check. We don't check any other style requirements; not needed for
+# comparing indentation, and they get in the way.
+
+# Some files set Ada mode indentation options that violate gnat's requirement
+adacore_d304_005_2.ali : adacore_d304_005_2.adb
+	gnatmake -gnat2012 -gnatc  $<
+
+bug_1920.ali : bug_1920.adb
+	gnatmake -gnat2012 -gnatc  $<
+
+find_file.ali : find_file.ads
+	gnatmake -gnat2012 -gnatc  $<
+
+named_block.ali : named_block.adb
+	gnatmake -gnat2012 -gnatc  $<
+
 %.ali : %.adb
-	gnatmake -gnat2012 -gnatc $<
+	gnatmake -gnat2012 -gnatc -gnatyN3 $<
 
 %.ali : %.ads
-	gnatmake -gnat2012 -gnatc $<
+	gnatmake -gnat2012 -gnatc -gnatyN3 $<
 
 clean : compile-clean test-clean
 

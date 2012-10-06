@@ -35,9 +35,8 @@ run with -gnaty
     make sure it matters; not checked with only -gnatc?
 
 test/Makefile
-    test/adacore_9717_001.adb.diff
-subtype identifier is name
-    unrefined "is"
+    test/adacore_9907_010.adb.diff
+strings
 
 
 smie-default-*-token returns "" for strings, as well as parens
@@ -90,6 +89,10 @@ c:/Projects/Web/stephe-leake/emacs/ada-mode/emacs-ada-mode.html
 compare to GPS, gnatpp
 
 ask on comp.lang.ada
+
+ada-stmt-end-indent
+    indents "then", "loop", "do" relative to "if", "for", "accept"
+    leave it out.
 
 my changes from default:
       (setq ada-when-indent 0)

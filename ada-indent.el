@@ -256,6 +256,7 @@ An example is:
        (protected_body)
        (subprogram_declaration)
        (subprogram_body)
+       (subtype_declaration)
        (task_body)
        (type_declaration)
        (object_declaration)
@@ -443,6 +444,9 @@ An example is:
        ;; are treating a couple of occurences of "is", and most
        ;; occurences of "null", as identifiers.
        )
+
+      (subtype_declaration
+       ("subtype" identifier "is-subtype" name))
 
       (task_body
        ("task-body" identifier "is-task_body" declarations "begin-body" statements "end-block"))
@@ -1018,7 +1022,7 @@ buffer."
        ;; have discriminants. FIXME: they can have aspect specs.
        (let ((token (progn
 		      (smie-default-backward-token); identifier
-		      (smie-default-backward-token)))) ; "protected", "task", "body", "type"
+		      (smie-default-backward-token)))) ; "protected", "task", "body", "type", "subtype"
 	 (cond
 	  ((member token '("protected" "task")) "is-type-block")
 	  ((equal token "body")
@@ -1027,6 +1031,7 @@ buffer."
 	     ((equal token "protected") "is-protected_body")
 	     ((equal token "task") "is-task_body")
 	     ))
+	  ((equal token "subtype") "is-subtype")
 	  ((equal token "type")
 	    (setq token (smie-default-backward-token))
 	    (when (member token '("protected" "task")) "is-type-block"))
