@@ -14,7 +14,7 @@ package Ada_Mode.Nominal is
    -- FIXME: review ARM list of declaration items, add missing.
    -- Aspects covered in FIXME:
    -- Constraints covered in FIXME:
-   -- Indenting inside parens is covered in FIXME:
+   -- Indenting inside parens is covered in ada_mode-parens.ads, .adb
    -- 'overriding' covered in ada_mode-nominal-child.ads
    -- indenting inside names covered in FIXME:
    -- record types covered in FIXME:

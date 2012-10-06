@@ -2409,11 +2409,18 @@ never just an offset (since we would not know what the offset was
 relative to)."
   (let*
       ((token (save-excursion (ada-indent-forward-token)))
+       char
        (indent
 	(or
 	 (and
-	  (equal token "")
-	  (ada-indent-rules :before (if (equal (char-after) ?\() "(" ")")))
+	  (equal token ""); ( ) "
+	  ;; " is handled by ada-indent-default
+	  (setq char
+		(case (char-after)
+		  (?\( "(")
+		  (?\) ")")
+		  (?\" nil)))
+	  (ada-indent-rules :before char))
 
 	 (and
 	  (ada-indent-keyword-p token)
@@ -2439,8 +2446,13 @@ relative to)."
        (indent
 	(or
 	 (and
-	  (equal token "")
-	  (ada-indent-rules :after (if (equal (char-before) ?\() "(" ")")))
+	  (equal token ""); ( ) "
+	  ;; ) " are handled by ada-indent-default; we only need to handle ( here.
+	  (case (char-before)
+	    (?\( t)
+	    (?\) nil)
+	    (?\" nil))
+	  (ada-indent-rules :after "("))
 
 	 (and
 	  (ada-indent-keyword-p token)

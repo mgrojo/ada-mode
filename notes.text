@@ -29,21 +29,12 @@ C-x r m set bookmark
 ada-indent.el
 (sal-edit-library "smie")
 
-discuss smie--levels with Stefan/emacs-devel
-
-run with -gnaty
-    make sure it matters; not checked with only -gnatc?
-
+ current
 test/Makefile
-    test/adacore_9907_010.adb.diff
-strings
-
-
-smie-default-*-token returns "" for strings, as well as parens
+    test/adacore_d304_005_2.adb.diff
+ada-label-indent
 
 use ada-indent-broken for multiple object declarations
-
-check effect of indentation choice on set-selective-display
 
 make rest of files work
     add missing features to ada_mode-*
@@ -57,7 +48,6 @@ make rest of files work
     pre/post conditions
 
     subprogram call with indented param list
-    aggregate with associations
     nested package
     nested generic subprogram, package
     library generic subprogram
@@ -132,6 +122,7 @@ specify options in .prj
 
  to do later
 fix indent on return
+    find a way to automate test of it
 
 run test on GDS, with broken-paren = 2, see if anything changes
 
@@ -145,6 +136,7 @@ switch to cl-macs, cl-lib
 
 why are we reindenting on space?
     not; smie-blink-matching-open
+        keep it?
 
 test with non-lowercase keywords in source
 
@@ -152,6 +144,10 @@ report ediff-buffers-wordwise bug; mark-active set, but no mark!
     try trunk http://alpha.gnu.org/gnu/emacs/windows/
 
 get narrow-to-defun to work
+
+fix gnat-fix-error
+    tab
+    insert with
 
  access to ada-france:
 
