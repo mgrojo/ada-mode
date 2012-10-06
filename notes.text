@@ -31,18 +31,18 @@ ada-indent.el
 
 discuss smie--levels with Stefan/emacs-devel
 
+run with -gnaty
+    make sure it matters; not checked with only -gnatc?
+
 test/Makefile
-    test/adacore_8910_003.adb.diff
-day'image is parent
-    leave _all_ operators out of grammar? they don't affect indentation!
-    ":=" referenced in goto-statement-start; keep that (can be in a statement)
+    test/adacore_9717_001.adb.diff
+subtype identifier is name
+    unrefined "is"
+
 
 smie-default-*-token returns "" for strings, as well as parens
 
 use ada-indent-broken for multiple object declarations
-
-run with -gnaty
-    make sure it matters; not checked with only -gnatc?
 
 check effect of indentation choice on set-selective-display
 

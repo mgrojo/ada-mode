@@ -126,7 +126,7 @@ package body Ada_Mode.Nominal is
         -- an expression with 'not' to see if we need that in the
         -- grammar (conflicts with 'not null')
         when Local_1 = 0 and not -- Ada mode 4.01 screws this up.
-          (Local_2 = 1)
+        (Local_2 = 1)
       is
          Tmp : Integer := 0;
       begin

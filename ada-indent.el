@@ -102,489 +102,459 @@ An example is:
 
 (defconst ada-indent-grammar
   (smie-prec2->grammar
-   (smie-merge-prec2s
-    (smie-bnf->prec2
-     '(;; non-terminal syntax terms not otherwise expanded
+   (smie-bnf->prec2
+    '(;; non-terminal syntax terms not otherwise expanded
+      (identifier)
+      (operator)
+
+      ;; BNF from [1] appendix P, vastly simplified
+      ;; (info "(aarm2012)Annex P" "*info Annex P*")
+      ;;
+      ;; We only need enough of the grammar to allow indentation to
+      ;; work; see (info "(elisp)SMIE Grammar")
+      ;;
+      ;; The important operation in indentation is finding the
+      ;; beginning of the current Ada statement or declaration. In
+      ;; SMIE terms, that means finding the 'parent' of the current
+      ;; sexp; the leftmost keyword.
+      ;;
+      ;; This is done using the `smie-backward-sexp' function. It
+      ;; moves back thru a chain of keywords, matching the precedence
+      ;; levels. For example, consider the following declaration:
+      ;;
+      ;;    type Type_1 (Discriminant_1 : Integer) is null record;
+      ;;
+      ;; When `smie-backward-sexp' moves backward thru this, starting
+      ;; at ";", it sees the following grammar values:
+      ;;
+      ;; (; 23 22)
+      ;; (null_record 0 (179))
+      ;; (is-type 153 0)
+      ;; nil
+      ;; nil
+      ;; (type (169) 153)
+      ;;
+      ;; The first 'nil' is from the parethesis (the discriminant);
+      ;; they are skipped in one step. The second nil is the type
+      ;; name.
+      ;;
+      ;; Starting with "null_record", the right level of the next
+      ;; keyword must match the left token of the current
+      ;; keyword. When we encounter a keyword with a list for the
+      ;; right level, or a level that doesn't match, we've found the
+      ;; parent.
+      ;;
+      ;; The primary work in building the grammar is finding ways to
+      ;; avoid conflicts without breaking the ability to find
+      ;; parents. One approach is to leave out as many keywords as
+      ;; possible, another is to refine Ada keywords into several
+      ;; different smie keywords.
+      ;;
+      ;; SMIE automatically allows balanced parens anywhere, so we
+      ;; don't need to declare argument lists or discriminant lists
+      ;; in the grammar.
+      ;;
+      ;; Ada keywords that are not needed to find parents, or
+      ;; otherwise help in indentation, do not need to be present in
+      ;; the grammar; they will be treated as identifiers.
+      ;;
+      ;; For example, most uses of "null" are not in the grammar;
+      ;; "null record" is, in order to distinguish it from
+      ;; "... record null; end record". Since "null record" occurs at
+      ;; the end of a declaration, but "record null" in the middle,
+      ;; they must be different keywords in the grammar, so they can
+      ;; have different left and right levels. We can leave "null" as
+      ;; an identifier, and refine "record" to "record-null" in this case.
+      ;;
+      ;; ';' has a similar problem; it is used in several different
+      ;; constructs at different levels. We solve that by declaring
+      ;; it as the separator for each of those constructs. (SMIE
+      ;; grammars cannot properly represent statement terminators).
+      ;;
+      ;; Other keywords are similarly refined to avoid grammar
+      ;; conflicts. Sometimes it is tempting to refine two adjacent
+      ;; keywords into one token. But that causes problems; for
+      ;; example, if a user breaks a line in the middle of that
+      ;; combined token, we have to recognize that and move to the
+      ;; start before calling the regular parsing logic. It is better
+      ;; to either refine both tokens, or leave one as an identifier
+      ;; and refine the other.
+      ;;
+      ;; For all ';' separated non-terminals, the first and last
+      ;; tokens in the syntax should be a keyword; that reduces the
+      ;; number of conflicts. An exception is when there is a single
+      ;; keyword in the syntax; then a trailing name is ok, and can
+      ;; reduce the number of refined keywords we need. There are a
+      ;; couple of other exceptions, noted below.
+      ;;
+      ;; There is no need for sexps with only one keyword in the
+      ;; grammar; finding the parent of a single keyword is trivial
+      ;; :). On the other hand, keeping them, where the keyword is
+      ;; already defined for other purposes, does no harm, and is
+      ;; less jarring to read.
+
+      ;; We list the non-terminals in alphabetical order, since there
+      ;; isn't any more reasonable order. We use the same names as [1]
+      ;; Annex P as much as possible.
+      ;;
+      ;; Refined token naming convention:
+      ;;
+      ;; If an Ada keyword is refined, all occurances of the keyword
+      ;; in the smie grammar must be refined. Use "-op" for
+      ;; operators, "-other" if no better name is available. That way
+      ;; it is clear when a keyword is being left as an indentifier.
+
+      (accept_statement
+       ("accept" identifier "do" statements "end-block")
+       ("accept" identifier))
+
+      (aggregate
+       ("(" association_list  ")"))
+      ;; this also covers other parenthesized lists; enumeration type
+      ;; declarations, subprogram calls.
+
+      (aspect_specification
+       ("with-aspect" aspect_list))
+
+      (aspect_list
+       (aspect_item)
+       (aspect_list "," aspect_item))
+
+      (aspect_item
+       (name "=>-other" name))
+
+      (association_list
+       (association)
+       (association_list "," association))
+
+      (association
+       (expression)
+       (expression "=>-other" expression))
+
+      (case_statement_alternative
+       ("when-case" expression "=>-when" statements)); "|" is an identifier
+
+      (context_clause
+       (context_item)
+       (context_item ";" context_item))
+
+      (context_item
+       ("with-context" name); need name so `smie-forward-sexp' from beginning of buffer works
+       ("use" name))
+      ;; no need to distinguish between "use" as a context clause and
+      ;; "use" as a declaration.
+
+      (declaration
+       (entry_body)
+       (exception_declaration)
+       (formal_package_declaration)
+       (formal_subprogram_declaration)
+       (generic_package_declaration)
+       (package_body)
+       (package_specification)
+       (package_body)
+       (protected_body)
+       (subprogram_declaration)
+       (subprogram_body)
+       (task_body)
+       (type_declaration)
+       (object_declaration)
+       )
+
+      (declarations
+       (declaration)
+       (declaration ";" declaration))
+
+      (entry_body
+       ("entry" identifier "when-entry" expression "is-entry_body" declarations "begin-body" statements "end-block"))
+
+      (exception_declaration
+       (identifer ":-object" "exception-declare"))
+
+      (exception_handler
+       ("when-case" object_declaration "=>-when" statements)
+       ("when-case" identifier "=>-when" statements)); "|" is an identifier
+      ;; no need to distinguish between when-exception, when-case.
+
+      (exit_statement
+       ("exit-other"); from anywhere. leaving identifier out
+       ("exit-when" "when-exit" expression))
+
+      (expression
+       ;; We don't need operators at all in the grammar; they do not
+       ;; affect indentation.
+       (name)
+       (aggregate))
+
+      ;; Formal generic parameters. Most formal_* are covered in this
+      ;; grammar by the equivalent non-formal syntax.
+
+      (formal_package_declaration
+       ;; with package defining_identifier is new generic_package_name
+       ;;    formal_package_actual_part [aspect_specification];
+       ("with-formal" "package-formal" identifier "new" name))
+      ;; leave "is" an identifier. name after "new" to match other
+      ;; uses. formal_package_actual_part is an association list
+      ;; FIXME: aspects not implemented yet
+
+      (formal_subprogram_declaration
+       ;; leaving "with" "function" "procedure" unrefined gives
+       ;; conflicts with the non-formal use.
+
+       ("with-formal" "function-formal" name "return-formal" name); trailing name same as non-formal
+       ("with-formal" "procedure-formal" name); trailing name same as non-formal
+       ;; We leave out [is name], because "is" is an identifier here.
+       )
+
+      (generic_package_declaration
+       ;; No need to distinguish between 'declarations' and
+       ;; 'generic_formal_parameter_declaration' for our purposes.
+       ("generic" declarations
+	"package-generic" identifier "is-package" declarations "private" declarations "end-block")
+       ("generic" declarations
+	"package-generic" identifier "is-package" declarations "end-block"))
+
+      (interface_list
+       ;; The Ada grammar sometimes has "name and interface_list".
+       ;; We can't (and don't need to) distinguish that from "interface_list"
+       (name)
+       (interface_list "and-interface_list" name))
+
+      (iteration_scheme
+       ("for" identifier "in" name))
+      ;; "reverse" is an identifer
+      ;; FIXME: container iterators allow ":" here (not tested yet)
+
+      (name
        (identifier)
+       (name "." identifier) ; selected_component
+       ;; Remember that parenthesis are simply skipped by SMIE
+       ;; (unless we are indenting inside them; then they are
+       ;; boundaries). So we don't need to represent subprogram
+       ;; parameter lists, or array indices here (no aggregates in
+       ;; 'expression').
+       )
 
-       ;; BNF from [1] appendix P, vastly simplified
-       ;; (info "(aarm2012)Annex P" "*info Annex P*")
+      (loop_statement
+       (identifier ":-label" iteration_scheme "loop-body" statements "end-loop" "loop-end")
+       (iteration_scheme "loop-body" statements "end-loop" "loop-end")
+       ("loop-open" statements "end-loop" "loop-end")
+       )
+
+      (object_declaration
+       (identifier ":-object" name)); same as ":-object" in extended return
+
+      (package_specification
+       ("package-plain" name "is-package" declarations "private-body" declarations "end-block")
+       ("package-plain" name "is-package" declarations "end-block"))
+
+      (package_body
+       ;; Leaving 'package body' as separate tokens causes problems
+       ;; in refine-is, so we leave "body" as an identifier.
+       ("package-plain" name "is-package" declarations "begin-body" statements "end-block")
+       ("package-plain" name "is-package" "separate"))
+
+      (protected_body
+       ("protected-body" identifier "is-protected_body" declarations "end-block")
+       ("protected-body" name "is-protected-body" "separate"))
+
+      (select_statement
+       ;; accept_statement, delay_statement are covered here by
+       ;; "statements". "terminate" looks like a procedure call, so
+       ;; we leave it as an identifier.
+       ("select-open" "when-select" expression "=>-when" statements
+	"or-select" "when-select" expression "=>-when" statements
+	"else" statements "end-select" "select-end")
+
+       ("select-open" statements
+	"or-select" statements
+	"else" statements "end-select" "select-end"))
+
+      (statement
+       (expression); covers procedure calls
+
+       ;; assignment_statement
+       (name ":=" expression)
+
+       (accept_statement)
+
+       ;; block_statement
+       (identifier ":-label" "declare-label" declarations "begin-body" statements
+		   "exception-block" exception_handler "end-block")
+       ("declare-open" declarations "begin-body" statements "end-block")
+       ("begin-open" statements "end-block")
+       ;; we don't need to repeat the exception handler in the other
+       ;; cases; once is enough to establish the precendence of "exception-block".
+
+       ;; case_statement
+       ("case" name "is-case" case_statement_alternative "end-case" "case-end")
+
+       ;; delay_statement
+       ("delay" expression)
+
+       (exit_statement)
+
+       ;; if_statement
+       ("if-open" expression "then" statements "end-if" "if-end")
+       ("if-open" expression "then" statements "else" statements "end-if" "if-end")
+       ("if-open" expression "then" statements
+	"elsif" expression "then" statements
+	"else" statements "end-if" "if-end")
+
+       (loop_statement)
+       ("return-stmt")
+
+       ;; extended_return_statement
+       ("return-ext" identifier ":-object" name); same as initialized object declaration
+       ("return-ext" identifier ":-object" name "do" statements "end-return" "return-end")
+
+       (select_statement)
+       )
+
+      (statements
+       (statement)
+       (statement ";" statement))
+
+      (subprogram_body
+       ;; access is an identifier
+       ("function" name "return-spec" name "is-subprogram_body" declarations "begin-body" statements "end-block")
+       ("function" name "return-spec" "is-subprogram_body" "separate")
+       ("procedure" name "is-subprogram_body" declarations "begin-body" statements "end-block")
+       ("procedure" name "is-subprogram_body" "separate"))
+
+      (subprogram_declaration
+       ("function" name "return-spec" name)
+       ;; trailing name makes "return-spec" have the same binding as
+       ;; in subprogram_body; that avoids recursion between refine-is
+       ;; and refine-return
+
+       ("overriding" "function-overriding" name "return-spec" name)
+       ("overriding" "procedure-overriding" name)
+       ;; We need "overriding" as a token, because the indentation
+       ;; policy for it is an exception to the hanging policy:
        ;;
-       ;; We only need enough of the grammar to allow indentation to
-       ;; work; see (info "(elisp)SMIE Grammar")
+       ;;    overriding
+       ;;    procedure (...);
+
+       ("procedure" name); same as 'procedure name is-subprogram_body'
+       ;; We keep this, because it is too jarring to not find it here :).
        ;;
-       ;; The important operation in indentation is finding the
-       ;; beginning of the current Ada statement or declaration. In
-       ;; SMIE terms, that means finding the 'parent' of the current
-       ;; sexp; the leftmost keyword.
+       ;; We leave out ("procedure" name "is" "null") here; we
+       ;; are treating a couple of occurences of "is", and most
+       ;; occurences of "null", as identifiers.
+       )
+
+      (task_body
+       ("task-body" identifier "is-task_body" declarations "begin-body" statements "end-block"))
+
+      (type_declaration
+       ;; access_type_definition
+       ("type" identifier "is-type-access")
+       ;; Any occurance of "is-type" as the last keyword in a
+       ;; declaration must be refined; otherwise it is ambiguous
+       ;; with several other declarations.
+
+       ;; We don't include access-to-subprogram in the grammar,
+       ;; because we want to identify 'function' and 'procedure' in
+       ;; these types, so we can indent the parameter list relative
+       ;; to them. So we allow them to be parents. This also greatly
+       ;; simplifies refine-is.
+
+       ;; array_type_definition; we leave "array" as an identifier
+       ("type" identifier "is-type" expression "of")
+
+       ;; derived_type_declaration
+       ("type" identifier "is-type" "new" name); same as below
+       ("type" identifier "is-type" "new" name "with-new" "private-with")
+       ("type" identifier "is-type" "new" name "with-new" "record-null"); "null" is an identifier
+       ("type" identifier "is-type" "new" name "with-record")
+       ;; We refine "with" to "with-record" when it is followed
+       ;; by "record", so that it is a closer to match
+       ;; "type", since "record-open" is an opener.
        ;;
-       ;; This is done using the `smie-backward-sexp' function. It
-       ;; moves back thru a chain of keywords, matching the precedence
-       ;; levels. For example, consider the following declaration:
+       ;; We don't include record-definition in
+       ;; derived_type_definition, because we want to indent "end
+       ;; record" relative to "record".
+
+       ;; enumeration_type_definition
+       ("type" identifier "is-type-enumeration")
+       ;; enumeration literals are an aggregate, which is ignored.
+
+       ;; {ordinary_ | decimal_} fixed_point_definition
+       ;; "delta" and "digits" are left as identifiers
+       ;; floating_point_definition, integer_type_definition; "range" is an identifier
+       ("type" identifier "is-type-numeric")
+
+       ;; incomplete_type_declaration ::= type defining_identifier [discriminant_part] [is tagged];
        ;;
-       ;;    type Type_1 (Discriminant_1 : Integer) is null record;
+       ;; We don't need the variant without "is tagged", since it has
+       ;; only one keyword.  We need "is-type-record" when this is
+       ;; followed by a record_definition; that's covered below. We don't need "tagged" as a keyword.
+       ("type" identifier "is-type-tagged")
+
+       ;; interface_type_definition, formal_interface_type_definition
+       ("type" identifier "is-type" "interface-plain")
+       ("type" identifier "is-type" "interface-and" "and-interface" interface_list)
+
+       ;; modular_type_definition
+       ("type" identifier "is-type" "mod-type")
+       ;; "mod" is an operator, so it has to be in the grammar. We
+       ;; also want something following "is-type", unless we treat
+       ;; this occurence of "is" as an identifier. FIXME: On the
+       ;; other hand, we don't really need "mod" as an operator. It
+       ;; also occurs in other syntax; wait until we test those to
+       ;; decide to leave it as an identifier.
+
+       ;; private_extension_declaration
+       ("type" identifier "is-type" "new" name "with-new" "private-with")
+       ("type" identifier "is-type" "new" interface_list "with-new" "private-with")
+       ;; leaving 'with' and 'private' as separate tokens causes conflicts
+
+       ;; private_type_declaration
+       ("type" identifier "is-type" "private-type-spec")
+
+       ;; protected_type_declaration, single_protected_declaration
        ;;
-       ;; When `smie-backward-sexp' moves backward thru this, starting
-       ;; at ";", it sees the following grammar values:
-       ;;
-       ;; (; 23 22)
-       ;; (null_record 0 (179))
-       ;; (is-type 153 0)
-       ;; nil
-       ;; nil
-       ;; (type (169) 153)
-       ;;
-       ;; The first 'nil' is from the parethesis (the discriminant);
-       ;; they are skipped in one step. The second nil is the type
-       ;; name.
-       ;;
-       ;; Starting with "null_record", the right level of the next
-       ;; keyword must match the left token of the current
-       ;; keyword. When we encounter a keyword with a list for the
-       ;; right level, or a level that doesn't match, we've found the
-       ;; parent.
-       ;;
-       ;; The primary work in building the grammar is finding ways to
-       ;; avoid conflicts without breaking the ability to find
-       ;; parents. One approach is to leave out as many keywords as
-       ;; possible, another is to refine Ada keywords into several
-       ;; different smie keywords.
-       ;;
-       ;; SMIE automatically allows balanced parens anywhere, so we
-       ;; don't need to declare argument lists or discriminant lists
-       ;; in the grammar.
-       ;;
-       ;; Ada keywords that are not needed to find parents, or
-       ;; otherwise help in indentation, do not need to be present in
-       ;; the grammar; they will be treated as identifiers.
-       ;;
-       ;; For example, most uses of "null" are not in the grammar;
-       ;; "null record" is, in order to distinguish it from
-       ;; "... record null; end record". Since "null record" occurs at
-       ;; the end of a declaration, but "record null" in the middle,
-       ;; they must be different keywords in the grammar, so they can
-       ;; have different left and right levels. We can leave "null" as
-       ;; an identifier, and refine "record" to "record-null" in this case.
-       ;;
-       ;; ';' has a similar problem; it is used in several different
-       ;; constructs at different levels. We solve that by declaring
-       ;; it as the separator for each of those constructs. (SMIE
-       ;; grammars cannot properly represent statement terminators).
-       ;;
-       ;; Other keywords are similarly refined to avoid grammar
-       ;; conflicts. Sometimes it is tempting to refine two adjacent
-       ;; keywords into one token. But that causes problems; for
-       ;; example, if a user breaks a line in the middle of that
-       ;; combined token, we have to recognize that and move to the
-       ;; start before calling the regular parsing logic. It is better
-       ;; to either refine both tokens, or leave one as an identifier
-       ;; and refine the other.
-       ;;
-       ;; For all ';' separated non-terminals, the first and last
-       ;; tokens in the syntax should be a keyword; that reduces the
-       ;; number of conflicts. An exception is when there is a single
-       ;; keyword in the syntax; then a trailing name is ok, and can
-       ;; reduce the number of refined keywords we need. There are a
-       ;; couple of other exceptions, noted below.
-       ;;
-       ;; There is no need for sexps with only one keyword in the
-       ;; grammar; finding the parent of a single keyword is trivial
-       ;; :). On the other hand, keeping them, where the keyword is
-       ;; already defined for other purposes, does no harm, and is
-       ;; less jarring to read.
-
-       ;; We list the non-terminals in alphabetical order, since there
-       ;; isn't any more reasonable order. We use the same names as [1]
-       ;; Annex P as much as possible.
-       ;;
-       ;; Refined token naming convention:
-       ;;
-       ;; If an Ada keyword is refined, all occurances of the keyword
-       ;; in the smie grammar must be refined. Use "-op" for
-       ;; operators, "-other" if no better name is available. That way
-       ;; it is clear when a keyword is being left as an indentifier.
-
-       (accept_statement
-	("accept" identifier "do" statements "end-block")
-	("accept" identifier))
-
-       (aggregate
-	("(" association_list  ")"))
-       ;; this also covers other parenthesized lists; enumeration type
-       ;; declarations, subprogram calls.
-
-       (aspect_specification
-	("with-aspect" aspect_list))
-
-       (aspect_list
-	(aspect_item)
-	(aspect_list "," aspect_item))
-
-       (aspect_item
-	(name "=>-other" name))
-
-       (association_list
-	(association)
-	(association_list "," association))
-
-       (association
-	(expression)
-	(expression "=>-other" expression))
-
-       (case_statement_alternative
-	("when-case" expression "=>-when" statements)); "|" is an identifier
-
-       (context_clause
-	(context_item)
-	(context_item ";" context_item))
-
-       (context_item
-	("with-context" name); need name so `smie-forward-sexp' from beginning of buffer works
-	("use" name))
-       ;; no need to distinguish between "use" as a context clause and
-       ;; "use" as a declaration.
-
-       (declaration
-	(entry_body)
-	(exception_declaration)
-	(formal_package_declaration)
-	(formal_subprogram_declaration)
-	(generic_package_declaration)
-	(package_body)
-	(package_specification)
-	(package_body)
-	(protected_body)
-	(subprogram_declaration)
-	(subprogram_body)
-	(task_body)
-	(type_declaration)
-	(object_declaration)
-	)
-
-       (declarations
-	(declaration)
-	(declaration ";" declaration))
-
-       (entry_body
-	("entry" identifier "when-entry" expression "is-entry_body" declarations "begin-body" statements "end-block"))
-
-       (exception_declaration
-	(identifer ":-object" "exception-declare"))
-
-       (exception_handler
-	("when-case" object_declaration "=>-when" statements)
-	("when-case" identifier "=>-when" statements)); "|" is an identifier
-       ;; no need to distinguish between when-exception, when-case.
-
-       (exit_statement
-	("exit-other"); from anywhere. leaving identifier out
-	("exit-when" "when-exit" expression))
-
-       (expression
-	;; The expression syntax rules in [1] mostly serve to express
-	;; the operator precedence; we do that in the precedence table
-	;; below.
-	;;
-	;; Here "-operator-" is a fake operator that ties this BNF
-	;; grammar to that precedence table (stole this idea from the
-	;; modula2 smie grammar).
-	;;
-	;; Note that we declare := to be an operator; that way this
-	;; covers assignment statements as well. We are not enforcing
-	;; Ada legality rules, just computing indentation. We arrange
-	;; the precendence so that ":=" is the parent of an assignment
-	;; statement.
-	(name "-operator-" name)
-	(aggregate))
-
-       ;; Formal generic parameters. Most formal_* are covered in this
-       ;; grammar by the equivalent non-formal syntax.
-
-       (formal_package_declaration
-	;; with package defining_identifier is new generic_package_name
-	;;    formal_package_actual_part [aspect_specification];
-	("with-formal" "package-formal" identifier "new" name))
-       ;; leave "is" an identifier. name after "new" to match other
-       ;; uses. formal_package_actual_part is an association list
-       ;; FIXME: aspects not implemented yet
-
-       (formal_subprogram_declaration
-	;; leaving "with" "function" "procedure" unrefined gives
-	;; conflicts with the non-formal use.
-
-	("with-formal" "function-formal" name "return-formal" name); trailing name same as non-formal
-	("with-formal" "procedure-formal" name); trailing name same as non-formal
-	;; We leave out [is name], because "is" is an identifier here.
-	)
-
-       (generic_package_declaration
-	;; No need to distinguish between 'declarations' and
-	;; 'generic_formal_parameter_declaration' for our purposes.
-	("generic" declarations
-	 "package-generic" identifier "is-package" declarations "private" declarations "end-block")
-	("generic" declarations
-	 "package-generic" identifier "is-package" declarations "end-block"))
-
-       (interface_list
-	;; The Ada grammar sometimes has "name and interface_list".
-	;; We can't (and don't need to) distinguish that from "interface_list"
-	(name)
-	(interface_list "and-interface_list" name))
-
-       (iteration_scheme
-	("for" identifier "in" name))
-       ;; "reverse" is an identifer
-       ;; FIXME: container iterators allow ":" here (not tested yet)
-
-       (name
-	(identifier)
-	(name "." identifier) ; selected_component
-	;; Remember that parenthesis are simply skipped by SMIE
-	;; (unless we are indenting inside them; then they are
-	;; boundaries). So we don't need to represent subprogram
-	;; parameter lists, or array indices here (no aggregates in
-	;; 'expression').
-	)
-
-       (loop_statement
-	(identifier ":-label" iteration_scheme "loop-body" statements "end-loop" "loop-end")
-	(iteration_scheme "loop-body" statements "end-loop" "loop-end")
-	("loop-open" statements "end-loop" "loop-end")
-	)
-
-       (object_declaration
-	(identifier ":-object" name)); same as ":-object" in extended return
-
-       (package_specification
-	("package-plain" name "is-package" declarations "private-body" declarations "end-block")
-	("package-plain" name "is-package" declarations "end-block"))
-
-       (package_body
-	;; Leaving 'package body' as separate tokens causes problems
-	;; in refine-is, so we leave "body" as an identifier.
-	("package-plain" name "is-package" declarations "begin-body" statements "end-block")
-	("package-plain" name "is-package" "separate"))
-
-       (protected_body
-	("protected-body" identifier "is-protected_body" declarations "end-block")
-	("protected-body" name "is-protected-body" "separate"))
-
-       (select_statement
-	;; accept_statement, delay_statement are covered here by
-	;; "statements". "terminate" looks like a procedure call, so
-	;; we leave it as an identifier.
-	("select-open" "when-select" expression "=>-when" statements
-	 "or-select" "when-select" expression "=>-when" statements
-	 "else" statements "end-select" "select-end")
-
-	("select-open" statements
-	 "or-select" statements
-	 "else" statements "end-select" "select-end"))
-
-       (statement
-	(expression); covers procedure calls, assignment
-
-	(accept_statement)
-
-	;; block_statement
-	(identifier ":-label" "declare-label" declarations "begin-body" statements
-		    "exception-block" exception_handler "end-block")
-	("declare-open" declarations "begin-body" statements "end-block")
-	("begin-open" statements "end-block")
-	;; we don't need to repeat the exception handler in the other
-	;; cases; once is enough to establish the precendence of "exception-block".
-
-	;; case_statement
-	("case" name "is-case" case_statement_alternative "end-case" "case-end")
-
-	;; delay_statement
-	("delay" expression)
-
-	(exit_statement)
-
-	;; if_statement
-	("if-open" expression "then" statements "end-if" "if-end")
-	("if-open" expression "then" statements "else" statements "end-if" "if-end")
-	("if-open" expression "then" statements
-	 "elsif" expression "then" statements
-	 "else" statements "end-if" "if-end")
-
-	(loop_statement)
-	("return-stmt")
-
-	;; extended_return_statement
-	("return-ext" identifier ":-object" name); same as initialized object declaration
-	("return-ext" identifier ":-object" name "do" statements "end-return" "return-end")
-
-	(select_statement)
-	)
-
-       (statements
-	(statement)
-	(statement ";" statement))
-
-       (subprogram_body
-	;; access is an identifier
-	("function" name "return-spec" name "is-subprogram_body" declarations "begin-body" statements "end-block")
-	("function" name "return-spec" "is-subprogram_body" "separate")
-	("procedure" name "is-subprogram_body" declarations "begin-body" statements "end-block")
-	("procedure" name "is-subprogram_body" "separate"))
-
-       (subprogram_declaration
-	("function" name "return-spec" name)
-	;; trailing name makes "return-spec" have the same binding as
-	;; in subprogram_body; that avoids recursion between refine-is
-	;; and refine-return
-
-	("overriding" "function-overriding" name "return-spec" name)
-	("overriding" "procedure-overriding" name)
-	;; We need "overriding" as a token, because the indentation
-	;; policy for it is an exception to the hanging policy:
-	;;
-	;;    overriding
-	;;    procedure (...);
-
-	("procedure" name); same as 'procedure name is-subprogram_body'
-	;; We keep this, because it is too jarring to not find it here :).
-	;;
-	;; We leave out ("procedure" name "is" "null") here; we
-	;; are treating a couple of occurences of "is", and most
-	;; occurences of "null", as identifiers.
-	)
-
-       (task_body
-	("task-body" identifier "is-task_body" declarations "begin-body" statements "end-block"))
-
-       (type_declaration
-	;; access_type_definition
-	("type" identifier "is-type-access")
-	;; Any occurance of "is-type" as the last keyword in a
-	;; declaration must be refined; otherwise it is ambiguous
-	;; with several other declarations.
-
-	;; We don't include access-to-subprogram in the grammar,
-	;; because we want to identify 'function' and 'procedure' in
-	;; these types, so we can indent the parameter list relative
-	;; to them. So we allow them to be parents. This also greatly
-	;; simplifies refine-is.
-
-	;; array_type_definition; we leave "array" as an identifier
-	("type" identifier "is-type" expression "of")
-
-	;; derived_type_declaration
-	("type" identifier "is-type" "new" name); same as below
-	("type" identifier "is-type" "new" name "with-new" "private-with")
-	("type" identifier "is-type" "new" name "with-new" "record-null"); "null" is an identifier
-	("type" identifier "is-type" "new" name "with-record")
-	;; We refine "with" to "with-record" when it is followed
-	;; by "record", so that it is a closer to match
-	;; "type", since "record-open" is an opener.
-	;;
-	;; We don't include record-definition in
-	;; derived_type_definition, because we want to indent "end
-	;; record" relative to "record".
-
-	;; enumeration_type_definition
-	("type" identifier "is-type-enumeration")
-	;; enumeration literals are an aggregate, which is ignored.
-
-	;; {ordinary_ | decimal_} fixed_point_definition
-	;; "delta" and "digits" are left as identifiers
-	;; floating_point_definition, integer_type_definition; "range" is an identifier
-	("type" identifier "is-type-numeric")
-
-	;; incomplete_type_declaration ::= type defining_identifier [discriminant_part] [is tagged];
-	;;
-	;; We don't need the variant without "is tagged", since it has
-	;; only one keyword.  We need "is-type-record" when this is
-	;; followed by a record_definition; that's covered below. We don't need "tagged" as a keyword.
-	("type" identifier "is-type-tagged")
-
-	;; interface_type_definition, formal_interface_type_definition
-	("type" identifier "is-type" "interface-plain")
-	("type" identifier "is-type" "interface-and" "and-interface" interface_list)
-
-	;; modular_type_definition
-	("type" identifier "is-type" "mod-type")
-	;; "mod" is an operator, so it has to be in the grammar. We
-	;; also want something following "is-type", unless we treat
-	;; this occurence of "is" as an identifier. FIXME: On the
-	;; other hand, we don't really need "mod" as an operator. It
-	;; also occurs in other syntax; wait until we test those to
-	;; decide to leave it as an identifier.
-
-	;; private_extension_declaration
-	("type" identifier "is-type" "new" name "with-new" "private-with")
-	("type" identifier "is-type" "new" interface_list "with-new" "private-with")
-	;; leaving 'with' and 'private' as separate tokens causes conflicts
-
-	;; private_type_declaration
-	("type" identifier "is-type" "private-type-spec")
-
-	;; protected_type_declaration, single_protected_declaration
-	;;
-	;; We don't need "protected" in the grammar anywhere, so leave
-	;; it as an identifier; this simplifies access-to-subprogram
-	;; types, since we can just ignore "protected" there.  Note
-	;; that in a single_protected_declaration, we are refining
-	;; "protected" to "type". However, "is" in protected type
-	;; declaration is a block start keyword, while "is-type" in
-	;; general is not, so we need to make that a distinct
-	;; keyword. We use "is-type-block" instead of
-	;; "is-type-protected", because it covers task types as well.
-	("type" identifier "is-type-block" declarations "private-body" declarations "end-block")
-	("type" identifier "is-type-block" declarations "end-block"); task, or protected with no private part
-	("type" identifier "is-type" "new" interface_list "with-new" declarations
-	 "private-body" declarations "end-block")
-
-	;; record_type_definition
-	("type" identifier "is-type" "record-null")
-	("type" identifier "is-type-record")
-	;; We refine "is-type" to "is-type-record" when it is followed
-	;; by "record-open", so that it is a closer to match "type", since
-	;; "record-open" is an opener.
-
-	;; record_definition
-	("record-open" declarations "end-record" "record-end")
-	("record-open" declarations "end-record" "record-end-aspect" aspect_specification)
-	;; No need to distinguish between 'declarations' and
-	;; 'component_list'. We don't include record_definition in
-	;; record_type_definition or derived_type_definition, because
-	;; we want to indent "end record" relative to "record", not
-	;; "type".
-
-	;; task_type_declaration, single_task_declaration: as for
-	;; protected_type_declaration, we don't need "task" in the
-	;; grammar. Task entries can have entry families, but that's a
-	;; parenthesized expression, so we don't need it in the
-	;; grammar either. However, task_body includes "begin", while
-	;; protected_body doesn't.
-
-	); type_declaration
-       )); smie-bnf->prec2
-
-    ;; operators and similar things
-    (smie-precs->prec2
-     '((nonassoc "-operator-")
-       ;; We can merge the relational, math, and other operators in
-       ;; these levels, because we don't care about legality or
-       ;; evaluation order precedence. Nor do we care about associativity.
-       ;;
-       ;; So we set the precedence hierarchy to help with indentation;
-       ;; := and => are the highest level parents, and all other
-       ;; operators are at the same level, so we can always find the
-       ;; start of an Ada assignment or association with one call to
-       ;; ada-indent-goto-parent.
-       ;;
-       (nonassoc ":=")
-       (nonassoc
-	"=" "/=" "<" "<=" ">" ">=" "in"
-	"or-op" "xor" "+" "-" "&"
-	"and-op" "mod-op" "rem" "*" "/"
-	"abs"; "not" leave "not" as identifier so it is not confused with "not null"
-	"'" "." "**" "..")
-       ))
-    )))
+       ;; We don't need "protected" in the grammar anywhere, so leave
+       ;; it as an identifier; this simplifies access-to-subprogram
+       ;; types, since we can just ignore "protected" there.  Note
+       ;; that in a single_protected_declaration, we are refining
+       ;; "protected" to "type". However, "is" in protected type
+       ;; declaration is a block start keyword, while "is-type" in
+       ;; general is not, so we need to make that a distinct
+       ;; keyword. We use "is-type-block" instead of
+       ;; "is-type-protected", because it covers task types as well.
+       ("type" identifier "is-type-block" declarations "private-body" declarations "end-block")
+       ("type" identifier "is-type-block" declarations "end-block"); task, or protected with no private part
+       ("type" identifier "is-type" "new" interface_list "with-new" declarations
+	"private-body" declarations "end-block")
+
+       ;; record_type_definition
+       ("type" identifier "is-type" "record-null")
+       ("type" identifier "is-type-record")
+       ;; We refine "is-type" to "is-type-record" when it is followed
+       ;; by "record-open", so that it is a closer to match "type", since
+       ;; "record-open" is an opener.
+
+       ;; record_definition
+       ("record-open" declarations "end-record" "record-end")
+       ("record-open" declarations "end-record" "record-end-aspect" aspect_specification)
+       ;; No need to distinguish between 'declarations' and
+       ;; 'component_list'. We don't include record_definition in
+       ;; record_type_definition or derived_type_definition, because
+       ;; we want to indent "end record" relative to "record", not
+       ;; "type".
+
+       ;; task_type_declaration, single_task_declaration: as for
+       ;; protected_type_declaration, we don't need "task" in the
+       ;; grammar. Task entries can have entry families, but that's a
+       ;; parenthesized expression, so we don't need it in the
+       ;; grammar either. However, task_body includes "begin", while
+       ;; protected_body doesn't.
+
+       ); type_declaration
+      )); smie-bnf->prec2
+    ))
 
 ;;; utils for refine-*, forward/backward token
 
@@ -878,7 +848,7 @@ buffer."
 	((or (equal token "and-interface_list"); 3
 	     (equal token "new")); 1, 4, 5, 6, 7
 	   "and-interface_list")
-	(t "and-op")))
+	(t "and"))); operator identifier
      )))
 
 (defun ada-indent-refine-begin (token forward)
@@ -1247,7 +1217,7 @@ buffer."
     ;;
     (if (equal "is" (save-excursion (smie-default-backward-token)))
 	"mod-type"
-      "mod-op")))
+      "mod"))); operator identifier
 
 (defun ada-indent-refine-or (token forward)
   (let ((token (save-excursion
@@ -1255,7 +1225,7 @@ buffer."
 		 (smie-default-forward-token))))
     (cond
      ((member token '("accept" "when" "terminate")) "or-select")
-     (t "or-op"))))
+     (t "or")))); operator identifier
 
 (defun ada-indent-refine-package (token forward)
   (save-excursion
@@ -1888,17 +1858,21 @@ return an indent by OFFSET relevant to it. Does not stop on
 CHILD. Preserves point.  If CHILD must be non-nil and a keyword
 or \"(\", and point must be at the start of CHILD."
   (save-excursion
-    (ada-indent-goto-parent
-     child
-     (if (and child
-	      (or
-	       (equal child "(")
-	       (ada-indent-opener-p child)))
-	 2
-       1))
-    (back-to-indentation)
-    (cons 'column (+ (current-column) offset))
-    ))
+    (let
+	((parent
+	  (ada-indent-goto-parent
+	   child
+	   (if (and child
+		    (or
+		     (equal child "(")
+		     (ada-indent-opener-p child)))
+	       2
+	     1))))
+      (cond
+       ((equal (nth 2 parent) "") nil); stopped due to "("; indent to the (, not the line it is on
+       (t (back-to-indentation)))
+      (cons 'column (+ (current-column) offset))
+    )))
 
 (defun ada-indent-goto-statement-start (child)
   "Move point to the start of the statement/declaration
