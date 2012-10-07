@@ -1,62 +1,8 @@
 -- FIXME: split out into separate files, so we can check syntax
-----------------------------------------------------------
 
-separate (Parent)
-package Test is
-   First_Object : Integer;
-   Second_Object : Integer;
-end Test;
--- DONE, re
-
-----------------------------------------------------------
-
-package body Blabla is
-   package Int_IO is new Integer_IO (Integer);
-   use Int_IO;
-
-   --- the following lines are wrongly indented.
-   Test : Toto;
-   -- DONE, re
-
-end Blabla;
-
-----------------------------------------------------------
-
-package G is
-   type T1 is new Integer;
-   type T2 is new Integer;  --< incorrect, correct if subtype
-   -- DONE, re
-end G;
-
-----------------------------------------------------------
-
--- For Ada mode w/ indent broken set to 2, I get the following indentation
--- The following two lines seem incorrect as integer is indented 3 spaces
-
-package Test is
-
-   Toto : Integer;
-   type X_Type is access
-     Integer;
-   Toto : Integer;
-end Test;
--- DONE, re
-
+-- Show we can handle incorrect code that someone is likely to type
 procedure Test_Tt_Low(  );
 function Toto (HIGH : in Integer ) return Res;
-
--------------------
--- For tagged types the problem comes from the keyword abstract:
-
-procedure Toto is
-   type T2 is limited abstract tagged record
-      X : Integer;
-      Y : Float;
-   end record;
-begin
-   null;
-end Toto;
--- DONE
 
 -------------------
 -- If I do the following I get
@@ -82,33 +28,6 @@ package G is
    end H;                    --< Indentation is incorrect
 end G;
 -- DONE, re
-
--------------------
--- Wrong indentation depending on the presence or absence of white space
--- at another line (????)
-procedure X is
-
-   package DB is
-      procedure X;
-   end DB;
-
-   package Truc is
-      procedure X;
-   end Truc;
-
-   package body DB is separate;
-
-   package body TRUC is separate; -- this line gets indented as the nr of space character
-   -- present on the line **before line the **  package body DB
-   -- e.g. 4 spaces there => 4 spaces here
-
-begin
-   null;
-end X;
--- (in other words, put e.g. 10 spaces on the line before the line package
--- body DB is separate,
--- then go to package body TRUC line
--- then press TAB -> package body TRUC will be indented to column 10.
 
 -----------------------
 
@@ -141,6 +60,7 @@ package Test is
    -- tab or return it reindents the line correctly but does not initially.
    type Wait_Return is (Read_Success, Read_Timeout, Wait_Timeout,
                         Nothing_To_Wait_For_In_Wait_List);
+   -- FIXME: need test of active <return>
    -- OPEN
 
    -- The following line will be wrongly reindented after typing it in after

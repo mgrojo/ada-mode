@@ -117,6 +117,10 @@ package body Ada_Mode.Nominal is
                   Local_1 := Local_1 + Local_1;
                   exit when Local_1 > 0;
                end loop;
+
+               Loop_4 : while not (Local_1 > 0) loop
+                  Local_1 := Local_1 + 2;
+               end loop Loop_4;
          end case;
 
          -- A comment before 'end'
@@ -346,6 +350,8 @@ package body Ada_Mode.Nominal is
          return 1.0;
       end;
    end;
+
+   package body Separate_Package_1 is separate;
 
 begin
    null;

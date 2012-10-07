@@ -278,7 +278,6 @@ An example is:
        (generic_package_declaration)
        (package_body)
        (package_specification)
-       (package_body)
        (protected_body)
        (subprogram_declaration)
        (subprogram_body)
@@ -352,6 +351,12 @@ An example is:
       ;; "reverse" is an identifer
       ;; FIXME: container iterators allow ":" here (not tested yet)
 
+      (loop_statement
+       (identifier ":-label" iteration_scheme "loop-body" statements "end-loop" "loop-end")
+       (iteration_scheme "loop-body" statements "end-loop" "loop-end")
+       ("loop-open" statements "end-loop" "loop-end")
+       )
+
       (name
        (identifier)
        (name "." identifier) ; selected_component
@@ -360,12 +365,6 @@ An example is:
        ;; boundaries). So we don't need to represent subprogram
        ;; parameter lists, or array indices here (no aggregates in
        ;; 'expression').
-       )
-
-      (loop_statement
-       (identifier ":-label" iteration_scheme "loop-body" statements "end-loop" "loop-end")
-       (iteration_scheme "loop-body" statements "end-loop" "loop-end")
-       ("loop-open" statements "end-loop" "loop-end")
        )
 
       (object_declaration
@@ -379,11 +378,13 @@ An example is:
        ;; Leaving 'package body' as separate tokens causes problems
        ;; in refine-is, so we leave "body" as an identifier.
        ("package-plain" name "is-package" declarations "begin-body" statements "end-block")
-       ("package-plain" name "is-package" "separate"))
+       ("package-plain" name "is-package" "separate-stub")
+       ("separate-unit" "package-separate" name "is-package" declarations "begin-body" statements "end-block"))
 
       (protected_body
        ("protected-body" identifier "is-protected_body" declarations "end-block")
-       ("protected-body" name "is-protected-body" "separate"))
+       ("protected-body" name "is-protected-body" "separate-stub")
+       ("separate-unit" "protected-separate" identifier "is-protected_body" declarations "end-block"))
 
       (select_statement
        ;; accept_statement, delay_statement are covered here by
@@ -447,13 +448,17 @@ An example is:
 
       (subprogram_body
        ;; access is an identifier
-       ("function" name "return-spec" name "is-subprogram_body" declarations "begin-body" statements "end-block")
-       ("function" name "return-spec" "is-subprogram_body" "separate")
-       ("procedure" name "is-subprogram_body" declarations "begin-body" statements "end-block")
-       ("procedure" name "is-subprogram_body" "separate"))
+       ("function-spec" name "return-spec" name "is-subprogram_body" declarations "begin-body" statements "end-block")
+       ("function-spec" name "return-spec" "is-subprogram_body" "separate-stub")
+       ("procedure-spec" name "is-subprogram_body" declarations "begin-body" statements "end-block")
+       ("procedure-spec" name "is-subprogram_body" "separate-stub")
+       ("separate-unit" "function-separate" name "return-spec" name "is-subprogram_body" declarations "begin-body"
+	statements "end-block")
+       ("separate-unit" "procedure-separate" name "is-subprogram_body" declarations "begin-body"
+	statements "end-block"))
 
       (subprogram_declaration
-       ("function" name "return-spec" name)
+       ("function-spec" name "return-spec" name)
        ;; trailing name makes "return-spec" have the same binding as
        ;; in subprogram_body; that avoids recursion between refine-is
        ;; and refine-return
@@ -466,7 +471,7 @@ An example is:
        ;;    overriding
        ;;    procedure (...);
 
-       ("procedure" name); same as 'procedure name is-subprogram_body'
+       ("procedure-spec" name); same as 'procedure name is-subprogram_body'
        ;; We keep this, because it is too jarring to not find it here :).
        ;;
        ;; We leave out ("procedure" name "is" "null") here; we
@@ -478,7 +483,10 @@ An example is:
        ("subtype" identifier "is-subtype" name))
 
       (task_body
-       ("task-body" identifier "is-task_body" declarations "begin-body" statements "end-block"))
+       ("task-body" identifier "is-task_body" declarations "begin-body" statements "end-block")
+       ("task-body" identifier "is-task_body" "separate-stub")
+       ("separate-unit" "task-separate" identifier "is-task_body" declarations "begin-body"
+	statements "end-block"))
 
       (type_declaration
        ;; access_type_definition
@@ -706,7 +714,7 @@ beginning of buffer."
 	  (progn
 	    (setq token (funcall next-token))
 	    (if (equal "" token)
-		;; We hit a paren or bob
+		;; We hit a paren or bob FIXME: or string, char literal
 		(progn
 		  (when (bobp) (throw 'quit nil))
 		  (if forward
@@ -737,7 +745,7 @@ buffer."
 	(progn
 	  (setq token (funcall next-token))
 	  (if (equal "" token)
-	      ;; We hit a parenthesis or bob FIXME: or string
+	      ;; We hit a parenthesis or bob FIXME: or string, char literal
 	      (progn
 		(when (bobp) (throw 'quit nil))
 		(if forward
@@ -935,21 +943,27 @@ buffer."
 	    (throw 'local-quit token)))
 
       ;; not refining-all
-      (when forward (smie-default-backward-token))
+      (save-excursion
+	(when forward (smie-default-backward-token))
 
-      (let ((ada-indent-refine-all t)
-	    (ada-indent-refine-forward-to (point))
-	    toklevels)
-	(save-excursion
-	  (catch 'ada-indent-refine-all-quit
-	    (goto-char (point-min))
-	    ;; skip context clauses, parse compilation-unit.
-	    (while (equal ";" (nth 2 (setq toklevels (smie-forward-sexp))))
-	      (goto-char (nth 1 toklevels))
-	      ;; loop should exit on 'ada-indent-refine-all-quit,
-	      ;; but if we have a bug, we don't want to loop forever
-	      ;; here.
-	      ))))
+	(let ((ada-indent-refine-all t)
+	      (ada-indent-refine-forward-to (point))
+	      toklevels
+	      (token nil))
+	  (setq
+	   token
+	   (catch 'ada-indent-refine-all-quit
+	     (goto-char (point-min))
+	     ;; skip context clauses, parse compilation-unit.
+	     (while (equal ";" (nth 2 (setq toklevels (smie-forward-sexp))))
+	       (goto-char (nth 1 toklevels))
+	       ;; loop should exit on 'ada-indent-refine-all-quit,
+	       ;; but if we have a bug, we don't want to loop forever
+	       ;; here.
+	       )))
+	  (unless token
+	    (goto-char ada-indent-refine-forward-to)
+	    (ada-indent-refine-error "unrefined 'begin'"))))
       )))
 
 (defun ada-indent-refine-case (token forward)
@@ -1015,6 +1029,8 @@ buffer."
        ))
     ))
 
+;; ada-indent-refine-function see ada-indent-refine-subprogram
+
 (defun ada-indent-refine-if (token forward)
   (save-excursion
     (when forward (smie-default-backward-token))
@@ -1051,7 +1067,9 @@ buffer."
        ;; have discriminants. FIXME: they can have aspect specs.
        (let ((token (progn
 		      (smie-default-backward-token); identifier
-		      (smie-default-backward-token)))) ; "protected", "task", "body", "type", "subtype"
+		      (smie-default-backward-token))))
+	 ;; token "protected", "task", "body", "type", "subtype"
+	 ;; Can't handle parameterless procedure here; need to check for preceding "with"
 	 (cond
 	  ((member token '("protected" "task")) "is-type-block")
 	  ((equal token "body")
@@ -1071,13 +1089,13 @@ buffer."
        (cond
 	((equal token "case") "is-case")
 
-	((member token '("package-plain" "package-generic")) "is-package")
+	((member token '("package-generic" "package-plain" "package-separate")) "is-package")
 
 	((equal token "package-formal") "is"); identifier
 
 	((equal token "procedure-formal") "is"); identifier
 
-	((member token '("procedure" "procedure-overriding"))
+	((member token '("procedure-spec" "procedure-overriding"))
 	 ;;  procedure name is abstract;
 	 ;;  procedure name is null;
 	 ;;  procedure name is declarations begin statements end;
@@ -1266,12 +1284,14 @@ buffer."
     (when forward (smie-default-backward-token))
 
     (or
-     (let ((token (save-excursion (smie-default-backward-token))))
-       (cond
-	((equal token "") "package-plain");; beginning of buffer
-	((equal token "access") "package-access")
-	((equal token "with") "package-formal")
-	))
+     (save-excursion
+       (let ((token (smie-default-backward-token)))
+	 (cond
+	  ((bobp) "package-plain");; beginning of buffer
+	  ((equal token "") "package-separate");; separate (name) package
+	  ((equal token "access") "package-access")
+	  ((equal token "with") "package-formal")
+	  )))
 
      ;; FIXME: this is ok for a library level [generic] package alone
      ;; in a file. But it could be a problem for a nested [generic]
@@ -1373,11 +1393,12 @@ buffer."
       ;;
       ;;    not implemented
       ;;
-  (let ((token (save-excursion
-		 (when (not forward) (smie-default-backward-token))
-		 (smie-default-forward-token))))
+  (save-excursion
+    (when (not forward) (smie-default-backward-token))
+    (let ((token )))
     (cond
-     ((equal token "body") "protected-body")
+     ((equal (save-excursion (smie-default-backward-token)) "") "protected-separate");; or bob, sigh.
+     ((equal (save-excursion (smie-default-forward-token)) "body") "protected-body")
      (t "protected")); an identifier
     ))
 
@@ -1408,7 +1429,7 @@ buffer."
     ;;
     ;;    1a) function_specification ::= function defining_designator parameter_and_result_profile
     ;;
-    ;;    preceding token: "function", "function-overriding"
+    ;;    preceding refined token: "function-spec", "function-overriding"
     ;;    token: "return-spec"
     ;;
     ;;    1b) formal_concrete_subprogram_declaration ::= with subprogram_specification ...
@@ -1420,7 +1441,7 @@ buffer."
     ;;
     ;;    function identifier (...) return [access] name is
     ;;
-    ;;    preceding token: "function", "function-overriding"
+    ;;    preceding refined token: "function-spec", "function-overriding"
     ;;    token: "return-spec"
     ;;
     ;; 3) a return statement:
@@ -1444,7 +1465,7 @@ buffer."
     ;;
     ;;    type name is access [protected] function identifier (...) return [access] name;
     ;;
-    ;;    preceding token: "function"  _not_ overriding or generic
+    ;;    preceding refined token: "function-spec"  _not_ overriding or generic
     ;;    token: "return-spec"
     ;;
     ;; So we have to look both forward and backward to resolve this.
@@ -1458,7 +1479,7 @@ buffer."
      ;;
      (let ((token (save-excursion (ada-indent-backward-name))))
        (cond
-	((member token '("function" "function-overriding"))
+	((member token '("function-spec" "function-overriding"))
 	 "return-spec"); 1a, 2, 5
 
 	((equal token "function-formal")
@@ -1491,6 +1512,15 @@ buffer."
        (t "select-open"))
   )))
 
+(defun ada-indent-refine-separate (token forward)
+  (let ((token (save-excursion
+		 (when (not forward) (smie-default-forward-token))
+		 (smie-default-forward-token))))
+
+    (if (equal token ";")
+	"separate-stub"
+      "separate-unit")))
+
 (defun ada-indent-refine-subprogram (token forward)
   (save-excursion
     (when forward (smie-default-backward-token))
@@ -1499,15 +1529,19 @@ buffer."
       (cond
        ((equal prev-token "with")	(concat token "-formal"))
        ((equal prev-token "overriding") (concat token "-overriding"))
-       (t token)
+       ((and
+	 (not (bobp))
+	 (equal prev-token ""))
+	(concat token "-separate")); separate (name) function
+       (t (concat token "-spec"))
   ))))
 
 (defun ada-indent-refine-task (token forward)
-  (let ((token (save-excursion
-		 (when (not forward) (smie-default-backward-token))
-		 (smie-default-forward-token))))
+  (save-excursion
+    (when (not forward) (smie-default-backward-token))
     (cond
-     ((equal token "body") "task-body")
+     ((equal (save-excursion (smie-default-backward-token)) "") "task-separate"); separate (name) task body
+     ((equal (save-excursion (smie-default-forward-token)) "body") "task-body")
      (t "task")); an identifier
     ))
 
@@ -1740,6 +1774,7 @@ buffer."
     ("record" 	 ada-indent-refine-record)
     ("return" 	 ada-indent-refine-return)
     ("select" 	 ada-indent-refine-select)
+    ("separate"  ada-indent-refine-separate)
     ("task" 	 ada-indent-refine-task)
     ("when" 	 ada-indent-refine-when)
     ("with" 	 ada-indent-refine-with)
@@ -2070,7 +2105,7 @@ point must be at the start of CHILD."
 
       ;; handle access-to-subprogram and record types.
       (while (or (equal (nth 2 parent) "record-open")
-		 (and (member (nth 2 parent) `("procedure" "function")) ; _not -overriding -generic
+		 (and (member (nth 2 parent) `("procedure-spec" "function-spec")) ; _not -overriding -generic
 		      (member (save-excursion (smie-default-backward-token)) '("access" "protected"))))
 	(setq parent (ada-indent-goto-parent parent 2)))
 
@@ -2164,6 +2199,10 @@ the start of CHILD, which must be a keyword."
        (save-excursion
 	 (smie-default-backward-token)
 	 (cons 'column (current-column))))
+
+      ((member arg '("function-separate" "package-separate" "procedure-separate" "protected-separate"
+		     "task-separate"))
+       (ada-indent-rule-statement 0 arg))
 
       ((equal arg "when-case")
        ;; We want to indent relative to the statement start; "case",

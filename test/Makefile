@@ -32,7 +32,7 @@ one : options.ads.diff
 TEST_FILES := $(shell ls *.ad?)
 
 # delete currently broken tests
-#TEST_FILES := $(filter-out bug_5746.adb, $(TEST_FILES))
+TEST_FILES := $(filter-out adacore_d304_005_2.adb, $(TEST_FILES)) # ada-indent-label applies to block labels
 
 COMPILE_FILES := $(TEST_FILES)
 

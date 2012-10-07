@@ -10,7 +10,6 @@ General notes on porting Emacs Ada mode indentation engine to smie
        (lambda ()
        (define-key ada-mode-map "\C-w" 'capitalize-word)
        (define-key ada-mode-map "\M-o" 'ada-indent-show-parent)
-       (define-key ada-mode-map "\M-o" 'ada-indent-show-parent)
        (define-key ada-mode-map "\M-9" 'ada-indent-show-child)
        (define-key ada-mode-map "\M-p" 'ada-indent-show-statement-start)
        (define-key ada-mode-map "\M-i" 'ada-indent-show-keyword-backward)
@@ -38,8 +37,16 @@ time on long code
     get stats on GDS file sizes
 
 test/Makefile
+    test/ada_mode-nominal.adb
+forgot "while" loop
+
     test/ada-test.adb.diff
-split out into separate files
+failing on 'begin'; unrefined
+    because multiple compilation units in one file
+        add that to parser for refine-begin?
+
+split out into separate files? use gnatchop?
+
 
 use ada-indent-broken for multiple object declarations
 
@@ -128,6 +135,10 @@ specify options in .prj
         debug vs release changes .prj; check options changed, warn?
 
  to do later
+put-text-property sets buffer-modified flag, fails if read-only
+
+ada-which-function calls forward-sexp
+
 fix indent on return
     find a way to automate test of it
 

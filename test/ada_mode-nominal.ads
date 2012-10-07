@@ -384,8 +384,15 @@ package Ada_Mode.Nominal is
      (Param : in Parent_Type_1)
      return Float;
 
-   -- FIXME: nested packages
+   ----------
+   -- nested packages
 
+   package Separate_Package_1 is
+      procedure Separate_Procedure_1;
+      procedure Separate_Procedure_2 (Item : in Integer);
+   end Separate_Package_1;
+
+   -- FIXME: non-separate package
 private
    type Private_Type_1 is abstract tagged limited null record;
    type Private_Type_2 is abstract tagged limited
