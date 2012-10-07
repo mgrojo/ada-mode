@@ -3,6 +3,7 @@
 --  is 0, which means indent on the open parenthesis for the function, or
 --  use ada-broken-indent if there is no parenthesis.
 
+--EMACSCMD (setq ada-indent-return 0)
 package Function1 is
 
    ------------------------------------------------------

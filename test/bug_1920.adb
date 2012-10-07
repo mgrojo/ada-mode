@@ -6,10 +6,10 @@ procedure Bug_1920 is
 begin
    if True then
       null;
-  Label1:
+   Label1:
       begin
          null;
-     <<Label2>>   -- ada-label-indent was ignored here
+      <<Label2>>   -- ada-label-indent was ignored here
          if False then
             null;    -- then-part was not correctly indented
          else
@@ -18,4 +18,3 @@ begin
       end Label1;
    end if;
 end Bug_1920;
-

@@ -277,6 +277,7 @@ An example is:
        (formal_subprogram_declaration)
        (generic_package_declaration)
        (package_body)
+       (package_renaming_declaration)
        (package_specification)
        (protected_body)
        (subprogram_declaration)
@@ -296,6 +297,7 @@ An example is:
 
       (exception_declaration
        (identifer ":-object" "exception-declare"))
+      ;; covers exception renaming; "renames" is an identifier
 
       (exception_handler
        ("when-case" object_declaration "=>-when" statements)
@@ -370,11 +372,16 @@ An example is:
        )
 
       (object_declaration
-       (identifier ":-object" name); same as ":-object" in extended return
+       (identifier ":-object" name); same as ":-object" in extended return.
+       ;; Covers object_renaming_declaration; "renames" is an identifier
        (identifier ":-object" name ":=" expression); same as ":-object" in extended return
        (identifier ":-object" name "of-object" name); anonymous array
        (identifier ":-object" name "of-object" name ":=" expression)
        )
+
+      (package_renaming_declaration
+       ("package-renames"))
+      ;; covers generic_renaming_declaration
 
       (package_specification
        ("package-plain" name "is-package" declarations "private-body" declarations "end-block")
@@ -467,7 +474,7 @@ An example is:
        ("function-spec" name "return-spec" name)
        ;; trailing name makes "return-spec" have the same binding as
        ;; in subprogram_body; that avoids recursion between refine-is
-       ;; and refine-return
+       ;; and refine-return. Covers subprogram_renaming_declaration function
 
        ("overriding" "function-overriding" name "return-spec" name)
        ("overriding" "procedure-overriding" name)
@@ -479,6 +486,7 @@ An example is:
 
        ("procedure-spec" name); same as 'procedure name is-subprogram_body'
        ;; We keep this, because it is too jarring to not find it here :).
+       ;; Covers subprogram_renaming_declaration procedure.
        ;;
        ;; We leave out ("procedure" name "is" "null") here; we
        ;; are treating a couple of occurences of "is", and most
@@ -707,18 +715,20 @@ that are not allowed by Ada, but we don't care."
 	(forward-sexp)
     (backward-sexp))))
 
-(defun ada-indent-next-name (next-token forward)
+(defun ada-indent-next-name (next-token forward target)
   "Skip over a name using function NEXT-TOKEN. Here a 'name'
 consists of identifiers, dots, anything that looks like a
 parameter list (could be an array index), and identifiers.
 Return the token that isn't part of the name (which may be found
-before any name is seen).  Return empty string if encounter
-beginning of buffer."
+before any name is seen).  If TARGET is non-nil, stop if it is
+found, and return it. Return empty string if encounter beginning
+or end of buffer."
   (let (token)
     (catch 'quit
       (while
 	  (progn
 	    (setq token (funcall next-token))
+	    (if (equal target token) (throw 'quit target))
 	    (if (equal "" token)
 		;; We hit a paren or bob FIXME: or string, char literal
 		(progn
@@ -736,11 +746,11 @@ beginning of buffer."
       )
     token))
 
-(defun ada-indent-backward-name ()
-  (ada-indent-next-name 'ada-indent-backward-token nil))
+(defun ada-indent-backward-name (&optional target)
+  (ada-indent-next-name 'ada-indent-backward-token nil target))
 
-;; (defun ada-indent-forward-name ()
-;;   (ada-indent-next-name 'ada-indent-forward-token))
+;; (defun ada-indent-forward-name (&optional target)
+;;    (ada-indent-next-name 'ada-indent-forward-token t target))
 
 (defun ada-indent-next-token-unrefined (next-token forward)
   "Move to the next token using function NEXT-TOKEN. Skips parentheses.
@@ -762,6 +772,14 @@ buffer."
 
 (defun ada-indent-backward-token-unrefined ()
   (ada-indent-next-token-unrefined 'smie-default-backward-token nil))
+
+(defun ada-indent-forward-tokens-unrefined (&rest targets)
+  "Move forward over unrefined tokens. Stop when found token is
+an element of TARGETS, return that token."
+  (let (result)
+    (while (not (member (setq result (ada-indent-next-token-unrefined 'smie-default-forward-token t))
+			targets)))
+    result))
 
 (defconst ada-indent-type-modifiers '("abstract" "tagged" "limited"))
 
@@ -1303,14 +1321,21 @@ buffer."
     (when forward (smie-default-backward-token))
 
     (or
-     (save-excursion
-       (let ((token (smie-default-backward-token)))
-	 (cond
-	  ((bobp) "package-plain");; beginning of buffer
-	  ((equal token "") "package-separate");; separate (name) package
-	  ((equal token "access") "package-access")
-	  ((equal token "with") "package-formal")
-	  )))
+     (let ((token (save-excursion (smie-default-backward-token))))
+       (cond
+	((and
+	  (equal token "")
+	  (progn (forward-comment (- (point)))
+		 (bobp))) "package-plain");; beginning of buffer
+	((equal token "") "package-separate");; separate (name) package
+	((equal token "access") "package-access")
+	((equal token "with") "package-formal")
+	))
+
+     (if (equal "renames" (save-excursion
+			    (smie-default-forward-token); package
+			    (ada-indent-forward-tokens-unrefined "body" "is" "renames")))
+	 "package-renames")
 
      ;; FIXME: this is ok for a library level [generic] package alone
      ;; in a file. But it could be a problem for a nested [generic]
@@ -1486,6 +1511,8 @@ buffer."
     ;;
     ;;    preceding refined token: "function-spec"  _not_ overriding or generic
     ;;    token: "return-spec"
+    ;;
+    ;; 6) subprogram_renaming_declaration
     ;;
     ;; So we have to look both forward and backward to resolve this.
     (or
@@ -2330,7 +2357,9 @@ the start of CHILD, which must be a keyword."
 	     (setq parent (ada-indent-goto-parent arg 2))
 
 	     (goto-char (nth 1 parent))
-	     (if (equal (nth 2 parent) ";")
+	     (if (or
+		  (bobp)
+		  (equal (nth 2 parent) ";"))
 		 (setq offset 0)
 	       (setq offset ada-indent)))
 

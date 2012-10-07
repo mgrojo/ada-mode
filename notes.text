@@ -37,8 +37,10 @@ time on long code
     get stats on GDS file sizes
 
 test/Makefile
-    test/ada_mode-nested_packages.adb
-renames
+    test/g-comlin.adb
+"and then"
+
+hangs while typing 'package' at end of buffer
 
 use ada-indent-broken for multiple object declarations
 

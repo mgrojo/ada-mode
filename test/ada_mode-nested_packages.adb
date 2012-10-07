@@ -1,11 +1,15 @@
 -- This file tests the indentation of the 'begin' keyword, especially
 -- when in subblocks.
 --
--- Also paren character literals, 'for' attribute clause.
+-- Also other stuff
 
 with Ada.Directories;
 with Ada.Text_IO;
+with Ada_Mode.Nominal;
 package body Ada_Mode.Nested_Packages is
+
+   function "*" (Left, Right : in Ada_Mode.Nominal.Floating_Point) return Ada_Mode.Nominal.Floating_Point
+     renames Ada_Mode.Nominal."*";
 
    --  First case: begin block in a loop statement. [6618-008]
    package body Sequencer is
@@ -84,6 +88,7 @@ package body Ada_Mode.Nested_Packages is
       procedure Test_Proc is
          Local_File : Ada.Text_IO.File_Type;
          package Io renames Ada.Text_IO;
+         A_File : Io.File_Type renames Local_File;
       begin
          --  Indentation is broken by this if statement
          if Ada.Text_Io.Is_Open (Local_File) then

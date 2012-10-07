@@ -1,5 +1,5 @@
---  Similar to function1.adb, except with a different value of
---  ada-indent-retun.
+--  Similar to ada_mode-options-indent_return_1.ads, except with a
+--  different value of ada-indent-return and ada-indent-renames.
 
 --EMACSCMD: (setq ada-indent-return 5)
 --  > 0 indents relative to the "function" keyword

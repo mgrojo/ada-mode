@@ -1,6 +1,6 @@
 --  Set the cursor on P_Bug
 --  Call \M-x ff-find-other-file
---  We expect to go on P_Bug in truc.adb, but the cursor is put on P_Bug_One
+--  We expect to be on P_Bug in find_file.adb, but the cursor is put on P_Bug_One
 --  fixed in: ada-mode 3.1
 
 --EMACSCMD: (setq ada-indent 2)
@@ -19,6 +19,3 @@ package Find_File is
   -- kommentr ein kommentr ein kommentr ein kommentr ein kommentr ein
   -- kommentr ein kommentr ein kommentr ein kommentr ein Kommentr
 end Find_File;
-
-
-

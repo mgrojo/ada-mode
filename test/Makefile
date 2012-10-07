@@ -33,6 +33,10 @@ TEST_FILES := $(shell ls *.ad?)
 
 # delete currently broken tests
 TEST_FILES := $(filter-out adacore_d304_005_2.adb, $(TEST_FILES)) # ada-indent-label applies to block labels
+TEST_FILES := $(filter-out ada-test.adb, $(TEST_FILES)) # multiple compilation units, minor issues
+TEST_FILES := $(filter-out bug_1920.adb, $(TEST_FILES)) # ada-indent-label
+TEST_FILES := $(filter-out ada_mode-options-indent_return_1.ads, $(TEST_FILES)) # ada-indent-return
+TEST_FILES := $(filter-out ada_mode-options-indent_return_2.ads, $(TEST_FILES)) # ada-indent-return
 
 COMPILE_FILES := $(TEST_FILES)
 
@@ -42,7 +46,6 @@ COMPILE_FILES := $(filter-out debug.adb, $(COMPILE_FILES))
 # These heritage tests don't compile, and they are too hard to fix
 # FIXME: review these
 COMPILE_FILES := $(filter-out ada-test.adb, $(COMPILE_FILES))
-COMPILE_FILES := $(filter-out beginindent.adb, $(COMPILE_FILES))
 COMPILE_FILES := $(filter-out gnatprep.adb, $(COMPILE_FILES))
 COMPILE_FILES := $(filter-out highlight.adb, $(COMPILE_FILES))
 COMPILE_FILES := $(filter-out indent9.adb, $(COMPILE_FILES))

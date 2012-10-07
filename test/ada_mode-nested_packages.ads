@@ -1,5 +1,8 @@
 package Ada_Mode.Nested_Packages is
 
+   Local_Exception_1 : exception renames
+     Global_Exception_1;
+
    package Sequencer is
       function Create (Model   : in Integer;
                        Context : in String) return String;

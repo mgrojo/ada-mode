@@ -57,4 +57,19 @@ generic
    -- FIXME: add A_Package_n, indent at each token
 
 package Ada_Mode.Generic_Package is
+
+   --  FIXME: these require full forward parse. persuing semantic some more.
+   --  generic
+   --     type Param_Type is <>;
+   --  procedure Generic_Procedure (Param_1 : in Param_Type);
+
+   --  generic procedure Generic_Procedure_Rename renames Generic_Procedure;
+
+   --  generic
+   --     type Param_Type is range <>;
+   --     type Result_Type is range <>;
+   --  function Generic_Function (Param_1 : in Param_Type) return Result_Type;
+
+   --  generic function Generic_Function_Rename renames Generic_Function;
+
 end Ada_Mode.Generic_Package;
