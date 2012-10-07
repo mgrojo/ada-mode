@@ -68,26 +68,11 @@ package Test is
    -- this line. Subsequent lines will show the same problem.
    Unused:    constant Queue_ID := 0;
 end Test;
--------------------
-procedure Test is
-begin
-   Main_Unit              := False;
-   begin
-  Make_Loop : while not Empty_Q loop
-         Need_To_Compile  := False;
-         null;
-         null;
-      end loop;
-      null;
-      null;
-   end;
-end Test;
-
------------------------
 
 function Foo return Token is
 begin
    case Bar is
+   -- character literal paren confused parser
       when '(' =>
          return Lparen;
       when others =>

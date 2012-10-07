@@ -121,6 +121,11 @@ package body Ada_Mode.Nominal is
                Loop_4 : while not (Local_1 > 0) loop
                   Local_1 := Local_1 + 2;
                end loop Loop_4;
+
+               Loop_5 :
+               while not (Local_1 > 0) loop
+                  Local_1 := Local_1 + 2;
+               end loop Loop_5;
          end case;
 
          -- A comment before 'end'

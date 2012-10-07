@@ -347,9 +347,11 @@ An example is:
        (interface_list "and-interface_list" name))
 
       (iteration_scheme
-       ("for" identifier "in" name))
+       ("for" identifier "in" name)
       ;; "reverse" is an identifer
       ;; FIXME: container iterators allow ":" here (not tested yet)
+
+       ("while" expression))
 
       (loop_statement
        (identifier ":-label" iteration_scheme "loop-body" statements "end-loop" "loop-end")
@@ -368,7 +370,11 @@ An example is:
        )
 
       (object_declaration
-       (identifier ":-object" name)); same as ":-object" in extended return
+       (identifier ":-object" name); same as ":-object" in extended return
+       (identifier ":-object" name ":=" expression); same as ":-object" in extended return
+       (identifier ":-object" name "of-object" name); anonymous array
+       (identifier ":-object" name "of-object" name ":=" expression)
+       )
 
       (package_specification
        ("package-plain" name "is-package" declarations "private-body" declarations "end-block")
@@ -502,7 +508,7 @@ An example is:
        ;; simplifies refine-is.
 
        ;; array_type_definition; we leave "array" as an identifier
-       ("type" identifier "is-type" expression "of")
+       ("type" identifier "is-type" name "of-type" name); same as anonymous array
 
        ;; derived_type_declaration
        ("type" identifier "is-type" "new" name); same as below
@@ -765,9 +771,9 @@ buffer."
     (while (member (setq result (smie-default-forward-token)) ada-indent-type-modifiers))
     result))
 
-(defun ada-indent-refine-error (msg)
+(defun ada-indent-refine-error (token)
   (error
-   (concat msg " %d : "
+   (concat "unrecognized '" token "' %d : "
 	   (buffer-substring-no-properties
 	    (progn (beginning-of-line) (point))
 	    (progn (end-of-line) (point))))
@@ -963,7 +969,8 @@ buffer."
 	       )))
 	  (unless token
 	    (goto-char ada-indent-refine-forward-to)
-	    (ada-indent-refine-error "unrefined 'begin'"))))
+	    (ada-indent-refine-error "begin"))
+	  token))
       )))
 
 (defun ada-indent-refine-case (token forward)
@@ -1012,7 +1019,7 @@ buffer."
     (cond
      ((equal token ":") "exception-declare")
      ((equal token ";") "exception-block")
-     (t (ada-indent-refine-error "unrecognized 'exception'"))
+     (t (ada-indent-refine-error "exception"))
      )))
 
 (defun ada-indent-refine-exit (token forward)
@@ -1189,7 +1196,7 @@ buffer."
        ;; cases. FIXME: use ada-indent-refine-all
        (if (equal "entry" (nth 2 (smie-backward-sexp "is-entry_body"))) "is-entry_body"))
 
-     (ada-indent-refine-error "unrecognized 'is'")
+     (ada-indent-refine-error "is")
      ))
   )
 
@@ -1270,6 +1277,18 @@ buffer."
     (if (equal "is" (save-excursion (smie-default-backward-token)))
 	"mod-type"
       "mod"))); operator identifier
+
+(defun ada-indent-refine-of (token forward)
+  (save-excursion
+    (when forward (smie-default-backward-token))
+
+    (let ((token (save-excursion
+		   (ada-indent-backward-name); is-type array, :-object array
+		 )))
+      (cond
+       ((equal "is-type" token) "of-type")
+       (t "of-object"))
+      )))
 
 (defun ada-indent-refine-or (token forward)
   (let ((token (save-excursion
@@ -1766,6 +1785,7 @@ buffer."
     ("is" 	 ada-indent-refine-is)
     ("loop" 	 ada-indent-refine-loop)
     ("mod" 	 ada-indent-refine-mod)
+    ("of" 	 ada-indent-refine-of)
     ("or" 	 ada-indent-refine-or)
     ("package" 	 ada-indent-refine-package)
     ("private" 	 ada-indent-refine-private)

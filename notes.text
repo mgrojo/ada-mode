@@ -37,16 +37,8 @@ time on long code
     get stats on GDS file sizes
 
 test/Makefile
-    test/ada_mode-nominal.adb
-forgot "while" loop
-
-    test/ada-test.adb.diff
-failing on 'begin'; unrefined
-    because multiple compilation units in one file
-        add that to parser for refine-begin?
-
-split out into separate files? use gnatchop?
-
+    test/ada_mode-nested_packages.adb
+renames
 
 use ada-indent-broken for multiple object declarations
 
