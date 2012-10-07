@@ -56,25 +56,50 @@
 (defcustom ada-indent 3
   "*Size of Ada default indentation, when no other indentation is used.
 
-An example is :
+Example :
 procedure Foo is
 begin
 >>>null;"
   :type 'integer  :group 'ada-indentation)
 
-(defcustom ada-indent-broken 2
-  "*Number of columns to indent the continuation of a broken line.
+(defvar ada-broken-indent nil)
+(make-obsolete-variable
+ 'ada-broken-indent
+ 'ada-indent-broken
+ "Emacs 24.4, Ada mode 5.0"
+ 'set)
 
-An example is :
+(defcustom ada-indent-broken (or ada-broken-indent 2)
+  "*Indentation for the continuation of a broken line.
+
+Example :
    My_Var : My_Type :=
    >>(Field1 => Value);"
   :type 'integer :group 'ada-indentation)
 
-(defalias 'ada-broken-indent 'ada-indent-broken)
+
+(defvar ada-label-indent nil)
 (make-obsolete-variable
- 'ada-broken-indent
- 'ada-indent-broken
- "Emacs 24.4, Ada mode 5.0")
+ 'ada-label-indent
+ 'ada-indent-label
+ "Emacs 24.4, Ada mode 5.0"
+ 'set)
+
+(defcustom ada-indent-label (or ada-label-indent -3)
+  ;; Ada mode 4.01 and earlier default this to -4. But that is
+  ;; incompatible with the default gnat indentation style check, which
+  ;; wants all indentations to be a multiple of 3 (with some
+  ;; exceptions). So we default this to -3.
+  "*Indentation for a label, relative to the item it labels.
+This is also used for <<..>> labels.
+
+Example :
+   Label_1 :
+   <<<<declare
+
+   <<Label_2>>
+   <<<<Foo := 0;"
+  :type 'integer :group 'ada-indentation)
 
 (defcustom ada-indent-record-rel-type 3
   "*Indentation for 'record' relative to 'type' or 'use'.
@@ -84,19 +109,20 @@ An example is:
    >>>record"
   :type 'integer :group 'ada-indent)
 
-(defcustom ada-indent-when 3
+(defvar ada-when-indent nil)
+(make-obsolete-variable
+ 'ada-when-indent
+ 'ada-indent-when
+ "Emacs 24.4, Ada mode 5.0"
+ 'set)
+
+(defcustom ada-indent-when (or ada-when-indent 3)
   "*Indentation for 'when' relative to 'exception' or 'case'.
 
 An example is:
    case A is
    >>>when B =>"
   :type 'integer :group 'ada-indent)
-
-(defalias 'ada-when-indent 'ada-indent-when)
-(make-obsolete-variable
- 'ada-when-indent
- 'ada-indent-when
- "Emacs 24.4, Ada mode 5.0")
 
 ;;; grammar
 
@@ -401,6 +427,9 @@ An example is:
        ("if-open" expression "then" statements
 	"elsif" expression "then" statements
 	"else" statements "end-if" "if-end")
+
+       ;; label_statement
+       ("<<" identifier ">>")
 
        (loop_statement)
        ("return-stmt")
@@ -708,13 +737,13 @@ buffer."
 	(progn
 	  (setq token (funcall next-token))
 	  (if (equal "" token)
-	      ;; We hit a parenthesis or bob
+	      ;; We hit a parenthesis or bob FIXME: or string
 	      (progn
 		(when (bobp) (throw 'quit nil))
 		(if forward
 		    (when (eq (char-after) ?\)) (throw 'quit ")"))
 		  (when (eq (char-before) ?\() (throw 'quit "(")))
-		(ada-indent-skip-param_list next-token forward)))))
+		(ada-indent-skip-param_list forward)))))
     token))
 
 (defun ada-indent-backward-token-unrefined ()
@@ -1940,9 +1969,9 @@ point must be at the start of CHILD."
   ;;
   ;;    A := B + C * D;
   ;;
-  ;; because we set all operators to the same precedence
-  ;; level. However, to find the start of A (which could be a complex
-  ;; name), we must use ada-indent-backward-name.
+  ;; because operators are just identifiers. However, to find the
+  ;; start of A (which could be a complex name), we must use
+  ;; ada-indent-backward-name.
   ;;
   ;; Object declarations can declare multiple objects:
   ;;
@@ -1999,7 +2028,7 @@ point must be at the start of CHILD."
       (if (and pos (not (= pos (point)))) (progn (goto-char pos) (throw 'done nil))); we didn't find a parent
 
       (setq parent-count
-	    (if (member child '("." "(" "record-open"))
+	    (if (member child '("." "(" "record-open" "<<"))
 		2
 	      1))
       ;; If child is "." we are in the middle of an Ada name; the
@@ -2009,8 +2038,8 @@ point must be at the start of CHILD."
       ;; produces no motion; that causes the second run to FIXME: how
       ;; does this work?
       ;;
-      ;; If child is record, that is it's own parent, and we want the
-      ;; next one up.
+      ;; If child is record, that is its own parent, and we want the
+      ;; next one up. Same for "<<".
 
       (setq parent (ada-indent-goto-parent child parent-count))
 
@@ -2115,14 +2144,17 @@ the start of CHILD, which must be a keyword."
 	 (backward-sexp)
 	 (cons 'column (current-column))))
 
-      ((equal token "end-record")
+      ((equal arg "<<")
+       (ada-indent-rule-statement ada-indent-label arg))
+
+      ((equal arg "end-record")
        ;; goto-parent leaves point on "record-open".
        (save-excursion
 	 (ada-indent-goto-parent arg 1)
 	 (back-to-indentation)
 	 (cons 'column (current-column))))
 
-      ((equal token "record-open")
+      ((equal arg "record-open")
        ;; This indents the first line. The components are indented
        ;; relative to the line containing "record-open"; see "record-open" in
        ;; :after.
@@ -2296,6 +2328,13 @@ the start of CHILD, which must be a keyword."
 
       ((member arg '("," ":-label" ";"))
        (ada-indent-rule-statement 0 arg))
+
+      ((equal arg ">>")
+       ;; indenting after a statement label
+       (save-excursion
+	 (back-to-indentation)
+	 (cons 'column (- (current-column) ada-indent-label))))
+
 
       ((equal arg "record-end")
        ;; We are indenting the aspect specification for the record.

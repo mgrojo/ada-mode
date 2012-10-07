@@ -82,6 +82,7 @@ package body Ada_Mode.Nominal is
                when C =>
                   D := B;
                   D := D + B * B;
+               <<Label_1>>
                   D := D - Float (F1);
             end case;
          end return;
@@ -266,7 +267,7 @@ package body Ada_Mode.Nominal is
 
    function Function_2a (Param : in Parent_Type_1) return Float
    is begin
-      Block_1:
+      Block_1: -- FIXME: not using ada-indent-label; should it?
       declare -- label, no statements between begin, label
          Local_1 : Float := 1.0e-36;
          Local_2 : Integer := 2;

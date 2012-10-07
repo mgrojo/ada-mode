@@ -2,7 +2,7 @@
 -- affect the whole file.
 --
 --EMACSCMD: (setq ada-indent-record-rel-type 0)
-package Options is
+package Ada_Mode.Options is
    pragma Elaborate_Body (Options);
 
    type Private_Type_1 is tagged
@@ -15,4 +15,4 @@ package Options is
       Component_2 : Integer;
    end record;
 
-end Options;
+end Ada_Mode.Options;

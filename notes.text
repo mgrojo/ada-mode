@@ -30,9 +30,16 @@ ada-indent.el
 (sal-edit-library "smie")
 
  current
+try semantic again; be convinced it's really not better.
+    ../org.emacs.ada-mode.semantic/notes.text
+    waiting on help getting bovinate to do something
+
+time on long code
+    get stats on GDS file sizes
+
 test/Makefile
-    test/adacore_d304_005_2.adb.diff
-ada-label-indent
+    test/ada-test.adb.diff
+split out into separate files
 
 use ada-indent-broken for multiple object declarations
 

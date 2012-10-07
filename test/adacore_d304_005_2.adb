@@ -1,4 +1,4 @@
---  -*- ada-label-indent: -4 -*-
+--  -*- ada-indent-label: -4 -*-
 
 procedure Adacore_D304_005_2 is
    procedure Io_Page_Menu_Check is
