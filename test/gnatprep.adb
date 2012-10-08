@@ -32,3 +32,15 @@ begin
    end;
 
 end Gnatprep;
+
+-- Tell the indentation engine to look for gnatprep keywords, then
+-- check that it succeeded:
+--
+-- Local Variables:
+-- eval: (require 'ada-gnat)
+-- eval: (add-to-list 'smie-indent-functions 'ada-indent-gnatprep)
+-- End:
+--EMACSCMD: smie-indent-functions
+--EMACSRESULT: (ada-indent-gnatprep smie-indent-bob ada-indent-comment ada-indent-record ada-indent-before-keyword ada-indent-after-keyword ada-indent-default)
+
+-- end of file

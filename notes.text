@@ -32,44 +32,43 @@ time on long code
     get stats on GDS file sizes
 
 test/Makefile
-    test/gnatprep.adb
-#if identifier
-#elsif identifier
-#else
-#end if;
-    add to grammar, indent at 0 always
-    no semicolon causes problems?
+make rest of test files work
+    test/indent.adb
+named association aggregate
 
 hangs while typing 'package' at end of buffer
 
 use ada-indent-broken for multiple object declarations
 
-make rest of files work
-    instead of full parse forward, try harder to write a
-    parse-backward; you do have to recurse on "begin", but you can
-    stop at the first "is". See if that works for the other cases.
+instead of full parse forward, try harder to write a
+parse-backward; you do have to recurse on "begin", but you can
+stop at the first "is". See if that works for the other cases.
+    use the same algorithm, just in reverse:
+        a semicolon means skip an sexp (that's why it's on the stack)
+        a non-pre-begin means skip that token
+        a pre-begin means terminate.
 
-    rassoc ada-indent-grammar might not be unique
+rassoc ada-indent-grammar might not be unique
 
-    add missing features to ada_mode-*
+add missing features to ada_mode-*
 
 
-    aspect_clause
-        record - done
-    remaining statements
-    remaining expressions (if expression, that started this whole thing :)
-    "and then" "or else"
-    pre/post conditions
+aspect_clause
+    record - done
+remaining statements?
+quantified_, if_, case_expressions
+remaining expressions?
+pre/post conditions
 
-    subprogram call with indented param list
-    nested package
-    nested generic subprogram, package
-    library generic subprogram
-    attribute clauses
-        record layout
-    named associations
+subprogram call with indented param list
+nested package
+nested generic subprogram, package
+library generic subprogram
+attribute clauses
+    record layout
+named associations
 
-    look for remaining non-terminals in Annex P
+look for remaining non-terminals in Annex P
 
 then ask for input/testing
     run on my projects

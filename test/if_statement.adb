@@ -36,7 +36,7 @@ begin
                 and then D)  --  Indented on 'if', instead of 'and then'
      or else ((B
                  and then C)
-              or else
+                or else
                 (D
                    and then E))
      or else G
@@ -68,7 +68,7 @@ begin
                 and then D)  --  Indented on 'if', instead of 'and then'
      or else ((B
                  and then C)
-              or else
+                or else
                 (D
                    and then E))
      or else G
@@ -96,7 +96,7 @@ begin
                    and then D)  --  Indented on 'if', instead of 'and then'
         or else ((B
                     and then C)
-                 or else
+                   or else
                    (D
                       and then E))
         or else G;

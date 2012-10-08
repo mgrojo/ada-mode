@@ -10,10 +10,16 @@
   "Run an ada-mode test on the current buffer."
   (interactive)
   (let (last-result last-cmd)
-    ;; Look for --EMACSCMD: comments in the file to set non-default values
-    ;; for some variables
-    ;; --EMACSRESULT is compared with the result of the previous EMACSCMD,
-    ;; and the test fails if they don't match.
+    ;; Look for --EMACS comments in the file:
+    ;;
+    ;; --EMACSCMD: <form>
+    ;;    Executes the lisp form. This is mostly used to set non-default values
+    ;;    for ada-mode options; it can also be used to test other things.
+    ;;
+    ;; --EMACSRESULT: <form>
+    ;;    <form> is evaluated and compared (using `equal') with the
+    ;;    result of the previous EMACSCMD, and the test fails if they
+    ;;    don't match.
 
     (goto-char (point-min))
     (while (re-search-forward "--EMACS\\(CMD\\|RESULT\\):" nil t)
@@ -67,7 +73,11 @@
   ;; emacs --batch -l runtest.el --eval (run-test "<filename>")
 
   (find-file file-name)
-  (ada-mode)
+  ;; we don't do (ada-mode) here; that should be done by the file name
+  ;; extension, and some file local variables may assume ada-mode is
+  ;; already active, and change things that this would then wipe
+  ;; out. If it's not done by the extension, add a file local variable
+  ;; to set ada-mode.
   (run-test-here)
 
   ;; Write the result file; makefile will diff.
@@ -78,5 +88,5 @@
   )
 ;; Local Variables:
 ;; eval: (add-to-list 'load-path (expand-file-name "../"))
-;; end:
+;; End:
 ;; end of file

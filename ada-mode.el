@@ -1,35 +1,35 @@
 ;;; ada-mode.el --- major-mode for editing Ada sources
-;;;
-;;; FIXME: this is just the start of a major rewrite; just enough to
-;;; test the new smie-based ada-indent.el, and handle gnat compilation
-;;; errors (ie, enough for the basic code development cycle).
-;;;
-;;; Also deleted all Xemacs support, and all pre-Emacs 24.2 support.
-;;;
-;;; should delete font-lock, since it can now use the smie parser, but
-;;; I can't stand reading code without fontlock; later :) Note that
-;;; the current font-lock stuff may actually interfere with the
-;;; parser. Sigh.
-;;;
-;;; So far, I've copied ada-mode 4.01, and deleted everything that has
-;;; to do with indentation or casing. imenu, outline, which-function,
-;;; add-log, format-paramlist, narrow-to-defun also deleted, since
-;;; they might be able to take advantage of the smie parser.
-;;;
-;;; skeleton, templates deleted because it might use semantic
-;;;
-;;; ada-xref deleted because it will become more orthogonal (it relies
-;;; on gnat xref output; it should be easy to use other compiler xref
-;;; output).
-;;;
-;;; Similary ada-prj assumes gnat.
-;;;
-;;; ada-prj-edit deleted because it won't be supported any more
-;;;
-;;; compile, build, debug deleted because I don't use them, and I'm
-;;; not sure if they are gnat-dependent.
+;;
+;; FIXME: this is just the start of a major rewrite; just enough to
+;; test the new smie-based ada-indent.el, and handle gnat compilation
+;; errors (ie, enough for the basic code development cycle).
+;;
+;; Also deleted all Xemacs support, and all pre-Emacs 24.2 support.
+;;
+;; should delete font-lock, since it can now use the smie parser, but
+;; I can't stand reading code without fontlock; later :) Note that
+;; the current font-lock stuff may actually interfere with the
+;; parser. Sigh.
+;;
+;; So far, I've copied ada-mode 4.01, and deleted everything that has
+;; to do with indentation or casing. imenu, outline, which-function,
+;; add-log, format-paramlist, narrow-to-defun also deleted, since
+;; they might be able to take advantage of the smie parser.
+;;
+;; skeleton, templates deleted because it might use semantic
+;;
+;; ada-xref deleted because it will become more orthogonal (it relies
+;; on gnat xref output; it should be easy to use other compiler xref
+;; output).
+;;
+;; Similary ada-prj assumes gnat.
+;;
+;; ada-prj-edit deleted because it won't be supported any more
+;;
+;; compile, build, debug deleted because I don't use them, and I'm
+;; not sure if they are gnat-dependent.
 
-;; Copyright (C) 1994, 1995, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
+;;; Copyright (C) 1994, 1995, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012  Free Software Foundation, Inc.
 
 ;; Author: Rolf Ebert      <ebert@inf.enst.fr>
@@ -737,7 +737,7 @@ If POSTFIX and JUSTIFY are non-nil, `ada-fill-comment-postfix' is appended
 to each line filled and justified.
 The paragraph is indented on the first line."
   (interactive "P")
-
+  ;; FIXME: canonical `fill-paragraph' has gotten better; try it.
   ;; check if inside comment or just in front a comment
   (if (and (not (ada-in-comment-p))
 	   (not (looking-at "[ \t]*--")))
@@ -935,7 +935,7 @@ or the spec otherwise."
   (if ff-function-name
       (progn
 	(goto-char (point-min))
-	;; FIXME: this often goes to the wrong place; at least only goto declaration starts (using syntax)
+	;; FIXME: don't have ada-search-ignore-string-comment anymore; move this to ada-indent?
 	(unless (ada-search-ignore-string-comment
 		 (concat ff-function-name "\\b") nil)
 	  (goto-char (point-min))))))
@@ -948,9 +948,9 @@ Return nil if no body was found."
 
   (unless spec-name (setq spec-name (buffer-file-name)))
 
-  ;; Remove the spec extension. We can not simply remove the file extension,
+  ;; Remove the spec extension. We can not simply remove the file extension, FIXME: why?
   ;; but we need to take into account the specific non-GNAT extensions that the
-  ;; user might have specified.
+  ;; user might have specified. FIXME: move gnat-specific to ada-gnat.
 
   (let ((suffixes ada-spec-suffixes)
 	end)
@@ -980,7 +980,8 @@ Return nil if no body was found."
   ;; be highlighted as a string, but it seems this fear is unfounded.
   ;;
   ;; This sets the properties of the characters, so that ada-in-string-p
-  ;; correctly handles '"' too...
+  ;; correctly handles '"' too. FIXME: don't have ada-in-string-p anymore.
+  ;; FIXME: if we still need this, use syntax-propertize-*
   '(("[^a-zA-Z0-9)]\\('\\)[^\n]\\('\\)" (1 (7 . ?')) (2 (7 . ?')))
     ("^[ \t]*\\(#\\(if\\|else\\|elsif\\|end\\)\\)" (1 (11 . ?\n)))))
 
