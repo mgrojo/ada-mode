@@ -405,11 +405,11 @@ An example is:
        ;; we leave it as an identifier.
        ("select-open" "when-select" expression "=>-when" statements
 	"or-select" "when-select" expression "=>-when" statements
-	"else" statements "end-select" "select-end")
+	"else-other" statements "end-select" "select-end")
 
        ("select-open" statements
 	"or-select" statements
-	"else" statements "end-select" "select-end"))
+	"else-other" statements "end-select" "select-end"))
 
       (statement
        (expression); covers procedure calls
@@ -436,11 +436,16 @@ An example is:
        (exit_statement)
 
        ;; if_statement
-       ("if-open" expression "then" statements "end-if" "if-end")
-       ("if-open" expression "then" statements "else" statements "end-if" "if-end")
-       ("if-open" expression "then" statements
-	"elsif" expression "then" statements
-	"else" statements "end-if" "if-end")
+       ("if-open" expression "then-if" statements "end-if" "if-end")
+       ("if-open" expression "then-if" statements "else-other" statements "end-if" "if-end")
+       ("if-open" expression "then-if" statements
+	"elsif" expression "then-if" statements
+	"else-other" statements "end-if" "if-end")
+       ;; "then" also occurs in "and then" logical operator. We leave
+       ;; that as an identifier, so this is "then-if", even though
+       ;; there is no other "then" in the grammar.  "else" also occurs
+       ;; in "or else" and select statements; "or else" is an
+       ;; identifier. FIXME: if expressions.
 
        ;; label_statement
        ("<<" identifier ">>")
@@ -620,7 +625,7 @@ An example is:
     "declare-open"
     "declare-label"
     "do"
-    "else"
+    "else-other"
     ;; "end-block" is never a block start; treated separately
     "exception-block"
     "generic"
@@ -635,7 +640,7 @@ An example is:
     "private-body"
     "record-open"
     "select-open"
-    "then")
+    "then-if")
   ;; We don't split this into start and end lists, because most are
   ;; both. The keywords that are an end but never a start are in
   ;; ada-indent-block-end-keywords. Being a start but never end is not
@@ -1008,6 +1013,15 @@ an element of TARGETS, return that token."
     (if (equal token ":")
 	"declare-label"
       "declare-open")))
+
+(defun ada-indent-refine-else (token forward)
+  (let ((token (save-excursion
+		 (when forward (smie-default-backward-token))
+		 (smie-default-backward-token))))
+
+    (if (equal token "or")
+	"else"; identifier
+      "else-other")))
 
 (defun ada-indent-refine-end (token forward)
   (save-excursion
@@ -1591,6 +1605,15 @@ an element of TARGETS, return that token."
      (t "task")); an identifier
     ))
 
+(defun ada-indent-refine-then (token forward)
+  (let ((token (save-excursion
+		 (when forward (smie-default-backward-token))
+		 (smie-default-backward-token))))
+
+    (if (equal token "and")
+	"then"; identifier
+      "then-if")))
+
 (defun ada-indent-refine-when (token forward)
   (save-excursion
     (when forward (smie-default-backward-token))
@@ -1804,6 +1827,7 @@ an element of TARGETS, return that token."
     ("case" 	 ada-indent-refine-case)
     ("declare" 	 ada-indent-refine-declare)
     ("end" 	 ada-indent-refine-end)
+    ("else" 	 ada-indent-refine-else)
     ("exception" ada-indent-refine-exception)
     ("exit" 	 ada-indent-refine-exit)
     ("function"  ada-indent-refine-subprogram)
@@ -1823,6 +1847,7 @@ an element of TARGETS, return that token."
     ("select" 	 ada-indent-refine-select)
     ("separate"  ada-indent-refine-separate)
     ("task" 	 ada-indent-refine-task)
+    ("then" 	 ada-indent-refine-then)
     ("when" 	 ada-indent-refine-when)
     ("with" 	 ada-indent-refine-with)
     )
@@ -2079,7 +2104,9 @@ point must be at the start of CHILD."
   ;; containing "(", we want to leave point after the paren, not
   ;; before it. The other lines have no special considerations.
   ;;
-  (let (parent-count parent pos)
+  (let (parent-count
+	(parent nil)
+	pos)
 
     (catch 'done
 
@@ -2089,12 +2116,17 @@ point must be at the start of CHILD."
       ;; (assignent), so we have to use use ada-indent-backward-name
       ;; to find the previous keyword.
       (save-excursion
-	(let ((prev-token (ada-indent-backward-name)))
-	  (if (or
-	       (equal prev-token ";")
-	       (member prev-token ada-indent-block-keywords))
+	(setq parent (ada-indent-backward-name))
+	(if (or
+	     (equal parent ";")
+	     (member parent ada-indent-block-keywords))
+	    (progn
+	      (smie-default-forward-token); ";" or block start
+	      (forward-comment (point-max)); also skips final whitespace
+	      (setq pos (point)))
+	  (if (equal parent ""); "("; this is a function call in an aggregate or param list
 	      (progn
-		(smie-default-forward-token); ";" or block start
+		(setq parent "(")
 		(forward-comment (point-max)); also skips final whitespace
 		(setq pos (point))))))
 
@@ -2107,7 +2139,7 @@ point must be at the start of CHILD."
       ;; indent-after-keyword with point on "begin". backward-name
       ;; finds "is", which is a block keyword. Then we move back to
       ;; "begin" and set pos. No other blocks may be empty.
-      (if (and pos (not (= pos (point)))) (progn (goto-char pos) (throw 'done nil))); we didn't find a parent
+      (if (and pos (not (= pos (point)))) (progn (goto-char pos) (throw 'done parent)))
 
       (setq parent-count
 	    (if (member child '("." "(" "record-open" "<<"))
@@ -2173,7 +2205,7 @@ the start of CHILD, which must be a keyword."
   (save-excursion
     (let ((parent (ada-indent-goto-statement-start child)))
       (cond
-       ((equal parent "(") nil); really indent to the (, not the line it is on
+       ((equal parent "(") nil); indent to the (, not the line it is on
        (t (back-to-indentation)))
       (cons 'column (+ (current-column) offset)))))
 
@@ -2203,8 +2235,7 @@ the start of CHILD, which must be a keyword."
      ;; then indents relative to the previous statement start.
 
      (cond
-      ((or (equal arg "(")
-	   (equal arg "return-spec"))
+      ((equal arg "(")
        ;; parenthesis occur in expressions, and after names, as array
        ;; indices, subprogram parameters, type constraints.
        ;;
@@ -2212,11 +2243,52 @@ the start of CHILD, which must be a keyword."
        ;; handles it specially, returning ("" nil 0). Then
        ;; ada-indent-before-keyword passes "(" here.
        ;;
-       ;; We don't want ada-indent-rule-statement here; if this is the
-       ;; parameter list for an anonymous subprogram in an access
-       ;; type, we want to indent relative to "procedure" or
-       ;; "function", not the type declaration start. Similarly for
-       ;; the "return" in an access to function.
+       ;; 1) A subprogram declaration. Indent relative to "function"
+       ;;    or "procedure", which are both parent and statement
+       ;;    start.
+       ;;
+       ;; 2) The parameter list for an anonymous subprogram in an
+       ;;    access type, we want to indent relative to "procedure" or
+       ;;    "function", which is the parent, not "type", which is the
+       ;;    statement start.
+       ;;
+       ;; 3) A procedure call:
+       ;;
+       ;;    function Function_1 return Integer
+       ;;    is begin
+       ;;       procedure_1
+       ;;          (
+       ;;
+       ;;    we want to indent relative to the procedure name, which
+       ;;    is the start of the current statement, while the parent
+       ;;    is "function".
+       ;;
+       ;; 4) part of an expression. Indent relative to statement start.
+       ;;
+       ;; 5) an accept statement in a select statement
+       ;;
+       ;; 6) a function call in an aggregate or parameter list:
+       ;;
+       ;;       return Float
+       ;;          (Integer'Value
+       ;;             (Local_6));
+       ;;
+       ;;    ada-indent-rule-statement handles both of these
+
+       (save-excursion
+	 (let ((pos (point)))
+	   (if (member (smie-default-backward-token) '("procedure" "function"))
+	       ;; 1
+	       (progn (goto-char pos) (ada-indent-rule-parent ada-indent-broken arg))
+	   (if (member (smie-default-backward-token) '("procedure" "function"))
+	       ;; 2
+	       (progn (goto-char pos) (ada-indent-rule-parent ada-indent-broken arg))
+	     ;; 3, 4, 5
+	     (progn (goto-char pos) (ada-indent-rule-statement ada-indent-broken arg)))))))
+
+      ((equal arg "return-spec")
+       ;; Function declaration, function body, or access-to-function type declaration.
+       ;; Indent relative to "function", which is the parent.
        (ada-indent-rule-parent ada-indent-broken arg))
 
       ((equal arg ")")

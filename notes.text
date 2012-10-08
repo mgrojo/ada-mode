@@ -5,7 +5,6 @@ General notes on porting Emacs Ada mode indentation engine to smie
     (setq debug-on-error t); see errors from smie-indent-line
     (load "test/runtest.el")
     (which-function-mode)
-    (bookmark-load "~/.emacs.d/bookmarks")
     (add-hook 'ada-mode-hook
        (lambda ()
        (define-key ada-mode-map "\C-w" 'capitalize-word)
@@ -18,10 +17,6 @@ General notes on porting Emacs Ada mode indentation engine to smie
 )
 
 (setq ada-indent-debug-refine nil)
-
-(bookmark-save)
-C-x r l show list of bookmarks, jump on return
-C-x r m set bookmark
 
 (edebug-toggle-save-all-windows)
 
@@ -37,14 +32,25 @@ time on long code
     get stats on GDS file sizes
 
 test/Makefile
-    test/g-comlin.adb
-"and then"
+    test/gnatprep.adb
+#if identifier
+#elsif identifier
+#else
+#end if;
+    add to grammar, indent at 0 always
+    no semicolon causes problems?
 
 hangs while typing 'package' at end of buffer
 
 use ada-indent-broken for multiple object declarations
 
 make rest of files work
+    instead of full parse forward, try harder to write a
+    parse-backward; you do have to recurse on "begin", but you can
+    stop at the first "is". See if that works for the other cases.
+
+    rassoc ada-indent-grammar might not be unique
+
     add missing features to ada_mode-*
 
 

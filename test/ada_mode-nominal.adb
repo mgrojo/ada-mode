@@ -253,7 +253,8 @@ package body Ada_Mode.Nominal is
       -- Comment after indented line
       Item : Parent_Type_1;
    begin
-      Procedure_1a (Item);
+      Procedure_1a
+        (Item);
       declare -- no label, one statement between begin, declare
       begin
          return

@@ -228,10 +228,13 @@ package Ada_Mode.Nominal is
 
       function F1 return Integer;
       function F2 (Param_1 : Discrete_Type_1; B : Float) return Float;
-      entry E1 (X : Integer);
+      entry E1
+        (X : Integer);
       entry E2 (X : Integer);
       procedure P1;
-      procedure P2 (A : Float; B : Float);
+      procedure P2
+        (A : Float;
+         B : Float);
 
       -- This is a comment just before 'private'; broken versions of the
       -- indentation engine aligned this with 'private'.
