@@ -3,6 +3,16 @@
 --  We also test other usage of the '#' sign, especially in
 --  based numbers or in strings.
 
+-- We can't get file local variables to set smie-indent-functions properly
+-- when this is run as a test, so we do that here. File local variables does work in normal editing.
+--
+--EMACSCMD: (add-to-list 'smie-indent-functions 'ada-indent-gnatprep)
+--
+-- check that it succeeded:
+--EMACSRESULT:(ada-indent-gnatprep smie-indent-bob ada-indent-comment ada-indent-record ada-indent-before-keyword ada-indent-after-keyword ada-indent-default)
+--
+--EMACSCMD: (require 'ada-gnat)
+
 procedure Gnatprep is
 
 begin
@@ -33,14 +43,12 @@ begin
 
 end Gnatprep;
 
--- Tell the indentation engine to look for gnatprep keywords, then
--- check that it succeeded:
+-- Tell the indentation engine to look for gnatprep keywords (ada-gnat
+-- defines ada-indent-gnatprep):
 --
 -- Local Variables:
 -- eval: (require 'ada-gnat)
 -- eval: (add-to-list 'smie-indent-functions 'ada-indent-gnatprep)
 -- End:
---EMACSCMD: smie-indent-functions
---EMACSRESULT: (ada-indent-gnatprep smie-indent-bob ada-indent-comment ada-indent-record ada-indent-before-keyword ada-indent-after-keyword ada-indent-default)
 
 -- end of file

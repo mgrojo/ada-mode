@@ -5,7 +5,7 @@
 (defun ada-indent-gnatprep ()
   "If point is on a gnatprep keyword, return indentation column
 for it. Otherwise return nil. Intended to be added to
-`smie-indent-functions'."
+`smie-indent-functions' in local file variables."
   ;; gnatprep keywords are:
   ;;
   ;; #if identifier [then]

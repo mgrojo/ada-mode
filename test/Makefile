@@ -46,6 +46,7 @@ COMPILE_FILES := $(filter-out debug.adb, $(COMPILE_FILES))
 # These heritage tests don't compile, and they are too hard to fix
 # FIXME: review these
 COMPILE_FILES := $(filter-out ada-test.adb, $(COMPILE_FILES))
+COMPILE_FILES := $(filter-out g-comlin.adb, $(COMPILE_FILES))# copied from gnat runtime; gnat won't compile it!
 COMPILE_FILES := $(filter-out gnatprep.adb, $(COMPILE_FILES))
 COMPILE_FILES := $(filter-out highlight.adb, $(COMPILE_FILES))
 COMPILE_FILES := $(filter-out indent9.adb, $(COMPILE_FILES))

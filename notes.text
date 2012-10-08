@@ -40,33 +40,23 @@ hangs while typing 'package' at end of buffer
 
 use ada-indent-broken for multiple object declarations
 
-instead of full parse forward, try harder to write a
-parse-backward; you do have to recurse on "begin", but you can
-stop at the first "is". See if that works for the other cases.
-    use the same algorithm, just in reverse:
-        a semicolon means skip an sexp (that's why it's on the stack)
-        a non-pre-begin means skip that token
-        a pre-begin means terminate.
-
 rassoc ada-indent-grammar might not be unique
+    add check that it is; also ensures all keywords are in grammar properly
 
 add missing features to ada_mode-*
 
-
-aspect_clause
-    record - done
-remaining statements?
+aspect_clause;    record - done
+attribute clauses; record layout
+library generic subprogram
+named associations
+nested generic subprogram, package
+nested package
+pre/post conditions
 quantified_, if_, case_expressions
 remaining expressions?
-pre/post conditions
-
+remaining statements?
 subprogram call with indented param list
-nested package
-nested generic subprogram, package
-library generic subprogram
-attribute clauses
-    record layout
-named associations
+task entry with index; body has "for"
 
 look for remaining non-terminals in Annex P
 
@@ -82,7 +72,6 @@ c:/apps/emacs-24.2/lisp/progmodes/modula2.el
 http://www.modula2.net/resources/M2R10.pdf Appendix A
 c:/Projects/emacs_stephe.main/emacs_stephe_site_lisp/ada-mode.el
 (info "(elisp)SMIE" "*info-smie*")
-(info "(aarm2012)Annex P" "*info-aarm*")
 http://dickgrune.com/Books/PTAPG_2nd_Edition/
     used by modula2-mode, octave-mode in emacs 24
 

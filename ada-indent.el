@@ -257,6 +257,12 @@ An example is:
        (expression)
        (expression "=>-other" expression))
 
+      (attribute_definition_clause
+       ("for-attribute" name "use-attribute" expression))
+      ;; we need "for-attribute" to be distinct from "for-loop", so we
+      ;; can distinguish between declaration and statement for
+      ;; refine-begin.
+
       (case_statement_alternative
        ("when-case" expression "=>-when" statements)); "|" is an identifier
 
@@ -266,16 +272,18 @@ An example is:
 
       (context_item
        ("with-context" name); need name so `smie-forward-sexp' from beginning of buffer works
-       ("use" name))
-      ;; no need to distinguish between "use" as a context clause and
-      ;; "use" as a declaration.
+       ("use-decl" name))
+      ;; we cannot easily distinguish between a use_clause in a
+      ;; context item, and a use_clause in a body.
 
       (declaration
+       (attribute_definition_clause)
        (entry_body)
        (exception_declaration)
        (formal_package_declaration)
        (formal_subprogram_declaration)
        (generic_package_declaration)
+       (object_declaration)
        (package_body)
        (package_renaming_declaration)
        (package_specification)
@@ -285,7 +293,7 @@ An example is:
        (subtype_declaration)
        (task_body)
        (type_declaration)
-       (object_declaration)
+       (use_clause)
        )
 
       (declarations
@@ -349,7 +357,7 @@ An example is:
        (interface_list "and-interface_list" name))
 
       (iteration_scheme
-       ("for" identifier "in" name)
+       ("for-loop" identifier "in" name)
       ;; "reverse" is an identifer
       ;; FIXME: container iterators allow ":" here (not tested yet)
 
@@ -379,6 +387,13 @@ An example is:
        (identifier ":-object" name "of-object" name ":=" expression)
        )
 
+      (package_body
+       ;; Leaving 'package body' as separate tokens causes problems
+       ;; in refine-is, so we leave "body" as an identifier.
+       ("package-plain" name "is-package" declarations "begin-body" statements "end-block")
+       ("package-plain" name "is-package" "separate-stub")
+       ("separate-unit" "package-separate" name "is-package" declarations "begin-body" statements "end-block"))
+
       (package_renaming_declaration
        ("package-renames"))
       ;; covers generic_renaming_declaration
@@ -386,13 +401,6 @@ An example is:
       (package_specification
        ("package-plain" name "is-package" declarations "private-body" declarations "end-block")
        ("package-plain" name "is-package" declarations "end-block"))
-
-      (package_body
-       ;; Leaving 'package body' as separate tokens causes problems
-       ;; in refine-is, so we leave "body" as an identifier.
-       ("package-plain" name "is-package" declarations "begin-body" statements "end-block")
-       ("package-plain" name "is-package" "separate-stub")
-       ("separate-unit" "package-separate" name "is-package" declarations "begin-body" statements "end-block"))
 
       (protected_body
        ("protected-body" identifier "is-protected_body" declarations "end-block")
@@ -449,8 +457,15 @@ An example is:
 
        ;; label_statement
        ("<<" identifier ">>")
+       ;; In Ada, this is _not_ followed by ";"; it labels the
+       ;; following statement. This grammar doesn't care;
+       ;; `ada-indent-goto-statement-start' from the terminal ";" of a
+       ;; labeled statement will stop at the start of the label.
 
        (loop_statement)
+
+       ;; raise is left as a keyword. FIXME: raise identifier with?
+
        ("return-stmt")
 
        ;; extended_return_statement
@@ -613,6 +628,10 @@ An example is:
        ;; protected_body doesn't.
 
        ); type_declaration
+
+      (use_clause
+       ("use-decl" name))
+
       )); smie-bnf->prec2
     ))
 
@@ -684,14 +703,6 @@ An example is:
     "while")
   "Unrefined keywords that can be preceded by a label.")
 
-(defvar ada-indent-refine-all nil
-  "Non-nil if parsing forward from beginning of buffer to refine
-  keywords. Most tokens don't need to do this; those that do
-  let-bind this to t.")
-
-(defvar ada-indent-refine-forward-to nil
-  "Position of token that initiated refine-all.")
-
 (defun ada-indent-matching-end (keyword)
   "Return a list of keywords that could end the block started by KEYWORD.
 This is found by searching the grammar; it will produce results
@@ -709,6 +720,49 @@ that are not allowed by Ada, but we don't care."
 	  (setq found (cons (nth 0 toklevels) found))
 	))
     found))
+
+(defun ada-indent-statement-or-decl ()
+  "Assuming point is at the start of a statement, a normal
+declaration, or a generic formal declaration, examine a few refined
+tokens following point to see if we can determine which. Return
+'statement, 'declaration, 'formal, or nil. Preserves point."
+  ;; Note the only way to know we are at the start of a statement or
+  ;; decl is because we've just skipped over it backwards. For
+  ;; example, while refining "begin", or "package" looking for "generic".
+  (save-excursion
+    (catch 'quit
+      ;; find the first keyword
+      (let ((token (ada-indent-forward-token)))
+	(if (not (ada-indent-keyword-p token))
+	    (if (equal token "pragma"); not worth making this a keyword
+		(throw 'quit 'declaration)
+	      (setq token (ada-indent-forward-name))))
+
+	;; lists compiled by going thru (statement ..) and (declaration
+	;; ...) in the ada-indent-grammar declaration above.
+
+	;; token = ";" indicates a procedure call; there are no
+	;; keyword-less declarationsm except "pragma", which we handle
+	;; above.
+	(cond
+	 ((member
+	   token
+	   '(";" ":=" "accept" ":-label" "declare-open" "begin-open" "case" "delay" "exit-other" "exit-when"
+	     "if-open" "<<" "for-loop" "while" "loop-open" "return-stmt" "return-ext" "select-open"))
+	  'statement)
+
+	 ((member
+	   token
+	   '("for-attribute" "entry" ":-object" "generic" ":-object" "package-plain" "package-renames" "protected-body"
+	     "function-spec" "overriding" "procedure-spec" "subtype" "subtype" "type" "use-attribute" "use-decl"))
+	  'declaration)
+
+	 ((member
+	   token
+	   '("with-formal"))
+	  'formal)
+
+	 (t nil))))))
 
 (defun ada-indent-skip-param_list (forward)
   ;; While refining tokens, we don't want to call smie-next-sexp,
@@ -754,8 +808,8 @@ or end of buffer."
 (defun ada-indent-backward-name (&optional target)
   (ada-indent-next-name 'ada-indent-backward-token nil target))
 
-;; (defun ada-indent-forward-name (&optional target)
-;;    (ada-indent-next-name 'ada-indent-forward-token t target))
+(defun ada-indent-forward-name (&optional target)
+   (ada-indent-next-name 'ada-indent-forward-token t target))
 
 (defun ada-indent-next-token-unrefined (next-token forward)
   "Move to the next token using function NEXT-TOKEN. Skips parentheses.
@@ -922,7 +976,12 @@ an element of TARGETS, return that token."
      )))
 
 (defun ada-indent-refine-begin (token forward)
-  ;; If "begin" follows "declare" or "is", it is not an opener. Otherwise it is an opener.
+  ;; If "begin" follows a declaration, or immediately follows a block
+  ;; start (see ada-indent-pre-begin-tokens), it is begin-body. If it
+  ;; follows a statement, it is begin-open. We can determine that by
+  ;; parsing backward thru one statement. If that statement is a
+  ;; subprogram body, we will have to recurse on refining its "begin",
+  ;; but only once.
   ;;
   ;; Consider this code:
   ;;
@@ -932,7 +991,7 @@ an element of TARGETS, return that token."
   ;;	  is
   ;;	     Local_1 : constant := 3.0;
   ;;	  begin
-  ;;	     declare -- no label, zero statements between begin, declare
+  ;;	     declare
   ;; 	     begin
   ;;		return Local_1;
   ;;	     end;
@@ -941,59 +1000,47 @@ an element of TARGETS, return that token."
   ;;	  null;
   ;;   end Ada_Mode.Nominal;
   ;;
-  ;; To refine the final "begin", we need to look all the way back to
-  ;; "package". We can't do that while the intervening "begin"s are
-  ;; unrefined.
+  ;; To refine the final "begin", we need to look back to
+  ;; "function ... is".
   ;;
-  ;; So we enter a special mode; start smie-forward-sexp at the
-  ;; beginning of the buffer, and when `ada-indent-refine-begin' is
-  ;; called, examine `smie--levels' (which holds the token stack used
-  ;; by `smie-forward-sexp) to see how to refine each "begin". When
-  ;; we've reached the "begin" we are refining, throw
-  ;; `ada-indent-refine-all-quit', and resume normal operation.
-  ;;
-  (catch `local-quit
-    (if ada-indent-refine-all
-	;; Parsing from beginning of buffer; examine stack
-	(let ((stack smie--levels)
-	      stack-token
-	      (token nil))
-	  (while (null token)
-	    (setq stack-token (nth 0 (rassoc (pop stack) ada-indent-grammar)))
-	    (cond
-	     ((equal stack-token ";") nil)
-	     ((member stack-token ada-indent-pre-begin-tokens)
-	      (setq token "begin-body"))
-	     (t
-	      (setq token "begin-open"))))
+  (save-excursion
+    (when forward (smie-default-backward-token))
+    (let ((token (save-excursion (list (ada-indent-backward-token) (point))))
+	  (result nil)
+	  (first t))
+      (setq token (reverse token)); set up for goto-statement-start loop
+      (while (not result)
+	(cond
+	 ((equal (nth 1 token) ";")
+	  (if first
+	      (progn
+		(setq first nil)
+		;; try again
+		(goto-char (nth 0 token))
+		(setq token (ada-indent-goto-statement-start (nth 1 token))))
 
-	  (if (>= (point) ada-indent-refine-forward-to)
-	      (throw 'ada-indent-refine-all-quit token)
-	    (throw 'local-quit token)))
+	    (if (= (point) (nth 0 token))
+		;; we've reached the start of the statement of which
+		;; the "begin" we are refining is a part.
+		(setq result "begin-body")
 
-      ;; not refining-all
-      (save-excursion
-	(when forward (smie-default-backward-token))
+	      ;; we've skipped a statement or declaration; see if we can tell which
+	      (case (ada-indent-statement-or-decl)
+		('statement
+		 (setq result "begin-open"))
+		('declaration
+		 (setq result "begin-body"))
+		(nil
+		 ;; try again
+		 (goto-char (nth 0 token))
+		 (setq token (ada-indent-goto-statement-start (nth 1 token))))
+		))))
 
-	(let ((ada-indent-refine-all t)
-	      (ada-indent-refine-forward-to (point))
-	      toklevels
-	      (token nil))
-	  (setq
-	   token
-	   (catch 'ada-indent-refine-all-quit
-	     (goto-char (point-min))
-	     ;; skip context clauses, parse compilation-unit.
-	     (while (equal ";" (nth 2 (setq toklevels (smie-forward-sexp))))
-	       (goto-char (nth 1 toklevels))
-	       ;; loop should exit on 'ada-indent-refine-all-quit,
-	       ;; but if we have a bug, we don't want to loop forever
-	       ;; here.
-	       )))
-	  (unless token
-	    (goto-char ada-indent-refine-forward-to)
-	    (ada-indent-refine-error "begin"))
-	  token))
+	  ((member (nth 1 token) ada-indent-pre-begin-tokens)
+	   (setq result "begin-body"))
+	  (t
+	   (setq result "begin-open"))))
+      result
       )))
 
 (defun ada-indent-refine-case (token forward)
@@ -1067,6 +1114,14 @@ an element of TARGETS, return that token."
        (t "exit-other")
        ))
     ))
+
+(defun ada-indent-refine-for (token forward)
+  (let ((token (save-excursion
+		 (when (not forward) (smie-default-forward-token))
+		 (smie-default-forward-token))))
+    (if (equal token "in")
+	"for-loop"
+      "for-attribute")))
 
 ;; ada-indent-refine-function see ada-indent-refine-subprogram
 
@@ -1353,9 +1408,7 @@ an element of TARGETS, return that token."
 
      ;; FIXME: this is ok for a library level [generic] package alone
      ;; in a file. But it could be a problem for a nested [generic]
-     ;; package. Idea: "end" can't occur in generic formal parameters;
-     ;; search for "end|generic". Or use ada-indent-refine-all
-     ;; approach.
+     ;; package. use statement-or-decl approach.
      (if (equal "generic" (save-excursion (nth 2 (smie-backward-sexp "package-generic"))))
 	 "package-generic")
 
@@ -1614,6 +1667,29 @@ an element of TARGETS, return that token."
 	"then"; identifier
       "then-if")))
 
+(defun ada-indent-refine-use (token forward)
+  ;; 1) use_clause:
+  ;;
+  ;;    a) use_package_clause ::= use package_name {, package_name};
+  ;;
+  ;;    b) use_type_clause ::= use [all] type subtype_mark {, subtype_mark};
+  ;;
+  ;;    it's not easy to tell these apart, so they are both use-decl
+  ;;
+  ;; 2) attribute_definition_clause ::=
+  ;;      for local_name'attribute_designator use expression;
+  ;;    | for local_name'attribute_designator use name;
+  ;;
+  ;; token: use-decl
+
+  (let ((token (save-excursion
+		 (when forward (smie-default-backward-token))
+		 (ada-indent-backward-name))))
+
+    (if (equal token "for-attribute")
+	"use-attribute"
+      "use-decl")))
+
 (defun ada-indent-refine-when (token forward)
   (save-excursion
     (when forward (smie-default-backward-token))
@@ -1830,6 +1906,7 @@ an element of TARGETS, return that token."
     ("else" 	 ada-indent-refine-else)
     ("exception" ada-indent-refine-exception)
     ("exit" 	 ada-indent-refine-exit)
+    ("for" 	 ada-indent-refine-for)
     ("function"  ada-indent-refine-subprogram)
     ("interface" ada-indent-refine-interface)
     ("if" 	 ada-indent-refine-if)
@@ -1848,6 +1925,7 @@ an element of TARGETS, return that token."
     ("separate"  ada-indent-refine-separate)
     ("task" 	 ada-indent-refine-task)
     ("then" 	 ada-indent-refine-then)
+    ("use" 	 ada-indent-refine-use)
     ("when" 	 ada-indent-refine-when)
     ("with" 	 ada-indent-refine-with)
     )
@@ -2018,10 +2096,12 @@ or \"(\", and point must be at the start of CHILD."
 (defun ada-indent-goto-statement-start (child)
   "Move point to the start of the statement/declaration
 containing point. If point is in a parenthesized list, move to
-the start of the current list element. Return the found parent
-token, or nil. If point is at statement or list element start,
-does nothing. If CHILD is non-nil, it must be a keyword, and
-point must be at the start of CHILD."
+the start of the current list element. Return (parent-pos
+parent-string), where `parent-string' is the text of the found
+parent token, and `parent-pos' is the position of its first
+character. If point is at statement or list element start, does
+nothing. If CHILD is non-nil, it must be a keyword, and point
+must be at the start of CHILD."
   ;; See ada-indent-show-statement-start for interactive call of
   ;; this.
   ;;
@@ -2106,6 +2186,7 @@ point must be at the start of CHILD."
   ;;
   (let (parent-count
 	(parent nil)
+	(parent-pos nil)
 	pos)
 
     (catch 'done
@@ -2117,6 +2198,7 @@ point must be at the start of CHILD."
       ;; to find the previous keyword.
       (save-excursion
 	(setq parent (ada-indent-backward-name))
+	(setq parent-pos (point))
 	(if (or
 	     (equal parent ";")
 	     (member parent ada-indent-block-keywords))
@@ -2127,6 +2209,7 @@ point must be at the start of CHILD."
 	  (if (equal parent ""); "("; this is a function call in an aggregate or param list
 	      (progn
 		(setq parent "(")
+		(setq parent-pos (- (point) 1))
 		(forward-comment (point-max)); also skips final whitespace
 		(setq pos (point))))))
 
@@ -2139,7 +2222,7 @@ point must be at the start of CHILD."
       ;; indent-after-keyword with point on "begin". backward-name
       ;; finds "is", which is a block keyword. Then we move back to
       ;; "begin" and set pos. No other blocks may be empty.
-      (if (and pos (not (= pos (point)))) (progn (goto-char pos) (throw 'done parent)))
+      (if (and pos (not (= pos (point)))) (progn (goto-char pos) (throw 'done (list parent-pos parent))))
 
       (setq parent-count
 	    (if (member child '("." "(" "record-open" "<<"))
@@ -2163,7 +2246,7 @@ point must be at the start of CHILD."
 	   (member (nth 2 parent) ada-indent-block-keywords)
 	   )
 	  ;; goto-parent left point on token following parent; point is at statement start
-	  (throw 'done (nth 2 parent)))
+	  (throw 'done (list (nth 1 parent) (nth 2 parent))))
 
       (if (not (= (point) (nth 1 parent)))
 	  ;; goto-parent stopped because of a lower-precedence token,
@@ -2195,7 +2278,7 @@ point must be at the start of CHILD."
 	    (smie-default-forward-token); ";" or block start
 	    (forward-comment (point-max)))
 	)
-      (nth 2 parent))))
+      (list (nth 1 parent) (nth 2 parent)))))
 
 (defun ada-indent-rule-statement (offset child)
   "Find the start of the statement/declaration containing point (using
@@ -2203,7 +2286,7 @@ point must be at the start of CHILD."
 to it. Preserves point.  If CHILD is non-nil, point must be at
 the start of CHILD, which must be a keyword."
   (save-excursion
-    (let ((parent (ada-indent-goto-statement-start child)))
+    (let ((parent (nth 1 (ada-indent-goto-statement-start child))))
       (cond
        ((equal parent "(") nil); indent to the (, not the line it is on
        (t (back-to-indentation)))
@@ -2711,8 +2794,10 @@ they always run the refine algorithm.")
   "Move to the start of the current statement."
   (interactive)
   ;; this is the way ada-indent-goto-statement-start is called during indentation; better for testing
-  (let ((token (save-excursion (ada-indent-forward-token))))
-    (ada-indent-goto-statement-start (if (equal token "") "(" token))))
+  (let ((token (save-excursion (ada-indent-forward-token)))
+	parent)
+    (setq parent (ada-indent-goto-statement-start (if (equal token "") "(" token)))
+    (message "%s => %s" token (nth 1 parent))))
 
 (defun ada-indent-wrapper (indent-function)
   "Call INDENT-FUNCTION, check for errors, report non-nil."

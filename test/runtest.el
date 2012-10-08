@@ -35,9 +35,9 @@
         (unless (equal (car (read-from-string (match-string 0))) last-result)
           (message (concat "Result of "
                            (with-output-to-string (princ last-cmd))
-                           " does not match. Got --"
+                           " does not match.\nGot   -- "
                            (with-output-to-string (princ last-result))
-                           "--, expect --" (match-string 0)
+                           "--,\nexpect --" (match-string 0)
                            "--"))
           (error "Result does not match")))
 
