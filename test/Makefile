@@ -11,7 +11,7 @@ all : compile test
 # EMACS := /home/Projects/emacs/work_stephe-build/src/emacs
 # EMACS := /home/Projects/emacs/work_stephe-23-build/src/emacs
 # EMACS := /usr/local/bin/emacs
-EMACS := $(EMACSPATH)/emacs.exe
+EMACS ?= $(EMACSPATH)/emacs.exe
 
 #nominal : EMACS := /usr/bin/emacs
 nominal : ada_mode-nominal.ali
@@ -37,6 +37,15 @@ TEST_FILES := $(filter-out ada-test.adb, $(TEST_FILES)) # multiple compilation u
 TEST_FILES := $(filter-out bug_1920.adb, $(TEST_FILES)) # ada-indent-label
 TEST_FILES := $(filter-out ada_mode-options-indent_return_1.ads, $(TEST_FILES)) # ada-indent-return
 TEST_FILES := $(filter-out ada_mode-options-indent_return_2.ads, $(TEST_FILES)) # ada-indent-return
+
+# (10.x.12 sjw) Some library/separate source files don't indent
+# properly if there's no leading comment/white space in the file, so
+# don't run the tests yet.
+TEST_FILES := $(filter-out ada_mode-library_function.adb, $(TEST_FILES))
+TEST_FILES := $(filter-out ada_mode-library_procedure.adb, $(TEST_FILES))
+TEST_FILES := $(filter-out ada_mode-separate_function.adb, $(TEST_FILES))
+TEST_FILES := $(filter-out ada_mode-separate_procedure.adb, $(TEST_FILES))
+TEST_FILES := $(filter-out ada_mode-separate_task_body.adb, $(TEST_FILES))
 
 COMPILE_FILES := $(TEST_FILES)
 

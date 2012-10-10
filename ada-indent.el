@@ -1189,7 +1189,7 @@ an element of TARGETS, return that token."
 
 	((equal token "procedure-formal") "is"); identifier
 
-	((member token '("procedure-spec" "procedure-overriding"))
+	((member token '("procedure-spec" "procedure-overriding" "procedure-separate"))
 	 ;;  procedure name is abstract;
 	 ;;  procedure name is null;
 	 ;;  procedure name is declarations begin statements end;
@@ -1500,16 +1500,22 @@ an element of TARGETS, return that token."
       ;;
       ;;    protected body defining_identifier ...
       ;;
-      ;; 7) protected_body_stub
+      ;; 7) protected_separate :=
+      ;;
+      ;;    separate (parent_unit_name) protected body defining_identifier ...
+      ;;
+      ;; 8) protected_body_stub
       ;;
       ;;    not implemented
       ;;
   (save-excursion
-    (when (not forward) (smie-default-backward-token))
-    (let ((token )))
+    (when forward (smie-default-backward-token))
     (cond
-     ((equal (save-excursion (smie-default-backward-token)) "") "protected-separate");; or bob, sigh.
-     ((equal (save-excursion (smie-default-forward-token)) "body") "protected-body")
+     ((equal (save-excursion
+               (ada-indent-backward-name)) "separate-unit") "protected-separate"); separate (name) protected body
+     ((equal (save-excursion
+               (smie-default-forward-token)
+               (smie-default-forward-token)) "body") "protected-body")
      (t "protected")); an identifier
     ))
 
@@ -1540,7 +1546,9 @@ an element of TARGETS, return that token."
     ;;
     ;;    1a) function_specification ::= function defining_designator parameter_and_result_profile
     ;;
-    ;;    preceding refined token: "function-spec", "function-overriding"
+    ;;    preceding refined token: "function-spec", "function-overriding",
+    ;;    "function-separate"
+    ;;
     ;;    token: "return-spec"
     ;;
     ;;    1b) formal_concrete_subprogram_declaration ::= with subprogram_specification ...
@@ -1592,7 +1600,7 @@ an element of TARGETS, return that token."
      ;;
      (let ((token (save-excursion (ada-indent-backward-name))))
        (cond
-	((member token '("function-spec" "function-overriding"))
+	((member token '("function-spec" "function-overriding" "function-separate"))
 	 "return-spec"); 1a, 2, 5
 
 	((equal token "function-formal")
@@ -1651,10 +1659,13 @@ an element of TARGETS, return that token."
 
 (defun ada-indent-refine-task (token forward)
   (save-excursion
-    (when (not forward) (smie-default-backward-token))
+    (when forward (smie-default-backward-token))
     (cond
-     ((equal (save-excursion (smie-default-backward-token)) "") "task-separate"); separate (name) task body
-     ((equal (save-excursion (smie-default-forward-token)) "body") "task-body")
+     ((equal (save-excursion
+               (ada-indent-backward-name)) "separate-unit") "task-separate"); separate (name) task body
+     ((equal (save-excursion
+               (smie-default-forward-token)
+               (smie-default-forward-token)) "body") "task-body")
      (t "task")); an identifier
     ))
 
