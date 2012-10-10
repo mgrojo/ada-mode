@@ -2011,7 +2011,8 @@ Return the token text or a refinement of it. Manage the refinement cache."
   (assoc token ada-indent-grammar))
 
 (defun ada-indent-opener-p (token)
-  (listp (nth 1 (assoc token ada-indent-grammar))))
+  (let ((association (assoc token ada-indent-grammar)))
+    (when association (listp (nth 1 association)))))
 
 (defun ada-indent-goto-parent (child up)
   "Goto a parent (defined by where smie-backward-sexp stops).
