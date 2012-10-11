@@ -1193,6 +1193,7 @@ an element of TARGETS, return that token."
 	 ;;  procedure name is abstract;
 	 ;;  procedure name is null;
 	 ;;  procedure name is declarations begin statements end;
+	 ;;  separate procedure name is declarations begin statements end;
 	 (let ((token (save-excursion
 			(smie-default-forward-token); is
 			(smie-default-forward-token))))
@@ -1496,15 +1497,14 @@ an element of TARGETS, return that token."
       ;;    same as protected_type_declaration, without "type"
       ;;    not implemented
       ;;
-      ;; 6) protected_body :=
+      ;; 6) protected_body, subunit :=
       ;;
-      ;;    protected body defining_identifier ...
+      ;;    a) protected body defining_identifier ...
       ;;
-      ;; 7) protected_separate :=
+      ;;    b) separate (parent_unit_name) protected body defining_identifier ...
       ;;
-      ;;    separate (parent_unit_name) protected body defining_identifier ...
-      ;;
-      ;; 8) protected_body_stub
+      ;; 7) protected_body_stub  ::=
+      ;;      protected body defining_identifier is separate [aspect_specification];
       ;;
       ;;    not implemented
       ;;
@@ -1512,10 +1512,10 @@ an element of TARGETS, return that token."
     (when forward (smie-default-backward-token))
     (cond
      ((equal (save-excursion
-               (ada-indent-backward-name)) "separate-unit") "protected-separate"); separate (name) protected body
+               (ada-indent-backward-name)) "separate-unit") "protected-separate"); 6b
      ((equal (save-excursion
                (smie-default-forward-token)
-               (smie-default-forward-token)) "body") "protected-body")
+               (smie-default-forward-token)) "body") "protected-body"); 6a, 7
      (t "protected")); an identifier
     ))
 
@@ -2881,12 +2881,19 @@ This lets us know which indentation function succeeded."
 	      :forward-token #'ada-indent-forward-token
 	      :backward-token #'ada-indent-backward-token)
 
-  (add-hook 'after-change-functions 'ada-indent-after-change))
+  (setq blink-matching-paren nil)
+  ;; smie uses blink-matching to blink on all opener/closer pairs.
+  ;; FIXME: this is just annoying while we are working on this code
+  ;; (it tries to run a broken parser), so we turn it off. Not clear
+  ;; if we want to turn it back on ever!
+
+  (add-hook 'after-change-functions 'ada-indent-after-change)
+
+  (define-key ada-mode-map "\t" 'indent-for-tab-command)
+  ;; TAB will now use smie indentation in Ada mode buffers
+  )
 
 (add-hook 'ada-mode-hook 'ada-indent-setup)
-
-(define-key ada-mode-map "\t" 'indent-for-tab-command)
-;; TAB will now use smie indentation in Ada mode buffers
 
 (provide 'ada-indent)
 

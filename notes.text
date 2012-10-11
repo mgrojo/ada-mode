@@ -24,12 +24,8 @@ ada-indent.el
 (sal-edit-library "smie")
 
  current
-try semantic again; be convinced it's really not better.
-    ../org.emacs.ada-mode.semantic/notes.text
-    waiting on help getting bovinate to do something
-
-time on long code
-    get stats on GDS file sizes
+(shell-send-string "~/bin/mtn_sync_ada_france.sh" "*bash*")
+(xmtn-sync-review)
 
 test/Makefile
 make rest of test files work
@@ -52,7 +48,7 @@ named associations
 nested generic subprogram, package
 nested package
 pre/post conditions
-quantified_, if_, case_expressions
+quantified_, if_, case_expressions. Simon Wright working on "if" expressions, ada-indent-after-return.
 remaining expressions?
 remaining statements?
 subprogram call with indented param list
@@ -86,6 +82,10 @@ ada-stmt-end-indent
     indents "then", "loop", "do" relative to "if", "for", "accept"
     leave it out.
 
+indentation of "=>" after "when-case"
+    consensus is "don't change it from ada-mode 4.01"
+        or at least don't change the default.
+
 my changes from default:
       (setq ada-when-indent 0)
       (setq ada-label-indent 0)
@@ -117,12 +117,30 @@ Manuel Gómez
 '(ada-when-indent 2)
 '(ada-with-indent 5)
 
+Philippe WAROQUIERS
+
+'(ada-fill-comment-prefix "-- " )
+'(ada-indent 2)
+'(ada-indent-record-rel-type 2)
+'(ada-indent-return 2)
+'(ada-label-indent 0)
+'(ada-language-version 'ada2005)
+'(ada-prj-gnatfind-switches "-arf")
+'(ada-when-indent 2)
+'(ada-which-compiler 'gnat)
+'(ada-xref-create-ali nil)
+'(ada-xref-search-with-egrep nil)
+
+
 
 specify options in .prj
     keep alist of srcdir=>.prj, apply options when .ad? file opened
         debug vs release changes .prj; check options changed, warn?
 
  to do later
+time on long code
+    get stats on GDS file sizes
+
 put-text-property sets buffer-modified flag, fails if read-only
 
 ada-which-function calls forward-sexp
