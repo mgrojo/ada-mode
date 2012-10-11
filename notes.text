@@ -36,8 +36,8 @@ hangs while typing 'package' at end of buffer
 
 use ada-indent-broken for multiple object declarations
 
-rassoc ada-indent-grammar might not be unique
-    add check that it is; also ensures all keywords are in grammar properly
+ensure all keywords are in grammar properly
+   add check that rassoc ada-indent-grammar is unique
 
 add missing features to ada_mode-*
 

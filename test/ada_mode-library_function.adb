@@ -1,5 +1,5 @@
 function Ada_Mode.Library_Function return Integer is
-   --  Broken in an early version of Ada Mode 5.0.
+   -- no comment before "function"
 begin
    begin  -- should be indented.
       null;

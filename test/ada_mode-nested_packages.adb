@@ -11,7 +11,7 @@ package body Ada_Mode.Nested_Packages is
    function "*" (Left, Right : in Ada_Mode.Nominal.Floating_Point) return Ada_Mode.Nominal.Floating_Point
      renames Ada_Mode.Nominal."*";
 
-   --  First case: begin block in a loop statement. [6618-008]
+   --  begin block in a loop statement. [6618-008]
    package body Sequencer is
 
       function Create (Model   : in Integer;
@@ -34,7 +34,7 @@ package body Ada_Mode.Nested_Packages is
       end Create;
    end Sequencer;
 
-   --  Second case : two begin blocks following each other [6726-028]
+   --  two begin blocks following each other [6726-028]
    package body Wem is
       procedure GetVariableValue is
       begin
@@ -50,7 +50,7 @@ package body Ada_Mode.Nested_Packages is
    end Wem;
 
 
-   --  Third case : a declare block just within a nested subprogram declaration
+   --  a declare block just within a nested subprogram declaration
    --  [6920-004]
    procedure F is
    begin
@@ -69,7 +69,7 @@ package body Ada_Mode.Nested_Packages is
    end;
 
 
-   --  Fourth case : identifiers that include 'end', 'begin', ...
+   --  identifiers that include 'end', 'begin', ...
    --  as part of their name
    --  [7029-002]
    procedure Server_Begin is
@@ -82,7 +82,7 @@ package body Ada_Mode.Nested_Packages is
       null;
    end Server_Begin;
 
-   --  Fifth case: 'end if' interaction...
+   --  'end if' interaction...
    --  [7103-008]
    package body Test_Format is
       procedure Test_Proc is
@@ -108,10 +108,7 @@ package body Ada_Mode.Nested_Packages is
       end Test_Proc;
    end Test_Format;
 
-   --  Sixth Case: for loop not associated with a while or for
-   --  ada-mode was looking for a possible 'for' or 'while' as far as needed,
-   --  instead of stopping at the first ';' encountered.
-   --  Fixed 12/02/1999
+   --  "for" not associated with "while" or "loop"
    package body TestForWhile is
       procedure Test is
          Foo : Integer;
@@ -125,5 +122,15 @@ package body Ada_Mode.Nested_Packages is
          end if;
       end Test;
    end TestForWhile;
+
+   -- "for" loop with nested begin
+   procedure simon is
+   begin
+      for j in 1 .. 10 loop
+         begin             -- was not indented
+            null;
+         end;
+      end loop;
+   end simon;
 
 end Ada_Mode.Nested_Packages;

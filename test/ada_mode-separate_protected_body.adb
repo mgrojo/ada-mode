@@ -1,6 +1,6 @@
 separate (Ada_Mode) protected body Separate_Protected_Body
+   -- no comment before "separate"
 is
-begin
    entry E when True is
    begin
       null;
