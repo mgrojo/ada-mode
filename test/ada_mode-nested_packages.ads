@@ -24,4 +24,6 @@ package Ada_Mode.Nested_Packages is
       procedure Test;
    end TestForWhile;
 
+   procedure Test_For_1;
+
 end Ada_Mode.Nested_Packages;
