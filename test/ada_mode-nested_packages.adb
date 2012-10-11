@@ -126,4 +126,15 @@ package body Ada_Mode.Nested_Packages is
       end Test;
    end TestForWhile;
 
+   --  Seventh Case: begin..end nested at start of for loop (broken in
+   --  early Ada Mode 5.00).
+   procedure Test_For_1 is
+   begin
+      for J in Boolean loop
+         begin         --  wasn't indented (aligned with for).
+            null;
+         end;
+      end loop;
+   end Test_For_1;
+
 end Ada_Mode.Nested_Packages;

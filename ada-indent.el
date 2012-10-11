@@ -1498,13 +1498,9 @@ an element of TARGETS, return that token."
       ;;
       ;; 6) protected_body :=
       ;;
-      ;;    protected body defining_identifier ...
+      ;;    [separate (parent_unit_name)] protected body defining_identifier ...
       ;;
-      ;; 7) protected_separate :=
-      ;;
-      ;;    separate (parent_unit_name) protected body defining_identifier ...
-      ;;
-      ;; 8) protected_body_stub
+      ;; 7) protected_body_stub
       ;;
       ;;    not implemented
       ;;

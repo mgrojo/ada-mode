@@ -8,12 +8,12 @@
 all : compile test
 
 # emacs to test with
-# EMACS := /home/Projects/emacs/work_stephe-build/src/emacs
-# EMACS := /home/Projects/emacs/work_stephe-23-build/src/emacs
-# EMACS := /usr/local/bin/emacs
-EMACS ?= $(EMACSPATH)/emacs.exe
+# EMACS_EXE := /home/Projects/emacs/work_stephe-build/src/emacs
+# EMACS_EXE := /home/Projects/emacs/work_stephe-23-build/src/emacs
+# EMACS_EXE := /usr/local/bin/emacs
+EMACS_EXE ?= $(EMACSPATH)/emacs.exe
 
-#nominal : EMACS := /usr/bin/emacs
+#nominal : EMACS_EXE := /usr/bin/emacs
 nominal : ada_mode-nominal.ali
 nominal : ada_mode-nominal.ads.diff
 nominal : ada_mode-nominal.adb.diff
@@ -38,9 +38,9 @@ TEST_FILES := $(filter-out bug_1920.adb, $(TEST_FILES)) # ada-indent-label
 TEST_FILES := $(filter-out ada_mode-options-indent_return_1.ads, $(TEST_FILES)) # ada-indent-return
 TEST_FILES := $(filter-out ada_mode-options-indent_return_2.ads, $(TEST_FILES)) # ada-indent-return
 
-# (10.x.12 sjw) Some library/separate source files don't indent
-# properly if there's no leading comment/white space in the file, so
-# don't run the tests yet.
+# FIXME: Some library/separate source files don't indent properly if
+# there's no leading comment/white space in the file, so don't run the
+# tests yet.
 TEST_FILES := $(filter-out ada_mode-library_function.adb, $(TEST_FILES))
 TEST_FILES := $(filter-out ada_mode-library_procedure.adb, $(TEST_FILES))
 TEST_FILES := $(filter-out ada_mode-separate_function.adb, $(TEST_FILES))
@@ -81,10 +81,10 @@ test : $(addsuffix .diff, $(TEST_FILES))
 .PRECIOUS : %.adb.tmp %.ads.tmp
 
 %.adb.tmp : %.adb ../ada-indent.el
-	$(EMACS) -Q -batch -L .. -l runtest.el --eval '(run-test "$<")'
+	$(EMACS_EXE) -Q -batch -L .. -l runtest.el --eval '(run-test "$<")'
 
 %.ads.tmp : %.ads ../ada-indent.el
-	$(EMACS) -Q -batch -L .. -l runtest.el --eval '(run-test "$<")'
+	$(EMACS_EXE) -Q -batch -L .. -l runtest.el --eval '(run-test "$<")'
 
 COMPILE_FILES := $(COMPILE_FILES:.adb=.ali)
 COMPILE_FILES := $(COMPILE_FILES:.ads=.ali)
