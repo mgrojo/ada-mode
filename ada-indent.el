@@ -2011,7 +2011,9 @@ Return the token text or a refinement of it. Manage the refinement cache."
   (assoc token ada-indent-grammar))
 
 (defun ada-indent-opener-p (token)
-  (listp (nth 1 (assoc token ada-indent-grammar))))
+  (let ((association (assoc token ada-indent-grammar)))
+    (when association
+	(listp (nth 1 association)))))
 
 (defun ada-indent-goto-parent (child up)
   "Goto a parent (defined by where smie-backward-sexp stops).
@@ -2869,12 +2871,19 @@ This lets us know which indentation function succeeded."
 	      :forward-token #'ada-indent-forward-token
 	      :backward-token #'ada-indent-backward-token)
 
-  (add-hook 'after-change-functions 'ada-indent-after-change))
+  (setq blink-matching-paren nil)
+  ;; smie uses blink-matching to blink on all opener/closer pairs.
+  ;; FIXME: this is just annoying while we are working on this code
+  ;; (it tries to run a broken parser), so we turn it off. Not clear
+  ;; if we want to turn it back on ever!
+
+  (add-hook 'after-change-functions 'ada-indent-after-change)
+
+  (define-key ada-mode-map "\t" 'indent-for-tab-command)
+  ;; TAB will now use smie indentation in Ada mode buffers
+  )
 
 (add-hook 'ada-mode-hook 'ada-indent-setup)
-
-(define-key ada-mode-map "\t" 'indent-for-tab-command)
-;; TAB will now use smie indentation in Ada mode buffers
 
 (provide 'ada-indent)
 
