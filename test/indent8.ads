@@ -22,4 +22,3 @@ package Indent8 is
          end case;
       end record;
 end Indent8;
-

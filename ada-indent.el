@@ -41,6 +41,8 @@
 ;; Use the interactive functions in the debug section below to move
 ;; across small parts of the syntax.
 
+;;;; code
+
 (require 'ada-mode)
 ;; FIXME: maybe ada-mode should require the default indentation engine, provide a way for user to override?
 
@@ -235,7 +237,7 @@ An example is:
        ("accept" identifier))
 
       (aggregate
-       ("(" association_list  ")"))
+       ("(" association_list ")"))
       ;; this also covers other parenthesized lists; enumeration type
       ;; declarations, subprogram calls.
 
@@ -283,6 +285,7 @@ An example is:
        (formal_package_declaration)
        (formal_subprogram_declaration)
        (generic_package_declaration)
+       (generic_subprogram_declaration)
        (object_declaration)
        (package_body)
        (package_renaming_declaration)
@@ -344,11 +347,15 @@ An example is:
 
       (generic_package_declaration
        ;; No need to distinguish between 'declarations' and
-       ;; 'generic_formal_parameter_declaration' for our purposes.
+       ;; 'generic_formal_parameter_declaration' in the grammar.
        ("generic" declarations
 	"package-generic" identifier "is-package" declarations "private" declarations "end-block")
        ("generic" declarations
 	"package-generic" identifier "is-package" declarations "end-block"))
+
+      (generic_subprogram_declaration
+       ("generic" declarations "function-generic" name "return-spec" name)
+       ("generic" declarations "procedure-generic" name))
 
       (interface_list
        ;; The Ada grammar sometimes has "name and interface_list".
@@ -591,14 +598,13 @@ An example is:
        ;; protected_type_declaration, single_protected_declaration
        ;;
        ;; We don't need "protected" in the grammar anywhere, so leave
-       ;; it as an identifier; this simplifies access-to-subprogram
-       ;; types, since we can just ignore "protected" there.  Note
-       ;; that in a single_protected_declaration, we are refining
-       ;; "protected" to "type". However, "is" in protected type
-       ;; declaration is a block start keyword, while "is-type" in
-       ;; general is not, so we need to make that a distinct
-       ;; keyword. We use "is-type-block" instead of
-       ;; "is-type-protected", because it covers task types as well.
+       ;; it as an identifier.  Note that in a
+       ;; single_protected_declaration, we are refining "protected" to
+       ;; "type". However, "is" in protected type declaration is a
+       ;; block start keyword, while "is-type" in general is not, so
+       ;; we need to make that a distinct keyword. We use
+       ;; "is-type-block" instead of "is-type-protected", because it
+       ;; covers task types as well.
        ("type" identifier "is-type-block" declarations "private-body" declarations "end-block")
        ("type" identifier "is-type-block" declarations "end-block"); task, or protected with no private part
        ("type" identifier "is-type" "new" interface_list "with-new" declarations
@@ -620,12 +626,12 @@ An example is:
        ;; we want to indent "end record" relative to "record", not
        ;; "type".
 
-       ;; task_type_declaration, single_task_declaration: as for
-       ;; protected_type_declaration, we don't need "task" in the
-       ;; grammar. Task entries can have entry families, but that's a
-       ;; parenthesized expression, so we don't need it in the
-       ;; grammar either. However, task_body includes "begin", while
-       ;; protected_body doesn't.
+       ;; task_type_declaration, single_task_declaration: we need
+       ;; "task" in the grammar to classify "task name;" as a
+       ;; declaration, not a procedure call statement. Task entries
+       ;; can have entry families, but that's a parenthesized
+       ;; expression, so we don't need it in the grammar.
+       ("task-single" name)
 
        ); type_declaration
 
@@ -679,8 +685,10 @@ An example is:
     "end-record"
     "end-return"
     "end-select"
+    "function-generic"
     "or-select"
     "package-generic"
+    "procedure-generic"
     ;; "when-case" does not act like a block keyword; it is an opener
     )
   "Keywords that always end indented blocks.")
@@ -721,6 +729,71 @@ that are not allowed by Ada, but we don't care."
 	))
     found))
 
+(defun ada-indent-error (message)
+  (error
+   "%s: %s %d"
+   message
+   (buffer-substring-no-properties
+    (progn (beginning-of-line) (point))
+    (progn (end-of-line) (point)))
+   (point)))
+
+(defun ada-indent-generic-p ()
+  "Assuming point is at the start of a package or subprogram
+spec, return t if is a generic, nil otherwise."
+  ;; This is noticably slow; in a non-generic package spec, _every_
+  ;; procedure and function scans back to 'is-package'. Consider
+  ;; caching additional info; (ada-indent-cache-generic-p cache) on
+  ;; each declaration start keyword.
+  (save-excursion
+    ;; Scan back over things that might be generic formal
+    ;; parameters. If we find a definite formal param (has -formal in
+    ;; the refined keyword), we're done. If we find "generic", we're
+    ;; done. If we find something else that can't be a formal
+    ;; parameter (ie package start), we're done.
+    (let ((token (save-excursion (list (ada-indent-backward-token) (point))))
+	  (result 'not-found)
+	  (first t))
+      (setq token (reverse token)); set up for goto-statement-start loop
+      (while (eq result 'not-found)
+	(cond
+	 ((equal (nth 0 token) 1); bob
+	  (setq result nil))
+
+	 ((equal (nth 1 token) ";")
+	  (if first
+	      (progn
+		(setq first nil)
+		;; try again
+		(goto-char (nth 0 token))
+		(setq token (ada-indent-goto-statement-start (nth 1 token))))
+
+	    ;; we've skipped a statement or declaration; see if we can tell which
+	    (ecase (ada-indent-statement-or-decl)
+	      (statement
+	       (ada-indent-error "found statement preceding package or subprogram spec"))
+
+	      (formal
+	       (setq result t))
+
+	      ((declaration nil)
+	       ;; try again
+	       (goto-char (nth 0 token))
+	       (setq token (ada-indent-goto-statement-start (nth 1 token))))
+	      )))
+
+	 ((equal (nth 1 token) "generic")
+	  (setq result t))
+
+	 ((member (nth 1 token) ada-indent-block-keywords)
+	  (setq result nil))
+
+	 (t
+	  (ada-indent-error "ada-indent-generic-p: unexpected statement or prev keyword"))
+	 ));; while
+      result
+      )))
+
 (defun ada-indent-statement-or-decl ()
   "Assuming point is at the start of a statement, a normal
 declaration, or a generic formal declaration, examine a few refined
@@ -742,7 +815,7 @@ tokens following point to see if we can determine which. Return
 	;; ...) in the ada-indent-grammar declaration above.
 
 	;; token = ";" indicates a procedure call; there are no
-	;; keyword-less declarationsm except "pragma", which we handle
+	;; keyword-less declarations except "pragma", which we handle
 	;; above.
 	(cond
 	 ((member
@@ -849,12 +922,7 @@ an element of TARGETS, return that token."
     result))
 
 (defun ada-indent-refine-error (token)
-  (error
-   (concat "unrecognized '" token "' %d : "
-	   (buffer-substring-no-properties
-	    (progn (beginning-of-line) (point))
-	    (progn (end-of-line) (point))))
-   (point)))
+  (ada-indent-error "unrecognized '" token "'"))
 
 ;;; refine-*
 
@@ -1025,11 +1093,13 @@ an element of TARGETS, return that token."
 		(setq result "begin-body")
 
 	      ;; we've skipped a statement or declaration; see if we can tell which
-	      (case (ada-indent-statement-or-decl)
+	      (ecase (ada-indent-statement-or-decl)
 		('statement
 		 (setq result "begin-open"))
 		('declaration
 		 (setq result "begin-body"))
+		('formal
+		 (ada-indent-error "found generic formal parameter preceding begin spec"))
 		(nil
 		 ;; try again
 		 (goto-char (nth 0 token))
@@ -1407,11 +1477,7 @@ an element of TARGETS, return that token."
 			    (ada-indent-forward-tokens-unrefined "body" "is" "renames")))
 	 "package-renames")
 
-     ;; FIXME: this is ok for a library level [generic] package alone
-     ;; in a file. But it could be a problem for a nested [generic]
-     ;; package. use statement-or-decl approach.
-     (if (equal "generic" (save-excursion (nth 2 (smie-backward-sexp "package-generic"))))
-	 "package-generic")
+     (if (ada-indent-generic-p) "package-generic")
 
      "package-plain")
     ))
@@ -1471,6 +1537,8 @@ an element of TARGETS, return that token."
 
      (t "private-body"))); all others
   )
+
+;; ada-indent-refine-procedure see ada-indent-refine-subprogram
 
 (defun ada-indent-refine-protected (token forward)
       ;; 'protected' occurs in:
@@ -1542,11 +1610,11 @@ an element of TARGETS, return that token."
 
     ;; 'return' occurs in:
     ;;
-    ;; 1) a function subprogram_declaration or formal_subprogram_declaration:
+    ;; 1) a [generic] function subprogram_declaration or formal_subprogram_declaration:
     ;;
     ;;    1a) function_specification ::= function defining_designator parameter_and_result_profile
     ;;
-    ;;    preceding refined token: "function-spec", "function-overriding",
+    ;;    preceding refined token: "function-spec", "function-overriding", "function-generic"
     ;;    "function-separate"
     ;;
     ;;    token: "return-spec"
@@ -1600,7 +1668,7 @@ an element of TARGETS, return that token."
      ;;
      (let ((token (save-excursion (ada-indent-backward-name))))
        (cond
-	((member token '("function-spec" "function-overriding" "function-separate"))
+	((member token '("function-spec" "function-overriding" "function-generic" "function-separate"))
 	 "return-spec"); 1a, 2, 5
 
 	((equal token "function-formal")
@@ -1646,14 +1714,20 @@ an element of TARGETS, return that token."
   (save-excursion
     (when forward (smie-default-backward-token))
 
-    (let ((prev-token (smie-default-backward-token)))
+    (let ((prev-token (save-excursion (smie-default-backward-token))))
       (cond
        ((equal prev-token "with")	(concat token "-formal"))
        ((equal prev-token "overriding") (concat token "-overriding"))
        ((and
-	 (not (bobp))
-	 (equal prev-token ""))
-	(concat token "-separate")); separate (name) function
+	 (equal prev-token "");; '"', ")", bob; '"' not legal
+	 (save-excursion (forward-comment (- (point-max))) (not (bobp))))
+	(concat token "-separate")); separate (name) [function | procedure]
+
+       ((member prev-token '("access" "protected"))
+	(concat token "-spec")); access_to_subprogram_definition
+
+       ((ada-indent-generic-p) (concat token "-generic"))
+
        (t (concat token "-spec"))
   ))))
 
@@ -1661,11 +1735,20 @@ an element of TARGETS, return that token."
   (save-excursion
     (when forward (smie-default-backward-token))
     (cond
-     ((equal (save-excursion
-               (ada-indent-backward-name)) "separate-unit") "task-separate"); separate (name) task body
+     ((equal (save-excursion (ada-indent-backward-name)) "separate-unit")
+      "task-separate"); separate (name) task body
+
      ((equal (save-excursion
                (smie-default-forward-token)
-               (smie-default-forward-token)) "body") "task-body")
+               (smie-default-forward-token))
+	     "body")
+      "task-body")
+
+     ((equal (save-excursion
+	       (smie-default-forward-token)
+	       (ada-indent-forward-name)) ";")
+      "task-single")
+
      (t "task")); an identifier
     ))
 
@@ -2253,8 +2336,7 @@ must be at the start of CHILD."
       (setq parent (ada-indent-goto-parent child parent-count))
 
       (if (or
-	   (equal (nth 2 parent) "(")
-	   (equal (nth 2 parent) ";")
+	   (member (nth 2 parent) '("(" ";" ","))
 	   (member (nth 2 parent) ada-indent-block-keywords)
 	   )
 	  ;; goto-parent left point on token following parent; point is at statement start
@@ -2881,7 +2963,7 @@ This lets us know which indentation function succeeded."
 	      :forward-token #'ada-indent-forward-token
 	      :backward-token #'ada-indent-backward-token)
 
-  (setq blink-matching-paren nil)
+  (set (make-local-variable 'blink-matching-paren) nil)
   ;; smie uses blink-matching to blink on all opener/closer pairs.
   ;; FIXME: this is just annoying while we are working on this code
   ;; (it tries to run a broken parser), so we turn it off. Not clear

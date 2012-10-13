@@ -6,7 +6,7 @@
 with Ada.Text_Io;
 procedure Indent2 is
    package B is
-      new Ada.Text_Io.Integer_Io (Num => Integer);  --  The problem appears because of =>
+     new Ada.Text_Io.Integer_Io (Num => Integer);  --  The problem appears because of =>
 
    procedure F (G : in out Integer); -- <<<<<< wrongly indented
 

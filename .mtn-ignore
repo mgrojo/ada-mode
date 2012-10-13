@@ -1,4 +1,5 @@
 ^test/.*\.ali$
 ^test/.*\.diff$
 ^test/.*\.tmp$
+^test/debug\.adb$
 ^test/org\.emacs\.ada-mode\.smie-.*\.tar\.gz$
