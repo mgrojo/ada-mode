@@ -124,13 +124,13 @@ package body Ada_Mode.Nested_Packages is
    end TestForWhile;
 
    -- "for" loop with nested begin
-   procedure simon is
+   procedure Test_For_1 is
    begin
       for j in 1 .. 10 loop
          begin             -- was not indented
             null;
          end;
       end loop;
-   end simon;
+   end Test_For_1;
 
 end Ada_Mode.Nested_Packages;

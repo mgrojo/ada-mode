@@ -259,6 +259,9 @@ An example is:
        (expression)
        (expression "=>-other" expression))
 
+      (asynchronous_select
+       ("select-open" statements "then-select" "abort-select" statements "end-select" "select-end"))
+
       (attribute_definition_clause
        ("for-attribute" name "use-attribute" expression))
       ;; we need "for-attribute" to be distinct from "for-loop", so we
@@ -432,7 +435,11 @@ An example is:
        ;; assignment_statement
        (name ":=" expression)
 
+       ;; "abort" is an indentifier, except in asynchronous-select
+
        (accept_statement)
+
+       (asynchronous_select)
 
        ;; block_statement
        (identifier ":-label" "declare-label" declarations "begin-body" statements
@@ -473,7 +480,7 @@ An example is:
 
        ;; raise is left as a keyword. FIXME: raise identifier with?
 
-       ("return-stmt")
+       ("return-stmt");; FIXME: why to do we need this?
 
        ;; extended_return_statement
        ("return-ext" identifier ":-object" name); same as initialized object declaration
@@ -645,6 +652,7 @@ An example is:
 
 (defconst ada-indent-block-keywords
   '("=>-when"
+    "abort-select"
     "begin-body"
     "begin-open"
     "declare-open"
@@ -964,6 +972,15 @@ an element of TARGETS, return that token."
 			"when-select"))
 	"=>-when"
       "=>-other")))
+
+(defun ada-indent-refine-abort (token forward)
+  (let ((token (save-excursion
+		 (when forward (smie-default-backward-token))
+		 (ada-indent-backward-token))))
+
+    (if (equal token "then-select")
+	"abort-select"
+      "abort")))
 
 (defun ada-indent-refine-and (token forward)
   ;; 'and' occurs in interface types and logical expressions
@@ -1757,9 +1774,13 @@ an element of TARGETS, return that token."
 		 (when forward (smie-default-backward-token))
 		 (smie-default-backward-token))))
 
-    (if (equal token "and")
-	"then"; identifier
-      "then-if")))
+    (cond
+     ((equal token "and") "then"); identifier
+     ((member (nth 2 (save-excursion (ada-indent-goto-parent token 1)))
+	      '("if-open" "elsif"))
+      "then-if")
+     (t "then-select")
+     )))
 
 (defun ada-indent-refine-use (token forward)
   ;; 1) use_clause:
@@ -1992,6 +2013,7 @@ an element of TARGETS, return that token."
 
     (":" 	 ada-indent-refine-:)
     ("=>" 	 ada-indent-refine-=>)
+    ("abort" 	 ada-indent-refine-abort)
     ("and" 	 ada-indent-refine-and)
     ("begin" 	 ada-indent-refine-begin)
     ("case" 	 ada-indent-refine-case)
@@ -2477,6 +2499,13 @@ the start of CHILD, which must be a keyword."
 
       ((equal arg "<<")
        (ada-indent-rule-statement ada-indent-label arg))
+
+      ((equal arg "abort-select")
+       ;; exception to block-keyword indentation; preserve Ada mode 4.01 behavior
+       (save-excursion
+	 (let ((parent (ada-indent-goto-parent arg 1)))
+	   (back-to-indentation)
+	   (cons 'column (+ (current-column) ada-indent-broken)))))
 
       ((equal arg "end-record")
        ;; goto-parent leaves point on "record-open".

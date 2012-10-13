@@ -127,6 +127,7 @@ named_block.ali : named_block.adb
 	gnatmake -gnat2012 -gnatc -gnatyN3 $<
 
 clean : compile-clean test-clean
+	rm -f *~
 
 compile-clean :
 	rm -f *.ali
