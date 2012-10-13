@@ -46,7 +46,7 @@ package body Ada_Mode.Parens is
       return
         (1 => 1,
          2 =>
-          1 + 2 * 3,
+           1 + 2 * 3,
          3 => 1 +
            3 * 4,
          others => 5);

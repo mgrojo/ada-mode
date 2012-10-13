@@ -1,6 +1,7 @@
 
 --  7301-003:  Problem with which-func-mode reporting an incorrect
 --  function.
+--  FIXME: need automated test for which-func-mode
 
 procedure Indent10 is
 

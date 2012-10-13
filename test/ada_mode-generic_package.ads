@@ -58,18 +58,19 @@ generic
 
 package Ada_Mode.Generic_Package is
 
-   --  FIXME: these require full forward parse. persuing semantic some more.
-   --  generic
-   --     type Param_Type is <>;
-   --  procedure Generic_Procedure (Param_1 : in Param_Type);
+   generic
+      type Param_Type is (<>);
+      with function Function_1 (Param : in Param_Type) return Boolean;
+   procedure Generic_Procedure (Param_1 : in Param_Type);
 
-   --  generic procedure Generic_Procedure_Rename renames Generic_Procedure;
+   generic procedure Generic_Procedure_Rename renames Generic_Procedure;
 
-   --  generic
-   --     type Param_Type is range <>;
-   --     type Result_Type is range <>;
-   --  function Generic_Function (Param_1 : in Param_Type) return Result_Type;
+   generic
+      type Param_Type is range <>;
+      type Result_Type is range <>;
+      Threshold : in Param_Type;
+   function Generic_Function (Param_1 : in Param_Type) return Result_Type;
 
-   --  generic function Generic_Function_Rename renames Generic_Function;
+   generic function Generic_Function_Rename renames Generic_Function;
 
 end Ada_Mode.Generic_Package;
