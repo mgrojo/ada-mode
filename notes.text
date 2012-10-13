@@ -3,7 +3,8 @@ General notes on porting Emacs Ada mode indentation engine to smie
 (progn
     (add-to-list 'load-path (expand-file-name "."))
     (setq debug-on-error t); see errors from smie-indent-line
-    (load "test/runtest.el")
+    (load "test/runtest.el");; loads ada-mode
+    (setq ada-mode-hook (delete 'ada-find-file-setup ada-mode-hook))
     (which-function-mode)
     (add-hook 'ada-mode-hook
        (lambda ()
@@ -14,7 +15,7 @@ General notes on porting Emacs Ada mode indentation engine to smie
        (define-key ada-mode-map "\M-i" 'ada-indent-show-keyword-backward)
        (define-key ada-mode-map "\M-k" 'ada-indent-show-keyword-forward)
     ))
-)
+   )
 
 (setq ada-indent-debug-refine nil)
 
@@ -23,14 +24,17 @@ General notes on porting Emacs Ada mode indentation engine to smie
 ada-indent.el
 (sal-edit-library "smie")
 
+(progn
+    (setq ada-mode-hook (delete 'ada-wisi-setup ada-mode-hook))
+    (add-hook 'ada-mode-hook 'ada-indent-setup))
  current
 (shell-send-string "~/bin/mtn_sync_ada_france.sh" "*bash*")
 (xmtn-sync-review)
 
 test/Makefile
 make rest of test files work
-    test/indent.adb
-named association aggregate
+    ident9.adb
+select then abort
 
 hangs while typing 'package' at end of buffer
 
