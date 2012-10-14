@@ -236,8 +236,9 @@ An example is:
       ;; "is" "abstract" are identifiers
 
       (accept_statement
-       ("accept" identifier "do" statements "end-block")
-       ("accept" identifier))
+       ("accept-open" identifier "do" statements "end-block"))
+       ;; "accept identifier;" is left as an identifier; otherwise it
+       ;; is an opener without a matching closer
 
       (aggregate
        ("(" association_list ")"))
@@ -673,6 +674,7 @@ An example is:
     "is-type-block"
     "loop-body"
     "loop-open"
+    "or-select"
     "private-body"
     "record-open"
     "select-open"
@@ -763,7 +765,7 @@ spec, return t if is a generic, nil otherwise."
   ;; end. So if cache-max is not nearby, start at bob and scan
   ;; forward, to cache all the keyword refines.
   (save-excursion
-    (if (> (- (point) ada-indent-cache-max) 1000)
+    (if (> (- (point) ada-indent-cache-max) 500); 1000 too big
 	(save-excursion
 	  (goto-char (point-min))
 	  (forward-sexp); first context clause
@@ -800,7 +802,7 @@ spec, return t if is a generic, nil otherwise."
 	      (formal
 	       (setq result t))
 
-	      ((declaration nil)
+	      ((declaration unknown)
 	       ;; try again
 	       (goto-char (nth 0 token))
 	       (setq token (ada-indent-goto-statement-start (nth 1 token))))
@@ -822,7 +824,7 @@ spec, return t if is a generic, nil otherwise."
   "Assuming point is at the start of a statement, a normal
 declaration, or a generic formal declaration, examine a few refined
 tokens following point to see if we can determine which. Return
-'statement, 'declaration, 'formal, or nil. Preserves point."
+'statement, 'declaration, 'formal, or 'unknown. Preserves point."
   ;; Note the only way to know we are at the start of a statement or
   ;; decl is because we've just skipped over it backwards. For
   ;; example, while refining "begin", or "package" looking for "generic".
@@ -844,8 +846,8 @@ tokens following point to see if we can determine which. Return
 	(cond
 	 ((member
 	   token
-	   '(";" ":=" "accept" ":-label" "declare-open" "begin-open" "case" "delay" "exit-other" "exit-when"
-	     "if-open" "<<" "for-loop" "while" "loop-open" "return-stmt" "return-ext" "select-open"))
+	   '(";" ":=" "accept-open" ":-label" "declare-open" "begin-open" "case" "delay" "exit-other"
+	     "exit-when" "if-open" "<<" "for-loop" "while" "loop-open" "return-stmt" "return-ext" "select-open"))
 	  'statement)
 
 	 ((member
@@ -859,7 +861,7 @@ tokens following point to see if we can determine which. Return
 	   '("with-formal"))
 	  'formal)
 
-	 (t nil))))))
+	 (t 'unknown))))))
 
 (defun ada-indent-skip-param_list (forward)
   ;; While refining tokens, we don't want to call smie-next-sexp,
@@ -998,6 +1000,17 @@ an element of TARGETS, return that token."
 	"abort-select"
       "abort")))
 
+(defun ada-indent-refine-accept (token forward)
+  (let ((token (save-excursion
+		 (when (not forward) (smie-default-forward-token))
+		 (smie-default-forward-token);; identifier
+		 (smie-default-forward-token);; ";", "do"
+		 )))
+    (cond
+     ((equal token "do") "accept-open")
+     ((equal token ";")  "accept"); identifier
+     (t (ada-indent-refine-error "accept")))))
+
 (defun ada-indent-refine-and (token forward)
   ;; 'and' occurs in interface types and logical expressions
   ;; (search for interface_list in [1] annex P):
@@ -1127,13 +1140,13 @@ an element of TARGETS, return that token."
 
 	      ;; we've skipped a statement or declaration; see if we can tell which
 	      (ecase (ada-indent-statement-or-decl)
-		('statement
+		(statement
 		 (setq result "begin-open"))
-		('declaration
+		(declaration
 		 (setq result "begin-body"))
-		('formal
+		(formal
 		 (ada-indent-error "found generic formal parameter preceding begin spec"))
-		(nil
+		(unknown
 		 ;; try again
 		 (goto-char (nth 0 token))
 		 (setq token (ada-indent-goto-statement-start (nth 1 token))))
@@ -2036,6 +2049,7 @@ an element of TARGETS, return that token."
     (":" 	 ada-indent-refine-:)
     ("=>" 	 ada-indent-refine-=>)
     ("abort" 	 ada-indent-refine-abort)
+    ("accept" 	 ada-indent-refine-accept)
     ("and" 	 ada-indent-refine-and)
     ("begin" 	 ada-indent-refine-begin)
     ("case" 	 ada-indent-refine-case)
@@ -2335,22 +2349,23 @@ must be at the start of CHILD."
       ;; statements have non-keyword tokens before the first token
       ;; (assignent), so we have to use use ada-indent-backward-name
       ;; to find the previous keyword.
-      (save-excursion
-	(setq parent (ada-indent-backward-name))
-	(setq parent-pos (point))
-	(if (or
-	     (equal parent ";")
-	     (member parent ada-indent-block-keywords))
-	    (progn
-	      (smie-default-forward-token); ";" or block start
-	      (forward-comment (point-max)); also skips final whitespace
-	      (setq pos (point)))
-	  (if (equal parent ""); "("; this is a function call in an aggregate or param list
+      (when (not (member child ada-indent-block-keywords))
+	(save-excursion
+	  (setq parent (ada-indent-backward-name))
+	  (setq parent-pos (point))
+	  (if (or
+	       (equal parent ";")
+	       (member parent ada-indent-block-keywords))
 	      (progn
-		(setq parent "(")
-		(setq parent-pos (- (point) 1))
+		(smie-default-forward-token); ";" or block start
 		(forward-comment (point-max)); also skips final whitespace
-		(setq pos (point))))))
+		(setq pos (point)))
+	    (if (equal parent ""); "("; this is a function call in an aggregate or param list
+		(progn
+		  (setq parent "(")
+		  (setq parent-pos (- (point) 1))
+		  (forward-comment (point-max)); also skips final whitespace
+		  (setq pos (point)))))))
 
       ;; Make sure going to pos would be motion. In this case:
       ;;
@@ -2657,12 +2672,10 @@ the start of CHILD, which must be a keyword."
        ;; that's handled in :after block-keyword, ";".
        ;;
        (save-excursion
-	 (let (parent offset)
+	 (let (offset)
 	   (cond
 	    ((ada-indent-opener-p arg)
-	     (setq parent (ada-indent-goto-parent arg 2))
-
-	     (goto-char (nth 1 parent))
+	     (goto-char (nth 1 (ada-indent-goto-parent arg 2)))
 	     (if (or
 		  (bobp)
 		  (equal (nth 2 parent) ";"))
@@ -2670,7 +2683,7 @@ the start of CHILD, which must be a keyword."
 	       (setq offset ada-indent)))
 
 	    (t
-	     (setq parent (ada-indent-goto-parent arg 1))
+	     (goto-char (nth 1 (ada-indent-goto-parent arg 1)))
 	     (setq offset 0))
 	    )
 	   (back-to-indentation)
@@ -2818,22 +2831,28 @@ the start of CHILD, which must be a keyword."
 
 (defun ada-indent-record()
   "Indent a line containing the \"record\" that starts a record component list."
-  (save-excursion
-    (if (not (equal "type" (smie-default-forward-token)))
-	(let*
-	    ((token (progn
-		      (goto-char (+ 1 (line-end-position)))
-		      ;; forward-comment doesn't work from within a comment
-		      (forward-comment -1)
-		      (ada-indent-backward-token)))
-	     (indent
-	      (if (equal token "record-open")
-		  (ada-indent-rule-statement ada-indent-record-rel-type token))))
+  (catch 'quit
+    (when (> (nth 0 (syntax-ppss)) 0)
+      ;; inside discriminant parens; let other rules handle it
+      (throw 'quit nil))
 
-	  (cond
-	   ((null indent) nil)
-	   ((eq (car-safe indent) 'column) (cdr indent)))
-	  ))))
+    (save-excursion
+      (if (not (equal "type" (smie-default-forward-token)))
+	  (let*
+	      ((token (progn
+			(goto-char (+ 1 (line-end-position)))
+			;; forward-comment doesn't work from within a comment
+			(forward-comment -1)
+			(ada-indent-backward-token)))
+	       (indent
+		(if (equal token "record-open")
+		    (ada-indent-rule-statement ada-indent-record-rel-type token))))
+
+	    (cond
+	     ((null indent) nil)
+	     ((eq (car-safe indent) 'column) (cdr indent)))
+	    )))
+    ))
 
 (defun ada-indent-before-keyword()
   "Replacement for `smie-indent-keyword', tailored to Ada.
@@ -2918,7 +2937,7 @@ they always run the refine algorithm.")
   "Show the grammar info for word following point, and move across it."
   (interactive)
   (when ada-indent-debug-refine
-      (setq ada-indent-cache-max (point)))
+      (setq ada-indent-cache-max (- (point) 1)))
   (message "%s" (assoc (ada-indent-forward-token) smie-grammar)))
 
 (defun ada-indent-show-keyword-backward ()
@@ -2927,7 +2946,7 @@ they always run the refine algorithm.")
   (when ada-indent-debug-refine
     (save-excursion
       (smie-default-backward-token)
-      (setq ada-indent-cache-max (point))))
+      (setq ada-indent-cache-max (- (point) 1))))
   (message "%s" (assoc (ada-indent-backward-token) smie-grammar)))
 
 (defun ada-indent-show-parent ()

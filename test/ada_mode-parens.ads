@@ -2,6 +2,23 @@
 with Ada.Text_IO;
 package Ada_Mode.Parens is
 
+   -- non-pathological; compare to T3
+   type T1 (A : Integer;
+            B : Integer)
+      is limited record
+         V : Character;
+         C : Integer;
+      end record;
+
+   type T3 (A : Integer;
+            B : Integer) is limited record
+               V : Character;
+               -- ada-mode 4.01 had this at ada-indent relative to
+               -- type. But this is a pathological case; user should
+               -- put 'is limited record' on next line!
+               C : Integer;
+            end record;
+
    --  A pathological subprogram declaration
    function Function_1
      (Param_1,

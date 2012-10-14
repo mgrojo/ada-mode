@@ -34,7 +34,11 @@ ada-indent.el
 
 test/Makefile
 make rest of test files work
-    test/limited_record.ads.diff
+    test/loop_1.adb
+or-select confuses smie-backward-sexp? yes
+    tie or to accept?
+    add option to smie; we never want to stop at associative operators (they are not keywords!)
+    rewrite smie-next-sexp, set forward-sexp-command
 
 hangs while typing 'package' at end of buffer
 
