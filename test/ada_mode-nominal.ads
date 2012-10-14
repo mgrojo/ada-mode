@@ -6,6 +6,14 @@ package Ada_Mode.Nominal is
    --  No comment on the first line, to make sure we can handle that :)
    --  blank on first line, to test beginning-of-buffer logic for "with-context"
 
+   -- ada-indent-refine-subprogram calls ada-indent-is-generic-p,
+   -- which scans the entire buffer looking for generic. That can blow
+   -- the lisp stack if enough occurences of unrefined "function" or
+   -- "procedure" are encountered, which is the case is in this
+   -- buffer, when indenting "function Function_2f". So we force
+   -- indenting that first, to test that problem is fixed.
+   --EMACSCMD: (progn (forward-line) (search-forward "function Function_2f") (indent-for-tab-command))
+
    pragma Elaborate_Body (Ada_Mode.Nominal);
 
    -- Comment after one line of code; broken versions of the
@@ -386,6 +394,12 @@ package Ada_Mode.Nominal is
    function Function_2f
      (Param : in Parent_Type_1)
      return Float;
+
+   function Function_2g
+     (Param : in Private_Type_1)
+     return Float
+     is abstract; -- ada-indent-broken
+   --  comment after 'is abstract', aligned with 'function'
 
    ----------
    -- nested packages

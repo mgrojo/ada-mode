@@ -232,6 +232,9 @@ An example is:
       ;; operators, "-other" if no better name is available. That way
       ;; it is clear when a keyword is being left as an indentifier.
 
+      ;; abstract_subprogram_declaration
+      ;; "is" "abstract" are identifiers
+
       (accept_statement
        ("accept" identifier "do" statements "end-block")
        ("accept" identifier))
@@ -753,7 +756,20 @@ spec, return t if is a generic, nil otherwise."
   ;; procedure and function scans back to 'is-package'. Consider
   ;; caching additional info; (ada-indent-cache-generic-p cache) on
   ;; each declaration start keyword.
+  ;;
+  ;; Worse, it can overflow the lisp stack, if every procedure and
+  ;; function needs to be refined; we are called recursively. That
+  ;; happens in test/ada_mode-nominal.ads, if we indent first near the
+  ;; end. So if cache-max is not nearby, start at bob and scan
+  ;; forward, to cache all the keyword refines.
   (save-excursion
+    (if (> (- (point) ada-indent-cache-max) 1000)
+	(save-excursion
+	  (goto-char (point-min))
+	  (forward-sexp); first context clause
+	  (forward-sexp); rest of buffer
+	  ))
+
     ;; Scan back over things that might be generic formal
     ;; parameters. If we find a definite formal param (has -formal in
     ;; the refined keyword), we're done. If we find "generic", we're
@@ -1294,7 +1310,13 @@ an element of TARGETS, return that token."
 
 	((equal token "return-spec")
 	 ;; function identifier return name is declarations begin
-	 "is-subprogram_body")
+	 ;; function identifier return name is abstract;
+	 (if (equal "abstract"
+		    (progn
+		      (smie-default-forward-token); is
+		      (smie-default-forward-token)))
+	     "is"
+	 "is-subprogram_body"))
 
 	((equal token "type")
 	 (or
@@ -2498,7 +2520,13 @@ the start of CHILD, which must be a keyword."
 	 (cons 'column (current-column))))
 
       ((equal arg "<<")
-       (ada-indent-rule-statement ada-indent-label arg))
+       (let (offset
+	     (token (save-excursion (ada-indent-backward-token))))
+	 (cond
+	  ((member token ada-indent-block-keywords)
+	   (setq offset (+ ada-indent ada-indent-label)))
+	  (t (setq offset ada-indent-label)))
+	 (ada-indent-rule-statement offset arg)))
 
       ((equal arg "abort-select")
        ;; exception to block-keyword indentation; preserve Ada mode 4.01 behavior
@@ -2889,13 +2917,17 @@ they always run the refine algorithm.")
 (defun ada-indent-show-keyword-forward ()
   "Show the grammar info for word following point, and move across it."
   (interactive)
-  (when ada-indent-debug-refine (ada-indent-invalidate-cache))
+  (when ada-indent-debug-refine
+      (setq ada-indent-cache-max (point)))
   (message "%s" (assoc (ada-indent-forward-token) smie-grammar)))
 
 (defun ada-indent-show-keyword-backward ()
   "Show the grammar info for word preceding point, and move across it."
   (interactive)
-  (when ada-indent-debug-refine (ada-indent-invalidate-cache))
+  (when ada-indent-debug-refine
+    (save-excursion
+      (smie-default-backward-token)
+      (setq ada-indent-cache-max (point))))
   (message "%s" (assoc (ada-indent-backward-token) smie-grammar)))
 
 (defun ada-indent-show-parent ()
