@@ -36,7 +36,15 @@ ada-indent.el
 test/Makefile
 make rest of test files work
     test/if_statement.adb
-and then in parens
+and then
+    correct if use M-I first!!!!!???
+    caches inside parens!
+    validate-cache doesn't!
+    but why does that screw up goto-parent?
+    ada-indent-backward-name doesn't skip "and", returns nil!
+    ada-indent-backward-token returned nil!
+        because that's the cache value on an un-refined but refinable keyword
+        check for that, call validate-parens
 
     test/loop_1.adb
 or-select confuses smie-backward-sexp? yes

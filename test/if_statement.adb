@@ -25,7 +25,7 @@ begin
    if A
      or else (B
                 and then C
-                and then D)  --  Indented on 'if', instead of 'and then'
+                  and then D)  --  was indented on 'if', instead of 'and then'
    then
       null;
    end if;
@@ -33,7 +33,7 @@ begin
    if A
      or else (B
                 and then C
-                and then D)  --  Indented on 'if', instead of 'and then'
+                and then D) -- ditto
      or else ((B
                  and then C)
                 or else

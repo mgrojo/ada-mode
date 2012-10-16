@@ -133,7 +133,6 @@ An example is:
    (smie-bnf->prec2
     '(;; non-terminal syntax terms not otherwise expanded
       (identifier)
-      (operator)
 
       ;; BNF from [1] appendix P, vastly simplified
       ;; (info "(aarm2012)Annex P" "*info Annex P*")
@@ -2693,8 +2692,8 @@ the start of CHILD, which must be a keyword."
        ;;       declare
        ;;       begin
        ;;
-       ;;    Indenting "declare": goto-parent returns ";", with point on P2
-       ;;    algorithm: indent to parent
+       ;;    Indenting "declare": goto-parent returns first ";", with point on P2
+       ;;    algorithm: indent to point (parent might be hanging)
        ;;
        ;;    Indenting "begin"  : goto-parent returns "declare", with point on "declare"
        ;;    Indenting "end"    : goto-parent returns "declare", with point on "declare"
@@ -2751,11 +2750,12 @@ the start of CHILD, which must be a keyword."
 	   (cond
 	    ((ada-indent-opener-p arg)
 	     ;; all cases, indenting first keyword; declare-open, begin-open.
-	     (goto-char (nth 1 (setq parent (ada-indent-goto-parent arg 2))))
+	     (setq parent (ada-indent-goto-parent arg 2))
 	     (if (or
 		  (bobp)
 		  (equal (nth 2 parent) ";"))
 		 (setq offset 0)
+	       (goto-char (nth 1 parent))
 	       (setq offset ada-indent)))
 
 	    (t

@@ -266,7 +266,8 @@ package body Ada_Mode.Nominal is
 
    function Function_1d return Float
    is begin
-      Procedure_2a;
+      Procedure_2a
+        ; -- hanging statement, to test that declare does not indent on it
       Procedure_2a;
 
       declare -- no label, two statements between begin, declare
@@ -313,7 +314,8 @@ package body Ada_Mode.Nominal is
       type Array_Type_2 is array (1 .. 3) of Array_Type_1;
       Local_A : Array_Type_2 := (others => (others => 0.0));
    begin
-      Procedure_2a;
+      Procedure_2a
+        ;
 
       -- second begin block FIXME: this comment is indented wrong!
       begin
@@ -350,7 +352,8 @@ package body Ada_Mode.Nominal is
    function Function_2f (Param : in Parent_Type_1)
      return Float is
    begin
-      Procedure_2a;
+      Procedure_2a
+        ;
       Procedure_2a;
       begin -- no declare, two statements
          return 1.0;
