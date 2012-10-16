@@ -13,6 +13,7 @@ General notes on porting Emacs Ada mode indentation engine to smie
        (define-key ada-mode-map "\M-9" 'ada-indent-show-child)
        (define-key ada-mode-map "\M-p" 'ada-indent-show-statement-start)
        (define-key ada-mode-map "\M-i" 'ada-indent-show-keyword-backward)
+       (define-key ada-mode-map "\M-j" 'ada-indent-show-cache)
        (define-key ada-mode-map "\M-k" 'ada-indent-show-keyword-forward)
     ))
    )
@@ -34,11 +35,15 @@ ada-indent.el
 
 test/Makefile
 make rest of test files work
+    test/if_statement.adb
+and then in parens
+
     test/loop_1.adb
 or-select confuses smie-backward-sexp? yes
     tie or to accept?
     add option to smie; we never want to stop at associative operators (they are not keywords!)
     rewrite smie-next-sexp, set forward-sexp-command
+    posted, arguing with Stefan
 
 hangs while typing 'package' at end of buffer
 

@@ -1003,8 +1003,7 @@ an element of TARGETS, return that token."
 (defun ada-indent-refine-accept (token forward)
   (let ((token (save-excursion
 		 (when (not forward) (smie-default-forward-token))
-		 (smie-default-forward-token);; identifier
-		 (smie-default-forward-token);; ";", "do"
+		 (ada-indent-forward-name);; identifier, entry family, parameters; returns ";", "do"
 		 )))
     (cond
      ((equal token "do") "accept-open")
@@ -2097,10 +2096,36 @@ If a token is not in the alist, it is returned unrefined.")
   "Maximimum position in buffer where ada-indent token refinement cache is valid.")
 (make-variable-buffer-local 'ada-indent-cache-max)
 
+(defvar ada-indent-refining nil
+  "t when parsing forward to validate cache.")
+
 (defun ada-indent-invalidate-cache()
   "Invalidate the ada-indent token cache for the current buffer."
   (interactive)
   (setq ada-indent-cache-max 0))
+
+(defun ada-indent-validate-cache (pos)
+  "Update cache from `ada-indent-cache-max' to at least POS."
+  (save-excursion
+    (let ((ada-indent-refining t)
+	  token)
+      (goto-char ada-indent-cache-max)
+      (while (> pos (point))
+	(setq token (ada-indent-forward-token))
+	(cond
+	 ((and (equal token "")
+	       (eq (char-after) ?\)))
+	  ;; get out of parens, start again with next token
+	  (forward-char 1))
+
+	 ((or (not (ada-indent-keyword-p token))
+	      (ada-indent-closer-p token))
+	  (smie-forward-sexp nil))
+
+	 (t
+	  (smie-forward-sexp token))
+	 ))
+    )))
 
 (defun ada-indent-get-cache (pos)
   "Return refined token string from the `ada-indent-cache' text property at POS."
@@ -2118,8 +2143,26 @@ Return TOKEN."
   (setq ada-indent-cache-max (max ada-indent-cache-max pos))
   token)
 
+(defvar ada-indent-before-change-code-p nil)
+(defun ada-indent-before-change (begin end)
+  ;; We need to move ada-indent-cache-max to begin if this change
+  ;; affects code, ie non-whitespace non-comment.
+  (save-excursion
+    (if (= begin end)
+	;; insertion
+	(setq ada-indent-before-change-code-p nil)
+      (goto-char begin)
+      (forward-comment (point-max))
+      (setq ada-indent-before-change-code-p (< end (point))))))
+
 (defun ada-indent-after-change (begin end length)
-  (setq ada-indent-cache-max (min ada-indent-cache-max begin)))
+  (when (or ada-indent-before-change-code-p
+	    (and (not (= begin end))
+		 (save-excursion
+		   (goto-char begin)
+		   (forward-comment (point-max))
+		   (< end (point)))))
+    (setq ada-indent-cache-max (min ada-indent-cache-max begin))))
 
 (defun ada-indent-next-token (forward)
   "Move to the next token; forward if FORWARD non-nil, backward otherwise.
@@ -2142,10 +2185,13 @@ Return the token text or a refinement of it. Manage the refinement cache."
      ((stringp refine) refine)
 
      ((functionp refine)
-      (or (and
-	   (<= cache-pos ada-indent-cache-max)
-	   (ada-indent-get-cache cache-pos))
-	  (ada-indent-put-cache cache-pos (funcall refine token forward))))
+      (if (<= cache-pos ada-indent-cache-max)
+	  (ada-indent-get-cache cache-pos)
+	(if ada-indent-refining
+	    (ada-indent-put-cache cache-pos (funcall refine token forward))
+	  (ada-indent-validate-cache cache-pos)
+	  (ada-indent-get-cache cache-pos)
+	  )))
 
      (t token))
     ))
@@ -2165,6 +2211,10 @@ Return the token text or a refinement of it. Manage the refinement cache."
 (defun ada-indent-opener-p (token)
   (let ((association (assoc token ada-indent-grammar)))
     (when association (listp (nth 1 association)))))
+
+(defun ada-indent-closer-p (token)
+  (let ((association (assoc token ada-indent-grammar)))
+    (when association (listp (nth 2 association)))))
 
 (defun ada-indent-goto-parent (child up)
   "Goto a parent (defined by where smie-backward-sexp stops).
@@ -2611,8 +2661,11 @@ the start of CHILD, which must be a keyword."
        ;;       begin
        ;;
        ;;    Indenting "declare": goto-parent returns "function", with point on "function"
+       ;;    algorithm: indent to point + ada-indent = parent + ada-indent
+       ;;
        ;;    Indenting "begin"  : goto-parent returns "declare", with point on "declare"
        ;;    Indenting "end"    : goto-parent returns "declare", with point on "declare"
+       ;;    algorithm: indent to point = parent
        ;;
        ;; 2) one statement
        ;;
@@ -2624,8 +2677,11 @@ the start of CHILD, which must be a keyword."
        ;;       begin
        ;;
        ;;    Indenting "declare": goto-parent returns "begin", with point on P1
+       ;;    algorithm: indent to parent + ada-indent
+       ;;
        ;;    Indenting "begin"  : goto-parent returns "declare", with point on "declare"
        ;;    Indenting "end"    : goto-parent returns "declare", with point on "declare"
+       ;;    algorithm: indent to point = parent
        ;;
        ;; 3) two or more statements
        ;;
@@ -2638,44 +2694,64 @@ the start of CHILD, which must be a keyword."
        ;;       begin
        ;;
        ;;    Indenting "declare": goto-parent returns ";", with point on P2
+       ;;    algorithm: indent to parent
+       ;;
        ;;    Indenting "begin"  : goto-parent returns "declare", with point on "declare"
        ;;    Indenting "end"    : goto-parent returns "declare", with point on "declare"
+       ;;    algorithm: indent to point = parent
        ;;
        ;; 4) Function 2a: Label before declare, no statements
        ;;    a) indenting label  : goto-parent returns "function", with point on "function"
+       ;;    algorithm: indent to parent + ada-indent
+       ;;
        ;;    b) indenting declare: goto-parent returns "begin", with point on label
        ;;    c) indenting begin, end: goto-parent returns function "begin", with point on label
+       ;;    algorithm: indent to point
        ;;
        ;; 5) Function_2b: Label before declare, one statement
        ;;    a) indenting label  : goto-parent returns "function", with point on "function"
-       ;;    b) indenting declare: goto-parent returns ";", with point on label
-       ;;    c) indenting begin, end: ""
+       ;;    algorithm: indent to parent + ada-indent
+       ;;
+       ;;    b) indenting declare, begin, end: goto-parent returns ";", with point on label
+       ;;    algorithm: indent to point
        ;;
        ;; 6) Function_2c: Label before declare, two statements
        ;;    a) indenting label  : goto-parent returns "begin", with point on P1
-       ;;    b) indenting declare: goto-parent returns ";", with point on label
-       ;;    c) indenting begin, end: ""
+       ;;    algorithm: indent to parent + ada-indent
+       ;;
+       ;;    b) indenting declare, begin, end: goto-parent returns ";", with point on label
+       ;;    algorithm: indent to point
        ;;
        ;; 7) Function_2d: begin is first keyword, no statements
        ;;    a) indenting begin: goto-parent returns "function", with point on "function"
+       ;;    algorithm: indent to parent + ada-indent
+       ;;
        ;;    b) indenting end  : goto-parent returns "begin", with point on "begin"
+       ;;    algorithm: indent to point
        ;;
        ;; 8) Function_2e: begin is first keyword, one statement
        ;;    a) indenting begin: goto-parent returns previous "begin", with point on "P1"
+       ;;    algorithm: indent to parent + ada-indent
+       ;;
        ;;    b) indenting end  : goto-parent returns "begin", with point on "begin"
+       ;;    algorithm: indent to point
        ;;
        ;; 9) Function_2f: begin is first keyword, two statements
        ;;    a) indenting begin: goto-parent returns ";", with point on "P2"
+       ;;    algorithm: indent to point
+       ;;
        ;;    b) indenting end  : goto-parent returns "begin", with point on "begin"
+       ;;    algorithm: indent to point
        ;;
        ;; Note that we don't get here if indenting a block label;
        ;; that's handled in :after block-keyword, ";".
        ;;
        (save-excursion
-	 (let (offset)
+	 (let (offset parent)
 	   (cond
 	    ((ada-indent-opener-p arg)
-	     (goto-char (nth 1 (ada-indent-goto-parent arg 2)))
+	     ;; all cases, indenting first keyword; declare-open, begin-open.
+	     (goto-char (nth 1 (setq parent (ada-indent-goto-parent arg 2))))
 	     (if (or
 		  (bobp)
 		  (equal (nth 2 parent) ";"))
@@ -2683,7 +2759,8 @@ the start of CHILD, which must be a keyword."
 	       (setq offset ada-indent)))
 
 	    (t
-	     (goto-char (nth 1 (ada-indent-goto-parent arg 1)))
+	     ;; all cases, indenting second or third keyword; declare-label, begin-body, end
+	     (ada-indent-goto-parent arg 1)
 	     (setq offset 0))
 	    )
 	   (back-to-indentation)
@@ -2973,6 +3050,11 @@ they always run the refine algorithm.")
     (setq parent (ada-indent-goto-statement-start (if (equal token "") "(" token)))
     (message "%s => %s" token (nth 1 parent))))
 
+(defun ada-indent-show-cache ()
+  "Show cache at point."
+  (interactive)
+  (message "%s" (ada-indent-get-cache (point))))
+
 (defun ada-indent-wrapper (indent-function)
   "Call INDENT-FUNCTION, check for errors, report non-nil."
   (let ((pos (point))
@@ -3049,6 +3131,7 @@ This lets us know which indentation function succeeded."
   ;; (it tries to run a broken parser), so we turn it off. Not clear
   ;; if we want to turn it back on ever!
 
+  (add-hook 'before-change-functions 'ada-indent-before-change)
   (add-hook 'after-change-functions 'ada-indent-after-change)
 
   (define-key ada-mode-map "\t" 'indent-for-tab-command)

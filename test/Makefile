@@ -39,6 +39,8 @@ TEST_FILES := $(filter-out bug_1920.adb, $(TEST_FILES)) # ada-indent-label
 TEST_FILES := $(filter-out ada_mode-options-indent_return_1.ads, $(TEST_FILES)) # ada-indent-return
 TEST_FILES := $(filter-out ada_mode-options-indent_return_2.ads, $(TEST_FILES)) # ada-indent-return
 TEST_FILES := $(filter-out ada_mode-quantified_expressions.adb, $(TEST_FILES)) # ?
+TEST_FILES := $(filter-out loop_1.adb, $(TEST_FILES)) # select or; waiting on result of debate with Stefan
+
 
 # These don't indent properly because there's no leading comment/white
 # space in the file.
@@ -55,6 +57,7 @@ TEST_FILES := $(filter-out ada_mode-separate_protected_body.adb, $(TEST_FILES))
 COMPILE_FILES := $(TEST_FILES)
 
 # this is for debug only
+TEST_FILES := $(filter-out debug.adb, $(TEST_FILES))
 COMPILE_FILES := $(filter-out debug.adb, $(COMPILE_FILES))
 
 # These heritage tests don't compile, and they are too hard to fix
