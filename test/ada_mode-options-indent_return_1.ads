@@ -28,7 +28,7 @@ package Function1 is
                              return Integer;
 
    procedure H (B : access function (C : Integer)
-                  return Integer);   --  from ?????
+                                    return Integer);   --  from ?????
 
    generic
       with function J (B : Integer)
