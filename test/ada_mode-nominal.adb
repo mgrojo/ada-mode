@@ -44,6 +44,8 @@ package body Ada_Mode.Nominal is
          function Local_Function return Integer
          is
             Bad_Thing : exception;
+            Dummy : Boolean;
+            pragma Unreferenced (Dummy); -- test ada-indent-statement-or-declaration handling of this in refine-begin
          begin
             if True then
                begin

@@ -25,6 +25,7 @@ General notes on porting Emacs Ada mode indentation engine to smie
 
 ada-indent.el
 (sal-edit-library "smie")
+/Apps/emacs-24.2/lisp/emacs-lisp/smie.el
 
 (progn
     (setq ada-mode-hook (delete 'ada-wisi-setup ada-mode-hook))
@@ -35,20 +36,14 @@ ada-indent.el
 
 test/Makefile
 make rest of test files work
-    test/if_statement.adb
-and then
-    correct if use M-I first!!!!!???
-    caches inside parens!
-    validate-cache doesn't!
-    but why does that screw up goto-parent?
-    ada-indent-backward-name doesn't skip "and", returns nil!
-    ada-indent-backward-token returned nil!
-        because that's the cache value on an un-refined but refinable keyword
-        check for that, call validate-parens
+test/main_procedure.adb
+    smie-backward-sexp returns "("!
+    make ada-indent-backward-name do the same
+    add this test to ada_mode-parens.adb
 
     test/loop_1.adb
 or-select confuses smie-backward-sexp? yes
-    tie or to accept?
+    tie or to accept? no
     add option to smie; we never want to stop at associative operators (they are not keywords!)
     rewrite smie-next-sexp, set forward-sexp-command
     posted, arguing with Stefan

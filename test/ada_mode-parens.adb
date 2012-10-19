@@ -52,4 +52,100 @@ package body Ada_Mode.Parens is
          others => 5);
    end;
 
+   procedure If_Statement
+     (A : in Boolean;
+      B : in Boolean;
+      C : in Boolean;
+      D : in Boolean;
+      E : in Boolean;
+      G : in Boolean)
+   is
+   begin
+
+      if A
+        or else B
+        or else C
+      then
+         null;
+      end if;
+
+      if A
+        or else (B
+                   and then C
+                   and then D)  --  requires ada-indent-validate-cache-paren
+      then
+         null;
+      end if;
+
+      if A
+        or else (B
+                   and then C
+                   and then D)
+        or else ((B
+                    and then C)
+                   or else
+                   (D
+                      and then E))
+        or else G
+      then
+         null;
+      end if;
+
+      while A
+        or else B
+      loop
+         null;
+      end loop;
+
+      while A
+        or else (B
+                   and then C
+                   and then D)
+      loop
+         null;
+      end loop;
+
+      while A
+        or else (B
+                   and then C
+                   and then D)
+        or else ((B
+                    and then C)
+                   or else
+                   (D
+                      and then E))
+        or else G
+      loop
+         null;
+      end loop;
+
+      loop
+         exit when A
+           or else B
+           or else C;
+
+         exit when A
+           or else (B
+                      and then C
+                        and then D); --  Indented on 'exit' instead of 'and then'
+
+         exit when A
+           or else (B
+                      and then C
+                      and then D)  --  Indented on 'if', instead of 'and then'
+           or else ((B
+                       and then C)
+                      or else
+                      (D
+                         and then E))
+           or else G;
+      end loop;
+
+   end If_Statement;
+
+   procedure Hello
+   is begin
+      Ada.Text_IO.Put_Line ("Hello" &
+                              " World");
+
 end Ada_Mode.Parens;

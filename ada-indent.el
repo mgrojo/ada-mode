@@ -753,30 +753,14 @@ that are not allowed by Ada, but we don't care."
 (defun ada-indent-generic-p ()
   "Assuming point is at the start of a package or subprogram
 spec, return t if is a generic, nil otherwise."
-  ;; This is noticably slow; in a non-generic package spec, _every_
-  ;; procedure and function scans back to 'is-package'. Consider
-  ;; caching additional info; (ada-indent-cache-generic-p cache) on
-  ;; each declaration start keyword.
-  ;;
-  ;; Worse, it can overflow the lisp stack, if every procedure and
-  ;; function needs to be refined; we are called recursively. That
-  ;; happens in test/ada_mode-nominal.ads, if we indent first near the
-  ;; end. So if cache-max is not nearby, start at bob and scan
-  ;; forward, to cache all the keyword refines.
   (save-excursion
-    (if (> (- (point) ada-indent-cache-max) 500); 1000 too big
-	(save-excursion
-	  (goto-char (point-min))
-	  (forward-sexp); first context clause
-	  (forward-sexp); rest of buffer
-	  ))
-
     ;; Scan back over things that might be generic formal
     ;; parameters. If we find a definite formal param (has -formal in
     ;; the refined keyword), we're done. If we find "generic", we're
     ;; done. If we find something else that can't be a formal
     ;; parameter (ie package start), we're done.
     (let ((token (save-excursion (list (ada-indent-backward-token) (point))))
+	  stmt-or-decl
 	  (result 'not-found)
 	  (first t))
       (setq token (reverse token)); set up for goto-statement-start loop
@@ -794,14 +778,24 @@ spec, return t if is a generic, nil otherwise."
 		(setq token (ada-indent-goto-statement-start (nth 1 token))))
 
 	    ;; we've skipped a statement or declaration; see if we can tell which
-	    (ecase (ada-indent-statement-or-decl)
+	    (setq stmt-or-decl (ada-indent-statement-or-decl))
+	    (ecase (car stmt-or-decl)
 	      (statement
 	       (ada-indent-error "found statement preceding package or subprogram spec"))
 
 	      (formal
 	       (setq result t))
 
-	      ((declaration unknown)
+	      (declaration
+	       ;; There are only a two non-formal declarations that
+	       ;; can occur in a generic formal parameter list; formal_object_declaration, formal_type_declaration.
+	       (if (not (member (cadr stmt-or-decl) '(":-object" "type")))
+		   (setq result nil)
+		 ;; try again
+		 (goto-char (nth 0 token))
+		 (setq token (ada-indent-goto-statement-start (nth 1 token)))))
+
+	      (unknown
 	       ;; try again
 	       (goto-char (nth 0 token))
 	       (setq token (ada-indent-goto-statement-start (nth 1 token))))
@@ -821,9 +815,11 @@ spec, return t if is a generic, nil otherwise."
 
 (defun ada-indent-statement-or-decl ()
   "Assuming point is at the start of a statement, a normal
-declaration, or a generic formal declaration, examine a few refined
-tokens following point to see if we can determine which. Return
-'statement, 'declaration, 'formal, or 'unknown. Preserves point."
+declaration, or a generic formal declaration, examine a few
+refined tokens following point to see if we can determine
+which. Return (class token), where `class' is 'statement,
+'declaration, 'formal, or 'unknown; `token' is the determining
+token or nil. Preserves point."
   ;; Note the only way to know we are at the start of a statement or
   ;; decl is because we've just skipped over it backwards. For
   ;; example, while refining "begin", or "package" looking for "generic".
@@ -833,7 +829,7 @@ tokens following point to see if we can determine which. Return
       (let ((token (ada-indent-forward-token)))
 	(if (not (ada-indent-keyword-p token))
 	    (if (equal token "pragma"); not worth making this a keyword
-		(throw 'quit 'declaration)
+		(throw 'quit (list 'declaration "pragma"))
 	      (setq token (ada-indent-forward-name))))
 
 	;; lists compiled by going thru (statement ..) and (declaration
@@ -847,20 +843,18 @@ tokens following point to see if we can determine which. Return
 	   token
 	   '(";" ":=" "accept-open" ":-label" "declare-open" "begin-open" "case" "delay" "exit-other"
 	     "exit-when" "if-open" "<<" "for-loop" "while" "loop-open" "return-stmt" "return-ext" "select-open"))
-	  'statement)
+	  (list 'statement token))
 
 	 ((member
 	   token
 	   '("for-attribute" "entry" ":-object" "generic" ":-object" "package-plain" "package-renames" "protected-body"
 	     "function-spec" "overriding" "procedure-spec" "subtype" "subtype" "type" "use-attribute" "use-decl"))
-	  'declaration)
+	  (list 'declaration token))
 
-	 ((member
-	   token
-	   '("with-formal"))
-	  'formal)
+	 ((equal token "with-formal")
+	  (list 'formal token))
 
-	 (t 'unknown))))))
+	 (t (list 'unknown nil)))))))
 
 (defun ada-indent-skip-param_list (forward)
   ;; While refining tokens, we don't want to call smie-next-sexp,
@@ -1137,7 +1131,7 @@ an element of TARGETS, return that token."
 		(setq result "begin-body")
 
 	      ;; we've skipped a statement or declaration; see if we can tell which
-	      (ecase (ada-indent-statement-or-decl)
+	      (ecase (car (ada-indent-statement-or-decl))
 		(statement
 		 (setq result "begin-open"))
 		(declaration
@@ -2126,6 +2120,36 @@ If a token is not in the alist, it is returned unrefined.")
 	 ))
     )))
 
+(defun ada-indent-validate-cache-parens ()
+  "Assuming point is inside parens, validate cache within the parens."
+  (save-excursion
+    ;; syntax-ppss sometimes tells us we are not in a paren, even when
+    ;; we are; not debugging that.
+    (let ((prev-cache-max ada-indent-cache-max)
+	  (ada-indent-cache-max 0)
+	  (done nil)
+	  (ada-indent-refining t)
+	  token)
+
+      (goto-char (+ 1 (scan-lists (point) -1 1)));; just after opening paren
+      (setq ada-indent-cache-max (point));; force calling refine-*
+      (while (not done)
+	(setq token (ada-indent-forward-token))
+	(cond
+	 ((and (equal token "")
+	       (eq (char-after) ?\)))
+	  (setq done t))
+
+	 ((or (not (ada-indent-keyword-p token))
+	      (ada-indent-closer-p token))
+	  (smie-forward-sexp nil))
+
+	 (t
+	  (smie-forward-sexp token))
+	 ))
+      (setq ada-indent-cache-max prev-cache-max)
+  )))
+
 (defun ada-indent-get-cache (pos)
   "Return refined token string from the `ada-indent-cache' text property at POS."
   (get-text-property pos 'ada-indent-cache))
@@ -2133,11 +2157,6 @@ If a token is not in the alist, it is returned unrefined.")
 (defun ada-indent-put-cache (pos token)
   "Set TOKEN as the refined token string in the `ada-indent-cache' text property at POS.
 Return TOKEN."
-  ;; IMPROVEME: we could store `smie--levels' as well, and resume
-  ;; `smie-forward-sexp' from the previous cached token, instead of
-  ;; from (point-min). But so far things are fast enough (and finding
-  ;; "the previous cached token" is not trivial, unless it is at
-  ;; ada-indent-cache-max).
   (put-text-property pos (+ 1 pos) 'ada-indent-cache token)
   (setq ada-indent-cache-max (max ada-indent-cache-max pos))
   token)
@@ -2166,10 +2185,6 @@ Return TOKEN."
 (defun ada-indent-next-token (forward)
   "Move to the next token; forward if FORWARD non-nil, backward otherwise.
 Return the token text or a refinement of it. Manage the refinement cache."
-  ;; We only need the cache for a couple tokens, but since we have the
-  ;; mechanism, it doesn't hurt to use it for all of them. So we
-  ;; implement it here.
-
   (let* (cache-pos
 	 (token (if forward
 		    (progn
@@ -2185,7 +2200,13 @@ Return the token text or a refinement of it. Manage the refinement cache."
 
      ((functionp refine)
       (if (<= cache-pos ada-indent-cache-max)
-	  (ada-indent-get-cache cache-pos)
+	  (or (ada-indent-get-cache cache-pos)
+	      ;; cache can be nil inside parens; those are skipped on
+	      ;; the first pass, but we may now be indenting inside
+	      ;; one.
+	      (progn
+		(ada-indent-validate-cache-parens)
+		(ada-indent-get-cache cache-pos)))
 	(if ada-indent-refining
 	    (ada-indent-put-cache cache-pos (funcall refine token forward))
 	  (ada-indent-validate-cache cache-pos)
@@ -3041,6 +3062,13 @@ they always run the refine algorithm.")
 	 (toklevels (smie-forward-sexp token)))
     (message "%s => %s" (assoc token ada-indent-grammar) toklevels)))
 
+(defun ada-indent-show-sexp-token ()
+  "Move backward one sexp, starting with refined token after point."
+  (interactive)
+  (let* ((token (save-excursion (ada-indent-forward-token)))
+	 (toklevels (smie-backward-sexp token)))
+    (message "%s => %s" (assoc token ada-indent-grammar) toklevels)))
+
 (defun ada-indent-show-statement-start ()
   "Move to the start of the current statement."
   (interactive)
@@ -3131,8 +3159,8 @@ This lets us know which indentation function succeeded."
   ;; (it tries to run a broken parser), so we turn it off. Not clear
   ;; if we want to turn it back on ever!
 
-  (add-hook 'before-change-functions 'ada-indent-before-change)
-  (add-hook 'after-change-functions 'ada-indent-after-change)
+  (add-hook 'before-change-functions 'ada-indent-before-change nil t)
+  (add-hook 'after-change-functions 'ada-indent-after-change nil t)
 
   (define-key ada-mode-map "\t" 'indent-for-tab-command)
   ;; TAB will now use smie indentation in Ada mode buffers
