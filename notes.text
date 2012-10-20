@@ -36,9 +36,7 @@ ada-indent.el
 
 test/Makefile
 make rest of test files work
-manual-xref-op infinite loop
-
-delete "aggregate" from grammar
+test/mode.adb unrecognized 'exception'
 
     test/loop_1.adb
 or-select confuses smie-backward-sexp? yes

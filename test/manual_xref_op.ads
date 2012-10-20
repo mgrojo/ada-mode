@@ -2,6 +2,7 @@
 --  Testing the cross-references to operators.
 --  Try doing some cross-references on the definitions below and on the
 --  constants defined in the body.
+--  FIXME: automate the xref test
 
 package Manual_Xref_Op is
 

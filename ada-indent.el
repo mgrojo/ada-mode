@@ -2155,26 +2155,12 @@ Return TOKEN."
   (setq ada-indent-cache-max (max ada-indent-cache-max pos))
   token)
 
-(defvar ada-indent-before-change-code-p nil)
-(defun ada-indent-before-change (begin end)
-  ;; We need to move ada-indent-cache-max to begin if this change
-  ;; affects code, ie non-whitespace non-comment.
-  (save-excursion
-    (if (= begin end)
-	;; insertion
-	(setq ada-indent-before-change-code-p nil)
-      (goto-char begin)
-      (forward-comment (point-max))
-      (setq ada-indent-before-change-code-p (< end (point))))))
-
 (defun ada-indent-after-change (begin end length)
-  (when (or ada-indent-before-change-code-p
-	    (and (not (= begin end))
-		 (save-excursion
-		   (goto-char begin)
-		   (forward-comment (point-max))
-		   (< end (point)))))
-    (setq ada-indent-cache-max (min ada-indent-cache-max begin))))
+  ;; We only need to move ada-indent-cache-max to `begin' if this
+  ;; change affects code, ie non-whitespace non-comment. Otherwise, we
+  ;; could just adjust it by the change amount. But we're keeping it
+  ;; simple; optimize later if needed.
+  (setq ada-indent-cache-max (min ada-indent-cache-max begin)))
 
 (defun ada-indent-next-token (forward)
   "Move to the next token; forward if FORWARD non-nil, backward otherwise.
@@ -3146,7 +3132,6 @@ This lets us know which indentation function succeeded."
   ;; (it tries to run a broken parser), so we turn it off. Not clear
   ;; if we want to turn it back on ever!
 
-  (add-hook 'before-change-functions 'ada-indent-before-change nil t)
   (add-hook 'after-change-functions 'ada-indent-after-change nil t)
 
   (define-key ada-mode-map "\t" 'indent-for-tab-command)
