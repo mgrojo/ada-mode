@@ -6,10 +6,10 @@
 -- We can't get file local variables to set smie-indent-functions properly
 -- when this is run as a test, so we do that here. File local variables does work in normal editing.
 --
---EMACSCMD: (add-to-list 'smie-indent-functions 'ada-indent-gnatprep)
+--EMACSCMD: (car (add-to-list 'smie-indent-functions 'ada-indent-gnatprep))
 --
 -- check that it succeeded:
---EMACSRESULT:(ada-indent-gnatprep smie-indent-bob ada-indent-comment ada-indent-record ada-indent-before-keyword ada-indent-after-keyword ada-indent-default)
+--EMACSRESULT:ada-indent-gnatprep
 --
 --EMACSCMD: (require 'ada-gnat)
 

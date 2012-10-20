@@ -6,6 +6,7 @@ General notes on porting Emacs Ada mode indentation engine to smie
     (load "test/runtest.el");; loads ada-mode
     (setq ada-mode-hook (delete 'ada-find-file-setup ada-mode-hook))
     (which-function-mode)
+    (setq ada-mode-hook (delete 'sal-ada-mode-setup ada-mode-hook))
     (add-hook 'ada-mode-hook
        (lambda ()
        (define-key ada-mode-map "\C-w" 'capitalize-word)
@@ -16,6 +17,7 @@ General notes on porting Emacs Ada mode indentation engine to smie
        (define-key ada-mode-map "\M-j" 'ada-indent-show-cache)
        (define-key ada-mode-map "\M-k" 'ada-indent-show-keyword-forward)
     ))
+    (setq ada-indent-debug-refine t)
    )
 
 (setq ada-indent-debug-refine nil)
@@ -36,7 +38,15 @@ ada-indent.el
 
 test/Makefile
 make rest of test files work
-test/mode.adb unrecognized 'exception'
+test/paramlist.adb
+    comments respect ( in comments? no way!
+
+"in" is a keyword, needs to be defined for param list?
+    not so far
+
+goto-statement-start has special case for '.'; not needed any more
+
+forward-keyword cross paren?
 
     test/loop_1.adb
 or-select confuses smie-backward-sexp? yes
@@ -88,6 +98,10 @@ http://dickgrune.com/Books/PTAPG_2nd_Edition/
 c:/Projects/Web/stephe-leake/emacs/ada-mode/emacs-ada-mode.html
 
 compare to GPS, gnatpp
+
+some people want to be able to match GPS style
+
+requirement to match 4.01 style
 
 ask on comp.lang.ada
 

@@ -109,7 +109,7 @@ package body Ada_Mode.Nominal is
                   Local_1 := Local_1 + Local_1;
                end loop;
 
-               Loop_1 :
+            Loop_1 :
                loop
                   Local_1 := Local_1 + Local_1;
                   exit Loop_1 when Local_1 > 0;
@@ -120,14 +120,17 @@ package body Ada_Mode.Nominal is
                   exit when Local_1 > 0;
                end loop;
 
-               Loop_4 : while not (Local_1 > 0) loop
-                  Local_1 := Local_1 + 2;
-               end loop Loop_4;
+            Loop_4 : while not (Local_1 > 0) loop
+               -- Sort of wrong, but this is what Ada-mode 4.01 does.
+               -- Don't put loop label on the same line as loop if
+               -- ada-indent-label is not 0.
+               Local_1 := Local_1 + 2;
+            end loop Loop_4;
 
-               Loop_5 :
-               while not (Local_1 > 0) loop
-                  Local_1 := Local_1 + 2;
-               end loop Loop_5;
+         Loop_5 : -- wrong because of previous line
+            while not (Local_1 > 0) loop
+               Local_1 := Local_1 + 2;
+            end loop Loop_5;
          end case;
 
          -- A comment before 'end'
@@ -280,7 +283,7 @@ package body Ada_Mode.Nominal is
 
    function Function_2a (Param : in Parent_Type_1) return Float
    is begin
-      Block_1: -- FIXME: not using ada-indent-label; should it?
+   Block_1:
       declare -- label, no statements between begin, label
          Local_1 : Float := 1.0e-36;
          Local_2 : Integer := 2;
@@ -297,7 +300,7 @@ package body Ada_Mode.Nominal is
    is
    begin
       Procedure_2a;
-      Block_1:
+   Block_1:
       declare -- label, one statements between begin, label
          Local_1 : Float := 1.0e-36;
          Local_2 : Integer := 2;
@@ -324,7 +327,7 @@ package body Ada_Mode.Nominal is
          Local_a (1)(2) := 1.0;
       end;
 
-      Block_1 :
+   Block_1 :
       declare -- label, two statements between begin, label
          Local_1 : constant Float := Local_A (1)(2); -- test that refine-begin can skip parens
       begin

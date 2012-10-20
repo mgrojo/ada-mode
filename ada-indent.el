@@ -234,9 +234,6 @@ An example is:
        ;; "accept identifier;" is left as an identifier; otherwise it
        ;; is an opener without a matching closer
 
-      (aspect_specification
-       ("with-aspect" aspect_list))
-
       (aspect_list
        (name)
        (aspect_list "," name))
@@ -361,17 +358,19 @@ An example is:
        (name)
        (interface_list "and-interface_list" name))
 
-      (iteration_scheme
-       ("for-loop" identifier "in" name)
-      ;; "reverse" is an identifer
-      ;; FIXME: container iterators allow ":" here (not tested yet)
-
-       ("while" expression))
-
       (loop_statement
-       (identifier ":-label" iteration_scheme "loop-body" statements "end-loop" "loop-end")
-       (iteration_scheme "loop-body" statements "end-loop" "loop-end")
+       ;; we treat 'identifier :' as a separate statement, here and
+       ;; for blocks, because it is indented differently; we don't
+       ;; want it to be the statement-start. It is simplest if we
+       ;; leave ":-label" out of the grammar, but still refine it, so
+       ;; ada-indent-label can handle it.
+
+       ("for-loop" identifier "in" name "loop-body" statements "end-loop" "loop-end")
+       ;; FIXME: container iterators allow ":" in a for-loop iteration scheme (not tested yet)
+       ("while" identifier "in" name "loop-body" statements "end-loop" "loop-end")
        ("loop-open" statements "end-loop" "loop-end")
+       ;; "reverse" is an identifer
+       ;; Splitting out iteration_scheme makes it look optional, which it's not.
        )
 
       (name
@@ -440,12 +439,12 @@ An example is:
        (asynchronous_select)
 
        ;; block_statement
-       (identifier ":-label" "declare-label" declarations "begin-body" statements
-		   "exception-block" exception_handler "end-block")
-       ("declare-open" declarations "begin-body" statements "end-block")
+       ;; see loop_statement above for block label
+       ("declare" declarations "begin-body" statements "exception-block" exception_handler "end-block")
+       ("declare" declarations "begin-body" statements "end-block")
        ("begin-open" statements "end-block")
        ;; we don't need to repeat the optional exception handler in the other
-       ;; cases; once is enough to establish the precendence of "exception-block".
+       ;; case; once is enough to establish the precendence of "exception-block".
 
        ;; case_statement
        ("case" name "is-case" case_statement_alternative "end-case" "case-end")
@@ -539,7 +538,7 @@ An example is:
 
       (type_declaration
        ;; access_type_definition
-       ("type" identifier "is-type-access")
+       ("type-other" identifier "is-type-access")
        ;; Any occurance of "is-type" as the last keyword in a
        ;; declaration must be further refined; otherwise it is
        ;; ambiguous with several other declarations.
@@ -550,13 +549,13 @@ An example is:
        ;; keywords. This also greatly simplifies refine-is.
 
        ;; array_type_definition; we leave "array" as an identifier
-       ("type" identifier "is-type" name "of-type" name); same as anonymous array
+       ("type-other" identifier "is-type" name "of-type" name); same as anonymous array
 
        ;; derived_type_declaration
-       ("type" identifier "is-type" "new" name); same as below
-       ("type" identifier "is-type" "new" name "with-new" "private-with")
-       ("type" identifier "is-type" "new" name "with-new" "record-null"); "null" is an identifier
-       ("type" identifier "is-type" "new" name "with-record")
+       ("type-other" identifier "is-type" "new" name); same as below
+       ("type-other" identifier "is-type" "new" name "with-new" "private-with")
+       ("type-other" identifier "is-type" "new" name "with-new" "record-null"); "null" is an identifier
+       ("type-other" identifier "is-type" "new" name "with-record")
        ;; We refine "with" to "with-record" when it is followed
        ;; by "record", so that it is a closer to match
        ;; "type", since "record-open" is an opener.
@@ -566,65 +565,58 @@ An example is:
        ;; record" relative to "record".
 
        ;; enumeration_type_definition
-       ("type" identifier "is-type-enumeration")
+       ("type-other" identifier "is-type-enumeration")
        ;; enumeration literals are an aggregate, which is ignored.
 
        ;; {ordinary_ | decimal_} fixed_point_definition
        ;; "delta" and "digits" are left as identifiers
        ;; floating_point_definition, integer_type_definition; "range" is an identifier
-       ("type" identifier "is-type-numeric")
+       ("type-other" identifier "is-type-numeric")
 
        ;; incomplete_type_declaration ::= type defining_identifier [discriminant_part] [is tagged];
        ;;
        ;; We don't need the variant without "is tagged", since it has
        ;; only one keyword.  We need "is-type-record" when this is
        ;; followed by a record_definition; that's covered below. We don't need "tagged" as a keyword.
-       ("type" identifier "is-type-tagged")
+       ("type-other" identifier "is-type-tagged")
 
        ;; interface_type_definition, formal_interface_type_definition
-       ("type" identifier "is-type" "interface-plain")
-       ("type" identifier "is-type" "interface-and" "and-interface" interface_list)
+       ("type-other" identifier "is-type" "interface-plain")
+       ("type-other" identifier "is-type" "interface-and" "and-interface" interface_list)
 
        ;; modular_type_definition
-       ("type" identifier "is-type" "mod-type")
+       ("type-other" identifier "is-type" "mod-type")
        ;; FIXME: this is the only occurance of "mod" in the grammar at
        ;; the moment. It also occurs in other syntax that is not
        ;; implemented yet; wait until we test those to decide to leave
        ;; it as an identifier.
 
        ;; private_extension_declaration
-       ("type" identifier "is-type" "new" name "with-new" "private-with")
-       ("type" identifier "is-type" "new" interface_list "with-new" "private-with")
+       ("type-other" identifier "is-type" "new" name "with-new" "private-with")
+       ("type-other" identifier "is-type" "new" interface_list "with-new" "private-with")
        ;; leaving 'with' and 'private' as separate tokens causes conflicts
 
        ;; private_type_declaration
-       ("type" identifier "is-type" "private-type-spec")
+       ("type-other" identifier "is-type" "private-type-spec")
 
        ;; protected_type_declaration, single_protected_declaration
        ;;
-       ;; We don't need "protected" in the grammar anywhere, so leave
-       ;; it as an identifier.  Note that in a
-       ;; single_protected_declaration, we are refining "protected" to
-       ;; "type". However, "is" in protected type declaration is a
-       ;; block start keyword, while "is-type" in general is not, so
-       ;; we need to make that a distinct keyword. We use
-       ;; "is-type-block" instead of "is-type-protected", because it
-       ;; covers task types as well.
-       ("type" identifier "is-type-block" declarations "private-body" declarations "end-block")
-       ("type" identifier "is-type-block" declarations "end-block"); task, or protected with no private part
-       ("type" identifier "is-type" "new" interface_list "with-new" declarations
+       ("protected-type" "type-protected" identifier "is-type-block" declarations
+	"private-body" declarations "end-block")
+       ("protected-type" "type-protected" identifier "is-type-block" declarations "end-block")
+       ("protected-type" "type-protected" identifier "is-type" "new" interface_list "with-new" declarations
 	"private-body" declarations "end-block")
 
        ;; record_type_definition
-       ("type" identifier "is-type" "record-null")
-       ("type" identifier "is-type-record")
+       ("type-other" identifier "is-type" "record-null")
+       ("type-other" identifier "is-type-record")
        ;; We refine "is-type" to "is-type-record" when it is followed
        ;; by "record-open", so that it is a closer to match "type", since
        ;; "record-open" is an opener.
 
        ;; record_definition
        ("record-open" declarations "end-record" "record-end")
-       ("record-open" declarations "end-record" "record-end-aspect" aspect_specification)
+       ("record-open" declarations "end-record" "record-end-aspect" "with-aspect" aspect_list)
        ;; No need to distinguish between 'declarations' and
        ;; 'component_list'. We don't include record_definition in
        ;; record_type_definition or derived_type_definition, because
@@ -637,6 +629,7 @@ An example is:
        ;; can have entry families, but that's a parenthesized
        ;; expression, so we don't need it in the grammar.
        ("task-single" name)
+       ("task-type" "type-task" identifier "is-type-block" declarations "end-block")
 
        ); type_declaration
 
@@ -653,8 +646,7 @@ An example is:
     "abort-select"
     "begin-body"
     "begin-open"
-    "declare-open"
-    "declare-label"
+    "declare"
     "do"
     "else-other"
     ;; "end-block" is never a block start; treated separately
@@ -701,8 +693,7 @@ An example is:
   "Keywords that always end indented blocks.")
 
 (defconst ada-indent-pre-begin-tokens
-  '("declare-open"
-    "declare-label"
+  '("declare"
     "is-subprogram_body"
     "is-package"
     "is-task_body"
@@ -711,8 +702,9 @@ An example is:
   ;; refinements. Thus in Annex P order.
   "All refined tokens that are followed by \"begin\" in an Ada declaration.")
 
-(defconst ada-indent-labeled-keywords
-  '("declare"
+(defconst ada-indent-labeled-unrefined-keywords
+  '("begin"
+    "declare"
     "for"
     "loop"
     "while")
@@ -754,26 +746,28 @@ spec, return t if is a generic, nil otherwise."
     ;; the refined keyword), we're done. If we find "generic", we're
     ;; done. If we find something else that can't be a formal
     ;; parameter (ie package start), we're done.
-    (let ((token (save-excursion (list (ada-indent-backward-token) (point))))
+    (let ((token (ada-indent-backward-token))
 	  stmt-or-decl
 	  (result 'not-found)
 	  (first t))
-      (setq token (reverse token)); set up for goto-statement-start loop
       (while (eq result 'not-found)
 	(cond
-	 ((equal (nth 0 token) 1); bob
+	 ((equal token ""); bob
 	  (setq result nil))
 
-	 ((equal (nth 1 token) ";")
+	 ((equal token ";")
 	  (if first
 	      (progn
 		(setq first nil)
 		;; try again
-		(goto-char (nth 0 token))
-		(setq token (ada-indent-goto-statement-start (nth 1 token))))
+		(ada-indent-goto-statement-start token)
+		(setq token (ada-indent-backward-token)))
 
 	    ;; we've skipped a statement or declaration; see if we can tell which
-	    (setq stmt-or-decl (ada-indent-statement-or-decl))
+	    (save-excursion
+	      (smie-default-forward-token)
+	      (setq stmt-or-decl (ada-indent-statement-or-decl)))
+
 	    (ecase (car stmt-or-decl)
 	      (statement
 	       (ada-indent-error "found statement preceding package or subprogram spec"))
@@ -784,22 +778,22 @@ spec, return t if is a generic, nil otherwise."
 	      (declaration
 	       ;; There are only a two non-formal declarations that
 	       ;; can occur in a generic formal parameter list; formal_object_declaration, formal_type_declaration.
-	       (if (not (member (cadr stmt-or-decl) '(":-object" "type")))
+	       (if (not (member (cadr stmt-or-decl) '(":-object" "type-other")))
 		   (setq result nil)
 		 ;; try again
-		 (goto-char (nth 0 token))
-		 (setq token (ada-indent-goto-statement-start (nth 1 token)))))
+		(ada-indent-goto-statement-start token)
+		(setq token (ada-indent-backward-token))))
 
 	      (unknown
 	       ;; try again
-	       (goto-char (nth 0 token))
-	       (setq token (ada-indent-goto-statement-start (nth 1 token))))
+	       (ada-indent-goto-statement-start token)
+	       (setq token (ada-indent-backward-token)))
 	      )))
 
-	 ((equal (nth 1 token) "generic")
+	 ((equal token "generic")
 	  (setq result t))
 
-	 ((member (nth 1 token) ada-indent-block-keywords)
+	 ((member token ada-indent-block-keywords)
 	  (setq result nil))
 
 	 (t
@@ -836,14 +830,15 @@ token or nil. Preserves point."
 	(cond
 	 ((member
 	   token
-	   '(";" ":=" "accept-open" ":-label" "declare-open" "begin-open" "case" "delay" "exit-other"
+	   '(";" ":=" "accept-open" ":-label" "declare" "begin-open" "case" "delay" "exit-other"
 	     "exit-when" "if-open" "<<" "for-loop" "while" "loop-open" "return-stmt" "return-ext" "select-open"))
 	  (list 'statement token))
 
 	 ((member
 	   token
-	   '("for-attribute" "entry" ":-object" "generic" ":-object" "package-plain" "package-renames" "protected-body"
-	     "function-spec" "overriding" "procedure-spec" "subtype" "subtype" "type" "use-attribute" "use-decl"))
+	   '("for-attribute" "entry" ":-object" "generic" ":-object" "package-plain" "package-renames"
+	     "protected-body" "function-spec" "overriding" "procedure-spec" "protected-type" "subtype" "subtype"
+	     "task-type" "type-other" "use-attribute" "use-decl"))
 	  (list 'declaration token))
 
 	 ((equal token "with-formal")
@@ -934,7 +929,11 @@ an element of TARGETS, return that token."
     result))
 
 (defun ada-indent-refine-error (token)
-  (ada-indent-error (concat "unrecognized '" token "'")))
+  (if ada-indent-debug-refine
+      (ada-indent-error (concat "unrecognized '" token "'"))
+    ;; else return the unrefined keyword. Indentation will be wrong,
+    ;; but this is more friendly to the user.
+    token))
 
 ;;; refine-*
 
@@ -962,7 +961,7 @@ an element of TARGETS, return that token."
   (let ((token (save-excursion
 		 (when (not forward) (smie-default-forward-token))
 		 (smie-default-forward-token))))
-    (if (member token ada-indent-labeled-keywords)
+    (if (member token ada-indent-labeled-unrefined-keywords)
 	":-label"
       ":-object")))
 
@@ -1104,43 +1103,40 @@ an element of TARGETS, return that token."
   ;;
   (save-excursion
     (when forward (smie-default-backward-token))
-    (let ((token (save-excursion (list (ada-indent-backward-token) (point))))
+    (let ((token (ada-indent-backward-token))
 	  (result nil)
 	  (first t))
-      (setq token (reverse token)); set up for goto-statement-start loop
       (while (not result)
 	(cond
-	 ((equal (nth 1 token) ";")
+	 ((equal token ";")
 	  (if first
 	      (progn
 		(setq first nil)
 		;; try again
-		(goto-char (nth 0 token))
-		(setq token (ada-indent-goto-statement-start (nth 1 token))))
+		(ada-indent-goto-statement-start token)
+		(setq token (ada-indent-backward-token)))
 
-	    (if (= (point) (nth 0 token))
-		;; we've reached the start of the statement of which
-		;; the "begin" we are refining is a part.
-		(setq result "begin-body")
+	    ;; we've skipped a statement or declaration; see if we can tell which
+	    (ecase (car (save-excursion
+			  (smie-default-forward-token)
+			  (ada-indent-statement-or-decl)))
+	      (statement
+	       (setq result "begin-open"))
+	      (declaration
+	       (setq result "begin-body"))
+	      (formal
+	       (ada-indent-error "found generic formal parameter preceding begin spec"))
+	      (unknown
+	       ;; try again
+	       (ada-indent-goto-statement-start token)
+	       (setq token (ada-indent-backward-token)))
+	      )))
 
-	      ;; we've skipped a statement or declaration; see if we can tell which
-	      (ecase (car (ada-indent-statement-or-decl))
-		(statement
-		 (setq result "begin-open"))
-		(declaration
-		 (setq result "begin-body"))
-		(formal
-		 (ada-indent-error "found generic formal parameter preceding begin spec"))
-		(unknown
-		 ;; try again
-		 (goto-char (nth 0 token))
-		 (setq token (ada-indent-goto-statement-start (nth 1 token))))
-		))))
-
-	  ((member (nth 1 token) ada-indent-pre-begin-tokens)
-	   (setq result "begin-body"))
-	  (t
-	   (setq result "begin-open"))))
+	 ((member token ada-indent-pre-begin-tokens)
+	  (setq result "begin-body"))
+	 (t
+	  (setq result "begin-open")))
+	)
       result
       )))
 
@@ -1152,15 +1148,6 @@ an element of TARGETS, return that token."
     (if (equal token "end")
 	"case-end"
       "case")))
-
-(defun ada-indent-refine-declare (token forward)
-  (let ((token (save-excursion
-		 (when forward (smie-default-backward-token))
-		 (smie-default-backward-token))))
-
-    (if (equal token ":")
-	"declare-label"
-      "declare-open")))
 
 (defun ada-indent-refine-else (token forward)
   (let ((token (save-excursion
@@ -1264,8 +1251,9 @@ an element of TARGETS, return that token."
        (let ((token (progn
 		      (smie-default-backward-token); identifier
 		      (smie-default-backward-token))))
-	 ;; token "protected", "task", "body", "type", "subtype"
+	 ;; token "protected", "task", "body", "type", "subtype", "" for discriminant or parameter list
 	 ;; Can't handle parameterless procedure here; need to check for preceding "with"
+	 ;; not handling parens here either.
 	 (cond
 	  ((member token '("protected" "task")) "is-type-block")
 	  ((equal token "body")
@@ -1317,69 +1305,67 @@ an element of TARGETS, return that token."
 	     "is"
 	 "is-subprogram_body"))
 
-	((equal token "type")
-	 (or
-	  (let ((token (save-excursion (goto-char pos) (smie-default-backward-token))))
-	    (when (member token '("protected" "task")) "is-type-block"))
+	((member token '("type-protected" "type-task")) "is-type-block")
 
-	  (let* (pos
+	((equal token "type-other")
+	 (let* (pos
 		(token
 		 (save-excursion
 		   (smie-default-forward-token); is
 		   (prog1 (smie-default-forward-token)
 		     (setq pos (point))))))
-	    (cond
-	     ((equal token ""); paren, string, or end of buffer; assume paren
-	      "is-type-enumeration");; type identifier is (...)
+	   (cond
+	    ((equal token ""); paren, string, or end of buffer; assume paren
+	     "is-type-enumeration");; type identifier is (...)
 
-	     ((member token '("not" "access")) "is-type-access")
+	    ((member token '("not" "access")) "is-type-access")
 
-	     ((equal token "record") "is-type-record")
+	    ((equal token "record") "is-type-record")
 
-	     ((and
-	       (equal token "tagged")
-	       (let ((token (save-excursion (goto-char pos) (smie-default-forward-token))))
-		 (cond
-		  ((equal token ";")
-		   ;; type Incomplete_Type_1 (Discriminant_1 : Integer) is tagged; -- in spec
-		   ;; type Incomplete_Type_1 (Discriminant_1 : Integer) is tagged null record; -- in body
-		   "is-type-tagged")
-		  ((equal token "record") "is-type-record")
-		  (t nil))
-		 )))
-
-	     ((member token ada-indent-type-modifiers)
-	      ;; we could have:
-	      ;;
-	      ;;    type Derived_Type_2 is abstract tagged limited new ...
-	      ;;    type Private_Type_1 is abstract tagged limited null record;
-	      ;;    type Private_Type_2 is abstract tagged limited record ...
-	      (let ((token (save-excursion (goto-char pos) (ada-indent-skip-type-modifiers))))
+	    ((and
+	      (equal token "tagged")
+	      (let ((token (save-excursion (goto-char pos) (smie-default-forward-token))))
 		(cond
+		 ((equal token ";")
+		  ;; type Incomplete_Type_1 (Discriminant_1 : Integer) is tagged; -- in spec
+		  ;; type Incomplete_Type_1 (Discriminant_1 : Integer) is tagged null record; -- in body
+		  "is-type-tagged")
 		 ((equal token "record") "is-type-record")
-		 (t "is-type"))))
+		 (t nil))
+		)))
 
-	     ;; numeric types
+	    ((member token ada-indent-type-modifiers)
+	     ;; we could have:
 	     ;;
-	     ;; signed_integer_type_definition ::= [type identifier is] range expression .. expression
-	     ;;
-	     ;; modular_type_definition ::= [type identifier is] mod static_expression
-	     ;;
-	     ;; floating_point_definition ::= [type identifier is] digits static_expression
-	     ;;    [range expression .. expression]
-	     ;;
-	     ;; ordinary_fixed_point_definition ::= [type identifier is] delta expression
-	     ;;    range expression .. expression
-	     ;;
-	     ;; decimal_fixed_point_definition ::= [type identifier is] delta expression digits expression
-	     ;;    [   range expression .. expression]
-	     ((equal token "range") "is-type-numeric")
-	     ((equal token "mod") "is-type")
-	     ((equal token "digits") "is-type-numeric")
-	     ((equal token "delta") "is-type-numeric")
+	     ;;    type Derived_Type_2 is abstract tagged limited new ...
+	     ;;    type Private_Type_1 is abstract tagged limited null record;
+	     ;;    type Private_Type_2 is abstract tagged limited record ...
+	     (let ((token (save-excursion (goto-char pos) (ada-indent-skip-type-modifiers))))
+	       (cond
+		((equal token "record") "is-type-record")
+		(t "is-type"))))
 
-	     (t "is-type")); all others
-	    )))))
+	    ;; numeric types
+	    ;;
+	    ;; signed_integer_type_definition ::= [type identifier is] range expression .. expression
+	    ;;
+	    ;; modular_type_definition ::= [type identifier is] mod static_expression
+	    ;;
+	    ;; floating_point_definition ::= [type identifier is] digits static_expression
+	    ;;    [range expression .. expression]
+	    ;;
+	    ;; ordinary_fixed_point_definition ::= [type identifier is] delta expression
+	    ;;    range expression .. expression
+	    ;;
+	    ;; decimal_fixed_point_definition ::= [type identifier is] delta expression digits expression
+	    ;;    [   range expression .. expression]
+	    ((equal token "range") "is-type-numeric")
+	    ((equal token "mod") "is-type")
+	    ((equal token "digits") "is-type-numeric")
+	    ((equal token "delta") "is-type-numeric")
+
+	    (t "is-type")); all others
+	   ))))
 
      ;; now more complicated things
      (save-excursion
@@ -1393,8 +1379,7 @@ an element of TARGETS, return that token."
        (if (equal "entry" (nth 2 (smie-backward-sexp "is-entry_body"))) "is-entry_body"))
 
      (ada-indent-refine-error "is")
-     ))
-  )
+     )))
 
 (defun ada-indent-refine-loop (token forward)
   (let ((token (save-excursion
@@ -1410,8 +1395,9 @@ an element of TARGETS, return that token."
     ;;
     ;; The second "loop" is "loop-end".
     ;;
-    ;; If there is no loop label or iteration scheme, the first "loop"
-    ;; is "loop-open"; otherwise it is "loop-body".
+    ;; If there is no iteration scheme, the first "loop" is
+    ;; "loop-open"; otherwise it is "loop-body". Labels are treated
+    ;; separately.
     ;;
     ;;     iteration_scheme ::= while condition
     ;;        | for loop_parameter_specification
@@ -1432,7 +1418,7 @@ an element of TARGETS, return that token."
 	      (smie-default-backward-token); loop
 	      (ada-indent-backward-keyword)))
 
-      (if (member token '(":-label" "in" "while" "of"))
+      (if (member token '("in" "while" "of"))
 	  ;; FIXME: iterators not tested yet; "of" will probably be refined.
 	  "loop-body"
 	"loop-open"))))
@@ -1587,7 +1573,7 @@ an element of TARGETS, return that token."
       ;;
       ;; 2) access_to_subprogram_definition
       ;;
-      ;;    handled by maybe-refine-is
+      ;;    FIXME: ?
       ;;
       ;; 3) access_definition in an object_declaration
       ;;
@@ -1600,8 +1586,7 @@ an element of TARGETS, return that token."
       ;;
       ;; 5) single_protected_declaration
       ;;
-      ;;    same as protected_type_declaration, without "type"
-      ;;    not implemented
+      ;;    same as protected_type_declaration, without "type-other"
       ;;
       ;; 6) protected_body, subunit :=
       ;;
@@ -1612,29 +1597,33 @@ an element of TARGETS, return that token."
       ;; 7) protected_body_stub  ::=
       ;;      protected body defining_identifier is separate [aspect_specification];
       ;;
-      ;;    not implemented
-      ;;
   (save-excursion
     (when forward (smie-default-backward-token))
     (cond
      ((equal (save-excursion
-               (ada-indent-backward-keyword)) "separate-unit") "protected-separate"); 6b
+               (ada-indent-backward-keyword))
+	     "separate-unit")
+      "protected-separate"); 6b
+
      ((equal (save-excursion
                (smie-default-forward-token)
-               (smie-default-forward-token)) "body") "protected-body"); 6a, 7
-     (t "protected")); an identifier
+               (smie-default-forward-token))
+	     "body")
+      "protected-body"); 6a, 7
+
+     (t "protected-type")); 5, 4
     ))
 
 (defun ada-indent-refine-record (token forward)
   (save-excursion
     (when forward (smie-default-backward-token))
 
-    (let ((token (smie-default-backward-token)))
+    (let ((token (save-excursion (smie-default-backward-token))))
       (cond
        ((equal token "end")
 	(if (equal "with" (save-excursion
-			    (smie-default-backward-token); record
-			    (smie-default-backward-token)))
+			    (smie-default-forward-token); record
+			    (smie-default-forward-token)))
 	    "record-end-aspect";
 	  "record-end"))
        ((equal token "null") "record-null")
@@ -1787,7 +1776,7 @@ an element of TARGETS, return that token."
 	       (ada-indent-forward-keyword)) ";")
       "task-single")
 
-     (t "task")); an identifier
+     (t "task-type"))
     ))
 
 (defun ada-indent-refine-then (token forward)
@@ -1801,6 +1790,17 @@ an element of TARGETS, return that token."
 	      '("if-open" "elsif"))
       "then-if")
      (t "then-select")
+     )))
+
+(defun ada-indent-refine-type (token forward)
+  (let ((token (save-excursion
+		 (when forward (smie-default-backward-token))
+		 (smie-default-backward-token))))
+
+    (cond
+     ((equal token "protected") "type-protected")
+     ((equal token "task") "type-task")
+     (t "type-other")
      )))
 
 (defun ada-indent-refine-use (token forward)
@@ -2039,7 +2039,6 @@ an element of TARGETS, return that token."
     ("and" 	 ada-indent-refine-and)
     ("begin" 	 ada-indent-refine-begin)
     ("case" 	 ada-indent-refine-case)
-    ("declare" 	 ada-indent-refine-declare)
     ("end" 	 ada-indent-refine-end)
     ("else" 	 ada-indent-refine-else)
     ("exception" ada-indent-refine-exception)
@@ -2063,6 +2062,7 @@ an element of TARGETS, return that token."
     ("separate"  ada-indent-refine-separate)
     ("task" 	 ada-indent-refine-task)
     ("then" 	 ada-indent-refine-then)
+    ("type" 	 ada-indent-refine-type)
     ("use" 	 ada-indent-refine-use)
     ("when" 	 ada-indent-refine-when)
     ("with" 	 ada-indent-refine-with)
@@ -2094,24 +2094,13 @@ If a token is not in the alist, it is returned unrefined.")
 (defun ada-indent-validate-cache (pos)
   "Update cache from `ada-indent-cache-max' to at least POS."
   (save-excursion
-    (let ((ada-indent-refining t)
-	  token)
+    (let ((ada-indent-refining t))
       (goto-char ada-indent-cache-max)
       (while (> pos (point))
-	(setq token (ada-indent-forward-token))
-	(cond
-	 ((and (equal token "")
-	       (eq (char-after) ?\)))
-	  ;; get out of parens, start again with next token
+	 (if (eq (char-after) ?\))
+	  ;; get out of parens. FIXME: should next-keyword cross the paren?
 	  (forward-char 1))
-
-	 ((or (not (ada-indent-keyword-p token))
-	      (ada-indent-closer-p token))
-	  (smie-forward-sexp nil))
-
-	 (t
-	  (smie-forward-sexp token))
-	 ))
+	(ada-indent-forward-keyword))
     )))
 
 (defun ada-indent-validate-cache-parens ()
@@ -2294,6 +2283,15 @@ or \"(\", and point must be at the start of CHILD."
       (cons 'column (+ (current-column) offset))
     )))
 
+(defun ada-indent-skip-identifier-list ()
+  "Skip backward over {identifier,}."
+  (let (parent)
+    (while (equal "," (setq parent (ada-indent-backward-keyword))))
+    (when (not (equal parent "("))
+      ;; we are now on the token before the first identifier
+      (smie-default-forward-token))
+    (forward-comment (point-max))))
+
 (defun ada-indent-goto-statement-start (child)
   "Move point to the start of the statement/declaration
 containing point. If point is in a parenthesized list, move to
@@ -2303,6 +2301,9 @@ parent token, and `parent-pos' is the position of its first
 character. If point is at statement or list element start, does
 nothing. If CHILD is non-nil, it must be a keyword, and point
 must be at the start of CHILD."
+  ;; FIXME: if no-one uses parent-pos anymore, simplify the return to
+  ;; just the actual statement start token.
+  ;;
   ;; See ada-indent-show-statement-start for interactive call of
   ;; this.
   ;;
@@ -2388,6 +2389,7 @@ must be at the start of CHILD."
   (let (parent-count
 	(parent nil)
 	(parent-pos nil)
+	(orig-child child)
 	pos)
 
     (catch 'done
@@ -2401,19 +2403,28 @@ must be at the start of CHILD."
 	(save-excursion
 	  (setq parent (ada-indent-backward-keyword))
 	  (setq parent-pos (point))
-	  (if (or
+	  (cond
+	   ((or
 	       (equal parent ";")
 	       (member parent ada-indent-block-keywords))
-	      (progn
-		(smie-default-forward-token); ";" or block start
-		(forward-comment (point-max)); also skips final whitespace
-		(setq pos (point)))
-	    (if (equal parent ""); "("; this is a function call in an aggregate or param list
-		(progn
-		  (setq parent "(")
-		  (setq parent-pos (- (point) 1))
-		  (forward-comment (point-max)); also skips final whitespace
-		  (setq pos (point)))))))
+	    (progn
+	      (smie-default-forward-token); ";" or block start
+	      (forward-comment (point-max)); also skips final whitespace
+	      (setq pos (point))))
+
+	   ((equal parent "("); this is a function call in an aggregate or param list
+	    (progn
+	      (setq parent-pos (- (point) 1))
+	      (forward-comment (point-max)); also skips final whitespace
+	      (setq pos (point))))
+
+	   ((equal parent ":-object")
+	    (ada-indent-skip-identifier-list)
+	    (setq parent (save-excursion (ada-indent-forward-token)))
+	    ;; can't throw done from here; need to escape save-excursion
+	    (setq pos (point)
+		  parent-pos (point)))
+	   )))
 
       ;; Make sure going to pos would be motion. In this case:
       ;;
@@ -2426,28 +2437,50 @@ must be at the start of CHILD."
       ;; "begin" and set pos. No other blocks may be empty.
       (if (and pos (not (= pos (point)))) (progn (goto-char pos) (throw 'done (list parent-pos parent))))
 
+      (if (equal child ";")
+	  ;; we want to go to the start of the statement preceding
+	  ;; ";". goto-parent with child = ";" will go to the next ";"
+	  ;; or block open, which is not the same. In particular,
+	  ;; block and statement labels get in the way.
+	  (setq child (ada-indent-backward-keyword)))
+
       (setq parent-count
 	    (if (member child '("." "record-open" "<<"))
 		2
 	      1))
       ;; If child is "." we are in the middle of an Ada name; the
-      ;; first parent is the start of the name.
+      ;; first parent is the start of the name. FIXME: '.' is no longer a keyword
       ;;
       ;; If child is "(" the first run thru smie-backward-sexp
-      ;; produces no motion; that causes the second run to FIXME: how
-      ;; does this work?
+      ;; produces no motion; that causes the second run to call the
+      ;; lower level scanner to skip the parens, because
+      ;; forward-sexp-function is let-bound to nil.
       ;;
       ;; If child is record, that is its own parent, and we want the
       ;; next one up. Same for "<<".
 
       (setq parent (ada-indent-goto-parent child parent-count))
 
-      (if (or
-	   (member (nth 2 parent) '("(" ";" ","))
-	   (member (nth 2 parent) ada-indent-block-keywords)
-	   )
-	  ;; goto-parent left point on token following parent; point is at statement start
+      (when (or
+	     (member (nth 2 parent) '("(" ";"))
+	     (and
+	      (not (equal (nth 2 parent) "record-open"))
+	      (member (nth 2 parent) ada-indent-block-keywords))
+	     )
+	;; goto-parent left point on token following parent; point is at statement start
+	(throw 'done (list (nth 1 parent) (nth 2 parent))))
+
+      (when (equal (nth 2 parent) ",")
+	(cond
+	 ((equal orig-child ",")
 	  (throw 'done (list (nth 1 parent) (nth 2 parent))))
+	 ((equal orig-child ";")
+	  ;; we're in a parameter list or object declaration, with
+	  ;; multiple identifiers before the ":".
+	  (while (equal (nth 2 parent) ",")
+	    (setq parent (ada-indent-goto-parent "," 1)))
+	  (throw 'done (list (nth 1 parent) (nth 2 parent))))
+	 ))
 
       (if (not (= (point) (nth 1 parent)))
 	  ;; goto-parent stopped because of a lower-precedence token,
@@ -2472,14 +2505,26 @@ must be at the start of CHILD."
 		      (member (save-excursion (smie-default-backward-token)) '("access" "protected"))))
 	(setq parent (ada-indent-goto-parent parent 2)))
 
-      (if (member (nth 2 parent) '(":" ":="))
-	  (progn
-	    (ada-indent-backward-keyword)
-	    ;; we are now on the keyword before statement start; get back.
-	    (smie-default-forward-token); ";" or block start
-	    (forward-comment (point-max)))
-	)
-      (list (nth 1 parent) (nth 2 parent)))))
+      (cond
+       ((equal (nth 2 parent) ":=")
+	(progn
+	  (setq parent (ada-indent-backward-keyword))
+	  ;; we are now on the keyword before statement start; get back.
+	  (smie-default-forward-token)
+	  (forward-comment (point-max))
+	  (setq parent (save-excursion (ada-indent-forward-token)))
+	  (list (point) parent)
+	  ))
+
+       ((equal (nth 2 parent) ":-object")
+	;; Simple types in object declarations were handled above; for
+	;; complex types and parameter lists, we get here.
+	(ada-indent-skip-identifier-list)
+	(setq parent (save-excursion (ada-indent-forward-token)))
+	(list (point) parent))
+
+       (t (list (nth 1 parent) (nth 2 parent))))
+      )))
 
 (defun ada-indent-rule-statement (offset child)
   "Find the start of the statement/declaration containing point (using
@@ -2487,11 +2532,14 @@ must be at the start of CHILD."
 to it. Preserves point.  If CHILD is non-nil, point must be at
 the start of CHILD, which must be a keyword."
   (save-excursion
-    (let ((parent (nth 1 (ada-indent-goto-statement-start child))))
-      (cond
-       ((equal parent "(") nil); indent to the (, not the line it is on
-       (t (back-to-indentation)))
-      (cons 'column (+ (current-column) offset)))))
+    (ada-indent-goto-statement-start child)
+    (cond
+     ;; allow for whitespace and comments before the preceding "("
+     ((eq (save-excursion (forward-comment -1) (char-before))
+	  ?\()
+      nil); indent to the (, not the line it is on
+     (t (back-to-indentation)))
+    (cons 'column (+ (current-column) offset))))
 
 ;;;
 (defun ada-indent-rules (method arg)
@@ -2533,7 +2581,7 @@ the start of CHILD, which must be a keyword."
        ;;
        ;; 2) The parameter list for an anonymous subprogram in an
        ;;    access type, we want to indent relative to "procedure" or
-       ;;    "function", which is the parent, not "type", which is the
+       ;;    "function", which is the parent, not "type-other", which is the
        ;;    statement start.
        ;;
        ;; 3) A procedure call:
@@ -2579,15 +2627,6 @@ the start of CHILD, which must be a keyword."
 	 (forward-char 1)
 	 (backward-sexp)
 	 (cons 'column (current-column))))
-
-      ((equal arg "<<")
-       (let (offset
-	     (token (save-excursion (ada-indent-backward-token))))
-	 (cond
-	  ((member token ada-indent-block-keywords)
-	   (setq offset (+ ada-indent ada-indent-label)))
-	  (t (setq offset ada-indent-label)))
-	 (ada-indent-rule-statement offset arg)))
 
       ((equal arg "abort-select")
        ;; exception to block-keyword indentation; preserve Ada mode 4.01 behavior
@@ -2642,13 +2681,7 @@ the start of CHILD, which must be a keyword."
 
       ((or (member arg ada-indent-block-end-keywords)
 	   (member arg ada-indent-block-keywords))
-       ;; Indenting a block keyword that closely follows a containing
-       ;; block keyword is a complex special case.  In addition, the
-       ;; first keyword of a block behaves differently because it is a
-       ;; closer. See a complete set of patterns for declare/begin
-       ;; blocks in test/ada_mode-nominal.adb. Here we summarize:
-       ;;
-       ;; 1) no statements between begin, declare
+       ;; some example code:
        ;;
        ;;    function Function_1b return Float
        ;;    is
@@ -2656,104 +2689,24 @@ the start of CHILD, which must be a keyword."
        ;;       declare
        ;;       begin
        ;;
-       ;;    Indenting "declare": goto-parent returns "function", with point on "function"
-       ;;    algorithm: indent to point + ada-indent = parent + ada-indent
-       ;;
-       ;;    Indenting "begin"  : goto-parent returns "declare", with point on "declare"
-       ;;    Indenting "end"    : goto-parent returns "declare", with point on "declare"
-       ;;    algorithm: indent to point = parent
-       ;;
-       ;; 2) one statement
-       ;;
        ;;    function Function_1b return Float
        ;;    is
        ;;    begin
        ;;       P1;
        ;;       declare
        ;;       begin
-       ;;
-       ;;    Indenting "declare": goto-parent returns "begin", with point on P1
-       ;;    algorithm: indent to parent + ada-indent
-       ;;
-       ;;    Indenting "begin"  : goto-parent returns "declare", with point on "declare"
-       ;;    Indenting "end"    : goto-parent returns "declare", with point on "declare"
-       ;;    algorithm: indent to point = parent
-       ;;
-       ;; 3) two or more statements
-       ;;
-       ;;    function Function_1c return Float
-       ;;    is
-       ;;    begin
-       ;;       P1;
-       ;;       P2;
-       ;;       declare
-       ;;       begin
-       ;;
-       ;;    Indenting "declare": goto-parent returns first ";", with point on P2
-       ;;    algorithm: indent to point (parent might be hanging)
-       ;;
-       ;;    Indenting "begin"  : goto-parent returns "declare", with point on "declare"
-       ;;    Indenting "end"    : goto-parent returns "declare", with point on "declare"
-       ;;    algorithm: indent to point = parent
-       ;;
-       ;; 4) Function 2a: Label before declare, no statements
-       ;;    a) indenting label  : goto-parent returns "function", with point on "function"
-       ;;    algorithm: indent to parent + ada-indent
-       ;;
-       ;;    b) indenting declare: goto-parent returns "begin", with point on label
-       ;;    c) indenting begin, end: goto-parent returns function "begin", with point on label
-       ;;    algorithm: indent to point
-       ;;
-       ;; 5) Function_2b: Label before declare, one statement
-       ;;    a) indenting label  : goto-parent returns "function", with point on "function"
-       ;;    algorithm: indent to parent + ada-indent
-       ;;
-       ;;    b) indenting declare, begin, end: goto-parent returns ";", with point on label
-       ;;    algorithm: indent to point
-       ;;
-       ;; 6) Function_2c: Label before declare, two statements
-       ;;    a) indenting label  : goto-parent returns "begin", with point on P1
-       ;;    algorithm: indent to parent + ada-indent
-       ;;
-       ;;    b) indenting declare, begin, end: goto-parent returns ";", with point on label
-       ;;    algorithm: indent to point
-       ;;
-       ;; 7) Function_2d: begin is first keyword, no statements
-       ;;    a) indenting begin: goto-parent returns "function", with point on "function"
-       ;;    algorithm: indent to parent + ada-indent
-       ;;
-       ;;    b) indenting end  : goto-parent returns "begin", with point on "begin"
-       ;;    algorithm: indent to point
-       ;;
-       ;; 8) Function_2e: begin is first keyword, one statement
-       ;;    a) indenting begin: goto-parent returns previous "begin", with point on "P1"
-       ;;    algorithm: indent to parent + ada-indent
-       ;;
-       ;;    b) indenting end  : goto-parent returns "begin", with point on "begin"
-       ;;    algorithm: indent to point
-       ;;
-       ;; 9) Function_2f: begin is first keyword, two statements
-       ;;    a) indenting begin: goto-parent returns ";", with point on "P2"
-       ;;    algorithm: indent to point
-       ;;
-       ;;    b) indenting end  : goto-parent returns "begin", with point on "begin"
-       ;;    algorithm: indent to point
-       ;;
-       ;; Note that we don't get here if indenting a block label;
-       ;; that's handled in :after block-keyword, ";".
        ;;
        (save-excursion
 	 (cond
 	  ((ada-indent-opener-p arg)
-	   ;; all cases, indenting first keyword; declare-open,
-	   ;; begin-open. If there is a previous statement, indent 0
-	   ;; relative to it. Otherwise indent ada-indent relative to
-	   ;; the block opening. That is handled by :after, so return
-	   ;; nil here.
+	   ;; Indenting first keyword; declare, begin-open,
+	   ;; etc. If there is a previous statement, indent 0 relative
+	   ;; to it. Otherwise indent ada-indent relative to the block
+	   ;; opening. That is handled by :after, so return nil here.
 	   nil)
 
 	  (t
-	   ;; All cases, indenting second or third keyword; declare-label, begin-body, end
+	   ;; Indenting second or third keyword; declare, begin-body, etc
 	   ;; Indent relative to block start.
 	   (ada-indent-goto-parent arg 1)
 	   (back-to-indentation)
@@ -2804,15 +2757,8 @@ the start of CHILD, which must be a keyword."
 	 (backward-sexp)
 	 (ada-indent-rule-parent ada-indent-broken "(")))
 
-      ((member arg '("," ":-label" ";"))
+      ((member arg '("," ";"))
        (ada-indent-rule-statement 0 arg))
-
-      ((equal arg ">>")
-       ;; indenting after a statement label
-       (save-excursion
-	 (back-to-indentation)
-	 (cons 'column (- (current-column) ada-indent-label))))
-
 
       ((equal arg "record-end")
        ;; We are indenting the aspect specification for the record.
@@ -2900,6 +2846,33 @@ the start of CHILD, which must be a keyword."
 	    )))
        ))
 
+(defun ada-indent-label ()
+  (cond
+   ((save-excursion
+      (or
+       (equal "<<" (ada-indent-forward-token))
+       (equal ":-label" (ada-indent-forward-token))))
+    ;; before a label
+    (let (offset
+	  (token (save-excursion (ada-indent-backward-token))))
+      (cond
+       ((member token ada-indent-block-keywords)
+	(setq offset (+ ada-indent ada-indent-label)))
+       (t (setq offset ada-indent-label)))
+      (cdr (save-excursion
+	     (ada-indent-backward-token)
+	     (ada-indent-rule-statement offset token)))
+      ))
+
+   ((member (save-excursion (ada-indent-backward-token))
+	    '(">>" ":-label"))
+    ;; after a statement or block label
+    (save-excursion
+      (ada-indent-backward-token)
+      (back-to-indentation)
+      (- (current-column) ada-indent-label)))
+   ))
+
 (defun ada-indent-record()
   "Indent a line containing the \"record\" that starts a record component list."
   (catch 'quit
@@ -2919,9 +2892,7 @@ the start of CHILD, which must be a keyword."
 		(if (equal token "record-open")
 		    (ada-indent-rule-statement ada-indent-record-rel-type token))))
 
-	    (cond
-	     ((null indent) nil)
-	     ((eq (car-safe indent) 'column) (cdr indent)))
+	    (cdr indent)
 	    )))
     ))
 
@@ -2999,16 +2970,18 @@ used when no indentation decision was made."
   (cdr (ada-indent-rule-parent ada-indent-broken nil)))
 
 ;;; debug
-(defvar ada-indent-debug-refine t
+(defvar ada-indent-debug-refine nil
   "When non-nil, `ada-indent-show-keyword-forward' and
 `ada-indent-show-keyword-backward' invalidate cache first, so
-they always run the refine algorithm.")
+they always run the refine algorithm.  In addition,
+`ada-indent-refine-error' throws errors instead of failing more
+gracefully.")
 
 (defun ada-indent-show-keyword-forward ()
   "Show the grammar info for word following point, and move across it."
   (interactive)
   (when ada-indent-debug-refine
-      (setq ada-indent-cache-max (- (point) 1)))
+      (setq ada-indent-cache-max (min ada-indent-cache-max (- (point) 1))))
   (message "%s" (assoc (ada-indent-forward-token) smie-grammar)))
 
 (defun ada-indent-show-keyword-backward ()
@@ -3017,7 +2990,7 @@ they always run the refine algorithm.")
   (when ada-indent-debug-refine
     (save-excursion
       (smie-default-backward-token)
-      (setq ada-indent-cache-max (- (point) 1))))
+      (setq ada-indent-cache-max (min ada-indent-cache-max (- (point) 1)))))
   (message "%s" (assoc (ada-indent-backward-token) smie-grammar)))
 
 (defun ada-indent-show-parent ()
@@ -3114,6 +3087,7 @@ This lets us know which indentation function succeeded."
 
   (setq smie-indent-functions
 	'(smie-indent-bob; handle first non-comment line in buffer
+	  ada-indent-label
 	  ada-indent-comment
 	  ada-indent-record
 	  ada-indent-before-keyword

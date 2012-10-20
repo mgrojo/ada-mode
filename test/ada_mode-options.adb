@@ -37,4 +37,9 @@ begin
       <<Label_2>>
       Local_2 := 3;
    end Label_1;
+
+   Loop1:
+   for F in Integer loop
+      null;
+   end loop Loop1;
 end Ada_Mode.Options;

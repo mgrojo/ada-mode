@@ -28,7 +28,7 @@ user : /Projects/smm.main/source/smm-download.adb.diff
 # FIXME: add target to test user directory nicely (no clutter)
 # FIXME: add target to run tests with Ada mode 4.01 to compare
 
-one : options.ads.diff
+one : test-clean adacore_bb04_004.adb.diff
 
 TEST_FILES := $(shell ls *.ad?)
 
@@ -40,7 +40,8 @@ TEST_FILES := $(filter-out ada_mode-options-indent_return_1.ads, $(TEST_FILES)) 
 TEST_FILES := $(filter-out ada_mode-options-indent_return_2.ads, $(TEST_FILES)) # ada-indent-return
 TEST_FILES := $(filter-out ada_mode-quantified_expressions.adb, $(TEST_FILES)) # ?
 TEST_FILES := $(filter-out loop_1.adb, $(TEST_FILES)) # select or; waiting on result of debate with Stefan
-
+TEST_FILES := $(filter-out move_to_end.adb, $(TEST_FILES)) # tests ada-mode-to-end, which we have not (yet?) implemented
+TEST_FILES := $(filter-out move_to_end_if.adb, $(TEST_FILES)) # ""
 
 # These don't indent properly because there's no leading comment/white
 # space in the file.
@@ -60,6 +61,9 @@ COMPILE_FILES := $(TEST_FILES)
 TEST_FILES := $(filter-out debug.adb, $(TEST_FILES))
 COMPILE_FILES := $(filter-out debug.adb, $(COMPILE_FILES))
 
+# This has some illegal code, left that way to test graceful handling in ada-indent
+COMPILE_FILES := $(filter-out mats_weber_bugs.adb, $(COMPILE_FILES))
+
 # These heritage tests don't compile, and they are too hard to fix
 # FIXME: review these
 COMPILE_FILES := $(filter-out ada-test.adb, $(COMPILE_FILES))
@@ -68,7 +72,6 @@ COMPILE_FILES := $(filter-out gnatprep.adb, $(COMPILE_FILES))
 COMPILE_FILES := $(filter-out highlight.adb, $(COMPILE_FILES))
 COMPILE_FILES := $(filter-out indent9.adb, $(COMPILE_FILES))
 COMPILE_FILES := $(filter-out indent.adb, $(COMPILE_FILES))
-COMPILE_FILES := $(filter-out mode.adb, $(COMPILE_FILES))
 COMPILE_FILES := $(filter-out move_to_end.adb, $(COMPILE_FILES))
 COMPILE_FILES := $(filter-out other_1.adb, $(COMPILE_FILES))
 COMPILE_FILES := $(filter-out paramlist2.adb, $(COMPILE_FILES))

@@ -1,4 +1,4 @@
---EMACSCMD: (setq ada-label-indent 0)
+--EMACSCMD: (setq ada-indent-label 0)
 
 function Adacore_Bb04_004 return Boolean is
 begin

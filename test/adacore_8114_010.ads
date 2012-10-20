@@ -11,7 +11,7 @@ package Adacore_8114_010 is
 
    type Wrong_Indentation is
      (     --  The following line is now indented in the same column
-      Value_1, -- FIXME: ask
+      Value_1,
       Value_2
      );    --  This is also aligned on the comment
 

@@ -280,7 +280,7 @@ package Ada_Mode.Nominal is
    Integer_I : Integer; -- FIXME: ask
 
    Integer_J,
-   Integer_K, Integer_L : Integer;
+   Integer_K, Integer_L, Integer_M : Integer;
 
    Float_1 : aliased constant Float := 1.0;
    Float_2 : aliased constant Float :=
@@ -425,7 +425,7 @@ private
          Component_2 : Integer;
          Component_3 : Integer;
       end record
-      with Pack => True;
+     with Pack => True; -- FIXME: hanging; ok? ask list, check GPS
 
    type Limited_Derived_Type_1a is abstract limited new
       Private_Type_1 with record
