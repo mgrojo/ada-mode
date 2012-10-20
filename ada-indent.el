@@ -2535,7 +2535,7 @@ the start of CHILD, which must be a keyword."
     (ada-indent-goto-statement-start child)
     (cond
      ;; allow for whitespace and comments before the preceding "("
-     ((eq (save-excursion (forward-comment -1) (char-before))
+     ((eq (save-excursion (forward-comment (- (point))) (char-before))
 	  ?\()
       nil); indent to the (, not the line it is on
      (t (back-to-indentation)))
@@ -2813,38 +2813,44 @@ the start of CHILD, which must be a keyword."
 (defun ada-indent-comment ()
   "Compute indentation of a comment."
   ;; Check to see if we are at a comment
-  (and (smie-indent--bolp)
-       (let ((pos (point)))
+  (and
+   (smie-indent--bolp)
+   (let ((pos (point)))
          (save-excursion
            (beginning-of-line)
            (and (re-search-forward comment-start-skip (line-end-position) t)
                 (eq pos (or (match-end 1) (match-beginning 0))))))
 
-       ;; yes, we are at a comment; indent to previous code
-       (save-excursion
-         (forward-comment (- (point)))
-	 ;; indent-before-keyword will find the keyword _after_ the
-	 ;; comment, which could be 'private' for example, and that
-	 ;; would align the comment with 'private', which is wrong. So
-	 ;; we call a subset of the indentation functions.
-	 ;; ada-indent-default handles this case:
-	 ;;
-	 ;;     procedure Incorrect_Sub
-	 ;;       --  comment
-	 ;;       (
+   ;; yes, we are at a comment; indent to previous code or comment.
+   (save-excursion
+     (forward-comment -1)
+     (cond
+      ((looking-at comment-start)
+       (current-column))
 
-	 (if debug-on-error
-	     (or
-	      (ada-indent-wrapper 'smie-indent-bob)
-	      (ada-indent-wrapper 'ada-indent-after-keyword)
-	      (ada-indent-wrapper 'ada-indent-default)
-	      )
+      (t
+       ;; indent-before-keyword will find the keyword _after_ the
+       ;; comment, which could be 'private' for example, and that
+       ;; would align the comment with 'private', which is wrong. So
+       ;; we call a subset of the indentation functions.
+       ;; ada-indent-default handles this case:
+       ;;
+       ;;     procedure Incorrect_Sub
+       ;;       --  comment
+       ;;       (
+
+       (if debug-on-error
 	   (or
-	    (smie-indent-bob)
-	    (ada-indent-after-keyword)
-	    (ada-indent-default)
-	    )))
-       ))
+	    (ada-indent-wrapper 'smie-indent-bob)
+	    (ada-indent-wrapper 'ada-indent-after-keyword)
+	    (ada-indent-wrapper 'ada-indent-default)
+	    )
+	 (or
+	  (smie-indent-bob)
+	  (ada-indent-after-keyword)
+	  (ada-indent-default)
+	  )))
+      ))))
 
 (defun ada-indent-label ()
   (cond

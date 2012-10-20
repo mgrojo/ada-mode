@@ -55,7 +55,7 @@ is
      CSCL_Type'
      (
       1 =>   --  Used to be aligned on "CSCL_Type'"
-        --  (should be ada-broken-indent)
+             --  aligned with previous comment.
         Very_Big_Lengthy_Named_Type'
         (Test         => B_Types.I_I_S_TEST,  -- Used to be aligned on "1 =>"
          F_Threshold  => 0,

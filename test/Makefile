@@ -28,17 +28,15 @@ user : /Projects/smm.main/source/smm-download.adb.diff
 # FIXME: add target to test user directory nicely (no clutter)
 # FIXME: add target to run tests with Ada mode 4.01 to compare
 
-one : test-clean adacore_bb04_004.adb.diff
+one : test-clean ada_mode-quantified_expressions.adb.diff
 
 TEST_FILES := $(shell ls *.ad?)
 
 # FIXME: delete currently broken tests
-TEST_FILES := $(filter-out adacore_d304_005_2.adb, $(TEST_FILES)) # ada-indent-label applies to block labels
 TEST_FILES := $(filter-out ada-test.adb, $(TEST_FILES)) # multiple compilation units, minor issues
-TEST_FILES := $(filter-out bug_1920.adb, $(TEST_FILES)) # ada-indent-label
 TEST_FILES := $(filter-out ada_mode-options-indent_return_1.ads, $(TEST_FILES)) # ada-indent-return
 TEST_FILES := $(filter-out ada_mode-options-indent_return_2.ads, $(TEST_FILES)) # ada-indent-return
-TEST_FILES := $(filter-out ada_mode-quantified_expressions.adb, $(TEST_FILES)) # ?
+TEST_FILES := $(filter-out ada_mode-quantified_expressions.adb, $(TEST_FILES)) # 2012 syntax
 TEST_FILES := $(filter-out loop_1.adb, $(TEST_FILES)) # select or; waiting on result of debate with Stefan
 TEST_FILES := $(filter-out move_to_end.adb, $(TEST_FILES)) # tests ada-mode-to-end, which we have not (yet?) implemented
 TEST_FILES := $(filter-out move_to_end_if.adb, $(TEST_FILES)) # ""
@@ -74,7 +72,6 @@ COMPILE_FILES := $(filter-out indent9.adb, $(COMPILE_FILES))
 COMPILE_FILES := $(filter-out indent.adb, $(COMPILE_FILES))
 COMPILE_FILES := $(filter-out move_to_end.adb, $(COMPILE_FILES))
 COMPILE_FILES := $(filter-out other_1.adb, $(COMPILE_FILES))
-COMPILE_FILES := $(filter-out paramlist2.adb, $(COMPILE_FILES))
 COMPILE_FILES := $(filter-out parent.adb, $(COMPILE_FILES))
 COMPILE_FILES := $(filter-out prime-volatilities.adb, $(COMPILE_FILES))
 COMPILE_FILES := $(filter-out private.adb, $(COMPILE_FILES))

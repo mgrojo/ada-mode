@@ -17,32 +17,32 @@ begin
 
    case (for Some J in 1 .. 10 => J/2 = 0) is
       when others =>
-         Label:
+      Label:
          declare
-         generic
-            Test : in Boolean := (for all J in 1 .. 10 => False);
-         package Inner is
+            generic
+               Test : in Boolean := (for all J in 1 .. 10 => False);
+            package Inner is
 
-         end Inner;
+            end Inner;
 
-         package body Inner is
-         begin
+            package body Inner is
+            begin
             Label:
-            loop
-               exit Label;
-            end loop Label;
-         end Inner;
-
-         package Instance is new Inner ((for some J in 1 .. 10 => True));
-         -- FIXME: "some" not highlighted
+               loop
+                  exit Label;
+               end loop Label;
+            end Inner;
+           
+            package Instance is new Inner ((for some J in 1 .. 10 => True));
+            -- FIXME: "some" not highlighted
 
          begin
-         loop
-            exit;
-         end loop;
+            loop
+               exit;
+            end loop;
          end Label;
    end case;
-
+   
    declare
       B : Boolean;
       function "+" (Item : in Integer) return access Integer

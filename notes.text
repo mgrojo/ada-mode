@@ -38,8 +38,7 @@ ada-indent.el
 
 test/Makefile
 make rest of test files work
-test/paramlist.adb
-    comments respect ( in comments? no way!
+test/pragma_indent.adb
 
 "in" is a keyword, needs to be defined for param list?
     not so far

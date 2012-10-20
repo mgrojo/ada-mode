@@ -62,7 +62,8 @@ package body Ada_Mode.Nominal is
                end;
             elsif False
             then
-               return 1;
+               return 1;   -- a comment
+                           -- another comment, aligned with previous
             else
                return 0;
             end if;
@@ -95,9 +96,9 @@ package body Ada_Mode.Nominal is
          Local_4 : Discrete_Type_1 := A;
       begin
          Local_1 :=
-           X + Tmp; -- an indented line
+           X + Tmp;
 
-         -- A comment after an indented line
+         -- A comment after a hanging line
 
          case Local_4 is
             when
