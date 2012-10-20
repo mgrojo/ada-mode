@@ -234,28 +234,22 @@ An example is:
        ;; "accept identifier;" is left as an identifier; otherwise it
        ;; is an opener without a matching closer
 
-      (aggregate
-       ("(" association_list ")"))
-      ;; this also covers other parenthesized lists; enumeration type
-      ;; declarations, subprogram calls. FIXME: don't need this; see what happens if delete it
-
       (aspect_specification
        ("with-aspect" aspect_list))
 
       (aspect_list
-       (aspect_item)
-       (aspect_list "," aspect_item))
-
-      (aspect_item
-       (name "=>-other" name))
+       (name)
+       (aspect_list "," name))
 
       (association_list
-       (association)
-       (association_list "," association))
-
-      (association
        (expression)
-       (expression "=>-other" expression))
+       (association_list "," expression))
+      ;; We need aspect_list, association_list in the grammar, because
+      ;; "," affects indentation. We don't need 'aspect_item' or
+      ;; 'association'; => does not affect indentation in those.
+      ;; 'association_list' does not appear in any other non-terminal;
+      ;; we only see it inside parens, which is handled separately
+      ;; from the rest of the grammar.
 
       (asynchronous_select
        ("select-open" statements "then-select" "abort-select" statements "end-select" "select-end"))
@@ -267,7 +261,10 @@ An example is:
       ;; refine-begin.
 
       (case_statement_alternative
-       ("when-case" expression "=>-when" statements)); "|" is an identifier
+       ("when-case" expression "=>-when" statements))
+      ;; "|" is an identifier. "=>" is refined, because it appears
+      ;; elsewere in the syntax (associations, aspects), although not
+      ;; in the grammar, and the indentation is different here.
 
       (context_clause
        (context_item)
@@ -2302,9 +2299,7 @@ or \"(\", and point must be at the start of CHILD."
 	  (ada-indent-goto-parent
 	   child
 	   (if (and child
-		    (or
-		     (equal child "(")
-		     (ada-indent-opener-p child)))
+		    (ada-indent-opener-p child))
 	       2
 	     1))))
       (cond
@@ -2414,7 +2409,7 @@ must be at the start of CHILD."
       ;; We have to check the previous keyword for procedure calls,
       ;; "procedure" and "function", and a few other cases.  Many
       ;; statements have non-keyword tokens before the first token
-      ;; (assignent), so we have to use use ada-indent-backward-keyword
+      ;; (assignment), so we have to use use ada-indent-backward-keyword
       ;; to find the previous keyword.
       (when (not (member child ada-indent-block-keywords))
 	(save-excursion
@@ -2446,7 +2441,7 @@ must be at the start of CHILD."
       (if (and pos (not (= pos (point)))) (progn (goto-char pos) (throw 'done (list parent-pos parent))))
 
       (setq parent-count
-	    (if (member child '("." "(" "record-open" "<<"))
+	    (if (member child '("." "record-open" "<<"))
 		2
 	      1))
       ;; If child is "." we are in the middle of an Ada name; the
@@ -2581,13 +2576,11 @@ the start of CHILD, which must be a keyword."
        (save-excursion
 	 (let ((pos (point)))
 	   (if (member (smie-default-backward-token) '("procedure" "function"))
-	       ;; 1
-	       (progn (goto-char pos) (ada-indent-rule-parent ada-indent-broken arg))
-	   (if (member (smie-default-backward-token) '("procedure" "function"))
-	       ;; 2
+	       ;; 1, 2
 	       (progn (goto-char pos) (ada-indent-rule-parent ada-indent-broken arg))
 	     ;; 3, 4, 5
-	     (progn (goto-char pos) (ada-indent-rule-statement ada-indent-broken arg)))))))
+	     (progn (goto-char pos) (ada-indent-rule-statement ada-indent-broken arg))))
+	 ))
 
       ((equal arg "return-spec")
        ;; Function declaration, function body, or access-to-function type declaration.
