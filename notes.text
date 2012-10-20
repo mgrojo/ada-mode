@@ -36,10 +36,9 @@ ada-indent.el
 
 test/Makefile
 make rest of test files work
-test/main_procedure.adb
-    smie-backward-sexp returns "("!
-    make ada-indent-backward-name do the same
-    add this test to ada_mode-parens.adb
+manual-xref-op infinite loop
+
+delete "aggregate" from grammar
 
     test/loop_1.adb
 or-select confuses smie-backward-sexp? yes

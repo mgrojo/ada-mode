@@ -141,9 +141,7 @@ An example is:
       ;; work; see (info "(elisp)SMIE Grammar")
       ;;
       ;; The important operation in indentation is finding the
-      ;; beginning of the current Ada statement or declaration. In
-      ;; SMIE terms, that means finding the 'parent' of the current
-      ;; sexp; the leftmost keyword.
+      ;; beginning of the current Ada statement or declaration.
       ;;
       ;; This is done using the `smie-backward-sexp' function. It
       ;; moves back thru a chain of keywords, matching the precedence
@@ -169,21 +167,22 @@ An example is:
       ;; keyword must match the left token of the current
       ;; keyword. When we encounter a keyword with a list for the
       ;; right level, or a level that doesn't match, we've found the
-      ;; parent.
+      ;; first keyword.
       ;;
       ;; The primary work in building the grammar is finding ways to
-      ;; avoid conflicts without breaking the ability to find
-      ;; parents. One approach is to leave out as many keywords as
-      ;; possible, another is to refine Ada keywords into several
+      ;; avoid conflicts without breaking the ability to find the
+      ;; first keyword. One approach is to leave out as many keywords
+      ;; as possible, another is to refine Ada keywords into several
       ;; different smie keywords.
       ;;
       ;; SMIE automatically allows balanced parens anywhere, so we
       ;; don't need to declare argument lists or discriminant lists
       ;; in the grammar.
       ;;
-      ;; Ada keywords that are not needed to find parents, or
+      ;; Ada keywords that are not needed to find first keywords, or
       ;; otherwise help in indentation, do not need to be present in
-      ;; the grammar; they will be treated as identifiers.
+      ;; the grammar; they will be treated as identifiers. In
+      ;; particular, no operators are in the grammar.
       ;;
       ;; For example, most uses of "null" are not in the grammar;
       ;; "null record" is, in order to distinguish it from
@@ -195,8 +194,7 @@ An example is:
       ;;
       ;; ';' has a similar problem; it is used in several different
       ;; constructs at different levels. We solve that by declaring
-      ;; it as the separator for each of those constructs. (SMIE
-      ;; grammars cannot properly represent statement terminators).
+      ;; it as the separator for each of those constructs.
       ;;
       ;; Other keywords are similarly refined to avoid grammar
       ;; conflicts. Sometimes it is tempting to refine two adjacent
@@ -214,11 +212,8 @@ An example is:
       ;; reduce the number of refined keywords we need. There are a
       ;; couple of other exceptions, noted below.
       ;;
-      ;; There is no need for sexps with only one keyword in the
-      ;; grammar; finding the parent of a single keyword is trivial
-      ;; :). On the other hand, keeping them, where the keyword is
-      ;; already defined for other purposes, does no harm, and is
-      ;; less jarring to read.
+      ;; SMIE allows any non-terminal to be empty, or to repeat. So
+      ;; 'identifier' can cover several non-keywords.
 
       ;; We list the non-terminals in alphabetical order, since there
       ;; isn't any more reasonable order. We use the same names as [1]
@@ -227,9 +222,9 @@ An example is:
       ;; Refined token naming convention:
       ;;
       ;; If an Ada keyword is refined, all occurances of the keyword
-      ;; in the smie grammar must be refined. Use "-op" for
-      ;; operators, "-other" if no better name is available. That way
-      ;; it is clear when a keyword is being left as an indentifier.
+      ;; in the smie grammar must be refined. Use "-other" if no
+      ;; better name is available. That way it is clear when a keyword
+      ;; is being left as an indentifier.
 
       ;; abstract_subprogram_declaration
       ;; "is" "abstract" are identifiers
@@ -242,7 +237,7 @@ An example is:
       (aggregate
        ("(" association_list ")"))
       ;; this also covers other parenthesized lists; enumeration type
-      ;; declarations, subprogram calls.
+      ;; declarations, subprogram calls. FIXME: don't need this; see what happens if delete it
 
       (aspect_specification
        ("with-aspect" aspect_list))
@@ -322,7 +317,7 @@ An example is:
       ;; no need to distinguish between when-exception, when-case.
 
       (exit_statement
-       ("exit-other"); from anywhere. leaving identifier out
+       ("exit-other"); leaving identifier out
        ("exit-when" "when-exit" expression))
 
       (expression
@@ -384,12 +379,15 @@ An example is:
 
       (name
        (identifier)
-       (name "." identifier) ; selected_component
-       ;; Remember that parenthesis are simply skipped by SMIE
-       ;; (unless we are indenting inside them; then they are
-       ;; boundaries). So we don't need to represent subprogram
-       ;; parameter lists, or array indices here (no aggregates in
-       ;; 'expression').
+       ;; selected_component is covered by the SMIE rule that any
+       ;; non-terminal can repeat. '.' is an identifier.
+       ;;
+       ;; Paired parenthesis are simply skipped by SMIE. So we
+       ;; don't need to represent subprogram parameter lists, or array
+       ;; indices here (and also no aggregates in 'expression').
+       ;;
+       ;; We could just use 'identifier' everywhere instead of 'name',
+       ;; but this is less confusing.
        )
 
       (object_declaration
@@ -449,7 +447,7 @@ An example is:
 		   "exception-block" exception_handler "end-block")
        ("declare-open" declarations "begin-body" statements "end-block")
        ("begin-open" statements "end-block")
-       ;; we don't need to repeat the exception handler in the other
+       ;; we don't need to repeat the optional exception handler in the other
        ;; cases; once is enough to establish the precendence of "exception-block".
 
        ;; case_statement
@@ -466,6 +464,10 @@ An example is:
        ("if-open" expression "then-if" statements
 	"elsif" expression "then-if" statements
 	"else-other" statements "end-if" "if-end")
+       ;; "then-if .. elsif" is optional here, so SMIE allows it to
+       ;; repeat. It also allows "else-other" to repeat, but we don't
+       ;; care.
+       ;;
        ;; "then" also occurs in "and then" logical operator. We leave
        ;; that as an identifier, so this is "then-if", even though
        ;; there is no other "then" in the grammar.  "else" also occurs
@@ -515,14 +517,13 @@ An example is:
 
        ("overriding" "function-overriding" name "return-spec" name)
        ("overriding" "procedure-overriding" name)
-       ;; We need "overriding" as a token, because the indentation
+       ;; We need "overriding" as a keyword, because the indentation
        ;; policy for it is an exception to the hanging policy:
        ;;
        ;;    overriding
        ;;    procedure (...);
 
        ("procedure-spec" name); same as 'procedure name is-subprogram_body'
-       ;; We keep this, because it is too jarring to not find it here :).
        ;; Covers subprogram_renaming_declaration procedure.
        ;;
        ;; We leave out ("procedure" name "is" "null") here; we
@@ -543,14 +544,13 @@ An example is:
        ;; access_type_definition
        ("type" identifier "is-type-access")
        ;; Any occurance of "is-type" as the last keyword in a
-       ;; declaration must be refined; otherwise it is ambiguous
-       ;; with several other declarations.
+       ;; declaration must be further refined; otherwise it is
+       ;; ambiguous with several other declarations.
 
        ;; We don't include access-to-subprogram in the grammar,
-       ;; because we want to identify 'function' and 'procedure' in
-       ;; these types, so we can indent the parameter list relative
-       ;; to them. So we allow them to be parents. This also greatly
-       ;; simplifies refine-is.
+       ;; because we want to indent relative to 'function' and
+       ;; 'procedure' in these types. So we allow them to be first
+       ;; keywords. This also greatly simplifies refine-is.
 
        ;; array_type_definition; we leave "array" as an identifier
        ("type" identifier "is-type" name "of-type" name); same as anonymous array
@@ -590,12 +590,10 @@ An example is:
 
        ;; modular_type_definition
        ("type" identifier "is-type" "mod-type")
-       ;; "mod" is an operator, so it has to be in the grammar. We
-       ;; also want something following "is-type", unless we treat
-       ;; this occurence of "is" as an identifier. FIXME: On the
-       ;; other hand, we don't really need "mod" as an operator. It
-       ;; also occurs in other syntax; wait until we test those to
-       ;; decide to leave it as an identifier.
+       ;; FIXME: this is the only occurance of "mod" in the grammar at
+       ;; the moment. It also occurs in other syntax that is not
+       ;; implemented yet; wait until we test those to decide to leave
+       ;; it as an identifier.
 
        ;; private_extension_declaration
        ("type" identifier "is-type" "new" name "with-new" "private-with")
@@ -830,7 +828,7 @@ token or nil. Preserves point."
 	(if (not (ada-indent-keyword-p token))
 	    (if (equal token "pragma"); not worth making this a keyword
 		(throw 'quit (list 'declaration "pragma"))
-	      (setq token (ada-indent-forward-name))))
+	      (setq token (ada-indent-forward-keyword))))
 
 	;; lists compiled by going thru (statement ..) and (declaration
 	;; ...) in the ada-indent-grammar declaration above.
@@ -866,42 +864,40 @@ token or nil. Preserves point."
 	(forward-sexp)
     (backward-sexp))))
 
-(defun ada-indent-next-name (next-token forward target)
-  "Skip over a name using function NEXT-TOKEN. Here a 'name'
-consists of identifiers, dots, anything that looks like a
-parameter list (could be an array index), and identifiers.
-Return the token that isn't part of the name (which may be found
-before any name is seen).  If TARGET is non-nil, stop if it is
-found, and return it. Return empty string if encounter beginning
-or end of buffer."
+(defun ada-indent-next-keyword (next-token forward)
+  "Skip tokens function NEXT-TOKEN, until a keyword is found (a
+token defined in the grammar).  Skips string literals, character
+literals, paired parens.  Stops at left paren going backwards,
+right paren going forwards.  Return the keyword or paren (which
+may be the first token found).  Return empty string if encounter
+beginning or end of buffer."
   (let (token)
     (catch 'quit
       (while
 	  (progn
 	    (setq token (funcall next-token))
-	    (if (equal target token) (throw 'quit target))
 	    (if (equal "" token)
-		;; We hit a paren or bob FIXME: or string, char literal
+		;; We hit a paren, string, character literal, bob, eob
 		(progn
-		  (when (bobp) (throw 'quit nil))
+		  (when (or (bobp) (eobp)) (throw 'quit nil))
 		  (if forward
 		      (when (eq (char-after) ?\)) (throw 'quit ")"))
 		    (when (eq (char-before) ?\() (throw 'quit "(")))
 		  (ada-indent-skip-param_list forward)
 		  ;; the next token might be another paren, so we loop
 		  t)
-	      ;; not a paren or bob
+	      ;; a token
 	      (setq token (nth 0 (assoc token smie-grammar)))
-	      (or (not token); not a keyword, so it must be an identifier
-		  (equal token ".")))))
-      )
-    token))
+	      (not token); not a keyword
+	      )))
+      token)
+    ))
 
-(defun ada-indent-backward-name (&optional target)
-  (ada-indent-next-name 'ada-indent-backward-token nil target))
+(defun ada-indent-backward-keyword ()
+  (ada-indent-next-keyword 'ada-indent-backward-token nil))
 
-(defun ada-indent-forward-name (&optional target)
-   (ada-indent-next-name 'ada-indent-forward-token t target))
+(defun ada-indent-forward-keyword ()
+   (ada-indent-next-keyword 'ada-indent-forward-token t))
 
 (defun ada-indent-next-token-unrefined (next-token forward)
   "Move to the next token using function NEXT-TOKEN. Skips parentheses.
@@ -941,7 +937,7 @@ an element of TARGETS, return that token."
     result))
 
 (defun ada-indent-refine-error (token)
-  (ada-indent-error "unrecognized '" token "'"))
+  (ada-indent-error (concat "unrecognized '" token "'")))
 
 ;;; refine-*
 
@@ -976,7 +972,7 @@ an element of TARGETS, return that token."
 (defun ada-indent-refine-=> (token forward)
   (let ((token (save-excursion
 		 (when forward (smie-default-backward-token))
-		 (ada-indent-backward-name))))
+		 (ada-indent-backward-keyword))))
 
     (if (member token '(":-object" ; in exception handler
 			"when-case"
@@ -996,7 +992,7 @@ an element of TARGETS, return that token."
 (defun ada-indent-refine-accept (token forward)
   (let ((token (save-excursion
 		 (when (not forward) (smie-default-forward-token))
-		 (ada-indent-forward-name);; identifier, entry family, parameters; returns ";", "do"
+		 (ada-indent-forward-keyword);; identifier, entry family, parameters; returns ";", "do"
 		 )))
     (cond
      ((equal token "do") "accept-open")
@@ -1073,7 +1069,7 @@ an element of TARGETS, return that token."
      (when (equal "interface" (save-excursion (smie-default-backward-token)))
        "and-interface"); 2
 
-     (let ((token (ada-indent-backward-name)))
+     (let ((token (ada-indent-backward-keyword)))
        (cond
 	((or (equal token "and-interface_list"); 3
 	     (equal token "new")); 1, 4, 5, 6, 7
@@ -1225,7 +1221,8 @@ an element of TARGETS, return that token."
 
 (defun ada-indent-refine-for (token forward)
   (let ((token (save-excursion
-		 (when (not forward) (smie-default-forward-token))
+		 (when (not forward) (smie-default-forward-token)); for
+		 (smie-default-forward-token); identifier
 		 (smie-default-forward-token))))
     (if (equal token "in")
 	"for-loop"
@@ -1264,7 +1261,7 @@ an element of TARGETS, return that token."
 
      (save-excursion
        ;; This is a special case because "protected" and "task" are
-       ;; not keywords, so ada-indent-backward-name doesn't find
+       ;; not keywords, so ada-indent-backward-keyword doesn't find
        ;; them. Fortunately, single tasks and protected objects cannot
        ;; have discriminants. FIXME: they can have aspect specs.
        (let ((token (progn
@@ -1287,7 +1284,7 @@ an element of TARGETS, return that token."
 	 )))
 
      (let* (pos
-	    (token (save-excursion (prog1 (ada-indent-backward-name) (setq pos (point))))))
+	    (token (save-excursion (prog1 (ada-indent-backward-keyword) (setq pos (point))))))
        (cond
 	((equal token "case") "is-case")
 
@@ -1335,7 +1332,7 @@ an element of TARGETS, return that token."
 		   (prog1 (smie-default-forward-token)
 		     (setq pos (point))))))
 	    (cond
-	     ((equal token ""); paren or end of buffer; assume paren
+	     ((equal token ""); paren, string, or end of buffer; assume paren
 	      "is-type-enumeration");; type identifier is (...)
 
 	     ((member token '("not" "access")) "is-type-access")
@@ -1436,7 +1433,7 @@ an element of TARGETS, return that token."
       (setq token
 	    (save-excursion
 	      (smie-default-backward-token); loop
-	      (ada-indent-backward-name)))
+	      (ada-indent-backward-keyword)))
 
       (if (member token '(":-label" "in" "while" "of"))
 	  ;; FIXME: iterators not tested yet; "of" will probably be refined.
@@ -1485,7 +1482,7 @@ an element of TARGETS, return that token."
     (when forward (smie-default-backward-token))
 
     (let ((token (save-excursion
-		   (ada-indent-backward-name); is-type array, :-object array
+		   (ada-indent-backward-keyword); is-type array, :-object array
 		 )))
       (cond
        ((equal "is-type" token) "of-type")
@@ -1511,7 +1508,7 @@ an element of TARGETS, return that token."
 	  (equal token "")
 	  (progn (forward-comment (- (point)))
 		 (bobp))) "package-plain");; beginning of buffer
-	((equal token "") "package-separate");; separate (name) package
+	((equal token "") "package-separate");; token is ")"; separate (name) package
 	((equal token "access") "package-access")
 	((equal token "with") "package-formal")
 	))
@@ -1624,7 +1621,7 @@ an element of TARGETS, return that token."
     (when forward (smie-default-backward-token))
     (cond
      ((equal (save-excursion
-               (ada-indent-backward-name)) "separate-unit") "protected-separate"); 6b
+               (ada-indent-backward-keyword)) "separate-unit") "protected-separate"); 6b
      ((equal (save-excursion
                (smie-default-forward-token)
                (smie-default-forward-token)) "body") "protected-body"); 6a, 7
@@ -1710,7 +1707,7 @@ an element of TARGETS, return that token."
      ;; function F1 return Integer;
      ;; return 0;
      ;;
-     (let ((token (save-excursion (ada-indent-backward-name))))
+     (let ((token (save-excursion (ada-indent-backward-keyword))))
        (cond
 	((member token '("function-spec" "function-overriding" "function-generic" "function-separate"))
 	 "return-spec"); 1a, 2, 5
@@ -1779,7 +1776,7 @@ an element of TARGETS, return that token."
   (save-excursion
     (when forward (smie-default-backward-token))
     (cond
-     ((equal (save-excursion (ada-indent-backward-name)) "separate-unit")
+     ((equal (save-excursion (ada-indent-backward-keyword)) "separate-unit")
       "task-separate"); separate (name) task body
 
      ((equal (save-excursion
@@ -1790,7 +1787,7 @@ an element of TARGETS, return that token."
 
      ((equal (save-excursion
 	       (smie-default-forward-token)
-	       (ada-indent-forward-name)) ";")
+	       (ada-indent-forward-keyword)) ";")
       "task-single")
 
      (t "task")); an identifier
@@ -1826,7 +1823,7 @@ an element of TARGETS, return that token."
 
   (let ((token (save-excursion
 		 (when forward (smie-default-backward-token))
-		 (ada-indent-backward-name))))
+		 (ada-indent-backward-keyword))))
 
     (if (equal token "for-attribute")
 	"use-attribute"
@@ -1908,7 +1905,7 @@ an element of TARGETS, return that token."
 	 (if (equal (smie-default-backward-token) "exit"); loop label
 	     "when-exit")))
 
-     (if (equal "entry" (ada-indent-backward-name))
+     (if (equal "entry" (ada-indent-backward-keyword))
 	 "when-entry"; 5
        "when-case"); 1
      )))
@@ -2251,7 +2248,7 @@ otherwise on the following token."
 	 (cond
 	  ((ada-indent-keyword-p child)
 	   child)
-	  (t (ada-indent-backward-name)))))
+	  (t (ada-indent-backward-keyword)))))
 
     (setq token
 	  (list (nth 1 (assoc token ada-indent-grammar)) (point) token))
@@ -2270,7 +2267,7 @@ otherwise on the following token."
 	      ;; keyword first. That might also be an opener, so
 	      ;; we loop again before calling smie-backward-sexp
 	      (progn
-		(setq token (ada-indent-backward-name))
+		(setq token (ada-indent-backward-keyword))
 		(setq token
 		      (list (nth 1 (assoc token ada-indent-grammar)) (point) token))))
 
@@ -2311,7 +2308,7 @@ or \"(\", and point must be at the start of CHILD."
 	       2
 	     1))))
       (cond
-       ((equal (nth 2 parent) "") nil); stopped due to "("; indent to the (, not the line it is on
+       ((equal (nth 2 parent) "(") nil); stopped due to "("; indent to the (, not the line it is on
        (t (back-to-indentation)))
       (cons 'column (+ (current-column) offset))
     )))
@@ -2381,14 +2378,14 @@ must be at the start of CHILD."
   ;;
   ;; because operators are just identifiers. However, to find the
   ;; start of A (which could be a complex name), we must use
-  ;; ada-indent-backward-name.
+  ;; ada-indent-backward-keyword.
   ;;
   ;; Object declarations can declare multiple objects:
   ;;
   ;;   A,
   ;;    B : type;
   ;;
-  ;; The first keyword is ":"; we use ada-indent-backward-name.
+  ;; The first keyword is ":"; we use ada-indent-backward-keyword.
   ;;
   ;; If we are inside parens:
   ;;
@@ -2417,11 +2414,11 @@ must be at the start of CHILD."
       ;; We have to check the previous keyword for procedure calls,
       ;; "procedure" and "function", and a few other cases.  Many
       ;; statements have non-keyword tokens before the first token
-      ;; (assignent), so we have to use use ada-indent-backward-name
+      ;; (assignent), so we have to use use ada-indent-backward-keyword
       ;; to find the previous keyword.
       (when (not (member child ada-indent-block-keywords))
 	(save-excursion
-	  (setq parent (ada-indent-backward-name))
+	  (setq parent (ada-indent-backward-keyword))
 	  (setq parent-pos (point))
 	  (if (or
 	       (equal parent ";")
@@ -2496,7 +2493,7 @@ must be at the start of CHILD."
 
       (if (member (nth 2 parent) '(":" ":="))
 	  (progn
-	    (ada-indent-backward-name)
+	    (ada-indent-backward-keyword)
 	    ;; we are now on the keyword before statement start; get back.
 	    (smie-default-forward-token); ";" or block start
 	    (forward-comment (point-max)))
@@ -2767,25 +2764,22 @@ the start of CHILD, which must be a keyword."
        ;; that's handled in :after block-keyword, ";".
        ;;
        (save-excursion
-	 (let (offset parent)
-	   (cond
-	    ((ada-indent-opener-p arg)
-	     ;; all cases, indenting first keyword; declare-open, begin-open.
-	     (setq parent (ada-indent-goto-parent arg 2))
-	     (if (or
-		  (bobp)
-		  (equal (nth 2 parent) ";"))
-		 (setq offset 0)
-	       (goto-char (nth 1 parent))
-	       (setq offset ada-indent)))
+	 (cond
+	  ((ada-indent-opener-p arg)
+	   ;; all cases, indenting first keyword; declare-open,
+	   ;; begin-open. If there is a previous statement, indent 0
+	   ;; relative to it. Otherwise indent ada-indent relative to
+	   ;; the block opening. That is handled by :after, so return
+	   ;; nil here.
+	   nil)
 
-	    (t
-	     ;; all cases, indenting second or third keyword; declare-label, begin-body, end
-	     (ada-indent-goto-parent arg 1)
-	     (setq offset 0))
-	    )
+	  (t
+	   ;; All cases, indenting second or third keyword; declare-label, begin-body, end
+	   ;; Indent relative to block start.
+	   (ada-indent-goto-parent arg 1)
 	   (back-to-indentation)
-	   (cons 'column (+ (current-column) offset)))
+	   (cons 'column (current-column)))
+	  )
 	 ))
 
       ((let (pos)

@@ -127,7 +127,7 @@ package body Ada_Mode.Parens is
          exit when A
            or else (B
                       and then C
-                        and then D); --  Indented on 'exit' instead of 'and then'
+                      and then D); --  Indented on 'exit' instead of 'and then'
 
          exit when A
            or else (B
@@ -144,8 +144,17 @@ package body Ada_Mode.Parens is
    end If_Statement;
 
    procedure Hello
-   is begin
-      Ada.Text_IO.Put_Line ("Hello" &
-                              " World");
+   is
+      Hello : constant String := "hello";
+      There  : constant String := " there";
+      Out_File : Ada.Text_IO.File_Type;
+   begin
+      Ada.Text_IO.Put_Line ("Hello" & ' ' & -- test ada-indent-next keyword with string, character literal
+                              "World");
+
+      Ada.Text_IO.Put_Line (Out_File, -- smie-backward-sexp returns "(" here
+                            Hello &
+                              There);
+   end Hello;
 
 end Ada_Mode.Parens;
