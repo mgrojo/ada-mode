@@ -919,13 +919,15 @@ buffer."
 	(progn
 	  (setq token (funcall next-token))
 	  (if (equal "" token)
-	      ;; We hit a parenthesis or bob FIXME: or string, char literal
+	      ;; We hit a parenthesis, bob, eob, string, char literal
 	      (progn
 		(when (bobp) (throw 'quit nil))
+		(when (eobp) (throw 'quit nil))
 		(if forward
 		    (when (eq (char-after) ?\)) (throw 'quit ")"))
 		  (when (eq (char-before) ?\() (throw 'quit "(")))
-		(ada-indent-skip-param_list forward)))))
+		(ada-indent-skip-param_list forward); also skips strings, char literals
+		))))
     token))
 
 (defun ada-indent-backward-token-unrefined ()
@@ -2172,23 +2174,29 @@ If a token is not in the alist, it is returned unrefined.")
 	  (ada-indent-refining t)
 	  token)
 
-      (goto-char (+ 1 (scan-lists (point) -1 1)));; just after opening paren
-      (setq ada-indent-cache-max (point));; force calling refine-*
-      (while (not done)
-	(setq token (ada-indent-forward-token))
-	(cond
-	 ((and (equal token "")
-	       (eq (char-after) ?\)))
-	  (setq done t))
+      (condition-case err
+	  (progn
+	    (goto-char (+ 1 (scan-lists (point) -1 1)));; just after opening paren
+	    (setq ada-indent-cache-max (point));; force calling refine-*
+	    (while (not done)
+	      (setq token (ada-indent-forward-token))
+	      (cond
+	       ((and (equal token "")
+		     (eq (char-after) ?\)))
+		(setq done t))
 
-	 ((or (not (ada-indent-keyword-p token))
-	      (ada-indent-closer-p token))
-	  (smie-forward-sexp nil))
+	       ((or (not (ada-indent-keyword-p token))
+		    (ada-indent-closer-p token))
+		(smie-forward-sexp nil))
 
-	 (t
-	  (smie-forward-sexp token))
-	 ))
-      (setq ada-indent-cache-max prev-cache-max)
+	       (t
+		(smie-forward-sexp token))
+	       ))
+	    (setq ada-indent-cache-max prev-cache-max)
+	    )
+	(scan-error
+	 ;; from scan-lists; can happen when user is typing code
+	 (setq ada-indent-cache-max prev-cache-max)))
   )))
 
 (defun ada-indent-get-cache (pos)
@@ -2971,33 +2979,28 @@ the start of CHILD, which must be a keyword."
 It requires `ada-indent-rule' to return nil or ('column column),
 never just an offset (since we would not know what the offset was
 relative to)."
-  (let*
-      ((token (save-excursion (ada-indent-forward-token)))
-       char
-       (indent
-	(or
-	 (and
-	  (equal token ""); ( ) "
-	  ;; " is handled by ada-indent-default
-	  (setq char
-		(case (char-after)
-		  (?\( "(")
-		  (?\) ")")
-		  (?\" nil)))
-	  (ada-indent-rules :before char))
+  (save-excursion
+    (forward-comment (point-max));; handle indenting blank line before code
+    (let*
+	((token (save-excursion (ada-indent-forward-token)))
+	 char)
 
-	 (and
-	  (ada-indent-keyword-p token)
-	  (ada-indent-rules :before token)))))
+      (cdr
+       (or
+	(and
+	 (equal token ""); ( ) "
+	 ;; " is handled by ada-indent-default
+	 (setq char
+	       (case (char-after)
+		 (?\( "(")
+		 (?\) ")")
+		 (?\" nil)))
+	 (ada-indent-rules :before char))
 
-      ;; Here we replace smie-indent--rules, so ada-indent-rules
-      ;; cannot use smie-rule-parent; we use ada-indent-rule-parent
-      ;; We do _not_ call smie-indent-virtual.
-      (cond
-       ((null indent) nil)
-       ((eq (car-safe indent) 'column) (cdr indent))
-       (t (error "Invalid `ada-indent-rules' result %s" indent)))
-      ))
+	(and
+	 (ada-indent-keyword-p token)
+	 (ada-indent-rules :before token)))
+       ))))
 
 (defun ada-indent-after-keyword()
   "Replacement for `smie-indent-after-keyword', tailored to Ada.

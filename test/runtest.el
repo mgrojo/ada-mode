@@ -6,6 +6,8 @@
 (require 'ada-mode)
 (require 'ada-indent)
 
+(defvar skip-reindent-test nil);; user can set to t in an EMACSCMD
+
 (defun run-test-here ()
   "Run an ada-mode test on the current buffer."
   (interactive)
@@ -33,32 +35,34 @@
        ((string= (match-string 1) "RESULT")
         (looking-at ".*$")
         (unless (equal (car (read-from-string (match-string 0))) last-result)
-          (message (concat "Result of "
-                           (with-output-to-string (princ last-cmd))
-                           " does not match.\nGot   -- "
-                           (with-output-to-string (princ last-result))
-                           "--,\nexpect --" (match-string 0)
-                           "--"))
-          (error "Result does not match")))
+          (error
+	   (concat
+	    "Result of "
+	    (with-output-to-string (princ last-cmd))
+	    " does not match.\nGot    '"
+	    (with-output-to-string (princ last-result))
+	    "',\nexpect '" (match-string 0)
+	    "'"))))
 
        (t
         (error (concat "Unexpected command " (match-string 1))))))
     )
 
-  ;; Reindent and recase the buffer
-  (setq ada-clean-buffer-before-saving nil)
+  (when (not skip-reindent-test)
+    ;; Reindent and recase the buffer
+    (setq ada-clean-buffer-before-saving nil)
 
-  ;; first unindent; if the indentation rules do nothing, the test would pass, otherwise!
-  (setq indent-tabs-mode nil)
-  (indent-code-rigidly (point-min) (point-max) -4)
-  (indent-region (point-min) (point-max))
-  ;; FIXME: put this back (and fix it!) lowercase-buffer? (ada-adjust-case-buffer)
-  ;; FIXME: also test case-exceptions (ie GDS, Text_IO)
+    ;; first unindent; if the indentation rules do nothing, the test would pass, otherwise!
+    (setq indent-tabs-mode nil)
+    (indent-code-rigidly (point-min) (point-max) -4)
+    (indent-region (point-min) (point-max))
+    ;; FIXME: put this back (and fix it!) lowercase-buffer? (ada-adjust-case-buffer)
+    ;; FIXME: also test case-exceptions (ie GDS, Text_IO)
 
-  ;; Cleanup the buffer; indenting often leaves trailing whitespace;
-  ;; files must be saved without any.
-  (delete-trailing-whitespace)
-  )
+    ;; Cleanup the buffer; indenting often leaves trailing whitespace;
+    ;; files must be saved without any.
+    (delete-trailing-whitespace)
+    ))
 
 (defun run-test (file-name)
   "Run an ada-mode test on FILE-NAME."
@@ -81,9 +85,12 @@
   (run-test-here)
 
   ;; Write the result file; makefile will diff.
-  ;;
-  ;; FIXME: if run-test-here fails, generate some sort of error so we
-  ;; see it when running from the Makefile.
+  (when skip-reindent-test
+    ;; user sets skip-reindent-test when testing interactive editing
+    ;; commands, so the diff would fail. Revert to the original file,
+    ;; save a copy of that.
+    (revert-buffer t t))
+
   (write-file (concat file-name ".tmp"))
   )
 ;; Local Variables:

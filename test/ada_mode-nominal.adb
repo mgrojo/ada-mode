@@ -247,7 +247,7 @@ package body Ada_Mode.Nominal is
          return Local_1;
       exception
          when others =>
-            null;
+            return 0.0;
       end;
    end
      Function_1b;

@@ -57,20 +57,5 @@ generic
    -- FIXME: add A_Package_n, indent at each token
 
 package Ada_Mode.Generic_Package is
-
-   generic
-      type Param_Type is (<>);
-      with function Function_1 (Param : in Param_Type) return Boolean;
-   procedure Generic_Procedure (Param_1 : in Param_Type);
-
-   generic procedure Generic_Procedure_Rename renames Generic_Procedure;
-
-   generic
-      type Param_Type is range <>;
-      type Result_Type is range <>;
-      Threshold : in Param_Type;
-   function Generic_Function (Param_1 : in Param_Type) return Result_Type;
-
-   generic function Generic_Function_Rename renames Generic_Function;
-
+   -- See ada_mode-generic_parent.ads for generic subprograms
 end Ada_Mode.Generic_Package;

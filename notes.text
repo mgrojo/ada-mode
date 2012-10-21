@@ -37,11 +37,7 @@ ada-indent.el
 (xmtn-sync-review)
 
 test/Makefile
-test "function-overriding" "function-separate", "procedure-*"  as instantiations
-
-all use of forward-tokens-unrefined should include ";"
-
-indent on return
+goto-parent return same struct as goto-statement?
 
 make rest of test files work
 test/test_select.adb
@@ -68,6 +64,8 @@ remaining statements?
 task entry with index; body has "for"
 
 look for remaining non-terminals in Annex P
+
+test "function-overriding" "function-separate", "procedure-*"  as instantiations
 
 then ask for input/testing
     run on my projects
