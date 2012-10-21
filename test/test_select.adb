@@ -21,6 +21,7 @@ procedure Test_Select is
    begin
       select
          accept E1;
+
       or
          when Local = 0 =>
             accept E2 (X : in Integer) do
@@ -44,6 +45,13 @@ begin
       delay 1.0;
    then abort
       null;
+   end select;
+
+   select
+      delay 1.0;
+   then
+     abort -- ada-mode 4.01 broken indent
+      null;-- ada-mode 4.01 gets this wrong; it uses another broken indent.
    end select;
 
 end Test_Select;

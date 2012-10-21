@@ -54,7 +54,8 @@ package body Ada_Mode.Nominal is
                   when E : Constraint_Error =>
                      return 0;
                   when
-                    Bad_Thing => -- FIXME: ask about desired alignment
+                    Bad_Thing -- ada-mode 4.01 indentation
+                    =>        -- ""
                      return 0;
                   when
                     E : others =>
@@ -105,7 +106,7 @@ package body Ada_Mode.Nominal is
               A | -- continuation line; ada-indent-broken = 2
               B |
               C
-            => -- Ada mode 4.01 aligned this with C; I like this better. FIXME: ask
+              => -- Ada mode 4.01 indentation
                for I in 1 .. 10 loop
                   Local_1 := Local_1 + Local_1;
                end loop;
@@ -198,19 +199,22 @@ package body Ada_Mode.Nominal is
          accept Start (A) (Param_1 : in integer);
          Started := True;
       or
-        when Started => -- GPS indent ada-indent (not hanging-indent). Emacs Ada mode 4.01 indent 0
-         accept Middle_1 (Param_1 : in integer) do
-            Local_1 := 0;
-         end Middle_1;
+         when Started => -- Ada mode 4.01 ada-when-indent
+            accept Middle_1 (Param_1 : in integer) do
+               Local_1 := 0;
+            end Middle_1;
       or
-        when Started =>
-         accept Middle_2
-           (Param_1 : in integer);
-         Local_1 := 0;
-      or when Started =>
-         accept Finish;
+         when Started =>
+            accept Middle_2
+              (Param_1 : in integer);
+            Local_1 := 0;
+
+      or when Started
+        =>
+         accept Finish; -- Ada mode 4.01
          local_1 := 5;
-      or terminate;
+      or
+         terminate;
       end select;
 
       select -- need a separate select to test "else"

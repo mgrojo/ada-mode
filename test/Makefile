@@ -28,7 +28,7 @@ user : /Projects/smm.main/source/smm-download.adb.diff
 # FIXME: add target to test user directory nicely (no clutter)
 # FIXME: add target to run tests with Ada mode 4.01 to compare
 
-one : test-clean ada_mode-options.adb.diff
+one : test-clean ada_mode-nominal.adb.diff
 
 TEST_FILES := $(shell ls *.ad?)
 
@@ -41,6 +41,7 @@ TEST_FILES := $(filter-out move_to_end.adb, $(TEST_FILES)) # tests ada-move-to-e
 TEST_FILES := $(filter-out move_to_end_if.adb, $(TEST_FILES)) # ""
 TEST_FILES := $(filter-out prime-volatilities.adb, $(TEST_FILES)) # ada-indent-return
 TEST_FILES := $(filter-out test_goto_decl_start.adb, $(TEST_FILES)) # ada-move-to-end
+TEST_FILES := $(filter-out which_test.adb, $(TEST_FILES)) # imenu-default-create-index-function
 
 # These don't indent properly because there's no leading comment/white
 # space in the file.
@@ -59,6 +60,9 @@ COMPILE_FILES := $(TEST_FILES)
 # this is for debug only
 TEST_FILES := $(filter-out debug.adb, $(TEST_FILES))
 COMPILE_FILES := $(filter-out debug.adb, $(COMPILE_FILES))
+
+# This has incomplete code; used for interactive editing test (via EMACSCMD)
+COMPILE_FILES := $(filter-out ada_mode-interactive_return.adb, $(COMPILE_FILES))
 
 # This has some illegal code, left that way to test graceful handling in ada-indent
 COMPILE_FILES := $(filter-out mats_weber_bugs.adb, $(COMPILE_FILES))

@@ -37,14 +37,9 @@ ada-indent.el
 (xmtn-sync-review)
 
 test/Makefile
-goto-parent return same struct as goto-statement?
-
 make rest of test files work
-test/test_select.adb
-    indentation of guard
-        check 4.01, GPS
-
-hangs while typing 'package' at end of buffer
+test/with_use1.adb
+ada-use-indent
 
 ensure all keywords are in grammar properly?
    add check that rassoc ada-indent-grammar is unique

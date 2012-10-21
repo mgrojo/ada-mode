@@ -24,7 +24,7 @@ package Ada_Mode.Generic_Parent is
 
    -- These match some of the primitive operations of
    -- Ada_Mode.Nominal.Parent_Type_1.
-   
+
    generic
       type Tagged_Type is abstract tagged limited private;
    function Gen_Function_2a (Item : in Tagged_Type) return Float;
@@ -32,5 +32,5 @@ package Ada_Mode.Generic_Parent is
    generic
       type Tagged_Type is abstract tagged limited private;
    procedure Gen_Procedure_1b (Item : in out Tagged_Type);
-   
+
 end Ada_Mode.Generic_Parent;

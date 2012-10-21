@@ -121,7 +121,7 @@ An example is:
  'set)
 
 (defcustom ada-indent-when (or ada-when-indent 3)
-  "*Indentation for 'when' relative to 'exception' or 'case'.
+  "*Indentation for 'when' relative to 'exception', 'case', 'or' in select.
 
 An example is:
    case A is
@@ -262,11 +262,29 @@ An example is:
       ;; can distinguish between declaration and statement for
       ;; refine-begin.
 
-      (case_statement_alternative
-       ("when-case" expression "=>-when" statements))
-      ;; "|" is an identifier. "=>" is refined, because it appears
-      ;; elsewere in the syntax (associations, aspects), although not
-      ;; in the grammar, and the indentation is different here.
+      (block_statement
+       ;; see loop_statement for discussion of block label
+       ("declare" declarations "begin-body" statements "exception-block"
+	"when-case" object_declaration "=>-when" statements "end-block")
+       ("declare" declarations "begin-body" statements "exception-block"
+	"when-case" identifier "=>-when" statements "end-block"); "|" is an identifier
+       ("declare" declarations "begin-body" statements "end-block")
+       ("begin-open" statements "end-block"))
+      ;; we don't need to repeat the optional exception handler in the
+      ;; other cases, nor "|"; once is enough to establish the
+      ;; precedence of "exception-block".  no need to distinguish
+      ;; between "when-case" and "when-exception"
+
+      (case_statement
+       ("case" name "is-case" "when-case" identifier "|" identifier "=>-when" statements "end-case" "case-end")
+       ("case" name "is-case" "when-case" identifier "=>-when" statements "end-case" "case-end")
+       ("case" name "is-case" "end-case" "case-end"))
+      ;; "when =>" is optional and therefore repeatable.
+      ;; "|" is optional and therefore repeatable.
+      ;;
+      ;; "=>" is refined, because it appears elsewere in the syntax
+      ;; (associations, aspects), although not in the grammar, and the
+      ;; indentation is different here.
 
       (context_clause
        (context_item)
@@ -310,11 +328,6 @@ An example is:
       (exception_declaration
        (identifer ":-object" "exception-declare"))
       ;; covers exception renaming; "renames" is an identifier
-
-      (exception_handler
-       ("when-case" object_declaration "=>-when" statements)
-       ("when-case" identifier "=>-when" statements)); "|" is an identifier
-      ;; no need to distinguish between when-exception, when-case.
 
       (exit_statement
        ("exit-other"); leaving identifier out
@@ -449,19 +462,9 @@ An example is:
        ;; "abort" is an indentifier, except in asynchronous-select
 
        (accept_statement)
-
        (asynchronous_select)
-
-       ;; block_statement
-       ;; see loop_statement above for block label
-       ("declare" declarations "begin-body" statements "exception-block" exception_handler "end-block")
-       ("declare" declarations "begin-body" statements "end-block")
-       ("begin-open" statements "end-block")
-       ;; we don't need to repeat the optional exception handler in the other
-       ;; case; once is enough to establish the precendence of "exception-block".
-
-       ;; case_statement
-       ("case" name "is-case" case_statement_alternative "end-case" "case-end")
+       (block_statement)
+       (case_statement)
 
        ;; delay_statement
        ("delay" expression)
@@ -678,6 +681,7 @@ An example is:
     "private-body"
     "record-open"
     "select-open"
+    "then-select"
     "then-if")
   ;; We don't split this into start and end lists, because most are
   ;; both. The keywords that are an end but never a start are in
@@ -702,7 +706,8 @@ An example is:
     "or-select"
     "package-generic"
     "procedure-generic"
-    ;; "when-case" does not act like a block keyword; it is an opener
+    "when-case",
+    "when-select"
     )
   "Keywords that always end indented blocks.")
 
@@ -933,6 +938,14 @@ buffer."
 (defun ada-indent-backward-token-unrefined ()
   (ada-indent-next-token-unrefined 'smie-default-backward-token nil))
 
+(defun ada-indent-backward-tokens-unrefined (&rest targets)
+  "Move backward over unrefined tokens, strings and parens. Stop
+when found token is an element of TARGETS, return that token."
+  (let (result)
+    (while (not (member (setq result (ada-indent-backward-token-unrefined))
+			targets)))
+    result))
+
 (defun ada-indent-forward-tokens-unrefined (&rest targets)
   "Move forward over unrefined tokens, strings and parens. Stop
 when found token is an element of TARGETS, return that token."
@@ -992,6 +1005,7 @@ when found token is an element of TARGETS, return that token."
 		 (ada-indent-backward-keyword))))
 
     (if (member token '(":-object" ; in exception handler
+			"|"
 			"when-case"
 			"when-select"))
 	"=>-when"
@@ -2256,6 +2270,18 @@ Return the token text or a refinement of it. Manage the refinement cache."
 
 ;;; indent rules
 
+(defun ada-indent-when (base)
+  "Return indentation offset to use after \"when\", \"=>-when\".
+BASE should be `ada-indent' or `ada-indent-broken'."
+  ;; Use ada-indent-when if "when" is at start of line. It may not be
+  ;; in a select statement.
+  (save-excursion
+    (unless (looking-at "when")
+      (ada-indent-backward-tokens-unrefined "when"))
+    (if (smie-indent--bolp)
+	(+ base ada-indent-when)
+      base)))
+
 (defun ada-indent-rule-current (offset)
   "Indent relative to the current line"
   (cons 'column (+ (save-excursion (back-to-indentation) (current-column)) offset)))
@@ -2273,7 +2299,8 @@ Return the token text or a refinement of it. Manage the refinement cache."
 
 (defun ada-indent-goto-parent (child up)
   "Goto a parent (defined by where smie-backward-sexp stops).
-If CHILD is non-nil and a smie keyword, find its parent (which may be itself, if it is a parent and UP is 1).
+If CHILD is non-nil and a smie keyword, find its parent (which may be
+itself, if it is a parent and UP is 1).
 Otherwise, find the previous keyword, start over.
 UP is an integer; find that many parents.
 Point must be on the start of `child', or on the start of the
@@ -2413,12 +2440,6 @@ be a keyword, and point must be at the start of CHILD."
   ;;
   ;; The same loop works for access to procedure, although it will
   ;; only be executed once.
-  ;;
-  ;; FIXME: need a similar loop for "when-case"
-  ;; (case_statement_alternative, exception_handler). Waiting until we
-  ;; finish more "when" uses. At the moment,
-  ;; case_statement_alternative and exception_handler are treated as
-  ;; separate statements, not part of a larger statement.
   ;;
   ;; 'overriding' and 'protected' present another problem; the parent
   ;; is not at the beginning of the statement:
@@ -2676,11 +2697,6 @@ the start of CHILD, which must be a keyword."
 	     (progn (goto-char pos) (ada-indent-rule-statement ada-indent-broken arg))))
 	 ))
 
-      ((equal arg "return-spec")
-       ;; Function declaration, function body, or access-to-function type declaration.
-       ;; Indent relative to "function", which is the parent.
-       (ada-indent-rule-parent ada-indent-broken arg))
-
       ((equal arg ")")
        ;; find the open paren
        (save-excursion
@@ -2688,12 +2704,16 @@ the start of CHILD, which must be a keyword."
 	 (backward-sexp)
 	 (cons 'column (current-column))))
 
+      ((equal arg "=>-when")
+       ;; exception to block statement rule.
+       (ada-indent-rule-statement (ada-indent-when ada-indent-broken) arg))
+
       ((equal arg "abort-select")
        ;; exception to block-keyword indentation; preserve Ada mode 4.01 behavior
        (save-excursion
-	 (let ((parent (ada-indent-goto-parent arg 1)))
-	   (back-to-indentation)
-	   (cons 'column (+ (current-column) ada-indent-broken)))))
+	 (ada-indent-goto-parent arg 1)
+	 (back-to-indentation)
+	 (cons 'column (+ (current-column) ada-indent-broken))))
 
       ((equal arg "end-record")
        ;; goto-parent leaves point on "record-open".
@@ -2708,6 +2728,11 @@ the start of CHILD, which must be a keyword."
        ;; :after.
        (ada-indent-rule-statement ada-indent-record-rel-type arg))
 
+      ((equal arg "return-spec")
+       ;; Function declaration, function body, or access-to-function type declaration.
+       ;; Indent relative to "function", which is the parent.
+       (ada-indent-rule-parent ada-indent-broken arg))
+
       ((member arg '("procedure-overriding" "function-overriding"))
        (save-excursion
 	 (smie-default-backward-token)
@@ -2718,23 +2743,13 @@ the start of CHILD, which must be a keyword."
        (ada-indent-rule-statement 0 arg))
 
       ((equal arg "when-case")
-       ;; We want to indent relative to the statement start; "case",
-       ;; "exception", etc.  We assume the previous lines are properly
-       ;; indented, so just looking at the previous token works, and
-       ;; simpler than parsing back thru lots of "with"s.
-       (save-excursion
-	 (let ((token (smie-default-backward-token)))
-	   (cond
-	    ((equal token ";")
-	     ;; in the middle of a sequence of "when".
-	     (back-to-indentation)
-	     (cons 'column (- (current-column) ada-indent)))
+       (ada-indent-rule-statement ada-indent-when arg))
 
-	    ((equal token "is")
-	     ;; First "when" in the statement. We need to give
-	     ;; ada-indent-rule-statement the refined token
-	     (ada-indent-rule-statement ada-indent-when (save-excursion (ada-indent-forward-token))))
-	    ))))
+      ((equal arg "when-select")
+       (save-excursion
+	 (smie-default-backward-token)
+	 ;; we are now before "or-select" or "select-open"
+	 (cons 'column (+ (current-column) ada-indent-when))))
 
       ((equal arg "with-context")
        (cons 'column 0))
@@ -2832,6 +2847,13 @@ the start of CHILD, which must be a keyword."
       ((equal arg ";")
        (ada-indent-rule-statement 0 arg))
 
+      ((equal arg "=>-when")
+       ;; exception to block statement rule
+       (ada-indent-rule-statement (ada-indent-when ada-indent) arg))
+
+      ((equal arg "|")
+       (ada-indent-rule-statement (ada-indent-when ada-indent-broken) arg))
+
       ((equal arg "record-end")
        ;; We are indenting the aspect specification for the record.
        (back-to-indentation)
@@ -2868,6 +2890,10 @@ the start of CHILD, which must be a keyword."
       ((equal arg "return-spec")
        ;; see comments in :before "("
        (ada-indent-rule-parent ada-indent-broken arg))
+
+      ((equal arg "when-case")
+       ;; exception to block statement rule
+       (ada-indent-rule-statement (ada-indent-when ada-indent-broken) arg))
 
       ((member arg ada-indent-block-keywords)
        (ada-indent-rule-statement ada-indent arg))
@@ -2934,9 +2960,14 @@ the start of CHILD, which must be a keyword."
     (let (offset
 	  (token (save-excursion (ada-indent-backward-token))))
       (cond
+       ((equal token "=>-when")
+	(setq offset (ada-indent-when (+ ada-indent ada-indent-label))))
+
        ((member token ada-indent-block-keywords)
 	(setq offset (+ ada-indent ada-indent-label)))
+
        (t (setq offset ada-indent-label)))
+
       (cdr (save-excursion
 	     (ada-indent-backward-token)
 	     (ada-indent-rule-statement offset token)))

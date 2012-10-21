@@ -10,7 +10,9 @@ procedure Pragma_Indent is
                     Toto,
                     Frodo : Integer);
 
-   procedure Foo (C, Toto : Integer) is begin null; end;
+   procedure Foo
+     (C, Toto,
+        Frodo : Integer) is begin null; end;
 
    procedure Toto;
 
@@ -20,5 +22,6 @@ procedure Pragma_Indent is
 begin
    --  procedure call; not ada-broken-indent
    Foo (1,
-        2);
+        2,
+        3);
 end Pragma_Indent;
