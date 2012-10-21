@@ -37,15 +37,16 @@ ada-indent.el
 (xmtn-sync-review)
 
 test/Makefile
-make rest of test files work
-test/pragma_indent.adb
-    multi-identifier parameter list in procedure spec not same as 4.01
+test "function-overriding" "function-separate", "procedure-*"  as instantiations
 
-test/loop_1.adb
-    or-select confuses smie-backward-sexp
-    added option to smie; we never want to stop at associative operators (they are not keywords!)
-    posted, arguing with Stefan
-       fallback; rewrite smie-next-sexp, set forward-sexp-command
+all use of forward-tokens-unrefined should include ";"
+
+indent on return
+
+make rest of test files work
+test/test_select.adb
+    indentation of guard
+        check 4.01, GPS
 
 hangs while typing 'package' at end of buffer
 
@@ -64,7 +65,6 @@ pre/post conditions
 quantified_, if_, case_expressions. Simon Wright working on "if" expressions, ada-indent-after-return.
 remaining expressions?
 remaining statements?
-subprogram call with indented param list
 task entry with index; body has "for"
 
 look for remaining non-terminals in Annex P

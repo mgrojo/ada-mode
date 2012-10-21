@@ -1,8 +1,9 @@
 package body Ada_Mode.Parens is
    function Function_1
-     (Param_1, Param_2 : in Ada.Text_IO. Count;
-      Param_3 : in out Integer;
-      Param_4 : in Float)
+     (Param_1, Param_2,
+        Param_3 : in Ada.Text_IO. Count;
+      Param_4 : in out Integer;
+      Param_5 : in Float)
      return Float
    is
       Local_1 : Integer := (1 + 2 + 3);
@@ -41,7 +42,10 @@ package body Ada_Mode.Parens is
                       (Local_6));
    end Function_1;
 
-   function Function_2 (Left, Right : in Array_Type_1) return Array_Type_1
+   function Function_2
+     (Left,
+        Right : in Array_Type_1) -- ada-indent-broken to match 4.01
+     return Array_Type_1
    is begin
       return
         (1 => 1,

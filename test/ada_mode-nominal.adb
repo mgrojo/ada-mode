@@ -245,6 +245,9 @@ package body Ada_Mode.Nominal is
       declare -- no label, zero statements between begin, declare
       begin
          return Local_1;
+      exception
+         when others =>
+            null;
       end;
    end
      Function_1b;

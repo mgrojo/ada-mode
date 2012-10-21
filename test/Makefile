@@ -37,9 +37,10 @@ TEST_FILES := $(filter-out ada-test.adb, $(TEST_FILES)) # multiple compilation u
 TEST_FILES := $(filter-out ada_mode-options-indent_return_1.ads, $(TEST_FILES)) # ada-indent-return
 TEST_FILES := $(filter-out ada_mode-options-indent_return_2.ads, $(TEST_FILES)) # ada-indent-return
 TEST_FILES := $(filter-out ada_mode-quantified_expressions.adb, $(TEST_FILES)) # 2012 syntax
-TEST_FILES := $(filter-out loop_1.adb, $(TEST_FILES)) # select or; waiting on result of debate with Stefan
-TEST_FILES := $(filter-out move_to_end.adb, $(TEST_FILES)) # tests ada-mode-to-end, which we have not (yet?) implemented
+TEST_FILES := $(filter-out move_to_end.adb, $(TEST_FILES)) # tests ada-move-to-end, which we have not (yet?) implemented
 TEST_FILES := $(filter-out move_to_end_if.adb, $(TEST_FILES)) # ""
+TEST_FILES := $(filter-out prime-volatilities.adb, $(TEST_FILES)) # ada-indent-return
+TEST_FILES := $(filter-out test_goto_decl_start.adb, $(TEST_FILES)) # ada-move-to-end
 
 # These don't indent properly because there's no leading comment/white
 # space in the file.

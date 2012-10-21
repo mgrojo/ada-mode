@@ -284,6 +284,7 @@ An example is:
        (exception_declaration)
        (formal_package_declaration)
        (formal_subprogram_declaration)
+       (generic_instantiation)
        (generic_package_declaration)
        (generic_subprogram_declaration)
        (object_declaration)
@@ -331,9 +332,10 @@ An example is:
       (formal_package_declaration
        ;; with package defining_identifier is new generic_package_name
        ;;    formal_package_actual_part [aspect_specification];
-       ("with-formal" "package-formal" identifier "new" name))
-      ;; leave "is" an identifier. name after "new" to match other
-      ;; uses. formal_package_actual_part is an association list
+       ("with-formal" "package-formal" identifier "new-formal" name))
+      ;; leave "is" an identifier. name after "new-formal" so it is
+      ;; not a closer. formal_package_actual_part is an association
+      ;; list
       ;; FIXME: aspects not implemented yet
 
       (formal_subprogram_declaration
@@ -342,8 +344,15 @@ An example is:
 
        ("with-formal" "function-formal" name "return-formal" name); trailing name same as non-formal
        ("with-formal" "procedure-formal" name); trailing name same as non-formal
-       ;; We leave out [is name], because "is" is an identifier here.
+       ;; We leave out [is name]; "is" is an identifier here.
        )
+
+      (generic_instantation
+       ("package-inst" name "new-inst" name)
+       ("procedure-inst" name "new-inst" name)
+       ("function-inst" name "new-inst" name))
+      ;; Leaving out generic_formal_part. Leaving "is" as an
+      ;; identifier.
 
       (generic_package_declaration
        ;; No need to distinguish between 'declarations' and
@@ -557,10 +566,10 @@ An example is:
        ("type-other" identifier "is-type" name "of-type" name); same as anonymous array
 
        ;; derived_type_declaration
-       ("type-other" identifier "is-type" "new" name); same as below
-       ("type-other" identifier "is-type" "new" name "with-new" "private-with")
-       ("type-other" identifier "is-type" "new" name "with-new" "record-null"); "null" is an identifier
-       ("type-other" identifier "is-type" "new" name "with-record")
+       ("type-other" identifier "is-type" "new-type" name); same as below
+       ("type-other" identifier "is-type" "new-type" name "with-new" "private-with")
+       ("type-other" identifier "is-type" "new-type" name "with-new" "record-null"); "null" is an identifier
+       ("type-other" identifier "is-type" "new-type" name "with-record")
        ;; We refine "with" to "with-record" when it is followed
        ;; by "record", so that it is a closer to match
        ;; "type", since "record-open" is an opener.
@@ -597,8 +606,8 @@ An example is:
        ;; it as an identifier.
 
        ;; private_extension_declaration
-       ("type-other" identifier "is-type" "new" name "with-new" "private-with")
-       ("type-other" identifier "is-type" "new" interface_list "with-new" "private-with")
+       ("type-other" identifier "is-type" "new-type" name "with-new" "private-with")
+       ("type-other" identifier "is-type" "new-type" interface_list "with-new" "private-with")
        ;; leaving 'with' and 'private' as separate tokens causes conflicts
 
        ;; private_type_declaration
@@ -609,7 +618,7 @@ An example is:
        ("protected-type" "type-protected" identifier "is-type-block" declarations
 	"private-body" declarations "end-block")
        ("protected-type" "type-protected" identifier "is-type-block" declarations "end-block")
-       ("protected-type" "type-protected" identifier "is-type" "new" interface_list "with-new" declarations
+       ("protected-type" "type-protected" identifier "is-type" "new-type" interface_list "with-new" declarations
 	"private-body" declarations "end-block")
 
        ;; record_type_definition
@@ -923,8 +932,8 @@ buffer."
   (ada-indent-next-token-unrefined 'smie-default-backward-token nil))
 
 (defun ada-indent-forward-tokens-unrefined (&rest targets)
-  "Move forward over unrefined tokens. Stop when found token is
-an element of TARGETS, return that token."
+  "Move forward over unrefined tokens, strings and parens. Stop
+when found token is an element of TARGETS, return that token."
   (let (result)
     (while (not (member (setq result (ada-indent-next-token-unrefined 'smie-default-forward-token t))
 			targets)))
@@ -1015,7 +1024,7 @@ an element of TARGETS, return that token."
   ;;       [[and interface_list] record_extension_part]
   ;;       [aspect_specification];
   ;;
-  ;;    preceding refined keyword: "new"
+  ;;    preceding refined keyword: "new-type"
   ;;    skip: name
   ;;    keyword: "and-interface_list"
   ;;
@@ -1039,7 +1048,7 @@ an element of TARGETS, return that token."
   ;;       [and interface_list] with private
   ;;       [aspect_specification];
   ;;
-  ;;    preceding keyword: "new"
+  ;;    preceding refined keyword: "new-type"
   ;;    skip: name
   ;;    keyword: "and-interface_list"
   ;;
@@ -1047,7 +1056,7 @@ an element of TARGETS, return that token."
   ;;       task [type] defining_identifier [known_discriminant_part] [aspect_specification]
   ;;       [is [new interface_list with] task_definition];
   ;;
-  ;;    preceding keyword: "new"
+  ;;    preceding refined keyword: "new-type"
   ;;    skip: name
   ;;    keyword: "and-interface_list"
   ;;
@@ -1055,7 +1064,7 @@ an element of TARGETS, return that token."
   ;;    protected type defining_identifier [known_discriminant_part] [aspect_specification] is
   ;;       [new interface_list with] protected_definition;
   ;;
-  ;;    preceding keyword: "new"
+  ;;    preceding refined keyword: "new-type"
   ;;    skip: name
   ;;    keyword: "and-interface_list"
   ;;
@@ -1063,7 +1072,7 @@ an element of TARGETS, return that token."
   ;;    protected defining_identifier [aspect_specification] is
   ;;    [new interface_list with] protected_definition;
   ;;
-  ;;    preceding keyword: "new"
+  ;;    preceding refined keyword: "new-type"
   ;;    skip: name
   ;;    keyword: "and-interface_list"
   ;;
@@ -1078,7 +1087,7 @@ an element of TARGETS, return that token."
      (let ((token (ada-indent-backward-keyword)))
        (cond
 	((or (equal token "and-interface_list"); 3
-	     (equal token "new")); 1, 4, 5, 6, 7
+	     (equal token "new-type")); 1, 4, 5, 6, 7
 	   "and-interface_list")
 	(t "and"))); operator identifier
      )))
@@ -1261,9 +1270,13 @@ an element of TARGETS, return that token."
        (let ((token (progn
 		      (smie-default-backward-token); identifier
 		      (smie-default-backward-token))))
-	 ;; token "protected", "task", "body", "type", "subtype", "" for discriminant or parameter list
-	 ;; Can't handle parameterless procedure here; need to check for preceding "with"
-	 ;; not handling parens here either.
+	 ;; "protected", "task", "body", "type", "subtype": handled here
+	 ;;
+	 ;; "": discriminant or parameter list; below
+	 ;;
+	 ;; "function" "procedure": generic instantiation,
+	 ;;   parameter-less subprogram body, parameter-less
+	 ;;   generic_formal_parameter; below
 	 (cond
 	  ((member token '("protected" "task")) "is-type-block")
 	  ((equal token "body")
@@ -1283,22 +1296,31 @@ an element of TARGETS, return that token."
        (cond
 	((equal token "case") "is-case")
 
+	((member token '("function-inst")); FIXME: test "function-overriding" "function-separate" as instantiations
+	 ;; function name is new ...;  generic_instantiation declaration
+	 ;; function .. return ...;  see below at "return-*"
+	 "is"); identifier
+
 	((member token '("package-generic" "package-plain" "package-separate")) "is-package")
 
 	((equal token "package-formal") "is"); identifier
 
 	((equal token "procedure-formal") "is"); identifier
 
+	((member token '("procedure-inst")); FIXME: test "procedure-overriding" "procedure-separate" as instantiations
+	 ;;  procedure name is new ...;  generic_instantiation declaration
+	 "is"); identifier
+
 	((member token '("procedure-spec" "procedure-overriding" "procedure-separate"))
-	 ;;  procedure name is abstract;
-	 ;;  procedure name is null;
-	 ;;  procedure name is declarations begin statements end;
-	 ;;  separate procedure name is declarations begin statements end;
+	 ;;  procedure name is abstract; declaration
+	 ;;  procedure name is null;     declaration
+	 ;;  procedure name is declarations begin statements end;  body
+	 ;;  separate procedure name is declarations begin statements end; separate body
 	 (let ((token (save-excursion
 			(smie-default-forward-token); is
 			(smie-default-forward-token))))
 	   (cond
-	    ((member token '("abstract" "null")) "is")
+	    ((member token '("abstract" "null")) "is"); identifier
 	    (t "is-subprogram_body"))))
 
 	((equal token "return-formal")
@@ -1433,6 +1455,18 @@ an element of TARGETS, return that token."
 	  "loop-body"
 	"loop-open"))))
 
+(defun ada-indent-refine-new (token forward)
+  (let ((token (save-excursion
+		 (when forward (smie-default-backward-token))
+		 (smie-default-backward-token); is
+		 (ada-indent-backward-keyword))))
+
+    (cond
+     ((member token '("package-formal" "procedure-formal" "function-formal")) "new-formal")
+     ((member token '("package-inst" "procedure-inst" "function-inst")) "new-inst")
+     (t "new-type")
+     )))
+
 (defun ada-indent-refine-mod (token forward)
   (save-excursion
     (when forward (smie-default-backward-token))
@@ -1493,9 +1527,8 @@ an element of TARGETS, return that token."
 (defun ada-indent-refine-package (token forward)
   (save-excursion
     (when forward (smie-default-backward-token))
-
-    (or
-     (let ((token (save-excursion (smie-default-backward-token))))
+    (let ((token (save-excursion (smie-default-backward-token))))
+      (or
        (cond
 	((and
 	  (equal token "")
@@ -1504,17 +1537,21 @@ an element of TARGETS, return that token."
 	((equal token "") "package-separate");; token is ")"; separate (name) package
 	((equal token "access") "package-access")
 	((equal token "with") "package-formal")
-	))
+	)
 
-     (if (equal "renames" (save-excursion
-			    (smie-default-forward-token); package
-			    (ada-indent-forward-tokens-unrefined "body" "is" "renames")))
-	 "package-renames")
+       (progn
+	 (setq token (save-excursion (ada-indent-forward-tokens-unrefined "body" "is" "renames")))
+	 (cond
+	  ((equal token "renames") "package-renames")
+	  ((and (equal token "is")
+		(equal "new" (save-excursion (smie-default-forward-token))))
+	   "package-inst")
+	  ))
 
-     (if (ada-indent-generic-p) "package-generic")
+       (if (ada-indent-generic-p) "package-generic")
 
-     "package-plain")
-    ))
+       "package-plain")
+    )))
 
 (defun ada-indent-refine-private (token forward)
   (save-excursion
@@ -1763,6 +1800,14 @@ an element of TARGETS, return that token."
        ((member prev-token '("access" "protected"))
 	(concat token "-spec")); access_to_subprogram_definition
 
+       ((save-excursion
+	  (and
+	   (equal "is" (ada-indent-forward-tokens-unrefined "return" "is" ";")); end of subprogram-spec
+	   (equal "new" (smie-default-forward-token))))
+	;; generic_instantiation. We have to check for "new" without
+	;; refining it.
+	(concat token "-inst"))
+
        ((ada-indent-generic-p) (concat token "-generic"))
 
        (t (concat token "-spec"))
@@ -1953,7 +1998,7 @@ an element of TARGETS, return that token."
     ;;       [new interface_list with]
     ;;       {protected | task}_definition];
     ;;
-    ;;    preceding refined token: "new", "and-interface_list"
+    ;;    preceding refined token: "new-type", "and-interface_list"
     ;;    skip: name
     ;;    succeeding unrefined token: "protected", "task"
     ;;    keyword: "with-new"
@@ -2060,6 +2105,7 @@ an element of TARGETS, return that token."
     ("is" 	 ada-indent-refine-is)
     ("loop" 	 ada-indent-refine-loop)
     ("mod" 	 ada-indent-refine-mod)
+    ("new" 	 ada-indent-refine-new)
     ("of" 	 ada-indent-refine-of)
     ("or" 	 ada-indent-refine-or)
     ("package" 	 ada-indent-refine-package)
@@ -2108,6 +2154,11 @@ If a token is not in the alist, it is returned unrefined.")
       (goto-char ada-indent-cache-max)
       (while (> pos (point))
 	(ada-indent-forward-keyword))
+      ;; If pos is inside a paren, but ada-indent-cache-max was
+      ;; outside it, this just skipped us.
+      (when (not (ada-indent-get-cache pos))
+	(goto-char pos)
+	(ada-indent-validate-cache-parens))
     )))
 
 (defun ada-indent-validate-cache-parens ()
@@ -2294,20 +2345,23 @@ or \"(\", and point must be at the start of CHILD."
       (cons 'column (+ (current-column) offset))
     )))
 
-(defun ada-indent-skip-identifier-list ()
-  "Skip backward over {identifier,}.  Return (preceding-pos preceding-string)."
+(defun ada-indent-skip-identifier-list (forward)
+  "Skip forward/backward over {identifier,}.
+Return (preceding-pos preceding-string) for backward, succeeding
+for forward."
   (let (parent parent-pos)
     (while
 	(progn
-	  (setq parent (ada-indent-backward-keyword))
+	  (setq parent (if forward (ada-indent-forward-keyword) (ada-indent-backward-keyword)))
 	  (setq parent-pos (point))
 	  (cond
 	   ((equal "," parent) t)
 	   ((equal "(" parent) (forward-char 1) nil)
+	   ((equal ")" parent) (backward-char 1) nil)
 	   (t
-	    (smie-default-forward-token)
+	    (if forward (smie-default-backward-token) (smie-default-forward-token))
 	    nil))))
-    (forward-comment (point-max))
+    (forward-comment (if forward (- (point)) (point-max)))
     (list parent-pos parent)))
 
 (defun ada-indent-goto-statement-start (child)
@@ -2445,7 +2499,7 @@ be a keyword, and point must be at the start of CHILD."
 	    (throw 'done (list parent-pos parent))))
 
 	 ((equal parent ":-object")
-	  (throw 'done (ada-indent-skip-identifier-list)))
+	  (throw 'done (ada-indent-skip-identifier-list nil)))
 	 ))
 
       (when pos (goto-char pos))
@@ -2523,7 +2577,7 @@ be a keyword, and point must be at the start of CHILD."
 	;;
 	;; Simple types in object declarations were handled above; for
 	;; complex types and parameter lists, we get here.
-	(ada-indent-skip-identifier-list))
+	(ada-indent-skip-identifier-list nil))
 
        (t (list (nth 1 parent) (nth 2 parent))))
       )))
@@ -2572,9 +2626,8 @@ the start of CHILD, which must be a keyword."
        ;; parenthesis occur in expressions, and after names, as array
        ;; indices, subprogram parameters, type constraints.
        ;;
-       ;; "(" is in the smie grammar, but smie-forward-token
-       ;; handles it specially, returning ("" nil 0). Then
-       ;; ada-indent-before-keyword passes "(" here.
+       ;; "(" is not in the smie grammar, but
+       ;; ada-indent-before-keyword handles is specially.
        ;;
        ;; 1) A subprogram declaration. Indent relative to "function"
        ;;    or "procedure", which are both parent and statement
@@ -2756,7 +2809,19 @@ the start of CHILD, which must be a keyword."
 	 (backward-sexp)
 	 (ada-indent-rule-parent ada-indent-broken "(")))
 
-      ((member arg '("," ";"))
+      ((equal arg ",")
+       ;; ada-mode 4.01 uses broken indent for multi-identifier in
+       ;; parameter list declaration, and object declarations. But
+       ;; aggregates use no indent after ",".
+       (let ((token (save-excursion (ada-indent-skip-identifier-list t))))
+	 (cond
+	  ((equal (nth 1 token) ":-object")
+	   (ada-indent-rule-statement ada-indent-broken arg))
+	  (t
+	   (ada-indent-rule-statement 0 arg)))
+	 ))
+
+      ((equal arg ";")
        (ada-indent-rule-statement 0 arg))
 
       ((equal arg "record-end")
@@ -3105,6 +3170,9 @@ This lets us know which indentation function succeeded."
   (smie-setup ada-indent-grammar #'ada-indent-rules
 	      :forward-token #'ada-indent-forward-token
 	      :backward-token #'ada-indent-backward-token)
+
+  (set (make-local-variable 'smie-skip-associative) t)
+  ;; we don't want `smie-backward-sexp' to stop at weird places
 
   (set (make-local-variable 'blink-matching-paren) nil)
   ;; smie uses blink-matching to blink on all opener/closer pairs.
