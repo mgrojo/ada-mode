@@ -155,6 +155,10 @@ package body Ada_Mode.Parens is
       Ada.Text_IO.Put_Line (Out_File, -- smie-backward-sexp returns "(" here
                             Hello &
                               There);
+      Ada.Text_IO.Put_Line ( -- comment after paren
+                            Out_File,
+                            Hello &
+                              There);
    end Hello;
 
 end Ada_Mode.Parens;

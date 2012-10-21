@@ -39,26 +39,17 @@ ada-indent.el
 test/Makefile
 make rest of test files work
 test/pragma_indent.adb
+    multi-identifier parameter list in procedure spec not same as 4.01
 
-"in" is a keyword, needs to be defined for param list?
-    not so far
-
-goto-statement-start has special case for '.'; not needed any more
-
-forward-keyword cross paren?
-
-    test/loop_1.adb
-or-select confuses smie-backward-sexp? yes
-    tie or to accept? no
-    add option to smie; we never want to stop at associative operators (they are not keywords!)
-    rewrite smie-next-sexp, set forward-sexp-command
+test/loop_1.adb
+    or-select confuses smie-backward-sexp
+    added option to smie; we never want to stop at associative operators (they are not keywords!)
     posted, arguing with Stefan
+       fallback; rewrite smie-next-sexp, set forward-sexp-command
 
 hangs while typing 'package' at end of buffer
 
-use ada-indent-broken for multiple object declarations
-
-ensure all keywords are in grammar properly
+ensure all keywords are in grammar properly?
    add check that rassoc ada-indent-grammar is unique
 
 add missing features to ada_mode-*

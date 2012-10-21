@@ -398,7 +398,7 @@ package Ada_Mode.Nominal is
    function Function_2g
      (Param : in Private_Type_1)
      return Float
-     is abstract; -- ada-indent-broken
+     is abstract;
    --  comment after 'is abstract', aligned with 'function'
 
    ----------

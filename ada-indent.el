@@ -70,6 +70,8 @@ begin
  'ada-indent-broken
  "Emacs 24.4, Ada mode 5.0"
  'set)
+;; FIXME: this doesn't warn user at runtime, but at least they should
+;; notice something broke, and the help will be useful.
 
 (defcustom ada-indent-broken (or ada-broken-indent 2)
   "*Indentation for the continuation of a broken line.
@@ -78,22 +80,22 @@ Example :
    My_Var : My_Type :=
    >>(Field1 => Value);"
   :type 'integer :group 'ada-indentation)
+(defun ada-indent-broken () (or ada-indent-broken ada-broken-indent))
 
-
-(defvar ada-label-indent nil)
-(make-obsolete-variable
+(define-obsolete-variable-alias
  'ada-label-indent
  'ada-indent-label
- "Emacs 24.4, Ada mode 5.0"
- 'set)
+ "Emacs 24.4, Ada mode 5.0")
+;; FIXME: this doesn't warn user at runtime, and they won't notice
+;; something is wrong until we delete it, and then there won't be any
+;; useful help.
 
-(defcustom ada-indent-label (or ada-label-indent -3)
+(defcustom ada-indent-label -3
   ;; Ada mode 4.01 and earlier default this to -4. But that is
   ;; incompatible with the default gnat indentation style check, which
   ;; wants all indentations to be a multiple of 3 (with some
   ;; exceptions). So we default this to -3.
-  "*Indentation for a label, relative to the item it labels.
-This is also used for <<..>> labels.
+  "*Indentation for a loop, block, or statement label, relative to the item it labels.
 
 Example :
    Label_1 :
@@ -246,7 +248,10 @@ An example is:
       ;; 'association'; => does not affect indentation in those.
       ;; 'association_list' does not appear in any other non-terminal;
       ;; we only see it inside parens, which is handled separately
-      ;; from the rest of the grammar.
+      ;; from the rest of the grammar. Similarly, we don't need "in",
+      ;; "out", "access" for parameter lists; "in", "access" are
+      ;; keywords for other statements, but that doesn't interfere
+      ;; with indenting parameter lists.
 
       (asynchronous_select
        ("select-open" statements "then-select" "abort-select" statements "end-select" "select-end"))
@@ -861,8 +866,9 @@ token or nil. Preserves point."
 token defined in the grammar).  Skips string literals, character
 literals, paired parens.  Stops at left paren going backwards,
 right paren going forwards.  Return the keyword or paren (which
-may be the first token found).  Return empty string if encounter
-beginning or end of buffer."
+may be the first token found); point is beyond the keyword (after
+for `forward' t, before otherwise).  Return empty string if
+encounter beginning or end of buffer."
   (let (token)
     (catch 'quit
       (while
@@ -873,8 +879,12 @@ beginning or end of buffer."
 		(progn
 		  (when (or (bobp) (eobp)) (throw 'quit nil))
 		  (if forward
-		      (when (eq (char-after) ?\)) (throw 'quit ")"))
-		    (when (eq (char-before) ?\() (throw 'quit "(")))
+		      (when (eq (char-after) ?\))
+			(forward-char 1)
+			(throw 'quit ")"))
+		    (when (eq (char-before) ?\()
+		      (backward-char 1)
+		      (throw 'quit "(")))
 		  (ada-indent-skip-param_list forward)
 		  ;; the next token might be another paren, so we loop
 		  t)
@@ -2097,9 +2107,6 @@ If a token is not in the alist, it is returned unrefined.")
     (let ((ada-indent-refining t))
       (goto-char ada-indent-cache-max)
       (while (> pos (point))
-	 (if (eq (char-after) ?\))
-	  ;; get out of parens. FIXME: should next-keyword cross the paren?
-	  (forward-char 1))
 	(ada-indent-forward-keyword))
     )))
 
@@ -2266,7 +2273,7 @@ otherwise on the following token."
 (defun ada-indent-rule-parent (offset child)
   "Find the parent of CHILD (using `ada-indent-goto-parent'),
 return an indent by OFFSET relevant to it. Does not stop on
-CHILD. Preserves point.  If CHILD must be non-nil and a keyword
+CHILD. Preserves point.  CHILD must be non-nil and a keyword
 or \"(\", and point must be at the start of CHILD."
   (save-excursion
     (let
@@ -2278,32 +2285,40 @@ or \"(\", and point must be at the start of CHILD."
 	       2
 	     1))))
       (cond
-       ((equal (nth 2 parent) "(") nil); stopped due to "("; indent to the (, not the line it is on
+       ((equal (nth 2 parent) "(")
+	;; indent to the (, not the line it is on
+	(forward-char 1)
+	(forward-comment (point-max)))
+
        (t (back-to-indentation)))
       (cons 'column (+ (current-column) offset))
     )))
 
 (defun ada-indent-skip-identifier-list ()
-  "Skip backward over {identifier,}."
-  (let (parent)
-    (while (equal "," (setq parent (ada-indent-backward-keyword))))
-    (when (not (equal parent "("))
-      ;; we are now on the token before the first identifier
-      (smie-default-forward-token))
-    (forward-comment (point-max))))
+  "Skip backward over {identifier,}.  Return (preceding-pos preceding-string)."
+  (let (parent parent-pos)
+    (while
+	(progn
+	  (setq parent (ada-indent-backward-keyword))
+	  (setq parent-pos (point))
+	  (cond
+	   ((equal "," parent) t)
+	   ((equal "(" parent) (forward-char 1) nil)
+	   (t
+	    (smie-default-forward-token)
+	    nil))))
+    (forward-comment (point-max))
+    (list parent-pos parent)))
 
 (defun ada-indent-goto-statement-start (child)
   "Move point to the start of the statement/declaration
-containing point. If point is in a parenthesized list, move to
-the start of the current list element. Return (parent-pos
-parent-string), where `parent-string' is the text of the found
-parent token, and `parent-pos' is the position of its first
-character. If point is at statement or list element start, does
-nothing. If CHILD is non-nil, it must be a keyword, and point
-must be at the start of CHILD."
-  ;; FIXME: if no-one uses parent-pos anymore, simplify the return to
-  ;; just the actual statement start token.
-  ;;
+containing point.  If point is in a parenthesized list, move to
+the start of the current list element.  Return (preceding-pos
+preceding-string), where `preceding-string' is the text of the
+token preceding the statement start, and `preceding-pos' is the
+position of its first character.  If point is at statement or
+list element start, does nothing.  If CHILD is non-nil, it must
+be a keyword, and point must be at the start of CHILD."
   ;; See ada-indent-show-statement-start for interactive call of
   ;; this.
   ;;
@@ -2400,42 +2415,40 @@ must be at the start of CHILD."
       ;; (assignment), so we have to use use ada-indent-backward-keyword
       ;; to find the previous keyword.
       (when (not (member child ada-indent-block-keywords))
-	(save-excursion
-	  (setq parent (ada-indent-backward-keyword))
-	  (setq parent-pos (point))
-	  (cond
-	   ((or
-	       (equal parent ";")
-	       (member parent ada-indent-block-keywords))
-	    (progn
-	      (smie-default-forward-token); ";" or block start
-	      (forward-comment (point-max)); also skips final whitespace
-	      (setq pos (point))))
+	(setq pos (point));; not using save-excursion so we can do throw 'done from here.
+	(setq parent (ada-indent-backward-keyword))
+	(setq parent-pos (point))
+	(cond
+	 ((or
+	   (equal parent ";")
+	   (member parent ada-indent-block-keywords))
+	  (smie-default-forward-token); ";" or block start
+	  (forward-comment (point-max)); also skips final whitespace
+	  ;; Make sure we moved. In this case:
+	  ;;
+	  ;;    is begin
+	  ;;       return Integer (Function_1a);
+	  ;;
+	  ;; intending "return", goto-statement-start is called from
+	  ;; indent-after-keyword with point on
+	  ;; "begin". backward-keyword finds "is", which is a block
+	  ;; keyword. Then we move back to "begin". No other blocks
+	  ;; may be empty.
+	  (if (not (= pos (point)))
+	      (throw 'done (list parent-pos parent))
+	    ))
 
-	   ((equal parent "("); this is a function call in an aggregate or param list
-	    (progn
-	      (setq parent-pos (- (point) 1))
-	      (forward-comment (point-max)); also skips final whitespace
-	      (setq pos (point))))
+	 ((equal parent "("); this is a function call in an aggregate or param list
+	  (progn
+	    (forward-char 1)
+	    (forward-comment (point-max)); also skips final whitespace
+	    (throw 'done (list parent-pos parent))))
 
-	   ((equal parent ":-object")
-	    (ada-indent-skip-identifier-list)
-	    (setq parent (save-excursion (ada-indent-forward-token)))
-	    ;; can't throw done from here; need to escape save-excursion
-	    (setq pos (point)
-		  parent-pos (point)))
-	   )))
+	 ((equal parent ":-object")
+	  (throw 'done (ada-indent-skip-identifier-list)))
+	 ))
 
-      ;; Make sure going to pos would be motion. In this case:
-      ;;
-      ;;    is begin
-      ;;       return Integer (Function_1a);
-      ;;
-      ;; intending "return", goto-statement-start is called from
-      ;; indent-after-keyword with point on "begin". backward-name
-      ;; finds "is", which is a block keyword. Then we move back to
-      ;; "begin" and set pos. No other blocks may be empty.
-      (if (and pos (not (= pos (point)))) (progn (goto-char pos) (throw 'done (list parent-pos parent))))
+      (when pos (goto-char pos))
 
       (if (equal child ";")
 	  ;; we want to go to the start of the statement preceding
@@ -2445,12 +2458,9 @@ must be at the start of CHILD."
 	  (setq child (ada-indent-backward-keyword)))
 
       (setq parent-count
-	    (if (member child '("." "record-open" "<<"))
+	    (if (member child '("record-open" "<<"))
 		2
 	      1))
-      ;; If child is "." we are in the middle of an Ada name; the
-      ;; first parent is the start of the name. FIXME: '.' is no longer a keyword
-      ;;
       ;; If child is "(" the first run thru smie-backward-sexp
       ;; produces no motion; that causes the second run to call the
       ;; lower level scanner to skip the parens, because
@@ -2486,10 +2496,11 @@ must be at the start of CHILD."
 	  ;; goto-parent stopped because of a lower-precedence token,
 	  ;; not a closer; that might be because:
 	  ;;
-	  ;; 1) we are traversing a list of identifiers in an object declaration:
+	  ;; 1) a parameter list object:
 	  ;;
-	  ;;    Integer_D, Integer_E, Integer_F :
-	  ;;      Integer;
+	  ;;    A, B : in Integer;
+	  ;;
+	  ;;    stops on "in"
 	  ;;
 	  ;; 2) probably other situations.
 	  ;;
@@ -2506,22 +2517,13 @@ must be at the start of CHILD."
 	(setq parent (ada-indent-goto-parent parent 2)))
 
       (cond
-       ((equal (nth 2 parent) ":=")
-	(progn
-	  (setq parent (ada-indent-backward-keyword))
-	  ;; we are now on the keyword before statement start; get back.
-	  (smie-default-forward-token)
-	  (forward-comment (point-max))
-	  (setq parent (save-excursion (ada-indent-forward-token)))
-	  (list (point) parent)
-	  ))
-
-       ((equal (nth 2 parent) ":-object")
+       ((member (nth 2 parent) '(":=" ":-object"))
+	;; We don't need 'skip-identifier-list' for :-object, but it
+	;; does the right thing.
+	;;
 	;; Simple types in object declarations were handled above; for
 	;; complex types and parameter lists, we get here.
-	(ada-indent-skip-identifier-list)
-	(setq parent (save-excursion (ada-indent-forward-token)))
-	(list (point) parent))
+	(ada-indent-skip-identifier-list))
 
        (t (list (nth 1 parent) (nth 2 parent))))
       )))
@@ -2532,14 +2534,13 @@ must be at the start of CHILD."
 to it. Preserves point.  If CHILD is non-nil, point must be at
 the start of CHILD, which must be a keyword."
   (save-excursion
-    (ada-indent-goto-statement-start child)
-    (cond
-     ;; allow for whitespace and comments before the preceding "("
-     ((eq (save-excursion (forward-comment (- (point))) (char-before))
-	  ?\()
-      nil); indent to the (, not the line it is on
-     (t (back-to-indentation)))
-    (cons 'column (+ (current-column) offset))))
+    (let ((parent (ada-indent-goto-statement-start child)))
+      (cond
+       ((equal (nth 1 parent) "(")
+	nil); indent to the (, not the line it is on
+       (t (back-to-indentation)))
+      (cons 'column (+ (current-column) offset))
+      )))
 
 ;;;
 (defun ada-indent-rules (method arg)
@@ -2604,8 +2605,6 @@ the start of CHILD, which must be a keyword."
        ;;       return Float
        ;;          (Integer'Value
        ;;             (Local_6));
-       ;;
-       ;;    ada-indent-rule-statement handles both of these
 
        (save-excursion
 	 (let ((pos (point)))
@@ -2800,7 +2799,7 @@ the start of CHILD, which must be a keyword."
       ((member arg ada-indent-block-keywords)
        (ada-indent-rule-statement ada-indent arg))
 
-     (t (ada-indent-rule-statement ada-indent-broken arg))
+      (t (ada-indent-rule-statement ada-indent-broken arg))
       ))
     ))
 
@@ -2970,10 +2969,11 @@ relative to)."
       ))
 
 (defun ada-indent-default ()
-  "Unconditionally indent as `ada-indent' from the previous
-parent keyword. Intended to be the last item in `smie-indent-functions',
-used when no indentation decision was made."
-  (cdr (ada-indent-rule-parent ada-indent-broken nil)))
+  "Unconditionally indent by `ada-indent-broken' from the current
+statement start.  Intended to be the last item in
+`smie-indent-functions', used when no indentation decision was
+made."
+  (cdr (ada-indent-rule-statement ada-indent-broken nil)))
 
 ;;; debug
 (defvar ada-indent-debug-refine nil

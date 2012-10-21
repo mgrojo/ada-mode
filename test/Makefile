@@ -5,7 +5,7 @@
 # does the wrong thing on incorrect code, as long as it doesn't hang
 # or crash. Exceptions noted below in COMPILE_FILES.
 
-all : compile test
+all : compile test-clean test
 
 # emacs to test with
 #
@@ -28,7 +28,7 @@ user : /Projects/smm.main/source/smm-download.adb.diff
 # FIXME: add target to test user directory nicely (no clutter)
 # FIXME: add target to run tests with Ada mode 4.01 to compare
 
-one : test-clean ada_mode-quantified_expressions.adb.diff
+one : test-clean ada_mode-options.adb.diff
 
 TEST_FILES := $(shell ls *.ad?)
 
