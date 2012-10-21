@@ -111,6 +111,27 @@ An example is:
    >>>record"
   :type 'integer :group 'ada-indent)
 
+(defcustom ada-indent-renames 2
+  "*Indentation relative to the matching subprogram declaration start.
+If `ada-indent-renames' is null or negative, the indentation is done relative to
+the open parenthesis (if there is no parenthesis, `ada-indent-broken' is used).
+
+An example is:
+   function A (B : Integer)
+       return C;
+   >>>renames Foo;"
+:type 'integer :group 'ada-indent)
+
+(defcustom ada-indent-return 0
+  "*Indentation for 'return' relative to the matching 'function' statement.
+If `ada-indent-return' is null or negative, the indentation is done relative to
+the open parenthesis (if there is no parenthesis, `ada-indent-broken' is used).
+
+An example is:
+   function A (B : Integer)
+   >>>>>return C;"
+:type 'integer :group 'ada-indent)
+
 (defvar ada-when-indent nil)
 (make-obsolete-variable
  'ada-when-indent
@@ -1641,9 +1662,8 @@ an element of TARGETS, return that token."
     ;;
     ;;    1a) function_specification ::= function defining_designator parameter_and_result_profile
     ;;
-    ;;    preceding refined token: "function-spec", "function-overriding", "function-generic"
-    ;;    "function-separate"
-    ;;
+    ;;    preceding refined token: "function-spec", "function-overriding",
+    ;;       "function-generic", "function-separate"
     ;;    token: "return-spec"
     ;;
     ;;    1b) formal_concrete_subprogram_declaration ::= with subprogram_specification ...
@@ -1683,6 +1703,7 @@ an element of TARGETS, return that token."
     ;;    token: "return-spec"
     ;;
     ;; 6) subprogram_renaming_declaration
+    ;;    FIXME???
     ;;
     ;; So we have to look both forward and backward to resolve this.
     (or
@@ -2616,10 +2637,46 @@ the start of CHILD, which must be a keyword."
 	     (progn (goto-char pos) (ada-indent-rule-statement ada-indent-broken arg))))
 	 ))
 
-      ((equal arg "return-spec")
-       ;; Function declaration, function body, or access-to-function type declaration.
-       ;; Indent relative to "function", which is the parent.
-       (ada-indent-rule-parent ada-indent-broken arg))
+      ((or (equal arg "return-spec") (equal arg "return-formal"))
+       ;; Function declaration, function body, or access-to-function
+       ;; type declaration.
+
+       (let (
+             ;; Find the start of the parameters (nil if none)
+             (parameter-start (save-excursion
+                                (smie-backward-sexp)
+                                (if (equal (char-after) ?\()
+                                    (current-column)
+                                  nil)))
+             ;; Find the "function" keyword's start column
+             (function-col (save-excursion
+                             (ada-indent-goto-parent arg 1)
+                             (while (not (equal
+                                          (smie-default-forward-token)
+                                          "function"))
+                               nil)
+                             (smie-default-backward-token)
+                             (current-column)))
+             )
+
+         (cond ((<= ada-indent-return 0)
+                ;; If 'ada-indent-return' is zero or negative, then
+                (cond ((null parameter-start)
+                       ;; No parameters; use 'ada-indent-broken' from
+                       ;; "function".
+                       (cons 'column (+ function-col ada-indent-broken)))
+                      (t
+                       ;; Parameters: indent relative to the "(".
+                       (cons 'column (- parameter-start ada-indent-return)))))
+
+               (t
+                ;; If 'ada-indent-return' is positive, indent (by its
+                ;; absolute value) relative to "function", which is
+                ;; the parent (except for generic formal parameters).
+                ;; ??? why does ada-indent-goto-parent select a
+                ;; different parent from ada-indent-rule-parent?
+                (cons 'column (+ function-col ada-indent-return))))
+         ))
 
       ((equal arg ")")
        ;; find the open paren
