@@ -50,7 +50,7 @@ generic
    with function Concrete_Function_2 return Float
      is <>;
    with function Concrete_Function_3
-     return Float is <>;
+          return Float is <>;
 
    -- Packages
    with package A_Package is new Ada.Text_IO.Integer_IO (Num => Formal_Signed_Integer_Type);

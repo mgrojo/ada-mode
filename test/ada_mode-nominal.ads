@@ -112,7 +112,7 @@ package Ada_Mode.Nominal is
    type Function_Access_Type_2g is access protected function (A_Param : in Float) return
      access Standard.Float;
    type Function_Access_Type_3 is access protected function (A_Param : in Float)
-     return Standard.Float;
+                                                            return Standard.Float;
    type Function_Access_Type_4 is access protected function
      (A_Param : in Float) return Standard.Float;
    type Function_Access_Type_5 is access protected
@@ -386,7 +386,7 @@ package Ada_Mode.Nominal is
    function Function_2b (Param : in Parent_Type_1) return
      Float;
    function Function_2c (Param : in Parent_Type_1)
-     return Float;
+                        return Float;
    function Function_2d
      (Param : in Parent_Type_1) return Float;
    function

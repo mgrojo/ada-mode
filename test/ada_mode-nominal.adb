@@ -359,7 +359,7 @@ package body Ada_Mode.Nominal is
    end;
 
    function Function_2f (Param : in Parent_Type_1)
-     return Float is
+                        return Float is
    begin
       Procedure_2a
         ;
