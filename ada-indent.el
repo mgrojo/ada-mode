@@ -73,7 +73,7 @@ begin
 ;; FIXME: this doesn't warn user at runtime, but at least they should
 ;; notice something broke, and the help will be useful.
 
-(defcustom ada-indent-broken (or ada-broken-indent 2)
+(defcustom ada-indent-broken 2
   "*Indentation for the continuation of a broken line.
 
 Example :
@@ -113,6 +113,20 @@ An example is:
    >>>record"
   :type 'integer :group 'ada-indent)
 
+(defvar ada-use-indent nil)
+(make-obsolete-variable
+ 'ada-use-indent
+ 'ada-indent-use
+ "Emacs 24.4, Ada mode 5.0"
+ 'set)
+(defcustom ada-indent-use ada-indent-broken
+  "*Indentation for the lines in a 'use' statement.
+
+An example is:
+   use Ada.Text_IO,
+   >>Ada.Numerics;"
+  :type 'integer :group 'ada)
+
 (defvar ada-when-indent nil)
 (make-obsolete-variable
  'ada-when-indent
@@ -127,6 +141,21 @@ An example is:
    case A is
    >>>when B =>"
   :type 'integer :group 'ada-indent)
+
+(defvar ada-with-indent nil)
+(make-obsolete-variable
+ 'ada-with-indent
+ 'ada-indent-with
+ "Emacs 24.4, Ada mode 5.0"
+ 'set)
+
+(defcustom ada-indent-with ada-indent-broken
+  "*Indentation for the lines in a 'with' statement.
+
+An example is:
+   with Ada.Text_IO,
+   >>Ada.Numerics;"
+  :type 'integer :group 'ada)
 
 ;;; grammar
 
@@ -666,7 +695,6 @@ An example is:
     "declare"
     "do"
     "else-other"
-    ;; "end-block" is never a block start; treated separately
     "exception-block"
     "generic"
     "is-entry_body"
@@ -2722,7 +2750,7 @@ the start of CHILD, which must be a keyword."
 	 (back-to-indentation)
 	 (cons 'column (current-column))))
 
-      ((equal arg "record-open")
+      ((member arg '("record-open" "record-null"))
        ;; This indents the first line. The components are indented
        ;; relative to the line containing "record-open"; see "record-open" in
        ;; :after.
@@ -2835,14 +2863,25 @@ the start of CHILD, which must be a keyword."
       ((equal arg ",")
        ;; ada-mode 4.01 uses broken indent for multi-identifier in
        ;; parameter list declaration, and object declarations. But
-       ;; aggregates use no indent after ",".
-       (let ((token (save-excursion (ada-indent-skip-identifier-list t))))
+       ;; aggregates use no indent after ",". "with", "use" have their
+       ;; own controlling options. We have to check for ":-object" first,
+       ;; since otherwise a parameter list looks like an aggregate.
+       (let ((token (nth 1 (save-excursion (ada-indent-skip-identifier-list t)))))
 	 (cond
-	  ((equal (nth 1 token) ":-object")
+	  ((equal token ":-object")
 	   (ada-indent-rule-statement ada-indent-broken arg))
-	  (t
-	   (ada-indent-rule-statement 0 arg)))
-	 ))
+
+	  ((and (setq token (nth 1 (save-excursion (ada-indent-skip-identifier-list nil))))
+		(equal token "("))
+	   (ada-indent-rule-statement 0 arg))
+
+	  ((equal token "use-decl"); also use-context
+	   (ada-indent-rule-statement ada-indent-use arg))
+
+	  ((equal token "with-context")
+	   (ada-indent-rule-statement ada-indent-with arg))
+
+	  )))
 
       ((equal arg ";")
        (ada-indent-rule-statement 0 arg))

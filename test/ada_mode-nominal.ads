@@ -181,7 +181,7 @@ package Ada_Mode.Nominal is
 
    type Null_Record_Type_1 is null record;
    type Null_Record_Type_2 is null
-     record;
+      record;
    type Null_Record_Type_3 is
      null record;
    type Null_Record_Type_4

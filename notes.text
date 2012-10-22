@@ -36,22 +36,13 @@ ada-indent.el
 (shell-send-string "~/bin/mtn_sync_ada_france.sh" "*bash*")
 (xmtn-sync-review)
 
-test/Makefile
-make rest of test files work
-test/with_use1.adb
-ada-use-indent
+test/Makefile FIXME:s
 
-ensure all keywords are in grammar properly?
-   add check that rassoc ada-indent-grammar is unique
-
-add missing features to ada_mode-*
+newline-and-indent use after keyword, not before
 
 aspect_clause;    record - done
 attribute clauses; record layout
 library generic subprogram
-named associations
-nested generic subprogram, package
-nested package
 pre/post conditions
 quantified_, if_, case_expressions. Simon Wright working on "if" expressions, ada-indent-after-return.
 remaining expressions?
@@ -69,10 +60,10 @@ then ask for input/testing
  relevant files
 (info "(aarm2012)Annex P" "*info Annex P*")
 c:/Projects/emacs_stephe.work/emacs_stephe/ada-mode-keys.el
+c:/Projects/emacs_stephe.main/emacs_stephe_site_lisp/ada-mode.el
 
 c:/apps/emacs-24.2/lisp/progmodes/modula2.el
 http://www.modula2.net/resources/M2R10.pdf Appendix A
-c:/Projects/emacs_stephe.main/emacs_stephe_site_lisp/ada-mode.el
 (info "(elisp)SMIE" "*info-smie*")
 http://dickgrune.com/Books/PTAPG_2nd_Edition/
     used by modula2-mode, octave-mode in emacs 24

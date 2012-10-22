@@ -2,8 +2,8 @@
 --  Tests the indentation of with and use statements, with regards to
 --  the variable ada-with-use-indent
 
---EMACSCMD: (setq ada-with-indent 5)
---EMACSCMD: (setq ada-use-indent 4)
+--EMACSCMD: (setq ada-indent-with 5)
+--EMACSCMD: (setq ada-indent-use 4)
 
 with Ada.Text_IO,
      Ada.Numerics,   --  used to be indented with ada-broken-indent
@@ -13,4 +13,9 @@ use Ada.Text_IO,
     Ada.Numerics,   --  used to be indented with ada-broken-indent
     Foo;
 
-procedure With_Use1 is begin null; end;
+procedure With_Use1 is
+   use Ada.Text_IO,
+       Ada.Numerics,   --  used to be indented with ada-broken-indent
+       Foo;
+
+begin null; end;

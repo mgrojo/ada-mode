@@ -6,10 +6,7 @@
 
 --  with luck
 with Toto,
-Tutu;
--- Ada mode 4.01 indented "Tutu" with hanging indent. But who would
--- use this style? don't care; it's only here to point out that
--- highlighting fails across newline.
+  Tutu;
 use Toto;
 
 with Ada; use Ada;

@@ -20,6 +20,7 @@ package Withprivate is
    type E is null
       record;
    --  "null record" not on the same line
+   --  ada-indent-record-rel-type, not ada-indent-broken
 
 private
    type A is new B with null record;
