@@ -1,3 +1,4 @@
+^run_sjw\.text$
 ^test/.*\.ali$
 ^test/.*\.diff$
 ^test/.*\.tmp$

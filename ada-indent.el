@@ -113,7 +113,7 @@ An example is:
    >>>record"
   :type 'integer :group 'ada-indent)
 
-(defcustom ada-indent-renames 2
+(defcustom ada-indent-renames 2 ;; FIXME: not used, may drop
   "*Indentation relative to the matching subprogram declaration start.
 If `ada-indent-renames' is null or negative, the indentation is done relative to
 the open parenthesis (if there is no parenthesis, `ada-indent-broken' is used).
@@ -126,12 +126,12 @@ An example is:
 
 (defcustom ada-indent-return 0
   "*Indentation for 'return' relative to the matching 'function' statement.
-If `ada-indent-return' is null or negative, the indentation is done relative to
+If `ada-indent-return' is zero or less, the indentation is done relative to
 the open parenthesis (if there is no parenthesis, `ada-indent-broken' is used).
 
 An example is:
    function A (B : Integer)
-   >>>>>return C;"
+   >>>>>>>>>>>return C;"
 :type 'integer :group 'ada-indent)
 
 (defvar ada-when-indent nil)
