@@ -1,5 +1,5 @@
 with Ada.Containers.Vectors;
-package body ada_mode.quantified_expressions is
+procedure ada_mode.quantified_expressions is
 
 begin
 
@@ -20,17 +20,19 @@ begin
       Label:
          declare
             generic
-               Test : in Boolean := (for all J in 1 .. 10 => False);
+               Test : in Boolean;
             package Inner is
-
+               procedure Run_Test;
             end Inner;
 
             package body Inner is
-            begin
-            Label:
-               loop
-                  exit Label;
-               end loop Label;
+               procedure Run_Test
+               is begin
+                  Label:
+                  loop
+                     exit Label when Test;
+                  end loop Label;
+               end Run_Test;
             end Inner;
            
             package Instance is new Inner ((for some J in 1 .. 10 => True));
@@ -38,19 +40,20 @@ begin
 
          begin
             loop
+               Instance.Run_Test;
                exit;
             end loop;
          end Label;
    end case;
    
    declare
-      B : Boolean;
+      B : Boolean := False;
       function "+" (Item : in Integer) return access Integer
       is begin
          return new Integer'(Item);
       end;
 
-      V : array (1 .. 10) of access Integer :=
+      V : constant array (1 .. 10) of access Integer :=
         (+1, +2, +3, +4, +5, +6, +7, +8, +9, +10);
    begin
       while B
@@ -64,8 +67,6 @@ begin
       package Float_Vectors is new Ada.Containers.Vectors (Positive, Float);
       Board : Float_Vectors.Vector;
    begin
-      --  FIXME: ARM 2012 5.5.2 8/3 says Element is a variable
-      --  GNAT 7.0.1 says: assignment to loop parameter not allowed
       for Element
          of Board loop
             Element := Element * 2.0;

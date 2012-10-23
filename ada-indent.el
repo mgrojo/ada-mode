@@ -400,7 +400,7 @@ An example is:
        ;; No need to distinguish between 'declarations' and
        ;; 'generic_formal_parameter_declaration' in the grammar.
        ("generic" declarations
-	"package-generic" identifier "is-package" declarations "private" declarations "end-block")
+	"package-generic" identifier "is-package" declarations "private-body" declarations "end-block")
        ("generic" declarations
 	"package-generic" identifier "is-package" declarations "end-block"))
 
@@ -451,8 +451,10 @@ An example is:
        )
 
       (package_body
-       ;; Leaving 'package body' as separate tokens causes problems
-       ;; in refine-is, so we leave "body" as an identifier.
+       ;; we leave "body" as an identifier. "private" before "package"
+       ;; is treated as a separate statement, to avoid further
+       ;; refining "package".
+       ("private-library")
        ("package-plain" name "is-package" declarations "begin-body" statements "end-block")
        ("package-plain" name "is-package" "separate-stub")
        ("separate-unit" "package-separate" name "is-package" declarations "begin-body" statements "end-block"))
@@ -706,6 +708,7 @@ An example is:
     "loop-body"
     "loop-open"
     "or-select"
+    "package-plain"
     "private-body"
     "record-open"
     "select-open"
@@ -837,6 +840,9 @@ spec, return t if is a generic, nil otherwise."
 	       (setq token (ada-indent-backward-token)))
 	      )))
 
+	 ((equal token "private-library")
+	  (setq result nil))
+
 	 ((equal token "generic")
 	  (setq result t))
 
@@ -899,9 +905,21 @@ token or nil. Preserves point."
   ;; directly when we need to skip a parenthesis (see the lisp source
   ;; for forward-sexp).
   (let ((forward-sexp-function nil))
-    (if forward
-	(forward-sexp)
-    (backward-sexp))))
+    (condition-case err
+	(if forward
+	    (forward-sexp)
+	  (backward-sexp))
+      (scan-error
+	 ;; unbalanced parens can happen when user is typing code;
+	 ;; we'll get here from newline-and-indent calling validate-cache.
+       (if forward
+	   ;; Point is at open paren; caller wants us to move to close
+	   ;; paren. Best we can do is get past this paren, to let
+	   ;; validate-cache process the following tokens.
+	   (forward-char 1)
+	 ;; not clear when the reverse happens, but a similar argument applies
+	 (forward-char -1)))
+      )))
 
 (defun ada-indent-next-keyword (next-token forward)
   "Skip tokens function NEXT-TOKEN, until a keyword is found (a
@@ -1623,7 +1641,6 @@ when found token is an element of TARGETS, return that token."
     ;;       {basic_declarative_item}]
     ;;    end [[parent_unit_name.]identifier]
     ;;
-    ;;    need ada-indent-refine-all
     ;;    token: private-body
     ;;
     ;; 6) private_extension_declaration
@@ -1640,15 +1657,22 @@ when found token is an element of TARGETS, return that token."
     ;; 7) protected_definition
     ;; 8) task_definition
     ;;
+    ;; 9) library_item ::= [private] library_unit_declaration
+    ;;
+    ;;    token: private-library
+    ;;
     (cond
      ((equal "with" (save-excursion (smie-default-backward-token)))
       "private-with"); 6
 
-     ((member (save-excursion
-		(smie-default-forward-token); private
-		(smie-default-forward-token))
-	      '("with" ";"))
-      "private-type-spec"); 1
+     ((let ((token (save-excursion
+		     (smie-default-forward-token); private
+		     (smie-default-forward-token))))
+	(cond
+	 ((member token '("with" ";")) "private-type-spec"); 1
+
+	 ((member token '("package" "procedure" "function" "generic")) "private-library"); 9
+	 )))
 
      (t "private-body"))); all others
   )
@@ -2883,7 +2907,7 @@ the start of CHILD, which must be a keyword."
 
 	  )))
 
-      ((equal arg ";")
+      ((member arg '(";" "private-library"))
        (ada-indent-rule-statement 0 arg))
 
       ((equal arg "=>-when")
@@ -2946,6 +2970,17 @@ the start of CHILD, which must be a keyword."
 ;; each must not move point, and must return a column (as an integer) or nil.
 ;;
 ;; declared in order called
+
+(defun ada-indent-comment-indent ()
+  "For `comment-indent-function'."
+  ;; This should only be called by comment-indent-new-line or
+  ;; fill-comment-paragraph, so there will be a preceding comment line
+  ;; that we can trust.
+  (save-excursion
+    (forward-comment -1)
+    (if (looking-at comment-start)
+	(current-column)
+      (error "ada-indent-comment-indent called after non-comment"))))
 
 (defun ada-indent-comment ()
   "Compute indentation of a comment."
@@ -3254,6 +3289,8 @@ This lets us know which indentation function succeeded."
   ;; if we want to turn it back on ever!
 
   (add-hook 'after-change-functions 'ada-indent-after-change nil t)
+
+  (set (make-local-variable 'comment-indent-function) 'ada-indent-comment-indent)
 
   (define-key ada-mode-map "\t" 'indent-for-tab-command)
   ;; TAB will now use smie indentation in Ada mode buffers

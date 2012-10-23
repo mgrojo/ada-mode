@@ -36,9 +36,17 @@ ada-indent.el
 (shell-send-string "~/bin/mtn_sync_ada_france.sh" "*bash*")
 (xmtn-sync-review)
 
-test/Makefile FIXME:s
+test/Makefile
 
-newline-and-indent use after keyword, not before
+review FIXMEs
+
+rest of ada-mode
+    syntax-propertize
+
+ask for input/testing
+    run on my projects
+
+use it!
 
 aspect_clause;    record - done
 attribute clauses; record layout
@@ -52,9 +60,6 @@ task entry with index; body has "for"
 look for remaining non-terminals in Annex P
 
 test "function-overriding" "function-separate", "procedure-*"  as instantiations
-
-then ask for input/testing
-    run on my projects
 
 
  relevant files

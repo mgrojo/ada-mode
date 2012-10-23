@@ -2,6 +2,7 @@
 
 with Ada_Mode.Generic_Parent;
 with Ada_Mode.Nominal;
+private
 package Ada_Mode.Generic_Instantiation is
 
    package Instance is new Ada_Mode.Generic_Parent;

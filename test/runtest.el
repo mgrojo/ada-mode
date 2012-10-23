@@ -82,6 +82,8 @@
   ;; already active, and change things that this would then wipe
   ;; out. If it's not done by the extension, add a file local variable
   ;; to set ada-mode.
+  ;;
+  ;; Except file-local variables don't work here for some reason, so use an EMACSCMD:
   (run-test-here)
 
   ;; Write the result file; makefile will diff.
