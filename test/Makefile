@@ -14,26 +14,16 @@ all : compile test-clean test
 # 'make EMACS=...'.
 EMACS := $(EMACSPATH)/emacs
 
-#nominal : EMACS := /usr/bin/emacs
-nominal : ada_mode-nominal.ali
-nominal : ada_mode-nominal.ads.diff
-nominal : ada_mode-nominal.adb.diff
-nominal : ada_mode-nominal-child.ali
-nominal : ada_mode-nominal-child.ads.diff
-nominal : ada_mode-generic_package.ali
-nominal : ada_mode-generic_package.ads.diff
-
 user : /Projects/smm.main/source/smm-download.adb.diff
 
 # FIXME: add target to test user directory nicely (no clutter)
 # FIXME: add target to run tests with Ada mode 4.01 to compare
 
-one : test-clean ada_mode-nominal.adb.diff
+one : test-clean ada_mode-quantified_expressions.ali ada_mode-quantified_expressions.adb.diff
 
 TEST_FILES := $(shell ls *.ad?)
 
 # FIXME: delete currently broken tests
-TEST_FILES := $(filter-out ada-test.adb, $(TEST_FILES)) # multiple compilation units, minor issues
 TEST_FILES := $(filter-out ada_mode-options-indent_return_1.ads, $(TEST_FILES)) # ada-indent-return
 TEST_FILES := $(filter-out ada_mode-options-indent_return_2.ads, $(TEST_FILES)) # ada-indent-return
 TEST_FILES := $(filter-out ada_mode-quantified_expressions.adb, $(TEST_FILES)) # 2012 syntax
@@ -61,29 +51,20 @@ COMPILE_FILES := $(TEST_FILES)
 TEST_FILES := $(filter-out debug.adb, $(TEST_FILES))
 COMPILE_FILES := $(filter-out debug.adb, $(COMPILE_FILES))
 
-# This has incomplete code; used for interactive editing test (via EMACSCMD)
+# This has incomplete code deliberately; used for interactive editing test (via EMACSCMD)
 COMPILE_FILES := $(filter-out ada_mode-interactive_return.adb, $(COMPILE_FILES))
 
 # This has some illegal code, left that way to test graceful handling in ada-indent
 COMPILE_FILES := $(filter-out mats_weber_bugs.adb, $(COMPILE_FILES))
 
-# These heritage tests don't compile, and they are too hard to fix
-# FIXME: review these
-COMPILE_FILES := $(filter-out ada-test.adb, $(COMPILE_FILES))
 COMPILE_FILES := $(filter-out g-comlin.adb, $(COMPILE_FILES))# copied from gnat runtime; gnat won't compile it!
-COMPILE_FILES := $(filter-out gnatprep.adb, $(COMPILE_FILES))
-COMPILE_FILES := $(filter-out highlight.adb, $(COMPILE_FILES))
-COMPILE_FILES := $(filter-out indent9.adb, $(COMPILE_FILES))
-COMPILE_FILES := $(filter-out indent.adb, $(COMPILE_FILES))
-COMPILE_FILES := $(filter-out move_to_end.adb, $(COMPILE_FILES))
-COMPILE_FILES := $(filter-out other_1.adb, $(COMPILE_FILES))
+COMPILE_FILES := $(filter-out gnatprep.adb, $(COMPILE_FILES))# could run thru gnatprep, but it's not worth it.
+COMPILE_FILES := $(filter-out highlight.adb, $(COMPILE_FILES))# font-lock only
+
+# These heritage tests don't compile, and they are not worth fixing
+COMPILE_FILES := $(filter-out move_to_end.adb, $(COMPILE_FILES))# hard-coded line numbers
 COMPILE_FILES := $(filter-out parent.adb, $(COMPILE_FILES))
 COMPILE_FILES := $(filter-out prime-volatilities.adb, $(COMPILE_FILES))
-COMPILE_FILES := $(filter-out private.adb, $(COMPILE_FILES))
-
-# FIXME: this one hits a GNAT 7.0.1 bug. report the bug and find a workaround
-COMPILE_FILES := $(filter-out ada_mode-quantified_expressions.adb, $(COMPILE_FILES))
-COMPILE_FILES := $(filter-out ada_mode-quantified_expressions.ads, $(COMPILE_FILES))
 
 .PHONY : all nominal one test test-clean
 
@@ -114,6 +95,10 @@ compile : $(COMPILE_FILES)
 # we compile with -gnatyN3 to be sure our indentation meets gnat's
 # check. We don't check any other style requirements; not needed for
 # comparing indentation, and they get in the way.
+
+# bogus warning when compile with -gnatc; bug report [LA23-003]
+ada_mode-quantified_expressions.ali : ada_mode-quantified_expressions.adb
+	gnatmake -gnat2012  $<
 
 # Some files set Ada mode indentation options that violate gnat's requirement
 adacore_d304_005_2.ali : adacore_d304_005_2.adb
