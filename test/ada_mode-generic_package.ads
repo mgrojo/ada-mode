@@ -50,6 +50,7 @@ generic
    with function Concrete_Function_2 return Float
      is <>;
    with function Concrete_Function_3
+     (Foo : in Integer)
      return Float is <>;
 
    -- Packages

@@ -53,6 +53,28 @@ attribute clauses; record layout
 library generic subprogram
 pre/post conditions
 quantified_, if_, case_expressions. Simon Wright working on "if" expressions, ada-indent-after-return.
+
+>    X3A : Unsigned := (case P is
+>                       when 1
+>                          | 4
+>                          => 1,
+>                       when 2
+>                          | 8
+>                          => 2,
+>                       when others
+>                          => 0);
+>
+>    X4A : Unsigned := (case P is
+>                       when 1 | 4 | 16 | 64
+>                          => Complex_Expression_Involving (Formula_with (P)),
+>                       when 2 | 8 | 32
+>                          => Another_Complex_Expression_Involving (Formula_with (P)),
+>                       when others
+>                          => Default_Expressions_Value (Being (0)));
+
+bug in ada-indent-goto-statement-start; it finds "case" properly, but
+doesn't return "(" as it should
+
 remaining expressions?
 remaining statements?
 task entry with index; body has "for"
@@ -75,10 +97,12 @@ http://dickgrune.com/Books/PTAPG_2nd_Edition/
 
  indentation options
 c:/Projects/Web/stephe-leake/emacs/ada-mode/emacs-ada-mode.html
+~/Web/Makefile
 
 compare to GPS, gnatpp
 
 some people want to be able to match GPS style
+    => requires ada-indent-renames, and 4.01 requires ada-indent-renames separate from ada-indent-return
 
 requirement to match 4.01 style
 

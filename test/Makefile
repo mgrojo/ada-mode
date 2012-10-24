@@ -18,8 +18,12 @@ user : /Projects/smm.main/source/smm-download.adb.diff
 
 # FIXME: add target to test user directory nicely (no clutter)
 # FIXME: add target to run tests with Ada mode 4.01 to compare
+# FIXME: add target to run tests with GPS; gps -P<your_project> --load=python:reformat_project.py
+#     project Default is
+#     end Default;
+# c:/apps/GNAT-GPS-5.1.2/share/examples/gps/python/reformat_project.py
 
-one : test-clean ada_mode-quantified_expressions.ali ada_mode-quantified_expressions.adb.diff
+one : test-clean ada_mode-generic_package.ali ada_mode-generic_package.ads.diff
 
 TEST_FILES := $(shell ls *.ad?)
 
