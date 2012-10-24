@@ -2,9 +2,17 @@
 --  The default value for ada-indent-return (the one used in this file)
 --  is 0, which means indent on the open parenthesis for the function, or
 --  use ada-broken-indent if there is no parenthesis.
+--
+--  FIXME: also need to test with -return negative and -renames 0.
+--  FIXME: rest of tests use default; do we need to repeat that here?
+--
+--  See ada_mode-options-indent_return_1.ads for positive values of
+--  ada-indent-return.
+--  (ediff "ada_mode-options-indent_return_1.ads" "ada_mode-options-indent_return_2.ads")
 
 --EMACSCMD (setq ada-indent-return 0)
-package Function1 is
+--EMACSCMD (setq ada-indent-renames 2)
+package Ada_Mode.Options.Indent_Return_1 is
 
    ------------------------------------------------------
    --  Use the default value of 0 for ada-indent-return
@@ -22,7 +30,7 @@ package Function1 is
                C : Integer) return Integer;
    function F (B : Integer;
                C : Integer)
-              return Integer;   --  from ada-indent-return
+              return Integer;
 
    type G is access function (C : Integer)
                              return Integer;
@@ -56,7 +64,7 @@ package Function1 is
                 C : Integer) return Integer renames E;
    function FR (B : Integer;
                 C : Integer)
-               return Integer   --  from ada-indent-return
-     renames F;         --  from ada-indent-renames
+               return Integer
+     renames F;
 
-end Function1;
+end Ada_Mode.Options.Indent_Return_1;

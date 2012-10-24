@@ -37,6 +37,8 @@ ada-indent.el
 (xmtn-sync-review)
 
 test/Makefile
+test/prime-volatilities.adb
+    extension aggregate
 
 review FIXMEs
 

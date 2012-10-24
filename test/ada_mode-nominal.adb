@@ -199,8 +199,7 @@ package body Ada_Mode.Nominal is
          accept Start (A) (Param_1 : in integer);
          Started := True;
       or
-         when Started => -- Ada mode 4.01 ada-when-indent
-                         -- FIXME: Simon wrote: GPS indent ada-indent (not hanging-indent)
+         when Started => -- Ada mode 4.01 ada-when-indent, GPS ada-indent
             accept Middle_1 (Param_1 : in integer) do
                Local_1 := 0;
             end Middle_1;
