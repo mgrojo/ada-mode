@@ -113,6 +113,27 @@ An example is:
    >>>record"
   :type 'integer :group 'ada-indent)
 
+(defcustom ada-indent-renames 2 ;; FIXME: not currently used
+  "*Indentation of 'renames' relative to the matching subprogram declaration start.
+If `ada-indent-renames' is zero or less, the indentation is done relative to
+the open parenthesis (if there is no parenthesis, `ada-indent-broken' is used).
+
+An example is:
+   function A (B : Integer)
+       return C;
+   >>renames Foo;"
+:type 'integer :group 'ada-indent)
+
+(defcustom ada-indent-return 0
+  "*Indentation for 'return' relative to the matching 'function' statement.
+If `ada-indent-return' is zero or less, the indentation is done relative to
+the open parenthesis (if there is no parenthesis, `ada-indent-broken' is used).
+
+An example is:
+   function A (B : Integer)
+   >>>>>>>>>>>return C;"
+:type 'integer :group 'ada-indent)
+
 (defvar ada-use-indent nil)
 (make-obsolete-variable
  'ada-use-indent
@@ -1756,9 +1777,8 @@ when found token is an element of TARGETS, return that token."
     ;;
     ;;    1a) function_specification ::= function defining_designator parameter_and_result_profile
     ;;
-    ;;    preceding refined token: "function-spec", "function-overriding", "function-generic"
-    ;;    "function-separate"
-    ;;
+    ;;    preceding refined token: "function-spec", "function-overriding",
+    ;;       "function-generic", "function-separate"
     ;;    token: "return-spec"
     ;;
     ;;    1b) formal_concrete_subprogram_declaration ::= with subprogram_specification ...
@@ -1798,6 +1818,7 @@ when found token is an element of TARGETS, return that token."
     ;;    token: "return-spec"
     ;;
     ;; 6) subprogram_renaming_declaration
+    ;;    FIXME:???
     ;;
     ;; So we have to look both forward and backward to resolve this.
     (or
@@ -2780,10 +2801,47 @@ the start of CHILD, which must be a keyword."
        ;; :after.
        (ada-indent-rule-statement ada-indent-record-rel-type arg))
 
-      ((equal arg "return-spec")
-       ;; Function declaration, function body, or access-to-function type declaration.
-       ;; Indent relative to "function", which is the parent.
-       (ada-indent-rule-parent ada-indent-broken arg))
+      ((member arg '("return-spec" "return-formal"))
+       ;; Function declaration, function body, or access-to-function
+       ;; type declaration.
+
+       (let ((parameter-start
+	      ;; pos of start of the parameters (the paren; nil if none)
+	      (save-excursion
+		(smie-backward-sexp)
+		(if (equal (char-after) ?\()
+		    (current-column)
+		  nil)))
+             (function-col
+	      ;; pos of the "function" keyword
+	      (save-excursion
+		(ada-indent-goto-parent arg 1)
+		;; this can leave point on 'overriding' or 'with'
+		(while (not (equal
+			     (smie-default-forward-token)
+			     "function"))
+                               nil)
+		(smie-default-backward-token)
+		(current-column)))
+             )
+
+         (cond
+	  ((<= ada-indent-return 0)
+	   (cond
+	    ((null parameter-start)
+	     ;; No parameters; use 'ada-indent-broken' from
+	     ;; "function".
+	     (cons 'column (+ function-col ada-indent-broken)))
+	    (t
+	     ;; Parameters: indent relative to the "(".
+	     (cons 'column (- parameter-start ada-indent-return)))))
+
+	  (t
+	   ;; indent relative to "function"
+	   ;; FIXME: why does ada-indent-goto-parent select a
+	   ;; different parent from ada-indent-rule-parent?
+	   (cons 'column (+ function-col ada-indent-return))))
+         ))
 
       ((member arg '("procedure-overriding" "function-overriding"))
        (save-excursion

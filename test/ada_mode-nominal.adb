@@ -200,6 +200,7 @@ package body Ada_Mode.Nominal is
          Started := True;
       or
          when Started => -- Ada mode 4.01 ada-when-indent
+                         -- FIXME: Simon wrote: GPS indent ada-indent (not hanging-indent)
             accept Middle_1 (Param_1 : in integer) do
                Local_1 := 0;
             end Middle_1;
@@ -363,7 +364,7 @@ package body Ada_Mode.Nominal is
    end;
 
    function Function_2f (Param : in Parent_Type_1)
-     return Float is
+                        return Float is
    begin
       Procedure_2a
         ;

@@ -24,7 +24,7 @@ package Ada_Mode.Nominal.Child is
      Float;
 
    overriding function Function_2c (Param : in Child_Type_1)
-     return Float;
+                                   return Float;
 
    overriding
    function Function_2d

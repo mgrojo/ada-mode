@@ -12,7 +12,7 @@ package Function1 is
 
    function A return Integer;
    function B
-     return Integer;   --  from ada-broken-indent
+     return Integer;   --  from ada-indent-broken
 
    function C (B : Integer) return Integer;
    function D (B : Integer)
@@ -24,13 +24,27 @@ package Function1 is
                C : Integer)
               return Integer;   --  from ada-indent-return
 
+   type G is access function (C : Integer)
+                             return Integer;
+
+   procedure H (B : access function (C : Integer)
+                                    return Integer);   --  from ?????
+
+   generic
+      with function J (B : Integer)
+                      return Integer;   --  from ada-indent-return
+      with function K
+             return Integer;   --  from ada-indent-broken
+   package L is
+   end L;
+
    ------------------------------------------------------
    --  Use the default value of 2 for ada-indent-renames
    ------------------------------------------------------
 
    function AR return Integer renames A;
    function BR
-     return Integer   --  from ada-broken-indent
+     return Integer   --  from ada-indent-broken
      renames B;  --  from ada-indent-renames
 
    function CR (B : Integer) return Integer renames C;
@@ -44,4 +58,5 @@ package Function1 is
                 C : Integer)
                return Integer   --  from ada-indent-return
      renames F;         --  from ada-indent-renames
+
 end Function1;
