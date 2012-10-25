@@ -4,6 +4,9 @@
 -- testing obsolete message for ada-label-indent
 --EMACSCMD: (setq ada-indent-when 0)
 --EMACSCMD: (setq ada-label-indent 0)
+--EMACSCMD: (setq ada-indent-with 4)
+with
+    Ada.Text_IO;
 package body Ada_Mode.Options is
 
    type Discrete_Type_1 is (A, B, C);

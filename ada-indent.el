@@ -387,7 +387,11 @@ An example is:
        ;; We don't need operators at all in the grammar; they do not
        ;; affect indentation.
        (name)
-       (aggregate))
+       (aggregate)
+       (name "with-agg" name))
+      ;; The actual syntax for extension_aggregate is more complex,
+      ;; but all we really need is for "with-agg" to be in the
+      ;; grammar.
 
       ;; Formal generic parameters. Most formal_* are covered in this
       ;; grammar by the equivalent non-formal syntax.
@@ -2068,7 +2072,8 @@ when found token is an element of TARGETS, return that token."
     ;; 2) extension_aggregate ::=
     ;;       (ancestor_part with record_component_association_list)
     ;;
-    ;;    not implemented yet
+    ;;    ancestor_part can be an aggregate for the parent type, or the parent type name.
+    ;;    ada-indent-backward-keyword : "(" for either (aggregate paired parens are skipped)
     ;;
     ;; 3) private_extension_declaration ::=
     ;;       type defining_identifier [discriminant_part] is
@@ -2154,11 +2159,19 @@ when found token is an element of TARGETS, return that token."
      (let ((token (save-excursion (smie-default-backward-token))))
        (cond
 	((equal token "record") "with-aspect"); 11
-	((or
-	  (equal token ""); bob
-	  (member token '("limited" "private" ";")))
+	((equal token ""); bob, ")"
+	 (if (progn (forward-comment (- (point)))
+		    (bobp))
+	     "with-context"; 6
+	   "with-agg");2
+	 )
+	((member token '("limited" "private" ";"))
 	 "with-context"); 6
 	(t nil)))
+
+     (let ((token (save-excursion (ada-indent-backward-keyword))))
+       (when (equal token "(")
+	 "with-agg")); 2
 
      "with-new")
     ))
@@ -2861,6 +2874,9 @@ the start of CHILD, which must be a keyword."
 	 ;; we are now before "or-select" or "select-open"
 	 (cons 'column (+ (current-column) ada-indent-when))))
 
+      ((equal arg "with-agg")
+       (ada-indent-rule-statement 0 arg))
+
       ((equal arg "with-context")
        (cons 'column 0))
 
@@ -2954,7 +2970,7 @@ the start of CHILD, which must be a keyword."
 	   (ada-indent-rule-statement ada-indent-broken arg))
 
 	  ((and (setq token (nth 1 (save-excursion (ada-indent-skip-identifier-list nil))))
-		(equal token "("))
+		(member token '("(" "with-agg")))
 	   (ada-indent-rule-statement 0 arg))
 
 	  ((equal token "use-decl"); also use-context
@@ -3015,6 +3031,12 @@ the start of CHILD, which must be a keyword."
       ((equal arg "when-case")
        ;; exception to block statement rule
        (ada-indent-rule-statement (ada-indent-when ada-indent-broken) arg))
+
+      ((equal arg "with-agg")
+       (ada-indent-rule-statement 0 arg))
+
+      ((equal token "with-context")
+       (ada-indent-rule-statement ada-indent-with arg))
 
       ((member arg ada-indent-block-keywords)
        (ada-indent-rule-statement ada-indent arg))

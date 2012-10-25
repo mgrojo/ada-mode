@@ -37,10 +37,9 @@ ada-indent.el
 (xmtn-sync-review)
 
 test/Makefile
-test/prime-volatilities.adb
-    extension aggregate
-
 review FIXMEs
+
+test/test-indent.sh
 
 rest of ada-mode
     syntax-propertize
@@ -93,6 +92,8 @@ c:/Projects/emacs_stephe.main/emacs_stephe_site_lisp/ada-mode.el
 
 c:/apps/emacs-24.2/lisp/progmodes/modula2.el
 http://www.modula2.net/resources/M2R10.pdf Appendix A
+    test/M2R10.pdf
+
 (info "(elisp)SMIE" "*info-smie*")
 http://dickgrune.com/Books/PTAPG_2nd_Edition/
     used by modula2-mode, octave-mode in emacs 24
