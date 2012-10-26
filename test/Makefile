@@ -23,17 +23,16 @@ user : /Projects/smm.main/source/smm-download.adb.diff
 #     end Default;
 # c:/apps/GNAT-GPS-5.1.2/share/examples/gps/python/reformat_project.py
 
-one : test-clean ada_mode-generic_package.ali ada_mode-generic_package.ads.diff
+one : test-clean prime-volatilities.adb.diff
 
 TEST_FILES := $(shell ls *.ad?)
 
 # FIXME: delete currently broken tests
-TEST_FILES := $(filter-out ada_mode-options-indent_return_1.ads, $(TEST_FILES)) # ada-indent-return
-TEST_FILES := $(filter-out ada_mode-options-indent_return_2.ads, $(TEST_FILES)) # ada-indent-return
+TEST_FILES := $(filter-out ada_mode-options-indent_return_2.ads, $(TEST_FILES)) # ada-indent-renames
 TEST_FILES := $(filter-out ada_mode-quantified_expressions.adb, $(TEST_FILES)) # 2012 syntax
 TEST_FILES := $(filter-out move_to_end.adb, $(TEST_FILES)) # tests ada-move-to-end, which we have not (yet?) implemented
 TEST_FILES := $(filter-out move_to_end_if.adb, $(TEST_FILES)) # ""
-TEST_FILES := $(filter-out prime-volatilities.adb, $(TEST_FILES)) # ada-indent-return
+TEST_FILES := $(filter-out prime-volatilities.adb, $(TEST_FILES)) # extension aggregate
 TEST_FILES := $(filter-out test_goto_decl_start.adb, $(TEST_FILES)) # ada-move-to-end
 TEST_FILES := $(filter-out which_test.adb, $(TEST_FILES)) # imenu-default-create-index-function
 
