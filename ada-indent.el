@@ -554,7 +554,7 @@ An example is:
 
        ;; raise is left as a keyword. FIXME: raise identifier with?
 
-       ("return-stmt");; FIXME: why to do we need this?
+       ;; return exp; is left as an identifier
 
        ;; extended_return_statement
        ("return-ext" identifier ":-object" name); same as initialized object declaration
@@ -875,7 +875,11 @@ spec, return t if is a generic, nil otherwise."
 	  (setq result nil))
 
 	 (t
-	  (ada-indent-error "ada-indent-generic-p: unexpected statement or prev keyword"))
+	  (if ada-indent-debug-refine
+	      (ada-indent-error "ada-indent-generic-p: unexpected statement or prev keyword")
+	    ;; user is probably editing code
+	    (setq result nil)))
+
 	 ));; while
       result
       )))
@@ -909,7 +913,7 @@ token or nil. Preserves point."
 	 ((member
 	   token
 	   '(";" ":=" "accept-open" ":-label" "declare" "begin-open" "case" "delay" "exit-other"
-	     "exit-when" "if-open" "<<" "for-loop" "while" "loop-open" "return-stmt" "return-ext" "select-open"))
+	     "exit-when" "if-open" "<<" "for-loop" "while" "loop-open" "return-ext" "select-open"))
 	  (list 'statement token))
 
 	 ((member
@@ -1494,7 +1498,7 @@ when found token is an element of TARGETS, return that token."
        ;; smie-backward-sexp (because it will just get confused). So
        ;; far, this is the only possibility at this point, so we don't
        ;; really need to check, but we want to identify missing
-       ;; cases. FIXME: use ada-indent-refine-all
+       ;; cases.
        (if (equal "entry" (nth 2 (smie-backward-sexp "is-entry_body"))) "is-entry_body"))
 
      (ada-indent-refine-error "is")
@@ -1705,50 +1709,49 @@ when found token is an element of TARGETS, return that token."
 ;; ada-indent-refine-procedure see ada-indent-refine-subprogram
 
 (defun ada-indent-refine-protected (token forward)
-      ;; 'protected' occurs in:
-      ;;
-      ;; 1) interface_type_definition
-      ;;
-      ;;    not implemented
-      ;;
-      ;; 2) access_to_subprogram_definition
-      ;;
-      ;;    FIXME: ?
-      ;;
-      ;; 3) access_definition in an object_declaration
-      ;;
-      ;;    not implemented
-      ;;
-      ;; 4) protected_type_declaration
-      ;;
-      ;;    protected type defining_identifier [known_discriminant_part]
-      ;;       [aspect_specification] is [new interface_list with] protected_definition;
-      ;;
-      ;; 5) single_protected_declaration
-      ;;
-      ;;    same as protected_type_declaration, without "type-other"
-      ;;
-      ;; 6) protected_body, subunit :=
-      ;;
-      ;;    a) protected body defining_identifier ...
-      ;;
-      ;;    b) separate (parent_unit_name) protected body defining_identifier ...
-      ;;
-      ;; 7) protected_body_stub  ::=
-      ;;      protected body defining_identifier is separate [aspect_specification];
-      ;;
+  ;; 'protected' occurs in:
+  ;;
+  ;; 1) interface_type_definition
+  ;;
+  ;;    not implemented
+  ;;
+  ;; 2) access_to_subprogram_definition ::=
+  ;;       access [protected] procedure parameter_profile
+  ;;     | access [protected] function  parameter_and_result_profile
+  ;;
+  ;;    identifier
+  ;;
+  ;; 3) access_definition in an object_declaration
+  ;;
+  ;;    not implemented
+  ;;
+  ;; 4) protected_type_declaration
+  ;;
+  ;;    protected type defining_identifier [known_discriminant_part]
+  ;;       [aspect_specification] is [new interface_list with] protected_definition;
+  ;;
+  ;; 5) single_protected_declaration
+  ;;
+  ;;    same as protected_type_declaration, without "type-other"
+  ;;
+  ;; 6) protected_body, subunit :=
+  ;;
+  ;;    a) protected body defining_identifier ...
+  ;;
+  ;;    b) separate (parent_unit_name) protected body defining_identifier ...
+  ;;
+  ;; 7) protected_body_stub  ::=
+  ;;      protected body defining_identifier is separate [aspect_specification];
+  ;;
   (save-excursion
     (when forward (smie-default-backward-token))
     (cond
-     ((equal (save-excursion
-               (ada-indent-backward-keyword))
-	     "separate-unit")
+     ((equal "separate-unit" (save-excursion (ada-indent-backward-keyword)))
       "protected-separate"); 6b
 
-     ((equal (save-excursion
-               (smie-default-forward-token)
-               (smie-default-forward-token))
-	     "body")
+     ((equal "body" (save-excursion
+		      (smie-default-forward-token)
+		      (smie-default-forward-token)))
       "protected-body"); 6a, 7
 
      (t "protected-type")); 5, 4
@@ -1802,7 +1805,7 @@ when found token is an element of TARGETS, return that token."
     ;;    3a) return;
     ;;    3b) return exp;
     ;;
-    ;;    token: "return-stmt"
+    ;;    identifier
     ;;
     ;; 4) an extended return statement:
     ;;
@@ -1821,8 +1824,8 @@ when found token is an element of TARGETS, return that token."
     ;;    preceding refined token: "function-spec"  _not_ overriding or generic
     ;;    token: "return-spec"
     ;;
-    ;; 6) subprogram_renaming_declaration
-    ;;    FIXME:???
+    ;; 6) a subprogram_specification in a subprogram_renaming_declaration
+    ;;    same as 1a.
     ;;
     ;; So we have to look both forward and backward to resolve this.
     (or
@@ -1843,18 +1846,16 @@ when found token is an element of TARGETS, return that token."
 	))
 
      (save-excursion
-       ;; FIXME: test this at end of buffer (not very
-       ;; likely to happen, but possible while entering code)
        (let ((token (progn
 		      (smie-default-forward-token); return
 		      (smie-default-forward-token))))
 	 (cond
-	  ((equal token ";") "return-stmt"); 3a
+	  ((equal token ";") "return"); 3a
 	  (t
 	   (setq token (smie-default-forward-token)); identifier
 	   (cond
 	    ((member token '(":" ":-do")) "return-ext"); 4a, 4b
-	    (t "return-stmt"); 3b
+	    (t "return"); 3b
 	    ))))))
     ))
 
@@ -2851,8 +2852,6 @@ the start of CHILD, which must be a keyword."
 
 	  (t
 	   ;; indent relative to "function"
-	   ;; FIXME: why does ada-indent-goto-parent select a
-	   ;; different parent from ada-indent-rule-parent?
 	   (cons 'column (+ function-col ada-indent-return))))
          ))
 
@@ -2907,11 +2906,12 @@ the start of CHILD, which must be a keyword."
 	   nil)
 
 	  (t
-	   ;; Indenting second or third keyword; declare, begin-body, etc
-	   ;; Indent relative to block start.
-	   (ada-indent-goto-parent arg 1)
-	   (back-to-indentation)
-	   (cons 'column (current-column)))
+	   ;; Indenting second or third keyword; declare, begin-body,
+	   ;; etc. Indent relative to block start. We use
+	   ;; goto-statement, not goto-parent, to handle function
+	   ;; returning anonymous access to function
+	   ;; (test/ada_mode-nominal.adb Function_Access_11)
+	   (ada-indent-rule-statement 0 arg))
 	  )
 	 ))
 
@@ -3363,10 +3363,13 @@ This lets us know which indentation function succeeded."
   ;; we don't want `smie-backward-sexp' to stop at weird places
 
   (set (make-local-variable 'blink-matching-paren) nil)
-  ;; smie uses blink-matching to blink on all opener/closer pairs.
-  ;; FIXME: this is just annoying while we are working on this code
-  ;; (it tries to run a broken parser), so we turn it off. Not clear
-  ;; if we want to turn it back on ever!
+  ;; smie-setup puts smie-blink-matching-open on
+  ;; post-self-insert-hook; that uses uses blink-matching to blink on
+  ;; all opener/closer pairs.  FIXME: this is just annoying while we
+  ;; are working on this code (it tries to run a broken parser), so we
+  ;; turn it off. Not clear if we want to turn it back on ever! User
+  ;; can set post-self-insert-hook, or blink-matching-paren on
+  ;; ada-mode-hook.
 
   (add-hook 'after-change-functions 'ada-indent-after-change nil t)
 

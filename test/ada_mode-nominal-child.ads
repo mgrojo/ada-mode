@@ -78,5 +78,4 @@ package Ada_Mode.Nominal.Child is
       Child_Element_2 => 12.0,
       Child_Element_3 => True);
 
-   -- FIXME: derived task type? 'overriding entry', with aspect
 end Ada_Mode.Nominal.Child;

@@ -1,15 +1,9 @@
 ;;; ada-mode.el --- major-mode for editing Ada sources
 ;;
 ;; FIXME: this is just the start of a major rewrite; just enough to
-;; test the new smie-based ada-indent.el, and handle gnat compilation
-;; errors (ie, enough for the basic code development cycle).
+;; test the new smie-based ada-indent.el
 ;;
 ;; Also deleted all Xemacs support, and all pre-Emacs 24.2 support.
-;;
-;; should delete font-lock, since it can now use the smie parser, but
-;; I can't stand reading code without fontlock; later :) Note that
-;; the current font-lock stuff may actually interfere with the
-;; parser. Sigh.
 ;;
 ;; So far, I've copied ada-mode 4.01, and deleted everything that has
 ;; to do with indentation or casing. imenu, outline, which-function,
@@ -377,11 +371,10 @@ the 4 file locations can be clicked on and jumped to."
   (modify-syntax-entry ?\' "." ada-mode-syntax-table)
 
   ;; a single hyphen is punctuation, but a double hyphen starts a comment
+  ;; double hyphen syntax set in ada-syntax-propertize
   (modify-syntax-entry ?-  ". 12" ada-mode-syntax-table)
 
-  ;; See the comment above on grammar related function for the special
-  ;; setup for '#'. FIXME: that comment moved somewhere else
-  (modify-syntax-entry ?#  "$" ada-mode-syntax-table)
+  (modify-syntax-entry ?#  "$" ada-mode-syntax-table); based number
 
   ;; and \f and \n end a comment
   (modify-syntax-entry ?\f  ">   " ada-mode-syntax-table)
@@ -395,7 +388,7 @@ the 4 file locations can be clicked on and jumped to."
   (modify-syntax-entry ?\) ")(" ada-mode-syntax-table)
   )
 
-(defun ada-set-syntax-table-properties ()
+(defun ada-syntax-propertize (start end)
   "Assign `syntax-table' properties in accessible part of buffer.
 In particular, character constants are said to be strings, #...#
 are treated as numbers instead of gnatprep comments."
@@ -405,52 +398,33 @@ are treated as numbers instead of gnatprep comments."
 	(inhibit-read-only t)
 	(inhibit-point-motion-hooks t)
 	(inhibit-modification-hooks t))
-    (remove-text-properties (point-min) (point-max) '(syntax-table nil))
-    (goto-char (point-min))
+    (goto-char start)
     (while (re-search-forward
-	    ;; The following regexp was adapted from
-	    ;; `ada-font-lock-syntactic-keywords'.
-	    "^[ \t]*\\(#\\(?:if\\|else\\|elsif\\|end\\)\\)\\|[^a-zA-Z0-9)]\\('\\)[^'\n]\\('\\)"
-	    nil t)
-      (if (match-beginning 1)
-	  (put-text-property
-	       (match-beginning 1) (match-end 1) 'syntax-table '(11 . ?\n))
+	    (concat
+	     "^[ \t]*\\(#\\(?:if\\|else\\|elsif\\|end\\)\\)"; 1: gnatprep keywords. FIXME: move to ada-gnat.el?
+	     "\\|[^a-zA-Z0-9)]\\('\\)[^'\n]\\('\\)"; 2, 3: character constants, not attributes
+	     "\\|\\(--\\)"; 4: comment start
+	     )
+	    end t)
+      ;; The help for syntax-propertize-extend-region-functions
+      ;; implies that 'start end' will always include whole lines, in
+      ;; which case we don't need
+      ;; syntax-propertize-extend-region-functions
+      (cond
+       ((match-beginning 1)
 	(put-text-property
-	     (match-beginning 2) (match-end 2) 'syntax-table '(7 . ?'))
+	 (match-beginning 1) (match-end 1) 'syntax-table '(11 . ?\n)))
+       ((match-beginning 2)
 	(put-text-property
-	     (match-beginning 3) (match-end 3) 'syntax-table '(7 . ?'))))
+	 (match-beginning 2) (match-end 2) 'syntax-table '(7 . ?'))
+	(put-text-property
+	 (match-beginning 3) (match-end 3) 'syntax-table '(7 . ?')))
+       ((match-beginning 4)
+	(put-text-property
+	 (match-beginning 4) (match-end 4) 'syntax-table '(11 . nil)))
+       ))
     (unless modified
       (restore-buffer-modified-p nil))))
-
-(defun ada-after-change-function (beg end old-len)
-  "Called when the region between BEG and END was changed in the buffer.
-OLD-LEN indicates what the length of the replaced text was.
-Update the syntax table properties."
-  (save-excursion
-    (save-restriction
-      (let ((from (progn (goto-char beg) (line-beginning-position)))
-	    (to (progn (goto-char end) (line-end-position))))
-	(narrow-to-region from to)
-	(save-match-data
-	  (ada-set-syntax-table-properties))))))
-
-(defun ada-initialize-syntax-table-properties ()
-  "Assign `syntax-table' properties in current buffer."
-    (save-excursion
-      (save-restriction
-	(widen)
-	(save-match-data
-	  (ada-set-syntax-table-properties))))
-    (add-hook 'after-change-functions 'ada-after-change-function nil t))
-
-(defun ada-handle-syntax-table-properties ()
-  "Handle `syntax-table' properties."
-  ;; FIXME: better name and/or doc; only called from ada-mode?
-  (if font-lock-mode
-      ;; `font-lock-mode' will take care of `syntax-table' properties.
-      (remove-hook 'after-change-functions 'ada-after-change-function t)
-    ;; Take care of `syntax-table' properties manually.
-    (ada-initialize-syntax-table-properties)))
 
  ;; context menu
 
@@ -513,6 +487,7 @@ point is where the mouse button was clicked."
   (set (make-local-variable 'require-final-newline) mode-require-final-newline)
 
   (set-syntax-table ada-mode-syntax-table)
+  (set (make-local-variable 'syntax-propertize-function) 'ada-syntax-propertize)
   (set (make-local-variable 'parse-sexp-ignore-comments) t)
   (set (make-local-variable 'parse-sexp-lookup-properties) t)
   (set 'case-fold-search t); Ada is case insensitive; the syntax parsing requires this setting
@@ -553,11 +528,9 @@ point is where the mouse button was clicked."
   (set (make-local-variable 'font-lock-defaults)
        '(ada-font-lock-keywords
 	 nil t
-	 ((?\_ . "w") (?# . "."))
-	 beginning-of-line
-	 ;; FIXME: font-lock-syntactic-keywords is obsolete; use syntax-propertize-function
-	 ;; also see emacs-devel saved emails.
-	 (font-lock-syntactic-keywords . ada-font-lock-syntactic-keywords)))
+	 ((?\_ . "w"); treat underscore as a word component
+	  (?# . ".")); treat based number delimiters as punctuation; FIXME: why?
+	 beginning-of-line))
 
   (set (make-local-variable 'ff-other-file-alist)
        'ada-other-file-alist)
@@ -630,11 +603,6 @@ point is where the mouse button was clicked."
   (easy-menu-add ada-mode-menu ada-mode-map)
 
   (run-mode-hooks 'ada-mode-hook)
-
-  ;; Run after ada-mode-hook because users might activate
-  ;; font-lock-mode in the hook FIXME: why does that matter?
-  (ada-initialize-syntax-table-properties)
-  (add-hook 'font-lock-mode-hook 'ada-handle-syntax-table-properties nil t)
 
   ;; Run after ada-mode-hook because users might set
   ;; the relevant variable inside the hook
@@ -968,22 +936,6 @@ Return nil if no body was found."
 
 ;; ---------------------------------------------------
 ;;    support for font-lock.el
-;; Strings are a real pain in Ada because a single quote character is
-;; overloaded as a string quote and type/instance delimiter.  By default, a
-;; single quote is given punctuation syntax in `ada-mode-syntax-table'.
-;; So, for Font Lock mode purposes, we mark single quotes as having string
-;; syntax when the gods that created Ada determine them to be.
-
-(defconst ada-font-lock-syntactic-keywords
-  ;; Mark single quotes as having string quote syntax in 'c' instances.
-  ;; We used to explicitly avoid ''' as a special case for fear the buffer
-  ;; be highlighted as a string, but it seems this fear is unfounded.
-  ;;
-  ;; This sets the properties of the characters, so that ada-in-string-p
-  ;; correctly handles '"' too. FIXME: don't have ada-in-string-p anymore.
-  ;; FIXME: if we still need this, use syntax-propertize-*
-  '(("[^a-zA-Z0-9)]\\('\\)[^\n]\\('\\)" (1 (7 . ?')) (2 (7 . ?')))
-    ("^[ \t]*\\(#\\(if\\|else\\|elsif\\|end\\)\\)" (1 (11 . ?\n)))))
 
 (defvar ada-font-lock-keywords
   ;; FIXME: customize according to ada-language-version?
@@ -994,7 +946,7 @@ Return nil if no body was found."
      ;; handle "type T is access function return S;"
      (list "\\<\\(function[ \t]+return\\)\\>" '(1 font-lock-keyword-face) )
 
-     ;;  preprocessor line
+     ;; gnatprep preprocessor line; FIXME: move to ada-gnat.el?
      (list "^[ \t]*\\(#.*\n\\)"  '(1 font-lock-type-face t))
 
      ;;

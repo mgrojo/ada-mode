@@ -37,6 +37,7 @@
         (unless (equal (car (read-from-string (match-string 0))) last-result)
           (error
 	   (concat
+	    (buffer-file-name) ":" (format "%d" (count-lines (point-min) (point))) ": "
 	    "Result of "
 	    (with-output-to-string (princ last-cmd))
 	    " does not match.\nGot    '"
@@ -76,24 +77,27 @@
   ;;
   ;; emacs --batch -l runtest.el --eval (run-test "<filename>")
 
-  (find-file file-name)
-  ;; we don't do (ada-mode) here; that should be done by the file name
-  ;; extension, and some file local variables may assume ada-mode is
-  ;; already active, and change things that this would then wipe
-  ;; out. If it's not done by the extension, add a file local variable
-  ;; to set ada-mode.
-  ;;
-  ;; Except file-local variables don't work here for some reason, so use an EMACSCMD:
-  (run-test-here)
+  (let ((dir default-directory))
+    (find-file file-name)
+    ;; we don't do (ada-mode) here; that should be done by the file
+    ;; name extension, and some file local variables may assume
+    ;; ada-mode is already active, and change things that this would
+    ;; then wipe out. If it's not done by the extension, add a file
+    ;; local variable to set ada-mode.
+    ;;
+    ;; Except file-local variables don't work here for some reason, so
+    ;; use an EMACSCMD:
+    (run-test-here)
 
-  ;; Write the result file; makefile will diff.
-  (when skip-reindent-test
-    ;; user sets skip-reindent-test when testing interactive editing
-    ;; commands, so the diff would fail. Revert to the original file,
-    ;; save a copy of that.
-    (revert-buffer t t))
+    ;; Write the result file; makefile will diff.
+    (when skip-reindent-test
+      ;; user sets skip-reindent-test when testing interactive editing
+      ;; commands, so the diff would fail. Revert to the original file,
+      ;; save a copy of that.
+      (revert-buffer t t))
 
-  (write-file (concat file-name ".tmp"))
+    (write-file (concat dir (file-name-nondirectory file-name) ".tmp"))
+    )
   )
 ;; Local Variables:
 ;; eval: (add-to-list 'load-path (expand-file-name "../"))

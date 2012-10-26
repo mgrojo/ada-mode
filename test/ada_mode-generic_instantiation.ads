@@ -27,15 +27,28 @@ package Ada_Mode.Generic_Instantiation is
    procedure Procedure_8
      is new Instance.Generic_Procedure (Integer, Function_1);
 
-   -- FIXME: doesn't compile
-   --  type Child_Type_1 is new Ada_Mode.Nominal.Parent_Type_1 with null record;
+   generic function Gen_Function_1 renames
+     Instance.Generic_Function;
+   generic function Gen_Function_2
+     renames Instance.Generic_Function;
+   generic function
+     Gen_Function_3 renames Instance.Generic_Function;
+   generic
+   function Gen_Function_4 renames Instance.Generic_Function;
 
-   --  overriding
-   --  procedure Procedure_1b is new Instance.Gen_Procedure_1b (Child_Type_1); -- freezes Child_Type_1
+   generic procedure Gen_Procedure_1 renames Instance.Generic_Procedure;
+   generic procedure Gen_Procedure_2 renames
+     Instance.Generic_Procedure;
+   generic procedure Gen_Procedure_3
+     renames Instance.Generic_Procedure;
+   generic procedure
+     Gen_Procedure_4 renames Instance.Generic_Procedure;
+   generic
+   procedure
+     Gen_Procedure_5 renames Instance.Generic_Procedure;
 
-   --  type Child_Type_2 is new Ada_Mode.Nominal.Parent_Type_1 with null record;
-
-   --  overriding
-   --  function Function_2a is new Instance.Gen_Function_2a (Child_Type_2);
+   -- We are ignoring generic instantiations as overriding
+   -- subprograms; there doesn't seem to be a way to declare one that
+   -- is actually useful.
 
 end Ada_Mode.Generic_Instantiation;

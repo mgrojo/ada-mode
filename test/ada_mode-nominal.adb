@@ -1,9 +1,4 @@
 -- A comment before the first code
---
--- Indenting nested bodies is covered more thoroughly in FIXME:
--- Indenting expressions is covered more thoroughly in FIXME:
-
--- FIXME: add a function body that returns an access type
 
 with Ada.Strings; -- test two context clauses
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
@@ -11,26 +6,23 @@ package body Ada_Mode.Nominal is
 
    use Ada.Strings;
 
-   type Incomplete_Type_1 (Discriminant_1 : Integer) is tagged null record;
+   function Function_Access_1
+     (A_Param : in Float)
+     return
+     Standard.Float
+   is begin
+      return 0.0;
+   end;
 
-   type Incomplete_Type_2 (Discriminant_1 : Integer) is tagged null
-      record;
-
-   type Incomplete_Type_3 (Discriminant_1 : Integer) is tagged
-     null record;
-
-   type Incomplete_Type_4 (Discriminant_1 : Integer) is
-     tagged null record;
-   -- rest of newline placement covered in spec
-
-   type Incomplete_Type_5 (Discriminant_1 : access Integer) is tagged record
-      -- "record" on same line as "type"; components indented 3 relative to "type"
-      Component_1 : Integer;
-      Component_2 :
-        Integer;
-      Component_3
-        : Integer; -- don't care
-   end record;
+   function Function_Access_11
+     (A_Param : in Float)
+     return access function
+       (A_Param : in Float)
+       return
+       Standard.Float
+   is begin
+      return Function_Access_1'access;
+   end Function_Access_11;
 
    protected
      body Protected_1 is
@@ -223,6 +215,20 @@ package body Ada_Mode.Nominal is
       else
          Local_1 := 2;
       end select;
+
+      select
+         delay 1.0;
+      then
+         -- The comment after 'null' below has no space between ';'
+         -- and '--'; that confused smie-default-forward-token until
+         -- we fixed ada-syntax-propertize to set comment-start
+         -- syntax.
+
+        abort -- ada-mode 4.01 broken indent
+         null;-- ada-mode 4.01 gets this wrong; it uses another broken indent.
+
+      end select;
+
    end Task_Type_1;
 
    ----------
@@ -374,6 +380,27 @@ package body Ada_Mode.Nominal is
    end;
 
    package body Separate_Package_1 is separate;
+
+   type Incomplete_Type_1 (Discriminant_1 : Integer) is tagged null record;
+
+   type Incomplete_Type_2 (Discriminant_1 : Integer) is tagged null
+      record;
+
+   type Incomplete_Type_3 (Discriminant_1 : Integer) is tagged
+     null record;
+
+   type Incomplete_Type_4 (Discriminant_1 : Integer) is
+     tagged null record;
+   -- rest of newline placement covered in spec
+
+   type Incomplete_Type_5 (Discriminant_1 : access Integer) is tagged record
+      -- "record" on same line as "type"; components indented 3 relative to "type"
+      Component_1 : Integer;
+      Component_2 :
+        Integer;
+      Component_3
+        : Integer; -- don't care
+   end record;
 
 begin
    null;
