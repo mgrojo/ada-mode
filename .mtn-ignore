@@ -2,6 +2,7 @@
 ^test/.*\.ali$
 ^test/.*\.diff$
 ^test/.*\.tmp$
+^test/M2R10-1\.pdf$
 ^test/debug\.adb$
 ^test/foo\.m2$
 ^test/org\.emacs\.ada-mode\.smie-.*\.tar\.gz$

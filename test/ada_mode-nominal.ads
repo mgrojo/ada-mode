@@ -331,7 +331,11 @@ package Ada_Mode.Nominal is
    -- We make these procedures primitive operations, so we can test
    -- 'overriding' in ada_mode-nominal-child.ads
 
-   type Parent_Type_1 is tagged null record;
+   type Parent_Type_1 is tagged record
+      Parent_Element_1 : Integer;
+      Parent_Element_2 : Float;
+      Parent_Element_3 : Boolean;
+   end record;
 
    procedure Procedure_1a (Item  : in out Parent_Type_1);
 
@@ -351,6 +355,31 @@ package Ada_Mode.Nominal is
                            Item_1 : in Character;
                            Item_2 : out Character)
      is null;
+
+   function Function_2a (Param : in Parent_Type_1) return Float;
+   function Function_2b (Param : in Parent_Type_1) return
+     Float;
+   function Function_2c (Param : in Parent_Type_1)
+                        return Float;
+   function Function_2d
+     (Param : in Parent_Type_1) return Float;
+   function
+     Function_2e (Param : in Parent_Type_1) return Float;
+
+   function Function_2f
+     (Param : in Parent_Type_1)
+     return Float;
+
+   function Function_2g
+     (Param : in Private_Type_1)
+     return Float
+     is abstract;
+   --  comment after 'is abstract', aligned with 'function'
+
+   Default_Parent : constant Parent_Type_1 :=
+     (Parent_Element_1 => 1,
+      Parent_Element_2 => 2.0,
+      Parent_Element_3 => False);
 
    procedure Procedure_2a;
    procedure
@@ -382,26 +411,6 @@ package Ada_Mode.Nominal is
    function
      Function_1d return Float;
 
-   function Function_2a (Param : in Parent_Type_1) return Float;
-   function Function_2b (Param : in Parent_Type_1) return
-     Float;
-   function Function_2c (Param : in Parent_Type_1)
-                        return Float;
-   function Function_2d
-     (Param : in Parent_Type_1) return Float;
-   function
-     Function_2e (Param : in Parent_Type_1) return Float;
-
-   function Function_2f
-     (Param : in Parent_Type_1)
-     return Float;
-
-   function Function_2g
-     (Param : in Private_Type_1)
-     return Float
-     is abstract;
-   --  comment after 'is abstract', aligned with 'function'
-
    ----------
    -- nested packages
 
@@ -410,7 +419,6 @@ package Ada_Mode.Nominal is
       procedure Separate_Procedure_2 (Item : in Integer);
    end Separate_Package_1;
 
-   -- FIXME: non-separate package
 private
    type Private_Type_1 is abstract tagged limited null record;
    type Private_Type_2 is abstract tagged limited

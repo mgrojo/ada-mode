@@ -56,8 +56,26 @@ generic
      return Float is <>;
 
    -- Packages
-   with package A_Package is new Ada.Text_IO.Integer_IO (Num => Formal_Signed_Integer_Type);
-   -- FIXME: add A_Package_n, indent at each token
+   with package A_Package_1 is new Ada.Text_IO.Integer_IO (Num => Formal_Signed_Integer_Type);
+   with package A_Package_2 is new Ada.Text_IO.Integer_IO (Num =>
+                                                             Formal_Signed_Integer_Type);
+   with package A_Package_3 is new Ada.Text_IO.Integer_IO (
+                                                           Num => Formal_Signed_Integer_Type);
+   with package A_Package_4 is new Ada.Text_IO.Integer_IO
+     (Num => Formal_Signed_Integer_Type);
+   with package A_Package_5 is new Ada.Text_IO.
+     Integer_IO (Num => Formal_Signed_Integer_Type);
+   with package A_Package_6 is new
+     Ada.Text_IO.Integer_IO (Num => Formal_Signed_Integer_Type);
+   with package A_Package_7 is
+     new Ada.Text_IO.Integer_IO (Num => Formal_Signed_Integer_Type);
+   with package A_Package_8
+     is new Ada.Text_IO.Integer_IO (Num => Formal_Signed_Integer_Type);
+   with package
+     A_Package_9 is new Ada.Text_IO.Integer_IO (Num => Formal_Signed_Integer_Type);
+   with
+     package A_Package_10 is new Ada.Text_IO.Integer_IO (Num => Formal_Signed_Integer_Type);
+
 
 package Ada_Mode.Generic_Package is
    -- See ada_mode-generic_parent.ads for generic subprograms
