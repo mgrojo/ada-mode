@@ -54,6 +54,8 @@ COMPILE_FILES := $(TEST_FILES)
 TEST_FILES := $(filter-out debug.adb, $(TEST_FILES))
 COMPILE_FILES := $(filter-out debug.adb, $(COMPILE_FILES))
 
+COMPILE_FILES := $(filter-out ada_mode-ada83.ads, $(COMPILE_FILES))# font-lock only
+
 # This has incomplete code deliberately; used for interactive editing test (via EMACSCMD)
 COMPILE_FILES := $(filter-out ada_mode-interactive_return.adb, $(COMPILE_FILES))
 

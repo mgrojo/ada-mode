@@ -56,7 +56,7 @@
 ;;
 ;; By default, ada-mode is configured to take full advantage of the
 ;; GNAT compiler (the menus will include the cross-referencing
-;; features,...).  FIXME: If you are using another compiler, you
+;; features,...).  If you are using another compiler, you
 ;; should load that compiler's ada-* file first; that will define
 ;; ada-compiler as a feature, so ada-gnat.el will not be loaded.
 ;;
@@ -294,7 +294,7 @@ are treated as numbers instead of gnatprep comments."
     (goto-char start)
     (while (re-search-forward
 	    (concat
-	     "^[ \t]*\\(#\\(?:if\\|else\\|elsif\\|end\\)\\)"; 1: gnatprep keywords. FIXME: move to ada-gnat.el?
+	     "^[ \t]*\\(#\\(?:if\\|else\\|elsif\\|end\\)\\)"; 1: gnatprep keywords. FIXME: move to ada-gnat.el
 	     "\\|[^a-zA-Z0-9)]\\('\\)[^'\n]\\('\\)"; 2, 3: character constants, not attributes
 	     "\\|\\(--\\)"; 4: comment start
 	     )
@@ -610,95 +610,53 @@ Return nil if no body was found."
 ;; ---------------------------------------------------
 ;;    support for font-lock.el
 
-;; FIXME: not used for anything?
-;; (eval-when-compile
-;;   ;; These values are used in eval-when-compile expressions.
-;;   (defconst ada-83-string-keywords
-;;     '("abort" "abs" "accept" "access" "all" "and" "array" "at" "begin"
-;;       "body" "case" "constant" "declare" "delay" "delta" "digits" "do"
-;;       "else" "elsif" "end" "entry" "exception" "exit" "for" "function"
-;;       "generic" "goto" "if" "in" "is" "limited" "loop" "mod" "new"
-;;       "not" "null" "of" "or" "others" "out" "package" "pragma" "private"
-;;       "procedure" "raise" "range" "record" "rem" "renames" "return"
-;;       "reverse" "select" "separate" "subtype" "task" "terminate" "then"
-;;       "type" "use" "when" "while" "with" "xor")
-;;     "List of Ada 83 keywords.
-;; Used to define `ada-*-keywords'.")
-
-;;   (defconst ada-95-string-keywords
-;;     '("abstract" "aliased" "protected" "requeue" "tagged" "until")
-;;     "List of keywords new in Ada 95.
-;; Used to define `ada-*-keywords'.")
-
-;;   (defconst ada-2005-string-keywords
-;;     '("interface" "overriding" "synchronized")
-;;     "List of keywords new in Ada 2005.
-;; Used to define `ada-*-keywords.'"))
-
-;;   (defconst ada-2012-string-keywords
-;;     '("some")
-;;     "List of keywords new in Ada 2012.
-;; Used to define `ada-*-keywords.'"))
-
-;; (defconst ada-83-keywords
-;;   (eval-when-compile
-;;     (concat "\\<" (regexp-opt ada-83-string-keywords t) "\\>"))
-;;   "Regular expression matching Ada83 keywords.")
-
-;; (defconst ada-95-keywords
-;;   (eval-when-compile
-;;     (concat "\\<" (regexp-opt
-;; 		   (append
-;; 		    ada-95-string-keywords
-;; 		    ada-83-string-keywords) t) "\\>"))
-;;   "Regular expression matching Ada95 keywords.")
-
-;; (defconst ada-2005-keywords
-;;   (eval-when-compile
-;;     (concat "\\<" (regexp-opt
-;; 		   (append
-;; 		    ada-2005-string-keywords
-;; 		    ada-83-string-keywords
-;; 		    ada-95-string-keywords) t) "\\>"))
-;;   "Regular expression matching Ada2005 keywords.")
-
-;; (defvar ada-keywords ada-2005-keywords
-;;   "Regular expression matching Ada keywords.")
-;; not customizable; this is set in ada-mode, controlled by ada-language-version
-
 (defconst ada-font-lock-name-regexp
   "\\(\\(?:\\sw\\|[_.]\\)+\\)")
 
 (defun ada-font-lock-keywords ()
   "Ada mode keywords for font-lock, customized according to `ada-language-version'."
-  ;; FIXME: add 'some' for ada2012
-  ;; FIXME: customize on ada-language-version
+  ;; keywords added in ada-95:
+  ;;    "abstract" "aliased" "protected" "requeue" "tagged" "until"
+  ;;
+  ;; 2005:
+  ;;    "interface" "overriding" "synchronized"
+  ;;
+  ;; 2012:
+  ;;    "some"
+
   (list
 
    ;; keywords followed by a name that should be in function-name-face.
-   (list (concat
-	  "\\<\\("
-	  "accept\\|"
-	  "entry\\|"
-	  "function\\|"
-	  "package[ \t]+body\\|"
-	  "package\\|"
-	  "pragma\\|"
-	  "procedure\\|"
+   (list
+    (apply
+     'concat
+     (append
+      '("\\<\\("
+	"accept\\|"
+	"entry\\|"
+	"function\\|"
+	"package[ \t]+body\\|"
+	"package\\|"
+	"pragma\\|"
+	"procedure\\|"
+	"task[ \t]+body\\|"
+	"task[ \t]+type\\|"
+	"task\\|"
+	"with[ \t]+private\\|"
+	"with"
+	)
+      (when (member ada-language-version '(ada95 ada2005 ada2012))
+	'("\\|"
 	  "protected[ \t]+body\\|"
 	  "protected[ \t]+function\\|"
 	  "protected[ \t]+procedure\\|"
 	  "protected[ \t]+type\\|"
-	  "protected\\|"
-	  "task[ \t]+body\\|"
-	  "task[ \t]+type\\|"
-	  "task\\|"
-	  "with[ \t]+private\\|"
-	  "with"
-	  "\\)\\>[ \t]*"
-	  ada-font-lock-name-regexp "?")
-;	  "\\(\\sw+\\(\\.\\sw*\\)*\\)?")
-	 '(1 font-lock-keyword-face) '(2 font-lock-function-name-face nil t))
+	  "protected"
+	  ))
+      (list
+       "\\)\\>[ \t]*"
+       ada-font-lock-name-regexp "?")))
+    '(1 font-lock-keyword-face) '(2 font-lock-function-name-face nil t))
 
    ;; keywords followed by a name that should be in type-face.
    (list (concat
@@ -722,17 +680,28 @@ Return nil if no body was found."
 	 '(1 font-lock-keyword-face nil t) '(2 font-lock-type-face nil t))
 
    ;; keywords not treated elsewhere. FIXME: why is this not first?
-   (concat "\\<"
-	   (regexp-opt
-	    '("abort" "abs" "abstract" "accept" "access" "aliased" "all"
-	      "and" "array" "at" "begin" "case" "declare" "delay" "delta"
-	      "digits" "do" "else" "elsif" "entry" "exception" "exit" "for"
-	      "generic" "if" "in" "interface" "limited" "loop" "mod" "not"
-	      "null" "or" "others" "overriding" "private" "protected" "raise"
-	      "range" "record" "rem" "renames" "requeue" "return" "reverse"
-	      "select" "separate" "synchronized" "tagged" "task" "terminate"
-	      "then" "until" "when" "while" "xor") t)
-	   "\\>")
+   (list (concat
+   	  "\\<"
+   	  (regexp-opt
+   	   (append
+   	    '("abort" "abs" "accept" "access" "all"
+   	      "and" "array" "at" "begin" "case" "declare" "delay" "delta"
+   	      "digits" "do" "else" "elsif" "entry" "exception" "exit" "for"
+   	      "generic" "if" "in" "limited" "loop" "mod" "not"
+   	      "null" "or" "others" "private" "raise"
+   	      "range" "record" "rem" "renames" "return" "reverse"
+   	      "select" "separate" "task" "terminate"
+   	      "then" "when" "while" "xor")
+   	    (when (member ada-language-version '(ada95 ada2005 ada2012))
+   	      '("abstract" "aliased" "requeue" "tagged" "until"))
+   	    (when (member ada-language-version '(ada2005 ada2012))
+   	      '("interface" "overriding" "synchronized"))
+   	    (when (member ada-language-version '(ada2012))
+   	      '("some"))
+   	    )
+   	   t)
+   	  "\\>")
+   	 '(0 font-lock-keyword-face))
 
    ;; keywords followed by a name that should be in function-name-face if not already fontified
    (list (concat
@@ -782,6 +751,7 @@ Return nil if no body was found."
 
 ;;;###autoload
 (defun ada-mode ()
+  ;; FIXME: use define-derived mode
   "Ada mode is the major mode for editing Ada code."
   ;; the other ada-*.el files add to ada-mode-hook for their setup
 
@@ -885,9 +855,11 @@ Return nil if no body was found."
 
   ;; These are run after ada-mode-hook because users or other ada-*
   ;; files might set the relevant variable inside the hook
+  ;; FIXME: use (add-hook 'hack-local-variables-hook; see emacs 24.2 ada-mode.el
 
   ;; (if ada-auto-case
   ;;     (ada-activate-keys-for-case))
+  ;; FIXME: Use post-self-insert-hook instead of changing key bindings.
 
   )
 

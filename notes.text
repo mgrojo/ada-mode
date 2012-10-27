@@ -46,9 +46,7 @@ runtest from emacs -q:
 
  current
 test/Makefile
-test/ada_mode-nominal.ads
-test/gnatprep.adb
-    font-lock
+(point-at-bol) (point-at-eol)
 
 review FIXMEs
     ada-indent.el done
