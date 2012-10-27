@@ -4,7 +4,6 @@
 (setq vc-handled-backends '(CVS))
 
 (require 'ada-mode)
-(require 'ada-indent)
 
 (defvar skip-reindent-test nil);; user can set to t in an EMACSCMD
 

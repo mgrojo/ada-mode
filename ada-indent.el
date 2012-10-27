@@ -43,9 +43,6 @@
 
 ;;;; code
 
-(require 'ada-mode)
-;; FIXME: maybe ada-mode should require the default indentation engine, provide a way for user to override?
-
 (eval-when-compile (require 'cl)); 'case'
 (require 'smie)
 
@@ -3361,6 +3358,9 @@ This lets us know which indentation function succeeded."
 
   (set (make-local-variable 'smie-skip-associative) t)
   ;; we don't want `smie-backward-sexp' to stop at weird places
+  ;; FIXME: this var is in a local patch that won't be in main; do something else
+
+  (set (make-local-variable 'smie-blink-matching-inners) nil); too annoying to blink to 'package' on 'is', etc.
 
   (set (make-local-variable 'blink-matching-paren) nil)
   ;; smie-setup puts smie-blink-matching-open on
@@ -3382,5 +3382,6 @@ This lets us know which indentation function succeeded."
 (add-hook 'ada-mode-hook 'ada-indent-setup)
 
 (provide 'ada-indent)
+(provide 'ada-indent-engine)
 
 ;;; end of file

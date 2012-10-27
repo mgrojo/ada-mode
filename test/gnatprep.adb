@@ -43,12 +43,4 @@ begin
 
 end Gnatprep;
 
--- Tell the indentation engine to look for gnatprep keywords (ada-gnat
--- defines ada-indent-gnatprep):
---
--- Local Variables:
--- eval: (require 'ada-gnat)
--- eval: (add-to-list 'smie-indent-functions 'ada-indent-gnatprep)
--- End:
-
 -- end of file
