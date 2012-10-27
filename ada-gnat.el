@@ -120,17 +120,17 @@ the 4 file locations can be clicked on and jumped to."
   ;; 		'ada-compile-goto-error)))
 
 (defun ada-gnat-setup ()
-  (add-to-list
-   'ada-font-lock-keywords
+  (font-lock-add-keywords nil
    ;; gnatprep preprocessor line
-   (list "^[ \t]*\\(#.*\n\\)"  '(1 font-lock-type-face t)))
+   (list (list "^[ \t]*\\(#.*\n\\)"  '(1 font-lock-type-face t))))
 
   (when (featurep 'ada-indent)
     ;; we don't use add-hook here, because we don't want the global value.
-    (lambda () (add-to-list 'smie-indent-functions 'ada-indent-gnatprep)))
+    (add-to-list 'smie-indent-functions 'ada-indent-gnatprep))
 )
 
-(add-hook 'ada-mode-hook 'ada-gnat-setup)
+;; add at end, so it is after ada-indent-setup, and can modify smi-indent-functions
+(add-hook 'ada-mode-hook 'ada-gnat-setup t)
 
 (provide 'ada-gnat)
 (provide 'ada-compiler)

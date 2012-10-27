@@ -32,18 +32,19 @@ ada-indent.el
 
 runtest from emacs -q:
 (progn
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode/smie")
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode/smie/test")
+  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.smie")
+  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.smie/test")
   (load "runtest")
-  (run-test "/Projects/org.emacs.ada-mode/smie/test/gnatprep.adb"))
+  (run-test "/Projects/org.emacs.ada-mode.smie/test/ada_mode-nominal.ads")
+)
 
 (progn
     (setq ada-mode-hook (delete 'ada-wisi-setup ada-mode-hook))
     (add-hook 'ada-mode-hook 'ada-indent-setup))
- current
 (shell-send-string "~/bin/mtn_sync_ada_france.sh" "*bash*")
 (xmtn-sync-review)
 
+ current
 test/Makefile
 test/ada_mode-nominal.ads
 test/gnatprep.adb

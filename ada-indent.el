@@ -3042,7 +3042,7 @@ the start of CHILD, which must be a keyword."
       ))
     ))
 
-;;; smie-indent-functions
+;;;; smie-indent-functions
 ;;
 ;; each must not move point, and must return a column (as an integer) or nil.
 ;;
@@ -3062,22 +3062,23 @@ the start of CHILD, which must be a keyword."
 (defun ada-indent-comment ()
   "Compute indentation of a comment."
   ;; Check to see if we are at a comment
-  (and
-   (smie-indent--bolp)
-   (let ((pos (point)))
-         (save-excursion
-           (beginning-of-line)
-           (and (re-search-forward comment-start-skip (line-end-position) t)
-                (eq pos (or (match-end 1) (match-beginning 0))))))
+  (when
+      (and (smie-indent--bolp)
+	   (let ((pos (point)))
+	     (save-excursion
+	       (beginning-of-line)
+	       (and (re-search-forward comment-start-skip (line-end-position) t)
+		    (eq pos (or (match-end 1) (match-beginning 0)))))))
 
-   ;; yes, we are at a comment; indent to previous code or comment.
-   (save-excursion
-     (forward-comment -1)
+    ;; yes, we are at a comment; indent to previous code or comment.
+    (save-excursion
+
      (cond
-      ((looking-at comment-start)
-       (current-column))
-
-      (t
+      ((or
+	(save-excursion (forward-line -1) (looking-at "\\s *$"))
+	(save-excursion (forward-comment -1)(not (looking-at comment-start))))
+       ;; comment is after a blank line or code; indent as if code
+       ;;
        ;; indent-before-keyword will find the keyword _after_ the
        ;; comment, which could be 'private' for example, and that
        ;; would align the comment with 'private', which is wrong. So
@@ -3099,7 +3100,13 @@ the start of CHILD, which must be a keyword."
 	  (ada-indent-after-keyword)
 	  (ada-indent-default)
 	  )))
-      ))))
+
+      (t
+       ;; comment is after a comment
+       (forward-comment -1)
+       (current-column))
+      ))
+    ))
 
 (defun ada-indent-label ()
   (cond

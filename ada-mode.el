@@ -666,114 +666,119 @@ Return nil if no body was found."
 ;;   "Regular expression matching Ada keywords.")
 ;; not customizable; this is set in ada-mode, controlled by ada-language-version
 
-(defvar ada-font-lock-keywords
-  ;; FIXME: customize according to ada-language-version?
+(defconst ada-font-lock-name-regexp
+  "\\(\\(?:\\sw\\|[_.]\\)+\\)")
+
+(defun ada-font-lock-keywords ()
+  "Ada mode keywords for font-lock, customized according to `ada-language-version'."
   ;; FIXME: add 'some' for ada2012
-  (eval-when-compile
-    (list
-     ;;
-     ;; handle "type T is access function return S;"
-     (list "\\<\\(function[ \t]+return\\)\\>" '(1 font-lock-keyword-face) )
+  ;; FIXME: customize on ada-language-version
+  (list
 
-     ;;
-     ;; accept, entry, function, package (body), protected (body|type),
-     ;; pragma, procedure, task (body) plus name.
-     (list (concat
-	    "\\<\\("
-	    "accept\\|"
-	    "entry\\|"
-	    "function\\|"
-	    "package[ \t]+body\\|"
-	    "package\\|"
-	    "pragma\\|"
-	    "procedure\\|"
-	    "protected[ \t]+body\\|"
-	    "protected[ \t]+type\\|"
-	    "protected\\|"
-	    "task[ \t]+body\\|"
-	    "task[ \t]+type\\|"
-	    "task"
-	    "\\)\\>[ \t]*"
-	    "\\(\\sw+\\(\\.\\sw*\\)*\\)?")
-	   '(1 font-lock-keyword-face) '(2 font-lock-function-name-face nil t))
-     ;;
-     ;; Optional keywords followed by a type name.
-     (list (concat                      ; ":[ \t]*"
-	    "\\<\\(access[ \t]+all\\|access[ \t]+constant\\|access\\|constant\\|in[ \t]+reverse\\|\\|in[ \t]+out\\|in\\|out\\)\\>"
-	    "[ \t]*"
-	    "\\(\\sw+\\(\\.\\sw*\\)*\\)?")
-	   '(1 font-lock-keyword-face nil t) '(2 font-lock-type-face nil t))
+   ;; keywords followed by a name that should be in function-name-face.
+   (list (concat
+	  "\\<\\("
+	  "accept\\|"
+	  "entry\\|"
+	  "function\\|"
+	  "package[ \t]+body\\|"
+	  "package\\|"
+	  "pragma\\|"
+	  "procedure\\|"
+	  "protected[ \t]+body\\|"
+	  "protected[ \t]+function\\|"
+	  "protected[ \t]+procedure\\|"
+	  "protected[ \t]+type\\|"
+	  "protected\\|"
+	  "task[ \t]+body\\|"
+	  "task[ \t]+type\\|"
+	  "task\\|"
+	  "with[ \t]+private\\|"
+	  "with"
+	  "\\)\\>[ \t]*"
+	  ada-font-lock-name-regexp "?")
+;	  "\\(\\sw+\\(\\.\\sw*\\)*\\)?")
+	 '(1 font-lock-keyword-face) '(2 font-lock-function-name-face nil t))
 
-     ;;
-     ;; Main keywords, except those treated specially below.
-     (concat "\\<"
-	     (regexp-opt
-	      '("abort" "abs" "abstract" "accept" "access" "aliased" "all"
-		"and" "array" "at" "begin" "case" "declare" "delay" "delta"
-		"digits" "do" "else" "elsif" "entry" "exception" "exit" "for"
-		"generic" "if" "in" "interface" "is" "limited" "loop" "mod" "not"
-		"null" "or" "others" "overriding" "private" "protected" "raise"
-		"range" "record" "rem" "renames" "requeue" "return" "reverse"
-		"select" "separate" "synchronized" "tagged" "task" "terminate"
-		"then" "until" "when" "while" "with" "xor") t)
-	     "\\>")
-     ;;
-     ;; Anything following end and not already fontified is a body name.
-     '("\\<\\(end\\)\\>\\([ \t]+\\)?\\(\\(\\sw\\|[_.]\\)+\\)?"
-       (1 font-lock-keyword-face) (3 font-lock-function-name-face nil t))
-     ;;
-     ;; Keywords followed by a type or function name.
-     (list (concat "\\<\\("
-		   "new\\|of\\|subtype\\|type"
-		   "\\)\\>[ \t]*\\(\\sw+\\(\\.\\sw*\\)*\\)?[ \t]*\\((\\)?")
-	   '(1 font-lock-keyword-face)
-	   '(2 (if (match-beginning 4)
-		   font-lock-function-name-face
-		 font-lock-type-face) nil t))
-     ;;
-     ;; Keywords followed by a (comma separated list of) reference.
-     ;; Note that font-lock only works on single lines, thus we can not
-     ;; correctly highlight a with_clause that spans multiple lines.
-     (list (concat "\\<\\(goto\\|raise\\|use\\|with\\)"
-		   "[ \t]+\\([a-zA-Z0-9_., \t]+\\)\\W")
-	   '(1 font-lock-keyword-face) '(2 font-lock-reference-face nil t))
+   ;; keywords followed by a name that should be in type-face.
+   (list (concat
+	  "\\<\\("
+	  "access[ \t]+all\\|"
+	  "access[ \t]+constant\\|"
+	  "access\\|"
+	  "constant\\|"
+	  "in[ \t]+reverse\\|"; loop iterator
+	  "in[ \t]+out\\|"
+	  "in\\|"
+	  "return[ \t]+access[ \t]+constant\\|"
+	  "return[ \t]+access\\|"
+	  "return\\|"
+	  "of\\|"
+	  "out\\|"
+	  "subtype\\|"
+	  "type"
+	  "\\)\\>[ \t]*"
+	  "\\(\\sw+\\(\\.\\sw*\\)*\\)?")
+	 '(1 font-lock-keyword-face nil t) '(2 font-lock-type-face nil t))
 
-     ;; statement labels
-     '("<<\\(\\sw+\\)>>" 1 font-lock-reference-face)
+   ;; keywords not treated elsewhere. FIXME: why is this not first?
+   (concat "\\<"
+	   (regexp-opt
+	    '("abort" "abs" "abstract" "accept" "access" "aliased" "all"
+	      "and" "array" "at" "begin" "case" "declare" "delay" "delta"
+	      "digits" "do" "else" "elsif" "entry" "exception" "exit" "for"
+	      "generic" "if" "in" "interface" "limited" "loop" "mod" "not"
+	      "null" "or" "others" "overriding" "private" "protected" "raise"
+	      "range" "record" "rem" "renames" "requeue" "return" "reverse"
+	      "select" "separate" "synchronized" "tagged" "task" "terminate"
+	      "then" "until" "when" "while" "xor") t)
+	   "\\>")
 
-     ;; based numberic literals
-     (list "\\([0-9]+#[0-9a-fA-F_]+#\\)" '(1 font-lock-constant-face t))
+   ;; keywords followed by a name that should be in function-name-face if not already fontified
+   (list (concat
+	  "\\<\\("
+	  "end"
+	  "\\)\\>[ \t]*"
+	  ada-font-lock-name-regexp "?")
+     '(1 font-lock-keyword-face) '(2 font-lock-function-name-face nil t))
 
-     ;; numeric literals
-     (list "\\W\\([-+]?[0-9._]+\\)\\>" '(1 font-lock-constant-face))
+   ;; keywords followed by a name that should be in type-face if not already fontified
+   (list (concat
+	  "\\<\\("
+	  "is"
+	  "\\)\\>[ \t]*"
+	  ada-font-lock-name-regexp "?")
+     '(1 font-lock-keyword-face) '(2 font-lock-type-face nil t))
 
-     ))
-  "Default expressions to highlight in Ada mode.")
+   ;; Keywords followed by a name that could be a type or a function (generic instantiation).
+   (list (concat
+	  "\\<\\("
+	  "new"
+	  "\\)\\>[ \t]*"
+	  ada-font-lock-name-regexp "?[ \t]*\\((\\)?")
+	 '(1 font-lock-keyword-face)
+	 '(2 (if (match-beginning 3)
+		 font-lock-function-name-face
+	       font-lock-type-face)
+	     nil t))
 
-(defun ada-mode-final-setup ()
-  ;; We put this last on ada-mode-hook, so other ada-* files can
-  ;; modify ada-font-lock-keywords on the hook, but it still runs
-  ;; before (global-font-lock-mode-enable-in-buffers) on
-  ;; after-change-major-mode-hook.
-  ;;
-  ;; FIXME: nuh-uh! after-change-major-mode-hook is not run?! or
-  ;; (global-font-lock-mode-enable-in-buffers) doesn't work there?
-  (set (make-local-variable 'font-lock-defaults)
-       '(ada-font-lock-keywords
-	 nil t
-	 ((?\_ . "w")); treat underscore as a word component
-	 beginning-of-line))
+   ;; Keywords followed by a (comma separated list of) reference.
+   ;; Note that font-lock only works on single lines, thus we can not
+   ;; correctly highlight a with_clause that spans multiple lines.
+   (list (concat "\\<\\(goto\\|raise\\|use\\|with\\)"
+		 "[ \t]+\\([a-zA-Z0-9_., \t]+\\)\\W")
+	 '(1 font-lock-keyword-face) '(2 font-lock-reference-face nil t))
 
-  ;; FIXME: this is the only way I can get font-lock to work, while
-  ;; allowing ada-mode-hook to modify ada-font-lock-keywords.  Ask on
-  ;; emacs-devel after feature-freeze.
-  (font-lock-mode 1)
+   ;; statement labels
+   '("<<\\(\\sw+\\)>>" 1 font-lock-reference-face)
 
-  ;; (if ada-auto-case
-  ;;     (ada-activate-keys-for-case))
+   ;; based numberic literals
+   (list "\\([0-9]+#[0-9a-fA-F_]+#\\)" '(1 font-lock-constant-face t))
 
-  )
-(add-hook 'ada-mode-hook 'ada-mode-final-setup t)
+   ;; numeric literals
+   (list "\\W\\([-+]?[0-9._]+\\)\\>" '(1 font-lock-constant-face))
+
+   ))
 
 ;;;###autoload
 (defun ada-mode ()
@@ -794,6 +799,12 @@ Return nil if no body was found."
   (set (make-local-variable 'comment-end) "")
   (set (make-local-variable 'comment-start-skip) "---*[ \t]*")
   (set (make-local-variable 'comment-multi-line) nil)
+
+  (set (make-local-variable 'font-lock-defaults)
+       '(ada-font-lock-keywords
+	 nil t
+	 ((?\_ . "w")); treat underscore as a word component
+	 beginning-of-line))
 
   ;; AdaCore standard style (enforced by -gnaty) requires two spaces
   ;; after '--' in comments; this makes it easier to distinguish
@@ -872,9 +883,12 @@ Return nil if no body was found."
 
   (run-mode-hooks 'ada-mode-hook)
 
-  ;; Anything that needs to run after everything else in ada-mode-hook
-  ;; (because users or other ada-* files might set the relevant
-  ;; variable inside the hook) is in ada-mode-final-setup.
+  ;; These are run after ada-mode-hook because users or other ada-*
+  ;; files might set the relevant variable inside the hook
+
+  ;; (if ada-auto-case
+  ;;     (ada-activate-keys-for-case))
+
   )
 
 

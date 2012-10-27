@@ -7,6 +7,30 @@
 
 (defvar skip-reindent-test nil);; user can set to t in an EMACSCMD
 
+(defun test-face (token face)
+  "Test if TOKEN in next code line has FACE."
+  (save-excursion
+    (beginning-of-line); forward-comment doesn't move if inside a comment!
+    (forward-comment (point-max))
+    (condition-case err
+	(search-forward token (line-end-position))
+      (error
+       (error
+	"%s:%d: can't find '%s'"
+	(buffer-file-name)
+	(count-lines (point-min) (point))
+	token)))
+    (goto-char (match-beginning 0))
+    (unless (eq (face-at-point) face)
+      (error
+       "%s:%d: found face %s, expecting %s for '%s'"
+	(buffer-file-name)
+	(count-lines (point-min) (point))
+	(face-at-point)
+	face
+	token))
+    ))
+
 (defun run-test-here ()
   "Run an ada-mode test on the current buffer."
   (interactive)
