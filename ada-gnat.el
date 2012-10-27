@@ -31,11 +31,6 @@
 ;; By default, ada-mode is configured to load this file, so nothing
 ;; special needs to done to use it.
 
-(add-to-list
- 'ada-font-lock-keywords
- ;; gnatprep preprocessor line
- (list "^[ \t]*\\(#.*\n\\)"  '(1 font-lock-type-face t)))
-
 (defun ada-indent-gnatprep ()
   "If point is on a gnatprep keyword, return indentation column
 for it. Otherwise return nil.
@@ -49,11 +44,6 @@ Intended to be added to `smie-indent-functions'."
   ;;
   ;; they are all indented at column 0.
   (when (equal (char-after) ?\#) 0))
-
-(when (featurep 'ada-indent)
-  (add-hook 'ada-mode-hook
-	    ;; we don't use add-hook here, because we don't want the global value.
-	    (lambda () (add-to-list 'smie-indent-functions 'ada-indent-gnatprep))))
 
 (defun ada-compile-mouse-goto-error ()
   "Mouse interface for `ada-compile-goto-error'."
@@ -120,7 +110,7 @@ the 4 file locations can be clicked on and jumped to."
   ;; (add-hook 'compilation-mode-hook
   ;; 	    (lambda()
   ;; 	      ;; FIXME: This has global impact!  -stef
-  ;; 	      ;; Try adding the extra error points in compilation-error-regexp
+  ;; 	      ;; add the extra error points in compilation-error-regexp
   ;; 	      ;; Mouse-2 is bound to compile-goto-error
   ;; 	      (define-key compilation-minor-mode-map [mouse-2]
   ;; 		'ada-compile-mouse-goto-error)
@@ -129,6 +119,18 @@ the 4 file locations can be clicked on and jumped to."
   ;; 	      (define-key compilation-minor-mode-map "\C-m"
   ;; 		'ada-compile-goto-error)))
 
+(defun ada-gnat-setup ()
+  (add-to-list
+   'ada-font-lock-keywords
+   ;; gnatprep preprocessor line
+   (list "^[ \t]*\\(#.*\n\\)"  '(1 font-lock-type-face t)))
+
+  (when (featurep 'ada-indent)
+    ;; we don't use add-hook here, because we don't want the global value.
+    (lambda () (add-to-list 'smie-indent-functions 'ada-indent-gnatprep)))
+)
+
+(add-hook 'ada-mode-hook 'ada-gnat-setup)
 
 (provide 'ada-gnat)
 (provide 'ada-compiler)

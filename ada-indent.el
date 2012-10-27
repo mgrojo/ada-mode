@@ -3362,14 +3362,14 @@ This lets us know which indentation function succeeded."
 
   (set (make-local-variable 'smie-blink-matching-inners) nil); too annoying to blink to 'package' on 'is', etc.
 
-  (set (make-local-variable 'blink-matching-paren) nil)
+  (if debug-on-error
+      (set (make-local-variable 'blink-matching-paren) nil))
   ;; smie-setup puts smie-blink-matching-open on
   ;; post-self-insert-hook; that uses uses blink-matching to blink on
-  ;; all opener/closer pairs.  FIXME: this is just annoying while we
-  ;; are working on this code (it tries to run a broken parser), so we
-  ;; turn it off. Not clear if we want to turn it back on ever! User
-  ;; can set post-self-insert-hook, or blink-matching-paren on
-  ;; ada-mode-hook.
+  ;; all opener/closer pairs.  This is just annoying while we are
+  ;; working on this code (it tries to run a broken parser), so we
+  ;; turn it off. But that also disables blink actual parens, which is
+  ;; useful.
 
   (add-hook 'after-change-functions 'ada-indent-after-change nil t)
 

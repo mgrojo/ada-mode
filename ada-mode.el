@@ -360,127 +360,6 @@ point is where the mouse button was clicked."
     (goto-char (car ada-contextual-menu-last-point))
     ))
 
-;;;###autoload
-(defun ada-mode ()
-  "Ada mode is the major mode for editing Ada code."
-  ;; the other ada-*.el files add to ada-mode-hook for their setup
-
-  (interactive)
-  (kill-all-local-variables)
-
-  (set (make-local-variable 'require-final-newline) mode-require-final-newline)
-
-  (set-syntax-table ada-mode-syntax-table)
-  (set (make-local-variable 'syntax-propertize-function) 'ada-syntax-propertize)
-  (set (make-local-variable 'parse-sexp-ignore-comments) t)
-  (set (make-local-variable 'parse-sexp-lookup-properties) t)
-  (set 'case-fold-search t); Ada is case insensitive; the syntax parsing requires this setting
-  (set (make-local-variable 'comment-start) "--")
-  (set (make-local-variable 'comment-end) "")
-  (set (make-local-variable 'comment-start-skip) "---*[ \t]*")
-  (set (make-local-variable 'comment-multi-line) nil)
-
-  ;; AdaCore standard style (enforced by -gnaty) requires two spaces
-  ;; after '--' in comments; this makes it easier to distinguish
-  ;; special comments that have something else after '--'
-  (set (make-local-variable 'comment-padding) "  ")
-
-  (set (make-local-variable 'font-lock-defaults)
-       '(ada-font-lock-keywords
-	 nil t
-	 ((?\_ . "w"); treat underscore as a word component
-	  (?# . ".")); treat based number delimiters as punctuation; FIXME: why?
-	 beginning-of-line))
-
-  (set (make-local-variable 'ff-other-file-alist)
-       'ada-other-file-alist)
-  (setq ff-post-load-hook    'ada-set-point-accordingly
-	ff-file-created-hook 'ada-make-body)
-  (add-hook 'ff-pre-load-hook 'ada-which-function-are-we-in)
-
-  (make-local-variable 'ff-special-constructs)
-  (mapc (lambda (pair) (add-to-list 'ff-special-constructs pair))
-	(list
-	 ;; Top level child package declaration; go to the parent package.
-	 (cons (eval-when-compile
-		 (concat "^\\(private[ \t]\\)?[ \t]*package[ \t]+"
-			 "\\(body[ \t]+\\)?"
-			 "\\(\\(\\sw\\|[_.]\\)+\\)\\.\\(\\sw\\|_\\)+[ \t\n]+is"))
-	       (lambda ()
-		 (ff-get-file
-		  ada-search-directories-internal
-		  (ada-make-filename-from-adaname (match-string 3))
-		  ada-spec-suffixes)))
-
-	 ;; A "separate" clause.
-	 (cons "^separate[ \t\n]*(\\(\\(\\sw\\|[_.]\\)+\\))"
-	       (lambda ()
-		 (ff-get-file
-		  ada-search-directories-internal
-		  (ada-make-filename-from-adaname (match-string 1))
-		  ada-spec-suffixes)))
-
-	 ;; A "with" clause. Note that it may refer to a procedure body, as well as a spec
-	 (cons "^with[ \t]+\\([a-zA-Z0-9_\\.]+\\)"
-	       (lambda ()
-		 (ff-get-file
-		  ada-search-directories-internal
-		  (ada-make-filename-from-adaname (match-string 1))
-		  (append ada-spec-suffixes ada-body-suffixes))))
-	 ))
-
-  (set (make-local-variable 'ispell-check-comments) 'exclusive)
-
-  ;;  Support for align
-  (add-to-list 'align-dq-string-modes 'ada-mode)
-  (add-to-list 'align-open-comment-modes 'ada-mode)
-  (set (make-local-variable 'align-region-separate) ada-align-region-separate)
-
-  ;; Exclude comments alone on line from alignment.
-  (add-to-list 'align-exclude-rules-list
-	       '(ada-solo-comment
-		 (regexp  . "^\\(\\s-*\\)--")
-		 (modes   . '(ada-mode))))
-  (add-to-list 'align-exclude-rules-list
-	       '(ada-solo-use
-		 (regexp  . "^\\(\\s-*\\)\\<use\\>")
-		 (modes   . '(ada-mode))))
-
-  (setq align-mode-rules-list ada-align-modes)
-
-  ;;  Set up the contextual menu
-  (if ada-popup-key
-      (define-key ada-mode-map ada-popup-key 'ada-popup-menu))
-
-  (define-abbrev-table 'ada-mode-abbrev-table ())
-  (setq local-abbrev-table ada-mode-abbrev-table)
-
-  (setq major-mode 'ada-mode
-	mode-name "Ada")
-
-  (use-local-map ada-mode-map)
-
-  (easy-menu-add ada-mode-menu ada-mode-map)
-
-  (run-mode-hooks 'ada-mode-hook)
-
-  ;; Run after ada-mode-hook because users might set
-  ;; the relevant variable inside the hook
-
-  ;; (setq ada-keywords
-  ;; 	(case ada-language-version
-  ;; 	  ('ada83 ada-83-keywords)
-  ;; 	  ('ada95 ada-95-keywords)
-  ;; 	  ('ada2005 ada-2005-keywords)
-  ;; 	  ('ada2012 ada-2012-keywords)
-  ;; 	  (t (error "ada-language-version must be one of 'ada83 'ada95 'ada2005 'ada2012"))))
-
-  ;; (if ada-auto-case
-  ;;     (ada-activate-keys-for-case))
-
-  ;; FIXME: ask about after-change-major-mode-hook
-  )
-
 (defun ada-fill-comment-paragraph-justify ()
   "Fill current comment paragraph and justify each line as well."
   (interactive)
@@ -789,7 +668,7 @@ Return nil if no body was found."
 
 (defvar ada-font-lock-keywords
   ;; FIXME: customize according to ada-language-version?
-  ;; FIXME: add 'some' for ada2012?
+  ;; FIXME: add 'some' for ada2012
   (eval-when-compile
     (list
      ;;
@@ -859,22 +738,147 @@ Return nil if no body was found."
 		   "[ \t]+\\([a-zA-Z0-9_., \t]+\\)\\W")
 	   '(1 font-lock-keyword-face) '(2 font-lock-reference-face nil t))
 
-     ;;
-     ;; Goto tags.
+     ;; statement labels
      '("<<\\(\\sw+\\)>>" 1 font-lock-reference-face)
 
-     ;; Highlight based-numbers (R. Reagan <robin-reply@reagans.org>)
+     ;; based numberic literals
      (list "\\([0-9]+#[0-9a-fA-F_]+#\\)" '(1 font-lock-constant-face t))
 
-     ;; Ada unnamed numerical constants
+     ;; numeric literals
      (list "\\W\\([-+]?[0-9._]+\\)\\>" '(1 font-lock-constant-face))
 
      ))
   "Default expressions to highlight in Ada mode.")
 
-;; --------------------------------------------------------
-;; Global initializations
-;; --------------------------------------------------------
+(defun ada-mode-final-setup ()
+  ;; We put this last on ada-mode-hook, so other ada-* files can
+  ;; modify ada-font-lock-keywords on the hook, but it still runs
+  ;; before (global-font-lock-mode-enable-in-buffers) on
+  ;; after-change-major-mode-hook.
+  ;;
+  ;; FIXME: nuh-uh! after-change-major-mode-hook is not run?! or
+  ;; (global-font-lock-mode-enable-in-buffers) doesn't work there?
+  (set (make-local-variable 'font-lock-defaults)
+       '(ada-font-lock-keywords
+	 nil t
+	 ((?\_ . "w")); treat underscore as a word component
+	 beginning-of-line))
+
+  ;; FIXME: this is the only way I can get font-lock to work, while
+  ;; allowing ada-mode-hook to modify ada-font-lock-keywords.  Ask on
+  ;; emacs-devel after feature-freeze.
+  (font-lock-mode 1)
+
+  ;; (if ada-auto-case
+  ;;     (ada-activate-keys-for-case))
+
+  )
+(add-hook 'ada-mode-hook 'ada-mode-final-setup t)
+
+;;;###autoload
+(defun ada-mode ()
+  "Ada mode is the major mode for editing Ada code."
+  ;; the other ada-*.el files add to ada-mode-hook for their setup
+
+  (interactive)
+  (kill-all-local-variables)
+
+  (set (make-local-variable 'require-final-newline) mode-require-final-newline)
+
+  (set-syntax-table ada-mode-syntax-table)
+  (set (make-local-variable 'syntax-propertize-function) 'ada-syntax-propertize)
+  (set (make-local-variable 'parse-sexp-ignore-comments) t)
+  (set (make-local-variable 'parse-sexp-lookup-properties) t)
+  (set 'case-fold-search t); Ada is case insensitive; the syntax parsing requires this setting
+  (set (make-local-variable 'comment-start) "--")
+  (set (make-local-variable 'comment-end) "")
+  (set (make-local-variable 'comment-start-skip) "---*[ \t]*")
+  (set (make-local-variable 'comment-multi-line) nil)
+
+  ;; AdaCore standard style (enforced by -gnaty) requires two spaces
+  ;; after '--' in comments; this makes it easier to distinguish
+  ;; special comments that have something else after '--'
+  (set (make-local-variable 'comment-padding) "  ")
+
+  (set (make-local-variable 'ff-other-file-alist)
+       'ada-other-file-alist)
+  (setq ff-post-load-hook    'ada-set-point-accordingly
+	ff-file-created-hook 'ada-make-body)
+  (add-hook 'ff-pre-load-hook 'ada-which-function-are-we-in)
+
+  (make-local-variable 'ff-special-constructs)
+  (mapc (lambda (pair) (add-to-list 'ff-special-constructs pair))
+	(list
+	 ;; Top level child package declaration; go to the parent package.
+	 (cons (eval-when-compile
+		 (concat "^\\(private[ \t]\\)?[ \t]*package[ \t]+"
+			 "\\(body[ \t]+\\)?"
+			 "\\(\\(\\sw\\|[_.]\\)+\\)\\.\\(\\sw\\|_\\)+[ \t\n]+is"))
+	       (lambda ()
+		 (ff-get-file
+		  ada-search-directories-internal
+		  (ada-make-filename-from-adaname (match-string 3))
+		  ada-spec-suffixes)))
+
+	 ;; A "separate" clause.
+	 (cons "^separate[ \t\n]*(\\(\\(\\sw\\|[_.]\\)+\\))"
+	       (lambda ()
+		 (ff-get-file
+		  ada-search-directories-internal
+		  (ada-make-filename-from-adaname (match-string 1))
+		  ada-spec-suffixes)))
+
+	 ;; A "with" clause. Note that it may refer to a procedure body, as well as a spec
+	 (cons "^with[ \t]+\\([a-zA-Z0-9_\\.]+\\)"
+	       (lambda ()
+		 (ff-get-file
+		  ada-search-directories-internal
+		  (ada-make-filename-from-adaname (match-string 1))
+		  (append ada-spec-suffixes ada-body-suffixes))))
+	 ))
+
+  (set (make-local-variable 'ispell-check-comments) 'exclusive)
+
+  ;;  Support for align
+  (add-to-list 'align-dq-string-modes 'ada-mode)
+  (add-to-list 'align-open-comment-modes 'ada-mode)
+  (set (make-local-variable 'align-region-separate) ada-align-region-separate)
+
+  ;; Exclude comments alone on line from alignment.
+  (add-to-list 'align-exclude-rules-list
+	       '(ada-solo-comment
+		 (regexp  . "^\\(\\s-*\\)--")
+		 (modes   . '(ada-mode))))
+  (add-to-list 'align-exclude-rules-list
+	       '(ada-solo-use
+		 (regexp  . "^\\(\\s-*\\)\\<use\\>")
+		 (modes   . '(ada-mode))))
+
+  (setq align-mode-rules-list ada-align-modes)
+
+  ;;  Set up the contextual menu
+  (if ada-popup-key
+      (define-key ada-mode-map ada-popup-key 'ada-popup-menu))
+
+  (define-abbrev-table 'ada-mode-abbrev-table ())
+  (setq local-abbrev-table ada-mode-abbrev-table)
+
+  (setq major-mode 'ada-mode
+	mode-name "Ada")
+
+  (use-local-map ada-mode-map)
+
+  (easy-menu-add ada-mode-menu ada-mode-map)
+
+  (run-mode-hooks 'ada-mode-hook)
+
+  ;; Anything that needs to run after everything else in ada-mode-hook
+  ;; (because users or other ada-* files might set the relevant
+  ;; variable inside the hook) is in ada-mode-final-setup.
+  )
+
+
+;;;; Global initializations
 
 ;; FIXME: move these to the corresponding variable inits?
 (ada-add-extensions ".ads" ".adb")
