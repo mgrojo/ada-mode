@@ -586,6 +586,7 @@ An example is:
 
       (subprogram_declaration
        ("function-spec" name "return-spec" name)
+       ("function-spec" name "return-spec" name "renames-function" name)
        ;; trailing name makes "return-spec" have the same binding as
        ;; in subprogram_body; that avoids recursion between refine-is
        ;; and refine-return. Covers subprogram_renaming_declaration function
@@ -599,6 +600,7 @@ An example is:
        ;;    procedure (...);
 
        ("procedure-spec" name); same as 'procedure name is-subprogram_body'
+       ("procedure-spec" name "renames-procedure" name)
        ;; Covers subprogram_renaming_declaration procedure.
        ;;
        ;; We leave out ("procedure" name "is" "null") here; we
@@ -1780,6 +1782,26 @@ when found token is an element of TARGETS, return that token."
        ))
     ))
 
+(defun ada-indent-refine-renames (token forward)
+  (save-excursion
+    (when forward (smie-default-backward-token))
+
+    ;; 1) [overriding] function renaming: "renames-function"
+    ;; 2) [overriding] procedure renaming: "renames-procedure"
+    ;; 3) anywhere else: "renames-other"
+
+    (let ((parent (progn
+                    (ada-indent-goto-parent token 1)
+                    (smie-default-forward-token))))
+      (if (equal parent "overriding")
+          (progn (setq parent (smie-default-forward-token))))
+      (cond
+       ((equal parent "function") "renames-function")    ; 1
+       ((equal parent "procedure") "renames-procedure")  ; 2
+       (t "renames-other")
+       ))
+    ))
+
 (defun ada-indent-refine-return (token forward)
   (save-excursion
     (when forward (smie-default-backward-token))
@@ -2222,6 +2244,7 @@ when found token is an element of TARGETS, return that token."
     ("procedure" ada-indent-refine-subprogram)
     ("protected" ada-indent-refine-protected)
     ("record" 	 ada-indent-refine-record)
+    ("renames" 	 ada-indent-refine-renames)
     ("return" 	 ada-indent-refine-return)
     ("select" 	 ada-indent-refine-select)
     ("separate"  ada-indent-refine-separate)
@@ -2821,6 +2844,78 @@ the start of CHILD, which must be a keyword."
        ;; :after.
        (ada-indent-rule-statement ada-indent-record-rel-type arg))
 
+      ((equal arg "renames-function")
+       (let (
+             ;; Find the start of the parameters (nil if none)
+             (parameter-start (save-excursion
+                                ;; Skip "return"
+                                (ada-indent-backward-keyword)
+                                (smie-backward-sexp)
+                                (if (equal (char-after) ?\()
+                                    (current-column)
+                                  nil)))
+             ;; Find the "function" keyword's start column
+             (function-col (save-excursion
+                             (ada-indent-goto-parent arg 1)
+                             (while (not (equal
+                                          (smie-default-forward-token)
+                                          "function"))
+                               nil)
+                             (smie-default-backward-token)
+                             (current-column)))
+             )
+
+         (cond ((<= ada-indent-renames 0)
+                ;; If 'ada-indent-renames' is zero or negative, then
+                (cond ((null parameter-start)
+                       ;; No parameters; use 'ada-indent-broken' from
+                       ;; "function".
+                       (cons 'column (+ function-col ada-indent-broken)))
+                      (t
+                       ;; Parameters: indent relative to the "(".
+                       (cons 'column (- parameter-start ada-indent-renames)))))
+
+               (t
+                (cons 'column (+ function-col ada-indent-renames))))
+       ))
+
+      ((equal arg "renames-procedure")
+       ;; Similar to handling required for "renames-function", but
+       ;; (a) here there's no "return" to skip while looking for the
+       ;; start of the parameters,
+       ;; (b) we're looking for "procedure" instead of "function".
+       (let (
+             ;; Find the start of the parameters (nil if none)
+             (parameter-start (save-excursion
+                                (smie-backward-sexp)
+                                (if (equal (char-after) ?\()
+                                    (current-column)
+                                  nil)))
+             ;; Find the "procedure" keyword's start column
+             (procedure-col (save-excursion
+                              (ada-indent-goto-parent arg 1)
+                              (while (not (equal
+                                           (smie-default-forward-token)
+                                           "procedure"))
+                                nil)
+                              (smie-default-backward-token)
+                              (current-column)))
+             )
+
+         (cond ((<= ada-indent-renames 0)
+                ;; If 'ada-indent-renames' is zero or negative, then
+                (cond ((null parameter-start)
+                       ;; No parameters; use 'ada-indent-broken' from
+                       ;; "function".
+                       (cons 'column (+ procedure-col ada-indent-broken)))
+                      (t
+                       ;; Parameters: indent relative to the "(".
+                       (cons 'column (- parameter-start ada-indent-renames)))))
+
+               (t
+                (cons 'column (+ procedure-col ada-indent-renames))))
+       ))
+
       ((member arg '("return-spec" "return-formal"))
        ;; Function declaration, function body, or access-to-function
        ;; type declaration.
@@ -3029,10 +3124,6 @@ the start of CHILD, which must be a keyword."
        ;;
        (back-to-indentation)
        (cons 'column (+ (current-column) ada-indent)))
-
-      ((equal arg "return-spec")
-       ;; see comments in :before "("
-       (ada-indent-rule-parent ada-indent-broken arg))
 
       ((equal arg "when-case")
        ;; exception to block statement rule
