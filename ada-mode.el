@@ -57,7 +57,8 @@
 ;; By default, ada-mode is configured to take full advantage of the
 ;; GNAT compiler (the menus will include the cross-referencing
 ;; features,...).  FIXME: If you are using another compiler, you
-;; should ...
+;; should load that compiler's ada-* file first; that will define
+;; ada-compiler as a feature, so ada-gnat.el will not be loaded.
 ;;
 ;; FIXME: see the user guide at ....
 
@@ -68,21 +69,19 @@
 ;;
 ;; Lynn Slater wrote an extensive Ada mode in 1989. It consisted of
 ;; several files with support for dired commands and other nice
-;; things. It is currently available from the PAL
-;; (wuarchive.wustl.edu:/languages/ada) as ada-mode-1.06a.tar.Z.
+;; things.
 ;;
 ;; The probably very first Ada mode (called electric-ada.el) was
 ;; written by Steven D. Litvintchouk and Steven M. Rosen for the
 ;; Gosling Emacs. L. Slater based his development on ada.el and
 ;; electric-ada.el.
 ;;
-;; A complete rewrite by M. Heritsch and R. Ebert was been done at
-;; some point.  Some ideas from the Ada mode mailing list have been
-;; added.  Some of the functionality of L. Slater's mode has not (yet)
-;; been recoded in this new mode.  Perhaps you prefer sticking to his
-;; version.
+;; A complete rewrite by M. Heritsch and R. Ebert was done at some
+;; point.  Some ideas from the Ada mode mailing list have been added.
+;; Some of the functionality of L. Slater's mode has not (yet) been
+;; recoded in this new mode.
 ;;
-;; A complete rewrite for Emacs-20 / GNAT-3.11 was been done by Ada Core
+;; A complete rewrite for Emacs-20 / GNAT-3.11 was done by Ada Core
 ;; Technologies.
 ;;
 ;; A complete rewrite, to restructure the code more orthogonally, and
@@ -120,9 +119,8 @@
 
 (defvar ada-mode-hook nil
   "*List of functions to call when Ada mode is invoked.
-This hook is automatically executed after `ada-mode' is
-fully loaded.
-This is a good place to add Ada environment specific bindings.")
+This hook is executed after `ada-mode' is fully loaded.  This is
+a good place to add Ada environment specific bindings.")
 
 (defgroup ada nil
   "Major mode for editing and compiling Ada source in Emacs."
@@ -131,92 +129,63 @@ This is a good place to add Ada environment specific bindings.")
 
 (defcustom ada-language-version 'ada2012
   "*Ada language version; one of `ada83', `ada95', `ada2005'.
-Only affects the keywords to highlight." ;; FIXME: not actually used for that? FIXME: anything else?
+Only affects the keywords to highlight."
   :type '(choice (const ada83) (const ada95) (const ada2005) (const ada2012)) :group 'ada)
 
 (defcustom ada-popup-key '[down-mouse-3]
+  ;; FIXME: don't need a var for this
   "*Key used for binding the contextual menu.
 If nil, no contextual menu is available."
   :type '(restricted-sexp :match-alternatives (stringp vectorp))
   :group 'ada)
 
 ;;; ---- end of user configurable variables; see other ada-*.el files for more
-
 
-(defvar ada-mode-menu (make-sparse-keymap "Ada")
-  "Menu for Ada mode.")
+;;; keymap and menus
 
-(defvar ada-mode-map (make-sparse-keymap)
-  "Local keymap used for Ada mode.")
+(defvar ada-mode-map
+  (let ((map (make-sparse-keymap)))
+    ;; C-c <letter> are reserved for users
 
-(defvar ada-mode-extra-map (make-sparse-keymap)
-  "Keymap used for non-standard keybindings.")
+    (define-key map "\C-c\C-c" 'compile)
+    (define-key map "\C-c\C-n" 'ada-make-subprogram-body)
+    (define-key map "\C-c\C-o" 'ff-find-other-file)
+    map
+  )  "Local keymap used for Ada mode.")
 
-;; default is C-c C-q because it's free in ada-mode-map
-(defvar ada-mode-extra-prefix "\C-c\C-q"
-  "Prefix key to access `ada-mode-extra-map' functions.")
+(defvar ada-mode-menu (make-sparse-keymap "Ada"))
+(easy-menu-define ada-mode-menu ada-mode-map "Menu keymap for Ada mode"
+  '("Ada"
+    ("Help"
+     ["Ada Mode"             (info "ada-mode") t]
+     ["Ada Reference Manual" (info "arm2012") t]
+     ["Key bindings"         describe-bindings t]
+     )
+
+    ["Customize"     (customize-group 'ada)]
+    ["------"        nil nil]
+    ["Next compilation error"  next-error             t]
+    ["Other File"              ff-find-other-file  t]
+    ["Other File Other Window" (lambda () (ff-find-other-file t))    t]
+    ("Edit"
+     ["Indent Line"                 indent-for-tab-command  t]
+     ["Indent Lines in Selection"   indent-region           t]
+     ["Indent Lines in File"        (indent-region (point-min) (point-max))  t]
+     ["Comment Selection"           comment-region               t]
+     ["Uncomment Selection"         (lambda () (comment-region t)) t]
+     ["Fill Comment Paragraph"      fill-paragraph               t]
+     ["Fill Comment Paragraph Justify"
+      ada-fill-comment-paragraph-justify                         t]
+     ["Fill Comment Paragraph Postfix"
+      ada-fill-comment-paragraph-postfix                         t]
+     ["---"                         nil                          nil]
+     ["Make body for subprogram"    ada-make-subprogram-body     t]
+     ["Narrow to subprogram"        narrow-to-defun          t]
+     )
+    ))
 
 (defvar ada-mode-abbrev-table nil
   "Local abbrev table for Ada mode.")
-
-(defvar ada-mode-syntax-table nil
-  "Syntax table to be used for editing Ada source code.")
-
-;; FIXME: not used for anything?
-;; (eval-when-compile
-;;   ;; These values are used in eval-when-compile expressions.
-;;   (defconst ada-83-string-keywords
-;;     '("abort" "abs" "accept" "access" "all" "and" "array" "at" "begin"
-;;       "body" "case" "constant" "declare" "delay" "delta" "digits" "do"
-;;       "else" "elsif" "end" "entry" "exception" "exit" "for" "function"
-;;       "generic" "goto" "if" "in" "is" "limited" "loop" "mod" "new"
-;;       "not" "null" "of" "or" "others" "out" "package" "pragma" "private"
-;;       "procedure" "raise" "range" "record" "rem" "renames" "return"
-;;       "reverse" "select" "separate" "subtype" "task" "terminate" "then"
-;;       "type" "use" "when" "while" "with" "xor")
-;;     "List of Ada 83 keywords.
-;; Used to define `ada-*-keywords'.")
-
-;;   (defconst ada-95-string-keywords
-;;     '("abstract" "aliased" "protected" "requeue" "tagged" "until")
-;;     "List of keywords new in Ada 95.
-;; Used to define `ada-*-keywords'.")
-
-;;   (defconst ada-2005-string-keywords
-;;     '("interface" "overriding" "synchronized")
-;;     "List of keywords new in Ada 2005.
-;; Used to define `ada-*-keywords.'"))
-
-;;   (defconst ada-2012-string-keywords
-;;     '("some")
-;;     "List of keywords new in Ada 2012.
-;; Used to define `ada-*-keywords.'"))
-
-;; (defconst ada-83-keywords
-;;   (eval-when-compile
-;;     (concat "\\<" (regexp-opt ada-83-string-keywords t) "\\>"))
-;;   "Regular expression matching Ada83 keywords.")
-
-;; (defconst ada-95-keywords
-;;   (eval-when-compile
-;;     (concat "\\<" (regexp-opt
-;; 		   (append
-;; 		    ada-95-string-keywords
-;; 		    ada-83-string-keywords) t) "\\>"))
-;;   "Regular expression matching Ada95 keywords.")
-
-;; (defconst ada-2005-keywords
-;;   (eval-when-compile
-;;     (concat "\\<" (regexp-opt
-;; 		   (append
-;; 		    ada-2005-string-keywords
-;; 		    ada-83-string-keywords
-;; 		    ada-95-string-keywords) t) "\\>"))
-;;   "Regular expression matching Ada2005 keywords.")
-
-;; (defvar ada-keywords ada-2005-keywords
-;;   "Regular expression matching Ada keywords.")
-;; not customizable; this is set in ada-mode, controlled by ada-language-version
 
 (defvar ada-body-suffixes '(".adb")
   "List of possible suffixes for Ada body files.
@@ -269,124 +238,48 @@ The extensions should include a `.' if needed.")
      "when"
      "\\)\\>\\)"))
   "See the variable `align-region-separate' for more information.")
-
-;;------------------------------------------------------------
-;;  Support for compile.el
-;;------------------------------------------------------------
 
-(defun ada-compile-mouse-goto-error ()
-  "Mouse interface for `ada-compile-goto-error'."
-  (interactive)
-  (mouse-set-point last-input-event)
-  (ada-compile-goto-error (point))
-  )
+;;; syntax properties
 
-(defun ada-compile-goto-error (pos)
-  "Replace `compile-goto-error' from compile.el.
-If POS is on a file and line location, go to this position.  It adds
-to compile.el the capacity to go to a reference in an error message.
-For instance, on these lines:
-  foo.adb:61:11:  [...] in call to size declared at foo.ads:11
-  foo.adb:61:11:  [...] in call to local declared at line 20
-the 4 file locations can be clicked on and jumped to."
-  (interactive "d")
-  (goto-char pos)
+(defvar ada-mode-syntax-table
+  (let ((table (make-syntax-table)))
+    ;; make-syntax-table sets all alphanumeric to w, etc; so we only
+    ;; have to add ada-specific things.
 
-  (skip-chars-backward "-a-zA-Z0-9_:./\\")
-  (cond
-   ;;  special case: looking at a filename:line not at the beginning of a line
-   ;;  or a simple line reference "at line ..."
-   ((and (not (bolp))
-	 (or (looking-at ada-compile-goto-error-file-linenr-re)
-	     (and
-	      (save-excursion
-		(beginning-of-line)
-		(looking-at ada-compile-goto-error-file-linenr-re))
-	      (save-excursion
-		(if (looking-at "\\([0-9]+\\)") (backward-word 1))
-		(looking-at "line \\([0-9]+\\)"))))
-	     )
-    (let ((line (if (match-beginning 2) (match-string 2) (match-string 1)))
-	  (file (if (match-beginning 2) (match-string 1)
-		  (save-excursion (beginning-of-line)
-				  (looking-at ada-compile-goto-error-file-linenr-re)
-				  (match-string 1))))
-	  (error-pos (point-marker))
-	  source)
+    ;; string brackets. `%' is the obsolete alternative string
+    ;; bracket (arm J.2); if we make it syntax class ", it throws
+    ;; font-lock and indentation off the track, so we use syntax class
+    ;; $.
+    (modify-syntax-entry ?%  "$" table)
+    (modify-syntax-entry ?\" "\"" table)
 
-      ;; set source marker
-      (save-excursion
-	(compilation-find-file (point-marker) (match-string 1) "./")
-	(set-buffer file)
+    ;; punctuation; operators etc
+    (modify-syntax-entry ?:  "." table)
+    (modify-syntax-entry ?\; "." table)
+    (modify-syntax-entry ?&  "." table)
+    (modify-syntax-entry ?\|  "." table)
+    (modify-syntax-entry ?+  "." table)
+    (modify-syntax-entry ?*  "." table)
+    (modify-syntax-entry ?/  "." table)
+    (modify-syntax-entry ?=  "." table)
+    (modify-syntax-entry ?<  "." table)
+    (modify-syntax-entry ?>  "." table)
+    (modify-syntax-entry ?. "." table)
+    (modify-syntax-entry ?\' "." table); attribute; see ada-syntax-propertize for character literal
+    (modify-syntax-entry ?-  ". 12" table); operator; see ada-syntax-propertize for double hyphen as comment
+    (modify-syntax-entry ?#  "$" table); based number
 
-	(when (stringp line)
-	  (goto-char (point-min))
-	  (forward-line (1- (string-to-number line))))
+    ;; and \f and \n end a comment
+    (modify-syntax-entry ?\f  ">   " table)
+    (modify-syntax-entry ?\n  ">   " table)
 
-	(setq source (point-marker)))
+    (modify-syntax-entry ?_ "_" table); symbol constituents
 
-      (compilation-goto-locus error-pos source nil)
-
-      ))
-
-   ;; otherwise, default behavior
-   (t
-    (compile-goto-error))
-   )
-  (recenter))
-
-(defun ada-create-syntax-table ()
-  "Create the syntax table; the indentation engine and casing rely on this."
-  ;; FIXME: move this to variable init? no need for a function
-  (interactive)
-  (setq ada-mode-syntax-table (make-syntax-table))
-  ;; make-syntax-table sets all alphanumeric to w, etc; so we only
-  ;; have to add ada-specific things.
-
-  ;; string brackets. `%' is the obsolete alternative string
-  ;; bracket (arm J.2); if we make it syntax class ", it throws
-  ;; font-lock and indentation off the track, so we use syntax class
-  ;; $.
-  (modify-syntax-entry ?%  "$" ada-mode-syntax-table)
-  (modify-syntax-entry ?\" "\"" ada-mode-syntax-table)
-
-  ;; punctuation
-  (modify-syntax-entry ?:  "." ada-mode-syntax-table)
-  (modify-syntax-entry ?\; "." ada-mode-syntax-table)
-  (modify-syntax-entry ?&  "." ada-mode-syntax-table)
-  (modify-syntax-entry ?\|  "." ada-mode-syntax-table)
-  (modify-syntax-entry ?+  "." ada-mode-syntax-table)
-  (modify-syntax-entry ?*  "." ada-mode-syntax-table)
-  (modify-syntax-entry ?/  "." ada-mode-syntax-table)
-  (modify-syntax-entry ?=  "." ada-mode-syntax-table)
-  (modify-syntax-entry ?<  "." ada-mode-syntax-table)
-  (modify-syntax-entry ?>  "." ada-mode-syntax-table)
-  (modify-syntax-entry ?$ "." ada-mode-syntax-table)
-  (modify-syntax-entry ?\[ "." ada-mode-syntax-table)
-  (modify-syntax-entry ?\] "." ada-mode-syntax-table)
-  (modify-syntax-entry ?\{ "." ada-mode-syntax-table)
-  (modify-syntax-entry ?\} "." ada-mode-syntax-table)
-  (modify-syntax-entry ?. "." ada-mode-syntax-table)
-  (modify-syntax-entry ?\\ "." ada-mode-syntax-table)
-  (modify-syntax-entry ?\' "." ada-mode-syntax-table)
-
-  ;; a single hyphen is punctuation, but a double hyphen starts a comment
-  ;; double hyphen syntax set in ada-syntax-propertize
-  (modify-syntax-entry ?-  ". 12" ada-mode-syntax-table)
-
-  (modify-syntax-entry ?#  "$" ada-mode-syntax-table); based number
-
-  ;; and \f and \n end a comment
-  (modify-syntax-entry ?\f  ">   " ada-mode-syntax-table)
-  (modify-syntax-entry ?\n  ">   " ada-mode-syntax-table)
-
-  ;; symbol constituents
-  (modify-syntax-entry ?_ "_" ada-mode-syntax-table)
-
-  ;; define parentheses to match
-  (modify-syntax-entry ?\( "()" ada-mode-syntax-table)
-  (modify-syntax-entry ?\) ")(" ada-mode-syntax-table)
-  )
+    (modify-syntax-entry ?\( "()" table)
+    (modify-syntax-entry ?\) ")(" table)
+    table
+    )
+  "Syntax table to be used for editing Ada source code.")
 
 (defun ada-syntax-propertize (start end)
   "Assign `syntax-table' properties in accessible part of buffer.
@@ -440,13 +333,13 @@ It forces Emacs to change the cursor position."
   "Pops up a contextual menu, depending on where the user clicked.
 POSITION is the location the mouse was clicked on.
 Sets `ada-contextual-menu-last-point' to the current position before
-displaying the menu.  When a function from the menu is called, the
+displaying the menu.  When a function from the menu is called,
 point is where the mouse button was clicked."
   (interactive "e")
 
-  ;;  declare this as a local variable, so that the function called
-  ;;  in the contextual menu does not hide the region in
-  ;;  transient-mark-mode.
+  ;; don't let context menu commands deactivate the mark (which would
+  ;; hide the region in transient-mark-mode), even if they normally
+  ;; would. FIXME: why is this a good idea?
   (let ((deactivate-mark nil))
     (setq ada-contextual-menu-last-point
 	 (list (point) (current-buffer)))
@@ -460,231 +353,11 @@ point is where the mouse button was clicked."
 	       (save-excursion (skip-syntax-forward "w")
 			       (not (ada-after-keyword-p)))
 	       ))
-    (if (fboundp 'popup-menu)
-	(funcall (symbol-function 'popup-menu) ada-contextual-menu)
-      (let (choice)
-	(setq choice (x-popup-menu position ada-contextual-menu))
-	(if choice
-	    (funcall (lookup-key ada-contextual-menu (vector (car choice)))))))
+    (popup-menu ada-contextual-menu)
 
+    ;; FIXME: is this necessary? what do context menus do by default?
     (set-buffer (cadr ada-contextual-menu-last-point))
     (goto-char (car ada-contextual-menu-last-point))
-    ))
-
-;;------------------------------------------------------------------
-;; Misc functions
-;;------------------------------------------------------------------
-
-
-;;;###autoload
-(defun ada-mode ()
-  "Ada mode is the major mode for editing Ada code."
-  ;; the other ada-*.el files add to ada-mode-hook for their setup
-
-  (interactive)
-  (kill-all-local-variables)
-
-  (set (make-local-variable 'require-final-newline) mode-require-final-newline)
-
-  (set-syntax-table ada-mode-syntax-table)
-  (set (make-local-variable 'syntax-propertize-function) 'ada-syntax-propertize)
-  (set (make-local-variable 'parse-sexp-ignore-comments) t)
-  (set (make-local-variable 'parse-sexp-lookup-properties) t)
-  (set 'case-fold-search t); Ada is case insensitive; the syntax parsing requires this setting
-  (set (make-local-variable 'comment-start) "--")
-  (set (make-local-variable 'comment-end) "")
-  (set (make-local-variable 'comment-start-skip) "---*[ \t]*")
-
-  ;; AdaCore standard style (enforced by -gnaty) requires two spaces
-  ;; after '--' in comments; this makes it easier to distinguish
-  ;; special comments that have something else after '--'
-  (set (make-local-variable 'comment-padding) "  ")
-
-  ;; used by autofill to break a comment line and continue it on another line.
-  ;; The reason we need this one is that the default behavior does not work
-  ;; correctly with the definition of paragraph-start above when the comment
-  ;; is right after a multi-line subprogram declaration (the comments are
-  ;; aligned under the latest parameter, not under the declaration start).
-  ;; FIXME: deleted paragraph-start; test again
-  (set (make-local-variable 'comment-line-break-function)
-       (lambda (&optional soft) (let ((fill-prefix nil))
-				  (indent-new-comment-line soft))))
-
-  (set (make-local-variable 'comment-multi-line) nil)
-
-  ;; smie settings
-  (set (make-local-variable 'smie-blink-matching-inners) nil); too annoying to blink to 'package' on 'is', etc.
-
-  (add-hook 'compilation-mode-hook
-	    (lambda()
-	      ;; FIXME: This has global impact!  -stef
-	      (define-key compilation-minor-mode-map [mouse-2]
-		'ada-compile-mouse-goto-error)
-	      (define-key compilation-minor-mode-map "\C-c\C-c"
-		'ada-compile-goto-error)
-	      (define-key compilation-minor-mode-map "\C-m"
-		'ada-compile-goto-error)))
-
-  (set (make-local-variable 'font-lock-defaults)
-       '(ada-font-lock-keywords
-	 nil t
-	 ((?\_ . "w"); treat underscore as a word component
-	  (?# . ".")); treat based number delimiters as punctuation; FIXME: why?
-	 beginning-of-line))
-
-  (set (make-local-variable 'ff-other-file-alist)
-       'ada-other-file-alist)
-  (setq ff-post-load-hook    'ada-set-point-accordingly
-	ff-file-created-hook 'ada-make-body)
-  (add-hook 'ff-pre-load-hook 'ada-which-function-are-we-in)
-
-  (make-local-variable 'ff-special-constructs)
-  (mapc (lambda (pair) (add-to-list 'ff-special-constructs pair))
-	(list
-	 ;; Top level child package declaration; go to the parent package.
-	 (cons (eval-when-compile
-		 (concat "^\\(private[ \t]\\)?[ \t]*package[ \t]+"
-			 "\\(body[ \t]+\\)?"
-			 "\\(\\(\\sw\\|[_.]\\)+\\)\\.\\(\\sw\\|_\\)+[ \t\n]+is"))
-	       (lambda ()
-		 (ff-get-file
-		  ada-search-directories-internal
-		  (ada-make-filename-from-adaname (match-string 3))
-		  ada-spec-suffixes)))
-
-	 ;; A "separate" clause.
-	 (cons "^separate[ \t\n]*(\\(\\(\\sw\\|[_.]\\)+\\))"
-	       (lambda ()
-		 (ff-get-file
-		  ada-search-directories-internal
-		  (ada-make-filename-from-adaname (match-string 1))
-		  ada-spec-suffixes)))
-
-	 ;; A "with" clause. Note that it may refer to a procedure body, as well as a spec
-	 (cons "^with[ \t]+\\([a-zA-Z0-9_\\.]+\\)"
-	       (lambda ()
-		 (ff-get-file
-		  ada-search-directories-internal
-		  (ada-make-filename-from-adaname (match-string 1))
-		  (append ada-spec-suffixes ada-body-suffixes))))
-	 ))
-
-  (set (make-local-variable 'ispell-check-comments) 'exclusive)
-
-  ;;  Support for align
-  (add-to-list 'align-dq-string-modes 'ada-mode)
-  (add-to-list 'align-open-comment-modes 'ada-mode)
-  (set (make-local-variable 'align-region-separate) ada-align-region-separate)
-
-  ;; Exclude comments alone on line from alignment.
-  (add-to-list 'align-exclude-rules-list
-	       '(ada-solo-comment
-		 (regexp  . "^\\(\\s-*\\)--")
-		 (modes   . '(ada-mode))))
-  (add-to-list 'align-exclude-rules-list
-	       '(ada-solo-use
-		 (regexp  . "^\\(\\s-*\\)\\<use\\>")
-		 (modes   . '(ada-mode))))
-
-  (setq align-mode-rules-list ada-align-modes)
-
-  ;;  Set up the contextual menu
-  (if ada-popup-key
-      (define-key ada-mode-map ada-popup-key 'ada-popup-menu))
-
-  (define-abbrev-table 'ada-mode-abbrev-table ())
-  (setq local-abbrev-table ada-mode-abbrev-table)
-
-  (setq major-mode 'ada-mode
-	mode-name "Ada")
-
-  (use-local-map ada-mode-map)
-
-  (easy-menu-add ada-mode-menu ada-mode-map)
-
-  (run-mode-hooks 'ada-mode-hook)
-
-  ;; Run after ada-mode-hook because users might set
-  ;; the relevant variable inside the hook
-
-  ;; (setq ada-keywords
-  ;; 	(case ada-language-version
-  ;; 	  ('ada83 ada-83-keywords)
-  ;; 	  ('ada95 ada-95-keywords)
-  ;; 	  ('ada2005 ada-2005-keywords)
-  ;; 	  ('ada2012 ada-2012-keywords)
-  ;; 	  (t (error "ada-language-version must be one of 'ada83 'ada95 'ada2005 'ada2012"))))
-
-  ;; (if ada-auto-case
-  ;;     (ada-activate-keys-for-case))
-
-  ;; FIXME: ask about after-change-major-mode-hook
-  )
-
-(defun ada-region-selected ()
-  "Should we operate on an active region?"
-  (use-region-p)
-  ;; Emacs 21.2 doesn't have region-active-p or use-region-p
-  ;; FIXME: replace with use-region-p
-  )
-
-;; ------------------------------------------------------------
-;; --  Define keymap and menus for Ada
-;; -------------------------------------------------------------
-
-(defun ada-create-keymap ()
-  "Create the keymap associated with the Ada mode."
-
-  (define-key ada-mode-map "\C-c\C-c" 'compile)
-
-  ;; Make body
-  (define-key ada-mode-map "\C-c\C-n" 'ada-make-subprogram-body)
-
-  (define-key ada-mode-map "\C-c;"    'comment-region)
-
-  (define-key ada-mode-map "\C-c5\C-d" 'ada-goto-declaration-other-frame)
-  (define-key ada-mode-map "\C-c\C-d"  'ada-goto-declaration)
-  (define-key ada-mode-map "\C-c\C-s"  'ada-xref-goto-previous-reference)
-  (define-key ada-mode-map "\C-c\C-c"  'ada-compile-application)
-
-  ;; All non-standard keys go into ada-mode-extra-map
-  ;; FIXME: find standard keys for these?
-  (define-key ada-mode-map ada-mode-extra-prefix ada-mode-extra-map)
-  (define-key ada-mode-extra-map "o"     'ff-find-other-file)
-  (define-key ada-mode-extra-map "f"     'ada-find-file)
-  )
-
-(defun ada-create-menu ()
-  "Create the Ada menu as shown in the menu bar."
-  (let ((m '("Ada"
-	     ("Help"
-	      ["Ada Mode"               (info "ada-mode") t]
-	      ["Ada Reference Manual" (info "arm2012") t]
-	      )
-
-	     ["Customize"     (customize-group 'ada)]
-	     ["------"        nil nil]
-	     ["Next compilation error"  next-error             t]
-	     ["Other File"              ff-find-other-file     t]
-	     ["Other File Other Window" (lambda () (ff-find-other-file t))    t]
-	     ("Edit"
-	      ["Indent Line"                 indent-for-tab-command  t]
-	      ["Indent Lines in Selection"   indent-region           t]
-	      ["Indent Lines in File"        (indent-region (point-min) (point-max))  t]
-	      ["Comment Selection"           comment-region               t]
-	      ["Uncomment Selection"         (lambda () (comment-region t)) t]
-	      ["Fill Comment Paragraph"      fill-paragraph               t]
-	      ["Fill Comment Paragraph Justify"
-	       ada-fill-comment-paragraph-justify                         t]
-	      ["Fill Comment Paragraph Postfix"
-	       ada-fill-comment-paragraph-postfix                         t]
-	      ["---"                         nil                          nil]
-	      ["Make body for subprogram"    ada-make-subprogram-body     t]
-	      ["Narrow to subprogram"        narrow-to-defun          t]
-	      )
-	     )))
-
-    (easy-menu-define ada-mode-menu ada-mode-map "Menu keymap for Ada mode" m)
     ))
 
 (defun ada-fill-comment-paragraph-justify ()
@@ -937,102 +610,291 @@ Return nil if no body was found."
 ;; ---------------------------------------------------
 ;;    support for font-lock.el
 
-(defvar ada-font-lock-keywords
-  ;; FIXME: customize according to ada-language-version?
-  ;; FIXME: add 'some' for ada2012?
-  (eval-when-compile
-    (list
-     ;;
-     ;; handle "type T is access function return S;"
-     (list "\\<\\(function[ \t]+return\\)\\>" '(1 font-lock-keyword-face) )
+;; FIXME: not used for anything?
+;; (eval-when-compile
+;;   ;; These values are used in eval-when-compile expressions.
+;;   (defconst ada-83-string-keywords
+;;     '("abort" "abs" "accept" "access" "all" "and" "array" "at" "begin"
+;;       "body" "case" "constant" "declare" "delay" "delta" "digits" "do"
+;;       "else" "elsif" "end" "entry" "exception" "exit" "for" "function"
+;;       "generic" "goto" "if" "in" "is" "limited" "loop" "mod" "new"
+;;       "not" "null" "of" "or" "others" "out" "package" "pragma" "private"
+;;       "procedure" "raise" "range" "record" "rem" "renames" "return"
+;;       "reverse" "select" "separate" "subtype" "task" "terminate" "then"
+;;       "type" "use" "when" "while" "with" "xor")
+;;     "List of Ada 83 keywords.
+;; Used to define `ada-*-keywords'.")
 
-     ;; gnatprep preprocessor line; FIXME: move to ada-gnat.el?
-     (list "^[ \t]*\\(#.*\n\\)"  '(1 font-lock-type-face t))
+;;   (defconst ada-95-string-keywords
+;;     '("abstract" "aliased" "protected" "requeue" "tagged" "until")
+;;     "List of keywords new in Ada 95.
+;; Used to define `ada-*-keywords'.")
 
-     ;;
-     ;; accept, entry, function, package (body), protected (body|type),
-     ;; pragma, procedure, task (body) plus name.
-     (list (concat
-	    "\\<\\("
-	    "accept\\|"
-	    "entry\\|"
-	    "function\\|"
-	    "package[ \t]+body\\|"
-	    "package\\|"
-	    "pragma\\|"
-	    "procedure\\|"
-	    "protected[ \t]+body\\|"
-	    "protected[ \t]+type\\|"
-	    "protected\\|"
-	    "task[ \t]+body\\|"
-	    "task[ \t]+type\\|"
-	    "task"
-	    "\\)\\>[ \t]*"
-	    "\\(\\sw+\\(\\.\\sw*\\)*\\)?")
-	   '(1 font-lock-keyword-face) '(2 font-lock-function-name-face nil t))
-     ;;
-     ;; Optional keywords followed by a type name.
-     (list (concat                      ; ":[ \t]*"
-	    "\\<\\(access[ \t]+all\\|access[ \t]+constant\\|access\\|constant\\|in[ \t]+reverse\\|\\|in[ \t]+out\\|in\\|out\\)\\>"
-	    "[ \t]*"
-	    "\\(\\sw+\\(\\.\\sw*\\)*\\)?")
-	   '(1 font-lock-keyword-face nil t) '(2 font-lock-type-face nil t))
+;;   (defconst ada-2005-string-keywords
+;;     '("interface" "overriding" "synchronized")
+;;     "List of keywords new in Ada 2005.
+;; Used to define `ada-*-keywords.'"))
 
-     ;;
-     ;; Main keywords, except those treated specially below.
-     (concat "\\<"
-	     (regexp-opt
-	      '("abort" "abs" "abstract" "accept" "access" "aliased" "all"
-		"and" "array" "at" "begin" "case" "declare" "delay" "delta"
-		"digits" "do" "else" "elsif" "entry" "exception" "exit" "for"
-		"generic" "if" "in" "interface" "is" "limited" "loop" "mod" "not"
-		"null" "or" "others" "overriding" "private" "protected" "raise"
-		"range" "record" "rem" "renames" "requeue" "return" "reverse"
-		"select" "separate" "synchronized" "tagged" "task" "terminate"
-		"then" "until" "when" "while" "with" "xor") t)
-	     "\\>")
-     ;;
-     ;; Anything following end and not already fontified is a body name.
-     '("\\<\\(end\\)\\>\\([ \t]+\\)?\\(\\(\\sw\\|[_.]\\)+\\)?"
-       (1 font-lock-keyword-face) (3 font-lock-function-name-face nil t))
-     ;;
-     ;; Keywords followed by a type or function name.
-     (list (concat "\\<\\("
-		   "new\\|of\\|subtype\\|type"
-		   "\\)\\>[ \t]*\\(\\sw+\\(\\.\\sw*\\)*\\)?[ \t]*\\((\\)?")
-	   '(1 font-lock-keyword-face)
-	   '(2 (if (match-beginning 4)
-		   font-lock-function-name-face
-		 font-lock-type-face) nil t))
-     ;;
-     ;; Keywords followed by a (comma separated list of) reference.
-     ;; Note that font-lock only works on single lines, thus we can not
-     ;; correctly highlight a with_clause that spans multiple lines.
-     (list (concat "\\<\\(goto\\|raise\\|use\\|with\\)"
-		   "[ \t]+\\([a-zA-Z0-9_., \t]+\\)\\W")
-	   '(1 font-lock-keyword-face) '(2 font-lock-reference-face nil t))
+;;   (defconst ada-2012-string-keywords
+;;     '("some")
+;;     "List of keywords new in Ada 2012.
+;; Used to define `ada-*-keywords.'"))
 
-     ;;
-     ;; Goto tags.
-     '("<<\\(\\sw+\\)>>" 1 font-lock-reference-face)
+;; (defconst ada-83-keywords
+;;   (eval-when-compile
+;;     (concat "\\<" (regexp-opt ada-83-string-keywords t) "\\>"))
+;;   "Regular expression matching Ada83 keywords.")
 
-     ;; Highlight based-numbers (R. Reagan <robin-reply@reagans.org>)
-     (list "\\([0-9]+#[0-9a-fA-F_]+#\\)" '(1 font-lock-constant-face t))
+;; (defconst ada-95-keywords
+;;   (eval-when-compile
+;;     (concat "\\<" (regexp-opt
+;; 		   (append
+;; 		    ada-95-string-keywords
+;; 		    ada-83-string-keywords) t) "\\>"))
+;;   "Regular expression matching Ada95 keywords.")
 
-     ;; Ada unnamed numerical constants
-     (list "\\W\\([-+]?[0-9._]+\\)\\>" '(1 font-lock-constant-face))
+;; (defconst ada-2005-keywords
+;;   (eval-when-compile
+;;     (concat "\\<" (regexp-opt
+;; 		   (append
+;; 		    ada-2005-string-keywords
+;; 		    ada-83-string-keywords
+;; 		    ada-95-string-keywords) t) "\\>"))
+;;   "Regular expression matching Ada2005 keywords.")
 
-     ))
-  "Default expressions to highlight in Ada mode.")
+;; (defvar ada-keywords ada-2005-keywords
+;;   "Regular expression matching Ada keywords.")
+;; not customizable; this is set in ada-mode, controlled by ada-language-version
 
-;; --------------------------------------------------------
-;; Global initializations
-;; --------------------------------------------------------
+(defconst ada-font-lock-name-regexp
+  "\\(\\(?:\\sw\\|[_.]\\)+\\)")
+
+(defun ada-font-lock-keywords ()
+  "Ada mode keywords for font-lock, customized according to `ada-language-version'."
+  ;; FIXME: add 'some' for ada2012
+  ;; FIXME: customize on ada-language-version
+  (list
+
+   ;; keywords followed by a name that should be in function-name-face.
+   (list (concat
+	  "\\<\\("
+	  "accept\\|"
+	  "entry\\|"
+	  "function\\|"
+	  "package[ \t]+body\\|"
+	  "package\\|"
+	  "pragma\\|"
+	  "procedure\\|"
+	  "protected[ \t]+body\\|"
+	  "protected[ \t]+function\\|"
+	  "protected[ \t]+procedure\\|"
+	  "protected[ \t]+type\\|"
+	  "protected\\|"
+	  "task[ \t]+body\\|"
+	  "task[ \t]+type\\|"
+	  "task\\|"
+	  "with[ \t]+private\\|"
+	  "with"
+	  "\\)\\>[ \t]*"
+	  ada-font-lock-name-regexp "?")
+;	  "\\(\\sw+\\(\\.\\sw*\\)*\\)?")
+	 '(1 font-lock-keyword-face) '(2 font-lock-function-name-face nil t))
+
+   ;; keywords followed by a name that should be in type-face.
+   (list (concat
+	  "\\<\\("
+	  "access[ \t]+all\\|"
+	  "access[ \t]+constant\\|"
+	  "access\\|"
+	  "constant\\|"
+	  "in[ \t]+reverse\\|"; loop iterator
+	  "in[ \t]+out\\|"
+	  "in\\|"
+	  "return[ \t]+access[ \t]+constant\\|"
+	  "return[ \t]+access\\|"
+	  "return\\|"
+	  "of\\|"
+	  "out\\|"
+	  "subtype\\|"
+	  "type"
+	  "\\)\\>[ \t]*"
+	  "\\(\\sw+\\(\\.\\sw*\\)*\\)?")
+	 '(1 font-lock-keyword-face nil t) '(2 font-lock-type-face nil t))
+
+   ;; keywords not treated elsewhere. FIXME: why is this not first?
+   (concat "\\<"
+	   (regexp-opt
+	    '("abort" "abs" "abstract" "accept" "access" "aliased" "all"
+	      "and" "array" "at" "begin" "case" "declare" "delay" "delta"
+	      "digits" "do" "else" "elsif" "entry" "exception" "exit" "for"
+	      "generic" "if" "in" "interface" "limited" "loop" "mod" "not"
+	      "null" "or" "others" "overriding" "private" "protected" "raise"
+	      "range" "record" "rem" "renames" "requeue" "return" "reverse"
+	      "select" "separate" "synchronized" "tagged" "task" "terminate"
+	      "then" "until" "when" "while" "xor") t)
+	   "\\>")
+
+   ;; keywords followed by a name that should be in function-name-face if not already fontified
+   (list (concat
+	  "\\<\\("
+	  "end"
+	  "\\)\\>[ \t]*"
+	  ada-font-lock-name-regexp "?")
+     '(1 font-lock-keyword-face) '(2 font-lock-function-name-face nil t))
+
+   ;; keywords followed by a name that should be in type-face if not already fontified
+   (list (concat
+	  "\\<\\("
+	  "is"
+	  "\\)\\>[ \t]*"
+	  ada-font-lock-name-regexp "?")
+     '(1 font-lock-keyword-face) '(2 font-lock-type-face nil t))
+
+   ;; Keywords followed by a name that could be a type or a function (generic instantiation).
+   (list (concat
+	  "\\<\\("
+	  "new"
+	  "\\)\\>[ \t]*"
+	  ada-font-lock-name-regexp "?[ \t]*\\((\\)?")
+	 '(1 font-lock-keyword-face)
+	 '(2 (if (match-beginning 3)
+		 font-lock-function-name-face
+	       font-lock-type-face)
+	     nil t))
+
+   ;; Keywords followed by a (comma separated list of) reference.
+   ;; Note that font-lock only works on single lines, thus we can not
+   ;; correctly highlight a with_clause that spans multiple lines.
+   (list (concat "\\<\\(goto\\|raise\\|use\\|with\\)"
+		 "[ \t]+\\([a-zA-Z0-9_., \t]+\\)\\W")
+	 '(1 font-lock-keyword-face) '(2 font-lock-reference-face nil t))
+
+   ;; statement labels
+   '("<<\\(\\sw+\\)>>" 1 font-lock-reference-face)
+
+   ;; based numberic literals
+   (list "\\([0-9]+#[0-9a-fA-F_]+#\\)" '(1 font-lock-constant-face t))
+
+   ;; numeric literals
+   (list "\\W\\([-+]?[0-9._]+\\)\\>" '(1 font-lock-constant-face))
+
+   ))
+
+;;;###autoload
+(defun ada-mode ()
+  "Ada mode is the major mode for editing Ada code."
+  ;; the other ada-*.el files add to ada-mode-hook for their setup
+
+  (interactive)
+  (kill-all-local-variables)
+
+  (set (make-local-variable 'require-final-newline) mode-require-final-newline)
+
+  (set-syntax-table ada-mode-syntax-table)
+  (set (make-local-variable 'syntax-propertize-function) 'ada-syntax-propertize)
+  (set (make-local-variable 'parse-sexp-ignore-comments) t)
+  (set (make-local-variable 'parse-sexp-lookup-properties) t)
+  (set 'case-fold-search t); Ada is case insensitive; the syntax parsing requires this setting
+  (set (make-local-variable 'comment-start) "--")
+  (set (make-local-variable 'comment-end) "")
+  (set (make-local-variable 'comment-start-skip) "---*[ \t]*")
+  (set (make-local-variable 'comment-multi-line) nil)
+
+  (set (make-local-variable 'font-lock-defaults)
+       '(ada-font-lock-keywords
+	 nil t
+	 ((?\_ . "w")); treat underscore as a word component
+	 beginning-of-line))
+
+  ;; AdaCore standard style (enforced by -gnaty) requires two spaces
+  ;; after '--' in comments; this makes it easier to distinguish
+  ;; special comments that have something else after '--'
+  (set (make-local-variable 'comment-padding) "  ")
+
+  (set (make-local-variable 'ff-other-file-alist)
+       'ada-other-file-alist)
+  (setq ff-post-load-hook    'ada-set-point-accordingly
+	ff-file-created-hook 'ada-make-body)
+  (add-hook 'ff-pre-load-hook 'ada-which-function-are-we-in)
+
+  (make-local-variable 'ff-special-constructs)
+  (mapc (lambda (pair) (add-to-list 'ff-special-constructs pair))
+	(list
+	 ;; Top level child package declaration; go to the parent package.
+	 (cons (eval-when-compile
+		 (concat "^\\(private[ \t]\\)?[ \t]*package[ \t]+"
+			 "\\(body[ \t]+\\)?"
+			 "\\(\\(\\sw\\|[_.]\\)+\\)\\.\\(\\sw\\|_\\)+[ \t\n]+is"))
+	       (lambda ()
+		 (ff-get-file
+		  ada-search-directories-internal
+		  (ada-make-filename-from-adaname (match-string 3))
+		  ada-spec-suffixes)))
+
+	 ;; A "separate" clause.
+	 (cons "^separate[ \t\n]*(\\(\\(\\sw\\|[_.]\\)+\\))"
+	       (lambda ()
+		 (ff-get-file
+		  ada-search-directories-internal
+		  (ada-make-filename-from-adaname (match-string 1))
+		  ada-spec-suffixes)))
+
+	 ;; A "with" clause. Note that it may refer to a procedure body, as well as a spec
+	 (cons "^with[ \t]+\\([a-zA-Z0-9_\\.]+\\)"
+	       (lambda ()
+		 (ff-get-file
+		  ada-search-directories-internal
+		  (ada-make-filename-from-adaname (match-string 1))
+		  (append ada-spec-suffixes ada-body-suffixes))))
+	 ))
+
+  (set (make-local-variable 'ispell-check-comments) 'exclusive)
+
+  ;;  Support for align
+  (add-to-list 'align-dq-string-modes 'ada-mode)
+  (add-to-list 'align-open-comment-modes 'ada-mode)
+  (set (make-local-variable 'align-region-separate) ada-align-region-separate)
+
+  ;; Exclude comments alone on line from alignment.
+  (add-to-list 'align-exclude-rules-list
+	       '(ada-solo-comment
+		 (regexp  . "^\\(\\s-*\\)--")
+		 (modes   . '(ada-mode))))
+  (add-to-list 'align-exclude-rules-list
+	       '(ada-solo-use
+		 (regexp  . "^\\(\\s-*\\)\\<use\\>")
+		 (modes   . '(ada-mode))))
+
+  (setq align-mode-rules-list ada-align-modes)
+
+  ;;  Set up the contextual menu
+  (if ada-popup-key
+      (define-key ada-mode-map ada-popup-key 'ada-popup-menu))
+
+  (define-abbrev-table 'ada-mode-abbrev-table ())
+  (setq local-abbrev-table ada-mode-abbrev-table)
+
+  (setq major-mode 'ada-mode
+	mode-name "Ada")
+
+  (use-local-map ada-mode-map)
+
+  (easy-menu-add ada-mode-menu ada-mode-map)
+
+  (run-mode-hooks 'ada-mode-hook)
+
+  ;; These are run after ada-mode-hook because users or other ada-*
+  ;; files might set the relevant variable inside the hook
+
+  ;; (if ada-auto-case
+  ;;     (ada-activate-keys-for-case))
+
+  )
+
+
+;;;; Global initializations
 
 ;; FIXME: move these to the corresponding variable inits?
-(ada-create-keymap)
-(ada-create-menu)
-(ada-create-syntax-table)
 (ada-add-extensions ".ads" ".adb")
 
 ;; Setup auto-loading of the other Ada mode files.
@@ -1047,6 +909,14 @@ Return nil if no body was found."
   (ff-find-other-file))
 (defun ada-which-function-are-we-in () "")
 (defvar ada-case-exception-file nil)
+
+;; load indent engine first; compilers may need to know which is being
+;; used (for preprocessor keywords, for example).
+(unless (featurep 'ada-indent-engine)
+  (require 'ada-indent)); FIXME: rename to ada-smie
+
+(unless (featurep 'ada-compiler)
+  (require 'ada-gnat))
 
 (provide 'ada-mode)
 

@@ -1,19 +1,28 @@
 
 with
-  Ada.Text_IO;
-with Ada.Strings.Unbounded; -- FIXME: test 'use' in context clause
+  Ada.Text_IO; -- font-lock doesn't work across newline
+
+-- don't indent this comment with the previous; blank line between
+--EMACSCMD:(font-lock-fontify-buffer)
+--EMACSCMD:(test-face "with" font-lock-keyword-face)
+--EMACSCMD:(test-face "Ada" font-lock-function-name-face)
+with Ada.Strings.Unbounded;
 package Ada_Mode.Nominal is
    --  No comment on the first line, to make sure we can handle that :)
    --  blank on first line, to test beginning-of-buffer logic for "with-context"
 
    -- ada-indent-refine-subprogram calls ada-indent-is-generic-p,
-   -- which scans the entire buffer looking for generic. That can blow
-   -- the lisp stack if enough occurences of unrefined "function" or
-   -- "procedure" are encountered, which is the case is in this
+   -- which can scan the entire buffer looking for generic. That can
+   -- blow the lisp stack if enough occurences of unrefined "function"
+   -- or "procedure" are encountered, which was the case is in this
    -- buffer, when indenting "function Function_2f". So we force
-   -- indenting that first, to test that problem is fixed.
-   --EMACSCMD: (progn (forward-line) (search-forward "function Function_2f") (indent-for-tab-command))
+   -- indenting that first, to test that problem is fixed. EMACSCMD:
+   -- (progn (forward-line) (search-forward "function Function_2f")
+   -- (indent-for-tab-command))
 
+   --EMACSCMD:(test-face "pragma" font-lock-keyword-face)
+   --EMACSCMD:(test-face "Elaborate_Body" font-lock-function-name-face)
+   --EMACSCMD:(test-face "Ada_Mode" 'default)
    pragma Elaborate_Body (Ada_Mode.Nominal);
 
    -- Comment after one line of code; broken versions of the
@@ -35,11 +44,21 @@ package Ada_Mode.Nominal is
    -- sure the indentation engine doesn't hang or crash for odd cases.
 
    -- access to object
+   -- some of the font-lock for this tested by access to function below
+   --EMACSCMD:(test-face "Integer" font-lock-type-face)
    type Object_Access_Type_0a is access Integer;
+   --EMACSCMD:(test-face "all" font-lock-keyword-face)
+   --EMACSCMD:(test-face "Integer" font-lock-type-face)
    type Object_Access_Type_0b is access all Integer;
+   --EMACSCMD:(test-face "not" font-lock-keyword-face)
+   --EMACSCMD:(test-face "null" font-lock-keyword-face)
+   --EMACSCMD:(test-face "Integer" font-lock-type-face)
    type Object_Access_Type_0c is not null access all Integer;
+   --EMACSCMD:(test-face "Integer" font-lock-type-face)
    type Object_Access_Type_0d is not null access constant Integer;
+   --EMACSCMD:(test-face "Integer" font-lock-type-face)
    type Object_Access_Type_0e is access constant Integer;
+   --EMACSCMD:(test-face "Integer" font-lock-type-face)
    type Object_Access_Type_0f is not null access constant Integer;
    type Object_Access_Type_1 is not null access all Integer
      ; -- we don't really care
@@ -50,11 +69,12 @@ package Ada_Mode.Nominal is
    type Object_Access_Type_2c is not null access
      Integer;
    type Object_Access_Type_3a is not null access
-     all Integer;
+     all Integer; -- font-lock not worth fixing here
    type Object_Access_Type_3b is not null access
      -- Comment between keywords
      constant Integer;
    type Object_Access_Type_4 is not null
+     --EMACSCMD:(test-face "Integer" font-lock-type-face)
      access all Integer; -- it no longer matters wither this is 'all' or 'constant'
    type Object_Access_Type_5a is not
      null access all Integer;
@@ -71,6 +91,8 @@ package Ada_Mode.Nominal is
    type Object_Access_Type_9 is access Integer;
 
    -- access to procedure
+   -- most of the font-lock for this is tested by access to function below
+   --EMACSCMD:(test-face "procedure (" font-lock-keyword-face)
    type Procedure_Access_Type_1 is access protected procedure (A_Param : out Integer);
    -- we don't put newline inside the paren here
    type Procedure_Access_Type_2 is access protected procedure
@@ -80,7 +102,9 @@ package Ada_Mode.Nominal is
    type Procedure_Access_Type_4 is access
      protected procedure (A_Param : out Integer);
    type Procedure_Access_Type_5 is
-     access protected procedure (A_Param : out Integer);
+     -- no 'protected' to test that font-lock case
+     --EMACSCMD:(test-face "procedure (" font-lock-keyword-face)
+     access procedure (A_Param : out Integer);
    type Procedure_Access_Type_6
      is access protected procedure (A_Param : out Integer);
    type
@@ -98,10 +122,30 @@ package Ada_Mode.Nominal is
    -- access to function
    --
    -- We covered newline within paren above.
+   --EMACSCMD:(test-face "type" font-lock-keyword-face)
+   --EMACSCMD:(test-face "Function_Access_Type_1a" font-lock-type-face)
+   --EMACSCMD:(test-face "is" font-lock-keyword-face)
+   --EMACSCMD:(test-face "access protected" font-lock-keyword-face)
+   --EMACSCMD:(test-face "protected" font-lock-keyword-face)
+   --EMACSCMD:(test-face "function (" font-lock-keyword-face)
+   --EMACSCMD:(test-face "(" 'default)
+   --EMACSCMD:(test-face "A_Param" 'default)
+   --EMACSCMD:(test-face ":" 'default)
+   --EMACSCMD:(test-face "in" font-lock-keyword-face)
+   --EMACSCMD:(test-face "Float" font-lock-type-face)
+   --EMACSCMD:(test-face "return" font-lock-keyword-face)
+   --EMACSCMD:(test-face "Standard.Float" font-lock-type-face)
    type Function_Access_Type_1a is access protected function (A_Param : in Float) return Standard.Float;
+   --EMACSCMD:(test-face "access Standard.Float" font-lock-keyword-face)
+   --EMACSCMD:(test-face "Standard.Float" font-lock-type-face)
    type Function_Access_Type_1b is access protected function (A_Param : in Float) return access Standard.Float;
+   --EMACSCMD:(test-face "constant Standard.Float" font-lock-keyword-face)
+   --EMACSCMD:(test-face "Standard.Float" font-lock-type-face)
    type Function_Access_Type_1d is access protected function (A_Param : in Float) return access constant Standard.Float;
-   type Function_Access_Type_2a is access protected function (A_Param : in Float) return Standard.
+
+   -- no 'protected' to test that font-lock case
+   --EMACSCMD:(test-face "function (" font-lock-keyword-face)
+   type Function_Access_Type_2a is access function (A_Param : in Float) return Standard.
      Float;
    type Function_Access_Type_2b is access protected function (A_Param : in Float) return Standard
      .Float;
@@ -142,6 +186,11 @@ package Ada_Mode.Nominal is
          return
          Standard.Float;
 
+   --EMACSCMD:(test-face "array (" font-lock-keyword-face)
+   --EMACSCMD:(test-face "Integer" 'default)
+   --EMACSCMD:(test-face "range" font-lock-keyword-face)
+   --EMACSCMD:(test-face "of" font-lock-keyword-face)
+   --EMACSCMD:(test-face "Object_Access_Type_1" font-lock-type-face)
    type Unconstrained_Array_Type_1 is array (Integer range <>, Standard.Character range <>) of Object_Access_Type_1;
    type Unconstrained_Array_Type_2 is array (Integer range <>, Standard.Character range <>) of
      Object_Access_Type_1;
@@ -159,6 +208,10 @@ package Ada_Mode.Nominal is
    -- not really different than unconstrained array, so we only do one.
    type Constrained_Array_Type is array (Character) of Ada.Text_IO.Count;
 
+   --EMACSCMD:(test-face "abstract" font-lock-keyword-face)
+   --EMACSCMD:(test-face "tagged" font-lock-keyword-face)
+   --EMACSCMD:(test-face "limited" font-lock-keyword-face)
+   --EMACSCMD:(test-face "private;" font-lock-keyword-face)
    type Private_Type_1 is abstract tagged limited private;
    type Private_Type_2 is abstract tagged limited
      private;
@@ -174,11 +227,17 @@ package Ada_Mode.Nominal is
    type
      Private_Type_7 is abstract tagged limited null record;
 
+   --EMACSCMD:(test-face "new" font-lock-keyword-face)
+   --EMACSCMD:(test-face "Private_Type_1" font-lock-type-face)
+   --EMACSCMD:(test-face "with" font-lock-keyword-face)
+   --EMACSCMD:(test-face "private;" font-lock-keyword-face)
    type Limited_Derived_Type_1 is abstract limited new Private_Type_1 with private;
    type Limited_Derived_Type_2 is abstract limited new Private_Type_1 with
      private;
    -- rest of Limited_Derived below, due to freezing rules
 
+   --EMACSCMD:(test-face "null record" font-lock-keyword-face)
+   --EMACSCMD:(test-face "record;" font-lock-keyword-face)
    type Null_Record_Type_1 is null record;
    type Null_Record_Type_2 is null
       record;
@@ -197,6 +256,10 @@ package Ada_Mode.Nominal is
 
    ----------
    -- Numeric types
+   --EMACSCMD:(test-face "delta" font-lock-keyword-face)
+   --EMACSCMD:(test-face "0.10" font-lock-constant-face)
+   --EMACSCMD:(test-face "digits" font-lock-keyword-face)
+   --EMACSCMD:(test-face "10;" font-lock-constant-face)
    type Decimal_Fixed_Point_1 is delta 0.10 digits 10;
    type Decimal_Fixed_Point_2 is delta 0.10 digits
      10;
@@ -213,10 +276,14 @@ package Ada_Mode.Nominal is
 
    -- These are not signicantly different, so only one.
    type Floating_Point is digits 10;
+   --EMACSCMD:(test-face "mod " font-lock-keyword-face)
    type Modular_Type is mod 10;
+   --EMACSCMD:(test-face "10.0" font-lock-constant-face)
    type Ordinary_Fixed_Point is delta 0.10 range 10.0 .. 11.0;
    type Signed_Integer_Type is range 10 .. 21;
 
+   --EMACSCMD:(test-face "Subtype_1" font-lock-type-face)
+   --EMACSCMD:(test-face "Signed_Integer_Type" font-lock-type-face)
    subtype Subtype_1 is Signed_Integer_Type range 10 .. 20;
    subtype Subtype_2 is Signed_Integer_Type range 10 ..
      20;

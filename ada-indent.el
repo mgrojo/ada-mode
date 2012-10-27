@@ -43,9 +43,6 @@
 
 ;;;; code
 
-(require 'ada-mode)
-;; FIXME: maybe ada-mode should require the default indentation engine, provide a way for user to override?
-
 (eval-when-compile (require 'cl)); 'case'
 (require 'smie)
 
@@ -3142,7 +3139,7 @@ the start of CHILD, which must be a keyword."
       ))
     ))
 
-;;; smie-indent-functions
+;;;; smie-indent-functions
 ;;
 ;; each must not move point, and must return a column (as an integer) or nil.
 ;;
@@ -3162,22 +3159,23 @@ the start of CHILD, which must be a keyword."
 (defun ada-indent-comment ()
   "Compute indentation of a comment."
   ;; Check to see if we are at a comment
-  (and
-   (smie-indent--bolp)
-   (let ((pos (point)))
-         (save-excursion
-           (beginning-of-line)
-           (and (re-search-forward comment-start-skip (line-end-position) t)
-                (eq pos (or (match-end 1) (match-beginning 0))))))
+  (when
+      (and (smie-indent--bolp)
+	   (let ((pos (point)))
+	     (save-excursion
+	       (beginning-of-line)
+	       (and (re-search-forward comment-start-skip (line-end-position) t)
+		    (eq pos (or (match-end 1) (match-beginning 0)))))))
 
-   ;; yes, we are at a comment; indent to previous code or comment.
-   (save-excursion
-     (forward-comment -1)
+    ;; yes, we are at a comment; indent to previous code or comment.
+    (save-excursion
+
      (cond
-      ((looking-at comment-start)
-       (current-column))
-
-      (t
+      ((or
+	(save-excursion (forward-line -1) (looking-at "\\s *$"))
+	(save-excursion (forward-comment -1)(not (looking-at comment-start))))
+       ;; comment is after a blank line or code; indent as if code
+       ;;
        ;; indent-before-keyword will find the keyword _after_ the
        ;; comment, which could be 'private' for example, and that
        ;; would align the comment with 'private', which is wrong. So
@@ -3199,7 +3197,13 @@ the start of CHILD, which must be a keyword."
 	  (ada-indent-after-keyword)
 	  (ada-indent-default)
 	  )))
-      ))))
+
+      (t
+       ;; comment is after a comment
+       (forward-comment -1)
+       (current-column))
+      ))
+    ))
 
 (defun ada-indent-label ()
   (cond
@@ -3458,15 +3462,18 @@ This lets us know which indentation function succeeded."
 
   (set (make-local-variable 'smie-skip-associative) t)
   ;; we don't want `smie-backward-sexp' to stop at weird places
+  ;; FIXME: this var is in a local patch that won't be in main; do something else
 
-  (set (make-local-variable 'blink-matching-paren) nil)
+  (set (make-local-variable 'smie-blink-matching-inners) nil); too annoying to blink to 'package' on 'is', etc.
+
+  (if debug-on-error
+      (set (make-local-variable 'blink-matching-paren) nil))
   ;; smie-setup puts smie-blink-matching-open on
   ;; post-self-insert-hook; that uses uses blink-matching to blink on
-  ;; all opener/closer pairs.  FIXME: this is just annoying while we
-  ;; are working on this code (it tries to run a broken parser), so we
-  ;; turn it off. Not clear if we want to turn it back on ever! User
-  ;; can set post-self-insert-hook, or blink-matching-paren on
-  ;; ada-mode-hook.
+  ;; all opener/closer pairs.  This is just annoying while we are
+  ;; working on this code (it tries to run a broken parser), so we
+  ;; turn it off. But that also disables blink actual parens, which is
+  ;; useful.
 
   (add-hook 'after-change-functions 'ada-indent-after-change nil t)
 
@@ -3479,5 +3486,6 @@ This lets us know which indentation function succeeded."
 (add-hook 'ada-mode-hook 'ada-indent-setup)
 
 (provide 'ada-indent)
+(provide 'ada-indent-engine)
 
 ;;; end of file
