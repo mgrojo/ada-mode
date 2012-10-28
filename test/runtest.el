@@ -34,7 +34,7 @@
 (defun run-test-here ()
   "Run an ada-mode test on the current buffer."
   (interactive)
-  (let (last-result last-cmd)
+  (let (last-result last-cmd expected-result)
     ;; Look for --EMACS comments in the file:
     ;;
     ;; --EMACSCMD: <form>
@@ -42,9 +42,9 @@
     ;;    for ada-mode options; it can also be used to test other things.
     ;;
     ;; --EMACSRESULT: <form>
-    ;;    <form> is evaluated and compared (using `equal') with the
-    ;;    result of the previous EMACSCMD, and the test fails if they
-    ;;    don't match.
+    ;;    <form> is evaluated inside save-excursion and compared
+    ;;    (using `equal') with the result of the previous EMACSCMD,
+    ;;    and the test fails if they don't match.
 
     (goto-char (point-min))
     (while (re-search-forward "--EMACS\\(CMD\\|RESULT\\):" nil t)
@@ -57,16 +57,16 @@
 
        ((string= (match-string 1) "RESULT")
         (looking-at ".*$")
-        (unless (equal (car (read-from-string (match-string 0))) last-result)
+	(setq expected-result (save-excursion (eval (car (read-from-string (match-string 0))))))
+        (unless (equal expected-result last-result)
           (error
 	   (concat
 	    (buffer-file-name) ":" (format "%d" (count-lines (point-min) (point))) ": "
-	    "Result of "
-	    (with-output-to-string (princ last-cmd))
-	    " does not match.\nGot    '"
-	    (with-output-to-string (princ last-result))
-	    "',\nexpect '" (match-string 0)
-	    "'"))))
+	    (format "Result of '%s' does not match.\nGot    '%s',\nexpect '%s'"
+		    last-cmd
+		    last-result
+		    expected-result)
+	    ))))
 
        (t
         (error (concat "Unexpected command " (match-string 1))))))

@@ -1,4 +1,5 @@
 -- This is to test the indentation of declarations in generics package declarations
+--EMACSCMD:(font-lock-fontify-buffer)
 
 pragma License (GPL);
 
@@ -33,7 +34,16 @@ generic
    -- Objects
    A, B, C : Integer;
    F : in out Float;
+   --EMACSCMD:(test-face "in" font-lock-keyword-face)
+   --EMACSCMD:(test-face "not" font-lock-keyword-face)
+   --EMACSCMD:(test-face "null" font-lock-keyword-face)
+   --EMACSCMD:(test-face "Ada" font-lock-type-face)
    P : in not null Ada.Strings.Unbounded.String_Access;
+   --EMACSCMD:(test-face "in" font-lock-keyword-face)
+   --EMACSCMD:(test-face "out" font-lock-keyword-face)
+   --EMACSCMD:(test-face "not" font-lock-keyword-face)
+   --EMACSCMD:(test-face "null" font-lock-keyword-face)
+   Q : in out not null Ada.Strings.Unbounded.String_Access;
 
    -- Subprograms
    with procedure Concrete_Defaulted_Procedure
@@ -41,11 +51,21 @@ generic
       New_Item : Character)
      is Ada.Strings.Unbounded.Append;
 
+   --EMACSCMD:(test-face "with" font-lock-keyword-face)
+   --EMACSCMD:(test-face "procedure" font-lock-keyword-face)
+   --EMACSCMD:(test-face "Concrete_Defaulted_Procedure_2" font-lock-function-name-face)
+   --EMACSCMD:(test-face "is" font-lock-keyword-face)
    with procedure Concrete_Defaulted_Procedure_2 is <>;
    with procedure Concrete_Defaulted_Procedure_3 is null;
    with procedure Concrete_Procedure;
    with procedure Abstract_Defaulted_Procedure (Item : access Formal_Private_Type) is abstract <>;
    with procedure Abstract_Procedure (Item : out Formal_Private_Type) is abstract;
+   --EMACSCMD:(test-face "with" font-lock-keyword-face)
+   --EMACSCMD:(test-face "function" font-lock-keyword-face)
+   --EMACSCMD:(test-face "Concrete_Function_1" font-lock-function-name-face)
+   --EMACSCMD:(test-face "return" font-lock-keyword-face)
+   --EMACSCMD:(test-face "Float" font-lock-type-face)
+   --EMACSCMD:(test-face "is" font-lock-keyword-face)
    with function Concrete_Function_1 return Float is <>;
    with function Concrete_Function_2 return Float
      is <>;

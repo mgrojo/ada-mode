@@ -1,9 +1,30 @@
 -- A comment before the first code
+--EMACSCMD:(font-lock-fontify-buffer)
 
 with Ada.Strings; -- test two context clauses
-with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
+with Ada.Strings.Unbounded;
+--EMACSCMD:(test-face "use" font-lock-keyword-face)
+--EMACSCMD:(test-face "Ada" font-lock-constant-face)
+use Ada.Strings.Unbounded;
+--EMACSCMD:(test-face "limited" font-lock-keyword-face)
+--EMACSCMD:(test-face "private" font-lock-keyword-face)
+--EMACSCMD:(test-face "with" font-lock-keyword-face)
+--EMACSCMD:(test-face "Ada" font-lock-constant-face)
+limited private with Ada.Strings.Bounded,
+                  Ada.Containers;
+--EMACSCMD:(test-face "limited" font-lock-keyword-face)
+--EMACSCMD:(test-face "with" font-lock-keyword-face)
+--EMACSCMD:(test-face "Ada" font-lock-constant-face)
+limited with Ada.Strings.Bounded,
+             Ada.Containers;
+--EMACSCMD:(test-face "private" font-lock-keyword-face)
+--EMACSCMD:(test-face "with" font-lock-keyword-face)
+--EMACSCMD:(test-face "Ada" font-lock-constant-face)
+private with Ada.Strings.Bounded,
+             Ada.Containers;
 package body Ada_Mode.Nominal is
 
+   --EMACSCMD:(test-face "Ada" font-lock-constant-face)
    use Ada.Strings;
 
    function Function_Access_1
@@ -21,6 +42,7 @@ package body Ada_Mode.Nominal is
        return
        Standard.Float
    is begin
+      --EMACSCMD:(test-face "Function_Access_1" 'default)
       return Function_Access_1'access;
    end Function_Access_11;
 
@@ -30,28 +52,40 @@ package body Ada_Mode.Nominal is
       -- this style); testing that 'protected body' is not a combined
       -- token
 
+      --EMACSCMD:(test-face "Integer" font-lock-type-face)
       function F1 return Integer is
          -- some people like 'is' on the line with 'function' here
 
          function Local_Function return Integer
          is
+            --EMACSCMD:(test-face "exception" font-lock-keyword-face)
             Bad_Thing : exception;
+            --EMACSCMD:(test-face "Boolean" font-lock-type-face)
             Dummy : Boolean;
             pragma Unreferenced (Dummy); -- test ada-indent-statement-or-declaration handling of this in refine-begin
          begin
             if True then
                begin
+                  --EMACSCMD:(test-face "Integer" 'default)
+                  -- "Integer" is in fact a type, but it would require
+                  -- name resolution to figure that out.
                   return Integer (Function_1a);
                exception
+                  --EMACSCMD:(test-face "Constraint_Error" 'default)
                   when E : Constraint_Error =>
-                     return 0;
+                     --EMACSCMD:(test-face "raise" font-lock-keyword-face)
+                     --EMACSCMD:(test-face "Constraint_Error" 'default)
+                     --EMACSCMD:(test-face "with" font-lock-keyword-face)
+                     raise Constraint_Error with
+                       "help!";
                   when
                     Bad_Thing -- ada-mode 4.01 indentation
                     =>        -- ""
-                     return 0;
+                     raise Constraint_Error
+                       with "help!";
                   when
-                    E : others =>
-                     return 1;
+                    E : others => raise
+                      Constraint_Error with "help!";
                end;
             elsif False
             then
@@ -78,6 +112,10 @@ package body Ada_Mode.Nominal is
                when C =>
                   D := B;
                   D := D + B * B;
+                  --EMACSCMD:(test-face "goto" font-lock-keyword-face)
+                  --EMACSCMD:(test-face "Label_1" font-lock-constant-face)
+                  goto Label_1;
+               --EMACSCMD:(test-face "Label_1" font-lock-constant-face)
                <<Label_1>>
                   D := D - Float (F1);
             end case;

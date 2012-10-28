@@ -1,6 +1,6 @@
 ;;; ada-mode.el --- major-mode for editing Ada sources
 ;;
-;; FIXME: this is just the start of a major rewrite; just enough to
+;; FIXME (later): this is just the start of a major rewrite; just enough to
 ;; test the new smie-based ada-indent.el
 ;;
 ;; Also deleted all Xemacs support, and all pre-Emacs 24.2 support.
@@ -60,7 +60,7 @@
 ;; should load that compiler's ada-* file first; that will define
 ;; ada-compiler as a feature, so ada-gnat.el will not be loaded.
 ;;
-;; FIXME: see the user guide at ....
+;; FIXME (later): see the user guide at ....
 
 ;;; History:
 ;; The first Ada mode for GNU Emacs was written by V. Broman in
@@ -133,7 +133,7 @@ Only affects the keywords to highlight."
   :type '(choice (const ada83) (const ada95) (const ada2005) (const ada2012)) :group 'ada)
 
 (defcustom ada-popup-key '[down-mouse-3]
-  ;; FIXME: don't need a var for this
+  ;; FIXME (later, when testing menu): don't need a var for this
   "*Key used for binding the contextual menu.
 If nil, no contextual menu is available."
   :type '(restricted-sexp :match-alternatives (stringp vectorp))
@@ -281,6 +281,9 @@ The extensions should include a `.' if needed.")
     )
   "Syntax table to be used for editing Ada source code.")
 
+(defvar ada-syntax-propertize-hook nil
+  "Hook run from `ada-syntax-propertize'.")
+
 (defun ada-syntax-propertize (start end)
   "Assign `syntax-table' properties in accessible part of buffer.
 In particular, character constants are said to be strings, #...#
@@ -294,9 +297,8 @@ are treated as numbers instead of gnatprep comments."
     (goto-char start)
     (while (re-search-forward
 	    (concat
-	     "^[ \t]*\\(#\\(?:if\\|else\\|elsif\\|end\\)\\)"; 1: gnatprep keywords. FIXME: move to ada-gnat.el
-	     "\\|[^a-zA-Z0-9)]\\('\\)[^'\n]\\('\\)"; 2, 3: character constants, not attributes
-	     "\\|\\(--\\)"; 4: comment start
+	     "[^a-zA-Z0-9)]\\('\\)[^'\n]\\('\\)"; 1, 2: character constants, not attributes
+	     "\\|\\(--\\)"; 3: comment start
 	     )
 	    end t)
       ;; The help for syntax-propertize-extend-region-functions
@@ -306,16 +308,14 @@ are treated as numbers instead of gnatprep comments."
       (cond
        ((match-beginning 1)
 	(put-text-property
-	 (match-beginning 1) (match-end 1) 'syntax-table '(11 . ?\n)))
-       ((match-beginning 2)
+	 (match-beginning 1) (match-end 1) 'syntax-table '(7 . ?'))
 	(put-text-property
-	 (match-beginning 2) (match-end 2) 'syntax-table '(7 . ?'))
+	 (match-beginning 2) (match-end 2) 'syntax-table '(7 . ?')))
+       ((match-beginning 3)
 	(put-text-property
-	 (match-beginning 3) (match-end 3) 'syntax-table '(7 . ?')))
-       ((match-beginning 4)
-	(put-text-property
-	 (match-beginning 4) (match-end 4) 'syntax-table '(11 . nil)))
+	 (match-beginning 3) (match-end 3) 'syntax-table '(11 . nil)))
        ))
+    (run-hook-with-args 'ada-syntax-propertize-hook start end)
     (unless modified
       (restore-buffer-modified-p nil))))
 
@@ -339,7 +339,7 @@ point is where the mouse button was clicked."
 
   ;; don't let context menu commands deactivate the mark (which would
   ;; hide the region in transient-mark-mode), even if they normally
-  ;; would. FIXME: why is this a good idea?
+  ;; would. FIXME (later, when testing menu): why is this a good idea?
   (let ((deactivate-mark nil))
     (setq ada-contextual-menu-last-point
 	 (list (point) (current-buffer)))
@@ -355,7 +355,7 @@ point is where the mouse button was clicked."
 	       ))
     (popup-menu ada-contextual-menu)
 
-    ;; FIXME: is this necessary? what do context menus do by default?
+    ;; FIXME (later, when testing menu): is this necessary? what do context menus do by default?
     (set-buffer (cadr ada-contextual-menu-last-point))
     (goto-char (car ada-contextual-menu-last-point))
     ))
@@ -378,7 +378,7 @@ If POSTFIX and JUSTIFY are non-nil, `ada-fill-comment-postfix' is appended
 to each line filled and justified.
 The paragraph is indented on the first line."
   (interactive "P")
-  ;; FIXME: canonical `fill-paragraph' has gotten better; try it.
+  ;; FIXME (later): canonical `fill-paragraph' has gotten better; try it.
   ;; check if inside comment or just in front a comment
   (if (and (not (ada-in-comment-p))
 	   (not (looking-at "[ \t]*--")))
@@ -555,7 +555,11 @@ or the spec otherwise."
 
 	;;  If we are using project file, search for the other file in all
 	;;  the possible src directories.
-	;;  FIXME: better function name, allow other projects (see c-parse-prj-file)
+
+	;;  FIXME (later):
+	;;  better function name than ada-find-src-file-in-dir?
+	;;  allow other projects (see c-parse-prj-file, EDE?)
+	;;  move to ada-prj?, hook for ada-prj?
 
 	(if (fboundp 'ada-find-src-file-in-dir)
 	    (let ((other
@@ -576,7 +580,9 @@ or the spec otherwise."
   (if ff-function-name
       (progn
 	(goto-char (point-min))
-	;; FIXME: don't have ada-search-ignore-string-comment anymore; move this to ada-indent?
+	;; FIXME (later, when testing this): don't have
+	;; ada-search-ignore-string-comment anymore; move this to
+	;; ada-indent to be more accurate?
 	(unless (ada-search-ignore-string-comment
 		 (concat ff-function-name "\\b") nil)
 	  (goto-char (point-min))))))
@@ -589,9 +595,9 @@ Return nil if no body was found."
 
   (unless spec-name (setq spec-name (buffer-file-name)))
 
-  ;; Remove the spec extension. We can not simply remove the file extension, FIXME: why?
+  ;; Remove the spec extension. We can not simply remove the file extension, FIXME (later, when testing): why?
   ;; but we need to take into account the specific non-GNAT extensions that the
-  ;; user might have specified. FIXME: move gnat-specific to ada-gnat.
+  ;; user might have specified. FIXME: move gnat-specific to ada-gnat, or ada-prj for ada-search-directories.
 
   (let ((suffixes ada-spec-suffixes)
 	end)
@@ -642,8 +648,6 @@ Return nil if no body was found."
 	"task[ \t]+body\\|"
 	"task[ \t]+type\\|"
 	"task\\|"
-	"with[ \t]+private\\|"
-	"with"
 	)
       (when (member ada-language-version '(ada95 ada2005 ada2012))
 	'("\\|"
@@ -666,30 +670,32 @@ Return nil if no body was found."
 	  "access\\|"
 	  "constant\\|"
 	  "in[ \t]+reverse\\|"; loop iterator
+	  "in[ \t]+not[ \t]+null\\|"
+	  "in[ \t]+out[ \t]+not[ \t]+null\\|"
 	  "in[ \t]+out\\|"
 	  "in\\|"
-	  "return[ \t]+access[ \t]+constant\\|"
-	  "return[ \t]+access\\|"
-	  "return\\|"
+	  ;; "return\\|" can't distinguish between 'function ... return <type>;' and 'return ...;'
+	  ;; An indentation engine can, so a rule for this is added there
 	  "of\\|"
 	  "out\\|"
 	  "subtype\\|"
 	  "type"
 	  "\\)\\>[ \t]*"
-	  "\\(\\sw+\\(\\.\\sw*\\)*\\)?")
+	  ada-font-lock-name-regexp "?")
 	 '(1 font-lock-keyword-face nil t) '(2 font-lock-type-face nil t))
 
-   ;; keywords not treated elsewhere. FIXME: why is this not first?
+   ;; Keywords not treated elsewhere. After above so it doesn't
+   ;; override fontication of second or third word in those patterns.
    (list (concat
    	  "\\<"
    	  (regexp-opt
    	   (append
-   	    '("abort" "abs" "accept" "access" "all"
+   	    '("abort" "abs" "accept" "all"
    	      "and" "array" "at" "begin" "case" "declare" "delay" "delta"
    	      "digits" "do" "else" "elsif" "entry" "exception" "exit" "for"
    	      "generic" "if" "in" "limited" "loop" "mod" "not"
    	      "null" "or" "others" "private" "raise"
-   	      "range" "record" "rem" "renames" "return" "reverse"
+   	      "range" "record" "rem" "renames" "reverse"
    	      "select" "separate" "task" "terminate"
    	      "then" "when" "while" "xor")
    	    (when (member ada-language-version '(ada95 ada2005 ada2012))
@@ -702,6 +708,17 @@ Return nil if no body was found."
    	   t)
    	  "\\>")
    	 '(0 font-lock-keyword-face))
+
+   ;; object and parameter declarations; word after ":" should be in
+   ;; type-face if not already fontified or an exception.
+   (list (concat
+	  ":[ \t]*"
+	  ada-font-lock-name-regexp
+	  "[ \t]*\\(=>\\)?")
+     '(1 (if (match-beginning 2)
+	     'default
+	   font-lock-type-face)
+	 nil t))
 
    ;; keywords followed by a name that should be in function-name-face if not already fontified
    (list (concat
@@ -731,15 +748,21 @@ Return nil if no body was found."
 	       font-lock-type-face)
 	     nil t))
 
-   ;; Keywords followed by a (comma separated list of) reference.
-   ;; Note that font-lock only works on single lines, thus we can not
-   ;; correctly highlight a with_clause that spans multiple lines.
-   (list (concat "\\<\\(goto\\|raise\\|use\\|with\\)"
-		 "[ \t]+\\([a-zA-Z0-9_., \t]+\\)\\W")
-	 '(1 font-lock-keyword-face) '(2 font-lock-reference-face nil t))
+   ;; Keywords followed by a comma separated list of names which
+   ;; should be in constant-face, unless already fontified. Ada mode 4.01 used this.
+   (list (concat
+   	  "\\<\\("
+   	  "goto\\|"
+   	  "use\\|"
+   	  ;; don't need "limited" "private" here; they are matched separately
+   	  "with"; context clause
+   	  "\\)\\>[ \t]*"
+   	  "\\(\\(?:\\sw\\|[_., \t]\\)+\\>\\)?"; ada-font-lock-name-regexp, plus ", \t"
+   	  )
+   	 '(1 font-lock-keyword-face) '(2 font-lock-constant-face nil t))
 
    ;; statement labels
-   '("<<\\(\\sw+\\)>>" 1 font-lock-reference-face)
+   '("<<\\(\\sw+\\)>>" 1 font-lock-constant-face)
 
    ;; based numberic literals
    (list "\\([0-9]+#[0-9a-fA-F_]+#\\)" '(1 font-lock-constant-face t))

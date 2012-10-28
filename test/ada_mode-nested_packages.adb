@@ -2,10 +2,16 @@
 -- when in subblocks.
 --
 -- Also other stuff
+--EMACSCMD:(font-lock-fontify-buffer)
 
-with Ada.Directories;
-with Ada.Text_IO;
-with Ada_Mode.Nominal;
+--EMACSCMD:(test-face "Ada.Directories" font-lock-constant-face)
+--EMACSCMD:(test-face "Ada.Text_IO" font-lock-constant-face)
+--EMACSCMD:(test-face "Ada_Mode.Nominal" font-lock-constant-face)
+with Ada.Directories, Ada.Text_IO, Ada_Mode.Nominal;
+--EMACSCMD:(test-face "Ada.Directories" font-lock-constant-face)
+--EMACSCMD:(test-face "Ada.Text_IO" font-lock-constant-face)
+--EMACSCMD:(test-face "Ada_Mode.Nominal" font-lock-constant-face)
+use  Ada.Directories, Ada.Text_IO, Ada_Mode.Nominal;
 package body Ada_Mode.Nested_Packages is
 
    function "*" (Left, Right : in Ada_Mode.Nominal.Floating_Point) return Ada_Mode.Nominal.Floating_Point
@@ -17,6 +23,10 @@ package body Ada_Mode.Nested_Packages is
       function Create (Model   : in Integer;
                        Context : in String) return String is
          -- Anonymous array
+         --EMACSCMD:(test-face "array" font-lock-keyword-face)
+         --EMACSCMD:(test-face "1" font-lock-constant-face)
+         --EMACSCMD:(test-face "of" font-lock-keyword-face)
+         --EMACSCMD:(test-face "Boolean" font-lock-type-face)
          Cache : array (1 .. 10) of Boolean := (True, False, others => False);
          Strlist : String (1 .. 2);
       begin

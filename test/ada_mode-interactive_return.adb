@@ -7,6 +7,18 @@
 --EMACSCMD:(setq skip-reindent-test t)
 procedure Procedure_1
 is
+   -- Adding text inside a comment must not leave ada-indent-cache-max inside comment
+   --EMACSCMD:(progn (beginning-of-line)(forward-comment 100)(ada-indent-validate-cache (point)))
+   --EMACSCMD:(progn (beginning-of-line)(forward-comment -2)(forward-word 1)(insert "some text")ada-indent-cache-max)
+   --EMACSRESULT:(progn (forward-line -3)(skip-syntax-forward "\\s ")(point))
+
+   -- Ditto string
+   A : constant String :=
+     "hi there!";
+   --EMACSCMD:(progn (beginning-of-line)(forward-comment 100)(ada-indent-validate-cache (point)))
+   --EMACSCMD:(progn (forward-line -2)(end-of-line)(forward-word -1)(insert "some text")ada-indent-cache-max)
+   --EMACSRESULT:(progn (forward-line -3)(skip-syntax-forward "\\s ")(point))
+
    -- Newline before a blank line followed by code used to indent to 5
    --EMACSCMD:(progn (forward-line 1)(end-of-line) (newline-and-indent)(current-column))
 

@@ -46,18 +46,18 @@ runtest from emacs -q:
 
  current
 test/Makefile
-(point-at-bol) (point-at-eol)
-
-review FIXMEs
+review FIXMEs, add (later)
+(grep-find "find . -type f -print | \"xargs\" grep -nH \"FIXME:\"")
     ada-indent.el done
-    ada-mode.el   done this pass
+    ada-mode.el
+
+(point-at-bol) (point-at-eol)
 
 test/test-indent.sh
     /tmp/gds_indent
     need to add user settings
 
 rest of ada-mode
-    syntax-propertize
 
 ask for input/testing
     run on my projects
@@ -96,8 +96,6 @@ doesn't return "(" as it should
 remaining expressions?
 remaining statements?
 task entry with index; body has "for"
-
-look for remaining non-terminals in Annex P
 
 test "function-overriding" "function-separate", "procedure-*"  as instantiations
 

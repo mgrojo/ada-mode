@@ -10,15 +10,20 @@ procedure Gnatprep is
 
 begin
    if A = 1 then
+      -- Can't use 'test-face' here because it skips comments, and gnatprep lines have comment syntax.
       --EMACSCMD:(progn (forward-line 1)(face-at-point))
 #if Gnat_Compiler
       --EMACSRESULT:font-lock-type-face
       A := 1;
+      --EMACSCMD:(progn (forward-line 1)(syntax-class (syntax-after (point))))
 #elsif Other_Compiler
+      --EMACSRESULT:11
       A := 2;
 #else
       B := 3;
+      --EMACSCMD:(progn (forward-line 1)(face-at-point))
 #end if;
+      --EMACSRESULT:font-lock-type-face
       A := 3;
 
    end if;

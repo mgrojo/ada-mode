@@ -106,7 +106,7 @@ package body Test is -- fontified correctly, but in
    package Test is
 
       procedure Toto (Un : in Integer;
-                      Deux : in Integer) is private;
+                      Deux : in Integer);
 
       procedure Tata;
 

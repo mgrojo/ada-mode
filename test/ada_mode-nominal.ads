@@ -5,8 +5,25 @@ with
 -- don't indent this comment with the previous; blank line between
 --EMACSCMD:(font-lock-fontify-buffer)
 --EMACSCMD:(test-face "with" font-lock-keyword-face)
---EMACSCMD:(test-face "Ada" font-lock-function-name-face)
+--EMACSCMD:(test-face "Ada" font-lock-constant-face)
 with Ada.Strings.Unbounded;
+--EMACSCMD:(test-face "limited" font-lock-keyword-face)
+--EMACSCMD:(test-face "private" font-lock-keyword-face)
+--EMACSCMD:(test-face "with" font-lock-keyword-face)
+--EMACSCMD:(test-face "Ada.Strings" font-lock-constant-face)
+limited private with Ada.Strings.Bounded,
+                  --EMACSCMD:(test-face "Ada.Containers" 'default)
+                  Ada.Containers;
+--EMACSCMD:(test-face "limited" font-lock-keyword-face)
+--EMACSCMD:(test-face "with" font-lock-keyword-face)
+--EMACSCMD:(test-face "Ada" font-lock-constant-face)
+limited with Ada.Strings.Bounded,
+          Ada.Containers;
+--EMACSCMD:(test-face "private" font-lock-keyword-face)
+--EMACSCMD:(test-face "with" font-lock-keyword-face)
+--EMACSCMD:(test-face "Ada" font-lock-constant-face)
+private with Ada.Containers.Vectors,
+          Ada.Containers.Bounded_Doubly_Linked_Lists;
 package Ada_Mode.Nominal is
    --  No comment on the first line, to make sure we can handle that :)
    --  blank on first line, to test beginning-of-buffer logic for "with-context"
@@ -302,6 +319,7 @@ package Ada_Mode.Nominal is
       -- only two examples, to get 'protected' and 'is-entry_body' into grammar
 
       function F1 return Integer;
+      --EMACSCMD:(test-face "Discrete_Type_1" font-lock-type-face)
       function F2 (Param_1 : Discrete_Type_1; B : Float) return Float;
       entry E1
         (X : Integer);
@@ -317,6 +335,7 @@ package Ada_Mode.Nominal is
 
       -- More than three objects, to be sure we are handling
       -- indefinite lists of objects properly
+      --EMACSCMD:(test-face "Integer" font-lock-type-face)
       Local_1 : Integer;
       Local_2 : Integer;
       Local_3 : Integer;
@@ -329,6 +348,7 @@ package Ada_Mode.Nominal is
 
    protected Buffer is
       -- a single_protected_type
+      --EMACSCMD:(test-face "Character" font-lock-type-face)
       entry Read (C : out Character);
       entry Write (C : in  Character);
    private

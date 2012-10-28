@@ -45,6 +45,18 @@ Intended to be added to `smie-indent-functions'."
   ;; they are all indented at column 0.
   (when (equal (char-after) ?\#) 0))
 
+(defun ada-gnat-syntax-propertize (start end)
+  (goto-char start)
+  (while (re-search-forward
+	  "^[ \t]*\\(#\\(?:if\\|else\\|elsif\\|end\\)\\)"; 1: gnatprep keywords.
+	  end t)
+    (cond
+     ((match-beginning 1)
+      (put-text-property
+       (match-beginning 1) (match-end 1) 'syntax-table '(11 . ?\n)))
+     )
+    ))
+
 (defun ada-compile-mouse-goto-error ()
   "Mouse interface for `ada-compile-goto-error'."
   (interactive)
@@ -53,7 +65,7 @@ Intended to be added to `smie-indent-functions'."
   )
 
 (defun ada-compile-goto-error (pos)
-  ;; FIXME: do this in compilation-parse-error instead
+  ;; FIXME (later): do this in compilation-parse-error instead
   "Replace `compile-goto-error' from compile.el.
 If POS is on a file and line location, go to this position.  It adds
 to compile.el the capacity to go to a reference in an error message.
@@ -109,7 +121,7 @@ the 4 file locations can be clicked on and jumped to."
 
   ;; (add-hook 'compilation-mode-hook
   ;; 	    (lambda()
-  ;; 	      ;; FIXME: This has global impact!  -stef
+  ;; 	      ;; FIXME (later): This has global impact!  -stef
   ;; 	      ;; add the extra error points in compilation-error-regexp
   ;; 	      ;; Mouse-2 is bound to compile-goto-error
   ;; 	      (define-key compilation-minor-mode-map [mouse-2]
@@ -123,6 +135,8 @@ the 4 file locations can be clicked on and jumped to."
   (font-lock-add-keywords nil
    ;; gnatprep preprocessor line
    (list (list "^[ \t]*\\(#.*\n\\)"  '(1 font-lock-type-face t))))
+
+  (add-hook 'ada-syntax-propertize-hook 'ada-gnat-syntax-propertize)
 
   (when (featurep 'ada-indent)
     ;; we don't use add-hook here, because we don't want the global value.
