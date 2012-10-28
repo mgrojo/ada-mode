@@ -1,59 +1,57 @@
---  Tests the variables ada-indent-return and ada-indent-renames
+--  Tests the variables ada-indent-return and ada-indent-renames.
 --  The default value for ada-indent-return (the one used in this file)
 --  is 0, which means indent on the open parenthesis for the function, or
---  use ada-broken-indent if there is no parenthesis.
---
---  FIXME: also need to test with -return negative and -renames 0.
---  FIXME: rest of tests use default; do we need to repeat that here?
---
---  See ada_mode-options-indent_return_1.ads for positive values of
---  ada-indent-return.
+--  use ada-indent-broken if there is no parenthesis.
+
+--  See ada_mode-options-indent_return_1.ads, _2.ads for other values of
+--  ada-indent-return, ada-indent-renames.
 --  (ediff "ada_mode-options-indent_return_1.ads" "ada_mode-options-indent_return_2.ads")
+--  (ediff "ada_mode-options-indent_return_1.ads" "ada_mode-options-indent_return_3.ads")
 
---EMACSCMD (setq ada-indent-return 0)
---EMACSCMD (setq ada-indent-renames 2)
+--EMACSCMD: (setq ada-indent-broken 3)
+--EMACSCMD: (setq ada-indent-return 0)
+--  <= 0 indents relative to the open parenthesis
+--EMACSCMD: (setq ada-indent-renames 2)
+--  > 0 indents relative to the "function" or "procedure" keyword
 package Ada_Mode.Options.Indent_Return_1 is
-
-   ------------------------------------------------------
-   --  Use the default value of 0 for ada-indent-return
-   ------------------------------------------------------
 
    function A return Integer;
    function B
-     return Integer;   --  from ada-indent-broken
+      return Integer;   -- from ada-indent-broken (or ada-indent-return if > 0)
 
    function C (B : Integer) return Integer;
    function D (B : Integer)
-              return Integer;   --  from ada-indent-return
+              return Integer;   -- from ada-indent-return
 
    function E (B : Integer;
                C : Integer) return Integer;
    function F (B : Integer;
                C : Integer)
-              return Integer;
+              return Integer;   -- from ada-indent-return
 
-   type G is access function (C : Integer)
-                             return Integer;
+   type G is access function
+                       return Integer; -- from ada-indent-broken/return
 
-   procedure H (B : access function (C : Integer)
-                                    return Integer);   --  from ?????
+   type H is access function (C : Integer)
+                             return Integer;  -- from ada-indent-return
+
+   procedure I (B : access function (C : Integer)
+                                    return Integer);  -- from ada-indent-return
 
    generic
       with function J (B : Integer)
                       return Integer;   --  from ada-indent-return
       with function K
-             return Integer;   --  from ada-indent-broken
+              return Integer;   --  from ada-indent-broken/return
    package L is
    end L;
 
-   ------------------------------------------------------
-   --  Use the default value of 2 for ada-indent-renames
-   ------------------------------------------------------
+   --  Renaming
 
    function AR return Integer renames A;
    function BR
-     return Integer   --  from ada-indent-broken
-     renames B;  --  from ada-indent-renames
+      return Integer   --  from ada-indent-broken/return
+     renames B;  --  from ada-indent-broken (or ada-indent-renames if > 0)
 
    function CR (B : Integer) return Integer renames C;
    function DR (B : Integer)
@@ -65,6 +63,18 @@ package Ada_Mode.Options.Indent_Return_1 is
    function FR (B : Integer;
                 C : Integer)
                return Integer
-     renames F;
+     renames F;  --  from ada-indent-renames
+
+   -- see ada_mode-nominal-child.ads for 'overriding function ... renames'
+
+   procedure P;
+   procedure PR
+     renames P;  -- from ada-indent-broken/renames
+
+   procedure Q (X : Integer);
+   procedure QR (X : Integer)
+     renames Q;  -- from ada-indent-renames
+
+   -- see ada_mode-nominal-child.ads for 'overriding procedure ... renames'
 
 end Ada_Mode.Options.Indent_Return_1;
