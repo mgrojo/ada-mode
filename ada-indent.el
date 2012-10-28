@@ -583,10 +583,14 @@ An example is:
 
       (subprogram_declaration
        ("function-spec" name "return-spec" name)
-       ("function-spec" name "return-spec" name "renames-function" name)
-       ;; trailing name makes "return-spec" have the same binding as
+       ;; Trailing name makes "return-spec" have the same binding as
        ;; in subprogram_body; that avoids recursion between refine-is
-       ;; and refine-return. Covers subprogram_renaming_declaration function
+       ;; and refine-return.
+
+       ("procedure-spec" name); same as 'procedure name is-subprogram_body'
+       ;; We leave out ("procedure" name "is" "null") here; we
+       ;; are treating a couple of occurences of "is", and most
+       ;; occurences of "null", as identifiers.
 
        ("overriding" "function-overriding" name "return-spec" name)
        ("overriding" "procedure-overriding" name)
@@ -596,13 +600,17 @@ An example is:
        ;;    overriding
        ;;    procedure (...);
 
-       ("procedure-spec" name); same as 'procedure name is-subprogram_body'
-       ("procedure-spec" name "renames-procedure" name)
-       ;; Covers subprogram_renaming_declaration procedure.
+       ("function-spec" name "return-spec" name "renames-subprogram" name)
+       ("procedure-spec" name "renames-subprogram" name)
+       ("overriding" "function-overriding" name "return-spec" name "renames-subprogram" name)
+       ("overriding" "procedure-overriding" name "renames-subprogram" name)
+       ;; Subprogram renamings.
        ;;
-       ;; We leave out ("procedure" name "is" "null") here; we
-       ;; are treating a couple of occurences of "is", and most
-       ;; occurences of "null", as identifiers.
+       ;; NB!!! Indenting seems to work just fine without the last two
+       ;; lines here. This is presumably because refining and
+       ;; indenting both rely only on unrefined keywords (but would
+       ;; mean that the parsed source code would correspond to this
+       ;; statement of the syntax anyway).
        )
 
       (subtype_declaration
@@ -1783,9 +1791,8 @@ when found token is an element of TARGETS, return that token."
   (save-excursion
     (when forward (smie-default-backward-token))
 
-    ;; 1) [overriding] function renaming: "renames-function"
-    ;; 2) [overriding] procedure renaming: "renames-procedure"
-    ;; 3) anywhere else: "renames-other"
+    ;; 1) [overriding] subprogram renaming: "renames-subprogram"
+    ;; 2) anywhere else: "renames-other"
 
     (let ((parent (progn
                     (ada-indent-goto-parent token 1)
@@ -1793,8 +1800,7 @@ when found token is an element of TARGETS, return that token."
       (if (equal parent "overriding")
           (progn (setq parent (smie-default-forward-token))))
       (cond
-       ((equal parent "function") "renames-function")    ; 1
-       ((equal parent "procedure") "renames-procedure")  ; 2
+       ((member parent '("function" "procedure")) "renames-subprogram")    ; 1
        (t "renames-other")
        ))
     ))
@@ -2841,77 +2847,45 @@ the start of CHILD, which must be a keyword."
        ;; :after.
        (ada-indent-rule-statement ada-indent-record-rel-type arg))
 
-      ((equal arg "renames-function")
+      ((equal arg "renames-subprogram")
        (let (
-             ;; Find the start of the parameters (nil if none)
-             (parameter-start (save-excursion
-                                ;; Skip "return"
-                                (ada-indent-backward-keyword)
-                                (smie-backward-sexp)
-                                (if (equal (char-after) ?\()
-                                    (current-column)
-                                  nil)))
-             ;; Find the "function" keyword's start column
-             (function-col (save-excursion
-                             (ada-indent-goto-parent arg 1)
-                             (while (not (equal
-                                          (smie-default-forward-token)
-                                          "function"))
-                               nil)
-                             (smie-default-backward-token)
-                             (current-column)))
+             ;; We need to skip "return" when looking for parameters if
+             ;; this subprogram is a function, so remember the keyword
+             ;; we found while calculating subprogram-col below.
+             (keyword)
              )
+         (let* (
+                ;; Find the subprogram keyword's start column
+                (subprogram-col (save-excursion
+                                  (setq keyword
+                                        (ada-indent-backward-tokens-unrefined
+                                         "function" "procedure"))
+                                        (current-column)))
+                ;; Find the start of the parameters (nil if none)
+                (parameter-col (save-excursion
+                                 (if (equal keyword "function")
+                                     ;; Skip "return"
+                                     (ada-indent-backward-keyword))
+                                 (smie-backward-sexp)
+                                 (if (equal (char-after) ?\()
+                                     (current-column)
+                                   nil)))
+                )
 
-         (cond ((<= ada-indent-renames 0)
-                ;; If 'ada-indent-renames' is zero or negative, then
-                (cond ((null parameter-start)
-                       ;; No parameters; use 'ada-indent-broken' from
-                       ;; "function".
-                       (cons 'column (+ function-col ada-indent-broken)))
-                      (t
-                       ;; Parameters: indent relative to the "(".
-                       (cons 'column (- parameter-start ada-indent-renames)))))
-
-               (t
-                (cons 'column (+ function-col ada-indent-renames))))
-       ))
-
-      ((equal arg "renames-procedure")
-       ;; Similar to handling required for "renames-function", but
-       ;; (a) here there's no "return" to skip while looking for the
-       ;; start of the parameters,
-       ;; (b) we're looking for "procedure" instead of "function".
-       (let (
-             ;; Find the start of the parameters (nil if none)
-             (parameter-start (save-excursion
-                                (smie-backward-sexp)
-                                (if (equal (char-after) ?\()
-                                    (current-column)
-                                  nil)))
-             ;; Find the "procedure" keyword's start column
-             (procedure-col (save-excursion
-                              (ada-indent-goto-parent arg 1)
-                              (while (not (equal
-                                           (smie-default-forward-token)
-                                           "procedure"))
-                                nil)
-                              (smie-default-backward-token)
-                              (current-column)))
-             )
-
-         (cond ((<= ada-indent-renames 0)
-                ;; If 'ada-indent-renames' is zero or negative, then
-                (cond ((null parameter-start)
-                       ;; No parameters; use 'ada-indent-broken' from
-                       ;; "function".
-                       (cons 'column (+ procedure-col ada-indent-broken)))
-                      (t
-                       ;; Parameters: indent relative to the "(".
-                       (cons 'column (- parameter-start ada-indent-renames)))))
-
-               (t
-                (cons 'column (+ procedure-col ada-indent-renames))))
-       ))
+           (cond ((<= ada-indent-renames 0)
+                  ;; If 'ada-indent-renames' is zero or negative, then
+                  (cond ((null parameter-col)
+                         ;; No parameters; use 'ada-indent-broken' from
+                         ;; subprogram keyword.
+                         (cons 'column (+ subprogram-col ada-indent-broken)))
+                        (t
+                         ;; Parameters: indent relative to the "(".
+                         (cons 'column (- parameter-col ada-indent-renames)))))
+                 ;; If 'ada-indent-renames' is positive, indent from
+                 ;; the subprogram keyword.
+                 (t
+                  (cons 'column (+ subprogram-col ada-indent-renames))))
+           )))
 
       ((member arg '("return-spec" "return-formal"))
        ;; Function declaration, function body, or access-to-function
