@@ -45,7 +45,7 @@ COMPILE_FILES := $(filter-out ada_mode-ada83.ads, $(COMPILE_FILES))# font-lock o
 # This has incomplete code deliberately; used for interactive editing test (via EMACSCMD)
 COMPILE_FILES := $(filter-out ada_mode-interactive_return.adb, $(COMPILE_FILES))
 
-# This has some illegal code, left that way to test graceful handling in ada-indent
+# This has some illegal code, left that way to test graceful handling in ada-smie
 COMPILE_FILES := $(filter-out mats_weber_bugs.adb, $(COMPILE_FILES))
 
 COMPILE_FILES := $(filter-out g-comlin.adb, $(COMPILE_FILES))# copied from gnat runtime; gnat won't compile it!
@@ -69,10 +69,10 @@ test : $(addsuffix .diff, $(TEST_FILES))
 
 .PRECIOUS : %.adb.tmp %.ads.tmp
 
-%.adb.tmp : %.adb ../ada-indent.el
+%.adb.tmp : %.adb ../ada-smie.el
 	$(EMACS) -Q -batch -L .. -l runtest.el --eval '(run-test "$<")'
 
-%.ads.tmp : %.ads ../ada-indent.el
+%.ads.tmp : %.ads ../ada-smie.el
 	$(EMACS) -Q -batch -L .. -l runtest.el --eval '(run-test "$<")'
 
 COMPILE_FILES := $(COMPILE_FILES:.adb=.ali)

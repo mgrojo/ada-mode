@@ -8,4 +8,8 @@ package body Ada_Mode is
 
    task body Separate_Task_Body is separate;
 
+   procedure Separate_Procedure is separate;
+
+   function Separate_Function return Integer is separate;
+
 end Ada_Mode;

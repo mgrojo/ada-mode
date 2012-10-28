@@ -7,16 +7,16 @@
 --EMACSCMD:(setq skip-reindent-test t)
 procedure Procedure_1
 is
-   -- Adding text inside a comment must not leave ada-indent-cache-max inside comment
-   --EMACSCMD:(progn (beginning-of-line)(forward-comment 100)(ada-indent-validate-cache (point)))
-   --EMACSCMD:(progn (beginning-of-line)(forward-comment -2)(forward-word 1)(insert "some text")ada-indent-cache-max)
+   -- Adding text inside a comment must not leave ada-smie-cache-max inside comment
+   --EMACSCMD:(progn (beginning-of-line)(forward-comment 100)(ada-smie-validate-cache (point)))
+   --EMACSCMD:(progn (beginning-of-line)(forward-comment -2)(forward-word 1)(insert "some text")ada-smie-cache-max)
    --EMACSRESULT:(progn (forward-line -3)(skip-syntax-forward "\\s ")(point))
 
    -- Ditto string
    A : constant String :=
      "hi there!";
-   --EMACSCMD:(progn (beginning-of-line)(forward-comment 100)(ada-indent-validate-cache (point)))
-   --EMACSCMD:(progn (forward-line -2)(end-of-line)(forward-word -1)(insert "some text")ada-indent-cache-max)
+   --EMACSCMD:(progn (beginning-of-line)(forward-comment 100)(ada-smie-validate-cache (point)))
+   --EMACSCMD:(progn (forward-line -2)(end-of-line)(forward-word -1)(insert "some text")ada-smie-cache-max)
    --EMACSRESULT:(progn (forward-line -3)(skip-syntax-forward "\\s ")(point))
 
    -- Newline before a blank line followed by code used to indent to 5
@@ -29,7 +29,7 @@ is
    --EMACSRESULT:3
 
    -- error from is-generic-p refining Function_11 while entering body of Function_Access_1
-   -- fixed by 'if ada-indent-debug-refine'
+   -- fixed by 'if ada-smie-debug-refine'
    --EMACSCMD:(progn (forward-line 5)(newline-and-indent)(current-column))
    function Function_Access_1 
      (A_Param : in Float)
@@ -53,7 +53,7 @@ is
    --EMACSCMD:(progn (forward-line 1)(back-to-indentation)(forward-char 2) (comment-indent-new-line)(current-column))
    --
    -- is; used to cause an unrecognized "is" because indent-according-to-mode is called with the comment text exposed!
-   -- fixed by ada-indent-comment-indent.
+   -- fixed by ada-smie-comment-indent.
 
 end Procedure_1;
 

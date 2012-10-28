@@ -44,15 +44,9 @@ runtest from emacs -q:
 (shell-send-string "~/bin/mtn_sync_ada_france.sh" "*bash*")
 (xmtn-sync-review)
 
- current
-test/Makefile
-review FIXMEs, add (later)
+review FIXMEs
 (grep-find "find . -type f -print | \"xargs\" grep -nH \"FIXME:\"")
-    ada-indent.el done
-    ada-mode.el
-
-rename to ada-smie
-
+ current
 anonymous array
 
 (point-at-bol) (point-at-eol)
@@ -60,6 +54,8 @@ anonymous array
 test/test-indent.sh
     /tmp/gds_indent
     need to add user settings
+
+test/Makefile
 
 rest of ada-mode
 

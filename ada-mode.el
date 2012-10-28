@@ -584,7 +584,7 @@ or the spec otherwise."
 	(goto-char (point-min))
 	;; FIXME (later, when testing this): don't have
 	;; ada-search-ignore-string-comment anymore; move this to
-	;; ada-indent to be more accurate?
+	;; ada-smie to be more accurate?
 	(unless (ada-search-ignore-string-comment
 		 (concat ff-function-name "\\b") nil)
 	  (goto-char (point-min))))))
@@ -899,7 +899,7 @@ Return nil if no body was found."
 ;; load indent engine first; compilers may need to know which is being
 ;; used (for preprocessor keywords, for example).
 (unless (featurep 'ada-indent-engine)
-  (require 'ada-indent)); FIXME: rename to ada-smie
+  (require 'ada-smie))
 
 (unless (featurep 'ada-compiler)
   (require 'ada-gnat))

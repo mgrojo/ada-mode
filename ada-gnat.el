@@ -31,7 +31,7 @@
 ;; By default, ada-mode is configured to load this file, so nothing
 ;; special needs to done to use it.
 
-(defun ada-indent-gnatprep ()
+(defun ada-gnatprep-indent ()
   "If point is on a gnatprep keyword, return indentation column
 for it. Otherwise return nil.
 Intended to be added to `smie-indent-functions'."
@@ -43,6 +43,10 @@ Intended to be added to `smie-indent-functions'."
   ;; #end if;
   ;;
   ;; they are all indented at column 0.
+  ;;
+  ;; This function works on smie-indent-functions; it will probably
+  ;; work in other indentation engines as well, so we call it
+  ;; 'ada-gnatprep-indent
   (when (equal (char-after) ?\#) 0))
 
 (defun ada-gnat-syntax-propertize (start end)
@@ -67,11 +71,13 @@ Intended to be added to `smie-indent-functions'."
 (defun ada-compile-goto-error (pos)
   ;; FIXME (later): do this in compilation-parse-error instead
   "Replace `compile-goto-error' from compile.el.
-If POS is on a file and line location, go to this position.  It adds
-to compile.el the capacity to go to a reference in an error message.
-For instance, on these lines:
+If POS is on a file and line location, go to this position.  It
+adds to compile.el the capacity to go to an extra reference in an
+error message.  For instance, on these lines:
+
   foo.adb:61:11:  [...] in call to size declared at foo.ads:11
   foo.adb:61:11:  [...] in call to local declared at line 20
+
 the 4 file locations can be clicked on and jumped to."
   (interactive "d")
   (goto-char pos)
@@ -138,12 +144,12 @@ the 4 file locations can be clicked on and jumped to."
 
   (add-hook 'ada-syntax-propertize-hook 'ada-gnat-syntax-propertize)
 
-  (when (featurep 'ada-indent)
+  (when (featurep 'ada-smie)
     ;; we don't use add-hook here, because we don't want the global value.
-    (add-to-list 'smie-indent-functions 'ada-indent-gnatprep))
+    (add-to-list 'smie-indent-functions 'ada-gnatprep-indent))
 )
 
-;; add at end, so it is after ada-indent-setup, and can modify smi-indent-functions
+;; add at end, so it is after ada-smie-setup, and can modify smi-indent-functions
 (add-hook 'ada-mode-hook 'ada-gnat-setup t)
 
 ;; gnatmake -gnatD generates files with .dg extensions. But we don't
