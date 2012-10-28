@@ -51,6 +51,10 @@ review FIXMEs, add (later)
     ada-indent.el done
     ada-mode.el
 
+rename to ada-smie
+
+anonymous array
+
 (point-at-bol) (point-at-eol)
 
 test/test-indent.sh
@@ -104,6 +108,7 @@ test "function-overriding" "function-separate", "procedure-*"  as instantiations
 (info "(aarm2012)Annex P" "*info Annex P*")
 c:/Projects/emacs_stephe.work/emacs_stephe/ada-mode-keys.el
 c:/Projects/emacs_stephe.main/emacs_stephe_site_lisp/ada-mode.el
+c:/apps/emacs-24.2/lisp/progmodes/ada-mode.el
 
 c:/apps/emacs-24.2/lisp/progmodes/modula2.el
 http://www.modula2.net/resources/M2R10.pdf Appendix A
@@ -120,7 +125,6 @@ c:/Projects/Web/stephe-leake/emacs/ada-mode/emacs-ada-mode.html
 compare to GPS, gnatpp
 
 some people want to be able to match GPS style
-    => requires ada-indent-renames, and 4.01 requires ada-indent-renames separate from ada-indent-return
 
 requirement to match 4.01 style
 

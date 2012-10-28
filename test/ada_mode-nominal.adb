@@ -6,22 +6,6 @@ with Ada.Strings.Unbounded;
 --EMACSCMD:(test-face "use" font-lock-keyword-face)
 --EMACSCMD:(test-face "Ada" font-lock-constant-face)
 use Ada.Strings.Unbounded;
---EMACSCMD:(test-face "limited" font-lock-keyword-face)
---EMACSCMD:(test-face "private" font-lock-keyword-face)
---EMACSCMD:(test-face "with" font-lock-keyword-face)
---EMACSCMD:(test-face "Ada" font-lock-constant-face)
-limited private with Ada.Strings.Bounded,
-                  Ada.Containers;
---EMACSCMD:(test-face "limited" font-lock-keyword-face)
---EMACSCMD:(test-face "with" font-lock-keyword-face)
---EMACSCMD:(test-face "Ada" font-lock-constant-face)
-limited with Ada.Strings.Bounded,
-             Ada.Containers;
---EMACSCMD:(test-face "private" font-lock-keyword-face)
---EMACSCMD:(test-face "with" font-lock-keyword-face)
---EMACSCMD:(test-face "Ada" font-lock-constant-face)
-private with Ada.Strings.Bounded,
-             Ada.Containers;
 package body Ada_Mode.Nominal is
 
    --EMACSCMD:(test-face "Ada" font-lock-constant-face)
@@ -40,7 +24,7 @@ package body Ada_Mode.Nominal is
      return access function
        (A_Param : in Float)
        return
-       Standard.Float
+     Standard.Float -- Ada mode 4.01, GPS
    is begin
       --EMACSCMD:(test-face "Function_Access_1" 'default)
       return Function_Access_1'access;
@@ -374,7 +358,7 @@ package body Ada_Mode.Nominal is
       Procedure_2a
         ;
 
-      -- second begin block FIXME: this comment is indented wrong!
+      -- second begin block
       begin
          Local_a (1)(2) := 1.0;
       end;

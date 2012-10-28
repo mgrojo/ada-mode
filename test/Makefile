@@ -16,9 +16,9 @@ EMACS := $(EMACSPATH)/emacs
 
 user : /Projects/smm.main/source/smm-download.adb.diff
 
-# FIXME: add target to test user directory nicely (no clutter)
-# FIXME: add target to run tests with Ada mode 4.01 to compare
-# FIXME: add target to run tests with GPS; gps -P<your_project> --load=python:reformat_project.py
+# see test-indent.sh to test user directory nicely (no clutter)
+# FIXME: add target/script to run tests with Ada mode 4.01 to compare
+# FIXME: add target/script to run tests with GPS; gps -P<your_project> --load=python:reformat_project.py
 #     project Default is
 #     end Default;
 # c:/apps/GNAT-GPS-5.1.2/share/examples/gps/python/reformat_project.py
@@ -31,22 +31,9 @@ TEST_FILES := $(shell ls *.ad?)
 TEST_FILES := $(filter-out ada_mode-options-indent_return_2.ads, $(TEST_FILES)) # ada-indent-renames
 TEST_FILES := $(filter-out ada_mode-quantified_expressions.adb, $(TEST_FILES)) # 2012 syntax
 TEST_FILES := $(filter-out move_to_end.adb, $(TEST_FILES)) # tests ada-move-to-end, which we have not (yet?) implemented
-TEST_FILES := $(filter-out move_to_end_if.adb, $(TEST_FILES)) # ""
-TEST_FILES := $(filter-out prime-volatilities.adb, $(TEST_FILES)) # extension aggregate
+TEST_FILES := $(filter-out move_to_end_if.adb, $(TEST_FILES)) # ada-move-to-end
 TEST_FILES := $(filter-out test_goto_decl_start.adb, $(TEST_FILES)) # ada-move-to-end
 TEST_FILES := $(filter-out which_test.adb, $(TEST_FILES)) # imenu-default-create-index-function
-
-# These don't indent properly because there's no leading comment/white
-# space in the file.
-# Possible fixes: add ada-indent-compilation-start-keywords. Or
-# compare the keyword at bob with the keyword we are indenting.
-TEST_FILES := $(filter-out ada_mode-library_function.adb, $(TEST_FILES))
-TEST_FILES := $(filter-out ada_mode-library_procedure.adb, $(TEST_FILES))
-TEST_FILES := $(filter-out ada_mode-separate_function.adb, $(TEST_FILES))
-TEST_FILES := $(filter-out ada_mode-separate_procedure.adb, $(TEST_FILES))
-TEST_FILES := $(filter-out ada_mode-separate_task_body.adb, $(TEST_FILES))
-TEST_FILES := $(filter-out ada_mode-separate_protected_body.adb, $(TEST_FILES))
-# end FIXME:
 
 COMPILE_FILES := $(TEST_FILES)
 
@@ -125,7 +112,7 @@ named_block.ali : named_block.adb
 	gnatmake -gnat2012 -gnatc -gnatyN3 $<
 
 clean : compile-clean test-clean
-	rm -f *~
+	rm -f *~ ../*~
 
 compile-clean :
 	rm -f *.ali

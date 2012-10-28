@@ -6,8 +6,8 @@ outputs a copy of the file, indented and capitalized. It also defines
 special comments that can be used to test other things.
 
 Makefile runs runtest.el agains all the Ada files in this directory,
-and diffs the result against the original. FIXME: provide a target
-that users can easily use to run against their code.
+and diffs the result against the original. Use 'test-indent.sh' to run
+indentation tests against user code.
 
 The Ada files that are children of Ada_Mode were written (or renamed
 from existing tests) to test the SMIE grammar while the grammar was

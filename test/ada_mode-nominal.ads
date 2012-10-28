@@ -45,15 +45,6 @@ package Ada_Mode.Nominal is
    -- Comment after one line of code; broken versions of the
    -- indentation engine aligned this with 'package'.
 
-   -- FIXME: review ARM list of declaration items, add missing.
-   -- Aspects covered in FIXME:
-   -- Constraints covered in FIXME:
-   -- Indenting inside parens is covered in ada_mode-parens.ads, .adb
-   -- 'overriding' covered in ada_mode-nominal-child.ads
-   -- indenting inside names covered in FIXME:
-   -- record types covered in FIXME:
-   -- synchronized covered in FIXME:
-
    -- Extensive coverage of type declarations
    --
    -- Most of these indentations are not likely to occur in practice
@@ -126,7 +117,6 @@ package Ada_Mode.Nominal is
      is access protected procedure (A_Param : out Integer);
    type
      Procedure_Access_Type_7 is access protected procedure (A_Param : out Integer);
-   --  FIXME: Procedure_Access_Type_7 not highlighted here.
 
    -- A more typical case, not covered above (usually with multiple
    -- params). The parameters should be indented relative to the line
@@ -201,7 +191,7 @@ package Ada_Mode.Nominal is
        return access function
          (A_Param : in Float)
          return
-         Standard.Float;
+     Standard.Float; -- Ada mode 4.01, GPS
 
    --EMACSCMD:(test-face "array (" font-lock-keyword-face)
    --EMACSCMD:(test-face "Integer" 'default)
@@ -521,7 +511,7 @@ private
          Component_2 : Integer;
          Component_3 : Integer;
       end record
-     with Pack => True; -- FIXME: hanging; ok? ask list, check GPS
+     with Pack => True; -- FIXME: aspect indented with ada-indent-broken; ok? ask list, GPS
 
    type Limited_Derived_Type_1a is abstract limited new
       Private_Type_1 with record

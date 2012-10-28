@@ -16,7 +16,7 @@ package body PRIME.Volatilities is
    is
    begin
       return Make_Ref (new Root_Volatility_Shift'(Root_Object with
-                                                    Shift_Type => Shift_BS,
+                                                  Shift_Type => Shift_BS,
                                                   N => 0,
                                                   S => Shift));
    end Make_Implicit_BS_Volatility_Shift;
@@ -30,7 +30,7 @@ package body PRIME.Volatilities is
             return Apply (Shift_Object.all, Volatility_Object.all);
          when Shift_BS =>
             return Make_Ref (new BS_Shifted_Volatility'(Root_Object with
-                                                          V => V,
+                                                        V => V,
                                                         S => Shift_Object.S));
       end case;
    end Apply;
@@ -43,7 +43,7 @@ package body PRIME.Volatilities is
    function Make_BS_Volatility (V    : in Num) return Volatility is
    begin
       return Make_Ref (new BS_Volatility'(Root_Object with
-                                            V    => V));
+                                          V    => V));
    end Make_BS_Volatility;
 
 

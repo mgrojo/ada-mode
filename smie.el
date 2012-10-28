@@ -117,7 +117,7 @@
 
 ;;; Code:
 
-;; FIXME:
+;; FIXME (smie):
 ;; - smie-indent-comment doesn't interact well with mis-indented lines (where
 ;;   the indent rules don't do what the user wants).  Not sure what to do.
 
@@ -160,7 +160,7 @@
          (old (gethash key table)))
     (if (and old (not (eq old val)))
         (if (and override (gethash key override))
-            ;; FIXME: The override is meant to resolve ambiguities,
+            ;; FIXME (smie): The override is meant to resolve ambiguities,
             ;; but it also hides real conflicts.  It would be great to
             ;; be able to distinguish the two cases so that overrides
             ;; don't hide real conflicts.
@@ -232,7 +232,7 @@ Conflicts can be resolved via RESOLVERS, which is a list of elements that can
 be either:
 - a precs table (see `smie-precs->prec2') to resolve conflicting constraints,
 - a constraint (T1 REL T2) where REL is one of = < or >."
-  ;; FIXME: Add repetition operator like (repeat <separator> <elems>).
+  ;; FIXME (smie): Add repetition operator like (repeat <separator> <elems>).
   ;; Maybe also add (or <elem1> <elem2>...) for things like
   ;; (exp (exp (or "+" "*" "=" ..) exp)).
   ;; Basically, make it EBNF (except for the specification of a separator in
@@ -746,7 +746,7 @@ Possible return values:
                     (cond
                      ((numberp (funcall op-forw toklevels))
                       (push toklevels levels))
-                     ;; FIXME: For some languages, we can express the grammar
+                     ;; FIXME (smie): For some languages, we can express the grammar
                      ;; OK, but next-sexp doesn't stop where we'd want it to.
                      ;; E.g. in SML, we'd want to stop right in front of
                      ;; "local" if we're scanning (both forward and backward)
@@ -1141,7 +1141,7 @@ Only meaningful when called from within `smie-rules-function'."
 (defvar smie-rule-separator-outdent 2)
 
 (defun smie-indent--separator-outdent ()
-  ;; FIXME: Here we actually have several reasonable behaviors.
+  ;; FIXME (smie): Here we actually have several reasonable behaviors.
   ;; E.g. for a parent token of "FOO" and a separator ";" we may want to:
   ;; 1- left-align ; with FOO.
   ;; 2- right-align ; with FOO.
@@ -1176,7 +1176,7 @@ to its syntactic parent.  Typical examples are \",\" in lists of arguments
 in a {..} or begin..end block).
 METHOD should be the method name that was passed to `smie-rules-function'.
 Only meaningful when called from within `smie-rules-function'."
-  ;; FIXME: The code below works OK for cases where the separators
+  ;; FIXME (smie): The code below works OK for cases where the separators
   ;; are placed consistently always at beginning or always at the end,
   ;; but not if some are at the beginning and others are at the end.
   ;; I.e. it gets confused in cases such as:
@@ -1194,7 +1194,7 @@ Only meaningful when called from within `smie-rules-function'."
   (cond
    ((and (eq method :before) (smie-rule-bolp) (not (smie-rule-sibling-p)))
     (let ((parent-col (cdr (smie-rule-parent)))
-          (parent-pos-col     ;FIXME: we knew this when computing smie--parent.
+          (parent-pos-col     ;FIXME (smie): we knew this when computing smie--parent.
            (save-excursion
              (goto-char (cadr smie--parent))
              (smie-indent-forward-token)
@@ -1214,7 +1214,7 @@ Only meaningful when called from within `smie-rules-function'."
       smie-indent-basic))
 
 (defun smie-indent--rule (method token
-                          ;; FIXME: Too many parameters.
+                          ;; FIXME (smie): Too many parameters.
                           &optional after parent base-pos)
   "Compute indentation column according to `indent-rule-functions'.
 METHOD and TOKEN are passed to `indent-rule-functions'.
@@ -1361,7 +1361,7 @@ should not be computed on the basis of the following token."
           ;; By default use point unless we're hanging.
           (unless (smie-indent--hanging-p) (current-column)))))
        (t
-        ;; FIXME: This still looks too much like black magic!!
+        ;; FIXME (smie): This still looks too much like black magic!!
         (let* ((parent (smie-backward-sexp token)))
           ;; Different behaviors:
           ;; - align with parent.
@@ -1644,7 +1644,7 @@ KEYWORDS are additional arguments, which can use the following keywords:
                          closer)
                      (while (setq closer (pop closers))
                        (unless (and closers
-                                    ;; FIXME: this eliminates prefixes of other
+                                    ;; FIXME (smie): this eliminates prefixes of other
                                     ;; closers, but we should probably
                                     ;; eliminate prefixes of other keywords
                                     ;; as well.

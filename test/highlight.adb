@@ -2,7 +2,7 @@
 --  We also test the special case where the preceding comments
 --  includes a 'with' keyword. This used to fail.
 --
--- FIXME: automate the test; check for face text property
+-- FIXME: automate the test; check for face text property. compare to ada_mode-*; delete this?
 
 --  with luck
 with Toto,

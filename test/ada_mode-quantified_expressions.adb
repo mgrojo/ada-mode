@@ -34,9 +34,9 @@ begin
                   end loop Label;
                end Run_Test;
             end Inner;
-           
+
+            --EMACSCMD:(test-face "some" font-lock-keyword-face)
             package Instance is new Inner ((for some J in 1 .. 10 => True));
-            -- FIXME: "some" not highlighted
 
          begin
             loop

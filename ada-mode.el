@@ -133,7 +133,7 @@ Only affects the keywords to highlight."
   :type '(choice (const ada83) (const ada95) (const ada2005) (const ada2012)) :group 'ada)
 
 (defcustom ada-popup-key '[down-mouse-3]
-  ;; FIXME (later, when testing menu): don't need a var for this
+  ;; FIXME (later, when testing menu): don't need a var for this; user can just bind a key
   "*Key used for binding the contextual menu.
 If nil, no contextual menu is available."
   :type '(restricted-sexp :match-alternatives (stringp vectorp))
@@ -464,7 +464,9 @@ The paragraph is indented on the first line."
 ;; cursor at the correct position.
 ;; ---------------------------------------------------
 
-(defvar ada-other-file-alist nil
+(defvar ada-other-file-alist
+  '(("\\.ads$" (".adb"))
+    ("\\.adb$" (".ads")))
   "Alist used by `find-file' to find the name of the other package.
 See `ff-other-file-alist'.")
 
@@ -595,9 +597,11 @@ Return nil if no body was found."
 
   (unless spec-name (setq spec-name (buffer-file-name)))
 
-  ;; Remove the spec extension. We can not simply remove the file extension, FIXME (later, when testing): why?
-  ;; but we need to take into account the specific non-GNAT extensions that the
-  ;; user might have specified. FIXME: move gnat-specific to ada-gnat, or ada-prj for ada-search-directories.
+  ;; Remove the spec extension. We can not simply remove the file
+  ;; extension, FIXME (later, when testing): why?  but we need to take
+  ;; into account the specific non-GNAT extensions that the user might
+  ;; have specified. FIXME (later) : move gnat-specific to ada-gnat,
+  ;; or ada-prj for ada-search-directories.
 
   (let ((suffixes ada-spec-suffixes)
 	end)
@@ -773,19 +777,14 @@ Return nil if no body was found."
    ))
 
 ;;;###autoload
-(defun ada-mode ()
-  ;; FIXME: use define-derived mode
+(define-derived-mode ada-mode prog-mode "Ada"
   "Ada mode is the major mode for editing Ada code."
   ;; the other ada-*.el files add to ada-mode-hook for their setup
-
-  (interactive)
-  (kill-all-local-variables)
-
-  (set (make-local-variable 'require-final-newline) mode-require-final-newline)
+  :group 'ada
 
   (set-syntax-table ada-mode-syntax-table)
   (set (make-local-variable 'syntax-propertize-function) 'ada-syntax-propertize)
-  (set (make-local-variable 'parse-sexp-ignore-comments) t)
+  ;(set (make-local-variable 'parse-sexp-ignore-comments) t) done in prog-mode
   (set (make-local-variable 'parse-sexp-lookup-properties) t)
   (set 'case-fold-search t); Ada is case insensitive; the syntax parsing requires this setting
   (set (make-local-variable 'comment-start) "--")
@@ -867,36 +866,28 @@ Return nil if no body was found."
   (define-abbrev-table 'ada-mode-abbrev-table ())
   (setq local-abbrev-table ada-mode-abbrev-table)
 
-  (setq major-mode 'ada-mode
-	mode-name "Ada")
-
-  (use-local-map ada-mode-map)
-
   (easy-menu-add ada-mode-menu ada-mode-map)
 
-  (run-mode-hooks 'ada-mode-hook)
+  ;; (run-mode-hooks 'ada-mode-hook) done after this body by define-minor-mode
 
   ;; These are run after ada-mode-hook because users or other ada-*
   ;; files might set the relevant variable inside the hook
-  ;; FIXME: use (add-hook 'hack-local-variables-hook; see emacs 24.2 ada-mode.el
+  ;; FIXME (later): use (add-hook 'hack-local-variables-hook; see emacs 24.2 ada-mode.el
 
   ;; (if ada-auto-case
   ;;     (ada-activate-keys-for-case))
-  ;; FIXME: Use post-self-insert-hook instead of changing key bindings.
+  ;; FIXME(later): Use post-self-insert-hook instead of changing key bindings.
 
   )
 
 
 ;;;; Global initializations
 
-;; FIXME: move these to the corresponding variable inits?
-(ada-add-extensions ".ads" ".adb")
-
 ;; Setup auto-loading of the other Ada mode files.
-;; FIXME: add some here?
+;; FIXME (later): add some here?
 
 ;; provide some dummy functions so other code can at least run
-;; FIXME: make these real, somewhere
+;; FIXME (later): make these real, somewhere
 (defun ada-adjust-case-identifier ()); get this from emacs_stephe/ada-mode-keys.el
 (defun ada-adjust-case () (capitalize-word 1))
 (defun ada-find-other-file ()

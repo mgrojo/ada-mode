@@ -146,6 +146,11 @@ the 4 file locations can be clicked on and jumped to."
 ;; add at end, so it is after ada-indent-setup, and can modify smi-indent-functions
 (add-hook 'ada-mode-hook 'ada-gnat-setup t)
 
+;; gnatmake -gnatD generates files with .dg extensions. But we don't
+;; need to navigate between them.
+;;
+;; There is no common convention for a file extension for gnatprep files.
+
 (provide 'ada-gnat)
 (provide 'ada-compiler)
 

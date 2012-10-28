@@ -3102,10 +3102,6 @@ the start of CHILD, which must be a keyword."
        (back-to-indentation)
        (cons 'column (+ (current-column) ada-indent)))
 
-      ((equal arg "return-spec")
-       ;; see comments in :before "("
-       (ada-indent-rule-parent ada-indent-broken arg))
-
       ((equal arg "when-case")
        ;; exception to block statement rule
        (ada-indent-rule-statement (ada-indent-when ada-indent-broken) arg))
