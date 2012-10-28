@@ -19,7 +19,7 @@ package body Ada_Mode.Nominal is
      return access function
        (A_Param : in Float)
        return
-       Standard.Float
+     Standard.Float -- Ada mode 4.01, GPS
    is begin
       return Function_Access_1'access;
    end Function_Access_11;

@@ -184,7 +184,7 @@ package Ada_Mode.Nominal is
        return access function
          (A_Param : in Float)
          return
-         Standard.Float;
+     Standard.Float; -- Ada mode 4.01, GPS
 
    --EMACSCMD:(test-face "array (" font-lock-keyword-face)
    --EMACSCMD:(test-face "Integer" 'default)

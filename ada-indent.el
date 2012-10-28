@@ -7,6 +7,8 @@
 ;; Copyright (C) 2012  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
+;; Contributors: Simon Wright <simon.j.wright@mac.com>
+;;
 ;; Keywords: languages ada
 ;;
 ;; This file is part of GNU Emacs.
@@ -600,17 +602,12 @@ An example is:
        ;;    overriding
        ;;    procedure (...);
 
+       ;; subprogram_renaming_declaration
        ("function-spec" name "return-spec" name "renames-subprogram" name)
        ("procedure-spec" name "renames-subprogram" name)
-       ("overriding" "function-overriding" name "return-spec" name "renames-subprogram" name)
-       ("overriding" "procedure-overriding" name "renames-subprogram" name)
-       ;; Subprogram renamings.
-       ;;
-       ;; NB!!! Indenting seems to work just fine without the last two
-       ;; lines here. This is presumably because refining and
-       ;; indenting both rely only on unrefined keywords (but would
-       ;; mean that the parsed source code would correspond to this
-       ;; statement of the syntax anyway).
+       ;; No need to repeat the optional renames for "overriding"
+       ;; cases; one occurance establishes the precendence in the
+       ;; grammar.
        )
 
       (subtype_declaration
@@ -2848,44 +2845,42 @@ the start of CHILD, which must be a keyword."
        (ada-indent-rule-statement ada-indent-record-rel-type arg))
 
       ((equal arg "renames-subprogram")
-       (let (
-             ;; We need to skip "return" when looking for parameters if
-             ;; this subprogram is a function, so remember the keyword
-             ;; we found while calculating subprogram-col below.
-             (keyword)
-             )
-         (let* (
-                ;; Find the subprogram keyword's start column
-                (subprogram-col (save-excursion
-                                  (setq keyword
-                                        (ada-indent-backward-tokens-unrefined
-                                         "function" "procedure"))
-                                        (current-column)))
-                ;; Find the start of the parameters (nil if none)
-                (parameter-col (save-excursion
-                                 (if (equal keyword "function")
-                                     ;; Skip "return"
-                                     (ada-indent-backward-keyword))
-                                 (smie-backward-sexp)
-                                 (if (equal (char-after) ?\()
-                                     (current-column)
-                                   nil)))
-                )
+       (let* (keyword
+	      ;; We need to skip "return" when looking for parameters
+	      ;; if this subprogram is a function, so remember the
+	      ;; keyword we found while calculating subprogram-col
+	      ;; below.
 
-           (cond ((<= ada-indent-renames 0)
-                  ;; If 'ada-indent-renames' is zero or negative, then
-                  (cond ((null parameter-col)
-                         ;; No parameters; use 'ada-indent-broken' from
-                         ;; subprogram keyword.
-                         (cons 'column (+ subprogram-col ada-indent-broken)))
-                        (t
-                         ;; Parameters: indent relative to the "(".
-                         (cons 'column (- parameter-col ada-indent-renames)))))
-                 ;; If 'ada-indent-renames' is positive, indent from
-                 ;; the subprogram keyword.
-                 (t
-                  (cons 'column (+ subprogram-col ada-indent-renames))))
-           )))
+	      (subprogram-col ;; the subprogram keyword's start column
+	       (save-excursion
+		 (setq keyword
+		       (ada-indent-backward-tokens-unrefined
+			"function" "procedure"))
+		 (current-column)))
+	      (parameter-col ;; the start of the parameters (nil if none)
+	       (save-excursion
+		 (if (equal keyword "function")
+		     (ada-indent-backward-keyword));; "return"
+		 (smie-backward-sexp)
+		 (if (equal (char-after) ?\()
+		     (current-column)
+		   nil)))
+	      )
+
+	 (cond ((<= ada-indent-renames 0)
+		;; If 'ada-indent-renames' is zero or negative, then
+		(cond ((null parameter-col)
+		       ;; No parameters; use 'ada-indent-broken' from
+		       ;; subprogram keyword.
+		       (cons 'column (+ subprogram-col ada-indent-broken)))
+		      (t
+		       ;; Parameters: indent relative to the "(".
+		       (cons 'column (- parameter-col ada-indent-renames)))))
+	       ;; If 'ada-indent-renames' is positive, indent from
+	       ;; the subprogram keyword.
+	       (t
+		(cons 'column (+ subprogram-col ada-indent-renames))))
+	 ))
 
       ((member arg '("return-spec" "return-formal"))
        ;; Function declaration, function body, or access-to-function

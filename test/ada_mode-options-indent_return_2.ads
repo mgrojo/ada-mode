@@ -57,10 +57,8 @@ package Ada_Mode.Options.Indent_Return_2 is
                 C : Integer)
         return Integer
                  renames F;  --  from ada-indent-renames
-   overriding function FO (B : Integer;
-                           C : Integer)
-                   return Integer   -- from ada-indent-return
-                            renames F;  -- from ada-indent-renames
+
+   -- see ada_mode-nominal-child.ads for 'overriding function ... renames'
 
    procedure P;
    procedure PR
@@ -69,7 +67,7 @@ package Ada_Mode.Options.Indent_Return_2 is
    procedure Q (X : Integer);
    procedure QR (X : Integer)
                   renames Q;  -- from ada-indent-renames
-   overriding procedure QO (X : Integer)
-                             renames Q;  -- from ada-indent-renames
+
+   -- see ada_mode-nominal-child.ads for 'overriding procedure ... renames'
 
 end Ada_Mode.Options.Indent_Return_2;

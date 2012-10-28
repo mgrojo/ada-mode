@@ -3,6 +3,11 @@
 --  is 0, which means indent on the open parenthesis for the function, or
 --  use ada-indent-broken if there is no parenthesis.
 
+--  See ada_mode-options-indent_return_1.ads, _2.ads for other values of
+--  ada-indent-return, ada-indent-renames.
+--  (ediff "ada_mode-options-indent_return_1.ads" "ada_mode-options-indent_return_2.ads")
+--  (ediff "ada_mode-options-indent_return_1.ads" "ada_mode-options-indent_return_3.ads")
+
 --EMACSCMD: (setq ada-indent-broken 3)
 --EMACSCMD: (setq ada-indent-return 0)
 --  <= 0 indents relative to the open parenthesis
@@ -59,10 +64,8 @@ package Ada_Mode.Options.Indent_Return_1 is
                 C : Integer)
                return Integer
      renames F;  --  from ada-indent-renames
-   overriding function FO (B : Integer;
-                           C : Integer)
-                          return Integer   -- from ada-indent-return
-                renames F;  -- from ada-indent-renames
+
+   -- see ada_mode-nominal-child.ads for 'overriding function ... renames'
 
    procedure P;
    procedure PR
@@ -71,7 +74,7 @@ package Ada_Mode.Options.Indent_Return_1 is
    procedure Q (X : Integer);
    procedure QR (X : Integer)
      renames Q;  -- from ada-indent-renames
-   overriding procedure QO (X : Integer)
-                renames Q;  -- from ada-indent-renames
+
+   -- see ada_mode-nominal-child.ads for 'overriding procedure ... renames'
 
 end Ada_Mode.Options.Indent_Return_1;
