@@ -383,7 +383,7 @@ package Ada_Mode.Nominal is
      (1 .. 10) of Integer;
    Anon_Array_5 :
      array (1 .. 10) of Integer;
-   
+
    -- Non-trivial type name
    P_1 : Ada.Strings.Unbounded.String_Access;
    P_2 : Ada.Strings.Unbounded.

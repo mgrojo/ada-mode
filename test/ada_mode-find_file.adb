@@ -1,5 +1,9 @@
 --  other file for testing ada-find-other-file
+
+-- Select package name, goto its spec
+--EMACSCMD:(progn (forward-line 1)(forward-word 2)(forward-char 1)(push-mark-command t t)(forward-word 2)(ada-find-other-file t)(pop-mark)(looking-at "Ada_Mode is"))
 package body Ada_Mode.Find_File is
+   --EMACSRESULT:t
 
    procedure P_Bug_One is
    begin

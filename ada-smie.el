@@ -3467,7 +3467,7 @@ This lets us know which indentation function succeeded."
       "return[ \t]+access\\|"
       "return"
       "\\)\\>[ \t]*"
-      ada-font-lock-name-regexp "?")
+      ada-name-regexp "?")
      '(1 font-lock-keyword-face)
      '(2 (if (member (progn
 		       (ada-smie-validate-cache (match-beginning 1))

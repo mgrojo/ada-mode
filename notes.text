@@ -60,10 +60,6 @@ C-F11
             just save string from bol thru name in ff_function_name
                 search for that doesn't have to ignore string, comment
 
-    ff-find-the-other-file hooks:
-        ff-pre-find-hook
-        (ff-treat-as-special)
-
     ada-other-file-alist mapped to ff-other-file-alist; reference doc string
 
     ada-search-directories may contain env vars
@@ -78,7 +74,9 @@ C-F11
 
 ff-special-constructs
     /Projects/emacs_stephe.work/emacs_stephe/ada-mode-patches.el
-    write tests
+        replace ada-mode.el ada-mode ff-special-constructs
+        write tests
+        update manual
 
 log-entry use ada-which-function
 

@@ -394,6 +394,13 @@ If PARSE-RESULT is non-nil, use it instead of calling `syntax-ppss'."
 
 ;;; file navigation
 
+(defconst ada-name-regexp
+  "\\(\\(?:\\sw\\|[_.]\\)+\\)")
+
+(defconst ada-parent-name-regexp
+  "\\([a-zA-Z0-9_\\.]+\\)\\.[a-zA-Z0-9_]+"
+  "Regexp for extracting the parent name from fully-qualified name.")
+
 (defvar ada-make-filename-from-adaname 'ada-make-filename-from-adaname-default
   "Function called with one parameter ADANAME, which is a library
 unit name; it should return the filename in which ADANAME is
@@ -442,10 +449,12 @@ previously set by a file navigation command."
   "If region is active, assume it contains a package name; goto that.
 Else call ff-find-other-file. If OTHER-WINDOW or with arg,
 show in other window."
-  ;; ff-get-file, ff-find-other file run the following hooks:
-  ;; ff-pre-load-hook       set to ada-which-function
-  ;; ff-file-created-hook   set to ada-make-body
-  ;; ff-post-load-hook      set to ada-set-point-accordingly, or a compiler-specific function
+  ;; ff-get-file, ff-find-other file first process
+  ;; ff-special-constructs, then run the following hooks:
+  ;;
+  ;; ff-pre-load-hook set to ada-which-function ff-file-created-hook
+  ;; set to ada-make-body ff-post-load-hook set to
+  ;; ada-set-point-accordingly, or a compiler-specific function
 
   (interactive "P")
   (if mark-active
@@ -705,9 +714,6 @@ The paragraph is indented on the first line."
 
 ;;; support for font-lock.el
 
-(defconst ada-font-lock-name-regexp
-  "\\(\\(?:\\sw\\|[_.]\\)+\\)")
-
 (defun ada-font-lock-keywords ()
   "Ada mode keywords for font-lock, customized according to `ada-language-version'."
   ;; keywords added in ada-95:
@@ -748,7 +754,7 @@ The paragraph is indented on the first line."
 	  ))
       (list
        "\\)\\>[ \t]*"
-       ada-font-lock-name-regexp "?")))
+       ada-name-regexp "?")))
     '(1 font-lock-keyword-face) '(2 font-lock-function-name-face nil t))
 
    ;; keywords followed by a name that should be in type-face.
@@ -770,7 +776,7 @@ The paragraph is indented on the first line."
 	  "subtype\\|"
 	  "type"
 	  "\\)\\>[ \t]*"
-	  ada-font-lock-name-regexp "?")
+	  ada-name-regexp "?")
 	 '(1 font-lock-keyword-face nil t) '(2 font-lock-type-face nil t))
 
    ;; Keywords not treated elsewhere. After above so it doesn't
@@ -802,7 +808,7 @@ The paragraph is indented on the first line."
    ;; type-face if not already fontified or an exception.
    (list (concat
 	  ":[ \t]*"
-	  ada-font-lock-name-regexp
+	  ada-name-regexp
 	  "[ \t]*\\(=>\\)?")
      '(1 (if (match-beginning 2)
 	     'default
@@ -814,7 +820,7 @@ The paragraph is indented on the first line."
 	  "\\<\\("
 	  "end"
 	  "\\)\\>[ \t]*"
-	  ada-font-lock-name-regexp "?")
+	  ada-name-regexp "?")
      '(1 font-lock-keyword-face) '(2 font-lock-function-name-face nil t))
 
    ;; keywords followed by a name that should be in type-face if not already fontified
@@ -822,7 +828,7 @@ The paragraph is indented on the first line."
 	  "\\<\\("
 	  "is"
 	  "\\)\\>[ \t]*"
-	  ada-font-lock-name-regexp "?")
+	  ada-name-regexp "?")
      '(1 font-lock-keyword-face) '(2 font-lock-type-face nil t))
 
    ;; Keywords followed by a name that could be a type or a function (generic instantiation).
@@ -830,7 +836,7 @@ The paragraph is indented on the first line."
 	  "\\<\\("
 	  "new"
 	  "\\)\\>[ \t]*"
-	  ada-font-lock-name-regexp "?[ \t]*\\((\\)?")
+	  ada-name-regexp "?[ \t]*\\((\\)?")
 	 '(1 font-lock-keyword-face)
 	 '(2 (if (match-beginning 3)
 		 font-lock-function-name-face
@@ -846,7 +852,7 @@ The paragraph is indented on the first line."
    	  ;; don't need "limited" "private" here; they are matched separately
    	  "with"; context clause
    	  "\\)\\>[ \t]*"
-   	  "\\(\\(?:\\sw\\|[_., \t]\\)+\\>\\)?"; ada-font-lock-name-regexp, plus ", \t"
+   	  "\\(\\(?:\\sw\\|[_., \t]\\)+\\>\\)?"; ada-name-regexp, plus ", \t"
    	  )
    	 '(1 font-lock-keyword-face) '(2 font-lock-constant-face nil t))
 
@@ -896,17 +902,18 @@ The paragraph is indented on the first line."
 
   (make-local-variable 'ff-special-constructs)
   (mapc (lambda (pair) (add-to-list 'ff-special-constructs pair))
+	;; Each car should set ff-function-name to a string or regexp
+	;; for ada-set-point-accordingly, and return the file name
+	;; (my include full path) to go to.
 	(list
-	 ;; Top level child package declaration; go to the parent package.
-	 (cons (eval-when-compile
-		 (concat "^\\(private[ \t]\\)?[ \t]*package[ \t]+"
-			 "\\(body[ \t]+\\)?"
-			 "\\(\\(\\sw\\|[_.]\\)+\\)\\.\\(\\sw\\|_\\)+[ \t\n]+is"))
+	 ;; Top level child package declaration (not body); go to the parent package.
+	 (cons (concat "^\\(private[ \t]+\\)?package[ \t]+" ada-parent-name-regexp " is")
 	       (lambda ()
-		 (ff-get-file
-		  ada-search-directories-internal
-		  (ada-make-filename-from-adaname (match-string 3))
-		  ada-spec-suffixes)))
+	       	 (setq ff-function-name (match-string 2))
+	       	 (ff-get-file-name
+	       	   ada-search-directories-internal
+	       	   (ada-make-filename-from-adaname ff-function-name)
+	       	   ada-spec-suffixes)))
 
 	 ;; A "separate" clause.
 	 (cons "^separate[ \t\n]*(\\(\\(\\sw\\|[_.]\\)+\\))"
