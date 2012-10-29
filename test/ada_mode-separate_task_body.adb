@@ -1,6 +1,7 @@
 separate (Ada_Mode)
 task body Separate_Task_Body is
    -- no comment before "separate"
+   --EMACSCMD:(progn (forward-line -3)(ada-find-other-file t)(looking-at "task Separate_Task_Body is"))
 
    procedure Titi is begin null; end;
    procedure Shout is begin null; end;

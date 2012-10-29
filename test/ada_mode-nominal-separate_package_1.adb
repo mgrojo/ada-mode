@@ -1,6 +1,9 @@
 with Ada.Text_IO;
+--EMACSCMD:(progn (forward-line 1)(ada-find-other-file t)(looking-at "package body Separate_Package_1 is separate"))
 separate (Ada_Mode.Nominal)
 package body Separate_Package_1 is
+   --EMACSRESULT:t
+
    -- adapted from several earlier tests
    First_Object : Integer;
    Second_Object : Integer;

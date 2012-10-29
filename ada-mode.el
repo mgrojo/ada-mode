@@ -421,6 +421,51 @@ pre-defined units."
   (downcase adaname)
   )
 
+(defun ada-ff-special-extract-special ()
+  (let ((package-name (match-string 1)))
+    (save-excursion
+      (goto-char (match-end 0))
+      (when (eolp) (forward-char 1))
+      (skip-syntax-forward " ")
+      (looking-at
+       (concat "\\(function\\|package body\\|procedure\\|protected body\\|task body\\)\\s +"
+	       ada-name-regexp))
+      (setq ff-function-name (match-string 0))
+      )
+    (ff-get-file-name
+     ada-search-directories-internal
+     (ada-make-filename-from-adaname package-name)
+     ada-body-suffixes)))
+
+(defun ada-set-ff-special-constructs ()
+  "Add Ada-specific pairs to `ff-special-constructs'."
+  (mapc (lambda (pair) (add-to-list 'ff-special-constructs pair))
+	;; Each cdr should set ff-function-name to a string or regexp
+	;; for ada-set-point-accordingly, and return the file name
+	;; (may include full path, must include suffix) to go to.
+	(list
+	 ;; Top level child package declaration (not body); go to the parent package.
+	 (cons (concat "^\\(private[ \t]+\\)?package[ \t]+" ada-parent-name-regexp " is")
+	       (lambda ()
+	       	 (setq ff-function-name (match-string 2))
+	       	 (ff-get-file-name
+	       	   ada-search-directories-internal
+	       	   (ada-make-filename-from-adaname ff-function-name)
+	       	   ada-spec-suffixes)))
+
+	 ;; A "separate" clause.
+	 (cons (concat "^separate[ \t\n]*(" ada-name-regexp ")")
+	       'ada-ff-special-extract-special)
+
+	 ;; A "with" clause. Note that it may refer to a procedure body, as well as a spec
+	 (cons "^with[ \t]+\\([a-zA-Z0-9_\\.]+\\)"
+	       (lambda ()
+		 (ff-get-file
+		  ada-search-directories-internal
+		  (ada-make-filename-from-adaname (match-string 1))
+		  (append ada-spec-suffixes ada-body-suffixes))))
+	 )))
+
 (defvar ada-which-function nil
   ;; No useful default; the indentation engine should supply a useful function
   ;; This is run from ff-pre-load-hook, so ff-function-name may have
@@ -901,36 +946,7 @@ The paragraph is indented on the first line."
   (add-hook 'ff-pre-load-hook 'ada-which-function)
 
   (make-local-variable 'ff-special-constructs)
-  (mapc (lambda (pair) (add-to-list 'ff-special-constructs pair))
-	;; Each car should set ff-function-name to a string or regexp
-	;; for ada-set-point-accordingly, and return the file name
-	;; (my include full path) to go to.
-	(list
-	 ;; Top level child package declaration (not body); go to the parent package.
-	 (cons (concat "^\\(private[ \t]+\\)?package[ \t]+" ada-parent-name-regexp " is")
-	       (lambda ()
-	       	 (setq ff-function-name (match-string 2))
-	       	 (ff-get-file-name
-	       	   ada-search-directories-internal
-	       	   (ada-make-filename-from-adaname ff-function-name)
-	       	   ada-spec-suffixes)))
-
-	 ;; A "separate" clause.
-	 (cons "^separate[ \t\n]*(\\(\\(\\sw\\|[_.]\\)+\\))"
-	       (lambda ()
-		 (ff-get-file
-		  ada-search-directories-internal
-		  (ada-make-filename-from-adaname (match-string 1))
-		  ada-spec-suffixes)))
-
-	 ;; A "with" clause. Note that it may refer to a procedure body, as well as a spec
-	 (cons "^with[ \t]+\\([a-zA-Z0-9_\\.]+\\)"
-	       (lambda ()
-		 (ff-get-file
-		  ada-search-directories-internal
-		  (ada-make-filename-from-adaname (match-string 1))
-		  (append ada-spec-suffixes ada-body-suffixes))))
-	 ))
+  (ada-set-ff-special-constructs)
 
   (set (make-local-variable 'ispell-check-comments) 'exclusive)
 

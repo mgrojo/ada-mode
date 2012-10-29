@@ -246,6 +246,30 @@ and the syntax to set a variable is the following:
 (setq variable-name value)
 @end example
 
+Some general Emacs settings that are useful for Ada files:
+@table @code
+@item delete-trailing-whitespace
+Deletes space, tab at end of line and blank lines at end of buffer.
+@item untabify
+Deletes tab characters that have crept into the file.
+@item indent-tabs-mode
+Don't insert tab characters when indenting.
+@item copyright-update
+Updates the copyright date in the file header comment, to the current year.
+@end table
+
+The above can all be set by the following code in your @file{~/.emacs}:
+@example
+(setq-default indent-tabs-mode nil)
+(add-hook 'ada-mode-hook
+   (lambda ()
+    (add-hook 'before-save-hook 'delete-trailing-whitespace nil t)
+    (add-hook 'before-save-hook 'copyright-update nil t)
+    (add-hook 'before-save-hook
+              (lambda () (untabify (point-min) (point-max)))
+               nil t)))
+@end example
+
 @node Compiling Executing, Project files, Customization, Top
 @chapter Compiling Executing
 
@@ -1161,16 +1185,22 @@ the subprogram declaration.
 @findex ada-move-to-end
 Move point to end of current block (@code{ada-move-to-end}).
 @item C-c C-o
-Switch between corresponding spec and body file
-(@code{ada-find-other-file}).
+Switch between corresponding spec and body
+file(@code{ada-find-other-file}). There are several special cases:
     @itemize @bullet
     @item
-    If point is in a subprogram, position point on the corresponding
-    declaration or body in the other file.
+    If the region is active, it is assumed to contain an Ada package
+    name; position point on the corresponding package declaration.
     @item
     If point is in the start line of a top level package declaration
     (but not package body), position point on the corresponding parent
     package declaration.
+    @item
+    If point is in the start line of a top level separate body,
+    position point on the corresponding separate stub declaration.
+    @item
+    If point is in a subprogram, position point on the corresponding
+    declaration or body in the other file.
     @end itemize
 @item C-c c-d
 @findex ada-goto-declaration

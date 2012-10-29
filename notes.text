@@ -11,14 +11,15 @@ General notes on porting Emacs Ada mode indentation engine to smie
     (which-function-mode)
     (add-hook 'ada-mode-hook
        (lambda ()
-       (define-key ada-mode-map "\C-w" 'capitalize-word)
-       (define-key ada-mode-map "\M-o" 'ada-smie-show-parent)
-       (define-key ada-mode-map "\M-9" 'ada-smie-show-child)
-       (define-key ada-mode-map "\M-p" 'ada-smie-show-statement-start)
-       (define-key ada-mode-map "\M-i" 'ada-smie-show-keyword-backward)
-       (define-key ada-mode-map "\M-j" 'ada-smie-show-cache)
-       (define-key ada-mode-map "\M-k" 'ada-smie-show-keyword-forward)
-    ))
+        (add-hook 'before-save-hook 'delete-trailing-whitespace)
+        (define-key ada-mode-map "\C-w" 'capitalize-word)
+        (define-key ada-mode-map "\M-o" 'ada-smie-show-parent)
+        (define-key ada-mode-map "\M-9" 'ada-smie-show-child)
+        (define-key ada-mode-map "\M-p" 'ada-smie-show-statement-start)
+        (define-key ada-mode-map "\M-i" 'ada-smie-show-keyword-backward)
+        (define-key ada-mode-map "\M-j" 'ada-smie-show-cache)
+        (define-key ada-mode-map "\M-k" 'ada-smie-show-keyword-forward)
+       ))
     (setq ada-smie-debug-refine t)
    )
 
@@ -94,6 +95,7 @@ cd /Projects/org.emacs.ada-mode.smie/test
 test/Makefile
 
 rest of ada-mode
+    merge all of ada-mode-patches, most of ada-mode-keys
 
 ask for input/testing
     run on my projects
@@ -132,9 +134,6 @@ doesn't return "(" as it should
 remaining expressions?
 remaining statements?
 task entry with index; body has "for"
-
-test "function-overriding" "function-separate", "procedure-*"  as instantiations
-
 
  relevant files
 (info "(aarm2012)Annex P" "*info Annex P*")
