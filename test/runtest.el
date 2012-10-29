@@ -61,7 +61,7 @@
         (unless (equal expected-result last-result)
           (error
 	   (concat
-	    (buffer-file-name) ":" (format "%d" (count-lines (point-min) (point))) ": "
+	    (buffer-file-name) ":" (format "%d" (count-lines (point-min) (point))) ":\n"
 	    (format "Result of '%s' does not match.\nGot    '%s',\nexpect '%s'"
 		    last-cmd
 		    last-result

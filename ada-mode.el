@@ -139,7 +139,26 @@ If nil, no contextual menu is available."
   :type '(restricted-sexp :match-alternatives (stringp vectorp))
   :group 'ada)
 
+(defcustom ada-search-directories
+  (append '(".")
+	  (split-string (or (getenv "ADA_INCLUDE_PATH") "") ":"))
+  "*Default list of directories to search for Ada files.
+See the description for the `ff-search-directories' variable.
+This variable is the initial value of
+`ada-search-directories-internal'.  It is usually augmented
+internally by a project file and/or compiler search paths."
+  :type '(repeat (choice :tag "Directory"
+			 (const :tag "default" nil)
+			 (directory :format "%v")))
+  :group 'ada)
+
 ;;; ---- end of user configurable variables; see other ada-*.el files for more
+
+(defvar ada-search-directories-internal ada-search-directories
+  "Internal version of `ada-search-directories'.
+Its value is the concatenation of the search path as read in a
+project file, any compiler search path, and the value of the
+user-defined `ada-search-directories'.")
 
 ;;; keymap and menus
 
@@ -149,7 +168,7 @@ If nil, no contextual menu is available."
 
     (define-key map "\C-c\C-c" 'compile)
     (define-key map "\C-c\C-n" 'ada-make-subprogram-body)
-    (define-key map "\C-c\C-o" 'ff-find-other-file)
+    (define-key map "\C-c\C-o" 'ada-find-other-file)
     map
   )  "Local keymap used for Ada mode.")
 
@@ -186,14 +205,6 @@ If nil, no contextual menu is available."
 
 (defvar ada-mode-abbrev-table nil
   "Local abbrev table for Ada mode.")
-
-(defvar ada-body-suffixes '(".adb")
-  "List of possible suffixes for Ada body files.
-The extensions should include a `.' if needed.")
-
-(defvar ada-spec-suffixes '(".ads")
-  "List of possible suffixes for Ada spec files.
-The extensions should include a `.' if needed.")
 
 (defvar ada-align-modes
   '((ada-declaration-assign
@@ -239,6 +250,47 @@ The extensions should include a `.' if needed.")
      "\\)\\>\\)"))
   "See the variable `align-region-separate' for more information.")
 
+;;; context menu
+
+(defun ada-call-from-contextual-menu (function)
+  "Execute FUNCTION when called from the contextual menu.
+It forces Emacs to change the cursor position."
+  (interactive)
+  (funcall function)
+  (setq ada-contextual-menu-last-point
+	(list (point) (current-buffer))))
+
+(defun ada-popup-menu (position)
+  "Pops up a contextual menu, depending on where the user clicked.
+POSITION is the location the mouse was clicked on.
+Sets `ada-contextual-menu-last-point' to the current position before
+displaying the menu.  When a function from the menu is called,
+point is where the mouse button was clicked."
+  (interactive "e")
+
+  ;; don't let context menu commands deactivate the mark (which would
+  ;; hide the region in transient-mark-mode), even if they normally
+  ;; would. FIXME (later, when testing menu): why is this a good idea?
+  (let ((deactivate-mark nil))
+    (setq ada-contextual-menu-last-point
+	 (list (point) (current-buffer)))
+    (mouse-set-point last-input-event)
+
+    (setq ada-contextual-menu-on-identifier
+	  (and (char-after)
+	       (or (= (char-syntax (char-after)) ?w)
+		   (= (char-after) ?_))
+	       (not (ada-in-string-or-comment-p))
+	       (save-excursion (skip-syntax-forward "w")
+			       (not (ada-after-keyword-p)))
+	       ))
+    (popup-menu ada-contextual-menu)
+
+    ;; FIXME (later, when testing menu): is this necessary? what do context menus do by default?
+    (set-buffer (cadr ada-contextual-menu-last-point))
+    (goto-char (car ada-contextual-menu-last-point))
+    ))
+
 ;;; syntax properties
 
 (defvar ada-mode-syntax-table
@@ -273,7 +325,7 @@ The extensions should include a `.' if needed.")
     (modify-syntax-entry ?\f  ">   " table)
     (modify-syntax-entry ?\n  ">   " table)
 
-    (modify-syntax-entry ?_ "_" table); symbol constituents
+    (modify-syntax-entry ?_ "_" table); symbol constituents, not word. FIXME: check GPS, poll users. doc why need 2
 
     (modify-syntax-entry ?\( "()" table)
     (modify-syntax-entry ?\) ")(" table)
@@ -319,150 +371,102 @@ are treated as numbers instead of gnatprep comments."
     (unless modified
       (restore-buffer-modified-p nil))))
 
- ;; context menu
+(defun ada-in-comment-p (&optional parse-result)
+  "Return t if inside a comment.
+If PARSE-RESULT is non-nil, use it instead of calling `syntax-ppss'."
+  (nth 4 (or parse-result (syntax-ppss))))
 
-(defun ada-call-from-contextual-menu (function)
-  "Execute FUNCTION when called from the contextual menu.
-It forces Emacs to change the cursor position."
-  (interactive)
-  (funcall function)
-  (setq ada-contextual-menu-last-point
-	(list (point) (current-buffer))))
+(defun ada-in-string-p (&optional parse-result)
+  "Return t if point is inside a string.
+If PARSE-RESULT is non-nil, use it instead of calling `syntax-ppss'."
+  (nth 3 (or parse-result (syntax-ppss))))
 
-(defun ada-popup-menu (position)
-  "Pops up a contextual menu, depending on where the user clicked.
-POSITION is the location the mouse was clicked on.
-Sets `ada-contextual-menu-last-point' to the current position before
-displaying the menu.  When a function from the menu is called,
-point is where the mouse button was clicked."
-  (interactive "e")
+(defun ada-in-string-or-comment-p (&optional parse-result)
+  "Return t if inside a comment or string.
+If PARSE-RESULT is non-nil, use it instead of calling `syntax-ppss'."
+  (setq parse-result (or parse-result (syntax-ppss)))
+  (or (ada-in-string-p parse-result) (ada-in-comment-p parse-result)))
 
-  ;; don't let context menu commands deactivate the mark (which would
-  ;; hide the region in transient-mark-mode), even if they normally
-  ;; would. FIXME (later, when testing menu): why is this a good idea?
-  (let ((deactivate-mark nil))
-    (setq ada-contextual-menu-last-point
-	 (list (point) (current-buffer)))
-    (mouse-set-point last-input-event)
+(defun ada-in-paren-p (&optional parse-result)
+  "Return t if point is inside a pair of parentheses.
+If PARSE-RESULT is non-nil, use it instead of calling `syntax-ppss'."
+  (> (nth 0 (or parse-result (syntax-ppss))) 0))
 
-    (setq ada-contextual-menu-on-identifier
-	  (and (char-after)
-	       (or (= (char-syntax (char-after)) ?w)
-		   (= (char-after) ?_))
-	       (not (ada-in-string-or-comment-p))
-	       (save-excursion (skip-syntax-forward "w")
-			       (not (ada-after-keyword-p)))
-	       ))
-    (popup-menu ada-contextual-menu)
+;;; file navigation
 
-    ;; FIXME (later, when testing menu): is this necessary? what do context menus do by default?
-    (set-buffer (cadr ada-contextual-menu-last-point))
-    (goto-char (car ada-contextual-menu-last-point))
-    ))
+(defvar ada-make-filename-from-adaname 'ada-make-filename-from-adaname-default
+  "Function called with one parameter ADANAME, which is a library
+unit name; it should return the filename in which ADANAME is
+found.")
+;; IMPROVEME: It might be better if this var was a project variable;
+;; each project can have a different compiler.
 
-(defun ada-fill-comment-paragraph-justify ()
-  "Fill current comment paragraph and justify each line as well."
-  (interactive)
-  (ada-fill-comment-paragraph 'full))
+(defun ada-make-filename-from-adaname (adaname)
+  "Return the filename in which ADANAME is found."
+  (funcall ada-make-filename-from-adaname adaname))
 
-(defun ada-fill-comment-paragraph-postfix ()
-  "Fill current comment paragraph and justify each line as well.
-Adds `ada-fill-comment-postfix' at the end of each line."
-  (interactive)
-  (ada-fill-comment-paragraph 'full t))
+(defun ada-make-filename-from-adaname-default (adaname)
+  "Determine the filename in which ADANAME is found.
+This matches the GNAT default naming convention, except for
+pre-defined units."
+  (while (string-match "\\." adaname)
+    (setq adaname (replace-match "-" t t adaname)))
+  (downcase adaname)
+  )
 
-(defun ada-fill-comment-paragraph (&optional justify postfix)
-  "Fill the current comment paragraph.
-If JUSTIFY is non-nil, each line is justified as well.
-If POSTFIX and JUSTIFY are non-nil, `ada-fill-comment-postfix' is appended
-to each line filled and justified.
-The paragraph is indented on the first line."
+(defvar ada-which-function nil
+  ;; No useful default; the indentation engine should supply a useful function
+  ;; This is run from ff-pre-load-hook, so ff-function-name may have
+  ;; been set by ff-treat-special; don't reset it.
+  "Function called with no parameters; it should return the name
+of the package, protected type, subprogram, or task type whose
+definition/declaration point is in, or nil.  In addition, if
+ff-function-name is non-nil, store in ff-function-name a regexp
+that will find the function in the other file.")
+
+(defun ada-which-function ()
+  "See `ada-which-function' variable."
+  (when ada-which-function
+    (funcall ada-which-function)))
+
+(defun ada-set-point-accordingly ()
+  "Move to the string specified in `ff-function-name', which may be a regexp,
+previously set by a file navigation command."
+  (when ff-function-name
+    (goto-char (point-min))
+    (search-forward-regexp ff-function-name nil t)
+    (goto-char (match-beginning 0))
+    (setq ff-function-name nil)))
+
+(defun ada-find-other-file (other-window)
+  "If region is active, assume it contains a package name; goto that.
+Else call ff-find-other-file. If OTHER-WINDOW or with arg,
+show in other window."
+  ;; ff-get-file, ff-find-other file run the following hooks:
+  ;; ff-pre-load-hook       set to ada-which-function
+  ;; ff-file-created-hook   set to ada-make-body
+  ;; ff-post-load-hook      set to ada-set-point-accordingly, or a compiler-specific function
+
   (interactive "P")
-  ;; FIXME (later): canonical `fill-paragraph' has gotten better; try it.
-  ;; check if inside comment or just in front a comment
-  (if (and (not (ada-in-comment-p))
-	   (not (looking-at "[ \t]*--")))
-      (error "Not inside comment"))
+  (if mark-active
+      (progn
+        (setq ff-function-name (buffer-substring-no-properties (point) (mark)))
+        (ff-get-file
+         ada-search-directories-internal
+         (ada-make-filename-from-adaname ff-function-name)
+         ada-spec-suffixes
+         other-window)
+        (deactivate-mark))
 
-  (let* (indent from to
-	 (opos (point-marker))
-	 fill-prefix
-	 (fill-column (current-fill-column)))
+    (ff-find-other-file other-window)))
 
-    ;;  Find end of paragraph
-    (back-to-indentation)
-    (while (and (not (eobp)) (looking-at ".*--[ \t]*[^ \t\n]"))
-      (forward-line 1)
+(defvar ada-body-suffixes '(".adb")
+  "List of possible suffixes for Ada body files.
+The extensions should include a `.' if needed.")
 
-      ;;  If we were at the last line in the buffer, create a dummy empty
-      ;;  line at the end of the buffer.
-      (if (eobp)
-	  (insert "\n")
-	(back-to-indentation)))
-    (beginning-of-line)
-    (setq to (point-marker))
-    (goto-char opos)
-
-    ;;  Find beginning of paragraph
-    (back-to-indentation)
-    (while (and (not (bobp)) (looking-at ".*--[ \t]*[^ \t\n]"))
-      (forward-line -1)
-      (back-to-indentation))
-
-    ;;  We want one line above the first one, unless we are at the beginning
-    ;;  of the buffer
-    (unless (bobp)
-      (forward-line 1))
-    (beginning-of-line)
-    (setq from (point-marker))
-
-    ;;  Calculate the indentation we will need for the paragraph
-    (back-to-indentation)
-    (setq indent (current-column))
-    ;;  unindent the first line of the paragraph
-    (delete-region from (point))
-
-    ;;  Remove the old postfixes
-    (goto-char from)
-    (while (re-search-forward "--\n" to t)
-      (replace-match "\n"))
-
-    (goto-char (1- to))
-    (setq to (point-marker))
-
-    ;;  Indent and justify the paragraph
-    (setq fill-prefix ada-fill-comment-prefix)
-    (set-left-margin from to indent)
-    (if postfix
-	(setq fill-column (- fill-column (length ada-fill-comment-postfix))))
-
-    (fill-region-as-paragraph from to justify)
-
-    ;;  Add the postfixes if required
-    (if postfix
-	(save-restriction
-	  (goto-char from)
-	  (narrow-to-region from to)
-	  (while (not (eobp))
-	    (end-of-line)
-	    (insert-char ?  (- fill-column (current-column)))
-	    (insert ada-fill-comment-postfix)
-	    (forward-line))
-	  ))
-
-    (goto-char opos)))
-
-
-;; ---------------------------------------------------
-;;    support for find-file.el
-;;
-;; These functions are used by find-file to guess the file names from
-;; unit names, and to find the other file (spec or body) from the current
-;; file (body or spec).
-;;
-;; Also used to find in which function we are, so as to put the
-;; cursor at the correct position.
-;; ---------------------------------------------------
+(defvar ada-spec-suffixes '(".ads")
+  "List of possible suffixes for Ada spec files.
+The extensions should include a `.' if needed.")
 
 (defvar ada-other-file-alist
   '(("\\.ads$" (".adb"))
@@ -577,19 +581,8 @@ or the spec otherwise."
 
       is-spec)))
 
-(defun ada-set-point-accordingly ()
-  "Move to the function declaration that was set by `ff-which-function-are-we-in'."
-  (if ff-function-name
-      (progn
-	(goto-char (point-min))
-	;; FIXME (later, when testing this): don't have
-	;; ada-search-ignore-string-comment anymore; move this to
-	;; ada-smie to be more accurate?
-	(unless (ada-search-ignore-string-comment
-		 (concat ff-function-name "\\b") nil)
-	  (goto-char (point-min))))))
-
 (defun ada-get-body-name (&optional spec-name)
+  ;; FIXME: how is this different from ada-other-file-name? why both?
   "Return the file name for the body of SPEC-NAME.
 If SPEC-NAME is nil, return the body for the current package.
 Return nil if no body was found."
@@ -616,9 +609,101 @@ Return nil if no body was found."
 		     (file-name-nondirectory
 		      (file-name-sans-extension spec-name)))
 		    ada-body-suffixes))
-
-;; ---------------------------------------------------
-;;    support for font-lock.el
+;;; fill-comment
+
+(defun ada-fill-comment-paragraph-justify ()
+  "Fill current comment paragraph and justify each line as well."
+  (interactive)
+  (ada-fill-comment-paragraph 'full))
+
+(defun ada-fill-comment-paragraph-postfix ()
+  "Fill current comment paragraph and justify each line as well.
+Adds `ada-fill-comment-postfix' at the end of each line."
+  (interactive)
+  (ada-fill-comment-paragraph 'full t))
+
+(defun ada-fill-comment-paragraph (&optional justify postfix)
+  "Fill the current comment paragraph.
+If JUSTIFY is non-nil, each line is justified as well.
+If POSTFIX and JUSTIFY are non-nil, `ada-fill-comment-postfix' is appended
+to each line filled and justified.
+The paragraph is indented on the first line."
+  (interactive "P")
+  ;; FIXME (later): canonical `fill-paragraph' has gotten better; try it.
+  ;; check if inside comment or just in front a comment
+  (if (and (not (ada-in-comment-p))
+	   (not (looking-at "[ \t]*--")))
+      (error "Not inside comment"))
+
+  (let* (indent from to
+	 (opos (point-marker))
+	 fill-prefix
+	 (fill-column (current-fill-column)))
+
+    ;;  Find end of paragraph
+    (back-to-indentation)
+    (while (and (not (eobp)) (looking-at ".*--[ \t]*[^ \t\n]"))
+      (forward-line 1)
+
+      ;;  If we were at the last line in the buffer, create a dummy empty
+      ;;  line at the end of the buffer.
+      (if (eobp)
+	  (insert "\n")
+	(back-to-indentation)))
+    (beginning-of-line)
+    (setq to (point-marker))
+    (goto-char opos)
+
+    ;;  Find beginning of paragraph
+    (back-to-indentation)
+    (while (and (not (bobp)) (looking-at ".*--[ \t]*[^ \t\n]"))
+      (forward-line -1)
+      (back-to-indentation))
+
+    ;;  We want one line above the first one, unless we are at the beginning
+    ;;  of the buffer
+    (unless (bobp)
+      (forward-line 1))
+    (beginning-of-line)
+    (setq from (point-marker))
+
+    ;;  Calculate the indentation we will need for the paragraph
+    (back-to-indentation)
+    (setq indent (current-column))
+    ;;  unindent the first line of the paragraph
+    (delete-region from (point))
+
+    ;;  Remove the old postfixes
+    (goto-char from)
+    (while (re-search-forward "--\n" to t)
+      (replace-match "\n"))
+
+    (goto-char (1- to))
+    (setq to (point-marker))
+
+    ;;  Indent and justify the paragraph
+    (setq fill-prefix ada-fill-comment-prefix)
+    (set-left-margin from to indent)
+    (if postfix
+	(setq fill-column (- fill-column (length ada-fill-comment-postfix))))
+
+    (fill-region-as-paragraph from to justify)
+
+    ;;  Add the postfixes if required
+    (if postfix
+	(save-restriction
+	  (goto-char from)
+	  (narrow-to-region from to)
+	  (while (not (eobp))
+	    (end-of-line)
+	    (insert-char ?  (- fill-column (current-column)))
+	    (insert ada-fill-comment-postfix)
+	    (forward-line))
+	  ))
+
+    (goto-char opos)))
+
+;;; support for font-lock.el
 
 (defconst ada-font-lock-name-regexp
   "\\(\\(?:\\sw\\|[_.]\\)+\\)")
@@ -807,7 +892,7 @@ Return nil if no body was found."
        'ada-other-file-alist)
   (setq ff-post-load-hook    'ada-set-point-accordingly
 	ff-file-created-hook 'ada-make-body)
-  (add-hook 'ff-pre-load-hook 'ada-which-function-are-we-in)
+  (add-hook 'ff-pre-load-hook 'ada-which-function)
 
   (make-local-variable 'ff-special-constructs)
   (mapc (lambda (pair) (add-to-list 'ff-special-constructs pair))
@@ -890,10 +975,6 @@ Return nil if no body was found."
 ;; FIXME (later): make these real, somewhere
 (defun ada-adjust-case-identifier ()); get this from emacs_stephe/ada-mode-keys.el
 (defun ada-adjust-case () (capitalize-word 1))
-(defun ada-find-other-file ()
-  (interactive)
-  (ff-find-other-file))
-(defun ada-which-function-are-we-in () "")
 (defvar ada-case-exception-file nil)
 
 ;; load indent engine first; compilers may need to know which is being

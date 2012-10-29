@@ -242,6 +242,7 @@
        (task_body)
        (type_declaration)
        (use_clause)
+       (use_type_clause)
        )
 
       (declarations
@@ -449,6 +450,7 @@
 
       (subprogram_body
        ;; access is an identifier
+       ;; We don't need "overriding" here; including it in the spec is sufficient
        ("function-spec" name "return-spec" name "is-subprogram_body" declarations "begin-body" statements "end-block")
        ("function-spec" name "return-spec" "is-subprogram_body" "separate-stub")
        ("procedure-spec" name "is-subprogram_body" declarations "begin-body" statements "end-block")
@@ -560,6 +562,9 @@
 
        ;; protected_type_declaration, single_protected_declaration
        ;;
+       ;; single_protected_declaration just leaves out
+       ;; "type-protected"; we don't need that in the grammar, things
+       ;; work fine without it.
        ("protected-type" "type-protected" identifier "is-type-block" declarations
 	"private-body" declarations "end-block")
        ("protected-type" "type-protected" identifier "is-type-block" declarations "end-block")
@@ -594,6 +599,10 @@
 
       (use_clause
        ("use-decl" name))
+
+      (use_type_clause
+       ("use-decl" "type-use" name))
+      ;; "all" is left as an identifier
 
       )); smie-bnf->prec2
     ))
@@ -693,9 +702,7 @@ that are not allowed by Ada, but we don't care."
   (error
    "%s: %s %d"
    message
-   (buffer-substring-no-properties
-    (progn (beginning-of-line) (point))
-    (progn (end-of-line) (point)))
+   (buffer-substring-no-properties (point-at-bol) (point-at-eol))
    (point)))
 
 (defun ada-smie-generic-p ()
@@ -1901,6 +1908,7 @@ when found token is an element of TARGETS, return that token."
     (cond
      ((equal token "protected") "type-protected")
      ((equal token "task") "type-task")
+     ((equal token "use") "type-use")
      (t "type-other")
      )))
 
@@ -1911,13 +1919,13 @@ when found token is an element of TARGETS, return that token."
   ;;
   ;;    b) use_type_clause ::= use [all] type subtype_mark {, subtype_mark};
   ;;
-  ;;    it's not easy to tell these apart, so they are both use-decl
+  ;;    token: use-decl
   ;;
   ;; 2) attribute_definition_clause ::=
   ;;      for local_name'attribute_designator use expression;
   ;;    | for local_name'attribute_designator use name;
   ;;
-  ;; token: use-decl
+  ;;    token: use-attribute
 
   (let ((token (save-excursion
 		 (when forward (smie-default-backward-token))
@@ -3150,7 +3158,7 @@ the start of CHILD, which must be a keyword."
 (defun ada-smie-record()
   "Indent a line containing the \"record\" that starts a record component list."
   (catch 'quit
-    (when (> (nth 0 (syntax-ppss)) 0)
+    (when (ada-in-paren-p)
       ;; inside discriminant parens; let other rules handle it
       (throw 'quit nil))
 
@@ -3236,7 +3244,69 @@ statement start.  Intended to be the last item in
 made."
   (cdr (ada-smie-rule-statement ada-indent-broken nil)))
 
-;;; debug
+;;; other stuff
+
+(defun ada-smie-which-function ()
+  "For `ada-which-function', which see."
+  (let ((done nil)
+	token
+	result)
+    (save-excursion
+      ;; look on the line we are on first, then back.
+      (end-of-line)
+      (when (ada-in-comment-p)
+	;; backward-token doesn't work from inside a comment.
+	(beginning-of-line))
+
+      (if (member (file-name-extension (buffer-file-name)) ada-spec-suffixes)
+	  ;; In a spec file; look on the line we are on first, then back.
+	  (progn
+	    (while
+		(not
+		 (member (setq token (ada-smie-backward-token))
+			 '("procedure-spec"
+			   "function-spec"
+			   "package-generic"
+			   "package-plain"
+			   "protected-type"
+			   "task-type"
+			   "task-single"
+			   ""; bob
+			   )))))
+
+	;; In a body file; similar algorithm, different set of
+	;; tokens. Handle nested items properly.
+	(while
+	    (not
+	     (member (setq token (ada-smie-backward-token))
+		     '("procedure-spec" "is-subprogram_body" "begin-body" "end-block"
+		       "function-spec" "return-spec"
+		       "package-plain"
+		       "protected-body" "is-protected_body"
+		       "task-body" "is-task_body"
+		       "")))); bob, just in case we forgot something
+	(when (member token
+		      '("is-subprogram_body" "begin-body" "end-block"
+			"return-spec" "is-protected_body" "is-task_body"))
+	  (ada-smie-goto-statement-start token))
+	)
+
+      ;; point is now on start of a declaration or body
+
+      (while (ada-smie-keyword-p (setq result (ada-smie-forward-token))))
+      (if (not ff-function-name)
+	  ;; FIXME: need to strip or add "type" or "body"
+	  (setq ff-function-name
+		;; use a regexp that won't match similarly named items
+		(concat
+		 "^"
+		 (buffer-substring-no-properties (point-at-bol) (point))
+		 ;; we can't just add \> here; that matches _ in the default ada-mode-syntax-table
+		 "[^_]")))
+      )
+    result))
+
+;;; parser debug
 (defvar ada-smie-debug-refine nil
   "When non-nil, `ada-smie-show-keyword-forward' and
 `ada-smie-show-keyword-backward' invalidate cache first, so
@@ -3325,7 +3395,7 @@ This lets us know which indentation function succeeded."
 	(setq res (cons newfunc res))))
     (setq smie-indent-functions (reverse res))))
 
-;;; setup
+;;; parser setup
 
 (defun ada-smie-setup ()
 
@@ -3407,6 +3477,8 @@ This lets us know which indentation function succeeded."
 	   'default)
 	 nil t)
      )))
+
+  (set (make-local-variable 'ada-which-function) 'ada-smie-which-function)
 
   (define-key ada-mode-map "\t" 'indent-for-tab-command)
   ;; TAB will now use smie indentation in Ada mode buffers

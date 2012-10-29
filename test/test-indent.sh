@@ -2,7 +2,8 @@
 #
 # $1: absolute path to a directory containing Ada files
 # $2: output directory
-#
+# $3: elisp file setting user Ada mode options
+# 
 # $EMACS_ADA_MODE_5: directory containing ada-indent.el
 # $EMACS : emacs executable
 #
@@ -23,7 +24,7 @@ fi
 cd $2
 
 for file in $1/*.ad[bs] ; do
-    $EMACS -Q -batch -L $EMACS_ADA_MODE_5 -l test/runtest.el --eval "(run-test \"$file\")"
+    $EMACS -Q -batch -L $EMACS_ADA_MODE_5 -l $3 -l test/runtest.el --eval "(run-test \"$file\")"
     filename=`basename $file`
     diff -u $file $filename.tmp > $filename.diff
 done

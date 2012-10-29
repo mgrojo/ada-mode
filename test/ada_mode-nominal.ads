@@ -374,8 +374,16 @@ package Ada_Mode.Nominal is
    Float_7
      : aliased constant Float := 1.0;
 
-   -- FIXME: anonymous array ...
-
+   Anon_Array_1 : array (1 .. 10) of Integer;
+   Anon_Array_2 : array (1 .. 10) of
+     Integer;
+   Anon_Array_3 : array (1 .. 10)
+     of Integer;
+   Anon_Array_4 : array
+     (1 .. 10) of Integer;
+   Anon_Array_5 :
+     array (1 .. 10) of Integer;
+   
    -- Non-trivial type name
    P_1 : Ada.Strings.Unbounded.String_Access;
    P_2 : Ada.Strings.Unbounded.

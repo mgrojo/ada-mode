@@ -3,7 +3,8 @@ General notes on porting Emacs Ada mode indentation engine to smie
 (progn
     (add-to-list 'load-path (expand-file-name "."))
     (setq debug-on-error t); see errors from smie-indent-line
-    (load "test/runtest.el");; loads ada-mode
+    (load "test/runtest.el");; loads ada-mode, ada-mode-keys, etc
+    (modify-syntax-entry ?_ "_" ada-mode-syntax-table); default
     (setq ada-mode-hook (delete 'ada-find-file-setup ada-mode-hook))
     (setq ada-mode-hook (delete 'sal-ada-mode-setup ada-mode-hook))
     (setq ada-mode-hook (delete 'ada-xref-initialize ada-mode-hook))
@@ -11,22 +12,22 @@ General notes on porting Emacs Ada mode indentation engine to smie
     (add-hook 'ada-mode-hook
        (lambda ()
        (define-key ada-mode-map "\C-w" 'capitalize-word)
-       (define-key ada-mode-map "\M-o" 'ada-indent-show-parent)
-       (define-key ada-mode-map "\M-9" 'ada-indent-show-child)
-       (define-key ada-mode-map "\M-p" 'ada-indent-show-statement-start)
-       (define-key ada-mode-map "\M-i" 'ada-indent-show-keyword-backward)
-       (define-key ada-mode-map "\M-j" 'ada-indent-show-cache)
-       (define-key ada-mode-map "\M-k" 'ada-indent-show-keyword-forward)
+       (define-key ada-mode-map "\M-o" 'ada-smie-show-parent)
+       (define-key ada-mode-map "\M-9" 'ada-smie-show-child)
+       (define-key ada-mode-map "\M-p" 'ada-smie-show-statement-start)
+       (define-key ada-mode-map "\M-i" 'ada-smie-show-keyword-backward)
+       (define-key ada-mode-map "\M-j" 'ada-smie-show-cache)
+       (define-key ada-mode-map "\M-k" 'ada-smie-show-keyword-forward)
     ))
-    (setq ada-indent-debug-refine t)
+    (setq ada-smie-debug-refine t)
    )
 
-(setq ada-indent-debug-refine nil)
-(setq ada-indent-debug-refine t)
+(setq ada-smie-debug-refine nil)
+(setq ada-smie-debug-refine t)
 
 (edebug-toggle-save-all-windows)
 
-ada-indent.el
+ada-smie.el
 (sal-edit-library "smie")
 /Apps/emacs-24.2/lisp/emacs-lisp/smie.el
 
@@ -35,25 +36,62 @@ runtest from emacs -q:
   (add-to-list 'load-path "/Projects/org.emacs.ada-mode.smie")
   (add-to-list 'load-path "/Projects/org.emacs.ada-mode.smie/test")
   (load "runtest")
-  (run-test "/Projects/org.emacs.ada-mode.smie/test/ada_mode-nominal.ads")
 )
+
+(run-test "/Projects/org.emacs.ada-mode.smie/test/ada_mode-nominal.ads")
 
 (progn
     (setq ada-mode-hook (delete 'ada-wisi-setup ada-mode-hook))
-    (add-hook 'ada-mode-hook 'ada-indent-setup))
+    (add-hook 'ada-mode-hook 'ada-smie-setup))
 (shell-send-string "~/bin/mtn_sync_ada_france.sh" "*bash*")
 (xmtn-sync-review)
 
 review FIXMEs
 (grep-find "find . -type f -print | \"xargs\" grep -nH \"FIXME:\"")
  current
-anonymous array
+C-F11
+    test/ada_mode-find_file.adb
 
-(point-at-bol) (point-at-eol)
+    ada-find-other-file
+    moved from /Projects/emacs_stephe.work/emacs_stephe/ada-mode-patches.el to ada-mode.el
+    write/improve test
+        fix/improve handling of overloaded?
+            C-c C-d works for that; use the second part of that! but fall back if .ali not available.
+            just save string from bol thru name in ff_function_name
+                search for that doesn't have to ignore string, comment
 
-test/test-indent.sh
-    /tmp/gds_indent
-    need to add user settings
+    ff-find-the-other-file hooks:
+        ff-pre-find-hook
+        (ff-treat-as-special)
+
+    ada-other-file-alist mapped to ff-other-file-alist; reference doc string
+
+    ada-search-directories may contain env vars
+
+    add prefix options
+        nil - don't set-point-accordingly
+        C-u - other window
+        C-u 1 - do set-point
+        C-u -1 - set-point, other-window
+        C-u 5 - other frame
+        C-u -5 - other frame
+
+ff-special-constructs
+    /Projects/emacs_stephe.work/emacs_stephe/ada-mode-patches.el
+    write tests
+
+log-entry use ada-which-function
+
+allocator!
+    return new Item_Type'(item.all);
+    new also needs font-lock
+
+don't mark buffer modified just for ada-smie-cache text property
+
+cd /Projects/org.emacs.ada-mode.smie/test
+./test-indent.sh $GDS_ROOT/main_lynx_5/sal/Source_Common /tmp/gds_indent test/gds-options.el
+    /tmp/gds_indent/
+    (dired "/tmp/gds_indent/*.diff")
 
 test/Makefile
 
@@ -70,7 +108,7 @@ aspect_clause;    record - done
 attribute clauses; record layout
 library generic subprogram
 pre/post conditions
-quantified_, if_, case_expressions. Simon Wright working on "if" expressions, ada-indent-after-return.
+quantified_, if_, case_expressions. Simon Wright working on "if" expressions
 
 >    X3A : Unsigned := (case P is
 >                       when 1
@@ -90,7 +128,7 @@ quantified_, if_, case_expressions. Simon Wright working on "if" expressions, ad
 >                       when others
 >                          => Default_Expressions_Value (Being (0)));
 
-bug in ada-indent-goto-statement-start; it finds "case" properly, but
+bug in ada-smie-goto-statement-start; it finds "case" properly, but
 doesn't return "(" as it should
 
 remaining expressions?

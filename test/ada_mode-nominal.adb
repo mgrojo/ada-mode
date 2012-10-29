@@ -15,7 +15,9 @@ package body Ada_Mode.Nominal is
      (A_Param : in Float)
      return
      Standard.Float
-   is begin
+   is
+      use type Standard.Float;
+   begin
       return 0.0;
    end;
 
