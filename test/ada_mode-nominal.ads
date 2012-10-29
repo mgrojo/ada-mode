@@ -24,6 +24,14 @@ limited with Ada.Strings.Bounded,
 --EMACSCMD:(test-face "Ada" font-lock-constant-face)
 private with Ada.Containers.Vectors,
           Ada.Containers.Bounded_Doubly_Linked_Lists;
+-- test ada-find-other-file on 'with subprogram-body'
+--EMACSCMD:(progn (forward-line 1)(ada-find-other-file t)(looking-at "Ada_Mode.Library_Function return"))
+with Ada_Mode.Library_Function;
+--EMACSCMD:(progn (forward-line 1)(ada-find-other-file t)(looking-at "Ada_Mode.Library_Procedure is"))
+with Ada_Mode.Library_Procedure;
+-- test ada-find-other-file on 'with subprogram-spec'
+--EMACSCMD:(progn (forward-line 1)(ada-find-other-file t)(looking-at "Ada_Mode.Function_2 return Boolean;"))
+with Ada_Mode.Function_2;
 package Ada_Mode.Nominal is
    --  No comment on the first line, to make sure we can handle that :)
    --  blank on first line, to test beginning-of-buffer logic for "with-context"

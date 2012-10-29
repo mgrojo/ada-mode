@@ -1,7 +1,7 @@
 separate (Ada_Mode) protected body Separate_Protected_Body
-  -- no comment before "separate", no newline after )
-  --EMACSCMD:(progn (forward-line -3)(ada-find-other-file t)(looking-at "protected body Separate_Protected_Body is"))
 is
+   -- no comment before "separate", no newline after )
+   --EMACSCMD:(progn (forward-line -3)(ada-find-other-file t)(looking-at "protected body Separate_Protected_Body is"))
    entry E when True is
    begin
       null;

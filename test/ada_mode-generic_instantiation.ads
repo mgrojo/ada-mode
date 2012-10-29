@@ -1,5 +1,6 @@
 -- Various generic_instantiations
 
+--EMACSCMD:(progn (forward-line 1)(ada-find-other-file t)(looking-at "Ada_Mode.Generic_Parent is"))
 with Ada_Mode.Generic_Parent;
 with Ada_Mode.Nominal;
 private

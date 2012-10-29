@@ -421,7 +421,7 @@ pre-defined units."
   (downcase adaname)
   )
 
-(defun ada-ff-special-extract-special ()
+(defun ada-ff-special-extract-separate ()
   (let ((package-name (match-string 1)))
     (save-excursion
       (goto-char (match-end 0))
@@ -439,15 +439,18 @@ pre-defined units."
 
 (defun ada-set-ff-special-constructs ()
   "Add Ada-specific pairs to `ff-special-constructs'."
+  (set (make-local-variable 'ff-special-constructs) nil)
   (mapc (lambda (pair) (add-to-list 'ff-special-constructs pair))
 	;; Each cdr should set ff-function-name to a string or regexp
 	;; for ada-set-point-accordingly, and return the file name
 	;; (may include full path, must include suffix) to go to.
 	(list
-	 ;; Top level child package declaration (not body); go to the parent package.
-	 (cons (concat "^\\(private[ \t]+\\)?package[ \t]+" ada-parent-name-regexp " is")
+	 ;; Top level child package declaration (not body), or child
+	 ;; subprogram declaration or body; go to the parent package.
+	 (cons (concat "^\\(?:private[ \t]+\\)?\\(?:package\\|procedure\\|function\\)[ \t]+"
+		       ada-parent-name-regexp "[ \t]+\\(?:;\\|is\\|return\\)")
 	       (lambda ()
-	       	 (setq ff-function-name (match-string 2))
+	       	 (setq ff-function-name (match-string 1))
 	       	 (ff-get-file-name
 	       	   ada-search-directories-internal
 	       	   (ada-make-filename-from-adaname ff-function-name)
@@ -455,12 +458,13 @@ pre-defined units."
 
 	 ;; A "separate" clause.
 	 (cons (concat "^separate[ \t\n]*(" ada-name-regexp ")")
-	       'ada-ff-special-extract-special)
+	       'ada-ff-special-extract-separate)
 
 	 ;; A "with" clause. Note that it may refer to a procedure body, as well as a spec
-	 (cons "^with[ \t]+\\([a-zA-Z0-9_\\.]+\\)"
+	 (cons (concat "^with[ \t]+" ada-name-regexp)
 	       (lambda ()
-		 (ff-get-file
+	       (setq ff-function-name (match-string 1))
+	       (ff-get-file-name
 		  ada-search-directories-internal
 		  (ada-make-filename-from-adaname (match-string 1))
 		  (append ada-spec-suffixes ada-body-suffixes))))
@@ -945,7 +949,6 @@ The paragraph is indented on the first line."
 	ff-file-created-hook 'ada-make-body)
   (add-hook 'ff-pre-load-hook 'ada-which-function)
 
-  (make-local-variable 'ff-special-constructs)
   (ada-set-ff-special-constructs)
 
   (set (make-local-variable 'ispell-check-comments) 'exclusive)

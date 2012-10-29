@@ -2275,9 +2275,16 @@ If a token is not in the alist, it is returned unrefined.")
 (defun ada-smie-put-cache (pos token)
   "Set TOKEN as the refined token string in the `ada-smie-cache' text property at POS.
 Return TOKEN."
-  (put-text-property pos (+ 1 pos) 'ada-smie-cache token)
-  (setq ada-smie-cache-max (max ada-smie-cache-max pos))
-  token)
+  (let ((inhibit-modification-hooks t)
+	(modified (buffer-modified-p)))
+    ;; We are not changing any text, so neither font-lock nor
+    ;; ada-smie-after-change needs to be called. But
+    ;; inhibit-modification-hooks doesn't prevent marking the buffer
+    ;; as modified.
+    (put-text-property pos (+ 1 pos) 'ada-smie-cache token)
+    (restore-buffer-modified-p modified)
+    (setq ada-smie-cache-max (max ada-smie-cache-max pos))
+    token))
 
 (defun ada-smie-after-change (begin end length)
   ;; We only need to move ada-smie-cache-max to `begin' if this
@@ -2297,7 +2304,12 @@ Return TOKEN."
 	   (nth 4 state)); in comment
 	  (setq ada-smie-cache-max (nth 8 state)))
 
-	 (t (setq ada-smie-cache-max begin))
+	 (t
+	  ;; If we are typing, "begin" may be in the middle of a
+	  ;; token; we need ada-smie-cache-max to be at least one
+	  ;; char before it. syntax-ppss has moved point to "begin".
+	  (skip-syntax-backward "w ")
+	  (setq ada-smie-cache-max (point)))
 	 )))))
 
 (defun ada-smie-next-token (forward)

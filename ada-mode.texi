@@ -4,7 +4,7 @@
 
 @copying
 Copyright @copyright{} 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+2007, 2008, 2009, 2010, 2011, 2012  Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -1192,9 +1192,10 @@ file(@code{ada-find-other-file}). There are several special cases:
     If the region is active, it is assumed to contain an Ada package
     name; position point on the corresponding package declaration.
     @item
-    If point is in the start line of a top level package declaration
-    (but not package body), position point on the corresponding parent
-    package declaration.
+    If point is in the start line of a top level child package
+    declaration (but not package body), or a child subprogram spec or
+    body, position point on the corresponding parent package
+    declaration.
     @item
     If point is in the start line of a top level separate body,
     position point on the corresponding separate stub declaration.

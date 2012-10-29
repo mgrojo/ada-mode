@@ -50,42 +50,23 @@ runtest from emacs -q:
 review FIXMEs
 (grep-find "find . -type f -print | \"xargs\" grep -nH \"FIXME:\"")
  current
-C-F11
-    test/ada_mode-find_file.adb
-
-    ada-find-other-file
-    moved from /Projects/emacs_stephe.work/emacs_stephe/ada-mode-patches.el to ada-mode.el
-    write/improve test
-        fix/improve handling of overloaded?
-            C-c C-d works for that; use the second part of that! but fall back if .ali not available.
-            just save string from bol thru name in ff_function_name
-                search for that doesn't have to ignore string, comment
-
-    ada-other-file-alist mapped to ff-other-file-alist; reference doc string
-
-    ada-search-directories may contain env vars
+ada-find-other-file
+    nested package?
 
     add prefix options
-        nil - don't set-point-accordingly
+        nil - set-point-accordingly
         C-u - other window
-        C-u 1 - do set-point
-        C-u -1 - set-point, other-window
+        C-u 1 - other window (consistent with other-frame)
+        C-u -1 - don't set-point, other-window
         C-u 5 - other frame
-        C-u -5 - other frame
-
-ff-special-constructs
-    /Projects/emacs_stephe.work/emacs_stephe/ada-mode-patches.el
-        replace ada-mode.el ada-mode ff-special-constructs
-        write tests
-        update manual
+        C-u -5 - don't set-point, other frame
 
 log-entry use ada-which-function
+    fix  (--EMACSCMD)
 
 allocator!
     return new Item_Type'(item.all);
     new also needs font-lock
-
-don't mark buffer modified just for ada-smie-cache text property
 
 cd /Projects/org.emacs.ada-mode.smie/test
 ./test-indent.sh $GDS_ROOT/main_lynx_5/sal/Source_Common /tmp/gds_indent test/gds-options.el
