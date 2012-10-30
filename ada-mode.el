@@ -260,6 +260,11 @@ user-defined `ada-search-directories'.")
 
 ;;; context menu
 
+(defvar ada-contextual-menu-last-point nil)
+(defvar ada-contextual-menu-on-identifier nil)
+(defvar ada-contextual-menu nil)
+(defun ada-after-keyword-p () nil);; FIXME: used in ada-popup-menu
+
 (defun ada-call-from-contextual-menu (function)
   "Execute FUNCTION when called from the contextual menu.
 It forces Emacs to change the cursor position."
@@ -514,7 +519,7 @@ previously set by a file navigation command."
 (defun ada-display-buffer-other-frame (buffer-or-name)
   "Display BUFFER-OR-NAME (an existing buffer or the name of an existing buffer) in another frame,
 either an existing one, or a new one if there are no existing other frames."
-  (let* ((buffer (if (bufferp buffer) buffer (get-buffer buffer-or-name)))
+  (let* ((buffer (if (bufferp buffer-or-name) buffer-or-name (get-buffer buffer-or-name)))
 	 (window (ada-buffer-window buffer))
 	 (frame-1 (and window (window-frame window)))
 	 (frame-2 (car (filtered-frame-list (lambda (frame) (not (eq frame (selected-frame)))))))
@@ -551,25 +556,38 @@ always pops up a new frame.  To get that, don't set
 `display-buffer-function' to `ada-display-buffer' (the standard
 Ada mode initialization does this correctly, if you set
 `pop-up-frames' to non-nil before ada-mode.el is loaded)."
-  (condition-case err
-      (if pop-up-frames
-	  (ada-display-buffer-other-frame buffer-or-name)
-	(cond
-	 ((not old-other-window)
-	  (let ((buffer (if (bufferp buffer-or-name) buffer-or-name (get-buffer buffer-or-name))))
-	    (display-buffer-record-window 'reuse (selected-window) buffer)
-	    (window--display-buffer-1 (selected-window))
-	    (window--display-buffer-2 buffer (selected-window))))
-	 ((or old-other-window
-	      (eq current-prefix-arg '(4)))
-	  (let ((display-buffer-function nil))
-	    (display-buffer buffer-or-name t)))
-	 ((eq current-prefix-arg '(16))
-	  (ada-display-buffer-other-frame buffer-or-name))
-	 ))
-    (error
-     (setq display-buffer-function nil)
-     (error "%s" err))
+  (let ((other-frame (equal current-prefix-arg '(16)))
+	(other-window
+	 (or
+	  (minibuffer-window-active-p (selected-window))
+	  (equal current-prefix-arg '(4))
+	  (and (not (equal current-prefix-arg '(16)))
+	       old-other-window))))
+
+    (when (and other-frame other-window)
+      ;; It would be too confusing to try to report an error
+      ;; here. This is most likely what the user means.
+      (setq other-window nil))
+
+    (if pop-up-frames
+	(ada-display-buffer-other-frame buffer-or-name)
+      (cond
+       ((not (or other-window
+		 other-frame))
+	(let ((buffer (if (bufferp buffer-or-name) buffer-or-name (get-buffer buffer-or-name))))
+	  (display-buffer-record-window 'reuse (selected-window) buffer)
+	  (window--display-buffer-1 (selected-window))
+	  (window--display-buffer-2 buffer (selected-window))))
+
+       ((and other-window
+	     (not other-frame))
+	(let ((display-buffer-function nil))
+	  (display-buffer buffer-or-name t)))
+
+       (other-frame
+	(ada-display-buffer-other-frame buffer-or-name))
+
+       ))
     ))
 
 (defun ada-find-other-file-noset (other-window-frame)
@@ -612,9 +630,12 @@ the other file."
   ;; ff-get-file, ff-find-other file first process
   ;; ff-special-constructs, then run the following hooks:
   ;;
-  ;; ff-pre-load-hook set to ada-which-function ff-file-created-hook
-  ;; set to ada-make-body ff-post-load-hook set to
-  ;; ada-set-point-accordingly, or a compiler-specific function
+  ;; ff-pre-load-hook      set to ada-which-function
+  ;; ff-file-created-hook  set to ada-make-body
+  ;; ff-post-load-hook     set to ada-set-point-accordingly,
+  ;;                       or to a compiler-specific function that
+  ;;                       uses compiler-generated cross reference
+  ;;                       information
 
   (interactive "P")
   (if mark-active
@@ -674,16 +695,6 @@ the file name."
 		 spec)
 	(funcall (symbol-function 'speedbar-add-supported-extension)
 		 body)))
-  )
-
-;; Overridden when we work with GNAT, to use gnatkrunch
-(defun ada-make-filename-from-adaname (adaname)
-  "Determine the filename in which ADANAME is found.
-This matches the GNAT default naming convention, except for
-pre-defined units."
-  (while (string-match "\\." adaname)
-    (setq adaname (replace-match "-" t t adaname)))
-  (downcase adaname)
   )
 
 (defun ada-other-file-name ()
@@ -790,6 +801,9 @@ Return nil if no body was found."
 Adds `ada-fill-comment-postfix' at the end of each line."
   (interactive)
   (ada-fill-comment-paragraph 'full t))
+
+(defvar ada-fill-comment-prefix nil)
+(defvar ada-fill-comment-postfix nil)
 
 (defun ada-fill-comment-paragraph (&optional justify postfix)
   "Fill the current comment paragraph.
@@ -1059,10 +1073,12 @@ The paragraph is indented on the first line."
   (setq ff-post-load-hook    'ada-set-point-accordingly
 	ff-file-created-hook 'ada-make-body)
   (add-hook 'ff-pre-load-hook 'ada-which-function)
-
   (ada-set-ff-special-constructs)
 
-  (set (make-local-variable 'ispell-check-comments) 'exclusive)
+  (set (make-local-variable 'add-log-current-defun-function)
+       'ada-which-function)
+
+  ;;(set (make-local-variable 'ispell-check-comments) 'exclusive) FIXME: ispell var name has changed
 
   ;;  Support for align
   (add-to-list 'align-dq-string-modes 'ada-mode)

@@ -45,8 +45,8 @@ runtest from emacs -q:
 review FIXMEs
 (grep-find "find . -type f -print | \"xargs\" grep -nH \"FIXME:\"")
  current
-log-entry use ada-which-function
-    fix  (--EMACSCMD)
+log-entry
+    fix newline confusion between t from ediff and status
 
 which-func use ada-which-function
 
