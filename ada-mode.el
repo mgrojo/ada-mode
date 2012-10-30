@@ -169,6 +169,7 @@ user-defined `ada-search-directories'.")
     (define-key map "\C-c\C-c" 'compile)
     (define-key map "\C-c\C-n" 'ada-make-subprogram-body)
     (define-key map "\C-c\C-o" 'ada-find-other-file)
+    (define-key map "\C-c\M-o" 'ada-find-other-file-noset)
     map
   )  "Local keymap used for Ada mode.")
 
@@ -184,22 +185,29 @@ user-defined `ada-search-directories'.")
     ["Customize"     (customize-group 'ada)]
     ["------"        nil nil]
     ["Next compilation error"  next-error             t]
-    ["Other File"              ff-find-other-file  t]
-    ["Other File Other Window" (lambda () (ff-find-other-file t))    t]
+    ["Other File"              ada-find-other-file  t]
+    ["Other File don't find decl" ada-find-other-file-noset    t]
     ("Edit"
      ["Indent Line"                 indent-for-tab-command  t]
      ["Indent Lines in Selection"   indent-region           t]
      ["Indent Lines in File"        (indent-region (point-min) (point-max))  t]
+     ["Align"                       align               t]
+     ;; FIXME: does 'align' do:
+     ;; 1. ':=', '=>' in code sections
+     ;; 2. parameter lists
+     ;; 3. comments after code
+     ;; 4. 'use' in context clauses
+     ;; 5. 'at' in record rep clauses
      ["Comment Selection"           comment-region               t]
      ["Uncomment Selection"         (lambda () (comment-region t)) t]
      ["Fill Comment Paragraph"      fill-paragraph               t]
      ["Fill Comment Paragraph Justify"
-      ada-fill-comment-paragraph-justify                         t]
+      ada-fill-comment-paragraph-justify                         t]; FIXME: test
      ["Fill Comment Paragraph Postfix"
-      ada-fill-comment-paragraph-postfix                         t]
+      ada-fill-comment-paragraph-postfix                         t]; FIXME: test
      ["---"                         nil                          nil]
-     ["Make body for subprogram"    ada-make-subprogram-body     t]
-     ["Narrow to subprogram"        narrow-to-defun          t]
+     ["Make body for subprogram"    ada-make-subprogram-body     t]; FIXME: test
+     ["Narrow to subprogram"        narrow-to-defun          t]; FIXME: test
      )
     ))
 
@@ -494,10 +502,113 @@ previously set by a file navigation command."
     (goto-char (match-beginning 0))
     (setq ff-function-name nil)))
 
-(defun ada-find-other-file (other-window)
-  "If region is active, assume it contains a package name; goto that.
-Else call ff-find-other-file. If OTHER-WINDOW or with arg,
-show in other window."
+(defun ada-buffer-window (buffer)
+  (let ((list (window-list-1 nil nil t))
+	window)
+    (while (and
+	    (setq window (car list))
+	    (not (eq (window-buffer window) buffer)))
+      (setq list (cdr list)))
+    window))
+
+(defun ada-display-buffer-other-frame (buffer-or-name)
+  "Display BUFFER-OR-NAME (an existing buffer or the name of an existing buffer) in another frame,
+either an existing one, or a new one if there are no existing other frames."
+  (let* ((buffer (if (bufferp buffer) buffer (get-buffer buffer-or-name)))
+	 (window (ada-buffer-window buffer))
+	 (frame-1 (and window (window-frame window)))
+	 (frame-2 (car (filtered-frame-list (lambda (frame) (not (eq frame (selected-frame)))))))
+	 (frame
+	  (or (and window
+		   frame-1
+		   (not (eq frame-1 (selected-frame)))
+		   frame-1)
+	      frame-2
+	      (make-frame))))
+    (unless (and window (eq frame frame-1))
+      (setq window (get-lru-window frame)))
+    (display-buffer-record-window 'reuse window buffer)
+    (window--display-buffer-1 window)
+    (window--display-buffer-2 buffer window)))
+
+(defun ada-display-buffer (buffer-or-name &optional old-other-window)
+  "For `display-buffer-function', which see.  Prefix arg on user-level
+command determines frame and window:
+
+nil   : no prefix - current window
+'(4)  : C-u       - other window, current frame
+'(16) : C-u C-u   - other frame.
+
+If 'other frame' is requested, and there is only one current
+frame, a new frame is created. Otherwise, an existing frame is
+reused.
+
+In addition, `pop-up-frames' non-nil is interpreted to mean
+'other frame', which reuses an existing frame, ignoring
+`pop-up-frame-alist'.  If you set `pop-up-frames' non-nil in your
+~/.emacs, you are propably expecting the default behavior, which
+always pops up a new frame.  To get that, don't set
+`display-buffer-function' to `ada-display-buffer' (the standard
+Ada mode initialization does this correctly, if you set
+`pop-up-frames' to non-nil before ada-mode.el is loaded)."
+  (condition-case err
+      (if pop-up-frames
+	  (ada-display-buffer-other-frame buffer-or-name)
+	(cond
+	 ((not old-other-window)
+	  (let ((buffer (if (bufferp buffer-or-name) buffer-or-name (get-buffer buffer-or-name))))
+	    (display-buffer-record-window 'reuse (selected-window) buffer)
+	    (window--display-buffer-1 (selected-window))
+	    (window--display-buffer-2 buffer (selected-window))))
+	 ((or old-other-window
+	      (eq current-prefix-arg '(4)))
+	  (let ((display-buffer-function nil))
+	    (display-buffer buffer-or-name t)))
+	 ((eq current-prefix-arg '(16))
+	  (ada-display-buffer-other-frame buffer-or-name))
+	 ))
+    (error
+     (setq display-buffer-function nil)
+     (error "%s" err))
+    ))
+
+(defun ada-find-other-file-noset (other-window-frame)
+  "Same as `ada-find-other-file', but preserve point in the other file,
+don't move to corresponding declaration."
+  (interactive)
+  (ada-find-other-file t))
+
+(defun ada-find-other-file (other-window-frame &optional no-set-point)
+  "Move to the corresponding declaration in another file.
+
+- If region is active, assume it contains a package name;
+  position point on that package declaration.
+
+- If point is in the start line of a top level child package
+  declaration (but not package body), or a child subprogram spec
+  or body, position point on the corresponding parent package
+  declaration.
+
+- If point is in the start line of a top level separate body,
+  position point on the corresponding separate stub declaration.
+
+- If point is in a context clause line, position point on the
+  package declaration that is mentioned.
+
+- If point is in a subprogram body or declaration, position point
+  on the corresponding declaration or body.
+
+OTHER-WINDOW-FRAME (default nil, set by interactive prefix)
+controls window and frame choice:
+
+nil     : show in current window
+C-u     : show in other window
+C-u C-u : show in other frame
+
+If NO-SET-POINT is nil (the default), set point in the other file on
+the corresponding declaration. If non-nil, preserve existing point in
+the other file."
+
   ;; ff-get-file, ff-find-other file first process
   ;; ff-special-constructs, then run the following hooks:
   ;;
@@ -513,10 +624,10 @@ show in other window."
          ada-search-directories-internal
          (ada-make-filename-from-adaname ff-function-name)
          ada-spec-suffixes
-         other-window)
+         other-window-frame)
         (deactivate-mark))
 
-    (ff-find-other-file other-window)))
+    (ff-find-other-file other-window-frame)))
 
 (defvar ada-body-suffixes '(".adb")
   "List of possible suffixes for Ada body files.
@@ -1010,6 +1121,9 @@ The paragraph is indented on the first line."
 
 (unless (featurep 'ada-compiler)
   (require 'ada-gnat))
+
+(unless (or pop-up-frames display-buffer-function)
+  (setq display-buffer-function 'ada-display-buffer))
 
 (provide 'ada-mode)
 

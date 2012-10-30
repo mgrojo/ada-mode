@@ -59,7 +59,10 @@ COMPILE_FILES := $(filter-out prime-volatilities.adb, $(COMPILE_FILES))
 
 .PHONY : all nominal one test test-clean
 
-test : $(addsuffix .diff, $(TEST_FILES))
+test : $(addsuffix .diff, $(TEST_FILES)) test-elisp
+
+test-elisp :
+	$(EMACS) -Q -batch -L .. -l ada-mode-test.el
 
 %.adb.diff : %.adb %.adb.tmp
 	diff -u $^ > $*.adb.diff

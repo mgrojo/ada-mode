@@ -2,7 +2,6 @@ General notes on porting Emacs Ada mode indentation engine to smie
 
 (progn
     (add-to-list 'load-path (expand-file-name "."))
-    (setq debug-on-error t); see errors from smie-indent-line
     (load "test/runtest.el");; loads ada-mode, ada-mode-keys, etc
     (modify-syntax-entry ?_ "_" ada-mode-syntax-table); default
     (setq ada-mode-hook (delete 'ada-find-file-setup ada-mode-hook))
@@ -23,13 +22,9 @@ General notes on porting Emacs Ada mode indentation engine to smie
     (setq ada-smie-debug-refine t)
    )
 
-(setq ada-smie-debug-refine nil)
 (setq ada-smie-debug-refine t)
+(setq ada-smie-debug-refine nil)
 
-(edebug-toggle-save-all-windows)
-
-ada-smie.el
-(sal-edit-library "smie")
 /Apps/emacs-24.2/lisp/emacs-lisp/smie.el
 
 runtest from emacs -q:
@@ -50,19 +45,10 @@ runtest from emacs -q:
 review FIXMEs
 (grep-find "find . -type f -print | \"xargs\" grep -nH \"FIXME:\"")
  current
-ada-find-other-file
-    nested package?
-
-    add prefix options
-        nil - set-point-accordingly
-        C-u - other window
-        C-u 1 - other window (consistent with other-frame)
-        C-u -1 - don't set-point, other-window
-        C-u 5 - other frame
-        C-u -5 - don't set-point, other frame
-
 log-entry use ada-which-function
     fix  (--EMACSCMD)
+
+which-func use ada-which-function
 
 allocator!
     return new Item_Type'(item.all);
@@ -115,6 +101,11 @@ doesn't return "(" as it should
 remaining expressions?
 remaining statements?
 task entry with index; body has "for"
+
+include gnat-fix-error
+    rename to ada-gnat-fix-error
+    or rewrite to use alist; support other compilers
+    write test?
 
  relevant files
 (info "(aarm2012)Annex P" "*info Annex P*")
