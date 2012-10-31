@@ -540,9 +540,13 @@ either an existing one, or a new one if there are no existing other frames."
   "For `display-buffer-function', which see.  Prefix arg on user-level
 command determines frame and window:
 
-nil   : no prefix - current window
+nil   : no prefix - other window, current frame
 '(4)  : C-u       - other window, current frame
 '(16) : C-u C-u   - other frame.
+
+Note that `ada-display-buffer' is not called when mapping a
+buffer to the currently selected window is desired; other
+functions handle that.
 
 If 'other frame' is requested, and there is only one current
 frame, a new frame is created. Otherwise, an existing frame is
@@ -556,45 +560,22 @@ always pops up a new frame.  To get that, don't set
 `display-buffer-function' to `ada-display-buffer' (the standard
 Ada mode initialization does this correctly, if you set
 `pop-up-frames' to non-nil before ada-mode.el is loaded)."
-  (let ((other-frame (equal current-prefix-arg '(16)))
-	(other-window
-	 (or
-	  (minibuffer-window-active-p (selected-window))
-	  (equal current-prefix-arg '(4))
-	  (and (not (equal current-prefix-arg '(16)))
-	       old-other-window))))
+  (if (or pop-up-frames (equal current-prefix-arg '(16)))
+      ;; other frame
+      (ada-display-buffer-other-frame buffer-or-name)
 
-    (when (and other-frame other-window)
-      ;; It would be too confusing to try to report an error
-      ;; here. This is most likely what the user means.
-      (setq other-window nil))
-
-    (if pop-up-frames
-	(ada-display-buffer-other-frame buffer-or-name)
-      (cond
-       ((not (or other-window
-		 other-frame))
-	(let ((buffer (if (bufferp buffer-or-name) buffer-or-name (get-buffer buffer-or-name))))
-	  (display-buffer-record-window 'reuse (selected-window) buffer)
-	  (window--display-buffer-1 (selected-window))
-	  (window--display-buffer-2 buffer (selected-window))))
-
-       ((and other-window
-	     (not other-frame))
-	(let ((display-buffer-function nil))
-	  (display-buffer buffer-or-name t)))
-
-       (other-frame
-	(ada-display-buffer-other-frame buffer-or-name))
-
-       ))
-    ))
+    ;; else other window
+    (let ((display-buffer-function nil))
+      ;; we use standard display-buffer, since it handles this case
+      ;; the way current code expects it to.
+      (display-buffer buffer-or-name old-other-window)))
+  )
 
 (defun ada-find-other-file-noset (other-window-frame)
   "Same as `ada-find-other-file', but preserve point in the other file,
 don't move to corresponding declaration."
-  (interactive)
-  (ada-find-other-file t))
+  (interactive "P")
+  (ada-find-other-file other-window-frame t))
 
 (defun ada-find-other-file (other-window-frame &optional no-set-point)
   "Move to the corresponding declaration in another file.
@@ -1077,6 +1058,8 @@ The paragraph is indented on the first line."
 
   (set (make-local-variable 'add-log-current-defun-function)
        'ada-which-function)
+
+  (add-hook 'which-func-functions 'ada-which-function nil t)
 
   ;;(set (make-local-variable 'ispell-check-comments) 'exclusive) FIXME: ispell var name has changed
 

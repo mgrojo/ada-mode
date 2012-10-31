@@ -62,7 +62,7 @@ package Ada_Mode.Nominal is
    -- access to object
    -- some of the font-lock for this tested by access to function below
    --EMACSCMD:(test-face "Integer" font-lock-type-face)
-   type Object_Access_Type_0a is access Integer;
+   type Object_Access_Type_0a is access Float;
    --EMACSCMD:(test-face "all" font-lock-keyword-face)
    --EMACSCMD:(test-face "Integer" font-lock-type-face)
    type Object_Access_Type_0b is access all Integer;
@@ -100,6 +100,9 @@ package Ada_Mode.Nominal is
      access all Integer;
    type Object_Access_Type_7
      is access all Integer;
+   --EMACSCMD:(progn (beginning-of-line)(forward-line -1)(ada-which-function))
+   --EMACSRESULT:"Ada_Mode"
+
    type
      Object_Access_Type_8 is access all Integer;
 
@@ -110,6 +113,10 @@ package Ada_Mode.Nominal is
    -- most of the font-lock for this is tested by access to function below
    --EMACSCMD:(test-face "procedure (" font-lock-keyword-face)
    type Procedure_Access_Type_1 is access protected procedure (A_Param : out Integer);
+   --EMACSCMD:(progn (beginning-of-line)(forward-line -1)(ada-which-function))
+   --EMACSRESULT:"Procedure_Access_Type_1"
+   --  Compare to "Ada_Mode" result above; good enough.
+
    -- we don't put newline inside the paren here
    type Procedure_Access_Type_2 is access protected procedure
      (A_Param : out Integer);
@@ -191,6 +198,8 @@ package Ada_Mode.Nominal is
      protected function
        (A_Param : in Float)
        return Standard.Float;
+   --EMACSCMD:(progn (beginning-of-line)(forward-line -1)(ada-which-function))
+   --EMACSRESULT:"Procedure_Access_Type_10"
 
    -- a pathological case
    type Function_Access_Type_11 is access
@@ -280,6 +289,9 @@ package Ada_Mode.Nominal is
      10;
    type Decimal_Fixed_Point_3 is delta 0.10
      digits 10;
+   --EMACSCMD:(progn (beginning-of-line)(forward-line -1)(ada-which-function))
+   --EMACSRESULT:"Function_Access_Type_11"
+
    type Decimal_Fixed_Point_4 is delta
      0.10 digits 10;
    type Decimal_Fixed_Point_5 is
@@ -344,7 +356,7 @@ package Ada_Mode.Nominal is
 
    -- Ici l'exemple du chapitre 9 du RM sur le tasking
 
-   protected Buffer is
+   protected Protected_Buffer is
       -- a single_protected_type
       --EMACSCMD:(test-face "Character" font-lock-type-face)
       entry Read (C : out Character);
@@ -353,7 +365,10 @@ package Ada_Mode.Nominal is
       Pool      : String(1 .. 100);
       Count     : Natural := 0;
       In_Index, Out_Index : Positive := 1;
-   end Buffer;
+   end Protected_Buffer;
+   --EMACSCMD:(progn (beginning-of-line)(forward-line -1)(ada-which-function))
+   --EMACSRESULT:"Protected_Buffer"
+   -- FIXME: test ada-find-other-file here; it fails due to extra "body" in body.
 
    ----------
    -- Objects
@@ -431,6 +446,8 @@ package Ada_Mode.Nominal is
    end record;
 
    procedure Procedure_1a (Item  : in out Parent_Type_1);
+   --EMACSCMD:(progn (beginning-of-line)(forward-line -1)(ada-which-function))
+   --EMACSRESULT:"Procedure_1a"
 
    procedure Procedure_1b
      (Item  : in out Parent_Type_1) is null;
@@ -443,6 +460,16 @@ package Ada_Mode.Nominal is
       Item_1 : in     Character;
       Item_2 : out    Character)
      is null;
+   --EMACSCMD:(progn (beginning-of-line)(forward-line -5)(ada-which-function))
+   --EMACSRESULT:"Procedure_1d"
+   --EMACSCMD:(progn (beginning-of-line)(forward-line -6)(ada-which-function))
+   --EMACSRESULT:"Procedure_1d"
+   --EMACSCMD:(progn (beginning-of-line)(forward-line -7)(ada-which-function))
+   --EMACSRESULT:"Procedure_1d"
+   --EMACSCMD:(progn (beginning-of-line)(forward-line -8)(ada-which-function))
+   --EMACSRESULT:"Procedure_1d"
+   --EMACSCMD:(progn (beginning-of-line)(forward-line -9)(ada-which-function))
+   --EMACSRESULT:"Procedure_1d"
 
    procedure Procedure_1e (Item   : in out Parent_Type_1;
                            Item_1 : in Character;
@@ -473,6 +500,8 @@ package Ada_Mode.Nominal is
      (Parent_Element_1 => 1,
       Parent_Element_2 => 2.0,
       Parent_Element_3 => False);
+   --EMACSCMD:(progn (beginning-of-line)(forward-line -2)(ada-which-function))
+   --EMACSRESULT:"Function_2g"
 
    procedure Procedure_2a;
    procedure

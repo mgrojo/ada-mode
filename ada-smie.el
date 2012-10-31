@@ -159,6 +159,10 @@
        ;; "accept identifier;" is left as an identifier; otherwise it
        ;; is an opener without a matching closer
 
+      ;; (allocator
+      ;;  ("new" expression))
+      ;; "new" is left as identifier, so it doesn't need to be in the grammar
+
       (aspect_list
        (name)
        (aspect_list "," name))
@@ -1505,7 +1509,8 @@ when found token is an element of TARGETS, return that token."
     (cond
      ((member token '("package-formal" "procedure-formal" "function-formal")) "new-formal")
      ((member token '("package-inst" "procedure-inst" "function-inst")) "new-inst")
-     (t "new-type")
+     ((equal token "is-type") "new-type")
+     (t "new"); allocator
      )))
 
 (defun ada-smie-refine-of (token forward)
@@ -3275,7 +3280,7 @@ made."
 	  (progn
 	    (while
 		(not
-		 (member (setq token (ada-smie-backward-token))
+		 (member (setq token (ada-smie-backward-keyword))
 			 '("procedure-spec"
 			   "function-spec"
 			   "package-generic"
@@ -3290,20 +3295,24 @@ made."
 	;; tokens. Handle nested items properly.
 	(while
 	    (not
-	     (member (setq token (ada-smie-backward-token))
+	     (member (setq token (ada-smie-backward-keyword))
 		     '("procedure-spec" "is-subprogram_body" "begin-body" "end-block"
 		       "function-spec" "return-spec"
 		       "package-plain"
 		       "protected-body" "is-protected_body"
 		       "task-body" "is-task_body"
 		       "")))); bob, just in case we forgot something
-	(when (member token
-		      '("is-subprogram_body" "begin-body" "end-block"
-			"return-spec" "is-protected_body" "is-task_body"))
+	(when
+	    (not (member
+		  token
+		  '("package-plain" "protected-body" "task-body")))
+	  ;; These don't need further motion. Note that
+	  ;; "procedure-spec", "function-spec" are not here, because
+	  ;; of access-to-subprogram types.
 	  (ada-smie-goto-statement-start token))
 	)
 
-      ;; point is now on start of a declaration or body
+      ;; point is now on start of a declaration or body, or bob
 
       (while (ada-smie-keyword-p (setq result (ada-smie-forward-token))))
       (if (not ff-function-name)

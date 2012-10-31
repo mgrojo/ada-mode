@@ -28,6 +28,20 @@ package body Ada_Mode.Nominal is
        return
      Standard.Float -- Ada mode 4.01, GPS
    is begin
+      -- An early implementation of ada-smie-which-function was confused by this declaration.
+      --EMACSCMD:(progn (beginning-of-line)(forward-line -7)(ada-which-function))
+      --EMACSRESULT:"Function_Access_11"
+      --EMACSCMD:(progn (beginning-of-line)(forward-line -8)(ada-which-function))
+      --EMACSRESULT:"Function_Access_11"
+      --EMACSCMD:(progn (beginning-of-line)(forward-line -9)(ada-which-function))
+      --EMACSRESULT:"Function_Access_11"
+      --EMACSCMD:(progn (beginning-of-line)(forward-line -10)(ada-which-function))
+      --EMACSRESULT:"Function_Access_11"
+      --EMACSCMD:(progn (beginning-of-line)(forward-line -11)(ada-which-function))
+      --EMACSRESULT:"Function_Access_11"
+      --EMACSCMD:(progn (beginning-of-line)(forward-line -12)(ada-which-function))
+      --EMACSRESULT:"Function_Access_11"
+
       --EMACSCMD:(test-face "Function_Access_1" 'default)
       return Function_Access_1'access;
    end Function_Access_11;
@@ -88,6 +102,7 @@ package body Ada_Mode.Nominal is
 
       function F2 (Param_1 : Discrete_Type_1; B : Float) return Float
       is
+         Local : Object_Access_Type_0a := new 'Integer(9.0);
       begin
          return D : Float
          do
@@ -97,7 +112,7 @@ package body Ada_Mode.Nominal is
                   P1;
                when C =>
                   D := B;
-                  D := D + B * B;
+                  D := Local.all + B * B;
                   --EMACSCMD:(test-face "goto" font-lock-keyword-face)
                   --EMACSCMD:(test-face "Label_1" font-lock-constant-face)
                   goto Label_1;
@@ -177,7 +192,10 @@ package body Ada_Mode.Nominal is
       end; -- no P2
    end Protected_1;
 
-   protected body Buffer is
+   protected body Protected_Buffer is
+      -- FIXME: test ada-find-other-file here; it fails due to extra "body" in body.
+      -- FIXME: test ada-which-func here; it returns "body"
+
       entry Write(C : in Character)
         when Count < Pool'Length is
       begin
@@ -193,7 +211,7 @@ package body Ada_Mode.Nominal is
          Out_Index := (Out_Index mod Pool'Length) + 1;
          Count     := Count - 1;
       end Read;
-   end Buffer;
+   end Protected_Buffer;
 
    --------------------------------------------------------
    --  6804-008: problem for indentation after a task declaration

@@ -25,6 +25,10 @@ General notes on porting Emacs Ada mode indentation engine to smie
 (setq ada-smie-debug-refine t)
 (setq ada-smie-debug-refine nil)
 
+(global-font-lock-mode -1)
+(global-font-lock-mode 1)
+font-lock calls ada-smie-backward-keyword, which moves ada-smie-cache-max
+
 /Apps/emacs-24.2/lisp/emacs-lisp/smie.el
 
 runtest from emacs -q:
@@ -47,12 +51,6 @@ review FIXMEs
  current
 log-entry
     fix newline confusion between t from ediff and status
-
-which-func use ada-which-function
-
-allocator!
-    return new Item_Type'(item.all);
-    new also needs font-lock
 
 cd /Projects/org.emacs.ada-mode.smie/test
 ./test-indent.sh $GDS_ROOT/main_lynx_5/sal/Source_Common /tmp/gds_indent test/gds-options.el
@@ -107,6 +105,9 @@ include gnat-fix-error
     or rewrite to use alist; support other compilers
     write test?
 
+interactive edit bug in test/ada_mode-nominal.adb F2
+    insert "Local : Integer;" between "is begin" then indent; sometimes it aligns with "is"
+    can't reproduce; possibly an interaction between font-lock using ada-smie-forward-keyword and ada-smie-after-change
  relevant files
 (info "(aarm2012)Annex P" "*info Annex P*")
 c:/Projects/emacs_stephe.work/emacs_stephe/ada-mode-keys.el
