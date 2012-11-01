@@ -856,8 +856,8 @@ token defined in the grammar).  Skips string literals, character
 literals, paired parens.  Stops at left paren going backwards,
 right paren going forwards.  Return the keyword or paren (which
 may be the first token found); point is beyond the keyword (after
-for `forward' t, before otherwise).  Return empty string if
-encounter beginning or end of buffer."
+for `forward' t, before otherwise).  Return nil if encounter
+beginning or end of buffer."
   (let (token)
     (catch 'quit
       (while
@@ -929,7 +929,7 @@ when found token is an element of TARGETS, return that token."
 			targets)))
     result))
 
-(defconst ada-smie-type-modifiers '("abstract" "tagged" "limited"))
+(defconst ada-smie-type-modifiers '("abstract" "tagged" "limited" "synchronized"))
 
 (defun ada-smie-forward-type-modifiers ()
   "Skip forward tokens that are in `ada-smie-type-modifiers', return the following token."
@@ -938,7 +938,7 @@ when found token is an element of TARGETS, return that token."
     result))
 
 (defun ada-smie-backward-type-modifiers ()
-  "Skip backward tokens that are in `ada-smie-type-modifiers', return the preceding token."
+  "Skip backward unrefined tokens that are in `ada-smie-type-modifiers', return the preceding token."
   (let (result)
     (while (member (setq result (smie-default-backward-token)) ada-smie-type-modifiers))
     result))
@@ -1271,6 +1271,8 @@ when found token is an element of TARGETS, return that token."
 	 ;;
 	 ;; "": discriminant or parameter list; below
 	 ;;
+	 ;; "package": below
+	 ;;
 	 ;; "function" "procedure": generic instantiation,
 	 ;;   parameter-less subprogram body, parameter-less
 	 ;;   generic_formal_parameter; below
@@ -1298,13 +1300,13 @@ when found token is an element of TARGETS, return that token."
 	 ;; function .. return ...;  see below at "return-*"
 	 "is"); identifier
 
-	((member token '("package-generic" "package-plain" "package-separate")) "is-package")
+	((member token '("package-formal" "package-inst")) "is"); identifier
 
-	((equal token "package-formal") "is"); identifier
+	((member token '("package-generic" "package-plain" "package-separate")) "is-package")
 
 	((equal token "procedure-formal") "is"); identifier
 
-	((member token '("procedure-inst"))
+	((equal token "procedure-inst")
 	 ;;  procedure name is new ...;  generic_instantiation declaration
 	 "is"); identifier
 
@@ -1501,17 +1503,74 @@ when found token is an element of TARGETS, return that token."
       "mod"))); operator identifier
 
 (defun ada-smie-refine-new (token forward)
-  (let ((token (save-excursion
-		 (when forward (smie-default-backward-token))
-		 (smie-default-backward-token); is
-		 (ada-smie-backward-keyword))))
+  ;; 1) [formal_]derived_type_definition ::=
+  ;;       type name is [abstract] [limited] new parent_subtype_indication [[and interface_list] record_extension_part]
+  ;;
+  ;;    preceding unrefined token: is
+  ;;    skip: ada-smie-type-modifiers
+  ;;    2nd preceding refined token: type-other
+  ;;    token: new-type
+  ;;
+  ;; 2) allocator ::=
+  ;;       new [subpool_specification] subtype_indication
+  ;;     | new [subpool_specification] qualified_expression
+  ;;
+  ;;    preceding, succeeding; no help
+  ;;    token: "new"; identifier
+  ;;
+  ;; 3) private_extension_declaration ::=
+  ;;       type defining_identifier [discriminant_part] is
+  ;;         [abstract] [limited | synchronized] new ancestor_subtype_indication
+  ;;         [and interface_list] with private
+  ;;           [aspect_specification];
+  ;;
+  ;;    preceding unrefined token: is
+  ;;    skip: ada-smie-type-modifiers
+  ;;    2nd preceding refined token: nothing helpful
+  ;;    token: new-type
+  ;;
+  ;; 4) single_protected_declaration, protected_type_declaration, task_type_declaration, single_task_declaration ::=
+  ;;       {protected | task} [type] defining_identifier [known_discriminant_part]
+  ;;            [aspect_specification] [is [new interface_list with] task_definition];
+  ;;
+  ;;    preceding unrefined token: is
+  ;;    skip: nothing
+  ;;    2nd preceding refined token: nothing helpful
+  ;;    token: new-type
+  ;;
+  ;; 5) generic_instantiation ::=
+  ;;       {function | procedure | package} defining_program_unit_name is
+  ;;          new generic_package_name [generic_actual_part] [aspect_specification];
+  ;;
+  ;;    preceding unrefined tokens: is
+  ;;    skip: nothing
+  ;;    2nd preceding refined token: {function-inst | procedure-inst | package-inst}
+  ;;    skip: non-keywords
+  ;;    token: new-inst
+  ;;
+  ;; 6) formal_package_declaration ::=
+  ;;       with package defining_identifier is new generic_package_name formal_package_actual_part
+  ;;            [aspect_specification];
+  ;;
+  ;;    preceding unrefined tokens: is
+  ;;    skip: nothing
+  ;;    2nd preceding refined token: {function-formal | procedure-formal | package-formal}
+  ;;    skip: non-keywords
+  ;;    token: new-formal
 
-    (cond
-     ((member token '("package-formal" "procedure-formal" "function-formal")) "new-formal")
-     ((member token '("package-inst" "procedure-inst" "function-inst")) "new-inst")
-     ((equal token "is-type") "new-type")
-     (t "new"); allocator
-     )))
+  (save-excursion
+    (when forward (smie-default-backward-token))
+    (let ((token (ada-smie-backward-type-modifiers)))
+      (cond
+       ((equal token "is")
+	(let ((token (ada-smie-backward-keyword)))
+	  (cond
+	   ((member token '("package-formal" "procedure-formal" "function-formal")) "new-formal")
+	   ((member token '("package-inst" "procedure-inst" "function-inst")) "new-inst")
+	   (t "new-type"))))
+
+       (t "new"); allocator
+       ))))
 
 (defun ada-smie-refine-of (token forward)
   (save-excursion
@@ -1548,8 +1607,8 @@ when found token is an element of TARGETS, return that token."
 	((equal token "with") "package-formal")
 	)
 
-       (progn
-	 (setq token (save-excursion (ada-smie-forward-tokens-unrefined "body" "is" "renames")))
+       (save-excursion
+	 (setq token (ada-smie-forward-tokens-unrefined "body" "is" "renames"))
 	 (cond
 	  ((equal token "renames") "package-renames")
 	  ((and (equal token "is")
@@ -3275,7 +3334,7 @@ made."
 	;; backward-token doesn't work from inside a comment.
 	(beginning-of-line))
 
-      (if (member (file-name-extension (buffer-file-name)) ada-spec-suffixes)
+      (if (member (concat "." (file-name-extension (buffer-file-name))) ada-spec-suffixes)
 	  ;; In a spec file; look on the line we are on first, then back.
 	  (progn
 	    (while
@@ -3288,7 +3347,7 @@ made."
 			   "protected-type"
 			   "task-type"
 			   "task-single"
-			   ""; bob
+			   nil; bob
 			   )))))
 
 	;; In a body file; similar algorithm, different set of
@@ -3301,16 +3360,17 @@ made."
 		       "package-plain"
 		       "protected-body" "is-protected_body"
 		       "task-body" "is-task_body"
-		       "")))); bob, just in case we forgot something
-	(when
-	    (not (member
-		  token
-		  '("package-plain" "protected-body" "task-body")))
-	  ;; These don't need further motion. Note that
-	  ;; "procedure-spec", "function-spec" are not here, because
-	  ;; of access-to-subprogram types.
-	  (ada-smie-goto-statement-start token))
+		       nil)))); bob, just in case we forgot something
 	)
+
+      (when
+	  (not (member
+		token
+		'("package-plain" "protected-body" "task-body")))
+	;; These don't need further motion. Note that
+	;; "procedure-spec", "function-spec" are not here, because
+	;; of access-to-subprogram types.
+	(ada-smie-goto-statement-start token))
 
       ;; point is now on start of a declaration or body, or bob
 
@@ -3340,7 +3400,25 @@ gracefully.")
   (interactive)
   (when ada-smie-debug-refine
       (setq ada-smie-cache-max (min ada-smie-cache-max (- (point) 1))))
-  (message "%s" (assoc (ada-smie-forward-token) smie-grammar)))
+  (let ((token (ada-smie-forward-token)))
+    (while
+	(cond
+	 ((equal token "")
+	  (cond
+	   ((equal (char-after) ?\ ) (skip-syntax-forward " ") t)
+
+	   ((or
+	     (equal (char-after) ?\()
+	     (equal (char-after) ?\"))
+	    (ada-smie-skip-param_list t)
+	    t)
+
+	   ((equal (char-after) ?\)) (forward-char 1) t)
+
+	   (t nil); eob
+	   ))
+	 ((message "%s" (assoc token smie-grammar))
+	  nil)))))
 
 (defun ada-smie-show-keyword-backward ()
   "Show the grammar info for word preceding point, and move across it."
@@ -3452,7 +3530,11 @@ This lets us know which indentation function succeeded."
 	  ada-smie-after-keyword
 	  ada-smie-default)
 	)
-  (if debug-on-error (ada-smie-wrap-indent-functions))
+  (if debug-on-error
+      (progn
+	(ada-smie-wrap-indent-functions)
+	(setq ada-smie-debug-refine t))
+    (setq ada-smie-debug-refine nil))
 
   (smie-setup ada-smie-grammar #'ada-smie-rules
 	      :forward-token #'ada-smie-forward-token

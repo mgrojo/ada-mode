@@ -19,7 +19,6 @@ General notes on porting Emacs Ada mode indentation engine to smie
         (define-key ada-mode-map "\M-j" 'ada-smie-show-cache)
         (define-key ada-mode-map "\M-k" 'ada-smie-show-keyword-forward)
        ))
-    (setq ada-smie-debug-refine t)
    )
 
 (setq ada-smie-debug-refine t)
@@ -49,9 +48,6 @@ runtest from emacs -q:
 review FIXMEs
 (grep-find "find . -type f -print | \"xargs\" grep -nH \"FIXME:\"")
  current
-log-entry
-    fix newline confusion between t from ediff and status
-
 cd /Projects/org.emacs.ada-mode.smie/test
 ./test-indent.sh $GDS_ROOT/main_lynx_5/sal/Source_Common /tmp/gds_indent test/gds-options.el
     /tmp/gds_indent/
@@ -61,6 +57,19 @@ test/Makefile
 
 rest of ada-mode
     merge all of ada-mode-patches, most of ada-mode-keys
+    process patches in ada-mode email
+
+    fully delete ada-gnat-cmd from ada-xfer
+        don't keep separate "library dirs" lists
+            requires calling gnat list twice
+            user can change paths
+
+    help -> manual looked for arm95
+
+    check emacs buglist
+        http://debbugs.gnu.org/cgi/pkgreport.cgi?package=ada-mode
+
+    submit adacore bug report on 'gnat list' accept '--subdirs'
 
 ask for input/testing
     run on my projects
@@ -68,6 +77,16 @@ ask for input/testing
 use it!
 
 make newline-and-indent reindent current line first?
+    what did 4.01 do?
+        ada-indent-after-return t doc says "indent after return"
+        but what it does is:
+            insert return at point
+            go back to the line
+            indent
+            go forward to new line
+            indent
+
+        ada-indent-after-return nil leaves out _first_ indent!
 
 aspect_clause;    record - done
 attribute clauses; record layout
@@ -197,26 +216,7 @@ specify options in .prj
 time on long code
     get stats on GDS file sizes
 
-put-text-property sets buffer-modified flag, fails if read-only
-
-ada-which-function calls forward-sexp
-
-fix indent on return
-    find a way to automate test of it
-
-run test on GDS, with broken-paren = 2, see if anything changes
-
-  ;; To find "(" from anywhere within an aggregate, we can use
-  ;; `scan-lists'. So far, that hasn't been needed.
-
-       ;;    ... name (
-       ;;              args
-
-switch to cl-macs, cl-lib
-
-why are we reindenting on space?
-    not; smie-blink-matching-open
-        keep it?
+put-text-property fails if read-only
 
 test with non-lowercase keywords in source
 

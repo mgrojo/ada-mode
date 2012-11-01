@@ -102,7 +102,7 @@ package body Ada_Mode.Nominal is
 
       function F2 (Param_1 : Discrete_Type_1; B : Float) return Float
       is
-         Local : Object_Access_Type_0a := new 'Integer(9.0);
+         Local : Object_Access_Type_0a := new Float'(9.0);
       begin
          return D : Float
          do

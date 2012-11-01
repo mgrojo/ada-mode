@@ -31,7 +31,7 @@ is
    -- error from is-generic-p refining Function_11 while entering body of Function_Access_1
    -- fixed by 'if ada-smie-debug-refine'
    --EMACSCMD:(progn (forward-line 5)(newline-and-indent)(current-column))
-   function Function_Access_1 
+   function Function_Access_1
      (A_Param : in Float)
       return
       Standard.Float
@@ -58,7 +58,6 @@ is
 end Procedure_1;
 
 -- This used to cause problems at end of buffer; refining "procedure"
---requires scanning forward. EMACSCMD:(progn (forward-line
---1)(end-of-line) (newline-and-indent))
+-- requires scanning forward.
+--EMACSCMD:(progn (forward-line 1)(end-of-line) (newline-and-indent))
 procedure Ada_Mode.Interactive_Return
-  

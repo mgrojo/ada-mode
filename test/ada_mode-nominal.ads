@@ -61,7 +61,7 @@ package Ada_Mode.Nominal is
 
    -- access to object
    -- some of the font-lock for this tested by access to function below
-   --EMACSCMD:(test-face "Integer" font-lock-type-face)
+   --EMACSCMD:(test-face "Float" font-lock-type-face)
    type Object_Access_Type_0a is access Float;
    --EMACSCMD:(test-face "all" font-lock-keyword-face)
    --EMACSCMD:(test-face "Integer" font-lock-type-face)
@@ -199,7 +199,7 @@ package Ada_Mode.Nominal is
        (A_Param : in Float)
        return Standard.Float;
    --EMACSCMD:(progn (beginning-of-line)(forward-line -1)(ada-which-function))
-   --EMACSRESULT:"Procedure_Access_Type_10"
+   --EMACSRESULT:"Function_Access_Type_10"
 
    -- a pathological case
    type Function_Access_Type_11 is access
