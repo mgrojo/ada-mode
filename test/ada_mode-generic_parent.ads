@@ -18,7 +18,9 @@ package Ada_Mode.Generic_Parent is
       type Param_Type is range <>;
       type Result_Type is (<>);
       Threshold : in Param_Type;
-   function Generic_Function (Param_1 : in Param_Type) return Result_Type;
+   function Generic_Function (Param_1 : in Param_Type)
+                             return Result_Type;
+   -- "return" requires indenting; tests bug in scanning forward from 'generic'.
 
    generic function Generic_Function_Rename renames Generic_Function;
 

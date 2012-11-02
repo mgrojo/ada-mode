@@ -850,6 +850,20 @@ Preserves point."
 	 (forward-char -1)))
       )))
 
+(defun ada-smie-token-special (forward)
+  "Assuming smie-default-{forward|backward}-token has returned \"\",
+return one of \"(\", \")\", \"\"\", or nil for bob, eob."
+  (if forward
+      (cond
+       ((eq (char-after) ?\)) ")")
+       ((eq (char-after) ?\() "(")
+       ((eq (char-after) ?\") "\""))
+    ;; backward
+    (cond
+     ((eq (char-before) ?\)) ")")
+     ((eq (char-before) ?\() "(")
+     ((eq (char-before) ?\") "\""))))
+
 (defun ada-smie-next-keyword (next-token forward)
   "Skip tokens function NEXT-TOKEN, until a keyword is found (a
 token defined in the grammar).  Skips string literals, character
@@ -878,7 +892,7 @@ beginning or end of buffer."
 		  ;; the next token might be another paren, so we loop
 		  t)
 	      ;; a token
-	      (setq token (nth 0 (assoc token smie-grammar)))
+	      (setq token (nth 0 (assoc token ada-smie-grammar)))
 	      (not token); not a keyword
 	      )))
       token)
@@ -2292,6 +2306,8 @@ If a token is not in the alist, it is returned unrefined.")
       ;; If pos is inside a paren, but ada-smie-cache-max was
       ;; outside it, this just skipped us.
       (when (not (ada-smie-get-cache pos))
+	;; make sure ada-smie-cache-max is after parens
+	(setq ada-smie-cache-max (point))
 	(goto-char pos)
 	(ada-smie-validate-cache-parens))
     )))
@@ -2310,7 +2326,10 @@ If a token is not in the alist, it is returned unrefined.")
       (condition-case err
 	  (progn
 	    (goto-char (+ 1 (scan-lists (point) -1 1)));; just after opening paren
-	    (setq ada-smie-cache-max (point));; force calling refine-*
+
+	    ;; force calling refine-*. Set ada-smie-cache-max before (
+	    ;; so first keyword doesn't think it's already refined.
+	    (setq ada-smie-cache-max (- 1 (point)))
 	    (while (not done)
 	      (setq token (ada-smie-forward-token))
 	      (cond
@@ -2642,7 +2661,9 @@ be a keyword, and point must be at the start of CHILD."
       ;; statements have non-keyword tokens before the first token
       ;; (assignment), so we have to use use ada-smie-backward-keyword
       ;; to find the previous keyword.
-      (when (not (member child ada-smie-block-keywords))
+      (when (not (or
+		  (member child ada-smie-block-keywords)
+		  (member child ada-smie-block-end-keywords)))
 	(setq pos (point));; not using save-excursion so we can do throw 'done from here.
 	(setq parent (ada-smie-backward-keyword))
 	(setq parent-pos (point))
@@ -2746,14 +2767,29 @@ be a keyword, and point must be at the start of CHILD."
 
       (cond
        ((member (nth 2 parent) '(":=" ":-object"))
-	;; We don't need 'skip-identifier-list' for :-object, but it
-	;; does the right thing.
-	;;
 	;; Simple types in object declarations were handled above; for
 	;; complex types and parameter lists, we get here.
 	(ada-smie-skip-identifier-list nil))
 
-       (t (list (nth 1 parent) (nth 2 parent))))
+       (t
+	(if (= (point) (nth 1 parent))
+	    ;; point is at statement start, but need to return info about previous token
+	    (let ((stmt-pos (point))
+		  (result-str (smie-default-backward-token))
+		  result-pos)
+	      (if (equal result-str "")
+		  (progn
+		    (setq result-str (ada-smie-token-special nil))
+		    (setq result-pos (max (point-min) (- 1 (point)))))
+		;; other token
+		(setq result-pos (point))
+		(goto-char stmt-pos))
+
+	      (list result-pos result-str))
+
+	  ;; point is at statement start, `parent' is previous token
+	  (list (nth 1 parent) (nth 2 parent))))
+       )
       )))
 
 (defun ada-smie-rule-statement (offset child)
@@ -2916,13 +2952,7 @@ the start of CHILD, which must be a keyword."
              (function-col
 	      ;; pos of the "function" keyword
 	      (save-excursion
-		(ada-smie-goto-parent arg 1)
-		;; this can leave point on 'overriding' or 'with'
-		(while (not (equal
-			     (smie-default-forward-token)
-			     "function"))
-                               nil)
-		(smie-default-backward-token)
+		(ada-smie-backward-keyword)
 		(current-column)))
              )
 
@@ -3417,7 +3447,7 @@ gracefully.")
 
 	   (t nil); eob
 	   ))
-	 ((message "%s" (assoc token smie-grammar))
+	 ((message "%s" (assoc token ada-smie-grammar))
 	  nil)))))
 
 (defun ada-smie-show-keyword-backward ()
@@ -3427,7 +3457,7 @@ gracefully.")
     (save-excursion
       (smie-default-backward-token)
       (setq ada-smie-cache-max (min ada-smie-cache-max (- (point) 1)))))
-  (message "%s" (assoc (ada-smie-backward-token) smie-grammar)))
+  (message "%s" (assoc (ada-smie-backward-token) ada-smie-grammar)))
 
 (defun ada-smie-show-parent ()
   "Move backward to the parent of the word following point, and show its refined keyword and grammar levels."

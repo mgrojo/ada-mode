@@ -69,7 +69,7 @@ package body Test is -- fontified correctly, but in
          if True then
             begin
                exception -- missing 'statement;' causes bad indentation, but not crash
-                  when Constraint_Error => null;
+               when Constraint_Error => null;
             end;
          end if;
       end Q;

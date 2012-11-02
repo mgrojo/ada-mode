@@ -33,6 +33,10 @@ font-lock calls ada-smie-backward-keyword, which moves ada-smie-cache-max
 runtest from emacs -q:
 (progn
   (add-to-list 'load-path "/Projects/org.emacs.ada-mode.smie")
+  (load "ada-mode")
+  (global-font-lock-mode -1)
+  (find-file "/Projects/org.emacs.ada-mode.smie/test/ada_mode-separate_task_body.adb")
+)
   (add-to-list 'load-path "/Projects/org.emacs.ada-mode.smie/test")
   (load "runtest")
 )
@@ -48,10 +52,23 @@ runtest from emacs -q:
 review FIXMEs
 (grep-find "find . -type f -print | \"xargs\" grep -nH \"FIXME:\"")
  current
+test/Makefile
+    test/ada_mode-separate_task_body.adb
+    different behavior in batch vs interactive!
+    turn off font-lock => no help
+    run in emacs -Q => no help
+    write special debug function, run in batch (yuck!)
+        ignore for now; rest passing
+
 cd /Projects/org.emacs.ada-mode.smie/test
 ./test-indent.sh $GDS_ROOT/main_lynx_5/sal/Source_Common /tmp/gds_indent test/gds-options.el
     /tmp/gds_indent/
     (dired "/tmp/gds_indent/*.diff")
+
+no hangs!
+sal-file_names.adb
+    syntax-ppss confused by '\'; it thinks \ is an escape!
+
 
 test/Makefile
 
@@ -129,6 +146,7 @@ interactive edit bug in test/ada_mode-nominal.adb F2
     can't reproduce; possibly an interaction between font-lock using ada-smie-forward-keyword and ada-smie-after-change
  relevant files
 (info "(aarm2012)Annex P" "*info Annex P*")
+(info "(elisp)Parser State" "*syntax-ppss*")
 c:/Projects/emacs_stephe.work/emacs_stephe/ada-mode-keys.el
 c:/Projects/emacs_stephe.main/emacs_stephe_site_lisp/ada-mode.el
 c:/apps/emacs-24.2/lisp/progmodes/ada-mode.el
