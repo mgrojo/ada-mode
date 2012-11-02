@@ -319,20 +319,21 @@ point is where the mouse button was clicked."
     (modify-syntax-entry ?\" "\"" table)
 
     ;; punctuation; operators etc
-    (modify-syntax-entry ?:  "." table)
-    (modify-syntax-entry ?\; "." table)
-    (modify-syntax-entry ?&  "." table)
-    (modify-syntax-entry ?\|  "." table)
-    (modify-syntax-entry ?+  "." table)
-    (modify-syntax-entry ?*  "." table)
-    (modify-syntax-entry ?/  "." table)
-    (modify-syntax-entry ?=  "." table)
-    (modify-syntax-entry ?<  "." table)
-    (modify-syntax-entry ?>  "." table)
-    (modify-syntax-entry ?. "." table)
-    (modify-syntax-entry ?\' "." table); attribute; see ada-syntax-propertize for character literal
-    (modify-syntax-entry ?-  ". 12" table); operator; see ada-syntax-propertize for double hyphen as comment
     (modify-syntax-entry ?#  "$" table); based number
+    (modify-syntax-entry ?&  "." table)
+    (modify-syntax-entry ?*  "." table)
+    (modify-syntax-entry ?+  "." table)
+    (modify-syntax-entry ?-  ". 12" table); operator; see ada-syntax-propertize for double hyphen as comment
+    (modify-syntax-entry ?. "." table)
+    (modify-syntax-entry ?/  "." table)
+    (modify-syntax-entry ?:  "." table)
+    (modify-syntax-entry ?<  "." table)
+    (modify-syntax-entry ?=  "." table)
+    (modify-syntax-entry ?>  "." table)
+    (modify-syntax-entry ?\' "." table); attribute; see ada-syntax-propertize for character literal
+    (modify-syntax-entry ?\; "." table)
+    (modify-syntax-entry ?\\ "." table); default is escape
+    (modify-syntax-entry ?\|  "." table)
 
     ;; and \f and \n end a comment
     (modify-syntax-entry ?\f  ">   " table)

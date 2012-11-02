@@ -589,7 +589,7 @@
        ;; 'component_list'. We don't include record_definition in
        ;; record_type_definition or derived_type_definition, because
        ;; we want to indent "end record" relative to "record", not
-       ;; "type".
+       ;; "type". It also simplifies the definition of derived types.
 
        ;; task_type_declaration, single_task_declaration: we need
        ;; "task" in the grammar to classify "task name;" as a
@@ -2229,9 +2229,10 @@ when found token is an element of TARGETS, return that token."
 (defconst ada-smie-next-token-alist
   ;; Alphabetical order.
   '(("<>;" ";")
-    ;; These three chars all have punctuation syntax. We need that
-    ;; for expressions, so we don't change it. "<>" is an identifier
-    ;; in the grammar, so we can just refine this to ";"
+    ("''';" ";")
+    ;; These chars all have punctuation syntax. We need that for
+    ;; expressions, so we don't change it. "<>", "'''" are not grammar
+    ;; keywords, so we can just refine this to ";"
 
     (":" 	 ada-smie-refine-:)
     ("=>" 	 ada-smie-refine-=>)
@@ -3230,6 +3231,7 @@ the start of CHILD, which must be a keyword."
     ))
 
 (defun ada-smie-label ()
+  "Compute indentation of a label."
   (cond
    ((save-excursion
       (or

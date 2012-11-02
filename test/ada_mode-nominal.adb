@@ -343,11 +343,11 @@ package body Ada_Mode.Nominal is
       declare -- label, no statements between begin, label
          Local_1 : Float := 1.0e-36;
          Local_2 : Integer := 2;
-         Local_3 : Character := '3';
+         Local_3 : Character := '\'; -- must override default syntax for \
       begin
          Local_1 := 2.0;
          Local_2 := 3;
-         Local_3 := '4';
+         Local_3 := '"'; -- quoted quote handled ok
          return 1.0;
       end Block_1;
    end;
@@ -360,7 +360,7 @@ package body Ada_Mode.Nominal is
       declare -- label, one statements between begin, label
          Local_1 : Float := 1.0e-36;
          Local_2 : Integer := 2;
-         Local_3 : Character := '3';
+         Local_3 : Character := '''; -- quoted quote handled ok
       begin
          Local_1 := 2.0;
          Local_2 := 3;

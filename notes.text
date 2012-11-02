@@ -66,9 +66,18 @@ cd /Projects/org.emacs.ada-mode.smie/test
     (dired "/tmp/gds_indent/*.diff")
 
 no hangs!
-sal-file_names.adb
-    syntax-ppss confused by '\'; it thinks \ is an escape!
+sal-gen-lists-double.adb
 
+   type List_Type is limited record
+      Head  : Node_Access_Type := null;
+      Tail  : Node_Access_Type := null;
+   end record;
+
+    not having record_definition in record_type_declaration is confusing
+        fix for the list_type screws up ada_mode-nominal package 'begin'
+
+        write 'goto-prev-keyword-same-statement', use that when indenting 'end record'
+            or any block keyword!
 
 test/Makefile
 
@@ -110,27 +119,6 @@ attribute clauses; record layout
 library generic subprogram
 pre/post conditions
 quantified_, if_, case_expressions. Simon Wright working on "if" expressions
-
->    X3A : Unsigned := (case P is
->                       when 1
->                          | 4
->                          => 1,
->                       when 2
->                          | 8
->                          => 2,
->                       when others
->                          => 0);
->
->    X4A : Unsigned := (case P is
->                       when 1 | 4 | 16 | 64
->                          => Complex_Expression_Involving (Formula_with (P)),
->                       when 2 | 8 | 32
->                          => Another_Complex_Expression_Involving (Formula_with (P)),
->                       when others
->                          => Default_Expressions_Value (Being (0)));
-
-bug in ada-smie-goto-statement-start; it finds "case" properly, but
-doesn't return "(" as it should
 
 remaining expressions?
 remaining statements?
