@@ -1,3 +1,4 @@
+--EMACSCMD:(font-lock-fontify-buffer)
 with Ada.Containers.Vectors;
 procedure ada_mode.quantified_expressions is
 
@@ -5,7 +6,7 @@ begin
 
    -- Example code from Georg Bauhaus
    -- FIXME: add newlines inside parens, required declarations.
-   if (for Some J in 1 .. 10 => J/2 = 0) then
+   if (for some J in 1 .. 10 => J/2 = 0) then
       loop
          exit;
       end loop;
@@ -45,7 +46,7 @@ begin
             end loop;
          end Label;
    end case;
-   
+
    declare
       B : Boolean := False;
       function "+" (Item : in Integer) return access Integer

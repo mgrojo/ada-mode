@@ -184,7 +184,8 @@
        ("select-open" statements "then-select" "abort-select" statements "end-select" "select-end"))
 
       (attribute_definition_clause
-       ("for-attribute" name "use-attribute" expression))
+       ("for-attribute" name "use-attribute"); ie Foo'Address
+       ("for-attribute" name "use-record" "record-type" declarations "end-record" "record-end"))
       ;; we need "for-attribute" to be distinct from "for-loop", so we
       ;; can distinguish between declaration and statement for
       ;; refine-begin.
@@ -520,14 +521,8 @@
        ("type-other" identifier "is-type" "new-type" name); same as below
        ("type-other" identifier "is-type" "new-type" name "with-new" "private-with")
        ("type-other" identifier "is-type" "new-type" name "with-new" "record-null"); "null" is an identifier
-       ("type-other" identifier "is-type" "new-type" name "with-record")
-       ;; We refine "with" to "with-record" when it is followed
-       ;; by "record", so that it is a closer to match
-       ;; "type", since "record-open" is an opener.
-       ;;
-       ;; We don't include record-definition in
-       ;; derived_type_definition, because we want to indent "end
-       ;; record" relative to "record".
+       ("type-other" identifier "is-type" "new-type" name "with-new" "record-type" declarations "end-record"
+	"record-end")
 
        ;; enumeration_type_definition
        ("type-other" identifier "is-type-enumeration")
@@ -541,8 +536,7 @@
        ;; incomplete_type_declaration ::= type defining_identifier [discriminant_part] [is tagged];
        ;;
        ;; We don't need the variant without "is tagged", since it has
-       ;; only one keyword.  We need "is-type-record" when this is
-       ;; followed by a record_definition; that's covered below. We don't need "tagged" as a keyword.
+       ;; only one keyword.  We don't need "tagged" as a keyword.
        ("type-other" identifier "is-type-tagged")
 
        ;; interface_type_definition, formal_interface_type_definition
@@ -577,19 +571,11 @@
 
        ;; record_type_definition
        ("type-other" identifier "is-type" "record-null")
-       ("type-other" identifier "is-type-record")
-       ;; We refine "is-type" to "is-type-record" when it is followed
-       ;; by "record-open", so that it is a closer to match "type", since
-       ;; "record-open" is an opener.
-
-       ;; record_definition
-       ("record-open" declarations "end-record" "record-end")
-       ("record-open" declarations "end-record" "record-end-aspect" "with-aspect" aspect_list)
+       ("type-other" identifier "is-type" "record-type" declarations "end-record" "record-end")
+       ("type-other" identifier "is-type" "record-type" "record-type" declarations "end-record"
+	"record-end-aspect" "with-aspect" aspect_list)
        ;; No need to distinguish between 'declarations' and
-       ;; 'component_list'. We don't include record_definition in
-       ;; record_type_definition or derived_type_definition, because
-       ;; we want to indent "end record" relative to "record", not
-       ;; "type". It also simplifies the definition of derived types.
+       ;; 'component_list'.
 
        ;; task_type_declaration, single_task_declaration: we need
        ;; "task" in the grammar to classify "task name;" as a
@@ -634,7 +620,7 @@
     "or-select"
     "package-plain"
     "private-body"
-    "record-open"
+    "record-type"
     "select-open"
     "then-select"
     "then-if")
@@ -865,14 +851,16 @@ return one of \"(\", \")\", \"\"\", or nil for bob, eob."
      ((eq (char-before) ?\") "\""))))
 
 (defun ada-smie-next-keyword (next-token forward)
-  "Skip tokens function NEXT-TOKEN, until a keyword is found (a
-token defined in the grammar).  Skips string literals, character
-literals, paired parens.  Stops at left paren going backwards,
-right paren going forwards.  Return the keyword or paren (which
-may be the first token found); point is beyond the keyword (after
-for `forward' t, before otherwise).  Return nil if encounter
-beginning or end of buffer."
-  (let (token)
+  "Skip tokens function NEXT-TOKEN, until a keyword or unpaired
+parenthesis is found (a token defined in the grammar).  Skips
+string literals, character literals, paired parentheses.  Stops
+at left paren going backwards, right paren going forwards.
+Return the grammar entry for the keyword (which may be the first
+token found), or (paren nil nil); point is beyond the
+keyword (after for `forward' t, before otherwise).  Return nil if
+encounter beginning or end of buffer."
+  (let (token
+	tok-levels)
     (catch 'quit
       (while
 	  (progn
@@ -884,25 +872,25 @@ beginning or end of buffer."
 		  (if forward
 		      (when (eq (char-after) ?\))
 			(forward-char 1)
-			(throw 'quit ")"))
+			(throw 'quit '(")" nil nil)))
 		    (when (eq (char-before) ?\()
 		      (backward-char 1)
-		      (throw 'quit "(")))
+		      (throw 'quit '("(" nil nil))))
 		  (ada-smie-skip-param_list forward)
 		  ;; the next token might be another paren, so we loop
 		  t)
 	      ;; a token
-	      (setq token (nth 0 (assoc token ada-smie-grammar)))
-	      (not token); not a keyword
+	      (setq tok-levels (assoc token ada-smie-grammar))
+	      (not tok-levels); not a keyword
 	      )))
-      token)
+      tok-levels)
     ))
 
 (defun ada-smie-backward-keyword ()
-  (ada-smie-next-keyword 'ada-smie-backward-token nil))
+  (nth 0 (ada-smie-next-keyword 'ada-smie-backward-token nil)))
 
 (defun ada-smie-forward-keyword ()
-   (ada-smie-next-keyword 'ada-smie-forward-token t))
+   (nth 0 (ada-smie-next-keyword 'ada-smie-forward-token t)))
 
 (defun ada-smie-next-token-unrefined (next-token forward)
   "Move to the next token using function NEXT-TOKEN. Skips parentheses.
@@ -1301,7 +1289,9 @@ when found token is an element of TARGETS, return that token."
 	  ((equal token "subtype") "is-subtype")
 	  ((equal token "type")
 	    (setq token (smie-default-backward-token))
-	    (when (member token '("protected" "task")) "is-type-block"))
+	    (when (member token '("protected" "task")) "is-type-block")
+	    ;; "is-type-*" handled below
+	    )
 	 )))
 
      (let* (pos
@@ -1365,7 +1355,7 @@ when found token is an element of TARGETS, return that token."
 
 	    ((member token '("not" "access")) "is-type-access")
 
-	    ((equal token "record") "is-type-record")
+	    ((equal token "record") "is-type")
 
 	    ((and
 	      (equal token "tagged")
@@ -1375,21 +1365,9 @@ when found token is an element of TARGETS, return that token."
 		  ;; type Incomplete_Type_1 (Discriminant_1 : Integer) is tagged; -- in spec
 		  ;; type Incomplete_Type_1 (Discriminant_1 : Integer) is tagged null record; -- in body
 		  "is-type-tagged")
-		 ((equal token "record") "is-type-record")
+		 ((equal token "record") "is-type")
 		 (t nil))
 		)))
-
-	    ((member token ada-smie-type-modifiers)
-	     ;; we could have:
-	     ;;
-	     ;;    type Derived_Type_2 is abstract tagged limited new ...
-	     ;;    type Private_Type_1 is abstract tagged limited null record;
-	     ;;    type Private_Type_2 is abstract tagged limited private [with aspect_mark];
-	     ;;    type Private_Type_2 is abstract tagged limited record ...
-	     (let ((token (save-excursion (goto-char pos) (ada-smie-forward-type-modifiers))))
-	       (cond
-		((equal token "record") "is-type-record")
-		(t "is-type"))))
 
 	    ;; numeric types
 	    ;;
@@ -1789,7 +1767,7 @@ when found token is an element of TARGETS, return that token."
 	    "record-end-aspect";
 	  "record-end"))
        ((equal token "null") "record-null")
-       (t "record-open")
+       (t "record-type")
        ))
     ))
 
@@ -1999,18 +1977,31 @@ when found token is an element of TARGETS, return that token."
   ;;
   ;;    token: use-decl
   ;;
-  ;; 2) attribute_definition_clause ::=
+  ;; 2a) attribute_definition_clause ::=
   ;;      for local_name'attribute_designator use expression;
   ;;    | for local_name'attribute_designator use name;
   ;;
+  ;;  b) enumeration_representation_clause ::=
+  ;;        for first_subtype_local_name use enumeration_aggregate;
+  ;;
   ;;    token: use-attribute
+  ;;
+  ;; 3) record_representation_clause ::=
+  ;;       for first_subtype_local_name use
+  ;;          record [mod_clause]
+  ;;             {component_clause}
+  ;;          end record;
+  ;;
+  ;;    use-record
 
   (let ((token (save-excursion
 		 (when forward (smie-default-backward-token))
 		 (ada-smie-backward-keyword))))
 
     (if (equal token "for-attribute")
-	"use-attribute"
+	(if (equal "record" (save-excursion (smie-default-forward-token)))
+	    "use-record"
+	  "use-attribute")
       "use-decl")))
 
 (defun ada-smie-refine-when (token forward)
@@ -2106,7 +2097,7 @@ when found token is an element of TARGETS, return that token."
     ;;
     ;;    succeeding unrefined token: "record"
     ;;    skip: nothing
-    ;;    keyword: "with-record"
+    ;;    keyword: "with-new"
     ;;
     ;; 2) extension_aggregate ::=
     ;;       (ancestor_part with record_component_association_list)
@@ -2191,7 +2182,7 @@ when found token is an element of TARGETS, return that token."
 		    (smie-default-forward-token))))
        (cond
 	((member token '("function" "package" "procedure")) "with-formal"); 8
-	((equal token "record") "with-record"); 1
+	((equal token "record") "with-new"); 1
        ))
 
      ;; this checks for preceding ";", so it has to be after the
@@ -2295,13 +2286,15 @@ If a token is not in the alist, it is returned unrefined.")
 (defun ada-smie-invalidate-cache()
   "Invalidate the ada-smie token cache for the current buffer."
   (interactive)
-  (setq ada-smie-cache-max 0))
+  (setq ada-smie-cache-max 0)
+  (remove-text-properties (point-min) (point-max) '(ada-smie-cache)))
 
 (defun ada-smie-validate-cache (pos)
   "Update cache from `ada-smie-cache-max' to at least POS."
   (save-excursion
     (let ((ada-smie-refining t))
       (goto-char ada-smie-cache-max)
+      (when (bobp) (ada-smie-forward-keyword))
       (while (> pos (point))
 	(ada-smie-forward-keyword))
       ;; If pos is inside a paren, but ada-smie-cache-max was
@@ -2461,6 +2454,59 @@ BASE should be `ada-indent' or `ada-indent-broken'."
 (defun ada-smie-closer-p (token)
   (let ((association (assoc token ada-smie-grammar)))
     (when association (listp (nth 2 association)))))
+
+(defun ada-smie-next-statement-keyword (keyword forward next-token lvl-forw lvl-back)
+  "Assuming point is at beginning of KEYWORD that is in a
+multi-keyword statement, move to the next keyword in the same
+statement, skipping contained statements.  Return found
+keyword (a string).  If FORWARD is non-nil, move forward,
+otherwise move backward.  If already at farthest keyword, do not
+move."
+  (let ((tok-levels (assoc keyword ada-smie-grammar))
+	stack
+	(done nil))
+
+    (if (listp (funcall lvl-forw tok-levels))
+	;; keyword is farthest in statement; don't move)
+	(setq done t)
+      (when forward (smie-default-forward-token))
+      (push tok-levels stack))
+
+    (while (not done)
+      (setq tok-levels (ada-smie-next-keyword next-token forward))
+
+      (cond
+       ((listp (funcall lvl-back tok-levels))
+	;; start of new multi-keyword statement
+	(push tok-levels stack))
+
+       ((= (funcall lvl-back tok-levels) (funcall lvl-forw (car stack)))
+	;; new keyword is in same statement as top of stack
+	(pop stack)
+	(setq done (null stack))
+	(when (and (not done)
+		   (numberp (funcall lvl-forw tok-levels)))
+	  ;; new token is in current statement, but not the furthest
+	  (push tok-levels stack)))
+
+       ((> (funcall lvl-back tok-levels) (funcall lvl-forw (car stack)))
+	;; new keyword is a single-keyword contained statement; ignore.
+	nil)
+
+       (t
+	(ada-smie-error "ada-smie-next-statement-keyword: that does not compute"))
+       ))
+    (nth 0 tok-levels)
+    ))
+
+(defun ada-smie-backward-statement-keyword (keyword)
+  (ada-smie-next-statement-keyword
+   keyword
+   nil; forward
+   'ada-smie-backward-token
+   (lambda (tok-levels) (nth 1 tok-levels)); lvl-forw
+   (lambda (tok-levels) (nth 2 tok-levels)); lvl-back
+   ))
 
 (defun ada-smie-goto-parent (child up)
   "Goto a parent (defined by where smie-backward-sexp stops).
@@ -2708,7 +2754,7 @@ be a keyword, and point must be at the start of CHILD."
 	  (setq child (ada-smie-backward-keyword)))
 
       (setq parent-count
-	    (if (member child '("record-open" "<<"))
+	    (if (member child '("<<"))
 		2
 	      1))
       ;; If child is "(" the first run thru smie-backward-sexp
@@ -2723,9 +2769,7 @@ be a keyword, and point must be at the start of CHILD."
 
       (when (or
 	     (member (nth 2 parent) '("(" ";"))
-	     (and
-	      (not (equal (nth 2 parent) "record-open"))
-	      (member (nth 2 parent) ada-smie-block-keywords))
+	     (member (nth 2 parent) ada-smie-block-keywords)
 	     )
 	;; goto-parent left point on token following parent; point is at statement start
 	(throw 'done (list (nth 1 parent) (nth 2 parent))))
@@ -2760,10 +2804,9 @@ be a keyword, and point must be at the start of CHILD."
 	  ;; keyword.
 	  (goto-char (nth 1 parent)))
 
-      ;; handle access-to-subprogram and record types.
-      (while (or (equal (nth 2 parent) "record-open")
-		 (and (member (nth 2 parent) `("procedure-spec" "function-spec")) ; _not -overriding -generic
-		      (member (save-excursion (smie-default-backward-token)) '("access" "protected"))))
+      ;; handle access-to-subprogram
+      (while (and (member (nth 2 parent) `("procedure-spec" "function-spec")) ; _not -overriding -generic
+		  (member (save-excursion (smie-default-backward-token)) '("access" "protected")))
 	(setq parent (ada-smie-goto-parent parent 2)))
 
       (cond
@@ -2889,15 +2932,15 @@ the start of CHILD, which must be a keyword."
 	 (cons 'column (+ (current-column) ada-indent-broken))))
 
       ((equal arg "end-record")
-       ;; goto-parent leaves point on "record-open".
+       ;; backward-statement-keyword leaves point on "record-type".
        (save-excursion
-	 (ada-smie-goto-parent arg 1)
+	 (ada-smie-backward-statement-keyword arg)
 	 (back-to-indentation)
 	 (cons 'column (current-column))))
 
-      ((member arg '("record-open" "record-null"))
+      ((member arg '("record-type" "record-null"))
        ;; This indents the first line. The components are indented
-       ;; relative to the line containing "record-open"; see "record-open" in
+       ;; relative to the line containing "record-type"; see "record-type" in
        ;; :after.
        (ada-smie-rule-statement ada-indent-record-rel-type arg))
 
@@ -3119,7 +3162,7 @@ the start of CHILD, which must be a keyword."
        (back-to-indentation)
        (cons 'column (current-column)))
 
-      ((equal arg "record-open")
+      ((equal arg "record-type")
        ;; We are indenting the first component in a record_definition:
        ;;
        ;; type Private_Type_1 is abstract tagged limited
@@ -3182,7 +3225,7 @@ the start of CHILD, which must be a keyword."
       (error "ada-smie-comment-indent called after non-comment"))))
 
 (defun ada-smie-comment ()
-  "Compute indentation of a comment."
+  "Compute indentation of a comment. For `smie-indent-functions'."
   ;; Check to see if we are at a comment
   (when
       (and (smie-indent--bolp)
@@ -3231,7 +3274,7 @@ the start of CHILD, which must be a keyword."
     ))
 
 (defun ada-smie-label ()
-  "Compute indentation of a label."
+  "Indent a label. For `smie-indent-functions'."
   (cond
    ((save-excursion
       (or
@@ -3264,10 +3307,11 @@ the start of CHILD, which must be a keyword."
    ))
 
 (defun ada-smie-record()
-  "Indent a line containing the \"record\" that starts a record component list."
+  "Indent a line containing the \"record\" that starts a record component list.
+ For `smie-indent-functions'."
   (catch 'quit
     (when (ada-in-paren-p)
-      ;; inside discriminant parens; let other rules handle it
+      ;; might be inside discriminant parens; let other rules handle it
       (throw 'quit nil))
 
     (save-excursion
@@ -3279,7 +3323,7 @@ the start of CHILD, which must be a keyword."
 			(forward-comment -1)
 			(ada-smie-backward-token)))
 	       (indent
-		(if (equal token "record-open")
+		(if (equal token "record-type")
 		    (ada-smie-rule-statement ada-indent-record-rel-type token))))
 
 	    (cdr indent)
@@ -3460,6 +3504,11 @@ gracefully.")
       (smie-default-backward-token)
       (setq ada-smie-cache-max (min ada-smie-cache-max (- (point) 1)))))
   (message "%s" (assoc (ada-smie-backward-token) ada-smie-grammar)))
+
+(defun ada-smie-show-prev-keyword ()
+  "Move to previous keyword in same statement."
+  (interactive)
+  (ada-smie-backward-statement-keyword (save-excursion (ada-smie-forward-token))))
 
 (defun ada-smie-show-parent ()
   "Move backward to the parent of the word following point, and show its refined keyword and grammar levels."

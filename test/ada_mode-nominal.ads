@@ -270,6 +270,24 @@ package Ada_Mode.Nominal is
    type Null_Record_Type_4
      is null record;
 
+   type Record_Type_1 is record
+      Component_1 : Integer := 1; -- initialization confused things when record_definition was separate in grammar
+      Component_2 : Integer := 2;
+      Component_3 : Integer := 3;
+   end record;
+   for Record_Type_1 use
+      record
+         Component_1 at 0 range 20 .. 20;
+         Component_2 at 0 range 21 .. 21;
+         Component_3 at 0 range 22 .. 22;
+      end record;
+   for Record_Type_1'Size use 32;
+   type Record_Type_2 is limited record
+      Component_1 : Integer := 1;
+      Component_2 : Integer := 2;
+      Component_3 : Integer := 3;
+   end record;
+
    type Discrete_Type_1 is (A, B, C);
    type Discrete_Type_2 is
      (A, B, C);
@@ -552,9 +570,9 @@ private
 
    type Limited_Derived_Type_1 is abstract limited new Private_Type_1
       with record
-         Component_1 : Integer;
-         Component_2 : Integer;
-         Component_3 : Integer;
+         Component_1 : Integer := 0;
+         Component_2 : Integer := 1;
+         Component_3 : Integer := 2;
       end record
      with Pack => True; -- FIXME: aspect indented with ada-indent-broken; ok? ask list, GPS
 

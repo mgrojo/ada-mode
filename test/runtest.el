@@ -6,6 +6,7 @@
 (require 'ada-mode)
 
 (defvar skip-reindent-test nil);; user can set to t in an EMACSCMD
+(defvar skip-cmds nil);; user can set to t in an EMACSCMD
 
 (defun test-face (token face)
   "Test if TOKEN in next code line has FACE."
@@ -38,8 +39,7 @@
     ;; Look for --EMACS comments in the file:
     ;;
     ;; --EMACSCMD: <form>
-    ;;    Executes the lisp form. This is mostly used to set non-default values
-    ;;    for ada-mode options; it can also be used to test other things.
+    ;;    Executes the lisp form inside a save-excursion, saves the result as a lisp object.
     ;;
     ;; --EMACSRESULT: <form>
     ;;    <form> is evaluated inside save-excursion and compared
@@ -47,19 +47,20 @@
     ;;    and the test fails if they don't match.
 
     (goto-char (point-min))
-    (while (re-search-forward "--EMACS\\(CMD\\|RESULT\\):" nil t)
+    (while (and (not skip-cmds)
+		(re-search-forward "--EMACS\\(CMD\\|RESULT\\):" nil t))
       (cond
        ((string= (match-string 1) "CMD")
-        (looking-at ".*$")
-        (save-excursion
-          (setq last-cmd (match-string 0)
-                last-result (eval (car (read-from-string last-cmd))))))
+	(looking-at ".*$")
+	(save-excursion
+	  (setq last-cmd (match-string 0)
+		last-result (eval (car (read-from-string last-cmd))))))
 
        ((string= (match-string 1) "RESULT")
-        (looking-at ".*$")
+	(looking-at ".*$")
 	(setq expected-result (save-excursion (eval (car (read-from-string (match-string 0))))))
-        (unless (equal expected-result last-result)
-          (error
+	(unless (equal expected-result last-result)
+	  (error
 	   (concat
 	    (buffer-file-name) ":" (format "%d" (count-lines (point-min) (point))) ":\n"
 	    (format "Result of '%s' does not match.\nGot    '%s',\nexpect '%s'"
@@ -69,7 +70,7 @@
 	    ))))
 
        (t
-        (error (concat "Unexpected command " (match-string 1))))))
+	(error (concat "Unexpected command " (match-string 1))))))
     )
 
   (when (not skip-reindent-test)

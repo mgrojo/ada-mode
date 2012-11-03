@@ -27,18 +27,18 @@ one : test-clean prime-volatilities.adb.diff
 
 TEST_FILES := $(shell ls *.ad?)
 
+# this is for debug only
+TEST_FILES := $(filter-out debug.adb, $(TEST_FILES))
+
 # FIXME: delete currently broken tests
 TEST_FILES := $(filter-out ada_mode-quantified_expressions.adb, $(TEST_FILES)) # 2012 syntax
 TEST_FILES := $(filter-out move_to_end.adb, $(TEST_FILES)) # tests ada-move-to-end, which we have not (yet?) implemented
 TEST_FILES := $(filter-out move_to_end_if.adb, $(TEST_FILES)) # ada-move-to-end
 TEST_FILES := $(filter-out test_goto_decl_start.adb, $(TEST_FILES)) # ada-move-to-end
 TEST_FILES := $(filter-out which_test.adb, $(TEST_FILES)) # imenu-default-create-index-function
+# end FIXME:
 
 COMPILE_FILES := $(TEST_FILES)
-
-# this is for debug only
-TEST_FILES := $(filter-out debug.adb, $(TEST_FILES))
-COMPILE_FILES := $(filter-out debug.adb, $(COMPILE_FILES))
 
 COMPILE_FILES := $(filter-out ada_mode-ada83.ads, $(COMPILE_FILES))# font-lock only
 

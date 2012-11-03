@@ -605,6 +605,10 @@ nil     : show in current window
 C-u     : show in other window
 C-u C-u : show in other frame
 
+When called from lisp, OTHER-WINDOW-FRAME is only interpreted as
+nil/non-nil; it must set `current-prefix-arg' to have the
+meanings shown here.
+
 If NO-SET-POINT is nil (the default), set point in the other file on
 the corresponding declaration. If non-nil, preserve existing point in
 the other file."
