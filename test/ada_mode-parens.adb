@@ -46,7 +46,13 @@ package body Ada_Mode.Parens is
      (Left,
         Right : in Array_Type_1) -- ada-indent-broken to match 4.01
      return Array_Type_1
-   is begin
+   is
+      type Matrix_Type is array (1 .. 3) of Array_Type_1;
+      A : Matrix_Type :=
+        ((1, 2, 3),
+         (4, 5, 6),
+         (7, 8, 9));
+   begin
       return
         (1 => 1,
          2 =>

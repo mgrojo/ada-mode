@@ -395,11 +395,11 @@ package Ada_Mode.Nominal is
    Integer_D, Integer_E, Integer_F :
      Integer;
    Integer_G, Integer_H,
-     Integer_I : Integer; -- ada-mode 4.01 uses broken-indent
+   Integer_I : Integer; -- ada-mode 4.01 uses zero indent for multi-identifier object declarations
 
    Integer_J,
-     Integer_K,
-     Integer_L, Integer_M : Integer;
+   Integer_K,
+   Integer_L, Integer_M : Integer;
 
    Float_1 : aliased constant Float := 1.0;
    Float_2 : aliased constant Float :=

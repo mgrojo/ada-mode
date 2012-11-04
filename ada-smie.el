@@ -779,12 +779,14 @@ Preserves point."
   ;; example, while refining "begin", or "package" looking for "generic".
   (save-excursion
     (catch 'quit
-      ;; find the first keyword
       (let ((token (ada-smie-forward-token)))
+	;; check for special cases
 	(when (not (ada-smie-keyword-p token))
 	  (cond
-	   ((equal token "pragma"); not worth making this a keyword
-	    (throw 'quit (list 'declaration token)))
+	   ((equal token "pragma")
+	    ;; not worth making this a keyword. can occur anywhere, so
+	    ;; it doesn't tell us anything here.
+	    nil)
 	   (t (setq token (ada-smie-forward-keyword)))))
 
 	;; lists compiled by going thru (statement ..) and (declaration
@@ -2903,15 +2905,25 @@ the start of CHILD, which must be a keyword."
        ;;       return Float
        ;;          (Integer'Value
        ;;             (Local_6));
+       ;;
+       ;; 7) An aggregate in an aggregate:
+       ;;
+       ;;    return Matrix'
+       ;;       ((1, 2, 3),
+       ;;        (4, 5, 6),
+       ;;        (7, 8, 9));
 
        (save-excursion
-	 (let ((pos (point)))
-	   (if (member (smie-default-backward-token) '("procedure" "function"))
-	       ;; 1, 2
-	       (progn (goto-char pos) (ada-smie-rule-parent ada-indent-broken arg))
-	     ;; 3, 4, 5
+	 (let ((pos (point))
+	       (token (smie-default-backward-token)))
+	   (cond
+	    ((member token '("procedure" "function")); 1, 2
+	       (progn (goto-char pos) (ada-smie-rule-parent ada-indent-broken arg)))
+	    ((equal token ","); 7
+	     (progn (goto-char pos) (ada-smie-rule-statement 0 arg)))
+	    (t ; 3, 4, 5
 	     (progn (goto-char pos) (ada-smie-rule-statement ada-indent-broken arg))))
-	 ))
+	 )))
 
       ((equal arg ")")
        ;; find the open paren
@@ -3122,29 +3134,36 @@ the start of CHILD, which must be a keyword."
 	 (ada-smie-rule-parent ada-indent-broken "(")))
 
       ((equal arg ",")
-       ;; ada-mode 4.01 uses broken indent for multi-identifier in
-       ;; parameter list declaration, and object declarations. But
-       ;; aggregates use no indent after ",". "with", "use" have their
-       ;; own controlling options. We have to check for ":-object" first,
+       ;; ada-mode 4.01 uses no indent after "," for multi-identifier in
+       ;; aggregates, object declarations; broken-indent in
+       ;; parameter lists. "with", "use" have their own
+       ;; controlling options. We have to check for ":-object" first,
        ;; since otherwise a parameter list looks like an aggregate.
-       (let (temp pos
-	     (token (nth 1 (save-excursion (ada-smie-skip-identifier-list t)))))
-	 (cond
-	  ((equal token ":-object")
-	   (ada-smie-rule-statement ada-indent-broken arg))
+       (let ((pos-tok-back (save-excursion (ada-smie-skip-identifier-list nil)))
+	     pos-back token-back
+	     (token-forw (nth 1 (save-excursion (ada-smie-skip-identifier-list t)))))
 
-	  ((and (setq temp (save-excursion (ada-smie-skip-identifier-list nil)))
-		(setq token (nth 1 temp))
-		(setq pos   (nth 0 temp))
-		(member token '("(" "with-agg")))
+	 (setq token-back (nth 1 pos-tok-back))
+	 (setq pos-back   (nth 0 pos-tok-back))
+	 (cond
+	  ((equal token-forw ":-object")
+	   (cond
+	    ((equal token-back "("); parameter list
+	     (ada-smie-rule-statement ada-indent-broken arg))
+	    (t ; object declaration
+	     (ada-smie-rule-statement 0 arg))
+	    ))
+
+	  ((member token-back '("(" "with-agg"))
 	   (ada-smie-rule-statement 0 arg))
 
-	  ((equal token "use-decl"); also use-context
+	  ((equal token-back "use-decl"); also use-context
 	   (ada-smie-rule-statement ada-indent-use arg))
 
-	  ((member token '("with-context-1" "with-context-2"))
+	  ((member token-back '("with-context-1" "with-context-2"))
 	   ;; match 4.01; indent by ada-indent-with relative to "with"
-	   (cons 'column (+ (save-excursion (goto-char pos) (current-column)) ada-indent-with)))
+	   (cons 'column (+ (save-excursion (goto-char pos-back) (current-column)) ada-indent-with)))
+
 	  )))
 
       ((member arg '(";" "private-library"))

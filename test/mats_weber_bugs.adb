@@ -83,7 +83,7 @@ package body Test is -- fontified correctly, but in
       type Tt is
          record
             Min,
-              Max : Int;
+            Max : Int;
          end record;
       -- max gets indented with respect to min, which is wrong. I realise that
       -- this requires more analysis to get right, but I think it would be
