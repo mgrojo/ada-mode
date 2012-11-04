@@ -307,7 +307,7 @@
        ;; No need to distinguish between 'declarations' and
        ;; 'generic_formal_parameter_declaration' in the grammar.
        ("generic" declarations
-	"package-generic" identifier "is-package" declarations "private-body" declarations "end-block")
+	"package-generic" identifier "is-package" declarations "private-spec" declarations "end-block")
        ("generic" declarations
 	"package-generic" identifier "is-package" declarations "end-block"))
 
@@ -371,7 +371,7 @@
       ;; covers generic_renaming_declaration
 
       (package_specification
-       ("package-plain" name "is-package" declarations "private-body" declarations "end-block")
+       ("package-plain" name "is-package" declarations "private-spec" declarations "end-block")
        ("package-plain" name "is-package" declarations "end-block"))
 
       (protected_body
@@ -564,10 +564,10 @@
        ;; "type-protected"; we don't need that in the grammar, things
        ;; work fine without it.
        ("protected-type" "type-protected" identifier "is-type-block" declarations
-	"private-body" declarations "end-block")
+	"private-spec" declarations "end-block")
        ("protected-type" "type-protected" identifier "is-type-block" declarations "end-block")
        ("protected-type" "type-protected" identifier "is-type" "new-type" interface_list "with-new" declarations
-	"private-body" declarations "end-block")
+	"private-spec" declarations "end-block")
 
        ;; record_type_definition
        ("type-other" identifier "is-type" "record-null")
@@ -619,7 +619,7 @@
     "loop-open"
     "or-select"
     "package-plain"
-    "private-body"
+    "private-spec"
     "record-type"
     "select-open"
     "then-select"
@@ -733,7 +733,7 @@ spec, return t if is a generic, nil otherwise."
 	      (formal
 	       (setq result t))
 
-	      (declaration
+	      ((declaration context)
 	       ;; There are only a two non-formal declarations that
 	       ;; can occur in a generic formal parameter list; formal_object_declaration, formal_type_declaration.
 	       (if (not (member (cadr stmt-or-decl) '(":-object" "type-other")))
@@ -767,16 +767,69 @@ spec, return t if is a generic, nil otherwise."
       result
       )))
 
+(defun ada-smie-library-p ()
+  "Assuming point is before \"private\" at the start of a package
+or subprogram spec, return t if is a library_item, nil
+otherwise."
+  (save-excursion
+    ;; Scan back over things that might precede a library item;
+    ;; "private", context_clause, pragmas.
+    (let ((token (ada-smie-backward-keyword))
+	  stmt-or-decl
+	  (result 'not-found)
+	  (first t))
+      (while (eq result 'not-found)
+	(cond
+	 ((equal token nil); bob
+	  (setq result t))
+
+	 ((equal token ";")
+	  (if first
+	      (progn
+		(setq first nil)
+		;; try again
+		(ada-smie-goto-statement-start token)
+		(setq token (ada-smie-backward-keyword)))
+
+	    ;; we've skipped a statement or declaration; see if we can tell which
+	    (save-excursion
+	      (smie-default-forward-token)
+	      (setq stmt-or-decl (ada-smie-statement-or-decl)))
+
+	    (ecase (car stmt-or-decl)
+	      (statement
+	       (ada-smie-error "found statement preceding package or subprogram spec"))
+
+	      (declaration (setq result nil))
+
+	      (context (setq result t))
+
+	      ((unknown formal)
+	       ;; try again
+	       (ada-smie-goto-statement-start token)
+	       (setq token (ada-smie-backward-keyword)))
+	      )))
+
+	 ((member token ada-smie-block-keywords)
+	  (setq result nil))
+
+	 (t
+	  (if ada-smie-debug-refine
+	      (ada-smie-error "ada-smie-library-p: unexpected statement or prev keyword")
+	    ;; user is probably editing code
+	    (setq result nil)))
+
+	 ));; while
+      result
+      )))
+
 (defun ada-smie-statement-or-decl ()
   "Assuming point is at the start of a statement, a normal
 declaration, or a generic formal declaration, examine a few
 refined tokens following point to see if we can determine which.
 Return (class token), where `class' is 'statement, 'declaration,
-'formal, or 'unknown; `token' is the determining token or nil.
-Preserves point."
-  ;; Note the only way to know we are at the start of a statement or
-  ;; decl is because we've just skipped over it backwards. For
-  ;; example, while refining "begin", or "package" looking for "generic".
+'formal, 'context, or 'unknown; `token' is the determining token
+or nil.  Preserves point."
   (save-excursion
     (catch 'quit
       (let ((token (ada-smie-forward-token)))
@@ -806,10 +859,14 @@ Preserves point."
 	   token
 	   '("for-attribute" "entry" ":-object" "generic" ":-object" "package-plain" "package-renames"
 	     "protected-body" "function-spec" "overriding" "procedure-spec" "protected-type" "subtype" "subtype"
-	     "task-type" "type-other" "use-attribute" "use-decl"
-	     "limited-context" "private-context" "with-context"))
-	      ;; context clause is not really a declaration, but this works for us.
+	     "task-type" "type-other" "use-attribute" "use-decl"))
+	      ;; use-decl is both a context clause and a declaration
 	  (list 'declaration token))
+
+	 ((member
+	   token
+	   '("limited-context" "private-context" "with-context"))
+	  (list 'context token))
 
 	 ((equal token "with-formal")
 	  (list 'formal token))
@@ -1641,7 +1698,11 @@ when found token is an element of TARGETS, return that token."
     ;;    token: private-context-1, -2
     ;;
     ;; 3) formal_derived_type_definition
-    ;; 4) library_item
+    ;;
+    ;; 4) library_item ::= [private] library_unit_declaration
+    ;;
+    ;;    token: private-library
+    ;;
     ;; 5) package_specification
     ;;
     ;;    package defining_program_unit_name [aspect_specification] is
@@ -1688,10 +1749,14 @@ when found token is an element of TARGETS, return that token."
 	      "private-context-2"
 	    "private-context-1"))
 
-	 ((member token '("package" "procedure" "function" "generic")) "private-library"); 9
+	 ((member token '("package" "procedure" "function" "generic"))
+	  ;; 4 or 9.
+	  (if (ada-smie-library-p)
+	      "private-library"
+	    "private-spec"))
 	 )))
 
-     (t "private-body")); all others
+     (t "private-spec")); all others
   ))
 
 ;; ada-smie-refine-procedure see ada-smie-refine-subprogram
@@ -3334,7 +3399,7 @@ the start of CHILD, which must be a keyword."
       (throw 'quit nil))
 
     (save-excursion
-      (if (not (equal "type" (smie-default-forward-token)))
+      (if (not (member (ada-smie-forward-token) '("type-other" "for-attribute")))
 	  (let*
 	      ((token (progn
 			(goto-char (+ 1 (line-end-position)))

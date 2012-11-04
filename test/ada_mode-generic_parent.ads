@@ -2,8 +2,10 @@
 
 pragma License (GPL);
 
+private
 generic
    -- just enough to get "overriding" on the child instantiations
+   -- but that didn't actually work, so there is no generic_child.
 
 package Ada_Mode.Generic_Parent is
 

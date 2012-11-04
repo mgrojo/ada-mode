@@ -52,39 +52,59 @@ runtest from emacs -q:
 review FIXMEs
 (grep-find "find . -type f -print | \"xargs\" grep -nH \"FIXME:\"")
  current
-test/test-indent.sh 4.01
+test/test-indent.sh 4.01, 5.0 gds
+    sal         done
+    opentoken
+    common
+    gpm
+    mms
+    dscovr
+
 cd /Projects/org.emacs.ada-mode.smie/test
 rm /tmp/gds_indent/*
 ./test-indent-4.01.sh $GDS_ROOT/main_lynx_5/sal/Source_Common /tmp/gds_indent
     1m17.361s
 ./test-indent-5.0.sh $GDS_ROOT/main_lynx_5/sal/Source_Common /tmp/gds_indent
-    2m54.151s
+    2m54.151s, 2m48.340s
     /tmp/gds_indent/
     (dired "/tmp/gds_indent/*.diff")
     420 files
     (/ (- 174 77) 240.0) = 0.404 sec/file
 
-5.0
-    sal-interfaces_more.ads
--for Unsigned_16_Split_Type use record
--   High at 0 range  8 .. 15;
--   Low  at 0 range  0 .. 7;
--end record;
+5.0 all reviewed, only 4.01 bugs remaining
 
 4.01 all reviewed
     run tests
         need auto_text_io in 7.0.1
         don't have source, GNAT Tracker down, not in gdsrh1:gds/Distrib
 
-4.01
-    bug in generic formal function
+4.01 bugs that 5.01 fixes
+    generic formal function
         'with' indented to prev 'return'
+        sal: 1
 
-    bug in extension aggregate:
+    extension aggregate:
       return
         (Ada.Finalization.Controlled with
-           Last_Down_Left => new Node_Stacks.Stack_Type (Tree.Height),
-         Current        => null);
+           Root => null,
+         Height => 0,
+         Count => 0);
+      sal:
+        ? 1
+        sal-poly-unbounded_arrays.ads 1
+
+   function Compute_Inverse
+     (Function_Table : in Function_Table_Type;
+      Range_Value    : in Range_Type)
+     return Domain_Type
+      is abstract;
+
+    "is" should be indented by broken-indent
+        sal:
+            sal-poly-function_tables-monotonic.ads 1
+            sal-poly-function_tables.ads           1
+            sal-simple-function_tables-monotonic.ads 1
+            sal-simple-function_tables.ads           1
 
 test/Makefile
 

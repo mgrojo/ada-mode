@@ -24,8 +24,12 @@ package Ada_Mode.Nested_Packages is
       procedure Test;
    end TestForWhile;
 
+private -- part of Ada_Mode.Nested_Packages, not Private_Only
+
    package Private_Only is
    private
+      package Private_Package is
+      end Private_Package;
       A : Integer;
    end Private_Only;
 
