@@ -532,7 +532,7 @@ either an existing one, or a new one if there are no existing other frames."
 	      frame-2
 	      (make-frame))))
     (unless (and window (eq frame frame-1))
-      (setq window (get-lru-window frame)))
+      (setq window (get-lru-window frame))) ; FIXME: might be minibuffer-window?
     (display-buffer-record-window 'reuse window buffer)
     (window--display-buffer-1 window)
     (window--display-buffer-2 buffer window)))

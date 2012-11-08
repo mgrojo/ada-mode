@@ -47,7 +47,7 @@ cd $2
 for file in $1/*.ad[bs] ; do
     $EMACS -Q -batch -L $EMACS_ADA_MODE -l $3 -l $EMACS_RUNTEST --eval "(run-test \"$file\")"
     filename=`basename $file`
-    diff -u $filename.tmp $file > $filename.diff
+    diff -u $file $filename.tmp > $filename.diff
 done
 
 # end of file

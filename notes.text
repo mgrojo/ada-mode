@@ -51,30 +51,100 @@ runtest from emacs -q:
 
 review FIXMEs
 (grep-find "find . -type f -print | \"xargs\" grep -nH \"FIXME:\"")
- current
+ gds
+(setq copyright-update nil)
 test/test-indent.sh 4.01, 5.0 gds
-    sal         done
+
+    sal/source_common       done
+        420 files
+        4.01 1m17.361s
+        5.0 2m54.151s
+        (/ (- 174 77) 240.0) = 0.404 sec/file slower
+
+    sal/source_common/test  done
+        206 files
+        4.01 0m41.933s
+        5.0  1m24.599s
+
     opentoken
-    common
+        95 files
+        4.01 0m18.377s
+        5.0  0m40.741s
+        (/ (- 40.74 18.37) 95) = 0.235 sec/file slower
+
+    opentoken/Test  done
+        57 files
+
+    opentoken/Language_Lexers   done
+    opentoken/Examples/*        done
+
+    common/1553
+        gds-hardware-bus_1553-rwa_goddard.adb
+            "when" not found when indent all, but not individually
+                ada-in-paren-p is wrong?
+                ada-in-paren-p is correct on break in ada-smie-when
+                    incorrect in ada-rules :after "|"
+                    syntax-propertize--done is after paren
+                    syntax-ppss-cache is nil!
+                    syntax-ppss-last is well before point
+
+        restart emacs
+
+        copy to debug, run from Makefile one
+            still bug
+        delete code
+            bug is in new_packet Monitor false
+            delete all after New_packet (keep end packet); still bug
+            header comments, contex clause; still bug
+            to -- local subprograms (keep 'package'); still bug
+            to -- private subprograms; still bug
+            true branch of Monitor; fixed bug
+            symbols in true branch; fixed bug
+
+        run interactive, trace syntax-ppss
+            turn off font-lock
+            (progn (syntax-ppss-flush-cache (point-min))(ada-smie-invalidate-cache)(indent-region (point-min) (point-max)))
+            run with no breaks: bug
+            set break in ada-in-paren-p
+                still stops every line
+
+            put (debug) in "|" rule
+                does _not_ start interactive debugging
+
+            add syntax-ppss-flush-cache -(point 1000)
+                fixed one case of 'when not found'
+
+        rewrite ada-in-paren-p to not rely on syntax-ppss!
+            ask for help on list?
+
+    common/asist
+    common/asist_if
+    common/base
+    common/hardware
+    common/itos_if
+    common/lynx
+    common/models
+    common/spacewire
+    common/system
+    common/windows
+
+
     gpm
     mms
     dscovr
 
 cd /Projects/org.emacs.ada-mode.smie/test
 rm /tmp/gds_indent/*
-./test-indent-4.01.sh $GDS_ROOT/main_lynx_5/sal/Source_Common /tmp/gds_indent
-    1m17.361s
-./test-indent-5.0.sh $GDS_ROOT/main_lynx_5/sal/Source_Common /tmp/gds_indent
-    2m54.151s, 2m48.340s
+./test-indent-4.01.sh $GDS_ROOT/main_lynx_5/sal/Source_Common/Test /tmp/gds_indent
+
+./test-indent-5.0.sh $GDS_ROOT/main_lynx_5/sal/Source_Common/Test /tmp/gds_indent
     /tmp/gds_indent/
     (dired "/tmp/gds_indent/*.diff")
-    420 files
-    (/ (- 174 77) 240.0) = 0.404 sec/file
 
-5.0 all reviewed, only 4.01 bugs remaining
+5.0
 
-4.01 all reviewed
-    run tests
+4.01
+    run sal tests
         need auto_text_io in 7.0.1
         don't have source, GNAT Tracker down, not in gdsrh1:gds/Distrib
 
@@ -89,27 +159,74 @@ rm /tmp/gds_indent/*
            Root => null,
          Height => 0,
          Count => 0);
-      sal:
+      gdss:
         ? 1
         sal-poly-unbounded_arrays.ads 1
+        opentoken-token-enumerated-identifier.adb
 
-   function Compute_Inverse
-     (Function_Table : in Function_Table_Type;
-      Range_Value    : in Range_Type)
-     return Domain_Type
-      is abstract;
+    procedure Copy
+      (To   : in out Instance;
+       From : in     OpenToken.Token.Class)
+    is null;
+
+    function Compute_Inverse
+      (Function_Table : in Function_Table_Type;
+       Range_Value    : in Range_Type)
+      return Domain_Type
+       is abstract;
+
+    type Storage_Pool_Type
+      (Pool_Size : System.Storage_Elements.Storage_Count;
+       Name      : String_Access_Constant_Type) -- for debug messages
+       is new System.Storage_Pools.Root_Storage_Pool with private;
 
     "is" should be indented by broken-indent
-        sal:
-            sal-poly-function_tables-monotonic.ads 1
-            sal-poly-function_tables.ads           1
+        gds:
+            sal-poly-function_tables-monotonic.ads   1
+            sal-poly-function_tables.ads             1
             sal-simple-function_tables-monotonic.ads 1
             sal-simple-function_tables.ads           1
+            test_storage_pools.ads                   1
 
+   function Get (Start_Chars   : in Ada.Strings.Maps.Character_Set :=
+     Ada.Strings.Maps.Constants.Letter_Set;
+                 Body_Chars    : in Ada.Strings.Maps.Character_Set :=
+                   Ada.Strings.Maps.Constants.Alphanumeric_Set;
+                 Has_Separator : in Boolean := True
+                ) return Instance;
+
+    initial value should be indented from (
+        gds:
+            opentoken-recognizer-identifier.ads 1
+            opentoken-token-linked_list.adb     5
+            opentoken-token-list_mixin.adb      2
+            opentoken-token-selection_mixin.adb 4
+            opentoken-token-sequence_mixin.adb  5
+
+    case Match (Token_Index) is
+      --  If we found a match, quit.
+    when Recognizer.Matches =>
+
+        comment as continuation line
+        always a bad idea
+
+    Syntax : constant Tokenizer.Syntax :=
+     (Abort_T        => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("abort")),
+      Abs_T          => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("abs")),
+        ... 110 items
+      End_of_File_T   => Tokenizer.Get (OpenToken.Recognizer.End_Of_File.Get));
+
+         Analyzer : Tokenizer.Instance := Tokenizer.Initialize (Syntax);
+
+        loses track over large statements
+
+ ada-smie
 test/Makefile
 
 rest of ada-mode
     merge all of ada-mode-patches, most of ada-mode-keys
+    ada-capitalize-word
+        use explicit skip-syntax rather than two syntax tables
     process patches in ada-mode email
 
     fully delete ada-gnat-cmd from ada-xfer
@@ -125,7 +242,6 @@ rest of ada-mode
     submit adacore bug report on 'gnat list' accept '--subdirs'
 
 ask for input/testing
-    run on my projects
 
 use it!
 
@@ -277,3 +393,5 @@ read/write access requires a public key:
     /etc/init.d/monotone restart
 
     mtn --db ~/monotone-dbs/ada-france.db sync "mtn://www.ada-france.org?org.emacs.*"
+
+-- end of file

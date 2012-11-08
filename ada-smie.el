@@ -952,23 +952,23 @@ encounter beginning or end of buffer."
    (nth 0 (ada-smie-next-keyword 'ada-smie-forward-token t)))
 
 (defun ada-smie-next-token-unrefined (next-token forward)
-  "Move to the next token using function NEXT-TOKEN. Skips parentheses.
-Return the token, or wrong paren, or empty string if encounter beginning of
-buffer."
-  (let (token)
-    (while
-	(progn
-	  (setq token (funcall next-token))
-	  (if (equal "" token)
-	      ;; We hit a parenthesis, bob, eob, string, char literal
-	      (progn
-		(when (bobp) (throw 'quit nil))
-		(when (eobp) (throw 'quit nil))
-		(if forward
-		    (when (eq (char-after) ?\)) (throw 'quit ")"))
-		  (when (eq (char-before) ?\() (throw 'quit "(")))
-		(ada-smie-skip-param_list forward); also skips strings, char literals
-		))))
+  "Move to the next token using function NEXT-TOKEN. Skips parentheses, strings.
+Return the token, or wrong paren, or empty string if encounter
+beginning or end of buffer."
+  (let ((token nil))
+    (while (not token)
+      (setq token (funcall next-token))
+      (if (equal "" token)
+	  ;; We hit a parenthesis, bob, eob, string, char literal
+	  (cond
+	   ((bobp) (setq token ""))
+	   ((eobp) (setq token ""))
+	   ((and forward (eq (char-after) ?\))) (setq token ")"))
+	   ((and (not forward) (eq (char-before) ?\()) (setq token "("))
+	   (t
+	    (setq token nil)
+	    (ada-smie-skip-param_list forward)); also skips strings, char literals
+	   )))
     token))
 
 (defun ada-smie-backward-token-unrefined ()
@@ -976,18 +976,22 @@ buffer."
 
 (defun ada-smie-backward-tokens-unrefined (&rest targets)
   "Move backward over unrefined tokens, strings and parens. Stop
-when found token is an element of TARGETS, return that token."
+when found token is an element of TARGETS, return that
+token. Empty string (for bob) is implicitly added to TARGETS, to
+avoid infinite loop on illegal code."
   (let (result)
     (while (not (member (setq result (ada-smie-backward-token-unrefined))
-			targets)))
+			(cons "" targets))))
     result))
 
 (defun ada-smie-forward-tokens-unrefined (&rest targets)
   "Move forward over unrefined tokens, strings and parens. Stop
-when found token is an element of TARGETS, return that token."
+when found token is an element of TARGETS, return that
+token. Empty string (for eob) is implicitly added to TARGETS, to
+avoid infinite loop on illegal code."
   (let (result)
     (while (not (member (setq result (ada-smie-next-token-unrefined 'smie-default-forward-token t))
-			targets)))
+			(cons  "" targets))))
     result))
 
 (defconst ada-smie-type-modifiers '("abstract" "tagged" "limited" "synchronized"))
@@ -1046,12 +1050,19 @@ when found token is an element of TARGETS, return that token."
 		 (when forward (smie-default-backward-token))
 		 (ada-smie-backward-keyword))))
 
-    (if (member token '(":-object" ; in exception handler
-			"|"
-			"when-case"
-			"when-select"))
-	"=>-when"
-      "=>-other")))
+    (cond
+     ((equal token "|")
+      ;; case or aggregate discrete choice
+      (if (ada-in-paren-p)
+	  "=>"; identifier in aggregates
+	"=>-when"))
+
+     ((member token '(":-object" ; in exception handler
+		      "when-case"
+		      "when-select"))
+      "=>-when")
+
+     (t	"=>-other"))))
 
 (defun ada-smie-refine-abort (token forward)
   (let ((token (save-excursion
@@ -1640,7 +1651,7 @@ when found token is an element of TARGETS, return that token."
 		 (when (not forward) (smie-default-forward-token))
 		 (smie-default-forward-token))))
     (cond
-     ((member token '("accept" "when" "terminate")) "or-select")
+     ((member token '("accept" "delay" "terminate" "when")) "or-select")
      (t "or")))); operator identifier
 
 (defun ada-smie-refine-package (token forward)
@@ -2502,7 +2513,8 @@ BASE should be `ada-indent' or `ada-indent-broken'."
   ;; in a select statement.
   (save-excursion
     (unless (looking-at "when")
-      (ada-smie-backward-tokens-unrefined "when"))
+      (if (not (equal "when" (ada-smie-backward-tokens-unrefined "when" "(" ";")))
+	  (ada-smie-error "'when' not found")))
     (if (smie-indent--bolp)
 	(+ base ada-indent-when)
       base)))
@@ -2659,7 +2671,7 @@ or \"(\", and point must be at the start of CHILD."
     )))
 
 (defun ada-smie-skip-identifier-list (forward)
-  "Skip forward/backward over {identifier,}.
+  "Skip forward/backward over {identifier , |}.
 Return (preceding-pos preceding-string) for backward, succeeding
 for forward."
   (let (parent parent-pos)
@@ -2669,6 +2681,7 @@ for forward."
 	  (setq parent-pos (point))
 	  (cond
 	   ((equal "," parent) t)
+	   ((equal "|" parent) t)
 	   ((equal "(" parent) (forward-char 1) nil)
 	   ((equal ")" parent) (backward-char 1) nil)
 	   (t
@@ -2877,7 +2890,7 @@ be a keyword, and point must be at the start of CHILD."
 	(setq parent (ada-smie-goto-parent parent 2)))
 
       (cond
-       ((member (nth 2 parent) '(":=" ":-object"))
+       ((member (nth 2 parent) '(":=" ":-object" "|"))
 	;; Simple types in object declarations were handled above; for
 	;; complex types and parameter lists, we get here.
 	(ada-smie-skip-identifier-list nil))
@@ -3213,7 +3226,7 @@ the start of CHILD, which must be a keyword."
 	 (cond
 	  ((equal token-forw ":-object")
 	   (cond
-	    ((equal token-back "("); parameter list
+	    ((ada-in-paren-p); parameter list
 	     (ada-smie-rule-statement ada-indent-broken arg))
 	    (t ; object declaration
 	     (ada-smie-rule-statement 0 arg))
@@ -3239,7 +3252,12 @@ the start of CHILD, which must be a keyword."
        (ada-smie-rule-statement (ada-smie-when ada-indent) arg))
 
       ((equal arg "|")
-       (ada-smie-rule-statement (ada-smie-when ada-indent-broken) arg))
+       ;; case or aggregate discrete choice
+       ;; FIXME: debugging; ada-in-paren-p is wrong
+;       (syntax-ppss-flush-cache (- (point) 1000))
+       (if (ada-in-paren-p)
+	   (ada-smie-rule-statement ada-indent-broken arg)
+	 (ada-smie-rule-statement (ada-smie-when ada-indent-broken) arg)))
 
       ((equal arg "record-end")
        ;; We are indenting the aspect specification for the record.

@@ -277,21 +277,22 @@ package Ada_Mode.Nominal is
    end record;
    for Record_Type_1 use
       record
-         Component_1 at 0 range 20 .. 20;
-         Component_2 at 0 range 21 .. 21;
-         Component_3 at 0 range 22 .. 22;
+         Component_1 at 0 range 0 .. 31;
+         Component_2 at 0 range 32 .. 63;
+         Component_3 at 0 range 64 .. 95;
       end record;
-   for Record_Type_1'Size use 32;
+   for Record_Type_1'Size use 32 * 3;
    type Record_Type_2 is limited record
       Component_1 : Integer := 1;
       Component_2 : Integer := 2;
       Component_3 : Integer := 3;
    end record;
    for Record_Type_2 use record
-      Component_1 at 0 range 20 .. 20;
-      Component_2 at 0 range 21 .. 21;
-      Component_3 at 0 range 22 .. 22;
+      Component_1 at 0 range 0 .. 31;
+      Component_2 at 0 range 32 .. 63;
+      Component_3 at 0 range 64 .. 95;
    end record;
+   for Record_Type_2'Size use 32 * 3;
 
    type Discrete_Type_1 is (A, B, C);
    type Discrete_Type_2 is

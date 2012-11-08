@@ -246,16 +246,27 @@ package body Ada_Mode.Nominal is
       or when Started
         =>
          accept Finish; -- Ada mode 4.01
-         local_1 := 5;
+         Local_1 := 5;
       or
-         terminate;
+         delay 1.0;
+         null;
       end select;
 
-      select -- need a separate select to test "else"
+      select -- need a separate select to test "else", "terminate" etc
          accept Start (A) (Param_1 : in integer);
          Local_1 := 0;
       else
          Local_1 := 2;
+      end select;
+
+      select
+         accept Start (A)
+           (Param_1 : in Integer)
+         do
+            null;
+         end Start;
+      or
+         terminate;
       end select;
 
       select

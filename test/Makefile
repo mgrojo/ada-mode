@@ -1,9 +1,15 @@
 # run tests on Emacs ada-mode indentation engine
-
+#
 # In general, we run gnatmake -gnatc to make sure the Ada is
 # syntactically correct; in general, we don't care if the indentation
 # does the wrong thing on incorrect code, as long as it doesn't hang
 # or crash. Exceptions noted below in COMPILE_FILES.
+#
+# see test-indent.sh to test user directory nicely
+# FIXME: add target/script to run tests with GPS; gps -P<your_project> --load=python:reformat_project.py
+#     project Default is
+#     end Default;
+# c:/apps/GNAT-GPS-5.1.2/share/examples/gps/python/reformat_project.py
 
 all : compile test-clean test
 
@@ -14,16 +20,7 @@ all : compile test-clean test
 # 'make EMACS=...'.
 EMACS := $(EMACSPATH)/emacs
 
-user : /Projects/smm.main/source/smm-download.adb.diff
-
-# see test-indent.sh to test user directory nicely (no clutter)
-# FIXME: add target/script to run tests with Ada mode 4.01 to compare
-# FIXME: add target/script to run tests with GPS; gps -P<your_project> --load=python:reformat_project.py
-#     project Default is
-#     end Default;
-# c:/apps/GNAT-GPS-5.1.2/share/examples/gps/python/reformat_project.py
-
-one : test-clean prime-volatilities.adb.diff
+one : test-clean debug.adb.diff
 
 TEST_FILES := $(shell ls *.ad?)
 

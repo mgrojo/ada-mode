@@ -3,7 +3,8 @@ package body Ada_Mode.Parens is
      (Param_1, Param_2,
         Param_3 : in Ada.Text_IO. Count;
       Param_4 : in out Integer;
-      Param_5 : in Float)
+      Param_5 : in out Integer;
+      param_6 : in Float)
      return Float
    is
       Local_1 : Integer := (1 + 2 + 3);
@@ -47,12 +48,24 @@ package body Ada_Mode.Parens is
         Right : in Array_Type_1) -- ada-indent-broken to match 4.01
      return Array_Type_1
    is
-      type Matrix_Type is array (1 .. 3) of Array_Type_1;
+      type Matrix_Type is array (1 .. 4) of Array_Type_1;
       A : Matrix_Type :=
         ((1, 2, 3),
          (4, 5, 6),
-         (7, 8, 9));
+         (7, 8, 9),
+         (10, 11, 12));
    begin
+      A :=
+        (1 |
+           2 => (0, 0, 0),
+         others => (1, 1, 1));
+
+      A :=
+        (1 |
+           2 => (1, 1, 1),
+         3 |
+           4 => (2, 2, 2));
+
       return
         (1 => 1,
          2 =>
