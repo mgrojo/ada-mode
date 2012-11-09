@@ -78,44 +78,7 @@ test/test-indent.sh 4.01, 5.0 gds
     opentoken/Language_Lexers   done
     opentoken/Examples/*        done
 
-    common/1553
-        gds-hardware-bus_1553-rwa_goddard.adb
-            "when" not found when indent all, but not individually
-                ada-in-paren-p is wrong?
-                ada-in-paren-p is correct on break in ada-smie-when
-                    incorrect in ada-rules :after "|"
-                    syntax-propertize--done is after paren
-                    syntax-ppss-cache is nil!
-                    syntax-ppss-last is well before point
-
-        restart emacs
-
-        copy to debug, run from Makefile one
-            still bug
-        delete code
-            bug is in new_packet Monitor false
-            delete all after New_packet (keep end packet); still bug
-            header comments, contex clause; still bug
-            to -- local subprograms (keep 'package'); still bug
-            to -- private subprograms; still bug
-            true branch of Monitor; fixed bug
-            symbols in true branch; fixed bug
-
-        run interactive, trace syntax-ppss
-            turn off font-lock
-            (progn (syntax-ppss-flush-cache (point-min))(ada-smie-invalidate-cache)(indent-region (point-min) (point-max)))
-            run with no breaks: bug
-            set break in ada-in-paren-p
-                still stops every line
-
-            put (debug) in "|" rule
-                does _not_ start interactive debugging
-
-            add syntax-ppss-flush-cache -(point 1000)
-                fixed one case of 'when not found'
-
-        rewrite ada-in-paren-p to not rely on syntax-ppss!
-            ask for help on list?
+    common/1553     done
 
     common/asist
     common/asist_if

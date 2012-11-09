@@ -1035,6 +1035,7 @@ The paragraph is indented on the first line."
 
   (set-syntax-table ada-mode-syntax-table)
   (set (make-local-variable 'syntax-propertize-function) 'ada-syntax-propertize)
+  (set (make-local-variable 'syntax-begin-function) nil)
   ;(set (make-local-variable 'parse-sexp-ignore-comments) t) done in prog-mode
   (set (make-local-variable 'parse-sexp-lookup-properties) t)
   (set 'case-fold-search t); Ada is case insensitive; the syntax parsing requires this setting
@@ -1046,8 +1047,7 @@ The paragraph is indented on the first line."
   (set (make-local-variable 'font-lock-defaults)
        '(ada-font-lock-keywords
 	 nil t
-	 ((?\_ . "w")); treat underscore as a word component
-	 beginning-of-line))
+	 ((?\_ . "w")))); treat underscore as a word component
 
   ;; AdaCore standard style (enforced by -gnaty) requires two spaces
   ;; after '--' in comments; this makes it easier to distinguish

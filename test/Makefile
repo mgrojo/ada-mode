@@ -42,6 +42,9 @@ COMPILE_FILES := $(filter-out ada_mode-ada83.ads, $(COMPILE_FILES))# font-lock o
 # This has incomplete code deliberately; used for interactive editing test (via EMACSCMD)
 COMPILE_FILES := $(filter-out ada_mode-interactive_return.adb, $(COMPILE_FILES))
 
+# This has incomplete code; tests a former bug in syntax-ppss
+COMPILE_FILES := $(filter-out ada_mode-long_paren.adb, $(COMPILE_FILES))
+
 # This has some illegal code, left that way to test graceful handling in ada-smie
 COMPILE_FILES := $(filter-out mats_weber_bugs.adb, $(COMPILE_FILES))
 

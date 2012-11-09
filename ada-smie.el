@@ -2387,8 +2387,6 @@ If a token is not in the alist, it is returned unrefined.")
 (defun ada-smie-validate-cache-parens ()
   "Assuming point is inside parens, validate cache within the parens."
   (save-excursion
-    ;; syntax-ppss sometimes tells us we are not in a paren, even when
-    ;; we are; not debugging that.
     (let ((prev-cache-max ada-smie-cache-max)
 	  (ada-smie-cache-max 0)
 	  (done nil)
