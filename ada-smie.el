@@ -7,7 +7,7 @@
 ;; Copyright (C) 2012  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
-;; Contributors: Simon Wright <simon.j.wright@mac.com>
+;; Contributors: Simon Wright <simon@pushface.org>
 ;;
 ;; Keywords: languages ada
 ;;
@@ -1722,7 +1722,7 @@ avoid infinite loop on illegal code."
     ;;       {basic_declarative_item}]
     ;;    end [[parent_unit_name.]identifier]
     ;;
-    ;;    token: private-body
+    ;;    token: private-spec
     ;;
     ;; 6) private_extension_declaration
     ;;
