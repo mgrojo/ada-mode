@@ -7,7 +7,7 @@
 ;; Copyright (C) 2012  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
-;; Contributors: Simon Wright <simon.j.wright@mac.com>
+;; Contributors: Simon Wright <simon@pushface.org>
 ;;
 ;; Keywords: languages ada
 ;;
