@@ -2153,10 +2153,14 @@ avoid infinite loop on illegal code."
 	 "when-select")
 
      (save-excursion
-       (if (equal (smie-default-backward-token) "exit")
-	   "when-exit"
-	 (if (equal (smie-default-backward-token) "exit"); loop label
-	     "when-exit")))
+       (let ((token (smie-default-backward-token)))
+	 (cond
+	  ((equal token "exit")
+	   "when-exit")
+	  ((and
+	    (not (ada-smie-keyword-p token)) ;; "exit label when", not "exit; when foo => "
+	    (equal (smie-default-backward-token) "exit"))
+	   "when-exit"))))
 
      (if (equal "entry" (ada-smie-backward-keyword))
 	 "when-entry"; 5

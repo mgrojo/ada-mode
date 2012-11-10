@@ -1,7 +1,10 @@
--- These commands are executed before the buffer is indented, so they
--- affect the whole file.
+-- Root of files testing non-default options settings
 --
---EMACSCMD: (setq ada-indent-record-rel-type 0)
+-- See Local Variables at end of file for which options are tested in each file.
+--
+-- Verify that Local Variables work (they do if they are marked safe):
+--EMACSCMD: ada-indent-record-rel-type
+--EMACSRESULT: 0
 package Ada_Mode.Options is
    pragma Elaborate_Body (Options);
 
@@ -16,3 +19,6 @@ package Ada_Mode.Options is
    end record;
 
 end Ada_Mode.Options;
+-- Local Variables:
+-- ada-indent-record-rel-type: 0
+-- End:

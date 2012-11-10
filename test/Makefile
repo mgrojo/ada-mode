@@ -20,7 +20,7 @@ all : compile test-clean test
 # 'make EMACS=...'.
 EMACS := $(EMACSPATH)/emacs
 
-one : test-clean debug.adb.diff
+one : test-clean ada_mode-opentoken.ads.diff
 
 TEST_FILES := $(shell ls *.ad?)
 
@@ -44,6 +44,9 @@ COMPILE_FILES := $(filter-out ada_mode-interactive_return.adb, $(COMPILE_FILES))
 
 # This has incomplete code; tests a former bug in syntax-ppss
 COMPILE_FILES := $(filter-out ada_mode-long_paren.adb, $(COMPILE_FILES))
+
+# This has incomplete code deliberately; used for testing OpenToken special rule
+COMPILE_FILES := $(filter-out ada_mode-opentoken.ads, $(COMPILE_FILES))
 
 # This has some illegal code, left that way to test graceful handling in ada-smie
 COMPILE_FILES := $(filter-out mats_weber_bugs.adb, $(COMPILE_FILES))

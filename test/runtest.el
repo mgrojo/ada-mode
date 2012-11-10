@@ -103,14 +103,12 @@
 
   (let ((dir default-directory))
     (find-file file-name)
+
     ;; we don't do (ada-mode) here; that should be done by the file
     ;; name extension, and some file local variables may assume
     ;; ada-mode is already active, and change things that this would
     ;; then wipe out. If it's not done by the extension, add a file
     ;; local variable to set ada-mode.
-    ;;
-    ;; Except file-local variables don't work here for some reason, so
-    ;; use an EMACSCMD:
     (run-test-here)
 
     ;; Write the result file; makefile will diff.

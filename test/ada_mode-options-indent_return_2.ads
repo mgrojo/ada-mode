@@ -1,11 +1,6 @@
 --  Similar to ada_mode-options-indent_return_1.ads, except with a
 --  different value of ada-indent-return and ada-indent-renames.
 
---EMACSCMD: (setq ada-indent-broken 3)
---EMACSCMD: (setq ada-indent-return 5)
---  > 0 indents relative to the "function" keyword
---EMACSCMD: (setq ada-indent-renames -2)
---  <= 0 indents relative to the open parenthesis
 package Ada_Mode.Options.Indent_Return_2 is
 
    function A return Integer;
@@ -71,3 +66,8 @@ package Ada_Mode.Options.Indent_Return_2 is
    -- see ada_mode-nominal-child.ads for 'overriding procedure ... renames'
 
 end Ada_Mode.Options.Indent_Return_2;
+-- Local Variables:
+-- ada-indent-broken: 3
+-- ada-indent-return: 5
+-- ada-indent-renames: -2
+-- End:

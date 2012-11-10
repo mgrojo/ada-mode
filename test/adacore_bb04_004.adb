@@ -1,5 +1,3 @@
---EMACSCMD: (setq ada-indent-label 0)
-
 function Adacore_Bb04_004 return Boolean is
 begin
    Loop1:
@@ -20,3 +18,6 @@ begin
    end loop Loop1;
    return True;
 end Adacore_Bb04_004;
+-- Local Variables:
+-- ada-indent-label: 0
+-- End:

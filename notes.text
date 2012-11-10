@@ -78,18 +78,30 @@ test/test-indent.sh 4.01, 5.0 gds
     opentoken/Language_Lexers   done
     opentoken/Examples/*        done
 
-    common/1553     done
+    common/1553         done
+    common/1553/test    done
 
-    common/asist
-    common/asist_if
+    common/asist_if         done
+    common/asist_if/test    done
     common/base
+        need exception for <= for OpenToken grammars
+            user-specified rule hook?
+            see ada-smie-opentoken.el
+    common/base/test
     common/hardware
+    common/hardware/test
     common/itos_if
+    common/itos_if/test
     common/lynx
+    common/lynx/test
     common/models
+    common/models/test
     common/spacewire
+    common/spacewire/test
     common/system
+    common/system/test
     common/windows
+    common/windows/test
 
 
     gpm
@@ -103,13 +115,6 @@ rm /tmp/gds_indent/*
 ./test-indent-5.0.sh $GDS_ROOT/main_lynx_5/sal/Source_Common/Test /tmp/gds_indent
     /tmp/gds_indent/
     (dired "/tmp/gds_indent/*.diff")
-
-5.0
-
-4.01
-    run sal tests
-        need auto_text_io in 7.0.1
-        don't have source, GNAT Tracker down, not in gdsrh1:gds/Distrib
 
 4.01 bugs that 5.01 fixes
     generic formal function
