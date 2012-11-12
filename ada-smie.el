@@ -1743,6 +1743,10 @@ avoid infinite loop on illegal code."
     ;;    token: private-library
     ;;
     (cond
+     ((ada-smie-library-p) ;; 9
+      ;; we have to do this first to avoid bob issues with the following tests
+      "private-library")
+
      ((equal "with" (save-excursion (smie-default-backward-token)))
       "private-with"); 6
 
@@ -1760,11 +1764,8 @@ avoid infinite loop on illegal code."
 	      "private-context-2"
 	    "private-context-1"))
 
-	 ((member token '("package" "procedure" "function" "generic"))
-	  ;; 4 or 9.
-	  (if (ada-smie-library-p)
-	      "private-library"
-	    "private-spec"))
+	 ((member token '("package" "procedure" "function" "generic"));; 4
+	  "private-spec")
 	 )))
 
      (t "private-spec")); all others

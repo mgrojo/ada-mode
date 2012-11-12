@@ -1,5 +1,9 @@
 --  This file does not compile. Test adding special OpenToken indentation rule via Local Variables.
 
+--EMACSCMD: ada-indent-opentoken
+--EMACSRESULT: t
+--EMACSCMD: (car smie-indent-functions)
+--EMACSRESULT: 'ada-smie-opentoken
 with GDS.Modules.Models.Integrator_Models.DOF_6;
 with SAL.Config_Files;
 private package GDS.Commands.Add_Statement is
@@ -79,11 +83,6 @@ private
        Master_Token.Get (Before_ID) & Tokens.Identifier & Tokens.String + Module_Action;
 
 end GDS.Commands.Add_Statement;
--- 'eval' is not a safe local variable, so it is not applied in batch
--- mode. So we repeat the local variable actions with EMACSCMD here
---EMACSCMD:(progn (require 'ada-smie-opentoken) (add-to-list 'smie-indent-functions 'ada-smie-opentoken))
-
 --  Local Variables:
---  eval: (require 'ada-smie-opentoken)
---  eval: (add-to-list 'smie-indent-functions 'ada-smie-opentoken)
+--  ada-indent-opentoken: t
 --  End:

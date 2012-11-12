@@ -56,7 +56,6 @@ Example :
    My_Var : My_Type :=
    >>(Field1 => Value);"
   :type 'integer :group 'ada-indentation)
-(defun ada-indent-broken () (or ada-indent-broken ada-broken-indent))
 (put 'ada-indent-broken 'safe-local-variable 'integerp)
 
 (define-obsolete-variable-alias
