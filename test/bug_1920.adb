@@ -1,4 +1,4 @@
---  -*- ada-label-indent: -4 -*-
+--  -*- ada-indent-label: -4 -*-
 
 --  http://debbugs.gnu.org/cgi/bugreport.cgi?bug=1920
 
@@ -6,10 +6,10 @@ procedure Bug_1920 is
 begin
    if True then
       null;
-   Label1:
+  Label1:
       begin
          null;
-      <<Label2>>   -- ada-label-indent was ignored here
+     <<Label2>>   -- ada-label-indent was ignored here
          if False then
             null;    -- then-part was not correctly indented
          else

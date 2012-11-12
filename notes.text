@@ -78,38 +78,45 @@ test/test-indent.sh 4.01, 5.0 gds
     opentoken/Language_Lexers   done
     opentoken/Examples/*        done
 
-    common/1553     done
+    common/1553         done
+    common/1553/test    done
 
-    common/asist
-    common/asist_if
-    common/base
-    common/hardware
-    common/itos_if
-    common/lynx
-    common/models
-    common/spacewire
-    common/system
-    common/windows
+    common/asist_if         done
+    common/asist_if/test    done
+    common/base             done
+    common/base/test        done
+    common/hardware         done
+    common/hardware/test    done
+    common/itos_if          done
+    common/itos_if/test     done
+    common/lynx             done
+    common/lynx/test        done
+    common/models           done
+    common/models/test      done
+    common/spacewire        done
+    common/spacewire/test   done
+    common/system           done
+    common/system/test      done
+    common/windows          done
 
+    common tested
 
-    gpm
+    gpm/1553
+    gpm/1553/test
+    gpm/hardware
+    gpm/hardware/test
+    gpm/models
+    gpm/models/test
+    gpm/system
+    gpm/system/test
+
     mms
     dscovr
 
 cd /Projects/org.emacs.ada-mode.smie/test
 rm /tmp/gds_indent/*
-./test-indent-4.01.sh $GDS_ROOT/main_lynx_5/sal/Source_Common/Test /tmp/gds_indent
-
-./test-indent-5.0.sh $GDS_ROOT/main_lynx_5/sal/Source_Common/Test /tmp/gds_indent
-    /tmp/gds_indent/
+./test-indent-5.0.sh $GDS_ROOT/main_lynx_5/common/spacewire /tmp/gds_indent
     (dired "/tmp/gds_indent/*.diff")
-
-5.0
-
-4.01
-    run sal tests
-        need auto_text_io in 7.0.1
-        don't have source, GNAT Tracker down, not in gdsrh1:gds/Distrib
 
 4.01 bugs that 5.01 fixes
     generic formal function
@@ -183,8 +190,37 @@ rm /tmp/gds_indent/*
 
         loses track over large statements
 
+objects initialized with function:
+
+   Tran_Selector : constant String_Access_Type := Declare_Component ("Tran");
+      Rot_Selector  : constant String_Access_Type := Declare_Component ("rot");
+
+entry guard clauses:
+      entry Write(C : in Character)
+    when Count < Pool'Length is
+       begin
+
+
  ada-smie
 test/Makefile
+    C-c C-d
+        use gnatfind, -d switch
+    mouse version?
+    also for other-file?
+
+Juanma Barranquero would like this:
+
+    case Match (Token_Index) is
+      --  If we found a match, quit.
+    when Recognizer.Matches =>
+
+changed to:
+
+    case Match (Token_Index) is
+    --  If we found a match, quit.
+    when Recognizer.Matches =>
+
+    also matches 4.01
 
 rest of ada-mode
     merge all of ada-mode-patches, most of ada-mode-keys

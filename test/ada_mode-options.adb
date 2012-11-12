@@ -1,10 +1,3 @@
--- These commands are executed before the buffer is indented, so they
--- affect the whole file.
---
--- testing obsolete message for ada-label-indent
---EMACSCMD: (setq ada-indent-when 0)
---EMACSCMD: (setq ada-label-indent 0)
---EMACSCMD: (setq ada-indent-with 4)
 with
     Ada.Text_IO;
 package body Ada_Mode.Options is
@@ -47,3 +40,8 @@ begin
       null;
    end loop Loop1;
 end Ada_Mode.Options;
+-- Local Variables:
+-- ada-indent-when: 0
+-- ada-indent-label: 0
+-- ada-indent-with: 4
+-- End:

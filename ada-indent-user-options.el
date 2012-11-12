@@ -38,6 +38,7 @@ procedure Foo is
 begin
 >>>null;"
   :type 'integer  :group 'ada-indentation)
+(put 'ada-indent 'safe-local-variable 'integerp)
 
 (defvar ada-broken-indent nil)
 (make-obsolete-variable
@@ -55,7 +56,7 @@ Example :
    My_Var : My_Type :=
    >>(Field1 => Value);"
   :type 'integer :group 'ada-indentation)
-(defun ada-indent-broken () (or ada-indent-broken ada-broken-indent))
+(put 'ada-indent-broken 'safe-local-variable 'integerp)
 
 (define-obsolete-variable-alias
  'ada-label-indent
@@ -79,6 +80,7 @@ Example :
    <<Label_2>>
    <<<<Foo := 0;"
   :type 'integer :group 'ada-indentation)
+(put 'ada-indent-label 'safe-local-variable 'integerp)
 
 (defcustom ada-indent-record-rel-type 3
   "*Indentation for 'record' relative to 'type' or 'use'.
@@ -87,6 +89,7 @@ An example is:
    type A is
    >>>record"
   :type 'integer :group 'ada-indent)
+(put 'ada-indent-record-rel-type 'safe-local-variable 'integerp)
 
 (defcustom ada-indent-renames 2
   "*Indentation for 'renames' relative to the matching subprogram keyword.
@@ -101,6 +104,7 @@ An example is:
               return C;
    >>renames Foo;"
 :type 'integer :group 'ada-indent)
+(put 'ada-indent-renames 'safe-local-variable 'integerp)
 
 (defcustom ada-indent-return 0
   "*Indentation for 'return' relative to the matching 'function' keyword.
@@ -114,6 +118,7 @@ An example is:
    function A (B : Integer)
    >>>>>>>>>>>return C;"
 :type 'integer :group 'ada-indent)
+(put 'ada-indent-return 'safe-local-variable 'integerp)
 
 (defvar ada-use-indent nil)
 (make-obsolete-variable
@@ -128,6 +133,7 @@ An example is:
    use Ada.Text_IO,
    >>Ada.Numerics;"
   :type 'integer :group 'ada)
+(put 'ada-indent-use 'safe-local-variable 'integerp)
 
 (defvar ada-when-indent nil)
 (make-obsolete-variable
@@ -143,6 +149,7 @@ An example is:
    case A is
    >>>when B =>"
   :type 'integer :group 'ada-indent)
+(put 'ada-indent-when 'safe-local-variable 'integerp)
 
 (defvar ada-with-indent nil)
 (make-obsolete-variable
@@ -158,6 +165,7 @@ An example is:
    with Ada.Text_IO,
    >>Ada.Numerics;"
   :type 'integer :group 'ada)
+(put 'ada-indent-with 'safe-local-variable 'integerp)
 
 (provide 'ada-indent-user-options)
 

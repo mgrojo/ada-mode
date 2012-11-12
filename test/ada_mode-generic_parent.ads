@@ -1,7 +1,6 @@
 -- This is to test the indentation of declarations in generics package declarations
 
-pragma License (GPL);
-
+-- no code before "private" to test beginning of buffer issues in refine-private
 private
 generic
    -- just enough to get "overriding" on the child instantiations

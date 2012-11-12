@@ -140,6 +140,15 @@ package body Ada_Mode.Nominal is
               => -- Ada mode 4.01 indentation
                for I in 1 .. 10 loop
                   Local_1 := Local_1 + Local_1;
+
+                  case Local_1 is
+                     when 1 =>
+                        exit;
+                     when 2 => -- at one point, this was mis-refined as "when-exit"
+                        Local_4 := B;
+                     when others =>
+                        null;
+                  end case;
                end loop;
 
             Loop_1 :
