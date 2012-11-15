@@ -108,6 +108,7 @@ package body Ada_Mode.Nominal is
          do
             -- extended return with do
             case Param_1 is
+               -- comment after "is", before "when"
                when A | Nominal.B =>
                   P1;
                when C =>

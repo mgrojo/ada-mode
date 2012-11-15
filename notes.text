@@ -80,7 +80,6 @@ test/test-indent.sh 4.01, 5.0 gds
 
     common/1553         done
     common/1553/test    done
-
     common/asist_if         done
     common/asist_if/test    done
     common/base             done
@@ -98,13 +97,10 @@ test/test-indent.sh 4.01, 5.0 gds
     common/system           done
     common/system/test      done
     common/windows          done
-
-    common tested
-
-    gpm/1553
-    gpm/1553/test
-    gpm/hardware
-    gpm/hardware/test
+    common                  tested
+    gpm/1553                done
+    gpm/1553/test           done
+    gpm/hardware            done
     gpm/models
     gpm/models/test
     gpm/system
@@ -115,7 +111,7 @@ test/test-indent.sh 4.01, 5.0 gds
 
 cd /Projects/org.emacs.ada-mode.smie/test
 rm /tmp/gds_indent/*
-./test-indent-5.0.sh $GDS_ROOT/main_lynx_5/common/spacewire /tmp/gds_indent
+./test-indent-5.0.sh $GDS_ROOT/main_lynx_5/gpm/1553 /tmp/gds_indent
     (dired "/tmp/gds_indent/*.diff")
 
 4.01 bugs that 5.01 fixes
@@ -202,25 +198,18 @@ entry guard clauses:
 
 
  ada-smie
+ada-indent-comment-respect-col-0
+
+manuel Gomez using comp_cmd, make_cmd, src_dir, obj_dir; not .gpr files
+
 test/Makefile
+    test/ada_mode-nominal.ads
+    test/ada_mode-nominal.adb
+    test/ada_mode-nominal-child.ads
     C-c C-d
         use gnatfind, -d switch
     mouse version?
     also for other-file?
-
-Juanma Barranquero would like this:
-
-    case Match (Token_Index) is
-      --  If we found a match, quit.
-    when Recognizer.Matches =>
-
-changed to:
-
-    case Match (Token_Index) is
-    --  If we found a match, quit.
-    when Recognizer.Matches =>
-
-    also matches 4.01
 
 rest of ada-mode
     merge all of ada-mode-patches, most of ada-mode-keys
@@ -274,6 +263,10 @@ include gnat-fix-error
 interactive edit bug in test/ada_mode-nominal.adb F2
     insert "Local : Integer;" between "is begin" then indent; sometimes it aligns with "is"
     can't reproduce; possibly an interaction between font-lock using ada-smie-forward-keyword and ada-smie-after-change
+
+emacs 23.2?
+    debian stable
+
  relevant files
 (info "(aarm2012)Annex P" "*info Annex P*")
 (info "(elisp)Parser State" "*syntax-ppss*")

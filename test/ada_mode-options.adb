@@ -15,6 +15,7 @@ package body Ada_Mode.Options is
 begin
 
    case Local_1 is
+   -- comment after "is", before "when"
    when A =>
       Local_1 := B;
 

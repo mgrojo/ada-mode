@@ -80,8 +80,10 @@ package Ada_Mode.Nominal is
      ; -- we don't really care
    type Object_Access_Type_2a is not null access all
      Integer;
+   --EMACSCMD:(progn (forward-line 1)(forward-word 1)(forward-char 3)(ada-identifier-at-point))
    type Object_Access_Type_2b is not null access constant
      Integer;
+   --EMACSRESULT:"Object_Access_Type_2b"
    type Object_Access_Type_2c is not null access
      Integer;
    type Object_Access_Type_3a is not null access
@@ -287,7 +289,7 @@ package Ada_Mode.Nominal is
       Component_2 : Integer := 2;
       Component_3 : Integer := 3;
    end record;
-   for Record_Type_2 use record
+   for Record_Type_2 use record at mod 4;
       Component_1 at 0 range 0 .. 31;
       Component_2 at 0 range 32 .. 63;
       Component_3 at 0 range 64 .. 95;
@@ -349,6 +351,7 @@ package Ada_Mode.Nominal is
    subtype
      Subtype_7 is Signed_Integer_Type range 10 .. 20;
 
+   -- FIXME: not implemented yet EMACSCMD:(progn (end-of-line 2)(backward-word 2)(ada-goto-declaration))
    protected type Protected_1 is
       -- only two examples, to get 'protected' and 'is-entry_body' into grammar
 

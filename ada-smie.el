@@ -3247,8 +3247,20 @@ the start of CHILD, which must be a keyword."
 
 	  )))
 
-      ((member arg '(";" "private-library"))
-       (ada-smie-rule-statement 0 arg))
+      ((equal arg ";")
+       (cond
+	((save-excursion
+	   (when (equal "record-type" (ada-smie-backward-keyword))
+	     ;; we are indenting the line after:
+	     ;;
+	     ;;  for Record_Type_2 use record at mod 4;
+	     ;;
+	     ;; see "record-type" below
+	     (back-to-indentation)
+	     (cons 'column (+ (current-column) ada-indent)))))
+
+	(t
+	 (ada-smie-rule-statement 0 arg))))
 
       ((equal arg "=>-when")
        ;; exception to block statement rule
@@ -3256,11 +3268,12 @@ the start of CHILD, which must be a keyword."
 
       ((equal arg "|")
        ;; case or aggregate discrete choice
-       ;; FIXME: debugging; ada-in-paren-p is wrong
-;       (syntax-ppss-flush-cache (- (point) 1000))
        (if (ada-in-paren-p)
 	   (ada-smie-rule-statement ada-indent-broken arg)
 	 (ada-smie-rule-statement (ada-smie-when ada-indent-broken) arg)))
+
+      ((equal arg "private-library")
+       (ada-smie-rule-statement 0 arg))
 
       ((equal arg "record-end")
        ;; We are indenting the aspect specification for the record.
@@ -3298,6 +3311,18 @@ the start of CHILD, which must be a keyword."
       ((equal arg "when-case")
        ;; exception to block statement rule
        (ada-smie-rule-statement (ada-smie-when ada-indent-broken) arg))
+
+      ((equal arg "is-case")
+       ;; This rule must be after "when-case"
+       ;;
+       ;; Most likely this:
+       ;;
+       ;;   case Local_1 is
+       ;;   -- comment after "is", before "when"
+       ;;   when A =>
+       (back-to-indentation)
+       (cons 'column (+ (current-column) ada-indent-when)))
+
 
       ((equal arg "with-agg")
        (ada-smie-rule-statement 0 arg))

@@ -31,6 +31,8 @@
 ;; By default, ada-mode is configured to load this file, so nothing
 ;; special needs to done to use it.
 
+;;; gnatprep utils
+
 (defun ada-gnatprep-indent ()
   "If point is on a gnatprep keyword, return indentation column
 for it. Otherwise return nil.
@@ -60,6 +62,65 @@ Intended to be added to `smie-indent-functions'."
        (match-beginning 1) (match-end 1) 'syntax-table '(11 . ?\n)))
      )
     ))
+
+;;; command line tool interface
+
+(defvar ada-gnat-current-project-file nil
+  "Absolute filename of the current GNAT project file.")
+
+(defun ada-gnat-require-project-file ()
+  "If no GNAT project file has been set, find one, parse it, set it."
+  (unless ada-gnat-current-project-file
+    (ada-require-project-file)
+    (unless ada-gnat-current-project-file
+      (error "Ada project file '%s' did not define GNAT project file"))))
+
+(defun ada-gnat-run-buffer ()
+  "Return a buffer suitable for running gnat command line tools for the current project."
+  (ada-gnat-require-project-file)
+  (let* ((buffername (concat " *gnat-run-"
+			     (file-name-non-directory ada-gnat-current-project-file)
+			     "*"))
+	 (buffer (get-buffer buffername)))
+    (if buffer
+	buffer
+      (setq buffer (get-buffer-create buffername))
+      (with-current-buffer buffer
+	(setq default-directory (file-name-directory ada-gnat-current-project-file)))
+      buffer)))
+
+(defun ada-gnat-run (command switches args)
+  "Run the gnat command line tool, with COMMAND SWITCHES ARGS, and the current project file.
+Leaves output in (ada-gnat-run-buffer)"
+  (with-current-buffer (ada-gnat-run-buffer)
+    (set 'buffer-read-only nil)
+    (erase-buffer)
+
+    ;; set ADA_PROJECT_PATH only in child process environment
+    (let ((ada_project_path (plist-get (ada-gnat-current-project) 'project_path))
+	  (project-file-switch
+	   (concat "-P"
+		   (file-name-non-directory
+		    (plist-get (ada-gnat-current-project) 'project_file))))
+	  process-environment)
+
+      (when ada_project_path
+	(let ((sep (plist-get project 'ada_project_path_sep)))
+	  (setq ada_project_path (mapconcat 'identity ada_project_path sep))
+	  (add-to-list process-environment (concat "ADA_PROJECT_PATH=" ada_project_path))))
+
+      (call-process "gnat" command nil t project-file-switch switches args))))
+
+;;; cross reference handling
+
+(defun ada-gnat-xref (identifier parent)
+  "Return '(file line column) for declaration or body for IDENTIFIER.
+If PARENT is non-nil, return parent type declaration (assumes IDENTIFIER is a derived type)."
+  (let ((arg (format "%s:%s:%d:%d" identifier (buffer-file-name) (line-number-at-pos) (current-column)))
+	(switch (if parent "-d" nil)))
+    (ada-gnat-run "find" switch arg)))
+
+;;; compiler message handling
 
 (defun ada-compile-mouse-goto-error ()
   "Mouse interface for `ada-compile-goto-error'."
@@ -137,6 +198,8 @@ the 4 file locations can be clicked on and jumped to."
   ;; 	      (define-key compilation-minor-mode-map "\C-m"
   ;; 		'ada-compile-goto-error)))
 
+;;; setup
+
 (defun ada-gnat-setup ()
   (font-lock-add-keywords nil
    ;; gnatprep preprocessor line
@@ -147,6 +210,10 @@ the 4 file locations can be clicked on and jumped to."
   (when (featurep 'ada-smie)
     ;; we don't use add-hook here, because we don't want the global value.
     (add-to-list 'smie-indent-functions 'ada-gnatprep-indent))
+
+  (setq ada-xref-function 'ada-gnat-xref)
+  (add-to-list 'ada-prj-parser-alist
+	       '("gpr" 'ada-gnat-parse-gpr))
 )
 
 ;; add at end, so it is after ada-smie-setup, and can modify smi-indent-functions

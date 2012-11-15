@@ -7,6 +7,7 @@ package Ada_Mode.Nominal.Child is
          Child_Element_3 : Boolean;
       end record;
 
+   -- FIXME: not implemented yet EMACSCMD:(progn (end-of-line 2)(backward-word 1)(ada-goto-declaration-parent nil))
    overriding procedure Procedure_1a (Item  : in out Child_Type_1);
 
    overriding procedure Procedure_1b

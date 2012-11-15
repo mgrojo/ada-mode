@@ -4,6 +4,7 @@
 (setq vc-handled-backends '(CVS))
 
 (require 'ada-mode)
+(require 'ada-smie-opentoken)
 
 (defvar skip-reindent-test nil);; user can set to t in an EMACSCMD
 (defvar skip-cmds nil);; user can set to t in an EMACSCMD
