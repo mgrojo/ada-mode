@@ -351,7 +351,7 @@ package Ada_Mode.Nominal is
    subtype
      Subtype_7 is Signed_Integer_Type range 10 .. 20;
 
-   -- FIXME: not implemented yet EMACSCMD:(progn (end-of-line 2)(backward-word 2)(ada-goto-declaration))
+   -- FIXME: not implemented yet EMACSCMD:(progn (end-of-line 2)(backward-word 2)(ada-goto-declaration nil))
    protected type Protected_1 is
       -- only two examples, to get 'protected' and 'is-entry_body' into grammar
 
@@ -636,3 +636,9 @@ private
      Incomplete_Type_5 (<>) is tagged;
 
 end Ada_Mode.Nominal;
+-- testing ada-goto-declaration with an Emacs Ada project file
+-- this also tests basic Emacs Ada project file functions
+-- Local Variable:
+-- eval: (ada-parse-prj-file "ada_mode.adp")
+-- eval: (ada-select-prj-file "ada_mode.adp")
+-- End:

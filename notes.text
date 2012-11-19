@@ -52,6 +52,9 @@ runtest from emacs -q:
 review FIXMEs
 (grep-find "find . -type f -print | \"xargs\" grep -nH \"FIXME:\"")
  gds
+need ada-indent-comment-respect-col-0
+
+
 (setq copyright-update nil)
 test/test-indent.sh 4.01, 5.0 gds
 
@@ -198,6 +201,15 @@ entry guard clauses:
 
 
  ada-smie
+testing ada-goto-declaration
+    test/ada_mode-nominal.ads
+        using .adp and .gpr
+        works up to FIXME: in ada-gnat-xref
+
+    test with just .gpr
+
+    test with just .adp
+
 ada-indent-comment-respect-col-0
 
 manuel Gomez using comp_cmd, make_cmd, src_dir, obj_dir; not .gpr files
@@ -210,6 +222,8 @@ test/Makefile
         use gnatfind, -d switch
     mouse version?
     also for other-file?
+
+add ada-spec/body-suffixes to the Emacs project file
 
 rest of ada-mode
     merge all of ada-mode-patches, most of ada-mode-keys
@@ -255,6 +269,8 @@ remaining expressions?
 remaining statements?
 task entry with index; body has "for"
 
+include gpr-mode
+
 include gnat-fix-error
     rename to ada-gnat-fix-error
     or rewrite to use alist; support other compilers
@@ -263,6 +279,8 @@ include gnat-fix-error
 interactive edit bug in test/ada_mode-nominal.adb F2
     insert "Local : Integer;" between "is begin" then indent; sometimes it aligns with "is"
     can't reproduce; possibly an interaction between font-lock using ada-smie-forward-keyword and ada-smie-after-change
+
+GNATCOLL.Projects can report "other file name" info
 
 emacs 23.2?
     debian stable

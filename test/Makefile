@@ -128,4 +128,8 @@ test-clean :
 zip :
 	tar zcf org.emacs.ada-mode.smie-`date +%Y-%m-%d`.tar.gz --exclude _MTN --exclude "*~" --exclude "*.diff" --exclude "*.tmp" --exclude "*.ali" --exclude "*.tar.gz" -C ../.. org.emacs.ada-mode.smie
 
+# Local Variables:
+# eval: (ada-parse-prj-file "ada_mode.adp")
+# eval: (ada-select-prj-file "ada_mode.adp")
+# End:
 # end of file

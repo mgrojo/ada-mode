@@ -117,6 +117,8 @@
 	(message version-string)
       version-string)))
 
+;;;; User variables
+
 (defvar ada-mode-hook nil
   "*List of functions to call when Ada mode is invoked.
 This hook is executed after `ada-mode' is fully loaded.  This is
@@ -126,6 +128,12 @@ a good place to add Ada environment specific bindings.")
   "Major mode for editing and compiling Ada source in Emacs."
   :link '(custom-group-link :tag "Font Lock Faces group" font-lock-faces)
   :group 'languages)
+
+(defcustom ada-case-exception-file nil
+  "List of files defining exceptions to Ada mode auto-casing."
+  ;; FIXME: define format
+  :type '(set string)
+  :group 'ada)
 
 (defcustom ada-language-version 'ada2012
   "*Ada language version; one of `ada83', `ada95', `ada2005'.
@@ -139,26 +147,10 @@ If nil, no contextual menu is available."
   :type '(restricted-sexp :match-alternatives (stringp vectorp))
   :group 'ada)
 
-(defcustom ada-search-directories
-  (append '(".")
-	  (split-string (or (getenv "ADA_INCLUDE_PATH") "") ":"))
-  "*Default list of directories to search for Ada files.
-See the description for the `ff-search-directories' variable.
-This variable is the initial value of
-`ada-search-directories-internal'.  It is usually augmented
-internally by a project file and/or compiler search paths."
-  :type '(repeat (choice :tag "Directory"
-			 (const :tag "default" nil)
-			 (directory :format "%v")))
-  :group 'ada)
+;;;; other global variables
 
-;;; ---- end of user configurable variables; see other ada-*.el files for more
-
-(defvar ada-search-directories-internal ada-search-directories
-  "Internal version of `ada-search-directories'.
-Its value is the concatenation of the search path as read in a
-project file, any compiler search path, and the value of the
-user-defined `ada-search-directories'.")
+(defvar ada-compiler nil
+  "Symbol indicating which compiler is being used with the current buffer.")
 
 ;;; keymap and menus
 
@@ -330,18 +322,27 @@ point is where the mouse button was clicked."
 (defvar ada-prj-alist nil
   "Alist holding currently parsed Emacs Ada project files. Indexed by absolute project file name.")
 
-(defvar ada-current-prj-file nil
+(defvar ada-prj-current-file nil
   "Current Emacs Ada project file.")
 
+(defvar ada-prj-current-project nil
+  "Current Emacs Ada mode project; a plist.")
+
+(defun ada-prj-field (field)
+  "Return value of FIELD in current Emacs Ada mode project."
+  (plist-get ada-prj-current-project field))
+
 (defun ada-require-project-file ()
-  (unless ada-current-prj-file
+  (unless ada-prj-current-file
     ;; FIXME: provide search for defaults?
     (error "no Emacs Ada project file specified")))
 
 (defvar ada-prj-default-function nil
-  "Compiler-specific function to return default Emacs Ada project properties for the current buffer.
-Called with one argument; the compiler-independent default
-properties list. Function should add to the list and return it.")
+  "Alist indexed by `ada-compiler' of compiler-specific functions
+to return default Emacs Ada project properties for the current
+buffer.  Called with one argument; the compiler-independent
+default properties list.  Function should add to the list and
+return it.")
 
 (defun ada-prj-default ()
   "Return the default project properties list with the current buffer as main.
@@ -353,13 +354,14 @@ compiler-specific objects."
        (props
 	(list
 	 ;; variable name alphabetical order
-	 'casing          (if (listp ada-case-exception-file)
-			      ada-case-exception-file
-			    (list ada-case-exception-file))
+	 'casing          (if (listp (default-value 'ada-case-exception-file))
+			      (default-value 'ada-case-exception-file)
+			    (list (default-value 'ada-case-exception-file)))
 	 'main            (if file
 			      (file-name-nondirectory
 			       (file-name-sans-extension file))
 			    "")
+	 'path_sep        path-separator;; prj variable so users can override it for their compiler
 	 'run_cmd         "./${main}"
 	 'src_dir         (list ".")
 	 )))
@@ -368,7 +370,9 @@ compiler-specific objects."
       props)
     ))
 
-(defvar ada-prj-parser-alist '(".adp" 'ada-parse-prj-file-1)
+(defvar ada-prj-parser-alist
+  (list
+   (cons "adp" 'ada-prj-parse-file-1))
   "Alist of parsers for project files.
 Default provides the minimal Ada mode parser; compiler support
 code may add other parsers.  Parser is called with two arguments;
@@ -380,7 +384,7 @@ list. Parser must modify or add to the property list and return it.")
   "Read Emacs Ada or compiler-specific project file PRJ-FILE, set project properties in `ada-prj-alist'."
   ;; Not called ada-prj-parse-file for Ada mode 4.01 compatibility
   (let ((project (ada-prj-default))
-	(parser (assoc (file-name-extension prj-file) ada-prj-parser-alist)))
+	(parser (cdr (assoc (file-name-extension prj-file) ada-prj-parser-alist))))
 
     (setq prj-file (expand-file-name prj-file))
 
@@ -394,67 +398,50 @@ list. Parser must modify or add to the property list and return it.")
       (add-to-list 'ada-prj-alist (cons prj-file project)))
 
     ;; (ada-xref-update-project-menu) FIXME: implement
-    ))
 
-(defun ada-parse-prj-file-1 (prj-file project)
+    ;; return t for interactive use
+    t))
+
+(defvar ada-prj-parse-file-ext nil
+"Alist indexed by `ada-compiler' of compiler-specific functions to process one Ada project property.
+Called with three arguments; the property name, property value,
+and project properties list. Function should add to or modify the
+properties list and return it, or return nil if the name is not
+recognized.")
+
+(defvar ada-prj-parse-file-final nil
+  "Alist indexed by `ada-compiler' of compiler-specific function to finish processing Ada project properties.
+Called with one argument; the project properties list. Function
+should add to or modify the list and return it.")
+
+(defun ada-prj-parse-file-1 (prj-file project)
   "Parse the Ada mode project file PRJ-FILE, set project properties in PROJECT.
 Return new value of PROJECT."
-  (let ((ada-buffer (current-buffer))
-	;; fields that are lists or that otherwise require special processing
-	casing run_cmd src_dir)
+  (let (;; fields that are lists or that otherwise require special processing
+	casing comp_cmd make_cmd obj_dir run_cmd src_dir
+	tmp-prj
+	(parse-file-ext (cdr (assoc ada-compiler ada-prj-parse-file-ext)))
+	(parse-file-final (cdr (assoc ada-compiler ada-prj-parse-file-final))))
 
-    ;; Give users a chance to use compiler-specific project file formats
-    (let ((buffer (run-hook-with-args-until-success
-		   'ada-load-project-hook prj-file)))
-      (unless buffer
-	;; we load the project file with no warnings; if it does not
-	;; exist, we stay in the Ada buffer; no project variable
-	;; settings will be found. That works for the default
-	;; "default.adp", which does not exist as a file.
-	(setq buffer (find-file-noselect prj-file nil)))
-      (set-buffer buffer))
+    (save-excursion
+      (find-file prj-file)
+      (goto-char (point-min))
 
-    (widen)
-    (goto-char (point-min))
+      ;; process each line
+      (while (not (eobp))
 
-    ;; process each line
-    (while (not (eobp))
-
-      ;; ignore lines that don't have the format "name=value", put
-      ;; 'name', 'value' in match-string.
-      (if (looking-at "^\\([^=\n]+\\)=\\(.*\\)")
+	;; ignore lines that don't have the format "name=value", put
+	;; 'name', 'value' in match-string.
+	(when (looking-at "^\\([^=\n]+\\)=\\(.*\\)")
 	  (cond
-	   ;; FIXME: strip trailing spaces
 	   ;; variable name alphabetical order
-	   ((string= (match-string 1) "ada_project_path")
-	    (add-to-list 'ada_project_path
+	   ((string= (match-string 1) "casing")
+	    (add-to-list 'casing
 			 (expand-file-name
 			  (substitute-in-file-name (match-string 2)))))
 
-	   ((string= (match-string 1) "build_dir")
-	    (set 'project
-		 (plist-put project 'build_dir
-			    (file-name-as-directory (match-string 2)))))
-
-	   ((string= (match-string 1) "casing")
-	    (add-to-list 'casing
-			 (expand-file-name (substitute-in-file-name (match-string 2)))))
-
-	   ((string= (match-string 1) "check_cmd")
-	    (add-to-list 'check_cmd (match-string 2)))
-
 	   ((string= (match-string 1) "comp_cmd")
-	    (add-to-list 'comp_cmd (match-string 2)))
-
-	   ((string= (match-string 1) "debug_post_cmd")
-	    (add-to-list 'debug_post_cmd (match-string 2)))
-
-	   ((string= (match-string 1) "debug_pre_cmd")
-	    (add-to-list 'debug_pre_cmd (match-string 2)))
-
-	   ((string= (match-string 1) "gpr_file")
-	    ;; expand now; path is relative to Emacs project file
-	    (setq gpr_file (expand-file-name (match-string 2))))
+	    (add-list 'comp_cmd (match-string 2)))
 
 	   ((string= (match-string 1) "make_cmd")
 	    (add-to-list 'make_cmd (match-string 2)))
@@ -464,64 +451,35 @@ Return new value of PROJECT."
 			 (file-name-as-directory
 			  (expand-file-name (match-string 2)))))
 
-	   ((string= (match-string 1) "run_cmd")
-	    (add-to-list 'run_cmd (match-string 2)))
-
 	   ((string= (match-string 1) "src_dir")
 	    (add-to-list 'src_dir
 			 (file-name-as-directory
 			  (expand-file-name (match-string 2)))))
 
 	   (t
-	    ;; any other field in the file is just copied
-	    (set 'project (plist-put project
-				     (intern (match-string 1))
-				     (match-string 2))))))
+	    (if (and parse-file-ext
+		     (setq tmp-prj (funcall parse-file-ext (match-string 1) (match-string 2) project)))
+		(setq project tmp-prj)
+	      ;; any other field in the file is just copied
+	      (set 'project (plist-put project
+				       (intern (match-string 1))
+				       (match-string 2)))))
+	   ))
 
-      (forward-line 1))
+	(forward-line 1))
 
-    ;; done reading file
-
-    ;; back to the user buffer
-    (set-buffer ada-buffer)
+      (kill-buffer)
+      );; done reading file
 
     ;; process accumulated lists
-    (if ada_project_path
-	(let ((sep (plist-get project 'ada_project_path_sep)))
-	  (setq ada_project_path (reverse ada_project_path))
-	  (setq ada_project_path (mapconcat 'identity ada_project_path sep))
-	  (set 'project (plist-put project 'ada_project_path ada_project_path))
-	  ;; env var needed now for ada-gnat-parse-gpr
-	  (setenv "ADA_PROJECT_PATH" ada_project_path)))
-
-    (if debug_post_cmd (set 'project (plist-put project 'debug_post_cmd (reverse debug_post_cmd))))
-    (if debug_pre_cmd (set 'project (plist-put project 'debug_pre_cmd (reverse debug_pre_cmd))))
     (if casing (set 'project (plist-put project 'casing (reverse casing))))
-    (if check_cmd (set 'project (plist-put project 'check_cmd (reverse check_cmd))))
     (if comp_cmd (set 'project (plist-put project 'comp_cmd (reverse comp_cmd))))
     (if make_cmd (set 'project (plist-put project 'make_cmd (reverse make_cmd))))
-    (if run_cmd (set 'project (plist-put project 'run_cmd (reverse run_cmd))))
-
-    (if gpr_file
-	(progn
-	  (set 'project (ada-gnat-parse-gpr project gpr_file))
-	  ;; append Ada source and object directories to others from Emacs project file
-	  (setq src_dir (append (plist-get project 'src_dir) src_dir))
-	  (setq obj_dir (append (plist-get project 'obj_dir) obj_dir))
-	  (setq ada-xref-runtime-library-specs-path '()
-		ada-xref-runtime-library-ali-path   '()))
-      )
-
-    ;; FIXME: gnatpath.exe doesn't output the runtime libraries, so always call ada-initialize-runtime-library
-    ;; if using a gpr_file, the runtime library directories are
-    ;; included in src_dir and obj_dir; otherwise they are in the
-    ;; 'runtime-library' variables.
-    ;; FIXME: always append to src_dir, obj_dir
-    (ada-initialize-runtime-library (or (ada-xref-get-project-field 'cross_prefix) ""))
-    ;;)
-
     (if obj_dir (set 'project (plist-put project 'obj_dir (reverse obj_dir))))
     (if src_dir (set 'project (plist-put project 'src_dir (reverse src_dir))))
+
+    (when parse-file-final
+      (set 'project (funcall parse-file-final project)))
 
     project
     ))
@@ -529,30 +487,22 @@ Return new value of PROJECT."
 (defun ada-select-prj-file (file)
   "Select FILE as the current project file."
   (interactive)
-  (setq ada-prj-default-project-file (expand-file-name file))
+  (setq ada-prj-current-file (expand-file-name file))
 
-  (let ((casing (ada-xref-get-project-field 'casing)))
-    (if casing
-	(progn
-	  ;; FIXME: use ada-get-absolute-dir here
-	  (setq ada-case-exception-file casing)
-	  (ada-case-read-exceptions))))
+  (setq ada-prj-current-project (cdr (assoc ada-prj-current-file ada-prj-alist)))
 
-  (let ((ada_project_path (ada-xref-get-project-field 'ada_project_path)))
-    (if ada_project_path
-	;; FIXME: use ada-get-absolute-dir, mapconcat here
-	(setenv "ADA_PROJECT_PATH" ada_project_path)))
+  (when (ada-prj-field 'casing)
+    (ada-case-read-exceptions))
 
-  (setq compilation-search-path (ada-xref-get-src-dir-field))
+  (let ((ada_project_path (ada-prj-field 'ada_project_path)))
+    (when ada_project_path
+      ;; FIXME: use ada-get-absolute-dir, mapconcat here
+      (setenv "ADA_PROJECT_PATH" ada_project_path)))
 
-  (setq ada-search-directories-internal
-	;; FIXME: why do we need directory-file-name here?
-	(append (mapcar 'directory-file-name compilation-search-path)
-		ada-search-directories))
+  (setq compilation-search-path (ada-prj-field 'src_dir))
 
   ;; return 't', for decent display in message buffer when called interactively
   t)
-
 
 ;;; syntax properties
 
@@ -711,7 +661,7 @@ pre-defined units."
       (setq ff-function-name (match-string 0))
       )
     (ff-get-file-name
-     ada-search-directories-internal
+     compilation-search-path
      (ada-make-filename-from-adaname package-name)
      ada-body-suffixes)))
 
@@ -730,7 +680,7 @@ pre-defined units."
 	       (lambda ()
 	       	 (setq ff-function-name (match-string 1))
 	       	 (ff-get-file-name
-	       	   ada-search-directories-internal
+	       	   compilation-search-path
 	       	   (ada-make-filename-from-adaname ff-function-name)
 	       	   ada-spec-suffixes)))
 
@@ -743,7 +693,7 @@ pre-defined units."
 	       (lambda ()
 	       (setq ff-function-name (match-string 1))
 	       (ff-get-file-name
-		  ada-search-directories-internal
+		  compilation-search-path
 		  (ada-make-filename-from-adaname (match-string 1))
 		  (append ada-spec-suffixes ada-body-suffixes))))
 	 )))
@@ -892,7 +842,7 @@ the other file."
       (progn
         (setq ff-function-name (buffer-substring-no-properties (point) (mark)))
         (ff-get-file
-         ada-search-directories-internal
+         compilation-search-path
          (ada-make-filename-from-adaname ff-function-name)
          ada-spec-suffixes
          other-window-frame)
@@ -924,7 +874,7 @@ identifier.  May be an Ada identifier or operator function name."
 	     (progn
 	       (forward-char -1)
 	       (looking-at (concat "\"\\(" ada-operator-re "\\)\""))))
-	(setq identifier (concat "\"" (match-string 1) "\"")))
+	(setq identifier (concat "\"" (match-string-no-properties 1) "\"")))
 
        (t
 	(error "Inside string or character constant"))
@@ -932,10 +882,10 @@ identifier.  May be an Ada identifier or operator function name."
 
      ((and (= (char-after) ?\")
 	   (looking-at (concat "\"\\(" ada-operator-re "\\)\"")))
-      (setq identifier (concat "\"" (match-string 1) "\"")))
+      (setq identifier (concat "\"" (match-string-no-properties 1) "\"")))
 
      ((looking-at "[a-zA-Z0-9_]+")
-      (setq identifier (match-string 0)))
+      (setq identifier (match-string-no-properties 0)))
 
      (t
       (error "No identifier around"))
@@ -1008,11 +958,12 @@ C-u C-u : show in other frame"
   (interactive "P")
 
   (let ((identifier (ada-identifier-at-point))
-	 target)
-    (when (null ada-xref-function)
+	(xref-function (cdr (assoc ada-compiler ada-xref-function)))
+	target)
+    (when (null xref-function)
       (error "no cross reference information available"))
 
-    (setq target (funcall ada-xref-function identifier parent))
+    (setq target (funcall xref-function identifier parent))
 
     (ada-goto-source (nth 0 target)
 		     (nth 1 target)
@@ -1083,7 +1034,7 @@ or the spec otherwise."
 		suffixes)
       (if (string-match (concat "\\(.*\\)" (car suffixes) "$") name)
 	  (setq is-spec t
-		name    (match-string 1 name)))
+		name    (match-string-no-properties 1 name)))
       (setq suffixes (cdr suffixes)))
 
     (if (not is-spec)
@@ -1093,7 +1044,7 @@ or the spec otherwise."
 		      suffixes)
 	    (if (string-match (concat "\\(.*\\)" (car suffixes) "$") name)
 		(setq is-body t
-		      name    (match-string 1 name)))
+		      name    (match-string-no-properties 1 name)))
 	    (setq suffixes (cdr suffixes)))))
 
     ;;  If this wasn't in either list, return name itself
@@ -1153,7 +1104,7 @@ Return nil if no body was found."
 	  (setq spec-name (substring spec-name 0 end)))
       (setq suffixes (cdr suffixes))))
 
-  (ff-get-file-name ada-search-directories-internal
+  (ff-get-file-name compilation-search-path
 		    (ada-make-filename-from-adaname
 		     (file-name-nondirectory
 		      (file-name-sans-extension spec-name)))
@@ -1499,7 +1450,6 @@ The paragraph is indented on the first line."
 ;; FIXME (later): make these real, somewhere
 (defun ada-adjust-case-identifier ()); get this from emacs_stephe/ada-mode-keys.el
 (defun ada-adjust-case () (capitalize-word 1))
-(defvar ada-case-exception-file nil)
 
 ;; load indent engine first; compilers may need to know which is being
 ;; used (for preprocessor keywords, for example).
