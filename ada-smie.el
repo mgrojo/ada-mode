@@ -3369,6 +3369,10 @@ the start of CHILD, which must be a keyword."
     (save-excursion
 
      (cond
+      ((and ada-indent-comment-col-0
+	    (= 0 (current-column)))
+       0)
+
       ((or
 	(save-excursion (forward-line -1) (looking-at "\\s *$"))
 	(save-excursion (forward-comment -1)(not (looking-at comment-start))))

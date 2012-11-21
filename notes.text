@@ -51,155 +51,6 @@ runtest from emacs -q:
 
 review FIXMEs
 (grep-find "find . -type f -print | \"xargs\" grep -nH \"FIXME:\"")
- gds
-need ada-indent-comment-respect-col-0
-
-
-(setq copyright-update nil)
-test/test-indent.sh 4.01, 5.0 gds
-
-    sal/source_common       done
-        420 files
-        4.01 1m17.361s
-        5.0 2m54.151s
-        (/ (- 174 77) 240.0) = 0.404 sec/file slower
-
-    sal/source_common/test  done
-        206 files
-        4.01 0m41.933s
-        5.0  1m24.599s
-
-    opentoken
-        95 files
-        4.01 0m18.377s
-        5.0  0m40.741s
-        (/ (- 40.74 18.37) 95) = 0.235 sec/file slower
-
-    opentoken/Test  done
-        57 files
-
-    opentoken/Language_Lexers   done
-    opentoken/Examples/*        done
-
-    common/1553         done
-    common/1553/test    done
-    common/asist_if         done
-    common/asist_if/test    done
-    common/base             done
-    common/base/test        done
-    common/hardware         done
-    common/hardware/test    done
-    common/itos_if          done
-    common/itos_if/test     done
-    common/lynx             done
-    common/lynx/test        done
-    common/models           done
-    common/models/test      done
-    common/spacewire        done
-    common/spacewire/test   done
-    common/system           done
-    common/system/test      done
-    common/windows          done
-    common                  tested
-    gpm/1553                done
-    gpm/1553/test           done
-    gpm/hardware            done
-    gpm/models
-    gpm/models/test
-    gpm/system
-    gpm/system/test
-
-    mms
-    dscovr
-
-cd /Projects/org.emacs.ada-mode.smie/test
-rm /tmp/gds_indent/*
-./test-indent-5.0.sh $GDS_ROOT/main_lynx_5/gpm/1553 /tmp/gds_indent
-    (dired "/tmp/gds_indent/*.diff")
-
-4.01 bugs that 5.01 fixes
-    generic formal function
-        'with' indented to prev 'return'
-        sal: 1
-
-    extension aggregate:
-      return
-        (Ada.Finalization.Controlled with
-           Root => null,
-         Height => 0,
-         Count => 0);
-      gdss:
-        ? 1
-        sal-poly-unbounded_arrays.ads 1
-        opentoken-token-enumerated-identifier.adb
-
-    procedure Copy
-      (To   : in out Instance;
-       From : in     OpenToken.Token.Class)
-    is null;
-
-    function Compute_Inverse
-      (Function_Table : in Function_Table_Type;
-       Range_Value    : in Range_Type)
-      return Domain_Type
-       is abstract;
-
-    type Storage_Pool_Type
-      (Pool_Size : System.Storage_Elements.Storage_Count;
-       Name      : String_Access_Constant_Type) -- for debug messages
-       is new System.Storage_Pools.Root_Storage_Pool with private;
-
-    "is" should be indented by broken-indent
-        gds:
-            sal-poly-function_tables-monotonic.ads   1
-            sal-poly-function_tables.ads             1
-            sal-simple-function_tables-monotonic.ads 1
-            sal-simple-function_tables.ads           1
-            test_storage_pools.ads                   1
-
-   function Get (Start_Chars   : in Ada.Strings.Maps.Character_Set :=
-     Ada.Strings.Maps.Constants.Letter_Set;
-                 Body_Chars    : in Ada.Strings.Maps.Character_Set :=
-                   Ada.Strings.Maps.Constants.Alphanumeric_Set;
-                 Has_Separator : in Boolean := True
-                ) return Instance;
-
-    initial value should be indented from (
-        gds:
-            opentoken-recognizer-identifier.ads 1
-            opentoken-token-linked_list.adb     5
-            opentoken-token-list_mixin.adb      2
-            opentoken-token-selection_mixin.adb 4
-            opentoken-token-sequence_mixin.adb  5
-
-    case Match (Token_Index) is
-      --  If we found a match, quit.
-    when Recognizer.Matches =>
-
-        comment as continuation line
-        always a bad idea
-
-    Syntax : constant Tokenizer.Syntax :=
-     (Abort_T        => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("abort")),
-      Abs_T          => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("abs")),
-        ... 110 items
-      End_of_File_T   => Tokenizer.Get (OpenToken.Recognizer.End_Of_File.Get));
-
-         Analyzer : Tokenizer.Instance := Tokenizer.Initialize (Syntax);
-
-        loses track over large statements
-
-objects initialized with function:
-
-   Tran_Selector : constant String_Access_Type := Declare_Component ("Tran");
-      Rot_Selector  : constant String_Access_Type := Declare_Component ("rot");
-
-entry guard clauses:
-      entry Write(C : in Character)
-    when Count < Pool'Length is
-       begin
-
-
  ada-smie
 testing ada-goto-declaration
     test/ada_mode-nominal.ads
@@ -284,6 +135,89 @@ GNATCOLL.Projects can report "other file name" info
 
 emacs 23.2?
     debian stable
+
+ 4.01 bugs that 5.01 fixes
+    generic formal function
+        'with' indented to prev 'return'
+        sal: 1
+
+    extension aggregate:
+      return
+        (Ada.Finalization.Controlled with
+           Root => null,
+         Height => 0,
+         Count => 0);
+      gdss:
+        ? 1
+        sal-poly-unbounded_arrays.ads 1
+        opentoken-token-enumerated-identifier.adb
+
+    procedure Copy
+      (To   : in out Instance;
+       From : in     OpenToken.Token.Class)
+    is null;
+
+    function Compute_Inverse
+      (Function_Table : in Function_Table_Type;
+       Range_Value    : in Range_Type)
+      return Domain_Type
+       is abstract;
+
+    type Storage_Pool_Type
+      (Pool_Size : System.Storage_Elements.Storage_Count;
+       Name      : String_Access_Constant_Type) -- for debug messages
+       is new System.Storage_Pools.Root_Storage_Pool with private;
+
+    "is" should be indented by broken-indent
+        gds:
+            sal-poly-function_tables-monotonic.ads   1
+            sal-poly-function_tables.ads             1
+            sal-simple-function_tables-monotonic.ads 1
+            sal-simple-function_tables.ads           1
+            test_storage_pools.ads                   1
+
+   function Get (Start_Chars   : in Ada.Strings.Maps.Character_Set :=
+     Ada.Strings.Maps.Constants.Letter_Set;
+                 Body_Chars    : in Ada.Strings.Maps.Character_Set :=
+                   Ada.Strings.Maps.Constants.Alphanumeric_Set;
+                 Has_Separator : in Boolean := True
+                ) return Instance;
+
+    initial value should be indented from (
+        gds:
+            opentoken-recognizer-identifier.ads 1
+            opentoken-token-linked_list.adb     5
+            opentoken-token-list_mixin.adb      2
+            opentoken-token-selection_mixin.adb 4
+            opentoken-token-sequence_mixin.adb  5
+
+    case Match (Token_Index) is
+      --  If we found a match, quit.
+    when Recognizer.Matches =>
+
+        comment as continuation line
+        always a bad idea
+
+    Syntax : constant Tokenizer.Syntax :=
+     (Abort_T        => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("abort")),
+      Abs_T          => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("abs")),
+        ... 110 items
+      End_of_File_T   => Tokenizer.Get (OpenToken.Recognizer.End_Of_File.Get));
+
+         Analyzer : Tokenizer.Instance := Tokenizer.Initialize (Syntax);
+
+        loses track over large statements
+
+objects initialized with function:
+
+   Tran_Selector : constant String_Access_Type := Declare_Component ("Tran");
+      Rot_Selector  : constant String_Access_Type := Declare_Component ("rot");
+
+entry guard clauses:
+      entry Write(C : in Character)
+    when Count < Pool'Length is
+       begin
+
 
  relevant files
 (info "(aarm2012)Annex P" "*info Annex P*")

@@ -102,7 +102,7 @@ See also `ada-gnat-parse-emacs-prj-file-final'."
   "Final processing of gnat-specific Emacs Ada project file settings."
   (if ada-gnat-gpr-file
       (set 'project (ada-gnat-parse-gpr project))
-      ))
+      )
   project)
 
 (defun ada-gnat-parse-gpr (project)
