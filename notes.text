@@ -35,7 +35,7 @@ runtest from emacs -q:
   (add-to-list 'load-path "/Projects/org.emacs.ada-mode.smie")
   (load "ada-mode")
   (global-font-lock-mode -1)
-  (find-file "/Projects/org.emacs.ada-mode.smie/test/ada_mode-separate_task_body.adb")
+  (find-file "/Projects/org.emacs.ada-mode.smie/test/ada_mode-nominal.ads")
 )
   (add-to-list 'load-path "/Projects/org.emacs.ada-mode.smie/test")
   (load "runtest")
@@ -52,16 +52,23 @@ runtest from emacs -q:
 review FIXMEs
 (grep-find "find . -type f -print | \"xargs\" grep -nH \"FIXME:\"")
  ada-smie
+test/Makefile  ;; set project file
+
 testing ada-goto-declaration
     test/ada_mode-nominal.ads
         using .adp and .gpr
-        works up to FIXME: in ada-gnat-xref
+        works
 
     test with just .gpr
 
     test with just .adp
 
-ada-indent-comment-respect-col-0
+ada-find-other-file broken
+    ada_mode-find-file.ad[sb]
+        now finds both .ads and .adb!?
+
+    ada_mode-nominal-separate_package_1.ads
+        doesn't find anything, but no error?
 
 manuel Gomez using comp_cmd, make_cmd, src_dir, obj_dir; not .gpr files
 

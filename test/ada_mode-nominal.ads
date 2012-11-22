@@ -1,4 +1,3 @@
-
 with
   Ada.Text_IO; -- font-lock doesn't work across newline
 
@@ -44,6 +43,17 @@ package Ada_Mode.Nominal is
    -- indenting that first, to test that problem is fixed. EMACSCMD:
    -- (progn (forward-line) (search-forward "function Function_2f")
    -- (indent-for-tab-command))
+
+   -- testing ada-goto-declaration with an Emacs Ada project file this
+   -- also tests basic Emacs Ada project file functions 'eval' is not a
+   -- safe local variable, so can't use local variables for this in batch
+   -- mode.
+   --EMACSCMD:(ada-parse-prj-file "ada_mode.adp")
+   --EMACSCMD:(ada-select-prj-file "ada_mode.adp")
+   --EMACSCMD:ada-prj-current-file
+   --EMACSRESULT:"c:/Projects/org.emacs.ada-mode.smie/test/ada_mode.adp"
+   --EMACSCMD:compilation-search-path
+   --EMACSRESULT:'(".")
 
    --EMACSCMD:(test-face "pragma" font-lock-keyword-face)
    --EMACSCMD:(test-face "Elaborate_Body" font-lock-function-name-face)
@@ -239,6 +249,10 @@ package Ada_Mode.Nominal is
    --EMACSCMD:(test-face "limited" font-lock-keyword-face)
    --EMACSCMD:(test-face "private;" font-lock-keyword-face)
    type Private_Type_1 is abstract tagged limited private;
+   --EMACSCMD:(progn (forward-line -1)(forward-word 1)(forward-char 1)(ada-goto-declaration nil)(looking-at "Private_Type_1 is abstract tagged limited null record;"))
+   --EMACSRESULT:t
+   -- result in same file
+
    type Private_Type_2 is abstract tagged limited
      private;
    -- Rest 'null record' to avoid declaring full type
@@ -351,8 +365,11 @@ package Ada_Mode.Nominal is
    subtype
      Subtype_7 is Signed_Integer_Type range 10 .. 20;
 
-   -- FIXME: not implemented yet EMACSCMD:(progn (end-of-line 2)(backward-word 2)(ada-goto-declaration nil))
+   -- result in other file
+   --EMACSCMD:(progn (end-of-line 2)(backward-word 2)(ada-goto-declaration nil)(backward-word 1)(looking-at "body Protected_1 is"))
    protected type Protected_1 is
+      --EMACSRESULT:t
+
       -- only two examples, to get 'protected' and 'is-entry_body' into grammar
 
       function F1 return Integer;
@@ -636,9 +653,3 @@ private
      Incomplete_Type_5 (<>) is tagged;
 
 end Ada_Mode.Nominal;
--- testing ada-goto-declaration with an Emacs Ada project file
--- this also tests basic Emacs Ada project file functions
--- Local Variable:
--- eval: (ada-parse-prj-file "ada_mode.adp")
--- eval: (ada-select-prj-file "ada_mode.adp")
--- End:

@@ -31,7 +31,7 @@
 ;; By default, ada-mode is configured to load this file, so nothing
 ;; special needs to done to use it.
 
-;;; gnatprep utils
+;;;; gnatprep utils
 
 (defun ada-gnatprep-indent ()
   "If point is on a gnatprep keyword, return indentation column
@@ -63,17 +63,7 @@ Intended to be added to `smie-indent-functions'."
      )
     ))
 
-;;; command line tool interface
-
-(defvar ada-gnat-gpr-file nil
-  "Absolute filename of the current GNAT project file.")
-
-(defun ada-gnat-require-project-file ()
-  "If no GNAT project file has been set, find one, parse it, set it."
-  (unless ada-gnat-gpr-file
-    (ada-require-project-file)
-    (unless ada-gnat-gpr-file
-      (error "Ada project file '%s' did not define GNAT project file"))))
+;;; project file handling
 
 (defun ada-gnat-prj-parse-emacs-file (name value project)
   "Handle gnat-specific Emacs Ada project file settings.
@@ -93,25 +83,27 @@ See also `ada-gnat-parse-emacs-prj-file-final'."
    ((string= (match-string 1) "gpr_file")
     ;; The file is parsed in `ada-gnat-parse-emacs-prj-file-final', so
     ;; it can add to user-specified src_dir.
-    (setq ada-gnat-gpr-file (expand-file-name (substitute-in-file-name value)))
-    (setq project (plist-put project 'gpr_file ada-gnat-gpr-file))
+    (setq project
+	  (plist-put project
+		     'gpr_file
+		     (expand-file-name (substitute-in-file-name value))))
     project)
    ))
 
-(defun ada-gnat-parse-emacs-prj-final (project)
+(defun ada-gnat-prj-parse-emacs-final (project)
   "Final processing of gnat-specific Emacs Ada project file settings."
-  (if ada-gnat-gpr-file
+  (if (ada-prj-field 'gpr_file)
       (set 'project (ada-gnat-parse-gpr project))
       )
   project)
 
 (defun ada-gnat-parse-gpr (project)
-  "Append to src_dir and obj_dir in PROJECT by parsing `ada-gnat-gpr-file'.
+  "Append to src_dir and obj_dir in PROJECT by parsing `ada-gnat-gpr_file'.
 Return new value of PROJECT.
 GPR_FILE must be full path to file, normalized.
 src_dir, obj_dir will include compiler runtime."
   ;; this can take a long time; let the user know what's up
-  (message "Parsing %s ..." ada-gnat-gpr-file)
+  (message "Parsing %s ..." (ada-prj-field 'gpr_file))
   (with-current-buffer (ada-gnat-run-buffer)
     (let ((status (ada-gnat-run "list" "-v"))
 	  src-dirs
@@ -151,23 +143,25 @@ src_dir, obj_dir will include compiler runtime."
       (setq project (plist-put project 'src_dir (reverse src-dirs)))
       (setq project (plist-put project 'obj_dir (reverse obj-dirs)))
     ))
-  (message "Parsing %s ... done" ada-gnat-gpr-file)
+  (message "Parsing %s ... done" ada-gnat-gpr_file)
   project)
+
+;;; command line tool interface
 
 (defun ada-gnat-run-buffer ()
   "Return a buffer suitable for running gnat command line tools for the current project."
-  (ada-gnat-require-project-file)
+  (ada-require-project-file)
   (let* ((buffername (concat " *gnat-run-"
-			     (file-name-nondirectory ada-gnat-gpr-file)
+			     (file-name-nondirectory (ada-prj-field 'gpr_file))
 			     "*"))
 	 (buffer (get-buffer buffername)))
     (if buffer
 	buffer
       (setq buffer (get-buffer-create buffername))
       (with-current-buffer buffer
-	(setq default-directory (file-name-directory ada-gnat-gpr-file))
+	(setq default-directory (file-name-directory (ada-prj-field 'gpr_file)))
 
-	(let ((ada_project_path (plist-get (ada-gnat-current-project) 'project_path)))
+	(let ((ada_project_path (ada-prj-field 'project_path)))
 	  (when ada_project_path
 	    (add-to-list (make-buffer-local-variable 'process-environment)
 			 (concat "ADA_PROJECT_PATH=" ada_project_path))))
@@ -181,10 +175,14 @@ Assumes current buffer is (ada-gnat-run-buffer)"
   (set 'buffer-read-only nil)
   (erase-buffer)
 
-  (let ((project-file-switch
-	 (concat "-P" (file-name-nondirectory ada-gnat-gpr-file))))
+  (let* ((project-file-switch (concat "-P" (file-name-nondirectory (ada-prj-field 'gpr_file))))
+	 (cmd (if command
+		  (append (list command project-file-switch) switches-args)
+		(append (list project-file-switch) switches-args))))
 
-    (apply 'call-process "gnat" (append (list nil t nil command project-file-switch) switches-args))
+    (mapc (lambda (str) (insert (concat str " "))) cmd);; show command for debugging
+    (newline)
+    (apply 'call-process "gnat" nil t nil cmd)
     ))
 
 ;;; cross reference handling
@@ -192,15 +190,49 @@ Assumes current buffer is (ada-gnat-run-buffer)"
 (defun ada-gnat-xref (identifier parent)
   "Return '(file line column) for declaration or body for IDENTIFIER, which must be at point.
 If PARENT is non-nil, return parent type declaration (assumes IDENTIFIER is a derived type)."
-  (let ((arg (format "%s:%s:%d:%d" identifier (buffer-file-name) (line-number-at-pos) (current-column)))
-	(switch (if parent "-d" nil)))
+  (let* ((start-file (file-name-nondirectory (buffer-file-name)))
+	 (start-line (line-number-at-pos))
+	 (start-col  (1+ (current-column)))
+	 (arg (format "%s:%s:%d:%d" identifier start-file start-line start-col))
+	 (switch (if parent "-d" nil))
+	 status
+	 (result nil))
     (with-current-buffer (ada-gnat-run-buffer)
       (if switch
-	  (ada-gnat-run "find" switch arg)
-	(ada-gnat-run "find" arg))
+	  (setq status (ada-gnat-run "find" switch arg))
+	(setq status (ada-gnat-run "find" arg)))
 
-      ;; FIXME: parse result
-      )))
+      (cond
+       ((= status 0); success
+	(goto-char (point-min))
+	(forward-line 1)
+
+	;; gnat find returns two items; the starting point, and the 'other' point
+	(while (not result)
+	  (unless (looking-at "\\(.*\\):\\([0-9]+\\):\\([0-9]+\\):")
+	    ;; no results
+	    (error "'%s' not found in cross-reference files; recompile?" identifier))
+	  (let ((found-file (match-string 1))
+		(found-line (string-to-number (match-string 2)))
+		(found-col  (string-to-number (match-string 3))))
+	    (if (not
+		 (and
+		  (equal start-file found-file)
+		  (= start-line found-line)
+		  (= start-col found-col)))
+		;; found other item
+		(setq result (list found-file found-line (1- found-col)))
+	      (forward-line 1))
+	    (when (eobp)
+	      (pop-to-buffer (current-buffer))
+	      (error "gnat find did not return other item"))
+	    )))
+
+       (t ; failure
+	(pop-to-buffer (current-buffer))
+	(error "gnat find failed"))
+       ))
+    result))
 
 ;;; compiler message handling
 
@@ -295,16 +327,18 @@ the 4 file locations can be clicked on and jumped to."
     ;; we don't use add-hook here, because we don't want the global value.
     (add-to-list 'smie-indent-functions 'ada-gnatprep-indent))
 
-  ;; don't need ada-prj-default-function
-
-  (add-to-list 'ada-xref-function (cons 'gnat 'ada-gnat-xref))
-  (add-to-list 'ada-prj-parser-alist (cons "gpr" 'ada-gnat-parse-gpr))
-  (add-to-list 'ada-prj-parse-file-ext (cons 'gnat 'ada-gnat-prj-parse-emacs-file))
-  (add-to-list 'ada-prj-parse-file-final (cons 'gnat 'ada-gnat-parse-emacs-prj-final))
 )
 
 ;; add at end, so it is after ada-smie-setup, and can modify smi-indent-functions
 (add-hook 'ada-mode-hook 'ada-gnat-setup t)
+
+(setq-default ada-compiler 'gnat)
+
+;; don't need ada-prj-default-function
+(add-to-list 'ada-xref-function (cons 'gnat 'ada-gnat-xref))
+(add-to-list 'ada-prj-parser-alist (cons "gpr" 'ada-gnat-parse-gpr))
+(add-to-list 'ada-prj-parse-file-ext (cons 'gnat 'ada-gnat-prj-parse-emacs-file))
+(add-to-list 'ada-prj-parse-file-final (cons 'gnat 'ada-gnat-prj-parse-emacs-final))
 
 ;; gnatmake -gnatD generates files with .dg extensions. But we don't
 ;; need to navigate between them.

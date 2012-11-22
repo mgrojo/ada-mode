@@ -354,6 +354,7 @@ compiler-specific objects."
        (props
 	(list
 	 ;; variable name alphabetical order
+	 'ada-compiler    (default-value 'ada-compiler)
 	 'casing          (if (listp (default-value 'ada-case-exception-file))
 			      (default-value 'ada-case-exception-file)
 			    (list (default-value 'ada-case-exception-file)))
@@ -490,6 +491,8 @@ Return new value of PROJECT."
   (setq ada-prj-current-file (expand-file-name file))
 
   (setq ada-prj-current-project (cdr (assoc ada-prj-current-file ada-prj-alist)))
+
+  (setq ada-compiler (ada-prj-field 'ada-compiler))
 
   (when (ada-prj-field 'casing)
     (ada-case-read-exceptions))
@@ -838,15 +841,18 @@ the other file."
   ;;                       information
 
   (interactive "P")
-  (if mark-active
-      (progn
-        (setq ff-function-name (buffer-substring-no-properties (point) (mark)))
-        (ff-get-file
-         compilation-search-path
-         (ada-make-filename-from-adaname ff-function-name)
-         ada-spec-suffixes
-         other-window-frame)
-        (deactivate-mark))
+  (when (null (car compilation-search-path))
+    (error "no file search path defined; set project file?"))
+
+  (when mark-active
+    (progn
+      (setq ff-function-name (buffer-substring-no-properties (point) (mark)))
+      (ff-get-file
+       compilation-search-path
+       (ada-make-filename-from-adaname ff-function-name)
+       ada-spec-suffixes
+       other-window-frame)
+      (deactivate-mark))
 
     (ff-find-other-file other-window-frame)))
 
@@ -926,7 +932,7 @@ C-u C-u : show in other frame
 
 
   ;; move the cursor to the correct position
-  (push-mark)
+  (push-mark nil t)
   (goto-char (point-min))
   (forward-line (1- line))
   (move-to-column column)

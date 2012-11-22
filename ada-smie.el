@@ -693,7 +693,7 @@ that are not allowed by Ada, but we don't care."
    "%s: %s %d"
    message
    (buffer-substring-no-properties (point-at-bol) (point-at-eol))
-   (point)))
+   (line-number-at-pos)))
 
 (defun ada-smie-generic-p ()
   "Assuming point is at the start of a package or subprogram
@@ -1737,21 +1737,13 @@ avoid infinite loop on illegal code."
     ;;
     ;; 7) protected_definition
     ;; 8) task_definition
-    ;;
-    ;; 9) library_item ::= [private] library_unit_declaration
-    ;;
-    ;;    token: private-library
-    ;;
     (cond
-     ((ada-smie-library-p) ;; 9
-      ;; we have to do this first to avoid bob issues with the following tests
-      "private-library")
-
      ((equal "with" (save-excursion (smie-default-backward-token)))
       "private-with"); 6
 
      ((equal "is-type" (save-excursion (ada-smie-backward-type-modifiers)
-				       (ada-smie-forward-token)))
+				       (unless (bobp)
+					 (ada-smie-forward-token))))
       "private-type-spec"); 1
 
      ((let ((token (save-excursion
@@ -1764,8 +1756,10 @@ avoid infinite loop on illegal code."
 	      "private-context-2"
 	    "private-context-1"))
 
-	 ((member token '("package" "procedure" "function" "generic"));; 4
-	  "private-spec")
+	 ((member token '("package" "procedure" "function" "generic")); 4 or 5
+	  (if (ada-smie-library-p)
+	      "private-library"; 4
+	    "private-spec")); 5
 	 )))
 
      (t "private-spec")); all others

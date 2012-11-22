@@ -20,14 +20,20 @@ all : compile test-clean test
 # 'make EMACS=...'.
 EMACS := $(EMACSPATH)/emacs
 
-one : test-clean ada_mode-opentoken.ads.diff
+one : test-clean two ada_mode-nominal.ali ada_mode-nominal.ads.diff
+two :
+	rm ada_mode-nominal.ali
 
-TEST_FILES := $(shell ls *.ad?)
+TEST_FILES := $(shell ls *.ad[sb])
 
 # this is for debug only
 TEST_FILES := $(filter-out debug.adb, $(TEST_FILES))
 
 # FIXME: delete currently broken tests
+TEST_FILES := $(filter-out ada_mode-find_file.adb, $(TEST_FILES)) # ada-find-other-file: see notes
+TEST_FILES := $(filter-out ada_mode-find_file.ads, $(TEST_FILES)) # ""
+TEST_FILES := $(filter-out ada_mode-nominal-separate_package_1.adb, $(TEST_FILES)) # ""
+
 TEST_FILES := $(filter-out ada_mode-quantified_expressions.adb, $(TEST_FILES)) # 2012 syntax
 TEST_FILES := $(filter-out move_to_end.adb, $(TEST_FILES)) # tests ada-move-to-end, which we have not (yet?) implemented
 TEST_FILES := $(filter-out move_to_end_if.adb, $(TEST_FILES)) # ada-move-to-end

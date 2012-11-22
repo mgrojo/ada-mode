@@ -1,4 +1,6 @@
 -- Various generic_instantiations
+--EMACSCMD:(ada-parse-prj-file "ada_mode.adp")
+--EMACSCMD:(ada-select-prj-file "ada_mode.adp")
 
 --EMACSCMD:(progn (forward-line 1)(ada-find-other-file t)(looking-at "Ada_Mode.Generic_Parent is"))
 with Ada_Mode.Generic_Parent;

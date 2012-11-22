@@ -1,6 +1,8 @@
 separate (Ada_Mode) protected body Separate_Protected_Body
 is
    -- no comment before "separate", no newline after )
+   --EMACSCMD:(ada-parse-prj-file "ada_mode.adp")
+   --EMACSCMD:(ada-select-prj-file "ada_mode.adp")
    --EMACSCMD:(progn (forward-line -3)(ada-find-other-file t)(looking-at "protected body Separate_Protected_Body is"))
    entry E when True is
    begin
