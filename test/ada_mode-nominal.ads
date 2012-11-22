@@ -1,7 +1,30 @@
+
 with
   Ada.Text_IO; -- font-lock doesn't work across newline
 
 -- don't indent this comment with the previous; blank line between
+--
+-- No comment on the first line, to make sure we can handle that :)
+-- blank on first line, to test beginning-of-buffer logic for "with-context"
+
+-- testing ada-goto-declaration, ada-find-other-file with an Emacs
+-- Ada project file.
+--
+-- .adp and .gpr is tested here
+-- .gpr only is tested in ada_mode-find_file.adb
+-- .adp only is tested in -- ada_mode-generic_instantiation.ads
+--
+-- 'eval' is not a safe local variable, so we can't use local
+-- variables for this in batch mode.
+--
+--EMACSCMD:(ada-parse-prj-file "ada_mode.adp")
+--EMACSCMD:(ada-select-prj-file "ada_mode.adp")
+--EMACSCMD:ada-prj-current-file
+--EMACSRESULT:"c:/Projects/org.emacs.ada-mode.smie/test/ada_mode.adp"
+--EMACSCMD:(length compilation-search-path)
+-- current dir, compiler dir
+--EMACSRESULT:2
+
 --EMACSCMD:(font-lock-fontify-buffer)
 --EMACSCMD:(test-face "with" font-lock-keyword-face)
 --EMACSCMD:(test-face "Ada" font-lock-constant-face)
@@ -32,8 +55,6 @@ with Ada_Mode.Library_Procedure;
 --EMACSCMD:(progn (forward-line 1)(ada-find-other-file t)(looking-at "Ada_Mode.Function_2 return Boolean;"))
 with Ada_Mode.Function_2;
 package Ada_Mode.Nominal is
-   --  No comment on the first line, to make sure we can handle that :)
-   --  blank on first line, to test beginning-of-buffer logic for "with-context"
 
    -- ada-indent-refine-subprogram calls ada-indent-is-generic-p,
    -- which can scan the entire buffer looking for generic. That can
@@ -43,17 +64,6 @@ package Ada_Mode.Nominal is
    -- indenting that first, to test that problem is fixed. EMACSCMD:
    -- (progn (forward-line) (search-forward "function Function_2f")
    -- (indent-for-tab-command))
-
-   -- testing ada-goto-declaration with an Emacs Ada project file this
-   -- also tests basic Emacs Ada project file functions 'eval' is not a
-   -- safe local variable, so can't use local variables for this in batch
-   -- mode.
-   --EMACSCMD:(ada-parse-prj-file "ada_mode.adp")
-   --EMACSCMD:(ada-select-prj-file "ada_mode.adp")
-   --EMACSCMD:ada-prj-current-file
-   --EMACSRESULT:"c:/Projects/org.emacs.ada-mode.smie/test/ada_mode.adp"
-   --EMACSCMD:compilation-search-path
-   --EMACSRESULT:'(".")
 
    --EMACSCMD:(test-face "pragma" font-lock-keyword-face)
    --EMACSCMD:(test-face "Elaborate_Body" font-lock-function-name-face)

@@ -328,9 +328,10 @@ point is where the mouse button was clicked."
 (defvar ada-prj-current-project nil
   "Current Emacs Ada mode project; a plist.")
 
-(defun ada-prj-field (field)
-  "Return value of FIELD in current Emacs Ada mode project."
-  (plist-get ada-prj-current-project field))
+(defun ada-prj-get (prop &optional plist)
+  "Return value of PROP in PLIST.
+Optional PLIST defaults to `ada-prj-current-project'."
+  (plist-get (or plist ada-prj-current-project) prop))
 
 (defun ada-require-project-file ()
   (unless ada-prj-current-file
@@ -462,7 +463,7 @@ Return new value of PROJECT."
 		     (setq tmp-prj (funcall parse-file-ext (match-string 1) (match-string 2) project)))
 		(setq project tmp-prj)
 	      ;; any other field in the file is just copied
-	      (set 'project (plist-put project
+	      (setq project (plist-put project
 				       (intern (match-string 1))
 				       (match-string 2)))))
 	   ))
@@ -485,24 +486,30 @@ Return new value of PROJECT."
     project
     ))
 
-(defun ada-select-prj-file (file)
-  "Select FILE as the current project file."
+(defun ada-select-prj-file (prj-file)
+  "Select PRJ-FILE as the current project file."
   (interactive)
-  (setq ada-prj-current-file (expand-file-name file))
+  (setq prj-file (expand-file-name prj-file))
 
-  (setq ada-prj-current-project (cdr (assoc ada-prj-current-file ada-prj-alist)))
+  (setq ada-prj-current-project (cdr (assoc prj-file ada-prj-alist)))
 
-  (setq ada-compiler (ada-prj-field 'ada-compiler))
+  (when (null ada-prj-current-project)
+    (setq ada-prj-current-file nil)
+    (error "Project file '%s' was not previously parsed." prj-file))
 
-  (when (ada-prj-field 'casing)
+  (setq ada-prj-current-file prj-file)
+
+  (setq ada-compiler (ada-prj-get 'ada-compiler))
+
+  (when (ada-prj-get 'casing)
     (ada-case-read-exceptions))
 
-  (let ((ada_project_path (ada-prj-field 'ada_project_path)))
+  (let ((ada_project_path (ada-prj-get 'ada_project_path)))
     (when ada_project_path
       ;; FIXME: use ada-get-absolute-dir, mapconcat here
       (setenv "ADA_PROJECT_PATH" ada_project_path)))
 
-  (setq compilation-search-path (ada-prj-field 'src_dir))
+  (setq compilation-search-path (ada-prj-get 'src_dir))
 
   ;; return 't', for decent display in message buffer when called interactively
   t)
@@ -663,18 +670,20 @@ pre-defined units."
 	       ada-name-regexp))
       (setq ff-function-name (match-string 0))
       )
-    (ff-get-file-name
-     compilation-search-path
-     (ada-make-filename-from-adaname package-name)
-     ada-body-suffixes)))
+    (file-name-nondirectory
+     (ff-get-file-name
+      compilation-search-path
+      (ada-make-filename-from-adaname package-name)
+      ada-body-suffixes))))
 
 (defun ada-set-ff-special-constructs ()
   "Add Ada-specific pairs to `ff-special-constructs'."
   (set (make-local-variable 'ff-special-constructs) nil)
   (mapc (lambda (pair) (add-to-list 'ff-special-constructs pair))
+	;; Each car is a regexp; if it matches at point, the cdr is invoked.
 	;; Each cdr should set ff-function-name to a string or regexp
 	;; for ada-set-point-accordingly, and return the file name
-	;; (may include full path, must include suffix) to go to.
+	;; (sans directory, must include suffix) to go to.
 	(list
 	 ;; Top level child package declaration (not body), or child
 	 ;; subprogram declaration or body; go to the parent package.
@@ -682,10 +691,11 @@ pre-defined units."
 		       ada-parent-name-regexp "[ \t]+\\(?:;\\|is\\|return\\)")
 	       (lambda ()
 	       	 (setq ff-function-name (match-string 1))
-	       	 (ff-get-file-name
+	       	 (file-name-nondirectory
+		  (ff-get-file-name
 	       	   compilation-search-path
 	       	   (ada-make-filename-from-adaname ff-function-name)
-	       	   ada-spec-suffixes)))
+	       	   ada-spec-suffixes))))
 
 	 ;; A "separate" clause.
 	 (cons (concat "^separate[ \t\n]*(" ada-name-regexp ")")
@@ -695,10 +705,11 @@ pre-defined units."
 	 (cons (concat "^with[ \t]+" ada-name-regexp)
 	       (lambda ()
 	       (setq ff-function-name (match-string 1))
-	       (ff-get-file-name
-		  compilation-search-path
-		  (ada-make-filename-from-adaname (match-string 1))
-		  (append ada-spec-suffixes ada-body-suffixes))))
+	       (file-name-nondirectory
+		(ff-get-file-name
+		 compilation-search-path
+		 (ada-make-filename-from-adaname (match-string 1))
+		 (append ada-spec-suffixes ada-body-suffixes)))))
 	 )))
 
 (defvar ada-which-function nil
@@ -844,16 +855,17 @@ the other file."
   (when (null (car compilation-search-path))
     (error "no file search path defined; set project file?"))
 
-  (when mark-active
-    (progn
-      (setq ff-function-name (buffer-substring-no-properties (point) (mark)))
-      (ff-get-file
-       compilation-search-path
-       (ada-make-filename-from-adaname ff-function-name)
-       ada-spec-suffixes
-       other-window-frame)
-      (deactivate-mark))
+  (if mark-active
+      (progn
+	(setq ff-function-name (buffer-substring-no-properties (point) (mark)))
+	(ff-get-file
+	 compilation-search-path
+	 (ada-make-filename-from-adaname ff-function-name)
+	 ada-spec-suffixes
+	 other-window-frame)
+	(deactivate-mark))
 
+    ;; else use name at point
     (ff-find-other-file other-window-frame)))
 
 (defvar ada-operator-re
@@ -1399,6 +1411,7 @@ The paragraph is indented on the first line."
   (setq ff-post-load-hook    'ada-set-point-accordingly
 	ff-file-created-hook 'ada-make-body)
   (add-hook 'ff-pre-load-hook 'ada-which-function)
+  (setq ff-search-directories 'compilation-search-path)
   (ada-set-ff-special-constructs)
 
   (set (make-local-variable 'add-log-current-defun-function)

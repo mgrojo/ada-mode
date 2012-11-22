@@ -1,6 +1,12 @@
 --  other file for testing ada-find-other-file; requires search path
---EMACSCMD:(ada-parse-prj-file "ada_mode.adp")
---EMACSCMD:(ada-select-prj-file "ada_mode.adp")
+-- test .gpr as only project file
+--EMACSCMD:(ada-parse-prj-file "ada_mode.gpr")
+--EMACSCMD:(ada-select-prj-file "ada_mode.gpr")
+--EMACSCMD:ada-prj-current-file
+--EMACSRESULT:"c:/Projects/org.emacs.ada-mode.smie/test/ada_mode.gpr"
+--EMACSCMD:(length compilation-search-path)
+-- current dir, gnat library dir
+--EMACSRESULT:2
 
 -- Select package name, goto its spec
 --EMACSCMD:(progn (forward-line 1)(forward-word 2)(forward-char 1)(push-mark-command t t)(forward-word 2)(ada-find-other-file t)(pop-mark)(looking-at "Ada_Mode is"))

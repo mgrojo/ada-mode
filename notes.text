@@ -54,21 +54,11 @@ review FIXMEs
  ada-smie
 test/Makefile  ;; set project file
 
-testing ada-goto-declaration
-    test/ada_mode-nominal.ads
-        using .adp and .gpr
-        works
+ada-find-other-file in separate bodies
+    not on 'separate' line; must use ada-gnat-xref
 
-    test with just .gpr
-
-    test with just .adp
-
-ada-find-other-file broken
-    ada_mode-find-file.ad[sb]
-        now finds both .ads and .adb!?
-
-    ada_mode-nominal-separate_package_1.ads
-        doesn't find anything, but no error?
+which-function-mode
+    reports "Ada_Mode" in child packages!
 
 manuel Gomez using comp_cmd, make_cmd, src_dir, obj_dir; not .gpr files
 

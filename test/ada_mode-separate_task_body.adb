@@ -3,7 +3,7 @@ task body Separate_Task_Body is
    -- no comment before "separate"
    --EMACSCMD:(ada-parse-prj-file "ada_mode.adp")
    --EMACSCMD:(ada-select-prj-file "ada_mode.adp")
-   --EMACSCMD:(progn (forward-line -3)(ada-find-other-file t)(looking-at "task Separate_Task_Body is"))
+   --EMACSCMD:(progn (goto-char (point-min))(ada-find-other-file t)(looking-at "task Separate_Task_Body is"))
 
    procedure Titi is begin null; end;
    procedure Shout is begin null; end;
