@@ -47,7 +47,7 @@ package OpenToken.Text_Feeder.Text_IO is
    --  Create a Text Feeder for the given Text_IO file.
    ----------------------------------------------------------------------------
    function Create (File_Ptr : in Ada.Text_IO.File_Access := Ada.Text_IO.Current_Input)
-     return Instance;
+                   return Instance;
 
    --------------------------------------------------------------------------
    --  This procedure returns strings for the analyzer. If the end of
@@ -76,4 +76,3 @@ private
    end record;
 
 end OpenToken.Text_Feeder.Text_IO;
-

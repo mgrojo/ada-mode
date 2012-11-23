@@ -39,9 +39,9 @@ package Bracketed_Comment_Test is
 
    Syntax : constant Tokenizer.Syntax :=
      (EmbeddedComment_T  => Tokenizer.Get (OpenToken.Recognizer.Bracketed_Comment.Get
-                                           ("/*", "*.*..", Reportable => True)),
+                                             ("/*", "*.*..", Reportable => True)),
       Whitespace_T       => Tokenizer.Get (OpenToken.Recognizer.Character_Set.Get
-                                           (OpenToken.Recognizer.Character_Set.Standard_Whitespace)),
+                                             (OpenToken.Recognizer.Character_Set.Standard_Whitespace)),
       End_Of_File_T      => Tokenizer.Get (OpenToken.Recognizer.End_Of_File.Get));
 
 end Bracketed_Comment_Test;

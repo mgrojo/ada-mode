@@ -173,8 +173,8 @@ package body Test_LR_Expecting is
 
    Grammar : constant Production_List.Instance :=
      Parse_Sequence <= Statement & Semicolon + Nonterminal.Synthesize_Self and
-        Set_Statement.Grammar and
-        Verify_Statement.Grammar;
+     Set_Statement.Grammar and
+     Verify_Statement.Grammar;
 
    String_Feeder : aliased OpenToken.Text_Feeder.String.Instance;
    Analyzer      : constant Tokenizer.Instance := Tokenizer.Initialize (Syntax);

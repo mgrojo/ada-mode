@@ -60,9 +60,10 @@ package ASU_Example_5_10_RD_Commute is
            (Allow_Signs => False),
          New_Token      => Integer_Token.Get (Integer_ID)),
       EOF_ID            => Tokenizer.Get (Recognizer => OpenToken.Recognizer.End_Of_File.Get),
-      Whitespace_ID     => Tokenizer.Get (Recognizer => OpenToken.Recognizer.Character_Set.Get
-                                       (OpenToken.Recognizer.Character_Set.Standard_Whitespace))
-      );
+      Whitespace_ID     => Tokenizer.Get
+        (Recognizer => OpenToken.Recognizer.Character_Set.Get
+           (OpenToken.Recognizer.Character_Set.Standard_Whitespace))
+     );
 
    Feeder   : aliased OpenToken.Text_Feeder.String.Instance;
    Analyzer : Tokenizer.Instance := Tokenizer.Initialize (Syntax, Feeder'Access);

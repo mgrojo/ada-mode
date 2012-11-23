@@ -79,7 +79,7 @@ package body OpenToken.Recognizer.Keyword is
                The_Token.Substate := The_Token.Substate + 1;
             end if;
 
-         --  ...otherwise, it doesn't match
+            --  ...otherwise, it doesn't match
          else
             Verdict         := Failed;
             The_Token.State := Done;
@@ -114,7 +114,7 @@ package body OpenToken.Recognizer.Keyword is
       else
          --  If we aren't case sensitive, convert everything to lower case.
          New_Token.Literal := Buffers.To_Bounded_String (Ada.Characters.Handling.To_Lower
-           (Keyword_Literal));
+                                                           (Keyword_Literal));
       end if;
 
       return New_Token;

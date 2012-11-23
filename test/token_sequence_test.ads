@@ -49,8 +49,8 @@ package Token_Sequence_Test is
       Row        => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("row")),
       EOF        => Tokenizer.Get (OpenToken.Recognizer.End_Of_File.Get),
       Whitespace => Tokenizer.Get (OpenToken.Recognizer.Character_Set.Get
-                                   (OpenToken.Recognizer.Character_Set.Standard_Whitespace))
-      );
+                                     (OpenToken.Recognizer.Character_Set.Standard_Whitespace))
+     );
 
    Do_Keyword      : Terminal_Token.Handle := Syntax (Do_ID).Token_Handle;
    Several_Keyword : Terminal_Token.Handle := Syntax (Several).Token_Handle;

@@ -59,4 +59,3 @@ package OpenToken.Text_Feeder is
    function End_Of_Text (Feeder : Instance) return Boolean is abstract;
 
 end OpenToken.Text_Feeder;
-

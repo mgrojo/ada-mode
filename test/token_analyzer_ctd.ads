@@ -45,7 +45,7 @@ package Token_Analyzer_CTD is
    Syntax : Tokenizer.Syntax :=
      (Normal  => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get (Normal_Text)),
       Default => Tokenizer.Get (OpenToken.Recognizer.Nothing.Get)
-      );
+     );
 
    Analyzer : Tokenizer.Instance := Tokenizer.Initialize
      (Language_Syntax => Syntax,

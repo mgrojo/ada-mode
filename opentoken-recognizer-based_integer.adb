@@ -121,49 +121,49 @@ package body OpenToken.Recognizer.Based_Integer is
 
       when Numeral =>
 
-            Extended_Digits.Analyze (The_Token.Number_Recognizer, Next_Char, Digits_Verdict);
+         Extended_Digits.Analyze (The_Token.Number_Recognizer, Next_Char, Digits_Verdict);
 
-            case Digits_Verdict is
-            when So_Far_So_Good =>
-               --  Next_Char is '_'
+         case Digits_Verdict is
+         when So_Far_So_Good =>
+            --  Next_Char is '_'
+            Verdict := So_Far_So_Good;
+
+         when Matches =>
+            --  Next_Char extended digit
+            if The_Token.Based then
+               --  need trailing #
                Verdict := So_Far_So_Good;
+            else
+               Verdict := Matches;
+            end if;
 
-            when Matches =>
-               --  Next_Char extended digit
-               if The_Token.Based then
-                  --  need trailing #
-                  Verdict := So_Far_So_Good;
-               else
-                  Verdict := Matches;
-               end if;
-
-            when Failed =>
-               if The_Token.Based then
-                  if Next_Char = '#' then
-                     if The_Token.Last_Verdict = Matches then
-                        Verdict         := Matches;
-                        The_Token.State := Done;
-                     else
-                        --  last char was trailing '_'
-                        Verdict         := Failed;
-                        The_Token.State := Done;
-                     end if;
+         when Failed =>
+            if The_Token.Based then
+               if Next_Char = '#' then
+                  if The_Token.Last_Verdict = Matches then
+                     Verdict         := Matches;
+                     The_Token.State := Done;
                   else
+                     --  last char was trailing '_'
                      Verdict         := Failed;
                      The_Token.State := Done;
                   end if;
-
                else
                   Verdict         := Failed;
                   The_Token.State := Done;
                end if;
-            end case;
+
+            else
+               Verdict         := Failed;
+               The_Token.State := Done;
+            end if;
+         end case;
 
 
-         when Done =>
-            --  We shouldn't get here.
+      when Done =>
+         --  We shouldn't get here.
 
-            Verdict := Failed;
+         Verdict := Failed;
 
       end case;
 

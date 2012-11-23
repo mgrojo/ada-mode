@@ -49,49 +49,49 @@ package body OpenToken.Recognizer.Identifier is
 
       case The_Token.State is
 
-         when First_Char =>
-            if Ada.Strings.Maps.Is_In
-              (Element => Next_Char,
-               Set     => The_Token.Start_Chars)
-            then
-               Verdict         := Matches;
-               The_Token.State := Text;
-            else
-               Verdict         := Failed;
-               The_Token.State := Done;
-            end if;
+      when First_Char =>
+         if Ada.Strings.Maps.Is_In
+           (Element => Next_Char,
+            Set     => The_Token.Start_Chars)
+         then
+            Verdict         := Matches;
+            The_Token.State := Text;
+         else
+            Verdict         := Failed;
+            The_Token.State := Done;
+         end if;
 
-         when Text =>
-            if
-              Ada.Strings.Maps.Is_In
-              (Element => Next_Char,
-               Set     => The_Token.Body_Chars)
-            then
-               Verdict := Matches;
-            elsif Next_Char = '_' and then The_Token.Has_Separator then
-               Verdict         := So_Far_So_Good;
-               The_Token.State := Underscore;
-            else
-               Verdict         := Failed;
-               The_Token.State := Done;
-            end if;
+      when Text =>
+         if
+           Ada.Strings.Maps.Is_In
+           (Element => Next_Char,
+            Set     => The_Token.Body_Chars)
+         then
+            Verdict := Matches;
+         elsif Next_Char = '_' and then The_Token.Has_Separator then
+            Verdict         := So_Far_So_Good;
+            The_Token.State := Underscore;
+         else
+            Verdict         := Failed;
+            The_Token.State := Done;
+         end if;
 
-         when Underscore =>
-            if
-              Ada.Strings.Maps.Is_In
-              (Element => Next_Char,
-               Set     => The_Token.Body_Chars)
-            then
-               Verdict         := Matches;
-               The_Token.State := Text;
-            else
-               Verdict         := Failed;
-               The_Token.State := Done;
-            end if;
+      when Underscore =>
+         if
+           Ada.Strings.Maps.Is_In
+           (Element => Next_Char,
+            Set     => The_Token.Body_Chars)
+         then
+            Verdict         := Matches;
+            The_Token.State := Text;
+         else
+            Verdict         := Failed;
+            The_Token.State := Done;
+         end if;
 
-         when Done =>
-            --  We shouldn't get called from here.
-            Verdict := Failed;
+      when Done =>
+         --  We shouldn't get called from here.
+         Verdict := Failed;
 
       end case;
 
@@ -105,7 +105,7 @@ package body OpenToken.Recognizer.Identifier is
                  Body_Chars    : in Ada.Strings.Maps.Character_Set :=
                    Ada.Strings.Maps.Constants.Alphanumeric_Set;
                  Has_Separator : in Boolean := True
-                 ) return Instance is
+                ) return Instance is
    begin
       return (Report        => True,
               Start_Chars   => Start_Chars,

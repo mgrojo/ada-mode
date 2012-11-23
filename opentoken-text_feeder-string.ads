@@ -64,4 +64,3 @@ private
         Ada.Strings.Unbounded.Null_Unbounded_String;
    end record;
 end OpenToken.Text_Feeder.String;
-

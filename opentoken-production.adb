@@ -33,19 +33,19 @@ package body OpenToken.Production is
 
    function "+" (Tokens : in Token_List.Instance;
                  Action : in Nonterminal.Synthesize
-                 ) return Right_Hand_Side is
+                ) return Right_Hand_Side is
    begin
       return (Tokens => Tokens,
               Action => Action
-              );
+             );
    end "+";
    function "+" (Tokens : in Token.Class;
                  Action : in Nonterminal.Synthesize
-                 ) return Right_Hand_Side is
+                ) return Right_Hand_Side is
    begin
       return (Tokens => Token_List.Only (Tokens),
               Action => Action
-              );
+             );
    end "+";
 
    function "<=" (LHS : in Nonterminal.Handle;
@@ -54,16 +54,16 @@ package body OpenToken.Production is
    begin
       return (LHS => LHS,
               RHS => RHS
-              );
+             );
    end "<=";
 
    function "<=" (LHS : in Nonterminal.Class;
                   RHS : in Right_Hand_Side
-                  ) return Instance is
+                 ) return Instance is
    begin
       return (LHS => new Nonterminal.Class'(LHS),
               RHS => RHS
-              );
+             );
    end "<=";
 
    ----------------------------------------------------------------------------
@@ -71,20 +71,20 @@ package body OpenToken.Production is
    ----------------------------------------------------------------------------
    function "<=" (LHS : in Nonterminal.Handle;
                   RHS : in Token_List.Instance
-                  ) return Instance is
+                 ) return Instance is
    begin
       return (LHS => LHS,
               RHS => RHS + Nonterminal.Synthesize_Default
-              );
+             );
    end "<=";
 
    function "<=" (LHS : in Nonterminal.Class;
                   RHS : in Token_List.Instance
-                  ) return Instance is
+                 ) return Instance is
    begin
       return (LHS => new Nonterminal.Class'(LHS),
               RHS => RHS + Nonterminal.Synthesize_Default
-              );
+             );
    end "<=";
 
    ----------------------------------------------------------------------------
@@ -92,11 +92,11 @@ package body OpenToken.Production is
    ----------------------------------------------------------------------------
    function "<=" (LHS : in Nonterminal.Handle;
                   RHS : in Token.Class
-                  ) return Instance is
+                 ) return Instance is
    begin
       return (LHS => LHS,
               RHS => RHS + Nonterminal.Synthesize_Default
-              );
+             );
    end "<=";
 
 
@@ -106,8 +106,7 @@ package body OpenToken.Production is
    begin
       return (LHS => new Nonterminal.Class'(LHS),
               RHS => RHS + Nonterminal.Synthesize_Default
-              );
+             );
    end "<=";
 
 end OpenToken.Production;
-

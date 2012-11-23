@@ -66,4 +66,3 @@ package body OpenToken.Text_Feeder.String is
    end End_Of_Text;
 
 end OpenToken.Text_Feeder.String;
-

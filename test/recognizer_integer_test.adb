@@ -52,10 +52,10 @@ is
 
       Put_Line (Comment & "...passed");
    exception
-      when E : others =>
-         Put_Line (Comment & "...failed due to exception. " &
-                     Ada.Exceptions.Exception_Name (E) &
-                     ": " & Ada.Exceptions.Exception_Message (E));
+   when E : others =>
+      Put_Line (Comment & "...failed due to exception. " &
+                  Ada.Exceptions.Exception_Name (E) &
+                  ": " & Ada.Exceptions.Exception_Message (E));
    end Test;
 
 begin

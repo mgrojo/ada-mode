@@ -50,12 +50,12 @@ package body OpenToken.Recognizer.CSV_Field is
    --  Characters that can be inside the field, but not at the ends
    Inner_Characters : constant Ada.Strings.Maps.Character_Set :=
      Ada.Strings.Maps.To_Set (Ada.Characters.Latin_1.HT &
-                              Ada.Characters.Latin_1.Space);
+                                Ada.Characters.Latin_1.Space);
 
    --  Characters that may appear anywhere in the field
    Match_Characters : constant Ada.Strings.Maps.Character_Set :=
-      (Ada.Strings.Maps.Constants.Graphic_Set - Inner_Characters) -
-      Ada.Strings.Maps.To_Set (',');
+     (Ada.Strings.Maps.Constants.Graphic_Set - Inner_Characters) -
+     Ada.Strings.Maps.To_Set (',');
 
    overriding procedure Clear (The_Token : in out Instance)
    is begin

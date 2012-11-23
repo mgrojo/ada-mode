@@ -89,13 +89,13 @@ package body OpenToken.Token.Enumerated.Nonterminal is
       begin
          Checked_Source := Handle (Token_List.Token_Handle (Token_List.Initial_Iterator (Source)));
       exception
-         when Constraint_Error =>
-            raise Invalid_Synth_Argument with
-              "Token " & OpenToken.Token.Enumerated.Token_ID'Image (To_ID) & " cannot be synthesized " &
-              "solely from a " &
-              OpenToken.Token.Enumerated.Token_ID'Image
-              (OpenToken.Token.Enumerated.ID
-                 (Token_List.Token_Handle (Token_List.Initial_Iterator (Source)).all)) & ".";
+      when Constraint_Error =>
+         raise Invalid_Synth_Argument with
+           "Token " & OpenToken.Token.Enumerated.Token_ID'Image (To_ID) & " cannot be synthesized " &
+           "solely from a " &
+           OpenToken.Token.Enumerated.Token_ID'Image
+           (OpenToken.Token.Enumerated.ID
+              (Token_List.Token_Handle (Token_List.Initial_Iterator (Source)).all)) & ".";
       end;
 
       Synthesize_By_Copying

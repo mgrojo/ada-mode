@@ -73,7 +73,8 @@ package Java_Lexer is
    ---------------------------------------------------------------------
 
    type Java_Token is
-     ( -- Keywords JRM 3.9
+     (
+      -- Keywords JRM 3.9
       Abstract_T,
       Boolean_T, Break_T, Byte_T,
       Case_T, Catch_T, Char_T, Class_T, Const_T, Continue_T,
@@ -252,7 +253,7 @@ package Java_Lexer is
       Character_T   => Tokenizer.Get (OpenToken.Recognizer.Graphic_Character.Get
                                         (Exclude => Ada.Strings.Maps.To_Set ("""'\"))),
       Escape_Sequence_T => Tokenizer.Get (OpenToken.Recognizer.Escape_Sequence.Get
-                                           (Ada.Strings.Maps.To_Set ("btnfr""'\"))),
+                                            (Ada.Strings.Maps.To_Set ("btnfr""'\"))),
       Octal_Escape_T    => Tokenizer.Get (OpenToken.Recognizer.Octal_Escape.Get),
       String_T          => Tokenizer.Get
         (OpenToken.Recognizer.String.Get
@@ -262,7 +263,7 @@ package Java_Lexer is
       EndOfLineComment_T => Tokenizer.Get (OpenToken.Recognizer.Line_Comment.Get ("//")),
       EmbeddedComment_T  => Tokenizer.Get (OpenToken.Recognizer.Bracketed_Comment.Get ("/*", "*/")),
       Whitespace_T  => Tokenizer.Get (OpenToken.Recognizer.Character_Set.Get
-                                       (OpenToken.Recognizer.Character_Set.Standard_Whitespace)),
+                                        (OpenToken.Recognizer.Character_Set.Standard_Whitespace)),
       End_of_File_T => Tokenizer.Get (OpenToken.Recognizer.End_Of_File.Get));
 
    Analyzer : Tokenizer.Instance := Tokenizer.Initialize (Syntax);

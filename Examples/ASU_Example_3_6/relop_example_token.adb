@@ -30,53 +30,53 @@ package body Relop_Example_Token is
 
       case The_Token.State is
 
-         when First_Char =>
-            --  If the first char is a <, =, or >, its a match
-            case Next_Char is
-               when '<' =>
-                  Verdict         := OpenToken.Recognizer.Matches;
-                  The_Token.State := Equal_or_Greater;
+      when First_Char =>
+         --  If the first char is a <, =, or >, its a match
+         case Next_Char is
+         when '<' =>
+            Verdict         := OpenToken.Recognizer.Matches;
+            The_Token.State := Equal_or_Greater;
 
-               when '>' =>
-                  Verdict         := OpenToken.Recognizer.Matches;
-                  The_Token.State := Equal;
+         when '>' =>
+            Verdict         := OpenToken.Recognizer.Matches;
+            The_Token.State := Equal;
 
 
-               when '=' =>
-                  Verdict         := OpenToken.Recognizer.Matches;
-                  The_Token.State := Done;
+         when '=' =>
+            Verdict         := OpenToken.Recognizer.Matches;
+            The_Token.State := Done;
 
-               when others =>
-                  Verdict         := OpenToken.Recognizer.Failed;
-                  The_Token.State := Done;
-            end case;
+         when others =>
+            Verdict         := OpenToken.Recognizer.Failed;
+            The_Token.State := Done;
+         end case;
 
-         when Equal_or_Greater =>
+      when Equal_or_Greater =>
 
-            --  If the next char is a > or =, its a match
-            case Next_Char is
-               when '>' | '=' =>
-                  Verdict         := OpenToken.Recognizer.Matches;
-                  The_Token.State := Done;
+         --  If the next char is a > or =, its a match
+         case Next_Char is
+         when '>' | '=' =>
+            Verdict         := OpenToken.Recognizer.Matches;
+            The_Token.State := Done;
 
-               when others =>
-                  Verdict         := OpenToken.Recognizer.Failed;
-                  The_Token.State := Done;
-            end case;
+         when others =>
+            Verdict         := OpenToken.Recognizer.Failed;
+            The_Token.State := Done;
+         end case;
 
-         when Equal =>
+      when Equal =>
 
-            --  If the next char is a =, its a match
-            if Next_Char = '=' then
-               Verdict         := OpenToken.Recognizer.Matches;
-               The_Token.State := Done;
-            else
-               Verdict         := OpenToken.Recognizer.Failed;
-               The_Token.State := Done;
-            end if;
+         --  If the next char is a =, its a match
+         if Next_Char = '=' then
+            Verdict         := OpenToken.Recognizer.Matches;
+            The_Token.State := Done;
+         else
+            Verdict         := OpenToken.Recognizer.Failed;
+            The_Token.State := Done;
+         end if;
 
-         when Done =>
-            Verdict := OpenToken.Recognizer.Failed;
+      when Done =>
+         Verdict := OpenToken.Recognizer.Failed;
       end case;
    end Analyze;
 

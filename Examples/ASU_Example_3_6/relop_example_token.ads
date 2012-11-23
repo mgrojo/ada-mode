@@ -34,4 +34,3 @@ private
       Verdict   :    out OpenToken.Recognizer.Analysis_Verdict);
 
 end Relop_Example_Token;
-

@@ -76,7 +76,7 @@ package body OpenToken.Token.Enumerated.List is
       Right_Node : constant List_Node_Ptr :=
         new List_Node'(Token => new OpenToken.Token.Enumerated.Class'(Right),
                        Next  => null
-                       );
+                      );
    begin
       return (Head => new List_Node'(Token => new OpenToken.Token.Enumerated.Class'(Left),
                                      Next  => Right_Node),
@@ -98,7 +98,7 @@ package body OpenToken.Token.Enumerated.List is
       end if;
       return (Head => Left_Node,
               Tail => Last_Node
-              );
+             );
    end "&";
 
    function "&" (Left  : in Instance;
@@ -116,7 +116,7 @@ package body OpenToken.Token.Enumerated.List is
       end if;
       return (Head => First_Node,
               Tail => New_Node
-              );
+             );
    end "&";
 
    ----------------------------------------------------------------------------
@@ -128,7 +128,7 @@ package body OpenToken.Token.Enumerated.List is
       Left.Tail.Next := Right.Head;
       return (Head => Left.Head,
               Tail => Right.Tail
-              );
+             );
    end "&";
 
    --------------------------------------------------------------------------
@@ -144,7 +144,7 @@ package body OpenToken.Token.Enumerated.List is
       New_Node : constant List_Node_Ptr :=
         new List_Node'(Token => Token,
                        Next  => List.Head
-                       );
+                      );
    begin
       if List.Tail = null then
          List.Tail := New_Node;

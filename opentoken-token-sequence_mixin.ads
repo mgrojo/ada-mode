@@ -48,8 +48,8 @@ package OpenToken.Token.Sequence_Mixin is
    --  of tokens.
    --------------------------------------------------------------------------
    type Action is access procedure
-      (Match : in out Instance;
-       Using : in     Token.Linked_List.Instance);
+     (Match : in out Instance;
+      Using : in     Token.Linked_List.Instance);
 
    -----------------------------------------------------------------------
    --  Create a token sequence from a pair of token handles.

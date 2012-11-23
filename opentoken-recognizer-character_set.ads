@@ -46,8 +46,8 @@ package OpenToken.Recognizer.Character_Set is
    --  own superset of this.
    Standard_Whitespace : constant Ada.Strings.Maps.Character_Set :=
      Ada.Strings.Maps.To_Set (Ada.Characters.Latin_1.HT &
-                              Ada.Characters.Latin_1.Space &
-                              EOL_Character);
+                                Ada.Characters.Latin_1.Space &
+                                EOL_Character);
 
    type Instance is new OpenToken.Recognizer.Instance with private;
 
@@ -87,4 +87,3 @@ private
       Verdict   :    out Analysis_Verdict);
 
 end OpenToken.Recognizer.Character_Set;
-

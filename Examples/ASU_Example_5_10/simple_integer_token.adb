@@ -51,8 +51,8 @@ package body Simple_Integer_Token is
 
       else
          raise Nonterminal.Invalid_Synth_Argument with
-            "Token " & Token.Token_ID'Image (To_ID) & " cannot be synthesized " &
-              "solely from a " & Token.Token_ID'Image (Token.ID (Source)) & ".";
+           "Token " & Token.Token_ID'Image (To_ID) & " cannot be synthesized " &
+           "solely from a " & Token.Token_ID'Image (Token.ID (Source)) & ".";
       end if;
    end Synthesize_By_Copying;
 
@@ -78,12 +78,12 @@ package body Simple_Integer_Token is
    exception
    when Constraint_Error =>
       raise Nonterminal.Invalid_Synth_Argument with
-         "Token " & Token.Token_ID'Image (To_ID) & " cannot be synthesized " &
-           "from a " &
-           Token.Token_ID'Image (Token.ID (Token_Handle (Left).all)) &
-           " and a " &
-           Token.Token_ID'Image (Token.ID (Token_Handle (Right).all)) &
-           ".";
+        "Token " & Token.Token_ID'Image (To_ID) & " cannot be synthesized " &
+        "from a " &
+        Token.Token_ID'Image (Token.ID (Token_Handle (Left).all)) &
+        " and a " &
+        Token.Token_ID'Image (Token.ID (Token_Handle (Right).all)) &
+        ".";
    end Synthesize_Add;
 
    procedure Synthesize_Multiply
@@ -108,12 +108,12 @@ package body Simple_Integer_Token is
    exception
    when Constraint_Error =>
       raise Nonterminal.Invalid_Synth_Argument with
-         "Token " & Token.Token_ID'Image (To_ID) & " cannot be synthesized " &
-           "from a " &
-           Token.Token_ID'Image (Token.ID (Token_Handle (Left).all)) &
-           " and a " &
-           Token.Token_ID'Image (Token.ID (Token_Handle (Right).all)) &
-           ".";
+        "Token " & Token.Token_ID'Image (To_ID) & " cannot be synthesized " &
+        "from a " &
+        Token.Token_ID'Image (Token.ID (Token_Handle (Left).all)) &
+        " and a " &
+        Token.Token_ID'Image (Token.ID (Token_Handle (Right).all)) &
+        ".";
    end Synthesize_Multiply;
 
    procedure Synthesize_From_Second_Argument
@@ -128,15 +128,16 @@ package body Simple_Integer_Token is
       Next_Token (Second);
 
       New_Token := Class
-        (Instance'(Nonterminal.Instance (Nonterminal.Get (To_ID)) with
-                     Class (Token_Handle (Second).all).Value));
+        (Instance'
+           (Nonterminal.Instance (Nonterminal.Get (To_ID)) with
+            Class (Token_Handle (Second).all).Value));
    exception
    when Constraint_Error =>
       raise Nonterminal.Invalid_Synth_Argument with
-         "Token " & Token.Token_ID'Image (To_ID) & " cannot be synthesized " &
-           "solely from a " &
-           Token.Token_ID'Image
-           (Token.ID (Token_Handle (Second).all)) & ".";
+        "Token " & Token.Token_ID'Image (To_ID) & " cannot be synthesized " &
+        "solely from a " &
+        Token.Token_ID'Image
+        (Token.ID (Token_Handle (Second).all)) & ".";
    end Synthesize_From_Second_Argument;
 
    procedure Print_Value

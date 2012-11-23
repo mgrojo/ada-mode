@@ -122,5 +122,3 @@ private
    Synthesize_Second : constant Nonterminal.Synthesize := Synthesize_From_Second_Argument'Access;
 
 end Simple_Integer_Token;
-
-

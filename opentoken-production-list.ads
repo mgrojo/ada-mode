@@ -102,8 +102,8 @@ private
    end record;
 
    type Instance is tagged record
-     Head : List_Node_Ptr;
-     Tail : List_Node_Ptr;
+      Head : List_Node_Ptr;
+      Tail : List_Node_Ptr;
    end record;
 
    type List_Iterator is new List_Node_Ptr;

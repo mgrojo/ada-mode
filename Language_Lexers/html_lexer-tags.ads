@@ -56,6 +56,7 @@ private package HTML_Lexer.Tags is
                       Start_Tag_Opener,  -- <
                       End_Tag_Opener,    -- </
                       Tag_Closer,        -- >
+
                       -- Tags (without delimiters, ... standing for attributes)
                       HTML,              -- <HTML ...>
                       Head,              -- <HEAD ...>
@@ -64,6 +65,7 @@ private package HTML_Lexer.Tags is
                       Anchor,            -- <A ...>
                       Heading_1,         -- <H1 ...>
                       Image,             -- <IMG ...>
+
                       -- add further tags here
                       -- Attributes (the left side of assignments without = and following value)
                       Content,           -- CONTENT=
@@ -71,12 +73,15 @@ private package HTML_Lexer.Tags is
                       Link_Type,         -- TYPE=
                       Name,              -- NAME=
                       Title,             -- TITLE=
+
                       -- add further attributes here
                       -- The assignment character in attributes
                       Assignment,        -- =
+
                       -- Values (the right side of assignments)
                       Value,             -- unquoted
                       String,            -- "quoted"
+
                       -- Syntax error
                       Bad_Token,
                       --
@@ -104,14 +109,16 @@ private package HTML_Lexer.Tags is
       Name             => Tokenizer.Get(OpenToken.Recognizer.Keyword.Get ("NAME")),
       Title            => Tokenizer.Get(OpenToken.Recognizer.Keyword.Get ("TITLE")),
       Assignment       => Tokenizer.Get(OpenToken.Recognizer.Separator.Get ("=")),
-      Value            => Tokenizer.Get(OpenToken.Recognizer.Character_Set.Get
-                                                            (Ada.Strings.Maps.Constants.Letter_Set        or
-                                                             Ada.Strings.Maps.Constants.Decimal_Digit_Set or
-                                                             Ada.Strings.Maps.To_Set (".-"),
-                                                             Reportable => True)),
+      Value            => Tokenizer.Get
+        (OpenToken.Recognizer.Character_Set.Get
+           (Ada.Strings.Maps.Constants.Letter_Set        or
+              Ada.Strings.Maps.Constants.Decimal_Digit_Set or
+              Ada.Strings.Maps.To_Set (".-"),
+            Reportable => True)),
       String           => Tokenizer.Get(OpenToken.Recognizer.String.Get (Double_Delimiter => False)),
-      Whitespace       => Tokenizer.Get(OpenToken.Recognizer.Character_Set.Get
-                                                            (OpenToken.Recognizer.Character_Set.Standard_Whitespace)),
+      Whitespace       => Tokenizer.Get
+        (OpenToken.Recognizer.Character_Set.Get
+           (OpenToken.Recognizer.Character_Set.Standard_Whitespace)),
       Bad_Token        => Tokenizer.Get(OpenToken.Recognizer.Nothing.Get),
       End_Of_Tag       => Tokenizer.Get(OpenToken.Recognizer.End_Of_File.Get));
 

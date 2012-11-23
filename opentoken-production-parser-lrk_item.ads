@@ -149,7 +149,7 @@ package OpenToken.Production.Parser.LRk_Item is
    ----------------------------------------------------------------------------
    function Is_In (Left  : in Item_Set;
                    Right : in Item_Set_List
-                 ) return Boolean;
+                  ) return Boolean;
 
    ----------------------------------------------------------------------------
    --  Check to see if the given item set is in the given goto list for the

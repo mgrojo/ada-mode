@@ -50,70 +50,70 @@ package body OpenToken.Recognizer.HTML_Entity is
 
       case The_Token.State is
 
-         when Escape =>
+      when Escape =>
 
-            if Next_Char = '&' then
+         if Next_Char = '&' then
+            Verdict         := So_Far_So_Good;
+            The_Token.State := First;
+         else
+            Verdict         := Failed;
+            The_Token.State := Done;
+         end if;
+
+      when First =>
+
+         if Next_Char = '#' then
+            Verdict         := So_Far_So_Good;
+            The_Token.State := Number;
+         elsif Ada.Strings.Maps.Is_In (Element => Next_Char,
+                                       Set     => Ada.Strings.Maps.Constants.Letter_Set) then
+            Verdict         := So_Far_So_Good;
+            The_Token.State := Rest;
+            The_Token.Set   := Ada.Strings.Maps.Constants.Letter_Set;
+         else
+            Verdict         := Failed;
+            The_Token.State := Done;
+         end if;
+
+      when Number =>
+
+         if The_Token.Set = Ada.Strings.Maps.Null_Set then
+            if Next_Char = 'x' or Next_Char = 'X' then
                Verdict         := So_Far_So_Good;
-               The_Token.State := First;
-            else
-               Verdict         := Failed;
-               The_Token.State := Done;
-            end if;
-
-         when First =>
-
-            if Next_Char = '#' then
-               Verdict         := So_Far_So_Good;
-               The_Token.State := Number;
+               The_Token.Set   := Ada.Strings.Maps.Constants.Hexadecimal_Digit_Set;
+               --  We stay in this state so that we must have at least one digit.
             elsif Ada.Strings.Maps.Is_In (Element => Next_Char,
-                                          Set     => Ada.Strings.Maps.Constants.Letter_Set) then
+                                          Set     => Ada.Strings.Maps.Constants.Decimal_Digit_Set) then
                Verdict         := So_Far_So_Good;
                The_Token.State := Rest;
-               The_Token.Set   := Ada.Strings.Maps.Constants.Letter_Set;
+               The_Token.Set   := Ada.Strings.Maps.Constants.Decimal_Digit_Set;
             else
                Verdict         := Failed;
                The_Token.State := Done;
             end if;
+         elsif Ada.Strings.Maps.Is_In (Next_Char, The_Token.Set) then  -- this is hexadecimal
+            Verdict         := So_Far_So_Good;
+            The_Token.State := Rest;
+         else
+            Verdict         := Failed;
+            The_Token.State := Done;
+         end if;
 
-         when Number =>
+      when Rest =>
 
-            if The_Token.Set = Ada.Strings.Maps.Null_Set then
-               if Next_Char = 'x' or Next_Char = 'X' then
-                  Verdict         := So_Far_So_Good;
-                  The_Token.Set   := Ada.Strings.Maps.Constants.Hexadecimal_Digit_Set;
-                  --  We stay in this state so that we must have at least one digit.
-               elsif Ada.Strings.Maps.Is_In (Element => Next_Char,
-                                             Set     => Ada.Strings.Maps.Constants.Decimal_Digit_Set) then
-                  Verdict         := So_Far_So_Good;
-                  The_Token.State := Rest;
-                  The_Token.Set   := Ada.Strings.Maps.Constants.Decimal_Digit_Set;
-               else
-                  Verdict         := Failed;
-                  The_Token.State := Done;
-               end if;
-            elsif Ada.Strings.Maps.Is_In (Next_Char, The_Token.Set) then  -- this is hexadecimal
-               Verdict         := So_Far_So_Good;
-               The_Token.State := Rest;
-            else
-               Verdict         := Failed;
-               The_Token.State := Done;
-            end if;
+         if Ada.Strings.Maps.Is_In (Next_Char, The_Token.Set) then
+            Verdict         := So_Far_So_Good;
+         elsif Next_Char = ';' then
+            Verdict         := Matches;
+            The_Token.State := Done;
+         else
+            Verdict         := Failed;
+            The_Token.State := Done;
+         end if;
 
-         when Rest =>
+      when Done =>
 
-            if Ada.Strings.Maps.Is_In (Next_Char, The_Token.Set) then
-               Verdict         := So_Far_So_Good;
-            elsif Next_Char = ';' then
-               Verdict         := Matches;
-               The_Token.State := Done;
-            else
-               Verdict         := Failed;
-               The_Token.State := Done;
-            end if;
-
-         when Done =>
-
-            Verdict := Failed;
+         Verdict := Failed;
 
       end case;
 

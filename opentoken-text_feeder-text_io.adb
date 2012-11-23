@@ -27,7 +27,7 @@
 package body OpenToken.Text_Feeder.Text_IO is
 
    function Create (File_Ptr : Ada.Text_IO.File_Access := Ada.Text_IO.Current_Input)
-     return Instance is
+                   return Instance is
    begin
       return (File  => File_Ptr,
               Ended => False);
@@ -56,10 +56,10 @@ package body OpenToken.Text_Feeder.Text_IO is
          end if;
       end if;
    exception
-      when Ada.Text_IO.End_Error =>
-         Text_End := New_Text'First;
-         New_Text (New_Text'First) := EOF_Character;
-         Feeder.Ended := True;
+   when Ada.Text_IO.End_Error =>
+      Text_End := New_Text'First;
+      New_Text (New_Text'First) := EOF_Character;
+      Feeder.Ended := True;
    end Get;
 
    overriding function End_Of_Text (Feeder : Instance) return Boolean

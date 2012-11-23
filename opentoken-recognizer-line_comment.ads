@@ -81,4 +81,3 @@ private
       Verdict   :    out Analysis_Verdict);
 
 end OpenToken.Recognizer.Line_Comment;
-

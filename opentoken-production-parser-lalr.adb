@@ -59,13 +59,13 @@ package body OpenToken.Production.Parser.LALR is
    type Parse_Action_Verbs is (Shift, Reduce, Accept_It, Error);
    type Parse_Action (Verb : Parse_Action_Verbs := Shift) is record
       case Verb is
-         when Shift =>
-            State : State_Index;
-         when Reduce | Accept_It =>
-            Production : OpenToken.Production.Instance;
-            Length     : Natural;
-         when Error =>
-            null;
+      when Shift =>
+         State : State_Index;
+      when Reduce | Accept_It =>
+         Production : OpenToken.Production.Instance;
+         Length     : Natural;
+      when Error =>
+         null;
       end case;
    end record;
 
@@ -223,6 +223,7 @@ package body OpenToken.Production.Parser.LALR is
       Next_Prop : Item_Item_List_Mapping_Ptr := Propagations;
       Next_To   : Item_List_Ptr;
    begin
+      Ada.Text_IO.New_Line;
       Ada.Text_IO.Put_Line ("Propagations:");
 
       while Next_Prop /= null loop
@@ -275,10 +276,10 @@ package body OpenToken.Production.Parser.LALR is
       To_Kernel := LRk.Find
         (Left  => To,
          Right => LRk.Goto_Set
-         (From   => From_Set,
-          Symbol => For_Token
-          ).all
-         );
+           (From   => From_Set,
+            Symbol => For_Token
+           ).all
+        );
 
       if To_Kernel /= null then
 
@@ -314,15 +315,15 @@ package body OpenToken.Production.Parser.LALR is
 
             Propagations := new Item_Item_List_Mapping'(From => From,
                                                         To   => new Item_List'
-                                                        (Item => To_Kernel,
-                                                         Next => null
-                                                         ),
+                                                          (Item => To_Kernel,
+                                                           Next => null
+                                                          ),
                                                         Next => Propagations
-                                                        );
+                                                       );
          elsif not Found_To then
             Prop_Match.To := new Item_List'(Item => To_Kernel,
                                             Next => Prop_Match.To
-                                            );
+                                           );
          end if;
       end if;
    end Add_Propagations;
@@ -403,7 +404,7 @@ package body OpenToken.Production.Parser.LALR is
                For_Token    => Token.ID (Token_List.Token_Handle (Closure_Item.Pointer).all),
                Kernels      => Kernels,
                Propagations => Propagations
-               );
+              );
 
          else
             --  Lookaheads are generated spontaneously for all items
@@ -429,7 +430,7 @@ package body OpenToken.Production.Parser.LALR is
                LRk.Include
                  (Set   => Next_Kernel.Lookahead_Set,
                   Value => Lookahead.all
-                  );
+                 );
             end if;
 
          end if;
@@ -518,13 +519,13 @@ package body OpenToken.Production.Parser.LALR is
          Goto_List => null,
          Index     => 0,
          Next      => null
-         );
+        );
 
       Propagate_Lookahead : constant LRk.Item_Lookahead_Ptr :=
         new LRk.Item_Lookahead'(Last       => 0,
                                 Lookaheads => (others => Tokenizer.Terminal_ID'First),
                                 Next       => null
-                                );
+                               );
 
       Closure     : LRk.Item_Set;
 
@@ -552,7 +553,7 @@ package body OpenToken.Production.Parser.LALR is
             Closure := LRk.Closure (Set     => Kernel_Item_Set,
                                     First   => First,
                                     Grammar => Grammar
-                                    );
+                                   );
 
             --  Go through every item in that item's closure
             Closure_Item := Closure.Set;
@@ -644,21 +645,21 @@ package body OpenToken.Production.Parser.LALR is
       Result : Ada.Strings.Unbounded.Unbounded_String;
    begin
       case Action.Verb is
-         when Shift =>
-            Result := Result & "shift and goto state " & Integer_Image (Integer (Action.State));
+      when Shift =>
+         Result := Result & "shift and goto state " & Integer_Image (Integer (Action.State));
 
-         when Reduce =>
-            Result := Result & "reduce the last " & Integer_Image (Action.Length) &
-              " tokens using production" & Line_End & "   " &
-              LRk.Print_Item
-              ((Prod          => Action.Production,
-                Pointer       => Token_List.Null_Iterator,
-                Lookahead_Set => null,
-                Next          => null));
-         when Accept_It =>
-            Result := Result & "accept it";
-         when Error =>
-            Result := Result & "ERROR";
+      when Reduce =>
+         Result := Result & "reduce the last " & Integer_Image (Action.Length) &
+           " tokens using production" & Line_End & "   " &
+           LRk.Print_Item
+           ((Prod          => Action.Production,
+             Pointer       => Token_List.Null_Iterator,
+             Lookahead_Set => null,
+             Next          => null));
+      when Accept_It =>
+         Result := Result & "accept it";
+      when Error =>
+         Result := Result & "ERROR";
       end case;
 
       return Ada.Strings.Unbounded.To_String (Result);
@@ -773,7 +774,7 @@ package body OpenToken.Production.Parser.LALR is
         (Symbol => Symbol,
          Action => Action,
          Next   => Action_List
-         );
+        );
    end Add_Action;
 
    ----------------------------------------------------------------------------
@@ -992,7 +993,7 @@ package body OpenToken.Production.Parser.LALR is
       loop
          Token_List.Enqueue (List  => Arguments,
                              Token => Stack.Seen_Token
-                             );
+                            );
 
          Args_Added := Args_Added + 1;
          exit when Args_Added = Number_Of_Tokens;
@@ -1005,7 +1006,7 @@ package body OpenToken.Production.Parser.LALR is
       Production.RHS.Action (New_Token => Production.LHS.all,
                              Source    => Arguments,
                              To_ID     => Token.ID (Production.LHS.all)
-                             );
+                            );
       Token_List.Clean (Arguments);
 
       Stack.Seen_Token := new Nonterminal.Class'(Production.LHS.all);
@@ -1057,6 +1058,7 @@ package body OpenToken.Production.Parser.LALR is
       Fill_In_Lookaheads (Grammar, First_Tokens, Kernels, Accept_Index, Trace);
 
       if Trace then
+         Ada.Text_IO.New_Line;
          Ada.Text_IO.Put_Line ("LR(1) Kernels:");
          LRk.Print_Item_Set_List (Kernels);
       end if;
@@ -1158,68 +1160,91 @@ package body OpenToken.Production.Parser.LALR is
          end if;
 
          case Action.Verb is
-            when Shift =>
-               --  Push this token state on the stack
-               Current_State.Next := Stack;
-               Stack := new State_Node'(Current_State);
+         when Shift =>
+            --  Push this token state on the stack
+            Current_State.Next := Stack;
+            Stack := new State_Node'(Current_State);
 
-               --  Get the next token
-               begin
-                  Tokenizer.Find_Next (Parser.Analyzer);
-               exception
-               when E : Syntax_Error =>
-                  raise Syntax_Error with
-                    Integer_Image (Line (Parser)) &
-                    ":" &
-                    Integer_Image (Column (Parser) - 1) &
-                    " " &
-                    Ada.Exceptions.Exception_Message (E);
-               end;
+            --  Get the next token
+            begin
+               Tokenizer.Find_Next (Parser.Analyzer);
+            exception
+            when E : Syntax_Error =>
+               raise Syntax_Error with
+                 Integer_Image (Line (Parser)) &
+                 ":" &
+                 Integer_Image (Column (Parser) - 1) &
+                 " " &
+                 Ada.Exceptions.Exception_Message (E);
+            end;
 
-               Current_State.Seen_Token := new Token.Class'
-                 (Token.Class (Tokenizer.Get (Parser.Analyzer)));
+            Current_State.Seen_Token := new Token.Class'
+              (Token.Class (Tokenizer.Get (Parser.Analyzer)));
 
-               Current_State.State := Action.State;
+            Current_State.State := Action.State;
 
-               if Trace_Parse then
-                  Ada.Text_IO.New_Line (Ada.Text_IO.Standard_Error);
-               end if;
+            if Trace_Parse then
+               Ada.Text_IO.New_Line (Ada.Text_IO.Standard_Error);
+            end if;
 
-            when Reduce =>
+         when Reduce =>
 
-               --  Reduce by the indicated production
-               Reduce_Stack
-                 (Stack            => Stack,
-                  Number_Of_Tokens => Action.Length,
-                  Production       => Action.Production);
+            --  Reduce by the indicated production
+            Reduce_Stack
+              (Stack            => Stack,
+               Number_Of_Tokens => Action.Length,
+               Production       => Action.Production);
 
-               --  The next state is the one that the reduced state's goto for the
-               --  LHS token takes us to.
-               Current_State.State := Goto_For
-                 (Table => Parser.Table,
-                  State => Stack.State,
-                  ID    => Token.ID (Action.Production.LHS.all));
+            --  The next state is the one that the reduced state's goto for the
+            --  LHS token takes us to.
+            Current_State.State := Goto_For
+              (Table => Parser.Table,
+               State => Stack.State,
+               ID    => Token.ID (Action.Production.LHS.all));
 
-               if Trace_Parse then
-                  Ada.Text_IO.Put_Line
-                    (Ada.Text_IO.Standard_Error,
-                     " to state" &
-                       State_Index'Image (Current_State.State) &
-                       " : " & Token.Token_ID'Image (Token.ID (Action.Production.LHS.all)));
-               end if;
+            if Trace_Parse then
+               Ada.Text_IO.Put_Line
+                 (Ada.Text_IO.Standard_Error,
+                  " to state" &
+                    State_Index'Image (Current_State.State) &
+                    " : " & Token.Token_ID'Image (Token.ID (Action.Production.LHS.all)));
+            end if;
 
-            when Accept_It =>
-               --  Reduce by the indicated production
-               Reduce_Stack
-                 (Stack            => Stack,
-                  Number_Of_Tokens => Action.Length,
-                  Production       => Action.Production);
+         when Accept_It =>
+            --  Reduce by the indicated production
+            Reduce_Stack
+              (Stack            => Stack,
+               Number_Of_Tokens => Action.Length,
+               Production       => Action.Production);
 
-               if Trace_Parse then
-                  Ada.Text_IO.New_Line (Ada.Text_IO.Standard_Error);
-               end if;
+            if Trace_Parse then
+               Ada.Text_IO.New_Line (Ada.Text_IO.Standard_Error);
+            end if;
 
-               --  Clean up
+            --  Clean up
+            Free (Current_State.Seen_Token);
+            while Stack /= null loop
+               Popped_State := Stack;
+               Stack := Stack.Next;
+               Free (Popped_State.Seen_Token);
+               Free (Popped_State);
+            end loop;
+
+            return;
+
+         when Error =>
+            if Trace_Parse then
+               Ada.Text_IO.New_Line (Ada.Text_IO.Standard_Error);
+            end if;
+
+            --  Clean up
+            declare
+               ID     : constant String := Token.Name (Current_State.Seen_Token.all);
+               Lexeme : constant String := Tokenizer.Lexeme (Parser.Analyzer);
+
+               Expecting_Tokens : constant Token_Array := Expecting (Parser.Table, Current_State.State);
+            begin
+
                Free (Current_State.Seen_Token);
                while Stack /= null loop
                   Popped_State := Stack;
@@ -1228,41 +1253,18 @@ package body OpenToken.Production.Parser.LALR is
                   Free (Popped_State);
                end loop;
 
-               return;
-
-            when Error =>
-               if Trace_Parse then
-                  Ada.Text_IO.New_Line (Ada.Text_IO.Standard_Error);
-               end if;
-
-               --  Clean up
-               declare
-                  ID     : constant String := Token.Name (Current_State.Seen_Token.all);
-                  Lexeme : constant String := Tokenizer.Lexeme (Parser.Analyzer);
-
-                  Expecting_Tokens : constant Token_Array := Expecting (Parser.Table, Current_State.State);
-               begin
-
-                  Free (Current_State.Seen_Token);
-                  while Stack /= null loop
-                     Popped_State := Stack;
-                     Stack := Stack.Next;
-                     Free (Popped_State.Seen_Token);
-                     Free (Popped_State);
-                  end loop;
-
-                  raise Syntax_Error with
-                    Integer_Image (Line (Parser)) &
-                    ":" &
-                    Integer_Image (Column (Parser) - 1) &
-                    ": Syntax error; expecting " &
-                    Names (Parser.Analyzer, Expecting_Tokens) &
-                    "; found " &
-                    ID &
-                    " '" &
-                    Lexeme &
-                    "'";
-               end;
+               raise Syntax_Error with
+                 Integer_Image (Line (Parser)) &
+                 ":" &
+                 Integer_Image (Column (Parser) - 1) &
+                 ": Syntax error; expecting " &
+                 Names (Parser.Analyzer, Expecting_Tokens) &
+                 "; found " &
+                 ID &
+                 " '" &
+                 Lexeme &
+                 "'";
+            end;
          end case;
 
       end loop;

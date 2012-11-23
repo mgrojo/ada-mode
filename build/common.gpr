@@ -22,7 +22,7 @@ project Common is
         --  Switches we always use
         ("-g",
          "-O0",
-         "-gnat05",
+         "-gnat2012",
          "-gnatfoqQ",
          "-gnatVa",
          "-gnatwaeLP",
@@ -35,7 +35,7 @@ project Common is
       Release_Switches :=
         ("-g",
          "-O2",
-         "-gnat05",
+         "-gnat2012",
          "-gnatfnoqQ",
          "-gnatwaeL",
          "-fstack-check");

@@ -66,7 +66,7 @@ package OpenToken.Recognizer.Identifier is
                  Body_Chars    : in Ada.Strings.Maps.Character_Set :=
                    Ada.Strings.Maps.Constants.Alphanumeric_Set;
                  Has_Separator : in Boolean := True
-                 ) return Instance;
+                ) return Instance;
 
 private
 

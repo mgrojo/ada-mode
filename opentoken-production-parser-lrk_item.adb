@@ -111,11 +111,11 @@ package body OpenToken.Production.Parser.LRk_Item is
             then
                Derived_Token :=
                  Token.ID
-                  (Token_List.Token_Handle
-                   (Token_List.Initial_Iterator
-                    (Production_List.Get_Production (Prod_Iterator).RHS.Tokens)
+                 (Token_List.Token_Handle
+                    (Token_List.Initial_Iterator
+                       (Production_List.Get_Production (Prod_Iterator).RHS.Tokens)
                     ).all
-                   );
+                 );
 
                if not Derivations (Derived_Token) then
                   Added_Tokens (Derived_Token) := True;
@@ -184,7 +184,7 @@ package body OpenToken.Production.Parser.LRk_Item is
          New_Item.Lookahead_Set := new Item_Lookahead'(Last       => Lookahead_Set.Last,
                                                        Lookaheads => Lookahead_Set.Lookaheads,
                                                        Next       => New_Item.Lookahead_Set
-                                                       );
+                                                      );
          Lookahead_Set := Lookahead_Set.Next;
       end loop;
 
@@ -202,7 +202,7 @@ package body OpenToken.Production.Parser.LRk_Item is
               Pointer       => Token_List.Initial_Iterator (Prod.RHS.Tokens),
               Lookahead_Set => null,
               Next          => null
-              );
+             );
    end Item_Node_Of;
 
    --------------------------------------------------------------------------
@@ -224,7 +224,7 @@ package body OpenToken.Production.Parser.LRk_Item is
          New_Item.Lookahead_Set := new Item_Lookahead'(Last       => Lookahead_Set.Last,
                                                        Lookaheads => Lookahead_Set.Lookaheads,
                                                        Next       => New_Item.Lookahead_Set
-                                                       );
+                                                      );
          Lookahead_Set := Lookahead_Set.Next;
       end loop;
 
@@ -262,7 +262,7 @@ package body OpenToken.Production.Parser.LRk_Item is
          Set := new Item_Lookahead'(Last       => Value.Last,
                                     Lookaheads => Value.Lookaheads,
                                     Next       => Set
-                                    );
+                                   );
       end if;
 
       Added := not Found_Match;
@@ -292,7 +292,7 @@ package body OpenToken.Production.Parser.LRk_Item is
                                    Pointer       => New_Item.Pointer,
                                    Lookahead_Set => New_Item.Lookahead_Set,
                                    Next          => Target.Set
-                                   );
+                                  );
    end Add;
 
    --------------------------------------------------------------------------
@@ -321,7 +321,7 @@ package body OpenToken.Production.Parser.LRk_Item is
    ----------------------------------------------------------------------------
    function Find (Left  : in Item_Set;
                   Right : in Item_Set_List
-                  ) return Item_Set_Ptr is
+                 ) return Item_Set_Ptr is
 
       Right_Set : Item_Set_Ptr := Right.Head;
       Right_Item : Item_Ptr;
@@ -441,7 +441,7 @@ package body OpenToken.Production.Parser.LRk_Item is
                           Pointer       => New_Item.Pointer,
                           Lookahead_Set => New_Item.Lookahead_Set,
                           Next          => Existing_Set.Set
-                          );
+                         );
       else
          --  Merge their lookaheads.
          Source_Lookahead := New_Item.Lookahead_Set;
@@ -565,26 +565,26 @@ package body OpenToken.Production.Parser.LRk_Item is
                      Merge_From :=
                        Item_Node_Of (Prod      => Production_Iterator,
                                      Lookahead => Current.Lookahead_Set
-                                     );
+                                    );
                      Merge
                        (New_Item     => Merge_From,
                         Existing_Set => Result
-                        );
+                       );
 
                   elsif Token.ID (Token_List.Token_Handle (Next_Symbol).all) in Tokenizer.Terminal_ID then
 
                      Merge_From :=
                        Item_Node_Of (Prod      => Production_Iterator,
                                      Lookahead => new Item_Lookahead'
-                                     (Last       => 1,
-                                      Lookaheads => (1 => Token.ID (Token_List.Token_Handle (Next_Symbol).all)),
-                                      Next       => null
-                                      )
-                                     );
+                                       (Last       => 1,
+                                        Lookaheads => (1 => Token.ID (Token_List.Token_Handle (Next_Symbol).all)),
+                                        Next       => null
+                                       )
+                                    );
                      Merge
                        (New_Item     => Merge_From,
                         Existing_Set => Result
-                        );
+                       );
                   else
 
                      --  Loop through all the terminal IDs
@@ -594,15 +594,15 @@ package body OpenToken.Production.Parser.LRk_Item is
                            Merge_From :=
                              Item_Node_Of (Prod      => Production_Iterator,
                                            Lookahead => new Item_Lookahead'
-                                           (Last       => 1,
-                                            Lookaheads => (1 => Terminal),
-                                            Next       => null
-                                            )
-                                           );
+                                             (Last       => 1,
+                                              Lookaheads => (1 => Terminal),
+                                              Next       => null
+                                             )
+                                          );
                            Merge
                              (New_Item     => Merge_From,
                               Existing_Set => Result
-                              );
+                             );
                         end if;
                      end loop;
 
@@ -704,7 +704,7 @@ package body OpenToken.Production.Parser.LRk_Item is
                if
                  Item_ID not in Tokenizer.Terminal_ID and then
                  ((Item_ID = Token.ID (Prod.LHS.all) or First_Tokens (Item_ID)(Token.ID (Prod.LHS.all))) and
-                  Token_List.Token_Handle (Pointer) /= null) and then
+                    Token_List.Token_Handle (Pointer) /= null) and then
                  Token.ID (Token_List.Token_Handle (Pointer).all) = Symbol
                then
 
@@ -807,9 +807,9 @@ package body OpenToken.Production.Parser.LRk_Item is
               (Item_Node_Of
                  (Production_List.Get_Production
                     (Production_List.Initial_Iterator (Grammar)))),
-          Goto_List => null,
-          Index     => 1,
-          Next      => null),
+            Goto_List => null,
+            Index     => 1,
+            Next      => null),
          Size       => 1);
 
       New_Items_To_Check   : Boolean      := True;
@@ -1082,4 +1082,3 @@ package body OpenToken.Production.Parser.LRk_Item is
    end Print_Item_Set_List;
 
 end OpenToken.Production.Parser.LRk_Item;
-

@@ -56,10 +56,10 @@ package OpenToken.Production is
    --------------------------------------------------------------------------
    function "+" (Tokens : in Token_List.Instance;
                  Action : in Nonterminal.Synthesize
-                 ) return Right_Hand_Side;
+                ) return Right_Hand_Side;
    function "+" (Tokens : in Token.Class;
                  Action : in Nonterminal.Synthesize
-                 ) return Right_Hand_Side;
+                ) return Right_Hand_Side;
 
    ----------------------------------------------------------------------------
    --  A production instance consists of a nonterminal token instance "<=" ed to

@@ -99,7 +99,7 @@ package OpenToken.Token.Enumerated is
      (Lexeme     : in     String;
       Recognizer : in     Recognizer_Handle;
       New_Token  : in out Instance)
-   is null;
+     is null;
 
    --------------------------------------------------------------------
    --  Copy From to To. Called by Parse when a token matches, whether
@@ -112,7 +112,7 @@ package OpenToken.Token.Enumerated is
    procedure Copy
      (To   : in out Instance;
       From : in     OpenToken.Token.Class)
-   is null;
+     is null;
 
    --------------------------------------------------------------------------
    --  This function returns the ID of the token. This is made

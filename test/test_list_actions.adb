@@ -49,7 +49,7 @@ package body Test_List_Actions is
       Plus          => Tokenizer.Get (Recognizer => OpenToken.Recognizer.Separator.Get ("+")),
       EOF           => Tokenizer.Get (Recognizer => OpenToken.Recognizer.End_Of_File.Get),
       Whitespace    => Tokenizer.Get (Recognizer => OpenToken.Recognizer.Character_Set.Get
-                                      (OpenToken.Recognizer.Character_Set.Standard_Whitespace))
+                                        (OpenToken.Recognizer.Character_Set.Standard_Whitespace))
      );
 
    Feeder   : aliased OpenToken.Text_Feeder.String.Instance;

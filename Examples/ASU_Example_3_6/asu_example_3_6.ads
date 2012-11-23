@@ -52,9 +52,10 @@ package Asu_Example_3_6 is
       Int     => Tokenizer.Get (OpenToken.Recognizer.Integer.Get),
       Real    => Tokenizer.Get (OpenToken.Recognizer.Real.Get),
       Relop   => Tokenizer.Get (Relop_Example_Token.Get),
-      Whitespace => Tokenizer.Get (OpenToken.Recognizer.Character_Set.Get
-                          (OpenToken.Recognizer.Character_Set.Standard_Whitespace))
-      );
+      Whitespace => Tokenizer.Get
+        (OpenToken.Recognizer.Character_Set.Get
+           (OpenToken.Recognizer.Character_Set.Standard_Whitespace))
+     );
 
 
 end Asu_Example_3_6;

@@ -42,7 +42,7 @@ package body Test_Selection_Actions is
       T1         => Tokenizer.Get (Recognizer => OpenToken.Recognizer.Separator.Get ("T1")),
       EOF        => Tokenizer.Get (Recognizer => OpenToken.Recognizer.End_Of_File.Get),
       Whitespace => Tokenizer.Get (Recognizer => OpenToken.Recognizer.Character_Set.Get
-                                      (OpenToken.Recognizer.Character_Set.Standard_Whitespace))
+                                     (OpenToken.Recognizer.Character_Set.Standard_Whitespace))
      );
 
    Feeder   : aliased OpenToken.Text_Feeder.String.Instance;

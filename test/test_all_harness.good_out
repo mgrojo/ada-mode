@@ -1,6 +1,25 @@
    Total Tests Run:  19
 
    Successful Tests: 19
+OpenToken.Recognizer.CSV_Field.Test: Nominal
+Lookahead_Test: Lookahead
+Lookahead_Test: Lookahead_Push_Back
+Lookahead_Test: Lookahead_Lexemes
+Lookahead_Test: Mismatched_Tokens
+Test_Accept_Index: Nominal
+Test_Backtrack: Enumerated_Lookahead
+Test_Backtrack: Sequence_Lookahead
+Test_Backtrack: Selection_Backtrack
+Test_Backtrack: Sequence_Backtrack
+Test_LR0_Kernels: Nominal
+Test_LR_Expecting: Nominal
+Test_List_Actions: List_Action
+Test_List_Stack: List_Stack
+test_multi_parse_lalr.adb: Nominal
+Test_Selection_Actions: Selection_Action
+Test_Sequence_Actions: Sequence_Action
+Test_Statement_Actions: Nominal
+Test_Token_Identifier_Real_String: Nominal
 
    Failed Tests: 0
 

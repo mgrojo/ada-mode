@@ -41,4 +41,3 @@ package body OpenToken.Token.Enumerated.List.Print is
    end Print;
 
 end OpenToken.Token.Enumerated.List.Print;
-

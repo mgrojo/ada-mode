@@ -68,4 +68,3 @@ private
       Verdict   :    out Analysis_Verdict);
 
 end OpenToken.Recognizer.End_Of_File;
-

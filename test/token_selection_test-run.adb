@@ -68,7 +68,7 @@ begin
       OpenToken.Text_Feeder.String.Set
         (Feeder => String_Feeder,
          Value  => Parse_String
-         );
+        );
 
       --  Load up the first token
       Tokenizer.Find_Next (Analyzer);

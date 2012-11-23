@@ -88,8 +88,9 @@ package ASU_Example_5_10_LR is
       Plus_Sign_ID   => Tokenizer.Get (OpenToken.Recognizer.Separator.Get ("+"), Plus),
       Integer_ID     => Tokenizer.Get (OpenToken.Recognizer.Integer.Get (Allow_Signs => False), Int_Literal),
       EOF_ID         => Tokenizer.Get (OpenToken.Recognizer.End_Of_File.Get, EOF),
-      Whitespace_ID  => Tokenizer.Get (OpenToken.Recognizer.Character_Set.Get
-                                      (OpenToken.Recognizer.Character_Set.Standard_Whitespace)));
+      Whitespace_ID  => Tokenizer.Get
+        (OpenToken.Recognizer.Character_Set.Get
+           (OpenToken.Recognizer.Character_Set.Standard_Whitespace)));
 
    Feeder   : aliased OpenToken.Text_Feeder.String.Instance;
    Analyzer : Tokenizer.Instance := Tokenizer.Initialize (Syntax, Feeder'Access);

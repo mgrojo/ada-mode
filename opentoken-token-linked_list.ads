@@ -112,8 +112,8 @@ private
    end record;
 
    type Instance is new Ada.Finalization.Controlled with record
-     Head : List_Node_Ptr;
-     Tail : List_Node_Ptr;
+      Head : List_Node_Ptr;
+      Tail : List_Node_Ptr;
    end record;
 
    --------------------------------------------------------------------------

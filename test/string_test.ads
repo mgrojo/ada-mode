@@ -55,17 +55,17 @@ package String_Test is
      (If_ID      => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("if")),
       String_ID  => Tokenizer.Get (OpenToken.Recognizer.String.Get),
       Whitespace => Tokenizer.Get (OpenToken.Recognizer.Character_Set.Get
-                                  (OpenToken.Recognizer.Character_Set.Standard_Whitespace)),
+                                     (OpenToken.Recognizer.Character_Set.Standard_Whitespace)),
       EOF        => Tokenizer.Get (OpenToken.Recognizer.End_Of_File.Get)
-      );
+     );
 
    C_Syntax : constant Tokenizer.Syntax :=
      (If_ID      => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("if")),
       String_ID  => Tokenizer.Get (OpenToken.Recognizer.String.Get (Escapeable => True)),
       Whitespace => Tokenizer.Get (OpenToken.Recognizer.Character_Set.Get
-                                  (OpenToken.Recognizer.Character_Set.Standard_Whitespace)),
+                                     (OpenToken.Recognizer.Character_Set.Standard_Whitespace)),
       EOF        => Tokenizer.Get (OpenToken.Recognizer.End_Of_File.Get)
-      );
+     );
 
    Analyzer : Tokenizer.Instance := Tokenizer.Initialize (Ada_Syntax);
 

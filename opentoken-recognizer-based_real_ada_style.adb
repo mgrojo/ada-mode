@@ -59,142 +59,142 @@ package body OpenToken.Recognizer.Based_Real_Ada_Style is
 
       case The_Token.State is
 
-         when Base =>
-            --  If the base part is a decimal integer, so-far-so-good...
+      when Base =>
+         --  If the base part is a decimal integer, so-far-so-good...
 
-            Extended_Digits.Analyze (The_Token.Number_Recognizer, Next_Char, Digits_Verdict);
+         Extended_Digits.Analyze (The_Token.Number_Recognizer, Next_Char, Digits_Verdict);
 
-            case Digits_Verdict is
-               when So_Far_So_Good |  -- Next_Char is '_'
-                 Matches =>           --           or decimal digit
+         case Digits_Verdict is
+         when So_Far_So_Good |  -- Next_Char is '_'
+           Matches =>           --           or decimal digit
 
-                  --  Keep a running total of the base. Verify that it isn't beyond the maximum.
-                  if Next_Char /= '_' then
-                     The_Token.Base := (The_Token.Base * 10) +
-                       (Character'Pos (Next_Char) - Character'Pos ('0'));
+            --  Keep a running total of the base. Verify that it isn't beyond the maximum.
+            if Next_Char /= '_' then
+               The_Token.Base := (The_Token.Base * 10) +
+                 (Character'Pos (Next_Char) - Character'Pos ('0'));
 
-                     if The_Token.Base <= Extended_Digits.Maximum_Base then
-                        Verdict := So_Far_So_Good;
-                     else
-                        Verdict := Failed;
-                     end if;
-                  else
-                     Verdict := So_Far_So_Good;
-                  end if;
-
-               when Failed =>
-                  if The_Token.Last_Verdict = Matches and Next_Char = '#' then
-
-                     --  Set up the subrecognizer for values of the specified base
-                     The_Token.Number_Recognizer := Extended_Digits.Get
-                       (Allow_Underscores => True,
-                        For_Base          => The_Token.Base);
-                     Verdict         := So_Far_So_Good;
-                     The_Token.State := Fore;
-                  else
-                     Verdict         := Failed;
-                     The_Token.State := Done;
-                  end if;
-            end case;
-
-         when Fore =>
-            --  If the fore consists of extended digits, so-far-so-good...
-            --  If it is a '.', so-far-so-good...
-
-            Extended_Digits.Analyze (The_Token.Number_Recognizer, Next_Char, Digits_Verdict);
-
-            case Digits_Verdict is
-               when So_Far_So_Good |   -- Next_Char is '_'
-                 Matches           =>  --           or extended digit
+               if The_Token.Base <= Extended_Digits.Maximum_Base then
                   Verdict := So_Far_So_Good;
-               when Failed =>
-                  if The_Token.Last_Verdict = Matches and Next_Char = '.' then
-                     Verdict         := So_Far_So_Good;
-                     The_Token.State := Aft;
-                     Extended_Digits.Clear (The_Token.Number_Recognizer);
-                  else
-                     Verdict         := Failed;
-                     The_Token.State := Done;
-                  end if;
-            end case;
+               else
+                  Verdict := Failed;
+               end if;
+            else
+               Verdict := So_Far_So_Good;
+            end if;
 
-         when Aft =>
-            --  If the aft consists of extended digits, so-far-so-good...
-            --  If it is a '#', it matches.
+         when Failed =>
+            if The_Token.Last_Verdict = Matches and Next_Char = '#' then
 
-            Extended_Digits.Analyze (The_Token.Number_Recognizer, Next_Char, Digits_Verdict);
-
-            case Digits_Verdict is
-               when So_Far_So_Good |   -- Next_Char is '_'
-                 Matches           =>  --           or extended digit
-                  Verdict := So_Far_So_Good;
-               when Failed =>
-                  if The_Token.Last_Verdict = Matches and Next_Char = '#' then
-                     Verdict         := Matches;
-                     The_Token.State := Exponent_E;
-                  else
-                     Verdict         := Failed;
-                     The_Token.State := Done;
-                  end if;
-            end case;
-
-         when Exponent_E =>
-            --  If the character is an e/E, so-far-so-good...
-
-            The_Token.Number_Recognizer := Extended_Digits.Get
-              (Allow_Underscores => True,
-               For_Base          => 10);
-
-            if Next_Char = 'e' or Next_Char = 'E' then
+               --  Set up the subrecognizer for values of the specified base
+               The_Token.Number_Recognizer := Extended_Digits.Get
+                 (Allow_Underscores => True,
+                  For_Base          => The_Token.Base);
                Verdict         := So_Far_So_Good;
-               The_Token.State := Exponent_Sign;
+               The_Token.State := Fore;
+            else
+               Verdict         := Failed;
+               The_Token.State := Done;
+            end if;
+         end case;
+
+      when Fore =>
+         --  If the fore consists of extended digits, so-far-so-good...
+         --  If it is a '.', so-far-so-good...
+
+         Extended_Digits.Analyze (The_Token.Number_Recognizer, Next_Char, Digits_Verdict);
+
+         case Digits_Verdict is
+         when So_Far_So_Good |   -- Next_Char is '_'
+           Matches           =>  --           or extended digit
+            Verdict := So_Far_So_Good;
+         when Failed =>
+            if The_Token.Last_Verdict = Matches and Next_Char = '.' then
+               Verdict         := So_Far_So_Good;
+               The_Token.State := Aft;
                Extended_Digits.Clear (The_Token.Number_Recognizer);
             else
                Verdict         := Failed;
                The_Token.State := Done;
             end if;
+         end case;
 
-         when Exponent_Sign =>
-            --  If the first exponent character is a sign, so-far-so-good...
-            --  If it is a decimal digit, it matches.
+      when Aft =>
+         --  If the aft consists of extended digits, so-far-so-good...
+         --  If it is a '#', it matches.
 
-            if Next_Char = '+' or Next_Char = '-' then
+         Extended_Digits.Analyze (The_Token.Number_Recognizer, Next_Char, Digits_Verdict);
 
-               Verdict         := So_Far_So_Good;
-               The_Token.State := Exponent;
-
+         case Digits_Verdict is
+         when So_Far_So_Good |   -- Next_Char is '_'
+           Matches           =>  --           or extended digit
+            Verdict := So_Far_So_Good;
+         when Failed =>
+            if The_Token.Last_Verdict = Matches and Next_Char = '#' then
+               Verdict         := Matches;
+               The_Token.State := Exponent_E;
             else
-
-               Extended_Digits.Analyze (The_Token.Number_Recognizer, Next_Char, Digits_Verdict);
-
-               if Digits_Verdict = Matches then  -- a decimal digit
-                  Verdict         := Matches;
-                  The_Token.State := Exponent;
-               else
-                  Verdict         := Failed;
-                  The_Token.State := Done;
-               end if;
-
+               Verdict         := Failed;
+               The_Token.State := Done;
             end if;
+         end case;
 
-         when Exponent =>
-            --  If the exponent is a decimal integer, it matches.
+      when Exponent_E =>
+         --  If the character is an e/E, so-far-so-good...
+
+         The_Token.Number_Recognizer := Extended_Digits.Get
+           (Allow_Underscores => True,
+            For_Base          => 10);
+
+         if Next_Char = 'e' or Next_Char = 'E' then
+            Verdict         := So_Far_So_Good;
+            The_Token.State := Exponent_Sign;
+            Extended_Digits.Clear (The_Token.Number_Recognizer);
+         else
+            Verdict         := Failed;
+            The_Token.State := Done;
+         end if;
+
+      when Exponent_Sign =>
+         --  If the first exponent character is a sign, so-far-so-good...
+         --  If it is a decimal digit, it matches.
+
+         if Next_Char = '+' or Next_Char = '-' then
+
+            Verdict         := So_Far_So_Good;
+            The_Token.State := Exponent;
+
+         else
 
             Extended_Digits.Analyze (The_Token.Number_Recognizer, Next_Char, Digits_Verdict);
 
-            case Digits_Verdict is
-               when So_Far_So_Good |   -- Next_Char is '_'
-                 Matches           =>  --           or decimal digit
-                  Verdict := Digits_Verdict;
-               when Failed =>
-                  Verdict         := Failed;
-                  The_Token.State := Done;
-            end case;
+            if Digits_Verdict = Matches then  -- a decimal digit
+               Verdict         := Matches;
+               The_Token.State := Exponent;
+            else
+               Verdict         := Failed;
+               The_Token.State := Done;
+            end if;
 
-         when Done =>
-            --  We shouldn't get called from here.
+         end if;
 
-            Verdict := Failed;
+      when Exponent =>
+         --  If the exponent is a decimal integer, it matches.
+
+         Extended_Digits.Analyze (The_Token.Number_Recognizer, Next_Char, Digits_Verdict);
+
+         case Digits_Verdict is
+         when So_Far_So_Good |   -- Next_Char is '_'
+           Matches           =>  --           or decimal digit
+            Verdict := Digits_Verdict;
+         when Failed =>
+            Verdict         := Failed;
+            The_Token.State := Done;
+         end case;
+
+      when Done =>
+         --  We shouldn't get called from here.
+
+         Verdict := Failed;
 
       end case;
 

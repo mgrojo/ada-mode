@@ -41,24 +41,26 @@ package OpenToken.Recognizer.String is
    C_Style_Escape_Code_Map : constant Ada.Strings.Maps.Character_Mapping :=
      Ada.Strings.Maps.To_Mapping
      (From => "abfnrtv""'\",
-      To   => Ada.Characters.Latin_1.BEL &
-              Ada.Characters.Latin_1.BS &
-              Ada.Characters.Latin_1.FF &
-              Ada.Characters.Latin_1.LF &
-              Ada.Characters.Latin_1.CR &
-              Ada.Characters.Latin_1.HT &
-              Ada.Characters.Latin_1.VT &
-              '"' & ''' & '\');
+      To   =>
+        Ada.Characters.Latin_1.BEL &
+        Ada.Characters.Latin_1.BS &
+        Ada.Characters.Latin_1.FF &
+        Ada.Characters.Latin_1.LF &
+        Ada.Characters.Latin_1.CR &
+        Ada.Characters.Latin_1.HT &
+        Ada.Characters.Latin_1.VT &
+        '"' & ''' & '\');
 
    Java_Style_Escape_Code_Map : constant Ada.Strings.Maps.Character_Mapping :=
      Ada.Strings.Maps.To_Mapping
      (From => "bfnrt""'\",
-      To   => Ada.Characters.Latin_1.BS &
-              Ada.Characters.Latin_1.FF &
-              Ada.Characters.Latin_1.LF &
-              Ada.Characters.Latin_1.CR &
-              Ada.Characters.Latin_1.HT &
-              '"' & ''' & '\');
+      To   =>
+        Ada.Characters.Latin_1.BS &
+        Ada.Characters.Latin_1.FF &
+        Ada.Characters.Latin_1.LF &
+        Ada.Characters.Latin_1.CR &
+        Ada.Characters.Latin_1.HT &
+        '"' & ''' & '\');
 
    type Instance is new OpenToken.Recognizer.Instance with private;
 
@@ -129,4 +131,3 @@ private
       Verdict   :    out Analysis_Verdict);
 
 end OpenToken.Recognizer.String;
-

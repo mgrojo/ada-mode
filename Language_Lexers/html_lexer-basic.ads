@@ -56,25 +56,29 @@ private package HTML_Lexer.Basic is
    use type Ada.Strings.Maps.Character_Set;
 
    Syntax: constant Tokenizer.Syntax :=
-     (Doctype     => Tokenizer.Get(OpenToken.Recognizer.Bracketed_Comment.Get
-                                                           (Comment_Opener => "<!",
-                                                            Comment_Closer => ">",
-                                                            Reportable     => True)),
-      HTML_Tag    => Tokenizer.Get(OpenToken.Recognizer.Bracketed_Comment.Get
-                                                           (Comment_Opener => "<",
-                                                            Comment_Closer => ">",
-                                                            Reportable     => True)),
-      Text        => Tokenizer.Get(OpenToken.Recognizer.Character_Set.Get
-                                                       (Ada.Strings.Maps.Constants.Graphic_Set -
-                                                        Ada.Strings.Maps.To_Set ("<>""&"),
-                                                        Reportable => True)),
+     (Doctype     => Tokenizer.Get
+        (OpenToken.Recognizer.Bracketed_Comment.Get
+           (Comment_Opener => "<!",
+            Comment_Closer => ">",
+            Reportable     => True)),
+      HTML_Tag    => Tokenizer.Get
+        (OpenToken.Recognizer.Bracketed_Comment.Get
+           (Comment_Opener => "<",
+            Comment_Closer => ">",
+            Reportable     => True)),
+      Text        => Tokenizer.Get
+        (OpenToken.Recognizer.Character_Set.Get
+           (Ada.Strings.Maps.Constants.Graphic_Set - Ada.Strings.Maps.To_Set ("<>""&"),
+            Reportable => True)),
       Entity      => Tokenizer.Get(OpenToken.Recognizer.HTML_Entity.Get),
-      Comment     => Tokenizer.Get(OpenToken.Recognizer.Bracketed_Comment.Get
-                                                           (Comment_Opener => "<!--",
-                                                            Comment_Closer => "-->",
-                                                            Reportable => True)),
-      Whitespace  => Tokenizer.Get(OpenToken.Recognizer.Character_Set.Get
-                                                       (OpenToken.Recognizer.Character_Set.Standard_Whitespace)),
+      Comment     => Tokenizer.Get
+        (OpenToken.Recognizer.Bracketed_Comment.Get
+           (Comment_Opener => "<!--",
+            Comment_Closer => "-->",
+            Reportable => True)),
+      Whitespace  => Tokenizer.Get
+        (OpenToken.Recognizer.Character_Set.Get
+           (OpenToken.Recognizer.Character_Set.Standard_Whitespace)),
       Bad_Token   => Tokenizer.Get(OpenToken.Recognizer.Nothing.Get),
       End_Of_File => Tokenizer.Get(OpenToken.Recognizer.End_Of_File.Get));
 

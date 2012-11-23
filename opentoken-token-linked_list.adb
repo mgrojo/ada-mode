@@ -35,12 +35,12 @@ package body OpenToken.Token.Linked_List is
         new List_Node'(Token => Subject,
                        Count => 1,
                        Next  => null
-                       );
+                      );
    begin
       return (Ada.Finalization.Controlled with
               Head => New_Node,
               Tail => New_Node
-              );
+             );
    end Only;
 
    function "&" (Left  : in OpenToken.Token.Handle;
@@ -49,15 +49,15 @@ package body OpenToken.Token.Linked_List is
         new List_Node'(Token => Right,
                        Count => 1,
                        Next  => null
-                       );
+                      );
    begin
       return (Ada.Finalization.Controlled with
               Head => new List_Node'(Token => Left,
                                      Count => 1,
                                      Next  => Right_Node
-                                     ),
+                                    ),
               Tail => Right_Node
-              );
+             );
    end "&";
 
 
@@ -70,7 +70,7 @@ package body OpenToken.Token.Linked_List is
         new List_Node'(Token => Left,
                        Count => 1,
                        Next  => Right.Head
-                       );
+                      );
       Last_Node : List_Node_Ptr := Right.Tail;
    begin
       Right.Head.Count := Right.Head.Count + 1;
@@ -82,7 +82,7 @@ package body OpenToken.Token.Linked_List is
       return (Ada.Finalization.Controlled with
               Head => Left_Node,
               Tail => Last_Node
-              );
+             );
    end "&";
 
    function "&" (Left  : in Instance;
@@ -91,7 +91,7 @@ package body OpenToken.Token.Linked_List is
         new List_Node'(Token => Right,
                        Count => 1,
                        Next  => null
-                       );
+                      );
       First_Node : List_Node_Ptr;
    begin
       Left.Head.Count := Left.Head.Count + 1;
@@ -105,7 +105,7 @@ package body OpenToken.Token.Linked_List is
       return (Ada.Finalization.Controlled with
               Head => First_Node,
               Tail => New_Node
-              );
+             );
    end "&";
 
    function "&" (Left  : in Instance;
@@ -118,7 +118,7 @@ package body OpenToken.Token.Linked_List is
       return (Ada.Finalization.Controlled with
               Head => Left.Head,
               Tail => Right.Tail
-              );
+             );
    end "&";
 
    procedure Enqueue
@@ -129,7 +129,7 @@ package body OpenToken.Token.Linked_List is
         new List_Node'(Token => Token,
                        Count => 1,
                        Next  => List.Head
-                       );
+                      );
    begin
       if List.Tail = null then
          List.Tail := New_Node;

@@ -49,7 +49,8 @@ package body OpenToken.Token.Sequence_Mixin is
          else
             Trace_Put ("trying");
          end if;
-         Ada.Text_IO.Put_Line (" sequence " & Name_Dispatch (Match) &
+         Ada.Text_IO.Put_Line
+           (" sequence " & Name_Dispatch (Match) &
               "'(" & Names (Match.Members) & ") match " & Name_Dispatch (Get (Analyzer)));
       end if;
 

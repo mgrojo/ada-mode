@@ -47,7 +47,7 @@ begin
    Tokenizer.Set_Text_Feeder
      (Analyzer => Analyzer,
       Feeder   => Feeder'Unchecked_Access
-      );
+     );
 
    loop
 
@@ -55,7 +55,7 @@ begin
 
       Ada.Text_IO.Put_Line
         ("Found " & M3_Token'Image (Tokenizer.ID (Analyzer)) &
-         ' ' & Tokenizer.Lexeme (Analyzer));
+           ' ' & Tokenizer.Lexeme (Analyzer));
 
       exit when Tokenizer.ID (Analyzer) = End_of_File_T;
 

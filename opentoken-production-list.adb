@@ -35,11 +35,11 @@ package body OpenToken.Production.List is
       New_Node : constant List_Node_Ptr :=
         new List_Node'(Production => Subject,
                        Next       => null
-                       );
+                      );
    begin
       return (Head => New_Node,
               Tail => New_Node
-              );
+             );
    end Only;
 
    ----------------------------------------------------------------------------
@@ -50,13 +50,13 @@ package body OpenToken.Production.List is
       Right_Node : constant List_Node_Ptr :=
         new List_Node'(Production => Right,
                        Next       => null
-                       );
+                      );
    begin
       return (Head => new List_Node'(Production => Left,
                                      Next  => Right_Node
-                                     ),
+                                    ),
               Tail => Right_Node
-              );
+             );
    end "and";
 
    ----------------------------------------------------------------------------
@@ -67,9 +67,9 @@ package body OpenToken.Production.List is
    begin
       return (Head => new List_Node'(Production => Left,
                                      Next       => Right.Head
-                                     ),
+                                    ),
               Tail => Right.Tail
-              );
+             );
    end "and";
 
    function "and" (Left  : in Instance;
@@ -77,12 +77,12 @@ package body OpenToken.Production.List is
       New_Node : constant List_Node_Ptr :=
         new List_Node'(Production => Right,
                        Next       => null
-                       );
+                      );
    begin
       Left.Tail.Next := New_Node;
       return (Head => Left.Head,
               Tail => New_Node
-              );
+             );
    end "and";
 
    ----------------------------------------------------------------------------
@@ -94,7 +94,7 @@ package body OpenToken.Production.List is
       Left.Tail.Next := Right.Head;
       return (Head => Left.Head,
               Tail => Right.Tail
-              );
+             );
    end "and";
 
    --------------------------------------------------------------------------

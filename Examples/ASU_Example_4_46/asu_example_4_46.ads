@@ -114,6 +114,3 @@ package ASU_Example_4_46 is
    Analyzer : Tokenizer.Instance := Tokenizer.Initialize (Syntax, Feeder'Access);
 
 end ASU_Example_4_46;
-
-
-

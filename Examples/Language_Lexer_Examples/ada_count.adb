@@ -107,18 +107,18 @@ procedure Ada_Count is
          begin
             Find_Next;
             case Token_ID is
-               when Semicolon_T =>
-                  if Paren_Count = 0 then
-                     Local_SLOC := Local_SLOC + 1;
-                  end if;
-               when Left_Parenthesis_T =>
-                  Paren_Count := Paren_Count + 1;
-               when Right_Parenthesis_T =>
-                  Paren_Count := Paren_Count - 1;
-               when Comment_T =>
-                  Local_Comment_Count := Local_Comment_Count + 1;
-               when others =>
-                  null;
+            when Semicolon_T =>
+               if Paren_Count = 0 then
+                  Local_SLOC := Local_SLOC + 1;
+               end if;
+            when Left_Parenthesis_T =>
+               Paren_Count := Paren_Count + 1;
+            when Right_Parenthesis_T =>
+               Paren_Count := Paren_Count - 1;
+            when Comment_T =>
+               Local_Comment_Count := Local_Comment_Count + 1;
+            when others =>
+               null;
             end case;
 
          end;
@@ -162,15 +162,15 @@ procedure Ada_Count is
            (File => File_List,
             Item => File_Name,
             Last => Name_Size
-            );
+           );
 
          Count (File_Name (1 .. Name_Size));
       end loop;
 
       Ada.Text_IO.Close (File_List);
    exception
-      when Ada.Text_IO.End_Error =>
-         Ada.Text_IO.Close (File_List);
+   when Ada.Text_IO.End_Error =>
+      Ada.Text_IO.Close (File_List);
    end Count_From_File;
 
 begin
@@ -209,9 +209,9 @@ begin
       then
          Count_From_File
            (Ada.Strings.Fixed.Tail
-            (Source => Ada.Command_Line.Argument (Arg_Num),
-             Count  => Ada.Command_Line.Argument (Arg_Num)'Length - 2)
-            );
+              (Source => Ada.Command_Line.Argument (Arg_Num),
+               Count  => Ada.Command_Line.Argument (Arg_Num)'Length - 2)
+           );
 
       else
          Count (Ada.Command_Line.Argument (Arg_Num));

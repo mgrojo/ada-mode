@@ -35,7 +35,7 @@ procedure ASU_Example_4_46.Run is
    Test_Parser : LALR_Parser.Instance :=
      LALR_Parser.Generate (Grammar  => Grammar,
                            Analyzer => Analyzer
-                           );
+                          );
 
    Test_File_Name : constant String := "Example.txt";
 begin
@@ -46,7 +46,7 @@ begin
    Ada.Text_IO.Open (File => Input_File,
                      Name => Test_File_Name,
                      Mode => Ada.Text_IO.In_File
-                     );
+                    );
 
    --  Uncomment the following line to get a look at the parser
 --   LALR_Parser.Print_Table (Test_Parser);
@@ -55,6 +55,3 @@ begin
 
    Ada.Text_IO.Put_Line ("passed");
 end ASU_Example_4_46.Run;
-
-
-

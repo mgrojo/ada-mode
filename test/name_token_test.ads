@@ -32,7 +32,8 @@ with OpenToken.Token.Enumerated.Nonterminal;
 package Name_Token_Test is
 
    type Token_ID_Type is
-     ( --  terminals
+     (
+      --  terminals
       Whitespace_ID, --  first to debug lookahead logic
       Dot_ID,
       EOF_ID,
@@ -73,7 +74,8 @@ package Name_Token_Test is
    end Tokens;
 
    Syntax : constant Tokenizer.Syntax :=
-     ( --  terminals
+     (
+      --  terminals
       Dot_ID            => Tokenizer.Get (OpenToken.Recognizer.Separator.Get (".")),
       EOF_ID            => Tokenizer.Get (OpenToken.Recognizer.End_Of_File.Get, Tokens.EOF),
       Paren_Left_ID     => Tokenizer.Get (OpenToken.Recognizer.Separator.Get ("(")),
@@ -110,7 +112,7 @@ package Name_Token_Test is
      Name           <= Tokens.Identifier & Component + Nonterminal.Synthesize_Self and
      Component      <= Tokens.Dot & Tokens.Identifier + Nonterminal.Synthesize_Self and
      Component      <= Tokens.Paren_Left & Tokens.Identifier & Tokens.Paren_Right + Nonterminal.Synthesize_Self and
-      --  extra stuff so Generate doesn't complain
+     --  extra stuff so Generate doesn't complain
      Symbol_Name    <= Tokens.Dot and
      Component_List <= Tokens.Dot;
 

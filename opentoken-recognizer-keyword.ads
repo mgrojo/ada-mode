@@ -78,4 +78,3 @@ private
       Verdict   :    out Analysis_Verdict);
 
 end OpenToken.Recognizer.Keyword;
-

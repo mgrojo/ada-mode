@@ -55,7 +55,7 @@ begin
          Real_ID       => Tokenizer.Get (OpenToken.Recognizer.Real.Get),
          String_ID     => Tokenizer.Get (OpenToken.Recognizer.String.Get),
          Keyword_ID    => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("whatever"))
-         );
+        );
 
       Int     : constant Master_Token.Handle := Syntax (Int_ID).Token_Handle;
       Keyword : constant Master_Token.Handle := Syntax (Keyword_ID).Token_Handle;

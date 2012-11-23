@@ -61,7 +61,7 @@ begin
         (File => Test_File,
          Mode => Ada.Text_IO.Out_File,
          Name => Test_File_Name
-         );
+        );
       Ada.Text_IO.Put_Line (File => Test_File, Item => Text_Line_1 & Normal_Text);
       Ada.Text_IO.Put_Line (File => Test_File, Item => Text_Line_2);
       Ada.Text_IO.Close (Test_File);
@@ -71,7 +71,7 @@ begin
         (File => Test_File,
          Mode => Ada.Text_IO.In_File,
          Name => Test_File_Name
-         );
+        );
       Ada.Text_IO.Set_Input (Test_File);
       Tokenizer.Input_Feeder := OpenToken.Text_Feeder.Text_IO.Create;
 
@@ -87,7 +87,7 @@ begin
       if Tokenizer.Lexeme (Analyzer) /= Text_Line_1 then
          Ada.Text_IO.Put_Line ("failed.");
          Ada.Text_IO.Put_Line ("First lexeme was """ & Tokenizer.Lexeme (Analyzer) &
-                               """ not """ & Text_Line_1 & """.");
+                                 """ not """ & Text_Line_1 & """.");
          Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
          return;
       end if;
@@ -111,8 +111,9 @@ begin
       end if;
       if Tokenizer.Lexeme (Analyzer) /= OpenToken.EOL_Character & Text_Line_2 & OpenToken.EOF_Character then
          Ada.Text_IO.Put_Line ("failed.");
-         Ada.Text_IO.Put_Line ("Third lexeme was """ & Tokenizer.Lexeme (Analyzer) &
-                               """ not """ & OpenToken.EOL_Character & Text_Line_2 & OpenToken.EOF_Character & """.");
+         Ada.Text_IO.Put_Line
+           ("Third lexeme was """ & Tokenizer.Lexeme (Analyzer) &
+              """ not """ & OpenToken.EOL_Character & Text_Line_2 & OpenToken.EOF_Character & """.");
          Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
          return;
       end if;

@@ -36,7 +36,8 @@ with OpenToken.Token.Enumerated.Nonterminal;
 package Association_Token_Test is
 
    type Token_ID_Type is
-     ( --  terminals
+     (
+      --  terminals
       Whitespace_ID, --  first to debug lookahead logic
 
       Comma_ID,
@@ -81,7 +82,8 @@ package Association_Token_Test is
    end Tokens;
 
    Syntax : constant Tokenizer.Syntax :=
-     ( --  terminals
+     (
+      --  terminals
       Whitespace_ID     => Tokenizer.Get
         (OpenToken.Recognizer.Character_Set.Get (OpenToken.Recognizer.Character_Set.Standard_Whitespace)),
       Comma_ID          => Tokenizer.Get (OpenToken.Recognizer.Separator.Get (",")),

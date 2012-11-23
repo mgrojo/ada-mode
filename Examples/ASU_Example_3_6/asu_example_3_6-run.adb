@@ -45,7 +45,7 @@ begin
      (File => File,
       Mode => Ada.Text_IO.In_File,
       Name => File_Name
-      );
+     );
 
    Ada.Text_IO.Set_Input (File);
    Tokenizer.Input_Feeder := OpenToken.Text_Feeder.Text_IO.Create;

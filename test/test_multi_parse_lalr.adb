@@ -89,9 +89,9 @@ package body Test_Multi_Parse_LALR is
    Statement_Count : Integer := 0;
 
    procedure Count_Statements
-      (New_Token : out Nonterminal.Class;
-       Source    : in  Token_List.Instance'Class;
-       To_ID     : in  Token_IDs)
+     (New_Token : out Nonterminal.Class;
+      Source    : in  Token_List.Instance'Class;
+      To_ID     : in  Token_IDs)
    is begin
       Nonterminal.Synthesize_Self (New_Token, Source, To_ID);
       Statement_Count := Statement_Count + 1;

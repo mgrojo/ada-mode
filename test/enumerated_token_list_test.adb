@@ -61,7 +61,7 @@ begin
          Real    => Tokenizer.Get (OpenToken.Recognizer.Real.Get),
          String  => Tokenizer.Get (OpenToken.Recognizer.String.Get),
          Keyword => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("whatever"))
-         );
+        );
 
       --  We don't need the Analyzer; we run Initialize because it
       --  sets the correct tokens in Syntax.
@@ -85,8 +85,8 @@ begin
             Ada.Text_IO.Put_Line ("failed!");
             Ada.Text_IO.Put_Line
               ("  (got a " &
-               Token_IDs'Image (Master_Token.ID (Token_List.Token_Handle (Iterator).all)) &
-               " where a "& Token_IDs'Image (ID) & " was expected.");
+                 Token_IDs'Image (Master_Token.ID (Token_List.Token_Handle (Iterator).all)) &
+                 " where a "& Token_IDs'Image (ID) & " was expected.");
             Passed := False;
          end if;
          Token_List.Next_Token (Iterator);

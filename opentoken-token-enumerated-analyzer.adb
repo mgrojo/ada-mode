@@ -248,17 +248,17 @@ package body OpenToken.Token.Enumerated.Analyzer is
                end if;
 
                case Match (Token_Index) is
-                  --  If we found a match, quit.
-                  when Recognizer.Matches =>
-                     return;
+               when Recognizer.Matches =>
+                  --  We found a match, quit.
+                  return;
 
-                  --  If we *could* have a match, check the next character
-                  when Recognizer.So_Far_So_Good =>
-                     Possible_Matches := not (Current_Char = Analyzer.Buffer_Tail and then
-                       OpenToken.Text_Feeder.End_Of_Text (Analyzer.Feeder.all));
+               when Recognizer.So_Far_So_Good =>
+                  --  We *could* have a match, check the next character
+                  Possible_Matches := not (Current_Char = Analyzer.Buffer_Tail and then
+                                             OpenToken.Text_Feeder.End_Of_Text (Analyzer.Feeder.all));
 
-                  when others =>
-                     null;
+               when others =>
+                  null;
                end case;
 
             end loop;
@@ -348,7 +348,7 @@ package body OpenToken.Token.Enumerated.Analyzer is
                --  keep checking.
                if Match (Token_Index) /= Recognizer.Failed then
                   More_Possible_Matches := not (Current_Char = Analyzer.Buffer_Tail and then
-                    OpenToken.Text_Feeder.End_Of_Text (Analyzer.Feeder.all));
+                                                  OpenToken.Text_Feeder.End_Of_Text (Analyzer.Feeder.all));
                end if;
             end if;
 

@@ -18,8 +18,8 @@ package Token_List_Test is
       Comma      => Tokenizer.Get (OpenToken.Recognizer.Separator.Get (",")),
       EOF        => Tokenizer.Get (OpenToken.Recognizer.End_Of_File.Get),
       Whitespace => Tokenizer.Get (OpenToken.Recognizer.Character_Set.Get
-                                   (OpenToken.Recognizer.Character_Set.Standard_Whitespace))
-      );
+                                     (OpenToken.Recognizer.Character_Set.Standard_Whitespace))
+     );
 
    Analyzer : constant Tokenizer.Instance := Tokenizer.Initialize (Syntax);
 

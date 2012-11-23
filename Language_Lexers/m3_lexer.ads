@@ -65,7 +65,8 @@ pragma Elaborate_All (Opentoken.Token.Enumerated.Analyzer,
 -------------------------------------------------------------------------------
 package M3_Lexer is
 
-   type M3_Token is (
+   type M3_Token is
+     (
       --  Keywords and reserved identifiers
       ABS_T, ADDRESS_T, ADR_T, ADRSIZE_T, AND_T, ANY_T, ARRAY_T, AS_T,
       BEGIN_T, BITS_T, BITSIZE_T, BOOLEAN_T, BRANDED_T, BY_T, BYTESIZE_T,
@@ -96,12 +97,15 @@ package M3_Lexer is
       Arrow_T,
       --  Literals
       Integer_Number_T,           -- 1
---      Based_Integer_T,     -- 12_AAA0
+
+      -- Based_Integer_T,     -- 12_AAA0
+
       Real_Number_T,              -- 1.0, 1.1E1, 1.1E+7; not .1, 1E+7
       Character_T,         -- 'x' with x a graphic character except one of "'\
       Escape_Sequence_T,   -- '\x' with x one of tnfr"'\
       Octal_Escape_T,      -- '\377', '\001'
       String_T,            -- "Anything except " or \ and escape sequences"
+
       --  Other tokens
       Identifier_T,
       Comment_T,   -- (* (* nested *) anything (even several lines) *)
@@ -112,23 +116,22 @@ package M3_Lexer is
    package Tokenizer is new Master_Token.Analyzer;
 
    M3_Style_Escape_Code_Map : constant Ada.Strings.Maps.Character_Mapping :=
-      Ada.Strings.Maps.To_Mapping
-      (From => "tnfr""'\",
-       To => Ada.Characters.Latin_1.HT &
-         Ada.Characters.Latin_1.LF &
-         Ada.Characters.Latin_1.FF &
-         Ada.Characters.Latin_1.CR & '"' & ''' & '\');
+     Ada.Strings.Maps.To_Mapping
+     (From => "tnfr""'\",
+      To => Ada.Characters.Latin_1.HT &
+        Ada.Characters.Latin_1.LF &
+        Ada.Characters.Latin_1.FF &
+        Ada.Characters.Latin_1.CR & '"' & ''' & '\');
 
-   M3_Whitespace : constant Ada.Strings.Maps.Character_Set :=
-      Ada.Strings.Maps.To_Set (
-         Ada.Characters.Latin_1.Space &
-         Ada.Characters.Latin_1.HT &
-         Ada.Characters.Latin_1.VT &
-         Ada.Characters.Latin_1.FF &
-         OpenToken.EOL_Character);
+   M3_Whitespace : constant Ada.Strings.Maps.Character_Set := Ada.Strings.Maps.To_Set
+     (Ada.Characters.Latin_1.Space &
+        Ada.Characters.Latin_1.HT &
+        Ada.Characters.Latin_1.VT &
+        Ada.Characters.Latin_1.FF &
+        OpenToken.EOL_Character);
 
    Syntax : constant Tokenizer.Syntax :=
-      (ABS_T => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("ABS", Case_Sensitive => True)),
+     (ABS_T => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("ABS", Case_Sensitive => True)),
       ADDRESS_T => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("ADDRESS", Case_Sensitive => True)),
       ADR_T => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("ADR", Case_Sensitive => True)),
       ADRSIZE_T => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("ADRSIZE", Case_Sensitive => True)),
@@ -257,23 +260,23 @@ package M3_Lexer is
       Subtype_T => Tokenizer.Get (OpenToken.Recognizer.Separator.Get ("<:")),
       Arrow_T => Tokenizer.Get (OpenToken.Recognizer.Separator.Get ("=>")),
       Integer_Number_T => Tokenizer.Get (OpenToken.Recognizer.Integer.Get
-         (Allow_Underscores => False, Allow_Exponent => False,
-          Allow_Signs => False, Allow_Leading_Zero => False)),
+                                           (Allow_Underscores => False, Allow_Exponent => False,
+                                            Allow_Signs => False, Allow_Leading_Zero => False)),
       Real_Number_T => Tokenizer.Get (OpenToken.Recognizer.Real.Get
-         (Allow_Underscores => False, Allow_Signs => False,
-          Allow_Laziness => True)),
+                                        (Allow_Underscores => False, Allow_Signs => False,
+                                         Allow_Laziness => True)),
       Character_T => Tokenizer.Get (OpenToken.Recognizer.Graphic_Character.Get
-          (Exclude => Ada.Strings.Maps.To_Set ("'\"))),
+                                      (Exclude => Ada.Strings.Maps.To_Set ("'\"))),
       Escape_Sequence_T => Tokenizer.Get
-         (OpenToken.Recognizer.Escape_Sequence.Get (Ada.Strings.Maps.To_Set ("tnfr""'\"))),
+        (OpenToken.Recognizer.Escape_Sequence.Get (Ada.Strings.Maps.To_Set ("tnfr""'\"))),
       Identifier_T => Tokenizer.Get (OpenToken.Recognizer.Identifier.Get),
       Comment_T  => Tokenizer.Get (OpenToken.Recognizer.Bracketed_Comment.Get ("(*", "*)", Nested => True)),
       Octal_Escape_T => Tokenizer.Get (OpenToken.Recognizer.Octal_Escape.Get),
       String_T => Tokenizer.Get (OpenToken.Recognizer.String.Get
-         (Escapeable => True, Double_Delimiter => False,
-          Escape_Mapping => M3_Style_Escape_Code_Map)),
-     Whitespace_T  => Tokenizer.Get (OpenToken.Recognizer.Character_Set.Get (M3_Whitespace)),
-     End_of_File_T => Tokenizer.Get (OpenToken.Recognizer.End_Of_File.Get));
+                                   (Escapeable => True, Double_Delimiter => False,
+                                    Escape_Mapping => M3_Style_Escape_Code_Map)),
+      Whitespace_T  => Tokenizer.Get (OpenToken.Recognizer.Character_Set.Get (M3_Whitespace)),
+      End_of_File_T => Tokenizer.Get (OpenToken.Recognizer.End_Of_File.Get));
 
    Analyzer : Tokenizer.Instance := Tokenizer.Initialize (Syntax);
 
