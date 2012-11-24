@@ -58,6 +58,29 @@ ada-gnat-parse-gpr
     fails when require ada_project_path
         not set properly by .prj?
 
+ada-case-adjust
+    test on:
+        Mixed_Case_Identifier   done
+        keyword                 done
+        "string"                done
+        -- comment              done
+        'A'                     done
+        'Attribute              done
+        1235                    inspection
+        16#AFE#                 done
+        FULL_ExCeption          done
+        PARTial_Exception       done
+
+        UPCASE KEYWORD
+
+        bobp
+
+    interactive test (adjust case after each letter)
+        A
+        a
+        a_b
+        foo_bar_baz
+
 ada-capitalize-word
 
 need ada-keywords for casing exception

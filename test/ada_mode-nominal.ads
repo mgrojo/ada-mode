@@ -114,8 +114,14 @@ package Ada_Mode.Nominal is
    type Object_Access_Type_4 is not null
      --EMACSCMD:(test-face "Integer" font-lock-type-face)
      access all Integer; -- it no longer matters wither this is 'all' or 'constant'
+
+   --EMACSCMD:(progn (forward-line 1)(forward-word 1)(downcase-word 4)(ada-case-adjust))
    type Object_Access_Type_5a is not
+   --EMACSCMD:(progn (forward-line -1)(forward-word 1)(forward-char 1)(let ((case-fold-search nil))(looking-at "Object_Access_Type_5a")))
+   --EMACSRESULT:t
+   --EMACSCMD:(progn (forward-line 1)(upcase-word 1)(ada-case-adjust)(let ((case-fold-search nil))(looking-back "null")))
      null access all Integer;
+   --EMACSRESULT:t
    type Object_Access_Type_6 is
      not null access all Integer;
    type Object_Access_Type_6b is

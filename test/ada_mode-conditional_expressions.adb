@@ -18,7 +18,10 @@ procedure Ada_Mode.Conditional_Expressions is
      (case J is when 42 => -1, when Integer'First .. 41 => 0, when others => 1);
    L1 : Integer := (case J is
                        when 42 => -1,
+                       -- comment aligned with 'when'
+                       --EMACSCMD:(progn (forward-line 1)(forward-word 2)(downcase-word 1)(ada-case-adjust)(let ((case-fold-search nil))(looking-back "'First")))
                        when Integer'First .. 41 => 0,
+                       --EMACSRESULT:t
                        when others => +1);
    L2 : Integer := (case J is
                        when

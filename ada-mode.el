@@ -151,13 +151,9 @@ preserved when the list is written back to the file."
   :group 'ada)
 
 (defcustom ada-case-keyword 'downcase-word
-  "*Function to call to adjust the case of an Ada keywords.
-It may be `downcase-word', `upcase-word', `ada-loose-case-word' or
-`ada-capitalize-word'."
+  "*Function to call to adjust the case of an Ada keywords."
   :type '(choice (const downcase-word)
 		 (const upcase-word)
-		 (const ada-capitalize-word)
-		 (const ada-loose-case-word)
 		 (const ada-no-auto-case))
   :group 'ada)
 
@@ -283,7 +279,6 @@ If nil, no contextual menu is available."
 (defvar ada-context-menu-last-point nil)
 (defvar ada-context-menu-on-identifier nil)
 (defvar ada-context-menu nil)
-(defun ada-after-keyword-p () nil);; FIXME: used in ada-popup-menu
 
 (defun ada-call-from-context-menu (function)
   "Execute FUNCTION when called from the contextual menu.
@@ -448,6 +443,85 @@ FILE-NAME defaults to the first file in `ada-case-exception-file'."
       (setq partial-exceptions (ada-case-add-exception word partial-exceptions)))
      )
     (ada-case-save-exceptions full-exceptions partial-exceptions file-name)
+    ))
+
+(defun ada-in-numeric-literal-p ()
+  "Return t if point is after a prefix of a numeric literal."
+  (looking-back "\\([0-9]+#[0-9a-fA-F_]+\\)"))
+
+(defun ada-after-keyword-p ()
+  "Return non-nil if point is after an element of `ada-keywords'."
+  (let ((word (buffer-substring-no-properties
+	       (save-excursion (skip-syntax-backward "w_") (point))
+	       (point))))
+    (member (downcase word) ada-keywords)))
+
+(defun ada-adjust-case-identifier ()
+  "Adjust case of the previous word as an identifier.
+Uses Mixed_Case, with exceptions defined in
+`ada-case-full-exceptions', `ada-case-partial-exceptions'."
+  (interactive)
+  (save-excursion
+    (let ((end   (point))
+	  (start (progn (skip-syntax-backward "w_") (point)))
+	  match
+	  next
+	  (done nil))
+
+      (if (setq match (assoc-string (buffer-substring-no-properties start end) ada-case-full-exceptions t))
+	  ;; full word exception
+	  (progn
+	    (delete-region start end)
+	    (insert (car match)))
+
+	;; else apply Mixed_Case and partial-exceptions
+	(while (not done)
+	  (setq next
+		(or
+		 (save-excursion (search-forward "_" end t))
+		 end))
+
+	  (if (setq match (assoc-string (buffer-substring-no-properties start (1- next))
+					ada-case-partial-exceptions t))
+	      (progn
+		(delete-region start (1- next))
+		(insert (car match)))
+
+	    ;; else upcase first char
+	    (insert-char (upcase (following-char)) 1)
+	    (delete-char 1))
+
+	  (goto-char next)
+	  (if (< (point) end)
+	      (setq start (point))
+	    (setq done t))
+	)))))
+
+(defun ada-case-adjust (&optional force-identifier)
+  "Adjust the case of the word before the character just typed.
+If FORCE-IDENTIFIER is non-nil then treat the word as an identifier (not an Ada keyword)."
+  (when (not (bobp))
+    (when (save-excursion
+	    (forward-char -1)
+	    (and (not (bobp))
+		 (not (and (eq (following-char) ?')
+			   (eq (char-before (1- (point))) ?'))); character literal
+
+		 (memq (char-syntax (char-before)) '(?w ?_)); single character identifier
+
+		 (not (ada-in-string-or-comment-p))
+
+		 (not (ada-in-numeric-literal-p))
+		 ))
+
+      (cond
+       ((and
+	 (not force-identifier)
+	 (ada-after-keyword-p))
+	(funcall ada-case-keyword -1))
+
+       (t (ada-adjust-case-identifier))
+       ))
     ))
 
 ;;; project files
@@ -632,7 +706,10 @@ Return new value of PROJECT."
     (if src_dir (set 'project (plist-put project 'src_dir (reverse src_dir))))
 
     (when parse-file-final
-      (set 'project (funcall parse-file-final project)))
+      ;; parse-file-final may reference the "current project", so bind that now.
+      (let ((ada-prj-current-project project)
+	    (ada-prj-current-file prj-file))
+	(set 'project (funcall parse-file-final project))))
 
     project
     ))
@@ -653,7 +730,8 @@ Return new value of PROJECT."
   (setq ada-compiler (ada-prj-get 'ada-compiler))
 
   (when (ada-prj-get 'casing)
-    (ada-case-read-exceptions))
+    (setq ada-case-exception-file (ada-prj-get 'casing))
+    (ada-case-read-all-exceptions))
 
   (let ((ada_project_path (ada-prj-get 'ada_project_path)))
     (when ada_project_path
@@ -1377,17 +1455,35 @@ The paragraph is indented on the first line."
 
 ;;; support for font-lock.el
 
+;; casing keywords defined here to keep the two lists together
+(defconst ada-83-keywords
+  '("abort" "abs" "accept" "access" "all" "and" "array" "at" "begin"
+    "body" "case" "constant" "declare" "delay" "delta" "digits" "do"
+    "else" "elsif" "end" "entry" "exception" "exit" "for" "function"
+    "generic" "goto" "if" "in" "is" "limited" "loop" "mod" "new"
+    "not" "null" "of" "or" "others" "out" "package" "pragma" "private"
+    "procedure" "raise" "range" "record" "rem" "renames" "return"
+    "reverse" "select" "separate" "subtype" "task" "terminate" "then"
+    "type" "use" "when" "while" "with" "xor")
+  "List of Ada 83 keywords.")
+
+(defconst ada-95-keywords
+  '("abstract" "aliased" "protected" "requeue" "tagged" "until")
+  "List of keywords new in Ada 95.")
+
+(defconst ada-2005-keywords
+  '("interface" "overriding" "synchronized")
+  "List of keywords new in Ada 2005.")
+
+(defconst ada-2012-keywords
+  '("some")
+  "List of keywords new in Ada 2012.")
+
+(defvar ada-keywords nil
+  "List of Ada keywords for current `ada-language'.")
+
 (defun ada-font-lock-keywords ()
   "Ada mode keywords for font-lock, customized according to `ada-language-version'."
-  ;; keywords added in ada-95:
-  ;;    "abstract" "aliased" "protected" "requeue" "tagged" "until"
-  ;;
-  ;; 2005:
-  ;;    "interface" "overriding" "synchronized"
-  ;;
-  ;; 2012:
-  ;;    "some"
-
   (list
 
    ;; keywords followed by a name that should be in function-name-face.
@@ -1547,6 +1643,27 @@ The paragraph is indented on the first line."
   (set (make-local-variable 'comment-start-skip) "---*[ \t]*")
   (set (make-local-variable 'comment-multi-line) nil)
 
+  (case ada-language-version
+   (ada83
+    (setq ada-keywords ada-83-keywords))
+
+   (ada95
+    (setq ada-keywords
+	  (append ada-83-keywords
+		  ada-95-keywords)))
+
+   (ada2005
+    (setq ada-keywords
+	  (append ada-83-keywords
+		  ada-95-keywords
+		  ada-2005-keywords)))
+   (ada2012
+    (setq ada-keywords
+	  (append ada-83-keywords
+		  ada-95-keywords
+		  ada-2005-keywords
+		  ada-2012-keywords))))
+
   (set (make-local-variable 'font-lock-defaults)
        '(ada-font-lock-keywords
 	 nil t
@@ -1618,7 +1735,6 @@ The paragraph is indented on the first line."
 
 ;; provide some dummy functions so other code can at least run
 ;; FIXME (later): make these real, somewhere
-(defun ada-adjust-case-identifier ()); get this from emacs_stephe/ada-mode-keys.el
 (defun ada-adjust-case () (capitalize-word 1))
 
 ;; load indent engine first; compilers may need to know which is being

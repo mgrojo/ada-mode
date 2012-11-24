@@ -102,56 +102,55 @@ See also `ada-gnat-parse-emacs-prj-file-final'."
 
 (defun ada-gnat-get-paths (project)
   "Add project and/or compiler source, object paths to PROJECT src_dir, obj_dir."
-  (let ((ada-prj-current-project project))
-    (with-current-buffer (ada-gnat-run-buffer)
-      (let ((status (ada-gnat-run "list" "-v"))
-	    src-dirs
-	    obj-dirs)
+  (with-current-buffer (ada-gnat-run-buffer)
+    (let ((status (ada-gnat-run "list" "-v"))
+	  src-dirs
+	  obj-dirs)
 
-	;; gnat list -P -v returns 0 in nominal cases
-	;; gnat list -v return 4, but still lists compiler dirs
-	(when (not (member status '(0 4)))
-	  (pop-to-buffer (current-buffer))
-	  (error "gnat list returned status %d" status))
+      ;; gnat list -P -v returns 0 in nominal cases
+      ;; gnat list -v return 4, but still lists compiler dirs
+      (when (not (member status '(0 4)))
+	(pop-to-buffer (current-buffer))
+	(error "gnat list returned status %d" status))
 
-	(goto-char (point-min))
+      (goto-char (point-min))
 
-	(condition-case nil
-	    (progn
-	      ;; Source path
-	      (search-forward "Source Search Path:")
-	      (forward-line 1)
-	      (while (not (looking-at "^$")) ; terminate on blank line
-		(back-to-indentation) ; skip whitespace forward
-		(if (looking-at "<Current_Directory>")
-		    (add-to-list 'src-dirs  (directory-file-name default-directory))
-		  (add-to-list 'src-dirs
-			       (expand-file-name ; canonicalize path part
-				(directory-file-name
-				 (buffer-substring-no-properties (point) (point-at-eol))))))
-		(forward-line 1))
+      (condition-case nil
+	  (progn
+	    ;; Source path
+	    (search-forward "Source Search Path:")
+	    (forward-line 1)
+	    (while (not (looking-at "^$")) ; terminate on blank line
+	      (back-to-indentation) ; skip whitespace forward
+	      (if (looking-at "<Current_Directory>")
+		  (add-to-list 'src-dirs  (directory-file-name default-directory))
+		(add-to-list 'src-dirs
+			     (expand-file-name ; canonicalize path part
+			      (directory-file-name
+			       (buffer-substring-no-properties (point) (point-at-eol))))))
+	      (forward-line 1))
 
-	      ;;  Object path
+	    ;;  Object path
 
-	      (search-forward "Object Search Path:")
-	      (forward-line 1)
-	      (while (not (looking-at "^$"))
-		(back-to-indentation)
-		(if (looking-at "<Current_Directory>")
-		    (add-to-list 'obj-dirs ".")
-		  (add-to-list 'obj-dirs
-			       (expand-file-name
-				(buffer-substring-no-properties (point) (point-at-eol)))))
-		(forward-line 1))
-	      )
-	    ('error
-	     (pop-to-buffer (current-buffer))
-	     ;; search-forward failed; it already output a message
-	     ))
+	    (search-forward "Object Search Path:")
+	    (forward-line 1)
+	    (while (not (looking-at "^$"))
+	      (back-to-indentation)
+	      (if (looking-at "<Current_Directory>")
+		  (add-to-list 'obj-dirs ".")
+		(add-to-list 'obj-dirs
+			     (expand-file-name
+			      (buffer-substring-no-properties (point) (point-at-eol)))))
+	      (forward-line 1))
+	    )
+	('error
+	 (pop-to-buffer (current-buffer))
+	 ;; search-forward failed; it already output a message
+	 ))
 
-	(setq project (plist-put project 'src_dir (reverse src-dirs)))
-	(setq project (plist-put project 'obj_dir (reverse obj-dirs)))
-	)))
+      (setq project (plist-put project 'src_dir (reverse src-dirs)))
+      (setq project (plist-put project 'obj_dir (reverse obj-dirs)))
+      ))
   project)
 
 (defun ada-gnat-parse-gpr (gpr-file project)

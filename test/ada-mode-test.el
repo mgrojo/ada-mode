@@ -97,4 +97,22 @@
        (cons "CaMeL" t)
        (cons "ANother" t)))
 
+(ada-parse-prj-file "ada_mode.adp")
+(ada-select-prj-file "ada_mode.adp")
+
+(test "case 3 full words"
+      ada-case-full-exceptions
+      (list
+       (cons "OpenToken" t)
+       (cons "Text_IO" t)
+       ))
+
+(test "case 3 partial words"
+      ada-case-partial-exceptions
+      (list
+       (cons "ANother" t)
+       (cons "ASCII" t)
+       (cons "AUnit" t)
+       ))
+
 ;;; end of file

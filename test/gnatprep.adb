@@ -39,7 +39,7 @@ begin
       --EMACSRESULT:font-lock-constant-face
 
       --  Don't change the hex literal to mixed case
-      --EMACSCMD:(progn (end-of-line 2)(forward-char -1)(buffer-substring (- (point) 6) (point)))
+      --EMACSCMD:(progn (end-of-line 2)(forward-char -1)(ada-case-adjust)(buffer-substring (- (point) 6) (point)))
       Other_Flags : constant Interfaces.Unsigned_16 := 16#ffff#;
       --EMACSRESULT:"#ffff#"
    begin
