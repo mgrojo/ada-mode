@@ -54,29 +54,56 @@ review FIXMEs
  ada-smie
 test/Makefile  ;; set project file
 
-ada-find-other-file in separate bodies
-    not on 'separate' line; must use ada-gnat-xref
+ada-gnat-parse-gpr
+    fails when require ada_project_path
+        not set properly by .prj?
+
+ada-capitalize-word
+
+need ada-keywords for casing exception
+
+    ada_adjust_case_substring bounds substring regexp with \b, with _ as non-word
+        don't need to use regexp!
+        combine loop on _ with loose_case
+
+    ada-adjust-case-identifier matches string bounded by \b
+
+    support multiple files
+        menu of file to save new exception in
+
+some self-insert keys call ada-adjust-case-interactive
+    which sets syntax table to ada-mode-symbol-syntax-table
+        which sets _ to word syntax (a symbol consists of word and symbol constituents)
+        loose_case_word searches for _ explicitly
+        ada-adjust-case-substring modifies syntax of _ to non-word
+
+
+    C-w calls ada-adjust-case-current-identifier
+        defined in ada-mode-keys!
+        calls ada-adjust-case with no syntax table mod
+
+set casing custom vars in project file
 
 which-function-mode
     reports "Ada_Mode" in child packages!
 
+ada-gnat-parse-gpr-file
+    if object dir not created, search for Source Search Path fails
+
 manuel Gomez using comp_cmd, make_cmd, src_dir, obj_dir; not .gpr files
 
-test/Makefile
-    test/ada_mode-nominal.ads
-    test/ada_mode-nominal.adb
-    test/ada_mode-nominal-child.ads
-    C-c C-d
-        use gnatfind, -d switch
+goto-declaration
+    -d switch
     mouse version?
-    also for other-file?
+
+ada-find-other-file in separate bodies
+    not on 'separate' line; must use ada-gnat-xref
+
 
 add ada-spec/body-suffixes to the Emacs project file
 
 rest of ada-mode
     merge all of ada-mode-patches, most of ada-mode-keys
-    ada-capitalize-word
-        use explicit skip-syntax rather than two syntax tables
     process patches in ada-mode email
 
     fully delete ada-gnat-cmd from ada-xfer

@@ -129,10 +129,36 @@ a good place to add Ada environment specific bindings.")
   :link '(custom-group-link :tag "Font Lock Faces group" font-lock-faces)
   :group 'languages)
 
+(defcustom ada-auto-case t
+  "*Non-nil means automatically change case of preceding word while typing.
+Casing of Ada keywords is done according to `ada-case-keyword',
+identifiers are Mixed_Case."
+  :type 'boolean :group 'ada)
+
 (defcustom ada-case-exception-file nil
-  "List of files defining exceptions to Ada mode auto-casing."
-  ;; FIXME: define format
-  :type '(set string)
+  "*List of special casing exceptions dictionaries for identifiers.
+New exceptions may be added interactively via `ada-create-case-exception'.
+If an exception is defined in multiple files, the first occurance is used.
+
+The file format is one word per line, that gives the casing to be
+used for that word in Ada source code.  If the line starts with
+the character *, then the exception will be used for partial
+words that either start at the beginning of a word or after a _
+character, and end either at the end of the word or at a _
+character.  Characters after the first word are ignored, and not
+preserved when the list is written back to the file."
+  :type '(repeat (file))
+  :group 'ada)
+
+(defcustom ada-case-keyword 'downcase-word
+  "*Function to call to adjust the case of an Ada keywords.
+It may be `downcase-word', `upcase-word', `ada-loose-case-word' or
+`ada-capitalize-word'."
+  :type '(choice (const downcase-word)
+		 (const upcase-word)
+		 (const ada-capitalize-word)
+		 (const ada-loose-case-word)
+		 (const ada-no-auto-case))
   :group 'ada)
 
 (defcustom ada-language-version 'ada2012
@@ -297,6 +323,131 @@ point is where the mouse button was clicked."
     ;; why not use save-excursion?
     (set-buffer (cadr ada-context-menu-last-point))
     (goto-char (car ada-context-menu-last-point))
+    ))
+
+;;; auto-casing
+
+(defvar ada-case-full-exceptions '()
+  "Alist of words (entities) that have special casing, built from
+`ada-case-exception-file' full word exceptions. Indexed by
+properly cased word; value is t.")
+
+(defvar ada-case-partial-exceptions '()
+  "Alist of partial words that have special casing, built from
+`ada-case-exception-file' partial word exceptions. Indexed by
+properly cased word; value is t.")
+
+(defun ada-case-save-exceptions (full-exceptions partial-exceptions file-name)
+  "Save FULL-EXCEPTIONS, PARTIAL-EXCEPTIONS to the file FILE-NAME."
+  (with-temp-file (expand-file-name file-name)
+    (mapc (lambda (x) (insert (car x) "\n"))
+	  (sort (copy-sequence full-exceptions)
+		(lambda(a b) (string< (car a) (car b)))))
+    (mapc (lambda (x) (insert "*" (car x) "\n"))
+	  (sort (copy-sequence partial-exceptions)
+		(lambda(a b) (string< (car a) (car b)))))
+    ))
+
+(defun ada-case-read-exceptions (file-name)
+  "Read the content of the casing exception file FILE-NAME.
+Return (cons full-exceptions partial-exceptions)."
+  (setq file-name (expand-file-name file-name))
+  (unless (file-readable-p file-name)
+    (error "'%s' is not a readable file."))
+
+  (let (full-exceptions partial-exceptions word)
+    (with-temp-buffer
+      (insert-file-contents file-name)
+      (while (not (eobp))
+
+	(setq word (buffer-substring-no-properties
+		    (point) (save-excursion (skip-syntax-forward "w_") (point))))
+
+	(if (char-equal (string-to-char word) ?*)
+	    ;; partial word exception
+	    (progn
+	      (setq word (substring word 1))
+	      (unless (assoc-string word partial-exceptions t)
+		(add-to-list 'partial-exceptions (cons word t))))
+
+	  ;; full word exception
+	  (unless (assoc-string word full-exceptions t)
+	    (add-to-list 'full-exceptions (cons word t))))
+
+	(forward-line 1))
+      )
+    (cons full-exceptions partial-exceptions)))
+
+(defun ada-case-merge-exceptions (result new)
+  "Merge NEW exeptions into RESULT."
+  (dolist (item new)
+    (unless (assoc-string (car item) result t)
+      (add-to-list 'result item)))
+  result)
+
+(defun ada-case-merge-all-exceptions (exceptions)
+  "Merge EXCEPTIONS into `ada-case-full-exceptions', `ada-case-partial-exceptions'."
+  (setq ada-case-full-exceptions (ada-case-merge-exceptions ada-case-full-exceptions (car exceptions)))
+  (setq ada-case-partial-exceptions (ada-case-merge-exceptions ada-case-partial-exceptions (cdr exceptions))))
+
+(defun ada-case-read-all-exceptions ()
+  "Read case exceptions from all files in `ada-case-exception-file',
+replacing current values of `ada-case-full-exceptions', `ada-case-partial-exceptions'."
+  (setq ada-case-full-exceptions '()
+	ada-case-partial-exceptions '())
+
+  (dolist (file ada-case-exception-file)
+    (ada-case-merge-all-exceptions (ada-case-read-exceptions file)))
+  )
+
+(defun ada-case-add-exception (word exceptions)
+  "Add case exception WORD to EXCEPTIONS, replacing current entry, if any."
+  (if (assoc-string word exceptions t)
+      (setcar (assoc-string word exceptions t) word)
+    (add-to-list 'exceptions (cons word t)))
+  exceptions)
+
+(defun ada-case-create-exception (&optional word file-name partial)
+  "Define WORD as an exception for the casing system, save it in FILE-NAME.
+If PARTIAL is non-nil, create a partial word exception.
+WORD defaults to the word at point.
+FILE-NAME defaults to the first file in `ada-case-exception-file'."
+  (interactive)
+  (setq file-name
+	(cond
+	 (file-name file-name)
+	 ((stringp ada-case-exception-file)
+	  ada-case-exception-file)
+	 ((and
+	   (listp ada-case-exception-file)
+	   (car ada-case-exception-file)))
+	 (t
+	  (error
+	   "No exception file specified. See variable ada-case-exception-file"))))
+
+  (unless word
+    (save-excursion
+      (skip-syntax-backward "w_")
+      (setq word
+	    (buffer-substring-no-properties
+	     (point)
+	     (progn (skip-syntax-forward "w_") (point))
+	     ))))
+
+  (let* ((exceptions (ada-case-read-exceptions file-name))
+	 (full-exceptions (car exceptions))
+	 (partial-exceptions (cdr exceptions)))
+
+    (cond
+     ((null partial)
+      (setq ada-case-full-exceptions (ada-case-add-exception word ada-case-full-exceptions))
+      (setq full-exceptions (ada-case-add-exception word full-exceptions)))
+
+     (t
+      (setq ada-case-partial-exceptions (ada-case-add-exception word ada-case-partial-exceptions))
+      (setq partial-exceptions (ada-case-add-exception word partial-exceptions)))
+     )
+    (ada-case-save-exceptions full-exceptions partial-exceptions file-name)
     ))
 
 ;;; project files

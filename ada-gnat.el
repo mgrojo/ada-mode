@@ -116,31 +116,38 @@ See also `ada-gnat-parse-emacs-prj-file-final'."
 
 	(goto-char (point-min))
 
-	;; Source path
-	(search-forward "Source Search Path:")
-	(forward-line 1)
-	(while (not (looking-at "^$")) ; terminate on blank line
-	  (back-to-indentation) ; skip whitespace forward
-	  (if (looking-at "<Current_Directory>")
-	      (add-to-list 'src-dirs  (directory-file-name default-directory))
-	    (add-to-list 'src-dirs
-			 (expand-file-name ; canonicalize path part
-			  (directory-file-name
-			   (buffer-substring-no-properties (point) (point-at-eol))))))
-	  (forward-line 1))
+	(condition-case nil
+	    (progn
+	      ;; Source path
+	      (search-forward "Source Search Path:")
+	      (forward-line 1)
+	      (while (not (looking-at "^$")) ; terminate on blank line
+		(back-to-indentation) ; skip whitespace forward
+		(if (looking-at "<Current_Directory>")
+		    (add-to-list 'src-dirs  (directory-file-name default-directory))
+		  (add-to-list 'src-dirs
+			       (expand-file-name ; canonicalize path part
+				(directory-file-name
+				 (buffer-substring-no-properties (point) (point-at-eol))))))
+		(forward-line 1))
 
-	;;  Object path
+	      ;;  Object path
 
-	(search-forward "Object Search Path:")
-	(forward-line 1)
-	(while (not (looking-at "^$"))
-	  (back-to-indentation)
-	  (if (looking-at "<Current_Directory>")
-	      (add-to-list 'obj-dirs ".")
-	    (add-to-list 'obj-dirs
-			 (expand-file-name
-			  (buffer-substring-no-properties (point) (point-at-eol)))))
-	  (forward-line 1))
+	      (search-forward "Object Search Path:")
+	      (forward-line 1)
+	      (while (not (looking-at "^$"))
+		(back-to-indentation)
+		(if (looking-at "<Current_Directory>")
+		    (add-to-list 'obj-dirs ".")
+		  (add-to-list 'obj-dirs
+			       (expand-file-name
+				(buffer-substring-no-properties (point) (point-at-eol)))))
+		(forward-line 1))
+	      )
+	    ('error
+	     (pop-to-buffer (current-buffer))
+	     ;; search-forward failed; it already output a message
+	     ))
 
 	(setq project (plist-put project 'src_dir (reverse src-dirs)))
 	(setq project (plist-put project 'obj_dir (reverse obj-dirs)))
@@ -190,9 +197,9 @@ src_dir, obj_dir will include compiler runtime."
 	       (or (ada-prj-get 'gpr_file)
 		   ada-prj-current-file)))
 
-	(let ((ada_project_path (ada-prj-get 'project_path)))
+	(let ((ada_project_path (ada-prj-get 'ada_project_path)))
 	  (when ada_project_path
-	    (add-to-list (make-buffer-local-variable 'process-environment)
+	    (add-to-list (make-variable-buffer-local 'process-environment)
 			 (concat "ADA_PROJECT_PATH=" ada_project_path))))
 	)
       buffer)))
