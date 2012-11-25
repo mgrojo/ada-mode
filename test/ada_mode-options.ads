@@ -5,23 +5,28 @@
 -- Verify that Local Variables work (they do if they are marked safe):
 --EMACSCMD: ada-indent-record-rel-type
 --EMACSRESULT: 0
-package Ada_Mode.Options is
-   pragma Elaborate_Body (Options);
 
-   type Private_Type_1 is tagged
-   record
+-- Testing with uppercase Ada keywords; smie parser must be case-insensitive!
+PACKAGE Ada_Mode.Options IS
+   PRAGMA Elaborate_Body (Options);
+
+   --EMACSCMD:(progn (forward-line 1)(downcase-word 1)(ada-case-adjust)(let ((case-fold-search nil))(looking-back "TYPE")))
+   TYPE Private_Type_1 IS TAGGED
+   RECORD
+      --EMACSRESULT:t
       Component_1 : Integer;
-   end record;
+   END RECORD;
 
 -- comment in column 0
 
-   type Derived_Type_1 is
-   new Private_Type_1 with record
+   TYPE Derived_Type_1 IS
+   NEW Private_Type_1 WITH RECORD
       Component_2 : Integer;
-   end record;
+   END RECORD;
 
-end Ada_Mode.Options;
+   END Ada_Mode.Options;
 -- Local Variables:
 -- ada-indent-record-rel-type: 0
 -- ada-indent-comment-col-0: t
+-- ada-case-keyword: upcase-word
 -- End:

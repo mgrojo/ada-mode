@@ -1040,7 +1040,7 @@ avoid infinite loop on illegal code."
 (defun ada-smie-refine-: (token forward)
   (let ((token (save-excursion
 		 (when (not forward) (smie-default-forward-token))
-		 (smie-default-forward-token))))
+		 (ada-smie-unrefined-token t))))
     (if (member token ada-smie-labeled-unrefined-keywords)
 	":-label"
       ":-object")))
@@ -1150,7 +1150,7 @@ avoid infinite loop on illegal code."
     (when forward (smie-default-backward-token))
 
     (or
-     (when (equal "interface" (save-excursion (smie-default-backward-token)))
+     (when (equal "interface" (save-excursion (ada-smie-unrefined-token nil)))
        "and-interface"); 2
 
      (let ((token (ada-smie-backward-keyword)))
@@ -1231,7 +1231,7 @@ avoid infinite loop on illegal code."
 (defun ada-smie-refine-case (token forward)
   (let ((token (save-excursion
 		 (when forward (smie-default-backward-token))
-		 (smie-default-backward-token))))
+		 (ada-smie-unrefined-token nil))))
 
     (if (equal token "end")
 	"case-end"
@@ -1240,7 +1240,7 @@ avoid infinite loop on illegal code."
 (defun ada-smie-refine-else (token forward)
   (let ((token (save-excursion
 		 (when forward (smie-default-backward-token))
-		 (smie-default-backward-token))))
+		 (ada-smie-unrefined-token nil))))
 
     (if (equal token "or")
 	"else"; identifier
@@ -1250,7 +1250,7 @@ avoid infinite loop on illegal code."
   (save-excursion
     (when forward (smie-default-backward-token))
 
-    (let ((token (save-excursion (smie-default-forward-token) (smie-default-forward-token))))
+    (let ((token (save-excursion (smie-default-forward-token) (ada-smie-unrefined-token t))))
       (cond
        ((equal "case" token) "end-case")
        ((equal "if" token) "end-if")
@@ -1270,7 +1270,7 @@ avoid infinite loop on illegal code."
   ;; when =>
   (let ((token (save-excursion
 		 (when forward (smie-default-backward-token))
-		 (smie-default-backward-token))))
+		 (ada-smie-unrefined-token nil))))
     (cond
      ((equal token ":") "exception-declare")
      ((equal token ";") "exception-block")
@@ -1282,10 +1282,10 @@ avoid infinite loop on illegal code."
     (let ((token
 	   (progn
 	     (when (not forward) (smie-default-backward-token))
-	     (smie-default-forward-token))))
+	     (ada-smie-unrefined-token t))))
       (cond
        ((equal "when" token) "exit-when")
-       ((equal "when" (smie-default-forward-token)); loop label
+       ((equal "when" (ada-smie-unrefined-token t)); loop label
 	"exit-when")
        (t "exit-other")
        ))
@@ -1295,7 +1295,7 @@ avoid infinite loop on illegal code."
   (let ((token (save-excursion
 		 (when (not forward) (smie-default-forward-token)); for
 		 (smie-default-forward-token); identifier
-		 (smie-default-forward-token))))
+		 (ada-smie-unrefined-token t))))
     (if (equal token "in")
 	"for-loop"
       "for-attribute")))
@@ -1306,7 +1306,7 @@ avoid infinite loop on illegal code."
   (save-excursion
     (when forward (smie-default-backward-token))
 
-    (let ((token (save-excursion (smie-default-backward-token))))
+    (let ((token (save-excursion (ada-smie-unrefined-token nil))))
       (cond
        ((equal "end" token) "if-end")
        (t "if-open"))
@@ -1316,7 +1316,7 @@ avoid infinite loop on illegal code."
   ;; see `ada-smie-refine-and' for Ada syntax cases
   (let ((token (save-excursion
 		 (when (not forward) (smie-default-forward-token))
-		 (smie-default-forward-token))))
+		 (ada-smie-unrefined-token t))))
 
     (if (equal token "and")
 	"interface-and"
@@ -1338,7 +1338,7 @@ avoid infinite loop on illegal code."
        ;; have discriminants. FIXME (later): they can have aspect specs.
        (let ((token (progn
 		      (smie-default-backward-token); identifier
-		      (smie-default-backward-token))))
+		      (ada-smie-unrefined-token nil))))
 	 ;; "protected", "task", "body", "type", "subtype": handled here
 	 ;;
 	 ;; "": discriminant or parameter list; below
@@ -1351,14 +1351,14 @@ avoid infinite loop on illegal code."
 	 (cond
 	  ((member token '("protected" "task")) "is-type-block")
 	  ((equal token "body")
-	    (setq token (smie-default-backward-token))
+	    (setq token (ada-smie-unrefined-token nil))
 	    (cond
 	     ((equal token "protected") "is-protected_body")
 	     ((equal token "task") "is-task_body")
 	     ))
 	  ((equal token "subtype") "is-subtype")
 	  ((equal token "type")
-	    (setq token (smie-default-backward-token))
+	    (setq token (ada-smie-unrefined-token nil))
 	    (when (member token '("protected" "task")) "is-type-block")
 	    ;; "is-type-*" handled below
 	    )
@@ -1391,7 +1391,7 @@ avoid infinite loop on illegal code."
 	 ;;  separate procedure name is declarations begin statements end; separate body
 	 (let ((token (save-excursion
 			(smie-default-forward-token); is
-			(smie-default-forward-token))))
+			(ada-smie-unrefined-token t))))
 	   (cond
 	    ((member token '("abstract" "null")) "is"); identifier
 	    (t "is-subprogram_body"))))
@@ -1406,7 +1406,7 @@ avoid infinite loop on illegal code."
 	 (if (equal "abstract"
 		    (progn
 		      (smie-default-forward-token); is
-		      (smie-default-forward-token)))
+		      (ada-smie-unrefined-token t)))
 	     "is"
 	 "is-subprogram_body"))
 
@@ -1417,7 +1417,7 @@ avoid infinite loop on illegal code."
 		(token
 		 (save-excursion
 		   (smie-default-forward-token); is
-		   (prog1 (smie-default-forward-token)
+		   (prog1 (ada-smie-unrefined-token t)
 		     (setq pos (point))))))
 	   (cond
 	    ((equal token ""); paren, string, or end of buffer; assume paren
@@ -1429,7 +1429,7 @@ avoid infinite loop on illegal code."
 
 	    ((and
 	      (equal token "tagged")
-	      (let ((token (save-excursion (goto-char pos) (smie-default-forward-token))))
+	      (let ((token (save-excursion (goto-char pos) (ada-smie-unrefined-token t))))
 		(cond
 		 ((equal token ";")
 		  ;; type Incomplete_Type_1 (Discriminant_1 : Integer) is tagged; -- in spec
@@ -1478,7 +1478,7 @@ avoid infinite loop on illegal code."
 (defun ada-smie-refine-limited (token forward)
   (let ((token (save-excursion
 		 (when (not forward) (smie-default-forward-token)); limited
-		 (smie-default-forward-token))))
+		 (ada-smie-unrefined-token t))))
 
     (cond
      ((member token '("private" "with")) "limited-context")
@@ -1488,7 +1488,7 @@ avoid infinite loop on illegal code."
 (defun ada-smie-refine-loop (token forward)
   (let ((token (save-excursion
 		 (when forward (smie-default-backward-token))
-		 (smie-default-backward-token))))
+		 (ada-smie-unrefined-token nil))))
     ;; "loop" occurs in:
     ;;
     ;; 1) loop_statement ::=
@@ -1649,7 +1649,7 @@ avoid infinite loop on illegal code."
 (defun ada-smie-refine-or (token forward)
   (let ((token (save-excursion
 		 (when (not forward) (smie-default-forward-token))
-		 (smie-default-forward-token))))
+		 (ada-smie-unrefined-token t))))
     (cond
      ((member token '("accept" "delay" "terminate" "when")) "or-select")
      (t "or")))); operator identifier
@@ -1657,7 +1657,7 @@ avoid infinite loop on illegal code."
 (defun ada-smie-refine-package (token forward)
   (save-excursion
     (when forward (smie-default-backward-token))
-    (let ((token (save-excursion (smie-default-backward-token))))
+    (let ((token (save-excursion (ada-smie-unrefined-token nil))))
       (or
        (cond
 	((and
@@ -1674,7 +1674,7 @@ avoid infinite loop on illegal code."
 	 (cond
 	  ((equal token "renames") "package-renames")
 	  ((and (equal token "is")
-		(equal "new" (save-excursion (smie-default-forward-token))))
+		(equal "new" (save-excursion (ada-smie-unrefined-token t))))
 	   "package-inst")
 	  ))
 
@@ -1738,7 +1738,7 @@ avoid infinite loop on illegal code."
     ;; 7) protected_definition
     ;; 8) task_definition
     (cond
-     ((equal "with" (save-excursion (smie-default-backward-token)))
+     ((equal "with" (save-excursion (ada-smie-unrefined-token nil)))
       "private-with"); 6
 
      ((equal "is-type" (save-excursion (ada-smie-backward-type-modifiers)
@@ -1748,11 +1748,11 @@ avoid infinite loop on illegal code."
 
      ((let ((token (save-excursion
 		     (smie-default-forward-token); private
-		     (smie-default-forward-token))))
+		     (ada-smie-unrefined-token t))))
 	(cond
 	 ((member token '("with" ";"))
 	  ;; 2
-	  (if (equal "limited" (save-excursion (smie-default-backward-token)))
+	  (if (equal "limited" (save-excursion (ada-smie-unrefined-token nil)))
 	      "private-context-2"
 	    "private-context-1"))
 
@@ -1810,7 +1810,7 @@ avoid infinite loop on illegal code."
 
      ((equal "body" (save-excursion
 		      (smie-default-forward-token)
-		      (smie-default-forward-token)))
+		      (ada-smie-unrefined-token t)))
       "protected-body"); 6a, 7
 
      (t "protected-type")); 5, 4
@@ -1831,12 +1831,12 @@ avoid infinite loop on illegal code."
   (save-excursion
     (when forward (smie-default-backward-token))
 
-    (let ((token (save-excursion (smie-default-backward-token))))
+    (let ((token (save-excursion (ada-smie-unrefined-token nil))))
       (cond
        ((equal token "end")
 	(if (equal "with" (save-excursion
 			    (smie-default-forward-token); record
-			    (smie-default-forward-token)))
+			    (ada-smie-unrefined-token t)))
 	    "record-end-aspect";
 	  "record-end"))
        ((equal token "null") "record-null")
@@ -1853,9 +1853,9 @@ avoid infinite loop on illegal code."
 
     (let ((parent (progn
                     (ada-smie-goto-parent token 1)
-                    (smie-default-forward-token))))
-      (if (equal parent "overriding")
-          (progn (setq parent (smie-default-forward-token))))
+                    (ada-smie-unrefined-token t))))
+      (when (equal parent "overriding")
+	(setq parent (ada-smie-unrefined-token t)))
       (cond
        ((member parent '("function" "procedure")) "renames-subprogram")    ; 1
        (t "renames-other")
@@ -1917,7 +1917,7 @@ avoid infinite loop on illegal code."
     ;;
     ;; So we have to look both forward and backward to resolve this.
     (or
-     (if (equal "end" (save-excursion (smie-default-backward-token))) "return-end"); 4c
+     (if (equal "end" (save-excursion (ada-smie-unrefined-token nil))) "return-end"); 4c
 
      ;; Do this now, otherwise we can't distinguish between:
      ;;
@@ -1936,11 +1936,11 @@ avoid infinite loop on illegal code."
      (save-excursion
        (let ((token (progn
 		      (smie-default-forward-token); return
-		      (smie-default-forward-token))))
+		      (ada-smie-unrefined-token t))))
 	 (cond
 	  ((equal token ";") "return"); 3a
 	  (t
-	   (setq token (smie-default-forward-token)); identifier
+	   (setq token (ada-smie-unrefined-token t)); identifier
 	   (cond
 	    ((member token '(":" ":-do")) "return-ext"); 4a, 4b
 	    (t "return"); 3b
@@ -1951,7 +1951,7 @@ avoid infinite loop on illegal code."
   (save-excursion
     (when forward (smie-default-backward-token))
 
-    (let ((prev-token (smie-default-backward-token)))
+    (let ((prev-token (ada-smie-unrefined-token nil)))
       (cond
        ((equal prev-token "end") "select-end")
        (t "select-open"))
@@ -1960,7 +1960,7 @@ avoid infinite loop on illegal code."
 (defun ada-smie-refine-separate (token forward)
   (let ((token (save-excursion
 		 (when (not forward) (smie-default-forward-token))
-		 (smie-default-forward-token))))
+		 (ada-smie-unrefined-token t))))
 
     (if (equal token ";")
 	"separate-stub"
@@ -1970,7 +1970,7 @@ avoid infinite loop on illegal code."
   (save-excursion
     (when forward (smie-default-backward-token))
 
-    (let ((prev-token (save-excursion (smie-default-backward-token))))
+    (let ((prev-token (save-excursion (ada-smie-unrefined-token nil))))
       (cond
        ((equal prev-token "with")	(concat token "-formal"))
        ((equal prev-token "overriding") (concat token "-overriding"))
@@ -1985,7 +1985,7 @@ avoid infinite loop on illegal code."
        ((save-excursion
 	  (and
 	   (equal "is" (ada-smie-forward-tokens-unrefined "return" "is" ";")); end of subprogram-spec
-	   (equal "new" (smie-default-forward-token))))
+	   (equal "new" (ada-smie-unrefined-token t))))
 	;; generic_instantiation. We have to check for "new" without
 	;; refining it.
 	(concat token "-inst"))
@@ -2004,7 +2004,7 @@ avoid infinite loop on illegal code."
 
      ((equal (save-excursion
                (smie-default-forward-token)
-               (smie-default-forward-token))
+               (ada-smie-unrefined-token t))
 	     "body")
       "task-body")
 
@@ -2019,7 +2019,7 @@ avoid infinite loop on illegal code."
 (defun ada-smie-refine-then (token forward)
   (let ((token (save-excursion
 		 (when forward (smie-default-backward-token))
-		 (smie-default-backward-token))))
+		 (ada-smie-unrefined-token nil))))
 
     (cond
      ((equal token "and") "then"); identifier
@@ -2032,7 +2032,7 @@ avoid infinite loop on illegal code."
 (defun ada-smie-refine-type (token forward)
   (let ((token (save-excursion
 		 (when forward (smie-default-backward-token))
-		 (smie-default-backward-token))))
+		 (ada-smie-unrefined-token nil))))
 
     (cond
      ((equal token "protected") "type-protected")
@@ -2072,7 +2072,7 @@ avoid infinite loop on illegal code."
 		 (ada-smie-backward-keyword))))
 
     (if (equal token "for-attribute")
-	(if (equal "record" (save-excursion (smie-default-forward-token)))
+	(if (equal "record" (save-excursion (ada-smie-unrefined-token t)))
 	    "use-record"
 	  "use-attribute")
       "use-decl")))
@@ -2144,17 +2144,17 @@ avoid infinite loop on illegal code."
     ;;
 
     (or
-     (if (member (save-excursion (smie-default-backward-token)) '("select" "or"))
+     (if (member (save-excursion (ada-smie-unrefined-token nil)) '("select" "or"))
 	 "when-select")
 
      (save-excursion
-       (let ((token (smie-default-backward-token)))
+       (let ((token (ada-smie-unrefined-token nil)))
 	 (cond
 	  ((equal token "exit")
 	   "when-exit")
 	  ((and
 	    (not (ada-smie-keyword-p token)) ;; "exit label when", not "exit; when foo => "
-	    (equal (smie-default-backward-token) "exit"))
+	    (equal (ada-smie-unrefined-token nil) "exit"))
 	   "when-exit"))))
 
      (if (equal "entry" (ada-smie-backward-keyword))
@@ -2256,7 +2256,7 @@ avoid infinite loop on illegal code."
     (or
      (let ((token (save-excursion
 		    (smie-default-forward-token); with
-		    (smie-default-forward-token))))
+		    (ada-smie-unrefined-token t))))
        (cond
 	((member token '("function" "package" "procedure")) "with-formal"); 8
 	((equal token "record") "with-new"); 1
@@ -2264,7 +2264,7 @@ avoid infinite loop on illegal code."
 
      ;; this checks for preceding ";", so it has to be after the
      ;; above; with-formal also has a preceding ";"
-     (let ((token (save-excursion (smie-default-backward-token))))
+     (let ((token (save-excursion (ada-smie-unrefined-token nil))))
        (cond
 	((equal token "record") "with-aspect"); 11
 	((equal token ""); bob, ")"
@@ -2464,6 +2464,11 @@ Return TOKEN."
 	  (setq ada-smie-cache-max (point)))
 	 )))))
 
+(defun ada-smie-unrefined-token (forward)
+  (if forward
+      (downcase (smie-default-forward-token))
+    (downcase (smie-default-backward-token))))
+
 (defun ada-smie-next-token (forward)
   "Move to the next token; forward if FORWARD non-nil, backward otherwise.
 Return the token text or a refinement of it. Manage the refinement cache."
@@ -2476,7 +2481,7 @@ Return the token text or a refinement of it. Manage the refinement cache."
 		  (prog1
 		      (smie-default-backward-token)
 		    (setq cache-pos (point)))))
-	 (refine (cadr (assoc token ada-smie-next-token-alist))))
+	 (refine (cadr (assoc (downcase token) ada-smie-next-token-alist))))
     (cond
      ((stringp refine) refine)
 
@@ -2490,7 +2495,7 @@ Return the token text or a refinement of it. Manage the refinement cache."
 		(ada-smie-validate-cache-parens)
 		(ada-smie-get-cache cache-pos)))
 	(if ada-smie-refining
-	    (ada-smie-put-cache cache-pos (funcall refine token forward))
+	    (ada-smie-put-cache cache-pos (funcall refine (downcase token) forward))
 	  (ada-smie-validate-cache cache-pos)
 	  (ada-smie-get-cache cache-pos)
 	  )))
@@ -2895,7 +2900,7 @@ be a keyword, and point must be at the start of CHILD."
 
       ;; handle access-to-subprogram
       (while (and (member (nth 2 parent) `("procedure-spec" "function-spec")) ; _not -overriding -generic
-		  (member (save-excursion (smie-default-backward-token)) '("access" "protected")))
+		  (member (save-excursion (ada-smie-unrefined-token nil)) '("access" "protected")))
 	(setq parent (ada-smie-goto-parent parent 2)))
 
       (cond
@@ -3002,7 +3007,7 @@ the start of CHILD, which must be a keyword."
 
        (save-excursion
 	 (let ((pos (point))
-	       (token (smie-default-backward-token)))
+	       (token (ada-smie-unrefined-token nil)))
 	   (cond
 	    ((member token '("procedure" "function")); 1, 2
 	       (progn (goto-char pos) (ada-smie-rule-parent ada-indent-broken arg)))
@@ -3720,9 +3725,8 @@ This lets us know which indentation function succeeded."
     (setq smie-indent-functions (reverse res))))
 
 (defun ada-smie-debug-keys ()
-  "Add parser debug key definitions to `ada-mode-map'."
+  "Add debug key definitions to `ada-mode-map'."
   (interactive)
-  (define-key ada-mode-map "\C-w" 'capitalize-word)
   (define-key ada-mode-map "\M-o" 'ada-smie-show-parent)
   (define-key ada-mode-map "\M-9" 'ada-smie-show-prev-keyword)
   (define-key ada-mode-map "\M-p" 'ada-smie-show-statement-start)

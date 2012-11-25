@@ -13,11 +13,11 @@ package Ada_Mode.Nominal.Child is
    overriding procedure Procedure_1b
      (Item  : in out Child_Type_1) is null;
 
-   procedure Procedure_1c_different_name (Item  : in out Child_Type_1) is null;
+   procedure Procedure_1c_Different_Name (Item  : in out Child_Type_1) is null;
 
    overriding
    procedure Procedure_1c (Item  : in out Child_Type_1)
-     renames Procedure_1c_different_name;  -- from ada-indent-renames
+     renames Procedure_1c_Different_Name;  -- from ada-indent-renames
 
    overriding
    procedure Procedure_1d
@@ -35,26 +35,26 @@ package Ada_Mode.Nominal.Child is
    overriding function Function_2c (Param : in Child_Type_1)
                                    return Float;
 
-   function Function_2d_different_name
+   function Function_2d_Different_Name
      (Param : in Child_Type_1) return Float;
 
    overriding
    function Function_2d
      (Param : in Child_Type_1)
      return Float   -- from ada-indent-return
-     renames Function_2d_different_name;  -- from ada-indent-renames
+     renames Function_2d_Different_Name;  -- from ada-indent-renames
 
    overriding function
      Function_2e (Param : in Child_Type_1) return Float;
 
-   function Function_2f_different_name
+   function Function_2f_Different_Name
      (Param : in Child_Type_1)
      return Float;
 
    overriding function Function_2f
      (Param : in Child_Type_1)
      return Float   -- from ada-indent-return
-                renames Function_2f_different_name;  -- from ada-indent-renames
+                renames Function_2f_Different_Name;  -- from ada-indent-renames
 
    function Child_Add (Left, Right : in Child_Type_1) return Child_Type_1;
 

@@ -85,8 +85,7 @@
     (setq indent-tabs-mode nil)
     (indent-code-rigidly (point-min) (point-max) -1)
     (indent-region (point-min) (point-max))
-    ;; FIXME: put this back (and fix it!) lowercase-buffer? (ada-adjust-case-buffer)
-    ;; FIXME: also test case-exceptions (ie GDS, Text_IO)
+    (ada-case-adjust-buffer)
 
     ;; Cleanup the buffer; indenting often leaves trailing whitespace;
     ;; files must be saved without any.

@@ -31,6 +31,7 @@ private
       Source    : in     Token_List.Instance'Class;
       To_ID     : in     Token_ID_Type);
 
+   --EMACSCMD:(progn (end-of-line 2)(forward-word -1)(downcase-word 1)(ada-case-adjust)(let ((case-fold-search nil))(looking-back "Access")))
    Module_Action : constant Nonterminal.Synthesize := Synthesize_Module'Access;
 
    Add_Statement : constant Instance :=

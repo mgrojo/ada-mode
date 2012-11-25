@@ -53,7 +53,7 @@ package body Indent is
 
    procedure Toplevel is
    begin
-      ada.Text_IO.Put_Line ("Record" &
+      Ada.Text_IO.Put_Line ("Record" &
                               "Record a new macro");
       null;  --  Was uncorrectly indented
    end Toplevel;

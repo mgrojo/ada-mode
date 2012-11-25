@@ -47,9 +47,7 @@ review FIXMEs
  ada-smie
 test/Makefile  ;; set project file
 
-ada-gnat-parse-gpr
-    fails when require ada_project_path
-        not set properly by .prj?
+ada-mode-test.el failing in ada-parse-prj-file in batch only
 
 ada-case-adjust
     test on:
@@ -63,10 +61,8 @@ ada-case-adjust
         16#AFE#                 done
         FULL_ExCeption          done
         PARTial_Exception       done
-
-        UPCASE KEYWORD
-
-        bobp
+        UPCASE KEYWORD          done
+        bobp                    done
 
     interactive test (adjust case after each letter)
         A
@@ -74,18 +70,9 @@ ada-case-adjust
         a_b
         foo_bar_baz
 
-ada-capitalize-word
-
-need ada-keywords for casing exception
-
-    ada_adjust_case_substring bounds substring regexp with \b, with _ as non-word
-        don't need to use regexp!
-        combine loop on _ with loose_case
-
-    ada-adjust-case-identifier matches string bounded by \b
-
     support multiple files
         menu of file to save new exception in
+        prompt for file in case-create-exception
 
 some self-insert keys call ada-adjust-case-interactive
     which sets syntax table to ada-mode-symbol-syntax-table
@@ -93,12 +80,11 @@ some self-insert keys call ada-adjust-case-interactive
         loose_case_word searches for _ explicitly
         ada-adjust-case-substring modifies syntax of _ to non-word
 
-
-    C-w calls ada-adjust-case-current-identifier
-        defined in ada-mode-keys!
-        calls ada-adjust-case with no syntax table mod
-
 set casing custom vars in project file
+
+ada-gnat-parse-gpr
+    fails when require ada_project_path
+        not set properly by .prj?
 
 which-function-mode
     reports "Ada_Mode" in child packages!

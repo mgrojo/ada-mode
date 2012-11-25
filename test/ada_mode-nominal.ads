@@ -485,9 +485,9 @@ package Ada_Mode.Nominal is
      : Ada.Strings.Unbounded.String_Access;
 
    task type Task_Type_1 (Name : access String) is
-      entry Start (Discrete_Type_1) (Param_1 : in integer);
-      entry Middle_1 (Param_1 : in integer);
-      entry Middle_2 (Param_1 : in integer);
+      entry Start (Discrete_Type_1) (Param_1 : in Integer);
+      entry Middle_1 (Param_1 : in Integer);
+      entry Middle_2 (Param_1 : in Integer);
       entry Finish;
    end Task_Type_1;
 

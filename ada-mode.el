@@ -134,6 +134,7 @@ a good place to add Ada environment specific bindings.")
 Casing of Ada keywords is done according to `ada-case-keyword',
 identifiers are Mixed_Case."
   :type 'boolean :group 'ada)
+(put 'ada-auto-case 'safe-local-variable 'booleanp)
 
 (defcustom ada-case-exception-file nil
   "*List of special casing exceptions dictionaries for identifiers.
@@ -149,13 +150,14 @@ character.  Characters after the first word are ignored, and not
 preserved when the list is written back to the file."
   :type '(repeat (file))
   :group 'ada)
+(put 'ada-case-exception-file 'safe-local-variable 'listp)
 
 (defcustom ada-case-keyword 'downcase-word
   "*Function to call to adjust the case of an Ada keywords."
   :type '(choice (const downcase-word)
-		 (const upcase-word)
-		 (const ada-no-auto-case))
+		 (const upcase-word))
   :group 'ada)
+(put 'ada-case-keyword 'safe-local-variable 'functionp)
 
 (defcustom ada-language-version 'ada2012
   "*Ada language version; one of `ada83', `ada95', `ada2005'.
@@ -180,11 +182,16 @@ If nil, no contextual menu is available."
   (let ((map (make-sparse-keymap)))
     ;; C-c <letter> are reserved for users
 
+    (define-key map "\C-c\C-b" 'ada-case-adjust-buffer)
     (define-key map "\C-c\C-c" 'compile)
     (define-key map "\C-c\C-d" 'ada-goto-declaration)
     (define-key map "\C-c\C-n" 'ada-make-subprogram-body)
     (define-key map "\C-c\C-o" 'ada-find-other-file)
     (define-key map "\C-c\M-o" 'ada-find-other-file-noset)
+    (define-key map "\C-c\C-t" 'ada-case-read-all-exceptions)
+    (define-key map "\C-c\C-w" 'ada-case-adjust-at-point)
+    (define-key map "\C-c\C-y" 'ada-case-create-exception)
+    (define-key map "\C-c\C-\M-y" (lambda () (ada-case-create-exception nil nil t)))
     map
   )  "Local keymap used for Ada mode.")
 
@@ -388,6 +395,7 @@ Return (cons full-exceptions partial-exceptions)."
 (defun ada-case-read-all-exceptions ()
   "Read case exceptions from all files in `ada-case-exception-file',
 replacing current values of `ada-case-full-exceptions', `ada-case-partial-exceptions'."
+  (interactive)
   (setq ada-case-full-exceptions '()
 	ada-case-partial-exceptions '())
 
@@ -415,6 +423,7 @@ FILE-NAME defaults to the first file in `ada-case-exception-file'."
 	  ada-case-exception-file)
 	 ((and
 	   (listp ada-case-exception-file)
+	   ;; FIXME: prompt if interactive, with choices from ada-case-exception-file
 	   (car ada-case-exception-file)))
 	 (t
 	  (error
@@ -515,12 +524,24 @@ If FORCE-IDENTIFIER is non-nil then treat the word as an identifier (not an Ada 
 
 		 (memq (char-syntax (char-before)) '(?w ?_)); single character identifier
 
-		 (not (ada-in-string-or-comment-p))
+		 (not (and
+		       ;; we sometimes want to capitialize an Ada
+		       ;; identifier referenced in a comment, via
+		       ;; ada-adjust-case-at-point.
+		       (ada-in-string-or-comment-p)
+		       (not force-identifier)))
 
 		 (not (ada-in-numeric-literal-p))
 		 ))
 
       (cond
+       ;; Some attributes are also keywords, but captialized as
+       ;; attributes. So check for attribute first.
+       ((save-excursion
+	 (skip-syntax-backward "w_")
+	 (eq (char-before) ?'))
+	(ada-adjust-case-identifier))
+
        ((and
 	 (not force-identifier)
 	 (ada-after-keyword-p))
@@ -529,6 +550,31 @@ If FORCE-IDENTIFIER is non-nil then treat the word as an identifier (not an Ada 
        (t (ada-adjust-case-identifier))
        ))
     ))
+
+(defun ada-case-adjust-at-point (&optional force-identifier)
+  "Adjust case of word at point, move to end of word.
+With prefix arg, adjust case even if in comment."
+  (interactive "P")
+  (when (memq (char-syntax (char-after)) '(?w ?_))
+    (skip-syntax-forward "w_"))
+  (ada-case-adjust force-identifier))
+
+(defun ada-case-adjust-region (begin end)
+  "Adjust case of all words in region BEGIN END."
+  (interactive "r")
+  (narrow-to-region begin end)
+  (save-excursion
+    (goto-char begin)
+    (while (not (eobp))
+      (forward-comment (point-max))
+      (skip-syntax-forward "^w_")
+      (skip-syntax-forward "w_")
+      (ada-case-adjust nil))))
+
+(defun ada-case-adjust-buffer ()
+  "Adjust case of current buffer."
+  (interactive)
+  (ada-case-adjust-region (point-min) (point-max)))
 
 ;;; project files
 
@@ -1742,10 +1788,6 @@ The paragraph is indented on the first line."
 
 ;; Setup auto-loading of the other Ada mode files.
 ;; FIXME (later): add some here?
-
-;; provide some dummy functions so other code can at least run
-;; FIXME (later): make these real, somewhere
-(defun ada-adjust-case () (capitalize-word 1))
 
 ;; load indent engine first; compilers may need to know which is being
 ;; used (for preprocessor keywords, for example).

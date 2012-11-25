@@ -43,7 +43,7 @@ package body Ada_Mode.Nominal is
       --EMACSRESULT:"Function_Access_11"
 
       --EMACSCMD:(test-face "Function_Access_1" 'default)
-      return Function_Access_1'access;
+      return Function_Access_1'Access;
    end Function_Access_11;
 
    protected
@@ -240,17 +240,17 @@ package body Ada_Mode.Nominal is
       Started : Boolean := False;
    begin
       select
-         accept Start (A) (Param_1 : in integer);
+         accept Start (A) (Param_1 : in Integer);
          Started := True;
       or
          when Started => -- Ada mode 4.01 ada-when-indent, GPS ada-indent
-            accept Middle_1 (Param_1 : in integer) do
+            accept Middle_1 (Param_1 : in Integer) do
                Local_1 := 0;
             end Middle_1;
       or
          when Started =>
             accept Middle_2
-              (Param_1 : in integer);
+              (Param_1 : in Integer);
             Local_1 := 0;
 
       or when Started
@@ -263,7 +263,7 @@ package body Ada_Mode.Nominal is
       end select;
 
       select -- need a separate select to test "else", "terminate" etc
-         accept Start (A) (Param_1 : in integer);
+         accept Start (A) (Param_1 : in Integer);
          Local_1 := 0;
       else
          Local_1 := 2;
@@ -401,7 +401,7 @@ package body Ada_Mode.Nominal is
 
       -- second begin block
       begin
-         Local_a (1)(2) := 1.0;
+         Local_A (1)(2) := 1.0;
       end;
 
    Block_1 :
