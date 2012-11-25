@@ -35,7 +35,7 @@ runtest from emacs -q:
   (add-to-list 'load-path "/Projects/org.emacs.ada-mode.smie")
   (load "ada-mode")
   (global-font-lock-mode -1)
-  (find-file "/Projects/org.emacs.ada-mode.smie/test/ada_mode-separate_task_body.adb")
+  (find-file "/Projects/org.emacs.ada-mode.smie/test/ada_mode-nominal.ads")
 )
   (add-to-list 'load-path "/Projects/org.emacs.ada-mode.smie/test")
   (load "runtest")
@@ -51,74 +51,89 @@ runtest from emacs -q:
 
 review FIXMEs
 (grep-find "find . -type f -print | \"xargs\" grep -nH \"FIXME:\"")
- gds
-(setq copyright-update nil)
-test/test-indent.sh 4.01, 5.0 gds
+ ada-smie
+test/Makefile  ;; set project file
 
-    sal/source_common       done
-        420 files
-        4.01 1m17.361s
-        5.0 2m54.151s
-        (/ (- 174 77) 240.0) = 0.404 sec/file slower
+ada-find-other-file in separate bodies
+    not on 'separate' line; must use ada-gnat-xref
 
-    sal/source_common/test  done
-        206 files
-        4.01 0m41.933s
-        5.0  1m24.599s
+which-function-mode
+    reports "Ada_Mode" in child packages!
 
-    opentoken
-        95 files
-        4.01 0m18.377s
-        5.0  0m40.741s
-        (/ (- 40.74 18.37) 95) = 0.235 sec/file slower
+manuel Gomez using comp_cmd, make_cmd, src_dir, obj_dir; not .gpr files
 
-    opentoken/Test  done
-        57 files
+test/Makefile
+    test/ada_mode-nominal.ads
+    test/ada_mode-nominal.adb
+    test/ada_mode-nominal-child.ads
+    C-c C-d
+        use gnatfind, -d switch
+    mouse version?
+    also for other-file?
 
-    opentoken/Language_Lexers   done
-    opentoken/Examples/*        done
+add ada-spec/body-suffixes to the Emacs project file
 
-    common/1553         done
-    common/1553/test    done
+rest of ada-mode
+    merge all of ada-mode-patches, most of ada-mode-keys
+    ada-capitalize-word
+        use explicit skip-syntax rather than two syntax tables
+    process patches in ada-mode email
 
-    common/asist_if         done
-    common/asist_if/test    done
-    common/base             done
-    common/base/test        done
-    common/hardware         done
-    common/hardware/test    done
-    common/itos_if          done
-    common/itos_if/test     done
-    common/lynx             done
-    common/lynx/test        done
-    common/models           done
-    common/models/test      done
-    common/spacewire        done
-    common/spacewire/test   done
-    common/system           done
-    common/system/test      done
-    common/windows          done
+    fully delete ada-gnat-cmd from ada-xfer
+        don't keep separate "library dirs" lists
+            requires calling gnat list twice
+            user can change paths
 
-    common tested
+    help -> manual looked for arm95
 
-    gpm/1553
-    gpm/1553/test
-    gpm/hardware
-    gpm/hardware/test
-    gpm/models
-    gpm/models/test
-    gpm/system
-    gpm/system/test
+    check emacs buglist
+        http://debbugs.gnu.org/cgi/pkgreport.cgi?package=ada-mode
 
-    mms
-    dscovr
+    submit adacore bug report on 'gnat list' accept '--subdirs'
 
-cd /Projects/org.emacs.ada-mode.smie/test
-rm /tmp/gds_indent/*
-./test-indent-5.0.sh $GDS_ROOT/main_lynx_5/common/spacewire /tmp/gds_indent
-    (dired "/tmp/gds_indent/*.diff")
+ask for input/testing
 
-4.01 bugs that 5.01 fixes
+use it!
+
+make newline-and-indent reindent current line first?
+    what did 4.01 do?
+        ada-indent-after-return t doc says "indent after return"
+        but what it does is:
+            insert return at point
+            go back to the line
+            indent
+            go forward to new line
+            indent
+
+        ada-indent-after-return nil leaves out _first_ indent!
+
+aspect_clause;    record - done
+attribute clauses; record layout
+library generic subprogram
+pre/post conditions
+quantified_, if_, case_expressions. Simon Wright working on "if" expressions
+
+remaining expressions?
+remaining statements?
+task entry with index; body has "for"
+
+include gpr-mode
+
+include gnat-fix-error
+    rename to ada-gnat-fix-error
+    or rewrite to use alist; support other compilers
+    write test?
+
+interactive edit bug in test/ada_mode-nominal.adb F2
+    insert "Local : Integer;" between "is begin" then indent; sometimes it aligns with "is"
+    can't reproduce; possibly an interaction between font-lock using ada-smie-forward-keyword and ada-smie-after-change
+
+GNATCOLL.Projects can report "other file name" info
+
+emacs 23.2?
+    debian stable
+
+ 4.01 bugs that 5.01 fixes
     generic formal function
         'with' indented to prev 'return'
         sal: 1
@@ -201,79 +216,6 @@ entry guard clauses:
        begin
 
 
- ada-smie
-test/Makefile
-    C-c C-d
-        use gnatfind, -d switch
-    mouse version?
-    also for other-file?
-
-Juanma Barranquero would like this:
-
-    case Match (Token_Index) is
-      --  If we found a match, quit.
-    when Recognizer.Matches =>
-
-changed to:
-
-    case Match (Token_Index) is
-    --  If we found a match, quit.
-    when Recognizer.Matches =>
-
-    also matches 4.01
-
-rest of ada-mode
-    merge all of ada-mode-patches, most of ada-mode-keys
-    ada-capitalize-word
-        use explicit skip-syntax rather than two syntax tables
-    process patches in ada-mode email
-
-    fully delete ada-gnat-cmd from ada-xfer
-        don't keep separate "library dirs" lists
-            requires calling gnat list twice
-            user can change paths
-
-    help -> manual looked for arm95
-
-    check emacs buglist
-        http://debbugs.gnu.org/cgi/pkgreport.cgi?package=ada-mode
-
-    submit adacore bug report on 'gnat list' accept '--subdirs'
-
-ask for input/testing
-
-use it!
-
-make newline-and-indent reindent current line first?
-    what did 4.01 do?
-        ada-indent-after-return t doc says "indent after return"
-        but what it does is:
-            insert return at point
-            go back to the line
-            indent
-            go forward to new line
-            indent
-
-        ada-indent-after-return nil leaves out _first_ indent!
-
-aspect_clause;    record - done
-attribute clauses; record layout
-library generic subprogram
-pre/post conditions
-quantified_, if_, case_expressions. Simon Wright working on "if" expressions
-
-remaining expressions?
-remaining statements?
-task entry with index; body has "for"
-
-include gnat-fix-error
-    rename to ada-gnat-fix-error
-    or rewrite to use alist; support other compilers
-    write test?
-
-interactive edit bug in test/ada_mode-nominal.adb F2
-    insert "Local : Integer;" between "is begin" then indent; sometimes it aligns with "is"
-    can't reproduce; possibly an interaction between font-lock using ada-smie-forward-keyword and ada-smie-after-change
  relevant files
 (info "(aarm2012)Annex P" "*info Annex P*")
 (info "(elisp)Parser State" "*syntax-ppss*")

@@ -693,7 +693,7 @@ that are not allowed by Ada, but we don't care."
    "%s: %s %d"
    message
    (buffer-substring-no-properties (point-at-bol) (point-at-eol))
-   (point)))
+   (line-number-at-pos)))
 
 (defun ada-smie-generic-p ()
   "Assuming point is at the start of a package or subprogram
@@ -1737,21 +1737,13 @@ avoid infinite loop on illegal code."
     ;;
     ;; 7) protected_definition
     ;; 8) task_definition
-    ;;
-    ;; 9) library_item ::= [private] library_unit_declaration
-    ;;
-    ;;    token: private-library
-    ;;
     (cond
-     ((ada-smie-library-p) ;; 9
-      ;; we have to do this first to avoid bob issues with the following tests
-      "private-library")
-
      ((equal "with" (save-excursion (smie-default-backward-token)))
       "private-with"); 6
 
      ((equal "is-type" (save-excursion (ada-smie-backward-type-modifiers)
-				       (ada-smie-forward-token)))
+				       (unless (bobp)
+					 (ada-smie-forward-token))))
       "private-type-spec"); 1
 
      ((let ((token (save-excursion
@@ -1764,8 +1756,10 @@ avoid infinite loop on illegal code."
 	      "private-context-2"
 	    "private-context-1"))
 
-	 ((member token '("package" "procedure" "function" "generic"));; 4
-	  "private-spec")
+	 ((member token '("package" "procedure" "function" "generic")); 4 or 5
+	  (if (ada-smie-library-p)
+	      "private-library"; 4
+	    "private-spec")); 5
 	 )))
 
      (t "private-spec")); all others
@@ -3247,8 +3241,20 @@ the start of CHILD, which must be a keyword."
 
 	  )))
 
-      ((member arg '(";" "private-library"))
-       (ada-smie-rule-statement 0 arg))
+      ((equal arg ";")
+       (cond
+	((save-excursion
+	   (when (equal "record-type" (ada-smie-backward-keyword))
+	     ;; we are indenting the line after:
+	     ;;
+	     ;;  for Record_Type_2 use record at mod 4;
+	     ;;
+	     ;; see "record-type" below
+	     (back-to-indentation)
+	     (cons 'column (+ (current-column) ada-indent)))))
+
+	(t
+	 (ada-smie-rule-statement 0 arg))))
 
       ((equal arg "=>-when")
        ;; exception to block statement rule
@@ -3256,11 +3262,12 @@ the start of CHILD, which must be a keyword."
 
       ((equal arg "|")
        ;; case or aggregate discrete choice
-       ;; FIXME: debugging; ada-in-paren-p is wrong
-;       (syntax-ppss-flush-cache (- (point) 1000))
        (if (ada-in-paren-p)
 	   (ada-smie-rule-statement ada-indent-broken arg)
 	 (ada-smie-rule-statement (ada-smie-when ada-indent-broken) arg)))
+
+      ((equal arg "private-library")
+       (ada-smie-rule-statement 0 arg))
 
       ((equal arg "record-end")
        ;; We are indenting the aspect specification for the record.
@@ -3298,6 +3305,18 @@ the start of CHILD, which must be a keyword."
       ((equal arg "when-case")
        ;; exception to block statement rule
        (ada-smie-rule-statement (ada-smie-when ada-indent-broken) arg))
+
+      ((equal arg "is-case")
+       ;; This rule must be after "when-case"
+       ;;
+       ;; Most likely this:
+       ;;
+       ;;   case Local_1 is
+       ;;   -- comment after "is", before "when"
+       ;;   when A =>
+       (back-to-indentation)
+       (cons 'column (+ (current-column) ada-indent-when)))
+
 
       ((equal arg "with-agg")
        (ada-smie-rule-statement 0 arg))
@@ -3344,6 +3363,10 @@ the start of CHILD, which must be a keyword."
     (save-excursion
 
      (cond
+      ((and ada-indent-comment-col-0
+	    (= 0 (current-column)))
+       0)
+
       ((or
 	(save-excursion (forward-line -1) (looking-at "\\s *$"))
 	(save-excursion (forward-comment -1)(not (looking-at comment-start))))

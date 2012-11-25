@@ -1,4 +1,6 @@
 with Ada.Text_IO;
+--EMACSCMD:(ada-parse-prj-file "ada_mode.adp")
+--EMACSCMD:(ada-select-prj-file "ada_mode.adp")
 --EMACSCMD:(progn (forward-line 1)(ada-find-other-file t)(looking-at "package body Separate_Package_1 is separate"))
 separate (Ada_Mode.Nominal)
 package body Separate_Package_1 is

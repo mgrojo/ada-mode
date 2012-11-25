@@ -3,6 +3,28 @@ with
   Ada.Text_IO; -- font-lock doesn't work across newline
 
 -- don't indent this comment with the previous; blank line between
+--
+-- No comment on the first line, to make sure we can handle that :)
+-- blank on first line, to test beginning-of-buffer logic for "with-context"
+
+-- testing ada-goto-declaration, ada-find-other-file with an Emacs
+-- Ada project file.
+--
+-- .adp and .gpr is tested here
+-- .gpr only is tested in ada_mode-find_file.adb
+-- .adp only is tested in -- ada_mode-generic_instantiation.ads
+--
+-- 'eval' is not a safe local variable, so we can't use local
+-- variables for this in batch mode.
+--
+--EMACSCMD:(ada-parse-prj-file "ada_mode.adp")
+--EMACSCMD:(ada-select-prj-file "ada_mode.adp")
+--EMACSCMD:ada-prj-current-file
+--EMACSRESULT:"c:/Projects/org.emacs.ada-mode.smie/test/ada_mode.adp"
+--EMACSCMD:(length compilation-search-path)
+-- current dir, compiler dir
+--EMACSRESULT:2
+
 --EMACSCMD:(font-lock-fontify-buffer)
 --EMACSCMD:(test-face "with" font-lock-keyword-face)
 --EMACSCMD:(test-face "Ada" font-lock-constant-face)
@@ -33,8 +55,6 @@ with Ada_Mode.Library_Procedure;
 --EMACSCMD:(progn (forward-line 1)(ada-find-other-file t)(looking-at "Ada_Mode.Function_2 return Boolean;"))
 with Ada_Mode.Function_2;
 package Ada_Mode.Nominal is
-   --  No comment on the first line, to make sure we can handle that :)
-   --  blank on first line, to test beginning-of-buffer logic for "with-context"
 
    -- ada-indent-refine-subprogram calls ada-indent-is-generic-p,
    -- which can scan the entire buffer looking for generic. That can
@@ -80,8 +100,10 @@ package Ada_Mode.Nominal is
      ; -- we don't really care
    type Object_Access_Type_2a is not null access all
      Integer;
+   --EMACSCMD:(progn (forward-line 1)(forward-word 1)(forward-char 3)(ada-identifier-at-point))
    type Object_Access_Type_2b is not null access constant
      Integer;
+   --EMACSRESULT:"Object_Access_Type_2b"
    type Object_Access_Type_2c is not null access
      Integer;
    type Object_Access_Type_3a is not null access
@@ -237,6 +259,10 @@ package Ada_Mode.Nominal is
    --EMACSCMD:(test-face "limited" font-lock-keyword-face)
    --EMACSCMD:(test-face "private;" font-lock-keyword-face)
    type Private_Type_1 is abstract tagged limited private;
+   --EMACSCMD:(progn (forward-line -1)(forward-word 1)(forward-char 1)(ada-goto-declaration nil)(looking-at "Private_Type_1 is abstract tagged limited null record;"))
+   --EMACSRESULT:t
+   -- result in same file
+
    type Private_Type_2 is abstract tagged limited
      private;
    -- Rest 'null record' to avoid declaring full type
@@ -287,7 +313,7 @@ package Ada_Mode.Nominal is
       Component_2 : Integer := 2;
       Component_3 : Integer := 3;
    end record;
-   for Record_Type_2 use record
+   for Record_Type_2 use record at mod 4;
       Component_1 at 0 range 0 .. 31;
       Component_2 at 0 range 32 .. 63;
       Component_3 at 0 range 64 .. 95;
@@ -349,7 +375,11 @@ package Ada_Mode.Nominal is
    subtype
      Subtype_7 is Signed_Integer_Type range 10 .. 20;
 
+   -- result in other file
+   --EMACSCMD:(progn (end-of-line 2)(backward-word 2)(ada-goto-declaration nil)(backward-word 1)(looking-at "body Protected_1 is"))
    protected type Protected_1 is
+      --EMACSRESULT:t
+
       -- only two examples, to get 'protected' and 'is-entry_body' into grammar
 
       function F1 return Integer;

@@ -58,6 +58,12 @@ Example :
   :type 'integer :group 'ada-indentation)
 (put 'ada-indent-broken 'safe-local-variable 'integerp)
 
+(defcustom ada-indent-comment-col-0 nil
+  "If non-nil, comments currently starting in column 0 are left in column 0.
+Otherwise, they are indented with previous comments or code."
+  :type 'boolena :group 'ada-indentation)
+(put 'ada-indent-comment-col-0 'safe-local-variable 'booleanp)
+
 (define-obsolete-variable-alias
  'ada-label-indent
  'ada-indent-label

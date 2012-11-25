@@ -11,7 +11,7 @@
 #     end Default;
 # c:/apps/GNAT-GPS-5.1.2/share/examples/gps/python/reformat_project.py
 
-all : compile test-clean test
+all : compile-clean compile test-clean test
 
 # emacs to test with
 #
@@ -20,9 +20,11 @@ all : compile test-clean test
 # 'make EMACS=...'.
 EMACS := $(EMACSPATH)/emacs
 
-one : test-clean ada_mode-opentoken.ads.diff
+one : ada_mode-find_file.ads.diff
+two :
+	rm ada_mode-nominal.ali
 
-TEST_FILES := $(shell ls *.ad?)
+TEST_FILES := $(shell ls *.ad[sb])
 
 # this is for debug only
 TEST_FILES := $(filter-out debug.adb, $(TEST_FILES))
@@ -128,4 +130,8 @@ test-clean :
 zip :
 	tar zcf org.emacs.ada-mode.smie-`date +%Y-%m-%d`.tar.gz --exclude _MTN --exclude "*~" --exclude "*.diff" --exclude "*.tmp" --exclude "*.ali" --exclude "*.tar.gz" -C ../.. org.emacs.ada-mode.smie
 
+# Local Variables:
+# eval: (ada-parse-prj-file "ada_mode.adp")
+# eval: (ada-select-prj-file "ada_mode.adp")
+# End:
 # end of file

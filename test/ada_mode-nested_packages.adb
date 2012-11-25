@@ -14,8 +14,19 @@ with Ada.Directories, Ada.Text_IO, Ada_Mode.Nominal;
 use  Ada.Directories, Ada.Text_IO, Ada_Mode.Nominal;
 package body Ada_Mode.Nested_Packages is
 
+   --EMACSCMD:(progn (forward-line 1)(forward-word 1)(forward-char 3)(ada-identifier-at-point))
    function "*" (Left, Right : in Ada_Mode.Nominal.Floating_Point) return Ada_Mode.Nominal.Floating_Point
+     --EMACSRESULT:"\"*\""
+     --EMACSCMD:(progn (end-of-line 2)(backward-char 4)(ada-identifier-at-point))
      renames Ada_Mode.Nominal."*";
+   --EMACSRESULT:"\"*\""
+
+   --EMACSCMD:(progn (forward-line 1)(forward-word 1)(forward-char 4)(ada-identifier-at-point))
+   function "<=" (Left, Right : in Ada_Mode.Nominal.Floating_Point) return Boolean
+     --EMACSRESULT:"\"<=\""
+     --EMACSCMD:(progn (end-of-line 2)(backward-char 4)(ada-identifier-at-point))
+     renames Ada_Mode.Nominal."<=";
+   --EMACSRESULT:"\"<=\""
 
    --  begin block in a loop statement. [6618-008]
    package body Sequencer is

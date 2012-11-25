@@ -13,6 +13,8 @@ package Ada_Mode.Options is
       Component_1 : Integer;
    end record;
 
+-- comment in column 0
+
    type Derived_Type_1 is
    new Private_Type_1 with record
       Component_2 : Integer;
@@ -21,4 +23,5 @@ package Ada_Mode.Options is
 end Ada_Mode.Options;
 -- Local Variables:
 -- ada-indent-record-rel-type: 0
+-- ada-indent-comment-col-0: t
 -- End:
