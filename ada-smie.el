@@ -2584,6 +2584,18 @@ move."
    (lambda (tok-levels) (nth 2 tok-levels)); lvl-back
    ))
 
+(defun ada-smie-rule-keyword (offset keyword pos)
+  "Find the previous keyword in the statement/declaration
+containing KEYWORD (using `ada-smie-backward-statement-keyword'),
+return an indent by OFFSET relevant to it. Preserves point.
+POS must be at the start of KEYWORD."
+  (save-excursion
+    (goto-char pos)
+    (ada-smie-backward-statement-keyword keyword)
+    (back-to-indentation)
+    (cons 'column (+ (current-column) offset))
+    ))
+
 (defun ada-smie-goto-parent (child up)
   "Goto a parent (defined by where smie-backward-sexp stops).
 If CHILD is non-nil and a smie keyword, find its parent (which may be
@@ -3214,6 +3226,7 @@ the start of CHILD, which must be a keyword."
        ;; parameter lists. "with", "use" have their own
        ;; controlling options. We have to check for ":-object" first,
        ;; since otherwise a parameter list looks like an aggregate.
+       ;; New in ada-mode 5.0: case expressions - see test/ada-mode-conditional_expressions.adb
        (let ((pos-tok-back (save-excursion (ada-smie-skip-identifier-list nil)))
 	     pos-back token-back
 	     (token-forw (nth 1 (save-excursion (ada-smie-skip-identifier-list t)))))
@@ -3238,6 +3251,9 @@ the start of CHILD, which must be a keyword."
 	  ((member token-back '("with-context-1" "with-context-2"))
 	   ;; match 4.01; indent by ada-indent-with relative to "with"
 	   (cons 'column (+ (save-excursion (goto-char pos-back) (current-column)) ada-indent-with)))
+
+	  ((equal token-forw "when-case")
+	   (ada-smie-rule-keyword 0 token-back pos-back))
 
 	  )))
 
@@ -3702,6 +3718,18 @@ This lets us know which indentation function succeeded."
       (let ((newfunc (cadr (macroexpand `(ada-smie-wrap ,func)))))
 	(setq res (cons newfunc res))))
     (setq smie-indent-functions (reverse res))))
+
+(defun ada-smie-debug-keys ()
+  "Add parser debug key definitions to `ada-mode-map'."
+  (interactive)
+  (define-key ada-mode-map "\C-w" 'capitalize-word)
+  (define-key ada-mode-map "\M-o" 'ada-smie-show-parent)
+  (define-key ada-mode-map "\M-9" 'ada-smie-show-prev-keyword)
+  (define-key ada-mode-map "\M-p" 'ada-smie-show-statement-start)
+  (define-key ada-mode-map "\M-i" 'ada-smie-show-keyword-backward)
+  (define-key ada-mode-map "\M-j" 'ada-smie-show-cache)
+  (define-key ada-mode-map "\M-k" 'ada-smie-show-keyword-forward)
+  )
 
 ;;; parser setup
 

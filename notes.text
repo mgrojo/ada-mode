@@ -11,13 +11,6 @@ General notes on porting Emacs Ada mode indentation engine to smie
     (add-hook 'ada-mode-hook
        (lambda ()
         (add-hook 'before-save-hook 'delete-trailing-whitespace)
-        (define-key ada-mode-map "\C-w" 'capitalize-word)
-        (define-key ada-mode-map "\M-o" 'ada-smie-show-parent)
-        (define-key ada-mode-map "\M-9" 'ada-smie-show-prev-keyword)
-        (define-key ada-mode-map "\M-p" 'ada-smie-show-statement-start)
-        (define-key ada-mode-map "\M-i" 'ada-smie-show-keyword-backward)
-        (define-key ada-mode-map "\M-j" 'ada-smie-show-cache)
-        (define-key ada-mode-map "\M-k" 'ada-smie-show-keyword-forward)
        ))
    )
 

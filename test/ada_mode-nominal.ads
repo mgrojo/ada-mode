@@ -117,9 +117,9 @@ package Ada_Mode.Nominal is
 
    --EMACSCMD:(progn (forward-line 1)(forward-word 1)(downcase-word 4)(ada-case-adjust))
    type Object_Access_Type_5a is not
-   --EMACSCMD:(progn (forward-line -1)(forward-word 1)(forward-char 1)(let ((case-fold-search nil))(looking-at "Object_Access_Type_5a")))
-   --EMACSRESULT:t
-   --EMACSCMD:(progn (forward-line 1)(upcase-word 1)(ada-case-adjust)(let ((case-fold-search nil))(looking-back "null")))
+     --EMACSCMD:(progn (forward-line -1)(forward-word 1)(forward-char 1)(let ((case-fold-search nil))(looking-at "Object_Access_Type_5a")))
+     --EMACSRESULT:t
+     --EMACSCMD:(progn (forward-line 1)(upcase-word 1)(ada-case-adjust)(let ((case-fold-search nil))(looking-back "null")))
      null access all Integer;
    --EMACSRESULT:t
    type Object_Access_Type_6 is

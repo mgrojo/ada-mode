@@ -462,7 +462,7 @@ Uses Mixed_Case, with exceptions defined in
 `ada-case-full-exceptions', `ada-case-partial-exceptions'."
   (interactive)
   (save-excursion
-    (let ((end   (point))
+    (let ((end   (point-marker))
 	  (start (progn (skip-syntax-backward "w_") (point)))
 	  match
 	  next
@@ -471,21 +471,27 @@ Uses Mixed_Case, with exceptions defined in
       (if (setq match (assoc-string (buffer-substring-no-properties start end) ada-case-full-exceptions t))
 	  ;; full word exception
 	  (progn
-	    (delete-region start end)
-	    (insert (car match)))
+	    ;; 'save-excursion' puts a marker at 'end'; if we do
+	    ;; 'delete-region' first, it moves that marker to 'start',
+	    ;; then 'insert' inserts replacement text after the
+	    ;; marker, defeating 'save-excursion'. So we do 'insert' first.
+	    (insert (car match))
+	    (delete-region (point) end))
 
 	;; else apply Mixed_Case and partial-exceptions
 	(while (not done)
 	  (setq next
 		(or
-		 (save-excursion (search-forward "_" end t))
+		 (save-excursion (when (search-forward "_" end t) (point-marker)))
 		 end))
 
 	  (if (setq match (assoc-string (buffer-substring-no-properties start (1- next))
 					ada-case-partial-exceptions t))
 	      (progn
-		(delete-region start (1- next))
-		(insert (car match)))
+		;; see comment above at 'full word exception' for why
+		;; we do insert first.
+		(insert (car match))
+		(delete-region (point) (1- next)))
 
 	    ;; else upcase first char
 	    (insert-char (upcase (following-char)) 1)
@@ -616,7 +622,10 @@ list. Parser must modify or add to the property list and return it.")
     (setq prj-file (expand-file-name prj-file))
 
     (if parser
-	(setq project (funcall parser prj-file project))
+	;; parser may reference the "current project", so bind that now.
+	(let ((ada-prj-current-project project)
+	      (ada-prj-current-file prj-file))
+	  (setq project (funcall parser prj-file project)))
       (error "no project file parser defined for '%s'" prj-file))
 
     ;; Store the project properties
@@ -706,7 +715,8 @@ Return new value of PROJECT."
     (if src_dir (set 'project (plist-put project 'src_dir (reverse src_dir))))
 
     (when parse-file-final
-      ;; parse-file-final may reference the "current project", so bind that now.
+      ;; parse-file-final may reference the "current project", so
+      ;; re-bind that now, to include the properties set above.
       (let ((ada-prj-current-project project)
 	    (ada-prj-current-file prj-file))
 	(set 'project (funcall parse-file-final project))))

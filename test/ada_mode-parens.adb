@@ -32,8 +32,8 @@ package body Ada_Mode.Parens is
                              "789" &
                              --EMACSCMD:(progn (end-of-line 2)(ada-case-adjust)(let ((case-fold-search nil))(looking-back "'a'")))
                              'a'
-                            --EMACSRESULT:t
                           );
+      --EMACSRESULT:t
 
       --EMACSCMD:(progn (end-of-line 2)(ada-case-adjust)(let ((case-fold-search nil))(looking-back "comMENT")))
       -- A comment for testing no auto-case in comMENT
