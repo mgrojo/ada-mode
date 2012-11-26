@@ -62,14 +62,12 @@ each type of entity that can be found in an Ada file.")
   ;;  In 4.01, these were called in 'ada-mode or required to be set in
   ;;  the user's .emacs.
 
-  (if (boundp 'imenu-case-fold-search)
-      (set 'imenu-case-fold-search t))
-
-  (setq imenu-generic-expression ada--imenu-generic-expression)
-  (setq imenu-sort-function 'imenu--sort-by-name)
   (setq imenu-auto-rescan t)
+  (setq imenu-case-fold-search t)
+  (setq imenu-generic-expression ada--imenu-generic-expression)
+  (setq imenu-scanning-message nil)
+  (setq imenu-sort-function 'imenu--sort-by-name)
   (setq imenu-use-markers nil)
-  (set 'imenu-scanning-message nil)
 
   (imenu-add-to-menubar "Entities")
 )
