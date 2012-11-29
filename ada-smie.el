@@ -3122,8 +3122,12 @@ the start of CHILD, which must be a keyword."
 
       ((member arg '("procedure-overriding" "function-overriding"))
        (save-excursion
-	 (smie-default-backward-token)
-	 (cons 'column (current-column))))
+         (let (col)
+           (smie-default-backward-token)
+           (setq col (current-column))
+           (if (equal "not" (ada-smie-unrefined-token nil))
+               (setq col (current-column)))
+           (cons 'column col))))
 
       ((member arg '("function-separate" "package-separate" "procedure-separate" "protected-separate"
 		     "task-separate"))
@@ -3567,6 +3571,8 @@ made."
 		 (member (setq token (ada-smie-backward-keyword))
 			 '("procedure-spec"
 			   "function-spec"
+                           "procedure-overriding"
+                           "function-overriding"
 			   "package-generic"
 			   "package-plain"
 			   "protected-type"
@@ -3581,7 +3587,9 @@ made."
 	    (not
 	     (member (setq token (ada-smie-backward-keyword))
 		     '("procedure-spec" "is-subprogram_body" "begin-body" "end-block"
+                       "procedure-overriding"
 		       "function-spec" "return-spec"
+                       "function-overriding"
 		       "package-plain"
 		       "protected-body" "is-protected_body"
 		       "task-body" "is-task_body"

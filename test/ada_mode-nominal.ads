@@ -20,7 +20,7 @@ with
 --EMACSCMD:(ada-parse-prj-file "ada_mode.adp")
 --EMACSCMD:(ada-select-prj-file "ada_mode.adp")
 --EMACSCMD:ada-prj-current-file
---EMACSRESULT:"c:/Projects/org.emacs.ada-mode.smie/test/ada_mode.adp"
+--EMACSRESULT:(expand-file-name "ada_mode.adp")
 --EMACSCMD:(length compilation-search-path)
 -- current dir, compiler dir
 --EMACSRESULT:2
@@ -505,7 +505,7 @@ package Ada_Mode.Nominal is
       Parent_Element_3 : Boolean;
    end record;
 
-   procedure Procedure_1a (Item  : in out Parent_Type_1);
+   not overriding procedure Procedure_1a (Item  : in out Parent_Type_1);
    --EMACSCMD:(progn (beginning-of-line)(forward-line -1)(ada-which-function))
    --EMACSRESULT:"Procedure_1a"
 
@@ -536,6 +536,9 @@ package Ada_Mode.Nominal is
                            Item_2 : out Character)
      is null;
 
+   not overriding
+   procedure Procedure_1f (Item : in out Parent_Type_1);
+
    function Function_2a (Param : in Parent_Type_1) return Float;
    function Function_2b (Param : in Parent_Type_1) return
      Float;
@@ -543,9 +546,10 @@ package Ada_Mode.Nominal is
                         return Float;
    function Function_2d
      (Param : in Parent_Type_1) return Float;
-   function
+   not overriding function
      Function_2e (Param : in Parent_Type_1) return Float;
 
+   not overriding
    function Function_2f
      (Param : in Parent_Type_1)
      return Float;

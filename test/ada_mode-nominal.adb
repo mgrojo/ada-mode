@@ -297,10 +297,18 @@ package body Ada_Mode.Nominal is
    ----------
    -- subprograms
 
-   procedure Procedure_1a (Item  : in out Parent_Type_1)
+   not overriding procedure Procedure_1a (Item  : in out Parent_Type_1)
    is begin
       null;
    end Procedure_1a;
+
+   not overriding
+   procedure Procedure_1f (Item : in out Parent_Type_1)
+   is
+   begin
+      null;
+   end Procedure_1f;
+
    procedure Procedure_2a is begin null; end;
 
    -- Functions can't be 'is null', so we test some indentation issues
@@ -421,7 +429,7 @@ package body Ada_Mode.Nominal is
       end;
    end;
 
-   function Function_2e
+   not overriding function Function_2e
      (Param : in Parent_Type_1)
      return Float
    is begin
@@ -431,6 +439,7 @@ package body Ada_Mode.Nominal is
       end;
    end;
 
+   not overriding
    function Function_2f (Param : in Parent_Type_1)
                         return Float is
    begin
