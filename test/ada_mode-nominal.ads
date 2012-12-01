@@ -509,11 +509,14 @@ package Ada_Mode.Nominal is
    --EMACSCMD:(progn (beginning-of-line)(forward-line -1)(ada-which-function))
    --EMACSRESULT:"Procedure_1a"
 
+   not overriding
    procedure Procedure_1b
      (Item  : in out Parent_Type_1) is null;
 
+   not
+   overriding
    procedure
-     Procedure_1c (Item  : in out Parent_Type_1) is null;
+     Procedure_1c (Item  : in out Parent_Type_1);
 
    procedure Procedure_1d
      (Item   : in out Parent_Type_1;

@@ -303,6 +303,10 @@ package body Ada_Mode.Nominal is
    end Procedure_1a;
 
    not overriding
+   procedure Procedure_1c (Item  : in out Parent_Type_1) is begin null; end;
+
+   not
+   overriding
    procedure Procedure_1f (Item : in out Parent_Type_1)
    is
    begin
@@ -420,6 +424,8 @@ package body Ada_Mode.Nominal is
       end Block_1;
    end;
 
+   not
+   overriding
    function Function_2d (Param : in Parent_Type_1) return Float
    is
    begin

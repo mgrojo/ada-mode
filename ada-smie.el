@@ -3120,13 +3120,30 @@ the start of CHILD, which must be a keyword."
 	   (cons 'column (+ function-col ada-indent-return))))
          ))
 
+      ((equal arg "overriding")
+       (save-excursion
+	 ;; this handles:
+	 ;;
+	 ;; not
+	 ;; overriding
+	 ;; procedure
+	 ;;
+	 (if (equal "not" (ada-smie-unrefined-token nil))
+	     (cons 'column (current-column))
+	   ;; else let :after handle it
+	   nil)))
+
       ((member arg '("procedure-overriding" "function-overriding"))
        (save-excursion
          (let (col)
-           (smie-default-backward-token)
-           (setq col (current-column))
-           (if (equal "not" (ada-smie-unrefined-token nil))
-               (setq col (current-column)))
+	   ;; this handles:
+	   ;;
+	   ;; not overriding
+	   ;; procedure
+	   (smie-default-backward-token)
+	   (setq col (current-column))
+	   (if (equal "not" (ada-smie-unrefined-token nil))
+	       (setq col (current-column)))
            (cons 'column col))))
 
       ((member arg '("function-separate" "package-separate" "procedure-separate" "protected-separate"
