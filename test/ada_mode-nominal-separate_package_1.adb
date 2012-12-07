@@ -19,6 +19,11 @@ package body Separate_Package_1 is
    ANother_Object : Integer;
    --EMACSRESULT:t
 
+   -- again, as last partial-word
+   --EMACSCMD:(progn (forward-line 1)(downcase-word 2)(ada-case-adjust)(let ((case-fold-search nil))(looking-back "Object_ANother")))
+   Object_ANother : Integer;
+   --EMACSRESULT:t
+
    package Int_IO is new Ada.Text_IO.Integer_IO (Integer);
    use Int_IO;
 

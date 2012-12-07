@@ -1,5 +1,4 @@
--- Test indenting after interactive return; while the user is typing code.
--- Only cases that have actually occured in practice with Ada mode 5.0.
+-- Test various things interactively; while the user is typing code.
 
 -- This file doesn't compile; it contains deliberately incomplete code.
 
@@ -54,6 +53,27 @@ is
    --
    -- is; used to cause an unrecognized "is" because indent-according-to-mode is called with the comment text exposed!
    -- fixed by ada-smie-comment-indent.
+
+   -- testing auto-case
+   --EMACSCMD:(progn (end-of-line 1)(newline-and-indent)(insert "A")(char-before))
+
+   --EMACSRESULT:?A
+   --EMACSCMD:(progn (end-of-line 1)(newline-and-indent)(insert "a")(char-before))
+
+   --EMACSRESULT:?a
+   --EMACSCMD:(progn (end-of-line 1)(newline-and-indent)(execute-kbd-macro "a_b ")(let ((case-fold-search nil))(looking-back "A_B ")))
+
+   --EMACSRESULT:t
+
+   --EMACSCMD:(progn (end-of-line 1)(newline-and-indent)(execute-kbd-macro "foo_bar_baz ")(let ((case-fold-search nil))(looking-back "Foo_Bar_Baz ")))
+
+   --EMACSRESULT:t
+   --EMACSCMD:(progn (forward-line 1)(downcase-word 2)(execute-kbd-macro "\C-u\C-c\C-w")(let ((case-fold-search nil))(looking-back "Ada_Identifier")))
+   -- Ada_Identifier in comment; force auto-case
+
+   --EMACSCMD:(progn (forward-line 1)(forward-word 1)(execute-kbd-macro "\n")(let ((case-fold-search nil))(looking-at "begin")))
+   is begin
+   --EMACSRESULT:t
 
 end Procedure_1;
 

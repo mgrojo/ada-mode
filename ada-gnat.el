@@ -182,9 +182,8 @@ src_dir, obj_dir will include compiler runtime."
   "Return a buffer suitable for running gnat command line tools for the current project."
   (ada-require-project-file)
   (let* ((buffername (concat " *gnat-run-"
-			     (file-name-nondirectory
-			      (or (ada-prj-get 'gpr_file)
-				  ada-prj-current-file))
+			     (or (ada-prj-get 'gpr_file)
+				  ada-prj-current-file)
 			     "*"))
 	 (buffer (get-buffer buffername)))
     (if buffer

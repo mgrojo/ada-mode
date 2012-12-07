@@ -10,6 +10,8 @@ package Ada_Mode.Parens is
          C : Integer;
       end record;
 
+   --EMACSCMD:(progn (end-of-line 3)(ada-in-paramlist-p))
+   --EMACSRESULT:nil
    type T3 (A : Integer;
             B : Integer) is limited record
                V : Character;
@@ -19,7 +21,7 @@ package Ada_Mode.Parens is
                C : Integer;
             end record;
 
-   --  A pathological subprogram declaration
+   --  A pathological subprogram declaration. We don't expect ada-format-paramlist to handle this
    function Function_1
      (Param_1,
         Param_2,

@@ -138,7 +138,7 @@ identifiers are Mixed_Case."
 
 (defcustom ada-case-exception-file nil
   "*List of special casing exceptions dictionaries for identifiers.
-New exceptions may be added interactively via `ada-create-case-exception'.
+New exceptions may be added interactively via `ada-case-create-exception'.
 If an exception is defined in multiple files, the first occurance is used.
 
 The file format is one word per line, that gives the casing to be
@@ -182,6 +182,7 @@ If nil, no contextual menu is available."
   (let ((map (make-sparse-keymap)))
     ;; C-c <letter> are reserved for users
 
+    (define-key map "\C-c\C-a" 'ada-align)
     (define-key map "\C-c\C-b" 'ada-case-adjust-buffer)
     (define-key map "\C-c\C-c" 'compile)
     (define-key map "\C-c\C-d" 'ada-goto-declaration)
@@ -214,8 +215,8 @@ If nil, no contextual menu is available."
      ["Indent Line"                 indent-for-tab-command  t]
      ["Indent Lines in Selection"   indent-region           t]
      ["Indent Lines in File"        (indent-region (point-min) (point-max))  t]
-     ["Align"                       align               t]
-     ;; FIXME: does 'align' do:
+     ["Align"                       ada-align               t]
+     ;; FIXME: does 'ada-align' do:
      ;; 1. ':=', '=>' in code sections
      ;; 2. parameter lists
      ;; 3. comments after code
@@ -492,7 +493,7 @@ Uses Mixed_Case, with exceptions defined in
 	  (setq next
 		(or
 		 (save-excursion (when (search-forward "_" end t) (point-marker)))
-		 end))
+		 (copy-marker (1+ end))))
 
 	  (if (setq match (assoc-string (buffer-substring-no-properties start (1- next))
 					ada-case-partial-exceptions t))
@@ -512,24 +513,23 @@ Uses Mixed_Case, with exceptions defined in
 	    (setq done t))
 	)))))
 
-(defun ada-case-adjust (&optional force-identifier)
+(defun ada-case-adjust (&optional force-identifier in-comment)
   "Adjust the case of the word before the character just typed.
-If FORCE-IDENTIFIER is non-nil then treat the word as an identifier (not an Ada keyword)."
+If FORCE-IDENTIFIER is non-nil then treat the word as an identifier (not an Ada keyword).
+If IN-COMMENT is non-nil, adjust case of words in comments."
   (when (not (bobp))
     (when (save-excursion
 	    (forward-char -1)
 	    (and (not (bobp))
+		 (not (eq (char-syntax (char-after)) ? )); whitespace
 		 (not (and (eq (following-char) ?')
 			   (eq (char-before (1- (point))) ?'))); character literal
 
-		 (memq (char-syntax (char-before)) '(?w ?_)); single character identifier
-
-		 (not (and
-		       ;; we sometimes want to capitialize an Ada
-		       ;; identifier referenced in a comment, via
-		       ;; ada-adjust-case-at-point.
-		       (ada-in-string-or-comment-p)
-		       (not force-identifier)))
+		 (or in-comment
+		     (not (ada-in-string-or-comment-p)))
+		 ;; we sometimes want to capitialize an Ada identifier
+		 ;; referenced in a comment, via
+		 ;; ada-adjust-case-at-point.
 
 		 (not (ada-in-numeric-literal-p))
 		 ))
@@ -551,13 +551,13 @@ If FORCE-IDENTIFIER is non-nil then treat the word as an identifier (not an Ada 
        ))
     ))
 
-(defun ada-case-adjust-at-point (&optional force-identifier)
+(defun ada-case-adjust-at-point (&optional in-comment)
   "Adjust case of word at point, move to end of word.
 With prefix arg, adjust case even if in comment."
   (interactive "P")
   (when (memq (char-syntax (char-after)) '(?w ?_))
     (skip-syntax-forward "w_"))
-  (ada-case-adjust force-identifier))
+  (ada-case-adjust nil in-comment))
 
 (defun ada-case-adjust-region (begin end)
   "Adjust case of all words in region BEGIN END."
@@ -575,6 +575,222 @@ With prefix arg, adjust case even if in comment."
   "Adjust case of current buffer."
   (interactive)
   (ada-case-adjust-region (point-min) (point-max)))
+
+(defun ada-case-adjust-interactive (arg)
+  "Adjust the case of the previous word, and process the character just typed.
+To be bound to keys that should cause auto-casing.
+ARG is the prefix the user entered with \\[universal-argument]."
+  (interactive "P")
+
+  (let ((lastk last-command-event))
+
+    (cond
+     ((eq lastk ?\n)
+      (ada-case-adjust)
+      (funcall ada-lfd-binding))
+
+     ((eq lastk ?\r)
+      (ada-case-adjust)
+      (funcall ada-ret-binding))
+
+     (t
+      (ada-case-adjust (eq lastk ?_))
+      (self-insert-command (prefix-numeric-value arg)))
+     )
+  ))
+
+(defvar ada-ret-binding nil)
+(defvar ada-lfd-binding nil)
+
+(defun ada-case-activate-keys ()
+  "Modify the key bindings for all the keys that should adjust casing."
+  (interactive)
+  ;; We can't use post-self-insert-hook for \n, \r, because they are
+  ;; not self-insert.  So we make ada-mode-map buffer local, and don't
+  ;; call this function if ada-auto-case is off. That means
+  ;; ada-auto-case cannot be changed after an Ada buffer is created.
+
+  (make-variable-buffer-local 'ada-mode-map)
+
+  ;; The 'or ...' is there to be sure that the value will not
+  ;; be changed again when Ada mode is called more than once
+  (or ada-ret-binding (setq ada-ret-binding (key-binding "\C-M")))
+  (or ada-lfd-binding (setq ada-lfd-binding (key-binding "\C-j")))
+
+  (mapcar (function
+	   (lambda(key)
+	     (define-key
+	       ada-mode-map
+	       (char-to-string key)
+	       'ada-case-adjust-interactive)))
+	  '( ?_ ?% ?& ?* ?( ?) ?- ?= ?+
+		?| ?\; ?: ?' ?\" ?< ?, ?. ?> ?/ ?\n 32 ?\r ))
+  )
+
+;;; align
+
+(defun ada-align ()
+  "If region is active, apply 'align'. If not, attempt to align
+current construct."
+  (interactive)
+  (if (use-region-p)
+      (progn
+        (align (region-beginning) (region-end))
+        (deactivate-mark))
+
+    ;; else see if we are in a construct we know how to align
+    (cond
+     ((ada-in-paramlist-p)
+        (ada-format-paramlist))
+
+     (t
+      (align-current))
+     )))
+
+(defvar ada-in-paramlist-p nil
+  "Function to return t if point is inside the parameter-list of a subprogram declaration.
+Function is called with no arguments.
+Supplied by indentation engine parser.")
+
+(defun ada-in-paramlist-p ()
+  "Return t if point is inside the parameter-list of a subprogram declaration."
+  (when ada-in-paramlist-p
+    (funcall ada-in-paramlist-p)))
+
+(defun ada-format-paramlist ()
+  "Reformat the parameter list point is in."
+  (interactive)
+  (ada-goto-open-paren)
+
+  (let* ((begin (point))
+	 (delend (progn (forward-sexp) (point))); just after matching closing paren
+	 (end (progn (forward-comment (- (point))) (point))); end of last parameter-declaration
+	 (paramlist (ada-scan-paramlist (1+ begin) end)))
+
+    (when paramlist
+      ;; delete the original parameter-list
+      (delete-region begin delend)
+
+      ;; insert the new parameter-list
+      (goto-char begin)
+      (ada-insert-paramlist paramlist))))
+
+(defvar ada-scan-paramlist nil
+  "Function to scan a region, return a list of subprogram parameter declarations.
+Function is called with two args BEGIN END (the region).
+Each parameter declaration is represented by a list
+'((identifier ...) in-p out-p not-null-p access-p type default)."
+  ;; FIXME: handle all of 'in | out | in out | [not null] access [constant | protected]'
+  ;; FIXME: handle single-line trailing comments, or longer comments, in paramlist?
+  )
+
+(defun ada-scan-paramlist (begin end)
+  (when ada-scan-paramlist
+    (funcall ada-scan-paramlist begin end)))
+
+(defun ada-insert-paramlist (paramlist)
+  "Insert a formatted PARAMLIST in the buffer.
+Point is between parens"
+  ;; FIXME: review code
+  (let ((i (length paramlist))
+	j
+	len
+	(ident-len 0)
+	(type-len 0)
+	(inp nil)
+	(outp nil)
+	(accessp nil)
+	(not-null-p nil)
+	mode-len
+	column
+	firstcol)
+
+    ;; get values of all params
+    (while (not (zerop i))
+      (setq i (1- i))
+
+      ;; identifier list
+      (setq len 0
+	    j   0)
+      (mapc (lambda (ident)
+	      (setq j (1+ j))
+	      (setq len (+ len (length ident))))
+	    (nth 0 (nth i paramlist)))
+      (setq len (+ len (* 2 (1- j)))); space for commas
+      (setq ident-len (max ident-len len))
+
+      (setq type-len (max type-len (length (nth 4 (nth i paramlist)))))
+
+      (setq inp (or inp (nth 1 (nth i paramlist))))
+      (setq outp (or outp (nth 2 (nth i paramlist))))
+      (setq not-null-p (or not-null-p (nth 3 (nth i paramlist))))
+      (setq accessp (or accessp (nth 4 (nth i paramlist))))
+      )
+
+    ;; compute space for " in out not null access"
+    (setq mode-len
+	  (+
+	   (if inp 3 0)
+	   (if outp 4 0)
+	   (if not-null-p 9 0)
+	   (if accessp 7 0)))
+
+    (unless (save-excursion (skip-chars-backward " \t") (bolp))
+      (end-of-line)
+      (delete-region (point) (skip-syntax-backward " "))
+      (insert " "))
+
+    (insert "(")
+    (funcall indent-line-function)
+
+    (setq firstcol (current-column))
+    (setq i (length paramlist))
+
+    ;; loop until last parameter
+    (while (not (zerop i))
+      (setq i (1- i))
+      (setq column firstcol)
+
+      ;; insert identifiers, space and colon
+      (mapc (lambda (ident)
+	      (insert ident)
+	      (insert ", "))
+	    (nth 0 (nth i paramlist)))
+      (delete-backward-char 2); last ", "
+      (indent-to (+ column ident-len 1))
+      (insert ": ")
+      (setq column (current-column))
+
+      (when (nth 1 (nth i paramlist))
+	(insert "in "))
+
+      (when (nth 2 (nth i paramlist))
+	(insert "out "))
+
+      (when (nth 3 (nth i paramlist))
+	(insert "not null "))
+
+      (when (nth 4 (nth i paramlist))
+	(insert "access "))
+
+      (setq column (current-column))
+
+      ;; type
+      (insert (nth 5 (nth i paramlist)))
+
+      ;; default
+      (when (nth 6 (nth i paramlist))
+	(progn
+	  (indent-to (+ column type-len 1))
+	  (insert (nth 6 (nth i paramlist)))))
+
+      (if (zerop i)
+	  (insert ")")
+	(insert ";")
+	(newline)
+	(indent-to firstcol))
+      )
+    ))
 
 ;;; project files
 
@@ -901,6 +1117,12 @@ If PARSE-RESULT is non-nil, use it instead of calling `syntax-ppss'."
 If PARSE-RESULT is non-nil, use it instead of calling `syntax-ppss'."
   (> (nth 0 (or parse-result (syntax-ppss))) 0))
 
+(defun ada-goto-open-paren (&optional offset parse-result)
+  "Move point to opening paren surrounding current point, plus OFFSET.
+Throw error if not in paren.  If PARSE-RESULT is non-nil, use it
+instead of calling `syntax-ppss'."
+  (goto-char (+ (or offset 0) (nth 1 (or parse-result (syntax-ppss))))))
+
 ;;; file navigation
 
 (defvar ada-body-suffixes '(".adb")
@@ -1196,7 +1418,7 @@ identifier.  May be an Ada identifier or operator function name."
 
 (defun ada-goto-source (file line column identifier other-window-frame)
   "Find and select FILE, at LINE and COLUMN.
-If IDENTIFIER is not at resulting point, search for a declaration for it nearby.
+FILE may be absolute, or on `compilation-search-path'.
 
 OTHER-WINDOW-FRAME (default nil, set by interactive prefix)
 controls window and frame choice:
@@ -1205,6 +1427,7 @@ nil     : show in current window
 C-u     : show in other window
 C-u C-u : show in other frame
 "
+  (setq file (ff-get-file compilation-search-path file))
   (let ((buffer (get-file-buffer file)))
     (cond
      ((bufferp buffer)
@@ -1244,6 +1467,7 @@ Called with two arguments, an Ada identifier or operator_symbol, and a
 'parent' flag.
 point is at the start of the identifier.
 Returns a list '(file line column) giving the corresponding location.
+'file' may be absolute, or on `compilation-search-path'.
 If point is at the declaration, the corresponding location is the
 body, and vice versa. If the 'parent' flag is non-nil, return the
 parent type declaration.")
@@ -1699,27 +1923,6 @@ The paragraph is indented on the first line."
   (set (make-local-variable 'comment-start-skip) "---*[ \t]*")
   (set (make-local-variable 'comment-multi-line) nil)
 
-  (case ada-language-version
-   (ada83
-    (setq ada-keywords ada-83-keywords))
-
-   (ada95
-    (setq ada-keywords
-	  (append ada-83-keywords
-		  ada-95-keywords)))
-
-   (ada2005
-    (setq ada-keywords
-	  (append ada-83-keywords
-		  ada-95-keywords
-		  ada-2005-keywords)))
-   (ada2012
-    (setq ada-keywords
-	  (append ada-83-keywords
-		  ada-95-keywords
-		  ada-2005-keywords
-		  ada-2012-keywords))))
-
   (set (make-local-variable 'font-lock-defaults)
        '(ada-font-lock-keywords
 	 nil t
@@ -1771,18 +1974,43 @@ The paragraph is indented on the first line."
 
   (easy-menu-add ada-mode-menu ada-mode-map)
 
-  ;; (run-mode-hooks 'ada-mode-hook) done after this body by define-minor-mode
+  ;; (run-mode-hooks 'ada-mode-hook) is done after this body by define-minor-mode
 
-  ;; These are run after ada-mode-hook because users or other ada-*
-  ;; files might set the relevant variable inside the hook
-  ;; FIXME (later): use (add-hook 'hack-local-variables-hook; see emacs 24.2 ada-mode.el
-
-  ;; (if ada-auto-case
-  ;;     (ada-activate-keys-for-case))
-  ;; FIXME(later): Use post-self-insert-hook instead of changing key bindings.
-
+  (add-hook 'hack-local-variables-hook 'ada-mode-post-local-vars)
   )
 
+(defun ada-mode-post-local-vars ()
+  ;; These are run after ada-mode-hook because users or other ada-*
+  ;; files might set the relevant variable inside the hook or file
+  ;; local variables (file local variables are processed after the
+  ;; mode is set, and thus after ada-mode-hook is run).
+
+  ;; FIXME: this means to fully set ada-mode interactively, user must
+  ;; do M-x ada-mode M-; (hack-local-variables)
+
+  (when ada-auto-case (ada-case-activate-keys))
+
+  (case ada-language-version
+   (ada83
+    (setq ada-keywords ada-83-keywords))
+
+   (ada95
+    (setq ada-keywords
+	  (append ada-83-keywords
+		  ada-95-keywords)))
+
+   (ada2005
+    (setq ada-keywords
+	  (append ada-83-keywords
+		  ada-95-keywords
+		  ada-2005-keywords)))
+   (ada2012
+    (setq ada-keywords
+	  (append ada-83-keywords
+		  ada-95-keywords
+		  ada-2005-keywords
+		  ada-2012-keywords))))
+  )
 
 ;;;; Global initializations
 

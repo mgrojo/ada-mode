@@ -10,8 +10,10 @@ package Ada_Mode.Nominal.Child is
    -- FIXME: not implemented yet EMACSCMD:(progn (end-of-line 2)(backward-word 1)(ada-goto-declaration-parent nil))
    overriding procedure Procedure_1a (Item  : in out Child_Type_1);
 
+   --EMACSCMD: (progn (forward-line 1)(ada-which-function))
    overriding procedure Procedure_1b
      (Item  : in out Child_Type_1) is null;
+   --EMACSRESULT:"Procedure_1b"
 
    procedure Procedure_1c_Different_Name (Item  : in out Child_Type_1) is null;
 

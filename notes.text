@@ -3,8 +3,6 @@ General notes on porting Emacs Ada mode indentation engine to smie
 (progn
     (add-to-list 'load-path (expand-file-name "."))
     (load "test/runtest.el");; loads ada-mode, ada-mode-keys, etc
-    (modify-syntax-entry ?_ "_" ada-mode-syntax-table); default
-    (setq ada-mode-hook (delete 'ada-find-file-setup ada-mode-hook))
     (setq ada-mode-hook (delete 'sal-ada-mode-setup ada-mode-hook))
     (setq ada-mode-hook (delete 'ada-xref-initialize ada-mode-hook))
     (which-function-mode)
@@ -13,6 +11,10 @@ General notes on porting Emacs Ada mode indentation engine to smie
         (add-hook 'before-save-hook 'delete-trailing-whitespace)
        ))
    )
+
+(progn
+    (color-theme-classic)
+    (ada-mode-4.01))
 
 (setq ada-smie-debug-refine t)
 (setq ada-smie-debug-refine nil)
@@ -28,7 +30,16 @@ runtest from emacs -q:
   (add-to-list 'load-path "/Projects/org.emacs.ada-mode.smie")
   (load "ada-mode")
   (global-font-lock-mode -1)
-  (find-file "/Projects/org.emacs.ada-mode.smie/test/ada_mode-nominal.ads")
+  (setq exec-path
+        (list
+         (expand-file-name "~/bin")
+         "c:/Apps/GNAT-7.0.1/bin"
+         (getenv "EMACSPATH")
+         "c:/Apps/monotone-1.0"
+         "c:/bin"
+         "c:/WINDOWS/system32"))
+  (setenv "PATH" (mapconcat 'identity  exec-path  path-separator))
+  (find-file "/Projects/org.emacs.ada-mode.smie/test/ada-mode-test.el")
 )
   (add-to-list 'load-path "/Projects/org.emacs.ada-mode.smie/test")
   (load "runtest")
@@ -47,38 +58,73 @@ review FIXMEs
  ada-smie
 test/Makefile  ;; set project file
 
-ada-mode-test.el failing in ada-parse-prj-file in batch only
+testing ada-align-paramlist
+    test/ada_mode-parens.adb
+    ada-in-paramlist-p done
+    ada-scan-paramlist
+        not accumulating paramlist correctly
+
+    ada-insert-paramlist
+        first draft written
+
+    handle wrapping due to line length limit?
+
+    handle comments in paramlist
+
+sjw ada_mode-test.el failing
+
+adjust case bug
+    exec.+new string
+
+    insert ( after + => capitalize 'new'
+
+    another:
+        with
+
+        insert -- before 'with' => capitalize with
+
+ada-smie-generic-p bug
+    actually ada-smie-statement-or-decl bug
+        "with-context" needs -1, -2
+        add tests
+
+ada-other-file
+    need gnatkr for libraries; ada.strings.unbounded
+        ada-make-filename-from-adaname in ada-mode-patches
+        ada-make-filename-from-adaname-gnatkr
+
+    didn't find ada_mode-parens.adb, offered to create .adb.gp
+
+gnat-fix
+
+align broken
+    debug_books.adb
+    inserted space between c: in string!
+
+    add param-list
+    overriding procedure Skip_Rest
+     (Device        : not null access Device_Type;
+      Bytes_Skipped : out Integer)
+
+Ada.Directories
+    C-c C-d gives "a-direct.ads" not found
+    C-F11 doesn't work either
+        needed ff-get-file
+            test!
+
+C-c C-d on sql_parameters in gnatcoll-sql-exec.ads
+    => not found in cross-reference files
+    'gnat find' returns nothing
+    -a doesn't help
+
 
 ada-case-adjust
-    test on:
-        Mixed_Case_Identifier   done
-        keyword                 done
-        "string"                done
-        -- comment              done
-        'A'                     done
-        'Attribute              done
-        1235                    inspection
-        16#AFE#                 done
-        FULL_ExCeption          done
-        PARTial_Exception       done
-        UPCASE KEYWORD          done
-        bobp                    done
-
-    interactive test (adjust case after each letter)
-        A
-        a
-        a_b
-        foo_bar_baz
 
     support multiple files
         menu of file to save new exception in
         prompt for file in case-create-exception
 
-some self-insert keys call ada-adjust-case-interactive
-    which sets syntax table to ada-mode-symbol-syntax-table
-        which sets _ to word syntax (a symbol consists of word and symbol constituents)
-        loose_case_word searches for _ explicitly
-        ada-adjust-case-substring modifies syntax of _ to non-word
+double-click underscore selects full word, double-click letter selects partial word?
 
 set casing custom vars in project file
 
@@ -153,14 +199,20 @@ include gnat-fix-error
     or rewrite to use alist; support other compilers
     write test?
 
-interactive edit bug in test/ada_mode-nominal.adb F2
-    insert "Local : Integer;" between "is begin" then indent; sometimes it aligns with "is"
-    can't reproduce; possibly an interaction between font-lock using ada-smie-forward-keyword and ada-smie-after-change
+ada-gnatstub-opts
 
-GNATCOLL.Projects can report "other file name" info
+GNATCOLL.Projects can report "other file name" info?
 
-emacs 23.2?
+support xref for C files?
+    at least if compiled with gprbuild?
+    gcc options?
+    gnatxref?
+
+emacs 23.2
     debian stable
+
+emacs 23.1
+    Red Hat 5
 
  4.01 bugs that 5.01 fixes
     generic formal function

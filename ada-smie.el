@@ -689,11 +689,13 @@ that are not allowed by Ada, but we don't care."
     found))
 
 (defun ada-smie-error (message)
+  (ada-smie-invalidate-cache)
   (error
-   "%s: %s %d"
+   "%s:%d: %s: %s"
+   (buffer-file-name)
+   (line-number-at-pos)
    message
-   (buffer-substring-no-properties (point-at-bol) (point-at-eol))
-   (line-number-at-pos)))
+   (buffer-substring-no-properties (point-at-bol) (point-at-eol))))
 
 (defun ada-smie-generic-p ()
   "Assuming point is at the start of a package or subprogram
@@ -873,6 +875,8 @@ or nil.  Preserves point."
 
 	 (t (list 'unknown nil)))))))
 
+;;; multi-token movement
+
 (defun ada-smie-skip-param_list (forward)
   ;; While refining tokens, we don't want to call smie-next-sexp,
   ;; because it relies on refined tokens. So we call the C scanner
@@ -910,10 +914,10 @@ return one of \"(\", \")\", \"\"\", or nil for bob, eob."
      ((eq (char-before) ?\") "\""))))
 
 (defun ada-smie-next-keyword (next-token forward)
-  "Skip tokens function NEXT-TOKEN, until a keyword or unpaired
-parenthesis is found (a token defined in the grammar).  Skips
-string literals, character literals, paired parentheses.  Stops
-at left paren going backwards, right paren going forwards.
+  "Skip tokens using function NEXT-TOKEN, until a keyword (a
+token defined in the grammar) or unpaired parenthesis is found.
+Skips string literals, character literals, paired parentheses.
+Stops at left paren going backwards, right paren going forwards.
 Return the grammar entry for the keyword (which may be the first
 token found), or (paren nil nil); point is beyond the
 keyword (after for `forward' t, before otherwise).  Return nil if
@@ -953,7 +957,7 @@ encounter beginning or end of buffer."
 
 (defun ada-smie-next-token-unrefined (next-token forward)
   "Move to the next token using function NEXT-TOKEN. Skips parentheses, strings.
-Return the token, or wrong paren, or empty string if encounter
+Return the token (case preserved), or wrong paren, or empty string if encounter
 beginning or end of buffer."
   (let ((token nil))
     (while (not token)
@@ -974,6 +978,9 @@ beginning or end of buffer."
 (defun ada-smie-backward-token-unrefined ()
   (ada-smie-next-token-unrefined 'smie-default-backward-token nil))
 
+(defun ada-smie-forward-token-unrefined ()
+  (ada-smie-next-token-unrefined 'smie-default-forward-token nil))
+
 (defun ada-smie-backward-tokens-unrefined (&rest targets)
   "Move backward over unrefined tokens, strings and parens. Stop
 when found token is an element of TARGETS, return that
@@ -987,11 +994,12 @@ avoid infinite loop on illegal code."
 (defun ada-smie-forward-tokens-unrefined (&rest targets)
   "Move forward over unrefined tokens, strings and parens. Stop
 when found token is an element of TARGETS, return that
-token. Empty string (for eob) is implicitly added to TARGETS, to
-avoid infinite loop on illegal code."
-  (let (result)
+token. Also stops before unmatched right paren, empty string (for
+eob). "
+  (let (result
+	(targets (cons ")" (cons "" targets))))
     (while (not (member (setq result (ada-smie-next-token-unrefined 'smie-default-forward-token t))
-			(cons  "" targets))))
+			targets)))
     result))
 
 (defconst ada-smie-type-modifiers '("abstract" "tagged" "limited" "synchronized"))
@@ -2394,7 +2402,7 @@ If a token is not in the alist, it is returned unrefined.")
 
       (condition-case err
 	  (progn
-	    (goto-char (+ 1 (scan-lists (point) -1 1)));; just after opening paren
+	    (ada-goto-open-paren 1)
 
 	    ;; force calling refine-*. Set ada-smie-cache-max before (
 	    ;; so first keyword doesn't think it's already refined.
@@ -2465,6 +2473,8 @@ Return TOKEN."
 	 )))))
 
 (defun ada-smie-unrefined-token (forward)
+  "Move to the next token; forward if FORWARD non-nil, backward otherwise.
+Return the unrefined lowercased token text."
   (if forward
       (downcase (smie-default-forward-token))
     (downcase (smie-default-backward-token))))
@@ -3369,6 +3379,23 @@ the start of CHILD, which must be a keyword."
 	(current-column)
       (error "ada-smie-comment-indent called after non-comment"))))
 
+(defun ada-smie-blank ()
+  ;; FIXME: need test
+  "Compute indentation of a blank line. For `smie-indent-functions', to handle adding new code."
+  ;; Check to see if we are on a blank line
+  (when
+      (and (smie-indent--bolp)
+	   (eolp))
+
+    ;; yes, we are on a blank line; indent to previous code or comment.
+    (let ((smie-indent-functions
+	   (ada-smie-wrap-indent-functions
+	    '(smie-indent-bob
+	      ada-smie-after-keyword
+	      ada-smie-default))))
+      (smie-indent-calculate))
+    ))
+
 (defun ada-smie-comment ()
   "Compute indentation of a comment. For `smie-indent-functions'."
   ;; Check to see if we are at a comment
@@ -3403,17 +3430,13 @@ the start of CHILD, which must be a keyword."
        ;;       --  comment
        ;;       (
 
-       (if debug-on-error
-	   (or
-	    (ada-smie-wrapper 'smie-indent-bob)
-	    (ada-smie-wrapper 'ada-smie-after-keyword)
-	    (ada-smie-wrapper 'ada-smie-default)
-	    )
-	 (or
-	  (smie-indent-bob)
-	  (ada-smie-after-keyword)
-	  (ada-smie-default)
-	  )))
+       (let ((smie-indent-functions
+	      (ada-smie-wrap-indent-functions
+	       '(smie-indent-bob
+		 ada-smie-after-keyword
+		 ada-smie-default))))
+	 (smie-indent-calculate))
+       )
 
       (t
        ;; comment is after a comment
@@ -3566,7 +3589,9 @@ made."
 		(not
 		 (member (setq token (ada-smie-backward-keyword))
 			 '("procedure-spec"
+			   "procedure-overriding"
 			   "function-spec"
+			   "function-overriding"
 			   "package-generic"
 			   "package-plain"
 			   "protected-type"
@@ -3611,6 +3636,116 @@ made."
 		 "[^_]")))
       )
     result))
+
+(defun ada-smie-in-paramlist-p ()
+  "For `ada-in-paramlist-p'."
+  (when (ada-in-paren-p)
+    ;; We could be in:
+    ;; 1) aggregate
+    ;; 2) discriminant list
+    ;; 3) parenthesized expression (including if, case)
+    ;; 4) subprogram call
+    ;; 5) type constraint
+    ;; 6) parameter list
+    ;;
+    ;; Discriminant list and parameter list are the only ones that
+    ;; contain ":-object". We distinguish between them by looking for
+    ;; "type".
+    (save-excursion
+      (let (result
+	    token
+	    (done nil))
+	(ada-goto-open-paren 1)
+	(narrow-to-region
+	 (line-beginning-position) ;; preserve indentation
+	 (scan-lists (point) 1 1)) ;; just after closing paren
+
+	(while (not done)
+	  (setq token (ada-smie-forward-keyword))
+	  (cond
+	   ((equal ":-object" token)
+	    (setq done t)
+	    (setq result t))
+
+	   ((equal ")" token)
+	    (setq done t)
+	    (setq result nil))))
+	(widen)
+	(when result
+	  (ada-goto-open-paren)
+	  (ada-smie-goto-statement-start nil)
+	  (not (equal "type" (ada-smie-unrefined-token t)))
+	  )))))
+
+(defun ada-smie-scan-paramlist (begin end)
+  "For `ada-scan-paramlist'."
+  (goto-char begin)
+  (let (token
+	identifiers
+	(in-p nil)
+	(out-p nil)
+	(not-null-p nil)
+	(access-p nil)
+	(type nil)
+	type-begin
+	type-end
+	(default nil)
+	(default-begin nil)
+	param
+	paramlist
+	(done nil))
+    (while (not done)
+      (setq token (ada-smie-forward-token))
+      (cond
+       ((equal token ",") nil);; multiple identifiers
+
+       ((equal token ":-object")
+	;; identifiers done
+	(save-excursion
+	  (while (member (ada-smie-unrefined-token t) '("in" "out" "access" "not" "null"))
+	    (skip-syntax-forward " ")
+	    (setq type-begin (point)))))
+
+       ((equal token "in") (setq in-p t))
+       ((equal token "out") (setq out-p t))
+       ((member token '("not" "null")) (setq not-null-p t))
+       ((equal token "access") (setq access-p t))
+
+       ((equal token ":=")
+	(setq type-end (save-excursion (backward-char 2) (skip-syntax-backward " ") (point)))
+	(skip-syntax-forward " ")
+	(setq default-begin (point))
+	(ada-smie-forward-tokens-unrefined ";")
+	(unless (equal token ")")
+	  (ada-smie-backward-token-unrefined)))
+
+       ((member token '(";" ""))
+	(setq done (equal token ""))
+	;; one param done
+	(when (not type-end) (setq type-end (1- (point))))
+	(setq type (buffer-substring type-begin type-end))
+	(when default-begin (setq default (buffer-substring default-begin (1- (point)))))
+	(setq param (list (reverse identifiers) in-p out-p not-null-p access-p type default))
+	(if paramlist
+	    (add-to-list 'paramlist param)
+	  (setq paramlist (list param)))
+	(setq identifiers nil
+	      in-p nil
+	      out-p nil
+	      access-p nil
+	      type nil
+	      type-begin nil
+	      type-end nil
+	      default nil
+	      default-begin nil))
+
+       (t
+	(when (not type-begin)
+	  (if identifiers
+	      (add-to-list 'identifiers token)
+	    (setq identifiers (list token)))))
+       ))
+    (reverse paramlist)))
 
 ;;; parser debug
 (defvar ada-smie-debug-refine nil
@@ -3715,14 +3850,16 @@ gracefully.")
 (defmacro ada-smie-wrap (func)
   `(lambda() (ada-smie-wrapper ',func)))
 
-(defun ada-smie-wrap-indent-functions ()
-  "Replace contents of `smie-indent-functions' with functions wrapped in `ada-smie-wrapper'.
+(defun ada-smie-wrap-indent-functions (functions)
+  "If `debug-on-error' is non-nil, wrap contents of FUNCTIONS with `ada-smie-wrapper'. Return new list.
 This lets us know which indentation function succeeded."
-  (let (res func)
-    (while (setq func (pop smie-indent-functions))
-      (let ((newfunc (cadr (macroexpand `(ada-smie-wrap ,func)))))
-	(setq res (cons newfunc res))))
-    (setq smie-indent-functions (reverse res))))
+  (if debug-on-error
+      (let (res func)
+	(while (setq func (pop functions))
+	  (let ((newfunc (cadr (macroexpand `(ada-smie-wrap ,func)))))
+	    (setq res (cons newfunc res))))
+	(reverse res))
+    functions))
 
 (defun ada-smie-debug-keys ()
   "Add debug key definitions to `ada-mode-map'."
@@ -3763,19 +3900,16 @@ This lets us know which indentation function succeeded."
   (make-local-variable 'smie-indent-functions)
 
   (setq smie-indent-functions
-	'(smie-indent-bob; handle first non-comment line in buffer
-	  ada-smie-label
-	  ada-smie-comment
-	  ada-smie-record
-	  ada-smie-before-keyword
-	  ada-smie-after-keyword
-	  ada-smie-default)
-	)
-  (if debug-on-error
-      (progn
-	(ada-smie-wrap-indent-functions)
-	(setq ada-smie-debug-refine t))
-    (setq ada-smie-debug-refine nil))
+     (ada-smie-wrap-indent-functions
+      '(smie-indent-bob; handle first non-comment line in buffer
+	ada-smie-blank
+	ada-smie-label
+	ada-smie-comment
+	ada-smie-record
+	ada-smie-before-keyword
+	ada-smie-after-keyword
+	ada-smie-default)
+       ))
 
   (smie-setup ada-smie-grammar #'ada-smie-rules
 	      :forward-token #'ada-smie-forward-token
@@ -3823,6 +3957,8 @@ This lets us know which indentation function succeeded."
      )))
 
   (set (make-local-variable 'ada-which-function) 'ada-smie-which-function)
+  (set (make-local-variable 'ada-in-paramlist-p) 'ada-smie-in-paramlist-p)
+  (set (make-local-variable 'ada-scan-paramlist) 'ada-smie-scan-paramlist)
 
   (define-key ada-mode-map "\t" 'indent-for-tab-command)
   ;; TAB will now use smie indentation in Ada mode buffers

@@ -1,4 +1,6 @@
 package body Ada_Mode.Parens is
+   --EMACSCMD:(progn (forward-line 4)(forward-word 2)(insert "   ")(ada-align))
+   -- result is tested by .diff
    function Function_1
      (Param_1, Param_2,
         Param_3 : in Ada.Text_IO. Count;
@@ -84,36 +86,37 @@ package body Ada_Mode.Parens is
          others => 5);
    end;
 
-   procedure If_Statement
-     (A : in Boolean;
-      B : in Boolean;
-      C : in Boolean;
-      D : in Boolean;
-      E : in Boolean;
-      G : in Boolean)
+   --EMACSCMD:(progn (forward-line 2)(forward-word 2)(insert "   ")(forward-line 2)(forward-word 2)(insert "   ")(ada-align))
+   -- paren on same line as 'procedure' to test that case in ada-format-paramlist. result is tested by .diff
+   procedure If_Statement (A : access Boolean;
+                           B : not null access Boolean;
+                           C : in Boolean;
+                           D : in Boolean;
+                           E : in Boolean;
+                           G : in Boolean)
    is
    begin
 
-      if A
-        or else B
+      if A.all
+        or else B.all
         or else C
       then
          null;
       end if;
 
-      if A
-        or else (B
+      if A.all
+        or else (B.all
                    and then C
                    and then D)  --  requires ada-indent-validate-cache-paren
       then
          null;
       end if;
 
-      if A
-        or else (B
+      if A.all
+        or else (B.all
                    and then C
                    and then D)
-        or else ((B
+        or else ((B.all
                     and then C)
                    or else
                    (D
@@ -123,25 +126,25 @@ package body Ada_Mode.Parens is
          null;
       end if;
 
-      while A
-        or else B
+      while A.all
+        or else B.all
       loop
          null;
       end loop;
 
-      while A
-        or else (B
+      while A.all
+        or else (B.all
                    and then C
                    and then D)
       loop
          null;
       end loop;
 
-      while A
-        or else (B
+      while A.all
+        or else (B.all
                    and then C
                    and then D)
-        or else ((B
+        or else ((B.all
                     and then C)
                    or else
                    (D
@@ -152,20 +155,20 @@ package body Ada_Mode.Parens is
       end loop;
 
       loop
-         exit when A
-           or else B
+         exit when A.all
+           or else B.all
            or else C;
 
-         exit when A
-           or else (B
+         exit when A.all
+           or else (B.all
                       and then C
                       and then D); --  Indented on 'exit' instead of 'and then'
 
-         exit when A
-           or else (B
+         exit when A.all
+           or else (B.all
                       and then C
                       and then D)  --  Indented on 'if', instead of 'and then'
-           or else ((B
+           or else ((B.all
                        and then C)
                       or else
                       (D
@@ -174,6 +177,9 @@ package body Ada_Mode.Parens is
       end loop;
 
    end If_Statement;
+
+   -- FIXME: test other cases of ada-format-paramlist;
+   -- followed on same line by ";" "is" "return"
 
    procedure Hello
    is
