@@ -3,7 +3,7 @@
 --EMACSCMD:(ada-parse-prj-file "ada_mode.gpr")
 --EMACSCMD:(ada-select-prj-file "ada_mode.gpr")
 --EMACSCMD:ada-prj-current-file
---EMACSRESULT:"c:/Projects/org.emacs.ada-mode.smie/test/ada_mode.gpr"
+--EMACSRESULT:(expand-file-name "ada_mode.gpr")
 --EMACSCMD:(length compilation-search-path)
 -- current dir, gnat library dir
 --EMACSRESULT:2

@@ -3130,10 +3130,31 @@ the start of CHILD, which must be a keyword."
 	   (cons 'column (+ function-col ada-indent-return))))
          ))
 
+      ((equal arg "overriding")
+       (save-excursion
+	 ;; this handles:
+	 ;;
+	 ;; not
+	 ;; overriding
+	 ;; procedure
+	 ;;
+	 (if (equal "not" (ada-smie-unrefined-token nil))
+	     (cons 'column (current-column))
+	   ;; else let :after handle it
+	   nil)))
+
       ((member arg '("procedure-overriding" "function-overriding"))
        (save-excursion
-	 (smie-default-backward-token)
-	 (cons 'column (current-column))))
+         (let (col)
+	   ;; this handles:
+	   ;;
+	   ;; not overriding
+	   ;; procedure
+	   (smie-default-backward-token)
+	   (setq col (current-column))
+	   (if (equal "not" (ada-smie-unrefined-token nil))
+	       (setq col (current-column)))
+           (cons 'column col))))
 
       ((member arg '("function-separate" "package-separate" "procedure-separate" "protected-separate"
 		     "task-separate"))
@@ -3588,15 +3609,15 @@ made."
 	    (while
 		(not
 		 (member (setq token (ada-smie-backward-keyword))
-			 '("procedure-spec"
-			   "procedure-overriding"
+			 '("function-overriding"
 			   "function-spec"
-			   "function-overriding"
 			   "package-generic"
 			   "package-plain"
+			   "procedure-overriding"
+			   "procedure-spec"
 			   "protected-type"
-			   "task-type"
 			   "task-single"
+			   "task-type"
 			   nil; bob
 			   )))))
 
@@ -3606,7 +3627,9 @@ made."
 	    (not
 	     (member (setq token (ada-smie-backward-keyword))
 		     '("procedure-spec" "is-subprogram_body" "begin-body" "end-block"
+                       "procedure-overriding"
 		       "function-spec" "return-spec"
+                       "function-overriding"
 		       "package-plain"
 		       "protected-body" "is-protected_body"
 		       "task-body" "is-task_body"
