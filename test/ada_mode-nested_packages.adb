@@ -147,7 +147,7 @@ package body Ada_Mode.Nested_Packages is
    -- "for" loop with nested begin
    procedure Test_For_1 is
    begin
-      for j in 1 .. 10 loop
+      for J in 1 .. 10 loop
          begin             -- was not indented
             null;
          end;

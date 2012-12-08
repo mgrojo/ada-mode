@@ -7,7 +7,7 @@
 procedure Procedure_1
 is
    -- Adding text inside a comment must not leave ada-smie-cache-max inside comment
-   --EMACSCMD:(progn (beginning-of-line)(forward-comment 100)(ada-smie-validate-cache (point)))
+   --EMACSCMD:(progn (beginning-of-line)(forward-comment 100)(forward-char 2)(ada-smie-validate-cache (point)))
    --EMACSCMD:(progn (beginning-of-line)(forward-comment -2)(forward-word 1)(insert "some text")ada-smie-cache-max)
    --EMACSRESULT:(progn (forward-line -3)(skip-syntax-forward "\\s ")(point))
 

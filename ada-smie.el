@@ -219,7 +219,7 @@
        (context_item ";" context_item))
 
       (context_item
-       ("limited-context" "private-context-2" "with-context")
+       ("limited-context" "private-context-2" "with-context-2")
        ("limited-context" "with-context-2")
        ("private-context-1" "with-context-2")
        ("with-context-1")
@@ -867,7 +867,7 @@ or nil.  Preserves point."
 
 	 ((member
 	   token
-	   '("limited-context" "private-context" "with-context"))
+	   '("limited-context" "private-context" "with-context-1" "with-context-2"))
 	  (list 'context token))
 
 	 ((equal token "with-formal")
@@ -3656,9 +3656,6 @@ made."
 	    token
 	    (done nil))
 	(ada-goto-open-paren 1)
-	(narrow-to-region
-	 (line-beginning-position) ;; preserve indentation
-	 (scan-lists (point) 1 1)) ;; just after closing paren
 
 	(while (not done)
 	  (setq token (ada-smie-forward-keyword))
@@ -3670,7 +3667,6 @@ made."
 	   ((equal ")" token)
 	    (setq done t)
 	    (setq result nil))))
-	(widen)
 	(when result
 	  (ada-goto-open-paren)
 	  (ada-smie-goto-statement-start nil)
@@ -3720,11 +3716,19 @@ made."
 	  (ada-smie-backward-token-unrefined)))
 
        ((member token '(";" ""))
-	(setq done (equal token ""))
 	;; one param done
-	(when (not type-end) (setq type-end (1- (point))))
+	(if (equal token "")
+	    ;; all done
+	    (progn
+	      (setq done t)
+	      (when (not type-end) (setq type-end (point)))
+	      (when default-begin (setq default (buffer-substring default-begin (point))))
+	      )
+	  (when (not type-end) (setq type-end (1- (point))))
+	  (when default-begin (setq default (buffer-substring default-begin (1- (point)))))
+	  )
+
 	(setq type (buffer-substring type-begin type-end))
-	(when default-begin (setq default (buffer-substring default-begin (1- (point)))))
 	(setq param (list (reverse identifiers) in-p out-p not-null-p access-p type default))
 	(if paramlist
 	    (add-to-list 'paramlist param)
@@ -3732,6 +3736,7 @@ made."
 	(setq identifiers nil
 	      in-p nil
 	      out-p nil
+	      not-null-p nil
 	      access-p nil
 	      type nil
 	      type-begin nil
@@ -3745,7 +3750,7 @@ made."
 	      (add-to-list 'identifiers token)
 	    (setq identifiers (list token)))))
        ))
-    (reverse paramlist)))
+    paramlist))
 
 ;;; parser debug
 (defvar ada-smie-debug-refine nil
@@ -3948,8 +3953,9 @@ This lets us know which indentation function succeeded."
       ada-name-regexp "?")
      '(1 font-lock-keyword-face)
      '(2 (if (member (progn
-		       (ada-smie-validate-cache (match-beginning 1))
-		       (ada-smie-get-cache (match-beginning 1)))
+		       (when (not (ada-in-string-or-comment-p))
+			 (ada-smie-validate-cache (match-beginning 1))
+			 (ada-smie-get-cache (match-beginning 1))))
 		    '("return-spec" "return-formal"))
 	     font-lock-type-face
 	   'default)

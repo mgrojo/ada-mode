@@ -36,6 +36,7 @@
 (defun run-test-here ()
   "Run an ada-mode test on the current buffer."
   (interactive)
+  (setq indent-tabs-mode nil)
   (let (last-result last-cmd expected-result)
     ;; Look for --EMACS comments in the file:
     ;;
@@ -82,7 +83,6 @@
     ;; would pass, otherwise!  Only unindent by 1 column, so comments
     ;; not currently in column 0 are still not in column 0, in case
     ;; ada-indent-comment-column-0 is t
-    (setq indent-tabs-mode nil)
     (indent-code-rigidly (point-min) (point-max) -1)
     (indent-region (point-min) (point-max))
     (ada-case-adjust-buffer)

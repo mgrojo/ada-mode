@@ -61,11 +61,11 @@ test/Makefile  ;; set project file
 testing ada-align-paramlist
     test/ada_mode-parens.adb
     ada-in-paramlist-p done
-    ada-scan-paramlist
-        not accumulating paramlist correctly
+    ada-scan-paramlist done
+    ada-insert-paramlist done
 
-    ada-insert-paramlist
-        first draft written
+    handle all on single line
+        what does 4.01 do?
 
     handle wrapping due to line length limit?
 
@@ -82,11 +82,6 @@ adjust case bug
         with
 
         insert -- before 'with' => capitalize with
-
-ada-smie-generic-p bug
-    actually ada-smie-statement-or-decl bug
-        "with-context" needs -1, -2
-        add tests
 
 ada-other-file
     need gnatkr for libraries; ada.strings.unbounded

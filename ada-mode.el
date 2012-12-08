@@ -569,7 +569,9 @@ With prefix arg, adjust case even if in comment."
       (forward-comment (point-max))
       (skip-syntax-forward "^w_")
       (skip-syntax-forward "w_")
-      (ada-case-adjust nil))))
+      (unless (eobp)
+	(ada-case-adjust nil))))
+  (widen))
 
 (defun ada-case-adjust-buffer ()
   "Adjust case of current buffer."
@@ -676,7 +678,7 @@ Supplied by indentation engine parser.")
       (ada-insert-paramlist paramlist))))
 
 (defvar ada-scan-paramlist nil
-  "Function to scan a region, return a list of subprogram parameter declarations.
+  "Function to scan a region, return a list of subprogram parameter declarations (in inverse declaration order).
 Function is called with two args BEGIN END (the region).
 Each parameter declaration is represented by a list
 '((identifier ...) in-p out-p not-null-p access-p type default)."
@@ -691,7 +693,6 @@ Each parameter declaration is represented by a list
 (defun ada-insert-paramlist (paramlist)
   "Insert a formatted PARAMLIST in the buffer.
 Point is between parens"
-  ;; FIXME: review code
   (let ((i (length paramlist))
 	j
 	len
@@ -701,11 +702,13 @@ Point is between parens"
 	(outp nil)
 	(accessp nil)
 	(not-null-p nil)
-	mode-len
-	column
-	firstcol)
+	ident-col
+	colon-col
+	out-col
+	type-col
+	default-col)
 
-    ;; get values of all params
+    ;; accumulate info across all params
     (while (not (zerop i))
       (setq i (1- i))
 
@@ -719,7 +722,9 @@ Point is between parens"
       (setq len (+ len (* 2 (1- j)))); space for commas
       (setq ident-len (max ident-len len))
 
-      (setq type-len (max type-len (length (nth 4 (nth i paramlist)))))
+      ;; we align the defaults after the types that have defaults, not after all types
+      (when (nth 6 (nth i paramlist))
+	(setq type-len (max type-len (length (nth 5 (nth i paramlist))))))
 
       (setq inp (or inp (nth 1 (nth i paramlist))))
       (setq outp (or outp (nth 2 (nth i paramlist))))
@@ -727,29 +732,33 @@ Point is between parens"
       (setq accessp (or accessp (nth 4 (nth i paramlist))))
       )
 
-    ;; compute space for " in out not null access"
-    (setq mode-len
-	  (+
-	   (if inp 3 0)
-	   (if outp 4 0)
-	   (if not-null-p 9 0)
-	   (if accessp 7 0)))
-
     (unless (save-excursion (skip-chars-backward " \t") (bolp))
+      ;; paramlist starts on same line as subprogram identifier; clean up whitespace
       (end-of-line)
-      (delete-region (point) (skip-syntax-backward " "))
+      (delete-char (- (skip-syntax-backward " ")))
       (insert " "))
 
     (insert "(")
     (funcall indent-line-function)
 
-    (setq firstcol (current-column))
-    (setq i (length paramlist))
+    ;; compute columns
+    (setq ident-col (current-column))
+    (setq colon-col (+ ident-col ident-len 1))
+    (setq out-col (+ colon-col (if inp 5 0))); ": in "
+    (setq type-col
+	  (+ colon-col
+	     (cond
+	      (not-null-p 18);    ": not null access "
+	      (accessp 9);        ": access"
+	      ((and inp outp) 9); ": in out "
+	      (outp 6);           ": out "
+	      (inp 5))));         ": in "
 
-    ;; loop until last parameter
+    (setq default-col (+ 1 type-col type-len))
+
+    (setq i (length paramlist))
     (while (not (zerop i))
       (setq i (1- i))
-      (setq column firstcol)
 
       ;; insert identifiers, space and colon
       (mapc (lambda (ident)
@@ -757,14 +766,14 @@ Point is between parens"
 	      (insert ", "))
 	    (nth 0 (nth i paramlist)))
       (delete-backward-char 2); last ", "
-      (indent-to (+ column ident-len 1))
+      (indent-to colon-col)
       (insert ": ")
-      (setq column (current-column))
 
       (when (nth 1 (nth i paramlist))
 	(insert "in "))
 
       (when (nth 2 (nth i paramlist))
+	(indent-to out-col)
 	(insert "out "))
 
       (when (nth 3 (nth i paramlist))
@@ -773,22 +782,19 @@ Point is between parens"
       (when (nth 4 (nth i paramlist))
 	(insert "access "))
 
-      (setq column (current-column))
-
-      ;; type
+      (indent-to type-col)
       (insert (nth 5 (nth i paramlist)))
 
-      ;; default
       (when (nth 6 (nth i paramlist))
-	(progn
-	  (indent-to (+ column type-len 1))
-	  (insert (nth 6 (nth i paramlist)))))
+	(indent-to default-col)
+	(insert ":= ")
+	(insert (nth 6 (nth i paramlist))))
 
       (if (zerop i)
 	  (insert ")")
 	(insert ";")
 	(newline)
-	(indent-to firstcol))
+	(indent-to ident-col))
       )
     ))
 

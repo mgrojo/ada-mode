@@ -21,7 +21,7 @@ package Ada_Mode.Parens is
                C : Integer;
             end record;
 
-   --  A pathological subprogram declaration. We don't expect ada-format-paramlist to handle this
+   --  A pathological subprogram declaration. We don't expect ada-format-paramlist to preserve these newlines.
    function Function_1
      (Param_1,
         Param_2,
@@ -31,7 +31,8 @@ package Ada_Mode.Parens is
         Param_5 : in
         out Integer; -- who would do this!?
       Param_6
-        : in Float)
+        : in Float
+        := 1.0)
      return Float;
 
    type Array_Type_1 is array (1 .. 4) of Integer;

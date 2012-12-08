@@ -23,6 +23,7 @@ package body Separate_Package_1 is
    --EMACSCMD:(progn (forward-line 1)(downcase-word 2)(ada-case-adjust)(let ((case-fold-search nil))(looking-back "Object_ANother")))
    Object_ANother : Integer;
    --EMACSRESULT:t
+   pragma Unreferenced (Object_ANother);
 
    package Int_IO is new Ada.Text_IO.Integer_IO (Integer);
    use Int_IO;

@@ -20,7 +20,7 @@ all : compile-clean compile test-clean test
 # 'make EMACS=...'.
 EMACS := $(EMACSPATH)/emacs
 
-one : ada_mode-find_file.ads.diff
+one : ada_mode-parens.ali ada_mode-parens.ads.diff ada_mode-parens.adb.diff
 two :
 	rm ada_mode-nominal.ali
 
@@ -42,7 +42,7 @@ COMPILE_FILES := $(TEST_FILES)
 COMPILE_FILES := $(filter-out ada_mode-ada83.ads, $(COMPILE_FILES))# font-lock only
 
 # This has incomplete code deliberately; used for interactive editing test (via EMACSCMD)
-COMPILE_FILES := $(filter-out ada_mode-interactive_return.adb, $(COMPILE_FILES))
+COMPILE_FILES := $(filter-out ada_mode-interactive.adb, $(COMPILE_FILES))
 
 # This has incomplete code; tests a former bug in syntax-ppss
 COMPILE_FILES := $(filter-out ada_mode-long_paren.adb, $(COMPILE_FILES))

@@ -110,7 +110,7 @@ package body Ada_Mode.Nominal is
             case Param_1 is
                -- comment after "is", before "when"
                when A | Nominal.B =>
-                  P1;
+                  null;
                when C =>
                   D := B;
                   D := Local.all + B * B;

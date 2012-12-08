@@ -1,12 +1,11 @@
 package body Ada_Mode.Parens is
-   --EMACSCMD:(progn (forward-line 4)(forward-word 2)(insert "   ")(ada-align))
-   -- result is tested by .diff
+   --EMACSCMD:(progn (forward-line 3)(forward-word 2)(newline)(ada-align))
+   -- only one default. result is tested by .diff
    function Function_1
-     (Param_1, Param_2,
-        Param_3 : in Ada.Text_IO. Count;
-      Param_4 : in out Integer;
-      Param_5 : in out Integer;
-      Param_6 : in Float)
+     (Param_1, Param_2, Param_3 : in     Ada.Text_IO.Count;
+      Param_4                   : in out Integer;
+      Param_5                   : in out Integer;
+      Param_6                   : in     Float := 1.0)
      return Float
    is
       Local_1 : Integer := (1 + 2 + 3);
@@ -86,14 +85,14 @@ package body Ada_Mode.Parens is
          others => 5);
    end;
 
-   --EMACSCMD:(progn (forward-line 2)(forward-word 2)(insert "   ")(forward-line 2)(forward-word 2)(insert "   ")(ada-align))
+   --EMACSCMD:(progn (forward-line 2)(forward-word 3)(insert "   ")(forward-line 2)(forward-word 2)(insert "   ")(ada-align))
    -- paren on same line as 'procedure' to test that case in ada-format-paramlist. result is tested by .diff
-   procedure If_Statement (A : access Boolean;
+   procedure If_Statement (A : access          Boolean;
                            B : not null access Boolean;
-                           C : in Boolean;
-                           D : in Boolean;
-                           E : in Boolean;
-                           G : in Boolean)
+                           C : in              Boolean;
+                           D : in              Boolean;
+                           E : in              Boolean;
+                           G : in              Boolean)
    is
    begin
 
@@ -178,8 +177,38 @@ package body Ada_Mode.Parens is
 
    end If_Statement;
 
-   -- FIXME: test other cases of ada-format-paramlist;
-   -- followed on same line by ";" "is" "return"
+   --EMACSCMD:(progn (forward-line 4)(forward-word 2)(insert "   ")(ada-align))
+   -- multiple defaults requiring alignment
+   procedure Param_Format_1
+     (A : in     Float   := 1.0;
+      B : in     Integer := 2;
+      C :    out Integer;
+      D : in out Integer);
+
+   --FIXME: EMACSCMD:(progn (forward-line 2)(forward-word 4)(insert "   ")(ada-align))
+   -- all on same line; just minimize spaces
+   function Param_Format_2 (A : in Float; B : out Integer) return Float is begin B := 0; return A; end;
+
+   --EMACSCMD:(progn (forward-line 4)(ada-align))
+   -- multiline, followed on same line by "is"
+   procedure Param_Format_1
+     (A : in     Float   := 1.0;
+      B : in     Integer := 2;
+      C :    out Integer;
+      D : in out Integer) is
+   begin
+      C := 0;
+   end;
+
+   --EMACSCMD:(progn (forward-line 4)(ada-align))
+   -- multiline, followed on same line by "return"
+   function Param_Format_3
+     (A : in     Float;
+      B :    out Integer) return Float
+   is begin
+      B := 1;
+      return A;
+   end;
 
    procedure Hello
    is
