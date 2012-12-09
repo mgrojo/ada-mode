@@ -222,7 +222,22 @@ Assumes current buffer is (ada-gnat-run-buffer)"
     (apply 'call-process "gnat" nil t nil cmd)
     ))
 
-;;; cross reference handling
+(defun ada-gnat-run-no-prj (command &rest switches-args)
+  "Run the gnat command line tool, as \"gnat COMMAND SWITCHES-ARGS\".
+Return process status.
+Assumes current buffer is (ada-gnat-run-buffer)"
+  (set 'buffer-read-only nil)
+  (erase-buffer)
+
+  (let ((cmd (append (list command) switches-args)))
+
+    (setq cmd (delete-if 'null cmd))
+    (mapc (lambda (str) (insert (concat str " "))) cmd);; show command for debugging
+    (newline)
+    (apply 'call-process "gnat" nil t nil cmd)
+    ))
+
+;;; uses of gnat tools
 
 (defun ada-gnat-xref (identifier parent)
   "Return '(file line column) for declaration or body for IDENTIFIER, which must be at point.
@@ -264,6 +279,30 @@ If PARENT is non-nil, return parent type declaration (assumes IDENTIFIER is a de
 	      (pop-to-buffer (current-buffer))
 	      (error "gnat find did not return other item"))
 	    )))
+
+       (t ; failure
+	(pop-to-buffer (current-buffer))
+	(error "gnat find failed"))
+       ))
+    result))
+
+(defun ada-gnat-filename-from-adaname (adaname)
+  (let* (status
+	 (result nil))
+    (with-current-buffer (ada-gnat-run-buffer)
+      (setq status
+	    (ada-gnat-run-no-prj
+	     "krunch"
+	     (ada-make-filename-from-adaname-default adaname)
+	     ;; "0" means only krunch GNAT library names
+	     "0"))
+
+      (cond
+       ((= status 0); success
+	(goto-char (point-min))
+	(forward-line 1); skip  cmd
+	(setq result (buffer-substring-no-properties (line-beginning-position) (line-end-position)))
+	)
 
        (t ; failure
 	(pop-to-buffer (current-buffer))
@@ -353,6 +392,8 @@ the 4 file locations can be clicked on and jumped to."
 
 (defun ada-gnat-setup ()
   (set (make-variable-buffer-local 'ada-compiler) 'gnat)
+
+  (set (make-variable-buffer-local 'ada-make-filename-from-adaname) 'ada-gnat-filename-from-adaname)
 
   (font-lock-add-keywords nil
    ;; gnatprep preprocessor line

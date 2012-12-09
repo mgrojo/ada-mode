@@ -1,9 +1,12 @@
 -- This is to test the indentation of declarations in generics package declarations
 --EMACSCMD:(font-lock-fontify-buffer)
+--EMACSCMD:(ada-parse-prj-file "ada_mode.gpr")
+--EMACSCMD:(ada-select-prj-file "ada_mode.gpr")
 
 pragma License (GPL);
 
 with Ada.Text_IO;
+--EMACSCMD:(progn (forward-line 1)(ada-find-other-file nil)(looking-at "Ada.Strings.Unbounded is"))
 with Ada.Strings.Unbounded;
 generic
    -- one of each kind of generic_formal_parameter_definition from arm Annex P

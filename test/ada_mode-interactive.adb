@@ -75,6 +75,11 @@ is
    is begin
    --EMACSRESULT:t
 
+   -- don't capitalize word after punctuation
+   --EMACSCMD:(progn (forward-line 1)(back-to-indentation)(execute-kbd-macro "((")(let ((case-fold-search nil))(looking-at "begin")))
+   begin
+   --EMACSRESULT:t
+
 end Procedure_1;
 
 -- This used to cause problems at end of buffer; refining "procedure"

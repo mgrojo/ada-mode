@@ -899,6 +899,40 @@ or nil.  Preserves point."
 	 (forward-char -1)))
       )))
 
+(defun ada-smie-forward-name ()
+  "Move forward across whitespace, then tokens that can be part of a selected Ada name.
+Return the name as a string."
+  (skip-syntax-forward " ")
+  (let ((begin (point))
+	(token nil))
+    (while
+	(or
+	 (not (setq token (ada-smie-keyword-p (ada-smie-forward-token))))
+	 (equal token ".")))
+    (ada-smie-backward-token)
+    (skip-syntax-backward " ")
+    (buffer-substring-no-properties begin (point))))
+
+(defun ada-smie-skip-identifier-list (forward)
+  "Skip forward/backward over {identifier , |}.
+Return (preceding-pos preceding-string) for backward, succeeding
+for forward."
+  (let (parent parent-pos)
+    (while
+	(progn
+	  (setq parent (if forward (ada-smie-forward-keyword) (ada-smie-backward-keyword)))
+	  (setq parent-pos (point))
+	  (cond
+	   ((equal "," parent) t)
+	   ((equal "|" parent) t)
+	   ((equal "(" parent) (forward-char 1) nil)
+	   ((equal ")" parent) (backward-char 1) nil)
+	   (t
+	    (if forward (smie-default-backward-token) (smie-default-forward-token))
+	    nil))))
+    (forward-comment (if forward (- (point)) (point-max)))
+    (list parent-pos parent)))
+
 (defun ada-smie-token-special (forward)
   "Assuming smie-default-{forward|backward}-token has returned \"\",
 return one of \"(\", \")\", \"\"\", or nil for bob, eob."
@@ -2694,26 +2728,6 @@ or \"(\", and point must be at the start of CHILD."
       (cons 'column (+ (current-column) offset))
     )))
 
-(defun ada-smie-skip-identifier-list (forward)
-  "Skip forward/backward over {identifier , |}.
-Return (preceding-pos preceding-string) for backward, succeeding
-for forward."
-  (let (parent parent-pos)
-    (while
-	(progn
-	  (setq parent (if forward (ada-smie-forward-keyword) (ada-smie-backward-keyword)))
-	  (setq parent-pos (point))
-	  (cond
-	   ((equal "," parent) t)
-	   ((equal "|" parent) t)
-	   ((equal "(" parent) (forward-char 1) nil)
-	   ((equal ")" parent) (backward-char 1) nil)
-	   (t
-	    (if forward (smie-default-backward-token) (smie-default-forward-token))
-	    nil))))
-    (forward-comment (if forward (- (point)) (point-max)))
-    (list parent-pos parent)))
-
 (defun ada-smie-goto-statement-start (child)
   "Move point to the start of the statement/declaration
 containing point.  If point is in a parenthesized list, move to
@@ -3593,9 +3607,15 @@ made."
 
 (defun ada-smie-which-function ()
   "For `ada-which-function', which see."
-  (let ((done nil)
-	token
-	result)
+  (let (token
+	(done nil)
+	(strip-body-p nil)
+	(add-body-p t)
+	(result nil)
+	(symbol-end
+	 ;; we can't just add \> here; that might match _ in a user modified ada-mode-syntax-table
+	 "\\([^_]\\|$\\)")
+	)
     (save-excursion
       ;; look on the line we are on first, then back.
       (end-of-line)
@@ -3604,7 +3624,7 @@ made."
 	(beginning-of-line))
 
       (if (member (concat "." (file-name-extension (buffer-file-name))) ada-spec-suffixes)
-	  ;; In a spec file; look on the line we are on first, then back.
+	  ;; In a spec file
 	  (progn
 	    (while
 		(not
@@ -3621,8 +3641,7 @@ made."
 			   nil; bob
 			   )))))
 
-	;; In a body file; similar algorithm, different set of
-	;; tokens. Handle nested items properly.
+	;; In a body file; different set of tokens.
 	(while
 	    (not
 	     (member (setq token (ada-smie-backward-keyword))
@@ -3645,18 +3664,46 @@ made."
 	;; of access-to-subprogram types.
 	(ada-smie-goto-statement-start token))
 
-      ;; point is now on start of a declaration or body, or bob
+      ;; Point is now on start of a declaration or body, or bob. Find the name.
 
-      (while (ada-smie-keyword-p (setq result (ada-smie-forward-token))))
+      (while (not done)
+	(setq token (ada-smie-forward-token))
+	(cond
+	 ((equal token "package-plain")
+	  (setq token (ada-smie-forward-token))
+	  (if (equal token "body")
+	      (progn
+		(setq result (ada-smie-forward-name))
+		(when (not ff-function-name)
+		  (setq ff-function-name
+			(concat
+			 "^package\\s-+"
+			 result
+			 symbol-end))))
+	    ;; not body
+	    (ada-smie-backward-token)
+	    (setq result (ada-smie-forward-name))
+	    (when (not ff-function-name)
+	      (setq ff-function-name
+		    (concat
+		     "^package\\s-+body\\s-+"
+		     result
+		     symbol-end))))
+	  (setq done t))
+
+	 (t
+	  (when (not (ada-smie-keyword-p token))
+	    (setq result token)
+	    (setq done t)))
+	 ))
+
       (if (not ff-function-name)
-	  ;; FIXME: need to strip or add "type" or "body"
 	  (setq ff-function-name
 		;; use a regexp that won't match similarly named items
 		(concat
 		 "^"
 		 (buffer-substring-no-properties (point-at-bol) (point))
-		 ;; we can't just add \> here; that matches _ in the default ada-mode-syntax-table
-		 "[^_]")))
+		 symbol-end)))
       )
     result))
 

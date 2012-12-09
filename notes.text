@@ -45,23 +45,6 @@ test/Makefile  ;; set project file
 '"' broken in Emacs 24.3
     test/ada_mode-nominal.adb Function_2a
 
-adjust case bug
-    +new string
-
-    insert ( after + => capitalize 'new'
-
-    another:
-        with
-
-        insert -- before 'with' => capitalize with
-
-ada-other-file
-    need gnatkr for libraries; ada.strings.unbounded
-        ada-make-filename-from-adaname in ada-mode-patches
-        ada-make-filename-from-adaname-gnatkr
-
-    didn't find ada_mode-parens.adb, offered to create .adb.gp
-
 gnat-fix
 
 align broken
@@ -172,6 +155,9 @@ include gnat-fix-error
 ada-gnatstub-opts
 
 GNATCOLL.Projects can report "other file name" info?
+
+ada-other-file
+    use gnat find
 
 support xref for C files?
     at least if compiled with gprbuild?

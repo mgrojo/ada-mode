@@ -521,7 +521,7 @@ If IN-COMMENT is non-nil, adjust case of words in comments."
     (when (save-excursion
 	    (forward-char -1)
 	    (and (not (bobp))
-		 (not (eq (char-syntax (char-after)) ? )); whitespace
+		 (memq (char-syntax (char-after)) '(?w ?_))
 		 (not (and (eq (following-char) ?')
 			   (eq (char-before (1- (point))) ?'))); character literal
 
@@ -1170,8 +1170,6 @@ See `ff-other-file-alist'.")
   "Function called with one parameter ADANAME, which is a library
 unit name; it should return the filename in which ADANAME is
 found.")
-;; IMPROVEME: It might be better if this var was a project variable;
-;; each project can have a different compiler.
 
 (defun ada-make-filename-from-adaname (adaname)
   "Return the filename in which ADANAME is found."
@@ -1203,6 +1201,14 @@ pre-defined units."
       (ada-make-filename-from-adaname package-name)
       ada-body-suffixes))))
 
+(defun ada-ff-special-with ()
+  (setq ff-function-name (match-string 1))
+  (file-name-nondirectory
+   (ff-get-file-name
+    compilation-search-path
+    (ada-make-filename-from-adaname ff-function-name)
+    (append ada-spec-suffixes ada-body-suffixes))))
+
 (defun ada-set-ff-special-constructs ()
   "Add Ada-specific pairs to `ff-special-constructs'."
   (set (make-local-variable 'ff-special-constructs) nil)
@@ -1230,13 +1236,7 @@ pre-defined units."
 
 	 ;; A "with" clause. Note that it may refer to a procedure body, as well as a spec
 	 (cons (concat "^with[ \t]+" ada-name-regexp)
-	       (lambda ()
-	       (setq ff-function-name (match-string 1))
-	       (file-name-nondirectory
-		(ff-get-file-name
-		 compilation-search-path
-		 (ada-make-filename-from-adaname (match-string 1))
-		 (append ada-spec-suffixes ada-body-suffixes)))))
+	       'ada-ff-special-with)
 	 )))
 
 (defvar ada-which-function nil
@@ -1258,10 +1258,22 @@ that will find the function in the other file.")
   "Move to the string specified in `ff-function-name', which may be a regexp,
 previously set by a file navigation command."
   (when ff-function-name
-    (goto-char (point-min))
-    (search-forward-regexp ff-function-name nil t)
-    (goto-char (match-beginning 0))
-    (setq ff-function-name nil)))
+    (let ((done nil)
+	  (found nil))
+      (goto-char (point-min))
+      ;; We are looking for an Ada declaration, so don't stop for strings or comments
+      ;;
+      ;; This will still be confused by multiple references; we need
+      ;; to use compiler cross reference info for more precision.
+      (while (not done)
+	(when (search-forward-regexp ff-function-name nil t)
+	  (setq found (match-beginning 0)))
+	(if (ada-in-string-or-comment-p)
+	    (setq found nil)
+	  (setq done t)))
+      (if found
+	  (goto-char found))
+      (setq ff-function-name nil))))
 
 (defun ada-buffer-window (buffer)
   (let ((list (window-list-1 nil nil t))

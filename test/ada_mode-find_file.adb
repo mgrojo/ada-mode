@@ -13,6 +13,9 @@
 package body Ada_Mode.Find_File is
    --EMACSRESULT:t
 
+   -- point between package start and first decl; find package spec
+   --EMACSCMD:(progn (ada-find-other-file t)(looking-at "package Ada_Mode.Find_File is"))
+
    procedure P_Bug_One is
    begin
       null;
