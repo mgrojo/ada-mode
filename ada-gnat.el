@@ -69,26 +69,27 @@ Intended to be added to `smie-indent-functions'."
   "Handle gnat-specific Emacs Ada project file settings.
 Return new PROJECT if NAME recognized, nil otherwise.
 See also `ada-gnat-parse-emacs-prj-file-final'."
-  (cond
-   ((string= name "ada_project_path")
-    (let ((path-current (plist-get project 'ada_project_path))
-	  (path-add (expand-file-name (substitute-in-file-name value)))
-	  (sep (plist-get project 'path_sep)))
-      (setq project
-	   (plist-put project
-		      'ada_project_path
-		      (concat path-current sep path-add)))
-      project))
+  (let ((process-environment (plist-get project 'proc_env))); for substitute-in-file-name
+    (cond
+     ((string= name "ada_project_path")
+      (let ((path-current (plist-get project 'ada_project_path))
+	    (path-add (expand-file-name (substitute-in-file-name value)))
+	    (sep (plist-get project 'path_sep)))
+	(setq project
+	      (plist-put project
+			 'ada_project_path
+			 (concat path-current sep path-add)))
+	project))
 
-   ((string= (match-string 1) "gpr_file")
-    ;; The file is parsed in `ada-gnat-parse-emacs-prj-file-final', so
-    ;; it can add to user-specified src_dir.
-    (setq project
-	  (plist-put project
-		     'gpr_file
-		     (expand-file-name (substitute-in-file-name value))))
-    project)
-   ))
+     ((string= (match-string 1) "gpr_file")
+      ;; The file is parsed in `ada-gnat-parse-emacs-prj-file-final', so
+      ;; it can add to user-specified src_dir.
+      (setq project
+	    (plist-put project
+		       'gpr_file
+		       (expand-file-name (substitute-in-file-name value))))
+      project)
+     )))
 
 (defun ada-gnat-prj-parse-emacs-final (project)
   "Final processing of gnat-specific Emacs Ada project file settings."
@@ -214,6 +215,7 @@ Assumes current buffer is (ada-gnat-run-buffer)"
 	    (concat "-P" (file-name-nondirectory (ada-prj-get 'gpr_file)))))
 	 (cmd (append (list command project-file-switch) switches-args)))
 
+    (insert (format "ADA_PROJECT_PATH=%s\ngnat " (getenv "ADA_PROJECT_PATH"))); for debugging
     (setq cmd (delete-if 'null cmd))
     (mapc (lambda (str) (insert (concat str " "))) cmd);; show command for debugging
     (newline)
@@ -240,7 +242,7 @@ If PARENT is non-nil, return parent type declaration (assumes IDENTIFIER is a de
       (cond
        ((= status 0); success
 	(goto-char (point-min))
-	(forward-line 1)
+	(forward-line 2); skip ADA_PROJECT_PATH, 'gnat find'
 
 	;; gnat find returns two items; the starting point, and the 'other' point
 	(while (not result)

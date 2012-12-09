@@ -44,8 +44,7 @@ begin
 (make-obsolete-variable
  'ada-broken-indent
  'ada-indent-broken
- "Emacs 24.4, Ada mode 5.0"
- 'set)
+ "Emacs 24.4, Ada mode 5.0")
 ;; FIXME (later): this doesn't warn user at runtime, but at least they should
 ;; notice something broke, and the help will be useful.
 
@@ -130,8 +129,7 @@ An example is:
 (make-obsolete-variable
  'ada-use-indent
  'ada-indent-use
- "Emacs 24.4, Ada mode 5.0"
- 'set)
+ "Emacs 24.4, Ada mode 5.0")
 (defcustom ada-indent-use ada-indent-broken
   "*Indentation for the lines in a 'use' statement.
 
@@ -145,8 +143,7 @@ An example is:
 (make-obsolete-variable
  'ada-when-indent
  'ada-indent-when
- "Emacs 24.4, Ada mode 5.0"
- 'set)
+ "Emacs 24.4, Ada mode 5.0")
 
 (defcustom ada-indent-when (or ada-when-indent 3)
   "*Indentation for 'when' relative to 'exception', 'case', 'or' in select.
@@ -161,8 +158,7 @@ An example is:
 (make-obsolete-variable
  'ada-with-indent
  'ada-indent-with
- "Emacs 24.4, Ada mode 5.0"
- 'set)
+ "Emacs 24.4, Ada mode 5.0")
 
 (defcustom ada-indent-with ada-indent-broken
   "*Indentation for the lines in a 'with' statement.

@@ -97,8 +97,8 @@
        (cons "CaMeL" t)
        (cons "ANother" t)))
 
-(ada-parse-prj-file "ada_mode.adp")
-(ada-select-prj-file "ada_mode.adp")
+(ada-parse-prj-file "subdir/ada_mode.adp")
+(ada-select-prj-file "subdir/ada_mode.adp")
 
 (test "case 3 full words"
       ada-case-full-exceptions

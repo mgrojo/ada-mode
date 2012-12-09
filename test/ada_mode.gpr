@@ -1,3 +1,4 @@
+-- GNAT project file that does not require ADA_PROJECT_PATH
 project Ada_Mode is
 
    for Source_Dirs use (".");

@@ -1,21 +1,5 @@
 General notes on porting Emacs Ada mode indentation engine to smie
 
-(progn
-    (add-to-list 'load-path (expand-file-name "."))
-    (load "test/runtest.el");; loads ada-mode, ada-mode-keys, etc
-    (setq ada-mode-hook (delete 'sal-ada-mode-setup ada-mode-hook))
-    (setq ada-mode-hook (delete 'ada-xref-initialize ada-mode-hook))
-    (which-function-mode)
-    (add-hook 'ada-mode-hook
-       (lambda ()
-        (add-hook 'before-save-hook 'delete-trailing-whitespace)
-       ))
-   )
-
-(progn
-    (color-theme-classic)
-    (ada-mode-4.01))
-
 (setq ada-smie-debug-refine t)
 (setq ada-smie-debug-refine nil)
 
@@ -58,23 +42,11 @@ review FIXMEs
  ada-smie
 test/Makefile  ;; set project file
 
-testing ada-align-paramlist
-    test/ada_mode-parens.adb
-    ada-in-paramlist-p done
-    ada-scan-paramlist done
-    ada-insert-paramlist done
-
-    handle all on single line
-        what does 4.01 do?
-
-    handle wrapping due to line length limit?
-
-    handle comments in paramlist
-
-sjw ada_mode-test.el failing
+'"' broken in Emacs 24.3
+    test/ada_mode-nominal.adb Function_2a
 
 adjust case bug
-    exec.+new string
+    +new string
 
     insert ( after + => capitalize 'new'
 
@@ -96,21 +68,25 @@ align broken
     debug_books.adb
     inserted space between c: in string!
 
-    add param-list
-    overriding procedure Skip_Rest
-     (Device        : not null access Device_Type;
-      Bytes_Skipped : out Integer)
+ada-align-paramlist
+    test/ada_mode-parens.adb
 
-Ada.Directories
-    C-c C-d gives "a-direct.ads" not found
-    C-F11 doesn't work either
-        needed ff-get-file
-            test!
+    handle all on single line
+        what does 4.01 do?
+
+    handle wrapping due to line length limit?
+
+    handle comments in paramlist
 
 C-c C-d on sql_parameters in gnatcoll-sql-exec.ads
     => not found in cross-reference files
     'gnat find' returns nothing
     -a doesn't help
+    report to AdaCore
+
+    same for Insert_Database in books-table_views.adb On_Button_Insert
+        using gpl-2012
+        it's abstract, defined in books-table_views.ads
 
 
 ada-case-adjust
@@ -119,21 +95,23 @@ ada-case-adjust
         menu of file to save new exception in
         prompt for file in case-create-exception
 
+ada-which-function
+    test/ada_mode-library_function.adb
+    reports Ada_Mode
+
+menu entry to show gnat-run-buffer
+    for debugging mysterious "xref not found" errors
+
 double-click underscore selects full word, double-click letter selects partial word?
 
 set casing custom vars in project file
-
-ada-gnat-parse-gpr
-    fails when require ada_project_path
-        not set properly by .prj?
-
-which-function-mode
-    reports "Ada_Mode" in child packages!
 
 ada-gnat-parse-gpr-file
     if object dir not created, search for Source Search Path fails
 
 manuel Gomez using comp_cmd, make_cmd, src_dir, obj_dir; not .gpr files
+    I could use make_cmd to get project-local env vars in make, like ADA_PROJECT_PATH, TEST_CHASSIS
+    reference project variables in project var values
 
 goto-declaration
     -d switch
@@ -161,10 +139,6 @@ rest of ada-mode
 
     submit adacore bug report on 'gnat list' accept '--subdirs'
 
-ask for input/testing
-
-use it!
-
 make newline-and-indent reindent current line first?
     what did 4.01 do?
         ada-indent-after-return t doc says "indent after return"
@@ -188,6 +162,7 @@ remaining statements?
 task entry with index; body has "for"
 
 include gpr-mode
+    use simi
 
 include gnat-fix-error
     rename to ada-gnat-fix-error
@@ -298,6 +273,11 @@ entry guard clauses:
 c:/Projects/emacs_stephe.work/emacs_stephe/ada-mode-keys.el
 c:/Projects/emacs_stephe.main/emacs_stephe_site_lisp/ada-mode.el
 c:/apps/emacs-24.2/lisp/progmodes/ada-mode.el
+
+http://savannah.gnu.org/projects/emacs/
+
+https://www.dropbox.com/sh/7jr3vbv9tm1zod0/jPuvfrJAe8
+    w32 builds of cutting-edge emacs branches
 
 c:/apps/emacs-24.2/lisp/progmodes/modula2.el
 http://www.modula2.net/resources/M2R10.pdf Appendix A
@@ -411,4 +391,20 @@ read/write access requires a public key:
 
     mtn --db ~/monotone-dbs/ada-france.db sync "mtn://www.ada-france.org?org.emacs.*"
 
+ release process
+test/Makefile all
+(dvc-status)
+(shell-send-string "mtn_sync_ada_france.sh" "*bash*")
+test/Makefile zip
+/Projects/Web/stephe-leake/emacs/ada-mode/emacs-ada-mode.html
+    update todo list
+    add release note
+        (dvc-log)
+
+~/Web/Makefile
+    edit date in ADA-MODE-SMIE_GZ
+    ada-mode-smie
+    sync
+
+post on emacs-ada-mode mailing list
 -- end of file

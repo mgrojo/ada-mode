@@ -863,6 +863,7 @@ compiler-specific objects."
 			       (file-name-sans-extension file))
 			    "")
 	 'path_sep        path-separator;; prj variable so users can override it for their compiler
+	 'proc_env        process-environment
 	 'run_cmd         "./${main}"
 	 'src_dir         (list ".")
 	 )))
@@ -964,10 +965,23 @@ Return new value of PROJECT."
 	    (if (and parse-file-ext
 		     (setq tmp-prj (funcall parse-file-ext (match-string 1) (match-string 2) project)))
 		(setq project tmp-prj)
-	      ;; any other field in the file is just copied
-	      (setq project (plist-put project
-				       (intern (match-string 1))
-				       (match-string 2)))))
+	      ;; any other field in the file is set as a project property or project environment variable
+	      (if (= ?$ (elt (match-string 1) 0))
+		  ;; process env var
+		  (let ((env-current (plist-get project 'proc_env))
+			(env-add (concat (substring (match-string 1) 1)
+					 "="
+					 (expand-file-name (substitute-in-file-name (match-string 2))))))
+		    (add-to-list 'env-current env-add)
+		    (setq project
+			  (plist-put project
+				     'proc_env
+				     env-current)))
+		;; project var
+		(setq project (plist-put project
+					 (intern (match-string 1))
+					 (match-string 2))))
+	      ))
 	   ))
 
 	(forward-line 1))
@@ -1913,7 +1927,7 @@ The paragraph is indented on the first line."
    ))
 
 ;;;###autoload
-(define-derived-mode ada-mode prog-mode "Ada"
+(define-derived-mode ada-mode fundamental-mode "Ada"
   "Ada mode is the major mode for editing Ada code."
   ;; the other ada-*.el files add to ada-mode-hook for their setup
   :group 'ada
@@ -1921,7 +1935,7 @@ The paragraph is indented on the first line."
   (set-syntax-table ada-mode-syntax-table)
   (set (make-local-variable 'syntax-propertize-function) 'ada-syntax-propertize)
   (set (make-local-variable 'syntax-begin-function) nil)
-  ;(set (make-local-variable 'parse-sexp-ignore-comments) t) done in prog-mode
+  (set (make-local-variable 'parse-sexp-ignore-comments) t)
   (set (make-local-variable 'parse-sexp-lookup-properties) t)
   (set 'case-fold-search t); Ada is case insensitive; the syntax parsing requires this setting
   (set (make-local-variable 'comment-start) "--")
@@ -1980,7 +1994,7 @@ The paragraph is indented on the first line."
 
   (easy-menu-add ada-mode-menu ada-mode-map)
 
-  ;; (run-mode-hooks 'ada-mode-hook) is done after this body by define-minor-mode
+  ;; (run-mode-hooks 'ada-mode-hook) is done after this body by define-derived-mode
 
   (add-hook 'hack-local-variables-hook 'ada-mode-post-local-vars)
   )

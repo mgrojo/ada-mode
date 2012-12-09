@@ -20,11 +20,12 @@ all : compile-clean compile test-clean test
 # 'make EMACS=...'.
 EMACS := $(EMACSPATH)/emacs
 
-one : ada_mode-parens.ali ada_mode-parens.ads.diff ada_mode-parens.adb.diff
+one : ada_mode-nominal-separate_package_1.ali
 two :
 	rm ada_mode-nominal.ali
 
 TEST_FILES := $(shell ls *.ad[sb])
+TEST_FILES := $(TEST_FILES) $(shell ls subdir/*.ad[sb])
 
 # this is for debug only
 TEST_FILES := $(filter-out debug.adb, $(TEST_FILES))
@@ -38,6 +39,7 @@ TEST_FILES := $(filter-out which_test.adb, $(TEST_FILES)) # imenu-default-create
 # end FIXME:
 
 COMPILE_FILES := $(TEST_FILES)
+COMPILE_FILES := $(subst subdir/,,$(COMPILE_FILES))
 
 COMPILE_FILES := $(filter-out ada_mode-ada83.ads, $(COMPILE_FILES))# font-lock only
 
@@ -64,16 +66,19 @@ COMPILE_FILES := $(filter-out prime-volatilities.adb, $(COMPILE_FILES))
 
 .PHONY : all nominal one test test-clean
 
+vpath %.ads subdir
+vpath %.adb subdir
+
 test : $(addsuffix .diff, $(TEST_FILES)) test-elisp
 
 test-elisp :
 	$(EMACS) -Q -batch -L .. -l ada-mode-test.el
 
 %.adb.diff : %.adb %.adb.tmp
-	diff -u $^ > $*.adb.diff
+	diff -u $*.adb $(*F).adb.tmp > $(*F).adb.diff
 
 %.ads.diff : %.ads %.ads.tmp
-	diff -u $^ > $*.ads.diff
+	diff -u $*.ads $(*F).ads.tmp > $(*F).ads.diff
 
 .PRECIOUS : %.adb.tmp %.ads.tmp
 
@@ -113,25 +118,27 @@ named_block.ali : named_block.adb
 	gnatmake -gnat2012 -gnatc  $<
 
 %.ali : %.adb
-	gnatmake -gnat2012 -gnatc -gnatyN3 $<
+	gnatmake -gnat2012 -P ada_mode_parent.gpr -gnatc -gnatyN3 $(<F)
 
 %.ali : %.ads
-	gnatmake -gnat2012 -gnatc -gnatyN3 $<
+	gnatmake -gnat2012 -P ada_mode_parent.gpr -gnatc -gnatyN3 $(<F)
 
 clean : compile-clean test-clean
-	rm -f *~ ../*~
+	rm -f *~ ../*~ subdir/*~
 
 compile-clean :
 	rm -f *.ali
 
 test-clean :
-	rm -f *.diff *.tmp
+	rm -f *.diff *.tmp subdir/*.diff subdir/*.tmp
 
 zip :
 	tar zcf org.emacs.ada-mode.smie-`date +%Y-%m-%d`.tar.gz --exclude _MTN --exclude "*~" --exclude "*.diff" --exclude "*.tmp" --exclude "*.ali" --exclude "*.tar.gz" -C ../.. org.emacs.ada-mode.smie
 
+export ADA_PROJECT_PATH=subdir
+
 # Local Variables:
-# eval: (ada-parse-prj-file "ada_mode.adp")
-# eval: (ada-select-prj-file "ada_mode.adp")
+# eval: (ada-parse-prj-file "subdir/ada_mode.adp")
+# eval: (ada-select-prj-file "subdir/ada_mode.adp")
 # End:
 # end of file

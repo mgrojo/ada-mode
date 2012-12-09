@@ -1,0 +1,9 @@
+-- GNAT project file that requires ADA_PROJECT_PATH defined with an environment variable
+with "ada_mode";
+project Ada_Mode_Parent is
+
+   for Source_Dirs use (".");
+   for Object_Dir use "..";
+   for Exec_Dir use "..";
+
+end Ada_Mode_Parent;

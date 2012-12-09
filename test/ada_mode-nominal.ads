@@ -17,13 +17,13 @@ with
 -- 'eval' is not a safe local variable, so we can't use local
 -- variables for this in batch mode.
 --
---EMACSCMD:(ada-parse-prj-file "ada_mode.adp")
---EMACSCMD:(ada-select-prj-file "ada_mode.adp")
+--EMACSCMD:(ada-parse-prj-file "subdir/ada_mode.adp")
+--EMACSCMD:(ada-select-prj-file "subdir/ada_mode.adp")
 --EMACSCMD:ada-prj-current-file
---EMACSRESULT:(expand-file-name "ada_mode.adp")
+--EMACSRESULT:(expand-file-name "subdir/ada_mode.adp")
 --EMACSCMD:(length compilation-search-path)
--- current dir, compiler dir
---EMACSRESULT:2
+-- current dir, subdir, compiler dir
+--EMACSRESULT:3
 
 --EMACSCMD:(font-lock-fontify-buffer)
 --EMACSCMD:(test-face "with" font-lock-keyword-face)
