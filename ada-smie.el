@@ -2481,14 +2481,14 @@ Return TOKEN."
     token))
 
 (defun ada-smie-after-change (begin end length)
-  ;; We only need to move ada-smie-cache-max to `begin' if this
-  ;; change affects code, ie non-whitespace non-comment. Otherwise, we
-  ;; could just adjust it by the change amount. But we're keeping it
-  ;; simple, so we always move cache-max to `begin' or earlier;
-  ;; optimize later if needed.
+  ;; We only need to move ada-smie-cache-max if this change affects
+  ;; code, ie non-whitespace non-comment. Otherwise, we could just
+  ;; adjust it by the change amount. But we're keeping it simple, so
+  ;; we always move cache-max to `begin' or earlier; optimize later if
+  ;; needed.
   ;;
-  ;; However, we cannot set cache-max to inside a comment or string!
-  (when (> ada-smie-cache-max begin)
+  ;; ada-smie-cache-max must always be on a keyword.
+  (when (>= ada-smie-cache-max begin)
     (save-excursion
       ;; (info "(elisp)Parser State")
       (let ((state (syntax-ppss begin)))
@@ -2496,15 +2496,14 @@ Return TOKEN."
 	 ((or
 	   (nth 3 state); in string
 	   (nth 4 state)); in comment
-	  (setq ada-smie-cache-max (nth 8 state)))
+	  (goto-char (nth 8 state)));; start of string or comment
 
-	 (t
-	  ;; If we are typing, "begin" may be in the middle of a
-	  ;; token; we need ada-smie-cache-max to be at least one
-	  ;; char before it. syntax-ppss has moved point to "begin".
-	  (skip-syntax-backward "w ")
-	  (setq ada-smie-cache-max (point)))
-	 )))))
+	 (t ;; syntax-ppss has moved point to "begin".
+	  )
+	 )
+	 (ada-smie-backward-keyword)
+	 (setq ada-smie-cache-max (point))
+	))))
 
 (defun ada-smie-unrefined-token (forward)
   "Move to the next token; forward if FORWARD non-nil, backward otherwise.
@@ -2532,11 +2531,15 @@ Return the token text or a refinement of it. Manage the refinement cache."
      ((functionp refine)
       (if (<= cache-pos ada-smie-cache-max)
 	  (or (ada-smie-get-cache cache-pos)
-	      ;; cache can be nil inside parens; those are skipped on
-	      ;; the first pass, but we may now be indenting inside
-	      ;; one.
-	      (progn
-		(ada-smie-validate-cache-parens)
+	      (if (ada-in-paren-p)
+		  ;; parens are skipped on the first pass, but we are
+		  ;; now parsing inside one.
+		  (progn
+		    (ada-smie-validate-cache-parens)
+		    (ada-smie-get-cache cache-pos))
+		;; else something has screwed up the cache, so start over
+		(ada-smie-invalidate-cache)
+		(ada-smie-validate-cache cache-pos)
 		(ada-smie-get-cache cache-pos)))
 	(if ada-smie-refining
 	    (ada-smie-put-cache cache-pos (funcall refine (downcase token) forward))
@@ -3821,6 +3824,28 @@ made."
 	    (setq identifiers (list token)))))
        ))
     paramlist))
+
+(defun ada-smie-context-clause ()
+  "For `ada-fix-context-clause'."
+  (save-excursion
+    (let ((begin nil)
+	  (end nil)
+	  keyword)
+      (goto-char (point-min))
+      (forward-comment (point-max))
+      (while (not end)
+	(setq keyword (ada-smie-forward-keyword))
+	(cond
+	 ((member keyword '("use-decl" ";")) nil)
+	 ((member keyword '("with-context-1" "limited-context" "private-context-1"))
+	  (when (not begin)
+	    (setq begin (point))))
+	 (t
+	  ;; start of compilation unit
+	  (setq end (progn (smie-default-backward-token) (point))))
+	 ))
+      (cons begin end)
+    )))
 
 ;;; parser debug
 (defvar ada-smie-debug-refine nil

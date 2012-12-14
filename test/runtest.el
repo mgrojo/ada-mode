@@ -62,7 +62,8 @@
 	(looking-at ".*$")
 	(setq expected-result (save-excursion (eval (car (read-from-string (match-string 0))))))
 	(unless (equal expected-result last-result)
-	  (error
+	  ;; we don't abort here, so we can see all errors at once
+	  (message
 	   (concat
 	    (buffer-file-name) ":" (format "%d" (count-lines (point-min) (point))) ":\n"
 	    (format "Result of '%s' does not match.\nGot    '%s',\nexpect '%s'"

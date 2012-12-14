@@ -1,0 +1,131 @@
+;;; ada-fix-error.el --- utilities for automatically fixing
+;; errors reported by the compiler.
+
+;; Copyright (C) 1999-2009, 2012 Stephen Leake.
+
+;; Author     : Stephen Leake      <Stephen_Leake@stephe-leake.org>
+;; Maintainer : Stephen Leake      <Stephen_Leake@stephe-leake.org>
+;; Web site   : http://www.stephe-leake.org/
+;; Keywords   : languages ada error
+
+;; This file is part of GNU Emacs
+
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 3, or (at your option)
+;; any later version.
+
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to
+;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+
+;;;; code
+
+(defcustom ada-fix-sort-context-clause t
+  "*If non-nil, sort context clause when inserting 'with'"
+  :type 'boolean
+  :group 'ada)
+
+(defvar ada-fix-context-clause nil
+  "Function to return the region containing the context clause for the current buffer.
+Called with no arguments; return (BEGIN . END). BEGIN and
+END must be at beginning of line.  If there is no context
+clause, BEGIN = END, at start of compilation unit.")
+
+(defun ada-fix-context-clause ()
+  (when ada-fix-context-clause
+    (funcall ada-fix-context-clause)))
+
+(defun ada-fix-insert-unit-name (unit-name)
+  "Insert UNIT-NAME at point and capitalize it."
+  ;; unit-name is normally gotten from a file-name, and is thus all lower-case.
+  (let ((start-point (point))
+        search-bound)
+    (insert unit-name)
+    (setq search-bound (point))
+    (insert " ") ; separate from following words, if any, for ada-adjust-case-identifier
+    (goto-char start-point)
+    (while (search-forward "." search-bound t)
+      (forward-char -1)
+      (ada-adjust-case-identifier)
+      (forward-char 1))
+    (goto-char search-bound)
+    (ada-adjust-case-identifier)
+    (delete-char 1)))
+
+(defun ada-fix-add-with-clause (package-name)
+  "Add a with_clause for PACKAGE_NAME.
+If ada-fix-sort-context-clause, sort the context clauses using
+sort-lines."
+  (let ((context-clause (ada-fix-context-clause)))
+    (goto-char (cdr context-clause))
+    (insert "with ")
+    (ada-fix-insert-unit-name package-name)
+    (insert ";\n")
+
+    (when (and (< (car context-clause) (cdr context-clause))
+	       ada-fix-sort-context-clause)
+      ;; FIXME: this puts "limited with", "private with" at top of list; prefer at bottom
+      (sort-lines nil (car context-clause) (point)))
+    ))
+
+(defun ada-fix-extend-with-clause (child-name)
+  "Assuming point is in a selected name, just before CHILD-NAME, add or
+extend a with_clause to include CHILD-NAME  .	"
+  (let ((parent-name-end (point)))
+    ;; Find the full parent name; skip back to whitespace, then match
+    ;; the name forward.
+    (skip-syntax-backward "w_")
+    (search-forward-regexp ada-name-regexp parent-name-end)
+    (let ((parent-name (match-string 0))
+	  (context-clause (ada-fix-context-clause)))
+      (goto-char (car context-clause))
+      (if (search-forward-regexp (concat "^with " parent-name ";") (cdr context-clause) t)
+	  ;; found exisiting 'with' for parent; extent it
+	  (progn
+	    (forward-char -1) ; skip back over semicolon
+	    (insert "." child-name))
+
+	;; not found; we are in a package body, with_clause for parent is in spec.
+	;; insert a new one
+	(ada-fix-add-with-clause (concat parent-name "." child-name)))
+      )))
+
+(defvar ada-fix-error-alist nil
+  "Alist indexed by `ada-compiler' holding function to recognize and fix errors.
+Function is called with three args:
+
+MSG, the `compilation--message' struct for the current error
+
+SOURCE-BUFFER, the buffer containing the source to be fixed
+
+SOURCE-WINDOW, the window displaying SOURCE-BUFFER.
+
+Point in SOURCE-BUFFER is at error location; point in
+`compilation-last-buffer' is at MSG location. Focus is in source
+buffer.
+
+If error is recognized, fix it and leave point at fix. Otherwise, ring bell.")
+
+(defun ada-fix-compiler-error ()
+  "Attempt to fix the current compiler error. Leave point at fixed code."
+  (interactive)
+
+  (let ((source-buffer (current-buffer))
+        (source-window (selected-window))
+        (line-move-visual nil)); screws up next-line otherwise
+
+    (with-current-buffer compilation-last-buffer
+      (funcall (cdr (assoc ada-compiler ada-fix-error-alist))
+	       (compilation-next-error 0)
+	       source-buffer
+	       source-window))
+    ))
+
+(provide 'ada-fix-error)
+;; end of file

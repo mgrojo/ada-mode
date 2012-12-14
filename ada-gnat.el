@@ -31,6 +31,8 @@
 ;; By default, ada-mode is configured to load this file, so nothing
 ;; special needs to done to use it.
 
+(require 'ada-fix-error)
+
 ;;;; gnatprep utils
 
 (defun ada-gnatprep-indent ()
@@ -99,6 +101,24 @@ See also `ada-gnat-parse-emacs-prj-file-final'."
     ;; add the compiler libraries to src_dir, obj_dir
     (setq project (ada-gnat-get-paths project))
     )
+
+  (kill-buffer (ada-gnat-run-buffer-name)); things may have changed, force re-create
+
+  ;; FIXME: This is only needed when actually running the gnat
+  ;; compiler; parsing a gnat project is a crude approximation to
+  ;; that. Could set in an 'ada-compile' function, but there's no good
+  ;; way to know when to clear it. Same for
+  ;; compilation-error-regexp-alist. One possible approach is
+  ;; per-project compilation buffers; then these variables could be
+  ;; buffer-local. So we do this here, and assume other modes will set
+  ;; these variables appropriately.
+  (setq compilation-filter-hook nil)
+  (add-hook 'compilation-filter-hook 'ada-gnat-compilation-filter)
+
+  ;; ada-mode.el project file parser sets this to other compilers used
+  ;; in the project, so we only add here.
+  (add-to-list 'compilation-error-regexp-alist 'gnat)
+
   project)
 
 (defun ada-gnat-get-paths (project)
@@ -179,13 +199,16 @@ src_dir, obj_dir will include compiler runtime."
 
 ;;; command line tool interface
 
+(defun ada-gnat-run-buffer-name ()
+  (concat " *gnat-run-"
+	  (or (ada-prj-get 'gpr_file)
+	      ada-prj-current-file)
+	  "*"))
+
 (defun ada-gnat-run-buffer ()
   "Return a buffer suitable for running gnat command line tools for the current project."
   (ada-require-project-file)
-  (let* ((buffername (concat " *gnat-run-"
-			     (or (ada-prj-get 'gpr_file)
-				  ada-prj-current-file)
-			     "*"))
+  (let* ((buffername (ada-gnat-run-buffer-name))
 	 (buffer (get-buffer buffername)))
     (if buffer
 	buffer
@@ -289,11 +312,16 @@ If PARENT is non-nil, return parent type declaration (assumes IDENTIFIER is a de
 (defun ada-gnat-filename-from-adaname (adaname)
   (let* (status
 	 (result nil))
+
+    (while (string-match "\\." adaname)
+      (setq adaname (replace-match "-" t t adaname)))
+    (downcase adaname)
+
     (with-current-buffer (ada-gnat-run-buffer)
       (setq status
 	    (ada-gnat-run-no-prj
 	     "krunch"
-	     (ada-make-filename-from-adaname-default adaname)
+	     adaname
 	     ;; "0" means only krunch GNAT library names
 	     "0"))
 
@@ -312,88 +340,92 @@ If PARENT is non-nil, return parent type declaration (assumes IDENTIFIER is a de
 
 ;;; compiler message handling
 
-(defun ada-compile-mouse-goto-error ()
-  "Mouse interface for `ada-compile-goto-error'."
+(defun ada-gnat-compilation-filter ()
+  "Filter to split secondary file references onto separate lines so `compile-parse-errors' can handle them.
+For `compilation-filter-hook'."
+  (save-excursion
+    (goto-char compilation-filter-start)
+    ;; compilation-filter might insert partial lines, or it might insert multiple lines
+    (when (bolp)
+      (while (not (eobp))
+	;; secondary file references look like:
+	;;
+	;; lookahead_test.ads:23:09: "Name" has been inherited from subprogram at aunit-simple_test_cases.ads:47
+	;;
+	;; skip the primary reference, look for "*.ad?:nn"
+	(skip-syntax-forward "^-")
+	(when (search-forward-regexp "\\s-\\([^[:blank:]]+\\.[[:alpha:]]+:[0-9]+\\)" (line-end-position) t)
+	  (goto-char (match-beginning 1))
+	  (newline))
+	(forward-line 1))
+      )))
+
+(defun ada-gnat-debug-filter ()
+  ;; call ada-gnat-compilation-filter with `compilation-filter-start' bound
   (interactive)
-  (mouse-set-point last-input-event)
-  (ada-compile-goto-error (point))
-  )
+  (beginning-of-line)
+  (let ((compilation-filter-start (point)))
+    (ada-gnat-compilation-filter)))
 
-(defun ada-compile-goto-error (pos)
-  ;; FIXME (later): do this in compilation-parse-error instead
-  "Replace `compile-goto-error' from compile.el.
-If POS is on a file and line location, go to this position.  It
-adds to compile.el the capacity to go to an extra reference in an
-error message.  For instance, on these lines:
+;;; auto fix compilation errors
 
-  foo.adb:61:11:  [...] in call to size declared at foo.ads:11
-  foo.adb:61:11:  [...] in call to local declared at line 20
+(defconst ada-gnat-quoted-punctuation-regexp
+  "\"\\([,:;=()|]+\\)\""
+  "regexp to extract quoted punctuation in error messages")
 
-the 4 file locations can be clicked on and jumped to."
-  (interactive "d")
-  (goto-char pos)
+(defun ada-gnat-fix-error (msg source-buffer source-window)
+  "For `ada-fix-error-alist'."
 
-  (skip-chars-backward "-a-zA-Z0-9_:./\\")
-  (cond
-   ;;  special case: looking at a filename:line not at the beginning of a line
-   ;;  or a simple line reference "at line ..."
-   ((and (not (bolp))
-	 (or (looking-at ada-compile-goto-error-file-linenr-re)
-	     (and
-	      (save-excursion
-		(beginning-of-line)
-		(looking-at ada-compile-goto-error-file-linenr-re))
-	      (save-excursion
-		(if (looking-at "\\([0-9]+\\)") (backward-word 1))
-		(looking-at "line \\([0-9]+\\)"))))
-	     )
-    (let ((line (if (match-beginning 2) (match-string 2) (match-string 1)))
-	  (file (if (match-beginning 2) (match-string 1)
-		  (save-excursion (beginning-of-line)
-				  (looking-at ada-compile-goto-error-file-linenr-re)
-				  (match-string 1))))
-	  (error-pos (point-marker))
-	  source)
+  ;; Move to start of error message text
+  (set-buffer compilation-last-buffer)
+  (skip-syntax-forward "^-")
+  (forward-char 1)
 
-      ;; set source marker
-      (save-excursion
-	(compilation-find-file (point-marker) (match-string 1) "./")
-	(set-buffer file)
+  ;; recognize it, handle it
+  (unwind-protect
+      (cond
+       ;; It is tempting to define an alist of (MATCH . ACTION), but
+       ;; that is too hard to debug
+       ;;
+       ;; This list will get long, so let's impose some order.
+       ;;
+       ;; First expressions that start with a named regexp, alphabetical by variable name.
+       ;;
+       ;; Then expressions that start with a string, alphabetical by string.
+       ;;
+       ;; Then style errors.
+       ((looking-at "expected an access type")
+	(progn
+	  (set-buffer source-buffer)
+	  (backward-char 1)
+	  (if (looking-at "\\.all")
+	      (delete-char 4)
+	    (ding))))
 
-	(when (stringp line)
-	  (goto-char (point-min))
-	  (forward-line (1- (string-to-number line))))
+       ((looking-at (concat "missing " ada-gnat-quoted-punctuation-regexp))
+	(let ((stuff (match-string-no-properties 1)))
+	  (set-buffer source-buffer)
+	  (insert stuff)))
 
-	(setq source (point-marker)))
+       ((looking-at (concat "missing \"with \\([a-zA-Z0-9_.']+\\);\""))
+	(let ((package-name (match-string-no-properties 1)))
+	  (pop-to-buffer source-buffer)
+	  (ada-fix-add-with-clause package-name)))
 
-      (compilation-goto-locus error-pos source nil)
-
-      ))
-
-   ;; otherwise, default behavior
-   (t
-    (compile-goto-error))
-   )
-  (recenter))
-
-  ;; (add-hook 'compilation-mode-hook
-  ;; 	    (lambda()
-  ;; 	      ;; FIXME (later): This has global impact!  -stef
-  ;; 	      ;; add the extra error points in compilation-error-regexp
-  ;; 	      ;; Mouse-2 is bound to compile-goto-error
-  ;; 	      (define-key compilation-minor-mode-map [mouse-2]
-  ;; 		'ada-compile-mouse-goto-error)
-  ;; 	      (define-key compilation-minor-mode-map "\C-c\C-c"
-  ;; 		'ada-compile-goto-error)
-  ;; 	      (define-key compilation-minor-mode-map "\C-m"
-  ;; 		'ada-compile-goto-error)))
+       (t
+	(error "error not recognized"))
+       );; end of 'cond'
+    ;; restore compilation buffer point
+    (set-buffer compilation-last-buffer)
+    (compilation-next-error 0)
+  ))
 
 ;;; setup
 
 (defun ada-gnat-setup ()
   (set (make-variable-buffer-local 'ada-compiler) 'gnat)
 
-  (set (make-variable-buffer-local 'ada-make-filename-from-adaname) 'ada-gnat-filename-from-adaname)
+  (set (make-variable-buffer-local 'ada-filename-from-adaname) 'ada-gnat-filename-from-adaname)
 
   (font-lock-add-keywords nil
    ;; gnatprep preprocessor line
@@ -405,18 +437,38 @@ the 4 file locations can be clicked on and jumped to."
     ;; we don't use add-hook here, because we don't want the global value.
     (add-to-list 'smie-indent-functions 'ada-gnatprep-indent))
 
+  (when (featurep 'ada-smie)
+    (set (make-variable-buffer-local 'ada-fix-context-clause) 'ada-smie-context-clause))
 )
 
-;; add at end, so it is after ada-smie-setup, and can modify smi-indent-functions
+;; add at end, so it is after ada-smie-setup, and can modify smie-indent-functions
 (add-hook 'ada-mode-hook 'ada-gnat-setup t)
 
 (setq-default ada-compiler 'gnat)
 
 ;; don't need ada-prj-default-function
-(add-to-list 'ada-xref-function (cons 'gnat 'ada-gnat-xref))
-(add-to-list 'ada-prj-parser-alist (cons "gpr" 'ada-gnat-parse-gpr))
-(add-to-list 'ada-prj-parse-file-ext (cons 'gnat 'ada-gnat-prj-parse-emacs-file))
+(add-to-list 'ada-xref-function        (cons 'gnat 'ada-gnat-xref))
+(add-to-list 'ada-prj-parser-alist     (cons "gpr" 'ada-gnat-parse-gpr))
+(add-to-list 'ada-prj-parse-file-ext   (cons 'gnat 'ada-gnat-prj-parse-emacs-file))
 (add-to-list 'ada-prj-parse-file-final (cons 'gnat 'ada-gnat-prj-parse-emacs-final))
+(add-to-list 'ada-fix-error-alist      (cons 'gnat 'ada-gnat-fix-error))
+
+(add-to-list
+ 'compilation-error-regexp-alist-alist
+ '(gnat
+   ;; typical:
+   ;;   cards_package.adb:45:32: expected private type "System.Address"
+   ;;
+   ;; after ada-gnat-compilation-filter split:
+   ;;   aunit-reporter-text.ads:44
+   ;;
+   ;; with full path Source_Reference pragma :
+   ;;   d:/maphds/version_x/1773/sbs-abi-dll_lib.ads.gp:39:06: file "interfaces_c.ads" not found
+   ;;
+   ;; gnu cc1:
+   ;;   foo.c:2: `TRUE' undeclared here (not in a function)
+   ;;   foo.c:2 : `TRUE' undeclared here (not in a function)
+   "^\\(\\(.:\\)?[^ :\n]+\\):\\([0-9]+\\)\\s-?:?\\([0-9]+\\)?" 1 3 4))
 
 ;; gnatmake -gnatD generates files with .dg extensions. But we don't
 ;; need to navigate between them.

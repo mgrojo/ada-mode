@@ -4,6 +4,10 @@
 
 -- It also doesn't pass the reindent and diff test, since we are deliberately adding newlines
 --EMACSCMD:(setq skip-reindent-test t)
+
+-- Test cache managment when inserting a with clause; used to screw up
+--EMACSCMD:(progn (forward-line 2)(ada-smie-validate-cache (point))(insert "with A;\n")ada-smie-cache-max)
+--EMACSRESULT:(point-min)
 procedure Procedure_1
 is
    -- Adding text inside a comment must not leave ada-smie-cache-max inside comment

@@ -1,35 +1,9 @@
 ;;; ada-mode.el --- major-mode for editing Ada sources
 ;;
-;; FIXME (later): this is just the start of a major rewrite; just enough to
-;; test the new smie-based ada-indent.el
-;;
-;; Also deleted all Xemacs support, and all pre-Emacs 24.2 support.
-;;
-;; So far, I've copied ada-mode 4.01, and deleted everything that has
-;; to do with indentation or casing. imenu, outline, which-function,
-;; add-log, format-paramlist, narrow-to-defun also deleted, since
-;; they might be able to take advantage of the smie parser.
-;;
-;; skeleton, templates deleted because it might use semantic
-;;
-;; ada-xref deleted because it will become more orthogonal (it relies
-;; on gnat xref output; it should be easy to use other compiler xref
-;; output).
-;;
-;; Similary ada-prj assumes gnat.
-;;
-;; ada-prj-edit deleted because it won't be supported any more
-;;
-;; compile, build, debug deleted because I don't use them, and I'm
-;; not sure if they are gnat-dependent.
-
 ;;; Copyright (C) 1994, 1995, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012  Free Software Foundation, Inc.
 
-;; Author: Rolf Ebert      <ebert@inf.enst.fr>
-;;      Markus Heritsch <Markus.Heritsch@studbox.uni-stuttgart.de>
-;;      Emmanuel Briot  <briot@gnat.com>
-;;      Stephen Leake <stephen_leake@member.fsf.org>
+;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Keywords: languages ada
 
@@ -76,19 +50,21 @@
 ;; Gosling Emacs. L. Slater based his development on ada.el and
 ;; electric-ada.el.
 ;;
-;; A complete rewrite by M. Heritsch and R. Ebert was done at some
-;; point.  Some ideas from the Ada mode mailing list have been added.
-;; Some of the functionality of L. Slater's mode has not (yet) been
-;; recoded in this new mode.
+;; A complete rewrite by Rolf Ebert <ebert@inf.enst.fr> and Markus
+;; Heritsch <Markus.Heritsch@studbox.uni-stuttgart.de> was done at
+;; some point.  Some ideas from the Ada mode mailing list have been
+;; added.  Some of the functionality of L. Slater's mode has not (yet)
+;; been recoded in this new mode.
 ;;
-;; A complete rewrite for Emacs-20 / GNAT-3.11 was done by Ada Core
-;; Technologies.
+;; A complete rewrite for Emacs-20 / GNAT-3.11 was done by Emmanuel
+;; Briot <briot@gnat.com> at Ada Core Technologies.
 ;;
 ;; A complete rewrite, to restructure the code more orthogonally, and
 ;; to use smie for the indentation engine, was done in 2012 by Stephen
-;; Leake.
+;; Leake <stephen_leake@stephe-leake.org>.
 
 ;;; Credits:
+;;
 ;;   Many thanks to John McCabe <john@assen.demon.co.uk> for sending so
 ;;     many patches included in this package.
 ;;   Christian Egli <Christian.Egli@hcsd.hac.com>:
@@ -100,7 +76,6 @@
 ;;     jj@ddci.dk (Jesper Joergensen)
 ;;     gse@ocsystems.com (Scott Evans)
 ;;     comar@gnat.com (Cyrille Comar)
-;;     stephen_leake@stephe-leake.org (Stephen Leake)
 ;;     robin-reply@reagans.org
 ;;    and others for their valuable hints.
 
@@ -945,6 +920,11 @@ Return new value of PROJECT."
 			 (expand-file-name
 			  (substitute-in-file-name (match-string 2)))))
 
+	   ;; FIXME: handle 'compilation-error-regexp-alist; set to
+	   ;; nil, let user add others in project file Assumes other
+	   ;; Makefiles/projects will do the same. Or use per-project
+	   ;; compilation buffer.
+
 	   ((string= (match-string 1) "comp_cmd")
 	    (add-list 'comp_cmd (match-string 2)))
 
@@ -1166,23 +1146,14 @@ See `ff-other-file-alist'.")
   "\\([a-zA-Z0-9_\\.]+\\)\\.[a-zA-Z0-9_]+"
   "Regexp for extracting the parent name from fully-qualified name.")
 
-(defvar ada-make-filename-from-adaname 'ada-make-filename-from-adaname-default
+(defvar ada-filename-from-adaname nil
   "Function called with one parameter ADANAME, which is a library
 unit name; it should return the filename in which ADANAME is
 found.")
 
-(defun ada-make-filename-from-adaname (adaname)
+(defun ada-filename-from-adaname (adaname)
   "Return the filename in which ADANAME is found."
-  (funcall ada-make-filename-from-adaname adaname))
-
-(defun ada-make-filename-from-adaname-default (adaname)
-  "Determine the filename in which ADANAME is found.
-This matches the GNAT default naming convention, except for
-pre-defined units."
-  (while (string-match "\\." adaname)
-    (setq adaname (replace-match "-" t t adaname)))
-  (downcase adaname)
-  )
+  (funcall ada-filename-from-adaname adaname))
 
 (defun ada-ff-special-extract-separate ()
   (let ((package-name (match-string 1)))
@@ -1198,15 +1169,15 @@ pre-defined units."
     (file-name-nondirectory
      (ff-get-file-name
       compilation-search-path
-      (ada-make-filename-from-adaname package-name)
+      (ada-filename-from-adaname package-name)
       ada-body-suffixes))))
 
 (defun ada-ff-special-with ()
-  (setq ff-function-name (match-string 1))
+  (setq ff-function-name (concat "^package\\s-+" (match-string 1) "\\([^_]\\|$\\)"))
   (file-name-nondirectory
    (ff-get-file-name
     compilation-search-path
-    (ada-make-filename-from-adaname ff-function-name)
+    (ada-filename-from-adaname (match-string 1))
     (append ada-spec-suffixes ada-body-suffixes))))
 
 (defun ada-set-ff-special-constructs ()
@@ -1227,7 +1198,7 @@ pre-defined units."
 	       	 (file-name-nondirectory
 		  (ff-get-file-name
 	       	   compilation-search-path
-	       	   (ada-make-filename-from-adaname ff-function-name)
+	       	   (ada-filename-from-adaname ff-function-name)
 	       	   ada-spec-suffixes))))
 
 	 ;; A "separate" clause.
@@ -1235,7 +1206,7 @@ pre-defined units."
 	       'ada-ff-special-extract-separate)
 
 	 ;; A "with" clause. Note that it may refer to a procedure body, as well as a spec
-	 (cons (concat "^with[ \t]+" ada-name-regexp)
+	 (cons (concat "^\\(?:limited[ \t]+\\)?\\(?:private[ \t]+\\)?with[ \t]+" ada-name-regexp)
 	       'ada-ff-special-with)
 	 )))
 
@@ -1399,7 +1370,7 @@ the other file."
 	(setq ff-function-name (buffer-substring-no-properties (point) (mark)))
 	(ff-get-file
 	 compilation-search-path
-	 (ada-make-filename-from-adaname ff-function-name)
+	 (ada-filename-from-adaname ff-function-name)
 	 ada-spec-suffixes
 	 other-window-frame)
 	(deactivate-mark))
@@ -1664,7 +1635,7 @@ Return nil if no body was found."
       (setq suffixes (cdr suffixes))))
 
   (ff-get-file-name compilation-search-path
-		    (ada-make-filename-from-adaname
+		    (ada-filename-from-adaname
 		     (file-name-nondirectory
 		      (file-name-sans-extension spec-name)))
 		    ada-body-suffixes))

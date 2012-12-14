@@ -46,6 +46,25 @@ test/Makefile  ;; set project file
     test/ada_mode-nominal.adb Function_2a
 
 gnat-fix
+    c:/Projects/emacs_stephe.main/emacs_stephe/gnat-fix-error.el
+
+    ada-fix-error.el
+        small; merge into ada-mode.el?
+
+        sort limited private with at end of context clause?
+
+    ada-gnat-fix-error.el
+        testing on opentoken fix aunit
+        need secondary file LOC
+            ada-gnat-compilation-filter-hook
+                split lines, let compilation-parse-error handle that
+                not great
+            try 'old' compilation-parse-errors-function, see if it's better, ask on emacs-devel
+
+compilation mode
+    keep compilation buffer in other frame if already visible
+
+use with-silent-modifications for setting cache values
 
 align broken
     debug_books.adb
@@ -54,12 +73,22 @@ align broken
 ada-align-paramlist
     test/ada_mode-parens.adb
 
+    test no mode
+
     handle all on single line
         what does 4.01 do?
 
     handle wrapping due to line length limit?
 
     handle comments in paramlist
+
+don't use define-derived-mode
+    other modes in 24.3 don't
+    post-hook stuff more reliable
+
+ada-make-body
+
+C-c C-b
 
 C-c C-d on sql_parameters in gnatcoll-sql-exec.ads
     => not found in cross-reference files
@@ -257,6 +286,7 @@ entry guard clauses:
 (info "(aarm2012)Annex P" "*info Annex P*")
 (info "(elisp)Parser State" "*syntax-ppss*")
 c:/Projects/emacs_stephe.work/emacs_stephe/ada-mode-keys.el
+c:/Projects/emacs_stephe.work/emacs_stephe/gnat-fix-error.el
 c:/Projects/emacs_stephe.main/emacs_stephe_site_lisp/ada-mode.el
 c:/apps/emacs-24.2/lisp/progmodes/ada-mode.el
 

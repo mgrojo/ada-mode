@@ -39,13 +39,17 @@ limited private with Ada.Strings.Bounded,
 --EMACSCMD:(test-face "limited" font-lock-keyword-face)
 --EMACSCMD:(test-face "with" font-lock-keyword-face)
 --EMACSCMD:(test-face "Ada" font-lock-constant-face)
+--EMACSCMD:(progn (forward-line 1)(ada-find-other-file nil)(looking-at "package Ada.Strings.Bounded"))
 limited with Ada.Strings.Bounded,
           Ada.Containers;
+--EMACSRESULT:t
 --EMACSCMD:(test-face "private" font-lock-keyword-face)
 --EMACSCMD:(test-face "with" font-lock-keyword-face)
 --EMACSCMD:(test-face "Ada" font-lock-constant-face)
+--EMACSCMD:(progn (forward-line 1)(ada-find-other-file nil)(looking-at "package Ada.Containers.Vectors"))
 private with Ada.Containers.Vectors,
           Ada.Containers.Bounded_Doubly_Linked_Lists;
+--EMACSRESULT:t
 -- test ada-find-other-file on 'with subprogram-body'
 --EMACSCMD:(progn (forward-line 1)(ada-find-other-file t)(looking-at "Ada_Mode.Library_Function return"))
 with Ada_Mode.Library_Function;
