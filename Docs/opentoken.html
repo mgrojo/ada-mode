@@ -110,12 +110,12 @@ recognizers are already written, well documented, and can be
 independently tested.
 
 <p>Some reusable parse tokens are also included in OpenToken, but they
-tend to be more domain-specific.
+tend to be domain-specific.
 
 <p>Ada's type safety features make misbehaving lexers and parsers
 easier to debug. In addition, OpenToken includes a trace feature, that
-outputs useful information as the parse progresses, also aiding
-debugging.
+outputs useful information during grammar compile and user input
+parsing, also aiding debugging.
 
 <p>OpenToken is distributed under <a
 href="http://www.gnu.org/licenses/licenses.html#GPL">GPL version
@@ -127,9 +127,8 @@ made by Christoph Grein and Stephen Leake.
 
 <p>OpenToken is currently maintained by <a
 href="mailto:stephen_leake@stephe-leake.org">Stephen Leake</a>. Submit
-bugs via the <a href="http://www.debian.org/Bugs/">Debian Bug
-system</a>, against the opentoken source package. Discussion about
-OpenToken is on the newsgroup comp.lang.ada.
+bugs directly to Stephen. Discussion about OpenToken is on the
+newsgroup comp.lang.ada.
 
 <p>OpenToken has been tested on the following operating systems/compilers:
 <ul>
@@ -137,6 +136,7 @@ OpenToken is on the newsgroup comp.lang.ada.
   <li>Debian 6.0 GNAT 4.4.3
   <li>Windows XP 32 bit GNAT 6.2.1
   <li>Windows XP 32 bit GNAT GPL-2009
+  <li>Windows 7 64 bit GNAT 7.1 preview
 </ul>
 
 <p>The simplest way to use the source distribution is to install it in
@@ -279,7 +279,7 @@ oriented towards testing OpenToken itself.
             Set verdict when Allow_Signs. Tested in recognizer_integer_test. Debian bug 536359.
 
         <li>opentoken-recognizer-string.adb<br>
-            Set C_Style_Escape_Code_Map properly. Test in string_test-run.adb fixed.
+            Set C_Style_Escape_Code_Map properly. Test in string_test-run.adb.
 
         <li>Language_Lexers/ada_lexer.ads, .adb<br>
             Handle Character'('x'). Debian bug 498945.
@@ -309,13 +309,13 @@ oriented towards testing OpenToken itself.
         <li>New procedure opentoken-token-enumerated-analyzer.ads Discard_Buffered_Text<br>
             For calling parser in a loop while handling exceptions.
 
-        <li>New recognizer
-            opentoken-recognizer-based_integer.adb. Recognizes Ada
-            integer literal with optional base. See
+        <li>New recognizer opentoken-recognizer-based_integer.adb.
+            Recognizes Ada integer literal with optional base. See
             recognizer_based_integer_test.adb for examples.
 
-        <li>New token opentoken-token-enumerated-identifier.adb. Tested in test_token_identifier_real_string.
-            Useful for user symbol names.
+        <li>New token opentoken-token-enumerated-identifier.adb.
+            Tested in test_token_identifier_real_string. Useful for
+            user symbol names.
 
         <li>New tokens
             opentoken-token-enumerated-real_literal.adb,
@@ -529,6 +529,6 @@ agree. Bravo!
 <img src="../images/emacs.png" alt="Created with Emacs" width="100" height="30"></a>
 <a href="http://www.adaic.org/">
 <img src="../images/adapowered2.png" alt="powered by Ada" width="200" height="50"></a>
-<!-- hhmts start --> Last modified: Tue Jun 29 04:20:09 EDT 2010 <!-- hhmts end -->
+<!-- hhmts start --> Last modified: Thu Dec 13 02:02:41 EST 2012 <!-- hhmts end -->
 </body>
 </html>

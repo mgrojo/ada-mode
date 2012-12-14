@@ -9,88 +9,34 @@
 
 <h1>OpenToken Developer tools</h1>
 Running the OpenToken tests requires AUnit. Compiling with the
-'-gnatyO' switch requires patching the compiler run-time sources.
+'-gnatyO' switch requires patching the compiler run-time sources in GNAT 6.2.1.
 
 <h2>AUnit</h2>
 
 <p>The version of AUnit in Debian 5.0 is 1.03. The version distributed
-by AdaCore with GNAT 6.2.1 and GNAT GPL-2009 is 3.1.1. They have
-different user interfaces; the later version is compatible with the
+by AdaCore with GNAT 6.2.1 and GNAT GPL-2009 is 3.1.1. The latest
+AdaCore AUnit, distributed with GNAT 7.0.2, is AUnit 3.4.2. They have
+different user interfaces; the later versions are compatible with the
 Ravenscar profile.
 
-<p>The tests in OpenToken use AUnit 1.03. So on Debian, just install
-the AUnit package, and everything works.
-
-<p>On Windows, it's a little more complicated, because the Makefile in
-AUnit 1.03 doesn't install the library. So we have to do that part by
-hand.
+<p>The tests in OpenToken use AUnit 4.3.2. It can be built and used in
+place; it does not have to be installed in the GNAT installation
+directory.
 
 <ol>
-  <li>Download <tt>aunit-1.03-src.zip</tt>, either from <a
-  href="aunit-1.03-src.zip">here</a>, or from the <a
-  href="https://libre.adacore.com/libre/download/">GNAT Libre</a>
-  website; it's grouped under GPL-2005.
-  <li>Assuming your GNAT compiler is installed in <tt>c:/GNAT</tt>,
-  unzip the source to <tt>c:/GNAT/aunit-1.03-src</tt>
-  <li>Copy <tt>c:/GNAT/aunit-1.03-src/aunit.gpr</tt> to
-  <tt>c:/GNAT/lib/gnat</tt>
-  <li>Edit <tt>c:/GNAT/lib/gnat/aunit.gpr</tt>; change the Source_Dirs
-  line to:
-<pre>
-   for Source_Dirs use
-     ("../../aunit-1.03-src/aunit/framework/",
-      "../../aunit-1.03-src/aunit/text_reporter/");
-</pre>
-   <li>In directory <tt>c:/GNAT/lib/gnat</tt>, execute <tt>gnatmake -p -Paunit</tt>
+  <li>Download <tt>aunit-3.4.2-src.tgz</tt> from <a
+  href="http://adacore.com">AdaCore GNAT Pro</a>, or <tt>aunit-gpl-2012-src.tgz</tt> from <a
+  href="https://libre.adacore.com/libre/download/">AdaCore GNAT Libre</a>.
+  <li>Untar the source anywhere; here we assume <tt>/Projects/aunit-3.4.2-src</tt>, then compile it:
+      <pre>
+cd /Projects/
+tar zxf aunit-gpl-2012-src.tgz
+cd aunit-3.4.2-src
+make
+      </pre>
+
+  <li>Edit <tt>opentoken/build/*/Makefile</tt>; set <tt>ADA_PROJECT_PATH</tt> to include <tt>/Projects/aunit-3.4.2-src/lib/gnat/</tt>
  </ol>
-
-<h2>GNAT Compiler patches</h2>
-
-<p>GNAT 6.2.1, GPL-2008, and GPL-2009 support the "-gnatyO" style
-option, which enforces the use of the "overriding" keyword. This
-keyword protects against an overriding function silently becoming
-non-overriding when the parent spec is changed.
-
-<p>However, a few of the Ada standard files and supporting GNAT
-run-time files are missing required "overriding" keywords, so they
-must be patched.
-
-<p>If you are uncomfortable patching compiler files, you can delete
-the "-gnatOy" option from the GNAT project file.
-
-<p>Assume the GNAT compiler to be patched is installed at
-<tt>$ROOT</tt>. That means that the executables are in
-<tt>$ROOT/bin</tt>. Then the files to be patched for GNAT 6.2.1 on
-Windows are:
-
-<dl>
-  <dd><tt>$ROOT/lib/gcc/i686-pc-mingw32/4.3.3/adainclude/s-poosiz.ads</tt>
-  <dt>Add "overriding" to Storage_Size, Allocate, Deallocate, Initialize.
-
-  <dd><tt>$ROOT/lib/gcc/i686-pc-mingw32/4.3.3/adainclude/s-pooglo.ads</tt>
-  <dt>Add "overriding" to Storage_Size, Allocate, Deallocate.
-
-  <dd><tt>$GNAT/lib/gcc/i686-pc-mingw32/4.3.3/adainclude/a-strbou.ads</tt>
-  <dt>Add "overriding" to function "=" (Left  : Bounded_String; Right : Bounded_String)
-</dl>
-
-Then recompile these files. In a bash shell:
-<pre>
-cd $ROOT/lib/gcc/i686-pc-mingw32/4.3.3/adalib
-rm -f s-poosiz.ali s-poosiz.o
-rm -f s-pooglo.ali s-pooglo.o
-rm -f g-socket.ali g-socket.o
-rm -f a-strbou.ali a-strbou.o
-make -f Makefile.adalib ROOT=/Gnu/GNAT-6.2.1 s-poosiz.o
-make -f Makefile.adalib ROOT=/Gnu/GNAT-6.2.1 s-pooglo.o
-make -f Makefile.adalib ROOT=/Gnu/GNAT-6.2.1 a-strbou.o
-make -f Makefile.adalib ROOT=/Gnu/GNAT-6.2.1 g-socket.o
-chmod -w *.ali
-</pre>
-
-<p>For GNAT GPL-2009, the paths are slightly different;
-<tt>lib/gcc/i686-pc-mingw32/4.3.3</tt> changes to
-<tt>lib/gcc/i686-pc-mingw32/4.3.4</tt>
 
 <hr>
 <p><a href="/index.html">my home page</a>
@@ -101,6 +47,6 @@ chmod -w *.ali
 <img src="/images/emacs.png" alt="Created with Emacs" width="100" height="30"></a>
 <a href="http://www.adaic.org/">
 <img src="/images/adapowered2.png" alt="powered by Ada" width="200" height="50"></a>
-<!-- hhmts start --> Last modified: Tue Jun  1 19:16:08 EDT 2010 <!-- hhmts end -->
+<!-- hhmts start --> Last modified: Thu Dec 13 02:02:41 EST 2012 <!-- hhmts end -->
 </body>
 </html>

@@ -105,7 +105,7 @@ source-clean ::
 	-find $(SOURCE_ROOT) -name ".#*" -print | xargs rm -v
 	-find $(SOURCE_ROOT) -name "*,t" -print | xargs rm -v
 
-%.exe : %.adb force; gnatmake -p -k -C -Popentoken_test.gpr $(GNATMAKE_ARGS) $* $(GNATMAKE_POST_ARGS)
+%.exe : %.adb force; gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -Popentoken_test_agg.gpr $(GPRBUILD_ARGS) $*
 
 %.out : %.exe ;	./$*.exe > $*.out 2>&1
 

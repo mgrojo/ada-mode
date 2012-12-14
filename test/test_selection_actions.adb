@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
---  Copyright (C) 2009, 2010 Stephen Leake
+--  Copyright (C) 2009, 2010, 2012 Stephen Leake
 --
 --  This file is part of the OpenToken package.
 --
@@ -18,7 +18,6 @@
 -----------------------------------------------------------------------------
 pragma License (GPL);
 
-with AUnit.Test_Cases.Registration;
 with OpenToken.Recognizer.Character_Set;
 with OpenToken.Recognizer.End_Of_File;
 with OpenToken.Recognizer.Separator;
@@ -88,7 +87,7 @@ package body Test_Selection_Actions is
    ----------
    --  Public subprograms
 
-   overriding function Name (T : in Test_Case) return Ada.Strings.Unbounded.String_Access
+   overriding function Name (T : in Test_Case) return AUnit.Message_String
    is
       pragma Unreferenced (T);
    begin

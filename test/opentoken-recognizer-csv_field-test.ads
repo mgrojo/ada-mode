@@ -2,7 +2,7 @@
 --
 --  Test parent
 --
---  Copyright (C) 2009, 2010 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2009, 2010, 2012 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -18,7 +18,6 @@
 
 pragma License (GPL);
 
-with Ada.Strings.Unbounded;
 with AUnit.Test_Cases;
 package OpenToken.Recognizer.CSV_Field.Test is
 
@@ -28,6 +27,6 @@ package OpenToken.Recognizer.CSV_Field.Test is
 
    overriding procedure Register_Tests (T : in out Test_Case);
 
-   overriding function Name (T : Test_Case) return Ada.Strings.Unbounded.String_Access;
+   overriding function Name (T : Test_Case) return AUnit.Message_String;
 
 end OpenToken.Recognizer.CSV_Field.Test;

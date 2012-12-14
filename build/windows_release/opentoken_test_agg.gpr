@@ -1,0 +1,13 @@
+aggregate
+project OpenToken_Test_Agg is
+
+   -- use AdaCore aunit (not SAL aunit) in alternate install
+   -- directory (so it doesn't conflict with SAL aunit).
+   -- See ../../Docs/opentoken_developer_tools.html for installation
+   for Project_Path use
+--      ("/Projects/aunit-3.4.2-src/lib/gnat");
+      ("/apps/GNAT-7.1.0w-20121028/lib/gnat");
+      
+   for Project_Files use ("opentoken_test.gpr");
+   
+end OpenToken_Test_Agg;
