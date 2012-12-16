@@ -111,9 +111,8 @@ See also `ada-gnat-parse-emacs-prj-file-final'."
   ;; compilation-error-regexp-alist. So we do this here, and assume other modes will set
   ;; these variables appropriately.
   ;;
-  ;; One possible approach is
-  ;; per-project compilation buffers; then these variables could be
-  ;; buffer-local.
+  ;; One possible approach is per-project compilation buffers; then
+  ;; these variables could be buffer-local.
   ;;
   ;; Or can we use compilation-[start|finish]-functions to set and remove this?
   (setq compilation-filter-hook nil)
@@ -266,6 +265,8 @@ Assumes current buffer is (ada-gnat-run-buffer)"
 
 ;;; uses of gnat tools
 
+(defconst ada-gnat-file-line-col-regexp "\\(.*\\):\\([0-9]+\\):\\([0-9]+\\)")
+
 (defun ada-gnat-xref (identifier parent)
   "Return '(file line column) for declaration or body for IDENTIFIER, which must be at point.
 If PARENT is non-nil, return parent type declaration (assumes IDENTIFIER is a derived type)."
@@ -288,20 +289,33 @@ If PARENT is non-nil, return parent type declaration (assumes IDENTIFIER is a de
 
 	;; gnat find returns two items; the starting point, and the 'other' point
 	(while (not result)
-	  (unless (looking-at "\\(.*\\):\\([0-9]+\\):\\([0-9]+\\):")
+	  (unless (looking-at (concat ada-gnat-file-line-col-regexp ":"))
 	    ;; no results
 	    (error "'%s' not found in cross-reference files; recompile?" identifier))
 	  (let ((found-file (match-string 1))
 		(found-line (string-to-number (match-string 2)))
 		(found-col  (string-to-number (match-string 3))))
-	    (if (not
-		 (and
-		  (equal start-file found-file)
-		  (= start-line found-line)
-		  (= start-col found-col)))
-		;; found other item
-		(setq result (list found-file found-line (1- found-col)))
-	      (forward-line 1))
+	    (cond
+	     (parent
+	      (skip-syntax-forward "^ ")
+	      (skip-syntax-forward " ")
+	      (if (looking-at (concat "derived from .* (" ada-gnat-file-line-col-regexp ")"))
+		  ;; found other item
+		  (setq result (list (match-string 1)
+				     (string-to-number (match-string 2))
+				     (1- (string-to-number (match-string 3)))))
+		(forward-line 1)))
+
+	     (t
+	      (if (not
+		   (and
+		    (equal start-file found-file)
+		    (= start-line found-line)
+		    (= start-col found-col)))
+		  ;; found other item
+		  (setq result (list found-file found-line (1- found-col)))
+		(forward-line 1)))
+	     )
 	    (when (eobp)
 	      (pop-to-buffer (current-buffer))
 	      (error "gnat find did not return other item"))
@@ -313,19 +327,20 @@ If PARENT is non-nil, return parent type declaration (assumes IDENTIFIER is a de
        ))
     result))
 
-(defun ada-gnat-filename-from-adaname (adaname)
+(defun ada-gnat-file-name-from-ada-name (ada-name)
+  "For `ada-file-name-from-ada-name'."
   (let* (status
 	 (result nil))
 
-    (while (string-match "\\." adaname)
-      (setq adaname (replace-match "-" t t adaname)))
-    (downcase adaname)
+    (while (string-match "\\." ada-name)
+      (setq ada-name (replace-match "-" t t ada-name)))
+    (downcase ada-name)
 
     (with-current-buffer (ada-gnat-run-buffer)
       (setq status
 	    (ada-gnat-run-no-prj
 	     "krunch"
-	     adaname
+	     ada-name
 	     ;; "0" means only krunch GNAT library names
 	     "0"))
 
@@ -341,6 +356,34 @@ If PARENT is non-nil, return parent type declaration (assumes IDENTIFIER is a de
 	(error "gnat find failed"))
        ))
     result))
+
+(defconst ada-gnat-predefined-package-alist
+  '(("a-textio" . "Ada.Text_IO")
+    ("a-chahan" . "Ada.Characters.Handling")
+    ("a-comlin" . "Ada.Command_Line")
+    ("a-except" . "Ada.Exceptions")
+    ("a-numeri" . "Ada.Numerics")
+    ("a-string" . "Ada.Strings")
+    ("g-socket" . "GNAT.Sockets")
+    ("interfac" . "Interfaces")
+    ("i-c"      . "Interfaces.C")
+    ("i-cstrin" . "Interfaces.C.Strings")
+    ("s-stoele" . "System.Storage_Elements")
+    ("unchconv" . "Unchecked_Conversion") ; Ada 83 name
+    )
+  "Alist (filename . package name) of GNAT file names for predefined Ada packages.")
+
+(defun ada-gnat-ada-name-from-file-name (file-name)
+  "For `ada-ada-name-from-file-name'."
+  (let* (status
+	 (ada-name (file-name-sans-extension (file-name-nondirectory file-name)))
+	(predefined (cdr (assoc ada-name ada-gnat-predefined-package-alist))))
+
+    (if predefined
+        predefined
+      (while (string-match "-" ada-name)
+	(setq ada-name (replace-match "." t t ada-name)))
+      ada-name)))
 
 ;;; compiler message handling
 
@@ -405,6 +448,10 @@ For `compilation-filter-hook'."
 
 ;;; auto fix compilation errors
 
+(defconst ada-gnat-quoted-name-regexp
+  "\"\\([a-zA-Z0-9_.']+\\)\""
+  "regexp to extract the quoted names in error messages")
+
 (defconst ada-gnat-quoted-punctuation-regexp
   "\"\\([,:;=()|]+\\)\""
   "regexp to extract quoted punctuation in error messages")
@@ -430,6 +477,55 @@ For `compilation-filter-hook'."
        ;; Then expressions that start with a string, alphabetical by string.
        ;;
        ;; Then style errors.
+
+       ((looking-at (concat ada-gnat-quoted-name-regexp " is not visible"))
+	(let ((ident (match-string 1)))
+	  ;; next line may contain a reference to where ident is
+	  ;; defined; if present, it will have been marked by
+	  ;; ada-gnat-compilation-filter
+	  (next-line 1)
+	  (let* ((pos (next-single-property-change (point) 'ada-secondary-error nil (line-end-position)))
+		 (item (when pos (get-text-property pos 'ada-secondary-error)))
+		 (unit-file (when item (nth 0 item))))
+	    (unless unit-file
+	      (error "unrecognized error message"))
+	    (pop-to-buffer source-buffer)
+	    ;; We either need to add a with_clause for a package, or
+	    ;; prepend the package name here (or add a use clause, but I
+	    ;; don't want to do that automatically).
+	    ;;
+	    ;; If we need to add a with_clause, unit-name may be only
+	    ;; the prefix of the real package name, but in that case
+	    ;; we'll be back after the next compile; no way to get the
+	    ;; full package name (without the function/type name) now.
+	    ;; Note that we can't use gnat find, because the code
+	    ;; doesn't compile.
+	    (let ((unit-name (ada-ada-name-from-file-name unit-file)))
+	      (cond
+	       ((looking-at (concat unit-name "\\."))
+                  (ada-fix-add-with-clause unit-name))
+	       (t
+		(ada-fix-insert-unit-name unit-name)
+		(insert ".")))))))
+
+       ((looking-at (concat ada-gnat-quoted-name-regexp " not declared in " ada-gnat-quoted-name-regexp))
+	(let ((child-name (match-string 1))
+	      correct-spelling)
+	  ;; First check for "possible misspelling" message on next line
+	  (save-excursion
+	    (next-line 1)
+	    (if (looking-at (concat "possible misspelling of " ada-gnat-quoted-name-regexp))
+		;; correctable misspelling
+		(progn
+		  (setq correct-spelling (match-string 1))
+		  (pop-to-buffer source-buffer)
+		  (search-forward child-name)
+		  (replace-match correct-spelling)
+		  );; progn
+	      ;; else guess that "child" is a child package, and extend the with_clause
+	      (pop-to-buffer source-buffer)
+	      (ada-fix-extend-with-clause child-name)))))
+
        ((looking-at "expected an access type")
 	(progn
 	  (set-buffer source-buffer)
@@ -461,7 +557,8 @@ For `compilation-filter-hook'."
 (defun ada-gnat-setup ()
   (set (make-variable-buffer-local 'ada-compiler) 'gnat)
 
-  (set (make-variable-buffer-local 'ada-filename-from-adaname) 'ada-gnat-filename-from-adaname)
+  (set (make-variable-buffer-local 'ada-file-name-from-ada-name) 'ada-gnat-file-name-from-ada-name)
+  (set (make-variable-buffer-local 'ada-ada-name-from-file-name) 'ada-gnat-ada-name-from-file-name)
 
   (font-lock-add-keywords nil
    ;; gnatprep preprocessor line

@@ -123,6 +123,7 @@ named_block.ali : named_block.adb
 %.ali : %.ads
 	gnatmake -gnat2012 -P ada_mode_parent.gpr -gnatc -gnatyN3 $(<F)
 
+# (grep-find "find .. -type f -print | xargs grep -n FIXME")
 clean : compile-clean test-clean
 	rm -f *~ ../*~ subdir/*~
 

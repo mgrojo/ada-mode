@@ -23,9 +23,10 @@
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Usage:
+;;
 ;; Emacs should enter Ada mode automatically when you load an Ada
 ;; file, based on the file extension.  The default extensions for Ada
-;; files are .ads, .adb, .ada; use ada-add-extensions to add other
+;; files are .ads, .adb; use ada-add-extensions to add other
 ;; extensions.
 ;;
 ;; By default, ada-mode is configured to take full advantage of the
@@ -37,6 +38,7 @@
 ;; FIXME (later): see the user guide at ....
 
 ;;; History:
+;;
 ;; The first Ada mode for GNU Emacs was written by V. Broman in
 ;; 1985. He based his work on the already existing Modula-2 mode.
 ;; This was distributed as ada.el in versions of Emacs prior to 19.29.
@@ -189,28 +191,21 @@ If nil, no contextual menu is available."
     ["Show secondary error"       ada-show-secondary-error  t]
     ["Other File"                 ada-find-other-file       t]
     ["Other File don't find decl" ada-find-other-file-noset t]
-    ["Goto Declaration/Body"      ada-goto-declaration      t]; FIXME: appropriate enable
+    ["Goto Declaration/Body"      ada-goto-declaration      t]
     ("Edit"
      ["Indent Line"                 indent-for-tab-command  t]
      ["Indent Lines in Selection"   indent-region           t]
      ["Indent Lines in File"        (indent-region (point-min) (point-max))  t]
      ["Align"                       ada-align               t]
-     ;; FIXME: does 'ada-align' do:
-     ;; 1. ':=', '=>' in code sections
-     ;; 2. parameter lists
-     ;; 3. comments after code
-     ;; 4. 'use' in context clauses
-     ;; 5. 'at' in record rep clauses
      ["Comment Selection"           comment-region               t]
      ["Uncomment Selection"         (lambda () (comment-region t)) t]
      ["Fill Comment Paragraph"      fill-paragraph               t]
      ["Fill Comment Paragraph Justify"
-      ada-fill-comment-paragraph-justify                         t]; FIXME: test
+      ada-fill-comment-paragraph-justify                         t]
      ["Fill Comment Paragraph Postfix"
-      ada-fill-comment-paragraph-postfix                         t]; FIXME: test
+      ada-fill-comment-paragraph-postfix                         t]
      ["---"                         nil                          nil]
      ["Make body for subprogram"    ada-make-subprogram-body     t]; FIXME: test
-     ["Narrow to subprogram"        narrow-to-defun          t]; FIXME: test
      )
     ))
 
@@ -888,7 +883,6 @@ Optional PLIST defaults to `ada-prj-current-project'."
 
 (defun ada-require-project-file ()
   (unless ada-prj-current-file
-    ;; FIXME: provide search for defaults?
     (error "no Emacs Ada project file specified")))
 
 (defvar ada-prj-default-function nil
@@ -1000,7 +994,7 @@ Return new value of PROJECT."
 			  (substitute-in-file-name (match-string 2)))))
 
 	   ;; FIXME: handle 'compilation-error-regexp-alist; set to
-	   ;; nil, let user add others in project file Assumes other
+	   ;; nil, let user add others in project file. Assumes other
 	   ;; Makefiles/projects will do the same. Or use per-project
 	   ;; compilation buffer.
 
@@ -1086,7 +1080,6 @@ Return new value of PROJECT."
 
   (let ((ada_project_path (ada-prj-get 'ada_project_path)))
     (when ada_project_path
-      ;; FIXME: use ada-get-absolute-dir, mapconcat here
       (setenv "ADA_PROJECT_PATH" ada_project_path)))
 
   (setq compilation-search-path (ada-prj-get 'src_dir))
@@ -1129,7 +1122,7 @@ Return new value of PROJECT."
     (modify-syntax-entry ?\f  ">   " table)
     (modify-syntax-entry ?\n  ">   " table)
 
-    (modify-syntax-entry ?_ "_" table); symbol constituents, not word. FIXME: check GPS, poll users. doc why need 2
+    (modify-syntax-entry ?_ "_" table); symbol constituents, not word.
 
     (modify-syntax-entry ?\( "()" table)
     (modify-syntax-entry ?\) ")(" table)
@@ -1225,14 +1218,22 @@ See `ff-other-file-alist'.")
   "\\([a-zA-Z0-9_\\.]+\\)\\.[a-zA-Z0-9_]+"
   "Regexp for extracting the parent name from fully-qualified name.")
 
-(defvar ada-filename-from-adaname nil
-  "Function called with one parameter ADANAME, which is a library
-unit name; it should return the filename in which ADANAME is
+(defvar ada-file-name-from-ada-name nil
+  "Function called with one parameter ADA-NAME, which is a library
+unit name; it should return the filename in which ADA-NAME is
 found.")
 
-(defun ada-filename-from-adaname (adaname)
-  "Return the filename in which ADANAME is found."
-  (funcall ada-filename-from-adaname adaname))
+(defun ada-file-name-from-ada-name (ada-name)
+  "Return the filename in which ADA-NAME is found."
+  (funcall ada-file-name-from-ada-name ada-name))
+
+(defvar ada-ada-name-from-file-name nil
+  "Function called with one parameter FILE-NAME, which is a library
+unit name; it should return the Ada name that should be found in FILE-NAME.")
+
+(defun ada-ada-name-from-file-name (file-name)
+  "Return the ada-name that should be found in FILE-NAME."
+  (funcall ada-ada-name-from-file-name file-name))
 
 (defun ada-ff-special-extract-separate ()
   (let ((package-name (match-string 1)))
@@ -1248,7 +1249,7 @@ found.")
     (file-name-nondirectory
      (ff-get-file-name
       compilation-search-path
-      (ada-filename-from-adaname package-name)
+      (ada-file-name-from-ada-name package-name)
       ada-body-suffixes))))
 
 (defun ada-ff-special-with ()
@@ -1256,7 +1257,7 @@ found.")
   (file-name-nondirectory
    (ff-get-file-name
     compilation-search-path
-    (ada-filename-from-adaname (match-string 1))
+    (ada-file-name-from-ada-name (match-string 1))
     (append ada-spec-suffixes ada-body-suffixes))))
 
 (defun ada-set-ff-special-constructs ()
@@ -1277,7 +1278,7 @@ found.")
 	       	 (file-name-nondirectory
 		  (ff-get-file-name
 	       	   compilation-search-path
-	       	   (ada-filename-from-adaname ff-function-name)
+	       	   (ada-file-name-from-ada-name ff-function-name)
 	       	   ada-spec-suffixes))))
 
 	 ;; A "separate" clause.
@@ -1349,7 +1350,7 @@ either an existing one, or a new one if there are no existing other frames."
 	      frame-2
 	      (make-frame))))
     (unless (and window (eq frame frame-1))
-      (setq window (get-lru-window frame))) ; FIXME: might be minibuffer-window?
+      (setq window (get-lru-window frame)))
     (display-buffer-record-window 'reuse window buffer)
     (window--display-buffer-1 window)
     (window--display-buffer-2 buffer window)))
@@ -1449,7 +1450,7 @@ the other file."
 	(setq ff-function-name (buffer-substring-no-properties (point) (mark)))
 	(ff-get-file
 	 compilation-search-path
-	 (ada-filename-from-adaname ff-function-name)
+	 (ada-file-name-from-ada-name ff-function-name)
 	 ada-spec-suffixes
 	 other-window-frame)
 	(deactivate-mark))
@@ -1622,99 +1623,6 @@ the file name."
 		 body)))
   )
 
-(defun ada-other-file-name ()
-  "Return the name of the other file.
-The name returned is the body if `current-buffer' is the spec,
-or the spec otherwise."
-
-  (let ((is-spec nil)
-	(is-body nil)
-	(suffixes ada-spec-suffixes)
-	(name (buffer-file-name)))
-
-    ;;  Guess whether we have a spec or a body, and get the basename of the
-    ;;  file. Since the extension may not start with '.', we can not use
-    ;;  file-name-extension
-    (while (and (not is-spec)
-		suffixes)
-      (if (string-match (concat "\\(.*\\)" (car suffixes) "$") name)
-	  (setq is-spec t
-		name    (match-string-no-properties 1 name)))
-      (setq suffixes (cdr suffixes)))
-
-    (if (not is-spec)
-	(progn
-	  (setq suffixes ada-body-suffixes)
-	  (while (and (not is-body)
-		      suffixes)
-	    (if (string-match (concat "\\(.*\\)" (car suffixes) "$") name)
-		(setq is-body t
-		      name    (match-string-no-properties 1 name)))
-	    (setq suffixes (cdr suffixes)))))
-
-    ;;  If this wasn't in either list, return name itself
-    (if (not (or is-spec is-body))
-	name
-
-      ;;  Else find the other possible names
-      (if is-spec
-	  (setq suffixes ada-body-suffixes)
-	(setq suffixes ada-spec-suffixes))
-      (setq is-spec name)
-
-      (while suffixes
-
-	;;  If we are using project file, search for the other file in all
-	;;  the possible src directories.
-
-	;;  FIXME (later):
-	;;  better function name than ada-find-src-file-in-dir?
-	;;  allow other projects (see c-parse-prj-file, EDE?)
-	;;  move to ada-prj?, hook for ada-prj?
-
-	(if (fboundp 'ada-find-src-file-in-dir)
-	    (let ((other
-		   (ada-find-src-file-in-dir
-		    (file-name-nondirectory (concat name (car suffixes))))))
-	      (if other
-		  (set 'is-spec other)))
-
-	  ;;  Else search in the current directory
-	  (if (file-exists-p (concat name (car suffixes)))
-	      (setq is-spec (concat name (car suffixes)))))
-	(setq suffixes (cdr suffixes)))
-
-      is-spec)))
-
-(defun ada-get-body-name (&optional spec-name)
-  ;; FIXME: how is this different from ada-other-file-name? why both?
-  "Return the file name for the body of SPEC-NAME.
-If SPEC-NAME is nil, return the body for the current package.
-Return nil if no body was found."
-  (interactive)
-
-  (unless spec-name (setq spec-name (buffer-file-name)))
-
-  ;; Remove the spec extension. We can not simply remove the file
-  ;; extension, FIXME (later, when testing): why?  but we need to take
-  ;; into account the specific non-GNAT extensions that the user might
-  ;; have specified. FIXME (later) : move gnat-specific to ada-gnat,
-  ;; or ada-prj for ada-search-directories.
-
-  (let ((suffixes ada-spec-suffixes)
-	end)
-    (while suffixes
-      (setq end (- (length spec-name) (length (car suffixes))))
-      (if (string-equal (car suffixes) (substring spec-name end))
-	  (setq spec-name (substring spec-name 0 end)))
-      (setq suffixes (cdr suffixes))))
-
-  (ff-get-file-name compilation-search-path
-		    (ada-filename-from-adaname
-		     (file-name-nondirectory
-		      (file-name-sans-extension spec-name)))
-		    ada-body-suffixes))
-
 (defun ada-show-secondary-error (other-window-frame)
   "Show the next secondary file reference in the compilation buffer.
 A secondary file reference is defined by text having text
@@ -1764,7 +1672,7 @@ Adds `ada-fill-comment-postfix' at the end of each line."
   (ada-fill-comment-paragraph 'full t))
 
 (defvar ada-fill-comment-prefix nil)
-(defvar ada-fill-comment-postfix nil)
+(defvar ada-fill-comment-postfix " --")
 
 (defun ada-fill-comment-paragraph (&optional justify postfix)
   "Fill the current comment paragraph.
@@ -1773,7 +1681,6 @@ If POSTFIX and JUSTIFY are non-nil, `ada-fill-comment-postfix' is appended
 to each line filled and justified.
 The paragraph is indented on the first line."
   (interactive "P")
-  ;; FIXME (later): canonical `fill-paragraph' has gotten better; try it.
   ;; check if inside comment or just in front a comment
   (if (and (not (ada-in-comment-p))
 	   (not (looking-at "[ \t]*--")))
@@ -2133,9 +2040,6 @@ The paragraph is indented on the first line."
 (put 'ada-mode 'custom-mode-group 'ada)
 
 ;;;; Global initializations
-
-;; Setup auto-loading of the other Ada mode files.
-;; FIXME (later): add some here?
 
 ;; load indent engine first; compilers may need to know which is being
 ;; used (for preprocessor keywords, for example).

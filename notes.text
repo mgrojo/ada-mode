@@ -23,8 +23,6 @@ runtest from emacs -q:
          "c:/bin"
          "c:/WINDOWS/system32"))
   (setenv "PATH" (mapconcat 'identity  exec-path  path-separator))
-  (find-file "/Projects/org.emacs.ada-mode.smie/test/ada-mode-test.el")
-)
   (add-to-list 'load-path "/Projects/org.emacs.ada-mode.smie/test")
   (load "runtest")
 )
@@ -46,21 +44,27 @@ test/Makefile  ;; set project file
     test/ada_mode-nominal.adb Function_2a
     try 24.2.91 released 15 dec
         source: ftp://alpha.gnu.org/gnu/emacs/pretest/emacs-24.2.91.tar.gz
-        binary: ?
+        binary: https://www.dropbox.com/sh/7jr3vbv9tm1zod0/jPuvfrJAe8
 
-ada-make-body
+FIXMEs
+    ada_mode-quantified_expressions.adb
 
-C-c C-b
+    context menus
 
-C-c C-d on sql_parameters in gnatcoll-sql-exec.ads
-    => not found in cross-reference files
-    'gnat find' returns nothing
-    -a doesn't help
-    report to AdaCore
+    project files on menu
 
-    same for Insert_Database in books-table_views.adb On_Button_Insert
-        using gpl-2012
-        it's abstract, defined in books-table_views.ads
+    ada-make-subprogram-body
+    ada-make-body
+    C-c C-b
+
+mouse operations
+    goto-declaration
+    compiler error
+    others?
+
+set indent (and all) options in project file
+
+set GPR_PROJECT_PATH, not ADA_PROJECT_PATH
 
 include gpr-mode
     use simi
@@ -73,7 +77,7 @@ gnat-fix
 
         sort limited private with at end of context clause?
 
-        allow list of error matchers; quit when one returns t
+        allow project-specific list of error matchers; quit when one returns t
 
     ada-gnat-fix-error.el
         add stuff as I encounter it - use at work!
@@ -104,10 +108,6 @@ ada-gnat-parse-gpr-file
 manuel Gomez using comp_cmd, make_cmd, src_dir, obj_dir; not .gpr files
     I could use make_cmd to get project-local env vars in make, like ADA_PROJECT_PATH, TEST_CHASSIS
     reference project variables in project var values
-
-goto-declaration
-    -d switch
-    mouse version?
 
 ada-find-other-file in separate bodies
     not on 'separate' line; must use ada-gnat-xref
@@ -148,8 +148,6 @@ make newline-and-indent reindent current line first?
         ada-indent-after-return nil leaves out _first_ indent!
 
 ada-gnatstub-opts
-
-GNATCOLL.Projects can report "other file name" info?
 
 support xref for C files?
     at least if compiled with gprbuild?

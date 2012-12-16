@@ -2406,7 +2406,8 @@ If a token is not in the alist, it is returned unrefined.")
   "Invalidate the ada-smie token cache for the current buffer."
   (interactive)
   (setq ada-smie-cache-max 0)
-  (remove-text-properties (point-min) (point-max) '(ada-smie-cache)))
+  (with-silent-modifications
+    (remove-text-properties (point-min) (point-max) '(ada-smie-cache))))
 
 (defun ada-smie-validate-cache (pos)
   "Update cache from `ada-smie-cache-max' to at least POS."
@@ -2732,7 +2733,7 @@ or \"(\", and point must be at the start of CHILD."
   "Move point to the start of the statement/declaration
 containing point.  If point is in a parenthesized list, move to
 the start of the current list element.  Return (preceding-pos
-preceding-string), where `preceding-string' is the text of the
+preceding-token), where `preceding-token' is the text of the
 token preceding the statement start, and `preceding-pos' is the
 position of its first character.  If point is at statement or
 list element start, does nothing.  If CHILD is non-nil, it must
@@ -3607,6 +3608,17 @@ made."
 
 (defun ada-smie-which-function ()
   "For `ada-which-function', which see."
+  ;; FIXME: If point is in a local subprogram, package, or protected
+  ;; type, that name is returned. That may be what the user wants for
+  ;; 'which-name-function' mode-line display, but they may want the
+  ;; selected name, starting with the file level compilation unit.
+  ;;
+  ;; For ada-find-other-file, we want the declaration that is directly
+  ;; contained within the file level compilation unit.
+  ;;
+  ;; One solution for both cases is to parse up to the top level,
+  ;; remembering the names along the way. Another is to mark each
+  ;; declaration with a text property giving the selected name.
   (let (token
 	(done nil)
 	(strip-body-p nil)
@@ -3645,7 +3657,7 @@ made."
 	(while
 	    (not
 	     (member (setq token (ada-smie-backward-keyword))
-		     '("procedure-spec" "is-subprogram_body" "begin-body" "end-block"
+		     '("procedure-spec" "is-subprogram_body"
                        "procedure-overriding"
 		       "function-spec" "return-spec"
                        "function-overriding"
@@ -3658,13 +3670,11 @@ made."
       (when
 	  (not (member
 		token
+		;; These don't need further motion. Note that
+		;; "procedure-spec", "function-spec" are not here,
+		;; because of access-to-subprogram types.
 		'("package-plain" "protected-body" "task-body")))
-	;; These don't need further motion. Note that
-	;; "procedure-spec", "function-spec" are not here, because
-	;; of access-to-subprogram types.
 	(ada-smie-goto-statement-start token))
-
-      ;; Point is now on start of a declaration or body, or bob. Find the name.
 
       (while (not done)
 	(setq token (ada-smie-forward-token))
@@ -4041,14 +4051,9 @@ This lets us know which indentation function succeeded."
 
   (set (make-local-variable 'smie-blink-matching-inners) nil); too annoying to blink to 'package' on 'is', etc.
 
-  (if debug-on-error
-      (set (make-local-variable 'blink-matching-paren) nil))
+  (setq post-self-insert-hook (delete 'smie-blink-matching-open post-self-insert-hook))
   ;; smie-setup puts smie-blink-matching-open on
-  ;; post-self-insert-hook; that uses uses blink-matching to blink on
-  ;; all opener/closer pairs.  This is just annoying while we are
-  ;; working on this code (it tries to run a broken parser), so we
-  ;; turn it off. But that also disables blink actual parens, which is
-  ;; useful.
+  ;; post-self-insert-hook; it is broken when used interactively!
 
   (add-hook 'after-change-functions 'ada-smie-after-change nil t)
 

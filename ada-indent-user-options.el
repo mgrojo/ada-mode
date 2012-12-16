@@ -45,10 +45,13 @@ begin
  'ada-broken-indent
  'ada-indent-broken
  "Emacs 24.4, Ada mode 5.0")
-;; FIXME (later): this doesn't warn user at runtime, but at least they should
-;; notice something broke, and the help will be useful.
 
-(defcustom ada-indent-broken 2
+(defcustom ada-indent-broken
+  (if ada-broken-indent
+      (progn
+	(message "WARNING: setting `ada-indent-broken' to obsolete `ada-broken-indent'")
+	ada-broken-indent)
+    2)
   "*Indentation for the continuation of a broken line.
 
 Example :
@@ -63,15 +66,18 @@ Otherwise, they are indented with previous comments or code."
   :type 'boolena :group 'ada-indentation)
 (put 'ada-indent-comment-col-0 'safe-local-variable 'booleanp)
 
-(define-obsolete-variable-alias
+(defvar ada-label-indent nil)
+(make-obsolete-variable
  'ada-label-indent
  'ada-indent-label
  "Emacs 24.4, Ada mode 5.0")
-;; FIXME (later): this doesn't warn user at runtime, and they won't notice
-;; something is wrong until we delete it, and then there won't be any
-;; useful help.
 
-(defcustom ada-indent-label -3
+(defcustom ada-indent-label
+    (if ada-label-indent
+      (progn
+	(message "WARNING: setting `ada-indent-label' to obsolete `ada-label-indent'")
+	ada-label-indent)
+      -3)
   ;; Ada mode 4.01 and earlier default this to -4. But that is
   ;; incompatible with the default gnat indentation style check, which
   ;; wants all indentations to be a multiple of 3 (with some
@@ -130,7 +136,13 @@ An example is:
  'ada-use-indent
  'ada-indent-use
  "Emacs 24.4, Ada mode 5.0")
-(defcustom ada-indent-use ada-indent-broken
+
+(defcustom ada-indent-use
+    (if ada-use-indent
+      (progn
+	(message "WARNING: setting `ada-indent-use' to obsolete `ada-use-indent'")
+	ada-use-indent)
+      ada-indent-broken)
   "*Indentation for the lines in a 'use' statement.
 
 An example is:
@@ -145,7 +157,12 @@ An example is:
  'ada-indent-when
  "Emacs 24.4, Ada mode 5.0")
 
-(defcustom ada-indent-when (or ada-when-indent 3)
+(defcustom ada-indent-when
+    (if ada-when-indent
+      (progn
+	(message "WARNING: setting `ada-indent-when' to obsolete `ada-when-indent'")
+	ada-when-indent)
+      3)
   "*Indentation for 'when' relative to 'exception', 'case', 'or' in select.
 
 An example is:
@@ -160,7 +177,12 @@ An example is:
  'ada-indent-with
  "Emacs 24.4, Ada mode 5.0")
 
-(defcustom ada-indent-with ada-indent-broken
+(defcustom ada-indent-with
+    (if ada-with-indent
+      (progn
+	(message "WARNING: setting `ada-indent-with' to obsolete `ada-with-indent'")
+	ada-with-indent)
+      ada-indent-broken)
   "*Indentation for the lines in a 'with' statement.
 
 An example is:

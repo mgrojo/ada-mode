@@ -70,6 +70,8 @@ package body Ada_Mode.Nominal is
                   -- "Integer" is in fact a type, but it would require
                   -- name resolution to figure that out.
                   return Integer (Function_1a);
+                  --EMACSCMD:(ada-which-function)
+                  --EMACSRESULT:"Local_Function"
                exception
                   --EMACSCMD:(test-face "Constraint_Error" 'default)
                   when E : Constraint_Error =>
@@ -112,6 +114,8 @@ package body Ada_Mode.Nominal is
                when A | Nominal.B =>
                   null;
                when C =>
+               --EMACSCMD:(progn (forward-line 2)(forward-word 1)(forward-char 1)(insert "   ")(ada-align))
+               -- result is tested in diff
                   D := B;
                   D := Local.all + B * B;
                   --EMACSCMD:(test-face "goto" font-lock-keyword-face)
@@ -203,7 +207,6 @@ package body Ada_Mode.Nominal is
    end Protected_1;
 
    protected body Protected_Buffer is
-      -- FIXME: test ada-find-other-file here; it fails due to extra "body" in body.
       -- FIXME: test ada-which-func here; it returns "body"
 
       entry Write(C : in Character)
@@ -378,6 +381,8 @@ package body Ada_Mode.Nominal is
          Local_2 : Integer := 2;
          Local_3 : Character := '\'; -- must override default syntax for \
       begin
+         --EMACSCMD:(ada-which-function)
+         --EMACSRESULT:"Function_2a"
          Local_1 := 2.0;
          Local_2 := 3;
          Local_3 := '"'; -- quoted quote handled ok
@@ -389,15 +394,18 @@ package body Ada_Mode.Nominal is
    is
    begin
       Procedure_2a;
-   Block_1:
-      declare -- label, one statements between begin, label
-         Local_1 : Float := 1.0e-36;
-         Local_2 : Integer := 2;
-         Local_3 : Character := '''; -- quoted quote handled ok
+   Block_1:-- label, one statements between begin, label
+      declare
+         --EMACSCMD:(progn (forward-line 2)(forward-word 4)(forward-char 1)(insert "   ")(ada-align))
+         Local_1 : Float     := 1.0e-36; -- comments after declarations
+         Local_2 : Integer   := 2;       -- are aligned.
+         Local_3 : Character := ''';     -- quoted quote handled ok
       begin
-         Local_1 := 2.0;
-         Local_2 := 3;
-         Local_3 := '4';
+         --EMACSCMD:(progn (forward-line 2)(forward-word 3)(forward-char 1)(insert "   ")(ada-align))
+         Local_1 := 2.0; -- comments after code
+         Local_2 := 3;   -- are
+         Local_3 := '4'; -- also aligned
+
          return 1.0;
       end Block_1;
    end;

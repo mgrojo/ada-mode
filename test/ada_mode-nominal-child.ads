@@ -1,3 +1,5 @@
+--EMACSCMD:(ada-parse-prj-file "ada_mode.gpr")
+--EMACSCMD:(ada-select-prj-file "ada_mode.gpr")
 package Ada_Mode.Nominal.Child is
 
    type Child_Type_1 is new Parent_Type_1 with
@@ -7,7 +9,9 @@ package Ada_Mode.Nominal.Child is
          Child_Element_3 : Boolean;
       end record;
 
-   -- FIXME: not implemented yet EMACSCMD:(progn (end-of-line 2)(backward-word 1)(ada-goto-declaration-parent nil))
+   -- goto parent type declaration
+   --EMACSCMD:(progn (end-of-line 3)(backward-word 2)(ada-goto-declaration nil t)(looking-at "Parent_Type_1"))
+   --EMACSRESULT:t
    overriding procedure Procedure_1a (Item  : in out Child_Type_1);
 
    --EMACSCMD: (progn (forward-line 1)(ada-which-function))

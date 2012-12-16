@@ -72,11 +72,13 @@ package body Ada_Mode.Parens is
          3 |
            4 => (2, 2, 2));
 
+      --EMACSCMD:(progn (forward-line 3)(forward-word 1)(insert "   ")(ada-align))
+      -- result is tested in diff
       return
-        (1 => 1,
-         2 =>
+        (1      => 1,
+         2      =>
            1 + 2 * 3,
-         3 => 1 +
+         3      => 1 +
            3 * 4,
          others => 5);
    end;

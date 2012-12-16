@@ -307,15 +307,17 @@ package Ada_Mode.Nominal is
      is null record;
 
    type Record_Type_1 is record
-      Component_1 : Integer := 1; -- initialization confused things when record_definition was separate in grammar
-      Component_2 : Integer := 2;
-      Component_3 : Integer := 3;
+      --EMACSCMD:(progn (forward-line 1)(forward-word 2)(insert "   ")(ada-align))
+      Component_1   : Integer := 1;   -- initialization confused things when record_definition was separate in grammar
+      Component_2   : Integer := 2;
+      Component_356 : Float   := 3.0; -- longer component name, shorter type name for align test
    end record;
    for Record_Type_1 use
       record
-         Component_1 at 0 range 0 .. 31;
-         Component_2 at 0 range 32 .. 63;
-         Component_3 at 0 range 64 .. 95;
+         --EMACSCMD:(progn (forward-line 1)(forward-word 2)(insert "   ")(ada-align))
+         Component_1   at 0 range  0 .. 31;
+         Component_2   at 0 range 32 .. 63;
+         Component_356 at 0 range 64 .. 95;
       end record;
    for Record_Type_1'Size use 32 * 3;
    type Record_Type_2 is limited record
@@ -508,6 +510,21 @@ package Ada_Mode.Nominal is
       Parent_Element_2 : Float;
       Parent_Element_3 : Boolean;
    end record;
+
+   --EMACSCMD:(progn (forward-line 2)(forward-word 2)(insert "    ")(ada-fill-comment-paragraph))
+
+   -- a filled comment. Now is the time for all good parsers to come
+   -- to the aid of programmer.
+
+   --EMACSCMD:(progn (forward-line 2)(forward-word 2)(insert "    ")(ada-fill-comment-paragraph-justify))
+
+   -- a filled  and justified comment.  Now  is the time for  all good
+   -- parsers to come to the aid of programmer.
+
+   --FIXME: broken EMACSCMD:(progn (forward-line 2)(forward-word 2)(insert "    ")(ada-fill-comment-paragraph-postfix))
+
+   -- a filled and  justified postfix comment. Now  is the time for --
+   -- all good parsers to come to the aid of programmer.            --
 
    not overriding procedure Procedure_1a (Item  : in out Parent_Type_1);
    --EMACSCMD:(progn (beginning-of-line)(forward-line -1)(ada-which-function))
