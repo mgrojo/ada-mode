@@ -13,14 +13,14 @@ is
    -- Adding text inside a comment must not leave ada-smie-cache-max inside comment
    --EMACSCMD:(progn (beginning-of-line)(forward-comment 100)(forward-char 2)(ada-smie-validate-cache (point)))
    --EMACSCMD:(progn (beginning-of-line)(forward-comment -2)(forward-word 1)(insert "some text")ada-smie-cache-max)
-   --EMACSRESULT:(progn (forward-line -3)(skip-syntax-forward "\\s ")(point))
+   --EMACSRESULT:(progn (forward-line -4)(point))
 
    -- Ditto string
    A : constant String :=
      "hi there!";
    --EMACSCMD:(progn (beginning-of-line)(forward-comment 100)(ada-smie-validate-cache (point)))
    --EMACSCMD:(progn (forward-line -2)(end-of-line)(forward-word -1)(insert "some text")ada-smie-cache-max)
-   --EMACSRESULT:(progn (forward-line -3)(skip-syntax-forward "\\s ")(point))
+   --EMACSRESULT:(progn (forward-line -3)(backward-char 3)(point))
 
    -- Newline before a blank line followed by code used to indent to 5
    --EMACSCMD:(progn (forward-line 1)(end-of-line) (newline-and-indent)(current-column))

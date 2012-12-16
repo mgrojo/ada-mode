@@ -37,7 +37,7 @@
   "Run an ada-mode test on the current buffer."
   (interactive)
   (setq indent-tabs-mode nil)
-  (let (last-result last-cmd expected-result)
+  (let (last-result last-cmd expected-result error-p)
     ;; Look for --EMACS comments in the file:
     ;;
     ;; --EMACSCMD: <form>
@@ -56,13 +56,22 @@
 	(looking-at ".*$")
 	(save-excursion
 	  (setq last-cmd (match-string 0)
-		last-result (eval (car (read-from-string last-cmd))))))
+		last-result
+		(condition-case err
+		    (eval (car (read-from-string last-cmd)))
+		  (error
+		   (setq error-p t)
+		   (message
+		    (concat
+		     (buffer-file-name) ":" (format "%d" (count-lines (point-min) (point)))
+		     ": eval error")))))))
 
        ((string= (match-string 1) "RESULT")
 	(looking-at ".*$")
 	(setq expected-result (save-excursion (eval (car (read-from-string (match-string 0))))))
 	(unless (equal expected-result last-result)
 	  ;; we don't abort here, so we can see all errors at once
+	  (setq error-p t)
 	  (message
 	   (concat
 	    (buffer-file-name) ":" (format "%d" (count-lines (point-min) (point))) ":\n"
@@ -73,7 +82,14 @@
 	    ))))
 
        (t
+	(setq error-p t)
 	(error (concat "Unexpected command " (match-string 1))))))
+
+    (when error-p
+      (error
+       (concat
+	    (buffer-file-name) ":" (format "%d" (count-lines (point-min) (point)))
+	    ": aborting due to previous errors")))
     )
 
   (when (not skip-reindent-test)

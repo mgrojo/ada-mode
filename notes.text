@@ -44,6 +44,11 @@ test/Makefile  ;; set project file
 
 '"' broken in Emacs 24.3
     test/ada_mode-nominal.adb Function_2a
+    try 24.2.91 released 15 dec
+
+add to ada-interactive:
+    -- don't capitalize character constant
+    E := 'z';
 
 gnat-fix
     c:/Projects/emacs_stephe.main/emacs_stephe/gnat-fix-error.el
@@ -53,34 +58,23 @@ gnat-fix
 
         sort limited private with at end of context clause?
 
+        allow list of error matchers; quit when one returns t
+
     ada-gnat-fix-error.el
-        testing on opentoken fix aunit
-        need secondary file LOC
-            ada-gnat-compilation-filter-hook
-                split lines, let compilation-parse-error handle that
-                not great
-            try 'old' compilation-parse-errors-function, see if it's better, ask on emacs-devel
+        add stuff as I encounter it - use at work!
 
 compilation mode
+
+    filter: handle "at line nnn" in current file:
+
     keep compilation buffer in other frame if already visible
-
-use with-silent-modifications for setting cache values
-
-align broken
-    debug_books.adb
-    inserted space between c: in string!
 
 ada-align-paramlist
     test/ada_mode-parens.adb
 
-    test no mode
-
-    handle all on single line
-        what does 4.01 do?
-
     handle wrapping due to line length limit?
 
-    handle comments in paramlist
+    handle single-line trailing comments, or longer comments, in paramlist?
 
 don't use define-derived-mode
     other modes in 24.3 don't

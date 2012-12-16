@@ -182,22 +182,19 @@ package body Ada_Mode.Parens is
    procedure Param_Format_1
      (A : in     Float   := 1.0;
       B : in     Integer := 2;
-      C :    out Integer;
+      C :    out Character;
       D : in out Integer);
 
-   --FIXME: EMACSCMD:(progn (forward-line 2)(forward-word 4)(insert "   ")(ada-align))
-   -- all on same line; just minimize spaces
-   function Param_Format_2 (A : in Float; B : out Integer) return Float is begin B := 0; return A; end;
-
+   -- body for previous spec
    --EMACSCMD:(progn (forward-line 4)(ada-align))
    -- multiline, followed on same line by "is"
    procedure Param_Format_1
      (A : in     Float   := 1.0;
       B : in     Integer := 2;
-      C :    out Integer;
+      C :    out Character;
       D : in out Integer) is
    begin
-      C := 0;
+      C := 'A';
    end;
 
    --EMACSCMD:(progn (forward-line 4)(ada-align))
@@ -208,6 +205,57 @@ package body Ada_Mode.Parens is
    is begin
       B := 1;
       return A;
+   end;
+
+   --EMACSCMD:(progn (forward-line 4)(ada-align))
+   -- multiline, no modes
+   function Param_Format_4
+     (A : Float   := 2.0;
+      B : Integer := 3)
+     return Float
+   is begin
+      return A;
+   end;
+
+   --EMACSCMD:(progn (forward-line 4)(forward-word 2)(insert "    ")(ada-align))
+   -- multiline access [constant | protected]
+   function Param_Format_6
+     (A : access constant Float;
+      B : access protected procedure := null;
+      C : access constant Integer    := new Integer'(1 + 3 * 4);
+      D : out    Character)
+     return Float
+   is begin
+      D := 'Z';
+      return A.all;
+   end;
+
+   --EMACSCMD:(progn (forward-line 4)(forward-word 2)(insert "    ")(ada-align))
+   -- multiline [not null] access [constant | protected]
+   function Param_Format_7
+     (A : not null access constant Float;
+      B : access          protected procedure := null;
+      C : access          constant Integer    := new Integer'(1 + 3 * 4);
+      D : in              Character;
+      E :    out          Character)
+     return Float
+   is begin
+      E := 'z';
+      return A.all;
+   end;
+
+   --EMACSCMD:(progn (forward-line 2)(forward-word 5)(insert "    ")(ada-align))
+   -- single line no mode
+   function Param_Format_S1 (A : Float; B : Integer := 3) return Float
+   is begin
+      return A;
+   end;
+
+   --EMACSCMD:(progn (forward-line 2)(forward-word 5)(insert "    ")(ada-align))
+   -- single line access [constant | protected]
+   procedure Param_Format_S2 (A : access constant Float; B : access protected procedure)
+   is begin
+      null;
    end;
 
    procedure Hello

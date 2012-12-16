@@ -108,10 +108,14 @@ See also `ada-gnat-parse-emacs-prj-file-final'."
   ;; compiler; parsing a gnat project is a crude approximation to
   ;; that. Could set in an 'ada-compile' function, but there's no good
   ;; way to know when to clear it. Same for
-  ;; compilation-error-regexp-alist. One possible approach is
-  ;; per-project compilation buffers; then these variables could be
-  ;; buffer-local. So we do this here, and assume other modes will set
+  ;; compilation-error-regexp-alist. So we do this here, and assume other modes will set
   ;; these variables appropriately.
+  ;;
+  ;; One possible approach is
+  ;; per-project compilation buffers; then these variables could be
+  ;; buffer-local.
+  ;;
+  ;; Or can we use compilation-[start|finish]-functions to set and remove this?
   (setq compilation-filter-hook nil)
   (add-hook 'compilation-filter-hook 'ada-gnat-compilation-filter)
 
@@ -341,7 +345,7 @@ If PARENT is non-nil, return parent type declaration (assumes IDENTIFIER is a de
 ;;; compiler message handling
 
 (defun ada-gnat-compilation-filter ()
-  "Filter to split secondary file references onto separate lines so `compile-parse-errors' can handle them.
+  "Filter to add text properties to secondary file references.
 For `compilation-filter-hook'."
   (save-excursion
     (goto-char compilation-filter-start)
@@ -352,11 +356,30 @@ For `compilation-filter-hook'."
 	;;
 	;; lookahead_test.ads:23:09: "Name" has been inherited from subprogram at aunit-simple_test_cases.ads:47
 	;;
+	;; FIXME: handle "at line nnn" in current file:
+	;;
+	;; lookahead_test.adb:379:14: found type access to "Standard.String" defined at line 379
+	;;
 	;; skip the primary reference, look for "*.ad?:nn"
 	(skip-syntax-forward "^-")
-	(when (search-forward-regexp "\\s-\\([^[:blank:]]+\\.[[:alpha:]]+:[0-9]+\\)" (line-end-position) t)
-	  (goto-char (match-beginning 1))
-	  (newline))
+	(when (search-forward-regexp "\\s-\\(\\([^[:blank:]]+\\.[[:alpha:]]+\\):\\([0-9]+\\)\\)" (line-end-position) t)
+
+	  ;; We don't want 'next-error' to always go to this
+	  ;; reference, so we _don't_ set 'compilation-message text
+	  ;; property. Instead, we set 'ada-secondary-error, so
+	  ;; `ada-goto-secondary-error' will handle it. We also set
+	  ;; fonts, so the user can see the reference.
+	  (compilation--put-prop 2 'font-lock-face compilation-info-face); file
+	  (compilation--put-prop 3 'font-lock-face compilation-line-face); file
+	  (with-silent-modifications
+	    (put-text-property
+	     (match-beginning 0) (match-end 0)
+	     'ada-secondary-error
+	     (list
+	      (buffer-substring-no-properties (match-beginning 2) (match-end 2)); file
+	      (string-to-number (buffer-substring-no-properties (match-beginning 3) (match-end 3))); line
+	      1)); column
+	    ))
 	(forward-line 1))
       )))
 
@@ -458,9 +481,6 @@ For `compilation-filter-hook'."
  '(gnat
    ;; typical:
    ;;   cards_package.adb:45:32: expected private type "System.Address"
-   ;;
-   ;; after ada-gnat-compilation-filter split:
-   ;;   aunit-reporter-text.ads:44
    ;;
    ;; with full path Source_Reference pragma :
    ;;   d:/maphds/version_x/1773/sbs-abi-dll_lib.ads.gp:39:06: file "interfaces_c.ads" not found

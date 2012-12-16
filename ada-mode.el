@@ -157,6 +157,8 @@ If nil, no contextual menu is available."
   (let ((map (make-sparse-keymap)))
     ;; C-c <letter> are reserved for users
 
+    ;; global-map has C-x ` 'next-error
+    (define-key map "\C-c`"    'ada-show-secondary-error)
     (define-key map "\C-c\C-a" 'ada-align)
     (define-key map "\C-c\C-b" 'ada-case-adjust-buffer)
     (define-key map "\C-c\C-c" 'compile)
@@ -182,10 +184,11 @@ If nil, no contextual menu is available."
 
     ["Customize"     (customize-group 'ada)]
     ["------"        nil nil]
-    ["Next compilation error"  next-error             t]
-    ["Other File"              ada-find-other-file  t]
-    ["Other File don't find decl" ada-find-other-file-noset    t]
-    ["Goto Declaration/Body"   ada-goto-declaration t]; FIXME: appropriate enable
+    ["Next compilation error"     next-error                t]
+    ["Show secondary error"       ada-show-secondary-error  t]
+    ["Other File"                 ada-find-other-file       t]
+    ["Other File don't find decl" ada-find-other-file-noset t]
+    ["Goto Declaration/Body"      ada-goto-declaration      t]; FIXME: appropriate enable
     ("Edit"
      ["Indent Line"                 indent-for-tab-command  t]
      ["Indent Lines in Selection"   indent-region           t]
@@ -209,6 +212,8 @@ If nil, no contextual menu is available."
      ["Narrow to subprogram"        narrow-to-defun          t]; FIXME: test
      )
     ))
+
+;;; abbrev, align
 
 (defvar ada-mode-abbrev-table nil
   "Local abbrev table for Ada mode.")
@@ -642,6 +647,7 @@ Supplied by indentation engine parser.")
   (let* ((begin (point))
 	 (delend (progn (forward-sexp) (point))); just after matching closing paren
 	 (end (progn (forward-comment (- (point))) (point))); end of last parameter-declaration
+	 (multi-line (> end (save-excursion (goto-char begin) (line-end-position))))
 	 (paramlist (ada-scan-paramlist (1+ begin) end)))
 
     (when paramlist
@@ -650,14 +656,17 @@ Supplied by indentation engine parser.")
 
       ;; insert the new parameter-list
       (goto-char begin)
-      (ada-insert-paramlist paramlist))))
+      (if multi-line
+	  (ada-insert-paramlist-multi-line paramlist)
+	(ada-insert-paramlist-single-line paramlist)))
+    ))
 
 (defvar ada-scan-paramlist nil
   "Function to scan a region, return a list of subprogram parameter declarations (in inverse declaration order).
 Function is called with two args BEGIN END (the region).
 Each parameter declaration is represented by a list
-'((identifier ...) in-p out-p not-null-p access-p type default)."
-  ;; FIXME: handle all of 'in | out | in out | [not null] access [constant | protected]'
+'((identifier ...) in-p out-p not-null-p access-p constant-p protected-p type default)."
+  ;; mode is 'in | out | in out | [not null] access [constant | protected]'
   ;; FIXME: handle single-line trailing comments, or longer comments, in paramlist?
   )
 
@@ -665,18 +674,18 @@ Each parameter declaration is represented by a list
   (when ada-scan-paramlist
     (funcall ada-scan-paramlist begin end)))
 
-(defun ada-insert-paramlist (paramlist)
-  "Insert a formatted PARAMLIST in the buffer.
-Point is between parens"
+(defun ada-insert-paramlist-multi-line (paramlist)
+  "Insert a multi-line formatted PARAMLIST in the buffer."
   (let ((i (length paramlist))
+	param
 	j
 	len
 	(ident-len 0)
 	(type-len 0)
-	(inp nil)
-	(outp nil)
-	(accessp nil)
+	(in-p nil)
+	(out-p nil)
 	(not-null-p nil)
+	(access-p nil)
 	ident-col
 	colon-col
 	out-col
@@ -686,6 +695,7 @@ Point is between parens"
     ;; accumulate info across all params
     (while (not (zerop i))
       (setq i (1- i))
+      (setq param (nth i paramlist))
 
       ;; identifier list
       (setq len 0
@@ -693,18 +703,24 @@ Point is between parens"
       (mapc (lambda (ident)
 	      (setq j (1+ j))
 	      (setq len (+ len (length ident))))
-	    (nth 0 (nth i paramlist)))
+	    (nth 0 param))
       (setq len (+ len (* 2 (1- j)))); space for commas
       (setq ident-len (max ident-len len))
 
-      ;; we align the defaults after the types that have defaults, not after all types
-      (when (nth 6 (nth i paramlist))
-	(setq type-len (max type-len (length (nth 5 (nth i paramlist))))))
+      ;; we align the defaults after the types that have defaults, not after all types.
+      ;; "constant", "protected" are treated as part of 'type'
+      (when (nth 8 param)
+	(setq type-len
+	      (max type-len
+		   (+ (length (nth 7 param))
+		      (if (nth 5 param) 10 0); "constant "
+		      (if (nth 6 param) 10 0); protected
+		      ))))
 
-      (setq inp (or inp (nth 1 (nth i paramlist))))
-      (setq outp (or outp (nth 2 (nth i paramlist))))
-      (setq not-null-p (or not-null-p (nth 3 (nth i paramlist))))
-      (setq accessp (or accessp (nth 4 (nth i paramlist))))
+      (setq in-p (or in-p (nth 1 param)))
+      (setq out-p (or out-p (nth 2 param)))
+      (setq not-null-p (or not-null-p (nth 3 param)))
+      (setq access-p (or access-p (nth 4 param)))
       )
 
     (unless (save-excursion (skip-chars-backward " \t") (bolp))
@@ -716,60 +732,119 @@ Point is between parens"
     (insert "(")
     (funcall indent-line-function)
 
-    ;; compute columns
+    ;; compute columns.
     (setq ident-col (current-column))
     (setq colon-col (+ ident-col ident-len 1))
-    (setq out-col (+ colon-col (if inp 5 0))); ": in "
+    (setq out-col (+ colon-col (if in-p 5 0))); ": in "
     (setq type-col
 	  (+ colon-col
 	     (cond
 	      (not-null-p 18);    ": not null access "
-	      (accessp 9);        ": access"
-	      ((and inp outp) 9); ": in out "
-	      (outp 6);           ": out "
-	      (inp 5))));         ": in "
+	      (access-p 9);        ": access"
+	      ((and in-p out-p) 9); ": in out "
+	      (out-p 6);           ": out "
+	      (in-p 5);            ": in "
+	      (t 2))));           ": "
 
     (setq default-col (+ 1 type-col type-len))
 
     (setq i (length paramlist))
     (while (not (zerop i))
       (setq i (1- i))
+      (setq param (nth i paramlist))
 
       ;; insert identifiers, space and colon
       (mapc (lambda (ident)
 	      (insert ident)
 	      (insert ", "))
-	    (nth 0 (nth i paramlist)))
+	    (nth 0 param))
       (delete-backward-char 2); last ", "
       (indent-to colon-col)
       (insert ": ")
 
-      (when (nth 1 (nth i paramlist))
+      (when (nth 1 param)
 	(insert "in "))
 
-      (when (nth 2 (nth i paramlist))
+      (when (nth 2 param)
 	(indent-to out-col)
 	(insert "out "))
 
-      (when (nth 3 (nth i paramlist))
+      (when (nth 3 param)
 	(insert "not null "))
 
-      (when (nth 4 (nth i paramlist))
+      (when (nth 4 param)
 	(insert "access "))
 
       (indent-to type-col)
-      (insert (nth 5 (nth i paramlist)))
+      (when (nth 5 param)
+	(insert "constant "))
+      (when (nth 6 param)
+	(insert "protected "))
+      (insert (nth 7 param)); type
 
-      (when (nth 6 (nth i paramlist))
+      (when (nth 8 param); default
 	(indent-to default-col)
 	(insert ":= ")
-	(insert (nth 6 (nth i paramlist))))
+	(insert (nth 8 param)))
 
       (if (zerop i)
 	  (insert ")")
 	(insert ";")
 	(newline)
 	(indent-to ident-col))
+      )
+    ))
+
+(defun ada-insert-paramlist-single-line (paramlist)
+  "Insert a single-line formatted PARAMLIST in the buffer."
+  (let ((i (length paramlist))
+	param)
+
+    ;; clean up whitespace
+    (skip-syntax-forward " ")
+    (delete-char (- (skip-syntax-backward " ")))
+    (insert " (")
+
+    (setq i (length paramlist))
+    (while (not (zerop i))
+      (setq i (1- i))
+      (setq param (nth i paramlist))
+
+      ;; insert identifiers, space and colon
+      (mapc (lambda (ident)
+	      (insert ident)
+	      (insert ", "))
+	    (nth 0 param))
+      (delete-backward-char 2); last ", "
+
+      (insert " : ")
+
+      (when (nth 1 param)
+	(insert "in "))
+
+      (when (nth 2 param)
+	(indent-to out-col)
+	(insert "out "))
+
+      (when (nth 3 param)
+	(insert "not null "))
+
+      (when (nth 4 param)
+	(insert "access "))
+
+      (when (nth 5 param)
+	(insert "constant "))
+      (when (nth 6 param)
+	(insert "protected "))
+      (insert (nth 7 param)); type
+
+      (when (nth 8 param); default
+	(insert " := ")
+	(insert (nth 8 param)))
+
+      (if (zerop i)
+	  (insert ") ")
+	(insert "; "))
       )
     ))
 
@@ -1419,7 +1494,7 @@ identifier.  May be an Ada identifier or operator function name."
       (error "No identifier around"))
      )))
 
-(defun ada-goto-source (file line column identifier other-window-frame)
+(defun ada-goto-source (file line column other-window-frame)
   "Find and select FILE, at LINE and COLUMN.
 FILE may be absolute, or on `compilation-search-path'.
 
@@ -1430,7 +1505,7 @@ nil     : show in current window
 C-u     : show in other window
 C-u C-u : show in other frame
 "
-  (setq file (ff-get-file compilation-search-path file))
+  (setq file (ff-get-file-name compilation-search-path file))
   (let ((buffer (get-file-buffer file)))
     (cond
      ((bufferp buffer)
@@ -1459,9 +1534,6 @@ C-u C-u : show in other frame
   (goto-char (point-min))
   (forward-line (1- line))
   (move-to-column column)
-
-  ;; (unless (looking-at (ada-name-of identlist))
-  ;; FIXME: if this is useful, replace with parser motion; goto next/prev decl
   )
 
 (defvar ada-xref-function nil
@@ -1498,7 +1570,6 @@ C-u C-u : show in other frame"
     (ada-goto-source (nth 0 target)
 		     (nth 1 target)
 		     (nth 2 target)
-		     identifier
 		     other-window-frame)
     ))
 
@@ -1639,6 +1710,42 @@ Return nil if no body was found."
 		     (file-name-nondirectory
 		      (file-name-sans-extension spec-name)))
 		    ada-body-suffixes))
+
+(defun ada-show-secondary-error (other-window-frame)
+  "Show the next secondary file reference in the compilation buffer.
+A secondary file reference is defined by text having text
+property `ada-secondary-error'.  These can be set by
+compiler-specific compilation filters.
+
+OTHER-WINDOW-FRAME (default nil, set by interactive prefix)
+controls window and frame choice:
+
+nil     : show in current window
+C-u     : show in other window
+C-u C-u : show in other frame"
+  (interactive "P")
+
+  ;; FIXME: preserving the current window works only if the frame
+  ;; doesn't change, at least on Windows.
+  (let ((start-window (selected-window))
+	(start-frame (selected-frame))
+	pos item)
+    (with-current-buffer compilation-last-buffer
+      (setq pos (next-single-property-change (point) 'ada-secondary-error))
+      (when pos
+	(setq item (get-text-property pos 'ada-secondary-error))))
+
+    (when item
+	(ada-goto-source
+	 (nth 0 item); file
+	 (nth 1 item); line
+	 (nth 2 item); column
+	 other-window-frame)
+	(select-window start-window)
+	(select-frame start-frame)
+	)
+    ))
+
 ;;; fill-comment
 
 (defun ada-fill-comment-paragraph-justify ()

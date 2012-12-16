@@ -2469,14 +2469,11 @@ If a token is not in the alist, it is returned unrefined.")
 (defun ada-smie-put-cache (pos token)
   "Set TOKEN as the refined token string in the `ada-smie-cache' text property at POS.
 Return TOKEN."
-  (let ((inhibit-modification-hooks t)
-	(modified (buffer-modified-p)))
+  (let ((inhibit-modification-hooks t))
     ;; We are not changing any text, so neither font-lock nor
-    ;; ada-smie-after-change needs to be called. But
-    ;; inhibit-modification-hooks doesn't prevent marking the buffer
-    ;; as modified.
-    (put-text-property pos (+ 1 pos) 'ada-smie-cache token)
-    (restore-buffer-modified-p modified)
+    ;; ada-smie-after-change needs to be called.
+    (with-silent-modifications
+      (put-text-property pos (+ 1 pos) 'ada-smie-cache token))
     (setq ada-smie-cache-max (max ada-smie-cache-max pos))
     token))
 
@@ -3755,6 +3752,8 @@ made."
 	(out-p nil)
 	(not-null-p nil)
 	(access-p nil)
+	(constant-p nil)
+	(protected-p nil)
 	(type nil)
 	type-begin
 	type-end
@@ -3769,16 +3768,23 @@ made."
        ((equal token ",") nil);; multiple identifiers
 
        ((equal token ":-object")
-	;; identifiers done
+	;; identifiers done. skip mode; there may be none
+	(skip-syntax-forward " ")
+	(setq type-begin (point))
 	(save-excursion
-	  (while (member (ada-smie-unrefined-token t) '("in" "out" "access" "not" "null"))
+	  (while (member (ada-smie-unrefined-token t) '("in" "out" "not" "null" "access" "constant" "protected"))
 	    (skip-syntax-forward " ")
 	    (setq type-begin (point)))))
 
        ((equal token "in") (setq in-p t))
        ((equal token "out") (setq out-p t))
-       ((member token '("not" "null")) (setq not-null-p t))
+       ((and (not type-end)
+	     (member token '("not" "null")))
+	;; "not", "null" could be part of the default expression
+	(setq not-null-p t))
        ((equal token "access") (setq access-p t))
+       ((equal token "constant") (setq constant-p t))
+       ((equal token "protected-type") (setq protected-p t))
 
        ((equal token ":=")
 	(setq type-end (save-excursion (backward-char 2) (skip-syntax-backward " ") (point)))
@@ -3802,7 +3808,9 @@ made."
 	  )
 
 	(setq type (buffer-substring type-begin type-end))
-	(setq param (list (reverse identifiers) in-p out-p not-null-p access-p type default))
+	(setq param (list (reverse identifiers)
+			  in-p out-p not-null-p access-p constant-p protected-p
+			  type default))
 	(if paramlist
 	    (add-to-list 'paramlist param)
 	  (setq paramlist (list param)))
@@ -3811,6 +3819,8 @@ made."
 	      out-p nil
 	      not-null-p nil
 	      access-p nil
+	      constant-p nil
+	      protected-p nil
 	      type nil
 	      type-begin nil
 	      type-end nil
