@@ -138,6 +138,7 @@ preserved when the list is written back to the file."
   "*Ada language version; one of `ada83', `ada95', `ada2005'.
 Only affects the keywords to highlight."
   :type '(choice (const ada83) (const ada95) (const ada2005) (const ada2012)) :group 'ada)
+(put 'ada-language-version 'safe-local-variable 'symbolp)
 
 (defcustom ada-popup-key '[down-mouse-3]
   ;; FIXME (later, when testing menu): don't need a var for this; user can just bind a key
@@ -493,17 +494,19 @@ Uses Mixed_Case, with exceptions defined in
 	    (setq done t))
 	)))))
 
-(defun ada-case-adjust (&optional force-identifier in-comment)
-  "Adjust the case of the word before the character just typed.
-If FORCE-IDENTIFIER is non-nil then treat the word as an identifier (not an Ada keyword).
+(defun ada-case-adjust (&optional typed-char in-comment)
+  "Adjust the case of the word before point.
+When invoked interactively, TYPED-CHAR must be
+`last-command-event', and it must not have been inserted yet.
 If IN-COMMENT is non-nil, adjust case of words in comments."
   (when (not (bobp))
     (when (save-excursion
-	    (forward-char -1)
+	    (forward-char -1); back to last character in word
 	    (and (not (bobp))
-		 (memq (char-syntax (char-after)) '(?w ?_))
-		 (not (and (eq (following-char) ?')
-			   (eq (char-before (1- (point))) ?'))); character literal
+		 (eq (char-syntax (char-after)) ?w); it can be capitalized
+
+		 (not (and (eq typed-char ?')
+			   (eq (char-before (point)) ?'))); character literal
 
 		 (or in-comment
 		     (not (ada-in-string-or-comment-p)))
@@ -523,7 +526,7 @@ If IN-COMMENT is non-nil, adjust case of words in comments."
 	(ada-adjust-case-identifier))
 
        ((and
-	 (not force-identifier)
+	 (not (eq typed-char ?_))
 	 (ada-after-keyword-p))
 	(funcall ada-case-keyword -1))
 
@@ -550,7 +553,7 @@ With prefix arg, adjust case even if in comment."
       (skip-syntax-forward "^w_")
       (skip-syntax-forward "w_")
       (unless (eobp)
-	(ada-case-adjust nil))))
+	(ada-case-adjust))))
   (widen))
 
 (defun ada-case-adjust-buffer ()
@@ -564,19 +567,20 @@ To be bound to keys that should cause auto-casing.
 ARG is the prefix the user entered with \\[universal-argument]."
   (interactive "P")
 
+  ;; character typed has not been inserted yet
   (let ((lastk last-command-event))
 
     (cond
      ((eq lastk ?\n)
-      (ada-case-adjust)
+      (ada-case-adjust lastk)
       (funcall ada-lfd-binding))
 
      ((eq lastk ?\r)
-      (ada-case-adjust)
+      (ada-case-adjust lastk)
       (funcall ada-ret-binding))
 
      (t
-      (ada-case-adjust (eq lastk ?_))
+      (ada-case-adjust lastk)
       (self-insert-command (prefix-numeric-value arg)))
      )
   ))
@@ -2017,12 +2021,19 @@ The paragraph is indented on the first line."
    ))
 
 ;;;###autoload
-(define-derived-mode ada-mode fundamental-mode "Ada"
-  "Ada mode is the major mode for editing Ada code."
+(defun ada-mode ()
+  "The major mode for editing Ada code."
   ;; the other ada-*.el files add to ada-mode-hook for their setup
-  :group 'ada
 
+  (interactive)
+  (kill-all-local-variables)
+  (setq major-mode 'ada-mode)
+  (setq mode-name "Ada")
+  (use-local-map ada-mode-map)
   (set-syntax-table ada-mode-syntax-table)
+  (define-abbrev-table 'ada-mode-abbrev-table ())
+  (setq local-abbrev-table ada-mode-abbrev-table)
+
   (set (make-local-variable 'syntax-propertize-function) 'ada-syntax-propertize)
   (set (make-local-variable 'syntax-begin-function) nil)
   (set (make-local-variable 'parse-sexp-ignore-comments) t)
@@ -2079,23 +2090,21 @@ The paragraph is indented on the first line."
   (if ada-popup-key
       (define-key ada-mode-map ada-popup-key 'ada-popup-menu))
 
-  (define-abbrev-table 'ada-mode-abbrev-table ())
-  (setq local-abbrev-table ada-mode-abbrev-table)
-
   (easy-menu-add ada-mode-menu ada-mode-map)
 
-  ;; (run-mode-hooks 'ada-mode-hook) is done after this body by define-derived-mode
+  (run-mode-hooks 'ada-mode-hook)
 
   (add-hook 'hack-local-variables-hook 'ada-mode-post-local-vars)
   )
 
 (defun ada-mode-post-local-vars ()
-  ;; These are run after ada-mode-hook because users or other ada-*
-  ;; files might set the relevant variable inside the hook or file
-  ;; local variables (file local variables are processed after the
-  ;; mode is set, and thus after ada-mode-hook is run).
+  ;; These are run after ada-mode-hook and file local variables
+  ;; because users or other ada-* files might set the relevant
+  ;; variable inside the hook or file local variables (file local
+  ;; variables are processed after the mode is set, and thus after
+  ;; ada-mode is run).
 
-  ;; FIXME: this means to fully set ada-mode interactively, user must
+  ;; This means to fully set ada-mode interactively, user must
   ;; do M-x ada-mode M-; (hack-local-variables)
 
   (when ada-auto-case (ada-case-activate-keys))
@@ -2121,6 +2130,7 @@ The paragraph is indented on the first line."
 		  ada-2005-keywords
 		  ada-2012-keywords))))
   )
+(put 'ada-mode 'custom-mode-group 'ada)
 
 ;;;; Global initializations
 

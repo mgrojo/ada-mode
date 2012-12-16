@@ -84,6 +84,10 @@ is
    begin
    --EMACSRESULT:t
 
+      -- don't capitalize character constant
+      --EMACSCMD:(progn (end-of-line 2)(backward-char 1)(execute-kbd-macro "'")(let ((case-fold-search nil))(looking-back "'z'")))
+      E := 'z';
+
 end Procedure_1;
 
 -- This used to cause problems at end of buffer; refining "procedure"

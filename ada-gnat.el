@@ -352,34 +352,47 @@ For `compilation-filter-hook'."
     ;; compilation-filter might insert partial lines, or it might insert multiple lines
     (when (bolp)
       (while (not (eobp))
-	;; secondary file references look like:
-	;;
-	;; lookahead_test.ads:23:09: "Name" has been inherited from subprogram at aunit-simple_test_cases.ads:47
-	;;
-	;; FIXME: handle "at line nnn" in current file:
-	;;
-	;; lookahead_test.adb:379:14: found type access to "Standard.String" defined at line 379
-	;;
-	;; skip the primary reference, look for "*.ad?:nn"
-	(skip-syntax-forward "^-")
-	(when (search-forward-regexp "\\s-\\(\\([^[:blank:]]+\\.[[:alpha:]]+\\):\\([0-9]+\\)\\)" (line-end-position) t)
+	;; We don't want 'next-error' to always go to this
+	;; reference, so we _don't_ set 'compilation-message text
+	;; property. Instead, we set 'ada-secondary-error, so
+	;; `ada-goto-secondary-error' will handle it. We also set
+	;; fonts, so the user can see the reference.
 
-	  ;; We don't want 'next-error' to always go to this
-	  ;; reference, so we _don't_ set 'compilation-message text
-	  ;; property. Instead, we set 'ada-secondary-error, so
-	  ;; `ada-goto-secondary-error' will handle it. We also set
-	  ;; fonts, so the user can see the reference.
-	  (compilation--put-prop 2 'font-lock-face compilation-info-face); file
-	  (compilation--put-prop 3 'font-lock-face compilation-line-face); file
+	;; c:/foo/bar/lookahead_test.adb:379:14: found type access to "Standard.String" defined at line 379
+	(cond
+	 ((looking-at "^\\(\\(.:\\)?[^ :\n]+\\):.* \\(at line \\)\\([0-9]+\\)")
+	  (compilation--put-prop 3 'font-lock-face compilation-info-face); "at line" instead of file
+	  (compilation--put-prop 4 'font-lock-face compilation-line-face); line
 	  (with-silent-modifications
 	    (put-text-property
-	     (match-beginning 0) (match-end 0)
+	     (match-beginning 3) (match-end 3)
 	     'ada-secondary-error
 	     (list
-	      (buffer-substring-no-properties (match-beginning 2) (match-end 2)); file
-	      (string-to-number (buffer-substring-no-properties (match-beginning 3) (match-end 3))); line
+	      (buffer-substring-no-properties (match-beginning 1) (match-end 1)); actual file
+	      (string-to-number (buffer-substring-no-properties (match-beginning 4) (match-end 4))); line
 	      1)); column
 	    ))
+
+	 (t
+	  ;; lookahead_test.ads:23:09: "Name" has been inherited from subprogram at aunit-simple_test_cases.ads:47
+	  ;;
+	  ;; skip the primary reference, look for "*.ad?:nn"
+	  (skip-syntax-forward "^-")
+	  (when (search-forward-regexp "\\s-\\(\\([^[:blank:]]+\\.[[:alpha:]]+\\):\\([0-9]+\\)\\)"
+				       (line-end-position) t)
+
+	    (compilation--put-prop 2 'font-lock-face compilation-info-face); file
+	    (compilation--put-prop 3 'font-lock-face compilation-line-face); line
+	    (with-silent-modifications
+	      (put-text-property
+	       (match-beginning 0) (match-end 0)
+	       'ada-secondary-error
+	       (list
+		(buffer-substring-no-properties (match-beginning 2) (match-end 2)); file
+		(string-to-number (buffer-substring-no-properties (match-beginning 3) (match-end 3))); line
+		1)); column
+	      )))
+	 )
 	(forward-line 1))
       )))
 

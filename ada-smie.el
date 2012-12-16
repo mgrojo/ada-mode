@@ -3693,7 +3693,16 @@ made."
 
 	 (t
 	  (when (not (ada-smie-keyword-p token))
-	    (setq result token)
+	    ;; check for selected name
+	    (while (eq (char-after) ?.)
+	      (if result
+		  (setq result (concat result "." token))
+		(setq result token))
+	      (forward-char 1)
+	      (setq token (smie-default-forward-token)))
+	    (if result
+		(setq result (concat result "." token))
+	      (setq result token))
 	    (setq done t)))
 	 ))
 

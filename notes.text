@@ -45,40 +45,8 @@ test/Makefile  ;; set project file
 '"' broken in Emacs 24.3
     test/ada_mode-nominal.adb Function_2a
     try 24.2.91 released 15 dec
-
-add to ada-interactive:
-    -- don't capitalize character constant
-    E := 'z';
-
-gnat-fix
-    c:/Projects/emacs_stephe.main/emacs_stephe/gnat-fix-error.el
-
-    ada-fix-error.el
-        small; merge into ada-mode.el?
-
-        sort limited private with at end of context clause?
-
-        allow list of error matchers; quit when one returns t
-
-    ada-gnat-fix-error.el
-        add stuff as I encounter it - use at work!
-
-compilation mode
-
-    filter: handle "at line nnn" in current file:
-
-    keep compilation buffer in other frame if already visible
-
-ada-align-paramlist
-    test/ada_mode-parens.adb
-
-    handle wrapping due to line length limit?
-
-    handle single-line trailing comments, or longer comments, in paramlist?
-
-don't use define-derived-mode
-    other modes in 24.3 don't
-    post-hook stuff more reliable
+        source: ftp://alpha.gnu.org/gnu/emacs/pretest/emacs-24.2.91.tar.gz
+        binary: ?
 
 ada-make-body
 
@@ -94,16 +62,34 @@ C-c C-d on sql_parameters in gnatcoll-sql-exec.ads
         using gpl-2012
         it's abstract, defined in books-table_views.ads
 
+include gpr-mode
+    use simi
+
+gnat-fix
+    c:/Projects/emacs_stephe.main/emacs_stephe/gnat-fix-error.el
+
+    ada-fix-error.el
+        small; merge into ada-mode.el?
+
+        sort limited private with at end of context clause?
+
+        allow list of error matchers; quit when one returns t
+
+    ada-gnat-fix-error.el
+        add stuff as I encounter it - use at work!
+
+ada-align-paramlist
+    test/ada_mode-parens.adb
+
+    handle wrapping due to line length limit?
+
+    handle single-line trailing comments, or longer comments, in paramlist?
 
 ada-case-adjust
 
     support multiple files
         menu of file to save new exception in
         prompt for file in case-create-exception
-
-ada-which-function
-    test/ada_mode-library_function.adb
-    reports Ada_Mode
 
 menu entry to show gnat-run-buffer
     for debugging mysterious "xref not found" errors
@@ -145,6 +131,10 @@ rest of ada-mode
 
     submit adacore bug report on 'gnat list' accept '--subdirs'
 
+compilation mode
+
+    keep compilation buffer in other frame if already visible
+
 make newline-and-indent reindent current line first?
     what did 4.01 do?
         ada-indent-after-return t doc says "indent after return"
@@ -157,30 +147,9 @@ make newline-and-indent reindent current line first?
 
         ada-indent-after-return nil leaves out _first_ indent!
 
-aspect_clause;    record - done
-attribute clauses; record layout
-library generic subprogram
-pre/post conditions
-quantified_, if_, case_expressions. Simon Wright working on "if" expressions
-
-remaining expressions?
-remaining statements?
-task entry with index; body has "for"
-
-include gpr-mode
-    use simi
-
-include gnat-fix-error
-    rename to ada-gnat-fix-error
-    or rewrite to use alist; support other compilers
-    write test?
-
 ada-gnatstub-opts
 
 GNATCOLL.Projects can report "other file name" info?
-
-ada-other-file
-    use gnat find
 
 support xref for C files?
     at least if compiled with gprbuild?
