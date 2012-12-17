@@ -17,7 +17,4 @@ package Ada_Mode.Find_File is
      (Param_1 : in Integer);
    --EMACSRESULT:t
 
-   -- FIXME: package, function, protected type, task
-   -- FIXME: at least one nested
-
 end Ada_Mode.Find_File;

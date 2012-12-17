@@ -392,6 +392,9 @@ package Ada_Mode.Nominal is
    protected type Protected_1 is
       --EMACSRESULT:t
 
+      --EMACSCMD:(ada-which-function)
+      --EMACSRESULT:"Protected_1"
+
       -- only two examples, to get 'protected' and 'is-entry_body' into grammar
 
       function F1 return Integer;
@@ -422,19 +425,25 @@ package Ada_Mode.Nominal is
 
    -- Ici l'exemple du chapitre 9 du RM sur le tasking
 
+   --EMACSCMD:(progn (forward-line 2)(ada-find-other-file nil)(looking-at "protected body Protected_Buffer"))
    protected Protected_Buffer is
       -- a single_protected_type
+
+      --EMACSCMD:(ada-which-function)
+      --EMACSRESULT:"Protected_Buffer"
+
       --EMACSCMD:(test-face "Character" font-lock-type-face)
+      --EMACSCMD:(progn (end-of-line 2)(backward-word 1)(ada-align))
       entry Read (C : out Character);
-      entry Write (C : in  Character);
+      --EMACSCMD:(progn (end-of-line 2)(backward-word 1)(ada-align))
+      entry Write (C : in Character);
    private
-      Pool      : String(1 .. 100);
-      Count     : Natural := 0;
+      --EMACSCMD:(progn (forward-line 2)(ada-align))
+      -- align section does _not_ include entries above 'private'. result tested by diff
+      Pool                : String(1 .. 100);
+      Count               : Natural  := 0;
       In_Index, Out_Index : Positive := 1;
    end Protected_Buffer;
-   --EMACSCMD:(progn (beginning-of-line)(forward-line -1)(ada-which-function))
-   --EMACSRESULT:"Protected_Buffer"
-   -- FIXME: test ada-find-other-file here; it fails due to extra "body" in body.
 
    ----------
    -- Objects

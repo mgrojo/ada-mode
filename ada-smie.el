@@ -427,7 +427,7 @@
        ;; that as an identifier, so this is "then-if", even though
        ;; there is no other "then" in the grammar.  "else" also occurs
        ;; in "or else" and select statements; "or else" is an
-       ;; identifier. FIXME (later): if expressions.
+       ;; identifier.
 
        ;; label_statement
        ("<<" identifier ">>")
@@ -545,10 +545,6 @@
 
        ;; modular_type_definition
        ("type-other" identifier "is-type" "mod-type")
-       ;; FIXME (later): this is the only occurance of "mod" in the grammar at
-       ;; the moment. It also occurs in other syntax that is not
-       ;; implemented yet; wait until we test those to decide to leave
-       ;; it as an identifier.
 
        ;; private_extension_declaration
        ("type-other" identifier "is-type" "new-type" name "with-new" "private-with")
@@ -1377,7 +1373,7 @@ eob). "
        ;; This is a special case because "protected" and "task" are
        ;; not keywords, so ada-smie-backward-keyword doesn't find
        ;; them. Fortunately, single tasks and protected objects cannot
-       ;; have discriminants. FIXME (later): they can have aspect specs.
+       ;; have discriminants.
        (let ((token (progn
 		      (smie-default-backward-token); identifier
 		      (ada-smie-unrefined-token nil))))
@@ -1565,7 +1561,6 @@ eob). "
 	      (ada-smie-backward-keyword)))
 
       (if (member token '("in" "while" "of"))
-	  ;; FIXME (later): iterators not tested yet; "of" will probably be refined.
 	  "loop-body"
 	"loop-open"))))
 
@@ -2291,7 +2286,7 @@ eob). "
     ;;    succeeding refined token: "=>", ",", ";"
     ;;    skip: name
     ;;
-    ;;    preceding unrefined token: "record", FIXME (later): others?
+    ;;    preceding unrefined token: "record"
     ;;    skip: nothing
     ;;    token: with-aspect
     ;;
@@ -3416,7 +3411,6 @@ the start of CHILD, which must be a keyword."
       (error "ada-smie-comment-indent called after non-comment"))))
 
 (defun ada-smie-blank ()
-  ;; FIXME: need test
   "Compute indentation of a blank line. For `smie-indent-functions', to handle adding new code."
   ;; Check to see if we are on a blank line
   (when
@@ -3609,12 +3603,14 @@ made."
 (defun ada-smie-which-function ()
   "For `ada-which-function', which see."
   ;; FIXME: If point is in a local subprogram, package, or protected
-  ;; type, that name is returned. That may be what the user wants for
-  ;; 'which-name-function' mode-line display, but they may want the
-  ;; selected name, starting with the file level compilation unit.
+  ;; type, or after a spec for same, that name is returned. That may
+  ;; be what the user wants for 'which-name-function' mode-line
+  ;; display, but they may want the selected name, starting with the
+  ;; file level compilation unit. Need an option?
   ;;
   ;; For ada-find-other-file, we want the declaration that is directly
-  ;; contained within the file level compilation unit.
+  ;; contained within the file level compilation unit. Need a
+  ;; parameter to distinguish the two?
   ;;
   ;; One solution for both cases is to parse up to the top level,
   ;; remembering the names along the way. Another is to mark each
@@ -3635,46 +3631,24 @@ made."
 	;; backward-token doesn't work from inside a comment.
 	(beginning-of-line))
 
-      (if (member (concat "." (file-name-extension (buffer-file-name))) ada-spec-suffixes)
-	  ;; In a spec file
-	  (progn
-	    (while
-		(not
-		 (member (setq token (ada-smie-backward-keyword))
-			 '("function-overriding"
-			   "function-spec"
-			   "package-generic"
-			   "package-plain"
-			   "procedure-overriding"
-			   "procedure-spec"
-			   "protected-type"
-			   "task-single"
-			   "task-type"
-			   nil; bob
-			   )))))
-
-	;; In a body file; different set of tokens.
-	(while
-	    (not
-	     (member (setq token (ada-smie-backward-keyword))
-		     '("procedure-spec" "is-subprogram_body"
-                       "procedure-overriding"
-		       "function-spec" "return-spec"
-                       "function-overriding"
-		       "package-plain"
-		       "protected-body" "is-protected_body"
-		       "task-body" "is-task_body"
-		       nil)))); bob, just in case we forgot something
+      (while
+	  (not
+	   (member (setq token (ada-smie-backward-keyword))
+		   '("function-overriding"
+		     "function-spec"
+		     "package-generic"
+		     "package-plain"
+		     "procedure-overriding"
+		     "procedure-spec"
+		     "protected-body"
+		     "protected-type"
+		     "task-body"
+		     "task-single"
+		     "task-type"
+		     nil))); bob, just in case we forgot something
 	)
 
-      (when
-	  (not (member
-		token
-		;; These don't need further motion. Note that
-		;; "procedure-spec", "function-spec" are not here,
-		;; because of access-to-subprogram types.
-		'("package-plain" "protected-body" "task-body")))
-	(ada-smie-goto-statement-start token))
+      (ada-smie-goto-statement-start token)
 
       (while (not done)
 	(setq token (ada-smie-forward-token))
@@ -3687,7 +3661,7 @@ made."
 		(when (not ff-function-name)
 		  (setq ff-function-name
 			(concat
-			 "^package\\s-+"
+			 "package\\s-+"
 			 result
 			 symbol-end))))
 	    ;; not body
@@ -3696,9 +3670,32 @@ made."
 	    (when (not ff-function-name)
 	      (setq ff-function-name
 		    (concat
-		     "^package\\s-+body\\s-+"
+		     "package\\s-+body\\s-+"
 		     result
 		     symbol-end))))
+	  (setq done t))
+
+	 ((equal token "protected-body")
+	  (setq token (ada-smie-forward-token)); body
+	  (setq result (ada-smie-forward-name))
+	  (when (not ff-function-name)
+	    (setq ff-function-name
+		  (concat
+		   "protected\\s-+\\(type\\s-+\\)?"
+		   result
+		   symbol-end)))
+	  (setq done t))
+
+	 ((equal token "protected-type")
+	  (when (equal "type-protected" (save-excursion (ada-smie-forward-token)))
+	    (setq token (ada-smie-forward-token)))
+	  (setq result (ada-smie-forward-name))
+	  (when (not ff-function-name)
+	    (setq ff-function-name
+		  (concat
+		   "protected\\s-+body\\s-+"
+		   result
+		   symbol-end)))
 	  (setq done t))
 
 	 (t
@@ -4047,9 +4044,7 @@ This lets us know which indentation function succeeded."
   (set (make-local-variable 'smie-skip-associative) t)
   ;; we don't want `smie-backward-sexp' to stop at weird places
   ;; FIXME (later): this var is in a local patch that won't be in main; do something else
-  ;; either cope with the weird place in goto-parent, or rewrite smie-backward-sexp
-
-  (set (make-local-variable 'smie-blink-matching-inners) nil); too annoying to blink to 'package' on 'is', etc.
+  ;; either cope with the weird places in goto-parent, or rewrite smie-backward-sexp
 
   (setq post-self-insert-hook (delete 'smie-blink-matching-open post-self-insert-hook))
   ;; smie-setup puts smie-blink-matching-open on
@@ -4084,10 +4079,6 @@ This lets us know which indentation function succeeded."
   (set (make-local-variable 'ada-which-function) 'ada-smie-which-function)
   (set (make-local-variable 'ada-in-paramlist-p) 'ada-smie-in-paramlist-p)
   (set (make-local-variable 'ada-scan-paramlist) 'ada-smie-scan-paramlist)
-
-  (define-key ada-mode-map "\t" 'indent-for-tab-command)
-  ;; TAB will now use smie indentation in Ada mode buffers
-  ;; FIXME (later): possibly not the best place to bind a key
   )
 
 (add-hook 'ada-mode-hook 'ada-smie-setup)

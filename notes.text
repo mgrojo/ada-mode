@@ -25,9 +25,9 @@ runtest from emacs -q:
   (setenv "PATH" (mapconcat 'identity  exec-path  path-separator))
   (add-to-list 'load-path "/Projects/org.emacs.ada-mode.smie/test")
   (load "runtest")
-)
 
-(run-test "/Projects/org.emacs.ada-mode.smie/test/ada_mode-nominal.ads")
+  (find-file "/Projects/org.emacs.ada-mode.smie/test/ada_mode-nominal.adb")
+)
 
 (progn
     (setq ada-mode-hook (delete 'ada-wisi-setup ada-mode-hook))
@@ -56,6 +56,8 @@ FIXMEs
     ada-make-subprogram-body
     ada-make-body
     C-c C-b
+
+    manual
 
 mouse operations
     goto-declaration

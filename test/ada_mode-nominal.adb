@@ -1,6 +1,9 @@
 -- A comment before the first code
 --EMACSCMD:(font-lock-fontify-buffer)
 
+--EMACSCMD:(ada-parse-prj-file "subdir/ada_mode.adp")
+--EMACSCMD:(ada-select-prj-file "subdir/ada_mode.adp")
+
 with Ada.Strings; -- test two context clauses
 with Ada.Strings.Unbounded;
 --EMACSCMD:(test-face "use" font-lock-keyword-face)
@@ -46,11 +49,11 @@ package body Ada_Mode.Nominal is
       return Function_Access_1'Access;
    end Function_Access_11;
 
-   protected
-     body Protected_1 is
-      -- don't care about the indentation of 'body' (nobody should use
-      -- this style); testing that 'protected body' is not a combined
-      -- token
+   --EMACSCMD:(progn (forward-line 3)(ada-find-other-file nil)(looking-at "protected type Protected_1"))
+   protected body Protected_1 is
+
+      --EMACSCMD:(ada-which-function)
+      --EMACSRESULT:"Protected_1"
 
       --EMACSCMD:(test-face "Integer" font-lock-type-face)
       function F1 return Integer is
@@ -114,8 +117,8 @@ package body Ada_Mode.Nominal is
                when A | Nominal.B =>
                   null;
                when C =>
-               --EMACSCMD:(progn (forward-line 2)(forward-word 1)(forward-char 1)(insert "   ")(ada-align))
-               -- result is tested in diff
+                  --EMACSCMD:(progn (forward-line 2)(forward-word 1)(forward-char 1)(insert "   ")(ada-align))
+                  -- result is tested in diff
                   D := B;
                   D := Local.all + B * B;
                   --EMACSCMD:(test-face "goto" font-lock-keyword-face)
@@ -206,8 +209,10 @@ package body Ada_Mode.Nominal is
       end; -- no P2
    end Protected_1;
 
+   --EMACSCMD:(progn (forward-line 2)(ada-find-other-file nil)(looking-at "protected Protected_Buffer"))
    protected body Protected_Buffer is
-      -- FIXME: test ada-which-func here; it returns "body"
+      --EMACSCMD:(ada-which-function)
+      --EMACSRESULT:"Protected_Buffer"
 
       entry Write(C : in Character)
         when Count < Pool'Length is

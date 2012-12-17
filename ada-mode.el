@@ -251,6 +251,7 @@ If nil, no contextual menu is available."
      "if\\|"
      "is\\|"
      "procedure\\|"
+     "private\\|"
      "record\\|"
      "return\\|"
      "type\\|"
@@ -822,7 +823,6 @@ Each parameter declaration is represented by a list
 	(insert "in "))
 
       (when (nth 2 param)
-	(indent-to out-col)
 	(insert "out "))
 
       (when (nth 3 param)
@@ -842,7 +842,9 @@ Each parameter declaration is represented by a list
 	(insert (nth 8 param)))
 
       (if (zerop i)
-	  (insert ") ")
+	  (if (= (char-after) ?\;)
+	      (insert ")")
+	    (insert ") "))
 	(insert "; "))
       )
     ))
@@ -1974,7 +1976,7 @@ The paragraph is indented on the first line."
 
   (add-hook 'which-func-functions 'ada-which-function nil t)
 
-  ;;(set (make-local-variable 'ispell-check-comments) 'exclusive) FIXME: ispell var name has changed
+  (set (make-local-variable 'ispell-check-comments) 'exclusive)
 
   ;;  Support for align
   (add-to-list 'align-dq-string-modes 'ada-mode)
