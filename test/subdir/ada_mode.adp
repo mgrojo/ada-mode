@@ -8,6 +8,9 @@ ada_project_path=$TEST_ENV_VAR
 
 gpr_file=ada_mode_parent.gpr
 
+gnat_stub_opts=-t -f
+gnat_stub_switches=-gnat2012
+
 casing=../case-exceptions-1
 casing=../case-exceptions-2
 

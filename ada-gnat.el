@@ -33,7 +33,7 @@
 
 (require 'ada-fix-error)
 
-;;;; gnatprep utils
+;;;;; gnatprep utils
 
 (defun ada-gnatprep-indent ()
   "If point is on a gnatprep keyword, return indentation column
@@ -65,7 +65,7 @@ Intended to be added to `smie-indent-functions'."
      )
     ))
 
-;;; project file handling
+;;;; project file handling
 
 (defun ada-gnat-prj-parse-emacs-file (name value project)
   "Handle gnat-specific Emacs Ada project file settings.
@@ -127,7 +127,7 @@ See also `ada-gnat-parse-emacs-prj-file-final'."
 (defun ada-gnat-get-paths (project)
   "Add project and/or compiler source, object paths to PROJECT src_dir, obj_dir."
   (with-current-buffer (ada-gnat-run-buffer)
-    (let ((status (ada-gnat-run "list" "-v"))
+    (let ((status (ada-gnat-run (list "list" "-v")))
 	  src-dirs
 	  obj-dirs)
 
@@ -200,7 +200,7 @@ src_dir, obj_dir will include compiler runtime."
   (message "Parsing %s ... done" gpr-file)
   project)
 
-;;; command line tool interface
+;;;; command line tool interface
 
 (defun ada-gnat-run-buffer-name ()
   (concat " *gnat-run-"
@@ -229,7 +229,7 @@ src_dir, obj_dir will include compiler runtime."
 	)
       buffer)))
 
-(defun ada-gnat-run (command &rest switches-args)
+(defun ada-gnat-run (command &optional switches-args)
   "Run the gnat command line tool, as \"gnat COMMAND -P<prj> SWITCHES-ARGS\".
 Return process status.
 Assumes current buffer is (ada-gnat-run-buffer)"
@@ -239,7 +239,7 @@ Assumes current buffer is (ada-gnat-run-buffer)"
   (let* ((project-file-switch
 	  (when (ada-prj-get 'gpr_file)
 	    (concat "-P" (file-name-nondirectory (ada-prj-get 'gpr_file)))))
-	 (cmd (append (list command project-file-switch) switches-args)))
+	 (cmd (append command (list project-file-switch) switches-args)))
 
     (insert (format "ADA_PROJECT_PATH=%s\ngnat " (getenv "ADA_PROJECT_PATH"))); for debugging
     (setq cmd (delete-if 'null cmd))
@@ -248,14 +248,14 @@ Assumes current buffer is (ada-gnat-run-buffer)"
     (apply 'call-process "gnat" nil t nil cmd)
     ))
 
-(defun ada-gnat-run-no-prj (command &rest switches-args)
+(defun ada-gnat-run-no-prj (command &optional switches-args)
   "Run the gnat command line tool, as \"gnat COMMAND SWITCHES-ARGS\".
 Return process status.
 Assumes current buffer is (ada-gnat-run-buffer)"
   (set 'buffer-read-only nil)
   (erase-buffer)
 
-  (let ((cmd (append (list command) switches-args)))
+  (let ((cmd (append command switches-args)))
 
     (setq cmd (delete-if 'null cmd))
     (mapc (lambda (str) (insert (concat str " "))) cmd);; show command for debugging
@@ -263,7 +263,7 @@ Assumes current buffer is (ada-gnat-run-buffer)"
     (apply 'call-process "gnat" nil t nil cmd)
     ))
 
-;;; uses of gnat tools
+;;;; uses of gnat tools
 
 (defconst ada-gnat-file-line-col-regexp "\\(.*\\):\\([0-9]+\\):\\([0-9]+\\)")
 
@@ -279,8 +279,8 @@ If PARENT is non-nil, return parent type declaration (assumes IDENTIFIER is a de
 	 (result nil))
     (with-current-buffer (ada-gnat-run-buffer)
       (if switch
-	  (setq status (ada-gnat-run "find" switch arg))
-	(setq status (ada-gnat-run "find" arg)))
+	  (setq status (ada-gnat-run (list "find" switch arg)))
+	(setq status (ada-gnat-run (list "find" arg))))
 
       (cond
        ((= status 0); success
@@ -339,10 +339,11 @@ If PARENT is non-nil, return parent type declaration (assumes IDENTIFIER is a de
     (with-current-buffer (ada-gnat-run-buffer)
       (setq status
 	    (ada-gnat-run-no-prj
-	     "krunch"
-	     ada-name
-	     ;; "0" means only krunch GNAT library names
-	     "0"))
+	     (list
+	      "krunch"
+	      ada-name
+	      ;; "0" means only krunch GNAT library names
+	      "0")))
 
       (cond
        ((= status 0); success
@@ -385,7 +386,28 @@ If PARENT is non-nil, return parent type declaration (assumes IDENTIFIER is a de
 	(setq ada-name (replace-match "." t t ada-name)))
       ada-name)))
 
-;;; compiler message handling
+(defun ada-gnat-make-package-body ()
+  "For `ada-make-package-body'."
+  (let ((start-file (buffer-file-name))
+	(opts (split-string (ada-prj-get 'gnat_stub_opts)))
+	(switches (split-string (ada-prj-get 'gnat_stub_switches)))
+	status)
+    (with-current-buffer (ada-gnat-run-buffer)
+      (if switches
+	  (setq status (ada-gnat-run (append (list "stub") opts (list start-file "-cargs") switches)))
+	(setq status (ada-gnat-run (append (list "stub") opts start-file))))
+
+      (cond
+       ((= status 0); success
+	nil)
+
+       (t ; failure
+	(pop-to-buffer (current-buffer))
+	(error "gnat find failed"))
+       ))
+    nil))
+
+;;;; compiler message handling
 
 (defun ada-gnat-compilation-filter ()
   "Filter to add text properties to secondary file references.
@@ -446,7 +468,7 @@ For `compilation-filter-hook'."
   (let ((compilation-filter-start (point)))
     (ada-gnat-compilation-filter)))
 
-;;; auto fix compilation errors
+;;;; auto fix compilation errors
 
 (defconst ada-gnat-quoted-name-regexp
   "\"\\([a-zA-Z0-9_.']+\\)\""
@@ -552,13 +574,14 @@ For `compilation-filter-hook'."
     (compilation-next-error 0)
   ))
 
-;;; setup
+;;;; setup
 
 (defun ada-gnat-setup ()
   (set (make-variable-buffer-local 'ada-compiler) 'gnat)
 
-  (set (make-variable-buffer-local 'ada-file-name-from-ada-name) 'ada-gnat-file-name-from-ada-name)
-  (set (make-variable-buffer-local 'ada-ada-name-from-file-name) 'ada-gnat-ada-name-from-file-name)
+  (set (make-local-variable 'ada-file-name-from-ada-name) 'ada-gnat-file-name-from-ada-name)
+  (set (make-local-variable 'ada-ada-name-from-file-name) 'ada-gnat-ada-name-from-file-name)
+  (set (make-local-variable 'ada-make-package-body) 'ada-gnat-make-package-body)
 
   (font-lock-add-keywords nil
    ;; gnatprep preprocessor line

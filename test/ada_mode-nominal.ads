@@ -132,7 +132,7 @@ package Ada_Mode.Nominal is
      access all Integer;
    type Object_Access_Type_7
      is access all Integer;
-   --EMACSCMD:(progn (beginning-of-line)(forward-line -1)(ada-which-function))
+   --EMACSCMD:(ada-which-function)
    --EMACSRESULT:"Ada_Mode.Nominal"
 
    type

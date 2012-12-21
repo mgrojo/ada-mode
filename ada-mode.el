@@ -94,7 +94,7 @@
 	(message version-string)
       version-string)))
 
-;;;; User variables
+;;;;; User variables
 
 (defvar ada-mode-hook nil
   "*List of functions to call when Ada mode is invoked.
@@ -149,12 +149,12 @@ If nil, no contextual menu is available."
   :type '(restricted-sexp :match-alternatives (stringp vectorp))
   :group 'ada)
 
-;;;; other global variables
+;;;;; end of user variables
 
 (defvar ada-compiler nil
   "Symbol indicating which compiler is being used with the current buffer.")
 
-;;; keymap and menus
+;;;; keymap and menus
 
 (defvar ada-mode-map
   (let ((map (make-sparse-keymap)))
@@ -205,11 +205,11 @@ If nil, no contextual menu is available."
      ["Fill Comment Paragraph Postfix"
       ada-fill-comment-paragraph-postfix                         t]
      ["---"                         nil                          nil]
-     ["Make body for subprogram"    ada-make-subprogram-body     t]; FIXME: test
+     ["Make body for subprogram"    ada-make-subprogram-body     t]
      )
     ))
 
-;;; abbrev, align
+;;;; abbrev, align
 
 (defvar ada-mode-abbrev-table nil
   "Local abbrev table for Ada mode.")
@@ -259,7 +259,7 @@ If nil, no contextual menu is available."
      "\\)\\>\\)"))
   "See the variable `align-region-separate' for more information.")
 
-;;; context menu
+;;;; context menu
 
 (defvar ada-context-menu-last-point nil)
 (defvar ada-context-menu-on-identifier nil)
@@ -305,7 +305,7 @@ point is where the mouse button was clicked."
     (goto-char (car ada-context-menu-last-point))
     ))
 
-;;; auto-casing
+;;;; auto-casing
 
 (defvar ada-case-full-exceptions '()
   "Alist of words (entities) that have special casing, built from
@@ -609,7 +609,7 @@ ARG is the prefix the user entered with \\[universal-argument]."
 		?| ?\; ?: ?' ?\" ?< ?, ?. ?> ?/ ?\n 32 ?\r ))
   )
 
-;;; align
+;;;; align
 
 (defun ada-align ()
   "If region is active, apply 'align'. If not, attempt to align
@@ -849,7 +849,7 @@ Each parameter declaration is represented by a list
       )
     ))
 
-;;; project files
+;;;; project files
 
 ;; An Emacs Ada mode project file can specify several things:
 ;;
@@ -896,7 +896,7 @@ return it.")
 
 (defun ada-prj-default ()
   "Return the default project properties list with the current buffer as main.
-Calls `ada-prj-default-function' to extent the list with
+Calls `ada-prj-default-function' to extend the list with
 compiler-specific objects."
 
   (let*
@@ -931,6 +931,8 @@ code may add other parsers.  Parser is called with two arguments;
 the project file name and the current project property
 list. Parser must modify or add to the property list and return it.")
 
+;; This autoloaded because it is often used in Makefiles, and thus
+;; will be the first ada-mode function executed.
 ;;;###autoload
 (defun ada-parse-prj-file (prj-file)
   "Read Emacs Ada or compiler-specific project file PRJ-FILE, set project properties in `ada-prj-alist'."
@@ -1089,7 +1091,7 @@ Return new value of PROJECT."
   ;; return 't', for decent display in message buffer when called interactively
   t)
 
-;;; syntax properties
+;;;; syntax properties
 
 (defvar ada-mode-syntax-table
   (let ((table (make-syntax-table)))
@@ -1197,7 +1199,7 @@ Throw error if not in paren.  If PARSE-RESULT is non-nil, use it
 instead of calling `syntax-ppss'."
   (goto-char (+ (or offset 0) (nth 1 (or parse-result (syntax-ppss))))))
 
-;;; file navigation
+;;;; file navigation
 
 (defvar ada-body-suffixes '(".adb")
   "List of possible suffixes for Ada body files.
@@ -1298,9 +1300,10 @@ unit name; it should return the Ada name that should be found in FILE-NAME.")
   ;; been set by ff-treat-special; don't reset it.
   "Function called with no parameters; it should return the name
 of the package, protected type, subprogram, or task type whose
-definition/declaration point is in, or nil.  In addition, if
-ff-function-name is non-nil, store in ff-function-name a regexp
-that will find the function in the other file.")
+definition/declaration point is in or just after, or nil.  In
+addition, if ff-function-name is non-nil, store in
+ff-function-name a regexp that will find the function in the
+other file.")
 
 (defun ada-which-function ()
   "See `ada-which-function' variable."
@@ -1344,18 +1347,37 @@ either an existing one, or a new one if there are no existing other frames."
 	 (window (ada-buffer-window buffer))
 	 (frame-1 (and window (window-frame window)))
 	 (frame-2 (car (filtered-frame-list (lambda (frame) (not (eq frame (selected-frame)))))))
-	 (frame
-	  (or (and window
-		   frame-1
-		   (not (eq frame-1 (selected-frame)))
-		   frame-1)
-	      frame-2
-	      (make-frame))))
-    (unless (and window (eq frame frame-1))
+	 type)
+
+    (cond
+     ((and window
+	   frame-1
+	   (not (eq frame-1 (selected-frame))))
+      (setq type 'reuse)
+      (setq frame frame-1))
+
+     (frame-2
+      (setq type 'reuse)
+      (setq window (get-lru-window frame-2))
+      (setq frame frame-2))
+
+     (t
+      (setq type 'frame)
+      (setq frame (make-frame))
       (setq window (get-lru-window frame)))
-    (display-buffer-record-window 'reuse window buffer)
-    (window--display-buffer-1 window)
-    (window--display-buffer-2 buffer window)))
+     )
+
+    (cond
+     ((functionp 'window--display-buffer-1)
+      ;; emacs 24.2
+      (display-buffer-record-window type window buffer)
+      (window--display-buffer-1 window)
+      (window--display-buffer-2 buffer window))
+
+     ((functionp 'window--display-buffer)
+      ;; emacs 24.3
+      (window--display-buffer buffer window type))
+     )))
 
 (defun ada-display-buffer (buffer-or-name &optional old-other-window)
   "For `display-buffer-function', which see.  Prefix arg on user-level
@@ -1437,7 +1459,7 @@ the other file."
   ;; ff-special-constructs, then run the following hooks:
   ;;
   ;; ff-pre-load-hook      set to ada-which-function
-  ;; ff-file-created-hook  set to ada-make-body
+  ;; ff-file-created-hook  set to ada-make-package-body
   ;; ff-post-load-hook     set to ada-set-point-accordingly,
   ;;                       or to a compiler-specific function that
   ;;                       uses compiler-generated cross reference
@@ -1592,6 +1614,7 @@ C-u C-u : show in other frame"
   (interactive "P")
   (ada-goto-declaration other-window-frame t))
 
+;; This is autoloaded because it may be used in ~/.emacs
 ;;;###autoload
 (defun ada-add-extensions (spec body)
   "Define SPEC and BODY as being valid extensions for Ada files.
@@ -1660,7 +1683,45 @@ C-u C-u : show in other frame"
 	)
     ))
 
-;;; fill-comment
+(defvar ada-goto-declaration-start nil
+  ;; No useful default; the indentation engine should supply a useful function
+  ;; This is run from ff-pre-load-hook, so ff-function-name may have
+  ;; been set by ff-treat-special; don't reset it.
+  "Function to move point to start of the subprogram, package, or
+task declaration point is currently in or just after.  Called
+with no parameters.")
+
+(defun ada-goto-declaration-start ()
+  "Call `ada-goto-declaration-start'."
+  (when ada-goto-declaration-start
+    (funcall ada-goto-declaration-start)))
+
+;;;; code creation
+
+(defvar ada-make-subprogram-body nil
+  "Function to convert subprogram specification at point into a subprogram body stub.")
+
+(defun ada-make-subprogram-body ()
+  "If point is in or after a subprogram specification, convert it
+into a subprogram body stub, by calling `ada-make-subprogram-body'."
+  (interactive)
+  (ada-goto-declaration-start)
+  (if ada-make-subprogram-body
+      (funcall ada-make-subprogram-body)
+    (error "`ada-make-subprogram-body' not set")))
+
+(defvar ada-make-package-body nil
+  "Function to create a package body from a package spec.
+Called with no arguments; current buffer is the package spec.
+Should create a package body file, containing skeleton code that
+will compile, and visit the file.")
+
+(defun ada-make-package-body ()
+  (if ada-make-package-body
+      (funcall ada-make-package-body)
+    (error "`ada-make-package-body' not set")))
+
+;;;; fill-comment
 
 (defun ada-fill-comment-paragraph-justify ()
   "Fill current comment paragraph and justify each line as well."
@@ -1756,7 +1817,7 @@ The paragraph is indented on the first line."
 
     (goto-char opos)))
 
-;;; support for font-lock.el
+;;;; support for font-lock.el
 
 ;; casing keywords defined here to keep the two lists together
 (defconst ada-83-keywords
@@ -1833,6 +1894,7 @@ The paragraph is indented on the first line."
 	  "in\\|"
 	  ;; "return\\|" can't distinguish between 'function ... return <type>;' and 'return ...;'
 	  ;; An indentation engine can, so a rule for this is added there
+	  "of[ \t]+reverse\\|"
 	  "of\\|"
 	  "out\\|"
 	  "subtype\\|"
@@ -1929,6 +1991,9 @@ The paragraph is indented on the first line."
 
    ))
 
+;;;; ada-mode
+
+;; autoload required by automatic mode setting
 ;;;###autoload
 (defun ada-mode ()
   "The major mode for editing Ada code."
@@ -1966,7 +2031,7 @@ The paragraph is indented on the first line."
   (set (make-local-variable 'ff-other-file-alist)
        'ada-other-file-alist)
   (setq ff-post-load-hook    'ada-set-point-accordingly
-	ff-file-created-hook 'ada-make-body)
+	ff-file-created-hook 'ada-make-package-body)
   (add-hook 'ff-pre-load-hook 'ada-which-function)
   (setq ff-search-directories 'compilation-search-path)
   (ada-set-ff-special-constructs)
@@ -2041,7 +2106,7 @@ The paragraph is indented on the first line."
   )
 (put 'ada-mode 'custom-mode-group 'ada)
 
-;;;; Global initializations
+;;;;; Global initializations
 
 ;; load indent engine first; compilers may need to know which is being
 ;; used (for preprocessor keywords, for example).

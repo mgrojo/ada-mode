@@ -2,6 +2,11 @@
 --EMACSCMD:(ada-select-prj-file "ada_mode.gpr")
 package Ada_Mode.Nominal.Child is
 
+   --EMACSCMD:(condition-case nil (delete-file "ada_mode-nominal-child.adb") (error nil))
+   --EMACSCMD:(ada-make-package-body)
+   --EMACSCMD:(progn (ada-find-other-file nil)(looking-at "package body Ada_Mode.Nominal.Child"))
+   --EMACSCMD:(condition-case nil (delete-file "ada_mode-nominal-child.adb") (error nil))
+
    type Child_Type_1 is new Parent_Type_1 with
       record
          Child_Element_1 : Integer;

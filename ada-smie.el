@@ -43,7 +43,7 @@
 ;; Use the interactive functions in the debug section below to move
 ;; across small parts of the syntax.
 
-;;;; code
+;;;;; code
 
 (require 'ada-indent-user-options)
 (eval-when-compile (require 'cl)); 'case'
@@ -51,7 +51,7 @@
 
 ;; all indentation-related user variables are in ada-indent-user-options.el
 
-;;; SMIE grammar
+;;;; SMIE grammar
 
 (defconst ada-smie-grammar
   (smie-prec2->grammar
@@ -329,7 +329,8 @@
        ;; ada-smie-label can handle it.
 
        ("for-loop" identifier "in" name "loop-body" statements "end-loop" "loop-end")
-       ;; FIXME (later): container iterators allow ":" in a for-loop iteration scheme (not tested yet)
+       ("for-loop" identifier "of-loop" name "loop-body" statements "end-loop" "loop-end")
+       ("for-loop" identifier ":-loop" name "of-loop" name "loop-body" statements "end-loop" "loop-end")
        ("while" identifier "in" name "loop-body" statements "end-loop" "loop-end")
        ("loop-open" statements "end-loop" "loop-end")
        ;; "reverse" is an identifer
@@ -593,7 +594,7 @@
       )); smie-bnf->prec2
     ))
 
-;;; utils for refine-*, forward/backward token
+;;;; utils for refine-*, forward/backward token
 
 (defconst ada-smie-block-keywords
   '("=>-when"
@@ -643,7 +644,7 @@
     "or-select"
     "package-generic"
     "procedure-generic"
-    "when-case",
+    "when-case"
     "when-select"
     )
   "Keywords that always end indented blocks.")
@@ -871,7 +872,7 @@ or nil.  Preserves point."
 
 	 (t (list 'unknown nil)))))))
 
-;;; multi-token movement
+;;;; multi-token movement
 
 (defun ada-smie-skip-param_list (forward)
   ;; While refining tokens, we don't want to call smie-next-sexp,
@@ -900,12 +901,25 @@ or nil.  Preserves point."
 Return the name as a string."
   (skip-syntax-forward " ")
   (let ((begin (point))
-	(token nil))
-    (while
-	(or
-	 (not (setq token (ada-smie-keyword-p (ada-smie-forward-token))))
-	 (equal token ".")))
-    (ada-smie-backward-token)
+	token
+	(done nil))
+    (while (not done)
+      (setq token (ada-smie-forward-token))
+      (cond
+       ((string= "" token)
+	;; hit a paren or eob
+	(skip-syntax-backward " >"); whitespace and comment end, which is newline
+	(setq done t))
+
+       ((equal token ".")
+	nil)
+
+       ((ada-smie-keyword-p token)
+	(ada-smie-backward-token)
+	(setq done t))
+
+       (t nil)
+       ))
     (skip-syntax-backward " ")
     (buffer-substring-no-properties begin (point))))
 
@@ -1053,7 +1067,7 @@ eob). "
     ;; but this is more friendly to the user.
     token))
 
-;;; refine-*
+;;;; refine-*
 
 ;; ada-smie-forward-token calls refine-* with point
 ;; after token; ada-smie-backward with point before token.
@@ -1081,7 +1095,15 @@ eob). "
 		 (ada-smie-unrefined-token t))))
     (if (member token ada-smie-labeled-unrefined-keywords)
 	":-label"
-      ":-object")))
+      ;; check for for loop
+      (cond
+       ((save-excursion
+	  (smie-default-backward-token); ":"
+	  (ada-smie-backward-token); identifier
+	  (equal "for-loop" (ada-smie-backward-token)))
+	":-loop")
+      (t ":-object")
+      ))))
 
 (defun ada-smie-refine-=> (token forward)
   (let ((token (save-excursion
@@ -1330,13 +1352,49 @@ eob). "
     ))
 
 (defun ada-smie-refine-for (token forward)
+  ;; 1) quantified_expression ::=
+  ;;       for {all | some} loop_parameter_specification => predicate
+  ;;     | for {all | some} iterator_specification => predicate
+  ;;
+  ;; same as 2)
+  ;;
+  ;; 2) iteration_scheme ::= ...
+  ;;     | for defining_identifier in [reverse] discrete_subtype_definition
+  ;;     | for defining_identifier in [reverse] iterator_name
+  ;;     | for defining_identifier [: subtype_indication] of [reverse] iterable_name
+  ;;
+  ;;  succeeding unrefined token: "in" ":" "of"
+  ;;  skip: identifier
+  ;;  token: "for-loop"
+  ;;
+  ;; 3) attribute_definition_clause ::=
+  ;;       for local_name'attribute_designator use expression;
+  ;;     | for local_name'attribute_designator use name;
+  ;;
+  ;;    token: "for-attribute"
+  ;;
+  ;; 4) enumeration_representation_clause ::=
+  ;;     for first_subtype_local_name use enumeration_aggregate;
+  ;;
+  ;;    token: "for-attribute"
+  ;;
+  ;; 5) record_representation_clause ::=
+  ;;     for first_subtype_local_name use ...
+  ;;
+  ;;    token: "for-attribute"
+  ;;
+  ;; 6) at_clause ::= for direct_name use at expression;
+  ;;
+  ;;    token: "for-attribute"
+
   (let ((token (save-excursion
 		 (when (not forward) (smie-default-forward-token)); for
 		 (smie-default-forward-token); identifier
 		 (ada-smie-unrefined-token t))))
-    (if (equal token "in")
-	"for-loop"
-      "for-attribute")))
+    (cond
+     ((member token '("in" ":" "of")) "for-loop"); 1, 2
+     (t "for-attribute")
+     )))
 
 ;; ada-smie-refine-function see ada-smie-refine-subprogram
 
@@ -1560,7 +1618,7 @@ eob). "
 	      (smie-default-backward-token); loop
 	      (ada-smie-backward-keyword)))
 
-      (if (member token '("in" "while" "of"))
+      (if (member token '("in" "while" "of-loop"))
 	  "loop-body"
 	"loop-open"))))
 
@@ -1672,16 +1730,38 @@ eob). "
        ))))
 
 (defun ada-smie-refine-of (token forward)
+  ;; 1)  unconstrained_array_definition ::=
+  ;;       array(index_subtype_definition {, index_subtype_definition}) of component_definition
+  ;;     constrained_array_definition ::=
+  ;;       array (discrete_subtype_definition {, discrete_subtype_definition}) of component_definition
+  ;;
+  ;; "array" is an identifier
+  ;;
+  ;; 1a) type identifier is array_type_definition;
+  ;;
+  ;;  preceding refined token: "is-type"
+  ;;  token: "of-type"
+  ;;
+  ;; 1b) identifier : array_type_definition
+  ;;
+  ;;  preceding refined token: ":-object"
+  ;;  token: "of-object"
+  ;;
+  ;; 2)  for {all | some} defining_identifier [: subtype_indication] of [reverse] iterable_name
+  ;;
+  ;;  "all", "some" are left as identifiers
+  ;;  preceding refined keyword: ":-loop", "for-loop"
+  ;;  token: "of-loop"
+
   (save-excursion
     (when forward (smie-default-backward-token))
 
-    (let ((token (save-excursion
-		   (ada-smie-backward-keyword); is-type array, :-object array
-		 )))
+    (let ((token (save-excursion (ada-smie-backward-keyword))))
       (cond
-       ((equal "is-type" token) "of-type")
-       (t "of-object"))
-      )))
+       ((equal token "is-type") "of-type")
+       ((member token '(":-loop" "for-loop")) "of-loop")
+       (t "of-object")
+       ))))
 
 (defun ada-smie-refine-or (token forward)
   (let ((token (save-excursion
@@ -2325,7 +2405,7 @@ eob). "
      "with-new")
     ))
 
-;;; forward/backward token
+;;;; forward/backward token
 
 ;; ada-smie-forward-token must produce the same results on a string
 ;; of tokens as ada-smie-backward-token. To ensure that, we use an
@@ -2546,7 +2626,7 @@ Return the token text or a refinement of it. Manage the refinement cache."
 (defun ada-smie-forward-token () (ada-smie-next-token t))
 (defun ada-smie-backward-token () (ada-smie-next-token nil))
 
-;;; indent rules
+;;;; indent rules
 
 (defun ada-smie-when (base)
   "Return indentation offset to use after \"when\", \"=>-when\".
@@ -2964,7 +3044,7 @@ the start of CHILD, which must be a keyword."
       (cons 'column (+ (current-column) offset))
       )))
 
-;;;
+;;;;
 (defun ada-smie-rules (method arg)
   ;; This is called from ada-smie-{before|after}-keyword; it must
   ;; not move point, and must return nil or ('column n).
@@ -3209,7 +3289,7 @@ the start of CHILD, which must be a keyword."
 	  ((ada-smie-opener-p arg)
 	   ;; Indenting first keyword; declare, begin-open,
 	   ;; etc. If there is a previous statement, indent 0 relative
-	   ;; to it. Otherwise indent ada-smie relative to the block
+	   ;; to it. Otherwise indent ada-indent relative to the block
 	   ;; opening. That is handled by :after, so return nil here.
 	   nil)
 
@@ -3223,22 +3303,25 @@ the start of CHILD, which must be a keyword."
 	  )
 	 ))
 
-      ((let (pos)
-	 (setq pos (save-excursion (ada-smie-goto-statement-start arg) (point)))
-	 (if (not (= pos (point)))
+      ((save-excursion
+	 (let* ((parent (ada-smie-goto-statement-start arg))
+		(pos (point)))
+	   (when (not (= pos (point)))
 	     ;; Hanging; we are not at the start of a statement/declaration.
 	     ;; Indent relative to the line the statement start is on.
+	     (goto-char pos)
+	     (cond
+	      ((equal (nth 1 parent) "(")
+	       nil); indent to the (, not the line it is on
+	      (t (back-to-indentation)))
+
 	     (cons
 	      'column
-	      (+ (save-excursion
-		   (goto-char pos)
-		   (back-to-indentation)
-		   (current-column))
-		 ada-indent-broken)))
-	 ))
+	      (+ (current-column) ada-indent-broken))
+	 ))))
       ))
 
-;;; :after
+;;;; :after
     (:after
      ;; `arg' is a keyword at the end of a line, point is at start of
      ;; the keyword; we are indenting the following token, which may
@@ -3393,7 +3476,7 @@ the start of CHILD, which must be a keyword."
       ))
     ))
 
-;;;; smie-indent-functions
+;;;;; smie-indent-functions
 ;;
 ;; each must not move point, and must return a column (as an integer) or nil.
 ;;
@@ -3598,7 +3681,39 @@ statement start.  Intended to be the last item in
 made."
   (cdr (ada-smie-rule-statement ada-indent-broken nil)))
 
-;;; other stuff
+;;;; other stuff
+
+(defun ada-smie-goto-declaration-start ()
+  "Move point to start of declaration point is currently in or just after.
+Return declaration name, set ff-function-name as needed by `ada-which-function'."
+  (let (token)
+
+    ;; look on the line we are on first, then back.
+    (end-of-line)
+    (when (ada-in-comment-p)
+      ;; backward-token doesn't work from inside a comment.
+      (beginning-of-line))
+
+    (while
+	(not
+	 (member (setq token (ada-smie-backward-keyword))
+		 '("function-overriding"
+		   "function-spec"
+		   "package-generic"
+		   "package-plain"
+		   "procedure-overriding"
+		   "procedure-spec"
+		   "protected-body"
+		   "protected-type"
+		   "task-body"
+		   "task-single"
+		   "task-type"
+		   nil))); bob, just in case we forgot something
+      )
+
+    (ada-smie-goto-statement-start token)
+
+))
 
 (defun ada-smie-which-function ()
   "For `ada-which-function', which see."
@@ -3615,40 +3730,16 @@ made."
   ;; One solution for both cases is to parse up to the top level,
   ;; remembering the names along the way. Another is to mark each
   ;; declaration with a text property giving the selected name.
-  (let (token
-	(done nil)
-	(strip-body-p nil)
-	(add-body-p t)
-	(result nil)
-	(symbol-end
-	 ;; we can't just add \> here; that might match _ in a user modified ada-mode-syntax-table
-	 "\\([^_]\\|$\\)")
-	)
-    (save-excursion
-      ;; look on the line we are on first, then back.
-      (end-of-line)
-      (when (ada-in-comment-p)
-	;; backward-token doesn't work from inside a comment.
-	(beginning-of-line))
+  (save-excursion
+    (let (token
+	  (done nil)
+	  (result nil)
+	  (symbol-end
+	   ;; we can't just add \> here; that might match _ in a user modified ada-mode-syntax-table
+	   "\\([^_]\\|$\\)")
+	  )
 
-      (while
-	  (not
-	   (member (setq token (ada-smie-backward-keyword))
-		   '("function-overriding"
-		     "function-spec"
-		     "package-generic"
-		     "package-plain"
-		     "procedure-overriding"
-		     "procedure-spec"
-		     "protected-body"
-		     "protected-type"
-		     "task-body"
-		     "task-single"
-		     "task-type"
-		     nil))); bob, just in case we forgot something
-	)
-
-      (ada-smie-goto-statement-start token)
+      (ada-smie-goto-declaration-start)
 
       (while (not done)
 	(setq token (ada-smie-forward-token))
@@ -3720,8 +3811,7 @@ made."
 		 "^"
 		 (buffer-substring-no-properties (point-at-bol) (point))
 		 symbol-end)))
-      )
-    result))
+    result)))
 
 (defun ada-smie-in-paramlist-p ()
   "For `ada-in-paramlist-p'."
@@ -3873,7 +3963,31 @@ made."
       (cons begin end)
     )))
 
-;;; parser debug
+(defun ada-smie-make-subprogram-body ()
+  "For `ada-make-subprogram-body'."
+  (let ((name (progn (ada-smie-forward-token) (ada-smie-forward-name)))
+	(token (ada-smie-forward-tokens-unrefined "is" ";"))
+	begin)
+
+    (cond
+     ((equal token "is")
+      (error "%s is a subprogram body, not spec" name))
+
+     (t
+      (delete-char -1); ';'
+      (newline-and-indent)
+      (setq begin (point))
+      (insert " is begin\n\nend ")
+      (insert name)
+      (insert ";")
+      (indent-region begin (point))
+      (forward-line -1)
+      ;; indent-region does not indent blank lines
+      (smie-indent-line)
+      )
+    )))
+
+;;;; parser debug
 (defvar ada-smie-debug-refine nil
   "When non-nil, `ada-smie-show-keyword-forward' and
 `ada-smie-show-keyword-backward' invalidate cache first, so
@@ -3998,7 +4112,7 @@ This lets us know which indentation function succeeded."
   (define-key ada-mode-map "\M-k" 'ada-smie-show-keyword-forward)
   )
 
-;;; parser setup
+;;;; parser setup
 
 (defun ada-smie-setup ()
 
@@ -4079,6 +4193,8 @@ This lets us know which indentation function succeeded."
   (set (make-local-variable 'ada-which-function) 'ada-smie-which-function)
   (set (make-local-variable 'ada-in-paramlist-p) 'ada-smie-in-paramlist-p)
   (set (make-local-variable 'ada-scan-paramlist) 'ada-smie-scan-paramlist)
+  (set (make-local-variable 'ada-goto-declaration-start) 'ada-smie-goto-declaration-start)
+  (set (make-local-variable 'ada-make-subprogram-body) 'ada-smie-make-subprogram-body)
   )
 
 (add-hook 'ada-mode-hook 'ada-smie-setup)
@@ -4086,4 +4202,4 @@ This lets us know which indentation function succeeded."
 (provide 'ada-smie)
 (provide 'ada-indent-engine)
 
-;;; end of file
+;; end of file

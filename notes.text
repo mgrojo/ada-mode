@@ -3,12 +3,6 @@ General notes on porting Emacs Ada mode indentation engine to smie
 (setq ada-smie-debug-refine t)
 (setq ada-smie-debug-refine nil)
 
-(global-font-lock-mode -1)
-(global-font-lock-mode 1)
-font-lock calls ada-smie-backward-keyword, which moves ada-smie-cache-max
-
-/Apps/emacs-24.2/lisp/emacs-lisp/smie.el
-
 runtest from emacs -q:
 (progn
   (add-to-list 'load-path "/Projects/org.emacs.ada-mode.smie")
@@ -39,25 +33,24 @@ review FIXMEs
 (grep-find "find . -type f -print | \"xargs\" grep -nH \"FIXME:\"")
  ada-smie
 test/Makefile  ;; set project file
-
-'"' broken in Emacs 24.3
-    test/ada_mode-nominal.adb Function_2a
-    try 24.2.91 released 15 dec
-        source: ftp://alpha.gnu.org/gnu/emacs/pretest/emacs-24.2.91.tar.gz
-        binary: https://www.dropbox.com/sh/7jr3vbv9tm1zod0/jPuvfrJAe8
-
 FIXMEs
-    ada_mode-quantified_expressions.adb
+    test/Makefile
+        some tests failing
+
+    ada-display-buffer-other-frame broken in emacs 24.3
+        fixed, but review windows.el to see if there is now a better way
+        also, need way to create new frame for commit message window
 
     context menus
 
     project files on menu
 
-    ada-make-subprogram-body
-    ada-make-body
-    C-c C-b
-
     manual
+
+ada-mode-patches.el
+    add ELSE placeholders to ada-font-lock-syntactic-keywords,
+        sets them to comment syntax so smie will ignore them
+        now done in syntax-propertize; need user hook?
 
 mouse operations
     goto-declaration
@@ -83,6 +76,13 @@ gnat-fix
 
     ada-gnat-fix-error.el
         add stuff as I encounter it - use at work!
+
+ada-make-subprogram-body
+
+    or, if in spec file:
+        find the next or previous declaration in the spec file
+        use ada-find-other-file to find that in the body file
+        place the body stub there
 
 ada-align-paramlist
     test/ada_mode-parens.adb
@@ -114,6 +114,11 @@ manuel Gomez using comp_cmd, make_cmd, src_dir, obj_dir; not .gpr files
 ada-find-other-file in separate bodies
     not on 'separate' line; must use ada-gnat-xref
 
+    alternate to 'gnat find': gnatinspect
+        packaged in GNAT GPL 2012, not in 7.0.1, 7.1, gnatcoll-1.4
+        uses gnatcoll.xref library
+        tell adacore how well it works
+        waiting for gnatcoll 1.5
 
 add ada-spec/body-suffixes to the Emacs project file
 
