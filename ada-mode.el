@@ -331,9 +331,9 @@ properly cased word; value is t.")
 (defun ada-case-read-exceptions (file-name)
   "Read the content of the casing exception file FILE-NAME.
 Return (cons full-exceptions partial-exceptions)."
-  (setq file-name (expand-file-name file-name))
+  (setq file-name (expand-file-name (substitute-in-file-name file-name)))
   (unless (file-readable-p file-name)
-    (error "'%s' is not a readable file."))
+    (error "'%s' is not a readable file." file-name))
 
   (let (full-exceptions partial-exceptions word)
     (with-temp-buffer
@@ -1358,7 +1358,11 @@ either an existing one, or a new one if there are no existing other frames."
 
      (frame-2
       (setq type 'reuse)
-      (setq window (get-lru-window frame-2))
+      (setq window
+	    (or
+	     (get-lru-window frame-2)
+	     ;; lru-window can be nil if window was deleted, by ediff for example
+	     (frame-first-window frame-2)))
       (setq frame frame-2))
 
      (t
@@ -1714,12 +1718,22 @@ into a subprogram body stub, by calling `ada-make-subprogram-body'."
   "Function to create a package body from a package spec.
 Called with no arguments; current buffer is the package spec.
 Should create a package body file, containing skeleton code that
-will compile, and visit the file.")
+will compile.")
 
 (defun ada-make-package-body ()
   (if ada-make-package-body
       (funcall ada-make-package-body)
     (error "`ada-make-package-body' not set")))
+
+(defun ada-ff-create-body ()
+  ;; ff-find-other-file calls us with point in an empty buffer for the
+  ;; body file; ada-make-package-body expects to be in the spec. So go
+  ;; back.
+  (ff-find-the-other-file)
+  (funcall ada-make-package-body)
+  ;; back to the body, read in from the disk.
+  (ff-find-the-other-file)
+  (revert-buffer t t))
 
 ;;;; fill-comment
 
@@ -2031,7 +2045,7 @@ The paragraph is indented on the first line."
   (set (make-local-variable 'ff-other-file-alist)
        'ada-other-file-alist)
   (setq ff-post-load-hook    'ada-set-point-accordingly
-	ff-file-created-hook 'ada-make-package-body)
+	ff-file-created-hook 'ada-ff-create-body)
   (add-hook 'ff-pre-load-hook 'ada-which-function)
   (setq ff-search-directories 'compilation-search-path)
   (ada-set-ff-special-constructs)

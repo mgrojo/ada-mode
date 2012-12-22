@@ -1,5 +1,5 @@
---EMACSCMD:(ada-parse-prj-file "ada_mode.gpr")
---EMACSCMD:(ada-select-prj-file "ada_mode.gpr")
+--EMACSCMD:(ada-parse-prj-file "subdir/ada_mode.adp")
+--EMACSCMD:(ada-select-prj-file "subdir/ada_mode.adp")
 package Ada_Mode.Nominal.Child is
 
    --EMACSCMD:(condition-case nil (delete-file "ada_mode-nominal-child.adb") (error nil))

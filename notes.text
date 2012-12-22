@@ -33,14 +33,10 @@ review FIXMEs
 (grep-find "find . -type f -print | \"xargs\" grep -nH \"FIXME:\"")
  ada-smie
 test/Makefile  ;; set project file
+
+need better way to turn on ada-smie indent wrappers
+
 FIXMEs
-    test/Makefile
-        some tests failing
-
-    ada-display-buffer-other-frame broken in emacs 24.3
-        fixed, but review windows.el to see if there is now a better way
-        also, need way to create new frame for commit message window
-
     context menus
 
     project files on menu
@@ -59,10 +55,10 @@ mouse operations
 
 set indent (and all) options in project file
 
-set GPR_PROJECT_PATH, not ADA_PROJECT_PATH
-
 include gpr-mode
     use simi
+
+add <gnat>/lib/gnat to compilation-search-path, for library *.gpr
 
 gnat-fix
     c:/Projects/emacs_stephe.main/emacs_stephe/gnat-fix-error.el
@@ -83,6 +79,15 @@ ada-make-subprogram-body
         find the next or previous declaration in the spec file
         use ada-find-other-file to find that in the body file
         place the body stub there
+
+    or, put body skeleton in kill ring, let user paste it in body
+
+    make it easy to select body/spec for cut and paste
+
+    ada-goto-declaration-start misses "not" in "not overriding"
+        ada_mode-nominal.ads Function_2f
+
+    gnat switch for alphabetical order; option to match that
 
 ada-align-paramlist
     test/ada_mode-parens.adb
@@ -137,6 +142,8 @@ rest of ada-mode
         http://debbugs.gnu.org/cgi/pkgreport.cgi?package=ada-mode
 
     submit adacore bug report on 'gnat list' accept '--subdirs'
+
+review windows.el to see if there is now a better solution than ada-display-buffer
 
 compilation mode
 

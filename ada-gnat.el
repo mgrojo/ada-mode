@@ -241,8 +241,9 @@ Assumes current buffer is (ada-gnat-run-buffer)"
 	    (concat "-P" (file-name-nondirectory (ada-prj-get 'gpr_file)))))
 	 (cmd (append command (list project-file-switch) switches-args)))
 
-    (insert (format "ADA_PROJECT_PATH=%s\ngnat " (getenv "ADA_PROJECT_PATH"))); for debugging
     (setq cmd (delete-if 'null cmd))
+
+    (insert (format "ADA_PROJECT_PATH=%s\ngnat " (getenv "ADA_PROJECT_PATH"))); for debugging
     (mapc (lambda (str) (insert (concat str " "))) cmd);; show command for debugging
     (newline)
     (apply 'call-process "gnat" nil t nil cmd)
@@ -389,13 +390,14 @@ If PARENT is non-nil, return parent type declaration (assumes IDENTIFIER is a de
 (defun ada-gnat-make-package-body ()
   "For `ada-make-package-body'."
   (let ((start-file (buffer-file-name))
-	(opts (split-string (ada-prj-get 'gnat_stub_opts)))
-	(switches (split-string (ada-prj-get 'gnat_stub_switches)))
+	;; can also specify gnat stub options/switches in .gpr file, in package 'gnatstub'.
+	(opts (when (ada-prj-get 'gnat_stub_opts)
+		(split-string (ada-prj-get 'gnat_stub_opts))))
+	(switches (when (ada-prj-get 'gnat_stub_switches)
+		    (split-string (ada-prj-get 'gnat_stub_switches))))
 	status)
     (with-current-buffer (ada-gnat-run-buffer)
-      (if switches
-	  (setq status (ada-gnat-run (append (list "stub") opts (list start-file "-cargs") switches)))
-	(setq status (ada-gnat-run (append (list "stub") opts start-file))))
+      (setq status (ada-gnat-run (append (list "stub") opts (list start-file "-cargs") switches)))
 
       (cond
        ((= status 0); success
@@ -565,6 +567,18 @@ For `compilation-filter-hook'."
 	(let ((package-name (match-string-no-properties 1)))
 	  (pop-to-buffer source-buffer)
 	  (ada-fix-add-with-clause package-name)))
+
+       ;; style errors
+       ((looking-at (concat "(style) bad casing of " ada-gnat-quoted-name-regexp))
+	(let ((correct (match-string-no-properties 1))
+	      end)
+	  ;; gnat leaves point on first bad character, but we need to replace the whole word
+	  (set-buffer source-buffer)
+	  (skip-syntax-backward "w_")
+	  (setq end (point))
+	  (skip-syntax-forward "w_")
+	  (delete-region (point) end)
+	  (insert correct)))
 
        (t
 	(error "error not recognized"))
