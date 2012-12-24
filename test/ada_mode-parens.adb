@@ -72,6 +72,25 @@ package body Ada_Mode.Parens is
          3 |
            4 => (2, 2, 2));
 
+      -- Parsing inside nested parens
+      --EMACSCMD:(progn (end-of-line 4)(backward-char 2)(ada-smie-validate-cache (point))(ada-smie-get-cache (point)))
+      --EMACSRESULT:"=>"
+      A :=
+        (1 =>
+           -- The first validate-cache above does the entire aggregate
+           --EMACSCMD:(progn (forward-line 3)(forward-word 1)(forward-char 1)(ada-smie-get-cache (point)))
+           --EMACSRESULT:"=>"
+           (1 => 12,
+            2 => 13,
+            3 => 14),
+         2 =>
+           --EMACSCMD:(progn (forward-line 3)(forward-word 1)(forward-char 1)(ada-smie-get-cache (point)))
+           --EMACSRESULT:"=>"
+           (1 => 22,
+            2 => 23,
+            3 => 24),
+         3 => (others => 30));
+
       --EMACSCMD:(progn (forward-line 3)(forward-word 1)(insert "   ")(ada-align))
       -- result is tested in diff
       return
@@ -256,7 +275,10 @@ package body Ada_Mode.Parens is
       null;
    end;
 
+   -- string nested in parens
    procedure Hello
+     (Message_1 : in String := "from ada_mode-parens.adb";
+      Message_2 : in String := "from ada_mode-parens.adb")
    is
       Hello : constant String := "hello";
       There  : constant String := " there";

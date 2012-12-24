@@ -145,7 +145,7 @@ package Ada_Mode.Nominal is
    -- most of the font-lock for this is tested by access to function below
    --EMACSCMD:(test-face "procedure (" font-lock-keyword-face)
    type Procedure_Access_Type_1 is access protected procedure (A_Param : out Integer);
-   --EMACSCMD:(progn (beginning-of-line)(forward-line -1)(ada-which-function))
+   --EMACSCMD:(ada-which-function)
    --EMACSRESULT:"Procedure_Access_Type_1"
    --  Compare to "Ada_Mode" result above; good enough.
 
@@ -536,7 +536,7 @@ package Ada_Mode.Nominal is
    -- all good parsers to come to the aid of programmer.            --
 
    not overriding procedure Procedure_1a (Item  : in out Parent_Type_1);
-   --EMACSCMD:(progn (beginning-of-line)(forward-line -1)(ada-which-function))
+   --EMACSCMD:(ada-which-function)
    --EMACSRESULT:"Procedure_1a"
 
    not overriding
@@ -553,15 +553,15 @@ package Ada_Mode.Nominal is
       Item_1 : in     Character;
       Item_2 : out    Character)
      is null;
-   --EMACSCMD:(progn (beginning-of-line)(forward-line -5)(ada-which-function))
+   --EMACSCMD:(progn (forward-line -5)(ada-which-function))
+   --EMACSRESULT:"Procedure_1c"
+   --EMACSCMD:(progn (forward-line -6)(ada-which-function))
    --EMACSRESULT:"Procedure_1d"
-   --EMACSCMD:(progn (beginning-of-line)(forward-line -6)(ada-which-function))
+   --EMACSCMD:(progn (forward-line -7)(ada-which-function))
    --EMACSRESULT:"Procedure_1d"
-   --EMACSCMD:(progn (beginning-of-line)(forward-line -7)(ada-which-function))
+   --EMACSCMD:(progn (forward-line -8)(ada-which-function))
    --EMACSRESULT:"Procedure_1d"
-   --EMACSCMD:(progn (beginning-of-line)(forward-line -8)(ada-which-function))
-   --EMACSRESULT:"Procedure_1d"
-   --EMACSCMD:(progn (beginning-of-line)(forward-line -9)(ada-which-function))
+   --EMACSCMD:(progn (forward-line -9)(ada-which-function))
    --EMACSRESULT:"Procedure_1d"
 
    procedure Procedure_1e (Item   : in out Parent_Type_1;
@@ -597,7 +597,7 @@ package Ada_Mode.Nominal is
      (Parent_Element_1 => 1,
       Parent_Element_2 => 2.0,
       Parent_Element_3 => False);
-   --EMACSCMD:(progn (beginning-of-line)(forward-line -2)(ada-which-function))
+   --EMACSCMD:(progn (forward-line -2)(ada-which-function))
    --EMACSRESULT:"Function_2g"
 
    procedure Procedure_2a;

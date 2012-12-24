@@ -4,7 +4,7 @@
 (setq vc-handled-backends '(CVS))
 
 (require 'ada-mode)
-(require 'ada-smie-opentoken)
+(require 'ada-smie-opentoken);; FIXME: better to put this in the project file; minor mode?
 
 (defvar skip-reindent-test nil);; user can set to t in an EMACSCMD
 (defvar skip-cmds nil);; user can set to t in an EMACSCMD

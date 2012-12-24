@@ -532,57 +532,119 @@ For `compilation-filter-hook'."
 		(ada-fix-insert-unit-name unit-name)
 		(insert ".")))))))
 
-       ((looking-at (concat ada-gnat-quoted-name-regexp " not declared in " ada-gnat-quoted-name-regexp))
-	(let ((child-name (match-string 1))
-	      correct-spelling)
-	  ;; First check for "possible misspelling" message on next line
-	  (save-excursion
-	    (next-line 1)
-	    (if (looking-at (concat "possible misspelling of " ada-gnat-quoted-name-regexp))
-		;; correctable misspelling
-		(progn
-		  (setq correct-spelling (match-string 1))
-		  (pop-to-buffer source-buffer)
-		  (search-forward child-name)
-		  (replace-match correct-spelling)
-		  );; progn
-	      ;; else guess that "child" is a child package, and extend the with_clause
-	      (pop-to-buffer source-buffer)
-	      (ada-fix-extend-with-clause child-name)))))
+         ((looking-at (concat ada-gnat-quoted-name-regexp " is undefined"))
+          ;; We either need to add a with_clause for a package, or
+          ;; something is spelled wrong. Check next line for spelling error.
+          (let ((unit-name (match-string 1))
+                correct-spelling)
+            (save-excursion
+              (next-line 1)
+              (if (looking-at (concat "possible misspelling of " ada-gnat-quoted-name-regexp))
+                  ;; correctable misspelling
+                  (progn
+                    (setq correct-spelling (match-string 1))
+                    (pop-to-buffer source-buffer)
+                    (search-forward unit-name)
+                    (replace-match correct-spelling)
+                    );; progn
 
-       ((looking-at "expected an access type")
-	(progn
-	  (set-buffer source-buffer)
-	  (backward-char 1)
-	  (if (looking-at "\\.all")
-	      (delete-char 4)
-	    (ding))))
+                ;; assume missing with
+                (pop-to-buffer source-buffer)
+                (ada-fix-add-with-clause unit-name)))))
 
-       ((looking-at (concat "missing " ada-gnat-quoted-punctuation-regexp))
-	(let ((stuff (match-string-no-properties 1)))
+	 ((looking-at (concat ada-gnat-quoted-name-regexp " not declared in " ada-gnat-quoted-name-regexp))
+	  (let ((child-name (match-string 1))
+		correct-spelling)
+	    ;; First check for "possible misspelling" message on next line
+	    (save-excursion
+	      (next-line 1)
+	      (if (looking-at (concat "possible misspelling of " ada-gnat-quoted-name-regexp))
+		  ;; correctable misspelling
+		  (progn
+		    (setq correct-spelling (match-string 1))
+		    (pop-to-buffer source-buffer)
+		    (search-forward child-name)
+		    (replace-match correct-spelling)
+		    );; progn
+		;; else guess that "child" is a child package, and extend the with_clause
+		(pop-to-buffer source-buffer)
+		(ada-fix-extend-with-clause child-name)))))
+
+;;;; strings
+         ((looking-at (concat "\"end " ada-name-regexp ";\" expected"))
+          (let ((expected-name (match-string 1)))
+            (pop-to-buffer source-buffer)
+            (if (looking-at (concat "end " ada-name-regexp ";"))
+                (progn
+                  (goto-char (match-end 1))   ; just before ';'
+                  (delete-region (match-beginning 1) (match-end 1)))
+              ;; else we have just 'end;'
+              (forward-word 1)
+              (insert " "))
+            (insert expected-name)))
+
+	 ((looking-at "expected an access type")
+	  (progn
+	    (set-buffer source-buffer)
+	    (backward-char 1)
+	    (if (looking-at "\\.all")
+		(delete-char 4)
+	      (ding))))
+
+	 ((looking-at "extra \".\" ignored")
 	  (set-buffer source-buffer)
+	  (delete-char 1))
+
+	 ((looking-at (concat "missing " ada-gnat-quoted-punctuation-regexp))
+	  (let ((stuff (match-string-no-properties 1)))
+	    (set-buffer source-buffer)
 	  (insert stuff)))
 
-       ((looking-at (concat "missing \"with \\([a-zA-Z0-9_.']+\\);\""))
-	(let ((package-name (match-string-no-properties 1)))
+	 ((looking-at (concat "missing \"with \\([a-zA-Z0-9_.']+\\);\""))
+	  (let ((package-name (match-string-no-properties 1)))
+	    (pop-to-buffer source-buffer)
+	    ;; FIXME: should check if prefix is already with'd, extend it
+	    (ada-fix-add-with-clause package-name)))
+
+	 ((looking-at "prefix of dereference must be an access type")
 	  (pop-to-buffer source-buffer)
-	  (ada-fix-add-with-clause package-name)))
+	  ;; point is after '.' in '.all'
+	  (delete-region (- (point) 1) (+ (point) 3)))
 
-       ;; style errors
-       ((looking-at (concat "(style) bad casing of " ada-gnat-quoted-name-regexp))
-	(let ((correct (match-string-no-properties 1))
-	      end)
-	  ;; gnat leaves point on first bad character, but we need to replace the whole word
-	  (set-buffer source-buffer)
-	  (skip-syntax-backward "w_")
-	  (setq end (point))
-	  (skip-syntax-forward "w_")
-	  (delete-region (point) end)
-	  (insert correct)))
+         ((looking-at (concat "warning: " ada-gnat-quoted-name-regexp " is not modified, could be declared constant"))
+          (pop-to-buffer source-buffer)
+          (ada-smie-forward-tokens-unrefined ":");; FIXME: generalize to wisi?
+          ;; "aliased" must be before "constant", so check for it
+          (when (looking-at "aliased")
+	    (forward-word 1))
+          (insert " constant"))
 
-       (t
-	(error "error not recognized"))
-       );; end of 'cond'
+         ((looking-at (concat "warning: unit " ada-gnat-quoted-name-regexp " is not referenced$"))
+          ;; just delete the 'with'; assume it's on a line by itself.
+          (pop-to-buffer source-buffer)
+          (beginning-of-line)
+          (delete-region (point) (progn (forward-line 1) (point))))
+
+;;;; style errors
+	 ((looking-at (concat "(style) bad casing of " ada-gnat-quoted-name-regexp))
+	  (let ((correct (match-string-no-properties 1))
+		end)
+	    ;; gnat leaves point on first bad character, but we need to replace the whole word
+	    (set-buffer source-buffer)
+	    (skip-syntax-backward "w_")
+	    (setq end (point))
+	    (skip-syntax-forward "w_")
+	    (delete-region (point) end)
+	    (insert correct)))
+
+	 ((looking-at "(style) space required")
+	  (progn
+	    (set-buffer source-buffer)
+	    (insert " ")))
+
+	 (t
+	  (error "error not recognized"))
+	 );; end of 'cond'
     ;; restore compilation buffer point
     (set-buffer compilation-last-buffer)
     (compilation-next-error 0)

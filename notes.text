@@ -1,7 +1,7 @@
 General notes on porting Emacs Ada mode indentation engine to smie
 
-(setq ada-smie-debug-refine t)
-(setq ada-smie-debug-refine nil)
+(setq ada-smie-debug t)
+(setq ada-smie-debug nil)
 
 runtest from emacs -q:
 (progn
@@ -34,7 +34,33 @@ review FIXMEs
  ada-smie
 test/Makefile  ;; set project file
 
-need better way to turn on ada-smie indent wrappers
+include gpr-mode
+    need opentoken -> ada-gpr-wy.el
+        match output of wisent-compile-grammar
+        can use semantic-lex-make-keyword-table
+        use ada-wisent-grammar as test example
+    /Projects/org.opentoken.stephe/build/windows_debug/Makefile
+        one
+        specs compile. opentoken modified; run all tests
+
+
+align
+       Syntax : constant Tokenizer.Syntax :=
+     (Action_ID          => Tokenizer.Get
+        (Bracketed_Comment.Get
+           ("(", ")",
+            Reportable   => True,
+            Nested       => True),
+         Action),
+      Bar_ID             => Tokenizer.Get (Keyword.Get ("|"), Tokens.Get (Bar_ID)),
+      Comment_ID         => Tokenizer.Get (Line_Comment.Get ("//")),
+      Colon_ID           => Tokenizer.Get (Keyword.Get (":"), Tokens.Get (Colon_ID)),
+
+    aligned "Syntax :" and ":" colons, inserted space in ":"!
+
+font
+   type Instance is new Nonterminal.Instance with record
+        'new' is in wrong font
 
 FIXMEs
     context menus
@@ -42,6 +68,11 @@ FIXMEs
     project files on menu
 
     manual
+
+don't parse or move cache if narrowed
+
+old options set in ada-mode-hook are now ignored
+    need warning?
 
 ada-mode-patches.el
     add ELSE placeholders to ada-font-lock-syntactic-keywords,
@@ -54,9 +85,6 @@ mouse operations
     others?
 
 set indent (and all) options in project file
-
-include gpr-mode
-    use simi
 
 add <gnat>/lib/gnat to compilation-search-path, for library *.gpr
 
@@ -143,7 +171,11 @@ rest of ada-mode
 
     submit adacore bug report on 'gnat list' accept '--subdirs'
 
-review windows.el to see if there is now a better solution than ada-display-buffer
+ada-display-buffer
+    not setting history right
+        bury buffer doesn't bring back last buffer
+
+    review windows.el to see if there is now a better solution than
 
 compilation mode
 

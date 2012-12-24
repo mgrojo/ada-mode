@@ -21,7 +21,7 @@ package body Ada_Mode.Find_File is
       null;
    end P_Bug_One;
 
-   --EMACSCMD:(progn (forward-line 1)(ada-find-other-file t)(looking-at "   procedure P_Bug$"))
+   --EMACSCMD:(progn (forward-line 2)(ada-find-other-file t)(looking-at "   procedure P_Bug$"))
    procedure P_Bug
      (Param_1 : in Integer)
    is

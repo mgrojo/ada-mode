@@ -1,9 +1,14 @@
+{bad syntax at beginning of buffer}
 -- Test various things interactively; while the user is typing code.
 
 -- This file doesn't compile; it contains deliberately incomplete code.
 
 -- It also doesn't pass the reindent and diff test, since we are deliberately adding newlines
 --EMACSCMD:(setq skip-reindent-test t)
+
+-- Test bad character at beginning of file vs ada-smie-forward-keyword
+--EMACSCMD:(progn (goto-char (point-min))(ada-smie-forward-keyword))
+--EMACSAT: Procedure_1
 
 -- Test cache managment when inserting a with clause; used to screw up
 --EMACSCMD:(progn (forward-line 2)(ada-smie-validate-cache (point))(insert "with A;\n")ada-smie-cache-max)
@@ -93,31 +98,30 @@ end Procedure_1;
 package Package_1 is
    -- package declaration resets smie indentation to something reasonable
 
-   --EMACSCMD:(progn (forward-line 2)(ada-make-subprogram-body))
+   --EMACSCMD:(progn (forward-line 3)(ada-make-subprogram-body))
    --EMACSAT:"procedure Proc_1\n   is begin\n     \nend Proc_1;"
    procedure Proc_1;
-   
-   --EMACSCMD:(progn (forward-line 2)(ada-make-subprogram-body))
+
+   --EMACSCMD:(progn (forward-line 3)(ada-make-subprogram-body))
    --EMACSAT:"procedure Proc_2 (A : in Integer)\n   is begin\n     \nend Proc_2;"
    procedure Proc_2 (A : in Integer);
-   
-   --EMACSCMD:(progn (forward-line 2)(ada-make-subprogram-body))
+
+   --EMACSCMD:(progn (forward-line 3)(ada-make-subprogram-body))
    --EMACSAT:"function Func_1 return Integer\n   is begin\n     \nend Func_1;"
    function Func_1 return Integer;
-   
-   --EMACSCMD:(progn (forward-line 2)(ada-make-subprogram-body))
+
+   --EMACSCMD:(progn (forward-line 3)(ada-make-subprogram-body))
    --EMACSAT:"function Func_1\n     (A : in Integer)\n     return Integer\n   is begin\n     \nend Func_1;"
    function Func_1
      (A : in Integer)
      return Integer;
 
-   --EMACSCMD:(progn (forward-line 3)(ada-make-subprogram-body))
-   -- FIXME: verify expected error? 
-   procedure Proc_1;
-
 end Package_1;
 
--- This used to cause problems at end of buffer; refining "procedure"
--- requires scanning forward.
---EMACSCMD:(progn (forward-line 1)(end-of-line) (newline-and-indent))
+-- End of buffer tests
+
+--EMACSCMD:(progn (goto-char (point-max))(ada-case-adjust-at-point))
+
+-- refining "procedure" requires scanning forward.
+--EMACSCMD:(progn (goto-char (point-max)) (newline-and-indent))
 procedure Ada_Mode.Interactive_Return

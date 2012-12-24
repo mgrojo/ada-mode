@@ -259,6 +259,244 @@ If nil, no contextual menu is available."
      "\\)\\>\\)"))
   "See the variable `align-region-separate' for more information.")
 
+(defun ada-align ()
+  "If region is active, apply 'align'. If not, attempt to align
+current construct."
+  (interactive)
+  (if (use-region-p)
+      (progn
+        (align (region-beginning) (region-end))
+        (deactivate-mark))
+
+    ;; else see if we are in a construct we know how to align
+    (cond
+     ((ada-in-paramlist-p)
+        (ada-format-paramlist))
+
+     (t
+      (align-current))
+     )))
+
+(defvar ada-in-paramlist-p nil
+  "Function to return t if point is inside the parameter-list of a subprogram declaration.
+Function is called with no arguments.
+Supplied by indentation engine parser.")
+
+(defun ada-in-paramlist-p ()
+  "Return t if point is inside the parameter-list of a subprogram declaration."
+  (when ada-in-paramlist-p
+    (funcall ada-in-paramlist-p)))
+
+(defun ada-format-paramlist ()
+  "Reformat the parameter list point is in."
+  (interactive)
+  (ada-goto-open-paren)
+
+  (let* ((begin (point))
+	 (delend (progn (forward-sexp) (point))); just after matching closing paren
+	 (end (progn (forward-comment (- (point))) (point))); end of last parameter-declaration
+	 (multi-line (> end (save-excursion (goto-char begin) (line-end-position))))
+	 (paramlist (ada-scan-paramlist (1+ begin) end)))
+
+    (when paramlist
+      ;; delete the original parameter-list
+      (delete-region begin delend)
+
+      ;; insert the new parameter-list
+      (goto-char begin)
+      (if multi-line
+	  (ada-insert-paramlist-multi-line paramlist)
+	(ada-insert-paramlist-single-line paramlist)))
+    ))
+
+(defvar ada-scan-paramlist nil
+  "Function to scan a region, return a list of subprogram parameter declarations (in inverse declaration order).
+Function is called with two args BEGIN END (the region).
+Each parameter declaration is represented by a list
+'((identifier ...) in-p out-p not-null-p access-p constant-p protected-p type default)."
+  ;; mode is 'in | out | in out | [not null] access [constant | protected]'
+  ;; FIXME: handle single-line trailing comments, or longer comments, in paramlist?
+  )
+
+(defun ada-scan-paramlist (begin end)
+  (when ada-scan-paramlist
+    (funcall ada-scan-paramlist begin end)))
+
+(defun ada-insert-paramlist-multi-line (paramlist)
+  "Insert a multi-line formatted PARAMLIST in the buffer."
+  (let ((i (length paramlist))
+	param
+	j
+	len
+	(ident-len 0)
+	(type-len 0)
+	(in-p nil)
+	(out-p nil)
+	(not-null-p nil)
+	(access-p nil)
+	ident-col
+	colon-col
+	out-col
+	type-col
+	default-col)
+
+    ;; accumulate info across all params
+    (while (not (zerop i))
+      (setq i (1- i))
+      (setq param (nth i paramlist))
+
+      ;; identifier list
+      (setq len 0
+	    j   0)
+      (mapc (lambda (ident)
+	      (setq j (1+ j))
+	      (setq len (+ len (length ident))))
+	    (nth 0 param))
+      (setq len (+ len (* 2 (1- j)))); space for commas
+      (setq ident-len (max ident-len len))
+
+      ;; we align the defaults after the types that have defaults, not after all types.
+      ;; "constant", "protected" are treated as part of 'type'
+      (when (nth 8 param)
+	(setq type-len
+	      (max type-len
+		   (+ (length (nth 7 param))
+		      (if (nth 5 param) 10 0); "constant "
+		      (if (nth 6 param) 10 0); protected
+		      ))))
+
+      (setq in-p (or in-p (nth 1 param)))
+      (setq out-p (or out-p (nth 2 param)))
+      (setq not-null-p (or not-null-p (nth 3 param)))
+      (setq access-p (or access-p (nth 4 param)))
+      )
+
+    (unless (save-excursion (skip-chars-backward " \t") (bolp))
+      ;; paramlist starts on same line as subprogram identifier; clean up whitespace
+      (end-of-line)
+      (delete-char (- (skip-syntax-backward " ")))
+      (insert " "))
+
+    (insert "(")
+    (funcall indent-line-function)
+
+    ;; compute columns.
+    (setq ident-col (current-column))
+    (setq colon-col (+ ident-col ident-len 1))
+    (setq out-col (+ colon-col (if in-p 5 0))); ": in "
+    (setq type-col
+	  (+ colon-col
+	     (cond
+	      (not-null-p 18);    ": not null access "
+	      (access-p 9);        ": access"
+	      ((and in-p out-p) 9); ": in out "
+	      (out-p 6);           ": out "
+	      (in-p 5);            ": in "
+	      (t 2))));           ": "
+
+    (setq default-col (+ 1 type-col type-len))
+
+    (setq i (length paramlist))
+    (while (not (zerop i))
+      (setq i (1- i))
+      (setq param (nth i paramlist))
+
+      ;; insert identifiers, space and colon
+      (mapc (lambda (ident)
+	      (insert ident)
+	      (insert ", "))
+	    (nth 0 param))
+      (delete-backward-char 2); last ", "
+      (indent-to colon-col)
+      (insert ": ")
+
+      (when (nth 1 param)
+	(insert "in "))
+
+      (when (nth 2 param)
+	(indent-to out-col)
+	(insert "out "))
+
+      (when (nth 3 param)
+	(insert "not null "))
+
+      (when (nth 4 param)
+	(insert "access "))
+
+      (indent-to type-col)
+      (when (nth 5 param)
+	(insert "constant "))
+      (when (nth 6 param)
+	(insert "protected "))
+      (insert (nth 7 param)); type
+
+      (when (nth 8 param); default
+	(indent-to default-col)
+	(insert ":= ")
+	(insert (nth 8 param)))
+
+      (if (zerop i)
+	  (insert ")")
+	(insert ";")
+	(newline)
+	(indent-to ident-col))
+      )
+    ))
+
+(defun ada-insert-paramlist-single-line (paramlist)
+  "Insert a single-line formatted PARAMLIST in the buffer."
+  (let ((i (length paramlist))
+	param)
+
+    ;; clean up whitespace
+    (skip-syntax-forward " ")
+    (delete-char (- (skip-syntax-backward " ")))
+    (insert " (")
+
+    (setq i (length paramlist))
+    (while (not (zerop i))
+      (setq i (1- i))
+      (setq param (nth i paramlist))
+
+      ;; insert identifiers, space and colon
+      (mapc (lambda (ident)
+	      (insert ident)
+	      (insert ", "))
+	    (nth 0 param))
+      (delete-backward-char 2); last ", "
+
+      (insert " : ")
+
+      (when (nth 1 param)
+	(insert "in "))
+
+      (when (nth 2 param)
+	(insert "out "))
+
+      (when (nth 3 param)
+	(insert "not null "))
+
+      (when (nth 4 param)
+	(insert "access "))
+
+      (when (nth 5 param)
+	(insert "constant "))
+      (when (nth 6 param)
+	(insert "protected "))
+      (insert (nth 7 param)); type
+
+      (when (nth 8 param); default
+	(insert " := ")
+	(insert (nth 8 param)))
+
+      (if (zerop i)
+	  (if (= (char-after) ?\;)
+	      (insert ")")
+	    (insert ") "))
+	(insert "; "))
+      )
+    ))
+
 ;;;; context menu
 
 (defvar ada-context-menu-last-point nil)
@@ -534,7 +772,9 @@ If IN-COMMENT is non-nil, adjust case of words in comments."
   "Adjust case of word at point, move to end of word.
 With prefix arg, adjust case even if in comment."
   (interactive "P")
-  (when (memq (char-syntax (char-after)) '(?w ?_))
+  (when
+      (and (not (eobp))
+	   (memq (char-syntax (char-after)) '(?w ?_)))
     (skip-syntax-forward "w_"))
   (ada-case-adjust nil in-comment))
 
@@ -608,246 +848,6 @@ ARG is the prefix the user entered with \\[universal-argument]."
 	  '( ?_ ?% ?& ?* ?( ?) ?- ?= ?+
 		?| ?\; ?: ?' ?\" ?< ?, ?. ?> ?/ ?\n 32 ?\r ))
   )
-
-;;;; align
-
-(defun ada-align ()
-  "If region is active, apply 'align'. If not, attempt to align
-current construct."
-  (interactive)
-  (if (use-region-p)
-      (progn
-        (align (region-beginning) (region-end))
-        (deactivate-mark))
-
-    ;; else see if we are in a construct we know how to align
-    (cond
-     ((ada-in-paramlist-p)
-        (ada-format-paramlist))
-
-     (t
-      (align-current))
-     )))
-
-(defvar ada-in-paramlist-p nil
-  "Function to return t if point is inside the parameter-list of a subprogram declaration.
-Function is called with no arguments.
-Supplied by indentation engine parser.")
-
-(defun ada-in-paramlist-p ()
-  "Return t if point is inside the parameter-list of a subprogram declaration."
-  (when ada-in-paramlist-p
-    (funcall ada-in-paramlist-p)))
-
-(defun ada-format-paramlist ()
-  "Reformat the parameter list point is in."
-  (interactive)
-  (ada-goto-open-paren)
-
-  (let* ((begin (point))
-	 (delend (progn (forward-sexp) (point))); just after matching closing paren
-	 (end (progn (forward-comment (- (point))) (point))); end of last parameter-declaration
-	 (multi-line (> end (save-excursion (goto-char begin) (line-end-position))))
-	 (paramlist (ada-scan-paramlist (1+ begin) end)))
-
-    (when paramlist
-      ;; delete the original parameter-list
-      (delete-region begin delend)
-
-      ;; insert the new parameter-list
-      (goto-char begin)
-      (if multi-line
-	  (ada-insert-paramlist-multi-line paramlist)
-	(ada-insert-paramlist-single-line paramlist)))
-    ))
-
-(defvar ada-scan-paramlist nil
-  "Function to scan a region, return a list of subprogram parameter declarations (in inverse declaration order).
-Function is called with two args BEGIN END (the region).
-Each parameter declaration is represented by a list
-'((identifier ...) in-p out-p not-null-p access-p constant-p protected-p type default)."
-  ;; mode is 'in | out | in out | [not null] access [constant | protected]'
-  ;; FIXME: handle single-line trailing comments, or longer comments, in paramlist?
-  )
-
-(defun ada-scan-paramlist (begin end)
-  (when ada-scan-paramlist
-    (funcall ada-scan-paramlist begin end)))
-
-(defun ada-insert-paramlist-multi-line (paramlist)
-  "Insert a multi-line formatted PARAMLIST in the buffer."
-  (let ((i (length paramlist))
-	param
-	j
-	len
-	(ident-len 0)
-	(type-len 0)
-	(in-p nil)
-	(out-p nil)
-	(not-null-p nil)
-	(access-p nil)
-	ident-col
-	colon-col
-	out-col
-	type-col
-	default-col)
-
-    ;; accumulate info across all params
-    (while (not (zerop i))
-      (setq i (1- i))
-      (setq param (nth i paramlist))
-
-      ;; identifier list
-      (setq len 0
-	    j   0)
-      (mapc (lambda (ident)
-	      (setq j (1+ j))
-	      (setq len (+ len (length ident))))
-	    (nth 0 param))
-      (setq len (+ len (* 2 (1- j)))); space for commas
-      (setq ident-len (max ident-len len))
-
-      ;; we align the defaults after the types that have defaults, not after all types.
-      ;; "constant", "protected" are treated as part of 'type'
-      (when (nth 8 param)
-	(setq type-len
-	      (max type-len
-		   (+ (length (nth 7 param))
-		      (if (nth 5 param) 10 0); "constant "
-		      (if (nth 6 param) 10 0); protected
-		      ))))
-
-      (setq in-p (or in-p (nth 1 param)))
-      (setq out-p (or out-p (nth 2 param)))
-      (setq not-null-p (or not-null-p (nth 3 param)))
-      (setq access-p (or access-p (nth 4 param)))
-      )
-
-    (unless (save-excursion (skip-chars-backward " \t") (bolp))
-      ;; paramlist starts on same line as subprogram identifier; clean up whitespace
-      (end-of-line)
-      (delete-char (- (skip-syntax-backward " ")))
-      (insert " "))
-
-    (insert "(")
-    (funcall indent-line-function)
-
-    ;; compute columns.
-    (setq ident-col (current-column))
-    (setq colon-col (+ ident-col ident-len 1))
-    (setq out-col (+ colon-col (if in-p 5 0))); ": in "
-    (setq type-col
-	  (+ colon-col
-	     (cond
-	      (not-null-p 18);    ": not null access "
-	      (access-p 9);        ": access"
-	      ((and in-p out-p) 9); ": in out "
-	      (out-p 6);           ": out "
-	      (in-p 5);            ": in "
-	      (t 2))));           ": "
-
-    (setq default-col (+ 1 type-col type-len))
-
-    (setq i (length paramlist))
-    (while (not (zerop i))
-      (setq i (1- i))
-      (setq param (nth i paramlist))
-
-      ;; insert identifiers, space and colon
-      (mapc (lambda (ident)
-	      (insert ident)
-	      (insert ", "))
-	    (nth 0 param))
-      (delete-backward-char 2); last ", "
-      (indent-to colon-col)
-      (insert ": ")
-
-      (when (nth 1 param)
-	(insert "in "))
-
-      (when (nth 2 param)
-	(indent-to out-col)
-	(insert "out "))
-
-      (when (nth 3 param)
-	(insert "not null "))
-
-      (when (nth 4 param)
-	(insert "access "))
-
-      (indent-to type-col)
-      (when (nth 5 param)
-	(insert "constant "))
-      (when (nth 6 param)
-	(insert "protected "))
-      (insert (nth 7 param)); type
-
-      (when (nth 8 param); default
-	(indent-to default-col)
-	(insert ":= ")
-	(insert (nth 8 param)))
-
-      (if (zerop i)
-	  (insert ")")
-	(insert ";")
-	(newline)
-	(indent-to ident-col))
-      )
-    ))
-
-(defun ada-insert-paramlist-single-line (paramlist)
-  "Insert a single-line formatted PARAMLIST in the buffer."
-  (let ((i (length paramlist))
-	param)
-
-    ;; clean up whitespace
-    (skip-syntax-forward " ")
-    (delete-char (- (skip-syntax-backward " ")))
-    (insert " (")
-
-    (setq i (length paramlist))
-    (while (not (zerop i))
-      (setq i (1- i))
-      (setq param (nth i paramlist))
-
-      ;; insert identifiers, space and colon
-      (mapc (lambda (ident)
-	      (insert ident)
-	      (insert ", "))
-	    (nth 0 param))
-      (delete-backward-char 2); last ", "
-
-      (insert " : ")
-
-      (when (nth 1 param)
-	(insert "in "))
-
-      (when (nth 2 param)
-	(insert "out "))
-
-      (when (nth 3 param)
-	(insert "not null "))
-
-      (when (nth 4 param)
-	(insert "access "))
-
-      (when (nth 5 param)
-	(insert "constant "))
-      (when (nth 6 param)
-	(insert "protected "))
-      (insert (nth 7 param)); type
-
-      (when (nth 8 param); default
-	(insert " := ")
-	(insert (nth 8 param)))
-
-      (if (zerop i)
-	  (if (= (char-after) ?\;)
-	      (insert ")")
-	    (insert ") "))
-	(insert "; "))
-      )
-    ))
 
 ;;;; project files
 
@@ -1194,7 +1194,7 @@ If PARSE-RESULT is non-nil, use it instead of calling `syntax-ppss'."
   (> (nth 0 (or parse-result (syntax-ppss))) 0))
 
 (defun ada-goto-open-paren (&optional offset parse-result)
-  "Move point to opening paren surrounding current point, plus OFFSET.
+  "Move point to innermost opening paren surrounding current point, plus OFFSET.
 Throw error if not in paren.  If PARSE-RESULT is non-nil, use it
 instead of calling `syntax-ppss'."
   (goto-char (+ (or offset 0) (nth 1 (or parse-result (syntax-ppss))))))
@@ -1239,6 +1239,16 @@ unit name; it should return the Ada name that should be found in FILE-NAME.")
   "Return the ada-name that should be found in FILE-NAME."
   (funcall ada-ada-name-from-file-name file-name))
 
+(defun ada-ff-special-extract-parent ()
+  (setq ff-function-name (match-string 1))
+  (file-name-nondirectory
+   (or
+    (ff-get-file-name
+     compilation-search-path
+     (ada-file-name-from-ada-name ff-function-name)
+     ada-spec-suffixes)
+    (error "parent '%s' not found; set project file?" ff-function-name))))
+
 (defun ada-ff-special-extract-separate ()
   (let ((package-name (match-string 1)))
     (save-excursion
@@ -1257,12 +1267,16 @@ unit name; it should return the Ada name that should be found in FILE-NAME.")
       ada-body-suffixes))))
 
 (defun ada-ff-special-with ()
-  (setq ff-function-name (concat "^package\\s-+" (match-string 1) "\\([^_]\\|$\\)"))
-  (file-name-nondirectory
-   (ff-get-file-name
-    compilation-search-path
-    (ada-file-name-from-ada-name (match-string 1))
-    (append ada-spec-suffixes ada-body-suffixes))))
+  (let ((package-name (match-string 1)))
+    (setq ff-function-name (concat "^package\\s-+" package-name "\\([^_]\\|$\\)"))
+    (file-name-nondirectory
+     (or
+      (ff-get-file-name
+       compilation-search-path
+       (ada-file-name-from-ada-name (match-string 1))
+       (append ada-spec-suffixes ada-body-suffixes))
+      (error "package '%s' not found; set project file?" package-name)))
+    ))
 
 (defun ada-set-ff-special-constructs ()
   "Add Ada-specific pairs to `ff-special-constructs'."
@@ -1276,14 +1290,8 @@ unit name; it should return the Ada name that should be found in FILE-NAME.")
 	 ;; Top level child package declaration (not body), or child
 	 ;; subprogram declaration or body; go to the parent package.
 	 (cons (concat "^\\(?:private[ \t]+\\)?\\(?:package\\|procedure\\|function\\)[ \t]+"
-		       ada-parent-name-regexp "[ \t]+\\(?:;\\|is\\|return\\)")
-	       (lambda ()
-	       	 (setq ff-function-name (match-string 1))
-	       	 (file-name-nondirectory
-		  (ff-get-file-name
-	       	   compilation-search-path
-	       	   (ada-file-name-from-ada-name ff-function-name)
-	       	   ada-spec-suffixes))))
+		       ada-parent-name-regexp "\\(?:;\\|[ \t]+\\|$\\)")
+	       'ada-ff-special-extract-parent)
 
 	 ;; A "separate" clause.
 	 (cons (concat "^separate[ \t\n]*(" ada-name-regexp ")")

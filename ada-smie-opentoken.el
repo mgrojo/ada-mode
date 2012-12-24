@@ -39,5 +39,11 @@
 	  (lambda () (add-to-list 'smie-indent-functions 'ada-smie-opentoken))
 	  t)
 
+(add-to-list 'ada-align-modes
+	     '(ada-opentoken
+	       (regexp  . "[^=]\\(\\s-*\\)<=")
+	       (valid   . (lambda() (not (ada-in-comment-p))))
+	       (modes   . '(ada-mode))))
+
 (provide 'ada-smie-opentoken)
 ;; end of file
