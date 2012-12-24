@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2002, 2003, 2010 Stephe Leake
+-- Copyright (C) 2002, 2003, 2010, 2012 Stephe Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -32,6 +32,7 @@ with OpenToken.Token.Enumerated.Analyzer;
 --  This package provides an interface for a parser for grammars defined by a
 --  production list. There are many possible different methods for parsing.
 -------------------------------------------------------------------------------
+with OpenToken.Text_Feeder;
 generic
    with package Production_List is new OpenToken.Production.List;
    with package Tokenizer is new Token.Analyzer (<>);
@@ -66,7 +67,7 @@ package OpenToken.Production.Parser is
    --  Set the parser's text feeder. Raises Parse_Error if current
    --  text buffer is not empty.
    --------------------------------------------------------------------------
-   procedure Set_Text_Feeder (Parser : in out Instance; Feeder : in Tokenizer.Text_Feeder_Ptr);
+   procedure Set_Text_Feeder (Parser : in out Instance; Feeder : in Text_Feeder.Text_Feeder_Ptr);
 
    ------------------------------------------------------------------------
    --  Discard text in Parser.Analyzer's internal buffer. Do this when

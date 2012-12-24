@@ -1,0 +1,126 @@
+\input texinfo
+@c Author : Stephen Leake stephen_leake@stephe-leake.org
+@c Web    : {web_address}
+@setfilename wisi-user-manual.info
+@settitle Wisi Compiler User Manual
+
+@setchapternewpage off
+
+@node Top, Introduction, (dir), (dir)
+@top Overview
+
+"wisi" is short for "Wisent Indentation engine"; the Emacs 'wisi'
+package implements an indentation engine based on the Emacs wisent
+parser.
+
+"wisent" is the European bison @url{http://en.wikipedia.org/wiki/Wisent}.
+
+The 'wisent' parser generator is the Gnu parser generator implemented
+in Emacs elisp, as part of the semantic package
+@url{http://cedet.sourceforge.net/semantic.shtml}.  The parser itself
+(wisent-parse) is part of Emacs, but the parser compiler
+(wisent-compile-grammar) is not. The parser is an LALR parser; see
+@c FIXME: real name. also online smie reference covers LALR
+The Dragon Book for more information on LALR parsers.
+
+The OpenToken wisent compiler (wisi-compile) reads the Wisent
+input file, and outputs a compiled grammar in elisp format; it
+matches the output of wisent-compile-grammar, and can thus be used
+by wisent-parse.
+
+The input file syntax is the based on Gnu bison syntax
+@xref{Top,Bison,Overview,bison} with
+some additions, apparently not documented anywhere.
+
+This manual documents the syntax accepted by wisi-compile.
+
+@node Syntax, , ,
+@section Syntax
+
+wisi-compile supports a subset of the wisent syntax.
+
+The top level file structure is:
+@example
+%{
+PROLOGUE
+%}
+
+DECLARATIONS
+
+%%
+RULES
+%%
+@end example
+
+@node Prologue, , ,
+@subsection Prologue
+
+The Prologue contains arbitrary elisp code, copied verbatim into the
+output. Typically this will contain one statement:
+
+@example
+%{
+(require 'wisi)
+%}
+@end example
+
+@node Declarations, , ,
+@subsection Declarations
+
+The Declarations sections declares terminal tokens and some other
+things.
+
+@node Tokens
+@subsubsection Tokens
+There are two types of tokens:
+
+@example
+%keyword SEMICOLON ";"
+
+%token <symbol> IDENTIFIER
+@end example
+
+``Keywords'' are reserved words in the language; they are recognized
+by the given string.
+
+``Tokens'' are recognized by regular expressions. There some
+predefined token recognizers provided by wisent:
+
+@table @code
+@item <symbol>
+A string of characters that have word syntax according to the Emacs
+current syntax table.
+@end table
+
+@node Other Declarations, , ,
+@subsubsection Other Declarations
+Other items in the declaration section:
+
+@table @code
+@item %package
+Declares the prefix used for all elisp declarations in the output elisp file.
+
+@item %start
+The start token for the grammar.
+@c FIXME: wisent parser supports more than one start token?
+
+@end table
+
+@node Rules, , ,
+@subsection Rules
+
+The rules section declares the non-terminal tokens, and the associated
+production rules and actions.
+
+The syntax of rules is:
+
+@example
+{non-terminal} : {token} ... [action] | {token} ... [action] ;
+@end example
+
+Each rule gives the expansion of a non-terminal token into a list of
+tokens (both terminal and non-terminal); optional productions are
+separated by ``|''. Each list of tokens is followed by an ``action'',
+which is an elisp form that will be executed the production is reduced.
+
+@bye

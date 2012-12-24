@@ -1,5 +1,6 @@
 -------------------------------------------------------------------------------
 --
+-- Copyright (C) 2012 Stephe Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -31,6 +32,7 @@
 package OpenToken.Text_Feeder is
 
    type Instance is abstract tagged null record;
+   type Text_Feeder_Ptr is access all Instance'Class;
 
    ----------------------------------------------------------------------------
    --  This procedure returns strings for the analyzer.

@@ -25,10 +25,8 @@
 -------------------------------------------------------------------------------
 
 -----------------------------------------------------------------------------
---  This package defines a reusable token for a simple sequence of
---  tokens.
---
---  Compare to OpenToken.Token.Sequence.
+--  This package defines a generic sequence of tokens, for recursive
+--  descent parsers.
 -----------------------------------------------------------------------------
 
 with OpenToken.Token.Linked_List;

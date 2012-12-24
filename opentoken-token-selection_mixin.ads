@@ -25,12 +25,8 @@
 -------------------------------------------------------------------------------
 
 -----------------------------------------------------------------------------
---  This package defines a reusable token for a simple selection
---  between tokens of specific types.
---
---  Compare to opentoken-token-selection.ads; that is
---  derived from OpenToken.Token.Instance, and holds compenents of
---  type OpenToken.Token.Handle.
+--  This package defines a simple selection token for recursive
+--  descent parsers.
 -----------------------------------------------------------------------------
 
 with OpenToken.Token.Linked_List;

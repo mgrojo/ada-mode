@@ -1,5 +1,6 @@
 -------------------------------------------------------------------------------
 --
+-- Copyright (C) 2012 Stephen Leake
 -- Copyright (C) 1999 Christoph Karl Walter Grein
 --
 -- This file is part of the OpenToken package.
@@ -48,6 +49,8 @@ package OpenToken.Recognizer.Bracketed_Comment is
                  Reportable     : Boolean := False;
                  Nested         : Boolean := False) return Instance;
 
+
+   function Value (Item : in Instance) return String;
 
 private
 

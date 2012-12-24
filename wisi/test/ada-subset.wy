@@ -1,0 +1,105 @@
+;;; Wisent grammar for a small subset of Ada, to test the OpenToken
+;; Wisent grammar compiler.
+;;
+
+%{
+(require 'wisi)
+%}
+
+;; Declarations
+
+%package ada-wisent-grammar-wy
+
+;; token declarations
+;;
+;; The 'type' of a token is not used in the wisent LALR parser.
+;;
+;; There is no requirement that the syntax class of characters be
+;; reflected in the grammar.
+;;
+;; ada-wisi doesn't need any token types, but the semantic grammar
+;; compiler requires at least two; %keyword and something else for
+;; non-keyword tokens. So we use "symbol".
+;;
+;; In a wisi grammar, every token is either a keyword or an
+;; identifier.
+
+%keyword DOT "."
+;; Part of a name.
+
+;; Ada keywords (ARM 2.9)
+
+%keyword SEMICOLON ";"
+%keyword BEGIN "begin"
+%keyword BODY "body"
+%keyword END "end"
+%keyword FUNCTION "function"
+%keyword IS "is"
+%keyword PACKAGE "package"
+%keyword RETURN "return"
+
+;; terminals
+
+%token <symbol> IDENTIFIER
+
+%start compilation_unit
+
+%%
+;; grammar rules
+;;
+;; The actions cache information in keywords that are significant for
+;; indentation.
+
+compilation_unit
+  : package_body
+  ;
+
+package_body
+  : PACKAGE BODY name IS declarations BEGIN statements END name SEMICOLON
+    (wisi-cache-keywords
+     '($1 'other nil $region1)
+     '($4 'block-start nil $region4)
+     '($6 'block-both nil $region6)
+     '($8 'block-end nil $region8)
+     '($10 'statement-end nil $region10))
+  ;
+
+name
+  : IDENTIFIER
+  | name DOT IDENTIFIER
+ ;; no action; no keywords
+  ;
+
+declarations
+  : subprogram_body
+  | declarations subprogram_body
+ ;; no action; no visible keywords
+  ;
+
+subprogram_body
+ ;; adding 'declarative_part' here makes wisent-compile-grammar
+ ;; complain about useless nonterminals and rules, which is why we are
+ ;; using wisi-compile
+  : FUNCTION name RETURN name IS declarations BEGIN statements END name SEMICOLON
+    (wisi-cache-keywords
+     '($1 'other nil $region1)
+     '($5 'block-begin nil $region5); is
+     '($6 'block-both nil $region6); begin
+     '($8 'block-end nil $region8); end
+     '($10 'statement-end nil $region10))
+  ;
+
+statements
+  : statement
+  | statements statement
+  ;
+
+statement
+  : RETURN IDENTIFIER SEMICOLON
+    (wisi-cache-keywords
+     '($1 'other nil $region1)
+     '($3 'statement-end nil $region3))
+  ;
+%%
+
+;; end of file

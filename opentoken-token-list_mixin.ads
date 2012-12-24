@@ -25,9 +25,9 @@
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
---  This package defines a generic list token. A list is a token that is made
---  up of any number of repetitions of other tokens, separated by a given
---  separator token.
+--  This package defines a generic list token for recursive descent
+--  parsers. A list is a token that is made up of any number of
+--  repetitions of other tokens, separated by a given separator token.
 -------------------------------------------------------------------------------
 
 generic

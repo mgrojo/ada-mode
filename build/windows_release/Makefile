@@ -5,6 +5,7 @@ all: tests examples library
 # ../../Test/test_one_harness.adb
 #t_one : RUN_ARGS := -v
 t_one : test_one_harness.run
+t_all : test_all_harness.run
 
 #one : token_selection_test-run.run
 #one : asu_example_5_10_rd-run.run

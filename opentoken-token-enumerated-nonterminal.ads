@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2009 Stephe Leake
+-- Copyright (C) 2009, 2012 Stephe Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -45,6 +45,8 @@ package OpenToken.Token.Enumerated.Nonterminal is
 
    ----------------------------------------------------------------------------
    --  Get a nonterminal token with the given ID.
+   --
+   --  Return type is 'class to avoid forcing derived types to override this
    ----------------------------------------------------------------------------
    function Get
      (ID    : in Token_ID := Token_ID'First;

@@ -14,6 +14,7 @@ VPATH += ../../Examples/ASU_Example_4_46
 VPATH += ../../Examples/ASU_Example_5_10
 VPATH += ../../Examples/Language_Lexer_Examples
 VPATH += ../../Language_Lexers
+VPATH += ../../wisi
 
 tests : association_token_test-run.diff
 tests : bracketed_comment_test-run.run
@@ -106,6 +107,9 @@ source-clean ::
 	-find $(SOURCE_ROOT) -name "*,t" -print | xargs rm -v
 
 %.exe : %.adb force; gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -Popentoken_test_agg.gpr $(GPRBUILD_ARGS) $*
+
+# FIXME: gnatmake doesn't handle aggregate projects; add parameter to agg.gpr to handle -gnatc
+%.check : %.adb force; gnatmake -p -k -gnatc -Popentoken_test_agg.gpr $(GNATMAKE_ARGS) $*
 
 %.out : %.exe ;	./$*.exe > $*.out 2>&1
 

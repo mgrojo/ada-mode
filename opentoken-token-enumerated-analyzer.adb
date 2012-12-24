@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
---  Copyright (C) 2002, 2003, 2009 Stephe Leake
+--  Copyright (C) 2002, 2003, 2009, 2012 Stephe Leake
 --  Copyright (C) 1999, 2000 FlightSafety International and Ted Dennison
 --
 --  This file is part of the OpenToken package.
@@ -362,7 +362,7 @@ package body OpenToken.Token.Enumerated.Analyzer is
 
    function Initialize
      (Language_Syntax : in Syntax;
-      Feeder          : in Text_Feeder_Ptr := Input_Feeder'Access)
+      Feeder          : in Text_Feeder.Text_Feeder_Ptr := null)
      return Instance
    is
       New_Analyzer : Instance := Initialize (Language_Syntax, Terminal_ID'First, Feeder);
@@ -375,7 +375,7 @@ package body OpenToken.Token.Enumerated.Analyzer is
    function Initialize
      (Language_Syntax : in Syntax;
       Default         : in Terminal_ID;
-      Feeder          : in Text_Feeder_Ptr := Input_Feeder'Access)
+      Feeder          : in Text_Feeder.Text_Feeder_Ptr := null)
      return Instance
    is
       New_Analyzer : Instance;
@@ -452,7 +452,7 @@ package body OpenToken.Token.Enumerated.Analyzer is
       Analyzer.Max_Lookahead   := 0;
    end Reset;
 
-   procedure Set_Text_Feeder (Analyzer : in out Instance; Feeder : in Text_Feeder_Ptr) is
+   procedure Set_Text_Feeder (Analyzer : in out Instance; Feeder : in Text_Feeder.Text_Feeder_Ptr) is
    begin
       Analyzer.Feeder      := Feeder;
       Analyzer.Line        := 1;

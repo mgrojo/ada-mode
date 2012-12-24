@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
---  Copyright (C) 2002, 2003, 2009 Stephe Leake
+--  Copyright (C) 2002, 2003, 2009, 2012 Stephe Leake
 --  Copyright (C) 1999 FlightSafety International and Ted Dennison
 --
 --  This file is part of the OpenToken package.
@@ -33,10 +33,6 @@
 --
 -------------------------------------------------------------------------------
 
-with OpenToken.Recognizer;
-with OpenToken.Text_Feeder;
-with OpenToken.Text_Feeder.Text_IO;
-
 -----------------------------------------------------------------------------
 --  This package implements a mostly full-strength tokenizer (or
 --  lexical analyizer).
@@ -52,6 +48,9 @@ with OpenToken.Text_Feeder.Text_IO;
 --
 --  Once that is done, you may repeatedly call Get_Next to get tokens.
 -----------------------------------------------------------------------------
+
+with OpenToken.Recognizer;
+with OpenToken.Text_Feeder;
 generic
 
    Last_Terminal : in Token_ID := Token_ID'Last;
@@ -81,15 +80,6 @@ package OpenToken.Token.Enumerated.Analyzer is
    Token_Too_Long : exception;
 
    --------------------------------------------------------------------------
-   --  The Text Feeder is an object that has a function for returning
-   --  strings to the analyzer to process. The default (Input_Feeder)
-   --  reads from Ada.Text_IO.Current_Input.
-   --------------------------------------------------------------------------
-   type Text_Feeder_Ptr is access all OpenToken.Text_Feeder.Instance'Class;
-
-   Input_Feeder : aliased OpenToken.Text_Feeder.Text_IO.Instance;
-
-   --------------------------------------------------------------------------
    --  Return a new recognizable token, using the given token
    --  values. This is a convienence routine for more easily creating
    --  Syntaxes. It will dynamically allocate the memory for the
@@ -105,12 +95,12 @@ package OpenToken.Token.Enumerated.Analyzer is
    ----------------------------------------------------------------------------
    function Initialize
      (Language_Syntax : in Syntax;
-      Feeder          : in Text_Feeder_Ptr := Input_Feeder'Access)
+      Feeder          : in OpenToken.Text_Feeder.Text_Feeder_Ptr := null)
      return Instance;
    function Initialize
      (Language_Syntax : in Syntax;
       Default         : in Terminal_ID;
-      Feeder          : in Text_Feeder_Ptr := Input_Feeder'Access)
+      Feeder          : in OpenToken.Text_Feeder.Text_Feeder_Ptr := null)
      return Instance;
 
    ----------------------------------------------------------------------
@@ -152,7 +142,7 @@ package OpenToken.Token.Enumerated.Analyzer is
    ----------------------------------------------------------------------------
    --  Set the analyzer's text feeder.
    ----------------------------------------------------------------------------
-   procedure Set_Text_Feeder (Analyzer : in out Instance; Feeder : in Text_Feeder_Ptr);
+   procedure Set_Text_Feeder (Analyzer : in out Instance; Feeder : in OpenToken.Text_Feeder.Text_Feeder_Ptr);
 
    ------------------------------------------------------------------------
    --  True if Analyzer's internal buffer is empty, and
@@ -274,7 +264,7 @@ private
    type Instance is new Source with record
       --  User-settable attributes
       Syntax_List   : Syntax;
-      Feeder        : Text_Feeder_Ptr := Input_Feeder'Access;
+      Feeder        : OpenToken.Text_Feeder.Text_Feeder_Ptr;
       Has_Default   : Boolean := False;
       Default_Token : Terminal_ID;
 

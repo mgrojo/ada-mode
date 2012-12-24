@@ -1,5 +1,6 @@
 -------------------------------------------------------------------------------
 --
+-- Copyright (C) 2012 Stephen Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -26,11 +27,14 @@
 
 package body OpenToken.Text_Feeder.Text_IO is
 
-   function Create (File_Ptr : Ada.Text_IO.File_Access := Ada.Text_IO.Current_Input)
-                   return Instance is
-   begin
-      return (File  => File_Ptr,
-              Ended => False);
+   function Create (File_Ptr : Ada.Text_IO.File_Access) return Instance
+   is begin
+      return (File_Ptr, False);
+   end Create;
+
+   function Create (File_Ptr : in Ada.Text_IO.File_Access) return Text_Feeder_Ptr
+   is begin
+      return new Instance'(Create (File_Ptr));
    end Create;
 
    overriding procedure Get

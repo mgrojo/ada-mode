@@ -1,0 +1,5 @@
+Replacement for 'wisent-compile-grammar' in Emacs semantic.
+
+'wisent-compile-grammar' can't handle the grammars we want to use, but
+OpenToken can. In addition OpenToken has much better tools for
+debugging grammars.

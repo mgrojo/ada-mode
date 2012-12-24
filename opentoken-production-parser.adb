@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2002, 2003, 2010 Stephe Leake
+-- Copyright (C) 2002, 2003, 2010, 2012 Stephe Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -33,7 +33,7 @@ package body OpenToken.Production.Parser is
       Tokenizer.Reset (Parser.Analyzer);
    end Reset;
 
-   procedure Set_Text_Feeder (Parser : in out Instance; Feeder : in Tokenizer.Text_Feeder_Ptr)
+   procedure Set_Text_Feeder (Parser : in out Instance; Feeder : in Text_Feeder.Text_Feeder_Ptr)
    is begin
       if Tokenizer.End_Of_Buffered_Text (Parser.Analyzer) then
          Tokenizer.Set_Text_Feeder (Parser.Analyzer, Feeder);
