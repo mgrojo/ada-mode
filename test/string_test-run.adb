@@ -1,6 +1,7 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 1999,2000,2009 Ted Dennison
+-- Copyright (C) 2009, 2012 Stephen Leake
+-- Copyright (C) 1999,2000  Ted Dennison
 --
 -- This file is part of the OpenToken package.
 --
@@ -62,8 +63,7 @@ procedure String_Test.Run is
          Name => File_Name
         );
       Ada.Text_IO.Set_Input (File);
-      Tokenizer.Input_Feeder := OpenToken.Text_Feeder.Text_IO.Create;
-
+      Analyzer.Set_Text_Feeder (OpenToken.Text_Feeder.Text_IO.Create (Ada.Text_IO.Current_Input));
 
       Tokenizer.Find_Next (Analyzer);
       if Tokenizer.ID (Analyzer) /= String_ID then
@@ -155,8 +155,7 @@ procedure String_Test.Run is
          Name => File_Name
         );
       Ada.Text_IO.Set_Input (File);
-      Tokenizer.Input_Feeder := OpenToken.Text_Feeder.Text_IO.Create;
-
+      Analyzer.Set_Text_Feeder (OpenToken.Text_Feeder.Text_IO.Create (Ada.Text_IO.Current_Input));
 
       Tokenizer.Find_Next (Analyzer);
       if Tokenizer.ID (Analyzer) /= String_ID then
@@ -241,8 +240,7 @@ procedure String_Test.Run is
          Name => File_Name
         );
       Ada.Text_IO.Set_Input (File);
-      Tokenizer.Input_Feeder := OpenToken.Text_Feeder.Text_IO.Create;
-
+      Analyzer.Set_Text_Feeder (OpenToken.Text_Feeder.Text_IO.Create (Ada.Text_IO.Current_Input));
 
       Tokenizer.Find_Next (Analyzer);
       if Tokenizer.ID (Analyzer) /= String_ID then
@@ -349,8 +347,7 @@ procedure String_Test.Run is
          Name => File_Name
         );
       Ada.Text_IO.Set_Input (File);
-      Tokenizer.Input_Feeder := OpenToken.Text_Feeder.Text_IO.Create;
-
+      Analyzer.Set_Text_Feeder (OpenToken.Text_Feeder.Text_IO.Create (Ada.Text_IO.Current_Input));
 
       Tokenizer.Find_Next (Analyzer);
       if Tokenizer.ID (Analyzer) /= String_ID then

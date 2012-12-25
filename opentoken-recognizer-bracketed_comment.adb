@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2010 Stephen Leake
+-- Copyright (C) 2010, 2012 Stephen Leake
 -- Copyright (C) 1999 Christoph Karl Walter Grein
 --
 -- This file is part of the OpenToken package.
@@ -45,7 +45,9 @@ package body OpenToken.Recognizer.Bracketed_Comment is
      (The_Token : in out Instance;
       Next_Char : in     Character;
       Verdict   :    out Analysis_Verdict)
-   is begin
+   is
+      use Ada.Strings.Unbounded;
+   begin
 
       case The_Token.State is
 
@@ -80,6 +82,11 @@ package body OpenToken.Recognizer.Bracketed_Comment is
             else
                Verdict                 := So_Far_So_Good;
                The_Token.Bracket_State := The_Token.Bracket_State + 1;
+            end if;
+
+            if The_Token.Report then
+               --  FIXME: need more of this
+               The_Token.Text := The_Token.Text & Next_Char;
             end if;
 
          else
@@ -194,7 +201,13 @@ package body OpenToken.Recognizer.Bracketed_Comment is
          Closer_Length => Comment_Closer'Length,
          State         => Opener,
          Bracket_State => 1,
-         Nested_Depth  => 0);
+         Nested_Depth  => 0,
+         Text          => Ada.Strings.Unbounded.Null_Unbounded_String);
    end Get;
+
+   function Value (Item : in Instance) return String
+   is begin
+      return Ada.Strings.Unbounded.To_String (Item.Text);
+   end Value;
 
 end OpenToken.Recognizer.Bracketed_Comment;

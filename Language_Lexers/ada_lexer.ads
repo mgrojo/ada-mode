@@ -1,5 +1,6 @@
 -------------------------------------------------------------------------------
 --
+-- Copyright (C) 2012 Stephen Leake
 -- Copyright (C) 1999, 2008 Christoph Karl Walter Grein
 --
 -- This file is part of the OpenToken package.
@@ -36,7 +37,7 @@ package Ada_Lexer is
 
    type Ada_Token is
      (
-      -- Reserved words ARM 2.9 (2)
+      --  Reserved words ARM 2.9 (2)
       Abort_T, Abs_T, Abstract_T, Accept_T, Access_T, Aliased_T, All_T, And_T, Array_T, At_T,
       Begin_T, Body_T,
       Case_T, Constant_T,
@@ -56,10 +57,10 @@ package Ada_Lexer is
       Until_T, Use_T,
       When_T, While_T, With_T,
       Xor_T,
-      -- Delimiters ARM 2.2 (9)
-      -- & ' ( ) * + , - . / : ; < = > |
-      -- Compound delimiters ARM 2.2 (11)
-      -- => .. ** := /= >= <= << >> <>
+      --  Delimiters ARM 2.2 (9)
+      --  & ' ( ) * + , - . / : ; < = > |
+      --  Compound delimiters ARM 2.2 (11)
+      --  => .. ** := /= >= <= << >> <>
       Colon_T, Comma_T, Dot_T, Semicolon_T, Tick_T,         -- : , . ; '
       Left_Parenthesis_T, Right_Parenthesis_T,              -- ( )
       Concatenate_T,                                        -- &
@@ -69,17 +70,18 @@ package Ada_Lexer is
       Plus_T, Minus_T, Times_T, Divide_T,                   -- + - * /
       Arrow_T, Assignment_T, Double_Dot_T, Exponentiate_T,  -- => := .. **
       Left_Label_Bracket_T, Right_Label_Bracket_T, Box_T,   -- << >> <>
-                                                            -- Literals ARM 2.4 .. 2.6
+
+      --  Literals ARM 2.4 .. 2.6
       Integer_T,               -- 1, 1E+10
       Based_Integer_T,         -- 13#C#, 13#C#E+10
       Real_T,                  -- -3.141, 1.0E+10
       Based_Real_T,            -- 13#C.B#, 13#C.B#E+5
       Character_T, String_T,
-      -- Other tokens
+      --  Other tokens
       Identifier_T,
       Comment_T,
       Whitespace_T,
-      -- Syntax error
+      --  Syntax error
       Bad_Token_T,
       --
       End_of_File_T);

@@ -1,6 +1,7 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 1999, 2009 FlightSafety International and Ted Dennison
+-- Copyright (C) 1999, 2009, 2012 Stephe Leake
+-- Copyright (C) 1999 FlightSafety International and Ted Dennison
 --
 -- This file is part of the OpenToken package.
 --
@@ -70,10 +71,10 @@ begin
       Ada.Text_IO.Open
         (File => Test_File,
          Mode => Ada.Text_IO.In_File,
-         Name => Test_File_Name
-        );
+         Name => Test_File_Name);
+
       Ada.Text_IO.Set_Input (Test_File);
-      Tokenizer.Input_Feeder := OpenToken.Text_Feeder.Text_IO.Create;
+      Analyzer.Set_Text_Feeder (OpenToken.Text_Feeder.Text_IO.Create (Ada.Text_IO.Current_Input));
 
       --  Analyze the file
       Tokenizer.Find_Next (Analyzer);

@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2009 Stephen Leake
+-- Copyright (C) 2009, 2012 Stephen Leake
 -- Copyright (C) 1999, 2000 Christoph Karl Walter Grein
 --
 -- This file is part of the OpenToken package.
@@ -28,9 +28,9 @@ package body HTML_Lexer.Task_Unsafe is
 
    Analyzer : Tokenizer.Instance := Tokenizer.Initialize (Text_Syntax, Default => Bad_Token);
 
-   procedure Initialize (Input_Feeder : in OpenToken.Text_Feeder.Text_IO.Instance) is
+   procedure Initialize (Input_Feeder : in OpenToken.Text_Feeder.Text_Feeder_Ptr) is
    begin
-      Tokenizer.Input_Feeder := Input_Feeder;
+      Analyzer.Set_Text_Feeder (Input_Feeder);
    end Initialize;
 
    function Next_Token return HTML_Token is

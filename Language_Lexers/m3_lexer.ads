@@ -1,8 +1,7 @@
 -------------------------------------------------------------------------------
 --
+--  Copyright (C) 2012 Stephen Leake
 --  Copyright (C) 2000 David Starner
---
---  Based off java_lexer.adb
 --  Copyright (C) 1999 Christoph Karl Walter Grein
 --
 --  This file is part of the OpenToken package.
@@ -98,7 +97,7 @@ package M3_Lexer is
       --  Literals
       Integer_Number_T,           -- 1
 
-      -- Based_Integer_T,     -- 12_AAA0
+      --  Based_Integer_T,     -- 12_AAA0
 
       Real_Number_T,              -- 1.0, 1.1E1, 1.1E+7; not .1, 1E+7
       Character_T,         -- 'x' with x a graphic character except one of "'\

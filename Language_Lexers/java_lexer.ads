@@ -1,5 +1,6 @@
 -------------------------------------------------------------------------------
 --
+-- Copyright (C) 2012 Stephen Leake
 -- Copyright (C) 1999 Christoph Karl Walter Grein
 --
 -- This file is part of the OpenToken package.
@@ -74,7 +75,7 @@ package Java_Lexer is
 
    type Java_Token is
      (
-      -- Keywords JRM 3.9
+      --  Keywords JRM 3.9
       Abstract_T,
       Boolean_T, Break_T, Byte_T,
       Case_T, Catch_T, Char_T, Class_T, Const_T, Continue_T,

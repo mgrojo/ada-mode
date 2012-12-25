@@ -34,6 +34,7 @@
 --  OpenToken.EOL_Character, which may be different from what your
 --  current operating system uses.
 ------------------------------------------------------------------------------
+with Ada.Strings.Unbounded;
 package OpenToken.Recognizer.Bracketed_Comment is
 
    Max_Bracket_Length : constant := 10;
@@ -44,11 +45,12 @@ package OpenToken.Recognizer.Bracketed_Comment is
    --  This procedure will be called to create a Comment token. The
    --  opener and closer can be no longer than Max_Bracket_Length.
    --------------------------------------------------------------------------
-   function Get (Comment_Opener : String;
-                 Comment_Closer : String;
-                 Reportable     : Boolean := False;
-                 Nested         : Boolean := False) return Instance;
-
+   function Get
+     (Comment_Opener : in String;
+      Comment_Closer : in String;
+      Reportable     : in Boolean := False;
+      Nested         : in Boolean := False)
+     return Instance;
 
    function Value (Item : in Instance) return String;
 
@@ -77,6 +79,8 @@ private
       State          : State_ID := Opener;
       Bracket_State  : Positive := 1;
       Nested_Depth   : Natural := 0;
+
+      Text : Ada.Strings.Unbounded.Unbounded_String;
    end record;
 
    overriding procedure Clear (The_Token : in out Instance);

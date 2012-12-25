@@ -1,5 +1,6 @@
 -------------------------------------------------------------------------------
 --
+-- Copyright (C) 2012 Stephen Leake
 -- Copyright (C) 1999,2000 FlightSafety International and Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -44,11 +45,10 @@ begin
    Ada.Text_IO.Open
      (File => File,
       Mode => Ada.Text_IO.In_File,
-      Name => File_Name
-     );
+      Name => File_Name);
 
    Ada.Text_IO.Set_Input (File);
-   Tokenizer.Input_Feeder := OpenToken.Text_Feeder.Text_IO.Create;
+   Analyzer.Set_Text_Feeder (OpenToken.Text_Feeder.Text_IO.Create (Ada.Text_IO.Current_Input));
 
    for Q in 1 .. 10 loop
       Tokenizer.Find_Next (Analyzer);

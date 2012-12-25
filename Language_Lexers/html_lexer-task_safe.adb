@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2009 Stephen Leake
+-- Copyright (C) 2009, 2012 Stephen Leake
 -- Copyright (C) 1999, 2000 Christoph Karl Walter Grein
 --
 -- This file is part of the OpenToken package.
@@ -37,7 +37,7 @@ package body HTML_Lexer.Task_Safe is
          Analyzer    => Tokenizer.Initialize
            (Text_Syntax,
             Default  => Bad_Token,
-            Feeder   => Tokenizer.Text_Feeder_Ptr (Input_Feeder)));
+            Feeder   => OpenToken.Text_Feeder.Text_Feeder_Ptr (Input_Feeder)));
    end Initialize;
 
    procedure Next_Token

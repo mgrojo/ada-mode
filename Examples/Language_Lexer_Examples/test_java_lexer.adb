@@ -1,5 +1,6 @@
 -------------------------------------------------------------------------------
 --
+-- Copyright (C) 2012 Stephen Leake
 -- Copyright (C) 1999 Christoph Karl Walter Grein
 --
 -- This file is part of the OpenToken package.
@@ -43,7 +44,7 @@ begin
       Name => Ada.Command_Line.Argument (1));
 
    Ada.Text_IO.Set_Input (File);
-   Tokenizer.Input_Feeder := OpenToken.Text_Feeder.Text_IO.Create;
+   Analyzer.Set_Text_Feeder (OpenToken.Text_Feeder.Text_IO.Create (Ada.Text_IO.Current_Input));
 
    loop
 

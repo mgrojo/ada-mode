@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2009 Stephen Leake
+-- Copyright (C) 2009, 2012 Stephen Leake
 -- Copyright (C) 1999, 2000 Christoph Karl Walter Grein
 --
 -- This file is part of the OpenToken package.
@@ -24,10 +24,10 @@
 --  executable file might be covered by the GNU Public License.
 -------------------------------------------------------------------------------
 
-with Ada.Text_IO;
 with Ada.Command_Line;
-with OpenToken.Text_Feeder.Text_IO;
+with Ada.Text_IO;
 with HTML_Lexer.Task_Unsafe;
+with OpenToken.Text_Feeder.Text_IO;
 procedure Test_HTML_Lexer_Unsafe is
 
    use HTML_Lexer;
@@ -45,7 +45,7 @@ begin
 
    Ada.Text_IO.Set_Input (File);
 
-   Initialize (OpenToken.Text_Feeder.Text_IO.Create);
+   Initialize (OpenToken.Text_Feeder.Text_IO.Create (Ada.Text_IO.Current_Input));
 
    loop
 

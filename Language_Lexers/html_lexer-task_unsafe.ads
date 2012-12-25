@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2009 Stephen Leake
+-- Copyright (C) 2009, 2012 Stephen Leake
 -- Copyright (C) 1999, 2000 Christoph Karl Walter Grein
 --
 -- This file is part of the OpenToken package.
@@ -24,7 +24,7 @@
 --  executable file might be covered by the GNU Public License.
 -------------------------------------------------------------------------------
 
-with OpenToken.Text_Feeder.Text_IO;
+with OpenToken.Text_Feeder;
 package HTML_Lexer.Task_Unsafe is
 
    ------------------------------------------------------------------------
@@ -36,7 +36,7 @@ package HTML_Lexer.Task_Unsafe is
    --   <Tag Attribute=Value Attribute="String"> Text with &entity; </Tag>
    ------------------------------------------------------------------------
 
-   procedure Initialize (Input_Feeder : in OpenToken.Text_Feeder.Text_IO.Instance);
+   procedure Initialize (Input_Feeder : in OpenToken.Text_Feeder.Text_Feeder_Ptr);
 
    function Next_Token return HTML_Token;
 

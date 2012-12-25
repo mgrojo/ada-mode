@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2009 Stephe Leake
+-- Copyright (C) 2009, 2012 Stephe Leake
 -- Copyright (C) 1999 Christoph Karl Walter Grein
 --
 -- This file is part of the OpenToken package.
@@ -73,7 +73,7 @@ begin
          Name => File_Name);
 
       Set_Input (File);
-      Tokenizer.Input_Feeder := OpenToken.Text_Feeder.Text_IO.Create;
+      Analyzer.Set_Text_Feeder (OpenToken.Text_Feeder.Text_IO.Create (Current_Input));
 
       Tokenizer.Find_Next (Analyzer);
       if Tokenizer.ID (Analyzer) /= EmbeddedComment_T or Tokenizer.Lexeme (Analyzer) /= Text1 then
@@ -157,7 +157,7 @@ begin
       Open (File, In_File, File_Name);
 
       Set_Input (File);
-      Tokenizer.Input_Feeder := OpenToken.Text_Feeder.Text_IO.Create;
+      Analyzer.Set_Text_Feeder (OpenToken.Text_Feeder.Text_IO.Create (Current_Input));
 
       Tokenizer.Find_Next (Analyzer);
       if Tokenizer.ID (Analyzer) /= EmbeddedComment_T or Tokenizer.Lexeme (Analyzer) /= Expected_Lexeme then
@@ -184,5 +184,7 @@ begin
       Put_Line ("Exception:");
       Put_Line (Ada.Exceptions.Exception_Information (Error));
    end Case_2;
+
+   --  FIXME: test value, on elisp structures
 
 end Bracketed_Comment_Test.Run;
