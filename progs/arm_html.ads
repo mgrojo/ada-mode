@@ -98,6 +98,9 @@ package ARM_HTML is
     --		- RLB - Added limited colors to Text_Format.
     -- 10/18/11 - RLB - Changed to GPLv3 license.
     -- 10/25/11 - RLB - Added old insertion version to Revised_Clause_Header.
+    --  8/31/12 - RLB - Added Output_Path.
+    -- 11/26/12 - RLB - Added subdivision names to Clause_Header and
+    --			Revised_Clause_Header.
 
     type HTML_Output_Type is new ARM_Output.Output_Type with private;
 
@@ -121,6 +124,7 @@ package ARM_HTML is
     procedure Create (Output_Object : in out HTML_Output_Type;
 		      Big_Files : in Boolean;
 		      File_Prefix : in String;
+		      Output_Path : in String;
 		      DOS_Filenames : in Boolean;
 		      HTML_Kind : in HTML_Type;
 		      Use_Unicode : in Boolean;
@@ -146,6 +150,7 @@ package ARM_HTML is
 	-- Big_Files is True; otherwise generate smaller output files.
 	-- The prefix of the output file names is File_Prefix - this
 	-- should be no more than 5 characters allowed in file names.
+	-- The files will be written into Output_Path.
 	-- If DOS_Filename is true, use 8.3 file names;
 	-- in that case, File_Prefix must be less than 4 characters in length;
 	-- and no clause or subclause number may exceed 35 if Big_Files is False.
@@ -240,30 +245,34 @@ package ARM_HTML is
 	-- headers are spelled the same in all output versions).
 	-- Raises Not_Valid_Error if in a paragraph.
 
-    procedure Clause_Header (Output_Object : in out HTML_Output_Type;
-			     Header_Text : in String;
-			     Level : in ARM_Contents.Level_Type;
-			     Clause_Number : in String;
-			     No_Page_Break : in Boolean := False);
+    procedure Clause_Header (Output_Object     : in out HTML_Output_Type;
+			     Header_Text       : in String;
+			     Level	       : in ARM_Contents.Level_Type;
+			     Clause_Number     : in String;
+			     Top_Level_Subdivision_Name : in ARM_Output.Top_Level_Subdivision_Name_Kind;
+			     No_Page_Break     : in Boolean := False);
 	-- Output a Clause header. The level of the header is specified
-	-- in Level. The Clause Number is as specified.
-	-- These should appear in the table of contents.
+	-- in Level. The Clause Number is as specified; the top-level (and
+	-- other) subdivision names are as specified. These should appear in
+	-- the table of contents.
 	-- For hyperlinked formats, this should generate a link target.
 	-- If No_Page_Break is True, suppress any page breaks.
 	-- Raises Not_Valid_Error if in a paragraph.
 
-    procedure Revised_Clause_Header (Output_Object : in out HTML_Output_Type;
-			     New_Header_Text : in String;
-			     Old_Header_Text : in String;
-			     Level : in ARM_Contents.Level_Type;
-			     Clause_Number : in String;
-			     Version : in ARM_Contents.Change_Version_Type;
-			     Old_Version : in ARM_Contents.Change_Version_Type;
-        		     No_Page_Break : in Boolean := False);
+    procedure Revised_Clause_Header
+			    (Output_Object     : in out HTML_Output_Type;
+			     New_Header_Text   : in String;
+			     Old_Header_Text   : in String;
+			     Level	       : in ARM_Contents.Level_Type;
+			     Clause_Number     : in String;
+			     Version	       : in ARM_Contents.Change_Version_Type;
+			     Old_Version       : in ARM_Contents.Change_Version_Type;
+			     Top_Level_Subdivision_Name : in ARM_Output.Top_Level_Subdivision_Name_Kind;
+        		     No_Page_Break     : in Boolean := False);
 	-- Output a revised clause header. Both the original and new text will
 	-- be output. The level of the header is specified in Level. The Clause
-	-- Number is as specified.
-	-- These should appear in the table of contents.
+	-- Number is as specified; the top-level (and other) subdivision names
+	-- are as specified. These should appear in the table of contents.
 	-- For hyperlinked formats, this should generate a link target.
 	-- Version is the insertion version of the new text; Old_Version is
 	-- the insertion version of the old text.
@@ -519,6 +528,7 @@ private
 
 	-- Global properties:
 	File_Prefix : Prefix_String; -- Blank padded.
+	Output_Path : Ada.Strings.Unbounded.Unbounded_String;
 	Big_Files : Boolean; -- For HTML, this means to generate a single monster file.
 	DOS_Filenames : Boolean; -- Generate 8.3 MS-DOS filenames.
 	Title : Ada.Strings.Unbounded.Unbounded_String;

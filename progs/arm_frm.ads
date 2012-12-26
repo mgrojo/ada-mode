@@ -99,6 +99,13 @@ package ARM_Format is
     --  3/12/12 - RLB - Lengthened unit name so
     --			"Ada.Strings.Wide_Wide_Unbounded.Wide_Wide_Equal_Case_Insensitive"
     --			would fit (have we lost our minds??).
+    --  8/31/12 - RLB - Put glossary components into a subrecord to prevent
+    --			inappropriate usage.
+    -- 10/18/12 - RLB - Put impdef components into a subrecord to prevent
+    --			inappropriate usage.
+    --		- RLB - Added more specific hanging_indent formats, along with
+    --			small.
+    -- 11/26/12 - RLB - Added subdivision names.
 
     type Format_Type is tagged limited private;
 
@@ -131,7 +138,8 @@ package ARM_Format is
 		      Examples_Font : in ARM_Output.Font_Family_Type;
 		      Use_ISO_2004_Note_Format : in Boolean;
 		      Use_ISO_2004_Contents_Format : in Boolean;
-		      Use_ISO_2004_List_Format : in Boolean);
+		      Use_ISO_2004_List_Format : in Boolean;
+		      Top_Level_Subdivision_Name : in ARM_Output.Top_Level_Subdivision_Name_Kind);
 	-- Initialize an input object. Changes and Change_Version determine
 	-- which changes should be displayed. If Display_Index_Entries is True,
 	-- index entries will be printed in the document; otherwise, they
@@ -152,6 +160,8 @@ package ARM_Format is
 	-- If Use_ISO_2004_List_Format is true, then lists will be lettered;
 	-- else the Ada95 standard's numbering format will be used for
 	-- enumerated lists.
+	-- The top-level (and other) subdivision names are as specified
+	-- in Top_Level_Subdivision_Name.
 
     procedure Destroy (Format_Object : in out Format_Type);
 	-- Destroy a format object, releasing any resources.
@@ -221,7 +231,9 @@ private
 	Indented_Example_Text, Code_Indented, Indent, Bulleted, Nested_Bulleted,
         Nested_X2_Bulleted,
 	Display, Syntax_Display, Syntax_Indented, Syntax_Production,
-	Enumerated, Nested_Enumerated, Hanging_Indented, Title, In_Table);
+	Enumerated, Nested_Enumerated,
+        Hanging_Indented_1, Hanging_Indented_2, Hanging_Indented_3,
+        Hanging_Indented_4, Small, Title, In_Table);
 
     type Reference;
     type Reference_Ptr is access Reference;
@@ -230,6 +242,64 @@ private
 	Ref_Len  : Natural; -- Length of the reference.
 	Is_DR_Ref : Boolean; -- True for a DR reference; False for an AI reference.
         Next : Reference_Ptr;
+    end record;
+
+    type Glossary_Info_Type (Active : Boolean := False;
+                             Change_Kind : ARM_Database.Paragraph_Change_Kind_Type := ARM_Database.None) is record
+				-- The Change_Kind of ToGlossary.
+	case Active is
+	    when False => null; -- No glossary entry in use.
+	    when True =>
+		-- Glossary actively being processed; used only when
+		-- processing [Chg]ToGlossary[Also] commands.
+		Term : String (1..50); -- Glossary term.
+		Term_Len : Natural := 0;
+		Add_to_Glossary : Boolean;
+			-- Add this item to the Glossary. (Not the same
+			-- as "Active"; when generating older versions
+			-- of a document, this would be False for a
+			-- new glossary entry.)
+		Displayed : Boolean;
+			-- The text was displayed in the document.
+		case Change_Kind is
+		    when ARM_Database.None => null;
+		    when others =>
+			Version : ARM_Contents.Change_Version_Type;
+			    -- The version number of the changed paragraph.
+		end case;
+	end case;
+    end record;
+
+    type Impdef_Command_Type is (None, Aspect, Impdef, Docreq, ImplAdv);
+
+    type Impdef_Info_Type (Command : Impdef_Command_Type := None) is record
+	case Command is
+	    when None => null; -- No impdef, docreq, impladv, aspectdesc in use.
+	    when others =>
+		-- Impdef, Docreq, Impladv, Aspectdesc actively being processed;
+		-- used only when processing ImplDef, ChgImplDef,
+		--    ChgDocReq, ChgImplAdv, and ChgAspectDesc.
+                Change_Kind : ARM_Database.Paragraph_Change_Kind_Type := ARM_Database.None;
+			-- The Change_Kind of the command.
+		Version : ARM_Contents.Change_Version_Type;
+			-- If the kind is not "None", this is the version
+			-- number of the changed paragraph.
+		Initial_Version : ARM_Contents.Change_Version_Type;
+			-- This is the version number of the original paragraph.
+		Paragraph_String : String (1 .. 10); -- Paragraph number.
+		Paragraph_Len : Natural;
+		Add_to_DB : Boolean;
+			-- Add this item to the appropriate DB. (Not the same
+			-- as "Active"; when generating older versions
+			-- of a document, this would be False for a
+			-- new impdef, docreq, etc. entry.)
+		case Command is
+		    when Aspect =>
+			Aspect_Name : String (1..30); -- Aspect name text
+			Aspect_Name_Len : Natural := 0;
+		    when others => null;
+		end case;
+	end case;
     end record;
 
     type Format_Type is tagged limited record
@@ -245,6 +315,7 @@ private
 	Use_ISO_2004_Note_Format : Boolean;
 	Use_ISO_2004_Contents_Format : Boolean;
 	Use_ISO_2004_List_Format : Boolean;
+	Top_Level_Subdivision_Name : ARM_Output.Top_Level_Subdivision_Name_Kind;
 
 	-- Clause numbers:
 	Clause_Number : ARM_Contents.Clause_Number_Type;
@@ -333,12 +404,6 @@ private
 				    -- processing of the Syn command.
 	Syntax_Tab_Len : Natural := 0;
 
-	-- Aspects:
-	Aspect_Name : String (1..30); -- Aspect name text
-	Aspect_Name_Len : Natural := 0;
-
-	Aspect_DB : ARM_Database.Database_Type;
-
 	-- Attributes:
 	Prefix_Text : String (1..160) := "@b{NONE!}" & (10..160 => ' ');
 	    -- This text is used as part of the attribute list text.
@@ -365,38 +430,29 @@ private
 	Pragma_DB : ARM_Database.Database_Type;
 
 	-- Glossary:
-	Glossary_Term : String (1..50); -- Glossary term; used only when
-	Glossary_Term_Len : Natural := 0; -- processing [Chg]ToGlossary[Also] commands.
-	Glossary_Change_Kind : ARM_Database.Paragraph_Change_Kind_Type := ARM_Database.None;
-			-- The change kind of the ToGlossary.
-	Glossary_Version : ARM_Contents.Change_Version_Type;
-			-- If the kind is not "None", this is the version
-			-- number of the changed paragraph.
-	Add_to_Glossary : Boolean;
-			-- Add this item to the Glossary.
-	Glossary_Displayed : Boolean;
-			-- The text was displayed in the document.
+	Glossary_Info : Glossary_Info_Type;
 	Glossary_DB : ARM_Database.Database_Type;
+
+	-- Aspects:
+	Aspect_DB : ARM_Database.Database_Type;
+	    -- Also see Impdef_Info, below.
 
 	-- Implementation advice:
 	Impladv_DB : ARM_Database.Database_Type;
+	    -- Also see Impdef_Info, below.
 
 	-- Documentation requirements:
 	Docreq_DB : ARM_Database.Database_Type;
+	    -- Also see Impdef_Info, below.
 
 	-- Implementation-defined:
 	Impdef_DB : ARM_Database.Database_Type;
-	-- The next four are used only during processing of ImplDef, ChgImplDef,
-	--    ChgDocReq, ChgImplAdv, and ChgAspectDesc.
-	Impdef_Change_Kind : ARM_Database.Paragraph_Change_Kind_Type;
-			-- The change kind of the impldef.
-	Impdef_Version : ARM_Contents.Change_Version_Type;
-			-- If the kind is not "None", this is the version
-			-- number of the changed paragraph.
-	Impdef_Initial_Version : ARM_Contents.Change_Version_Type;
-			-- This is the version number of the original paragraph.
-	Impdef_Paragraph_String : String (1 .. 10); -- Paragraph number.
-	Impdef_Paragraph_Len : Natural;
+	    -- Also see Impdef_Info, below.
+
+	-- For all of the above four:
+	Impdef_Info : Impdef_Info_Type;
+	    -- Used only during processing of ImplDef, ChgImplDef,
+	    --    ChgDocReq, ChgImplAdv, and ChgAspectDesc.
 
 	-- Language-Defined entity subindexes:
 	Package_Index : ARM_Subindex.Subindex_Type;

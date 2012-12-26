@@ -13,7 +13,7 @@ package ARM_Output is
     -- determines the details of the text.
     --
     -- ---------------------------------------
-    -- Copyright 2000, 2002, 2004, 2005, 2006, 2007, 2011
+    -- Copyright 2000, 2002, 2004, 2005, 2006, 2007, 2011, 2012
     --   AXE Consultants. All rights reserved.
     -- P.O. Box 1512, Madison WI  53701
     -- E-Mail: randy@rrsoftware.com
@@ -106,12 +106,19 @@ package ARM_Output is
     -- 12/19/07 - RLB - Added limited colors to Text_Format.
     -- 10/18/11 - RLB - Changed to GPLv3 license.
     -- 10/25/11 - RLB - Added old insertion version to Revised_Clause_Header.
+    -- 10/18/12 - RLB - Added additional hanging styles to reflect additional
+    --			hang amounts.
+    -- 11/26/12 - RLB - Added subdivision names to Clause_Header and
+    --			Revised_Clause_Header.
 
     type Output_Type is abstract tagged limited null record;
 
     Not_Valid_Error : exception; -- Raised when an operation is invalid.
 
     -- Creation is handled by the individual output types.
+
+    type Top_Level_Subdivision_Name_Kind is (Chapter, Section, Clause);
+
 
     procedure Close (Output_Object : in out Output_Type) is abstract;
 	-- Close an Output_Object. No further output to the object is
@@ -177,10 +184,20 @@ package ARM_Output is
 			-- bullet. Indent must be at least one.
 	Small_Enumerated, -- Same as Enumerated, except that a smaller font
 			-- (same as for Small) is used.
+	Giant_Hanging,	-- The text is normal, but the first part of each
+			-- paragraph (up to the call of End_Hang_Item) hangs
+			-- out four units. Indent must be at least four.
+	Small_Giant_Hanging, -- Same as Giant_Hanging, except that the text is
+			-- in a smaller font (same as Small).
 	Wide_Hanging,	-- The text is normal, but the first part of each
 			-- paragraph (up to the call of End_Hang_Item) hangs
 			-- out three units. Indent must be at least three.
 	Small_Wide_Hanging, -- Same as Wide_Hanging, except that the text is
+			-- in a smaller font (same as Small).
+	Medium_Hanging,	-- The text is normal, but the first part of each
+			-- paragraph (up to the call of End_Hang_Item) hangs
+			-- out two units. Indent must be at least two.
+	Small_Medium_Hanging, -- Same as Medium_Hanging, except that the text is
 			-- in a smaller font (same as Small).
 	Narrow_Hanging,	-- The text is normal, but the first part of each
 			-- paragraph (up to the call of End_Hang_Item) hangs
@@ -270,30 +287,34 @@ package ARM_Output is
 	-- headers are spelled the same in all output versions).
 	-- Raises Not_Valid_Error if in a paragraph.
 
-    procedure Clause_Header (Output_Object : in out Output_Type;
-			     Header_Text : in String;
-			     Level : in ARM_Contents.Level_Type;
-			     Clause_Number : in String;
-			     No_Page_Break : in Boolean := False) is abstract;
+    procedure Clause_Header (Output_Object     : in out Output_Type;
+			     Header_Text       : in String;
+			     Level	       : in ARM_Contents.Level_Type;
+			     Clause_Number     : in String;
+			     Top_Level_Subdivision_Name : in ARM_Output.Top_Level_Subdivision_Name_Kind;
+			     No_Page_Break     : in Boolean := False) is abstract;
 	-- Output a Clause header. The level of the header is specified
-	-- in Level. The Clause Number is as specified.
-	-- These should appear in the table of contents.
+	-- in Level. The Clause Number is as specified; the top-level (and
+	-- other) subdivision names are as specified. These should appear in
+	-- the table of contents.
 	-- For hyperlinked formats, this should generate a link target.
 	-- If No_Page_Break is True, suppress any page breaks.
 	-- Raises Not_Valid_Error if in a paragraph.
 
-    procedure Revised_Clause_Header (Output_Object : in out Output_Type;
-			     New_Header_Text : in String;
-			     Old_Header_Text : in String;
-			     Level : in ARM_Contents.Level_Type;
-			     Clause_Number : in String;
-			     Version : in ARM_Contents.Change_Version_Type;
-			     Old_Version : in ARM_Contents.Change_Version_Type;
-        		     No_Page_Break : in Boolean := False) is abstract;
+    procedure Revised_Clause_Header
+			    (Output_Object     : in out Output_Type;
+			     New_Header_Text   : in String;
+			     Old_Header_Text   : in String;
+			     Level	       : in ARM_Contents.Level_Type;
+			     Clause_Number     : in String;
+			     Version	       : in ARM_Contents.Change_Version_Type;
+			     Old_Version       : in ARM_Contents.Change_Version_Type;
+			     Top_Level_Subdivision_Name : in ARM_Output.Top_Level_Subdivision_Name_Kind;
+        		     No_Page_Break     : in Boolean := False) is abstract;
 	-- Output a revised clause header. Both the original and new text will
 	-- be output. The level of the header is specified in Level. The Clause
-	-- Number is as specified.
-	-- These should appear in the table of contents.
+	-- Number is as specified; the top-level (and other) subdivision names
+	-- are as specified. These should appear in the table of contents.
 	-- For hyperlinked formats, this should generate a link target.
 	-- Version is the insertion version of the new text; Old_Version is
 	-- the insertion version of the old text.

@@ -31,6 +31,10 @@ package body ARM_Texinfo is
    --  4/22/12 - S L - Move @dircategory, @direntry before first @node.
    --  4/28/12 - S L - Add @w{} after @anchor; otherwise following whitespace
    --		       is dropped.
+   --  8/31/12 - RLB - Added Output_Path.
+   -- 10/18/12 - RLB - Added additional hanging styles.
+   -- 11/26/12 - RLB - Added subdivision names to Clause_Header and
+   --		       Revised_Clause_Header.
 
 
    use Ada.Text_IO;
@@ -442,9 +446,11 @@ package body ARM_Texinfo is
       Header_Text   : in     String;
       Level         : in     ARM_Contents.Level_Type;
       Clause_Number : in     String;
+      Top_Level_Subdivision_Name : in ARM_Output.Top_Level_Subdivision_Name_Kind;
       No_Page_Break : in     Boolean                 := False)
    is
       pragma Unreferenced (No_Page_Break);
+      pragma Unreferenced (Top_Level_Subdivision_Name);
       Title : constant String := Clause_Number & " " & Header_Text;
 
       use ARM_Contents;
@@ -746,9 +752,12 @@ package body ARM_Texinfo is
    procedure Create
      (Output_Object : in out Texinfo_Output_Type;
       File_Prefix   : in     String;
+      Output_Path   : in     String;
       Title         : in     String)
    is
-      File_Name : constant String := Ada.Strings.Fixed.Trim (File_Prefix & ".texinfo", Ada.Strings.Right);
+      File_Name : constant String := Output_Path &
+         Ada.Strings.Fixed.Trim (File_Prefix, Ada.Strings.Right) &
+         ".texinfo";
    begin
       if Output_Object.Is_Valid then
          Ada.Exceptions.Raise_Exception
@@ -831,8 +840,12 @@ package body ARM_Texinfo is
             --  Number has just been output; start text.
             Put (Output_Object.File, "@w{  }");
 
-         when Wide_Hanging |
+         when Giant_Hanging |
+           Small_Giant_Hanging |
+           Wide_Hanging |
            Small_Wide_Hanging |
+           Medium_Hanging |
+           Small_Medium_Hanging |
            Narrow_Hanging |
            Small_Narrow_Hanging |
            Hanging_in_Bulleted |
@@ -924,8 +937,12 @@ package body ARM_Texinfo is
             Handle_Indent (Output_Object, "@end itemize");
             New_Line (Output_Object.File);
 
-         when Wide_Hanging |
+         when Giant_Hanging |
+           Small_Giant_Hanging |
+           Wide_Hanging |
            Small_Wide_Hanging |
+           Medium_Hanging |
+           Small_Medium_Hanging |
            Narrow_Hanging |
            Small_Narrow_Hanging |
            Hanging_in_Bulleted |
@@ -1062,8 +1079,12 @@ package body ARM_Texinfo is
            Small_Nested_Bulleted |
            Enumerated |
            Small_Enumerated |
+           Giant_Hanging |
+           Small_Giant_Hanging |
            Wide_Hanging |
            Small_Wide_Hanging |
+           Medium_Hanging |
+           Small_Medium_Hanging |
            Narrow_Hanging |
            Small_Narrow_Hanging |
            Hanging_in_Bulleted |
@@ -1300,13 +1321,15 @@ package body ARM_Texinfo is
       Clause_Number   : in     String;
       Version         : in     ARM_Contents.Change_Version_Type;
       Old_Version     : in     ARM_Contents.Change_Version_Type;
+      Top_Level_Subdivision_Name : in ARM_Output.Top_Level_Subdivision_Name_Kind;
       No_Page_Break   : in     Boolean                          := False)
    is
       pragma Unreferenced (Version);
       pragma Unreferenced (Old_Version);
       pragma Unreferenced (Old_Header_Text);
    begin
-      Clause_Header (Output_Object, New_Header_Text, Level, Clause_Number, No_Page_Break);
+      Clause_Header (Output_Object, New_Header_Text, Level, Clause_Number,
+		     Top_Level_Subdivision_Name, No_Page_Break);
    end Revised_Clause_Header;
 
    procedure Section
@@ -1613,8 +1636,12 @@ package body ARM_Texinfo is
             Handle_Indent (Output_Object, "@itemize @w{}");
             Put (Output_Object.File, "@item ");
 
-         when Wide_Hanging |
+         when Giant_Hanging |
+           Small_Giant_Hanging |
+	   Wide_Hanging |
            Small_Wide_Hanging |
+           Medium_Hanging |
+           Small_Medium_Hanging |
            Narrow_Hanging |
            Small_Narrow_Hanging |
            Hanging_in_Bulleted |

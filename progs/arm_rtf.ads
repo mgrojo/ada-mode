@@ -84,6 +84,9 @@ package ARM_RTF is
     --  5/ 6/09 - RLB - Added version names.
     -- 10/18/11 - RLB - Changed to GPLv3 license.
     -- 10/25/11 - RLB - Added old insertion version to Revised_Clause_Header.
+    --  8/31/12 - RLB - Added Output_Path.
+    -- 11/26/12 - RLB - Added subdivision names to Clause_Header and
+    --			Revised_Clause_Header.
 
     type RTF_Output_Type is new ARM_Output.Output_Type with private;
 
@@ -100,10 +103,11 @@ package ARM_RTF is
 		      Page_Size : in ARM_RTF.Page_Size;
 		      Includes_Changes : in Boolean;
 		      Big_Files : in Boolean;
+		      File_Prefix : in String;
+		      Output_Path : in String;
 		      Primary_Sans_Serif_Font : in Sans_Serif_Fonts := Arial;
 		      Primary_Serif_Font : in Serif_Fonts := Times_New_Roman;
 		      Body_Font : in ARM_Output.Font_Family_Type := ARM_Output.Roman;
-		      File_Prefix : in String;
 		      Header_Prefix : in String := "";
 		      Footer_Use_Date : in Boolean;
 		      Footer_Use_Clause_Name : in Boolean;
@@ -118,6 +122,7 @@ package ARM_RTF is
 	-- Big_Files is True; otherwise generate smaller output files.
 	-- The prefix of the output file names is File_Prefix - this
 	-- should be no more then 5 characters allowed in file names.
+	-- The files will be written into Output_Path.
 	-- The title of the document is Title.
 	-- The header prefix appears in the header (if any) before the title,
 	-- separated by a dash.
@@ -185,30 +190,34 @@ package ARM_RTF is
 	-- headers are spelled the same in all output versions).
 	-- Raises Not_Valid_Error if in a paragraph.
 
-    procedure Clause_Header (Output_Object : in out RTF_Output_Type;
-			     Header_Text : in String;
-			     Level : in ARM_Contents.Level_Type;
-			     Clause_Number : in String;
-			     No_Page_Break : in Boolean := False);
+    procedure Clause_Header (Output_Object     : in out RTF_Output_Type;
+			     Header_Text       : in String;
+			     Level	       : in ARM_Contents.Level_Type;
+			     Clause_Number     : in String;
+			     Top_Level_Subdivision_Name : in ARM_Output.Top_Level_Subdivision_Name_Kind;
+			     No_Page_Break     : in Boolean := False);
 	-- Output a Clause header. The level of the header is specified
-	-- in Level. The Clause Number is as specified.
-	-- These should appear in the table of contents.
+	-- in Level. The Clause Number is as specified; the top-level (and
+	-- other) subdivision names are as specified. These should appear in
+	-- the table of contents.
 	-- For hyperlinked formats, this should generate a link target.
 	-- If No_Page_Break is True, suppress any page breaks.
 	-- Raises Not_Valid_Error if in a paragraph.
 
-    procedure Revised_Clause_Header (Output_Object : in out RTF_Output_Type;
-			     New_Header_Text : in String;
-			     Old_Header_Text : in String;
-			     Level : in ARM_Contents.Level_Type;
-			     Clause_Number : in String;
-			     Version : in ARM_Contents.Change_Version_Type;
-			     Old_Version : in ARM_Contents.Change_Version_Type;
-        		     No_Page_Break : in Boolean := False);
+    procedure Revised_Clause_Header
+			    (Output_Object     : in out RTF_Output_Type;
+			     New_Header_Text   : in String;
+			     Old_Header_Text   : in String;
+			     Level	       : in ARM_Contents.Level_Type;
+			     Clause_Number     : in String;
+			     Version	       : in ARM_Contents.Change_Version_Type;
+			     Old_Version       : in ARM_Contents.Change_Version_Type;
+			     Top_Level_Subdivision_Name : in ARM_Output.Top_Level_Subdivision_Name_Kind;
+        		     No_Page_Break     : in Boolean := False);
 	-- Output a revised clause header. Both the original and new text will
 	-- be output. The level of the header is specified in Level. The Clause
-	-- Number is as specified.
-	-- These should appear in the table of contents.
+	-- Number is as specified; the top-level (and other) subdivision names
+	-- are as specified. These should appear in the table of contents.
 	-- For hyperlinked formats, this should generate a link target.
 	-- Version is the insertion version of the new text; Old_Version is
 	-- the insertion version of the old text.
@@ -457,8 +466,12 @@ private
 	Wrote_into_Section : Boolean := False; -- Have we written into the
 		-- current section yet?
 	Column_Count : ARM_Output.Column_Count := 1; -- Number of columns in current section.
+
 	Output_File : Ada.Text_IO.File_Type;
+	Big_Files : Boolean; -- For RTF, this means to generate a single monster file.
 	File_Prefix : Prefix_String; -- Blank padded.
+	Output_Path : Ada.Strings.Unbounded.Unbounded_String;
+
 	Title : Ada.Strings.Unbounded.Unbounded_String;
 	Header_Prefix : Ada.Strings.Unbounded.Unbounded_String;
         Footer_Use_Date : Boolean;
@@ -468,7 +481,6 @@ private
 	Page_Size : ARM_RTF.Page_Size;
 	Version_Names : ARM_Contents.Versioned_String;
 	Includes_Changes : Boolean;
-	Big_Files : Boolean; -- For RTF, this means to generate a single monster file.
 	Primary_Sans_Serif_Font : Sans_Serif_Fonts;
 	Primary_Serif_Font : Serif_Fonts;
 	Body_Font : ARM_Output.Font_Family_Type;
