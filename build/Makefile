@@ -105,12 +105,12 @@ publish-info : aarm2012.info arm2012.info aarm2005.info arm2005.info
 publish-zip : arm_info-$(ZIP_DATE)-src.tar.gz
 
 arm_info-$(ZIP_DATE)-src.tar.gz :
-	tar zcf arm_info-$(ZIP_DATE)-src.tar.gz -C ../.. --exclude "*~" --exclude "*.dvi" --exclude "*.gz" --exclude "*.info" --exclude "*.log" --exclude "*.pdf" --exclude "*.ps" --exclude "*.texinfo" --exclude "*.toc" --exclude "*.stamp" --exclude html --exclude objects --exclude txt --exclude arm_form.exe --exclude _MTN --exclude .mtn-ignore --exclude=.dvc-exclude org.adaic.arm_form
+	tar zcf arm_info-$(ZIP_DATE)-src.tar.gz -C ../.. --exclude "*~" --exclude "*.dvi" --exclude "*.gz" --exclude "*.info" --exclude "*.log" --exclude "*.pdf" --exclude "*.ps" --exclude "*.texinfo" --exclude "*.toc" --exclude "*.stamp" --exclude "*.zip" --exclude html --exclude objects --exclude txt --exclude arm_form.exe --exclude _MTN --exclude .mtn-ignore --exclude=.dvc-exclude org.adaic.arm_form
 
 # starting from a mtn checkout of org.adaic.arm_form, generate the Debian source tarball, set up for building Debian package
 # ../../ada-reference-manual-2012.1-current/ada-reference-manual-2012.1/debian/rules
 debian-free : debian-clean debian-update
-	mtn -d ~/monotone-dbs/ada-france.db checkout --branch org.debian.ada-reference-manual ../../ada-reference-manual-$(DEBIAN_VERSION)-current/ada-reference-manual-$(DEBIAN_VERSION)
+	mtn checkout --branch org.debian.ada-reference-manual ../../ada-reference-manual-$(DEBIAN_VERSION)-current/ada-reference-manual-$(DEBIAN_VERSION)
 	cd ../../ada-reference-manual-$(DEBIAN_VERSION)-current; tar jxf ada-reference-manual_$(DEBIAN_VERSION).orig.tar.bz2
 
 debian-zip : ada-reference-manual_$(DEBIAN_VERSION).orig.tar.bz2
@@ -127,6 +127,7 @@ debian-update : | ../../ada-reference-manual-$(DEBIAN_VERSION)-current
 	cp $^ ../../ada-reference-manual-$(DEBIAN_VERSION)-current/
 
 debian-clean :
+	rm ada-reference-manual_$(DEBIAN_VERSION).orig.tar.bz2
 	rm -rf ../../ada-reference-manual-$(DEBIAN_VERSION)-current
 
 ../../ada-reference-manual-$(DEBIAN_VERSION)-current :
@@ -271,6 +272,7 @@ source_2005_orig.stamp : | ../source_2005_orig
 
 # delete everything back to mtn checkout plus source_2005.
 clean ::
+	rm 2005-SRC.zip
 	rm -rf objects html txt
 	rm -f *.dvi *.info* *.texinfo *.log *.pdf *.stamp *.tar.gz *.toc *.zip
 	rm -rf ../source/Output ../source_2005/Output
@@ -278,8 +280,9 @@ clean ::
 info-clean :
 	rm -f *.info*
 
-include ../../../GDS/main/makerules/common_rules.make
-include ../../../GDS/main/makerules/gnat_project_rules.make
+.PHONY : force
+#include ../../../GDS/main/makerules/common_rules.make
+#include ../../../GDS/main/makerules/gnat_project_rules.make
 
 # This produces a PDF, but it has no hyperlinks, so it is suitable
 # only for printing.
