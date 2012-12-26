@@ -1199,7 +1199,7 @@ Throw error if not in paren.  If PARSE-RESULT is non-nil, use it
 instead of calling `syntax-ppss'."
   (goto-char (+ (or offset 0) (nth 1 (or parse-result (syntax-ppss))))))
 
-;;;; file navigation
+;;;; navigation
 
 (defvar ada-body-suffixes '(".adb")
   "List of possible suffixes for Ada body files.
@@ -1707,6 +1707,17 @@ with no parameters.")
   "Call `ada-goto-declaration-start'."
   (when ada-goto-declaration-start
     (funcall ada-goto-declaration-start)))
+
+(defvar ada-goto-declarative-region-start nil
+  ;; No useful default; the indentation engine should supply a useful function
+  "Function to move point to start of the declarative region of
+the subprogram, package, or task declaration point is currently
+in.  Called with no parameters.")
+
+(defun ada-goto-declarative-region-start ()
+  "Call `ada-goto-declarative-region-start'."
+  (when ada-goto-declarative-region-start
+    (funcall ada-goto-declarative-region-start)))
 
 ;;;; code creation
 

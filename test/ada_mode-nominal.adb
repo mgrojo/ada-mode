@@ -18,9 +18,11 @@ package body Ada_Mode.Nominal is
      (A_Param : in Float)
      return
      Standard.Float
-   is
+   is -- target 1
       use type Standard.Float;
    begin
+      --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at " -- target 1"))
+      --EMACSRESULT:t
       return 0.0;
    end;
 
@@ -50,7 +52,10 @@ package body Ada_Mode.Nominal is
    end Function_Access_11;
 
    --EMACSCMD:(progn (forward-line 3)(ada-find-other-file nil)(looking-at "protected type Protected_1"))
-   protected body Protected_1 is
+   protected body Protected_1 is -- target 2
+
+      --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at " -- target 2"))
+      --EMACSRESULT:t
 
       --EMACSCMD:(ada-which-function)
       --EMACSRESULT:"Protected_1"
@@ -60,7 +65,7 @@ package body Ada_Mode.Nominal is
          -- some people like 'is' on the line with 'function' here
 
          function Local_Function return Integer
-         is
+         is -- target 3
             --EMACSCMD:(test-face "exception" font-lock-keyword-face)
             Bad_Thing : exception;
             --EMACSCMD:(test-face "Boolean" font-lock-type-face)
@@ -69,6 +74,9 @@ package body Ada_Mode.Nominal is
          begin
             if True then
                begin
+                  --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at " -- target 3"))
+                  --EMACSRESULT:t
+
                   --EMACSCMD:(test-face "Integer" 'default)
                   -- "Integer" is in fact a type, but it would require
                   -- name resolution to figure that out.
@@ -237,8 +245,11 @@ package body Ada_Mode.Nominal is
    --  block attached
    --------------------------------------------------------
    task Executive;
-   task body Executive is
+   task body Executive is -- target 4
    begin
+      --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at " -- target 4"))
+      --EMACSRESULT:t
+
       null;
    end Executive;
 
@@ -316,12 +327,17 @@ package body Ada_Mode.Nominal is
    not
    overriding
    procedure Procedure_1f (Item : in out Parent_Type_1)
-   is
+   is -- target
    begin
+      --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at " -- target"))
+      --EMACSRESULT:t
       null;
    end Procedure_1f;
 
-   procedure Procedure_2a is begin null; end;
+   procedure Procedure_2a is -- target 4
+   begin null; end;
+   --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at " -- target 4"))
+   --EMACSRESULT:t
 
    -- Functions can't be 'is null', so we test some indentation issues
    function Function_1a return Float
@@ -332,13 +348,16 @@ package body Ada_Mode.Nominal is
    end Function_1a;
 
    function Function_1b return Float
-   is
+   is -- target 5
       Local_1 : constant := 3.0;
    begin
       declare -- no label, zero statements between begin, declare
       begin
          return Local_1;
       exception
+         --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at " -- target 5"))
+         --EMACSRESULT:t
+
          when others =>
             return 0.0;
       end;

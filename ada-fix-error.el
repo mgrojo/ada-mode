@@ -86,7 +86,7 @@ extend a with_clause to include CHILD-NAME  .	"
 	  (context-clause (ada-fix-context-clause)))
       (goto-char (car context-clause))
       (if (search-forward-regexp (concat "^with " parent-name ";") (cdr context-clause) t)
-	  ;; found exisiting 'with' for parent; extent it
+	  ;; found exisiting 'with' for parent; extend it
 	  (progn
 	    (forward-char -1) ; skip back over semicolon
 	    (insert "." child-name))
@@ -95,6 +95,24 @@ extend a with_clause to include CHILD-NAME  .	"
 	;; insert a new one
 	(ada-fix-add-with-clause (concat parent-name "." child-name)))
       )))
+
+(defun ada-fix-add-use-type (type)
+  "Insert 'use type' clause for TYPE at start of declarative part for current construct."
+  (ada-goto-declarative-region-start); leaves point after 'is'
+  (newline)
+  (insert "use type " type ";")
+  (newline-and-indent)
+  (forward-line -1)
+  (indent-according-to-mode))
+
+(defun ada-fix-add-use (package)
+  "Insert 'use' clause for PACKAGE at start of declarative part for current construct."
+  (ada-goto-declarative-region-start); leaves point after 'is'
+  (newline)
+  (insert "use " package ";")
+  (newline-and-indent)
+  (forward-line -1)
+  (indent-according-to-mode))
 
 (defvar ada-fix-error-alist nil
   "Alist indexed by `ada-compiler' holding function to recognize and fix errors.

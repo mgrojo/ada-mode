@@ -366,6 +366,7 @@ If PARENT is non-nil, return parent type declaration (assumes IDENTIFIER is a de
     ("a-except" . "Ada.Exceptions")
     ("a-numeri" . "Ada.Numerics")
     ("a-string" . "Ada.Strings")
+    ("a-strunb" . "Ada.Strings.Unbounded")
     ("g-socket" . "GNAT.Sockets")
     ("interfac" . "Interfaces")
     ("i-c"      . "Interfaces.C")
@@ -606,11 +607,19 @@ For `compilation-filter-hook'."
 	    ;; FIXME: should check if prefix is already with'd, extend it
 	    (ada-fix-add-with-clause package-name)))
 
+         ((looking-at "No legal interpretation for operator")
+	  (next-line)
+	  (looking-at (concat "use clause on " ada-gnat-quoted-name-regexp))
+	  (let ((package (match-string 1)))
+	    (pop-to-buffer source-buffer)
+	    (ada-fix-add-use package)))
+
 	 ((looking-at "prefix of dereference must be an access type")
 	  (pop-to-buffer source-buffer)
 	  ;; point is after '.' in '.all'
 	  (delete-region (- (point) 1) (+ (point) 3)))
 
+;;;; warnings
          ((looking-at (concat "warning: " ada-gnat-quoted-name-regexp " is not modified, could be declared constant"))
           (pop-to-buffer source-buffer)
           (ada-smie-forward-tokens-unrefined ":");; FIXME: generalize to wisi?
@@ -618,6 +627,12 @@ For `compilation-filter-hook'."
           (when (looking-at "aliased")
 	    (forward-word 1))
           (insert " constant"))
+
+         ((looking-at (concat "warning: no entities of " ada-gnat-quoted-name-regexp " are referenced$"))
+          ;; just delete the 'with'; assume it's on a line by itself.
+          (pop-to-buffer source-buffer)
+          (beginning-of-line)
+          (delete-region (point) (progn (forward-line 1) (point))))
 
          ((looking-at (concat "warning: unit " ada-gnat-quoted-name-regexp " is not referenced$"))
           ;; just delete the 'with'; assume it's on a line by itself.

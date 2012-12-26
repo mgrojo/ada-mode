@@ -456,10 +456,12 @@
 
       (subprogram_body
        ;; access is an identifier
-       ;; We don't need "overriding" here; including it in the spec is sufficient
        ("function-spec" name "return-spec" name "is-subprogram_body" declarations "begin-body" statements "end-block")
+       ("overriding" "function-overriding" name "return-spec" name "is-subprogram_body" declarations "begin-body"
+	statements "end-block")
        ("function-spec" name "return-spec" "is-subprogram_body" "separate-stub")
        ("procedure-spec" name "is-subprogram_body" declarations "begin-body" statements "end-block")
+       ("overriding" "procedure-overriding" name "is-subprogram_body" declarations "begin-body" statements "end-block")
        ("procedure-spec" name "is-subprogram_body" "separate-stub")
        ("separate-unit" "function-separate" name "return-spec" name "is-subprogram_body" declarations "begin-body"
 	statements "end-block")
@@ -712,7 +714,7 @@ spec, return t if is a generic, nil otherwise."
 	 ((equal token ""); bob
 	  (setq result nil))
 
-	 ((equal token ";")
+	 ((member token '("not" ";")); "not overriding ..."
 	  (if first
 	      (progn
 		(setq first nil)
@@ -2682,7 +2684,7 @@ multi-keyword statement, move to the next keyword in the same
 statement, skipping contained statements.  Return found
 keyword (a string).  If FORWARD is non-nil, move forward,
 otherwise move backward.  If already at farthest keyword, do not
-move."
+move, and return KEYWORD."
   (let ((tok-levels (assoc keyword ada-smie-grammar))
 	stack
 	(done nil))
@@ -2727,6 +2729,15 @@ move."
    'ada-smie-backward-token
    (lambda (tok-levels) (nth 1 tok-levels)); lvl-forw
    (lambda (tok-levels) (nth 2 tok-levels)); lvl-back
+   ))
+
+(defun ada-smie-forward-statement-keyword (keyword)
+  (ada-smie-next-statement-keyword
+   keyword
+   t; forward
+   'ada-smie-forward-token
+   (lambda (tok-levels) (nth 2 tok-levels)); lvl-forw
+   (lambda (tok-levels) (nth 1 tok-levels)); lvl-back
    ))
 
 (defun ada-smie-rule-keyword (offset keyword pos)
@@ -3733,6 +3744,17 @@ Return declaration name, set ff-function-name as needed by `ada-which-function'.
 
 ))
 
+(defun ada-smie-goto-declarative-region-start ()
+  "For `ada-goto-declarative-region-start', which see."
+  (ada-smie-goto-declaration-start)
+  (let ((token (ada-smie-forward-token))
+	(done nil))
+    ;; FIXME: infinite loop on partial code?
+    (while (not (member token '("is-package" "is-protected_body" "is-subprogram_body" "is-task_body")))
+      (smie-default-backward-token)
+      (setq token (ada-smie-forward-statement-keyword token)))
+  ))
+
 (defun ada-smie-which-function ()
   "For `ada-which-function', which see."
   ;; FIXME: If point is in a local subprogram, package, or protected
@@ -4001,7 +4023,7 @@ Return declaration name, set ff-function-name as needed by `ada-which-function'.
       (insert name)
       (insert ";\n")
       (indent-region begin (point))
-      (forward-line -1)
+      (forward-line -2)
       ;; indent-region does not indent blank lines
       (smie-indent-line)
       )
@@ -4214,6 +4236,7 @@ This lets us know which indentation function succeeded."
   (set (make-local-variable 'ada-in-paramlist-p) 'ada-smie-in-paramlist-p)
   (set (make-local-variable 'ada-scan-paramlist) 'ada-smie-scan-paramlist)
   (set (make-local-variable 'ada-goto-declaration-start) 'ada-smie-goto-declaration-start)
+  (set (make-local-variable 'ada-goto-declarative-region-start) 'ada-smie-goto-declarative-region-start)
   (set (make-local-variable 'ada-make-subprogram-body) 'ada-smie-make-subprogram-body)
   )
 
