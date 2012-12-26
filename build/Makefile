@@ -34,59 +34,59 @@ TEXI_DVI_OPTS := --quiet
 
 arm2012.texinfo : arm_form.exe
 	cd ../source; ../build/arm_form.exe RM info New-Only 3
-	mv ../source/RM.texinfo ./arm2012.texinfo
+	mv ../source/output/RM.texinfo ./arm2012.texinfo
 
 arm2005.texinfo : arm_form.exe
 	cd ../source_2005; ../build/arm_form.exe RM info New-Only 2
-	mv ../source_2005/RM.texinfo ./arm2005.texinfo
+	mv ../source_2005/output/RM.texinfo ./arm2005.texinfo
 
 aarm2012.texinfo : arm_form.exe
 	cd ../source; ../build/arm_form.exe AARM info New-Only 3
-	mv ../source/AA.texinfo ./aarm2012.texinfo
+	mv ../source/output/AA.texinfo ./aarm2012.texinfo
 
 aarm2005.texinfo : arm_form.exe
 	cd ../source_2005; ../build/arm_form.exe AARM info New-Only 2
-	mv ../source_2005/AA.texinfo ./aarm2005.texinfo
+	mv ../source_2005/output/AA.texinfo ./aarm2005.texinfo
 
 html/arm2012/RM-TOC.html : arm_form.exe | html/arm2012 ../source/Output
 	cd ../source; ../build/arm_form.exe RM HTML New-Only 3
 	rm -rf html/arm2012/*
-	mv ../source/Output/* html/arm2012
+	mv ../source/output/* html/arm2012
 
 html/arm2005/RM-TOC.html : arm_form.exe | html/arm2005 ../source_2005/Output
 	cd ../source_2005; ../build/arm_form.exe RM HTML New-Only 2
 	rm -rf html/arm2005/*
-	mv ../source_2005/Output/* html/arm2005
+	mv ../source_2005/output/* html/arm2005
 
 html/aarm2012/AA-TOC.html : arm_form.exe | html/aarm2012 ../source/Output
 	cd ../source; ../build/arm_form.exe AARM HTML New-Only 3
 	rm -rf html/aarm2012/*
-	mv ../source/Output/* html/aarm2012
+	mv ../source/output/* html/aarm2012
 
 html/aarm2005/AA-TOC.html : arm_form.exe | html/aarm2005 ../source_2005/Output
 	cd ../source_2005; ../build/arm_form.exe AARM HTML New-Only 2
 	rm -rf html/aarm2005/*
-	mv ../source_2005/Output/* html/aarm2005
+	mv ../source_2005/output/* html/aarm2005
 
 txt/arm2012/RM-TOC.TXT : arm_form.exe | txt/arm2012 ../source/Output
 	cd ../source; ../build/arm_form.exe RM Text New-Only 3
 	rm -rf txt/arm2012/*
-	mv ../source/Output/* txt/arm2012
+	mv ../source/output/* txt/arm2012
 
 txt/arm2005/RM-TOC.TXT : arm_form.exe | txt/arm2005 ../source_2005/Output
 	cd ../source_2005; ../build/arm_form.exe RM Text New-Only 2
 	rm -rf txt/arm2005/*
-	mv ../source_2005/Output/* txt/arm2005
+	mv ../source_2005/output/* txt/arm2005
 
 txt/aarm2012/AA-TOC.TXT : arm_form.exe | txt/aarm2012 ../source/Output
 	cd ../source; ../build/arm_form.exe AARM Text New-Only 3
 	rm -rf txt/aarm2012/*
-	mv ../source/Output/* txt/aarm2012
+	mv ../source/output/* txt/aarm2012
 
 txt/aarm2005/AA-TOC.TXT : arm_form.exe | txt/aarm2005 ../source_2005/Output
 	cd ../source_2005; ../build/arm_form.exe AARM Text New-Only 2
 	rm -rf txt/aarm2005/*
-	mv ../source_2005/Output/* txt/aarm2005
+	mv ../source_2005/output/* txt/aarm2005
 
 arm_form.exe : force
 	gnatmake -p -k -P arm_info.gpr
@@ -246,7 +246,7 @@ UPSTREAM_SCRIBE += pre_strings.mss
 # on uniform formatting; this works for both Windows and Debian.
 source_scribe.stamp :
 	for file in $(UPSTREAM_SCRIBE); do wget -nv -O ../../org.adaic.arm_form.upstream/source/$$file "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/source/$$file?rev=HEAD"; done
-	cd ../../org.adaic.arm_form.upstream/source; $(CURDIR)/convert_to_unix.sh
+	cd ../../org.adaic.arm_form.upstream/source; dos2unix -f *.MSS *.mss *.MSM
 	touch source_scribe.stamp
 
 source_scribe.clean :
