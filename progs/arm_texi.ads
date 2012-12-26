@@ -39,6 +39,9 @@ package ARM_Texinfo is
    --		       the last update.
    -- 10/25/11 - RLB - Added old insertion version to Revised_Clause_Header.
    --  4/ 1/12 - S L - Various revisions.
+   --  8/31/12 - RLB - Added Output_Path.
+   -- 11/26/12 - RLB - Added subdivision names to Clause_Header and
+   --		       Revised_Clause_Header.
 
    type Texinfo_Output_Type is new ARM_Output.Output_Type with private;
 
@@ -46,6 +49,7 @@ package ARM_Texinfo is
    procedure Create
      (Output_Object : in out Texinfo_Output_Type;
       File_Prefix   : in     String;
+      Output_Path   : in     String;
       Title         : in     String);
    --  Create an Output_Object for a document.
 
@@ -90,6 +94,7 @@ package ARM_Texinfo is
       Header_Text   : in     String;
       Level         : in     ARM_Contents.Level_Type;
       Clause_Number : in     String;
+      Top_Level_Subdivision_Name : in ARM_Output.Top_Level_Subdivision_Name_Kind;
       No_Page_Break : in     Boolean                 := False);
 
    -- overriding
@@ -101,6 +106,7 @@ package ARM_Texinfo is
       Clause_Number   : in     String;
       Version         : in     ARM_Contents.Change_Version_Type;
       Old_Version     : in     ARM_Contents.Change_Version_Type;
+      Top_Level_Subdivision_Name : in ARM_Output.Top_Level_Subdivision_Name_Kind;
       No_Page_Break   : in     Boolean                          := False);
 
    -- overriding

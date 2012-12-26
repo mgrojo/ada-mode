@@ -22,7 +22,7 @@ package body ARM_Master is
     -- execute it.
     --
     -- ---------------------------------------
-    -- Copyright 2006, 2007, 2009, 2011
+    -- Copyright 2006, 2007, 2009, 2011, 2012
     --   AXE Consultants. All rights reserved.
     -- P.O. Box 1512, Madison WI  53701
     -- E-Mail: randy@rrsoftware.com
@@ -69,6 +69,8 @@ package body ARM_Master is
     --  5/06/09 - RLB - Added the RTFVersionName command.
     -- 10/18/11 - RLB - Changed to GPLv3 license.
     -- 10/19/11 - RLB - Added Texinfo output (from Stephen Leake).
+    --  8/31/12 - RLB - Added Output_Path.
+    -- 11/26/12 - RLB - Added Subdivision_Names.
 
     type Command_Type is (
 	-- Source commands:
@@ -89,6 +91,7 @@ package body ARM_Master is
 	Note_Format,
 	Contents_Format,
 	List_Format,
+	Subdivision_Names,
 
 	-- HTML properties:
 	Single_HTML_Output_File,
@@ -157,6 +160,8 @@ package body ARM_Master is
     Use_ISO_2004_List_Format : Boolean := True;
 	-- Should we use the ISO 2004 list format, or the one used in the
 	-- Ada 95 standard??
+    Subdivision_Name_Kind : ARM_Output.Top_Level_Subdivision_Name_Kind :=
+		ARM_Output.Section;
 
     -- HTML properties:
     Use_Large_HTML_Files : Boolean := False; -- Use small output files by default.
@@ -236,6 +241,8 @@ package body ARM_Master is
 	    return Contents_Format;
 	elsif Canonical_Name = "listformat" then
 	    return List_Format;
+	elsif Canonical_Name = "subdivisionnames" then
+	    return Subdivision_Names;
 	elsif Canonical_Name = "singlehtmloutputfile" then
 	    return Single_HTML_Output_File;
 	elsif Canonical_Name = "usemsdosfilenames" then
@@ -982,6 +989,28 @@ package body ARM_Master is
 			end if;
 		    end;
 
+		when Subdivision_Names =>
+		    -- @SubdivisionNames{Chapter|Section|Clause}
+		    declare
+			SD_Name : constant String :=
+			    Ada.Characters.Handling.To_Lower (
+				Get_Single_String);
+		    begin
+			if SD_Name = "chapter" then
+			    Subdivision_Name_Kind := ARM_Output.Chapter;
+			    Ada.Text_IO.Put_Line("Top-level subdivisions known as Chapters");
+			elsif SD_Name = "section" then
+			    Subdivision_Name_Kind := ARM_Output.Section;
+			    Ada.Text_IO.Put_Line("Top-level subdivisions known as Sections");
+			elsif SD_Name = "clause" then
+			    Subdivision_Name_Kind := ARM_Output.Clause;
+			    Ada.Text_IO.Put_Line("Top-level subdivisions known as Clauses");
+			else
+		            Ada.Text_IO.Put_Line ("** Unknown subdivision name: " & SD_Name &
+						  " on line" & ARM_Input.Line_String (Input_Object));
+			end if;
+		    end;
+
 		-- HTML properties:
 
 		when Single_HTML_Output_File =>
@@ -1191,7 +1220,8 @@ package body ARM_Master is
 		Examples_Font => Font_of_Examples,
 		Use_ISO_2004_Note_Format => Use_ISO_2004_Note_Format,
 		Use_ISO_2004_Contents_Format => Use_ISO_2004_Contents_Format,
-		Use_ISO_2004_List_Format => Use_ISO_2004_List_Format);
+		Use_ISO_2004_List_Format => Use_ISO_2004_List_Format,
+		Top_Level_Subdivision_Name => Subdivision_Name_Kind);
     end Create_Format;
 
 
@@ -1245,7 +1275,8 @@ package body ARM_Master is
 	File_Name : in String;
 	The_Change_Kind : ARM_Format.Change_Kind; -- Changes to generate.
 	The_Change_Version : ARM_Contents.Change_Version_Type; -- Change version.
-        Output_Format : in Output_Format_Type) is
+        Output_Format : in Output_Format_Type;
+        Output_Path : in String) is
 	-- Read and process the master file given.
 	Input_Object : ARM_File.File_Input_Type;
     begin
@@ -1282,6 +1313,7 @@ package body ARM_Master is
 				     Big_Files => Use_Large_HTML_Files,
 				     File_Prefix => +Output_File_Prefix,
 				     DOS_Filenames => Use_MS_DOS_Filenames,
+				     Output_Path => Output_Path,
 				     HTML_Kind => HTML_Kind,
 				     Use_Unicode => HTML_Use_Unicode,
 				     Number_Paragraphs => Should_Number_Paragraphs,
@@ -1314,6 +1346,7 @@ package body ARM_Master is
 				        Page_Size => Page_Size,
 				        Includes_Changes => False,
 				        Big_Files => Use_Large_RTF_Files,
+				        Output_Path => Output_Path,
 				        Primary_Serif_Font => Serif_Font,
 				        Primary_Sans_Serif_Font => Sans_Serif_Font,
 				        File_Prefix => +Output_File_Prefix,
@@ -1330,6 +1363,7 @@ package body ARM_Master is
 				        Page_Size => Page_Size,
 				        Includes_Changes => True,
 				        Big_Files => Use_Large_RTF_Files,
+				        Output_Path => Output_Path,
 				        Primary_Serif_Font => Serif_Font,
 				        Primary_Sans_Serif_Font => Sans_Serif_Font,
 				        File_Prefix => +Output_File_Prefix,
@@ -1351,6 +1385,7 @@ package body ARM_Master is
 	        begin
 		    ARM_Text.Create (Output,
 				     File_Prefix => +Output_File_Prefix,
+				     Output_Path => Output_Path,
 				     Title => Get_Versioned_String (Document_Title, Change_Version));
 		    Generate_Sources (Output);
 		    ARM_Text.Close (Output);
@@ -1361,6 +1396,7 @@ package body ARM_Master is
 	        begin
 		    ARM_Corr.Create (Output,
 				     File_Prefix => +Output_File_Prefix,
+				     Output_Path => Output_Path,
 				     Title => Get_Versioned_String (Document_Title, Change_Version));
 		    Generate_Sources (Output);
 		    ARM_Corr.Close (Output);
@@ -1371,6 +1407,7 @@ package body ARM_Master is
 	        begin
 		    ARM_TexInfo.Create (Output,
 				        File_Prefix => +Output_File_Prefix,
+				        Output_Path => Output_Path,
 				        Title => Get_Versioned_String (Document_Title, Change_Version));
 	            Generate_Sources (Output);
 	            ARM_TexInfo.Close (Output);

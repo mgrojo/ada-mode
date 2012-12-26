@@ -57,15 +57,20 @@ package ARM_Corr is
     -- 12/19/07 - RLB - Added limited colors to Text_Format.
     -- 10/18/11 - RLB - Changed to GPLv3 license.
     -- 10/25/11 - RLB - Added old insertion version to Revised_Clause_Header.
+    --  8/31/12 - RLB - Added Output_Path.
+    -- 11/26/12 - RLB - Added subdivision names to Clause_Header and
+    --			Revised_Clause_Header.
 
     type Corr_Output_Type is new ARM_Output.Output_Type with private;
 
     procedure Create (Output_Object : in out Corr_Output_Type;
 		      File_Prefix : in String;
+		      Output_Path : in String;
 		      Title : in String := "");
 	-- Create an Output_Object for a document.
 	-- The prefix of the output file names is File_Prefix - this
 	-- should be no more then 5 characters allowed in file names.
+	-- The result files will be written to Output_Path.
 	-- The title of the document is Title.
 
     procedure Close (Output_Object : in out Corr_Output_Type);
@@ -121,30 +126,34 @@ package ARM_Corr is
 	-- headers are spelled the same in all output versions).
 	-- Raises Not_Valid_Error if in a paragraph.
 
-    procedure Clause_Header (Output_Object : in out Corr_Output_Type;
-			     Header_Text : in String;
-			     Level : in ARM_Contents.Level_Type;
-			     Clause_Number : in String;
-			     No_Page_Break : in Boolean := False);
+    procedure Clause_Header (Output_Object     : in out Corr_Output_Type;
+			     Header_Text       : in String;
+			     Level	       : in ARM_Contents.Level_Type;
+			     Clause_Number     : in String;
+			     Top_Level_Subdivision_Name : in ARM_Output.Top_Level_Subdivision_Name_Kind;
+			     No_Page_Break     : in Boolean := False);
 	-- Output a Clause header. The level of the header is specified
-	-- in Level. The Clause Number is as specified.
-	-- These should appear in the table of contents.
+	-- in Level. The Clause Number is as specified; the top-level (and
+	-- other) subdivision names are as specified. These should appear in
+	-- the table of contents.
 	-- For hyperlinked formats, this should generate a link target.
 	-- If No_Page_Break is True, suppress any page breaks.
 	-- Raises Not_Valid_Error if in a paragraph.
 
-    procedure Revised_Clause_Header (Output_Object : in out Corr_Output_Type;
-			     New_Header_Text : in String;
-			     Old_Header_Text : in String;
-			     Level : in ARM_Contents.Level_Type;
-			     Clause_Number : in String;
-			     Version : in ARM_Contents.Change_Version_Type;
-			     Old_Version : in ARM_Contents.Change_Version_Type;
-        		     No_Page_Break : in Boolean := False);
+    procedure Revised_Clause_Header
+			    (Output_Object     : in out Corr_Output_Type;
+			     New_Header_Text   : in String;
+			     Old_Header_Text   : in String;
+			     Level	       : in ARM_Contents.Level_Type;
+			     Clause_Number     : in String;
+			     Version	       : in ARM_Contents.Change_Version_Type;
+			     Old_Version       : in ARM_Contents.Change_Version_Type;
+			     Top_Level_Subdivision_Name : in ARM_Output.Top_Level_Subdivision_Name_Kind;
+        		     No_Page_Break     : in Boolean := False);
 	-- Output a revised clause header. Both the original and new text will
 	-- be output. The level of the header is specified in Level. The Clause
-	-- Number is as specified.
-	-- These should appear in the table of contents.
+	-- Number is as specified; the top-level (and other) subdivision names
+	-- are as specified. These should appear in the table of contents.
 	-- For hyperlinked formats, this should generate a link target.
 	-- Version is the insertion version of the new text; Old_Version is
 	-- the insertion version of the old text.
@@ -400,6 +409,8 @@ private
 	Output_Buffer_Space_Before : Boolean := False;
 			-- Do we need to output a space before the buffer?
 	Output_File : Ada.Text_IO.File_Type;
+	Output_Path : Buffer_String;
+	Output_Path_Len : Natural := 0;
 	File_Prefix : Prefix_String; -- Blank padded.
 	Char_Count : Natural := 0; -- Characters on current line.
 	Out_Char_Count : Natural := 0; -- Characters output on current line.

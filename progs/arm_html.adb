@@ -16,7 +16,8 @@ package body ARM_HTML is
     --
     -- ---------------------------------------
     -- Copyright 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-    --		 2008, 2009, 2011, 2012  AXE Consultants. All rights reserved.
+    --		 2008, 2009, 2011, 2012
+    -- AXE Consultants. All rights reserved.
     -- P.O. Box 1512, Madison WI  53701
     -- E-Mail: randy@rrsoftware.com
     --
@@ -176,6 +177,10 @@ package body ARM_HTML is
     --			good in PDF form.
     --  5/18/12 - RLB - Added anchors to each paragraph number as suggested
     --			on comp.lang.ada.
+    --  8/31/12 - RLB - Added Output_Path.
+    -- 10/18/12 - RLB - Added additional hanging styles.
+    -- 11/26/12 - RLB - Added subdivision names to Clause_Header and
+    --			Revised_Clause_Header.
 
     LINE_LENGTH : constant := 78;
 	-- Maximum intended line length.
@@ -1149,6 +1154,18 @@ package body ARM_HTML is
 		else
 		    return "Indented" & Character'Val(Character'Pos('0') + Indent) & "SmallEnumerated";
 		end if;
+	    when ARM_Output.Giant_Hanging =>
+                if Indent = 4 then
+		    return "GiantHanging";
+		else
+		    return "Indented" & Character'Val(Character'Pos('0') + Indent) & "GiantHanging";
+		end if;
+	    when ARM_Output.Small_Giant_Hanging =>
+                if Indent = 6 then
+		    return "SmallGiantHanging";
+		else
+		    return "Indented" & Character'Val(Character'Pos('0') + Indent) & "SmallGiantHanging";
+		end if;
 	    when ARM_Output.Wide_Hanging =>
                 if Indent = 3 then
 		    return "WideHanging";
@@ -1161,14 +1178,26 @@ package body ARM_HTML is
 		else
 		    return "Indented" & Character'Val(Character'Pos('0') + Indent) & "SmallWideHanging";
 		end if;
+	    when ARM_Output.Medium_Hanging =>
+                if Indent = 2 then
+		    return "MediumHanging";
+		else
+		    return "Indented" & Character'Val(Character'Pos('0') + Indent) & "MediumHanging";
+		end if;
+	    when ARM_Output.Small_Medium_Hanging =>
+                if Indent = 4 then
+		    return "SmallMediumHanging";
+		else
+		    return "Indented" & Character'Val(Character'Pos('0') + Indent) & "SmallMediumHanging";
+		end if;
 	    when ARM_Output.Narrow_Hanging =>
-                if Indent = 3 then
+                if Indent = 1 then
 		    return "NarrowHanging";
 		else
 		    return "Indented" & Character'Val(Character'Pos('0') + Indent) & "NarrowHanging";
 		end if;
 	    when ARM_Output.Small_Narrow_Hanging =>
-                if Indent = 5 then
+                if Indent = 3 then
 		    return "SmallNarrowHanging";
 		else
 		    return "Indented" & Character'Val(Character'Pos('0') + Indent) & "SmallNarrowHanging";
@@ -1313,13 +1342,16 @@ package body ARM_HTML is
 --Ada.Text_IO.Put_Line ("--Creating " & File_Name & ".html");
 	if Output_Object.HTML_Kind > HTML_3 then
 	    Ada.Text_IO.Create (Output_Object.Output_File, Ada.Text_IO.Out_File,
-	        ".\Output\" & File_Name & ".$$$");
+	        Ada.Strings.Unbounded.To_String (Output_Object.Output_Path) &
+		    File_Name & ".$$$");
 	elsif Output_Object.DOS_Filenames then
 	    Ada.Text_IO.Create (Output_Object.Output_File, Ada.Text_IO.Out_File,
-	        ".\Output\" & File_Name & ".HTM");
+	        Ada.Strings.Unbounded.To_String (Output_Object.Output_Path) &
+	            File_Name & ".HTM");
 	else
 	    Ada.Text_IO.Create (Output_Object.Output_File, Ada.Text_IO.Out_File,
-	        ".\Output\" & File_Name & ".html");
+	        Ada.Strings.Unbounded.To_String (Output_Object.Output_Path) &
+	            File_Name & ".html");
 	end if;
 	-- Save the current clause:
 	Output_Object.Current_Clause :=
@@ -1536,6 +1568,7 @@ package body ARM_HTML is
     procedure Create (Output_Object : in out HTML_Output_Type;
 		      Big_Files : in Boolean;
 		      File_Prefix : in String;
+		      Output_Path : in String;
 		      DOS_Filenames : in Boolean;
 		      HTML_Kind : in HTML_Type;
 		      Use_Unicode : in Boolean;
@@ -1561,6 +1594,7 @@ package body ARM_HTML is
 	-- Big_Files is True; otherwise generate smaller output files.
 	-- The prefix of the output file names is File_Prefix - this
 	-- should be no more than 5 characters allowed in file names.
+	-- The files will be written into Output_Path.
 	-- If DOS_Filename is true, use 8.3 file names;
 	-- in that case, File_Prefix must be less than 4 characters in length;
 	-- and no clause or subclause number may exceed 35 if Big_Files is False.
@@ -1610,6 +1644,7 @@ package body ARM_HTML is
 			        Source => File_Prefix);
 	Output_Object.Title := Ada.Strings.Unbounded.To_Unbounded_String (Title);
 	Output_Object.Big_Files := Big_Files;
+	Output_Object.Output_Path := Ada.Strings.Unbounded.To_Unbounded_String(Output_Path);
 	Output_Object.DOS_Filenames := DOS_Filenames;
 	Output_Object.HTML_Kind := HTML_Kind;
 	Output_Object.Use_Unicode := Use_Unicode;
@@ -2131,9 +2166,11 @@ Ada.Text_IO.Put_Line("  @@ Calc columns for" & Natural'Image(Output_Object.Colum
 
 	    when ARM_Output.Bulleted | ARM_Output.Nested_Bulleted |
 		 ARM_Output.Small_Bulleted | ARM_Output.Small_Nested_Bulleted |
-		 ARM_Output.Wide_Hanging | ARM_Output.Narrow_Hanging |
+		 ARM_Output.Giant_Hanging | ARM_Output.Wide_Hanging |
+		 ARM_Output.Medium_Hanging | ARM_Output.Narrow_Hanging |
 		 ARM_Output.Hanging_in_Bulleted |
-		 ARM_Output.Small_Wide_Hanging | ARM_Output.Small_Narrow_Hanging |
+		 ARM_Output.Small_Giant_Hanging | ARM_Output.Small_Wide_Hanging |
+		 ARM_Output.Small_Medium_Hanging | ARM_Output.Small_Narrow_Hanging |
 		 ARM_Output.Small_Hanging_in_Bulleted |
 		 ARM_Output.Enumerated | ARM_Output.Small_Enumerated =>
 		if Tab_Stops.Number /= 0 then
@@ -2222,7 +2259,8 @@ Ada.Text_IO.Put_Line("  @@ Calc columns for" & Natural'Image(Output_Object.Colum
 		        Output_Object.Char_Count := Output_Object.Char_Count + 28;
 		    end if;
 
-	        when ARM_Output.Wide_Hanging | ARM_Output.Narrow_Hanging |
+	        when ARM_Output.Giant_Hanging | ARM_Output.Wide_Hanging |
+		     ARM_Output.Medium_Hanging | ARM_Output.Narrow_Hanging |
 		     ARM_Output.Hanging_in_Bulleted |
 		     ARM_Output.Enumerated =>
 		    if No_Prefix then
@@ -2235,7 +2273,8 @@ Ada.Text_IO.Put_Line("  @@ Calc columns for" & Natural'Image(Output_Object.Colum
 		        Output_Object.Saw_Hang_End := False;
 		    end if;
 
-	        when ARM_Output.Small_Wide_Hanging | ARM_Output.Small_Narrow_Hanging |
+	        when ARM_Output.Small_Giant_Hanging | ARM_Output.Small_Wide_Hanging |
+		     ARM_Output.Small_Medium_Hanging | ARM_Output.Small_Narrow_Hanging |
 		     ARM_Output.Small_Hanging_in_Bulleted |
 		     ARM_Output.Small_Enumerated =>
 		    if No_Prefix then
@@ -2312,10 +2351,12 @@ Ada.Text_IO.Put_Line("  @@ Calc columns for" & Natural'Image(Output_Object.Colum
 		    end if;
 		    Put_Compatibility_Font_Info (Output_Object, Style, Indent);
 
-	        when ARM_Output.Wide_Hanging | ARM_Output.Narrow_Hanging |
+	        when ARM_Output.Giant_Hanging | ARM_Output.Wide_Hanging |
+		     ARM_Output.Medium_Hanging | ARM_Output.Narrow_Hanging |
 		     ARM_Output.Hanging_in_Bulleted |
 		     ARM_Output.Enumerated |
-	             ARM_Output.Small_Wide_Hanging | ARM_Output.Small_Narrow_Hanging |
+	             ARM_Output.Small_Giant_Hanging | ARM_Output.Small_Wide_Hanging |
+	             ARM_Output.Small_Medium_Hanging | ARM_Output.Small_Narrow_Hanging |
 		     ARM_Output.Small_Hanging_in_Bulleted |
 		     ARM_Output.Small_Enumerated =>
 		    declare
@@ -2406,10 +2447,12 @@ Ada.Text_IO.Put_Line("  @@ Calc columns for" & Natural'Image(Output_Object.Colum
 		        Put_Style (Paragraph_Name (Style, Indent), Use_DIV => True);
 		    end if;
 
-	        when ARM_Output.Wide_Hanging | ARM_Output.Narrow_Hanging |
+	        when ARM_Output.Giant_Hanging | ARM_Output.Wide_Hanging |
+		     ARM_Output.Medium_Hanging | ARM_Output.Narrow_Hanging |
 		     ARM_Output.Hanging_in_Bulleted |
 		     ARM_Output.Enumerated |
-	             ARM_Output.Small_Wide_Hanging | ARM_Output.Small_Narrow_Hanging |
+	             ARM_Output.Small_Giant_Hanging | ARM_Output.Small_Wide_Hanging |
+	             ARM_Output.Small_Medium_Hanging | ARM_Output.Small_Narrow_Hanging |
 		     ARM_Output.Small_Hanging_in_Bulleted |
 		     ARM_Output.Small_Enumerated =>
 		    if No_Prefix then
@@ -2551,12 +2594,14 @@ Ada.Text_IO.Put_Line("  @@ Calc columns for" & Natural'Image(Output_Object.Colum
 	    	        Ada.Text_IO.Put (Output_Object.Output_File, "</FONT>");
 		    end if;
 
-	        when ARM_Output.Wide_Hanging | ARM_Output.Narrow_Hanging |
+	        when ARM_Output.Giant_Hanging | ARM_Output.Wide_Hanging |
+		     ARM_Output.Medium_Hanging | ARM_Output.Narrow_Hanging |
 		     ARM_Output.Hanging_in_Bulleted |
 	             ARM_Output.Enumerated =>
 	    	    Ada.Text_IO.Put (Output_Object.Output_File, "</DL>");
 
-	        when ARM_Output.Small_Wide_Hanging | ARM_Output.Small_Narrow_Hanging |
+	        when ARM_Output.Small_Giant_Hanging | ARM_Output.Small_Wide_Hanging |
+		     ARM_Output.Small_Medium_Hanging | ARM_Output.Small_Narrow_Hanging |
 		     ARM_Output.Small_Hanging_in_Bulleted |
 	             ARM_Output.Small_Enumerated =>
 	    	    Ada.Text_IO.Put (Output_Object.Output_File, "</FONT></DL>");
@@ -2584,10 +2629,12 @@ Ada.Text_IO.Put_Line("  @@ Calc columns for" & Natural'Image(Output_Object.Colum
 	             ARM_Output.Small_Bulleted | ARM_Output.Small_Nested_Bulleted =>
 		    -- We've overridden the style class here.
 		    Ada.Text_IO.Put (Output_Object.Output_File, "</div>");
-	        when ARM_Output.Wide_Hanging | ARM_Output.Narrow_Hanging |
+	        when ARM_Output.Giant_Hanging | ARM_Output.Wide_Hanging |
+		     ARM_Output.Medium_Hanging | ARM_Output.Narrow_Hanging |
 		     ARM_Output.Hanging_in_Bulleted |
 		     ARM_Output.Enumerated |
-	             ARM_Output.Small_Wide_Hanging | ARM_Output.Small_Narrow_Hanging |
+	             ARM_Output.Small_Giant_Hanging | ARM_Output.Small_Wide_Hanging |
+	             ARM_Output.Small_Medium_Hanging | ARM_Output.Small_Narrow_Hanging |
 		     ARM_Output.Small_Hanging_in_Bulleted |
 		     ARM_Output.Small_Enumerated =>
 		    -- We've overridden the style class here.
@@ -2618,10 +2665,12 @@ Ada.Text_IO.Put_Line("  @@ Calc columns for" & Natural'Image(Output_Object.Colum
 		    Put_End_Style (Output_Object.Paragraph_Style,
 				   Output_Object.Paragraph_Indent,
 				   Include_Compatibility => False);
-	        when ARM_Output.Wide_Hanging | ARM_Output.Narrow_Hanging |
+	        when ARM_Output.Giant_Hanging | ARM_Output.Wide_Hanging |
+		     ARM_Output.Medium_Hanging | ARM_Output.Narrow_Hanging |
 		     ARM_Output.Hanging_in_Bulleted |
 		     ARM_Output.Enumerated |
-	             ARM_Output.Small_Wide_Hanging | ARM_Output.Small_Narrow_Hanging |
+	             ARM_Output.Small_Giant_Hanging | ARM_Output.Small_Wide_Hanging |
+	             ARM_Output.Small_Medium_Hanging | ARM_Output.Small_Narrow_Hanging |
 		     ARM_Output.Small_Hanging_in_Bulleted |
 		     ARM_Output.Small_Enumerated =>
 		    Put_End_Style (Output_Object.Paragraph_Style,
@@ -2669,14 +2718,16 @@ Ada.Text_IO.Put_Line("  @@ Calc columns for" & Natural'Image(Output_Object.Colum
     end Category_Header;
 
 
-    procedure Clause_Header (Output_Object : in out HTML_Output_Type;
-			     Header_Text : in String;
-			     Level : in ARM_Contents.Level_Type;
-			     Clause_Number : in String;
-			     No_Page_Break : in Boolean := False) is
+    procedure Clause_Header (Output_Object     : in out HTML_Output_Type;
+			     Header_Text       : in String;
+			     Level	       : in ARM_Contents.Level_Type;
+			     Clause_Number     : in String;
+			     Top_Level_Subdivision_Name : in ARM_Output.Top_Level_Subdivision_Name_Kind;
+			     No_Page_Break     : in Boolean := False) is
 	-- Output a Clause header. The level of the header is specified
-	-- in Level. The Clause Number is as specified.
-	-- These should appear in the table of contents.
+	-- in Level. The Clause Number is as specified; the top-level (and
+	-- other) subdivision names are as specified. These should appear in
+	-- the table of contents.
 	-- For hyperlinked formats, this should generate a link target.
 	-- If No_Page_Break is True, suppress any page breaks.
 	-- Raises Not_Valid_Error if in a paragraph.
@@ -2766,8 +2817,17 @@ Ada.Text_IO.Put_Line("  @@ Calc columns for" & Natural'Image(Output_Object.Colum
 				          Header_Text & "</H1>");
 	        end if;
 	    when ARM_Contents.Section =>
-	        Ada.Text_IO.Put_Line (Output_Object.Output_File, "<H1>Section " &
-				      Clause_Number & ": " & Header_Text & "</H1>");
+		case Top_Level_Subdivision_Name is
+		    when ARM_Output.Chapter =>
+		        Ada.Text_IO.Put_Line (Output_Object.Output_File, "<H1>Chapter " &
+					      Clause_Number & ": " & Header_Text & "</H1>");
+		    when ARM_Output.Section =>
+		        Ada.Text_IO.Put_Line (Output_Object.Output_File, "<H1>Section " &
+					      Clause_Number & ": " & Header_Text & "</H1>");
+		    when ARM_Output.Clause =>
+		        Ada.Text_IO.Put_Line (Output_Object.Output_File, "<H1>" &
+					      Clause_Number & " &nbsp; " & Header_Text & "</H1>");
+		end case;
 	    when ARM_Contents.Clause | ARM_Contents.Subclause |
 		 ARM_Contents.Subsubclause =>
 	        Ada.Text_IO.Put_Line (Output_Object.Output_File, "<H1>" &
@@ -2785,18 +2845,20 @@ Ada.Text_IO.Put_Line("  @@ Calc columns for" & Natural'Image(Output_Object.Colum
     end Clause_Header;
 
 
-    procedure Revised_Clause_Header (Output_Object : in out HTML_Output_Type;
-			     New_Header_Text : in String;
-			     Old_Header_Text : in String;
-			     Level : in ARM_Contents.Level_Type;
-			     Clause_Number : in String;
-			     Version : in ARM_Contents.Change_Version_Type;
-			     Old_Version : in ARM_Contents.Change_Version_Type;
-        		     No_Page_Break : in Boolean := False) is
+    procedure Revised_Clause_Header
+			    (Output_Object     : in out HTML_Output_Type;
+			     New_Header_Text   : in String;
+			     Old_Header_Text   : in String;
+			     Level	       : in ARM_Contents.Level_Type;
+			     Clause_Number     : in String;
+			     Version	       : in ARM_Contents.Change_Version_Type;
+			     Old_Version       : in ARM_Contents.Change_Version_Type;
+			     Top_Level_Subdivision_Name : in ARM_Output.Top_Level_Subdivision_Name_Kind;
+        		     No_Page_Break     : in Boolean := False) is
 	-- Output a revised clause header. Both the original and new text will
 	-- be output. The level of the header is specified in Level. The Clause
-	-- Number is as specified.
-	-- These should appear in the table of contents.
+	-- Number is as specified; the top-level (and other) subdivision names
+	-- are as specified. These should appear in the table of contents.
 	-- For hyperlinked formats, this should generate a link target.
 	-- Version is the insertion version of the new text; Old_Version is
 	-- the insertion version of the old text.
@@ -2869,11 +2931,20 @@ Ada.Text_IO.Put_Line("  @@ Calc columns for" & Natural'Image(Output_Object.Colum
 				          Header_Text & "</H1>");
 	        end if;
 	    when ARM_Contents.Section =>
-	        Ada.Text_IO.Put_Line (Output_Object.Output_File, "<H1>Section " &
-				      Clause_Number & ": " & Header_Text & "</H1>");
+		case Top_Level_Subdivision_Name is
+		    when ARM_Output.Chapter =>
+		        Ada.Text_IO.Put_Line (Output_Object.Output_File, "<H1>Chapter " &
+					      Clause_Number & ": " & Header_Text & "</H1>");
+		    when ARM_Output.Section =>
+		        Ada.Text_IO.Put_Line (Output_Object.Output_File, "<H1>Section " &
+					      Clause_Number & ": " & Header_Text & "</H1>");
+		    when ARM_Output.Clause =>
+		        Ada.Text_IO.Put_Line (Output_Object.Output_File, "<H1>" &
+					      Clause_Number & " &nbsp; " & Header_Text & "</H1>");
+		end case;
 	    when ARM_Contents.Clause | ARM_Contents.Subclause |
 		 ARM_Contents.Subsubclause =>
-	        Ada.Text_IO.Put_Line (Output_Object.Output_File, "<H1> " &
+	        Ada.Text_IO.Put_Line (Output_Object.Output_File, "<H1>" &
 				      Clause_Number & ' ' & Header_Text & "</H1>");
 	    when ARM_Contents.Dead_Clause  =>
 		raise Program_Error; -- No headers for dead clauses.
@@ -4048,7 +4119,8 @@ Ada.Text_IO.Put_Line("  @@ Calc columns for" & Natural'Image(Output_Object.Colum
 	if Output_Object.HTML_Kind = HTML_3 then
 	    case Output_Object.Paragraph_Style is
 	        -- Part of a definition list.
-		when ARM_Output.Small_Wide_Hanging | ARM_Output.Small_Narrow_Hanging |
+		when ARM_Output.Small_Giant_Hanging | ARM_Output.Small_Wide_Hanging |
+		     ARM_Output.Small_Medium_Hanging | ARM_Output.Small_Narrow_Hanging |
 		     ARM_Output.Small_Hanging_in_Bulleted |
 		     ARM_Output.Small_Enumerated =>
 		    Ada.Text_IO.Put_Line (Output_Object.Output_File, "</FONT><DD><FONT SIZE=-1>");
@@ -5413,6 +5485,34 @@ begin
 		 After => 5);
     end loop;
 
+    -- Giant Hanging
+    -- Note: Indent < 4 is not allowed.
+    for I in 4 .. ARM_Output.Paragraph_Indent_Type'Last loop
+	Paragraph_Info(ARM_Output.Giant_Hanging, I) :=
+		(Defined => True,
+		 Tag  => DL,
+		 Size => 0, -- 18
+		 Font => ARM_Output.Default,
+		 Indent => Natural(I)-4,
+		 Right_Indent => 0,
+		 Hang_Outdent => 4,
+		 Before => 0,
+		 After => 6);
+    end loop;
+    -- Small Giant Hanging:
+    -- Note: Indent < 4 is not allowed.
+    for I in 4 .. ARM_Output.Paragraph_Indent_Type'Last loop
+	Paragraph_Info(ARM_Output.Small_Giant_Hanging, I) :=
+		(Defined => True,
+		 Tag  => DL,
+		 Size => -1, -- 15
+		 Font => ARM_Output.Default,
+		 Indent => Natural(I)-4,
+		 Right_Indent => 0,
+		 Hang_Outdent => 4,
+		 Before => 0,
+		 After => 6);
+    end loop;
     -- Wide Hanging
     -- Note: Indent < 3 is not allowed.
     for I in 3 .. ARM_Output.Paragraph_Indent_Type'Last loop
@@ -5438,6 +5538,34 @@ begin
 		 Indent => Natural(I)-3,
 		 Right_Indent => 0,
 		 Hang_Outdent => 3,
+		 Before => 0,
+		 After => 6);
+    end loop;
+    -- Medium Hanging
+    -- Note: Indent < 2 is not allowed.
+    for I in 2 .. ARM_Output.Paragraph_Indent_Type'Last loop
+	Paragraph_Info(ARM_Output.Medium_Hanging, I) :=
+		(Defined => True,
+		 Tag  => DL,
+		 Size => 0, -- 18
+		 Font => ARM_Output.Default,
+		 Indent => Natural(I)-2,
+		 Right_Indent => 0,
+		 Hang_Outdent => 2,
+		 Before => 0,
+		 After => 6);
+    end loop;
+    -- Small Medium Hanging:
+    -- Note: Indent < 2 is not allowed.
+    for I in 2 .. ARM_Output.Paragraph_Indent_Type'Last loop
+	Paragraph_Info(ARM_Output.Small_Medium_Hanging, I) :=
+		(Defined => True,
+		 Tag  => DL,
+		 Size => -1, -- 15
+		 Font => ARM_Output.Default,
+		 Indent => Natural(I)-2,
+		 Right_Indent => 0,
+		 Hang_Outdent => 2,
 		 Before => 0,
 		 After => 6);
     end loop;
