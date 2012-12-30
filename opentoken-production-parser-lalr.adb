@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2002 - 2005, 2008 - 2011 Stephe Leake
+-- Copyright (C) 2002 - 2005, 2008 - 2012 Stephe Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -609,7 +609,7 @@ package body OpenToken.Production.Parser.LALR is
    begin
       case Action.Verb is
       when Shift =>
-         Result := Result & "shift and goto state" & Integer_Image (Integer (Action.State)) & ":";
+         Result := Result & "shift and goto state" & State_Index'Image (Action.State) & ": ";
 
          while State_Index (Dest_Kernel.Index) /= Action.State loop
             Dest_Kernel := Dest_Kernel.Next;
@@ -617,9 +617,8 @@ package body OpenToken.Production.Parser.LALR is
          Result := Result & LRk.Image (Dest_Kernel.all);
 
       when Reduce =>
-         Result := Result & "reduce the last" & Integer_Image (Action.Length) &
-           " tokens using production " &
-           LRk.Print_Item
+         Result := Result & "reduce the last" & Integer'Image (Action.Length) &
+           " tokens using production " & LRk.Print_Item
            ((Prod          => Action.Production,
              Pointer       => Token_List.Null_Iterator,
              Lookahead_Set => null,
@@ -733,18 +732,16 @@ package body OpenToken.Production.Parser.LALR is
       end loop;
    end Print_Parse_Table;
 
-   ----------------------------------------------------------------------------
-   --  Add a parse action to the given list of parse actions
-   ----------------------------------------------------------------------------
+   --  Add (Symbol, Action) to Action_List
    procedure Add_Action
      (Symbol      : in     Tokenizer.Terminal_ID;
       Action      : in     Parse_Action;
       Action_List : in out Action_Node_Ptr;
-      --  These last parameters are for error reporting
       Source      : in     LRk.Item_Set;
       Kernels     : in     LRk.Item_Set_List;
       Conflicts   : in out Ada.Strings.Unbounded.Unbounded_String)
    is
+      --  Source .. Conflicts are for error reporting
       use type Ada.Strings.Unbounded.Unbounded_String;
       Matching_Action : constant Action_Node_Ptr := Find (Symbol, Action_List);
    begin
@@ -756,16 +753,12 @@ package body OpenToken.Production.Parser.LALR is
          else
             --  There is a conflict
             Conflicts := Conflicts & Parse_Action_Verbs'Image (Matching_Action.Action.Verb) &
-              "/" & Parse_Action_Verbs'Image (Action.Verb) & " in state:" & Line_End &
+              "/" & Parse_Action_Verbs'Image (Action.Verb) & " in state:" & Natural'Image (Source.Index) & Line_End &
               LRk.Image (Source)
               & " on token " & Tokenizer.Terminal_ID'Image (Symbol) & Line_End &
-              Print_Parse_Action
-              (Action  => Matching_Action.Action,
-               Kernels => Kernels) & Line_End & "   and" &
-              Line_End &
-              Print_Parse_Action
-              (Action  => Action,
-               Kernels => Kernels) & Line_End;
+              Print_Parse_Action (Matching_Action.Action, Kernels) & Line_End &
+              "   and" & Line_End &
+              Print_Parse_Action (Action, Kernels) & Line_End;
             return;
          end if;
       end if;
@@ -773,8 +766,7 @@ package body OpenToken.Production.Parser.LALR is
       Action_List := new Action_Node'
         (Symbol => Symbol,
          Action => Action,
-         Next   => Action_List
-        );
+         Next   => Action_List);
    end Add_Action;
 
    ----------------------------------------------------------------------------
@@ -923,6 +915,7 @@ package body OpenToken.Production.Parser.LALR is
          LRk.Free (Closure);
 
          if Length (Conflicts) /= 0 then
+            Ada.Text_IO.Put_Line (Ada.Text_IO.Standard_Error, "Conflicts: ");
             Ada.Text_IO.Put_Line (Ada.Text_IO.Standard_Error, To_String (Conflicts));
          end if;
 
@@ -1165,6 +1158,10 @@ package body OpenToken.Production.Parser.LALR is
             Current_State.Next := Stack;
             Stack := new State_Node'(Current_State);
 
+            if Trace_Parse then
+               Ada.Text_IO.New_Line (Ada.Text_IO.Standard_Error);
+            end if;
+
             --  Get the next token
             begin
                Tokenizer.Find_Next (Parser.Analyzer);
@@ -1182,10 +1179,6 @@ package body OpenToken.Production.Parser.LALR is
               (Token.Class (Tokenizer.Get (Parser.Analyzer)));
 
             Current_State.State := Action.State;
-
-            if Trace_Parse then
-               Ada.Text_IO.New_Line (Ada.Text_IO.Standard_Error);
-            end if;
 
          when Reduce =>
 

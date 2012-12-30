@@ -28,7 +28,7 @@ input file, and outputs a compiled grammar in elisp format; it
 matches the output of wisent-compile-grammar, and can thus be used
 by wisent-parse.
 
-The input file syntax is the based on Gnu bison syntax
+The Wisent input file syntax is the based on Gnu bison syntax
 @xref{Top,Bison,Overview,bison} with
 some additions, apparently not documented anywhere.
 
@@ -51,6 +51,9 @@ DECLARATIONS
 RULES
 %%
 @end example
+
+Comments are started by ``//'' or ``;;'', and terminated by end of
+line.
 
 @node Prologue, , ,
 @subsection Prologue

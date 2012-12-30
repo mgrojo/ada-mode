@@ -24,6 +24,7 @@
 ^build/windows_debug/.*\.exe$
 ^build/windows_debug/.*\.out$
 ^build/windows_debug/.*\.txt$
+^build/windows_debug/ada-subset-wy\.el$
 ^build/windows_debug/obj$
 ^build/windows_debug/obj_tree$
 ^build/windows_release/.*\.diff$

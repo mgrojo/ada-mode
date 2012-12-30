@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2002, 2003, 2008, 2009 Stephe Leake
+-- Copyright (C) 2002, 2003, 2008, 2009, 2012 Stephe Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -959,15 +959,12 @@ package body OpenToken.Production.Parser.LRk_Item is
       end if;
    end Print;
 
-   ----------------------------------------------------------------------------
-   --  Print out the given item. This routine is included as a debugging aid.
-   ----------------------------------------------------------------------------
-   function Print_Item (Item : in Item_Node) return String is
+   function Print_Item (Item : in Item_Node) return String
+   is
       Token_Index : Token_List.List_Iterator;
 
       Result : Ada.Strings.Unbounded.Unbounded_String :=
-        Ada.Strings.Unbounded.To_Unbounded_String ("   ") &
-        Token_Name (Item.Prod.LHS) &
+        Ada.Strings.Unbounded.To_Unbounded_String (Token_Name (Item.Prod.LHS)) &
         "(" & Ada.Tags.Expanded_Name (Item.Prod.LHS.all'Tag) & ")" &
         " <=";
 
@@ -1021,8 +1018,9 @@ package body OpenToken.Production.Parser.LRk_Item is
       return Ada.Strings.Unbounded.To_String (Result);
    end Image_Set_Reference_List;
 
-   function Image (Items : in Item_Set) return String is
-      Item   : Item_Ptr := Items.Set;
+   function Image (Items : in Item_Set) return String
+   is
+      Item : Item_Ptr := Items.Set;
 
       Result : Ada.Strings.Unbounded.Unbounded_String :=
         Ada.Strings.Unbounded.To_Unbounded_String ("Set") &

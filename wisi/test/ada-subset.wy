@@ -38,7 +38,7 @@
 %keyword PACKAGE "package"
 %keyword RETURN "return"
 
-;; terminals
+;; other
 
 %token <symbol> IDENTIFIER
 

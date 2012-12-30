@@ -1,5 +1,6 @@
 -------------------------------------------------------------------------------
 --
+-- Copyright (C) 2012 Stephen Leake
 -- Copyright (C) 1999 FlightSafety International and Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -30,9 +31,6 @@
 --
 -------------------------------------------------------------------------------
 
-with Ada.Strings.Maps;
-with Ada.Strings.Maps.Constants;
-
 -----------------------------------------------------------------------------
 --  This package implements a token recognizer for an identifier. An
 --  identifier is defined as a string starting with a character in a
@@ -45,6 +43,7 @@ with Ada.Strings.Maps.Constants;
 --  *both* typically match. So be sure to list the keyword tokens in
 --  your syntax first, so that the keywords will take precedence.
 -----------------------------------------------------------------------------
+with Ada.Strings.Maps;
 package OpenToken.Recognizer.Identifier is
 
    type Instance is new OpenToken.Recognizer.Instance with private;
@@ -52,21 +51,15 @@ package OpenToken.Recognizer.Identifier is
    ----------------------------------------------------------------------------
    --  This procedure will be called to create an Identifier token.
    --
-   --  The defaults will give you an Ada-style identifier. For
-   --  identifiers that allow multiple underscores in a row, add the
-   --  underscore character to the Body_Chars. If it can also start
-   --  with an underscore, add the underscore character to the
-   --  Start_Chars.
-   --
-   --  Only set Has_Separator false when your identifier allows
-   --  multiple underscores in a row.
+   --  Underscore ('_') is treated as a separator (as in Ada); only
+   --  set Has_Separator false when your identifier allows multiple
+   --  underscores in a row.
    --------------------------------------------------------------------------
-   function Get (Start_Chars   : in Ada.Strings.Maps.Character_Set :=
-                   Ada.Strings.Maps.Constants.Letter_Set;
-                 Body_Chars    : in Ada.Strings.Maps.Character_Set :=
-                   Ada.Strings.Maps.Constants.Alphanumeric_Set;
-                 Has_Separator : in Boolean := True
-                ) return Instance;
+   function Get
+     (Start_Chars   : in Ada.Strings.Maps.Character_Set;
+      Body_Chars    : in Ada.Strings.Maps.Character_Set;
+      Has_Separator : in Boolean := True)
+     return Instance;
 
 private
 

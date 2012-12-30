@@ -56,18 +56,29 @@ package Wisi is
       --  terminals
       Action_ID,
       Bar_ID,
+      Bracket_Symbol_ID,
       Colon_ID,
-      Comment_ID,
+      Comment_1_ID,
+      Comment_2_ID,
       EOF_ID,
-      Percent_Percent_ID,
+      Keyword_ID,
+      Package_ID,
+      Percent_ID,
       Prologue_ID,
       Semicolon_ID,
+      Start_ID,
+      String_ID,
+      Token_ID,
+
+      --  Keywords have precedence over symbols
       Symbol_ID,
 
       --  last terminal
       Whitespace_ID,
 
       --  non-terminals
+      Declaration_ID,
+      Declarations_ID,
       Parse_Sequence_ID,
       Right_Hand_Sides_ID,
       Rule_ID,
@@ -87,6 +98,8 @@ package Wisi is
    use type Production_List.Instance;   -- "and"
 
    --  Tokens used in more than one grammar and syntax declarations
-   Symbol : constant Tokens.Class := Tokens.Get (Symbol_ID);
+   Percent   : constant Tokens.Class := Tokens.Get (Percent_ID);
+   Semicolon : constant Tokens.Class := Tokens.Get (Semicolon_ID);
+   Symbol    : constant Tokens.Class := Tokens.Get (Symbol_ID);
 
 end Wisi;

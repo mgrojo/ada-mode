@@ -1,6 +1,6 @@
 --  Abstract :
 --
---  OpenToken token for Wisent production declarations.
+--  See spec
 --
 --  Copyright (C) 2012 Stephen Leake.  All Rights Reserved.
 --
@@ -18,33 +18,15 @@
 
 pragma License (GPL);
 
-with Wisi.Rule_Token;
-package Wisi.Rules_Token is
+package body Wisi.Rule_Token is
 
-   type Instance is new Nonterminal.Instance with private;
-
-   Rules   : constant Instance;
-   Grammar : constant Production_List.Instance;
-
-private
-
-   type Instance is new Nonterminal.Instance with record
-      List : Token_List.Instance;
-   end record;
-
-   procedure Add
+   procedure Build
      (New_Token : out Nonterminal.Class;
       Source    : in  Token_List.Instance'Class;
-      To_ID     : in  Token_IDs);
+      To_ID     : in  Token_IDs)
+   is
+   begin
+      raise Program_Error with "Unimplemented procedure Build";
+   end Build;
 
-   Rules : constant Instance := (Nonterminal.Instance (Nonterminal.Get (Rules_ID)) with Token_List.Null_List);
-
-   Grammar : constant Production_List.Instance :=
-     Rules <= Rule_Token.Rule + Add'Access and
-     Rules <= Rules & Semicolon & Rule_Token.Rule + Add'Access and
-     Rule_Token.Grammar;
-
-end Wisi.Rules_Token;
---  Local Variables:
---  ada-indent-opentoken: t
---  End:
+end Wisi.Rule_Token;

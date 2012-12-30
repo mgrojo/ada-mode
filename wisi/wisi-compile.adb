@@ -20,6 +20,8 @@
 pragma License (GPL);
 
 with Ada.Command_Line;
+with Ada.Exceptions;
+with Ada.Strings.Unbounded;
 with Ada.Text_IO;
 with OpenToken.Production.Parser.LALR;
 with OpenToken.Text_Feeder.Text_IO;
@@ -38,30 +40,34 @@ is
    package Parser is new Production.Parser (Production_List, Tokenizer);
    package LALR_Parser is new Parser.LALR;
 
-   Output_File : Ada.Text_IO.File_Type;
-   Input_File  : constant access Ada.Text_IO.File_Type := new Ada.Text_IO.File_Type;
+   Output_File     : Ada.Text_IO.File_Type;
+   Input_File_Name : Ada.Strings.Unbounded.Unbounded_String;
+   Input_File      : constant access Ada.Text_IO.File_Type := new Ada.Text_IO.File_Type;
 
    File_Feeder : OpenToken.Text_Feeder.Text_Feeder_Ptr;
    Analyzer    : constant Tokenizer.Instance := Tokenizer.Initialize (Syntax, File_Feeder);
-   File_Parser : LALR_Parser.Instance        := LALR_Parser.Generate
-     (Grammar.Grammar, Tokenizer.Initialize (Syntax));
+   File_Parser : LALR_Parser.Instance;
 
    procedure Use_Input_File (File_Name : in String)
    is
       use Ada.Text_IO;
    begin
+      Input_File_Name := Ada.Strings.Unbounded.To_Unbounded_String (File_Name);
       Open (Input_File.all, In_File, File_Name);
       File_Feeder := OpenToken.Text_Feeder.Text_IO.Create (File_Access (Input_File));
    exception
    when Name_Error | Use_Error =>
-      raise Name_Error with "file '" & File_Name & " could not be opened.";
+      raise Name_Error with "input file '" & File_Name & "' could not be opened.";
    end Use_Input_File;
 
    procedure Use_Output_File (File_Name : in String)
    is
       use Ada.Text_IO;
    begin
-      Open (Output_File, Out_File, File_Name);
+      Create (Output_File, Out_File, File_Name);
+   exception
+   when Name_Error | Use_Error =>
+      raise Name_Error with "output file '" & File_Name & "' could not be created.";
    end Use_Output_File;
 
 begin
@@ -76,8 +82,8 @@ begin
       when 3 =>
          if Argument (1) = "-t" then
             OpenToken.Trace_Parse := True;
-            Use_Input_File (Argument (1));
-            Use_Output_File (Argument (2));
+            Use_Input_File (Argument (2));
+            Use_Output_File (Argument (3));
 
          else
             Set_Exit_Status (Failure);
@@ -100,7 +106,20 @@ begin
 
    File_Parser.Set_Text_Feeder (File_Feeder);
 
-   File_Parser.Parse;
+   if OpenToken.Trace_Parse then
+      Ada.Text_IO.Put_Line ("parsing:");
+   end if;
+
+   declare
+      use Ada.Exceptions;
+      use Ada.Strings.Unbounded;
+      use Ada.Text_IO;
+   begin
+      File_Parser.Parse;
+   exception
+   when E : OpenToken.Syntax_Error =>
+      Put_Line (To_String (Input_File_Name & ":" & Exception_Message (E)));
+   end;
 
    Ada.Text_IO.Close (Input_File.all);
    Ada.Text_IO.Close (Output_File);

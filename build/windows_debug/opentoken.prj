@@ -1,3 +1,6 @@
 gpr_file=opentoken_test_agg.gpr
 
+-- WORKAROUND: gnat stub in 7.1.0w has problems with project files; see LC16-001
+gnat_stub_opts=-P opentoken_test.gpr -t -hs
+
 casing=../emacs_case_exceptions

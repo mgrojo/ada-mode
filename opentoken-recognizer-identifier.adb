@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 1999 FlightSafety International and Ted Dennison
+-- Copyright (C) 1999, 2012 FlightSafety International and Ted Dennison
 --
 -- This file is part of the OpenToken package.
 --
@@ -97,16 +97,12 @@ package body OpenToken.Recognizer.Identifier is
 
    end Analyze;
 
-   ----------------------------------------------------------------------------
-   --  This procedure will be called to create an identifier token
-   ----------------------------------------------------------------------------
-   function Get (Start_Chars   : in Ada.Strings.Maps.Character_Set :=
-                   Ada.Strings.Maps.Constants.Letter_Set;
-                 Body_Chars    : in Ada.Strings.Maps.Character_Set :=
-                   Ada.Strings.Maps.Constants.Alphanumeric_Set;
-                 Has_Separator : in Boolean := True
-                ) return Instance is
-   begin
+   function Get
+     (Start_Chars   : in Ada.Strings.Maps.Character_Set;
+      Body_Chars    : in Ada.Strings.Maps.Character_Set;
+      Has_Separator : in Boolean := True)
+     return Instance
+   is begin
       return (Report        => True,
               Start_Chars   => Start_Chars,
               Body_Chars    => Body_Chars,
