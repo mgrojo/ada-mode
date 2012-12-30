@@ -1,6 +1,6 @@
 --  Abstract :
 --
---  root package
+--  root package for Wisi grammar compiler; see [3]
 --
 --  "wisi" is short for "Wisent Indentation engine"; the Emacs 'wisi'
 --  package implements an indentation engine based on the Emacs wisent
@@ -16,11 +16,6 @@
 --  The input file syntax is the based on Gnu bison syntax [1] with
 --  some additions, apparently not documented anywhere. See [3] for
 --  the syntax accepted by wisi-compile.
---
---  The OpenToken wisent compiler (wisi-compile) reads the Wisent
---  input file, and outputs a compiled grammar in elisp format; it
---  matches the output of wisent-compile-grammar, and can thus be used
---  by wisent-parse.
 --
 --  Reference :
 --
@@ -45,61 +40,50 @@
 
 pragma License (GPL);
 
-with OpenToken.Production.List;
-with OpenToken.Token.Enumerated.Analyzer;
-with OpenToken.Token.Enumerated.List;
-with OpenToken.Token.Enumerated.Nonterminal;
+with Ada.Containers.Doubly_Linked_Lists;
+with Ada.Containers.Indefinite_Doubly_Linked_Lists;
+with Ada.Strings.Unbounded;
 package Wisi is
 
-   type Token_IDs is
-     (
-      --  terminals
-      Action_ID,
-      Bar_ID,
-      Bracket_Symbol_ID,
-      Colon_ID,
-      Comment_1_ID,
-      Comment_2_ID,
-      EOF_ID,
-      Keyword_ID,
-      Package_ID,
-      Percent_ID,
-      Prologue_ID,
-      Semicolon_ID,
-      Start_ID,
-      String_ID,
-      Token_ID,
+   Syntax_Error : exception;
 
-      --  Keywords have precedence over symbols
-      Symbol_ID,
+   type Declaration_ID_Type is (Package_ID, Keyword_ID, Token_ID, Start_ID);
+   type Declaration_Type (ID : Declaration_ID_Type := Declaration_ID_Type'First) is record
+      Name : Ada.Strings.Unbounded.Unbounded_String;
+      case ID is
+      when Package_ID =>
+         null;
 
-      --  last terminal
-      Whitespace_ID,
+      when Keyword_ID =>
+         Value : Ada.Strings.Unbounded.Unbounded_String;
 
-      --  non-terminals
-      Declaration_ID,
-      Declarations_ID,
-      Parse_Sequence_ID,
-      Right_Hand_Sides_ID,
-      Rule_ID,
-      Rules_ID);
+      when Token_ID =>
+         null;
 
-   package Tokens is new OpenToken.Token.Enumerated (Token_IDs);
-   package Tokenizer is new Tokens.Analyzer (Whitespace_ID);
-   package Token_List is new Tokens.List;
-   package Nonterminal is new Tokens.Nonterminal (Token_List);
-   package Production is new OpenToken.Production (Tokens, Token_List, Nonterminal);
-   package Production_List is new Production.List;
+      when Start_ID =>
+         null;
+      end case;
+   end record;
 
-   --  Allow infix operators for grammar
-   use type Token_List.Instance;        -- "&"
-   use type Production.Right_Hand_Side; -- "+"
-   use type Production.Instance;        -- "<="
-   use type Production_List.Instance;   -- "and"
+   package Declaration_Lists is new Ada.Containers.Doubly_Linked_Lists (Declaration_Type);
 
-   --  Tokens used in more than one grammar and syntax declarations
-   Percent   : constant Tokens.Class := Tokens.Get (Percent_ID);
-   Semicolon : constant Tokens.Class := Tokens.Get (Semicolon_ID);
-   Symbol    : constant Tokens.Class := Tokens.Get (Symbol_ID);
+   package Token_Lists is new Ada.Containers.Indefinite_Doubly_Linked_Lists (String);
 
+   package Production_Lists is new Ada.Containers.Doubly_Linked_Lists (Token_Lists.List, Token_Lists."=");
+
+   type Rule_Type is record
+      Left_Hand_Side  : Ada.Strings.Unbounded.Unbounded_String;
+      Right_Hand_Side : Production_Lists.List;
+      Action          : Ada.Strings.Unbounded.Unbounded_String;
+   end record;
+
+   package Rule_Lists is new Ada.Containers.Doubly_Linked_Lists (Rule_Type);
+
+   function "+" (Item : in String) return Ada.Strings.Unbounded.Unbounded_String
+     renames Ada.Strings.Unbounded.To_Unbounded_String;
+
+   function "-" (Item : in Ada.Strings.Unbounded.Unbounded_String) return String
+     renames Ada.Strings.Unbounded.To_String;
+
+   Verbose : Boolean := False;
 end Wisi;

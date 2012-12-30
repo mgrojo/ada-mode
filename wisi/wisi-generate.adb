@@ -1,0 +1,89 @@
+--  Abstract :
+--
+--  Non-OpenToken parser for Wisent grammar files, producing OpenToken Ada source files.
+--
+--  Copyright (C) 2012 Stephen Leake.  All Rights Reserved.
+--
+--  This program is free software; you can redistribute it and/or
+--  modify it under terms of the GNU General Public License as
+--  published by the Free Software Foundation; either version 3, or (at
+--  your option) any later version. This program is distributed in the
+--  hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+--  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+--  PURPOSE. See the GNU General Public License for more details. You
+--  should have received a copy of the GNU General Public License
+--  distributed with this program; see file COPYING. If not, write to
+--  the Free Software Foundation, 51 Franklin Street, Suite 500, Boston,
+--  MA 02110-1335, USA.
+
+pragma License (GPL);
+
+with Ada.Command_Line;
+with Ada.Strings.Unbounded;
+with Ada.Text_IO;
+with Wisi.Declarations;
+with Wisi.Prologue;
+with Wisi.Rules;
+procedure Wisi.Generate
+is
+
+   procedure Put_Usage
+   is
+      use Ada.Text_IO;
+   begin
+      Put_Line ("wisi-generate [-v] {wisent grammar file} {output file root}");
+      Put_Line ("  -v : verbose");
+      Put_Line ("  generate Ada OpenToken source corresponding to 'wisent grammar file'");
+   end Put_Usage;
+
+   Input_File : Ada.Text_IO.File_Type;
+
+   Output_File_Root : Ada.Strings.Unbounded.Unbounded_String;
+
+   procedure Use_Input_File (File_Name : in String)
+   is
+      use Ada.Text_IO;
+   begin
+      Open (Input_File, In_File, File_Name);
+   exception
+   when Name_Error | Use_Error =>
+      raise Name_Error with "input file '" & File_Name & "' could not be opened.";
+   end Use_Input_File;
+
+   Declarations : Declaration_Lists.List;
+   Rules        : Rule_Lists.List;
+
+begin
+   declare
+      use Ada.Command_Line;
+   begin
+      case Argument_Count is
+      when 2 =>
+         Use_Input_File (Argument (1));
+         Output_File_Root := +Argument (2);
+
+      when 3 =>
+         if Argument (1) = "-v" then
+            Verbose := True;
+            Use_Input_File (Argument (2));
+            Output_File_Root := +Argument (3);
+
+         else
+            Set_Exit_Status (Failure);
+            Put_Usage;
+            return;
+         end if;
+
+      when others =>
+         Set_Exit_Status (Failure);
+         Put_Usage;
+         return;
+      end case;
+   end;
+
+   Wisi.Prologue (Input_File, -Output_File_Root);
+   Wisi.Declarations (Input_File, Declarations);
+   Wisi.Rules (Input_File, Rules);
+
+   --  FIXME: write output file(s)
+end Wisi.Generate;

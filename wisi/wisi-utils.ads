@@ -1,6 +1,6 @@
 --  Abstract :
 --
---  See spec
+--  Utilities for parsing Wisent files
 --
 --  Copyright (C) 2012 Stephen Leake.  All Rights Reserved.
 --
@@ -18,15 +18,13 @@
 
 pragma License (GPL);
 
-package body Wisi.Rule_Token is
+with Ada.Text_IO;
+package Wisi.Utils is
 
-   procedure Build
-     (New_Token : out Nonterminal.Class;
-      Source    : in  Token_List.Instance'Class;
-      To_ID     : in  Token_IDs)
-   is
-   begin
-      raise Program_Error with "Unimplemented procedure Build";
-   end Build;
+   function Skip_Comments (File : in Ada.Text_IO.File_Type) return String;
+   --  Return next line that is not a comment
 
-end Wisi.Rule_Token;
+   procedure Put_Error (File : in Ada.Text_IO.File_Type; Message : in String);
+   --  Output error message for File
+
+end Wisi.Utils;
