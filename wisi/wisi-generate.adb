@@ -19,9 +19,11 @@
 pragma License (GPL);
 
 with Ada.Command_Line;
+with Ada.Directories;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO;
 with Wisi.Declarations;
+with Wisi.Output;
 with Wisi.Prologue;
 with Wisi.Rules;
 procedure Wisi.Generate
@@ -31,7 +33,7 @@ is
    is
       use Ada.Text_IO;
    begin
-      Put_Line ("wisi-generate [-v] {wisent grammar file} {output file root}");
+      Put_Line ("wisi-generate [-v] {wisent grammar file}");
       Put_Line ("  -v : verbose");
       Put_Line ("  generate Ada OpenToken source corresponding to 'wisent grammar file'");
    end Put_Usage;
@@ -39,6 +41,10 @@ is
    Input_File : Ada.Text_IO.File_Type;
 
    Output_File_Root : Ada.Strings.Unbounded.Unbounded_String;
+
+   Prologue     : String_Lists.List;
+   Declarations : Declaration_Lists.List;
+   Rules        : Rule_Lists.List;
 
    procedure Use_Input_File (File_Name : in String)
    is
@@ -50,23 +56,20 @@ is
       raise Name_Error with "input file '" & File_Name & "' could not be opened.";
    end Use_Input_File;
 
-   Declarations : Declaration_Lists.List;
-   Rules        : Rule_Lists.List;
-
 begin
    declare
       use Ada.Command_Line;
    begin
       case Argument_Count is
-      when 2 =>
+      when 1 =>
          Use_Input_File (Argument (1));
-         Output_File_Root := +Argument (2);
+         Output_File_Root := +Ada.Directories.Base_Name (Argument (1));
 
-      when 3 =>
+      when 2 =>
          if Argument (1) = "-v" then
             Verbose := True;
             Use_Input_File (Argument (2));
-            Output_File_Root := +Argument (3);
+            Output_File_Root := +Ada.Directories.Base_Name (Argument (2));
 
          else
             Set_Exit_Status (Failure);
@@ -81,9 +84,9 @@ begin
       end case;
    end;
 
-   Wisi.Prologue (Input_File, -Output_File_Root);
+   Wisi.Prologue (Input_File, Prologue);
    Wisi.Declarations (Input_File, Declarations);
    Wisi.Rules (Input_File, Rules);
+   Wisi.Output (-Output_File_Root, Prologue, Declarations, Rules);
 
-   --  FIXME: write output file(s)
 end Wisi.Generate;

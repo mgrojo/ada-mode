@@ -21,16 +21,11 @@ pragma License (GPL);
 with Ada.Text_IO; use Ada.Text_IO;
 with Wisi.Utils;  use Wisi.Utils;
 procedure Wisi.Prologue
-  (Input_File          : in Ada.Text_IO.File_Type;
-   Output_Package_Root : in String)
+  (Input_File : in     Ada.Text_IO.File_Type;
+   Text       :    out String_Lists.List)
 is
-   Output_File : File_Type;
+   use Ada.Strings.Unbounded;
 begin
-   Create (Output_File, Out_File, Output_Package_Root & "-prologue.adb");
-   Put_Line (Output_File, "function " & Output_Package_Root & ".Prologue return String");
-   Put_Line (Output_File, "is begin");
-   Put_Line (Output_File, "   return");
-
    if Skip_Comments (Input_File) /= "%{" then
       Put_Error (Input_File, "expected %{");
       raise Syntax_Error;
@@ -41,11 +36,9 @@ begin
          Line : constant String := Get_Line (Input_File);
       begin
          exit when Line = "%}";
-         Put_Line (Output_File, "   """ & Line & """;");
          --  We'll handle a missing terminator when someone actually forgets one :)
+
+         Text.Append (Line);
       end;
    end loop;
-
-   Put_Line (Output_File, "end " & Output_Package_Root & ".Prologue;");
-   Close (Output_File);
 end Wisi.Prologue;

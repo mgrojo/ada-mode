@@ -33,7 +33,7 @@ is
    State : State_Type := Left_Hand_Side;
 
    Rule       : Rule_Type;
-   Production : Token_Lists.List;
+   Production : String_Lists.List;
 
 begin
    --  We assume:
@@ -51,7 +51,7 @@ begin
          Colon : constant Integer := Index (Pattern => ":", Source => Line);
          Bar   : constant Integer := Index (Pattern => "|", Source => Line);
          Paren : constant Integer := Index (Pattern => ")", Source => Line);
-         Semi  : constant Integer := Index (Pattern => ";", Source => Line);
+         Semi  :  Integer         := Index (Pattern => ";", Source => Line);
 
          Non_Blank : Integer := Index_Non_Blank
            (Line, From =>
@@ -77,6 +77,11 @@ begin
       begin
          exit when Line = "%%";
 
+         if Semi > 0 and Non_Blank /= Semi then
+            --  ignore trailing elisp comments in rules
+            Semi := 0;
+         end if;
+
          case State is
          when Left_Hand_Side =>
             Rule.Left_Hand_Side := +Trim
@@ -100,6 +105,8 @@ begin
                Rule.Action := +Line;
             elsif Semi > 0 then
                List.Append (Rule);
+               State := Left_Hand_Side;
+
             else
                --  first production
                Parse_Production;
@@ -108,6 +115,7 @@ begin
          when Action =>
             if Semi > 0 then
                List.Append (Rule);
+               State := Left_Hand_Side;
             else
                Rule.Action := Rule.Action & Ada.Characters.Latin_1.CR & Line;
             end if;

@@ -21,6 +21,7 @@
 ^build/lynx_release/obj$
 ^build/lynx_release/obj_tree$
 ^build/windows_debug/.*\.adb$
+^build/windows_debug/.*\.ads$
 ^build/windows_debug/.*\.diff$
 ^build/windows_debug/.*\.exe$
 ^build/windows_debug/.*\.out$

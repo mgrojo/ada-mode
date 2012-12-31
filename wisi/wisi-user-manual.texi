@@ -126,4 +126,22 @@ tokens (both terminal and non-terminal); optional productions are
 separated by ``|''. Each list of tokens is followed by an ``action'',
 which is an elisp form that will be executed the production is reduced.
 
+@node Tools, , ,
+@section Tools
+There are three tools used to produce the final Wisent elisp grammar
+file:
+
+@table @code
+@item wisi-generate
+Reads the Wisent input file @file{*.wy}, outputs Ada code
+@file{wisi-*.ad?} implementing the grammar in OpenToken.
+
+@item gprbuild
+The Gnu Ada compiler; compiles the Ada code to produce
+@file{wisi-*-generate}.
+
+@item wisi-*-generate
+No input files; just outputs the Wisent elisp compiled grammar @file{*-wy.el}.
+
+@end table
 @bye

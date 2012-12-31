@@ -35,13 +35,12 @@ is
 begin
    loop
       declare
-         Line  : constant String := Skip_Comments (Input_File);
-         Last  : Integer         := Line'First;
-         Space : Integer;
+         Line     : constant String := Skip_Comments (Input_File);
+         Key_Last : Integer         := Line'First;
 
          function Match (ID : in String) return Boolean
          is begin
-            Last := ID'Length + 1;
+            Key_Last := ID'Length;
             return ID = Line (1 .. ID'Length);
          end Match;
 
@@ -49,18 +48,34 @@ begin
          exit when Line = "%%";
 
          if Match (Package_Str) then
-            List.Append ((Package_ID, +Line (Last .. Line'Last)));
+            List.Append ((Package_ID, +Line (Key_Last + 1 .. Line'Last)));
 
          elsif Match (Keyword_Str) then
-            Space := Index (Pattern => " ", Source => Line, From => Last);
-            List.Append ((Keyword_ID, +Line (Last .. Space - 1), +Line (Space + 1 .. Line'Last)));
+            declare
+               Name_First  : constant Integer := Index_Non_Blank (Source => Line, From => Key_Last + 1);
+
+               Name_Last : constant Integer := -1 +
+                 Index (Pattern => " ", Source => Line, From => Name_First);
+
+               Value_First : constant Integer := Index_Non_Blank (Source => Line, From => Name_Last + 1);
+            begin
+               List.Append ((Keyword_ID, +Line (Name_First .. Name_Last), +Line (Value_First .. Line'Last)));
+            end;
 
          elsif Match (Token_Str) then
-            Space := Index (Pattern => " ", Source => Line, From => Last);
-            List.Append ((Token_ID, +Line (Space + 1 .. Line'Last)));
+            declare
+               Kind_First : constant Integer := Index_Non_Blank (Source => Line, From => Key_Last + 1);
+
+               Kind_Last : constant Integer := -1 +
+                 Index (Pattern => " ", Source => Line, From => Kind_First);
+
+               Name_First  : constant Integer := Index_Non_Blank (Source => Line, From => Kind_Last + 1);
+            begin
+               List.Append ((Token_ID, +Line (Name_First .. Line'Last), +Line (Kind_First .. Kind_Last)));
+            end;
 
          elsif Match (Start_Str) then
-            List.Append ((Start_ID, +Line (Last .. Line'Last)));
+            List.Append ((Start_ID, +Line (Key_Last + 1 .. Line'Last)));
 
          else
             raise Syntax_Error;

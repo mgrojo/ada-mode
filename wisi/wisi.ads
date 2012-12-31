@@ -58,7 +58,7 @@ package Wisi is
          Value : Ada.Strings.Unbounded.Unbounded_String;
 
       when Token_ID =>
-         null;
+         Kind : Ada.Strings.Unbounded.Unbounded_String;
 
       when Start_ID =>
          null;
@@ -67,9 +67,9 @@ package Wisi is
 
    package Declaration_Lists is new Ada.Containers.Doubly_Linked_Lists (Declaration_Type);
 
-   package Token_Lists is new Ada.Containers.Indefinite_Doubly_Linked_Lists (String);
+   package String_Lists is new Ada.Containers.Indefinite_Doubly_Linked_Lists (String);
 
-   package Production_Lists is new Ada.Containers.Doubly_Linked_Lists (Token_Lists.List, Token_Lists."=");
+   package Production_Lists is new Ada.Containers.Doubly_Linked_Lists (String_Lists.List, String_Lists."=");
 
    type Rule_Type is record
       Left_Hand_Side  : Ada.Strings.Unbounded.Unbounded_String;
