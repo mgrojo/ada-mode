@@ -32,9 +32,7 @@ is
    type State_Type is (Left_Hand_Side, Right_Hand_Side, Action);
    State : State_Type := Left_Hand_Side;
 
-   Rule       : Rule_Type;
-   Production : String_Lists.List;
-
+   Rule : Rule_Type;
 begin
    --  We assume:
    --
@@ -50,7 +48,7 @@ begin
          Line  : constant String  := Skip_Comments (Input_File);
          Colon : constant Integer := Index (Pattern => ":", Source => Line);
          Bar   : constant Integer := Index (Pattern => "|", Source => Line);
-         Paren : constant Integer := Index (Pattern => ")", Source => Line);
+         Paren : constant Integer := Index (Pattern => "(", Source => Line);
          Semi  :  Integer         := Index (Pattern => ";", Source => Line);
 
          Non_Blank : Integer := Index_Non_Blank
@@ -61,17 +59,19 @@ begin
 
          procedure Parse_Production
          is
-            Last : Integer := Non_Blank;
+            Last       : Integer := Non_Blank;
+            Production : String_Lists.List;
          begin
             loop
-               Last := Index (Pattern => " ", Source => Line, From => Non_Blank);
-               if Last = 0 then Last := Line'Last; end if;
+               Last := -1 + Index (Pattern => " ", Source => Line, From => Non_Blank);
+               if Last = -1 then Last := Line'Last; end if;
 
                Production.Append (Line (Non_Blank .. Last));
 
                exit when Last = Line'Last;
-               Non_Blank := Index_Non_Blank (Line, Last + 1);
+               Non_Blank := Index_Non_Blank (Line, Last + 2);
             end loop;
+            Rule.Right_Hand_Side.Append (Production);
          end Parse_Production;
 
       begin
@@ -87,22 +87,19 @@ begin
             Rule.Left_Hand_Side := +Trim
               (Line (Non_Blank .. (if Colon > 0 then Colon - 1 else Line'Last)), Ada.Strings.Right);
 
+            Rule.Right_Hand_Side.Clear;
+
             State := Right_Hand_Side;
-            Production.Clear;
 
          when Right_Hand_Side =>
 
             if Bar > 0 then
-               Rule.Right_Hand_Side.Append (Production);
-               Production.Clear;
-
                Parse_Production;
 
             elsif Paren > 0 then
-               Rule.Right_Hand_Side.Append (Production);
-               Production.Clear;
                State       := Action;
                Rule.Action := +Line;
+
             elsif Semi > 0 then
                List.Append (Rule);
                State := Left_Hand_Side;

@@ -38,18 +38,18 @@ is
       Put_Line ("  generate Ada OpenToken source corresponding to 'wisent grammar file'");
    end Put_Usage;
 
-   Input_File : Ada.Text_IO.File_Type;
-
+   Input_File_Name  : Ada.Strings.Unbounded.Unbounded_String;
+   Input_File       : Ada.Text_IO.File_Type;
    Output_File_Root : Ada.Strings.Unbounded.Unbounded_String;
-
-   Prologue     : String_Lists.List;
-   Declarations : Declaration_Lists.List;
-   Rules        : Rule_Lists.List;
+   Prologue         : String_Lists.List;
+   Declarations     : Declaration_Lists.List;
+   Rules            : Rule_Lists.List;
 
    procedure Use_Input_File (File_Name : in String)
    is
       use Ada.Text_IO;
    begin
+      Input_File_Name := +File_Name;
       Open (Input_File, In_File, File_Name);
    exception
    when Name_Error | Use_Error =>
@@ -87,6 +87,6 @@ begin
    Wisi.Prologue (Input_File, Prologue);
    Wisi.Declarations (Input_File, Declarations);
    Wisi.Rules (Input_File, Rules);
-   Wisi.Output (-Output_File_Root, Prologue, Declarations, Rules);
+   Wisi.Output (-Input_File_Name, -Output_File_Root, Prologue, Declarations, Rules);
 
 end Wisi.Generate;

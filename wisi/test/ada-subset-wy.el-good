@@ -1,0 +1,121 @@
+;;; ada-subset-wy.el --- Generated parser support file
+
+;; Copyright (C) 2012 Free Software Foundation, Inc.
+
+;; This program is free software; you can redistribute it and/or
+;; modify it under the terms of the GNU General Public License as
+;; published by the Free Software Foundation; either version 2, or (at
+;; your option) any later version.
+;;
+;; This software is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;; General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
+
+;;; Commentary:
+;;
+;; PLEASE DO NOT MANUALLY EDIT THIS FILE!  It is automatically
+;; generated from the grammar file ada-subset.wy.
+
+;;; Code:
+
+;;; Prologue
+;;
+(require 'wisi)
+
+;;; Declarations
+;;
+(defconst ada-subset-wy--keyword-table
+  (semantic-lex-make-keyword-table
+   '(("." . DOT)
+     (";" . SEMICOLON)
+     ("begin" . BEGIN)
+     ("body" . BODY)
+     ("end" . END)
+     ("function" . FUNCTION)
+     ("is" . IS)
+     ("package" . PACKAGE)
+     ("return" . RETURN))
+   'nil)
+  "Table of language keywords.")
+
+(defconst ada-subset-wy--token-table
+  (semantic-lex-make-type-table
+   '(("symbol"
+      (IDENTIFIER)))
+   'nil)
+  "Table of lexical tokens.")
+
+(defconst ada-subset-wy--parse-table
+  (progn
+    (eval-when-compile
+      (require 'wisent-comp))
+    (wisent-compile-grammar
+     '((DOT SEMICOLON BEGIN BODY END FUNCTION IS PACKAGE RETURN IDENTIFIER)
+       nil
+       (compilation_unit
+	((package_body)))
+       (package_body
+	((PACKAGE BODY name IS declarations BEGIN statements END name SEMICOLON)
+	 (wisi-cache-keywords
+	  '($1 'other nil $region1)
+	  '($4 'block-start nil $region4)
+	  '($6 'block-both nil $region6)
+	  '($8 'block-end nil $region8)
+	  '($10 'statement-end nil $region10))))
+       (name
+	((IDENTIFIER))
+	((name DOT IDENTIFIER)))
+       (declarations
+	((subprogram_body))
+	((declarations subprogram_body)))
+       (subprogram_body
+	((FUNCTION name RETURN name IS declarations BEGIN statements END name SEMICOLON)
+	 (wisi-cache-keywords
+	  '($1 'other nil $region1)
+	  '($5 'block-begin nil $region5)
+	  '($6 'block-both nil $region6)
+	  '($8 'block-end nil $region8)
+	  '($10 'statement-end nil $region10))))
+       (statements
+	((statement))
+	((statements statement)))
+       (statement
+	((RETURN IDENTIFIER SEMICOLON)
+	 (wisi-cache-keywords
+	  '($1 'other nil $region1)
+	  '($3 'statement-end nil $region3)))))
+     '(compilation_unit statement)))
+  "Parser table.")
+
+(defun ada-subset-wy--install-parser ()
+  "Setup the Semantic Parser."
+  (semantic-install-function-overrides
+   '((parse-stream . wisent-parse-stream)))
+  (setq semantic-parser-name "LALR"
+	semantic--parse-table ada-subset-wy--parse-table
+	semantic-debug-parser-source "ada-subset.wy"
+	semantic-flex-keywords-obarray ada-subset-wy--keyword-table
+	semantic-lex-types-obarray ada-subset-wy--token-table)
+  ;; Collect unmatched syntax lexical tokens
+  (semantic-make-local-hook 'wisent-discarding-token-functions)
+  (add-hook 'wisent-discarding-token-functions
+	    'wisent-collect-unmatched-syntax nil t))
+
+
+;;; Analyzers
+;;
+(require 'semantic-lex)
+
+
+;;; Epilogue
+;;
+
+(provide 'ada-subset-wy)
+
+;;; ada-subset-wy.el ends here
