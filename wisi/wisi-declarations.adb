@@ -23,7 +23,8 @@ with Ada.Text_IO; use Ada.Text_IO;
 with Wisi.Utils;  use Wisi.Utils;
 procedure Wisi.Declarations
   (Input_File : in     Ada.Text_IO.File_Type;
-   List       : in out Declaration_Lists.List)
+   Keywords   : in out String_Pair_Lists.List;
+   Tokens     : in out String_Pair_Lists.List)
 is
    use Ada.Strings.Fixed;
 
@@ -48,7 +49,7 @@ begin
          exit when Line = "%%";
 
          if Match (Package_Str) then
-            List.Append ((Package_ID, +Line (Key_Last + 1 .. Line'Last)));
+            null;
 
          elsif Match (Keyword_Str) then
             declare
@@ -59,23 +60,27 @@ begin
 
                Value_First : constant Integer := Index_Non_Blank (Source => Line, From => Name_Last + 1);
             begin
-               List.Append ((Keyword_ID, +Line (Name_First .. Name_Last), +Line (Value_First .. Line'Last)));
+               Keywords.Append ((+Line (Name_First .. Name_Last), +Line (Value_First .. Line'Last)));
             end;
 
          elsif Match (Token_Str) then
             declare
-               Kind_First : constant Integer := Index_Non_Blank (Source => Line, From => Key_Last + 1);
+               use Ada.Strings.Unbounded;
 
-               Kind_Last : constant Integer := -1 +
+               --  kind has syntax <name>; strip < >.
+
+               Kind_First : constant Integer := 1 + Index_Non_Blank (Source => Line, From => Key_Last + 1);
+
+               Kind_Last : constant Integer := -2 +
                  Index (Pattern => " ", Source => Line, From => Kind_First);
 
-               Name_First  : constant Integer := Index_Non_Blank (Source => Line, From => Kind_Last + 1);
+               Name_First  : constant Integer := Index_Non_Blank (Source => Line, From => Kind_Last + 2);
             begin
-               List.Append ((Token_ID, +Line (Name_First .. Line'Last), +Line (Kind_First .. Kind_Last)));
+               Tokens.Append ((+Line (Name_First .. Line'Last), +"""" & Line (Kind_First .. Kind_Last) & """"));
             end;
 
          elsif Match (Start_Str) then
-            List.Append ((Start_ID, +Line (Key_Last + 1 .. Line'Last)));
+            null;
 
          else
             raise Syntax_Error;

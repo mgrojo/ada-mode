@@ -8,10 +8,15 @@ all:
 t_one : test_one_harness.run
 t_all : test_all_harness.run
 
-one : ada-subset-wy.el
+one : tiny.run
+#one : ada-subset-wy.el
+#one : asu_example_5_10_lr-run.run
 
+%-wy.el : RUN_ARGS := -v
 %-wy.el : wisi-%-generate.exe
-	./wisi-$*-generate.exe
+	./wisi-$*-generate.exe $(RUN_ARGS)
+
+.PRECIOUS : wisi-%-generate.adb
 
 wisi-%-generate.adb : %.wy wisi-generate.exe
 	./wisi-generate.exe -v $<
@@ -19,7 +24,7 @@ wisi-%-generate.adb : %.wy wisi-generate.exe
 vpath %.wy ../../wisi/test
 
 trace :
-	addr2line -e wisi-generate.exe 0x4139d8 0x4207aa 0x401aba 0x402641 0x4013f8 0x74ea33a8 0x77689ef0 0x77689ec3
+	addr2line -e wisi-generate.exe 0x40eb70 0x4214f8 0x401aba 0x402641 0x4013f8 0x74ea33a8 0x77689ef0 0x77689ec3
 
 GPRBUILD_TARGET := x86-windows
 include ../common.make

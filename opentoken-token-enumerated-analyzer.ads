@@ -90,6 +90,9 @@ package OpenToken.Token.Enumerated.Analyzer is
       New_Token  : in OpenToken.Token.Enumerated.Class := Get)
      return Recognizable_Token;
 
+   function Null_Analyzer return Instance;
+   --  no input stream; used when grammar will be used for something other than parsing.
+
    ----------------------------------------------------------------------------
    --  Return an Analyzer with the given syntax and text feeder.
    ----------------------------------------------------------------------------

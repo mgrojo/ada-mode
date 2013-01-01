@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
---  Copyright (C) 2002, 2003, 2009, 2012 Stephe Leake
+--  Copyright (C) 2002, 2003, 2009, 2012, 2013 Stephe Leake
 --  Copyright (C) 1999, 2000 FlightSafety International and Ted Dennison
 --
 --  This file is part of the OpenToken package.
@@ -359,6 +359,14 @@ package body OpenToken.Token.Enumerated.Analyzer is
       end loop;
 
    end Find_Best_Match;
+
+   function Null_Analyzer return Instance
+   is
+      New_Analyzer : Instance;
+   begin
+      New_Analyzer.Lookahead_Count := 0; -- keep compiler happy
+      return New_Analyzer;
+   end Null_Analyzer;
 
    function Initialize
      (Language_Syntax : in Syntax;

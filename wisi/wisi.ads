@@ -47,25 +47,12 @@ package Wisi is
 
    Syntax_Error : exception;
 
-   type Declaration_ID_Type is (Package_ID, Keyword_ID, Token_ID, Start_ID);
-   type Declaration_Type (ID : Declaration_ID_Type := Declaration_ID_Type'First) is record
-      Name : Ada.Strings.Unbounded.Unbounded_String;
-      case ID is
-      when Package_ID =>
-         null;
-
-      when Keyword_ID =>
-         Value : Ada.Strings.Unbounded.Unbounded_String;
-
-      when Token_ID =>
-         Kind : Ada.Strings.Unbounded.Unbounded_String;
-
-      when Start_ID =>
-         null;
-      end case;
+   type String_Pair_Type is record
+      Name  : Ada.Strings.Unbounded.Unbounded_String;
+      Value : Ada.Strings.Unbounded.Unbounded_String;
    end record;
 
-   package Declaration_Lists is new Ada.Containers.Doubly_Linked_Lists (Declaration_Type);
+   package String_Pair_Lists is new Ada.Containers.Doubly_Linked_Lists (String_Pair_Type);
 
    package String_Lists is new Ada.Containers.Indefinite_Doubly_Linked_Lists (String);
 

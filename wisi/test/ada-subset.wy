@@ -8,7 +8,7 @@
 
 ;; Declarations
 
-%package ada-wisent-grammar-wy
+%package ada-subset-wy
 
 ;; token declarations
 ;;

@@ -3,7 +3,7 @@
 --  Output Ada code implementing the grammar defined by Declarations,
 --  Rules.
 --
---  Copyright (C) 2012 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2012, 2013 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -26,7 +26,8 @@ procedure Wisi.Output
   (Input_File_Name  : in String;
    Output_File_Root : in String;
    Prologue         : in String_Lists.List;
-   Declarations     : in Declaration_Lists.List;
+   Keywords         : in String_Pair_Lists.List;
+   Tokens           : in String_Pair_Lists.List;
    Rules            : in Rule_Lists.List)
 is
    Output_File : File_Type;
@@ -91,18 +92,26 @@ is
          exit when Item = No_Element;
          if Col > 100 then
             Put_Line (" &");
+            Set_Col (Indent + 2);
          else
             Put (" & ");
          end if;
       end loop;
    end Put;
 
+   procedure Put (Item : in String_Pair_Type)
+   is begin
+      Put ("(+""" & (-Item.Name) & """, +" & (-Item.Value) & ")");
+   end Put;
+
 begin
    Create_Parents ("wisi-" & Output_File_Root);
    Create (Output_File, Out_File, "wisi-" & Output_File_Root & "-generate.adb");
    Set_Output (Output_File);
+   Put_Line ("with Ada.Command_Line;");
+   Put_Line ("with Ada.Text_IO;");
    Put_Line ("with OpenToken.Production.List;");
-   Put_Line ("with OpenToken.Production.Parser.LALR;");
+   Put_Line ("with OpenToken.Production.Parser.LALR.Elisp;");
    Put_Line ("with OpenToken.Token.Enumerated;");
    Put_Line ("with OpenToken.Token.Enumerated.Analyzer;");
    Put_Line ("with OpenToken.Token.Enumerated.List;");
@@ -110,6 +119,13 @@ begin
    Put_Line ("procedure " & Package_Name);
    Put_Line ("is");
    Indent := Indent + 3;
+
+   Indent_Line ("procedure Put_Usage");
+   Indent_Line ("is begin");
+   Indent_Line ("   Standard.Ada.Text_IO.Put_Line (""usage: wisi-ada-subset-generate [-v]"");");
+   Indent_Line ("end Put_Usage;");
+
+   Indent_Line ("Elisp_Package : constant String := """ & Output_File_Root & """;");
 
    Indent_Line ("Prologue : constant String :=");
 
@@ -132,16 +148,18 @@ begin
    end;
 
    New_Line;
+   Indent_Line ("Keywords : String_Pair_Lists.List;");
+   Indent_Line ("Tokens   : String_Pair_Lists.List;");
+
+   New_Line;
    Indent_Line ("type Token_IDs is");
    Indent_Line ("  (");
    Indent := Indent + 3;
-   for Decl of Declarations loop
-      case Decl.ID is
-      when Keyword_ID | Token_ID =>
-         Indent_Line (-Decl.Name & "_ID,"); -- avoid collision with Ada reserved words
-      when others =>
-         null;
-      end case;
+   for Item of Keywords loop
+      Indent_Line (-Item.Name & "_ID,"); -- avoid collision with Ada reserved words
+   end loop;
+   for Item of Tokens loop
+      Indent_Line (-Item.Name & "_ID,"); -- avoid collision with Ada reserved words
    end loop;
    Indent_Line ("--  non-terminals");
    declare
@@ -162,12 +180,12 @@ begin
    end;
    Indent := Indent - 3;
 
-   Indent_Line ("package Tokens is new OpenToken.Token.Enumerated (Token_IDs);");
+   Indent_Line ("package Tokens_Pkg is new OpenToken.Token.Enumerated (Token_IDs);");
    Indent_Line ("--  we only need Analyzers to instantiate Parsers; we will never call it");
-   Indent_Line ("package Analyzers is new Tokens.Analyzer (Token_IDs'First);");
-   Indent_Line ("package Token_Lists is new Tokens.List;");
-   Indent_Line ("package Nonterminals is new Tokens.Nonterminal (Token_Lists);");
-   Indent_Line ("package Productions is new OpenToken.Production (Tokens, Token_Lists, Nonterminals);");
+   Indent_Line ("package Analyzers is new Tokens_Pkg.Analyzer (Token_IDs'First);");
+   Indent_Line ("package Token_Lists is new Tokens_Pkg.List;");
+   Indent_Line ("package Nonterminals is new Tokens_Pkg.Nonterminal (Token_Lists);");
+   Indent_Line ("package Productions is new OpenToken.Production (Tokens_Pkg, Token_Lists, Nonterminals);");
    Indent_Line ("package Production_Lists is new Productions.List;");
    Indent_Line ("package Parsers is new Productions.Parser (Production_Lists, Analyzers);");
    Indent_Line ("package LALR_Parsers is new Parsers.LALR;");
@@ -179,10 +197,10 @@ begin
    Indent_Line ("use type Production_Lists.Instance;");
    New_Line;
 
-   Indent_Line ("function ""+"" (Item : in Token_IDs) return Tokens.Instance'Class");
+   Indent_Line ("function ""+"" (Item : in Token_IDs) return Tokens_Pkg.Instance'Class");
    Indent_Line ("is begin");
    Indent := Indent + 3;
-   Indent_Line ("return Tokens.Get (Item);");
+   Indent_Line ("return Tokens_Pkg.Get (Item);");
    Indent := Indent - 3;
    Indent_Line ("end ""+"";");
    New_Line;
@@ -227,12 +245,60 @@ begin
    end;
    Indent := Indent - 2;
 
-   Indent_Line ("Syntax   : Analyzers.Syntax;");
-   Indent_Line ("Analyzer : constant Analyzers.Instance := Analyzers.Initialize (Syntax);");
-   Indent_Line ("Parser   : LALR_Parsers.Instance := LALR_Parsers.Generate (Grammar, Analyzer);");
+   Indent_Line ("Parser : LALR_Parsers.Instance;");
+
+   New_Line;
+   Indent_Line ("package Elisp is new LALR_Parsers.Elisp;");
+   New_Line;
+   Indent_Line ("Verbose : Boolean := False;");
 
    Put_Line ("begin");
-   Indent_Line ("Wisi.Elisp.Output (Elisp_Package, Prologue, Declarations, Tokens, Parser);");
+   Indent_Line ("declare");
+   Indent_Line ("   use Standard.Ada.Command_Line;");
+   Indent_Line ("begin");
+   Indent := Indent + 3;
+   Indent_Line ("case Argument_Count is");
+   Indent_Line ("when 0 =>");
+   Indent_Line ("   null;");
+   New_Line;
+   Indent_Line ("when 1 =>");
+   Indent := Indent + 3;
+   Indent_Line ("if Argument (1) = ""-v"" then");
+   Indent_Line ("   Verbose := True;");
+   Indent_Line ("else");
+   Indent := Indent + 3;
+   Indent_Line ("Set_Exit_Status (Failure);");
+   Indent_Line ("Put_Usage;");
+   Indent_Line ("return;");
+   Indent := Indent - 3;
+   Indent_Line ("end if;");
+   Indent := Indent - 3;
+   New_Line;
+   Indent_Line ("when others =>");
+   Indent := Indent + 3;
+   Indent_Line ("Set_Exit_Status (Failure);");
+   Indent_Line ("Put_Usage;");
+   Indent_Line ("return;");
+   Indent := Indent - 3;
+   Indent_Line ("end case;");
+   Indent := Indent - 3;
+   Indent_Line ("end;");
+
+   Indent_Line ("Parser := LALR_Parsers.Generate (Grammar, Analyzers.Null_Analyzer, Verbose);");
+
+   for Item of Keywords loop
+      Set_Col (Indent);
+      Put ("Keywords.Append (");
+      Put (Item);
+      Put_Line (");");
+   end loop;
+   for Item of Tokens loop
+      Set_Col (Indent);
+      Put ("Tokens.Append (");
+      Put (Item);
+      Put_Line (");");
+   end loop;
+   Indent_Line ("Elisp.Output (Elisp_Package, Prologue, Keywords, Tokens, Parser);");
    Put_Line ("end " & Package_Name & ";");
    Close (Output_File);
 end Wisi.Output;
