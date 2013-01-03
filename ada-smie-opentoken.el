@@ -8,6 +8,8 @@
 ;; eval: (add-to-list 'smie-indent-functions 'ada-smie-opentoken)
 ;; End:
 
+(require 'ada-mode)
+
 (defcustom ada-indent-opentoken nil
   "If non-nil, apply `ada-smie-opentoken' indentation rule."
   :type 'boolean :group 'ada-indentation)
@@ -29,8 +31,9 @@
 	  (+ (current-column) ada-indent-broken))
 
 	 ((member token '("+" "&"))
+	  (ada-smie-backward-tokens-unrefined "<=")
 	  (back-to-indentation)
-	  (current-column))
+	  (+ (current-column) ada-indent-broken))
 	 )))))
 
 ;; This must be last on ada-mode-hook, so ada-smie-opentoken is first
@@ -39,7 +42,7 @@
 	  (lambda () (add-to-list 'smie-indent-functions 'ada-smie-opentoken))
 	  t)
 
-(add-to-list 'ada-align-modes
+(add-to-list 'ada-align-rules
 	     '(ada-opentoken
 	       (regexp  . "[^=]\\(\\s-*\\)<=")
 	       (valid   . (lambda() (not (ada-in-comment-p))))

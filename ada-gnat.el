@@ -2,7 +2,7 @@
 ;;
 ;; GNAT is provided by AdaCore; see http://libre.adacore.com/
 ;;
-;;; Copyright (C) 2012  Free Software Foundation, Inc.
+;;; Copyright (C) 2012, 2013  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
@@ -32,6 +32,7 @@
 ;; special needs to done to use it.
 
 (require 'ada-fix-error)
+(require 'compile)
 
 ;;;;; gnatprep utils
 
@@ -70,7 +71,7 @@ Intended to be added to `smie-indent-functions'."
 (defun ada-gnat-prj-parse-emacs-file (name value project)
   "Handle gnat-specific Emacs Ada project file settings.
 Return new PROJECT if NAME recognized, nil otherwise.
-See also `ada-gnat-parse-emacs-prj-file-final'."
+See also `ada-gnat-parse-emacs-final'."
   (let ((process-environment (plist-get project 'proc_env))); for substitute-in-file-name
     (cond
      ((string= name "ada_project_path")
@@ -118,6 +119,16 @@ See also `ada-gnat-parse-emacs-prj-file-final'."
   (setq compilation-filter-hook nil)
   (add-hook 'compilation-filter-hook 'ada-gnat-compilation-filter)
 
+  (cond
+   ((boundp 'compilation-filter-start)
+    ;; emacs 24.x manages compilation-filter-start
+    nil)
+
+   (t
+    ;; emacs 23.4
+    (add-hook 'compilation-start-hook 'ada-gnat-compilation-start))
+   )
+
   ;; ada-mode.el project file parser sets this to other compilers used
   ;; in the project, so we only add here.
   (add-to-list 'compilation-error-regexp-alist 'gnat)
@@ -128,8 +139,8 @@ See also `ada-gnat-parse-emacs-prj-file-final'."
   "Add project and/or compiler source, object paths to PROJECT src_dir, obj_dir."
   (with-current-buffer (ada-gnat-run-buffer)
     (let ((status (ada-gnat-run (list "list" "-v")))
-	  src-dirs
-	  obj-dirs)
+	  (src-dirs (ada-prj-get 'src_dir project))
+	  (obj-dirs (ada-prj-get 'src_dir project)))
 
       ;; gnat list -P -v returns 0 in nominal cases
       ;; gnat list -v return 4, but still lists compiler dirs
@@ -390,6 +401,12 @@ If PARENT is non-nil, return parent type declaration (assumes IDENTIFIER is a de
 
 (defun ada-gnat-make-package-body ()
   "For `ada-make-package-body'."
+  ;; WORKAROUND: gnat stub 7.1w does not accept aggregate project files,
+  ;; and doesn't use the gnatstub package if it is in a 'with'd
+  ;; project file; see AdaCore ticket LC30-001. On the other hand we
+  ;; need a project file to specify the source dirs so the tree file
+  ;; can be generated. So we use ada-gnat-run-no-prj, and the user
+  ;; must specify the proper project file in gnat_stub_opts
   (let ((start-file (buffer-file-name))
 	;; can also specify gnat stub options/switches in .gpr file, in package 'gnatstub'.
 	(opts (when (ada-prj-get 'gnat_stub_opts)
@@ -397,8 +414,15 @@ If PARENT is non-nil, return parent type declaration (assumes IDENTIFIER is a de
 	(switches (when (ada-prj-get 'gnat_stub_switches)
 		    (split-string (ada-prj-get 'gnat_stub_switches))))
 	status)
+
+    ;; Make sure all relevant files are saved to disk. This also saves
+    ;; the bogus body buffer created by ff-find-the-other-file, so we
+    ;; need -f gnat stub option. We won't get here if there is an
+    ;; existing body file.
+    (save-some-buffers t)
+    (add-to-list 'opts "-f")
     (with-current-buffer (ada-gnat-run-buffer)
-      (setq status (ada-gnat-run (append (list "stub") opts (list start-file "-cargs") switches)))
+      (setq status (ada-gnat-run-no-prj (append (list "stub") opts (list start-file "-cargs") switches)))
 
       (cond
        ((= status 0); success
@@ -412,11 +436,35 @@ If PARENT is non-nil, return parent type declaration (assumes IDENTIFIER is a de
 
 ;;;; compiler message handling
 
+(defvar ada-compilation-filter-start (make-marker)
+  "Implement `compilation-filter-start' for emacs 23.4.")
+
+(defun ada-gnat-compilation-start (proc)
+  "Implement `compilation-filter-start' for emacs 23.4."
+  (set-marker ada-compilation-filter-start (point-max)))
+
+(when (not (functionp 'compilation--put-prop))
+  (defun compilation--put-prop (matchnum prop val)
+    (when (and (integerp matchnum) (match-beginning matchnum))
+      (put-text-property
+       (match-beginning matchnum) (match-end matchnum)
+       prop val)))
+  )
+
 (defun ada-gnat-compilation-filter ()
   "Filter to add text properties to secondary file references.
 For `compilation-filter-hook'."
   (save-excursion
-    (goto-char compilation-filter-start)
+    (cond
+     ((boundp 'compilation-filter-start)
+      ;; emacs 24.x
+      (goto-char compilation-filter-start))
+
+     (t
+      ;; emacs 23.4
+      (goto-char ada-compilation-filter-start))
+     )
+
     ;; compilation-filter might insert partial lines, or it might insert multiple lines
     (when (bolp)
       (while (not (eobp))
@@ -426,43 +474,63 @@ For `compilation-filter-hook'."
 	;; `ada-goto-secondary-error' will handle it. We also set
 	;; fonts, so the user can see the reference.
 
+	;; typical secondary references look like:
+	;;
+	;; trivial_productions_test.adb:57:77:   ==> in call to "Get" at \
+	;;    opentoken-token-enumerated-analyzer.ads:88, instance at line 41
+	;;
 	;; c:/foo/bar/lookahead_test.adb:379:14: found type access to "Standard.String" defined at line 379
-	(cond
-	 ((looking-at "^\\(\\(.:\\)?[^ :\n]+\\):.* \\(at line \\)\\([0-9]+\\)")
-	  (compilation--put-prop 3 'font-lock-face compilation-info-face); "at line" instead of file
-	  (compilation--put-prop 4 'font-lock-face compilation-line-face); line
-	  (with-silent-modifications
-	    (put-text-property
-	     (match-beginning 3) (match-end 3)
-	     'ada-secondary-error
-	     (list
-	      (buffer-substring-no-properties (match-beginning 1) (match-end 1)); actual file
-	      (string-to-number (buffer-substring-no-properties (match-beginning 4) (match-end 4))); line
-	      1)); column
-	    ))
+	;;
+	;; lookahead_test.ads:23:09: "Name" has been inherited from subprogram at aunit-simple_test_cases.ads:47
+	;;
+	;; save the file from the primary reference, look for "*.ad?:nn", "at line nnn"
 
-	 (t
-	  ;; lookahead_test.ads:23:09: "Name" has been inherited from subprogram at aunit-simple_test_cases.ads:47
-	  ;;
-	  ;; skip the primary reference, look for "*.ad?:nn"
-	  (skip-syntax-forward "^-")
+	(let (file)
+	  (when (looking-at "^\\(\\(.:\\)?[^ :\n]+\\):")
+	    (setq file (match-string-no-properties 1)))
+
+	  (skip-syntax-forward "^-"); space following primary reference
+
 	  (when (search-forward-regexp "\\s-\\(\\([^[:blank:]]+\\.[[:alpha:]]+\\):\\([0-9]+\\)\\)"
 				       (line-end-position) t)
 
-	    (compilation--put-prop 2 'font-lock-face compilation-info-face); file
-	    (compilation--put-prop 3 'font-lock-face compilation-line-face); line
 	    (with-silent-modifications
+	      (compilation--put-prop 2 'font-lock-face compilation-info-face); file
+	      (compilation--put-prop 3 'font-lock-face compilation-line-face); line
 	      (put-text-property
 	       (match-beginning 0) (match-end 0)
 	       'ada-secondary-error
 	       (list
-		(buffer-substring-no-properties (match-beginning 2) (match-end 2)); file
-		(string-to-number (buffer-substring-no-properties (match-beginning 3) (match-end 3))); line
+		(match-string-no-properties 2); file
+		(string-to-number (match-string-no-properties 3)); line
 		1)); column
-	      )))
-	 )
-	(forward-line 1))
-      )))
+	      ))
+
+	  (when (search-forward-regexp "\\(at line \\)\\([0-9]+\\)" (line-end-position) t)
+	    (with-silent-modifications
+	      (compilation--put-prop 1 'font-lock-face compilation-info-face); "at line" instead of file
+	      (compilation--put-prop 2 'font-lock-face compilation-line-face); line
+	      (put-text-property
+	       (match-beginning 1) (match-end 1)
+	       'ada-secondary-error
+	       (list
+		file
+		(string-to-number (match-string-no-properties 2)); line
+		1)); column
+	      ))
+	  (forward-line 1))
+	))
+
+    (cond
+     ((boundp 'compilation-filter-start)
+      ;; emacs 24.x manages compilation-filter-start
+      nil)
+
+     (t
+      ;; emacs 23.4
+      (set-marker ada-compilation-filter-start (point)))
+     )
+    ))
 
 (defun ada-gnat-debug-filter ()
   ;; call ada-gnat-compilation-filter with `compilation-filter-start' bound
@@ -571,6 +639,16 @@ For `compilation-filter-hook'."
 		(pop-to-buffer source-buffer)
 		(ada-fix-extend-with-clause child-name)))))
 
+         ((looking-at (concat ada-gnat-quoted-punctuation-regexp
+			      " should be "
+			      ada-gnat-quoted-punctuation-regexp))
+          (let ((bad (match-string-no-properties 1))
+                (good (match-string-no-properties 2)))
+            (pop-to-buffer source-buffer)
+            (looking-at bad)
+            (delete-region (match-beginning 0) (match-end 0))
+            (insert good)))
+
 ;;;; strings
          ((looking-at (concat "\"end " ada-name-regexp ";\" expected"))
           (let ((expected-name (match-string 1)))
@@ -614,6 +692,19 @@ For `compilation-filter-hook'."
 	    (pop-to-buffer source-buffer)
 	    (ada-fix-add-use package)))
 
+         ((looking-at (concat "operator for \\(private \\)?type " ada-gnat-quoted-name-regexp))
+          (let ((type (match-string 2)))
+	    (pop-to-buffer source-buffer)
+	    (ada-goto-declarative-region-start)
+	    (newline-and-indent)
+            (insert "use type " type ";")))
+
+         ((looking-at "parentheses required for unary minus")
+            (set-buffer source-buffer)
+	    (insert "(")
+            (forward-word 1)
+	    (insert ")"))
+
 	 ((looking-at "prefix of dereference must be an access type")
 	  (pop-to-buffer source-buffer)
 	  ;; point is after '.' in '.all'
@@ -628,7 +719,17 @@ For `compilation-filter-hook'."
 	    (forward-word 1))
           (insert " constant"))
 
-         ((looking-at (concat "warning: no entities of " ada-gnat-quoted-name-regexp " are referenced$"))
+         ((looking-at (concat "warning: formal parameter " ada-gnat-quoted-name-regexp " is not referenced"))
+          (let ((param (match-string 1)))
+            (pop-to-buffer source-buffer)
+            (ada-goto-declarative-region-start)
+            (newline-and-indent)
+            (insert "pragma Unreferenced (" param ");")))
+
+	 ((or
+	   (looking-at (concat "warning: no entities of " ada-gnat-quoted-name-regexp " are referenced$"))
+           (looking-at (concat "warning: unit " ada-gnat-quoted-name-regexp " is never instantiated$"))
+           (looking-at "warning: redundant with clause"))
           ;; just delete the 'with'; assume it's on a line by itself.
           (pop-to-buffer source-buffer)
           (beginning-of-line)

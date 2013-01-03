@@ -73,15 +73,16 @@ private
        Master_Token.Get (Add_ID) & Master_Token.Get (Module_ID) & Tokens.String & Tokens.Identifier &
        Master_Token.Get (Parent_ID) & Tokens.Identifier & Tokens.String + Module_Action and
 
-     Add_Statement <=
-       --  add module "type" child_name before before_name;
-       Master_Token.Get (Add_ID) & Master_Token.Get (Module_ID) & Tokens.String & Tokens.Identifier &
-       Master_Token.Get (Before_ID) & Tokens.Identifier + Module_Action and
+     --  add module "type" child_name before before_name;
+     Add_Statement <= Master_Token.Get (Add_ID) & Master_Token.Get (Module_ID) & Tokens.String &
+       Tokens.Identifier & Master_Token.Get (Before_ID) & Tokens.Identifier +
+       Module_Action and
 
      Add_Statement <=
        --  add module "type" child_name before before_name "parameters";
        Master_Token.Get (Add_ID) & Master_Token.Get (Module_ID) & Tokens.String & Tokens.Identifier &
-       Master_Token.Get (Before_ID) & Tokens.Identifier & Tokens.String + Module_Action;
+       Master_Token.Get (Before_ID) & Tokens.Identifier & Tokens.String +
+       Module_Action;
 
 end GDS.Commands.Add_Statement;
 --  Local Variables:

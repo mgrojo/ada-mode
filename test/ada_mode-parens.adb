@@ -142,6 +142,8 @@ package body Ada_Mode.Parens is
          null;
       end if;
 
+      --EMACSCMD:(progn (forward-line 2)(ada-next-statement-keyword)(looking-at "loop"))
+      --EMACSRESULT: t
       while A.all
         or else B.all
       loop
@@ -197,19 +199,19 @@ package body Ada_Mode.Parens is
    --EMACSCMD:(progn (forward-line 4)(forward-word 2)(insert "   ")(ada-align))
    -- multiple defaults requiring alignment
    procedure Param_Format_1
-     (A : in     Float   := 1.0;
-      B : in     Integer := 2;
-      C :    out Character;
-      D : in out Integer);
+     (A, B : in     Float   := 1.0;
+      C, D : in     Integer := 2;
+      E    :    out Character;
+      F    : in out Integer);
 
    -- body for previous spec
-   --EMACSCMD:(progn (forward-line 4)(ada-align))
-   -- multiline, followed on same line by "is"
+   --EMACSCMD:(progn (forward-line 3)(insert "  ")(forward-line 1)(ada-align))
+   -- multiline, multi-identifier, followed on same line by "is"
    procedure Param_Format_1
-     (A : in     Float   := 1.0;
-      B : in     Integer := 2;
-      C :    out Character;
-      D : in out Integer) is
+     (A, B : in     Float   := 1.0;
+      C, D : in     Integer := 2;
+      E    :    out Character;
+      F    : in out Integer) is
    begin
       C := 'A';
    end;

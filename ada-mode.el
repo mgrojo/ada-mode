@@ -1,7 +1,7 @@
 ;;; ada-mode.el --- major-mode for editing Ada sources
 ;;
 ;;; Copyright (C) 1994, 1995, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012  Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013  Free Software Foundation, Inc.
 
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
@@ -161,14 +161,17 @@ If nil, no contextual menu is available."
     ;; C-c <letter> are reserved for users
 
     ;; global-map has C-x ` 'next-error
+    (define-key map [return]   'ada-indent-newline-indent)
     (define-key map "\C-c`"    'ada-show-secondary-error)
     (define-key map "\C-c\C-a" 'ada-align)
-    (define-key map "\C-c\C-b" 'ada-case-adjust-buffer)
+    (define-key map "\C-c\C-b" 'ada-make-subprogram-body)
     (define-key map "\C-c\C-c" 'compile)
     (define-key map "\C-c\C-d" 'ada-goto-declaration)
-    (define-key map "\C-c\C-n" 'ada-make-subprogram-body)
+    (define-key map "\C-c\M-d" 'ada-goto-declaration-parent)
+    (define-key map "\C-c\C-n" 'ada-next-statement-keyword)
     (define-key map "\C-c\C-o" 'ada-find-other-file)
     (define-key map "\C-c\M-o" 'ada-find-other-file-noset)
+    (define-key map "\C-c\C-p" 'ada-prev-statement-keyword)
     (define-key map "\C-c\C-t" 'ada-case-read-all-exceptions)
     (define-key map "\C-c\C-w" 'ada-case-adjust-at-point)
     (define-key map "\C-c\C-y" 'ada-case-create-exception)
@@ -192,6 +195,7 @@ If nil, no contextual menu is available."
     ["Other File"                 ada-find-other-file       t]
     ["Other File don't find decl" ada-find-other-file-noset t]
     ["Goto Declaration/Body"      ada-goto-declaration      t]
+    ["Goto parent declaration"    ada-goto-declaration-parent t]
     ("Edit"
      ["Indent Line"                 indent-for-tab-command  t]
      ["Indent Lines in Selection"   indent-region           t]
@@ -209,32 +213,51 @@ If nil, no contextual menu is available."
      )
     ))
 
+(defun ada-indent-newline-indent ()
+  "insert a newline, indent the old and new lines."
+  (interactive "*")
+  ;; point may be in the middle of a word, so insert newline first,
+  ;; then go back and indent.
+  (newline)
+  (forward-char -1)
+  (funcall indent-line-function)
+  (forward-char 1)
+  (funcall indent-line-function))
+
 ;;;; abbrev, align
 
 (defvar ada-mode-abbrev-table nil
   "Local abbrev table for Ada mode.")
 
-(defvar ada-align-modes
+(defvar ada-align-rules
   '((ada-declaration-assign
-     (regexp  . "[^:]\\(\\s-*\\):[^:]")
-     (valid   . (lambda() (not (ada-in-comment-p))))
+     (regexp  . "[^:]\\(\\s-*\\)\\(:\\)[^:]")
+     (valid   . (lambda () (ada-align-valid)))
      (repeat . t)
      (modes   . '(ada-mode)))
     (ada-associate
-     (regexp  . "[^=]\\(\\s-*\\)=>")
-     (valid   . (lambda() (not (ada-in-comment-p))))
+     (regexp  . "[^=]\\(\\s-*\\)\\(=>\\)")
+     (valid   . (lambda () (ada-align-valid)))
      (modes   . '(ada-mode)))
     (ada-comment
      (regexp  . "\\(\\s-*\\)--")
      (modes   . '(ada-mode)))
     (ada-use
-     (regexp  . "\\(\\s-*\\)\\<use\\s-")
-     (valid   . (lambda() (not (ada-in-comment-p))))
+     (regexp  . "\\(\\s-*\\)\\<\\(use\\s-\\)")
+     (valid   . (lambda () (ada-align-valid)))
      (modes   . '(ada-mode)))
     (ada-at
      (regexp . "\\(\\s-+\\)at\\>")
      (modes . '(ada-mode))))
   "Rules to use to align different lines.")
+
+(defun ada-align-valid ()
+  "See use in `ada-align-rules'."
+  (save-excursion
+    ;; we don't put "when (match-beginning 2)" here; missing a match
+    ;; is a bug in the regexp.
+    (goto-char (match-beginning 2))
+    (not (ada-in-string-or-comment-p))))
 
 (defconst ada-align-region-separate
   (eval-when-compile
@@ -291,8 +314,10 @@ Supplied by indentation engine parser.")
   "Reformat the parameter list point is in."
   (interactive)
   (ada-goto-open-paren)
+  (funcall indent-line-function); so new list is indented properly
 
-  (let* ((begin (point))
+  (let* ((inibit-modification-hooks t)
+	 (begin (point))
 	 (delend (progn (forward-sexp) (point))); just after matching closing paren
 	 (end (progn (forward-comment (- (point))) (point))); end of last parameter-declaration
 	 (multi-line (> end (save-excursion (goto-char begin) (line-end-position))))
@@ -378,7 +403,6 @@ Each parameter declaration is represented by a list
       (insert " "))
 
     (insert "(")
-    (funcall indent-line-function)
 
     ;; compute columns.
     (setq ident-col (current-column))
@@ -834,8 +858,9 @@ ARG is the prefix the user entered with \\[universal-argument]."
 
   (make-variable-buffer-local 'ada-mode-map)
 
-  ;; The 'or ...' is there to be sure that the value will not
-  ;; be changed again when Ada mode is called more than once
+  ;; The 'or ...' is there to be sure that the value will not be
+  ;; changed again when Ada mode is called more than once, since we
+  ;; are rebinding the keys.
   (or ada-ret-binding (setq ada-ret-binding (key-binding "\C-M")))
   (or ada-lfd-binding (setq ada-lfd-binding (key-binding "\C-j")))
 
@@ -1199,7 +1224,7 @@ Throw error if not in paren.  If PARSE-RESULT is non-nil, use it
 instead of calling `syntax-ppss'."
   (goto-char (+ (or offset 0) (nth 1 (or parse-result (syntax-ppss))))))
 
-;;;; navigation
+;;;; navigation within and between files
 
 (defvar ada-body-suffixes '(".adb")
   "List of possible suffixes for Ada body files.
@@ -1340,7 +1365,7 @@ previously set by a file navigation command."
       (setq ff-function-name nil))))
 
 (defun ada-buffer-window (buffer)
-  (let ((list (window-list-1 nil nil t))
+  (let ((list (window-list nil 0 nil))
 	window)
     (while (and
 	    (setq window (car list))
@@ -1380,6 +1405,11 @@ either an existing one, or a new one if there are no existing other frames."
      )
 
     (cond
+     ((not (functionp 'display-buffer-record-window))
+      ;; emacs 23.4
+      (window--display-buffer-1 window)
+      (window--display-buffer-2 buffer window))
+
      ((functionp 'window--display-buffer-1)
       ;; emacs 24.2
       (display-buffer-record-window type window buffer)
@@ -1471,7 +1501,7 @@ the other file."
   ;; ff-special-constructs, then run the following hooks:
   ;;
   ;; ff-pre-load-hook      set to ada-which-function
-  ;; ff-file-created-hook  set to ada-make-package-body
+  ;; ff-file-created-hook  set to ada-ff-create-body
   ;; ff-post-load-hook     set to ada-set-point-accordingly,
   ;;                       or to a compiler-specific function that
   ;;                       uses compiler-generated cross reference
@@ -1711,13 +1741,39 @@ with no parameters.")
 (defvar ada-goto-declarative-region-start nil
   ;; No useful default; the indentation engine should supply a useful function
   "Function to move point to start of the declarative region of
-the subprogram, package, or task declaration point is currently
-in.  Called with no parameters.")
+the subprogram, package, task declaration, or declare block point
+is currently in.  Called with no parameters.")
 
 (defun ada-goto-declarative-region-start ()
   "Call `ada-goto-declarative-region-start'."
   (when ada-goto-declarative-region-start
     (funcall ada-goto-declarative-region-start)))
+
+(defvar ada-next-statement-keyword nil
+  ;; No useful default; the indentation engine should supply a useful function
+  "Function called with no parameters; it should move to the next
+keyword in the statement following the one point is in (ie from
+'if' to 'then').  If at the last keyword, move to the next
+keyword in the next statement or containing statement.")
+
+(defun ada-next-statement-keyword ()
+  "See `ada-next-statement-keyword' variable."
+  (interactive)
+  (when ada-next-statement-keyword
+    (funcall ada-next-statement-keyword)))
+
+(defvar ada-prev-statement-keyword nil
+  ;; No useful default; the indentation engine should supply a useful function
+  "Function called with no parameters; it should move to the previous
+keyword in the statement following the one point is in (ie from
+'then' to 'if').  If at the first keyword, move to the previous
+keyword in the previous statement or containing statement.")
+
+(defun ada-prev-statement-keyword ()
+  "See `ada-prev-statement-keyword' variable."
+  (interactive)
+  (when ada-prev-statement-keyword
+    (funcall ada-prev-statement-keyword)))
 
 ;;;; code creation
 
@@ -1750,6 +1806,9 @@ will compile.")
   ;; back.
   (ff-find-the-other-file)
   (funcall ada-make-package-body)
+  ;; FIXME: if 'ada-make-package-body' fails, delete the body buffer
+  ;; so it doesn't get written to disk, and we can try again.
+
   ;; back to the body, read in from the disk.
   (ff-find-the-other-file)
   (revert-buffer t t))
@@ -1980,14 +2039,6 @@ The paragraph is indented on the first line."
 	  ada-name-regexp "?")
      '(1 font-lock-keyword-face) '(2 font-lock-function-name-face nil t))
 
-   ;; keywords followed by a name that should be in type-face if not already fontified
-   (list (concat
-	  "\\<\\("
-	  "is"
-	  "\\)\\>[ \t]*"
-	  ada-name-regexp "?")
-     '(1 font-lock-keyword-face) '(2 font-lock-type-face nil t))
-
    ;; Keywords followed by a name that could be a type or a function (generic instantiation).
    (list (concat
 	  "\\<\\("
@@ -1999,6 +2050,15 @@ The paragraph is indented on the first line."
 		 font-lock-function-name-face
 	       font-lock-type-face)
 	     nil t))
+
+   ;; keywords followed by a name that should be in type-face if not already fontified (for subtypes)
+   ;; after "new" to handle "is new"
+   (list (concat
+	  "\\<\\("
+	  "is"
+	  "\\)\\>[ \t]*"
+	  ada-name-regexp "?")
+     '(1 font-lock-keyword-face) '(2 font-lock-type-face nil t))
 
    ;; Keywords followed by a comma separated list of names which
    ;; should be in constant-face, unless already fontified. Ada mode 4.01 used this.
@@ -2091,7 +2151,7 @@ The paragraph is indented on the first line."
 		 (regexp  . "^\\(\\s-*\\)\\<use\\>")
 		 (modes   . '(ada-mode))))
 
-  (setq align-mode-rules-list ada-align-modes)
+  (setq align-mode-rules-list ada-align-rules)
 
   ;;  Set up the contextual menu
   (if ada-popup-key

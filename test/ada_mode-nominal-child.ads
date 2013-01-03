@@ -1,5 +1,6 @@
 --EMACSCMD:(ada-parse-prj-file "subdir/ada_mode.adp")
 --EMACSCMD:(ada-select-prj-file "subdir/ada_mode.adp")
+--EMACSCMD:(font-lock-fontify-buffer)
 package Ada_Mode.Nominal.Child is
 
    --EMACSCMD:(condition-case nil (delete-file "ada_mode-nominal-child.adb") (error nil))
@@ -7,6 +8,10 @@ package Ada_Mode.Nominal.Child is
    --EMACSCMD:(progn (ada-find-other-file nil)(looking-at "package body Ada_Mode.Nominal.Child"))
    --EMACSCMD:(condition-case nil (delete-file "ada_mode-nominal-child.adb") (error nil))
 
+   --EMACSCMD:(test-face "is" font-lock-keyword-face)
+   --EMACSCMD:(test-face "new" font-lock-keyword-face)
+   --EMACSCMD:(test-face "Parent_Type_1" font-lock-type-face)
+   --EMACSCMD:(test-face "with" font-lock-keyword-face)
    type Child_Type_1 is new Parent_Type_1 with
       record
          Child_Element_1 : Integer;

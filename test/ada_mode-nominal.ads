@@ -22,8 +22,8 @@ with
 --EMACSCMD:ada-prj-current-file
 --EMACSRESULT:(expand-file-name "subdir/ada_mode.adp")
 --EMACSCMD:(length compilation-search-path)
--- current dir, subdir, compiler dir
---EMACSRESULT:3
+-- ., ...org.emacs.ada_mode.smie/test, subdir, compiler dir
+--EMACSRESULT:4
 
 --EMACSCMD:(font-lock-fontify-buffer)
 --EMACSCMD:(test-face "with" font-lock-keyword-face)

@@ -4,7 +4,7 @@
 ;;
 ;; [1] ISO/IEC 8652:201z (draft 18); Ada 2012 reference manual
 ;;
-;; Copyright (C) 2012  Free Software Foundation, Inc.
+;; Copyright (C) 2012, 2013  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Contributors: Simon Wright <simon@pushface.org>
@@ -231,6 +231,7 @@
        (attribute_definition_clause)
        (entry_body)
        (exception_declaration)
+       (formal_object_declaration)
        (formal_package_declaration)
        (formal_subprogram_declaration)
        (generic_instantiation)
@@ -267,7 +268,7 @@
 
       (expression
        ;; We don't need operators at all in the grammar; they do not
-       ;; affect indentation.
+       ;; affect indentation or navigation.
        (name)
        (aggregate)
        (name "with-agg" name))
@@ -277,6 +278,11 @@
 
       ;; Formal generic parameters. Most formal_* are covered in this
       ;; grammar by the equivalent non-formal syntax.
+
+      (formal_object_declaration
+       (identifier ":-object" "in" name); leaving "out not null" as identifiers
+       (identifier ":-object" name)
+       (identifier ":-object" name ":=" expression))
 
       (formal_package_declaration
        ;; with package defining_identifier is new generic_package_name
@@ -331,7 +337,7 @@
        ("for-loop" identifier "in" name "loop-body" statements "end-loop" "loop-end")
        ("for-loop" identifier "of-loop" name "loop-body" statements "end-loop" "loop-end")
        ("for-loop" identifier ":-loop" name "of-loop" name "loop-body" statements "end-loop" "loop-end")
-       ("while" identifier "in" name "loop-body" statements "end-loop" "loop-end")
+       ("while" expression "loop-body" statements "end-loop" "loop-end")
        ("loop-open" statements "end-loop" "loop-end")
        ;; "reverse" is an identifer
        ;; Splitting out iteration_scheme makes it look optional, which it's not.
@@ -735,8 +741,9 @@ spec, return t if is a generic, nil otherwise."
 	       (setq result t))
 
 	      ((declaration context)
-	       ;; There are only a two non-formal declarations that
-	       ;; can occur in a generic formal parameter list; formal_object_declaration, formal_type_declaration.
+	       ;; There are only two non-formal declarations that can
+	       ;; occur in a generic formal parameter list;
+	       ;; formal_object_declaration, formal_type_declaration.
 	       (if (not (member (cadr stmt-or-decl) '(":-object" "type-other")))
 		   (setq result nil)
 		 ;; try again
@@ -1907,14 +1914,19 @@ eob). "
   ;;
   ;;    identifier
   ;;
-  ;; 3) access_definition in an object_declaration
+  ;; 3) access_definition  ::=
+  ;;       [null_exclusion] access [constant] subtype_mark
+  ;;     | [null_exclusion] access [protected] procedure parameter_profile
+  ;;     | [null_exclusion] access [protected] function parameter_and_result_profile
   ;;
-  ;;    not implemented
+  ;;    identifier
   ;;
   ;; 4) protected_type_declaration
   ;;
   ;;    protected type defining_identifier [known_discriminant_part]
   ;;       [aspect_specification] is [new interface_list with] protected_definition;
+  ;;
+  ;;    token: protected_type
   ;;
   ;; 5) single_protected_declaration
   ;;
@@ -1924,14 +1936,23 @@ eob). "
   ;;
   ;;    a) protected body defining_identifier ...
   ;;
+  ;;       token: protected_body
+  ;;
   ;;    b) separate (parent_unit_name) protected body defining_identifier ...
+  ;;
+  ;;       token: protected_separate
   ;;
   ;; 7) protected_body_stub  ::=
   ;;      protected body defining_identifier is separate [aspect_specification];
   ;;
+  ;;       token: protected_body
+  ;;
   (save-excursion
     (when forward (smie-default-backward-token))
     (cond
+     ((equal "access" (save-excursion (ada-smie-unrefined-token nil)))
+      "protected"); 2, 3
+
      ((equal "separate-unit" (save-excursion (ada-smie-backward-keyword)))
       "protected-separate"); 6b
 
@@ -2026,7 +2047,7 @@ eob). "
     ;;
     ;;    return identifier : name;
     ;;
-    ;;    token: "return-ext" (4a)
+    ;;    identifier (4a)
     ;;
     ;;    return identifier : name do statements end return;
     ;;
@@ -2067,12 +2088,12 @@ eob). "
 	 (cond
 	  ((equal token ";") "return"); 3a
 	  (t
-	   (setq token (ada-smie-unrefined-token t)); identifier
+	   (setq token (ada-smie-unrefined-token t)); identifier | :
 	   (cond
-	    ((member token '(":" ":-do")) "return-ext"); 4a, 4b
-	    (t "return"); 3b
-	    ))))))
-    ))
+	    ((equal token ":-do") "return-ext"); 4b
+	    (t "return"); 3b, 4a
+	    )))))
+     )))
 
 (defun ada-smie-refine-select (token forward)
   (save-excursion
@@ -2690,7 +2711,7 @@ move, and return KEYWORD."
 	(done nil))
 
     (if (listp (funcall lvl-forw tok-levels))
-	;; keyword is farthest in statement; don't move)
+	;; keyword is farthest in statement; don't move
 	(setq done t)
       (when forward (smie-default-forward-token))
       (push tok-levels stack))
@@ -2717,7 +2738,11 @@ move, and return KEYWORD."
 	nil)
 
        (t
-	(ada-smie-error "ada-smie-next-statement-keyword: that does not compute"))
+	;; most likely the user was not on a multi-keyword statement
+	;; in the first place, so this is a reasonable place to stop.
+	(if (not ada-smie-debug)
+	    (setq done t)
+	  (ada-smie-error "ada-smie-next-statement-keyword: that does not compute")))
        ))
     (nth 0 tok-levels)
     ))
@@ -2999,6 +3024,14 @@ be a keyword, and point must be at the start of CHILD."
 	;; goto-parent left point on token following parent; point is at statement start
 	(throw 'done (list (nth 1 parent) (nth 2 parent))))
 
+      (when (equal (nth 2 parent) "in")
+	;; we're in a parameter list or formal object declaration with
+	;; a default expression; move to ",", "(", or ";"
+	(smie-default-backward-token)
+	(setq parent (ada-smie-goto-parent "in" 1))
+	(when (member (nth 2 parent) '("(" ";"))
+	  (throw 'done (list (nth 1 parent) (nth 2 parent)))))
+
       (when (equal (nth 2 parent) ",")
 	(cond
 	 ((equal orig-child ",")
@@ -3011,22 +3044,28 @@ be a keyword, and point must be at the start of CHILD."
 	  (throw 'done (list (nth 1 parent) (nth 2 parent))))
 	 ))
 
-      (if (not (= (point) (nth 1 parent)))
-	  ;; goto-parent stopped because of a lower-precedence token,
-	  ;; not a closer; that might be because:
+      (if (and
+	   (not (= (point) (nth 1 parent)))
+	   (not (equal (nth 2 parent) "(")))
+	  ;; goto-parent stopped because of a lower-precedence token
+	  ;; or paren, not a closer; that might be because:
 	  ;;
 	  ;; 1) a parameter list object:
 	  ;;
-	  ;;    A, B : in Integer;
+	  ;;    1a) (A : in Integer;
+	  ;;         B : in Integer;
 	  ;;
-	  ;;    stops on "in"
+	  ;;        indenting B; stops on "in", moves to A, returns (
+	  ;;
+	  ;;    1b) (A : in Integer;
+	  ;;         B : in Integer;
+	  ;;         C : in Integer;
+	  ;;
+	  ;;        indenting C; stops on "in", moves to B, returns ;
 	  ;;
 	  ;; 2) probably other situations.
 	  ;;
-	  ;; In case 1 we could call ada-smie-goto-parent again to
-	  ;; get to the statement start. But this is also handled by
-	  ;; the other code below, so we just go to the parent
-	  ;; keyword.
+	  ;; This seems to work so far.
 	  (goto-char (nth 1 parent)))
 
       ;; handle access-to-subprogram
@@ -3325,7 +3364,7 @@ the start of CHILD, which must be a keyword."
 	   nil)
 
 	  (t
-	   ;; Indenting second or third keyword; declare, begin-body,
+	   ;; Indenting second or third keyword; is, begin-body,
 	   ;; etc. Indent relative to block start. We use
 	   ;; goto-statement, not goto-parent, to handle function
 	   ;; returning anonymous access to function
@@ -3714,9 +3753,10 @@ made."
 
 ;;;; other stuff
 
-(defun ada-smie-goto-declaration-start ()
+(defun ada-smie-goto-declaration-start (&optional declare)
   "Move point to start of declaration point is currently in or just after.
-Return declaration name, set ff-function-name as needed by `ada-which-function'."
+Return declaration name, set ff-function-name as needed by `ada-which-function'.
+If DECLARE non-nil, stop at first containing declarative region (for 'declare' blocks)."
   (let (token)
 
     (when (ada-in-comment-p)
@@ -3726,18 +3766,20 @@ Return declaration name, set ff-function-name as needed by `ada-which-function'.
     (while
 	(not
 	 (member (setq token (ada-smie-backward-keyword))
-		 '("function-overriding"
-		   "function-spec"
-		   "package-generic"
-		   "package-plain"
-		   "procedure-overriding"
-		   "procedure-spec"
-		   "protected-body"
-		   "protected-type"
-		   "task-body"
-		   "task-single"
-		   "task-type"
-		   nil))); bob, just in case we forgot something
+		 (list
+		  "function-overriding"
+		  "function-spec"
+		  "package-generic"
+		  "package-plain"
+		  "procedure-overriding"
+		  "procedure-spec"
+		  "protected-body"
+		  "protected-type"
+		  "task-body"
+		  "task-single"
+		  "task-type"
+		  (when declare "declare")
+		  nil))); bob, just in case we forgot something
       )
 
     (ada-smie-goto-statement-start token)
@@ -3746,14 +3788,42 @@ Return declaration name, set ff-function-name as needed by `ada-which-function'.
 
 (defun ada-smie-goto-declarative-region-start ()
   "For `ada-goto-declarative-region-start', which see."
-  (ada-smie-goto-declaration-start)
+  (ada-smie-goto-declaration-start t)
   (let ((token (ada-smie-forward-token))
 	(done nil))
     ;; FIXME: infinite loop on partial code?
-    (while (not (member token '("is-package" "is-protected_body" "is-subprogram_body" "is-task_body")))
-      (smie-default-backward-token)
-      (setq token (ada-smie-forward-statement-keyword token)))
-  ))
+    (cond
+     ((equal token "declare")
+      nil)
+     (t
+      (while (not (member token '("is-package" "is-protected_body" "is-subprogram_body" "is-task_body")))
+	(smie-default-backward-token)
+	(setq token (ada-smie-forward-statement-keyword token))))
+     )))
+
+(defun ada-smie-forward-statement-keyword-1 ()
+  "For `ada-forward-statement-keyword'."
+  (let ((start (point)))
+    (when (ada-in-string-or-comment-p)
+      (end-of-line))
+    (ada-smie-forward-statement-keyword (save-excursion (ada-smie-forward-keyword)))
+    (cond
+     ((= start (point))
+      ;; already on last keyword in current statement. Goto next
+      ;; keyword; either in containing statement or next statement.
+      (smie-default-forward-token)
+      (ada-smie-forward-keyword)
+      (smie-default-backward-token))
+
+     (t
+      ;; forward-statement-keyword leaves point following found keyword
+      (ada-smie-backward-token))
+     )))
+
+(defun ada-smie-backward-statement-keyword-1 ()
+  "For `ada-backward-statement-keyword'."
+  ;; FIXME: match forward logic, test
+  (ada-smie-backward-statement-keyword (save-excursion (ada-smie-forward-keyword))))
 
 (defun ada-smie-which-function ()
   "For `ada-which-function', which see."
@@ -3930,7 +4000,7 @@ Return declaration name, set ff-function-name as needed by `ada-which-function'.
 	(setq not-null-p t))
        ((equal token "access") (setq access-p t))
        ((equal token "constant") (setq constant-p t))
-       ((equal token "protected-type") (setq protected-p t))
+       ((equal token "protected") (setq protected-p t))
 
        ((equal token ":=")
 	(setq type-end (save-excursion (backward-char 2) (skip-syntax-backward " ") (point)))
@@ -4237,6 +4307,8 @@ This lets us know which indentation function succeeded."
   (set (make-local-variable 'ada-scan-paramlist) 'ada-smie-scan-paramlist)
   (set (make-local-variable 'ada-goto-declaration-start) 'ada-smie-goto-declaration-start)
   (set (make-local-variable 'ada-goto-declarative-region-start) 'ada-smie-goto-declarative-region-start)
+  (set (make-local-variable 'ada-next-statement-keyword) 'ada-smie-forward-statement-keyword-1)
+  (set (make-local-variable 'ada-prev-statement-keyword) 'ada-smie-backward-statement-keyword-1)
   (set (make-local-variable 'ada-make-subprogram-body) 'ada-smie-make-subprogram-body)
   )
 

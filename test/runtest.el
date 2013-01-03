@@ -47,9 +47,6 @@
     ;;    <form> is evaluated inside save-excursion and compared
     ;;    (using `equal') with the result of the previous EMACSCMD,
     ;;    and the test fails if they don't match.
-    ;;
-    ;; --EMACSAT: <string>
-    ;;   Call 'looking-at' with <string>, fail if nil result
 
     (goto-char (point-min))
     (while (and (not skip-cmds)
@@ -82,17 +79,6 @@
 		    last-cmd
 		    last-result
 		    expected-result)
-	    ))))
-
-       ((string= (match-string 1) "AT")
-	(setq expected-result (car (read-from-string (match-string 0))))
-	(unless (looking-at expected-result)
-	  ;; we don't abort here, so we can see all errors at once
-	  (setq error-p t)
-	  (message
-	   (concat
-	    (buffer-file-name) ":" (format "%d" (count-lines (point-min) (point))) ":\n"
-	    "Result does not match."
 	    ))))
 
        (t

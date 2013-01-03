@@ -7,8 +7,8 @@
 --EMACSCMD:(setq skip-reindent-test t)
 
 -- Test bad character at beginning of file vs ada-smie-forward-keyword
---EMACSCMD:(progn (goto-char (point-min))(ada-smie-forward-keyword))
---EMACSAT: Procedure_1
+--EMACSCMD:(progn (goto-char (point-min))(ada-smie-forward-keyword)(looking-at " Procedure_1"))
+--EMACSRESULT: t
 
 -- Test cache managment when inserting a with clause; used to screw up
 --EMACSCMD:(progn (forward-line 2)(ada-smie-validate-cache (point))(insert "with A;\n")ada-smie-cache-max)
@@ -37,7 +37,7 @@ is
    --EMACSRESULT:3
 
    -- error from is-generic-p refining Function_11 while entering body of Function_Access_1
-   -- fixed by 'if ada-smie-debug-refine'
+   -- fixed by 'if ada-smie-debug'
    --EMACSCMD:(progn (forward-line 5)(newline-and-indent)(current-column))
    function Function_Access_1
      (A_Param : in Float)
@@ -98,23 +98,35 @@ end Procedure_1;
 package Package_1 is
    -- package declaration resets smie indentation to something reasonable
 
-   --EMACSCMD:(progn (forward-line 3)(ada-make-subprogram-body))
-   --EMACSAT:"procedure Proc_1\n   is begin\n     \nend Proc_1;"
-   procedure Proc_1;
+   --EMACSCMD:(progn (end-of-line 3)(kill-line 4)(insert ";")(ada-make-subprogram-body)(insert "null;"))
+   -- result verified by diff. "null;" inserted to avoid whitespace diff;
+   procedure Proc_1
+   is begin
+      null;
+   end Proc_1;
 
-   --EMACSCMD:(progn (forward-line 3)(ada-make-subprogram-body))
-   --EMACSAT:"procedure Proc_2 (A : in Integer)\n   is begin\n     \nend Proc_2;"
-   procedure Proc_2 (A : in Integer);
+   --EMACSCMD:(progn (end-of-line 3)(kill-line 4)(insert ";")(ada-make-subprogram-body)(insert "null;"))
+   -- result verified by diff
+   procedure Proc_2 (A : in Integer)
+   is begin
+      null;
+   end Proc_2;
 
-   --EMACSCMD:(progn (forward-line 3)(ada-make-subprogram-body))
-   --EMACSAT:"function Func_1 return Integer\n   is begin\n     \nend Func_1;"
-   function Func_1 return Integer;
+   --EMACSCMD:(progn (end-of-line 3)(kill-line 5)(insert ";"))(ada-make-subprogram-body)(insert "return 0;"))
+   -- result verified by diff; 'return 0;' inserted to avoid whitespace diff
+   function Func_1 return Integer
+   is begin
 
-   --EMACSCMD:(progn (forward-line 3)(ada-make-subprogram-body))
-   --EMACSAT:"function Func_1\n     (A : in Integer)\n     return Integer\n   is begin\n     \nend Func_1;"
+   end Func_1;
+
+   --EMACSCMD:(progn (end-of-line 5)(kill-line 4)(insert ";")(ada-make-subprogram-body)(insert "return 0;"))
+   -- result verified by diff
    function Func_1
      (A : in Integer)
-     return Integer;
+     return Integer
+   is begin
+      return 0;
+   end Func_1;
 
 end Package_1;
 

@@ -72,7 +72,11 @@ package body Ada_Mode.Nominal is
             Dummy : Boolean;
             pragma Unreferenced (Dummy); -- test ada-indent-statement-or-declaration handling of this in refine-begin
          begin
+            --EMACSCMD:(progn (ada-next-statement-keyword)(looking-at "then"))
+            --EMACSRESULT: t
             if True then
+               --EMACSCMD:(progn (end-of-line 0)(backward-word 1)(ada-next-statement-keyword)(looking-at "elsif"))
+               --EMACSRESULT: t
                begin
                   --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at " -- target 3"))
                   --EMACSRESULT:t
@@ -109,6 +113,8 @@ package body Ada_Mode.Nominal is
             end if;
          end Local_Function;
       begin
+         --EMACSCMD:(progn (end-of-line 0)(backward-word 1)(ada-next-statement-keyword)(looking-at "end F1"))
+         --EMACSRESULT: t
          return B : Integer := Local_Function;
          -- non-do extended return
       end F1;
@@ -348,10 +354,12 @@ package body Ada_Mode.Nominal is
    end Function_1a;
 
    function Function_1b return Float
-   is -- target 5
+   is
       Local_1 : constant := 3.0;
    begin
-      declare -- no label, zero statements between begin, declare
+      declare -- target 5
+
+         -- no label, zero statements between begin, declare
       begin
          return Local_1;
       exception
@@ -424,6 +432,8 @@ package body Ada_Mode.Nominal is
          Local_1 : Float     := 1.0e-36; -- comments after declarations
          Local_2 : Integer   := 2;       -- are aligned.
          Local_3 : Character := ''';     -- quoted quote handled ok
+         Local_4 : String    :=
+           "abc:" & ':' & "def";         -- ignores these ':'
       begin
          --EMACSCMD:(progn (forward-line 2)(forward-word 3)(forward-char 1)(insert "   ")(ada-align))
          Local_1 := 2.0; -- comments after code

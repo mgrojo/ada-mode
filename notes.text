@@ -29,38 +29,68 @@ runtest from emacs -q:
 (shell-send-string "~/bin/mtn_sync_ada_france.sh" "*bash*")
 (xmtn-sync-review)
 
-review FIXMEs
 (grep-find "find . -type f -print | \"xargs\" grep -nH \"FIXME:\"")
- ada-smie
 test/Makefile  ;; set project file
+ ada-smie
+new emacs release candidate 12.27 https://www.dropbox.com/sh/7jr3vbv9tm1zod0/jPuvfrJAe8
 
 include gpr-mode
-    need opentoken -> ada-gpr-wy.el
-        match output of wisent-compile-grammar
-        can use semantic-lex-make-keyword-table
-        use ada-wisent-grammar as test example
+    use wisi
+
+    match output of wisent-compile-grammar
+    can use semantic-lex-make-keyword-table
+    use ada-wisent-grammar as test example
+
+    /Projects/org.opentoken.stephe/wisi/test/ada-subset.wy
     /Projects/org.opentoken.stephe/build/windows_debug/Makefile
         one
-        specs compile. opentoken modified; run all tests
+
+    complains about "no action for state 50"
+        added EOF; still complains
+        add subprograms test to /Projects/org.opentoken.stephe/test/trivial_productions_test.adb
+            not failing yet
+
+gdb break command input still broken in
+    http://debbugs.gnu.org/cgi/bugreport.cgi?bug=13303
+    GNU Emacs 24.2.91.1 (i386-mingw-nt6.1.7601) of 2012-12-15 on MS-W7-DANI
+    GNU gdb (GDB) 7.5 for GNAT Pro 7.1.0w (20121019) [rev=gdb-7.5-ref-21-g0070a88]
+    menu signals kill gdb
+
+    gdb-many-windows apparently not relevant; that still uses gud> interaction buffer to set break commands
+
+    gud-gdb runs 'gdb --fullname'; that works
+
+    try with mingw gdb 7.2
+        worse; no '>' prompt
+
+        latest mingw mingw-get-inst-20120426.exe
+            gcc 4.7.2; try with mtn
+            gdb 7.5
+
+    try with cygwin gdb
+        same problem
+
+    try with cygwin emacs, cygwin gdb
+
+    try on linux
+        emacs 24.2.1
+        gdb 7.4.1
+            no '>' prompt!
+            doesn't terminate on 'end'!
+
+        get emacs 24.2.91 source, gcc 4.7.2-4, gdb 7.4.1-1
+            no '>' prompt, but menu eof terminates
+
+        use emacs -Q
+            same
+            get "error in process filter" after type "break association_token_test-run.adb:20"
+
+        use C hello world
+            same, no 'error in process filter'
 
 
-align
-       Syntax : constant Tokenizer.Syntax :=
-     (Action_ID          => Tokenizer.Get
-        (Bracketed_Comment.Get
-           ("(", ")",
-            Reportable   => True,
-            Nested       => True),
-         Action),
-      Bar_ID             => Tokenizer.Get (Keyword.Get ("|"), Tokens.Get (Bar_ID)),
-      Comment_ID         => Tokenizer.Get (Line_Comment.Get ("//")),
-      Colon_ID           => Tokenizer.Get (Keyword.Get (":"), Tokens.Get (Colon_ID)),
-
-    aligned "Syntax :" and ":" colons, inserted space in ":"!
-
-font
-   type Instance is new Nonterminal.Instance with record
-        'new' is in wrong font
+gnat stub doesn't copy 'pragma License'
+   can use standard header file; "see spec" is standard
 
 FIXMEs
     context menus
@@ -68,6 +98,17 @@ FIXMEs
     project files on menu
 
     manual
+
+    test/ada_mode-generic_package.ads
+    ada-next-statement-keyword on 'generic' broken due to "procedure-spec" in access type
+
+
+'Access gives wrong face to following token:
+     Percent_Percent & EOF + Output_Elisp'Access and
+
+conflicting requirements on ada-which-function
+    C-c C-b doesn't want to look after point
+    C-t in ediff does
 
 don't parse or move cache if narrowed
 
@@ -181,30 +222,25 @@ compilation mode
 
     keep compilation buffer in other frame if already visible
 
-make newline-and-indent reindent current line first?
-    what did 4.01 do?
-        ada-indent-after-return t doc says "indent after return"
-        but what it does is:
-            insert return at point
-            go back to the line
-            indent
-            go forward to new line
-            indent
-
-        ada-indent-after-return nil leaves out _first_ indent!
-
-ada-gnatstub-opts
-
 support xref for C files?
     at least if compiled with gprbuild?
     gcc options?
     gnatxref?
 
-emacs 23.2
-    debian stable
+emacs versions:
+    24.x gdb (all versions) broken for break commands (can't terminate prompting)
+        can use 'gud-gdb'; runs 'gdb --fullname'
 
-emacs 23.1
-    Red Hat 5
+    23.4 gdb 7.5 broken (in gnat 7.1) (--annotate=3 crashes on start)
+            only for wisi-compile!
+         gdb 7.3 works (gnat 7.0.1)
+            not for wisi-compile!
+
+    23.2 debian stable
+
+    23.1 MMS FLATSAT asist; no devel libs, so can't compile emacs
+
+    21 Lynx 4.0
 
  4.01 bugs that 5.01 fixes
     generic formal function
@@ -300,7 +336,9 @@ c:/apps/emacs-24.2/lisp/progmodes/ada-mode.el
 http://savannah.gnu.org/projects/emacs/
 
 https://www.dropbox.com/sh/7jr3vbv9tm1zod0/jPuvfrJAe8
-    w32 builds of cutting-edge emacs branches
+    w32 builds of cutting-edge emacs branches, pretests
+
+ftp://alpha.gnu.org/gnu/emacs/pretest/
 
 c:/apps/emacs-24.2/lisp/progmodes/modula2.el
 http://www.modula2.net/resources/M2R10.pdf Appendix A

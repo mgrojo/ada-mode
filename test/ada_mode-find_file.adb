@@ -5,8 +5,8 @@
 --EMACSCMD:ada-prj-current-file
 --EMACSRESULT:(expand-file-name "ada_mode.gpr")
 --EMACSCMD:(length compilation-search-path)
--- current dir, gnat library dir
---EMACSRESULT:2
+-- <current dir> "...smie/test", gnat library dir
+--EMACSRESULT:3
 
 -- Select package name, goto its spec
 --EMACSCMD:(progn (forward-line 1)(forward-word 2)(forward-char 1)(push-mark-command t t)(forward-word 2)(ada-find-other-file t)(pop-mark)(looking-at "Ada_Mode is"))

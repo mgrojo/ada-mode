@@ -8,6 +8,15 @@ pragma License (GPL);
 with Ada.Text_IO;
 --EMACSCMD:(progn (forward-line 1)(ada-find-other-file nil)(looking-at "Ada.Strings.Unbounded is"))
 with Ada.Strings.Unbounded;
+
+-- FIXME: ada-next-statement-keyword is broken here because of
+-- "procedure-spec" in Procedure_Formal_Access_Type fix is either to
+-- change that to "procedure-access" (along with other "procedure-*"
+-- and "function-*" changes, such as "procedure-body"), or switch to
+-- LALR parser; we are waiting for the latter.
+--
+-- EMACSCMD:(progn (ada-next-statement-keyword)(looking-at "package Ada_Mode.Generic_Package"))
+-- EMACSRESULT: t
 generic
    -- one of each kind of generic_formal_parameter_definition from arm Annex P
 
