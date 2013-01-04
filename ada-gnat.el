@@ -670,6 +670,19 @@ For `compilation-filter-hook'."
 		(delete-char 4)
 	      (ding))))
 
+         ((looking-at (concat "expected \\(private \\)?type " ada-gnat-quoted-name-regexp))
+          (let ((type (match-string 2)))
+            (next-line 1)
+            (if (or (looking-at "found type access")
+                    (looking-at "found type .*_Access_Type"))
+                ;; assume just need '.all'
+                (progn
+                  (pop-to-buffer source-buffer)
+                  (forward-word 1)
+                  (insert ".all"))
+              ;; Not "found type access"
+	      (ding))))
+
 	 ((looking-at "extra \".\" ignored")
 	  (set-buffer source-buffer)
 	  (delete-char 1))
@@ -752,6 +765,11 @@ For `compilation-filter-hook'."
 	    (skip-syntax-forward "w_")
 	    (delete-region (point) end)
 	    (insert correct)))
+
+         ((looking-at "(style) bad indentation")
+          (progn
+            (set-buffer source-buffer)
+            (funcall indent-line-function)))
 
 	 ((looking-at "(style) space required")
 	  (progn

@@ -2130,7 +2130,7 @@ The paragraph is indented on the first line."
   (ada-set-ff-special-constructs)
 
   (set (make-local-variable 'add-log-current-defun-function)
-       'ada-which-function)
+       'ada-which-function);; FIXME: use a function that goes forward one line first, exclude package
 
   (add-hook 'which-func-functions 'ada-which-function nil t)
 
@@ -2140,6 +2140,7 @@ The paragraph is indented on the first line."
   (add-to-list 'align-dq-string-modes 'ada-mode)
   (add-to-list 'align-open-comment-modes 'ada-mode)
   (set (make-local-variable 'align-region-separate) ada-align-region-separate)
+  (set (make-local-variable 'align-indent-before-aligning) t)
 
   ;; Exclude comments alone on line from alignment.
   (add-to-list 'align-exclude-rules-list
