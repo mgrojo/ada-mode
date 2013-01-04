@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2002, 2003, 2008, 2009, 2012 Stephe Leake
+-- Copyright (C) 2002, 2003, 2008, 2009, 2012, 2013 Stephe Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -1063,9 +1063,8 @@ package body OpenToken.Production.Parser.LRk_Item is
         ("Number of Kernel Sets =" & Integer'Image (Items.Size) & Line_End);
 
       while Set /= null loop
-         Result := Result & Image (Set.all) &
-           "   Set Goto Transitions:" & Line_End & Image_Set_Reference_List (Set.Goto_List);
-
+         Result := Result & Image (Set.all) & Line_End &
+           "   Goto:" & Line_End & Image_Set_Reference_List (Set.Goto_List);
 
          Set := Set.Next;
          Item_Count := Item_Count + 1;

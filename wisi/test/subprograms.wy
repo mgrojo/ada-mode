@@ -1,0 +1,37 @@
+;; Wisent grammar matching ../../Test/trivial_productions_test.adb
+;; Subprograms, to test that wisi-generate produces the same OpenToken
+;; grammar.
+
+%{
+(require 'wisi)
+%}
+
+%package debug-wy
+
+%keyword FUNCTION "function"
+%keyword PROCEDURE "procedure"
+
+%token <symbol> SYMBOL
+
+;; 'compilation_unit', EOF added in wisi-generate
+%start declarations
+
+%%
+
+declarations
+  : declaration
+  | declarations declaration
+  ;
+
+declaration
+  : subprogram
+  ;
+
+subprogram
+  : FUNCTION SYMBOL
+  | PROCEDURE SYMBOL
+  ;
+  
+%%
+
+;; end of file

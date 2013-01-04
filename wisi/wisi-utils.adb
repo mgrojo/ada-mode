@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2012 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2012, 2013 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -22,7 +22,10 @@ with Ada.Strings.Fixed;
 package body Wisi.Utils is
 
    function Skip_Comments (File : in Ada.Text_IO.File_Type) return String
-   is begin
+   is
+      use Ada.Strings;
+      use Ada.Strings.Fixed;
+   begin
       loop
          declare
             Line      : constant String  := Ada.Text_IO.Get_Line (File);
@@ -30,7 +33,7 @@ package body Wisi.Utils is
             Non_Blank : constant Integer := Ada.Strings.Fixed.Index_Non_Blank (Line);
          begin
             if Comment = 0 and Non_Blank > 0 then
-               return Line;
+               return Trim (Line, Right);
             end if;
          end;
       end loop;

@@ -53,8 +53,17 @@ is
       Last  : Integer := Index (Pattern => "-", Source => Name);
       File  : File_Type;
    begin
-      --  The parent package is 'wisi'; we need the real wisi.ads, so don't generate it
-      Last := -1 + Index (Pattern => "-", Source => Name, From => Last + 1);
+      --  The parent package is 'wisi' (added in call to
+      --  Create_Parents, below); we need the real wisi.ads, so don't
+      --  generate it.
+
+      Last := Index (Pattern => "-", Source => Name, From => Last + 1);
+      if Last = 0 then
+         Last := Name'Last;
+      else
+         Last := Last - 1;
+      end if;
+
       loop
          Create (File, Out_File, Name (Name'First .. Last) & ".ads");
          Put_Line (File, "package " & To_Ada (Name (Name'First .. Last)) & " is");
@@ -161,11 +170,17 @@ begin
    for Item of Tokens loop
       Indent_Line (-Item.Name & "_ID,"); -- avoid collision with Ada reserved words
    end loop;
+   Indent_Line ("EOF_ID,"); -- OpenToken requires an explicit EOF on the accept symbol production.
+   New_Line;
    Indent_Line ("--  non-terminals");
    declare
       use Rule_Lists;
       I : Cursor := Rules.First;
    begin
+      --  Add an extra nonterminal as the
+      --  OpenToken accept symbol followed by EOF.
+      Indent_Line ("opentoken_accept_ID,");
+
       loop
          Set_Col (Indent);
          Put (-Element (I).Left_Hand_Side);
@@ -181,8 +196,8 @@ begin
    Indent := Indent - 3;
 
    Indent_Line ("package Tokens_Pkg is new OpenToken.Token.Enumerated (Token_IDs);");
-   Indent_Line ("--  we only need Analyzers to instantiate Parsers; we will never call it");
-   Indent_Line ("package Analyzers is new Tokens_Pkg.Analyzer (Token_IDs'First);");
+   Indent_Line ("--  we only need Analyzers to instantiate Parsers, but we might call it for debugging");
+   Indent_Line ("package Analyzers is new Tokens_Pkg.Analyzer (EOF_ID);");
    Indent_Line ("package Token_Lists is new Tokens_Pkg.List;");
    Indent_Line ("package Nonterminals is new Tokens_Pkg.Nonterminal (Token_Lists);");
    Indent_Line ("package Productions is new OpenToken.Production (Tokens_Pkg, Token_Lists, Nonterminals);");
@@ -209,7 +224,8 @@ begin
    Indent := Indent + 2;
    declare
       use Rule_Lists;
-      Rule_Cursor : Cursor := Rules.First;
+      Rule_Cursor : Cursor  := Rules.First;
+      First       : Boolean := True;
    begin
       loop
          declare
@@ -222,9 +238,19 @@ begin
                  (Standard_Error, Input_File_Name & ":0:0: no productions for rule '" & (-Rule.Left_Hand_Side) & "'");
             else
                loop
+                  if First then
+                     --  Add the required OpenToken accept production:
+                     Indent_Line
+                       ("Nonterminals.Get (opentoken_accept_ID) <= Nonterminals.Get (" & (-Rule.Left_Hand_Side) &
+                          "_ID) & (+EOF_ID) and");
+                     First := False;
+                  end if;
                   Set_Col (Indent);
                   Put ("Nonterminals.Get (" & (-Rule.Left_Hand_Side) & "_ID) <= ");
                   Put (Wisi.Production_Lists.Element (Production));
+                  --  OpenToken default action is ok, since we are not
+                  --  using this grammar to parse anything, only to
+                  --  output elisp
                   Wisi.Production_Lists.Next (Production);
                   if Production = Wisi.Production_Lists.No_Element then
                      exit;

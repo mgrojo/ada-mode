@@ -29,14 +29,16 @@
 
 ;; Ada keywords (ARM 2.9)
 
-%keyword SEMICOLON ";"
 %keyword BEGIN "begin"
 %keyword BODY "body"
+%keyword COLON ":"
 %keyword END "end"
 %keyword FUNCTION "function"
 %keyword IS "is"
 %keyword PACKAGE "package"
+%keyword PROCEDURE "procedure"
 %keyword RETURN "return"
+%keyword SEMICOLON ";"
 
 ;; other
 
@@ -52,6 +54,7 @@
 
 compilation_unit
   : package_body
+  : subprogram_body
   ;
 
 package_body
@@ -71,12 +74,23 @@ name
   ;
 
 declarations
+  : declaration
+  | declarations declaration
+ ;; no action; no visible keywords
+  ;
+
+declaration
   : subprogram_body
-  | declarations subprogram_body
+  | variable
  ;; no action; no visible keywords
   ;
 
 subprogram_body
+  : function_body
+  | procedure_body
+  ;
+
+function_body
  ;; adding 'declarative_part' here makes wisent-compile-grammar
  ;; complain about useless nonterminals and rules, which is why we are
  ;; using wisi-compile
@@ -87,6 +101,23 @@ subprogram_body
      '($6 'block-both nil $region6); begin
      '($8 'block-end nil $region8); end
      '($10 'statement-end nil $region10))
+  ;
+
+procedure_body
+  : PROCEDURE name IS declarations BEGIN statements END name SEMICOLON
+    (wisi-cache-keywords
+     '($1 'other nil $region1)
+     '($3 'block-begin nil $region3); is
+     '($4 'block-both nil $region4); begin
+     '($6 'block-end nil $region6); end
+     '($8 'statement-end nil $region8))
+  ;
+
+variable
+  : name COLON name SEMICOLON
+    (wisi-cache-keywords
+     '($1 'other nil $region1)
+     '($4 'statement-end nil $region))
   ;
 
 statements

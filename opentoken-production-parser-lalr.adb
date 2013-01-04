@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2002 - 2005, 2008 - 2012 Stephe Leake
+-- Copyright (C) 2002 - 2005, 2008 - 2013 Stephe Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -823,6 +823,7 @@ package body OpenToken.Production.Parser.LALR is
          Item := Closure.Set;
          while Item /= null loop
             if Item.Pointer = Token_List.Null_Iterator then
+               --  Pointer is at the end of the production; add a reduce or accept action.
 
                --  Find the length of the producion to save time during reductions
                Production_Length := 0;
@@ -882,6 +883,8 @@ package body OpenToken.Production.Parser.LALR is
               Token.ID (Token_List.Token_Handle (Item.Pointer).all) in
               Tokenizer.Terminal_ID
             then
+               --  Pointer is before a terminal token.
+
                if Trace then
                   Ada.Text_IO.Put_Line
                     (Token.Token_ID'Image (Token.ID (Token_List.Token_Handle (Item.Pointer).all)) &
@@ -902,6 +905,8 @@ package body OpenToken.Production.Parser.LALR is
                   Conflicts       => Conflicts);
 
             else
+               --  Pointer is before a non-terminal token
+
                if Trace then
                   Ada.Text_IO.Put_Line
                     (Token.Token_ID'Image (Token.ID (Token_List.Token_Handle (Item.Pointer).all)) &
@@ -942,13 +947,14 @@ package body OpenToken.Production.Parser.LALR is
             --  computing lookaheads, and Fill_In_Parse_Table makes
             --  when assigning accept/reduce actions.
             --
-            --  It also happens when there is any trivial production
-            --  (A -> B), or when there is more than one production
-            --  that has the start symbol on the left hand side.
+            --  It also happens when the start symbol production does
+            --  not have an explicit EOF, or when there is more than
+            --  one production that has the start symbol on the left
+            --  hand side.
             raise Programmer_Error with
               "Generating parser: state" & Integer'Image (Kernel.Index) &
-              " has no actions; first production in grammar must be the start symbol production" &
-              ", all productions must be non-trivial.";
+              " has no actions; first production in grammar must be the only start symbol production, " &
+              "and it must must have an explicit EOF.";
          else
             while Last_Action.Next /= null loop
                Last_Action := Last_Action.Next;

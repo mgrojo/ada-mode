@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2003 Stephe Leake
+-- Copyright (C) 2003, 2013 Stephe Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -77,7 +77,7 @@ package OpenToken.Production is
    type Handle is access all Instance;
 
    ----------------------------------------------------------------------------
-   --  Production building operartors using Right Hand Sides
+   --  Production building operators using Right Hand Sides
    ----------------------------------------------------------------------------
    function "<=" (LHS : in Nonterminal.Handle;
                   RHS : in Right_Hand_Side
@@ -88,7 +88,7 @@ package OpenToken.Production is
                  ) return Instance;
 
    ----------------------------------------------------------------------------
-   --  Production building operartors using token lists
+   --  Production building operators using token lists
    ----------------------------------------------------------------------------
    function "<=" (LHS : in Nonterminal.Handle;
                   RHS : in Token_List.Instance

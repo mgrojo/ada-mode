@@ -2,7 +2,7 @@
 --
 --  Run all OpenToken AUnit tests; see Makefile for other tests.
 --
---  Copyright (C) 2009, 2010, 2012 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2009, 2010, 2012, 2013 Stephen Leake.  All Rights Reserved.
 --
 --  This library is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -57,6 +57,7 @@ begin
    Add_Test (Suite, new Test_Sequence_Actions.Test_Case (Debug => False));
    Add_Test (Suite, new Test_Statement_Actions.Test_Case (Debug => False));
    Add_Test (Suite, new Test_Token_Identifier_Real_String.Test_Case (Debug => False));
+   Add_Test (Suite, new Trivial_Productions_Test.Test_Case (Debug => False));
 
    --  end test cases
 
