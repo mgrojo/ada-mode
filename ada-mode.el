@@ -1373,7 +1373,7 @@ previously set by a file navigation command."
       (setq list (cdr list)))
     window))
 
-(defun ada-display-buffer-other-frame (buffer-or-name)
+(defun ada-display-buffer-other-frame (buffer-or-name &optional current-ok)
   "Display BUFFER-OR-NAME (an existing buffer or the name of an existing buffer) in another frame,
 either an existing one, or a new one if there are no existing other frames."
   (let* ((buffer (if (bufferp buffer-or-name) buffer-or-name (get-buffer buffer-or-name)))
@@ -1385,7 +1385,8 @@ either an existing one, or a new one if there are no existing other frames."
     (cond
      ((and window
 	   frame-1
-	   (not (eq frame-1 (selected-frame))))
+	   (or current-ok
+	       (not (eq frame-1 (selected-frame)))))
       (setq type 'reuse)
       (setq frame frame-1))
 
@@ -1445,16 +1446,25 @@ always pops up a new frame.  To get that, don't set
 `display-buffer-function' to `ada-display-buffer' (the standard
 Ada mode initialization does this correctly, if you set
 `pop-up-frames' to non-nil before ada-mode.el is loaded)."
-  (if (or pop-up-frames (equal current-prefix-arg '(16)))
-      ;; other frame
-      (ada-display-buffer-other-frame buffer-or-name)
+  ;; The above means we don't get here with prefix arg nil; the user
+  ;; is requesting other frame or other window.
+  (cond
+   ((let* ((window (ada-buffer-window buffer-or-name))
+	   (frame (and window (window-frame window))))
+      (when frame
+	;; buffer currently visible in `frame'
+	(ada-display-buffer-other-frame buffer-or-name t))))
 
-    ;; else other window
+   ((or pop-up-frames (equal current-prefix-arg '(16)))
+      ;; other frame
+      (ada-display-buffer-other-frame buffer-or-name))
+
+   (t ;; other window
     (let ((display-buffer-function nil))
       ;; we use standard display-buffer, since it handles this case
       ;; the way current code expects it to.
       (display-buffer buffer-or-name old-other-window)))
-  )
+  ))
 
 (defun ada-find-other-file-noset (other-window-frame)
   "Same as `ada-find-other-file', but preserve point in the other file,
