@@ -38,3 +38,4 @@
 ^build/windows_release/obj_tree$
 ^build/x86_lynx_gnu_linux_debug/obj$
 ^build/x86_lynx_gnu_linux_release/obj$
+^wisi/test/.*\.el$

@@ -2,7 +2,7 @@
 --
 --  Parse the production rules from Input_File, add to List.
 --
---  Copyright (C) 2012 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2012, 2013 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -18,21 +18,21 @@
 
 pragma License (GPL);
 
-with Ada.Characters.Latin_1;
 with Ada.Strings.Fixed;
 with Ada.Text_IO; use Ada.Text_IO;
 with Wisi.Utils;  use Wisi.Utils;
 procedure Wisi.Rules
   (Input_File : in     Ada.Text_IO.File_Type;
-   List       : in out Rule_Lists.List)
+   Rule_List  : in out Rule_Lists.List)
 is
    use Ada.Strings.Fixed;
    use Ada.Strings.Unbounded;
 
-   type State_Type is (Left_Hand_Side, Right_Hand_Side, Action);
+   type State_Type is (Left_Hand_Side, Production, Action);
    State : State_Type := Left_Hand_Side;
 
    Rule : Rule_Type;
+   RHS  : RHS_Type;
 begin
    --  We assume:
    --
@@ -59,19 +59,19 @@ begin
 
          procedure Parse_Production
          is
-            Last       : Integer := Non_Blank;
-            Production : String_Lists.List;
+            Last : Integer := Non_Blank;
          begin
+            RHS.Production.Clear;
+            RHS.Action.Clear;
             loop
                Last := -1 + Index (Pattern => " ", Source => Line, From => Non_Blank);
                if Last = -1 then Last := Line'Last; end if;
 
-               Production.Append (Line (Non_Blank .. Last));
+               RHS.Production.Append (Line (Non_Blank .. Last));
 
                exit when Last = Line'Last;
                Non_Blank := Index_Non_Blank (Line, Last + 2);
             end loop;
-            Rule.Right_Hand_Side.Append (Production);
          end Parse_Production;
 
       begin
@@ -87,21 +87,23 @@ begin
             Rule.Left_Hand_Side := +Trim
               (Line (Non_Blank .. (if Colon > 0 then Colon - 1 else Line'Last)), Ada.Strings.Right);
 
-            Rule.Right_Hand_Side.Clear;
+            Rule.Right_Hand_Sides.Clear;
 
-            State := Right_Hand_Side;
+            State := Production;
 
-         when Right_Hand_Side =>
+         when Production =>
 
             if Bar > 0 then
+               Rule.Right_Hand_Sides.Append (RHS);
                Parse_Production;
 
             elsif Paren > 0 then
                State       := Action;
-               Rule.Action := +Line;
+               RHS.Action := RHS.Action + Line;
 
             elsif Semi > 0 then
-               List.Append (Rule);
+               Rule.Right_Hand_Sides.Append (RHS);
+               Rule_List.Append (Rule);
                State := Left_Hand_Side;
 
             else
@@ -111,10 +113,19 @@ begin
 
          when Action =>
             if Semi > 0 then
-               List.Append (Rule);
+               Rule.Right_Hand_Sides.Append (RHS);
+               Rule_List.Append (Rule);
                State := Left_Hand_Side;
+
+            elsif Bar > 0 then
+               Rule.Right_Hand_Sides.Append (RHS);
+               State := Production;
+               RHS.Production.Clear;
+               RHS.Action.Clear;
+               Parse_Production;
+
             else
-               Rule.Action := Rule.Action & Ada.Characters.Latin_1.CR & Line;
+               RHS.Action := RHS.Action + Line;
             end if;
          end case;
       end;

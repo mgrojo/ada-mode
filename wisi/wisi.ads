@@ -24,7 +24,7 @@
 --  [3] wisi-user-manual.texi
 --  [4] http://en.wikipedia.org/wiki/Wisent
 --
---  Copyright (C) 2012 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2012, 2013 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -56,12 +56,15 @@ package Wisi is
 
    package String_Lists is new Ada.Containers.Indefinite_Doubly_Linked_Lists (String);
 
-   package Production_Lists is new Ada.Containers.Doubly_Linked_Lists (String_Lists.List, String_Lists."=");
+   type RHS_Type is record
+      Production : String_Lists.List; -- Tokens
+      Action     : String_Lists.List; -- one string per line
+   end record;
+   package RHS_Lists is new Ada.Containers.Doubly_Linked_Lists (RHS_Type, "=");
 
    type Rule_Type is record
-      Left_Hand_Side  : Ada.Strings.Unbounded.Unbounded_String;
-      Right_Hand_Side : Production_Lists.List;
-      Action          : Ada.Strings.Unbounded.Unbounded_String;
+      Left_Hand_Side   : Ada.Strings.Unbounded.Unbounded_String;
+      Right_Hand_Sides : RHS_Lists.List;
    end record;
 
    package Rule_Lists is new Ada.Containers.Doubly_Linked_Lists (Rule_Type);
@@ -71,6 +74,20 @@ package Wisi is
 
    function "-" (Item : in Ada.Strings.Unbounded.Unbounded_String) return String
      renames Ada.Strings.Unbounded.To_String;
+
+   function "+" (List : in String_Lists.List; Item : in String) return String_Lists.List;
+
+   function String_To_String_List (Item : in String) return String_Lists.List;
+   function "+" (Item : in String) return String_Lists.List renames String_To_String_List;
+
+   function RHS_To_RHS_List (Item : in RHS_Type) return RHS_Lists.List;
+   function "+" (Item : in RHS_Type) return RHS_Lists.List renames RHS_To_RHS_List;
+
+   --  function String_List_To_RHS (Item : in String_Lists.List) return RHS_Lists.List;
+   --  function To_RHS (Item : in String_Lists.List) return RHS_Lists.List renames String_List_To_RHS;
+   --  function "+" (Item : in String_Lists.List) return RHS_Lists.List renames String_List_To_RHS;
+
+   function "+" (List : in RHS_Lists.List; Item : in RHS_Type) return RHS_Lists.List;
 
    Verbose : Boolean := False;
 end Wisi;

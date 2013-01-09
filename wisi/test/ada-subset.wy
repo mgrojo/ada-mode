@@ -32,6 +32,7 @@
 %keyword BEGIN "begin"
 %keyword BODY "body"
 %keyword COLON ":"
+%keyword COLON_EQUALS ":="
 %keyword END "end"
 %keyword FUNCTION "function"
 %keyword IS "is"
@@ -54,7 +55,7 @@
 
 compilation_unit
   : package_body
-  : subprogram_body
+  | subprogram_body
   ;
 
 package_body
@@ -117,7 +118,11 @@ variable
   : name COLON name SEMICOLON
     (wisi-cache-keywords
      '($1 'other nil $region1)
-     '($4 'statement-end nil $region))
+     '($4 'statement-end nil $region4))
+  | name COLON name COLON_EQUALS name SEMICOLON
+    (wisi-cache-keywords
+     '($1 'other nil $region1)
+     '($6 'statement-end nil $region6))
   ;
 
 statements

@@ -8,18 +8,23 @@ all:
 t_one : test_one_harness.run
 t_all : test_all_harness.run
 
-one : tiny.run
-#one : ada-subset-wy.el
+#one : subprograms-wy.el
+one : ada-subset-wy.el
+#one : ../../wisi/test/ada-subset-wy.el
 #one : asu_example_5_10_lr-run.run
 
-%-wy.el : RUN_ARGS := -v
+#%-wy.el : RUN_ARGS := -v
 %-wy.el : wisi-%-generate.exe
 	./wisi-$*-generate.exe $(RUN_ARGS)
+
+EMACS := /apps/emacs-24.2.91/bin/emacs.exe
+../../wisi/test/%-wy.el : %.wy
+	cd ../../wisi/test; $(EMACS) -batch --no-site-file -l generate-known-good.el -f wisi-generate $(<F)
 
 .PRECIOUS : wisi-%-generate.adb
 
 wisi-%-generate.adb : %.wy wisi-generate.exe
-	./wisi-generate.exe -v $<
+	./wisi-generate.exe $<
 
 vpath %.wy ../../wisi/test
 

@@ -91,6 +91,7 @@ is
 
    procedure Put (List : in String_Lists.List)
    is
+      --  Put OpenToken syntax for a production
       use Ada.Strings.Unbounded;
       use String_Lists;
       Item : Cursor := List.First;
@@ -157,10 +158,6 @@ begin
    end;
 
    New_Line;
-   Indent_Line ("Keywords : String_Pair_Lists.List;");
-   Indent_Line ("Tokens   : String_Pair_Lists.List;");
-
-   New_Line;
    Indent_Line ("type Token_IDs is");
    Indent_Line ("  (");
    Indent := Indent + 3;
@@ -223,17 +220,17 @@ begin
    Indent_Line ("Grammar : constant Production_Lists.Instance :=");
    Indent := Indent + 2;
    declare
-      use Rule_Lists;
-      Rule_Cursor : Cursor  := Rules.First;
+      Rule_Cursor : Rule_Lists.Cursor  := Rules.First;
       First       : Boolean := True;
+      use type Rule_Lists.Cursor;
    begin
       loop
          declare
-            Rule       : constant Constant_Reference_Type := Rules.Constant_Reference (Rule_Cursor);
-            Production : Wisi.Production_Lists.Cursor     := Rule.Right_Hand_Side.First;
-            use type Wisi.Production_Lists.Cursor;
+            use type RHS_Lists.Cursor;
+            Rule       : constant Rule_Lists.Constant_Reference_Type := Rules.Constant_Reference (Rule_Cursor);
+            RHS_Cursor : Wisi.RHS_Lists.Cursor                       := Rule.Right_Hand_Sides.First;
          begin
-            if Production = Wisi.Production_Lists.No_Element then
+            if RHS_Cursor = Wisi.RHS_Lists.No_Element then
                Put_Line
                  (Standard_Error, Input_File_Name & ":0:0: no productions for rule '" & (-Rule.Left_Hand_Side) & "'");
             else
@@ -247,21 +244,26 @@ begin
                   end if;
                   Set_Col (Indent);
                   Put ("Nonterminals.Get (" & (-Rule.Left_Hand_Side) & "_ID) <= ");
-                  Put (Wisi.Production_Lists.Element (Production));
-                  --  OpenToken default action is ok, since we are not
-                  --  using this grammar to parse anything, only to
-                  --  output elisp
-                  Wisi.Production_Lists.Next (Production);
-                  if Production = Wisi.Production_Lists.No_Element then
-                     exit;
-                  else
-                     Indent_Line ("and");
-                  end if;
+                  declare
+                     RHS        : constant RHS_Lists.Constant_Reference_Type  :=
+                       Rule.Right_Hand_Sides.Constant_Reference (RHS_Cursor);
+                  begin
+                     Put (RHS.Production);
+                     --  OpenToken default action is ok, since we are not
+                     --  using this grammar to parse anything, only to
+                     --  output elisp
+                     Wisi.RHS_Lists.Next (RHS_Cursor);
+                     if RHS_Cursor = Wisi.RHS_Lists.No_Element then
+                        exit;
+                     else
+                        Indent_Line ("and");
+                     end if;
+                  end;
                end loop;
             end if;
          end;
-         Next (Rule_Cursor);
-         if Rule_Cursor = No_Element then
+         Rule_Lists.Next (Rule_Cursor);
+         if Rule_Cursor = Rule_Lists.No_Element then
             Indent_Line (";");
             exit;
          else
@@ -271,12 +273,16 @@ begin
    end;
    Indent := Indent - 2;
 
-   Indent_Line ("Parser : LALR_Parsers.Instance;");
-
    New_Line;
    Indent_Line ("package Elisp is new LALR_Parsers.Elisp;");
    New_Line;
    Indent_Line ("Verbose : Boolean := False;");
+
+   New_Line;
+   Indent_Line ("Keywords : String_Pair_Lists.List;");
+   Indent_Line ("Tokens   : String_Pair_Lists.List;");
+   Indent_Line ("Rules    : Rule_Lists.List;");
+   Indent_Line ("Parser   : LALR_Parsers.Instance;");
 
    Put_Line ("begin");
    Indent_Line ("declare");
@@ -310,8 +316,6 @@ begin
    Indent := Indent - 3;
    Indent_Line ("end;");
 
-   Indent_Line ("Parser := LALR_Parsers.Generate (Grammar, Analyzers.Null_Analyzer, Verbose);");
-
    for Item of Keywords loop
       Set_Col (Indent);
       Put ("Keywords.Append (");
@@ -324,7 +328,38 @@ begin
       Put (Item);
       Put_Line (");");
    end loop;
-   Indent_Line ("Elisp.Output (Elisp_Package, Prologue, Keywords, Tokens, Parser);");
+   declare
+      use type Ada.Containers.Count_Type;
+   begin
+      for Rule of Rules loop
+         Indent_Line ("Rules.Append");
+         Indent_Line ("  ((+""" & (-Rule.Left_Hand_Side) & """,");
+         Indent := Indent + 4;
+         Set_Col (Indent);
+         for RHS of Rule.Right_Hand_Sides loop
+            Put ("+(");
+            for Token of RHS.Production loop
+               Put_Line ("+""" & Token & """");
+               Set_Col (Indent);
+            end loop;
+            Put_Line (",");
+            if RHS.Action.Length = 0 then
+               Indent_Line ("String_Lists.Empty_List)");
+            else
+               for Line of RHS.Action loop
+                  Indent_Line ("+""" & Line & """");
+               end loop;
+               Set_Col (Indent);
+               Put (")");
+            end if;
+         end loop;
+         Indent_Line ("));");
+         Indent := Indent - 4;
+      end loop;
+   end;
+   Indent_Line ("Parser := LALR_Parsers.Generate (Grammar, Analyzers.Null_Analyzer, Verbose);");
+
+   Indent_Line ("Elisp.Output (Elisp_Package, Prologue, Keywords, Tokens, Rules, Parser);");
    Put_Line ("end " & Package_Name & ";");
    Close (Output_File);
 end Wisi.Output;
