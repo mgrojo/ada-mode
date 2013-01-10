@@ -1,4 +1,4 @@
-General notes on porting Emacs Ada mode indentation engine to smie
+General notes on implementing the Emacs Ada mode indentation engine using the smie and wisent parsers
 
 (setq ada-smie-debug t)
 (setq ada-smie-debug nil)
@@ -37,18 +37,24 @@ new emacs release candidate 12.27 https://www.dropbox.com/sh/7jr3vbv9tm1zod0/jPu
 include gpr-mode
     use wisi
 
-    match output of wisent-compile-grammar
-    can use semantic-lex-make-keyword-table
-    use ada-wisent-grammar as test example
-
-    /Projects/org.opentoken.stephe/wisi/test/ada-subset.wy
     /Projects/org.opentoken.stephe/build/windows_debug/Makefile
         one
 
-    complains about "no action for state 50"
-        added EOF; still complains
-        add subprograms test to /Projects/org.opentoken.stephe/test/trivial_productions_test.adb
-            not failing yet
+        wisi-compile.el
+            reimplement wisent-compile-grammar
+            use (wisent-with-context compile-grammar
+            wisent-parse-grammar to create structs
+            wisent-semantic-action to create action function, including reduce operation
+            wisent-parser-automaton
+
+    run semantic-grammar-create-package from emacs -Q
+        it is in emacs 24.3
+        can't run it twice in one emacs; some global vars not reset?
+        (add-to-list 'load-path "/Projects/org.emacs.ada-mode.smie"); wisi.el
+        (require 'cl); missing in semantic somewhere
+        (find-file "/Projects/org.opentoken.stephe/wisi/test/ada-subset.wy")
+        M-x semantic-mode
+        C-u M-x semantic-grammar-create-package
 
 gdb break command input still broken in
     http://debbugs.gnu.org/cgi/bugreport.cgi?bug=13303
@@ -91,6 +97,9 @@ gdb break command input still broken in
 
 gnat stub doesn't copy 'pragma License'
    can use standard header file; "see spec" is standard
+
+ada-make-subprogram-body
+    doesn't handle "+" after 'end'
 
 FIXMEs
     context menus
@@ -135,12 +144,9 @@ gnat-fix
     ada-fix-error.el
         small; merge into ada-mode.el?
 
-        sort limited private with at end of context clause?
+        sort 'limited private with' at end of context clause?
 
         allow project-specific list of error matchers; quit when one returns t
-
-    ada-gnat-fix-error.el
-        add stuff as I encounter it - use at work!
 
 ada-make-subprogram-body
 
@@ -171,12 +177,15 @@ ada-case-adjust
         menu of file to save new exception in
         prompt for file in case-create-exception
 
+    keybinding for "make this word a case exception"
+
+    store acronym expansion
+        either pointer to source file, or string
+
 menu entry to show gnat-run-buffer
     for debugging mysterious "xref not found" errors
 
 double-click underscore selects full word, double-click letter selects partial word?
-
-set casing custom vars in project file
 
 ada-gnat-parse-gpr-file
     if object dir not created, search for Source Search Path fails
@@ -200,17 +209,10 @@ rest of ada-mode
     merge all of ada-mode-patches, most of ada-mode-keys
     process patches in ada-mode email
 
-    fully delete ada-gnat-cmd from ada-xfer
-        don't keep separate "library dirs" lists
-            requires calling gnat list twice
-            user can change paths
-
     help -> manual looked for arm95
 
     check emacs buglist
         http://debbugs.gnu.org/cgi/pkgreport.cgi?package=ada-mode
-
-    submit adacore bug report on 'gnat list' accept '--subdirs'
 
 ada-display-buffer
     not setting history right
@@ -453,7 +455,9 @@ read/write access requires a public key:
     mtn --db ~/monotone-dbs/ada-france.db sync "mtn://www.ada-france.org?org.emacs.*"
 
  release process
-test/Makefile all
+Emacs 24.3, gnat 7.1.0w (sal-standard): test/Makefile all
+Emacs 23.4, (gnat-6.2.2): test/Makefile all
+Emacs 23.4, (gnat-2012): test/Makefile all
 (dvc-status)
 (shell-send-string "mtn_sync_ada_france.sh" "*bash*")
 test/Makefile zip
@@ -468,4 +472,6 @@ test/Makefile zip
     sync
 
 post on emacs-ada-mode mailing list
+    http://stephe-leake.org/emacs/ada-mode/emacs-ada-mode.html#ada-mode-5.0
+
 -- end of file

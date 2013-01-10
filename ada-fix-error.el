@@ -1,7 +1,7 @@
 ;;; ada-fix-error.el --- utilities for automatically fixing
 ;; errors reported by the compiler.
 
-;; Copyright (C) 1999-2009, 2012 Stephen Leake.
+;; Copyright (C) 1999-2009, 2012, 2013 Stephen Leake.
 
 ;; Author     : Stephen Leake      <Stephen_Leake@stephe-leake.org>
 ;; Maintainer : Stephen Leake      <Stephen_Leake@stephe-leake.org>
@@ -115,8 +115,8 @@ extend a with_clause to include CHILD-NAME  .	"
   (indent-according-to-mode))
 
 (defvar ada-fix-error-alist nil
-  "Alist indexed by `ada-compiler' holding function to recognize and fix errors.
-Function is called with three args:
+  "Alist indexed by `ada-compiler' holding hook to recognize and fix errors.
+Hook functions are called with three args:
 
 MSG, the `compilation--message' struct for the current error
 
@@ -128,7 +128,8 @@ Point in SOURCE-BUFFER is at error location; point in
 `compilation-last-buffer' is at MSG location. Focus is in source
 buffer.
 
-If error is recognized, fix it and leave point at fix. Otherwise, ring bell.")
+Hook functions should return t if the error is recognized and
+fixed, leaving point at fix. Otherwise, they should return nil.")
 
 (defun ada-fix-compiler-error ()
   "Attempt to fix the current compiler error. Leave point at fixed code."
@@ -139,11 +140,20 @@ If error is recognized, fix it and leave point at fix. Otherwise, ring bell.")
         (line-move-visual nil)); screws up next-line otherwise
 
     (with-current-buffer compilation-last-buffer
-      (funcall (cdr (assoc ada-compiler ada-fix-error-alist))
-	       (compilation-next-error 0)
-	       source-buffer
-	       source-window))
-    ))
+      (let ((success
+	     (run-hook-with-args-until-success
+	      (cdr (assoc ada-compiler ada-fix-error-alist))
+	      (compilation-next-error 0)
+	      source-buffer
+	      source-window)))
+	;; restore compilation buffer point
+	(set-buffer compilation-last-buffer)
+	(compilation-next-error 0)
+
+	(unless success
+	  ;; none of the hooks handled the error
+	  (error "error not recognized"))
+    ))))
 
 (provide 'ada-fix-error)
 ;; end of file

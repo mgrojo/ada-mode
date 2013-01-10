@@ -172,6 +172,7 @@ If nil, no contextual menu is available."
     (define-key map "\C-c\C-o" 'ada-find-other-file)
     (define-key map "\C-c\M-o" 'ada-find-other-file-noset)
     (define-key map "\C-c\C-p" 'ada-prev-statement-keyword)
+    (define-key map "\C-c\C-r" 'ada-show-references)
     (define-key map "\C-c\C-t" 'ada-case-read-all-exceptions)
     (define-key map "\C-c\C-w" 'ada-case-adjust-at-point)
     (define-key map "\C-c\C-y" 'ada-case-create-exception)
@@ -196,6 +197,7 @@ If nil, no contextual menu is available."
     ["Other File don't find decl" ada-find-other-file-noset t]
     ["Goto Declaration/Body"      ada-goto-declaration      t]
     ["Goto parent declaration"    ada-goto-declaration-parent t]
+    ["Show references"            ada-show-references       t]
     ("Edit"
      ["Indent Line"                 indent-for-tab-command  t]
      ["Indent Lines in Selection"   indent-region           t]
@@ -1379,7 +1381,14 @@ either an existing one, or a new one if there are no existing other frames."
   (let* ((buffer (if (bufferp buffer-or-name) buffer-or-name (get-buffer buffer-or-name)))
 	 (window (ada-buffer-window buffer))
 	 (frame-1 (and window (window-frame window)))
-	 (frame-2 (car (filtered-frame-list (lambda (frame) (not (eq frame (selected-frame)))))))
+	 (frame-2 (car (filtered-frame-list
+			(lambda (frame)
+			  (and
+			   (not (eq frame (selected-frame)))
+			   (not (window-dedicated-p
+				 (or
+				  (get-lru-window frame)
+				  (frame-first-window frame)))))))))
 	 type)
 
     (cond
@@ -1617,16 +1626,15 @@ C-u C-u : show in other frame
   (move-to-column column)
   )
 
-(defvar ada-xref-function nil
-  "Function that returns cross reference information.
-Called with two arguments, an Ada identifier or operator_symbol, and a
-'parent' flag.
-point is at the start of the identifier.
-Returns a list '(file line column) giving the corresponding location.
-'file' may be absolute, or on `compilation-search-path'.
-If point is at the declaration, the corresponding location is the
-body, and vice versa. If the 'parent' flag is non-nil, return the
-parent type declaration.")
+(defvar ada-xref-other-function nil
+  "alist indexed by `ada-compiler' of functions that return cross reference information.
+Function is called with two arguments, an Ada identifier or
+operator_symbol, and a 'parent' flag.  point is at the start of
+the identifier.  Returns a list '(file line column) giving the
+corresponding location.  'file' may be absolute, or on
+`compilation-search-path'.  If point is at the specification, the
+corresponding location is the body, and vice versa. If the
+'parent' flag is non-nil, return the parent type declaration.")
 
 (defun ada-goto-declaration (other-window-frame &optional parent)
   "Move to the declaration or body of the identifier around point.
@@ -1665,6 +1673,26 @@ C-u     : show in other window
 C-u C-u : show in other frame"
   (interactive "P")
   (ada-goto-declaration other-window-frame t))
+
+(defvar ada-xref-all-function nil
+  "alist indexed by `ada-compiler' of functions that return cross reference information.
+Called with one argument, an Ada identifier or operator_symbol.
+point is at the start of the identifier.  Displays a buffer in
+compilation-mode giving locations where the identifier is
+referenced.")
+
+(defun ada-show-references ()
+  "Show all references of identifier at point."
+  (interactive)
+
+  (let ((identifier (ada-identifier-at-point))
+	(xref-function (cdr (assoc ada-compiler ada-xref-all-function)))
+	target)
+    (when (null xref-function)
+      (error "no cross reference information available"))
+
+    (funcall xref-function identifier)
+    ))
 
 ;; This is autoloaded because it may be used in ~/.emacs
 ;;;###autoload
