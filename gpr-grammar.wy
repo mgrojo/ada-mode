@@ -60,7 +60,6 @@
 
 %keyword ABSTRACT "abstract"
 %keyword AGGREGATE "aggregate"
-%keyword AGGREGATE LIBRARY "library"
 %keyword CONFIGURATION "configuration"
 %keyword END "end"
 %keyword IS "is"

@@ -2,9 +2,14 @@
 ^build/smie/.*\.ali$
 ^build/smie/.*\.diff$
 ^build/smie/.*\.tmp$
+^build/wisi/.*\.adb$
+^build/wisi/.*\.ads$
 ^build/wisi/.*\.ali$
 ^build/wisi/.*\.diff$
+^build/wisi/.*\.el$
+^build/wisi/.*\.exe$
 ^build/wisi/.*\.tmp$
+^build/wisi/obj$
 ^gpr-grammar-wy\.el$
 ^run_sjw\.text$
 ^test/.*\.ali$

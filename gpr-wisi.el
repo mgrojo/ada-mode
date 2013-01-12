@@ -38,7 +38,7 @@
 ;;;;
 
 ;; we reuse some stuff from ada-mode
-(provide 'ada-indent-user-options)
+(require 'ada-indent-user-options)
 (require 'gpr-grammar-wy)
 (require 'semantic/wisent)
 (require 'wisi)

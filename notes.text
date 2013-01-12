@@ -40,6 +40,16 @@ include gpr-mode
         with wisent-compile-grammar until it breaks
 
     build/wisi/Makefile
+        getting shift/reduce and reduce/reduce conflicts
+            looked into adding better error messages to wisent-compile-grammar; too hard
+                ask for help on semantic list
+                ask wisent-compile author directly
+
+        use opentoken to resolve
+            no conflicts there
+            posting
+
+    C-f6
 
     C-f11 on 'with'?
 
