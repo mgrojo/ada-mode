@@ -1,7 +1,5 @@
 ;;; Ada mode indentation engine, based on SMIE
 ;;
-;; FIXME (later): not using lexical-binding because we might port this back to Emacs 23
-;;
 ;; [1] ISO/IEC 8652:201z (draft 18); Ada 2012 reference manual
 ;;
 ;; Copyright (C) 2012, 2013  Free Software Foundation, Inc.
@@ -29,6 +27,8 @@
 ;;; History: see ada_mode.el
 ;;
 ;;; code style
+;;
+;; not using lexical-binding because we support Emacs 23
 ;;
 ;; I don't use 'pcase', because it gives _really_ confusing errors
 ;; when I forget a ')' somewhere. Even worse, the error message is

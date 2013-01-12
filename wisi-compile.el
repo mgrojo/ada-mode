@@ -53,14 +53,14 @@ GRAMMAR is a list (TOKENS ASSOCS . NONTERMS)) as expected by
 `wisent-parse-grammar'. ACTIONS and GOTOS should be the output of
 an LALR(1) parser generator, such as OpenToken; ACTIONS is an
 array indexed by state of alists giving the new state after a
-shift for each terminal token that is legal in a given
-state. State 0 is not used; the 0 element of each array is the
-reduce action '(default . USER_ACTION) or '(default
-. error) (there can be only one reduce action per state). GOTOS
-is an array indexed by state of alists giving the new state after
-a reduce for each nonterminal legal in that state. The production
-used in the reduce is compiled by `wisent-parse-grammar' along
-with the user action. The first NONTERMS is the accept symbol."
+shift for each terminal token that is legal in a given state. The
+car of each alist is the reduce action '(default . USER_ACTION)
+or '(default . error) - there can be only one reduce action per
+state. GOTOS is an array indexed by state of alists giving the
+new state after a reduce for each nonterminal legal in that
+state. The production used in the reduce is compiled by
+`wisent-parse-grammar' along with the user action. The first
+NONTERMS is the accept symbol."
   (wisent-with-context compile-grammar
      (let (automaton)
        (setq wisent-new-log-flag t)

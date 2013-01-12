@@ -1,0 +1,10 @@
+runtest.el provides the Emacs lisp code that tests one file;
+it outputs a copy of the file, indented and capitalized. It also
+defines special comments that can be used to test other things.
+
+smie/Makefile tests the ada-smie indentation engine; it runs
+runtest.el against all the Ada files in ../test/*, and diffs the
+result against the original. Use 'test-indent.sh' to run indentation
+tests against user code.
+
+Similarly, wisi/Makefile tests the gpr-wisi indentation engine.

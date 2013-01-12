@@ -3,24 +3,24 @@ General notes on implementing the Emacs Ada mode indentation engine using the sm
 (setq ada-smie-debug t)
 (setq ada-smie-debug nil)
 
-runtest from emacs -q:
+runtest from emacs -Q:
 (progn
   (add-to-list 'load-path "/Projects/org.emacs.ada-mode.smie")
-  (load "ada-mode")
+  (require 'ada-wisi)
+  ;;(require 'ada-smie)
+  (require 'ada-mode)
   (global-font-lock-mode -1)
   (setq exec-path
         (list
          (expand-file-name "~/bin")
-         "c:/Apps/GNAT-7.0.1/bin"
          (getenv "EMACSPATH")
-         "c:/Apps/monotone-1.0"
          "c:/bin"
          "c:/WINDOWS/system32"))
   (setenv "PATH" (mapconcat 'identity  exec-path  path-separator))
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.smie/test")
+  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.smie/build")
   (load "runtest")
 
-  (find-file "/Projects/org.emacs.ada-mode.smie/test/ada_mode-nominal.adb")
+  (find-file "/Projects/org.emacs.ada-mode.smie/test/gpr/standard_common.gpr")
 )
 
 (progn
@@ -30,31 +30,18 @@ runtest from emacs -q:
 (xmtn-sync-review)
 
 (grep-find "find . -type f -print | \"xargs\" grep -nH \"FIXME:\"")
-test/Makefile  ;; set project file
- ada-smie
+ ada-smie/wisi
 new emacs release candidate 12.27 https://www.dropbox.com/sh/7jr3vbv9tm1zod0/jPuvfrJAe8
+
+need C-c C-d on <=
 
 include gpr-mode
     use wisi
+        with wisent-compile-grammar until it breaks
 
-    /Projects/org.opentoken.stephe/build/windows_debug/Makefile
-        one
+    build/wisi/Makefile
 
-        wisi-compile.el
-            reimplement wisent-compile-grammar
-            use (wisent-with-context compile-grammar
-            wisent-parse-grammar to create structs
-            wisent-semantic-action to create action function, including reduce operation
-            wisent-parser-automaton
-
-    run semantic-grammar-create-package from emacs -Q
-        it is in emacs 24.3
-        can't run it twice in one emacs; some global vars not reset?
-        (add-to-list 'load-path "/Projects/org.emacs.ada-mode.smie"); wisi.el
-        (require 'cl); missing in semantic somewhere
-        (find-file "/Projects/org.opentoken.stephe/wisi/test/ada-subset.wy")
-        M-x semantic-mode
-        C-u M-x semantic-grammar-create-package
+    C-f11 on 'with'?
 
 gdb break command input still broken in
     http://debbugs.gnu.org/cgi/bugreport.cgi?bug=13303
@@ -244,6 +231,40 @@ emacs versions:
 
     21 Lynx 4.0
 
+ opentoken for wisi
+
+    /Projects/org.opentoken.stephe/build/windows_debug/Makefile
+    /Projects/org.opentoken.stephe/wisi/test/ada-subset-wy.el
+    /Projects/org.opentoken.stephe/wisi/test/subprograms-wy.el
+    subprograms-wy--parse-table
+        one
+
+        wisi-compile.el
+            reimplement wisent-compile-grammar
+            the wisent compiled grammar structure is _not_ a Red Dragon LALR parser table!
+                Red Dragon LALR allows multiple reductions per state, based on the lookahead
+                    need to implement my own (sigh)
+                    can still use other parts of wisent-compile-grammar
+
+                wisent apparently splits states so each state has only one reduction
+                    not clear what name the wisent parser has
+                        look in bison sources? don't see anything
+
+                look at bison output
+                    completely unreadable; no table structure, just random C code (sigh).
+
+                ask David Ponce <david@dponce.com>
+                    find small grammar that requires OpenToken first
+
+    run semantic-grammar-create-package from emacs -Q
+        it is in emacs 24.3
+        can't run it twice in one emacs; some global vars not reset?
+        (add-to-list 'load-path "/Projects/org.emacs.ada-mode.smie"); wisi.el
+        (require 'cl); missing in semantic somewhere
+        (find-file "/Projects/org.opentoken.stephe/wisi/test/ada-subset.wy")
+        M-x semantic-mode
+        C-u M-x semantic-grammar-create-package
+
  4.01 bugs that 5.01 fixes
     generic formal function
         'with' indented to prev 'return'
@@ -333,6 +354,7 @@ entry guard clauses:
 c:/Projects/emacs_stephe.work/emacs_stephe/ada-mode-keys.el
 c:/Projects/emacs_stephe.work/emacs_stephe/gnat-fix-error.el
 c:/Projects/emacs_stephe.main/emacs_stephe_site_lisp/ada-mode.el
+c:/Projects/emacs_stephe.main/emacs_stephe_site_lisp/gpr-mode.el
 c:/apps/emacs-24.2/lisp/progmodes/ada-mode.el
 
 http://savannah.gnu.org/projects/emacs/

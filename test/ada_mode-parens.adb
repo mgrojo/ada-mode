@@ -213,7 +213,7 @@ package body Ada_Mode.Parens is
       E    :    out Character;
       F    : in out Integer) is
    begin
-      C := 'A';
+      E := 'A';
    end;
 
    --EMACSCMD:(progn (forward-line 4)(ada-align))

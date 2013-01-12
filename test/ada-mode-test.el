@@ -1,6 +1,6 @@
 ;;; Unit tests on some ada-mode.el functions
 
-;;; don't need (require 'cl-macs); 'assert' is auto-loaded from there
+(require 'cl);; assert
 (require 'ada-mode)
 
 (defun test (label computed expected)
@@ -35,8 +35,8 @@
 (when (file-exists-p "case-exceptions-2.tmp")
   (delete-file "case-exceptions-2.tmp"))
 
-(copy-file "case-exceptions-1" "case-exceptions-1.tmp")
-(copy-file "case-exceptions-2" "case-exceptions-2.tmp")
+(copy-file "../../test/case-exceptions-1" "case-exceptions-1.tmp")
+(copy-file "../../test/case-exceptions-2" "case-exceptions-2.tmp")
 
 (setq ada-case-exception-file '("case-exceptions-1.tmp" "case-exceptions-2.tmp"))
 
@@ -97,8 +97,8 @@
        (cons "CaMeL" t)
        (cons "ANother" t)))
 
-(ada-parse-prj-file "subdir/ada_mode.adp")
-(ada-select-prj-file "subdir/ada_mode.adp")
+(ada-parse-prj-file "../../test/subdir/ada_mode.adp")
+(ada-select-prj-file "../../test/subdir/ada_mode.adp")
 
 (test "case 3 full words"
       ada-case-full-exceptions

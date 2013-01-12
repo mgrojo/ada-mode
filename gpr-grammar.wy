@@ -1,0 +1,208 @@
+;;; Wisent grammar for GNAT project files
+;;
+;; Copyright (C) 2013 Free Software Foundation, Inc.
+;;
+;; Author: Stephen Leake <stephe-leake@stephe-leake.org>
+;; Maintainer: Stephen Leake <stephe-leake@stephe-leake.org>
+;; Created: Jan 2013
+;; Keywords: syntax
+;;
+;; This file is part of GNU Emacs.
+;;
+;; GNU Emacs is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+;;
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;;
+;;; Commentary:
+;;
+;; see wisi.el for discussion of using the Emacs wisent parser for an
+;; indentation engine.
+
+%{
+(require 'wisi)
+%}
+
+;; Declarations
+
+%package gpr-grammar-wy
+
+;; token declarations
+;;
+;; wisi doesn't need any token types, but the semantic grammar
+;; compiler requires at least two; %keyword and something else for
+;; non-keyword tokens. So we use "symbol".
+;;
+;; In a wisi grammar, every token is either a keyword or an
+;; identifier; strings are skipped by the lexer. FIXME: need strings in grammar?
+
+;; punctuation
+%keyword DOT "."
+;; Part of a name.
+
+%keyword AMPERSAND "&"
+%keyword COLON ":"
+%keyword COLON_EQUALS ":"
+%keyword COMMA ","
+%keyword LEFT_PAREN ")"
+%keyword RIGHT_PAREN "("
+%keyword SEMICOLON ";"
+
+;; gpr keywords (info "(gnat_ugn)Project File Reference")
+
+%keyword ABSTRACT "abstract"
+%keyword AGGREGATE "aggregate"
+%keyword AGGREGATE LIBRARY "library"
+%keyword CONFIGURATION "configuration"
+%keyword END "end"
+%keyword IS "is"
+%keyword LIBRARY "library"
+%keyword NULL "null"
+%keyword PACKAGE "package"
+%keyword PROJECT "project"
+%keyword STANDARD "standard"
+%keyword WITH "with"
+
+%token <symbol> IDENTIFIER
+
+%%
+;; grammar rules, non-terminal alphabetical order
+;;
+;; The actions cache information in keywords that are significant for
+;; indentation.
+
+compilation_unit
+  : context_clause project_declaration
+  ;
+
+context_clause
+  : with_clause
+  | project_qualifier
+  | context_clause with_clause
+  ;
+
+;; (info "(gnat_ugn)Declarations")
+declarative_item
+  : simple_declarative_item
+ ;;  | typed_string_declaration FIXME: implement
+  | package_declaration
+  ;
+
+declarative_items
+  : declarative_item
+  | declarative_items declarative_item
+ ;; no action; no visible keywords
+  ;
+
+;; (info "(gnat_ugn)Expressions")
+expression
+  : string
+  | IDENTIFIER
+  | expression AMPERSAND expression
+  | LEFT_PAREN expression_list RIGHT_PAREN
+  ;
+
+expression_list
+  : expression
+  | expression_list COMMA expression
+  ;
+
+name
+  : IDENTIFIER
+  | name DOT IDENTIFIER
+ ;; no action
+  ;
+
+project_declaration
+  : simple_project_declaration
+ ;;  | project_extension FIXME: implement
+  ;
+
+;; (info "(gnat_ugn)Packages")
+package_declaration
+  : package_spec
+  ;; | package_renaming FIXME: implement
+  ;; | package_extension FIXME: implement
+  ;
+
+package_spec
+  : PACKAGE IDENTIFIER IS
+       simple_declarative_items
+    END IDENTIFIER SEMICOLON
+    (wisi-cache-action
+     1 'block-start
+     5 'block-end
+     7 'statement-end)
+  ;
+
+;; FIXME: implement
+;; package_renaming ::==
+;;   package <package_>simple_name renames <project_>simple_name.package_identifier ;
+;; package_extension ::==
+;;   package <package_>simple_name extends <project_>simple_name.package_identifier is
+;;     {simple_declarative_item}
+;;   end package_identifier ;
+
+;; (info "(gnat_ugn)Qualified Projects")
+project_qualifier
+  : ABSTRACT
+  | STANDARD
+  | AGGREGATE
+  | AGGREGATE LIBRARY
+  | LIBRARY
+  | CONFIGURATION
+  ;
+
+;; (info "(gnat_ugn)Declarations")
+simple_declarative_item
+  : IDENTIFIER COLON_EQUALS expression SEMICOLON ;; variable_declaration
+  | IDENTIFIER COLON IDENTIFIER COLON_EQUALS expression SEMICOLON ;; typed_variable_declaration
+  ;; | attribute_declaration FIXME: implement
+  ;; | case_construction FIXME: implement
+  | NULL SEMICOLON
+  ;
+
+simple_declarative_items
+  : simple_declarative_item
+  | simple_declarative_items simple_declarative_item
+ ;; no action
+  ;
+
+simple_project_declaration
+  : PROJECT IDENTIFIER IS declarative_items END IDENTIFIER SEMICOLON
+    (wisi-cache-action
+     1 'block-start
+     5 'block-end
+     7 'statement-end)
+  ;
+
+string
+ ;; FIXME: lexer doesn't do strings?
+  : IDENTIFIER
+  | string DOT IDENTIFIER
+ ;; no action
+  ;
+
+string_list
+  : string
+  | string_list COMMA name
+  ;
+
+with_clause
+  : WITH string_list SEMICOLON
+  ;
+
+%%
+
+;; Local Variables:
+;; eval: (add-hook 'before-save-hook 'delete-trailing-whitespace nil t)
+;; End:
+;;; end of file

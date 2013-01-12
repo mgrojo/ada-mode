@@ -3,6 +3,7 @@
 --EMACSCMD:(font-lock-fontify-buffer)
 package Ada_Mode.Nominal.Child is
 
+   -- FIXME: reindent body, to get user indentation
    --EMACSCMD:(condition-case nil (delete-file "ada_mode-nominal-child.adb") (error nil))
    --EMACSCMD:(ada-make-package-body)
    --EMACSCMD:(progn (ada-find-other-file nil)(looking-at "package body Ada_Mode.Nominal.Child"))

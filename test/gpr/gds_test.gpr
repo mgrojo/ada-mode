@@ -1,0 +1,46 @@
+with "standard_common";
+with "gds";
+project GDS_Test is
+
+   for Source_Dirs use
+     ("../../1553/test",
+      "../../asist_if/test",
+      "../../base/test",
+      "../../bsr",
+      "../../hardware/test",
+      "../../itos_if/test",
+      "../../lynx/test",
+      "../../models/test",
+      "../../spacewire/test",
+      "../../system/test");
+
+   for Object_Dir use "objects";
+   for Exec_Dir use ".";
+
+   for Languages use ("Ada", "C");
+
+   package Compiler is
+      for Default_Switches ("Ada") use
+        --  Default_Switches has to come after others, because it overrides some.
+        Standard_Common.Compiler.Release_Switches &
+        Standard_Common.Compiler.Style_Checks &
+        Standard_Common.Compiler'Default_Switches ("Ada");
+
+      for Local_Configuration_Pragmas use "../gnat_config_pragmas.adc";
+
+      for Default_Switches ("C") use Standard_Common.Compiler.Release_Switches_C;
+
+   end Compiler;
+
+   package Binder is
+      for Default_Switches ("Ada") use Standard_Common.Binder'Default_Switches ("Ada");
+   end Binder;
+
+   package Builder is
+      for Default_Switches ("Ada") use Standard_Common.Builder'Default_Switches ("Ada");
+
+      --  We use ".exe" extension even on non-Windows, to simplify the makefiles.
+      for Executable_Suffix use ".exe";
+   end Builder;
+
+end GDS_Test;

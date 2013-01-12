@@ -205,7 +205,7 @@ If nil, no contextual menu is available."
      ["Align"                       ada-align               t]
      ["Comment Selection"           comment-region               t]
      ["Uncomment Selection"         (lambda () (comment-region t)) t]
-     ["Fill Comment Paragraph"      fill-paragraph               t]
+     ["Fill Comment Paragraph"      fill-paragraph               t];; FIXME: ada-fill-comment-paragraph?
      ["Fill Comment Paragraph Justify"
       ada-fill-comment-paragraph-justify                         t]
      ["Fill Comment Paragraph Postfix"
@@ -1146,7 +1146,7 @@ Return new value of PROJECT."
     (modify-syntax-entry ?>  "." table)
     (modify-syntax-entry ?\' "." table); attribute; see ada-syntax-propertize for character literal
     (modify-syntax-entry ?\; "." table)
-    (modify-syntax-entry ?\\ "." table); default is escape
+    (modify-syntax-entry ?\\ "." table); default is escape; not correct for Ada strings
     (modify-syntax-entry ?\|  "." table)
 
     ;; and \f and \n end a comment
@@ -1166,8 +1166,7 @@ Return new value of PROJECT."
 
 (defun ada-syntax-propertize (start end)
   "Assign `syntax-table' properties in accessible part of buffer.
-In particular, character constants are said to be strings, #...#
-are treated as numbers instead of gnatprep comments."
+In particular, character constants are said to be strings."
   ;; (info "(elisp)Syntax Properties")
   (let ((modified (buffer-modified-p))
 	(buffer-undo-list t)
@@ -1649,7 +1648,7 @@ C-u C-u : show in other frame"
   (interactive "P")
 
   (let ((identifier (ada-identifier-at-point))
-	(xref-function (cdr (assoc ada-compiler ada-xref-function)))
+	(xref-function (cdr (assoc ada-compiler ada-xref-other-function)))
 	target)
     (when (null xref-function)
       (error "no cross reference information available"))
@@ -2149,15 +2148,19 @@ The paragraph is indented on the first line."
   (set (make-local-variable 'comment-start-skip) "---*[ \t]*")
   (set (make-local-variable 'comment-multi-line) nil)
 
-  (set (make-local-variable 'font-lock-defaults)
-       '(ada-font-lock-keywords
-	 nil t
-	 ((?\_ . "w")))); treat underscore as a word component
-
   ;; AdaCore standard style (enforced by -gnaty) requires two spaces
   ;; after '--' in comments; this makes it easier to distinguish
   ;; special comments that have something else after '--'
   (set (make-local-variable 'comment-padding) "  ")
+
+  (set (make-local-variable 'require-final-newline) t)
+
+  (set (make-local-variable 'ispell-check-comments) 'exclusive)
+
+  (set (make-local-variable 'font-lock-defaults)
+       '(ada-font-lock-keywords
+	 nil t
+	 ((?\_ . "w")))); treat underscore as a word component
 
   (set (make-local-variable 'ff-other-file-alist)
        'ada-other-file-alist)
@@ -2171,8 +2174,6 @@ The paragraph is indented on the first line."
        'ada-which-function);; FIXME: use a function that goes forward one line first, exclude package
 
   (add-hook 'which-func-functions 'ada-which-function nil t)
-
-  (set (make-local-variable 'ispell-check-comments) 'exclusive)
 
   ;;  Support for align
   (add-to-list 'align-dq-string-modes 'ada-mode)

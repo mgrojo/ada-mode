@@ -1,10 +1,7 @@
-;; utils for automating ada-mode indentation tests
+;; utils for automating indentation and casing tests
 
 ;; Default includes mtn, among others, which is broken in Emacs 22.2
 (setq vc-handled-backends '(CVS))
-
-(require 'ada-mode)
-(require 'ada-smie-opentoken);; FIXME: better to put this in the project file; minor mode?
 
 (defvar skip-reindent-test nil);; user can set to t in an EMACSCMD
 (defvar skip-cmds nil);; user can set to t in an EMACSCMD
@@ -34,7 +31,7 @@
     ))
 
 (defun run-test-here ()
-  "Run an ada-mode test on the current buffer."
+  "Run an indentation and casing test on the current buffer."
   (interactive)
   (setq indent-tabs-mode nil)
   (let (last-result last-cmd expected-result error-p)
@@ -94,14 +91,17 @@
 
   (when (not skip-reindent-test)
     ;; Reindent and recase the buffer
-    (setq ada-clean-buffer-before-saving nil)
 
     ;; first unindent; if the indentation rules do nothing, the test
     ;; would pass, otherwise!  Only unindent by 1 column, so comments
     ;; not currently in column 0 are still not in column 0, in case
-    ;; ada-indent-comment-column-0 is t
+    ;; the mode supports a special case for comments in column 0.
     (indent-code-rigidly (point-min) (point-max) -1)
     (indent-region (point-min) (point-max))
+
+    ;; FIXME: this is the only thing in this file that is
+    ;; ada-specific; generalize it to allow testing gpr-mode and other
+    ;; language modes.
     (ada-case-adjust-buffer)
 
     ;; Cleanup the buffer; indenting often leaves trailing whitespace;
@@ -110,7 +110,7 @@
     ))
 
 (defun run-test (file-name)
-  "Run an ada-mode test on FILE-NAME."
+  "Run an indentation and casing test on FILE-NAME."
   (interactive "f")
   ;; we'd like to run emacs from a makefile as:
   ;;
@@ -124,11 +124,6 @@
   (let ((dir default-directory))
     (find-file file-name)
 
-    ;; we don't do (ada-mode) here; that should be done by the file
-    ;; name extension, and some file local variables may assume
-    ;; ada-mode is already active, and change things that this would
-    ;; then wipe out. If it's not done by the extension, add a file
-    ;; local variable to set ada-mode.
     (run-test-here)
 
     ;; Write the result file; makefile will diff.
@@ -141,6 +136,9 @@
     (write-file (concat dir (file-name-nondirectory file-name) ".tmp"))
     )
   )
+
+(provide 'runtest)
+
 ;; Local Variables:
 ;; eval: (add-to-list 'load-path (expand-file-name "../"))
 ;; End:

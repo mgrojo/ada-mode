@@ -1,13 +1,7 @@
-This directory provides a test of Emacs Ada mode indentation,
-capitalization, and other issues.
+This directory provides source files for testing Emacs Ada mode and
+gpr mode indentation, capitalization, and other issues.
 
-runtest.el provides the Emacs lisp code that tests one file; it
-outputs a copy of the file, indented and capitalized. It also defines
-special comments that can be used to test other things.
-
-Makefile runs runtest.el agains all the Ada files in this directory,
-and diffs the result against the original. Use 'test-indent.sh' to run
-indentation tests against user code.
+See ../build for running the tests.
 
 The Ada files that are children of Ada_Mode were written (or renamed
 from existing tests) to test the SMIE grammar while the grammar was
