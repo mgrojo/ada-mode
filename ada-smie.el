@@ -2597,6 +2597,7 @@ Return TOKEN."
     token))
 
 (defun ada-smie-after-change (begin end length)
+  "For `after-change-functions'."
   ;; We only need to move ada-smie-cache-max if this change affects
   ;; code, ie non-whitespace non-comment. Otherwise, we could just
   ;; adjust it by the change amount. But we're keeping it simple, so

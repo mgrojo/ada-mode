@@ -1,6 +1,7 @@
 -- Standard settings for all of Stephe's Ada projects.  
-            
+
 -- FIXME: test faces 
+
 project Standard_Common is
   for Source_Dirs use ();
 

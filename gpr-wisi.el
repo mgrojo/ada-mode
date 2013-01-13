@@ -59,8 +59,8 @@
 
 (defun gpr-wisi-before-keyword (cache)
   (ecase (wisi-cache-class cache)
-    ((block-start block-end) (wisi-indent-statement-start 0))
-    (other (wisi-indent-statement-start ada-indent))
+    ((block-start block-end) (wisi-indent-statement-start 0 cache))
+    (other (wisi-indent-statement-start ada-indent cache))
     ))
 
 (defun gpr-wisi-after-keyword (cache)
@@ -68,7 +68,7 @@
     (block-start (wisi-indent-current ada-indent))
     ((block-end statement-end) (wisi-indent-current 0))
     (other ;; hanging
-     (wisi-indent-statement-start ada-indent-broken))
+     (wisi-indent-statement-start ada-indent-broken cache))
     ))
 
 ;;; debugging
@@ -76,16 +76,18 @@
   "Add debug key definitions to `gpr-mode-map'."
   (interactive)
   (define-key gpr-mode-map "\M-j" 'wisi-show-cache)
+  (define-key gpr-mode-map "\M-k" (lambda () (interactive) (wisi-forward-token)))
   )
+
 ;;;###autoload
 (defun gpr-wisi-setup ()
   "Set up a buffer for parsing Ada files with wisi."
   (wisi-setup 'gpr-wisi-indent-calculate
 	      gpr-grammar-wy--keyword-table
+	      gpr-grammar-wy--token-table
 	      gpr-grammar-wy--parse-table)
 
-  ;; FIXME: could just invalidate after point; let's see how slow this is
-  (add-hook 'after-change-functions 'wisi-invalidate-cache nil t)
+  (add-hook 'after-change-functions 'wisi-after-change nil t)
 
   (set (make-local-variable 'comment-indent-function) 'ada-wisi-comment-indent)
 

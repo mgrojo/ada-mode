@@ -1,17 +1,18 @@
 # build and test the Emacs wisent Ada indentation and navigation engine
 
-all : gpr-grammar-wy.elc compile-clean compile test-clean test
+all : gpr-grammar-wy.el compile-clean compile test-clean test
 
 one : standard_common.gpr.diff
 
-# use OpenToken to debug grammar conflicts
+# use OpenToken to compile same grammar, to see how broken it is :(
 debug-grammar : wisi-gpr-grammar-generate.run
 
 vpath %.wy ../../
 
 # For Emacs 24.2, we use downloaded cedet-1.1 (on advice from cedet semantic mailing list)
-ada-grammar-wy.elc : ada-grammar.wy
-	cd ../../; $(EMACS) -Q -batch -L build -l load-paths-24.3.el -f semantic-grammar-batch-build-packages $(F<)
+%-wy.el : %.wy
+	rm -f ../../wisent.output
+	cd ../../; $(EMACS) -Q -batch -L build -L . -l load-paths-24.3.el -f semantic-grammar-batch-build-packages $(<F)
 
 wisi-%-generate.run : RUN_ARGS := -v
 wisi-%-generate.run : wisi-%-generate.exe
@@ -36,6 +37,7 @@ GPRBUILD_TARGET := x86-windows
 	gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P wisi_opentoken_agg.gpr $(GPRBUILD_ARGS) $*
 
 clean ::
+	cd ../..; rm -f *-wy.el *.elc
 	rm -f *-wy.el *.elc
 
 RUNTEST := runtest-wisi.el
@@ -47,7 +49,7 @@ export ADA_PROJECT_PATH=../../test/;../../test/subdir
 # (ada-select-prj-file "wisi_opentoken_agg.gpr")
 
 # Local Variables:
-# eval: (ada-parse-prj-file "../../test/subdir/ada_mode.adp")
-# eval: (ada-select-prj-file "../../test/subdir/ada_mode.adp")
+# eval: (ada-parse-prj-file "../ada-mode.prj")
+# eval: (ada-select-prj-file "../ada-mode.prj")
 # End:
 # end of file

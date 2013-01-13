@@ -48,26 +48,27 @@
 (require 'semantic/wisent/comp)
 
 (defun wisi-compile-grammar (grammar actions gotos)
-  "Compile the LALR(1) GRAMMAR, assumed produced by Wisi.Generate; return the automaton for wisent-parse.
+  "Compile the LALR(1) GRAMMAR, assumed produced by Wisi.Generate; return the automaton for wisi-parse.
 GRAMMAR is a list (TOKENS ASSOCS . NONTERMS)) as expected by
 `wisent-parse-grammar'. ACTIONS and GOTOS should be the output of
-an LALR(1) parser generator, such as OpenToken; ACTIONS is an
-array indexed by state of alists giving the new state after a
-shift for each terminal token that is legal in a given state. The
-car of each alist is the reduce action '(default . USER_ACTION)
-or '(default . error) - there can be only one reduce action per
-state. GOTOS is an array indexed by state of alists giving the
-new state after a reduce for each nonterminal legal in that
-state. The production used in the reduce is compiled by
+the OpenToken Wisi parser generator; ACTIONS is an array, indexed
+by state, of alists indexed by terminal tokens. The content of
+each alist item is one of 'error, 'accept, ('shift . state),
+or ('reduce . production), where state is an integer, and
+production is a symbol name:index composed of the left hand side
+nonterminal token of a production and an integer giving the right
+hand side; `wisent-compile-grammar' compiles the semantic action
+into that symbol. GOTOS is an array, indexed by state, of alists
+giving the new state after a reduce for each nonterminal legal in
+that state. The production used in the reduce is compiled by
 `wisent-parse-grammar' along with the user action. The first
 NONTERMS is the accept symbol."
   (wisent-with-context compile-grammar
-     (let (automaton)
-       (setq wisent-new-log-flag t)
-       ;; Parse input grammar
-       (wisent-parse-grammar grammar nil)
+    (setq wisent-new-log-flag t)
+    ;; Parse input grammar
+    (wisent-parse-grammar grammar nil)
 
-       automaton)))
+    (list actions gotos )))
 
 (provide 'wisi-compile)
 

@@ -42,7 +42,7 @@
 ;; non-keyword tokens. So we use "symbol".
 ;;
 ;; In a wisi grammar, every token is either a keyword or an
-;; identifier; strings are skipped by the lexer. FIXME: need strings in grammar?
+;; identifier.
 
 ;; punctuation
 %keyword DOT "."
@@ -50,7 +50,7 @@
 
 %keyword AMPERSAND "&"
 %keyword COLON ":"
-%keyword COLON_EQUALS ":"
+%keyword COLON_EQUALS ":="
 %keyword COMMA ","
 %keyword LEFT_PAREN ")"
 %keyword RIGHT_PAREN "("
@@ -71,6 +71,7 @@
 %keyword WITH "with"
 
 %token <symbol> IDENTIFIER
+%token <string> STRING_LITERAL
 
 %%
 ;; grammar rules, non-terminal alphabetical order
@@ -80,6 +81,7 @@
 
 compilation_unit
   : context_clause project_declaration
+  | project_declaration
   ;
 
 context_clause
@@ -103,15 +105,8 @@ declarative_items
 
 ;; (info "(gnat_ugn)Expressions")
 expression
-  : string
-  | IDENTIFIER
-  | expression AMPERSAND expression
-  | LEFT_PAREN expression_list RIGHT_PAREN
-  ;
-
-expression_list
-  : expression
-  | expression_list COMMA expression
+  : term
+  | expression AMPERSAND term
   ;
 
 name
@@ -133,14 +128,16 @@ package_declaration
   ;
 
 package_spec
-  : PACKAGE IDENTIFIER IS
-       simple_declarative_items
-    END IDENTIFIER SEMICOLON
-    (wisi-cache-action
-     1 'block-start
-     5 'block-end
-     7 'statement-end)
+  : PACKAGE IDENTIFIER IS simple_declarative_items END IDENTIFIER SEMICOLON
+    (wisi-cache-keywords
+       $1 'block-start nil $region1
+       $5 'block-end nil $region5
+       $7 'statement-end nil $region7)
   ;
+ ;; `(wisi-cache-action
+    ;;    1 'block-start
+    ;;    5 'block-end
+    ;;    7 'statement-end)
 
 ;; FIXME: implement
 ;; package_renaming ::==
@@ -177,22 +174,38 @@ simple_declarative_items
 
 simple_project_declaration
   : PROJECT IDENTIFIER IS declarative_items END IDENTIFIER SEMICOLON
-    (wisi-cache-action
-     1 'block-start
-     5 'block-end
-     7 'statement-end)
+    (wisi-cache-keywords
+     $1 'block-start nil $region1
+     $5 'block-end nil $region5
+     $7 'statement-end nil $region7)
+  ;
+    ;; `(wisi-cache-action
+    ;;    1 'block-start
+    ;;    5 'block-end
+    ;;    7 'statement-end)
+
+;; (info "(gnat_ugn)Expressions")
+string_expression
+  : STRING_LITERAL
+  | name;; variable_name
+ ;; | external_value FIXME: implement
+  ;; | attribute_reference FIXME: implement
+  ;; | ( string_expression { & string_expression } ) FIXME: implement
   ;
 
-string
- ;; FIXME: lexer doesn't do strings?
-  : IDENTIFIER
-  | string DOT IDENTIFIER
- ;; no action
-  ;
-
+;; (info "(gnat_ugn)Expressions")
+;; we merge that string_list into term, and use 'string_list' for 'string_expression {, string_expression}'
 string_list
-  : string
-  | string_list COMMA name
+  : string_expression
+  | string_list COMMA string_expression
+  ;
+
+;; see string_list
+;; string_variable_name covered by string_expression
+term
+  : string_expression
+  | LEFT_PAREN string_list RIGHT_PAREN
+ ;;  | string_attribute_reference  FIXME: implement
   ;
 
 with_clause

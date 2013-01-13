@@ -36,22 +36,33 @@ new emacs release candidate 12.27 https://www.dropbox.com/sh/7jr3vbv9tm1zod0/jPu
 need C-c C-d on <=
 
 include gpr-mode
-    use wisi
-        with wisent-compile-grammar until it breaks
-
     build/wisi/Makefile
-        getting shift/reduce and reduce/reduce conflicts
-            looked into adding better error messages to wisent-compile-grammar; too hard
-                ask for help on semantic list
-                ask wisent-compile author directly
+        (setq wisent-verbose-flag t)
+        (setq wisent-debug-flag t)
+        output to *wisent-log* buffer, written to wisent.output if batch
 
-        use opentoken to resolve
-            no conflicts there
-            posting
+        (setq semantic-idle-scheduler-idle-time 10000)
+            active in .wy files, interferes with debugging gpr parser!
+
+    parsing test/gpr/simple.gpr
+        wisent-semantic-action-expand-body processes $
+            use ` to expand macros!
+            but it doesn't do what I need
+
+    writing new gpr file
+        need to provide two wisent error functions; silent for normal use, debug
 
     C-f6
 
     C-f11 on 'with'?
+
+    refs for posting to cedet-semantic list
+        http://dickgrune.com/Books/PTAPG_1st_Edition/BookBody.pdf
+            9.6 page 213 lookaheads are sets
+        red dragon: "Compilers Principles, Techniques, and Tools" by Aho, Sethi, and Ullman
+            section 4.7 LALR merges different productions with the same core; more than one reduce
+                but examples all have one reduce, excep 4.44
+        wisent author is David Ponce <david@dponce.com>
 
 gdb break command input still broken in
     http://debbugs.gnu.org/cgi/bugreport.cgi?bug=13303
@@ -274,6 +285,21 @@ emacs versions:
         (find-file "/Projects/org.opentoken.stephe/wisi/test/ada-subset.wy")
         M-x semantic-mode
         C-u M-x semantic-grammar-create-package
+
+    real conflict between expressions and strings
+        f0cb9e75e05600c200e672748e7148d642244c0d
+           except fix one production to be all on one line
+
+        opentoken doesn't report conflict
+            it eliminated expression productions!?
+            production for simple_declarative_id is simply wrong!
+            opentoken is broken (sigh)
+
+
+        finish wisi-opentoken, wisi-compile-grammar, wisi-parse
+            not clear how reduction operation is performed
+            trace subprograms grammar in compilation and operation
+                /Projects/org.opentoken.stephe/build/windows_debug/Makefile
 
  4.01 bugs that 5.01 fixes
     generic formal function

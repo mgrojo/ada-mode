@@ -1,0 +1,7 @@
+ada_project_path=../../test
+gpr_file=ada_mode_parent.gpr
+
+-- for compiling wisent grammars
+src_dir=..
+
+-- end of file

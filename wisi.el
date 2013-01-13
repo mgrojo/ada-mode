@@ -21,7 +21,7 @@
 ;;
 ;;; History: first experimental version Oct 2012
 ;;
-;;; indentation algorithm overview
+;;;; indentation algorithm overview
 ;;
 ;; This design is inspired in part by experience writing a SMIE
 ;; indentation engine for Ada; see ada-smie.el.
@@ -99,13 +99,16 @@
 ;; parsed, so once we have one wisent indentation engine working,
 ;; adapting it to new languages should be quite simple.
 ;;
+;;;; grammar compiler and parser
+;;
 ;; wisent on its own does not provide a way to process a plain text
 ;; representation of BNF into an LALR parser table. It does provide
-;; for compiling a lisp representation of BNF into a parser
-;; table. semantic provides a plain text BNF parser that can output
-;; the lisp forms that the wisent compiler expects. The plain text
-;; format is closer to the original Ada BNF, so we use that as our
-;; grammar source.
+;; `wisent-compile-grammar' for compiling a lisp representation of BNF
+;; into a parser table. semantic provides
+;; `semantic-grammar-create-package', which parses plain text BNF
+;; parser and outputs the lisp forms that `wisent-compile-grammar'
+;; expects. The plain text format is closer than the lisp format to
+;; the original Ada and gpr BNF, so we use that as our grammar source.
 ;;
 ;; wisent also does not provide a lexer. Semantic provides a complex
 ;; lexer, way overkill for our needs. So we use the elisp lexer, which
@@ -127,38 +130,54 @@
 
 (defvar wisi-keyword-table nil)
 
+(defvar wisi-string-term nil)
+(defvar wisi-symbol-term nil)
+
 (defun wisi-forward-token ()
   "Move point forward across one token, skipping whitespace and comments.
-Return the corresponding wisent token: '(symbol text (start end)),
+Return the corresponding token (symbol text (start end)),
 where:
 `symbol' is a token symbol as defined in the tokens section of the
 grammar definition file,
 `text' is the token text from the buffer,
 `(start end)' are the character positions in the buffer of the start
-and end of the token text."
+and end of the token text.
+If at end of buffer, returns `wisent-eoi-term'."
   ;; FIXME: handle parens
   (forward-comment (point-max))
   ;; skips leading whitespace, comment, trailing whitespace.
 
   (let ((start (point))
-	token-text
-	end)
-    (setq token-text
-	  (buffer-substring-no-properties
-	  (point)
-	  (progn (if (zerop (skip-syntax-forward "."))
-		     (skip-syntax-forward "w_'"))
-		 (setq end (point)))))
+	token-id token-text)
+    (cond
+     ((eobp)
+      (setq token-text "")
+      (setq token-id wisent-eoi-term))
 
-    (list (or (symbol-value (intern-soft token-text wisi-keyword-table))
-	      'IDENTIFIER)
-	  token-text
-	  (list start end))
-  ))
+     ((eq 7 (syntax-class (syntax-after (point))))
+      ;; a string quote. we assume we are before the start quote, not the end quote
+      (let ((forward-sexp-function nil))
+	(forward-sexp))
+      (setq token-text (buffer-substring-no-properties start (point)))
+      (setq token-id wisi-string-term))
+
+     (t
+      (if (zerop (skip-syntax-forward "."))
+	  (skip-syntax-forward "w_'"))
+      (setq token-text (buffer-substring-no-properties start (point)))
+      (setq token-id
+	    (or (symbol-value (intern-soft token-text wisi-keyword-table))
+		wisi-symbol-term)))
+     );; cond
+
+    (unless token-id
+      (error "unrecognized token %s" (setq token-text (buffer-substring-no-properties start (point)))))
+    (list token-id token-text (list start (point)))
+    ))
 
 (defun wisi-backward-token ()
   "Move point backward across one token, skipping whitespace and comments."
-  ;; FIXME: handle parens
+  ;; FIXME: handle parens, strings
   (forward-comment (- (point-max)))
   ;; skips leading whitespace, comment, trailing whitespace.
 
@@ -167,10 +186,13 @@ and end of the token text."
   )
 
 ;;;; token info cache
+;;
+;; the cache stores the results of parsing as text properties on
+;; keywords, for use by the indention and motion engines.
 
 (defstruct
   (wisi-cache
-   (:constructor wisi-cache-make)
+   (:constructor wisi-cache-create)
    (:copier nil))
   symbol
 
@@ -204,6 +226,15 @@ and end of the token text."
   (with-silent-modifications
     (remove-text-properties (point-min) (point-max) '(wisi-cache))))
 
+(defvar wisi-inhibit-invalidate nil)
+
+(defun wisi-after-change (begin end length)
+  "For `after-change-functions'."
+  ;; FIXME: semantic-parse-region supports incremental parse, which
+  ;; means only invalidate cache after change point?
+  (when wisi-inhibit-invalidate
+    (wisi-invalidate-cache)))
+
 (defun wisi-get-cache (pos)
   ;; FIXME: is `pos' ever not (point)?
   "Return info from the `wisi-cache' text property at POS.
@@ -221,27 +252,41 @@ Parse buffer if necessary."
 	;; FIXME: tell lexer to stop at pos
 	(wisent-parse wisi-parse-table 'wisi-forward-token))))
 
-;;;; parse actions
+;;;; defining parse actions
 
-(defun wisi-cache-keywords (&rest keywords)
+(defun wisi-cache-keywords (&rest items)
   "Cache information used by wisi in text properties of keywords.
-Intended as a wisent grammar non-terminal action.  KEYWORDS is a
-list of lists '(symbol class start-func (start end)) for keywords
-that should receive cached information."
+Intended as a wisent grammar non-terminal action.  ITEMS is a
+list [symbol class start-func (start end)] ... for keywords
+that should receive cached information. In a wisent grammar file, this
+is used as:
+
+subprogram
+  : PROCEDURE SYMBOL
+    (wisi-cache-keywords
+      $1 'procedure nil $region1
+      $2 'other nil $region2)
+"
+  ;; FIXME: update docstring with use of start-func
+
   (save-excursion
     (let (first-keyword-mark)
-      (while keywords
-	(let* ((keyword (pop keywords))
-	       (symbol (pop keyword))
-	       (class (pop keyword))
-	       (region (pop keyword))
+      (while items
+	(let* ((symbol (pop items))
+	       (class (pop items))
+	       (start-func (pop items))
+	       (region (car (pop items)))
 	       (mark
-		(progn (goto-char (caar region))
+		(progn (goto-char (car region))
 		       (point-marker))))
 
+	  ;; The first keyword in a statement should have a start-func
+	  ;; that goes to the containing block statement start; the
+	  ;; others just store the marker for the first keyword.
+	  ;; FIXME: maintain a stack of block start markers?
 	  (put-text-property
-	   (caar keyword-region)
-	   (cadar keyword-region)
+	   (car region)
+	   (cadr region)
 	   'wisi-cache
 	   (wisi-cache-create
 	    :symbol symbol
@@ -254,19 +299,63 @@ that should receive cached information."
       )))
 
 (defmacro wisi-cache-action (&rest pairs)
-  "Define a wisi grammar action, which is a call to `wisi-cache-keywords'.
-PAIRS is of the form [TOKEN-NUMBER CLASS] ...
-where TOKEN-NUMBER is the token number in the production, CLASS is the
-wisi class of that token; see `wisi-cache'."
+  "Macro to define a wisi grammar action, which is a call to `wisi-cache-keywords'.
+PAIRS is of the form [TOKEN-NUMBER CLASS] ...  where TOKEN-NUMBER
+is the token number in the production, CLASS is the wisi class of
+that token; see `wisi-cache'. Must be in backquotes in a wisent
+grammar action."
   (let (class list number region)
     (while pairs
       (setq number (pop pairs))
       (setq region (intern (concat "$region" (number-to-string number))))
       (setq number (intern (concat "$" (number-to-string number))))
       (setq class (pop pairs))
-      (setq list (cons (list number class nil region))))
-  `(wisi-cache-keywords list)
+      (setq list (cons (list 'quote (list number class nil region)) list)))
+    (cons 'wisi-cache-keywords list)
   ))
+
+;; FIXME: overriding semantic/wisent/comp
+;; wisent-semantic-action-expand-body to allow macros in actions to
+;; work
+(defun wisent-semantic-action-expand-body (body n &optional found)
+  "Parse BODY of semantic action.
+N is the maximum number of $N variables that can be referenced in
+BODY.  Warn on references out of permitted range.
+Optional argument FOUND is the accumulated list of '$N' references
+encountered so far.
+Return a cons (FOUND . XBODY), where FOUND is the list of $N
+references found in BODY, and XBODY is BODY expression with
+`backquote' forms expanded."
+  (if (not (listp body))
+      ;; BODY is an atom, no expansion needed
+      (progn
+        (if (wisent-check-$N body n)
+            ;; Accumulate $i symbol
+            (add-to-list 'found body))
+        (cons found body))
+    ;; BODY is a list, expand inside it
+    (let (xbody sexpr)
+      ;; If backquote expand it first
+      (if (wisent-backquote-p (car body))
+          (setq body (macroexpand (eval body))))
+      (while body
+        (setq sexpr (car body)
+              body  (cdr body))
+        (cond
+         ;; Function call excepted quote expression
+         ((and (consp sexpr)
+               (not (wisent-quote-p (car sexpr))))
+          (setq sexpr (wisent-semantic-action-expand-body sexpr n found)
+                found (car sexpr)
+                sexpr (cdr sexpr)))
+         ;; $i symbol
+         ((wisent-check-$N sexpr n)
+          ;; Accumulate $i symbol
+          (add-to-list 'found sexpr))
+         )
+        ;; Accumulate expanded forms
+        (setq xbody (nconc xbody (list sexpr))))
+      (cons found xbody))))
 
 ;;(defun wisi-update-children ()
     ;;   goto last token (";")
@@ -300,12 +389,12 @@ Return cache from the found keyword."
   "Move point to statement start of statement containing CACHE.
 If KEYWORD non-nil, only go to first keyword."
   (cond
-   ((mark-p (wisi-cache-start cache))
+   ((markerp (wisi-cache-start cache))
     (goto-char (wisi-cache-start cache))
     (wisi-goto-statement-start (wisi-get-cache (point)) keyword))
 
    ((and (not keyword)
-	 (function-p (wisi-cache-start cache)))
+	 (functionp (wisi-cache-start cache)))
     (funcall (wisi-cache-start cache)))
 
    (t nil)))
@@ -345,12 +434,16 @@ CACHE contains cache info from a keyword in the current statement."
         ;; If something funny is used (e.g. `noindent'), return it.
         indent
       (if (< indent 0) (setq indent 0)) ;Just in case.
-      (if savep
-	  ;; point was inside line text; leave it there
-          (save-excursion (indent-line-to indent))
-	;; point was before line text; move to start of text
-        (indent-line-to indent)))
-  ))
+
+      (let ((wisi-inhibit-invalidate t))
+	;; We are only changing whitespace, so tell wisi-after-change
+	;; not to invalidate cache.
+	(if savep
+	    ;; point was inside line text; leave it there
+	    (save-excursion (indent-line-to indent))
+	  ;; point was before line text; move to start of text
+	  (indent-line-to indent)))
+      )))
 
 ;;;; debug
 (defun wisi-parse-buffer ()
@@ -364,8 +457,14 @@ CACHE contains cache info from a keyword in the current statement."
 
 ;;;; setup
 
-(defun wisi-setup (indent-calculate keyword-table parse-table)
+(defun wisi-setup (indent-calculate keyword-table token-table parse-table)
   "Set up a buffer for parsing files with wisi."
+
+  (unless (setq wisi-string-term (car (symbol-value (intern-soft "string" token-table))))
+    (error "grammar does not define <string> token"))
+
+  (unless (setq wisi-symbol-term (car (symbol-value (intern-soft "symbol" token-table))))
+    (error "grammar does not define <symbol> token"))
 
   (set (make-local-variable 'wisi-indent-calculate-function) indent-calculate)
   (set (make-local-variable 'wisi-keyword-table) keyword-table)
@@ -373,9 +472,9 @@ CACHE contains cache info from a keyword in the current statement."
   (set (make-local-variable 'indent-line-function) 'wisi-indent-line)
 
   ;; FIXME: do we want this?
-  ;; (semantic-make-local-hook 'wisent-discarding-token-functions)
-  ;; (add-hook 'wisent-discarding-token-functions
-  ;; 	    'wisent-collect-unmatched-syntax nil t))
+  ;; (semantic-make-local-hook 'wisi-discarding-token-functions)
+  ;; (add-hook 'wisi-discarding-token-functions
+  ;; 	    'wisi-collect-unmatched-syntax nil t))
 
   ;; FIXME: (set (make-local-variable 'forward-sexp-function) 'wisi-forward-sexp-command)
   ;; This is nice for user navigation; do we need it for wisi?

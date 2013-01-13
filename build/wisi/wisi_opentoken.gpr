@@ -10,9 +10,10 @@ project Wisi_OpenToken is
    for Exec_Dir use ".";
 
    package Compiler is
+      -- Style_Checks_No_Length because generated lines in the grammar get long
       for Default_Switches ("Ada") use
         Common.Compiler.Debug_Switches &
-        Common.Compiler.Style_Checks &
+        Common.Compiler.Style_Checks_No_Length &
         Common.Compiler'Default_Switches ("Ada");
 
    end Compiler;
