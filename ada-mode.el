@@ -1345,6 +1345,16 @@ other file.")
   (when ada-which-function
     (funcall ada-which-function)))
 
+(defun ada-add-log-current-function ()
+  "For `add-log-current-defun-function'; uses `ada-which-function'."
+  ;; add-log-current-defun is typically called with point at the start
+  ;; of an ediff change section, which is before the start of the
+  ;; declaration of a new item. So go to the end of the current line
+  ;; first, then call `ada-which-function'
+  (save-excursion
+    (end-of-line 1)
+    (ada-which-function)))
+
 (defun ada-set-point-accordingly ()
   "Move to the string specified in `ff-function-name', which may be a regexp,
 previously set by a file navigation command."
@@ -1649,7 +1659,7 @@ C-u C-u : show in other frame"
   (interactive "P")
 
   (let ((identifier (ada-identifier-at-point))
-	(xref-function (cdr (assoc ada-compiler ada-xref-function)))
+	(xref-function (cdr (assoc ada-compiler ada-xref-other-function)))
 	target)
     (when (null xref-function)
       (error "no cross reference information available"))
@@ -2168,7 +2178,7 @@ The paragraph is indented on the first line."
   (ada-set-ff-special-constructs)
 
   (set (make-local-variable 'add-log-current-defun-function)
-       'ada-which-function);; FIXME: use a function that goes forward one line first, exclude package
+       'ada-add-log-current-function)
 
   (add-hook 'which-func-functions 'ada-which-function nil t)
 
