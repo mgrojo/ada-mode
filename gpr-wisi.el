@@ -43,32 +43,28 @@
 (require 'semantic/wisent)
 (require 'wisi)
 
-(defun gpr-wisi-indent-calculate ()
+(defun gpr-wisi-before-keyword ()
   (let ((cache (wisi-get-cache (point))))
-    (if cache
-	;; point is at start of a wisi keyword
-	(gpr-wisi-before-keyword cache)
-
-      ;; else move to previous keyword
-      (setq cache (wisi-prev-keyword))
-      (if cache
-	  (gpr-wisi-after-keyword)
-	;; bob
-	0))
-  ))
-
-(defun gpr-wisi-before-keyword (cache)
-  (ecase (wisi-cache-class cache)
-    ((block-start block-end) (wisi-indent-statement-start 0 cache))
-    (other (wisi-indent-statement-start ada-indent cache))
+    (when cache
+      (ecase (wisi-cache-class cache)
+	(block-start (wisi-indent-statement-start ada-indent (wisi-prev-keyword)))
+	(block-end (wisi-indent-statement-start 0 cache))
+	(statement-start nil); let after-keyword handle it
+	(other (wisi-indent-statement-start ada-indent cache))
+	))
     ))
 
-(defun gpr-wisi-after-keyword (cache)
-  (ecase (wisi-cache-class cache)
-    (block-start (wisi-indent-current ada-indent))
-    ((block-end statement-end) (wisi-indent-current 0))
-    (other ;; hanging
-     (wisi-indent-statement-start ada-indent-broken cache))
+(defun gpr-wisi-after-keyword ()
+  (let ((cache (wisi-prev-keyword)))
+    (if (not cache)
+	;; bob
+	0
+      (ecase (wisi-cache-class cache)
+	(block-start (wisi-indent-current ada-indent))
+	((block-end statement-end) (wisi-indent-current 0))
+	(other ;; hanging
+	 (wisi-indent-statement-start ada-indent-broken cache))
+	))
     ))
 
 ;;; debugging
@@ -79,10 +75,12 @@
   (define-key gpr-mode-map "\M-k" (lambda () (interactive) (wisi-forward-token)))
   )
 
+;;;;
 ;;;###autoload
 (defun gpr-wisi-setup ()
   "Set up a buffer for parsing Ada files with wisi."
-  (wisi-setup 'gpr-wisi-indent-calculate
+  (wisi-setup '(gpr-wisi-before-keyword
+		gpr-wisi-after-keyword)
 	      gpr-grammar-wy--keyword-table
 	      gpr-grammar-wy--token-table
 	      gpr-grammar-wy--parse-table)

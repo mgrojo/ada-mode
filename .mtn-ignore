@@ -15,3 +15,4 @@
 ^test/.*\.ali$
 ^test/debug\.adb$
 ^test/subdir/ada_mode-nominal-child\.adb$
+^wisent\.output$

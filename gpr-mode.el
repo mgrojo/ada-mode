@@ -185,6 +185,7 @@ current construct."
   ;;     (ada-activate-keys-for-case))
   )
 
+;; user needs to add this somewhere:
 (add-to-list 'auto-mode-alist '("\\.gpr\\'" . gpr-mode))  ; GNAT project files
 
 (unless (featurep 'gpr-indent-engine)

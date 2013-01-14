@@ -6,21 +6,10 @@ General notes on implementing the Emacs Ada mode indentation engine using the sm
 runtest from emacs -Q:
 (progn
   (add-to-list 'load-path "/Projects/org.emacs.ada-mode.smie")
-  (require 'ada-wisi)
-  ;;(require 'ada-smie)
-  (require 'ada-mode)
-  (global-font-lock-mode -1)
-  (setq exec-path
-        (list
-         (expand-file-name "~/bin")
-         (getenv "EMACSPATH")
-         "c:/bin"
-         "c:/WINDOWS/system32"))
-  (setenv "PATH" (mapconcat 'identity  exec-path  path-separator))
   (add-to-list 'load-path "/Projects/org.emacs.ada-mode.smie/build")
-  (load "runtest")
-
-  (find-file "/Projects/org.emacs.ada-mode.smie/test/gpr/standard_common.gpr")
+  ;(global-font-lock-mode -1)
+  (load "runtest-wisi")
+  (find-file "/Projects/org.emacs.ada-mode.smie/test/gpr/simple.gpr")
 )
 
 (progn
@@ -47,7 +36,11 @@ include gpr-mode
     parsing test/gpr/simple.gpr
         wisent-semantic-action-expand-body processes $
             use ` to expand macros!
-            but it doesn't do what I need
+            but it doesn't do what I need; add eval makes it work
+            post on mailing list
+
+    indenting
+        simple.gpr.diff passes!
 
     writing new gpr file
         need to provide two wisent error functions; silent for normal use, debug
@@ -123,9 +116,10 @@ FIXMEs
 'Access gives wrong face to following token:
      Percent_Percent & EOF + Output_Elisp'Access and
 
-conflicting requirements on ada-which-function
-    C-c C-b doesn't want to look after point
-    C-t in ediff does
+in project file, support three kinds of settings:
+    prj:
+    env:
+    elisp:
 
 don't parse or move cache if narrowed
 

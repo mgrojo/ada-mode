@@ -178,7 +178,7 @@ If at end of buffer, returns `wisent-eoi-term'."
 (defun wisi-backward-token ()
   "Move point backward across one token, skipping whitespace and comments."
   ;; FIXME: handle parens, strings
-  (forward-comment (- (point-max)))
+  (forward-comment (- (point)))
   ;; skips leading whitespace, comment, trailing whitespace.
 
   (if (zerop (skip-syntax-backward "."))
@@ -249,8 +249,8 @@ Parse buffer if necessary."
       ;; how slow this is.
       (save-excursion
 	(goto-char (point-min))
-	;; FIXME: tell lexer to stop at pos
-	(wisent-parse wisi-parse-table 'wisi-forward-token))))
+	(wisent-parse wisi-parse-table 'wisi-forward-token)
+	(setq wisi-cache-max (point)))))
 
 ;;;; defining parse actions
 
@@ -310,13 +310,14 @@ grammar action."
       (setq region (intern (concat "$region" (number-to-string number))))
       (setq number (intern (concat "$" (number-to-string number))))
       (setq class (pop pairs))
-      (setq list (cons (list 'quote (list number class nil region)) list)))
+      (setq list (append list (list number class nil region))))
     (cons 'wisi-cache-keywords list)
   ))
 
 ;; FIXME: overriding semantic/wisent/comp
 ;; wisent-semantic-action-expand-body to allow macros in actions to
 ;; work
+(require 'semantic/wisent/comp)
 (defun wisent-semantic-action-expand-body (body n &optional found)
   "Parse BODY of semantic action.
 N is the maximum number of $N variables that can be referenced in
@@ -383,7 +384,8 @@ Return cache from the found keyword."
     (while (and (not (bobp))
 		(not cache))
       (wisi-backward-token)
-      (setq cache (wisi-get-cache (point))))))
+      (setq cache (wisi-get-cache (point))))
+    cache))
 
 (defun wisi-goto-statement-start (cache &optional keyword)
   "Move point to statement start of statement containing CACHE.
@@ -409,15 +411,19 @@ CACHE contains cache info from a keyword in the current statement."
     (back-to-indentation)
     (+ (current-column) offset)))
 
-(defvar wisi-indent-calculate-function nil
-  "Function to calculate indentation. Called with point before a
+(defun wisi-indent-current (offset)
+  "Return indentation OFFSET relative to indentation of current line."
+  (save-excursion
+    (back-to-indentation)
+    (+ (current-column) offset)))
+
+(defvar wisi-indent-calculate-functions nil
+  "Functions to calculate indentation. Each called with point before a
   token; return indentation column for that token, or
-  'noindent."
-  )
+  nil. Calling stops when first function returns non-nil.")
 
 (defun wisi-indent-line ()
   "Indent current line using the wisi indentation engine."
-  ;; copied shamelessly from smie
   (interactive)
 
   (wisi-validate-cache (point))
@@ -428,27 +434,24 @@ CACHE contains cache info from a keyword in the current statement."
                          (forward-line 0)
                          (skip-chars-forward " \t")
                          (if (>= (point) savep) (setq savep nil))
-                         (or (funcall wisi-indent-calculate-function) 0)))
+                         (or (run-hook-with-args-until-success 'wisi-indent-calculate-functions) 0)))
                      0)))
-    (if (not (numberp indent))
-        ;; If something funny is used (e.g. `noindent'), return it.
-        indent
-      (if (< indent 0) (setq indent 0)) ;Just in case.
 
-      (let ((wisi-inhibit-invalidate t))
-	;; We are only changing whitespace, so tell wisi-after-change
-	;; not to invalidate cache.
-	(if savep
-	    ;; point was inside line text; leave it there
-	    (save-excursion (indent-line-to indent))
-	  ;; point was before line text; move to start of text
-	  (indent-line-to indent)))
-      )))
+    (let ((wisi-inhibit-invalidate t))
+      ;; We are only changing whitespace, so tell wisi-after-change
+      ;; not to invalidate cache.
+      (if savep
+	  ;; point was inside line text; leave it there
+	  (save-excursion (indent-line-to indent))
+	;; point was before line text; move to start of text
+	(indent-line-to indent)))
+    ))
 
 ;;;; debug
 (defun wisi-parse-buffer ()
   (interactive)
-  (wisent-parse-region (point-min) (point-max)))
+  (wisi-invalidate-cache)
+  (wisi-validate-cache (point-max)))
 
 (defun wisi-show-cache ()
   "Show cache at point."
@@ -466,7 +469,7 @@ CACHE contains cache info from a keyword in the current statement."
   (unless (setq wisi-symbol-term (car (symbol-value (intern-soft "symbol" token-table))))
     (error "grammar does not define <symbol> token"))
 
-  (set (make-local-variable 'wisi-indent-calculate-function) indent-calculate)
+  (set (make-local-variable 'wisi-indent-calculate-functions) indent-calculate)
   (set (make-local-variable 'wisi-keyword-table) keyword-table)
   (set (make-local-variable 'wisi-parse-table) parse-table)
   (set (make-local-variable 'indent-line-function) 'wisi-indent-line)

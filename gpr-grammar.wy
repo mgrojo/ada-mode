@@ -129,15 +129,12 @@ package_declaration
 
 package_spec
   : PACKAGE IDENTIFIER IS simple_declarative_items END IDENTIFIER SEMICOLON
-    (wisi-cache-keywords
-       $1 'block-start nil $region1
-       $5 'block-end nil $region5
-       $7 'statement-end nil $region7)
+    `(wisi-cache-action
+      1 'statement-start
+      3 'block-start
+      5 'block-end
+      7 'statement-end)
   ;
- ;; `(wisi-cache-action
-    ;;    1 'block-start
-    ;;    5 'block-end
-    ;;    7 'statement-end)
 
 ;; FIXME: implement
 ;; package_renaming ::==
@@ -160,6 +157,9 @@ project_qualifier
 ;; (info "(gnat_ugn)Declarations")
 simple_declarative_item
   : IDENTIFIER COLON_EQUALS expression SEMICOLON ;; variable_declaration
+    `(wisi-cache-action
+      1 'statement-start
+      4 'statement-end)
   | IDENTIFIER COLON IDENTIFIER COLON_EQUALS expression SEMICOLON ;; typed_variable_declaration
   ;; | attribute_declaration FIXME: implement
   ;; | case_construction FIXME: implement
@@ -174,15 +174,12 @@ simple_declarative_items
 
 simple_project_declaration
   : PROJECT IDENTIFIER IS declarative_items END IDENTIFIER SEMICOLON
-    (wisi-cache-keywords
-     $1 'block-start nil $region1
-     $5 'block-end nil $region5
-     $7 'statement-end nil $region7)
+    `(wisi-cache-action
+      1 'statement-start
+      3 'block-start
+      5 'block-end
+      7 'statement-end)
   ;
-    ;; `(wisi-cache-action
-    ;;    1 'block-start
-    ;;    5 'block-end
-    ;;    7 'statement-end)
 
 ;; (info "(gnat_ugn)Expressions")
 string_expression

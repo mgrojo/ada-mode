@@ -99,15 +99,15 @@
     (indent-code-rigidly (point-min) (point-max) -1)
     (indent-region (point-min) (point-max))
 
-    ;; FIXME: this is the only thing in this file that is
-    ;; ada-specific; generalize it to allow testing gpr-mode and other
-    ;; language modes.
-    (ada-case-adjust-buffer)
-
     ;; Cleanup the buffer; indenting often leaves trailing whitespace;
     ;; files must be saved without any.
     (delete-trailing-whitespace)
-    ))
+    )
+
+  (when (eq major-mode 'ada-mode)
+    (ada-case-adjust-buffer))
+  ;; gpr-mode doesn't support casing yet
+  )
 
 (defun run-test (file-name)
   "Run an indentation and casing test on FILE-NAME."
