@@ -1,11 +1,11 @@
 --  A very simple file, for gpr-wisi development/debugging
 project Simple is
    package Compiler is
-     Style_Checks := "-gnaty3abcefhiklM120nprtx";
+      Style_Checks := "-gnaty3abcefhiklM120nprtx";
 
-     for Default_Switches ("Ada") use
-       ("-gnat2012", 
-        "-gnatw.V", "-gnatyO"
-       ) & Style_Checks;
-  end Compiler;
+      for Default_Switches ("Ada") use
+        ("-gnat2012",
+         "-gnatw.V", "-gnatyO"
+        ) & Style_Checks;
+   end Compiler;
 end Simple;

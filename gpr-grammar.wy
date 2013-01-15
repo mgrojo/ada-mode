@@ -85,9 +85,9 @@
 
 attribute_declaration
   : FOR IDENTIFIER USE expression SEMICOLON
-    `(wisi-cache-action 1 'statement-start 5 'statement-end)
+    `,(wisi-cache-action 1 'statement-start 5 'statement-end)
   | FOR IDENTIFIER LEFT_PAREN STRING_LITERAL RIGHT_PAREN USE expression SEMICOLON
-    `(wisi-cache-action 1 'statement-start 8 'statement-end)
+    `,(wisi-cache-action 1 'statement-start 8 'statement-end)
   ;
 
 compilation_unit
@@ -140,11 +140,11 @@ package_declaration
 
 package_spec
   : PACKAGE IDENTIFIER IS simple_declarative_items END IDENTIFIER SEMICOLON
-    `(wisi-cache-action
-      1 'statement-start
-      3 'block-start
-      5 'block-end
-      7 'statement-end)
+    `,(wisi-cache-action
+       1 'statement-start
+       3 'block-start
+       5 'block-end
+       7 'statement-end)
   ;
 
 ;; FIXME: implement
@@ -168,9 +168,9 @@ project_qualifier
 ;; (info "(gnat_ugn)Declarations" "*info gpr*")
 simple_declarative_item
   : IDENTIFIER COLON_EQUALS expression SEMICOLON ;; variable_declaration
-    `(wisi-cache-action
-      1 'statement-start
-      4 'statement-end)
+    `,(wisi-cache-action
+       1 'statement-start
+       4 'statement-end)
   | IDENTIFIER COLON IDENTIFIER COLON_EQUALS expression SEMICOLON ;; typed_variable_declaration
   | attribute_declaration
   ;; | case_construction FIXME: implement
@@ -185,11 +185,11 @@ simple_declarative_items
 
 simple_project_declaration
   : PROJECT IDENTIFIER IS declarative_items END IDENTIFIER SEMICOLON
-    `(wisi-cache-action
-      1 'statement-start
-      3 'block-start
-      5 'block-end
-      7 'statement-end)
+    `,(wisi-cache-action
+       1 'statement-start
+       3 'block-start
+       5 'block-end
+       7 'statement-end)
   ;
 
 ;; (info "(gnat_ugn)Expressions")
@@ -213,9 +213,9 @@ string_list
 term
   : string_expression
   | LEFT_PAREN string_list RIGHT_PAREN
-    `(wisi-cache-action
-      1 'open-paren
-      3 'close-paren)
+    `,(wisi-cache-action
+       1 'open-paren
+       3 'close-paren)
  ;;  | string_attribute_reference  FIXME: implement
   ;
 

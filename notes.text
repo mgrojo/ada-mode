@@ -1,8 +1,5 @@
 General notes on implementing the Emacs Ada mode indentation engine using the smie and wisent parsers
 
-(setq ada-smie-debug t)
-(setq ada-smie-debug nil)
-
 runtest from emacs -Q:
 (progn
   (add-to-list 'load-path "/Projects/org.emacs.ada-mode.smie")
@@ -17,6 +14,9 @@ runtest from emacs -Q:
     (add-hook 'ada-mode-hook 'ada-smie-setup))
 (shell-send-string "~/bin/mtn_sync_ada_france.sh" "*bash*")
 (xmtn-sync-review)
+
+(setq ada-smie-debug t)
+(setq ada-smie-debug nil)
 
 (grep-find "find . -type f -print | \"xargs\" grep -nH \"FIXME:\"")
 (setq wisent-verbose-flag t)
@@ -33,18 +33,11 @@ ada-mode
     need C-c C-d on <=
 
 gpr-mode
+    build/wisi/Makefile
+
     need to provide two wisent error functions; silent for normal use, debug
 
-    indent-line-to doesn't update markers stored in cache!?!?
-        could scan for statement-start instead of using markers
-        that would unify with goto-open-paren, goto-block-start
-        but find out why markers don't work, first
-
     test/gpr/simple.gpr
-        wisent-semantic-action-expand-body processes $
-            use ` to expand macros!
-            but it doesn't do what I need; add eval makes it work
-            post on mailing list
 
     C-f6
 

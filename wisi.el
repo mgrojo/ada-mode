@@ -258,7 +258,7 @@ If at end of buffer, returns `wisent-eoi-term'."
 	(setq wisi-change-need-invalidate nil))
 
        ((progn
-	  (skip-syntax-forward " ")
+	  (skip-syntax-forward " " end)
 	  (eq (point) end))
 	(setq wisi-change-need-invalidate nil))
 
@@ -282,7 +282,7 @@ If at end of buffer, returns `wisent-eoi-term'."
 	  (setq need-invalidate nil))
 
 	 ((progn
-	    (skip-syntax-forward " ")
+	    (skip-syntax-forward " " end)
 	    (eq (point) end))
 	  (setq need-invalidate nil))
 
@@ -339,7 +339,10 @@ subprogram
 	       (region (car (pop items)))
 	       (mark
 		(progn (goto-char (car region))
-		       (point-marker))))
+		       ;; Marker one char into token, so
+		       ;; indent-line-to inserts space before the
+		       ;; mark, not after!
+		       (copy-marker (1+ (point))))))
 
 	  ;; The first keyword in a statement should have a start-func
 	  ;; that goes to the containing block statement start; the
@@ -375,50 +378,6 @@ grammar action."
       (setq list (append list (list number class nil region))))
     (cons 'wisi-cache-keywords list)
   ))
-
-;; FIXME: overriding semantic/wisent/comp
-;; wisent-semantic-action-expand-body to allow macros in actions to
-;; work
-(require 'semantic/wisent/comp)
-(defun wisent-semantic-action-expand-body (body n &optional found)
-  "Parse BODY of semantic action.
-N is the maximum number of $N variables that can be referenced in
-BODY.  Warn on references out of permitted range.
-Optional argument FOUND is the accumulated list of '$N' references
-encountered so far.
-Return a cons (FOUND . XBODY), where FOUND is the list of $N
-references found in BODY, and XBODY is BODY expression with
-`backquote' forms expanded."
-  (if (not (listp body))
-      ;; BODY is an atom, no expansion needed
-      (progn
-        (if (wisent-check-$N body n)
-            ;; Accumulate $i symbol
-            (add-to-list 'found body))
-        (cons found body))
-    ;; BODY is a list, expand inside it
-    (let (xbody sexpr)
-      ;; If backquote expand it first
-      (if (wisent-backquote-p (car body))
-          (setq body (macroexpand (eval body))))
-      (while body
-        (setq sexpr (car body)
-              body  (cdr body))
-        (cond
-         ;; Function call excepted quote expression
-         ((and (consp sexpr)
-               (not (wisent-quote-p (car sexpr))))
-          (setq sexpr (wisent-semantic-action-expand-body sexpr n found)
-                found (car sexpr)
-                sexpr (cdr sexpr)))
-         ;; $i symbol
-         ((wisent-check-$N sexpr n)
-          ;; Accumulate $i symbol
-          (add-to-list 'found sexpr))
-         )
-        ;; Accumulate expanded forms
-        (setq xbody (nconc xbody (list sexpr))))
-      (cons found xbody))))
 
 ;;(defun wisi-update-children ()
     ;;   goto last token (";")
