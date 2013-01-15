@@ -3899,6 +3899,18 @@ If DECLARE non-nil, stop at first containing declarative region (for 'declare' b
 		   symbol-end)))
 	  (setq done t))
 
+	 ((equal token "task-body")
+	  ;; FIXME: need test for this
+	  (setq token (ada-smie-forward-token)); body
+	  (setq result (ada-smie-forward-name))
+	  (when (not ff-function-name)
+	    (setq ff-function-name
+		  (concat
+		   "protected\\s-+\\(type\\s-+\\)?"
+		   result
+		   symbol-end)))
+	  (setq done t))
+
 	 (t
 	  (when (not (ada-smie-keyword-p token))
 	    ;; check for selected name

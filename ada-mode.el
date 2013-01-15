@@ -1166,7 +1166,7 @@ Return new value of PROJECT."
 
 (defun ada-syntax-propertize (start end)
   "Assign `syntax-table' properties in accessible part of buffer.
-In particular, character constants are said to be strings."
+In particular, character constants are set to have string syntax."
   ;; (info "(elisp)Syntax Properties")
   (let ((modified (buffer-modified-p))
 	(buffer-undo-list t)
@@ -1343,6 +1343,16 @@ other file.")
   "See `ada-which-function' variable."
   (when ada-which-function
     (funcall ada-which-function)))
+
+(defun ada-add-log-current-function ()
+  "For `add-log-current-defun-function'; uses `ada-which-function'."
+  ;; add-log-current-defun is typically called with point at the start
+  ;; of an ediff change section, which is before the start of the
+  ;; declaration of a new item. So go to the end of the current line
+  ;; first, then call `ada-which-function'
+  (save-excursion
+    (end-of-line 1)
+    (ada-which-function)))
 
 (defun ada-set-point-accordingly ()
   "Move to the string specified in `ff-function-name', which may be a regexp,
@@ -2171,7 +2181,7 @@ The paragraph is indented on the first line."
   (ada-set-ff-special-constructs)
 
   (set (make-local-variable 'add-log-current-defun-function)
-       'ada-which-function);; FIXME: use a function that goes forward one line first, exclude package
+       'ada-add-log-current-function)
 
   (add-hook 'which-func-functions 'ada-which-function nil t)
 
