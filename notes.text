@@ -19,31 +19,32 @@ runtest from emacs -Q:
 (xmtn-sync-review)
 
 (grep-find "find . -type f -print | \"xargs\" grep -nH \"FIXME:\"")
+(setq wisent-verbose-flag t)
+(setq wisent-debug-flag t)
+output to *wisent-log* buffer, written to wisent.output if batch
+
+(setq semantic-idle-scheduler-idle-time 10000)
+    active in .wy files, interferes with debugging gpr parser!
+
  ada-smie/wisi
 new emacs release candidate 12.27 https://www.dropbox.com/sh/7jr3vbv9tm1zod0/jPuvfrJAe8
 
-need C-c C-d on <=
+ada-mode
+    need C-c C-d on <=
 
-include gpr-mode
-    build/wisi/Makefile
-        (setq wisent-verbose-flag t)
-        (setq wisent-debug-flag t)
-        output to *wisent-log* buffer, written to wisent.output if batch
+gpr-mode
+    need to provide two wisent error functions; silent for normal use, debug
 
-        (setq semantic-idle-scheduler-idle-time 10000)
-            active in .wy files, interferes with debugging gpr parser!
+    indent-line-to doesn't update markers stored in cache!?!?
+        could scan for statement-start instead of using markers
+        that would unify with goto-open-paren, goto-block-start
+        but find out why markers don't work, first
 
-    parsing test/gpr/simple.gpr
+    test/gpr/simple.gpr
         wisent-semantic-action-expand-body processes $
             use ` to expand macros!
             but it doesn't do what I need; add eval makes it work
             post on mailing list
-
-    indenting
-        simple.gpr.diff passes!
-
-    writing new gpr file
-        need to provide two wisent error functions; silent for normal use, debug
 
     C-f6
 

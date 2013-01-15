@@ -143,19 +143,25 @@ grammar definition file,
 `(start end)' are the character positions in the buffer of the start
 and end of the token text.
 If at end of buffer, returns `wisent-eoi-term'."
-  ;; FIXME: handle parens
   (forward-comment (point-max))
   ;; skips leading whitespace, comment, trailing whitespace.
 
   (let ((start (point))
+	;; (info "(elisp)Syntax Table Internals" "*info elisp syntax*")nil
+	(syntax (syntax-class (syntax-after (point))))
 	token-id token-text)
     (cond
      ((eobp)
       (setq token-text "")
       (setq token-id wisent-eoi-term))
 
-     ((eq 7 (syntax-class (syntax-after (point))))
-      ;; a string quote. we assume we are before the start quote, not the end quote
+     ((memq syntax '(4 5)) ;; open, close parenthesis
+      (forward-char 1)
+      (setq token-text (buffer-substring-no-properties start (point)))
+      (setq token-id (symbol-value (intern-soft token-text wisi-keyword-table))))
+
+     ((eq syntax 7)
+      ;; string quote. we assume we are before the start quote, not the end quote
       (let ((forward-sexp-function nil))
 	(forward-sexp))
       (setq token-text (buffer-substring-no-properties start (point)))
@@ -171,19 +177,32 @@ If at end of buffer, returns `wisent-eoi-term'."
      );; cond
 
     (unless token-id
-      (error "unrecognized token %s" (setq token-text (buffer-substring-no-properties start (point)))))
+      (error "unrecognized token '%s'" (setq token-text (buffer-substring-no-properties start (point)))))
     (list token-id token-text (list start (point)))
     ))
 
 (defun wisi-backward-token ()
   "Move point backward across one token, skipping whitespace and comments."
-  ;; FIXME: handle parens, strings
   (forward-comment (- (point)))
   ;; skips leading whitespace, comment, trailing whitespace.
 
-  (if (zerop (skip-syntax-backward "."))
-      (skip-syntax-backward "w_'"))
-  )
+  ;; (info "(elisp)Syntax Table Internals" "*info elisp syntax*")
+  (let ((syntax (syntax-class (syntax-after (1- (point))))))
+    (cond
+     ((bobp) nil)
+
+     ((memq syntax '(4 5)) ;; open, close parenthesis
+      (backward-char 1))
+
+     ((eq syntax 7)
+      ;; a string quote. we assume we are after the end quote, not the start quote
+      (let ((forward-sexp-function nil))
+	(forward-sexp -1)))
+
+     (t
+      (if (zerop (skip-syntax-backward "."))
+	  (skip-syntax-backward "w_'")))
+   )))
 
 ;;;; token info cache
 ;;
@@ -226,14 +245,56 @@ If at end of buffer, returns `wisent-eoi-term'."
   (with-silent-modifications
     (remove-text-properties (point-min) (point-max) '(wisi-cache))))
 
-(defvar wisi-inhibit-invalidate nil)
+(defun wisi-before-change (begin end)
+  "For `before-change-functions'."
+  (save-excursion
+    (let (;; (info "(elisp)Parser State")
+	  (state (syntax-ppss begin)))
+      ;; syntax-ppss has moved point to "begin".
+      (cond
+       ((or
+	 (nth 3 state); in string
+	 (nth 4 state)); in comment
+	(setq wisi-change-need-invalidate nil))
+
+       ((progn
+	  (skip-syntax-forward " ")
+	  (eq (point) end))
+	(setq wisi-change-need-invalidate nil))
+
+       (t (setq wisi-change-need-invalidate t))
+       ))))
 
 (defun wisi-after-change (begin end length)
   "For `after-change-functions'."
   ;; FIXME: semantic-parse-region supports incremental parse, which
   ;; means only invalidate cache after change point?
-  (when wisi-inhibit-invalidate
-    (wisi-invalidate-cache)))
+  (when (>= wisi-cache-max begin)
+    (save-excursion
+      (let ((need-invalidate t)
+	    ;; (info "(elisp)Parser State")
+	    (state (syntax-ppss begin)))
+	;; syntax-ppss has moved point to "begin".
+	(cond
+	 ((or
+	   (nth 3 state); in string
+	   (nth 4 state)); in comment
+	  (setq need-invalidate nil))
+
+	 ((progn
+	    (skip-syntax-forward " ")
+	    (eq (point) end))
+	  (setq need-invalidate nil))
+
+	 (t nil)
+	 )
+	(if (or wisi-change-need-invalidate
+		need-invalidate)
+	    (wisi-invalidate-cache)
+	  ;; else move cache-max by the net change length
+	  (setq wisi-cache-max
+		(+ wisi-cache-max (- end begin length))))
+	))))
 
 (defun wisi-get-cache (pos)
   ;; FIXME: is `pos' ever not (point)?
@@ -284,15 +345,16 @@ subprogram
 	  ;; that goes to the containing block statement start; the
 	  ;; others just store the marker for the first keyword.
 	  ;; FIXME: maintain a stack of block start markers?
-	  (put-text-property
-	   (car region)
-	   (cadr region)
-	   'wisi-cache
-	   (wisi-cache-create
-	    :symbol symbol
-	    :class class
-	    :start (or first-keyword-mark start-func)
-	    ))
+	  (with-silent-modifications
+	    (put-text-property
+	     (car region)
+	     (cadr region)
+	     'wisi-cache
+	     (wisi-cache-create
+	      :symbol symbol
+	      :class class
+	      :start (or first-keyword-mark start-func))
+	     ))
 
 	  (unless first-keyword-mark (setq first-keyword-mark mark))
 	))
@@ -379,10 +441,12 @@ references found in BODY, and XBODY is BODY expression with
 ;;;; motion
 (defun wisi-prev-keyword ()
   "Move point to the beginning of the keyword preceding point, skipping over non-keyword tokens.
-Return cache from the found keyword."
+Here 'keyword' means a token that has a wisi-cache text property.
+Return cache from the found keyword; nil if at beggining of buffer."
   (let (cache)
     (while (and (not (bobp))
 		(not cache))
+      ;; FIXME: use scan-text-property (or something like that)
       (wisi-backward-token)
       (setq cache (wisi-get-cache (point))))
     cache))
@@ -401,19 +465,31 @@ If KEYWORD non-nil, only go to first keyword."
 
    (t nil)))
 
-;;;; indentation
+;;;;; indentation
+
+(defun wisi-indent-current (offset)
+  "Return indentation OFFSET relative to indentation of current line."
+  (save-excursion
+    (back-to-indentation)
+    (+ (current-column) offset)))
+
+(defun wisi-indent-paren (offset)
+  "Return indentation OFFSET relative to preceding open paren."
+  (save-excursion
+    (let ((done nil)
+	  cache)
+      (while (not done)
+	(setq cache (wisi-prev-keyword))
+	(setq done
+	      (or (not cache);; bob
+		  (eq (wisi-cache-class cache) 'open-paren)))))
+    (+ (current-column) offset)))
 
 (defun wisi-indent-statement-start (offset cache)
   "Return indentation OFFSET relative to line containing start of current statement.
 CACHE contains cache info from a keyword in the current statement."
   (save-excursion
     (wisi-goto-statement-start cache)
-    (back-to-indentation)
-    (+ (current-column) offset)))
-
-(defun wisi-indent-current (offset)
-  "Return indentation OFFSET relative to indentation of current line."
-  (save-excursion
     (back-to-indentation)
     (+ (current-column) offset)))
 
@@ -436,15 +512,11 @@ CACHE contains cache info from a keyword in the current statement."
                          (if (>= (point) savep) (setq savep nil))
                          (or (run-hook-with-args-until-success 'wisi-indent-calculate-functions) 0)))
                      0)))
-
-    (let ((wisi-inhibit-invalidate t))
-      ;; We are only changing whitespace, so tell wisi-after-change
-      ;; not to invalidate cache.
-      (if savep
-	  ;; point was inside line text; leave it there
-	  (save-excursion (indent-line-to indent))
-	;; point was before line text; move to start of text
-	(indent-line-to indent)))
+    (if savep
+	;; point was inside line text; leave it there
+	(save-excursion (indent-line-to indent))
+      ;; point was before line text; move to start of text
+      (indent-line-to indent))
     ))
 
 ;;;; debug
@@ -458,10 +530,18 @@ CACHE contains cache info from a keyword in the current statement."
   (interactive)
   (message "%s" (wisi-get-cache (point))))
 
+(defun wisi-show-token ()
+  "Move forward across one keyword, show token_id."
+  (interactive)
+  (let ((token (wisi-forward-token)))
+    (message "%s" (car token))))
+
 ;;;; setup
 
 (defun wisi-setup (indent-calculate keyword-table token-table parse-table)
   "Set up a buffer for parsing files with wisi."
+
+  (setq wisent-parse-verbose-flag t); to get syntax error messages
 
   (unless (setq wisi-string-term (car (symbol-value (intern-soft "string" token-table))))
     (error "grammar does not define <string> token"))
@@ -473,6 +553,9 @@ CACHE contains cache info from a keyword in the current statement."
   (set (make-local-variable 'wisi-keyword-table) keyword-table)
   (set (make-local-variable 'wisi-parse-table) parse-table)
   (set (make-local-variable 'indent-line-function) 'wisi-indent-line)
+
+  (add-hook 'before-change-functions 'wisi-before-change nil t)
+  (add-hook 'after-change-functions 'wisi-after-change nil t)
 
   ;; FIXME: do we want this?
   ;; (semantic-make-local-hook 'wisi-discarding-token-functions)

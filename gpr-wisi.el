@@ -49,8 +49,8 @@
       (ecase (wisi-cache-class cache)
 	(block-start (wisi-indent-statement-start ada-indent (wisi-prev-keyword)))
 	(block-end (wisi-indent-statement-start 0 cache))
-	(statement-start nil); let after-keyword handle it
-	(other (wisi-indent-statement-start ada-indent cache))
+	(close-paren (wisi-indent-paren 0))
+	((open-paren statement-start) nil); let after-keyword handle it
 	))
     ))
 
@@ -60,9 +60,18 @@
 	;; bob
 	0
       (ecase (wisi-cache-class cache)
-	(block-start (wisi-indent-current ada-indent))
-	((block-end statement-end) (wisi-indent-current 0))
-	(other ;; hanging
+	((block-end
+	  statement-end)
+	 (wisi-indent-current 0))
+
+	(block-start
+	 (wisi-indent-current ada-indent))
+
+	(open-paren
+	 (wisi-indent-current 1))
+
+	((statement-start close-paren)
+	 ;; hanging
 	 (wisi-indent-statement-start ada-indent-broken cache))
 	))
     ))
@@ -72,7 +81,7 @@
   "Add debug key definitions to `gpr-mode-map'."
   (interactive)
   (define-key gpr-mode-map "\M-j" 'wisi-show-cache)
-  (define-key gpr-mode-map "\M-k" (lambda () (interactive) (wisi-forward-token)))
+  (define-key gpr-mode-map "\M-k" 'wisi-show-token)
   )
 
 ;;;;
@@ -84,8 +93,6 @@
 	      gpr-grammar-wy--keyword-table
 	      gpr-grammar-wy--token-table
 	      gpr-grammar-wy--parse-table)
-
-  (add-hook 'after-change-functions 'wisi-after-change nil t)
 
   (set (make-local-variable 'comment-indent-function) 'ada-wisi-comment-indent)
 

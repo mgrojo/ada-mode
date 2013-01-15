@@ -2588,13 +2588,12 @@ If a token is not in the alist, it is returned unrefined.")
 (defun ada-smie-put-cache (pos token)
   "Set TOKEN as the refined token string in the `ada-smie-cache' text property at POS.
 Return TOKEN."
-  (let ((inhibit-modification-hooks t))
-    ;; We are not changing any text, so neither font-lock nor
-    ;; ada-smie-after-change needs to be called.
-    (with-silent-modifications
-      (put-text-property pos (+ 1 pos) 'ada-smie-cache token))
-    (setq ada-smie-cache-max (max ada-smie-cache-max pos))
-    token))
+  ;; We are not changing any text, so neither font-lock nor
+  ;; ada-smie-after-change needs to be called.
+  (with-silent-modifications
+    (put-text-property pos (+ 1 pos) 'ada-smie-cache token))
+  (setq ada-smie-cache-max (max ada-smie-cache-max pos))
+  token)
 
 (defun ada-smie-after-change (begin end length)
   "For `after-change-functions'."
