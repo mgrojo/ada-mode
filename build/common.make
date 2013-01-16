@@ -9,18 +9,19 @@
 #
 # see test-indent.sh to test user directory nicely
 
-TEST_FILES := $(shell cd ../../test; ls *.ad[sb])
-TEST_FILES := $(TEST_FILES) $(shell cd ../../test; ls subdir/*.ad[sb])
-# TEST_FILES := $(TEST_FILES) $(shell cd ../../test; ls gpr/*.gpr) not implemented yet
+ADA_TEST_FILES := $(shell cd ../../test; ls *.ad[sb])
+ADA_TEST_FILES := $(ADA_TEST_FILES) $(shell cd ../../test; ls subdir/*.ad[sb])
 
 # this is for debug only
-TEST_FILES := $(filter-out debug.adb, $(TEST_FILES))
+ADA_TEST_FILES := $(filter-out debug.adb, $(ADA_TEST_FILES))
 
 # FIXME: delete currently broken tests
-TEST_FILES := $(filter-out which_test.adb, $(TEST_FILES)) # imenu-default-create-index-function
+ADA_TEST_FILES := $(filter-out which_test.adb, $(ADA_TEST_FILES)) # imenu-default-create-index-function
 # end FIXME:
 
-COMPILE_FILES := $(TEST_FILES)
+GPR_TEST_FILES := $(shell cd ../../test/gpr; ls *.gpr)
+
+COMPILE_FILES := $(ADA_TEST_FILES)
 COMPILE_FILES := $(subst subdir/,,$(COMPILE_FILES))
 
 COMPILE_FILES := $(filter-out ada_mode-ada83.ads, $(COMPILE_FILES))# font-lock only
@@ -55,7 +56,11 @@ vpath %.ads ../../test ../../test/subdir
 vpath %.adb ../../test ../../test/subdir
 vpath %.gpr ../../test/gpr
 
-test : $(addsuffix .diff, $(subst subdir/,,$(TEST_FILES))) test-elisp
+test : test-ada test-gpr test-elisp
+
+test-ada : $(addsuffix .diff, $(subst subdir/,,$(ADA_TEST_FILES)))
+
+test-gpr : $(addsuffix .diff, $(subst subdir/,,$(GPR_TEST_FILES)))
 
 # emacs to test with
 #

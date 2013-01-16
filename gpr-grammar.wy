@@ -68,6 +68,7 @@
 %keyword NULL "null"
 %keyword PACKAGE "package"
 %keyword PROJECT "project"
+%keyword QUOTE "'"
 %keyword STANDARD "standard"
 %keyword USE "use"
 %keyword WITH "with"
@@ -82,12 +83,35 @@
 ;;
 ;; The actions cache information in keywords that are significant for
 ;; indentation.
+;;
+;; BNF taken from (info "(gnat_ugn)"), with the following substitutions:
+;;
+;; simple_name -> IDENTIFIER
+;;
+;; and some simplifications. Repeating constructs are implemented with
+;; extra productions. Optional constructs are implemented by repeated
+;; productions
+
+;; WORKAROUND: semantic-grammar-batch-build-packages can't handle `,(
+;; in rules, so we use just `( here, and add the , in the makefile via sed.
+
 
 attribute_declaration
   : FOR IDENTIFIER USE expression SEMICOLON
-    `,(wisi-cache-action 1 'statement-start 5 'statement-end)
+    `(wisi-cache-action 1 'statement-start 5 'statement-end)
   | FOR IDENTIFIER LEFT_PAREN STRING_LITERAL RIGHT_PAREN USE expression SEMICOLON
-    `,(wisi-cache-action 1 'statement-start 8 'statement-end)
+    `(wisi-cache-action 1 'statement-start 8 'statement-end)
+  ;
+
+;; (info "(gnat_ugn)Attributes")
+attribute_prefix
+  : PROJECT
+  | name
+  ;
+
+attribute_reference
+  : attribute_prefix QUOTE IDENTIFIER
+  | attribute_prefix QUOTE IDENTIFIER LEFT_PAREN STRING_LITERAL RIGHT_PAREN
   ;
 
 compilation_unit
@@ -140,7 +164,7 @@ package_declaration
 
 package_spec
   : PACKAGE IDENTIFIER IS simple_declarative_items END IDENTIFIER SEMICOLON
-    `,(wisi-cache-action
+    `(wisi-cache-action
        1 'statement-start
        3 'block-start
        5 'block-end
@@ -168,7 +192,7 @@ project_qualifier
 ;; (info "(gnat_ugn)Declarations" "*info gpr*")
 simple_declarative_item
   : IDENTIFIER COLON_EQUALS expression SEMICOLON ;; variable_declaration
-    `,(wisi-cache-action
+    `(wisi-cache-action
        1 'statement-start
        4 'statement-end)
   | IDENTIFIER COLON IDENTIFIER COLON_EQUALS expression SEMICOLON ;; typed_variable_declaration
@@ -185,7 +209,7 @@ simple_declarative_items
 
 simple_project_declaration
   : PROJECT IDENTIFIER IS declarative_items END IDENTIFIER SEMICOLON
-    `,(wisi-cache-action
+    `(wisi-cache-action
        1 'statement-start
        3 'block-start
        5 'block-end
@@ -197,7 +221,7 @@ string_expression
   : STRING_LITERAL
   | name;; variable_name
  ;; | external_value FIXME: implement
-  ;; | attribute_reference FIXME: implement
+  | attribute_reference
   ;; | ( string_expression { & string_expression } ) FIXME: implement
   ;
 
@@ -213,7 +237,7 @@ string_list
 term
   : string_expression
   | LEFT_PAREN string_list RIGHT_PAREN
-    `,(wisi-cache-action
+    `(wisi-cache-action
        1 'open-paren
        3 'close-paren)
  ;;  | string_attribute_reference  FIXME: implement

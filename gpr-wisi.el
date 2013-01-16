@@ -94,7 +94,7 @@
 	      gpr-grammar-wy--token-table
 	      gpr-grammar-wy--parse-table)
 
-  (set (make-local-variable 'comment-indent-function) 'ada-wisi-comment-indent)
+  (set (make-local-variable 'comment-indent-function) 'wisi-comment-indent)
 
   ;; FIXME: implement?
   ;; (set (make-local-variable 'ada-next-statement-keyword) 'gpr-wisi-forward-statement-keyword-1)

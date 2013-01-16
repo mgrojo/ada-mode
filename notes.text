@@ -23,25 +23,40 @@ runtest from emacs -Q:
 (setq wisent-debug-flag t)
 output to *wisent-log* buffer, written to wisent.output if batch
 
-(setq semantic-idle-scheduler-idle-time 10000)
-    active in .wy files, interferes with debugging gpr parser!
+semantic mode in .wy is just broken
+    but "semantic-mode" is global, not buffer-local
+    so turn off background parser:
+        (setq semantic-idle-scheduler-idle-time 10000)
+
+    and delete change hook in buffer:
+    (setq after-change-functions (delete 'semantic-change-function after-change-functions))
+
+    force reparse:
+    (setq semantic-parse-tree-state 'needs-update)
+
+    see output of semantic lexer
+    (with-current-buffer "subprograms.wy"
+      (semantic-fetch-tags))
+    (remove-text-properties (point-min) (point-max) '(keymap))
 
  ada-smie/wisi
-new emacs release candidate 12.27 https://www.dropbox.com/sh/7jr3vbv9tm1zod0/jPuvfrJAe8
-
-ada-mode
-    need C-c C-d on <=
-
 gpr-mode
     build/wisi/Makefile
-
-    need to provide two wisent error functions; silent for normal use, debug
+        ada-display-buffer doesn't respect C-u C-u for this!?
 
     test/gpr/simple.gpr
+        (gpr-wisi-debug-keys)
+
+    test/gpr/gds.gpr
+        failing; add missing syntax to simple.gpr
+
+    need to provide two wisent error functions; silent for normal use, debug
 
     C-f6
 
     C-f11 on 'with'?
+
+    add-log-current-defun
 
     refs for posting to cedet-semantic list
         http://dickgrune.com/Books/PTAPG_1st_Edition/BookBody.pdf
@@ -50,6 +65,12 @@ gpr-mode
             section 4.7 LALR merges different productions with the same core; more than one reduce
                 but examples all have one reduce, excep 4.44
         wisent author is David Ponce <david@dponce.com>
+
+bug in semantic-grammar.wy
+    attempted patch:
+        %type  <qlist>       matchdatatype sexp syntax "\\s'\\s'?\\s-*("
+        didn't work (not clear if it's getting loaded)
+    posted on cedet-semantic
 
 gdb break command input still broken in
     http://debbugs.gnu.org/cgi/bugreport.cgi?bug=13303
@@ -89,6 +110,12 @@ gdb break command input still broken in
         use C hello world
             same, no 'error in process filter'
 
+    see email
+        try alternate gdb front-ends
+        try gdb 7.5 on debian
+
+ada-mode
+    need C-c C-d on <=
 
 gnat stub doesn't copy 'pragma License'
    can use standard header file; "see spec" is standard
@@ -385,6 +412,7 @@ http://savannah.gnu.org/projects/emacs/
 
 https://www.dropbox.com/sh/7jr3vbv9tm1zod0/jPuvfrJAe8
     w32 builds of cutting-edge emacs branches, pretests
+    16 Jan: not 24.2.92 yet
 
 ftp://alpha.gnu.org/gnu/emacs/pretest/
 

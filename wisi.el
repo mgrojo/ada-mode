@@ -379,23 +379,12 @@ grammar action."
     (cons 'wisi-cache-keywords list)
   ))
 
-;;(defun wisi-update-children ()
-    ;;   goto last token (";")
-    ;; find previous ";"
-    ;; (wisi-goto-statement-start nil); the first keyword, not the actual start
-    ;; set child marker on parent ";" - last contained child leading keyword
-
-    ;; loop
-    ;;     add parent marker
-    ;;     (wisi-goto-statement-start t)
-    ;;     backward-token - ";"
-    ;;         exit when none; begin or declare
-    ;;     (wisi-goto-statement-start nil)
-    ;; end loop
-
-    ;; goto parent token ("declare" for declarations, "begin" for statements, "then" for if, etc)
-    ;; set child marker on parent - first contained child leading keyword
-;;)
+;; patch wisent grammar; allow "`,(macro ...)" actions
+(require 'semantic)
+(define-lex-sexp-type-analyzer semantic-grammar-wy--<qlist>-sexp-analyzer
+  "sexp analyzer for <qlist> tokens."
+  "\\s'\\s'?\\s-*("
+  'PREFIXED_LIST)
 
 ;;;; motion
 (defun wisi-prev-keyword ()
@@ -415,7 +404,7 @@ Return cache from the found keyword; nil if at beggining of buffer."
 If KEYWORD non-nil, only go to first keyword."
   (cond
    ((markerp (wisi-cache-start cache))
-    (goto-char (wisi-cache-start cache))
+    (goto-char (1- (wisi-cache-start cache)))
     (wisi-goto-statement-start (wisi-get-cache (point)) keyword))
 
    ((and (not keyword)
@@ -425,6 +414,18 @@ If KEYWORD non-nil, only go to first keyword."
    (t nil)))
 
 ;;;;; indentation
+
+(defun wisi-comment-indent ()
+  "For `comment-indent-function'. Indent single line comment to
+the comment on the previous line."
+  ;; This should only be called by comment-indent-new-line or
+  ;; fill-comment-paragraph, so there will be a preceding comment line
+  ;; that we can trust.
+  (save-excursion
+    (forward-comment -1)
+    (if (looking-at comment-start)
+	(current-column)
+      (error "wisi-comment-indent called after non-comment"))))
 
 (defun wisi-indent-current (offset)
   "Return indentation OFFSET relative to indentation of current line."

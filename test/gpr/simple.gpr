@@ -1,4 +1,11 @@
 --  A very simple file, for gpr-wisi development/debugging
+--
+--  One of each type of gpr statement.
+--
+--  Newlines in odd places to check for indentation errors
+
+--EMACSCMD:major-mode
+--EMACSRESULT:'gpr-mode
 project Simple is
    package Compiler is
       Style_Checks := "-gnaty3abcefhiklM120nprtx";
@@ -6,6 +13,7 @@ project Simple is
       for Default_Switches ("Ada") use
         ("-gnat2012",
          "-gnatw.V", "-gnatyO"
-        ) & Style_Checks;
+        ) & Style_Checks
+          & Standard_Common.Compiler'Default_Switches;
    end Compiler;
 end Simple;
