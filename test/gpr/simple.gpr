@@ -7,6 +7,20 @@
 --EMACSCMD:major-mode
 --EMACSRESULT:'gpr-mode
 project Simple is
+
+   type GNAT_Version_Type
+     is ("7.0.1",
+         "6.2.2", "6.2.1",
+         "GPL-2012", "GPL-2011");
+
+   GNAT_Version : GNAT_Version_Type := external ("GNAT_VERSION");
+
+   for Source_Dirs use
+     ("../auto",
+      "../../1553");
+
+   for Object_Dir use "objects";
+
    package Compiler is
       Style_Checks := "-gnaty3abcefhiklM120nprtx";
 

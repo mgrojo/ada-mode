@@ -3,7 +3,7 @@
 all : gpr-grammar-wy.el compile-clean compile test-clean test
 
 one : simple.gpr.diff
-two : gds.gpr.diff
+two : test-gpr
 
 # use OpenToken to compile same grammar, to see how broken OpenToken is :(
 debug-grammar : wisi-gpr-grammar-generate.run
@@ -16,7 +16,7 @@ vpath %.wy ../../
 	rm -f ../../wisent.output
 	cd ../../; $(EMACS) -Q -batch -L build -L . -l load-paths-24.3.el -f semantic-grammar-batch-build-packages $(<F)
 	sed -i "s/(wisi-cache-action/,(wisi-cache-action/" ../../$@
-	rm -f $*-wy.elc
+	rm -f ../../$*-wy.elc
 
 wisi-%-generate.run : RUN_ARGS := -v
 wisi-%-generate.run : wisi-%-generate.exe

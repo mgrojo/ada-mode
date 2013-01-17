@@ -60,15 +60,17 @@
 	;; bob
 	0
       (ecase (wisi-cache-class cache)
-	((block-end
-	  statement-end)
+	(block-end
 	 (wisi-indent-current 0))
 
 	(block-start
 	 (wisi-indent-current ada-indent))
 
 	(open-paren
-	 (wisi-indent-current 1))
+	 (1+ (current-column)))
+
+	(statement-end
+	 (wisi-indent-statement-start 0 cache))
 
 	((statement-start close-paren)
 	 ;; hanging
