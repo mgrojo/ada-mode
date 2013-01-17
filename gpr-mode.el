@@ -107,8 +107,6 @@ current construct."
      )
     ))
 
-;;;; support for font-lock.el
-
 (defvar gpr-font-lock-keywords
   (progn
     (list
@@ -126,8 +124,8 @@ current construct."
      ;; Main keywords
      (list (concat "\\<"
 		   (regexp-opt
-		    '("abstract" "case" "external" "is" "library" "null" "others" "renames" "type"
-		      "use" "when" "with") t)
+		    '("abstract" "aggregate" "case" "configuration" "external" "is" "library" "null" "others"
+		      "renames" "standard" "type" "use" "when" "with") t)
 		   "\\>")
 	   '(1 font-lock-keyword-face))
      ;;
@@ -138,6 +136,46 @@ current construct."
      ))
   "Expressions to highlight in gpr mode.")
 
+(defun gpr-ff-special-with ()
+  (let ((project-name (match-string 1)))
+    (or
+     (ff-get-file-name
+      (getenv "ADA_PROJECT_PATH");; set by user or Ada project
+      (concat (match-string 1) ".gpr"))
+     (error "project '%s' not found; set project file?" package-name))
+    ))
+
+(defun gpr-set-ff-special-constructs ()
+  "Add gpr-specific pairs to `ff-special-constructs'."
+  (set (make-local-variable 'ff-special-constructs) nil)
+  (mapc (lambda (pair) (add-to-list 'ff-special-constructs pair))
+	;; Each car is a regexp; if it matches at point, the cdr is
+	;; invoked.  Each cdr should return the absolute file name to
+	;; go to.
+	(list
+	 ;; A "with" clause.
+	 (cons "^with[ \t]+\"\\(\\sw+\\)\";"
+	       'gpr-ff-special-with)
+	 )))
+
+(defun gpr-add-log-current-function ()
+  "For `add-log-current-defun-function'. Returns enclosing package or project name."
+  ;; add-log-current-defun is typically called with point at the start
+  ;; of an ediff change section, which is before the start of the
+  ;; declaration of a new item. So go to the end of the current line
+  ;; first
+  (save-excursion
+    (end-of-line 1)
+    (wisi-validate-cache (point))
+    (let ((token (wisi-prev-cache)))
+      (while (and token
+		  (not (member (wisi-cache-symbol (car token)) '("package" "project"))))
+	(setq token (wisi-prev-cache)))
+      (when token
+	(wisi-forward-token); package | project
+	(setq token (wisi-forward-token)); name
+	(nth 1 token))
+      )))
 ;;;;
 (defun gpr-mode ()
   "The major mode for editing GNAT project files."
@@ -163,6 +201,11 @@ current construct."
        '(gpr-font-lock-keywords
 	 nil t
 	 ((?\_ . "w"))))
+
+  (gpr-set-ff-special-constructs)
+
+  (set (make-local-variable 'add-log-current-defun-function)
+       'gpr-add-log-current-function)
 
   ;; used by autofill to break a comment line and continue it on
   ;; another line. The reason we need this one is that the default

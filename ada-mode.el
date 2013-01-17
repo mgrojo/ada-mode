@@ -1287,10 +1287,12 @@ unit name; it should return the Ada name that should be found in FILE-NAME.")
       (setq ff-function-name (match-string 0))
       )
     (file-name-nondirectory
-     (ff-get-file-name
-      compilation-search-path
-      (ada-file-name-from-ada-name package-name)
-      ada-body-suffixes))))
+     (or
+      (ff-get-file-name
+       compilation-search-path
+       (ada-file-name-from-ada-name package-name)
+       ada-body-suffixes)
+      (error "package '%s' not found; set project file?" package-name)))))
 
 (defun ada-ff-special-with ()
   (let ((package-name (match-string 1)))
@@ -1838,27 +1840,29 @@ into a subprogram body stub, by calling `ada-make-subprogram-body'."
 
 (defvar ada-make-package-body nil
   "Function to create a package body from a package spec.
-Called with no arguments; current buffer is the package spec.
-Should create a package body file, containing skeleton code that
-will compile.")
+Called with one argument; the absolute path to the body
+file. Current buffer is the package spec.  Should create the
+package body file, containing skeleton code that will compile.")
 
-(defun ada-make-package-body ()
+(defun ada-make-package-body (body-file-name)
   (if ada-make-package-body
-      (funcall ada-make-package-body)
+      (funcall ada-make-package-body body-file-name)
     (error "`ada-make-package-body' not set")))
 
 (defun ada-ff-create-body ()
   ;; ff-find-other-file calls us with point in an empty buffer for the
   ;; body file; ada-make-package-body expects to be in the spec. So go
   ;; back.
-  (ff-find-the-other-file)
-  (funcall ada-make-package-body)
-  ;; FIXME: if 'ada-make-package-body' fails, delete the body buffer
-  ;; so it doesn't get written to disk, and we can try again.
+  (let ((body-file-name (buffer-file-name)))
+    (ff-find-the-other-file)
+    (funcall ada-make-package-body body-file-name)
+    ;; FIXME: if 'ada-make-package-body' fails, delete the body buffer
+    ;; so it doesn't get written to disk, and we can try again.
 
-  ;; back to the body, read in from the disk.
-  (ff-find-the-other-file)
-  (revert-buffer t t))
+    ;; back to the body, read in from the disk.
+    (ff-find-the-other-file)
+    (revert-buffer t t)
+    ))
 
 ;;;; fill-comment
 

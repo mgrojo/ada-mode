@@ -40,34 +40,13 @@ semantic mode in .wy is just broken
     (remove-text-properties (point-min) (point-max) '(keymap))
 
  ada-smie/wisi
-gpr-mode
-    build/wisi/Makefile
-        ada-display-buffer doesn't respect C-u C-u for this!?
+build/wisi/Makefile
+    ada-display-buffer doesn't respect C-u C-u for this!?
 
-    test/gpr/simple.gpr
-
-    test/gpr/gds.gpr
-        failing; add missing syntax to simple.gpr
-
-    need to provide two wisent error functions; silent for normal use, debug
-
-    C-f6
-
-    C-f11 on 'with'?
-
-    add-log-current-defun
-
-    to match ada-mode for |, need to distinguish 'when', '=>'
+ada-wisi
+    to match ada-mode |, need to distinguish 'when', '=>'
         block-middle-start, block-middle-end?
         else => block-middle? statement-middle?
-
-    refs for posting to cedet-semantic list
-        http://dickgrune.com/Books/PTAPG_1st_Edition/BookBody.pdf
-            9.6 page 213 lookaheads are sets
-        red dragon: "Compilers Principles, Techniques, and Tools" by Aho, Sethi, and Ullman
-            section 4.7 LALR merges different productions with the same core; more than one reduce
-                but examples all have one reduce, excep 4.44
-        wisent author is David Ponce <david@dponce.com>
 
 bug in semantic-grammar.wy
     attempted patch:
@@ -271,6 +250,14 @@ emacs versions:
     21 Lynx 4.0
 
  opentoken for wisi
+    refs for posting to cedet-semantic list
+        http://dickgrune.com/Books/PTAPG_1st_Edition/BookBody.pdf
+            9.6 page 213 lookaheads are sets
+        red dragon: "Compilers Principles, Techniques, and Tools" by Aho, Sethi, and Ullman
+            section 4.7 LALR merges different productions with the same core; more than one reduce
+                but examples all have one reduce, excep 4.44
+        wisent author is David Ponce <david@dponce.com>
+
 
     /Projects/org.opentoken.stephe/build/windows_debug/Makefile
     /Projects/org.opentoken.stephe/wisi/test/ada-subset-wy.el

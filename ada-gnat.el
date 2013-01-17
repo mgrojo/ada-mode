@@ -261,19 +261,19 @@ Assumes current buffer is (ada-gnat-run-buffer)"
     (apply 'call-process "gnat" nil t nil cmd)
     ))
 
-(defun ada-gnat-run-no-prj (command &optional switches-args)
-  "Run the gnat command line tool, as \"gnat COMMAND SWITCHES-ARGS\".
-Return process status.
-Assumes current buffer is (ada-gnat-run-buffer)"
+(defun ada-gnat-run-no-prj (command &optional dir)
+  "Run the gnat command line tool, as \"gnat COMMAND\", with DIR as current directory.
+Return process status.  Assumes current buffer
+is (ada-gnat-run-buffer)"
   (set 'buffer-read-only nil)
   (erase-buffer)
 
-  (let ((cmd (append command switches-args)))
+  (let ((default-directory (or dir default-directory)))
 
-    (setq cmd (delete-if 'null cmd))
-    (mapc (lambda (str) (insert (concat str " "))) cmd);; show command for debugging
+    (setq command (delete-if 'null command))
+    (mapc (lambda (str) (insert (concat str " "))) command);; show command for debugging
     (newline)
-    (apply 'call-process "gnat" nil t nil cmd)
+    (apply 'call-process "gnat" nil t nil command)
     ))
 
 ;;;; uses of gnat tools
@@ -420,15 +420,20 @@ Assumes current buffer is (ada-gnat-run-buffer)"
 	(setq ada-name (replace-match "." t t ada-name)))
       ada-name)))
 
-(defun ada-gnat-make-package-body ()
+(defun ada-gnat-make-package-body (body-file-name)
   "For `ada-make-package-body'."
   ;; WORKAROUND: gnat stub 7.1w does not accept aggregate project files,
   ;; and doesn't use the gnatstub package if it is in a 'with'd
   ;; project file; see AdaCore ticket LC30-001. On the other hand we
   ;; need a project file to specify the source dirs so the tree file
   ;; can be generated. So we use ada-gnat-run-no-prj, and the user
-  ;; must specify the proper project file in gnat_stub_opts
-  (let ((start-file (buffer-file-name))
+  ;; must specify the proper project file in gnat_stub_opts.
+  ;;
+  ;; gnatstub always creates the body in the current directory (in the
+  ;; process where gnatstub is running); the -o parameter may not
+  ;; contain path info. So we pass a directory to ada-gnat-run-no-prj.
+  (let ((start-buffer (current-buffer))
+	(start-file (buffer-file-name))
 	;; can also specify gnat stub options/switches in .gpr file, in package 'gnatstub'.
 	(opts (when (ada-prj-get 'gnat_stub_opts)
 		(split-string (ada-prj-get 'gnat_stub_opts))))
@@ -443,11 +448,17 @@ Assumes current buffer is (ada-gnat-run-buffer)"
     (save-some-buffers t)
     (add-to-list 'opts "-f")
     (with-current-buffer (ada-gnat-run-buffer)
-      (setq status (ada-gnat-run-no-prj (append (list "stub") opts (list start-file "-cargs") switches)))
+      (setq status
+	    (ada-gnat-run-no-prj
+	     (append (list "stub") opts (list start-file "-cargs") switches)
+	     (file-name-directory body-file-name)))
 
       (cond
-       ((= status 0); success
-	nil)
+       ((= status 0); success - fix indentation
+	(find-file body-file-name)
+	(indent-region (point-min) (point-max))
+	(save-buffer)
+	(set-buffer start-buffer))
 
        (t ; failure
 	(pop-to-buffer (current-buffer))
