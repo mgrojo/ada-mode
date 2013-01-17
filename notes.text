@@ -45,7 +45,6 @@ gpr-mode
         ada-display-buffer doesn't respect C-u C-u for this!?
 
     test/gpr/simple.gpr
-        (gpr-wisi-debug-keys)
 
     test/gpr/gds.gpr
         failing; add missing syntax to simple.gpr
@@ -57,6 +56,10 @@ gpr-mode
     C-f11 on 'with'?
 
     add-log-current-defun
+
+    to match ada-mode for |, need to distinguish 'when', '=>'
+        block-middle-start, block-middle-end?
+        else => block-middle? statement-middle?
 
     refs for posting to cedet-semantic list
         http://dickgrune.com/Books/PTAPG_1st_Edition/BookBody.pdf

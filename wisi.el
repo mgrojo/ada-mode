@@ -172,7 +172,7 @@ If at end of buffer, returns `wisent-eoi-term'."
 	  (skip-syntax-forward "w_'"))
       (setq token-text (buffer-substring-no-properties start (point)))
       (setq token-id
-	    (or (symbol-value (intern-soft token-text wisi-keyword-table))
+	    (or (symbol-value (intern-soft (downcase token-text) wisi-keyword-table))
 		wisi-symbol-term)))
      );; cond
 
@@ -215,7 +215,7 @@ If at end of buffer, returns `wisent-eoi-term'."
    (:copier nil))
   symbol
 
-  class ;; 'block-start 'block-end 'block-both 'statement-end 'other
+  class ;; list of classes is language-specific
 
   start
   ;; a) if this is not first keyword; mark at the first keyword of the current statement
@@ -315,27 +315,17 @@ Parse buffer if necessary."
 
 ;;;; defining parse actions
 
-(defun wisi-cache-keywords (&rest items)
-  "Cache information used by wisi in text properties of keywords.
+(defun wisi-cache-tokens (&rest items)
+  "Cache information used by wisi in text properties of tokens.
 Intended as a wisent grammar non-terminal action.  ITEMS is a
-list [symbol class start-func (start end)] ... for keywords
-that should receive cached information. In a wisent grammar file, this
-is used as:
-
-subprogram
-  : PROCEDURE SYMBOL
-    (wisi-cache-keywords
-      $1 'procedure nil $region1
-      $2 'other nil $region2)
-"
-  ;; FIXME: update docstring with use of start-func
-
+list [symbol class (start end)] ... for tokens that should
+receive cached information. See macro `wisi-cache-action' for
+using this in a wisent grammar file."
   (save-excursion
     (let (first-keyword-mark)
       (while items
 	(let* ((symbol (pop items))
 	       (class (pop items))
-	       (start-func (pop items))
 	       (region (car (pop items)))
 	       (mark
 		(progn (goto-char (car region))
@@ -344,10 +334,12 @@ subprogram
 		       ;; mark, not after!
 		       (copy-marker (1+ (point))))))
 
-	  ;; The first keyword in a statement should have a start-func
-	  ;; that goes to the containing block statement start; the
-	  ;; others just store the marker for the first keyword.
-	  ;; FIXME: maintain a stack of block start markers?
+	  ;; :start is a marker to the first keyword in a
+	  ;; statement. The first keyword in a contained statement has
+	  ;; a marker to the first keyword in the containing
+	  ;; statement; the outermost containing statement has
+	  ;; nil. `wisi-update-start' sets the start markers in
+	  ;; contained statements.
 	  (with-silent-modifications
 	    (put-text-property
 	     (car region)
@@ -356,7 +348,7 @@ subprogram
 	     (wisi-cache-create
 	      :symbol symbol
 	      :class class
-	      :start (or first-keyword-mark start-func))
+	      :start first-keyword-mark)
 	     ))
 
 	  (unless first-keyword-mark (setq first-keyword-mark mark))
@@ -364,20 +356,53 @@ subprogram
       )))
 
 (defmacro wisi-cache-action (&rest pairs)
-  "Macro to define a wisi grammar action, which is a call to `wisi-cache-keywords'.
+  "Macro to define a wisi grammar action that is a call to `wisi-cache-tokens'.
 PAIRS is of the form [TOKEN-NUMBER CLASS] ...  where TOKEN-NUMBER
 is the token number in the production, CLASS is the wisi class of
-that token; see `wisi-cache'. Must be in backquotes in a wisent
-grammar action."
+that token. Use in a grammar action as:
+
+`,(wisi-cache-action 1 'statement-start 7 'statement-end)"
   (let (class list number region)
     (while pairs
       (setq number (pop pairs))
       (setq region (intern (concat "$region" (number-to-string number))))
       (setq number (intern (concat "$" (number-to-string number))))
       (setq class (pop pairs))
-      (setq list (append list (list number class nil region))))
-    (cons 'wisi-cache-keywords list)
+      (setq list (append list (list number class region))))
+    (cons 'wisi-cache-tokens list)
   ))
+
+(defun wisi-update-start (start-region end-region class)
+  "Set start marks in all tokens in (caar START-REGION) to (cadar
+END-REGION) with class CLASS to marker pointing to start of
+region.  See `wisi-update-action' for use in grammar action."
+  (save-excursion
+    (goto-char (nth 1 (car end-region)))
+    (let ((token (wisi-prev-cache))
+	  (mark (copy-marker (1+ (nth 0 (car start-region)))))
+	  token-region)
+      (while token
+	(setq cache (car token))
+	(setq token-region (cadr token))
+	(when (eq (wisi-cache-class cache) class)
+	  (setf (wisi-cache-start cache) mark)
+	  (with-silent-modifications
+	    (put-text-property (car token-region) (cadr token-region) 'wisi-cache cache)))
+	(setq token (wisi-prev-cache))
+	(when (< (point) (cadar start-region))
+	  (setq token nil))
+	))))
+
+(defmacro wisi-update-action (start-token end-token class)
+  "Macro to define a wisi grammar action that is a call to `wisi-update-start'.
+START-TOKEN is token number of first token in containing statement,
+END-TOKEN is token number of last token in containing statement,
+CLASS is the class of tokens to update."
+  ;; $region is often nil where we want to use this, so we use two token regions.
+  (list 'wisi-update-start
+	(intern (concat "$region" (number-to-string start-token)))
+	(intern (concat "$region" (number-to-string end-token)))
+	class))
 
 ;; patch wisent grammar; allow "`,(macro ...)" actions
 (require 'semantic)
@@ -387,31 +412,33 @@ grammar action."
   'PREFIXED_LIST)
 
 ;;;; motion
-(defun wisi-prev-keyword ()
-  "Move point to the beginning of the keyword preceding point, skipping over non-keyword tokens.
-Here 'keyword' means a token that has a wisi-cache text property.
-Return cache from the found keyword; nil if at beggining of buffer."
-  (let (cache)
-    (while (and (not (bobp))
-		(not cache))
-      ;; FIXME: use scan-text-property (or something like that)
-      (wisi-backward-token)
-      (setq cache (wisi-get-cache (point))))
-    cache))
+(defun wisi-prev-cache ()
+  "Move point to the beginning of the first token preceding point that has a cache.
+Returns (cache region); the found cache, and the text region
+containing it; or nil if at beginning of buffer."
+  (let (begin end)
+    (when (not (bobp))
+      (setq end (previous-single-property-change (point) 'wisi-cache))
+      (when end
+	(if (get-text-property (1- end) 'wisi-cache)
+	    (setq begin (previous-single-property-change end 'wisi-cache))
+	  ;; else single-character token
+	  (setq begin end))
+	(goto-char begin)
+	(list (get-text-property begin 'wisi-cache)
+	      (list begin end))))
+    ))
 
-(defun wisi-goto-statement-start (cache &optional keyword)
+(defun wisi-goto-statement-start (cache)
   "Move point to statement start of statement containing CACHE.
-If KEYWORD non-nil, only go to first keyword."
+If at start of a statement, goto start of containing statement"
   (cond
    ((markerp (wisi-cache-start cache))
-    (goto-char (1- (wisi-cache-start cache)))
-    (wisi-goto-statement-start (wisi-get-cache (point)) keyword))
+    (goto-char (1- (wisi-cache-start cache))))
 
-   ((and (not keyword)
-	 (functionp (wisi-cache-start cache)))
-    (funcall (wisi-cache-start cache)))
-
-   (t nil)))
+   (t
+    ;; at start of outermost containing statement
+    nil)))
 
 ;;;;; indentation
 
@@ -439,7 +466,7 @@ the comment on the previous line."
     (let ((done nil)
 	  cache)
       (while (not done)
-	(setq cache (wisi-prev-keyword))
+	(setq cache (car (wisi-prev-cache)))
 	(setq done
 	      (or (not cache);; bob
 		  (eq (wisi-cache-class cache) 'open-paren)))))

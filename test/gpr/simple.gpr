@@ -13,7 +13,8 @@ project Simple is
          "6.2.2", "6.2.1",
          "GPL-2012", "GPL-2011");
 
-   GNAT_Version : GNAT_Version_Type := external ("GNAT_VERSION");
+   -- Keywords are case-insensitive
+   GNAT_Version : GNAT_Version_Type := EXTERNAL ("GNAT_VERSION");
 
    for Source_Dirs use
      ("../auto",
@@ -24,10 +25,23 @@ project Simple is
    package Compiler is
       Style_Checks := "-gnaty3abcefhiklM120nprtx";
 
-      for Default_Switches ("Ada") use
-        ("-gnat2012",
-         "-gnatw.V", "-gnatyO"
-        ) & Style_Checks
-          & Standard_Common.Compiler'Default_Switches;
+      case GNAT_Version is
+         when "GPL-2012" | "7.0.1" =>
+            for Default_Switches ("Ada") use
+              ("-gnat2012",
+               -- comment in list
+               "-gnatw.V", "-gnatyO"
+              ) & Style_Checks
+                & Standard_Common.Compiler'Default_Switches;
+
+         when "GPL-2011" |
+            "6.2.2" | -- FIXME: continuation line; ada-indent-broken = 2
+            "6.2.1" =>
+            --  comment in case
+            for Default_Switches ("Ada") use ("-gnat2005", "-gnatyO");
+
+         when "4.3.2" =>
+            null;
+         end case;
    end Compiler;
 end Simple;

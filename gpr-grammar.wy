@@ -52,14 +52,17 @@
 %keyword COLON ":"
 %keyword COLON_EQUALS ":="
 %keyword COMMA ","
+%keyword EQUAL_GREATER "=>"
 %keyword LEFT_PAREN "("
 %keyword RIGHT_PAREN ")"
 %keyword SEMICOLON ";"
+%keyword VERTICAL_BAR "|"
 
 ;; gpr keywords (info "(gnat_ugn)Project File Reference")
 
 %keyword ABSTRACT "abstract"
 %keyword AGGREGATE "aggregate"
+%keyword CASE "case"
 %keyword CONFIGURATION "configuration"
 %keyword END "end"
 %keyword EXTERNAL "external"
@@ -67,12 +70,14 @@
 %keyword IS "is"
 %keyword LIBRARY "library"
 %keyword NULL "null"
+%keyword OTHERS "others"
 %keyword PACKAGE "package"
 %keyword PROJECT "project"
 %keyword QUOTE "'"
 %keyword STANDARD "standard"
 %keyword TYPE "type"
 %keyword USE "use"
+%keyword WHEN "when"
 %keyword WITH "with"
 
 %token <symbol> IDENTIFIER
@@ -116,6 +121,26 @@ attribute_reference
   | attribute_prefix QUOTE IDENTIFIER LEFT_PAREN STRING_LITERAL RIGHT_PAREN
   ;
 
+;; (info "(gnat_ugn)Case Statements")
+case_statement
+  : CASE name IS case_items END CASE SEMICOLON
+    (progn
+      `(wisi-cache-action 1 'statement-start 5 'statement-middle 7 'statement-end)
+      `(wisi-update-action 1 7 'statement-middle))
+  ;
+
+;; declarations allowed in a case statement are a subset of
+;; declarative_items, but this simplifies the grammar.
+case_item
+  : WHEN discrete_choice_list EQUAL_GREATER declarative_items
+    `(wisi-cache-action 1 'statement-middle)
+  ;
+
+case_items
+  : case_item
+  | case_items case_item
+  ;
+
 compilation_unit
   : context_clause project_declaration
   | project_declaration
@@ -138,6 +163,16 @@ declarative_items
   : declarative_item
   | declarative_items declarative_item
  ;; no action; no visible keywords
+  ;
+
+discrete_choice
+  : STRING_LITERAL
+  | OTHERS
+  ;
+
+discrete_choice_list
+  : discrete_choice
+  | discrete_choice_list VERTICAL_BAR discrete_choice
   ;
 
 ;; (info "(gnat_ugn)Expressions")
@@ -209,7 +244,7 @@ simple_declarative_item
        1 'statement-start
        6 'statement-end)
   | attribute_declaration
-  ;; | case_construction FIXME: implement
+  | case_statement
   | NULL SEMICOLON
   ;
 

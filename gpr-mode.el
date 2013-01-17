@@ -126,7 +126,7 @@ current construct."
      ;; Main keywords
      (list (concat "\\<"
 		   (regexp-opt
-		    '("abstract" "case" "external" "is" "library" "others" "renames" "type"
+		    '("abstract" "case" "external" "is" "library" "null" "others" "renames" "type"
 		      "use" "when" "with") t)
 		   "\\>")
 	   '(1 font-lock-keyword-face))

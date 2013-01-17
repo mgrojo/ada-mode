@@ -15,7 +15,7 @@ vpath %.wy ../../
 %-wy.el : %.wy
 	rm -f ../../wisent.output
 	cd ../../; $(EMACS) -Q -batch -L build -L . -l load-paths-24.3.el -f semantic-grammar-batch-build-packages $(<F)
-	sed -i "s/(wisi-cache-action/,(wisi-cache-action/" ../../$@
+	sed -i "s/(wisi/,(wisi/" ../../$@
 	rm -f ../../$*-wy.elc
 
 wisi-%-generate.run : RUN_ARGS := -v

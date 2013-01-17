@@ -47,15 +47,16 @@
   (let ((cache (wisi-get-cache (point))))
     (when cache
       (ecase (wisi-cache-class cache)
-	(block-start (wisi-indent-statement-start ada-indent (wisi-prev-keyword)))
+	(block-start (wisi-indent-statement-start ada-indent (car (wisi-prev-cache))))
 	(block-end (wisi-indent-statement-start 0 cache))
 	(close-paren (wisi-indent-paren 0))
 	((open-paren statement-start) nil); let after-keyword handle it
+	(statement-middle (wisi-indent-statement-start ada-indent-when cache))
 	))
     ))
 
 (defun gpr-wisi-after-keyword ()
-  (let ((cache (wisi-prev-keyword)))
+  (let ((cache (car (wisi-prev-cache))))
     (if (not cache)
 	;; bob
 	0
@@ -71,6 +72,9 @@
 
 	(statement-end
 	 (wisi-indent-statement-start 0 cache))
+
+	(statement-middle;; when, else
+	 (wisi-indent-current ada-indent))
 
 	((statement-start close-paren)
 	 ;; hanging
