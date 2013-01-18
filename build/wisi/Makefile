@@ -1,14 +1,15 @@
 # build and test the Emacs wisent Ada indentation and navigation engine
 
-all : gpr-grammar-wy.el compile-clean compile test-clean test
+all : ada-grammar-wy.el gpr-grammar-wy.el compile-clean compile test-clean test
 
-one : simple.gpr.diff
+one : ada_mode-generic_package.ads.diff
 two : test-gpr
 
 # use OpenToken to compile same grammar, to see how broken OpenToken is :(
 debug-grammar : wisi-gpr-grammar-generate.run
 
 vpath %.wy ../../
+vpath %-wy.el ../../
 
 # For Emacs 24.2, we use downloaded cedet-1.1 (on advice from cedet semantic mailing list)
 # WORKAROUND: semantic-grammar-batch-build-packages can't handle `, in rules; patch here

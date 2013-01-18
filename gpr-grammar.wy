@@ -45,13 +45,11 @@
 ;; identifier.
 
 ;; punctuation
-%keyword DOT "."
-;; Part of a name.
-
 %keyword AMPERSAND "&"
 %keyword COLON ":"
 %keyword COLON_EQUALS ":="
 %keyword COMMA ","
+%keyword DOT "."
 %keyword EQUAL_GREATER "=>"
 %keyword LEFT_PAREN "("
 %keyword QUOTE "'"

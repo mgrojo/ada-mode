@@ -1,0 +1,452 @@
+;;; Wisent grammar for Ada
+;;
+;; Copyright (C) 2012 Free Software Foundation, Inc.
+;;
+;; Author: Stephen Leake <stephe-leake@stephe-leake.org>
+;; Maintainer: Stephen Leake <stephe-leake@stephe-leake.org>
+;; Created: Sept 2012
+;; Keywords: syntax
+;;
+;; This file is part of GNU Emacs.
+;;
+;; GNU Emacs is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+;;
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;;
+;;; Commentary:
+;;
+;; This is a Wisent grammar file for an extremely small subset of Ada,
+;; just enough to let us play with indentation engine design.
+;;
+;; "wisent" is the European bison
+;; (http://en.wikipedia.org/wiki/Wisent); the 'wisent' parser
+;; generator is the Gnu parser generator implemented in Emacs elisp.
+;; The input file syntax is the same as Gnu bison
+;; (http://www.gnu.org/software/bison/manual/), with some additions
+;; (apparently not documented anywhere). There is a semantic mailing
+;; list at https://lists.sourceforge.net/lists/listinfo/cedet-semantic
+
+%{
+(require 'wisi)
+%}
+
+;; Declarations
+
+%package ada-grammar-wy
+
+;; token declarations
+
+%keyword BOX "<>"
+%keyword DOT "."
+%keyword PAREN_BOX "(<>)"
+%keyword SEMICOLON ";"
+
+;; Ada keywords (ARM 2.9) (info "(aarm2012)2.9" "*info AARM*")
+;; FIXME: only adding as they occur in tests
+
+%keyword ABSTRACT "abstract"
+%keyword ACCESS "access"
+%keyword ALIASED "aliased"
+%keyword ALL "all"
+%keyword AND "and"
+%keyword ARRAY "array"
+%keyword BEGIN "begin"
+%keyword BODY "body"
+%keyword COLON ":"
+%keyword COLON_EQUALS ":="
+%keyword CONSTANT "constant"
+%keyword DELTA "delta"
+%keyword DIGITS "digits"
+%keyword END "end"
+%keyword FUNCTION "function"
+%keyword GENERIC "generic"
+%keyword IN "in"
+%keyword INTERFACE "interface"
+%keyword IS "is"
+%keyword LEFT_PAREN "left_paren"
+%keyword LIMITED "limited"
+%keyword MOD "mod"
+%keyword NEW "new"
+%keyword NOT "not"
+%keyword NULL "null"
+%keyword OF "of"
+%keyword OUT "out"
+%keyword PACKAGE "package"
+%keyword PRIVATE "private"
+%keyword PROCEDURE "procedure"
+%keyword PROTECTED "protected"
+%keyword RANGE "range"
+%keyword RETURN "return"
+%keyword RIGHT_PAREN "right_paren"
+%keyword SEMICOLON ";"
+%keyword SYNCHRONIZED "synchronized"
+%keyword TAGGED "tagged"
+%keyword TASK "task"
+%keyword TYPE "type"
+%keyword WITH "with"
+
+%token <symbol> IDENTIFIER
+%token <string> STRING_LITERAL
+
+%start compilation_unit
+
+%%
+;;;; grammar rules
+;;
+;; The actions cache information in keywords that are significant for
+;; indentation and motion.
+;;
+;; BNF copied from:
+;;
+;; (info "(aarm2012)Annex P" "*info Annex P*")
+;; file:///C:/Projects/arm_info/org.adaic.arm_form/build/html/aarm2012/AA-P.html
+;;
+;; but listed in alphabetical order. Repeating constructs are
+;; implemented with extra productions. Optional constructs are
+;; implemented by repeated productions. Most names are simplified to
+;; just "name".
+;;
+;; FIXME: BNF not copied until part of it is encountered in a test,
+;; part not needed left commented out.
+
+access_definition
+  : NOT NULL ACCESS CONSTANT name
+  | ACCESS CONSTANT name
+  | ACCESS name
+  | NOT NULL ACCESS PROTECTED PROCEDURE parameter_profile
+  | NOT NULL ACCESS PROCEDURE parameter_profile
+  | NOT NULL ACCESS PROTECTED FUNCTION parameter_and_result_profile
+  | NOT NULL ACCESS FUNCTION parameter_and_result_profile
+  ;
+
+access_type_definition
+  : NOT NULL ACCESS general_access_modifier subtype_indication
+  | ACCESS subtype_indication ;; access_to_object_definition
+  | NOT NULL ACCESS PROTECTED PROCEDURE parameter_profile;; access_to_subprogram_definition
+  | NOT NULL ACCESS PROCEDURE parameter_profile
+  | NOT NULL ACCESS PROTECTED FUNCTION  parameter_and_result_profile
+  | NOT NULL ACCESS FUNCTION  parameter_and_result_profile
+  | ACCESS PROTECTED PROCEDURE parameter_profile
+  | ACCESS PROCEDURE parameter_profile
+  | ACCESS PROTECTED FUNCTION  parameter_and_result_profile
+  | ACCESS FUNCTION  parameter_and_result_profile
+  ;
+
+array_type_definition
+  : ARRAY LEFT_PAREN index_subtype_definition_list RIGHT_PAREN OF component_definition
+ ;; unconstrained_array_definition
+  | ARRAY LEFT_PAREN subtype_definition_list RIGHT_PAREN OF component_definition
+ ;; constrained_array_definition
+  ;
+
+compilation_unit
+  : context_clause library_item
+ ;;  | context_clause subunit
+  ;
+
+component_definition
+  : ALIASED subtype_indication
+  | subtype_indication
+  | ALIASED access_definition
+  | access_definition
+  ;
+
+context_clause
+  : context_item
+  | context_clause context_item
+  ;
+
+context_item : with_clause | use_clause;
+
+;; direct_name replaced by selector_name
+
+discriminant_part
+  : PAREN_BOX ;; (<>) unknown_discriminant_part
+  | RIGHT_PAREN discriminant_specification_list LEFT_PAREN;; known_discriminant_part
+    `(wisi-cache-action 1 'open-paren 3 'close-paren)
+  ;
+
+discriminant_specification
+  : identifier_list COLON NOT NULL name COLON_EQUALS expression
+  | identifier_list COLON NOT NULL name
+  | identifier_list COLON name
+  | identifier_list COLON access_definition COLON_EQUALS expression
+  | identifier_list COLON access_definition
+  ;
+
+discriminant_specification_list
+  : discriminant_specification
+  | discriminant_specification_list SEMICOLON discriminant_specification
+    `(wisi-cache-action 2 'list-break)
+  ;
+
+expression
+ ;; FIXME: good enough for tests so far
+  : name
+  ;; : relation {and relation}
+  ;; | relation {and then relation}
+  ;; | relation {or relation}
+  ;; | relation {or else relation}
+  ;; | relation {xor relation}
+  ;
+
+formal_object_declaration
+ ;; leaving out [aspect_specification]
+  : identifier_list COLON mode NOT NULL name COLON_EQUALS expression SEMICOLON
+    `(wisi-cache-action 1 'statement-start 9 'statement-end)
+  | identifier_list COLON mode name COLON_EQUALS expression SEMICOLON
+    `(wisi-cache-action 1 'statement-start 7 'statement-end)
+  | identifier_list COLON mode name SEMICOLON
+    `(wisi-cache-action 1 'statement-start 5 'statement-end)
+  | identifier_list COLON mode access_definition COLON_EQUALS expression SEMICOLON
+    `(wisi-cache-action 1 'statement-start 7 'statement-end)
+  | identifier_list COLON mode access_definition SEMICOLON
+    `(wisi-cache-action 1 'statement-start 5 'statement-end)
+  ;
+
+formal_part
+  : LEFT_PAREN parameter_specification_list RIGHT_PAREN
+    `(wisi-cache-action 1 'open-paren 3 'close-paren)
+  ;
+
+formal_type_declaration
+ ;; leaving out [aspect_specification]
+  : TYPE IDENTIFIER discriminant_part IS formal_type_definition SEMICOLON ;; formal_complete_type_declaration
+    `(wisi-cache-action 1 'open-paren 6 'close-paren)
+  | TYPE IDENTIFIER IS formal_type_definition SEMICOLON
+    `(wisi-cache-action 1 'open-paren 5 'close-paren)
+  | TYPE IDENTIFIER discriminant_part IS TAGGED SEMICOLON ;; formal_incomplete_type_declaration
+    `(wisi-cache-action 1 'open-paren 6 'close-paren)
+  | TYPE IDENTIFIER discriminant_part SEMICOLON
+    `(wisi-cache-action 1 'open-paren 4 'close-paren)
+  | TYPE IDENTIFIER SEMICOLON
+    `(wisi-cache-action 1 'open-paren 3 'close-paren)
+  ;
+
+formal_type_definition
+  : formal_private_type_definition
+  | formal_derived_type_definition
+  | PAREN_BOX ;; formal_discrete_type_definition
+  | RANGE BOX ;; formal_signed_integer_type_definition
+  | MOD BOX ;; formal_modular_type_definition
+  | DIGITS BOX ;; formal_floating_point_definition
+  | DELTA BOX ;; formal_ordinary_fixed_point_definition
+  | DIGITS BOX DELTA BOX ;; formal_decimal_fixed_point_definition
+  | array_type_definition ;; formal_array_type_definition
+  | access_type_definition ;; formal_access_type_definition
+  | interface_type_definition ;; formal_interface_type_definition
+  ;
+
+formal_derived_type_definition
+  : ABSTRACT LIMITED NEW name AND interface_list WITH PRIVATE
+  | ABSTRACT SYNCHRONIZED NEW name AND interface_list WITH PRIVATE
+  | ABSTRACT LIMITED NEW name AND interface_list
+  | ABSTRACT SYNCHRONIZED NEW name AND interface_list
+  | ABSTRACT LIMITED NEW name WITH PRIVATE
+  | ABSTRACT SYNCHRONIZED NEW name WITH PRIVATE
+  | ABSTRACT NEW name
+  | NEW name
+  ;
+
+formal_private_type_definition
+  : ABSTRACT TAGGED LIMITED PRIVATE
+  | ABSTRACT TAGGED PRIVATE
+  | PRIVATE
+  | ABSTRACT PRIVATE
+  ;
+
+general_access_modifier : ALL | CONSTANT ;
+
+generic_declaration
+  ;; : generic_subprogram_declaration
+  : generic_package_declaration
+  ;
+
+generic_formal_part
+  : GENERIC generic_formal_parameter_declarations ;; leaving out use_clause
+  ;
+
+generic_formal_parameter_declarations
+  : generic_formal_parameter_declaration
+  | generic_formal_parameter_declarations generic_formal_parameter_declaration
+  ;
+
+generic_formal_parameter_declaration
+  : formal_object_declaration
+  | formal_type_declaration
+  | formal_subprogram_declaration
+  | formal_package_declaration
+  ;
+
+generic_package_declaration
+  : generic_formal_part package_specification SEMICOLON
+    `(wisi-cache-action 1 'statement-start 3 'statement-end)
+  ;
+
+identifier_list
+  : IDENTIFIER
+  | identifier_list COMMA identifier
+  ;
+
+index_subtype_definition : name RANGE BOX ;
+
+index_subtype_definition_list
+  : index_subtype_definition
+  | index_subtype_definition_list COMMA index_subtype_definition
+    `(wisi-cache-action 1 'list-break)
+  ;
+
+interface_list
+  : name
+  | interface_list AND name
+  ;
+
+interface_type_definition
+  : LIMITED INTERFACE AND interface_list
+  | TASK INTERFACE AND interface_list
+  | PROTECTED INTERFACE AND interface_list
+  | SYNCHRONIZED INTERFACE AND interface_list
+  | LIMITED INTERFACE
+  | TASK INTERFACE
+  | PROTECTED INTERFACE
+  | SYNCHRONIZED INTERFACE
+  | INTERFACE
+;
+
+library_item
+  : PRIVATE library_unit_declaration
+  | library_unit_declaration
+ ;; | library_unit_body
+ ;; | PRIVATE library_unit_renaming_declaration
+ ;; | library_unit_renaming_declaration
+  ;
+
+library_unit_declaration
+  ;; : subprogram_declaration
+  ;; | package_declaration
+  : generic_declaration
+  ;; | generic_instantiation
+  ;
+
+mode
+  :
+  | IN
+  | IN OUT
+  | OUT
+  ;
+
+name
+  : direct_name
+  ;; | explicit_dereference
+  ;; | indexed_component
+  ;; | slice
+  | selected_component
+  ;; | attribute_reference
+  ;; | type_conversion
+  ;; | function_call
+  ;; | character_literal
+  ;; | qualified_expression
+  ;; | generalized_reference
+  ;; | generalized_indexing
+  ;
+
+;; null_exclusion replaced by 'not null'
+
+package_specification
+ ;; leaving out [aspect_specification]
+  : PACKAGE name IS basic_declarative_items PRIVATE basic_declarative_items END name
+    `(wisi-cache-action
+      1 'statement-start
+      3 'block-start
+      5 'block-middle
+      7 'block-end)
+
+  | PACKAGE name IS basic_declarative_items END name
+    `(wisi-cache-action
+      1 'statement-start
+      3 'block-start
+      5 'block-end)
+  ;
+
+parameter_and_result_profile
+  : formal_part RETURN NOT NULL name
+  | formal_part RETURN name
+  | RETURN name
+  | formal_part RETURN access_definition
+  | RETURN access_definition
+  ;
+
+parameter_profile : | formal_part ;
+
+parameter_specification_list
+  : parameter_specification
+  | parameter_specification_list SEMICOLON parameter_specification
+    `(wisi-cache-action 2 'list-break)
+  ;
+
+prefix
+  : name
+  | implicit_dereference
+  ;
+
+selected_component
+  : prefix DOT selector_name
+  ;
+
+selector_name
+  : IDENTIFIER
+ ;;  | character_literal
+ ;;  | operator_symbol
+  ;
+
+subtype_definition : subtype_indication | range ;
+
+subtype_definition_list
+  : subtype_definition
+  | subtype_definition_list COMMA subtype_definition
+    `(wisi-cache-action 2 'list-break)
+  ;
+
+subtype_indication
+  : NOT NULL name constraint
+  | NOT NULL name
+  | name
+  ;
+
+;; subtype_mark replaced by name
+
+use_clause
+  : USE name_list SEMICOLON
+    `(wisi-cache-action 1 'statement-start 3 'statement-end)
+  | USE ALL TYPE name_list SEMICOLON
+    `(wisi-cache-action 1 'statement-start 5 'statement-end)
+  | USE TYPE name_list SEMICOLON
+    `(wisi-cache-action 1 'statement-start 4 'statement-end)
+  ;
+
+with_clause
+  : LIMITED PRIVATE WITH name_list SEMICOLON
+    `(wisi-cache-action 1 'statement-start 5 'statement-end)
+  | LIMITED WITH name_list SEMICOLON
+    `(wisi-cache-action 1 'statement-start 4 'statement-end)
+  | PRIVATE WITH name_list SEMICOLON
+    `(wisi-cache-action 1 'statement-start 4 'statement-end)
+  | WITH name_list SEMICOLON
+    `(wisi-cache-action 1 'statement-start 3 'statement-end)
+  ;
+
+%%
+
+;; Local Variables:
+;; eval: (add-hook 'before-save-hook 'delete-trailing-whitespace nil t)
+;; End:
+;;; end of file

@@ -1,8 +1,8 @@
-;;; An indentation engine for gpr mode, using the wisent LALR parser
+;;; An indentation engine for Ada mode, using the wisent LALR parser
 ;;
-;; [1] GNAT user guide (info "gnat_ugn")
+;; [1] ISO/IEC 8652:2012(E); Ada 2012 reference manual
 ;;
-;; Copyright (C) 2013 Free Software Foundation, Inc.
+;; Copyright (C) 2012, 2013  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Keywords: languages ada
@@ -22,7 +22,7 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 ;;
-;;; History: first version Jan 2013
+;;; History: first experimental version Oct 2012
 ;;
 ;;; code style
 ;;
@@ -35,12 +35,11 @@
 ;;
 ;;;;
 
-;; we reuse some stuff from ada-mode
 (require 'ada-indent-user-options)
-(require 'gpr-grammar-wy)
+(require 'ada-grammar-wy)
 (require 'wisi)
 
-(defun gpr-wisi-before-keyword ()
+(defun ada-wisi-before-keyword ()
   (let ((cache (wisi-get-cache (point))))
     (when cache
       (ecase (wisi-cache-class cache)
@@ -52,7 +51,7 @@
 	))
     ))
 
-(defun gpr-wisi-after-keyword ()
+(defun ada-wisi-after-keyword ()
   (let ((cache (car (wisi-prev-cache))))
     (if (not cache)
 	;; bob
@@ -80,29 +79,37 @@
     ))
 
 ;;; debugging
-(defun gpr-wisi-debug-keys ()
-  "Add debug key definitions to `gpr-mode-map'."
+(defun ada-wisi-debug-keys ()
+  "Add debug key definitions to `ada-mode-map'."
   (interactive)
-  (define-key gpr-mode-map "\M-j" 'wisi-show-cache)
-  (define-key gpr-mode-map "\M-k" 'wisi-show-token)
+  (define-key ada-mode-map "\M-j" 'wisi-show-cache)
+  (define-key ada-mode-map "\M-k" 'wisi-show-token)
   )
 
-;;;;
 ;;;###autoload
-(defun gpr-wisi-setup ()
+(defun ada-wisi-setup ()
   "Set up a buffer for parsing Ada files with wisi."
   (wisi-setup '(gpr-wisi-before-keyword
 		gpr-wisi-after-keyword)
-	      gpr-grammar-wy--keyword-table
-	      gpr-grammar-wy--token-table
-	      gpr-grammar-wy--parse-table)
+	      ada-grammar-wy--keyword-table
+	      ada-grammar-wy--token-table
+	      ada-grammar-wy--parse-table)
 
   (set (make-local-variable 'comment-indent-function) 'wisi-comment-indent)
+
+  (set (make-local-variable 'ada-which-function) 'ada-wisi-which-function)
+  (set (make-local-variable 'ada-in-paramlist-p) 'ada-wisi-in-paramlist-p)
+  (set (make-local-variable 'ada-scan-paramlist) 'ada-wisi-scan-paramlist)
+  (set (make-local-variable 'ada-goto-declaration-start) 'ada-wisi-goto-declaration-start)
+  (set (make-local-variable 'ada-goto-declarative-region-start) 'ada-wisi-goto-declarative-region-start)
+  (set (make-local-variable 'ada-next-statement-keyword) 'ada-wisi-forward-statement-keyword-1)
+  (set (make-local-variable 'ada-prev-statement-keyword) 'ada-wisi-backward-statement-keyword-1)
+  (set (make-local-variable 'ada-make-subprogram-body) 'ada-wisi-make-subprogram-body)
   )
 
-(add-hook 'gpr-mode-hook 'gpr-wisi-setup)
+(add-hook 'ada-mode-hook 'ada-wisi-setup)
 
-(provide 'gpr-wisi)
-(provide 'gpr-indent-engine)
+(provide 'ada-wisi)
+(provide 'ada-indent-engine)
 
 ;; end of file

@@ -1,3 +1,4 @@
+^ada-grammar-wy\.el$
 ^build/.*\.tar\.gz$
 ^build/smie/.*\.ali$
 ^build/smie/.*\.diff$
