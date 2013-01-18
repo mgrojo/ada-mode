@@ -40,10 +40,16 @@ semantic mode in .wy is just broken
     (remove-text-properties (point-min) (point-max) '(keymap))
 
  ada-smie/wisi
+arm_info
+         unary_adding_operator ::=     +   | --
+
 build/wisi/Makefile
     ada-display-buffer doesn't respect C-u C-u for this!?
 
 ada-wisi
+    Grammar in ../../ada-grammar-wy.el contains 10 shift/reduce conflicts and 19 reduce/reduce conflicts
+        wisent.output
+
     to match ada-mode |, need to distinguish 'when', '=>'
         block-middle-start, block-middle-end?
         else => block-middle? statement-middle?

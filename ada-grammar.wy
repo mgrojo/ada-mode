@@ -45,14 +45,32 @@
 
 ;; token declarations
 
+%keyword AMPERSAND "&"
 %keyword BOX "<>"
+%keyword BAR "|"
+%keyword COMMA ","
 %keyword DOT "."
+%keyword DOT_DOT ".."
+%keyword EQUAL "="
+%keyword EQUAL_GREATER "=>"
+%keyword GREATER ">"
+%keyword GREATER_EQUAL ">="
+%keyword LESS "<"
+%keyword LESS_EQUAL "<="
+%keyword MINUS "-"
 %keyword PAREN_BOX "(<>)"
+%keyword PLUS "+"
 %keyword SEMICOLON ";"
+%keyword SLASH "/"
+%keyword SLASH_EQUAL "/="
+%keyword STAR "*"
+%keyword STAR_STAR "**"
+%keyword TICK "'"
 
 ;; Ada keywords (ARM 2.9) (info "(aarm2012)2.9" "*info AARM*")
 ;; FIXME: only adding as they occur in tests
 
+%keyword ABS "abs"
 %keyword ABSTRACT "abstract"
 %keyword ACCESS "access"
 %keyword ALIASED "aliased"
@@ -61,8 +79,9 @@
 %keyword ARRAY "array"
 %keyword BEGIN "begin"
 %keyword BODY "body"
+%keyword CASE "case"
 %keyword COLON ":"
-%keyword COLON_EQUALS ":="
+%keyword COLON_EQUAL ":="
 %keyword CONSTANT "constant"
 %keyword DELTA "delta"
 %keyword DIGITS "digits"
@@ -79,12 +98,16 @@
 %keyword NOT "not"
 %keyword NULL "null"
 %keyword OF "of"
+%keyword OTHERS "others"
 %keyword OUT "out"
+%keyword OVERRIDING "overriding"
 %keyword PACKAGE "package"
 %keyword PRIVATE "private"
 %keyword PROCEDURE "procedure"
 %keyword PROTECTED "protected"
 %keyword RANGE "range"
+%keyword REM "rem"
+%keyword RECORD "record"
 %keyword RETURN "return"
 %keyword RIGHT_PAREN "right_paren"
 %keyword SEMICOLON ";"
@@ -92,10 +115,14 @@
 %keyword TAGGED "tagged"
 %keyword TASK "task"
 %keyword TYPE "type"
+%keyword USE "use"
+%keyword WHEN "when"
 %keyword WITH "with"
 
 %token <symbol> IDENTIFIER
 %token <string> STRING_LITERAL
+%token <character_literal> CHARACTER_LITERAL
+%token <numeric_literal> NUMERIC_LITERAL
 
 %start compilation_unit
 
@@ -148,9 +175,31 @@ array_type_definition
  ;; constrained_array_definition
   ;
 
+association
+  : name EQUAL_GREATER name
+  | name EQUAL_GREATER BOX
+  | OTHERS EQUAL_GREATER BOX
+  ;
+
+association_list
+  : association
+  | association_list COMMA association
+  ;
+
+;; basic_declarative_item merged into declaration
+;; basic_declaration merged into declaration
+
+binary_adding_operator : PLUS | MINUS | AMPERSAND ; ;; + | - | &
+
 compilation_unit
   : context_clause library_item
  ;;  | context_clause subunit
+  ;
+
+component_declaration
+ ;; leaving out [aspect_specification]
+  : identifier_list COLON component_definition COLON_EQUAL expression SEMICOLON
+  | identifier_list COLON component_definition SEMICOLON
   ;
 
 component_definition
@@ -158,6 +207,26 @@ component_definition
   | subtype_indication
   | ALIASED access_definition
   | access_definition
+  ;
+
+component_item
+  : component_declaration
+ ;;  | aspect_clause
+  ;
+
+component_list
+  : component_item
+  | component_list component_item
+  | component_list variant_part
+  | NULL SEMICOLON
+  ;
+
+constraint
+  : RANGE range ;; range_constraint
+  ;; | digits_constraint
+  ;; | delta_constraint
+  ;; | index_constraint
+  ;; | discriminant_constraint
   ;
 
 context_clause
@@ -169,6 +238,50 @@ context_item : with_clause | use_clause;
 
 ;; direct_name replaced by selector_name
 
+declaration
+  ;; | abstract_subprogram_declaration
+  ;; | aspect_clause
+  ;; | entry_declaration
+  ;; | exception_declaration
+  ;; | expression_function_declaration
+  : generic_declaration
+  ;; | generic_instantiation
+  ;; | null_procedure_declaration
+  ;; | number_declaration
+  | object_declaration
+  ;; | package_declaration
+  ;; | renaming_declaration
+  | subprogram_declaration
+  ;; | subtype_declaration
+  | type_declaration
+  ;; | use_clause
+  ;
+
+declarations
+  : declaration
+  | declarations declaration
+  ;
+
+derived_type_definition
+  : ABSTRACT LIMITED NEW name AND interface_list WITH record_definition
+  | ABSTRACT LIMITED NEW name WITH record_definition
+  | ABSTRACT LIMITED NEW name
+  | ABSTRACT NEW name
+  | NEW name
+  ;
+
+discrete_choice_list
+  : discrete_choice
+  | discrete_choice_list BAR discrete_choice
+  ;
+
+discrete_choice
+  : expression ;; choice_expression
+  | name ;; discrete_subtype_indication
+  | range
+  | OTHERS
+  ;
+
 discriminant_part
   : PAREN_BOX ;; (<>) unknown_discriminant_part
   | RIGHT_PAREN discriminant_specification_list LEFT_PAREN;; known_discriminant_part
@@ -176,10 +289,10 @@ discriminant_part
   ;
 
 discriminant_specification
-  : identifier_list COLON NOT NULL name COLON_EQUALS expression
+  : identifier_list COLON NOT NULL name COLON_EQUAL expression
   | identifier_list COLON NOT NULL name
   | identifier_list COLON name
-  | identifier_list COLON access_definition COLON_EQUALS expression
+  | identifier_list COLON access_definition COLON_EQUAL expression
   | identifier_list COLON access_definition
   ;
 
@@ -189,25 +302,46 @@ discriminant_specification_list
     `(wisi-cache-action 2 'list-break)
   ;
 
+enumeration_type_definition
+  : LEFT_PAREN enumeration_literal_list RIGHT_PAREN
+    `(wisi-cache-action 1 'open-paren 3 'close-paren)
+  ;
+
+enumeration_literal ;; enumeration_literal_specification
+  : IDENTIFIER
+  | CHARACTER_LITERAL
+  ;
+
+enumeration_literal_list
+  : enumeration_literal
+  | enumeration_literal COMMA enumeration_literal
+  ;
+
 expression
- ;; FIXME: good enough for tests so far
-  : name
-  ;; : relation {and relation}
+  : relation
+  | expression AND relation
   ;; | relation {and then relation}
   ;; | relation {or relation}
   ;; | relation {or else relation}
   ;; | relation {xor relation}
   ;
 
+factor
+  : primary STAR_STAR primary
+  | primary
+  | ABS primary
+  | NOT primary
+  ;
+
 formal_object_declaration
  ;; leaving out [aspect_specification]
-  : identifier_list COLON mode NOT NULL name COLON_EQUALS expression SEMICOLON
+  : identifier_list COLON mode NOT NULL name COLON_EQUAL expression SEMICOLON
     `(wisi-cache-action 1 'statement-start 9 'statement-end)
-  | identifier_list COLON mode name COLON_EQUALS expression SEMICOLON
+  | identifier_list COLON mode name COLON_EQUAL expression SEMICOLON
     `(wisi-cache-action 1 'statement-start 7 'statement-end)
   | identifier_list COLON mode name SEMICOLON
     `(wisi-cache-action 1 'statement-start 5 'statement-end)
-  | identifier_list COLON mode access_definition COLON_EQUALS expression SEMICOLON
+  | identifier_list COLON mode access_definition COLON_EQUAL expression SEMICOLON
     `(wisi-cache-action 1 'statement-start 7 'statement-end)
   | identifier_list COLON mode access_definition SEMICOLON
     `(wisi-cache-action 1 'statement-start 5 'statement-end)
@@ -216,6 +350,14 @@ formal_object_declaration
 formal_part
   : LEFT_PAREN parameter_specification_list RIGHT_PAREN
     `(wisi-cache-action 1 'open-paren 3 'close-paren)
+  ;
+
+formal_subprogram_declaration
+ ;; leaving out [aspect_specification]
+  : WITH subprogram_specification IS subprogram_default SEMICOLON ;; formal_concrete_subprogram_declaration
+  | WITH subprogram_specification SEMICOLON ;; formal_concrete_subprogram_declaration
+  | WITH subprogram_specification IS ABSTRACT subprogram_default SEMICOLON ;; formal_abstract_subprogram_declaration
+  | WITH subprogram_specification IS ABSTRACT SEMICOLON ;; formal_abstract_subprogram_declaration
   ;
 
 formal_type_declaration
@@ -257,11 +399,34 @@ formal_derived_type_definition
   | NEW name
   ;
 
+formal_package_declaration
+ ;; leaving out [aspect_specification]
+  : WITH PACKAGE name IS NEW name formal_package_actual_part SEMICOLON
+  ;
+
+formal_package_actual_part
+  : LEFT_PAREN OTHERS EQUAL_GREATER BOX RIGHT_PAREN ;; (others => <>)
+  | PAREN_BOX ;; (<>)
+  | LEFT_PAREN association_list RIGHT_PAREN ;; generic_actual_part
+    `(wisi-cache-action 1 'open-paren 3 'close-paren)
+  |
+  | LEFT_PAREN association_list RIGHT_PAREN ;; formal_package_association_list is association_list
+    `(wisi-cache-action 1 'open-paren 3 'close-paren)
+  ;
+
 formal_private_type_definition
   : ABSTRACT TAGGED LIMITED PRIVATE
   | ABSTRACT TAGGED PRIVATE
   | PRIVATE
   | ABSTRACT PRIVATE
+  ;
+
+full_type_declaration
+ ;; leaving out [aspect_specification]
+  : TYPE IDENTIFIER discriminant_part IS type_definition SEMICOLON
+  | TYPE IDENTIFIER IS type_definition SEMICOLON
+  | task_type_declaration
+  | protected_type_declaration
   ;
 
 general_access_modifier : ALL | CONSTANT ;
@@ -294,7 +459,7 @@ generic_package_declaration
 
 identifier_list
   : IDENTIFIER
-  | identifier_list COMMA identifier
+  | identifier_list COMMA IDENTIFIER
   ;
 
 index_subtype_definition : name RANGE BOX ;
@@ -337,6 +502,17 @@ library_unit_declaration
   ;; | generic_instantiation
   ;
 
+membership_choice_list
+  : membership_choice
+  | membership_choice BAR membership_choice
+  ;
+
+membership_choice
+  : expression ;; choice_expression
+  | range
+  | name ;; subtype_mark
+  ;
+
 mode
   :
   | IN
@@ -344,8 +520,15 @@ mode
   | OUT
   ;
 
+multiplying_operator : STAR | SLASH | MOD | REM ; ;; * | / | mod | rem
+
+name_list
+  : name
+  | name_list COMMA name
+  ;
+
 name
-  : direct_name
+  : IDENTIFIER
   ;; | explicit_dereference
   ;; | indexed_component
   ;; | slice
@@ -353,7 +536,7 @@ name
   ;; | attribute_reference
   ;; | type_conversion
   ;; | function_call
-  ;; | character_literal
+  ;; | CHARACTER_LITERAL
   ;; | qualified_expression
   ;; | generalized_reference
   ;; | generalized_indexing
@@ -361,16 +544,33 @@ name
 
 ;; null_exclusion replaced by 'not null'
 
+object_declaration
+ ;; leaving out [aspect_specification]
+  : identifier_list COLON ALIASED CONSTANT name COLON_EQUAL expression SEMICOLON
+  | identifier_list COLON ALIASED CONSTANT name SEMICOLON
+  | identifier_list COLON ALIASED name SEMICOLON
+  | identifier_list COLON name SEMICOLON
+  ;; | identifier_list COLON [ALIASED] [CONSTANT] access_definition [COLON_EQUAL expression] SEMICOLON
+  ;; | identifier_list COLON [ALIASED] [CONSTANT] array_type_definition [COLON_EQUAL expression] SEMICOLON
+  ;; | single_task_declaration
+  ;; | single_protected_declaration
+  ;
+
+overriding_indicator
+  : NOT OVERRIDING
+  | OVERRIDING
+  ;
+
 package_specification
  ;; leaving out [aspect_specification]
-  : PACKAGE name IS basic_declarative_items PRIVATE basic_declarative_items END name
+  : PACKAGE name IS declarations PRIVATE declarations END name
     `(wisi-cache-action
       1 'statement-start
       3 'block-start
       5 'block-middle
       7 'block-end)
 
-  | PACKAGE name IS basic_declarative_items END name
+  | PACKAGE name IS declarations END name
     `(wisi-cache-action
       1 'statement-start
       3 'block-start
@@ -387,25 +587,112 @@ parameter_and_result_profile
 
 parameter_profile : | formal_part ;
 
+parameter_specification
+  : identifier_list COLON ALIASED mode NOT NULL name COLON_EQUAL expression
+  | identifier_list COLON ALIASED mode NOT NULL name
+  | identifier_list COLON ALIASED mode name
+  | identifier_list COLON mode name
+  | identifier_list COLON access_definition COLON_EQUAL expression
+  | identifier_list COLON access_definition
+  ;
+
 parameter_specification_list
   : parameter_specification
   | parameter_specification_list SEMICOLON parameter_specification
     `(wisi-cache-action 2 'list-break)
   ;
 
-prefix
-  : name
-  | implicit_dereference
+;; prefix is name
+
+primary
+  : NUMERIC_LITERAL
+  | NULL
+  | STRING_LITERAL
+  ;; | aggregate
+  | name
+  | NEW name ;; allocator, leaving out subpool_specification
+  | LEFT_PAREN expression RIGHT_PAREN
+  ;; | LEFT_PAREN conditional_expression RIGHT_PAREN
+  ;; | LEFT_PAREN quantified_expression RIGHT_PAREN
   ;
+
+protected_definition
+  : declarations PRIVATE declarations END IDENTIFIER
+    `(wisi-cache-action 2 'block-middle 4 'block-end)
+  | declarations PRIVATE declarations END
+    `(wisi-cache-action 2 'block-middle 4 'block-end)
+  | declarations END
+    `(wisi-cache-action 2 'block-end)
+  ;
+
+protected_type_declaration
+ ;; leaving out [aspect_specification]
+  : PROTECTED TYPE IDENTIFIER discriminant_part IS NEW interface_list WITH protected_definition SEMICOLON
+    `(wisi-cache-action 1 'statement-start 8 'block-start 10 'statement-end)
+  | PROTECTED TYPE IDENTIFIER discriminant_part IS protected_definition SEMICOLON
+    `(wisi-cache-action 1 'statement-start 5 'block-start 7 'statement-end)
+  | PROTECTED TYPE IDENTIFIER IS protected_definition SEMICOLON
+    `(wisi-cache-action 1 'statement-start 4 'block-start 6 'statement-end)
+  ;
+
+;; protected_operation_declaration merged into declaration
+
+range
+  : name TICK RANGE LEFT_PAREN expression RIGHT_PAREN ;; range_attribute_reference
+  | name TICK RANGE
+  | simple_expression DOT_DOT simple_expression
+  ;
+
+record_type_definition
+  : ABSTRACT TAGGED LIMITED record_definition
+  | ABSTRACT TAGGED record_definition
+  | TAGGED record_definition
+  | record_definition
+  ;
+
+record_definition
+  : RECORD component_list END RECORD
+  | NULL RECORD
+  ;
+
+relation
+  : simple_expression_list
+  | simple_expression NOT IN membership_choice_list
+  | simple_expression IN membership_choice_list
+  ;
+
+relational_operator
+  : EQUAL | SLASH_EQUAL | LESS | LESS_EQUAL | GREATER | GREATER_EQUAL ;
+  ;;  =   | /=          | <    |  <=        | >       | >=
 
 selected_component
-  : prefix DOT selector_name
+  : name DOT IDENTIFIER
+  | name DOT CHARACTER_LITERAL
+  | name DOT STRING_LITERAL ;; operator_symbol
   ;
 
-selector_name
-  : IDENTIFIER
- ;;  | character_literal
- ;;  | operator_symbol
+simple_expression
+  : unary_adding_operator term_list
+  | term_list
+  ;
+
+simple_expression_list
+  : simple_expression
+  | simple_expression relational_operator simple_expression
+  ;
+
+subprogram_declaration
+ ;; leaving out [aspect_specification]
+  : overriding_indicator subprogram_specification SEMICOLON
+  | subprogram_specification SEMICOLON
+  ;
+
+subprogram_default : name | BOX | NULL ;
+
+subprogram_specification
+  : PROCEDURE name parameter_profile ;; procedure_specification
+  | FUNCTION name parameter_and_result_profile ;; function_specification
+  | FUNCTION STRING_LITERAL parameter_and_result_profile ;; operator_symbol
   ;
 
 subtype_definition : subtype_indication | range ;
@@ -423,6 +710,69 @@ subtype_indication
   ;
 
 ;; subtype_mark replaced by name
+
+task_definition
+  : declarations PRIVATE declarations END IDENTIFIER
+  | declarations PRIVATE declarations END
+  | declarations END
+  ;
+
+task_type_declaration
+ ;; leaving out [aspect_specification]
+  : TASK TYPE IDENTIFIER discriminant_part IS NEW interface_list WITH task_definition SEMICOLON
+    `(wisi-cache-action 1 'statement-start 10 'statement-end)
+  | TASK TYPE IDENTIFIER discriminant_part IS task_definition SEMICOLON
+    `(wisi-cache-action 1 'statement-start 7 'statement-end)
+  | TASK TYPE IDENTIFIER discriminant_part SEMICOLON
+    `(wisi-cache-action 1 'statement-start 5 'statement-end)
+  | TASK TYPE IDENTIFIER SEMICOLON
+    `(wisi-cache-action 1 'statement-start 4 'statement-end)
+  ;
+
+term
+  : factor
+  | factor multiplying_operator factor
+  ;
+
+term_list
+  : term
+  | term binary_adding_operator term
+  ;
+
+type_declaration
+  : full_type_declaration
+  ;; | incomplete_type_declaration
+  ;; | private_type_declaration
+  ;; | private_extension_declaration
+  ;
+
+type_definition
+  : enumeration_type_definition
+  | RANGE range ;; integer_type_definition
+  | MOD expression
+  | DIGITS expression range ;; real_type_definition
+  | DIGITS expression ;; floating_point_type_definition
+  | DELTA expression range ;; ordinary_fixed_point_definition
+  | DELTA expression DIGITS expression range ;; decimal_fixed_point_definition
+  | array_type_definition
+  | record_type_definition
+  | access_type_definition
+  | derived_type_definition
+  | interface_type_definition
+  ;
+
+variant_part
+  : CASE name IS variant_list END CASE SEMICOLON
+  ;
+
+variant_list
+  : variant
+  | variant_list variant
+  ;
+
+variant : WHEN discrete_choice_list EQUAL_GREATER component_list ;
+
+unary_adding_operator : PLUS | MINUS ; ;; + | -
 
 use_clause
   : USE name_list SEMICOLON
