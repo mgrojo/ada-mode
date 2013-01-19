@@ -45,79 +45,80 @@
 
 ;; token declarations
 
-%keyword AMPERSAND "&"
-%keyword BOX "<>"
-%keyword BAR "|"
-%keyword COMMA ","
-%keyword DOT "."
-%keyword DOT_DOT ".."
-%keyword EQUAL "="
-%keyword EQUAL_GREATER "=>"
-%keyword GREATER ">"
-%keyword GREATER_EQUAL ">="
-%keyword LESS "<"
-%keyword LESS_EQUAL "<="
-%keyword MINUS "-"
-%keyword PAREN_BOX "(<>)"
-%keyword PLUS "+"
-%keyword SEMICOLON ";"
-%keyword SLASH "/"
-%keyword SLASH_EQUAL "/="
-%keyword STAR "*"
-%keyword STAR_STAR "**"
-%keyword TICK "'"
-
-;; Ada keywords (ARM 2.9) (info "(aarm2012)2.9" "*info AARM*")
-;; FIXME: only adding as they occur in tests
+;; Ada keywords (ARM 2.9) and operators (info "(aarm2012)2.9" "*info AARM*")
 
 %keyword ABS "abs"
 %keyword ABSTRACT "abstract"
 %keyword ACCESS "access"
 %keyword ALIASED "aliased"
 %keyword ALL "all"
+%keyword AMPERSAND "&"
 %keyword AND "and"
 %keyword ARRAY "array"
+%keyword BAR "|"
 %keyword BEGIN "begin"
 %keyword BODY "body"
+%keyword BOX "<>"
 %keyword CASE "case"
 %keyword COLON ":"
 %keyword COLON_EQUAL ":="
+%keyword COMMA ","
 %keyword CONSTANT "constant"
 %keyword DELTA "delta"
 %keyword DIGITS "digits"
+%keyword DOT "."
+%keyword DOT_DOT ".."
+%keyword ELSE "else"
 %keyword END "end"
+%keyword EQUAL "="
+%keyword EQUAL_GREATER "=>"
 %keyword FUNCTION "function"
 %keyword GENERIC "generic"
+%keyword GREATER ">"
+%keyword GREATER_EQUAL ">="
 %keyword IN "in"
 %keyword INTERFACE "interface"
 %keyword IS "is"
 %keyword LEFT_PAREN "left_paren"
+%keyword LESS "<"
+%keyword LESS_EQUAL "<="
 %keyword LIMITED "limited"
+%keyword MINUS "-"
 %keyword MOD "mod"
 %keyword NEW "new"
 %keyword NOT "not"
 %keyword NULL "null"
 %keyword OF "of"
+%keyword OR "or"
 %keyword OTHERS "others"
 %keyword OUT "out"
 %keyword OVERRIDING "overriding"
 %keyword PACKAGE "package"
+%keyword PAREN_BOX "(<>)"
+%keyword PLUS "+"
 %keyword PRIVATE "private"
 %keyword PROCEDURE "procedure"
 %keyword PROTECTED "protected"
 %keyword RANGE "range"
-%keyword REM "rem"
 %keyword RECORD "record"
+%keyword REM "rem"
 %keyword RETURN "return"
 %keyword RIGHT_PAREN "right_paren"
 %keyword SEMICOLON ";"
+%keyword SLASH "/"
+%keyword SLASH_EQUAL "/="
+%keyword STAR "*"
+%keyword STAR_STAR "**"
 %keyword SYNCHRONIZED "synchronized"
 %keyword TAGGED "tagged"
 %keyword TASK "task"
+%keyword THEN "then"
+%keyword TICK "'"
 %keyword TYPE "type"
 %keyword USE "use"
 %keyword WHEN "when"
 %keyword WITH "with"
+%keyword XOR "xor"
 
 %token <symbol> IDENTIFIER
 %token <string> STRING_LITERAL
@@ -171,7 +172,7 @@ access_type_definition
 array_type_definition
   : ARRAY LEFT_PAREN index_subtype_definition_list RIGHT_PAREN OF component_definition
  ;; unconstrained_array_definition
-  | ARRAY LEFT_PAREN subtype_definition_list RIGHT_PAREN OF component_definition
+  | ARRAY LEFT_PAREN discrete_subtype_definition_list RIGHT_PAREN OF component_definition
  ;; constrained_array_definition
   ;
 
@@ -190,6 +191,45 @@ association_list
 ;; basic_declaration merged into declaration
 
 binary_adding_operator : PLUS | MINUS | AMPERSAND ; ;; + | - | &
+
+choice_expression
+  : choice_relation
+  | choice_relation_and_list
+  | choice_relation_or_list
+  | choice_relation_xor_list
+  | choice_relation_and_then_list
+  | choice_relation_or_else_list
+  ;
+
+choice_relation_and_list
+  : choice_relation AND choice_relation
+  | choice_relation_and_list AND choice_relation
+  ;
+
+choice_relation_or_list
+  : choice_relation OR choice_relation
+  | choice_relation_or_list OR choice_relation
+  ;
+
+choice_relation_xor_list
+  : choice_relation XOR choice_relation
+  | choice_relation_xor_list XOR choice_relation
+  ;
+
+choice_relation_and_then_list
+  : choice_relation AND THEN choice_relation
+  | choice_relation_and_then_list AND THEN choice_relation
+  ;
+
+choice_relation_or_else_list
+  : choice_relation OR ELSE choice_relation
+  | choice_relation_or_else_list OR ELSE choice_relation
+  ;
+
+choice_relation
+  : simple_expression relational_operator simple_expression
+  | simple_expression
+  ;
 
 compilation_unit
   : context_clause library_item
@@ -276,15 +316,23 @@ discrete_choice_list
   ;
 
 discrete_choice
-  : expression ;; choice_expression
-  | name ;; discrete_subtype_indication
+  : choice_expression
+  | subtype_indication
   | range
   | OTHERS
   ;
 
+discrete_subtype_definition : subtype_indication | range ;
+
+discrete_subtype_definition_list
+  : discrete_subtype_definition
+  | discrete_subtype_definition_list COMMA discrete_subtype_definition
+    `(wisi-cache-action 2 'list-break)
+  ;
+
 discriminant_part
   : PAREN_BOX ;; (<>) unknown_discriminant_part
-  | RIGHT_PAREN discriminant_specification_list LEFT_PAREN;; known_discriminant_part
+  | LEFT_PAREN discriminant_specification_list RIGHT_PAREN;; known_discriminant_part
     `(wisi-cache-action 1 'open-paren 3 'close-paren)
   ;
 
@@ -319,11 +367,11 @@ enumeration_literal_list
 
 expression
   : relation
-  | expression AND relation
-  ;; | relation {and then relation}
-  ;; | relation {or relation}
-  ;; | relation {or else relation}
-  ;; | relation {xor relation}
+  | relation_and_list
+  | relation_and_then_list
+  | relation_or_list
+  | relation_or_else_list
+  | relation_xor_list
   ;
 
 factor
@@ -407,11 +455,10 @@ formal_package_declaration
 formal_package_actual_part
   : LEFT_PAREN OTHERS EQUAL_GREATER BOX RIGHT_PAREN ;; (others => <>)
   | PAREN_BOX ;; (<>)
-  | LEFT_PAREN association_list RIGHT_PAREN ;; generic_actual_part
+  | LEFT_PAREN association_list RIGHT_PAREN
+ ;; generic_actual_part, formal_package_association_list is association_list
     `(wisi-cache-action 1 'open-paren 3 'close-paren)
-  |
-  | LEFT_PAREN association_list RIGHT_PAREN ;; formal_package_association_list is association_list
-    `(wisi-cache-action 1 'open-paren 3 'close-paren)
+  | ;; null generic actual part
   ;
 
 formal_private_type_definition
@@ -504,13 +551,18 @@ library_unit_declaration
 
 membership_choice_list
   : membership_choice
-  | membership_choice BAR membership_choice
+  | membership_choice_list BAR membership_choice
   ;
 
 membership_choice
-  : expression ;; choice_expression
+  : simple_expression
+ ;; ARM has 'choice_expression' here, but that leads to a shift/reduce conflict, because of the following productions:
+ ;; membership_choice_list => membership_choice => choice_expression => choice_relation_and_list
+ ;; relation => simple_expression IN choice_relation_and_list
+ ;; thus 'choice_relation_and_list AND' could be followed by relation (=> reduce) or choice_relation (=> shift)
+ ;; This only occurs in legal Ada in expressions such as 'True in 1 and 3'; not useful, so we leave it out.
   | range
-  | name ;; subtype_mark
+ ;;  | name ;; subtype_mark - also covered by choice_expression; avoid reduce/reduce conflict
   ;
 
 mode
@@ -639,9 +691,11 @@ protected_type_declaration
 
 range
   : name TICK RANGE LEFT_PAREN expression RIGHT_PAREN ;; range_attribute_reference
-  | name TICK RANGE
+  | name TICK RANGE ;; range_attribute_reference
   | simple_expression DOT_DOT simple_expression
   ;
+
+real_range_specification : RANGE simple_expression DOT_DOT simple_expression ;
 
 record_type_definition
   : ABSTRACT TAGGED LIMITED record_definition
@@ -655,8 +709,34 @@ record_definition
   | NULL RECORD
   ;
 
+relation_and_list
+  : relation AND relation
+  | relation_and_list AND relation
+  ;
+
+relation_and_then_list
+  : relation AND THEN relation
+  | relation_and_then_list AND THEN relation
+  ;
+
+relation_or_list
+  : relation OR relation
+  | relation_or_list OR relation
+  ;
+
+relation_or_else_list
+  : relation OR ELSE relation
+  | relation_or_else_list OR ELSE relation
+  ;
+
+relation_xor_list
+  : relation XOR relation
+  | relation_xor_list XOR relation
+  ;
+
 relation
-  : simple_expression_list
+  : simple_expression
+  | simple_expression relational_operator simple_expression
   | simple_expression NOT IN membership_choice_list
   | simple_expression IN membership_choice_list
   ;
@@ -676,11 +756,6 @@ simple_expression
   | term_list
   ;
 
-simple_expression_list
-  : simple_expression
-  | simple_expression relational_operator simple_expression
-  ;
-
 subprogram_declaration
  ;; leaving out [aspect_specification]
   : overriding_indicator subprogram_specification SEMICOLON
@@ -693,14 +768,6 @@ subprogram_specification
   : PROCEDURE name parameter_profile ;; procedure_specification
   | FUNCTION name parameter_and_result_profile ;; function_specification
   | FUNCTION STRING_LITERAL parameter_and_result_profile ;; operator_symbol
-  ;
-
-subtype_definition : subtype_indication | range ;
-
-subtype_definition_list
-  : subtype_definition
-  | subtype_definition_list COMMA subtype_definition
-    `(wisi-cache-action 2 'list-break)
   ;
 
 subtype_indication
@@ -731,12 +798,12 @@ task_type_declaration
 
 term
   : factor
-  | factor multiplying_operator factor
+  | term multiplying_operator factor
   ;
 
 term_list
-  : term
-  | term binary_adding_operator term
+  : term binary_adding_operator term
+  | term_list binary_adding_operator term
   ;
 
 type_declaration
@@ -748,12 +815,12 @@ type_declaration
 
 type_definition
   : enumeration_type_definition
-  | RANGE range ;; integer_type_definition
+  | RANGE RANGE simple_expression DOT_DOT simple_expression ;; integer_type_definition
   | MOD expression
-  | DIGITS expression range ;; real_type_definition
+  | DIGITS expression real_range_specification ;; real_type_definition
   | DIGITS expression ;; floating_point_type_definition
-  | DELTA expression range ;; ordinary_fixed_point_definition
-  | DELTA expression DIGITS expression range ;; decimal_fixed_point_definition
+  | DELTA expression real_range_specification ;; ordinary_fixed_point_definition
+  | DELTA expression DIGITS expression real_range_specification ;; decimal_fixed_point_definition
   | array_type_definition
   | record_type_definition
   | access_type_definition

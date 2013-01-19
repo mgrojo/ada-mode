@@ -117,7 +117,7 @@ named_block.ali : named_block.adb
 
 # (grep-find "find .. -type f -print | xargs grep -n FIXME")
 clean :: compile-clean test-clean
-	find ../../ -name *~ -delete
+	find ../../ -name "*~" -delete
 
 # .ali files are in source dir, so they are shared between wisi and smie tests
 compile-clean :

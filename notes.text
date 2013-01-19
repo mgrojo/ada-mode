@@ -41,18 +41,43 @@ semantic mode in .wy is just broken
 
  ada-smie/wisi
 arm_info
+    annex P
          unary_adding_operator ::=     +   | --
+
+        double dash for minus
+
+    4.5
+         R*Sin([Unicode 952]
+         )*Cos([Unicode 966]
+         )             -- simple expression
+
+            don't need newlines after unicode
 
 build/wisi/Makefile
     ada-display-buffer doesn't respect C-u C-u for this!?
 
 ada-wisi
-    Grammar in ../../ada-grammar-wy.el contains 10 shift/reduce conflicts and 19 reduce/reduce conflicts
+    Grammar in ../../ada-grammar-wy.el contains 1 shift/reduce conflict
         wisent.output
 
-    to match ada-mode |, need to distinguish 'when', '=>'
-        block-middle-start, block-middle-end?
-        else => block-middle? statement-middle?
+shift/reduce in state 540
+
+    association  ->  OTHERS EQUAL_GREATER BOX .   (rule 22)
+    formal_package_actual_part  ->  LEFT_PAREN OTHERS EQUAL_GREATER BOX . RIGHT_PAREN   (rule 143)
+
+    RIGHT_PAREN	shift, and go to state 567
+
+    RIGHT_PAREN	[reduce using rule 22 (association)]
+    $default	reduce using rule 22 (association)
+
+
+add code to opentoken to report conflicts and path to their lca!
+    and useless nonterminals/rules
+    org.opentoken.stephe/wisi/test/range_conflict.wy
+
+for |, need to distinguish 'when', '=>'
+    block-middle-start, block-middle-end?
+    else => block-middle? statement-middle?
 
 bug in semantic-grammar.wy
     attempted patch:
