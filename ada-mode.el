@@ -1378,12 +1378,18 @@ previously set by a file navigation command."
       (setq ff-function-name nil))))
 
 (defun ada-buffer-window (buffer)
-  (let ((list (window-list nil 0 nil))
-	window)
-    (while (and
-	    (setq window (car list))
-	    (not (eq (window-buffer window) buffer)))
-      (setq list (cdr list)))
+  (let ((frames (frame-list))
+	frame window)
+    (while (and frames
+		(not window))
+      (setq frame (pop frames))
+      (let ((windows (window-list frame 0))
+	    temp)
+	(while (and windows
+		    (not window))
+	  (setq temp (pop windows))
+	  (when (eq (window-buffer temp) buffer)
+	    (setq window temp)))))
     window))
 
 (defun ada-display-buffer-other-frame (buffer-or-name &optional current-ok)

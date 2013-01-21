@@ -55,34 +55,20 @@
 %keyword AMPERSAND "&"
 %keyword AND "and"
 %keyword ARRAY "array"
-%keyword BAR "|"
-%keyword BOX "<>"
 %keyword CASE "case"
 %keyword CLASS "class"
-%keyword COLON ":"
-%keyword COLON_EQUAL ":="
-%keyword COMMA ","
 %keyword CONSTANT "constant"
 %keyword DELTA "delta"
 %keyword DIGITS "digits"
-%keyword DOT "."
-%keyword DOT_DOT ".."
 %keyword ELSE "else"
 %keyword END "end"
-%keyword EQUAL "="
-%keyword EQUAL_GREATER "=>"
 %keyword FUNCTION "function"
 %keyword GENERIC "generic"
-%keyword GREATER ">"
-%keyword GREATER_EQUAL ">="
 %keyword IN "in"
 %keyword INTERFACE "interface"
 %keyword IS "is"
 %keyword LEFT_PAREN "("
-%keyword LESS "<"
-%keyword LESS_EQUAL "<="
 %keyword LIMITED "limited"
-%keyword MINUS "-"
 %keyword MOD "mod"
 %keyword NEW "new"
 %keyword NOT "not"
@@ -93,8 +79,6 @@
 %keyword OUT "out"
 %keyword OVERRIDING "overriding"
 %keyword PACKAGE "package"
-%keyword PAREN_BOX "(<>)"
-%keyword PLUS "+"
 %keyword PRAGMA "pragma"
 %keyword PRIVATE "private"
 %keyword PROCEDURE "procedure"
@@ -104,21 +88,38 @@
 %keyword REM "rem"
 %keyword RETURN "return"
 %keyword RIGHT_PAREN ")"
-%keyword SEMICOLON ";"
-%keyword SLASH "/"
-%keyword SLASH_EQUAL "/="
-%keyword STAR "*"
-%keyword STAR_STAR "**"
 %keyword SYNCHRONIZED "synchronized"
 %keyword TAGGED "tagged"
 %keyword TASK "task"
 %keyword THEN "then"
-%keyword TICK "'"
 %keyword TYPE "type"
 %keyword USE "use"
 %keyword WHEN "when"
 %keyword WITH "with"
 %keyword XOR "xor"
+
+;; all tokens that consist of chars with punctuation syntax
+%token <punctuation> BAR "|"
+%token <punctuation> BOX "<>"
+%token <punctuation> COLON ":"
+%token <punctuation> COLON_EQUAL ":="
+%token <punctuation> COMMA ","
+%token <punctuation> DOT "."
+%token <punctuation> DOT_DOT ".."
+%token <punctuation> EQUAL "="
+%token <punctuation> EQUAL_GREATER "=>"
+%token <punctuation> GREATER ">"
+%token <punctuation> GREATER_EQUAL ">="
+%token <punctuation> LESS "<"
+%token <punctuation> LESS_EQUAL "<="
+%token <punctuation> MINUS "-"
+%token <punctuation> PLUS "+"
+%token <punctuation> SEMICOLON ";"
+%token <punctuation> SLASH "/"
+%token <punctuation> SLASH_EQUAL "/="
+%token <punctuation> STAR "*"
+%token <punctuation> STAR_STAR "**"
+%token <punctuation> TICK "'"
 
 %token <symbol> IDENTIFIER
 %token <string> STRING_LITERAL
@@ -222,6 +223,7 @@ choice_relation
 
 compilation_unit
   : context_clause library_item
+  | library_item
  ;;  | context_clause subunit
   ;
 
@@ -319,13 +321,13 @@ discrete_subtype_definition : subtype_indication | range ;
 discrete_subtype_definition_list
   : discrete_subtype_definition
   | discrete_subtype_definition_list COMMA discrete_subtype_definition
-    `(wisi-cache-action 2 'list-break)
+    `(wisi-statement-action 2 'list-break)
   ;
 
 discriminant_part
-  : PAREN_BOX ;; (<>) unknown_discriminant_part
+  : LEFT_PAREN BOX RIGHT_PAREN ;; (<>) unknown_discriminant_part
   | LEFT_PAREN discriminant_specification_list RIGHT_PAREN;; known_discriminant_part
-    `(wisi-cache-action 1 'open-paren 3 'close-paren)
+    `(wisi-statement-action 1 'open-paren 3 'close-paren)
   ;
 
 discriminant_specification
@@ -339,12 +341,12 @@ discriminant_specification
 discriminant_specification_list
   : discriminant_specification
   | discriminant_specification_list SEMICOLON discriminant_specification
-    `(wisi-cache-action 2 'list-break)
+    `(wisi-statement-action 2 'list-break)
   ;
 
 enumeration_type_definition
   : LEFT_PAREN enumeration_literal_list RIGHT_PAREN
-    `(wisi-cache-action 1 'open-paren 3 'close-paren)
+    `(wisi-statement-action 1 'open-paren 3 'close-paren)
   ;
 
 enumeration_literal ;; enumeration_literal_specification
@@ -376,20 +378,22 @@ factor
 formal_object_declaration
  ;; leaving out [aspect_specification]
   : identifier_list COLON mode NOT NULL name COLON_EQUAL expression SEMICOLON
-    `(wisi-cache-action 1 'statement-start 9 'statement-end)
+    `(wisi-statement-action 1 'statement-start 9 'statement-end)
   | identifier_list COLON mode name COLON_EQUAL expression SEMICOLON
-    `(wisi-cache-action 1 'statement-start 7 'statement-end)
+    `(wisi-statement-action 1 'statement-start 7 'statement-end)
+  | identifier_list COLON mode NOT NULL name SEMICOLON
+    `(wisi-statement-action 1 'statement-start 5 'statement-end)
   | identifier_list COLON mode name SEMICOLON
-    `(wisi-cache-action 1 'statement-start 5 'statement-end)
+    `(wisi-statement-action 1 'statement-start 5 'statement-end)
   | identifier_list COLON mode access_definition COLON_EQUAL expression SEMICOLON
-    `(wisi-cache-action 1 'statement-start 7 'statement-end)
+    `(wisi-statement-action 1 'statement-start 7 'statement-end)
   | identifier_list COLON mode access_definition SEMICOLON
-    `(wisi-cache-action 1 'statement-start 5 'statement-end)
+    `(wisi-statement-action 1 'statement-start 5 'statement-end)
   ;
 
 formal_part
   : LEFT_PAREN parameter_specification_list RIGHT_PAREN
-    `(wisi-cache-action 1 'open-paren 3 'close-paren)
+    `(wisi-statement-action 1 'open-paren 3 'close-paren)
   ;
 
 formal_subprogram_declaration
@@ -403,26 +407,26 @@ formal_subprogram_declaration
 formal_type_declaration
  ;; leaving out [aspect_specification]
   : TYPE IDENTIFIER discriminant_part IS formal_type_definition SEMICOLON ;; formal_complete_type_declaration
-    `(wisi-cache-action 1 'open-paren 6 'close-paren)
+    `(wisi-statement-action 1 'open-paren 6 'close-paren)
   | TYPE IDENTIFIER IS formal_type_definition SEMICOLON
-    `(wisi-cache-action 1 'open-paren 5 'close-paren)
+    `(wisi-statement-action 1 'open-paren 5 'close-paren)
   | TYPE IDENTIFIER discriminant_part IS TAGGED SEMICOLON ;; formal_incomplete_type_declaration
-    `(wisi-cache-action 1 'open-paren 6 'close-paren)
+    `(wisi-statement-action 1 'open-paren 6 'close-paren)
   | TYPE IDENTIFIER discriminant_part SEMICOLON
-    `(wisi-cache-action 1 'open-paren 4 'close-paren)
+    `(wisi-statement-action 1 'open-paren 4 'close-paren)
   | TYPE IDENTIFIER SEMICOLON
-    `(wisi-cache-action 1 'open-paren 3 'close-paren)
+    `(wisi-statement-action 1 'open-paren 3 'close-paren)
   ;
 
 formal_type_definition
   : formal_private_type_definition
   | formal_derived_type_definition
-  | PAREN_BOX ;; formal_discrete_type_definition
+  | LEFT_PAREN BOX RIGHT_PAREN ;; formal_discrete_type_definition
   | RANGE BOX ;; formal_signed_integer_type_definition
   | MOD BOX ;; formal_modular_type_definition
   | DIGITS BOX ;; formal_floating_point_definition
   | DELTA BOX ;; formal_ordinary_fixed_point_definition
-  | DIGITS BOX DELTA BOX ;; formal_decimal_fixed_point_definition
+  | DELTA BOX DIGITS BOX ;; formal_decimal_fixed_point_definition
   | array_type_definition ;; formal_array_type_definition
   | access_type_definition ;; formal_access_type_definition
   | interface_type_definition ;; formal_interface_type_definition
@@ -446,13 +450,13 @@ formal_package_declaration
 
 formal_package_actual_part
   : LEFT_PAREN OTHERS EQUAL_GREATER BOX RIGHT_PAREN ;; (others => <>)
-    `(wisi-cache-action 1 'open-paren 5 'close-paren)
-  | PAREN_BOX ;; (<>)
+    `(wisi-statement-action 1 'open-paren 5 'close-paren)
+  | LEFT_PAREN BOX RIGHT_PAREN ;; (<>)
   | ;; null generic actual part
   | LEFT_PAREN formal_package_association_list COMMA OTHERS EQUAL_GREATER BOX RIGHT_PAREN
-    `(wisi-cache-action 1 'open-paren 7 'close-paren)
+    `(wisi-statement-action 1 'open-paren 7 'close-paren)
   | LEFT_PAREN formal_package_association_list RIGHT_PAREN
-    `(wisi-cache-action 1 'open-paren 3 'close-paren)
+    `(wisi-statement-action 1 'open-paren 3 'close-paren)
  ;; same as generic_actual_part
   ;
 
@@ -490,6 +494,7 @@ generic_declaration
 
 generic_formal_part
   : GENERIC generic_formal_parameter_declarations ;; leaving out use_clause
+  | GENERIC
   ;
 
 generic_formal_parameter_declarations
@@ -502,16 +507,18 @@ generic_formal_parameter_declaration
   | formal_type_declaration
   | formal_subprogram_declaration
   | formal_package_declaration
+  | pragma
   ;
 
 generic_package_declaration
   : generic_formal_part package_specification SEMICOLON
-    `(wisi-cache-action 1 'statement-start 3 'statement-end)
+    `(wisi-statement-action 1 'statement-start 3 'statement-end)
   ;
 
 identifier_list
   : IDENTIFIER
   | identifier_list COMMA IDENTIFIER
+    `(wisi-region-action 1 3)
   ;
 
 index_subtype_definition : name RANGE BOX ;
@@ -519,7 +526,7 @@ index_subtype_definition : name RANGE BOX ;
 index_subtype_definition_list
   : index_subtype_definition
   | index_subtype_definition_list COMMA index_subtype_definition
-    `(wisi-cache-action 1 'list-break)
+    `(wisi-region-action 1 3)
   ;
 
 interface_list
@@ -621,17 +628,19 @@ overriding_indicator
 package_specification
  ;; leaving out [aspect_specification]
   : PACKAGE name IS declarations PRIVATE declarations END name
-    `(wisi-cache-action
+    `(wisi-statement-action
       1 'statement-start
       3 'block-start
       5 'block-middle
       7 'block-end)
 
   | PACKAGE name IS declarations END name
-    `(wisi-cache-action
+    `(wisi-statement-action
       1 'statement-start
       3 'block-start
       5 'block-end)
+  | PACKAGE name IS END name
+    `(wisi-statement-action 1 'statement-start)
   ;
 
 parameter_and_result_profile
@@ -656,14 +665,14 @@ parameter_specification
 parameter_specification_list
   : parameter_specification
   | parameter_specification_list SEMICOLON parameter_specification
-    `(wisi-cache-action 2 'list-break)
+    `(wisi-statement-action 2 'list-break)
   ;
 
 pragma
   : PRAGMA IDENTIFIER LEFT_PAREN pragma_argument_association_list RIGHT_PAREN SEMICOLON
-    `(wisi-cache-action 1 'statement-start 6 'statement-end)
+    `(wisi-statement-action 1 'statement-start 6 'statement-end)
   | PRAGMA IDENTIFIER SEMICOLON
-    `(wisi-cache-action 1 'statement-start 3 'statement-end)
+    `(wisi-statement-action 1 'statement-start 3 'statement-end)
   ;
 
 pragma_argument_association
@@ -693,21 +702,21 @@ primary
 
 protected_definition
   : declarations PRIVATE declarations END IDENTIFIER
-    `(wisi-cache-action 2 'block-middle 4 'block-end)
+    `(wisi-statement-action 2 'block-middle 4 'block-end)
   | declarations PRIVATE declarations END
-    `(wisi-cache-action 2 'block-middle 4 'block-end)
+    `(wisi-statement-action 2 'block-middle 4 'block-end)
   | declarations END
-    `(wisi-cache-action 2 'block-end)
+    `(wisi-statement-action 2 'block-end)
   ;
 
 protected_type_declaration
  ;; leaving out [aspect_specification]
   : PROTECTED TYPE IDENTIFIER discriminant_part IS NEW interface_list WITH protected_definition SEMICOLON
-    `(wisi-cache-action 1 'statement-start 8 'block-start 10 'statement-end)
+    `(wisi-statement-action 1 'statement-start 8 'block-start 10 'statement-end)
   | PROTECTED TYPE IDENTIFIER discriminant_part IS protected_definition SEMICOLON
-    `(wisi-cache-action 1 'statement-start 5 'block-start 7 'statement-end)
+    `(wisi-statement-action 1 'statement-start 5 'block-start 7 'statement-end)
   | PROTECTED TYPE IDENTIFIER IS protected_definition SEMICOLON
-    `(wisi-cache-action 1 'statement-start 4 'block-start 6 'statement-end)
+    `(wisi-statement-action 1 'statement-start 4 'block-start 6 'statement-end)
   ;
 
 ;; protected_operation_declaration merged into declaration
@@ -813,13 +822,13 @@ task_definition
 task_type_declaration
  ;; leaving out [aspect_specification]
   : TASK TYPE IDENTIFIER discriminant_part IS NEW interface_list WITH task_definition SEMICOLON
-    `(wisi-cache-action 1 'statement-start 10 'statement-end)
+    `(wisi-statement-action 1 'statement-start 10 'statement-end)
   | TASK TYPE IDENTIFIER discriminant_part IS task_definition SEMICOLON
-    `(wisi-cache-action 1 'statement-start 7 'statement-end)
+    `(wisi-statement-action 1 'statement-start 7 'statement-end)
   | TASK TYPE IDENTIFIER discriminant_part SEMICOLON
-    `(wisi-cache-action 1 'statement-start 5 'statement-end)
+    `(wisi-statement-action 1 'statement-start 5 'statement-end)
   | TASK TYPE IDENTIFIER SEMICOLON
-    `(wisi-cache-action 1 'statement-start 4 'statement-end)
+    `(wisi-statement-action 1 'statement-start 4 'statement-end)
   ;
 
 term
@@ -869,22 +878,22 @@ unary_adding_operator : PLUS | MINUS ; ;; + | -
 
 use_clause
   : USE name_list SEMICOLON
-    `(wisi-cache-action 1 'statement-start 3 'statement-end)
+    `(wisi-statement-action 1 'statement-start 3 'statement-end)
   | USE ALL TYPE name_list SEMICOLON
-    `(wisi-cache-action 1 'statement-start 5 'statement-end)
+    `(wisi-statement-action 1 'statement-start 5 'statement-end)
   | USE TYPE name_list SEMICOLON
-    `(wisi-cache-action 1 'statement-start 4 'statement-end)
+    `(wisi-statement-action 1 'statement-start 4 'statement-end)
   ;
 
 with_clause
   : LIMITED PRIVATE WITH name_list SEMICOLON
-    `(wisi-cache-action 1 'statement-start 5 'statement-end)
+    `(wisi-statement-action 1 'statement-start 5 'statement-end)
   | LIMITED WITH name_list SEMICOLON
-    `(wisi-cache-action 1 'statement-start 4 'statement-end)
+    `(wisi-statement-action 1 'statement-start 4 'statement-end)
   | PRIVATE WITH name_list SEMICOLON
-    `(wisi-cache-action 1 'statement-start 4 'statement-end)
+    `(wisi-statement-action 1 'statement-start 4 'statement-end)
   | WITH name_list SEMICOLON
-    `(wisi-cache-action 1 'statement-start 3 'statement-end)
+    `(wisi-statement-action 1 'statement-start 3 'statement-end)
   ;
 
 %%

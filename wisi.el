@@ -129,7 +129,8 @@
 ;;;; lexer
 
 (defvar wisi-keyword-table nil)
-
+(defvar wisi-punctuation-table-max-length 0)
+(defvar wisi-punctuation-table nil)
 (defvar wisi-string-term nil)
 (defvar wisi-symbol-term nil)
 
@@ -156,6 +157,23 @@ If at end of buffer, returns `wisent-eoi-term'."
      ((eobp)
       (setq token-text "")
       (setq token-id wisent-eoi-term))
+
+     ((eq syntax 1)
+      ;; punctuation. Find the longest matching string in wisi-punctuation-table
+      (let ((next-point (point))
+	    temp-text temp-id done)
+	(while (not done)
+	  (setq temp-text (buffer-substring-no-properties start (point)))
+	  (setq temp-id (car (rassoc temp-text wisi-punctuation-table)))
+	  (when temp-id
+	    (setq token-text temp-text
+		  token-id temp-id
+		  next-point (point)))
+	  (if (= (- (point) start) wisi-punctuation-table-max-length)
+	      (setq done t)
+	    (forward-char 1))
+	  )
+	(goto-char next-point)))
 
      ((memq syntax '(4 5)) ;; open, close parenthesis
       (forward-char 1)
@@ -330,35 +348,31 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
       (wisent-parse wisi-parse-table 'wisi-forward-token 'wisi-parse-error))
       (setq wisi-cache-max (point))))
 
-;;;; defining parse actions
+;;;; parse actions
 
-(defun wisi-cache-tokens (&rest items)
-  "Cache information used by wisi in text properties of tokens.
-Intended as a wisent grammar non-terminal action.  ITEMS is a
-list [symbol class (start end)] ... for tokens that should
-receive cached information. See macro `wisi-cache-action' for
-using this in a wisent grammar file."
-  ;; FIXME: separate function for prev/next; only set those for block statements where motion is helpful.
+(defun wisi-statement-tokens (&rest items)
+  "Cache indentation and name information in text properties of tokens.
+Intended as a wisent grammar non-terminal action.
+
+ITEMS is a list [symbol class (start end)] ... for tokens that
+should receive cached information. See macro
+`wisi-statement-action' for using this in a wisent grammar file."
   (save-excursion
-    (let (first-keyword-mark
-	  next-keyword-mark
-	  prev-keyword-mark)
+    (let (first-keyword-mark start end)
       (while items
 	(let* ((symbol (pop items))
 	       (class (pop items))
 	       (region (car (pop items)))
 	       (mark
-		(progn (goto-char (car region))
-		       ;; Marker one char into token, so
-		       ;; indent-line-to inserts space before the
-		       ;; mark, not after!
-		       (copy-marker (1+ (point))))))
+		;; Marker one char into token, so indent-line-to
+		;; inserts space before the mark, not after!
+		(copy-marker (1+ (car region)))))
 
 	  ;; :start is a marker to the first keyword in a
 	  ;; statement. The first keyword in a contained statement has
 	  ;; a marker to the first keyword in the containing
 	  ;; statement; the outermost containing statement has
-	  ;; nil. `wisi-update-start' sets the start markers in
+	  ;; nil. `wisi-start-tokens' sets the start markers in
 	  ;; contained statements.
 	  (with-silent-modifications
 	    (put-text-property
@@ -368,27 +382,27 @@ using this in a wisent grammar file."
 	     (wisi-cache-create
 	      :symbol symbol
 	      :class class
-	      :start first-keyword-mark
-	      :next nil
-	      :prev prev-keyword-mark)
+	      :start first-keyword-mark)
 	     ))
 
-	  (when prev-keyword-mark
-	    (setf (wisi-cache-next (wisi-get-cache (1- prev-keyword-mark))) mark))
-
-	  (setq prev-keyword-mark mark)
-
-	  (unless first-keyword-mark (setq first-keyword-mark mark))
+	  (unless first-keyword-mark
+	    (setq first-keyword-mark mark
+		  start (car region)))
+	  (setq end (cdr region))
 	))
+      ;; set non-terminal region for parent actions
+      (setq $region (cons start end))
+      ;; return value is semantic value
+      $nterm
       )))
 
-(defmacro wisi-cache-action (&rest pairs)
-  "Macro to define a wisi grammar action that is a call to `wisi-cache-tokens'.
+(defmacro wisi-statement-action (&rest pairs)
+  "Macro to define a wisi grammar action that is a call to `wisi-statement-tokens'.
 PAIRS is of the form [TOKEN-NUMBER CLASS] ...  where TOKEN-NUMBER
 is the token number in the production, CLASS is the wisi class of
 that token. Use in a grammar action as:
 
-`,(wisi-cache-action 1 'statement-start 7 'statement-end)"
+`,(wisi-statement-action 1 'statement-start 7 'statement-end)"
   (let (class list number region)
     (while pairs
       (setq number (pop pairs))
@@ -396,13 +410,33 @@ that token. Use in a grammar action as:
       (setq number (intern (concat "$" (number-to-string number))))
       (setq class (pop pairs))
       (setq list (append list (list number class region))))
-    (cons 'wisi-cache-tokens list)
+    (cons 'wisi-statement-tokens list)
   ))
 
-(defun wisi-update-start (start-region end-region class)
+(defun wisi-region-tokens (start-region end-region)
+  "Update region in parser data for current non-terminal, so parent non-terminal can use it.
+See macro `wisi-region-action' for using this in a wisent grammar
+file."
+  (setq $region (list (list (nth 0 (car start-region))
+			    (nth 1 (car end-region)))))
+  $nterm)
+
+(defmacro wisi-region-action (start-token-number end-token-number)
+  "Macro to define a wisi grammar action that is a call to `wisi-region-tokens'.
+Use in a grammar action as:
+
+`,(wisi-region-action)"
+   (let (start-region end-region)
+      (setq start-region (intern (concat "$region" (number-to-string start-token-number))))
+      (setq end-region (intern (concat "$region" (number-to-string end-token-number))))
+
+     (cons 'wisi-region-tokens (list start-region end-region))
+  ))
+
+(defun wisi-start-tokens (start-region end-region class)
   "Set start marks in all tokens in (caar START-REGION) to (cadar
 END-REGION) with class CLASS to marker pointing to start of
-region.  See `wisi-update-action' for use in grammar action."
+region.  See `wisi-start-action' for use in grammar action."
   (save-excursion
     (goto-char (nth 1 (car end-region)))
     (let ((token (wisi-backward-cache))
@@ -420,23 +454,58 @@ region.  See `wisi-update-action' for use in grammar action."
 	  (setq token nil))
 	))))
 
-(defmacro wisi-update-action (start-token end-token class)
-  "Macro to define a wisi grammar action that is a call to `wisi-update-start'.
+(defmacro wisi-start-action (start-token end-token class)
+  "Macro to define a wisi grammar action that is a call to `wisi-start-tokens'.
 START-TOKEN is token number of first token in containing statement,
 END-TOKEN is token number of last token in containing statement,
 CLASS is the class of tokens to update."
   ;; $region is often nil where we want to use this, so we use two token regions.
-  (list 'wisi-update-start
+  (list 'wisi-start-tokens
 	(intern (concat "$region" (number-to-string start-token)))
 	(intern (concat "$region" (number-to-string end-token)))
 	class))
 
-;; patch wisent grammar; allow "`,(macro ...)" actions
-(require 'semantic)
-(define-lex-sexp-type-analyzer semantic-grammar-wy--<qlist>-sexp-analyzer
-  "sexp analyzer for <qlist> tokens."
-  "\\s'\\s'?\\s-*("
-  'PREFIXED_LIST)
+(defun wisi-motion-tokens (&rest items)
+  "Set prev/next marks in all ITEMS.
+
+ITEMS is a list [(start end)] ... for tokens that should receive
+cached information. See macro `wisi-motion-action' for using this
+in a wisent grammar file."
+  (save-excursion
+    (let (next-keyword-mark
+	  prev-keyword-mark
+	  prev-cache
+	  cache)
+      (while items
+	(let* ((region (car (pop items)))
+	       (mark
+		;; Marker one char into token, so indent-line-to
+		;; inserts space before the mark, not after!
+		(copy-marker (1+ (car region)))))
+
+	  (setq cache (wisi-get-cache (car region)))
+
+	  (when prev-keyword-mark
+	    (setf (wisi-cache-prev cache) prev-keyword-mark)
+	    (setf (wisi-cache-next prev-cache) mark))
+
+	  (setq prev-keyword-mark mark)
+	  (setq prev-cache cache)
+	))
+      )))
+
+(defmacro wisi-motion-action (&rest token-numbers)
+  "Macro to define a wisi grammar action that is a call to `wisi-motion-tokens'.
+Use in a grammar action as:
+
+`,(wisi-motion-action 1  7)"
+  (let (number region)
+    (while token-numbers
+      (setq number (pop token-numbers))
+      (setq region (intern (concat "$region" (number-to-string number))))
+      (setq list (append list region))
+      (cons 'wisi-motion-tokens list))
+  ))
 
 ;;;; motion
 (defun wisi-backward-cache ()
@@ -562,6 +631,7 @@ CACHE contains cache info from a keyword in the current statement."
 	  (text  (match-string 4 wisi-parse-error))
 	  (expecting (match-string 5 wisi-parse-error)))
       (goto-char begin)
+      (setq wisi-parse-error nil)
       (error "unexpected %s: %s" symbol expecting)
       )))
 
@@ -588,6 +658,14 @@ CACHE contains cache info from a keyword in the current statement."
 
   (unless (setq wisi-symbol-term (car (symbol-value (intern-soft "symbol" token-table))))
     (error "grammar does not define <symbol> token"))
+
+  (set (make-local-variable 'wisi-punctuation-table)
+       (symbol-value (intern-soft "punctuation" token-table)))
+  (set (make-local-variable 'wisi-punctuation-table-max-length) 0)
+  (dolist (item wisi-punctuation-table)
+    (when item
+      (when (< wisi-punctuation-table-max-length (length (cdr item)))
+	(setq wisi-punctuation-table-max-length (length (cdr item))))))
 
   (set (make-local-variable 'wisi-keyword-table) keyword-table)
   (set (make-local-variable 'wisi-parse-table) parse-table)

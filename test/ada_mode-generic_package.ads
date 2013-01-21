@@ -108,7 +108,7 @@ generic
      A_Package_9 is new Ada.Text_IO.Integer_IO (Num => Formal_Signed_Integer_Type);
    with
      package A_Package_10 is new Ada.Text_IO.Integer_IO (Num => Formal_Signed_Integer_Type);
-   pragma Unreferenced (A_Package_10); -- not a statement!
+   pragma Unreferenced (A_Package_10); -- not a statement, but allowed here
 
 package Ada_Mode.Generic_Package is
    -- See ada_mode-generic_parent.ads for generic subprograms
