@@ -133,14 +133,16 @@
 (defvar wisi-string-term nil)
 (defvar wisi-symbol-term nil)
 
-(defun wisi-forward-token ()
+(defun wisi-forward-token (&optional text-only)
   "Move point forward across one token, skipping whitespace and comments.
-Return the corresponding token (symbol text (start end)),
+Return the corresponding token, in a format determined by TEXT-ONLY:
+TEXT-ONLY t:          text
+TEXT-ONLY nil:        (symbol text (start end))
 where:
 `symbol' is a token symbol as defined in the tokens section of the
-grammar definition file,
-`text' is the token text from the buffer,
-`(start end)' are the character positions in the buffer of the start
+grammar definition file (from `wisi-keyword-table'),
+`text' is the token text from the buffer (lowercase if TEXT-ONLY),
+`start, end' are the character positions in the buffer of the start
 and end of the token text.
 If at end of buffer, returns `wisent-eoi-term'."
   (forward-comment (point-max))
@@ -178,16 +180,22 @@ If at end of buffer, returns `wisent-eoi-term'."
 
     (unless token-id
       (error "unrecognized token '%s'" (setq token-text (buffer-substring-no-properties start (point)))))
-    (list token-id token-text (list start (point)))
+
+    (if text-only
+	(lowercase token-text)
+      (list token-id token-text (list start (point))))
     ))
 
 (defun wisi-backward-token ()
-  "Move point backward across one token, skipping whitespace and comments."
+  "Move point backward across one token, skipping whitespace and comments.
+Return token text."
+  ;; FIXME: not used?
   (forward-comment (- (point)))
   ;; skips leading whitespace, comment, trailing whitespace.
 
   ;; (info "(elisp)Syntax Table Internals" "*info elisp syntax*")
-  (let ((syntax (syntax-class (syntax-after (1- (point))))))
+  (let ((end (point))
+	(syntax (syntax-class (syntax-after (1- (point))))))
     (cond
      ((bobp) nil)
 
@@ -202,7 +210,9 @@ If at end of buffer, returns `wisent-eoi-term'."
      (t
       (if (zerop (skip-syntax-backward "."))
 	  (skip-syntax-backward "w_'")))
-   )))
+     )
+    (buffer-substring-no-properties (point) end)
+    ))
 
 ;;;; token info cache
 ;;
@@ -213,7 +223,7 @@ If at end of buffer, returns `wisent-eoi-term'."
   (wisi-cache
    (:constructor wisi-cache-create)
    (:copier nil))
-  symbol
+  symbol ;; from wisi-keyword-table
 
   class ;; list of classes is language-specific
 
@@ -230,6 +240,8 @@ If at end of buffer, returns `wisent-eoi-term'."
   ;; b) if this keyword is a block-end, mark at the first keyword of the last contained statement
   ;; otherwise nil
 
+  prev ;; marker at previous motion token in statement; nil if none
+  next ;; marker at next motion token in statement; nil if none
   )
 
 (defvar wisi-cache-max 0
@@ -297,21 +309,26 @@ If at end of buffer, returns `wisent-eoi-term'."
 	))))
 
 (defun wisi-get-cache (pos)
-  ;; FIXME: is `pos' ever not (point)?
-  "Return info from the `wisi-cache' text property at POS.
-Info is '(keyword-symbol first-keyword-mark) or nil."
+  "Return `wisi-cache' struct from the `wisi-cache' text property at POS.
+If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS must be (1- mark)."
   (get-text-property pos 'wisi-cache))
 
+(defvar wisi-parse-error nil)
+
+(defun wisi-parse-error (msg)
+  "For `wisent-parse-error-function'."
+  ;; just capture the error, so wisi-parse-buffer can jump to it
+  (setq wisi-parse-error msg))
+
 (defun wisi-validate-cache (pos)
-  "Ensure cached data is valid at least up to POS.
-Parse buffer if necessary."
-  (if (< wisi-cache-max pos)
-      ;; FIXME: could try to resume parse at wisi-cache-max. Let's see
-      ;; how slow this is.
-      (save-excursion
-	(goto-char (point-min))
-	(wisent-parse wisi-parse-table 'wisi-forward-token)
-	(setq wisi-cache-max (point)))))
+  "Ensure cached data is valid at least up to POS in current buffer."
+  (when (< wisi-cache-max pos)
+    (save-excursion
+      ;; FIXME: if more than one start non-terminal in buffer,
+      ;; wisent-parse will stop after the next one; need loop
+      (goto-char wisi-cache-max)
+      (wisent-parse wisi-parse-table 'wisi-forward-token 'wisi-parse-error))
+      (setq wisi-cache-max (point))))
 
 ;;;; defining parse actions
 
@@ -321,8 +338,11 @@ Intended as a wisent grammar non-terminal action.  ITEMS is a
 list [symbol class (start end)] ... for tokens that should
 receive cached information. See macro `wisi-cache-action' for
 using this in a wisent grammar file."
+  ;; FIXME: separate function for prev/next; only set those for block statements where motion is helpful.
   (save-excursion
-    (let (first-keyword-mark)
+    (let (first-keyword-mark
+	  next-keyword-mark
+	  prev-keyword-mark)
       (while items
 	(let* ((symbol (pop items))
 	       (class (pop items))
@@ -348,8 +368,15 @@ using this in a wisent grammar file."
 	     (wisi-cache-create
 	      :symbol symbol
 	      :class class
-	      :start first-keyword-mark)
+	      :start first-keyword-mark
+	      :next nil
+	      :prev prev-keyword-mark)
 	     ))
+
+	  (when prev-keyword-mark
+	    (setf (wisi-cache-next (wisi-get-cache (1- prev-keyword-mark))) mark))
+
+	  (setq prev-keyword-mark mark)
 
 	  (unless first-keyword-mark (setq first-keyword-mark mark))
 	))
@@ -378,7 +405,7 @@ END-REGION) with class CLASS to marker pointing to start of
 region.  See `wisi-update-action' for use in grammar action."
   (save-excursion
     (goto-char (nth 1 (car end-region)))
-    (let ((token (wisi-prev-cache))
+    (let ((token (wisi-backward-cache))
 	  (mark (copy-marker (1+ (nth 0 (car start-region)))))
 	  token-region)
       (while token
@@ -388,7 +415,7 @@ region.  See `wisi-update-action' for use in grammar action."
 	  (setf (wisi-cache-start cache) mark)
 	  (with-silent-modifications
 	    (put-text-property (car token-region) (cadr token-region) 'wisi-cache cache)))
-	(setq token (wisi-prev-cache))
+	(setq token (wisi-backward-cache))
 	(when (< (point) (cadar start-region))
 	  (setq token nil))
 	))))
@@ -412,21 +439,37 @@ CLASS is the class of tokens to update."
   'PREFIXED_LIST)
 
 ;;;; motion
-(defun wisi-prev-cache ()
-  "Move point to the beginning of the first token preceding point that has a cache.
+(defun wisi-backward-cache ()
+  "Move point backward to the beginning of the first token preceding point that has a cache.
 Returns (cache region); the found cache, and the text region
 containing it; or nil if at beginning of buffer."
   (let (begin end)
-    (when (not (bobp))
-      (setq end (previous-single-property-change (point) 'wisi-cache))
-      (when end
-	(if (get-text-property (1- end) 'wisi-cache)
-	    (setq begin (previous-single-property-change end 'wisi-cache))
-	  ;; else single-character token
-	  (setq begin end))
-	(goto-char begin)
-	(list (get-text-property begin 'wisi-cache)
-	      (list begin end))))
+    (setq end (previous-single-property-change (point) 'wisi-cache))
+    (when end
+      (if (get-text-property (1- end) 'wisi-cache)
+	  (setq begin (previous-single-property-change end 'wisi-cache))
+	;; else single-character token
+	(setq begin end))
+      (goto-char begin)
+      (list (get-text-property begin 'wisi-cache)
+	    (list begin end)))
+    ))
+
+(defun wisi-forward-cache ()
+  "Move point forward to the beginning of the first token after point that has a cache.
+Assumes relevant portion of buffer is parsed.
+Returns (cache region); the found cache, and the text region
+containing it; or nil if at end of buffer."
+  (let (begin end)
+    (setq begin (next-single-property-change (point) 'wisi-cache))
+    (when begin
+      (if (get-text-property (1+ begin) 'wisi-cache)
+	  (setq end (next-single-property-change begin 'wisi-cache))
+	;; else single-character token
+	(setq end begin))
+      (goto-char begin)
+      (list (get-text-property begin 'wisi-cache)
+	    (list begin end)))
     ))
 
 (defun wisi-goto-statement-start (cache)
@@ -466,7 +509,7 @@ the comment on the previous line."
     (let ((done nil)
 	  cache)
       (while (not done)
-	(setq cache (car (wisi-prev-cache)))
+	(setq cache (car (wisi-backward-cache)))
 	(setq done
 	      (or (not cache);; bob
 		  (eq (wisi-cache-class cache) 'open-paren)))))
@@ -510,7 +553,17 @@ CACHE contains cache info from a keyword in the current statement."
 (defun wisi-parse-buffer ()
   (interactive)
   (wisi-invalidate-cache)
-  (wisi-validate-cache (point-max)))
+  (wisi-validate-cache (point-max))
+  (when wisi-parse-error
+    (string-match "unexpected \\(\\w+\\)@(\\([0-9]+\\) \\([0-9]+\\))(\"\\(.+\\)\"),\\(.*\\)" wisi-parse-error)
+    (let ((symbol (match-string 1 wisi-parse-error))
+	  (begin (string-to-number (match-string 2 wisi-parse-error)))
+	  (end   (string-to-number (match-string 3 wisi-parse-error)))
+	  (text  (match-string 4 wisi-parse-error))
+	  (expecting (match-string 5 wisi-parse-error)))
+      (goto-char begin)
+      (error "unexpected %s: %s" symbol expecting)
+      )))
 
 (defun wisi-show-cache ()
   "Show cache at point."
@@ -536,18 +589,14 @@ CACHE contains cache info from a keyword in the current statement."
   (unless (setq wisi-symbol-term (car (symbol-value (intern-soft "symbol" token-table))))
     (error "grammar does not define <symbol> token"))
 
-  (set (make-local-variable 'wisi-indent-calculate-functions) indent-calculate)
   (set (make-local-variable 'wisi-keyword-table) keyword-table)
   (set (make-local-variable 'wisi-parse-table) parse-table)
+
+  (set (make-local-variable 'wisi-indent-calculate-functions) indent-calculate)
   (set (make-local-variable 'indent-line-function) 'wisi-indent-line)
 
   (add-hook 'before-change-functions 'wisi-before-change nil t)
   (add-hook 'after-change-functions 'wisi-after-change nil t)
-
-  ;; FIXME: do we want this?
-  ;; (semantic-make-local-hook 'wisi-discarding-token-functions)
-  ;; (add-hook 'wisi-discarding-token-functions
-  ;; 	    'wisi-collect-unmatched-syntax nil t))
 
   ;; FIXME: (set (make-local-variable 'forward-sexp-function) 'wisi-forward-sexp-command)
   ;; This is nice for user navigation; do we need it for wisi?

@@ -44,7 +44,7 @@
   (let ((cache (wisi-get-cache (point))))
     (when cache
       (ecase (wisi-cache-class cache)
-	(block-start (wisi-indent-statement-start ada-indent (car (wisi-prev-cache))))
+	(block-start (wisi-indent-statement-start ada-indent (car (wisi-backward-cache))))
 	(block-end (wisi-indent-statement-start 0 cache))
 	(close-paren (wisi-indent-paren 0))
 	((open-paren statement-start) nil); let after-keyword handle it
@@ -53,7 +53,7 @@
     ))
 
 (defun gpr-wisi-after-keyword ()
-  (let ((cache (car (wisi-prev-cache))))
+  (let ((cache (car (wisi-backward-cache))))
     (if (not cache)
 	;; bob
 	0

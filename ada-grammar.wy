@@ -56,10 +56,9 @@
 %keyword AND "and"
 %keyword ARRAY "array"
 %keyword BAR "|"
-%keyword BEGIN "begin"
-%keyword BODY "body"
 %keyword BOX "<>"
 %keyword CASE "case"
+%keyword CLASS "class"
 %keyword COLON ":"
 %keyword COLON_EQUAL ":="
 %keyword COMMA ","
@@ -79,7 +78,7 @@
 %keyword IN "in"
 %keyword INTERFACE "interface"
 %keyword IS "is"
-%keyword LEFT_PAREN "left_paren"
+%keyword LEFT_PAREN "("
 %keyword LESS "<"
 %keyword LESS_EQUAL "<="
 %keyword LIMITED "limited"
@@ -96,6 +95,7 @@
 %keyword PACKAGE "package"
 %keyword PAREN_BOX "(<>)"
 %keyword PLUS "+"
+%keyword PRAGMA "pragma"
 %keyword PRIVATE "private"
 %keyword PROCEDURE "procedure"
 %keyword PROTECTED "protected"
@@ -103,7 +103,7 @@
 %keyword RECORD "record"
 %keyword REM "rem"
 %keyword RETURN "return"
-%keyword RIGHT_PAREN "right_paren"
+%keyword RIGHT_PAREN ")"
 %keyword SEMICOLON ";"
 %keyword SLASH "/"
 %keyword SLASH_EQUAL "/="
@@ -174,17 +174,6 @@ array_type_definition
  ;; unconstrained_array_definition
   | ARRAY LEFT_PAREN discrete_subtype_definition_list RIGHT_PAREN OF component_definition
  ;; constrained_array_definition
-  ;
-
-association
-  : name EQUAL_GREATER name
-  | name EQUAL_GREATER BOX
-  | OTHERS EQUAL_GREATER BOX
-  ;
-
-association_list
-  : association
-  | association_list COMMA association
   ;
 
 ;; basic_declarative_item merged into declaration
@@ -274,7 +263,7 @@ context_clause
   | context_clause context_item
   ;
 
-context_item : with_clause | use_clause;
+context_item : pragma | with_clause | use_clause;
 
 ;; direct_name replaced by selector_name
 
@@ -290,6 +279,7 @@ declaration
   ;; | number_declaration
   | object_declaration
   ;; | package_declaration
+  | pragma ;; not a 'declaration' in ARM, but it must be in the grammar
   ;; | renaming_declaration
   | subprogram_declaration
   ;; | subtype_declaration
@@ -317,7 +307,9 @@ discrete_choice_list
 
 discrete_choice
   : choice_expression
-  | subtype_indication
+ ;; | subtype_indication
+ ;; FIXME: causes reduce/reduce conflict because both
+ ;; choice_expression and subtype_indication can be just 'name'
   | range
   | OTHERS
   ;
@@ -454,11 +446,24 @@ formal_package_declaration
 
 formal_package_actual_part
   : LEFT_PAREN OTHERS EQUAL_GREATER BOX RIGHT_PAREN ;; (others => <>)
+    `(wisi-cache-action 1 'open-paren 5 'close-paren)
   | PAREN_BOX ;; (<>)
-  | LEFT_PAREN association_list RIGHT_PAREN
- ;; generic_actual_part, formal_package_association_list is association_list
-    `(wisi-cache-action 1 'open-paren 3 'close-paren)
   | ;; null generic actual part
+  | LEFT_PAREN formal_package_association_list COMMA OTHERS EQUAL_GREATER BOX RIGHT_PAREN
+    `(wisi-cache-action 1 'open-paren 7 'close-paren)
+  | LEFT_PAREN formal_package_association_list RIGHT_PAREN
+    `(wisi-cache-action 1 'open-paren 3 'close-paren)
+ ;; same as generic_actual_part
+  ;
+
+formal_package_association_list
+  : formal_package_association
+  | formal_package_association_list COMMA formal_package_association
+  ;
+
+formal_package_association
+  : selector_name EQUAL_GREATER expression ;; generic_association; expanded to avoid reduce/reduce conflict
+  | selector_name EQUAL_GREATER BOX
   ;
 
 formal_private_type_definition
@@ -562,7 +567,7 @@ membership_choice
  ;; thus 'choice_relation_and_list AND' could be followed by relation (=> reduce) or choice_relation (=> shift)
  ;; This only occurs in legal Ada in expressions such as 'True in 1 and 3'; not useful, so we leave it out.
   | range
- ;;  | name ;; subtype_mark - also covered by choice_expression; avoid reduce/reduce conflict
+ ;;  | name ;; subtype_mark - also covered by simple__expression; avoid reduce/reduce conflict
   ;
 
 mode
@@ -652,6 +657,24 @@ parameter_specification_list
   : parameter_specification
   | parameter_specification_list SEMICOLON parameter_specification
     `(wisi-cache-action 2 'list-break)
+  ;
+
+pragma
+  : PRAGMA IDENTIFIER LEFT_PAREN pragma_argument_association_list RIGHT_PAREN SEMICOLON
+    `(wisi-cache-action 1 'statement-start 6 'statement-end)
+  | PRAGMA IDENTIFIER SEMICOLON
+    `(wisi-cache-action 1 'statement-start 3 'statement-end)
+  ;
+
+pragma_argument_association
+  : IDENTIFIER EQUAL_GREATER expression
+  | expression
+  | IDENTIFIER TICK CLASS EQUAL_GREATER expression
+  ;
+
+pragma_argument_association_list
+  : pragma_argument_association
+  | pragma_argument_association_list COMMA pragma_argument_association
   ;
 
 ;; prefix is name
@@ -751,6 +774,9 @@ selected_component
   | name DOT STRING_LITERAL ;; operator_symbol
   ;
 
+selector_name
+  : IDENTIFIER | CHARACTER_LITERAL | STRING_LITERAL ; ;; operator_symbol
+
 simple_expression
   : unary_adding_operator term_list
   | term_list
@@ -802,7 +828,7 @@ term
   ;
 
 term_list
-  : term binary_adding_operator term
+  : term
   | term_list binary_adding_operator term
   ;
 

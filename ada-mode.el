@@ -1800,10 +1800,12 @@ is currently in.  Called with no parameters.")
 
 (defvar ada-next-statement-keyword nil
   ;; No useful default; the indentation engine should supply a useful function
-  "Function called with no parameters; it should move to the next
-keyword in the statement following the one point is in (ie from
-'if' to 'then').  If at the last keyword, move to the next
-keyword in the next statement or containing statement.")
+  "Function called with no parameters; it should move forward to
+the next keyword in the statement following the one point is
+in (ie from 'if' to 'then').  If not in a keyword, move forward
+to the next keyword in the current statement. If at the last keyword,
+move forward to the first keyword in the next statement or next
+keyword in the containing statement.")
 
 (defun ada-next-statement-keyword ()
   "See `ada-next-statement-keyword' variable."

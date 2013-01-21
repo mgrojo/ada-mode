@@ -1,11 +1,13 @@
 ;;; An indentation function for ada-smie that indents OpenToken
 ;;; grammar statements nicely.
 ;;
-;; To be added on a per-file basis in Local Variables:
+;; In ~/.emacs:
+;; (require 'ada-smie-opentoken)
+;;
+;; In each file that declares OpenToken grammars:
 ;;
 ;; Local Variables:
-;; eval: (require 'ada-smie-opentoken)
-;; eval: (add-to-list 'smie-indent-functions 'ada-smie-opentoken)
+;; ada-indent-opentoken: t
 ;; End:
 
 (require 'ada-mode)
@@ -36,11 +38,12 @@
 	  (+ (current-column) ada-indent-broken))
 	 )))))
 
+(defun ada-smie-opentoken-setup ()
+  (add-to-list 'smie-indent-functions 'ada-smie-opentoken))
+
 ;; This must be last on ada-mode-hook, so ada-smie-opentoken is first
 ;; on smie-indent-functions
-(add-hook 'ada-mode-hook
-	  (lambda () (add-to-list 'smie-indent-functions 'ada-smie-opentoken))
-	  t)
+(add-hook 'ada-mode-hook 'ada-smie-opentoken-setup t)
 
 (add-to-list 'ada-align-rules
 	     '(ada-opentoken

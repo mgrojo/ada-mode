@@ -37,7 +37,6 @@
 ;;;;; Code:
 
 ;; we reuse several ada-mode functions
-;; FIXME: factor those out somewhere?
 (require 'ada-mode)
 
 (defun gpr-align ()
@@ -167,10 +166,10 @@ current construct."
   (save-excursion
     (end-of-line 1)
     (wisi-validate-cache (point))
-    (let ((token (wisi-prev-cache)))
+    (let ((token (wisi-backward-cache)))
       (while (and token
 		  (not (member (wisi-cache-symbol (car token)) '("package" "project"))))
-	(setq token (wisi-prev-cache)))
+	(setq token (wisi-backward-cache)))
       (when token
 	(wisi-forward-token); package | project
 	(setq token (wisi-forward-token)); name

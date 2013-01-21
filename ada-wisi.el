@@ -43,7 +43,7 @@
   (let ((cache (wisi-get-cache (point))))
     (when cache
       (ecase (wisi-cache-class cache)
-	(block-start (wisi-indent-statement-start ada-indent (car (wisi-prev-cache))))
+	(block-start (wisi-indent-statement-start ada-indent (car (wisi-backward-cache))))
 	(block-end (wisi-indent-statement-start 0 cache))
 	(close-paren (wisi-indent-paren 0))
 	((open-paren statement-start) nil); let after-keyword handle it
@@ -52,7 +52,7 @@
     ))
 
 (defun ada-wisi-after-keyword ()
-  (let ((cache (car (wisi-prev-cache))))
+  (let ((cache (car (wisi-backward-cache))))
     (if (not cache)
 	;; bob
 	0
@@ -78,6 +78,112 @@
 	))
     ))
 
+(defun ada-wisi-forward-statement-keyword ()
+  "For `ada-next-statement-keyword', which see."
+  (wisi-validate-cache (point-max))
+  (let ((cache (wisi-get-cache (point))))
+    (if cache
+	(let ((next (wisi-cache-next cache)))
+	  (if next
+	      (goto-char next)
+	    (wisi-forward-token)
+	    (wisi-forward-cache)))
+      (wisi-forward-cache))
+  ))
+
+(defun ada-wisi-which-function-1 (keyword)
+  "used in `ada-wisi-which-function'."
+  (let (region
+	result
+	(token (wisi-forward-cache)))
+
+    (ecase (wisi-cache-symbol (car token))
+      (type
+       (setq region (cadr (wisi-forward-cache)))
+       (setq result (buffer-substring-no-properties (car region) (cadr region)))
+
+       (when (not ff-function-name)
+	 (setq ff-function-name
+	       (concat
+		keyword
+		"\\s-+body\\s-+"
+		result
+		ada-symbol-end))))
+
+      (body
+       (setq region (cadr (wisi-forward-cache)))
+       (setq result (buffer-substring-no-properties (car region) (cadr region)))
+
+       (when (not ff-function-name)
+	 ;; find spec
+	 (setq ff-function-name
+	       (concat
+		keyword
+		"\\s-+\\(type\\s-+\\)?"
+		result
+		symbol-end))))
+
+      (identifier ; name
+       (setq region (cadr token))
+       (setq result (buffer-substring-no-properties (car region) (cadr region)))
+
+       (when (not ff-function-name)
+	 ;; find body
+	 (setq ff-function-name
+	       (concat
+		keyword
+		"\\s-+body\\s-+"
+		result
+		symbol-end))))
+      )
+    result))
+
+(defun ada-wisi-which-function ()
+  "For `ada-which-function'."
+  (wisi-validate-cache)
+  (save-excursion
+    (let (token
+	  region
+	  (result nil)
+	  (symbol-end
+	   ;; we can't just add \> here; that might match _ in a user modified ada-mode-syntax-table
+	   "\\([ \t]+\\|$\\)")
+	  )
+
+      (while (not result)
+	(wisi-goto-statement-start (car (wisi-backward-cache)))
+	(setq cache (wisi-get-cache (point)))
+
+	(if (null cache)
+	    ;; bob
+	    (setq result "")
+
+	  ;; add or delete 'body' as needed
+	  (case (wisi-cache-symbol cache)
+	    (package
+	     (setq result (ada-wisi-which-function-1 "package")))
+
+	    (protected
+	     (setq result (ada-wisi-which-function-1 "protected")))
+
+	    (task
+	     ;; FIXME: need test
+	     (setq result (ada-wisi-which-function-1 "task")))
+
+	    ((function procedure)
+	     (setq region (cadr (wisi-forward-cache)))
+	     (setq result (buffer-substring-no-properties (car region) (cadr region)))
+
+	     (when (not ff-function-name)
+	       (setq ff-function-name
+		     ;; use a regexp that won't match similarly named items
+		     (concat
+		      "^"
+		      (buffer-substring-no-properties (point-at-bol) (cadr region))
+		      symbol-end))))
+	    )))
+      result)))
+
 ;;; debugging
 (defun ada-wisi-debug-keys ()
   "Add debug key definitions to `ada-mode-map'."
@@ -102,8 +208,8 @@
   (set (make-local-variable 'ada-scan-paramlist) 'ada-wisi-scan-paramlist)
   (set (make-local-variable 'ada-goto-declaration-start) 'ada-wisi-goto-declaration-start)
   (set (make-local-variable 'ada-goto-declarative-region-start) 'ada-wisi-goto-declarative-region-start)
-  (set (make-local-variable 'ada-next-statement-keyword) 'ada-wisi-forward-statement-keyword-1)
-  (set (make-local-variable 'ada-prev-statement-keyword) 'ada-wisi-backward-statement-keyword-1)
+  (set (make-local-variable 'ada-next-statement-keyword) 'ada-wisi-forward-statement-keyword)
+  (set (make-local-variable 'ada-prev-statement-keyword) 'ada-wisi-backward-statement-keyword)
   (set (make-local-variable 'ada-make-subprogram-body) 'ada-wisi-make-subprogram-body)
   )
 

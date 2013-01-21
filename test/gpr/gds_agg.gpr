@@ -1,3 +1,4 @@
+-- Test 'aggregate' indentation
 aggregate
 project GDS_Agg is
    for Project_Path use
