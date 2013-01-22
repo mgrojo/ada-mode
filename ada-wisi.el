@@ -140,7 +140,7 @@
 
 (defun ada-wisi-which-function ()
   "For `ada-which-function'."
-  (wisi-validate-cache)
+  (wisi-validate-cache (point))
   (save-excursion
     (let (token
 	  region
@@ -151,37 +151,42 @@
 	  )
 
       (while (not result)
-	(wisi-goto-statement-start (car (wisi-backward-cache)))
-	(setq cache (wisi-get-cache (point)))
-
+	(setq cache (car (wisi-backward-cache)))
 	(if (null cache)
 	    ;; bob
 	    (setq result "")
 
-	  ;; add or delete 'body' as needed
-	  (case (wisi-cache-symbol cache)
-	    (package
-	     (setq result (ada-wisi-which-function-1 "package")))
+	  (wisi-goto-statement-start cache)
+	  (setq cache (wisi-get-cache (point)))
 
-	    (protected
-	     (setq result (ada-wisi-which-function-1 "protected")))
+	  (if (null cache)
+	      ;; bob
+	      (setq result "")
 
-	    (task
-	     ;; FIXME: need test
-	     (setq result (ada-wisi-which-function-1 "task")))
+	    ;; add or delete 'body' as needed
+	    (case (wisi-cache-symbol cache)
+	      (package
+	       (setq result (ada-wisi-which-function-1 "package")))
 
-	    ((function procedure)
-	     (setq region (cadr (wisi-forward-cache)))
-	     (setq result (buffer-substring-no-properties (car region) (cadr region)))
+	      (protected
+	       (setq result (ada-wisi-which-function-1 "protected")))
 
-	     (when (not ff-function-name)
-	       (setq ff-function-name
-		     ;; use a regexp that won't match similarly named items
-		     (concat
-		      "^"
-		      (buffer-substring-no-properties (point-at-bol) (cadr region))
-		      symbol-end))))
-	    )))
+	      (task
+	       ;; FIXME: need test
+	       (setq result (ada-wisi-which-function-1 "task")))
+
+	      ((function procedure)
+	       (setq region (cadr (wisi-forward-cache)))
+	       (setq result (buffer-substring-no-properties (car region) (cadr region)))
+
+	       (when (not ff-function-name)
+		 (setq ff-function-name
+		       ;; use a regexp that won't match similarly named items
+		       (concat
+			"^"
+			(buffer-substring-no-properties (point-at-bol) (cadr region))
+			symbol-end))))
+	      ))))
       result)))
 
 ;;; debugging
@@ -192,11 +197,21 @@
   (define-key ada-mode-map "\M-k" 'wisi-show-token)
   )
 
+(defun ada-wisi-debug-setup ()
+  "Set up with debug grammar."
+  (interactive)
+  (wisi-setup '(ada-wisi-before-keyword
+		ada-wisi-after-keyword)
+	      debug-wy--keyword-table
+	      debug-wy--token-table
+	      debug-wy--parse-table)
+  )
+
 ;;;###autoload
 (defun ada-wisi-setup ()
   "Set up a buffer for parsing Ada files with wisi."
-  (wisi-setup '(gpr-wisi-before-keyword
-		gpr-wisi-after-keyword)
+  (wisi-setup '(ada-wisi-before-keyword
+		ada-wisi-after-keyword)
 	      ada-grammar-wy--keyword-table
 	      ada-grammar-wy--token-table
 	      ada-grammar-wy--parse-table)

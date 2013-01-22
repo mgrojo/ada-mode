@@ -64,9 +64,8 @@ build/wisi/Makefile
 
 ada-wisi
     test/ada_mode-generic_package.ads
-        '<>,' not recognized
-        need new token class?
-        can't change <> to symbol syntax class; 'foo<bar' will be one symbol
+        need lots of wisi-region-action
+            why doesn't wisent-semantic-action do that for me?
 
 
 better error handling for wisi?

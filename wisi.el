@@ -243,7 +243,12 @@ Return token text."
    (:copier nil))
   symbol ;; from wisi-keyword-table
 
-  class ;; list of classes is language-specific
+  class
+  ;; some classes are defined by wisi:
+  ;; 'statement-start
+  ;; 'block-start
+  ;;
+  ;; rest are language-specific
 
   start
   ;; a) if this is not first keyword; mark at the first keyword of the current statement
@@ -341,12 +346,18 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
 (defun wisi-validate-cache (pos)
   "Ensure cached data is valid at least up to POS in current buffer."
   (when (< wisi-cache-max pos)
-    (save-excursion
-      ;; FIXME: if more than one start non-terminal in buffer,
-      ;; wisent-parse will stop after the next one; need loop
-      (goto-char wisi-cache-max)
-      (wisent-parse wisi-parse-table 'wisi-forward-token 'wisi-parse-error))
-      (setq wisi-cache-max (point))))
+    (condition-case err
+	(save-excursion
+	  ;; FIXME: if more than one start non-terminal in buffer,
+	  ;; wisent-parse will stop after the next one; need loop
+	  (goto-char wisi-cache-max)
+	  (wisent-parse wisi-parse-table 'wisi-forward-token 'wisi-parse-error))
+      (error
+       (let ((msg (cadr err)))
+	 (string-match ".*:\\([0-9]+\\):" msg)
+	 (goto-char (string-to-number (match-string 1 msg)))
+	 (message msg))))
+    (setq wisi-cache-max (point))))
 
 ;;;; parse actions
 
@@ -388,10 +399,10 @@ should receive cached information. See macro
 	  (unless first-keyword-mark
 	    (setq first-keyword-mark mark
 		  start (car region)))
-	  (setq end (cdr region))
+	  (setq end (cadr region))
 	))
       ;; set non-terminal region for parent actions
-      (setq $region (cons start end))
+      (setq $region (list (list start end)))
       ;; return value is semantic value
       $nterm
       )))
@@ -417,6 +428,11 @@ that token. Use in a grammar action as:
   "Update region in parser data for current non-terminal, so parent non-terminal can use it.
 See macro `wisi-region-action' for using this in a wisent grammar
 file."
+  (unless (and
+	   (car start-region)
+	   (car end-region))
+    (error "%s:%s: a region is nil; need wisi-region-action?" $nterm (point)))
+
   (setq $region (list (list (nth 0 (car start-region))
 			    (nth 1 (car end-region)))))
   $nterm)
@@ -430,7 +446,7 @@ Use in a grammar action as:
       (setq start-region (intern (concat "$region" (number-to-string start-token-number))))
       (setq end-region (intern (concat "$region" (number-to-string end-token-number))))
 
-     (cons 'wisi-region-tokens (list start-region end-region))
+      (cons 'wisi-region-tokens (list start-region end-region))
   ))
 
 (defun wisi-start-tokens (start-region end-region class)
@@ -496,15 +512,19 @@ in a wisent grammar file."
 
 (defmacro wisi-motion-action (&rest token-numbers)
   "Macro to define a wisi grammar action that is a call to `wisi-motion-tokens'.
+Token caches must have been created by a previous action.
 Use in a grammar action as:
 
-`,(wisi-motion-action 1  7)"
-  (let (number region)
+  : generic_formal_part package_specification SEMICOLON
+    (progn
+      `(wisi-statement-action 1 'block-start 2 'statement-middle 3 'statement-end)
+      `(wisi-motion-action 1 2 3))"
+  (let (number region list)
     (while token-numbers
       (setq number (pop token-numbers))
       (setq region (intern (concat "$region" (number-to-string number))))
-      (setq list (append list region))
-      (cons 'wisi-motion-tokens list))
+      (setq list (append list (list region))))
+    (cons 'wisi-motion-tokens list)
   ))
 
 ;;;; motion
@@ -546,7 +566,11 @@ containing it; or nil if at end of buffer."
 If at start of a statement, goto start of containing statement"
   (cond
    ((markerp (wisi-cache-start cache))
-    (goto-char (1- (wisi-cache-start cache))))
+    (goto-char (1- (wisi-cache-start cache)))
+    (when (not (memq (wisi-cache-class (setq cache (wisi-get-cache (point)))) '(statement-start block-start)))
+      ;; start was moved during parsing
+      (goto-char (1- (wisi-cache-start cache)))
+      ))
 
    (t
     ;; at start of outermost containing statement

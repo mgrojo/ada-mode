@@ -494,7 +494,9 @@ generic_declaration
 
 generic_formal_part
   : GENERIC generic_formal_parameter_declarations ;; leaving out use_clause
+    `(wisi-region-action 1 2)
   | GENERIC
+    `(wisi-region-action 1 1)
   ;
 
 generic_formal_parameter_declarations
@@ -512,7 +514,9 @@ generic_formal_parameter_declaration
 
 generic_package_declaration
   : generic_formal_part package_specification SEMICOLON
-    `(wisi-statement-action 1 'statement-start 3 'statement-end)
+    (progn
+      `(wisi-statement-action 1 'block-start 2 'statement-middle 3 'statement-end)
+      `(wisi-motion-action 1 2 3))
   ;
 
 identifier_list
@@ -525,6 +529,7 @@ index_subtype_definition : name RANGE BOX ;
 
 index_subtype_definition_list
   : index_subtype_definition
+    `(wisi-region-action 1 1)
   | index_subtype_definition_list COMMA index_subtype_definition
     `(wisi-region-action 1 3)
   ;
