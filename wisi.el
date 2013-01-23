@@ -252,8 +252,9 @@ Return token text."
 
   class
   ;; some classes are defined by wisi:
-  ;; 'statement-start
   ;; 'block-start
+  ;; 'statement-start
+  ;; 'open-paren
   ;;
   ;; rest are language-specific
 
@@ -389,11 +390,10 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
 
 (defun wisi-symbol (text)
   "Return token symbol from `wisi-keyword-table' or `wisi-punctuation-table' for TEXT."
-  ;; FIXME: patch wisent-parse to put this on the stack, so we don't have to recompute it!
   (or
    (symbol-value (intern-soft text wisi-keyword-table))
    (car (rassoc text wisi-punctuation-table))
-   ;; else identifier, string_literal, char-literal, numeric_literal
+   ;; else identifier, string_literal, char-literal, numeric_literal, non-terminal symbol
    text))
 
 (defun wisi-statement-tokens (&rest items)
@@ -404,7 +404,7 @@ ITEMS is a list [text class (start end)] ... for tokens that
 should receive cached information. See macro
 `wisi-statement-action' for using this in a wisent grammar file."
   (save-excursion
-    (let (first-keyword-mark start end)
+    (let ((first-item t) first-keyword-mark start)
       (while items
 	(let* ((text (pop items))
 	       (class (pop items))
@@ -416,14 +416,14 @@ should receive cached information. See macro
 	       cache)
 
 	  (if (setq cache (get-text-property (car region) 'wisi-cache))
-	      ;; we are processing a nested non-terminal package_specification in
+	      ;; We are processing a previously set non-terminal; ie package_specification in
 	      ;;
 	      ;; generic_package_declaration : generic_formal_part package_specification SEMICOLON
 	      ;;
-	      ;; override class and symbol, but don't change region containg text property.
+	      ;; just override class and start
 	      (progn
-		(setf (wisi-cache-symbol cache) (wisi-symbol text))
-		(setf (wisi-cache-class cache) class))
+		(setf (wisi-cache-class cache) class)
+		(setf (wisi-cache-start cache) first-keyword-mark))
 
 	    ;; else create new cache
 	    ;;
@@ -439,17 +439,18 @@ should receive cached information. See macro
 	       (cadr region)
 	       'wisi-cache
 	       (wisi-cache-create
-		:symbol (wisi-symbol text)
+		:symbol (if first-item $nterm (wisi-symbol text))
 		:class class
 		:start first-keyword-mark)
 	       )))
 
-	  (unless first-keyword-mark
-	    (setq first-keyword-mark mark
-		  start (car region)))
-	  (setq end (cadr region))
+	  (when first-item
+	    (setq first-item nil)
+	    (when (memq class '(block-start statement-start))
+	      (setq first-keyword-mark mark
+		    start (car region))))
 	))
-      ;; return value is semantic value; non-terminal name used in some functions.
+      ;; return value is semantic value for use in higher productions
       $nterm
       )))
 
@@ -470,38 +471,38 @@ that token. Use in a grammar action as:
     (cons 'wisi-statement-tokens list)
   ))
 
-(defun wisi-start-tokens (start-region end-region class)
+(defun wisi-start-tokens (start-region end-region)
   "Set start marks in all tokens in (caar START-REGION) to (cadar
-END-REGION) with class CLASS to marker pointing to start of
-region.  See `wisi-start-action' for use in grammar action."
+END-REGION) with class 'statement-start or 'block-start and null start mark to
+marker pointing to start of START-REGION.  See
+`wisi-start-action' for use in grammar action."
   (save-excursion
     (goto-char (nth 1 (car end-region)))
-    (let ((token (wisi-backward-cache))
-	  (mark (copy-marker (1+ (nth 0 (car start-region)))))
-	  token-region)
-      (while token
-	(setq cache (car token))
-	(setq token-region (cadr token))
-	(when (eq (wisi-cache-class cache) class)
-	  (setf (wisi-cache-start cache) mark)
-	  (with-silent-modifications
-	    (put-text-property (car token-region) (cadr token-region) 'wisi-cache cache)))
-	(setq token (wisi-backward-cache))
-	(when (< (point) (cadar start-region))
-	  (setq token nil))
+    (let ((cache (car (wisi-backward-cache)))
+	  (mark (copy-marker (1+ (nth 0 (car start-region))))))
+      (while cache
+
+	;; skip blocks that are already marked
+	(while (markerp (wisi-cache-start cache))
+	  (goto-char (1- (wisi-cache-start cache)))
+	  (setq cache (wisi-get-cache (point))))
+
+	(when (memq (wisi-cache-class cache) '(block-start statement-start))
+	  (setf (wisi-cache-start cache) mark))
+
+	(setq cache (car (wisi-backward-cache)))
+
+	(when (<= (point) (cadar start-region))
+	  (setq cache nil))
 	))))
 
-(defmacro wisi-start-action (start-token end-token class)
+(defmacro wisi-start-action (start-token end-token)
   "Macro to define a wisi grammar action that is a call to `wisi-start-tokens'.
 START-TOKEN is token number of first token in containing statement,
-END-TOKEN is token number of last token in containing statement,
-CLASS is the class of tokens to update."
-  ;; $region is often nil where we want to use this, so we use two token regions.
-  ;; FIXME: that's fixed now; use $region?
+END-TOKEN is token number of last token in containing statement."
   (list 'wisi-start-tokens
 	(intern (concat "$region" (number-to-string start-token)))
-	(intern (concat "$region" (number-to-string end-token)))
-	class))
+	(intern (concat "$region" (number-to-string end-token)))))
 
 (defun wisi-motion-tokens (&rest items)
   "Set prev/next marks in all ITEMS.
@@ -587,21 +588,26 @@ containing it; or nil if at end of buffer."
 	    (list begin end)))
     ))
 
-(defun wisi-goto-statement-start (cache)
+(defun wisi-goto-statement-start (cache containing)
   "Move point to statement start of statement containing CACHE.
-If at start of a statement, goto start of containing statement."
-  ;; FIXME: sometimes, we don't want to goto containing start; ada-wisi-which-function
-  (cond
-   ((markerp (wisi-cache-start cache))
-    (goto-char (1- (wisi-cache-start cache)))
-    (when (not (memq (wisi-cache-class (setq cache (wisi-get-cache (point)))) '(statement-start block-start)))
-      ;; start was moved during parsing
-      (goto-char (1- (wisi-cache-start cache)))
-      ))
+If at start of a statement and CONTAINING is non-nil, goto start
+of containing statement."
+  (while cache
+    (cond
+     ((markerp (wisi-cache-start cache))
+      (cond
+       ((memq (wisi-cache-class cache) '(statement-start block-start))
+	(if (not containing)
+	    (setq cache nil)
+	  (goto-char (1- (wisi-cache-start cache)))
+	  (setq cache (wisi-get-cache (point)))))
 
-   (t
-    ;; at start of outermost containing statement
-    nil)))
+       (t
+	(goto-char (1- (wisi-cache-start cache)))
+	(setq cache (wisi-get-cache (point))))
+      ))
+     (t
+      (setq cache nil)))))
 
 (defun wisi-next-statement-cache (cache)
   "Move point to CACHE-next; no motion if nil."
@@ -640,13 +646,19 @@ the comment on the previous line."
 		  (eq (wisi-cache-class cache) 'open-paren)))))
     (+ (current-column) offset)))
 
-(defun wisi-indent-statement-start (offset cache)
+(defun wisi-indent-statement-start (offset cache containing)
   "Return indentation OFFSET relative to line containing start of current statement.
 CACHE contains cache info from a keyword in the current statement."
   (save-excursion
-    (wisi-goto-statement-start cache)
-    (back-to-indentation)
-    (+ (current-column) offset)))
+    (cond
+     ((markerp (wisi-cache-start cache))
+      (wisi-goto-statement-start cache containing)
+      (back-to-indentation)
+      (+ (current-column) offset))
+     (t
+      ;; at outermost containing statement; ignore offset
+      0)
+     )))
 
 (defvar wisi-indent-calculate-functions nil
   "Functions to calculate indentation. Each called with point before a

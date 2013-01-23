@@ -43,11 +43,15 @@
   (let ((cache (wisi-get-cache (point))))
     (when cache
       (ecase (wisi-cache-class cache)
-	(block-start (wisi-indent-statement-start ada-indent (car (wisi-backward-cache))))
-	(block-end (wisi-indent-statement-start 0 cache))
+	(block-start (wisi-indent-statement-start ada-indent cache t))
+	(block-end (wisi-indent-statement-start 0 cache nil))
 	(close-paren (wisi-indent-paren 0))
 	((open-paren statement-start) nil); let after-keyword handle it
-	(statement-middle (wisi-indent-statement-start ada-indent-when cache))
+	(statement-middle
+	 (wisi-indent-statement-start
+	  (if (eq (wisi-cache-symbol cache) 'when) ada-indent-when 0)
+	  cache
+	  nil))
 	))
     ))
 
@@ -56,25 +60,28 @@
     (if (not cache)
 	;; bob
 	0
-      (ecase (wisi-cache-class cache)
+      (case (wisi-cache-class cache)
 	(block-end
 	 (wisi-indent-current 0))
 
 	(block-start
 	 (wisi-indent-current ada-indent))
 
+	(list-break
+	 (wisi-indent-paren 1))
+
 	(open-paren
 	 (1+ (current-column)))
 
 	(statement-end
-	 (wisi-indent-statement-start 0 cache))
+	 (wisi-indent-statement-start 0 cache nil))
 
 	(statement-middle;; when, else
 	 (wisi-indent-current ada-indent))
 
-	((statement-start close-paren)
+	(t
 	 ;; hanging
-	 (wisi-indent-statement-start ada-indent-broken cache))
+	 (wisi-indent-statement-start ada-indent-broken cache nil))
 	))
     ))
 
@@ -190,6 +197,28 @@
 	      ada-grammar-wy--parse-table)
 
   (set (make-local-variable 'comment-indent-function) 'wisi-comment-indent)
+
+  (font-lock-add-keywords nil
+   ;; use keyword cache to distinguish between 'function ... return <type>;' and 'return ...;'
+   (list
+    (list
+     (concat
+      "\\<\\("
+      "return[ \t]+access[ \t]+constant\\|"
+      "return[ \t]+access\\|"
+      "return"
+      "\\)\\>[ \t]*"
+      ada-name-regexp "?")
+     '(1 font-lock-keyword-face)
+     '(2 (if (eq (when (not (ada-in-string-or-comment-p))
+		   (wisi-validate-cache (match-end 2))
+		   (and (wisi-get-cache (match-beginning 2))
+			(wisi-cache-class (wisi-get-cache (match-beginning 2)))))
+		 'type)
+	     font-lock-type-face
+	   'default)
+	 nil t)
+     )))
 
   (set (make-local-variable 'ada-which-function) 'ada-wisi-which-function)
   (set (make-local-variable 'ada-in-paramlist-p) 'ada-wisi-in-paramlist-p)

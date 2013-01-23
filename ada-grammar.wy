@@ -149,8 +149,11 @@
 
 access_definition
   : NOT NULL ACCESS CONSTANT name
+    `(wisi-statement-action 5 'type);; for font-lock - see ada-wisi-setup
   | ACCESS CONSTANT name
+    `(wisi-statement-action 3 'type)
   | ACCESS name
+    `(wisi-statement-action 2 'type)
   | NOT NULL ACCESS PROTECTED PROCEDURE parameter_profile
   | NOT NULL ACCESS PROCEDURE parameter_profile
   | NOT NULL ACCESS PROTECTED FUNCTION parameter_and_result_profile
@@ -396,26 +399,30 @@ formal_part
     `(wisi-statement-action 1 'open-paren 3 'close-paren)
   ;
 
+;; leaving out [aspect_specification]
 formal_subprogram_declaration
- ;; leaving out [aspect_specification]
   : WITH subprogram_specification IS subprogram_default SEMICOLON ;; formal_concrete_subprogram_declaration
+    `(wisi-statement-action 1 'statement-start 5 'statement-end)
   | WITH subprogram_specification SEMICOLON ;; formal_concrete_subprogram_declaration
+    `(wisi-statement-action 1 'statement-start 3 'statement-end)
   | WITH subprogram_specification IS ABSTRACT subprogram_default SEMICOLON ;; formal_abstract_subprogram_declaration
+    `(wisi-statement-action 1 'statement-start 6 'statement-end)
   | WITH subprogram_specification IS ABSTRACT SEMICOLON ;; formal_abstract_subprogram_declaration
+    `(wisi-statement-action 1 'statement-start 5 'statement-end)
   ;
 
+;; leaving out [aspect_specification]
 formal_type_declaration
- ;; leaving out [aspect_specification]
   : TYPE IDENTIFIER discriminant_part IS formal_type_definition SEMICOLON ;; formal_complete_type_declaration
-    `(wisi-statement-action 1 'open-paren 6 'close-paren)
+    `(wisi-statement-action 1 'statement-start 6 'statement-end)
   | TYPE IDENTIFIER IS formal_type_definition SEMICOLON
-    `(wisi-statement-action 1 'open-paren 5 'close-paren)
+    `(wisi-statement-action 1 'statement-start 5 'statement-end)
   | TYPE IDENTIFIER discriminant_part IS TAGGED SEMICOLON ;; formal_incomplete_type_declaration
-    `(wisi-statement-action 1 'open-paren 6 'close-paren)
+    `(wisi-statement-action 1 'statement-start 6 'statement-end)
   | TYPE IDENTIFIER discriminant_part SEMICOLON
-    `(wisi-statement-action 1 'open-paren 4 'close-paren)
+    `(wisi-statement-action 1 'statement-start 4 'statement-end)
   | TYPE IDENTIFIER SEMICOLON
-    `(wisi-statement-action 1 'open-paren 3 'close-paren)
+    `(wisi-statement-action 1 'statement-start 3 'statement-end)
   ;
 
 formal_type_definition
@@ -443,9 +450,10 @@ formal_derived_type_definition
   | NEW name
   ;
 
+;; leaving out [aspect_specification]
 formal_package_declaration
- ;; leaving out [aspect_specification]
   : WITH PACKAGE name IS NEW name formal_package_actual_part SEMICOLON
+    `(wisi-statement-action 1 'statement-start 8 'statement-end)
   ;
 
 formal_package_actual_part
@@ -494,7 +502,11 @@ generic_declaration
 
 generic_formal_part
   : GENERIC generic_formal_parameter_declarations ;; leaving out use_clause
+    (progn
+      `(wisi-statement-action 1 'block-start)
+      `(wisi-start-action 1 2))
   | GENERIC
+    `(wisi-statement-action 1 'block-start)
   ;
 
 generic_formal_parameter_declarations
@@ -642,13 +654,21 @@ package_specification
       3 'block-start
       5 'block-end)
   | PACKAGE name IS END name
-    `(wisi-statement-action 1 'statement-start 2 'name)
+ ;; there might be comments between 'is', 'end'.
+    `(wisi-statement-action
+      1 'statement-start
+      2 'name
+      3 'block-start
+      4 'block-end)
   ;
 
 parameter_and_result_profile
   : formal_part RETURN NOT NULL name
+    `(wisi-statement-action 5 'type);; for font-lock - see ada-wisi-setup
   | formal_part RETURN name
+    `(wisi-statement-action 3 'type)
   | RETURN name
+    `(wisi-statement-action 2 'type)
   | formal_part RETURN access_definition
   | RETURN access_definition
   ;

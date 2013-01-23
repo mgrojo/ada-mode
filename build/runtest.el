@@ -97,16 +97,19 @@
     ;; not currently in column 0 are still not in column 0, in case
     ;; the mode supports a special case for comments in column 0.
     (indent-code-rigidly (point-min) (point-max) -1)
+
+    ;; indent-region uses save-excursion, so we can't goto an error location
     (indent-region (point-min) (point-max))
 
     ;; Cleanup the buffer; indenting often leaves trailing whitespace;
     ;; files must be saved without any.
     (delete-trailing-whitespace)
+
+    (when (eq major-mode 'ada-mode)
+      (ada-case-adjust-buffer))
+    ;; gpr-mode doesn't support casing yet
     )
 
-  (when (eq major-mode 'ada-mode)
-    (ada-case-adjust-buffer))
-  ;; gpr-mode doesn't support casing yet
   )
 
 (defun run-test (file-name)

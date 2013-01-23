@@ -6,7 +6,8 @@ runtest from emacs -Q:
   (add-to-list 'load-path "/Projects/org.emacs.ada-mode.smie/build")
   ;(global-font-lock-mode -1)
   (load "runtest-wisi")
-  (find-file "/Projects/org.emacs.ada-mode.smie/test/gpr/simple.gpr")
+  (find-file "/Projects/org.emacs.ada-mode.smie/test/ada_mode-generic_package.ads")
+  (setq skip-reindent-test t)
 )
 
 (progn
@@ -46,6 +47,11 @@ semantic mode in .wy is just broken
 
 (load "build/runtest.el")
  ada-smie/wisi
+ada-wisi
+    test/ada_mode-generic_package.ads
+        Concrete_Defaulted_Procedure
+            need to set start on parens
+
 arm_info
     annex P
          unary_adding_operator ::=     +   | --
@@ -65,10 +71,6 @@ build/wisi/Makefile
 ada-smie
     use ada-symbol-end
 
-ada-wisi
-    test/ada_mode-generic_package.ads
-        fix 'return' face in concrete_function_1
-            smie handled it?
 
 better error handling for wisi?
     for wisent-parse, need to set an 'error action on statement_start tokens?

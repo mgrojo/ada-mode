@@ -4304,11 +4304,10 @@ This lets us know which indentation function succeeded."
       "\\)\\>[ \t]*"
       ada-name-regexp "?")
      '(1 font-lock-keyword-face)
-     '(2 (if (member (progn
-		       (when (not (ada-in-string-or-comment-p))
-			 (ada-smie-validate-cache (match-beginning 1))
-			 (ada-smie-get-cache (match-beginning 1))))
-		    '("return-spec" "return-formal"))
+     '(2 (if (member (when (not (ada-in-string-or-comment-p))
+		       (ada-smie-validate-cache (match-beginning 1))
+		       (ada-smie-get-cache (match-beginning 1)))
+		     '("return-spec" "return-formal"))
 	     font-lock-type-face
 	   'default)
 	 nil t)
