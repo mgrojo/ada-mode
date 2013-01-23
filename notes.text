@@ -62,11 +62,13 @@ arm_info
 build/wisi/Makefile
     ada-display-buffer doesn't respect C-u C-u for this!?
 
+ada-smie
+    use ada-symbol-end
+
 ada-wisi
     test/ada_mode-generic_package.ads
-        need lots of wisi-region-action
-            why doesn't wisent-semantic-action do that for me?
-
+        fix 'return' face in concrete_function_1
+            smie handled it?
 
 better error handling for wisi?
     for wisent-parse, need to set an 'error action on statement_start tokens?

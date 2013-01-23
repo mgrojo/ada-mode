@@ -125,6 +125,7 @@
 ;;;;;
 
 (require 'cl)
+(require 'wisent-patch)
 
 ;;;; lexer
 
@@ -134,23 +135,26 @@
 (defvar wisi-string-term nil)
 (defvar wisi-symbol-term nil)
 
-(defun wisi-forward-token (&optional text-only)
+(defun wisi-forward-token (&optional text-only lower)
   "Move point forward across one token, skipping whitespace and comments.
 Return the corresponding token, in a format determined by TEXT-ONLY:
 TEXT-ONLY t:          text
 TEXT-ONLY nil:        (symbol text (start end))
 where:
-`symbol' is a token symbol as defined in the tokens section of the
-grammar definition file (from `wisi-keyword-table'),
-`text' is the token text from the buffer (lowercase if TEXT-ONLY),
+`symbol' is a token symbol (not string) from `wisi-punctuation-table',
+`wisi-keyword-table', `wisi-string-term' or `wisi-symbol-term'.
+
+`text' is the token text from the buffer (lowercase if LOWER),
+
 `start, end' are the character positions in the buffer of the start
 and end of the token text.
+
 If at end of buffer, returns `wisent-eoi-term'."
   (forward-comment (point-max))
   ;; skips leading whitespace, comment, trailing whitespace.
 
   (let ((start (point))
-	;; (info "(elisp)Syntax Table Internals" "*info elisp syntax*")nil
+	;; (info "(elisp)Syntax Table Internals" "*info elisp syntax*")
 	(syntax (syntax-class (syntax-after (point))))
 	token-id token-text)
     (cond
@@ -187,9 +191,8 @@ If at end of buffer, returns `wisent-eoi-term'."
       (setq token-text (buffer-substring-no-properties start (point)))
       (setq token-id wisi-string-term))
 
-     (t
-      (if (zerop (skip-syntax-forward "."))
-	  (skip-syntax-forward "w_'"))
+     (t ;; assuming word syntax
+      (skip-syntax-forward "w_'")
       (setq token-text (buffer-substring-no-properties start (point)))
       (setq token-id
 	    (or (symbol-value (intern-soft (downcase token-text) wisi-keyword-table))
@@ -200,7 +203,9 @@ If at end of buffer, returns `wisent-eoi-term'."
       (error "unrecognized token '%s'" (setq token-text (buffer-substring-no-properties start (point)))))
 
     (if text-only
-	(lowercase token-text)
+	(if lower
+	    (lowercase token-text)
+	  token-text)
       (list token-id token-text (list start (point))))
     ))
 
@@ -241,7 +246,9 @@ Return token text."
   (wisi-cache
    (:constructor wisi-cache-create)
    (:copier nil))
-  symbol ;; from wisi-keyword-table
+  symbol
+  ;; symbol from wisi-keyword-table, wisi-punctuation-table, or non-terminal
+  ;; otherwise token text
 
   class
   ;; some classes are defined by wisi:
@@ -343,67 +350,106 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
   ;; just capture the error, so wisi-parse-buffer can jump to it
   (setq wisi-parse-error msg))
 
+(defvar wisi-debug nil
+  "Operate wisi in debug mode; don't handle errors, so debug-on-error works.")
+
 (defun wisi-validate-cache (pos)
   "Ensure cached data is valid at least up to POS in current buffer."
   (when (< wisi-cache-max pos)
-    (condition-case err
+    (if wisi-debug
+	;; let debug-on-error work
 	(save-excursion
-	  ;; FIXME: if more than one start non-terminal in buffer,
-	  ;; wisent-parse will stop after the next one; need loop
 	  (goto-char wisi-cache-max)
 	  (wisent-parse wisi-parse-table 'wisi-forward-token 'wisi-parse-error))
-      (error
-       (let ((msg (cadr err)))
-	 (string-match ".*:\\([0-9]+\\):" msg)
-	 (goto-char (string-to-number (match-string 1 msg)))
-	 (message msg))))
+      ;; else handle errors nicely
+      (let (err-pos)
+	(condition-case err
+	    (save-excursion
+	      ;; FIXME: if more than one start non-terminal in buffer,
+	      ;; wisent-parse will stop after the next one; need loop
+	      (condition-case err
+		  (progn
+		    (goto-char wisi-cache-max)
+		    (wisent-parse wisi-parse-table 'wisi-forward-token 'wisi-parse-error))
+		(error
+		 (setq err-pos (point))
+		 (signal (car err) (cdr err)))))
+	  (error
+	   (let ((msg (cadr err)))
+	     (if (stringp msg)
+		 (progn
+		   (when (string-match ".*:\\([0-9]+\\):" msg)
+		     (goto-char (string-to-number (match-string 1 msg))))
+		   (message msg))
+	       (goto-char err-pos)
+	       (message "%s" err)))))))
     (setq wisi-cache-max (point))))
 
 ;;;; parse actions
+
+(defun wisi-symbol (text)
+  "Return token symbol from `wisi-keyword-table' or `wisi-punctuation-table' for TEXT."
+  ;; FIXME: patch wisent-parse to put this on the stack, so we don't have to recompute it!
+  (or
+   (symbol-value (intern-soft text wisi-keyword-table))
+   (car (rassoc text wisi-punctuation-table))
+   ;; else identifier, string_literal, char-literal, numeric_literal
+   text))
 
 (defun wisi-statement-tokens (&rest items)
   "Cache indentation and name information in text properties of tokens.
 Intended as a wisent grammar non-terminal action.
 
-ITEMS is a list [symbol class (start end)] ... for tokens that
+ITEMS is a list [text class (start end)] ... for tokens that
 should receive cached information. See macro
 `wisi-statement-action' for using this in a wisent grammar file."
   (save-excursion
     (let (first-keyword-mark start end)
       (while items
-	(let* ((symbol (pop items))
+	(let* ((text (pop items))
 	       (class (pop items))
 	       (region (car (pop items)))
 	       (mark
 		;; Marker one char into token, so indent-line-to
 		;; inserts space before the mark, not after!
-		(copy-marker (1+ (car region)))))
+		(copy-marker (1+ (car region))))
+	       cache)
 
-	  ;; :start is a marker to the first keyword in a
-	  ;; statement. The first keyword in a contained statement has
-	  ;; a marker to the first keyword in the containing
-	  ;; statement; the outermost containing statement has
-	  ;; nil. `wisi-start-tokens' sets the start markers in
-	  ;; contained statements.
-	  (with-silent-modifications
-	    (put-text-property
-	     (car region)
-	     (cadr region)
-	     'wisi-cache
-	     (wisi-cache-create
-	      :symbol symbol
-	      :class class
-	      :start first-keyword-mark)
-	     ))
+	  (if (setq cache (get-text-property (car region) 'wisi-cache))
+	      ;; we are processing a nested non-terminal package_specification in
+	      ;;
+	      ;; generic_package_declaration : generic_formal_part package_specification SEMICOLON
+	      ;;
+	      ;; override class and symbol, but don't change region containg text property.
+	      (progn
+		(setf (wisi-cache-symbol cache) (wisi-symbol text))
+		(setf (wisi-cache-class cache) class))
+
+	    ;; else create new cache
+	    ;;
+	    ;; :start is a marker to the first keyword in a
+	    ;; statement. The first keyword in a contained statement
+	    ;; has a marker to the first keyword in the containing
+	    ;; statement; the outermost containing statement has
+	    ;; nil. `wisi-start-tokens' sets the start markers in
+	    ;; contained statements.
+	    (with-silent-modifications
+	      (put-text-property
+	       (car region)
+	       (cadr region)
+	       'wisi-cache
+	       (wisi-cache-create
+		:symbol (wisi-symbol text)
+		:class class
+		:start first-keyword-mark)
+	       )))
 
 	  (unless first-keyword-mark
 	    (setq first-keyword-mark mark
 		  start (car region)))
 	  (setq end (cadr region))
 	))
-      ;; set non-terminal region for parent actions
-      (setq $region (list (list start end)))
-      ;; return value is semantic value
+      ;; return value is semantic value; non-terminal name used in some functions.
       $nterm
       )))
 
@@ -422,31 +468,6 @@ that token. Use in a grammar action as:
       (setq class (pop pairs))
       (setq list (append list (list number class region))))
     (cons 'wisi-statement-tokens list)
-  ))
-
-(defun wisi-region-tokens (start-region end-region)
-  "Update region in parser data for current non-terminal, so parent non-terminal can use it.
-See macro `wisi-region-action' for using this in a wisent grammar
-file."
-  (unless (and
-	   (car start-region)
-	   (car end-region))
-    (error "%s:%s: a region is nil; need wisi-region-action?" $nterm (point)))
-
-  (setq $region (list (list (nth 0 (car start-region))
-			    (nth 1 (car end-region)))))
-  $nterm)
-
-(defmacro wisi-region-action (start-token-number end-token-number)
-  "Macro to define a wisi grammar action that is a call to `wisi-region-tokens'.
-Use in a grammar action as:
-
-`,(wisi-region-action)"
-   (let (start-region end-region)
-      (setq start-region (intern (concat "$region" (number-to-string start-token-number))))
-      (setq end-region (intern (concat "$region" (number-to-string end-token-number))))
-
-      (cons 'wisi-region-tokens (list start-region end-region))
   ))
 
 (defun wisi-start-tokens (start-region end-region class)
@@ -476,6 +497,7 @@ START-TOKEN is token number of first token in containing statement,
 END-TOKEN is token number of last token in containing statement,
 CLASS is the class of tokens to update."
   ;; $region is often nil where we want to use this, so we use two token regions.
+  ;; FIXME: that's fixed now; use $region?
   (list 'wisi-start-tokens
 	(intern (concat "$region" (number-to-string start-token)))
 	(intern (concat "$region" (number-to-string end-token)))
@@ -550,6 +572,10 @@ Assumes relevant portion of buffer is parsed.
 Returns (cache region); the found cache, and the text region
 containing it; or nil if at end of buffer."
   (let (begin end)
+    (when (get-text-property (point) 'wisi-cache)
+      ;; on a cached token; get past it
+      (wisi-forward-token t))
+
     (setq begin (next-single-property-change (point) 'wisi-cache))
     (when begin
       (if (get-text-property (1+ begin) 'wisi-cache)
@@ -563,7 +589,8 @@ containing it; or nil if at end of buffer."
 
 (defun wisi-goto-statement-start (cache)
   "Move point to statement start of statement containing CACHE.
-If at start of a statement, goto start of containing statement"
+If at start of a statement, goto start of containing statement."
+  ;; FIXME: sometimes, we don't want to goto containing start; ada-wisi-which-function
   (cond
    ((markerp (wisi-cache-start cache))
     (goto-char (1- (wisi-cache-start cache)))
@@ -575,6 +602,11 @@ If at start of a statement, goto start of containing statement"
    (t
     ;; at start of outermost containing statement
     nil)))
+
+(defun wisi-next-statement-cache (cache)
+  "Move point to CACHE-next; no motion if nil."
+  (when (markerp (wisi-cache-next cache))
+    (goto-char (1- (wisi-cache-next cache)))))
 
 ;;;;; indentation
 

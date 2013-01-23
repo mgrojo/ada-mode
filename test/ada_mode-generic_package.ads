@@ -25,8 +25,8 @@ with Ada.Strings.Unbounded;
 --EMACSCMD:(progn (forward-line 2) (ada-next-statement-keyword)(looking-at "package Ada_Mode.Generic_Package"))
 --EMACSRESULT: t
 generic
-  --EMACSCMD:(ada-which-function)
-  --EMACSRESULT:"Ada_Mode.Generic_Package"
+   --EMACSCMD:(ada-which-function)
+   --EMACSRESULT:"Ada_Mode.Generic_Package"
 
    -- one of each kind of generic_formal_parameter_definition from arm Annex P
 

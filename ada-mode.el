@@ -1341,6 +1341,11 @@ addition, if ff-function-name is non-nil, store in
 ff-function-name a regexp that will find the function in the
 other file.")
 
+(defconst ada-symbol-end
+  "Regexp to add to symbol name in `ada-which-function'."
+  ;; we can't just add \> here; that might match _ in a user modified ada-mode-syntax-table
+  "\\([ \t]+\\|$\\)")
+
 (defun ada-which-function ()
   "See `ada-which-function' variable."
   (when ada-which-function

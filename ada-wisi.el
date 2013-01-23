@@ -80,75 +80,49 @@
 
 (defun ada-wisi-forward-statement-keyword ()
   "For `ada-next-statement-keyword', which see."
+  ;; fixme; nothing Ada specific here; compare to wisi-next-statement-cache
   (wisi-validate-cache (point-max))
   (let ((cache (wisi-get-cache (point))))
     (if cache
 	(let ((next (wisi-cache-next cache)))
 	  (if next
-	      (goto-char next)
+	      (goto-char (1- next))
 	    (wisi-forward-token)
 	    (wisi-forward-cache)))
       (wisi-forward-cache))
   ))
 
-(defun ada-wisi-which-function-1 (keyword)
+(defun ada-wisi-which-function-1 (cache-skip keyword body)
   "used in `ada-wisi-which-function'."
   (let (region
 	result
 	(token (wisi-forward-cache)))
 
-    (ecase (wisi-cache-symbol (car token))
-      (type
-       (setq region (cadr (wisi-forward-cache)))
-       (setq result (buffer-substring-no-properties (car region) (cadr region)))
+    (while (< 0 cache-skip)
+      (setq token (wisi-forward-cache))
+      (setq cache-skip (1- cache-skip)))
 
-       (when (not ff-function-name)
-	 (setq ff-function-name
-	       (concat
-		keyword
-		"\\s-+body\\s-+"
-		result
-		ada-symbol-end))))
+    (unless (eq 'name (wisi-cache-class (car token)))
+      (error "%s is not a name token" token))
 
-      (body
-       (setq region (cadr (wisi-forward-cache)))
-       (setq result (buffer-substring-no-properties (car region) (cadr region)))
+    (setq region (cadr token))
+    (setq result (buffer-substring-no-properties (car region) (cadr region)))
 
-       (when (not ff-function-name)
-	 ;; find spec
-	 (setq ff-function-name
-	       (concat
-		keyword
-		"\\s-+\\(type\\s-+\\)?"
-		result
-		symbol-end))))
-
-      (identifier ; name
-       (setq region (cadr token))
-       (setq result (buffer-substring-no-properties (car region) (cadr region)))
-
-       (when (not ff-function-name)
-	 ;; find body
-	 (setq ff-function-name
-	       (concat
-		keyword
-		"\\s-+body\\s-+"
-		result
-		symbol-end))))
-      )
+    (when (not ff-function-name)
+      (setq ff-function-name
+	    (concat
+	     keyword
+	     (when body "\\s-+body")
+	     "\\s-+"
+	     result
+	     ada-symbol-end)))
     result))
 
 (defun ada-wisi-which-function ()
   "For `ada-which-function'."
   (wisi-validate-cache (point))
   (save-excursion
-    (let (token
-	  region
-	  (result nil)
-	  (symbol-end
-	   ;; we can't just add \> here; that might match _ in a user modified ada-mode-syntax-table
-	   "\\([ \t]+\\|$\\)")
-	  )
+    (let ((result nil))
 
       (while (not result)
 	(setq cache (car (wisi-backward-cache)))
@@ -163,29 +137,28 @@
 	      ;; bob
 	      (setq result "")
 
+	    (case (wisi-cache-symbol cache)
+	      (GENERIC
+	       ;; name is after next statement keyword
+	       (wisi-next-statement-cache cache)
+	       (setq cache (wisi-get-cache (point))))
+	      )
+
 	    ;; add or delete 'body' as needed
 	    (case (wisi-cache-symbol cache)
-	      (package
-	       (setq result (ada-wisi-which-function-1 "package")))
+	      (package_specification
+	       (setq result (ada-wisi-which-function-1 0 "package" t)))
 
-	      (protected
-	       (setq result (ada-wisi-which-function-1 "protected")))
+	      (protected_type_declaration
+	       (setq result (ada-wisi-which-function-1 1 "protected" t)))
 
-	      (task
+	      (task_type_declaration
 	       ;; FIXME: need test
-	       (setq result (ada-wisi-which-function-1 "task")))
+	       (setq result (ada-wisi-which-function-1 1 "task" t)))
 
-	      ((function procedure)
-	       (setq region (cadr (wisi-forward-cache)))
-	       (setq result (buffer-substring-no-properties (car region) (cadr region)))
-
-	       (when (not ff-function-name)
-		 (setq ff-function-name
-		       ;; use a regexp that won't match similarly named items
-		       (concat
-			"^"
-			(buffer-substring-no-properties (point-at-bol) (cadr region))
-			symbol-end))))
+	      (subprogram_specification
+	       ;; FIXME: function or procedure? get token, or store that in cache?
+	       (setq result (ada-wisi-which-function-1 0 "function" nil)))
 	      ))))
       result)))
 
