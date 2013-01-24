@@ -40,23 +40,59 @@
 (require 'wisi)
 
 (defun ada-wisi-before-keyword ()
-  (let ((cache (wisi-get-cache (point))))
+  (let ((cache (wisi-get-cache (point)))
+	top-class)
     (when cache
-      (ecase (wisi-cache-class cache)
+      (setq top-class (wisi-cache-class cache))
+      (ecase top-class
 	(block-start (wisi-indent-statement-start ada-indent cache t))
 	(block-end (wisi-indent-statement-start 0 cache nil))
 	(close-paren (wisi-indent-paren 0))
 	((open-paren statement-start) nil); let after-keyword handle it
+
 	(statement-middle
 	 (wisi-indent-statement-start
 	  (if (eq (wisi-cache-symbol cache) 'when) ada-indent-when 0)
 	  cache
 	  nil))
+
+	((return-1;; parameter list
+	  return-2);; no parameter list
+	 (let ((indent
+		(if (and
+		     (eq top-class 'return-2)
+		     (<= ada-indent-return 0))
+		    ada-indent-broken
+		  ada-indent-return)))
+
+	   (setq cache (wisi-goto-statement-start cache nil))
+	   (cond
+	    ((and
+	      (eq top-class 'return-1)
+	      (<= ada-indent-return 0))
+	     ;; indent relative to "("
+	     (setq cache (car (wisi-forward-cache)))
+	     (unless (eq 'open-paren (wisi-cache-class cache))
+	       (error "unrecognized statement"))
+	     (+ (current-column) indent))
+
+	    (t ;; indent relative to "function".
+	     (case (wisi-cache-symbol cache)
+	       (formal_subprogram_declaration
+		(wisi-forward-token t);; "with"
+		(forward-comment (point-max))
+		(+ (current-column) indent))
+
+	       (subprogram_declaration
+		(+ (current-column) indent))
+	       )))
+	   ))
 	))
     ))
 
 (defun ada-wisi-after-keyword ()
-  (let ((cache (car (wisi-backward-cache))))
+  (let ((start (point))
+	(cache (car (wisi-backward-cache))))
     (if (not cache)
 	;; bob
 	0
@@ -71,7 +107,36 @@
 	 (wisi-indent-paren 1))
 
 	(open-paren
-	 (1+ (current-column)))
+	 ;; 1) A parenthesized expression, or the first item in an aggregate:
+	 ;;
+	 ;;    (foo +
+	 ;;       bar)
+	 ;;    (foo =>
+	 ;;       bar)
+	 ;;
+	 ;;     we are indenting 'bar'
+	 ;;
+	 ;; 2) A parenthesized expression, or the first item in an
+	 ;;    aggregate, and there is a comment or whitespace between
+	 ;;    ( and the first token:
+	 ;;
+	 ;;    (
+	 ;;     foo + bar)
+	 ;;    (
+	 ;;     foo => bar)
+	 ;;
+	 ;;    we are indenting 'foo'
+	 ;;
+	 ;; We distinguish the two cases by going to the first token,
+	 ;; and comparing point to start.
+	 (let ((paren-column (current-column)))
+	   (wisi-forward-token t); "("
+	   (forward-comment (point-max))
+	   (if (= (point) start)
+	       ;; 2)
+	       (1+ paren-column)
+	     ;; 1)
+	     (+ paren-column 1 ada-indent-broken))))
 
 	(statement-end
 	 (wisi-indent-statement-start 0 cache nil))
@@ -84,20 +149,6 @@
 	 (wisi-indent-statement-start ada-indent-broken cache nil))
 	))
     ))
-
-(defun ada-wisi-forward-statement-keyword ()
-  "For `ada-next-statement-keyword', which see."
-  ;; fixme; nothing Ada specific here; compare to wisi-next-statement-cache
-  (wisi-validate-cache (point-max))
-  (let ((cache (wisi-get-cache (point))))
-    (if cache
-	(let ((next (wisi-cache-next cache)))
-	  (if next
-	      (goto-char (1- next))
-	    (wisi-forward-token)
-	    (wisi-forward-cache)))
-      (wisi-forward-cache))
-  ))
 
 (defun ada-wisi-which-function-1 (cache-skip keyword body)
   "used in `ada-wisi-which-function'."
@@ -137,15 +188,16 @@
 	    ;; bob
 	    (setq result "")
 
-	  (wisi-goto-statement-start cache)
-	  (setq cache (wisi-get-cache (point)))
+	  ;; We are probably on the statement start we are looking
+	  ;; for, so don't go to containing.
+	  (setq cache (wisi-goto-statement-start cache nil))
 
 	  (if (null cache)
 	      ;; bob
 	      (setq result "")
 
 	    (case (wisi-cache-symbol cache)
-	      (GENERIC
+	      (generic_formal_part
 	       ;; name is after next statement keyword
 	       (wisi-next-statement-cache cache)
 	       (setq cache (wisi-get-cache (point))))
@@ -225,8 +277,8 @@
   (set (make-local-variable 'ada-scan-paramlist) 'ada-wisi-scan-paramlist)
   (set (make-local-variable 'ada-goto-declaration-start) 'ada-wisi-goto-declaration-start)
   (set (make-local-variable 'ada-goto-declarative-region-start) 'ada-wisi-goto-declarative-region-start)
-  (set (make-local-variable 'ada-next-statement-keyword) 'ada-wisi-forward-statement-keyword)
-  (set (make-local-variable 'ada-prev-statement-keyword) 'ada-wisi-backward-statement-keyword)
+  (set (make-local-variable 'ada-next-statement-keyword) 'wisi-forward-statement-keyword)
+  (set (make-local-variable 'ada-prev-statement-keyword) 'wisi-backward-statement-keyword)
   (set (make-local-variable 'ada-make-subprogram-body) 'ada-wisi-make-subprogram-body)
   )
 

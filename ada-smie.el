@@ -3136,7 +3136,7 @@ the start of CHILD, which must be a keyword."
        ;; indices, subprogram parameters, type constraints.
        ;;
        ;; "(" is not in the smie grammar, but
-       ;; ada-smie-before-keyword handles is specially.
+       ;; ada-smie-before-keyword handles it specially.
        ;;
        ;; 1) A subprogram declaration. Indent relative to "function"
        ;;    or "procedure", which are both parent and statement

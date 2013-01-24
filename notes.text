@@ -49,8 +49,8 @@ semantic mode in .wy is just broken
  ada-smie/wisi
 ada-wisi
     test/ada_mode-generic_package.ads
-        Concrete_Defaulted_Procedure
-            need to set start on parens
+        Concrete_Function_3
+            ada-indent-return
 
 arm_info
     annex P

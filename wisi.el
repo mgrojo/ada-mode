@@ -38,33 +38,17 @@
 ;; the buffer always works as a starting point for the parser; it must
 ;; be the start of a declaration (a compilation unit).
 ;;
-;; One of the data the parser returns is the range of each token in
-;; the buffer.  An indentation engine moves text in the buffer, as
-;; does user editing, so we can't rely on that range remaining
-;; constant. So the parser actions create a marker at each keyword
-;; token, and store other semantic information as text properties of
-;; the keyword. That way, as indentation is changed, the information
-;; stays in the right place.
+;; An indentation engine moves text in the buffer, as does user
+;; editing, so we can't rely on character positions remaining
+;; constant. So the parser actions use markers to store positions, and
+;; store other semantic information as text properties of the
+;; tokens. That way, as indentation is changed, the information stays
+;; in the right place.
 ;;
-;; The other semantic information includes the marker of the first
-;; keyword in the inner-most Ada statement or declaration the keyword
-;; is part of, and the keyword symbol. Thus, the indentation algorithm
-;; is: find the nearest keyword, fetch from it the marker for the
-;; statement start, compute the indentation relative to that.
-;;
-;; FIXME: maybe store a list of start keywords, for all of the
-;; containing statements? that would allow starting a parse one level
-;; up when needed.
-;;
-;; Note that the first keyword in a statement is often not the first
-;; token; the only keyword in a procedure call statement is the
-;; terminating semicolon, assignment statements have names before the
-;; ":=" keyword. Thus we also need to store information on where the
-;; actual statement start is, relative to the first statement
-;; keyword. We store a function symbol; the function scans a small
-;; portion of Ada syntax, typically an Ada name (which match a
-;; procedure call) or small number of tokens, using the low-level
-;; elisp scanning functions.
+;; The other semantic information includes a marker at the first token
+;; of the statement. Thus, the indentation algorithm is: find the
+;; nearest token with cached information, fetch from it the marker for
+;; the statement start, compute the indentation relative to that.
 ;;
 ;; Since we have a cache, we need to consider when to invalidate
 ;; it. Ideally, we invalidate only when a change to the buffer would
@@ -88,7 +72,7 @@
 ;; refined grammar. Implementing a SMIE parser for a new language
 ;; involves the same amount of work as the first language.
 ;;
-;; Using an LALR parser avoids that particular problem; since the Ada
+;; Using an LALR parser avoids that particular problem; since the
 ;; language is already defined in terms of the grammar, it is only a
 ;; matter of a format change to teach the wisent parser the
 ;; language. The problem in a wisent indentation engine is caching the
@@ -99,16 +83,30 @@
 ;; parsed, so once we have one wisent indentation engine working,
 ;; adapting it to new languages should be quite simple.
 ;;
+;; The SMIE parser does not find the start of each statement, only the
+;; first language keyword in each statement; additional code must be
+;; written to find the statement start. The wisent parser finds the
+;; statement start directly.
+;;
+;; It is easier to use nested non-terminals in a wisi parser. In SMIE,
+;; it is best if each grammar rule is a complete statement, so
+;; forward-sexp will traverse the entire statement. If nested
+;; non-terminals are used, forward-sexp may stop inside one of the
+;; nested non-terminals. This problem does not occur with the wisi
+;; parser.
+;;
+;; A downside of the wisi parser is conflicts in the grammar; they can
+;; be much more difficult to resolve than in the SMIE parser.
+;;
 ;;;; grammar compiler and parser
 ;;
 ;; wisent on its own does not provide a way to process a plain text
 ;; representation of BNF into an LALR parser table. It does provide
 ;; `wisent-compile-grammar' for compiling a lisp representation of BNF
 ;; into a parser table. semantic provides
-;; `semantic-grammar-create-package', which parses plain text BNF
-;; parser and outputs the lisp forms that `wisent-compile-grammar'
-;; expects. The plain text format is closer than the lisp format to
-;; the original Ada and gpr BNF, so we use that as our grammar source.
+;; `semantic-grammar-create-package', which parses plain text BNF in
+;; near-bison format and outputs the lisp forms that
+;; `wisent-compile-grammar' expects.
 ;;
 ;; wisent also does not provide a lexer. Semantic provides a complex
 ;; lexer, way overkill for our needs. So we use the elisp lexer, which
@@ -262,15 +260,6 @@ Return token text."
   ;; a) if this is not first keyword; mark at the first keyword of the current statement
   ;; b) if this is first keyword; function to move from this keyword to first token or nil
 
-  ;; parent FIXME: not needed for indentation yet; needed for motion?
-  ;; mark at the first keyword of the containing statement.  Non-nil only
-  ;; on first keyword in statement
-
-  ;; child FIXME: not needed for indentation yet; needed for motion?
-  ;; a) if this keyword is a block-start, mark at the first keyword of the first contained statement
-  ;; b) if this keyword is a block-end, mark at the first keyword of the last contained statement
-  ;; otherwise nil
-
   prev ;; marker at previous motion token in statement; nil if none
   next ;; marker at next motion token in statement; nil if none
   )
@@ -298,10 +287,11 @@ Return token text."
        ((or
 	 (nth 3 state); in string
 	 (nth 4 state)); in comment
+	;; FIXME: check that entire range is in comment or string
 	(setq wisi-change-need-invalidate nil))
 
        ((progn
-	  (skip-syntax-forward " " end)
+	  (skip-syntax-forward " " end);; does not skip newline
 	  (eq (point) end))
 	(setq wisi-change-need-invalidate nil))
 
@@ -310,10 +300,9 @@ Return token text."
 
 (defun wisi-after-change (begin end length)
   "For `after-change-functions'."
-  ;; FIXME: semantic-parse-region supports incremental parse, which
-  ;; means only invalidate cache after change point?
   (when (>= wisi-cache-max begin)
     (save-excursion
+      ;; FIXME: if wisi-change-need-invalidate, don't do any more checks.
       (let ((need-invalidate t)
 	    ;; (info "(elisp)Parser State")
 	    (state (syntax-ppss begin)))
@@ -322,15 +311,19 @@ Return token text."
 	 ((or
 	   (nth 3 state); in string
 	   (nth 4 state)); in comment
+	  ;; FIXME: insert newline in comment to create non-comment!?
+	  ;; or paste a chunk of code
+	  ;; => check that all of change region is comment or string
 	  (setq need-invalidate nil))
 
 	 ((progn
-	    (skip-syntax-forward " " end)
+	    (skip-syntax-forward " " end);; does not skip newlines
 	    (eq (point) end))
 	  (setq need-invalidate nil))
 
 	 (t nil)
 	 )
+
 	(if (or wisi-change-need-invalidate
 		need-invalidate)
 	    (wisi-invalidate-cache)
@@ -473,9 +466,9 @@ that token. Use in a grammar action as:
 
 (defun wisi-start-tokens (start-region end-region)
   "Set start marks in all tokens in (caar START-REGION) to (cadar
-END-REGION) with class 'statement-start or 'block-start and null start mark to
-marker pointing to start of START-REGION.  See
-`wisi-start-action' for use in grammar action."
+END-REGION) with null start mark to marker pointing to start of
+START-REGION.  See `wisi-start-action' for use in grammar
+action."
   (save-excursion
     (goto-char (nth 1 (car end-region)))
     (let ((cache (car (wisi-backward-cache)))
@@ -487,13 +480,14 @@ marker pointing to start of START-REGION.  See
 	  (goto-char (1- (wisi-cache-start cache)))
 	  (setq cache (wisi-get-cache (point))))
 
-	(when (memq (wisi-cache-class cache) '(block-start statement-start))
-	  (setf (wisi-cache-start cache) mark))
+	(if (<= (point) (cadar start-region))
+	    ;; done (don't set mark on cache at start; that should
+	    ;; point to the containing statement)
+	    (setq cache nil)
 
-	(setq cache (car (wisi-backward-cache)))
-
-	(when (<= (point) (cadar start-region))
-	  (setq cache nil))
+	  ;; else set mark, loop
+	  (setf (wisi-cache-start cache) mark)
+	  (setq cache (car (wisi-backward-cache))))
 	))))
 
 (defmacro wisi-start-action (start-token end-token)
@@ -588,26 +582,42 @@ containing it; or nil if at end of buffer."
 	    (list begin end)))
     ))
 
+(defun wisi-forward-statement-keyword ()
+  "If not at a cached token, move forward to next
+cache. Otherwise move to cache-next, or next cache if nil."
+  (wisi-validate-cache (point-max))
+  (let ((cache (wisi-get-cache (point))))
+    (if cache
+	(let ((next (wisi-cache-next cache)))
+	  (if next
+	      (goto-char (1- next))
+	    (wisi-forward-token)
+	    (wisi-forward-cache)))
+      (wisi-forward-cache))
+  ))
+
 (defun wisi-goto-statement-start (cache containing)
-  "Move point to statement start of statement containing CACHE.
+  "Move point to statement start of statement containing CACHE, return cache at that point.
 If at start of a statement and CONTAINING is non-nil, goto start
 of containing statement."
-  (while cache
-    (cond
-     ((markerp (wisi-cache-start cache))
+  (let ((done nil))
+    (while (not done)
       (cond
-       ((memq (wisi-cache-class cache) '(statement-start block-start))
-	(if (not containing)
-	    (setq cache nil)
-	  (goto-char (1- (wisi-cache-start cache)))
-	  (setq cache (wisi-get-cache (point)))))
+       ((markerp (wisi-cache-start cache))
+	(cond
+	 ((memq (wisi-cache-class cache) '(statement-start block-start))
+	  (if (not containing)
+	      (setq done t)
+	    (goto-char (1- (wisi-cache-start cache)))
+	    (setq cache (wisi-get-cache (point)))))
 
+	 (t
+	  (goto-char (1- (wisi-cache-start cache)))
+	  (setq cache (wisi-get-cache (point))))
+	 ))
        (t
-	(goto-char (1- (wisi-cache-start cache)))
-	(setq cache (wisi-get-cache (point))))
-      ))
-     (t
-      (setq cache nil)))))
+	(setq done t))))
+    cache))
 
 (defun wisi-next-statement-cache (cache)
   "Move point to CACHE-next; no motion if nil."

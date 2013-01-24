@@ -20,8 +20,12 @@ lambda-expression."
         (l (cadadr (aref stack j))))
     (while (/= i j)
       (cond
-       ((not f) (setq f (cadr (aref stack (setq i (+ i 2))))))
-       ((not l) (setq l (cadr (aref stack (setq j (- j 2))))))
+       ((not f)
+	;; item i is an empty production
+	(setq f (caadr (aref stack (setq i (+ i 2))))))
+       ((not l)
+	;; item j is an empty production
+	(setq l (cadadr (aref stack (setq j (- j 2))))))
        ((setq i j))))
     (and f l (list (list f l)))))
 
