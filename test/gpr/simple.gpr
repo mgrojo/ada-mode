@@ -37,7 +37,7 @@ project Simple is
                -- comment in list
                "-gnatw.V", "-gnatyO"
               ) & Style_Checks
-                & Standard_Common.Compiler'Default_Switches;
+              & Standard_Common.Compiler'Default_Switches;
 
          when "GPL-2011" |
             "6.2.2" | -- FIXME: continuation line; ada-indent-broken = 2

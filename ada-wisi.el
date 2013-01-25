@@ -45,12 +45,22 @@
     (when cache
       (setq top-class (wisi-cache-class cache))
       (ecase top-class
-	(block-start (wisi-indent-statement-start ada-indent cache t))
-	(block-end (wisi-indent-statement-start 0 cache nil))
-	(close-paren (wisi-indent-paren 0))
-	((open-paren statement-start) nil); let after-keyword handle it
+	(block-start
+	 (case (wisi-cache-symbol cache)
+	   (IS ;; subprogram body
+	    (wisi-indent-statement-start 0 cache t))
 
-	(statement-middle
+	   (t ;; other
+	    (wisi-indent-statement-start ada-indent cache t))))
+
+	((block-middle block-end) (wisi-indent-statement-start 0 cache nil))
+	(close-paren (wisi-indent-paren 0))
+
+	((open-paren statement-start)
+	 ;; let after-keyword handle it
+	 nil)
+
+	(statement-middle;; FIXME: doc statement-middle vs block-middle
 	 (wisi-indent-statement-start
 	  (if (eq (wisi-cache-symbol cache) 'when) ada-indent-when 0)
 	  cache
@@ -100,7 +110,7 @@
 	(block-end
 	 (wisi-indent-current 0))
 
-	(block-start
+	((block-start block-middle)
 	 (wisi-indent-current ada-indent))
 
 	(list-break

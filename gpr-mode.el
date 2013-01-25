@@ -165,16 +165,16 @@ current construct."
   ;; first
   (save-excursion
     (end-of-line 1)
+    ;; FIXME: move to gpr-wisi, or merge that here
     (wisi-validate-cache (point))
-    (let ((token (wisi-backward-cache)))
-      (while (and token
-		  (not (member (wisi-cache-symbol (car token)) '("package" "project"))))
-	(setq token (wisi-backward-cache)))
-      (when token
+    (let ((cache (car (wisi-backward-cache))))
+      (while (and cache
+		  (not (member (wisi-cache-symbol cache) '(package_spec simple_project_declaration))))
+	(setq cache (wisi-goto-statement-start cache t)))
+      (when cache
 	(wisi-forward-token); package | project
-	(setq token (wisi-forward-token)); name
-	(nth 1 token))
-      )))
+	(wisi-forward-token t); name
+	))))
 ;;;;
 (defun gpr-mode ()
   "The major mode for editing GNAT project files."

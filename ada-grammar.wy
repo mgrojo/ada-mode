@@ -55,6 +55,7 @@
 %keyword AMPERSAND "&"
 %keyword AND "and"
 %keyword ARRAY "array"
+%keyword BEGIN "begin"
 %keyword CASE "case"
 %keyword CLASS "class"
 %keyword CONSTANT "constant"
@@ -62,6 +63,7 @@
 %keyword DIGITS "digits"
 %keyword ELSE "else"
 %keyword END "end"
+%keyword EXCEPTION "exception"
 %keyword FUNCTION "function"
 %keyword GENERIC "generic"
 %keyword IN "in"
@@ -283,7 +285,7 @@ declaration
   ;; | null_procedure_declaration
   ;; | number_declaration
   | object_declaration
-  ;; | package_declaration
+  | package_declaration
   | pragma ;; not a 'declaration' in ARM, but it must be in the grammar
   ;; | renaming_declaration
   | subprogram_declaration
@@ -294,8 +296,11 @@ declaration
 
 declarations
   : declaration
+ ;; include null declarations wherever 'declarations' occurs
   | declarations declaration
   ;
+
+;; declarative_part replaced by declarations
 
 derived_type_definition
   : ABSTRACT LIMITED NEW name AND interface_list WITH record_definition
@@ -360,6 +365,23 @@ enumeration_literal ;; enumeration_literal_specification
 enumeration_literal_list
   : enumeration_literal
   | enumeration_literal COMMA enumeration_literal
+  ;
+
+exception_choice : name | OTHERS ;
+
+exception_choice_list
+  : exception_choice
+  | exception_choice_list BAR exception_choice
+  ;
+
+exception_handler
+  : WHEN IDENTIFIER COLON exception_choice_list EQUAL_GREATER sequence_of_statements
+  | WHEN exception_choice_list EQUAL_GREATER sequence_of_statements
+  ;
+
+exception_handler_list
+  : exception_handler
+  | exception_handler_list exception_handler
   ;
 
 expression
@@ -537,6 +559,11 @@ generic_package_declaration
       `(wisi-motion-action 1 2 3))
   ;
 
+handled_sequence_of_statements
+  : sequence_of_statements EXCEPTION exception_handler_list
+  | sequence_of_statements
+  ;
+
 identifier_list
   : IDENTIFIER
   | identifier_list COMMA IDENTIFIER
@@ -569,7 +596,8 @@ interface_type_definition
 library_item
   : PRIVATE library_unit_declaration
   | library_unit_declaration
- ;; | library_unit_body
+  | subprogram_body ;; library_unit_body
+ ;; | package_body ;; library_unit_body
  ;; | PRIVATE library_unit_renaming_declaration
  ;; | library_unit_renaming_declaration
   ;
@@ -645,8 +673,13 @@ overriding_indicator
   | OVERRIDING
   ;
 
+package_declaration
+  : package_specification SEMICOLON
+    `(wisi-statement-action 1 'statement-start 2 'statement-end)
+  ;
+
+;; leaving out [aspect_specification]
 package_specification
- ;; leaving out [aspect_specification]
   : PACKAGE name IS declarations PRIVATE declarations END name
     `(wisi-statement-action
       1 'statement-start
@@ -741,6 +774,8 @@ protected_definition
     `(wisi-statement-action 2 'block-middle 4 'block-end)
   | declarations END
     `(wisi-statement-action 2 'block-end)
+  | END
+    `(wisi-statement-action 1 'block-end)
   ;
 
 protected_type_declaration
@@ -820,12 +855,57 @@ selected_component
 selector_name
   : IDENTIFIER | CHARACTER_LITERAL | STRING_LITERAL ; ;; operator_symbol
 
+sequence_of_statements
+  : statement ;; label is included in statement
+  | sequence_of_statements statement
+  ;
+
 simple_expression
   : unary_adding_operator term_list
   | term_list
   ;
 
+simple_statement
+  : NULL SEMICOLON;; null_statement
+    `(wisi-statement-action 1 'statement-start 2 'statement-end)
+  ;; | assignment_statement
+  ;; | exit_statement
+  ;; | goto_statement
+  ;; | procedure_call_statement
+  ;; | simple_return_statement
+  ;; | entry_call_statement
+  ;; | requeue_statement
+  ;; | delay_statement
+  ;; | abort_statement
+  ;; | raise_statement
+  ;; | code_statement
+  ;
+
+statement
+;;  : label simple_statement ;; ignoring list of labels on one statement
+  : simple_statement ;; ignoring list of labels on one statement
+  ;; | label compound_statement
+  ;; | compound_statement
+  ;
+
 ;; leaving out [aspect_specification]
+subprogram_body
+  : overriding_indicator subprogram_specification IS declarations BEGIN handled_sequence_of_statements END
+    name SEMICOLON
+    `(wisi-statement-action 1 'statement-start 2 'block-start 3 'block-middle 5 'block-middle 7 'block-end 9 'statement_end)
+  | overriding_indicator subprogram_specification IS declarations BEGIN handled_sequence_of_statements END
+    SEMICOLON
+    `(wisi-statement-action 1 'statement-start 2 'block-start 3 'block-middle 5 'block-middle 7 'block-end 8 'statement_end)
+  | overriding_indicator subprogram_specification IS BEGIN handled_sequence_of_statements END SEMICOLON
+    `(wisi-statement-action 1 'statement-start 2'block-start 3 'block-middle 4 'block-middle 6 'block-end 7 'statement_end)
+  | subprogram_specification IS declarations BEGIN handled_sequence_of_statements END name SEMICOLON
+    `(wisi-statement-action 1 'block-start 2 'block-middle 4 'block-middle 6 'block-end 8 'statement_end)
+  | subprogram_specification IS declarations BEGIN handled_sequence_of_statements END SEMICOLON
+    `(wisi-statement-action 1 'block-start 2 'block-middle 4 'block-middle 6 'block-end 7 'statement_end)
+  | subprogram_specification IS BEGIN handled_sequence_of_statements END SEMICOLON
+    `(wisi-statement-action 1 'block-start 2 'block-middle 3 'block-middle 5 'block-end 6 'statement_end)
+  ;
+
 subprogram_declaration
   : overriding_indicator subprogram_specification SEMICOLON
   | subprogram_specification SEMICOLON
@@ -851,10 +931,11 @@ task_definition
   : declarations PRIVATE declarations END IDENTIFIER
   | declarations PRIVATE declarations END
   | declarations END
+  | END
   ;
 
+;; leaving out [aspect_specification]
 task_type_declaration
- ;; leaving out [aspect_specification]
   : TASK TYPE IDENTIFIER discriminant_part IS NEW interface_list WITH task_definition SEMICOLON
     `(wisi-statement-action 1 'statement-start 10 'statement-end)
   | TASK TYPE IDENTIFIER discriminant_part IS task_definition SEMICOLON

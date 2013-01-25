@@ -354,7 +354,8 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
 	;; let debug-on-error work
 	(save-excursion
 	  (goto-char wisi-cache-max)
-	  (wisent-parse wisi-parse-table 'wisi-forward-token 'wisi-parse-error))
+	  (wisent-parse wisi-parse-table 'wisi-forward-token 'wisi-parse-error)
+	  (setq wisi-cache-max (point)))
       ;; else handle errors nicely
       (let (err-pos)
 	(condition-case err
@@ -364,11 +365,17 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
 	      (condition-case err
 		  (progn
 		    (goto-char wisi-cache-max)
+		    ;; invalid syntax is silently reported via
+		    ;; wisi-parse-error, and the parser aborts (FIXME:
+		    ;; we don't have any error recovery in the grammar
+		    ;; yet).
 		    (wisent-parse wisi-parse-table 'wisi-forward-token 'wisi-parse-error))
 		(error
+		 ;; from broken wisi parse actions
 		 (setq err-pos (point))
 		 (signal (car err) (cdr err)))))
 	  (error
+	   ;; from inner handler
 	   (let ((msg (cadr err)))
 	     (if (stringp msg)
 		 (progn
@@ -377,7 +384,25 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
 		   (message msg))
 	       (goto-char err-pos)
 	       (message "%s" err)))))))
-    (setq wisi-cache-max (point))))
+
+    (when wisi-parse-error
+      (string-match "unexpected \\(\\w+\\)@(\\([0-9]+\\) \\([0-9]+\\))(\"\\(.+\\)\"),\\(.*\\)" wisi-parse-error)
+      (let ((symbol (match-string 1 wisi-parse-error))
+	    (begin (string-to-number (match-string 2 wisi-parse-error)))
+	    (end   (string-to-number (match-string 3 wisi-parse-error)))
+	    (text  (match-string 4 wisi-parse-error))
+	    (expecting (match-string 5 wisi-parse-error)))
+	(setq wisi-parse-error nil)
+	(if wisi-debug
+	    (progn
+	      (goto-char begin)
+	      (error "unexpected %s: %s" symbol expecting))
+	  (message "%s:%s: unexpected %s: %s"
+		   (buffer-file-name)
+		   (line-number-at-pos)
+		   symbol expecting))
+	))
+    ))
 
 ;;;; parse actions
 
@@ -464,13 +489,13 @@ that token. Use in a grammar action as:
     (cons 'wisi-statement-tokens list)
   ))
 
-(defun wisi-start-tokens (start-region end-region)
+(defun wisi-start-tokens (start-region contained-region)
   "Set start marks in all tokens in (caar START-REGION) to (cadar
-END-REGION) with null start mark to marker pointing to start of
+CONTAINED-REGION) with null start mark to marker pointing to start of
 START-REGION.  See `wisi-start-action' for use in grammar
 action."
   (save-excursion
-    (goto-char (nth 1 (car end-region)))
+    (goto-char (nth 1 (car contained-region)))
     (let ((cache (car (wisi-backward-cache)))
 	  (mark (copy-marker (1+ (nth 0 (car start-region))))))
       (while cache
@@ -490,13 +515,13 @@ action."
 	  (setq cache (car (wisi-backward-cache))))
 	))))
 
-(defmacro wisi-start-action (start-token end-token)
+(defmacro wisi-start-action (start-token contained-token)
   "Macro to define a wisi grammar action that is a call to `wisi-start-tokens'.
 START-TOKEN is token number of first token in containing statement,
-END-TOKEN is token number of last token in containing statement."
+CONTAINED-TOKEN is token number of the contained non-terminal."
   (list 'wisi-start-tokens
 	(intern (concat "$region" (number-to-string start-token)))
-	(intern (concat "$region" (number-to-string end-token)))))
+	(intern (concat "$region" (number-to-string contained-token)))))
 
 (defun wisi-motion-tokens (&rest items)
   "Set prev/next marks in all ITEMS.
@@ -606,8 +631,8 @@ of containing statement."
        ((markerp (wisi-cache-start cache))
 	(cond
 	 ((memq (wisi-cache-class cache) '(statement-start block-start))
-	  (if (not containing)
-	      (setq done t)
+	  (setq done t)
+	  (when containing
 	    (goto-char (1- (wisi-cache-start cache)))
 	    (setq cache (wisi-get-cache (point)))))
 
@@ -616,6 +641,7 @@ of containing statement."
 	  (setq cache (wisi-get-cache (point))))
 	 ))
        (t
+	;; at outermost containing statement
 	(setq done t))))
     cache))
 
@@ -657,7 +683,8 @@ the comment on the previous line."
     (+ (current-column) offset)))
 
 (defun wisi-indent-statement-start (offset cache containing)
-  "Return indentation OFFSET relative to line containing start of current statement.
+  "Return indentation OFFSET relative to line containing start of current statement,
+or containing statement if CONTAINING.
 CACHE contains cache info from a keyword in the current statement."
   (save-excursion
     (cond
@@ -700,18 +727,7 @@ CACHE contains cache info from a keyword in the current statement."
 (defun wisi-parse-buffer ()
   (interactive)
   (wisi-invalidate-cache)
-  (wisi-validate-cache (point-max))
-  (when wisi-parse-error
-    (string-match "unexpected \\(\\w+\\)@(\\([0-9]+\\) \\([0-9]+\\))(\"\\(.+\\)\"),\\(.*\\)" wisi-parse-error)
-    (let ((symbol (match-string 1 wisi-parse-error))
-	  (begin (string-to-number (match-string 2 wisi-parse-error)))
-	  (end   (string-to-number (match-string 3 wisi-parse-error)))
-	  (text  (match-string 4 wisi-parse-error))
-	  (expecting (match-string 5 wisi-parse-error)))
-      (goto-char begin)
-      (setq wisi-parse-error nil)
-      (error "unexpected %s: %s" symbol expecting)
-      )))
+  (wisi-validate-cache (point-max)))
 
 (defun wisi-show-cache ()
   "Show cache at point."

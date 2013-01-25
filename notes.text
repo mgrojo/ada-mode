@@ -48,9 +48,13 @@ semantic mode in .wy is just broken
 (load "build/runtest.el")
  ada-smie/wisi
 ada-wisi
-    test/ada_mode-generic_package.ads
-        Concrete_Function_3
-            ada-indent-return
+    build/wisi/Makefile
+
+    test/ada_mode.adb
+        need package_body in grammar
+
+    test/gpr/gds.gpr
+        passing
 
 arm_info
     annex P

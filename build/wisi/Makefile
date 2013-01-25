@@ -11,7 +11,6 @@ debug-grammar : wisi-gpr-grammar-generate.run
 vpath %.wy ../../
 vpath %-wy.el ../../
 
-# For Emacs 24.2, we use downloaded cedet-1.1 (on advice from cedet semantic mailing list)
 # WORKAROUND: semantic-grammar-batch-build-packages can't handle `, in rules; patch here
 %-wy.el : %.wy
 	rm -f ../../wisent.output

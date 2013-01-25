@@ -348,7 +348,7 @@ is (ada-gnat-run-buffer)"
   (let* ((start-file (file-name-nondirectory (buffer-file-name)))
 	 (start-line (line-number-at-pos))
 	 (start-col  (1+ (current-column)))
-	 (cmd (format "gnat find %s:%s:%d:%d" identifier start-file start-line start-col))
+	 (cmd (format "gnat find -r %s:%s:%d:%d" identifier start-file start-line start-col))
 	 )
 
     (with-current-buffer (ada-gnat-run-buffer); for process-environment
@@ -387,7 +387,7 @@ is (ada-gnat-run-buffer)"
 
        (t ; failure
 	(pop-to-buffer (current-buffer))
-	(error "gnat find failed"))
+	(error "gnat krunch failed"))
        ))
     result))
 
@@ -462,7 +462,7 @@ is (ada-gnat-run-buffer)"
 
        (t ; failure
 	(pop-to-buffer (current-buffer))
-	(error "gnat find failed"))
+	(error "gnat stub failed"))
        ))
     nil))
 

@@ -45,17 +45,15 @@
 ;; identifier.
 
 ;; punctuation
-%keyword AMPERSAND "&"
-%keyword COLON ":"
-%keyword COLON_EQUALS ":="
-%keyword COMMA ","
-%keyword DOT "."
-%keyword EQUAL_GREATER "=>"
-%keyword LEFT_PAREN "("
-%keyword QUOTE "'"
-%keyword RIGHT_PAREN ")"
-%keyword SEMICOLON ";"
-%keyword VERTICAL_BAR "|"
+%token <punctuation> AMPERSAND "&"
+%token <punctuation> COLON ":"
+%token <punctuation> COLON_EQUALS ":="
+%token <punctuation> COMMA ","
+%token <punctuation> DOT "."
+%token <punctuation> EQUAL_GREATER "=>"
+%token <punctuation> QUOTE "'"
+%token <punctuation> SEMICOLON ";"
+%token <punctuation> VERTICAL_BAR "|"
 
 ;; gpr keywords (info "(gnat_ugn)Project File Reference")
 
@@ -67,11 +65,13 @@
 %keyword EXTERNAL "external"
 %keyword FOR "for"
 %keyword IS "is"
+%keyword LEFT_PAREN "("
 %keyword LIBRARY "library"
 %keyword NULL "null"
 %keyword OTHERS "others"
 %keyword PACKAGE "package"
 %keyword PROJECT "project"
+%keyword RIGHT_PAREN ")"
 %keyword STANDARD "standard"
 %keyword TYPE "type"
 %keyword USE "use"
@@ -103,9 +103,13 @@
 
 attribute_declaration
   : FOR IDENTIFIER USE expression SEMICOLON
-    `(wisi-cache-action 1 'statement-start 5 'statement-end)
+    (progn
+      `(wisi-statement-action 1 'statement-start 5 'statement-end)
+      `(wisi-start-action 1 4))
   | FOR IDENTIFIER LEFT_PAREN STRING_LITERAL RIGHT_PAREN USE expression SEMICOLON
-    `(wisi-cache-action 1 'statement-start 8 'statement-end)
+    (progn
+      `(wisi-statement-action 1 'statement-start 3 'open-paren 6 'close-paren 8 'statement-end)
+      `(wisi-start-action 1 7))
   ;
 
 ;; (info "(gnat_ugn)Attributes")
@@ -117,21 +121,24 @@ attribute_prefix
 attribute_reference
   : attribute_prefix QUOTE IDENTIFIER
   | attribute_prefix QUOTE IDENTIFIER LEFT_PAREN STRING_LITERAL RIGHT_PAREN
+    `(wisi-statement-action 4 'open-paren 6 'close-paren)
   ;
 
 ;; (info "(gnat_ugn)Case Statements")
 case_statement
   : CASE name IS case_items END CASE SEMICOLON
     (progn
-      `(wisi-cache-action 1 'statement-start 5 'statement-middle 7 'statement-end)
-      `(wisi-update-action 1 7 'statement-middle))
+      `(wisi-statement-action 1 'statement-start 5 'statement-middle 7 'statement-end)
+      `(wisi-start-action 1 4))
   ;
 
 ;; declarations allowed in a case statement are a subset of
 ;; declarative_items, but this simplifies the grammar.
 case_item
   : WHEN discrete_choice_list EQUAL_GREATER declarative_items
-    `(wisi-cache-action 1 'statement-middle)
+    (progn
+      `(wisi-statement-action 1 'statement-middle)
+      `(wisi-start-action 1 4))
   ;
 
 case_items
@@ -181,9 +188,7 @@ expression
 
 external_value
   : EXTERNAL LEFT_PAREN string_list RIGHT_PAREN
-    `(wisi-cache-action
-       2 'open-paren
-       4 'close-paren)
+    `(wisi-statement-action 2 'open-paren 4 'close-paren)
   ;
 
 name
@@ -206,11 +211,9 @@ package_declaration
 
 package_spec
   : PACKAGE IDENTIFIER IS simple_declarative_items END IDENTIFIER SEMICOLON
-    `(wisi-cache-action
-       1 'statement-start
-       3 'block-start
-       5 'block-end
-       7 'statement-end)
+    (progn
+      `(wisi-statement-action 1 'statement-start 3 'block-start 5 'block-end 7 'statement-end)
+      `(wisi-start-action 1 4))
   ;
 
 ;; FIXME: implement
@@ -234,16 +237,17 @@ project_qualifier
 ;; (info "(gnat_ugn)Declarations" "*info gpr*")
 simple_declarative_item
   : IDENTIFIER COLON_EQUALS expression SEMICOLON ;; variable_declaration
-    `(wisi-cache-action
-       1 'statement-start
-       4 'statement-end)
+    (progn
+      `(wisi-statement-action 1 'statement-start 4 'statement-end)
+      `(wisi-start-action 1 3))
   | IDENTIFIER COLON IDENTIFIER COLON_EQUALS expression SEMICOLON ;; typed_variable_declaration
-    `(wisi-cache-action
-       1 'statement-start
-       6 'statement-end)
+    (progn
+      `(wisi-statement-action 1 'statement-start 6 'statement-end)
+      `(wisi-start-action 1 5))
   | attribute_declaration
   | case_statement
   | NULL SEMICOLON
+    `(wisi-statement-action 1 'statement-start 2 'statement-end)
   ;
 
 simple_declarative_items
@@ -254,11 +258,13 @@ simple_declarative_items
 
 simple_project_declaration
   : PROJECT IDENTIFIER IS declarative_items END IDENTIFIER SEMICOLON
-    `(wisi-cache-action
-       1 'statement-start
-       3 'block-start
-       5 'block-end
-       7 'statement-end)
+    (progn
+      `(wisi-statement-action
+        1 'statement-start
+        3 'block-start
+        5 'block-end
+        7 'statement-end)
+      `(wisi-start-action 1 4))
   ;
 
 ;; (info "(gnat_ugn)Expressions")
@@ -283,7 +289,7 @@ term
   : string_expression
   | LEFT_PAREN RIGHT_PAREN
   | LEFT_PAREN string_list RIGHT_PAREN
-    `(wisi-cache-action
+    `(wisi-statement-action
        1 'open-paren
        3 'close-paren)
  ;;  | string_attribute_reference  FIXME: implement
@@ -291,7 +297,7 @@ term
 
 typed_string_declaration
   : TYPE IDENTIFIER IS LEFT_PAREN string_list RIGHT_PAREN SEMICOLON
-    `(wisi-cache-action
+    `(wisi-statement-action
        1 'statement-start
        4 'open-paren
        6 'close-paren

@@ -44,11 +44,11 @@
   (let ((cache (wisi-get-cache (point))))
     (when cache
       (ecase (wisi-cache-class cache)
-	(block-start (wisi-indent-statement-start ada-indent (car (wisi-backward-cache))))
-	(block-end (wisi-indent-statement-start 0 cache))
+	(block-start (wisi-indent-statement-start ada-indent (car (wisi-backward-cache))) nil)
+	(block-end (wisi-indent-statement-start 0 cache nil))
 	(close-paren (wisi-indent-paren 0))
 	((open-paren statement-start) nil); let after-keyword handle it
-	(statement-middle (wisi-indent-statement-start ada-indent-when cache))
+	(statement-middle (wisi-indent-statement-start ada-indent-when cache nil))
 	))
     ))
 
@@ -68,14 +68,14 @@
 	 (1+ (current-column)))
 
 	(statement-end
-	 (wisi-indent-statement-start 0 cache))
+	 (wisi-indent-statement-start 0 cache nil))
 
 	(statement-middle;; when, else
 	 (wisi-indent-current ada-indent))
 
 	((statement-start close-paren)
 	 ;; hanging
-	 (wisi-indent-statement-start ada-indent-broken cache))
+	 (wisi-indent-statement-start ada-indent-broken cache nil))
 	))
     ))
 
