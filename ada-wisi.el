@@ -53,18 +53,19 @@
 	   (t ;; other
 	    (wisi-indent-statement-start ada-indent cache t))))
 
-	((block-middle block-end) (wisi-indent-statement-start 0 cache nil))
+	(block-end (wisi-indent-statement-start 0 cache nil))
+
+	(block-middle
+	 (wisi-indent-statement-start
+	  (if (eq (wisi-cache-symbol cache) 'WHEN) ada-indent-when 0)
+	  cache
+	  nil))
+
 	(close-paren (wisi-indent-paren 0))
 
 	((open-paren statement-start)
 	 ;; let after-keyword handle it
 	 nil)
-
-	(statement-middle;; FIXME: doc statement-middle vs block-middle
-	 (wisi-indent-statement-start
-	  (if (eq (wisi-cache-symbol cache) 'when) ada-indent-when 0)
-	  cache
-	  nil))
 
 	((return-1;; parameter list
 	  return-2);; no parameter list
@@ -225,7 +226,7 @@
 	       ;; FIXME: need test
 	       (setq result (ada-wisi-which-function-1 1 "task" t)))
 
-	      (subprogram_specification
+	      ((subprogram_body subprogram_specification)
 	       ;; FIXME: function or procedure? get token, or store that in cache?
 	       (setq result (ada-wisi-which-function-1 0 "function" nil)))
 	      ))))

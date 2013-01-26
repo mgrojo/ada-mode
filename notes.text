@@ -50,8 +50,8 @@ semantic mode in .wy is just broken
 ada-wisi
     build/wisi/Makefile
 
-    test/ada_mode-commented_library_procedure.adb
-        parse failing
+    test/ada_mode-conditional_expressions.adb
+        parse failing; need function_call in name
 
     test/gpr/gds.gpr
         passing

@@ -60,14 +60,17 @@
 %keyword CASE "case"
 %keyword CLASS "class"
 %keyword CONSTANT "constant"
+%keyword DECLARE "declare"
 %keyword DELTA "delta"
 %keyword DIGITS "digits"
 %keyword ELSE "else"
+%keyword ELSIF "elsif"
 %keyword END "end"
 %keyword ENTRY "entry"
 %keyword EXCEPTION "exception"
 %keyword FUNCTION "function"
 %keyword GENERIC "generic"
+%keyword IF "if"
 %keyword IN "in"
 %keyword INTERFACE "interface"
 %keyword IS "is"
@@ -93,6 +96,7 @@
 %keyword RETURN "return"
 %keyword RIGHT_PAREN ")"
 %keyword SEPARATE "separate"
+%keyword SUBTYPE "subtype"
 %keyword SYNCHRONIZED "synchronized"
 %keyword TAGGED "tagged"
 %keyword TASK "task"
@@ -185,10 +189,65 @@ array_type_definition
  ;; constrained_array_definition
   ;
 
+assignment_statement
+  : name COLON_EQUAL expression SEMICOLON
+    `(wisi-statement-action 1 'statement-start 4 'statement-end)
+  ;
+
+attribute_reference : name TICK attribute_designator ;
+
+attribute_designator
+  ;; IDENTIFIER LEFT_PAREN expression RIGHT_PAREN covered by name => function_call => name'identifier formal_part
+  : IDENTIFIER
+  | ACCESS
+  | DELTA
+  | DIGITS
+  | MOD
+  ;
+
 ;; basic_declarative_item merged into declaration
 ;; basic_declaration merged into declaration
 
 binary_adding_operator : PLUS | MINUS | AMPERSAND ; ;; + | - | &
+
+block_statement
+  : IDENTIFIER COLON DECLARE declarations BEGIN handled_sequence_of_statements END IDENTIFIER SEMICOLON
+    (progn
+      `(wisi-statement-action 1 'block-start 3 'block-middle 5 'block-middle 7 'block-end 9 'statement-end)
+      `(wisi-start-action 1 4)
+      `(wisi-start-action 1 6))
+  | IDENTIFIER COLON DECLARE declarations BEGIN handled_sequence_of_statements END SEMICOLON
+    (progn
+      `(wisi-statement-action 1 'block-start 3 'block-middle 5 'block-middle 7 'block-end 8 'statement-end)
+      `(wisi-start-action 1 4)
+      `(wisi-start-action 1 6))
+  | IDENTIFIER COLON BEGIN handled_sequence_of_statements END IDENTIFIER SEMICOLON
+    (progn
+      `(wisi-statement-action 1 'block-start 3 'block-middle 5 'block-end 7 'statement-end)
+      `(wisi-start-action 1 4))
+  | IDENTIFIER COLON BEGIN handled_sequence_of_statements END SEMICOLON
+    (progn
+      `(wisi-statement-action 1 'block-start 3 'block-middle 5 'block-end 6 'statement-end)
+      `(wisi-start-action 1 4))
+  | DECLARE declarations BEGIN handled_sequence_of_statements END IDENTIFIER SEMICOLON
+    (progn
+      `(wisi-statement-action 1 'block-start 3 'block-middle 5 'block-end 7 'statement-end)
+      `(wisi-start-action 1 2)
+      `(wisi-start-action 1 4))
+  | DECLARE declarations BEGIN handled_sequence_of_statements END SEMICOLON
+    (progn
+      `(wisi-statement-action 1 'block-start 3 'block-middle 5 'block-end 6 'statement-end)
+      `(wisi-start-action 1 2)
+      `(wisi-start-action 1 4))
+  | BEGIN handled_sequence_of_statements END IDENTIFIER SEMICOLON
+    (progn
+      `(wisi-statement-action 1 'block-start 3 'block-end 5 'statement-end)
+      `(wisi-start-action 1 2))
+  | BEGIN handled_sequence_of_statements END SEMICOLON
+    (progn
+      `(wisi-statement-action 1 'block-start 3 'block-end 4 'statement-end)
+      `(wisi-start-action 1 2))
+  ;
 
 body
   : proper_body
@@ -196,6 +255,23 @@ body
   ;
 
 body_stub : subprogram_body_stub | package_body_stub | task_body_stub | protected_body_stub ;
+
+case_expression
+  : CASE expression IS case_expression_alternative_list
+    (progn
+      `(wisi-statement-action 1 'block-start 3 'block-middle)
+      `(wisi-start-action 1 4))
+  ;
+
+case_expression_alternative
+  : WHEN discrete_choice_list EQUAL_GREATER expression
+    `(wisi-statement-action 1 'block-middle)
+  ;
+
+case_expression_alternative_list
+  : case_expression_alternative
+  | case_expression_alternative_list COMMA case_expression_alternative
+  ;
 
 choice_expression
   : choice_relation
@@ -267,6 +343,16 @@ component_list
   | NULL SEMICOLON
   ;
 
+compound_statement
+  ;; : if_statement
+  ;; | case_statement
+  ;; | loop_statement
+  : block_statement
+  ;; | extended_return_statement
+  ;; | accept_statement
+  ;; | select_statement
+  ;
+
 constraint
   : RANGE range ;; range_constraint
   ;; | digits_constraint
@@ -294,13 +380,13 @@ declaration
   | generic_declaration
   ;; | generic_instantiation
   ;; | null_procedure_declaration
-  ;; | number_declaration
+  | identifier_list COLON CONSTANT COLON_EQUAL expression SEMICOLON ;; number_declaration
   | object_declaration
   | package_declaration
   | pragma ;; not a 'declaration' in ARM, but it must be in the grammar
   ;; | renaming_declaration
   | subprogram_declaration
-  ;; | subtype_declaration
+  | subtype_declaration
   | type_declaration
   ;; | use_clause
   ;
@@ -364,6 +450,16 @@ discriminant_specification_list
     `(wisi-statement-action 2 'list-break)
   ;
 
+elsif_item
+  : ELSIF expression THEN expression
+    `(wisi-statement-action 1 'block-middle 3 'block-middle)
+  ;
+
+elsif_list
+  : elsif_item
+  | elsif_list elsif_item
+  ;
+
 ;; leaving out [aspect_specification]
 entry_declaration
   : overriding_indicator ENTRY IDENTIFIER LEFT_PAREN discrete_subtype_definition RIGHT_PAREN
@@ -407,7 +503,13 @@ exception_declaration
 
 exception_handler
   : WHEN IDENTIFIER COLON exception_choice_list EQUAL_GREATER sequence_of_statements
+    (progn
+      `(wisi-statement-action 1 'block-middle)
+      `(wisi-start-action 1 6))
   | WHEN exception_choice_list EQUAL_GREATER sequence_of_statements
+    (progn
+      `(wisi-statement-action 1 'block-middle)
+      `(wisi-start-action 1 4))
   ;
 
 exception_handler_list
@@ -586,7 +688,7 @@ generic_formal_parameter_declaration
 generic_package_declaration
   : generic_formal_part package_specification SEMICOLON
     (progn
-      `(wisi-statement-action 1 'block-start 2 'statement-middle 3 'statement-end)
+      `(wisi-statement-action 1 'block-start 2 'block-middle 3 'statement-end)
       `(wisi-motion-action 1 2 3))
   ;
 
@@ -598,6 +700,21 @@ handled_sequence_of_statements
 identifier_list
   : IDENTIFIER
   | identifier_list COMMA IDENTIFIER
+  ;
+
+if_expression
+  : IF expression THEN expression elsif_list ELSE expression
+    (progn
+      `(wisi-statement-action 1 'block-start 3 'block-middle 6 'block-middle)
+      `(wisi-start-action 1 5))
+  | IF expression THEN expression elsif_list
+    (progn
+      `(wisi-statement-action 1 'block-start 3 'block-middle)
+      `(wisi-start-action 1 5))
+  | IF expression THEN expression ELSE expression
+    `(wisi-statement-action 1 'block-start 3 'block-middle 5 'block-middle)
+  | IF expression THEN expression
+    `(wisi-statement-action 1 'block-start 3 'block-middle)
   ;
 
 index_subtype_definition : name RANGE BOX ;
@@ -676,7 +793,7 @@ name
   ;; | indexed_component
   ;; | slice
   | selected_component
-  ;; | attribute_reference
+  | attribute_reference
   ;; | type_conversion
   ;; | function_call
   ;; | CHARACTER_LITERAL
@@ -687,12 +804,24 @@ name
 
 ;; null_exclusion replaced by 'not null'
 
+;; leaving out [aspect_specification]
 object_declaration
- ;; leaving out [aspect_specification]
   : identifier_list COLON ALIASED CONSTANT name COLON_EQUAL expression SEMICOLON
+    `(wisi-statement-action 1 'statement-start 8 'statement-end)
   | identifier_list COLON ALIASED CONSTANT name SEMICOLON
+    `(wisi-statement-action 1 'statement-start 6 'statement-end)
+  | identifier_list COLON ALIASED name COLON_EQUAL expression SEMICOLON
+    `(wisi-statement-action 1 'statement-start 7 'statement-end)
   | identifier_list COLON ALIASED name SEMICOLON
+    `(wisi-statement-action 1 'statement-start 5 'statement-end)
+  | identifier_list COLON CONSTANT name COLON_EQUAL expression SEMICOLON
+    `(wisi-statement-action 1 'statement-start 7 'statement-end)
+  | identifier_list COLON CONSTANT name SEMICOLON
+    `(wisi-statement-action 1 'statement-start 5 'statement-end)
+  | identifier_list COLON name COLON_EQUAL expression SEMICOLON
+    `(wisi-statement-action 1 'statement-start 6 'statement-end)
   | identifier_list COLON name SEMICOLON
+    `(wisi-statement-action 1 'statement-start 4 'statement-end)
   ;; | identifier_list COLON [ALIASED] [CONSTANT] access_definition [COLON_EQUAL expression] SEMICOLON
   ;; | identifier_list COLON [ALIASED] [CONSTANT] array_type_definition [COLON_EQUAL expression] SEMICOLON
   | single_task_declaration
@@ -810,7 +939,7 @@ pragma
 pragma_argument_association
   : IDENTIFIER EQUAL_GREATER expression
   | expression
-  | IDENTIFIER TICK CLASS EQUAL_GREATER expression
+ ;; | IDENTIFIER TICK CLASS EQUAL_GREATER expression;; aspect_mark; causes shift/reduce conflict with attribute_reference
   ;
 
 pragma_argument_association_list
@@ -828,7 +957,8 @@ primary
   | name
   | NEW name ;; allocator, leaving out subpool_specification
   | LEFT_PAREN expression RIGHT_PAREN
-  ;; | LEFT_PAREN conditional_expression RIGHT_PAREN
+  | LEFT_PAREN if_expression RIGHT_PAREN ;; conditional_expression
+  | LEFT_PAREN case_expression RIGHT_PAREN ;; conditional_expression
   ;; | LEFT_PAREN quantified_expression RIGHT_PAREN
   ;
 
@@ -970,7 +1100,7 @@ simple_expression
 simple_statement
   : NULL SEMICOLON;; null_statement
     `(wisi-statement-action 1 'statement-start 2 'statement-end)
-  ;; | assignment_statement
+  | assignment_statement
   ;; | exit_statement
   ;; | goto_statement
   ;; | procedure_call_statement
@@ -1009,29 +1139,50 @@ single_task_declaration
     `(wisi-statement-action 1 'statement-start 3 'statement-end)
   ;
 
+;; ignoring list of labels on one statement
 statement
-;;  : label simple_statement ;; ignoring list of labels on one statement
+;;  : label simple_statement
   : simple_statement ;; ignoring list of labels on one statement
   ;; | label compound_statement
-  ;; | compound_statement
+  | compound_statement
   ;
 
 ;; leaving out [aspect_specification]
 subprogram_body
   : overriding_indicator subprogram_specification IS declarations BEGIN handled_sequence_of_statements END
     name SEMICOLON
-    `(wisi-statement-action 1 'statement-start 2 'block-start 3 'block-middle 5 'block-middle 7 'block-end 9 'statement_end)
+    (progn
+      `(wisi-statement-action 1 'statement-start 2 'block-start 3 'block-middle 5 'block-middle 7 'block-end 9 'statement_end)
+      `(wisi-start-action 1 4)
+      `(wisi-start-action 1 6))
   | overriding_indicator subprogram_specification IS declarations BEGIN handled_sequence_of_statements END
     SEMICOLON
-    `(wisi-statement-action 1 'statement-start 2 'block-start 3 'block-middle 5 'block-middle 7 'block-end 8 'statement_end)
+    (progn
+      `(wisi-statement-action 1 'statement-start 2 'block-start 3 'block-middle 5 'block-middle 7 'block-end 8 'statement_end)
+      `(wisi-start-action 1 4)
+      `(wisi-start-action 1 6))
   | overriding_indicator subprogram_specification IS BEGIN handled_sequence_of_statements END SEMICOLON
-    `(wisi-statement-action 1 'statement-start 2'block-start 3 'block-middle 4 'block-middle 6 'block-end 7 'statement_end)
+    (progn
+      `(wisi-statement-action 1 'statement-start 2'block-start 3 'block-middle 4 'block-middle 6 'block-end 7 'statement_end)
+      `(wisi-start-action 1 5))
   | subprogram_specification IS declarations BEGIN handled_sequence_of_statements END name SEMICOLON
-    `(wisi-statement-action 1 'block-start 2 'block-middle 4 'block-middle 6 'block-end 8 'statement_end)
+    (progn
+      `(wisi-statement-action 1 'block-start 2 'block-middle 4 'block-middle 6 'block-end 8 'statement_end)
+      `(wisi-start-action 1 3)
+      `(wisi-start-action 1 5))
   | subprogram_specification IS declarations BEGIN handled_sequence_of_statements END SEMICOLON
-    `(wisi-statement-action 1 'block-start 2 'block-middle 4 'block-middle 6 'block-end 7 'statement_end)
+    (progn
+      `(wisi-statement-action 1 'block-start 2 'block-middle 4 'block-middle 6 'block-end 7 'statement_end)
+      `(wisi-start-action 1 3)
+      `(wisi-start-action 1 5))
+  | subprogram_specification IS BEGIN handled_sequence_of_statements END name SEMICOLON
+    (progn
+      `(wisi-statement-action 1 'block-start 2 'block-middle 3 'block-middle 5 'block-end 7 'statement_end)
+      `(wisi-start-action 1 4))
   | subprogram_specification IS BEGIN handled_sequence_of_statements END SEMICOLON
-    `(wisi-statement-action 1 'block-start 2 'block-middle 3 'block-middle 5 'block-end 6 'statement_end)
+    (progn
+      `(wisi-statement-action 1 'block-start 2 'block-middle 3 'block-middle 5 'block-end 6 'statement_end)
+      `(wisi-start-action 1 4))
   ;
 
 ;; leaving out [aspect_specification]
@@ -1051,13 +1202,23 @@ subprogram_default : name | BOX | NULL ;
 
 subprogram_specification
   : PROCEDURE name parameter_profile ;; procedure_specification
+    `(wisi-statement-action 1 'statement-start 2 'name)
   | FUNCTION name parameter_and_result_profile ;; function_specification
+    `(wisi-statement-action 1 'statement-start 2 'name)
   | FUNCTION STRING_LITERAL parameter_and_result_profile ;; operator_symbol
+    `(wisi-statement-action 1 'statement-start 2 'name)
+  ;
+
+;; leaving out [aspect_specification]
+subtype_declaration
+  : SUBTYPE IDENTIFIER IS subtype_indication SEMICOLON
+    `(wisi-statement-action 1 'statement-start 5 'statement-end)
   ;
 
 subtype_indication
   : NOT NULL name constraint
   | NOT NULL name
+  | name constraint
   | name
   ;
 
