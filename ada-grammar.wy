@@ -56,6 +56,7 @@
 %keyword AND "and"
 %keyword ARRAY "array"
 %keyword BEGIN "begin"
+%keyword BODY "body"
 %keyword CASE "case"
 %keyword CLASS "class"
 %keyword CONSTANT "constant"
@@ -63,6 +64,7 @@
 %keyword DIGITS "digits"
 %keyword ELSE "else"
 %keyword END "end"
+%keyword ENTRY "entry"
 %keyword EXCEPTION "exception"
 %keyword FUNCTION "function"
 %keyword GENERIC "generic"
@@ -90,6 +92,7 @@
 %keyword REM "rem"
 %keyword RETURN "return"
 %keyword RIGHT_PAREN ")"
+%keyword SEPARATE "separate"
 %keyword SYNCHRONIZED "synchronized"
 %keyword TAGGED "tagged"
 %keyword TASK "task"
@@ -187,6 +190,13 @@ array_type_definition
 
 binary_adding_operator : PLUS | MINUS | AMPERSAND ; ;; + | - | &
 
+body
+  : proper_body
+  | body_stub
+  ;
+
+body_stub : subprogram_body_stub | package_body_stub | task_body_stub | protected_body_stub ;
+
 choice_expression
   : choice_relation
   | choice_relation_and_list
@@ -277,10 +287,11 @@ context_item : pragma | with_clause | use_clause;
 declaration
   ;; | abstract_subprogram_declaration
   ;; | aspect_clause
-  ;; | entry_declaration
-  ;; | exception_declaration
+  : body
+  | entry_declaration
+  | exception_declaration
   ;; | expression_function_declaration
-  : generic_declaration
+  | generic_declaration
   ;; | generic_instantiation
   ;; | null_procedure_declaration
   ;; | number_declaration
@@ -301,6 +312,7 @@ declarations
   ;
 
 ;; declarative_part replaced by declarations
+;; declarative_item merged into declaration
 
 derived_type_definition
   : ABSTRACT LIMITED NEW name AND interface_list WITH record_definition
@@ -352,6 +364,19 @@ discriminant_specification_list
     `(wisi-statement-action 2 'list-break)
   ;
 
+;; leaving out [aspect_specification]
+entry_declaration
+  : overriding_indicator ENTRY IDENTIFIER LEFT_PAREN discrete_subtype_definition RIGHT_PAREN
+    parameter_profile SEMICOLON
+    `(wisi-statement-action 1 'statement-start 4 'open-paren 6 'close-paren 8 'statement-end)
+  | overriding_indicator ENTRY IDENTIFIER parameter_profile SEMICOLON
+    `(wisi-statement-action 1 'statement-start 5 'statement-end)
+  | ENTRY IDENTIFIER parameter_profile SEMICOLON
+    `(wisi-statement-action 1 'statement-start 4 'statement-end)
+  | ENTRY IDENTIFIER LEFT_PAREN discrete_subtype_definition RIGHT_PAREN parameter_profile SEMICOLON
+    `(wisi-statement-action 1 'statement-start 3 'open-paren 5 'close-paren 7 'statement-end)
+  ;
+
 enumeration_type_definition
   : LEFT_PAREN enumeration_literal_list RIGHT_PAREN
     `(wisi-statement-action 1 'open-paren 3 'close-paren)
@@ -372,6 +397,12 @@ exception_choice : name | OTHERS ;
 exception_choice_list
   : exception_choice
   | exception_choice_list BAR exception_choice
+  ;
+
+;; leaving out [aspect_specification]
+exception_declaration
+  : identifier_list COLON EXCEPTION SEMICOLON
+    `(wisi-statement-action 1 'statement-start 4 'statement-end)
   ;
 
 exception_handler
@@ -597,15 +628,15 @@ library_item
   : PRIVATE library_unit_declaration
   | library_unit_declaration
   | subprogram_body ;; library_unit_body
- ;; | package_body ;; library_unit_body
+  | package_body ;; library_unit_body
  ;; | PRIVATE library_unit_renaming_declaration
  ;; | library_unit_renaming_declaration
   ;
 
 library_unit_declaration
   ;; : subprogram_declaration
-  ;; | package_declaration
-  : generic_declaration
+  : package_declaration
+  | generic_declaration
   ;; | generic_instantiation
   ;
 
@@ -664,8 +695,8 @@ object_declaration
   | identifier_list COLON name SEMICOLON
   ;; | identifier_list COLON [ALIASED] [CONSTANT] access_definition [COLON_EQUAL expression] SEMICOLON
   ;; | identifier_list COLON [ALIASED] [CONSTANT] array_type_definition [COLON_EQUAL expression] SEMICOLON
-  ;; | single_task_declaration
-  ;; | single_protected_declaration
+  | single_task_declaration
+  | single_protected_declaration
   ;
 
 overriding_indicator
@@ -673,34 +704,68 @@ overriding_indicator
   | OVERRIDING
   ;
 
+;; leaving out [aspect_specification]
+package_body
+  : PACKAGE BODY name IS declarations BEGIN handled_sequence_of_statements END name SEMICOLON
+    (progn
+      `(wisi-statement-action 1 'block-start 4 'block-middle 6 'block-middle 9 'block-end 10 'statement-end)
+      `(wisi-start-action 1 5)
+      `(wisi-start-action 1 7))
+  | PACKAGE BODY name IS declarations BEGIN handled_sequence_of_statements END SEMICOLON
+    (progn
+      `(wisi-statement-action 1 'block-start 4 'block-middle 6 'block-middle 8 'block-end 9 'statement-end)
+      `(wisi-start-action 1 5)
+      `(wisi-start-action 1 7))
+  | PACKAGE BODY name IS declarations END name SEMICOLON
+    (progn
+      `(wisi-statement-action 1 'block-start 4 'block-middle 6 'block-end 8 'statement-end)
+      `(wisi-start-action 1 5))
+  | PACKAGE BODY name IS declarations END SEMICOLON
+    (progn
+      `(wisi-statement-action 1 'block-start 4 'block-middle 6 'block-end 7 'statement-end)
+      `(wisi-start-action 1 5))
+  | PACKAGE BODY name IS END SEMICOLON
+    `(wisi-statement-action 1 'block-start 4 'block-middle 5 'block-end 6 'statement-end)
+  | PACKAGE BODY name IS END name SEMICOLON
+    `(wisi-statement-action 1 'block-start 4 'block-middle 5 'block-end 7 'statement-end)
+  | PACKAGE BODY name IS BEGIN handled_sequence_of_statements END name SEMICOLON
+    (progn
+      `(wisi-statement-action 1 'block-start 4 'block-middle 5 'block-middle 7 'block-end 9 'statement-end)
+      `(wisi-start-action 1 6))
+  | PACKAGE BODY name IS BEGIN handled_sequence_of_statements END SEMICOLON
+    (progn
+      `(wisi-statement-action 1 'block-start 4 'block-middle 5 'block-middle 7 'block-end 8 'statement-end)
+      `(wisi-start-action 1 6))
+  ;
+
+;; leaving out  [aspect_specification]
+package_body_stub
+  : PACKAGE BODY name IS SEPARATE SEMICOLON
+ ;; only 'identifier' allowed, but using 'name' eliminates a shift/reduce conflict
+    `(wisi-statement-action 1 'statement-start 6 'statement-end)
+  ;
+
 package_declaration
   : package_specification SEMICOLON
-    `(wisi-statement-action 1 'statement-start 2 'statement-end)
+    (progn
+      `(wisi-statement-action 1 'statement-start 2 'statement-end)
+      `(wisi-start-action 1 1))
   ;
 
 ;; leaving out [aspect_specification]
 package_specification
   : PACKAGE name IS declarations PRIVATE declarations END name
-    `(wisi-statement-action
-      1 'statement-start
-      2 'name
-      3 'block-start
-      5 'block-middle
-      7 'block-end)
-
+    (progn
+      `(wisi-statement-action 1 'statement-start 2 'name 3 'block-start 5 'block-middle 7 'block-end)
+      `(wisi-start-action 1 4)
+      `(wisi-start-action 1 6))
   | PACKAGE name IS declarations END name
-    `(wisi-statement-action
-      1 'statement-start
-      2 'name
-      3 'block-start
-      5 'block-end)
+    (progn
+      `(wisi-statement-action 1 'statement-start 2 'name 3 'block-start 5 'block-end)
+      `(wisi-start-action 1 4))
   | PACKAGE name IS END name
  ;; there might be comments between 'is', 'end'.
-    `(wisi-statement-action
-      1 'statement-start
-      2 'name
-      3 'block-start
-      4 'block-end)
+    `(wisi-statement-action 1 'statement-start 2 'name 3 'block-start 4 'block-end)
   ;
 
 parameter_and_result_profile
@@ -765,6 +830,43 @@ primary
   | LEFT_PAREN expression RIGHT_PAREN
   ;; | LEFT_PAREN conditional_expression RIGHT_PAREN
   ;; | LEFT_PAREN quantified_expression RIGHT_PAREN
+  ;
+
+proper_body
+  : subprogram_body
+  | package_body
+  ;; | task_body
+  | protected_body
+  ;
+
+;; leaving out [aspect_specification]
+protected_body
+  : PROTECTED BODY IDENTIFIER IS protected_operation_item_list END IDENTIFIER SEMICOLON
+    (progn
+      `(wisi-statement-action 1 'block-start 4 'block-middle 6 'block-end 8 'statement-end)
+      `(wisi-start-action 1 5))
+  | PROTECTED BODY IDENTIFIER IS protected_operation_item_list END SEMICOLON
+    (progn
+      `(wisi-statement-action 1 'block-start 4 'block-middle 6 'block-end 7 'statement-end)
+      `(wisi-start-action 1 5))
+  ;
+
+;; leaving out [aspect_specification]
+protected_body_stub
+  : PROTECTED BODY IDENTIFIER IS SEPARATE SEMICOLON
+    `(wisi-statement-action 1 'statement-start 6 'statement-end)
+  ;
+
+protected_operation_item
+  : subprogram_declaration
+  | subprogram_body
+  ;; | entry_body
+  ;; | aspect_clause
+  ;
+
+protected_operation_item_list
+  : protected_operation_item
+  | protected_operation_item_list protected_operation_item
   ;
 
 protected_definition
@@ -881,6 +983,32 @@ simple_statement
   ;; | code_statement
   ;
 
+;; leaving out [aspect_specification]
+single_protected_declaration
+  : PROTECTED IDENTIFIER IS NEW interface_list WITH protected_definition SEMICOLON
+    (progn
+      `(wisi-statement-action 1 'block-start 6 'block-middle 8 'statement-end)
+      `(wisi-start-action 1 7))
+  | PROTECTED IDENTIFIER IS protected_definition SEMICOLON
+    (progn
+      `(wisi-statement-action 1 'block-start 3 'block-middle 5 'statement-end)
+      `(wisi-start-action 1 4))
+;
+
+;; leaving out [aspect_specification]
+single_task_declaration
+  : TASK IDENTIFIER IS NEW interface_list WITH task_definition SEMICOLON
+    (progn
+      `(wisi-statement-action 1 'block-start 6 'block-middle 8 'statement-end)
+      `(wisi-start-action 1 7))
+  | TASK IDENTIFIER IS task_definition SEMICOLON
+    (progn
+      `(wisi-statement-action 1 'block-start 3 'block-middle 5 'statement-end)
+      `(wisi-start-action 1 4))
+  | TASK IDENTIFIER SEMICOLON
+    `(wisi-statement-action 1 'statement-start 3 'statement-end)
+  ;
+
 statement
 ;;  : label simple_statement ;; ignoring list of labels on one statement
   : simple_statement ;; ignoring list of labels on one statement
@@ -906,6 +1034,14 @@ subprogram_body
     `(wisi-statement-action 1 'block-start 2 'block-middle 3 'block-middle 5 'block-end 6 'statement_end)
   ;
 
+;; leaving out [aspect_specification]
+subprogram_body_stub
+  : overriding_indicator subprogram_specification IS SEPARATE SEMICOLON
+    `(wisi-statement-action 1 'statement-start 5 'statement-end)
+  | subprogram_specification IS SEPARATE SEMICOLON
+    `(wisi-statement-action 1 'statement-start 4 'statement-end)
+  ;
+
 subprogram_declaration
   : overriding_indicator subprogram_specification SEMICOLON
   | subprogram_specification SEMICOLON
@@ -927,12 +1063,24 @@ subtype_indication
 
 ;; subtype_mark replaced by name
 
+;; leaving out [aspect_specification]
+task_body_stub
+  : TASK BODY IDENTIFIER IS SEPARATE SEMICOLON
+    `(wisi-statement-action 1 'statement-start 6 'statement-end)
+  ;
+
 task_definition
   : declarations PRIVATE declarations END IDENTIFIER
+    `(wisi-statement-action 2 'block-middle 4 'block-end)
   | declarations PRIVATE declarations END
+    `(wisi-statement-action 2 'block-middle 4 'block-end)
   | declarations END
+    `(wisi-statement-action 2 'block-end)
   | END
+    `(wisi-statement-action 1 'block-end)
   ;
+
+;; task_item replaced by declaration
 
 ;; leaving out [aspect_specification]
 task_type_declaration

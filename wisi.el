@@ -398,7 +398,7 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
 	      (goto-char begin)
 	      (error "unexpected %s: %s" symbol expecting))
 	  (message "%s:%s: unexpected %s: %s"
-		   (buffer-file-name)
+		   (file-name-nondirectory (buffer-file-name))
 		   (line-number-at-pos)
 		   symbol expecting))
 	))

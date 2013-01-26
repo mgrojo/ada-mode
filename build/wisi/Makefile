@@ -9,7 +9,7 @@ two : test-gpr
 debug-grammar : wisi-gpr-grammar-generate.run
 
 vpath %.wy ../../
-vpath %-wy.el ../../
+vpath %.el ../../
 
 # WORKAROUND: semantic-grammar-batch-build-packages can't handle `, in rules; patch here
 %-wy.el : %.wy
@@ -45,6 +45,7 @@ clean ::
 	rm -f *-wy.el *.elc
 
 RUNTEST := runtest-wisi.el
+INDENT.EL := ada-wisi.el gpr-wisi.el ada-grammar-wy.el gpr-grammar-wy.el
 include ../common.make
 
 export ADA_PROJECT_PATH=../../test/;../../test/subdir

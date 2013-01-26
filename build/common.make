@@ -81,7 +81,7 @@ test-elisp :
 .PRECIOUS : %.tmp
 
 # load path; .. for runtest.el, ../.. for ada-mode.el etc
-%.tmp : %
+%.tmp : % $(INDENT.EL)
 	$(EMACS) -Q -batch -L .. -L ../.. -l $(RUNTEST) --eval '(run-test "$<")'
 
 COMPILE_FILES := $(COMPILE_FILES:.adb=.ali)
