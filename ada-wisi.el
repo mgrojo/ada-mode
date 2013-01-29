@@ -276,8 +276,7 @@
 	       (setq result (ada-wisi-which-function-1 1 "task" t)))
 
 	      ((subprogram_body subprogram_specification)
-	       ;; FIXME: function or procedure? get token, or store that in cache?
-	       (setq result (ada-wisi-which-function-1 0 "function" nil)))
+	       (setq result (ada-wisi-which-function-1 0 (wisi-forward-token t) nil)))
 	      ))))
       result)))
 

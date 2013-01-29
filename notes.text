@@ -50,8 +50,10 @@ semantic mode in .wy is just broken
 ada-wisi
     build/wisi/Makefile
 
-    test/ada_mode-find_file.ads
-        find-file failing
+    wisi-statement-action check class against wisi-class-list, to catch spelling mistakes
+
+    test/ada_mode-function_2.ads
+        return statement
 
 arm_info
     annex P

@@ -134,7 +134,7 @@
 (defvar wisi-symbol-term nil)
 
 (defun wisi-forward-token (&optional text-only lower)
-  "Move point forward across one token, skipping whitespace and comments.
+  "Move point forward across one token, skipping leading whitespace and comments.
 Return the corresponding token, in a format determined by TEXT-ONLY:
 TEXT-ONLY t:          text
 TEXT-ONLY nil:        (symbol text (start end))
@@ -695,8 +695,13 @@ CACHE contains cache info from a keyword in the current statement."
 	(back-to-indentation))
       (+ (current-column) offset))
      (t
-      ;; at outermost containing statement; ignore offset
-      0)
+      (if (ada-in-paren-p)
+	  (progn
+	    (ada-goto-open-paren 1)
+	    (+ (current-column) offset))
+
+	;; at outermost containing statement; ignore offset
+	0))
      )))
 
 (defvar wisi-indent-calculate-functions nil

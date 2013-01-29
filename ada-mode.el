@@ -1342,9 +1342,9 @@ ff-function-name a regexp that will find the function in the
 other file.")
 
 (defconst ada-symbol-end
-  "Regexp to add to symbol name in `ada-which-function'."
   ;; we can't just add \> here; that might match _ in a user modified ada-mode-syntax-table
-  "\\([ \t]+\\|$\\)")
+  "\\([ \t]+\\|$\\)"
+  "Regexp to add to symbol name in `ada-which-function'.")
 
 (defun ada-which-function ()
   "See `ada-which-function' variable."
@@ -1378,8 +1378,10 @@ previously set by a file navigation command."
 	(if (ada-in-string-or-comment-p)
 	    (setq found nil)
 	  (setq done t)))
-      (if found
-	  (goto-char found))
+      (when found
+	(goto-char found)
+	;; different parsers find different points on the line; normalize here
+	(back-to-indentation))
       (setq ff-function-name nil))))
 
 (defun ada-buffer-window (buffer)
