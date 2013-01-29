@@ -140,6 +140,9 @@ fixed, leaving point at fix. Otherwise, they should return nil.")
         (line-move-visual nil)); screws up next-line otherwise
 
     (with-current-buffer compilation-last-buffer
+      (when (not (get-text-property pt 'message))
+	;; not why this can happens, but it does
+	(compilation-next-error 1))
       (let ((success
 	     (run-hook-with-args-until-success
 	      (cdr (assoc ada-compiler ada-fix-error-alist))

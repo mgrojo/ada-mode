@@ -726,17 +726,18 @@ For `compilation-filter-hook'."
 	(delete-char 1)
 	t)
 
-       ((looking-at "missing \"\\(.+\\)\"")
-	(let ((stuff (match-string-no-properties 1)))
-	  (set-buffer source-buffer)
-	  (insert (concat " " stuff)))
-	t)
-
        ((looking-at (concat "missing \"with \\([a-zA-Z0-9_.']+\\);\""))
 	(let ((package-name (match-string-no-properties 1)))
 	  (pop-to-buffer source-buffer)
 	  ;; FIXME: should check if prefix is already with'd, extend it
 	  (ada-fix-add-with-clause package-name))
+	t)
+
+       ;; must be after above
+       ((looking-at "missing \"\\(.+\\)\"")
+	(let ((stuff (match-string-no-properties 1)))
+	  (set-buffer source-buffer)
+	  (insert (concat " " stuff)))
 	t)
 
        ((looking-at "No legal interpretation for operator")
@@ -809,6 +810,14 @@ For `compilation-filter-hook'."
 	(beginning-of-line)
 	(delete-region (point) (progn (forward-line 1) (point)))
 	t)
+
+       ((looking-at (concat "warning: variable " ada-gnat-quoted-name-regexp " is assigned but never read"))
+	(let ((param (match-string 1)))
+	  (pop-to-buffer source-buffer)
+	  (forward-line 1);; FIXME: need `ada-goto-declaration-end'
+	  (backward-char 1)
+	  (newline-and-indent)
+	  (insert "pragma Unreferenced (" param ");")))
 
        ((looking-at (concat "warning: unit " ada-gnat-quoted-name-regexp " is not referenced$"))
 	;; just delete the 'with'; assume it's on a line by itself.
