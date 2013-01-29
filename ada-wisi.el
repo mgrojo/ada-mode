@@ -57,13 +57,13 @@
 
 	(block-middle
 	 (wisi-indent-statement-start
-	  (if (eq (wisi-cache-symbol cache) 'WHEN) ada-indent-when 0)
+	  (if (eq (wisi-cache-symbol cache) 'case_expression_alternative) ada-indent-when 0)
 	  cache
 	  nil))
 
 	(close-paren (wisi-indent-paren 0))
 
-	((open-paren statement-start)
+	((open-paren statement-start statement-other)
 	 ;; let after-keyword handle it
 	 nil)
 
@@ -111,7 +111,17 @@
 	(block-end
 	 (wisi-indent-current 0))
 
-	((block-start block-middle)
+	(block-middle
+	 (case (wisi-cache-symbol cache)
+	   (case_expression_alternative
+	    ;; between 'when' and '=>'
+	    (+ (current-column) ada-indent-broken))
+
+	   (t
+	    (wisi-indent-current ada-indent))
+	   ))
+
+	(block-start
 	 (wisi-indent-current ada-indent))
 
 	(list-break
@@ -152,14 +162,53 @@
 	(statement-end
 	 (wisi-indent-statement-start 0 cache nil))
 
-	(statement-middle;; when, else
-	 (wisi-indent-current ada-indent))
+	(statement-other
+	 (ecase (wisi-cache-symbol (wisi-goto-statement-start cache nil))
+	   (case_expression
+	    (ecase (wisi-cache-symbol cache)
+	      (EQUAL_GREATER
+	       ;; between '=>' and ','
+	       (+ (current-column) ada-indent-when ada-indent))
+
+	      (case_expression_alternative_list;; COMMA
+	       ;; between ',' and 'when' or 'end case'; comment
+	       (+ (current-column) ada-indent-when ))
+	      ))))
 
 	(t
 	 ;; hanging
 	 (wisi-indent-statement-start ada-indent-broken cache nil))
 	))
     ))
+
+(defun ada-wisi-comment ()
+  "Compute indentation of a comment. For `wisi-indent-functions'."
+  ;; We know we are at the first token on a line.
+  (when (looking-at comment-start-skip)
+
+    ;; We are at a comment; indent to previous code or comment.
+    (cond
+     ((and ada-indent-comment-col-0
+	   (= 0 (current-column)))
+      0)
+
+     ((or
+       (save-excursion (forward-line -1) (looking-at "\\s *$"))
+       (save-excursion (forward-comment -1)(not (looking-at comment-start))))
+      ;; comment is after a blank line or code; indent as if code
+      ;;
+      ;; ada-wisi-before-keyword will find the keyword _after_ the
+      ;; comment, which could be a block-middle or block-end, and that
+      ;; would align the comment with the block-middle, which is wrong. So
+      ;; we only call ada-wisi-after-keyword.
+
+      (ada-wisi-after-keyword))
+
+      (t
+       ;; comment is after a comment
+       (forward-comment -1)
+       (current-column))
+      )))
 
 (defun ada-wisi-which-function-1 (cache-skip keyword body)
   "used in `ada-wisi-which-function'."
@@ -238,6 +287,10 @@
   (interactive)
   (define-key ada-mode-map "\M-j" 'wisi-show-cache)
   (define-key ada-mode-map "\M-k" 'wisi-show-token)
+  (define-key ada-mode-map "\M-h"
+    (lambda ()
+      (interactive)
+      (wisi-goto-statement-start (wisi-get-cache (point)) t)))
   )
 
 (defun ada-wisi-debug-setup ()
@@ -253,7 +306,8 @@
 ;;;###autoload
 (defun ada-wisi-setup ()
   "Set up a buffer for parsing Ada files with wisi."
-  (wisi-setup '(ada-wisi-before-keyword
+  (wisi-setup '(ada-wisi-comment
+		ada-wisi-before-keyword
 		ada-wisi-after-keyword)
 	      ada-grammar-wy--keyword-table
 	      ada-grammar-wy--token-table

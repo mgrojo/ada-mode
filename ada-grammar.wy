@@ -58,7 +58,6 @@
 %keyword BEGIN "begin"
 %keyword BODY "body"
 %keyword CASE "case"
-%keyword CLASS "class"
 %keyword CONSTANT "constant"
 %keyword DECLARE "declare"
 %keyword DELTA "delta"
@@ -134,6 +133,7 @@
 %token <string> STRING_LITERAL
 %token <character_literal> CHARACTER_LITERAL
 %token <numeric_literal> NUMERIC_LITERAL
+;; FIXME: wisi lexer treats numeric_literal as identifier; fix that or delete this
 
 %start compilation_unit
 
@@ -182,6 +182,11 @@ access_type_definition
   | ACCESS FUNCTION  parameter_and_result_profile
   ;
 
+actual_parameter_part
+  : LEFT_PAREN parameter_association_list RIGHT_PAREN
+    `(wisi-statement-action 1 'open-paren 3 'close-paren)
+  ;
+
 array_type_definition
   : ARRAY LEFT_PAREN index_subtype_definition_list RIGHT_PAREN OF component_definition
  ;; unconstrained_array_definition
@@ -192,12 +197,15 @@ array_type_definition
 assignment_statement
   : name COLON_EQUAL expression SEMICOLON
     `(wisi-statement-action 1 'statement-start 4 'statement-end)
+ ;; FIXME: name can be a function call with params, which needs wisi-start-action for parens?
   ;
 
 attribute_reference : name TICK attribute_designator ;
 
 attribute_designator
-  ;; IDENTIFIER LEFT_PAREN expression RIGHT_PAREN covered by name => function_call => name'identifier formal_part
+ ;; : IDENTIFIER LEFT_PAREN expression RIGHT_PAREN
+ ;; causes shift/reduce conflict with something; covered by name =>
+ ;; function_call => name'identifier actual_parameter_part?
   : IDENTIFIER
   | ACCESS
   | DELTA
@@ -265,12 +273,13 @@ case_expression
 
 case_expression_alternative
   : WHEN discrete_choice_list EQUAL_GREATER expression
-    `(wisi-statement-action 1 'block-middle)
+    `(wisi-statement-action 1 'block-middle 3 'statement-other)
   ;
 
 case_expression_alternative_list
   : case_expression_alternative
   | case_expression_alternative_list COMMA case_expression_alternative
+    `(wisi-statement-action 2 'statement-other)
   ;
 
 choice_expression
@@ -697,6 +706,9 @@ handled_sequence_of_statements
   | sequence_of_statements
   ;
 
+;; reduce/reduce conflict:
+;; COMMA	reduce using rule 222 (identifier_list)
+;; COMMA	[reduce using rule 262 (name)]
 identifier_list
   : IDENTIFIER
   | identifier_list COMMA IDENTIFIER
@@ -705,16 +717,16 @@ identifier_list
 if_expression
   : IF expression THEN expression elsif_list ELSE expression
     (progn
-      `(wisi-statement-action 1 'block-start 3 'block-middle 6 'block-middle)
+      `(wisi-statement-action 1 'statement-start 3 'block-middle 6 'block-middle)
       `(wisi-start-action 1 5))
   | IF expression THEN expression elsif_list
     (progn
-      `(wisi-statement-action 1 'block-start 3 'block-middle)
+      `(wisi-statement-action 1 'statement-start 3 'block-middle)
       `(wisi-start-action 1 5))
   | IF expression THEN expression ELSE expression
-    `(wisi-statement-action 1 'block-start 3 'block-middle 5 'block-middle)
+    `(wisi-statement-action 1 'statement-start 3 'block-middle 5 'block-middle)
   | IF expression THEN expression
-    `(wisi-statement-action 1 'block-start 3 'block-middle)
+    `(wisi-statement-action 1 'statement-start 3 'block-middle)
   ;
 
 index_subtype_definition : name RANGE BOX ;
@@ -789,14 +801,14 @@ name_list
 
 name
   : IDENTIFIER
+  ;; | CHARACTER_LITERAL
   ;; | explicit_dereference
   ;; | indexed_component
   ;; | slice
   | selected_component
   | attribute_reference
   ;; | type_conversion
-  ;; | function_call
-  ;; | CHARACTER_LITERAL
+  | name actual_parameter_part ;; function_call
   ;; | qualified_expression
   ;; | generalized_reference
   ;; | generalized_indexing
@@ -910,6 +922,22 @@ parameter_and_result_profile
     `(wisi-statement-action 2 'return-1)
   | RETURN access_definition
     `(wisi-statement-action 1 'return-2)
+  ;
+
+;; reduce/reduce conflicts:
+;; RIGHT_PAREN	reduce using rule 197 (formal_package_association)
+;; RIGHT_PAREN	[reduce using rule 296 (parameter_association)]
+;; COMMA	reduce using rule 197 (formal_package_association)
+;; COMMA	[reduce using rule 296 (parameter_association)]
+parameter_association
+  : selector_name EQUAL_GREATER expression
+  | expression
+  ;
+
+parameter_association_list
+  : parameter_association
+  | parameter_association_list COMMA parameter_association
+    `(wisi-statement-action 2 'list-break)
   ;
 
 parameter_profile : | formal_part ;
@@ -1195,7 +1223,9 @@ subprogram_body_stub
 
 subprogram_declaration
   : overriding_indicator subprogram_specification SEMICOLON
+    `(wisi-statement-action 1 'statement-start 2 'block-middle 3 'statement-end)
   | subprogram_specification SEMICOLON
+    `(wisi-statement-action 1 'statement-start 2 'statement-end)
   ;
 
 subprogram_default : name | BOX | NULL ;

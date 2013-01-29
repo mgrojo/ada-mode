@@ -12,6 +12,7 @@ vpath %.wy ../../
 vpath %.el ../../
 
 # WORKAROUND: semantic-grammar-batch-build-packages can't handle `, in rules; patch here
+# WORKAROUND: parser does not execute actions when grammar is byte-compiled (may need to byte-compile everything?)
 %-wy.el : %.wy
 	rm -f ../../wisent.output
 	cd ../../; $(EMACS) -Q -batch -L build -L . -l load-paths-24.3.el -f semantic-grammar-batch-build-packages $(<F)

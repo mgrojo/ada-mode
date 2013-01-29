@@ -50,11 +50,8 @@ semantic mode in .wy is just broken
 ada-wisi
     build/wisi/Makefile
 
-    test/ada_mode-conditional_expressions.adb
-        parse failing; need function_call in name
-
-    test/gpr/gds.gpr
-        passing
+    test/ada_mode-find_file.ads
+        find-file failing
 
 arm_info
     annex P
@@ -76,6 +73,9 @@ ada-smie
     use ada-symbol-end
 
 
+wisent-parser does not execute actions when grammar is byte-compiled!
+    need to byte-compile everything?
+
 better error handling for wisi?
     for wisent-parse, need to set an 'error action on statement_start tokens?
         then skip to ;

@@ -667,7 +667,8 @@ the comment on the previous line."
 (defun wisi-indent-current (offset)
   "Return indentation OFFSET relative to indentation of current line."
   (save-excursion
-    (back-to-indentation)
+    (unless (ada-in-paren-p)
+      (back-to-indentation))
     (+ (current-column) offset)))
 
 (defun wisi-indent-paren (offset)
@@ -690,7 +691,8 @@ CACHE contains cache info from a keyword in the current statement."
     (cond
      ((markerp (wisi-cache-start cache))
       (wisi-goto-statement-start cache containing)
-      (back-to-indentation)
+      (unless (ada-in-paren-p)
+	(back-to-indentation))
       (+ (current-column) offset))
      (t
       ;; at outermost containing statement; ignore offset
@@ -698,9 +700,11 @@ CACHE contains cache info from a keyword in the current statement."
      )))
 
 (defvar wisi-indent-calculate-functions nil
-  "Functions to calculate indentation. Each called with point before a
-  token; return indentation column for that token, or
-  nil. Calling stops when first function returns non-nil.")
+  "Functions to calculate indentation. Each called with point
+  before a token at the beginning of a line (at current
+  indentation); return indentation column for that token, or
+  nil. Preserve point. Calling stops when first function returns
+  non-nil.")
 
 (defun wisi-indent-line ()
   "Indent current line using the wisi indentation engine."
