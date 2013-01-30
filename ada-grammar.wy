@@ -183,7 +183,7 @@ access_type_definition
   ;
 
 actual_parameter_part
-  : LEFT_PAREN parameter_association_list RIGHT_PAREN
+  : LEFT_PAREN association_list RIGHT_PAREN
     `(wisi-statement-action 1 'open-paren 3 'close-paren)
   ;
 
@@ -200,6 +200,17 @@ assignment_statement
  ;; FIXME: name can be a function call with params, which needs wisi-start-action for parens?
   ;
 
+association
+  : selector_name EQUAL_GREATER expression
+  | expression
+  | selector_name EQUAL_GREATER BOX ;; from formal_package_association_list
+  ;
+
+association_list
+  : association
+  | association_list COMMA association
+    `(wisi-statement-action 2 'list-break)
+  ;
 attribute_reference : name TICK attribute_designator ;
 
 attribute_designator
@@ -387,7 +398,7 @@ declaration
   | exception_declaration
   ;; | expression_function_declaration
   | generic_declaration
-  ;; | generic_instantiation
+  ;; | generic_instantiation causes conflicts that require parallel LALR
   ;; | null_procedure_declaration
   | identifier_list COLON CONSTANT COLON_EQUAL expression SEMICOLON ;; number_declaration
   | object_declaration
@@ -535,6 +546,8 @@ expression
   | relation_xor_list
   ;
 
+;; designator is merged with name
+
 factor
   : primary STAR_STAR primary
   | primary
@@ -633,22 +646,14 @@ formal_package_actual_part
     `(wisi-statement-action 1 'open-paren 5 'close-paren)
   | LEFT_PAREN BOX RIGHT_PAREN ;; (<>)
   | ;; null generic actual part
-  | LEFT_PAREN formal_package_association_list COMMA OTHERS EQUAL_GREATER BOX RIGHT_PAREN
+  | LEFT_PAREN association_list COMMA OTHERS EQUAL_GREATER BOX RIGHT_PAREN
     `(wisi-statement-action 1 'open-paren 7 'close-paren)
-  | LEFT_PAREN formal_package_association_list RIGHT_PAREN
+  | LEFT_PAREN association_list RIGHT_PAREN
     `(wisi-statement-action 1 'open-paren 3 'close-paren)
  ;; same as generic_actual_part
   ;
 
-formal_package_association_list
-  : formal_package_association
-  | formal_package_association_list COMMA formal_package_association
-  ;
-
-formal_package_association
-  : selector_name EQUAL_GREATER expression ;; generic_association; expanded to avoid reduce/reduce conflict
-  | selector_name EQUAL_GREATER BOX
-  ;
+ ;; formal_package_association_list is merged into association_list to avoid reduce/reduce conflict
 
 formal_private_type_definition
   : ABSTRACT TAGGED LIMITED PRIVATE
@@ -666,6 +671,14 @@ full_type_declaration
   ;
 
 general_access_modifier : ALL | CONSTANT ;
+
+;; only used in generic_instantiation
+;; generic_actual_part
+;;   : LEFT_PAREN association_list RIGHT_PAREN
+;;     `(wisi-statement-action 1 'open-paren 3 'close-paren)
+;;   ;
+
+;; generic_association is merged into association
 
 generic_declaration
   ;; : generic_subprogram_declaration
@@ -693,6 +706,41 @@ generic_formal_parameter_declaration
   | formal_package_declaration
   | pragma
   ;
+
+;; causes conflicts that require parallel LALR parser
+;; leaving out [aspect_specification]
+;; generic_instantiation
+;;   : PACKAGE name IS NEW name generic_actual_part SEMICOLON
+;;     (progn
+;;       `(wisi-statement-action 1 'statement-start 2 'name 7 'statment-end)
+;;       `(wisi-start-action 1 6))
+;;   | PACKAGE name IS NEW name SEMICOLON
+;;     `(wisi-statement-action 1 'statement-start 2 'name 6 'statment-end)
+;;   | overriding_indicator PROCEDURE name IS NEW name generic_actual_part SEMICOLON
+;;     (progn
+;;       `(wisi-statement-action 1 'statement-start 3 'name 8 'statment-end)
+;;       `(wisi-start-action 1 7))
+;;   | overriding_indicator PROCEDURE name IS NEW name SEMICOLON
+;;     `(wisi-statement-action 1 'statement-start 3 'name 7 'statment-end)
+;;   | PROCEDURE name IS NEW name generic_actual_part SEMICOLON
+;;     (progn
+;;       `(wisi-statement-action 1 'statement-start 2 'name 7 'statment-end)
+;;       `(wisi-start-action 1 6))
+;;   | PROCEDURE name IS NEW name SEMICOLON
+;;     `(wisi-statement-action 1 'statement-start 2 'name 6 'statment-end)
+;;   | overriding_indicator FUNCTION name IS NEW name generic_actual_part SEMICOLON
+;;     (progn
+;;       `(wisi-statement-action 1 'statement-start 3 'name 8 'statment-end)
+;;       `(wisi-start-action 1 7))
+;;   | overriding_indicator FUNCTION name IS NEW name SEMICOLON
+;;     `(wisi-statement-action 1 'statement-start 3 'name 7 'statment-end)
+;;   | FUNCTION name IS NEW name generic_actual_part SEMICOLON
+;;     (progn
+;;       `(wisi-statement-action 1 'statement-start 2 'name 7 'statment-end)
+;;       `(wisi-start-action 1 6))
+;;   | FUNCTION name IS NEW name SEMICOLON
+;;     `(wisi-statement-action 1 'statement-start 2 'name 6 'statment-end)
+;; ;
 
 generic_package_declaration
   : generic_formal_part package_specification SEMICOLON
@@ -763,8 +811,8 @@ library_item
   ;
 
 library_unit_declaration
-  ;; : subprogram_declaration
-  : package_declaration
+  : subprogram_declaration
+  | package_declaration
   | generic_declaration
   ;; | generic_instantiation
   ;
@@ -812,6 +860,7 @@ name
   ;; | qualified_expression
   ;; | generalized_reference
   ;; | generalized_indexing
+  | STRING_LITERAL ;; operator_symbol, designator
   ;
 
 ;; null_exclusion replaced by 'not null'
@@ -839,6 +888,8 @@ object_declaration
   | single_task_declaration
   | single_protected_declaration
   ;
+
+;; operator_symbol is STRING_LITERAL, in name
 
 overriding_indicator
   : NOT OVERRIDING
@@ -924,21 +975,8 @@ parameter_and_result_profile
     `(wisi-statement-action 1 'return-2)
   ;
 
-;; reduce/reduce conflicts:
-;; RIGHT_PAREN	reduce using rule 197 (formal_package_association)
-;; RIGHT_PAREN	[reduce using rule 296 (parameter_association)]
-;; COMMA	reduce using rule 197 (formal_package_association)
-;; COMMA	[reduce using rule 296 (parameter_association)]
-parameter_association
-  : selector_name EQUAL_GREATER expression
-  | expression
-  ;
-
-parameter_association_list
-  : parameter_association
-  | parameter_association_list COMMA parameter_association
-    `(wisi-statement-action 2 'list-break)
-  ;
+ ;; parameter_association is merged into association
+ ;; parameter_association_list is merged into association_list
 
 parameter_profile : | formal_part ;
 
@@ -980,7 +1018,7 @@ pragma_argument_association_list
 primary
   : NUMERIC_LITERAL
   | NULL
-  | STRING_LITERAL
+ ;; | STRING_LITERAL in name
   ;; | aggregate
   | name
   | NEW name ;; allocator, leaving out subpool_specification
@@ -1125,6 +1163,13 @@ simple_expression
   | term_list
   ;
 
+simple_return_statement
+  : RETURN SEMICOLON
+    `(wisi-statement-action 1 'statement-start 2 'statement-end)
+  | RETURN expression SEMICOLON
+    `(wisi-statement-action 1 'statement-start 3 'statement-end)
+  ;
+
 simple_statement
   : NULL SEMICOLON;; null_statement
     `(wisi-statement-action 1 'statement-start 2 'statement-end)
@@ -1132,7 +1177,7 @@ simple_statement
   ;; | exit_statement
   ;; | goto_statement
   ;; | procedure_call_statement
-  ;; | simple_return_statement
+  | simple_return_statement
   ;; | entry_call_statement
   ;; | requeue_statement
   ;; | delay_statement
@@ -1234,8 +1279,6 @@ subprogram_specification
   : PROCEDURE name parameter_profile ;; procedure_specification
     `(wisi-statement-action 1 'statement-start 2 'name)
   | FUNCTION name parameter_and_result_profile ;; function_specification
-    `(wisi-statement-action 1 'statement-start 2 'name)
-  | FUNCTION STRING_LITERAL parameter_and_result_profile ;; operator_symbol
     `(wisi-statement-action 1 'statement-start 2 'name)
   ;
 

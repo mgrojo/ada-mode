@@ -1008,7 +1008,7 @@ Return new value of PROJECT."
 	(parse-file-final (cdr (assoc ada-compiler ada-prj-parse-file-final))))
 
     (save-excursion
-      (find-file prj-file)
+      (set-buffer (find-file-noselect prj-file))
       (goto-char (point-min))
 
       ;; process each line
@@ -1070,7 +1070,6 @@ Return new value of PROJECT."
 
 	(forward-line 1))
 
-      (kill-buffer)
       );; done reading file
 
     ;; process accumulated lists

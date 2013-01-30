@@ -97,14 +97,15 @@ See also `ada-gnat-parse-emacs-final'."
 
 (defun ada-gnat-prj-parse-emacs-final (project)
   "Final processing of gnat-specific Emacs Ada project file settings."
+  (when (buffer-live-p (get-buffer (ada-gnat-run-buffer-name)))
+    (kill-buffer (ada-gnat-run-buffer-name))); things may have changed, force re-create
+
   (if (ada-prj-get 'gpr_file project)
       (set 'project (ada-gnat-parse-gpr (ada-prj-get 'gpr_file project) project))
 
     ;; add the compiler libraries to src_dir, obj_dir
     (setq project (ada-gnat-get-paths project))
     )
-
-  (kill-buffer (ada-gnat-run-buffer-name)); things may have changed, force re-create
 
   ;; FIXME: This is only needed when actually running the gnat
   ;; compiler; parsing a gnat project is a crude approximation to
@@ -141,7 +142,7 @@ See also `ada-gnat-parse-emacs-final'."
   (with-current-buffer (ada-gnat-run-buffer)
     (let ((status (ada-gnat-run (list "list" "-v")))
 	  (src-dirs (ada-prj-get 'src_dir project))
-	  (obj-dirs (ada-prj-get 'src_dir project)))
+	  (obj-dirs (ada-prj-get 'obj_dir project)))
 
       ;; gnat list -P -v returns 0 in nominal cases
       ;; gnat list -v return 4, but still lists compiler dirs
@@ -181,7 +182,8 @@ See also `ada-gnat-parse-emacs-final'."
 	    )
 	('error
 	 (pop-to-buffer (current-buffer))
-	 ;; search-forward failed; it already output a message
+	 ;; search-forward failed
+	 (error "parse gpr failed")
 	 ))
 
       (setq project (plist-put project 'src_dir (reverse src-dirs)))
