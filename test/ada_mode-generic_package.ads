@@ -4,7 +4,7 @@
 --EMACSCMD:(ada-select-prj-file "ada_mode.gpr")
 
 --EMACSCMD:(ada-which-function)
---EMACSRESULT:""
+--EMACSRESULT:(if (featurep 'ada-wisi) "" "pragma")
 pragma License (GPL);
 
 with Ada.Text_IO;
@@ -12,7 +12,7 @@ with Ada.Text_IO;
 --EMACSRESULT: t
 with Ada.Strings.Unbounded;
 --EMACSCMD:(ada-which-function)
---EMACSRESULT:""
+--EMACSRESULT:(if (featurep 'ada-wisi) "" "pragma")
 
 -- FIXME: ada-smie-next-statement-keyword is broken here because of
 -- "procedure-spec" in Procedure_Formal_Access_Type. Fix is either to
@@ -21,12 +21,12 @@ with Ada.Strings.Unbounded;
 -- LALR parser; we are waiting for the latter.
 --
 --EMACSCMD:(progn (ada-next-statement-keyword)(looking-at "generic$"))
---EMACSRESULT: t
+--EMACSRESULT: (if (featurep 'ada-wisi) t nil)
 --EMACSCMD:(progn (forward-line 2) (ada-next-statement-keyword)(looking-at "package Ada_Mode.Generic_Package"))
---EMACSRESULT: t
+--EMACSRESULT:(if (featurep 'ada-wisi) t nil)
 generic
    --EMACSCMD:(ada-which-function)
-   --EMACSRESULT:"Ada_Mode.Generic_Package"
+   --EMACSRESULT:(if (featurep 'ada-wisi) "Ada_Mode.Generic_Package" "pragma")
 
    -- one of each kind of generic_formal_parameter_definition from arm Annex P
 

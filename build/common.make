@@ -96,24 +96,27 @@ compile : $(COMPILE_FILES)
 # check. We don't check any other style requirements; not needed for
 # comparing indentation, and they get in the way.
 
+# override on command line for other compiler versions
+GNATMAKE := gnatmake
+
 # Some files set Ada mode indentation options that violate gnat's requirement
 adacore_d304_005_2.ali : adacore_d304_005_2.adb
-	gnatmake -gnat2012 -gnatc  $<
+	$(GNATMAKE) -gnat2012 -gnatc  $<
 
 bug_1920.ali : bug_1920.adb
-	gnatmake -gnat2012 -gnatc  $<
+	$(GNATMAKE) -gnat2012 -gnatc  $<
 
 find_file.ali : find_file.ads
-	gnatmake -gnat2012 -gnatc  $<
+	$(GNATMAKE) -gnat2012 -gnatc  $<
 
 named_block.ali : named_block.adb
-	gnatmake -gnat2012 -gnatc  $<
+	$(GNATMAKE) -gnat2012 -gnatc  $<
 
 %.ali : %.adb
-	gnatmake -gnat2012 -P ada_mode_parent.gpr -gnatc -gnatyN3 $(<F)
+	$(GNATMAKE) -gnat2012 -P ada_mode_parent.gpr -gnatc -gnatyN3 $(<F)
 
 %.ali : %.ads
-	gnatmake -gnat2012 -P ada_mode_parent.gpr -gnatc -gnatyN3 $(<F)
+	$(GNATMAKE) -gnat2012 -P ada_mode_parent.gpr -gnatc -gnatyN3 $(<F)
 
 # (grep-find "find .. -type f -print | xargs grep -n FIXME")
 clean :: compile-clean test-clean
