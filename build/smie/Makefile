@@ -1,6 +1,7 @@
 # run tests on Emacs smie Ada mode indentation engine
 
-all : compile-clean compile test-clean test
+# no gpr-smie.el
+all : compile-clean compile test-clean test-ada test-elisp
 
 one : ada_mode.ads.diff
 

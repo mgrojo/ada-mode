@@ -578,7 +578,11 @@ containing it; or nil if at beginning of buffer."
     (setq end (previous-single-property-change (point) 'wisi-cache))
     (when end
       (if (get-text-property (1- end) 'wisi-cache)
-	  (setq begin (previous-single-property-change end 'wisi-cache))
+	  (setq begin
+		(or
+		 (previous-single-property-change end 'wisi-cache)
+		 ;; that fails if first cache is at bob
+		 (point-min)))
 	;; else single-character token
 	(setq begin end))
       (goto-char begin)

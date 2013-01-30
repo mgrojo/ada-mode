@@ -47,13 +47,7 @@ semantic mode in .wy is just broken
 
 (load "build/runtest.el")
  ada-smie/wisi
-ada-wisi
-    build/wisi/Makefile
-
-    wisi-statement-action check class against wisi-class-list, to catch spelling mistakes
-
-    test/ada_mode-function_2.ads
-        return statement
+post on ada-comment about non-default bit order, definition of 'position'
 
 arm_info
     annex P
@@ -73,6 +67,32 @@ build/wisi/Makefile
 
 ada-smie
     use ada-symbol-end
+
+ada-wisi
+    need parallel LALR structure; opentoken
+
+    build/wisi/Makefile
+
+    wisi-statement-action check class against wisi-class-list, to catch spelling mistakes
+
+    test/ada_mode-generic_instantiation.ads
+        introduces shift/reduce conflicts between generic procedure instantiation and procedure body
+            use semantic LR parser; it spawns parallel parsers for conflicts?
+                in a branch org.emacs.ada_mode.semi?
+                conflicts not stored in the compiled parser table, so semantic parser can't see them!
+                need to write new parser compiler, new compiled struct, new parser. arrggghhh!
+                    do the compiler in opentoken, fix that while we're at it.
+                    ask on comp.lang.ada
+
+            leave conflicts in?
+                ada_mode.adb can't parse 'procedure Separate_Procedure is separate;'
+                    that's state 245, no conflict
+                    but can't get there?
+                    PROCEDURE => state 104
+                    IDENTIFIER => state 29
+                    IS => name:0, state 104
+                    name => state 229
+                        which has the shift/reduce conflict
 
 
 wisent-parser does not execute actions when grammar is byte-compiled!
@@ -565,9 +585,16 @@ read/write access requires a public key:
     mtn --db ~/monotone-dbs/ada-france.db sync "mtn://www.ada-france.org?org.emacs.*"
 
  release process
-Emacs 24.3, gnat 7.1.0w (sal-standard): test/Makefile all
-Emacs 23.4, (gnat-6.2.2): test/Makefile all
+Emacs 24.3, gnat 7.1.0w (sal-standard):
+    build/smie/Makefile all
+    build/wisi/Makefile all
+        most failing
+
 Emacs 23.4, (gnat-2012): test/Makefile all
+    build/smie/Makefile all EMACS=/Apps/emacs-23.4/bin/emacs.exe GNATMAKE=/apps/GNAT-gpl_2012/bin/gnatmake
+        ada-mode failing weirdly
+    build/wisi/Makefile all EMACS=/Apps/emacs-23.4/bin/emacs.exe GNATMAKE=/apps/GNAT-gpl_2012/bin/gnatmake
+
 (dvc-status)
 (shell-send-string "mtn_sync_ada_france.sh" "*bash*")
 test/Makefile zip
