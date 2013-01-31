@@ -3851,80 +3851,82 @@ If DECLARE non-nil, stop at first containing declarative region (for 'declare' b
 
       (ada-smie-goto-declaration-start)
 
-      (while (not done)
-	(setq token (ada-smie-forward-token))
-	(cond
-	 ((equal token "package-plain")
+      (if (bobp)
+	  (setq result nil)
+	(while (not done)
 	  (setq token (ada-smie-forward-token))
-	  (if (equal token "body")
-	      (progn
-		(setq result (ada-smie-forward-name))
-		(when (not ff-function-name)
-		  (setq ff-function-name
-			(concat
-			 "package\\s-+"
-			 result
-			 symbol-end))))
-	    ;; not body
-	    (ada-smie-backward-token)
+	  (cond
+	   ((equal token "package-plain")
+	    (setq token (ada-smie-forward-token))
+	    (if (equal token "body")
+		(progn
+		  (setq result (ada-smie-forward-name))
+		  (when (not ff-function-name)
+		    (setq ff-function-name
+			  (concat
+			   "package\\s-+"
+			   result
+			   symbol-end))))
+	      ;; not body
+	      (ada-smie-backward-token)
+	      (setq result (ada-smie-forward-name))
+	      (when (not ff-function-name)
+		(setq ff-function-name
+		      (concat
+		       "package\\s-+body\\s-+"
+		       result
+		       symbol-end))))
+	    (setq done t))
+
+	   ((equal token "protected-body")
+	    (setq token (ada-smie-forward-token)); body
 	    (setq result (ada-smie-forward-name))
 	    (when (not ff-function-name)
 	      (setq ff-function-name
 		    (concat
-		     "package\\s-+body\\s-+"
+		     "protected\\s-+\\(type\\s-+\\)?"
 		     result
-		     symbol-end))))
-	  (setq done t))
+		     symbol-end)))
+	    (setq done t))
 
-	 ((equal token "protected-body")
-	  (setq token (ada-smie-forward-token)); body
-	  (setq result (ada-smie-forward-name))
-	  (when (not ff-function-name)
-	    (setq ff-function-name
-		  (concat
-		   "protected\\s-+\\(type\\s-+\\)?"
-		   result
-		   symbol-end)))
-	  (setq done t))
+	   ((equal token "protected-type")
+	    (when (equal "type-protected" (save-excursion (ada-smie-forward-token)))
+	      (setq token (ada-smie-forward-token)))
+	    (setq result (ada-smie-forward-name))
+	    (when (not ff-function-name)
+	      (setq ff-function-name
+		    (concat
+		     "protected\\s-+body\\s-+"
+		     result
+		     symbol-end)))
+	    (setq done t))
 
-	 ((equal token "protected-type")
-	  (when (equal "type-protected" (save-excursion (ada-smie-forward-token)))
-	    (setq token (ada-smie-forward-token)))
-	  (setq result (ada-smie-forward-name))
-	  (when (not ff-function-name)
-	    (setq ff-function-name
-		  (concat
-		   "protected\\s-+body\\s-+"
-		   result
-		   symbol-end)))
-	  (setq done t))
+	   ((equal token "task-body")
+	    ;; FIXME: need test for this
+	    (setq token (ada-smie-forward-token)); body
+	    (setq result (ada-smie-forward-name))
+	    (when (not ff-function-name)
+	      (setq ff-function-name
+		    (concat
+		     "protected\\s-+\\(type\\s-+\\)?"
+		     result
+		     symbol-end)))
+	    (setq done t))
 
-	 ((equal token "task-body")
-	  ;; FIXME: need test for this
-	  (setq token (ada-smie-forward-token)); body
-	  (setq result (ada-smie-forward-name))
-	  (when (not ff-function-name)
-	    (setq ff-function-name
-		  (concat
-		   "protected\\s-+\\(type\\s-+\\)?"
-		   result
-		   symbol-end)))
-	  (setq done t))
-
-	 (t
-	  (when (not (ada-smie-keyword-p token))
-	    ;; check for selected name
-	    (while (eq (char-after) ?.)
+	   (t
+	    (when (not (ada-smie-keyword-p token))
+	      ;; check for selected name
+	      (while (eq (char-after) ?.)
+		(if result
+		    (setq result (concat result "." token))
+		  (setq result token))
+		(forward-char 1)
+		(setq token (smie-default-forward-token)))
 	      (if result
 		  (setq result (concat result "." token))
 		(setq result token))
-	      (forward-char 1)
-	      (setq token (smie-default-forward-token)))
-	    (if result
-		(setq result (concat result "." token))
-	      (setq result token))
-	    (setq done t)))
-	 ))
+	      (setq done t)))
+	   )))
 
       (if (not ff-function-name)
 	  (setq ff-function-name
