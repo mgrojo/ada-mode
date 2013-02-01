@@ -132,6 +132,7 @@ gdb break command input still broken in
 
     try with mingw gdb 7.2
         worse; no '>' prompt
+            set interactive off
 
         latest mingw mingw-get-inst-20120426.exe
             gcc 4.7.2; try with mtn
@@ -146,6 +147,8 @@ gdb break command input still broken in
         emacs 24.2.1
         gdb 7.4.1
             no '>' prompt!
+               (gdb) set interactive-mode off
+
             doesn't terminate on 'end'!
 
         get emacs 24.2.91 source, gcc 4.7.2-4, gdb 7.4.1-1

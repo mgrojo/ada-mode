@@ -249,7 +249,8 @@ If nil, no contextual menu is available."
      (valid   . (lambda () (ada-align-valid)))
      (modes   . '(ada-mode)))
     (ada-at
-     (regexp . "\\(\\s-+\\)at\\>")
+     (regexp . "\\(\\s-+\\)\\(at\\)\\>")
+     (valid   . (lambda () (ada-align-valid)))
      (modes . '(ada-mode))))
   "Rules to use to align different lines.")
 
