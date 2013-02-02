@@ -590,7 +590,6 @@ For `compilation-filter-hook'."
   "For `ada-gnat-fix-error-hook'."
 
   ;; Move to start of error message text
-  (set-buffer compilation-last-buffer)
   (skip-syntax-forward "^-")
   (forward-char 1)
 
@@ -609,35 +608,61 @@ For `compilation-filter-hook'."
        ;; Then style errors.
 
        ((looking-at (concat ada-gnat-quoted-name-regexp " is not visible"))
-	(let ((ident (match-string 1)))
+	(let ((ident (match-string 1))
+	      (done nil)
+	      (file-line-struct (progn (beginning-of-line) (get-text-property (point) 'message)))
+	      pos choices unit-name)
 	  ;; next line may contain a reference to where ident is
 	  ;; defined; if present, it will have been marked by
 	  ;; ada-gnat-compilation-filter
-	  (next-line 1)
-	  (let* ((pos (next-single-property-change (point) 'ada-secondary-error nil (line-end-position)))
-		 (item (when pos (get-text-property pos 'ada-secondary-error)))
-		 (unit-file (when item (nth 0 item))))
-	    (when unit-file
-	      (pop-to-buffer source-buffer)
-	      ;; We either need to add a with_clause for a package, or
-	      ;; prepend the package name here (or add a use clause, but I
-	      ;; don't want to do that automatically).
-	      ;;
-	      ;; If we need to add a with_clause, unit-name may be only
-	      ;; the prefix of the real package name, but in that case
-	      ;; we'll be back after the next compile; no way to get the
-	      ;; full package name (without the function/type name) now.
-	      ;; Note that we can't use gnat find, because the code
-	      ;; doesn't compile.
-	      (let ((unit-name (ada-ada-name-from-file-name unit-file)))
-		(cond
-		 ((looking-at (concat unit-name "\\."))
-                  (ada-fix-add-with-clause unit-name))
-		 (t
-		  (ada-fix-insert-unit-name unit-name)
-		  (insert "."))))
-	      t) ;; success, else nil => fail
-	    )))
+	  ;;
+	  ;; the lines after that may contain alternate matches;
+	  ;; collect all, let user choose.
+	  (while (not done)
+	    (next-line 1)
+	    (setq done (not
+			(and
+			 (equal file-line-struct (get-text-property (point) 'message))
+			 (setq pos (next-single-property-change
+				    (point) 'ada-secondary-error nil (line-end-position))))))
+	    (when (not done)
+	      (let* ((item (get-text-property pos 'ada-secondary-error))
+		     (unit-file (nth 0 item)))
+		(add-to-list 'choices (ada-gnat-ada-name-from-file-name unit-file))))
+	    );; while
+
+	  (cond
+	   ((= 0 (length choices))
+	    (setq unit-name nil))
+
+	   ((= 1 (length choices))
+	    (setq unit-name (car choices)))
+
+	   (t ;; multiple choices
+	    (setq unit-name
+		  (completing-read "package name: " choices)))
+	   );; cond
+
+	  (when unit-name
+	    (pop-to-buffer source-buffer)
+	    ;; We either need to add a with_clause for a package, or
+	    ;; prepend the package name here (or add a use clause, but I
+	    ;; don't want to do that automatically).
+	    ;;
+	    ;; If we need to add a with_clause, unit-name may be only
+	    ;; the prefix of the real package name, but in that case
+	    ;; we'll be back after the next compile; no way to get the
+	    ;; full package name (without the function/type name) now.
+	    ;; Note that we can't use gnat find, because the code
+	    ;; doesn't compile.
+	    (cond
+	     ((looking-at (concat unit-name "\\."))
+	      (ada-fix-add-with-clause unit-name))
+	     (t
+	      (ada-fix-insert-unit-name unit-name)
+	      (insert ".")))
+	    t) ;; success, else nil => fail
+	  ))
 
        ((looking-at (concat ada-gnat-quoted-name-regexp " is undefined"))
 	;; We either need to add a with_clause for a package, or

@@ -125,8 +125,8 @@ SOURCE-BUFFER, the buffer containing the source to be fixed
 SOURCE-WINDOW, the window displaying SOURCE-BUFFER.
 
 Point in SOURCE-BUFFER is at error location; point in
-`compilation-last-buffer' is at MSG location. Focus is in source
-buffer.
+`compilation-last-buffer' is at MSG location. Focus is in
+compilation buffer.
 
 Hook functions should return t if the error is recognized and
 fixed, leaving point at fix. Otherwise, they should return nil.")
@@ -140,7 +140,11 @@ fixed, leaving point at fix. Otherwise, they should return nil.")
         (line-move-visual nil)); screws up next-line otherwise
 
     (with-current-buffer compilation-last-buffer
-      (when (not (get-text-property (point) 'compilation-message))
+      (when (not (or
+		  ;; not clear when each of these is used!
+		  ;; 2 Feb 2013 Emacs 23.4: 'message
+		  (get-text-property (point) 'compilation-message)
+		  (get-text-property (point) 'message)))
 	;; not clear why this can happens, but it does
 	(compilation-next-error 1))
       (let ((success

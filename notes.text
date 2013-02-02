@@ -31,22 +31,6 @@ runtest from emacs -Q:
 (setq wisent-debug-flag t)
 output to *wisent-log* buffer, written to wisent.output if batch
 
-semantic mode in .wy is just broken
-    but "semantic-mode" is global, not buffer-local
-    so turn off background parser:
-        (setq semantic-idle-scheduler-idle-time 10000)
-
-    and delete change hook in buffer:
-    (setq after-change-functions (delete 'semantic-change-function after-change-functions))
-
-    force reparse:
-    (setq semantic-parse-tree-state 'needs-update)
-
-    see output of semantic lexer
-    (with-current-buffer "subprograms.wy"
-      (semantic-fetch-tags))
-    (remove-text-properties (point-min) (point-max) '(keymap))
-
 (load "build/runtest.el")
  ada-smie/wisi
 /Projects/Web/stephe-leake/emacs/ada-mode/emacs-ada-mode.html
@@ -56,12 +40,9 @@ ada-wisi
     need parallel LALR structure; opentoken
         /Projects/org.opentoken.stephe/build/windows_debug/Makefile one
 
-        ada-gnat-fix-error prompt when multiple possible packages for 'is not visible'
-            use completion list on Ada name
+        clean up grammar output; match wisent.output
 
         detect, report conflict
-
-        clean up grammar output; match wisent.output
 
         store conflict in OpenToken structure
 
