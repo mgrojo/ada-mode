@@ -1,5 +1,6 @@
 -------------------------------------------------------------------------------
 --
+--  Copyright (C) 2013 Stephe Leake
 --  Copyright (C) 1999 Ted Dennison
 --
 --  This file is part of the OpenToken package.
@@ -31,21 +32,38 @@
 -------------------------------------------------------------------------------
 package body OpenToken.Production is
 
-   function "+" (Tokens : in Token_List.Instance;
-                 Action : in Nonterminal.Synthesize
-                ) return Right_Hand_Side is
+   function "+"
+     (Tokens : in Token_List.Instance;
+      Action : in Nonterminal.Synthesize)
+     return Right_Hand_Side
+   is
    begin
-      return (Tokens => Tokens,
-              Action => Action
-             );
+      return (Tokens, Action, 0);
    end "+";
-   function "+" (Tokens : in Token.Class;
-                 Action : in Nonterminal.Synthesize
-                ) return Right_Hand_Side is
+
+   function "+"
+     (Tokens : in Token.Class;
+      Action : in Nonterminal.Synthesize)
+     return Right_Hand_Side
+   is
    begin
-      return (Tokens => Token_List.Only (Tokens),
-              Action => Action
-             );
+      return (Token_List.Only (Tokens), Action, 0);
+   end "+";
+
+   function "+"
+     (Tokens : in Token_List.Instance;
+      Index  : in Integer)
+     return Right_Hand_Side
+   is begin
+      return (Tokens, null, Index);
+   end "+";
+
+   function "+"
+     (Tokens : in Token.Class;
+      Index  : in Integer)
+     return Right_Hand_Side
+   is begin
+      return (Token_List.Only (Tokens), null, Index);
    end "+";
 
    function "<=" (LHS : in Nonterminal.Handle;

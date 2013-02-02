@@ -2,7 +2,7 @@
 --
 --  Non-OpenToken parser for Wisent grammar files, producing OpenToken Ada source files.
 --
---  Copyright (C) 2012 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2012, 2013 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -43,7 +43,7 @@ is
    Output_File_Root : Ada.Strings.Unbounded.Unbounded_String;
    Prologue         : String_Lists.List;
    Declarations     : String_Pair_Lists.List;
-   Tokens           : String_Pair_Lists.List;
+   Tokens           : String_Triplet_Lists.List;
    Rules            : Rule_Lists.List;
 
    procedure Use_Input_File (File_Name : in String)

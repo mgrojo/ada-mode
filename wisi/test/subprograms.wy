@@ -6,7 +6,7 @@
 (require 'wisi)
 %}
 
-%package debug-wy
+%package subprograms-wy
 
 %keyword FUNCTION "function"
 %keyword PROCEDURE "procedure"
@@ -29,7 +29,13 @@ declaration
 
 subprogram
   : FUNCTION SYMBOL
+    `,(wisi-cache-action
+      1 'function
+      2 'other)
   | PROCEDURE SYMBOL
+    (wisi-cache-keywords
+     $1 'procedure nil $region1
+     $2 'other nil $region2)
   ;
   
 %%

@@ -27,7 +27,7 @@ procedure Wisi.Output
    Output_File_Root : in String;
    Prologue         : in String_Lists.List;
    Keywords         : in String_Pair_Lists.List;
-   Tokens           : in String_Pair_Lists.List;
+   Tokens           : in String_Triplet_Lists.List;
    Rules            : in Rule_Lists.List)
 is
    Output_File : File_Type;
@@ -89,7 +89,7 @@ is
       Put_Line (Text);
    end Indent_Line;
 
-   procedure Put (List : in String_Lists.List)
+   procedure Put (List : in String_Lists.List; Index : in Integer)
    is
       --  Put OpenToken syntax for a production
       use Ada.Strings.Unbounded;
@@ -107,11 +107,21 @@ is
             Put (" & ");
          end if;
       end loop;
+      Put (" +" & Integer'Image (Index));
    end Put;
 
    procedure Put (Item : in String_Pair_Type)
    is begin
       Put ("(+""" & (-Item.Name) & """, +" & (-Item.Value) & ")");
+   end Put;
+
+   procedure Put (Item : in String_Triplet_Type)
+   is begin
+      if Ada.Strings.Unbounded.Length (Item.Value) = 0 then
+         Put ("(+" & (-Item.Kind) & ", +""" & (-Item.Name) & """, +"""")");
+      else
+         Put ("(+" & (-Item.Kind) & ", +""" & (-Item.Name) & """, +" & (-Item.Value) & ")");
+      end if;
    end Put;
 
 begin
@@ -202,6 +212,8 @@ begin
    Indent_Line ("package Parsers is new Productions.Parser (Production_Lists, Analyzers);");
    Indent_Line ("package LALR_Parsers is new Parsers.LALR;");
    New_Line;
+   Indent_Line ("package Parser_Elisp is new LALR_Parsers.Elisp;");
+   New_Line;
    Indent_Line ("--  Allow infix operators for building productions");
    Indent_Line ("use type Token_Lists.Instance;");
    Indent_Line ("use type Productions.Right_Hand_Side;");
@@ -220,8 +232,9 @@ begin
    Indent_Line ("Grammar : constant Production_Lists.Instance :=");
    Indent := Indent + 2;
    declare
-      Rule_Cursor : Rule_Lists.Cursor  := Rules.First;
-      First       : Boolean := True;
+      Rule_Cursor : Rule_Lists.Cursor := Rules.First;
+      First       : Boolean           := True;
+      Index       : Integer;
       use type Rule_Lists.Cursor;
    begin
       loop
@@ -230,6 +243,7 @@ begin
             Rule       : constant Rule_Lists.Constant_Reference_Type := Rules.Constant_Reference (Rule_Cursor);
             RHS_Cursor : Wisi.RHS_Lists.Cursor                       := Rule.Right_Hand_Sides.First;
          begin
+            Index := 0;
             if RHS_Cursor = Wisi.RHS_Lists.No_Element then
                Put_Line
                  (Standard_Error, Input_File_Name & ":0:0: no productions for rule '" & (-Rule.Left_Hand_Side) & "'");
@@ -245,10 +259,10 @@ begin
                   Set_Col (Indent);
                   Put ("Nonterminals.Get (" & (-Rule.Left_Hand_Side) & "_ID) <= ");
                   declare
-                     RHS        : constant RHS_Lists.Constant_Reference_Type  :=
+                     RHS : constant RHS_Lists.Constant_Reference_Type :=
                        Rule.Right_Hand_Sides.Constant_Reference (RHS_Cursor);
                   begin
-                     Put (RHS.Production);
+                     Put (RHS.Production, Index);
                      --  OpenToken default action is ok, since we are not
                      --  using this grammar to parse anything, only to
                      --  output elisp
@@ -274,13 +288,11 @@ begin
    Indent := Indent - 2;
 
    New_Line;
-   Indent_Line ("package Elisp is new LALR_Parsers.Elisp;");
-   New_Line;
    Indent_Line ("Verbose : Boolean := False;");
 
    New_Line;
    Indent_Line ("Keywords : String_Pair_Lists.List;");
-   Indent_Line ("Tokens   : String_Pair_Lists.List;");
+   Indent_Line ("Tokens   : String_Triplet_Lists.List;");
    Indent_Line ("Rules    : Rule_Lists.List;");
    Indent_Line ("Parser   : LALR_Parsers.Instance;");
 
@@ -359,7 +371,7 @@ begin
    end;
    Indent_Line ("Parser := LALR_Parsers.Generate (Grammar, Analyzers.Null_Analyzer, Verbose);");
 
-   Indent_Line ("Elisp.Output (Elisp_Package, Prologue, Keywords, Tokens, Rules, Parser);");
+   Indent_Line ("Parser_Elisp.Output (Elisp_Package, Prologue, Keywords, Tokens, Rules, Parser);");
    Put_Line ("end " & Package_Name & ";");
    Close (Output_File);
 end Wisi.Output;

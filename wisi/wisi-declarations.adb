@@ -2,7 +2,7 @@
 --
 --  Parse the declarations from Input_File, add to List.
 --
---  Copyright (C) 2012 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2012, 2013 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -24,7 +24,7 @@ with Wisi.Utils;  use Wisi.Utils;
 procedure Wisi.Declarations
   (Input_File : in     Ada.Text_IO.File_Type;
    Keywords   : in out String_Pair_Lists.List;
-   Tokens     : in out String_Pair_Lists.List)
+   Tokens     : in out String_Triplet_Lists.List)
 is
    use Ada.Strings.Fixed;
 
@@ -53,10 +53,9 @@ begin
 
          elsif Match (Keyword_Str) then
             declare
-               Name_First  : constant Integer := Index_Non_Blank (Source => Line, From => Key_Last + 1);
+               Name_First : constant Integer := Index_Non_Blank (Source => Line, From => Key_Last + 1);
 
-               Name_Last : constant Integer := -1 +
-                 Index (Pattern => " ", Source => Line, From => Name_First);
+               Name_Last : constant Integer := -1 + Index (Pattern => " ", Source => Line, From => Name_First);
 
                Value_First : constant Integer := Index_Non_Blank (Source => Line, From => Name_Last + 1);
             begin
@@ -74,9 +73,25 @@ begin
                Kind_Last : constant Integer := -2 +
                  Index (Pattern => " ", Source => Line, From => Kind_First);
 
-               Name_First  : constant Integer := Index_Non_Blank (Source => Line, From => Kind_Last + 2);
+               Name_First : constant Integer := Index_Non_Blank (Source => Line, From => Kind_Last + 2);
+
+               Name_Last : constant Integer := -1 + Index (Pattern => " ", Source => Line, From => Name_First);
+
+               Value_First : constant Integer :=
+                 (if Name_Last = -1 then 0
+                  else Index_Non_Blank (Source => Line, From => Name_Last + 1));
             begin
-               Tokens.Append ((+Line (Name_First .. Line'Last), +"""" & Line (Kind_First .. Kind_Last) & """"));
+               if Value_First = 0 then
+                  Tokens.Append
+                    ((+"""" & Line (Kind_First .. Kind_Last) & """",
+                      +Line (Name_First .. Line'Last),
+                      +""));
+               else
+                  Tokens.Append
+                    ((+"""" & Line (Kind_First .. Kind_Last) & """",
+                      +Line (Name_First .. Name_Last),
+                      +Line (Value_First .. Line'Last)));
+               end if;
             end;
 
          elsif Match (Start_Str) then

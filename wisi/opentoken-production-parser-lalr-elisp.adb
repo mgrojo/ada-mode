@@ -18,6 +18,7 @@
 
 pragma License (GPL);
 
+with Ada.Strings.Unbounded;
 with Ada.Text_IO; use Ada.Text_IO;
 package body OpenToken.Production.Parser.LALR.Elisp is
 
@@ -66,28 +67,122 @@ package body OpenToken.Production.Parser.LALR.Elisp is
 
    procedure Token_Table
      (Elisp_Package : in String;
-      Tokens      : in Wisi.String_Pair_Lists.List)
+      Tokens        : in Wisi.String_Triplet_Lists.List)
    is
       use Wisi; -- "-" unbounded_string
+      use Ada.Strings.Unbounded; -- length
    begin
       Put_Line ("(defconst " & Elisp_Package & "--token-table");
       Put_Line ("  (semantic-lex-make-token-table");
       Put_Line ("   '(");
-      for Pair of Tokens loop
-         Put_Line ("    (""" & (-Pair.Value) & """ (" & (-Pair.Name) & "))");
+      for Triplet of Tokens loop
+         if 0 = Length (Triplet.Value) then
+            Put_Line ("    (""" & (-Triplet.Value) & """ (" & (-Triplet.Name) & "))");
+         else
+            Put_Line ("    (""" & (-Triplet.Value) & """ (" & (-Triplet.Name) & " . """ & (-Triplet.Value) & """))");
+         end if;
       end loop;
       Put_Line ("    )");
       Put_Line ("   nil)");
       Put_Line ("  ""Table of language tokens."")");
    end Token_Table;
 
+   function Token_Image (Item : in Token.Parent_Token_ID) return String
+   is
+      Full : constant String := Token.Parent_Token_ID'Image (Item);
+   begin
+      --  Strip trailing _ID
+      return  Full (1 .. Full'Length - 3);
+   end Token_Image;
+
+   procedure Action_Table (Parser : in Instance)
+   is begin
+      Put ("(");
+      for State in Parser.Table'Range loop
+         Put ("(");
+         declare
+            Action : Action_Node_Ptr := Parser.Table (State).Action_List;
+            Reduction : Action_Node_Ptr := null;
+         begin
+            --  Find reduce action, if any
+            loop
+               exit when Action = null;
+               case Action.Action.Verb is
+               when Reduce | Accept_It =>
+                  Reduction := Action;
+
+               when Shift | Error =>
+                  null;
+
+               end case;
+               Action := Action.Next;
+            end loop;
+
+            if Reduction = null then
+               Put ("(default . error)");
+            else
+               if Reduction.Action.Verb = Accept_It then
+                  Put ("(default . accept)");
+               else
+                  Put ("(default . " & Token_Image (Reduction.Symbol) & ")");
+                  --  FIXME: symbol = LHS is not unique; elisp name adds
+                  --  production number within rule; need to keep
+                  --  track of that; move Token_Image, "+" into opentoken-production-elisp
+               end if;
+            end if;
+
+            --  put shift actions, if any
+            Action := Parser.Table (State).Action_List;
+            loop
+               if Action = null then
+                  Put_Line (")");
+                  exit;
+               end if;
+
+               case Action.Action.Verb is
+               when Reduce | Accept_It | Error =>
+                  null;
+               when Shift =>
+                  Put (" (" & Token_Image (Action.Symbol) & " ." & State_Index'Image (Action.Action.State) & ")");
+               end case;
+
+               Action := Action.Next;
+            end loop;
+         end;
+      end loop;
+      Put_Line (")");
+   end Action_Table;
+
+   procedure Goto_Table (Parser : in Instance)
+   is begin
+      Put ("(");
+      for State in Parser.Table'Range loop
+         declare
+            Gotos : Reduction_Node_Ptr := Parser.Table (State).Reduction_List;
+         begin
+            if Gotos = null then
+               Put_Line ("nil");
+            else
+               Put ("(");
+               loop
+                  Put ("(" & Token_Image (Gotos.Symbol) & " ." & State_Index'Image (Gotos.State) & ")");
+                  Gotos := Gotos.Next;
+                  exit when Gotos = null;
+               end loop;
+               Put_Line (")");
+            end if;
+         end;
+      end loop;
+      Put_Line (")");
+   end Goto_Table;
+
    procedure Parse_Table
      (Elisp_Package : in String;
       Keywords      : in Wisi.String_Pair_Lists.List;
+      Tokens        : in Wisi.String_Triplet_Lists.List;
       Rules         : in Wisi.Rule_Lists.List;
       Parser        : in Instance)
    is
-      pragma Unreferenced (Parser);
       use Wisi; -- "-" unbounded_string
    begin
       Put_Line ("(defconst " & Elisp_Package & "--parse-table");
@@ -97,12 +192,15 @@ package body OpenToken.Production.Parser.LALR.Elisp is
       for Pair of Keywords loop
          Put (-Pair.Name & " ");
       end loop;
+      for Triplet of Tokens loop
+         Put (-Triplet.Name & " ");
+      end loop;
       Put_Line (")");
 
       --  nonterminal productions
+      Put ("(");
       for Rule of Rules loop
          Put_Line ("(" & (-Rule.Left_Hand_Side));
-         Put ("(");
          for RHS of Rule.Right_Hand_Sides loop
             Put ("(");
             for Token of RHS.Production loop
@@ -115,10 +213,11 @@ package body OpenToken.Production.Parser.LALR.Elisp is
          end loop;
          Put_Line (")");
       end loop;
-
---  FIXME:       Action_Table (Parser);
---      Goto_Table (Parser);
       Put_Line (")");
+
+      Action_Table (Parser);
+      Goto_Table (Parser);
+      Put_Line ("))");
 
       Put_Line ("  ""Parser table."")");
    end Parse_Table;
@@ -127,7 +226,7 @@ package body OpenToken.Production.Parser.LALR.Elisp is
      (Elisp_Package : in String;
       Prologue      : in String;
       Keywords      : in Wisi.String_Pair_Lists.List;
-      Tokens        : in Wisi.String_Pair_Lists.List;
+      Tokens        : in Wisi.String_Triplet_Lists.List;
       Rules         : in Wisi.Rule_Lists.List;
       Parser        : in Instance)
    is
@@ -143,7 +242,7 @@ package body OpenToken.Production.Parser.LALR.Elisp is
       New_Line;
       Token_Table (Elisp_Package, Tokens);
       New_Line;
-      Parse_Table (Elisp_Package, Keywords, Rules, Parser);
+      Parse_Table (Elisp_Package, Keywords, Tokens, Rules, Parser);
       New_Line;
       Put_Line ("(provide '" & Elisp_Package & ")");
       New_Line;

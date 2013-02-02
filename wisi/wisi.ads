@@ -54,6 +54,14 @@ package Wisi is
 
    package String_Pair_Lists is new Ada.Containers.Doubly_Linked_Lists (String_Pair_Type);
 
+   type String_Triplet_Type is record
+      Kind  : Ada.Strings.Unbounded.Unbounded_String;
+      Name  : Ada.Strings.Unbounded.Unbounded_String;
+      Value : Ada.Strings.Unbounded.Unbounded_String;
+   end record;
+
+   package String_Triplet_Lists is new Ada.Containers.Doubly_Linked_Lists (String_Triplet_Type);
+
    package String_Lists is new Ada.Containers.Indefinite_Doubly_Linked_Lists (String);
 
    type RHS_Type is record

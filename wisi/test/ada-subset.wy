@@ -45,8 +45,6 @@
 
 %token <symbol> IDENTIFIER
 
-%start compilation_unit
-
 %%
 ;; grammar rules
 ;;

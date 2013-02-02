@@ -23,6 +23,7 @@
 ^build/windows_debug/.*\.adb$
 ^build/windows_debug/.*\.ads$
 ^build/windows_debug/.*\.diff$
+^build/windows_debug/.*\.el$
 ^build/windows_debug/.*\.exe$
 ^build/windows_debug/.*\.out$
 ^build/windows_debug/.*\.txt$
@@ -39,3 +40,4 @@
 ^build/x86_lynx_gnu_linux_debug/obj$
 ^build/x86_lynx_gnu_linux_release/obj$
 ^wisi/test/.*\.el$
+^wisi/test/wisent\.output$

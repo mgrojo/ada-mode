@@ -106,7 +106,7 @@ source-clean ::
 	-find $(SOURCE_ROOT) -name ".#*" -print | xargs rm -v
 	-find $(SOURCE_ROOT) -name "*,t" -print | xargs rm -v
 
-%.exe : %.adb force; gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -Popentoken_test_agg.gpr $(GPRBUILD_ARGS) $*
+%.exe : %.adb force; gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P opentoken_test_agg.gpr $(GPRBUILD_ARGS) $*
 
 # FIXME: gnatmake doesn't handle aggregate projects; add parameter to agg.gpr to handle -gnatc
 %.check : %.adb force; gnatmake -p -k -gnatc -Popentoken_test_agg.gpr $(GNATMAKE_ARGS) $*

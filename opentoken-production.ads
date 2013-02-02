@@ -61,6 +61,16 @@ package OpenToken.Production is
                  Action : in Nonterminal.Synthesize
                 ) return Right_Hand_Side;
 
+   function "+"
+     (Tokens : in Token_List.Instance;
+      Index  : in Integer)
+     return Right_Hand_Side;
+   function "+"
+     (Tokens : in Token.Class;
+      Index  : in Integer)
+     return Right_Hand_Side;
+   --  Add an index used to help identify the production.
+
    ----------------------------------------------------------------------------
    --  A production instance consists of a nonterminal token instance "<=" ed to
    --  a Right Hand Side . For example:
@@ -99,7 +109,7 @@ package OpenToken.Production is
                  ) return Instance;
 
    ----------------------------------------------------------------------------
-   --  Production building operartors using tokens
+   --  Production building operators using tokens
    ----------------------------------------------------------------------------
    function "<=" (LHS : in Nonterminal.Handle;
                   RHS : in Token.Class
@@ -114,6 +124,7 @@ private
    type Right_Hand_Side is record
       Tokens : Token_List.Instance;
       Action : Nonterminal.Synthesize;
+      Index  : Integer;
    end record;
 
    type Instance is record

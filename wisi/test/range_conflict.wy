@@ -1,0 +1,52 @@
+;; grammar has a reduce-reduce conflict
+
+%{
+(require 'wisi)
+%}
+
+%package ada-grammar-3-wy
+
+%keyword DOT_DOT ".."
+%keyword IN "in"
+%keyword LEFT_PAREN "left_paren"
+%keyword MINUS "-"
+%keyword PLUS "+"
+%keyword RANGE "range"
+%keyword RIGHT_PAREN "right_paren"
+%keyword TICK "'"
+
+%token <symbol> IDENTIFIER
+
+%%
+
+compilation_unit : membership_choice range ;
+
+membership_choice
+  : primary
+  | range
+  ;
+
+primary
+  : IDENTIFIER
+  | LEFT_PAREN relation RIGHT_PAREN
+  ;
+
+range
+  : IDENTIFIER TICK RANGE LEFT_PAREN relation RIGHT_PAREN ;; range_attribute_reference
+  | IDENTIFIER TICK RANGE
+  | primary DOT_DOT primary
+  ;
+
+relation
+  : primary IN membership_choice
+  ;
+
+
+;; unary_adding_operator : PLUS | MINUS ; ;; + | -
+
+%%
+
+;; Local Variables:
+;; eval: (add-hook 'before-save-hook 'delete-trailing-whitespace nil t)
+;; End:
+;;; end of file

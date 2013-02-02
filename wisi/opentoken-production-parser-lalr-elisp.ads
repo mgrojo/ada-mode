@@ -26,7 +26,7 @@ package OpenToken.Production.Parser.LALR.Elisp is
      (Elisp_Package : in String;
       Prologue      : in String;
       Keywords      : in Wisi.String_Pair_Lists.List;
-      Tokens        : in Wisi.String_Pair_Lists.List;
+      Tokens        : in Wisi.String_Triplet_Lists.List;
       Rules         : in Wisi.Rule_Lists.List;
       Parser        : in Instance);
 

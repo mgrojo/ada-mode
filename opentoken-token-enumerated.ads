@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2009, 2012 Stephe Leake
+-- Copyright (C) 2009, 2012, 2013 Stephe Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -46,6 +46,9 @@ generic
    type Token_ID is (<>);
 
 package OpenToken.Token.Enumerated is
+
+   --  Make Token_ID visible in client packages
+   subtype Parent_Token_ID is Token_ID;
 
    type Instance is new OpenToken.Token.Instance with private;
 

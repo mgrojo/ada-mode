@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2002, 2003, 2009, 2010 Stephe Leake
+-- Copyright (C) 2002, 2003, 2009, 2010, 2013 Stephe Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -70,6 +70,31 @@ private
 
    type Reduction_Node;
    type Reduction_Node_Ptr is access Reduction_Node;
+
+   type Parse_Action_Verbs is (Shift, Reduce, Accept_It, Error);
+   type Parse_Action (Verb : Parse_Action_Verbs := Shift) is record
+      case Verb is
+      when Shift =>
+         State : State_Index;
+      when Reduce | Accept_It =>
+         Production : OpenToken.Production.Instance;
+         Length     : Natural;
+      when Error =>
+         null;
+      end case;
+   end record;
+
+   type Action_Node is record
+      Symbol : Tokenizer.Terminal_ID;
+      Action : Parse_Action;
+      Next   : Action_Node_Ptr;
+   end record;
+
+   type Reduction_Node is record
+      Symbol : Token.Token_ID;
+      State  : State_Index;
+      Next   : Reduction_Node_Ptr;
+   end record;
 
    type Parse_State is record
       Action_List    : Action_Node_Ptr;
