@@ -11,10 +11,12 @@ runtest from emacs -Q:
 )
 
 (progn
+    (require 'ada-smie)
     (setq ada-mode-hook (delete 'ada-wisi-setup ada-mode-hook))
     (add-hook 'ada-mode-hook 'ada-smie-setup))
 
 (progn
+    (require 'ada-wisi)
     (setq ada-mode-hook (delete 'ada-smie-setup ada-mode-hook))
     (add-hook 'ada-mode-hook 'ada-wisi-setup))
 
@@ -47,29 +49,27 @@ semantic mode in .wy is just broken
 
 (load "build/runtest.el")
  ada-smie/wisi
-post on ada-comment about non-default bit order, definition of 'position'
-
-arm_info
-    annex P
-         unary_adding_operator ::=     +   | --
-
-        double dash for minus
-
-    4.5
-         R*Sin([Unicode 952]
-         )*Cos([Unicode 966]
-         )             -- simple expression
-
-            don't need newlines after unicode
-
-build/wisi/Makefile
-    ada-display-buffer doesn't respect C-u C-u for this!?
-
-ada-smie
-    use ada-symbol-end
+/Projects/Web/stephe-leake/emacs/ada-mode/emacs-ada-mode.html
+    to-do list
 
 ada-wisi
     need parallel LALR structure; opentoken
+        /Projects/org.opentoken.stephe/build/windows_debug/Makefile one
+
+        ada-gnat-fix-error prompt when multiple possible packages for 'is not visible'
+            use completion list on Ada name
+
+        detect, report conflict
+
+        clean up grammar output; match wisent.output
+
+        store conflict in OpenToken structure
+
+        OpenToken report conflict error at runtime
+
+        store conflict in extended Wisent elisp structure
+
+        rewrite wisent-parse
 
     build/wisi/Makefile
 
@@ -97,6 +97,7 @@ ada-wisi
 
 wisent-parser does not execute actions when grammar is byte-compiled!
     need to byte-compile everything?
+    wisent-debug-on-entry?
 
 better error handling for wisi?
     for wisent-parse, need to set an 'error action on statement_start tokens?
@@ -555,6 +556,9 @@ specify options in .prj
         debug vs release changes .prj; check options changed, warn?
 
  to do later
+completion
+    http://emacswiki.org/emacs/CategoryCompletion
+
 time on long code
     get stats on GDS file sizes
 
@@ -600,7 +604,8 @@ Emacs 23.4, (gnat-2012): test/Makefile all
 
 (dvc-status)
 (shell-send-string "mtn_sync_ada_france.sh" "*bash*")
-test/Makefile zip
+(xmtn-sync-review)
+build/smie/Makefile zip
 /Projects/Web/stephe-leake/emacs/ada-mode/emacs-ada-mode.html
     update todo list
     add release note
@@ -608,7 +613,7 @@ test/Makefile zip
 
 ~/Web/Makefile
     edit date in ADA-MODE-SMIE_GZ
-    ada-mode-smie
+    ada-mode
     sync
 
 post on emacs-ada-mode mailing list

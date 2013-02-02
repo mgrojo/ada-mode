@@ -617,27 +617,27 @@ For `compilation-filter-hook'."
 	  (let* ((pos (next-single-property-change (point) 'ada-secondary-error nil (line-end-position)))
 		 (item (when pos (get-text-property pos 'ada-secondary-error)))
 		 (unit-file (when item (nth 0 item))))
-	    (unless unit-file
-	      (error "unrecognized error message"))
-	    (pop-to-buffer source-buffer)
-	    ;; We either need to add a with_clause for a package, or
-	    ;; prepend the package name here (or add a use clause, but I
-	    ;; don't want to do that automatically).
-	    ;;
-	    ;; If we need to add a with_clause, unit-name may be only
-	    ;; the prefix of the real package name, but in that case
-	    ;; we'll be back after the next compile; no way to get the
-	    ;; full package name (without the function/type name) now.
-	    ;; Note that we can't use gnat find, because the code
-	    ;; doesn't compile.
-	    (let ((unit-name (ada-ada-name-from-file-name unit-file)))
-	      (cond
-	       ((looking-at (concat unit-name "\\."))
+	    (when unit-file
+	      (pop-to-buffer source-buffer)
+	      ;; We either need to add a with_clause for a package, or
+	      ;; prepend the package name here (or add a use clause, but I
+	      ;; don't want to do that automatically).
+	      ;;
+	      ;; If we need to add a with_clause, unit-name may be only
+	      ;; the prefix of the real package name, but in that case
+	      ;; we'll be back after the next compile; no way to get the
+	      ;; full package name (without the function/type name) now.
+	      ;; Note that we can't use gnat find, because the code
+	      ;; doesn't compile.
+	      (let ((unit-name (ada-ada-name-from-file-name unit-file)))
+		(cond
+		 ((looking-at (concat unit-name "\\."))
                   (ada-fix-add-with-clause unit-name))
-	       (t
-		(ada-fix-insert-unit-name unit-name)
-		(insert "."))))))
-	t)
+		 (t
+		  (ada-fix-insert-unit-name unit-name)
+		  (insert "."))))
+	      t) ;; success, else nil => fail
+	    )))
 
        ((looking-at (concat ada-gnat-quoted-name-regexp " is undefined"))
 	;; We either need to add a with_clause for a package, or

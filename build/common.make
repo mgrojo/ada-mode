@@ -133,6 +133,6 @@ test-clean :
 	rm -f ../../test/ada_mode-nominal-child.adb
 
 zip :
-	tar zcf org.emacs.ada-mode.smie-`date +%Y-%m-%d`.tar.gz --exclude _MTN --exclude "*~" --exclude "*.diff" --exclude "*.tmp" --exclude "*.ali" --exclude "*.tar.gz" -C ../../../.. org.emacs.ada-mode.smie
+	tar zcf org.emacs.ada-mode.smie-`date +%Y-%m-%d`.tar.gz --exclude _MTN --exclude "*~" --exclude "*.diff" --exclude "*.tmp" --exclude "*.ali" --exclude "*.tar.gz" -C ../../../ org.emacs.ada-mode.smie
 
 # end of file

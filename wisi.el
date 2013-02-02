@@ -123,7 +123,6 @@
 ;;;;;
 
 (require 'cl)
-(require 'wisent-patch)
 
 ;;;; lexer
 
@@ -137,7 +136,7 @@
   "Move point forward across one token, skipping leading whitespace and comments.
 Return the corresponding token, in a format determined by TEXT-ONLY:
 TEXT-ONLY t:          text
-TEXT-ONLY nil:        (symbol text (start end))
+TEXT-ONLY nil:        (symbol text start . end)
 where:
 `symbol' is a token symbol (not string) from `wisi-punctuation-table',
 `wisi-keyword-table', `wisi-string-term' or `wisi-symbol-term'.
@@ -204,7 +203,7 @@ If at end of buffer, returns `wisent-eoi-term'."
 	(if lower
 	    (lowercase token-text)
 	  token-text)
-      (list token-id token-text (list start (point))))
+      (cons token-id (cons token-text (cons start (point)))))
     ))
 
 (defun wisi-backward-token ()
@@ -386,12 +385,10 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
 	       (message "%s" err)))))))
 
     (when wisi-parse-error
-      (string-match "unexpected \\(\\w+\\)@(\\([0-9]+\\) \\([0-9]+\\))(\"\\(.+\\)\"),\\(.*\\)" wisi-parse-error)
+      (string-match "unexpected \\(\\w+\\)@\\([0-9]+\\)(\"\\(.+\\)\"),\\(.*\\)" wisi-parse-error)
       (let ((symbol (match-string 1 wisi-parse-error))
 	    (begin (string-to-number (match-string 2 wisi-parse-error)))
-	    (end   (string-to-number (match-string 3 wisi-parse-error)))
-	    (text  (match-string 4 wisi-parse-error))
-	    (expecting (match-string 5 wisi-parse-error)))
+	    (expecting (match-string 4 wisi-parse-error)))
 	(setq wisi-parse-error nil)
 	(if wisi-debug
 	    (progn
@@ -426,7 +423,7 @@ should receive cached information. See macro
       (while items
 	(let* ((text (pop items))
 	       (class (pop items))
-	       (region (car (pop items)))
+	       (region (pop items))
 	       (mark
 		;; Marker one char into token, so indent-line-to
 		;; inserts space before the mark, not after!
@@ -454,7 +451,7 @@ should receive cached information. See macro
 	    (with-silent-modifications
 	      (put-text-property
 	       (car region)
-	       (cadr region)
+	       (cdr region)
 	       'wisi-cache
 	       (wisi-cache-create
 		:symbol (if first-item $nterm (wisi-symbol text))
@@ -490,14 +487,14 @@ that token. Use in a grammar action as:
   ))
 
 (defun wisi-start-tokens (start-region contained-region)
-  "Set start marks in all tokens in (caar START-REGION) to (cadar
+  "Set start marks in all tokens in (car START-REGION) to (cdr
 CONTAINED-REGION) with null start mark to marker pointing to start of
 START-REGION.  See `wisi-start-action' for use in grammar
 action."
   (save-excursion
-    (goto-char (nth 1 (car contained-region)))
+    (goto-char (cdr contained-region))
     (let ((cache (car (wisi-backward-cache)))
-	  (mark (copy-marker (1+ (nth 0 (car start-region))))))
+	  (mark (copy-marker (1+ (car start-region)))))
       (while cache
 
 	;; skip blocks that are already marked
@@ -505,7 +502,7 @@ action."
 	  (goto-char (1- (wisi-cache-start cache)))
 	  (setq cache (wisi-get-cache (point))))
 
-	(if (<= (point) (cadar start-region))
+	(if (<= (point) (cdr start-region))
 	    ;; done (don't set mark on cache at start; that should
 	    ;; point to the containing statement)
 	    (setq cache nil)
@@ -535,7 +532,7 @@ in a wisent grammar file."
 	  prev-cache
 	  cache)
       (while items
-	(let* ((region (car (pop items)))
+	(let* ((region (pop items))
 	       (mark
 		;; Marker one char into token, so indent-line-to
 		;; inserts space before the mark, not after!

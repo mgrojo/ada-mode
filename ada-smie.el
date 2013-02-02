@@ -3843,11 +3843,7 @@ If DECLARE non-nil, stop at first containing declarative region (for 'declare' b
   (save-excursion
     (let (token
 	  (done nil)
-	  (result nil)
-	  (symbol-end
-	   ;; we can't just add \> here; that might match _ in a user modified ada-mode-syntax-table
-	   "\\([ \t]+\\|$\\)")
-	  )
+	  (result nil))
 
       (ada-smie-goto-declaration-start)
 
@@ -3866,7 +3862,7 @@ If DECLARE non-nil, stop at first containing declarative region (for 'declare' b
 			  (concat
 			   "package\\s-+"
 			   result
-			   symbol-end))))
+			   ada-symbol-end))))
 	      ;; not body
 	      (ada-smie-backward-token)
 	      (setq result (ada-smie-forward-name))
@@ -3875,7 +3871,7 @@ If DECLARE non-nil, stop at first containing declarative region (for 'declare' b
 		      (concat
 		       "package\\s-+body\\s-+"
 		       result
-		       symbol-end))))
+		       ada-symbol-end))))
 	    (setq done t))
 
 	   ((equal token "protected-body")
@@ -3886,7 +3882,7 @@ If DECLARE non-nil, stop at first containing declarative region (for 'declare' b
 		    (concat
 		     "protected\\s-+\\(type\\s-+\\)?"
 		     result
-		     symbol-end)))
+		     ada-symbol-end)))
 	    (setq done t))
 
 	   ((equal token "protected-type")
@@ -3898,7 +3894,7 @@ If DECLARE non-nil, stop at first containing declarative region (for 'declare' b
 		    (concat
 		     "protected\\s-+body\\s-+"
 		     result
-		     symbol-end)))
+		     ada-symbol-end)))
 	    (setq done t))
 
 	   ((equal token "task-body")
@@ -3910,7 +3906,7 @@ If DECLARE non-nil, stop at first containing declarative region (for 'declare' b
 		    (concat
 		     "protected\\s-+\\(type\\s-+\\)?"
 		     result
-		     symbol-end)))
+		     ada-symbol-end)))
 	    (setq done t))
 
 	   (t
@@ -3934,7 +3930,7 @@ If DECLARE non-nil, stop at first containing declarative region (for 'declare' b
 		(concat
 		 "^"
 		 (buffer-substring-no-properties (point-at-bol) (point))
-		 symbol-end)))
+		 ada-symbol-end)))
     result)))
 
 (defun ada-smie-in-paramlist-p ()
