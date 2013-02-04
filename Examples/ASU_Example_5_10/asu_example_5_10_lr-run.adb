@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2009 Stephe Leake
+-- Copyright (C) 2009, 2013 Stephe Leake
 -- Copyright (C) 1999,2000 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -91,11 +91,7 @@ begin
       end case;
    end;
 
-   Test_Parser := LALR_Parser.Generate (Grammar, Analyzer, OpenToken.Trace_Parse);
-
-   if OpenToken.Trace_Parse then
-      LALR_Parser.Print_Table (Test_Parser);
-   end if;
+   Test_Parser := LALR_Parser.Generate (Grammar, Analyzer, OpenToken.Trace_Parse, OpenToken.Trace_Parse);
 
    if not Is_Open (Input_File) then
       Put_Line ("A simple calculator, as specified in example 5.10 in Aho, Sethi, and Ullman's");

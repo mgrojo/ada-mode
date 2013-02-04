@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2009, 2010, 2012 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2009, 2010, 2012, 2013 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -220,7 +220,7 @@ package body Test_LR0_Kernels is
 
    procedure Dump_Parse_Table
    is begin
-      LALR_Parser.Print_Table (Command_Parser);
+      LALR_Parser.Put_Table (Command_Parser);
    end Dump_Parse_Table;
 
    procedure Execute_Command (Command : in String; Trace : in Boolean)

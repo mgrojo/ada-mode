@@ -281,30 +281,23 @@ package body OpenToken.Production.Parser.LRk_Item is
       Include (Set => Set, Value => Value, Added => Added);
    end Include;
 
-   ----------------------------------------------------------------------------
-   --  Add an item to the set w/o checking to see if it is in there already.
-   ----------------------------------------------------------------------------
-   procedure Add (New_Item : in     Item_Node;
-                  Target   : in out Item_Set
-                 ) is
-   begin
-      Target.Set := new Item_Node'(Prod          => New_Item.Prod,
-                                   Pointer       => New_Item.Pointer,
-                                   Lookahead_Set => New_Item.Lookahead_Set,
-                                   Next          => Target.Set
-                                  );
+   procedure Add
+     (New_Item : in     Item_Node;
+      Target   : in out Item_Set)
+   is begin
+      Target.Set := new Item_Node'
+        (Prod          => New_Item.Prod,
+         Pointer       => New_Item.Pointer,
+         Lookahead_Set => New_Item.Lookahead_Set,
+         Next          => Target.Set);
    end Add;
 
-   --------------------------------------------------------------------------
-   --  Return a pointer to the given item in the given set. Null will
-   --  be returned if it cannot be found.
-   --------------------------------------------------------------------------
-   function Find (Left  : in Item_Node;
-                  Right : in Item_Set
-                 ) return Item_Ptr is
-
+   function Find
+     (Left  : in Item_Node;
+      Right : in Item_Set)
+     return Item_Ptr
+   is
       use type Token_List.List_Iterator;
-
       Current : Item_Ptr := Right.Set;
    begin
       while Current /= null loop
@@ -316,17 +309,14 @@ package body OpenToken.Production.Parser.LRk_Item is
       return null;
    end Find;
 
-   ----------------------------------------------------------------------------
-   --  Check to see if the given item set is in the set list.
-   ----------------------------------------------------------------------------
-   function Find (Left  : in Item_Set;
-                  Right : in Item_Set_List
-                 ) return Item_Set_Ptr is
-
-      Right_Set : Item_Set_Ptr := Right.Head;
+   function Find
+     (Left  : in Item_Set;
+      Right : in Item_Set_List
+     ) return Item_Set_Ptr
+   is
+      Right_Set  : Item_Set_Ptr := Right.Head;
       Right_Item : Item_Ptr;
-
-      Left_Size  : Natural := 0;
+      Left_Size  : Natural      := 0;
       Right_Size : Natural;
    begin
       --  Count the number of items in the left set
@@ -362,9 +352,24 @@ package body OpenToken.Production.Parser.LRk_Item is
       return null;
    end Find;
 
-   ----------------------------------------------------------------------------
-   --  Check to see if the given item set is in the set list.
-   ----------------------------------------------------------------------------
+   function Find
+     (Index : in Integer;
+      Sets  : in Item_Set_List)
+     return Item_Set_Ptr
+   is
+      Set : Item_Set_Ptr := Sets.Head;
+   begin
+      while Set /= null loop
+         if Set.Index = Index then
+            return Set;
+         end if;
+
+         Set := Set.Next;
+      end loop;
+
+      return null;
+   end Find;
+
    function Is_In (Left  : in Item_Set;
                    Right : in Item_Set_List
                   ) return Boolean is
@@ -959,13 +964,14 @@ package body OpenToken.Production.Parser.LRk_Item is
       end if;
    end Print;
 
-   function Print_Item (Item : in Item_Node) return String
+   function Image_Item (Item : in Item_Node; Verbose : in Boolean := False) return String
    is
       Token_Index : Token_List.List_Iterator;
 
       Result : Ada.Strings.Unbounded.Unbounded_String :=
         Ada.Strings.Unbounded.To_Unbounded_String (Token_Name (Item.Prod.LHS)) &
-        "(" & Ada.Tags.Expanded_Name (Item.Prod.LHS.all'Tag) & ")" &
+        (if Verbose then "(" & Ada.Tags.Expanded_Name (Item.Prod.LHS.all'Tag) & ")"
+         else "") &
         " <=";
 
       use type Token_List.List_Iterator;
@@ -989,12 +995,12 @@ package body OpenToken.Production.Parser.LRk_Item is
 
       Result := Result & Print (Item.Lookahead_Set);
       return Ada.Strings.Unbounded.To_String (Result);
-   end Print_Item;
+   end Image_Item;
 
-   procedure Print_Item (Item : in Item_Node) is
+   procedure Put_Item (Item : in Item_Node; Prefix : in String := "") is
    begin
-      Ada.Text_IO.Put (Print_Item (Item));
-   end Print_Item;
+      Ada.Text_IO.Put (Prefix & Image_Item (Item));
+   end Put_Item;
 
    ----------------------------------------------------------------------------
    --  Print out the given list of set references.
@@ -1037,7 +1043,7 @@ package body OpenToken.Production.Parser.LRk_Item is
             Need_New_Line := True;
          end if;
 
-         Result := Result & Print_Item (Item.all);
+         Result := Result & Image_Item (Item.all);
 
          Item := Item.Next;
       end loop;

@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2009, 2010, 2012 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2009, 2010, 2012, 2013 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -18,16 +18,14 @@
 
 pragma License (GPL);
 
+with Ada.Strings.Maps.Constants;
 with AUnit.Assertions;
 with AUnit.Check;
 with Ada.Exceptions;
-with Ada.Text_IO;
 with GNAT.Source_Info;
-with OpenToken.Production.List.Print;
 with OpenToken.Production.List;
 with OpenToken.Production.Parser.LALR;
 with OpenToken.Production.Parser;
-with OpenToken.Production.Print;
 with OpenToken.Recognizer.Based_Integer;
 with OpenToken.Recognizer.Character_Set;
 with OpenToken.Recognizer.Identifier;
@@ -36,7 +34,6 @@ with OpenToken.Recognizer.Separator;
 with OpenToken.Text_Feeder.String;
 with OpenToken.Token.Enumerated.Analyzer;
 with OpenToken.Token.Enumerated.Integer;
-with OpenToken.Token.Enumerated.List.Print;
 with OpenToken.Token.Enumerated.List;
 with OpenToken.Token.Enumerated.Nonterminal;
 package body Test_Multi_Parse_LALR is
@@ -102,7 +99,10 @@ package body Test_Multi_Parse_LALR is
       Set_ID        => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("set"), Master_Token.Get (Set_ID, "set")),
       Semicolon_ID  => Tokenizer.Get (OpenToken.Recognizer.Separator.Get (";"), Master_Token.Get (Semicolon_ID, "=")),
       Identifier_ID => Tokenizer.Get
-        (OpenToken.Recognizer.Identifier.Get, Master_Token.Get (Identifier_ID, "identifier")),
+        (OpenToken.Recognizer.Identifier.Get
+           (Start_Chars => Ada.Strings.Maps.Constants.Letter_Set,
+            Body_Chars  => Ada.Strings.Maps.Constants.Alphanumeric_Set),
+         Master_Token.Get (Identifier_ID, "identifier")),
       Whitespace_ID => Tokenizer.Get
         (OpenToken.Recognizer.Character_Set.Get (OpenToken.Recognizer.Character_Set.Standard_Whitespace)));
 
@@ -119,24 +119,6 @@ package body Test_Multi_Parse_LALR is
 
    String_Feeder : aliased OpenToken.Text_Feeder.String.Instance;
    Parser        : LALR_Parser.Instance;
-
-   procedure Print_Action (Action : in Nonterminal.Synthesize) is null;
-
-   procedure Dump_Grammar
-   is
-      package Print_Token_List is new Token_List.Print;
-      package Print_Production is new Production.Print (Print_Token_List, Print_Action);
-      package Print_Production_List is new Production_List.Print (Print_Production.Print);
-   begin
-      Print_Production_List.Print (Grammar);
-      Ada.Text_IO.New_Line;
-   end Dump_Grammar;
-
-   procedure Dump_Parse_Table
-   is begin
-      LALR_Parser.Print_Table (Parser);
-      Ada.Text_IO.New_Line;
-   end Dump_Parse_Table;
 
    procedure Execute (Command : in String)
    is
@@ -169,13 +151,12 @@ package body Test_Multi_Parse_LALR is
    is
       Test : Test_Case renames Test_Case (T);
    begin
-      Parser := LALR_Parser.Generate (Grammar, Tokenizer.Initialize (Syntax), Trace => Test.Debug);
+      Parser := LALR_Parser.Generate
+        (Grammar, Tokenizer.Initialize (Syntax),
+         Trace       => Test.Debug,
+         Put_Grammar => Test.Debug);
 
-      if Test.Debug then
-         Dump_Grammar;
-         Dump_Parse_Table;
-         OpenToken.Trace_Parse := True;
-      end if;
+      OpenToken.Trace_Parse := Test.Debug;
 
       LALR_Parser.Set_Text_Feeder (Parser, String_Feeder'Unchecked_Access);
 

@@ -30,6 +30,7 @@
 ^build/windows_debug/ada-subset-wy\.el$
 ^build/windows_debug/obj$
 ^build/windows_debug/obj_tree$
+^build/windows_debug/wisi\.output$
 ^build/windows_release/.*\.diff$
 ^build/windows_release/.*\.exe$
 ^build/windows_release/.*\.out$

@@ -25,6 +25,7 @@ with Ada.Text_IO; use Ada.Text_IO;
 procedure Wisi.Output
   (Input_File_Name  : in String;
    Output_File_Root : in String;
+   Copyright        : in String;
    Prologue         : in String_Lists.List;
    Keywords         : in String_Pair_Lists.List;
    Tokens           : in String_Triplet_Lists.List;
@@ -141,11 +142,17 @@ begin
    Indent := Indent + 3;
 
    Indent_Line ("procedure Put_Usage");
-   Indent_Line ("is begin");
-   Indent_Line ("   Standard.Ada.Text_IO.Put_Line (""usage: wisi-ada-subset-generate [-v]"");");
+   Indent_Line ("is");
+   Indent_Line ("   use Standard.Ada.Text_IO;");
+   Indent_Line ("begin");
+   Indent_Line ("   Put_Line (""usage: wisi-ada-subset-generate [-v [level]]"");");
+   Indent_Line ("   Put_Line (""   level 0 - only error messages to standard error"");");
+   Indent_Line ("   Put_Line (""   level 1 - add grammar output to standard out"");");
+   Indent_Line ("   Put_Line (""   level 2 - add diagnostics to standard out"");");
    Indent_Line ("end Put_Usage;");
 
    Indent_Line ("Elisp_Package : constant String := """ & Output_File_Root & """;");
+   Indent_Line ("Copyright     : constant String := """ & Copyright & """;");
 
    Indent_Line ("Prologue : constant String :=");
 
@@ -288,7 +295,7 @@ begin
    Indent := Indent - 2;
 
    New_Line;
-   Indent_Line ("Verbose : Boolean := False;");
+   Indent_Line ("Verbosity : Integer := 0;");
 
    New_Line;
    Indent_Line ("Keywords : String_Pair_Lists.List;");
@@ -308,7 +315,20 @@ begin
    Indent_Line ("when 1 =>");
    Indent := Indent + 3;
    Indent_Line ("if Argument (1) = ""-v"" then");
-   Indent_Line ("   Verbose := True;");
+   Indent_Line ("   Verbosity := 1;");
+   Indent_Line ("else");
+   Indent := Indent + 3;
+   Indent_Line ("Set_Exit_Status (Failure);");
+   Indent_Line ("Put_Usage;");
+   Indent_Line ("return;");
+   Indent := Indent - 3;
+   Indent_Line ("end if;");
+   Indent := Indent - 3;
+   New_Line;
+   Indent_Line ("when 2 =>");
+   Indent := Indent + 3;
+   Indent_Line ("if Argument (1) = ""-v"" then");
+   Indent_Line ("   Verbosity := Integer'Value (Argument (2));");
    Indent_Line ("else");
    Indent := Indent + 3;
    Indent_Line ("Set_Exit_Status (Failure);");
@@ -369,9 +389,10 @@ begin
          Indent := Indent - 4;
       end loop;
    end;
-   Indent_Line ("Parser := LALR_Parsers.Generate (Grammar, Analyzers.Null_Analyzer, Verbose);");
+   Indent_Line
+     ("Parser := LALR_Parsers.Generate (Grammar, Analyzers.Null_Analyzer, Verbosity > 1, Verbosity > 0);");
 
-   Indent_Line ("Parser_Elisp.Output (Elisp_Package, Prologue, Keywords, Tokens, Rules, Parser);");
+   Indent_Line ("Parser_Elisp.Output (Elisp_Package, Copyright, Prologue, Keywords, Tokens, Rules, Parser);");
    Put_Line ("end " & Package_Name & ";");
    Close (Output_File);
 end Wisi.Output;

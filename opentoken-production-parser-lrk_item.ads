@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2003, 2008 Stephe Leake
+-- Copyright (C) 2003, 2008, 2013 Stephe Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -96,7 +96,6 @@ package OpenToken.Production.Parser.LRk_Item is
    ----------------------------------------------------------------------------
    function Item_Node_Of (Prod : in OpenToken.Production.Instance) return Item_Node;
 
-
    type Set_Reference;
    type Set_Reference_Ptr is access Set_Reference;
 
@@ -112,7 +111,7 @@ package OpenToken.Production.Parser.LRk_Item is
    type Item_Set is record
       Set       : Item_Ptr;
       Goto_List : Set_Reference_Ptr;
-      Index     : Natural := 0;
+      Index     : Natural := 0; -- state_index in LALR parser table
       Next      : Item_Set_Ptr;
    end record;
 
@@ -121,28 +120,28 @@ package OpenToken.Production.Parser.LRk_Item is
       Size : Natural := 0;
    end record;
 
-   ----------------------------------------------------------------------------
-   --  Add an item to the set w/o checking to see if it is in there already.
-   ----------------------------------------------------------------------------
-   procedure Add (New_Item : in     Item_Node;
-                  Target   : in out Item_Set
-                 );
+   procedure Add
+     (New_Item : in     Item_Node;
+      Target   : in out Item_Set);
+   --  Add an item to the set without checking to see if it is in there already.
 
-   ----------------------------------------------------------------------------
-   --  Return a pointer to the given item in the given set. Null will be
-   --  returned if it cannot be found.
-   ----------------------------------------------------------------------------
-   function Find (Left  : in Item_Node;
-                  Right : in Item_Set
-                 ) return Item_Ptr;
+   function Find
+     (Left  : in Item_Node;
+      Right : in Item_Set)
+     return Item_Ptr;
+   --  Return a pointer to Left in Right, null if not found.
 
-   ----------------------------------------------------------------------------
-   --  Return a pointer to the given item set in the given set list. Null will
-   --  be returned if it cannot be found.
-   ----------------------------------------------------------------------------
-   function Find (Left  : in Item_Set;
-                  Right : in Item_Set_List
-                 ) return Item_Set_Ptr;
+   function Find
+     (Left  : in Item_Set;
+      Right : in Item_Set_List)
+     return Item_Set_Ptr;
+   --  Return a pointer to Left in Right, null if not found.
+
+   function Find
+     (Index : in Integer;
+      Sets  : in Item_Set_List)
+     return Item_Set_Ptr;
+   --  Return a pointer to the set in Sets containing Index, null if not found.
 
    ----------------------------------------------------------------------------
    --  Check to see if the given item set is in the set list.
@@ -254,11 +253,10 @@ package OpenToken.Production.Parser.LRk_Item is
    function Print (Item : in Item_Lookahead) return String;
    function Print (Item : in Item_Lookahead_Ptr) return String;
 
-   ----------------------------------------------------------------------------
-   --  Print out the given item. This routine is included as a debugging aid.
-   ----------------------------------------------------------------------------
-   procedure Print_Item (Item : in Item_Node);
-   function Print_Item (Item : in Item_Node) return String;
+   procedure Put_Item (Item : in Item_Node; Prefix : in String := "");
+   --  Put Item to Ada.Text_IO.Standard_Output, preceded by Prefix. Does not end with New_Line.
+
+   function Image_Item (Item : in Item_Node; Verbose : in Boolean := False) return String;
 
    ----------------------------------------------------------------------------
    --  Print out the given item set. This routine is included as a debugging

@@ -1,5 +1,6 @@
 -------------------------------------------------------------------------------
 --
+-- Copyright (C) 2013 Stephen Leake
 -- Copyright (C) 2000 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -22,21 +23,22 @@
 --  exception does not however invalidate any other reasons why the
 --  executable file might be covered by the GNU Public License.
 -------------------------------------------------------------------------------
-with OpenToken.Token.Enumerated;
-with OpenToken.Token.Enumerated.Analyzer;
-with OpenToken.Recognizer.Keyword;
-with OpenToken.Recognizer.Identifier;
-with OpenToken.Recognizer.Integer;
-with OpenToken.Recognizer.Real;
-with OpenToken.Recognizer.Character_Set;
-
-with Relop_Example_Token;
 
 ---------------------------------------------------------------------------
 --  This example is an implementation of Example 3.6 from "Compilers
 --  Principles, Techniques, and Tools" by Aho, Sethi, and Ullman (aka: "The
 --  Dragon Book").
 ---------------------------------------------------------------------------
+
+with Ada.Strings.Maps.Constants;
+with OpenToken.Recognizer.Character_Set;
+with OpenToken.Recognizer.Identifier;
+with OpenToken.Recognizer.Integer;
+with OpenToken.Recognizer.Keyword;
+with OpenToken.Recognizer.Real;
+with OpenToken.Token.Enumerated.Analyzer;
+with OpenToken.Token.Enumerated;
+with Relop_Example_Token;
 package Asu_Example_3_6 is
 
    type Example_Token_ID is (If_ID, Then_ID, Else_ID, ID_ID, Int, Real, Relop, Whitespace);
@@ -45,14 +47,17 @@ package Asu_Example_3_6 is
    package Tokenizer is new Example_Token.Analyzer;
 
    Syntax : constant Tokenizer.Syntax :=
-     (If_ID   => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("if")),
-      Then_ID => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("then")),
-      Else_ID => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("else")),
-      ID_ID   => Tokenizer.Get (OpenToken.Recognizer.Identifier.Get),
-      Int     => Tokenizer.Get (OpenToken.Recognizer.Integer.Get),
-      Real    => Tokenizer.Get (OpenToken.Recognizer.Real.Get),
-      Relop   => Tokenizer.Get (Relop_Example_Token.Get),
-      Whitespace => Tokenizer.Get
+     (If_ID             => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("if")),
+      Then_ID           => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("then")),
+      Else_ID           => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("else")),
+      ID_ID             => Tokenizer.Get
+        (OpenToken.Recognizer.Identifier.Get
+           (Start_Chars => Ada.Strings.Maps.Constants.Letter_Set,
+            Body_Chars  => Ada.Strings.Maps.Constants.Alphanumeric_Set)),
+      Int               => Tokenizer.Get (OpenToken.Recognizer.Integer.Get),
+      Real              => Tokenizer.Get (OpenToken.Recognizer.Real.Get),
+      Relop             => Tokenizer.Get (Relop_Example_Token.Get),
+      Whitespace        => Tokenizer.Get
         (OpenToken.Recognizer.Character_Set.Get
            (OpenToken.Recognizer.Character_Set.Standard_Whitespace))
      );

@@ -2,7 +2,7 @@
 --
 --  Run Association_Token_Test
 --
---  Copyright (C) 2002, 2003, 2009, 2010 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2002, 2003, 2009, 2010, 2013 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -25,7 +25,8 @@ is
 
    Trace : constant Boolean := Ada.Command_Line.Argument_Count > 0;
 
-   Parser : LALR_Parser.Instance := LALR_Parser.Generate (Full_Grammar, The_Analyzer, Trace => Trace);
+   Parser : LALR_Parser.Instance := LALR_Parser.Generate
+     (Full_Grammar, The_Analyzer, Trace => Trace, Put_Grammar => Trace);
 
    procedure Parse_Command (Command : in String)
    is begin
@@ -46,10 +47,6 @@ is
    end Parse_Command;
 
 begin
-   if Trace then
-      LALR_Parser.Print_Table (Parser);
-   end if;
-
    --  The test is that there are no exceptions, and that the parse
    --  trace matches the known good trace.
    OpenToken.Trace_Parse := True;

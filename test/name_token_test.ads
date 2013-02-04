@@ -2,7 +2,7 @@
 --
 --  Test grammar generator with an Ada-like Name syntax
 --
---  Copyright (C) 2002, 2003, 2010 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2002, 2003, 2010, 2013 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -80,10 +80,12 @@ package Name_Token_Test is
       EOF_ID            => Tokenizer.Get (OpenToken.Recognizer.End_Of_File.Get, Tokens.EOF),
       Paren_Left_ID     => Tokenizer.Get (OpenToken.Recognizer.Separator.Get ("(")),
       Paren_Right_ID    => Tokenizer.Get (OpenToken.Recognizer.Separator.Get (")")),
-      Identifier_ID => Tokenizer.Get
-        (Recognizer => OpenToken.Recognizer.Identifier.Get (Body_Chars => Ada.Strings.Maps.Constants.Alphanumeric_Set),
-         New_Token  => Tokens.Identifier),
-      Whitespace_ID => Tokenizer.Get
+      Identifier_ID     => Tokenizer.Get
+        (Recognizer     => OpenToken.Recognizer.Identifier.Get
+           (Start_Chars => Ada.Strings.Maps.Constants.Alphanumeric_Set,
+            Body_Chars  => Ada.Strings.Maps.Constants.Alphanumeric_Set),
+         New_Token      => Tokens.Identifier),
+      Whitespace_ID     => Tokenizer.Get
         (OpenToken.Recognizer.Character_Set.Get (OpenToken.Recognizer.Character_Set.Standard_Whitespace))
      );
 

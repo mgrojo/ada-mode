@@ -24,6 +24,7 @@ package OpenToken.Production.Parser.LALR.Elisp is
 
    procedure Output
      (Elisp_Package : in String;
+      Copyright     : in String;
       Prologue      : in String;
       Keywords      : in Wisi.String_Pair_Lists.List;
       Tokens        : in Wisi.String_Triplet_Lists.List;

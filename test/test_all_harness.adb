@@ -23,6 +23,7 @@ with AUnit.Options;
 with AUnit.Test_Results;
 with AUnit.Test_Suites; use AUnit.Test_Suites;
 with Lookahead_Test;
+with OpenToken.Recognizer.Bracketed_Comment.Test;
 with OpenToken.Recognizer.CSV_Field.Test;
 with Test_Accept_Index;
 with Test_Backtrack;
@@ -35,6 +36,7 @@ with Test_Selection_Actions;
 with Test_Sequence_Actions;
 with Test_Statement_Actions;
 with Test_Token_Identifier_Real_String;
+with Trivial_Productions_Test;
 procedure Test_All_Harness
 is
    Suite    : constant Access_Test_Suite := new Test_Suite;
@@ -44,8 +46,9 @@ is
 begin
    --  Test cases; test package alphabetical order, unless otherwise noted.
 
-   Add_Test (Suite, new OpenToken.Recognizer.CSV_Field.Test.Test_Case);
    Add_Test (Suite, new Lookahead_Test.Test_Case (Debug => False));
+   Add_Test (Suite, new OpenToken.Recognizer.Bracketed_Comment.Test.Test_Case);
+   Add_Test (Suite, new OpenToken.Recognizer.CSV_Field.Test.Test_Case);
    Add_Test (Suite, new Test_Accept_Index.Test_Case (Debug => False));
    Add_Test (Suite, new Test_Backtrack.Test_Case (Debug => False));
    Add_Test (Suite, new Test_LR0_Kernels.Test_Case (Debug => False));

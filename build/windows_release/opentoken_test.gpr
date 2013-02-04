@@ -1,4 +1,6 @@
 --  For running OpenToken tests.
+--
+-- use installed AdaCore aunit (not SAL aunit; don't put SAL in project path)
 with "aunit";
 with "../common";
 with "opentoken";

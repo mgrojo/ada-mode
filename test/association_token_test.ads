@@ -4,7 +4,7 @@
 --  earlier version of OpenToken, this grammar reported spurious
 --  conflicts.
 --
---  Copyright (C) 2002, 2003, 2009, 2010 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2002, 2003, 2009, 2010, 2013 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -93,7 +93,8 @@ package Association_Token_Test is
          New_Token      => Integer_Literal.Get (Int_ID)),
       Identifier_ID     => Tokenizer.Get
         (Recognizer     => OpenToken.Recognizer.Identifier.Get
-           (Body_Chars  => Ada.Strings.Maps.Constants.Alphanumeric_Set),
+           (Start_Chars => Ada.Strings.Maps.Constants.Alphanumeric_Set,
+            Body_Chars  => Ada.Strings.Maps.Constants.Alphanumeric_Set),
          New_Token      => Tokens.Identifier),
       Paren_Left_ID     => Tokenizer.Get (OpenToken.Recognizer.Separator.Get ("(")),
       Paren_Right_ID    => Tokenizer.Get (OpenToken.Recognizer.Separator.Get (")")),

@@ -18,16 +18,20 @@
 
 pragma License (GPL);
 
+with Ada.Characters.Handling;
+with Ada.Containers;
+with Ada.Strings.Fixed;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO; use Ada.Text_IO;
 package body OpenToken.Production.Parser.LALR.Elisp is
 
-   procedure Header (Elisp_Package : in String)
+   procedure Header (Elisp_Package : in String; Copyright : in String)
    is begin
       Put_Line (";;; " & Elisp_Package & ".el --- Generated parser support file");
       New_Line;
-      Put_Line (";; Copyright (C) 2012 Free Software Foundation, Inc.");
+      Put_Line (";; Copyright (C) " & Copyright);
       New_Line;
+      --  FIXME: allow other license
       Put_Line (";; This program is free software; you can redistribute it and/or");
       Put_Line (";; modify it under the terms of the GNU General Public License as");
       Put_Line (";; published by the Free Software Foundation; either version 2, or (at");
@@ -44,7 +48,7 @@ package body OpenToken.Production.Parser.LALR.Elisp is
       Put_Line (";; Boston, MA 02110-1301, USA.");
       New_Line;
       Put_Line (";; PLEASE DO NOT MANUALLY EDIT THIS FILE!  It is automatically");
-      Put_Line (";; generated from the grammar file ada-subset.wy.");
+      Put_Line (";; generated from the grammar file " & Elisp_Package & ".wy");
       New_Line;
    end Header;
 
@@ -73,13 +77,13 @@ package body OpenToken.Production.Parser.LALR.Elisp is
       use Ada.Strings.Unbounded; -- length
    begin
       Put_Line ("(defconst " & Elisp_Package & "--token-table");
-      Put_Line ("  (semantic-lex-make-token-table");
+      Put_Line ("  (semantic-lex-make-type-table");
       Put_Line ("   '(");
       for Triplet of Tokens loop
          if 0 = Length (Triplet.Value) then
-            Put_Line ("    (""" & (-Triplet.Value) & """ (" & (-Triplet.Name) & "))");
+            Put_Line ("    (""" & (-Triplet.Kind) & """ (" & (-Triplet.Name) & "))");
          else
-            Put_Line ("    (""" & (-Triplet.Value) & """ (" & (-Triplet.Name) & " . """ & (-Triplet.Value) & """))");
+            Put_Line ("    (""" & (-Triplet.Kind) & """ (" & (-Triplet.Name) & " . """ & (-Triplet.Value) & """))");
          end if;
       end loop;
       Put_Line ("    )");
@@ -96,20 +100,41 @@ package body OpenToken.Production.Parser.LALR.Elisp is
    end Token_Image;
 
    procedure Action_Table (Parser : in Instance)
-   is begin
-      Put ("(");
+   is
+      use Ada.Strings;
+      use Ada.Strings.Fixed;
+      use Ada.Characters.Handling;
+   begin
+      Put ("     [");
       for State in Parser.Table'Range loop
-         Put ("(");
+         if State = Parser.Table'First then
+            Put ("(");
+         else
+            Put ("      (");
+         end if;
          declare
             Action : Action_Node_Ptr := Parser.Table (State).Action_List;
-            Reduction : Action_Node_Ptr := null;
+            Default : Action_Node_Ptr := null;
          begin
-            --  Find reduce action, if any
+            --  Find default action
             loop
                exit when Action = null;
                case Action.Action.Verb is
-               when Reduce | Accept_It =>
-                  Reduction := Action;
+               when Reduce =>
+                  if Default /= null then
+                     raise Programmer_Error with
+                       "LALR.Elisp: more than one reduction in state" & State_Index'Image (State);
+                  end if;
+
+                  Default := Action;
+
+               when Accept_It =>
+                  if Default /= null and then Default.Action.Verb /= Accept_It then
+                     raise Programmer_Error with
+                       "LALR.Elisp: accept mixed with other actions in state" & State_Index'Image (State);
+                  end if;
+
+                  Default := Action;
 
                when Shift | Error =>
                   null;
@@ -118,16 +143,16 @@ package body OpenToken.Production.Parser.LALR.Elisp is
                Action := Action.Next;
             end loop;
 
-            if Reduction = null then
+            if Default = null then
                Put ("(default . error)");
             else
-               if Reduction.Action.Verb = Accept_It then
+               if Default.Action.Verb = Accept_It then
                   Put ("(default . accept)");
                else
-                  Put ("(default . " & Token_Image (Reduction.Symbol) & ")");
-                  --  FIXME: symbol = LHS is not unique; elisp name adds
-                  --  production number within rule; need to keep
-                  --  track of that; move Token_Image, "+" into opentoken-production-elisp
+                  Put
+                    ("(default . " & To_Lower (Token_Image (LHS_ID (Default.Action.Production))) & ":" &
+                       Trim (Integer'Image (Index (Default.Action.Production)), Both) & ")");
+                  --  FIXME: move Token_Image, "+" into opentoken-production-elisp?
                end if;
             end if;
 
@@ -135,7 +160,11 @@ package body OpenToken.Production.Parser.LALR.Elisp is
             Action := Parser.Table (State).Action_List;
             loop
                if Action = null then
-                  Put_Line (")");
+                  if State = Parser.Table'Last then
+                     Put (")");
+                  else
+                     Put_Line (")");
+                  end if;
                   exit;
                end if;
 
@@ -150,30 +179,70 @@ package body OpenToken.Production.Parser.LALR.Elisp is
             end loop;
          end;
       end loop;
-      Put_Line (")");
+      Put_Line ("]");
    end Action_Table;
 
    procedure Goto_Table (Parser : in Instance)
-   is begin
-      Put ("(");
+   is
+      function Filter_Terminals (List : in Reduction_Node_Ptr) return Reduction_Node_Ptr
+      is
+         Result : Reduction_Node_Ptr := List;
+         Prev   : Reduction_Node_Ptr := List;
+         Item   : Reduction_Node_Ptr := List;
+      begin
+         while Item /= null loop
+            if Item.Symbol in Tokenizer.Terminal_ID then
+               --  delete from Result list
+               if Item = Result then
+                  Result := Item.Next;
+               else
+                  Prev.Next := Item.Next;
+                  Item      := Item.Next;
+               end if;
+            else
+               Prev := Item;
+               Item := Item.Next;
+            end if;
+         end loop;
+         return Result;
+      end Filter_Terminals;
+
+   begin
+      Put ("     [");
       for State in Parser.Table'Range loop
          declare
-            Gotos : Reduction_Node_Ptr := Parser.Table (State).Reduction_List;
+            Gotos : Reduction_Node_Ptr := Filter_Terminals (Parser.Table (State).Reduction_List);
          begin
             if Gotos = null then
-               Put_Line ("nil");
+               if State = Parser.Table'First then
+                  Put_Line ("nil");
+               else
+                  if State = Parser.Table'Last then
+                     Put ("      nil");
+                  else
+                     Put_Line ("      nil");
+                  end if;
+               end if;
             else
-               Put ("(");
+               if State = Parser.Table'First then
+                  Put ("(");
+               else
+                  Put ("      (");
+               end if;
                loop
                   Put ("(" & Token_Image (Gotos.Symbol) & " ." & State_Index'Image (Gotos.State) & ")");
                   Gotos := Gotos.Next;
                   exit when Gotos = null;
                end loop;
-               Put_Line (")");
+               if State = Parser.Table'Last then
+                  Put (")");
+               else
+                  Put_Line (")");
+               end if;
             end if;
          end;
       end loop;
-      Put_Line (")");
+      Put ("]");
    end Goto_Table;
 
    procedure Parse_Table
@@ -183,7 +252,17 @@ package body OpenToken.Production.Parser.LALR.Elisp is
       Rules         : in Wisi.Rule_Lists.List;
       Parser        : in Instance)
    is
+      use Ada.Containers; -- count_type
       use Wisi; -- "-" unbounded_string
+
+      Rule_Length : constant Count_Type := Rules.Length;
+      Rule_Count  : Count_Type := 1;
+
+      RHS_Length : Count_Type;
+      RHS_Count  : Count_Type;
+
+      Action_Length : Count_Type;
+      Action_Count  : Count_Type;
    begin
       Put_Line ("(defconst " & Elisp_Package & "--parse-table");
       Put_Line ("   (wisi-compile-grammar");
@@ -198,20 +277,50 @@ package body OpenToken.Production.Parser.LALR.Elisp is
       Put_Line (")");
 
       --  nonterminal productions
-      Put ("(");
+      Put ("     (");
       for Rule of Rules loop
-         Put_Line ("(" & (-Rule.Left_Hand_Side));
-         for RHS of Rule.Right_Hand_Sides loop
+         if Rule_Count = 1 then
             Put ("(");
+         else
+            Put ("      (");
+         end if;
+         Put_Line (-Rule.Left_Hand_Side);
+
+         RHS_Length := Rule.Right_Hand_Sides.Length;
+         RHS_Count  := 1;
+         for RHS of Rule.Right_Hand_Sides loop
+            Put ("       ((");
             for Token of RHS.Production loop
                Put (Token & " ");
             end loop;
-            Put_Line (")");
+            Action_Length := RHS.Action.Length;
+            Action_Count  := 1;
+            if Action_Length = 0 then
+               Put (")");
+            else
+               Put_Line (")");
+            end if;
             for Line of RHS.Action loop
-               Put_Line (Line);
+               if Action_Count = Action_Length then
+                  Put ("    " & Line);
+               else
+                  Put_Line ("    " & Line);
+               end if;
+               Action_Count := Action_Count + 1;
             end loop;
+            if RHS_Count = RHS_Length then
+               Put (")");
+            else
+               Put_Line (")");
+            end if;
+            RHS_Count := RHS_Count + 1;
          end loop;
-         Put_Line (")");
+         if Rule_Count = Rule_Length then
+            Put (")");
+         else
+            Put_Line (")");
+         end if;
+         Rule_Count := Rule_Count + 1;
       end loop;
       Put_Line (")");
 
@@ -224,6 +333,7 @@ package body OpenToken.Production.Parser.LALR.Elisp is
 
    procedure Output
      (Elisp_Package : in String;
+      Copyright     : in String;
       Prologue      : in String;
       Keywords      : in Wisi.String_Pair_Lists.List;
       Tokens        : in Wisi.String_Triplet_Lists.List;
@@ -234,9 +344,10 @@ package body OpenToken.Production.Parser.LALR.Elisp is
    begin
       Create (File, Out_File, Elisp_Package & "-wy.el");
       Set_Output (File);
-      Header (Elisp_Package);
+      Header (Elisp_Package, Copyright);
       Put_Line (Prologue);
-      Put_Line ("(require 'semantic-lex)");
+      Put_Line ("(require 'semantic/lex)"); -- FIXME: emacs 23 wants semantic-lex, 24 semantic/lex
+      Put_Line ("(require 'wisi-compile)");
       New_Line;
       Keyword_Table (Elisp_Package, Keywords);
       New_Line;

@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2009, 2010, 2012 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2009, 2010, 2012, 2013 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -20,6 +20,7 @@ pragma License (GPL);
 
 with AUnit.Assertions;
 with Ada.Exceptions;
+with Ada.Strings.Maps.Constants;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO;
 with OpenToken.Production.List.Print;
@@ -76,11 +77,15 @@ package body Test_Token_Identifier_Real_String is
    package Tokenizer is new Master_Token.Analyzer (Last_Terminal => Whitespace_ID);
 
    Syntax : constant Tokenizer.Syntax :=
-     (EOF_ID        => Tokenizer.Get (OpenToken.Recognizer.End_Of_File.Get, Tokens.EOF),
-      Identifier_ID => Tokenizer.Get (OpenToken.Recognizer.Identifier.Get, Tokens.Identifier),
-      Real_ID       => Tokenizer.Get (OpenToken.Recognizer.Real.Get, Tokens.Real),
-      String_ID     => Tokenizer.Get (OpenToken.Recognizer.String.Get, Tokens.String),
-      Whitespace_ID => Tokenizer.Get
+     (EOF_ID            => Tokenizer.Get (OpenToken.Recognizer.End_Of_File.Get, Tokens.EOF),
+      Identifier_ID     => Tokenizer.Get
+        (OpenToken.Recognizer.Identifier.Get
+           (Start_Chars => Ada.Strings.Maps.Constants.Letter_Set,
+            Body_Chars  => Ada.Strings.Maps.Constants.Alphanumeric_Set),
+         Tokens.Identifier),
+      Real_ID           => Tokenizer.Get (OpenToken.Recognizer.Real.Get, Tokens.Real),
+      String_ID         => Tokenizer.Get (OpenToken.Recognizer.String.Get, Tokens.String),
+      Whitespace_ID     => Tokenizer.Get
         (OpenToken.Recognizer.Character_Set.Get (OpenToken.Recognizer.Character_Set.Standard_Whitespace)));
 
    Expected_Identifier : Ada.Strings.Unbounded.Unbounded_String;

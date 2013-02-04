@@ -17,7 +17,6 @@ VPATH += ../../Language_Lexers
 VPATH += ../../wisi
 
 tests : association_token_test-run.diff
-tests : bracketed_comment_test-run.run
 tests : enumerated_token_list_test.run
 tests : name_token_test-run.diff
 tests : production_test-run.run
@@ -106,7 +105,7 @@ source-clean ::
 	-find $(SOURCE_ROOT) -name ".#*" -print | xargs rm -v
 	-find $(SOURCE_ROOT) -name "*,t" -print | xargs rm -v
 
-%.exe : %.adb force; gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P opentoken_test_agg.gpr $(GPRBUILD_ARGS) $*
+%.exe : %.adb force; gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P opentoken_test.gpr $(GPRBUILD_ARGS) $*
 
 # FIXME: gnatmake doesn't handle aggregate projects; add parameter to agg.gpr to handle -gnatc
 %.check : %.adb force; gnatmake -p -k -gnatc -Popentoken_test_agg.gpr $(GNATMAKE_ARGS) $*

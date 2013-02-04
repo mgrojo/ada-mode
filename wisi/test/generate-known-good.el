@@ -3,6 +3,7 @@
 
 ;; set up for calling `semantic-grammar-create-package'
 (add-to-list 'load-path "../../../org.emacs.ada-mode.smie"); wisi.el
+(add-to-list 'load-path "."); *-wy.el
 (require 'cl)
 
 (defun wisi-generate (&optional file)
@@ -13,7 +14,14 @@
     (condition-case err
 	(with-current-buffer (find-file-noselect file)
 	  (semantic-mode)
-	  (semantic-grammar-create-package))
+	  (let ((packagename (semantic-grammar-create-package))
+		(wisent-verbose-flag t))
+
+	    (when (file-exists-p "wisent.output")
+	      (delete-file "wisent.output"))
+
+	    (load packagename);; generates wisent.output
+	    ))
       (error
        (message "%s" (error-message-string err))
        nil))))

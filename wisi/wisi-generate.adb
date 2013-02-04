@@ -46,6 +46,9 @@ is
    Tokens           : String_Triplet_Lists.List;
    Rules            : Rule_Lists.List;
 
+   Copyright : constant String := "2013 Stephen Leake.  All Rights Reserved.";
+   --  FIXME: get copyright from grammar file
+
    procedure Use_Input_File (File_Name : in String)
    is
       use Ada.Text_IO;
@@ -88,6 +91,6 @@ begin
    Wisi.Prologue (Input_File, Prologue);
    Wisi.Declarations (Input_File, Declarations, Tokens);
    Wisi.Rules (Input_File, Rules);
-   Wisi.Output (-Input_File_Name, -Output_File_Root, Prologue, Declarations, Tokens, Rules);
+   Wisi.Output (-Input_File_Name, -Output_File_Root, Copyright, Prologue, Declarations, Tokens, Rules);
 
 end Wisi.Generate;

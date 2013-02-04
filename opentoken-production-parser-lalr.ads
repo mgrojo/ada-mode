@@ -40,9 +40,10 @@ package OpenToken.Production.Parser.LALR is
    --  of the parser execution without the parser generation.
    --  Analyzer is copied.
    overriding function Generate
-     (Grammar  : in Production_List.Instance;
-      Analyzer : in Tokenizer.Instance;
-      Trace    : in Boolean                  := False)
+     (Grammar     : in Production_List.Instance;
+      Analyzer    : in Tokenizer.Instance;
+      Trace       : in Boolean := False;
+      Put_Grammar : in Boolean := False)
      return Instance;
 
    overriding procedure Parse (Parser : in out Instance);
@@ -54,11 +55,9 @@ package OpenToken.Production.Parser.LALR is
    procedure Cleanup (Parser : in out Instance) is null;
 
    --------------------------------------------------------------------------
-   --  This routine displays the parse table for the parser to
-   --  Ada.Text_IO.Current_Output. This may be useful for debugging
-   --  grammars (or, heaven forbid, the parser itself).
+   --  Put the parse table for Parser to Ada.Text_IO.Current_Output.
    --------------------------------------------------------------------------
-   procedure Print_Table (Parser : in Instance);
+   procedure Put_Table (Parser : in Instance);
 
 private
 

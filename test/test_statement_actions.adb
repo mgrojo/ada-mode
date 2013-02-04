@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2009, 2010, 2012 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2009, 2010, 2012, 2013 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -20,18 +20,17 @@ pragma License (GPL);
 
 with AUnit.Assertions;
 with Ada.Exceptions;
-with OpenToken.Production.List.Print;
 with OpenToken.Production.Parser.LALR;
-with OpenToken.Production.Print;
+with OpenToken.Production.List;
 with OpenToken.Recognizer.Based_Integer;
 with OpenToken.Recognizer.Character_Set;
 with OpenToken.Recognizer.End_Of_File;
 with OpenToken.Recognizer.Keyword;
 with OpenToken.Recognizer.Separator;
 with OpenToken.Text_Feeder.String;
+with OpenToken.Token.Enumerated.List;
 with OpenToken.Token.Enumerated.Analyzer;
 with OpenToken.Token.Enumerated.Integer;
-with OpenToken.Token.Enumerated.List.Print;
 with OpenToken.Token.Enumerated.Nonterminal;
 package body Test_Statement_Actions is
 
@@ -164,22 +163,6 @@ package body Test_Statement_Actions is
    An_Analyzer : constant Tokenizer.Instance := Tokenizer.Initialize (Syntax);
    Command_Parser : LALR_Parser.Instance;
 
-   procedure Print_Action (Action : in Nonterminal.Synthesize) is null;
-
-   procedure Dump_Grammar
-   is
-      package Print_Token_List is new Token_List.Print;
-      package Print_Production is new Production.Print (Print_Token_List, Print_Action);
-      package Print_Production_List is new Production_List.Print (Print_Production.Print);
-   begin
-      Print_Production_List.Print (Grammar);
-   end Dump_Grammar;
-
-   procedure Dump_Parse_Table
-   is begin
-      LALR_Parser.Print_Table (Command_Parser);
-   end Dump_Parse_Table;
-
    procedure Execute_Command (Command : in String)
    is
       use LALR_Parser;
@@ -205,11 +188,7 @@ package body Test_Statement_Actions is
    begin
       Command_Parser := LALR_Parser.Generate (Grammar, An_Analyzer, Trace => Test.Debug);
 
-      if Test.Debug then
-         Dump_Grammar;
-         Dump_Parse_Table;
-         OpenToken.Trace_Parse := True;
-      end if;
+      OpenToken.Trace_Parse := Test.Debug;
 
       Execute_Command ("set 2;");
 

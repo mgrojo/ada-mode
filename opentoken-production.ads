@@ -119,6 +119,9 @@ package OpenToken.Production is
                   RHS : in Token.Class
                  ) return Instance;
 
+   function LHS_ID (Item : in Instance) return Token.Token_ID;
+   function Index (Item : in Instance) return Integer;
+
 private
 
    type Right_Hand_Side is record

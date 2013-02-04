@@ -1,9 +1,11 @@
 
-OK OpenToken.Recognizer.CSV_Field.Test : Nominal
 OK Lookahead_Test : Lookahead
 OK Lookahead_Test : Lookahead_Push_Back
 OK Lookahead_Test : Lookahead_Lexemes
 OK Lookahead_Test : Mismatched_Tokens
+OK ../Test/opentoken-recognizer-bracketed_comment-test.adb : Nominal
+OK ../Test/opentoken-recognizer-bracketed_comment-test.adb : Wisi
+OK OpenToken.Recognizer.CSV_Field.Test : Nominal
 OK Test_Accept_Index : Nominal
 OK Test_Backtrack : Enumerated_Lookahead
 OK Test_Backtrack : Sequence_Lookahead
@@ -18,8 +20,10 @@ OK Test_Selection_Actions : Selection_Action
 OK Test_Sequence_Actions : Sequence_Action
 OK Test_Statement_Actions : Nominal
 OK Test_Token_Identifier_Real_String : Nominal
+OK ../../Test/trivial_productions_test.adb : Expression
+OK ../../Test/trivial_productions_test.adb : Subprograms
 
-Total Tests Run:   19
-Successful Tests:  19
+Total Tests Run:   23
+Successful Tests:  23
 Failed Assertions: 0
 Unexpected Errors: 0

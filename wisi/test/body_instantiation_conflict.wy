@@ -29,15 +29,18 @@ library_item
 
 subprogram_body
   : subprogram_specification IS BEGIN NULL END SEMICOLON
+    `(wisi-statement-action 1 'statement-start 6 'statement-end)
   ;
 
 subprogram_specification
   : PROCEDURE IDENTIFIER LEFT_PAREN IDENTIFIER RIGHT_PAREN
+    `(wisi-statement-action 3 'open-paren 5 'close-paren)
   | PROCEDURE IDENTIFIER
   ;
 
 generic_instantiation
   : PROCEDURE IDENTIFIER IS NEW IDENTIFIER LEFT_PAREN IDENTIFIER RIGHT_PAREN SEMICOLON
+    `(wisi-statement-action 1 'statement-start 9 'statement-end)
   ;
 
 %%

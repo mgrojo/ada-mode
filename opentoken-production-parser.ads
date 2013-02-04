@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2002, 2003, 2010, 2012 Stephe Leake
+-- Copyright (C) 2002, 2003, 2010, 2012, 2013 Stephe Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -42,13 +42,15 @@ package OpenToken.Production.Parser is
 
    ----------------------------------------------------------------------------
    --  Create a new parser from the given grammar with the given token
-   --  analyzer.  If Trace, show intermediate results to
-   --  Current_Output.
+   --  analyzer. If Trace, put intermediate results to
+   --  Ada.Text_IO.Current_Output. If Put_Grammar, put the final parse
+   --  table and kernels to Ada.Text_IO.Current_Output.
    ----------------------------------------------------------------------------
    function Generate
-     (Grammar  : in Production_List.Instance;
-      Analyzer : in Tokenizer.Instance;
-      Trace    : in Boolean                  := False)
+     (Grammar     : in Production_List.Instance;
+      Analyzer    : in Tokenizer.Instance;
+      Trace       : in Boolean := False;
+      Put_Grammar : in Boolean := False)
      return Instance is abstract;
 
    ----------------------------------------------------------------------------

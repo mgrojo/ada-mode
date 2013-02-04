@@ -127,4 +127,14 @@ package body OpenToken.Production is
              );
    end "<=";
 
+   function LHS_ID (Item : in Instance) return Token.Token_ID
+   is begin
+      return Token.ID (Item.LHS.all);
+   end LHS_ID;
+
+   function Index (Item : in Instance) return Integer
+   is begin
+      return Item.RHS.Index;
+   end Index;
+
 end OpenToken.Production;

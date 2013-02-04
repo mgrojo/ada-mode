@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2009, 2010, 2012 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2009, 2010, 2012, 2013 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -18,14 +18,12 @@
 
 pragma License (GPL);
 
-with Ada.Exceptions;
-with Ada.Text_IO;
 with AUnit.Assertions;
-with OpenToken.Production.List.Print;
+with Ada.Exceptions;
+with Ada.Strings.Maps.Constants;
 with OpenToken.Production.List;
 with OpenToken.Production.Parser.LALR;
 with OpenToken.Production.Parser;
-with OpenToken.Production.Print;
 with OpenToken.Recognizer.Based_Integer;
 with OpenToken.Recognizer.Character_Set;
 with OpenToken.Recognizer.End_Of_File;
@@ -35,7 +33,6 @@ with OpenToken.Recognizer.Separator;
 with OpenToken.Text_Feeder.String;
 with OpenToken.Token.Enumerated.Analyzer;
 with OpenToken.Token.Enumerated.Integer;
-with OpenToken.Token.Enumerated.List.Print;
 with OpenToken.Token.Enumerated.List;
 with OpenToken.Token.Enumerated.Nonterminal;
 package body Test_Accept_Index is
@@ -78,13 +75,16 @@ package body Test_Accept_Index is
    Statement      : constant Nonterminal.Class  := Nonterminal.Get (Statement_ID);
 
    Syntax : constant Tokenizer.Syntax :=
-     (Equals_ID     => Tokenizer.Get (OpenToken.Recognizer.Separator.Get ("="), Master_Token.Get (Equals_ID, "=")),
-      Int_ID        => Tokenizer.Get (OpenToken.Recognizer.Based_Integer.Get, Int),
-      Set_ID        => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("set"), Master_Token.Get (Set_ID, "set")),
-      EOF_ID        => Tokenizer.Get (OpenToken.Recognizer.End_Of_File.Get, Master_Token.Get (EOF_ID)),
-      Identifier_ID => Tokenizer.Get
-        (OpenToken.Recognizer.Identifier.Get, Master_Token.Get (Identifier_ID, "identifier")),
-      Whitespace_ID => Tokenizer.Get
+     (Equals_ID         => Tokenizer.Get (OpenToken.Recognizer.Separator.Get ("="), Master_Token.Get (Equals_ID, "=")),
+      Int_ID            => Tokenizer.Get (OpenToken.Recognizer.Based_Integer.Get, Int),
+      Set_ID            => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("set"), Master_Token.Get (Set_ID, "set")),
+      EOF_ID            => Tokenizer.Get (OpenToken.Recognizer.End_Of_File.Get, Master_Token.Get (EOF_ID)),
+      Identifier_ID     => Tokenizer.Get
+        (OpenToken.Recognizer.Identifier.Get
+           (Start_Chars => Ada.Strings.Maps.Constants.Letter_Set,
+            Body_Chars  => Ada.Strings.Maps.Constants.Alphanumeric_Set),
+         Master_Token.Get (Identifier_ID, "identifier")),
+      Whitespace_ID     => Tokenizer.Get
         (OpenToken.Recognizer.Character_Set.Get (OpenToken.Recognizer.Character_Set.Standard_Whitespace)));
 
    use type Production.Instance;        --  "<="
@@ -102,24 +102,6 @@ package body Test_Accept_Index is
    Analyzer      : constant Tokenizer.Instance := Tokenizer.Initialize (Syntax);
    Parser        : LALR_Parser.Instance;
 
-   procedure Print_Action (Action : in Nonterminal.Synthesize) is null;
-
-   procedure Dump_Grammar
-   is
-      package Print_Token_List is new Token_List.Print;
-      package Print_Production is new Production.Print (Print_Token_List, Print_Action);
-      package Print_Production_List is new Production_List.Print (Print_Production.Print);
-   begin
-      Print_Production_List.Print (Grammar);
-      Ada.Text_IO.New_Line;
-   end Dump_Grammar;
-
-   procedure Dump_Parse_Table
-   is begin
-      LALR_Parser.Print_Table (Parser);
-      Ada.Text_IO.New_Line;
-   end Dump_Parse_Table;
-
    ----------
    --  Test procedures
 
@@ -129,13 +111,9 @@ package body Test_Accept_Index is
    begin
       --  The test is that there are no exceptions.
 
-      Parser := LALR_Parser.Generate (Grammar, Analyzer, Trace => Test.Debug);
+      Parser := LALR_Parser.Generate (Grammar, Analyzer, Trace => Test.Debug, Put_Grammar => Test.Debug);
 
-      if Test.Debug then
-         Dump_Grammar;
-         Dump_Parse_Table;
-         OpenToken.Trace_Parse := True;
-      end if;
+      OpenToken.Trace_Parse := Test.Debug;
 
       LALR_Parser.Set_Text_Feeder (Parser, String_Feeder'Unchecked_Access);
 

@@ -9,11 +9,16 @@ t_one : test_one_harness.run
 t_all : test_all_harness.run
 
 #one : subprograms-wy.el
-one : ada-subset-wy.el
+#one : ada-subset-wy.el
+one : body_instantiation_conflict-wy.el
+#one : range_conflict-wy.el
 #one : ../../wisi/test/ada-subset-wy.el
+#one : ../../wisi/test/subprograms-wy.el
+two : ../../wisi/test/body_instantiation_conflict-wy.el
+#two : ../../wisi/test/range_conflict-wy.el
 #one : asu_example_5_10_lr-run.run
 
-#%-wy.el : RUN_ARGS := -v
+%-wy.el : RUN_ARGS := -v 1 > wisi.output
 %-wy.el : wisi-%-generate.exe
 	./wisi-$*-generate.exe $(RUN_ARGS)
 

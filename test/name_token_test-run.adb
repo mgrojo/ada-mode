@@ -2,7 +2,7 @@
 --
 --  Run Name_Token_Test
 --
---  Copyright (C) 2002, 2003, 2009 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2002, 2003, 2009, 2013 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -54,12 +54,9 @@ begin
 
    Put_Line ("Simple Parser");
    declare
-      Simple_Parser : LALR_Parser.Instance := LALR_Parser.Generate (Simple_Grammar, The_Analyzer, Trace => Trace);
+      Simple_Parser : LALR_Parser.Instance := LALR_Parser.Generate
+        (Simple_Grammar, The_Analyzer, Trace => Trace, Put_Grammar => Trace);
    begin
-      if Trace then
-         LALR_Parser.Print_Table (Simple_Parser);
-      end if;
-
       Parse_Command (Simple_Parser, "Module (Index)");
       Parse_Command (Simple_Parser, "Module.Component");
    end;
@@ -67,12 +64,9 @@ begin
    New_Line;
    Put_Line ("Medium Parser");
    declare
-      Medium_Parser : LALR_Parser.Instance := LALR_Parser.Generate (Medium_Grammar, The_Analyzer, Trace => Trace);
+      Medium_Parser : LALR_Parser.Instance := LALR_Parser.Generate
+        (Medium_Grammar, The_Analyzer, Trace => Trace, Put_Grammar => Trace);
    begin
-      if Trace then
-         LALR_Parser.Print_Table (Medium_Parser);
-      end if;
-
       Parse_Command (Medium_Parser, "Module.Symbol (Index)");
       Parse_Command (Medium_Parser, "Module.Symbol.Component");
    end;
@@ -80,12 +74,9 @@ begin
    New_Line;
    Put_Line ("Full Parser");
    declare
-      Full_Parser : LALR_Parser.Instance := LALR_Parser.Generate (Full_Grammar, The_Analyzer, Trace => Trace);
+      Full_Parser : LALR_Parser.Instance := LALR_Parser.Generate
+        (Full_Grammar, The_Analyzer, Trace => Trace, Put_Grammar => Trace);
    begin
-      if Trace then
-         LALR_Parser.Print_Table (Full_Parser);
-      end if;
-
       Parse_Command (Full_Parser, "Module.Symbol");
       Parse_Command (Full_Parser, "Module.Symbol (Index)");
       Parse_Command (Full_Parser, "Module.Symbol.Component");

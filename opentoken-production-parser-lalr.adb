@@ -32,7 +32,6 @@ with Ada.Characters.Latin_1;
 with Ada.Exceptions;
 with Ada.Text_IO;
 with Ada.Unchecked_Deallocation;
-with Ada.Strings;
 with Ada.Strings.Unbounded;
 with Ada.Strings.Fixed;
 with Ada.Integer_Text_IO;
@@ -204,13 +203,13 @@ package body OpenToken.Production.Parser.LALR is
       while Next_Prop /= null loop
 
          Ada.Text_IO.Put ("From ");
-         LRk.Print_Item (Next_Prop.From.all);
+         LRk.Put_Item (Next_Prop.From.all);
          Ada.Text_IO.New_Line;
 
          Next_To := Next_Prop.To;
          while Next_To /= null loop
             Ada.Text_IO.Put ("          To ");
-            LRk.Print_Item (Next_To.Item.all);
+            LRk.Put_Item (Next_To.Item.all);
             Ada.Text_IO.New_Line;
 
             Next_To := Next_To.Next;
@@ -222,19 +221,16 @@ package body OpenToken.Production.Parser.LALR is
    end Print_Propagations;
 
    ----------------------------------------------------------------------------
-   --  Add propagation entires (if they don't already exist) from the given item
-   --  to all kernel items that match the given To item.
+   --  Add propagation entries (if they don't already exist) from From
+   --  to all kernel items that match To.
    ----------------------------------------------------------------------------
    procedure Add_Propagations
      (From         : in     LRk.Item_Ptr;
       From_Set     : in     LRk.Item_Set;
       To           : in     LRk.Item_Node;
       For_Token    : in     Token.Token_ID;
-      Kernels      : in     LRk.Item_Set_List;
       Propagations : in out Item_Item_List_Mapping_Ptr)
    is
-      pragma Unreferenced (Kernels);
-
       To_Kernel  : LRk.Item_Ptr;
 
       Prop_Match    : Item_Item_List_Mapping_Ptr;
@@ -313,7 +309,6 @@ package body OpenToken.Production.Parser.LALR is
      (Source_Item  : in     LRk.Item_Ptr;
       Source_Set   : in     LRk.Item_Set;
       Closure_Item : in     LRk.Item_Node;
-      Kernels      : in     LRk.Item_Set_List;
       Accept_Index : in     Integer;
       Propagations : in out Item_Item_List_Mapping_Ptr;
       Trace        : in     Boolean)
@@ -342,7 +337,7 @@ package body OpenToken.Production.Parser.LALR is
             begin
                if Trace then
                   Ada.Text_IO.Put_Line ("Adding default lookahead:");
-                  LRk.Print_Item (Source_Item.all);
+                  LRk.Put_Item (Source_Item.all);
                   Ada.Text_IO.New_Line;
                   Ada.Text_IO.Put_Line ("   " & LRk.Print (Lookahead));
                end if;
@@ -377,9 +372,7 @@ package body OpenToken.Production.Parser.LALR is
                From_Set     => Source_Set,
                To           => Next_Item,
                For_Token    => Token.ID (Token_List.Token_Handle (Closure_Item.Pointer).all),
-               Kernels      => Kernels,
-               Propagations => Propagations
-              );
+               Propagations => Propagations);
 
          else
             --  Lookaheads are generated spontaneously for all items
@@ -397,7 +390,7 @@ package body OpenToken.Production.Parser.LALR is
             if Next_Kernel /= null then
                if Trace then
                   Ada.Text_IO.Put_Line ("Adding spontaneous lookahead:");
-                  LRk.Print_Item (Next_Kernel.all);
+                  LRk.Put_Item (Next_Kernel.all);
                   Ada.Text_IO.New_Line;
                   Ada.Text_IO.Put_Line ("   " & LRk.Print (Lookahead.all));
                end if;
@@ -454,7 +447,7 @@ package body OpenToken.Production.Parser.LALR is
 
                      if Trace and Added_One then
                         Ada.Text_IO.Put_Line ("Adding propagated lookahead:");
-                        LRk.Print_Item (To.Item.all);
+                        LRk.Put_Item (To.Item.all);
                         Ada.Text_IO.New_Line;
                         Ada.Text_IO.Put_Line ("   " & LRk.Print (Lookahead));
                      end if;
@@ -535,7 +528,7 @@ package body OpenToken.Production.Parser.LALR is
             while Closure_Item /= null loop
 
                Generate_Lookahead_Info
-                 (Kernel_Item, Kernel.all, Closure_Item.all, Kernels, Accept_Index, Propagation_List, Trace);
+                 (Kernel_Item, Kernel.all, Closure_Item.all, Accept_Index, Propagation_List, Trace);
 
                Closure_Item := Closure_Item.Next;
             end loop;
@@ -572,140 +565,89 @@ package body OpenToken.Production.Parser.LALR is
       return Ada.Strings.Fixed.Trim (Source => State_Image, Side => Ada.Strings.Both);
    end Integer_Image;
 
-   function Print_Parse_Action
-     (Action  : in Parse_Action;
-      Kernels : in LRk.Item_Set_List)
-     return String
-   is
-      use type Ada.Strings.Unbounded.Unbounded_String;
-      Result : Ada.Strings.Unbounded.Unbounded_String;
-
-      Dest_Kernel : LRk.Item_Set_Ptr := Kernels.Head;
-   begin
-      case Action.Verb is
-      when Shift =>
-         Result := Result & "shift and goto state" & State_Index'Image (Action.State) & ": ";
-
-         while State_Index (Dest_Kernel.Index) /= Action.State loop
-            Dest_Kernel := Dest_Kernel.Next;
-         end loop;
-         Result := Result & LRk.Image (Dest_Kernel.all);
-
-      when Reduce =>
-         Result := Result & "reduce the last" & Integer'Image (Action.Length) &
-           " tokens using production " & LRk.Print_Item
-           ((Prod          => Action.Production,
-             Pointer       => Token_List.Null_Iterator,
-             Lookahead_Set => null,
-             Next          => null));
-
-      when Accept_It =>
-         Result := Result & "accept it";
-
-      when Error =>
-         Result := Result & "ERROR";
-      end case;
-
-      return Ada.Strings.Unbounded.To_String (Result);
-   end Print_Parse_Action;
-
-   --------------------------------------------------------------------------
-   --  Print the given Action node. This routine is included for
-   --  debugging purposes.
-   --------------------------------------------------------------------------
-   function Print_Parse_Action (Action : in Parse_Action) return String
-   is
-      use type Ada.Strings.Unbounded.Unbounded_String;
-      Result : Ada.Strings.Unbounded.Unbounded_String;
-   begin
-      case Action.Verb is
-      when Shift =>
-         Result := Result & "shift and goto state " & Integer_Image (Integer (Action.State));
-
-      when Reduce =>
-         Result := Result & "reduce the last " & Integer_Image (Action.Length) &
-           " tokens using production" & Line_End & "   " &
-           LRk.Print_Item
-           ((Prod          => Action.Production,
-             Pointer       => Token_List.Null_Iterator,
-             Lookahead_Set => null,
-             Next          => null));
-      when Accept_It =>
-         Result := Result & "accept it";
-      when Error =>
-         Result := Result & "ERROR";
-      end case;
-
-      return Ada.Strings.Unbounded.To_String (Result);
-   end Print_Parse_Action;
-
-   --------------------------------------------------------------------------
-   --  Print the given Action node. This routine is included for
-   --  debugging purposes.
-   --------------------------------------------------------------------------
-   function Print_Action_Node (Node : in Action_Node) return String
-   is
-      use type Ada.Strings.Unbounded.Unbounded_String;
-      Result : Ada.Strings.Unbounded.Unbounded_String;
-   begin
-      Result := Result & Tokenizer.Terminal_ID'Image (Node.Symbol) & " => " &
-        Print_Parse_Action (Node.Action);
-
-      return Ada.Strings.Unbounded.To_String (Result);
-   end Print_Action_Node;
-
-   --------------------------------------------------------------------------
-   --  Print the given Reduction node. This routine is included for
-   --  debugging purposes.
-   --------------------------------------------------------------------------
-   function Print_Reduction_Node (Node : in Reduction_Node) return String
-   is
-      use type Ada.Strings.Unbounded.Unbounded_String;
-      Result : Ada.Strings.Unbounded.Unbounded_String;
-   begin
-      Result := Result & "on " & Token.Token_ID'Image (Node.Symbol) &
-        " goto state " & Integer_Image (Integer (Node.State));
-
-      return Ada.Strings.Unbounded.To_String (Result);
-   end Print_Reduction_Node;
-
-   ----------------------------------------------------------------------------
-   --  Print the given parse state. This routine is included for debugging
-   --  purposes.
-   ----------------------------------------------------------------------------
-   procedure Print_Parse_State (State : in Parse_State)
+   procedure Put_Parse_Action (Action : in Parse_Action)
    is
       use Ada.Text_IO;
+   begin
+      case Action.Verb is
+      when Shift =>
+         Put ("shift and goto state" & State_Index'Image (Action.State));
+
+      when Reduce =>
+         Put
+           ("reduce" & Integer'Image (Action.Length) &
+              " tokens to " & Token.Token_ID'Image (LHS_ID (Action.Production)));
+      when Accept_It =>
+         Put ("accept it");
+      when Error =>
+         Put ("ERROR");
+      end case;
+   end Put_Parse_Action;
+
+   procedure Put_Parse_State
+     (State      : in Parse_State;
+      Kernel_Set : in LRk.Item_Set_Ptr)
+   is
+      use Ada.Text_IO;
+      use Ada.Strings.Fixed;
+      use type LRk.Item_Ptr;
       Action    : Action_Node_Ptr    := State.Action_List;
       Reduction : Reduction_Node_Ptr := State.Reduction_List;
+      Kernel    : LRk.Item_Ptr       := Kernel_Set.Set;
    begin
-      Put_Line ("Actions:");
+      New_Line;
+      while Kernel /= null loop
+         LRk.Put_Item (Kernel.all, "   ");
+         New_Line;
+         Kernel := Kernel.Next;
+      end loop;
+
+      New_Line;
+      if Action = null then
+         raise Programmer_Error with "LALR: Action contains no error entry";
+      elsif Action.Next = null then
+         Put_Line ("   (no actions)");
+      end if;
+
       while Action /= null loop
-         Put_Line (Print_Action_Node (Action.all));
+         --  Don't put last action; it is always ERROR
+         if Action.Next /= null then
+            Put ("   " & Tokenizer.Terminal_ID'Image (Action.Symbol) &
+                   (Tokenizer.Terminal_ID'Width - Tokenizer.Terminal_ID'Image (Action.Symbol)'Length) * ' '
+                   & " => ");
+            Put_Parse_Action (Action.Action);
+            New_Line;
+         end if;
          Action := Action.Next;
       end loop;
 
-      Put_Line ("Reductions:");
+      New_Line;
+      --  FIXME: these are "gotos"; the state to goto after reducing to Reduction.symbol. or something like that.
+      --  Reduction actions are shown above. Change the name!
       while Reduction /= null loop
-         Put_Line (Print_Reduction_Node (Reduction.all));
+         if Reduction.Symbol not in Tokenizer.Terminal_ID then
+            --  Terminal_IDs are shown in Actions, above
+            Put_Line
+              ("   " & Token.Token_ID'Image (Reduction.Symbol) &
+                 (Token.Token_ID'Width - Token.Token_ID'Image (Reduction.Symbol)'Length) * ' ' &
+                 " goto state" & State_Index'Image (Reduction.State));
+         end if;
          Reduction := Reduction.Next;
       end loop;
-   end Print_Parse_State;
+   end Put_Parse_State;
 
-   --------------------------------------------------------------------------
-   --  Print the given parse table to Ada.Text_IO.Current_Output. This
-   --  routine is included for debugging purposes.
-   --------------------------------------------------------------------------
-   procedure Print_Parse_Table (Table : in Parse_Table)
+   procedure Put_Parse_Table
+     (Table       : in Parse_Table;
+      Kernel_Sets : in LRk.Item_Set_List)
    is
       use Ada.Text_IO;
    begin
       for State in Table'Range loop
-         Put_Line ("State " & Integer_Image (Integer (State)) & ":");
-         Print_Parse_State (Table (State));
+         Put_Line ("State" & State_Index'Image (State) & ":");
+         Put_Parse_State (Table (State), LRk.Find (Integer (State), Kernel_Sets));
          New_Line;
       end loop;
-   end Print_Parse_Table;
+   end Put_Parse_Table;
 
    --  Add (Symbol, Action) to Action_List
    procedure Add_Action
@@ -713,7 +655,6 @@ package body OpenToken.Production.Parser.LALR is
       Action      : in     Parse_Action;
       Action_List : in out Action_Node_Ptr;
       Source      : in     LRk.Item_Set;
-      Kernels     : in     LRk.Item_Set_List;
       Conflicts   : in out Ada.Strings.Unbounded.Unbounded_String)
    is
       --  Source .. Conflicts are for error reporting
@@ -726,15 +667,11 @@ package body OpenToken.Production.Parser.LALR is
             --  conflict; just don't add it again.
             return;
          else
-            --  There is a conflict
+            --  There is a conflict. Report it, but add it anyway, so
+            --  an enhanced parser can follow both paths
             Conflicts := Conflicts & Parse_Action_Verbs'Image (Matching_Action.Action.Verb) &
-              "/" & Parse_Action_Verbs'Image (Action.Verb) & " in state:" & Natural'Image (Source.Index) & Line_End &
-              LRk.Image (Source)
-              & " on token " & Tokenizer.Terminal_ID'Image (Symbol) & Line_End &
-              Print_Parse_Action (Matching_Action.Action, Kernels) & Line_End &
-              "   and" & Line_End &
-              Print_Parse_Action (Action, Kernels) & Line_End;
-            return;
+              "/" & Parse_Action_Verbs'Image (Action.Verb) & " in state:" & Natural'Image (Source.Index) &
+              " on token " & Tokenizer.Terminal_ID'Image (Symbol) & Line_End;
          end if;
       end if;
 
@@ -833,7 +770,6 @@ package body OpenToken.Production.Parser.LALR is
                            Length     => Production_Length),
                         Action_List   => Table (State_Index (Kernel.Index)).Action_List,
                         Source        => Kernel.all,
-                        Kernels       => LRk_Kernels,
                         Conflicts     => Conflicts);
                   else
                      if Trace then
@@ -848,7 +784,6 @@ package body OpenToken.Production.Parser.LALR is
                            Length     => Production_Length),
                         Action_List   => Table (State_Index (Kernel.Index)).Action_List,
                         Source        => Kernel.all,
-                        Kernels       => LRk_Kernels,
                         Conflicts     => Conflicts);
                   end if;
 
@@ -876,7 +811,6 @@ package body OpenToken.Production.Parser.LALR is
                            Symbol => Token.ID (Token_List.Token_Handle (Item.Pointer).all)).Index)),
                   Action_List     => Table (State_Index (Kernel.Index)).Action_List,
                   Source          => Kernel.all,
-                  Kernels         => LRk_Kernels,
                   Conflicts       => Conflicts);
 
             else
@@ -893,11 +827,6 @@ package body OpenToken.Production.Parser.LALR is
          end loop;
 
          LRk.Free (Closure);
-
-         if Length (Conflicts) /= 0 then
-            Ada.Text_IO.Put_Line (Ada.Text_IO.Standard_Error, "Conflicts: ");
-            Ada.Text_IO.Put_Line (Ada.Text_IO.Standard_Error, To_String (Conflicts));
-         end if;
 
          --  Fill in this item's Goto transitions
          Goto_Node := Kernel.Goto_List;
@@ -939,6 +868,11 @@ package body OpenToken.Production.Parser.LALR is
 
          Kernel := Kernel.Next;
       end loop;
+
+      if Length (Conflicts) /= 0 then
+         Ada.Text_IO.Put_Line (Ada.Text_IO.Standard_Error, "Conflicts: ");
+         Ada.Text_IO.Put_Line (Ada.Text_IO.Standard_Error, To_String (Conflicts));
+      end if;
 
    end Fill_In_Parse_Table;
 
@@ -987,9 +921,10 @@ package body OpenToken.Production.Parser.LALR is
    end Reduce_Stack;
 
    overriding function Generate
-     (Grammar  : in Production_List.Instance;
-      Analyzer : in Tokenizer.Instance;
-      Trace    : in Boolean                  := False)
+     (Grammar     : in Production_List.Instance;
+      Analyzer    : in Tokenizer.Instance;
+      Trace       : in Boolean := False;
+      Put_Grammar : in Boolean := False)
      return Instance
    is
       New_Parser  : Instance;
@@ -1041,6 +976,10 @@ package body OpenToken.Production.Parser.LALR is
 
       --  Add actions
       Fill_In_Parse_Table (Kernels, Accept_Index, Grammar, First_Tokens, New_Parser.Table.all, Trace);
+
+      if Put_Grammar then
+         Put_Parse_Table (New_Parser.Table.all, Kernels);
+      end if;
 
       LRk.Free (Kernels);
       return New_Parser;
@@ -1244,10 +1183,10 @@ package body OpenToken.Production.Parser.LALR is
       end loop;
    end Parse;
 
-   procedure Print_Table (Parser : in Instance) is
+   procedure Put_Table (Parser : in Instance) is
    begin
       Ada.Text_IO.Put_Line ("Parse Table:");
-      Print_Parse_Table (Parser.Table.all);
-   end Print_Table;
+      Put_Parse_Table (Parser.Table.all, (null, 0));
+   end Put_Table;
 
 end OpenToken.Production.Parser.LALR;
