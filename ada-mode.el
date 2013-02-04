@@ -193,11 +193,13 @@ If nil, no contextual menu is available."
     ["------"        nil nil]
     ["Next compilation error"     next-error                t]
     ["Show secondary error"       ada-show-secondary-error  t]
+    ["------"        nil nil]
     ["Other File"                 ada-find-other-file       t]
     ["Other File don't find decl" ada-find-other-file-noset t]
     ["Goto Declaration/Body"      ada-goto-declaration      t]
     ["Goto parent declaration"    ada-goto-declaration-parent t]
     ["Show references"            ada-show-references       t]
+    ["------"        nil nil]
     ("Edit"
      ["Indent Line"                 indent-for-tab-command  t]
      ["Indent Lines in Selection"   indent-region           t]
@@ -212,6 +214,10 @@ If nil, no contextual menu is available."
       ada-fill-comment-paragraph-postfix                         t]
      ["---"                         nil                          nil]
      ["Make body for subprogram"    ada-make-subprogram-body     t]
+     )
+    ("Case Exceptions"
+     ["Create full exception"    'ada-case-create-exception t]
+     ["Create partial exception" (lambda () (interactive) (ada-case-create-exception nil nil t)) t]
      )
     ))
 
@@ -656,8 +662,9 @@ replacing current values of `ada-case-full-exceptions', `ada-case-partial-except
 (defun ada-case-create-exception (&optional word file-name partial)
   "Define WORD as an exception for the casing system, save it in FILE-NAME.
 If PARTIAL is non-nil, create a partial word exception.
-WORD defaults to the word at point.
-FILE-NAME defaults to the first file in `ada-case-exception-file'."
+WORD defaults to the active region, or the word at point.
+When non-interactive, FILE-NAME defaults to the first file in `ada-case-exception-file';
+when interactive, user is prompted to choose a file from `ada-case-exception-file'."
   (interactive)
   (setq file-name
 	(cond
@@ -665,21 +672,32 @@ FILE-NAME defaults to the first file in `ada-case-exception-file'."
 	 ((stringp ada-case-exception-file)
 	  ada-case-exception-file)
 	 ((and
-	   (listp ada-case-exception-file)
-	   ;; FIXME: prompt if interactive, with choices from ada-case-exception-file
-	   (car ada-case-exception-file)))
+	   ada-case-exception-file;; nil is a list
+	   (listp ada-case-exception-file))
+	  (if (called-interactively-p)
+	      ;; FIXME: not tested yet
+	      (completing-read "case exception file: " ada-case-exception-file
+			       nil ;; predicate
+			       t   ;; require-match
+			       nil ;; initial-input
+			       nil ;; hist
+			       (car ada-case-exception-file) ;; default
+			       )
+	    (car ada-case-exception-file)))
 	 (t
 	  (error
-	   "No exception file specified. See variable ada-case-exception-file"))))
+	   "No exception file specified. See variable `ada-case-exception-file'"))))
 
   (unless word
-    (save-excursion
-      (skip-syntax-backward "w_")
-      (setq word
-	    (buffer-substring-no-properties
-	     (point)
-	     (progn (skip-syntax-forward "w_") (point))
-	     ))))
+    (if (use-region-p)
+	(setq word (buffer-substring-no-properties (region-beginning) (region-end)))
+      (save-excursion
+	(skip-syntax-backward "w_")
+	(setq word
+	      (buffer-substring-no-properties
+	       (point)
+	       (progn (skip-syntax-forward "w_") (point))
+	       )))))
 
   (let* ((exceptions (ada-case-read-exceptions file-name))
 	 (full-exceptions (car exceptions))
@@ -695,6 +713,10 @@ FILE-NAME defaults to the first file in `ada-case-exception-file'."
       (setq partial-exceptions (ada-case-add-exception word partial-exceptions)))
      )
     (ada-case-save-exceptions full-exceptions partial-exceptions file-name)
+    (message "created %s case exception '%s' in file '%s'"
+	     (if partial "partial" "full")
+	     word
+	     file-name)
     ))
 
 (defun ada-in-numeric-literal-p ()
@@ -1481,23 +1503,22 @@ Ada mode initialization does this correctly, if you set
 `pop-up-frames' to non-nil before ada-mode.el is loaded)."
   ;; The above means we don't get here with prefix arg nil; the user
   ;; is requesting other frame or other window.
-  (cond
-   ((let* ((window (ada-buffer-window buffer-or-name))
-	   (frame (and window (window-frame window))))
-      (when frame
-	;; buffer currently visible in `frame'
-	(ada-display-buffer-other-frame buffer-or-name t))))
+  ;;
+  ;; FIXME: use `display-buffer-overriding-action' to accomplish this? see misc_defun.el misc-compile
+  (let* ((window (ada-buffer-window buffer-or-name))
+	 (frame (and window (window-frame window))))
 
-   ((or pop-up-frames (equal current-prefix-arg '(16)))
+    (cond
+     ((or pop-up-frames (equal current-prefix-arg '(16)))
       ;; other frame
-      (ada-display-buffer-other-frame buffer-or-name))
+      (ada-display-buffer-other-frame buffer-or-name (not (equal (selected-frame) frame))))
 
-   (t ;; other window
-    (let ((display-buffer-function nil))
-      ;; we use standard display-buffer, since it handles this case
-      ;; the way current code expects it to.
-      (display-buffer buffer-or-name old-other-window)))
-  ))
+     (t ;; other window
+      (let ((display-buffer-function nil))
+	;; we use standard display-buffer, since it handles this case
+	;; the way current code expects it to.
+	(display-buffer buffer-or-name old-other-window)))
+     )))
 
 (defun ada-find-other-file-noset (other-window-frame)
   "Same as `ada-find-other-file', but preserve point in the other file,
@@ -1768,23 +1789,29 @@ C-u C-u : show in other frame"
 
   ;; FIXME: preserving the current window works only if the frame
   ;; doesn't change, at least on Windows.
-  (let ((start-window (selected-window))
+  (let ((start-buffer (current-buffer))
+	(start-window (selected-window))
 	(start-frame (selected-frame))
 	pos item)
-    (with-current-buffer compilation-last-buffer
-      (setq pos (next-single-property-change (point) 'ada-secondary-error))
-      (when pos
-	(setq item (get-text-property pos 'ada-secondary-error))))
+    (set-buffer compilation-last-buffer)
+    (setq pos (next-single-property-change (point) 'ada-secondary-error))
+    (when pos
+      (setq item (get-text-property pos 'ada-secondary-error))
+      ;; set point in compilation buffer past this secondary error,
+      ;; so user can easily go to the next one.
+      ;; FIXME: this has no effect!
+      (goto-char (next-single-property-change pos 'ada-secondary-error)))
 
+    (set-buffer start-buffer);; for windowing history
     (when item
-	(ada-goto-source
-	 (nth 0 item); file
-	 (nth 1 item); line
-	 (nth 2 item); column
-	 other-window-frame)
-	(select-window start-window)
-	(select-frame start-frame)
-	)
+      (ada-goto-source
+       (nth 0 item); file
+       (nth 1 item); line
+       (nth 2 item); column
+       other-window-frame)
+      (select-window start-window)
+      (select-frame start-frame)
+      )
     ))
 
 (defvar ada-goto-declaration-start nil

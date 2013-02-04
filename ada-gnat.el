@@ -502,8 +502,8 @@ For `compilation-filter-hook'."
     ;; compilation-filter might insert partial lines, or it might insert multiple lines
     (when (bolp)
       (while (not (eobp))
-	;; We don't want 'next-error' to always go to this
-	;; reference, so we _don't_ set 'compilation-message text
+	;; We don't want 'next-error' to always go to secondary
+	;; references, so we _don't_ set 'compilation-message text
 	;; property. Instead, we set 'ada-secondary-error, so
 	;; `ada-goto-secondary-error' will handle it. We also set
 	;; fonts, so the user can see the reference.
@@ -517,6 +517,8 @@ For `compilation-filter-hook'."
 	;;
 	;; lookahead_test.ads:23:09: "Name" has been inherited from subprogram at aunit-simple_test_cases.ads:47
 	;;
+	;; lalr.adb:668:37: non-visible declaration at analyzer.ads:60, instance at parser.ads:38
+	;;
 	;; save the file from the primary reference, look for "*.ad?:nn", "at line nnn"
 
 	(let (file)
@@ -525,9 +527,10 @@ For `compilation-filter-hook'."
 
 	  (skip-syntax-forward "^-"); space following primary reference
 
-	  (when (search-forward-regexp "\\s-\\(\\([^[:blank:]]+\\.[[:alpha:]]+\\):\\([0-9]+\\)\\)"
-				       (line-end-position) t)
+	  (while (search-forward-regexp "\\s-\\(\\([^[:blank:]]+\\.[[:alpha:]]+\\):\\([0-9]+\\)\\)"
+					(line-end-position) t)
 
+	    (goto-char (match-end 0))
 	    (with-silent-modifications
 	      (compilation--put-prop 2 'font-lock-face compilation-info-face); file
 	      (compilation--put-prop 3 'font-lock-face compilation-line-face); line
@@ -610,7 +613,7 @@ For `compilation-filter-hook'."
        ((looking-at (concat ada-gnat-quoted-name-regexp " is not visible"))
 	(let ((ident (match-string 1))
 	      (done nil)
-	      (file-line-struct (progn (beginning-of-line) (get-text-property (point) 'message)))
+	      (file-line-struct (progn (beginning-of-line) (ada-get-compilation-message)))
 	      pos choices unit-name)
 	  ;; next line may contain a reference to where ident is
 	  ;; defined; if present, it will have been marked by
@@ -622,7 +625,7 @@ For `compilation-filter-hook'."
 	    (next-line 1)
 	    (setq done (not
 			(and
-			 (equal file-line-struct (get-text-property (point) 'message))
+			 (equal file-line-struct (ada-get-compilation-message))
 			 (setq pos (next-single-property-change
 				    (point) 'ada-secondary-error nil (line-end-position))))))
 	    (when (not done)
@@ -869,6 +872,14 @@ For `compilation-filter-hook'."
        ((looking-at "(style) bad indentation")
 	(set-buffer source-buffer)
 	(funcall indent-line-function)
+	t)
+
+       ((looking-at "(style) space not allowed")
+	(set-buffer source-buffer)
+	;; Error places point on space. More than one trailing space
+	;; should be fixed by delete-trailing-whitespace in
+	;; before-save-hook, once the file is modified.
+	(delete-char 1)
 	t)
 
        ((looking-at "(style) space required")

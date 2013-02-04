@@ -131,6 +131,13 @@ compilation buffer.
 Hook functions should return t if the error is recognized and
 fixed, leaving point at fix. Otherwise, they should return nil.")
 
+(defun ada-get-compilation-message ()
+  "Get compilation message at point.
+Compatible with Emacs 23.4 and 24.x."
+  (case emacs-major-version
+    (23 (get-text-property (point) 'message))
+    (24 (get-text-property (point) 'compilation-message))))
+
 (defun ada-fix-compiler-error ()
   "Attempt to fix the current compiler error. Leave point at fixed code."
   (interactive)
@@ -140,11 +147,7 @@ fixed, leaving point at fix. Otherwise, they should return nil.")
         (line-move-visual nil)); screws up next-line otherwise
 
     (with-current-buffer compilation-last-buffer
-      (when (not (or
-		  ;; not clear when each of these is used!
-		  ;; 2 Feb 2013 Emacs 23.4: 'message
-		  (get-text-property (point) 'compilation-message)
-		  (get-text-property (point) 'message)))
+      (when (not (ada-get-compilation-message))
 	;; not clear why this can happens, but it does
 	(compilation-next-error 1))
       (let ((success

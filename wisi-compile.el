@@ -47,22 +47,37 @@
 
 (require 'semantic/wisent/comp)
 
-(defun wisi-compile-grammar (grammar actions gotos)
-  "Compile the LALR(1) GRAMMAR, assumed produced by Wisi.Generate; return the automaton for wisi-parse.
-GRAMMAR is a list (TOKENS ASSOCS . NONTERMS)) as expected by
-`wisent-parse-grammar'. ACTIONS and GOTOS should be the output of
-the OpenToken Wisi parser generator; ACTIONS is an array, indexed
-by state, of alists indexed by terminal tokens. The content of
-each alist item is one of 'error, 'accept, ('shift . state),
-or ('reduce . production), where state is an integer, and
-production is a symbol name:index composed of the left hand side
-nonterminal token of a production and an integer giving the right
-hand side; `wisent-compile-grammar' compiles the semantic action
-into that symbol. GOTOS is an array, indexed by state, of alists
-giving the new state after a reduce for each nonterminal legal in
-that state. The production used in the reduce is compiled by
-`wisent-parse-grammar' along with the user action. The first
-NONTERMS is the accept symbol."
+(defun wisi-compile-grammar (grammar)
+  "Compile the LALR(1) GRAMMAR; return the automaton for wisi-parse.
+GRAMMAR is a list TOKENS NONTERMS ACTIONS GOTOS, where:
+
+TOKENS is a list of token symbols.
+
+NONTERMS is a list of productions; each production is a
+list (LHS (RHS action) ...)
+
+ACTIONS is an array indexed by parser state, of alists indexed by
+terminal tokens. The value of the first item in each alist is one
+of 'error, 'accept, or production symbol. The values in the rest of the
+alist are state numbers.  A production symbol is a symbol name:index
+composed of the left hand side nonterminal token of a production
+and an integer giving the right hand side.
+
+GOTOS is an array indexed by parser state, of alists giving the
+new state after a reduce for each nonterminal legal in that
+state.
+
+The automaton is an array with 3 elements:
+
+actions is an array indexed by state containing the compiled form
+of the input ACTIONS; the user action is replaced by a symbol (see
+obarray below)
+
+gotos is simply a copy of the input GOTOS
+
+obarray contains functions that implement the reduction action
+and the user action for each nonterminal; the function names
+match the production symbol names."
   (wisent-with-context compile-grammar
     (setq wisent-new-log-flag t)
     ;; Parse input grammar

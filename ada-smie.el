@@ -3851,6 +3851,7 @@ If DECLARE non-nil, stop at first containing declarative region (for 'declare' b
 	  (setq result nil)
 	(while (not done)
 	  (setq token (ada-smie-forward-token))
+	  ;; FIXME: handle operators; name is a string
 	  (cond
 	   ((equal token "package-plain")
 	    (setq token (ada-smie-forward-token))

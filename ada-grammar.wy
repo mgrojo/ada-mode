@@ -24,8 +24,10 @@
 ;;
 ;;; Commentary:
 ;;
-;; This is a Wisent grammar file for an extremely small subset of Ada,
-;; just enough to let us play with indentation engine design.
+;; This is a Wisent grammar file Ada. It is derived from the Ada
+;; Reference Manual (ARM), which is available as (info "(aarm2012)")
+;; or at http://www.ada-auth.org/standards/ada12.html under the
+;; license in ada_license.text.
 ;;
 ;; "wisent" is the European bison
 ;; (http://en.wikipedia.org/wiki/Wisent); the 'wisent' parser

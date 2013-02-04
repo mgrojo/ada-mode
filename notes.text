@@ -38,17 +38,28 @@ output to *wisent-log* buffer, written to wisent.output if batch
 
 ada-wisi
     need parallel LALR structure; opentoken
-        /Projects/org.opentoken.stephe/build/windows_debug/Makefile one
+        /Projects/org.opentoken.stephe/build/windows_debug/Makefile
+            one
+            body_instantiation_conflict for shift/reduce  (opentoken done, need wisi-compile-grammar)
+            range_conflict.wy for shift/reduce (opentoken fails)
+            need reduce/reduce conflict
+                compile ada-grammar.wy
+                    handle all one line
 
-        clean up grammar output; match wisent.output
-
-        detect, report conflict
+            need non-conflict multiple reduce for 1 state
 
         store conflict in OpenToken structure
+            shift/reduce done
+            reduce/reduce done
 
-        OpenToken report conflict error at runtime
+        wisi-compile.el
+            store conflict in extended Wisent elisp structure
+                for shift/reduce, non-error default
+                not clear how to handle reduce/reduce
+                    make default a list?
+                    full Ada grammar has more than one reduce per state; conflict is more than one reduce for one token
 
-        store conflict in extended Wisent elisp structure
+            reimplement wisent-compile-grammar
 
         rewrite wisent-parse
 
@@ -300,62 +311,14 @@ emacs versions:
 
     21 Lynx 4.0
 
- opentoken for wisi
-    refs for posting to cedet-semantic list
-        http://dickgrune.com/Books/PTAPG_1st_Edition/BookBody.pdf
-            9.6 page 213 lookaheads are sets
-        red dragon: "Compilers Principles, Techniques, and Tools" by Aho, Sethi, and Ullman
-            section 4.7 LALR merges different productions with the same core; more than one reduce
-                but examples all have one reduce, excep 4.44
-        wisent author is David Ponce <david@dponce.com>
+refs for posting to cedet-semantic list
+    http://dickgrune.com/Books/PTAPG_1st_Edition/BookBody.pdf
+        9.6 page 213 lookaheads are sets
+    red dragon: "Compilers Principles, Techniques, and Tools" by Aho, Sethi, and Ullman
+        section 4.7 LALR merges different productions with the same core; more than one reduce
+            but examples all have one reduce, excep 4.44
+    wisent author is David Ponce <david@dponce.com>
 
-
-    /Projects/org.opentoken.stephe/build/windows_debug/Makefile
-    /Projects/org.opentoken.stephe/wisi/test/ada-subset-wy.el
-    /Projects/org.opentoken.stephe/wisi/test/subprograms-wy.el
-    subprograms-wy--parse-table
-        one
-
-        wisi-compile.el
-            reimplement wisent-compile-grammar
-            the wisent compiled grammar structure is _not_ a Red Dragon LALR parser table!
-                Red Dragon LALR allows multiple reductions per state, based on the lookahead
-                    need to implement my own (sigh)
-                    can still use other parts of wisent-compile-grammar
-
-                wisent apparently splits states so each state has only one reduction
-                    not clear what name the wisent parser has
-                        look in bison sources? don't see anything
-
-                look at bison output
-                    completely unreadable; no table structure, just random C code (sigh).
-
-                ask David Ponce <david@dponce.com>
-                    find small grammar that requires OpenToken first
-
-    run semantic-grammar-create-package from emacs -Q
-        it is in emacs 24.3
-        can't run it twice in one emacs; some global vars not reset?
-        (add-to-list 'load-path "/Projects/org.emacs.ada-mode.smie"); wisi.el
-        (require 'cl); missing in semantic somewhere
-        (find-file "/Projects/org.opentoken.stephe/wisi/test/ada-subset.wy")
-        M-x semantic-mode
-        C-u M-x semantic-grammar-create-package
-
-    real conflict between expressions and strings
-        f0cb9e75e05600c200e672748e7148d642244c0d
-           except fix one production to be all on one line
-
-        opentoken doesn't report conflict
-            it eliminated expression productions!?
-            production for simple_declarative_id is simply wrong!
-            opentoken is broken (sigh)
-
-
-        finish wisi-opentoken, wisi-compile-grammar, wisi-parse
-            not clear how reduction operation is performed
-            trace subprograms grammar in compilation and operation
-                /Projects/org.opentoken.stephe/build/windows_debug/Makefile
 
  4.01 bugs that 5.01 fixes
     generic formal function
