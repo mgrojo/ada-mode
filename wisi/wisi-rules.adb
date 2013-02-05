@@ -63,6 +63,11 @@ begin
          begin
             RHS.Production.Clear;
             RHS.Action.Clear;
+            if Non_Blank = 0 then
+               --  Empty RHS
+               return;
+            end if;
+
             loop
                Last := -1 + Index (Pattern => " ", Source => Line, From => Non_Blank);
                if Last = -1 then Last := Line'Last; end if;

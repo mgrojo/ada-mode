@@ -30,7 +30,7 @@ GPRBUILD_TARGET := x86-windows
 include ../common.make
 
 # Local Variables:
-# eval: (gds-lynx-5)
+# eval: (load-file "../opentoken.el")
 # eval: (ada-parse-prj-file "opentoken.prj")
 # eval: (ada-select-prj-file "opentoken.prj")
 # end:

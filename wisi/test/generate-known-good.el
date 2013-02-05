@@ -5,6 +5,7 @@
 (add-to-list 'load-path "../../../org.emacs.ada-mode.smie"); wisi.el
 (add-to-list 'load-path "."); *-wy.el
 (require 'cl)
+(require 'semantic/wisent/comp)
 
 (defun wisi-generate (&optional file)
   (let* ((file (or file (car command-line-args-left))))

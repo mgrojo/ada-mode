@@ -1,5 +1,5 @@
-;; subset of Ada-like grammar illustrating the conflict between a procedure
-;; body and a generic procedure instantiation.
+;; small Ada-like grammar illustrating the shift/reduce conflict
+;; between a procedure body and a generic procedure instantiation.
 
 %{
 (require 'wisi)

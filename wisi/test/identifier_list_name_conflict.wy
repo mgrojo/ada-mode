@@ -1,0 +1,58 @@
+;; small Ada-like grammar illustrating the reduce/reduce conflict
+;; between an identifier_list and a name.
+
+%{
+(require 'wisi)
+%}
+
+%keyword LEFT_PAREN "("
+%keyword RIGHT_PAREN ")"
+
+%package identifier_list_name_conflict-wy
+
+%token <punctuation> COMMA ","
+%token <punctuation> EQUAL_GREATER "=>"
+
+%token <string> STRING_LITERAL
+%token <symbol> IDENTIFIER
+
+%%
+
+compilation_unit
+  : identifier_list
+  | name_list
+  | LEFT_PAREN association_list RIGHT_PAREN
+  ;
+
+association
+  : selector_name EQUAL_GREATER name
+  ;
+
+association_list
+  : association
+  | association_list COMMA association
+  ;
+
+identifier_list
+  : IDENTIFIER
+  | identifier_list COMMA IDENTIFIER
+  ;
+
+name
+  : IDENTIFIER
+  | STRING_LITERAL  ;; operator_symbol
+  ;
+
+name_list
+  : name
+  | name_list COMMA name
+  ;
+
+selector_name
+  : IDENTIFIER
+  | STRING_LITERAL  ;; operator_symbol
+  ;
+
+%%
+
+;;; end of file

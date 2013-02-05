@@ -112,53 +112,68 @@ package body OpenToken.Production.Parser.LALR.Elisp is
          else
             Put ("      (");
          end if;
+
+         Put ("(default . error)");
+
          declare
             Action : Action_Node_Ptr := Parser.Table (State).Action_List;
-            Default : Action_Node_Ptr := null;
          begin
-            --  Find default action
             loop
-               exit when Action = null;
-               case Action.Action.Verb is
-               when Reduce =>
-                  if Default /= null then
-                     raise Programmer_Error with
-                       "LALR.Elisp: more than one reduction in state" & State_Index'Image (State);
+               declare
+                  Parse_Action_Node : Parse_Action_Node_Ptr := Action.Action;
+                  Conflict          : constant Boolean      := Parse_Action_Node.Next /= null;
+               begin
+                  Put (" (" & Token_Image (Action.Symbol) & " . ");
+
+                  if Conflict then
+                     Put ("(");
                   end if;
 
-                  Default := Action;
+                  loop
+                     declare
+                        Parse_Action : Parse_Action_Rec renames Parse_Action_Node.Item;
+                     begin
+                        case Parse_Action.Verb is
+                        when Accept_It =>
+                           Put ("accept");
 
-               when Accept_It =>
-                  if Default /= null and then Default.Action.Verb /= Accept_It then
-                     raise Programmer_Error with
-                       "LALR.Elisp: accept mixed with other actions in state" & State_Index'Image (State);
-                  end if;
+                        when Error =>
+                           Put ("error");
 
-                  Default := Action;
+                        when Reduce =>
+                           Put
+                             (To_Lower (Token_Image (LHS_ID (Parse_Action.Production))) & ":" &
+                                Trim (Integer'Image (Index (Parse_Action.Production)), Both));
 
-               when Shift | Error =>
-                  null;
+                        when Shift =>
+                           Put (State_Index'Image (Parse_Action.State));
 
-               end case;
+                        end case;
+
+                        if Parse_Action_Node.Next = null then
+                           if Conflict then
+                              Put (")");
+                           end if;
+                           Put (")");
+                           exit;
+                        else
+                           Put (" ");
+                           Parse_Action_Node := Parse_Action_Node.Next;
+                        end if;
+                     end;
+                  end loop;
+               end;
+
                Action := Action.Next;
-            end loop;
 
-            if Default = null then
-               Put ("(default . error)");
-            else
-               if Default.Action.Verb = Accept_It then
-                  Put ("(default . accept)");
-               else
-                  Put
-                    ("(default . " & To_Lower (Token_Image (LHS_ID (Default.Action.Production))) & ":" &
-                       Trim (Integer'Image (Index (Default.Action.Production)), Both) & ")");
-                  --  FIXME: move Token_Image, "+" into opentoken-production-elisp?
+               if Action.Next = null then
+                  if Action.Action.Item.Verb /= Error then
+                     raise Programmer_Error with "state" & State_Index'Image (State) & ": default action is not error";
+                  end if;
+                  --  let default handle it
+                  Action := null;
                end if;
-            end if;
 
-            --  put shift actions, if any
-            Action := Parser.Table (State).Action_List;
-            loop
                if Action = null then
                   if State = Parser.Table'Last then
                      Put (")");
@@ -167,15 +182,6 @@ package body OpenToken.Production.Parser.LALR.Elisp is
                   end if;
                   exit;
                end if;
-
-               case Action.Action.Verb is
-               when Reduce | Accept_It | Error =>
-                  null;
-               when Shift =>
-                  Put (" (" & Token_Image (Action.Symbol) & " ." & State_Index'Image (Action.Action.State) & ")");
-               end case;
-
-               Action := Action.Next;
             end loop;
          end;
       end loop;

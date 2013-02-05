@@ -64,14 +64,8 @@ private
    --  Type for parser states
    type State_Index is new Integer;
 
-   type Action_Node;
-   type Action_Node_Ptr is access Action_Node;
-
-   type Reduction_Node;
-   type Reduction_Node_Ptr is access Reduction_Node;
-
    type Parse_Action_Verbs is (Shift, Reduce, Accept_It, Error);
-   type Parse_Action (Verb : Parse_Action_Verbs := Shift) is record
+   type Parse_Action_Rec (Verb : Parse_Action_Verbs := Shift) is record
       case Verb is
       when Shift =>
          State : State_Index;
@@ -83,11 +77,25 @@ private
       end case;
    end record;
 
+   type Parse_Action_Node;
+   type Parse_Action_Node_Ptr is access Parse_Action_Node;
+
+   type Parse_Action_Node is record
+      Item : Parse_Action_Rec;
+      Next : Parse_Action_Node_Ptr; -- non-null only for conflicts
+   end record;
+
+   type Action_Node;
+   type Action_Node_Ptr is access Action_Node;
+
    type Action_Node is record
       Symbol : Tokenizer.Terminal_ID;
-      Action : Parse_Action;
+      Action : Parse_Action_Node_Ptr;
       Next   : Action_Node_Ptr;
    end record;
+
+   type Reduction_Node;
+   type Reduction_Node_Ptr is access Reduction_Node;
 
    type Reduction_Node is record
       Symbol : Token.Token_ID;

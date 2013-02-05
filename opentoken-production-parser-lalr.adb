@@ -128,15 +128,14 @@ package body OpenToken.Production.Parser.LALR is
       end loop;
    end Free;
 
-   ----------------------------------------------------------------------------
    --  Return the action for the given state index and terminal ID.
-   --  The final node for a state is assumed to match all inputs.
-   ----------------------------------------------------------------------------
+   --  The final action in the action list for a state is returned if no
+   --  other node matches ID.
    function Action_For
      (Table : in Parse_Table_Ptr;
       State : in State_Index;
       ID    : in Tokenizer.Terminal_ID)
-     return Parse_Action
+     return Parse_Action_Rec
    is
       use type Tokenizer.Terminal_ID;
       Action_Node : Action_Node_Ptr := Table.all (State).Action_List;
@@ -145,7 +144,11 @@ package body OpenToken.Production.Parser.LALR is
          Action_Node := Action_Node.Next;
       end loop;
 
-      return Action_Node.Action;
+      if Action_Node.Action.Next = null then
+         return Action_Node.Action.Item;
+      else
+         raise Parse_Error with "conflicting actions in state" & State_Index'Image (State);
+      end if;
    end Action_For;
 
    ----------------------------------------------------------------------------
@@ -565,23 +568,35 @@ package body OpenToken.Production.Parser.LALR is
       return Ada.Strings.Fixed.Trim (Source => State_Image, Side => Ada.Strings.Both);
    end Integer_Image;
 
-   procedure Put_Parse_Action (Action : in Parse_Action)
+   procedure Put_Parse_Action (Action : in Parse_Action_Node_Ptr)
    is
       use Ada.Text_IO;
+      Ptr    : Parse_Action_Node_Ptr   := Action;
+      Column : constant Positive_Count := Col;
    begin
-      case Action.Verb is
-      when Shift =>
-         Put ("shift and goto state" & State_Index'Image (Action.State));
+      loop
+         declare
+            Parse_Action : Parse_Action_Rec renames Ptr.Item;
+         begin
+            case Parse_Action.Verb is
+            when Shift =>
+               Put ("shift and goto state" & State_Index'Image (Parse_Action.State));
 
-      when Reduce =>
-         Put
-           ("reduce" & Integer'Image (Action.Length) &
-              " tokens to " & Token.Token_ID'Image (LHS_ID (Action.Production)));
-      when Accept_It =>
-         Put ("accept it");
-      when Error =>
-         Put ("ERROR");
-      end case;
+            when Reduce =>
+               Put
+                 ("reduce" & Integer'Image (Parse_Action.Length) &
+                    " tokens to " & Token.Token_ID'Image (LHS_ID (Parse_Action.Production)));
+            when Accept_It =>
+               Put ("accept it");
+            when Error =>
+               Put ("ERROR");
+            end case;
+         end;
+         Ptr := Ptr.Next;
+         exit when Ptr = null;
+         Put_Line (",");
+         Set_Col (Column);
+      end loop;
    end Put_Parse_Action;
 
    procedure Put_Parse_State
@@ -652,33 +667,37 @@ package body OpenToken.Production.Parser.LALR is
    --  Add (Symbol, Action) to Action_List
    procedure Add_Action
      (Symbol      : in     Tokenizer.Terminal_ID;
-      Action      : in     Parse_Action;
+      Action      : in     Parse_Action_Rec;
       Action_List : in out Action_Node_Ptr;
       Source      : in     LRk.Item_Set;
       Conflicts   : in out Ada.Strings.Unbounded.Unbounded_String)
    is
-      --  Source .. Conflicts are for error reporting
+      --  Source .. Conflicts are for conflict reporting
       use type Ada.Strings.Unbounded.Unbounded_String;
       Matching_Action : constant Action_Node_Ptr := Find (Symbol, Action_List);
    begin
       if Matching_Action /= null then
-         if Matching_Action.Action = Action then
+         if Matching_Action.Action.Item = Action then
             --  Matching_Action is identical to Action, so there is no
             --  conflict; just don't add it again.
             return;
          else
             --  There is a conflict. Report it, but add it anyway, so
             --  an enhanced parser can follow both paths
-            Conflicts := Conflicts & Parse_Action_Verbs'Image (Matching_Action.Action.Verb) &
+            Conflicts := Conflicts & Parse_Action_Verbs'Image (Matching_Action.Action.Item.Verb) &
               "/" & Parse_Action_Verbs'Image (Action.Verb) & " in state:" & Natural'Image (Source.Index) &
               " on token " & Tokenizer.Terminal_ID'Image (Symbol) & Line_End;
-         end if;
-      end if;
 
-      Action_List := new Action_Node'
-        (Symbol => Symbol,
-         Action => Action,
-         Next   => Action_List);
+            Matching_Action.Action := new Parse_Action_Node'
+              (Item => Action,
+               Next => Matching_Action.Action);
+         end if;
+      else
+         Action_List := new Action_Node'
+           (Symbol => Symbol,
+            Action => new Parse_Action_Node'(Action, null),
+            Next   => Action_List);
+      end if;
    end Add_Action;
 
    ----------------------------------------------------------------------------
@@ -696,8 +715,14 @@ package body OpenToken.Production.Parser.LALR is
 
       --  The default action, when nothing else matches an input
       Default_Action : constant Action_Node :=
-        (Symbol => Tokenizer.Terminal_ID'First,
-         Action => (Verb => Error),
+         --  The symbol here is actually irrelevant; it is the
+         --  position as the last on a state's action list that makes
+         --  it the default. It's too bad we can't extend an
+         --  enumeration type to make this 'default', for viewing this
+         --  list in a debugger. The various Put routines do replace
+         --  this with 'default'.
+        (Symbol => Tokenizer.Terminal_ID'Last,
+         Action => new Parse_Action_Node'(Parse_Action_Rec'(Verb => Error), null),
          Next   => null);
 
       Last_Action : Action_Node_Ptr;
@@ -814,7 +839,8 @@ package body OpenToken.Production.Parser.LALR is
                   Conflicts       => Conflicts);
 
             else
-               --  Pointer is before a non-terminal token
+               --  Pointer is before a non-terminal token; action is
+               --  determined by the lookahead, handled above.
 
                if Trace then
                   Ada.Text_IO.Put_Line
@@ -826,22 +852,11 @@ package body OpenToken.Production.Parser.LALR is
             Item := Item.Next;
          end loop;
 
-         LRk.Free (Closure);
-
-         --  Fill in this item's Goto transitions
-         Goto_Node := Kernel.Goto_List;
-         while Goto_Node /= null loop
-            Table (State_Index (Kernel.Index)).Reduction_List :=
-              new Reduction_Node'
-              (Symbol => Goto_Node.Symbol,
-               State  => State_Index (Goto_Node.Set.Index),
-               Next   => Table (State_Index (Kernel.Index)).Reduction_List);
-
-            Goto_Node := Goto_Node.Next;
-         end loop;
-
          --  Place a default error action at the end of every state.
          --  (it should always have at least one action already).
+         --
+         --  FIXME: instead, optimize use of default action; compress
+         --  accept, at least.
          Last_Action := Table (State_Index (Kernel.Index)).Action_List;
 
          if Last_Action = null then
@@ -865,6 +880,20 @@ package body OpenToken.Production.Parser.LALR is
             end loop;
             Last_Action.Next := new Action_Node'(Default_Action);
          end if;
+
+         LRk.Free (Closure);
+
+         --  Fill in this state's Goto transitions
+         Goto_Node := Kernel.Goto_List;
+         while Goto_Node /= null loop
+            Table (State_Index (Kernel.Index)).Reduction_List :=
+              new Reduction_Node'
+              (Symbol => Goto_Node.Symbol,
+               State  => State_Index (Goto_Node.Set.Index),
+               Next   => Table (State_Index (Kernel.Index)).Reduction_List);
+
+            Goto_Node := Goto_Node.Next;
+         end loop;
 
          Kernel := Kernel.Next;
       end loop;
@@ -1033,9 +1062,8 @@ package body OpenToken.Production.Parser.LALR is
    is
       Stack         : State_Node_Ptr;
       Current_State : State_Node;
-
-      Action : Parse_Action;
-      Popped_State : State_Node_Ptr;
+      Action        : Parse_Action_Rec;
+      Popped_State  : State_Node_Ptr;
 
       use type Token_List.Instance;
    begin

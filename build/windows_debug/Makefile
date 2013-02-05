@@ -11,10 +11,12 @@ t_all : test_all_harness.run
 #one : subprograms-wy.el
 #one : ada-subset-wy.el
 one : body_instantiation_conflict-wy.el
+#one : identifier_list_name_conflict-wy.el
 #one : range_conflict-wy.el
 #one : ../../wisi/test/ada-subset-wy.el
 #one : ../../wisi/test/subprograms-wy.el
-two : ../../wisi/test/body_instantiation_conflict-wy.el
+#two : ../../wisi/test/body_instantiation_conflict-wy.el
+two : ../../wisi/test/identifier_list_name_conflict-wy.el
 #two : ../../wisi/test/range_conflict-wy.el
 #one : asu_example_5_10_lr-run.run
 
@@ -41,8 +43,7 @@ include ../common.make
 
 # FIXME: move 'require opentoken' into project file
 # Local Variables:
-# eval: (gnat-7.1)
-# eval: (require 'ada-smie-opentoken)
+# eval: (load-file "../opentoken.el")
 # eval: (ada-parse-prj-file "opentoken.prj")
 # eval: (ada-select-prj-file "opentoken.prj")
 # end:
