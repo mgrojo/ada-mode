@@ -1,0 +1,123 @@
+;;; identifier_list_name_conflict.el --- Generated parser support file
+
+;; Copyright (C) 2013 Stephen Leake.  All Rights Reserved.
+
+;; This program is free software; you can redistribute it and/or
+;; modify it under the terms of the GNU General Public License as
+;; published by the Free Software Foundation; either version 2, or (at
+;; your option) any later version.
+;;
+;; This software is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;; General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
+
+;; PLEASE DO NOT MANUALLY EDIT THIS FILE!  It is automatically
+;; generated from the grammar file identifier_list_name_conflict.wy
+
+(require 'wisi)
+(require 'semantic/lex)
+(require 'wisi-compile)
+
+(defconst identifier_list_name_conflict--keyword-table
+  (semantic-lex-make-keyword-table
+   '(
+    ("(" . LEFT_PAREN)
+    (")" . RIGHT_PAREN)
+    )
+   nil)
+  "Table of language keywords.")
+
+(defconst identifier_list_name_conflict--token-table
+  (semantic-lex-make-type-table
+   '(
+    ("punctuation" (COMMA . ","))
+    ("punctuation" (EQUAL_GREATER . "=>"))
+    ("string" (STRING_LITERAL))
+    ("symbol" (IDENTIFIER))
+    )
+   nil)
+  "Table of language tokens.")
+
+(defconst identifier_list_name_conflict--parse-table
+   (wisi-compile-grammar
+   '((LEFT_PAREN RIGHT_PAREN COMMA EQUAL_GREATER STRING_LITERAL IDENTIFIER )
+     ((compilation_unit
+       ((identifier_list ))
+       ((name_list ))
+       ((LEFT_PAREN association_list RIGHT_PAREN )))
+      (association
+       ((selector_name EQUAL_GREATER name )))
+      (association_list
+       ((association ))
+       ((association_list COMMA association )))
+      (identifier_list
+       ((IDENTIFIER ))
+       ((identifier_list COMMA IDENTIFIER )))
+      (name
+       ((IDENTIFIER ))
+       ((STRING_LITERAL )))
+      (name_list
+       ((name ))
+       ((name_list COMMA name )))
+      (selector_name
+       ((IDENTIFIER ))
+       ((STRING_LITERAL ))))
+     [((default . error) (LEFT_PAREN .  2) (IDENTIFIER .  4) (STRING_LITERAL .  3))
+      ((default . error) (IDENTIFIER .  13) (STRING_LITERAL .  12))
+      ((default . error) (RIGHT_PAREN . name:1) (COMMA . name:1) (EOF . name:1))
+      ((default . error) (EOF . (name:0 identifier_list:0)) (COMMA . (name:0 identifier_list:0)))
+      ((default . error) (EOF .  11))
+      ((default . error) (COMMA .  10) (EOF . compilation_unit:0))
+      ((default . error) (EOF . name_list:0) (COMMA . name_list:0))
+      ((default . error) (COMMA .  9) (EOF . compilation_unit:1))
+      ((default . error) (IDENTIFIER .  21) (STRING_LITERAL .  3))
+      ((default . error) (IDENTIFIER .  20))
+      ((default . error) (EOF . accept) (IDENTIFIER . accept) (STRING_LITERAL . accept) (EQUAL_GREATER . accept) (COMMA . accept) (RIGHT_PAREN . accept) (LEFT_PAREN . accept))
+      ((default . error) (EQUAL_GREATER . selector_name:1))
+      ((default . error) (EQUAL_GREATER . selector_name:0))
+      ((default . error) (RIGHT_PAREN . association_list:0) (COMMA . association_list:0))
+      ((default . error) (COMMA .  19) (RIGHT_PAREN .  18))
+      ((default . error) (EQUAL_GREATER .  17))
+      ((default . error) (IDENTIFIER .  21) (STRING_LITERAL .  3))
+      ((default . error) (EOF . compilation_unit:2))
+      ((default . error) (IDENTIFIER .  13) (STRING_LITERAL .  12))
+      ((default . error) (EOF . identifier_list:1) (COMMA . identifier_list:1))
+      ((default . error) (RIGHT_PAREN . name:0) (EOF . name:0) (COMMA . name:0))
+      ((default . error) (EOF . name_list:1) (COMMA . name_list:1))
+      ((default . error) (RIGHT_PAREN . association_list:1) (COMMA . association_list:1))
+      ((default . error) (COMMA . association:0) (RIGHT_PAREN . association:0))]
+     [((COMPILATION_UNIT . 5)(IDENTIFIER_LIST . 6)(NAME . 7)(NAME_LIST . 8))
+      ((ASSOCIATION . 14)(ASSOCIATION_LIST . 15)(SELECTOR_NAME . 16))
+      nil
+      nil
+      nil
+      nil
+      nil
+      nil
+      ((NAME . 22))
+      nil
+      nil
+      nil
+      nil
+      nil
+      nil
+      nil
+      ((NAME . 24))
+      nil
+      ((ASSOCIATION . 23)(SELECTOR_NAME . 16))
+      nil
+      nil
+      nil
+      nil
+      nil]))
+  "Parser table.")
+
+(provide 'identifier_list_name_conflict)
+
+;; end of file

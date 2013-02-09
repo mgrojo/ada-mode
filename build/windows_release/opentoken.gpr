@@ -1,18 +1,21 @@
---  For using OpenToken in other projects
+--  For using OpenToken in other projects, and building OpenToken
 --
 --  This is not in Build because the object and executable paths are
 --  relative to this file.
 --
 --  (ediff "../windows_release/opentoken.gpr" "../linux_release/opentoken.gpr")
+--  (ediff "../windows_release/opentoken.gpr" "../windows_debug/opentoken.gpr")
 
 with "../common";
 project OpenToken is
 
    for Source_Dirs use
      ("../..",
-      "../../Language_Lexers");
+      "../../Language_Lexers",
+      "../../wisi");
 
    for Object_Dir use "obj";
+   for Exec_Dir use ".";
 
    package Compiler is
       for Default_Switches ("Ada") use

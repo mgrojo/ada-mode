@@ -1,0 +1,117 @@
+;;; range_conflict.el --- Generated parser support file
+
+;; Copyright (C) 2013 Stephen Leake.  All Rights Reserved.
+
+;; This program is free software; you can redistribute it and/or
+;; modify it under the terms of the GNU General Public License as
+;; published by the Free Software Foundation; either version 2, or (at
+;; your option) any later version.
+;;
+;; This software is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;; General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
+
+;; PLEASE DO NOT MANUALLY EDIT THIS FILE!  It is automatically
+;; generated from the grammar file range_conflict.wy
+
+(require 'wisi)
+(require 'semantic/lex)
+(require 'wisi-compile)
+
+(defconst range_conflict--keyword-table
+  (semantic-lex-make-keyword-table
+   '(
+    (".." . DOT_DOT)
+    ("in" . IN)
+    ("left_paren" . LEFT_PAREN)
+    ("-" . MINUS)
+    ("+" . PLUS)
+    ("range" . RANGE)
+    ("right_paren" . RIGHT_PAREN)
+    ("'" . TICK)
+    )
+   nil)
+  "Table of language keywords.")
+
+(defconst range_conflict--token-table
+  (semantic-lex-make-type-table
+   '(
+    ("symbol" (IDENTIFIER))
+    )
+   nil)
+  "Table of language tokens.")
+
+(defconst range_conflict--parse-table
+   (wisi-compile-grammar
+   '((DOT_DOT IN LEFT_PAREN MINUS PLUS RANGE RIGHT_PAREN TICK IDENTIFIER )
+     ((compilation_unit
+       ((membership_choice range_nt )))
+      (membership_choice
+       ((primary ))
+       ((range_nt )))
+      (primary
+       ((IDENTIFIER ))
+       ((LEFT_PAREN relation RIGHT_PAREN )))
+      (range_nt
+       ((IDENTIFIER TICK RANGE LEFT_PAREN relation RIGHT_PAREN ))
+       ((IDENTIFIER TICK RANGE ))
+       ((primary DOT_DOT primary )))
+      (relation
+       ((primary IN membership_choice ))))
+     [((default . error) (IDENTIFIER .  3) (LEFT_PAREN .  2))
+      ((default . error) (IDENTIFIER .  13) (LEFT_PAREN .  2))
+      ((default . error) (TICK .  12) (RIGHT_PAREN . primary:0) (IDENTIFIER . primary:0) (LEFT_PAREN . primary:0) (DOT_DOT . primary:0))
+      ((default . error) (EOF .  11))
+      ((default . error) (IDENTIFIER .  3) (LEFT_PAREN .  2))
+      ((default . error) (DOT_DOT .  8) (RIGHT_PAREN . membership_choice:0) (LEFT_PAREN . membership_choice:0) (IDENTIFIER . membership_choice:0))
+      ((default . error) (RIGHT_PAREN . membership_choice:1) (LEFT_PAREN . membership_choice:1) (IDENTIFIER . membership_choice:1))
+      ((default . error) (IDENTIFIER .  13) (LEFT_PAREN .  2))
+      ((default . error) (DOT_DOT .  8))
+      ((default . error) (EOF . compilation_unit:0))
+      ((default . error) (EOF . accept) (IDENTIFIER . accept) (TICK . accept) (RIGHT_PAREN . accept) (RANGE . accept) (PLUS . accept) (MINUS . accept) (LEFT_PAREN . accept) (IN . accept) (DOT_DOT . accept))
+      ((default . error) (RANGE .  18))
+      ((default . error) (EOF . primary:0) (RIGHT_PAREN . primary:0) (IDENTIFIER . primary:0) (LEFT_PAREN . primary:0) (IN . primary:0))
+      ((default . error) (IN .  17))
+      ((default . error) (RIGHT_PAREN .  16))
+      ((default . error) (EOF . primary:1) (RIGHT_PAREN . primary:1) (IDENTIFIER . primary:1) (LEFT_PAREN . primary:1) (DOT_DOT . primary:1) (IN . primary:1))
+      ((default . error) (IDENTIFIER .  3) (LEFT_PAREN .  2))
+      ((default . error) (RIGHT_PAREN . range_nt:1) (EOF . range_nt:1) (IDENTIFIER . range_nt:1) (LEFT_PAREN . (range_nt:1  20)))
+      ((default . error) (EOF . range_nt:2) (RIGHT_PAREN . range_nt:2) (IDENTIFIER . range_nt:2) (LEFT_PAREN . range_nt:2))
+      ((default . error) (IDENTIFIER .  13) (LEFT_PAREN .  2))
+      ((default . error) (RIGHT_PAREN . relation:0))
+      ((default . error) (RIGHT_PAREN .  23))
+      ((default . error) (EOF . range_nt:0) (RIGHT_PAREN . range_nt:0) (LEFT_PAREN . range_nt:0) (IDENTIFIER . range_nt:0))]
+     [((COMPILATION_UNIT . 4)(MEMBERSHIP_CHOICE . 5)(PRIMARY . 6)(RANGE_NT . 7))
+      ((PRIMARY . 14)(RELATION . 15))
+      nil
+      nil
+      ((PRIMARY . 9)(RANGE_NT . 10))
+      nil
+      nil
+      ((PRIMARY . 19))
+      nil
+      nil
+      nil
+      nil
+      nil
+      nil
+      nil
+      nil
+      ((MEMBERSHIP_CHOICE . 21)(PRIMARY . 6)(RANGE_NT . 7))
+      nil
+      nil
+      ((PRIMARY . 14)(RELATION . 22))
+      nil
+      nil
+      nil]))
+  "Parser table.")
+
+(provide 'range_conflict)
+
+;; end of file

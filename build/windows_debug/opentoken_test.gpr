@@ -1,4 +1,6 @@
 --  For running OpenToken tests.
+--
+-- use installed AdaCore aunit (not SAL aunit; don't put SAL in project path)
 with "aunit";
 with "../common"; -- not "common", because we don't have ".." in path, because we have two opentoken.gpr
 with "opentoken";
@@ -18,9 +20,7 @@ project OpenToken_Test is
 
    package Compiler is
       for Default_Switches ("Ada") use
-        Common.Compiler.Debug_Switches &
-        Common.Compiler.Style_Checks &
-        Common.Compiler'Default_Switches ("Ada");
+        OpenToken.Compiler'Default_Switches ("Ada");
 
    end Compiler;
 

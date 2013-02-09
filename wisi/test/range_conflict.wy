@@ -19,11 +19,11 @@
 
 %%
 
-compilation_unit : membership_choice range ;
+compilation_unit : membership_choice range_nt ;
 
 membership_choice
   : primary
-  | range
+  | range_nt ;; can't use case to distinguish; Ada is case insensitive
   ;
 
 primary
@@ -31,7 +31,7 @@ primary
   | LEFT_PAREN relation RIGHT_PAREN
   ;
 
-range
+range_nt
   : IDENTIFIER TICK RANGE LEFT_PAREN relation RIGHT_PAREN ;; range_attribute_reference
   | IDENTIFIER TICK RANGE
   | primary DOT_DOT primary

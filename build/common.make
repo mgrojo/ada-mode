@@ -115,6 +115,23 @@ source-clean ::
 DIFF_OPT := -u -w
 %.diff : %.good_out %.out ; diff $(DIFF_OPT) $^ > $@
 
+%.diff : %.good_el %.el ; diff $(DIFF_OPT) $^ > $@
+
 %.run : %.exe ;	./$(*F).exe $(RUN_ARGS)
+
+# %-wy.el : RUN_ARGS := -v 1 > wisi.output
+%-wy.el : wisi-%-generate.exe
+	./wisi-$*-generate.exe $(RUN_ARGS)
+
+.PRECIOUS : wisi-%-generate.adb %-wy.el
+
+wisi-%-generate.adb : %.wy wisi-generate.exe
+	./wisi-generate.exe $<
+
+wisi-clean :
+	rm -f wisi-*-generate.adb *-wy.el
+
+vpath %.wy ../../wisi/test
+vpath %-wy.good_el  ../../wisi/test
 
 # end of file

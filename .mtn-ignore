@@ -31,10 +31,14 @@
 ^build/windows_debug/obj_tree$
 ^build/windows_debug/wisi\.output$
 ^build/windows_debug/wisi_rules_test\.wy$
+^build/windows_release/.*\.adb$
+^build/windows_release/.*\.ads$
 ^build/windows_release/.*\.diff$
+^build/windows_release/.*\.el$
 ^build/windows_release/.*\.exe$
 ^build/windows_release/.*\.out$
 ^build/windows_release/.*\.txt$
+^build/windows_release/.*\.wy$
 ^build/windows_release/lib$
 ^build/windows_release/obj$
 ^build/windows_release/obj_tree$

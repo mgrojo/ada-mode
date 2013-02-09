@@ -1,0 +1,103 @@
+;;; subprograms.el --- Generated parser support file
+
+;; Copyright (C) 2013 Stephen Leake.  All Rights Reserved.
+
+;; This program is free software; you can redistribute it and/or
+;; modify it under the terms of the GNU General Public License as
+;; published by the Free Software Foundation; either version 2, or (at
+;; your option) any later version.
+;;
+;; This software is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;; General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
+
+;; PLEASE DO NOT MANUALLY EDIT THIS FILE!  It is automatically
+;; generated from the grammar file subprograms.wy
+
+(require 'wisi)
+(require 'semantic/lex)
+(require 'wisi-compile)
+
+(defconst subprograms--keyword-table
+  (semantic-lex-make-keyword-table
+   '(
+    ("function" . FUNCTION)
+    ("(" . LEFT_PAREN)
+    ("procedure" . PROCEDURE)
+    (")" . RIGHT_PAREN)
+    )
+   nil)
+  "Table of language keywords.")
+
+(defconst subprograms--token-table
+  (semantic-lex-make-type-table
+   '(
+    ("symbol" (SYMBOL))
+    )
+   nil)
+  "Table of language tokens.")
+
+(defconst subprograms--parse-table
+   (wisi-compile-grammar
+   '((FUNCTION LEFT_PAREN PROCEDURE RIGHT_PAREN SYMBOL )
+     ((declarations
+       ((declaration ))
+       ((declarations declaration )))
+      (declaration
+       ((subprogram )))
+      (subprogram
+       ((FUNCTION parameter_list SYMBOL )
+        `,(wisi-cache-action
+        1 'function
+        2 'other))
+       ((PROCEDURE parameter_list SYMBOL )
+        (wisi-cache-keywords
+        $1 'procedure nil $region1
+        $2 'other nil $region2)))
+      (parameter_list
+       ((LEFT_PAREN RIGHT_PAREN ))
+       (( ))
+       ((LEFT_PAREN SYMBOL RIGHT_PAREN ))))
+     [((default . error) (FUNCTION .  2) (PROCEDURE .  3))
+      ((default . error) (SYMBOL . parameter_list:1) (LEFT_PAREN .  9))
+      ((default . error) (SYMBOL . parameter_list:1) (LEFT_PAREN .  9))
+      ((default . error) (EOF .  7) (FUNCTION .  2) (PROCEDURE .  3))
+      ((default . error) (EOF . declarations:0) (FUNCTION . declarations:0) (PROCEDURE . declarations:0))
+      ((default . error) (PROCEDURE . declaration:0) (FUNCTION . declaration:0) (EOF . declaration:0))
+      ((default . error) (EOF . accept) (SYMBOL . accept) (RIGHT_PAREN . accept) (PROCEDURE . accept) (LEFT_PAREN . accept) (FUNCTION . accept))
+      ((default . error) (PROCEDURE . declarations:1) (FUNCTION . declarations:1) (EOF . declarations:1))
+      ((default . error) (SYMBOL .  15) (RIGHT_PAREN .  14))
+      ((default . error) (SYMBOL .  13))
+      ((default . error) (SYMBOL .  12))
+      ((default . error) (EOF . subprogram:0) (FUNCTION . subprogram:0) (PROCEDURE . subprogram:0))
+      ((default . error) (EOF . subprogram:1) (FUNCTION . subprogram:1) (PROCEDURE . subprogram:1))
+      ((default . error) (SYMBOL . parameter_list:0))
+      ((default . error) (RIGHT_PAREN .  16))
+      ((default . error) (SYMBOL . parameter_list:2))]
+     [((DECLARATIONS . 4)(DECLARATION . 5)(SUBPROGRAM . 6))
+      ((PARAMETER_LIST . 11))
+      ((PARAMETER_LIST . 10))
+      ((DECLARATION . 8)(SUBPROGRAM . 6))
+      nil
+      nil
+      nil
+      nil
+      nil
+      nil
+      nil
+      nil
+      nil
+      nil
+      nil
+      nil]))
+  "Parser table.")
+
+(provide 'subprograms)
+
+;; end of file

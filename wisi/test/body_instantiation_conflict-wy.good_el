@@ -1,0 +1,120 @@
+;;; body_instantiation_conflict.el --- Generated parser support file
+
+;; Copyright (C) 2013 Stephen Leake.  All Rights Reserved.
+
+;; This program is free software; you can redistribute it and/or
+;; modify it under the terms of the GNU General Public License as
+;; published by the Free Software Foundation; either version 2, or (at
+;; your option) any later version.
+;;
+;; This software is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;; General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
+
+;; PLEASE DO NOT MANUALLY EDIT THIS FILE!  It is automatically
+;; generated from the grammar file body_instantiation_conflict.wy
+
+(require 'wisi)
+(require 'semantic/lex)
+(require 'wisi-compile)
+
+(defconst body_instantiation_conflict--keyword-table
+  (semantic-lex-make-keyword-table
+   '(
+    ("begin" . BEGIN)
+    ("end" . END)
+    ("is" . IS)
+    ("(" . LEFT_PAREN)
+    ("new" . NEW)
+    ("null" . NULL)
+    ("procedure" . PROCEDURE)
+    (")" . RIGHT_PAREN)
+    )
+   nil)
+  "Table of language keywords.")
+
+(defconst body_instantiation_conflict--token-table
+  (semantic-lex-make-type-table
+   '(
+    ("punctuation" (SEMICOLON . ";"))
+    ("symbol" (IDENTIFIER))
+    )
+   nil)
+  "Table of language tokens.")
+
+(defconst body_instantiation_conflict--parse-table
+   (wisi-compile-grammar
+   '((BEGIN END IS LEFT_PAREN NEW NULL PROCEDURE RIGHT_PAREN SEMICOLON IDENTIFIER )
+     ((library_item
+       ((subprogram_body ))
+       ((generic_instantiation )))
+      (subprogram_body
+       ((subprogram_specification IS BEGIN NULL END SEMICOLON )
+        `,(wisi-statement-action 1 'statement-start 6 'statement-end)))
+      (subprogram_specification
+       ((PROCEDURE IDENTIFIER parameter_list )))
+      (parameter_list
+       (( ))
+       ((LEFT_PAREN IDENTIFIER RIGHT_PAREN )))
+      (generic_instantiation
+       ((PROCEDURE IDENTIFIER IS NEW IDENTIFIER LEFT_PAREN IDENTIFIER RIGHT_PAREN SEMICOLON )
+        `,(wisi-statement-action 1 'statement-start 9 'statement-end))))
+     [((default . error) (PROCEDURE .  2))
+      ((default . error) (IDENTIFIER .  9))
+      ((default . error) (EOF .  8))
+      ((default . error) (EOF . library_item:0))
+      ((default . error) (IS .  7))
+      ((default . error) (EOF . library_item:1))
+      ((default . error) (BEGIN .  13))
+      ((default . error) (EOF . accept) (IDENTIFIER . accept) (SEMICOLON . accept) (RIGHT_PAREN . accept) (PROCEDURE . accept) (NULL . accept) (NEW . accept) (LEFT_PAREN . accept) (IS . accept) (END . accept) (BEGIN . accept))
+      ((default . error) (IS . ( 10 parameter_list:0)) (LEFT_PAREN .  11))
+      ((default . error) (NEW .  16))
+      ((default . error) (IDENTIFIER .  15))
+      ((default . error) (IS . subprogram_specification:0))
+      ((default . error) (NULL .  14))
+      ((default . error) (END .  19))
+      ((default . error) (RIGHT_PAREN .  18))
+      ((default . error) (IDENTIFIER .  17))
+      ((default . error) (LEFT_PAREN .  21))
+      ((default . error) (IS . parameter_list:1))
+      ((default . error) (SEMICOLON .  20))
+      ((default . error) (EOF . subprogram_body:0))
+      ((default . error) (IDENTIFIER .  22))
+      ((default . error) (RIGHT_PAREN .  23))
+      ((default . error) (SEMICOLON .  24))
+      ((default . error) (EOF . generic_instantiation:0))]
+     [((LIBRARY_ITEM . 3)(SUBPROGRAM_BODY . 4)(SUBPROGRAM_SPECIFICATION . 5)(GENERIC_INSTANTIATION . 6))
+      nil
+      nil
+      nil
+      nil
+      nil
+      nil
+      nil
+      ((PARAMETER_LIST . 12))
+      nil
+      nil
+      nil
+      nil
+      nil
+      nil
+      nil
+      nil
+      nil
+      nil
+      nil
+      nil
+      nil
+      nil
+      nil]))
+  "Parser table.")
+
+(provide 'body_instantiation_conflict)
+
+;; end of file
