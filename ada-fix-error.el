@@ -129,7 +129,8 @@ Point in SOURCE-BUFFER is at error location; point in
 compilation buffer.
 
 Hook functions should return t if the error is recognized and
-fixed, leaving point at fix. Otherwise, they should return nil.")
+fixed, leaving point at fix. Otherwise, they should preserve
+point and return nil.")
 
 (defun ada-get-compilation-message ()
   "Get compilation message at point.

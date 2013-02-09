@@ -39,52 +39,48 @@ output to *wisent-log* buffer, written to wisent.output if batch
 ada-wisi
     need parallel LALR structure; opentoken
         /Projects/org.opentoken.stephe/build/windows_debug/Makefile
-            one
-            body_instantiation_conflict for shift/reduce  (opentoken done, need wisi-compile-grammar)
-            range_conflict.wy for shift/reduce (opentoken fails)
-            need reduce/reduce conflict
-                compile ada-grammar.wy
-                    handle all one line
 
-            need non-conflict multiple reduce for 1 state
+            subprograms.wy for empty production
+                opentoken done
+                wisent parses .wy wrong
+                    leaves out subprogram production!
+                    because of `,?
 
-        store conflict in OpenToken structure
-            shift/reduce done
-            reduce/reduce done
+            body_instantiation_conflict for shift/reduce
+                opentoken done
+
+            range_conflict.wy for shift/reduce
+                opentoken done
+
+            identifier_list_name_conflict for reduce/reduce conflict and attempt at non-conflict multiple reduce
+                opentoken done, but doesn't give dual reduce
+                wisent doesn't give dual reduce; doesn't merge STRING_LITERAL . kernels
+                    even though it does for ada-grammar state 145:
+                        STRING_LITERAL '=>' gives selector_name,
+                        STRING_LITERAL anything else gives name
+
+        write tests of wisi-parse using above grammars
 
         wisi-compile.el
             store conflict in extended Wisent elisp structure
-                for shift/reduce, non-error default
-                not clear how to handle reduce/reduce
-                    make default a list?
-                    full Ada grammar has more than one reduce per state; conflict is more than one reduce for one token
+                value of terminal alist needs to be a list
 
             reimplement wisent-compile-grammar
 
         rewrite wisent-parse
 
-    build/wisi/Makefile
+        compile ada-grammar.wy
+            build/wisi/Makefile
+
+
+    add opentoken aunit test for wisi
+
+    opentoken has a production for accept, wisent does not
 
     wisi-statement-action check class against wisi-class-list, to catch spelling mistakes
 
     test/ada_mode-generic_instantiation.ads
         introduces shift/reduce conflicts between generic procedure instantiation and procedure body
-            use semantic LR parser; it spawns parallel parsers for conflicts?
-                in a branch org.emacs.ada_mode.semi?
-                conflicts not stored in the compiled parser table, so semantic parser can't see them!
-                need to write new parser compiler, new compiled struct, new parser. arrggghhh!
-                    do the compiler in opentoken, fix that while we're at it.
-                    ask on comp.lang.ada
-
-            leave conflicts in?
-                ada_mode.adb can't parse 'procedure Separate_Procedure is separate;'
-                    that's state 245, no conflict
-                    but can't get there?
-                    PROCEDURE => state 104
-                    IDENTIFIER => state 29
-                    IS => name:0, state 104
-                    name => state 229
-                        which has the shift/reduce conflict
 
 
 wisent-parser does not execute actions when grammar is byte-compiled!

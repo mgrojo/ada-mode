@@ -49,19 +49,22 @@
 
 (defun wisi-compile-grammar (grammar)
   "Compile the LALR(1) GRAMMAR; return the automaton for wisi-parse.
-GRAMMAR is a list TOKENS NONTERMS ACTIONS GOTOS, where:
+GRAMMAR is a list TERMINALS NONTERMS ACTIONS GOTOS, where:
 
-TOKENS is a list of token symbols.
+TERMINALS is a list of terminal token symbols.
 
 NONTERMS is a list of productions; each production is a
 list (LHS (RHS action) ...)
 
 ACTIONS is an array indexed by parser state, of alists indexed by
-terminal tokens. The value of the first item in each alist is one
-of 'error, 'accept, or production symbol. The values in the rest of the
-alist are state numbers.  A production symbol is a symbol name:index
-composed of the left hand side nonterminal token of a production
-and an integer giving the right hand side.
+terminal tokens. The value of each item in the alists is 'error
+or 'accept, state number, or production symbol. A state number
+gives the next state for each terminal token after a shift
+action.  A production symbol is a symbol name:index composed of
+the left hand side nonterminal token of a production and an
+integer giving the right hand side, used for a reduce action. The
+first item in the alist must have the key 'default; it is used
+when no other item matches the current terminal.
 
 GOTOS is an array indexed by parser state, of alists giving the
 new state after a reduce for each nonterminal legal in that
@@ -69,21 +72,19 @@ state.
 
 The automaton is an array with 3 elements:
 
-actions is an array indexed by state containing the compiled form
-of the input ACTIONS; the user action is replaced by a symbol (see
-obarray below)
+actions is a copy of the input ACTIONS
 
-gotos is simply a copy of the input GOTOS
+gotos is a copy of the input GOTOS
 
 obarray contains functions that implement the reduction action
 and the user action for each nonterminal; the function names
 match the production symbol names."
   (wisent-with-context compile-grammar
     (setq wisent-new-log-flag t)
-    ;; Parse input grammar
+    ;; compile user actions and reductions into obarray
     (wisent-parse-grammar grammar nil)
 
-    (list actions gotos )))
+    [actions gotos obarray]))
 
 (provide 'wisi-compile)
 

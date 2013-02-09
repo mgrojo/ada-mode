@@ -1028,8 +1028,12 @@ beginning or end of buffer."
 	  (cond
 	   ((bobp) (setq token ""))
 	   ((eobp) (setq token ""))
-	   ((and forward (eq (char-after) ?\))) (setq token ")"))
-	   ((and (not forward) (eq (char-before) ?\()) (setq token "("))
+	   ((and forward (eq (char-after) ?\)))
+	    (setq token ")")
+	    (forward-char 1))
+	   ((and (not forward) (eq (char-before) ?\())
+	    (setq token "(")
+	    (forward-char -1))
 	   (t
 	    (setq token nil)
 	    (ada-smie-skip-lowlevel-sexp forward)); also skips strings, char literals

@@ -122,7 +122,13 @@
 	   ))
 
 	(block-start
-	 (wisi-indent-current ada-indent))
+	 (case (wisi-cache-symbol cache)
+	   (IF ;; if_expression FIXME: also if_statement?
+	    (wisi-indent-statement-start 0 cache t))
+
+	   (t ;; other
+	    (wisi-indent-current ada-indent))
+	   ))
 
 	(list-break
 	 (wisi-indent-paren 1))
@@ -280,7 +286,7 @@
 	      ))))
       result)))
 
-;;; debugging
+;;;; debugging
 (defun ada-wisi-debug-keys ()
   "Add debug key definitions to `ada-mode-map'."
   (interactive)

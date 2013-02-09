@@ -56,16 +56,19 @@ begin
    K := (case Bounded (L) is when -1 => 42, when 0 => 41, when 1 => 43);
    --  embedded case
    K := (if K < 0 then 42
-         elsif K = 0 then (case J is
-                              when 42 => -1,
-                              when Integer'First .. 41 => 0,
-                              when others => +1)
+         elsif K = 0 then
+           (case J is
+               when 42 => -1,
+               when Integer'First .. 41 => 0,
+               when others => +1)
          else 44);
-   --  embedded if
+   --  embedded if with comment
    K := (case Bounded (K) is
             when -1 => 42,
             when 0 => 41,
-            when 1 => (if J > 42
-                       then 44
-                       else 45));
+            when 1 =>
+           (if J > 42
+            -- comment aligned with if
+            then 44
+            else 45));
 end Ada_Mode.Conditional_Expressions;
