@@ -1,6 +1,8 @@
 ;; Wisent grammar matching ../../Test/trivial_productions_test.adb
 ;; Subprograms, to test that wisi-generate produces the same OpenToken
 ;; grammar.
+;;
+;; Also tests wisi rules parser
 
 %{
 (require 'wisi)
@@ -9,7 +11,9 @@
 %package subprograms-wy
 
 %keyword FUNCTION "function"
+%keyword LEFT_PAREN "("
 %keyword PROCEDURE "procedure"
+%keyword RIGHT_PAREN ")"
 
 %token <symbol> SYMBOL
 
@@ -28,16 +32,23 @@ declaration
   ;
 
 subprogram
-  : FUNCTION SYMBOL
+  : FUNCTION parameter_list SYMBOL
     `,(wisi-cache-action
       1 'function
       2 'other)
-  | PROCEDURE SYMBOL
+  | PROCEDURE parameter_list SYMBOL
     (wisi-cache-keywords
      $1 'procedure nil $region1
      $2 'other nil $region2)
   ;
   
+;; not on one line, empty production with comment
+parameter_list
+  : LEFT_PAREN RIGHT_PAREN ;; c-like no parameters
+  | ;; ada-like no parameters
+  | LEFT_PAREN SYMBOL RIGHT_PAREN
+  ;
+
 %%
 
 ;; end of file

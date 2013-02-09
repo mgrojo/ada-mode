@@ -1,5 +1,7 @@
 ;; small Ada-like grammar illustrating the shift/reduce conflict
 ;; between a procedure body and a generic procedure instantiation.
+;;
+;; Also tests wisi rules parser
 
 %{
 (require 'wisi)
@@ -22,25 +24,24 @@
 
 %%
 
-library_item
-  : subprogram_body
-  | generic_instantiation
-  ;
+;; all on one line
+library_item : subprogram_body | generic_instantiation  ;
 
 subprogram_body
   : subprogram_specification IS BEGIN NULL END SEMICOLON
-    `(wisi-statement-action 1 'statement-start 6 'statement-end)
+    `,(wisi-statement-action 1 'statement-start 6 'statement-end)
   ;
 
+;; some on one line
 subprogram_specification
-  : PROCEDURE IDENTIFIER LEFT_PAREN IDENTIFIER RIGHT_PAREN
-    `(wisi-statement-action 3 'open-paren 5 'close-paren)
-  | PROCEDURE IDENTIFIER
-  ;
+  : PROCEDURE IDENTIFIER parameter_list  ;
+
+;; all on one line, empty production
+parameter_list : | LEFT_PAREN IDENTIFIER RIGHT_PAREN ;
 
 generic_instantiation
   : PROCEDURE IDENTIFIER IS NEW IDENTIFIER LEFT_PAREN IDENTIFIER RIGHT_PAREN SEMICOLON
-    `(wisi-statement-action 1 'statement-start 9 'statement-end)
+    `,(wisi-statement-action 1 'statement-start 9 'statement-end)
   ;
 
 %%

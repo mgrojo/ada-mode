@@ -27,10 +27,10 @@
 ^build/windows_debug/.*\.exe$
 ^build/windows_debug/.*\.out$
 ^build/windows_debug/.*\.txt$
-^build/windows_debug/ada-subset-wy\.el$
 ^build/windows_debug/obj$
 ^build/windows_debug/obj_tree$
 ^build/windows_debug/wisi\.output$
+^build/windows_debug/wisi_rules_test\.wy$
 ^build/windows_release/.*\.diff$
 ^build/windows_release/.*\.exe$
 ^build/windows_release/.*\.out$
@@ -40,5 +40,5 @@
 ^build/windows_release/obj_tree$
 ^build/x86_lynx_gnu_linux_debug/obj$
 ^build/x86_lynx_gnu_linux_release/obj$
-^wisi/test/.*\.el$
+^wisi/test/.*-wy\.el$
 ^wisi/test/wisent\.output$

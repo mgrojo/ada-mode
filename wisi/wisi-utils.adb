@@ -32,8 +32,16 @@ package body Wisi.Utils is
             Comment   : constant Integer := Ada.Strings.Fixed.Index (Pattern => ";;", Source => Line);
             Non_Blank : constant Integer := Ada.Strings.Fixed.Index_Non_Blank (Line);
          begin
-            if Comment = 0 and Non_Blank > 0 then
-               return Trim (Line, Right);
+            if Non_Blank > 0 then
+               if Comment = 0 then
+                  return Trim (Line, Both);
+               else
+                  if Comment = Non_Blank then
+                     null;
+                  else
+                     return Trim (Line (Non_Blank .. Comment - 1), Right);
+                  end if;
+               end if;
             end if;
          end;
       end loop;

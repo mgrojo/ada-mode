@@ -8,15 +8,13 @@ all:
 t_one : test_one_harness.run
 t_all : test_all_harness.run
 
-#one : subprograms-wy.el
-#one : ada-subset-wy.el
+one : subprograms-wy.el
 one : body_instantiation_conflict-wy.el
 #one : identifier_list_name_conflict-wy.el
 #one : range_conflict-wy.el
-#one : ../../wisi/test/ada-subset-wy.el
 #one : ../../wisi/test/subprograms-wy.el
 #two : ../../wisi/test/body_instantiation_conflict-wy.el
-two : ../../wisi/test/identifier_list_name_conflict-wy.el
+two : ../../wisi/test/subprograms-wy.el
 #two : ../../wisi/test/range_conflict-wy.el
 #one : asu_example_5_10_lr-run.run
 
@@ -32,6 +30,9 @@ EMACS := /apps/emacs-24.2.91/bin/emacs.exe
 
 wisi-%-generate.adb : %.wy wisi-generate.exe
 	./wisi-generate.exe $<
+
+wisi-clean :
+	rm -f wisi-*-generate.adb *-wy.el
 
 vpath %.wy ../../wisi/test
 

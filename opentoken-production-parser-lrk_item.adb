@@ -75,17 +75,16 @@ package body OpenToken.Production.Parser.LRk_Item is
       return To_String (Result);
    end Image;
 
-   ----------------------------------------------------------------------------
-   --  For the given nonterminal in the given grammar, find the set of tokens
-   --  that its first term could resolve to.
-   ----------------------------------------------------------------------------
    function First_Derivations
      (Grammar      : in Production_List.Instance;
       Non_Terminal : in Token.Token_ID;
       Trace        : in Boolean)
-     return Token_ID_Set is
+     return Token_ID_Set
+   is
+      use type Token_List.List_Iterator;
 
       Prod_Iterator  : Production_List.List_Iterator;
+      Token_Iterator : Token_List.List_Iterator;
 
       Derived_Token : Token.Token_ID;
 
@@ -97,28 +96,26 @@ package body OpenToken.Production.Parser.LRk_Item is
 
       Search_Tokens (Non_Terminal) := True;
 
-      --  As long as we found new non-terminal derivations ...
       while Search_Tokens /= Token_ID_Set'(others => False) loop
 
          Added_Tokens := (others => False);
 
-         --  ...search all productions for rightmost derivations for
+         --  search all productions for rightmost derivations for
          --  tokens we found last time.
          Prod_Iterator := Production_List.Initial_Iterator (Grammar);
          while not Production_List.Past_Last (Prod_Iterator) loop
             if
               Search_Tokens (Token.ID (Production_List.Get_Production (Prod_Iterator).LHS.all))
             then
-               Derived_Token :=
-                 Token.ID
-                 (Token_List.Token_Handle
-                    (Token_List.Initial_Iterator
-                       (Production_List.Get_Production (Prod_Iterator).RHS.Tokens)
-                    ).all
-                 );
+               Token_Iterator := Token_List.Initial_Iterator
+                 (Production_List.Get_Production (Prod_Iterator).RHS.Tokens);
 
-               if not Derivations (Derived_Token) then
-                  Added_Tokens (Derived_Token) := True;
+               if Token_Iterator /= Token_List.Null_Iterator then
+                  Derived_Token := Token.ID (Token_List.Token_Handle (Token_Iterator).all);
+
+                  if not Derivations (Derived_Token) then
+                     Added_Tokens (Derived_Token) := True;
+                  end if;
                end if;
             end if;
 
@@ -126,7 +123,9 @@ package body OpenToken.Production.Parser.LRk_Item is
          end loop;
 
          if Trace then
-            Ada.Text_IO.Put_Line (Token.Token_ID'Image (Non_Terminal) & ": adding " & Image (Added_Tokens));
+            if Added_Tokens /= Token_ID_Set'(others => False) then
+               Ada.Text_IO.Put_Line (Token.Token_ID'Image (Non_Terminal) & ": adding " & Image (Added_Tokens));
+            end if;
          end if;
 
          Derivations   := Derivations or Added_Tokens;
@@ -148,10 +147,7 @@ package body OpenToken.Production.Parser.LRk_Item is
       end if;
 
       for NT_Index in Matrix'Range loop
-         Matrix (NT_Index) := First_Derivations
-           (Grammar      => Grammar,
-            Non_Terminal => NT_Index,
-            Trace        => Trace);
+         Matrix (NT_Index) := First_Derivations (Grammar, NT_Index, Trace);
       end loop;
 
       if Trace then
@@ -674,11 +670,6 @@ package body OpenToken.Production.Parser.LRk_Item is
                   Iterator  => Pointer,
                   Lookahead => Item.Lookahead_Set,
                   Next      => Goto_Set.Set));
-
-            if Trace then
-               Ada.Text_IO.Put_Line
-                 ("... Symbol " & Token.Token_ID'Image (Symbol) & " is before pointer");
-            end if;
          end if;
 
          --  Check kernel items to see if symbol is in first tokens
@@ -688,11 +679,6 @@ package body OpenToken.Production.Parser.LRk_Item is
            Token.ID (Token_List.Token_Handle (Item.Pointer).all) not in Tokenizer.Terminal_ID and then
            First_Tokens (Token.ID (Token_List.Token_Handle (Item.Pointer).all))(Symbol)
          then
-            if Trace then
-               Ada.Text_IO.Put_Line
-                 ("... Symbol " & Token.Token_ID'Image (Symbol) & " is produced by first token after pointer");
-            end if;
-
             --  Find the production(s) that create that symbol and put
             --  them in
             Prod_Index := Production_List.Initial_Iterator (Grammar);

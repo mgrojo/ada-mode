@@ -190,25 +190,20 @@ package OpenToken.Production.Parser.LRk_Item is
      (Token.Token_ID'Succ (Tokenizer.Last_Terminal) .. Token.Token_ID'Last) of
      Token_ID_Set;
 
-   --------------------------------------------------------------------------
-   --  For each nonterminal in the given grammar, find the set of
-   --  tokens that its first term could resolve to.
-   --------------------------------------------------------------------------
    function First_Derivations
      (Grammar : in Production_List.Instance;
       Trace   : in Boolean)
      return Derivation_Matrix;
+   --  For each nonterminal in the given grammar, find the set of
+   --  tokens that its first term could start with.
 
-   ----------------------------------------------------------------------------
-   --  Return the closure of the given set of items over the given grammar.
-   --
-   --  Each item set returned will contain only one item. This is done
+   function Closure
+     (Set     : in Item_Set;
+      First   : in Derivation_Matrix;
+      Grammar : in Production_List.Instance)
+     return Item_Set;
+   --  The result will contain only one item. This is done
    --  so that they each get their own look-aheads.
-   --------------------------------------------------------------------------
-   function Closure  (Set     : in Item_Set;
-                      First   : in Derivation_Matrix;
-                      Grammar : in Production_List.Instance
-                     ) return Item_Set;
 
    ----------------------------------------------------------------------------
    --  Return the set of transitions from the given item kernel set on the

@@ -308,9 +308,9 @@ package body OpenToken.Production.Parser.LALR.Elisp is
             end if;
             for Line of RHS.Action loop
                if Action_Count = Action_Length then
-                  Put ("    " & Line);
+                  Put ("        " & Line);
                else
-                  Put_Line ("    " & Line);
+                  Put_Line ("        " & Line);
                end if;
                Action_Count := Action_Count + 1;
             end loop;

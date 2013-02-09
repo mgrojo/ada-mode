@@ -625,8 +625,11 @@ package body OpenToken.Production.Parser.LALR is
       end if;
 
       while Action /= null loop
-         --  Don't put last action; it is always ERROR
-         if Action.Next /= null then
+         if Action.Next = null then
+            Put ("   default => ");
+            Put_Parse_Action (Action.Action);
+            New_Line;
+         else
             Put ("   " & Tokenizer.Terminal_ID'Image (Action.Symbol) &
                    (Tokenizer.Terminal_ID'Width - Tokenizer.Terminal_ID'Image (Action.Symbol)'Length) * ' '
                    & " => ");
@@ -870,9 +873,17 @@ package body OpenToken.Production.Parser.LALR is
             --  not have an explicit EOF, or when there is more than
             --  one production that has the start symbol on the left
             --  hand side.
+            --
+            --  It also happens when the grammar is bad, for example:
+            --
+            --  declarations <= declarations & declaration
+            --
+            --  without 'declarations <= declaration'.
+            --
             raise Programmer_Error with
               "Generating parser: state" & Integer'Image (Kernel.Index) &
-              " has no actions; first production in grammar must be the only start symbol production, " &
+              " has no actions; bad grammar, or " &
+              "first production in grammar must be the only start symbol production, " &
               "and it must must have an explicit EOF.";
          else
             while Last_Action.Next /= null loop
@@ -946,6 +957,8 @@ package body OpenToken.Production.Parser.LALR is
                             );
       Token_List.Clean (Arguments);
 
+      --  Replace stack token with LHS of production
+      --  FIXME: to handle null productions, need to pop all args, push LHS.
       Stack.Seen_Token := new Nonterminal.Class'(Production.LHS.all);
    end Reduce_Stack;
 

@@ -18,13 +18,16 @@
 
 pragma License (GPL);
 
+with Ada.Exceptions;
 with Ada.Strings.Fixed;
+with Ada.Strings.Maps;
 with Ada.Text_IO; use Ada.Text_IO;
 with Wisi.Utils;  use Wisi.Utils;
 procedure Wisi.Rules
   (Input_File : in     Ada.Text_IO.File_Type;
    Rule_List  : in out Rule_Lists.List)
 is
+   use Ada.Strings;
    use Ada.Strings.Fixed;
    use Ada.Strings.Unbounded;
 
@@ -34,105 +37,118 @@ is
    Rule : Rule_Type;
    RHS  : RHS_Type;
 begin
-   --  We assume:
-   --
-   --  1) production lines start with : or |, or are
-   --  continuations of previous lines.
-   --
-   --  2) actions start on a new line
-   --
-   --  3) terminating semicolon is alone on a line
+   --  We assume actions start on a new line starting with either ` or
+   --  (, and are terminated by ; on a new line.
 
    loop
       declare
-         Line  : constant String  := Skip_Comments (Input_File);
-         Colon : constant Integer := Index (Pattern => ":", Source => Line);
-         Bar   : constant Integer := Index (Pattern => "|", Source => Line);
-         Paren : constant Integer := Index (Pattern => "(", Source => Line);
-         Semi  :  Integer         := Index (Pattern => ";", Source => Line);
-
-         Non_Blank : Integer := Index_Non_Blank
-           (Line, From =>
-              (if Colon > 0 then Colon + 1
-               elsif Bar > 0 then Bar + 1
-               else Line'First));
+         Line          : constant String := Skip_Comments (Input_File);
+         Cursor        : Integer         := Line'First;
+         Need_New_Line : Boolean         := False;
 
          procedure Parse_Production
          is
-            Last : Integer := Non_Blank;
+            Last : Integer;
          begin
-            RHS.Production.Clear;
-            RHS.Action.Clear;
-            if Non_Blank = 0 then
-               --  Empty RHS
-               return;
+            Last := -1 + Index (Pattern => " ", Source => Line, From => Cursor);
+
+            if Last = -1 then Last := Line'Last; end if;
+
+            RHS.Production.Append (Line (Cursor .. Last));
+
+            if Last = Line'Last then
+               Need_New_Line := True;
+            else
+               Cursor := Index_Non_Blank (Source => Line, From => Last + 1);
             end if;
-
-            loop
-               Last := -1 + Index (Pattern => " ", Source => Line, From => Non_Blank);
-               if Last = -1 then Last := Line'Last; end if;
-
-               RHS.Production.Append (Line (Non_Blank .. Last));
-
-               exit when Last = Line'Last;
-               Non_Blank := Index_Non_Blank (Line, Last + 2);
-            end loop;
          end Parse_Production;
+
+         procedure Parse_State
+         is begin
+            case State is
+            when Left_Hand_Side =>
+               Cursor := -1 + Index (Set => Ada.Strings.Maps.To_Set (" :"), Source => Line);
+               if Cursor = -1 then Cursor := Line'Last; end if;
+
+               Rule.Left_Hand_Side := +Line (Line'First .. Cursor);
+
+               State := Production;
+
+               Cursor := Index (Pattern => ":", Source => Line);
+               Need_New_Line := Cursor = 0;
+
+            when Production =>
+
+               case Line (Cursor) is
+               when '`' | '(' =>
+                  State         := Action;
+                  RHS.Action    := RHS.Action + Line;
+                  Need_New_Line := True;
+
+               when ';' =>
+                  Rule.Right_Hand_Sides.Append (RHS);
+                  Rule_List.Append (Rule);
+                  State         := Left_Hand_Side;
+                  Need_New_Line := True;
+
+               when '|' =>
+                  Rule.Right_Hand_Sides.Append (RHS);
+                  RHS.Production.Clear;
+                  RHS.Action.Clear;
+
+                  Cursor := Index_Non_Blank (Line, From => Cursor + 1);
+                  Need_New_Line := Cursor = 0;
+
+               when ':' =>
+                  Rule.Right_Hand_Sides.Clear;
+                  RHS.Production.Clear;
+                  RHS.Action.Clear;
+
+                  Cursor := Index_Non_Blank (Line, From => Cursor + 1);
+                  Need_New_Line := Cursor = 0;
+
+               when others =>
+                  Parse_Production;
+               end case;
+
+            when Action =>
+               case Line (Cursor) is
+               when ';' =>
+                  Rule.Right_Hand_Sides.Append (RHS);
+                  Rule_List.Append (Rule);
+                  State         := Left_Hand_Side;
+                  Need_New_Line := True;
+
+               when '|' =>
+                  Rule.Right_Hand_Sides.Append (RHS);
+                  State := Production;
+                  RHS.Production.Clear;
+                  RHS.Action.Clear;
+
+                  Cursor := Index_Non_Blank (Line, From => Cursor + 1);
+                  Need_New_Line := Cursor = 0;
+
+               when others =>
+                  RHS.Action    := RHS.Action + Line;
+                  Need_New_Line := True;
+               end case;
+            end case;
+
+         end Parse_State;
 
       begin
          exit when Line = "%%";
 
-         if Semi > 0 and Non_Blank /= Semi then
-            --  ignore trailing elisp comments in rules
-            Semi := 0;
-         end if;
-
-         case State is
-         when Left_Hand_Side =>
-            Rule.Left_Hand_Side := +Trim
-              (Line (Non_Blank .. (if Colon > 0 then Colon - 1 else Line'Last)), Ada.Strings.Right);
-
-            Rule.Right_Hand_Sides.Clear;
-
-            State := Production;
-
-         when Production =>
-
-            if Bar > 0 then
-               Rule.Right_Hand_Sides.Append (RHS);
-               Parse_Production;
-
-            elsif Paren > 0 then
-               State       := Action;
-               RHS.Action := RHS.Action + Line;
-
-            elsif Semi > 0 then
-               Rule.Right_Hand_Sides.Append (RHS);
-               Rule_List.Append (Rule);
-               State := Left_Hand_Side;
-
-            else
-               --  first production
-               Parse_Production;
-            end if;
-
-         when Action =>
-            if Semi > 0 then
-               Rule.Right_Hand_Sides.Append (RHS);
-               Rule_List.Append (Rule);
-               State := Left_Hand_Side;
-
-            elsif Bar > 0 then
-               Rule.Right_Hand_Sides.Append (RHS);
-               State := Production;
-               RHS.Production.Clear;
-               RHS.Action.Clear;
-               Parse_Production;
-
-            else
-               RHS.Action := RHS.Action + Line;
-            end if;
-         end case;
+         loop
+            Parse_State;
+            exit when Need_New_Line;
+         end loop;
+      exception
+      when E : others =>
+         Put_Line
+           (Name (Input_File) & ":" & Trim (Ada.Text_IO.Count'Image (Ada.Text_IO.Line (Input_File)), Left) & ":0:" &
+              " unhandled exception " & Ada.Exceptions.Exception_Name (E));
+         raise Syntax_Error;
       end;
    end loop;
 end Wisi.Rules;

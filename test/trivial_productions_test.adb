@@ -108,10 +108,20 @@ package body Trivial_Productions_Test is
       type Token_IDs is
         (
          --  Terminals
-         Function_ID, Procedure_ID, Symbol_ID, Whitespace_ID, EOF_ID,
+         Function_ID,
+         Procedure_ID,
+         Symbol_ID,
+         Left_Paren_ID,
+         Right_Paren_ID,
+         Whitespace_ID,
+         EOF_ID,
 
          --  Nonterminals
-         OpenToken_Accept_ID, Declarations_ID, Declaration_ID, Subprogram_ID);
+         OpenToken_Accept_ID,
+         Declarations_ID,
+         Declaration_ID,
+         Subprogram_ID,
+         Parameter_List_ID);
 
       package Tokens_Pkg is new OpenToken.Token.Enumerated (Token_IDs);
       package Analyzers is new Tokens_Pkg.Analyzer (EOF_ID);
@@ -122,22 +132,27 @@ package body Trivial_Productions_Test is
       package Parsers is new Productions.Parser (Production_Lists, Analyzers);
       package LALR_Parsers is new Parsers.LALR;
 
-      EOF           : constant Tokens_Pkg.Class := Tokens_Pkg.Get (EOF_ID);
-      Function_Tok  : constant Tokens_Pkg.Class := Tokens_Pkg.Get (Function_ID);
-      Procedure_Tok : constant Tokens_Pkg.Class := Tokens_Pkg.Get (Procedure_ID);
-      Symbol        : constant Tokens_Pkg.Class := Tokens_Pkg.Get (Symbol_ID);
+      EOF            : constant Tokens_Pkg.Class := Tokens_Pkg.Get (EOF_ID);
+      Function_Tok   : constant Tokens_Pkg.Class := Tokens_Pkg.Get (Function_ID);
+      Left_Paren     : constant Tokens_Pkg.Class := Tokens_Pkg.Get (Left_Paren_ID);
+      Procedure_Tok  : constant Tokens_Pkg.Class := Tokens_Pkg.Get (Procedure_ID);
+      Right_Paren    : constant Tokens_Pkg.Class := Tokens_Pkg.Get (Right_Paren_ID);
+      Symbol         : constant Tokens_Pkg.Class := Tokens_Pkg.Get (Symbol_ID);
 
       OpenToken_Accept : constant Nonterminals.Class := Nonterminals.Get (OpenToken_Accept_ID);
       Declarations     : constant Nonterminals.Class := Nonterminals.Get (Declarations_ID);
       Declaration      : constant Nonterminals.Class := Nonterminals.Get (Declaration_ID);
+      Parameter_List   : constant Nonterminals.Class := Nonterminals.Get (Parameter_List_ID);
       Subprogram       : constant Nonterminals.Class := Nonterminals.Get (Subprogram_ID);
 
       Syntax : constant Analyzers.Syntax :=
-        (EOF_ID        => Analyzers.Get (OpenToken.Recognizer.End_Of_File.Get, EOF),
-         Function_ID   => Analyzers.Get (OpenToken.Recognizer.Keyword.Get ("function"), Function_Tok),
-         Procedure_ID  => Analyzers.Get (OpenToken.Recognizer.Keyword.Get ("procedure"), Procedure_Tok),
-         Symbol_ID     => Analyzers.Get (OpenToken.Recognizer.Keyword.Get ("symbol"), Symbol),
-         Whitespace_ID => Analyzers.Get (OpenToken.Recognizer.Character_Set.Get
+        (EOF_ID         => Analyzers.Get (OpenToken.Recognizer.End_Of_File.Get, EOF),
+         Function_ID    => Analyzers.Get (OpenToken.Recognizer.Keyword.Get ("function"), Function_Tok),
+         Left_Paren_ID  => Analyzers.Get (OpenToken.Recognizer.Keyword.Get ("("), Function_Tok),
+         Procedure_ID   => Analyzers.Get (OpenToken.Recognizer.Keyword.Get ("procedure"), Procedure_Tok),
+         Right_Paren_ID => Analyzers.Get (OpenToken.Recognizer.Keyword.Get (")"), Function_Tok),
+         Symbol_ID      => Analyzers.Get (OpenToken.Recognizer.Keyword.Get ("symbol"), Symbol),
+         Whitespace_ID  => Analyzers.Get (OpenToken.Recognizer.Character_Set.Get
            (OpenToken.Recognizer.Character_Set.Standard_Whitespace)));
 
       Analyzer : Analyzers.Instance := Analyzers.Initialize (Syntax, Feeder'Access);
@@ -153,8 +168,10 @@ package body Trivial_Productions_Test is
         Declarations     <= Declaration + Nonterminals.Synthesize_Self and
         Declarations     <= Declarations & Declaration + Nonterminals.Synthesize_Self and
         Declaration      <= Subprogram + Nonterminals.Synthesize_Self and
-        Subprogram       <= Function_Tok & Symbol + Nonterminals.Synthesize_Self and
-        Subprogram       <= Procedure_Tok & Symbol + Nonterminals.Synthesize_Self;
+        Subprogram       <= Function_Tok & Parameter_List & Symbol + Nonterminals.Synthesize_Self and
+        Subprogram       <= Procedure_Tok & Parameter_List & Symbol + Nonterminals.Synthesize_Self and
+        Parameter_List   <= +Nonterminals.Synthesize_Self and
+        Parameter_List   <= Left_Paren & Symbol & Right_Paren + Nonterminals.Synthesize_Self;
 
       Parser : LALR_Parsers.Instance;
 
@@ -162,7 +179,7 @@ package body Trivial_Productions_Test is
    begin
       --  The test is that there are no exceptions raised, either during grammar construction or parsing
 
-      Parser := LALR_Parsers.Generate (Grammar, Analyzer, Test_Case (Test).Debug);
+      Parser := LALR_Parsers.Generate (Grammar, Analyzer, Test_Case (Test).Debug, Test_Case (Test).Debug);
 
       OpenToken.Text_Feeder.String.Set (Feeder, Text);
       Analyzer.Reset;

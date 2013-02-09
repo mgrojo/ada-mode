@@ -37,6 +37,7 @@ with Test_Sequence_Actions;
 with Test_Statement_Actions;
 with Test_Token_Identifier_Real_String;
 with Trivial_Productions_Test;
+with Wisi_Rules_Test;
 procedure Test_All_Harness
 is
    Suite    : constant Access_Test_Suite := new Test_Suite;
@@ -61,6 +62,7 @@ begin
    Add_Test (Suite, new Test_Statement_Actions.Test_Case (Debug => False));
    Add_Test (Suite, new Test_Token_Identifier_Real_String.Test_Case (Debug => False));
    Add_Test (Suite, new Trivial_Productions_Test.Test_Case (Debug => False));
+   Add_Test (Suite, new Wisi_Rules_Test.Test_Case);
 
    --  end test cases
 

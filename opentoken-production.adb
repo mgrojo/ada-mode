@@ -26,18 +26,13 @@
 --
 -------------------------------------------------------------------------------
 
--------------------------------------------------------------------------------
---  This package provides a type and operations for building grammar
---  productions.
--------------------------------------------------------------------------------
 package body OpenToken.Production is
 
    function "+"
      (Tokens : in Token_List.Instance;
       Action : in Nonterminal.Synthesize)
      return Right_Hand_Side
-   is
-   begin
+   is begin
       return (Tokens, Action, 0);
    end "+";
 
@@ -45,9 +40,15 @@ package body OpenToken.Production is
      (Tokens : in Token.Class;
       Action : in Nonterminal.Synthesize)
      return Right_Hand_Side
-   is
-   begin
+   is begin
       return (Token_List.Only (Tokens), Action, 0);
+   end "+";
+
+   function "+"
+     (Action : in Nonterminal.Synthesize)
+     return Right_Hand_Side
+   is begin
+      return (Token_List.Null_List, Action, 0);
    end "+";
 
    function "+"
@@ -64,6 +65,13 @@ package body OpenToken.Production is
      return Right_Hand_Side
    is begin
       return (Token_List.Only (Tokens), null, Index);
+   end "+";
+
+   function "+"
+     (Index  : in Integer)
+     return Right_Hand_Side
+   is begin
+      return (Token_List.Null_List, null, Index);
    end "+";
 
    function "<=" (LHS : in Nonterminal.Handle;

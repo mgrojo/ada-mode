@@ -48,18 +48,22 @@ package OpenToken.Production is
    --
    type Right_Hand_Side is private;
 
-   --------------------------------------------------------------------------
    --  Create the right hand side of a production from a list of
    --  tokens and a synthesization routine. The synthesization routine
    --  will be called whenever the production is reduced by the
    --  parser.
-   --------------------------------------------------------------------------
-   function "+" (Tokens : in Token_List.Instance;
-                 Action : in Nonterminal.Synthesize
-                ) return Right_Hand_Side;
-   function "+" (Tokens : in Token.Class;
-                 Action : in Nonterminal.Synthesize
-                ) return Right_Hand_Side;
+
+   function "+"
+     (Tokens : in Token_List.Instance;
+      Action : in Nonterminal.Synthesize)
+     return Right_Hand_Side;
+   function "+"
+     (Tokens : in Token.Class;
+      Action : in Nonterminal.Synthesize)
+     return Right_Hand_Side;
+   function "+"
+     (Action : in Nonterminal.Synthesize)
+     return Right_Hand_Side;
 
    function "+"
      (Tokens : in Token_List.Instance;
@@ -70,6 +74,11 @@ package OpenToken.Production is
       Index  : in Integer)
      return Right_Hand_Side;
    --  Add an index used to help identify the production.
+
+   function "+"
+     (Index  : in Integer)
+     return Right_Hand_Side;
+   --  A right hand side with no tokens
 
    ----------------------------------------------------------------------------
    --  A production instance consists of a nonterminal token instance "<=" ed to
