@@ -405,8 +405,11 @@ begin
          Indent := Indent - 4;
       end loop;
    end;
-   Indent_Line
-     ("Parser := LALR_Parsers.Generate (Grammar, Analyzers.Null_Analyzer, Verbosity > 1, Verbosity > 0);");
+   Indent_Line ("Parser := LALR_Parsers.Generate");
+   Indent_Line ("  (Grammar, Analyzers.Null_Analyzer,");
+   Indent_Line ("   Trace => Verbosity > 1,");
+   Indent_Line ("   Put_Grammar => Verbosity > 0,");
+   Indent_Line ("   First_State_Index => 0); -- match Elisp array indexing");
 
    Indent_Line ("Parser_Elisp.Output (Elisp_Package, Copyright, Prologue, Keywords, Tokens, Rules, Parser);");
    Put_Line ("end " & Package_Name & ";");

@@ -963,17 +963,18 @@ package body OpenToken.Production.Parser.LALR is
    end Reduce_Stack;
 
    overriding function Generate
-     (Grammar     : in Production_List.Instance;
-      Analyzer    : in Tokenizer.Instance;
-      Trace       : in Boolean := False;
-      Put_Grammar : in Boolean := False)
+     (Grammar           : in Production_List.Instance;
+      Analyzer          : in Tokenizer.Instance;
+      Trace             : in Boolean := False;
+      Put_Grammar       : in Boolean := False;
+      First_State_Index : in Integer := 1)
      return Instance
    is
       New_Parser  : Instance;
 
       First_Tokens : constant LRk.Derivation_Matrix := LRk.First_Derivations (Grammar, Trace);
 
-      Kernels      : LRk.Item_Set_List := LRk.LR0_Kernels (Grammar, First_Tokens, Trace);
+      Kernels      : LRk.Item_Set_List := LRk.LR0_Kernels (Grammar, First_Tokens, Trace, First_State_Index);
       I            : LRk.Item_Set_Ptr  := Kernels.Head;
       Accept_Index : Integer := 0;
 
@@ -1014,7 +1015,8 @@ package body OpenToken.Production.Parser.LALR is
          LRk.Print_Item_Set_List (Kernels);
       end if;
 
-      New_Parser.Table := new Parse_Table (1 .. State_Index (Kernels.Size));
+      New_Parser.Table := new Parse_Table
+        (State_Index (First_State_Index) .. State_Index (Kernels.Size - 1 + First_State_Index));
 
       --  Add actions
       Fill_In_Parse_Table (Kernels, Accept_Index, Grammar, First_Tokens, New_Parser.Table.all, Trace);

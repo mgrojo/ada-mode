@@ -27,7 +27,7 @@ package body OpenToken.Production.Parser.LALR.Elisp is
 
    procedure Header (Elisp_Package : in String; Copyright : in String)
    is begin
-      Put_Line (";;; " & Elisp_Package & ".el --- Generated parser support file");
+      Put_Line (";;; " & Elisp_Package & "-wy.el --- Generated parser support file");
       New_Line;
       Put_Line (";; Copyright (C) " & Copyright);
       New_Line;
@@ -58,7 +58,7 @@ package body OpenToken.Production.Parser.LALR.Elisp is
    is
       use Wisi; -- "-" unbounded_string
    begin
-      Put_Line ("(defconst " & Elisp_Package & "--keyword-table");
+      Put_Line ("(defconst " & Elisp_Package & "-wy--keyword-table");
       Put_Line ("  (semantic-lex-make-keyword-table");
       Put_Line ("   '(");
       for Pair of Keywords loop
@@ -76,7 +76,7 @@ package body OpenToken.Production.Parser.LALR.Elisp is
       use Wisi; -- "-" unbounded_string
       use Ada.Strings.Unbounded; -- length
    begin
-      Put_Line ("(defconst " & Elisp_Package & "--token-table");
+      Put_Line ("(defconst " & Elisp_Package & "-wy--token-table");
       Put_Line ("  (semantic-lex-make-type-table");
       Put_Line ("   '(");
       for Triplet of Tokens loop
@@ -95,8 +95,12 @@ package body OpenToken.Production.Parser.LALR.Elisp is
    is
       Full : constant String := Token.Parent_Token_ID'Image (Item);
    begin
-      --  Strip trailing _ID
-      return  Full (1 .. Full'Length - 3);
+      --  Strip trailing _ID. Convert to lowercase if nonterminal
+      if Item in Tokenizer.Terminal_ID then
+         return Full (1 .. Full'Length - 3);
+      else
+         return Ada.Characters.Handling.To_Lower (Full (1 .. Full'Length - 3));
+      end if;
    end Token_Image;
 
    procedure Action_Table (Parser : in Instance)
@@ -142,8 +146,8 @@ package body OpenToken.Production.Parser.LALR.Elisp is
 
                         when Reduce =>
                            Put
-                             (To_Lower (Token_Image (LHS_ID (Parse_Action.Production))) & ":" &
-                                Trim (Integer'Image (Index (Parse_Action.Production)), Both));
+                             ("""" & To_Lower (Token_Image (LHS_ID (Parse_Action.Production))) & ":" &
+                                Trim (Integer'Image (Index (Parse_Action.Production)), Both) & """");
 
                         when Shift =>
                            Put (State_Index'Image (Parse_Action.State));
@@ -270,7 +274,7 @@ package body OpenToken.Production.Parser.LALR.Elisp is
       Action_Length : Count_Type;
       Action_Count  : Count_Type;
    begin
-      Put_Line ("(defconst " & Elisp_Package & "--parse-table");
+      Put_Line ("(defconst " & Elisp_Package & "-wy--parse-table");
       Put_Line ("   (wisi-compile-grammar");
       --  terminal tokens
       Put ("   '((");
@@ -361,7 +365,7 @@ package body OpenToken.Production.Parser.LALR.Elisp is
       New_Line;
       Parse_Table (Elisp_Package, Keywords, Tokens, Rules, Parser);
       New_Line;
-      Put_Line ("(provide '" & Elisp_Package & ")");
+      Put_Line ("(provide '" & Elisp_Package & "-wy)");
       New_Line;
       Put_Line (";; end of file");
       Close (File);

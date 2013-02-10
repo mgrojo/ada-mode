@@ -786,7 +786,8 @@ package body OpenToken.Production.Parser.LRk_Item is
    function LR0_Kernels
      (Grammar      : in Production_List.Instance;
       First_Tokens : in Derivation_Matrix;
-      Trace        : in Boolean)
+      Trace        : in Boolean;
+      First_Index  : in Natural)
      return Item_Set_List
    is
 
@@ -799,7 +800,7 @@ package body OpenToken.Production.Parser.LRk_Item is
                  (Production_List.Get_Production
                     (Production_List.Initial_Iterator (Grammar)))),
             Goto_List => null,
-            Index     => 1,
+            Index     => First_Index,
             Next      => null),
          Size       => 1);
 
@@ -846,7 +847,7 @@ package body OpenToken.Production.Parser.LRk_Item is
                      New_Items_To_Check := True;
 
                      New_Items.Next := Kernel_List.Head;
-                     New_Items.Index := Kernel_List.Size + 1;
+                     New_Items.Index := Kernel_List.Size + First_Index;
 
                      if Trace then
                         Ada.Text_IO.Put_Line ("... adding new kernel" & Integer'Image (New_Items.Index));

@@ -239,7 +239,8 @@ package OpenToken.Production.Parser.LRk_Item is
    function LR0_Kernels
      (Grammar      : in Production_List.Instance;
       First_Tokens : in Derivation_Matrix;
-      Trace        : in Boolean)
+      Trace        : in Boolean;
+      First_Index  : in Natural)
      return Item_Set_List;
 
    ----------------------------------------------------------------------------

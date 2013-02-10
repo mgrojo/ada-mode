@@ -40,10 +40,11 @@ package OpenToken.Production.Parser.LALR is
    --  of the parser execution without the parser generation.
    --  Analyzer is copied.
    overriding function Generate
-     (Grammar     : in Production_List.Instance;
-      Analyzer    : in Tokenizer.Instance;
-      Trace       : in Boolean := False;
-      Put_Grammar : in Boolean := False)
+     (Grammar           : in Production_List.Instance;
+      Analyzer          : in Tokenizer.Instance;
+      Trace             : in Boolean := False;
+      Put_Grammar       : in Boolean := False;
+      First_State_Index : in Integer := 1)
      return Instance;
 
    overriding procedure Parse (Parser : in out Instance);
