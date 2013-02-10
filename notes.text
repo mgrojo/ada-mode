@@ -1,6 +1,14 @@
 General notes on implementing the Emacs Ada mode indentation engine using the smie and wisent parsers
 
-runtest from emacs -Q:
+run wisi test from emacs -Q:
+(progn
+  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.smie")
+  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.smie/build")
+  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.smie/build/wisi")
+  (load "run-wisi-test")
+  (find-file "/Projects/org.emacs.ada-mode.smie/build/wisi/range_conflict-wy.el"))
+
+run indent test from emacs -Q:
 (progn
   (add-to-list 'load-path "/Projects/org.emacs.ada-mode.smie")
   (add-to-list 'load-path "/Projects/org.emacs.ada-mode.smie/build")
@@ -37,8 +45,15 @@ output to *wisent-log* buffer, written to wisent.output if batch
     to-do list
 
 ada-wisi
-    need parallel LALR structure; opentoken
-        /Projects/org.opentoken.stephe/build/windows_debug/Makefile
+    need parallel LALR structure
+        build/wisi/Makefile
+        build/wisi/range_conflict-wy.el
+        wisi-compile.el
+        (load "build/run-wisi-test.el")
+        test/wisi/range_conflict.input
+            hits conflict!
+
+        rewrite wisent-parse
 
             subprograms.wy for empty production
                 opentoken done
@@ -59,18 +74,10 @@ ada-wisi
                         STRING_LITERAL '=>' gives selector_name,
                         STRING_LITERAL anything else gives name
 
-        write tests of wisi-parse using above grammars
-
-        wisi-compile.el
-            store conflict in extended Wisent elisp structure
-                value of terminal alist needs to be a list
-
-            reimplement wisent-compile-grammar
-
-        rewrite wisent-parse
-
         compile ada-grammar.wy
             build/wisi/Makefile
+            need to distinguish terminal BODY from non-terminal body
+                BODY_T_ID, body_nt_ID
 
 
     add opentoken aunit test for wisi

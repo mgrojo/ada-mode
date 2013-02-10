@@ -263,6 +263,18 @@ package body Ada_Mode.Parens is
       return A.all;
    end;
 
+   --EMACSCMD:(progn (forward-line 4)(forward-word 2)(insert "    ")(ada-align))
+   -- default at end of list
+   procedure Param_Format_8
+     (Grammar           : in Production_List.Instance;
+      Analyzer          : in Tokenizer.Instance;
+      Trace             : in Boolean := False;
+      Put_Grammar       : in Boolean := False;
+      First_State_Index : in Integer := 1)
+   is begin
+      null;
+   end;
+
    --EMACSCMD:(progn (forward-line 2)(forward-word 5)(insert "    ")(ada-align))
    -- single line no mode
    function Param_Format_S1 (A : Float; B : Integer := 3) return Float

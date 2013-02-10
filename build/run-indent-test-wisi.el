@@ -6,6 +6,6 @@
 (require 'gpr-wisi)
 (require 'gpr-mode)
 
-(require 'runtest)
+(require 'run-indent-test)
 
 ;;; end of file

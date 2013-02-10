@@ -1017,7 +1017,7 @@ encounter beginning or end of buffer."
    (nth 0 (ada-smie-next-keyword 'ada-smie-forward-token t)))
 
 (defun ada-smie-next-token-unrefined (next-token forward)
-  "Move to the next token using function NEXT-TOKEN. Skips parentheses, strings.
+  "Move across the next token using function NEXT-TOKEN. Skips parentheses, strings.
 Return the token (case preserved), or wrong paren, or empty string if encounter
 beginning or end of buffer."
   (let ((token nil))
@@ -4021,9 +4021,13 @@ If DECLARE non-nil, stop at first containing declarative region (for 'declare' b
 	(setq type-end (save-excursion (backward-char 2) (skip-syntax-backward " ") (point)))
 	(skip-syntax-forward " ")
 	(setq default-begin (point))
-	(ada-smie-forward-tokens-unrefined ";")
-	(unless (equal token ")")
-	  (ada-smie-backward-token-unrefined)))
+	(let ((found (ada-smie-forward-tokens-unrefined ";")))
+	  (cond
+	   ((equal found ")")
+	    (backward-char 1))
+	   (t
+	    (ada-smie-backward-token-unrefined)))
+	  ))
 
        ((member token '(";" ""))
 	;; one param done
@@ -4032,13 +4036,13 @@ If DECLARE non-nil, stop at first containing declarative region (for 'declare' b
 	    (progn
 	      (setq done t)
 	      (when (not type-end) (setq type-end (point)))
-	      (when default-begin (setq default (buffer-substring default-begin (point))))
+	      (when default-begin (setq default (buffer-substring-no-properties default-begin (point))))
 	      )
 	  (when (not type-end) (setq type-end (1- (point))))
-	  (when default-begin (setq default (buffer-substring default-begin (1- (point)))))
+	  (when default-begin (setq default (buffer-substring-no-properties default-begin (1- (point)))))
 	  )
 
-	(setq type (buffer-substring type-begin type-end))
+	(setq type (buffer-substring-no-properties type-begin type-end))
 	(setq param (list (reverse identifiers)
 			  in-p out-p not-null-p access-p constant-p protected-p
 			  type default))

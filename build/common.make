@@ -56,7 +56,7 @@ vpath %.ads ../../test ../../test/subdir
 vpath %.adb ../../test ../../test/subdir
 vpath %.gpr ../../test/gpr
 
-test : test-ada test-gpr test-elisp
+test :: test-ada test-gpr test-elisp
 
 test-ada : $(addsuffix .diff, $(subst subdir/,,$(ADA_TEST_FILES)))
 

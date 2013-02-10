@@ -9,6 +9,7 @@
 ^build/wisi/.*\.diff$
 ^build/wisi/.*\.el$
 ^build/wisi/.*\.exe$
+^build/wisi/.*\.output$
 ^build/wisi/.*\.tmp$
 ^build/wisi/obj$
 ^gpr-grammar-wy\.el$

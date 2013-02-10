@@ -1,0 +1,50 @@
+;; grammar has a reduce-reduce conflict
+
+%{
+(require 'wisi)
+%}
+
+%package range_conflict-wy
+
+%keyword IN "in"
+%keyword LEFT_PAREN "("
+%keyword RANGE "range"
+%keyword RIGHT_PAREN ")"
+
+%token <punctuation> DOT_DOT ".."
+%token <punctuation> TICK "'"
+
+%token <symbol> IDENTIFIER
+
+;; required by wisi-setup
+%token <string> STRING_LITERAL
+%%
+
+compilation_unit
+  : membership_choice range_nt
+    (setq wisi-test-success t)
+  ;
+
+membership_choice
+  : primary
+  | range_nt ;; can't use case to distinguish; Ada is case insensitive
+  ;
+
+primary
+  : IDENTIFIER
+  | STRING_LITERAL
+  | LEFT_PAREN relation RIGHT_PAREN
+  ;
+
+range_nt
+  : IDENTIFIER TICK RANGE LEFT_PAREN relation RIGHT_PAREN ;; range_attribute_reference
+  | IDENTIFIER TICK RANGE
+  | primary DOT_DOT primary
+  ;
+
+relation
+  : primary IN membership_choice
+  ;
+
+%%
+;;; end of file

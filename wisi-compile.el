@@ -45,7 +45,146 @@
 ;;
 ;;;;
 
-(require 'semantic/wisent/comp)
+;; can't just 'require'; `wisent-with-context' doesn't work.
+(load (locate-library "semantic/wisent/comp.el"))
+
+(defun wisi-replace-symbols (items symbol-array)
+  (let (result item)
+    (while items
+     (setq item (pop items))
+     (cond
+      ((numberp item)
+       (push item result))
+
+      ((stringp item)
+       (let ((symbol (intern-soft item symbol-array)))
+	 (if symbol
+	     (push symbol result)
+	   (error "%s not in symbol-array" (cdr item)))))
+
+      (t
+       (error "unexpected '%s'; expected numberp, stringp" (cdr item)))
+      ))
+   (reverse result)))
+
+(defun wisi-replace-actions (action symbol-array)
+  "Replace semantic action symbol names in ACTION with corresponding symbol from SYMBOL-ARRAY.
+Return the new action."
+  (let (result item)
+    (while action
+     (setq item (pop action))
+      (cond
+       ((or
+      	 (memq (cdr item) '(error accept))
+      	 (numberp (cdr item)))
+      	(push item result))
+
+       ((stringp (cdr item))
+      	(let ((symbol (intern-soft (cdr item) symbol-array)))
+      	  (if symbol
+      	      (push (cons (car item) symbol) result)
+      	    (error "%s not in symbol-array" (cdr item)))))
+
+       ((listp (cdr item))
+	(push (cons (car item) (wisi-replace-symbols (cdr item) symbol-array)) result))
+
+       (t
+      	(error "unexpected '%s'; expected 'error, 'accept, numberp, stringp, listp" (cdr item)))
+       )
+      )
+   (reverse result)))
+
+(defun wisi-semantic-action (r)
+  ;; copied from comp.el, modified to use 'stack' instead of ',stack'
+  ;; for stack, sp, gotos, state; just to make things clearer.
+  ;;
+  "Define an Elisp function for semantic action at rule R.
+On entry RCODE[R] contains a vector [BODY N (NTERM I)] where BODY is the
+body of the semantic action, N is the maximum number of values
+available in the parser's stack, NTERM is the nonterminal the semantic
+action belongs to, and I is the index of the semantic action inside
+NTERM definition.  Return the semantic action symbol, which is interned in RCODE[0].
+The semantic action function accepts three arguments:
+
+- the state/value stack
+- the top-of-stack index
+- the goto table
+
+And returns the updated top-of-stack index."
+  (if (not (aref ruseful r))
+      (aset rcode r nil)
+    (let* ((actn (aref rcode r))
+           (n    (aref actn 1))         ; nb of val avail. in stack
+           (NAME (apply 'format "%s:%d" (aref actn 2)))
+           (form (wisent-semantic-action-expand-body (aref actn 0) n))
+           ($l   (car form))            ; list of $vars used in body
+           (form (cdr form))            ; expanded form of body
+           (nt   (aref rlhs r))         ; nonterminal item no.
+           (bl   nil)                   ; `let*' binding list
+           $v i j)
+
+      ;; Compute $N and $regionN bindings
+      (setq i n)
+      (while (> i 0)
+        (setq j (1+ (* 2 (- n i))))
+        ;; Only bind $regionI if used in action
+        (setq $v (intern (format "$region%d" i)))
+        (if (memq $v $l)
+            (setq bl (cons `(,$v (cdr (aref stack (- sp ,j)))) bl)))
+        ;; Only bind $I if used in action
+        (setq $v (intern (format "$%d" i)))
+        (if (memq $v $l)
+            (setq bl (cons `(,$v (car (aref stack (- sp ,j)))) bl)))
+        (setq i (1- i)))
+
+      ;; Compute J, the length of rule's RHS.  It will give the
+      ;; current parser state at STACK[SP - 2*J], and where to push
+      ;; the new semantic value and the next state, respectively at:
+      ;; STACK[SP - 2*J + 1] and STACK[SP - 2*J + 2].  Generally N,
+      ;; the maximum number of values available in the stack, is equal
+      ;; to J.  But, for mid-rule actions, N is the number of rule
+      ;; elements before the action and J is always 0 (empty rule).
+      (setq i (aref rrhs r)
+            j 0)
+      (while (> (aref ritem i) 0)
+        (setq j (1+ j)
+              i (1+ i)))
+
+      ;; Create the semantic action symbol.
+      (setq actn (intern NAME (aref rcode 0)))
+
+      ;; Store source code in function cell of the semantic action
+      ;; symbol.  It will be byte-compiled at automaton's compilation
+      ;; time.  Using a byte-compiled automaton can significantly
+      ;; speed up parsing!
+      (fset actn
+            `(lambda (stack sp gotos)
+               (let* (,@bl
+                      ($region
+                       ,(cond
+                         ((= n 1)
+                          (if (assq '$region1 bl)
+                              '$region1
+                            `(cdr (aref stack (1- sp)))))
+                         ((> n 1)
+                          `(wisent-production-bounds
+                            stack (- sp ,(1- (* 2 n))) (1- sp)))))
+                      ($action ,NAME)
+                      ($nterm  ',(aref tags nt))
+                      ,@(and (> j 0) `((sp (- sp ,(* j 2)))))
+                      (state (cdr (assq $nterm
+                                         (aref gotos
+                                               (aref stack sp))))))
+                 (setq sp (+ sp 2))
+                 ;; push semantic value
+                 (aset stack (1- sp) (cons ,form $region))
+                 ;; push next state
+                 (aset stack sp state)
+                 ;; return new top of stack
+                 sp)))
+
+      ;; Return the semantic action symbol
+      actn)))
 
 (defun wisi-compile-grammar (grammar)
   "Compile the LALR(1) GRAMMAR; return the automaton for wisi-parse.
@@ -70,21 +209,50 @@ GOTOS is an array indexed by parser state, of alists giving the
 new state after a reduce for each nonterminal legal in that
 state.
 
-The automaton is an array with 3 elements:
+The automaton is an array with 4 elements:
 
-actions is a copy of the input ACTIONS
+actions is a copy of the input ACTIONS, with semantic action
+strings replaced by symbols from symbol-array (below).
 
 gotos is a copy of the input GOTOS
 
-obarray contains functions that implement the reduction action
+starts is nil (for compatibility with wisent-parse)
+
+symbol-array contains functions that implement the reduction action
 and the user action for each nonterminal; the function names
 match the production symbol names."
   (wisent-with-context compile-grammar
-    (setq wisent-new-log-flag t)
-    ;; compile user actions and reductions into obarray
-    (wisent-parse-grammar grammar nil)
+    (wisent-parse-grammar;; set global vars used by wisent-semantic-action
+     (cons
+      (nth 0 grammar);; TOKENS
+      (cons nil ;; ASSOCS
+	    (nth 1 grammar));; NONTERMS
+      ))
 
-    [actions gotos obarray]))
+    (aset rcode 0 (make-vector 13 0));; obarray for semantic actions
+
+    ;; create semantic action functions, interned in rcode[0]
+    (let* ((i 1))
+      (while (<= i nrules)
+	(wisi-semantic-action i)
+	(setq i (1+ i)))
+      )
+
+    ;; replace semantic actions in ACTIONS with symbols from symbol-array
+    (let ((nactions (length (nth 2 grammar)))
+	  (actions (nth 2 grammar))
+	  (symbol-array (aref rcode 0))
+	  (i 0))
+      (while (< i nactions)
+	(aset actions i
+	      (wisi-replace-actions (aref actions i) symbol-array))
+	(setq i (1+ i)))
+      (vector
+       actions
+       (nth 3 grammar)
+       nil ;; starts
+       symbol-array)
+      )))
 
 (provide 'wisi-compile)
 

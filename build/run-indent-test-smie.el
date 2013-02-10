@@ -5,6 +5,6 @@
 
 ;; there is no gpr mode for smie
 
-(require 'runtest)
+(require 'run-indent-test)
 
 ;;; end of file

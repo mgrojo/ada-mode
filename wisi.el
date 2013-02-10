@@ -132,6 +132,13 @@
 (defvar wisi-string-term nil)
 (defvar wisi-symbol-term nil)
 
+(defun wisi-error (message &rest args)
+  (error
+   "%s:%d: %s"
+   (file-name-nondirectory (buffer-file-name))
+   (line-number-at-pos)
+   (apply 'format message args)))
+
 (defun wisi-forward-token (&optional text-only lower)
   "Move point forward across one token, skipping leading whitespace and comments.
 Return the corresponding token, in a format determined by TEXT-ONLY:
@@ -197,7 +204,7 @@ If at end of buffer, returns `wisent-eoi-term'."
      );; cond
 
     (unless token-id
-      (error "unrecognized token '%s'" (setq token-text (buffer-substring-no-properties start (point)))))
+      (wisi-error "unrecognized token '%s'" (buffer-substring-no-properties start (point))))
 
     (if text-only
 	(if lower

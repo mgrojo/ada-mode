@@ -2,38 +2,43 @@
 
 all : ada-grammar-wy.el gpr-grammar-wy.el compile-clean compile test-clean test
 
-one : ada_mode-generic_package.ads.diff
+test :: test-wisi-parse
+
+one : range_conflict.wisi-test
 two : test-gpr
 
-# use OpenToken to compile same grammar, to see how broken OpenToken is :(
-debug-grammar : wisi-gpr-grammar-generate.run
+test-wisi-parse : range_conflict.wisi-test
 
-vpath %.wy ../../
-vpath %.el ../../
+vpath %.wy ../../ ../../test/wisi
+vpath %.el ../../ .
+
+%.wisi-test : %-wy.el
+	$(EMACS) -Q -batch -L . -L .. -L ../.. -l run-wisi-test.el --eval '(run-test "$*")'
 
 # WORKAROUND: semantic-grammar-batch-build-packages can't handle `, in rules; patch here
 # WORKAROUND: parser does not execute actions when grammar is byte-compiled (may need to byte-compile everything?)
-%-wy.el : %.wy
+# See notes in comp.el about byte-compile-handler
+gpr-grammar-wy.el : gpr-grammar.wy
 	rm -f ../../wisent.output
 	cd ../../; $(EMACS) -Q -batch -L build -L . -l load-paths-24.3.el -f semantic-grammar-batch-build-packages $(<F)
 	sed -i "s/(wisi/,(wisi/" ../../$@
 	rm -f ../../$*-wy.elc
 
-wisi-%-generate.run : RUN_ARGS := -v
-wisi-%-generate.run : wisi-%-generate.exe
-	./wisi-$*-generate.exe $(RUN_ARGS)
+%-wy.el : wisi-%-generate.exe
+	./wisi-$*-generate.exe -v 1 > $*.output
 
+.PRECIOUS : %-wy.el
 .PRECIOUS : wisi-%-generate.adb
-.PRECIOUS : wisi-gpr-grammar-generate.exe
+.PRECIOUS : wisi-%-generate.exe
 
-WISI_OPENTOKEN := ../../../org.opentoken.stephe/build/windows_debug
+WISI_OPENTOKEN := ../../../org.opentoken.stephe/build/windows_release
 
 wisi-%-generate.adb : %.wy $(WISI_OPENTOKEN)/wisi-generate.exe
 	$(WISI_OPENTOKEN)/wisi-generate.exe $<
 
 # ../../../org.opentoken.stephe/wisi/wisi-generate.adb
 $(WISI_OPENTOKEN)/wisi-generate.exe : force
-	$(MAKE) -C ../../../org.opentoken.stephe/build/windows_debug wisi-generate.exe
+	$(MAKE) -C ../../../org.opentoken.stephe/build/windows_release wisi-generate.exe
 
 .PHONY : force
 
@@ -51,11 +56,11 @@ include ../common.make
 
 export ADA_PROJECT_PATH=../../test/;../../test/subdir
 
-# (ada-parse-prj-file "wisi_opentoken_agg.gpr")
-# (ada-select-prj-file "wisi_opentoken_agg.gpr")
-
-# Local Variables:
 # eval: (ada-parse-prj-file "../ada-mode.prj")
 # eval: (ada-select-prj-file "../ada-mode.prj")
+
+# Local Variables:
 # End:
+# eval: (ada-parse-prj-file "wisi_opentoken_agg.gpr")
+# eval: (ada-select-prj-file "wisi_opentoken_agg.gpr")
 # end of file

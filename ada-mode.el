@@ -328,7 +328,7 @@ Supplied by indentation engine parser.")
   (let* ((inibit-modification-hooks t)
 	 (begin (point))
 	 (delend (progn (forward-sexp) (point))); just after matching closing paren
-	 (end (progn (forward-comment (- (point))) (point))); end of last parameter-declaration
+	 (end (progn (backward-char) (forward-comment (- (point))) (point))); end of last parameter-declaration
 	 (multi-line (> end (save-excursion (goto-char begin) (line-end-position))))
 	 (paramlist (ada-scan-paramlist (1+ begin) end)))
 

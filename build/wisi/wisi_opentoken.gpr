@@ -1,6 +1,6 @@
 --  For building Wisi OpenToken grammars
 with "common";
-with "opentoken_wisi";
+with "opentoken";
 project Wisi_OpenToken is
 
    for Source_Dirs use

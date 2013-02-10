@@ -2,10 +2,10 @@ aggregate
 project Wisi_OpenToken_Agg is
 
    for Project_Path use
-      ("../../../org.opentoken.stephe/build/windows_debug", -- before build, to get correct opentoken.gpr
+      ("../../../org.opentoken.stephe/build/windows_release", -- before build, to get correct opentoken.gpr
        "../../../org.opentoken.stephe/build" -- for OpenToken common.gpr
        );
-       
+
    for Project_Files use ("wisi_opentoken.gpr");
-   
+
 end Wisi_OpenToken_Agg;
