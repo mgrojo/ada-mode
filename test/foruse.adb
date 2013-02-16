@@ -1,3 +1,5 @@
+--EMACSCMD:(setq skip-recase-test t)
+-- not covered in ada_mode*
 procedure Foruse is
    type Command_Labels_Type is
      (Noop,

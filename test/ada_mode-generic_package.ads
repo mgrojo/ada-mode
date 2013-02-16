@@ -1,10 +1,10 @@
 -- This is to test the indentation of declarations in generics package declarations
 --EMACSCMD:(font-lock-fontify-buffer)
---EMACSCMD:(ada-parse-prj-file "ada_mode.gpr")
---EMACSCMD:(ada-select-prj-file "ada_mode.gpr")
+--EMACSCMD:(ada-parse-prj-file "subdir/ada_mode.adp")
+--EMACSCMD:(ada-select-prj-file "subdir/ada_mode.adp")
 
 --EMACSCMD:(ada-which-function)
---EMACSRESULT:(if (featurep 'ada-wisi) "" "pragma")
+--EMACSRESULT:(if (featurep 'ada-wisi) "" nil)
 pragma License (GPL);
 
 with Ada.Text_IO;
@@ -12,7 +12,7 @@ with Ada.Text_IO;
 --EMACSRESULT: t
 with Ada.Strings.Unbounded;
 --EMACSCMD:(ada-which-function)
---EMACSRESULT:(if (featurep 'ada-wisi) "" "pragma")
+--EMACSRESULT:(if (featurep 'ada-wisi) "" nil)
 
 -- FIXME: ada-smie-next-statement-keyword is broken here because of
 -- "procedure-spec" in Procedure_Formal_Access_Type. Fix is either to
@@ -26,7 +26,7 @@ with Ada.Strings.Unbounded;
 --EMACSRESULT:(if (featurep 'ada-wisi) t nil)
 generic
    --EMACSCMD:(ada-which-function)
-   --EMACSRESULT:(if (featurep 'ada-wisi) "Ada_Mode.Generic_Package" "pragma")
+   --EMACSRESULT:(if (featurep 'ada-wisi) "Ada_Mode.Generic_Package" nil)
 
    -- one of each kind of generic_formal_parameter_definition from arm Annex P
 

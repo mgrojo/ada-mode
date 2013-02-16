@@ -3,8 +3,10 @@
 ;; Default includes mtn, among others, which is broken in Emacs 22.2
 (setq vc-handled-backends '(CVS))
 
-(defvar skip-reindent-test nil);; user can set to t in an EMACSCMD
-(defvar skip-cmds nil);; user can set to t in an EMACSCMD
+;; user can set these to t in an EMACSCMD
+(defvar skip-cmds nil)
+(defvar skip-reindent-test nil)
+(defvar skip-recase-test nil)
 
 (defun test-face (token face)
   "Test if TOKEN in next code line has FACE."
@@ -90,7 +92,7 @@
     )
 
   (when (not skip-reindent-test)
-    ;; Reindent and recase the buffer
+    ;; Reindent the buffer
 
     ;; first unindent; if the indentation rules do nothing, the test
     ;; would pass, otherwise!  Only unindent by 1 column, so comments
@@ -104,12 +106,12 @@
     ;; Cleanup the buffer; indenting often leaves trailing whitespace;
     ;; files must be saved without any.
     (delete-trailing-whitespace)
-
-    (when (eq major-mode 'ada-mode)
-      (ada-case-adjust-buffer))
-    ;; gpr-mode doesn't support casing yet
     )
 
+  (when (and (not skip-recase-test)
+	     (eq major-mode 'ada-mode))
+    ;; gpr-mode doesn't support casing yet
+    (ada-case-adjust-buffer))
   )
 
 (defun run-test (file-name)
@@ -140,7 +142,7 @@
     )
   )
 
-(provide 'runtest)
+(provide 'run-indent-test)
 
 ;; Local Variables:
 ;; eval: (add-to-list 'load-path (expand-file-name "../"))

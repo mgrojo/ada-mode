@@ -1,3 +1,4 @@
+--EMACSCMD:(setq skip-recase-test t)
 package body Adacore_D218_002_2 is
 
    package body BUFFER_DEFINITION is

@@ -753,6 +753,7 @@ Uses Mixed_Case, with exceptions defined in
 	    (delete-region (point) end))
 
 	;; else apply Mixed_Case and partial-exceptions
+	(downcase-region start end)
 	(while (not done)
 	  (setq next
 		(or

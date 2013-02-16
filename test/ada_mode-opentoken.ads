@@ -1,5 +1,8 @@
 --  This file does not compile. Test adding special OpenToken indentation rule via Local Variables.
 
+--EMACSCMD:(ada-parse-prj-file "subdir/ada_mode.adp")
+--EMACSCMD:(ada-select-prj-file "subdir/ada_mode.adp")
+
 --EMACSCMD: ada-indent-opentoken
 --EMACSRESULT: t
 --EMACSCMD: (car smie-indent-functions)

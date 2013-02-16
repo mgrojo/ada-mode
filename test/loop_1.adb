@@ -1,3 +1,4 @@
+--EMACSCMD:(setq skip-recase-test t)
 
 --  Incorrect indentation of loop with adamode-3.4a
 --  Works correctly with adamode-3.4b

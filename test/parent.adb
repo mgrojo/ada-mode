@@ -1,3 +1,4 @@
+--EMACSCMD:(setq skip-recase-test t)
 procedure Parent is
 begin
    Append_To (Formals,

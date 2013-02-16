@@ -1,3 +1,4 @@
+--EMACSCMD:(setq skip-recase-test t)
 package body Manual_Xref_Op is
 
    function "abs" (B : A) return A is

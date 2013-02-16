@@ -1,3 +1,4 @@
+--EMACSCMD:(setq skip-recase-test t)
 with Ada.Text_IO;
 package body Indent is
    -- 1.  The indentation following a for loop that has used a multiple line

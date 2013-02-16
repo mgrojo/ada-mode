@@ -19,7 +19,8 @@ procedure Ada_Mode.Conditional_Expressions is
    L1 : Integer := (case J is
                        when 42 => -1,
                        -- comment aligned with 'when'
-                       --EMACSCMD:(progn (forward-line 1)(forward-word 2)(downcase-word 1)(ada-case-adjust)(let ((case-fold-search nil))(looking-back "'First")))
+                       --EMACSCMD:(progn (forward-line 2)(forward-word 2)(downcase-word 1)(ada-case-adjust)(let ((case-fold-search nil))(looking-back "'First")))
+                       --EMACSCMD:(progn (forward-line 1)(forward-word 2)(upcase-word 1)(ada-case-adjust)(let ((case-fold-search nil))(looking-back "'First")))
                        when Integer'First .. 41 => 0,
                        --EMACSRESULT:t
                        when others => +1);
@@ -68,7 +69,8 @@ begin
             when 0 => 41,
             when 1 =>
            (if J > 42
-            -- comment aligned with if
+              -- FIXME: ( should be indented ada-indent relative to when
+            -- FIXME: comment should be aligned with if
             then 44
             else 45));
 end Ada_Mode.Conditional_Expressions;

@@ -1,3 +1,4 @@
+--EMACSCMD:(setq skip-recase-test t)
 
 --  Tests the way gnatprep statements are highlighted.
 --  We also test other usage of the '#' sign, especially in

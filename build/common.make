@@ -15,10 +15,6 @@ ADA_TEST_FILES := $(ADA_TEST_FILES) $(shell cd ../../test; ls subdir/*.ad[sb])
 # this is for debug only
 ADA_TEST_FILES := $(filter-out debug.adb, $(ADA_TEST_FILES))
 
-# FIXME: delete currently broken tests
-ADA_TEST_FILES := $(filter-out which_test.adb, $(ADA_TEST_FILES)) # imenu-default-create-index-function
-# end FIXME:
-
 GPR_TEST_FILES := $(shell cd ../../test/gpr; ls *.gpr)
 
 COMPILE_FILES := $(ADA_TEST_FILES)
@@ -58,7 +54,7 @@ vpath %.gpr ../../test/gpr
 
 test :: test-ada test-gpr test-elisp
 
-test-ada : $(addsuffix .diff, $(subst subdir/,,$(ADA_TEST_FILES)))
+# test-ada defined in engine-specific Makefiles, to allow further filtering of ADA_TEST_FILES
 
 test-gpr : $(addsuffix .diff, $(subst subdir/,,$(GPR_TEST_FILES)))
 

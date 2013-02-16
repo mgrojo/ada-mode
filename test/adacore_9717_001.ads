@@ -1,3 +1,4 @@
+--EMACSCMD:(setq skip-recase-test t)
 with Ada.Text_IO;
 package Adacore_9717_001 is
    subtype A_Long_Name

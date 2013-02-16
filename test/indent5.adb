@@ -1,3 +1,4 @@
+--EMACSCMD:(setq skip-recase-test t)
 with Ada.Text_Io;
 procedure Indent5 is
 

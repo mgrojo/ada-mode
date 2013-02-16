@@ -1,3 +1,4 @@
+--EMACSCMD:(setq skip-recase-test t)
 
 --  Tests the indentation of with and use statements, with regards to
 --  the variable ada-with-use-indent

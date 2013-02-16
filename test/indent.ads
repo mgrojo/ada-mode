@@ -1,3 +1,4 @@
+--EMACSCMD:(setq skip-recase-test t)
 --  indentation problems with "record .. end record"
 --
 --  adamode3.4a: problems with indenting for .. use when there is no type

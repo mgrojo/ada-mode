@@ -1,5 +1,4 @@
---  The following code is not indented correctly
---  (Works if we remove the first declare' statement)
+--EMACSCMD:(setq skip-recase-test t)
 
 procedure Other_1 is
    procedure Gtk_New (Item : in Integer) is null;

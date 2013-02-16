@@ -1,3 +1,4 @@
+--EMACSCMD:(setq skip-recase-test t)
 
 --  Testing cross-references when the identifier names include a word
 --  that can be a keyword or an operator ("mod", "and", ...)

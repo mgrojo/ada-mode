@@ -2,6 +2,7 @@
 --  Tests the indentation of with and use statements, with regards to
 --  the variable ada-with-use-indent
 
+--EMACSCMD:(setq skip-recase-test t)
 --EMACSCMD: ada-indent-with
 --EMACSRESULT: 3
 with Ada.Text_IO,

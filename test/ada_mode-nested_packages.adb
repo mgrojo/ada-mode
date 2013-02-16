@@ -2,7 +2,9 @@
 -- when in subblocks.
 --
 -- Also other stuff
+
 --EMACSCMD:(font-lock-fontify-buffer)
+--EMACSCMD:(setq skip-recase-test t) we have identifiers that don't follow the standard naming convention
 
 --EMACSCMD:(test-face "Ada.Directories" font-lock-constant-face)
 --EMACSCMD:(test-face "Ada.Text_IO" font-lock-constant-face)

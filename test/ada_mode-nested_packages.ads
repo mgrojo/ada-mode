@@ -1,3 +1,5 @@
+--EMACSCMD:(setq skip-recase-test t) we have identifiers that don't follow the standard naming convention
+
 -- test align of 'use'. need a blank line to avoid indenting this comment (sigh). result is tested with diff.
 --EMACSCMD:(progn (forward-line 2)(forward-word 3)(forward-char 1)(insert "   ")(ada-align))
 

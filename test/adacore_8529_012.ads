@@ -1,3 +1,4 @@
+--EMACSCMD:(setq skip-recase-test t)
 with Adacore_8529_012_Aux; use Adacore_8529_012_Aux;
 package Adacore_8529_012 is
 

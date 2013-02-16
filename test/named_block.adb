@@ -1,3 +1,4 @@
+--EMACSCMD:(setq skip-recase-test t)
 
 --  This file is intended to test named blocks indentation
 --  With the adamode 3.2 and 3.3b, pressing <tab> multiple times

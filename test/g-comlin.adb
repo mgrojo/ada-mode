@@ -1,3 +1,4 @@
+--EMACSCMD:(setq skip-recase-test t)
 ------------------------------------------------------------------------------
 --                                                                          --
 --                         GNAT COMPILER COMPONENTS                         --

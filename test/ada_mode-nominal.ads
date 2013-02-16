@@ -119,7 +119,8 @@ package Ada_Mode.Nominal is
      --EMACSCMD:(test-face "Integer" font-lock-type-face)
      access all Integer; -- it no longer matters wither this is 'all' or 'constant'
 
-   --EMACSCMD:(progn (forward-line 1)(forward-word 1)(downcase-word 4)(ada-case-adjust))
+   --EMACSCMD:(progn (forward-line 2)(forward-word 1)(downcase-word 4)(ada-case-adjust))
+   --EMACSCMD:(progn (forward-line 1)(forward-word 1)(upcase-word 4)(ada-case-adjust))
    type Object_Access_Type_5a is not
      --EMACSCMD:(progn (forward-line -1)(forward-word 1)(forward-char 1)(let ((case-fold-search nil))(looking-at "Object_Access_Type_5a")))
      --EMACSRESULT:t

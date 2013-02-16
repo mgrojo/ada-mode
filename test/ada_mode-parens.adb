@@ -1,3 +1,5 @@
+--EMACSCMD:(ada-parse-prj-file "subdir/ada_mode.adp")
+--EMACSCMD:(ada-select-prj-file "subdir/ada_mode.adp")
 package body Ada_Mode.Parens is
    --EMACSCMD:(progn (forward-line 3)(forward-word 2)(newline)(ada-align))
    -- only one default. result is tested by .diff
@@ -266,8 +268,8 @@ package body Ada_Mode.Parens is
    --EMACSCMD:(progn (forward-line 4)(forward-word 2)(insert "    ")(ada-align))
    -- default at end of list
    procedure Param_Format_8
-     (Grammar           : in Production_List.Instance;
-      Analyzer          : in Tokenizer.Instance;
+     (Grammar           : in String;
+      Analyzer          : in String;
       Trace             : in Boolean := False;
       Put_Grammar       : in Boolean := False;
       First_State_Index : in Integer := 1)

@@ -8,6 +8,8 @@
 --  (ediff "ada_mode-options-indent_return_1.ads" "ada_mode-options-indent_return_2.ads")
 --  (ediff "ada_mode-options-indent_return_1.ads" "ada_mode-options-indent_return_3.ads")
 
+--EMACSCMD:(setq skip-recase-test t)
+
 -- ada-indent-return <= 0 indents relative to the open parenthesis
 -- ada-indent-renames > 0 indents relative to the "function" or "procedure" keyword
 package Ada_Mode.Options.Indent_Return_1 is

@@ -1,3 +1,4 @@
+--EMACSCMD:(setq skip-recase-test t)
 package Adacore_8529_012_Aux is
    type Word_Byte_Array_Unconstrained is new Integer;
 

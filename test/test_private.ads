@@ -1,3 +1,4 @@
+--EMACSCMD:(setq skip-recase-test t)
 --  Test the indentation for the word 'private'
 --  We need to test some simple cases, where private is alone
 --  in a package, as well as some more complicated cases

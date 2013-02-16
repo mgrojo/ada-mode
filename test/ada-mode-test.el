@@ -45,7 +45,10 @@
 (test "case 1 full words"
       ada-case-full-exceptions
       (list
+       (cons "GDS" t)
+       (cons "GPL" t)
        (cons "OpenToken" t)
+       (cons "SAL" t)
        (cons "Text_IO" t)
        ))
 
@@ -55,6 +58,9 @@
        (cons "ANother" t)
        (cons "ASCII" t)
        (cons "AUnit" t)
+       (cons "DOF" t)
+       (cons "ID" t)
+       (cons "IO" t)
        ))
 
 (ada-case-create-exception "CaMeLcase" nil nil)
@@ -64,7 +70,10 @@
       ada-case-full-exceptions
       (list
        (cons "CaMeLcase" t)
+       (cons "GDS" t)
+       (cons "GPL" t)
        (cons "OpenToken" t)
+       (cons "SAL" t)
        (cons "Text_IO" t)
        ))
 
@@ -75,17 +84,26 @@
        (cons "ANother" t)
        (cons "ASCII" t)
        (cons "AUnit" t)
+       (cons "DOF" t)
+       (cons "ID" t)
+       (cons "IO" t)
        ))
 
-;; in read-all-exceptions, merge-excpetions inverts the result of
+;; in read-all-exceptions, merge-exceptions inverts the result of
 ;; read-exceptions.
 (test "case 2 1.tmp"
       (ada-case-read-exceptions "case-exceptions-1.tmp")
       (list
        (list
 	 (cons "Text_IO" t)
+	 (cons "SAL" t)
 	 (cons "OpenToken" t)
+	 (cons "GPL" t)
+	 (cons "GDS" t)
 	 (cons "CaMeLcase" t))
+       (cons "IO" t)
+       (cons "ID" t)
+       (cons "DOF" t)
        (cons "AUnit" t)
        (cons "ASCII" t)))
 
@@ -103,7 +121,10 @@
 (test "case 3 full words"
       ada-case-full-exceptions
       (list
+       (cons "GDS" t)
+       (cons "GPL" t)
        (cons "OpenToken" t)
+       (cons "SAL" t)
        (cons "Text_IO" t)
        ))
 
@@ -113,6 +134,9 @@
        (cons "ANother" t)
        (cons "ASCII" t)
        (cons "AUnit" t)
+       (cons "DOF" t)
+       (cons "ID" t)
+       (cons "IO" t)
        ))
 
 ;;; end of file

@@ -1,6 +1,8 @@
 --  Similar to ada_mode-options-indent_return_1.ads, except with a
 --  different value of ada-indent-return and ada-indent-renames.
 
+--EMACSCMD:(setq skip-recase-test t)
+
 package Ada_Mode.Options.Indent_Return_3 is
 
    function A return Integer;

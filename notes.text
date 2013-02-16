@@ -54,31 +54,53 @@ ada-wisi
             hits conflict!
 
         rewrite wisent-parse
+            [dickgrune] 9.8 PDF p 212 says this is Tomita's parser
+                Masaru Tomita, Efficient parsing for natural language, Kluwer Academic Publishers, Boston, p. 201, 1986
+                "Generalized LR Parsing", edited by Tomita Masaru 1991 (amazon $166)
+                http://en.wikipedia.org/wiki/Generalized_LR_parser
+                    same as bison!
 
-            subprograms.wy for empty production
-                opentoken done
-                wisent parses .wy wrong
-                    leaves out subprogram production!
-                    because of `,?
+            don't execute actions until resolved to one stack
+                actions have two effects:
+                    replace token structure on stack
+                    side effects (cache info in buffer, compute math sum, whatever)
+                need first effect during parallel parse
+                need second effect after resolved to one stack
 
-            body_instantiation_conflict for shift/reduce
-                opentoken done
+            parser is independent of token structure
+                it only needs to be able to retrieve the token symbol from the token
 
-            range_conflict.wy for shift/reduce
-                opentoken done
+        subprograms.wy for empty production
+            opentoken done
+            wisent parses .wy wrong
+                leaves out subprogram production!
+                because of `,?
 
-            identifier_list_name_conflict for reduce/reduce conflict and attempt at non-conflict multiple reduce
-                opentoken done, but doesn't give dual reduce
-                wisent doesn't give dual reduce; doesn't merge STRING_LITERAL . kernels
-                    even though it does for ada-grammar state 145:
-                        STRING_LITERAL '=>' gives selector_name,
-                        STRING_LITERAL anything else gives name
+        body_instantiation_conflict for shift/reduce
+            opentoken done
+
+        range_conflict.wy for shift/reduce
+            opentoken done
+
+        identifier_list_name_conflict for reduce/reduce conflict and attempt at non-conflict multiple reduce
+            opentoken done, but doesn't give dual reduce
+            wisent doesn't give dual reduce; doesn't merge STRING_LITERAL . kernels
+                even though it does for ada-grammar state 145:
+                    STRING_LITERAL '=>' gives selector_name,
+                    STRING_LITERAL anything else gives name
 
         compile ada-grammar.wy
             build/wisi/Makefile
             need to distinguish terminal BODY from non-terminal body
-                BODY_T_ID, body_nt_ID
+                BODY_T_ID, body_nt_ID?
 
+                opentoken can use integer subtype for Token_ID
+                    do that, use array of strings for elisp version of tokens
+                    skip writing out *generate.adb, just instantiate and build grammar in .elisp
+                    keep ada generating code in .ada
+
+
+            FIRST has to handle null nonterminals; [dickgrune] 9.6.2 p 206
 
     add opentoken aunit test for wisi
 
@@ -93,18 +115,24 @@ ada-wisi
 wisent-parser does not execute actions when grammar is byte-compiled!
     need to byte-compile everything?
     wisent-debug-on-entry?
+    change action to string, use eval?
 
 better error handling for wisi?
     for wisent-parse, need to set an 'error action on statement_start tokens?
         then skip to ;
+
+    see [dickgrune] 10 p 219
 
     wisent-parse-stream is _not_ better; just a "semantic" wrapper around wisent-parse
 
     semantic-bovinate-stream is an LL parser with possibly better error handling.
 
 add code to opentoken to report conflicts and path to their lca!
+    [dickgrune] 9.6.3 mentions DeRemer and Pennello for this
+
     and useless nonterminals/rules
-    org.opentoken.stephe/wisi/test/range_conflict.wy
+
+incremental LALR [dickgrune] 9.7.4
 
 for |, need to distinguish 'when', '=>'
     block-middle-start, block-middle-end?
@@ -114,7 +142,7 @@ bug in semantic-grammar.wy
     attempted patch:
         %type  <qlist>       matchdatatype sexp syntax "\\s'\\s'?\\s-*("
         didn't work (not clear if it's getting loaded)
-    posted on cedet-semantic
+    posted on cedet-semantic; no help
 
 gdb break command input still broken in
     http://debbugs.gnu.org/cgi/bugreport.cgi?bug=13303
@@ -185,9 +213,14 @@ FIXMEs
      Percent_Percent & EOF + Output_Elisp'Access and
 
 in project file, support three kinds of settings:
-    prj:
-    env:
-    elisp:
+    prj: src_dir (= elisp add-to-list compilation-search-dir)
+    env: ADA_PROJECT_PATH (currently $env)
+    elisp: ada-mode options
+        ada-spec/body-suffixes
+
+    three sections, rather than per-line?
+
+    or just use eval: (load "prj.el") in the makefile
 
 don't parse or move cache if narrowed
 
@@ -204,23 +237,18 @@ mouse operations
     compiler error
     others?
 
-set indent (and all) options in project file
+    double-click underscore selects full word, double-click letter selects partial word?
 
 add <gnat>/lib/gnat to compilation-search-path, for library *.gpr
 
-gnat-fix
-    c:/Projects/emacs_stephe.main/emacs_stephe/gnat-fix-error.el
+ada-fix-error.el
+    small; merge into ada-mode.el?
 
-    ada-fix-error.el
-        small; merge into ada-mode.el?
-
-        sort 'limited private with' at end of context clause?
-
-        allow project-specific list of error matchers; quit when one returns t
+    sort 'limited private with' at end of context clause?
 
 ada-make-subprogram-body
 
-    or, if in spec file:
+    if in spec file:
         find the next or previous declaration in the spec file
         use ada-find-other-file to find that in the body file
         place the body stub there
@@ -246,16 +274,10 @@ ada-case-adjust
     support multiple files
         menu of file to save new exception in
         prompt for file in case-create-exception
-
-    keybinding for "make this word a case exception"
+            edited, not tested
 
     store acronym expansion
         either pointer to source file, or string
-
-menu entry to show gnat-run-buffer
-    for debugging mysterious "xref not found" errors
-
-double-click underscore selects full word, double-click letter selects partial word?
 
 ada-gnat-parse-gpr-file
     if object dir not created, search for Source Search Path fails
@@ -273,8 +295,6 @@ ada-find-other-file in separate bodies
         tell adacore how well it works
         waiting for gnatcoll 1.5
 
-add ada-spec/body-suffixes to the Emacs project file
-
 rest of ada-mode
     merge all of ada-mode-patches, most of ada-mode-keys
     process patches in ada-mode email
@@ -288,11 +308,7 @@ ada-display-buffer
     not setting history right
         bury buffer doesn't bring back last buffer
 
-    review windows.el to see if there is now a better solution than
-
-compilation mode
-
-    keep compilation buffer in other frame if already visible
+    review windows.el to see if there is now a better solution
 
 support xref for C files?
     at least if compiled with gprbuild?
@@ -314,15 +330,6 @@ emacs versions:
 
     21 Lynx 4.0
 
-refs for posting to cedet-semantic list
-    http://dickgrune.com/Books/PTAPG_1st_Edition/BookBody.pdf
-        9.6 page 213 lookaheads are sets
-    red dragon: "Compilers Principles, Techniques, and Tools" by Aho, Sethi, and Ullman
-        section 4.7 LALR merges different productions with the same core; more than one reduce
-            but examples all have one reduce, excep 4.44
-    wisent author is David Ponce <david@dponce.com>
-
-
  4.01 bugs that 5.01 fixes
     generic formal function
         'with' indented to prev 'return'
@@ -334,7 +341,7 @@ refs for posting to cedet-semantic list
            Root => null,
          Height => 0,
          Count => 0);
-      gdss:
+      gds:
         ? 1
         sal-poly-unbounded_arrays.ads 1
         opentoken-token-enumerated-identifier.adb
@@ -414,6 +421,7 @@ c:/Projects/emacs_stephe.work/emacs_stephe/gnat-fix-error.el
 c:/Projects/emacs_stephe.main/emacs_stephe_site_lisp/ada-mode.el
 c:/Projects/emacs_stephe.main/emacs_stephe_site_lisp/gpr-mode.el
 c:/apps/emacs-24.2/lisp/progmodes/ada-mode.el
+"c:/home/stephe/Backup/eBooks/Dick Grune/BookBody.pdf" [dickgrune]
 
 http://savannah.gnu.org/projects/emacs/
 
@@ -428,7 +436,6 @@ http://www.modula2.net/resources/M2R10.pdf Appendix A
     test/M2R10.pdf
 
 (info "(elisp)SMIE" "*info-smie*")
-http://dickgrune.com/Books/PTAPG_2nd_Edition/
     used by modula2-mode, octave-mode in emacs 24
 
  indentation options
