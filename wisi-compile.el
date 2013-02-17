@@ -48,143 +48,110 @@
 ;; can't just 'require'; `wisent-with-context' doesn't work.
 (load (locate-library "semantic/wisent/comp.el"))
 
-(defun wisi-replace-symbols (items symbol-array)
-  (let (result item)
-    (while items
-     (setq item (pop items))
-     (cond
-      ((numberp item)
-       (push item result))
+(defun wisi-compose-action (value symbol-array nonterms)
+  (let ((symbol (intern-soft (format "%s:%d" (car value) (cdr value)) symbol-array))
+	(prod (nth (cdr value) (cdr (assoc (car value) nonterms)))))
+    (if symbol
+	(list (car value) symbol (length prod))
+      (error "%s not in symbol-array" (symbol)))))
 
-      ((stringp item)
-       (let ((symbol (intern-soft item symbol-array)))
-	 (if symbol
-	     (push symbol result)
-	   (error "%s not in symbol-array" (cdr item)))))
-
-      (t
-       (error "unexpected '%s'; expected numberp, stringp" (cdr item)))
-      ))
-   (reverse result)))
-
-(defun wisi-replace-actions (action symbol-array)
-  "Replace semantic action symbol names in ACTION with corresponding symbol from SYMBOL-ARRAY.
-Return the new action."
+(defun wisi-replace-actions (action symbol-array nonterms)
+  "Replace semantic action symbol names in ACTION with list as defined in `wisi-compile-grammar'.
+ACTION is the alist for one state from the grammar; NONTERMS is from the grammar.
+Return the new alist."
+  ;; result is (nonterm index action-symbol token-count)
   (let (result item)
     (while action
      (setq item (pop action))
-      (cond
-       ((or
-      	 (memq (cdr item) '(error accept))
-      	 (numberp (cdr item)))
-      	(push item result))
+     (cond
+      ((or
+	(memq (cdr item) '(error accept))
+	(numberp (cdr item)))
+       (push item result))
 
-       ((stringp (cdr item))
-      	(let ((symbol (intern-soft (cdr item) symbol-array)))
-      	  (if symbol
-      	      (push (cons (car item) symbol) result)
-      	    (error "%s not in symbol-array" (cdr item)))))
+      ((listp (cdr item))
+       (let ((value (cdr item)))
+	 (cond
+	  ((symbolp (car value))
+	   ;; reduction
+	   (push (cons (car item)
+		       (wisi-compose-action value symbol-array nonterms))
+		 result))
 
-       ((listp (cdr item))
-	(push (cons (car item) (wisi-replace-symbols (cdr item) symbol-array)) result))
+	  ((integerp (car value))
+	   ;; shift/reduce conflict
+	   (push (cons (car item)
+		       (list (car value)
+			     (wisi-compose-action (cdr value) symbol-array nonterms)))
+		 result))
 
-       (t
-      	(error "unexpected '%s'; expected 'error, 'accept, numberp, stringp, listp" (cdr item)))
-       )
-      )
+	  ((integerp (cadr value))
+	   ;; reduce/shift conflict
+	   (push (cons (car item)
+		       (list (wisi-compose-action (car value) symbol-array nonterms)
+			     (cadr value)))
+		 result))
+
+	  (t ;; reduce/reduce conflict
+	   (push (cons (car item)
+		       (list (wisi-compose-action (car value) symbol-array nonterms)
+			     (wisi-compose-action (cdr value) symbol-array nonterms)))
+		 result))
+	  )))
+
+      (t
+       (error "unexpected '%s'; expected 'error, 'accept, numberp, stringp, listp" (cdr item)))
+      ));; while/cond
+
    (reverse result)))
 
 (defun wisi-semantic-action (r)
-  ;; copied from comp.el, modified to use 'stack' instead of ',stack'
-  ;; for stack, sp, gotos, state; just to make things clearer.
-  ;;
   "Define an Elisp function for semantic action at rule R.
-On entry RCODE[R] contains a vector [BODY N (NTERM I)] where BODY is the
-body of the semantic action, N is the maximum number of values
-available in the parser's stack, NTERM is the nonterminal the semantic
-action belongs to, and I is the index of the semantic action inside
-NTERM definition.  Return the semantic action symbol, which is interned in RCODE[0].
-The semantic action function accepts three arguments:
+On entry RCODE[R] contains a vector [BODY N (NTERM I)] where BODY
+is the body of the semantic action, N is the number of tokens in
+the production, NTERM is the nonterminal the semantic action
+belongs to, and I is the index of the production and associated
+semantic action in the NTERM rule.  Returns the semantic action
+symbol, which is interned in RCODE[0].
 
-- the state/value stack
-- the top-of-stack index
-- the goto table
+The semantic action function accepts one argument, the list of
+tokens to be reduced. It returns nil; it is called for the user
+side-effects only."
+  ;; based on comp.el wisent-semantic-action
+  (let* ((actn (aref rcode r))
+	 (n    (aref actn 1))         ; number of tokens in production
+	 (name (apply 'format "%s:%d" (aref actn 2)))
+	 (form (wisent-semantic-action-expand-body (aref actn 0) n))
+	 ($l   (car form))            ; list of $vars used in body
+	 (form (cdr form))            ; expanded form of body
+	 (nt   (aref rlhs r))         ; nonterminal item number
+	 (bl   nil)                   ; `let*' binding list
+	 $v i)
 
-And returns the updated top-of-stack index."
-  (if (not (aref ruseful r))
-      (aset rcode r nil)
-    (let* ((actn (aref rcode r))
-           (n    (aref actn 1))         ; nb of val avail. in stack
-           (NAME (apply 'format "%s:%d" (aref actn 2)))
-           (form (wisent-semantic-action-expand-body (aref actn 0) n))
-           ($l   (car form))            ; list of $vars used in body
-           (form (cdr form))            ; expanded form of body
-           (nt   (aref rlhs r))         ; nonterminal item no.
-           (bl   nil)                   ; `let*' binding list
-           $v i j)
+    ;; Compute bl; the list of $N and $regionN bindings
+    (setq i n)
+    (while (> i 0)
+      ;; bind $regionI if used in action
+      (setq $v (intern (format "$region%d" i)))
+      (when (memq $v $l)
+	(setq bl (cons `(,$v (cdr (nth (1- i) tokens))) bl)))
 
-      ;; Compute $N and $regionN bindings
-      (setq i n)
-      (while (> i 0)
-        (setq j (1+ (* 2 (- n i))))
-        ;; Only bind $regionI if used in action
-        (setq $v (intern (format "$region%d" i)))
-        (if (memq $v $l)
-            (setq bl (cons `(,$v (cdr (aref stack (- sp ,j)))) bl)))
-        ;; Only bind $I if used in action
-        (setq $v (intern (format "$%d" i)))
-        (if (memq $v $l)
-            (setq bl (cons `(,$v (car (aref stack (- sp ,j)))) bl)))
-        (setq i (1- i)))
+      ;; bind $I if used in action
+      (setq $v (intern (format "$%d" i)))
+      (when (memq $v $l)
+	(setq bl (cons `(,$v (car (nth (1- i) tokens))) bl)))
+      (setq i (1- i)))
 
-      ;; Compute J, the length of rule's RHS.  It will give the
-      ;; current parser state at STACK[SP - 2*J], and where to push
-      ;; the new semantic value and the next state, respectively at:
-      ;; STACK[SP - 2*J + 1] and STACK[SP - 2*J + 2].  Generally N,
-      ;; the maximum number of values available in the stack, is equal
-      ;; to J.  But, for mid-rule actions, N is the number of rule
-      ;; elements before the action and J is always 0 (empty rule).
-      (setq i (aref rrhs r)
-            j 0)
-      (while (> (aref ritem i) 0)
-        (setq j (1+ j)
-              i (1+ i)))
+    (setq actn (intern name (aref rcode 0)))
 
-      ;; Create the semantic action symbol.
-      (setq actn (intern NAME (aref rcode 0)))
+    (fset actn
+	  `(lambda (tokens)
+	     (let* (,@bl)
+	       ,form
+	       nil)))
 
-      ;; Store source code in function cell of the semantic action
-      ;; symbol.  It will be byte-compiled at automaton's compilation
-      ;; time.  Using a byte-compiled automaton can significantly
-      ;; speed up parsing!
-      (fset actn
-            `(lambda (stack sp gotos)
-               (let* (,@bl
-                      ($region
-                       ,(cond
-                         ((= n 1)
-                          (if (assq '$region1 bl)
-                              '$region1
-                            `(cdr (aref stack (1- sp)))))
-                         ((> n 1)
-                          `(wisent-production-bounds
-                            stack (- sp ,(1- (* 2 n))) (1- sp)))))
-                      ($action ,NAME)
-                      ($nterm  ',(aref tags nt))
-                      ,@(and (> j 0) `((sp (- sp ,(* j 2)))))
-                      (state (cdr (assq $nterm
-                                         (aref gotos
-                                               (aref stack sp))))))
-                 (setq sp (+ sp 2))
-                 ;; push semantic value
-                 (aset stack (1- sp) (cons ,form $region))
-                 ;; push next state
-                 (aset stack sp state)
-                 ;; return new top of stack
-                 sp)))
-
-      ;; Return the semantic action symbol
-      actn)))
+    ;; Return the semantic action symbol
+    actn))
 
 (defun wisi-compile-grammar (grammar)
   "Compile the LALR(1) GRAMMAR; return the automaton for wisi-parse.
@@ -193,34 +160,45 @@ GRAMMAR is a list TERMINALS NONTERMS ACTIONS GOTOS, where:
 TERMINALS is a list of terminal token symbols.
 
 NONTERMS is a list of productions; each production is a
-list (LHS (RHS action) ...)
+list (nonterm (tokens action) ...) where `action' is any lisp form.
 
 ACTIONS is an array indexed by parser state, of alists indexed by
-terminal tokens. The value of each item in the alists is 'error
-or 'accept, state number, or production symbol. A state number
-gives the next state for each terminal token after a shift
-action.  A production symbol is a symbol name:index composed of
-the left hand side nonterminal token of a production and an
-integer giving the right hand side, used for a reduce action. The
-first item in the alist must have the key 'default; it is used
-when no other item matches the current terminal.
+terminal tokens. The value of each item in the alists is one of:
+
+'error
+
+'accept
+
+integer - shift; gives new state
+
+'(nonterm . index) - reduce by nonterm production index.
+
+'(integer (nonterm . index)) - a shift/reduce conflict
+'((nonterm . index) integer) - a reduce/shift conflict
+'((nonterm . index) (nonterm . index)) - a reduce/reduce conflict
+
+The first item in the alist must have the key 'default (not a
+terminal token); it is used when no other item matches the
+current token.
 
 GOTOS is an array indexed by parser state, of alists giving the
 new state after a reduce for each nonterminal legal in that
 state.
 
-The automaton is an array with 4 elements:
+The automaton is an array with 3 elements:
 
-actions is a copy of the input ACTIONS, with semantic action
-strings replaced by symbols from symbol-array (below).
+parser-actions is a copy of the input ACTIONS, with reduction
+actions replaced by a list (nonterm action-symbol token-count),
+where `nonterm' is a symbol from NONTERMS, and is the
+non-terminal to reduce to, token-count is the number of tokens in
+the reduction, action-symbol is nil if there is no user action,
+or a symbol from semantic-actions (below).
 
-gotos is a copy of the input GOTOS
+gotos is a copy of GOTOS.
 
-starts is nil (for compatibility with wisent-parse)
-
-symbol-array contains functions that implement the reduction action
-and the user action for each nonterminal; the function names
-match the production symbol names."
+semantic-actions is an obarray containing functions that
+implement the user action for each nonterminal; the function
+names have the format nonterm:index."
   (wisent-with-context compile-grammar
     (wisent-parse-grammar;; set global vars used by wisent-semantic-action
      (cons
@@ -245,7 +223,7 @@ match the production symbol names."
 	  (i 0))
       (while (< i nactions)
 	(aset actions i
-	      (wisi-replace-actions (aref actions i) symbol-array))
+	      (wisi-replace-actions (aref actions i) symbol-array (nth 1 grammar)))
 	(setq i (1+ i)))
       (vector
        actions

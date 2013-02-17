@@ -472,8 +472,6 @@ should receive cached information. See macro
 	      (setq first-keyword-mark mark
 		    start (car region))))
 	))
-      ;; return value is semantic value for use in higher productions
-      $nterm
       )))
 
 (defmacro wisi-statement-action (&rest pairs)

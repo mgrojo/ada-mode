@@ -51,24 +51,7 @@ ada-wisi
         wisi-compile.el
         (load "build/run-wisi-test.el")
         test/wisi/range_conflict.input
-            hits conflict!
-
-        rewrite wisent-parse
-            [dickgrune] 9.8 PDF p 212 says this is Tomita's parser
-                Masaru Tomita, Efficient parsing for natural language, Kluwer Academic Publishers, Boston, p. 201, 1986
-                "Generalized LR Parsing", edited by Tomita Masaru 1991 (amazon $166)
-                http://en.wikipedia.org/wiki/Generalized_LR_parser
-                    same as bison!
-
-            don't execute actions until resolved to one stack
-                actions have two effects:
-                    replace token structure on stack
-                    side effects (cache info in buffer, compute math sum, whatever)
-                need first effect during parallel parse
-                need second effect after resolved to one stack
-
-            parser is independent of token structure
-                it only needs to be able to retrieve the token symbol from the token
+            runs, gives parse error
 
         subprograms.wy for empty production
             opentoken done

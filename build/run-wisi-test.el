@@ -8,16 +8,18 @@
 (defun run-test-here (filename)
   ;; split out from run-test for interactive debugging
   (interactive "Mgrammar filename: ")
-  (wisi-setup
-   nil ;; indent-calculate
-   (symbol-value (intern-soft (concat filename "-wy--keyword-table")))
-   (symbol-value (intern-soft (concat filename "-wy--token-table")))
-   (symbol-value (intern-soft (concat filename "-wy--parse-table"))))
-  (setq wisi-test-success nil)
-  (wisi-parse)
-  (unless wisi-test-success
-    (error "failed"))
-  )
+  (let ((parse-table (symbol-value (intern-soft (concat filename "-wy--parse-table"))))
+	(wisent-parse-max-stack-size 15))
+    (wisi-setup
+     nil ;; indent-calculate
+     (symbol-value (intern-soft (concat filename "-wy--keyword-table")))
+     (symbol-value (intern-soft (concat filename "-wy--token-table")))
+     parse-table)
+    (setq wisi-test-success nil)
+    (wisi-parse parse-table 'wisi-forward-token)
+    (unless wisi-test-success
+      (error "failed"))
+  ))
 
 (defun run-test (filename)
   (require (intern (concat filename "-wy")))
