@@ -1,7 +1,6 @@
 --  Abstract :
 --
---  Output Ada code implementing the grammar defined by Declarations,
---  Rules.
+--  Output Ada code implementing the grammar defined by input parameters.
 --
 --  Copyright (C) 2012, 2013 Stephen Leake.  All Rights Reserved.
 --
@@ -22,20 +21,21 @@ pragma License (GPL);
 with Ada.Characters.Handling;
 with Ada.Strings.Fixed;
 with Ada.Text_IO; use Ada.Text_IO;
-procedure Wisi.Output
+procedure Wisi.Output_Ada
   (Input_File_Name  : in String;
    Output_File_Root : in String;
    Copyright        : in String;
    Prologue         : in String_Lists.List;
    Keywords         : in String_Pair_Lists.List;
-   Tokens           : in String_Triplet_Lists.List;
+   Tokens           : in Token_Lists.List;
    Rules            : in Rule_Lists.List)
 is
+   pragma Unreferenced (Prologue);
    Output_File : File_Type;
 
    function To_Ada (Item : in String) return String
    is
-      use Ada.Characters.Handling;
+      use Standard.Ada.Characters.Handling;
       Result : String := Item;
    begin
       Result (Result'First) := To_Upper (Result (Result'First));
@@ -50,7 +50,7 @@ is
 
    procedure Create_Parents (Name : in String)
    is
-      use Ada.Strings.Fixed;
+      use Standard.Ada.Strings.Fixed;
       Last  : Integer := Index (Pattern => "-", Source => Name);
       File  : File_Type;
    begin
@@ -93,11 +93,11 @@ is
    procedure Put (List : in String_Lists.List; Index : in Integer)
    is
       --  Put OpenToken syntax for a production
-      use Ada.Strings;
-      use Ada.Strings.Fixed;
-      use Ada.Strings.Unbounded;
+      use Standard.Ada.Strings;
+      use Standard.Ada.Strings.Fixed;
+      use Standard.Ada.Strings.Unbounded;
       use String_Lists;
-      use type Ada.Containers.Count_Type;
+      use type Standard.Ada.Containers.Count_Type;
       Item : Cursor := List.First;
    begin
       for Element of List loop
@@ -115,20 +115,6 @@ is
          Put (" +" & Trim (Integer'Image (Index), Left));
       else
          Put (" +" & Integer'Image (Index));
-      end if;
-   end Put;
-
-   procedure Put (Item : in String_Pair_Type)
-   is begin
-      Put ("(+""" & (-Item.Name) & """, +" & (-Item.Value) & ")");
-   end Put;
-
-   procedure Put (Item : in String_Triplet_Type)
-   is begin
-      if Ada.Strings.Unbounded.Length (Item.Value) = 0 then
-         Put ("(+" & (-Item.Kind) & ", +""" & (-Item.Name) & """, +"""")");
-      else
-         Put ("(+" & (-Item.Kind) & ", +""" & (-Item.Name) & """, +" & (-Item.Value) & ")");
       end if;
    end Put;
 
@@ -152,39 +138,6 @@ begin
    Put_Line ("is");
    Indent := Indent + 3;
 
-   Indent_Line ("procedure Put_Usage");
-   Indent_Line ("is");
-   Indent_Line ("   use Standard.Ada.Text_IO;");
-   Indent_Line ("begin");
-   Indent_Line ("   Put_Line (""usage: wisi-ada-subset-generate [-v [level]]"");");
-   Indent_Line ("   Put_Line (""   level 0 - only error messages to standard error"");");
-   Indent_Line ("   Put_Line (""   level 1 - add grammar output to standard out"");");
-   Indent_Line ("   Put_Line (""   level 2 - add diagnostics to standard out"");");
-   Indent_Line ("end Put_Usage;");
-
-   Indent_Line ("Elisp_Package : constant String := """ & Output_File_Root & """;");
-   Indent_Line ("Copyright     : constant String := """ & Copyright & """;");
-
-   Indent_Line ("Prologue : constant String :=");
-
-   declare
-      use String_Lists;
-      Line : Cursor := Prologue.First;
-   begin
-      loop
-         Set_Col (Indent);
-         Put ('"' & Element (Line) & '"');
-         Next (Line);
-
-         if Line = No_Element then
-            Put_Line (";");
-            exit;
-         else
-            Put_Line ("&");
-         end if;
-      end loop;
-   end;
-
    New_Line;
    Indent_Line ("type Token_IDs is");
    Indent_Line ("  (");
@@ -192,8 +145,10 @@ begin
    for Item of Keywords loop
       Indent_Line (-Item.Name & "_ID,"); -- avoid collision with Ada reserved words
    end loop;
-   for Item of Tokens loop
-      Indent_Line (-Item.Name & "_ID,"); -- avoid collision with Ada reserved words
+   for Kind of Tokens loop
+      for Item of Kind.Tokens loop
+         Indent_Line (-Item.Name & "_ID,"); -- avoid collision with Ada reserved words
+      end loop;
    end loop;
    Indent_Line ("EOF_ID,"); -- OpenToken requires an explicit EOF on the accept symbol production.
    New_Line;
@@ -306,112 +261,12 @@ begin
    end;
    Indent := Indent - 2;
 
-   New_Line;
-   Indent_Line ("Verbosity : Integer := 0;");
-
-   New_Line;
-   Indent_Line ("Keywords : String_Pair_Lists.List;");
-   Indent_Line ("Tokens   : String_Triplet_Lists.List;");
-   Indent_Line ("Rules    : Rule_Lists.List;");
-   Indent_Line ("Parser   : LALR_Parsers.Instance;");
-
-   Put_Line ("begin");
-   Indent_Line ("declare");
-   Indent_Line ("   use Standard.Ada.Command_Line;");
-   Indent_Line ("begin");
-   Indent := Indent + 3;
-   Indent_Line ("case Argument_Count is");
-   Indent_Line ("when 0 =>");
-   Indent_Line ("   null;");
-   New_Line;
-   Indent_Line ("when 1 =>");
-   Indent := Indent + 3;
-   Indent_Line ("if Argument (1) = ""-v"" then");
-   Indent_Line ("   Verbosity := 1;");
-   Indent_Line ("else");
-   Indent := Indent + 3;
-   Indent_Line ("Set_Exit_Status (Failure);");
-   Indent_Line ("Put_Usage;");
-   Indent_Line ("return;");
-   Indent := Indent - 3;
-   Indent_Line ("end if;");
-   Indent := Indent - 3;
-   New_Line;
-   Indent_Line ("when 2 =>");
-   Indent := Indent + 3;
-   Indent_Line ("if Argument (1) = ""-v"" then");
-   Indent_Line ("   Verbosity := Integer'Value (Argument (2));");
-   Indent_Line ("else");
-   Indent := Indent + 3;
-   Indent_Line ("Set_Exit_Status (Failure);");
-   Indent_Line ("Put_Usage;");
-   Indent_Line ("return;");
-   Indent := Indent - 3;
-   Indent_Line ("end if;");
-   Indent := Indent - 3;
-   New_Line;
-   Indent_Line ("when others =>");
-   Indent := Indent + 3;
-   Indent_Line ("Set_Exit_Status (Failure);");
-   Indent_Line ("Put_Usage;");
-   Indent_Line ("return;");
-   Indent := Indent - 3;
-   Indent_Line ("end case;");
-   Indent := Indent - 3;
-   Indent_Line ("end;");
-
-   for Item of Keywords loop
-      Set_Col (Indent);
-      Put ("Keywords.Append (");
-      Put (Item);
-      Put_Line (");");
-   end loop;
-   for Item of Tokens loop
-      Set_Col (Indent);
-      Put ("Tokens.Append (");
-      Put (Item);
-      Put_Line (");");
-   end loop;
-   declare
-      use type Ada.Containers.Count_Type;
-   begin
-      for Rule of Rules loop
-         Indent_Line ("Rules.Append");
-         Indent_Line ("  ((+""" & (-Rule.Left_Hand_Side) & """,");
-         Indent := Indent + 4;
-         Set_Col (Indent);
-         for RHS of Rule.Right_Hand_Sides loop
-            Put ("+(");
-            for Token of RHS.Production loop
-               Put_Line ("+""" & Token & """");
-               Set_Col (Indent);
-            end loop;
-            if RHS.Production.Length = 0 then
-               Put_Line ("+""""");
-               Set_Col (Indent);
-            end if;
-            Put_Line (",");
-            if RHS.Action.Length = 0 then
-               Indent_Line ("String_Lists.Empty_List)");
-            else
-               for Line of RHS.Action loop
-                  Indent_Line ("+""" & Line & """");
-               end loop;
-               Set_Col (Indent);
-               Put (")");
-            end if;
-         end loop;
-         Indent_Line ("));");
-         Indent := Indent - 4;
-      end loop;
-   end;
    Indent_Line ("Parser := LALR_Parsers.Generate");
    Indent_Line ("  (Grammar, Analyzers.Null_Analyzer,");
    Indent_Line ("   Trace => Verbosity > 1,");
    Indent_Line ("   Put_Grammar => Verbosity > 0,");
    Indent_Line ("   First_State_Index => 0); -- match Elisp array indexing");
 
-   Indent_Line ("Parser_Elisp.Output (Elisp_Package, Copyright, Prologue, Keywords, Tokens, Rules, Parser);");
    Put_Line ("end " & Package_Name & ";");
    Close (Output_File);
-end Wisi.Output;
+end Wisi.Output_Ada;

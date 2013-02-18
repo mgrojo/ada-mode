@@ -22,11 +22,11 @@ with Ada.Strings.Fixed;
 with Ada.Text_IO; use Ada.Text_IO;
 with Wisi.Utils;  use Wisi.Utils;
 procedure Wisi.Declarations
-  (Input_File : in     Ada.Text_IO.File_Type;
+  (Input_File : in     Standard.Ada.Text_IO.File_Type;
    Keywords   : in out String_Pair_Lists.List;
-   Tokens     : in out String_Triplet_Lists.List)
+   Tokens     : in out Token_Lists.List)
 is
-   use Ada.Strings.Fixed;
+   use Standard.Ada.Strings.Fixed;
 
    Package_Str : constant String := "%package";
    Keyword_Str : constant String := "%keyword";
@@ -64,7 +64,7 @@ begin
 
          elsif Match (Token_Str) then
             declare
-               use Ada.Strings.Unbounded;
+               use Standard.Ada.Strings.Unbounded;
 
                --  kind has syntax <name>; strip < >.
 
@@ -82,15 +82,17 @@ begin
                   else Index_Non_Blank (Source => Line, From => Name_Last + 1));
             begin
                if Value_First = 0 then
-                  Tokens.Append
-                    ((+"""" & Line (Kind_First .. Kind_Last) & """",
-                      +Line (Name_First .. Line'Last),
-                      +""));
+                  Add_Token
+                    (Tokens,
+                     Kind  => """" & Line (Kind_First .. Kind_Last) & """",
+                     Name  => Line (Name_First .. Line'Last),
+                     Value => "");
                else
-                  Tokens.Append
-                    ((+"""" & Line (Kind_First .. Kind_Last) & """",
-                      +Line (Name_First .. Name_Last),
-                      +Line (Value_First .. Line'Last)));
+                  Add_Token
+                    (Tokens,
+                     """" & Line (Kind_First .. Kind_Last) & """",
+                     Line (Name_First .. Name_Last),
+                     Line (Value_First .. Line'Last));
                end if;
             end;
 

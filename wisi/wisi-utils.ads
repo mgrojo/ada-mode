@@ -21,11 +21,11 @@ pragma License (GPL);
 with Ada.Text_IO;
 package Wisi.Utils is
 
-   function Skip_Comments (File : in Ada.Text_IO.File_Type) return String;
+   function Skip_Comments (File : in Standard.Ada.Text_IO.File_Type) return String;
    --  Return next line that is not a comment, and strip leading
    --  whitespace and trailing comment from line.
 
-   procedure Put_Error (File : in Ada.Text_IO.File_Type; Message : in String);
+   procedure Put_Error (File : in Standard.Ada.Text_IO.File_Type; Message : in String);
    --  Output error message for File
 
 end Wisi.Utils;

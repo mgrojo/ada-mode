@@ -24,12 +24,12 @@ with Ada.Strings.Maps;
 with Ada.Text_IO; use Ada.Text_IO;
 with Wisi.Utils;  use Wisi.Utils;
 procedure Wisi.Rules
-  (Input_File : in     Ada.Text_IO.File_Type;
+  (Input_File : in     Standard.Ada.Text_IO.File_Type;
    Rule_List  : in out Rule_Lists.List)
 is
-   use Ada.Strings;
-   use Ada.Strings.Fixed;
-   use Ada.Strings.Unbounded;
+   use Standard.Ada.Strings;
+   use Standard.Ada.Strings.Fixed;
+   use Standard.Ada.Strings.Unbounded;
 
    type State_Type is (Left_Hand_Side, Production, Action);
    State : State_Type := Left_Hand_Side;
@@ -67,7 +67,7 @@ begin
          is begin
             case State is
             when Left_Hand_Side =>
-               Cursor := -1 + Index (Set => Ada.Strings.Maps.To_Set (" :"), Source => Line);
+               Cursor := -1 + Index (Set => Standard.Ada.Strings.Maps.To_Set (" :"), Source => Line);
                if Cursor = -1 then Cursor := Line'Last; end if;
 
                Rule.Left_Hand_Side := +Line (Line'First .. Cursor);
@@ -145,9 +145,14 @@ begin
          end loop;
       exception
       when E : others =>
-         Put_Line
-           (Name (Input_File) & ":" & Trim (Ada.Text_IO.Count'Image (Ada.Text_IO.Line (Input_File)), Left) & ":0:" &
-              " unhandled exception " & Ada.Exceptions.Exception_Name (E));
+         declare
+            use Standard.Ada.Exceptions;
+         begin
+            Standard.Ada.Text_IO.Put_Line
+              (Name (Input_File) & ":" &
+                 Trim (Standard.Ada.Text_IO.Count'Image (Standard.Ada.Text_IO.Line (Input_File)), Left) & ":0:" &
+                 " unhandled exception " & Exception_Name (E));
+         end;
          raise Syntax_Error;
       end;
    end loop;

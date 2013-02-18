@@ -20,6 +20,40 @@ pragma License (GPL);
 
 package body Wisi is
 
+   function Count (Tokens : in Token_Lists.List) return Integer
+   is
+      Result : Integer := 0;
+   begin
+      for Kind of Tokens loop
+         Result := Result + Integer (Kind.Tokens.Length);
+      end loop;
+      return Result;
+   end Count;
+
+   procedure Add_Token
+     (Tokens : in out Token_Lists.List;
+      Kind   : in     String;
+      Name   : in     String;
+      Value  : in     String)
+   is
+      use type Standard.Ada.Strings.Unbounded.Unbounded_String;
+   begin
+      for Token_Kind of Tokens loop
+         if Token_Kind.Kind = Kind then
+            Token_Kind.Tokens.Append ((+Name, +Value));
+            return;
+         end if;
+      end loop;
+
+      --  Kind not found; add it
+      declare
+         Temp : String_Pair_Lists.List;
+      begin
+         Temp.Append ((+Name, +Value));
+         Tokens.Append ((+Kind, Temp));
+      end;
+   end Add_Token;
+
    function "+" (List : in String_Lists.List; Item : in String) return String_Lists.List
    is
       Result : String_Lists.List := List;

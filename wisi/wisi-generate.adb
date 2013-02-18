@@ -1,6 +1,7 @@
 --  Abstract :
 --
---  Non-OpenToken parser for Wisent grammar files, producing OpenToken Ada source files.
+--  Non-OpenToken parser for Wisent grammar files, producing Ada or
+--  Elisp source files.
 --
 --  Copyright (C) 2012, 2013 Stephen Leake.  All Rights Reserved.
 --
@@ -23,7 +24,8 @@ with Ada.Directories;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO;
 with Wisi.Declarations;
-with Wisi.Output;
+with Wisi.Output_Ada;
+with Wisi.Output_Elisp;
 with Wisi.Prologue;
 with Wisi.Rules;
 procedure Wisi.Generate
@@ -31,66 +33,98 @@ is
 
    procedure Put_Usage
    is
-      use Ada.Text_IO;
+      use Standard.Ada.Text_IO;
    begin
-      Put_Line ("wisi-generate [-v] {wisent grammar file}");
-      Put_Line ("  -v : verbose");
-      Put_Line ("  generate Ada OpenToken source corresponding to 'wisent grammar file'");
+      Put_Line ("wisi-generate [-v [level]] {wisent grammar file} {output language}");
+      Put_Line ("generate output language source corresponding to 'wisent grammar file'");
+      Put_Line ("output language is one of Ada, Elisp");
+      Put_Line ("-v sets verbosity (defaults to 0 with no -v, 1 with just -v):");
+      Put_Line ("   level 0 - only error messages to standard error");
+      Put_Line ("   level 1 - add compiled grammar output to standard out");
+      Put_Line ("   level 2 - add diagnostics to standard out");
    end Put_Usage;
 
-   Input_File_Name  : Ada.Strings.Unbounded.Unbounded_String;
-   Input_File       : Ada.Text_IO.File_Type;
-   Output_File_Root : Ada.Strings.Unbounded.Unbounded_String;
+   Output_Language : Output_Language_Type;
+
+   Input_File_Name  : Standard.Ada.Strings.Unbounded.Unbounded_String;
+   Input_File       : Standard.Ada.Text_IO.File_Type;
+   Output_File_Root : Standard.Ada.Strings.Unbounded.Unbounded_String;
    Prologue         : String_Lists.List;
    Declarations     : String_Pair_Lists.List;
-   Tokens           : String_Triplet_Lists.List;
+   Tokens           : Token_Lists.List;
    Rules            : Rule_Lists.List;
 
    Copyright : constant String := "2013 Stephen Leake.  All Rights Reserved.";
    --  FIXME: get copyright from grammar file
 
+   User_Error : exception;
+
    procedure Use_Input_File (File_Name : in String)
    is
-      use Ada.Text_IO;
+      use Standard.Ada.Text_IO;
    begin
-      Input_File_Name := +File_Name;
+      Input_File_Name  := +File_Name;
+      Output_File_Root := +Standard.Ada.Directories.Base_Name (File_Name);
       Open (Input_File, In_File, File_Name);
    exception
    when Name_Error | Use_Error =>
       raise Name_Error with "input file '" & File_Name & "' could not be opened.";
    end Use_Input_File;
 
+   procedure Set_Output_Language (Image : in String)
+   is begin
+      Output_Language := Output_Language_Type'Value (Image);
+   exception
+   when Constraint_Error =>
+      raise User_Error;
+   end Set_Output_Language;
+
 begin
    declare
-      use Ada.Command_Line;
+      use Standard.Ada.Command_Line;
    begin
       case Argument_Count is
-      when 1 =>
-         Use_Input_File (Argument (1));
-         Output_File_Root := +Ada.Directories.Base_Name (Argument (1));
-
       when 2 =>
-         if Argument (1) = "-v" then
-            Verbose := True;
-            Use_Input_File (Argument (2));
-            Output_File_Root := +Ada.Directories.Base_Name (Argument (2));
+         Use_Input_File (Argument (1));
+         Set_Output_Language (Argument (2));
 
+      when 3 =>
+         if Argument (1) = "-v" then
+            Verbosity := 1;
+            Use_Input_File (Argument (2));
+            Set_Output_Language (Argument (3));
          else
-            Set_Exit_Status (Failure);
-            Put_Usage;
-            return;
+            raise User_Error;
+         end if;
+
+      when 4 =>
+         if Argument (1) = "-v" then
+            Verbosity := Integer'Value (Argument (2));
+            Use_Input_File (Argument (3));
+            Set_Output_Language (Argument (4));
+         else
+            raise User_Error;
          end if;
 
       when others =>
-         Set_Exit_Status (Failure);
-         Put_Usage;
-         return;
+         raise User_Error;
       end case;
    end;
 
    Wisi.Prologue (Input_File, Prologue);
    Wisi.Declarations (Input_File, Declarations, Tokens);
    Wisi.Rules (Input_File, Rules);
-   Wisi.Output (-Input_File_Name, -Output_File_Root, Copyright, Prologue, Declarations, Tokens, Rules);
 
+   case Output_Language is
+   when Ada =>
+      Wisi.Output_Ada (-Input_File_Name, -Output_File_Root, Copyright, Prologue, Declarations, Tokens, Rules);
+   when Elisp =>
+      Wisi.Output_Elisp (-Output_File_Root, Copyright, Prologue, Declarations, Tokens, Rules);
+   end case;
+
+exception
+when User_Error =>
+   Standard.Ada.Command_Line.Set_Exit_Status (Standard.Ada.Command_Line.Failure);
+   Put_Usage;
+   return;
 end Wisi.Generate;

@@ -21,16 +21,16 @@ pragma License (GPL);
 with Ada.Strings.Fixed;
 package body Wisi.Utils is
 
-   function Skip_Comments (File : in Ada.Text_IO.File_Type) return String
+   function Skip_Comments (File : in Standard.Ada.Text_IO.File_Type) return String
    is
-      use Ada.Strings;
-      use Ada.Strings.Fixed;
+      use Standard.Ada.Strings;
+      use Standard.Ada.Strings.Fixed;
    begin
       loop
          declare
-            Line      : constant String  := Ada.Text_IO.Get_Line (File);
-            Comment   : constant Integer := Ada.Strings.Fixed.Index (Pattern => ";;", Source => Line);
-            Non_Blank : constant Integer := Ada.Strings.Fixed.Index_Non_Blank (Line);
+            Line      : constant String  := Standard.Ada.Text_IO.Get_Line (File);
+            Comment   : constant Integer := Standard.Ada.Strings.Fixed.Index (Pattern => ";;", Source => Line);
+            Non_Blank : constant Integer := Standard.Ada.Strings.Fixed.Index_Non_Blank (Line);
          begin
             if Non_Blank > 0 then
                if Comment = 0 then
@@ -47,12 +47,13 @@ package body Wisi.Utils is
       end loop;
    end Skip_Comments;
 
-   procedure Put_Error (File : in Ada.Text_IO.File_Type; Message : in String)
+   procedure Put_Error (File : in Standard.Ada.Text_IO.File_Type; Message : in String)
    is
-      use Ada.Text_IO;
-      use Ada.Strings.Fixed;
-      use Ada.Strings;
-      Prefix : constant String := Name (File) & ":" & Trim (Ada.Text_IO.Count'Image (Line (File) - 1), Left) & ":0: ";
+      use Standard.Ada.Text_IO;
+      use Standard.Ada.Strings.Fixed;
+      use Standard.Ada.Strings;
+      Prefix : constant String := Name (File) & ":" &
+        Trim (Standard.Ada.Text_IO.Count'Image (Line (File) - 1), Left) & ":0: ";
    begin
       Put_Line (Standard_Error, Prefix & Message);
    end Put_Error;

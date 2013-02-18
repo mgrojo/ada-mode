@@ -107,8 +107,7 @@ source-clean ::
 
 %.exe : %.adb force; gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P opentoken_test.gpr $(GPRBUILD_ARGS) $*
 
-# FIXME: gnatmake doesn't handle aggregate projects; add parameter to agg.gpr to handle -gnatc
-%.check : %.adb force; gnatmake -p -k -gnatc -Popentoken_test_agg.gpr $(GNATMAKE_ARGS) $*
+%.check : %.adb force; gnatmake -p -k -gnatc -Popentoken_test.gpr $(GNATMAKE_ARGS) $*
 
 %.out : %.exe ;	./$*.exe > $*.out 2>&1
 

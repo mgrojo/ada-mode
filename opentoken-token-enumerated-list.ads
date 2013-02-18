@@ -1,6 +1,7 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 1999, 2012 Ted Dennison
+-- Copyright (C) 2012 Stephe Leake
+-- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
 --

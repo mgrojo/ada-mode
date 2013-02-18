@@ -2,7 +2,7 @@
 --
 --  Parse the prologue from Input_File, generate Ada for it.
 --
---  Copyright (C) 2012 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2012, 2013 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -21,10 +21,10 @@ pragma License (GPL);
 with Ada.Text_IO; use Ada.Text_IO;
 with Wisi.Utils;  use Wisi.Utils;
 procedure Wisi.Prologue
-  (Input_File : in     Ada.Text_IO.File_Type;
+  (Input_File : in     Standard.Ada.Text_IO.File_Type;
    Text       :    out String_Lists.List)
 is
-   use Ada.Strings.Unbounded;
+   use Standard.Ada.Strings.Unbounded;
 begin
    if Skip_Comments (Input_File) /= "%{" then
       Put_Error (Input_File, "expected %{");

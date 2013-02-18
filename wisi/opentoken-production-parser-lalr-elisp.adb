@@ -18,12 +18,73 @@
 
 pragma License (GPL);
 
-with Ada.Characters.Handling;
 with Ada.Containers;
-with Ada.Strings.Fixed;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO; use Ada.Text_IO;
 package body OpenToken.Production.Parser.LALR.Elisp is
+
+   function Token_Image
+     (ID          : in Token.Token_ID;
+      Tokens      : in Wisi.Token_Lists.List;
+      Token_Count : in Token.Token_ID;
+      Keywords    : in Wisi.String_Pair_Lists.List;
+      Rules       : in Wisi.Rule_Lists.List)
+     return String
+   is
+      use Wisi; -- "-" unbounded_string
+      use Token;
+
+      Keyword_First     : constant Token_ID := Token_ID'Succ (Token_Count);
+      EOF               : Token_ID;
+      Nonterminal_First : Token_ID          := Keyword_First;
+
+      Count : Token_ID;
+   begin
+      for I in 2 .. Keywords.Length loop
+         Nonterminal_First := Token_ID'Succ (Nonterminal_First);
+      end loop;
+      Nonterminal_First := Token_ID'Succ (Nonterminal_First);
+      EOF               := Nonterminal_First;
+      Nonterminal_First := Token_ID'Succ (Nonterminal_First);
+
+      if ID = EOF then
+         return "EOF";
+
+      elsif ID = Token_ID'Last then
+         return "opentoken_accept";
+
+      elsif ID in Token_ID'First .. Token_Count then
+         Count := Token_ID'First;
+         for Kind of Tokens loop
+            for Pair of Kind.Tokens loop
+               if Count = ID then
+                  return -Pair.Name;
+               end if;
+               Count := Token_ID'Succ (Count);
+            end loop;
+         end loop;
+
+      elsif ID in Keyword_First .. EOF then
+         Count := Keyword_First;
+         for Pair of Keywords loop
+            if Count = ID then
+               return -Pair.Name;
+            end if;
+            Count := Token_ID'Succ (Count);
+         end loop;
+
+      else -- nonterminal
+         Count := Nonterminal_First;
+         for Rule of Rules loop
+            if Count = ID then
+               return -Rule.Left_Hand_Side;
+            end if;
+            Count := Token_ID'Succ (Count);
+         end loop;
+      end if;
+
+      raise Programmer_Error with "token_id" & Token_ID'Image (ID) & " not found";
+   end Token_Image;
 
    procedure Header (Elisp_Package : in String; Copyright : in String)
    is begin
@@ -71,7 +132,7 @@ package body OpenToken.Production.Parser.LALR.Elisp is
 
    procedure Token_Table
      (Elisp_Package : in String;
-      Tokens        : in Wisi.String_Triplet_Lists.List)
+      Tokens        : in Wisi.Token_Lists.List)
    is
       use Wisi; -- "-" unbounded_string
       use Ada.Strings.Unbounded; -- length
@@ -79,36 +140,29 @@ package body OpenToken.Production.Parser.LALR.Elisp is
       Put_Line ("(defconst " & Elisp_Package & "-wy--token-table");
       Put_Line ("  (semantic-lex-make-type-table");
       Put_Line ("   '(");
-      for Triplet of Tokens loop
-         if 0 = Length (Triplet.Value) then
-            Put_Line ("    (""" & (-Triplet.Kind) & """ (" & (-Triplet.Name) & "))");
-         else
-            Put_Line ("    (""" & (-Triplet.Kind) & """ (" & (-Triplet.Name) & " . """ & (-Triplet.Value) & """))");
-         end if;
+      for Kind of Tokens loop
+         Put_Line ("    (""" & (-Kind.Kind) & """");
+         for Token of Kind.Tokens loop
+            if 0 = Length (Token.Value) then
+               Put_Line ("    (" & (-Token.Name) & ")");
+            else
+               Put_Line ("    (" & (-Token.Name) & " . """ & (-Token.Value) & """)");
+            end if;
+         end loop;
+         Put_Line ("    )");
       end loop;
       Put_Line ("    )");
       Put_Line ("   nil)");
       Put_Line ("  ""Table of language tokens."")");
    end Token_Table;
 
-   function Token_Image (Item : in Token.Parent_Token_ID) return String
-   is
-      Full : constant String := Token.Parent_Token_ID'Image (Item);
-   begin
-      --  Strip trailing _ID. Convert to lowercase if nonterminal
-      if Item in Tokenizer.Terminal_ID then
-         return Full (1 .. Full'Length - 3);
-      else
-         return Ada.Characters.Handling.To_Lower (Full (1 .. Full'Length - 3));
-      end if;
-   end Token_Image;
-
-   procedure Action_Table (Parser : in Instance)
-   is
-      use Ada.Strings;
-      use Ada.Strings.Fixed;
-      use Ada.Characters.Handling;
-   begin
+   procedure Action_Table
+     (Parser      : in Instance;
+      Tokens      : in Wisi.Token_Lists.List;
+      Token_Count : in Token.Token_ID;
+      Keywords    : in Wisi.String_Pair_Lists.List;
+      Rules       : in Wisi.Rule_Lists.List)
+   is begin
       Put ("     [");
       for State in Parser.Table'Range loop
          if State = Parser.Table'First then
@@ -127,7 +181,7 @@ package body OpenToken.Production.Parser.LALR.Elisp is
                   Parse_Action_Node : Parse_Action_Node_Ptr := Action.Action;
                   Conflict          : constant Boolean      := Parse_Action_Node.Next /= null;
                begin
-                  Put (" (" & Token_Image (Action.Symbol) & " . ");
+                  Put (" (" & Token_Image (Action.Symbol, Tokens, Token_Count, Keywords, Rules) & " . ");
 
                   if Conflict then
                      Put ("(");
@@ -146,8 +200,10 @@ package body OpenToken.Production.Parser.LALR.Elisp is
 
                         when Reduce =>
                            Put
-                             ("""" & To_Lower (Token_Image (LHS_ID (Parse_Action.Production))) & ":" &
-                                Trim (Integer'Image (Index (Parse_Action.Production)), Both) & """");
+                             ("(" &
+                                Token_Image (LHS_ID (Parse_Action.Production), Tokens, Token_Count, Keywords, Rules) &
+                                " ." &
+                                Integer'Image (Index (Parse_Action.Production)) & ")");
 
                         when Shift =>
                            Put (State_Index'Image (Parse_Action.State));
@@ -192,7 +248,12 @@ package body OpenToken.Production.Parser.LALR.Elisp is
       Put_Line ("]");
    end Action_Table;
 
-   procedure Goto_Table (Parser : in Instance)
+   procedure Goto_Table
+     (Parser      : in Instance;
+      Tokens      : in Wisi.Token_Lists.List;
+      Token_Count : in Token.Token_ID;
+      Keywords    : in Wisi.String_Pair_Lists.List;
+      Rules       : in Wisi.Rule_Lists.List)
    is
       function Filter_Terminals (List : in Reduction_Node_Ptr) return Reduction_Node_Ptr
       is
@@ -240,7 +301,9 @@ package body OpenToken.Production.Parser.LALR.Elisp is
                   Put ("      (");
                end if;
                loop
-                  Put ("(" & Token_Image (Gotos.Symbol) & " ." & State_Index'Image (Gotos.State) & ")");
+                  Put
+                    ("(" & Token_Image (Gotos.Symbol, Tokens, Token_Count, Keywords, Rules) & " ." &
+                       State_Index'Image (Gotos.State) & ")");
                   Gotos := Gotos.Next;
                   exit when Gotos = null;
                end loop;
@@ -257,8 +320,9 @@ package body OpenToken.Production.Parser.LALR.Elisp is
 
    procedure Parse_Table
      (Elisp_Package : in String;
+      Tokens        : in Wisi.Token_Lists.List;
+      Token_Count   : in Token.Token_ID;
       Keywords      : in Wisi.String_Pair_Lists.List;
-      Tokens        : in Wisi.String_Triplet_Lists.List;
       Rules         : in Wisi.Rule_Lists.List;
       Parser        : in Instance)
    is
@@ -278,11 +342,13 @@ package body OpenToken.Production.Parser.LALR.Elisp is
       Put_Line ("   (wisi-compile-grammar");
       --  terminal tokens
       Put ("   '((");
+      for Kind of Tokens loop
+         for Pair of Kind.Tokens loop
+            Put (-Pair.Name & " ");
+         end loop;
+      end loop;
       for Pair of Keywords loop
          Put (-Pair.Name & " ");
-      end loop;
-      for Triplet of Tokens loop
-         Put (-Triplet.Name & " ");
       end loop;
       Put_Line (")");
 
@@ -334,8 +400,8 @@ package body OpenToken.Production.Parser.LALR.Elisp is
       end loop;
       Put_Line (")");
 
-      Action_Table (Parser);
-      Goto_Table (Parser);
+      Action_Table (Parser, Tokens, Token_Count, Keywords, Rules);
+      Goto_Table (Parser, Tokens, Token_Count, Keywords, Rules);
       Put_Line ("))");
 
       Put_Line ("  ""Parser table."")");
@@ -344,9 +410,10 @@ package body OpenToken.Production.Parser.LALR.Elisp is
    procedure Output
      (Elisp_Package : in String;
       Copyright     : in String;
-      Prologue      : in String;
+      Prologue      : in Wisi.String_Lists.List;
+      Tokens        : in Wisi.Token_Lists.List;
+      Token_Count   : in Token.Token_ID;
       Keywords      : in Wisi.String_Pair_Lists.List;
-      Tokens        : in Wisi.String_Triplet_Lists.List;
       Rules         : in Wisi.Rule_Lists.List;
       Parser        : in Instance)
    is
@@ -355,7 +422,9 @@ package body OpenToken.Production.Parser.LALR.Elisp is
       Create (File, Out_File, Elisp_Package & "-wy.el");
       Set_Output (File);
       Header (Elisp_Package, Copyright);
-      Put_Line (Prologue);
+      for Line of Prologue loop
+         Put_Line (Line);
+      end loop;
       Put_Line ("(require 'semantic/lex)"); -- FIXME: emacs 23 wants semantic-lex, 24 semantic/lex
       Put_Line ("(require 'wisi-compile)");
       New_Line;
@@ -363,7 +432,7 @@ package body OpenToken.Production.Parser.LALR.Elisp is
       New_Line;
       Token_Table (Elisp_Package, Tokens);
       New_Line;
-      Parse_Table (Elisp_Package, Keywords, Tokens, Rules, Parser);
+      Parse_Table (Elisp_Package, Tokens, Token_Count, Keywords, Rules, Parser);
       New_Line;
       Put_Line ("(provide '" & Elisp_Package & "-wy)");
       New_Line;

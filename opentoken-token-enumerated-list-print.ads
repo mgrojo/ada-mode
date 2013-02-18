@@ -2,7 +2,7 @@
 --
 --  Print List.Instance
 --
---  Copyright (C) 2002 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2002, 2013 Stephen Leake.  All Rights Reserved.
 --
 --  This library is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -24,6 +24,8 @@
 --  executable file  might be covered by the  GNU Public License.
 
 generic
+   --  FIXME: causes problems in opentoken-production-print
+--   with function Token_Image (Item : in Parent_Token_ID) return String;
 package OpenToken.Token.Enumerated.List.Print is
 
    procedure Print (Item : in Instance);
