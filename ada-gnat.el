@@ -590,6 +590,40 @@ For `compilation-filter-hook'."
 (defvar ada-gnat-fix-error-hook nil
   "For `ada-fix-error-alist'.")
 
+(defun ada-gnat-misspelling ()
+  "Return correct spelling from current compiler error.
+Prompt user if more than one."
+  ;; wisi-output.adb:115:41: no selector "Productions" for type "RHS_Type" defined at wisi.ads:77
+  ;; wisi-output.adb:115:41: invalid expression in loop iterator
+  ;; wisi-output.adb:115:42: possible misspelling of "Production"
+  ;; wisi-output.adb:115:42: possible misspelling of "Production"
+  ;;
+  ;; column number can vary, so only check the line number
+
+  (let ((line (progn (beginning-of-line) (nth 1 (compilation--message->loc (ada-get-compilation-message)))))
+	done choices)
+    (while (not done)
+      (forward-line 1)
+      (setq done (not (equal line (nth 1 (compilation--message->loc (ada-get-compilation-message))))))
+      (when (and (not done)
+		 (progn
+		   (skip-syntax-forward "^-")
+		   (forward-char 1)
+		   (looking-at (concat "possible misspelling of " ada-gnat-quoted-name-regexp))))
+	(push (match-string 1) choices)))
+
+    ;; return correct spelling
+    (cond
+     ((= 0 (length choices))
+      nil)
+
+     ((= 1 (length choices))
+      (car choices))
+
+     (t ;; multiple choices
+      (completing-read "correct spelling: " choices))
+     )))
+
 (defun ada-gnat-fix-error (msg source-buffer source-window)
   "For `ada-gnat-fix-error-hook'."
   (let ((start-pos (point))
@@ -673,39 +707,32 @@ For `compilation-filter-hook'."
 
 	  ((looking-at (concat ada-gnat-quoted-name-regexp " is undefined"))
 	   ;; We either need to add a with_clause for a package, or
-	   ;; something is spelled wrong. Check next line for spelling error.
-	   (let ((unit-name (match-string 1))
-		 correct-spelling)
-	     (save-excursion
-	       (next-line 1)
-	       (if (looking-at (concat "possible misspelling of " ada-gnat-quoted-name-regexp))
-		   ;; correctable misspelling
+	   ;; something is spelled wrong.
+	   (save-excursion
+	     (let ((unit-name (match-string 1))
+		   (correct-spelling (ada-gnat-misspelling)))
+	       (if correct-spelling
 		   (progn
-		     (setq correct-spelling (match-string 1))
 		     (pop-to-buffer source-buffer)
 		     (search-forward unit-name)
-		     (replace-match correct-spelling)
-		     );; progn
+		     (replace-match correct-spelling))
 
-		 ;; assume missing with
+		 ;; else assume missing with
 		 (pop-to-buffer source-buffer)
 		 (ada-fix-add-with-clause unit-name))))
 	   t)
 
 	  ((looking-at (concat ada-gnat-quoted-name-regexp " not declared in " ada-gnat-quoted-name-regexp))
-	   (let ((child-name (match-string 1))
-		 correct-spelling)
-	     ;; First check for "possible misspelling" message on next line
-	     (save-excursion
-	       (next-line 1)
-	       (if (looking-at (concat "possible misspelling of " ada-gnat-quoted-name-regexp))
-		   ;; correctable misspelling
+	   (save-excursion
+	     (let ((child-name (match-string 1))
+		   (correct-spelling (ada-gnat-misspelling)))
+	       (if correct-spelling
 		   (progn
 		     (setq correct-spelling (match-string 1))
 		     (pop-to-buffer source-buffer)
 		     (search-forward child-name)
-		     (replace-match correct-spelling)
-		     );; progn
+		     (replace-match correct-spelling))
+
 		 ;; else guess that "child" is a child package, and extend the with_clause
 		 (pop-to-buffer source-buffer)
 		 (ada-fix-extend-with-clause child-name))))
@@ -784,13 +811,10 @@ For `compilation-filter-hook'."
 
 	  ((looking-at (concat "no selector " ada-gnat-quoted-name-regexp))
 	   ;; Check next line for spelling error.
-	   (let ((unit-name (match-string 1))
-		 correct-spelling)
-	     (save-excursion
-	       (next-line 1)
-	       (when (looking-at (concat "possible misspelling of " ada-gnat-quoted-name-regexp))
-		 ;; correctable misspelling
-		 (setq correct-spelling (match-string 1))
+	   (save-excursion
+	     (let ((unit-name (match-string 1))
+		   (correct-spelling (ada-gnat-misspelling)))
+	       (when correct-spelling
 		 (pop-to-buffer source-buffer)
 		 (search-forward unit-name)
 		 (replace-match correct-spelling)
@@ -861,6 +885,13 @@ For `compilation-filter-hook'."
 	   t)
 
 ;;;; style errors
+	  ((looking-at "(style) bad capitalization, mixed case required")
+	   (progn
+	     (set-buffer source-buffer)
+	     (forward-word)
+	     (ada-case-adjust-identifier)
+	     t))
+
 	  ((looking-at (concat "(style) bad casing of " ada-gnat-quoted-name-regexp))
 	   (let ((correct (match-string-no-properties 1))
 		 end)

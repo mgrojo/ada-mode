@@ -730,7 +730,7 @@ when interactive, user is prompted to choose a file from `ada-case-exception-fil
 	       (point))))
     (member (downcase word) ada-keywords)))
 
-(defun ada-adjust-case-identifier ()
+(defun ada-case-adjust-identifier ()
   "Adjust case of the previous word as an identifier.
 Uses Mixed_Case, with exceptions defined in
 `ada-case-full-exceptions', `ada-case-partial-exceptions'."
@@ -807,14 +807,14 @@ If IN-COMMENT is non-nil, adjust case of words in comments."
        ((save-excursion
 	 (skip-syntax-backward "w_")
 	 (eq (char-before) ?'))
-	(ada-adjust-case-identifier))
+	(ada-case-adjust-identifier))
 
        ((and
 	 (not (eq typed-char ?_))
 	 (ada-after-keyword-p))
 	(funcall ada-case-keyword -1))
 
-       (t (ada-adjust-case-identifier))
+       (t (ada-case-adjust-identifier))
        ))
     ))
 

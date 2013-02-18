@@ -4,10 +4,9 @@ all : ada-grammar-wy.el gpr-grammar-wy.el compile-clean compile test-clean test
 
 test :: test-wisi-parse
 
+#one : range_conflict-wy.el
 one : range_conflict.wisi-test
 two : test-gpr
-
-test-wisi-parse : range_conflict.wisi-test
 
 vpath %.wy ../../ ../../test/wisi
 vpath %.el ../../ .
@@ -24,21 +23,16 @@ gpr-grammar-wy.el : gpr-grammar.wy
 	sed -i "s/(wisi/,(wisi/" ../../$@
 	rm -f ../../$*-wy.elc
 
-%-wy.el : wisi-%-generate.exe
-	./wisi-$*-generate.exe -v 1 > $*.output
-
 .PRECIOUS : %-wy.el
-.PRECIOUS : wisi-%-generate.adb
-.PRECIOUS : wisi-%-generate.exe
 
 WISI_OPENTOKEN := ../../../org.opentoken.stephe/build/windows_release
 
-wisi-%-generate.adb : %.wy $(WISI_OPENTOKEN)/wisi-generate.exe
-	$(WISI_OPENTOKEN)/wisi-generate.exe $<
+%-wy.el : %.wy $(WISI_OPENTOKEN)/wisi-generate.exe
+	$(WISI_OPENTOKEN)/wisi-generate.exe -v 1 $< Elisp > $*.output
 
 # ../../../org.opentoken.stephe/wisi/wisi-generate.adb
 $(WISI_OPENTOKEN)/wisi-generate.exe : force
-	$(MAKE) -C ../../../org.opentoken.stephe/build/windows_release wisi-generate.exe
+	$(MAKE) -C $(WISI_OPENTOKEN) wisi-generate.exe
 
 .PHONY : force
 
@@ -61,6 +55,6 @@ export ADA_PROJECT_PATH=../../test/;../../test/subdir
 
 # Local Variables:
 # End:
-# eval: (ada-parse-prj-file "wisi_opentoken_agg.gpr")
-# eval: (ada-select-prj-file "wisi_opentoken_agg.gpr")
+# eval: (ada-parse-prj-file "wisi_opentoken.prj")
+# eval: (ada-select-prj-file "wisi_opentoken.prj")
 # end of file

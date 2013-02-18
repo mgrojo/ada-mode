@@ -51,19 +51,28 @@ ada-wisi
         wisi-compile.el
         (load "build/run-wisi-test.el")
         test/wisi/range_conflict.input
-            runs, gives parse error
+            parse error at end of text
+
+            parser trace:
+            token   stack_1
+            Test_1  IDENTIFIER 1
+            Type_1  membership_choice 5 IDENTIFIER 1
+            '       membership_choice 5 IDENTIFIER 1 TICK 15
+            Range   membership_choice 5 IDENTIFIER 1 TICK 15 RANGE 16
+            (
+            1
+            in
+            0
+            ..
+            3
+            )
 
         subprograms.wy for empty production
-            opentoken done
             wisent parses .wy wrong
                 leaves out subprogram production!
                 because of `,?
 
         body_instantiation_conflict for shift/reduce
-            opentoken done
-
-        range_conflict.wy for shift/reduce
-            opentoken done
 
         identifier_list_name_conflict for reduce/reduce conflict and attempt at non-conflict multiple reduce
             opentoken done, but doesn't give dual reduce

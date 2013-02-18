@@ -21,13 +21,13 @@
 %%
 
 compilation_unit
-  : membership_choice range_nt
+  : membership_choice range
     (setq wisi-test-success t)
   ;
 
 membership_choice
   : primary
-  | range_nt ;; can't use case to distinguish; Ada is case insensitive
+  | range ;; note that this does _not_ conflict with RANGE
   ;
 
 primary
@@ -36,7 +36,7 @@ primary
   | LEFT_PAREN relation RIGHT_PAREN
   ;
 
-range_nt
+range
   : IDENTIFIER TICK RANGE LEFT_PAREN relation RIGHT_PAREN ;; range_attribute_reference
   | IDENTIFIER TICK RANGE
   | primary DOT_DOT primary

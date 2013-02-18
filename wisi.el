@@ -168,6 +168,7 @@ If at end of buffer, returns `wisent-eoi-term'."
 
      ((eq syntax 1)
       ;; punctuation. Find the longest matching string in wisi-punctuation-table
+      (forward-char 1)
       (let ((next-point (point))
 	    temp-text temp-id done)
 	(while (not done)
@@ -419,10 +420,14 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
    text))
 
 (defun wisi-statement-tokens (&rest items)
+  ;; FIXME: change items to 'token class'; token same struct as returned
+  ;; by wisi-forward-token, with text = nil for nonterms. that
+  ;; eliminates the need for wisi-symbol and wisi-statement-action
+  ;; (rename this to that to preserve .wy)
   "Cache indentation and name information in text properties of tokens.
 Intended as a wisent grammar non-terminal action.
 
-ITEMS is a list [text class (start end)] ... for tokens that
+ITEMS is a list (symbol/text class (start end)) ... for tokens that
 should receive cached information. See macro
 `wisi-statement-action' for using this in a wisent grammar file."
   (save-excursion

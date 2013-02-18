@@ -50,7 +50,7 @@
 
 (defun wisi-compose-action (value symbol-array nonterms)
   (let ((symbol (intern-soft (format "%s:%d" (car value) (cdr value)) symbol-array))
-	(prod (nth (cdr value) (cdr (assoc (car value) nonterms)))))
+	(prod (car (nth (cdr value) (cdr (assoc (car value) nonterms))))))
     (if symbol
 	(list (car value) symbol (length prod))
       (error "%s not in symbol-array" (symbol)))))
@@ -124,9 +124,8 @@ side-effects only."
 	 (form (wisent-semantic-action-expand-body (aref actn 0) n))
 	 ($l   (car form))            ; list of $vars used in body
 	 (form (cdr form))            ; expanded form of body
-	 (nt   (aref rlhs r))         ; nonterminal item number
 	 (bl   nil)                   ; `let*' binding list
-	 $v i)
+	 $v i action-symbol)
 
     ;; Compute bl; the list of $N and $regionN bindings
     (setq i n)
@@ -139,19 +138,19 @@ side-effects only."
       ;; bind $I if used in action
       (setq $v (intern (format "$%d" i)))
       (when (memq $v $l)
-	(setq bl (cons `(,$v (car (nth (1- i) tokens))) bl)))
+	(setq bl (cons `(,$v (car (nth (1- ,i) tokens))) bl)))
       (setq i (1- i)))
 
-    (setq actn (intern name (aref rcode 0)))
+    (setq action-symbol (intern name (aref rcode 0)))
 
-    (fset actn
+    (fset action-symbol
 	  `(lambda (tokens)
 	     (let* (,@bl)
 	       ,form
 	       nil)))
 
-    ;; Return the semantic action symbol
-    actn))
+    ;; Return the action list
+    (list (car (aref actn 2)) action-symbol n)))
 
 (defun wisi-compile-grammar (grammar)
   "Compile the LALR(1) GRAMMAR; return the automaton for wisi-parse.
@@ -228,7 +227,6 @@ names have the format nonterm:index."
       (vector
        actions
        (nth 3 grammar)
-       nil ;; starts
        symbol-array)
       )))
 
