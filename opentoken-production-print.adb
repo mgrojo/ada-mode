@@ -27,9 +27,8 @@ with Ada.Text_IO; use Ada.Text_IO;
 package body OpenToken.Production.Print is
 
    procedure Print (Item : in Instance)
-   is
-   begin
-      Put ("(" & Token.Token_ID'Image (Token.ID (Item.LHS.all)) & " <= ");
+   is begin
+      Put ("(" & Token.Token_Image (Token.ID (Item.LHS.all)) & " <= ");
       Print (Item.RHS);
       Put (")");
    end Print;

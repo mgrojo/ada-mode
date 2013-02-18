@@ -585,7 +585,7 @@ package body OpenToken.Production.Parser.LALR is
             when Reduce =>
                Put
                  ("reduce" & Integer'Image (Parse_Action.Length) &
-                    " tokens to " & Token.Token_ID'Image (LHS_ID (Parse_Action.Production)));
+                    " tokens to " & Token_Image (LHS_ID (Parse_Action.Production)));
             when Accept_It =>
                Put ("accept it");
             when Error =>
@@ -626,12 +626,12 @@ package body OpenToken.Production.Parser.LALR is
 
       while Action /= null loop
          if Action.Next = null then
-            Put ("   default => ");
+            Put ("   default" & (Token.Token_Image_Width - 7) * ' ' & " => ");
             Put_Parse_Action (Action.Action);
             New_Line;
          else
-            Put ("   " & Tokenizer.Terminal_ID'Image (Action.Symbol) &
-                   (Tokenizer.Terminal_ID'Width - Tokenizer.Terminal_ID'Image (Action.Symbol)'Length) * ' '
+            Put ("   " & Token.Token_Image (Action.Symbol) &
+                   (Token.Token_Image_Width - Token.Token_Image (Action.Symbol)'Length) * ' '
                    & " => ");
             Put_Parse_Action (Action.Action);
             New_Line;
@@ -646,8 +646,8 @@ package body OpenToken.Production.Parser.LALR is
          if Reduction.Symbol not in Tokenizer.Terminal_ID then
             --  Terminal_IDs are shown in Actions, above
             Put_Line
-              ("   " & Token.Token_ID'Image (Reduction.Symbol) &
-                 (Token.Token_ID'Width - Token.Token_ID'Image (Reduction.Symbol)'Length) * ' ' &
+              ("   " & Token.Token_Image (Reduction.Symbol) &
+                 (Token.Token_Image_Width - Token.Token_Image (Reduction.Symbol)'Length) * ' ' &
                  " goto state" & State_Index'Image (Reduction.State));
          end if;
          Reduction := Reduction.Next;

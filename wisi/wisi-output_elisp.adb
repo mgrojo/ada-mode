@@ -35,7 +35,7 @@ procedure Wisi.Output_Elisp
    Rules         : in Rule_Lists.List)
 is
    subtype Token_IDs is Integer range
-     1 .. Wisi.Count (Tokens) + Integer (Keywords.Length) + 1 + Integer (Rules.Length) + 1;
+     1 .. Count (Tokens) + Integer (Keywords.Length) + 1 + Integer (Rules.Length) + 1;
    --  one extra terminal for EOF
    --  one extra non-terminal for the OpenToken accept symbol followed by EOF.
 
@@ -74,7 +74,54 @@ is
       raise Programmer_Error with "token '" & Token & "' not found";
    end Find_Token_ID;
 
-   package Tokens_Pkg is new OpenToken.Token.Enumerated (Token_IDs);
+   Token_Images      : array (Token_IDs) of access constant String;
+   Token_Image_Width : Integer := 0;
+
+   function Token_Image (ID : in Token_IDs) return String
+   is begin
+      return Token_Images (ID).all;
+   end Token_Image;
+
+   procedure Set_Token_Images
+   is
+      ID : Token_IDs := Token_IDs'First;
+   begin
+      for Kind of Tokens loop
+         for Pair of Kind.Tokens loop
+            Token_Images (ID) := new String'(-Pair.Name);
+            ID := ID + 1;
+         end loop;
+      end loop;
+
+      if ID /= Token_Count + 1 then raise Programmer_Error; end if;
+
+      for Pair of Keywords loop
+         Token_Images (ID) := new String'(-Pair.Name);
+         ID := ID + 1;
+      end loop;
+
+      if ID /= EOF_ID then raise Programmer_Error; end if;
+
+      Token_Images (ID) := new String'("EOF");
+      ID                := ID + 1;
+
+      for Rule of Rules loop
+         Token_Images (ID) := new String'(-Rule.Left_Hand_Side);
+         ID := ID + 1;
+      end loop;
+
+      if ID /= Accept_ID then raise Programmer_Error; end if;
+
+      Token_Images (ID) := new String'("opentoken_accept");
+
+      for Token of Token_Images loop
+         if Token.all'Length > Token_Image_Width then
+            Token_Image_Width := Token.all'Length;
+         end if;
+      end loop;
+   end Set_Token_Images;
+
+   package Tokens_Pkg is new OpenToken.Token.Enumerated (Token_IDs, Token_Image, Token_Image_Width);
    --  we only need Analyzers to instantiate Parsers, but we might call it for debugging
    package Analyzers is new Tokens_Pkg.Analyzer (Last_Terminal => EOF_ID);
    package Token_Lists is new Tokens_Pkg.List;
@@ -84,10 +131,11 @@ is
    package Parsers is new Productions.Parser (Production_Lists, Analyzers);
    package LALR_Parsers is new Parsers.LALR;
 
-   package Parser_Elisp is new LALR_Parsers.Elisp;
+   package Parser_Elisp is new LALR_Parsers.Elisp (Token_Image);
 
    Grammar : Production_Lists.Instance;
    Parser  : LALR_Parsers.Instance;
+   File    : Standard.Ada.Text_IO.File_Type;
 
    --  Allow infix operators for building productions
    use type Token_Lists.Instance;
@@ -99,6 +147,79 @@ is
    is begin
       return Tokens & Tokens_Pkg.Get (Find_Token_ID (Token));
    end "&";
+
+   procedure Header (Elisp_Package : in String; Copyright : in String)
+   is
+      use Standard.Ada.Text_IO;
+   begin
+      Put_Line (";;; " & Elisp_Package & "-wy.el --- Generated parser support file");
+      New_Line;
+      Put_Line (";; Copyright (C) " & Copyright);
+      New_Line;
+      --  FIXME: allow other license
+      Put_Line (";; This program is free software; you can redistribute it and/or");
+      Put_Line (";; modify it under the terms of the GNU General Public License as");
+      Put_Line (";; published by the Free Software Foundation; either version 2, or (at");
+      Put_Line (";; your option) any later version.");
+      Put_Line (";;");
+      Put_Line (";; This software is distributed in the hope that it will be useful,");
+      Put_Line (";; but WITHOUT ANY WARRANTY; without even the implied warranty of");
+      Put_Line (";; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU");
+      Put_Line (";; General Public License for more details.");
+      Put_Line (";;");
+      Put_Line (";; You should have received a copy of the GNU General Public License");
+      Put_Line (";; along with GNU Emacs; see the file COPYING.  If not, write to the");
+      Put_Line (";; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,");
+      Put_Line (";; Boston, MA 02110-1301, USA.");
+      New_Line;
+      Put_Line (";; PLEASE DO NOT MANUALLY EDIT THIS FILE!  It is automatically");
+      Put_Line (";; generated from the grammar file " & Elisp_Package & ".wy");
+      New_Line;
+   end Header;
+
+   procedure Keyword_Table
+     (Elisp_Package : in String;
+      Keywords      : in Wisi.String_Pair_Lists.List)
+   is
+      use Standard.Ada.Text_IO;
+   begin
+      Put_Line ("(defconst " & Elisp_Package & "-wy--keyword-table");
+      Put_Line ("  (semantic-lex-make-keyword-table");
+      Put_Line ("   '(");
+      for Pair of Keywords loop
+         Put_Line ("    (" & (-Pair.Value) & " . " & (-Pair.Name) & ")");
+      end loop;
+      Put_Line ("    )");
+      Put_Line ("   nil)");
+      Put_Line ("  ""Table of language keywords."")");
+   end Keyword_Table;
+
+   procedure Token_Table
+     (Elisp_Package : in String;
+      Tokens        : in Wisi.Token_Lists.List)
+   is
+      use Standard.Ada.Strings.Unbounded; -- length
+      use Standard.Ada.Text_IO;
+   begin
+      Put_Line ("(defconst " & Elisp_Package & "-wy--token-table");
+      Put_Line ("  (semantic-lex-make-type-table");
+      Put_Line ("   '(");
+      for Kind of Tokens loop
+         Put_Line ("     (" & (-Kind.Kind));
+         for Token of Kind.Tokens loop
+            if 0 = Length (Token.Value) then
+               Put_Line ("      (" & (-Token.Name) & ")");
+            else
+               Put_Line ("      (" & (-Token.Name) & " . " & (-Token.Value) & ")");
+            end if;
+         end loop;
+         Put_Line ("     )");
+      end loop;
+      Put_Line ("    )");
+      Put_Line ("   nil)");
+      Put_Line ("  ""Table of language tokens."")");
+   end Token_Table;
+
 begin
    Grammar := Production_Lists.Only
      (Nonterminals.Get (Accept_ID) <= Nonterminals.Get (First_Nonterminal) & Tokens_Pkg.Get (EOF_ID));
@@ -122,13 +243,9 @@ begin
    end loop;
 
    if Verbosity > 0 then
+      Set_Token_Images;
       declare
          use Standard.Ada.Text_IO;
-         function Token_Image (ID : in Token_IDs) return String
-         is begin
-            return Parser_Elisp.Token_Image (ID, Tokens, Token_Count, Keywords, Rules);
-         end Token_Image;
-
          procedure Print_Action (Item : in Nonterminals.Synthesize) is null;
          package Token_List_Print is new Token_Lists.Print;
          package Print_Production is new Productions.Print (Token_List_Print, Print_Action);
@@ -151,6 +268,27 @@ begin
       Put_Grammar       => Verbosity > 0,
       First_State_Index => 0); -- match Elisp array indexing
 
-   Parser_Elisp.Output (Elisp_Package, Copyright, Prologue, Tokens, Token_Count, Keywords, Rules, Parser);
-
+   declare
+      use Standard.Ada.Text_IO;
+   begin
+      Create (File, Out_File, Elisp_Package & "-wy.el");
+      Set_Output (File);
+      Header (Elisp_Package, Copyright);
+      for Line of Prologue loop
+         Put_Line (Line);
+      end loop;
+      Put_Line ("(require 'semantic/lex)"); -- FIXME: emacs 23 wants semantic-lex, 24 semantic/lex
+      Put_Line ("(require 'wisi-compile)");
+      New_Line;
+      Keyword_Table (Elisp_Package, Keywords);
+      New_Line;
+      Token_Table (Elisp_Package, Tokens);
+      New_Line;
+      Parser_Elisp.Output (Elisp_Package, Tokens, Keywords, Rules, Parser);
+      New_Line;
+      Put_Line ("(provide '" & Elisp_Package & "-wy)");
+      New_Line;
+      Put_Line (";; end of file");
+      Close (File);
+   end;
 end Wisi.Output_Elisp;

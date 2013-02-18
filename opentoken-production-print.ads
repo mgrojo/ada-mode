@@ -25,8 +25,6 @@
 
 with OpenToken.Token.Enumerated.List.Print;
 generic
-   --  FIXME: this doesn't compile; Token_ID not visible in opentoken-token-enumerated-list-print
-   --  with function Token_Image (Item : in Token.Parent_Token_ID) return String;
    with package Token_List_Print is new Token_List.Print;
    with procedure Print_Action (Item : in Nonterminal.Synthesize);
 package OpenToken.Production.Print is

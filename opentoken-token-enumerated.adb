@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2009 Stephe Leake
+-- Copyright (C) 2009, 2013 Stephe Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -150,7 +150,7 @@ package body OpenToken.Token.Enumerated is
    overriding function Name (Token : in Instance) return String
    is begin
       if Token.Name = null then
-         return Token_ID'Image (Token.ID);
+         return Token_Image (Token.ID);
       else
          return Token.Name.all;
       end if;

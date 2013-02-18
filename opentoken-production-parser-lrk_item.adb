@@ -896,15 +896,15 @@ package body OpenToken.Production.Parser.LRk_Item is
 
    function Token_Name (Subject : in Token.Handle) return String is
    begin
-      return Token.Token_ID'Image (Token.ID (Subject.all));
+      return Token.Token_Image (Token.ID (Subject.all));
    end Token_Name;
    function Token_Name (Subject : in Nonterminal.Handle) return String is
    begin
-      return Token.Token_ID'Image (Token.ID (Subject.all));
+      return Token.Token_Image (Token.ID (Subject.all));
    end Token_Name;
    function Token_Name (Subject : in Token.Token_ID) return String is
    begin
-      return Token.Token_ID'Image (Subject);
+      return Token.Token_Image (Subject);
    end Token_Name;
 
    function Print (Item : in Item_Lookahead) return String

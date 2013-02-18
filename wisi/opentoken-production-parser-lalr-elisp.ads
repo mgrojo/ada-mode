@@ -20,22 +20,12 @@ pragma License (GPL);
 
 with Wisi;
 generic
+   with function Token_Image (ID : in Token.Token_ID) return String;
 package OpenToken.Production.Parser.LALR.Elisp is
-
-   function Token_Image
-     (ID          : in Token.Token_ID;
-      Tokens      : in Wisi.Token_Lists.List;
-      Token_Count : in Token.Token_ID;
-      Keywords    : in Wisi.String_Pair_Lists.List;
-      Rules       : in Wisi.Rule_Lists.List)
-     return String;
 
    procedure Output
      (Elisp_Package : in String;
-      Copyright     : in String;
-      Prologue      : in Wisi.String_Lists.List;
       Tokens        : in Wisi.Token_Lists.List;
-      Token_Count   : in Token.Token_ID;
       Keywords      : in Wisi.String_Pair_Lists.List;
       Rules         : in Wisi.Rule_Lists.List;
       Parser        : in Instance);

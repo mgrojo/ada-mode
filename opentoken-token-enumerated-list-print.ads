@@ -24,8 +24,6 @@
 --  executable file  might be covered by the  GNU Public License.
 
 generic
-   --  FIXME: causes problems in opentoken-production-print
---   with function Token_Image (Item : in Parent_Token_ID) return String;
 package OpenToken.Token.Enumerated.List.Print is
 
    procedure Print (Item : in Instance);
