@@ -36,12 +36,12 @@ procedure Wisi.Output_Elisp
 is
    subtype Token_IDs is Integer range
      1 .. Count (Tokens) + Integer (Keywords.Length) + 1 + Integer (Rules.Length) + 1;
-   --  one extra terminal for EOF
-   --  one extra non-terminal for the OpenToken accept symbol followed by EOF.
+   --  one extra terminal for $EOI
+   --  one extra non-terminal for the OpenToken accept symbol followed by EOI.
 
    Token_Count       : constant Token_IDs := Count (Tokens);
-   EOF_ID            : constant Token_IDs := Token_Count + Token_IDs (Keywords.Length) + 1; -- last terminal
-   First_Nonterminal : constant Token_IDs := EOF_ID + 1;
+   EOI_ID            : constant Token_IDs := Token_Count + Token_IDs (Keywords.Length) + 1; -- last terminal
+   First_Nonterminal : constant Token_IDs := EOI_ID + 1;
    Accept_ID         : constant Token_IDs := Token_IDs'Last;                    -- last nonterminal
 
    function Find_Token_ID (Token : in String) return Token_IDs
@@ -63,7 +63,7 @@ is
          end if;
          Result := Result + 1;
       end loop;
-      Result := Result + 1; -- EOF
+      Result := Result + 1; -- EOI
 
       for Rule of Rules loop
          if Rule.Left_Hand_Side = Token then
@@ -100,9 +100,9 @@ is
          ID := ID + 1;
       end loop;
 
-      if ID /= EOF_ID then raise Programmer_Error; end if;
+      if ID /= EOI_ID then raise Programmer_Error; end if;
 
-      Token_Images (ID) := new String'("EOF");
+      Token_Images (ID) := new String'("$EOI"); -- match wisent-eoi-term
       ID                := ID + 1;
 
       for Rule of Rules loop
@@ -123,7 +123,7 @@ is
 
    package Tokens_Pkg is new OpenToken.Token.Enumerated (Token_IDs, Token_Image, Token_Image_Width);
    --  we only need Analyzers to instantiate Parsers, but we might call it for debugging
-   package Analyzers is new Tokens_Pkg.Analyzer (Last_Terminal => EOF_ID);
+   package Analyzers is new Tokens_Pkg.Analyzer (Last_Terminal => EOI_ID);
    package Token_Lists is new Tokens_Pkg.List;
    package Nonterminals is new Tokens_Pkg.Nonterminal (Token_Lists);
    package Productions is new OpenToken.Production (Tokens_Pkg, Token_Lists, Nonterminals);
@@ -222,7 +222,7 @@ is
 
 begin
    Grammar := Production_Lists.Only
-     (Nonterminals.Get (Accept_ID) <= Nonterminals.Get (First_Nonterminal) & Tokens_Pkg.Get (EOF_ID));
+     (Nonterminals.Get (Accept_ID) <= Nonterminals.Get (First_Nonterminal) & Tokens_Pkg.Get (EOI_ID));
 
    for Rule of Rules loop
       declare

@@ -329,7 +329,9 @@ package body OpenToken.Production.Parser.LALR is
    begin
 
       --  If this is the start symbol production, it gets a lookahead
-      --  for each terminal, so it will reduce on anything.
+      --  for each terminal, so it will reduce on anything. FIXME:
+      --  default action should be reduce in this case; no need for
+      --  lookaheads.
       if Source_Set.Index = Accept_Index then
          for Token_ID in Tokenizer.Terminal_ID loop
             declare
@@ -353,7 +355,8 @@ package body OpenToken.Production.Parser.LALR is
       end if;
 
       --  If the closure item doesn't have a token after the pointer,
-      --  there's nothing else to do.
+      --  there's nothing else to do. FIXME: default action should be
+      --  reduce in this case; no need for lookaheads
       if Token_List.Token_Handle (Closure_Item.Pointer) = null then
          return;
       end if;
@@ -585,7 +588,7 @@ package body OpenToken.Production.Parser.LALR is
             when Reduce =>
                Put
                  ("reduce" & Integer'Image (Parse_Action.Length) &
-                    " tokens to " & Token_Image (LHS_ID (Parse_Action.Production)));
+                    " tokens to " & Token.Token_Image (LHS_ID (Parse_Action.Production)));
             when Accept_It =>
                Put ("accept it");
             when Error =>
@@ -619,7 +622,7 @@ package body OpenToken.Production.Parser.LALR is
 
       New_Line;
       if Action = null then
-         raise Programmer_Error with "LALR: Action contains no error entry";
+         raise Programmer_Error with "LALR: Action contains no default entry";
       elsif Action.Next = null then
          Put_Line ("   (no actions)");
       end if;
