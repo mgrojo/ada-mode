@@ -1,0 +1,28 @@
+--CACHE: 'function
+function
+--CACHE: nil
+Func_1
+
+--CACHE: 'procedure
+procedure
+--CACHE: nil
+Proc_1
+
+--CACHE: 'function
+function
+--CACHE: 'open-paren
+(
+--CACHE: 'close-paren
+)
+--CACHE: nil
+Func_1
+
+--CACHE: 'procedure
+procedure
+--CACHE: 'open-paren
+(
+param_1
+--CACHE: 'close-paren
+)
+--CACHE: nil
+Func_1

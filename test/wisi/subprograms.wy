@@ -1,0 +1,57 @@
+;; grammar has no conflicts; test wisi cache actions
+
+%{
+(require 'wisi)
+%}
+
+%package subprograms-wy
+
+%keyword FUNCTION "function"
+%keyword LEFT_PAREN "("
+%keyword PROCEDURE "procedure"
+%keyword RIGHT_PAREN ")"
+
+%token <symbol> SYMBOL
+
+;; not used, but <string>, <punctuation> required by wisi-setup
+%token <punctuation> TICK "'"
+%token <string> STRING_LITERAL
+
+%%
+
+compilation_unit
+  : subprogram
+    (setq wisi-test-success t)
+  ;
+
+declarations
+  : declaration
+  | declarations declaration
+  ;
+
+declaration
+  : subprogram
+  ;
+
+subprogram
+  : FUNCTION parameter_list SYMBOL
+    `,(wisi-cache-action
+      1 'function
+      2 'other)
+  | PROCEDURE parameter_list SYMBOL
+    (wisi-cache-keywords
+     $1 'procedure nil $region1
+     $2 'other nil $region2)
+  ;
+  
+parameter_list
+  : LEFT_PAREN RIGHT_PAREN ;; c-like no parameters
+    `,(wisi-cache-action 1 'open-paren 2 'close-paren)
+  | ;; ada-like no parameters
+  | LEFT_PAREN SYMBOL RIGHT_PAREN
+    `,(wisi-cache-action 1 'open-paren 3 'close-paren)
+  ;
+
+%%
+
+;; end of file

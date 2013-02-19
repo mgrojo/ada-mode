@@ -50,18 +50,17 @@
 	    :pending nil)))
 	 (active-parser-count 1)
          (wisent-parse-error-function (or error 'wisent-message))
-	 (active nil)
+	 (active 'shift)
 	 (token (funcall lexer)))
 
     (aset (wisi-parser-state-stack (aref parser-states 0)) 0 0) ;; Initial state
 
     (while (not (eq active 'accept))
-      (dotimes (i (length parser-states))
-	(when (wisi-parser-state-active (aref parser-states i))
-	  (let* ((parser-state (aref parser-states i))
+      (dotimes (parser-index (length parser-states))
+	(when (eq active (wisi-parser-state-active (aref parser-states parser-index)))
+	  (let* ((parser-state (aref parser-states parser-index))
 		 (result (wisi-parse-1 token parser-state (> active-parser-count 1) actions gotos)))
-
-	     (when result
+	    (when result
 	      ;; spawn a new parser
 	      (let ((j (wisi-free-parser parser-states)))
 		(when (= j -1)
@@ -70,35 +69,45 @@
 		(setq active-parser-count (1+ active-parser-count))
 		(aset parser-states j result)))
 
-	     (when (eq 'error (wisi-parser-state-active parser-state))
-	       ;; terminate this parser
-	       (setf (wisi-parser-state-active parser-state) nil)
-	       (setq active-parser-count (1- active-parser-count))
-	       (case active-parser-count
-		 (0
-		  ;; FIXME: better error handling for input syntax
-		  ;; error? not clear which parser(s) should try to
-		  ;; continue past error.
-		  ;; FIXME: at least a better message to the user
-		  (error "no parsers left"))
+	    (when (eq 'error (wisi-parser-state-active parser-state))
+	      ;; terminate this parser
+	      (setf (wisi-parser-state-active parser-state) nil)
+	      (setq active-parser-count (1- active-parser-count))
+	      (case active-parser-count
+		(0
+		 ;; FIXME: better error handling for input syntax
+		 ;; error? not clear which parser(s) should try to
+		 ;; continue past error.
+		 ;; FIXME: at least a better message to the user
+		 (error "no parsers left"))
 
-		 (1
-		  (wisi-execute-pending (wisi-parser-state-pending
+		(1
+		 (wisi-execute-pending (wisi-parser-state-pending
 					(aref parser-states (wisi-active-parser parser-states)))))
-		 (t nil)))
+		(t nil)))
 
-	     )));; end dotimes
+	    )));; end dotimes
 
       (setq active (wisi-parsers-active parser-states active-parser-count))
-      (when (eq active t)
+      (when (eq active 'shift)
 	(setq token (funcall lexer)))
     )))
 
 (defun wisi-parsers-active (parser-states active-count)
-  "Return:
-'accept : active-count = 1, and that element of PARSER-STATES has active set to 'accept
-t       : all PARSER-STATES have active set to nil or 'shift.
-nil     : otherwise."
+  "Return the type of parser cycle to execute.
+PARSER-STATES.active is the last action the parser took. If it
+was 'shift, that parser used the input token, and should not be
+executed again until another input token is available, after all
+parsers have shifted the current token or terminated.
+
+'accept : active-count = 1, and that element of PARSER-STATES has
+active set to 'accept - done parsing
+
+'shift : all PARSER-STATES have active set to nil, 'accept, or
+'shift - get a new token, execute 'shift parsers.
+
+'reduce : some PARSER-STATES have active set to 'reduce - no new
+token, execute 'reduce parsers."
   (let ((result nil)
 	(i 0)
 	(shift-count 0)
@@ -108,12 +117,17 @@ nil     : otherwise."
       (setq active (wisi-parser-state-active (aref parser-states i)))
       (cond
 	((eq active 'shift) (setq shift-count (1+ shift-count)))
-	((eq active 'reduce) nil)
+	((eq active 'reduce) (setq result 'reduce))
 	((eq active 'accept) (when (eq active-count 1) (setq result 'accept)))
 	)
       (setq i (1+ i)))
 
-    (if result result (= shift-count active-count))))
+    (cond
+     (result )
+     ((= shift-count active-count)
+      'shift)
+     (t (error "unexpected result in wisi-parsers-active"))
+     )))
 
 (defun wisi-free-parser (parser-states)
   "Return index to a non-active parser in PARSER-STATES, -1 if there is none."
@@ -163,27 +177,25 @@ Return nil or new parser (a wisi-parse-state struct)."
 	     :sp      (wisi-parser-state-sp parser-state)
 	     :pending (wisi-parser-state-pending parser-state)))
 
-      (setf (wisi-parser-state-active new-parser-state)
-	    (wisi-parse-2 (cadr parse-action) token new-parser-state gotos t))
+      (wisi-parse-2 (cadr parse-action) token new-parser-state gotos t)
       (setq pendingp t)
       (setq parse-action (car parse-action))
       );; when
 
     ;; current parser
-    (setf (wisi-parser-state-active parser-state)
-	  (wisi-parse-2 parse-action token parser-state pendingp gotos))
+    (wisi-parse-2 parse-action token parser-state pendingp gotos)
 
     new-parser-state))
 
 (defun wisi-parse-2 (action token parser-state pendingp gotos)
   "Execute parser ACTION (must not be a conflict).
-Return one of 'accept, 'error, 'shift 'reduce."
+Return nil."
   (cond
    ((eq action 'accept)
-    'accept)
+    (setf (wisi-parser-state-active parser-state) 'accept))
 
    ((eq action 'error)
-    'error)
+    (setf (wisi-parser-state-active parser-state) 'error))
 
    ((natnump action)
     ;; Shift token and new state (= action) onto stack
@@ -193,11 +205,12 @@ Return one of 'accept, 'error, 'shift 'reduce."
       (aset stack (1- sp) token)
       (aset stack sp action)
       (setf (wisi-parser-state-sp parser-state) sp))
-    'shift)
+    (setf (wisi-parser-state-active parser-state) 'shift))
 
    (t
     (wisi-parse-reduce action parser-state pendingp gotos)
-    'reduce)))
+    (setf (wisi-parser-state-active parser-state) 'reduce))
+   ))
 
 (defun wisi-nonterm-bounds (stack i j)
   "Return a pair (START . END), the buffer region for a nonterminal.

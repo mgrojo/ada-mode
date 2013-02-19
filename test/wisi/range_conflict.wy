@@ -16,7 +16,7 @@
 
 %token <symbol> IDENTIFIER
 
-;; required by wisi-setup
+;; not used, but <string> required by wisi-setup
 %token <string> STRING_LITERAL
 %%
 
@@ -37,7 +37,7 @@ primary
   ;
 
 range
-  : IDENTIFIER TICK RANGE LEFT_PAREN relation RIGHT_PAREN ;; range_attribute_reference
+  : IDENTIFIER TICK RANGE LEFT_PAREN relation RIGHT_PAREN ;; a little weird, but it's a test
   | IDENTIFIER TICK RANGE
   | primary DOT_DOT primary
   ;

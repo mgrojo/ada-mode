@@ -2,10 +2,12 @@
 
 all : ada-grammar-wy.el gpr-grammar-wy.el compile-clean compile test-clean test
 
-test :: test-wisi-parse
+test :: range_conflict.wisi-test
+test :: subprograms.wisi-test
+# test :: body_instantiation_conflict.wisi-test
+# test :: identifier_list_name_conflict.wisi-test
 
-#one : range_conflict-wy.el
-one : range_conflict.wisi-test
+one : subprograms-wy.el
 two : test-gpr
 
 vpath %.wy ../../ ../../test/wisi
@@ -43,6 +45,9 @@ GPRBUILD_TARGET := x86-windows
 clean ::
 	cd ../..; rm -f *-wy.el *.elc
 	rm -f *-wy.el *.elc
+
+test-clean ::
+	rm -f *.wisi-test
 
 RUNTEST := runtest-wisi.el
 INDENT.EL := ada-wisi.el gpr-wisi.el ada-grammar-wy.el gpr-grammar-wy.el

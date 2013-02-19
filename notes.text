@@ -44,6 +44,27 @@ output to *wisent-log* buffer, written to wisent.output if batch
 /Projects/Web/stephe-leake/emacs/ada-mode/emacs-ada-mode.html
     to-do list
 
+from georg bauhaus:
+    procedure Y is
+       X : Character;
+    begin
+
+       case True is
+          when False in False .. True =>
+            null;
+       when False =>
+          null;
+    end case;
+
+    L:
+       begin
+          if X in 'a' .. 'z' or X in 'A' .. 'Z' then
+          null;
+    end if;
+    end L;
+
+    end Y;
+
 ada-wisi
     need parallel LALR structure
         build/wisi/Makefile
@@ -51,21 +72,7 @@ ada-wisi
         wisi-compile.el
         (load "build/run-wisi-test.el")
         test/wisi/range_conflict.input
-            parse error at end of text
-
-            parser trace:
-            token   stack_1
-            Test_1  IDENTIFIER 1
-            Type_1  membership_choice 5 IDENTIFIER 1
-            '       membership_choice 5 IDENTIFIER 1 TICK 15
-            Range   membership_choice 5 IDENTIFIER 1 TICK 15 RANGE 16
-            (
-            1
-            in
-            0
-            ..
-            3
-            )
+            parser completes, test passes!
 
         subprograms.wy for empty production
             wisent parses .wy wrong
@@ -80,6 +87,10 @@ ada-wisi
                 even though it does for ada-grammar state 145:
                     STRING_LITERAL '=>' gives selector_name,
                     STRING_LITERAL anything else gives name
+
+        pointer at end of kernel => default should be reduce or accept
+            don't need to compute lookaheads?
+            see FIXME in opentoken-productoin-parser-lalr.adb
 
         compile ada-grammar.wy
             build/wisi/Makefile
@@ -301,6 +312,9 @@ ada-display-buffer
         bury buffer doesn't bring back last buffer
 
     review windows.el to see if there is now a better solution
+
+support multiple compilation units in one file
+    don't add $EOI for accept rule
 
 support xref for C files?
     at least if compiled with gprbuild?
