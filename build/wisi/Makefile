@@ -1,14 +1,14 @@
 # build and test the Emacs wisent Ada indentation and navigation engine
 
-all : ada-grammar-wy.el gpr-grammar-wy.el compile-clean compile test-clean test
+all : ada-grammar-wy.el ../../gpr-grammar-wy.el compile-clean compile test-clean test
 
 test :: range_conflict.wisi-test
 test :: subprograms.wisi-test
 test :: body_instantiation_conflict.wisi-test
 test :: identifier_list_name_conflict.wisi-test
 
-one : subprograms-wy.el
-two : test-gpr
+one : subprograms.wisi-test
+two : gds.gpr.diff
 
 vpath %.wy ../../ ../../test/wisi
 vpath %.el ../../ .
@@ -16,18 +16,12 @@ vpath %.el ../../ .
 %.wisi-test : %-wy.el
 	$(EMACS) -Q -batch -L . -L .. -L ../.. -l run-wisi-test.el --eval '(run-test "$*")'
 
-# WORKAROUND: semantic-grammar-batch-build-packages can't handle `, in rules; patch here
-# WORKAROUND: parser does not execute actions when grammar is byte-compiled (may need to byte-compile everything?)
-# See notes in comp.el about byte-compile-handler
-gpr-grammar-wy.el : gpr-grammar.wy
-	rm -f ../../wisent.output
-	cd ../../; $(EMACS) -Q -batch -L build -L . -l load-paths-24.3.el -f semantic-grammar-batch-build-packages $(<F)
-	sed -i "s/(wisi/,(wisi/" ../../$@
-	rm -f ../../$*-wy.elc
-
 .PRECIOUS : %-wy.el
 
 WISI_OPENTOKEN := ../../../org.opentoken.stephe/build/windows_release
+
+../../gpr-grammar-wy.el : gpr-grammar-wy.el
+	cp $< $@
 
 %-wy.el : %.wy $(WISI_OPENTOKEN)/wisi-generate.exe
 	$(WISI_OPENTOKEN)/wisi-generate.exe -v 1 $< Elisp > $*.output
@@ -49,8 +43,9 @@ clean ::
 test-clean ::
 	rm -f *.wisi-test
 
-RUNTEST := runtest-wisi.el
-INDENT.EL := ada-wisi.el gpr-wisi.el ada-grammar-wy.el gpr-grammar-wy.el
+RUNTEST := run-indent-test-wisi.el
+INDENT.EL := ada-wisi.el gpr-wisi.el gpr-grammar-wy.el
+# INDENT.EL += ada-grammar-wy.el FIXME: currently broken
 include ../common.make
 
 export ADA_PROJECT_PATH=../../test/;../../test/subdir

@@ -5,9 +5,9 @@ run wisi test from emacs -Q:
   (add-to-list 'load-path "/Projects/org.emacs.ada-mode.smie")
   (add-to-list 'load-path "/Projects/org.emacs.ada-mode.smie/build")
   (add-to-list 'load-path "/Projects/org.emacs.ada-mode.smie/build/wisi")
-  (load "run-wisi-test")
-  (find-file "/Projects/org.emacs.ada-mode.smie/build/wisi/body_instantiation_conflict-wy.el")
-  (find-file "/Projects/org.emacs.ada-mode.smie/test/wisi/body_instantiation_conflict.input"))
+  (load "run-indent-test-wisi")
+  (setq wisi-debug t)
+  (find-file "/Projects/org.emacs.ada-mode.smie/test/gpr/gds.gpr"))
 
 run indent test from emacs -Q:
 (progn
@@ -40,8 +40,43 @@ run indent test from emacs -Q:
 (setq wisent-debug-flag t)
 output to *wisent-log* buffer, written to wisent.output if batch
 
+ ada-wisi parser
 (list (wisi-parser-state-active (aref parser-states 1)) (wisi-parser-state-sp (aref parser-states 1)) (wisi-parser-state-stack (aref parser-states 1)))
- ada-smie/wisi
+
+(setq wisent-parse-max-stack-size 80)
+build/wisi/Makefile
+
+test-gpr passing
+
+do fixmes
+
+compile ada-grammar.wy
+    build/wisi/Makefile
+    need to distinguish terminal BODY from non-terminal body
+        BODY_T_ID, body_nt_ID?
+
+        opentoken can use integer subtype for Token_ID
+            do that, use array of strings for elisp version of tokens
+            skip writing out *generate.adb, just instantiate and build grammar in .elisp
+            keep ada generating code in .ada
+
+
+    FIRST has to handle null nonterminals; [dickgrune] 9.6.2 p 206
+
+pointer at end of kernel => default should be reduce or accept
+    don't need to compute lookaheads?
+    see FIXME in opentoken-productoin-parser-lalr.adb
+
+add opentoken aunit test for wisi
+
+opentoken has a production for accept, wisent does not
+
+wisi-statement-action check class against wisi-class-list, to catch spelling mistakes
+
+test/ada_mode-generic_instantiation.ads
+    introduces shift/reduce conflicts between generic procedure instantiation and procedure body
+
+ ada-wisi other
 /Projects/Web/stephe-leake/emacs/ada-mode/emacs-ada-mode.html
     to-do list
 
@@ -66,39 +101,6 @@ from georg bauhaus:
 
     end Y;
 
-ada-wisi
-    need parallel LALR structure
-        build/wisi/Makefile
-            subprograms.input failing cache test
-                need line numbers
-
-        compile ada-grammar.wy
-            build/wisi/Makefile
-            need to distinguish terminal BODY from non-terminal body
-                BODY_T_ID, body_nt_ID?
-
-                opentoken can use integer subtype for Token_ID
-                    do that, use array of strings for elisp version of tokens
-                    skip writing out *generate.adb, just instantiate and build grammar in .elisp
-                    keep ada generating code in .ada
-
-
-            FIRST has to handle null nonterminals; [dickgrune] 9.6.2 p 206
-
-        pointer at end of kernel => default should be reduce or accept
-            don't need to compute lookaheads?
-            see FIXME in opentoken-productoin-parser-lalr.adb
-
-    add opentoken aunit test for wisi
-
-    opentoken has a production for accept, wisent does not
-
-    wisi-statement-action check class against wisi-class-list, to catch spelling mistakes
-
-    test/ada_mode-generic_instantiation.ads
-        introduces shift/reduce conflicts between generic procedure instantiation and procedure body
-
-
 jump back after C-c C-d
     etags uses M-., M-*, find-tag-marker-ring, tags-location-ring
     global mark ring? C-u <space>

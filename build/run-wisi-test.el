@@ -75,7 +75,7 @@
        (setq wisi-test-success
 	     (equal (cadr err) expected-result))))
     (unless wisi-test-success
-      (error "failed")))
+      (error "parse test failed")))
 
   ;; check action results; --CACHE: <form> compares cached class on next token to <form>
   (let (expected-class found-class cache error-p)
@@ -91,7 +91,7 @@
 	(setq error-p t)
 	(message
 	 (concat
-	  (buffer-file-name) ":" (format "%d" (count-lines (point-min) (point))) ":\n"
+	  (buffer-file-name) ":" (format "%d" (line-number-at-pos)) ":\n"
 	  (format "class does not match.\nGot    '%s',\nexpect '%s'"
 		    found-class
 		    expected-class)

@@ -37,7 +37,7 @@ subprogram
   : FUNCTION parameter_list SYMBOL
     `,(wisi-statement-action
       1 'function
-      2 'other)
+      2 'other) ;; overwrites 'open-paren, but not 'close-paren
   | PROCEDURE parameter_list SYMBOL
     (wisi-statement-tokens
      $1 'procedure $region1

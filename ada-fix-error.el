@@ -48,14 +48,14 @@ clause, BEGIN = END, at start of compilation unit.")
         search-bound)
     (insert unit-name)
     (setq search-bound (point))
-    (insert " ") ; separate from following words, if any, for ada-adjust-case-identifier
+    (insert " ") ; separate from following words, if any, for ada-case-adjust-identifier
     (goto-char start-point)
     (while (search-forward "." search-bound t)
       (forward-char -1)
-      (ada-adjust-case-identifier)
+      (ada-case-adjust-identifier)
       (forward-char 1))
     (goto-char search-bound)
-    (ada-adjust-case-identifier)
+    (ada-case-adjust-identifier)
     (delete-char 1)))
 
 (defun ada-fix-add-with-clause (package-name)

@@ -148,7 +148,8 @@ side-effects only."
 
     (fset action-symbol
 	  `(lambda (tokens)
-	     (let* (,@bl)
+	     (let* (,@bl
+		    ($nterm  ',(aref tags (aref rlhs r))))
 	       ,form
 	       nil)))
 

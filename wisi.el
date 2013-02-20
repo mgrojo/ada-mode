@@ -123,6 +123,7 @@
 ;;;;;
 
 (require 'cl)
+(require 'wisi-parse)
 
 ;;;; lexer
 
@@ -361,7 +362,7 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
 	;; let debug-on-error work
 	(save-excursion
 	  (goto-char wisi-cache-max)
-	  (wisent-parse wisi-parse-table 'wisi-forward-token 'wisi-parse-error)
+	  (wisi-parse wisi-parse-table 'wisi-forward-token 'wisi-parse-error)
 	  (setq wisi-cache-max (point)))
       ;; else handle errors nicely
       (let (err-pos)
@@ -376,7 +377,7 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
 		    ;; wisi-parse-error, and the parser aborts (FIXME:
 		    ;; we don't have any error recovery in the grammar
 		    ;; yet).
-		    (wisent-parse wisi-parse-table 'wisi-forward-token 'wisi-parse-error))
+		    (wisi-parse wisi-parse-table 'wisi-forward-token 'wisi-parse-error))
 		(error
 		 ;; from broken wisi parse actions
 		 (setq err-pos (point))

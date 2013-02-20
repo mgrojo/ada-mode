@@ -79,6 +79,7 @@
 		 ;; error? not clear which parser(s) should try to
 		 ;; continue past error.
 		 ;; FIXME: at least a better message to the user
+		 ;; if prev-active-parser-count = 1, handle like wisent-parse does
 		 (error "no parsers left"))
 
 		(1
