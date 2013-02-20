@@ -1,0 +1,65 @@
+;; The grammar is ambiguous between an identifier_list and a
+;; name_list, if none of the names are string literals. This shows up
+;; in the the compiled grammar as several reduce/reduce conflict, and
+;; in the parser as two parsers reaching accept.
+
+%{
+(require 'wisi)
+%}
+
+%keyword LEFT_PAREN "("
+%keyword RIGHT_PAREN ")"
+
+%package identifier_list_name_conflict-wy
+
+%token <punctuation> COMMA ","
+%token <punctuation> EQUAL_GREATER "=>"
+
+%token <string> STRING_LITERAL
+%token <symbol> IDENTIFIER
+
+%%
+
+compilation
+  : compilation_unit compilation_unit compilation_unit
+    (setq wisi-test-success t)
+  ;
+
+compilation_unit
+  : identifier_list
+  | name_list
+  | LEFT_PAREN association_list RIGHT_PAREN
+  ;
+
+association
+  : selector_name EQUAL_GREATER name
+  ;
+
+association_list
+  : association
+  | association_list COMMA association
+  ;
+
+identifier_list
+  : IDENTIFIER
+  | identifier_list COMMA IDENTIFIER
+  ;
+
+name
+  : IDENTIFIER
+  | STRING_LITERAL  ;; operator_symbol
+  ;
+
+name_list
+  : name
+  | name_list COMMA name
+  ;
+
+selector_name
+  : IDENTIFIER
+  | STRING_LITERAL  ;; operator_symbol
+  ;
+
+%%
+
+;;; end of file

@@ -91,7 +91,9 @@
       (setq active (wisi-parsers-active parser-states active-parser-count))
       (when (eq active 'shift)
 	(setq token (funcall lexer)))
-    )))
+    )
+    (when (> active-parser-count 1)
+      (error "ambiguous parse result"))))
 
 (defun wisi-parsers-active (parser-states active-count)
   "Return the type of parser cycle to execute.
@@ -100,8 +102,8 @@ was 'shift, that parser used the input token, and should not be
 executed again until another input token is available, after all
 parsers have shifted the current token or terminated.
 
-'accept : active-count = 1, and that element of PARSER-STATES has
-active set to 'accept - done parsing
+'accept : all PARSER-STATES have active set to nil or 'accept -
+done parsing
 
 'shift : all PARSER-STATES have active set to nil, 'accept, or
 'shift - get a new token, execute 'shift parsers.
@@ -111,6 +113,7 @@ token, execute 'reduce parsers."
   (let ((result nil)
 	(i 0)
 	(shift-count 0)
+	(accept-count 0)
 	active)
     (while (and (not result)
 		(< i (length parser-states)))
@@ -118,13 +121,15 @@ token, execute 'reduce parsers."
       (cond
 	((eq active 'shift) (setq shift-count (1+ shift-count)))
 	((eq active 'reduce) (setq result 'reduce))
-	((eq active 'accept) (when (eq active-count 1) (setq result 'accept)))
+	((eq active 'accept) (setq accept-count (1+ accept-count)))
 	)
       (setq i (1+ i)))
 
     (cond
      (result )
-     ((= shift-count active-count)
+     ((= accept-count active-count)
+      'accept)
+     ((= (+ shift-count accept-count) active-count)
       'shift)
      (t (error "unexpected result in wisi-parsers-active"))
      )))
@@ -168,7 +173,7 @@ Return nil or new parser (a wisi-parse-state struct)."
 	 new-parser-state)
 
     (when (and (listp parse-action)
-	       (listp (car parse-action)))
+	       (not (symbolp (car parse-action))))
       ;; conflict; spawn a new parser
       (setq new-parser-state
 	    (make-wisi-parser-state
@@ -177,7 +182,7 @@ Return nil or new parser (a wisi-parse-state struct)."
 	     :sp      (wisi-parser-state-sp parser-state)
 	     :pending (wisi-parser-state-pending parser-state)))
 
-      (wisi-parse-2 (cadr parse-action) token new-parser-state gotos t)
+      (wisi-parse-2 (cadr parse-action) token new-parser-state t gotos)
       (setq pendingp t)
       (setq parse-action (car parse-action))
       );; when
@@ -236,7 +241,7 @@ the first and last tokens of the nonterminal."
   "Reduce PARSER-STATE.stack, and execute or pend ACTION."
   (let* ((stack (wisi-parser-state-stack parser-state)); reference
 	 (sp (wisi-parser-state-sp parser-state)); copy
-	 (token-count (nth 2 action))
+	 (token-count (or (nth 2 action) 0))
 	 (nonterm (nth 0 action))
 	 (nonterm-region (when (> token-count 0)
 			   (wisi-nonterm-bounds stack (- sp (* 2 (1- token-count)) 1) (1- sp))))
@@ -245,14 +250,16 @@ the first and last tokens of the nonterminal."
 	 tokens)
     (when (not new-state)
       (error "no goto for %s %d" nonterm post-reduce-state))
-    (dotimes (i token-count)
-      (push (aref stack (- sp (* 2 i) 1)) tokens))
+    (if (= 1 token-count)
+	(setq tokens (list (aref stack (1- sp))))
+      (dotimes (i token-count)
+	(push (aref stack (- sp (* 2 i) 1)) tokens)))
     (setq sp (+ 2 (- sp (* 2 token-count))))
     (aset stack (1- sp) (cons nonterm (cons nil nonterm-region)))
     (aset stack sp new-state)
     (setf (wisi-parser-state-sp parser-state) sp)
     (if pendingp
-	(push (cons (nth 1 action) tokens) (wisi-parser-state-pending parser-state))
+	(push (list (nth 1 action) tokens) (wisi-parser-state-pending parser-state))
       (funcall (nth 1 action) tokens))
     ))
 

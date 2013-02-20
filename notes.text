@@ -6,7 +6,8 @@ run wisi test from emacs -Q:
   (add-to-list 'load-path "/Projects/org.emacs.ada-mode.smie/build")
   (add-to-list 'load-path "/Projects/org.emacs.ada-mode.smie/build/wisi")
   (load "run-wisi-test")
-  (find-file "/Projects/org.emacs.ada-mode.smie/build/wisi/range_conflict-wy.el"))
+  (find-file "/Projects/org.emacs.ada-mode.smie/build/wisi/body_instantiation_conflict-wy.el")
+  (find-file "/Projects/org.emacs.ada-mode.smie/test/wisi/body_instantiation_conflict.input"))
 
 run indent test from emacs -Q:
 (progn
@@ -39,7 +40,7 @@ run indent test from emacs -Q:
 (setq wisent-debug-flag t)
 output to *wisent-log* buffer, written to wisent.output if batch
 
-(load "build/runtest.el")
+(list (wisi-parser-state-active (aref parser-states 1)) (wisi-parser-state-sp (aref parser-states 1)) (wisi-parser-state-stack (aref parser-states 1)))
  ada-smie/wisi
 /Projects/Web/stephe-leake/emacs/ada-mode/emacs-ada-mode.html
     to-do list
@@ -68,29 +69,8 @@ from georg bauhaus:
 ada-wisi
     need parallel LALR structure
         build/wisi/Makefile
-        build/wisi/range_conflict-wy.el
-        wisi-compile.el
-        (load "build/run-wisi-test.el")
-        test/wisi/range_conflict.input
-            parser completes, test passes!
-
-        subprograms.wy for empty production
-            wisent parses .wy wrong
-                leaves out subprogram production!
-                because of `,?
-
-        body_instantiation_conflict for shift/reduce
-
-        identifier_list_name_conflict for reduce/reduce conflict and attempt at non-conflict multiple reduce
-            opentoken done, but doesn't give dual reduce
-            wisent doesn't give dual reduce; doesn't merge STRING_LITERAL . kernels
-                even though it does for ada-grammar state 145:
-                    STRING_LITERAL '=>' gives selector_name,
-                    STRING_LITERAL anything else gives name
-
-        pointer at end of kernel => default should be reduce or accept
-            don't need to compute lookaheads?
-            see FIXME in opentoken-productoin-parser-lalr.adb
+            subprograms.input failing cache test
+                need line numbers
 
         compile ada-grammar.wy
             build/wisi/Makefile
@@ -105,6 +85,10 @@ ada-wisi
 
             FIRST has to handle null nonterminals; [dickgrune] 9.6.2 p 206
 
+        pointer at end of kernel => default should be reduce or accept
+            don't need to compute lookaheads?
+            see FIXME in opentoken-productoin-parser-lalr.adb
+
     add opentoken aunit test for wisi
 
     opentoken has a production for accept, wisent does not
@@ -115,6 +99,10 @@ ada-wisi
         introduces shift/reduce conflicts between generic procedure instantiation and procedure body
 
 
+jump back after C-c C-d
+    etags uses M-., M-*, find-tag-marker-ring, tags-location-ring
+    global mark ring? C-u <space>
+
 wisent-parser does not execute actions when grammar is byte-compiled!
     need to byte-compile everything?
     wisent-debug-on-entry?
@@ -518,6 +506,7 @@ specify options in .prj
  to do later
 completion
     http://emacswiki.org/emacs/CategoryCompletion
+    autocomplete package
 
 time on long code
     get stats on GDS file sizes

@@ -1,0 +1,8 @@
+--PARSE_RESULT:ambiguous parse result
+
+Ident_1, Ident_2, Ident_3 -- identifier_list, or name_list
+
+"+", Name_2 -- name_list
+
+(selector_1 => name_1, "=" => "=") -- association_list
+

@@ -4,8 +4,8 @@ all : ada-grammar-wy.el gpr-grammar-wy.el compile-clean compile test-clean test
 
 test :: range_conflict.wisi-test
 test :: subprograms.wisi-test
-# test :: body_instantiation_conflict.wisi-test
-# test :: identifier_list_name_conflict.wisi-test
+test :: body_instantiation_conflict.wisi-test
+test :: identifier_list_name_conflict.wisi-test
 
 one : subprograms-wy.el
 two : test-gpr

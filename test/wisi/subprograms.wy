@@ -20,7 +20,7 @@
 %%
 
 compilation_unit
-  : subprogram
+  : declarations
     (setq wisi-test-success t)
   ;
 
@@ -35,21 +35,21 @@ declaration
 
 subprogram
   : FUNCTION parameter_list SYMBOL
-    `,(wisi-cache-action
+    `,(wisi-statement-action
       1 'function
       2 'other)
   | PROCEDURE parameter_list SYMBOL
-    (wisi-cache-keywords
-     $1 'procedure nil $region1
-     $2 'other nil $region2)
+    (wisi-statement-tokens
+     $1 'procedure $region1
+     $2 'other $region2) ;; ignored if parameter_list is empty
   ;
   
 parameter_list
   : LEFT_PAREN RIGHT_PAREN ;; c-like no parameters
-    `,(wisi-cache-action 1 'open-paren 2 'close-paren)
+    `,(wisi-statement-action 1 'open-paren 2 'close-paren)
   | ;; ada-like no parameters
   | LEFT_PAREN SYMBOL RIGHT_PAREN
-    `,(wisi-cache-action 1 'open-paren 3 'close-paren)
+    `,(wisi-statement-action 1 'open-paren 3 'close-paren)
   ;
 
 %%

@@ -11,6 +11,7 @@
 ^build/wisi/.*\.exe$
 ^build/wisi/.*\.output$
 ^build/wisi/.*\.tmp$
+^build/wisi/.*\.wisi-test$
 ^build/wisi/obj$
 ^gpr-grammar-wy\.el$
 ^run_sjw\.text$

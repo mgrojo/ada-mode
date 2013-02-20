@@ -23,25 +23,27 @@
 ;;
 ;;; Context
 ;;
-;; Semantic (FIXME: ref) provides an LALR parser wisent-parse. The
-;; grammar used is defined by the functions
+;; Semantic (info "(semantic)Top") provides an LALR(1) parser
+;; wisent-parse. The grammar used is defined by the functions
 ;; semantic-grammar-create-package, which reads a bison-like source
 ;; file and produces corresponding elisp source, and
 ;; wisent-compile-grammar, which generates a parser table.
 ;;
 ;; However, the algorithm used in wisent-compile-grammar cannot cope
-;; with the grammar for the Ada language. So we use the OpenToken LALR
-;; parser generator, which can.
+;; with the grammar for the Ada language, because it is not
+;; LALR(1). So we provide a generalized LALR parser, which spawns
+;; parallel LALR parsers at each conflict. Instead of also rewriting
+;; the entire semantic grammar compiler, we use the OpenToken LALR
+;; parser generator, which is easier to modify (it is written in Ada,
+;; not Lisp).
 ;;
 ;; The Ada function Wisi.Generate reads the bison-like input and
-;; produces corresponding Ada source code, using OpenToken. Compiling
-;; and running that Ada code produces an elisp file, similar to that
+;; produces corresponding elisp source code, similar to that
 ;; produced by semantic-grammar-create-package.
 ;;
-;; The elisp produced by Wisi.Generate code uses wisi-compile-grammar
-;; (provided here) to generate the automaton structure required by
-;; wisent-parse. wisi-compile-grammar uses functions from
-;; wisent-comp.el
+;; wisi-compile-grammar (provided here) generate the automaton
+;; structure required by wisi-parse, using functions from
+;; wisent/comp.el
 ;;
 ;;;;
 
@@ -82,7 +84,7 @@ Return the new alist."
 	   ;; shift/reduce conflict
 	   (push (cons (car item)
 		       (list (car value)
-			     (wisi-compose-action (cdr value) symbol-array nonterms)))
+			     (wisi-compose-action (cadr value) symbol-array nonterms)))
 		 result))
 
 	  ((integerp (cadr value))
@@ -95,7 +97,7 @@ Return the new alist."
 	  (t ;; reduce/reduce conflict
 	   (push (cons (car item)
 		       (list (wisi-compose-action (car value) symbol-array nonterms)
-			     (wisi-compose-action (cdr value) symbol-array nonterms)))
+			     (wisi-compose-action (cadr value) symbol-array nonterms)))
 		 result))
 	  )))
 
@@ -130,10 +132,11 @@ side-effects only."
     ;; Compute bl; the list of $N and $regionN bindings
     (setq i n)
     (while (> i 0)
+      ;; a token is (symbol "text" start . end)
       ;; bind $regionI if used in action
       (setq $v (intern (format "$region%d" i)))
       (when (memq $v $l)
-	(setq bl (cons `(,$v (cdr (nth (1- i) tokens))) bl)))
+	(setq bl (cons `(,$v (cddr (nth (1- ,i) tokens))) bl)))
 
       ;; bind $I if used in action
       (setq $v (intern (format "$%d" i)))

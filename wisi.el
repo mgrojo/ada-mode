@@ -439,37 +439,38 @@ should receive cached information. See macro
 	       (mark
 		;; Marker one char into token, so indent-line-to
 		;; inserts space before the mark, not after!
-		(copy-marker (1+ (car region))))
+		(when region (copy-marker (1+ (car region)))))
 	       cache)
 
-	  (if (setq cache (get-text-property (car region) 'wisi-cache))
-	      ;; We are processing a previously set non-terminal; ie package_specification in
-	      ;;
-	      ;; generic_package_declaration : generic_formal_part package_specification SEMICOLON
-	      ;;
-	      ;; just override class and start
-	      (progn
-		(setf (wisi-cache-class cache) class)
-		(setf (wisi-cache-start cache) first-keyword-mark))
+	  (when region
+	    (if (setq cache (get-text-property (car region) 'wisi-cache))
+		;; We are processing a previously set non-terminal; ie package_specification in
+		;;
+		;; generic_package_declaration : generic_formal_part package_specification SEMICOLON
+		;;
+		;; just override class and start
+		(progn
+		  (setf (wisi-cache-class cache) class)
+		  (setf (wisi-cache-start cache) first-keyword-mark))
 
-	    ;; else create new cache
-	    ;;
-	    ;; :start is a marker to the first keyword in a
-	    ;; statement. The first keyword in a contained statement
-	    ;; has a marker to the first keyword in the containing
-	    ;; statement; the outermost containing statement has
-	    ;; nil. `wisi-start-tokens' sets the start markers in
-	    ;; contained statements.
-	    (with-silent-modifications
-	      (put-text-property
-	       (car region)
-	       (cdr region)
-	       'wisi-cache
-	       (wisi-cache-create
-		:symbol (if first-item $nterm (wisi-symbol text))
-		:class class
-		:start first-keyword-mark)
-	       )))
+	      ;; else create new cache
+	      ;;
+	      ;; :start is a marker to the first keyword in a
+	      ;; statement. The first keyword in a contained statement
+	      ;; has a marker to the first keyword in the containing
+	      ;; statement; the outermost containing statement has
+	      ;; nil. `wisi-start-tokens' sets the start markers in
+	      ;; contained statements.
+	      (with-silent-modifications
+		(put-text-property
+		 (car region)
+		 (cdr region)
+		 'wisi-cache
+		 (wisi-cache-create
+		  :symbol (if first-item $nterm (wisi-symbol text))
+		  :class class
+		  :start first-keyword-mark)
+		 ))))
 
 	  (when first-item
 	    (setq first-item nil)
@@ -777,7 +778,15 @@ CACHE contains cache info from a keyword in the current statement."
        (symbol-value (intern-soft "punctuation" token-table)))
   (set (make-local-variable 'wisi-punctuation-table-max-length) 0)
   (dolist (item wisi-punctuation-table)
-    (when item
+    (when item ;; default matcher can be nil
+
+      ;; check that all chars used in punctuation tokens have punctuation syntax
+      (mapc (lambda (char)
+	      (when (not (= ?. (char-syntax char)))
+		(error "in %s, %c does not have punctuation syntax"
+		       (car item) char)))
+	    (cdr item))
+
       (when (< wisi-punctuation-table-max-length (length (cdr item)))
 	(setq wisi-punctuation-table-max-length (length (cdr item))))))
 
