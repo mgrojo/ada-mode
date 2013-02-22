@@ -69,7 +69,7 @@ package body Test_LR_Expecting is
       Statement_ID,
       Parse_Sequence_ID);
 
-   package Master_Token is new OpenToken.Token.Enumerated (Token_IDs);
+   package Master_Token is new OpenToken.Token.Enumerated (Token_IDs, Token_IDs'Image, Token_IDs'Width);
    package Tokenizer is new Master_Token.Analyzer (Last_Terminal => EOF_ID);
    package Integer is new Master_Token.Integer;
 

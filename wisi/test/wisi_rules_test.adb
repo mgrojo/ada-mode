@@ -172,7 +172,8 @@ package body Wisi_Rules_Test is
             +(Production   => +"declaration",
               Action       => String_Lists.Empty_List) +
             (+"declarations" + "declaration",
-              String_Lists.Empty_List)));
+             String_Lists.Empty_List),
+          Source_Line => 1));
 
       Wisi.Rule_Lists.Append
         (Expected,
@@ -182,7 +183,8 @@ package body Wisi_Rules_Test is
             (+"PROCEDURE" + "parameter_list" + "SYMBOL",
              +"`,(wisi-cache-action" +
                "1 'procedure)" +
-               "2 'other)")));
+               "2 'other)"),
+          Source_Line => 1));
 
       Wisi.Rule_Lists.Append
         (Expected,
@@ -190,7 +192,8 @@ package body Wisi_Rules_Test is
           Right_Hand_Sides =>
             +(+"LEFT_PAREN" + "RIGHT_PAREN", String_Lists.Empty_List) +
             (String_Lists.Empty_List, String_Lists.Empty_List) +
-            (+"LEFT_PAREN" + "SYMBOL" + "RIGHT_PAREN", String_Lists.Empty_List)));
+            (+"LEFT_PAREN" + "SYMBOL" + "RIGHT_PAREN", String_Lists.Empty_List),
+          Source_Line => 1));
 
       Check ("1", Computed, Expected);
 
@@ -228,19 +231,22 @@ package body Wisi_Rules_Test is
             +(Production   => +"subprogram_body",
               Action       => String_Lists.Empty_List) +
             (+"generic_instantiation",
-              String_Lists.Empty_List)));
+              String_Lists.Empty_List),
+          Source_Line => 1));
 
       Wisi.Rule_Lists.Append
         (Expected,
          (+"subprogram_specification",
-          +(+"PROCEDURE" + "IDENTIFIER" + "parameter_list", String_Lists.Empty_List)));
+          +(+"PROCEDURE" + "IDENTIFIER" + "parameter_list", String_Lists.Empty_List),
+          Source_Line => 1));
 
       Wisi.Rule_Lists.Append
         (Expected,
          (Left_Hand_Side   => +"parameter_list",
           Right_Hand_Sides =>
             +(String_Lists.Empty_List, String_Lists.Empty_List) +
-            (+"LEFT_PAREN" + "IDENTIFIER" + "RIGHT_PAREN", String_Lists.Empty_List)));
+            (+"LEFT_PAREN" + "IDENTIFIER" + "RIGHT_PAREN", String_Lists.Empty_List),
+          Source_Line => 1));
 
       Check ("1", Computed, Expected);
 

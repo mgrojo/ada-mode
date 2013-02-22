@@ -50,8 +50,9 @@ is
    Input_File       : Standard.Ada.Text_IO.File_Type;
    Output_File_Root : Standard.Ada.Strings.Unbounded.Unbounded_String;
    Prologue         : String_Lists.List;
-   Declarations     : String_Pair_Lists.List;
+   Keywords         : String_Pair_Lists.List;
    Tokens           : Token_Lists.List;
+   Start_Token      : Standard.Ada.Strings.Unbounded.Unbounded_String;
    Rules            : Rule_Lists.List;
 
    Copyright : constant String := "2013 Stephen Leake.  All Rights Reserved.";
@@ -112,19 +113,22 @@ begin
    end;
 
    Wisi.Prologue (Input_File, Prologue);
-   Wisi.Declarations (Input_File, Declarations, Tokens);
+   Wisi.Declarations (Input_File, Keywords, Tokens, Start_Token);
    Wisi.Rules (Input_File, Rules);
 
    case Output_Language is
    when Ada =>
-      Wisi.Output_Ada (-Input_File_Name, -Output_File_Root, Copyright, Prologue, Declarations, Tokens, Rules);
+      Wisi.Output_Ada (-Input_File_Name, -Output_File_Root, Copyright, Prologue, Keywords, Tokens, Rules);
    when Elisp =>
-      Wisi.Output_Elisp (-Output_File_Root, Copyright, Prologue, Declarations, Tokens, Rules);
+      Wisi.Output_Elisp (-Output_File_Root, Copyright, Prologue, Keywords, Tokens, Start_Token, Rules);
    end case;
 
 exception
+when Syntax_Error =>
+   --  Error message already output via wisi.utils.Put_Error
+   null;
+
 when User_Error =>
    Standard.Ada.Command_Line.Set_Exit_Status (Standard.Ada.Command_Line.Failure);
    Put_Usage;
-   return;
 end Wisi.Generate;

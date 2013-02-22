@@ -1,6 +1,7 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2000 Ted Dennison
+--  Copyright (C) 2013 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2013 Ted Dennison
 --
 -- This file is part of the OpenToken package.
 --
@@ -37,7 +38,7 @@ package Token_Analyzer_CTD is
 
    type Token_IDs is (Normal, Default);
 
-   package Master_Token is new OpenToken.Token.Enumerated (Token_IDs);
+   package Master_Token is new OpenToken.Token.Enumerated (Token_IDs, Token_IDs'Image, Token_IDs'Width);
    package Tokenizer is new Master_Token.Analyzer;
 
    Normal_Text : constant String := "Normal";

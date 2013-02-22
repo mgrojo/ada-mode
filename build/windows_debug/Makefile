@@ -8,6 +8,7 @@ all:
 t_one : test_one_harness.run
 t_all : test_all_harness.run
 
+# from ../common.make
 one : subprograms-wy.diff
 one : body_instantiation_conflict-wy.diff
 one : identifier_list_name_conflict-wy.diff

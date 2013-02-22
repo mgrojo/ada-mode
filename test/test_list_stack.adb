@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
---  Copyright (C) 2009, 2010, 2012 Stephen Leake
+--  Copyright (C) 2009, 2010, 2012, 2013 Stephen Leake
 --
 --  This file is part of the OpenToken package.
 --
@@ -55,7 +55,7 @@ package body Test_List_Stack is
 
    type Token_IDs is (Integer_ID, Left_Paren_ID, Right_Paren_ID, Plus_ID, Times_ID, EOF_ID, Whitespace_ID);
 
-   package Master_Token is new OpenToken.Token.Enumerated (Token_IDs);
+   package Master_Token is new OpenToken.Token.Enumerated (Token_IDs, Token_IDs'Image, Token_IDs'Width);
    package Tokenizer is new Master_Token.Analyzer;
    package Integer_Token is new Master_Token.Integer;
 

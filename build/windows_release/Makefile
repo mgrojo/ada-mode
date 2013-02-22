@@ -7,9 +7,10 @@ all: tests examples library
 t_one : test_one_harness.run
 t_all : test_all_harness.run
 
+# from ../common.make
 #one : token_selection_test-run.run
 #one : asu_example_5_10_rd-run.run
-one : asu_example_5_10_rd-run_bad.run
+#one : asu_example_5_10_rd-run_bad.run
 one : subprograms-wy.diff
 one : body_instantiation_conflict-wy.diff
 one : identifier_list_name_conflict-wy.diff

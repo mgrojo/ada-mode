@@ -22,13 +22,13 @@ with Ada.Strings.Fixed;
 with Ada.Text_IO; use Ada.Text_IO;
 with Wisi.Utils;  use Wisi.Utils;
 procedure Wisi.Declarations
-  (Input_File : in     Standard.Ada.Text_IO.File_Type;
-   Keywords   : in out String_Pair_Lists.List;
-   Tokens     : in out Token_Lists.List)
+  (Input_File  : in     Standard.Ada.Text_IO.File_Type;
+   Keywords    : in out String_Pair_Lists.List;
+   Tokens      : in out Token_Lists.List;
+   Start_Token :    out Standard.Ada.Strings.Unbounded.Unbounded_String)
 is
    use Standard.Ada.Strings.Fixed;
 
-   Package_Str : constant String := "%package";
    Keyword_Str : constant String := "%keyword";
    Token_Str   : constant String := "%token";
    Start_Str   : constant String := "%start";
@@ -48,10 +48,7 @@ begin
       begin
          exit when Line = "%%";
 
-         if Match (Package_Str) then
-            null;
-
-         elsif Match (Keyword_Str) then
+         if Match (Keyword_Str) then
             declare
                Name_First : constant Integer := Index_Non_Blank (Source => Line, From => Key_Last + 1);
 
@@ -97,9 +94,14 @@ begin
             end;
 
          elsif Match (Start_Str) then
-            null;
+            declare
+               Value_First : constant Integer := Index_Non_Blank (Source => Line, From => Key_Last + 1);
+            begin
+               Start_Token := +Line (Value_First .. Line'Last);
+            end;
 
          else
+            Put_Error (Input_File, "unexpected");
             raise Syntax_Error;
          end if;
       end;

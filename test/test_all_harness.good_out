@@ -1,4 +1,23 @@
+Conflicts: 
+REDUCE/SHIFT in state: 10 on token  6
 
+Conflicts: 
+REDUCE/REDUCE in state: 2 on token  1
+REDUCE/REDUCE in state: 2 on token  5
+REDUCE/REDUCE in state: 2 on token  4
+REDUCE/REDUCE in state: 2 on token  3
+REDUCE/REDUCE in state: 2 on token  7
+
+Conflicts: 
+SHIFT/REDUCE in state: 16 on token  6
+
+
+OK ../../wisi/test/wisi_rules_test.adb : Nominal
+OK ../../wisi/test/wisi_rules_test.adb : Single_Line
+OK ../../wisi/test/wisi_wy_test.adb ../../wisi/test/subprograms : Run_Test
+OK ../../wisi/test/wisi_wy_test.adb ../../wisi/test/body_instantiation_conflict : Run_Test
+OK ../../wisi/test/wisi_wy_test.adb ../../wisi/test/identifier_list_name_conflict : Run_Test
+OK ../../wisi/test/wisi_wy_test.adb ../../wisi/test/range_conflict : Run_Test
 OK Lookahead_Test : Lookahead
 OK Lookahead_Test : Lookahead_Push_Back
 OK Lookahead_Test : Lookahead_Lexemes
@@ -23,7 +42,7 @@ OK Test_Token_Identifier_Real_String : Nominal
 OK ../../Test/trivial_productions_test.adb : Expression
 OK ../../Test/trivial_productions_test.adb : Subprograms
 
-Total Tests Run:   23
-Successful Tests:  23
+Total Tests Run:   29
+Successful Tests:  29
 Failed Assertions: 0
 Unexpected Errors: 0

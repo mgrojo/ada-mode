@@ -7,8 +7,6 @@
 (require 'wisi)
 %}
 
-%package body_instantiation_conflict-wy
-
 %keyword BEGIN "begin"
 %keyword END "end"
 %keyword IS "is"
@@ -19,15 +17,24 @@
 %keyword RIGHT_PAREN ")"
 
 %token <punctuation> SEMICOLON ";"
-
 %token <symbol> IDENTIFIER
 
+;; not used, but <string> required by wisi-setup
+%token <string> STRING_LITERAL
+
+%start compilation_unit
 %%
+
+compilation_unit
+  : library_item library_item
+    (setq wisi-test-success t)
+  ;
 
 ;; all on one line
 library_item : subprogram_body | generic_instantiation  ;
 
 subprogram_body
+ ;; comment before : line
   : subprogram_specification IS BEGIN NULL END SEMICOLON
     `,(wisi-statement-action 1 'statement-start 6 'statement-end)
   ;

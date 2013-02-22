@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2009, 2010 Stephen Leake
+-- Copyright (C) 2009, 2010, 2013 Stephen Leake
 -- Copyright (C) 1999, 2000 Christoph Karl Walter Grein
 --
 -- This file is part of the OpenToken package.
@@ -100,7 +100,7 @@ private
    end record;
 
    --  Visible for children
-   package Master_Token is new OpenToken.Token.Enumerated (Token_Name);
+   package Master_Token is new OpenToken.Token.Enumerated (Token_Name, Token_Name'Image, Token_Name'Width);
    package Tokenizer is new Master_Token.Analyzer;
 
    -----------------------------------------------------------------------

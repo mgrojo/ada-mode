@@ -43,9 +43,13 @@ pragma License (GPL);
 with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Containers.Indefinite_Doubly_Linked_Lists;
 with Ada.Strings.Unbounded;
+with Ada.Text_IO;
 package Wisi is
 
    Syntax_Error : exception; -- Error in user input file
+
+   Not_Found : exception;
+   --  something not found; should be handled and converted to Syntax_ or Programmer_Error
 
    Programmer_Error : exception; -- Error in Wisi Ada code
 
@@ -85,6 +89,7 @@ package Wisi is
    type Rule_Type is record
       Left_Hand_Side   : Standard.Ada.Strings.Unbounded.Unbounded_String;
       Right_Hand_Sides : RHS_Lists.List;
+      Source_Line      : Standard.Ada.Text_IO.Positive_Count;
    end record;
 
    package Rule_Lists is new Standard.Ada.Containers.Doubly_Linked_Lists (Rule_Type);

@@ -45,7 +45,7 @@ package body Trivial_Productions_Test is
          --  Nonterminals
          E_ID, F_ID, T_ID);
 
-      package Tokens is new OpenToken.Token.Enumerated (Token_IDs);
+      package Tokens is new OpenToken.Token.Enumerated (Token_IDs, Token_IDs'Image, Token_IDs'Width);
       package Analyzers is new Tokens.Analyzer (EOF_ID);
       package Token_Lists is new Tokens.List;
       package Nonterminals is new Tokens.Nonterminal (Token_Lists);
@@ -123,7 +123,7 @@ package body Trivial_Productions_Test is
          Subprogram_ID,
          Parameter_List_ID);
 
-      package Tokens_Pkg is new OpenToken.Token.Enumerated (Token_IDs);
+      package Tokens_Pkg is new OpenToken.Token.Enumerated (Token_IDs, Token_IDs'Image, Token_IDs'Width);
       package Analyzers is new Tokens_Pkg.Analyzer (EOF_ID);
       package Token_Lists is new Tokens_Pkg.List;
       package Nonterminals is new Tokens_Pkg.Nonterminal (Token_Lists);
@@ -169,15 +169,17 @@ package body Trivial_Productions_Test is
         Declarations     <= Declarations & Declaration + Nonterminals.Synthesize_Self and
         Declaration      <= Subprogram + Nonterminals.Synthesize_Self and
         Subprogram       <= Function_Tok & Parameter_List & Symbol + Nonterminals.Synthesize_Self and
-        Subprogram       <= Procedure_Tok & Parameter_List & Symbol + Nonterminals.Synthesize_Self and
+        Subprogram       <= Procedure_Tok & Parameter_List + Nonterminals.Synthesize_Self and
         Parameter_List   <= +Nonterminals.Synthesize_Self and
         Parameter_List   <= Left_Paren & Symbol & Right_Paren + Nonterminals.Synthesize_Self;
 
       Parser : LALR_Parsers.Instance;
 
-      Text : constant String := "function symbol procedure symbol";
+      Text : constant String := "function (symbol) symbol procedure";
    begin
       --  The test is that there are no exceptions raised, either during grammar construction or parsing
+
+      --  FIXME: 'expecting' is wrong if leave out '('
 
       Parser := LALR_Parsers.Generate (Grammar, Analyzer, Test_Case (Test).Debug, Test_Case (Test).Debug);
 

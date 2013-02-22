@@ -22,6 +22,7 @@ pragma License (GPL);
 
 with Ada.Directories;
 with AUnit.Assertions;
+with AUnit.Check;
 with GNAT.OS_Lib;
 package body Wisi_WY_Test is
 
@@ -30,25 +31,27 @@ package body Wisi_WY_Test is
 
    procedure Run_Test (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
-      use Ada.Directories;
       use GNAT.OS_Lib;
       Test : Test_Case renames Test_Case (T);
 
       Success : Boolean;
 
-      Make_Target : constant access String := new String'(Base_Name (Test.Root_Name.all) & "-wy.diff");
+      Wy_File          : constant String_Access := new String'(Test.Root_Name.all & ".wy");
+      Computed_El_File : constant String        := Ada.Directories.Simple_Name (Test.Root_Name.all) & "-wy.el";
+      Expected_El_File : constant String        := Test.Root_Name.all & "-wy.good_el";
    begin
-      --  run 'make' to create wisi-<root_name>-generate.adb, compile and run it.
       Spawn
-        (Program_Name => Locate_Exec_On_Path ("make").all,
+        (Program_Name => Locate_Exec_On_Path ("wisi-generate.exe").all,
          Args         =>
-           (1         => String_Access (Make_Target)),
+           (1         => Wy_File,
+            2         => new String'("elisp")),
          Success      => Success);
 
       AUnit.Assertions.Assert
         (Success,
-         "spawn or execution of 'make " & Make_Target.all & "' failed");
+         "spawn or execution of 'wisi-generate.exe' " & Wy_File.all & "' failed");
 
+      AUnit.Check.Check_Files ("1", Computed_El_File, Expected_El_File);
    end Run_Test;
 
    ----------

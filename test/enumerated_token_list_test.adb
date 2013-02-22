@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2010 Stephe Leake
+-- Copyright (C) 2010, 2013 Stephe Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -47,10 +47,11 @@ begin
    --  Expected Results : A list of tokens
    --  Purpose          : Verify that a list of tokens is properly created
    --                     and can be properly traversed.
-   Test_Case_1 : declare
+   Test_Case_1 :
+   declare
       type Token_IDs is (Int, Real, String, Keyword);
 
-      package Master_Token is new OpenToken.Token.Enumerated (Token_IDs);
+      package Master_Token is new OpenToken.Token.Enumerated (Token_IDs, Token_IDs'Image, Token_IDs'Width);
       package Tokenizer is new Master_Token.Analyzer;
       package Token_List is new Master_Token.List;
 

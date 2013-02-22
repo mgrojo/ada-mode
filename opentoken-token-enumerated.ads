@@ -48,8 +48,8 @@ generic
    with function Token_Image (Item : in Token_ID) return String;
 
    pragma Warnings (Off); -- Token_Image_Width is only used in a child package
-   Token_Image_Width : in out Integer;
-   --  Max width of Token_Image; may be set after package is instantiated.
+   Token_Image_Width : in Integer;
+   --  Max width of Token_Image.
    pragma Warnings (On); -- Token_Image_Width is only used in a child package
 
 package OpenToken.Token.Enumerated is

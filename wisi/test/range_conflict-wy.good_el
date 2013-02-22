@@ -1,4 +1,4 @@
-;;; range_conflict.el --- Generated parser support file
+;;; range_conflict-wy.el --- Generated parser support file
 
 ;; Copyright (C) 2013 Stephen Leake.  All Rights Reserved.
 
@@ -24,94 +24,103 @@
 (require 'semantic/lex)
 (require 'wisi-compile)
 
-(defconst range_conflict--keyword-table
+(defconst range_conflict-wy--keyword-table
   (semantic-lex-make-keyword-table
    '(
-    (".." . DOT_DOT)
     ("in" . IN)
-    ("left_paren" . LEFT_PAREN)
-    ("-" . MINUS)
-    ("+" . PLUS)
+    ("(" . LEFT_PAREN)
     ("range" . RANGE)
-    ("right_paren" . RIGHT_PAREN)
-    ("'" . TICK)
+    (")" . RIGHT_PAREN)
     )
    nil)
   "Table of language keywords.")
 
-(defconst range_conflict--token-table
+(defconst range_conflict-wy--token-table
   (semantic-lex-make-type-table
    '(
-    ("symbol" (IDENTIFIER))
+     ("punctuation"
+      (DOT_DOT . "..")
+      (TICK . "'")
+     )
+     ("symbol"
+      (IDENTIFIER)
+     )
+     ("string"
+      (STRING_LITERAL)
+     )
     )
    nil)
   "Table of language tokens.")
 
-(defconst range_conflict--parse-table
+(defconst range_conflict-wy--parse-table
    (wisi-compile-grammar
-   '((DOT_DOT IN LEFT_PAREN MINUS PLUS RANGE RIGHT_PAREN TICK IDENTIFIER )
+   '((DOT_DOT TICK IDENTIFIER STRING_LITERAL IN LEFT_PAREN RANGE RIGHT_PAREN )
      ((compilation_unit
-       ((membership_choice range_nt )))
+       ((membership_choice range )
+        (setq wisi-test-success t)))
       (membership_choice
        ((primary ))
-       ((range_nt )))
+       ((range )))
       (primary
        ((IDENTIFIER ))
+       ((STRING_LITERAL ))
        ((LEFT_PAREN relation RIGHT_PAREN )))
-      (range_nt
+      (range
        ((IDENTIFIER TICK RANGE LEFT_PAREN relation RIGHT_PAREN ))
        ((IDENTIFIER TICK RANGE ))
        ((primary DOT_DOT primary )))
       (relation
        ((primary IN membership_choice ))))
-     [((default . error) (IDENTIFIER .  3) (LEFT_PAREN .  2))
-      ((default . error) (IDENTIFIER .  13) (LEFT_PAREN .  2))
-      ((default . error) (TICK .  12) (RIGHT_PAREN . primary:0) (IDENTIFIER . primary:0) (LEFT_PAREN . primary:0) (DOT_DOT . primary:0))
-      ((default . error) (EOF .  11))
-      ((default . error) (IDENTIFIER .  3) (LEFT_PAREN .  2))
-      ((default . error) (DOT_DOT .  8) (RIGHT_PAREN . membership_choice:0) (LEFT_PAREN . membership_choice:0) (IDENTIFIER . membership_choice:0))
-      ((default . error) (RIGHT_PAREN . membership_choice:1) (LEFT_PAREN . membership_choice:1) (IDENTIFIER . membership_choice:1))
-      ((default . error) (IDENTIFIER .  13) (LEFT_PAREN .  2))
+     [((default . error) (IDENTIFIER .  1) (STRING_LITERAL .  2) (LEFT_PAREN .  3))
+      ((default . error) (TICK .  15) (RIGHT_PAREN . (primary . 0)) (LEFT_PAREN . (primary . 0)) (STRING_LITERAL . (primary . 0)) (IDENTIFIER . (primary . 0)) (DOT_DOT . (primary . 0)))
+      ((default . error) ($EOI . (primary . 1)) (RIGHT_PAREN . (primary . 1)) (LEFT_PAREN . (primary . 1)) (STRING_LITERAL . (primary . 1)) (IDENTIFIER . (primary . 1)) (DOT_DOT . (primary . 1)) (IN . (primary . 1)))
+      ((default . error) (IDENTIFIER .  12) (STRING_LITERAL .  2) (LEFT_PAREN .  3))
+      ((default . error) ($EOI .  11))
+      ((default . error) (IDENTIFIER .  1) (STRING_LITERAL .  2) (LEFT_PAREN .  3))
+      ((default . error) (DOT_DOT .  8) (RIGHT_PAREN . (membership_choice . 0)) (IDENTIFIER . (membership_choice . 0)) (STRING_LITERAL . (membership_choice . 0)) (LEFT_PAREN . (membership_choice . 0)))
+      ((default . error) (RIGHT_PAREN . (membership_choice . 1)) (IDENTIFIER . (membership_choice . 1)) (STRING_LITERAL . (membership_choice . 1)) (LEFT_PAREN . (membership_choice . 1)))
+      ((default . error) (IDENTIFIER .  12) (STRING_LITERAL .  2) (LEFT_PAREN .  3))
       ((default . error) (DOT_DOT .  8))
-      ((default . error) (EOF . compilation_unit:0))
-      ((default . error) (EOF . accept) (IDENTIFIER . accept) (TICK . accept) (RIGHT_PAREN . accept) (RANGE . accept) (PLUS . accept) (MINUS . accept) (LEFT_PAREN . accept) (IN . accept) (DOT_DOT . accept))
-      ((default . error) (RANGE .  18))
-      ((default . error) (EOF . primary:0) (RIGHT_PAREN . primary:0) (IDENTIFIER . primary:0) (LEFT_PAREN . primary:0) (IN . primary:0))
-      ((default . error) (IN .  17))
-      ((default . error) (RIGHT_PAREN .  16))
-      ((default . error) (EOF . primary:1) (RIGHT_PAREN . primary:1) (IDENTIFIER . primary:1) (LEFT_PAREN . primary:1) (DOT_DOT . primary:1) (IN . primary:1))
-      ((default . error) (IDENTIFIER .  3) (LEFT_PAREN .  2))
-      ((default . error) (RIGHT_PAREN . range_nt:1) (EOF . range_nt:1) (IDENTIFIER . range_nt:1) (LEFT_PAREN . (range_nt:1  20)))
-      ((default . error) (EOF . range_nt:2) (RIGHT_PAREN . range_nt:2) (IDENTIFIER . range_nt:2) (LEFT_PAREN . range_nt:2))
-      ((default . error) (IDENTIFIER .  13) (LEFT_PAREN .  2))
-      ((default . error) (RIGHT_PAREN . relation:0))
+      ((default . error) ($EOI . (compilation_unit . 0)))
+      ((default . error) ($EOI . accept) (RIGHT_PAREN . accept) (RANGE . accept) (LEFT_PAREN . accept) (IN . accept) (STRING_LITERAL . accept) (IDENTIFIER . accept) (TICK . accept) (DOT_DOT . accept))
+      ((default . error) ($EOI . (primary . 0)) (RIGHT_PAREN . (primary . 0)) (LEFT_PAREN . (primary . 0)) (STRING_LITERAL . (primary . 0)) (IDENTIFIER . (primary . 0)) (IN . (primary . 0)))
+      ((default . error) (IN .  18))
+      ((default . error) (RIGHT_PAREN .  17))
+      ((default . error) (RANGE .  16))
+      ((default . error) (RIGHT_PAREN . (range . 1)) ($EOI . (range . 1)) (STRING_LITERAL . (range . 1)) (IDENTIFIER . (range . 1)) (LEFT_PAREN . ((range . 1)  21)))
+      ((default . error) ($EOI . (primary . 2)) (RIGHT_PAREN . (primary . 2)) (LEFT_PAREN . (primary . 2)) (STRING_LITERAL . (primary . 2)) (IDENTIFIER . (primary . 2)) (DOT_DOT . (primary . 2)) (IN . (primary . 2)))
+      ((default . error) (IDENTIFIER .  1) (STRING_LITERAL .  2) (LEFT_PAREN .  3))
+      ((default . error) ($EOI . (range . 2)) (RIGHT_PAREN . (range . 2)) (LEFT_PAREN . (range . 2)) (STRING_LITERAL . (range . 2)) (IDENTIFIER . (range . 2)))
+      ((default . error) (RIGHT_PAREN . (relation . 0)))
+      ((default . error) (IDENTIFIER .  12) (STRING_LITERAL .  2) (LEFT_PAREN .  3))
       ((default . error) (RIGHT_PAREN .  23))
-      ((default . error) (EOF . range_nt:0) (RIGHT_PAREN . range_nt:0) (LEFT_PAREN . range_nt:0) (IDENTIFIER . range_nt:0))]
-     [((COMPILATION_UNIT . 4)(MEMBERSHIP_CHOICE . 5)(PRIMARY . 6)(RANGE_NT . 7))
-      ((PRIMARY . 14)(RELATION . 15))
+      ((default . error) ($EOI . (range . 0)) (RIGHT_PAREN . (range . 0)) (IDENTIFIER . (range . 0)) (STRING_LITERAL . (range . 0)) (LEFT_PAREN . (range . 0)))]
+     [((compilation_unit . 4)(membership_choice . 5)(primary . 6)(range . 7))
       nil
       nil
-      ((PRIMARY . 9)(RANGE_NT . 10))
+      ((primary . 13)(relation . 14))
+      nil
+      ((primary . 9)(range . 10))
       nil
       nil
-      ((PRIMARY . 19))
-      nil
-      nil
-      nil
-      nil
+      ((primary . 19))
       nil
       nil
       nil
       nil
-      ((MEMBERSHIP_CHOICE . 21)(PRIMARY . 6)(RANGE_NT . 7))
       nil
       nil
-      ((PRIMARY . 14)(RELATION . 22))
       nil
+      nil
+      nil
+      ((membership_choice . 20)(primary . 6)(range . 7))
+      nil
+      nil
+      ((primary . 13)(relation . 22))
       nil
       nil]))
   "Parser table.")
 
-(provide 'range_conflict)
+(provide 'range_conflict-wy)
 
 ;; end of file

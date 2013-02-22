@@ -29,10 +29,10 @@ begin
 
    Add_Test (Suite, new Wisi_Rules_Test.Test_Case);
 
-   Add_Test (Suite, new Wisi_WY_Test.Test_Case (new String'("../../wisi/test/subprograms.wy")));
-   Add_Test (Suite, new Wisi_WY_Test.Test_Case (new String'("../../wisi/test/body_instantiation_conflict.wy")));
-   Add_Test (Suite, new Wisi_WY_Test.Test_Case (new String'("../../wisi/test/identifier_list_name_conflict.wy")));
-   Add_Test (Suite, new Wisi_WY_Test.Test_Case (new String'("../../wisi/test/range_conflict.wy")));
+   Add_Test (Suite, new Wisi_WY_Test.Test_Case (new String'("../../wisi/test/subprograms")));
+   Add_Test (Suite, new Wisi_WY_Test.Test_Case (new String'("../../wisi/test/body_instantiation_conflict")));
+   Add_Test (Suite, new Wisi_WY_Test.Test_Case (new String'("../../wisi/test/identifier_list_name_conflict")));
+   Add_Test (Suite, new Wisi_WY_Test.Test_Case (new String'("../../wisi/test/range_conflict")));
    --  end test cases
 
    return Suite;

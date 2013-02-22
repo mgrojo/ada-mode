@@ -170,7 +170,7 @@ package body OpenToken.Production.Parser.LALR.Elisp is
       Put ("]");
    end Goto_Table;
 
-   procedure Parse_Table
+   procedure Output
      (Elisp_Package : in String;
       Tokens        : in Wisi.Token_Lists.List;
       Keywords      : in Wisi.String_Pair_Lists.List;
@@ -256,16 +256,6 @@ package body OpenToken.Production.Parser.LALR.Elisp is
       Put_Line ("))");
 
       Put_Line ("  ""Parser table."")");
-   end Parse_Table;
-
-   procedure Output
-     (Elisp_Package : in String;
-      Tokens        : in Wisi.Token_Lists.List;
-      Keywords      : in Wisi.String_Pair_Lists.List;
-      Rules         : in Wisi.Rule_Lists.List;
-      Parser        : in Instance)
-   is begin
-      Parse_Table (Elisp_Package, Tokens, Keywords, Rules, Parser);
    end Output;
 
 end OpenToken.Production.Parser.LALR.Elisp;

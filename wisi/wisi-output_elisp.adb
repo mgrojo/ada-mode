@@ -18,6 +18,7 @@
 
 pragma License (GPL);
 
+with Ada.Exceptions;
 with Ada.Text_IO;
 with OpenToken.Production.List.Print;
 with OpenToken.Production.Parser.LALR.Elisp;
@@ -25,13 +26,14 @@ with OpenToken.Production.Print;
 with OpenToken.Token.Enumerated.Analyzer;
 with OpenToken.Token.Enumerated.List.Print;
 with OpenToken.Token.Enumerated.Nonterminal;
-with OpenToken.Token.Enumerated;
+with Wisi.Utils;
 procedure Wisi.Output_Elisp
   (Elisp_Package : in String;
    Copyright     : in String;
    Prologue      : in String_Lists.List;
    Keywords      : in String_Pair_Lists.List;
    Tokens        : in Token_Lists.List;
+   Start_Token   : in Standard.Ada.Strings.Unbounded.Unbounded_String;
    Rules         : in Rule_Lists.List)
 is
    subtype Token_IDs is Integer range
@@ -39,10 +41,11 @@ is
    --  one extra terminal for $EOI
    --  one extra non-terminal for the OpenToken accept symbol followed by EOI.
 
-   Token_Count       : constant Token_IDs := Count (Tokens);
-   EOI_ID            : constant Token_IDs := Token_Count + Token_IDs (Keywords.Length) + 1; -- last terminal
-   First_Nonterminal : constant Token_IDs := EOI_ID + 1;
-   Accept_ID         : constant Token_IDs := Token_IDs'Last;                    -- last nonterminal
+   Token_Count : constant Token_IDs := Count (Tokens);
+   EOI_ID      : constant Token_IDs := Token_Count + Token_IDs (Keywords.Length) + 1; -- last terminal
+   Accept_ID   : constant Token_IDs := Token_IDs'Last;                                -- last nonterminal
+
+   First_Rule_Line : constant Standard.Ada.Text_IO.Positive_Count := Rules.First_Element.Source_Line;
 
    function Find_Token_ID (Token : in String) return Token_IDs
    is
@@ -71,20 +74,17 @@ is
          end if;
          Result := Result + 1;
       end loop;
-      raise Programmer_Error with "token '" & Token & "' not found";
+      raise Not_Found with "token '" & Token & "' not found";
    end Find_Token_ID;
 
-   Token_Images      : array (Token_IDs) of access constant String;
    Token_Image_Width : Integer := 0;
 
-   function Token_Image (ID : in Token_IDs) return String
-   is begin
-      return Token_Images (ID).all;
-   end Token_Image;
+   type ID_Array_Access_String_Type is array (Token_IDs) of access constant String;
 
-   procedure Set_Token_Images
+   function Set_Token_Images return ID_Array_Access_String_Type
    is
-      ID : Token_IDs := Token_IDs'First;
+      ID           : Token_IDs := Token_IDs'First;
+      Token_Images : ID_Array_Access_String_Type;
    begin
       for Kind of Tokens loop
          for Pair of Kind.Tokens loop
@@ -119,7 +119,16 @@ is
             Token_Image_Width := Token.all'Length;
          end if;
       end loop;
+
+      return Token_Images;
    end Set_Token_Images;
+
+   Token_Images : constant ID_Array_Access_String_Type := Set_Token_Images;
+
+   function Token_Image (ID : in Token_IDs) return String
+   is begin
+      return Token_Images (ID).all;
+   end Token_Image;
 
    package Tokens_Pkg is new OpenToken.Token.Enumerated (Token_IDs, Token_Image, Token_Image_Width);
    --  we only need Analyzers to instantiate Parsers, but we might call it for debugging
@@ -221,8 +230,17 @@ is
    end Token_Table;
 
 begin
-   Grammar := Production_Lists.Only
-     (Nonterminals.Get (Accept_ID) <= Nonterminals.Get (First_Nonterminal) & Tokens_Pkg.Get (EOI_ID));
+
+   begin
+      Grammar := Production_Lists.Only
+        (Nonterminals.Get (Accept_ID) <= Nonterminals.Get (Find_Token_ID (-Start_Token)) &
+           Tokens_Pkg.Get (EOI_ID));
+   exception
+   when Not_Found =>
+      Wisi.Utils.Put_Error
+        (Elisp_Package & ".wy", First_Rule_Line, "start token '" & (-Start_Token) & "' not found; need %start?");
+      raise Syntax_Error;
+   end;
 
    for Rule of Rules loop
       declare
@@ -236,6 +254,11 @@ begin
                   Tokens := Tokens & Token;
                end loop;
                Grammar := Grammar and Nonterminals.Get (Find_Token_ID (-Rule.Left_Hand_Side)) <= Tokens + Index;
+            exception
+            when E : Not_Found =>
+               Wisi.Utils.Put_Error
+                 (Elisp_Package & ".wy", Rule.Source_Line, Standard.Ada.Exceptions.Exception_Message (E));
+               raise Syntax_Error;
             end;
             Index := Index + 1;
          end loop;
@@ -243,7 +266,6 @@ begin
    end loop;
 
    if Verbosity > 0 then
-      Set_Token_Images;
       declare
          use Standard.Ada.Text_IO;
          procedure Print_Action (Item : in Nonterminals.Synthesize) is null;
@@ -261,12 +283,18 @@ begin
       end;
    end if;
 
-   Parser := LALR_Parsers.Generate
-     (Grammar,
-      Analyzers.Null_Analyzer,
-      Trace             => Verbosity > 1,
-      Put_Grammar       => Verbosity > 0,
-      First_State_Index => 0); -- match Elisp array indexing
+   begin
+      Parser := LALR_Parsers.Generate
+        (Grammar,
+         Analyzers.Null_Analyzer,
+         Trace             => Verbosity > 1,
+         Put_Grammar       => Verbosity > 0,
+         First_State_Index => 0); -- match Elisp array indexing
+   exception
+   when E : OpenToken.Programmer_Error =>
+      Wisi.Utils.Put_Error (Elisp_Package & ".wy", First_Rule_Line, Standard.Ada.Exceptions.Exception_Message (E));
+      raise Syntax_Error;
+   end;
 
    declare
       use Standard.Ada.Text_IO;

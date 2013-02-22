@@ -1,6 +1,7 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2000 Ted Dennison
+--  Copyright (C) 2013 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2000 Ted Dennison
 --
 -- This file is part of the OpenToken package.
 --
@@ -48,7 +49,9 @@ package String_Test is
 
    type Example_Token_ID is (If_ID, String_ID, Whitespace, EOF);
 
-   package Master_Example_Token is new OpenToken.Token.Enumerated (Example_Token_ID);
+   Token_Image_Width : Integer := Example_Token_ID'Width;
+   package Master_Example_Token is new OpenToken.Token.Enumerated
+     (Example_Token_ID, Example_Token_ID'Image, Token_Image_Width);
    package Tokenizer is new Master_Example_Token.Analyzer;
 
    Ada_Syntax : constant Tokenizer.Syntax :=

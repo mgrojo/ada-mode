@@ -48,7 +48,8 @@ package Name_Token_Test is
       Statement_ID,
       Symbol_Name_ID);
 
-   package Master_Token is new OpenToken.Token.Enumerated (Token_ID_Type);
+   Token_Image_Width : Integer := Token_ID_Type'Width;
+   package Master_Token is new OpenToken.Token.Enumerated (Token_ID_Type, Token_ID_Type'Image, Token_Image_Width);
    package Token_List is new Master_Token.List;
    package Nonterminal is new Master_Token.Nonterminal (Token_List);
 

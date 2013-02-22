@@ -2,7 +2,7 @@
 --
 --  Generic Check routines for AUnit
 --
---  Copyright (C) 2009, 2010 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2009, 2010, 2013 Stephen Leake.  All Rights Reserved.
 --
 --  This library is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -26,6 +26,7 @@
 pragma License (Modified_GPL);
 
 with Ada.Tags;
+with Ada.Text_IO;
 package AUnit.Check is
 
    generic
@@ -49,5 +50,17 @@ package AUnit.Check is
      (Label    : in String;
       Computed : in Ada.Tags.Tag;
       Expected : in Ada.Tags.Tag);
+
+   type Line_Number_Array_Type is array (Positive range <>) of Ada.Text_IO.Count;
+
+   procedure Check_Files
+     (Label         : in String;
+      Computed_Name : in String;
+      Expected_Name : in String;
+      Skip          : in Line_Number_Array_Type := (1 .. 0 => 1));
+   --  Compare files named Computed_Name and Expected_Name
+   --
+   --  Skip lines in Skip; this allows for lines with time stamps that
+   --  are not repeatable.
 
 end AUnit.Check;

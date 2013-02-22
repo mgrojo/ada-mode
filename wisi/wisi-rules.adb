@@ -71,6 +71,7 @@ begin
                if Cursor = -1 then Cursor := Line'Last; end if;
 
                Rule.Left_Hand_Side := +Line (Line'First .. Cursor);
+               Rule.Source_Line    := Standard.Ada.Text_IO.Line (Input_File) - 1;
 
                State := Production;
 

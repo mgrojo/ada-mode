@@ -25,7 +25,13 @@ package Wisi.Utils is
    --  Return next line that is not a comment, and strip leading
    --  whitespace and trailing comment from line.
 
+   procedure Put_Error
+     (File_Name : in String;
+      File_Line : in Standard.Ada.Text_IO.Positive_Count;
+      Message   : in String);
+   --  Output error message on Standard_Error
+
    procedure Put_Error (File : in Standard.Ada.Text_IO.File_Type; Message : in String);
-   --  Output error message for File
+   --  Output error message on Standard_Error for File
 
 end Wisi.Utils;

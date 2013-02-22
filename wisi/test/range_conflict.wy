@@ -4,35 +4,38 @@
 (require 'wisi)
 %}
 
-%package ada-grammar-3-wy
-
-%keyword DOT_DOT ".."
 %keyword IN "in"
-%keyword LEFT_PAREN "left_paren"
-%keyword MINUS "-"
-%keyword PLUS "+"
+%keyword LEFT_PAREN "("
 %keyword RANGE "range"
-%keyword RIGHT_PAREN "right_paren"
-%keyword TICK "'"
+%keyword RIGHT_PAREN ")"
+
+%token <punctuation> DOT_DOT ".."
+%token <punctuation> TICK "'"
 
 %token <symbol> IDENTIFIER
+%token <string> STRING_LITERAL
 
+%start compilation_unit
 %%
 
-compilation_unit : membership_choice range_nt ;
+compilation_unit
+  : membership_choice range
+    (setq wisi-test-success t)
+  ;
 
 membership_choice
   : primary
-  | range_nt ;; can't use case to distinguish; Ada is case insensitive
+  | range ;; note that this does _not_ conflict with RANGE
   ;
 
 primary
   : IDENTIFIER
+  | STRING_LITERAL
   | LEFT_PAREN relation RIGHT_PAREN
   ;
 
-range_nt
-  : IDENTIFIER TICK RANGE LEFT_PAREN relation RIGHT_PAREN ;; range_attribute_reference
+range
+  : IDENTIFIER TICK RANGE LEFT_PAREN relation RIGHT_PAREN ;; a little weird, but it's a test
   | IDENTIFIER TICK RANGE
   | primary DOT_DOT primary
   ;
@@ -41,12 +44,5 @@ relation
   : primary IN membership_choice
   ;
 
-
-;; unary_adding_operator : PLUS | MINUS ; ;; + | -
-
 %%
-
-;; Local Variables:
-;; eval: (add-hook 'before-save-hook 'delete-trailing-whitespace nil t)
-;; End:
 ;;; end of file

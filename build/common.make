@@ -98,7 +98,7 @@ distclean :: clean
 	rm -rf obj obj_tree
 
 test-clean :
-	rm -f *.diff *.out *.txt
+	rm -f *.diff *.out *.txt  *-wy.el
 
 source-clean ::
 	-find $(SOURCE_ROOT) -name "*~" -print | xargs rm -v
@@ -118,14 +118,10 @@ DIFF_OPT := -u -w
 
 %.run : %.exe ;	./$(*F).exe $(RUN_ARGS)
 
-# %-wy.el : RUN_ARGS := -v 1 > wisi.output
-%-wy.el : wisi-%-generate.exe
-	./wisi-$*-generate.exe $(RUN_ARGS)
+%-wy.el : %.wy wisi-generate.exe
+	./wisi-generate.exe -v 2 $< Elisp > $*.output
 
-.PRECIOUS : wisi-%-generate.adb %-wy.el
-
-wisi-%-generate.adb : %.wy wisi-generate.exe
-	./wisi-generate.exe $<
+.PRECIOUS : %-wy.el
 
 wisi-clean :
 	rm -f wisi-*-generate.adb *-wy.el

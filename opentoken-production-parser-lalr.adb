@@ -919,49 +919,40 @@ package body OpenToken.Production.Parser.LALR is
 
    end Fill_In_Parse_Table;
 
-   ----------------------------------------------------------------------------
-   --  Perform the specified reduction on the given token stack.
-   ----------------------------------------------------------------------------
    procedure Reduce_Stack
      (Stack            : in out State_Node_Ptr;
       Number_Of_Tokens : in     Natural;
-      Production       : in     OpenToken.Production.Instance
-     ) is
-
+      Production       : in     OpenToken.Production.Instance)
+   is
       Arguments    : Token_List.Instance;
       Popped_State : State_Node_Ptr;
-
-      Args_Added  : Natural := 0;
+      Args_Added   : Natural := 0;
 
       use type Nonterminal.Synthesize;
    begin
       --  Pop the indicated number of token states from the stack, and
-      --  send them to the synthesize routine (if any) to create a new
+      --  call the production action routine to create a new
       --  nonterminal token.
 
       --  Build the argument list, while popping all but the last
       --  argument's state off of the stack.
-      loop
-         Token_List.Enqueue (List  => Arguments,
-                             Token => Stack.Seen_Token
-                            );
+      if Number_Of_Tokens > 0 then
+         loop
+            Token_List.Enqueue (Arguments, Stack.Seen_Token);
 
-         Args_Added := Args_Added + 1;
-         exit when Args_Added = Number_Of_Tokens;
+            Args_Added := Args_Added + 1;
+            exit when Args_Added = Number_Of_Tokens;
 
-         Popped_State := Stack;
-         Stack := Stack.Next;
-         Free (Popped_State);
-      end loop;
+            Popped_State := Stack;
+            Stack        := Stack.Next;
+            Free (Popped_State);
+         end loop;
+      end if;
 
-      Production.RHS.Action (New_Token => Production.LHS.all,
-                             Source    => Arguments,
-                             To_ID     => Token.ID (Production.LHS.all)
-                            );
+      Production.RHS.Action (Production.LHS.all, Arguments, Token.ID (Production.LHS.all));
       Token_List.Clean (Arguments);
 
       --  Replace stack token with LHS of production
-      --  FIXME: to handle null productions, need to pop all args, push LHS.
       Stack.Seen_Token := new Nonterminal.Class'(Production.LHS.all);
    end Reduce_Stack;
 

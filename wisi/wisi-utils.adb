@@ -18,6 +18,7 @@
 
 pragma License (GPL);
 
+with Ada.Directories;
 with Ada.Strings.Fixed;
 package body Wisi.Utils is
 
@@ -47,15 +48,26 @@ package body Wisi.Utils is
       end loop;
    end Skip_Comments;
 
+   procedure Put_Error
+     (File_Name : in String;
+      File_Line : in Standard.Ada.Text_IO.Positive_Count;
+      Message   : in String)
+   is
+      use Standard.Ada.Directories;
+      use Standard.Ada.Strings.Fixed;
+      use Standard.Ada.Strings;
+      use Standard.Ada.Text_IO;
+      Prefix : constant String := Simple_Name (File_Name) & ":" &
+        Trim (Positive_Count'Image (File_Line), Left) & ":0: ";
+   begin
+      Put_Line (Standard_Error, Prefix & Message);
+   end Put_Error;
+
    procedure Put_Error (File : in Standard.Ada.Text_IO.File_Type; Message : in String)
    is
       use Standard.Ada.Text_IO;
-      use Standard.Ada.Strings.Fixed;
-      use Standard.Ada.Strings;
-      Prefix : constant String := Name (File) & ":" &
-        Trim (Standard.Ada.Text_IO.Count'Image (Line (File) - 1), Left) & ":0: ";
    begin
-      Put_Line (Standard_Error, Prefix & Message);
+      Put_Error (Name (File), Line (File) - 1, Message);
    end Put_Error;
 
 end Wisi.Utils;

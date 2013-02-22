@@ -26,6 +26,7 @@
 ^build/windows_debug/.*\.el$
 ^build/windows_debug/.*\.exe$
 ^build/windows_debug/.*\.out$
+^build/windows_debug/.*\.output$
 ^build/windows_debug/.*\.txt$
 ^build/windows_debug/obj$
 ^build/windows_debug/obj_tree$
@@ -37,6 +38,7 @@
 ^build/windows_release/.*\.el$
 ^build/windows_release/.*\.exe$
 ^build/windows_release/.*\.out$
+^build/windows_release/.*\.output$
 ^build/windows_release/.*\.txt$
 ^build/windows_release/.*\.wy$
 ^build/windows_release/lib$
