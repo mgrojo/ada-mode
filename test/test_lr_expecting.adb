@@ -203,7 +203,11 @@ package body Test_LR_Expecting is
    is
       Test : Test_Case renames Test_Case (T);
    begin
-      Parser := LALR_Parser.Generate (Grammar, Analyzer, Trace => Test.Debug, Put_Grammar => Test.Debug);
+      Parser := LALR_Parser.Generate
+        (Grammar, Analyzer,
+         Non_Reporting_Tokens => (EOF_ID | Whitespace_ID => True, others => False),
+         Trace                => Test.Debug,
+         Put_Grammar          => Test.Debug);
 
       OpenToken.Trace_Parse := Test.Debug;
 

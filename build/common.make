@@ -16,6 +16,7 @@ VPATH += ../../Examples/Language_Lexer_Examples
 VPATH += ../../Language_Lexers
 VPATH += ../../wisi
 
+tests : wisi-generate.exe
 tests : association_token_test-run.diff
 tests : enumerated_token_list_test.run
 tests : name_token_test-run.diff

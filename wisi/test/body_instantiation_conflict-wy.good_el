@@ -74,44 +74,47 @@
        ((LEFT_PAREN IDENTIFIER RIGHT_PAREN )))
       (generic_instantiation
        ((PROCEDURE IDENTIFIER IS NEW IDENTIFIER LEFT_PAREN IDENTIFIER RIGHT_PAREN SEMICOLON )
-        `,(wisi-statement-action 1 'statement-start 9 'statement-end))))
-     [((default . error) (PROCEDURE .  1))
-      ((default . error) (IDENTIFIER .  10))
-      ((default . error) ($EOI .  9))
-      ((default . error) (PROCEDURE .  1))
-      ((default . error) ($EOI . (library_item . 0)) (PROCEDURE . (library_item . 0)))
-      ((default . error) (IS .  7))
-      ((default . error) ($EOI . (library_item . 1)) (PROCEDURE . (library_item . 1)))
-      ((default . error) (BEGIN .  14))
+        `,(wisi-statement-action 1 'statement-start 9 'statement-end))
+       ((STRING_LITERAL ))))
+     [((default . error) (STRING_LITERAL .  1) (PROCEDURE .  2))
+      ((default . error) ($EOI . (generic_instantiation . 1)) (PROCEDURE . (generic_instantiation . 1)) (STRING_LITERAL . (generic_instantiation . 1)))
+      ((default . error) (IDENTIFIER .  11))
+      ((default . error) ($EOI .  10))
+      ((default . error) (STRING_LITERAL .  1) (PROCEDURE .  2))
+      ((default . error) ($EOI . (library_item . 0)) (STRING_LITERAL . (library_item . 0)) (PROCEDURE . (library_item . 0)))
+      ((default . error) (IS .  8))
+      ((default . error) ($EOI . (library_item . 1)) (STRING_LITERAL . (library_item . 1)) (PROCEDURE . (library_item . 1)))
+      ((default . error) (BEGIN .  15))
       ((default . error) ($EOI . (compilation_unit . 0)))
       ((default . error) ($EOI . accept) (RIGHT_PAREN . accept) (PROCEDURE . accept) (NULL . accept) (NEW . accept) (LEFT_PAREN . accept) (IS . accept) (END . accept) (BEGIN . accept) (STRING_LITERAL . accept) (IDENTIFIER . accept) (SEMICOLON . accept))
-      ((default . error) (IS . ( 11 (parameter_list . 0))) (LEFT_PAREN .  12))
-      ((default . error) (NEW .  17))
-      ((default . error) (IDENTIFIER .  16))
+      ((default . error) (IS . ( 12 (parameter_list . 0))) (LEFT_PAREN .  13))
+      ((default . error) (NEW .  18))
+      ((default . error) (IDENTIFIER .  17))
       ((default . error) (IS . (subprogram_specification . 0)))
-      ((default . error) (NULL .  15))
-      ((default . error) (END .  20))
-      ((default . error) (RIGHT_PAREN .  19))
-      ((default . error) (IDENTIFIER .  18))
-      ((default . error) (LEFT_PAREN .  22))
+      ((default . error) (NULL .  16))
+      ((default . error) (END .  21))
+      ((default . error) (RIGHT_PAREN .  20))
+      ((default . error) (IDENTIFIER .  19))
+      ((default . error) (LEFT_PAREN .  23))
       ((default . error) (IS . (parameter_list . 1)))
-      ((default . error) (SEMICOLON .  21))
-      ((default . error) (PROCEDURE . (subprogram_body . 0)) ($EOI . (subprogram_body . 0)))
-      ((default . error) (IDENTIFIER .  23))
-      ((default . error) (RIGHT_PAREN .  24))
-      ((default . error) (SEMICOLON .  25))
-      ((default . error) ($EOI . (generic_instantiation . 0)) (PROCEDURE . (generic_instantiation . 0)))]
-     [((compilation_unit . 2)(library_item . 3)(subprogram_body . 4)(subprogram_specification . 5)(generic_instantiation . 6))
-      nil
-      nil
-      ((library_item . 8)(subprogram_body . 4)(subprogram_specification . 5)(generic_instantiation . 6))
+      ((default . error) (SEMICOLON .  22))
+      ((default . error) (STRING_LITERAL . (subprogram_body . 0)) (PROCEDURE . (subprogram_body . 0)) ($EOI . (subprogram_body . 0)))
+      ((default . error) (IDENTIFIER .  24))
+      ((default . error) (RIGHT_PAREN .  25))
+      ((default . error) (SEMICOLON .  26))
+      ((default . error) ($EOI . (generic_instantiation . 0)) (PROCEDURE . (generic_instantiation . 0)) (STRING_LITERAL . (generic_instantiation . 0)))]
+     [((compilation_unit . 3)(library_item . 4)(subprogram_body . 5)(subprogram_specification . 6)(generic_instantiation . 7))
       nil
       nil
       nil
+      ((library_item . 9)(subprogram_body . 5)(subprogram_specification . 6)(generic_instantiation . 7))
       nil
       nil
       nil
-      ((parameter_list . 13))
+      nil
+      nil
+      nil
+      ((parameter_list . 14))
       nil
       nil
       nil

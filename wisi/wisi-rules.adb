@@ -48,9 +48,10 @@ begin
 
          procedure Parse_Production
          is
+            use Standard.Ada.Strings.Maps;
             Last : Integer;
          begin
-            Last := -1 + Index (Pattern => " ", Source => Line, From => Cursor);
+            Last := -1 + Index (Set => To_Set (" |;"), Source => Line, From => Cursor);
 
             if Last = -1 then Last := Line'Last; end if;
 

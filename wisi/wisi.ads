@@ -53,8 +53,6 @@ package Wisi is
 
    Programmer_Error : exception; -- Error in Wisi Ada code
 
-   type Output_Language_Type is (Ada, Elisp);
-
    type String_Pair_Type is record
       Name  : Standard.Ada.Strings.Unbounded.Unbounded_String;
       Value : Standard.Ada.Strings.Unbounded.Unbounded_String;

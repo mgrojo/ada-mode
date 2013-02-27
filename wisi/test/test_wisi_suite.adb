@@ -19,6 +19,7 @@
 pragma License (GPL);
 
 with AUnit.Test_Suites; use AUnit.Test_Suites;
+with Test_Generate_Errors;
 with Wisi_Rules_Test;
 with Wisi_WY_Test;
 function Test_Wisi_Suite return Access_Test_Suite
@@ -27,6 +28,7 @@ is
 begin
    --  Test cases; test package alphabetical order, unless otherwise noted.
 
+   Add_Test (Suite, new Test_Generate_Errors.Test_Case (new String'("../../wisi/test/unused_tokens")));
    Add_Test (Suite, new Wisi_Rules_Test.Test_Case);
 
    Add_Test (Suite, new Wisi_WY_Test.Test_Case (new String'("../../wisi/test/subprograms")));

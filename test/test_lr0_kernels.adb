@@ -44,7 +44,6 @@ package body Test_LR0_Kernels is
    --  string.
    type Token_ID_Type is
      (EOF_ID,
-      Equals_ID,
       Equals_Greater_ID,
       Paren_Left_ID,
       Plus_Minus_ID,
@@ -170,10 +169,12 @@ package body Test_LR0_Kernels is
 
    Syntax : constant Tokenizer.Syntax :=
      (
+      --  EOF_ID must be present and reportable, or parser will hang
+      --  looking for next token at end of input.
+      EOF_ID => Tokenizer.Get (OpenToken.Recognizer.End_Of_File.Get (Reportable => True), Tokens.EOF),
+
       --  terminals: operators etc
 
-      EOF_ID            => Tokenizer.Get (OpenToken.Recognizer.End_Of_File.Get, Tokens.EOF),
-      Equals_ID         => Tokenizer.Get (OpenToken.Recognizer.Separator.Get ("=")),
       Equals_Greater_ID => Tokenizer.Get (OpenToken.Recognizer.Separator.Get ("=>")),
       Paren_Left_ID     => Tokenizer.Get (OpenToken.Recognizer.Separator.Get ("(")),
       Plus_Minus_ID     => Tokenizer.Get (OpenToken.Recognizer.Separator.Get ("+-")),
@@ -251,7 +252,14 @@ package body Test_LR0_Kernels is
       Test : Test_Case renames Test_Case (T);
 
    begin
-      Command_Parser := LALR_Parser.Generate (Grammar, An_Analyzer, Trace => Test.Debug);
+      --  EOF_ID is not in the grammar, and is reportable, but we set
+      --  Non_Reporting_Tokens (EOF_ID) true to avoid Generate
+      --  reporting it as unused. It is present in the parser table as
+      --  a lookahead for the accept token.
+      Command_Parser := LALR_Parser.Generate
+        (Grammar, An_Analyzer,
+         Non_Reporting_Tokens => (EOF_ID | Whitespace_ID => True, others => False),
+         Trace                => Test.Debug);
 
       if Test.Debug then
          Dump_Grammar;
@@ -265,7 +273,9 @@ package body Test_LR0_Kernels is
       Execute_Command ("set (2 =>;", Trace => Test.Debug);
 
       --  IMPROVEME: Two successive statements do _not_ work; first
-      --  call to Parse eats first token of second statement.
+      --  call to Parse eats first token of second statement. Parse
+      --  should return or push back lookahead.
+      --
       --  Execute_Command ("set (2 =>; set 3;", Trace => Test.Debug);
    end Nominal;
 

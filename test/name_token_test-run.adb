@@ -55,7 +55,10 @@ begin
    Put_Line ("Simple Parser");
    declare
       Simple_Parser : LALR_Parser.Instance := LALR_Parser.Generate
-        (Simple_Grammar, The_Analyzer, Trace => Trace, Put_Grammar => Trace);
+        (Simple_Grammar, The_Analyzer,
+         Non_Reporting_Tokens => (Whitespace_ID | Symbol_Name_ID | Component_List_ID => True, others => False),
+         Trace                => Trace,
+         Put_Grammar          => Trace);
    begin
       Parse_Command (Simple_Parser, "Module (Index)");
       Parse_Command (Simple_Parser, "Module.Component");
@@ -65,7 +68,10 @@ begin
    Put_Line ("Medium Parser");
    declare
       Medium_Parser : LALR_Parser.Instance := LALR_Parser.Generate
-        (Medium_Grammar, The_Analyzer, Trace => Trace, Put_Grammar => Trace);
+        (Medium_Grammar, The_Analyzer,
+         Non_Reporting_Tokens => (Whitespace_ID | Component_List_ID => True, others => False),
+         Trace                => Trace,
+         Put_Grammar          => Trace);
    begin
       Parse_Command (Medium_Parser, "Module.Symbol (Index)");
       Parse_Command (Medium_Parser, "Module.Symbol.Component");
@@ -75,7 +81,10 @@ begin
    Put_Line ("Full Parser");
    declare
       Full_Parser : LALR_Parser.Instance := LALR_Parser.Generate
-        (Full_Grammar, The_Analyzer, Trace => Trace, Put_Grammar => Trace);
+        (Full_Grammar, The_Analyzer,
+         Non_Reporting_Tokens => (Whitespace_ID => True, others => False),
+         Trace                => Trace,
+         Put_Grammar          => Trace);
    begin
       Parse_Command (Full_Parser, "Module.Symbol");
       Parse_Command (Full_Parser, "Module.Symbol (Index)");

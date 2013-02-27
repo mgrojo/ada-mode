@@ -111,7 +111,11 @@ package body Test_Accept_Index is
    begin
       --  The test is that there are no exceptions.
 
-      Parser := LALR_Parser.Generate (Grammar, Analyzer, Trace => Test.Debug, Put_Grammar => Test.Debug);
+      Parser := LALR_Parser.Generate
+        (Grammar, Analyzer,
+         Non_Reporting_Tokens => (Whitespace_ID => True, others => False),
+         Trace                => Test.Debug,
+         Put_Grammar => Test.Debug);
 
       OpenToken.Trace_Parse := Test.Debug;
 
@@ -137,7 +141,7 @@ package body Test_Accept_Index is
    is
       pragma Unreferenced (T);
    begin
-      return new String'("Test_Accept_Index");
+      return new String'("../../test_accept_index.adb");
    end Name;
 
    overriding procedure Register_Tests (T : in out Test_Case)

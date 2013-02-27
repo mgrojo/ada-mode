@@ -28,6 +28,7 @@ with Wisi.Output_Ada;
 with Wisi.Output_Elisp;
 with Wisi.Prologue;
 with Wisi.Rules;
+with Wisi.Test_Generate;
 procedure Wisi.Generate
 is
 
@@ -37,12 +38,14 @@ is
    begin
       Put_Line ("wisi-generate [-v [level]] {wisent grammar file} {output language}");
       Put_Line ("generate output language source corresponding to 'wisent grammar file'");
-      Put_Line ("output language is one of Ada, Elisp");
+      Put_Line ("output language is one of Ada, Elisp, Test");
       Put_Line ("-v sets verbosity (defaults to 0 with no -v, 1 with just -v):");
       Put_Line ("   level 0 - only error messages to standard error");
       Put_Line ("   level 1 - add compiled grammar output to standard out");
       Put_Line ("   level 2 - add diagnostics to standard out");
    end Put_Usage;
+
+   type Output_Language_Type is (Ada, Elisp, Test);
 
    Output_Language : Output_Language_Type;
 
@@ -121,6 +124,8 @@ begin
       Wisi.Output_Ada (-Input_File_Name, -Output_File_Root, Copyright, Prologue, Keywords, Tokens, Rules);
    when Elisp =>
       Wisi.Output_Elisp (-Output_File_Root, Copyright, Prologue, Keywords, Tokens, Start_Token, Rules);
+   when Test =>
+      Wisi.Test_Generate (-Input_File_Name, Keywords, Tokens, Start_Token, Rules);
    end case;
 
 exception

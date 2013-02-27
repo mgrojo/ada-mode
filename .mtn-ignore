@@ -36,6 +36,7 @@
 ^build/windows_release/.*\.ads$
 ^build/windows_release/.*\.diff$
 ^build/windows_release/.*\.el$
+^build/windows_release/.*\.errors$
 ^build/windows_release/.*\.exe$
 ^build/windows_release/.*\.out$
 ^build/windows_release/.*\.output$

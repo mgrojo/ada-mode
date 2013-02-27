@@ -26,7 +26,10 @@ is
    Trace : constant Boolean := Ada.Command_Line.Argument_Count > 0;
 
    Parser : LALR_Parser.Instance := LALR_Parser.Generate
-     (Full_Grammar, The_Analyzer, Trace => Trace, Put_Grammar => Trace);
+     (Full_Grammar, The_Analyzer,
+      Non_Reporting_Tokens => (Whitespace_ID => True, others => False),
+      Trace => Trace,
+      Put_Grammar => Trace);
 
    procedure Parse_Command (Command : in String)
    is begin

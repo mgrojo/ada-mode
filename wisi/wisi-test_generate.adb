@@ -1,8 +1,9 @@
 --  Abstract :
 --
---  Output Elisp code implementing the grammar defined by the parameters.
+--  Run LALR.Generate, for testing. Exceptions raised by Generate are
+--  propagated.
 --
---  Copyright (C) 2012, 2013 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2013 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -21,20 +22,18 @@ pragma License (GPL);
 with Ada.Exceptions;
 with Ada.Text_IO;
 with OpenToken.Production.List.Print;
-with OpenToken.Production.Parser.LALR.Elisp;
+with OpenToken.Production.Parser.LALR;
 with OpenToken.Production.Print;
 with OpenToken.Token.Enumerated.Analyzer;
 with OpenToken.Token.Enumerated.List.Print;
 with OpenToken.Token.Enumerated.Nonterminal;
 with Wisi.Utils;
-procedure Wisi.Output_Elisp
-  (Elisp_Package : in String;
-   Copyright     : in String;
-   Prologue      : in String_Lists.List;
-   Keywords      : in String_Pair_Lists.List;
-   Tokens        : in Token_Lists.List;
-   Start_Token   : in Standard.Ada.Strings.Unbounded.Unbounded_String;
-   Rules         : in Rule_Lists.List)
+procedure Wisi.Test_Generate
+  (Input_File_Name : in String;
+   Keywords        : in String_Pair_Lists.List;
+   Tokens          : in Token_Lists.List;
+   Start_Token     : in Standard.Ada.Strings.Unbounded.Unbounded_String;
+   Rules           : in Rule_Lists.List)
 is
    subtype Token_IDs is Integer range
      1 .. Count (Tokens) + Integer (Keywords.Length) + 1 + Integer (Rules.Length) + 1;
@@ -140,11 +139,9 @@ is
    package Parsers is new Productions.Parser (Production_Lists, Analyzers);
    package LALR_Parsers is new Parsers.LALR;
 
-   package Parser_Elisp is new LALR_Parsers.Elisp (Token_Image);
-
    Grammar : Production_Lists.Instance;
    Parser  : LALR_Parsers.Instance;
-   File    : Standard.Ada.Text_IO.File_Type;
+   pragma Unreferenced (Parser);
 
    --  Allow infix operators for building productions
    use type Token_Lists.Instance;
@@ -156,78 +153,6 @@ is
    is begin
       return Tokens & Tokens_Pkg.Get (Find_Token_ID (Token));
    end "&";
-
-   procedure Header (Elisp_Package : in String; Copyright : in String)
-   is
-      use Standard.Ada.Text_IO;
-   begin
-      Put_Line (";;; " & Elisp_Package & "-wy.el --- Generated parser support file");
-      New_Line;
-      Put_Line (";; Copyright (C) " & Copyright);
-      New_Line;
-      --  FIXME: allow other license
-      Put_Line (";; This program is free software; you can redistribute it and/or");
-      Put_Line (";; modify it under the terms of the GNU General Public License as");
-      Put_Line (";; published by the Free Software Foundation; either version 2, or (at");
-      Put_Line (";; your option) any later version.");
-      Put_Line (";;");
-      Put_Line (";; This software is distributed in the hope that it will be useful,");
-      Put_Line (";; but WITHOUT ANY WARRANTY; without even the implied warranty of");
-      Put_Line (";; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU");
-      Put_Line (";; General Public License for more details.");
-      Put_Line (";;");
-      Put_Line (";; You should have received a copy of the GNU General Public License");
-      Put_Line (";; along with GNU Emacs; see the file COPYING.  If not, write to the");
-      Put_Line (";; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,");
-      Put_Line (";; Boston, MA 02110-1301, USA.");
-      New_Line;
-      Put_Line (";; PLEASE DO NOT MANUALLY EDIT THIS FILE!  It is automatically");
-      Put_Line (";; generated from the grammar file " & Elisp_Package & ".wy");
-      New_Line;
-   end Header;
-
-   procedure Keyword_Table
-     (Elisp_Package : in String;
-      Keywords      : in Wisi.String_Pair_Lists.List)
-   is
-      use Standard.Ada.Text_IO;
-   begin
-      Put_Line ("(defconst " & Elisp_Package & "-wy--keyword-table");
-      Put_Line ("  (semantic-lex-make-keyword-table");
-      Put_Line ("   '(");
-      for Pair of Keywords loop
-         Put_Line ("    (" & (-Pair.Value) & " . " & (-Pair.Name) & ")");
-      end loop;
-      Put_Line ("    )");
-      Put_Line ("   nil)");
-      Put_Line ("  ""Table of language keywords."")");
-   end Keyword_Table;
-
-   procedure Token_Table
-     (Elisp_Package : in String;
-      Tokens        : in Wisi.Token_Lists.List)
-   is
-      use Standard.Ada.Strings.Unbounded; -- length
-      use Standard.Ada.Text_IO;
-   begin
-      Put_Line ("(defconst " & Elisp_Package & "-wy--token-table");
-      Put_Line ("  (semantic-lex-make-type-table");
-      Put_Line ("   '(");
-      for Kind of Tokens loop
-         Put_Line ("     (" & (-Kind.Kind));
-         for Token of Kind.Tokens loop
-            if 0 = Length (Token.Value) then
-               Put_Line ("      (" & (-Token.Name) & ")");
-            else
-               Put_Line ("      (" & (-Token.Name) & " . " & (-Token.Value) & ")");
-            end if;
-         end loop;
-         Put_Line ("     )");
-      end loop;
-      Put_Line ("    )");
-      Put_Line ("   nil)");
-      Put_Line ("  ""Table of language tokens."")");
-   end Token_Table;
 
 begin
    if Verbosity > 0 then
@@ -249,7 +174,7 @@ begin
    exception
    when Not_Found =>
       Wisi.Utils.Put_Error
-        (Elisp_Package & ".wy", First_Rule_Line, "start token '" & (-Start_Token) & "' not found; need %start?");
+        (Input_File_Name, First_Rule_Line, "start token '" & (-Start_Token) & "' not found; need %start?");
       raise Syntax_Error;
    end;
 
@@ -268,7 +193,7 @@ begin
             exception
             when E : Not_Found =>
                Wisi.Utils.Put_Error
-                 (Elisp_Package & ".wy", Rule.Source_Line, Standard.Ada.Exceptions.Exception_Message (E));
+                 (Input_File_Name, Rule.Source_Line, Standard.Ada.Exceptions.Exception_Message (E));
                raise Syntax_Error;
             end;
             Index := Index + 1;
@@ -290,41 +215,12 @@ begin
       end;
    end if;
 
-   begin
-      Parser := LALR_Parsers.Generate
-        (Grammar,
-         Analyzers.Null_Analyzer,
-         Non_Reporting_Tokens => (others => False),
-         Trace                => Verbosity > 1,
-         Put_Grammar          => Verbosity > 0,
-         First_State_Index    => 0); -- match Elisp array indexing
-   exception
-   when E : OpenToken.Programmer_Error =>
-      Wisi.Utils.Put_Error (Elisp_Package & ".wy", First_Rule_Line, Standard.Ada.Exceptions.Exception_Message (E));
-      raise Syntax_Error;
-   end;
+   Parser := LALR_Parsers.Generate
+     (Grammar,
+      Analyzers.Null_Analyzer,
+      Non_Reporting_Tokens => (others => False),
+      Trace                => Verbosity > 1,
+      Put_Grammar          => Verbosity > 0,
+      First_State_Index    => 0);
 
-   declare
-      use Standard.Ada.Text_IO;
-   begin
-      Create (File, Out_File, Elisp_Package & "-wy.el");
-      Set_Output (File);
-      Header (Elisp_Package, Copyright);
-      for Line of Prologue loop
-         Put_Line (Line);
-      end loop;
-      Put_Line ("(require 'semantic/lex)"); -- FIXME: emacs 23 wants semantic-lex, 24 semantic/lex
-      Put_Line ("(require 'wisi-compile)");
-      New_Line;
-      Keyword_Table (Elisp_Package, Keywords);
-      New_Line;
-      Token_Table (Elisp_Package, Tokens);
-      New_Line;
-      Parser_Elisp.Output (Elisp_Package, Tokens, Keywords, Rules, Parser);
-      New_Line;
-      Put_Line ("(provide '" & Elisp_Package & "-wy)");
-      New_Line;
-      Put_Line (";; end of file");
-      Close (File);
-   end;
-end Wisi.Output_Elisp;
+end Wisi.Test_Generate;

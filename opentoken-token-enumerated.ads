@@ -57,6 +57,8 @@ package OpenToken.Token.Enumerated is
    --  Make Token_ID visible in client packages
    subtype Parent_Token_ID is Token_ID;
 
+   type Token_Array_Boolean is array (Token_ID) of Boolean;
+
    type Instance is new OpenToken.Token.Instance with private;
 
    subtype Class is Instance'Class;

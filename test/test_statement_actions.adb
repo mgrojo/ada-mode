@@ -44,7 +44,6 @@ package body Test_Statement_Actions is
       Whitespace_ID,
 
       --  non-terminals
-      Value_ID,
       Statement_ID,
       Statement_Semi_ID,
       Statement_Sequence_ID,
@@ -186,7 +185,10 @@ package body Test_Statement_Actions is
       Test : Test_Case renames Test_Case (T);
       use AUnit.Assertions;
    begin
-      Command_Parser := LALR_Parser.Generate (Grammar, An_Analyzer, Trace => Test.Debug);
+      Command_Parser := LALR_Parser.Generate
+        (Grammar, An_Analyzer,
+         Non_Reporting_Tokens => (EOF_ID | Whitespace_ID => True, others => False),
+         Trace => Test.Debug);
 
       OpenToken.Trace_Parse := Test.Debug;
 

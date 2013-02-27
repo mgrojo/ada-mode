@@ -15,7 +15,7 @@
 
 %token <symbol> SYMBOL
 
-;; not used, but <string>, <punctuation> required by wisi-setup
+;; not actually needed in grammar, but <string>, <punctuation> required by wisi-setup
 %token <punctuation> TICK "'"
 %token <string> STRING_LITERAL
 
@@ -56,6 +56,8 @@ parameter_list
   | ;; ada-like no parameters
   | LEFT_PAREN SYMBOL RIGHT_PAREN
     `,(wisi-statement-action 1 'open-paren 3 'close-paren)
+
+  | TICK STRING_LITERAL ;; just to mention required tokens, so they are not unused
   ;
 
 %%

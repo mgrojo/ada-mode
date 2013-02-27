@@ -114,10 +114,7 @@ package Name_Token_Test is
      Statement      <= Name & Tokens.EOF and
      Name           <= Tokens.Identifier & Component + Nonterminal.Synthesize_Self and
      Component      <= Tokens.Dot & Tokens.Identifier + Nonterminal.Synthesize_Self and
-     Component      <= Tokens.Paren_Left & Tokens.Identifier & Tokens.Paren_Right + Nonterminal.Synthesize_Self and
-     --  extra stuff so Generate doesn't complain
-     Symbol_Name    <= Tokens.Dot and
-     Component_List <= Tokens.Dot;
+     Component      <= Tokens.Paren_Left & Tokens.Identifier & Tokens.Paren_Right + Nonterminal.Synthesize_Self;
 
    --  valid names:
    --  Module.Symbol (Index)
@@ -127,9 +124,7 @@ package Name_Token_Test is
      Name           <= Symbol_Name & Component + Nonterminal.Synthesize_Self and
      Symbol_Name    <= Tokens.Identifier & Tokens.Dot & Tokens.Identifier + Nonterminal.Synthesize_Self and
      Component      <= Tokens.Dot & Tokens.Identifier + Nonterminal.Synthesize_Self and
-     Component      <= Tokens.Paren_Left & Tokens.Identifier & Tokens.Paren_Right + Nonterminal.Synthesize_Self and
-      --  extra stuff so Generate doesn't complain
-     Component_List <= Tokens.Dot;
+     Component      <= Tokens.Paren_Left & Tokens.Identifier & Tokens.Paren_Right + Nonterminal.Synthesize_Self;
 
    --  valid names:
    --  Module.Symbol

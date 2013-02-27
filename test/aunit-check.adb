@@ -116,7 +116,7 @@ package body AUnit.Check is
       end;
 
       begin
-         while not End_Of_File (Expected) loop
+         while not End_Of_File (Expected) and not End_Of_File (Computed) loop
             declare
                Computed_Line : constant String := Get_Line (Computed);
                Expected_Line : constant String := Get_Line (Expected);
@@ -129,7 +129,8 @@ package body AUnit.Check is
                end if;
             end;
          end loop;
-         Assert (End_Of_File (Computed), Label & " Computed file longer than Expected file");
+         Assert (End_Of_File (Computed), Label & " '" & Computed_Name & "' longer than '" & Expected_Name & "'");
+         Assert (End_Of_File (Expected), Label & " '" & Expected_Name & "' longer than '" & Computed_Name & "'");
 
          Close (Computed);
          Close (Expected);

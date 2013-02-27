@@ -1,9 +1,8 @@
 --  Abstract :
 --
---  Test handling of input that requires multiple calls to Parse, with
---  an LALR parser.
+--  Test reporting of errors by LALR.Generate, processing one .wy file.
 --
---  Copyright (C) 2010, 2012 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2013 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -17,10 +16,12 @@
 --  the Free Software Foundation, 59 Temple Place - Suite 330, Boston,
 --  MA 02111-1307, USA.
 
-with AUnit.Test_Cases;
-package Test_Multi_Parse_LALR is
+pragma License (GPL);
 
-   type Test_Case (Debug : Boolean) is new AUnit.Test_Cases.Test_Case with null record;
+with AUnit.Test_Cases;
+package Test_Generate_Errors is
+
+   type Test_Case (Root_Name : access String) is new AUnit.Test_Cases.Test_Case with null record;
 
    type Test_Case_Access is access all Test_Case;
 
@@ -28,4 +29,4 @@ package Test_Multi_Parse_LALR is
 
    overriding function Name (T : Test_Case) return AUnit.Message_String;
 
-end Test_Multi_Parse_LALR;
+end Test_Generate_Errors;

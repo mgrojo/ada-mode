@@ -60,7 +60,6 @@ package body OpenToken.Production.Parser.LALR is
    --  designates the tokens that have been read or derived, and the
    --  parser states in which that occurred.
 
-
    type State_Node;
    type State_Node_Ptr is access State_Node;
 
@@ -73,7 +72,6 @@ package body OpenToken.Production.Parser.LALR is
    procedure Free is new Ada.Unchecked_Deallocation (State_Node, State_Node_Ptr);
 
    procedure Free is new Ada.Unchecked_Deallocation (Token.Class, Token.Handle);
-
 
    --------------------------------------------------------------------------
    --  The following types are used for computing lookahead
@@ -98,7 +96,6 @@ package body OpenToken.Production.Parser.LALR is
    procedure Dispose is new Ada.Unchecked_Deallocation
      (Item_Item_List_Mapping, Item_Item_List_Mapping_Ptr);
    procedure Dispose is new Ada.Unchecked_Deallocation (Item_List, Item_List_Ptr);
-
 
    ----------------------------------------------------------------------------
    --  Free the storage allocated by this package for the given item list.
@@ -302,23 +299,24 @@ package body OpenToken.Production.Parser.LALR is
       end if;
    end Add_Propagations;
 
-   --------------------------------------------------------------------------
-   --  For the given source and closure item, calculate the
-   --  lookaheads. If it is a spontanious lookahead, put it in the
-   --  source item's lookahead. If it is a propagated lookahead, put
-   --  the appropriate entry on the propagation list.
-   --------------------------------------------------------------------------
+   --  Calculate the lookaheads for Source_Set, Source_Set, Closure_Item.
+   --  Spontanious lookaheads are put it in Source_Item.Lookahead, propagated lookaheads in Propagations.
+   --
+   --  The start symbol (with Source_Set.Index = Accept_Index) is treated specially.
+   --
+   --  Set Used_Tokens = True for all tokens in lookaheads.
    procedure Generate_Lookahead_Info
      (Source_Item  : in     LRk.Item_Ptr;
       Source_Set   : in     LRk.Item_Set;
       Closure_Item : in     LRk.Item_Node;
       Accept_Index : in     Integer;
       Propagations : in out Item_Item_List_Mapping_Ptr;
+      Used_Tokens  : in out Token.Token_Array_Boolean;
       Trace        : in     Boolean)
    is
-
       Next_Item   : LRk.Item_Node;
       Next_Token  : Token_List.List_Iterator;
+      Token_ID    : Token.Token_ID;
       Next_Kernel : LRk.Item_Ptr;
       Lookahead   : LRk.Item_Lookahead_Ptr := Closure_Item.Lookahead_Set;
 
@@ -327,13 +325,14 @@ package body OpenToken.Production.Parser.LALR is
       use type LRk.Item_Ptr;
       use type LRk.Item_Lookahead_Ptr;
    begin
-
       --  If this is the start symbol production, it gets a lookahead
       --  for each terminal, so it will reduce on anything. FIXME:
       --  default action should be reduce in this case; no need for
       --  lookaheads.
       if Source_Set.Index = Accept_Index then
          for Token_ID in Tokenizer.Terminal_ID loop
+            --  These tokens are not actually used in the grammar, so
+            --  we don't set Used_Tokens here.
             declare
                Lookahead : constant LRk.Item_Lookahead :=
                  (Last       => 1,
@@ -369,6 +368,10 @@ package body OpenToken.Production.Parser.LALR is
          Lookahead_Set => null,
          Next          => null);
 
+      Token_ID := Token.ID (Token_List.Token_Handle (Closure_Item.Pointer).all);
+
+      Used_Tokens (Token_ID) := True;
+
       --  Check all of the closure item's lookaheads
       while Lookahead /= null loop
          if Lookahead.Last = 0 then
@@ -377,7 +380,7 @@ package body OpenToken.Production.Parser.LALR is
               (From         => Source_Item,
                From_Set     => Source_Set,
                To           => Next_Item,
-               For_Token    => Token.ID (Token_List.Token_Handle (Closure_Item.Pointer).all),
+               For_Token    => Token_ID,
                Propagations => Propagations);
 
          else
@@ -386,12 +389,10 @@ package body OpenToken.Production.Parser.LALR is
             --  match the next_item.
 
             Next_Kernel := LRk.Find
-              (Left  => Next_Item,
-               Right => LRk.Goto_Set
+              (Left      => Next_Item,
+               Right     => LRk.Goto_Set
                  (From   => Source_Set,
-                  Symbol => Token.ID (Token_List.Token_Handle (Closure_Item.Pointer).all)
-                 ).all
-              );
+                  Symbol => Token_ID).all);
 
             if Next_Kernel /= null then
                if Trace then
@@ -403,8 +404,7 @@ package body OpenToken.Production.Parser.LALR is
 
                LRk.Include
                  (Set   => Next_Kernel.Lookahead_Set,
-                  Value => Lookahead.all
-                 );
+                  Value => Lookahead.all);
             end if;
 
          end if;
@@ -481,6 +481,7 @@ package body OpenToken.Production.Parser.LALR is
       First        : in     LRk.Derivation_Matrix;
       Kernels      : in out LRk.Item_Set_List;
       Accept_Index : in     Integer;
+      Used_Tokens  : in out Token.Token_Array_Boolean;
       Trace        : in     Boolean)
    is
 
@@ -492,18 +493,15 @@ package body OpenToken.Production.Parser.LALR is
         (Set       => new LRk.Item_Node,
          Goto_List => null,
          Index     => 0,
-         Next      => null
-        );
+         Next      => null);
 
-      Propagate_Lookahead : constant LRk.Item_Lookahead_Ptr :=
-        new LRk.Item_Lookahead'(Last       => 0,
-                                Lookaheads => (others => Tokenizer.Terminal_ID'First),
-                                Next       => null
-                               );
+      Propagate_Lookahead : constant LRk.Item_Lookahead_Ptr := new LRk.Item_Lookahead'
+        (Last       => 0,
+         Lookaheads => (others => Tokenizer.Terminal_ID'First),
+         Next       => null);
 
-      Closure     : LRk.Item_Set;
+      Closure : LRk.Item_Set;
 
-      --  A list of item lookahead propagations
       Propagation_List : Item_Item_List_Mapping_Ptr;
 
       use type LRk.Item_Set_Ptr;
@@ -519,22 +517,21 @@ package body OpenToken.Production.Parser.LALR is
          end if;
 
          --  Go through every item in the kernel set
-         Kernel_Item     := Kernel.Set;
+         Kernel_Item := Kernel.Set;
+
          while Kernel_Item /= null loop
             Kernel_Item_Set.Set.Prod    := Kernel_Item.Prod;
             Kernel_Item_Set.Set.Pointer := Kernel_Item.Pointer;
 
-            Closure := LRk.Closure (Set     => Kernel_Item_Set,
-                                    First   => First,
-                                    Grammar => Grammar
-                                   );
+            Closure := LRk.Closure (Kernel_Item_Set, First, Grammar);
 
             --  Go through every item in that item's closure
             Closure_Item := Closure.Set;
             while Closure_Item /= null loop
 
                Generate_Lookahead_Info
-                 (Kernel_Item, Kernel.all, Closure_Item.all, Accept_Index, Propagation_List, Trace);
+                 (Kernel_Item, Kernel.all, Closure_Item.all, Accept_Index, Propagation_List,
+                  Used_Tokens, Trace);
 
                Closure_Item := Closure_Item.Next;
             end loop;
@@ -550,7 +547,6 @@ package body OpenToken.Production.Parser.LALR is
          Print_Propagations (Propagation_List);
       end if;
 
-      --  Propagate the propagated lookaheads across the kernels
       Propagate_Lookaheads (Propagation_List, Trace);
 
       Free (Propagation_List);
@@ -957,20 +953,23 @@ package body OpenToken.Production.Parser.LALR is
    end Reduce_Stack;
 
    overriding function Generate
-     (Grammar           : in Production_List.Instance;
-      Analyzer          : in Tokenizer.Instance;
-      Trace             : in Boolean := False;
-      Put_Grammar       : in Boolean := False;
-      First_State_Index : in Integer := 1)
+     (Grammar              : in Production_List.Instance;
+      Analyzer             : in Tokenizer.Instance;
+      Non_Reporting_Tokens : in Token.Token_Array_Boolean;
+      Trace                : in Boolean := False;
+      Put_Grammar          : in Boolean := False;
+      First_State_Index    : in Integer := 1)
      return Instance
    is
       New_Parser  : Instance;
 
       First_Tokens : constant LRk.Derivation_Matrix := LRk.First_Derivations (Grammar, Trace);
 
-      Kernels      : LRk.Item_Set_List := LRk.LR0_Kernels (Grammar, First_Tokens, Trace, First_State_Index);
-      I            : LRk.Item_Set_Ptr  := Kernels.Head;
-      Accept_Index : Integer := 0;
+      Kernels       : LRk.Item_Set_List         := LRk.LR0_Kernels (Grammar, First_Tokens, Trace, First_State_Index);
+      I             : LRk.Item_Set_Ptr          := Kernels.Head;
+      Accept_Index  : Integer                   := 0;
+      Used_Tokens   : Token.Token_Array_Boolean := Non_Reporting_Tokens;
+      Unused_Tokens : Boolean                   := False;
 
       First_Production : OpenToken.Production.Instance renames
         Production_List.Get_Production (Production_List.Initial_Iterator (Grammar));
@@ -978,6 +977,8 @@ package body OpenToken.Production.Parser.LALR is
       use type LRk.Item_Set_Ptr;
    begin
       New_Parser.Analyzer := Analyzer;
+
+      Used_Tokens (LHS_ID (First_Production)) := True;
 
       --  Accept_Index identifies the kernel that is the start symbol
       --  production, which must be the first production in Grammar.
@@ -1001,7 +1002,17 @@ package body OpenToken.Production.Parser.LALR is
          Ada.Text_IO.Put_Line ("Accept_Index:" & Integer'Image (Accept_Index));
       end if;
 
-      Fill_In_Lookaheads (Grammar, First_Tokens, Kernels, Accept_Index, Trace);
+      Fill_In_Lookaheads (Grammar, First_Tokens, Kernels, Accept_Index, Used_Tokens, Trace);
+
+      for I in Token.Token_ID loop
+         if not Used_Tokens (I) then
+            if not Unused_Tokens then
+               Ada.Text_IO.Put_Line ("Unused tokens:");
+               Unused_Tokens := True;
+            end if;
+            Ada.Text_IO.Put_Line (Token.Token_Image (I));
+         end if;
+      end loop;
 
       if Trace then
          Ada.Text_IO.New_Line;
@@ -1020,6 +1031,9 @@ package body OpenToken.Production.Parser.LALR is
       end if;
 
       LRk.Free (Kernels);
+      if Unused_Tokens and not Trace then
+         raise Programmer_Error with "unused tokens; aborting";
+      end if;
       return New_Parser;
    end Generate;
 

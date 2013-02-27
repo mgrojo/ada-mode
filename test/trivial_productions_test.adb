@@ -90,7 +90,10 @@ package body Trivial_Productions_Test is
    begin
       --  The test is that there are no exceptions raised, either during grammar construction or parsing
 
-      Parser := LALR_Parsers.Generate (Grammar, Analyzer, Test_Case (Test).Debug);
+      Parser := LALR_Parsers.Generate
+        (Grammar, Analyzer,
+         Non_Reporting_Tokens => (EOF_ID => True, others => False),
+         Trace                => Test_Case (Test).Debug);
 
       OpenToken.Text_Feeder.String.Set (Feeder, Text);
       Analyzer.Reset;
@@ -181,7 +184,11 @@ package body Trivial_Productions_Test is
 
       --  FIXME: 'expecting' is wrong if leave out '('
 
-      Parser := LALR_Parsers.Generate (Grammar, Analyzer, Test_Case (Test).Debug, Test_Case (Test).Debug);
+      Parser := LALR_Parsers.Generate
+        (Grammar, Analyzer,
+         Non_Reporting_Tokens => (EOF_ID | Whitespace_ID => True, others => False),
+         Trace                => Test_Case (Test).Debug,
+         Put_Grammar          => Test_Case (Test).Debug);
 
       OpenToken.Text_Feeder.String.Set (Feeder, Text);
       Analyzer.Reset;

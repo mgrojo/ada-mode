@@ -44,13 +44,10 @@ package OpenToken.Production.Parser.LRk_Item is
       Next       : Item_Lookahead_Ptr;
    end record;
 
-   ----------------------------------------------------------------------------
-   --  Add the given lookahead to the given lookahead set if it is not already
-   --  in there
-   ----------------------------------------------------------------------------
-   procedure Include (Set   : in out Item_Lookahead_Ptr;
-                      Value : in     Item_Lookahead
-                     );
+   --  Add Value to Set if it is not already present
+   procedure Include
+     (Set   : in out Item_Lookahead_Ptr;
+      Value : in     Item_Lookahead);
 
    ----------------------------------------------------------------------------
    --  Add the given lookahead to the given lookahead set if it is not already
