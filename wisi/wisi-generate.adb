@@ -129,11 +129,12 @@ begin
    end case;
 
 exception
-when Syntax_Error =>
-   --  Error message already output via wisi.utils.Put_Error
-   null;
-
 when User_Error =>
    Standard.Ada.Command_Line.Set_Exit_Status (Standard.Ada.Command_Line.Failure);
    Put_Usage;
+
+when others =>
+   --  Error message already output via wisi.utils.Put_Error
+   Standard.Ada.Command_Line.Set_Exit_Status (Standard.Ada.Command_Line.Failure);
+
 end Wisi.Generate;

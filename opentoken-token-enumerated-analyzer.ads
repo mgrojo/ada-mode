@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
---  Copyright (C) 2002, 2003, 2009, 2012 Stephe Leake
+--  Copyright (C) 2002, 2003, 2009, 2012, 2013 Stephe Leake
 --  Copyright (C) 1999 FlightSafety International and Ted Dennison
 --
 --  This file is part of the OpenToken package.
@@ -58,6 +58,7 @@ generic
 package OpenToken.Token.Enumerated.Analyzer is
 
    subtype Terminal_ID is Token_ID range Token_ID'First .. Last_Terminal;
+   --  We can't define Nonterminal_ID here, because if Last_Terminal = Token_ID'last, there are no nonterminals.
 
    --  Descriptor for what an individual token in this language looks
    --  like. Also provides storage for Lexeme and Recognizer from

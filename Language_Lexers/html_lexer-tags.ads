@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 1999 Christoph Karl Walter Grein
+-- Copyright (C) 1999, 2013 Christoph Karl Walter Grein
 --
 -- This file is part of the OpenToken package.
 --
@@ -87,7 +87,7 @@ private package HTML_Lexer.Tags is
                       --
                       Whitespace, End_Of_Tag);
 
-   package Master_Tag_Token is new OpenToken.Token.Enumerated (Tag_Token);
+   package Master_Tag_Token is new OpenToken.Token.Enumerated (Tag_Token, Tag_Token'Image, Tag_Token'Width);
    package Tokenizer is new Master_Tag_Token.Analyzer;
 
    use type Ada.Strings.Maps.Character_Set;

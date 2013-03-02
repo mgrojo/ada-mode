@@ -91,7 +91,11 @@ begin
       end case;
    end;
 
-   Test_Parser := LALR_Parser.Generate (Grammar, Analyzer, OpenToken.Trace_Parse, OpenToken.Trace_Parse);
+   Test_Parser := LALR_Parser.Generate
+     (Grammar, Analyzer,
+      Non_Reporting_Tokens => (Whitespace_ID => True, others => False),
+      Trace                => OpenToken.Trace_Parse,
+      Put_Grammar          => OpenToken.Trace_Parse);
 
    if not Is_Open (Input_File) then
       Put_Line ("A simple calculator, as specified in example 5.10 in Aho, Sethi, and Ullman's");

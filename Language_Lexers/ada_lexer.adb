@@ -43,7 +43,7 @@ with OpenToken.Token.Enumerated.Analyzer;
 with OpenToken.Token.Enumerated;
 package body Ada_Lexer is
 
-   package Master_Ada_Token is new OpenToken.Token.Enumerated (Ada_Token);
+   package Master_Ada_Token is new OpenToken.Token.Enumerated (Ada_Token, Ada_Token'Image, Ada_Token'Width);
    package Tokenizer        is new Master_Ada_Token.Analyzer;
 
    Syntax : constant Tokenizer.Syntax :=

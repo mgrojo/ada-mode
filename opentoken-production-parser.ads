@@ -38,6 +38,8 @@ generic
    with package Tokenizer is new Token.Analyzer (<>);
 package OpenToken.Production.Parser is
 
+   subtype Nonterminal_ID is Token.Token_ID range Token.Token_ID'Succ (Tokenizer.Last_Terminal) .. Token.Token_ID'Last;
+
    type Instance is abstract tagged private;
 
    ----------------------------------------------------------------------------

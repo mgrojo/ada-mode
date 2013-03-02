@@ -155,18 +155,6 @@ is
    end "&";
 
 begin
-   if Verbosity > 0 then
-      declare
-         use Standard.Ada.Text_IO;
-      begin
-         Put_Line ("Tokens:");
-         for I in Token_IDs'Range loop
-            Put_Line (Token_IDs'Image (I) & " => " & Token_Image (I));
-         end loop;
-         New_Line;
-      end;
-   end if;
-
    begin
       Grammar := Production_Lists.Only
         (Nonterminals.Get (Accept_ID) <= Nonterminals.Get (Find_Token_ID (-Start_Token)) &
@@ -201,6 +189,15 @@ begin
       end;
    end loop;
 
+   --  List unused tokens first
+   Parser := LALR_Parsers.Generate
+     (Grammar,
+      Analyzers.Null_Analyzer,
+      Non_Reporting_Tokens => (others => False),
+      Trace                => Verbosity > 1,
+      Put_Grammar          => Verbosity > 0,
+      First_State_Index    => 0);
+
    if Verbosity > 0 then
       declare
          use Standard.Ada.Text_IO;
@@ -209,18 +206,16 @@ begin
          package Print_Production is new Productions.Print (Token_List_Print, Print_Action);
          package Print_Production_Lists is new Production_Lists.Print (Print_Production.Print);
       begin
+         Put_Line ("Tokens:");
+         for I in Token_IDs'Range loop
+            Put_Line (Token_IDs'Image (I) & " => " & Token_Image (I));
+         end loop;
+         New_Line;
+
          Put_Line ("Grammar:");
          Print_Production_Lists.Print (Grammar);
          New_Line;
       end;
    end if;
-
-   Parser := LALR_Parsers.Generate
-     (Grammar,
-      Analyzers.Null_Analyzer,
-      Non_Reporting_Tokens => (others => False),
-      Trace                => Verbosity > 1,
-      Put_Grammar          => Verbosity > 0,
-      First_State_Index    => 0);
 
 end Wisi.Test_Generate;

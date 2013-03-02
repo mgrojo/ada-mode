@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2009 Stephe Leake
+-- Copyright (C) 2009, 2013 Stephe Leake
 -- Copyright (C) 2000 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -48,7 +48,7 @@ package ASU_Example_4_46 is
    --  The complete list of tokens, with the terminals listed first.
    type Token_IDs is (Asterix_ID, ID_ID, Equals_ID, EOF_ID, Whitespace_ID, S_ID, L_ID, R_ID, S_Prime_ID);
 
-   package Master_Token is new OpenToken.Token.Enumerated (Token_IDs);
+   package Master_Token is new OpenToken.Token.Enumerated (Token_IDs, Token_IDs'Image, Token_IDs'Width);
    package Tokenizer is new Master_Token.Analyzer (Whitespace_ID);
    package Token_List is new Master_Token.List;
    package Nonterminal is new Master_Token.Nonterminal (Token_List);

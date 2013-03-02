@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 1999 Christoph Karl Walter Grein
+-- Copyright (C) 1999, 2013 Christoph Karl Walter Grein
 --
 -- This file is part of the OpenToken package.
 --
@@ -50,7 +50,7 @@ private package HTML_Lexer.Basic is
    -- Note that sequence of tokens is relevant since among competing
    -- tokens the first one wins.
 
-   package Master_Basic_Token is new OpenToken.Token.Enumerated (Basic_Token);
+   package Master_Basic_Token is new OpenToken.Token.Enumerated (Basic_Token, Basic_Token'Image, Basic_Token'Width);
    package Tokenizer is new Master_Basic_Token.Analyzer;
 
    use type Ada.Strings.Maps.Character_Set;

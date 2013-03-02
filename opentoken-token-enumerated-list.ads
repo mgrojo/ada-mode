@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2012 Stephe Leake
+-- Copyright (C) 2012, 2013 Stephe Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -83,6 +83,8 @@ package OpenToken.Token.Enumerated.List is
    --  Null_Iterator if there is no next token.
    ----------------------------------------------------------------------------
    procedure Next_Token (Iterator : in out List_Iterator);
+
+   function Next_Token (Iterator : in List_Iterator) return List_Iterator;
 
    ----------------------------------------------------------------------------
    --  Return the next Token in the list.

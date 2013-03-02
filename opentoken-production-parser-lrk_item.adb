@@ -68,7 +68,7 @@ package body OpenToken.Production.Parser.LRk_Item is
             if Need_Comma then
                Result := Result & ", ";
             end if;
-            Result     := Result & Token.Token_ID'Image (I);
+            Result     := Result & Token.Token_Image (I);
             Need_Comma := True;
          end if;
       end loop;
@@ -124,7 +124,7 @@ package body OpenToken.Production.Parser.LRk_Item is
 
          if Trace then
             if Added_Tokens /= Token_ID_Set'(others => False) then
-               Ada.Text_IO.Put_Line (Token.Token_ID'Image (Non_Terminal) & ": adding " & Image (Added_Tokens));
+               Ada.Text_IO.Put_Line (Token.Token_Image (Non_Terminal) & ": adding " & Image (Added_Tokens));
             end if;
          end if;
 
@@ -157,30 +157,26 @@ package body OpenToken.Production.Parser.LRk_Item is
       return Matrix;
    end First_Derivations;
 
-   --------------------------------------------------------------------------
-   --  Return an item node made from the given production and iterator
-   --  into the production's right hand side.
-   --------------------------------------------------------------------------
    function Item_Node_Of
      (Prod      : in OpenToken.Production.Instance;
       Iterator  : in Token_List.List_Iterator;
       Lookahead : in Item_Lookahead_Ptr := null;
-      Next      : in Item_Ptr      := null
-     ) return Item_Node is
-
+      Next      : in Item_Ptr      := null)
+     return Item_Node
+   is
       New_Item      : Item_Node;
       Lookahead_Set : Item_Lookahead_Ptr := Lookahead;
    begin
-      New_Item.Prod    := Prod;
-      New_Item.Pointer := Iterator;
-      New_Item.Next    := Next;
+      New_Item.Prod := Prod;
+      New_Item.Dot  := Iterator;
+      New_Item.Next := Next;
 
       while Lookahead_Set /= null loop
 
-         New_Item.Lookahead_Set := new Item_Lookahead'(Last       => Lookahead_Set.Last,
-                                                       Lookaheads => Lookahead_Set.Lookaheads,
-                                                       Next       => New_Item.Lookahead_Set
-                                                      );
+         New_Item.Lookahead_Set := new Item_Lookahead'
+           (Last       => Lookahead_Set.Last,
+            Lookaheads => Lookahead_Set.Lookaheads,
+            Next       => New_Item.Lookahead_Set);
          Lookahead_Set := Lookahead_Set.Next;
       end loop;
 
@@ -188,54 +184,42 @@ package body OpenToken.Production.Parser.LRk_Item is
 
    end Item_Node_Of;
 
-   --------------------------------------------------------------------------
-   --  Return an item node made from the given production. The pointer
-   --  will be set to the start of the right hand side.
-   --------------------------------------------------------------------------
-   function Item_Node_Of (Prod : in OpenToken.Production.Instance) return Item_Node is
-   begin
-      return (Prod          => Prod,
-              Pointer       => Token_List.Initial_Iterator (Prod.RHS.Tokens),
-              Lookahead_Set => null,
-              Next          => null
-             );
+   function Item_Node_Of (Prod : in OpenToken.Production.Instance) return Item_Node
+   is begin
+      return
+        (Prod          => Prod,
+         Dot           => Token_List.Initial_Iterator (Prod.RHS.Tokens),
+         Lookahead_Set => null,
+         Next          => null);
    end Item_Node_Of;
 
-   --------------------------------------------------------------------------
-   --  Return an item node made from the given production the iterator
-   --  refers to and the given lookahead. The lookaheads will be
-   --  copied.
-   --------------------------------------------------------------------------
-   function Item_Node_Of (Prod      : in Production_List.List_Iterator;
-                          Lookahead : in Item_Lookahead_Ptr := null) return Item_Node is
-      New_Item : Item_Node;
+   function Item_Node_Of
+     (Prod      : in Production_List.List_Iterator;
+      Lookahead : in Item_Lookahead_Ptr := null)
+     return Item_Node
+   is
+      New_Item      : Item_Node;
       Lookahead_Set : Item_Lookahead_Ptr := Lookahead;
    begin
-      New_Item.Prod    := Production_List.Get_Production (Prod);
-      New_Item.Pointer := Token_List.Initial_Iterator
-        (Production_List.Get_Production (Prod).RHS.Tokens);
+      New_Item.Prod := Production_List.Get_Production (Prod);
+      New_Item.Dot  := Token_List.Initial_Iterator (Production_List.Get_Production (Prod).RHS.Tokens);
 
       while Lookahead_Set /= null loop
-
-         New_Item.Lookahead_Set := new Item_Lookahead'(Last       => Lookahead_Set.Last,
-                                                       Lookaheads => Lookahead_Set.Lookaheads,
-                                                       Next       => New_Item.Lookahead_Set
-                                                      );
+         New_Item.Lookahead_Set := new Item_Lookahead'
+           (Last       => Lookahead_Set.Last,
+            Lookaheads => Lookahead_Set.Lookaheads,
+            Next       => New_Item.Lookahead_Set);
          Lookahead_Set := Lookahead_Set.Next;
       end loop;
 
       return New_Item;
    end Item_Node_Of;
 
-   --------------------------------------------------------------------------
-   --  Add the given lookahead to the given lookahead set if it is not
-   --  already in there
-   --------------------------------------------------------------------------
-   procedure Include (Set   : in out Item_Lookahead_Ptr;
-                      Value : in     Item_Lookahead;
-                      Added :    out Boolean
-                     ) is
-
+   procedure Include
+     (Set   : in out Item_Lookahead_Ptr;
+      Value : in     Item_Lookahead;
+      Added :    out Boolean)
+   is
       Found_Match : Boolean := False;
       Match_Set   : Item_Lookahead_Ptr := Set;
    begin
@@ -264,14 +248,10 @@ package body OpenToken.Production.Parser.LRk_Item is
       Added := not Found_Match;
    end Include;
 
-   --------------------------------------------------------------------------
-   --  Add the given lookahead to the given lookahead set if it is not
-   --  already in there
-   --------------------------------------------------------------------------
-   procedure Include (Set   : in out Item_Lookahead_Ptr;
-                      Value : in     Item_Lookahead
-                     ) is
-
+   procedure Include
+     (Set   : in out Item_Lookahead_Ptr;
+      Value : in     Item_Lookahead)
+   is
       Added : Boolean;
    begin
       Include (Set => Set, Value => Value, Added => Added);
@@ -283,7 +263,7 @@ package body OpenToken.Production.Parser.LRk_Item is
    is begin
       Target.Set := new Item_Node'
         (Prod          => New_Item.Prod,
-         Pointer       => New_Item.Pointer,
+         Dot           => New_Item.Dot,
          Lookahead_Set => New_Item.Lookahead_Set,
          Next          => Target.Set);
    end Add;
@@ -297,7 +277,7 @@ package body OpenToken.Production.Parser.LRk_Item is
       Current : Item_Ptr := Right.Set;
    begin
       while Current /= null loop
-         if Left.Prod = Current.Prod and Left.Pointer = Current.Pointer then
+         if Left.Prod = Current.Prod and Left.Dot = Current.Dot then
             return Current;
          end if;
          Current := Current.Next;
@@ -437,12 +417,11 @@ package body OpenToken.Production.Parser.LRk_Item is
 
    begin
       if Occurrance = null then
-         Existing_Set.Set :=
-           new Item_Node'(Prod          => New_Item.Prod,
-                          Pointer       => New_Item.Pointer,
-                          Lookahead_Set => New_Item.Lookahead_Set,
-                          Next          => Existing_Set.Set
-                         );
+         Existing_Set.Set := new Item_Node'
+           (Prod          => New_Item.Prod,
+            Dot           => New_Item.Dot,
+            Lookahead_Set => New_Item.Lookahead_Set,
+            Next          => Existing_Set.Set);
       else
          --  Merge their lookaheads.
          Source_Lookahead := New_Item.Lookahead_Set;
@@ -489,14 +468,12 @@ package body OpenToken.Production.Parser.LRk_Item is
       end if;
    end Merge;
 
-   ----------------------------------------------------------------------------
-   --  Return the closure of the given set of items over the given grammar.
-   ----------------------------------------------------------------------------
-   function Closure (Set     : in Item_Set;
-                     First   : in Derivation_Matrix;
-                     Grammar : in Production_List.Instance
-                    ) return Item_Set is
-
+   function Closure
+     (Set     : in Item_Set;
+      First   : in Derivation_Matrix;
+      Grammar : in Production_List.Instance)
+     return Item_Set
+   is
       use type Token.Token_ID;
       use type Token.Handle;
 
@@ -507,8 +484,7 @@ package body OpenToken.Production.Parser.LRk_Item is
       Start   : Item_Ptr;
       Finish  : Item_Ptr := null;
 
-      Nonterminal_ID : Token.Token_ID;
-      Next_Symbol    : Token_List.List_Iterator;
+      Next_Symbol         : Token_List.List_Iterator;
       Production_Iterator : Production_List.List_Iterator;
 
       Result : Item_Set;
@@ -517,19 +493,18 @@ package body OpenToken.Production.Parser.LRk_Item is
    begin
       --  Put copies of everything in the given item in the closure
       while Item /= null loop
-         Result.Set :=
-           new Item_Node'
+         Result.Set := new Item_Node'
            (Prod          => Item.Prod,
-            Pointer       => Item.Pointer,
+            Dot           => Item.Dot,
             Lookahead_Set => null,
             Next          => Result.Set);
 
          Lookahead := Item.Lookahead_Set;
          while Lookahead /= null loop
-            Result.Set.Lookahead_Set :=
-              new Item_Lookahead'(Last       => Lookahead.Last,
-                                  Lookaheads => Lookahead.Lookaheads,
-                                  Next       => Result.Set.Lookahead_Set);
+            Result.Set.Lookahead_Set := new Item_Lookahead'
+              (Last       => Lookahead.Last,
+               Lookaheads => Lookahead.Lookaheads,
+               Next       => Result.Set.Lookahead_Set);
 
             Lookahead := Lookahead.Next;
          end loop;
@@ -542,76 +517,70 @@ package body OpenToken.Production.Parser.LRk_Item is
       Start   := Result.Set;
       loop
 
-         --  If the item after the pointer is a nonterminal, find its
+         --  If the token after Dot is a nonterminal, find its
          --  productions and place them in the set.
-         if Token_List.Token_Handle (Current.Pointer) /= null and then
-           Token.ID (Token_List.Token_Handle (Current.Pointer).all) not in Tokenizer.Terminal_ID
+         if Token_List.Token_Handle (Current.Dot) /= null and then
+           Token.ID (Token_List.Token_Handle (Current.Dot).all) in Nonterminal_ID
          then
-            Nonterminal_ID := Token.ID (Token_List.Token_Handle (Current.Pointer).all);
+            declare
+               Item_Dot_ID : constant Token.Token_ID := Token.ID (Token_List.Token_Handle (Current.Dot).all);
+            begin
+               Next_Symbol := Current.Dot;
+               Token_List.Next_Token (Next_Symbol);
 
-            Next_Symbol := Current.Pointer;
-            Token_List.Next_Token (Next_Symbol);
+               --  Loop through all the productions
+               Production_Iterator := Production_List.Initial_Iterator (Grammar);
+               while not Production_List.Past_Last (Production_Iterator) loop
+                  if LHS_ID (Production_List.Get_Production (Production_Iterator)) = Item_Dot_ID then
 
-            --  Loop through all the productions
-            Production_Iterator := Production_List.Initial_Iterator (Grammar);
-            while not Production_List.Past_Last (Production_Iterator) loop
-               if
-                 Token.ID (Production_List.Get_Production (Production_Iterator).LHS.all) =
-                 Nonterminal_ID
-               then
+                     --  If the pointer in the initial production was at
+                     --  its end, we get its lookaheads.
+                     if Token_List.Token_Handle (Next_Symbol) = null then
+                        Merge_From := Item_Node_Of
+                          (Prod      => Production_Iterator,
+                           Lookahead => Current.Lookahead_Set);
 
-                  --  If the pointer in the initial production was at
-                  --  its end, we get its lookaheads.
-                  if Token_List.Token_Handle (Next_Symbol) = null then
-                     Merge_From :=
-                       Item_Node_Of (Prod      => Production_Iterator,
-                                     Lookahead => Current.Lookahead_Set
-                                    );
-                     Merge
-                       (New_Item     => Merge_From,
-                        Existing_Set => Result
-                       );
+                        Merge
+                          (New_Item     => Merge_From,
+                           Existing_Set => Result);
 
-                  elsif Token.ID (Token_List.Token_Handle (Next_Symbol).all) in Tokenizer.Terminal_ID then
+                     elsif Token.ID (Token_List.Token_Handle (Next_Symbol).all) in Tokenizer.Terminal_ID then
 
-                     Merge_From :=
-                       Item_Node_Of (Prod      => Production_Iterator,
-                                     Lookahead => new Item_Lookahead'
-                                       (Last       => 1,
-                                        Lookaheads => (1 => Token.ID (Token_List.Token_Handle (Next_Symbol).all)),
-                                        Next       => null
-                                       )
-                                    );
-                     Merge
-                       (New_Item     => Merge_From,
-                        Existing_Set => Result
-                       );
-                  else
+                        Merge_From := Item_Node_Of
+                          (Prod      => Production_Iterator,
+                           Lookahead => new Item_Lookahead'
+                             (Last       => 1,
+                              Lookaheads => (1 => Token.ID (Token_List.Token_Handle (Next_Symbol).all)),
+                              Next       => null));
 
-                     --  Loop through all the terminal IDs
-                     for Terminal in Tokenizer.Terminal_ID loop
+                        Merge
+                          (New_Item     => Merge_From,
+                           Existing_Set => Result);
+                     else
 
-                        if First (Token.ID (Token_List.Token_Handle (Next_Symbol).all)) (Terminal) then
-                           Merge_From :=
-                             Item_Node_Of (Prod      => Production_Iterator,
-                                           Lookahead => new Item_Lookahead'
-                                             (Last       => 1,
-                                              Lookaheads => (1 => Terminal),
-                                              Next       => null
-                                             )
-                                          );
-                           Merge
-                             (New_Item     => Merge_From,
-                              Existing_Set => Result
-                             );
-                        end if;
-                     end loop;
+                        --  Loop through all the terminal IDs
+                        for Terminal in Tokenizer.Terminal_ID loop
 
-                  end if; -- pointer is at last token on RHS, or terminal, or non-terminal
-               end if; -- we found a production for the non-terminal
+                           if First (Token.ID (Token_List.Token_Handle (Next_Symbol).all)) (Terminal) then
+                              Merge_From := Item_Node_Of
+                                (Prod      => Production_Iterator,
+                                 Lookahead => new Item_Lookahead'
+                                   (Last       => 1,
+                                    Lookaheads => (1 => Terminal),
+                                    Next       => null));
 
-               Production_List.Next_Production (Production_Iterator);
-            end loop;
+                              Merge
+                                (New_Item     => Merge_From,
+                                 Existing_Set => Result);
+                           end if;
+                        end loop;
+
+                     end if; -- pointer is at last token on RHS, or terminal, or non-terminal
+                  end if; -- we found a production for the non-terminal
+
+                  Production_List.Next_Production (Production_Iterator);
+               end loop;
+            end;
          end if; -- pointer is is at non-terminal
 
          --  When we get to the end of the set, see if we added any.
@@ -647,79 +616,62 @@ package body OpenToken.Production.Parser.LRk_Item is
 
       Goto_Set : Item_Set;
 
-      Item       : Item_Ptr := Kernel.Set;
-      Pointer    : Token_List.List_Iterator;
-      Prod       : OpenToken.Production.Instance;
-      Prod_Index : Production_List.List_Iterator;
-
-      Item_ID    : Token.Token_ID;
+      Item            : Item_Ptr := Kernel.Set;
+      Item_Pointer_ID : Token.Token_ID;
+      RHS_Pointer     : Token_List.List_Iterator;
+      Prod            : OpenToken.Production.Instance;
+      Prod_Index      : Production_List.List_Iterator;
    begin
 
       while Item /= null loop
 
-         --  Check kernel items to see if the symbol appears before any of their pointers
-         Pointer := Item.Pointer;
-         if
-           Token_List.Token_Handle (Pointer) /= null and then
-           Token.ID (Token_List.Token_Handle (Pointer).all) = Symbol
-         then
-            Token_List.Next_Token (Pointer);
-            Goto_Set.Set := new Item_Node'
-              (Item_Node_Of
-                 (Prod      => Item.Prod,
-                  Iterator  => Pointer,
-                  Lookahead => Item.Lookahead_Set,
-                  Next      => Goto_Set.Set));
-         end if;
+         if Token_List.Token_Handle (Item.Dot) /= null then
 
-         --  Check kernel items to see if symbol is in first tokens
-         --  for the item's next token.
-         if
-           Token_List.Token_Handle (Item.Pointer) /= null and then
-           Token.ID (Token_List.Token_Handle (Item.Pointer).all) not in Tokenizer.Terminal_ID and then
-           First_Tokens (Token.ID (Token_List.Token_Handle (Item.Pointer).all))(Symbol)
-         then
-            --  Find the production(s) that create that symbol and put
-            --  them in
-            Prod_Index := Production_List.Initial_Iterator (Grammar);
-            while not Production_List.Past_Last (Prod_Index) loop
+            Item_Pointer_ID := Token.ID (Token_List.Token_Handle (Item.Dot).all);
+            --  ID of token after Item Dot
 
-               Prod := Production_List.Get_Production (Prod_Index);
-               Pointer := Token_List.Initial_Iterator (Prod.RHS.Tokens);
+            if Item_Pointer_ID = Symbol then
+               Goto_Set.Set := new Item_Node'
+                 (Item_Node_Of
+                    (Prod      => Item.Prod,
+                     Iterator  => Token_List.Next_Token (Item.Dot),
+                     Lookahead => Item.Lookahead_Set,
+                     Next      => Goto_Set.Set));
+            end if;
 
-               --  if the left is a first token for the item's LHS and
-               --  the first token on the RHS matches the requested
-               --  symbol, put it in with the pointer after the
-               --  symbol.
-               Item_ID := Token.ID (Token_List.Token_Handle (Item.Pointer).all);
-               if
-                 Item_ID not in Tokenizer.Terminal_ID and then
-                 ((Item_ID = Token.ID (Prod.LHS.all) or First_Tokens (Item_ID)(Token.ID (Prod.LHS.all))) and
-                    Token_List.Token_Handle (Pointer) /= null) and then
-                 Token.ID (Token_List.Token_Handle (Pointer).all) = Symbol
-               then
+            if Item_Pointer_ID in Nonterminal_ID and then First_Tokens (Item_Pointer_ID)(Symbol) then
+               --  Find the production(s) that create that symbol and put
+               --  them in
+               Prod_Index := Production_List.Initial_Iterator (Grammar);
+               while not Production_List.Past_Last (Prod_Index) loop
 
-                  Token_List.Next_Token (Pointer);
-                  declare
-                     New_Item : constant Item_Node := Item_Node_Of
-                       (Prod     => Prod,
-                        Iterator => Pointer,
-                        Next     => Goto_Set.Set);
-                  begin
-                     if null = Find (New_Item, Goto_Set) then
-                        Goto_Set.Set := new Item_Node'(New_Item);
-                     else
-                        if Trace then
-                           Ada.Text_IO.Put_Line ("... already in goto set");
+                  Prod        := Production_List.Get_Production (Prod_Index);
+                  RHS_Pointer := Token_List.Initial_Iterator (Prod.RHS.Tokens);
+
+                  if (Token_List.Token_Handle (RHS_Pointer) /= null and then
+                        Token.ID (Token_List.Token_Handle (RHS_Pointer).all) = Symbol) and
+                    (Item_Pointer_ID = LHS_ID (Prod) or First_Tokens (Item_Pointer_ID)(LHS_ID (Prod)))
+                  then
+                     declare
+                        New_Item : constant Item_Node := Item_Node_Of
+                          (Prod     => Prod,
+                           Iterator => Token_List.Next_Token (RHS_Pointer),
+                           Next     => Goto_Set.Set);
+                     begin
+                        if null = Find (New_Item, Goto_Set) then
+                           Goto_Set.Set := new Item_Node'(New_Item);
+                        else
+                           if Trace then
+                              Ada.Text_IO.Put_Line ("... already in goto set");
+                           end if;
                         end if;
-                     end if;
-                  end;
-               end if;
+                     end;
+                  end if;
 
-               Production_List.Next_Production (Prod_Index);
-            end loop;
+                  Production_List.Next_Production (Prod_Index);
+               end loop;
+            end if;
          end if;
-
          Item := Item.Next;
       end loop;
 
@@ -968,7 +920,7 @@ package body OpenToken.Production.Parser.LRk_Item is
       Token_Index := Token_List.Initial_Iterator (Item.Prod.RHS.Tokens);
 
       while Token_List.Token_Handle (Token_Index) /= null loop
-         if Token_Index = Item.Pointer then
+         if Token_Index = Item.Dot then
             Result := Result & " ^ ";
          else
             Result := Result & " ";
@@ -976,7 +928,7 @@ package body OpenToken.Production.Parser.LRk_Item is
          Result := Result & Token_Name (Token_List.Token_Handle (Token_Index));
          Token_List.Next_Token (Token_Index);
       end loop;
-      if Token_List.Token_Handle (Item.Pointer) = null then
+      if Token_List.Token_Handle (Item.Dot) = null then
          Result := Result & " ^";
       end if;
 

@@ -49,43 +49,42 @@ package OpenToken.Production.Parser.LRk_Item is
      (Set   : in out Item_Lookahead_Ptr;
       Value : in     Item_Lookahead);
 
-   ----------------------------------------------------------------------------
-   --  Add the given lookahead to the given lookahead set if it is not already
-   --  in there. Added will be true if the item had to be added.
-   ----------------------------------------------------------------------------
-   procedure Include (Set   : in out Item_Lookahead_Ptr;
-                      Value : in     Item_Lookahead;
-                      Added :    out Boolean
-                     );
+   --  Add Value to Set if it is not already in there. Added will be
+   --  true if the item had to be added.
+   procedure Include
+     (Set   : in out Item_Lookahead_Ptr;
+      Value : in     Item_Lookahead;
+      Added :    out Boolean);
 
    --  The structure for actual items
    type Item_Node;
    type Item_Ptr is access Item_Node;
    type Item_Node is record
       Prod          : OpenToken.Production.Instance;
-      Pointer       : Token_List.List_Iterator;
+      Dot           : Token_List.List_Iterator; --  token after item Dot
       Lookahead_Set : Item_Lookahead_Ptr;
       Next          : Item_Ptr;
    end record;
 
    ----------------------------------------------------------------------------
-   --  Return an item node made from the given production and iterator into
-   --  the production's right hand side.
+   --  Return an item node made from Prod, Iterator, Lookahead, Next.
+   --  Iterator points to Dot in Prod's right hand side.
    ----------------------------------------------------------------------------
    function Item_Node_Of
      (Prod      : in OpenToken.Production.Instance;
       Iterator  : in Token_List.List_Iterator;
       Lookahead : in Item_Lookahead_Ptr := null;
-      Next      : in Item_Ptr           := null
-
-     ) return Item_Node;
+      Next      : in Item_Ptr           := null)
+     return Item_Node;
 
    ----------------------------------------------------------------------------
    --  Return an item node made from the given production the iterator refers
    --  to and the given lookahead. The lookaheads will be copied.
    ----------------------------------------------------------------------------
-   function Item_Node_Of (Prod      : in Production_List.List_Iterator;
-                          Lookahead : in Item_Lookahead_Ptr := null) return Item_Node;
+   function Item_Node_Of
+     (Prod      : in Production_List.List_Iterator;
+      Lookahead : in Item_Lookahead_Ptr := null)
+     return Item_Node;
 
    ----------------------------------------------------------------------------
    --  Return an item node made from the given production. The pointer will be
@@ -183,9 +182,7 @@ package OpenToken.Production.Parser.LRk_Item is
 
    function Image (Item : in Token_ID_Set) return String;
 
-   type Derivation_Matrix is array
-     (Token.Token_ID'Succ (Tokenizer.Last_Terminal) .. Token.Token_ID'Last) of
-     Token_ID_Set;
+   type Derivation_Matrix is array (Nonterminal_ID) of Token_ID_Set;
 
    function First_Derivations
      (Grammar : in Production_List.Instance;
@@ -199,6 +196,8 @@ package OpenToken.Production.Parser.LRk_Item is
       First   : in Derivation_Matrix;
       Grammar : in Production_List.Instance)
      return Item_Set;
+   --  Return the closure of Set, First over Grammar.
+   --
    --  The result will contain only one item. This is done
    --  so that they each get their own look-aheads.
 

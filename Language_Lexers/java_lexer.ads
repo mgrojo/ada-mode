@@ -124,7 +124,7 @@ package Java_Lexer is
       --
       End_of_File_T);
 
-   package Master_Java_Token is new OpenToken.Token.Enumerated (Java_Token);
+   package Master_Java_Token is new OpenToken.Token.Enumerated (Java_Token, Java_Token'Image, Java_Token'Width);
    package Tokenizer is new Master_Java_Token.Analyzer;
 
    Syntax : constant Tokenizer.Syntax :=

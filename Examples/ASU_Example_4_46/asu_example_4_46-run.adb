@@ -1,5 +1,6 @@
 -------------------------------------------------------------------------------
 --
+-- Copyright (C) 2013 Stephe Leake
 -- Copyright (C) 1999,2000 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -33,9 +34,7 @@ procedure ASU_Example_4_46.Run is
 
    --  The lalr parser instance.
    Test_Parser : LALR_Parser.Instance :=
-     LALR_Parser.Generate (Grammar  => Grammar,
-                           Analyzer => Analyzer
-                          );
+     LALR_Parser.Generate (Grammar, Analyzer, Non_Reporting_Tokens => (Whitespace_ID => True, others => False));
 
    Test_File_Name : constant String := "Example.txt";
 begin

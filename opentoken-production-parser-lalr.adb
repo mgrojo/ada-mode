@@ -356,19 +356,19 @@ package body OpenToken.Production.Parser.LALR is
       --  If the closure item doesn't have a token after the pointer,
       --  there's nothing else to do. FIXME: default action should be
       --  reduce in this case; no need for lookaheads
-      if Token_List.Token_Handle (Closure_Item.Pointer) = null then
+      if Token_List.Token_Handle (Closure_Item.Dot) = null then
          return;
       end if;
 
-      Next_Token := Closure_Item.Pointer;
+      Next_Token := Closure_Item.Dot;
       Token_List.Next_Token (Next_Token); --  First token after pointer
-      Next_Item :=
+      Next_Item  :=
         (Prod          => Closure_Item.Prod,
-         Pointer       => Next_Token,
+         Dot           => Next_Token,
          Lookahead_Set => null,
          Next          => null);
 
-      Token_ID := Token.ID (Token_List.Token_Handle (Closure_Item.Pointer).all);
+      Token_ID := Token.ID (Token_List.Token_Handle (Closure_Item.Dot).all);
 
       Used_Tokens (Token_ID) := True;
 
@@ -520,8 +520,8 @@ package body OpenToken.Production.Parser.LALR is
          Kernel_Item := Kernel.Set;
 
          while Kernel_Item /= null loop
-            Kernel_Item_Set.Set.Prod    := Kernel_Item.Prod;
-            Kernel_Item_Set.Set.Pointer := Kernel_Item.Pointer;
+            Kernel_Item_Set.Set.Prod := Kernel_Item.Prod;
+            Kernel_Item_Set.Set.Dot  := Kernel_Item.Dot;
 
             Closure := LRk.Closure (Kernel_Item_Set, First, Grammar);
 
@@ -761,7 +761,7 @@ package body OpenToken.Production.Parser.LALR is
 
          Item := Closure.Set;
          while Item /= null loop
-            if Item.Pointer = Token_List.Null_Iterator then
+            if Item.Dot = Token_List.Null_Iterator then
                --  Pointer is at the end of the production; add a reduce or accept action.
 
                --  Find the length of the producion to save time during reductions
@@ -816,37 +816,33 @@ package body OpenToken.Production.Parser.LALR is
 
                   Lookahead := Lookahead.Next;
                end loop;
-            elsif
-              Token.ID (Token_List.Token_Handle (Item.Pointer).all) in
-              Tokenizer.Terminal_ID
-            then
-               --  Pointer is before a terminal token.
 
-               if Trace then
-                  Ada.Text_IO.Put_Line
-                    (Token.Token_ID'Image (Token.ID (Token_List.Token_Handle (Item.Pointer).all)) &
-                       " => Shift");
-               end if;
+            elsif Token.ID (Token_List.Token_Handle (Item.Dot).all) in Tokenizer.Terminal_ID then
+               --  Dot is before a terminal token.
+               declare
+                  Item_Dot_ID : constant Token.Token_ID := Token.ID (Token_List.Token_Handle (Item.Dot).all);
+                  --  ID of token after Item.Dot
+               begin
+                  if Trace then
+                     Ada.Text_IO.Put_Line (Token.Token_Image (Item_Dot_ID) & " => Shift");
+                  end if;
 
-               Add_Action
-                 (Symbol          => Token.ID (Token_List.Token_Handle (Item.Pointer).all),
-                  Action          =>
-                    (Verb         => Shift,
-                     State        => State_Index
-                       (LRk.Goto_Set
-                          (From   => Kernel.all,
-                           Symbol => Token.ID (Token_List.Token_Handle (Item.Pointer).all)).Index)),
-                  Action_List     => Table (State_Index (Kernel.Index)).Action_List,
-                  Source          => Kernel.all,
-                  Conflicts       => Conflicts);
-
+                  Add_Action
+                    (Symbol      => Item_Dot_ID,
+                     Action      =>
+                       (Verb     => Shift,
+                        State    => State_Index (LRk.Goto_Set (Kernel.all, Item_Dot_ID).Index)),
+                     Action_List => Table (State_Index (Kernel.Index)).Action_List,
+                     Source      => Kernel.all,
+                     Conflicts   => Conflicts);
+               end;
             else
                --  Pointer is before a non-terminal token; action is
                --  determined by the lookahead, handled above.
 
                if Trace then
                   Ada.Text_IO.Put_Line
-                    (Token.Token_ID'Image (Token.ID (Token_List.Token_Handle (Item.Pointer).all)) &
+                    (Token.Token_ID'Image (Token.ID (Token_List.Token_Handle (Item.Dot).all)) &
                        " => no action");
                end if;
             end if;

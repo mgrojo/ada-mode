@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2002, 2003, 2012 Stephe Leake
+-- Copyright (C) 2002, 2003, 2012, 2013 Stephe Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -180,9 +180,6 @@ package body OpenToken.Token.Enumerated.List is
       return List_Iterator (List.Head);
    end Initial_Iterator;
 
-   ----------------------------------------------------------------------------
-   --  Move the iterator down the list to the next token.
-   ----------------------------------------------------------------------------
    procedure Next_Token (Iterator : in out List_Iterator) is
    begin
       if Iterator /= null then
@@ -190,9 +187,11 @@ package body OpenToken.Token.Enumerated.List is
       end if;
    end Next_Token;
 
-   ----------------------------------------------------------------------------
-   --  Return the next Token in the list.
-   ----------------------------------------------------------------------------
+   function Next_Token (Iterator : in List_Iterator) return List_Iterator
+   is begin
+      return List_Iterator (Iterator.Next);
+   end Next_Token;
+
    function Token_Handle (Iterator : in List_Iterator) return OpenToken.Token.Enumerated.Handle is
    begin
       if Iterator = null then

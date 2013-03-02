@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2010 Stephe Leake
+-- Copyright (C) 2010, 2013 Stephe Leake
 -- Copyright (C) 2000 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -49,7 +49,7 @@ package ASU_Example_5_10_LR is
                       Multiply_ID, EOF_ID, Whitespace_ID, L_ID, E_ID, T_ID, F_ID);
 
    --  Instantiate all the nessecary packages
-   package Master_Token is new OpenToken.Token.Enumerated (Token_IDs);
+   package Master_Token is new OpenToken.Token.Enumerated (Token_IDs, Token_IDs'Image, Token_IDs'Width);
    package Tokenizer is new Master_Token.Analyzer (Whitespace_ID);
    package Token_List is new Master_Token.List;
    package Nonterminal is new Master_Token.Nonterminal (Token_List);
