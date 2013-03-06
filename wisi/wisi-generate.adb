@@ -21,6 +21,7 @@ pragma License (GPL);
 
 with Ada.Command_Line;
 with Ada.Directories;
+with Ada.Exceptions;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO;
 with Wisi.Declarations;
@@ -121,7 +122,8 @@ begin
 
    case Output_Language is
    when Ada =>
-      Wisi.Output_Ada (-Input_File_Name, -Output_File_Root, Copyright, Prologue, Keywords, Tokens, Rules);
+      Wisi.Output_Ada
+        (-Input_File_Name, -Output_File_Root, Copyright, Prologue, Keywords, Tokens, Start_Token, Rules);
    when Elisp =>
       Wisi.Output_Elisp (-Output_File_Root, Copyright, Prologue, Keywords, Tokens, Start_Token, Rules);
    when Test =>
@@ -133,8 +135,15 @@ when User_Error =>
    Standard.Ada.Command_Line.Set_Exit_Status (Standard.Ada.Command_Line.Failure);
    Put_Usage;
 
-when others =>
-   --  Error message already output via wisi.utils.Put_Error
-   Standard.Ada.Command_Line.Set_Exit_Status (Standard.Ada.Command_Line.Failure);
+when E :  others =>
+   --  FIXME: for some exceptions, Error message already output via wisi.utils.Put_Error
+   declare
+      use Standard.Ada.Text_IO;
+      use Standard.Ada.Exceptions;
+      use Standard.Ada.Command_Line;
+   begin
+      Put_Line (Exception_Name (E) & ": " & Exception_Message (E));
+      Set_Exit_Status (Failure);
+   end;
 
 end Wisi.Generate;

@@ -27,6 +27,7 @@
 ^build/windows_debug/.*\.exe$
 ^build/windows_debug/.*\.out$
 ^build/windows_debug/.*\.output$
+^build/windows_debug/.*\.parse$
 ^build/windows_debug/.*\.txt$
 ^build/windows_debug/obj$
 ^build/windows_debug/obj_tree$

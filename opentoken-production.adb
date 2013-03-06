@@ -74,34 +74,38 @@ package body OpenToken.Production is
       return (Token_List.Null_List, null, Index);
    end "+";
 
-   function "<=" (LHS : in Nonterminal.Handle;
-                  RHS : in Right_Hand_Side
-                 ) return Instance is
-   begin
+   function "<="
+     (LHS : in Nonterminal.Handle;
+      RHS : in Right_Hand_Side)
+     return Instance
+   is begin
       return (LHS => LHS,
-              RHS => RHS
-             );
+              RHS => RHS);
    end "<=";
 
-   function "<=" (LHS : in Nonterminal.Class;
-                  RHS : in Right_Hand_Side
-                 ) return Instance is
+   function "<="
+     (LHS : in Nonterminal.Class;
+      RHS : in Right_Hand_Side)
+     return Instance
+   is
+      use type Nonterminal.Synthesize;
    begin
-      return (LHS => new Nonterminal.Class'(LHS),
-              RHS => RHS
-             );
+      if RHS.Action = null then
+         return (LHS => new Nonterminal.Class'(LHS),
+                 RHS => (RHS.Tokens, Nonterminal.Synthesize_Default, RHS.Index));
+      else
+         return (LHS => new Nonterminal.Class'(LHS),
+                 RHS => RHS);
+      end if;
    end "<=";
 
-   ----------------------------------------------------------------------------
-   --  Build productions using the default synthesization routines.
-   ----------------------------------------------------------------------------
-   function "<=" (LHS : in Nonterminal.Handle;
-                  RHS : in Token_List.Instance
-                 ) return Instance is
-   begin
+   function "<="
+     (LHS : in Nonterminal.Handle;
+      RHS : in Token_List.Instance)
+     return Instance
+   is begin
       return (LHS => LHS,
-              RHS => RHS + Nonterminal.Synthesize_Default
-             );
+              RHS => RHS + Nonterminal.Synthesize_Default);
    end "<=";
 
    function "<=" (LHS : in Nonterminal.Class;

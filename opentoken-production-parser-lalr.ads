@@ -36,29 +36,22 @@ package OpenToken.Production.Parser.LALR is
 
    type Instance is new OpenToken.Production.Parser.Instance with private;
 
+   overriding function Generate
+     (Grammar           : in Production_List.Instance;
+      Analyzer          : in Tokenizer.Instance;
+      Trace             : in Boolean := False;
+      Put_Grammar       : in Boolean := False;
+      First_State_Index : in Integer := 1)
+     return Instance;
    --  We don't use OpenToken.Trace here; we often want to see a trace
    --  of the parser execution without the parser generation.
    --  Analyzer is copied.
-   overriding function Generate
-     (Grammar              : in Production_List.Instance;
-      Analyzer             : in Tokenizer.Instance;
-      Non_Reporting_Tokens : in Token.Token_Array_Boolean;
-      Trace                : in Boolean := False;
-      Put_Grammar          : in Boolean := False;
-      First_State_Index    : in Integer := 1)
-     return Instance;
 
    overriding procedure Parse (Parser : in out Instance);
 
-   --------------------------------------------------------------------------
-   --  Free any resources used by the given parser. It will be invalid
-   --  after this call.
-   --------------------------------------------------------------------------
    procedure Cleanup (Parser : in out Instance) is null;
+   --  Free any resources used by Parser.
 
-   --------------------------------------------------------------------------
-   --  Put the parse table for Parser to Ada.Text_IO.Current_Output.
-   --------------------------------------------------------------------------
    procedure Put_Table (Parser : in Instance);
 
 private

@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2012 Stephen Leake
+-- Copyright (C) 2012, 2013 Stephen Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -43,17 +43,15 @@ package OpenToken.Text_Feeder.Text_IO is
    --  Text_IO's current input file.
    type Instance is new OpenToken.Text_Feeder.Instance with private;
 
-   ----------------------------------------------------------------------------
-   --  Create a Text Feeder for the given Text_IO file.
-   --
    --  We don't declare Create (File_Name), because then we would need
    --  to declare Close (Instance), and we can't close a File_Access,
-   --  since it is 'access constant'; it is not allowed to close
-   --  Ada.Text_IO.Current_Input, and we support reading from
+   --  since it is 'access constant'. In addition, it is not allowed
+   --  to close Ada.Text_IO.Current_Input, and we support reading from
    --  Current_Input.
-   ----------------------------------------------------------------------------
+
    function Create (File_Ptr : in Ada.Text_IO.File_Access) return Instance;
    function Create (File_Ptr : in Ada.Text_IO.File_Access) return Text_Feeder_Ptr;
+   --  File_Ptr must be open.
 
    --------------------------------------------------------------------------
    --  This procedure returns strings for the analyzer. If the end of

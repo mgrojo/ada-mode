@@ -125,7 +125,7 @@ package OpenToken.Production.Parser.LRk_Item is
      (Left  : in Item_Node;
       Right : in Item_Set)
      return Item_Ptr;
-   --  Return a pointer to Left in Right, null if not found.
+   --  Return a pointer to an item in Right that matches Left.Prod, Left.Dot, null if not found.
 
    function Find
      (Left  : in Item_Set;
@@ -191,12 +191,13 @@ package OpenToken.Production.Parser.LRk_Item is
    --  For each nonterminal in the given grammar, find the set of
    --  tokens that its first term could start with.
 
-   function Closure
+   function Lookahead_Closure
      (Set     : in Item_Set;
       First   : in Derivation_Matrix;
       Grammar : in Production_List.Instance)
      return Item_Set;
-   --  Return the closure of Set, First over Grammar.
+   --  Return the lookahead closure of Set over Grammar. First must be
+   --  the result of First_Derivations.
    --
    --  The result will contain only one item. This is done
    --  so that they each get their own look-aheads.

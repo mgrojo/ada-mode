@@ -1,0 +1,186 @@
+FIXME: actually bad; missing lookahead EQUAL_GREATER for primary <= name ^?
+
+;;; case_expression-wy.el --- Generated parser support file
+
+;; Copyright (C) 2013 Stephen Leake.  All Rights Reserved.
+
+;; This program is free software; you can redistribute it and/or
+;; modify it under the terms of the GNU General Public License as
+;; published by the Free Software Foundation; either version 2, or (at
+;; your option) any later version.
+;;
+;; This software is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;; General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
+
+;; PLEASE DO NOT MANUALLY EDIT THIS FILE!  It is automatically
+;; generated from the grammar file case_expression.wy
+
+(require 'wisi)
+(require 'semantic/lex)
+(require 'wisi-compile)
+
+(defconst case_expression-wy--keyword-table
+  (semantic-lex-make-keyword-table
+   '(
+    ("and" . AND)
+    ("case" . CASE)
+    ("is" . IS)
+    ("range" . RANGE)
+    ("when" . WHEN)
+    )
+   nil)
+  "Table of language keywords.")
+
+(defconst case_expression-wy--token-table
+  (semantic-lex-make-type-table
+   '(
+     ("punctuation"
+      (DOT_DOT . "..")
+      (EQUAL . "=")
+      (EQUAL_GREATER . "=>")
+      (GREATER_EQUAL . ">=")
+      (MINUS . "-")
+      (PLUS . "+")
+      (STAR_STAR . "**")
+      (TICK . "'")
+     )
+     ("symbol"
+      (IDENTIFIER)
+     )
+     ("string"
+      (STRING_LITERAL)
+     )
+    )
+   nil)
+  "Table of language tokens.")
+
+(defconst case_expression-wy--parse-table
+   (wisi-compile-grammar
+   '((DOT_DOT EQUAL EQUAL_GREATER GREATER_EQUAL MINUS PLUS STAR_STAR TICK IDENTIFIER STRING_LITERAL AND CASE IS RANGE WHEN )
+     ((binary_adding_operator
+       ((PLUS ))
+       ((MINUS )))
+      (case_expression
+       ((CASE factor_list IS WHEN discrete_choice EQUAL_GREATER factor_list )
+        (setq wisi-test-success t)))
+      (choice_expression
+       ((choice_relation ))
+       ((choice_relation_and_list )))
+      (choice_relation_and_list
+       ((choice_relation AND choice_relation ))
+       ((choice_relation_and_list AND choice_relation )))
+      (choice_relation
+       ((factor_list relational_operator factor_list ))
+       ((factor_list )))
+      (discrete_choice
+       ((choice_expression ))
+       ((range )))
+      (factor
+       ((primary STAR_STAR primary ))
+       ((primary )))
+      (name
+       ((IDENTIFIER ))
+       ((STRING_LITERAL )))
+      (primary
+       ((name )))
+      (range
+       ((name TICK RANGE ))
+       ((factor_list DOT_DOT factor_list )))
+      (relational_operator
+       ((EQUAL ))
+       ((GREATER_EQUAL )))
+      (factor_list
+       ((factor ))
+       ((factor_list binary_adding_operator factor ))))
+     [((default . error) (CASE .  1))
+      ((default . error) (IDENTIFIER .  4) (STRING_LITERAL .  5))
+      ((default . error) ($EOI .  3))
+      ((default . error) ($EOI . accept) (WHEN . accept) (RANGE . accept) (IS . accept) (CASE . accept) (AND . accept) (STRING_LITERAL . accept) (IDENTIFIER . accept) (TICK . accept) (STAR_STAR . accept) (PLUS . accept) (MINUS . accept) (GREATER_EQUAL . accept) (EQUAL_GREATER . accept) (EQUAL . accept) (DOT_DOT . accept))
+      ((default . error) ($EOI . (name . 0)) (AND . (name . 0)) (EQUAL_GREATER . (name . 0)) (IS . (name . 0)) (TICK . (name . 0)) (DOT_DOT . (name . 0)) (STAR_STAR . (name . 0)) (PLUS . (name . 0)) (MINUS . (name . 0)) (GREATER_EQUAL . (name . 0)) (EQUAL . (name . 0)))
+      ((default . error) ($EOI . (name . 1)) (AND . (name . 1)) (EQUAL_GREATER . (name . 1)) (IS . (name . 1)) (TICK . (name . 1)) (DOT_DOT . (name . 1)) (STAR_STAR . (name . 1)) (PLUS . (name . 1)) (MINUS . (name . 1)) (GREATER_EQUAL . (name . 1)) (EQUAL . (name . 1)))
+      ((default . error) ($EOI . (factor_list . 0)) (AND . (factor_list . 0)) (IS . (factor_list . 0)) (DOT_DOT . (factor_list . 0)) (EQUAL_GREATER . (factor_list . 0)) (EQUAL . (factor_list . 0)) (GREATER_EQUAL . (factor_list . 0)) (MINUS . (factor_list . 0)) (PLUS . (factor_list . 0)))
+      ((default . error) ($EOI . (primary . 0)) (AND . (primary . 0)) (EQUAL_GREATER . (primary . 0)) (DOT_DOT . (primary . 0)) (IS . (primary . 0)) (EQUAL . (primary . 0)) (GREATER_EQUAL . (primary . 0)) (MINUS . (primary . 0)) (PLUS . (primary . 0)) (STAR_STAR . (primary . 0)))
+      ((default . error) ($EOI . (factor . 1)) (AND . (factor . 1)) (EQUAL_GREATER . (factor . 1)) (IS . (factor . 1)) (DOT_DOT . (factor . 1)) (PLUS . (factor . 1)) (MINUS . (factor . 1)) (GREATER_EQUAL . (factor . 1)) (EQUAL . (factor . 1)) (STAR_STAR .  14))
+      ((default . error) (IS .  12) (PLUS .  11) (MINUS .  10))
+      ((default . error) (IDENTIFIER . (binary_adding_operator . 1)) (STRING_LITERAL . (binary_adding_operator . 1)))
+      ((default . error) (IDENTIFIER . (binary_adding_operator . 0)) (STRING_LITERAL . (binary_adding_operator . 0)))
+      ((default . error) (WHEN .  17))
+      ((default . error) (IDENTIFIER .  4) (STRING_LITERAL .  5))
+      ((default . error) (IDENTIFIER .  4) (STRING_LITERAL .  5))
+      ((default . error) ($EOI . (factor . 0)) (AND . (factor . 0)) (EQUAL_GREATER . (factor . 0)) (IS . (factor . 0)) (DOT_DOT . (factor . 0)) (PLUS . (factor . 0)) (MINUS . (factor . 0)) (GREATER_EQUAL . (factor . 0)) (EQUAL . (factor . 0)))
+      ((default . error) (DOT_DOT . (factor_list . 1)) (EQUAL_GREATER . (factor_list . 1)) (EQUAL . (factor_list . 1)) (GREATER_EQUAL . (factor_list . 1)) (AND . (factor_list . 1)) ($EOI . (factor_list . 1)) (IS . (factor_list . 1)) (MINUS . (factor_list . 1)) (PLUS . (factor_list . 1)))
+      ((default . error) (IDENTIFIER .  4) (STRING_LITERAL .  5))
+      ((default . error) (EQUAL_GREATER . (discrete_choice . 0)))
+      ((default . error) (AND .  32) (EQUAL_GREATER . (choice_expression . 1)))
+      ((default . error) (AND .  31) (EQUAL_GREATER . (choice_expression . 0)))
+      ((default . error) (EQUAL_GREATER .  30))
+      ((default . error) (TICK .  29) (DOT_DOT . (primary . 0)) (MINUS . (primary . 0)) (PLUS . (primary . 0)) (STAR_STAR . (primary . 0)))
+      ((default . error) (EQUAL_GREATER . (discrete_choice . 1)))
+      ((default . error) (DOT_DOT .  25) (EQUAL_GREATER . (choice_relation . 1)) (AND . (choice_relation . 1)) (EQUAL .  26) (GREATER_EQUAL .  27) (PLUS .  11) (MINUS .  10))
+      ((default . error) (IDENTIFIER .  4) (STRING_LITERAL .  5))
+      ((default . error) (IDENTIFIER . (relational_operator . 0)) (STRING_LITERAL . (relational_operator . 0)))
+      ((default . error) (IDENTIFIER . (relational_operator . 1)) (STRING_LITERAL . (relational_operator . 1)))
+      ((default . error) (IDENTIFIER .  4) (STRING_LITERAL .  5))
+      ((default . error) (RANGE .  37))
+      ((default . error) (IDENTIFIER .  4) (STRING_LITERAL .  5))
+      ((default . error) (IDENTIFIER .  4) (STRING_LITERAL .  5))
+      ((default . error) (IDENTIFIER .  4) (STRING_LITERAL .  5))
+      ((default . error) (EQUAL_GREATER . (choice_relation_and_list . 1)) (AND . (choice_relation_and_list . 1)))
+      ((default . error) (EQUAL_GREATER . (choice_relation . 1)) (AND . (choice_relation . 1)) (EQUAL .  26) (GREATER_EQUAL .  27) (PLUS .  11) (MINUS .  10))
+      ((default . error) (EQUAL_GREATER . (choice_relation_and_list . 0)) (AND . (choice_relation_and_list . 0)))
+      ((default . error) ($EOI . (case_expression . 0)) (PLUS .  11) (MINUS .  10))
+      ((default . error) (EQUAL_GREATER . (range . 0)))
+      ((default . error) (EQUAL_GREATER . (choice_relation . 0)) (AND . (choice_relation . 0)) (PLUS .  11) (MINUS .  10))
+      ((default . error) (EQUAL_GREATER . (range . 1)) (PLUS .  11) (MINUS .  10))]
+     [((case_expression . 2))
+      ((factor . 6)(name . 7)(primary . 8)(factor_list . 9))
+      nil
+      nil
+      nil
+      nil
+      nil
+      nil
+      nil
+      ((binary_adding_operator . 13))
+      nil
+      nil
+      nil
+      ((factor . 16)(name . 7)(primary . 8))
+      ((name . 7)(primary . 15))
+      nil
+      nil
+      ((choice_expression . 18)(choice_relation_and_list . 19)(choice_relation . 20)(discrete_choice . 21)(factor . 6)(name . 22)(primary . 8)(range . 23)(factor_list . 24))
+      nil
+      nil
+      nil
+      nil
+      nil
+      nil
+      ((binary_adding_operator . 13)(relational_operator . 28))
+      ((factor . 6)(name . 7)(primary . 8)(factor_list . 39))
+      nil
+      nil
+      ((factor . 6)(name . 7)(primary . 8)(factor_list . 38))
+      nil
+      ((factor . 6)(name . 7)(primary . 8)(factor_list . 36))
+      ((choice_relation . 35)(factor . 6)(name . 7)(primary . 8)(factor_list . 34))
+      ((choice_relation . 33)(factor . 6)(name . 7)(primary . 8)(factor_list . 34))
+      nil
+      ((binary_adding_operator . 13)(relational_operator . 28))
+      nil
+      ((binary_adding_operator . 13))
+      nil
+      ((binary_adding_operator . 13))
+      ((binary_adding_operator . 13))]))
+  "Parser table.")
+
+(provide 'case_expression-wy)
+
+;; end of file

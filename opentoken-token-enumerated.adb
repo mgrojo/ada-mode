@@ -42,6 +42,11 @@ package body OpenToken.Token.Enumerated is
       end if;
    end Get;
 
+   function "+" (Item : in Token_ID) return Instance'Class
+   is begin
+      return Get (Item);
+   end "+";
+
    procedure Set_Build (Token : in out Instance'Class; Build : in Action)
    is begin
       Token.Build := Build;

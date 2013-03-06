@@ -45,9 +45,6 @@ package OpenToken.Recognizer.Based_Real_Ada_Style is
 
    type Instance is new OpenToken.Recognizer.Instance with private;
 
-   ----------------------------------------------------------------------------
-   --  This procedure will be called to create a Based Integer token.
-   ----------------------------------------------------------------------------
    function Get return Instance;
 
 private

@@ -57,33 +57,30 @@ package OpenToken.Token.Enumerated is
    --  Make Token_ID visible in client packages
    subtype Parent_Token_ID is Token_ID;
 
-   type Token_Array_Boolean is array (Token_ID) of Boolean;
-
    type Instance is new OpenToken.Token.Instance with private;
 
    subtype Class is Instance'Class;
 
    type Handle is access all Class;
 
-   ----------------------------------------------------------------------
-   --  Recognizer handle type. Defined here rather than in
-   --  Opentoken.Recognizer to allow access's of objects declared at
-   --  the same level as this package's instantiation.
-   ----------------------------------------------------------------------
    type Recognizer_Handle is access all OpenToken.Recognizer.Class;
+   --  Defined here rather than in Opentoken.Recognizer to allow
+   --  access's of objects declared at the same level as this
+   --  package's instantiation.
 
    type Action is access procedure (Token : in out Instance'Class);
 
-   ----------------------------------------------------------------------
-   --  Get a token with the given ID and Build action. Build will be
-   --  called by Parse. Result is class-wide so derived types
-   --  don't have to override Get.
-   ----------------------------------------------------------------------
    function Get
      (ID    : in Token_ID := Token_ID'First;
       Name  : in String   := "";
       Build : in Action   := null)
      return Instance'Class;
+   --  Get a token with ID, Name, and Build. Build will be called by
+   --  Parse. Result is class-wide so derived types don't have to
+   --  override Get.
+
+   function "+" (Item : in Token_ID) return Instance'Class;
+   --  Calls Get with default Name, Build; for use in LALR Grammar statements.
 
    procedure Set_Build (Token : in out Instance'Class; Build : in Action);
 

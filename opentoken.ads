@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
---  Copyright (C) 2009, 2010 Stephe Leake
+--  Copyright (C) 2009, 2010, 2013 Stephe Leake
 --  Copyright (C) 1999 FlightSafety International and Ted Dennison
 --
 --  This file is part of the OpenToken package.
@@ -41,14 +41,15 @@ with Ada.Strings.Bounded;
 -------------------------------------------------------------------------------
 package OpenToken is
 
-   --  Exception raised by the analyzer when no match could be found.
-   Syntax_Error : exception;
+   Syntax_Error : exception; -- no token matching current input could be found.
 
-   --  Exception raised by the parser when no match could be found.
-   Parse_Error : exception;
+   Parse_Error : exception; -- Input does not conform to the grammar
 
-   --  Exception raised when a programming convention has been violated
-   Programmer_Error : exception;
+   Grammar_Error : exception; -- Grammar is not consistent (ie unused tokens, missing productions)
+
+   User_Error : exception; -- other user error (ie command line parameter)
+
+   Programmer_Error : exception; -- a programming convention has been violated
 
    --  We use this regardless of OS, since we need a standard way of
    --  representing an end of line in a string buffer

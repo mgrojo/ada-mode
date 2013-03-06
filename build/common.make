@@ -99,7 +99,7 @@ distclean :: clean
 	rm -rf obj obj_tree
 
 test-clean :
-	rm -f *.diff *.out *.txt  *-wy.el
+	rm -f *.diff *.out *.parse *.txt  *-wy.el
 
 source-clean ::
 	-find $(SOURCE_ROOT) -name "*~" -print | xargs rm -v
@@ -117,17 +117,25 @@ DIFF_OPT := -u -w
 
 %.diff : %.good_el %.el ; diff $(DIFF_OPT) $^ > $@
 
+%-parse.diff : %.good_parse %.parse ; diff $(DIFF_OPT) $^ > $@
+
 %.run : %.exe ;	./$(*F).exe $(RUN_ARGS)
 
 %-wy.el : %.wy wisi-generate.exe
 	./wisi-generate.exe -v 2 $< Elisp > $*.output
 
-.PRECIOUS : %-wy.el
+%-parse.adb : %.wy wisi-generate.exe
+	./wisi-generate.exe $< Ada
 
-wisi-clean :
-	rm -f wisi-*-generate.adb *-wy.el
+# the grammar and the state trace of the parse is the known good output
+%.parse : %.input %-parse.exe
+	./$*-parse.exe -v 1 $< > $*.parse
+
+.PRECIOUS : %-wy.el %-parse.adb %-parse.exe %.parse
 
 vpath %.wy ../../wisi/test
 vpath %-wy.good_el  ../../wisi/test
+vpath %.good_parse  ../../wisi/test
+vpath %.input  ../../wisi/test
 
 # end of file

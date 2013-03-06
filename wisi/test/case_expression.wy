@@ -1,0 +1,100 @@
+;; test a former OpenToken bug; '=>' was missing in the lookaheads for 'primary <= name ^'
+;;
+;; This is a subset of the syntax for an Ada 2012 case expression
+;;
+;; (ediff "case_expression.wy" "../../../org.opentoken.stephe/wisi/test/case_expression.wy")
+
+%{
+(require 'wisi)
+%}
+
+;; non-reporting
+;; whitespace added by wisi-generate
+%token <line_comment> COMMENT "--"
+
+;; terminals
+%token <punctuation> DOT_DOT ".."
+%token <punctuation> EQUAL "="
+%token <punctuation> EQUAL_GREATER "=>"
+%token <punctuation> GREATER_EQUAL ">="
+%token <punctuation> MINUS "-"
+%token <punctuation> PLUS "+"
+%token <punctuation> STAR_STAR "**"
+%token <punctuation> TICK "'"
+
+%token <symbol> IDENTIFIER
+%token <string> STRING_LITERAL
+%token <number> NUMERIC_LITERAL
+
+%keyword AND "and"
+%keyword CASE "case"
+%keyword IS "is"
+%keyword RANGE "range"
+%keyword WHEN "when"
+
+%start case_expression
+
+%%
+binary_adding_operator : PLUS | MINUS ;
+
+case_expression
+  : CASE factor_list IS WHEN discrete_choice EQUAL_GREATER factor_list
+    (setq wisi-test-success t)
+  ;
+
+choice_expression
+  : choice_relation
+  | choice_relation_and_list
+  ;
+
+choice_relation_and_list
+  : choice_relation AND choice_relation
+  | choice_relation_and_list AND choice_relation
+  ;
+
+choice_relation
+  : factor_list relational_operator factor_list
+  | factor_list
+  ;
+
+discrete_choice
+  : choice_expression
+  | range_nt
+  ;
+
+factor
+  : primary STAR_STAR primary
+  | primary
+  ;
+
+name
+  : IDENTIFIER
+  | STRING_LITERAL ;; operator_symbol, designator
+  ;
+
+primary
+  : name
+  | NUMERIC_LITERAL
+  ;
+
+;; for Ada code generation, can't use case to distinguish token names
+range_nt
+  : name TICK RANGE ;; range_attribute_reference
+  | factor_list DOT_DOT factor_list
+  ;
+
+relational_operator
+  : EQUAL | GREATER_EQUAL ;
+  ;;  =   | /=          | <    |  <=        | >       | >=
+
+factor_list
+  : factor
+  | factor_list binary_adding_operator factor
+  ;
+
+%%
+
+;; Local Variables:
+;; eval: (add-hook 'before-save-hook 'delete-trailing-whitespace nil t)
+;; End:
+;;; end of file

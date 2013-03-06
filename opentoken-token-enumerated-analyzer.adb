@@ -37,7 +37,7 @@ with Ada.Text_IO;
 with Ada.Unchecked_Deallocation;
 package body OpenToken.Token.Enumerated.Analyzer is
 
-   type Match_List is array (Terminal_ID) of Recognizer.Analysis_Verdict;
+   type Match_List is array (Syntax_ID) of Recognizer.Analysis_Verdict;
 
    -------------------------------------------------------------------------
    --  Routines to handle indexes in a circular ring buffer
@@ -218,7 +218,7 @@ package body OpenToken.Token.Enumerated.Analyzer is
          Current_Char := Increment_Buffer_Index (Analyzer.Buffer_Head, Unmatched_Length);
 
          --  Clear the state of all the tokens
-         for Token_Index in Terminal_ID loop
+         for Token_Index in Analyzer.Syntax_List'Range loop
             Recognizer.Clear (Analyzer.Syntax_List (Token_Index).Recognizer.all);
          end loop;
          Match := (others => Recognizer.So_Far_So_Good);
@@ -235,7 +235,7 @@ package body OpenToken.Token.Enumerated.Analyzer is
             --  matches until proven otherwise.
             Possible_Matches := False;
 
-            for Token_Index in Terminal_ID loop
+            for Token_Index in Analyzer.Syntax_List'Range loop
 
                if Match (Token_Index) /= Recognizer.Failed then
 
@@ -278,28 +278,19 @@ package body OpenToken.Token.Enumerated.Analyzer is
 
    end Find_Non_Match;
 
-
-   --------------------------------------------------------------------------
-   --  Find the the best (aka: longest) match for the tokens in input
-   --  stream The ID and length of the best token match will be
-   --  returned.
-   --
-   --  This routine attempts to find the longest possible string in
-   --  the Analyzer's buffer (starting at index 1) that matches a
-   --  token. If the buffer runs out of characters during this
-   --  process, it will be refilled from the Analyzer's text feeder
-   --  function.
-   --------------------------------------------------------------------------
+   --  Find the longest matching character sequence in the Analyzer's
+   --  buffer that matches a token. If the buffer runs out of
+   --  characters during this process, it will be refilled from the
+   --  Analyzer's text feeder function.
    procedure Find_Best_Match
      (Analyzer          : in out Instance;
-      Best_Match_Token  :    out Terminal_ID;
+      Best_Match_Token  :    out Syntax_ID;
       Best_Match_Length :    out Natural)
    is
 
       --  The table of token matches
-      Match : Match_List := (others => Recognizer.So_Far_So_Good);
-
-      More_Possible_Matches : Boolean := True;
+      Match                 : Match_List := (others => Recognizer.So_Far_So_Good);
+      More_Possible_Matches : Boolean    := True;
 
       Current_Char : Integer := Analyzer.Buffer_Head;
 
@@ -307,11 +298,11 @@ package body OpenToken.Token.Enumerated.Analyzer is
    begin
 
       --  Clear the state of all the tokens
-      for Token_Index in Terminal_ID loop
+      for Token_Index in Analyzer.Syntax_List'Range loop
          Recognizer.Clear (Analyzer.Syntax_List (Token_Index).Recognizer.all);
       end loop;
 
-      Best_Match_Length     := 0;
+      Best_Match_Length := 0;
 
       while More_Possible_Matches loop
 
@@ -324,7 +315,7 @@ package body OpenToken.Token.Enumerated.Analyzer is
          More_Possible_Matches := False;
 
          --  Check all the token Analyzers...
-         for Token_Index in Terminal_ID loop
+         for Token_Index in Analyzer.Syntax_List'Range loop
 
             --  check only tokens that haven't yet failed...
             if Match (Token_Index) /= Recognizer.Failed then
@@ -357,7 +348,6 @@ package body OpenToken.Token.Enumerated.Analyzer is
          Current_Char := Increment_Buffer_Index (Current_Char);
 
       end loop;
-
    end Find_Best_Match;
 
    function Null_Analyzer return Instance
@@ -391,6 +381,9 @@ package body OpenToken.Token.Enumerated.Analyzer is
       --  Initialize the syntax
       New_Analyzer.Syntax_List    := Language_Syntax;
       for ID in Syntax'Range loop
+         if New_Analyzer.Syntax_List (ID).Recognizer = null then
+            raise Grammar_Error with "no recognizer for " & Token_Image (ID);
+         end if;
          New_Analyzer.Syntax_List (ID).Token_Handle.ID := ID;
       end loop;
 
@@ -519,7 +512,7 @@ package body OpenToken.Token.Enumerated.Analyzer is
    is
       EOLs_Found : Integer;
 
-      Matched_Token  : Terminal_ID;
+      Matched_Token  : Syntax_ID;
       Matched_Length : Natural;
    begin
 
@@ -528,11 +521,7 @@ package body OpenToken.Token.Enumerated.Analyzer is
 
          if Analyzer.Lookahead_Head = null then
             loop
-               --  Find the best token match from the input stream
-               Find_Best_Match
-                 (Analyzer          => Analyzer,
-                  Best_Match_Token  => Matched_Token,
-                  Best_Match_Length => Matched_Length);
+               Find_Best_Match (Analyzer, Matched_Token, Matched_Length);
 
                --  If we didn't find a match, its a either syntax error
                --  or a match to the default token.
@@ -623,7 +612,7 @@ package body OpenToken.Token.Enumerated.Analyzer is
                end if;
 
                if Trace_Parse then
-                  Trace_Put ("look ahead " & Token_ID'Image (Analyzer.Last_Token)); Ada.Text_IO.New_Line;
+                  Trace_Put ("look ahead " & Token_Image (Analyzer.Last_Token)); Ada.Text_IO.New_Line;
                   Analyzer.Lookahead_Count := Analyzer.Lookahead_Count + 1;
                   if Analyzer.Lookahead_Count > Analyzer.Max_Lookahead then
                      Analyzer.Max_Lookahead := Analyzer.Lookahead_Count;

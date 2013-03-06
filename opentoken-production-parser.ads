@@ -42,20 +42,17 @@ package OpenToken.Production.Parser is
 
    type Instance is abstract tagged private;
 
-   ----------------------------------------------------------------------------
-   --  Create a new parser from the given grammar with the given token
-   --  analyzer. If Trace, put intermediate results to
+   function Generate
+     (Grammar           : in Production_List.Instance;
+      Analyzer          : in Tokenizer.Instance;
+      Trace             : in Boolean := False;
+      Put_Grammar       : in Boolean := False;
+      First_State_Index : in Integer := 1)
+     return Instance is abstract;
+   --  Create a parser for Grammar, using Analyzer for input. If
+   --  Trace, put debug info about grammar building process to
    --  Ada.Text_IO.Current_Output. If Put_Grammar, put the final parse
    --  table and kernels to Ada.Text_IO.Current_Output.
-   ----------------------------------------------------------------------------
-   function Generate
-     (Grammar              : in Production_List.Instance;
-      Analyzer             : in Tokenizer.Instance;
-      Non_Reporting_Tokens : in Token.Token_Array_Boolean;
-      Trace                : in Boolean := False;
-      Put_Grammar          : in Boolean := False;
-      First_State_Index    : in Integer := 1)
-     return Instance is abstract;
 
    ----------------------------------------------------------------------------
    --  Attempt a parse. This routine will return when the grammar indicates the

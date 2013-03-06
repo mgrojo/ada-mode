@@ -53,12 +53,20 @@ with OpenToken.Recognizer;
 with OpenToken.Text_Feeder;
 generic
 
-   Last_Terminal : in Token_ID := Token_ID'Last;
+   --  Tokens in the range Token_ID'First .. Pred (First_Terminal) are
+   --  non-reporting (comments, whitespace), and thus are not used in
+   --  generating a grammar.
+   First_Terminal : in Token_ID;
+   Last_Terminal  : in Token_ID;
+   --  Tokens in the range Succ (Last_Terminal) .. Token_ID'Last are
+   --  the nonterminals of a grammar.
 
 package OpenToken.Token.Enumerated.Analyzer is
 
-   subtype Terminal_ID is Token_ID range Token_ID'First .. Last_Terminal;
+   subtype Terminal_ID is Token_ID range First_Terminal .. Last_Terminal;
    --  We can't define Nonterminal_ID here, because if Last_Terminal = Token_ID'last, there are no nonterminals.
+
+   type Token_Array_Boolean is array (Token_ID range First_Terminal .. Token_ID'Last) of Boolean;
 
    --  Descriptor for what an individual token in this language looks
    --  like. Also provides storage for Lexeme and Recognizer from
@@ -72,8 +80,9 @@ package OpenToken.Token.Enumerated.Analyzer is
       Token_Handle : Handle;
    end record;
 
-   --  The syntax of a language, which is defined by the set of valid tokens.
-   type Syntax is array (Terminal_ID) of Recognizable_Token;
+   --  The syntax of a language, which is defined by the set of non-reporting and Terminal tokens.
+   subtype Syntax_ID is Token_ID range Token_ID'First .. Last_Terminal;
+   type Syntax is array (Syntax_ID) of Recognizable_Token;
 
    type Instance is new Source with private;
 

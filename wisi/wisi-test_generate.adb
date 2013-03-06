@@ -131,7 +131,7 @@ is
 
    package Tokens_Pkg is new OpenToken.Token.Enumerated (Token_IDs, Token_Image, Token_Image_Width);
    --  we only need Analyzers to instantiate Parsers, but we might call it for debugging
-   package Analyzers is new Tokens_Pkg.Analyzer (Last_Terminal => EOI_ID);
+   package Analyzers is new Tokens_Pkg.Analyzer (First_Terminal => Token_IDs'First, Last_Terminal => EOI_ID);
    package Token_Lists is new Tokens_Pkg.List;
    package Nonterminals is new Tokens_Pkg.Nonterminal (Token_Lists);
    package Productions is new OpenToken.Production (Tokens_Pkg, Token_Lists, Nonterminals);
@@ -193,10 +193,9 @@ begin
    Parser := LALR_Parsers.Generate
      (Grammar,
       Analyzers.Null_Analyzer,
-      Non_Reporting_Tokens => (others => False),
-      Trace                => Verbosity > 1,
-      Put_Grammar          => Verbosity > 0,
-      First_State_Index    => 0);
+      Trace             => Verbosity > 1,
+      Put_Grammar       => Verbosity > 0,
+      First_State_Index => 0);
 
    if Verbosity > 0 then
       declare
@@ -218,4 +217,5 @@ begin
       end;
    end if;
 
+   --  FIXME: just pass "No_Elisp" flag to wisi.output_elisp
 end Wisi.Test_Generate;

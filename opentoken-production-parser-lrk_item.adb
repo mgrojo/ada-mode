@@ -375,13 +375,11 @@ package body OpenToken.Production.Parser.LRk_Item is
       return False;
    end Is_In;
 
-   ----------------------------------------------------------------------------
-   --  Return the goto set for the given item set on the given token symbol.
-   ----------------------------------------------------------------------------
-   function Goto_Set (From   : in Item_Set;
-                      Symbol : in Token.Token_ID
-                     ) return Item_Set_Ptr is
-
+   function Goto_Set
+     (From   : in Item_Set;
+      Symbol : in Token.Token_ID)
+     return Item_Set_Ptr
+   is
       Goto_Ptr : Set_Reference_Ptr := From.Goto_List;
       use type Token.Token_ID;
    begin
@@ -396,27 +394,21 @@ package body OpenToken.Production.Parser.LRk_Item is
       return null;
    end Goto_Set;
 
-   --------------------------------------------------------------------------
-   --  Merge the new item into an existing item set. The existing set
-   --  will take over control of the dynamicly allocated lr(k)
-   --  components. If the existing set already contains the new item,
-   --  it will not be put in again. In this case, this routine
-   --  automaticly deallocates the components of New_Item that were
-   --  created within this package.
-   --------------------------------------------------------------------------
-   procedure Merge (New_Item     : in out Item_Node;
-                    Existing_Set : in out Item_Set
-                   ) is
-      Occurrance : constant Item_Ptr :=
-        Find (Left => New_Item, Right => Existing_Set);
+   --  Merge lookaheads of New_Item into Existing_Set. New_Item is
+   --  copied or deallocated, as appropriate.
+   procedure Merge
+     (New_Item     : in out Item_Node;
+      Existing_Set : in out Item_Set)
+   is
+      Found : constant Item_Ptr := Find (New_Item, Existing_Set);
 
       Source_Lookahead      : Item_Lookahead_Ptr;
       Previous_Lookahead    : Item_Lookahead_Ptr;
       Destination_Lookahead : Item_Lookahead_Ptr;
-      Found_Match : Boolean;
+      Found_Match           : Boolean;
 
    begin
-      if Occurrance = null then
+      if Found = null then
          Existing_Set.Set := new Item_Node'
            (Prod          => New_Item.Prod,
             Dot           => New_Item.Dot,
@@ -426,7 +418,7 @@ package body OpenToken.Production.Parser.LRk_Item is
          --  Merge their lookaheads.
          Source_Lookahead := New_Item.Lookahead_Set;
          while Source_Lookahead /= null loop
-            Destination_Lookahead := Occurrance.Lookahead_Set;
+            Destination_Lookahead := Found.Lookahead_Set;
 
             Found_Match := False;
             while Destination_Lookahead /= null loop
@@ -449,8 +441,8 @@ package body OpenToken.Production.Parser.LRk_Item is
                   Previous_Lookahead.Next := Source_Lookahead.Next;
                end if;
 
-               Source_Lookahead.Next := Occurrance.Lookahead_Set;
-               Occurrance.Lookahead_Set := Source_Lookahead;
+               Source_Lookahead.Next := Found.Lookahead_Set;
+               Found.Lookahead_Set := Source_Lookahead;
 
                if Previous_Lookahead = null then
                   Source_Lookahead := New_Item.Lookahead_Set;
@@ -468,7 +460,7 @@ package body OpenToken.Production.Parser.LRk_Item is
       end if;
    end Merge;
 
-   function Closure
+   function Lookahead_Closure
      (Set     : in Item_Set;
       First   : in Derivation_Matrix;
       Grammar : in Production_List.Instance)
@@ -491,7 +483,7 @@ package body OpenToken.Production.Parser.LRk_Item is
 
       Merge_From : Item_Node;
    begin
-      --  Put copies of everything in the given item in the closure
+      --  Put copies of everything in Set into the closure
       while Item /= null loop
          Result.Set := new Item_Node'
            (Prod          => Item.Prod,
@@ -512,84 +504,74 @@ package body OpenToken.Production.Parser.LRk_Item is
          Item := Item.Next;
       end loop;
 
-      --  Loop through all the items in the set
       Current := Result.Set;
       Start   := Result.Set;
       loop
 
          --  If the token after Dot is a nonterminal, find its
-         --  productions and place them in the set.
+         --  productions and place them in the set with lookaheads
+         --  from the current production.
          if Token_List.Token_Handle (Current.Dot) /= null and then
            Token.ID (Token_List.Token_Handle (Current.Dot).all) in Nonterminal_ID
          then
             declare
-               Item_Dot_ID : constant Token.Token_ID := Token.ID (Token_List.Token_Handle (Current.Dot).all);
+               Current_ID : constant Token.Token_ID := Token.ID (Token_List.Token_Handle (Current.Dot).all);
             begin
                Next_Symbol := Current.Dot;
-               Token_List.Next_Token (Next_Symbol);
+               Token_List.Next_Token (Next_Symbol); -- token after nonterminal, possibly null
 
-               --  Loop through all the productions
                Production_Iterator := Production_List.Initial_Iterator (Grammar);
                while not Production_List.Past_Last (Production_Iterator) loop
-                  if LHS_ID (Production_List.Get_Production (Production_Iterator)) = Item_Dot_ID then
+                  if LHS_ID (Production_List.Get_Production (Production_Iterator)) = Current_ID then
 
-                     --  If the pointer in the initial production was at
-                     --  its end, we get its lookaheads.
                      if Token_List.Token_Handle (Next_Symbol) = null then
-                        Merge_From := Item_Node_Of
-                          (Prod      => Production_Iterator,
-                           Lookahead => Current.Lookahead_Set);
+                        --  Need a variable, because the lookaheads might be freed.
+                        Merge_From := Item_Node_Of (Production_Iterator, Current.Lookahead_Set);
 
-                        Merge
-                          (New_Item     => Merge_From,
-                           Existing_Set => Result);
+                        Merge (Merge_From, Result);
 
                      elsif Token.ID (Token_List.Token_Handle (Next_Symbol).all) in Tokenizer.Terminal_ID then
 
                         Merge_From := Item_Node_Of
-                          (Prod      => Production_Iterator,
-                           Lookahead => new Item_Lookahead'
+                          (Production_Iterator,
+                           new Item_Lookahead'
                              (Last       => 1,
                               Lookaheads => (1 => Token.ID (Token_List.Token_Handle (Next_Symbol).all)),
                               Next       => null));
 
-                        Merge
-                          (New_Item     => Merge_From,
-                           Existing_Set => Result);
-                     else
+                        Merge (Merge_From, Result);
 
-                        --  Loop through all the terminal IDs
+                     else
+                        --  Next_Symbol is a nonterminal
+
                         for Terminal in Tokenizer.Terminal_ID loop
 
                            if First (Token.ID (Token_List.Token_Handle (Next_Symbol).all)) (Terminal) then
+
                               Merge_From := Item_Node_Of
-                                (Prod      => Production_Iterator,
-                                 Lookahead => new Item_Lookahead'
+                                (Production_Iterator,
+                                 new Item_Lookahead'
                                    (Last       => 1,
                                     Lookaheads => (1 => Terminal),
                                     Next       => null));
 
-                              Merge
-                                (New_Item     => Merge_From,
-                                 Existing_Set => Result);
+                              Merge (Merge_From, Result);
+
                            end if;
                         end loop;
 
-                     end if; -- pointer is at last token on RHS, or terminal, or non-terminal
-                  end if; -- we found a production for the non-terminal
+                     end if;
+                  end if;
 
                   Production_List.Next_Production (Production_Iterator);
                end loop;
             end;
-         end if; -- pointer is is at non-terminal
+         end if; -- Dot is is at non-terminal
 
-         --  When we get to the end of the set, see if we added any.
-         --  If so, just check through the added ones next time
-         --  around.
          if Current.Next = Finish then
-            exit when Result.Set = Start;
+            exit when Result.Set = Start; -- no new items were added to Result
 
-            Finish  := Start;
+            Finish  := Start; -- only review the new items
             Start   := Result.Set;
             Current := Result.Set;
 
@@ -600,7 +582,7 @@ package body OpenToken.Production.Parser.LRk_Item is
       end loop;
 
       return Result;
-   end Closure;
+   end Lookahead_Closure;
 
    function Goto_Transitions
      (Kernel       : in Item_Set;
@@ -678,14 +660,10 @@ package body OpenToken.Production.Parser.LRk_Item is
       return Goto_Set;
    end Goto_Transitions;
 
-   ----------------------------------------------------------------------------
-   --  Release any resources allocated by this package for the given item.
-   ----------------------------------------------------------------------------
-   procedure Free (Subject : in out Item_Node) is
+   procedure Free (Subject : in out Item_Node)
+   is
       Lookahead : Item_Lookahead_Ptr := Subject.Lookahead_Set;
    begin
-
-      --  Free the Lookaheads
       while Lookahead /= null loop
          Subject.Lookahead_Set := Lookahead.Next;
          Free (Lookahead);
@@ -694,14 +672,11 @@ package body OpenToken.Production.Parser.LRk_Item is
 
    end Free;
 
-   ----------------------------------------------------------------------------
-   --  Release any resources allocated by this package for the given item set.
-   ----------------------------------------------------------------------------
-   procedure Free (Subject : in out Item_Set) is
+   procedure Free (Subject : in out Item_Set)
+   is
       Item     : Item_Ptr          := Subject.Set;
       Goto_Set : Set_Reference_Ptr := Subject.Goto_List;
    begin
-      --  Free the item list
       while Item /= null loop
          Subject.Set := Item.Next;
          Free (Item.all);
@@ -709,7 +684,6 @@ package body OpenToken.Production.Parser.LRk_Item is
          Item := Subject.Set;
       end loop;
 
-      --  Free the Goto list
       while Goto_Set /= null loop
          Subject.Goto_List := Goto_Set.Next;
          Free (Goto_Set);
@@ -718,11 +692,8 @@ package body OpenToken.Production.Parser.LRk_Item is
 
    end Free;
 
-   ----------------------------------------------------------------------------
-   --  Release any resources allocated by this package for the given item set
-   --  list.
-   ----------------------------------------------------------------------------
-   procedure Free (Subject : in out Item_Set_List) is
+   procedure Free (Subject : in out Item_Set_List)
+   is
       Set : Item_Set_Ptr := Subject.Head;
    begin
       while Set /= null loop
