@@ -1408,6 +1408,7 @@ package body ARM_Master is
 		    ARM_TexInfo.Create (Output,
 				        File_Prefix => +Output_File_Prefix,
 				        Output_Path => Output_Path,
+                                        Change_Version => Change_Version,
 				        Title => Get_Versioned_String (Document_Title, Change_Version));
 	            Generate_Sources (Output);
 	            ARM_TexInfo.Close (Output);

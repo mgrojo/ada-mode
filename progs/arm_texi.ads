@@ -13,7 +13,7 @@ package ARM_Texinfo is
    --
    -- ---------------------------------------
    --
-   --  Copyright (C) 2003, 2007, 2011 Stephen Leake.  All Rights Reserved.
+   --  Copyright (C) 2003, 2007, 2011, 2013 Stephen Leake.  All Rights Reserved.
    --  E-Mail: stephen_leake@stephe-leake.org
    --
    --  This library is free software; you can redistribute it and/or
@@ -47,10 +47,11 @@ package ARM_Texinfo is
 
    --not overriding - Ada 2005-only
    procedure Create
-     (Output_Object : in out Texinfo_Output_Type;
-      File_Prefix   : in     String;
-      Output_Path   : in     String;
-      Title         : in     String);
+     (Output_Object  : in out Texinfo_Output_Type;
+      File_Prefix    : in     String;
+      Output_Path    : in     String;
+      Change_Version : in     ARM_Contents.Change_Version_Type;
+      Title          : in     String);
    --  Create an Output_Object for a document.
 
    -- overriding - Ada 2005-only

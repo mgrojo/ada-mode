@@ -1,4 +1,4 @@
-0with --ARM_Output,
+with --ARM_Output,
      --ARM_Contents,
      --Ada.Text_IO,
      Ada.Exceptions,

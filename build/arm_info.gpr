@@ -65,11 +65,12 @@ project ARM_Info is
   end Naming;
 
   package Compiler is
-     --  upstream wants Ada 95 syntax, no GNAT-specific pragmas.
+     --  upstream wants Ada 2005 syntax, no GNAT-specific pragmas.
      --  We disable some warnings to minimize source diff with upstream.
      for Default_Switches ("Ada") use
        ("-g",
         "-O0",
+        "-gnat2005",
         "-gnatfoqQ",
         "-gnatVa",
         "-gnatwaCeFKLMP",

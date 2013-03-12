@@ -1,7 +1,3 @@
-src_dir=.
-src_dir=../source
-src_dir=../progs
-
-obj_dir=objects
+gpr_file=arm_info.gpr
 
 casing=emacs_case_exceptions

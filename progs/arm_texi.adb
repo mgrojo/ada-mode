@@ -2,7 +2,7 @@ with Ada.Exceptions;
 with Ada.Strings.Fixed;
 package body ARM_Texinfo is
 
-   --  Copyright (C) 2003, 2007, 2010, 2011, 2012 Stephen Leake.  All Rights Reserved.
+   --  Copyright (C) 2003, 2007, 2010 - 2013 Stephen Leake.  All Rights Reserved.
    --  E-Mail: stephen_leake@acm.org
    --
    --  This library is free software; you can redistribute it and/or
@@ -35,6 +35,7 @@ package body ARM_Texinfo is
    -- 10/18/12 - RLB - Added additional hanging styles.
    -- 11/26/12 - RLB - Added subdivision names to Clause_Header and
    --		       Revised_Clause_Header.
+   --  3/12/13 - S L - use correct version in direntry
 
 
    use Ada.Text_IO;
@@ -750,10 +751,11 @@ package body ARM_Texinfo is
    end Close;
 
    procedure Create
-     (Output_Object : in out Texinfo_Output_Type;
-      File_Prefix   : in     String;
-      Output_Path   : in     String;
-      Title         : in     String)
+     (Output_Object  : in out Texinfo_Output_Type;
+      File_Prefix    : in     String;
+      Output_Path    : in     String;
+      Change_Version : in     ARM_Contents.Change_Version_Type;
+      Title          : in     String)
    is
       File_Name : constant String := Output_Path &
          Ada.Strings.Fixed.Trim (File_Prefix, Ada.Strings.Right) &
@@ -771,9 +773,20 @@ package body ARM_Texinfo is
 
       Put_Line (Output_Object.File, "\input texinfo");
       Put_Line (Output_Object.File, "@dircategory GNU Ada tools");
+
       Put_Line (Output_Object.File, "@direntry");
-      Put_Line (Output_Object.File, "* Ada Reference Manual: (arm2005).");
-      Put_Line (Output_Object.File, "* Annotated ARM: (aarm2005).");
+      case Change_Version is
+         when '2' =>
+            Put_Line (Output_Object.File, "* Ada Reference Manual: (arm2005).");
+            Put_Line (Output_Object.File, "* Annotated ARM: (arm2005).");
+         when '3' =>
+            Put_Line (Output_Object.File, "* Ada Reference Manual: (arm2012).");
+            Put_Line (Output_Object.File, "* Annotated ARM: (arm2012).");
+         when others =>
+            Ada.Exceptions.Raise_Exception
+              (ARM_Output.Not_Valid_Error'Identity,
+               "unsupported Change_Version");
+      end case;
       Put_Line (Output_Object.File, "@end direntry");
 
       Put_Line (Output_Object.File, "@settitle " & Title);
@@ -1443,7 +1456,7 @@ package body ARM_Texinfo is
       when ARM_Output.EM_Dash =>
          Ordinary_Text (Output_Object, "--");
       when ARM_Output.EN_Dash =>
-         Ordinary_Text (Output_Object, "--");
+         Ordinary_Text (Output_Object, "-"); -- used for '-' in binary_adding_operator
       when ARM_Output.GEQ =>
          Ordinary_Text (Output_Object, ">=");
       when ARM_Output.LEQ =>
@@ -1878,7 +1891,7 @@ package body ARM_Texinfo is
       --  Used in section 2.3 Identifiers examples, 2.5 character
       --  literals examples, 2.6 string literals examples, 3.3.1
       --  Object Declarations examples, 4.4 Expressions examples
-      Put_Line (Output_Object.File, "[Unicode" & ARM_Output.Unicode_Type'Image (Char) & "]");
+      Put (Output_Object.File, "[Unicode" & ARM_Output.Unicode_Type'Image (Char) & "]");
    end Unicode_Character;
 
    procedure URL_Link

@@ -4,11 +4,12 @@
 #
 # Cygwin texi2dvi (GNU Texinfo 4.13) 1.135 fails silently!
 
-DEBIAN_VERSION := 2012.1
-ZIP_DATE       := 20120428
+DEBIAN_VERSION := 2012.2
+ZIP_DATE       := 20130312
 
 # debian-free is _not_ in all
-all : source_scribe_2005.stamp html info pdf TXT publish
+all : source_scribe_2005.stamp html info TXT publish
+# pdf not in 'all' because may not have tools installed
 
 html : html/arm2012/RM-TOC.html
 html : html/aarm2012/AA-TOC.html
