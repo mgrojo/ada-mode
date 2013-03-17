@@ -14,17 +14,11 @@
 
 ;; terminals
 %token <punctuation> DOT_DOT ".."
-%token <punctuation> EQUAL "="
 %token <punctuation> EQUAL_GREATER "=>"
-%token <punctuation> PLUS "+"
-%token <punctuation> STAR_STAR "**"
 %token <punctuation> TICK "'"
 
 %token <symbol> IDENTIFIER
 
-%keyword AND "and"
-%keyword CASE "case"
-%keyword IS "is"
 %keyword RANGE "range"
 %keyword WHEN "when"
 
@@ -33,23 +27,16 @@
 %%
 
 case_expression
-  : CASE factor_list IS WHEN discrete_choice EQUAL_GREATER factor_list
+  : WHEN discrete_choice EQUAL_GREATER
     (setq wisi-test-success t)
   ;
 
 choice_expression
   : choice_relation
-  | choice_relation_and_list
-  ;
-
-choice_relation_and_list
-  : choice_relation AND choice_relation
-  | choice_relation_and_list AND choice_relation
   ;
 
 choice_relation
-  : factor_list EQUAL factor_list
-  | factor_list
+  : factor_list
   ;
 
 discrete_choice
@@ -58,13 +45,11 @@ discrete_choice
   ;
 
 factor
-  : IDENTIFIER STAR_STAR IDENTIFIER
-  | IDENTIFIER
+  : IDENTIFIER
   ;
 
 factor_list
   : factor
-  | factor_list PLUS factor
   ;
 
 ;; for Ada code generation, can't use case to distinguish token names
