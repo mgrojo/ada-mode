@@ -76,6 +76,8 @@ package Wisi is
       Value  : in     String);
    --  Add Name, Value to Kind list in Tokens.
 
+   function Is_In (Tokens : in Token_Lists.List; Kind : in String) return Boolean;
+
    package String_Lists is new Standard.Ada.Containers.Indefinite_Doubly_Linked_Lists (String);
 
    type RHS_Type is record

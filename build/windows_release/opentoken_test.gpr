@@ -20,7 +20,10 @@ project OpenToken_Test is
 
    package Compiler is
       for Default_Switches ("Ada") use
-        OpenToken.Compiler'Default_Switches ("Ada");
+      -- generated code has long lines, so don't enforce limit
+        Common.Compiler.Debug_Switches &
+        Common.Compiler.Style_Checks_No_Length &
+        Common.Compiler'Default_Switches ("Ada");
 
    end Compiler;
 

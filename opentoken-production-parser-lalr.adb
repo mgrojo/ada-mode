@@ -181,13 +181,13 @@ package body OpenToken.Production.Parser.LALR is
       while Next_Prop /= null loop
 
          Ada.Text_IO.Put ("From ");
-         LRk.Put_Item (Next_Prop.From.all);
+         LRk.Put_Item (Next_Prop.From.all, Show_Lookaheads => False);
          Ada.Text_IO.New_Line;
 
          Next_To := Next_Prop.To;
          while Next_To /= null loop
-            Ada.Text_IO.Put ("          To ");
-            LRk.Put_Item (Next_To.Item.all);
+            Ada.Text_IO.Put ("To   ");
+            LRk.Put_Item (Next_To.Item.all, Show_Lookaheads => False);
             Ada.Text_IO.New_Line;
 
             Next_To := Next_To.Next;
@@ -230,7 +230,10 @@ package body OpenToken.Production.Parser.LALR is
             Prop_To_Match := Prop_Match.To;
             while Prop_To_Match /= null loop
 
-               if Prop_To_Match.Item = To_Kernel then
+               --  ignore lookaheads in this match
+               if Prop_To_Match.Item.Prod = To_Kernel.Prod and
+                 Prop_To_Match.Item.Dot = To_Kernel.Dot
+               then
                   Found_To := True;
                   exit Find_Matching_Prop;
                end if;
@@ -257,7 +260,7 @@ package body OpenToken.Production.Parser.LALR is
    end Add_Propagations;
 
    --  Calculate the lookaheads for Source_Set, Source_Set, Closure_Item.
-   --  Spontanious lookaheads are put in Source_Item.Lookahead, propagated lookaheads in Propagations.
+   --  Spontaneous lookaheads are put in Source_Item.Lookahead, propagated lookaheads in Propagations.
    --
    --  The start symbol (with Source_Set.Index = Accept_Index) is treated specially.
    --
@@ -275,7 +278,7 @@ package body OpenToken.Production.Parser.LALR is
       Next_Token  : Token_List.List_Iterator;
       Token_ID    : Token.Token_ID;
       Next_Kernel : LRk.Item_Ptr;
-      Lookahead   : LRk.Item_Lookahead_Ptr := Closure_Item.Lookahead_Set;
+      Lookahead   : LRk.Item_Lookahead_Ptr := Closure_Item.Lookaheads;
 
       use type Token.Handle;
       use type LRk.Item_Set_Ptr;
@@ -296,13 +299,13 @@ package body OpenToken.Production.Parser.LALR is
             begin
                if Trace then
                   Ada.Text_IO.Put_Line ("Adding default lookahead:");
-                  LRk.Put_Item (Source_Item.all);
+                  LRk.Put_Item (Source_Item.all, Show_Lookaheads => True);
                   Ada.Text_IO.New_Line;
                   Ada.Text_IO.Put_Line ("   " & LRk.Print (Lookahead));
                end if;
 
                LRk.Include
-                 (Set   => Source_Item.Lookahead_Set,
+                 (Set   => Source_Item.Lookaheads,
                   Value => Lookahead);
             end;
          end loop;
@@ -317,10 +320,11 @@ package body OpenToken.Production.Parser.LALR is
       Next_Token := Closure_Item.Dot;
       Token_List.Next_Token (Next_Token); --  Second token after Dot
       Next_Item  :=
-        (Prod          => Closure_Item.Prod,
-         Dot           => Next_Token,
-         Lookahead_Set => null,
-         Next          => null);
+        (Prod       => Closure_Item.Prod,
+         Dot        => Next_Token,
+         Index      => -1,
+         Lookaheads => null,
+         Next       => null);
 
       Token_ID := Token.ID (Token_List.Token_Handle (Closure_Item.Dot).all);
 
@@ -351,14 +355,14 @@ package body OpenToken.Production.Parser.LALR is
 
             if Next_Kernel /= null then
                if Trace then
-                  Ada.Text_IO.Put_Line ("Adding spontaneous lookahead:");
-                  LRk.Put_Item (Next_Kernel.all);
+                  Ada.Text_IO.Put ("  spontaneous: ");
+                  LRk.Put_Item (Next_Kernel.all, Show_Lookaheads => True);
                   Ada.Text_IO.New_Line;
                   Ada.Text_IO.Put_Line ("   " & LRk.Print (Lookahead.all));
                end if;
 
                LRk.Include
-                 (Set   => Next_Kernel.Lookahead_Set,
+                 (Set   => Next_Kernel.Lookaheads,
                   Value => Lookahead.all);
             end if;
 
@@ -368,8 +372,6 @@ package body OpenToken.Production.Parser.LALR is
       end loop;
    end Generate_Lookahead_Info;
 
-   --  Propagate lookaheads as directed by List, until no more
-   --  lookaheads are propagated.
    procedure Propagate_Lookaheads
      (List  : in Item_Item_List_Mapping_Ptr;
       Trace : in Boolean)
@@ -379,32 +381,33 @@ package body OpenToken.Production.Parser.LALR is
       To            : Item_List_Ptr;
       Lookahead     : LRk.Item_Lookahead_Ptr;
       Added_One     : Boolean;
+      Added_Some    : Boolean := False;
 
       use type LRk.Item_Lookahead_Ptr;
    begin
       while More_To_Check loop
 
-         --  Check every valid lookahead against every mapped item in every mapping
          More_To_Check := False;
          Mapping := List;
          while Mapping /= null loop
 
-            Lookahead := Mapping.From.Lookahead_Set;
+            Lookahead := Mapping.From.Lookaheads;
+
             while Lookahead /= null loop
 
                if Lookahead.Last > 0 then
                   To := Mapping.To;
                   while To /= null loop
                      LRk.Include
-                       (Set   => To.Item.Lookahead_Set,
+                       (Set   => To.Item.Lookaheads,
                         Value => Lookahead.all,
                         Added => Added_One);
 
                      if Trace and Added_One then
-                        Ada.Text_IO.Put_Line ("Adding propagated lookahead:");
-                        LRk.Put_Item (To.Item.all);
+                        Added_Some := True;
+                        Ada.Text_IO.Put ("  to:");
+                        LRk.Put_Item (To.Item.all, Show_Lookaheads => True);
                         Ada.Text_IO.New_Line;
-                        Ada.Text_IO.Put_Line ("   " & LRk.Print (Lookahead));
                      end if;
 
                      More_To_Check := More_To_Check or Added_One;
@@ -414,6 +417,14 @@ package body OpenToken.Production.Parser.LALR is
 
                Lookahead := Lookahead.Next;
             end loop;
+
+            if Trace and Added_Some then
+               Added_Some := False;
+               Ada.Text_IO.Put ("from: ");
+               LRk.Put_Item (Mapping.From.all, Show_Lookaheads => True);
+               Ada.Text_IO.New_Line;
+            end if;
+
 
             Mapping := Mapping.Next;
          end loop;
@@ -455,11 +466,12 @@ package body OpenToken.Production.Parser.LALR is
       use type LRk.Item_Ptr;
    begin
 
-      Kernel_Item_Set.Set.Lookahead_Set := Propagate_Lookahead;
+      Kernel_Item_Set.Set.Lookaheads := Propagate_Lookahead;
 
       while Kernel /= null loop
          if Trace then
-            Ada.Text_IO.Put_Line ("Adding lookaheads for state" & Integer'Image (Kernel.Index));
+            Ada.Text_IO.Put ("Adding lookaheads for ");
+            LRk.Print_Item_Set (Kernel.all);
          end if;
 
          Kernel_Item := Kernel.Set;
@@ -488,6 +500,7 @@ package body OpenToken.Production.Parser.LALR is
 
       if Trace then
          Print_Propagations (Propagation_List);
+         Ada.Text_IO.New_Line;
       end if;
 
       Propagate_Lookaheads (Propagation_List, Trace);
@@ -497,9 +510,7 @@ package body OpenToken.Production.Parser.LALR is
 
    end Fill_In_Lookaheads;
 
-   ----------------------------------------------------------------------------
    --  A trimmed Image.
-   ----------------------------------------------------------------------------
    function Integer_Image (Subject : in Integer) return String is
       State_Image : String (1 .. 5);
    begin
@@ -547,23 +558,15 @@ package body OpenToken.Production.Parser.LALR is
    is
       use Ada.Text_IO;
       use Ada.Strings.Fixed;
-      use type LRk.Item_Ptr;
+      use LRk;
       Action    : Action_Node_Ptr    := State.Action_List;
       Reduction : Reduction_Node_Ptr := State.Reduction_List;
-      Kernel    : LRk.Item_Ptr       := Kernel_Set.Set;
    begin
-      New_Line;
-      while Kernel /= null loop
-         LRk.Put_Item (Kernel.all, "   ");
-         New_Line;
-         Kernel := Kernel.Next;
-      end loop;
+      LRk.Print_Item_Set (Kernel_Set.all);
 
       New_Line;
       if Action = null then
          raise Programmer_Error with "LALR: Action contains no default entry";
-      elsif Action.Next = null then
-         Put_Line ("   (no actions)");
       end if;
 
       while Action /= null loop
@@ -602,8 +605,8 @@ package body OpenToken.Production.Parser.LALR is
    is
       use Ada.Text_IO;
    begin
+      Ada.Text_IO.Put_Line ("Parse Table:");
       for State in Table'Range loop
-         Put_Line ("State" & State_Index'Image (State) & ":");
          Put_Parse_State (Table (State), LRk.Find (Integer (State), Kernel_Sets));
          New_Line;
       end loop;
@@ -645,9 +648,7 @@ package body OpenToken.Production.Parser.LALR is
       end if;
    end Add_Action;
 
-   ----------------------------------------------------------------------------
-   --  Fill in the parse table using the given LR(k) kernel sets.
-   ----------------------------------------------------------------------------
+   --  Add actions to Table.
    procedure Fill_In_Parse_Table
      (LRk_Kernels  : in     LRk.Item_Set_List;
       Accept_Index : in     Integer;
@@ -719,7 +720,7 @@ package body OpenToken.Production.Parser.LALR is
                   Ada.Text_IO.Put_Line ("processing lookaheads");
                end if;
 
-               Lookahead := Item.Lookahead_Set;
+               Lookahead := Item.Lookaheads;
                while Lookahead /= null loop
                   --  Add reduction/accept action
 
@@ -852,6 +853,9 @@ package body OpenToken.Production.Parser.LALR is
          Ada.Text_IO.Put_Line (Ada.Text_IO.Standard_Error, To_String (Conflicts));
       end if;
 
+      if Trace then
+         Ada.Text_IO.New_Line;
+      end if;
    end Fill_In_Parse_Table;
 
    procedure Reduce_Stack
@@ -1105,9 +1109,9 @@ package body OpenToken.Production.Parser.LALR is
 
             if Trace_Parse then
                Ada.Text_IO.Put_Line
-                 (" to state" &
-                    State_Index'Image (Current_State.State) &
-                    " : " & Token.Token_ID'Image (Token.ID (Action.Production.LHS.all)));
+                 (" to " & Token.Token_ID'Image (Token.ID (Action.Production.LHS.all)) &
+                    " in state" & State_Index'Image (Stack.State) &
+                    ", goto state" & State_Index'Image (Current_State.State));
             end if;
 
          when Accept_It =>
@@ -1172,7 +1176,6 @@ package body OpenToken.Production.Parser.LALR is
 
    procedure Put_Table (Parser : in Instance) is
    begin
-      Ada.Text_IO.Put_Line ("Parse Table:");
       Put_Parse_Table (Parser.Table.all, (null, 0));
    end Put_Table;
 

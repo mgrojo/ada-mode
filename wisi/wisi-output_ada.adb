@@ -99,14 +99,17 @@ begin
    Put_Line ("with Ada.Strings.Maps.Constants;");
    Put_Line ("with OpenToken.Production.List;");
    Put_Line ("with OpenToken.Production.Parser.LALR;");
-   Put_Line ("with OpenToken.Recognizer.Integer;");
    Put_Line ("with OpenToken.Recognizer.Character_Set;");
    Put_Line ("with OpenToken.Recognizer.End_Of_File;");
    Put_Line ("with OpenToken.Recognizer.Identifier;");
    Put_Line ("with OpenToken.Recognizer.Keyword;");
    Put_Line ("with OpenToken.Recognizer.Line_Comment;");
    Put_Line ("with OpenToken.Recognizer.Separator;");
-   Put_Line ("with OpenToken.Recognizer.String;");
+
+   if Is_In (Tokens, """string""") then
+      Put_Line ("with OpenToken.Recognizer.String;");
+   end if;
+
    Put_Line ("with OpenToken.Token.Enumerated;");
    Put_Line ("with OpenToken.Token.Enumerated.Analyzer;");
    Put_Line ("with OpenToken.Token.Enumerated.List;");

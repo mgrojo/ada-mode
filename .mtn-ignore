@@ -41,6 +41,7 @@
 ^build/windows_release/.*\.exe$
 ^build/windows_release/.*\.out$
 ^build/windows_release/.*\.output$
+^build/windows_release/.*\.parse$
 ^build/windows_release/.*\.txt$
 ^build/windows_release/.*\.wy$
 ^build/windows_release/lib$

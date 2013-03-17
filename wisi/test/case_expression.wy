@@ -1,4 +1,4 @@
-;; test a former OpenToken bug; '=>' was missing in the lookaheads for 'primary <= name ^'
+;; test a former OpenToken bug; '=>' was missing in the lookaheads for 'factor <= IDENTIFIER ^'
 ;;
 ;; This is a subset of the syntax for an Ada 2012 case expression
 ;;
@@ -16,15 +16,11 @@
 %token <punctuation> DOT_DOT ".."
 %token <punctuation> EQUAL "="
 %token <punctuation> EQUAL_GREATER "=>"
-%token <punctuation> GREATER_EQUAL ">="
-%token <punctuation> MINUS "-"
 %token <punctuation> PLUS "+"
 %token <punctuation> STAR_STAR "**"
 %token <punctuation> TICK "'"
 
 %token <symbol> IDENTIFIER
-%token <string> STRING_LITERAL
-%token <number> NUMERIC_LITERAL
 
 %keyword AND "and"
 %keyword CASE "case"
@@ -35,7 +31,6 @@
 %start case_expression
 
 %%
-binary_adding_operator : PLUS | MINUS ;
 
 case_expression
   : CASE factor_list IS WHEN discrete_choice EQUAL_GREATER factor_list
@@ -53,7 +48,7 @@ choice_relation_and_list
   ;
 
 choice_relation
-  : factor_list relational_operator factor_list
+  : factor_list EQUAL factor_list
   | factor_list
   ;
 
@@ -63,33 +58,19 @@ discrete_choice
   ;
 
 factor
-  : primary STAR_STAR primary
-  | primary
+  : IDENTIFIER STAR_STAR IDENTIFIER
+  | IDENTIFIER
   ;
 
-name
-  : IDENTIFIER
-  | STRING_LITERAL ;; operator_symbol, designator
-  ;
-
-primary
-  : name
-  | NUMERIC_LITERAL
+factor_list
+  : factor
+  | factor_list PLUS factor
   ;
 
 ;; for Ada code generation, can't use case to distinguish token names
 range_nt
-  : name TICK RANGE ;; range_attribute_reference
+  : IDENTIFIER TICK RANGE ;; range_attribute_reference
   | factor_list DOT_DOT factor_list
-  ;
-
-relational_operator
-  : EQUAL | GREATER_EQUAL ;
-  ;;  =   | /=          | <    |  <=        | >       | >=
-
-factor_list
-  : factor
-  | factor_list binary_adding_operator factor
   ;
 
 %%

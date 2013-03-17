@@ -30,14 +30,8 @@ with Ada.Text_IO;
 with Ada.Unchecked_Deallocation;
 with Ada.Strings.Unbounded;
 with Ada.Characters.Latin_1;
-
-use type Ada.Strings.Unbounded.Unbounded_String;
-
--------------------------------------------------------------------------------
---  This package provides types and operatorion for parsing analysis on
---  grammars and LR(k) items.
--------------------------------------------------------------------------------
 package body OpenToken.Production.Parser.LRk_Item is
+   use type Ada.Strings.Unbounded.Unbounded_String;
 
    procedure Free is new Ada.Unchecked_Deallocation (Item_Node, Item_Ptr);
    procedure Free is new Ada.Unchecked_Deallocation (Item_Lookahead, Item_Lookahead_Ptr);
@@ -48,7 +42,7 @@ package body OpenToken.Production.Parser.LRk_Item is
    is
       Result : Token_ID_Set;
    begin
-      Result (Tokenizer.Terminal_ID'First .. Tokenizer.Terminal_ID'Last)               := (others => False);
+      Result (Token.Token_ID'First .. Tokenizer.Terminal_ID'Last)                      := (others => False);
       Result (Token.Token_ID'Succ (Tokenizer.Terminal_ID'Last) .. Token.Token_ID'Last) := (others => True);
       return Result;
    end Compute_Non_Terminals;
@@ -157,62 +151,46 @@ package body OpenToken.Production.Parser.LRk_Item is
       return Matrix;
    end First_Derivations;
 
-   function Item_Node_Of
-     (Prod      : in OpenToken.Production.Instance;
-      Iterator  : in Token_List.List_Iterator;
-      Lookahead : in Item_Lookahead_Ptr := null;
-      Next      : in Item_Ptr      := null)
-     return Item_Node
+   function Deep_Copy (Item : in Item_Lookahead_Ptr) return Item_Lookahead_Ptr
    is
-      New_Item      : Item_Node;
-      Lookahead_Set : Item_Lookahead_Ptr := Lookahead;
+      I      : Item_Lookahead_Ptr := Item;
+      Result : Item_Lookahead_Ptr;
    begin
-      New_Item.Prod := Prod;
-      New_Item.Dot  := Iterator;
-      New_Item.Next := Next;
-
-      while Lookahead_Set /= null loop
-
-         New_Item.Lookahead_Set := new Item_Lookahead'
-           (Last       => Lookahead_Set.Last,
-            Lookaheads => Lookahead_Set.Lookaheads,
-            Next       => New_Item.Lookahead_Set);
-         Lookahead_Set := Lookahead_Set.Next;
+      while I /= null loop
+         Result := new Item_Lookahead'
+           (Last       => I.Last,
+            Lookaheads => I.Lookaheads,
+            Next       => Result);
+         I := I.Next;
       end loop;
+      return Result;
+   end Deep_Copy;
 
-      return New_Item;
-
-   end Item_Node_Of;
-
-   function Item_Node_Of (Prod : in OpenToken.Production.Instance) return Item_Node
+   function Item_Node_Of
+     (Prod       : in Production_List.List_Iterator;
+      Index      : in Integer;
+      Lookaheads : in Item_Lookahead_Ptr := null)
+     return Item_Node
    is begin
       return
-        (Prod          => Prod,
-         Dot           => Token_List.Initial_Iterator (Prod.RHS.Tokens),
-         Lookahead_Set => null,
-         Next          => null);
+        (Prod       => Production_List.Get_Production (Prod),
+         Dot        => Token_List.Initial_Iterator (Production_List.Get_Production (Prod).RHS.Tokens),
+         Index      => Index,
+         Lookaheads => Deep_Copy (Lookaheads),
+         Next       => null);
    end Item_Node_Of;
 
    function Item_Node_Of
-     (Prod      : in Production_List.List_Iterator;
-      Lookahead : in Item_Lookahead_Ptr := null)
+     (Prod  : in OpenToken.Production.Instance;
+      Index : in Integer)
      return Item_Node
-   is
-      New_Item      : Item_Node;
-      Lookahead_Set : Item_Lookahead_Ptr := Lookahead;
-   begin
-      New_Item.Prod := Production_List.Get_Production (Prod);
-      New_Item.Dot  := Token_List.Initial_Iterator (Production_List.Get_Production (Prod).RHS.Tokens);
-
-      while Lookahead_Set /= null loop
-         New_Item.Lookahead_Set := new Item_Lookahead'
-           (Last       => Lookahead_Set.Last,
-            Lookaheads => Lookahead_Set.Lookaheads,
-            Next       => New_Item.Lookahead_Set);
-         Lookahead_Set := Lookahead_Set.Next;
-      end loop;
-
-      return New_Item;
+   is begin
+      return
+        (Prod       => Prod,
+         Dot        => Token_List.Initial_Iterator (Prod.RHS.Tokens),
+         Index      => Index,
+         Lookaheads => null,
+         Next       => null);
    end Item_Node_Of;
 
    procedure Include
@@ -262,10 +240,11 @@ package body OpenToken.Production.Parser.LRk_Item is
       Target   : in out Item_Set)
    is begin
       Target.Set := new Item_Node'
-        (Prod          => New_Item.Prod,
-         Dot           => New_Item.Dot,
-         Lookahead_Set => New_Item.Lookahead_Set,
-         Next          => Target.Set);
+        (Prod       => New_Item.Prod,
+         Dot        => New_Item.Dot,
+         Index      => Target.Index,
+         Lookaheads => New_Item.Lookaheads,
+         Next       => Target.Set);
    end Add;
 
    function Find
@@ -287,8 +266,8 @@ package body OpenToken.Production.Parser.LRk_Item is
 
    function Find
      (Left  : in Item_Set;
-      Right : in Item_Set_List
-     ) return Item_Set_Ptr
+      Right : in Item_Set_List)
+   return Item_Set_Ptr
    is
       Right_Set  : Item_Set_Ptr := Right.Head;
       Right_Item : Item_Ptr;
@@ -394,8 +373,6 @@ package body OpenToken.Production.Parser.LRk_Item is
       return null;
    end Goto_Set;
 
-   --  Merge lookaheads of New_Item into Existing_Set. New_Item is
-   --  copied or deallocated, as appropriate.
    procedure Merge
      (New_Item     : in out Item_Node;
       Existing_Set : in out Item_Set)
@@ -410,15 +387,16 @@ package body OpenToken.Production.Parser.LRk_Item is
    begin
       if Found = null then
          Existing_Set.Set := new Item_Node'
-           (Prod          => New_Item.Prod,
-            Dot           => New_Item.Dot,
-            Lookahead_Set => New_Item.Lookahead_Set,
-            Next          => Existing_Set.Set);
+           (Prod       => New_Item.Prod,
+            Dot        => New_Item.Dot,
+            Index      => Existing_Set.Index,
+            Lookaheads => New_Item.Lookaheads,
+            Next       => Existing_Set.Set);
       else
          --  Merge their lookaheads.
-         Source_Lookahead := New_Item.Lookahead_Set;
+         Source_Lookahead := New_Item.Lookaheads;
          while Source_Lookahead /= null loop
-            Destination_Lookahead := Found.Lookahead_Set;
+            Destination_Lookahead := Found.Lookaheads;
 
             Found_Match := False;
             while Destination_Lookahead /= null loop
@@ -436,16 +414,16 @@ package body OpenToken.Production.Parser.LRk_Item is
 
             if not Found_Match then
                if Previous_Lookahead = null then
-                  New_Item.Lookahead_Set := Source_Lookahead.Next;
+                  New_Item.Lookaheads := Source_Lookahead.Next;
                else
                   Previous_Lookahead.Next := Source_Lookahead.Next;
                end if;
 
-               Source_Lookahead.Next := Found.Lookahead_Set;
-               Found.Lookahead_Set := Source_Lookahead;
+               Source_Lookahead.Next := Found.Lookaheads;
+               Found.Lookaheads := Source_Lookahead;
 
                if Previous_Lookahead = null then
-                  Source_Lookahead := New_Item.Lookahead_Set;
+                  Source_Lookahead := New_Item.Lookaheads;
                else
                   Source_Lookahead := Previous_Lookahead.Next;
                end if;
@@ -469,9 +447,7 @@ package body OpenToken.Production.Parser.LRk_Item is
       use type Token.Token_ID;
       use type Token.Handle;
 
-      Item      : Item_Ptr := Set.Set;
-      Lookahead : Item_Lookahead_Ptr;
-
+      Item    : Item_Ptr := Set.Set;
       Current : Item_Ptr;
       Start   : Item_Ptr;
       Finish  : Item_Ptr := null;
@@ -486,20 +462,11 @@ package body OpenToken.Production.Parser.LRk_Item is
       --  Put copies of everything in Set into the closure
       while Item /= null loop
          Result.Set := new Item_Node'
-           (Prod          => Item.Prod,
-            Dot           => Item.Dot,
-            Lookahead_Set => null,
-            Next          => Result.Set);
-
-         Lookahead := Item.Lookahead_Set;
-         while Lookahead /= null loop
-            Result.Set.Lookahead_Set := new Item_Lookahead'
-              (Last       => Lookahead.Last,
-               Lookaheads => Lookahead.Lookaheads,
-               Next       => Result.Set.Lookahead_Set);
-
-            Lookahead := Lookahead.Next;
-         end loop;
+           (Prod       => Item.Prod,
+            Dot        => Item.Dot,
+            Index      => Set.Index,
+            Lookaheads => Deep_Copy (Item.Lookaheads),
+            Next       => Result.Set);
 
          Item := Item.Next;
       end loop;
@@ -526,7 +493,10 @@ package body OpenToken.Production.Parser.LRk_Item is
 
                      if Token_List.Token_Handle (Next_Symbol) = null then
                         --  Need a variable, because the lookaheads might be freed.
-                        Merge_From := Item_Node_Of (Production_Iterator, Current.Lookahead_Set);
+                        Merge_From := Item_Node_Of
+                          (Production_Iterator,
+                           Index      => -1,
+                           Lookaheads => Current.Lookaheads);
 
                         Merge (Merge_From, Result);
 
@@ -534,7 +504,8 @@ package body OpenToken.Production.Parser.LRk_Item is
 
                         Merge_From := Item_Node_Of
                           (Production_Iterator,
-                           new Item_Lookahead'
+                           Index => -1,
+                           Lookaheads => new Item_Lookahead'
                              (Last       => 1,
                               Lookaheads => (1 => Token.ID (Token_List.Token_Handle (Next_Symbol).all)),
                               Next       => null));
@@ -550,7 +521,8 @@ package body OpenToken.Production.Parser.LRk_Item is
 
                               Merge_From := Item_Node_Of
                                 (Production_Iterator,
-                                 new Item_Lookahead'
+                                 Index => -1,
+                                 Lookaheads => new Item_Lookahead'
                                    (Last       => 1,
                                     Lookaheads => (1 => Terminal),
                                     Next       => null));
@@ -604,6 +576,7 @@ package body OpenToken.Production.Parser.LRk_Item is
       Prod            : OpenToken.Production.Instance;
       Prod_Index      : Production_List.List_Iterator;
    begin
+      Goto_Set.Index := -1;
 
       while Item /= null loop
 
@@ -614,11 +587,11 @@ package body OpenToken.Production.Parser.LRk_Item is
 
             if Item_Pointer_ID = Symbol then
                Goto_Set.Set := new Item_Node'
-                 (Item_Node_Of
-                    (Prod      => Item.Prod,
-                     Iterator  => Token_List.Next_Token (Item.Dot),
-                     Lookahead => Item.Lookahead_Set,
-                     Next      => Goto_Set.Set));
+                 (Prod       => Item.Prod,
+                  Dot        => Token_List.Next_Token (Item.Dot),
+                  Index      => -1, -- replaced in LR0_Kernels
+                  Lookaheads => Item.Lookaheads,
+                  Next       => Goto_Set.Set);
             end if;
 
             if Item_Pointer_ID in Nonterminal_ID and then First_Tokens (Item_Pointer_ID)(Symbol) then
@@ -635,10 +608,12 @@ package body OpenToken.Production.Parser.LRk_Item is
                     (Item_Pointer_ID = LHS_ID (Prod) or First_Tokens (Item_Pointer_ID)(LHS_ID (Prod)))
                   then
                      declare
-                        New_Item : constant Item_Node := Item_Node_Of
-                          (Prod     => Prod,
-                           Iterator => Token_List.Next_Token (RHS_Pointer),
-                           Next     => Goto_Set.Set);
+                        New_Item : constant Item_Node :=
+                          (Prod       => Prod,
+                           Dot        => Token_List.Next_Token (RHS_Pointer),
+                           Index      => -1, -- replaced in LR0_Kernels
+                           Lookaheads => null,
+                           Next       => Goto_Set.Set);
                      begin
                         if null = Find (New_Item, Goto_Set) then
                            Goto_Set.Set := new Item_Node'(New_Item);
@@ -662,12 +637,12 @@ package body OpenToken.Production.Parser.LRk_Item is
 
    procedure Free (Subject : in out Item_Node)
    is
-      Lookahead : Item_Lookahead_Ptr := Subject.Lookahead_Set;
+      Lookahead : Item_Lookahead_Ptr := Subject.Lookaheads;
    begin
       while Lookahead /= null loop
-         Subject.Lookahead_Set := Lookahead.Next;
+         Subject.Lookaheads := Lookahead.Next;
          Free (Lookahead);
-         Lookahead := Subject.Lookahead_Set;
+         Lookahead := Subject.Lookaheads;
       end loop;
 
    end Free;
@@ -720,8 +695,7 @@ package body OpenToken.Production.Parser.LRk_Item is
         (Head       => new Item_Set'
            (Set     => new Item_Node'
               (Item_Node_Of
-                 (Production_List.Get_Production
-                    (Production_List.Initial_Iterator (Grammar)))),
+                 (Production_List.Get_Production (Production_List.Initial_Iterator (Grammar)), First_Index)),
             Goto_List => null,
             Index     => First_Index,
             Next      => null),
@@ -746,7 +720,8 @@ package body OpenToken.Production.Parser.LRk_Item is
          Checking_Set := Kernel_List.Head;
          while Checking_Set /= Old_Items loop
             if Trace then
-               Ada.Text_IO.Put_Line ("Checking Kernel" & Integer'Image (Checking_Set.Index));
+               Ada.Text_IO.Put ("Checking ");
+               Print_Item_Set (Checking_Set.all);
             end if;
 
             for Symbol in Token.Token_ID loop
@@ -761,19 +736,26 @@ package body OpenToken.Production.Parser.LRk_Item is
 
                --  See if any of the item sets need to be added to our list
                if New_Items.Set /= null then
-                  if Trace then
-                     Print_Item_Set (New_Items);
-                  end if;
 
                   New_Items_Set := Find (New_Items, Kernel_List);
                   if New_Items_Set = null then
                      New_Items_To_Check := True;
 
-                     New_Items.Next := Kernel_List.Head;
+                     New_Items.Next  := Kernel_List.Head;
                      New_Items.Index := Kernel_List.Size + First_Index;
 
+                     declare
+                        I : Item_Ptr := New_Items.Set;
+                     begin
+                        while I /= null loop
+                           I.Index := New_Items.Index;
+                           I       := I.Next;
+                        end loop;
+                     end;
+
                      if Trace then
-                        Ada.Text_IO.Put_Line ("... adding new kernel" & Integer'Image (New_Items.Index));
+                        Ada.Text_IO.Put ("  adding new kernel on " & Token.Token_Image (Symbol) & ": ");
+                        Print_Item_Set (New_Items);
                      end if;
 
                      Kernel_List :=
@@ -794,7 +776,8 @@ package body OpenToken.Production.Parser.LRk_Item is
                         Goto_List => Checking_Set.Goto_List)
                      then
                         if Trace then
-                           Ada.Text_IO.Put_Line ("... adding goto" & Integer'Image (New_Items_Set.Index));
+                           Ada.Text_IO.Put ("  adding goto on " & Token.Token_Image (Symbol) & ": ");
+                           Print_Item_Set (New_Items_Set.all);
                         end if;
 
                         Checking_Set.Goto_List := new Set_Reference'
@@ -814,6 +797,10 @@ package body OpenToken.Production.Parser.LRk_Item is
 
       end loop;
 
+      if Trace then
+         Ada.Text_IO.New_Line;
+      end if;
+
       return Kernel_List;
    end LR0_Kernels;
 
@@ -824,10 +811,6 @@ package body OpenToken.Production.Parser.LRk_Item is
    function Token_Name (Subject : in Nonterminal.Handle) return String is
    begin
       return Token.Token_Image (Token.ID (Subject.all));
-   end Token_Name;
-   function Token_Name (Subject : in Token.Token_ID) return String is
-   begin
-      return Token.Token_Image (Subject);
    end Token_Name;
 
    function Print (Item : in Item_Lookahead) return String
@@ -842,7 +825,7 @@ package body OpenToken.Production.Parser.LRk_Item is
             if Index > 1 then
                Result := Result & " ";
             end if;
-            Result := Result & Token_Name (Item.Lookaheads (Index));
+            Result := Result & Token.Token_Image (Item.Lookaheads (Index));
          end loop;
       end if;
 
@@ -874,13 +857,18 @@ package body OpenToken.Production.Parser.LRk_Item is
       end if;
    end Print;
 
-   function Image_Item (Item : in Item_Node; Verbose : in Boolean := False) return String
+   function Image_Item
+     (Item            : in Item_Node;
+      Show_Index      : in Boolean;
+      Show_Lookaheads : in Boolean;
+      Show_Tag        : in Boolean := False)
+     return String
    is
       Token_Index : Token_List.List_Iterator;
 
       Result : Ada.Strings.Unbounded.Unbounded_String :=
         Ada.Strings.Unbounded.To_Unbounded_String (Token_Name (Item.Prod.LHS)) &
-        (if Verbose then "(" & Ada.Tags.Expanded_Name (Item.Prod.LHS.all'Tag) & ")"
+        (if Show_Tag then "(" & Ada.Tags.Expanded_Name (Item.Prod.LHS.all'Tag) & ")"
          else "") &
         " <=";
 
@@ -899,22 +887,27 @@ package body OpenToken.Production.Parser.LRk_Item is
          Result := Result & Token_Name (Token_List.Token_Handle (Token_Index));
          Token_List.Next_Token (Token_Index);
       end loop;
+
       if Token_List.Token_Handle (Item.Dot) = null then
          Result := Result & " ^";
       end if;
 
-      Result := Result & Print (Item.Lookahead_Set);
+      if Show_Index then
+         Result := Result & " in " & Integer'Image (Item.Index);
+      end if;
+
+      if Show_Lookaheads then
+         Result := Result & Print (Item.Lookaheads);
+      end if;
+
       return Ada.Strings.Unbounded.To_String (Result);
    end Image_Item;
 
-   procedure Put_Item (Item : in Item_Node; Prefix : in String := "") is
+   procedure Put_Item (Item : in Item_Node; Show_Lookaheads : in Boolean) is
    begin
-      Ada.Text_IO.Put (Prefix & Image_Item (Item));
+      Ada.Text_IO.Put (Image_Item (Item, Show_Index => True, Show_Lookaheads => Show_Lookaheads));
    end Put_Item;
 
-   ----------------------------------------------------------------------------
-   --  Print out the given list of set references.
-   ----------------------------------------------------------------------------
    function Image_Set_Reference_List (Reference_List : in Set_Reference_Ptr) return String
    is
       use Ada.Strings.Unbounded;
@@ -926,7 +919,8 @@ package body OpenToken.Production.Parser.LRk_Item is
    begin
       while Reference /= null loop
          Result := Result &
-           "      on " & Token_Name (Reference.Symbol) & " => Set" & Natural'Image (Reference.Set.Index) & Line_End;
+           "      on " & Token.Token_Image (Reference.Symbol) &
+           " => Set" & Natural'Image (Reference.Set.Index) & Line_End;
 
          Reference := Reference.Next;
       end loop;
@@ -934,64 +928,34 @@ package body OpenToken.Production.Parser.LRk_Item is
       return Ada.Strings.Unbounded.To_String (Result);
    end Image_Set_Reference_List;
 
-   function Image (Items : in Item_Set) return String
+   procedure Print_Item_Set (Items : in Item_Set)
    is
+      use Ada.Text_IO;
       Item : Item_Ptr := Items.Set;
-
-      Result : Ada.Strings.Unbounded.Unbounded_String :=
-        Ada.Strings.Unbounded.To_Unbounded_String ("Set") &
-        Natural'Image (Items.Index) & ":";
-
-      Need_New_Line : Boolean := False;
    begin
+      Put_Line ("Set" & Integer'Image (Items.Index) & ":");
 
       while Item /= null loop
-
-         if Need_New_Line then
-            Result := Result & Line_End;
-         else
-            Need_New_Line := True;
-         end if;
-
-         Result := Result & Image_Item (Item.all);
+         Put_Line ("  " & Image_Item (Item.all, Show_Index => False, Show_Lookaheads => True));
 
          Item := Item.Next;
       end loop;
-      return Ada.Strings.Unbounded.To_String (Result);
-   end Image;
-
-   procedure Print_Item_Set (Items : in Item_Set) is
-   begin
-      Ada.Text_IO.Put_Line (Image (Items));
    end Print_Item_Set;
 
-   ----------------------------------------------------------------------------
-   --  Print out all the item sets in the given list. This routine is included
-   --  as a debugging aid.
-   ----------------------------------------------------------------------------
-   function Print_Item_Set_List (Items : in Item_Set_List) return String is
-      Set : Item_Set_Ptr := Items.Head;
-      Item_Count : Natural := 0;
-      Result : Ada.Strings.Unbounded.Unbounded_String;
+   procedure Print_Item_Set_List (Items : in Item_Set_List)
+   is
+      use Ada.Text_IO;
+      Set        : Item_Set_Ptr := Items.Head;
    begin
-
-      Result := Ada.Strings.Unbounded.To_Unbounded_String
-        ("Number of Kernel Sets =" & Integer'Image (Items.Size) & Line_End);
+      Put_Line ("Number of Kernel Sets =" & Integer'Image (Items.Size));
 
       while Set /= null loop
-         Result := Result & Image (Set.all) & Line_End &
-           "   Goto:" & Line_End & Image_Set_Reference_List (Set.Goto_List);
+         Print_Item_Set (Set.all);
+         Put_Line ("   Goto:");
+         Put (Image_Set_Reference_List (Set.Goto_List));
 
          Set := Set.Next;
-         Item_Count := Item_Count + 1;
       end loop;
-
-      return Ada.Strings.Unbounded.To_String (Result);
-   end Print_Item_Set_List;
-
-   procedure Print_Item_Set_List (Items : in Item_Set_List) is
-   begin
-      Ada.Text_IO.Put_Line (Print_Item_Set_List (Items));
    end Print_Item_Set_List;
 
 end OpenToken.Production.Parser.LRk_Item;

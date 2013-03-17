@@ -49,7 +49,7 @@ package OpenToken.Production.Parser.LRk_Item is
      (Set   : in out Item_Lookahead_Ptr;
       Value : in     Item_Lookahead);
 
-   --  Add Value to Set if it is not already in there. Added will be
+   --  Add Value to Set if it is not already present. Added will be
    --  true if the item had to be added.
    procedure Include
      (Set   : in out Item_Lookahead_Ptr;
@@ -60,37 +60,27 @@ package OpenToken.Production.Parser.LRk_Item is
    type Item_Node;
    type Item_Ptr is access Item_Node;
    type Item_Node is record
-      Prod          : OpenToken.Production.Instance;
-      Dot           : Token_List.List_Iterator; --  token after item Dot
-      Lookahead_Set : Item_Lookahead_Ptr;
-      Next          : Item_Ptr;
+      Prod       : OpenToken.Production.Instance;
+      Dot        : Token_List.List_Iterator; -- token after item Dot
+      Index      : Integer;                  -- state_index in LALR parser table; -1 if unknown
+      Lookaheads : Item_Lookahead_Ptr;
+      Next       : Item_Ptr;
    end record;
 
-   ----------------------------------------------------------------------------
-   --  Return an item node made from Prod, Iterator, Lookahead, Next.
-   --  Iterator points to Dot in Prod's right hand side.
-   ----------------------------------------------------------------------------
+   --  Return an item node made from the given production, with Dot at
+   --  the start of the right hand side. Lookaheads are copied.
    function Item_Node_Of
-     (Prod      : in OpenToken.Production.Instance;
-      Iterator  : in Token_List.List_Iterator;
-      Lookahead : in Item_Lookahead_Ptr := null;
-      Next      : in Item_Ptr           := null)
+     (Prod       : in Production_List.List_Iterator;
+      Index      : in Integer;
+      Lookaheads : in Item_Lookahead_Ptr := null)
      return Item_Node;
 
-   ----------------------------------------------------------------------------
-   --  Return an item node made from the given production the iterator refers
-   --  to and the given lookahead. The lookaheads will be copied.
-   ----------------------------------------------------------------------------
+   --  Return an item node made from the given production, with Dot at
+   --  the start of the right hand side.
    function Item_Node_Of
-     (Prod      : in Production_List.List_Iterator;
-      Lookahead : in Item_Lookahead_Ptr := null)
+     (Prod  : in OpenToken.Production.Instance;
+      Index : in Integer)
      return Item_Node;
-
-   ----------------------------------------------------------------------------
-   --  Return an item node made from the given production. The pointer will be
-   --  set to the start of the right hand side.
-   ----------------------------------------------------------------------------
-   function Item_Node_Of (Prod : in OpenToken.Production.Instance) return Item_Node;
 
    type Set_Reference;
    type Set_Reference_Ptr is access Set_Reference;
@@ -107,7 +97,7 @@ package OpenToken.Production.Parser.LRk_Item is
    type Item_Set is record
       Set       : Item_Ptr;
       Goto_List : Set_Reference_Ptr;
-      Index     : Natural := 0; -- state_index in LALR parser table
+      Index     : Integer; -- state_index in LALR parser table; -1 if unknown
       Next      : Item_Set_Ptr;
    end record;
 
@@ -139,44 +129,30 @@ package OpenToken.Production.Parser.LRk_Item is
      return Item_Set_Ptr;
    --  Return a pointer to the set in Sets containing Index, null if not found.
 
-   ----------------------------------------------------------------------------
-   --  Check to see if the given item set is in the set list.
-   ----------------------------------------------------------------------------
-   function Is_In (Left  : in Item_Set;
-                   Right : in Item_Set_List
-                  ) return Boolean;
+   function Is_In
+     (Left  : in Item_Set;
+      Right : in Item_Set_List)
+     return Boolean;
 
-   ----------------------------------------------------------------------------
-   --  Check to see if the given item set is in the given goto list for the
-   --  given symbol.
-   ----------------------------------------------------------------------------
-   function Is_In (Set_Ptr   : in Item_Set_Ptr;
-                   Symbol    : in Token.Token_ID;
-                   Goto_List : in Set_Reference_Ptr
-                  ) return Boolean;
+   function Is_In
+     (Set_Ptr   : in Item_Set_Ptr;
+      Symbol    : in Token.Token_ID;
+      Goto_List : in Set_Reference_Ptr)
+     return Boolean;
 
-   ----------------------------------------------------------------------------
-   --  Return the goto set for the given item set on the given token symbol.
-   ----------------------------------------------------------------------------
-   function Goto_Set (From   : in Item_Set;
-                      Symbol : in Token.Token_ID
-                     ) return Item_Set_Ptr;
+   function Goto_Set
+     (From   : in Item_Set;
+      Symbol : in Token.Token_ID)
+     return Item_Set_Ptr;
 
-   --------------------------------------------------------------------------
-   --  Merge the new set into an existing item set list. The existing
-   --  set will take over control of the dynamicly allocated lrk
-   --  components. If the existing set already contains the new set,
-   --  it will not be put in again. In this case, this routine
-   --  automatilcy deallocates the components of New_Set that were
-   --  created within this package.
-   --------------------------------------------------------------------------
-   procedure Merge (New_Item     : in out Item_Node;
-                    Existing_Set : in out Item_Set
-                   );
+   --  Merge lookaheads of New_Item into Existing_Set. New_Item is
+   --  copied or deallocated, as appropriate.
+   procedure Merge
+     (New_Item     : in out Item_Node;
+      Existing_Set : in out Item_Set);
 
    ------------------------------------------------
    --  Types and operations for computing Item sets
-   --
 
    type Token_ID_Set is array (Token.Token_ID) of Boolean;
 
@@ -198,41 +174,11 @@ package OpenToken.Production.Parser.LRk_Item is
      return Item_Set;
    --  Return the lookahead closure of Set over Grammar. First must be
    --  the result of First_Derivations.
-   --
-   --  The result will contain only one item. This is done
-   --  so that they each get their own look-aheads.
 
-   ----------------------------------------------------------------------------
-   --  Return the set of transitions from the given item kernel set on the
-   --  given symbol.
-   ----------------------------------------------------------------------------
-   function Goto_Transitions
-     (Kernel       : in Item_Set;
-      Symbol       : in Token.Token_ID;
-      First_Tokens : in Derivation_Matrix;
-      Grammar      : in Production_List.Instance;
-      Trace        : in Boolean)
-     return Item_Set;
-
-   ----------------------------------------------------------------------------
-   --  Release any resources allocated by this package for the given item.
-   ----------------------------------------------------------------------------
    procedure Free (Subject : in out Item_Node);
-
-   ----------------------------------------------------------------------------
-   --  Release any resources allocated by this package for the given item set.
-   ----------------------------------------------------------------------------
    procedure Free (Subject : in out Item_Set);
-
-   ----------------------------------------------------------------------------
-   --  Release any resources allocated by this package for the given item set
-   --  list.
-   ----------------------------------------------------------------------------
    procedure Free (Subject : in out Item_Set_List);
 
-   ----------------------------------------------------------------------------
-   --  Compute the kernels for the sets of LR(O) items for the given grammar
-   ----------------------------------------------------------------------------
    function LR0_Kernels
      (Grammar      : in Production_List.Instance;
       First_Tokens : in Derivation_Matrix;
@@ -240,29 +186,14 @@ package OpenToken.Production.Parser.LRk_Item is
       First_Index  : in Natural)
      return Item_Set_List;
 
-   ----------------------------------------------------------------------------
-   --  Print out the given item. This routine is included as a debugging aid.
-   ----------------------------------------------------------------------------
    function Print (Item : in Item_Lookahead) return String;
    function Print (Item : in Item_Lookahead_Ptr) return String;
 
-   procedure Put_Item (Item : in Item_Node; Prefix : in String := "");
-   --  Put Item to Ada.Text_IO.Standard_Output, preceded by Prefix. Does not end with New_Line.
+   procedure Put_Item (Item : in Item_Node; Show_Lookaheads : in Boolean);
+   --  Put Item to Ada.Text_IO.Standard_Output. Does not end with New_Line.
 
-   function Image_Item (Item : in Item_Node; Verbose : in Boolean := False) return String;
-
-   ----------------------------------------------------------------------------
-   --  Print out the given item set. This routine is included as a debugging
-   --  aid.
-   ----------------------------------------------------------------------------
    procedure Print_Item_Set (Items : in Item_Set);
-   function Image (Items : in Item_Set) return String;
 
-   ----------------------------------------------------------------------------
-   --  Print out all the item sets in the given list. This routine is included
-   --  as a debugging aid.
-   ----------------------------------------------------------------------------
    procedure Print_Item_Set_List (Items : in Item_Set_List);
-   function Print_Item_Set_List (Items : in Item_Set_List) return String;
 
 end OpenToken.Production.Parser.LRk_Item;

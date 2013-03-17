@@ -54,6 +54,16 @@ package body Wisi is
       end;
    end Add_Token;
 
+   function Is_In (Tokens : in Token_Lists.List; Kind : in String) return Boolean
+   is begin
+      for Token of Tokens loop
+         if -Token.Kind = Kind then
+            return True;
+         end if;
+      end loop;
+      return False;
+   end Is_In;
+
    function "+" (List : in String_Lists.List; Item : in String) return String_Lists.List
    is
       Result : String_Lists.List := List;
