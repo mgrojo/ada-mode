@@ -38,6 +38,11 @@ package AUnit.Check is
 
    procedure Check
      (Label    : in String;
+      Computed : in Boolean;
+      Expected : in Boolean);
+
+   procedure Check
+     (Label    : in String;
       Computed : in String;
       Expected : in String);
 

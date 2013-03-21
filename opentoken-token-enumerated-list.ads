@@ -86,10 +86,8 @@ package OpenToken.Token.Enumerated.List is
 
    function Next_Token (Iterator : in List_Iterator) return List_Iterator;
 
-   ----------------------------------------------------------------------------
-   --  Return the next Token in the list.
-   ----------------------------------------------------------------------------
    function Token_Handle (Iterator : in List_Iterator) return Handle;
+   function ID (Iterator : in List_Iterator) return Token_ID;
 
    ---------------------
    -- Parser Routines --

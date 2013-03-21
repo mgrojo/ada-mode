@@ -259,7 +259,10 @@ package body OpenToken.Production.Parser.LALR is
       end if;
    end Add_Propagations;
 
-   --  Calculate the lookaheads for Source_Set, Source_Set, Closure_Item.
+   --  Calculate the lookaheads from Closure_Item for Source_Item.
+   --  Source_Item must be one of the kernel items in Source_Set.
+   --  Closure_Item must be an item in the lookahead closure of Source_Item for #.
+   --
    --  Spontaneous lookaheads are put in Source_Item.Lookahead, propagated lookaheads in Propagations.
    --
    --  The start symbol (with Source_Set.Index = Accept_Index) is treated specially.
@@ -298,10 +301,9 @@ package body OpenToken.Production.Parser.LALR is
                   Next       => null);
             begin
                if Trace then
-                  Ada.Text_IO.Put_Line ("Adding default lookahead:");
-                  LRk.Put_Item (Source_Item.all, Show_Lookaheads => True);
-                  Ada.Text_IO.New_Line;
-                  Ada.Text_IO.Put_Line ("   " & LRk.Print (Lookahead));
+                  Ada.Text_IO.Put ("  default:");
+                  LRk.Put_Item (Source_Item.all, Show_Lookaheads => False);
+                  Ada.Text_IO.Put_Line ("; " & LRk.Print (Lookahead));
                end if;
 
                LRk.Include
@@ -317,15 +319,6 @@ package body OpenToken.Production.Parser.LALR is
          return;
       end if;
 
-      Next_Token := Closure_Item.Dot;
-      Token_List.Next_Token (Next_Token); --  Second token after Dot
-      Next_Item  :=
-        (Prod       => Closure_Item.Prod,
-         Dot        => Next_Token,
-         Index      => -1,
-         Lookaheads => null,
-         Next       => null);
-
       Token_ID := Token.ID (Token_List.Token_Handle (Closure_Item.Dot).all);
 
       begin
@@ -335,10 +328,20 @@ package body OpenToken.Production.Parser.LALR is
          raise Grammar_Error with "non-reporting " & Token.Token_Image (Token_ID) & " used in grammar";
       end;
 
+      Next_Token := Closure_Item.Dot;
+      Token_List.Next_Token (Next_Token); --  Second token after Dot
+      Next_Item  :=
+        (Prod       => Closure_Item.Prod,
+         Dot        => Next_Token,
+         Index      => -1,
+         Lookaheads => null,
+         Next       => null);
+
+      Next_Kernel := LRk.Find (Next_Item, LRk.Goto_Set (Source_Set, Token_ID).all);
+
       --  Check all of the closure item's lookaheads
       while Lookahead /= null loop
          if Lookahead.Last = 0 then
-            --  Lookaheads propagate
             Add_Propagations
               (From         => Source_Item,
                From_Set     => Source_Set,
@@ -347,18 +350,11 @@ package body OpenToken.Production.Parser.LALR is
                Propagations => Propagations);
 
          else
-            --  Lookaheads are generated spontaneously for all items
-            --  in the source item's goto for the current symbol that
-            --  match the next_item.
-
-            Next_Kernel := LRk.Find (Next_Item, LRk.Goto_Set (Source_Set, Token_ID).all);
-
             if Next_Kernel /= null then
                if Trace then
-                  Ada.Text_IO.Put ("  spontaneous: ");
-                  LRk.Put_Item (Next_Kernel.all, Show_Lookaheads => True);
-                  Ada.Text_IO.New_Line;
-                  Ada.Text_IO.Put_Line ("   " & LRk.Print (Lookahead.all));
+                  Ada.Text_IO.Put ("  spontaneous (" & Token.Token_Image (Token_ID) & "): ");
+                  LRk.Put_Item (Next_Kernel.all, Show_Lookaheads => False);
+                  Ada.Text_IO.Put_Line ("; " & LRk.Print (Lookahead.all));
                end if;
 
                LRk.Include
@@ -450,9 +446,10 @@ package body OpenToken.Production.Parser.LALR is
       Kernel_Item_Set : LRk.Item_Set :=
         (Set       => new LRk.Item_Node,
          Goto_List => null,
-         Index     => 0,
+         Index     => -1,
          Next      => null);
 
+      --  '#' lookahead from [dragon]
       Propagate_Lookahead : constant LRk.Item_Lookahead_Ptr := new LRk.Item_Lookahead'
         (Last       => 0,
          Lookaheads => (others => Tokenizer.Terminal_ID'First),

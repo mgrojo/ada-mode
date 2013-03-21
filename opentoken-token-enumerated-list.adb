@@ -200,4 +200,9 @@ package body OpenToken.Token.Enumerated.List is
       return Iterator.Token;
    end Token_Handle;
 
+   function ID (Iterator : in List_Iterator) return Token_ID
+   is begin
+      return ID (Token_Handle (Iterator).all);
+   end ID;
+
 end OpenToken.Token.Enumerated.List;

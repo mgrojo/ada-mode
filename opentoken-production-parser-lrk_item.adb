@@ -27,16 +27,10 @@
 
 with Ada.Tags;
 with Ada.Text_IO;
-with Ada.Unchecked_Deallocation;
 with Ada.Strings.Unbounded;
 with Ada.Characters.Latin_1;
 package body OpenToken.Production.Parser.LRk_Item is
    use type Ada.Strings.Unbounded.Unbounded_String;
-
-   procedure Free is new Ada.Unchecked_Deallocation (Item_Node, Item_Ptr);
-   procedure Free is new Ada.Unchecked_Deallocation (Item_Lookahead, Item_Lookahead_Ptr);
-   procedure Free is new Ada.Unchecked_Deallocation (Item_Set, Item_Set_Ptr);
-   procedure Free is new Ada.Unchecked_Deallocation (Set_Reference, Set_Reference_Ptr);
 
    function Compute_Non_Terminals return Token_ID_Set
    is
@@ -325,21 +319,20 @@ package body OpenToken.Production.Parser.LRk_Item is
       return null;
    end Find;
 
-   function Is_In (Left  : in Item_Set;
-                   Right : in Item_Set_List
-                  ) return Boolean is
-   begin
+   function Is_In
+     (Left  : in Item_Set;
+      Right : in Item_Set_List)
+     return Boolean
+   is begin
       return Find (Left, Right) /= null;
    end Is_In;
 
-   ----------------------------------------------------------------------------
-   --  Check to see if the given item set is in the given goto list for the
-   --  given symbol.
-   ----------------------------------------------------------------------------
-   function Is_In (Set_Ptr   : in Item_Set_Ptr;
-                   Symbol    : in Token.Token_ID;
-                   Goto_List : in Set_Reference_Ptr
-                  ) return Boolean is
+   function Is_In
+     (Set_Ptr   : in Item_Set_Ptr;
+      Symbol    : in Token.Token_ID;
+      Goto_List : in Set_Reference_Ptr)
+     return Boolean
+   is
       Goto_Ptr : Set_Reference_Ptr := Goto_List;
       use type Token.Token_ID;
    begin
@@ -389,7 +382,7 @@ package body OpenToken.Production.Parser.LRk_Item is
          Existing_Set.Set := new Item_Node'
            (Prod       => New_Item.Prod,
             Dot        => New_Item.Dot,
-            Index      => Existing_Set.Index,
+            Index      => -1,
             Lookaheads => New_Item.Lookaheads,
             Next       => Existing_Set.Set);
       else
@@ -459,12 +452,16 @@ package body OpenToken.Production.Parser.LRk_Item is
 
       Merge_From : Item_Node;
    begin
-      --  Put copies of everything in Set into the closure
+      --  Put copies of everything in Set into the closure. We don't
+      --  copy Goto_List, since we are only concerned about lookaheads
+      --  here.
+
+      Result.Index := -1; -- Result does _not_ match any kernel set
       while Item /= null loop
          Result.Set := new Item_Node'
            (Prod       => Item.Prod,
             Dot        => Item.Dot,
-            Index      => Set.Index,
+            Index      => -1,
             Lookaheads => Deep_Copy (Item.Lookaheads),
             Next       => Result.Set);
 
@@ -479,10 +476,10 @@ package body OpenToken.Production.Parser.LRk_Item is
          --  productions and place them in the set with lookaheads
          --  from the current production.
          if Token_List.Token_Handle (Current.Dot) /= null and then
-           Token.ID (Token_List.Token_Handle (Current.Dot).all) in Nonterminal_ID
+           Token_List.ID (Current.Dot) in Nonterminal_ID
          then
             declare
-               Current_ID : constant Token.Token_ID := Token.ID (Token_List.Token_Handle (Current.Dot).all);
+               Current_ID : constant Token.Token_ID := Token_List.ID (Current.Dot);
             begin
                Next_Symbol := Current.Dot;
                Token_List.Next_Token (Next_Symbol); -- token after nonterminal, possibly null
@@ -500,14 +497,16 @@ package body OpenToken.Production.Parser.LRk_Item is
 
                         Merge (Merge_From, Result);
 
-                     elsif Token.ID (Token_List.Token_Handle (Next_Symbol).all) in Tokenizer.Terminal_ID then
+                     elsif Token_List.ID (Next_Symbol) in Tokenizer.Terminal_ID then
 
+                        --  Only necessary if nonterminal can be null,
+                        --  but that's expensive to check.
                         Merge_From := Item_Node_Of
                           (Production_Iterator,
                            Index => -1,
                            Lookaheads => new Item_Lookahead'
                              (Last       => 1,
-                              Lookaheads => (1 => Token.ID (Token_List.Token_Handle (Next_Symbol).all)),
+                              Lookaheads => (1 => Token_List.ID (Next_Symbol)),
                               Next       => null));
 
                         Merge (Merge_From, Result);
@@ -688,18 +687,15 @@ package body OpenToken.Production.Parser.LRk_Item is
       First_Index  : in Natural)
      return Item_Set_List
    is
-
-      --  Initialize it with the first production with the pointer on
-      --  the first position.
-      Kernel_List        : Item_Set_List :=
-        (Head       => new Item_Set'
-           (Set     => new Item_Node'
+      Kernel_List : Item_Set_List :=
+        (Head         => new Item_Set'
+           (Set       => new Item_Node'
               (Item_Node_Of
                  (Production_List.Get_Production (Production_List.Initial_Iterator (Grammar)), First_Index)),
             Goto_List => null,
             Index     => First_Index,
             Next      => null),
-         Size       => 1);
+         Size         => 1);
 
       New_Items_To_Check   : Boolean      := True;
       Previous_Kernel_Head : Item_Set_Ptr := null;

@@ -128,6 +128,10 @@ package OpenToken.Production is
                   RHS : in Token.Class
                  ) return Instance;
 
+   ----------
+   --  Access functions
+
+   function First_Token (Item : in Instance) return Token_List.List_Iterator;
    function LHS_ID (Item : in Instance) return Token.Token_ID;
    function Index (Item : in Instance) return Integer;
 
@@ -136,7 +140,7 @@ private
    type Right_Hand_Side is record
       Tokens : Token_List.Instance;
       Action : Nonterminal.Synthesize;
-      Index  : Integer;
+      Index  : Integer; -- In LRk_Item set
    end record;
 
    type Instance is record

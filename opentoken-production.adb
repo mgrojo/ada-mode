@@ -139,6 +139,11 @@ package body OpenToken.Production is
              );
    end "<=";
 
+   function First_Token (Item : in Instance) return Token_List.List_Iterator
+   is begin
+      return Token_List.Initial_Iterator (Item.RHS.Tokens);
+   end First_Token;
+
    function LHS_ID (Item : in Instance) return Token.Token_ID
    is begin
       return Token.ID (Item.LHS.all);

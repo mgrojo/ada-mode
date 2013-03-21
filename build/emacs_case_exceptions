@@ -8,5 +8,7 @@
 *LALR
 *LHS
 *LRk
+*LR0
+*LR1
 *OpenToken
 *RHS

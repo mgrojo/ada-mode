@@ -40,6 +40,16 @@ package body AUnit.Check is
 
    procedure Check
      (Label    : in String;
+      Computed : in Boolean;
+      Expected : in Boolean)
+   is begin
+      Standard.AUnit.Assertions.Assert
+        (Computed = Expected,
+         Label & " got " & Boolean'Image (Computed) & " expecting " & Boolean'Image (Expected));
+   end Check;
+
+   procedure Check
+     (Label    : in String;
       Computed : in String;
       Expected : in String)
    is begin

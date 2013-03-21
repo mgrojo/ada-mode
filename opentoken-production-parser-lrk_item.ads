@@ -29,6 +29,7 @@
 --  This package provides types and operatorion for parsing analysis
 --  on grammars and LR(k) items.
 ---------------------------------------------------------------------------
+with Ada.Unchecked_Deallocation;
 generic
    --  The number of elements of lookahead to keep in an item
    K : in Natural := 0;
@@ -115,7 +116,8 @@ package OpenToken.Production.Parser.LRk_Item is
      (Left  : in Item_Node;
       Right : in Item_Set)
      return Item_Ptr;
-   --  Return a pointer to an item in Right that matches Left.Prod, Left.Dot, null if not found.
+   --  Return a pointer to an item in Right that matches Left.Prod,
+   --  Left.Dot, null if not found.
 
    function Find
      (Left  : in Item_Set;
@@ -145,11 +147,11 @@ package OpenToken.Production.Parser.LRk_Item is
       Symbol : in Token.Token_ID)
      return Item_Set_Ptr;
 
-   --  Merge lookaheads of New_Item into Existing_Set. New_Item is
-   --  copied or deallocated, as appropriate.
    procedure Merge
      (New_Item     : in out Item_Node;
       Existing_Set : in out Item_Set);
+   --  Merge lookaheads of New_Item into Existing_Set. New_Item is
+   --  copied or deallocated, as appropriate.
 
    ------------------------------------------------
    --  Types and operations for computing Item sets
@@ -174,6 +176,11 @@ package OpenToken.Production.Parser.LRk_Item is
      return Item_Set;
    --  Return the lookahead closure of Set over Grammar. First must be
    --  the result of First_Derivations.
+
+   procedure Free is new Ada.Unchecked_Deallocation (Item_Node, Item_Ptr);
+   procedure Free is new Ada.Unchecked_Deallocation (Item_Lookahead, Item_Lookahead_Ptr);
+   procedure Free is new Ada.Unchecked_Deallocation (Item_Set, Item_Set_Ptr);
+   procedure Free is new Ada.Unchecked_Deallocation (Set_Reference, Set_Reference_Ptr);
 
    procedure Free (Subject : in out Item_Node);
    procedure Free (Subject : in out Item_Set);
