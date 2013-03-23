@@ -29,4 +29,6 @@ package Wisi_Rules_Test is
 
    overriding function Name (T : Test_Case) return AUnit.Message_String;
 
+   overriding procedure Tear_Down (T : in out Test_Case);
+
 end Wisi_Rules_Test;

@@ -27,6 +27,8 @@ with AUnit.Check;
 with Wisi.Rules;
 package body Wisi_Rules_Test is
 
+   File_Name : constant String := "wisi_rules_test.wy";
+
    procedure Delete (Name : in String)
    is
       use Ada.Directories;
@@ -131,10 +133,9 @@ package body Wisi_Rules_Test is
    is
       pragma Unreferenced (Test);
       use Wisi;
-      File      : File_Type;
-      File_Name : constant String := "wisi_rules_test.wy";
-      Computed  : Wisi.Rule_Lists.List;
-      Expected  : Wisi.Rule_Lists.List;
+      File     : File_Type;
+      Computed : Wisi.Rule_Lists.List;
+      Expected : Wisi.Rule_Lists.List;
    begin
       Delete (File_Name);
       Create (File, Out_File, File_Name);
@@ -203,10 +204,9 @@ package body Wisi_Rules_Test is
    is
       pragma Unreferenced (Test);
       use Wisi;
-      File      : File_Type;
-      File_Name : constant String := "wisi_rules_test.wy";
-      Computed  : Wisi.Rule_Lists.List;
-      Expected  : Wisi.Rule_Lists.List;
+      File     : File_Type;
+      Computed : Wisi.Rule_Lists.List;
+      Expected : Wisi.Rule_Lists.List;
    begin
       Delete (File_Name);
       Create (File, Out_File, File_Name);
@@ -269,5 +269,12 @@ package body Wisi_Rules_Test is
    begin
       return new String'("../../wisi/test/wisi_rules_test.adb");
    end Name;
+
+   overriding procedure Tear_Down (T : in out Test_Case)
+   is
+      pragma Unreferenced (T);
+   begin
+      Delete (File_Name);
+   end Tear_Down;
 
 end Wisi_Rules_Test;

@@ -9,13 +9,12 @@ t_one : test_one_harness.run
 t_all : test_all_harness.run
 
 # from ../common.make
-one : subprograms-wy.diff
 one : body_instantiation_conflict-wy.diff
+one : case_expression-wy.diff
 one : identifier_list_name_conflict-wy.diff
 one : range_conflict-wy.diff
-
-# run semantic-grammar-create-package, wisent-compile-grammar
-two : ../../wisi/test/subprograms-wy.el
+one : subprograms-wy.diff
+one : case_expression-parse.diff
 
 EMACS := /apps/emacs-24.2.91/bin/emacs.exe
 ../../wisi/test/%-wy.el : %.wy
@@ -27,7 +26,6 @@ trace :
 GPRBUILD_TARGET := x86-windows
 include ../common.make
 
-# FIXME: move 'require opentoken' into project file
 # Local Variables:
 # eval: (load-file "../opentoken.el")
 # eval: (ada-parse-prj-file "opentoken.prj")

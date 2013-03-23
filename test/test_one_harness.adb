@@ -2,7 +2,7 @@
 --
 --  Run one OpenToken AUnit test
 --
---  Copyright (C) 2009, 2010, 2012 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2009, 2010, 2012, 2013 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -20,7 +20,7 @@ with AUnit.Reporter.Text;
 with AUnit.Options;
 with AUnit.Test_Results;
 with AUnit.Test_Suites; use AUnit.Test_Suites;
-with Lookahead_Test;
+with Test_LR_Expecting;
 procedure Test_One_Harness
 is
    Suite    : constant Access_Test_Suite := new Test_Suite;
@@ -28,7 +28,7 @@ is
    Result   : AUnit.Test_Results.Result;
    Status   : AUnit.Status;
 begin
-   Add_Test (Suite, new Lookahead_Test.Test_Case (Debug => False));
+   Add_Test (Suite, new Test_LR_Expecting.Test_Case (Debug => False));
 
    Run (Suite, AUnit.Options.Default_Options, Result, Status);
 

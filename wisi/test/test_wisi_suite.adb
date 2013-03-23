@@ -31,10 +31,13 @@ begin
    Add_Test (Suite, new Test_Generate_Errors.Test_Case (new String'("../../wisi/test/unused_tokens")));
    Add_Test (Suite, new Wisi_Rules_Test.Test_Case);
 
-   Add_Test (Suite, new Wisi_WY_Test.Test_Case (new String'("../../wisi/test/subprograms")));
+   --  elisp grammar generate tests; grammar file name order
    Add_Test (Suite, new Wisi_WY_Test.Test_Case (new String'("../../wisi/test/body_instantiation_conflict")));
+   Add_Test (Suite, new Wisi_WY_Test.Test_Case (new String'("../../wisi/test/case_expression")));
    Add_Test (Suite, new Wisi_WY_Test.Test_Case (new String'("../../wisi/test/identifier_list_name_conflict")));
    Add_Test (Suite, new Wisi_WY_Test.Test_Case (new String'("../../wisi/test/range_conflict")));
+   Add_Test (Suite, new Wisi_WY_Test.Test_Case (new String'("../../wisi/test/subprograms")));
+
    --  end test cases
 
    return Suite;

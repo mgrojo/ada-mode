@@ -40,10 +40,24 @@ is
      1 .. Count (Tokens) + Integer (Keywords.Length) + 1 + Integer (Rules.Length) + 1;
    --  one extra terminal for $EOI
    --  one extra non-terminal for the OpenToken accept symbol followed by EOI.
+   --  don't need a whitespace token; handled by Elisp Wisi lexer
 
-   Token_Count : constant Token_IDs := Count (Tokens);
-   EOI_ID      : constant Token_IDs := Token_Count + Token_IDs (Keywords.Length) + 1; -- last terminal
-   Accept_ID   : constant Token_IDs := Token_IDs'Last;                                -- last nonterminal
+   function Count_Non_Reporting return Integer
+   is
+      Result : Integer := 0;
+   begin
+      for Kind of Tokens loop
+         if -Kind.Kind = """line_comment""" then
+            Result := Result + Integer (Kind.Tokens.Length);
+         end if;
+      end loop;
+      return Result;
+   end Count_Non_Reporting;
+
+   Token_Count    : constant Token_IDs := Count (Tokens);
+   First_Terminal : constant Token_IDs := Token_IDs'First + Count_Non_Reporting;
+   EOI_ID         : constant Token_IDs := Token_Count + Token_IDs (Keywords.Length) + 1; -- last terminal
+   Accept_ID      : constant Token_IDs := Token_IDs'Last;                                -- last nonterminal
 
    First_Rule_Line : constant Standard.Ada.Text_IO.Positive_Count := Rules.First_Element.Source_Line;
 
@@ -132,7 +146,8 @@ is
 
    package Tokens_Pkg is new OpenToken.Token.Enumerated (Token_IDs, Token_Image, Token_Image_Width);
    --  we only need Analyzers to instantiate Parsers, but we might call it for debugging
-   package Analyzers is new Tokens_Pkg.Analyzer (First_Terminal => Token_IDs'First, Last_Terminal => EOI_ID);
+   package Analyzers is new Tokens_Pkg.Analyzer
+     (First_Terminal => First_Terminal, Last_Terminal => EOI_ID);
    package Token_Lists is new Tokens_Pkg.List;
    package Nonterminals is new Tokens_Pkg.Nonterminal (Token_Lists);
    package Productions is new OpenToken.Production (Tokens_Pkg, Token_Lists, Nonterminals);

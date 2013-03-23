@@ -36,7 +36,7 @@ package Token_Sequence_Test is
    type Token_IDs is (Do_ID, Several, Things, Int, Times, In_ID, A_ID, Row, EOF, Whitespace);
 
    package Terminal_Token is new OpenToken.Token.Enumerated (Token_IDs, Token_IDs'Image, Token_IDs'Width);
-   package Tokenizer is new Terminal_Token.Analyzer;
+   package Tokenizer is new Terminal_Token.Analyzer (Token_IDs'First, Token_IDs'Last);
 
    Syntax : constant Tokenizer.Syntax :=
      (Do_ID      => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("do")),

@@ -1,14 +1,12 @@
 # (ediff "../windows_release/Makefile" "../linux_release/Makefile")
 
-all: tests examples library
+all: test-clean tests examples library
 
 # ../../Test/test_one_harness.adb
-#t_one : RUN_ARGS := -v
 t_one : test_one_harness.run
 t_all : test_all_harness.run
 
-one : wisi-generate.exe ../../wisi/test/unused_tokens.wy
-	./wisi-generate.exe ../../wisi/test/unused_tokens.wy Test
+one : test-clean case_expression-parse.diff
 
 trace :
 	addr2line -e asu_example_5_10_rd-run.exe 0x411a82 0x411aec 0x416f34 0x401783 0x401235 0x401286 0x7c817075

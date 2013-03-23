@@ -32,6 +32,9 @@ tests : token_list_test-run.run
 tests : token_selection_test-run.run
 tests : token_sequence_test-run.run
 
+# wisi parse tests
+tests : case_expression-parse.diff
+
 examples : asu_example_3_6-run.run
 examples : asu_example_4_46-run.run
 examples : asu_example_4_46_rd-run.run
@@ -91,7 +94,6 @@ library:
 	gnatmake -p -Popentoken_lib
 
 clean :: test-clean
-	rm -f *.diff *.exe *.out *.txt
 	rm -f obj/*
 	rm -rf lib/*
 
@@ -99,7 +101,8 @@ distclean :: clean
 	rm -rf obj obj_tree
 
 test-clean :
-	rm -f *.diff *.out *.parse *.txt  *-wy.el
+	rm -f *.diff *.exe *.out *.parse *.txt  *-wy.el
+	rm -f *.ads *-parse.adb
 
 source-clean ::
 	-find $(SOURCE_ROOT) -name "*~" -print | xargs rm -v
@@ -122,7 +125,7 @@ DIFF_OPT := -u -w
 %.run : %.exe ;	./$(*F).exe $(RUN_ARGS)
 
 %-wy.el : %.wy wisi-generate.exe
-	./wisi-generate.exe -v 2 $< Elisp > $*.output
+	./wisi-generate.exe $< Elisp > $*.output
 
 %-parse.adb : %.wy wisi-generate.exe
 	./wisi-generate.exe $< Ada

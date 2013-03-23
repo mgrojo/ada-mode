@@ -39,8 +39,8 @@ package body Test_Generate_Errors is
 
       Wy_File             : constant String_Access := new String'(Test.Root_Name.all & ".wy");
       Computed_Error_File : constant String        :=
-        Ada.Directories.Simple_Name (Test.Root_Name.all) & ".errors";
-      Expected_Error_File : constant String        := Test.Root_Name.all & ".good_errors";
+        Ada.Directories.Simple_Name (Test.Root_Name.all) & ".out";
+      Expected_Error_File : constant String        := Test.Root_Name.all & ".good_out";
    begin
       Spawn
         (Program_Name => Locate_Exec_On_Path ("wisi-generate.exe").all,

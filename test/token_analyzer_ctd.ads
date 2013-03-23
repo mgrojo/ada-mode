@@ -39,7 +39,7 @@ package Token_Analyzer_CTD is
    type Token_IDs is (Normal, Default);
 
    package Master_Token is new OpenToken.Token.Enumerated (Token_IDs, Token_IDs'Image, Token_IDs'Width);
-   package Tokenizer is new Master_Token.Analyzer;
+   package Tokenizer is new Master_Token.Analyzer (Token_IDs'First, Token_IDs'Last);
 
    Normal_Text : constant String := "Normal";
 
