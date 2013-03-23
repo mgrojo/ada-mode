@@ -46,7 +46,7 @@ package body Trivial_Productions_Test is
          E_ID, F_ID, T_ID);
 
       package Tokens is new OpenToken.Token.Enumerated (Token_IDs, Token_IDs'Image, Token_IDs'Width);
-      package Analyzers is new Tokens.Analyzer (EOF_ID);
+      package Analyzers is new Tokens.Analyzer (Symbol_ID, EOF_ID);
       package Token_Lists is new Tokens.List;
       package Nonterminals is new Tokens.Nonterminal (Token_Lists);
       package Productions is new OpenToken.Production (Tokens, Token_Lists, Nonterminals);
@@ -90,10 +90,7 @@ package body Trivial_Productions_Test is
    begin
       --  The test is that there are no exceptions raised, either during grammar construction or parsing
 
-      Parser := LALR_Parsers.Generate
-        (Grammar, Analyzer,
-         Non_Reporting_Tokens => (EOF_ID => True, others => False),
-         Trace                => Test_Case (Test).Debug);
+      Parser := LALR_Parsers.Generate (Grammar, Analyzer, Trace => Test_Case (Test).Debug);
 
       OpenToken.Text_Feeder.String.Set (Feeder, Text);
       Analyzer.Reset;
@@ -109,14 +106,14 @@ package body Trivial_Productions_Test is
       --  produces the same grammar.
 
       type Token_IDs is
-        (
+        (Whitespace_ID,
+
          --  Terminals
          Function_ID,
          Procedure_ID,
          Symbol_ID,
          Left_Paren_ID,
          Right_Paren_ID,
-         Whitespace_ID,
          EOF_ID,
 
          --  Nonterminals
@@ -127,7 +124,7 @@ package body Trivial_Productions_Test is
          Parameter_List_ID);
 
       package Tokens_Pkg is new OpenToken.Token.Enumerated (Token_IDs, Token_IDs'Image, Token_IDs'Width);
-      package Analyzers is new Tokens_Pkg.Analyzer (EOF_ID);
+      package Analyzers is new Tokens_Pkg.Analyzer (Function_ID, EOF_ID);
       package Token_Lists is new Tokens_Pkg.List;
       package Nonterminals is new Tokens_Pkg.Nonterminal (Token_Lists);
       package Productions is new OpenToken.Production (Tokens_Pkg, Token_Lists, Nonterminals);
@@ -186,9 +183,8 @@ package body Trivial_Productions_Test is
 
       Parser := LALR_Parsers.Generate
         (Grammar, Analyzer,
-         Non_Reporting_Tokens => (EOF_ID | Whitespace_ID => True, others => False),
-         Trace                => Test_Case (Test).Debug,
-         Put_Grammar          => Test_Case (Test).Debug);
+         Trace       => Test_Case (Test).Debug,
+         Put_Grammar => Test_Case (Test).Debug);
 
       OpenToken.Text_Feeder.String.Set (Feeder, Text);
       Analyzer.Reset;

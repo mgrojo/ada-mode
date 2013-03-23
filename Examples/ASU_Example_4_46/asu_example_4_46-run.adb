@@ -24,17 +24,10 @@
 --  executable file might be covered by the GNU Public License.
 -------------------------------------------------------------------------------
 with Ada.Text_IO;
-
--------------------------------------------------------------------------------
---  This example is an implementation of Example 4.46 from "Compilers
---  Principles, Techniques, and Tools" by Aho, Sethi, and Ullman (aka: "The
---  Dragon Book"). It demonstrates basic LALR(1) parsing
--------------------------------------------------------------------------------
 procedure ASU_Example_4_46.Run is
 
    --  The lalr parser instance.
-   Test_Parser : LALR_Parser.Instance :=
-     LALR_Parser.Generate (Grammar, Analyzer, Non_Reporting_Tokens => (Whitespace_ID => True, others => False));
+   Test_Parser : LALR_Parser.Instance := LALR_Parser.Generate (Grammar, Analyzer);
 
    Test_File_Name : constant String := "Example.txt";
 begin

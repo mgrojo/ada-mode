@@ -42,12 +42,12 @@ package body Test_Accept_Index is
    --  set foo = integer;
 
    type Token_IDs is
-     (Equals_ID,
+     (Whitespace_ID,
+      Equals_ID,
       Int_ID,
       Set_ID,
       EOF_ID,
       Identifier_ID,
-      Whitespace_ID,
 
       --  non-terminals
       Parse_Sequence_ID,
@@ -55,7 +55,7 @@ package body Test_Accept_Index is
 
    --  Instantiate all the necessary packages
    package Master_Token is new OpenToken.Token.Enumerated (Token_IDs, Token_IDs'Image, Token_IDs'Width);
-   package Tokenizer is new Master_Token.Analyzer (Whitespace_ID);
+   package Tokenizer is new Master_Token.Analyzer (Equals_ID, Identifier_ID);
    package Token_List is new Master_Token.List;
    package Nonterminal is new Master_Token.Nonterminal (Token_List);
    package Production is new OpenToken.Production (Master_Token, Token_List, Nonterminal);
@@ -113,8 +113,7 @@ package body Test_Accept_Index is
 
       Parser := LALR_Parser.Generate
         (Grammar, Analyzer,
-         Non_Reporting_Tokens => (Whitespace_ID => True, others => False),
-         Trace                => Test.Debug,
+         Trace       => Test.Debug,
          Put_Grammar => Test.Debug);
 
       OpenToken.Trace_Parse := Test.Debug;
@@ -141,7 +140,7 @@ package body Test_Accept_Index is
    is
       pragma Unreferenced (T);
    begin
-      return new String'("../../test_accept_index.adb");
+      return new String'("../../Test/test_accept_index.adb");
    end Name;
 
    overriding procedure Register_Tests (T : in out Test_Case)

@@ -47,12 +47,12 @@ package String_Test is
 
    File_Name : constant String := "String_Test.txt";
 
-   type Example_Token_ID is (If_ID, String_ID, Whitespace, EOF);
+   type Example_Token_ID is (Whitespace, If_ID, String_ID, EOF);
 
    Token_Image_Width : Integer := Example_Token_ID'Width;
    package Master_Example_Token is new OpenToken.Token.Enumerated
      (Example_Token_ID, Example_Token_ID'Image, Token_Image_Width);
-   package Tokenizer is new Master_Example_Token.Analyzer;
+   package Tokenizer is new Master_Example_Token.Analyzer (If_ID, EOF);
 
    Ada_Syntax : constant Tokenizer.Syntax :=
      (If_ID      => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("if")),

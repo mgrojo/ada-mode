@@ -43,11 +43,12 @@ package OpenToken.Production.Parser is
    type Instance is abstract tagged private;
 
    function Generate
-     (Grammar           : in Production_List.Instance;
-      Analyzer          : in Tokenizer.Instance;
-      Trace             : in Boolean := False;
-      Put_Grammar       : in Boolean := False;
-      First_State_Index : in Integer := 1)
+     (Grammar              : in Production_List.Instance;
+      Analyzer             : in Tokenizer.Instance;
+      Trace                : in Boolean := False;
+      Put_Grammar          : in Boolean := False;
+      Ignore_Unused_Tokens : in Boolean := False;
+      First_State_Index    : in Integer := 1)
      return Instance is abstract;
    --  Create a parser for Grammar, using Analyzer for input. If
    --  Trace, put debug info about grammar building process to

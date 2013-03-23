@@ -32,7 +32,7 @@ with OpenToken.Production;
 with OpenToken.Production.List;
 
 -----------------------------------------------------------------------------
---  Library-level declarations for the yest driver for the token list
+--  Library-level declarations for the test driver for the token list
 --  handling code.
 -----------------------------------------------------------------------------
 package Production_Test is
@@ -41,7 +41,7 @@ package Production_Test is
 
    Token_Image_Width : Integer := Token_IDs'Width;
    package Master_Token is new OpenToken.Token.Enumerated (Token_IDs, Token_IDs'Image, Token_Image_Width);
-   package Tokenizer is new Master_Token.Analyzer (Keyword_ID);
+   package Tokenizer is new Master_Token.Analyzer (Int_ID, Keyword_ID);
    package Token_List is new Master_Token.List;
    package Nonterminal is new Master_Token.Nonterminal (Token_List);
    package Production is new OpenToken.Production (Master_Token, Token_List, Nonterminal);

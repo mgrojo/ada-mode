@@ -32,14 +32,14 @@ with OpenToken.Token.Enumerated.Nonterminal;
 package Name_Token_Test is
 
    type Token_ID_Type is
-     (
+     (Whitespace_ID,
+
       --  terminals
-      Whitespace_ID, --  first to debug lookahead logic
       Dot_ID,
-      EOF_ID,
       Paren_Left_ID,
       Paren_Right_ID,
       Identifier_ID,
+      EOF_ID,
 
       --  non-terminals
       Component_ID,
@@ -61,7 +61,7 @@ package Name_Token_Test is
    package Production_List is new Production.List;
 
    --  Parser stuff.
-   package Tokenizer is new Master_Token.Analyzer (Last_Terminal => Identifier_ID);
+   package Tokenizer is new Master_Token.Analyzer (Dot_ID, EOF_ID);
    package Parser is new Production.Parser (Production_List, Tokenizer);
    package LALR_Parser is new Parser.LALR;
 

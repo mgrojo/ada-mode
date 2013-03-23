@@ -16,7 +16,8 @@
 --  GNU General Public License distributed with the OpenToken package;
 --  see file GPL.txt. If not, write to the Free Software Foundation,
 --  59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
------------------------------------------------------------------------------
+
+pragma License (GPL);
 
 with AUnit.Assertions;
 with AUnit.Check;
@@ -29,16 +30,16 @@ with OpenToken.Recognizer.String;
 with OpenToken.Text_Feeder.String;
 with OpenToken.Token.Enumerated.Analyzer.AUnit;
 with OpenToken.Token.Enumerated.String;
-package body Lookahead_Test is
+package body Analyzer_Lookahead_Test is
 
-   type Example_Token_ID is (If_ID, Then_ID, Quit_ID, String_ID, Whitespace, EOF);
+   type Token_ID is (If_ID, Then_ID, Quit_ID, String_ID, Whitespace, EOF);
 
    package Master_Example_Token is new OpenToken.Token.Enumerated
-     (Example_Token_ID, Example_Token_ID'Image, Example_Token_ID'Width);
-   package Tokenizer is new Master_Example_Token.Analyzer;
+     (Token_ID, Token_ID'Image, Token_ID'Width);
+   package Tokenizer is new Master_Example_Token.Analyzer (Token_ID'First, Token_ID'Last);
    package String_Literal is new Master_Example_Token.String;
 
-   procedure Check is new AUnit.Check.Gen_Check_Discrete (Example_Token_ID);
+   procedure Check is new AUnit.Check.Gen_Check_Discrete (Token_ID);
 
    package Analyzer_AUnit is new Tokenizer.AUnit (Check);
 
@@ -58,7 +59,7 @@ package body Lookahead_Test is
    procedure Step
      (Label       : in String;
       Lookahead   : in Boolean;
-      Expected_ID : in Example_Token_ID)
+      Expected_ID : in Token_ID)
    is
       use Tokenizer;
    begin
@@ -377,7 +378,7 @@ package body Lookahead_Test is
    is
       pragma Unreferenced (T);
    begin
-      return new String'("Lookahead_Test");
+      return new String'("../../Test/analyzer_lookahead_test.adb");
    end Name;
 
    overriding procedure Register_Tests (T : in out Test_Case)
@@ -390,4 +391,4 @@ package body Lookahead_Test is
       Register_Routine (T, Mismatched_Tokens'Access, "Mismatched_Tokens");
    end Register_Tests;
 
-end Lookahead_Test;
+end Analyzer_Lookahead_Test;

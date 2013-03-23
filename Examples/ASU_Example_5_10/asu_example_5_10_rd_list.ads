@@ -51,7 +51,7 @@ package ASU_Example_5_10_RD_List is
      (Integer_ID, Left_Paren_ID, Right_Paren_ID, Plus_ID, Times_ID, EOF_ID, Whitespace_ID);
 
    package Master_Token is new OpenToken.Token.Enumerated (Token_IDs, Token_IDs'Image, Token_IDs'Width);
-   package Tokenizer is new Master_Token.Analyzer (Whitespace_ID);
+   package Tokenizer is new Master_Token.Analyzer (Token_IDs'First, Token_IDs'Last);
    package Integer_Token is new Master_Token.Integer;
 
    Syntax : constant Tokenizer.Syntax :=

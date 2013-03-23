@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2009, 2012 Stephen Leake
+-- Copyright (C) 2009, 2012, 2013 Stephen Leake
 -- Copyright (C) 1999,2000  Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -70,9 +70,9 @@ procedure String_Test.Run is
          Passed := False;
          Ada.Text_IO.Put_Line ("failed.");
          Ada.Text_IO.Put_Line ("Found " & Example_Token_ID'Image (Tokenizer.ID (Analyzer)));
-         Ada.Text_IO.Put_Line ("  (Value = """ & OpenToken.Recognizer.String.Value
-                                 (OpenToken.Recognizer.String.Instance (Ada_Syntax (String_ID).Recognizer.all)) &
-                                 """)");
+         Ada.Text_IO.Put_Line
+           ("  (Value = """ & OpenToken.Recognizer.String.Value
+              (OpenToken.Recognizer.String.Instance (Ada_Syntax (String_ID).Recognizer.all)) & """)");
          Ada.Text_IO.Put_Line ("when expecting a String_ID");
 
       end if;

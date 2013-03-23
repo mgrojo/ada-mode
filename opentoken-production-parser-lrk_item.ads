@@ -147,12 +147,6 @@ package OpenToken.Production.Parser.LRk_Item is
       Symbol : in Token.Token_ID)
      return Item_Set_Ptr;
 
-   procedure Merge
-     (New_Item     : in out Item_Node;
-      Existing_Set : in out Item_Set);
-   --  Merge lookaheads of New_Item into Existing_Set. New_Item is
-   --  copied or deallocated, as appropriate.
-
    ------------------------------------------------
    --  Types and operations for computing Item sets
 
@@ -199,7 +193,7 @@ package OpenToken.Production.Parser.LRk_Item is
    procedure Put_Item (Item : in Item_Node; Show_Lookaheads : in Boolean);
    --  Put Item to Ada.Text_IO.Standard_Output. Does not end with New_Line.
 
-   procedure Print_Item_Set (Items : in Item_Set);
+   procedure Put (Items : in Item_Set);
 
    procedure Print_Item_Set_List (Items : in Item_Set_List);
 

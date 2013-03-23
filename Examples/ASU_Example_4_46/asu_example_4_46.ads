@@ -45,11 +45,11 @@ with OpenToken.Token.Enumerated.List;
 with OpenToken.Token.Enumerated.Nonterminal;
 package ASU_Example_4_46 is
 
-   --  The complete list of tokens, with the terminals listed first.
-   type Token_IDs is (Asterix_ID, ID_ID, Equals_ID, EOF_ID, Whitespace_ID, S_ID, L_ID, R_ID, S_Prime_ID);
+   --  The complete list of tokens, with the non-reporting and terminals listed first.
+   type Token_IDs is (Whitespace_ID, Asterix_ID, ID_ID, Equals_ID, EOF_ID, S_ID, L_ID, R_ID, S_Prime_ID);
 
    package Master_Token is new OpenToken.Token.Enumerated (Token_IDs, Token_IDs'Image, Token_IDs'Width);
-   package Tokenizer is new Master_Token.Analyzer (Whitespace_ID);
+   package Tokenizer is new Master_Token.Analyzer (Asterix_ID, EOF_ID);
    package Token_List is new Master_Token.List;
    package Nonterminal is new Master_Token.Nonterminal (Token_List);
    package Production is new OpenToken.Production (Master_Token, Token_List, Nonterminal);

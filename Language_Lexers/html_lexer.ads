@@ -101,7 +101,7 @@ private
 
    --  Visible for children
    package Master_Token is new OpenToken.Token.Enumerated (Token_Name, Token_Name'Image, Token_Name'Width);
-   package Tokenizer is new Master_Token.Analyzer;
+   package Tokenizer is new Master_Token.Analyzer (Token_Name'First, Token_Name'Last);
 
    -----------------------------------------------------------------------
    --  HTML syntax is very different from Ada or Java syntax. This is an

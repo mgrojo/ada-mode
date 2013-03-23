@@ -37,11 +37,12 @@ package OpenToken.Production.Parser.LALR is
    type Instance is new OpenToken.Production.Parser.Instance with private;
 
    overriding function Generate
-     (Grammar           : in Production_List.Instance;
-      Analyzer          : in Tokenizer.Instance;
-      Trace             : in Boolean := False;
-      Put_Grammar       : in Boolean := False;
-      First_State_Index : in Integer := 1)
+     (Grammar              : in Production_List.Instance;
+      Analyzer             : in Tokenizer.Instance;
+      Trace                : in Boolean := False;
+      Put_Grammar          : in Boolean := False;
+      Ignore_Unused_Tokens : in Boolean := False;
+      First_State_Index    : in Integer := 1)
      return Instance;
    --  We don't use OpenToken.Trace here; we often want to see a trace
    --  of the parser execution without the parser generation.

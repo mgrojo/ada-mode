@@ -127,7 +127,7 @@ DIFF_OPT := -u -w
 %-parse.adb : %.wy wisi-generate.exe
 	./wisi-generate.exe $< Ada
 
-# the grammar and the state trace of the parse is the known good output
+# -v 1: the grammar and the state trace of the parse is the known good output
 %.parse : %.input %-parse.exe
 	./$*-parse.exe -v 1 $< > $*.parse
 

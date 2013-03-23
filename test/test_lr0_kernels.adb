@@ -39,11 +39,8 @@ package body Test_LR0_Kernels is
 
    --  A simple grammar that exersizes the "already in goto_set" branches in LR0_Kernels
 
-   --  Even though EOF is not part of the grammar, it must be part of
-   --  the syntax; the string_feeder inserts it to mark the end of the
-   --  string.
    type Token_ID_Type is
-     (EOF_ID,
+     (Whitespace_ID,
       Equals_Greater_ID,
       Paren_Left_ID,
       Plus_Minus_ID,
@@ -51,7 +48,7 @@ package body Test_LR0_Kernels is
       Set_ID,
       Verify_ID,
       Int_ID,
-      Whitespace_ID,
+      EOF_ID,
 
       --  non-terminals
       Association_ID,
@@ -97,8 +94,8 @@ package body Test_LR0_Kernels is
       Aggregate : constant Instance :=
         (Master_Token.Instance (Master_Token.Get (Value_ID)) with null record);
 
-      Grammar : constant Production_List.Instance :=
-        Production_List.Only (Aggregate <= Tokens.Paren_Left & Tokens.Association + Nonterminal.Synthesize_Self);
+      Grammar : constant Production_List.Instance := Production_List.Only
+        (Aggregate <= Tokens.Paren_Left & Tokens.Association + Nonterminal.Synthesize_Self);
 
    end Aggregate_Token;
 
@@ -122,8 +119,8 @@ package body Test_LR0_Kernels is
 
       Value : constant Instance := (Master_Token.Instance (Master_Token.Get (Value_ID)) with null record);
 
-      Grammar : constant Production_List.Instance :=
-        Production_List.Only (Value <= Integer_Literal.Get (Int_ID) + Nonterminal.Synthesize_Self);
+      Grammar : constant Production_List.Instance := Production_List.Only
+        (Value <= Integer_Literal.Get (Int_ID) + Nonterminal.Synthesize_Self);
 
    end Integer_Token;
 
@@ -133,9 +130,8 @@ package body Test_LR0_Kernels is
 
       Set_Statement : constant Instance := (Master_Token.Instance (Master_Token.Get (Statement_ID)) with null record);
 
-      Grammar : constant Production_List.Instance :=
-        Production_List.Only
-        (Set_Statement <= Nonterminal.Get (Set_ID) & Tokens.Value  + Nonterminal.Synthesize_Self);
+      Grammar : constant Production_List.Instance := Production_List.Only
+        (Set_Statement <= Nonterminal.Get (Set_ID) & Tokens.Value + Nonterminal.Synthesize_Self);
 
    end Set_Statement;
 
@@ -161,11 +157,13 @@ package body Test_LR0_Kernels is
         Verify_Statement  <= Nonterminal.Get (Verify_ID) & Tokens.Value + Nonterminal.Synthesize_Self
         and
         --  verify symbol = value +- tolerance;
-        Verify_Statement  <= Nonterminal.Get (Verify_ID) & Tokens.Value &
-        Tokens.Plus_Minus  + Nonterminal.Synthesize_Self;
+        Verify_Statement  <= Nonterminal.Get (Verify_ID) & Tokens.Value & Tokens.Plus_Minus +
+        Nonterminal.Synthesize_Self;
    end Verify_Statement;
 
-   package Tokenizer is new Master_Token.Analyzer (Last_Terminal => Whitespace_ID);
+   package Tokenizer is new Master_Token.Analyzer
+     (First_Terminal => Equals_Greater_ID,
+      Last_Terminal  => EOF_ID);
 
    Syntax : constant Tokenizer.Syntax :=
      (
@@ -195,7 +193,7 @@ package body Test_LR0_Kernels is
      );
 
    Grammar : constant Production_List.Instance :=
-     Tokens.Parse_Sequence <= Tokens.Statement & Tokens.Semicolon and
+     Tokens.Parse_Sequence <= Tokens.Statement & Tokens.Semicolon & Tokens.EOF and
 
      Set_Statement.Grammar and
      Verify_Statement.Grammar and
@@ -250,16 +248,10 @@ package body Test_LR0_Kernels is
    procedure Nominal (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       Test : Test_Case renames Test_Case (T);
-
    begin
-      --  EOF_ID is not in the grammar, and is reportable, but we set
-      --  Non_Reporting_Tokens (EOF_ID) true to avoid Generate
-      --  reporting it as unused. It is present in the parser table as
-      --  a lookahead for the accept token.
       Command_Parser := LALR_Parser.Generate
         (Grammar, An_Analyzer,
-         Non_Reporting_Tokens => (EOF_ID | Whitespace_ID => True, others => False),
-         Trace                => Test.Debug);
+         Trace => Test.Debug);
 
       if Test.Debug then
          Dump_Grammar;

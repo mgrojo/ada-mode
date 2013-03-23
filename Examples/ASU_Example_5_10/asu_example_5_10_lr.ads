@@ -45,12 +45,12 @@ with Simple_Integer_Token;
 package ASU_Example_5_10_LR is
 
    --  The complete list of tokens, with the terminals listed first.
-   type Token_IDs is (Integer_ID, Left_Paren_ID, Right_Paren_ID, Plus_Sign_ID,
-                      Multiply_ID, EOF_ID, Whitespace_ID, L_ID, E_ID, T_ID, F_ID);
+   type Token_IDs is (Whitespace_ID, Integer_ID, Left_Paren_ID, Right_Paren_ID, Plus_Sign_ID,
+                      Multiply_ID, EOF_ID, L_ID, E_ID, T_ID, F_ID);
 
    --  Instantiate all the nessecary packages
    package Master_Token is new OpenToken.Token.Enumerated (Token_IDs, Token_IDs'Image, Token_IDs'Width);
-   package Tokenizer is new Master_Token.Analyzer (Whitespace_ID);
+   package Tokenizer is new Master_Token.Analyzer (Integer_ID, EOF_ID);
    package Token_List is new Master_Token.List;
    package Nonterminal is new Master_Token.Nonterminal (Token_List);
    package Production is new OpenToken.Production (Master_Token, Token_List, Nonterminal);

@@ -45,7 +45,7 @@ package Asu_Example_3_6 is
 
    package Example_Token is new OpenToken.Token.Enumerated
      (Example_Token_ID, Example_Token_ID'Image, Example_Token_ID'Width);
-   package Tokenizer is new Example_Token.Analyzer;
+   package Tokenizer is new Example_Token.Analyzer (Example_Token_ID'First, Example_Token_ID'Last);
 
    Syntax : constant Tokenizer.Syntax :=
      (If_ID             => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("if")),
@@ -60,8 +60,6 @@ package Asu_Example_3_6 is
       Relop             => Tokenizer.Get (Relop_Example_Token.Get),
       Whitespace        => Tokenizer.Get
         (OpenToken.Recognizer.Character_Set.Get
-           (OpenToken.Recognizer.Character_Set.Standard_Whitespace))
-     );
-
+           (OpenToken.Recognizer.Character_Set.Standard_Whitespace)));
 
 end Asu_Example_3_6;

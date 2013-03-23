@@ -35,7 +35,7 @@ package body Test_List_Actions is
    type Token_ID is (Int, Plus, EOF, Whitespace);
 
    package Master_Token is new OpenToken.Token.Enumerated (Token_ID, Token_ID'Image, Token_ID'Width);
-   package Tokenizer is new Master_Token.Analyzer;
+   package Tokenizer is new Master_Token.Analyzer (Token_ID'First, Token_ID'Last);
    package Integer_Token is new Master_Token.Integer;
    package Int_List is new OpenToken.Token.List_Mixin
      (Parent_Token    => Integer_Token.Instance,

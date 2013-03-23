@@ -45,7 +45,7 @@ package ASU_Example_4_46_RD is
    type Token_IDs is (Asterix_ID, ID_ID, Equals_ID, EOF_ID, Whitespace_ID);
 
    package Master_Token is new OpenToken.Token.Enumerated (Token_IDs, Token_IDs'Image, Token_IDs'Width);
-   package Tokenizer is new Master_Token.Analyzer (Whitespace_ID);
+   package Tokenizer is new Master_Token.Analyzer (Token_IDs'First, Token_IDs'Last);
 
    Syntax : constant Tokenizer.Syntax :=
      (Asterix_ID    => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("*")),

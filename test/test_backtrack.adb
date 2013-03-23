@@ -94,23 +94,23 @@ package body Test_Backtrack is
    type Token_ID is (T0, T1, T2, T3, T4, T5, EOF, Whitespace);
 
    package Master_Token is new OpenToken.Token.Enumerated (Token_ID, Token_ID'Image, Token_ID'Width);
-   package Tokenizer is new Master_Token.Analyzer;
+   package Tokenizer is new Master_Token.Analyzer (T0, Whitespace);
 
    procedure Check is new AUnit.Check.Gen_Check_Discrete (Token_ID);
 
    package Analyzer_AUnit is new Tokenizer.AUnit (Check);
 
    Syntax : constant Tokenizer.Syntax :=
-     (T0    => Tokenizer.Get (Recognizer => OpenToken.Recognizer.Separator.Get ("T0")),
-      T1    => Tokenizer.Get (Recognizer => OpenToken.Recognizer.Separator.Get ("T1")),
-      T2    => Tokenizer.Get (Recognizer => OpenToken.Recognizer.Separator.Get ("T2")),
-      T3    => Tokenizer.Get (Recognizer => OpenToken.Recognizer.Separator.Get ("T3")),
-      T4    => Tokenizer.Get (Recognizer => OpenToken.Recognizer.Separator.Get ("T4")),
-      T5    => Tokenizer.Get (Recognizer => OpenToken.Recognizer.Separator.Get ("T5")),
-      EOF         => Tokenizer.Get (Recognizer => OpenToken.Recognizer.End_Of_File.Get),
-      Whitespace  => Tokenizer.Get (Recognizer => OpenToken.Recognizer.Character_Set.Get
-                                      (OpenToken.Recognizer.Character_Set.Standard_Whitespace))
-     );
+     (T0         => Tokenizer.Get (Recognizer => OpenToken.Recognizer.Separator.Get ("T0")),
+      T1         => Tokenizer.Get (Recognizer => OpenToken.Recognizer.Separator.Get ("T1")),
+      T2         => Tokenizer.Get (Recognizer => OpenToken.Recognizer.Separator.Get ("T2")),
+      T3         => Tokenizer.Get (Recognizer => OpenToken.Recognizer.Separator.Get ("T3")),
+      T4         => Tokenizer.Get (Recognizer => OpenToken.Recognizer.Separator.Get ("T4")),
+      T5         => Tokenizer.Get (Recognizer => OpenToken.Recognizer.Separator.Get ("T5")),
+      EOF        => Tokenizer.Get (Recognizer => OpenToken.Recognizer.End_Of_File.Get),
+      Whitespace => Tokenizer.Get
+        (OpenToken.Recognizer.Character_Set.Get
+           (OpenToken.Recognizer.Character_Set.Standard_Whitespace)));
 
    Feeder   : aliased OpenToken.Text_Feeder.String.Instance;
    Analyzer : Tokenizer.Instance := Tokenizer.Initialize (Syntax, Feeder'Access);

@@ -27,8 +27,7 @@ is
 
    Parser : LALR_Parser.Instance := LALR_Parser.Generate
      (Full_Grammar, The_Analyzer,
-      Non_Reporting_Tokens => (Whitespace_ID => True, others => False),
-      Trace => Trace,
+      Trace       => Trace,
       Put_Grammar => Trace);
 
    procedure Parse_Command (Command : in String)

@@ -52,7 +52,8 @@ package body Test_LR_Expecting is
    --  etc
 
    type Token_IDs is
-     (Equals_ID,
+     (Whitespace_ID,
+      Equals_ID,
       Int_ID,
       Plus_Minus_ID,
       Semicolon_ID,
@@ -62,7 +63,6 @@ package body Test_LR_Expecting is
       --  Identifier must be after keywords, so they are recognized instead
       Identifier_ID,
 
-      Whitespace_ID,
       EOF_ID,
 
       --  non-terminals
@@ -70,7 +70,7 @@ package body Test_LR_Expecting is
       Parse_Sequence_ID);
 
    package Master_Token is new OpenToken.Token.Enumerated (Token_IDs, Token_IDs'Image, Token_IDs'Width);
-   package Tokenizer is new Master_Token.Analyzer (Last_Terminal => EOF_ID);
+   package Tokenizer is new Master_Token.Analyzer (First_Terminal => Equals_ID, Last_Terminal => EOF_ID);
    package Integer is new Master_Token.Integer;
 
    package Token_List is new Master_Token.List;
@@ -171,7 +171,7 @@ package body Test_LR_Expecting is
       EOF_ID        => Tokenizer.Get (OpenToken.Recognizer.End_Of_File.Get, EOF));
 
    Grammar : constant Production_List.Instance :=
-     Parse_Sequence <= Statement & Semicolon + Nonterminal.Synthesize_Self and
+     Parse_Sequence <= Statement & Semicolon & EOF + Nonterminal.Synthesize_Self and
      Set_Statement.Grammar and
      Verify_Statement.Grammar;
 
@@ -205,9 +205,8 @@ package body Test_LR_Expecting is
    begin
       Parser := LALR_Parser.Generate
         (Grammar, Analyzer,
-         Non_Reporting_Tokens => (EOF_ID | Whitespace_ID => True, others => False),
-         Trace                => Test.Debug,
-         Put_Grammar          => Test.Debug);
+         Trace       => Test.Debug,
+         Put_Grammar => Test.Debug);
 
       OpenToken.Trace_Parse := Test.Debug;
 
@@ -226,7 +225,7 @@ package body Test_LR_Expecting is
    is
       pragma Unreferenced (T);
    begin
-      return new String'("Test_LR_Expecting");
+      return new String'("../../Test/test_lr_expecting.adb");
    end Name;
 
    overriding procedure Register_Tests (T : in out Test_Case)

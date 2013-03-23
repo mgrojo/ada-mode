@@ -35,13 +35,13 @@ with OpenToken.Token.Enumerated.Nonterminal;
 package body Test_Statement_Actions is
 
    type Token_ID_Type is
-     (Plus_Minus_ID,
+     (Whitespace_ID,
+      Plus_Minus_ID,
       Semicolon_ID,
       Set_ID,
       Verify_ID,
       Int_ID,
       EOF_ID,
-      Whitespace_ID,
 
       --  non-terminals
       Statement_ID,
@@ -104,7 +104,7 @@ package body Test_Statement_Actions is
         Tokens.Plus_Minus  + Nonterminal.Synthesize_Self;
    end Verify_Statement;
 
-   package Tokenizer is new Master_Token.Analyzer (Last_Terminal => Whitespace_ID);
+   package Tokenizer is new Master_Token.Analyzer (First_Terminal => Plus_Minus_ID, Last_Terminal => EOF_ID);
 
    Syntax : constant Tokenizer.Syntax :=
      (
@@ -185,10 +185,7 @@ package body Test_Statement_Actions is
       Test : Test_Case renames Test_Case (T);
       use AUnit.Assertions;
    begin
-      Command_Parser := LALR_Parser.Generate
-        (Grammar, An_Analyzer,
-         Non_Reporting_Tokens => (EOF_ID | Whitespace_ID => True, others => False),
-         Trace => Test.Debug);
+      Command_Parser := LALR_Parser.Generate (Grammar, An_Analyzer, Trace => Test.Debug);
 
       OpenToken.Trace_Parse := Test.Debug;
 

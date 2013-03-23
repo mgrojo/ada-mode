@@ -52,7 +52,7 @@ begin
       type Token_IDs is (Int, Real, String, Keyword);
 
       package Master_Token is new OpenToken.Token.Enumerated (Token_IDs, Token_IDs'Image, Token_IDs'Width);
-      package Tokenizer is new Master_Token.Analyzer;
+      package Tokenizer is new Master_Token.Analyzer (Token_IDs'First, Token_IDs'Last);
       package Token_List is new Master_Token.List;
 
       use type Token_List.Instance;

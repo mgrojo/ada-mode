@@ -79,23 +79,25 @@ package body Test_LR1_Lookahead_Closure is
    Self : Nonterminals.Synthesize renames Nonterminals.Synthesize_Self;
 
    Grammar : constant Production_Lists.Instance :=
-     Nonterminals.Get (opentoken_accept_ID) <= Nonterminals.Get (case_expression_ID) & (+EOF_ID) and
+     --  1
+     Nonterminals.Get (opentoken_accept_ID) <= Nonterminals.Get (case_expression_ID) & (+EOF_ID)
+     and -- 2
      Nonterminals.Get (case_expression_ID) <= (+WHEN_ID) & (+discrete_choice_ID) & (+EQUAL_GREATER_ID) + Self
-     and
+     and -- 3
      Nonterminals.Get (choice_expression_ID) <= (+choice_relation_ID) + Self
-     and
+     and -- 4
      Nonterminals.Get (choice_relation_ID) <= (+factor_list_ID) + Self
-     and
+     and -- 5
      Nonterminals.Get (discrete_choice_ID) <= (+choice_expression_ID) + Self
-     and
+     and -- 6
      Nonterminals.Get (discrete_choice_ID) <= (+range_nt_ID) + Self
-     and
+     and -- 7
      Nonterminals.Get (factor_ID) <= (+IDENTIFIER_ID) + Self
-     and
+     and -- 8
      Nonterminals.Get (factor_list_ID) <= (+factor_ID) + Self
-     and
+     and -- 9
      Nonterminals.Get (range_nt_ID) <= (+IDENTIFIER_ID) & (+TICK_ID) & (+RANGE_ID) + Self
-     and
+     and -- 10
      Nonterminals.Get (range_nt_ID) <= (+factor_list_ID) & (+DOT_DOT_ID) & (+factor_list_ID) + Self
      ;
 
@@ -114,14 +116,17 @@ package body Test_LR1_Lookahead_Closure is
       use Token_Lists;
       Computed_I : List_Iterator := Computed;
       Expected_I : List_Iterator := Expected;
-      Index      : Integer                   := 1;
+      Index      : Integer       := 1;
    begin
       loop
+         if Computed_I = Null_Iterator or Expected_I = Null_Iterator then
+            Check (Label & " = null", Computed_I = Null_Iterator and Expected_I = Null_Iterator, True);
+            exit;
+         end if;
          Check (Label & Integer'Image (Index), ID (Computed_I), ID (Expected_I));
          Next_Token (Computed_I);
          Next_Token (Expected_I);
          Index := Index + 1;
-         exit when Computed_I = Null_Iterator;
       end loop;
    end Check;
 
@@ -195,18 +200,26 @@ package body Test_LR1_Lookahead_Closure is
    function Get_Item_Node
      (Prod       : in Integer;
       Lookaheads : in LR1.Item_Lookahead_Ptr;
-      Next       : in LR1.Item_Ptr)
+      Next       : in LR1.Item_Ptr;
+      Dot        : in Integer := 1)
      return LR1.Item_Ptr
    is
       Grammar_I : Production_Lists.List_Iterator := Grammar.Initial_Iterator;
+
+      Dot_I : Token_Lists.List_Iterator;
    begin
       for I in 2 .. Prod loop
          Production_Lists.Next_Production (Grammar_I);
       end loop;
 
+      Dot_I := Productions.First_Token (Production_Lists.Get_Production (Grammar_I));
+      for I in 2 .. Dot loop
+         Token_Lists.Next_Token (Dot_I);
+      end loop;
+
       return new LR1.Item_Node'
         (Prod       => Production_Lists.Get_Production (Grammar_I),
-         Dot        => Productions.First_Token (Production_Lists.Get_Production (Grammar_I)),
+         Dot        => Dot_I,
          Index      => -1,
          Lookaheads => Lookaheads,
          Next       => Next);
@@ -214,7 +227,7 @@ package body Test_LR1_Lookahead_Closure is
 
    type Token_Array is array (Positive range <>) of Token_IDs;
 
-   function Build_Lookahead_List (Item : in Token_Array) return LR1.Item_Lookahead_Ptr
+   function "+" (Item : in Token_Array) return LR1.Item_Lookahead_Ptr
    is
       use LR1;
       Result : Item_Lookahead_Ptr;
@@ -226,7 +239,7 @@ package body Test_LR1_Lookahead_Closure is
             Next       => Result);
       end loop;
       return Result;
-   end Build_Lookahead_List;
+   end "+";
 
    ----------
    --  Test procedures
@@ -245,32 +258,49 @@ package body Test_LR1_Lookahead_Closure is
       is
          Closure : Item_Set_Ptr := new Item_Set'(Lookahead_Closure (Input, First, Grammar));
       begin
+         if Test.Debug then
+            LR1.Put (Closure.all);
+         end if;
          Check (Label, Closure.all, Expected);
          Free (Closure.all);
          Free (Closure);
       end Test_One;
 
-      Expected : Item_Set :=
+      Null_Item_Set : constant Item_Set :=
         (Set           => null,
          Goto_List     => null,
          Index         => -1,
          Next          => null);
+
+      Expected : Item_Set;
    begin
       --  Set 1: OPENTOKEN_ACCEPT_ID <= ^ CASE_EXPRESSION_ID EOF_ID
       --  closure:
       --  CASE_EXPRESSION_ID <= ^ WHEN_ID DISCRETE_CHOICE_ID EQUAL_GREATER_ID
       --  OPENTOKEN_ACCEPT_ID <= ^ CASE_EXPRESSION_ID EOF_ID
+      Expected := Null_Item_Set;
       Expected.Set := Get_Item_Node
         (Prod       => 1,
          Lookaheads => null,
          Next       => Expected.Set);
 
-      Expected.Set := Get_Item_Node
-           (Prod       => 2,
-            Lookaheads => Build_Lookahead_List ((1 => EOF_ID)),
-            Next       => Expected.Set);
+      Expected.Set := Get_Item_Node (2, +((1 => EOF_ID)), Expected.Set);
 
       Test_One ("1", LR1.Find (1, Kernels).all, Expected);
+
+      --  Set 2: CASE_EXPRESSION_ID <= WHEN_ID ^ DISCRETE_CHOICE_ID EQUAL_GREATER_ID
+      Expected := Null_Item_Set;
+      Expected.Set := Get_Item_Node (2, null, Expected.Set, Dot => 2);
+      Expected.Set := Get_Item_Node (5, +((1 => EQUAL_GREATER_ID)), Expected.Set);
+      Expected.Set := Get_Item_Node (6, +((1 => EQUAL_GREATER_ID)), Expected.Set);
+      Expected.Set := Get_Item_Node (9, +((1 => EQUAL_GREATER_ID)), Expected.Set);
+      Expected.Set := Get_Item_Node (10, +((1 => EQUAL_GREATER_ID)), Expected.Set);
+      Expected.Set := Get_Item_Node (3, +((1 => EQUAL_GREATER_ID)), Expected.Set);
+      Expected.Set := Get_Item_Node (4, +((1 => EQUAL_GREATER_ID)), Expected.Set);
+      Expected.Set := Get_Item_Node (8, +((EQUAL_GREATER_ID, DOT_DOT_ID)), Expected.Set);
+      Expected.Set := Get_Item_Node (7, +((EQUAL_GREATER_ID, DOT_DOT_ID)), Expected.Set);
+
+      Test_One ("2", LR1.Find (2, Kernels).all, Expected);
 
       Free (Kernels);
    end Nominal;

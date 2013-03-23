@@ -36,10 +36,9 @@ with OpenToken.Token.Enumerated.Nonterminal;
 package Association_Token_Test is
 
    type Token_ID_Type is
-     (
-      --  terminals
-      Whitespace_ID, --  first to debug lookahead logic
+     (Whitespace_ID,
 
+      --  terminals
       Comma_ID,
       Equals_Greater_ID,
       Identifier_ID,
@@ -67,7 +66,7 @@ package Association_Token_Test is
    package Production is new OpenToken.Production (Master_Token, Token_List, Nonterminal);
    package Production_List is new Production.List;
 
-   package Tokenizer is new Master_Token.Analyzer (Last_Terminal => EOF_ID);
+   package Tokenizer is new Master_Token.Analyzer (First_Terminal => Comma_ID, Last_Terminal => EOF_ID);
    package Parser is new Production.Parser (Production_List, Tokenizer);
    package LALR_Parser is new Parser.LALR;
 

@@ -468,7 +468,7 @@ package body OpenToken.Production.Parser.LALR is
       while Kernel /= null loop
          if Trace then
             Ada.Text_IO.Put ("Adding lookaheads for ");
-            LRk.Print_Item_Set (Kernel.all);
+            LRk.Put (Kernel.all);
          end if;
 
          Kernel_Item := Kernel.Set;
@@ -559,7 +559,7 @@ package body OpenToken.Production.Parser.LALR is
       Action    : Action_Node_Ptr    := State.Action_List;
       Reduction : Reduction_Node_Ptr := State.Reduction_List;
    begin
-      LRk.Print_Item_Set (Kernel_Set.all);
+      LRk.Put (Kernel_Set.all);
 
       New_Line;
       if Action = null then
@@ -893,11 +893,12 @@ package body OpenToken.Production.Parser.LALR is
    end Reduce_Stack;
 
    overriding function Generate
-     (Grammar           : in Production_List.Instance;
-      Analyzer          : in Tokenizer.Instance;
-      Trace             : in Boolean := False;
-      Put_Grammar       : in Boolean := False;
-      First_State_Index : in Integer := 1)
+     (Grammar              : in Production_List.Instance;
+      Analyzer             : in Tokenizer.Instance;
+      Trace                : in Boolean := False;
+      Put_Grammar          : in Boolean := False;
+      Ignore_Unused_Tokens : in Boolean := False;
+      First_State_Index    : in Integer := 1)
      return Instance
    is
       New_Parser  : Instance;
@@ -970,7 +971,7 @@ package body OpenToken.Production.Parser.LALR is
       end if;
 
       LRk.Free (Kernels);
-      if Unused_Tokens and not Trace then
+      if Unused_Tokens and not (Trace or Ignore_Unused_Tokens) then
          raise Grammar_Error with "unused tokens; aborting";
       end if;
       return New_Parser;

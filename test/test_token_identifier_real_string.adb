@@ -41,11 +41,11 @@ with OpenToken.Token.Enumerated.String;
 package body Test_Token_Identifier_Real_String is
 
    type Token_ID_Type is
-     (EOF_ID,
+     (Whitespace_ID,
       Identifier_ID,
       Real_ID,
       String_ID,
-      Whitespace_ID,
+      EOF_ID,
 
       --  non-terminals
       Value_ID,
@@ -74,7 +74,7 @@ package body Test_Token_Identifier_Real_String is
       Parse_Sequence : constant Nonterminal.Class := Nonterminal.Get (Parse_Sequence_ID);
    end Tokens;
 
-   package Tokenizer is new Master_Token.Analyzer (Last_Terminal => Whitespace_ID);
+   package Tokenizer is new Master_Token.Analyzer (First_Terminal => Identifier_ID, Last_Terminal => EOF_ID);
 
    Syntax : constant Tokenizer.Syntax :=
      (EOF_ID            => Tokenizer.Get (OpenToken.Recognizer.End_Of_File.Get, Tokens.EOF),
@@ -231,10 +231,7 @@ package body Test_Token_Identifier_Real_String is
       --  identifier gets stored in the token properly.
 
       begin
-         Parser := LALR_Parser.Generate
-           (Grammar, An_Analyzer,
-            Non_Reporting_Tokens => (EOF_ID | Whitespace_ID => True, others => False),
-            Trace => Test.Debug);
+         Parser := LALR_Parser.Generate (Grammar, An_Analyzer, Trace => Test.Debug);
       exception
       when E : others =>
          declare

@@ -96,7 +96,7 @@ package M3_Lexer is
       End_of_File_T);
 
    package Master_Token is new OpenToken.Token.Enumerated (M3_Token, M3_Token'Image, M3_Token'Width);
-   package Tokenizer is new Master_Token.Analyzer;
+   package Tokenizer is new Master_Token.Analyzer (M3_Token'First, M3_Token'Last);
 
    M3_Style_Escape_Code_Map : constant Ada.Strings.Maps.Character_Mapping :=
      Ada.Strings.Maps.To_Mapping

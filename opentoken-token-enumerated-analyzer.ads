@@ -55,7 +55,7 @@ generic
 
    --  Tokens in the range Token_ID'First .. Pred (First_Terminal) are
    --  non-reporting (comments, whitespace), and thus are not used in
-   --  generating a grammar.
+   --  generating an LALR grammar.
    First_Terminal : in Token_ID;
    Last_Terminal  : in Token_ID;
    --  Tokens in the range Succ (Last_Terminal) .. Token_ID'Last are

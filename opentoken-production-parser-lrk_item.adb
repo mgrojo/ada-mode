@@ -366,17 +366,23 @@ package body OpenToken.Production.Parser.LRk_Item is
       return null;
    end Goto_Set;
 
-   procedure Merge
+   function Merge
      (New_Item     : in out Item_Node;
       Existing_Set : in out Item_Set)
+     return Boolean
    is
+      --  Merge lookaheads of New_Item into Existing_Set. Return True
+      --  if Existing_Set is modified.
+      --
+      --  New_Item is copied or deallocated, as appropriate.
+
       Found : constant Item_Ptr := Find (New_Item, Existing_Set);
 
       Source_Lookahead      : Item_Lookahead_Ptr;
       Previous_Lookahead    : Item_Lookahead_Ptr;
       Destination_Lookahead : Item_Lookahead_Ptr;
       Found_Match           : Boolean;
-
+      Modified              : Boolean := False;
    begin
       if Found = null then
          Existing_Set.Set := new Item_Node'
@@ -385,6 +391,9 @@ package body OpenToken.Production.Parser.LRk_Item is
             Index      => -1,
             Lookaheads => New_Item.Lookaheads,
             Next       => Existing_Set.Set);
+
+         Modified := True;
+
       else
          --  Merge their lookaheads.
          Source_Lookahead := New_Item.Lookaheads;
@@ -413,7 +422,8 @@ package body OpenToken.Production.Parser.LRk_Item is
                end if;
 
                Source_Lookahead.Next := Found.Lookaheads;
-               Found.Lookaheads := Source_Lookahead;
+               Found.Lookaheads      := Source_Lookahead;
+               Modified              := True;
 
                if Previous_Lookahead = null then
                   Source_Lookahead := New_Item.Lookaheads;
@@ -429,6 +439,7 @@ package body OpenToken.Production.Parser.LRk_Item is
 
          Free (New_Item);
       end if;
+      return Modified;
    end Merge;
 
    function Lookahead_Closure
@@ -440,17 +451,13 @@ package body OpenToken.Production.Parser.LRk_Item is
       use type Token.Token_ID;
       use type Token.Handle;
 
-      Item    : Item_Ptr := Set.Set;
-      Current : Item_Ptr;
-      Start   : Item_Ptr;
-      Finish  : Item_Ptr := null;
-
+      Item                : Item_Ptr := Set.Set;
+      Current             : Item_Ptr;
       Next_Symbol         : Token_List.List_Iterator;
       Production_Iterator : Production_List.List_Iterator;
-
-      Result : Item_Set;
-
-      Merge_From : Item_Node;
+      Result              : Item_Set;
+      Merge_From          : Item_Node;
+      Added_New_Item      : Boolean;
    begin
       --  Put copies of everything in Set into the closure. We don't
       --  copy Goto_List, since we are only concerned about lookaheads
@@ -468,8 +475,8 @@ package body OpenToken.Production.Parser.LRk_Item is
          Item := Item.Next;
       end loop;
 
-      Current := Result.Set;
-      Start   := Result.Set;
+      Current        := Result.Set;
+      Added_New_Item := False;
       loop
 
          --  If the token after Dot is a nonterminal, find its
@@ -495,7 +502,7 @@ package body OpenToken.Production.Parser.LRk_Item is
                            Index      => -1,
                            Lookaheads => Current.Lookaheads);
 
-                        Merge (Merge_From, Result);
+                        Added_New_Item := Added_New_Item or Merge (Merge_From, Result);
 
                      elsif Token_List.ID (Next_Symbol) in Tokenizer.Terminal_ID then
 
@@ -509,7 +516,7 @@ package body OpenToken.Production.Parser.LRk_Item is
                               Lookaheads => (1 => Token_List.ID (Next_Symbol)),
                               Next       => null));
 
-                        Merge (Merge_From, Result);
+                        Added_New_Item := Added_New_Item or Merge (Merge_From, Result);
 
                      else
                         --  Next_Symbol is a nonterminal
@@ -526,7 +533,7 @@ package body OpenToken.Production.Parser.LRk_Item is
                                     Lookaheads => (1 => Terminal),
                                     Next       => null));
 
-                              Merge (Merge_From, Result);
+                              Added_New_Item := Added_New_Item or Merge (Merge_From, Result);
 
                            end if;
                         end loop;
@@ -539,12 +546,15 @@ package body OpenToken.Production.Parser.LRk_Item is
             end;
          end if; -- Dot is is at non-terminal
 
-         if Current.Next = Finish then
-            exit when Result.Set = Start; -- no new items were added to Result
+         if Current.Next = null then
+            exit when not Added_New_Item;
 
-            Finish  := Start; -- only review the new items
-            Start   := Result.Set;
-            Current := Result.Set;
+            --  This used to have logic to "only review new items",
+            --  but that missed items that were modified by adding new
+            --  lookaheads. We'll come back and find a better
+            --  optimization if this proves too slow.
+            Current        := Result.Set;
+            Added_New_Item := False;
 
          else
             Current := Current.Next;
@@ -717,7 +727,7 @@ package body OpenToken.Production.Parser.LRk_Item is
          while Checking_Set /= Old_Items loop
             if Trace then
                Ada.Text_IO.Put ("Checking ");
-               Print_Item_Set (Checking_Set.all);
+               Put (Checking_Set.all);
             end if;
 
             for Symbol in Token.Token_ID loop
@@ -751,7 +761,7 @@ package body OpenToken.Production.Parser.LRk_Item is
 
                      if Trace then
                         Ada.Text_IO.Put ("  adding new kernel on " & Token.Token_Image (Symbol) & ": ");
-                        Print_Item_Set (New_Items);
+                        Put (New_Items);
                      end if;
 
                      Kernel_List :=
@@ -773,7 +783,7 @@ package body OpenToken.Production.Parser.LRk_Item is
                      then
                         if Trace then
                            Ada.Text_IO.Put ("  adding goto on " & Token.Token_Image (Symbol) & ": ");
-                           Print_Item_Set (New_Items_Set.all);
+                           Put (New_Items_Set.all);
                         end if;
 
                         Checking_Set.Goto_List := new Set_Reference'
@@ -924,7 +934,7 @@ package body OpenToken.Production.Parser.LRk_Item is
       return Ada.Strings.Unbounded.To_String (Result);
    end Image_Set_Reference_List;
 
-   procedure Print_Item_Set (Items : in Item_Set)
+   procedure Put (Items : in Item_Set)
    is
       use Ada.Text_IO;
       Item : Item_Ptr := Items.Set;
@@ -936,7 +946,7 @@ package body OpenToken.Production.Parser.LRk_Item is
 
          Item := Item.Next;
       end loop;
-   end Print_Item_Set;
+   end Put;
 
    procedure Print_Item_Set_List (Items : in Item_Set_List)
    is
@@ -946,7 +956,7 @@ package body OpenToken.Production.Parser.LRk_Item is
       Put_Line ("Number of Kernel Sets =" & Integer'Image (Items.Size));
 
       while Set /= null loop
-         Print_Item_Set (Set.all);
+         Put (Set.all);
          Put_Line ("   Goto:");
          Put (Image_Set_Reference_List (Set.Goto_List));
 

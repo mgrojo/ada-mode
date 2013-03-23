@@ -35,7 +35,7 @@ package body Test_Sequence_Actions is
    type Token_ID is (T0, T1, T2, EOF, Whitespace);
 
    package Master_Token is new OpenToken.Token.Enumerated (Token_ID, Token_ID'Image, Token_ID'Width);
-   package Tokenizer is new Master_Token.Analyzer;
+   package Tokenizer is new Master_Token.Analyzer (Token_ID'First, Token_ID'Last);
    package Master_Token_AUnit is new Master_Token.AUnit;
 
    Syntax : constant Tokenizer.Syntax :=
@@ -43,9 +43,9 @@ package body Test_Sequence_Actions is
       T1         => Tokenizer.Get (Recognizer => OpenToken.Recognizer.Separator.Get ("T1")),
       T2         => Tokenizer.Get (Recognizer => OpenToken.Recognizer.Separator.Get ("T2")),
       EOF        => Tokenizer.Get (Recognizer => OpenToken.Recognizer.End_Of_File.Get),
-      Whitespace => Tokenizer.Get (Recognizer => OpenToken.Recognizer.Character_Set.Get
-                                     (OpenToken.Recognizer.Character_Set.Standard_Whitespace))
-     );
+      Whitespace => Tokenizer.Get
+        (OpenToken.Recognizer.Character_Set.Get
+           (OpenToken.Recognizer.Character_Set.Standard_Whitespace)));
 
    Feeder   : aliased OpenToken.Text_Feeder.String.Instance;
    Analyzer : Tokenizer.Instance := Tokenizer.Initialize (Syntax, Feeder'Access);
