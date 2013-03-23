@@ -33,8 +33,6 @@
 
 ;; Declarations
 
-%package gpr-grammar-wy
-
 ;; token declarations
 ;;
 ;; wisi doesn't need any token types, but the semantic grammar
@@ -81,7 +79,7 @@
 %token <symbol> IDENTIFIER
 %token <string> STRING_LITERAL
 
-;; FIXME: %start compilation_unit
+%start compilation_unit
 
 %%
 ;; grammar rules, non-terminal alphabetical order
@@ -96,12 +94,6 @@
 ;; and some simplifications. Repeating constructs are implemented with
 ;; extra productions. Optional constructs are implemented by repeated
 ;; productions
-
-;; start symbol must be first FIXME: handle %start
-compilation_unit
-  : context_clause project_declaration
-  | project_declaration
-  ;
 
 attribute_declaration
   : FOR IDENTIFIER USE expression SEMICOLON
@@ -146,6 +138,11 @@ case_item
 case_items
   : case_item
   | case_items case_item
+  ;
+
+compilation_unit
+  : context_clause project_declaration
+  | project_declaration
   ;
 
 context_clause
@@ -196,14 +193,14 @@ name
 
 project_declaration
   : simple_project_declaration
- ;;  | project_extension FIXME: implement
+ ;;  | project_extension
   ;
 
 ;; (info "(gnat_ugn)Packages")
 package_declaration
   : package_spec
-  ;; | package_renaming FIXME: implement
-  ;; | package_extension FIXME: implement
+  ;; | package_renaming
+  ;; | package_extension
   ;
 
 package_spec
@@ -213,7 +210,6 @@ package_spec
       `,(wisi-start-action 1 4))
   ;
 
-;; FIXME: implement
 ;; package_renaming ::==
 ;;   package <package_>simple_name renames <project_>simple_name.package_identifier ;
 ;; package_extension ::==
@@ -270,7 +266,7 @@ string_expression
   | name;; variable_name
   | external_value
   | attribute_reference
-  ;; | ( string_expression { & string_expression } ) FIXME: implement
+  ;; | ( string_expression { & string_expression } )
   ;
 
 ;; (info "(gnat_ugn)Expressions")
@@ -289,7 +285,7 @@ term
     `,(wisi-statement-action
        1 'open-paren
        3 'close-paren)
- ;;  | string_attribute_reference  FIXME: implement
+ ;;  | string_attribute_reference
   ;
 
 typed_string_declaration

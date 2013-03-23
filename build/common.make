@@ -128,6 +128,11 @@ test-clean ::
 # ada-make-package-body.
 	rm -f ../../test/ada_mode-nominal-child.adb
 
+source-clean :: test-clean
+	-find ../../ -name "*~" -print -delete
+	-find ../../ -name ".#*" -print -delete
+	rm -rf ../../_MTN/resolutions
+
 zip :
 	tar zcf org.emacs.ada-mode.smie-`date +%Y-%m-%d`.tar.gz --exclude _MTN --exclude "*~" --exclude "*.diff" --exclude "*.tmp" --exclude "*.ali" --exclude "*.tar.gz" -C ../../../ org.emacs.ada-mode.smie
 

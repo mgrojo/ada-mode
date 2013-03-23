@@ -216,15 +216,11 @@ current construct."
        (lambda (&optional soft) (let ((fill-prefix nil))
 				  (indent-new-comment-line soft))))
 
-  ;; FIXME: trying default fill-paragraph
-  ;; (set (make-local-variable 'fill-paragraph-function)
-  ;;      'ada-fill-comment-paragraph)
-
   (run-hooks 'gpr-mode-hook)
 
-  ;; FIXME: need this? duplicate? factor out?
-  ;; (if ada-auto-case
-  ;;     (ada-activate-keys-for-case))
+  ;; FIXME: need this? use ada? duplicate? factor out?
+  ;; (if gpr-auto-case
+  ;;     (gpr-activate-keys-for-case))
   )
 
 ;; user needs to add this somewhere:

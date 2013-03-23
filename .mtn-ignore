@@ -1,4 +1,5 @@
 ^ada-grammar-wy\.el$
+^ada-grammar\.output$
 ^build/.*\.tar\.gz$
 ^build/smie/.*\.ali$
 ^build/smie/.*\.diff$
@@ -14,8 +15,11 @@
 ^build/wisi/.*\.wisi-test$
 ^build/wisi/obj$
 ^gpr-grammar-wy\.el$
+^gpr-grammar\.output$
 ^run_sjw\.text$
 ^test/.*\.ali$
 ^test/debug\.adb$
 ^test/subdir/ada_mode-nominal-child\.adb$
+^test/wisi/.*\.el$
+^test/wisi/.*\.output$
 ^wisent\.output$

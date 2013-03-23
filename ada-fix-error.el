@@ -80,7 +80,7 @@ extend a with_clause to include CHILD-NAME  .	"
   (let ((parent-name-end (point)))
     ;; Find the full parent name; skip back to whitespace, then match
     ;; the name forward.
-    (skip-syntax-backward "w_")
+    (skip-syntax-backward "w_.")
     (search-forward-regexp ada-name-regexp parent-name-end)
     (let ((parent-name (match-string 0))
 	  (context-clause (ada-fix-context-clause)))
@@ -151,7 +151,8 @@ Compatible with Emacs 23.4 and 24.x."
       (when (not (ada-get-compilation-message))
 	;; not clear why this can happens, but it does
 	(compilation-next-error 1))
-      (let ((success
+      (let ((comp-buf-pt (point))
+	    (success
 	     (run-hook-with-args-until-success
 	      (cdr (assoc ada-compiler ada-fix-error-alist))
 	      (compilation-next-error 0)
@@ -159,12 +160,12 @@ Compatible with Emacs 23.4 and 24.x."
 	      source-window)))
 	;; restore compilation buffer point
 	(set-buffer compilation-last-buffer)
-	(compilation-next-error 0)
+	(goto-char comp-buf-pt)
 
 	(unless success
 	  ;; none of the hooks handled the error
 	  (error "error not recognized"))
-    ))))
+	))))
 
 (provide 'ada-fix-error)
 ;; end of file

@@ -1,0 +1,66 @@
+;; test a former OpenToken bug; '=>' was missing in the lookaheads for 'factor <= IDENTIFIER ^'
+;;
+;; This is a subset of the syntax for an Ada 2012 case expression
+;;
+;; (ediff "case_expression.wy" "../../../org.opentoken.stephe/wisi/test/case_expression.wy")
+
+%{
+(require 'wisi)
+%}
+
+;; non-reporting
+;; whitespace added by wisi-generate
+%token <line_comment> COMMENT "--"
+
+;; terminals
+%token <punctuation> DOT_DOT ".."
+%token <punctuation> EQUAL_GREATER "=>"
+%token <punctuation> TICK "'"
+
+%token <symbol> IDENTIFIER
+
+%keyword RANGE "range"
+%keyword WHEN "when"
+
+%start case_expression
+
+%%
+
+case_expression
+  : WHEN discrete_choice EQUAL_GREATER
+    (setq wisi-test-success t)
+  ;
+
+choice_expression
+  : choice_relation
+  ;
+
+choice_relation
+  : factor_list
+  ;
+
+discrete_choice
+  : choice_expression
+  | range_nt
+  ;
+
+factor
+  : IDENTIFIER
+  ;
+
+factor_list
+  : factor
+  ;
+
+;; for Ada code generation, can't use case to distinguish token names
+range_nt
+  : IDENTIFIER TICK RANGE ;; range_attribute_reference
+  | factor_list DOT_DOT factor_list
+  ;
+
+%%
+
+;; Local Variables:
+;; eval: (add-hook 'before-save-hook 'delete-trailing-whitespace nil t)
+;; End:
+;;; end of file

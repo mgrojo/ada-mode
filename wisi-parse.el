@@ -26,6 +26,15 @@
   ;; list of (action-symbol stack-fragment)
   )
 
+(defun wisi-error (message &rest args)
+  (let ((line (line-number-at-pos))
+	(col (- (point) (line-beginning-position))))
+    (error
+     "%s:%d:%d: %s"
+       (file-name-nondirectory (buffer-file-name))
+       line col
+       (apply 'format message args))))
+
 (defun wisi-parse (automaton lexer &optional error)
   "Parse input using the automaton specified in AUTOMATON.
 
@@ -45,10 +54,14 @@
 	  (vector
 	   (make-wisi-parser-state
 	    :active  'shift
-	    :stack   (make-vector wisent-parse-max-stack-size nil);; FIXME: grow stack dynamically, save per-buffer max
+	    :stack   (make-vector wisent-parse-max-stack-size nil)
+	    ;; FIXME: better error message when stack overflows, so
+	    ;; user can set wisent-parse-max-stack-size in file-local
+	    ;; vars.
 	    :sp      0
 	    :pending nil)))
 	 (active-parser-count 1)
+	 active-parser-count-prev
          (wisent-parse-error-function (or error 'wisent-message))
 	 (active 'shift)
 	 (token (funcall lexer)))
@@ -56,6 +69,7 @@
     (aset (wisi-parser-state-stack (aref parser-states 0)) 0 0) ;; Initial state
 
     (while (not (eq active 'accept))
+      (setq active-parser-count-prev active-parser-count)
       (dotimes (parser-index (length parser-states))
 	(when (eq active (wisi-parser-state-active (aref parser-states parser-index)))
 	  (let* ((parser-state (aref parser-states parser-index))
@@ -75,12 +89,19 @@
 	      (setq active-parser-count (1- active-parser-count))
 	      (case active-parser-count
 		(0
-		 ;; FIXME: better error handling for input syntax
-		 ;; error? not clear which parser(s) should try to
-		 ;; continue past error.
-		 ;; FIXME: at least a better message to the user
-		 ;; if prev-active-parser-count = 1, handle like wisent-parse does
-		 (error "no parsers left"))
+		 (cond
+		  ((= active-parser-count-prev 1)
+		   ;; we were not in a parallel parse; report the error
+		   (let ((state (aref (wisi-parser-state-stack parser-state) (wisi-parser-state-sp parser-state))))
+		     (wisi-error "syntax error in grammar state %d; unexpected %s, expecting one of %s"
+				 state
+				 (nth 1 token)
+				 (mapcar 'car (aref actions state)))
+		     ))
+		  (t
+		   ;; not clear which parser(s) should report the error.
+		   (error "no parsers left"))
+		  ))
 
 		(1
 		 (wisi-execute-pending (wisi-parser-state-pending
@@ -173,6 +194,10 @@ Return nil or new parser (a wisi-parse-state struct)."
 	 (parse-action (wisent-parse-action (car token) (aref actions state)))
 	 new-parser-state)
 
+    (when wisi-debug
+      ;; output trace info
+      (message "%d : %s : %s" state token parse-action))
+
     (when (and (listp parse-action)
 	       (not (symbolp (car parse-action))))
       ;; conflict; spawn a new parser
@@ -229,11 +254,11 @@ the first and last tokens of the nonterminal."
       (cond
        ((not start)
 	;; item i is an empty production
-	(setq start (cadr (aref stack (setq i (+ i 2))))))
+	(setq start (caddr (aref stack (setq i (+ i 2))))))
 
        ((not end)
 	;; item j is an empty production
-	(setq end (cddr (aref stack (setq j (- j 2))))))
+	(setq end (cdddr (aref stack (setq j (- j 2))))))
 
        (t (setq i j))))
     (and start end (cons start end))))

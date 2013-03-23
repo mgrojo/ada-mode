@@ -24,16 +24,19 @@ run indent test from emacs -Q:
     (setq ada-mode-hook (delete 'ada-wisi-setup ada-mode-hook))
     (add-hook 'ada-mode-hook 'ada-smie-setup))
 
+(setq ada-smie-debug t)
+(setq ada-smie-debug nil)
+
 (progn
     (require 'ada-wisi)
     (setq ada-mode-hook (delete 'ada-smie-setup ada-mode-hook))
     (add-hook 'ada-mode-hook 'ada-wisi-setup))
 
+(setq wisi-debug t)
+(setq wisi-debug nil)
+
 (shell-send-string "~/bin/mtn_sync_ada_france.sh" "*bash*")
 (xmtn-sync-review)
-
-(setq ada-smie-debug t)
-(setq ada-smie-debug nil)
 
 (grep-find "find . -type f -print | \"xargs\" grep -nH \"FIXME:\"")
 (setq wisent-verbose-flag t)
@@ -41,44 +44,57 @@ run indent test from emacs -Q:
 output to *wisent-log* buffer, written to wisent.output if batch
 
  ada-wisi parser
+don't make process-environment buffer-local; screws up (setenv
+"GDS_BRANCH" "mms_version_08")
+
 (list (wisi-parser-state-active (aref parser-states 1)) (wisi-parser-state-sp (aref parser-states 1)) (wisi-parser-state-stack (aref parser-states 1)))
 
 (setq wisent-parse-max-stack-size 80)
 build/wisi/Makefile
+    test-ada
+        test/ada_mode-conditional_expressions.adb
+        failing; indentation
 
-test-gpr passing
+
+& should be punctuation?
 
 do fixmes
+    ./wisi.el:221:  ;; FIXME: not used? (wisi-backward-token)
 
-compile ada-grammar.wy
-    build/wisi/Makefile
-    need to distinguish terminal BODY from non-terminal body
-        BODY_T_ID, body_nt_ID?
+    ./wisi.el:424:  ;; FIXME: change items to 'token class'; token same struct as returned
 
-        opentoken can use integer subtype for Token_ID
-            do that, use array of strings for elisp version of tokens
-            skip writing out *generate.adb, just instantiate and build grammar in .elisp
-            keep ada generating code in .ada
+    gpr-add-log-current-function dispatch to gpr-wisi
 
-
-    FIRST has to handle null nonterminals; [dickgrune] 9.6.2 p 206
-
-pointer at end of kernel => default should be reduce or accept
-    don't need to compute lookaheads?
-    see FIXME in opentoken-productoin-parser-lalr.adb
-
-add opentoken aunit test for wisi
-
-opentoken has a production for accept, wisent does not
+    ./test/gpr/simple.gpr:43:            "6.2.2" | -- FIXME: continuation line; ada-indent-broken = 2
 
 wisi-statement-action check class against wisi-class-list, to catch spelling mistakes
 
 test/ada_mode-generic_instantiation.ads
     introduces shift/reduce conflicts between generic procedure instantiation and procedure body
 
+merge two parsers if reach the same stack?
+    but actions are probably different!
+    grammar is redundant?
+    wait until accept?
+
+ opentoken
+error on missing ':' in 'range | foo ;'
+
+need syntax in .wy for listing known conflicts; wisi-generate only report unknown.
+
+pointer at end of kernel => default should be reduce or accept
+    don't need to compute lookaheads?
+    see FIXME in opentoken-production-parser-lalr.adb
+
+
  ada-wisi other
 /Projects/Web/stephe-leake/emacs/ada-mode/emacs-ada-mode.html
     to-do list
+
+select-prj should open prj if not in alist
+
+set buffer-local at variable declaration, not in ada-mode
+    make it clearer to someone trying to understand what the variable does
 
 from georg bauhaus:
     procedure Y is
@@ -131,62 +147,7 @@ for |, need to distinguish 'when', '=>'
     block-middle-start, block-middle-end?
     else => block-middle? statement-middle?
 
-bug in semantic-grammar.wy
-    attempted patch:
-        %type  <qlist>       matchdatatype sexp syntax "\\s'\\s'?\\s-*("
-        didn't work (not clear if it's getting loaded)
-    posted on cedet-semantic; no help
-
-gdb break command input still broken in
-    http://debbugs.gnu.org/cgi/bugreport.cgi?bug=13303
-    GNU Emacs 24.2.91.1 (i386-mingw-nt6.1.7601) of 2012-12-15 on MS-W7-DANI
-    GNU gdb (GDB) 7.5 for GNAT Pro 7.1.0w (20121019) [rev=gdb-7.5-ref-21-g0070a88]
-    menu signals kill gdb
-
-    gdb-many-windows apparently not relevant; that still uses gud> interaction buffer to set break commands
-
-    gud-gdb runs 'gdb --fullname'; that works
-
-    try with mingw gdb 7.2
-        worse; no '>' prompt
-            set interactive off
-
-        latest mingw mingw-get-inst-20120426.exe
-            gcc 4.7.2; try with mtn
-            gdb 7.5
-
-    try with cygwin gdb
-        same problem
-
-    try with cygwin emacs, cygwin gdb
-
-    try on linux
-        emacs 24.2.1
-        gdb 7.4.1
-            no '>' prompt!
-               (gdb) set interactive-mode off
-
-            doesn't terminate on 'end'!
-
-        get emacs 24.2.91 source, gcc 4.7.2-4, gdb 7.4.1-1
-            no '>' prompt, but menu eof terminates
-
-        use emacs -Q
-            same
-            get "error in process filter" after type "break association_token_test-run.adb:20"
-
-        use C hello world
-            same, no 'error in process filter'
-
-    see email
-        try alternate gdb front-ends
-        try gdb 7.5 on debian
-
-ada-mode
-    need C-c C-d on <=
-
-gnat stub doesn't copy 'pragma License'
-   can use standard header file; "see spec" is standard
+need C-c C-d on <=
 
 ada-make-subprogram-body
     doesn't handle "+" after 'end'
@@ -272,6 +233,12 @@ ada-case-adjust
     store acronym expansion
         either pointer to source file, or string
 
+    change ada-auto-case to multivalued
+        nil for none, t or 'half for 4.0 behavior, 'full for the current 5.0.
+
+        also to buffer-local, to allow some files to have different behavior (ie, for -fdump-ada-spec)
+            set in file local variables
+
 ada-gnat-parse-gpr-file
     if object dir not created, search for Source Search Path fails
 
@@ -297,14 +264,72 @@ rest of ada-mode
     check emacs buglist
         http://debbugs.gnu.org/cgi/pkgreport.cgi?package=ada-mode
 
+support multiple compilation units in one file
+    don't add $EOI for accept rule
+
+syntax illegal at edit point means parse backwards from end makes sense
+    insert phantom tokens to match two error points
+
+ non-ada-mode bugs
+bug in semantic-grammar.wy
+    attempted patch:
+        %type  <qlist>       matchdatatype sexp syntax "\\s'\\s'?\\s-*("
+        didn't work (not clear if it's getting loaded)
+    posted on cedet-semantic; no help
+
+gdb break command input still broken in
+    http://debbugs.gnu.org/cgi/bugreport.cgi?bug=13303
+    GNU Emacs 24.2.91.1 (i386-mingw-nt6.1.7601) of 2012-12-15 on MS-W7-DANI
+    GNU gdb (GDB) 7.5 for GNAT Pro 7.1.0w (20121019) [rev=gdb-7.5-ref-21-g0070a88]
+    menu signals kill gdb
+
+    gdb-many-windows apparently not relevant; that still uses gud> interaction buffer to set break commands
+
+    gud-gdb runs 'gdb --fullname'; that works
+
+    try with mingw gdb 7.2
+        worse; no '>' prompt
+            set interactive off
+
+        latest mingw mingw-get-inst-20120426.exe
+            gcc 4.7.2; try with mtn
+            gdb 7.5
+
+    try with cygwin gdb
+        same problem
+
+    try with cygwin emacs, cygwin gdb
+
+    try on linux
+        emacs 24.2.1
+        gdb 7.4.1
+            no '>' prompt!
+               (gdb) set interactive-mode off
+
+            doesn't terminate on 'end'!
+
+        get emacs 24.2.91 source, gcc 4.7.2-4, gdb 7.4.1-1
+            no '>' prompt, but menu eof terminates
+
+        use emacs -Q
+            same
+            get "error in process filter" after type "break association_token_test-run.adb:20"
+
+        use C hello world
+            same, no 'error in process filter'
+
+    see email
+        try alternate gdb front-ends
+        try gdb 7.5 on debian
+
+gnat stub doesn't copy 'pragma License'
+   can use standard header file; "see spec" is standard
+
 ada-display-buffer
     not setting history right
         bury buffer doesn't bring back last buffer
 
     review windows.el to see if there is now a better solution
-
-support multiple compilation units in one file
-    don't add $EOI for accept rule
 
 support xref for C files?
     at least if compiled with gprbuild?
@@ -506,6 +531,10 @@ specify options in .prj
         debug vs release changes .prj; check options changed, warn?
 
  to do later
+vhdl-wisi
+
+ada-control.el from JP Rosen; see email
+
 completion
     http://emacswiki.org/emacs/CategoryCompletion
     autocomplete package
@@ -525,6 +554,9 @@ get narrow-to-defun to work
 fix gnat-fix-error
     tab
     insert with
+
+opentoken generalized
+    store token pointers on pending stack, so later operations have results
 
  access to ada-france:
 

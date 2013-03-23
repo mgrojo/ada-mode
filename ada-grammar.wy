@@ -43,8 +43,6 @@
 
 ;; Declarations
 
-%package ada-grammar-wy
-
 ;; token declarations
 
 ;; Ada keywords (ARM 2.9) and operators (info "(aarm2012)2.9" "*info AARM*")
@@ -108,7 +106,7 @@
 %keyword WITH "with"
 %keyword XOR "xor"
 
-;; all tokens that consist of chars with punctuation syntax
+;; all tokens that consist of characters with punctuation syntax
 %token <punctuation> BAR "|"
 %token <punctuation> BOX "<>"
 %token <punctuation> COLON ":"
@@ -136,6 +134,7 @@
 %token <character_literal> CHARACTER_LITERAL
 %token <numeric_literal> NUMERIC_LITERAL
 ;; FIXME: wisi lexer treats numeric_literal as identifier; fix that or delete this
+;; FIXME: wisi lexer treats character_literal as ?; fix that or delete this
 
 %start compilation_unit
 
@@ -155,7 +154,7 @@
 ;; implemented by repeated productions. Most names are simplified to
 ;; just "name".
 ;;
-;; FIXME: BNF not copied until part of it is encountered in a test,
+;; BNF not copied until part of it is encountered in a test,
 ;; part not needed left commented out.
 
 access_definition

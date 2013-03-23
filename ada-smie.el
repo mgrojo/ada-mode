@@ -3795,7 +3795,6 @@ If DECLARE non-nil, stop at first containing declarative region (for 'declare' b
   (ada-smie-goto-declaration-start t)
   (let ((token (ada-smie-forward-token))
 	(done nil))
-    ;; FIXME: infinite loop on partial code?
     (cond
      ((equal token "declare")
       nil)

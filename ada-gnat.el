@@ -108,7 +108,7 @@ See also `ada-gnat-parse-emacs-final'."
     )
 
   ;; FIXME: This is only needed when actually running the gnat
-  ;; compiler; parsing a gnat project is a crude approximation to
+  ;; compiler; parsing a gnat project is a crude proxy for
   ;; that. Could set in an 'ada-compile' function, but there's no good
   ;; way to know when to clear it. Same for
   ;; compilation-error-regexp-alist. So we do this here, and assume other modes will set
@@ -211,6 +211,16 @@ src_dir, obj_dir will include compiler runtime."
     )
 
   (setq project (ada-gnat-get-paths project))
+
+  ;; add dir containing gpr-file to ada_project_path, so we can run
+  ;; gnat in other directories (ie, for gnat stub)
+  (setq project
+	(plist-put project
+		   'ada_project_path
+		   (concat (plist-get project 'ada_project_path)
+			   (plist-get project 'path_sep)
+			   (file-name-directory gpr-file))))
+
   (message "Parsing %s ... done" gpr-file)
   project)
 
@@ -273,7 +283,7 @@ is (ada-gnat-run-buffer)"
   (let ((default-directory (or dir default-directory)))
 
     (setq command (delete-if 'null command))
-    (mapc (lambda (str) (insert (concat str " "))) command);; show command for debugging
+    (mapc (lambda (str) (insert (concat str " "))) command)
     (newline)
     (apply 'call-process "gnat" nil t nil command)
     ))
@@ -465,6 +475,7 @@ is (ada-gnat-run-buffer)"
 
        (t ; failure
 	(pop-to-buffer (current-buffer))
+	(delete-file body-file-name);; created by find-file
 	(error "gnat stub failed"))
        ))
     nil))
@@ -591,7 +602,7 @@ For `compilation-filter-hook'."
   "For `ada-fix-error-alist'.")
 
 (defun ada-gnat-misspelling ()
-  "Return correct spelling from current compiler error.
+  "Return correct spelling from current compiler error, if there are corrections offered.
 Prompt user if more than one."
   ;; wisi-output.adb:115:41: no selector "Productions" for type "RHS_Type" defined at wisi.ads:77
   ;; wisi-output.adb:115:41: invalid expression in loop iterator
@@ -604,7 +615,8 @@ Prompt user if more than one."
 	done choices)
     (while (not done)
       (forward-line 1)
-      (setq done (not (equal line (nth 1 (compilation--message->loc (ada-get-compilation-message))))))
+      (setq done (or (not (ada-get-compilation-message))
+		     (not (equal line (nth 1 (compilation--message->loc (ada-get-compilation-message)))))))
       (when (and (not done)
 		 (progn
 		   (skip-syntax-forward "^-")
@@ -665,7 +677,8 @@ Prompt user if more than one."
 			   (and
 			    (equal file-line-struct (ada-get-compilation-message))
 			    (setq pos (next-single-property-change
-				       (point) 'ada-secondary-error nil (line-end-position))))))
+				       ;; 1- because next compilation error is at next line beginning
+				       (point) 'ada-secondary-error nil (1- (line-end-position)))))))
 	       (when (not done)
 		 (let* ((item (get-text-property pos 'ada-secondary-error))
 			(unit-file (nth 0 item)))
@@ -844,7 +857,7 @@ Prompt user if more than one."
 ;;;; warnings
 	  ((looking-at (concat "warning: " ada-gnat-quoted-name-regexp " is not modified, could be declared constant"))
 	   (pop-to-buffer source-buffer)
-	   (ada-smie-forward-tokens-unrefined ":");; FIXME: generalize to wisi?
+	   (ada-smie-forward-tokens-unrefined ":");; FIXME: generalize to wisi!
 	   ;; "aliased" must be before "constant", so check for it
 	   (when (looking-at "aliased")
 	     (forward-word 1))
@@ -875,7 +888,8 @@ Prompt user if more than one."
 	     (forward-line 1);; FIXME: need `ada-goto-declaration-end'
 	     (backward-char 1)
 	     (newline-and-indent)
-	     (insert "pragma Unreferenced (" param ");")))
+	     (insert "pragma Unreferenced (" param ");"))
+	   t)
 
 	  ((looking-at (concat "warning: unit " ada-gnat-quoted-name-regexp " is not referenced$"))
 	   ;; just delete the 'with'; assume it's on a line by itself.
@@ -885,6 +899,12 @@ Prompt user if more than one."
 	   t)
 
 ;;;; style errors
+	  ((looking-at "(style) \".*\" in wrong column")
+	   (progn
+	     (set-buffer source-buffer)
+	     (funcall indent-line-function))
+	   t)
+
 	  ((looking-at "(style) bad capitalization, mixed case required")
 	   (progn
 	     (set-buffer source-buffer)

@@ -133,13 +133,6 @@
 (defvar wisi-string-term nil)
 (defvar wisi-symbol-term nil)
 
-(defun wisi-error (message &rest args)
-  (error
-   "%s:%d: %s"
-   (file-name-nondirectory (buffer-file-name))
-   (line-number-at-pos)
-   (apply 'format message args)))
-
 (defun wisi-forward-token (&optional text-only lower)
   "Move point forward across one token, skipping leading whitespace and comments.
 Return the corresponding token, in a format determined by TEXT-ONLY:
@@ -374,9 +367,7 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
 		  (progn
 		    (goto-char wisi-cache-max)
 		    ;; invalid syntax is silently reported via
-		    ;; wisi-parse-error, and the parser aborts (FIXME:
-		    ;; we don't have any error recovery in the grammar
-		    ;; yet).
+		    ;; wisi-parse-error, and the parser aborts
 		    (wisi-parse wisi-parse-table 'wisi-forward-token 'wisi-parse-error))
 		(error
 		 ;; from broken wisi parse actions
@@ -769,27 +760,29 @@ CACHE contains cache info from a keyword in the current statement."
 
   (setq wisent-parse-verbose-flag t); to get syntax error messages
 
-  (unless (setq wisi-string-term (car (symbol-value (intern-soft "string" token-table))))
-    (error "grammar does not define <string> token"))
-
-  (unless (setq wisi-symbol-term (car (symbol-value (intern-soft "symbol" token-table))))
-    (error "grammar does not define <symbol> token"))
+  (setq wisi-string-term (car (symbol-value (intern-soft "string" token-table))))
+  (setq wisi-symbol-term (car (symbol-value (intern-soft "symbol" token-table))))
 
   (set (make-local-variable 'wisi-punctuation-table)
        (symbol-value (intern-soft "punctuation" token-table)))
   (set (make-local-variable 'wisi-punctuation-table-max-length) 0)
-  (dolist (item wisi-punctuation-table)
-    (when item ;; default matcher can be nil
+  (let (fail)
+    (dolist (item wisi-punctuation-table)
+      (when item ;; default matcher can be nil
 
-      ;; check that all chars used in punctuation tokens have punctuation syntax
-      (mapc (lambda (char)
-	      (when (not (= ?. (char-syntax char)))
-		(error "in %s, %c does not have punctuation syntax"
-		       (car item) char)))
-	    (cdr item))
+	;; check that all chars used in punctuation tokens have punctuation syntax
+	(mapc (lambda (char)
+		(when (not (= ?. (char-syntax char)))
+		  (setq fail t)
+		  (message "in %s, %c does not have punctuation syntax"
+			   (car item) char)))
+	      (cdr item))
 
-      (when (< wisi-punctuation-table-max-length (length (cdr item)))
-	(setq wisi-punctuation-table-max-length (length (cdr item))))))
+	(when (< wisi-punctuation-table-max-length (length (cdr item)))
+	  (setq wisi-punctuation-table-max-length (length (cdr item)))))
+      )
+    (when fail
+      (error "aborting due to punctuation errors")))
 
   (set (make-local-variable 'wisi-keyword-table) keyword-table)
   (set (make-local-variable 'wisi-parse-table) parse-table)
@@ -799,10 +792,6 @@ CACHE contains cache info from a keyword in the current statement."
 
   (add-hook 'before-change-functions 'wisi-before-change nil t)
   (add-hook 'after-change-functions 'wisi-after-change nil t)
-
-  ;; FIXME: (set (make-local-variable 'forward-sexp-function) 'wisi-forward-sexp-command)
-  ;; This is nice for user navigation; do we need it for wisi?
-
   )
 
 (provide 'wisi)

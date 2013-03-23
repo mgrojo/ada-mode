@@ -2,6 +2,8 @@
 ;; name_list, if none of the names are string literals. This shows up
 ;; in the the compiled grammar as several reduce/reduce conflict, and
 ;; in the parser as two parsers reaching accept.
+;; 
+;; (ediff "identifier_list_name_conflict.wy" "../../../org.opentoken.stephe/wisi/test/identifier_list_name_conflict.wy")
 
 %{
 (require 'wisi)
@@ -10,15 +12,24 @@
 %keyword LEFT_PAREN "("
 %keyword RIGHT_PAREN ")"
 
-%package identifier_list_name_conflict-wy
-
 %token <punctuation> COMMA ","
 %token <punctuation> EQUAL_GREATER "=>"
 
 %token <string> STRING_LITERAL
 %token <symbol> IDENTIFIER
 
+;; not first nonterminal
+%start compilation
 %%
+
+association
+  : selector_name EQUAL_GREATER name
+  ;
+
+association_list
+  : association
+  | association_list COMMA association
+  ;
 
 compilation
   : compilation_unit compilation_unit compilation_unit
@@ -29,15 +40,6 @@ compilation_unit
   : identifier_list
   | name_list
   | LEFT_PAREN association_list RIGHT_PAREN
-  ;
-
-association
-  : selector_name EQUAL_GREATER name
-  ;
-
-association_list
-  : association
-  | association_list COMMA association
   ;
 
 identifier_list

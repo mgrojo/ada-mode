@@ -1,4 +1,4 @@
--- Standard settings for all of Stephe's Ada projects.
+-- captured from 'Standard settings for all of Stephe's Ada projects'
 
 project Standard_Common is
    for Source_Dirs use ();
@@ -40,8 +40,8 @@ project Standard_Common is
       --  processors are so fast.
       --
       --  '-msse2 -mfpmath=sse' would give desired rounding behavior
-      --  (see FIXME: sal clip_scale_limit test), but it is not
-      --  supported on VP9 CPUs.
+      --  (see sal clip_scale_limit test), but it is not supported in
+      --  Lynx 5 (yet?).
       Release_Switches :=
         ("-g",
          "-O2",

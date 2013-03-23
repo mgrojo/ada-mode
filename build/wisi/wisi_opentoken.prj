@@ -1,3 +1,9 @@
 gpr_file=wisi_opentoken_agg.gpr
 
 casing=../../../org.opentoken.stephe/build/emacs_case_exceptions
+
+-- for *.wy
+src_dir=../../
+src_dir=../../test/wisi
+
+-- end of file

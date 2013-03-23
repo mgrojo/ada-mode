@@ -11,9 +11,14 @@
     ;; have to add test-specific things.
 
     ;; operator symbols
+    (modify-syntax-entry ?*  "." table)
+    (modify-syntax-entry ?+  "." table)
+    (modify-syntax-entry ?-  "." table)
+    (modify-syntax-entry ?/  "." table)
     (modify-syntax-entry ?<  "." table)
     (modify-syntax-entry ?=  "." table)
     (modify-syntax-entry ?>  "." table)
+    (modify-syntax-entry ?|  "." table)
 
     ;; and \f and \n end a comment - see test-syntax-propertize for comment start
     (modify-syntax-entry ?\f  ">   " table)
@@ -63,7 +68,7 @@
      (symbol-value (intern-soft (concat filename "-wy--token-table")))
      parse-table)
 
-    ;; Check for expected result
+    ;; Check for expected error result
     (goto-char (point-min))
     (when (re-search-forward "--PARSE_RESULT:" nil t)
       (setq expected-result (eval (buffer-substring-no-properties (point) (line-end-position)))))
@@ -71,9 +76,12 @@
     (goto-char (point-min))
     (condition-case err
 	(wisi-parse parse-table 'wisi-forward-token)
+        ;; parse action must set wisi-test-success t
       (error
        (setq wisi-test-success
-	     (equal (cadr err) expected-result))))
+	     (equal (cadr err) expected-result))
+       (unless wisi-test-success
+	 (message (cadr err)))))
     (unless wisi-test-success
       (error "parse test failed")))
 
@@ -104,6 +112,7 @@
     ))
 
 (defun run-test (filename)
+  (add-to-list 'load-path "../../test/wisi/")
   (require (intern (concat filename "-wy")))
   ;; top level parse action must set `wisi-test-success' t.
   (let ((build-dir default-directory)

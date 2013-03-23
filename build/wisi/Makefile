@@ -1,13 +1,14 @@
 # build and test the Emacs wisent Ada indentation and navigation engine
 
-all : ada-grammar-wy.el ../../gpr-grammar-wy.el compile-clean compile test-clean test
+all : ../../ada-grammar-wy.el ../../gpr-grammar-wy.el compile-clean compile test-clean test
 
+test :: body_instantiation_conflict.wisi-test
+test :: case_expression.wisi-test
+test :: identifier_list_name_conflict.wisi-test
 test :: range_conflict.wisi-test
 test :: subprograms.wisi-test
-test :: body_instantiation_conflict.wisi-test
-test :: identifier_list_name_conflict.wisi-test
 
-one : subprograms.wisi-test
+one : case_expression.wisi-test
 two : gds.gpr.diff
 
 vpath %.wy ../../ ../../test/wisi
@@ -16,15 +17,13 @@ vpath %.el ../../ .
 %.wisi-test : %-wy.el
 	$(EMACS) -Q -batch -L . -L .. -L ../.. -l run-wisi-test.el --eval '(run-test "$*")'
 
-.PRECIOUS : %-wy.el
+.PRECIOUS : %-wy.el ../../%-grammar-wy.el
 
 WISI_OPENTOKEN := ../../../org.opentoken.stephe/build/windows_release
 
-../../gpr-grammar-wy.el : gpr-grammar-wy.el
-	cp $< $@
-
+# -v dumps grammar, continues with unused tokens
 %-wy.el : %.wy $(WISI_OPENTOKEN)/wisi-generate.exe
-	$(WISI_OPENTOKEN)/wisi-generate.exe -v 1 $< Elisp > $*.output
+	cd ./$(<D); $(CURDIR)/$(WISI_OPENTOKEN)/wisi-generate.exe -v 1 $(<F) Elisp > $(*F).output
 
 # ../../../org.opentoken.stephe/wisi/wisi-generate.adb
 $(WISI_OPENTOKEN)/wisi-generate.exe : force
@@ -41,12 +40,14 @@ clean ::
 	rm -f *-wy.el *.elc
 
 test-clean ::
-	rm -f *.wisi-test
+	rm -f *.output *.wisi-test
+	cd ../../test/wisi/; rm -f *-wy.el *.output
 
 RUNTEST := run-indent-test-wisi.el
-INDENT.EL := ada-wisi.el gpr-wisi.el gpr-grammar-wy.el
-# INDENT.EL += ada-grammar-wy.el FIXME: currently broken
+INDENT.EL := ada-wisi.el gpr-wisi.el ../../gpr-grammar-wy.el ../../ada-grammar-wy.el
 include ../common.make
+
+test-ada : $(addsuffix .diff, $(subst subdir/,,$(ADA_TEST_FILES)))
 
 export ADA_PROJECT_PATH=../../test/;../../test/subdir
 
@@ -54,7 +55,7 @@ export ADA_PROJECT_PATH=../../test/;../../test/subdir
 # eval: (ada-select-prj-file "../ada-mode.prj")
 
 # Local Variables:
-# End:
 # eval: (ada-parse-prj-file "wisi_opentoken.prj")
 # eval: (ada-select-prj-file "wisi_opentoken.prj")
+# End:
 # end of file

@@ -1,10 +1,9 @@
 ;; grammar has a reduce-reduce conflict
+;; (ediff "range_conflict.wy" "../../../org.opentoken.stephe/wisi/test/range_conflict.wy")
 
 %{
 (require 'wisi)
 %}
-
-%package range_conflict-wy
 
 %keyword IN "in"
 %keyword LEFT_PAREN "("
@@ -15,9 +14,9 @@
 %token <punctuation> TICK "'"
 
 %token <symbol> IDENTIFIER
-
-;; not used, but <string> required by wisi-setup
 %token <string> STRING_LITERAL
+
+%start compilation_unit
 %%
 
 compilation_unit
