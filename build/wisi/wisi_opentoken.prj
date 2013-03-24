@@ -1,4 +1,4 @@
-gpr_file=wisi_opentoken_agg.gpr
+gpr_file=../../../org.opentoken.stephe/build/windows_release/opentoken.gpr
 
 casing=../../../org.opentoken.stephe/build/emacs_case_exceptions
 

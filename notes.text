@@ -43,18 +43,20 @@ run indent test from emacs -Q:
 (setq wisent-debug-flag t)
 output to *wisent-log* buffer, written to wisent.output if batch
 
+(list (wisi-parser-state-active (aref parser-states 1)) (wisi-parser-state-sp (aref parser-states 1)) (wisi-parser-state-stack (aref parser-states 1)))
+
+(setq wisent-parse-max-stack-size 80)
  ada-wisi parser
 don't make process-environment buffer-local; screws up (setenv
 "GDS_BRANCH" "mms_version_08")
 
-(list (wisi-parser-state-active (aref parser-states 1)) (wisi-parser-state-sp (aref parser-states 1)) (wisi-parser-state-stack (aref parser-states 1)))
+post to web page
+    add opentoken-stephe source
+    add opentoken-stephe to ada-france?
 
-(setq wisent-parse-max-stack-size 80)
 build/wisi/Makefile
     test-ada
-        test/ada_mode-conditional_expressions.adb
-        failing; indentation
-
+        test/ada_mode-conditional_expressions.adb passing
 
 & should be punctuation?
 

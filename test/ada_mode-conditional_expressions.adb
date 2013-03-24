@@ -10,9 +10,9 @@ procedure Ada_Mode.Conditional_Expressions is
    K3 : Integer := (if
                       J > 42
                     then
-                       -1
+                      -1
                     else
-                       +1);
+                      +1);
    K : Integer := K0;
    L0 : Integer :=
      (case J is when 42 => -1, when Integer'First .. 41 => 0, when others => 1);
@@ -68,9 +68,8 @@ begin
             when -1 => 42,
             when 0 => 41,
             when 1 =>
-           (if J > 42
-              -- FIXME: ( should be indented ada-indent relative to when
-            -- FIXME: comment should be aligned with if
-            then 44
-            else 45));
+               (if J > 42
+                  -- comment indented as code (ada-indent-broken)
+                then 44
+                else 45));
 end Ada_Mode.Conditional_Expressions;

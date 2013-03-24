@@ -117,14 +117,18 @@
 	    ;; between 'when' and '=>'
 	    (+ (current-column) ada-indent-broken))
 
+	   ((THEN ELSE)
+	    ;; assuming in if_expression
+	    (wisi-indent-statement-start ada-indent-broken cache t))
+
 	   (t
 	    (wisi-indent-current ada-indent))
 	   ))
 
 	(block-start
 	 (case (wisi-cache-symbol cache)
-	   (IF ;; if_expression FIXME: also if_statement?
-	    (wisi-indent-statement-start 0 cache t))
+	   (if_expression
+	    (wisi-indent-statement-start ada-indent-broken cache nil))
 
 	   (t ;; other
 	    (wisi-indent-current ada-indent))
