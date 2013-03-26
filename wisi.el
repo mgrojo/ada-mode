@@ -27,38 +27,47 @@
 ;; indentation engine for Ada; see ada-smie.el.
 ;;
 ;; The general approach to indenting a given token is to find the
-;; start of the statement it is part of (or some other relevant point
-;; in the statement), and indent relative to that.  So we need a
-;; parser that lets us find statement starts from arbitrary places in
-;; the code.
+;; start of the statement it is part of, or some other relevant point
+;; in the statement (called 'statement indent points'), and indent
+;; relative to that.  So we need a parser that lets us find statement
+;; indent points from arbitrary places in the code.
 ;;
-;; wisent provides an LALR parser, which in general wants to start
+;; wisent provides an LALR(1) parser, which in general wants to start
 ;; from the first token in a non-terminal. The grammar has
 ;; non-terminals for Ada statements and declarations. The beginning of
 ;; the buffer always works as a starting point for the parser; it must
 ;; be the start of a declaration (a compilation unit).
 ;;
+;; Ada as represented by the EBNF in LRM Annex P is not LALR(1), so we
+;; use a generalized LALR(1) parser (see wisi-parse, wisi-compile).
+;;
+;; The parser actions store indentation and other information as text
+;; properties of the keywords at statement indent points.
+;;
 ;; An indentation engine moves text in the buffer, as does user
 ;; editing, so we can't rely on character positions remaining
-;; constant. So the parser actions use markers to store positions, and
-;; store other semantic information as text properties of the
-;; tokens. That way, as indentation is changed, the information stays
-;; in the right place.
+;; constant. So the parser actions use markers to store
+;; positions. Text properties also move with the text.
 ;;
-;; The other semantic information includes a marker at the first token
-;; of the statement. Thus, the indentation algorithm is: find the
-;; nearest token with cached information, fetch from it the marker for
-;; the statement start, compute the indentation relative to that.
+;; The stored information includes a marker at the first token of the
+;; statement. Thus, the indentation algorithm is: find the nearest
+;; token with cached information, and either indent from it, or fetch
+;; from it the marker for the statement start, and indent relative to
+;; that.
 ;;
-;; Since we have a cache, we need to consider when to invalidate
-;; it. Ideally, we invalidate only when a change to the buffer would
-;; change the result of a parse that crosses that change, or starts
-;; after that change. Changes in whitespace (indentation and newlines)
-;; do not affect an Ada parse. Other languages are sensitive to
-;; newlines (Bash for example) or indentation (Python). Adding
-;; comments does not change a parse, unless code is commented out. In
-;; order to be conservative, for now we invalidate the cache after the
-;; edit point if the change involves anything other than whitespace.
+;; Since we have a cache (the text properties), we need to consider
+;; when to invalidate it. Ideally, we invalidate only when a change to
+;; the buffer would change the result of a parse that crosses that
+;; change, or starts after that change. Changes in whitespace
+;; (indentation and newlines) do not affect an Ada parse. Other
+;; languages are sensitive to newlines (Bash for example) or
+;; indentation (Python). Adding comments does not change a parse,
+;; unless code is commented out. In order to be conservative, for now
+;; we invalidate the cache after the edit point if the change involves
+;; anything other than whitespace.
+;;
+;; We always use 'ecase' in the indentation code, to ensure that the
+;; symbols expected match those stored in the text properties.
 ;;
 ;;; comparison to the SMIE parser
 ;;
@@ -72,31 +81,39 @@
 ;; refined grammar. Implementing a SMIE parser for a new language
 ;; involves the same amount of work as the first language.
 ;;
-;; Using an LALR parser avoids that particular problem; since the
-;; language is already defined in terms of the grammar, it is only a
-;; matter of a format change to teach the wisent parser the
-;; language. The problem in a wisent indentation engine is caching the
-;; output of the parser in a useful way, since we can't run the parser
+;; Using a generalized LALR parser avoids that particular problem;
+;; since the language is already defined in terms of the grammar, it
+;; is only a matter of a format change to teach the wisi parser the
+;; language. The problem in a wisi indentation engine is caching the
+;; output of the parser in a useful way, since we can't start the parser
 ;; from arbitrary places in the code (as we can with the SMIE
 ;; parser). A second problem is determining when to invalidate the
 ;; cache. But these problems are independent of the language being
-;; parsed, so once we have one wisent indentation engine working,
+;; parsed, so once we have one wisi indentation engine working,
 ;; adapting it to new languages should be quite simple.
 ;;
 ;; The SMIE parser does not find the start of each statement, only the
 ;; first language keyword in each statement; additional code must be
-;; written to find the statement start. The wisent parser finds the
+;; written to find the statement start. The wisi parser finds the
 ;; statement start directly.
 ;;
-;; It is easier to use nested non-terminals in a wisi parser. In SMIE,
-;; it is best if each grammar rule is a complete statement, so
-;; forward-sexp will traverse the entire statement. If nested
+;; In SMIE, it is best if each grammar rule is a complete statement,
+;; so forward-sexp will traverse the entire statement. If nested
 ;; non-terminals are used, forward-sexp may stop inside one of the
 ;; nested non-terminals. This problem does not occur with the wisi
 ;; parser.
 ;;
 ;; A downside of the wisi parser is conflicts in the grammar; they can
-;; be much more difficult to resolve than in the SMIE parser.
+;; be much more difficult to resolve than in the SMIE parser. The
+;; generalized parser helps by handling conflicts, but it does so by
+;; running multiple parsers in parallel, persuing each choice in the
+;; conflict. If the conflict is due to a genuine ambiguity, both paths
+;; will succeed, which causes the parse to fail, since it is not clear
+;; which set of text properties to store. So grammar conflicts must
+;; still be analyzed and minimized.
+;;
+;; In addition, the complete grammar must be specified; in smie, it is
+;; often possible to specify a subset of the grammar.
 ;;
 ;;;; grammar compiler and parser
 ;;
@@ -108,11 +125,17 @@
 ;; near-bison format and outputs the lisp forms that
 ;; `wisent-compile-grammar' expects.
 ;;
+;; However, since we are using a generalized LALR(1) parser, we cannot
+;; use any of the wisent grammar functions. We use the OpenToken Ada
+;; package to compile wisent BNF to Elisp source (similar to
+;; semantic-grammar-create-package), and wisi-compile-grammar to
+;; compile that to the parser table.
+;;
 ;; wisent also does not provide a lexer. Semantic provides a complex
-;; lexer, way overkill for our needs. So we use the elisp lexer, which
-;; consists of `forward-comment', `skip-syntax-forward', and
-;; `scan-sexp'. We wrap that in functions that return tokens in the
-;; form wisent expects.
+;; lexer, more complicated than we need for indentation. So we
+;; use the elisp lexer, which consists of `forward-comment',
+;; `skip-syntax-forward', and `scan-sexp'. We wrap that in functions
+;; that return tokens in the form wisi-parse expects.
 ;;
 ;;; code style
 ;;
@@ -338,68 +361,43 @@ Return token text."
 If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS must be (1- mark)."
   (get-text-property pos 'wisi-cache))
 
-(defvar wisi-parse-error nil)
-
-(defun wisi-parse-error (msg)
-  "For `wisent-parse-error-function'."
-  ;; just capture the error, so wisi-parse-buffer can jump to it
-  (setq wisi-parse-error msg))
-
-(defvar wisi-debug nil
-  "Operate wisi in debug mode; don't handle errors, so debug-on-error works.")
+(defvar wisi-debug 0
+  "wisi debug mode:
+0 : normal
+1 : position point at parse errors
+2 : debug-on-error works in parser.")
 
 (defun wisi-validate-cache (pos)
   "Ensure cached data is valid at least up to POS in current buffer."
   (when (< wisi-cache-max pos)
-    (if wisi-debug
-	;; let debug-on-error work
-	(save-excursion
-	  (goto-char wisi-cache-max)
-	  (wisi-parse wisi-parse-table 'wisi-forward-token 'wisi-parse-error)
-	  (setq wisi-cache-max (point)))
-      ;; else handle errors nicely
-      (let (err-pos)
-	(condition-case err
-	    (save-excursion
-	      ;; FIXME: if more than one start non-terminal in buffer,
-	      ;; wisent-parse will stop after the next one; need loop
-	      (condition-case err
-		  (progn
-		    (goto-char wisi-cache-max)
-		    ;; invalid syntax is silently reported via
-		    ;; wisi-parse-error, and the parser aborts
-		    (wisi-parse wisi-parse-table 'wisi-forward-token 'wisi-parse-error))
-		(error
-		 ;; from broken wisi parse actions
-		 (setq err-pos (point))
-		 (signal (car err) (cdr err)))))
-	  (error
-	   ;; from inner handler
-	   (let ((msg (cadr err)))
-	     (if (stringp msg)
-		 (progn
-		   (when (string-match ".*:\\([0-9]+\\):" msg)
-		     (goto-char (string-to-number (match-string 1 msg))))
-		   (message msg))
-	       (goto-char err-pos)
-	       (message "%s" err)))))))
-
-    (when wisi-parse-error
-      (string-match "unexpected \\(\\w+\\)@\\([0-9]+\\)(\"\\(.+\\)\"),\\(.*\\)" wisi-parse-error)
-      (let ((symbol (match-string 1 wisi-parse-error))
-	    (begin (string-to-number (match-string 2 wisi-parse-error)))
-	    (expecting (match-string 4 wisi-parse-error)))
-	(setq wisi-parse-error nil)
-	(if wisi-debug
+    (let (msg)
+      (save-excursion
+	;; FIXME: if more than one start non-terminal in buffer,
+	;; wisent-parse will stop after the next one; need loop
+	(goto-char wisi-cache-max)
+	(if (> wisi-debug 1)
+	    ;; let debugger stop in wisi-parse
 	    (progn
-	      (goto-char begin)
-	      (error "unexpected %s: %s" symbol expecting))
-	  (message "%s:%s: unexpected %s: %s"
-		   (file-name-nondirectory (buffer-file-name))
-		   (line-number-at-pos)
-		   symbol expecting))
-	))
-    ))
+	      (wisi-parse wisi-parse-table 'wisi-forward-token)
+	      (setq wisi-cache-max (point)))
+	  ;; else capture errors from bad syntax, so higher level functions can try to continue
+	  (condition-case err
+	      (progn
+		(wisi-parse wisi-parse-table 'wisi-forward-token)
+		(setq wisi-cache-max (point)))
+	    (wisi-parse-error
+	     (setq msg (cdr err)))
+	    )))
+      (when msg
+	(when (and (> wisi-debug 0)
+		   (string-match ":\\([0-9]+\\):\\([0-9]+\\):" msg))
+	  (let ((line (string-to-number (match-string 1 msg)))
+		(col (string-to-number (match-string 2 msg))))
+	    (goto-char (point-min))
+	    (forward-line (1- line))
+	    (forward-char col)
+	    (error msg)))
+	(message msg)))))
 
 ;;;; parse actions
 

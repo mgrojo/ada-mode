@@ -7,7 +7,7 @@ run wisi test from emacs -Q:
   (add-to-list 'load-path "/Projects/org.emacs.ada-mode.smie/build/wisi")
   (load "run-indent-test-wisi")
   (setq wisi-debug t)
-  (find-file "/Projects/org.emacs.ada-mode.smie/test/gpr/gds.gpr"))
+  (find-file "/Projects/org.emacs.ada-mode.smie/test/ada_mode-function_2.adb"))
 
 run indent test from emacs -Q:
 (progn
@@ -47,16 +47,17 @@ output to *wisent-log* buffer, written to wisent.output if batch
 
 (setq wisent-parse-max-stack-size 80)
  ada-wisi parser
-don't make process-environment buffer-local; screws up (setenv
-"GDS_BRANCH" "mms_version_08")
-
-post to web page
-    add opentoken-stephe source
-    add opentoken-stephe to ada-france?
 
 build/wisi/Makefile
     test-ada
-        test/ada_mode-conditional_expressions.adb passing
+        test/ada_mode-generic_instantiation.ads passing
+
+    post to web page
+        add opentoken-stephe source
+        add opentoken-stephe to ada-france?
+
+change ada-wisi-after-keyword to ada-wisi-before-other?
+
 
 & should be punctuation?
 
@@ -437,6 +438,7 @@ entry guard clauses:
 
 
  relevant files
+(browse-url "c:/Projects/arm_info/org.adaic.arm_form/build/html/arm2012/RM-P.html")
 (info "(aarm2012)Annex P" "*info Annex P*")
 (info "(elisp)Parser State" "*syntax-ppss*")
 c:/Projects/emacs_stephe.work/emacs_stephe/ada-mode-keys.el

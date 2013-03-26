@@ -78,11 +78,19 @@ See also `ada-gnat-parse-emacs-final'."
      ((string= name "ada_project_path")
       (let ((path-current (plist-get project 'ada_project_path))
 	    (path-add (expand-file-name (substitute-in-file-name value)))
-	    (sep (plist-get project 'path_sep)))
+	    (sep (plist-get project 'path_sep))
+	    (proc-env (plist-get project 'proc_env)))
+
 	(setq project
 	      (plist-put project
 			 'ada_project_path
 			 (concat path-current sep path-add)))
+
+	(add-to-list 'proc-env
+		     (concat "ADA_PROJECT_PATH=" (plist-get project 'ada_project_path)))
+
+	(setq project (plist-put project 'proc_env proc-env))
+
 	project))
 
      ((string= (match-string 1) "gpr_file")
@@ -245,11 +253,6 @@ src_dir, obj_dir will include compiler runtime."
 	      (file-name-directory
 	       (or (ada-prj-get 'gpr_file)
 		   ada-prj-current-file)))
-
-	(let ((ada_project_path (ada-prj-get 'ada_project_path)))
-	  (when ada_project_path
-	    (add-to-list (make-variable-buffer-local 'process-environment)
-			 (concat "ADA_PROJECT_PATH=" ada_project_path))))
 	)
       buffer)))
 
@@ -270,8 +273,9 @@ Assumes current buffer is (ada-gnat-run-buffer)"
     (insert (format "ADA_PROJECT_PATH=%s\ngnat " (getenv "ADA_PROJECT_PATH"))); for debugging
     (mapc (lambda (str) (insert (concat str " "))) cmd);; show command for debugging
     (newline)
-    (apply 'call-process "gnat" nil t nil cmd)
-    ))
+    (let ((process-environment (ada-prj-get 'proc_env)))
+      (apply 'call-process "gnat" nil t nil cmd)
+    )))
 
 (defun ada-gnat-run-no-prj (command &optional dir)
   "Run the gnat command line tool, as \"gnat COMMAND\", with DIR as current directory.

@@ -1669,7 +1669,7 @@ C-u C-u : show in other frame
   (push-mark nil t)
   (goto-char (point-min))
   (forward-line (1- line))
-  (move-to-column column)
+  (forward-char column)
   )
 
 (defvar ada-xref-other-function nil

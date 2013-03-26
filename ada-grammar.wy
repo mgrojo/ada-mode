@@ -90,6 +90,7 @@
 %keyword PROCEDURE "procedure"
 %keyword PROTECTED "protected"
 %keyword RANGE "range"
+%keyword RENAMES "renames"
 %keyword RECORD "record"
 %keyword REM "rem"
 %keyword RETURN "return"
@@ -400,13 +401,13 @@ declaration
   | exception_declaration
   ;; | expression_function_declaration
   | generic_declaration
-  ;; | generic_instantiation causes conflicts that require parallel LALR
+  | generic_instantiation
   ;; | null_procedure_declaration
   | identifier_list COLON CONSTANT COLON_EQUAL expression SEMICOLON ;; number_declaration
   | object_declaration
   | package_declaration
   | pragma ;; not a 'declaration' in ARM, but it must be in the grammar
-  ;; | renaming_declaration
+  | renaming_declaration
   | subprogram_declaration
   | subtype_declaration
   | type_declaration
@@ -653,7 +654,6 @@ formal_package_actual_part
   | LEFT_PAREN association_list RIGHT_PAREN
     `,(wisi-statement-action 1 'open-paren 3 'close-paren)
   ;
- ;; same as generic_actual_part
 
 ;; formal_package_association_list is merged into association_list to avoid reduce/reduce conflict
 
@@ -674,17 +674,13 @@ full_type_declaration
 
 general_access_modifier : ALL | CONSTANT ;
 
-;; only used in generic_instantiation
-;; generic_actual_part
-;;   : LEFT_PAREN association_list RIGHT_PAREN
-;;     `,(wisi-statement-action 1 'open-paren 3 'close-paren)
-;;   ;
+;; generic_actual_part is not needed; see generic_instantiation
 
 ;; generic_association is merged into association
 
 generic_declaration
-  ;; : generic_subprogram_declaration
-  : generic_package_declaration
+  : generic_subprogram_declaration
+  | generic_package_declaration
   ;
 
 generic_formal_part
@@ -709,40 +705,20 @@ generic_formal_parameter_declaration
   | pragma
   ;
 
-;; causes conflicts that require parallel LALR parser
 ;; leaving out [aspect_specification]
-;; generic_instantiation
-;;   : PACKAGE name IS NEW name generic_actual_part SEMICOLON
-;;     (progn
-;;       `,(wisi-statement-action 1 'statement-start 2 'name 7 'statment-end)
-;;       `,(wisi-start-action 1 6))
-;;   | PACKAGE name IS NEW name SEMICOLON
-;;     `,(wisi-statement-action 1 'statement-start 2 'name 6 'statment-end)
-;;   | overriding_indicator PROCEDURE name IS NEW name generic_actual_part SEMICOLON
-;;     (progn
-;;       `,(wisi-statement-action 1 'statement-start 3 'name 8 'statment-end)
-;;       `,(wisi-start-action 1 7))
-;;   | overriding_indicator PROCEDURE name IS NEW name SEMICOLON
-;;     `,(wisi-statement-action 1 'statement-start 3 'name 7 'statment-end)
-;;   | PROCEDURE name IS NEW name generic_actual_part SEMICOLON
-;;     (progn
-;;       `,(wisi-statement-action 1 'statement-start 2 'name 7 'statment-end)
-;;       `,(wisi-start-action 1 6))
-;;   | PROCEDURE name IS NEW name SEMICOLON
-;;     `,(wisi-statement-action 1 'statement-start 2 'name 6 'statment-end)
-;;   | overriding_indicator FUNCTION name IS NEW name generic_actual_part SEMICOLON
-;;     (progn
-;;       `,(wisi-statement-action 1 'statement-start 3 'name 8 'statment-end)
-;;       `,(wisi-start-action 1 7))
-;;   | overriding_indicator FUNCTION name IS NEW name SEMICOLON
-;;     `,(wisi-statement-action 1 'statement-start 3 'name 7 'statment-end)
-;;   | FUNCTION name IS NEW name generic_actual_part SEMICOLON
-;;     (progn
-;;       `,(wisi-statement-action 1 'statement-start 2 'name 7 'statment-end)
-;;       `,(wisi-start-action 1 6))
-;;   | FUNCTION name IS NEW name SEMICOLON
-;;     `,(wisi-statement-action 1 'statement-start 2 'name 6 'statment-end)
-;; ;
+generic_instantiation
+ ;; 'name generic_actual_part' is included in 'name' as a function call
+  : PACKAGE name IS NEW name SEMICOLON
+    `,(wisi-statement-action 1 'statement-start 2 'name 6 'statment-end)
+  | overriding_indicator PROCEDURE name IS NEW name SEMICOLON
+    `,(wisi-statement-action 1 'statement-start 3 'name 7 'statment-end)
+  | PROCEDURE name IS NEW name SEMICOLON
+    `,(wisi-statement-action 1 'statement-start 2 'name 6 'statment-end)
+  | overriding_indicator FUNCTION name IS NEW name SEMICOLON
+    `,(wisi-statement-action 1 'statement-start 3 'name 7 'statment-end)
+  | FUNCTION name IS NEW name SEMICOLON
+    `,(wisi-statement-action 1 'statement-start 2 'name 6 'statment-end)
+  ;
 
 generic_package_declaration
   : generic_formal_part package_specification SEMICOLON
@@ -750,6 +726,26 @@ generic_package_declaration
       `,(wisi-statement-action 1 'block-start 2 'block-middle 3 'statement-end)
       `,(wisi-motion-action 1 2 3))
   ;
+
+;; leaving out [aspect_specification]
+generic_renaming_declaration
+ ;; keyword following 'generic' is marked 'statement-other to support this indentation:
+ ;;
+ ;; generic
+ ;; package foo renames
+ ;;   bar;
+ ;;
+  : GENERIC PACKAGE name RENAMES name SEMICOLON
+    `,(wisi-statement-action 1 'statement-start 2 'statement-other 6 'statement-end)
+  | GENERIC PROCEDURE name RENAMES name SEMICOLON
+    `,(wisi-statement-action 1 'statement-start 2 'statement-other 6 'statement-end)
+  | GENERIC FUNCTION name RENAMES name SEMICOLON
+    `,(wisi-statement-action 1 'statement-start 2 'statement-other 6 'statement-end)
+  ;
+
+;; leaving out [aspect_specification]
+generic_subprogram_declaration
+  : generic_formal_part subprogram_specification;
 
 handled_sequence_of_statements
   : sequence_of_statements EXCEPTION exception_handler_list
@@ -816,7 +812,7 @@ library_unit_declaration
   : subprogram_declaration
   | package_declaration
   | generic_declaration
-  ;; | generic_instantiation
+  | generic_instantiation
   ;
 
 membership_choice_list
@@ -1145,6 +1141,14 @@ relation
 relational_operator
   : EQUAL | SLASH_EQUAL | LESS | LESS_EQUAL | GREATER | GREATER_EQUAL ;
   ;;  =   | /=          | <    |  <=        | >       | >=
+
+renaming_declaration
+  ;; : object_renaming_declaration
+  ;; | exception_renaming_declaration
+  ;; | package_renaming_declaration
+  ;; | subprogram_renaming_declaration
+  : generic_renaming_declaration
+  ;
 
 selected_component
   : name DOT IDENTIFIER

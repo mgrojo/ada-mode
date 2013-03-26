@@ -63,9 +63,7 @@
 
 	(close-paren (wisi-indent-paren 0))
 
-	((open-paren statement-start statement-other)
-	 ;; let after-keyword handle it
-	 nil)
+	(open-paren nil);; let after-keyword handle it
 
 	((return-1;; parameter list
 	  return-2);; no parameter list
@@ -98,6 +96,18 @@
 		(+ (current-column) indent))
 	       )))
 	   ))
+
+	(statement-other
+	 (ecase (wisi-cache-symbol (wisi-goto-statement-start cache nil))
+	   (generic_renaming_declaration
+	    ;; indenting keyword following 'generic'
+	    (current-column))
+
+	   ;; else let after-keyword handle it
+	   ))
+
+	(statement-start
+	 (wisi-indent-statement-start ada-indent cache t))
 	))
     ))
 
@@ -183,7 +193,13 @@
 	      (case_expression_alternative_list;; COMMA
 	       ;; between ',' and 'when' or 'end case'; comment
 	       (+ (current-column) ada-indent-when ))
-	      ))))
+	      ))
+
+	   (generic_renaming_declaration
+	    ;; not indenting keyword following 'generic'
+	    (+ (current-column) ada-indent-broken))
+
+	   ))
 
 	(t
 	 ;; hanging
