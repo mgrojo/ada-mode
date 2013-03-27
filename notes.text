@@ -48,16 +48,24 @@ output to *wisent-log* buffer, written to wisent.output if batch
 (setq wisent-parse-max-stack-size 80)
  ada-wisi parser
 
-build/wisi/Makefile
-    test-ada
-        test/ada_mode-generic_instantiation.ads passing
+post to web page
+    add opentoken-stephe source
+    add opentoken-stephe to ada-france?
 
-    post to web page
-        add opentoken-stephe source
-        add opentoken-stephe to ada-france?
+add wisi-forward-find-token
+    refactor wisi-statement-tokens; see fixme
+        always store terminal in addition to non-terminal
+        never store token text; always get from region?
+
+    use in ada-wisi-before-keyword; see fixme
 
 change ada-wisi-after-keyword to ada-wisi-before-other?
 
+build/wisi/Makefile
+    test-ada
+        test/ada_mode-generic_package.ads passing
+
+        test/ada_mode-generic_package_rename.ads fails parse, passes indent anyway!
 
 & should be punctuation?
 

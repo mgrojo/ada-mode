@@ -273,12 +273,13 @@ Return token text."
   ;; otherwise token text
 
   class
+  ;; arbitrary lisp symbol, used for indentation and navigation.
   ;; some classes are defined by wisi:
   ;; 'block-start
   ;; 'statement-start
   ;; 'open-paren
   ;;
-  ;; rest are language-specific
+  ;; others are language-specific
 
   start
   ;; a) if this is not first keyword; mark at the first keyword of the current statement
@@ -608,6 +609,18 @@ containing it; or nil if at end of buffer."
       (list (get-text-property begin 'wisi-cache)
 	    (list begin end)))
     ))
+
+(defun wisi-forward-find-cache (class limit)
+  "Search forward for a token that has a cache with CLASS.
+Return (cache region); the found cache, and the text region
+containing it; or nil if at end of buffer.
+If LIMIT (a buffer position) is reached, throw an error."
+  (let ((result (wisi-forward-cache)))
+    (while (not (eq class (wisi-cache-class (car result))))
+      (setq result (wisi-forward-cache))
+      (when (>= (point) limit)
+	(error "cache with class %s not found" class)))
+    result))
 
 (defun wisi-forward-statement-keyword ()
   "If not at a cached token, move forward to next

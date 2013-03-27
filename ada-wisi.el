@@ -67,7 +67,8 @@
 
 	((return-1;; parameter list
 	  return-2);; no parameter list
-	 (let ((indent
+	 (let ((return-pos (point))
+	       (indent
 		(if (and
 		     (eq top-class 'return-2)
 		     (<= ada-indent-return 0))
@@ -80,13 +81,15 @@
 	      (eq top-class 'return-1)
 	      (<= ada-indent-return 0))
 	     ;; indent relative to "("
-	     (setq cache (car (wisi-forward-cache)))
-	     (unless (eq 'open-paren (wisi-cache-class cache))
-	       (error "unrecognized statement"))
+	     (wisi-forward-find-cache 'open-paren return-pos)
 	     (+ (current-column) indent))
 
-	    (t ;; indent relative to "function".
-	     (case (wisi-cache-symbol cache)
+	    (t
+	     ;; indent relative to "function".  "function" gets many
+	     ;; different symbols and classes, so we can't use
+	     ;; 'wisi-forward-find-cache'.
+	     ;; FIXME: add wisi-forward-find-token
+	     (ecase (wisi-cache-symbol cache)
 	       (formal_subprogram_declaration
 		(wisi-forward-token t);; "with"
 		(forward-comment (point-max))
@@ -98,13 +101,14 @@
 	   ))
 
 	(statement-other
-	 (ecase (wisi-cache-symbol (wisi-goto-statement-start cache nil))
-	   (generic_renaming_declaration
-	    ;; indenting keyword following 'generic'
-	    (current-column))
+	 (save-excursion
+	   (case (wisi-cache-symbol (wisi-goto-statement-start cache nil))
+	     (generic_renaming_declaration
+	      ;; indenting keyword following 'generic'
+	      (current-column))
 
-	   ;; else let after-keyword handle it
-	   ))
+	     (t nil);; else let after-keyword handle it
+	     )))
 
 	(statement-start
 	 (wisi-indent-statement-start ada-indent cache t))
