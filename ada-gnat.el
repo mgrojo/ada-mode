@@ -600,11 +600,13 @@ Prompt user if more than one."
   ;;
   ;; column number can vary, so only check the line number
 
+  ;; FIXME: compilation--message->loc not in Emacs 23.2
   (let ((line (progn (beginning-of-line) (nth 1 (compilation--message->loc (ada-get-compilation-message)))))
 	done choices)
     (while (not done)
       (forward-line 1)
-      (setq done (not (equal line (nth 1 (compilation--message->loc (ada-get-compilation-message))))))
+      (setq done (and (ada-get-compilation-message)
+		      (not (equal line (nth 1 (compilation--message->loc (ada-get-compilation-message)))))))
       (when (and (not done)
 		 (progn
 		   (skip-syntax-forward "^-")
