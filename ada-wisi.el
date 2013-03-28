@@ -46,7 +46,7 @@
       (setq top-class (wisi-cache-class cache))
       (ecase top-class
 	(block-start
-	 (case (wisi-cache-symbol cache)
+	 (case (wisi-cache-token cache)
 	   (IS ;; subprogram body
 	    (wisi-indent-statement-start 0 cache t))
 
@@ -57,7 +57,7 @@
 
 	(block-middle
 	 (wisi-indent-statement-start
-	  (if (eq (wisi-cache-symbol cache) 'case_expression_alternative) ada-indent-when 0)
+	  (if (eq (wisi-cache-nonterm cache) 'case_expression_alternative) ada-indent-when 0)
 	  cache
 	  nil))
 
@@ -89,7 +89,7 @@
 	     ;; different symbols and classes, so we can't use
 	     ;; 'wisi-forward-find-cache'.
 	     ;; FIXME: add wisi-forward-find-token
-	     (ecase (wisi-cache-symbol cache)
+	     (ecase (wisi-cache-nonterm cache)
 	       (formal_subprogram_declaration
 		(wisi-forward-token t);; "with"
 		(forward-comment (point-max))
@@ -102,7 +102,7 @@
 
 	(statement-other
 	 (save-excursion
-	   (case (wisi-cache-symbol (wisi-goto-statement-start cache nil))
+	   (case (wisi-cache-nonterm (wisi-goto-statement-start cache nil))
 	     (generic_renaming_declaration
 	      ;; indenting keyword following 'generic'
 	      (current-column))
@@ -126,8 +126,8 @@
 	 (wisi-indent-current 0))
 
 	(block-middle
-	 (case (wisi-cache-symbol cache)
-	   (case_expression_alternative
+	 (case (wisi-cache-token cache)
+	   (WHEN
 	    ;; between 'when' and '=>'
 	    (+ (current-column) ada-indent-broken))
 
@@ -140,7 +140,7 @@
 	   ))
 
 	(block-start
-	 (case (wisi-cache-symbol cache)
+	 (case (wisi-cache-nonterm cache)
 	   (if_expression
 	    (wisi-indent-statement-start ada-indent-broken cache nil))
 
@@ -187,14 +187,14 @@
 	 (wisi-indent-statement-start 0 cache nil))
 
 	(statement-other
-	 (ecase (wisi-cache-symbol (wisi-goto-statement-start cache nil))
+	 (ecase (wisi-cache-nonterm (wisi-goto-statement-start cache nil))
 	   (case_expression
-	    (ecase (wisi-cache-symbol cache)
+	    (ecase (wisi-cache-token cache)
 	      (EQUAL_GREATER
 	       ;; between '=>' and ','
 	       (+ (current-column) ada-indent-when ada-indent))
 
-	      (case_expression_alternative_list;; COMMA
+	      (COMMA
 	       ;; between ',' and 'when' or 'end case'; comment
 	       (+ (current-column) ada-indent-when ))
 	      ))
@@ -286,7 +286,7 @@
 	      ;; bob
 	      (setq result "")
 
-	    (case (wisi-cache-symbol cache)
+	    (case (wisi-cache-nonterm cache)
 	      (generic_formal_part
 	       ;; name is after next statement keyword
 	       (wisi-next-statement-cache cache)
@@ -294,7 +294,7 @@
 	      )
 
 	    ;; add or delete 'body' as needed
-	    (case (wisi-cache-symbol cache)
+	    (case (wisi-cache-nonterm cache)
 	      (package_specification
 	       (setq result (ada-wisi-which-function-1 0 "package" t)))
 

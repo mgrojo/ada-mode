@@ -48,15 +48,7 @@ output to *wisent-log* buffer, written to wisent.output if batch
 (setq wisent-parse-max-stack-size 80)
  ada-wisi parser
 
-post to web page
-    add opentoken-stephe source
-    add opentoken-stephe to ada-france?
-
 add wisi-forward-find-token
-    refactor wisi-statement-tokens; see fixme
-        always store terminal in addition to non-terminal
-        never store token text; always get from region?
-
     use in ada-wisi-before-keyword; see fixme
 
 change ada-wisi-after-keyword to ada-wisi-before-other?
@@ -598,16 +590,18 @@ Emacs 23.4, (gnat-2012): test/Makefile all
     build/wisi/Makefile all EMACS=/Apps/emacs-23.4/bin/emacs.exe GNATMAKE=/apps/GNAT-gpl_2012/bin/gnatmake
 
 (dvc-status)
+(dvc-status "/Projects/org.opentoken.stephe")
 (shell-send-string "mtn_sync_ada_france.sh" "*bash*")
 (xmtn-sync-review)
-build/smie/Makefile zip
+build/wisi/Makefile zip
+/Projects/org.opentoken.stephe/build/Makefile zip
 /Projects/Web/stephe-leake/emacs/ada-mode/emacs-ada-mode.html
     update todo list
     add release note
         (dvc-log)
 
 ~/Web/Makefile
-    edit date in ADA-MODE-SMIE_GZ
+    edit date in ADA-MODE-SMIE_GZ, ADA-MODE-OPENTOKEN_BZ2
     ada-mode
     sync
 

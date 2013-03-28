@@ -132,6 +132,7 @@ side-effects only."
     ;; Compute bl; the list of $N and $regionN bindings
     (setq i n)
     (while (> i 0)
+      ;; FIXME: not using $I, $regionn anymore
       ;; a token is (symbol "text" start . end)
       ;; bind $regionI if used in action
       (setq $v (intern (format "$region%d" i)))
