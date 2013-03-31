@@ -35,25 +35,13 @@ with OpenToken.Token.Enumerated.Analyzer;
 with OpenToken.Text_Feeder;
 generic
    with package Production_List is new OpenToken.Production.List;
+   pragma Unreferenced (Production_List); -- used in children
    with package Tokenizer is new Token.Analyzer (<>);
 package OpenToken.Production.Parser is
 
    subtype Nonterminal_ID is Token.Token_ID range Token.Token_ID'Succ (Tokenizer.Last_Terminal) .. Token.Token_ID'Last;
 
    type Instance is abstract tagged private;
-
-   function Generate
-     (Grammar              : in Production_List.Instance;
-      Analyzer             : in Tokenizer.Instance;
-      Trace                : in Boolean := False;
-      Put_Grammar          : in Boolean := False;
-      Ignore_Unused_Tokens : in Boolean := False;
-      First_State_Index    : in Integer := 1)
-     return Instance is abstract;
-   --  Create a parser for Grammar, using Analyzer for input. If
-   --  Trace, put debug info about grammar building process to
-   --  Ada.Text_IO.Current_Output. If Put_Grammar, put the final parse
-   --  table and kernels to Ada.Text_IO.Current_Output.
 
    ----------------------------------------------------------------------------
    --  Attempt a parse. This routine will return when the grammar indicates the

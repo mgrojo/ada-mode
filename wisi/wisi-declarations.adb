@@ -23,15 +23,17 @@ with Ada.Text_IO; use Ada.Text_IO;
 with Wisi.Utils;  use Wisi.Utils;
 procedure Wisi.Declarations
   (Input_File  : in     Standard.Ada.Text_IO.File_Type;
-   Keywords    : in out String_Pair_Lists.List;
-   Tokens      : in out Token_Lists.List;
-   Start_Token :    out Standard.Ada.Strings.Unbounded.Unbounded_String)
+   Keywords    :    out String_Pair_Lists.List;
+   Tokens      :    out Token_Lists.List;
+   Start_Token :    out Standard.Ada.Strings.Unbounded.Unbounded_String;
+   Conflicts   :    out Conflict_Lists.List)
 is
    use Standard.Ada.Strings.Fixed;
 
-   Keyword_Str : constant String := "%keyword";
-   Token_Str   : constant String := "%token";
-   Start_Str   : constant String := "%start";
+   Keyword_Str  : constant String := "%keyword";
+   Token_Str    : constant String := "%token";
+   Start_Str    : constant String := "%start";
+   Conflict_Str : constant String := "%conflict";
 
 begin
    loop
@@ -98,6 +100,35 @@ begin
                Value_First : constant Integer := Index_Non_Blank (Source => Line, From => Key_Last + 1);
             begin
                Start_Token := +Line (Value_First .. Line'Last);
+            end;
+
+         elsif Match (Conflict_Str) then
+            declare
+               Action_A_First : constant Integer := Index_Non_Blank (Line, Key_Last + 1);
+               Action_A_Last  : constant Integer := -1 +
+                 Index (Pattern => "/", Source => Line, From => Action_A_First);
+               Action_B_First : constant Integer := 2 + Action_A_Last;
+               Action_B_Last  : constant Integer := -1 +
+                 Index (Pattern => " ", Source => Line, From => Action_B_First);
+               Skip_1         : constant Integer := 8 +
+                 Index (Pattern => "in state", Source => Line, From => Action_B_Last);
+               LHS_A_First    : constant Integer := Index_Non_Blank (Line, Skip_1 + 1);
+               LHS_A_Last     : constant Integer := -1 +
+                 Index (Pattern => ",", Source => Line, From => LHS_A_First);
+               LHS_B_First    : constant Integer := Index_Non_Blank (Line, LHS_A_Last + 2);
+               LHS_B_Last     : constant Integer := -1 +
+                 Index (Pattern => " ", Source => Line, From => LHS_B_First);
+               Skip_2         : constant Integer := 8 +
+                 Index (Pattern => "on token", Source => Line, From => LHS_B_Last);
+               Token_First    : constant Integer := Index_Non_Blank (Line, Skip_2 + 1);
+               Token_Last     : constant Integer := Line'Last;
+            begin
+               Conflicts.Append
+                 ((+Line (Action_A_First .. Action_A_Last),
+                   +Line (LHS_A_First .. LHS_A_Last),
+                   +Line (Action_B_First .. Action_B_Last),
+                   +Line (LHS_B_First .. LHS_B_Last),
+                   +Line (Token_First .. Token_Last)));
             end;
 
          else

@@ -1,6 +1,6 @@
 # common tasks; see subdirectories for Ada builds
 
-ZIP_VERSION := 4.0w
+ZIP_VERSION := 4.0w-$(shell date +%Y-%m-%d)
 
 .PHONY : zip force
 
@@ -15,10 +15,12 @@ linux-clean :
 
 zip : bz2file zipfile
 
+BRANCH := $(notdir $(shell cd ..; pwd))
+
 bz2file : force
-	rm -rf ../../opentoken-$(ZIP_VERSION)
-	mtn checkout --branch org.opentoken ../../opentoken-$(ZIP_VERSION)
-	tar -c -O  -C ../.. --exclude=_MTN --exclude=.mtn-ignore --exclude=.dvc-exclude --no-anchor opentoken-$(ZIP_VERSION) | bzip2 -9 > opentoken-$(ZIP_VERSION).tar.bz2
+	rm -rf ../../$(BRANCH)-$(ZIP_VERSION)
+	mtn checkout --branch $(BRANCH) ../../$(BRANCH)-$(ZIP_VERSION)
+	tar -c -O  -C ../.. --exclude=_MTN --exclude=.mtn-ignore --exclude=.dvc-exclude --no-anchor $(BRANCH)-$(ZIP_VERSION) | bzip2 -9 > $(BRANCH)-$(ZIP_VERSION).tar.bz2
 
 zipfile : force
 	cd ../..; zip -q -r opentoken.main/Build/opentoken-$(ZIP_VERSION).zip opentoken-$(ZIP_VERSION) -x "opentoken-$(ZIP_VERSION)/_MTN/*" -x "opentoken-$(ZIP_VERSION)/.mtn-ignore" -x "opentoken-$(ZIP_VERSION)/.dvc-ignore"

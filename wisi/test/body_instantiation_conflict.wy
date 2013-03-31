@@ -23,6 +23,9 @@
 %token <string> STRING_LITERAL
 
 %start compilation_unit
+
+%conflict REDUCE/SHIFT in state subprogram_specification, generic_instantiation on token IS
+
 %%
 
 compilation_unit

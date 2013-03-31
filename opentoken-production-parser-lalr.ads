@@ -31,22 +31,52 @@
 --  method due to it being a good trade-off between the amount of
 --  grammars handled and the size of its parse table.
 -----------------------------------------------------------------------------
+with Ada.Containers.Doubly_Linked_Lists;
 generic
 package OpenToken.Production.Parser.LALR is
 
    type Instance is new OpenToken.Production.Parser.Instance with private;
 
-   overriding function Generate
-     (Grammar              : in Production_List.Instance;
-      Analyzer             : in Tokenizer.Instance;
-      Trace                : in Boolean := False;
-      Put_Grammar          : in Boolean := False;
-      Ignore_Unused_Tokens : in Boolean := False;
-      First_State_Index    : in Integer := 1)
+   type Parse_Action_Verbs is (Shift, Reduce, Accept_It, Error);
+   subtype Conflict_Parse_Actions is Parse_Action_Verbs range Shift .. Reduce;
+   type Conflict is record
+      --  A typical conflict is:
+      --
+      --  REDUCE/SHIFT in state: 11 on token IS
+      --
+      --  State numbers change with minor changes in the grammar, so
+      --  we identify the by the LHS of the two productions involved.
+      --  We also store the state number for generated conflicts, for
+      --  Text_IO output.
+      Action_A    : Conflict_Parse_Actions;
+      LHS_A       : Token.Token_ID;
+      Action_B    : Conflict_Parse_Actions;
+      LHS_B       : Token.Token_ID;
+      State_Index : Integer;
+      On          : Token.Token_ID;
+   end record;
+
+   package Conflict_Lists is new Ada.Containers.Doubly_Linked_Lists (Conflict);
+
+   function Generate
+     (Grammar                  : in Production_List.Instance;
+      Analyzer                 : in Tokenizer.Instance;
+      Known_Conflicts          : in Conflict_Lists.List := Conflict_Lists.Empty_List;
+      Trace                    : in Boolean             := False;
+      Put_Grammar              : in Boolean             := False;
+      Ignore_Unused_Tokens     : in Boolean             := False;
+      Ignore_Unknown_Conflicts : in Boolean             := False;
+      First_State_Index        : in Integer             := 1)
      return Instance;
    --  We don't use OpenToken.Trace here; we often want to see a trace
    --  of the parser execution without the parser generation.
    --  Analyzer is copied.
+   --
+   --  Unless Ignore_Unused_Tokens is True, raise Grammar_Error if
+   --  there are unused tokens.
+   --
+   --  Unless Ignore_Unknown_Conflicts is True, raise Grammar_Error if there
+   --  are unknown conflicts.
 
    overriding procedure Parse (Parser : in out Instance);
 
@@ -60,7 +90,6 @@ private
    --  Type for parser states
    type State_Index is new Integer;
 
-   type Parse_Action_Verbs is (Shift, Reduce, Accept_It, Error);
    type Parse_Action_Rec (Verb : Parse_Action_Verbs := Shift) is record
       case Verb is
       when Shift =>

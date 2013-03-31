@@ -4,7 +4,7 @@ all: test-clean tests examples library
 
 # ../../Test/test_one_harness.adb
 t_one : test_one_harness.run
-t_all : test_all_harness.run
+t_all : test_all_harness.diff
 
 one : test-clean case_expression-parse.diff
 

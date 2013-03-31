@@ -27,7 +27,8 @@
 --  exception does not however invalidate any other reasons why the
 --  executable file might be covered by the GNU Public License.
 
-with Ada.Characters.Latin_1;
+pragma License (Modified_GPL);
+
 with Ada.Exceptions;
 with Ada.Text_IO;
 with Ada.Unchecked_Deallocation;
@@ -36,8 +37,6 @@ with Ada.Strings.Fixed;
 with Ada.Integer_Text_IO;
 with OpenToken.Production.Parser.LRk_Item;
 package body OpenToken.Production.Parser.LALR is
-
-   Line_End : constant String := "" & Ada.Characters.Latin_1.LF;
 
    package LRk is new OpenToken.Production.Parser.LRk_Item (1);
 
@@ -609,13 +608,74 @@ package body OpenToken.Production.Parser.LALR is
       end loop;
    end Put_Parse_Table;
 
+   function Image (Item : in Parse_Action_Rec) return String
+   is begin
+      case Item.Verb is
+      when Shift =>
+         return Parse_Action_Verbs'Image (Item.Verb) & State_Index'Image (Item.State);
+      when Reduce | Accept_It =>
+         return Parse_Action_Verbs'Image (Item.Verb) & " " & Token.Token_Image (LHS_ID (Item.Production));
+      when Error =>
+         return Parse_Action_Verbs'Image (Item.Verb);
+      end case;
+   end Image;
+
+   function Find
+     (Kernel    : in LRk.Item_Set;
+      Action    : in Parse_Action_Rec;
+      Lookahead : in Token.Token_ID)
+     return Token.Token_ID
+   is
+      use type LRk.Item_Set;
+      use type Token.Token_ID;
+      use type LRk.Item_Ptr;
+      use type Token_List.List_Iterator;
+
+      --  Return LHS of production that matches Action, Lookahead
+      Token_After_Dot : Token.Token_ID;
+
+      Item : LRk.Item_Ptr := Kernel.Set;
+   begin
+      case Action.Verb is
+      when Shift =>
+         Token_After_Dot := Lookahead;
+
+      when Reduce =>
+         Token_After_Dot := LHS_ID (Action.Production);
+
+      when others =>
+         raise Programmer_Error;
+      end case;
+
+      loop
+         exit when Item = null;
+         if Item.Dot = Token_List.Null_Iterator then
+            if (Action.Verb = Reduce or Action.Verb = Accept_It) and then
+              LHS_ID (Item.Prod) = LHS_ID (Action.Production)
+            then
+               return LHS_ID (Item.Prod);
+            end if;
+         elsif Token_List.ID (Item.Dot) = Token_After_Dot then
+            return LHS_ID (Item.Prod);
+         end if;
+         Item := Item.Next;
+      end loop;
+      Ada.Text_IO.Put_Line ("item for " & Image (Action) & " not found in");
+      if Kernel.Set = null then
+         Ada.Text_IO.Put_Line ("null Kernel");
+      else
+         LRk.Put (Kernel);
+      end if;
+      raise Programmer_Error;
+   end Find;
+
    --  Add (Symbol, Action) to Action_List
    procedure Add_Action
      (Symbol      : in     Tokenizer.Terminal_ID;
       Action      : in     Parse_Action_Rec;
       Action_List : in out Action_Node_Ptr;
       Source      : in     LRk.Item_Set;
-      Conflicts   : in out Ada.Strings.Unbounded.Unbounded_String)
+      Conflicts   : in out Conflict_Lists.List)
    is
       --  Source .. Conflicts are for conflict reporting
       use type Ada.Strings.Unbounded.Unbounded_String;
@@ -629,9 +689,13 @@ package body OpenToken.Production.Parser.LALR is
          else
             --  There is a conflict. Report it, but add it anyway, so
             --  an enhanced parser can follow both paths
-            Conflicts := Conflicts & Parse_Action_Verbs'Image (Matching_Action.Action.Item.Verb) &
-              "/" & Parse_Action_Verbs'Image (Action.Verb) & " in state:" & Natural'Image (Source.Index) &
-              " on token " & Tokenizer.Terminal_ID'Image (Symbol) & Line_End;
+            Conflicts.Append
+              ((Action_A    => Matching_Action.Action.Item.Verb,
+                Action_B    => Action.Verb,
+                LHS_A       => Find (Source, Matching_Action.Action.Item, Symbol),
+                LHS_B       => Find (Source, Action, Symbol),
+                State_Index => Source.Index,
+                On          => Symbol));
 
             Matching_Action.Action := new Parse_Action_Node'
               (Item => Action,
@@ -651,6 +715,7 @@ package body OpenToken.Production.Parser.LALR is
       Accept_Index : in     Integer;
       Grammar      : in     Production_List.Instance;
       First        : in     LRk.Derivation_Matrix;
+      Conflicts    :    out Conflict_Lists.List;
       Table        : in out Parse_Table;
       Trace        : in     Boolean)
    is
@@ -679,8 +744,6 @@ package body OpenToken.Production.Parser.LALR is
       RHS_Iterator      : Token_List.List_Iterator;
 
       Goto_Node : LRk.Set_Reference_Ptr;
-
-      Conflicts : Unbounded_String := Null_Unbounded_String;
 
       use type LRk.Item_Ptr;
       use type LRk.Item_Set_Ptr;
@@ -845,11 +908,6 @@ package body OpenToken.Production.Parser.LALR is
          Kernel := Kernel.Next;
       end loop;
 
-      if Length (Conflicts) /= 0 then
-         Ada.Text_IO.Put_Line (Ada.Text_IO.Standard_Error, "Conflicts: ");
-         Ada.Text_IO.Put_Line (Ada.Text_IO.Standard_Error, To_String (Conflicts));
-      end if;
-
       if Trace then
          Ada.Text_IO.New_Line;
       end if;
@@ -892,15 +950,76 @@ package body OpenToken.Production.Parser.LALR is
       Stack.Seen_Token := new Nonterminal.Class'(Production.LHS.all);
    end Reduce_Stack;
 
-   overriding function Generate
-     (Grammar              : in Production_List.Instance;
-      Analyzer             : in Tokenizer.Instance;
-      Trace                : in Boolean := False;
-      Put_Grammar          : in Boolean := False;
-      Ignore_Unused_Tokens : in Boolean := False;
-      First_State_Index    : in Integer := 1)
+   procedure Delete_Known
+     (Conflicts       : in out Conflict_Lists.List;
+      Known_Conflicts : in     Conflict_Lists.List)
+   is
+      use Conflict_Lists;
+      I      : Cursor := Conflicts.First;
+      Next_I : Cursor;
+
+      function Match (Known : in Conflict; Item : in Constant_Reference_Type) return Boolean
+      is
+         use type Token.Token_ID;
+      begin
+         --  ignore State_Index
+         return
+           Known.Action_A = Item.Action_A and
+           Known.LHS_A = Item.LHS_A and
+           Known.Action_B = Item.Action_B and
+           Known.LHS_B = Item.LHS_B and
+           Known.On = Item.On;
+      end Match;
+
+   begin
+      loop
+         exit when I = No_Element;
+         Next_I := Next (I);
+         Search_Known :
+         for Known of Known_Conflicts loop
+            if Match (Known, Conflicts.Constant_Reference (I)) then
+               Delete (Conflicts, I);
+               exit Search_Known;
+            end if;
+         end loop Search_Known;
+         I := Next_I;
+      end loop;
+   end Delete_Known;
+
+   function Image (Item : in Conflict) return String
+   is begin
+      return
+        (Conflict_Parse_Actions'Image (Item.Action_A) & "/" &
+           Conflict_Parse_Actions'Image (Item.Action_B) & " in state " &
+           Token.Token_Image (Item.LHS_A) & ", " &
+           Token.Token_Image (Item.LHS_B) &
+           " (" & Integer'Image (Item.State_Index) & ") on token " &
+           Token.Token_Image (Item.On));
+   end Image;
+
+   procedure Put (Item : in Conflict_Lists.List)
+   is
+      use Ada.Text_IO;
+   begin
+      Put_Line ("Conflicts:");
+      for Conflict of Item loop
+         Put_Line (Image (Conflict));
+      end loop;
+   end Put;
+
+   function Generate
+     (Grammar                  : in Production_List.Instance;
+      Analyzer                 : in Tokenizer.Instance;
+      Known_Conflicts          : in Conflict_Lists.List := Conflict_Lists.Empty_List;
+      Trace                    : in Boolean             := False;
+      Put_Grammar              : in Boolean             := False;
+      Ignore_Unused_Tokens     : in Boolean             := False;
+      Ignore_Unknown_Conflicts : in Boolean             := False;
+      First_State_Index        : in Integer             := 1)
      return Instance
    is
+      use type Ada.Containers.Count_Type;
+
       New_Parser  : Instance;
 
       First_Tokens : constant LRk.Derivation_Matrix := LRk.First_Derivations (Grammar, Trace);
@@ -913,6 +1032,8 @@ package body OpenToken.Production.Parser.LALR is
 
       First_Production : OpenToken.Production.Instance renames
         Production_List.Get_Production (Production_List.Initial_Iterator (Grammar));
+
+      Conflicts : Conflict_Lists.List;
 
       use type LRk.Item_Set_Ptr;
    begin
@@ -964,10 +1085,19 @@ package body OpenToken.Production.Parser.LALR is
         (State_Index (First_State_Index) .. State_Index (Kernels.Size - 1 + First_State_Index));
 
       --  Add actions
-      Fill_In_Parse_Table (Kernels, Accept_Index, Grammar, First_Tokens, New_Parser.Table.all, Trace);
+      Fill_In_Parse_Table (Kernels, Accept_Index, Grammar, First_Tokens, Conflicts, New_Parser.Table.all, Trace);
 
       if Put_Grammar then
          Put_Parse_Table (New_Parser.Table.all, Kernels);
+      end if;
+
+      Delete_Known (Conflicts, Known_Conflicts);
+      if Conflicts.Length > 0 then
+         Ada.Text_IO.New_Line;
+         Put (Conflicts);
+         if not Ignore_Unknown_Conflicts then
+            raise Grammar_Error with "unknown conflicts; aborting";
+         end if;
       end if;
 
       LRk.Free (Kernels);

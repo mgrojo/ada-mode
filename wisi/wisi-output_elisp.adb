@@ -34,6 +34,7 @@ procedure Wisi.Output_Elisp
    Keywords      : in String_Pair_Lists.List;
    Tokens        : in Token_Lists.List;
    Start_Token   : in Standard.Ada.Strings.Unbounded.Unbounded_String;
+   Conflicts     : in Conflict_Lists.List;
    Rules         : in Rule_Lists.List)
 is
    subtype Token_IDs is Integer range
@@ -80,6 +81,10 @@ is
          end if;
          Result := Result + 1;
       end loop;
+
+      if Token = "$EOI" then
+         return Result;
+      end if;
       Result := Result + 1; -- EOI
 
       for Rule of Rules loop
@@ -156,6 +161,22 @@ is
    package LALR_Parsers is new Parsers.LALR;
 
    package Parser_Elisp is new LALR_Parsers.Elisp (Token_Image);
+
+   function To_Conflicts (Item : in Conflict_Lists.List) return LALR_Parsers.Conflict_Lists.List
+   is
+      Result : LALR_Parsers.Conflict_Lists.List;
+   begin
+      for Conflict of Item loop
+         Result.Append
+           ((LALR_Parsers.Conflict_Parse_Actions'Value (-Conflict.Action_A),
+             Find_Token_ID (-Conflict.LHS_A),
+             LALR_Parsers.Conflict_Parse_Actions'Value (-Conflict.Action_B),
+             Find_Token_ID (-Conflict.LHS_B),
+             -1,
+             Find_Token_ID (-Conflict.On)));
+      end loop;
+      return Result;
+   end To_Conflicts;
 
    Grammar : Production_Lists.Instance;
    Parser  : LALR_Parsers.Instance;
@@ -305,18 +326,13 @@ begin
       end;
    end if;
 
-   begin
-      Parser := LALR_Parsers.Generate
-        (Grammar,
-         Analyzers.Null_Analyzer,
-         Trace                => Verbosity > 1,
-         Put_Grammar          => Verbosity > 0,
-         First_State_Index    => 0); -- match Elisp array indexing
-   exception
-   when E : OpenToken.Programmer_Error =>
-      Wisi.Utils.Put_Error (Elisp_Package & ".wy", First_Rule_Line, Standard.Ada.Exceptions.Exception_Message (E));
-      raise Syntax_Error;
-   end;
+   Parser := LALR_Parsers.Generate
+     (Grammar,
+      Analyzers.Null_Analyzer,
+      To_Conflicts (Conflicts),
+      Trace                => Verbosity > 1,
+      Put_Grammar          => Verbosity > 0,
+      First_State_Index    => 0); -- match Elisp array indexing
 
    declare
       use Standard.Ada.Text_IO;

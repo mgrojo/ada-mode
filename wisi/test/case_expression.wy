@@ -23,7 +23,6 @@
 %keyword WHEN "when"
 
 %start case_expression
-
 %%
 
 case_expression

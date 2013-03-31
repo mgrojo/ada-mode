@@ -4,4 +4,4 @@ UNUSED_TERMINAL_2
 UNUSED_TERMINAL_3
 unused_nonterm_1
 unused_nonterm_2
-OPENTOKEN.GRAMMAR_ERROR: unused tokens; aborting
+unused tokens; aborting

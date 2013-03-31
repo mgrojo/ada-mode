@@ -78,6 +78,16 @@ package Wisi is
 
    function Is_In (Tokens : in Token_Lists.List; Kind : in String) return Boolean;
 
+   type Conflict is record
+      Action_A    : Standard.Ada.Strings.Unbounded.Unbounded_String;
+      LHS_A       : Standard.Ada.Strings.Unbounded.Unbounded_String;
+      Action_B    : Standard.Ada.Strings.Unbounded.Unbounded_String;
+      LHS_B       : Standard.Ada.Strings.Unbounded.Unbounded_String;
+      On          : Standard.Ada.Strings.Unbounded.Unbounded_String;
+   end record;
+
+   package Conflict_Lists is new Ada.Containers.Doubly_Linked_Lists (Conflict);
+
    package String_Lists is new Standard.Ada.Containers.Indefinite_Doubly_Linked_Lists (String);
 
    type RHS_Type is record

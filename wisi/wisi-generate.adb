@@ -24,6 +24,7 @@ with Ada.Directories;
 with Ada.Exceptions;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO;
+with OpenToken;
 with Wisi.Declarations;
 with Wisi.Output_Ada;
 with Wisi.Output_Elisp;
@@ -57,6 +58,7 @@ is
    Keywords         : String_Pair_Lists.List;
    Tokens           : Token_Lists.List;
    Start_Token      : Standard.Ada.Strings.Unbounded.Unbounded_String;
+   Conflicts        : Conflict_Lists.List;
    Rules            : Rule_Lists.List;
 
    Copyright : constant String := "2013 Stephen Leake.  All Rights Reserved.";
@@ -117,7 +119,7 @@ begin
    end;
 
    Wisi.Prologue (Input_File, Prologue);
-   Wisi.Declarations (Input_File, Keywords, Tokens, Start_Token);
+   Wisi.Declarations (Input_File, Keywords, Tokens, Start_Token, Conflicts);
    Wisi.Rules (Input_File, Rules);
 
    case Output_Language is
@@ -125,7 +127,7 @@ begin
       Wisi.Output_Ada
         (-Input_File_Name, -Output_File_Root, Copyright, Prologue, Keywords, Tokens, Start_Token, Rules);
    when Elisp =>
-      Wisi.Output_Elisp (-Output_File_Root, Copyright, Prologue, Keywords, Tokens, Start_Token, Rules);
+      Wisi.Output_Elisp (-Output_File_Root, Copyright, Prologue, Keywords, Tokens, Start_Token, Conflicts, Rules);
    when Test =>
       Wisi.Test_Generate (-Input_File_Name, Keywords, Tokens, Start_Token, Rules);
    end case;
@@ -134,6 +136,10 @@ exception
 when User_Error =>
    Standard.Ada.Command_Line.Set_Exit_Status (Standard.Ada.Command_Line.Failure);
    Put_Usage;
+
+when E : OpenToken.Grammar_Error =>
+   Standard.Ada.Command_Line.Set_Exit_Status (Standard.Ada.Command_Line.Failure);
+   Standard.Ada.Text_IO.Put_Line (Standard.Ada.Exceptions.Exception_Message (E));
 
 when E :  others =>
    --  FIXME: for some exceptions, Error message already output via wisi.utils.Put_Error

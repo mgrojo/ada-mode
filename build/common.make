@@ -68,6 +68,8 @@ asu_example_5_10_rd_list-run.run : asu_example_5_10_rd_list-run.exe
 ada_count.run : ada_count.exe
 	./ada_count.exe ../../Examples/Language_Lexer_Examples/ada_count.adb ../../Examples/Language_Lexer_Examples/test_ada_lexer.adb
 
+test_all_harness.out : test_all_harness.exe wisi-generate.exe
+
 test_ada_lexer.run : test_ada_lexer.exe
 	./test_ada_lexer.exe ../../Examples/Language_Lexer_Examples/test_ada_lexer.adb
 
@@ -124,8 +126,9 @@ DIFF_OPT := -u -w
 
 %.run : %.exe ;	./$(*F).exe $(RUN_ARGS)
 
+# %-wy.el : RUN_ARGS := -v
 %-wy.el : %.wy wisi-generate.exe
-	./wisi-generate.exe $< Elisp > $*.output
+	./wisi-generate.exe $(RUN_ARGS) $< Elisp > $*.output
 
 %-parse.adb : %.wy wisi-generate.exe
 	./wisi-generate.exe $< Ada
