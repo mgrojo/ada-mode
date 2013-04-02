@@ -39,6 +39,24 @@
 (require 'ada-grammar-wy)
 (require 'wisi)
 
+(defconst ada-wisi-class-list
+  '(
+    block-end
+    block-middle
+    block-start
+    close-paren
+    list-break
+    name
+    open-paren
+    return
+    return-1
+    return-2
+    statement-end
+    statement-other
+    statement-start
+    type
+    ))
+
 (defun ada-wisi-before-keyword ()
   (let ((cache (wisi-get-cache (point)))
 	top-class)
@@ -81,24 +99,14 @@
 	      (eq top-class 'return-1)
 	      (<= ada-indent-return 0))
 	     ;; indent relative to "("
-	     (wisi-forward-find-cache 'open-paren return-pos)
+	     (wisi-forward-find-class 'open-paren return-pos)
 	     (+ (current-column) indent))
 
 	    (t
-	     ;; indent relative to "function".  "function" gets many
-	     ;; different symbols and classes, so we can't use
-	     ;; 'wisi-forward-find-cache'.
-	     ;; FIXME: add wisi-forward-find-token
-	     (ecase (wisi-cache-nonterm cache)
-	       (formal_subprogram_declaration
-		(wisi-forward-token t);; "with"
-		(forward-comment (point-max))
-		(+ (current-column) indent))
-
-	       (subprogram_declaration
-		(+ (current-column) indent))
-	       )))
-	   ))
+	     ;; indent relative to "function".
+	     (wisi-forward-find-token 'FUNCTION return-pos)
+	     (+ (current-column) indent))
+	    )))
 
 	(statement-other
 	 (save-excursion
@@ -116,6 +124,8 @@
     ))
 
 (defun ada-wisi-after-keyword ()
+  "Point is at indentation, not before a keyword. Find previous
+keyword, return new indentation for point."
   (let ((start (point))
 	(cache (car (wisi-backward-cache))))
     (if (not cache)
@@ -338,6 +348,7 @@
   (wisi-setup '(ada-wisi-comment
 		ada-wisi-before-keyword
 		ada-wisi-after-keyword)
+	      ada-wisi-class-list
 	      ada-grammar-wy--keyword-table
 	      ada-grammar-wy--token-table
 	      ada-grammar-wy--parse-table)

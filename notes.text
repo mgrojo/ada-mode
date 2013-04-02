@@ -30,6 +30,7 @@ run indent test from emacs -Q:
 (progn
     (require 'ada-wisi)
     (setq ada-mode-hook (delete 'ada-smie-setup ada-mode-hook))
+    (setq ada-mode-hook (delete 'ada-smie-opentoken-setup ada-mode-hook))
     (add-hook 'ada-mode-hook 'ada-wisi-setup))
 
 (setq wisi-debug t)
@@ -48,24 +49,13 @@ output to *wisent-log* buffer, written to wisent.output if batch
 (setq wisent-parse-max-stack-size 80)
  ada-wisi parser
 
-add wisi-forward-find-token
-    use in ada-wisi-before-keyword; see fixme
-
-change ada-wisi-after-keyword to ada-wisi-before-other?
-
 build/wisi/Makefile
     test-ada
-        test/ada_mode-generic_package.ads passing
-
-        test/ada_mode-generic_package_rename.ads fails parse, passes indent anyway!
+        test/ada_mode-function_2 fails parse
 
 & should be punctuation?
 
 do fixmes
-    ./wisi.el:221:  ;; FIXME: not used? (wisi-backward-token)
-
-    ./wisi.el:424:  ;; FIXME: change items to 'token class'; token same struct as returned
-
     gpr-add-log-current-function dispatch to gpr-wisi
 
     ./test/gpr/simple.gpr:43:            "6.2.2" | -- FIXME: continuation line; ada-indent-broken = 2
@@ -82,8 +72,6 @@ merge two parsers if reach the same stack?
 
  opentoken
 error on missing ':' in 'range | foo ;'
-
-need syntax in .wy for listing known conflicts; wisi-generate only report unknown.
 
 pointer at end of kernel => default should be reduce or accept
     don't need to compute lookaheads?
@@ -450,9 +438,10 @@ c:/apps/emacs-24.2/lisp/progmodes/ada-mode.el
 
 http://savannah.gnu.org/projects/emacs/
 
+http://git.savannah.gnu.org/cgit/emacs.git/tree/README?h=elpa
+
 https://www.dropbox.com/sh/7jr3vbv9tm1zod0/jPuvfrJAe8
     w32 builds of cutting-edge emacs branches, pretests
-    16 Jan: not 24.2.92 yet
 
 ftp://alpha.gnu.org/gnu/emacs/pretest/
 

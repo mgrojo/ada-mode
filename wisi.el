@@ -150,11 +150,18 @@
 
 ;;;; lexer
 
+(defvar wisi-class-list nil)
+(make-variable-buffer-local 'wisi-class-list)
 (defvar wisi-keyword-table nil)
+(make-variable-buffer-local 'wisi-keyword-table)
 (defvar wisi-punctuation-table-max-length 0)
+(make-variable-buffer-local 'wisi-punctuation-table-max-length)
 (defvar wisi-punctuation-table nil)
+(make-variable-buffer-local 'wisi-punctuation-table)
 (defvar wisi-string-term nil)
+(make-variable-buffer-local 'wisi-string-termwisi-string-term)
 (defvar wisi-symbol-term nil)
+(make-variable-buffer-local 'wisi-symbol-term)
 
 (defun wisi-forward-token (&optional text-only lower)
   "Move point forward across one token, skipping leading whitespace and comments.
@@ -231,34 +238,6 @@ If at end of buffer, returns `wisent-eoi-term'."
       (cons token-id (cons token-text (cons start (point)))))
     ))
 
-(defun wisi-backward-token ()
-  "Move point backward across one token, skipping whitespace and comments.
-Return token text."
-  ;; FIXME: not used?
-  (forward-comment (- (point)))
-  ;; skips leading whitespace, comment, trailing whitespace.
-
-  ;; (info "(elisp)Syntax Table Internals" "*info elisp syntax*")
-  (let ((end (point))
-	(syntax (syntax-class (syntax-after (1- (point))))))
-    (cond
-     ((bobp) nil)
-
-     ((memq syntax '(4 5)) ;; open, close parenthesis
-      (backward-char 1))
-
-     ((eq syntax 7)
-      ;; a string quote. we assume we are after the end quote, not the start quote
-      (let ((forward-sexp-function nil))
-	(forward-sexp -1)))
-
-     (t
-      (if (zerop (skip-syntax-backward "."))
-	  (skip-syntax-backward "w_'")))
-     )
-    (buffer-substring-no-properties (point) end)
-    ))
-
 ;;;; token info cache
 ;;
 ;; the cache stores the results of parsing as text properties on
@@ -294,6 +273,7 @@ Return token text."
 (make-variable-buffer-local 'wisi-cache-max)
 
 (defvar wisi-parse-table nil)
+(make-variable-buffer-local 'wisi-parse-table)
 
 (defun wisi-invalidate-cache()
   "Invalidate the wisi token cache for the current buffer."
@@ -423,6 +403,9 @@ that token. Use in a grammar action as:
 		;; inserts space before the mark, not after
 		(when region (copy-marker (1+ (car region)))))
 	       cache)
+
+	  (unless (memq class wisi-class-list)
+	    (error "%s not in wisi-class-list" class))
 
 	  (when region
 	    ;; region is null when a production is empty
@@ -557,7 +540,7 @@ containing it; or nil if at end of buffer."
 	    (list begin end)))
     ))
 
-(defun wisi-forward-find-cache (class limit)
+(defun wisi-forward-find-class (class limit)
   "Search forward for a token that has a cache with CLASS.
 Return (cache region); the found cache, and the text region
 containing it; or nil if at end of buffer.
@@ -567,6 +550,18 @@ If LIMIT (a buffer position) is reached, throw an error."
       (setq result (wisi-forward-cache))
       (when (>= (point) limit)
 	(error "cache with class %s not found" class)))
+    result))
+
+(defun wisi-forward-find-token (token limit)
+  "Search forward for a token that has a cache with TOKEN.
+Return (cache region); the found cache, and the text region
+containing it; or nil if at end of buffer.
+If LIMIT (a buffer position) is reached, throw an error."
+  (let ((result (wisi-forward-cache)))
+    (while (not (eq token (wisi-cache-token (car result))))
+      (setq result (wisi-forward-cache))
+      (when (>= (point) limit)
+	(error "cache with token %s not found" token)))
     result))
 
 (defun wisi-forward-statement-keyword ()
@@ -672,6 +667,7 @@ CACHE contains cache info from a keyword in the current statement."
   indentation); return indentation column for that token, or
   nil. Preserve point. Calling stops when first function returns
   non-nil.")
+(make-local-variable 'wisi-indent-calculate-functions)
 
 (defun wisi-indent-line ()
   "Indent current line using the wisi indentation engine."
@@ -713,17 +709,14 @@ CACHE contains cache info from a keyword in the current statement."
 
 ;;;; setup
 
-(defun wisi-setup (indent-calculate keyword-table token-table parse-table)
+(defun wisi-setup (indent-calculate class-list keyword-table token-table parse-table)
   "Set up a buffer for parsing files with wisi."
-
-  (setq wisent-parse-verbose-flag t); to get syntax error messages
-
+  (setq wisi-class-list class-list)
   (setq wisi-string-term (car (symbol-value (intern-soft "string" token-table))))
   (setq wisi-symbol-term (car (symbol-value (intern-soft "symbol" token-table))))
 
-  (set (make-local-variable 'wisi-punctuation-table)
-       (symbol-value (intern-soft "punctuation" token-table)))
-  (set (make-local-variable 'wisi-punctuation-table-max-length) 0)
+  (setq wisi-punctuation-table (symbol-value (intern-soft "punctuation" token-table)))
+  (setq wisi-punctuation-table-max-length 0)
   (let (fail)
     (dolist (item wisi-punctuation-table)
       (when item ;; default matcher can be nil
@@ -742,10 +735,10 @@ CACHE contains cache info from a keyword in the current statement."
     (when fail
       (error "aborting due to punctuation errors")))
 
-  (set (make-local-variable 'wisi-keyword-table) keyword-table)
-  (set (make-local-variable 'wisi-parse-table) parse-table)
+  (setq wisi-keyword-table keyword-table)
+  (setq wisi-parse-table parse-table)
 
-  (set (make-local-variable 'wisi-indent-calculate-functions) indent-calculate)
+  (setq wisi-indent-calculate-functions indent-calculate)
   (set (make-local-variable 'indent-line-function) 'wisi-indent-line)
 
   (add-hook 'before-change-functions 'wisi-before-change nil t)

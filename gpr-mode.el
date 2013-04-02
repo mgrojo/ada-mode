@@ -169,7 +169,7 @@ current construct."
     (wisi-validate-cache (point))
     (let ((cache (car (wisi-backward-cache))))
       (while (and cache
-		  (not (member (wisi-cache-symbol cache) '(package_spec simple_project_declaration))))
+		  (not (member (wisi-cache-nonterm cache) '(package_spec simple_project_declaration))))
 	(setq cache (wisi-goto-statement-start cache t)))
       (when cache
 	(wisi-forward-token); package | project

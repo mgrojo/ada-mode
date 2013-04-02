@@ -681,9 +681,10 @@ Prompt user if more than one."
 	       (setq done (not
 			   (and
 			    (equal file-line-struct (ada-get-compilation-message))
-			    (setq pos (next-single-property-change
-				       ;; 1- because next compilation error is at next line beginning
-				       (point) 'ada-secondary-error nil (1- (line-end-position)))))))
+			    (let ((limit (1- (line-end-position))))
+			      ;; 1- because next compilation error is at next line beginning
+			      (setq pos (next-single-property-change (point) 'ada-secondary-error nil limit))
+			      (< pos limit)))))
 	       (when (not done)
 		 (let* ((item (get-text-property pos 'ada-secondary-error))
 			(unit-file (nth 0 item)))
