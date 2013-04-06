@@ -71,6 +71,13 @@ merge two parsers if reach the same stack?
     wait until accept?
 
  opentoken
+test with GNAT GPL 2012
+    needs aunit installed
+    test building wisi-generate.exe without aunit
+
+nothing compiles html_lexer-tags.ads
+    has style errors
+
 error on missing ':' in 'range | foo ;'
 
 pointer at end of kernel => default should be reduce or accept
@@ -570,13 +577,21 @@ read/write access requires a public key:
  release process
 Emacs 24.3, gnat 7.1.0w (sal-standard):
     build/smie/Makefile all
-    build/wisi/Makefile all
-        most failing
+    build/wisi/Makefile test-wisi test-gpr test-ada
+        all test-wisi, test-gpr passing
+        some test-ada passing
 
-Emacs 23.4, (gnat-2012): test/Makefile all
+Emacs 23.4, (gnat-2012):
+/Projects/org.opentoken.stephe/build/windows_release/Makefile
+    clean
+    wisi-generate.exe
+
+test/Makefile all
     build/smie/Makefile all EMACS=/Apps/emacs-23.4/bin/emacs.exe GNATMAKE=/apps/GNAT-gpl_2012/bin/gnatmake
         ada-mode failing weirdly
     build/wisi/Makefile all EMACS=/Apps/emacs-23.4/bin/emacs.exe GNATMAKE=/apps/GNAT-gpl_2012/bin/gnatmake
+
+Debian Emacs 24.2, GNAT GPL 2012
 
 (dvc-status)
 (dvc-status "/Projects/org.opentoken.stephe")

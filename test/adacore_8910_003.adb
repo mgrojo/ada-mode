@@ -1,3 +1,4 @@
+--EMACSCMD:(setq skip-recase-test t)
 with Adacore_8910_003_Aux; use Adacore_8910_003_Aux;
 with Ada.Text_IO; use Ada.Text_IO;
 procedure Adacore_8910_003 is

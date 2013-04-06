@@ -4,6 +4,7 @@
 -- inside a paren to cause syntax-ppss to try calling
 -- syntax-begin-function.
 
+--EMACSCMD:(setq skip-recase-test t)
 package body GDS.Hardware.Bus_1553.RWA_Goddard is
    ----------
    --  Private subprograms
