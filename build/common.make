@@ -111,6 +111,12 @@ source-clean ::
 	-find $(SOURCE_ROOT) -name ".#*" -print | xargs rm -v
 	-find $(SOURCE_ROOT) -name "*,t" -print | xargs rm -v
 
+# the test executables are only in the test project file, which requires AUnit
+# Override the project file for wisi-generate.exe, for use with Emacs Ada mode without AUnit
+wisi-generate.exe : force
+	gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P opentoken.gpr $(GPRBUILD_ARGS) wisi-generate
+
+# we depend on %.adb, because the source for some executables is generated
 %.exe : %.adb force; gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P opentoken_test.gpr $(GPRBUILD_ARGS) $*
 
 %.check : %.adb force; gnatmake -p -k -gnatc -Popentoken_test.gpr $(GNATMAKE_ARGS) $*

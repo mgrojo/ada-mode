@@ -10,7 +10,9 @@ project OpenToken_Test is
       "../../Examples/ASU_Example_5_10",
       "../../Examples/Language_Lexer_Examples",
       "../../Language_Lexers",
-      "../../Test");
+      "../../Test",
+      "../../Test",
+      "../../wisi/test");
 
    for Object_Dir use "obj";
    for Exec_Dir use ".";

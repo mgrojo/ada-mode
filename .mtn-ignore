@@ -2,6 +2,7 @@
 ^build/.*\.gz$
 ^build/.*\.zip$
 ^build/linux_debug/.*\.diff$
+^build/linux_debug/.*\.el$
 ^build/linux_debug/.*\.exe$
 ^build/linux_debug/.*\.out$
 ^build/linux_debug/.*\.txt$

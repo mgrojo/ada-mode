@@ -1,8 +1,6 @@
 OpenToken Package Readme
 
-See Docs/opentoken.html for more info
-
-There is a Debian package for opentoken, with pre-compiled libraries.
+See Docs/opentoken.html for more info, including installation instructions.
 
 OpenToken is useable in pure source form. There is a GNAT project file
 in Build/windows_release/opentoken.gpr.
@@ -17,5 +15,3 @@ OpenToken is currently maintained by Stephen Leake; mailto:stephen_leake@stephe-
 Submit bugs via the Debian Bug system http://bugs.debian.org/Bugs/, against the opentoken source package.
 
 Discussion about OpenToken is on the newsgroup comp.lang.ada.
-
-
