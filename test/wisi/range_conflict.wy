@@ -17,6 +17,8 @@
 %token <string> STRING_LITERAL
 
 %start compilation_unit
+
+%conflict SHIFT/REDUCE in state range, range on token LEFT_PAREN
 %%
 
 compilation_unit

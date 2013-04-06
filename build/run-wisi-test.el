@@ -26,6 +26,18 @@
     table
     ))
 
+(defconst test-class-list
+  '(
+    close-paren
+    function
+    open-paren
+    other
+    procedure
+    statement-end
+    statement-start
+    )
+  )
+
 (defun test-syntax-propertize (start end)
   "Assign `syntax-table' properties in accessible part of buffer."
   ;; (info "(elisp)Syntax Properties")
@@ -64,6 +76,7 @@
 
     (wisi-setup
      nil ;; indent-calculate
+     test-class-list
      (symbol-value (intern-soft (concat filename "-wy--keyword-table")))
      (symbol-value (intern-soft (concat filename "-wy--token-table")))
      parse-table)
