@@ -40,6 +40,18 @@
 (require 'gpr-grammar-wy)
 (require 'wisi)
 
+(defconst gpr-wisi-class-list
+  '(
+    block-start
+    block-end
+    close-paren
+    open-paren
+    statement-end
+    statement-other
+    statement-middle ;; FIXME; use either statement-middle or statement-other
+    statement-start
+    ))
+
 (defun gpr-wisi-before-keyword ()
   (let ((cache (wisi-get-cache (point))))
     (when cache
@@ -93,6 +105,7 @@
   "Set up a buffer for parsing Ada files with wisi."
   (wisi-setup '(gpr-wisi-before-keyword
 		gpr-wisi-after-keyword)
+	      gpr-wisi-class-list
 	      gpr-grammar-wy--keyword-table
 	      gpr-grammar-wy--token-table
 	      gpr-grammar-wy--parse-table)
