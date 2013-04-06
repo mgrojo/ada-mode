@@ -51,7 +51,7 @@ private package HTML_Lexer.Basic is
    -- tokens the first one wins.
 
    package Master_Basic_Token is new OpenToken.Token.Enumerated (Basic_Token, Basic_Token'Image, Basic_Token'Width);
-   package Tokenizer is new Master_Basic_Token.Analyzer;
+   package Tokenizer is new Master_Basic_Token.Analyzer (Basic_Token'First, Basic_Token'Last);
 
    use type Ada.Strings.Maps.Character_Set;
 

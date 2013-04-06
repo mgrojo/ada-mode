@@ -975,13 +975,20 @@ package body OpenToken.Production.Parser.LALR is
       loop
          exit when I = No_Element;
          Next_I := Next (I);
+         --  WORKAROUND: GNAT GPL 2012 doesn't like an explicit exit in an 'of' loop
          Search_Known :
-         for Known of Known_Conflicts loop
-            if Match (Known, Conflicts.Constant_Reference (I)) then
-               Delete (Conflicts, I);
-               exit Search_Known;
-            end if;
-         end loop Search_Known;
+         declare
+            Known : Cursor := Known_Conflicts.First;
+         begin
+            loop
+               exit when Known = No_Element;
+               if Match (Element (Known), Conflicts.Constant_Reference (I)) then
+                  Delete (Conflicts, I);
+                  exit;
+               end if;
+               Known := Next (Known);
+            end loop;
+         end Search_Known;
          I := Next_I;
       end loop;
    end Delete_Known;
@@ -1002,9 +1009,17 @@ package body OpenToken.Production.Parser.LALR is
       use Ada.Text_IO;
    begin
       Put_Line ("Conflicts:");
-      for Conflict of Item loop
-         Put_Line (Image (Conflict));
-      end loop;
+      --  WORKAROUND: GNAT GPL 2012 doesn't like 'of' loop
+      declare
+         use Conflict_Lists;
+         Conflict : Cursor := Item.First;
+      begin
+         loop
+            exit when Conflict = No_Element;
+            Put_Line (Image (Element (Conflict)));
+            Next (Conflict);
+         end loop;
+      end;
    end Put;
 
    function Generate

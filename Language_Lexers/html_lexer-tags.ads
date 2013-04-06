@@ -88,7 +88,7 @@ private package HTML_Lexer.Tags is
                       Whitespace, End_Of_Tag);
 
    package Master_Tag_Token is new OpenToken.Token.Enumerated (Tag_Token, Tag_Token'Image, Tag_Token'Width);
-   package Tokenizer is new Master_Tag_Token.Analyzer;
+   package Tokenizer is new Master_Tag_Token.Analyzer (Tag_Token'First, Tag_Token'Last);
 
    use type Ada.Strings.Maps.Character_Set;
 
