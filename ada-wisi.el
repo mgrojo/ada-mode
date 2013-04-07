@@ -94,6 +94,11 @@
 		  ada-indent-return)))
 
 	   (setq cache (wisi-goto-statement-start cache nil))
+	   (ecase (wisi-cache-nonterm cache)
+	     (formal_subprogram_declaration nil)
+	     (generic_formal_part
+	      (wisi-forward-find-nonterm 'subprogram_specification return-pos))
+	     )
 	   (cond
 	    ((and
 	      (eq top-class 'return-1)

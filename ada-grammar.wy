@@ -52,7 +52,6 @@
 %keyword ACCESS "access"
 %keyword ALIASED "aliased"
 %keyword ALL "all"
-%keyword AMPERSAND "&"
 %keyword AND "and"
 %keyword ARRAY "array"
 %keyword BEGIN "begin"
@@ -108,6 +107,7 @@
 %keyword XOR "xor"
 
 ;; all tokens that consist of characters with punctuation syntax
+%token <punctuation> AMPERSAND "&"
 %token <punctuation> BAR "|"
 %token <punctuation> BOX "<>"
 %token <punctuation> COLON ":"
@@ -146,7 +146,14 @@
 %conflict REDUCE/SHIFT in state generic_formal_part, generic_renaming_declaration on token PACKAGE
 %conflict REDUCE/SHIFT in state generic_formal_part, generic_renaming_declaration on token PROCEDURE
 %conflict REDUCE/SHIFT in state generic_formal_part, generic_renaming_declaration on token FUNCTION
-
+%conflict REDUCE/SHIFT in state association, qualified_expression on token RIGHT_PAREN
+%conflict REDUCE/REDUCE in state choice_relation, relation on token XOR
+%conflict REDUCE/REDUCE in state choice_relation, relation on token OR
+%conflict REDUCE/REDUCE in state choice_relation, relation on token AND
+%conflict REDUCE/REDUCE in state choice_relation, relation on token XOR
+%conflict REDUCE/REDUCE in state choice_relation, relation on token OR
+%conflict REDUCE/REDUCE in state choice_relation, relation on token AND
+%conflict SHIFT/REDUCE in state primary, association on token RIGHT_PAREN
 %%
 ;;;; grammar rules
 ;;
@@ -197,6 +204,13 @@ actual_parameter_part
     (wisi-statement-action 1 'open-paren 3 'close-paren)
   ;
 
+aggregate
+  : LEFT_PAREN association_list RIGHT_PAREN ;; record_aggregate, named_array_aggregate, positional_array_aggregate
+    (wisi-statement-action 1 'open-paren 3 'close-paren)
+  | LEFT_PAREN expression WITH association_list RIGHT_PAREN ;; extension_aggregate
+    (wisi-statement-action 1 'open-paren 5 'close-paren)
+  ;
+
 array_type_definition
   : ARRAY LEFT_PAREN index_subtype_definition_list RIGHT_PAREN OF component_definition
  ;; unconstrained_array_definition
@@ -211,9 +225,11 @@ assignment_statement
   ;
 
 association
-  : selector_name EQUAL_GREATER expression
+  : CHARACTER_LITERAL EQUAL_GREATER expression ;; part of selector_name that does not overlap name
+  | CHARACTER_LITERAL EQUAL_GREATER BOX ;; from formal_package_association_list
+  | discrete_choice_list EQUAL_GREATER expression
+  | discrete_choice_list EQUAL_GREATER BOX
   | expression
-  | selector_name EQUAL_GREATER BOX ;; from formal_package_association_list
   ;
 
 association_list
@@ -375,10 +391,10 @@ component_list
   ;
 
 compound_statement
-  ;; : if_statement
+  : if_statement
   ;; | case_statement
   ;; | loop_statement
-  : block_statement
+  | block_statement
   ;; | extended_return_statement
   ;; | accept_statement
   ;; | select_statement
@@ -481,14 +497,26 @@ discriminant_specification_list
     (wisi-statement-action 2 'list-break)
   ;
 
-elsif_item
+elsif_expression_item
   : ELSIF expression THEN expression
     (wisi-statement-action 1 'block-middle 3 'block-middle)
   ;
 
-elsif_list
-  : elsif_item
-  | elsif_list elsif_item
+elsif_expression_list
+  : elsif_expression_item
+  | elsif_expression_list elsif_expression_item
+  ;
+
+elsif_statement_item
+  : ELSIF expression THEN expression
+    (progn
+      (wisi-statement-action 1 'block-middle 3 'block-middle)
+      (wisi-motion-action 1 3))
+  ;
+
+elsif_statement_list
+  : elsif_statement_item
+  | elsif_statement_list elsif_statement_item
   ;
 
 ;; leaving out [aspect_specification]
@@ -653,13 +681,9 @@ formal_package_declaration
   ;
 
 formal_package_actual_part
-  : LEFT_PAREN OTHERS EQUAL_GREATER BOX RIGHT_PAREN ;; (others => <>)
-    (wisi-statement-action 1 'open-paren 5 'close-paren)
-  | LEFT_PAREN BOX RIGHT_PAREN ;; (<>)
+  : LEFT_PAREN BOX RIGHT_PAREN ;; (<>)
   | ;; null generic actual part
-  | LEFT_PAREN association_list COMMA OTHERS EQUAL_GREATER BOX RIGHT_PAREN
-    (wisi-statement-action 1 'open-paren 7 'close-paren)
-  | LEFT_PAREN association_list RIGHT_PAREN
+  | LEFT_PAREN association_list RIGHT_PAREN ;; covers others => <>
     (wisi-statement-action 1 'open-paren 3 'close-paren)
   ;
 
@@ -717,21 +741,22 @@ generic_formal_parameter_declaration
 generic_instantiation
  ;; 'name generic_actual_part' is included in 'name' as a function call
   : PACKAGE name IS NEW name SEMICOLON
-    (wisi-statement-action 1 'statement-start 2 'name 6 'statment-end)
+    (wisi-statement-action 1 'statement-start 2 'name 6 'statement-end)
   | overriding_indicator PROCEDURE name IS NEW name SEMICOLON
-    (wisi-statement-action 1 'statement-start 3 'name 7 'statment-end)
+    (wisi-statement-action 1 'statement-start 3 'name 7 'statement-end)
   | PROCEDURE name IS NEW name SEMICOLON
-    (wisi-statement-action 1 'statement-start 2 'name 6 'statment-end)
+    (wisi-statement-action 1 'statement-start 2 'name 6 'statement-end)
   | overriding_indicator FUNCTION name IS NEW name SEMICOLON
-    (wisi-statement-action 1 'statement-start 3 'name 7 'statment-end)
+    (wisi-statement-action 1 'statement-start 3 'name 7 'statement-end)
   | FUNCTION name IS NEW name SEMICOLON
-    (wisi-statement-action 1 'statement-start 2 'name 6 'statment-end)
+    (wisi-statement-action 1 'statement-start 2 'name 6 'statement-end)
   ;
 
 generic_package_declaration
   : generic_formal_part package_specification SEMICOLON
     (progn
       (wisi-statement-action 1 'block-start 2 'block-middle 3 'statement-end)
+      (wisi-start-action 1 2)
       (wisi-motion-action 1 2 3))
   ;
 
@@ -753,7 +778,12 @@ generic_renaming_declaration
 
 ;; leaving out [aspect_specification]
 generic_subprogram_declaration
-  : generic_formal_part subprogram_specification;
+  : generic_formal_part subprogram_specification SEMICOLON
+    (progn
+      (wisi-statement-action 1 'block-start 2 'block-middle 3 'statement-end)
+      (wisi-start-action 1 2)
+      (wisi-motion-action 1 2))
+  ;
 
 handled_sequence_of_statements
   : sequence_of_statements EXCEPTION exception_handler_list
@@ -769,18 +799,51 @@ identifier_list
   ;
 
 if_expression
-  : IF expression THEN expression elsif_list ELSE expression
+  : IF expression THEN expression elsif_expression_list ELSE expression
     (progn
       (wisi-statement-action 1 'block-start 3 'block-middle 6 'block-middle)
-      (wisi-start-action 1 5))
-  | IF expression THEN expression elsif_list
+      (wisi-start-action 1 5)
+      (wisi-motion-action 1 3 5 6))
+  | IF expression THEN expression elsif_expression_list
     (progn
       (wisi-statement-action 1 'block-start 3 'block-middle)
-      (wisi-start-action 1 5))
+      (wisi-start-action 1 5)
+      (wisi-motion-action 1 3 5))
   | IF expression THEN expression ELSE expression
-    (wisi-statement-action 1 'block-start 3 'block-middle 5 'block-middle)
+    (progn
+      (wisi-statement-action 1 'block-start 3 'block-middle 5 'block-middle)
+      (wisi-motion-action 1 3 5))
   | IF expression THEN expression
-    (wisi-statement-action 1 'block-start 3 'block-middle)
+    (progn
+      (wisi-statement-action 1 'block-start 3 'block-middle)
+      (wisi-motion-action 1 3))
+  ;
+
+if_statement
+  : IF expression THEN sequence_of_statements elsif_statement_list ELSE sequence_of_statements END IF SEMICOLON
+    (progn
+      (wisi-statement-action 1 'block-start 3 'block-middle 6 'block-middle 8 'block-end 10 'statement-end)
+      (wisi-start-action 1 4)
+      (wisi-start-action 1 5)
+      (wisi-start-action 1 7)
+      (wisi-motion-action 1 3 5 6 7)) ;; FIXME: test navigate from ELSE to last elsif
+  | IF expression THEN sequence_of_statements elsif_statement_list END IF SEMICOLON
+    (progn
+      (wisi-statement-action 1 'block-start 3 'block-middle 6 'block-end 9 'statement-end)
+      (wisi-start-action 1 4)
+      (wisi-start-action 1 5)
+      (wisi-motion-action 1 3 5 6))
+  | IF expression THEN sequence_of_statements ELSE sequence_of_statements END IF SEMICOLON
+    (progn
+      (wisi-statement-action 1 'block-start 3 'block-middle 5 'block-middle 7 'block-end 9 'statement-end)
+      (wisi-start-action 1 4)
+      (wisi-start-action 1 5)
+      (wisi-motion-action 1 3 5 7))
+  | IF expression THEN sequence_of_statements END IF SEMICOLON
+    (progn
+      (wisi-statement-action 1 'block-start 3 'block-middle 5 'block-end 7 'statement-end)
+      (wisi-start-action 1 4)
+      (wisi-motion-action 1 3 5))
   ;
 
 index_subtype_definition : name RANGE BOX ;
@@ -869,7 +932,7 @@ name
   | attribute_reference
   ;; | type_conversion
   | name actual_parameter_part ;; function_call
-  ;; | qualified_expression
+  | qualified_expression
   ;; | generalized_reference
   ;; | generalized_indexing
   | STRING_LITERAL ;; operator_symbol, designator
@@ -1031,7 +1094,7 @@ primary
   : NUMERIC_LITERAL
   | NULL
  ;; | STRING_LITERAL in name
-  ;; | aggregate
+  | aggregate
   | name
   | NEW name ;; allocator, leaving out subpool_specification
   | LEFT_PAREN expression RIGHT_PAREN
@@ -1099,6 +1162,10 @@ protected_type_declaration
   ;
 
 ;; protected_operation_declaration merged into declaration
+
+qualified_expression
+  : name TICK aggregate
+  ;
 
 range
   : name TICK RANGE LEFT_PAREN expression RIGHT_PAREN ;; range_attribute_reference
@@ -1170,8 +1237,8 @@ selected_component
   | name DOT STRING_LITERAL ;; operator_symbol
   ;
 
-selector_name
-  : IDENTIFIER | CHARACTER_LITERAL | STRING_LITERAL ; ;; operator_symbol
+;; selector_name - IDENTIFIER, STRING_LITERAL overlap 'name'; CHARACTER_LITERAL used separately
+;;  : IDENTIFIER | CHARACTER_LITERAL | STRING_LITERAL ; ;; operator_symbol
 
 sequence_of_statements
   : statement ;; label is included in statement
@@ -1196,7 +1263,7 @@ simple_statement
   | assignment_statement
   ;; | exit_statement
   ;; | goto_statement
-  ;; | procedure_call_statement
+  | name SEMICOLON ;; procedure_call_statement; name includes function_call
   | simple_return_statement
   ;; | entry_call_statement
   ;; | requeue_statement

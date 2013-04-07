@@ -50,8 +50,12 @@ output to *wisent-log* buffer, written to wisent.output if batch
  ada-wisi parser
 
 build/wisi/Makefile
-    test-ada
-        test/ada_mode-function_2 fails parse
+    test-ada/ada_mode-long_paren.adb
+        parse succeeds, indent fails
+
+
+error on unmatched %conflict
+    delete when matched
 
 & should be punctuation?
 
@@ -70,14 +74,12 @@ merge two parsers if reach the same stack?
     grammar is redundant?
     wait until accept?
 
+test/ada_mode-function_2.adb fails parse during edit, gives 'error during redisplay'
+    but passes test
+    can't find error!
+    wisi-debug 0 should give no error message
+
  opentoken
-test with GNAT GPL 2012
-    needs aunit installed
-    test building wisi-generate.exe without aunit
-
-nothing compiles html_lexer-tags.ads
-    has style errors
-
 error on missing ':' in 'range | foo ;'
 
 pointer at end of kernel => default should be reduce or accept
@@ -591,12 +593,16 @@ test/Makefile all
         ada-mode failing weirdly
     build/wisi/Makefile all EMACS=/Apps/emacs-23.4/bin/emacs.exe GNATMAKE=/apps/GNAT-gpl_2012/bin/gnatmake
 
-Debian Emacs 24.2, GNAT GPL 2012
-
 (dvc-status)
 (dvc-status "/Projects/org.opentoken.stephe")
 (shell-send-string "mtn_sync_ada_france.sh" "*bash*")
+(shell-send-string "mtn_sync_gds_shevek.sh" "*bash*")
+(shell-send-string "mtn_sync_stephe_shevek.sh" "*bash*")
+
+Debian Emacs 24.2, GNAT GPL 2012
+
 (xmtn-sync-review)
+
 build/wisi/Makefile zip
 /Projects/org.opentoken.stephe/build/Makefile zip
 /Projects/Web/stephe-leake/emacs/ada-mode/emacs-ada-mode.html

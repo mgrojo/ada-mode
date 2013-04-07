@@ -9,6 +9,8 @@
 
 (defstruct (wisi-parser-state
 	    (:copier nil))
+  label ;; integer identifying parser for debug
+
   active
   ;; 'shift  - need new token
   ;; 'reduce - need reduce
@@ -61,6 +63,7 @@
 	 (parser-states ;; vector of parallel parser states
 	  (vector
 	   (make-wisi-parser-state
+	    :label 0
 	    :active  'shift
 	    :stack   (make-vector wisent-parse-max-stack-size nil)
 	    ;; FIXME: better error message when stack overflows, so
@@ -88,6 +91,7 @@
 		  (setq parser-states (vconcat parser-states (vector nil)))
 		  (setq j (1- (length parser-states))))
 		(setq active-parser-count (1+ active-parser-count))
+		(setf (wisi-parser-state-label result) j)
 		(aset parser-states j result))
 	      (when (> wisi-debug 0) (message "spawn parser (%d active)" active-parser-count)))
 
@@ -222,7 +226,7 @@ Return nil or new parser (a wisi-parse-state struct)."
 
     (when (> wisi-debug 0)
       ;; output trace info
-      (message "%d : %s : %s" state token parse-action))
+      (message "%d: %d : %s : %s" (wisi-parser-state-label parser-state) state token parse-action))
 
     (when (and (listp parse-action)
 	       (not (symbolp (car parse-action))))

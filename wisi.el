@@ -564,6 +564,18 @@ If LIMIT (a buffer position) is reached, throw an error."
 	(error "cache with token %s not found" token)))
     result))
 
+(defun wisi-forward-find-nonterm (nonterm limit)
+  "Search forward for a token that has a cache with NONTERM.
+Return (cache region); the found cache, and the text region
+containing it; or nil if at end of buffer.
+If LIMIT (a buffer position) is reached, throw an error."
+  (let ((result (wisi-forward-cache)))
+    (while (not (eq nonterm (wisi-cache-nonterm (car result))))
+      (setq result (wisi-forward-cache))
+      (when (>= (point) limit)
+	(error "cache with nonterm %s not found" nonterm)))
+    result))
+
 (defun wisi-forward-statement-keyword ()
   "If not at a cached token, move forward to next
 cache. Otherwise move to cache-next, or next cache if nil."

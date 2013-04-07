@@ -8,7 +8,7 @@ test-wisi :: identifier_list_name_conflict.wisi-test
 test-wisi :: range_conflict.wisi-test
 test-wisi :: subprograms.wisi-test
 
-one : case_expression.wisi-test
+one : ada_mode-long_paren.adb.diff
 two : gds.gpr.diff
 
 vpath %.wy ../../ ../../test/wisi
@@ -62,6 +62,10 @@ test-clean ::
 RUNTEST := run-indent-test-wisi.el
 INDENT.EL := ada-wisi.el gpr-wisi.el ../../gpr-grammar-wy.el ../../ada-grammar-wy.el
 include ../common.make
+
+# FIXME: delete currently broken tests
+ADA_TEST_FILES := $(filter-out ada_mode-interactive.adb, $(ADA_TEST_FILES)) # explicit smie functions
+# end FIXME:
 
 test-ada : $(addsuffix .diff, $(subst subdir/,,$(ADA_TEST_FILES)))
 
