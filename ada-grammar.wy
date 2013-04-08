@@ -508,9 +508,11 @@ elsif_expression_list
   ;
 
 elsif_statement_item
-  : ELSIF expression THEN expression
+  : ELSIF sequence_of_statements THEN sequence_of_statements
     (progn
       (wisi-statement-action 1 'block-middle 3 'block-middle)
+      (wisi-start-action 1 2)
+      (wisi-start-action 1 4)
       (wisi-motion-action 1 3))
   ;
 
@@ -837,7 +839,7 @@ if_statement
     (progn
       (wisi-statement-action 1 'block-start 3 'block-middle 5 'block-middle 7 'block-end 9 'statement-end)
       (wisi-start-action 1 4)
-      (wisi-start-action 1 5)
+      (wisi-start-action 1 6)
       (wisi-motion-action 1 3 5 7))
   | IF expression THEN sequence_of_statements END IF SEMICOLON
     (progn
@@ -1264,6 +1266,7 @@ simple_statement
   ;; | exit_statement
   ;; | goto_statement
   | name SEMICOLON ;; procedure_call_statement; name includes function_call
+    (wisi-statement-action 1 'statement-start 2 'statement-end)
   | simple_return_statement
   ;; | entry_call_statement
   ;; | requeue_statement

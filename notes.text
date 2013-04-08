@@ -33,16 +33,13 @@ run indent test from emacs -Q:
     (setq ada-mode-hook (delete 'ada-smie-opentoken-setup ada-mode-hook))
     (add-hook 'ada-mode-hook 'ada-wisi-setup))
 
-(setq wisi-debug t)
-(setq wisi-debug nil)
+(setq wisi-debug 1)
+(setq wisi-debug 0)
 
 (shell-send-string "~/bin/mtn_sync_ada_france.sh" "*bash*")
 (xmtn-sync-review)
 
 (grep-find "find . -type f -print | \"xargs\" grep -nH \"FIXME:\"")
-(setq wisent-verbose-flag t)
-(setq wisent-debug-flag t)
-output to *wisent-log* buffer, written to wisent.output if batch
 
 (list (wisi-parser-state-active (aref parser-states 1)) (wisi-parser-state-sp (aref parser-states 1)) (wisi-parser-state-stack (aref parser-states 1)))
 
@@ -51,7 +48,7 @@ output to *wisent-log* buffer, written to wisent.output if batch
 
 build/wisi/Makefile
     test-ada/ada_mode-long_paren.adb
-        parse succeeds, indent fails
+        passes
 
 
 error on unmatched %conflict

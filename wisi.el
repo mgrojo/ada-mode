@@ -238,6 +238,34 @@ If at end of buffer, returns `wisent-eoi-term'."
       (cons token-id (cons token-text (cons start (point)))))
     ))
 
+(defun wisi-backward-token ()
+  "Move point backward across one token, skipping whitespace and comments.
+Return (nil text start . end) - same structure as
+wisi-forward-token, but does not look up symbol."
+  (forward-comment (- (point)))
+  ;; skips leading whitespace, comment, trailing whitespace.
+
+  ;; (info "(elisp)Syntax Table Internals" "*info elisp syntax*")
+  (let ((end (point))
+	(syntax (syntax-class (syntax-after (1- (point))))))
+    (cond
+     ((bobp) nil)
+
+     ((memq syntax '(4 5)) ;; open, close parenthesis
+      (backward-char 1))
+
+     ((eq syntax 7)
+      ;; a string quote. we assume we are after the end quote, not the start quote
+      (let ((forward-sexp-function nil))
+	(forward-sexp -1)))
+
+     (t
+      (if (zerop (skip-syntax-backward "."))
+	  (skip-syntax-backward "w_'")))
+     )
+    (cons nil (cons (buffer-substring-no-properties (point) end) (cons (point) end)))
+    ))
+
 ;;;; token info cache
 ;;
 ;; the cache stores the results of parsing as text properties on
@@ -516,7 +544,7 @@ containing it; or nil if at beginning of buffer."
 	(setq begin end))
       (goto-char begin)
       (list (get-text-property begin 'wisi-cache)
-	    (list begin end)))
+	    (cons begin end)))
     ))
 
 (defun wisi-forward-cache ()
@@ -643,13 +671,7 @@ the comment on the previous line."
 (defun wisi-indent-paren (offset)
   "Return indentation OFFSET relative to preceding open paren."
   (save-excursion
-    (let ((done nil)
-	  cache)
-      (while (not done)
-	(setq cache (car (wisi-backward-cache)))
-	(setq done
-	      (or (not cache);; bob
-		  (eq (wisi-cache-class cache) 'open-paren)))))
+    (ada-goto-open-paren 0)
     (+ (current-column) offset)))
 
 (defun wisi-indent-statement-start (offset cache containing)

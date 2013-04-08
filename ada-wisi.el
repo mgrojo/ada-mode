@@ -131,12 +131,23 @@
 (defun ada-wisi-after-keyword ()
   "Point is at indentation, not before a keyword. Find previous
 keyword, return new indentation for point."
-  (let ((start (point))
-	(cache (car (wisi-backward-cache))))
-    (if (not cache)
-	;; bob
-	0
+  (let* ((start (point))
+	 (prev-token (save-excursion (wisi-backward-token)))
+	 (cache-region (wisi-backward-cache))
+	 (cache (car cache-region)))
+
+    (cond
+     ((not cache) ;; bob
+	0)
+
+     (t
       (case (wisi-cache-class cache)
+	(name ;; not useful for indenting
+	 (setq cache-region (wisi-backward-cache))
+	 (setq cache (car cache-region)))
+	)
+
+      (ecase (wisi-cache-class cache)
 	(block-end
 	 (wisi-indent-current 0))
 
@@ -155,16 +166,25 @@ keyword, return new indentation for point."
 	   ))
 
 	(block-start
-	 (case (wisi-cache-nonterm cache)
-	   (if_expression
-	    (wisi-indent-statement-start ada-indent-broken cache nil))
+	 (if (equal (nth 1 cache-region) (cddr prev-token))
+	     ;; prev-token has cache; not hanging
+	     (case (wisi-cache-nonterm cache)
+	       (if_expression
+		(wisi-indent-statement-start ada-indent-broken cache nil))
 
-	   (t ;; other
-	    (wisi-indent-current ada-indent))
+	       (t ;; other
+		(wisi-indent-current ada-indent))
+	       )
+	   ;; else hanging
+	   (wisi-indent-statement-start ada-indent-broken cache nil)
 	   ))
 
 	(list-break
-	 (wisi-indent-paren 1))
+	 (if (equal (nth 1 cache-region) (cddr prev-token))
+	     ;; prev-token has cache; not hanging
+	     (wisi-indent-paren 1)
+	   ;; else hanging
+	   (wisi-indent-paren (+ 1 ada-indent-broken))))
 
 	(open-paren
 	 ;; 1) A parenthesized expression, or the first item in an aggregate:
@@ -220,10 +240,14 @@ keyword, return new indentation for point."
 
 	   ))
 
-	(t
-	 ;; hanging
+	(statement-start
+	 (if (equal (nth 1 cache-region) (cddr prev-token))
+	     ;; prev-token has cache; not hanging
+	     (wisi-indent-statement-start ada-indent cache t))
+	   ;; else hanging
 	 (wisi-indent-statement-start ada-indent-broken cache nil))
-	))
+
+	)))
     ))
 
 (defun ada-wisi-comment ()
