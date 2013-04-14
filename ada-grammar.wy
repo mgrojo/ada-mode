@@ -66,6 +66,7 @@
 %keyword END "end"
 %keyword ENTRY "entry"
 %keyword EXCEPTION "exception"
+%keyword FOR "for"
 %keyword FUNCTION "function"
 %keyword GENERIC "generic"
 %keyword IF "if"
@@ -74,6 +75,7 @@
 %keyword IS "is"
 %keyword LEFT_PAREN "("
 %keyword LIMITED "limited"
+%keyword LOOP "loop"
 %keyword MOD "mod"
 %keyword NEW "new"
 %keyword NOT "not"
@@ -93,6 +95,7 @@
 %keyword RECORD "record"
 %keyword REM "rem"
 %keyword RETURN "return"
+%keyword REVERSE "reverse"
 %keyword RIGHT_PAREN ")"
 %keyword SEPARATE "separate"
 %keyword SUBTYPE "subtype"
@@ -103,6 +106,7 @@
 %keyword TYPE "type"
 %keyword USE "use"
 %keyword WHEN "when"
+%keyword WHILE "while"
 %keyword WITH "with"
 %keyword XOR "xor"
 
@@ -154,6 +158,10 @@
 %conflict REDUCE/REDUCE in state choice_relation, relation on token OR
 %conflict REDUCE/REDUCE in state choice_relation, relation on token AND
 %conflict SHIFT/REDUCE in state primary, association on token RIGHT_PAREN
+%conflict REDUCE/REDUCE in state primary, subtype_indication on token COMMA
+%conflict REDUCE/REDUCE in state primary, subtype_indication on token RIGHT_PAREN
+%conflict REDUCE/SHIFT in state identifier_list, object_renaming_declaration on token COLON
+
 %%
 ;;;; grammar rules
 ;;
@@ -236,6 +244,14 @@ association_list
   : association
   | association_list COMMA association
     (wisi-statement-action 2 'list-break)
+  ;
+
+aspect_clause
+  : FOR attribute_reference USE expression SEMICOLON ;; attribute_definition_clause
+    (wisi-statement-action 1 'statement-start 5 'statement-end)
+  ;; | enumeration_representation_clause
+  ;; | record_representation_clause
+  ;; | at_clause
   ;
 
 attribute_reference : name TICK attribute_designator ;
@@ -380,7 +396,7 @@ component_definition
 
 component_item
   : component_declaration
- ;;  | aspect_clause
+  | aspect_clause
   ;
 
 component_list
@@ -393,7 +409,7 @@ component_list
 compound_statement
   : if_statement
   ;; | case_statement
-  ;; | loop_statement
+  | loop_statement
   | block_statement
   ;; | extended_return_statement
   ;; | accept_statement
@@ -404,7 +420,7 @@ constraint
   : RANGE range ;; range_constraint
   ;; | digits_constraint
   ;; | delta_constraint
-  ;; | index_constraint
+  | index_constraint
   ;; | discriminant_constraint
   ;
 
@@ -419,8 +435,8 @@ context_item : pragma | with_clause | use_clause;
 
 declaration
   ;; | abstract_subprogram_declaration
-  ;; | aspect_clause
-  : body
+  : aspect_clause
+  | body
   | entry_declaration
   | exception_declaration
   ;; | expression_function_declaration
@@ -467,6 +483,16 @@ discrete_choice
  ;; choice_expression and subtype_indication can be just 'name'
   | range
   | OTHERS
+  ;
+
+discrete_range
+  : subtype_indication
+  | range
+  ;
+
+discrete_range_list
+  : discrete_range
+  | discrete_range_list COMMA discrete_range
   ;
 
 discrete_subtype_definition : subtype_indication | range ;
@@ -789,6 +815,7 @@ generic_subprogram_declaration
 
 handled_sequence_of_statements
   : sequence_of_statements EXCEPTION exception_handler_list
+    (wisi-statement-action 2 'block-middle)
   | sequence_of_statements
   ;
 
@@ -848,6 +875,11 @@ if_statement
       (wisi-motion-action 1 3 5))
   ;
 
+index_constraint
+  : LEFT_PAREN discrete_range_list RIGHT_PAREN
+    (wisi-statement-action 1 'open-paren 3 'close-paren)
+  ;
+
 index_subtype_definition : name RANGE BOX ;
 
 index_subtype_definition_list
@@ -872,6 +904,20 @@ interface_type_definition
   | INTERFACE
 ;
 
+iteration_scheme
+  : WHILE expression
+  | FOR loop_parameter_specification
+  | FOR iterator_specification
+  ;
+
+iterator_specification
+;; : IDENTIFIER IN [reverse] iterator_name ;; covered by loop_parameter_specification
+  : IDENTIFIER COLON subtype_indication OF REVERSE name
+  | IDENTIFIER COLON subtype_indication OF name
+  | IDENTIFIER OF REVERSE name
+  | IDENTIFIER OF name
+  ;
+
 library_item
   : PRIVATE library_unit_declaration
   | library_unit_declaration
@@ -892,6 +938,34 @@ library_unit_renaming_declaration
  ;; : package_renaming_declaration
   : generic_renaming_declaration
  ;; | subprogram_renaming_declaration
+  ;
+
+loop_parameter_specification
+  : IDENTIFIER IN REVERSE discrete_subtype_definition
+  | IDENTIFIER IN discrete_subtype_definition
+  ;
+
+loop_statement
+  : IDENTIFIER COLON iteration_scheme LOOP sequence_of_statements END LOOP IDENTIFIER SEMICOLON
+    (progn
+      (wisi-statement-action 1 'statement-start 4 'block-start 6 'block-end 9 'statement-end)
+      (wisi-start-action 1 5)
+      (wisi-motion-action 4 6))
+  | iteration_scheme LOOP sequence_of_statements END LOOP SEMICOLON
+    (progn
+      (wisi-statement-action 1 'statement-start 2 'block-start 4 'block-end 6 'statement-end)
+      (wisi-start-action 1 3)
+      (wisi-motion-action 2 4))
+  | IDENTIFIER COLON LOOP sequence_of_statements END LOOP IDENTIFIER SEMICOLON
+    (progn
+      (wisi-statement-action 1 'statement-start 3 'block-start 5 'block-end 8 'statement-end)
+      (wisi-start-action 1 4)
+      (wisi-motion-action 3 5))
+  | LOOP sequence_of_statements END LOOP SEMICOLON
+    (progn
+      (wisi-statement-action 1 'block-start 3 'block-end 5 'statement-end)
+      (wisi-start-action 1 2)
+      (wisi-motion-action 1 3))
   ;
 
 membership_choice_list
@@ -944,26 +1018,51 @@ name
 
 ;; leaving out [aspect_specification]
 object_declaration
-  : identifier_list COLON ALIASED CONSTANT name COLON_EQUAL expression SEMICOLON
+  : identifier_list COLON ALIASED CONSTANT subtype_indication COLON_EQUAL expression SEMICOLON
     (wisi-statement-action 1 'statement-start 8 'statement-end)
-  | identifier_list COLON ALIASED CONSTANT name SEMICOLON
+  | identifier_list COLON ALIASED CONSTANT subtype_indication SEMICOLON
     (wisi-statement-action 1 'statement-start 6 'statement-end)
-  | identifier_list COLON ALIASED name COLON_EQUAL expression SEMICOLON
+  | identifier_list COLON ALIASED subtype_indication COLON_EQUAL expression SEMICOLON
     (wisi-statement-action 1 'statement-start 7 'statement-end)
-  | identifier_list COLON ALIASED name SEMICOLON
+  | identifier_list COLON ALIASED subtype_indication SEMICOLON
     (wisi-statement-action 1 'statement-start 5 'statement-end)
-  | identifier_list COLON CONSTANT name COLON_EQUAL expression SEMICOLON
+  | identifier_list COLON CONSTANT subtype_indication COLON_EQUAL expression SEMICOLON
     (wisi-statement-action 1 'statement-start 7 'statement-end)
-  | identifier_list COLON CONSTANT name SEMICOLON
+  | identifier_list COLON CONSTANT subtype_indication SEMICOLON
     (wisi-statement-action 1 'statement-start 5 'statement-end)
-  | identifier_list COLON name COLON_EQUAL expression SEMICOLON
+  | identifier_list COLON subtype_indication COLON_EQUAL expression SEMICOLON
     (wisi-statement-action 1 'statement-start 6 'statement-end)
-  | identifier_list COLON name SEMICOLON
+  | identifier_list COLON subtype_indication SEMICOLON
     (wisi-statement-action 1 'statement-start 4 'statement-end)
   ;; | identifier_list COLON [ALIASED] [CONSTANT] access_definition [COLON_EQUAL expression] SEMICOLON
-  ;; | identifier_list COLON [ALIASED] [CONSTANT] array_type_definition [COLON_EQUAL expression] SEMICOLON
+  | identifier_list COLON ALIASED CONSTANT array_type_definition COLON_EQUAL expression SEMICOLON
+    (wisi-statement-action 1 'statement-start 8 'statement-end)
+  | identifier_list COLON ALIASED CONSTANT array_type_definition SEMICOLON
+    (wisi-statement-action 1 'statement-start 6 'statement-end)
+  | identifier_list COLON ALIASED array_type_definition COLON_EQUAL expression SEMICOLON
+    (wisi-statement-action 1 'statement-start 7 'statement-end)
+  | identifier_list COLON ALIASED array_type_definition SEMICOLON
+    (wisi-statement-action 1 'statement-start 5 'statement-end)
+  | identifier_list COLON CONSTANT array_type_definition COLON_EQUAL expression SEMICOLON
+    (wisi-statement-action 1 'statement-start 7 'statement-end)
+  | identifier_list COLON CONSTANT array_type_definition SEMICOLON
+    (wisi-statement-action 1 'statement-start 5 'statement-end)
+  | identifier_list COLON array_type_definition COLON_EQUAL expression SEMICOLON
+    (wisi-statement-action 1 'statement-start 6 'statement-end)
+  | identifier_list COLON array_type_definition SEMICOLON
+    (wisi-statement-action 1 'statement-start 4 'statement-end)
   | single_task_declaration
   | single_protected_declaration
+  ;
+
+;; leaving out [aspect_specification]
+object_renaming_declaration
+  : IDENTIFIER COLON NOT NULL name RENAMES name SEMICOLON
+    (wisi-statement-action 1 'statement-start 8 'statement-end)
+  | IDENTIFIER COLON name RENAMES name SEMICOLON
+    (wisi-statement-action 1 'statement-start 6 'statement-end)
+  | IDENTIFIER COLON access_definition RENAMES name SEMICOLON
+    (wisi-statement-action 1 'statement-start 6 'statement-end)
   ;
 
 ;; operator_symbol is STRING_LITERAL, in name
@@ -1019,6 +1118,12 @@ package_declaration
     (progn
       (wisi-statement-action 1 'statement-start 2 'statement-end)
       (wisi-start-action 1 1))
+  ;
+
+;; leaving out [aspect_specification]
+package_renaming_declaration
+  : PACKAGE name RENAMES name SEMICOLON
+    (wisi-statement-action 1 'statement-start 5 'statement-end)
   ;
 
 ;; leaving out [aspect_specification]
@@ -1134,7 +1239,7 @@ protected_operation_item
   : subprogram_declaration
   | subprogram_body
   ;; | entry_body
-  ;; | aspect_clause
+  | aspect_clause
   ;
 
 protected_operation_item_list
@@ -1226,11 +1331,11 @@ relational_operator
   ;;  =   | /=          | <    |  <=        | >       | >=
 
 renaming_declaration
-  ;; : object_renaming_declaration
+  : object_renaming_declaration
   ;; | exception_renaming_declaration
-  ;; | package_renaming_declaration
-  ;; | subprogram_renaming_declaration
-  : generic_renaming_declaration
+  | package_renaming_declaration
+  | subprogram_renaming_declaration
+  | generic_renaming_declaration
   ;
 
 selected_component
@@ -1365,11 +1470,23 @@ subprogram_declaration
 
 subprogram_default : name | BOX | NULL ;
 
+;; leaving out [aspect_specification]
+subprogram_renaming_declaration
+  : overriding_indicator subprogram_specification RENAMES name SEMICOLON
+    (wisi-statement-action 1 'statement-start 2 'block-middle 5 'statement-end)
+  | subprogram_specification RENAMES name SEMICOLON
+    (wisi-statement-action 1 'statement-start 4 'statement-end)
+  ;
+
 subprogram_specification
   : PROCEDURE name parameter_profile ;; procedure_specification
-    (wisi-statement-action 1 'statement-start 2 'name)
+    (progn
+      (wisi-statement-action 1 'statement-start 2 'name)
+      (wisi-start-action 1 3))
   | FUNCTION name parameter_and_result_profile ;; function_specification
-    (wisi-statement-action 1 'statement-start 2 'name)
+    (progn
+      (wisi-statement-action 1 'statement-start 2 'name)
+      (wisi-start-action 1 3))
   ;
 
 ;; leaving out [aspect_specification]

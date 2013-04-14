@@ -74,10 +74,13 @@
 	(block-end (wisi-indent-statement-start 0 cache nil))
 
 	(block-middle
-	 (wisi-indent-statement-start
-	  (if (eq (wisi-cache-nonterm cache) 'case_expression_alternative) ada-indent-when 0)
-	  cache
-	  nil))
+	 (case (wisi-cache-token cache)
+	   (WHEN
+	    (wisi-indent-statement-start ada-indent-when cache nil))
+
+	   (t
+	    (wisi-indent-statement-start 0 cache nil))
+	   ))
 
 	(close-paren (wisi-indent-paren 0))
 
@@ -94,11 +97,6 @@
 		  ada-indent-return)))
 
 	   (setq cache (wisi-goto-statement-start cache nil))
-	   (ecase (wisi-cache-nonterm cache)
-	     (formal_subprogram_declaration nil)
-	     (generic_formal_part
-	      (wisi-forward-find-nonterm 'subprogram_specification return-pos))
-	     )
 	   (cond
 	    ((and
 	      (eq top-class 'return-1)
@@ -109,7 +107,6 @@
 
 	    (t
 	     ;; indent relative to "function".
-	     (wisi-forward-find-token 'FUNCTION return-pos)
 	     (+ (current-column) indent))
 	    )))
 
@@ -142,7 +139,7 @@ keyword, return new indentation for point."
 
      (t
       (case (wisi-cache-class cache)
-	(name ;; not useful for indenting
+	((name type) ;; not useful for indenting
 	 (setq cache-region (wisi-backward-cache))
 	 (setq cache (car cache-region)))
 	)
@@ -162,7 +159,10 @@ keyword, return new indentation for point."
 	    (wisi-indent-statement-start ada-indent-broken cache t))
 
 	   (t
-	    (wisi-indent-current ada-indent))
+	    ;; block-middle keyword may not be on separate line:
+	    ;;       function Create (Model   : in Integer;
+	    ;;                        Context : in String) return String is
+	    (wisi-indent-statement-start ada-indent cache nil))
 	   ))
 
 	(block-start
@@ -178,6 +178,10 @@ keyword, return new indentation for point."
 	   ;; else hanging
 	   (wisi-indent-statement-start ada-indent-broken cache nil)
 	   ))
+
+	(close-paren
+	 ;; hanging
+	 (wisi-indent-statement-start ada-indent-broken cache nil))
 
 	(list-break
 	 (if (equal (nth 1 cache-region) (cddr prev-token))
@@ -217,6 +221,10 @@ keyword, return new indentation for point."
 	       (1+ paren-column)
 	     ;; 1)
 	     (+ paren-column 1 ada-indent-broken))))
+
+	((return-1 return-2)
+	 ;; hanging
+	 (wisi-indent-statement-start ada-indent-broken cache nil))
 
 	(statement-end
 	 (wisi-indent-statement-start 0 cache nil))

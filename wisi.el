@@ -480,26 +480,28 @@ START-TOKEN is token number of first token in containing statement,
 CONTAINED-TOKEN is token number of the contained non-terminal."
   (let ((start-region (cddr (nth (1- start-token) tokens)));; tokens is let-bound in wisi-parse-reduce
 	(contained-region (cddr (nth (1- contained-token) tokens))))
-    (save-excursion
-      (goto-char (cdr contained-region))
-      (let ((cache (car (wisi-backward-cache)))
-	    (mark (copy-marker (1+ (car start-region)))))
-	(while cache
+    (when contained-region
+      ;; nil when empty production
+      (save-excursion
+	(goto-char (cdr contained-region))
+	(let ((cache (car (wisi-backward-cache)))
+	      (mark (copy-marker (1+ (car start-region)))))
+	  (while cache
 
-	  ;; skip blocks that are already marked
-	  (while (markerp (wisi-cache-start cache))
-	    (goto-char (1- (wisi-cache-start cache)))
-	    (setq cache (wisi-get-cache (point))))
+	    ;; skip blocks that are already marked
+	    (while (markerp (wisi-cache-start cache))
+	      (goto-char (1- (wisi-cache-start cache)))
+	      (setq cache (wisi-get-cache (point))))
 
-	  (if (<= (point) (cdr start-region))
-	      ;; done (don't set mark on cache at start; that should
-	      ;; point to the containing statement)
-	      (setq cache nil)
+	    (if (<= (point) (cdr start-region))
+		;; done (don't set mark on cache at start; that should
+		;; point to the containing statement)
+		(setq cache nil)
 
-	    ;; else set mark, loop
-	    (setf (wisi-cache-start cache) mark)
-	    (setq cache (car (wisi-backward-cache))))
-	  )))))
+	      ;; else set mark, loop
+	      (setf (wisi-cache-start cache) mark)
+	      (setq cache (car (wisi-backward-cache))))
+	    ))))))
 
 (defun wisi-motion-action (&rest token-numbers)
   "Set prev/next marks in all tokens given by TOKENS-NUMBERS."

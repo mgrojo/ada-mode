@@ -133,7 +133,10 @@
 		(1
 		 (setf (wisi-parser-state-active parser-state) nil); don't save error for later
 		 (wisi-execute-pending (wisi-parser-state-pending
-					(aref parser-states (wisi-active-parser parser-states)))))
+					(aref parser-states (wisi-active-parser parser-states))))
+		 (setf (wisi-parser-state-pending
+			(aref parser-states (wisi-active-parser parser-states)))
+		       nil))
 		(t
 		 (setf (wisi-parser-state-active parser-state) nil); don't save error for later
 		 )))
