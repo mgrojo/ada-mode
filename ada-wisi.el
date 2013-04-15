@@ -57,6 +57,8 @@
     type
     ))
 
+;;;; indentation
+
 (defun ada-wisi-before-keyword ()
   (let ((cache (wisi-get-cache (point)))
 	top-class)
@@ -286,6 +288,18 @@ keyword, return new indentation for point."
        (forward-comment -1)
        (current-column))
       )))
+
+;;;; ada-mode functions
+
+(defun ada-wisi-in-paramlist-p ()
+  "For `ada-in-paramlist-p'."
+  ;; (info "(elisp)Parser State" "*syntax-ppss*")
+  (let ((parse-result (syntax-ppss)))
+    (and (> (nth 0 parse-result) 0)
+	 (eq 'formal_part
+	     (wisi-cache-nonterm
+	      (wisi-get-cache (nth 1 parse-result)))
+	     ))))
 
 (defun ada-wisi-which-function-1 (cache-skip keyword body)
   "used in `ada-wisi-which-function'."

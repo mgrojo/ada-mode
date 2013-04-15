@@ -142,6 +142,7 @@ package body Ada_Mode.Nominal is
                <<Label_1>>
                   D := D - Float (F1);
             end case;
+         --  FIXME: test keyword motion on case
          end return;
       end; -- no F2 on purpose
 

@@ -61,6 +61,7 @@
 %keyword DECLARE "declare"
 %keyword DELTA "delta"
 %keyword DIGITS "digits"
+%keyword DO "do"
 %keyword ELSE "else"
 %keyword ELSIF "elsif"
 %keyword END "end"
@@ -69,6 +70,7 @@
 %keyword FOR "for"
 %keyword FUNCTION "function"
 %keyword GENERIC "generic"
+%keyword GOTO "goto"
 %keyword IF "if"
 %keyword IN "in"
 %keyword INTERFACE "interface"
@@ -90,6 +92,7 @@
 %keyword PRIVATE "private"
 %keyword PROCEDURE "procedure"
 %keyword PROTECTED "protected"
+%keyword RAISE "raise"
 %keyword RANGE "range"
 %keyword RENAMES "renames"
 %keyword RECORD "record"
@@ -123,8 +126,10 @@
 %token <punctuation> EQUAL_GREATER "=>"
 %token <punctuation> GREATER ">"
 %token <punctuation> GREATER_EQUAL ">="
+%token <punctuation> GREATER_GREATER ">>"
 %token <punctuation> LESS "<"
 %token <punctuation> LESS_EQUAL "<="
+%token <punctuation> LESS_LESS "<<"
 %token <punctuation> MINUS "-"
 %token <punctuation> PLUS "+"
 %token <punctuation> SEMICOLON ";"
@@ -192,6 +197,10 @@ access_definition
   | NOT NULL ACCESS PROCEDURE parameter_profile
   | NOT NULL ACCESS PROTECTED FUNCTION parameter_and_result_profile
   | NOT NULL ACCESS FUNCTION parameter_and_result_profile
+  | ACCESS PROTECTED PROCEDURE parameter_profile
+  | ACCESS PROCEDURE parameter_profile
+  | ACCESS PROTECTED FUNCTION parameter_and_result_profile
+  | ACCESS FUNCTION parameter_and_result_profile
   ;
 
 access_type_definition
@@ -336,6 +345,26 @@ case_expression_alternative_list
     (wisi-statement-action 2 'statement-other)
   ;
 
+case_statement
+  : CASE expression IS case_statement_alternative_list END CASE SEMICOLON
+    (progn
+      (wisi-statement-action 1 'block-start 3 'block-middle 5 'block-end 7 'statement-end)
+      (wisi-start-action 1 4)
+      (wisi-motion-action 1 3 4 5))
+  ;
+
+case_statement_alternative
+  : WHEN discrete_choice_list EQUAL_GREATER sequence_of_statements
+    (progn
+      (wisi-statement-action 1 'block-middle)
+      (wisi-start-action 1 4))
+  ;
+
+case_statement_alternative_list
+  : case_statement_alternative
+  | case_statement_alternative_list case_statement_alternative
+  ;
+
 choice_expression
   : choice_relation
   | choice_relation_and_list
@@ -408,10 +437,10 @@ component_list
 
 compound_statement
   : if_statement
-  ;; | case_statement
+  | case_statement
   | loop_statement
   | block_statement
-  ;; | extended_return_statement
+  | extended_return_statement
   ;; | accept_statement
   ;; | select_statement
   ;
@@ -451,7 +480,7 @@ declaration
   | subprogram_declaration
   | subtype_declaration
   | type_declaration
-  ;; | use_clause
+  | use_clause
   ;
 
 declarations
@@ -534,7 +563,7 @@ elsif_expression_list
   ;
 
 elsif_statement_item
-  : ELSIF sequence_of_statements THEN sequence_of_statements
+  : ELSIF expression THEN sequence_of_statements
     (progn
       (wisi-statement-action 1 'block-middle 3 'block-middle)
       (wisi-start-action 1 2)
@@ -545,6 +574,24 @@ elsif_statement_item
 elsif_statement_list
   : elsif_statement_item
   | elsif_statement_list elsif_statement_item
+  ;
+
+entry_body
+  : ENTRY IDENTIFIER entry_body_formal_part WHEN expression IS declarations BEGIN handled_sequence_of_statements END IDENTIFIER SEMICOLON
+    (progn
+      (wisi-statement-action 1 'block-start 6 'block-middle 8 'block-middle 10 'block-end 12 'statement-end)
+      (wisi-start-action 1 6)
+      (wisi-start-action 1 8))
+  | ENTRY IDENTIFIER entry_body_formal_part WHEN expression IS declarations BEGIN handled_sequence_of_statements END SEMICOLON
+    (progn
+      (wisi-statement-action 1 'block-start 6 'block-middle 8 'block-middle 10 'block-end 11 'statement-end)
+      (wisi-start-action 1 6)
+      (wisi-start-action 1 8))
+  ;
+
+entry_body_formal_part
+  : LEFT_PAREN FOR IDENTIFIER IN discrete_subtype_definition RIGHT_PAREN parameter_profile
+  | parameter_profile
   ;
 
 ;; leaving out [aspect_specification]
@@ -611,6 +658,26 @@ expression
   | relation_or_list
   | relation_or_else_list
   | relation_xor_list
+  ;
+
+extended_return_object_declaration
+  : IDENTIFIER COLON ALIASED CONSTANT return_subtype_indication COLON_EQUAL expression
+  | IDENTIFIER COLON ALIASED return_subtype_indication COLON_EQUAL expression
+  | IDENTIFIER COLON CONSTANT return_subtype_indication COLON_EQUAL expression
+  | IDENTIFIER COLON return_subtype_indication COLON_EQUAL expression
+  | IDENTIFIER COLON ALIASED CONSTANT return_subtype_indication
+  | IDENTIFIER COLON ALIASED return_subtype_indication
+  | IDENTIFIER COLON CONSTANT return_subtype_indication
+  | IDENTIFIER COLON return_subtype_indication
+  ;
+
+extended_return_statement
+  : RETURN extended_return_object_declaration DO handled_sequence_of_statements END RETURN SEMICOLON
+    (progn
+      (wisi-statement-action 1 'block-start 3 'block-middle 5 'block-end 7 'statement-end)
+      (wisi-start-action 1 4))
+  | RETURN extended_return_object_declaration SEMICOLON
+    (wisi-statement-action 1 'statement-start 3 'statement-end)
   ;
 
 ;; designator is merged with name
@@ -918,6 +985,10 @@ iterator_specification
   | IDENTIFIER OF name
   ;
 
+label
+  : LESS_LESS IDENTIFIER GREATER_GREATER
+  ;
+
 library_item
   : PRIVATE library_unit_declaration
   | library_unit_declaration
@@ -1063,6 +1134,8 @@ object_renaming_declaration
     (wisi-statement-action 1 'statement-start 6 'statement-end)
   | IDENTIFIER COLON access_definition RENAMES name SEMICOLON
     (wisi-statement-action 1 'statement-start 6 'statement-end)
+  | IDENTIFIER COLON EXCEPTION RENAMES name SEMICOLON ;; exception_renaming_declaration
+    (wisi-statement-action 1 'statement-start 6 'statement-end)
   ;
 
 ;; operator_symbol is STRING_LITERAL, in name
@@ -1133,6 +1206,10 @@ package_specification
       (wisi-statement-action 1 'statement-start 2 'name 3 'block-start 5 'block-middle 7 'block-end)
       (wisi-start-action 1 4)
       (wisi-start-action 1 6))
+  | PACKAGE name IS PRIVATE declarations END name
+    (progn
+      (wisi-statement-action 1 'statement-start 2 'name 3 'block-start 4 'block-middle 6 'block-end)
+      (wisi-start-action 1 5))
   | PACKAGE name IS declarations END name
     (progn
       (wisi-statement-action 1 'statement-start 2 'name 3 'block-start 5 'block-end)
@@ -1238,7 +1315,7 @@ protected_body_stub
 protected_operation_item
   : subprogram_declaration
   | subprogram_body
-  ;; | entry_body
+  | entry_body
   | aspect_clause
   ;
 
@@ -1272,6 +1349,15 @@ protected_type_declaration
 
 qualified_expression
   : name TICK aggregate
+  ;
+
+raise_statement
+  : RAISE SEMICOLON
+    (wisi-statement-action 1 'statement-start 2 'statement-end)
+  | RAISE name WITH expression SEMICOLON
+    (wisi-statement-action 1 'statement-start 5 'statement-end)
+  | RAISE name SEMICOLON
+    (wisi-statement-action 1 'statement-start 3 'statement-end)
   ;
 
 range
@@ -1331,17 +1417,22 @@ relational_operator
   ;;  =   | /=          | <    |  <=        | >       | >=
 
 renaming_declaration
-  : object_renaming_declaration
-  ;; | exception_renaming_declaration
+  : object_renaming_declaration ;; includes exception_renaming_declaration
   | package_renaming_declaration
   | subprogram_renaming_declaration
   | generic_renaming_declaration
+  ;
+
+return_subtype_indication
+  : subtype_indication
+  | access_definition
   ;
 
 selected_component
   : name DOT IDENTIFIER
   | name DOT CHARACTER_LITERAL
   | name DOT STRING_LITERAL ;; operator_symbol
+  | name DOT ALL ;; explicit_dereference
   ;
 
 ;; selector_name - IDENTIFIER, STRING_LITERAL overlap 'name'; CHARACTER_LITERAL used separately
@@ -1369,7 +1460,8 @@ simple_statement
     (wisi-statement-action 1 'statement-start 2 'statement-end)
   | assignment_statement
   ;; | exit_statement
-  ;; | goto_statement
+  | GOTO IDENTIFIER SEMICOLON ;; goto_statement
+    (wisi-statement-action 1 'statement-start 3 'statement-end)
   | name SEMICOLON ;; procedure_call_statement; name includes function_call
     (wisi-statement-action 1 'statement-start 2 'statement-end)
   | simple_return_statement
@@ -1377,7 +1469,7 @@ simple_statement
   ;; | requeue_statement
   ;; | delay_statement
   ;; | abort_statement
-  ;; | raise_statement
+  | raise_statement
   ;; | code_statement
   ;
 
@@ -1409,9 +1501,9 @@ single_task_declaration
 
 ;; ignoring list of labels on one statement
 statement
-;;  : label simple_statement
-  : simple_statement ;; ignoring list of labels on one statement
-  ;; | label compound_statement
+  : label simple_statement
+  | simple_statement ;; ignoring list of labels on one statement
+  | label compound_statement
   | compound_statement
   ;
 

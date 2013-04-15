@@ -47,8 +47,9 @@ run indent test from emacs -Q:
  ada-wisi parser
 
 build/wisi/Makefile
-    test/ada_mode-nested_packages.ads ada-align failing
-        need ada-wisi-in-paramlist-p
+    test/ada_mode-nominal.adb
+        parser failing
+        exit_statement
 
 error on unmatched %conflict
     delete when matched
