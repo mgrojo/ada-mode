@@ -48,8 +48,8 @@ run indent test from emacs -Q:
 
 build/wisi/Makefile
     test/ada_mode-nominal.adb
-        parser failing
-        exit_statement
+        parser failing; unexpected 'begin' in 'task body Executive'
+            need task_body :)
 
 error on unmatched %conflict
     delete when matched

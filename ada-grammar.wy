@@ -67,6 +67,7 @@
 %keyword END "end"
 %keyword ENTRY "entry"
 %keyword EXCEPTION "exception"
+%keyword EXIT "exit"
 %keyword FOR "for"
 %keyword FUNCTION "function"
 %keyword GENERIC "generic"
@@ -580,12 +581,20 @@ entry_body
   : ENTRY IDENTIFIER entry_body_formal_part WHEN expression IS declarations BEGIN handled_sequence_of_statements END IDENTIFIER SEMICOLON
     (progn
       (wisi-statement-action 1 'block-start 6 'block-middle 8 'block-middle 10 'block-end 12 'statement-end)
-      (wisi-start-action 1 6)
+      (wisi-start-action 1 7)
+      (wisi-start-action 1 9))
+  | ENTRY IDENTIFIER entry_body_formal_part WHEN expression IS BEGIN handled_sequence_of_statements END IDENTIFIER SEMICOLON
+    (progn
+      (wisi-statement-action 1 'block-start 6 'block-middle 7 'block-middle 9 'block-end 11 'statement-end)
       (wisi-start-action 1 8))
   | ENTRY IDENTIFIER entry_body_formal_part WHEN expression IS declarations BEGIN handled_sequence_of_statements END SEMICOLON
     (progn
       (wisi-statement-action 1 'block-start 6 'block-middle 8 'block-middle 10 'block-end 11 'statement-end)
-      (wisi-start-action 1 6)
+      (wisi-start-action 1 7)
+      (wisi-start-action 1 9))
+  | ENTRY IDENTIFIER entry_body_formal_part WHEN expression IS BEGIN handled_sequence_of_statements END SEMICOLON
+    (progn
+      (wisi-statement-action 1 'block-start 6 'block-middle 7 'block-middle 9 'block-end 10 'statement-end)
       (wisi-start-action 1 8))
   ;
 
@@ -649,6 +658,17 @@ exception_handler
 exception_handler_list
   : exception_handler
   | exception_handler_list exception_handler
+  ;
+
+exit_statement
+  : EXIT IDENTIFIER WHEN expression SEMICOLON
+    (wisi-statement-action 1 'statement-start 5 'statement-end)
+  | EXIT IDENTIFIER SEMICOLON
+    (wisi-statement-action 1 'statement-start 3 'statement-end)
+  | EXIT WHEN expression SEMICOLON
+    (wisi-statement-action 1 'statement-start 4 'statement-end)
+  | EXIT SEMICOLON
+    (wisi-statement-action 1 'statement-start 2 'statement-end)
   ;
 
 expression
@@ -1459,7 +1479,7 @@ simple_statement
   : NULL SEMICOLON;; null_statement
     (wisi-statement-action 1 'statement-start 2 'statement-end)
   | assignment_statement
-  ;; | exit_statement
+  | exit_statement
   | GOTO IDENTIFIER SEMICOLON ;; goto_statement
     (wisi-statement-action 1 'statement-start 3 'statement-end)
   | name SEMICOLON ;; procedure_call_statement; name includes function_call

@@ -138,7 +138,10 @@
 			(aref parser-states (wisi-active-parser parser-states)))
 		       nil))
 		(t
-		 (setf (wisi-parser-state-active parser-state) nil); don't save error for later
+		 ;; we were in a parallel parse, and this parser
+		 ;; failed; mark it inactive, don't save error for
+		 ;; later
+		 (setf (wisi-parser-state-active parser-state) nil)
 		 )))
 
 	    )));; end dotimes
@@ -215,7 +218,7 @@ token, execute 'reduce parsers."
 
 (defun wisi-execute-pending (pending)
   (while pending
-    (apply 'funcall (pop pending))))
+    (apply (pop pending))))
 
 (defun wisi-parse-1 (token parser-state pendingp actions gotos)
   "Perform one shift or reduce on PARSER-STATE.
@@ -318,7 +321,12 @@ the first and last tokens of the nonterminal."
     (aset stack sp new-state)
     (setf (wisi-parser-state-sp parser-state) sp)
     (if pendingp
-	(push (list (nth 1 action) tokens) (wisi-parser-state-pending parser-state))
+	(if (wisi-parser-state-pending parser-state)
+	    (setf (wisi-parser-state-pending parser-state)
+		  (append (wisi-parser-state-pending parser-state)
+			  (list (list (nth 1 action) tokens))))
+	  (setf (wisi-parser-state-pending parser-state)
+		(list (list (nth 1 action) tokens))))
       (funcall (nth 1 action) tokens))
     ))
 
