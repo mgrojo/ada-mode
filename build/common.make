@@ -136,12 +136,17 @@ DIFF_OPT := -u -w
 %-wy.el : %.wy wisi-generate.exe
 	./wisi-generate.exe $(RUN_ARGS) $< Elisp > $*.output
 
+# no verbosity for Ada output; set -v in %.parse instead
 %-parse.adb : %.wy wisi-generate.exe
 	./wisi-generate.exe $< Ada
 
-# -v 1: the grammar and the state trace of the parse is the known good output
+# the grammar and the state trace of the parse is the known good output
 %.parse : %.input %-parse.exe
+ifeq ($(RUN_ARGS),"-v 1")
 	./$*-parse.exe -v 1 $< > $*.parse
+else
+	./$*-parse.exe $(RUN_ARGS) $< > $*.parse
+endif
 
 .PRECIOUS : %-wy.el %-parse.adb %-parse.exe %.parse
 

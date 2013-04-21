@@ -158,7 +158,7 @@ is
    package Productions is new OpenToken.Production (Tokens_Pkg, Token_Lists, Nonterminals);
    package Production_Lists is new Productions.List;
    package Parsers is new Productions.Parser (Production_Lists, Analyzers);
-   package LALR_Parsers is new Parsers.LALR;
+   package LALR_Parsers is new Parsers.LALR (First_State_Index => 0);  -- match Elisp array indexing
 
    package Parser_Elisp is new LALR_Parsers.Elisp (Token_Image);
 
@@ -176,6 +176,9 @@ is
              Find_Token_ID (-Conflict.On)));
       end loop;
       return Result;
+   exception
+   when E : Not_Found =>
+      raise OpenToken.Grammar_Error with "known conflicts: " & Ada.Exceptions.Exception_Message (E);
    end To_Conflicts;
 
    Grammar : Production_Lists.Instance;
@@ -331,8 +334,7 @@ begin
       Analyzers.Null_Analyzer,
       To_Conflicts (Conflicts),
       Trace                => Verbosity > 1,
-      Put_Grammar          => Verbosity > 0,
-      First_State_Index    => 0); -- match Elisp array indexing
+      Put_Grammar          => Verbosity > 0);
 
    declare
       use Standard.Ada.Text_IO;

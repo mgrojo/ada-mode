@@ -33,6 +33,7 @@
 -----------------------------------------------------------------------------
 with Ada.Containers.Doubly_Linked_Lists;
 generic
+   First_State_Index : in Natural;
 package OpenToken.Production.Parser.LALR is
 
    type Instance is new OpenToken.Production.Parser.Instance with private;
@@ -45,14 +46,15 @@ package OpenToken.Production.Parser.LALR is
       --  REDUCE/SHIFT in state: 11 on token IS
       --
       --  State numbers change with minor changes in the grammar, so
-      --  we identify the by the LHS of the two productions involved.
-      --  We also store the state number for generated conflicts, for
+      --  we identify the state by the LHS of the two productions
+      --  involved. We also store the state number for generated
+      --  conflicts (not for known conflicts from the input file), for
       --  Text_IO output.
       Action_A    : Conflict_Parse_Actions;
       LHS_A       : Token.Token_ID;
       Action_B    : Conflict_Parse_Actions;
       LHS_B       : Token.Token_ID;
-      State_Index : Integer;
+      State_Index : Integer; -- not State_Index (below), so we can use -1 to represent unknown
       On          : Token.Token_ID;
    end record;
 
@@ -65,8 +67,7 @@ package OpenToken.Production.Parser.LALR is
       Trace                    : in Boolean             := False;
       Put_Grammar              : in Boolean             := False;
       Ignore_Unused_Tokens     : in Boolean             := False;
-      Ignore_Unknown_Conflicts : in Boolean             := False;
-      First_State_Index        : in Integer             := 1)
+      Ignore_Unknown_Conflicts : in Boolean             := False)
      return Instance;
    --  We don't use OpenToken.Trace here; we often want to see a trace
    --  of the parser execution without the parser generation.
@@ -87,8 +88,7 @@ package OpenToken.Production.Parser.LALR is
 
 private
 
-   --  Type for parser states
-   type State_Index is new Integer;
+   type State_Index is new Integer range First_State_Index .. Integer'Last;
 
    type Parse_Action_Rec (Verb : Parse_Action_Verbs := Shift) is record
       case Verb is

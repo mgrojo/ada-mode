@@ -1,0 +1,31 @@
+;;; show correct resolution to problem shown in shift_conflict_bug.wy
+
+%{
+(require 'wisi)
+%}
+
+%keyword BEGIN "begin"
+%keyword IS "is"
+
+%token <punctuation> SEMICOLON ";"
+%token <line_comment> COMMENT "--"
+
+%start declarations
+
+%%
+
+declarations
+  : ;; empty declaration list
+  | declarations entry_body
+  ;
+
+entry_body
+  : IS declarations BEGIN SEMICOLON
+  ;
+
+%%
+
+;; Local Variables:
+;; eval: (add-hook 'before-save-hook 'delete-trailing-whitespace nil t)
+;; End:
+;;; end of file

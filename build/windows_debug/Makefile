@@ -4,17 +4,18 @@
 all:
 
 # ../../Test/test_one_harness.adb
+# ../../Test/test_all_harness.adb
 #t_one : RUN_ARGS := -v
 t_one : test_one_harness.run
 t_all : test_all_harness.run
 
 # from ../common.make
-one : body_instantiation_conflict-wy.diff
-one : case_expression-wy.diff
-one : identifier_list_name_conflict-wy.diff
-one : range_conflict-wy.diff
-one : subprograms-wy.diff
-one : case_expression-parse.diff
+# ../../wisi/test/shift_conflict_bug.wy
+one : RUN_ARGS := -v 2
+one : shift_conflict-wy.el
+
+two : RUN_ARGS := -v 2
+two : shift_conflict.parse
 
 EMACS := /apps/emacs-24.2.91/bin/emacs.exe
 ../../wisi/test/%-wy.el : %.wy

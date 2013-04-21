@@ -190,10 +190,10 @@ package OpenToken.Production.Parser.LRk_Item is
    function Print (Item : in Item_Lookahead) return String;
    function Print (Item : in Item_Lookahead_Ptr) return String;
 
-   procedure Put_Item (Item : in Item_Node; Show_Lookaheads : in Boolean);
-   --  Put Item to Ada.Text_IO.Standard_Output. Does not end with New_Line.
-
+   procedure Put (Item : in Item_Node; Show_Lookaheads : in Boolean);
    procedure Put (Items : in Item_Set);
+   procedure Put (Item : in Set_Reference_Ptr);
+   --  Put Item to Ada.Text_IO.Standard_Output. Does not end with New_Line.
 
    procedure Print_Item_Set_List (Items : in Item_Set_List);
 

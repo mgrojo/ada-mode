@@ -38,6 +38,7 @@ is
    is
       use Standard.Ada.Text_IO;
    begin
+      --  FIXME: verbosity meaning is actually determined by output choice.
       Put_Line ("wisi-generate [-v [level]] {wisent grammar file} {output language}");
       Put_Line ("generate output language source corresponding to 'wisent grammar file'");
       Put_Line ("output language is one of Ada, Elisp, Test");
@@ -63,8 +64,6 @@ is
 
    Copyright : constant String := "2013 Stephen Leake.  All Rights Reserved.";
    --  FIXME: get copyright from grammar file
-
-   User_Error : exception;
 
    procedure Use_Input_File (File_Name : in String)
    is

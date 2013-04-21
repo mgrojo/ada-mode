@@ -28,7 +28,6 @@
 with Ada.Tags;
 with Ada.Text_IO;
 with Ada.Strings.Unbounded;
-with Ada.Characters.Latin_1;
 package body OpenToken.Production.Parser.LRk_Item is
    use type Ada.Strings.Unbounded.Unbounded_String;
 
@@ -42,8 +41,6 @@ package body OpenToken.Production.Parser.LRk_Item is
    end Compute_Non_Terminals;
 
    Non_Terminals : constant Token_ID_Set := Compute_Non_Terminals;
-
-   Line_End : constant String := "" & Ada.Characters.Latin_1.LF;
 
    function Image (Item : in Token_ID_Set) return String
    is
@@ -909,30 +906,24 @@ package body OpenToken.Production.Parser.LRk_Item is
       return Ada.Strings.Unbounded.To_String (Result);
    end Image_Item;
 
-   procedure Put_Item (Item : in Item_Node; Show_Lookaheads : in Boolean) is
+   procedure Put (Item : in Item_Node; Show_Lookaheads : in Boolean) is
    begin
       Ada.Text_IO.Put (Image_Item (Item, Show_Index => True, Show_Lookaheads => Show_Lookaheads));
-   end Put_Item;
+   end Put;
 
-   function Image_Set_Reference_List (Reference_List : in Set_Reference_Ptr) return String
+   procedure Put (Item : in Set_Reference_Ptr)
    is
-      use Ada.Strings.Unbounded;
-
-      Reference : Set_Reference_Ptr := Reference_List;
-
-      Result : Unbounded_String := Null_Unbounded_String;
-
+      use Ada.Text_IO;
+      Reference : Set_Reference_Ptr := Item;
    begin
       while Reference /= null loop
-         Result := Result &
-           "      on " & Token.Token_Image (Reference.Symbol) &
-           " => Set" & Natural'Image (Reference.Set.Index) & Line_End;
+         Put_Line
+           ("      on " & Token.Token_Image (Reference.Symbol) &
+              " => Set" & Natural'Image (Reference.Set.Index));
 
          Reference := Reference.Next;
       end loop;
-
-      return Ada.Strings.Unbounded.To_String (Result);
-   end Image_Set_Reference_List;
+   end Put;
 
    procedure Put (Items : in Item_Set)
    is
@@ -958,7 +949,7 @@ package body OpenToken.Production.Parser.LRk_Item is
       while Set /= null loop
          Put (Set.all);
          Put_Line ("   Goto:");
-         Put (Image_Set_Reference_List (Set.Goto_List));
+         Put (Set.Goto_List);
 
          Set := Set.Next;
       end loop;

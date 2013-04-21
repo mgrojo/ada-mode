@@ -60,7 +60,7 @@ package body OpenToken.Production.Parser.LALR is
    type State_Node_Ptr is access State_Node;
 
    type State_Node is record
-      State      : State_Index := 0;
+      State      : State_Index := State_Index'First;
       Seen_Token : Token.Handle;
       Next       : State_Node_Ptr;
    end record;
@@ -180,13 +180,13 @@ package body OpenToken.Production.Parser.LALR is
       while Next_Prop /= null loop
 
          Ada.Text_IO.Put ("From ");
-         LRk.Put_Item (Next_Prop.From.all, Show_Lookaheads => False);
+         LRk.Put (Next_Prop.From.all, Show_Lookaheads => False);
          Ada.Text_IO.New_Line;
 
          Next_To := Next_Prop.To;
          while Next_To /= null loop
             Ada.Text_IO.Put ("To   ");
-            LRk.Put_Item (Next_To.Item.all, Show_Lookaheads => False);
+            LRk.Put (Next_To.Item.all, Show_Lookaheads => False);
             Ada.Text_IO.New_Line;
 
             Next_To := Next_To.Next;
@@ -301,7 +301,7 @@ package body OpenToken.Production.Parser.LALR is
             begin
                if Trace then
                   Ada.Text_IO.Put ("  default:");
-                  LRk.Put_Item (Source_Item.all, Show_Lookaheads => False);
+                  LRk.Put (Source_Item.all, Show_Lookaheads => False);
                   Ada.Text_IO.Put_Line ("; " & LRk.Print (Lookahead));
                end if;
 
@@ -352,7 +352,7 @@ package body OpenToken.Production.Parser.LALR is
             if Next_Kernel /= null then
                if Trace then
                   Ada.Text_IO.Put ("  spontaneous (" & Token.Token_Image (Token_ID) & "): ");
-                  LRk.Put_Item (Next_Kernel.all, Show_Lookaheads => False);
+                  LRk.Put (Next_Kernel.all, Show_Lookaheads => False);
                   Ada.Text_IO.Put_Line ("; " & LRk.Print (Lookahead.all));
                end if;
 
@@ -401,7 +401,7 @@ package body OpenToken.Production.Parser.LALR is
                      if Trace and Added_One then
                         Added_Some := True;
                         Ada.Text_IO.Put ("  to:");
-                        LRk.Put_Item (To.Item.all, Show_Lookaheads => True);
+                        LRk.Put (To.Item.all, Show_Lookaheads => True);
                         Ada.Text_IO.New_Line;
                      end if;
 
@@ -416,7 +416,7 @@ package body OpenToken.Production.Parser.LALR is
             if Trace and Added_Some then
                Added_Some := False;
                Ada.Text_IO.Put ("from: ");
-               LRk.Put_Item (Mapping.From.all, Show_Lookaheads => True);
+               LRk.Put (Mapping.From.all, Show_Lookaheads => True);
                Ada.Text_IO.New_Line;
             end if;
 
@@ -517,6 +517,25 @@ package body OpenToken.Production.Parser.LALR is
       return Ada.Strings.Fixed.Trim (Source => State_Image, Side => Ada.Strings.Both);
    end Integer_Image;
 
+   procedure Put (Item : in Parse_Action_Rec)
+   is
+      use Ada.Text_IO;
+   begin
+      case Item.Verb is
+      when Shift =>
+         Put ("shift and goto state" & State_Index'Image (Item.State));
+
+      when Reduce =>
+         Put
+           ("reduce" & Integer'Image (Item.Length) &
+              " tokens to " & Token.Token_Image (LHS_ID (Item.Production)));
+      when Accept_It =>
+         Put ("accept it");
+      when Error =>
+         Put ("ERROR");
+      end case;
+   end Put;
+
    procedure Put_Parse_Action (Action : in Parse_Action_Node_Ptr)
    is
       use Ada.Text_IO;
@@ -524,23 +543,7 @@ package body OpenToken.Production.Parser.LALR is
       Column : constant Positive_Count := Col;
    begin
       loop
-         declare
-            Parse_Action : Parse_Action_Rec renames Ptr.Item;
-         begin
-            case Parse_Action.Verb is
-            when Shift =>
-               Put ("shift and goto state" & State_Index'Image (Parse_Action.State));
-
-            when Reduce =>
-               Put
-                 ("reduce" & Integer'Image (Parse_Action.Length) &
-                    " tokens to " & Token.Token_Image (LHS_ID (Parse_Action.Production)));
-            when Accept_It =>
-               Put ("accept it");
-            when Error =>
-               Put ("ERROR");
-            end case;
-         end;
+         Put (Ptr.Item);
          Ptr := Ptr.Next;
          exit when Ptr = null;
          Put_Line (",");
@@ -660,7 +663,8 @@ package body OpenToken.Production.Parser.LALR is
          end if;
          Item := Item.Next;
       end loop;
-      Ada.Text_IO.Put_Line ("item for " & Image (Action) & " not found in");
+      Ada.Text_IO.Put_Line
+        ("item for " & Image (Action) & ", " & Token.Token_Image (Token_After_Dot) & " not found in");
       if Kernel.Set = null then
          Ada.Text_IO.Put_Line ("null Kernel");
       else
@@ -670,21 +674,31 @@ package body OpenToken.Production.Parser.LALR is
    end Find;
 
    --  Add (Symbol, Action) to Action_List
+   --  Source .. Conflicts are for conflict reporting
    procedure Add_Action
      (Symbol      : in     Tokenizer.Terminal_ID;
       Action      : in     Parse_Action_Rec;
       Action_List : in out Action_Node_Ptr;
       Source      : in     LRk.Item_Set;
-      Conflicts   : in out Conflict_Lists.List)
+      Conflicts   : in out Conflict_Lists.List;
+      Trace       : in     Boolean)
    is
-      --  Source .. Conflicts are for conflict reporting
       use type Ada.Strings.Unbounded.Unbounded_String;
       Matching_Action : constant Action_Node_Ptr := Find (Symbol, Action_List);
    begin
+      if Trace then
+         Ada.Text_IO.Put (Token.Token_Image (Symbol) & " => ");
+         Put (Action);
+         Ada.Text_IO.New_Line;
+      end if;
+
       if Matching_Action /= null then
          if Matching_Action.Action.Item = Action then
             --  Matching_Action is identical to Action, so there is no
             --  conflict; just don't add it again.
+            if Trace then
+               Ada.Text_IO.Put_Line (" - already present");
+            end if;
             return;
          else
             --  There is a conflict. Report it, but add it anyway, so
@@ -700,6 +714,10 @@ package body OpenToken.Production.Parser.LALR is
             Matching_Action.Action := new Parse_Action_Node'
               (Item => Action,
                Next => Matching_Action.Action);
+
+            if Trace then
+               Ada.Text_IO.Put_Line (" - conflict");
+            end if;
          end if;
       else
          Action_List := new Action_Node'
@@ -763,6 +781,11 @@ package body OpenToken.Production.Parser.LALR is
             First   => First,
             Grammar => Grammar);
 
+         if Trace then
+            LRk.Put (Closure);
+            LRk.Put (Kernel.Goto_List);
+         end if;
+
          Item := Closure.Set;
          while Item /= null loop
             if Item.Dot = Token_List.Null_Iterator then
@@ -789,10 +812,6 @@ package body OpenToken.Production.Parser.LALR is
                   --  page 238, 4.10 page 234, except that here the
                   --  augmenting production is implicit.
                   if Kernel.Index = Accept_Index then
-                     if Trace then
-                        Ada.Text_IO.Put_Line ("adding Accept_It");
-                     end if;
-
                      Add_Action
                        (Symbol        => Lookahead.Lookaheads (1),
                         Action        =>
@@ -801,12 +820,9 @@ package body OpenToken.Production.Parser.LALR is
                            Length     => Production_Length),
                         Action_List   => Table (State_Index (Kernel.Index)).Action_List,
                         Source        => Kernel.all,
-                        Conflicts     => Conflicts);
+                        Conflicts     => Conflicts,
+                        Trace         => Trace);
                   else
-                     if Trace then
-                        Ada.Text_IO.Put_Line ("adding Reduce");
-                     end if;
-
                      Add_Action
                        (Symbol        => Lookahead.Lookaheads (1),
                         Action        =>
@@ -815,7 +831,8 @@ package body OpenToken.Production.Parser.LALR is
                            Length     => Production_Length),
                         Action_List   => Table (State_Index (Kernel.Index)).Action_List,
                         Source        => Kernel.all,
-                        Conflicts     => Conflicts);
+                        Conflicts     => Conflicts,
+                        Trace         => Trace);
                   end if;
 
                   Lookahead := Lookahead.Next;
@@ -827,10 +844,6 @@ package body OpenToken.Production.Parser.LALR is
                   Item_Dot_ID : constant Token.Token_ID := Token.ID (Token_List.Token_Handle (Item.Dot).all);
                   --  ID of token after Item.Dot
                begin
-                  if Trace then
-                     Ada.Text_IO.Put_Line (Token.Token_Image (Item_Dot_ID) & " => Shift");
-                  end if;
-
                   Add_Action
                     (Symbol      => Item_Dot_ID,
                      Action      =>
@@ -838,7 +851,8 @@ package body OpenToken.Production.Parser.LALR is
                         State    => State_Index (LRk.Goto_Set (Kernel.all, Item_Dot_ID).Index)),
                      Action_List => Table (State_Index (Kernel.Index)).Action_List,
                      Source      => Kernel.all,
-                     Conflicts   => Conflicts);
+                     Conflicts   => Conflicts,
+                     Trace       => Trace);
                end;
             else
                --  Pointer is before a non-terminal token; action is
@@ -846,7 +860,7 @@ package body OpenToken.Production.Parser.LALR is
 
                if Trace then
                   Ada.Text_IO.Put_Line
-                    (Token.Token_ID'Image (Token.ID (Token_List.Token_Handle (Item.Dot).all)) &
+                    (Token.Token_Image (Token.ID (Token_List.Token_Handle (Item.Dot).all)) &
                        " => no action");
                end if;
             end if;
@@ -913,46 +927,9 @@ package body OpenToken.Production.Parser.LALR is
       end if;
    end Fill_In_Parse_Table;
 
-   procedure Reduce_Stack
-     (Stack            : in out State_Node_Ptr;
-      Number_Of_Tokens : in     Natural;
-      Production       : in     OpenToken.Production.Instance)
-   is
-      Arguments    : Token_List.Instance;
-      Popped_State : State_Node_Ptr;
-      Args_Added   : Natural := 0;
-
-      use type Nonterminal.Synthesize;
-   begin
-      --  Pop the indicated number of token states from the stack, and
-      --  call the production action routine to create a new
-      --  nonterminal token.
-
-      --  Build the argument list, while popping all but the last
-      --  argument's state off of the stack.
-      if Number_Of_Tokens > 0 then
-         loop
-            Token_List.Enqueue (Arguments, Stack.Seen_Token);
-
-            Args_Added := Args_Added + 1;
-            exit when Args_Added = Number_Of_Tokens;
-
-            Popped_State := Stack;
-            Stack        := Stack.Next;
-            Free (Popped_State);
-         end loop;
-      end if;
-
-      Production.RHS.Action (Production.LHS.all, Arguments, Token.ID (Production.LHS.all));
-      Token_List.Clean (Arguments);
-
-      --  Replace stack token with LHS of production
-      Stack.Seen_Token := new Nonterminal.Class'(Production.LHS.all);
-   end Reduce_Stack;
-
    procedure Delete_Known
      (Conflicts       : in out Conflict_Lists.List;
-      Known_Conflicts : in     Conflict_Lists.List)
+      Known_Conflicts : in out Conflict_Lists.List)
    is
       use Conflict_Lists;
       I      : Cursor := Conflicts.First;
@@ -978,15 +955,18 @@ package body OpenToken.Production.Parser.LALR is
          --  WORKAROUND: GNAT GPL 2012 doesn't like an explicit exit in an 'of' loop
          Search_Known :
          declare
-            Known : Cursor := Known_Conflicts.First;
+            Known      : Cursor := Known_Conflicts.First;
+            Next_Known : Cursor;
          begin
             loop
                exit when Known = No_Element;
+               Next_Known := Next (Known);
                if Match (Element (Known), Conflicts.Constant_Reference (I)) then
                   Delete (Conflicts, I);
+                  Delete (Known_Conflicts, Known);
                   exit;
                end if;
-               Known := Next (Known);
+               Known := Next_Known;
             end loop;
          end Search_Known;
          I := Next_I;
@@ -1008,7 +988,6 @@ package body OpenToken.Production.Parser.LALR is
    is
       use Ada.Text_IO;
    begin
-      Put_Line ("Conflicts:");
       --  WORKAROUND: GNAT GPL 2012 doesn't like 'of' loop
       declare
          use Conflict_Lists;
@@ -1029,8 +1008,7 @@ package body OpenToken.Production.Parser.LALR is
       Trace                    : in Boolean             := False;
       Put_Grammar              : in Boolean             := False;
       Ignore_Unused_Tokens     : in Boolean             := False;
-      Ignore_Unknown_Conflicts : in Boolean             := False;
-      First_State_Index        : in Integer             := 1)
+      Ignore_Unknown_Conflicts : in Boolean             := False)
      return Instance
    is
       use type Ada.Containers.Count_Type;
@@ -1048,7 +1026,8 @@ package body OpenToken.Production.Parser.LALR is
       First_Production : OpenToken.Production.Instance renames
         Production_List.Get_Production (Production_List.Initial_Iterator (Grammar));
 
-      Conflicts : Conflict_Lists.List;
+      Unknown_Conflicts    : Conflict_Lists.List;
+      Known_Conflicts_Edit : Conflict_Lists.List := Known_Conflicts;
 
       use type LRk.Item_Set_Ptr;
    begin
@@ -1100,18 +1079,26 @@ package body OpenToken.Production.Parser.LALR is
         (State_Index (First_State_Index) .. State_Index (Kernels.Size - 1 + First_State_Index));
 
       --  Add actions
-      Fill_In_Parse_Table (Kernels, Accept_Index, Grammar, First_Tokens, Conflicts, New_Parser.Table.all, Trace);
+      Fill_In_Parse_Table
+        (Kernels, Accept_Index, Grammar, First_Tokens, Unknown_Conflicts, New_Parser.Table.all, Trace);
 
       if Put_Grammar then
          Put_Parse_Table (New_Parser.Table.all, Kernels);
       end if;
 
-      Delete_Known (Conflicts, Known_Conflicts);
-      if Conflicts.Length > 0 then
-         Ada.Text_IO.New_Line;
-         Put (Conflicts);
+      Delete_Known (Unknown_Conflicts, Known_Conflicts_Edit);
+      if Unknown_Conflicts.Length > 0 then
+         Ada.Text_IO.Put_Line ("unknown conflicts:");
+         Put (Unknown_Conflicts);
          if not Ignore_Unknown_Conflicts then
             raise Grammar_Error with "unknown conflicts; aborting";
+         end if;
+      end if;
+      if Known_Conflicts_Edit.Length > 0 then
+         Ada.Text_IO.Put_Line ("excess known conflicts:");
+         Put (Known_Conflicts_Edit);
+         if not Ignore_Unknown_Conflicts then
+            raise Grammar_Error with "excess known conflicts; aborting";
          end if;
       end if;
 
@@ -1166,6 +1153,53 @@ package body OpenToken.Production.Parser.LALR is
       return To_String (Result);
    end Names;
 
+   procedure Reduce_Stack
+     (Stack            : in out State_Node_Ptr;
+      Number_Of_Tokens : in     Natural;
+      Production       : in     OpenToken.Production.Instance)
+   is
+      Arguments    : Token_List.Instance;
+      Popped_State : State_Node_Ptr;
+      Args_Added   : Natural := 0;
+
+      use type Nonterminal.Synthesize;
+   begin
+      --  Pop the indicated number of token states from the stack, and
+      --  call the production action routine to create a new
+      --  nonterminal token.
+
+      --  Build the argument list, while popping all but the last
+      --  argument's state off of the stack.
+      if Number_Of_Tokens > 0 then
+         loop
+            Token_List.Enqueue (Arguments, Stack.Seen_Token);
+
+            Args_Added := Args_Added + 1;
+            exit when Args_Added = Number_Of_Tokens;
+
+            Popped_State := Stack;
+            Stack        := Stack.Next;
+            Free (Popped_State);
+         end loop;
+      else
+         --  Empty production; push a new item on the stack. Seen_Token set below.
+         if Stack = null then
+            Stack := new State_Node;
+         else
+            Stack := new State_Node'
+              (State      => Stack.State,
+               Seen_Token => null,
+               Next       => Stack);
+         end if;
+      end if;
+
+      Production.RHS.Action (Production.LHS.all, Arguments, Token.ID (Production.LHS.all));
+      Token_List.Clean (Arguments);
+
+      --  Replace stack token with LHS of production
+      Stack.Seen_Token := new Nonterminal.Class'(Production.LHS.all);
+   end Reduce_Stack;
+
    overriding procedure Parse (Parser : in out Instance)
    is
       Stack         : State_Node_Ptr;
@@ -1191,7 +1225,7 @@ package body OpenToken.Production.Parser.LALR is
 
       Current_State.Seen_Token := new Token.Class'(Token.Class (Tokenizer.Get (Parser.Analyzer)));
 
-      Current_State.State := 1;
+      Current_State.State := State_Index'First;
       loop
 
          --  Find the action for this token's ID

@@ -46,6 +46,8 @@ with Ada.Strings.Unbounded;
 with Ada.Text_IO;
 package Wisi is
 
+   User_Error : exception; -- error in command line options or parameters
+
    Syntax_Error : exception; -- Error in user input file
 
    Not_Found : exception;

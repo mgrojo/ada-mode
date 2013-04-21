@@ -137,7 +137,7 @@ is
    package Productions is new OpenToken.Production (Tokens_Pkg, Token_Lists, Nonterminals);
    package Production_Lists is new Productions.List;
    package Parsers is new Productions.Parser (Production_Lists, Analyzers);
-   package LALR_Parsers is new Parsers.LALR;
+   package LALR_Parsers is new Parsers.LALR (First_State_Index => 0);
 
    Grammar : Production_Lists.Instance;
    Parser  : LALR_Parsers.Instance;
@@ -193,9 +193,8 @@ begin
    Parser := LALR_Parsers.Generate
      (Grammar,
       Analyzers.Null_Analyzer,
-      Trace             => Verbosity > 1,
-      Put_Grammar       => Verbosity > 0,
-      First_State_Index => 0);
+      Trace       => Verbosity > 1,
+      Put_Grammar => Verbosity > 0);
 
    if Verbosity > 0 then
       declare
