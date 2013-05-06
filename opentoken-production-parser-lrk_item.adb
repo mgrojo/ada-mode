@@ -457,7 +457,7 @@ package body OpenToken.Production.Parser.LRk_Item is
       Added_New_Item      : Boolean;
    begin
       --  Put copies of everything in Set into the closure. We don't
-      --  copy Goto_List, since we are only concerned about lookaheads
+      --  copy Goto_List, since we are only concerned with lookaheads
       --  here.
 
       Result.Index := -1; -- Result does _not_ match any kernel set
@@ -925,26 +925,26 @@ package body OpenToken.Production.Parser.LRk_Item is
       end loop;
    end Put;
 
-   procedure Put (Items : in Item_Set)
+   procedure Put (Item : in Item_Set)
    is
       use Ada.Text_IO;
-      Item : Item_Ptr := Items.Set;
+      Set : Item_Ptr := Item.Set;
    begin
-      Put_Line ("Set" & Integer'Image (Items.Index) & ":");
+      Put_Line ("Set" & Integer'Image (Item.Index) & ":");
 
-      while Item /= null loop
-         Put_Line ("  " & Image_Item (Item.all, Show_Index => False, Show_Lookaheads => True));
+      while Set /= null loop
+         Put_Line ("  " & Image_Item (Set.all, Show_Index => False, Show_Lookaheads => True));
 
-         Item := Item.Next;
+         Set := Set.Next;
       end loop;
    end Put;
 
-   procedure Print_Item_Set_List (Items : in Item_Set_List)
+   procedure Put (Item : in Item_Set_List)
    is
       use Ada.Text_IO;
-      Set        : Item_Set_Ptr := Items.Head;
+      Set : Item_Set_Ptr := Item.Head;
    begin
-      Put_Line ("Number of Kernel Sets =" & Integer'Image (Items.Size));
+      Put_Line ("Number of Kernel Sets =" & Integer'Image (Item.Size));
 
       while Set /= null loop
          Put (Set.all);
@@ -953,6 +953,6 @@ package body OpenToken.Production.Parser.LRk_Item is
 
          Set := Set.Next;
       end loop;
-   end Print_Item_Set_List;
+   end Put;
 
 end OpenToken.Production.Parser.LRk_Item;

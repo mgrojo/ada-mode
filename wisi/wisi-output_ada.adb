@@ -115,6 +115,10 @@ begin
       Put_Line ("with OpenToken.Recognizer.Identifier;");
    end if;
 
+   if Is_In (Tokens, """number""") then
+      Put_Line ("with OpenToken.Recognizer.Integer;");
+   end if;
+
    Put_Line ("with OpenToken.Recognizer.Keyword;");
 
    if Is_In (Tokens, """line_comment""") then

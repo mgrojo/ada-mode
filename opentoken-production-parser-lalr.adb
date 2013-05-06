@@ -35,10 +35,7 @@ with Ada.Unchecked_Deallocation;
 with Ada.Strings.Unbounded;
 with Ada.Strings.Fixed;
 with Ada.Integer_Text_IO;
-with OpenToken.Production.Parser.LRk_Item;
 package body OpenToken.Production.Parser.LALR is
-
-   package LRk is new OpenToken.Production.Parser.LRk_Item (1);
 
    --  Following are the types used in the parse "table". The parse
    --  table is an array indexed by parse state that where each state
@@ -282,6 +279,8 @@ package body OpenToken.Production.Parser.LALR is
       Next_Kernel : LRk.Item_Ptr;
       Lookahead   : LRk.Item_Lookahead_Ptr := Closure_Item.Lookaheads;
 
+      Spontaneous_Count : Integer := 0;
+
       use type Token.Handle;
       use type LRk.Item_Set_Ptr;
       use type LRk.Item_Ptr;
@@ -351,9 +350,8 @@ package body OpenToken.Production.Parser.LALR is
          else
             if Next_Kernel /= null then
                if Trace then
-                  Ada.Text_IO.Put ("  spontaneous (" & Token.Token_Image (Token_ID) & "): ");
-                  LRk.Put (Next_Kernel.all, Show_Lookaheads => False);
-                  Ada.Text_IO.Put_Line ("; " & LRk.Print (Lookahead.all));
+                  Spontaneous_Count := Spontaneous_Count + 1;
+                  Ada.Text_IO.Put_Line ("  spontaneous: " & LRk.Print (Lookahead.all));
                end if;
 
                LRk.Include
@@ -365,6 +363,12 @@ package body OpenToken.Production.Parser.LALR is
 
          Lookahead := Lookahead.Next;
       end loop;
+
+      if Spontaneous_Count > 0 then
+         Ada.Text_IO.Put ("  Next_Kernel (" & Token.Token_Image (Token_ID) & "): ");
+         LRk.Put (Next_Kernel.all, Show_Lookaheads => True);
+         Ada.Text_IO.New_Line;
+      end if;
    end Generate_Lookahead_Info;
 
    procedure Propagate_Lookaheads
@@ -782,6 +786,7 @@ package body OpenToken.Production.Parser.LALR is
             Grammar => Grammar);
 
          if Trace then
+            Ada.Text_IO.Put_Line ("closure:");
             LRk.Put (Closure);
             LRk.Put (Kernel.Goto_List);
          end if;
@@ -1072,7 +1077,7 @@ package body OpenToken.Production.Parser.LALR is
       if Trace then
          Ada.Text_IO.New_Line;
          Ada.Text_IO.Put_Line ("LR(1) Kernels:");
-         LRk.Print_Item_Set_List (Kernels);
+         LRk.Put (Kernels);
       end if;
 
       New_Parser.Table := new Parse_Table

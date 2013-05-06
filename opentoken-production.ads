@@ -38,7 +38,7 @@ pragma Elaborate_All (OpenToken.Token.Enumerated);
 generic
    with package Token is new OpenToken.Token.Enumerated (<>);
    with package Token_List is new Token.List;
-   with package Nonterminal  is new Token.Nonterminal (Token_List);
+   with package Nonterminal is new Token.Nonterminal (Token_List);
 package OpenToken.Production is
 
    ----------------------------------------------------------------------------

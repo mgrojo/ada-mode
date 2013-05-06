@@ -1,0 +1,49 @@
+;;; show an incorrect way to declare an empty production in a list
+
+;; This grammar is ambiguous. Consider the following statements:
+;;
+;; 1) is <null declaration> begin ;
+;; 2) is is <null declaration> begin ; begin ;
+;; 3) is <null declaration> is <null declaration> begin ; begin ;
+;;
+;; In parsing 3), the second 'is' causes a shift/reduce conflict;
+;; shift to start the nested declaration (as in 2), reduce to the null
+;; declaration. Both are correct according to the grammar.
+;;
+;; FIXME: OpenToken should correctly report the conflict and (ideally)
+;; the ambiguity.
+
+%{
+(require 'wisi)
+%}
+
+%keyword BEGIN "begin"
+%keyword IS "is"
+
+%token <punctuation> SEMICOLON ";"
+%token <line_comment> COMMENT "--"
+
+%start declarations
+
+%%
+
+declaration
+  : ;; empty
+  | body
+  ;
+
+declarations
+  : declaration
+  | declarations declaration
+  ;
+
+body
+  : IS declarations BEGIN SEMICOLON
+  ;
+
+%%
+
+;; Local Variables:
+;; eval: (add-hook 'before-save-hook 'delete-trailing-whitespace nil t)
+;; End:
+;;; end of file

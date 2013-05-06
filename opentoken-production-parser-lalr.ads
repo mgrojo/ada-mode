@@ -32,6 +32,7 @@
 --  grammars handled and the size of its parse table.
 -----------------------------------------------------------------------------
 with Ada.Containers.Doubly_Linked_Lists;
+with OpenToken.Production.Parser.LRk_Item;
 generic
    First_State_Index : in Natural;
 package OpenToken.Production.Parser.LALR is
@@ -140,5 +141,18 @@ private
    type Instance is new OpenToken.Production.Parser.Instance with record
       Table : Parse_Table_Ptr;
    end record;
+
+   ----------
+   --  Visible for unit test
+
+   package LRk is new OpenToken.Production.Parser.LRk_Item (1);
+
+   procedure Fill_In_Lookaheads
+     (Grammar      : in     Production_List.Instance;
+      First        : in     LRk.Derivation_Matrix;
+      Kernels      : in out LRk.Item_Set_List;
+      Accept_Index : in     Integer;
+      Used_Tokens  : in out Tokenizer.Token_Array_Boolean;
+      Trace        : in     Boolean);
 
 end OpenToken.Production.Parser.LALR;

@@ -141,8 +141,9 @@ DIFF_OPT := -u -w
 	./wisi-generate.exe $< Ada
 
 # the grammar and the state trace of the parse is the known good output
+# specify RUN_ARGS on command line to get -v 2 (adding it to 'one :' is too late)
 %.parse : %.input %-parse.exe
-ifeq ($(RUN_ARGS),"-v 1")
+ifeq ($(RUN_ARGS),)
 	./$*-parse.exe -v 1 $< > $*.parse
 else
 	./$*-parse.exe $(RUN_ARGS) $< > $*.parse
