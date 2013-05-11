@@ -731,9 +731,9 @@ package body OpenToken.Production.Parser.LALR is
       end if;
    end Add_Action;
 
-   --  Add actions to Table.
-   procedure Fill_In_Parse_Table
-     (LRk_Kernels  : in     LRk.Item_Set_List;
+   --  Add actions for Kernel to Table
+   procedure Add_Actions
+     (Kernel       : in     LRk.Item_Set_Ptr;
       Accept_Index : in     Integer;
       Grammar      : in     Production_List.Instance;
       First        : in     LRk.Derivation_Matrix;
@@ -741,150 +741,126 @@ package body OpenToken.Production.Parser.LALR is
       Table        : in out Parse_Table;
       Trace        : in     Boolean)
    is
-      use Ada.Strings.Unbounded;
+      State : constant State_Index := State_Index (Kernel.Index);
 
-      --  The default action, when nothing else matches an input
-      Default_Action : constant Action_Node :=
-         --  The symbol here is actually irrelevant; it is the
-         --  position as the last on a state's action list that makes
-         --  it the default. It's too bad we can't extend an
-         --  enumeration type to make this 'default', for viewing this
-         --  list in a debugger. The various Put routines do replace
-         --  this with 'default'.
-        (Symbol => Tokenizer.Terminal_ID'Last,
-         Action => new Parse_Action_Node'(Parse_Action_Rec'(Verb => Error), null),
-         Next   => null);
+      Closure : LRk.Item_Set := LRk.Lookahead_Closure
+        (Set     => Kernel.all,
+         First   => First,
+         Grammar => Grammar);
 
-      Last_Action : Action_Node_Ptr;
-
-      Kernel    : LRk.Item_Set_Ptr := LRk_Kernels.Head;
-      Closure   : LRk.Item_Set;
-      Item      : LRk.Item_Ptr;
+      Item      : LRk.Item_Ptr := Closure.Set;
       Lookahead : LRk.Item_Lookahead_Ptr;
 
-      Production_Length : Natural;
-      RHS_Iterator      : Token_List.List_Iterator;
-
-      Goto_Node : LRk.Set_Reference_Ptr;
-
       use type LRk.Item_Ptr;
-      use type LRk.Item_Set_Ptr;
       use type LRk.Set_Reference_Ptr;
       use type LRk.Item_Lookahead_Ptr;
       use type Token_List.List_Iterator;
       use type Token.Handle;
    begin
-      while Kernel /= null loop
+      if Trace then
+         Ada.Text_IO.Put_Line ("adding actions for kernel" & Integer'Image (Kernel.Index));
+         Ada.Text_IO.Put ("closure: ");
+         LRk.Put (Closure);
+         LRk.Put (Kernel.Goto_List);
+      end if;
 
-         if Trace then
-            Ada.Text_IO.Put_Line ("adding actions for kernel" & Integer'Image (Kernel.Index));
-         end if;
+      while Item /= null loop
+         if Item.Dot = Token_List.Null_Iterator then
+            --  Pointer is at the end of the production; add a reduce or accept action.
 
-         Closure := LRk.Lookahead_Closure
-           (Set     => Kernel.all,
-            First   => First,
-            Grammar => Grammar);
-
-         if Trace then
-            Ada.Text_IO.Put_Line ("closure:");
-            LRk.Put (Closure);
-            LRk.Put (Kernel.Goto_List);
-         end if;
-
-         Item := Closure.Set;
-         while Item /= null loop
-            if Item.Dot = Token_List.Null_Iterator then
-               --  Pointer is at the end of the production; add a reduce or accept action.
-
-               --  Find the length of the producion to save time during reductions
-               Production_Length := 0;
-               RHS_Iterator := Token_List.Initial_Iterator (Item.Prod.RHS.Tokens);
-               while Token_List.Token_Handle (RHS_Iterator) /= null loop
-                  Production_Length := Production_Length + 1;
-                  Token_List.Next_Token (RHS_Iterator);
-               end loop;
-
-               if Trace then
-                  Ada.Text_IO.Put_Line ("processing lookaheads");
-               end if;
-
-               Lookahead := Item.Lookaheads;
-               while Lookahead /= null loop
-                  --  Add reduction/accept action
-
-                  --  Only the start symbol kernel gets accept; the
-                  --  rest get reduce. See [dragon] algorithm 4.11
-                  --  page 238, 4.10 page 234, except that here the
-                  --  augmenting production is implicit.
-                  if Kernel.Index = Accept_Index then
-                     Add_Action
-                       (Symbol        => Lookahead.Lookaheads (1),
-                        Action        =>
-                          (Verb       => Accept_It,
-                           Production => Item.Prod,
-                           Length     => Production_Length),
-                        Action_List   => Table (State_Index (Kernel.Index)).Action_List,
-                        Source        => Kernel.all,
-                        Conflicts     => Conflicts,
-                        Trace         => Trace);
-                  else
-                     Add_Action
-                       (Symbol        => Lookahead.Lookaheads (1),
-                        Action        =>
-                          (Verb       => Reduce,
-                           Production => Item.Prod,
-                           Length     => Production_Length),
-                        Action_List   => Table (State_Index (Kernel.Index)).Action_List,
-                        Source        => Kernel.all,
-                        Conflicts     => Conflicts,
-                        Trace         => Trace);
-                  end if;
-
-                  Lookahead := Lookahead.Next;
-               end loop;
-
-            elsif Token.ID (Token_List.Token_Handle (Item.Dot).all) in Tokenizer.Terminal_ID then
-               --  Dot is before a terminal token.
-               declare
-                  Item_Dot_ID : constant Token.Token_ID := Token.ID (Token_List.Token_Handle (Item.Dot).all);
-                  --  ID of token after Item.Dot
-               begin
-                  Add_Action
-                    (Symbol      => Item_Dot_ID,
-                     Action      =>
-                       (Verb     => Shift,
-                        State    => State_Index (LRk.Goto_Set (Kernel.all, Item_Dot_ID).Index)),
-                     Action_List => Table (State_Index (Kernel.Index)).Action_List,
-                     Source      => Kernel.all,
-                     Conflicts   => Conflicts,
-                     Trace       => Trace);
-               end;
-            else
-               --  Pointer is before a non-terminal token; action is
-               --  determined by the lookahead, handled above.
-
-               if Trace then
-                  Ada.Text_IO.Put_Line
-                    (Token.Token_Image (Token.ID (Token_List.Token_Handle (Item.Dot).all)) &
-                       " => no action");
-               end if;
+            if Trace then
+               Ada.Text_IO.Put_Line ("processing lookaheads");
             end if;
 
-            Item := Item.Next;
-         end loop;
+            Lookahead := Item.Lookaheads;
+            while Lookahead /= null loop
+               --  Add reduction/accept action
 
-         --  Place a default error action at the end of every state.
-         --  (it should always have at least one action already).
-         --
-         --  FIXME: instead, optimize use of default action; compress
-         --  accept, at least.
-         Last_Action := Table (State_Index (Kernel.Index)).Action_List;
+               --  Only the start symbol kernel gets accept; the
+               --  rest get reduce. See [dragon] algorithm 4.11
+               --  page 238, 4.10 page 234, except that here the
+               --  augmenting production is implicit.
+               if Kernel.Index = Accept_Index then
+                  Add_Action
+                    (Symbol        => Lookahead.Lookaheads (1),
+                     Action        =>
+                       (Verb       => Accept_It,
+                        Production => Item.Prod,
+                        Length     => Token_List.Length (Item.Prod.RHS.Tokens)),
+                     Action_List   => Table (State).Action_List,
+                     Source        => Kernel.all,
+                     Conflicts     => Conflicts,
+                     Trace         => Trace);
+               else
+                  Add_Action
+                    (Symbol        => Lookahead.Lookaheads (1),
+                     Action        =>
+                       (Verb       => Reduce,
+                        Production => Item.Prod,
+                        Length     => Token_List.Length (Item.Prod.RHS.Tokens)),
+                     Action_List   => Table (State).Action_List,
+                     Source        => Kernel.all,
+                     Conflicts     => Conflicts,
+                     Trace         => Trace);
+               end if;
 
+               Lookahead := Lookahead.Next;
+            end loop;
+
+         elsif Token.ID (Token_List.Token_Handle (Item.Dot).all) in Tokenizer.Terminal_ID then
+            --  Dot is before a terminal token.
+            declare
+               Dot_ID : constant Token.Token_ID := Token.ID (Token_List.Token_Handle (Item.Dot).all);
+               --  ID of token after Item.Dot
+            begin
+               Add_Action
+                 (Symbol      => Dot_ID,
+                  Action      =>
+                    (Verb     => Shift,
+                     State    => State_Index (LRk.Goto_Set (Kernel.all, Dot_ID).Index)),
+                  Action_List => Table (State).Action_List,
+                  Source      => Kernel.all,
+                  Conflicts   => Conflicts,
+                  Trace       => Trace);
+            end;
+         else
+            --  Dot is before a non-terminal token; no action unless the non-terminal has an empty production
+
+            if Trace then
+               Ada.Text_IO.Put_Line
+                 (Token.Token_Image (Token.ID (Token_List.Token_Handle (Item.Dot).all)) &
+                    " => no action");
+            end if;
+         end if;
+
+         Item := Item.Next;
+      end loop;
+
+      --  Place a default error action at the end of every state.
+      --  (it should always have at least one action already).
+      --
+      --  FIXME: instead, optimize use of default action; compress
+      --  accept, at least.
+      declare
+         --  The default action, when nothing else matches an input
+         Default_Action : constant Action_Node :=
+           --  The symbol here is actually irrelevant; it is the
+           --  position as the last on a state's action list that makes
+           --  it the default. It's too bad we can't extend an
+           --  enumeration type to make this 'default', for viewing this
+           --  list in a debugger. The various Put routines do replace
+           --  this with 'default'.
+           (Symbol => Tokenizer.Terminal_ID'Last,
+            Action => new Parse_Action_Node'(Parse_Action_Rec'(Verb => Error), null),
+            Next   => null);
+
+         Last_Action : Action_Node_Ptr := Table (State).Action_List;
+      begin
          if Last_Action = null then
             --  This happens if the first production in the grammar is
             --  not the start symbol production; that violates the
             --  assumptions Generate_Lookahead_Info makes when
-            --  computing lookaheads, and Fill_In_Parse_Table makes
+            --  computing lookaheads, and Add_Actions makes
             --  when assigning accept/reduce actions.
             --
             --  It also happens when the start symbol production does
@@ -909,28 +885,48 @@ package body OpenToken.Production.Parser.LALR is
             end loop;
             Last_Action.Next := new Action_Node'(Default_Action);
          end if;
+      end;
 
-         LRk.Free (Closure);
+      LRk.Free (Closure);
 
-         --  Fill in this state's Goto transitions
-         Goto_Node := Kernel.Goto_List;
+      --  Fill in this state's Goto transitions
+      declare
+         Goto_Node : LRk.Set_Reference_Ptr := Kernel.Goto_List;
+      begin
          while Goto_Node /= null loop
-            Table (State_Index (Kernel.Index)).Reduction_List :=
+            Table (State).Reduction_List :=
               new Reduction_Node'
               (Symbol => Goto_Node.Symbol,
                State  => State_Index (Goto_Node.Set.Index),
-               Next   => Table (State_Index (Kernel.Index)).Reduction_List);
+               Next   => Table (State).Reduction_List);
 
             Goto_Node := Goto_Node.Next;
          end loop;
+      end;
+   end Add_Actions;
 
+   --  Add actions for all LRk_Kernels to Table.
+   procedure Add_Actions
+     (LRk_Kernels  : in     LRk.Item_Set_List;
+      Accept_Index : in     Integer;
+      Grammar      : in     Production_List.Instance;
+      First        : in     LRk.Derivation_Matrix;
+      Conflicts    :    out Conflict_Lists.List;
+      Table        : in out Parse_Table;
+      Trace        : in     Boolean)
+   is
+      Kernel : LRk.Item_Set_Ptr := LRk_Kernels.Head;
+      use type LRk.Item_Set_Ptr;
+   begin
+      while Kernel /= null loop
+         Add_Actions (Kernel, Accept_Index, Grammar, First, Conflicts, Table, Trace);
          Kernel := Kernel.Next;
       end loop;
 
       if Trace then
          Ada.Text_IO.New_Line;
       end if;
-   end Fill_In_Parse_Table;
+   end Add_Actions;
 
    procedure Delete_Known
      (Conflicts       : in out Conflict_Lists.List;
@@ -1083,8 +1079,7 @@ package body OpenToken.Production.Parser.LALR is
       New_Parser.Table := new Parse_Table
         (State_Index (First_State_Index) .. State_Index (Kernels.Size - 1 + First_State_Index));
 
-      --  Add actions
-      Fill_In_Parse_Table
+      Add_Actions
         (Kernels, Accept_Index, Grammar, First_Tokens, Unknown_Conflicts, New_Parser.Table.all, Trace);
 
       if Put_Grammar then

@@ -155,4 +155,13 @@ private
       Used_Tokens  : in out Tokenizer.Token_Array_Boolean;
       Trace        : in     Boolean);
 
+   procedure Add_Actions
+     (Kernel       : in     LRk.Item_Set_Ptr;
+      Accept_Index : in     Integer;
+      Grammar      : in     Production_List.Instance;
+      First        : in     LRk.Derivation_Matrix;
+      Conflicts    :    out Conflict_Lists.List;
+      Table        : in out Parse_Table;
+      Trace        : in     Boolean);
+
 end OpenToken.Production.Parser.LALR;
