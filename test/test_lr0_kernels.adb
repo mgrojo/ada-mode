@@ -201,7 +201,7 @@ package body Test_LR0_Kernels is
      Aggregate_Token.Grammar and
      Association_Token.Grammar;
    package OpenToken_Parser is new Production.Parser (Production_List, Tokenizer);
-   package LALR_Parser is new OpenToken_Parser.LALR;
+   package LALR_Parser is new OpenToken_Parser.LALR (First_State_Index => 1);
    String_Feeder : aliased OpenToken.Text_Feeder.String.Instance;
    An_Analyzer : constant Tokenizer.Instance := Tokenizer.Initialize (Syntax);
    Command_Parser : LALR_Parser.Instance;

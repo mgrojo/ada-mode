@@ -196,4 +196,14 @@ package OpenToken.Production.Parser.LRk_Item is
    procedure Put (Item : in Item_Set_List);
    --  Put Item to Ada.Text_IO.Standard_Output. Does not end with New_Line.
 
+   ----------
+   --  visible for unit test
+
+   function Goto_Transitions
+     (Kernel       : in Item_Set;
+      Symbol       : in Token.Token_ID;
+      First_Tokens : in Derivation_Matrix;
+      Grammar      : in Production_List.Instance)
+     return Item_Set;
+
 end OpenToken.Production.Parser.LRk_Item;

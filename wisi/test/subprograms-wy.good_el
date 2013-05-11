@@ -90,14 +90,14 @@
       ((default . error) (STRING_LITERAL .  16))
       ((default . error) (SYMBOL .  14) (RIGHT_PAREN .  15))
       ((default . error) (PROCEDURE . (subprogram . 1)) (FUNCTION . (subprogram . 1)) ($EOI . (subprogram . 1)))
-      ((default . error) (SYMBOL .  13))
       ((default . error) ($EOI . (subprogram . 0)) (FUNCTION . (subprogram . 0)) (PROCEDURE . (subprogram . 0)))
+      ((default . error) (SYMBOL .  12))
       ((default . error) (RIGHT_PAREN .  17))
       ((default . error) (SYMBOL . (parameter_list . 0)) ($EOI . (parameter_list . 0)) (FUNCTION . (parameter_list . 0)) (PROCEDURE . (parameter_list . 0)))
       ((default . error) (SYMBOL . (parameter_list . 3)) ($EOI . (parameter_list . 3)) (FUNCTION . (parameter_list . 3)) (PROCEDURE . (parameter_list . 3)))
       ((default . error) (PROCEDURE . (parameter_list . 2)) (FUNCTION . (parameter_list . 2)) ($EOI . (parameter_list . 2)) (SYMBOL . (parameter_list . 2)))]
      [((compilation_unit . 3)(declarations . 4)(declaration . 5)(subprogram . 6))
-      ((parameter_list . 12))
+      ((parameter_list . 13))
       ((parameter_list . 11))
       nil
       ((declaration . 7)(subprogram . 6))

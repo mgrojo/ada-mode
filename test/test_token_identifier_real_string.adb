@@ -153,7 +153,7 @@ package body Test_Token_Identifier_Real_String is
      Tokens.Value <= Tokens.String + Test_Action'Access;
 
    package OpenToken_Parser is new Production.Parser (Production_List, Tokenizer);
-   package LALR_Parser is new OpenToken_Parser.LALR;
+   package LALR_Parser is new OpenToken_Parser.LALR (First_State_Index => 1);
    String_Feeder : aliased OpenToken.Text_Feeder.String.Instance;
    An_Analyzer   : constant Tokenizer.Instance := Tokenizer.Initialize (Syntax);
    Parser        : LALR_Parser.Instance;

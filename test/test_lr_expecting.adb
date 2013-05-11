@@ -78,7 +78,7 @@ package body Test_LR_Expecting is
    package Production is new OpenToken.Production (Master_Token, Token_List, Nonterminal);
    package Production_List is new Production.List;
    package OpenToken_Parser is new Production.Parser (Production_List, Tokenizer);
-   package LALR_Parser is new OpenToken_Parser.LALR;
+   package LALR_Parser is new OpenToken_Parser.LALR (First_State_Index => 1);
 
    --  Terminals
    EOF        : constant Master_Token.Class := Master_Token.Get (EOF_ID, Name => "EOF");

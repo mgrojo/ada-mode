@@ -36,8 +36,6 @@ begin
    Add_Test (Suite, new Wisi_WY_Test.Test_Case (new String'("../../wisi/test/case_expression")));
    Add_Test (Suite, new Wisi_WY_Test.Test_Case (new String'("../../wisi/test/identifier_list_name_conflict")));
    Add_Test (Suite, new Wisi_WY_Test.Test_Case (new String'("../../wisi/test/range_conflict")));
-   Add_Test (Suite, new Wisi_WY_Test.Test_Case (new String'("../../wisi/test/shift_conflict_bug")));
-   --  shift_conflict.wy is an Ada parse test
    Add_Test (Suite, new Wisi_WY_Test.Test_Case (new String'("../../wisi/test/subprograms")));
 
    --  end test cases

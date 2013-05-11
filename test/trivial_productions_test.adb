@@ -52,7 +52,7 @@ package body Trivial_Productions_Test is
       package Productions is new OpenToken.Production (Tokens, Token_Lists, Nonterminals);
       package Production_Lists is new Productions.List;
       package Parsers is new Productions.Parser (Production_Lists, Analyzers);
-      package LALR_Parsers is new Parsers.LALR;
+      package LALR_Parsers is new Parsers.LALR (First_State_Index => 1);
 
       EOF    : constant Tokens.Class       := Tokens.Get (EOF_ID);
       Symbol : constant Tokens.Class       := Tokens.Get (Symbol_ID);
@@ -130,7 +130,7 @@ package body Trivial_Productions_Test is
       package Productions is new OpenToken.Production (Tokens_Pkg, Token_Lists, Nonterminals);
       package Production_Lists is new Productions.List;
       package Parsers is new Productions.Parser (Production_Lists, Analyzers);
-      package LALR_Parsers is new Parsers.LALR;
+      package LALR_Parsers is new Parsers.LALR (First_State_Index => 1);
 
       EOF            : constant Tokens_Pkg.Class := Tokens_Pkg.Get (EOF_ID);
       Function_Tok   : constant Tokens_Pkg.Class := Tokens_Pkg.Get (Function_ID);

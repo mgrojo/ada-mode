@@ -1,0 +1,141 @@
+\input texinfo
+@c Author : Stephen Leake stephen_leake@stephe-leake.org
+@c Web    : http://stephe-leake.org/ada/opentoken.html
+setfilename wisi.info
+settitle Wisi User Guide
+
+setchapternewpage off
+
+node Top, Introduction, (dir), (dir)
+top Wisi User Guide
+
+Wisi is an add-on to OpenToken, that allows using Bison-style input
+files, and generates either OpenToken Ada source, or elisp source for
+the elisp wisi parser.
+
+@node Common grammar problems, , ,
+@section Common grammar problems
+
+LALR grammars are tricky. Here we describe some common problems people
+run into.
+
+@node Empty choice in list, , ,
+@subsection Empty choice in list
+
+Many programming languages have lists in the grammar. For example, Ada
+has lists of declarations:
+
+@example
+package_body
+  : PACKAGE name IS declaration_list BEGIN statement_list END SEMICOLON
+  ;
+
+declaration_list
+  : declaration
+  | declaration_list declaration
+  ;
+
+declaration
+  : object_declaration
+  | subprogram_declaration
+  ;; ...
+  ;
+@endexample
+
+Note that the above grammar fragment does not allow an empty
+declaration_list. But Ada does, so the question is how can we add that
+to the grammar.
+
+There are four choices:
+
+@enumerate
+@item
+Add an empty declaration choice to declaration_list:
+
+@example
+declaration_list
+  : ;; empty list
+  | declaration
+  | declaration_list declaration
+  ;
+@endexample
+This is now redundant; since declaration_list can be empty, the second
+choice is not needed:
+@example
+declaration_list
+  : ;; empty list
+  | declaration_list declaration
+  ;
+@endexample
+
+
+@item
+Add an empty declaration choice to declaration:
+
+@example
+declaration
+  : ;; empty declaration
+  | object_declaration
+  | subprogram_declaration
+  ;; ...
+  ;
+@endexample
+
+@item
+Add another rule with the empty production:
+
+@example
+package_body
+  : PACKAGE name IS declarative_part BEGIN statement_list END SEMICOLON
+  ;
+
+declarative_part
+  : ;; empty
+  | declaration_list
+  ;
+
+declaration_list
+  : declaration
+  | declaration_list declaration
+  ;
+
+declaration
+  : object_declaration
+  | subprogram_declaration
+  ;; ...
+  ;
+@endexample
+
+@item
+Add another choice in package_body that leaves out declaration_list:
+@example
+package_body
+  : PACKAGE name IS declaration_list BEGIN statement_list END SEMICOLON
+  | PACKAGE name IS BEGIN statement_list END SEMICOLON
+  ;
+@end enumerate
+
+Choice 1 is redundant, giving parse errors at parse time.
+Consider the following statements, where "<empty>" is used to indicate
+an empty declaration:
+
+1) package One is <empty> begin end ;
+2) package One is package One is <empty> begin end ; begin end ;
+3) package One is <empty> package One is <empty declaration> begin end ; begin end ;
+
+In parsing 3), the second 'package' causes a shift/reduce conflict;
+shift to start the nested declaration (as in 2), reduce to the empty
+declaration. Both are correct according to the grammar.
+
+Choice 2 leads to a shift/reduce conflict in the production for
+package_body; extending the OpenToken parser to a generalized parser
+would allow it to handle this option. Even then, the grammar is
+ambiguous, for the same reason as in choice 1. See
+@file{../wisi/test/empty_production_2.wy}.
+
+Choice 3 is the preferred choice.
+
+Choice 4 also works, but of course it is very tedious; every occurance
+of declaration_list must be handled in the same way.
+
+@bye

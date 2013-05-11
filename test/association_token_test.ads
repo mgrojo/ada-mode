@@ -68,7 +68,7 @@ package Association_Token_Test is
 
    package Tokenizer is new Master_Token.Analyzer (First_Terminal => Comma_ID, Last_Terminal => EOF_ID);
    package Parser is new Production.Parser (Production_List, Tokenizer);
-   package LALR_Parser is new Parser.LALR;
+   package LALR_Parser is new Parser.LALR (First_State_Index => 1);
 
    package Tokens is
       --  For use in right hand sides, syntax.

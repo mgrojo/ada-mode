@@ -74,7 +74,7 @@ package body OpenToken.Production.Parser.LRk_Item is
       Derived_Token : Token.Token_ID;
 
       Derivations   : Token_ID_Set := (others => False);
-      Added_Tokens  : Token_ID_Set := (others => False);
+      Added_Tokens  : Token_ID_Set;
       Search_Tokens : Token_ID_Set := (others => False);
 
    begin
@@ -89,9 +89,7 @@ package body OpenToken.Production.Parser.LRk_Item is
          --  tokens we found last time.
          Prod_Iterator := Production_List.Initial_Iterator (Grammar);
          while not Production_List.Past_Last (Prod_Iterator) loop
-            if
-              Search_Tokens (Token.ID (Production_List.Get_Production (Prod_Iterator).LHS.all))
-            then
+            if Search_Tokens (Token.ID (Production_List.Get_Production (Prod_Iterator).LHS.all)) then
                Token_Iterator := Token_List.Initial_Iterator
                  (Production_List.Get_Production (Prod_Iterator).RHS.Tokens);
 
@@ -566,72 +564,128 @@ package body OpenToken.Production.Parser.LRk_Item is
      (Kernel       : in Item_Set;
       Symbol       : in Token.Token_ID;
       First_Tokens : in Derivation_Matrix;
-      Grammar      : in Production_List.Instance;
-      Trace        : in Boolean)
+      Grammar      : in Production_List.Instance)
      return Item_Set
    is
-
+      use Token_List;
       use type Token.Handle;
       use type Token.Token_ID;
 
       Goto_Set : Item_Set;
 
-      Item            : Item_Ptr := Kernel.Set;
-      Item_Pointer_ID : Token.Token_ID;
-      RHS_Pointer     : Token_List.List_Iterator;
-      Prod            : OpenToken.Production.Instance;
-      Prod_Index      : Production_List.List_Iterator;
+      Item          : Item_Ptr := Kernel.Set;
+      Dot_ID        : Token.Token_ID;
+      Dot_2_ID      : Token.Token_ID;
+      Have_Dot_2_ID : Boolean;
+      RHS_I         : List_Iterator;
+      Prod          : OpenToken.Production.Instance;
+      Prod_I        : Production_List.List_Iterator;
    begin
       Goto_Set.Index := -1;
 
       while Item /= null loop
 
-         if Token_List.Token_Handle (Item.Dot) /= null then
+         if Item.Dot /= Null_Iterator then
 
-            Item_Pointer_ID := Token.ID (Token_List.Token_Handle (Item.Dot).all);
-            --  ID of token after Item Dot
+            Dot_ID := Token.ID (Token_Handle (Item.Dot).all);
+            --  ID of token after Dot
 
-            if Item_Pointer_ID = Symbol then
+            --  FIXME: can't just check for Null_Iterator here; why do we allow null token_handle in a token list?
+            if Null_Iterator /= Next_Token (Item.Dot) and then Token_Handle (Next_Token (Item.Dot)) /= null then
+               Have_Dot_2_ID := True;
+               Dot_2_ID := Token.ID (Token_Handle (Next_Token (Item.Dot)).all);
+               --  ID of second token after Dot
+            else
+               Have_Dot_2_ID := False;
+            end if;
+
+            if Dot_ID = Symbol then
                Goto_Set.Set := new Item_Node'
                  (Prod       => Item.Prod,
-                  Dot        => Token_List.Next_Token (Item.Dot),
+                  Dot        => Next_Token (Item.Dot),
                   Index      => -1, -- replaced in LR0_Kernels
                   Lookaheads => Item.Lookaheads,
                   Next       => Goto_Set.Set);
             end if;
 
-            if Item_Pointer_ID in Nonterminal_ID and then First_Tokens (Item_Pointer_ID)(Symbol) then
-               --  Find the production(s) that create that symbol and put
-               --  them in
-               Prod_Index := Production_List.Initial_Iterator (Grammar);
-               while not Production_List.Past_Last (Prod_Index) loop
+            if Dot_ID in Nonterminal_ID and then First_Tokens (Dot_ID)(Symbol) then
+               --  Find the production(s) that create Dot_ID
+               --  with first token Symbol and put them in
+               Prod_I := Production_List.Initial_Iterator (Grammar);
+               while not Production_List.Past_Last (Prod_I) loop
 
-                  Prod        := Production_List.Get_Production (Prod_Index);
-                  RHS_Pointer := Token_List.Initial_Iterator (Prod.RHS.Tokens);
+                  Prod  := Production_List.Get_Production (Prod_I);
+                  RHS_I := Initial_Iterator (Prod.RHS.Tokens);
 
-                  if (Token_List.Token_Handle (RHS_Pointer) /= null and then
-                        Token.ID (Token_List.Token_Handle (RHS_Pointer).all) = Symbol) and
-                    (Item_Pointer_ID = LHS_ID (Prod) or First_Tokens (Item_Pointer_ID)(LHS_ID (Prod)))
+                  if (Dot_ID = LHS_ID (Prod) or First_Tokens (Dot_ID)(LHS_ID (Prod))) and
+                    (RHS_I /= Null_Iterator and then
+                       Token.ID (Token_Handle (RHS_I).all) = Symbol)
                   then
                      declare
                         New_Item : constant Item_Node :=
                           (Prod       => Prod,
-                           Dot        => Token_List.Next_Token (RHS_Pointer),
+                           Dot        => Next_Token (RHS_I),
                            Index      => -1, -- replaced in LR0_Kernels
                            Lookaheads => null,
                            Next       => Goto_Set.Set);
                      begin
                         if null = Find (New_Item, Goto_Set) then
                            Goto_Set.Set := new Item_Node'(New_Item);
-                        else
-                           if Trace then
-                              Ada.Text_IO.Put_Line ("... already in goto set");
-                           end if;
+                           --  else already in goto set
                         end if;
                      end;
                   end if;
 
-                  Production_List.Next_Production (Prod_Index);
+                  Production_List.Next_Production (Prod_I);
+               end loop;
+
+            elsif Have_Dot_2_ID and then Dot_2_ID = Symbol then
+               --  If there are any empty productions that create Dot_ID, put Prod in
+               Prod_I := Production_List.Initial_Iterator (Grammar);
+               while not Production_List.Past_Last (Prod_I) loop
+
+                  Prod  := Production_List.Get_Production (Prod_I);
+                  RHS_I := Initial_Iterator (Prod.RHS.Tokens);
+
+                  if Dot_ID = LHS_ID (Prod) and RHS_I = Null_Iterator then
+                     Goto_Set.Set := new Item_Node'
+                       (Prod       => Item.Prod,
+                        Dot        => Next_Token (Next_Token (Item.Dot)),
+                        Index      => -1, -- replaced in LR0_Kernels
+                        Lookaheads => Item.Lookaheads,
+                        Next       => Goto_Set.Set);
+
+                     exit;
+                  end if;
+                  Production_List.Next_Production (Prod_I);
+               end loop;
+
+            elsif Have_Dot_2_ID and then (Dot_2_ID in Nonterminal_ID and then First_Tokens (Dot_2_ID)(Symbol)) then
+               --  Find the empty production(s) that create Dot_ID
+               --  and put them in
+               Prod_I := Production_List.Initial_Iterator (Grammar);
+               while not Production_List.Past_Last (Prod_I) loop
+
+                  Prod  := Production_List.Get_Production (Prod_I);
+                  RHS_I := Initial_Iterator (Prod.RHS.Tokens);
+
+                  if Dot_ID = LHS_ID (Prod) and RHS_I = Null_Iterator then
+                     declare
+                        New_Item : constant Item_Node :=
+                          (Prod       => Prod,
+                           Dot        => RHS_I, -- null iterator
+                           Index      => -1, -- replaced in LR0_Kernels
+                           Lookaheads => null,
+                           Next       => Goto_Set.Set);
+                     begin
+                        if null = Find (New_Item, Goto_Set) then
+                           Goto_Set.Set := new Item_Node'(New_Item);
+                           --  else already in goto set
+                        end if;
+                     end;
+                  end if;
+
+                  Production_List.Next_Production (Prod_I);
                end loop;
             end if;
          end if;
@@ -734,8 +788,7 @@ package body OpenToken.Production.Parser.LRk_Item is
                  (Kernel       => Checking_Set.all,
                   Symbol       => Symbol,
                   First_Tokens => First_Tokens,
-                  Grammar      => Grammar,
-                  Trace        => Trace);
+                  Grammar      => Grammar);
 
                --  See if any of the item sets need to be added to our list
                if New_Items.Set /= null then
