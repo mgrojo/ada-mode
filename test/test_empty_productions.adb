@@ -97,7 +97,7 @@ package body Test_Empty_Productions is
    procedure Test_Goto_Transitions
      (Label    : in String;
       Kernel   : in LALR.LRk.Item_Set;
-      Symbol   : in Token_ID;
+      Symbol   : in Token_IDs;
       Expected : in LALR.LRk.Item_Set;
       Debug    : in Boolean)
    is

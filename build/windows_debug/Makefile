@@ -1,4 +1,4 @@
-# (ediff "../windows_release/Makefile" "../linux_release/Makefile")
+# (ediff "../windows_debug/Makefile" "../linux_debug/Makefile")
 
 # no reason to run 'all' in debug
 all:
@@ -10,12 +10,8 @@ t_one : test_one_harness.run
 t_all : test_all_harness.run
 
 # from ../common.make
-# ../../wisi/test/shift_conflict_bug.wy
-one : RUN_ARGS := -v 2
-one : shift_conflict-wy.el
-
-two : RUN_ARGS := -v 2
-two : shift_conflict.parse
+# ../../wisi/test/body_instantiation_conflict.wy
+one : body_instantiation_conflict-wy.el
 
 EMACS := /apps/emacs-24.2.91/bin/emacs.exe
 ../../wisi/test/%-wy.el : %.wy

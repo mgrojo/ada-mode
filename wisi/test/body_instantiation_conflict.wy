@@ -24,7 +24,7 @@
 
 %start compilation_unit
 
-%conflict REDUCE/SHIFT in state subprogram_specification, generic_instantiation on token IS
+%conflict SHIFT/REDUCE in state generic_instantiation, subprogram_specification on token IS
 
 %%
 

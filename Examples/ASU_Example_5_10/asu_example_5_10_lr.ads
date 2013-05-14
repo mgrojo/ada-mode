@@ -56,7 +56,7 @@ package ASU_Example_5_10_LR is
    package Production is new OpenToken.Production (Master_Token, Token_List, Nonterminal);
    package Production_List is new Production.List;
    package Parser is new Production.Parser (Production_List, Tokenizer);
-   package LALR_Parser is new Parser.LALR;
+   package LALR_Parser is new Parser.LALR (First_State_Index => 1);
 
    --  Instantiate our tokens
    package Integer_Literal is new Master_Token.Integer;

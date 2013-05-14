@@ -628,9 +628,10 @@ package body OpenToken.Production.Parser.LALR is
    end Image;
 
    function Find
-     (Kernel    : in LRk.Item_Set;
-      Action    : in Parse_Action_Rec;
-      Lookahead : in Token.Token_ID)
+     (Kernel               : in LRk.Item_Set;
+      Action               : in Parse_Action_Rec;
+      Lookahead            : in Token.Token_ID;
+      Has_Empty_Production : in LRk.Nonterminal_ID_Set)
      return Token.Token_ID
    is
       --  Return LHS of production that matches Action, Lookahead
@@ -656,9 +657,10 @@ package body OpenToken.Production.Parser.LALR is
       when Reduce =>
          loop
             exit when Item = null;
-            if Item.Dot = Token_List.Null_Iterator and
-              (Action.Verb = Reduce and then
-                 LHS_ID (Item.Prod) = LHS_ID (Action.Production))
+            if LHS_ID (Item.Prod) = LHS_ID (Action.Production) and
+              (Item.Dot = Token_List.Null_Iterator or else
+                 (Has_Empty_Production (Token_List.ID (Item.Dot)) and
+                    Token_List.Next_Token (Item.Dot) = Token_List.Null_Iterator))
             then
                return LHS_ID (Action.Production);
             end if;
@@ -681,12 +683,13 @@ package body OpenToken.Production.Parser.LALR is
    --  Add (Symbol, Action) to Action_List
    --  Source .. Conflicts are for conflict reporting
    procedure Add_Action
-     (Symbol      : in     Tokenizer.Terminal_ID;
-      Action      : in     Parse_Action_Rec;
-      Action_List : in out Action_Node_Ptr;
-      Source      : in     LRk.Item_Set;
-      Conflicts   : in out Conflict_Lists.List;
-      Trace       : in     Boolean)
+     (Symbol               : in     Tokenizer.Terminal_ID;
+      Action               : in     Parse_Action_Rec;
+      Action_List          : in out Action_Node_Ptr;
+      Source               : in     LRk.Item_Set;
+      Has_Empty_Production : in     LRk.Nonterminal_ID_Set;
+      Conflicts            : in out Conflict_Lists.List;
+      Trace                : in     Boolean)
    is
       use type Ada.Strings.Unbounded.Unbounded_String;
       Matching_Action : constant Action_Node_Ptr := Find (Symbol, Action_List);
@@ -711,8 +714,8 @@ package body OpenToken.Production.Parser.LALR is
             Conflicts.Append
               ((Action_A    => Matching_Action.Action.Item.Verb,
                 Action_B    => Action.Verb,
-                LHS_A       => Find (Source, Matching_Action.Action.Item, Symbol),
-                LHS_B       => Find (Source, Action, Symbol),
+                LHS_A       => Find (Source, Matching_Action.Action.Item, Symbol, Has_Empty_Production),
+                LHS_B       => Find (Source, Action, Symbol, Has_Empty_Production),
                 State_Index => Source.Index,
                 On          => Symbol));
 
@@ -732,6 +735,58 @@ package body OpenToken.Production.Parser.LALR is
       end if;
    end Add_Action;
 
+   procedure Add_Lookahead_Actions
+     (Item                 : in     LRk.Item_Ptr;
+      RHS_Length           : in     Integer;
+      Kernel               : in     LRk.Item_Set_Ptr;
+      Accept_Index         : in     Integer;
+      Has_Empty_Production : in     LRk.Nonterminal_ID_Set;
+      Action_List          : in out Action_Node_Ptr;
+      Conflicts            : in out Conflict_Lists.List;
+      Trace                : in     Boolean)
+   is
+      use type LRk.Item_Lookahead_Ptr;
+      Lookahead : LRk.Item_Lookahead_Ptr;
+   begin
+      if Trace then
+         Ada.Text_IO.Put_Line ("processing lookaheads");
+      end if;
+
+      Lookahead := Item.Lookaheads;
+      while Lookahead /= null loop
+         --  Only the start symbol kernel gets accept; the
+         --  rest get reduce. See [dragon] algorithm 4.11
+         --  page 238, 4.10 page 234, except that here the
+         --  augmenting production is implicit.
+         if Kernel.Index = Accept_Index then
+            Add_Action
+              (Symbol               => Lookahead.Lookaheads (1),
+               Action               =>
+                 (Verb              => Accept_It,
+                  Production        => Item.Prod,
+                  Length            => RHS_Length),
+               Action_List          => Action_List,
+               Source               => Kernel.all,
+               Has_Empty_Production => Has_Empty_Production,
+               Conflicts            => Conflicts,
+               Trace                => Trace);
+         else
+            Add_Action
+              (Symbol               => Lookahead.Lookaheads (1),
+               Action               =>
+                 (Verb              => Reduce,
+                  Production        => Item.Prod,
+                  Length            => RHS_Length),
+               Action_List          => Action_List,
+               Source               => Kernel.all,
+               Has_Empty_Production => Has_Empty_Production,
+               Conflicts            => Conflicts,
+               Trace                => Trace);
+         end if;
+         Lookahead := Lookahead.Next;
+      end loop;
+   end Add_Lookahead_Actions;
+
    --  Add actions for Kernel to Table
    procedure Add_Actions
      (Kernel               : in     LRk.Item_Set_Ptr;
@@ -750,12 +805,10 @@ package body OpenToken.Production.Parser.LALR is
          First   => First,
          Grammar => Grammar);
 
-      Item      : LRk.Item_Ptr := Closure.Set;
-      Lookahead : LRk.Item_Lookahead_Ptr;
+      Item : LRk.Item_Ptr := Closure.Set;
 
       use type LRk.Item_Ptr;
       use type LRk.Set_Reference_Ptr;
-      use type LRk.Item_Lookahead_Ptr;
       use type Token_List.List_Iterator;
       use type Token.Handle;
    begin
@@ -772,41 +825,9 @@ package body OpenToken.Production.Parser.LALR is
             --  or accept action for a non-empty production.
 
             if Token_List.Length (Item.Prod.RHS.Tokens) > 0 then
-               if Trace then
-                  Ada.Text_IO.Put_Line ("processing lookaheads");
-               end if;
-
-               Lookahead := Item.Lookaheads;
-               while Lookahead /= null loop
-                  --  Only the start symbol kernel gets accept; the
-                  --  rest get reduce. See [dragon] algorithm 4.11
-                  --  page 238, 4.10 page 234, except that here the
-                  --  augmenting production is implicit.
-                  if Kernel.Index = Accept_Index then
-                     Add_Action
-                       (Symbol        => Lookahead.Lookaheads (1),
-                        Action        =>
-                          (Verb       => Accept_It,
-                           Production => Item.Prod,
-                           Length     => Token_List.Length (Item.Prod.RHS.Tokens)),
-                        Action_List   => Table (State).Action_List,
-                        Source        => Kernel.all,
-                        Conflicts     => Conflicts,
-                        Trace         => Trace);
-                  else
-                     Add_Action
-                       (Symbol        => Lookahead.Lookaheads (1),
-                        Action        =>
-                          (Verb       => Reduce,
-                           Production => Item.Prod,
-                           Length     => Token_List.Length (Item.Prod.RHS.Tokens)),
-                        Action_List   => Table (State).Action_List,
-                        Source        => Kernel.all,
-                        Conflicts     => Conflicts,
-                        Trace         => Trace);
-                  end if;
-                  Lookahead := Lookahead.Next;
-               end loop;
+               Add_Lookahead_Actions
+                 (Item, Token_List.Length (Item.Prod.RHS.Tokens),
+                  Kernel, Accept_Index, Has_Empty_Production, Table (State).Action_List, Conflicts, Trace);
             end if;
 
          elsif Token.ID (Token_List.Token_Handle (Item.Dot).all) in Tokenizer.Terminal_ID then
@@ -816,14 +837,15 @@ package body OpenToken.Production.Parser.LALR is
                --  ID of token after Item.Dot
             begin
                Add_Action
-                 (Symbol      => Dot_ID,
-                  Action      =>
-                    (Verb     => Shift,
-                     State    => State_Index (LRk.Goto_Set (Kernel.all, Dot_ID).Index)),
-                  Action_List => Table (State).Action_List,
-                  Source      => Kernel.all,
-                  Conflicts   => Conflicts,
-                  Trace       => Trace);
+                 (Symbol               => Dot_ID,
+                  Action               =>
+                    (Verb              => Shift,
+                     State             => State_Index (LRk.Goto_Set (Kernel.all, Dot_ID).Index)),
+                  Action_List          => Table (State).Action_List,
+                  Source               => Kernel.all,
+                  Has_Empty_Production => Has_Empty_Production,
+                  Conflicts            => Conflicts,
+                  Trace                => Trace);
             end;
          else
             --  Dot is before a non-terminal token; no action unless
@@ -833,30 +855,41 @@ package body OpenToken.Production.Parser.LALR is
                Dot_ID   : constant Nonterminal_ID := Token.ID (Token_Handle (Item.Dot).all);
                Dot_2_ID : Token.Token_ID;
             begin
-               --  FIXME: can't just check for Null_Iterator here; why
-               --  do we allow null token_handle in a token list?
-               if (Null_Iterator /= Next_Token (Item.Dot) and then Token_Handle (Next_Token (Item.Dot)) /= null) and
-                 Has_Empty_Production (Dot_ID)
-               then
-                  Dot_2_ID := Token.ID (Token_Handle (Next_Token (Item.Dot)).all);
-                  if Dot_2_ID in Tokenizer.Terminal_ID then
-                     Add_Action
-                       (Symbol      => Dot_2_ID,
-                        Action      =>
-                          (Verb     => Shift,
-                           State    => State_Index (LRk.Goto_Set (Kernel.all, Dot_2_ID).Index)),
-                        Action_List => Table (State).Action_List,
-                        Source      => Kernel.all,
-                        Conflicts   => Conflicts,
-                        Trace       => Trace);
+               if Null_Iterator = Next_Token (Item.Dot) then
+                  if Has_Empty_Production (Dot_ID) then
+                     Add_Lookahead_Actions
+                       (Item, Token_List.Length (Item.Prod.RHS.Tokens) - 1,
+                        Kernel, Accept_Index, Has_Empty_Production, Table (State).Action_List, Conflicts, Trace);
                   else
-                     --  Dot_2_ID is a nonterminal; add actions on all First (Dot_2_ID) symbols
-                     --  FIXME: write test, implement
-                     raise Programmer_Error;
+                     if Trace then
+                        Ada.Text_IO.Put_Line (Token.Token_Image (Dot_ID) & " => no action");
+                     end if;
                   end if;
                else
-                  if Trace then
-                     Ada.Text_IO.Put_Line (Token.Token_Image (Dot_ID) & " => no action");
+                  --  FIXME: can't just check for Null_Iterator here; why
+                  --  do we allow null token_handle in a token list?
+                  if Token_Handle (Next_Token (Item.Dot)) /= null and Has_Empty_Production (Dot_ID) then
+                     Dot_2_ID := Token.ID (Token_Handle (Next_Token (Item.Dot)).all);
+                     if Dot_2_ID in Tokenizer.Terminal_ID then
+                        Add_Action
+                          (Symbol               => Dot_2_ID,
+                           Action               =>
+                             (Verb              => Shift,
+                              State             => State_Index (LRk.Goto_Set (Kernel.all, Dot_2_ID).Index)),
+                           Action_List          => Table (State).Action_List,
+                           Source               => Kernel.all,
+                           Has_Empty_Production => Has_Empty_Production,
+                           Conflicts            => Conflicts,
+                           Trace                => Trace);
+                     else
+                        --  Dot_2_ID is a nonterminal; add actions on all First (Dot_2_ID) symbols
+                        --  FIXME: write test, implement
+                        raise Programmer_Error;
+                     end if;
+                  else
+                     if Trace then
+                        Ada.Text_IO.Put_Line (Token.Token_Image (Dot_ID) & " => no action");
+                     end if;
                   end if;
                end if;
             end;
