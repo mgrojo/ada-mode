@@ -22,7 +22,7 @@ with AUnit.Check;
 with Ada.Text_IO;
 with Gen_OpenToken_AUnit;
 with OpenToken.Production.List;
-with OpenToken.Production.Parser.LRk_Item;
+with OpenToken.Production.Parser.LALR;
 with OpenToken.Token.Enumerated.Analyzer;
 with OpenToken.Token.Enumerated.List;
 with OpenToken.Token.Enumerated.Nonterminal;
@@ -57,7 +57,7 @@ package body Test_Empty_Productions is
      (First_Terminal => BEGIN_ID,
       Last_Terminal  => EOF_ID);
    package Parsers is new Productions.Parser (Production_Lists, Analyzers);
-   package LR1 is new Parsers.LRk_Item (1);
+   package LALR is new Parsers.LALR (First_State_Index => 1);
 
    --  Allow infix operators for building productions
    use type Token_Lists.Instance;
@@ -86,23 +86,25 @@ package body Test_Empty_Productions is
      Nonterminals.Get (body_ID) <= (+IS_ID) & (+declarative_part_ID) & (+BEGIN_ID) & (+SEMICOLON_ID) + Self -- 6
      ;
 
-   package LR1_AUnit is new Gen_OpenToken_AUnit
+   package OpenToken_AUnit is new Gen_OpenToken_AUnit
      (Token_IDs, Tokens_Pkg, Token_Lists, Nonterminals, Productions, Production_Lists, BEGIN_ID, EOF_ID,
-      Analyzers, Parsers, LR1, Grammar);
+      Analyzers, Parsers, 1, LALR, Grammar);
 
-   First : constant LR1.Derivation_Matrix := LR1.First_Derivations (Grammar, Trace => False);
+   First : constant LALR.LRk.Derivation_Matrix := LALR.LRk.First_Derivations (Grammar, Trace => False);
+
+   Has_Empty_Production : constant LALR.LRk.Nonterminal_ID_Set := LALR.LRk.Has_Empty_Production (Grammar);
 
    procedure Test_Goto_Transitions
      (Label    : in String;
-      Kernel   : in LR1.Item_Set;
-      Symbol   : in Token_IDs;
-      Expected : in LR1.Item_Set;
+      Kernel   : in LALR.LRk.Item_Set;
+      Symbol   : in Token_ID;
+      Expected : in LALR.LRk.Item_Set;
       Debug    : in Boolean)
    is
       use Ada.Text_IO;
-      use LR1;
-      use LR1_AUnit;
-      Computed : constant Item_Set := Goto_Transitions (Kernel, Symbol, First, Grammar);
+      use LALR.LRk;
+      use OpenToken_AUnit;
+      Computed : constant Item_Set := Goto_Transitions (Kernel, Symbol, First, Has_Empty_Production, Grammar);
    begin
       if Debug then
          Put_Line ("symbol:   " & Token_IDs'Image (Symbol));
@@ -112,6 +114,28 @@ package body Test_Empty_Productions is
 
       Check (Label, Computed, Expected);
    end Test_Goto_Transitions;
+
+   procedure Test_Actions
+     (Label    : in String;
+      Kernels  : in LALR.LRk.Item_Set_List;
+      State    : in Integer;
+      Expected : in LALR.Parse_State;
+      Debug    : in Boolean)
+   is
+      use OpenToken_AUnit;
+      Accept_Index : constant                       := 1;
+      Kernel       : constant LALR.LRk.Item_Set_Ptr := LALR.LRk.Find (State, Kernels);
+      Conflicts    : LALR.Conflict_Lists.List;
+      Table        : LALR.Parse_Table (1 .. LALR.State_Index (Kernels.Size));
+   begin
+      if Debug then
+         LALR.LRk.Put (Kernel.all);
+      end if;
+
+      LALR.Add_Actions (Kernel, Accept_Index, Grammar, First, Has_Empty_Production, Conflicts, Table, Trace => Debug);
+
+      Check (Label, Table (LALR.State_Index (Kernel.Index)), Expected);
+   end Test_Actions;
 
    ----------
    --  Test procedures
@@ -127,8 +151,8 @@ package body Test_Empty_Productions is
    procedure Goto_Transitions_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       Test : Test_Case renames Test_Case (T);
-      use LR1;
-      use LR1_AUnit;
+      use LALR.LRk;
+      use OpenToken_AUnit;
 
       --  kernel:
       --  BODY_ID <= IS_ID ^ DECLARATIVE_PART_ID BEGIN_ID SEMICOLON_ID
@@ -182,8 +206,8 @@ package body Test_Empty_Productions is
    procedure Goto_Transitions_2 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       Test : Test_Case renames Test_Case (T);
-      use LR1;
-      use LR1_AUnit;
+      use LALR.LRk;
+      use OpenToken_AUnit;
 
       --  kernel:
       --  BODY_ID <= IS_ID DECLARATIVE_PART_ID ^ BEGIN_ID SEMICOLON_ID
@@ -222,6 +246,136 @@ package body Test_Empty_Productions is
 
    end Goto_Transitions_2;
 
+   procedure Goto_Set_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      Test : Test_Case renames Test_Case (T);
+      use LALR.LRk;
+      use OpenToken_AUnit;
+
+      Kernels  : constant Item_Set_List := LALR.LRk.LR0_Kernels
+        (Grammar, First, Has_Empty_Production, Trace => False, First_State_Index => 1);
+      Kernel   : constant Item_Set_Ptr  := Find (2, Kernels);
+      Expected : Set_Reference_Ptr;
+
+   begin
+      --  Kernel 2:
+      --  BODY_ID <= IS_ID ^ DECLARATIVE_PART_ID BEGIN_ID SEMICOLON_ID
+
+      --  Expected goto_list:
+      --  BODY_ID => DECLARATIONS_ID <= BODY_ID ^ ; Set 4
+      --  DECLARATIONS_ID =>
+      --    DECLARATIVE_PART_ID <= DECLARATIONS_ID ^
+      --    DECLARATIONS_ID <= DECLARATIONS_ID ^ BODY_ID
+      --    Set 9
+      --  DECLARATIVE_PART_ID => BODY_ID <= IS_ID DECLARATIVE_PART_ID ^ BEGIN_ID SEMICOLON_ID ; Set 8
+      --  IS_ID    => BODY_ID <= IS_ID ^ DECLARATIVE_PART_ID BEGIN_ID SEMICOLON_ID ; Set 2
+      --  BEGIN_ID => BODY_ID <= IS_ID DECLARATIVE_PART_ID BEGIN_ID ^ SEMICOLON_ID ; Set 7
+
+      --  Only Index is checked in Expected.Set
+      Expected := new Set_Reference'
+        (Symbol => BEGIN_ID,
+         Set    => new Item_Set'(Set => null, Goto_List => null, Index => 7, Next => null),
+         Next   => null);
+
+      Expected := new Set_Reference'
+        (Symbol => IS_ID,
+         Set    => new Item_Set'(Set => null, Goto_List => null, Index => 2, Next => null),
+         Next   => Expected);
+
+      Expected := new Set_Reference'
+        (Symbol => declarative_part_ID,
+         Set    => new Item_Set'(Set => null, Goto_List => null, Index => 8, Next => null),
+         Next   => Expected);
+
+      Expected := new Set_Reference'
+        (Symbol => declarations_ID,
+         Set    => new Item_Set'(Set => null, Goto_List => null, Index => 9, Next => null),
+         Next   => Expected);
+
+      Expected := new Set_Reference'
+        (Symbol => body_ID,
+         Set    => new Item_Set'(Set => null, Goto_List => null, Index => 4, Next => null),
+         Next   => Expected);
+
+      if Test.Debug then
+         Ada.Text_IO.Put_Line ("kernels:"); Put (Kernels);
+         Ada.Text_IO.Put_Line ("Expected:"); Put (Expected);
+      end if;
+
+      Check ("1", Kernel.Goto_List, Expected);
+
+   end Goto_Set_1;
+
+   procedure Actions_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      Test : Test_Case renames Test_Case (T);
+      use LALR;
+      use LALR.LRk;
+
+      First   : constant Derivation_Matrix := First_Derivations (Grammar, Trace  => False);
+      Kernels : constant Item_Set_List     := LR0_Kernels
+        (Grammar, First, Has_Empty_Production, Trace => False, First_State_Index => 1);
+
+      Expected : Parse_State;
+   begin
+      --  Assuming Grammar is from test_empty_productions.adb,
+      --  Kernel 2 is:
+      --
+      --  BODY_ID <= IS_ID ^ DECLARATIVE_PART_ID BEGIN_ID SEMICOLON_ID
+      --
+      --  Expected actions:
+      --  BEGIN_ID => shift and goto 7
+      --  IS_ID => shift and goto 2
+      --  default => ERROR
+
+      --  Expected reduction gotos:
+      --  BODY_ID => Set 4
+      --  DECLARATIONS_ID => Set 9
+      --  DECLARATIVE_PART_ID => Set 8
+      Expected.Action_List := new Action_Node'
+        (Symbol  => Analyzers.Terminal_ID'Last, -- ignored, since this is the last action
+         Action  => new Parse_Action_Node'
+           (Item => (Verb => Error),
+            Next => null),
+         Next  => null);
+
+      Expected.Action_List := new Action_Node'
+        (Symbol      => IS_ID,
+         Action      => new Parse_Action_Node'
+           (Item     =>
+              (Verb  => Shift,
+               State => 2),
+            Next     => null),
+         Next        => Expected.Action_List);
+
+      Expected.Action_List := new Action_Node'
+        (Symbol      => BEGIN_ID,
+         Action      => new Parse_Action_Node'
+           (Item     =>
+              (Verb  => Shift,
+               State => 7),
+            Next     => null),
+         Next        => Expected.Action_List);
+
+      Expected.Reduction_List := new Reduction_Node'
+        (Symbol => body_ID,
+         State  => 4,
+         Next   => Expected.Reduction_List);
+
+      Expected.Reduction_List := new Reduction_Node'
+        (Symbol => declarations_ID,
+         State  => 9,
+         Next   => Expected.Reduction_List);
+
+      Expected.Reduction_List := new Reduction_Node'
+        (Symbol => declarative_part_ID,
+         State  => 8,
+         Next   => Expected.Reduction_List);
+
+      Test_Actions ("1", Kernels, 2, Expected, Test.Debug);
+
+   end Actions_1;
+
    ----------
    --  Public subprograms
 
@@ -239,6 +393,8 @@ package body Test_Empty_Productions is
       Register_Routine (T, Test_First'Access, "Test_First");
       Register_Routine (T, Goto_Transitions_1'Access, "Goto_Transitions_1");
       Register_Routine (T, Goto_Transitions_2'Access, "Goto_Transitions_2");
+      Register_Routine (T, Goto_Set_1'Access, "Goto_Set_1");
+      Register_Routine (T, Actions_1'Access, "Actions_1");
    end Register_Tests;
 
 end Test_Empty_Productions;

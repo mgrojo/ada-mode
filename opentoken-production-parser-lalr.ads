@@ -37,9 +37,62 @@ generic
    First_State_Index : in Natural;
 package OpenToken.Production.Parser.LALR is
 
-   type Instance is new OpenToken.Production.Parser.Instance with private;
+   --  No private types; that would make it too hard to write the unit tests
+
+   type State_Index is new Integer range First_State_Index .. Integer'Last;
 
    type Parse_Action_Verbs is (Shift, Reduce, Accept_It, Error);
+   type Parse_Action_Rec (Verb : Parse_Action_Verbs := Shift) is record
+      case Verb is
+      when Shift =>
+         State : State_Index;
+      when Reduce | Accept_It =>
+         Production : OpenToken.Production.Instance;
+         Length     : Natural;
+      when Error =>
+         null;
+      end case;
+   end record;
+
+   type Parse_Action_Node;
+   type Parse_Action_Node_Ptr is access Parse_Action_Node;
+
+   type Parse_Action_Node is record
+      Item : Parse_Action_Rec;
+      Next : Parse_Action_Node_Ptr; -- non-null only for conflicts
+   end record;
+
+   type Action_Node;
+   type Action_Node_Ptr is access Action_Node;
+
+   type Action_Node is record
+      Symbol : Tokenizer.Terminal_ID;
+      Action : Parse_Action_Node_Ptr;
+      Next   : Action_Node_Ptr;
+   end record;
+
+   type Reduction_Node;
+   type Reduction_Node_Ptr is access Reduction_Node;
+
+   type Reduction_Node is record
+      Symbol : Nonterminal_ID;
+      State  : State_Index;
+      Next   : Reduction_Node_Ptr;
+   end record;
+
+   type Parse_State is record
+      Action_List    : Action_Node_Ptr;
+      Reduction_List : Reduction_Node_Ptr;
+   end record;
+
+   type Parse_Table is array (State_Index range <>) of Parse_State;
+
+   type Parse_Table_Ptr is access Parse_Table;
+
+   type Instance is new OpenToken.Production.Parser.Instance with record
+      Table : Parse_Table_Ptr;
+   end record;
+
    subtype Conflict_Parse_Actions is Parse_Action_Verbs range Shift .. Reduce;
    type Conflict is record
       --  A typical conflict is:
@@ -87,61 +140,6 @@ package OpenToken.Production.Parser.LALR is
 
    procedure Put_Table (Parser : in Instance);
 
-private
-
-   type State_Index is new Integer range First_State_Index .. Integer'Last;
-
-   type Parse_Action_Rec (Verb : Parse_Action_Verbs := Shift) is record
-      case Verb is
-      when Shift =>
-         State : State_Index;
-      when Reduce | Accept_It =>
-         Production : OpenToken.Production.Instance;
-         Length     : Natural;
-      when Error =>
-         null;
-      end case;
-   end record;
-
-   type Parse_Action_Node;
-   type Parse_Action_Node_Ptr is access Parse_Action_Node;
-
-   type Parse_Action_Node is record
-      Item : Parse_Action_Rec;
-      Next : Parse_Action_Node_Ptr; -- non-null only for conflicts
-   end record;
-
-   type Action_Node;
-   type Action_Node_Ptr is access Action_Node;
-
-   type Action_Node is record
-      Symbol : Tokenizer.Terminal_ID;
-      Action : Parse_Action_Node_Ptr;
-      Next   : Action_Node_Ptr;
-   end record;
-
-   type Reduction_Node;
-   type Reduction_Node_Ptr is access Reduction_Node;
-
-   type Reduction_Node is record
-      Symbol : Token.Token_ID;
-      State  : State_Index;
-      Next   : Reduction_Node_Ptr;
-   end record;
-
-   type Parse_State is record
-      Action_List    : Action_Node_Ptr;
-      Reduction_List : Reduction_Node_Ptr;
-   end record;
-
-   type Parse_Table is array (State_Index range <>) of Parse_State;
-
-   type Parse_Table_Ptr is access Parse_Table;
-
-   type Instance is new OpenToken.Production.Parser.Instance with record
-      Table : Parse_Table_Ptr;
-   end record;
-
    ----------
    --  Visible for unit test
 
@@ -156,12 +154,13 @@ private
       Trace        : in     Boolean);
 
    procedure Add_Actions
-     (Kernel       : in     LRk.Item_Set_Ptr;
-      Accept_Index : in     Integer;
-      Grammar      : in     Production_List.Instance;
-      First        : in     LRk.Derivation_Matrix;
-      Conflicts    :    out Conflict_Lists.List;
-      Table        : in out Parse_Table;
-      Trace        : in     Boolean);
+     (Kernel               : in     LRk.Item_Set_Ptr;
+      Accept_Index         : in     Integer;
+      Grammar              : in     Production_List.Instance;
+      First                : in     LRk.Derivation_Matrix;
+      Has_Empty_Production : in     LRk.Nonterminal_ID_Set;
+      Conflicts            : in out Conflict_Lists.List;
+      Table                : in out Parse_Table;
+      Trace                : in     Boolean);
 
 end OpenToken.Production.Parser.LALR;

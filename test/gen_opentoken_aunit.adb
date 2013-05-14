@@ -59,10 +59,10 @@ package body Gen_OpenToken_AUnit is
       Check (Label & ".RHS", First_Token (Computed), First_Token (Expected));
    end Check;
 
-   procedure Check (Label : in String; Computed : in LR1.Item_Lookahead_Ptr; Expected : in LR1.Item_Lookahead_Ptr)
+   procedure Check (Label : in String; Computed : in LALR.LRk.Item_Lookahead_Ptr; Expected : in LALR.LRk.Item_Lookahead_Ptr)
    is
       use AUnit.Check;
-      use LR1;
+      use LALR.LRk;
       Computed_I : Item_Lookahead_Ptr := Computed;
       Expected_I : Item_Lookahead_Ptr := Expected;
       Index : Integer := 1;
@@ -81,10 +81,10 @@ package body Gen_OpenToken_AUnit is
       end loop;
    end Check;
 
-   procedure Check (Label : in String; Computed : in LR1.Item_Ptr; Expected : in LR1.Item_Ptr)
+   procedure Check (Label : in String; Computed : in LALR.LRk.Item_Ptr; Expected : in LALR.LRk.Item_Ptr)
    is
       use AUnit.Check;
-      use LR1;
+      use LALR.LRk;
       Computed_I : Item_Ptr := Computed;
       Expected_I : Item_Ptr := Expected;
       Index      : Integer  := 1;
@@ -110,10 +110,10 @@ package body Gen_OpenToken_AUnit is
       end loop;
    end Check;
 
-   procedure Check (Label : in String; Computed : in LR1.Item_Set; Expected : in LR1.Item_Set)
+   procedure Check (Label : in String; Computed : in LALR.LRk.Item_Set; Expected : in LALR.LRk.Item_Set)
    is
       use AUnit.Check;
-      use LR1;
+      use LALR.LRk;
    begin
       Check (Label & ".Index", Computed.Index, Expected.Index);
       Check (Label & ".Set", Computed.Set, Expected.Set);
@@ -121,12 +121,40 @@ package body Gen_OpenToken_AUnit is
       Check (Label & ".Next = null", Computed.Next = null, Expected.Next = null);
    end Check;
 
+   procedure Check (Label : in String; Computed : in LALR.LRk.Set_Reference_Ptr; Expected : in LALR.LRk.Set_Reference_Ptr)
+   is
+      use AUnit.Check;
+      use LALR.LRk;
+      Computed_I : Set_Reference_Ptr := Computed;
+      Expected_I : Set_Reference_Ptr := Expected;
+      Index      : Integer  := 1;
+   begin
+      if Computed /= null or Expected /= null then
+         AUnit.Assertions.Assert (Computed /= null, Label & " Computed is null");
+         AUnit.Assertions.Assert (Expected /= null, Label & " Expected is null");
+      else
+         --  both are null
+         return;
+      end if;
+
+      loop
+         --  We only check set.index, not set, because the full check would be recursive
+         Check (Label & Integer'Image (Index) & ".Set.Index", Computed_I.Set.Index, Expected_I.Set.Index);
+         Check (Label & Integer'Image (Index) & ".Symbol", Computed_I.Symbol, Expected_I.Symbol);
+         Check (Label & Integer'Image (Index) & ".Next = null", Computed_I.Next = null, Expected_I.Next = null);
+         Computed_I := Computed_I.Next;
+         Expected_I := Expected_I.Next;
+         Index      := Index + 1;
+         exit when Computed_I = null;
+      end loop;
+   end Check;
+
    function Get_Item_Node
      (Prod       : in Integer;
-      Lookaheads : in LR1.Item_Lookahead_Ptr;
+      Lookaheads : in LALR.LRk.Item_Lookahead_Ptr;
       Dot        : in Integer;
-      Next       : in LR1.Item_Ptr)
-     return LR1.Item_Ptr
+      Next       : in LALR.LRk.Item_Ptr)
+     return LALR.LRk.Item_Ptr
    is
       Grammar_I : Production_Lists.List_Iterator := Grammar.Initial_Iterator;
 
@@ -141,7 +169,7 @@ package body Gen_OpenToken_AUnit is
          Token_Lists.Next_Token (Dot_I);
       end loop;
 
-      return new LR1.Item_Node'
+      return new LALR.LRk.Item_Node'
         (Prod       => Production_Lists.Get_Production (Grammar_I),
          Dot        => Dot_I,
          Index      => -1,
@@ -150,10 +178,10 @@ package body Gen_OpenToken_AUnit is
    end Get_Item_Node;
 
    function Get_Item_Set
-     (Prod       : in Integer;
-      Dot        : in Integer;
-      Next       : in LR1.Item_Set_Ptr)
-     return LR1.Item_Set
+     (Prod : in Integer;
+      Dot  : in Integer;
+      Next : in LALR.LRk.Item_Set_Ptr)
+     return LALR.LRk.Item_Set
    is begin
       return
         (Set => Get_Item_Node
@@ -166,9 +194,9 @@ package body Gen_OpenToken_AUnit is
          Next            => Next);
    end Get_Item_Set;
 
-   function "+" (Item : in Token_Array) return LR1.Item_Lookahead_Ptr
+   function "+" (Item : in Token_Array) return LALR.LRk.Item_Lookahead_Ptr
    is
-      use LR1;
+      use LALR.LRk;
       Result : Item_Lookahead_Ptr;
    begin
       for I in reverse Item'Range loop
@@ -179,5 +207,111 @@ package body Gen_OpenToken_AUnit is
       end loop;
       return Result;
    end "+";
+
+   procedure Check (Label : in String; Computed : in LALR.Parse_Action_Rec; Expected : in LALR.Parse_Action_Rec)
+   is
+      use AUnit.Check;
+      use LALR;
+   begin
+      Check (Label & ".Verb", Computed.Verb, Expected.Verb);
+      case Computed.Verb is
+      when Shift =>
+         Check (Label & ".State", Computed.State, Expected.State);
+      when Reduce | Accept_It =>
+         Check (Label & ".Production", Computed.Production, Expected.Production);
+         Check (Label & ".Length", Computed.Length, Expected.Length);
+      when Error =>
+         null;
+      end case;
+   end Check;
+
+   procedure Check (Label : in String; Computed : in LALR.Parse_Action_Node_Ptr; Expected : in LALR.Parse_Action_Node_Ptr)
+   is
+      use AUnit.Check;
+      use type LALR.Parse_Action_Node_Ptr;
+      Computed_I : LALR.Parse_Action_Node_Ptr := Computed;
+      Expected_I : LALR.Parse_Action_Node_Ptr := Expected;
+      Index      : Integer  := 1;
+   begin
+      if Computed /= null or Expected /= null then
+         AUnit.Assertions.Assert (Computed /= null, Label & " Computed is null");
+         AUnit.Assertions.Assert (Expected /= null, Label & " Expected is null");
+      else
+         --  both are null
+         return;
+      end if;
+
+      loop
+         Check (Label & Integer'Image (Index) & ".Item", Computed_I.Item, Expected_I.Item);
+         Check (Label & Integer'Image (Index) & ".Next = null", Computed_I.Next = null, Expected_I.Next = null);
+         Computed_I := Computed_I.Next;
+         Expected_I := Expected_I.Next;
+         Index      := Index + 1;
+         exit when Computed_I = null;
+      end loop;
+   end Check;
+
+   procedure Check (Label : in String; Computed : in LALR.Action_Node_Ptr; Expected : in LALR.Action_Node_Ptr)
+   is
+      use AUnit.Check;
+      use type LALR.Action_Node_Ptr;
+      Computed_I : LALR.Action_Node_Ptr := Computed;
+      Expected_I : LALR.Action_Node_Ptr := Expected;
+      Index      : Integer  := 1;
+   begin
+      if Computed /= null or Expected /= null then
+         AUnit.Assertions.Assert (Computed /= null, Label & " Computed is null");
+         AUnit.Assertions.Assert (Expected /= null, Label & " Expected is null");
+      else
+         --  both are null
+         return;
+      end if;
+
+      loop
+         Check (Label & Integer'Image (Index) & ".Symbol", Computed_I.Symbol, Expected_I.Symbol);
+         Check (Label & Integer'Image (Index) & ".Action", Computed_I.Action, Expected_I.Action);
+         Check (Label & Integer'Image (Index) & ".Next = null", Computed_I.Next = null, Expected_I.Next = null);
+         Computed_I := Computed_I.Next;
+         Expected_I := Expected_I.Next;
+         Index      := Index + 1;
+         exit when Computed_I = null;
+      end loop;
+   end Check;
+
+   procedure Check (Label : in String; Computed : in LALR.Reduction_Node_Ptr; Expected : in LALR.Reduction_Node_Ptr)
+   is
+      use AUnit.Check;
+      use type LALR.Reduction_Node_Ptr;
+      Computed_I : LALR.Reduction_Node_Ptr := Computed;
+      Expected_I : LALR.Reduction_Node_Ptr := Expected;
+      Index      : Integer  := 1;
+   begin
+      if Computed /= null or Expected /= null then
+         AUnit.Assertions.Assert (Computed /= null, Label & " Computed is null");
+         AUnit.Assertions.Assert (Expected /= null, Label & " Expected is null");
+      else
+         --  both are null
+         return;
+      end if;
+
+      loop
+         Check (Label & Integer'Image (Index) & ".Symbol", Computed_I.Symbol, Expected_I.Symbol);
+         Check (Label & Integer'Image (Index) & ".State", Computed_I.State, Expected_I.State);
+         Check (Label & Integer'Image (Index) & ".Next = null", Computed_I.Next = null, Expected_I.Next = null);
+         Computed_I := Computed_I.Next;
+         Expected_I := Expected_I.Next;
+         Index      := Index + 1;
+         exit when Computed_I = null;
+      end loop;
+   end Check;
+
+   procedure Check
+     (Label    : in String;
+      Computed : in LALR.Parse_State;
+      Expected : in LALR.Parse_State)
+   is begin
+      Check (Label & ".Action_List", Computed.Action_List, Expected.Action_List);
+      Check (Label & ".Reduction_List", Computed.Reduction_List, Expected.Reduction_List);
+   end Check;
 
 end Gen_OpenToken_AUnit;

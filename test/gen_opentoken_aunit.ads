@@ -20,8 +20,7 @@ pragma License (GPL);
 
 with AUnit.Check;
 with OpenToken.Production.List;
-with OpenToken.Production.Parser.LRk_Item;
-with OpenToken.Production.Parser;
+with OpenToken.Production.Parser.LALR;
 with OpenToken.Token.Enumerated.Analyzer;
 with OpenToken.Token.Enumerated.List;
 with OpenToken.Token.Enumerated.Nonterminal;
@@ -36,7 +35,8 @@ generic
    Last_Terminal : in Token_ID;
    with package Analyzers is new Tokens_Pkg.Analyzer (First_Terminal, Last_Terminal);
    with package Parsers is new Productions.Parser (Production_Lists, Analyzers);
-   with package LR1 is new Parsers.LRk_Item (1);
+   First_State_Index : in Integer;
+   with package LALR is new Parsers.LALR (First_State_Index);
    Grammar : in Production_Lists.Instance;
 package Gen_OpenToken_AUnit is
 
@@ -52,29 +52,56 @@ package Gen_OpenToken_AUnit is
       Computed : in Productions.Instance;
       Expected : in Productions.Instance);
 
-   procedure Check (Label : in String; Computed : in LR1.Item_Lookahead_Ptr; Expected : in LR1.Item_Lookahead_Ptr);
+   procedure Check
+     (Label    : in String;
+      Computed : in LALR.LRk.Item_Lookahead_Ptr;
+      Expected : in LALR.LRk.Item_Lookahead_Ptr);
 
-   procedure Check (Label : in String; Computed : in LR1.Item_Ptr; Expected : in LR1.Item_Ptr);
+   procedure Check (Label : in String; Computed : in LALR.LRk.Item_Ptr; Expected : in LALR.LRk.Item_Ptr);
 
-   procedure Check (Label : in String; Computed : in LR1.Item_Set; Expected : in LR1.Item_Set);
+   procedure Check (Label : in String; Computed : in LALR.LRk.Item_Set; Expected : in LALR.LRk.Item_Set);
+
+   procedure Check
+     (Label    : in String;
+      Computed : in LALR.LRk.Set_Reference_Ptr;
+      Expected : in LALR.LRk.Set_Reference_Ptr);
 
    function Get_Item_Node
      (Prod       : in Integer;
-      Lookaheads : in LR1.Item_Lookahead_Ptr;
+      Lookaheads : in LALR.LRk.Item_Lookahead_Ptr;
       Dot        : in Integer;
-      Next       : in LR1.Item_Ptr)
-     return LR1.Item_Ptr;
+      Next       : in LALR.LRk.Item_Ptr)
+     return LALR.LRk.Item_Ptr;
    --  Construct an LR1 item with Prod from Grammar, Dot before token Dot.
 
    function Get_Item_Set
-     (Prod       : in Integer;
-      Dot        : in Integer;
-      Next       : in LR1.Item_Set_Ptr)
-     return LR1.Item_Set;
+     (Prod : in Integer;
+      Dot  : in Integer;
+      Next : in LALR.LRk.Item_Set_Ptr)
+     return LALR.LRk.Item_Set;
    --  Construct an LR1 item_set with Prod from Grammar, Dot before token Dot, null lookaheads and goto_list.
 
    type Token_Array is array (Positive range <>) of Token_ID;
 
-   function "+" (Item : in Token_Array) return LR1.Item_Lookahead_Ptr;
+   function "+" (Item : in Token_Array) return LALR.LRk.Item_Lookahead_Ptr;
+
+   procedure Check is new AUnit.Check.Gen_Check_Discrete (LALR.Parse_Action_Verbs);
+   procedure Check is new AUnit.Check.Gen_Check_Discrete (LALR.State_Index);
+
+   procedure Check (Label : in String; Computed : in LALR.Parse_Action_Rec; Expected : in LALR.Parse_Action_Rec);
+
+   procedure Check
+     (Label    : in String;
+      Computed : in LALR.Parse_Action_Node_Ptr;
+      Expected : in LALR.Parse_Action_Node_Ptr);
+
+   procedure Check (Label : in String; Computed : in LALR.Action_Node_Ptr; Expected : in LALR.Action_Node_Ptr);
+
+   procedure Check (Label : in String; Computed : in LALR.Reduction_Node_Ptr; Expected : in LALR.Reduction_Node_Ptr);
+
+   procedure Check
+     (Label    : in String;
+      Computed : in LALR.Parse_State;
+      Expected : in LALR.Parse_State);
 
 end Gen_OpenToken_AUnit;

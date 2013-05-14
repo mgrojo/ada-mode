@@ -163,6 +163,10 @@ package OpenToken.Production.Parser.LRk_Item is
    --  For each nonterminal in the given grammar, find the set of
    --  tokens that its first term could start with.
 
+   type Nonterminal_ID_Set is array (Nonterminal_ID) of Boolean;
+
+   function Has_Empty_Production (Grammar : in Production_List.Instance) return Nonterminal_ID_Set;
+
    function Lookahead_Closure
      (Set     : in Item_Set;
       First   : in Derivation_Matrix;
@@ -181,10 +185,11 @@ package OpenToken.Production.Parser.LRk_Item is
    procedure Free (Subject : in out Item_Set_List);
 
    function LR0_Kernels
-     (Grammar      : in Production_List.Instance;
-      First_Tokens : in Derivation_Matrix;
-      Trace        : in Boolean;
-      First_Index  : in Natural)
+     (Grammar              : in Production_List.Instance;
+      First                : in Derivation_Matrix;
+      Has_Empty_Production : in Nonterminal_ID_Set;
+      Trace                : in Boolean;
+      First_State_Index    : in Natural)
      return Item_Set_List;
 
    function Print (Item : in Item_Lookahead) return String;
@@ -200,10 +205,11 @@ package OpenToken.Production.Parser.LRk_Item is
    --  visible for unit test
 
    function Goto_Transitions
-     (Kernel       : in Item_Set;
-      Symbol       : in Token.Token_ID;
-      First_Tokens : in Derivation_Matrix;
-      Grammar      : in Production_List.Instance)
+     (Kernel               : in Item_Set;
+      Symbol               : in Token.Token_ID;
+      First                : in Derivation_Matrix;
+      Has_Empty_Production : in Nonterminal_ID_Set;
+      Grammar              : in Production_List.Instance)
      return Item_Set;
 
 end OpenToken.Production.Parser.LRk_Item;

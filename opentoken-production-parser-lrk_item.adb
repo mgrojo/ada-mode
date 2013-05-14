@@ -140,6 +140,28 @@ package body OpenToken.Production.Parser.LRk_Item is
       return Matrix;
    end First_Derivations;
 
+   function Has_Empty_Production (Grammar : in Production_List.Instance) return Nonterminal_ID_Set
+   is
+      use type Token_List.List_Iterator;
+      Result : Nonterminal_ID_Set := (others => False);
+      Prod_I : Production_List.List_Iterator;
+      Prod   : OpenToken.Production.Instance;
+      RHS_I  : Token_List.List_Iterator;
+   begin
+      Prod_I := Production_List.Initial_Iterator (Grammar);
+      while not Production_List.Past_Last (Prod_I) loop
+
+         Prod  := Production_List.Get_Production (Prod_I);
+         RHS_I := Token_List.Initial_Iterator (Prod.RHS.Tokens);
+
+         if RHS_I = Token_List.Null_Iterator then
+            Result (LHS_ID (Prod)) := True;
+         end if;
+         Production_List.Next_Production (Prod_I);
+      end loop;
+      return Result;
+   end Has_Empty_Production;
+
    function Deep_Copy (Item : in Item_Lookahead_Ptr) return Item_Lookahead_Ptr
    is
       I      : Item_Lookahead_Ptr := Item;
@@ -561,10 +583,11 @@ package body OpenToken.Production.Parser.LRk_Item is
    end Lookahead_Closure;
 
    function Goto_Transitions
-     (Kernel       : in Item_Set;
-      Symbol       : in Token.Token_ID;
-      First_Tokens : in Derivation_Matrix;
-      Grammar      : in Production_List.Instance)
+     (Kernel               : in Item_Set;
+      Symbol               : in Token.Token_ID;
+      First                : in Derivation_Matrix;
+      Has_Empty_Production : in Nonterminal_ID_Set;
+      Grammar              : in Production_List.Instance)
      return Item_Set
    is
       use Token_List;
@@ -608,7 +631,7 @@ package body OpenToken.Production.Parser.LRk_Item is
                   Next       => Goto_Set.Set);
             end if;
 
-            if Dot_ID in Nonterminal_ID and then First_Tokens (Dot_ID)(Symbol) then
+            if Dot_ID in Nonterminal_ID and then First (Dot_ID)(Symbol) then
                --  Find the production(s) that create Dot_ID
                --  with first token Symbol and put them in
                Prod_I := Production_List.Initial_Iterator (Grammar);
@@ -617,7 +640,7 @@ package body OpenToken.Production.Parser.LRk_Item is
                   Prod  := Production_List.Get_Production (Prod_I);
                   RHS_I := Initial_Iterator (Prod.RHS.Tokens);
 
-                  if (Dot_ID = LHS_ID (Prod) or First_Tokens (Dot_ID)(LHS_ID (Prod))) and
+                  if (Dot_ID = LHS_ID (Prod) or First (Dot_ID)(LHS_ID (Prod))) and
                     (RHS_I /= Null_Iterator and then
                        Token.ID (Token_Handle (RHS_I).all) = Symbol)
                   then
@@ -641,26 +664,16 @@ package body OpenToken.Production.Parser.LRk_Item is
 
             elsif Have_Dot_2_ID and then Dot_2_ID = Symbol then
                --  If there are any empty productions that create Dot_ID, put Prod in
-               Prod_I := Production_List.Initial_Iterator (Grammar);
-               while not Production_List.Past_Last (Prod_I) loop
+               if Dot_ID in Nonterminal_ID and then Has_Empty_Production (Dot_ID) then
+                  Goto_Set.Set := new Item_Node'
+                    (Prod       => Item.Prod,
+                     Dot        => Next_Token (Next_Token (Item.Dot)),
+                     Index      => -1, -- replaced in LR0_Kernels
+                     Lookaheads => Item.Lookaheads,
+                     Next       => Goto_Set.Set);
+               end if;
 
-                  Prod  := Production_List.Get_Production (Prod_I);
-                  RHS_I := Initial_Iterator (Prod.RHS.Tokens);
-
-                  if Dot_ID = LHS_ID (Prod) and RHS_I = Null_Iterator then
-                     Goto_Set.Set := new Item_Node'
-                       (Prod       => Item.Prod,
-                        Dot        => Next_Token (Next_Token (Item.Dot)),
-                        Index      => -1, -- replaced in LR0_Kernels
-                        Lookaheads => Item.Lookaheads,
-                        Next       => Goto_Set.Set);
-
-                     exit;
-                  end if;
-                  Production_List.Next_Production (Prod_I);
-               end loop;
-
-            elsif Have_Dot_2_ID and then (Dot_2_ID in Nonterminal_ID and then First_Tokens (Dot_2_ID)(Symbol)) then
+            elsif Have_Dot_2_ID and then (Dot_2_ID in Nonterminal_ID and then First (Dot_2_ID)(Symbol)) then
                --  Find the empty production(s) that create Dot_ID
                --  and put them in
                Prod_I := Production_List.Initial_Iterator (Grammar);
@@ -742,19 +755,20 @@ package body OpenToken.Production.Parser.LRk_Item is
    end Free;
 
    function LR0_Kernels
-     (Grammar      : in Production_List.Instance;
-      First_Tokens : in Derivation_Matrix;
-      Trace        : in Boolean;
-      First_Index  : in Natural)
+     (Grammar              : in Production_List.Instance;
+      First                : in Derivation_Matrix;
+      Has_Empty_Production : in Nonterminal_ID_Set;
+      Trace                : in Boolean;
+      First_State_Index    : in Natural)
      return Item_Set_List
    is
       Kernel_List : Item_Set_List :=
         (Head         => new Item_Set'
            (Set       => new Item_Node'
               (Item_Node_Of
-                 (Production_List.Get_Production (Production_List.Initial_Iterator (Grammar)), First_Index)),
+                 (Production_List.Get_Production (Production_List.Initial_Iterator (Grammar)), First_State_Index)),
             Goto_List => null,
-            Index     => First_Index,
+            Index     => First_State_Index,
             Next      => null),
          Size         => 1);
 
@@ -783,12 +797,7 @@ package body OpenToken.Production.Parser.LRk_Item is
 
             for Symbol in Token.Token_ID loop
 
-               --  Get the goto items for this kernel and symbol
-               New_Items := Goto_Transitions
-                 (Kernel       => Checking_Set.all,
-                  Symbol       => Symbol,
-                  First_Tokens => First_Tokens,
-                  Grammar      => Grammar);
+               New_Items := Goto_Transitions (Checking_Set.all, Symbol, First, Has_Empty_Production, Grammar);
 
                --  See if any of the item sets need to be added to our list
                if New_Items.Set /= null then
@@ -798,7 +807,7 @@ package body OpenToken.Production.Parser.LRk_Item is
                      New_Items_To_Check := True;
 
                      New_Items.Next  := Kernel_List.Head;
-                     New_Items.Index := Kernel_List.Size + First_Index;
+                     New_Items.Index := Kernel_List.Size + First_State_Index;
 
                      declare
                         I : Item_Ptr := New_Items.Set;
