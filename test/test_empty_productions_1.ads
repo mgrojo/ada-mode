@@ -20,7 +20,7 @@
 pragma License (GPL);
 
 with AUnit.Test_Cases;
-package Test_Empty_Productions is
+package Test_Empty_Productions_1 is
 
    type Test_Case (Debug : Boolean) is new AUnit.Test_Cases.Test_Case with null record;
 
@@ -30,4 +30,4 @@ package Test_Empty_Productions is
 
    overriding function Name (T : Test_Case) return AUnit.Message_String;
 
-end Test_Empty_Productions;
+end Test_Empty_Productions_1;

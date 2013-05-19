@@ -66,6 +66,9 @@ package Gen_OpenToken_AUnit is
       Computed : in LALR.LRk.Set_Reference_Ptr;
       Expected : in LALR.LRk.Set_Reference_Ptr);
 
+   function Get_Production (Prod : in Integer) return Productions.Instance;
+   --  Return Prod production in Grammar.
+
    function Get_Item_Node
      (Prod       : in Integer;
       Lookaheads : in LALR.LRk.Item_Lookahead_Ptr;

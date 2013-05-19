@@ -27,7 +27,7 @@ with OpenToken.Recognizer.Bracketed_Comment.Test;
 with OpenToken.Recognizer.CSV_Field.Test;
 with Test_Accept_Index;
 with Test_Backtrack;
-with Test_Empty_Productions;
+with Test_Empty_Productions_1;
 with Test_LR0_Kernels;
 with Test_LR1_Lookahead_Closure;
 with Test_LR_Expecting;
@@ -53,7 +53,7 @@ begin
    Add_Test (Suite, new OpenToken.Recognizer.CSV_Field.Test.Test_Case);
    Add_Test (Suite, new Test_Accept_Index.Test_Case (Debug => False));
    Add_Test (Suite, new Test_Backtrack.Test_Case (Debug => False));
-   Add_Test (Suite, new Test_Empty_Productions.Test_Case (Debug => False));
+   Add_Test (Suite, new Test_Empty_Productions_1.Test_Case (Debug => False));
    Add_Test (Suite, new Test_LR0_Kernels.Test_Case (Debug => False));
    Add_Test (Suite, new Test_LR1_Lookahead_Closure.Test_Case (Debug => False));
    Add_Test (Suite, new Test_LR_Expecting.Test_Case (Debug => False));

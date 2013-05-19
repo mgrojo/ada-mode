@@ -211,11 +211,21 @@ package body Test_LR_Expecting is
       OpenToken.Trace_Parse := Test.Debug;
 
       Execute ("set A = 2", "1:9: Syntax error; expecting ';'; found EOF '" & ASCII.EOT & "'");
-      Execute ("set A = ", "1:8: Syntax error; expecting 'integer'; found EOF '" & ASCII.EOT & "'");
+
+      if Test.Debug then
+         Execute ("set A = ", "1:8: Syntax error; expecting 'integer  2'; found EOF '" & ASCII.EOT & "'");
+      else
+         Execute ("set A = ", "1:8: Syntax error; expecting 'integer'; found EOF '" & ASCII.EOT & "'");
+      end if;
+
       Execute ("set A", "1:5: Syntax error; expecting '='; found EOF '" & ASCII.EOT & "'");
       Execute ("set", "1:3: Syntax error; expecting 'identifier'; found EOF '" & ASCII.EOT & "'");
-      Execute ("2", "1:0: Syntax error; expecting 'set' or 'verify'; found integer '2'");
 
+      if Test.Debug then
+         Execute ("2", "1:0: Syntax error; expecting 'set' or 'verify'; found integer  2 '2'");
+      else
+         Execute ("2", "1:0: Syntax error; expecting 'set' or 'verify'; found integer '2'");
+      end if;
    end Nominal;
 
    ----------

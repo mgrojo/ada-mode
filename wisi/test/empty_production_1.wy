@@ -19,12 +19,13 @@
 %token <punctuation> SEMICOLON ";"
 %token <line_comment> COMMENT "--"
 
-%start body
+%start declarative_part
 
 %%
 
 declarations
-  : declarations body
+  : body
+  | declarations body
   ;
 
 declarative_part

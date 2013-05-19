@@ -57,7 +57,7 @@ package body OpenToken.Production.Parser.LALR is
    type State_Node_Ptr is access State_Node;
 
    type State_Node is record
-      State      : State_Index := State_Index'First;
+      State      : State_Index;
       Seen_Token : Token.Handle;
       Next       : State_Node_Ptr;
    end record;
@@ -628,7 +628,7 @@ package body OpenToken.Production.Parser.LALR is
    end Image;
 
    function Find
-     (Kernel               : in LRk.Item_Set;
+     (Closure              : in LRk.Item_Set;
       Action               : in Parse_Action_Rec;
       Lookahead            : in Token.Token_ID;
       Has_Empty_Production : in LRk.Nonterminal_ID_Set)
@@ -639,54 +639,80 @@ package body OpenToken.Production.Parser.LALR is
       use type Token.Token_ID;
       use type LRk.Item_Ptr;
       use type Token_List.List_Iterator;
+      use type LRk.Item_Set_Ptr;
 
-      Item : LRk.Item_Ptr := Kernel.Set;
+      Current : LRk.Item_Set := Closure;
+      Item    : LRk.Item_Ptr;
    begin
-      case Action.Verb is
-      when Shift =>
+      loop
+         Item := Current.Set;
          loop
             exit when Item = null;
-            if Item.Dot /= Token_List.Null_Iterator and then
-              Token_List.ID (Item.Dot) = Lookahead
-            then
-               return LHS_ID (Item.Prod);
-            end if;
+            case Action.Verb is
+            when Shift =>
+               if Item.Dot /= Token_List.Null_Iterator and then
+                 Token_List.ID (Item.Dot) = Lookahead
+               then
+                  return LHS_ID (Item.Prod);
+               end if;
+            when Reduce =>
+               if LHS_ID (Item.Prod) = LHS_ID (Action.Production) and
+                 (Item.Dot = Token_List.Null_Iterator or else
+                    (Token_List.ID (Item.Dot) in Nonterminal_ID and then
+                       Has_Empty_Production (Token_List.ID (Item.Dot))))
+               then
+                  return LHS_ID (Action.Production);
+               end if;
+            when others =>
+               raise Programmer_Error;
+            end case;
             Item := Item.Next;
          end loop;
-
-      when Reduce =>
-         loop
-            exit when Item = null;
-            if LHS_ID (Item.Prod) = LHS_ID (Action.Production) and
-              (Item.Dot = Token_List.Null_Iterator or else
-                 (Has_Empty_Production (Token_List.ID (Item.Dot)) and
-                    Token_List.Next_Token (Item.Dot) = Token_List.Null_Iterator))
-            then
-               return LHS_ID (Action.Production);
-            end if;
-            Item := Item.Next;
-         end loop;
-
-      when others =>
-         raise Programmer_Error;
-      end case;
+         exit when Current.Next = null;
+         Current := Current.Next.all;
+      end loop;
 
       Ada.Text_IO.Put_Line ("item for " & Image (Action) & ", " & Token.Token_Image (Lookahead) & " not found in");
-      if Kernel.Set = null then
-         Ada.Text_IO.Put_Line ("null Kernel");
-      else
-         LRk.Put (Kernel);
-      end if;
+      LRk.Put (Closure);
       raise Programmer_Error;
    end Find;
 
+   function Match (Known : in Conflict; Item : in Conflict_Lists.Constant_Reference_Type) return Boolean
+   is
+      use type Token.Token_ID;
+   begin
+      --  ignore State_Index
+      return
+        Known.Action_A = Item.Action_A and
+        Known.LHS_A = Item.LHS_A and
+        Known.Action_B = Item.Action_B and
+        Known.LHS_B = Item.LHS_B and
+        Known.On = Item.On;
+   end Match;
+
+   function Is_Present (Item : in Conflict; Conflicts : in Conflict_Lists.List) return Boolean
+   is
+      use Conflict_Lists;
+      I : Cursor := Conflicts.First;
+   begin
+      loop
+         exit when I = No_Element;
+         if Match (Item, Conflicts.Constant_Reference (I)) then
+            return True;
+         end if;
+         I := Next (I);
+      end loop;
+      return False;
+   end Is_Present;
+
    --  Add (Symbol, Action) to Action_List
-   --  Source .. Conflicts are for conflict reporting
+   --  Closure .. Conflicts are for conflict reporting
    procedure Add_Action
      (Symbol               : in     Tokenizer.Terminal_ID;
       Action               : in     Parse_Action_Rec;
       Action_List          : in out Action_Node_Ptr;
-      Source               : in     LRk.Item_Set;
+      Closure              : in     LRk.Item_Set;
+      State_Index          : in     Integer;
       Has_Empty_Production : in     LRk.Nonterminal_ID_Set;
       Conflicts            : in out Conflict_Lists.List;
       Trace                : in     Boolean)
@@ -711,18 +737,23 @@ package body OpenToken.Production.Parser.LALR is
          else
             --  There is a conflict. Report it, but add it anyway, so
             --  an enhanced parser can follow both paths
-            Conflicts.Append
-              ((Action_A    => Matching_Action.Action.Item.Verb,
-                Action_B    => Action.Verb,
-                LHS_A       => Find (Source, Matching_Action.Action.Item, Symbol, Has_Empty_Production),
-                LHS_B       => Find (Source, Action, Symbol, Has_Empty_Production),
-                State_Index => Source.Index,
-                On          => Symbol));
+            declare
+               New_Conflict : constant Conflict :=
+                 (Action_A    => Matching_Action.Action.Item.Verb,
+                  Action_B    => Action.Verb,
+                  LHS_A       => Find (Closure, Matching_Action.Action.Item, Symbol, Has_Empty_Production),
+                  LHS_B       => Find (Closure, Action, Symbol, Has_Empty_Production),
+                  State_Index => State_Index,
+                  On          => Symbol);
+            begin
+               if not Is_Present (New_Conflict, Conflicts) then
+                  Conflicts.Append (New_Conflict);
 
-            Matching_Action.Action := new Parse_Action_Node'
-              (Item => Action,
-               Next => Matching_Action.Action);
-
+                  Matching_Action.Action := new Parse_Action_Node'
+                    (Item => Action,
+                     Next => Matching_Action.Action);
+               end if;
+            end;
             if Trace then
                Ada.Text_IO.Put_Line (" - conflict");
             end if;
@@ -737,52 +768,47 @@ package body OpenToken.Production.Parser.LALR is
 
    procedure Add_Lookahead_Actions
      (Item                 : in     LRk.Item_Ptr;
-      RHS_Length           : in     Integer;
       Kernel               : in     LRk.Item_Set_Ptr;
       Accept_Index         : in     Integer;
-      Has_Empty_Production : in     LRk.Nonterminal_ID_Set;
       Action_List          : in out Action_Node_Ptr;
+      Has_Empty_Production : in     LRk.Nonterminal_ID_Set;
       Conflicts            : in out Conflict_Lists.List;
+      Closure              : in     LRk.Item_Set;
       Trace                : in     Boolean)
    is
+      --  Add actions for Item.Lookaheads to Action_List
+      --  Item must be from Kernel.
+      --  Closure must be from Lookahead_Closure (Kernel).
+      --  Has_Empty_Production .. Closure used for conflict reporting.
       use type LRk.Item_Lookahead_Ptr;
-      Lookahead : LRk.Item_Lookahead_Ptr;
+
+      RHS_Length : constant Integer := Token_List.Length (Item.Prod.RHS.Tokens);
+
+      --  Only the start symbol kernel gets accept; the rest get
+      --  reduce. See [dragon] algorithm 4.11 page 238, 4.10 page 234,
+      --  except that here the augmenting production is implicit.
+      Action : constant Parse_Action_Rec :=
+        (if Kernel.Index = Accept_Index then
+           (Accept_It, Item.Prod, RHS_Length)
+         else
+            (Reduce, Item.Prod, RHS_Length));
+
+      Lookahead : LRk.Item_Lookahead_Ptr := Item.Lookaheads;
    begin
       if Trace then
          Ada.Text_IO.Put_Line ("processing lookaheads");
       end if;
 
-      Lookahead := Item.Lookaheads;
       while Lookahead /= null loop
-         --  Only the start symbol kernel gets accept; the
-         --  rest get reduce. See [dragon] algorithm 4.11
-         --  page 238, 4.10 page 234, except that here the
-         --  augmenting production is implicit.
-         if Kernel.Index = Accept_Index then
-            Add_Action
-              (Symbol               => Lookahead.Lookaheads (1),
-               Action               =>
-                 (Verb              => Accept_It,
-                  Production        => Item.Prod,
-                  Length            => RHS_Length),
-               Action_List          => Action_List,
-               Source               => Kernel.all,
-               Has_Empty_Production => Has_Empty_Production,
-               Conflicts            => Conflicts,
-               Trace                => Trace);
-         else
-            Add_Action
-              (Symbol               => Lookahead.Lookaheads (1),
-               Action               =>
-                 (Verb              => Reduce,
-                  Production        => Item.Prod,
-                  Length            => RHS_Length),
-               Action_List          => Action_List,
-               Source               => Kernel.all,
-               Has_Empty_Production => Has_Empty_Production,
-               Conflicts            => Conflicts,
-               Trace                => Trace);
-         end if;
+         Add_Action
+           (Symbol               => Lookahead.Lookaheads (1),
+            Action               => Action,
+            Action_List          => Action_List,
+            State_Index          => Kernel.Index,
+            Closure              => Closure,
+            Has_Empty_Production => Has_Empty_Production,
+            Conflicts            => Conflicts,
+            Trace                => Trace);
          Lookahead := Lookahead.Next;
       end loop;
    end Add_Lookahead_Actions;
@@ -822,13 +848,10 @@ package body OpenToken.Production.Parser.LALR is
       while Item /= null loop
          if Item.Dot = Token_List.Null_Iterator then
             --  Pointer is at the end of the production; add a reduce
-            --  or accept action for a non-empty production.
+            --  or accept action.
 
-            if Token_List.Length (Item.Prod.RHS.Tokens) > 0 then
-               Add_Lookahead_Actions
-                 (Item, Token_List.Length (Item.Prod.RHS.Tokens),
-                  Kernel, Accept_Index, Has_Empty_Production, Table (State).Action_List, Conflicts, Trace);
-            end if;
+            Add_Lookahead_Actions
+              (Item, Kernel, Accept_Index, Table (State).Action_List, Has_Empty_Production, Conflicts, Closure, Trace);
 
          elsif Token.ID (Token_List.Token_Handle (Item.Dot).all) in Tokenizer.Terminal_ID then
             --  Dot is before a terminal token.
@@ -842,57 +865,24 @@ package body OpenToken.Production.Parser.LALR is
                     (Verb              => Shift,
                      State             => State_Index (LRk.Goto_Set (Kernel.all, Dot_ID).Index)),
                   Action_List          => Table (State).Action_List,
-                  Source               => Kernel.all,
+                  State_Index          => Kernel.Index,
+                  Closure              => Closure,
                   Has_Empty_Production => Has_Empty_Production,
                   Conflicts            => Conflicts,
                   Trace                => Trace);
             end;
          else
-            --  Dot is before a non-terminal token; no action unless
-            --  the non-terminal has an empty production
-            declare
-               use Token_List;
-               Dot_ID   : constant Nonterminal_ID := Token.ID (Token_Handle (Item.Dot).all);
-               Dot_2_ID : Token.Token_ID;
-            begin
-               if Null_Iterator = Next_Token (Item.Dot) then
-                  if Has_Empty_Production (Dot_ID) then
-                     Add_Lookahead_Actions
-                       (Item, Token_List.Length (Item.Prod.RHS.Tokens) - 1,
-                        Kernel, Accept_Index, Has_Empty_Production, Table (State).Action_List, Conflicts, Trace);
-                  else
-                     if Trace then
-                        Ada.Text_IO.Put_Line (Token.Token_Image (Dot_ID) & " => no action");
-                     end if;
-                  end if;
-               else
-                  --  FIXME: can't just check for Null_Iterator here; why
-                  --  do we allow null token_handle in a token list?
-                  if Token_Handle (Next_Token (Item.Dot)) /= null and Has_Empty_Production (Dot_ID) then
-                     Dot_2_ID := Token.ID (Token_Handle (Next_Token (Item.Dot)).all);
-                     if Dot_2_ID in Tokenizer.Terminal_ID then
-                        Add_Action
-                          (Symbol               => Dot_2_ID,
-                           Action               =>
-                             (Verb              => Shift,
-                              State             => State_Index (LRk.Goto_Set (Kernel.all, Dot_2_ID).Index)),
-                           Action_List          => Table (State).Action_List,
-                           Source               => Kernel.all,
-                           Has_Empty_Production => Has_Empty_Production,
-                           Conflicts            => Conflicts,
-                           Trace                => Trace);
-                     else
-                        --  Dot_2_ID is a nonterminal; add actions on all First (Dot_2_ID) symbols
-                        --  FIXME: write test, implement
-                        raise Programmer_Error;
-                     end if;
-                  else
-                     if Trace then
-                        Ada.Text_IO.Put_Line (Token.Token_Image (Dot_ID) & " => no action");
-                     end if;
-                  end if;
-               end if;
-            end;
+            --  Dot is before a non-terminal token; no action. An
+            --  empty production for the non-terminal will appear in
+            --  the closure, and be handled above.
+            if Trace then
+               declare
+                  use Token_List;
+                  Dot_ID : constant Nonterminal_ID := Token.ID (Token_Handle (Item.Dot).all);
+               begin
+                  Ada.Text_IO.Put_Line (Token.Token_Image (Dot_ID) & " => no action");
+               end;
+            end if;
          end if;
 
          Item := Item.Next;
@@ -999,19 +989,6 @@ package body OpenToken.Production.Parser.LALR is
       use Conflict_Lists;
       I      : Cursor := Conflicts.First;
       Next_I : Cursor;
-
-      function Match (Known : in Conflict; Item : in Constant_Reference_Type) return Boolean
-      is
-         use type Token.Token_ID;
-      begin
-         --  ignore State_Index
-         return
-           Known.Action_A = Item.Action_A and
-           Known.LHS_A = Item.LHS_A and
-           Known.Action_B = Item.Action_B and
-           Known.LHS_B = Item.LHS_B and
-           Known.On = Item.On;
-      end Match;
 
    begin
       loop
@@ -1225,15 +1202,20 @@ package body OpenToken.Production.Parser.LALR is
       Number_Of_Tokens : in     Natural;
       Production       : in     OpenToken.Production.Instance)
    is
+      use type Nonterminal.Synthesize;
+
       Arguments    : Token_List.Instance;
       Popped_State : State_Node_Ptr;
       Args_Added   : Natural := 0;
 
-      use type Nonterminal.Synthesize;
+      New_Token : constant Nonterminal.Handle := new Nonterminal.Class'(Production.LHS.all);
    begin
       --  Pop the indicated number of token states from the stack, and
       --  call the production action routine to create a new
       --  nonterminal token.
+      --
+      --  Leave Stack.State containing post-reduce state and produced
+      --  token (after action call).
 
       --  Build the argument list, while popping all but the last
       --  argument's state off of the stack.
@@ -1244,35 +1226,34 @@ package body OpenToken.Production.Parser.LALR is
             Args_Added := Args_Added + 1;
             exit when Args_Added = Number_Of_Tokens;
 
+            --  Leave the state containing the first token in
+            --  Production on Stack; overwrite it with the produced
+            --  token
             Popped_State := Stack;
             Stack        := Stack.Next;
             Free (Popped_State);
          end loop;
+         Stack.State      := Stack.Next.State;
+         Stack.Seen_Token := Token.Handle (New_Token);
       else
-         --  Empty production; push a new item on the stack. Seen_Token set below.
-         if Stack = null then
-            Stack := new State_Node;
-         else
-            Stack := new State_Node'
-              (State      => Stack.State,
-               Seen_Token => null,
-               Next       => Stack);
-         end if;
+         --  Empty production; push a new item on the stack.
+         Stack := new State_Node'
+           (State      => Stack.State,
+            Seen_Token => Token.Handle (New_Token),
+            Next       => Stack);
       end if;
 
-      Production.RHS.Action (Production.LHS.all, Arguments, Token.ID (Production.LHS.all));
+      Production.RHS.Action (New_Token.all, Arguments, Token.ID (Production.LHS.all));
       Token_List.Clean (Arguments);
 
-      --  Replace stack token with LHS of production
-      Stack.Seen_Token := new Nonterminal.Class'(Production.LHS.all);
    end Reduce_Stack;
 
    overriding procedure Parse (Parser : in out Instance)
    is
-      Stack         : State_Node_Ptr;
-      Current_State : State_Node;
-      Action        : Parse_Action_Rec;
-      Popped_State  : State_Node_Ptr;
+      Stack        : State_Node_Ptr := new State_Node; -- Stack is current state, stack.next is prev state, etc.
+      Seen_Token   : Token.Handle;
+      Action       : Parse_Action_Rec;
+      Popped_State : State_Node_Ptr;
 
       use type Token_List.Instance;
    begin
@@ -1290,35 +1271,45 @@ package body OpenToken.Production.Parser.LALR is
            Ada.Exceptions.Exception_Message (E);
       end;
 
-      Current_State.Seen_Token := new Token.Class'(Token.Class (Tokenizer.Get (Parser.Analyzer)));
+      Seen_Token := new Token.Class'(Token.Class (Tokenizer.Get (Parser.Analyzer)));
 
-      Current_State.State := State_Index'First;
+      Stack.State := State_Index'First;
       loop
-
-         --  Find the action for this token's ID
          Action := Action_For
            (Table => Parser.Table,
-            State => Current_State.State,
-            ID    => Token.ID (Current_State.Seen_Token.all));
+            State => Stack.State,
+            ID    => Token.ID (Seen_Token.all));
 
          if Trace_Parse then
+            declare
+               use type Token.Handle;
+               Stack_I : State_Node_Ptr := Stack;
+            begin
+               for I in 1 .. 10 loop
+                  exit when Stack_I = null;
+                  Ada.Text_IO.Put_Line
+                    (State_Index'Image (Stack_I.State) &
+                       " : " &
+                       (if Stack_I.Seen_Token = null then ""
+                         else Token.Token_Image (Token.ID (Stack_I.Seen_Token.all))));
+                  Stack_I := Stack_I.Next;
+               end loop;
+            end;
             Ada.Text_IO.Put
-              (State_Index'Image (Current_State.State) &
-                 " : " & Token.Token_ID'Image (Token.ID (Current_State.Seen_Token.all)) &
-                 " : " & Parse_Action_Verbs'Image (Action.Verb));
+              (Token.Token_Image (Token.ID (Seen_Token.all)) & " : " & Parse_Action_Verbs'Image (Action.Verb));
          end if;
 
          case Action.Verb is
          when Shift =>
-            --  Push this token state on the stack
-            Current_State.Next := Stack;
-            Stack := new State_Node'(Current_State);
-
             if Trace_Parse then
                Ada.Text_IO.New_Line;
             end if;
 
-            --  Get the next token
+            Stack := new State_Node'
+              (State      => Action.State,
+               Seen_Token => Seen_Token,
+               Next       => Stack);
+
             begin
                Tokenizer.Find_Next (Parser.Analyzer);
             exception
@@ -1331,35 +1322,28 @@ package body OpenToken.Production.Parser.LALR is
                  Ada.Exceptions.Exception_Message (E);
             end;
 
-            Current_State.Seen_Token := new Token.Class'
-              (Token.Class (Tokenizer.Get (Parser.Analyzer)));
-
-            Current_State.State := Action.State;
+            Seen_Token := new Token.Class'(Token.Class (Tokenizer.Get (Parser.Analyzer)));
 
          when Reduce =>
 
-            --  Reduce by the indicated production
             Reduce_Stack
               (Stack            => Stack,
                Number_Of_Tokens => Action.Length,
                Production       => Action.Production);
 
-            --  The next state is the one that the reduced state's goto for the
-            --  LHS token takes us to.
-            Current_State.State := Goto_For
+            Stack.State := Goto_For
               (Table => Parser.Table,
                State => Stack.State,
                ID    => Token.ID (Action.Production.LHS.all));
 
             if Trace_Parse then
                Ada.Text_IO.Put_Line
-                 (" to " & Token.Token_ID'Image (Token.ID (Action.Production.LHS.all)) &
-                    " in state" & State_Index'Image (Stack.State) &
-                    ", goto state" & State_Index'Image (Current_State.State));
+                 (" to " & Token.Token_Image (Token.ID (Action.Production.LHS.all)) &
+                    ", goto state" & State_Index'Image (Stack.State));
             end if;
 
-         when Accept_It =>
-            --  Reduce by the indicated production
+         when Accept_It         =>
+
             Reduce_Stack
               (Stack            => Stack,
                Number_Of_Tokens => Action.Length,
@@ -1370,7 +1354,7 @@ package body OpenToken.Production.Parser.LALR is
             end if;
 
             --  Clean up
-            Free (Current_State.Seen_Token);
+            Free (Stack.Seen_Token);
             while Stack /= null loop
                Popped_State := Stack;
                Stack := Stack.Next;
@@ -1387,13 +1371,13 @@ package body OpenToken.Production.Parser.LALR is
 
             --  Clean up
             declare
-               ID     : constant String := Token.Name (Current_State.Seen_Token.all);
+               ID     : constant String := Token.Name (Seen_Token.all);
                Lexeme : constant String := Tokenizer.Lexeme (Parser.Analyzer);
 
-               Expecting_Tokens : constant Token_Array := Expecting (Parser.Table, Current_State.State);
+               Expecting_Tokens : constant Token_Array := Expecting (Parser.Table, Stack.State);
             begin
 
-               Free (Current_State.Seen_Token);
+               Free (Stack.Seen_Token);
                while Stack /= null loop
                   Popped_State := Stack;
                   Stack := Stack.Next;

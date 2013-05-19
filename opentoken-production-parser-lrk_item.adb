@@ -662,44 +662,19 @@ package body OpenToken.Production.Parser.LRk_Item is
                   Production_List.Next_Production (Prod_I);
                end loop;
 
-            elsif Have_Dot_2_ID and then Dot_2_ID = Symbol then
+            elsif Have_Dot_2_ID and then
+              (Dot_2_ID = Symbol or
+                 (Dot_2_ID in Nonterminal_ID and then First (Dot_2_ID)(Symbol)))
+            then
                --  If there are any empty productions that create Dot_ID, put Prod in
                if Dot_ID in Nonterminal_ID and then Has_Empty_Production (Dot_ID) then
                   Goto_Set.Set := new Item_Node'
                     (Prod       => Item.Prod,
-                     Dot        => Next_Token (Next_Token (Item.Dot)),
+                     Dot        => Next_Token (Item.Dot),
                      Index      => -1, -- replaced in LR0_Kernels
                      Lookaheads => Item.Lookaheads,
                      Next       => Goto_Set.Set);
                end if;
-
-            elsif Have_Dot_2_ID and then (Dot_2_ID in Nonterminal_ID and then First (Dot_2_ID)(Symbol)) then
-               --  Find the empty production(s) that create Dot_ID
-               --  and put them in
-               Prod_I := Production_List.Initial_Iterator (Grammar);
-               while not Production_List.Past_Last (Prod_I) loop
-
-                  Prod  := Production_List.Get_Production (Prod_I);
-                  RHS_I := Initial_Iterator (Prod.RHS.Tokens);
-
-                  if Dot_ID = LHS_ID (Prod) and RHS_I = Null_Iterator then
-                     declare
-                        New_Item : constant Item_Node :=
-                          (Prod       => Prod,
-                           Dot        => RHS_I, -- null iterator
-                           Index      => -1, -- replaced in LR0_Kernels
-                           Lookaheads => null,
-                           Next       => Goto_Set.Set);
-                     begin
-                        if null = Find (New_Item, Goto_Set) then
-                           Goto_Set.Set := new Item_Node'(New_Item);
-                           --  else already in goto set
-                        end if;
-                     end;
-                  end if;
-
-                  Production_List.Next_Production (Prod_I);
-               end loop;
             end if;
          end if;
          Item := Item.Next;

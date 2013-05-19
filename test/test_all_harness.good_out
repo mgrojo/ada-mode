@@ -19,11 +19,11 @@ OK Test_Backtrack : Enumerated_Lookahead
 OK Test_Backtrack : Sequence_Lookahead
 OK Test_Backtrack : Selection_Backtrack
 OK Test_Backtrack : Sequence_Backtrack
-OK ../../Test/test_empty_productions.adb : Test_First
-OK ../../Test/test_empty_productions.adb : Goto_Transitions_1
-OK ../../Test/test_empty_productions.adb : Goto_Transitions_2
-OK ../../Test/test_empty_productions.adb : Goto_Set_1
-OK ../../Test/test_empty_productions.adb : Actions_1
+OK ../../Test/test_empty_productions_1.adb : Test_First
+OK ../../Test/test_empty_productions_1.adb : Goto_Transitions_1
+OK ../../Test/test_empty_productions_1.adb : Goto_Transitions_2
+OK ../../Test/test_empty_productions_1.adb : Goto_Set_1
+OK ../../Test/test_empty_productions_1.adb : Actions_1
 OK Test_LR0_Kernels : Nominal
 OK ../../Test/test_lr1_lookahead_closure.adb : Nominal
 OK ../../Test/test_lr_expecting.adb : Nominal

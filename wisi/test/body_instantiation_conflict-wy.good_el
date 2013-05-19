@@ -87,7 +87,7 @@
       ((default . error) (BEGIN .  15))
       ((default . error) ($EOI . (compilation_unit . 0)))
       ((default . error) ($EOI . accept) (RIGHT_PAREN . accept) (PROCEDURE . accept) (NULL . accept) (NEW . accept) (LEFT_PAREN . accept) (IS . accept) (END . accept) (BEGIN . accept) (STRING_LITERAL . accept) (IDENTIFIER . accept) (SEMICOLON . accept))
-      ((default . error) (IS . ((subprogram_specification . 0)  12)) (LEFT_PAREN .  13))
+      ((default . error) (IS . ( 12 (parameter_list . 0))) (LEFT_PAREN .  13))
       ((default . error) (NEW .  18))
       ((default . error) (IDENTIFIER .  17))
       ((default . error) (IS . (subprogram_specification . 0)))

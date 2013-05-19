@@ -38,6 +38,9 @@ begin
    Add_Test (Suite, new Wisi_WY_Test.Test_Case (new String'("../../wisi/test/range_conflict")));
    Add_Test (Suite, new Wisi_WY_Test.Test_Case (new String'("../../wisi/test/subprograms")));
 
+   --  other *.wy files in ../../wisi/test are used in Ada parser
+   --  generator/parse tests, not run from here.
+
    --  end test cases
 
    return Suite;

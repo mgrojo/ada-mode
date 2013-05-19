@@ -149,6 +149,17 @@ package body Gen_OpenToken_AUnit is
       end loop;
    end Check;
 
+   function Get_Production (Prod : in Integer) return Productions.Instance
+   is
+      Grammar_I : Production_Lists.List_Iterator := Grammar.Initial_Iterator;
+   begin
+      for I in 2 .. Prod loop
+         Production_Lists.Next_Production (Grammar_I);
+      end loop;
+
+      return Production_Lists.Get_Production (Grammar_I);
+   end Get_Production;
+
    function Get_Item_Node
      (Prod       : in Integer;
       Lookaheads : in LALR.LRk.Item_Lookahead_Ptr;

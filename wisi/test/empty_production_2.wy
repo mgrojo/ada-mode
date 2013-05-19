@@ -10,8 +10,7 @@
 ;; shift to start the nested declaration (as in 2), reduce to the empty
 ;; declaration. Both are correct according to the grammar.
 ;;
-;; FIXME: OpenToken should correctly report the conflict and (ideally)
-;; the ambiguity.
+;; FIXME: OpenToken should correctly report the ambiguity.
 
 %{
 (require 'wisi)
@@ -24,6 +23,12 @@
 %token <line_comment> COMMENT "--"
 
 %start declarations
+
+;; FIXME: the OpenToken parser doesn't handle conflicts, so it doesn't
+;; use these; the execution stops at the end of grammar generation.
+%conflict SHIFT/REDUCE in state BODY_ID, DECLARATION_ID on token IS_ID
+%conflict REDUCE/SHIFT in state DECLARATION_ID, BODY_ID on token BEGIN_ID
+%conflict REDUCE/SHIFT in state DECLARATION_ID, OPENTOKEN_ACCEPT_ID on token EOF_ID
 
 %%
 

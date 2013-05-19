@@ -391,7 +391,9 @@ begin
    Put_Line ("exception");
    Put_Line ("when E : OpenToken.Grammar_Error =>");
    Put_Line ("   Put_Line (Standard_Error, Ada.Exceptions.Exception_Message (E));");
-   Put_Line ("   Ada.Command_Line.Set_Exit_Status (Standard.Ada.Command_Line.Failure);");
+   Put_Line ("   if Verbosity = 0 then");
+   Put_Line ("      Ada.Command_Line.Set_Exit_Status (Standard.Ada.Command_Line.Failure);");
+   Put_Line ("   end if;");
    Put_Line ("when E : OpenToken.Syntax_Error =>");
    Put_Line ("   Put_Line");
    Put_Line ("     (Standard_Error, Ada.Directories.Simple_Name (Name (Input_File)) & ':' &");

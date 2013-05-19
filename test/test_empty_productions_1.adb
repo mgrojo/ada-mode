@@ -26,7 +26,7 @@ with OpenToken.Production.Parser.LALR;
 with OpenToken.Token.Enumerated.Analyzer;
 with OpenToken.Token.Enumerated.List;
 with OpenToken.Token.Enumerated.Nonterminal;
-package body Test_Empty_Productions is
+package body Test_Empty_Productions_1 is
 
    --  A grammar with a null production in a list (from ../wisi/test/empty_production_1.wy)
 
@@ -44,8 +44,8 @@ package body Test_Empty_Productions is
 
       --  non-terminals
       opentoken_accept_ID,
-      declarative_part_ID,
       declarations_ID,
+      declarative_part_ID,
       body_ID);
 
    package Tokens_Pkg is new OpenToken.Token.Enumerated (Token_IDs, Token_IDs'Image, Token_IDs'Width);
@@ -65,15 +65,12 @@ package body Test_Empty_Productions is
    use type Productions.Instance;
    use type Production_Lists.Instance;
 
-   function "+"
-     (Item : in Token_IDs)
-     return Tokens_Pkg.Instance'Class
-   renames Tokens_Pkg."+";
+   function "+" (Item : in Token_IDs) return Tokens_Pkg.Instance'Class renames Tokens_Pkg."+";
 
    Self : Nonterminals.Synthesize renames Nonterminals.Synthesize_Self;
 
    Grammar : constant Production_Lists.Instance :=
-     Nonterminals.Get (opentoken_accept_ID) <= Nonterminals.Get (declarations_ID) & (+EOF_ID) -- 1
+     Nonterminals.Get (opentoken_accept_ID) <= Nonterminals.Get (declarative_part_ID) & (+EOF_ID) -- 1
      and
      Nonterminals.Get (declarations_ID) <= (+body_ID) + Self -- 2
      and
@@ -157,8 +154,6 @@ package body Test_Empty_Productions is
       --  kernel:
       --  BODY_ID <= IS_ID ^ DECLARATIVE_PART_ID BEGIN_ID SEMICOLON_ID
 
-      --  FIXME: add nonterm that starts with BEGIN_ID after declarative_part
-
       Kernel : constant Item_Set := Get_Item_Set
         (Prod => 6, -- in grammar
          Dot  => 2,
@@ -171,7 +166,7 @@ package body Test_Empty_Productions is
          Ada.Text_IO.Put ("kernel 1: "); Put (Kernel);
       end if;
 
-      --  Expected goto_transitions on IS_ID:
+      --  Expected goto_transitions on IS_ID (nested declaration):
       --  BODY_ID <= IS_ID ^ DECLARATIVE_PART_ID BEGIN_ID SEMICOLON_ID
 
       Expected := Get_Item_Set
@@ -182,11 +177,11 @@ package body Test_Empty_Productions is
       Test_Goto_Transitions ("1", Kernel, IS_ID, Expected, Test.Debug);
 
       --  Expected goto_transitions on BEGIN_ID:
-      --  BODY_ID <= IS_ID DECLARATIVE_PART_ID BEGIN_ID ^ SEMICOLON_ID
+      --  BODY_ID <= IS_ID DECLARATIVE_PART_ID ^ BEGIN_ID SEMICOLON_ID
 
       Expected := Get_Item_Set
         (Prod => 6, -- in Grammar
-         Dot  => 4,
+         Dot  => 3,
          Next => null);
 
       Test_Goto_Transitions ("2", Kernel, BEGIN_ID, Expected, Test.Debug);
@@ -262,19 +257,18 @@ package body Test_Empty_Productions is
       --  BODY_ID <= IS_ID ^ DECLARATIVE_PART_ID BEGIN_ID SEMICOLON_ID
 
       --  Expected goto_list:
-      --  BODY_ID => DECLARATIONS_ID <= BODY_ID ^ ; Set 4
+      --  BODY_ID => DECLARATIONS_ID <= BODY_ID ^ ; Set 5
+      --  DECLARATIVE_PART_ID => BODY_ID <= IS_ID DECLARATIVE_PART_ID ^ BEGIN_ID SEMICOLON_ID ; Set 8
       --  DECLARATIONS_ID =>
       --    DECLARATIVE_PART_ID <= DECLARATIONS_ID ^
-      --    DECLARATIONS_ID <= DECLARATIONS_ID ^ BODY_ID
-      --    Set 9
-      --  DECLARATIVE_PART_ID => BODY_ID <= IS_ID DECLARATIVE_PART_ID ^ BEGIN_ID SEMICOLON_ID ; Set 8
-      --  IS_ID    => BODY_ID <= IS_ID ^ DECLARATIVE_PART_ID BEGIN_ID SEMICOLON_ID ; Set 2
-      --  BEGIN_ID => BODY_ID <= IS_ID DECLARATIVE_PART_ID BEGIN_ID ^ SEMICOLON_ID ; Set 7
+      --    DECLARATIONS_ID <= DECLARATIONS_ID ^ BODY_ID ; Set 4
+      --  IS_ID               => BODY_ID <= IS_ID ^ DECLARATIVE_PART_ID BEGIN_ID SEMICOLON_ID ; Set 2
+      --  BEGIN_ID            => BODY_ID <= IS_ID DECLARATIVE_PART_ID ^ BEGIN_ID SEMICOLON_ID ; Set 8
 
       --  Only Index is checked in Expected.Set
       Expected := new Set_Reference'
         (Symbol => BEGIN_ID,
-         Set    => new Item_Set'(Set => null, Goto_List => null, Index => 7, Next => null),
+         Set    => new Item_Set'(Set => null, Goto_List => null, Index => 8, Next => null),
          Next   => null);
 
       Expected := new Set_Reference'
@@ -283,18 +277,18 @@ package body Test_Empty_Productions is
          Next   => Expected);
 
       Expected := new Set_Reference'
+        (Symbol => declarations_ID,
+         Set    => new Item_Set'(Set => null, Goto_List => null, Index => 4, Next => null),
+         Next   => Expected);
+
+      Expected := new Set_Reference'
         (Symbol => declarative_part_ID,
          Set    => new Item_Set'(Set => null, Goto_List => null, Index => 8, Next => null),
          Next   => Expected);
 
       Expected := new Set_Reference'
-        (Symbol => declarations_ID,
-         Set    => new Item_Set'(Set => null, Goto_List => null, Index => 9, Next => null),
-         Next   => Expected);
-
-      Expected := new Set_Reference'
         (Symbol => body_ID,
-         Set    => new Item_Set'(Set => null, Goto_List => null, Index => 4, Next => null),
+         Set    => new Item_Set'(Set => null, Goto_List => null, Index => 5, Next => null),
          Next   => Expected);
 
       if Test.Debug then
@@ -311,6 +305,7 @@ package body Test_Empty_Productions is
       Test : Test_Case renames Test_Case (T);
       use LALR;
       use LALR.LRk;
+      use OpenToken_AUnit;
 
       First   : constant Derivation_Matrix := First_Derivations (Grammar, Trace  => False);
       Kernels : constant Item_Set_List     := LR0_Kernels
@@ -324,14 +319,14 @@ package body Test_Empty_Productions is
       --  BODY_ID <= IS_ID ^ DECLARATIVE_PART_ID BEGIN_ID SEMICOLON_ID
       --
       --  Expected actions:
-      --  BEGIN_ID => shift and goto 7
-      --  IS_ID => shift and goto 2
-      --  default => ERROR
+      --  BEGIN_ID => reduce 0 tokens to declarative_part_id
+      --  IS_ID    => shift and goto 2
+      --  default  => ERROR
 
       --  Expected reduction gotos:
-      --  BODY_ID => Set 4
-      --  DECLARATIONS_ID => Set 9
+      --  DECLARATIONS_ID => Set 4
       --  DECLARATIVE_PART_ID => Set 8
+      --  BODY_ID => Set 5
       Expected.Action_List := new Action_Node'
         (Symbol  => Analyzers.Terminal_ID'Last, -- ignored, since this is the last action
          Action  => new Parse_Action_Node'
@@ -349,27 +344,28 @@ package body Test_Empty_Productions is
          Next        => Expected.Action_List);
 
       Expected.Action_List := new Action_Node'
-        (Symbol      => BEGIN_ID,
-         Action      => new Parse_Action_Node'
-           (Item     =>
-              (Verb  => Shift,
-               State => 7),
-            Next     => null),
-         Next        => Expected.Action_List);
+        (Symbol           => BEGIN_ID,
+         Action           => new Parse_Action_Node'
+           (Item          =>
+              (Verb       => Reduce,
+               Production => Get_Production (4),
+               Length     => 0),
+            Next          => null),
+         Next             => Expected.Action_List);
 
       Expected.Reduction_List := new Reduction_Node'
         (Symbol => body_ID,
-         State  => 4,
-         Next   => Expected.Reduction_List);
-
-      Expected.Reduction_List := new Reduction_Node'
-        (Symbol => declarations_ID,
-         State  => 9,
+         State  => 5,
          Next   => Expected.Reduction_List);
 
       Expected.Reduction_List := new Reduction_Node'
         (Symbol => declarative_part_ID,
          State  => 8,
+         Next   => Expected.Reduction_List);
+
+      Expected.Reduction_List := new Reduction_Node'
+        (Symbol => declarations_ID,
+         State  => 4,
          Next   => Expected.Reduction_List);
 
       Test_Actions ("1", Kernels, 2, Expected, Test.Debug);
@@ -383,18 +379,22 @@ package body Test_Empty_Productions is
    is
       pragma Unreferenced (T);
    begin
-      return new String'("../../Test/test_empty_productions.adb");
+      return new String'("../../Test/test_empty_productions_1.adb");
    end Name;
 
    overriding procedure Register_Tests (T : in out Test_Case)
    is
       use AUnit.Test_Cases.Registration;
    begin
-      Register_Routine (T, Test_First'Access, "Test_First");
-      Register_Routine (T, Goto_Transitions_1'Access, "Goto_Transitions_1");
-      Register_Routine (T, Goto_Transitions_2'Access, "Goto_Transitions_2");
-      Register_Routine (T, Goto_Set_1'Access, "Goto_Set_1");
-      Register_Routine (T, Actions_1'Access, "Actions_1");
+      if T.Debug then
+         Register_Routine (T, Actions_1'Access, "Actions_1");
+      else
+         Register_Routine (T, Test_First'Access, "Test_First");
+         Register_Routine (T, Goto_Transitions_1'Access, "Goto_Transitions_1");
+         Register_Routine (T, Goto_Transitions_2'Access, "Goto_Transitions_2");
+         Register_Routine (T, Goto_Set_1'Access, "Goto_Set_1");
+         Register_Routine (T, Actions_1'Access, "Actions_1");
+      end if;
    end Register_Tests;
 
-end Test_Empty_Productions;
+end Test_Empty_Productions_1;

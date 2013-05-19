@@ -34,7 +34,8 @@ tests : token_sequence_test-run.run
 
 # wisi parse tests
 tests : case_expression-parse.diff
-# tests : empty_production_1-parse.diff FIXME: finish
+tests : empty_production_1-parse.diff
+tests : empty_production_2-parse.diff
 
 examples : asu_example_3_6-run.run
 examples : asu_example_4_46-run.run
