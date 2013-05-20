@@ -49,10 +49,8 @@ run indent test from emacs -Q:
 build/wisi/Makefile
     test/ada_mode-nominal.adb
         parser failing; unexpected 'begin' in 'task body Executive'
-            need task_body :)
-
-error on unmatched %conflict
-    delete when matched
+            need task_body
+            put null production in declarative_part
 
 & should be punctuation?
 
@@ -77,12 +75,23 @@ test/ada_mode-function_2.adb fails parse during edit, gives 'error during redisp
     wisi-debug 0 should give no error message
 
  opentoken
+/Projects/org.opentoken.stephe/build/windows_debug/Makefile
+
+objc.wy
+    abo.pignard@wanadoo.fr
+    just confirm, declare conflicts
+
+wisi-generate requires declaring non-reporting %tokens first, But should sort by kind
+
 error on missing ':' in 'range | foo ;'
 
 pointer at end of kernel => default should be reduce or accept
     don't need to compute lookaheads?
     see FIXME in opentoken-production-parser-lalr.adb
 
+generalized parse
+    build parse tree to store actions, tokens for results
+    execute after parse completes
 
  ada-wisi other
 /Projects/Web/stephe-leake/emacs/ada-mode/emacs-ada-mode.html
@@ -593,12 +602,16 @@ test/Makefile all
 (dvc-status)
 (dvc-status "/Projects/org.opentoken.stephe")
 (shell-send-string "mtn_sync_ada_france.sh" "*bash*")
-(shell-send-string "mtn_sync_gds_shevek.sh" "*bash*")
-(shell-send-string "mtn_sync_stephe_shevek.sh" "*bash*")
 
-Debian Emacs 24.2, GNAT GPL 2012
-
-(xmtn-sync-review)
+Debian Emacs 24.2, GNAT GPL 2012:
+    (shell-send-string "ssh-add" "*bash*")
+    (shell-send-string "shevek.sh" "*bash*")
+    (shell-send-string "mtn_sync_gds_shevek.sh" "*bash*")
+    (shell-send-string "mtn_sync_stephe_shevek.sh" "*bash*")
+    (xmtn-sync-review)
+    on debian: build/wisi/Makefile all
+    (shell-send-string "mtn_sync_gds_shevek.sh" "*bash*")
+    (xmtn-sync-review)
 
 build/wisi/Makefile zip
 /Projects/org.opentoken.stephe/build/Makefile zip
@@ -606,6 +619,9 @@ build/wisi/Makefile zip
     update todo list
     add release note
         (dvc-log)
+
+    consider org-mode to html
+        http://bill2u.wordpress.com/ sortable tables in org-mode
 
 ~/Web/Makefile
     edit date in ADA-MODE-SMIE_GZ, ADA-MODE-OPENTOKEN_BZ2

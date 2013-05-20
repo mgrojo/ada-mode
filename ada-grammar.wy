@@ -150,23 +150,19 @@
 %start compilation_unit
 
 ;; known conflicts that are resolved by generalized LALR parser
+%conflict REDUCE/REDUCE in state choice_relation, relation on token AND
+%conflict REDUCE/REDUCE in state choice_relation, relation on token OR
+%conflict REDUCE/REDUCE in state choice_relation, relation on token XOR
 %conflict REDUCE/REDUCE in state identifier_list, name on token COMMA
-%conflict REDUCE/SHIFT in state subprogram_specification, generic_instantiation on token IS
-%conflict REDUCE/SHIFT in state subprogram_specification, generic_instantiation on token IS
-%conflict REDUCE/SHIFT in state generic_formal_part, generic_renaming_declaration on token PACKAGE
-%conflict REDUCE/SHIFT in state generic_formal_part, generic_renaming_declaration on token PROCEDURE
-%conflict REDUCE/SHIFT in state generic_formal_part, generic_renaming_declaration on token FUNCTION
-%conflict REDUCE/SHIFT in state association, qualified_expression on token RIGHT_PAREN
-%conflict REDUCE/REDUCE in state choice_relation, relation on token XOR
-%conflict REDUCE/REDUCE in state choice_relation, relation on token OR
-%conflict REDUCE/REDUCE in state choice_relation, relation on token AND
-%conflict REDUCE/REDUCE in state choice_relation, relation on token XOR
-%conflict REDUCE/REDUCE in state choice_relation, relation on token OR
-%conflict REDUCE/REDUCE in state choice_relation, relation on token AND
-%conflict SHIFT/REDUCE in state primary, association on token RIGHT_PAREN
 %conflict REDUCE/REDUCE in state primary, subtype_indication on token COMMA
 %conflict REDUCE/REDUCE in state primary, subtype_indication on token RIGHT_PAREN
+%conflict REDUCE/SHIFT in state generic_formal_part, generic_renaming_declaration on token FUNCTION
+%conflict REDUCE/SHIFT in state generic_formal_part, generic_renaming_declaration on token PACKAGE
+%conflict REDUCE/SHIFT in state generic_formal_part, generic_renaming_declaration on token PROCEDURE
 %conflict REDUCE/SHIFT in state identifier_list, object_renaming_declaration on token COLON
+%conflict REDUCE/SHIFT in state mode, access_definition on token NOT
+%conflict REDUCE/SHIFT in state parameter_profile, generic_instantiation on token IS
+%conflict SHIFT/REDUCE in state primary, association on token RIGHT_PAREN
 
 %%
 ;;;; grammar rules
@@ -1072,11 +1068,11 @@ membership_choice
  ;; thus 'choice_relation_and_list AND' could be followed by relation (=> reduce) or choice_relation (=> shift)
  ;; This only occurs in legal Ada in expressions such as 'True in 1 and 3'; not useful, so we leave it out.
   | range
- ;;  | name ;; subtype_mark - also covered by simple__expression; avoid reduce/reduce conflict
+ ;;  | name ;; subtype_mark - also covered by simple_expression; avoid reduce/reduce conflict
   ;
 
 mode
-  :
+  : ;; empty
   | IN
   | IN OUT
   | OUT
@@ -1163,6 +1159,7 @@ object_renaming_declaration
 overriding_indicator
   : NOT OVERRIDING
   | OVERRIDING
+ ;; FIXME: allow empty here, reduce alternatives elsewhere
   ;
 
 ;; leaving out [aspect_specification]
@@ -1263,6 +1260,8 @@ parameter_specification
   : identifier_list COLON ALIASED mode NOT NULL name COLON_EQUAL expression
   | identifier_list COLON ALIASED mode NOT NULL name
   | identifier_list COLON ALIASED mode name
+  | identifier_list COLON mode NOT NULL name COLON_EQUAL expression
+  | identifier_list COLON mode NOT NULL name
   | identifier_list COLON mode name
   | identifier_list COLON access_definition COLON_EQUAL expression
   | identifier_list COLON access_definition
@@ -1615,6 +1614,13 @@ subtype_indication
   ;
 
 ;; subtype_mark replaced by name
+
+;; leaving out [aspect_specification]
+;; task_body
+;;   : TASK BODY IDENTIFIER IS declarations BEGIN handled_sequence_of_statements END IDENTIFIER SEMICOLON
+;;   | TASK BODY IDENTIFIER IS declarations BEGIN handled_sequence_of_statements END SEMICOLON
+;;   FIXME: add null declarations, here or in declarations
+;; ;
 
 ;; leaving out [aspect_specification]
 task_body_stub

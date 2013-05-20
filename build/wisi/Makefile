@@ -8,8 +8,8 @@ test-wisi :: identifier_list_name_conflict.wisi-test
 test-wisi :: range_conflict.wisi-test
 test-wisi :: subprograms.wisi-test
 
-one : ada_mode-long_paren.adb.diff
-two : gds.gpr.diff
+one : ada_mode-nominal.adb.diff
+two : debug.adb.diff
 
 vpath %.wy ../../ ../../test/wisi
 vpath %.el ../../ .
@@ -37,7 +37,8 @@ foo :
 
 .PRECIOUS : %-wy.el ../../%-grammar-wy.el
 
-# -v dumps grammar, continues with unused tokens
+# -v 1 dumps grammar, continues with unused tokens
+# -v 2 dumps debug info from parser table generation
 %-wy.el : %.wy $(WISI_OPENTOKEN)/wisi-generate.exe
 	cd ./$(<D); $(WISI_OPENTOKEN)/wisi-generate.exe -v 1 $(<F) Elisp > $(*F).output
 
