@@ -1,0 +1,38 @@
+;;; finding bug in parse table generator; two nonterms at end of
+;;; production, where first can be empty, were handled wrong.
+
+%{
+(require 'wisi)
+%}
+
+%keyword IN "in"
+
+%token <symbol> IDENTIFIER
+
+%start compilation_unit
+
+%%
+
+compilation_unit
+  : parameter_specification parameter_specification
+  ;
+
+mode
+  : ;; empty
+  | IN
+  ;
+
+name
+  : IDENTIFIER
+  ;
+
+parameter_specification
+  : IDENTIFIER mode name
+  ;
+
+%%
+
+;; Local Variables:
+;; eval: (add-hook 'before-save-hook 'delete-trailing-whitespace nil t)
+;; End:
+;;; end of file

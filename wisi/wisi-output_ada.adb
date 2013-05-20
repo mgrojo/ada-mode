@@ -125,7 +125,9 @@ begin
       Put_Line ("with OpenToken.Recognizer.Line_Comment;");
    end if;
 
-   Put_Line ("with OpenToken.Recognizer.Separator;");
+   if Is_In (Tokens, """punctuation""") then
+      Put_Line ("with OpenToken.Recognizer.Separator;");
+   end if;
 
    if Is_In (Tokens, """string""") then
       Put_Line ("with OpenToken.Recognizer.String;");

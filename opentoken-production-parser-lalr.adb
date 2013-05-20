@@ -635,10 +635,10 @@ package body OpenToken.Production.Parser.LALR is
      return Token.Token_ID
    is
       --  Return LHS of production that matches Action, Lookahead
+      use Token_List;
       use type LRk.Item_Set;
       use type Token.Token_ID;
       use type LRk.Item_Ptr;
-      use type Token_List.List_Iterator;
       use type LRk.Item_Set_Ptr;
 
       Current : LRk.Item_Set := Closure;
@@ -650,16 +650,17 @@ package body OpenToken.Production.Parser.LALR is
             exit when Item = null;
             case Action.Verb is
             when Shift =>
-               if Item.Dot /= Token_List.Null_Iterator and then
-                 Token_List.ID (Item.Dot) = Lookahead
+               if Item.Dot /= Null_Iterator and then
+                 ID (Item.Dot) = Lookahead
                then
                   return LHS_ID (Item.Prod);
                end if;
             when Reduce =>
                if LHS_ID (Item.Prod) = LHS_ID (Action.Production) and
-                 (Item.Dot = Token_List.Null_Iterator or else
-                    (Token_List.ID (Item.Dot) in Nonterminal_ID and then
-                       Has_Empty_Production (Token_List.ID (Item.Dot))))
+                 (Item.Dot = Null_Iterator or else
+                    (Next_Token (Item.Dot) = Null_Iterator and
+                       (ID (Item.Dot) in Nonterminal_ID and then
+                          Has_Empty_Production (ID (Item.Dot)))))
                then
                   return LHS_ID (Action.Production);
                end if;
