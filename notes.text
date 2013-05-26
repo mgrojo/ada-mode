@@ -46,14 +46,9 @@ run indent test from emacs -Q:
 (setq wisent-parse-max-stack-size 80)
  ada-wisi parser
 build/wisi/Makefile
-    add name_opt
-
-    add identifier_opt
-
     test/ada_mode-nominal.adb
         parser failing; unexpected 'begin' in 'task body Executive'
             need task_body
-            put null production in declarative_part
 
 Debian : emacs 24.2 (from testing), GNAT GPL 2012:
     ada-mode tests failing

@@ -279,41 +279,23 @@ attribute_designator
 binary_adding_operator : PLUS | MINUS | AMPERSAND ; ;; + | - | &
 
 block_statement
-  : IDENTIFIER COLON DECLARE declarative_part_opt BEGIN handled_sequence_of_statements END IDENTIFIER SEMICOLON
+  : IDENTIFIER COLON DECLARE declarative_part_opt BEGIN handled_sequence_of_statements END identifier_opt SEMICOLON
     (progn
       (wisi-statement-action 1 'block-start 3 'block-middle 5 'block-middle 7 'block-end 9 'statement-end)
       (wisi-start-action 1 4)
       (wisi-start-action 1 6))
-  | IDENTIFIER COLON DECLARE declarative_part_opt BEGIN handled_sequence_of_statements END SEMICOLON
-    (progn
-      (wisi-statement-action 1 'block-start 3 'block-middle 5 'block-middle 7 'block-end 8 'statement-end)
-      (wisi-start-action 1 4)
-      (wisi-start-action 1 6))
-  | IDENTIFIER COLON BEGIN handled_sequence_of_statements END IDENTIFIER SEMICOLON
+  | IDENTIFIER COLON BEGIN handled_sequence_of_statements END identifier_opt SEMICOLON
     (progn
       (wisi-statement-action 1 'block-start 3 'block-middle 5 'block-end 7 'statement-end)
       (wisi-start-action 1 4))
-  | IDENTIFIER COLON BEGIN handled_sequence_of_statements END SEMICOLON
-    (progn
-      (wisi-statement-action 1 'block-start 3 'block-middle 5 'block-end 6 'statement-end)
-      (wisi-start-action 1 4))
-  | DECLARE declarative_part_opt BEGIN handled_sequence_of_statements END IDENTIFIER SEMICOLON
+  | DECLARE declarative_part_opt BEGIN handled_sequence_of_statements END identifier_opt SEMICOLON
     (progn
       (wisi-statement-action 1 'block-start 3 'block-middle 5 'block-end 7 'statement-end)
       (wisi-start-action 1 2)
       (wisi-start-action 1 4))
-  | DECLARE declarative_part_opt BEGIN handled_sequence_of_statements END SEMICOLON
-    (progn
-      (wisi-statement-action 1 'block-start 3 'block-middle 5 'block-end 6 'statement-end)
-      (wisi-start-action 1 2)
-      (wisi-start-action 1 4))
-  | BEGIN handled_sequence_of_statements END IDENTIFIER SEMICOLON
+  | BEGIN handled_sequence_of_statements END identifier_opt SEMICOLON
     (progn
       (wisi-statement-action 1 'block-start 3 'block-end 5 'statement-end)
-      (wisi-start-action 1 2))
-  | BEGIN handled_sequence_of_statements END SEMICOLON
-    (progn
-      (wisi-statement-action 1 'block-start 3 'block-end 4 'statement-end)
       (wisi-start-action 1 2))
   ;
 
@@ -577,14 +559,9 @@ elsif_statement_list
   ;
 
 entry_body
-  : ENTRY IDENTIFIER entry_body_formal_part WHEN expression IS declarative_part_opt BEGIN handled_sequence_of_statements END IDENTIFIER SEMICOLON
+  : ENTRY IDENTIFIER entry_body_formal_part WHEN expression IS declarative_part_opt BEGIN handled_sequence_of_statements END identifier_opt SEMICOLON
     (progn
       (wisi-statement-action 1 'block-start 6 'block-middle 8 'block-middle 10 'block-end 12 'statement-end)
-      (wisi-start-action 1 7)
-      (wisi-start-action 1 9))
-  | ENTRY IDENTIFIER entry_body_formal_part WHEN expression IS declarative_part_opt BEGIN handled_sequence_of_statements END SEMICOLON
-    (progn
-      (wisi-statement-action 1 'block-start 6 'block-middle 8 'block-middle 10 'block-end 11 'statement-end)
       (wisi-start-action 1 7)
       (wisi-start-action 1 9))
   ;
@@ -648,14 +625,10 @@ exception_handler_list
   ;
 
 exit_statement
-  : EXIT IDENTIFIER WHEN expression SEMICOLON
+  : EXIT identifier_opt WHEN expression SEMICOLON
     (wisi-statement-action 1 'statement-start 5 'statement-end)
-  | EXIT IDENTIFIER SEMICOLON
+  | EXIT identifier_opt SEMICOLON
     (wisi-statement-action 1 'statement-start 3 'statement-end)
-  | EXIT WHEN expression SEMICOLON
-    (wisi-statement-action 1 'statement-start 4 'statement-end)
-  | EXIT SEMICOLON
-    (wisi-statement-action 1 'statement-start 2 'statement-end)
   ;
 
 expression
@@ -889,12 +862,14 @@ handled_sequence_of_statements
   | sequence_of_statements
   ;
 
-;; reduce/reduce conflict:
-;; COMMA	reduce using rule 222 (identifier_list)
-;; COMMA	[reduce using rule 262 (name)]
 identifier_list
   : IDENTIFIER
   | identifier_list COMMA IDENTIFIER
+  ;
+
+identifier_opt
+  : ;; empty
+  | IDENTIFIER
   ;
 
 if_expression
@@ -1088,6 +1063,11 @@ name
   | STRING_LITERAL ;; operator_symbol, designator
   ;
 
+name_opt
+  : ;; empty
+  | name
+  ;
+
 ;; null_exclusion replaced by 'not null'
 
 ;; leaving out [aspect_specification]
@@ -1151,23 +1131,14 @@ overriding_indicator_opt
 
 ;; leaving out [aspect_specification]
 package_body
-  : PACKAGE BODY name IS declarative_part_opt BEGIN handled_sequence_of_statements END name SEMICOLON
+  : PACKAGE BODY name IS declarative_part_opt BEGIN handled_sequence_of_statements END name_opt SEMICOLON
     (progn
       (wisi-statement-action 1 'block-start 4 'block-middle 6 'block-middle 9 'block-end 10 'statement-end)
       (wisi-start-action 1 5)
       (wisi-start-action 1 7))
-  | PACKAGE BODY name IS declarative_part_opt BEGIN handled_sequence_of_statements END SEMICOLON
-    (progn
-      (wisi-statement-action 1 'block-start 4 'block-middle 6 'block-middle 8 'block-end 9 'statement-end)
-      (wisi-start-action 1 5)
-      (wisi-start-action 1 7))
-  | PACKAGE BODY name IS declarative_part_opt END name SEMICOLON
+  | PACKAGE BODY name IS declarative_part_opt END name_opt SEMICOLON
     (progn
       (wisi-statement-action 1 'block-start 4 'block-middle 6 'block-end 8 'statement-end)
-      (wisi-start-action 1 5))
-  | PACKAGE BODY name IS declarative_part_opt END SEMICOLON
-    (progn
-      (wisi-statement-action 1 'block-start 4 'block-middle 6 'block-end 7 'statement-end)
       (wisi-start-action 1 5))
   ;
 
@@ -1283,13 +1254,9 @@ proper_body
 
 ;; leaving out [aspect_specification]
 protected_body
-  : PROTECTED BODY IDENTIFIER IS protected_operation_item_list END IDENTIFIER SEMICOLON
+  : PROTECTED BODY IDENTIFIER IS protected_operation_item_list END identifier_opt SEMICOLON
     (progn
       (wisi-statement-action 1 'block-start 4 'block-middle 6 'block-end 8 'statement-end)
-      (wisi-start-action 1 5))
-  | PROTECTED BODY IDENTIFIER IS protected_operation_item_list END SEMICOLON
-    (progn
-      (wisi-statement-action 1 'block-start 4 'block-middle 6 'block-end 7 'statement-end)
       (wisi-start-action 1 5))
   ;
 
@@ -1495,15 +1462,9 @@ statement
 ;; leaving out [aspect_specification]
 subprogram_body
   : overriding_indicator_opt subprogram_specification IS declarative_part_opt BEGIN handled_sequence_of_statements END
-    name SEMICOLON
+    name_opt SEMICOLON
     (progn
       (wisi-statement-action 1 'statement-start 2 'block-middle 3 'block-middle 5 'block-middle 7 'block-end 9 'statement-end)
-      (wisi-start-action 1 4)
-      (wisi-start-action 1 6))
-  | overriding_indicator_opt subprogram_specification IS declarative_part_opt BEGIN handled_sequence_of_statements END
-    SEMICOLON
-    (progn
-      (wisi-statement-action 1 'statement-start 2 'block-middle 3 'block-middle 5 'block-middle 7 'block-end 8 'statement-end)
       (wisi-start-action 1 4)
       (wisi-start-action 1 6))
   ;
@@ -1555,8 +1516,7 @@ subtype_indication
 
 ;; leaving out [aspect_specification]
 ;; task_body
-;;   : TASK BODY IDENTIFIER IS declarative_part_opt BEGIN handled_sequence_of_statements END IDENTIFIER SEMICOLON
-;;   | TASK BODY IDENTIFIER IS declarative_part_opt BEGIN handled_sequence_of_statements END SEMICOLON
+;;   : TASK BODY IDENTIFIER IS declarative_part_opt BEGIN handled_sequence_of_statements END identifier_opt SEMICOLON
 ;; ;
 
 ;; leaving out [aspect_specification]
