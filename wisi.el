@@ -420,7 +420,9 @@ is the (1 indexed) token number in the production, CLASS is the wisi class of
 that token. Use in a grammar action as:
   (wisi-statement-action 1 'statement-start 7 'statement-end)"
   (save-excursion
-    (let ((first-item t) first-keyword-mark)
+    (let ((first-item t)
+	  first-keyword-mark
+	  (override-start nil))
       (while pairs
 	(let* ((number (1- (pop pairs)))
 	       (region (cddr (nth number tokens)));; tokens is let-bound in wisi-parse-reduce
@@ -435,51 +437,63 @@ that token. Use in a grammar action as:
 	  (unless (memq class wisi-class-list)
 	    (error "%s not in wisi-class-list" class))
 
-	  (when region
-	    ;; region is null when a production is empty
-	    (if (setq cache (get-text-property (car region) 'wisi-cache))
-		;; We are processing a previously set non-terminal; ie package_specification in
-		;;
-		;; generic_package_declaration : generic_formal_part package_specification SEMICOLON
-		;;
-		;; just override class and start
-		(progn
-		  (setf (wisi-cache-class cache) class)
-		  (setf (wisi-cache-start cache) first-keyword-mark))
+	  (if region
+	      (progn
+		(if (setq cache (get-text-property (car region) 'wisi-cache))
+		    ;; We are processing a previously set non-terminal; ie package_specification in
+		    ;;
+		    ;; generic_package_declaration : generic_formal_part package_specification SEMICOLON
+		    ;;
+		    ;; just override class and start
+		    (progn
+		      (setf (wisi-cache-class cache) (or override-start class))
+		      (setf (wisi-cache-start cache) first-keyword-mark))
 
-	      ;; else create new cache
-	      ;;
-	      ;; :start is a marker to the first keyword in a
-	      ;; statement. The first keyword in a contained statement
-	      ;; has a marker to the first keyword in the containing
-	      ;; statement; the outermost containing statement has
-	      ;; nil. `wisi-start-action' (below) sets the start
-	      ;; markers in contained statements.
-	      (with-silent-modifications
-		(put-text-property
-		 (car region)
-		 (cdr region)
-		 'wisi-cache
-		 (wisi-cache-create
-		  :nonterm (when first-item $nterm);; $nterm defined in wisi-semantic-action
-		  :token  token
-		  :class   class
-		  :start   first-keyword-mark)
-		 ))))
+		  ;; else create new cache
+		  ;;
+		  ;; :start is a marker to the first keyword in a
+		  ;; statement. The first keyword in a contained statement
+		  ;; has a marker to the first keyword in the containing
+		  ;; statement; the outermost containing statement has
+		  ;; nil. `wisi-start-action' (below) sets the start
+		  ;; markers in contained statements.
+		  (with-silent-modifications
+		    (put-text-property
+		     (car region)
+		     (cdr region)
+		     'wisi-cache
+		     (wisi-cache-create
+		      :nonterm (when first-item $nterm);; $nterm defined in wisi-semantic-action
+		      :token   token
+		      :class   (or override-start class)
+		      :start   first-keyword-mark)
+		     )))
 
-	  (when first-item
-	    (setq first-item nil)
-	    (when (memq class '(block-start statement-start))
-	      (setq first-keyword-mark mark)))
+		(when first-item
+		  (setq first-item nil)
+		  (when (or override-start
+			    (memq class '(block-start statement-start)))
+		    (setq override-start nil)
+		    (setq first-keyword-mark mark))))
+
+	    ;; region is null when a production is empty; if the first
+	    ;; token is a start, override the class on the next token.
+	    (when (and first-item
+		       (memq class '(block-start statement-start)))
+	      (setq override-start class)))
 	))
       )))
 
 (defun wisi-start-action (start-token contained-token)
   "Set start marks in all tokens in CONTAINED-TOKEN with null start mark to marker pointing to start of START-TOKEN.
-START-TOKEN is token number of first token in containing statement,
+START-TOKEN is token number of first token in containing statement (if empty, next token is used).
 CONTAINED-TOKEN is token number of the contained non-terminal."
-  (let ((start-region (cddr (nth (1- start-token) tokens)));; tokens is let-bound in wisi-parse-reduce
-	(contained-region (cddr (nth (1- contained-token) tokens))))
+  (let* ((start-region (cddr (nth (1- start-token) tokens))) ;; tokens is let-bound in wisi-parse-reduce
+	 (contained-region (cddr (nth (1- contained-token) tokens))))
+    (unless start-region
+      ;; start-token is empty; use next
+      (setq start-region (cddr (nth start-token tokens))))
+
     (when contained-region
       ;; nil when empty production
       (save-excursion

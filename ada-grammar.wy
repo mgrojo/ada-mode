@@ -503,10 +503,10 @@ discrete_choice_list
   ;
 
 discrete_choice
-  : choice_expression
- ;; | subtype_indication
- ;; FIXME: causes reduce/reduce conflict because both
- ;; choice_expression and subtype_indication can be just 'name'
+  : choice_expression ;; includes 'name'
+  | NOT NULL name constraint ;; from subytpe_indication, excluding plain 'name'
+  | NOT NULL name            ;; ""
+  | name constraint          ;; ""
   | range
   | OTHERS
   ;
@@ -603,13 +603,9 @@ entry_body_formal_part
 entry_declaration
   : overriding_indicator ENTRY IDENTIFIER LEFT_PAREN discrete_subtype_definition RIGHT_PAREN
     parameter_profile SEMICOLON
-    (wisi-statement-action 1 'statement-start 4 'open-paren 6 'close-paren 8 'statement-end)
+    (wisi-statement-action 1 'statement-start 2 'block-middle 4 'open-paren 6 'close-paren 8 'statement-end)
   | overriding_indicator ENTRY IDENTIFIER parameter_profile SEMICOLON
-    (wisi-statement-action 1 'statement-start 5 'statement-end)
-  | ENTRY IDENTIFIER parameter_profile SEMICOLON
-    (wisi-statement-action 1 'statement-start 4 'statement-end)
-  | ENTRY IDENTIFIER LEFT_PAREN discrete_subtype_definition RIGHT_PAREN parameter_profile SEMICOLON
-    (wisi-statement-action 1 'statement-start 3 'open-paren 5 'close-paren 7 'statement-end)
+    (wisi-statement-action 1 'statement-start 2 'block-middle 5 'statement-end)
   ;
 
 enumeration_type_definition
@@ -854,13 +850,9 @@ generic_instantiation
   : PACKAGE name IS NEW name SEMICOLON
     (wisi-statement-action 1 'statement-start 2 'name 6 'statement-end)
   | overriding_indicator PROCEDURE name IS NEW name SEMICOLON
-    (wisi-statement-action 1 'statement-start 3 'name 7 'statement-end)
-  | PROCEDURE name IS NEW name SEMICOLON
-    (wisi-statement-action 1 'statement-start 2 'name 6 'statement-end)
+    (wisi-statement-action 1 'statement-start 2 'block-middle 3 'name 7 'statement-end)
   | overriding_indicator FUNCTION name IS NEW name SEMICOLON
-    (wisi-statement-action 1 'statement-start 3 'name 7 'statement-end)
-  | FUNCTION name IS NEW name SEMICOLON
-    (wisi-statement-action 1 'statement-start 2 'name 6 'statement-end)
+    (wisi-statement-action 1 'statement-start 2 'block-middle 3 'name 7 'statement-end)
   ;
 
 generic_package_declaration
@@ -1159,7 +1151,7 @@ object_renaming_declaration
 overriding_indicator
   : NOT OVERRIDING
   | OVERRIDING
- ;; FIXME: allow empty here, reduce alternatives elsewhere
+  | ;; empty - following keyword is also statement-start
   ;
 
 ;; leaving out [aspect_specification]
@@ -1531,52 +1523,34 @@ subprogram_body
   : overriding_indicator subprogram_specification IS declarations BEGIN handled_sequence_of_statements END
     name SEMICOLON
     (progn
-      (wisi-statement-action 1 'statement-start 2 'block-start 3 'block-middle 5 'block-middle 7 'block-end 9 'statement-end)
+      (wisi-statement-action 1 'statement-start 2 'block-middle 3 'block-middle 5 'block-middle 7 'block-end 9 'statement-end)
       (wisi-start-action 1 4)
       (wisi-start-action 1 6))
   | overriding_indicator subprogram_specification IS declarations BEGIN handled_sequence_of_statements END
     SEMICOLON
     (progn
-      (wisi-statement-action 1 'statement-start 2 'block-start 3 'block-middle 5 'block-middle 7 'block-end 8 'statement-end)
+      (wisi-statement-action 1 'statement-start 2 'block-middle 3 'block-middle 5 'block-middle 7 'block-end 8 'statement-end)
       (wisi-start-action 1 4)
       (wisi-start-action 1 6))
+  | overriding_indicator subprogram_specification IS BEGIN handled_sequence_of_statements END name SEMICOLON
+    (progn
+      (wisi-statement-action 1 'statement-start 2 'block-middle 3 'block-middle 4 'block-middle 6 'block-end 7 'statement-end)
+      (wisi-start-action 1 5))
   | overriding_indicator subprogram_specification IS BEGIN handled_sequence_of_statements END SEMICOLON
     (progn
-      (wisi-statement-action 1 'statement-start 2'block-start 3 'block-middle 4 'block-middle 6 'block-end 7 'statement-end)
+      (wisi-statement-action 1 'statement-start 2 'block-middle 3 'block-middle 4 'block-middle 6 'block-end 7 'statement-end)
       (wisi-start-action 1 5))
-  | subprogram_specification IS declarations BEGIN handled_sequence_of_statements END name SEMICOLON
-    (progn
-      (wisi-statement-action 1 'block-start 2 'block-middle 4 'block-middle 6 'block-end 8 'statement-end)
-      (wisi-start-action 1 3)
-      (wisi-start-action 1 5))
-  | subprogram_specification IS declarations BEGIN handled_sequence_of_statements END SEMICOLON
-    (progn
-      (wisi-statement-action 1 'block-start 2 'block-middle 4 'block-middle 6 'block-end 7 'statement-end)
-      (wisi-start-action 1 3)
-      (wisi-start-action 1 5))
-  | subprogram_specification IS BEGIN handled_sequence_of_statements END name SEMICOLON
-    (progn
-      (wisi-statement-action 1 'block-start 2 'block-middle 3 'block-middle 5 'block-end 7 'statement-end)
-      (wisi-start-action 1 4))
-  | subprogram_specification IS BEGIN handled_sequence_of_statements END SEMICOLON
-    (progn
-      (wisi-statement-action 1 'block-start 2 'block-middle 3 'block-middle 5 'block-end 6 'statement-end)
-      (wisi-start-action 1 4))
   ;
 
 ;; leaving out [aspect_specification]
 subprogram_body_stub
   : overriding_indicator subprogram_specification IS SEPARATE SEMICOLON
-    (wisi-statement-action 1 'statement-start 5 'statement-end)
-  | subprogram_specification IS SEPARATE SEMICOLON
-    (wisi-statement-action 1 'statement-start 4 'statement-end)
+    (wisi-statement-action 1 'statement-start 2 'block-middle 5 'statement-end)
   ;
 
 subprogram_declaration
   : overriding_indicator subprogram_specification SEMICOLON
     (wisi-statement-action 1 'statement-start 2 'block-middle 3 'statement-end)
-  | subprogram_specification SEMICOLON
-    (wisi-statement-action 1 'statement-start 2 'statement-end)
   ;
 
 subprogram_default : name | BOX | NULL ;
@@ -1585,8 +1559,6 @@ subprogram_default : name | BOX | NULL ;
 subprogram_renaming_declaration
   : overriding_indicator subprogram_specification RENAMES name SEMICOLON
     (wisi-statement-action 1 'statement-start 2 'block-middle 5 'statement-end)
-  | subprogram_specification RENAMES name SEMICOLON
-    (wisi-statement-action 1 'statement-start 4 'statement-end)
   ;
 
 subprogram_specification

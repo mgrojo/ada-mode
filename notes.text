@@ -45,12 +45,18 @@ run indent test from emacs -Q:
 
 (setq wisent-parse-max-stack-size 80)
  ada-wisi parser
-
 build/wisi/Makefile
+    put null production in declarative_part
+        simplify all uses of declarations
+
     test/ada_mode-nominal.adb
         parser failing; unexpected 'begin' in 'task body Executive'
             need task_body
             put null production in declarative_part
+
+Debian : emacs 24.2 (from testing), GNAT GPL 2012:
+    ada-mode tests failing
+        check for updated emacs?
 
 & should be punctuation?
 
@@ -76,6 +82,12 @@ test/ada_mode-function_2.adb fails parse during edit, gives 'error during redisp
 
  opentoken
 /Projects/org.opentoken.stephe/build/windows_debug/Makefile
+    empty_production_4.parse
+        overriding_indicator can be empty; still not fixed
+        dot_2 needs to be a loop
+
+doc alex/aflex avail at http://sourceforge.net/projects/p2ada/
+    compare
 
 objc.wy
     abo.pignard@wanadoo.fr
@@ -101,6 +113,13 @@ select-prj should open prj if not in alist
 
 set buffer-local at variable declaration, not in ada-mode
     make it clearer to someone trying to understand what the variable does
+
+Markus Schöpflin <markus.schoepflin@comsoft.aero> wants this style:
+
+   FOOBAR.PROC (
+      ARG1 => VAL1,
+      ARG2 => VAL2
+   );
 
 from georg bauhaus:
     procedure Y is
@@ -603,7 +622,7 @@ test/Makefile all
 (dvc-status "/Projects/org.opentoken.stephe")
 (shell-send-string "mtn_sync_ada_france.sh" "*bash*")
 
-Debian Emacs 24.2, GNAT GPL 2012:
+Debian : emacs 24.2 (from testing), GNAT GPL 2012:
     (shell-send-string "ssh-add" "*bash*")
     (shell-send-string "shevek.sh" "*bash*")
     (shell-send-string "mtn_sync_gds_shevek.sh" "*bash*")
@@ -630,5 +649,9 @@ build/wisi/Makefile zip
 
 post on emacs-ada-mode mailing list
     http://stephe-leake.org/emacs/ada-mode/emacs-ada-mode.html#ada-mode-5.0
+
+    also send email to:
+        Pascal Pignard <abo.pignard@wanadoo.fr> for objective c
+        cedet-semantic
 
 -- end of file
