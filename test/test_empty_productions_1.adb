@@ -87,9 +87,10 @@ package body Test_Empty_Productions_1 is
      (Token_IDs, Tokens_Pkg, Token_Lists, Nonterminals, Productions, Production_Lists, BEGIN_ID, EOF_ID,
       Analyzers, Parsers, 1, LALR, Grammar);
 
-   First : constant LALR.LRk.Derivation_Matrix := LALR.LRk.First_Derivations (Grammar, Trace => False);
-
    Has_Empty_Production : constant LALR.LRk.Nonterminal_ID_Set := LALR.LRk.Has_Empty_Production (Grammar);
+
+   First : constant LALR.LRk.Derivation_Matrix := LALR.LRk.First_Derivations
+     (Grammar, Has_Empty_Production, Trace => False);
 
    procedure Test_Goto_Transitions
      (Label    : in String;
@@ -129,7 +130,7 @@ package body Test_Empty_Productions_1 is
          LALR.LRk.Put (Kernel.all);
       end if;
 
-      LALR.Add_Actions (Kernel, Accept_Index, Grammar, First, Has_Empty_Production, Conflicts, Table, Trace => Debug);
+      LALR.Add_Actions (Kernel, Accept_Index, Grammar, Has_Empty_Production, First, Conflicts, Table, Trace => Debug);
 
       Check (Label, Table (LALR.State_Index (Kernel.Index)), Expected);
    end Test_Actions;
@@ -248,7 +249,7 @@ package body Test_Empty_Productions_1 is
       use OpenToken_AUnit;
 
       Kernels  : constant Item_Set_List := LALR.LRk.LR0_Kernels
-        (Grammar, First, Has_Empty_Production, Trace => False, First_State_Index => 1);
+        (Grammar, Has_Empty_Production, First, Trace => False, First_State_Index => 1);
       Kernel   : constant Item_Set_Ptr  := Find (2, Kernels);
       Expected : Set_Reference_Ptr;
 
@@ -307,14 +308,12 @@ package body Test_Empty_Productions_1 is
       use LALR.LRk;
       use OpenToken_AUnit;
 
-      First   : constant Derivation_Matrix := First_Derivations (Grammar, Trace  => False);
-      Kernels : constant Item_Set_List     := LR0_Kernels
-        (Grammar, First, Has_Empty_Production, Trace => False, First_State_Index => 1);
+      Kernels : constant Item_Set_List := LR0_Kernels
+        (Grammar, Has_Empty_Production, First, Trace => False, First_State_Index => 1);
 
       Expected : Parse_State;
    begin
-      --  Assuming Grammar is from test_empty_productions.adb,
-      --  Kernel 2 is:
+      --  Kernel 2:
       --
       --  BODY_ID <= IS_ID ^ DECLARATIVE_PART_ID BEGIN_ID SEMICOLON_ID
       --

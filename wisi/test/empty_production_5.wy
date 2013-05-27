@@ -1,0 +1,40 @@
+;;; finding bug in parse table generator; nonterm followed by possibly empty nonterm
+
+%{
+(require 'wisi)
+%}
+
+%token <punctuation> SEMICOLON ";"
+
+%keyword ACCEPT "accept"
+%keyword LEFT_PAREN "("
+%keyword RIGHT_PAREN ")"
+
+%token <symbol> IDENTIFIER
+
+%start compilation_unit
+
+%%
+
+compilation_unit
+  : accept_statement accept_statement
+  ;
+
+accept_statement
+  : ACCEPT name parameter_profile SEMICOLON
+  ;
+
+name : IDENTIFIER ;
+
+parameter_profile
+  : ;; empty
+  | LEFT_PAREN IDENTIFIER RIGHT_PAREN
+  ;
+
+
+%%
+
+;; Local Variables:
+;; eval: (add-hook 'before-save-hook 'delete-trailing-whitespace nil t)
+;; End:
+;;; end of file

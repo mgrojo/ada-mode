@@ -37,6 +37,8 @@ tests : case_expression-parse.diff
 tests : empty_production_1-parse.diff
 tests : empty_production_2-parse.diff
 tests : empty_production_3-parse.diff
+# tests : empty_production_4-parse.diff FIXME: still broken
+tests : empty_production_5-parse.diff
 
 examples : asu_example_3_6-run.run
 examples : asu_example_4_46-run.run

@@ -146,19 +146,20 @@ package OpenToken.Production.Parser.LALR is
    package LRk is new OpenToken.Production.Parser.LRk_Item (1);
 
    procedure Fill_In_Lookaheads
-     (Grammar      : in     Production_List.Instance;
-      First        : in     LRk.Derivation_Matrix;
-      Kernels      : in out LRk.Item_Set_List;
-      Accept_Index : in     Integer;
-      Used_Tokens  : in out Tokenizer.Token_Array_Boolean;
-      Trace        : in     Boolean);
+     (Grammar              : in     Production_List.Instance;
+      Has_Empty_Production : in     LRk.Nonterminal_ID_Set;
+      First                : in     LRk.Derivation_Matrix;
+      Kernels              : in out LRk.Item_Set_List;
+      Accept_Index         : in     Integer;
+      Used_Tokens          : in out Tokenizer.Token_Array_Boolean;
+      Trace                : in     Boolean);
 
    procedure Add_Actions
      (Kernel               : in     LRk.Item_Set_Ptr;
       Accept_Index         : in     Integer;
       Grammar              : in     Production_List.Instance;
-      First                : in     LRk.Derivation_Matrix;
       Has_Empty_Production : in     LRk.Nonterminal_ID_Set;
+      First                : in     LRk.Derivation_Matrix;
       Conflicts            : in out Conflict_Lists.List;
       Table                : in out Parse_Table;
       Trace                : in     Boolean);

@@ -194,9 +194,6 @@ package body OpenToken.Token.Enumerated.List is
 
    function Token_Handle (Iterator : in List_Iterator) return OpenToken.Token.Enumerated.Handle is
    begin
-      if Iterator = null then
-         return null;
-      end if;
       return Iterator.Token;
    end Token_Handle;
 

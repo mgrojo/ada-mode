@@ -156,21 +156,24 @@ package OpenToken.Production.Parser.LRk_Item is
 
    type Derivation_Matrix is array (Nonterminal_ID) of Token_ID_Set;
 
-   function First_Derivations
-     (Grammar : in Production_List.Instance;
-      Trace   : in Boolean)
-     return Derivation_Matrix;
-   --  For each nonterminal in the given grammar, find the set of
-   --  tokens that its first term could start with.
-
    type Nonterminal_ID_Set is array (Nonterminal_ID) of Boolean;
 
    function Has_Empty_Production (Grammar : in Production_List.Instance) return Nonterminal_ID_Set;
 
+   function First_Derivations
+     (Grammar              : in Production_List.Instance;
+      Has_Empty_Production : in Nonterminal_ID_Set;
+      Trace                : in Boolean)
+     return Derivation_Matrix;
+   --  For each nonterminal in the given grammar, find the set of
+   --  tokens that its first term could start with.
+
    function Lookahead_Closure
-     (Set     : in Item_Set;
-      First   : in Derivation_Matrix;
-      Grammar : in Production_List.Instance)
+     (Set                  : in Item_Set;
+      Has_Empty_Production : in Nonterminal_ID_Set;
+      First                : in Derivation_Matrix;
+      Grammar              : in Production_List.Instance;
+      Trace                : in Boolean)
      return Item_Set;
    --  Return the lookahead closure of Set over Grammar. First must be
    --  the result of First_Derivations.
@@ -186,8 +189,8 @@ package OpenToken.Production.Parser.LRk_Item is
 
    function LR0_Kernels
      (Grammar              : in Production_List.Instance;
-      First                : in Derivation_Matrix;
       Has_Empty_Production : in Nonterminal_ID_Set;
+      First                : in Derivation_Matrix;
       Trace                : in Boolean;
       First_State_Index    : in Natural)
      return Item_Set_List;

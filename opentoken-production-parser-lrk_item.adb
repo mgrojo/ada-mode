@@ -61,15 +61,16 @@ package body OpenToken.Production.Parser.LRk_Item is
    end Image;
 
    function First_Derivations
-     (Grammar      : in Production_List.Instance;
-      Non_Terminal : in Token.Token_ID;
-      Trace        : in Boolean)
+     (Grammar              : in Production_List.Instance;
+      Has_Empty_Production : in Nonterminal_ID_Set;
+      Non_Terminal         : in Token.Token_ID;
+      Trace                : in Boolean)
      return Token_ID_Set
    is
-      use type Token_List.List_Iterator;
+      use Token_List;
 
       Prod_Iterator  : Production_List.List_Iterator;
-      Token_Iterator : Token_List.List_Iterator;
+      Token_Iterator : List_Iterator;
 
       Derived_Token : Token.Token_ID;
 
@@ -90,16 +91,28 @@ package body OpenToken.Production.Parser.LRk_Item is
          Prod_Iterator := Production_List.Initial_Iterator (Grammar);
          while not Production_List.Past_Last (Prod_Iterator) loop
             if Search_Tokens (Token.ID (Production_List.Get_Production (Prod_Iterator).LHS.all)) then
-               Token_Iterator := Token_List.Initial_Iterator
+               Token_Iterator := Initial_Iterator
                  (Production_List.Get_Production (Prod_Iterator).RHS.Tokens);
 
-               if Token_Iterator /= Token_List.Null_Iterator then
-                  Derived_Token := Token.ID (Token_List.Token_Handle (Token_Iterator).all);
+               loop
+                  if Token_Iterator /= Null_Iterator then
+                     Derived_Token := ID (Token_Iterator);
 
-                  if not Derivations (Derived_Token) then
-                     Added_Tokens (Derived_Token) := True;
+                     if not Derivations (Derived_Token) then
+                        Added_Tokens (Derived_Token) := True;
+                     end if;
+
+                     if (Derived_Token in Nonterminal_ID and then Has_Empty_Production (Derived_Token)) and
+                       Next (Token_Iterator) /= Null_Iterator
+                     then
+                        Token_Iterator := Next (Token_Iterator);
+                     else
+                        exit;
+                     end if;
+                  else
+                     exit;
                   end if;
-               end if;
+               end loop;
             end if;
 
             Production_List.Next_Production (Prod_Iterator);
@@ -119,8 +132,9 @@ package body OpenToken.Production.Parser.LRk_Item is
    end First_Derivations;
 
    function First_Derivations
-     (Grammar : in Production_List.Instance;
-      Trace   : in Boolean)
+     (Grammar              : in Production_List.Instance;
+      Has_Empty_Production : in Nonterminal_ID_Set;
+      Trace                : in Boolean)
      return Derivation_Matrix
    is
       Matrix : Derivation_Matrix;
@@ -130,7 +144,7 @@ package body OpenToken.Production.Parser.LRk_Item is
       end if;
 
       for NT_Index in Matrix'Range loop
-         Matrix (NT_Index) := First_Derivations (Grammar, NT_Index, Trace);
+         Matrix (NT_Index) := First_Derivations (Grammar, Has_Empty_Production, NT_Index, Trace);
       end loop;
 
       if Trace then
@@ -460,13 +474,15 @@ package body OpenToken.Production.Parser.LRk_Item is
    end Merge;
 
    function Lookahead_Closure
-     (Set     : in Item_Set;
-      First   : in Derivation_Matrix;
-      Grammar : in Production_List.Instance)
+     (Set                  : in Item_Set;
+      Has_Empty_Production : in Nonterminal_ID_Set;
+      First                : in Derivation_Matrix;
+      Grammar              : in Production_List.Instance;
+      Trace                : in Boolean)
      return Item_Set
    is
       use type Token.Token_ID;
-      use type Token.Handle;
+      use type Token_List.List_Iterator;
 
       Item                : Item_Ptr := Set.Set;
       Current             : Item_Ptr;
@@ -495,24 +511,21 @@ package body OpenToken.Production.Parser.LRk_Item is
       Current        := Result.Set;
       Added_New_Item := False;
       loop
-
          --  If the token after Dot is a nonterminal, find its
          --  productions and place them in the set with lookaheads
          --  from the current production.
-         if Token_List.Token_Handle (Current.Dot) /= null and then
+         if Current.Dot /= Token_List.Null_Iterator and then
            Token_List.ID (Current.Dot) in Nonterminal_ID
          then
-            declare
-               Current_ID : constant Token.Token_ID := Token_List.ID (Current.Dot);
-            begin
-               Next_Symbol := Current.Dot;
-               Token_List.Next_Token (Next_Symbol); -- token after nonterminal, possibly null
+            Next_Symbol := Token_List.Next_Token (Current.Dot); -- token after nonterminal, possibly null
 
-               Production_Iterator := Production_List.Initial_Iterator (Grammar);
-               while not Production_List.Past_Last (Production_Iterator) loop
-                  if LHS_ID (Production_List.Get_Production (Production_Iterator)) = Current_ID then
-
-                     if Token_List.Token_Handle (Next_Symbol) = null then
+            Production_Iterator := Production_List.Initial_Iterator (Grammar);
+            while not Production_List.Past_Last (Production_Iterator) loop
+               if LHS_ID (Production_List.Get_Production (Production_Iterator)) = Token_List.ID (Current.Dot) then
+                  --  loop until find a terminal, or a nonterminal that cannot be empty, or end of production
+                  Empty_Nonterm :
+                  loop
+                     if Next_Symbol = Token_List.Null_Iterator then
                         --  Need a variable, because the lookaheads might be freed.
                         Merge_From := Item_Node_Of
                           (Production_Iterator,
@@ -520,11 +533,9 @@ package body OpenToken.Production.Parser.LRk_Item is
                            Lookaheads => Current.Lookaheads);
 
                         Added_New_Item := Added_New_Item or Merge (Merge_From, Result);
+                        exit Empty_Nonterm;
 
                      elsif Token_List.ID (Next_Symbol) in Tokenizer.Terminal_ID then
-
-                        --  Only necessary if nonterminal can be null,
-                        --  but that's expensive to check.
                         Merge_From := Item_Node_Of
                           (Production_Iterator,
                            Index => -1,
@@ -534,14 +545,12 @@ package body OpenToken.Production.Parser.LRk_Item is
                               Next       => null));
 
                         Added_New_Item := Added_New_Item or Merge (Merge_From, Result);
+                        exit Empty_Nonterm;
 
                      else
                         --  Next_Symbol is a nonterminal
-
                         for Terminal in Tokenizer.Terminal_ID loop
-
-                           if First (Token.ID (Token_List.Token_Handle (Next_Symbol).all)) (Terminal) then
-
+                           if First (Token_List.ID (Next_Symbol)) (Terminal) then
                               Merge_From := Item_Node_Of
                                 (Production_Iterator,
                                  Index => -1,
@@ -551,16 +560,20 @@ package body OpenToken.Production.Parser.LRk_Item is
                                     Next       => null));
 
                               Added_New_Item := Added_New_Item or Merge (Merge_From, Result);
-
                            end if;
                         end loop;
 
+                        if Has_Empty_Production (Token_List.ID (Next_Symbol)) then
+                           Next_Symbol := Token_List.Next_Token (Next_Symbol);
+                        else
+                           exit Empty_Nonterm;
+                        end if;
                      end if;
-                  end if;
+                  end loop Empty_Nonterm;
+               end if;
 
-                  Production_List.Next_Production (Production_Iterator);
-               end loop;
-            end;
+               Production_List.Next_Production (Production_Iterator);
+            end loop;
          end if; -- Dot is is at non-terminal
 
          if Current.Next = null then
@@ -573,6 +586,11 @@ package body OpenToken.Production.Parser.LRk_Item is
             Current        := Result.Set;
             Added_New_Item := False;
 
+            if Trace then
+               Ada.Text_IO.Put_Line ("Result:");
+               Put (Result);
+               Ada.Text_IO.New_Line;
+            end if;
          else
             Current := Current.Next;
          end if;
@@ -610,13 +628,12 @@ package body OpenToken.Production.Parser.LRk_Item is
 
          if Item.Dot /= Null_Iterator then
 
-            Dot_ID := Token.ID (Token_Handle (Item.Dot).all);
+            Dot_ID := ID (Item.Dot);
             --  ID of token after Dot
 
-            --  FIXME: can't just check for Null_Iterator here; why do we allow null token_handle in a token list?
-            if Null_Iterator /= Next_Token (Item.Dot) and then Token_Handle (Next_Token (Item.Dot)) /= null then
+            if Null_Iterator /= Next_Token (Item.Dot) then
                Have_Dot_2_ID := True;
-               Dot_2_ID := Token.ID (Token_Handle (Next_Token (Item.Dot)).all);
+               Dot_2_ID := ID (Next_Token (Item.Dot));
                --  ID of second token after Dot
             else
                Have_Dot_2_ID := False;
@@ -641,8 +658,7 @@ package body OpenToken.Production.Parser.LRk_Item is
                   RHS_I := Initial_Iterator (Prod.RHS.Tokens);
 
                   if (Dot_ID = LHS_ID (Prod) or First (Dot_ID)(LHS_ID (Prod))) and
-                    (RHS_I /= Null_Iterator and then
-                       Token.ID (Token_Handle (RHS_I).all) = Symbol)
+                    (RHS_I /= Null_Iterator and then ID (RHS_I) = Symbol)
                   then
                      declare
                         New_Item : constant Item_Node :=
@@ -731,8 +747,8 @@ package body OpenToken.Production.Parser.LRk_Item is
 
    function LR0_Kernels
      (Grammar              : in Production_List.Instance;
-      First                : in Derivation_Matrix;
       Has_Empty_Production : in Nonterminal_ID_Set;
+      First                : in Derivation_Matrix;
       Trace                : in Boolean;
       First_State_Index    : in Natural)
      return Item_Set_List
@@ -904,7 +920,9 @@ package body OpenToken.Production.Parser.LRk_Item is
       Show_Tag        : in Boolean := False)
      return String
    is
-      Token_Index : Token_List.List_Iterator;
+      use Token_List;
+
+      Token_Index : List_Iterator;
 
       Result : Ada.Strings.Unbounded.Unbounded_String :=
         Ada.Strings.Unbounded.To_Unbounded_String (Token_Name (Item.Prod.LHS)) &
@@ -912,23 +930,20 @@ package body OpenToken.Production.Parser.LRk_Item is
          else "") &
         " <=";
 
-      use type Token_List.List_Iterator;
-      use type Token.Handle;
-
    begin
-      Token_Index := Token_List.Initial_Iterator (Item.Prod.RHS.Tokens);
+      Token_Index := Initial_Iterator (Item.Prod.RHS.Tokens);
 
-      while Token_List.Token_Handle (Token_Index) /= null loop
+      while Token_Index /= Null_Iterator loop
          if Token_Index = Item.Dot then
             Result := Result & " ^ ";
          else
             Result := Result & " ";
          end if;
-         Result := Result & Token_Name (Token_List.Token_Handle (Token_Index));
-         Token_List.Next_Token (Token_Index);
+         Result := Result & Token_Name (Token_Handle (Token_Index));
+         Next_Token (Token_Index);
       end loop;
 
-      if Token_List.Token_Handle (Item.Dot) = null then
+      if Item.Dot = Null_Iterator then
          Result := Result & " ^";
       end if;
 

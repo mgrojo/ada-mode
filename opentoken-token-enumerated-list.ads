@@ -83,8 +83,10 @@ package OpenToken.Token.Enumerated.List is
    --  Null_Iterator if there is no next token.
    ----------------------------------------------------------------------------
    procedure Next_Token (Iterator : in out List_Iterator);
+   procedure Next (Iterator : in out List_Iterator) renames Next_Token;
 
    function Next_Token (Iterator : in List_Iterator) return List_Iterator;
+   function Next (Iterator : in List_Iterator) return List_Iterator renames Next_Token;
 
    function Token_Handle (Iterator : in List_Iterator) return Handle;
    function ID (Iterator : in List_Iterator) return Token_ID;

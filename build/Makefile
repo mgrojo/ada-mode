@@ -22,19 +22,9 @@ bz2file : force
 	mtn checkout --branch $(BRANCH) ../../$(BRANCH)-$(ZIP_VERSION)
 	tar -c -O  -C ../.. --exclude=_MTN --exclude=.mtn-ignore --exclude=.dvc-exclude --no-anchor $(BRANCH)-$(ZIP_VERSION) | bzip2 -9 > $(BRANCH)-$(ZIP_VERSION).tar.bz2
 
+zipfile : ROOT := $(shell cd ..; basename `pwd`)
 zipfile : force
-	cd ../..; zip -q -r opentoken.main/Build/opentoken-$(ZIP_VERSION).zip opentoken-$(ZIP_VERSION) -x "opentoken-$(ZIP_VERSION)/_MTN/*" -x "opentoken-$(ZIP_VERSION)/.mtn-ignore" -x "opentoken-$(ZIP_VERSION)/.dvc-ignore"
-
-debian-update : | ../../opentoken-$(ZIP_VERSION)-current
-	cp opentoken-$(ZIP_VERSION).tar.bz2 ../../opentoken-$(ZIP_VERSION)-current/opentoken_$(ZIP_VERSION).orig.tar.bz2
-
-debian : debian-update
-	rm -rf ../../opentoken-$(ZIP_VERSION)-current/opentoken-$(ZIP_VERSION)
-	mtn checkout --branch org.debian.libopentoken ../../opentoken-$(ZIP_VERSION)-current/opentoken-$(ZIP_VERSION)
-	cd ../../opentoken-$(ZIP_VERSION)-current; tar jxf opentoken_$(ZIP_VERSION).orig.tar.bz2
-
-../../opentoken-$(ZIP_VERSION)-current :
-	mkdir ../../opentoken-$(ZIP_VERSION)-current
+	cd ../..; zip -q -r $(CURDIR)/$(ROOT)-$(ZIP_VERSION).zip $(ROOT)-$(ZIP_VERSION) -x "$(ROOT)-$(ZIP_VERSION)/_MTN/*" -x "$(ROOT)-$(ZIP_VERSION)/.mtn-ignore" -x "$(ROOT)-$(ZIP_VERSION)/.dvc-ignore"
 
 tag :
 	mtn tag h:org.opentoken opentoken-$(ZIP_VERSION)

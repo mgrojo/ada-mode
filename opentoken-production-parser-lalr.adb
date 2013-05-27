@@ -273,19 +273,19 @@ package body OpenToken.Production.Parser.LALR is
       Used_Tokens  : in out Tokenizer.Token_Array_Boolean;
       Trace        : in     Boolean)
    is
-      Next_Item   : LRk.Item_Node;
-      Next_Token  : Token_List.List_Iterator;
-      Token_ID    : Token.Token_ID;
-      Next_Kernel : LRk.Item_Ptr;
-      Lookahead   : LRk.Item_Lookahead_Ptr := Closure_Item.Lookaheads;
-
       Spontaneous_Count : Integer := 0;
 
-      use type Token.Handle;
-      use type LRk.Item_Set_Ptr;
-      use type LRk.Item_Ptr;
       use type LRk.Item_Lookahead_Ptr;
+      use type LRk.Item_Ptr;
+      use type LRk.Item_Set_Ptr;
+      use type Token_List.List_Iterator;
    begin
+      if Trace then
+         Ada.Text_IO.Put_Line ("  closure_item: ");
+         LRk.Put (Closure_Item, Show_Lookaheads => True);
+         Ada.Text_IO.New_Line;
+      end if;
+
       --  If this is the start symbol production, it gets a lookahead
       --  for each terminal, so it will reduce on anything.
       if Source_Set.Index = Accept_Index then
@@ -304,71 +304,68 @@ package body OpenToken.Production.Parser.LALR is
                   Ada.Text_IO.Put_Line ("; " & LRk.Print (Lookahead));
                end if;
 
-               LRk.Include
-                 (Set   => Source_Item.Lookaheads,
-                  Value => Lookahead);
+               LRk.Include (Source_Item.Lookaheads, Lookahead);
             end;
          end loop;
       end if;
 
       --  If the closure item doesn't have a token after Dot,
       --  there's nothing else to do.
-      if Token_List.Token_Handle (Closure_Item.Dot) = null then
+      if Closure_Item.Dot = Token_List.Null_Iterator then
          return;
       end if;
 
-      Token_ID := Token.ID (Token_List.Token_Handle (Closure_Item.Dot).all);
+      declare
+         Token_ID   : constant Token.Token_ID           := Token_List.ID (Closure_Item.Dot);
+         Next_Token : constant Token_List.List_Iterator := Token_List.Next_Token (Closure_Item.Dot);
 
+         Next_Item : constant LRk.Item_Node :=
+           (Prod       => Closure_Item.Prod,
+            Dot        => Next_Token,
+            Index      => -1,
+            Lookaheads => null,
+            Next       => null);
+
+         Next_Kernel : constant LRk.Item_Ptr  := LRk.Find (Next_Item, LRk.Goto_Set (Source_Set, Token_ID).all);
+         Lookahead   : LRk.Item_Lookahead_Ptr := Closure_Item.Lookaheads;
       begin
-         Used_Tokens (Token_ID) := True;
-      exception
-      when Constraint_Error =>
-         raise Grammar_Error with "non-reporting " & Token.Token_Image (Token_ID) & " used in grammar";
-      end;
+         begin
+            Used_Tokens (Token_ID) := True;
+         exception
+         when Constraint_Error =>
+            raise Grammar_Error with "non-reporting " & Token.Token_Image (Token_ID) & " used in grammar";
+         end;
 
-      Next_Token := Closure_Item.Dot;
-      Token_List.Next_Token (Next_Token); --  Second token after Dot
-      Next_Item  :=
-        (Prod       => Closure_Item.Prod,
-         Dot        => Next_Token,
-         Index      => -1,
-         Lookaheads => null,
-         Next       => null);
+         while Lookahead /= null loop
+            if Lookahead.Last = 0 then
+               Add_Propagations
+                 (From         => Source_Item,
+                  From_Set     => Source_Set,
+                  To           => Next_Item,
+                  For_Token    => Token_ID,
+                  Propagations => Propagations);
 
-      Next_Kernel := LRk.Find (Next_Item, LRk.Goto_Set (Source_Set, Token_ID).all);
+            else
+               if Next_Kernel /= null then
+                  if Trace then
+                     Spontaneous_Count := Spontaneous_Count + 1;
+                     Ada.Text_IO.Put_Line ("  spontaneous: " & LRk.Print (Lookahead.all));
+                  end if;
 
-      --  Check all of the closure item's lookaheads
-      while Lookahead /= null loop
-         if Lookahead.Last = 0 then
-            Add_Propagations
-              (From         => Source_Item,
-               From_Set     => Source_Set,
-               To           => Next_Item,
-               For_Token    => Token_ID,
-               Propagations => Propagations);
-
-         else
-            if Next_Kernel /= null then
-               if Trace then
-                  Spontaneous_Count := Spontaneous_Count + 1;
-                  Ada.Text_IO.Put_Line ("  spontaneous: " & LRk.Print (Lookahead.all));
+                  LRk.Include (Next_Kernel.Lookaheads, Lookahead.all);
                end if;
 
-               LRk.Include
-                 (Set   => Next_Kernel.Lookaheads,
-                  Value => Lookahead.all);
             end if;
 
+            Lookahead := Lookahead.Next;
+         end loop;
+
+         if Spontaneous_Count > 0 then
+            Ada.Text_IO.Put ("  Next_Kernel (" & Token.Token_Image (Token_ID) & "): ");
+            LRk.Put (Next_Kernel.all, Show_Lookaheads => True);
+            Ada.Text_IO.New_Line;
          end if;
-
-         Lookahead := Lookahead.Next;
-      end loop;
-
-      if Spontaneous_Count > 0 then
-         Ada.Text_IO.Put ("  Next_Kernel (" & Token.Token_Image (Token_ID) & "): ");
-         LRk.Put (Next_Kernel.all, Show_Lookaheads => True);
-         Ada.Text_IO.New_Line;
-      end if;
+      end;
    end Generate_Lookahead_Info;
 
    procedure Propagate_Lookaheads
@@ -397,10 +394,7 @@ package body OpenToken.Production.Parser.LALR is
                if Lookahead.Last > 0 then
                   To := Mapping.To;
                   while To /= null loop
-                     LRk.Include
-                       (Set   => To.Item.Lookaheads,
-                        Value => Lookahead.all,
-                        Added => Added_One);
+                     LRk.Include (To.Item.Lookaheads, Lookahead.all, Added_One);
 
                      if Trace and Added_One then
                         Added_Some := True;
@@ -424,24 +418,23 @@ package body OpenToken.Production.Parser.LALR is
                Ada.Text_IO.New_Line;
             end if;
 
-
             Mapping := Mapping.Next;
          end loop;
       end loop;
    end Propagate_Lookaheads;
 
-   --  Calculate the LR(1) propogations for Grammar.
+   --  Calculate the LALR(1) lookaheads for Grammar.
    --  Kernels should be the sets of LR(0) kernels on input, and will
-   --  become the set of LR(1) kernels on output.
+   --  become the set of LALR(1) kernels on output.
    procedure Fill_In_Lookaheads
-     (Grammar      : in     Production_List.Instance;
-      First        : in     LRk.Derivation_Matrix;
-      Kernels      : in out LRk.Item_Set_List;
-      Accept_Index : in     Integer;
-      Used_Tokens  : in out Tokenizer.Token_Array_Boolean;
-      Trace        : in     Boolean)
+     (Grammar              : in     Production_List.Instance;
+      Has_Empty_Production : in     LRk.Nonterminal_ID_Set;
+      First                : in     LRk.Derivation_Matrix;
+      Kernels              : in out LRk.Item_Set_List;
+      Accept_Index         : in     Integer;
+      Used_Tokens          : in out Tokenizer.Token_Array_Boolean;
+      Trace                : in     Boolean)
    is
-
       Kernel       : LRk.Item_Set_Ptr := Kernels.Head;
       Kernel_Item  : LRk.Item_Ptr;
       Closure_Item : LRk.Item_Ptr;
@@ -479,14 +472,13 @@ package body OpenToken.Production.Parser.LALR is
             Kernel_Item_Set.Set.Prod := Kernel_Item.Prod;
             Kernel_Item_Set.Set.Dot  := Kernel_Item.Dot;
 
-            Closure := LRk.Lookahead_Closure (Kernel_Item_Set, First, Grammar);
+            Closure := LRk.Lookahead_Closure (Kernel_Item_Set, Has_Empty_Production, First, Grammar, Trace => False);
 
             Closure_Item := Closure.Set;
             while Closure_Item /= null loop
 
                Generate_Lookahead_Info
-                 (Kernel_Item, Kernel.all, Closure_Item.all, Accept_Index, Propagation_List,
-                  Used_Tokens, Trace);
+                 (Kernel_Item, Kernel.all, Closure_Item.all, Accept_Index, Propagation_List, Used_Tokens, Trace);
 
                Closure_Item := Closure_Item.Next;
             end loop;
@@ -819,8 +811,8 @@ package body OpenToken.Production.Parser.LALR is
      (Kernel               : in     LRk.Item_Set_Ptr;
       Accept_Index         : in     Integer;
       Grammar              : in     Production_List.Instance;
-      First                : in     LRk.Derivation_Matrix;
       Has_Empty_Production : in     LRk.Nonterminal_ID_Set;
+      First                : in     LRk.Derivation_Matrix;
       Conflicts            : in out Conflict_Lists.List;
       Table                : in out Parse_Table;
       Trace                : in     Boolean)
@@ -828,9 +820,7 @@ package body OpenToken.Production.Parser.LALR is
       State : constant State_Index := State_Index (Kernel.Index);
 
       Closure : LRk.Item_Set := LRk.Lookahead_Closure
-        (Set     => Kernel.all,
-         First   => First,
-         Grammar => Grammar);
+        (Kernel.all, Has_Empty_Production, First, Grammar, Trace => False);
 
       Item : LRk.Item_Ptr := Closure.Set;
 
@@ -854,10 +844,10 @@ package body OpenToken.Production.Parser.LALR is
             Add_Lookahead_Actions
               (Item, Kernel, Accept_Index, Table (State).Action_List, Has_Empty_Production, Conflicts, Closure, Trace);
 
-         elsif Token.ID (Token_List.Token_Handle (Item.Dot).all) in Tokenizer.Terminal_ID then
+         elsif Token_List.ID (Item.Dot) in Tokenizer.Terminal_ID then
             --  Dot is before a terminal token.
             declare
-               Dot_ID : constant Tokenizer.Terminal_ID := Token.ID (Token_List.Token_Handle (Item.Dot).all);
+               Dot_ID : constant Tokenizer.Terminal_ID := Token_List.ID (Item.Dot);
                --  ID of token after Item.Dot
             begin
                Add_Action
@@ -877,12 +867,7 @@ package body OpenToken.Production.Parser.LALR is
             --  empty production for the non-terminal will appear in
             --  the closure, and be handled above.
             if Trace then
-               declare
-                  use Token_List;
-                  Dot_ID : constant Nonterminal_ID := Token.ID (Token_Handle (Item.Dot).all);
-               begin
-                  Ada.Text_IO.Put_Line (Token.Token_Image (Dot_ID) & " => no action");
-               end;
+               Ada.Text_IO.Put_Line (Token.Token_Image (Token_List.ID (Item.Dot)) & " => no action");
             end if;
          end if;
 
@@ -964,8 +949,8 @@ package body OpenToken.Production.Parser.LALR is
      (LRk_Kernels          : in     LRk.Item_Set_List;
       Accept_Index         : in     Integer;
       Grammar              : in     Production_List.Instance;
-      First                : in     LRk.Derivation_Matrix;
       Has_Empty_Production : in     LRk.Nonterminal_ID_Set;
+      First                : in     LRk.Derivation_Matrix;
       Conflicts            :    out Conflict_Lists.List;
       Table                : in out Parse_Table;
       Trace                : in     Boolean)
@@ -974,7 +959,7 @@ package body OpenToken.Production.Parser.LALR is
       use type LRk.Item_Set_Ptr;
    begin
       while Kernel /= null loop
-         Add_Actions (Kernel, Accept_Index, Grammar, First, Has_Empty_Production, Conflicts, Table, Trace);
+         Add_Actions (Kernel, Accept_Index, Grammar, Has_Empty_Production, First, Conflicts, Table, Trace);
          Kernel := Kernel.Next;
       end loop;
 
@@ -1058,12 +1043,12 @@ package body OpenToken.Production.Parser.LALR is
 
       New_Parser  : Instance;
 
-      First                : constant LRk.Derivation_Matrix  := LRk.First_Derivations (Grammar, Trace);
       Has_Empty_Production : constant LRk.Nonterminal_ID_Set := LRk.Has_Empty_Production (Grammar);
+      First                : constant LRk.Derivation_Matrix  := LRk.First_Derivations
+        (Grammar, Has_Empty_Production, Trace);
       Used_Tokens          : Tokenizer.Token_Array_Boolean   := (others => False);
 
-      Kernels : LRk.Item_Set_List := LRk.LR0_Kernels
-        (Grammar, First, Has_Empty_Production, Trace, First_State_Index);
+      Kernels : LRk.Item_Set_List := LRk.LR0_Kernels (Grammar, Has_Empty_Production, First, Trace, First_State_Index);
 
       I             : LRk.Item_Set_Ptr  := Kernels.Head;
       Accept_Index  : Integer           := 0;
@@ -1103,7 +1088,7 @@ package body OpenToken.Production.Parser.LALR is
          Ada.Text_IO.Put_Line ("Accept_Index:" & Integer'Image (Accept_Index));
       end if;
 
-      Fill_In_Lookaheads (Grammar, First, Kernels, Accept_Index, Used_Tokens, Trace);
+      Fill_In_Lookaheads (Grammar, Has_Empty_Production, First, Kernels, Accept_Index, Used_Tokens, Trace);
 
       for I in Used_Tokens'Range loop
          if not Used_Tokens (I) then
@@ -1125,7 +1110,7 @@ package body OpenToken.Production.Parser.LALR is
         (State_Index (First_State_Index) .. State_Index (Kernels.Size - 1 + First_State_Index));
 
       Add_Actions
-        (Kernels, Accept_Index, Grammar, First, Has_Empty_Production, Unknown_Conflicts, New_Parser.Table.all, Trace);
+        (Kernels, Accept_Index, Grammar, Has_Empty_Production, First, Unknown_Conflicts, New_Parser.Table.all, Trace);
 
       if Put_Grammar then
          Put_Parse_Table (New_Parser.Table.all, Kernels);

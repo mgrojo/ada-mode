@@ -112,19 +112,18 @@ package body Test_LR1_Lookahead_Closure is
       use LALR.LRk;
       use OpenToken_AUnit;
 
-      First : constant Derivation_Matrix := First_Derivations (Grammar, Trace => Test.Debug);
-
       Has_Empty_Production : constant Nonterminal_ID_Set := LALR.LRk.Has_Empty_Production (Grammar);
 
-      Kernels : Item_Set_List := LR0_Kernels (Grammar, First, Has_Empty_Production, Test.Debug, First_State_Index => 1);
+      First : constant Derivation_Matrix := First_Derivations
+        (Grammar, Has_Empty_Production, Trace => Test.Debug);
+
+      Kernels : Item_Set_List := LR0_Kernels (Grammar, Has_Empty_Production, First, Test.Debug, First_State_Index => 1);
 
       procedure Test_One (Label : in String; Input : in Item_Set; Expected : in Item_Set)
       is
-         Closure : Item_Set_Ptr := new Item_Set'(Lookahead_Closure (Input, First, Grammar));
+         Closure : Item_Set_Ptr := new Item_Set'
+           (Lookahead_Closure (Input, Has_Empty_Production, First, Grammar, Trace => Test.Debug));
       begin
-         if Test.Debug then
-            Put (Closure.all);
-         end if;
          Check (Label, Closure.all, Expected);
          Free (Closure.all);
          Free (Closure);
