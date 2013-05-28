@@ -17,6 +17,8 @@
   ;; 'accept - parsing completed
   ;; 'error  - failed, error not reported yet
   ;; nil     - terminated
+  ;;
+  ;; 'pending-shift, 'pending-reduce - newly created parser; see wisi-parse
 
   stack
   ;; Each stack item takes two slots: (token-symbol token-text (token-start . token-end)), state
@@ -87,9 +89,22 @@
 	    (when result
 	      ;; spawn a new parser
 	      (let ((j (wisi-free-parser parser-states)))
-		(when (= j -1)
+		(cond
+		 ((= j -1)
+		  ;; add to parser-states; the new parser won't be executed again in this parser-index loop
 		  (setq parser-states (vconcat parser-states (vector nil)))
 		  (setq j (1- (length parser-states))))
+		 ((< j parser-index)
+		  ;; the new parser won't be executed again in this parser-index loop; nothing to do
+		  )
+		 (t
+		  ;; don't let the new parser execute again in this parser-index loop
+		  (setf (wisi-parser-state-active result)
+			(case (wisi-parser-state-active result)
+			  (shift 'pending-shift)
+			  (reduce 'pending-reduce)
+			 )))
+		  )
 		(setq active-parser-count (1+ active-parser-count))
 		(setf (wisi-parser-state-label result) j)
 		(aset parser-states j result))
@@ -143,8 +158,17 @@
 		 ;; later
 		 (setf (wisi-parser-state-active parser-state) nil)
 		 )))
-
 	    )));; end dotimes
+
+      (when (< active-parser-count-prev active-parser-count)
+	;; change pending-* parsers to *
+	(dotimes (parser-index (length parser-states))
+	  (cond
+	   ((eq (wisi-parser-state-active (aref parser-states parser-index)) 'pending-shift)
+	    (setf (wisi-parser-state-active (aref parser-states parser-index)) 'shift))
+	   ((eq (wisi-parser-state-active (aref parser-states parser-index)) 'pending-reduce)
+	    (setf (wisi-parser-state-active (aref parser-states parser-index)) 'reduce))
+	   )))
 
       (setq active (wisi-parsers-active parser-states active-parser-count))
       (when (eq active 'shift)
@@ -155,7 +179,7 @@
 
 (defun wisi-parsers-active (parser-states active-count)
   "Return the type of parser cycle to execute.
-PARSER-STATES.active is the last action the parser took. If it
+PARSER-STATES[*].active is the last action a parser took. If it
 was 'shift, that parser used the input token, and should not be
 executed again until another input token is available, after all
 parsers have shifted the current token or terminated.
@@ -232,11 +256,24 @@ Return nil or new parser (a wisi-parse-state struct)."
 
     (when (> wisi-debug 0)
       ;; output trace info
-      (message "%d: %d : %s : %s" (wisi-parser-state-label parser-state) state token parse-action))
+      (when (> wisi-debug 1)
+	;; put top 10 stack items
+	(let* ((count (min 20 (wisi-parser-state-sp parser-state)))
+	       (msg (make-vector (+ 1 count) nil)))
+	  (dotimes (i count)
+	    (aset msg (- count i)
+		  (aref (wisi-parser-state-stack parser-state) (- (wisi-parser-state-sp parser-state) i)))
+	    )
+	  (message "%d: %s: %d: %s"
+		   (wisi-parser-state-label parser-state)
+		   (wisi-parser-state-active parser-state)
+		   (wisi-parser-state-sp parser-state)
+		   msg)))
+      (message "   %d: %s: %s" state token parse-action))
 
     (when (and (listp parse-action)
 	       (not (symbolp (car parse-action))))
-      ;; conflict; spawn a new parser
+      ;; Conflict; spawn a new parser.
       (setq new-parser-state
 	    (make-wisi-parser-state
 	     :active  nil

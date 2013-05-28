@@ -33,6 +33,9 @@ run indent test from emacs -Q:
     (setq ada-mode-hook (delete 'ada-smie-opentoken-setup ada-mode-hook))
     (add-hook 'ada-mode-hook 'ada-wisi-setup))
 
+(setq wisi-debug 2)
+(setq wisent-parse-max-stack-size 40)
+(setq wisent-parse-max-stack-size 500)
 (setq wisi-debug 1)
 (setq wisi-debug 0)
 
@@ -43,12 +46,10 @@ run indent test from emacs -Q:
 
 (list (wisi-parser-state-active (aref parser-states 1)) (wisi-parser-state-sp (aref parser-states 1)) (wisi-parser-state-stack (aref parser-states 1)))
 
-(setq wisent-parse-max-stack-size 80)
  ada-wisi parser
 build/wisi/Makefile
     test/ada_mode-nominal.adb
-        parser failing; unexpected 'begin' in 'task body Executive'
-            need task_body
+        character literal
 
 Debian : emacs 24.2 (from testing), GNAT GPL 2012:
     ada-mode tests failing
@@ -78,8 +79,12 @@ test/ada_mode-function_2.adb fails parse during edit, gives 'error during redisp
 
  opentoken
 /Projects/org.opentoken.stephe/build/windows_debug/Makefile
+    empty_production_5.parse
+        lookahead for set 7 is missing semicolon
+        lrk.lookahead_closure is wrong
+
     empty_production_4.parse
-        overriding_indicator can be empty; still not fixed
+        2 empty nonterms
         dot_2 needs to be a loop
 
 doc alex/aflex avail at http://sourceforge.net/projects/p2ada/
@@ -105,12 +110,19 @@ generalized parse
 /Projects/Web/stephe-leake/emacs/ada-mode/emacs-ada-mode.html
     to-do list
 
+indentation bug:
+      Expected_Set := Get_Item_Node
+        (Prod       => 4, -- in grammar
+         Lookaheads => +(LEFT_PAREN_ID, SEMICOLON_ID),
+         Dot        => 1,
+         Next       => Expected_Set);
+
 select-prj should open prj if not in alist
 
 set buffer-local at variable declaration, not in ada-mode
     make it clearer to someone trying to understand what the variable does
 
-Markus Schöpflin <markus.schoepflin@comsoft.aero> wants this style:
+Markus Schöpflin <markus.schoepflin@comsoft.aero> wants this style (including all caps):
 
    FOOBAR.PROC (
       ARG1 => VAL1,

@@ -12,8 +12,8 @@
 ADA_TEST_FILES := $(shell cd ../../test; ls *.ad[sb])
 ADA_TEST_FILES := $(ADA_TEST_FILES) $(shell cd ../../test; ls subdir/*.ad[sb])
 
-# this is for debug only
-ADA_TEST_FILES := $(filter-out debug.adb, $(ADA_TEST_FILES))
+ADA_TEST_FILES := $(filter-out debug.adb, $(ADA_TEST_FILES))# debug only
+ADA_TEST_FILES := $(filter-out debug.ads, $(ADA_TEST_FILES))# debug only
 
 GPR_TEST_FILES := $(shell cd ../../test/gpr; ls *.gpr)
 
