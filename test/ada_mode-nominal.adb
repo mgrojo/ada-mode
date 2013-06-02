@@ -9,17 +9,22 @@ with Ada.Strings.Unbounded;
 --EMACSCMD:(test-face "use" font-lock-keyword-face)
 --EMACSCMD:(test-face "Ada" font-lock-constant-face)
 use Ada.Strings.Unbounded;
-package body Ada_Mode.Nominal is
+package body Ada_Mode.Nominal is -- target 0
 
    --EMACSCMD:(test-face "Ada" font-lock-constant-face)
    use Ada.Strings;
 
+   --EMACSCMD:(progn (forward-line 1) (ada-next-statement-keyword)(looking-at "is -- target 1"))
    function Function_Access_1
      (A_Param : in Float)
      return
      Standard.Float
    is -- target 1
+      --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at " -- target 1"))
+      --EMACSRESULT:t
       use type Standard.Float;
+      --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at " -- target 1"))
+      --EMACSRESULT:t
    begin
       --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at " -- target 1"))
       --EMACSRESULT:t
@@ -28,6 +33,7 @@ package body Ada_Mode.Nominal is
 
    function Function_Access_11
      (A_Param : in Float)
+     --  FIXME: EMACSCMD:(test-face "function" font-lock-keyword-face)
      return access function
        (A_Param : in Float)
        return
@@ -72,14 +78,17 @@ package body Ada_Mode.Nominal is
             Dummy : Boolean;
             pragma Unreferenced (Dummy); -- test ada-indent-statement-or-declaration handling of this in refine-begin
          begin
-            --EMACSCMD:(progn (ada-next-statement-keyword)(looking-at "then"))
+            --EMACSCMD:(progn (forward-line 2)(forward-comment 1)(ada-next-statement-keyword)(looking-at "then"))
             --EMACSRESULT: t
             if True then
                --EMACSCMD:(progn (end-of-line 0)(backward-word 1)(ada-next-statement-keyword)(looking-at "elsif"))
                --EMACSRESULT: t
-               begin
-                  --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at " -- target 3"))
-                  --EMACSRESULT:t
+
+               --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at " -- target 3"))
+               --EMACSRESULT:t
+               begin -- target 4
+                     --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at "begin -- target 4"))
+                     --EMACSRESULT:t
 
                   --EMACSCMD:(test-face "Integer" 'default)
                   -- "Integer" is in fact a type, but it would require
@@ -118,6 +127,9 @@ package body Ada_Mode.Nominal is
          return B : Integer := Local_Function;
          -- non-do extended return
       end F1;
+
+      --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at " -- target 2"))
+      --EMACSRESULT:t
 
       function F2 (Param_1 : Discrete_Type_1; B : Float) return Float
       is
@@ -252,9 +264,9 @@ package body Ada_Mode.Nominal is
    --  block attached
    --------------------------------------------------------
    task Executive;
-   task body Executive is -- target 4
+   task body Executive is -- target 5
    begin
-      --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at " -- target 4"))
+      --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at " -- target 5"))
       --EMACSRESULT:t
 
       null;
@@ -334,16 +346,16 @@ package body Ada_Mode.Nominal is
    not
    overriding
    procedure Procedure_1f (Item : in out Parent_Type_1)
-   is -- target
+   is -- target 6
    begin
-      --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at " -- target"))
+      --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at " -- target 6"))
       --EMACSRESULT:t
       null;
    end Procedure_1f;
 
-   procedure Procedure_2a is -- target 4
+   procedure Procedure_2a is -- target 7
    begin null; end;
-   --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at " -- target 4"))
+   --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at " -- target 0"))
    --EMACSRESULT:t
 
    -- Functions can't be 'is null', so we test some indentation issues
@@ -358,13 +370,13 @@ package body Ada_Mode.Nominal is
    is
       Local_1 : constant := 3.0;
    begin
-      declare -- target 5
+      declare -- target 8
 
          -- no label, zero statements between begin, declare
       begin
          return Local_1;
       exception
-         --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at " -- target 5"))
+         --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at " -- target 8"))
          --EMACSRESULT:t
 
          when others =>

@@ -1,6 +1,6 @@
 ;;; user options shared by Ada mode indentation engines
 ;;
-;; Copyright (C) 2012  Free Software Foundation, Inc.
+;; Copyright (C) 2012, 2013  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Contributors: Simon Wright <simon.j.wright@mac.com>
@@ -120,10 +120,10 @@ An example is:
 (defcustom ada-indent-return 0
   "*Indentation for 'return' relative to the matching 'function' keyword.
 
-If `ada-indent-return' is zero or less, then
-- if the function has parameters, the indentation is done
-  relative to the open parenthesis;
-- if not, `ada-indent-broken' is used relative to 'function'.
+If `ada-indent-return' is zero or less, and the function has
+parameters, the indentation is done relative to the open
+parenthesis; otherwise, `ada-indent-broken' is used relative to
+line containing 'function'.
 
 An example is:
    function A (B : Integer)

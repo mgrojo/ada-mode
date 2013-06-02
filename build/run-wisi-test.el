@@ -66,7 +66,6 @@
   ;; split out from run-test for interactive debugging
   (interactive "Mgrammar filename: ")
   (let ((parse-table (symbol-value (intern-soft (concat filename "-wy--parse-table"))))
-	(wisent-parse-max-stack-size 30);; small enough to see in debugger, big enough to run tests
 	(wisi-test-success nil)
 	(expected-result t))
     ;; use Ada style comments in source

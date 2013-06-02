@@ -529,13 +529,27 @@ CONTAINED-TOKEN is token number of the contained non-terminal."
 	  prev-cache
 	  cache)
       (while token-numbers
-	(let* ((region (cddr (nth (1- (pop token-numbers)) tokens)))
-	       (mark
-		;; Marker one char into token, so indent-line-to
-		;; inserts space before the mark, not after
-		(copy-marker (1+ (car region)))))
+	(let ((token-number (pop token-numbers))
+	      target-token
+	      region)
+	  (cond
+	   ((numberp token-number)
+	    (setq target-token nil)
+	    (setq region (cddr (nth (1- token-number) tokens)))
+	    (setq cache (wisi-get-cache (car region)))
+	    (setq mark (copy-marker (1+ (car region))))
+	    )
 
-	  (setq cache (wisi-get-cache (car region)))
+	   ((listp token-number)
+	    (setq target-token (cadr token-number))
+	    (setq token-number (car token-number))
+	    (setq region (cddr (nth (1- token-number) tokens)))
+	    (goto-char (car region))
+	    (wisi-forward-find-token target-token (cdr region))
+	    (setq cache (wisi-get-cache (point)))
+	    (setq mark (copy-marker (1+ (point))))
+	    )
+	   )
 
 	  (when prev-keyword-mark
 	    (setf (wisi-cache-prev cache) prev-keyword-mark)
@@ -543,7 +557,7 @@ CONTAINED-TOKEN is token number of the contained non-terminal."
 
 	  (setq prev-keyword-mark mark)
 	  (setq prev-cache cache)
-	))
+	  ))
       )))
 
 ;;;; motion
@@ -605,7 +619,7 @@ If LIMIT (a buffer position) is reached, throw an error."
 Return (cache region); the found cache, and the text region
 containing it; or nil if at end of buffer.
 If LIMIT (a buffer position) is reached, throw an error."
-  (let ((result (wisi-forward-cache)))
+  (let ((result (list (wisi-get-cache (point)) nil)))
     (while (not (eq token (wisi-cache-token (car result))))
       (setq result (wisi-forward-cache))
       (when (>= (point) limit)
@@ -638,28 +652,45 @@ cache. Otherwise move to cache-next, or next cache if nil."
       (wisi-forward-cache))
   ))
 
-(defun wisi-goto-statement-start (cache containing)
+(defun wisi-backward-statement-keyword ()
+  "If not at a cached token, move backward to prev
+cache. Otherwise move to cache-prev, or prev cache if nil."
+  (wisi-validate-cache (point-max))
+  (let ((cache (wisi-get-cache (point))))
+    (if cache
+	(let ((prev (wisi-cache-prev cache)))
+	  (if prev
+	      (goto-char (1- prev))
+	    (wisi-backward-cache)))
+      (wisi-backward-cache))
+  ))
+
+(defun wisi-goto-statement-start (cache containing &optional error)
   "Move point to statement start of statement containing CACHE, return cache at that point.
 If at start of a statement and CONTAINING is non-nil, goto start
-of containing statement."
-  (let ((done nil))
+of containing statement. If ERROR and at start and CONTAINING, throw error."
+  (let ((done nil)
+	(first t))
     (while (not done)
       (cond
        ((markerp (wisi-cache-start cache))
 	(cond
 	 ((memq (wisi-cache-class cache) '(statement-start block-start))
 	  (setq done t)
-	  (when containing
+	  (when (and first containing)
 	    (goto-char (1- (wisi-cache-start cache)))
 	    (setq cache (wisi-get-cache (point)))))
 
 	 (t
 	  (goto-char (1- (wisi-cache-start cache)))
-	  (setq cache (wisi-get-cache (point))))
+	  (setq cache (wisi-get-cache (point)))
+	  (setq first nil))
 	 ))
        (t
 	;; at outermost containing statement
-	(setq done t))))
+	(if error
+	    (error "already at outermost containing statement")
+	  (setq done t)))))
     cache))
 
 (defun wisi-next-statement-cache (cache)

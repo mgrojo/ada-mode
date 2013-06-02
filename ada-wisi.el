@@ -98,7 +98,7 @@
 		    ada-indent-broken
 		  ada-indent-return)))
 
-	   (setq cache (wisi-goto-statement-start cache nil))
+	   (ada-prev-statement-keyword) ;; matching 'function'
 	   (cond
 	    ((and
 	      (eq top-class 'return-1)
@@ -108,8 +108,7 @@
 	     (+ (current-column) indent))
 
 	    (t
-	     ;; indent relative to "function".
-	     (+ (current-column) indent))
+	     (+ (current-column) ada-indent-broken))
 	    )))
 
 	(statement-other
@@ -124,6 +123,9 @@
 
 	(statement-start
 	 (wisi-indent-statement-start ada-indent cache t))
+
+	(type
+	 (wisi-indent-statement-start ada-indent-broken cache t))
 	))
     ))
 
@@ -157,8 +159,12 @@ keyword, return new indentation for point."
 	    (+ (current-column) ada-indent-broken))
 
 	   ((THEN ELSE)
-	    ;; assuming in if_expression
-	    (wisi-indent-statement-start ada-indent-broken cache t))
+	    (let* ((start-cache (save-excursion (wisi-goto-statement-start cache nil)))
+		   (indent
+		    (ecase (wisi-cache-nonterm start-cache)
+		      (if_statement ada-indent)
+		      (if_expression ada-indent-broken))))
+	      (wisi-indent-statement-start indent cache t)))
 
 	   (t
 	    ;; block-middle keyword may not be on separate line:
@@ -225,30 +231,44 @@ keyword, return new indentation for point."
 	     (+ paren-column 1 ada-indent-broken))))
 
 	((return-1 return-2)
-	 ;; hanging
-	 (wisi-indent-statement-start ada-indent-broken cache nil))
+	 ;; hanging. Intent relative to line containing matching 'function'
+	 (ada-prev-statement-keyword)
+	 (back-to-indentation)
+ 	 (+ (current-column) ada-indent-broken))
 
 	(statement-end
 	 (wisi-indent-statement-start 0 cache nil))
 
 	(statement-other
-	 (ecase (wisi-cache-nonterm (wisi-goto-statement-start cache nil))
-	   (case_expression
-	    (ecase (wisi-cache-token cache)
-	      (EQUAL_GREATER
+	 (ecase (wisi-cache-token cache)
+	   (COMMA
+	    ;; between ',' and 'when' or 'end case'; comment
+	    ;; FIXME: missing move to correct column
+	    (+ (current-column) ada-indent-when))
+
+	   (FUNCTION
+	    (back-to-indentation)
+	    (+ (current-column) ada-indent-broken))
+
+	   (EQUAL_GREATER
+	    (ecase (wisi-cache-nonterm (wisi-goto-statement-start cache nil))
+	      (block_statement
+	       ;; in exception handler
+	       (+ (current-column) ada-indent-when ada-indent))
+
+	      (case_expression
 	       ;; between '=>' and ','
 	       (+ (current-column) ada-indent-when ada-indent))
 
-	      (COMMA
-	       ;; between ',' and 'when' or 'end case'; comment
-	       (+ (current-column) ada-indent-when ))
+	      (case_statement
+	       (+ (current-column) ada-indent-when ada-indent))
+
+	      (generic_renaming_declaration
+	       ;; not indenting keyword following 'generic'
+	       (+ (current-column) ada-indent-broken))
+
 	      ))
-
-	   (generic_renaming_declaration
-	    ;; not indenting keyword following 'generic'
-	    (+ (current-column) ada-indent-broken))
-
-	   ))
+	  ))
 
 	(statement-start
 	 (if (equal (nth 1 cache-region) (cddr prev-token))
@@ -289,7 +309,54 @@ keyword, return new indentation for point."
        (current-column))
       )))
 
-;;;; ada-mode functions
+;;;; ada-mode functions (alphabetical)
+
+(defun ada-wisi-declarative-region-start-p (cache)
+  "Return t if cache is a keyword starting a declarative region."
+  (case (wisi-cache-token cache)
+   (DECLARE t)
+   (IS
+    (memq (wisi-cache-class cache) '(block-middle)))
+   (t nil)
+   ))
+
+(defun ada-wisi-goto-declarative-region-start ()
+  "For `ada-goto-declarative-region-start', which see."
+  (let ((done nil)
+	(cache
+	 (or
+	  (wisi-get-cache (point))
+	  ;; we use forward-cache here, to handle the case where point is after a subprogram declaration:
+	  ;; declare
+	  ;;     ...
+	  ;;     function ... is ... end;
+	  ;;     <point>
+	  ;;     function ... is ... end;
+	  (car (wisi-forward-cache)))))
+    (if (ada-wisi-declarative-region-start-p cache)
+	(wisi-forward-token t)
+      (while (not done)
+	(setq cache (wisi-goto-statement-start cache t t))
+	(case (wisi-cache-nonterm cache)
+	  (block_statement
+	   (ecase (wisi-cache-token cache)
+	     (DECLARE (wisi-forward-token t))
+	     (BEGIN nil);; user will need to add a declare keyword
+	     )
+	   (setq done t))
+
+	  (subprogram_body ;; overriding_indicator_opt preceding subprogram_specification
+	   (ada-next-statement-keyword) ;; procedure/function
+	   (ada-next-statement-keyword) ;; is
+	   (wisi-forward-token t)
+	   (setq done t))
+
+	  ((package_body protected_body subprogram_specification task_body)
+	   (ada-next-statement-keyword) ;; is
+	   (wisi-forward-token t)
+	   (setq done t))
+	  )))
+    ))
 
 (defun ada-wisi-in-paramlist-p ()
   "For `ada-in-paramlist-p'."
@@ -358,6 +425,9 @@ keyword, return new indentation for point."
 	    (case (wisi-cache-nonterm cache)
 	      (package_specification
 	       (setq result (ada-wisi-which-function-1 0 "package" t)))
+
+	      (protected_body
+	       (setq result (ada-wisi-which-function-1 0 "protected" nil)))
 
 	      (protected_type_declaration
 	       (setq result (ada-wisi-which-function-1 1 "protected" t)))

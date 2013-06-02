@@ -50,8 +50,9 @@ run indent test from emacs -Q:
 build/wisi/Makefile
     test/ada_mode-nominal.adb
         parses (nicely fast!)
-        EMACS-CMD failing
-            ada-wisi-goto-declarative-region-start not defined
+        EMACS-CMD passing
+        indent failing
+            handle label
 
 Debian : emacs 24.2 (from testing), GNAT GPL 2012:
     ada-mode tests failing
@@ -614,6 +615,7 @@ read/write access requires a public key:
 
  release process
 Emacs 24.3, gnat 7.1.0w (sal-standard):
+    /Projects/org.opentoken.stephe/build/windows_release/Makefile all
     build/smie/Makefile all
     build/wisi/Makefile test-wisi test-gpr test-ada
         all test-wisi, test-gpr passing

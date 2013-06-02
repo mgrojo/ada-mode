@@ -1837,7 +1837,7 @@ with no parameters.")
 (defvar ada-goto-declarative-region-start nil
   ;; No useful default; the indentation engine should supply a useful function
   "Function to move point to start of the declarative region of
-the subprogram, package, task declaration, or declare block point
+the subprogram, package, task, or declare block point
 is currently in.  Called with no parameters.")
 
 (defun ada-goto-declarative-region-start ()
