@@ -147,11 +147,10 @@
 %token <punctuation> TICK "'"
 
 %token <symbol> IDENTIFIER
-%token <string> STRING_LITERAL
-%token <character_literal> CHARACTER_LITERAL
+%token <string-double> STRING_LITERAL
+%token <string-single> CHARACTER_LITERAL
 %token <numeric_literal> NUMERIC_LITERAL
 ;; FIXME: wisi lexer treats numeric_literal as identifier; fix that or delete this
-;; FIXME: wisi lexer treats character_literal as ?; fix that or delete this
 
 %start compilation_unit
 
@@ -170,6 +169,7 @@
 %conflict REDUCE/SHIFT in state parameter_profile, generic_instantiation on token IS
 %conflict SHIFT/REDUCE in state accept_statement, compound_statement on token ACCEPT
 %conflict SHIFT/REDUCE in state accept_statement, simple_statement on token ACCEPT
+%conflict SHIFT/REDUCE in state association, name on token EQUAL_GREATER
 %conflict SHIFT/REDUCE in state block_statement, compound_statement on token BEGIN
 %conflict SHIFT/REDUCE in state block_statement, compound_statement on token DECLARE
 %conflict SHIFT/REDUCE in state block_statement, simple_statement on token BEGIN
@@ -193,11 +193,12 @@
 %conflict SHIFT/REDUCE in state label, simple_statement on token LESS_LESS
 %conflict SHIFT/REDUCE in state loop_statement, compound_statement on token LOOP
 %conflict SHIFT/REDUCE in state loop_statement, simple_statement on token LOOP
+%conflict SHIFT/REDUCE in state name, compound_statement on token CHARACTER_LITERAL
 %conflict SHIFT/REDUCE in state name, compound_statement on token IDENTIFIER
 %conflict SHIFT/REDUCE in state name, compound_statement on token STRING_LITERAL
+%conflict SHIFT/REDUCE in state name, simple_statement on token CHARACTER_LITERAL
 %conflict SHIFT/REDUCE in state name, simple_statement on token IDENTIFIER
 %conflict SHIFT/REDUCE in state name, simple_statement on token STRING_LITERAL
-%conflict SHIFT/REDUCE in state primary, association on token RIGHT_PAREN
 %conflict SHIFT/REDUCE in state raise_statement, compound_statement on token RAISE
 %conflict SHIFT/REDUCE in state raise_statement, simple_statement on token RAISE
 %conflict SHIFT/REDUCE in state selective_accept, compound_statement on token SELECT
@@ -1139,7 +1140,7 @@ name_list
 
 name
   : IDENTIFIER
-  ;; | CHARACTER_LITERAL
+  | CHARACTER_LITERAL
   ;; | explicit_dereference
   ;; | indexed_component
   ;; | slice
@@ -1332,7 +1333,7 @@ primary
   | aggregate
   | name
   | NEW name ;; allocator, leaving out subpool_specification
-  | LEFT_PAREN expression RIGHT_PAREN
+ ;; | LEFT_PAREN expression RIGHT_PAREN ;; covered by 'aggregate'
   | LEFT_PAREN if_expression RIGHT_PAREN ;; conditional_expression
   | LEFT_PAREN case_expression RIGHT_PAREN ;; conditional_expression
   ;; | LEFT_PAREN quantified_expression RIGHT_PAREN

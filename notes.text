@@ -49,7 +49,9 @@ run indent test from emacs -Q:
  ada-wisi parser
 build/wisi/Makefile
     test/ada_mode-nominal.adb
-        character literal
+        parses (nicely fast!)
+        EMACS-CMD failing
+            ada-wisi-goto-declarative-region-start not defined
 
 Debian : emacs 24.2 (from testing), GNAT GPL 2012:
     ada-mode tests failing
@@ -481,6 +483,7 @@ c:/apps/emacs-24.2/lisp/progmodes/ada-mode.el
 http://savannah.gnu.org/projects/emacs/
 
 http://git.savannah.gnu.org/cgit/emacs.git/tree/README?h=elpa
+    or http://marmalade-repo.org/ and/or http://melpa.milkbox.net/.
 
 https://www.dropbox.com/sh/7jr3vbv9tm1zod0/jPuvfrJAe8
     w32 builds of cutting-edge emacs branches, pretests
@@ -616,7 +619,7 @@ Emacs 24.3, gnat 7.1.0w (sal-standard):
         all test-wisi, test-gpr passing
         some test-ada passing
 
-Emacs 23.4, (gnat-2012):
+Emacs 23.4, (gnat-2012) (gnat-2013):
 /Projects/org.opentoken.stephe/build/windows_release/Makefile
     clean
     wisi-generate.exe

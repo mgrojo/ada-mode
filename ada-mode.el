@@ -1200,7 +1200,8 @@ In particular, character constants are set to have string syntax."
     (while (re-search-forward
 	    (concat
 	     "[^a-zA-Z0-9)]\\('\\)[^'\n]\\('\\)"; 1, 2: character constants, not attributes
-	     "\\|\\(--\\)"; 3: comment start
+	     "\\|[^a-zA-Z0-9)]\\('''\\)"; 3: character constant '''
+	     "\\|\\(--\\)"; 4: comment start
 	     )
 	    end t)
       ;; The help for syntax-propertize-extend-region-functions
@@ -1215,7 +1216,12 @@ In particular, character constants are set to have string syntax."
 	 (match-beginning 2) (match-end 2) 'syntax-table '(7 . ?')))
        ((match-beginning 3)
 	(put-text-property
-	 (match-beginning 3) (match-end 3) 'syntax-table '(11 . nil)))
+	 (match-beginning 3) (1+ (match-beginning 3)) 'syntax-table '(7 . ?'))
+	(put-text-property
+	 (1- (match-end 3)) (match-end 3) 'syntax-table '(7 . ?')))
+       ((match-beginning 4)
+	(put-text-property
+	 (match-beginning 4) (match-end 4) 'syntax-table '(11 . nil)))
        ))
     (run-hook-with-args 'ada-syntax-propertize-hook start end)
     (unless modified

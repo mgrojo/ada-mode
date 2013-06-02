@@ -88,6 +88,7 @@
 		 (result (wisi-parse-1 token parser-state (> active-parser-count 1) actions gotos)))
 	    (when result
 	      ;; spawn a new parser
+	      ;; FIXME: put new parser on new-parser-list, add to parser-states after this parser-index loop
 	      (let ((j (wisi-free-parser parser-states)))
 		(cond
 		 ((= j -1)
@@ -256,20 +257,22 @@ Return nil or new parser (a wisi-parse-state struct)."
 
     (when (> wisi-debug 0)
       ;; output trace info
-      (when (> wisi-debug 1)
-	;; put top 10 stack items
-	(let* ((count (min 20 (wisi-parser-state-sp parser-state)))
-	       (msg (make-vector (+ 1 count) nil)))
-	  (dotimes (i count)
-	    (aset msg (- count i)
-		  (aref (wisi-parser-state-stack parser-state) (- (wisi-parser-state-sp parser-state) i)))
-	    )
-	  (message "%d: %s: %d: %s"
-		   (wisi-parser-state-label parser-state)
-		   (wisi-parser-state-active parser-state)
-		   (wisi-parser-state-sp parser-state)
-		   msg)))
-      (message "   %d: %s: %s" state token parse-action))
+      (if (> wisi-debug 1)
+	  (progn
+	    ;; put top 10 stack items
+	    (let* ((count (min 20 (wisi-parser-state-sp parser-state)))
+		   (msg (make-vector (+ 1 count) nil)))
+	      (dotimes (i count)
+		(aset msg (- count i)
+		      (aref (wisi-parser-state-stack parser-state) (- (wisi-parser-state-sp parser-state) i)))
+		)
+	      (message "%d: %s: %d: %s"
+		       (wisi-parser-state-label parser-state)
+		       (wisi-parser-state-active parser-state)
+		       (wisi-parser-state-sp parser-state)
+		       msg))
+	    (message "   %d: %s: %s" state token parse-action))
+	(message "%d: %d: %s: %s" (wisi-parser-state-label parser-state) state token parse-action)))
 
     (when (and (listp parse-action)
 	       (not (symbolp (car parse-action))))

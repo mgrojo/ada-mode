@@ -158,8 +158,10 @@
 (make-variable-buffer-local 'wisi-punctuation-table-max-length)
 (defvar wisi-punctuation-table nil)
 (make-variable-buffer-local 'wisi-punctuation-table)
-(defvar wisi-string-term nil)
-(make-variable-buffer-local 'wisi-string-termwisi-string-term)
+(defvar wisi-string-double-term nil) ;; string delimited by double quotes
+(make-variable-buffer-local 'wisi-string-double-term)
+(defvar wisi-string-single-term nil) ;; string delimited by single quotes
+(make-variable-buffer-local 'wisi-string-single-term)
 (defvar wisi-symbol-term nil)
 (make-variable-buffer-local 'wisi-symbol-term)
 
@@ -170,7 +172,7 @@ TEXT-ONLY t:          text
 TEXT-ONLY nil:        (token text start . end)
 where:
 `token' is a token symbol (not string) from `wisi-punctuation-table',
-`wisi-keyword-table', `wisi-string-term' or `wisi-symbol-term'.
+`wisi-keyword-table', `wisi-string-double-term', `wisi-string-double-term' or `wisi-symbol-term'.
 
 `text' is the token text from the buffer (lowercase if LOWER),
 
@@ -214,11 +216,12 @@ If at end of buffer, returns `wisent-eoi-term'."
       (setq token-id (symbol-value (intern-soft token-text wisi-keyword-table))))
 
      ((eq syntax 7)
-      ;; string quote. we assume we are before the start quote, not the end quote
-      (let ((forward-sexp-function nil))
-	(forward-sexp))
-      (setq token-text (buffer-substring-no-properties start (point)))
-      (setq token-id wisi-string-term))
+      ;; string quote, either single or double. we assume we are before the start quote, not the end quote
+      (let ((delim (char-after (point)))
+	    (forward-sexp-function nil))
+	(forward-sexp)
+	(setq token-text (buffer-substring-no-properties start (point)))
+	(setq token-id (if (= delim ?\") wisi-string-double-term wisi-string-single-term))))
 
      (t ;; assuming word syntax
       (skip-syntax-forward "w_'")
@@ -333,6 +336,7 @@ wisi-forward-token, but does not look up symbol."
 
 (defun wisi-after-change (begin end length)
   "For `after-change-functions'."
+  ;; (syntax-ppss-flush-cache begin) is in before-change-functions
   (when (>= wisi-cache-max begin)
     (save-excursion
       ;; FIXME: if wisi-change-need-invalidate, don't do any more checks.
@@ -743,6 +747,7 @@ CACHE contains cache info from a keyword in the current statement."
 ;;;; debug
 (defun wisi-parse-buffer ()
   (interactive)
+  (syntax-propertize (point-max))
   (wisi-invalidate-cache)
   (wisi-validate-cache (point-max)))
 
@@ -762,7 +767,8 @@ CACHE contains cache info from a keyword in the current statement."
 (defun wisi-setup (indent-calculate class-list keyword-table token-table parse-table)
   "Set up a buffer for parsing files with wisi."
   (setq wisi-class-list class-list)
-  (setq wisi-string-term (car (symbol-value (intern-soft "string" token-table))))
+  (setq wisi-string-double-term (car (symbol-value (intern-soft "string-double" token-table))))
+  (setq wisi-string-single-term (car (symbol-value (intern-soft "string-single" token-table))))
   (setq wisi-symbol-term (car (symbol-value (intern-soft "symbol" token-table))))
 
   (setq wisi-punctuation-table (symbol-value (intern-soft "punctuation" token-table)))
@@ -793,6 +799,9 @@ CACHE contains cache info from a keyword in the current statement."
 
   (add-hook 'before-change-functions 'wisi-before-change nil t)
   (add-hook 'after-change-functions 'wisi-after-change nil t)
+
+  ;; WORKAROUND: sometimes the first time font-lock is run, syntax-propertize is not run properly, so we run it here
+  (syntax-propertize (point-max))
   )
 
 (provide 'wisi)
