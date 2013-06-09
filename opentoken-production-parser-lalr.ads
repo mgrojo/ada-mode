@@ -85,6 +85,8 @@ package OpenToken.Production.Parser.LALR is
       Reduction_List : Reduction_Node_Ptr;
    end record;
 
+   procedure Put (State : in Parse_State);
+
    type Parse_Table is array (State_Index range <>) of Parse_State;
 
    type Parse_Table_Ptr is access Parse_Table;

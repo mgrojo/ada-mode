@@ -333,8 +333,10 @@ begin
      (Grammar,
       Analyzers.Null_Analyzer,
       To_Conflicts (Conflicts),
-      Trace                => Verbosity > 1,
-      Put_Grammar          => Verbosity > 0);
+      Trace                    => Verbosity > 1,
+      Put_Grammar              => Verbosity > 0,
+      Ignore_Unused_Tokens     => Verbosity > 1,
+      Ignore_Unknown_Conflicts => Verbosity > 1);
 
    declare
       use Standard.Ada.Text_IO;

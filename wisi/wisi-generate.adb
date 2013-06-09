@@ -45,7 +45,7 @@ is
       Put_Line ("-v sets verbosity (defaults to 0 with no -v, 1 with just -v):");
       Put_Line ("   level 0 - only error messages to standard error");
       Put_Line ("   level 1 - add compiled grammar output to standard out");
-      Put_Line ("   level 2 - add diagnostics to standard out");
+      Put_Line ("   level 2 - add diagnostics to standard out, ignore unused tokens, unknown conflicts");
    end Put_Usage;
 
    type Output_Language_Type is (Ada, Elisp, Test);

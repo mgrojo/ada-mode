@@ -26,6 +26,7 @@ OK ../../Test/test_empty_productions_1.adb : Goto_Set_1
 OK ../../Test/test_empty_productions_1.adb : Actions_1
 OK ../../Test/test_empty_productions_4.adb : Test_First
 OK ../../Test/test_empty_productions_5.adb : Test_Lookahead_Closure
+OK ../../Test/test_empty_productions_6.adb : Actions_1
 OK Test_LR0_Kernels : Nominal
 OK ../../Test/test_lr1_lookahead_closure.adb : Nominal
 OK ../../Test/test_lr_expecting.adb : Nominal
@@ -38,7 +39,7 @@ OK Test_Token_Identifier_Real_String : Nominal
 OK ../../Test/trivial_productions_test.adb : Expression
 OK ../../Test/trivial_productions_test.adb : Subprograms
 
-Total Tests Run:   38
-Successful Tests:  38
+Total Tests Run:   39
+Successful Tests:  39
 Failed Assertions: 0
 Unexpected Errors: 0

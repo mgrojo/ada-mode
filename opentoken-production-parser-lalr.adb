@@ -547,9 +547,7 @@ package body OpenToken.Production.Parser.LALR is
       end loop;
    end Put_Parse_Action;
 
-   procedure Put_Parse_State
-     (State      : in Parse_State;
-      Kernel_Set : in LRk.Item_Set_Ptr)
+   procedure Put (State : in Parse_State)
    is
       use Ada.Text_IO;
       use Ada.Strings.Fixed;
@@ -557,9 +555,6 @@ package body OpenToken.Production.Parser.LALR is
       Action    : Action_Node_Ptr    := State.Action_List;
       Reduction : Reduction_Node_Ptr := State.Reduction_List;
    begin
-      LRk.Put (Kernel_Set.all);
-
-      New_Line;
       if Action = null then
          raise Programmer_Error with "LALR: Action contains no default entry";
       end if;
@@ -592,7 +587,7 @@ package body OpenToken.Production.Parser.LALR is
          end if;
          Reduction := Reduction.Next;
       end loop;
-   end Put_Parse_State;
+   end Put;
 
    procedure Put_Parse_Table
      (Table       : in Parse_Table;
@@ -600,9 +595,12 @@ package body OpenToken.Production.Parser.LALR is
    is
       use Ada.Text_IO;
    begin
-      Ada.Text_IO.Put_Line ("Parse Table:");
+      Put_Line ("Parse Table:");
       for State in Table'Range loop
-         Put_Parse_State (Table (State), LRk.Find (Integer (State), Kernel_Sets));
+         LRk.Put (LRk.Find (Integer (State), Kernel_Sets).all);
+         New_Line;
+         Put (Table (State));
+
          New_Line;
       end loop;
    end Put_Parse_Table;
@@ -741,7 +739,13 @@ package body OpenToken.Production.Parser.LALR is
             begin
                if not Is_Present (New_Conflict, Conflicts) then
                   Conflicts.Append (New_Conflict);
+               end if;
 
+               if Matching_Action = Action_List then
+                  Action_List.Action := new Parse_Action_Node'
+                    (Item => Action,
+                     Next => Action_List.Action);
+               else
                   Matching_Action.Action := new Parse_Action_Node'
                     (Item => Action,
                      Next => Matching_Action.Action);
@@ -972,32 +976,37 @@ package body OpenToken.Production.Parser.LALR is
      (Conflicts       : in out Conflict_Lists.List;
       Known_Conflicts : in out Conflict_Lists.List)
    is
+      --  Delete all elements in Conflicts that match an element in
+      --  Known_Conflicts. There can be more than one Conflict that
+      --  match one Known_Conflict.
       use Conflict_Lists;
-      I      : Cursor := Conflicts.First;
-      Next_I : Cursor;
-
+      Known      : Cursor  := Known_Conflicts.First;
+      Next_Known : Cursor;
    begin
+      --  WORKAROUND: GNAT GPL 2012 doesn't like an explicit exit in an 'of' loop
       loop
-         exit when I = No_Element;
-         Next_I := Next (I);
-         --  WORKAROUND: GNAT GPL 2012 doesn't like an explicit exit in an 'of' loop
-         Search_Known :
+         exit when Known = No_Element;
+         Next_Known := Next (Known);
          declare
-            Known      : Cursor := Known_Conflicts.First;
-            Next_Known : Cursor;
+            I      : Cursor  := Conflicts.First;
+            Next_I : Cursor;
+            Used   : Boolean := False;
          begin
             loop
-               exit when Known = No_Element;
-               Next_Known := Next (Known);
+               exit when I = No_Element;
+               Next_I := Next (I);
                if Match (Element (Known), Conflicts.Constant_Reference (I)) then
                   Delete (Conflicts, I);
-                  Delete (Known_Conflicts, Known);
-                  exit;
+                  Used := True;
                end if;
-               Known := Next_Known;
+               I := Next_I;
             end loop;
-         end Search_Known;
-         I := Next_I;
+
+            if Used then
+               Delete (Known_Conflicts, Known);
+            end if;
+         end;
+         Known := Next_Known;
       end loop;
    end Delete_Known;
 

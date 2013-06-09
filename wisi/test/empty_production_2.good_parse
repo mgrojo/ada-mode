@@ -3,7 +3,8 @@ Set 1:
   OPENTOKEN_ACCEPT_ID <= ^ DECLARATIONS_ID EOF_ID
 
    EOF_ID              => reduce 0 tokens to DECLARATION_ID
-   IS_ID               => shift and goto state 2
+   IS_ID               => reduce 0 tokens to DECLARATION_ID,
+                          shift and goto state 2
    default             => ERROR
 
    DECLARATION_ID      goto state 3
