@@ -11,6 +11,7 @@
     ;; have to add test-specific things.
 
     ;; operator symbols
+    (modify-syntax-entry ?&  "." table)
     (modify-syntax-entry ?*  "." table)
     (modify-syntax-entry ?+  "." table)
     (modify-syntax-entry ?-  "." table)
@@ -20,7 +21,7 @@
     (modify-syntax-entry ?>  "." table)
     (modify-syntax-entry ?|  "." table)
 
-    ;; and \f and \n end a comment - see test-syntax-propertize for comment start
+    ;; \f and \n end a comment - see test-syntax-propertize for comment start
     (modify-syntax-entry ?\f  ">   " table)
     (modify-syntax-entry ?\n  ">   " table)
     table

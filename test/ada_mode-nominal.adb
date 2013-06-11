@@ -150,11 +150,11 @@ package body Ada_Mode.Nominal is -- target 0
                   --EMACSCMD:(test-face "goto" font-lock-keyword-face)
                   --EMACSCMD:(test-face "Label_1" font-lock-constant-face)
                   goto Label_1;
-               --EMACSCMD:(test-face "Label_1" font-lock-constant-face)
+                  --EMACSCMD:(test-face "Label_1" font-lock-constant-face)
                <<Label_1>>
                   D := D - Float (F1);
             end case;
-         --  FIXME: test keyword motion on case
+            --  FIXME: test keyword motion on case
          end return;
       end; -- no F2 on purpose
 
@@ -198,16 +198,13 @@ package body Ada_Mode.Nominal is -- target 0
                end loop;
 
             Loop_4 : while not (Local_1 > 0) loop
-               -- Sort of wrong, but this is what Ada-mode 4.01 does.
-               -- Don't put loop label on the same line as loop if
-               -- ada-indent-label is not 0.
-               Local_1 := Local_1 + 2;
-            end loop Loop_4;
+                  Local_1 := Local_1 + 2;
+               end loop Loop_4;
 
-         Loop_5 : -- wrong because of previous line
-            while not (Local_1 > 0) loop
-               Local_1 := Local_1 + 2;
-            end loop Loop_5;
+            Loop_5 :
+               while not (Local_1 > 0) loop
+                  Local_1 := Local_1 + 2;
+               end loop Loop_5;
          end case;
 
          -- A comment before 'end'

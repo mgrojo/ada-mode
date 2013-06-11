@@ -165,48 +165,13 @@
 %conflict REDUCE/SHIFT in state generic_formal_part, generic_renaming_declaration on token PACKAGE
 %conflict REDUCE/SHIFT in state generic_formal_part, generic_renaming_declaration on token PROCEDURE
 %conflict REDUCE/SHIFT in state identifier_list, object_renaming_declaration on token COLON
+%conflict REDUCE/SHIFT in state label_opt, accept_statement on token ACCEPT
 %conflict REDUCE/SHIFT in state mode, access_definition on token NOT
 %conflict REDUCE/SHIFT in state parameter_profile, generic_instantiation on token IS
-%conflict SHIFT/REDUCE in state accept_statement, compound_statement on token ACCEPT
-%conflict SHIFT/REDUCE in state accept_statement, simple_statement on token ACCEPT
 %conflict SHIFT/REDUCE in state association, name on token EQUAL_GREATER
-%conflict SHIFT/REDUCE in state block_statement, compound_statement on token BEGIN
-%conflict SHIFT/REDUCE in state block_statement, compound_statement on token DECLARE
-%conflict SHIFT/REDUCE in state block_statement, simple_statement on token BEGIN
-%conflict SHIFT/REDUCE in state block_statement, simple_statement on token DECLARE
-%conflict SHIFT/REDUCE in state case_statement, compound_statement on token CASE
-%conflict SHIFT/REDUCE in state case_statement, simple_statement on token CASE
-%conflict SHIFT/REDUCE in state delay_statement, compound_statement on token DELAY
 %conflict SHIFT/REDUCE in state delay_statement, guard_opt on token DELAY
-%conflict SHIFT/REDUCE in state delay_statement, simple_statement on token DELAY
-%conflict SHIFT/REDUCE in state exit_statement, compound_statement on token EXIT
-%conflict SHIFT/REDUCE in state exit_statement, simple_statement on token EXIT
-%conflict SHIFT/REDUCE in state extended_return_statement, compound_statement on token RETURN
-%conflict SHIFT/REDUCE in state extended_return_statement, simple_statement on token RETURN
-%conflict SHIFT/REDUCE in state if_statement, compound_statement on token IF
-%conflict SHIFT/REDUCE in state if_statement, simple_statement on token IF
-%conflict SHIFT/REDUCE in state iteration_scheme, compound_statement on token FOR
-%conflict SHIFT/REDUCE in state iteration_scheme, compound_statement on token WHILE
-%conflict SHIFT/REDUCE in state iteration_scheme, simple_statement on token FOR
-%conflict SHIFT/REDUCE in state iteration_scheme, simple_statement on token WHILE
-%conflict SHIFT/REDUCE in state label, compound_statement on token LESS_LESS
-%conflict SHIFT/REDUCE in state label, simple_statement on token LESS_LESS
-%conflict SHIFT/REDUCE in state loop_statement, compound_statement on token LOOP
-%conflict SHIFT/REDUCE in state loop_statement, simple_statement on token LOOP
-%conflict SHIFT/REDUCE in state name, compound_statement on token CHARACTER_LITERAL
-%conflict SHIFT/REDUCE in state name, compound_statement on token IDENTIFIER
-%conflict SHIFT/REDUCE in state name, compound_statement on token STRING_LITERAL
-%conflict SHIFT/REDUCE in state name, simple_statement on token CHARACTER_LITERAL
-%conflict SHIFT/REDUCE in state name, simple_statement on token IDENTIFIER
-%conflict SHIFT/REDUCE in state name, simple_statement on token STRING_LITERAL
-%conflict SHIFT/REDUCE in state raise_statement, compound_statement on token RAISE
-%conflict SHIFT/REDUCE in state raise_statement, simple_statement on token RAISE
-%conflict SHIFT/REDUCE in state selective_accept, compound_statement on token SELECT
-%conflict SHIFT/REDUCE in state selective_accept, simple_statement on token SELECT
-%conflict SHIFT/REDUCE in state simple_statement, compound_statement on token GOTO
-%conflict SHIFT/REDUCE in state simple_statement, compound_statement on token NULL
-%conflict SHIFT/REDUCE in state simple_statement, simple_statement on token GOTO
-%conflict SHIFT/REDUCE in state simple_statement, simple_statement on token NULL
+%conflict SHIFT/REDUCE in state delay_statement, label_opt on token DELAY
+%conflict SHIFT/REDUCE in state label_opt, label_opt on token IDENTIFIER
 
 %%
 ;;;; grammar rules
@@ -230,16 +195,16 @@
 accept_statement
   : ACCEPT IDENTIFIER LEFT_PAREN expression RIGHT_PAREN parameter_profile DO handled_sequence_of_statements END identifier_opt SEMICOLON
     (progn
-      (wisi-statement-action 1 'block-start 6 'block-middle 8 'block-end 10 'statement-end)
+      (wisi-statement-action 1 'block-start 7 'block-middle 9 'block-end 11 'statement-end)
       (wisi-start-action 1 8))
   | ACCEPT IDENTIFIER parameter_profile DO handled_sequence_of_statements END identifier_opt SEMICOLON
     (progn
-      (wisi-statement-action 1 'block-start 3 'block-middle 5 'block-end 7 'statement-end)
-      (wisi-start-action 1 8))
+      (wisi-statement-action 1 'block-start 4 'block-middle 6 'block-end 8 'statement-end)
+      (wisi-start-action 1 5))
   | ACCEPT IDENTIFIER LEFT_PAREN expression RIGHT_PAREN parameter_profile SEMICOLON
     (wisi-statement-action 1 'statement-start 7 'statement-end)
   | ACCEPT IDENTIFIER parameter_profile SEMICOLON
-    (wisi-statement-action 1 'statement-start 3 'statement-end)
+    (wisi-statement-action 1 'statement-start 4 'statement-end)
   ;
 
 access_definition
@@ -350,23 +315,15 @@ attribute_designator
 binary_adding_operator : PLUS | MINUS | AMPERSAND ; ;; + | - | &
 
 block_statement
-  : IDENTIFIER COLON DECLARE declarative_part_opt BEGIN handled_sequence_of_statements END identifier_opt SEMICOLON
+  : DECLARE declarative_part_opt BEGIN handled_sequence_of_statements END identifier_opt SEMICOLON
+ ;; label_opt covered by statement
     (progn
       (wisi-statement-action 1 'block-start 3 'block-middle 5 'block-middle 7 'block-end 9 'statement-end)
-      (wisi-start-action 1 4)
-      (wisi-start-action 1 6))
-  | IDENTIFIER COLON BEGIN handled_sequence_of_statements END identifier_opt SEMICOLON
-    (progn
-      (wisi-statement-action 1 'block-start 3 'block-middle 5 'block-end 7 'statement-end)
-      (wisi-start-action 1 4))
-  | DECLARE declarative_part_opt BEGIN handled_sequence_of_statements END identifier_opt SEMICOLON
-    (progn
-      (wisi-statement-action 1 'block-start 3 'block-middle 5 'block-end 7 'statement-end)
       (wisi-start-action 1 2)
       (wisi-start-action 1 4))
   | BEGIN handled_sequence_of_statements END identifier_opt SEMICOLON
     (progn
-      (wisi-statement-action 1 'block-start 3 'block-end 5 'statement-end)
+      (wisi-statement-action 1 'block-start 3 'block-middle 5 'block-end 7 'statement-end)
       (wisi-start-action 1 2))
   ;
 
@@ -645,6 +602,8 @@ entry_body
   : ENTRY IDENTIFIER entry_body_formal_part WHEN expression IS declarative_part_opt BEGIN handled_sequence_of_statements END identifier_opt SEMICOLON
     (progn
       (wisi-statement-action 1 'block-start 6 'block-middle 8 'block-middle 10 'block-end 12 'statement-end)
+      (wisi-start-action 1 3)
+      (wisi-start-action 1 5)
       (wisi-start-action 1 7)
       (wisi-start-action 1 9))
   ;
@@ -1058,8 +1017,12 @@ iterator_specification
   | IDENTIFIER OF name
   ;
 
-label
-  : LESS_LESS IDENTIFIER GREATER_GREATER
+label_opt
+  : ;; empty
+  | LESS_LESS IDENTIFIER GREATER_GREATER ;; for goto
+  | IDENTIFIER COLON ;; on blocks, loops
+ ;; goto and block/loop labels merged into label_opt because
+ ;; indentation code treats them equally.
   ;
 
 library_item
@@ -1090,24 +1053,15 @@ loop_parameter_specification
   ;
 
 loop_statement
-  : IDENTIFIER COLON iteration_scheme LOOP sequence_of_statements END LOOP IDENTIFIER SEMICOLON
+  : iteration_scheme LOOP sequence_of_statements END LOOP identifier_opt SEMICOLON
+ ;; label_opt included in statement
     (progn
-      (wisi-statement-action 1 'statement-start 4 'block-start 6 'block-end 9 'statement-end)
-      (wisi-start-action 1 5)
-      (wisi-motion-action 4 6))
-  | iteration_scheme LOOP sequence_of_statements END LOOP SEMICOLON
-    (progn
-      (wisi-statement-action 1 'statement-start 2 'block-start 4 'block-end 6 'statement-end)
+      (wisi-statement-action 1 'statement-start 2 'block-start 4 'block-end 8 'statement-end)
       (wisi-start-action 1 3)
       (wisi-motion-action 2 4))
-  | IDENTIFIER COLON LOOP sequence_of_statements END LOOP IDENTIFIER SEMICOLON
+  | LOOP sequence_of_statements END LOOP identifier_opt SEMICOLON
     (progn
-      (wisi-statement-action 1 'statement-start 3 'block-start 5 'block-end 8 'statement-end)
-      (wisi-start-action 1 4)
-      (wisi-motion-action 3 5))
-  | LOOP sequence_of_statements END LOOP SEMICOLON
-    (progn
-      (wisi-statement-action 1 'block-start 3 'block-end 5 'statement-end)
+      (wisi-statement-action 1 'block-start 3 'block-end 6 'statement-end)
       (wisi-start-action 1 2)
       (wisi-motion-action 1 3))
   ;
@@ -1499,11 +1453,13 @@ selective_accept
     (progn
       (wisi-statement-action 1 'block-start 4 'block-middle 6 'block-end 8 'statement-end)
       (wisi-start-action 1 3)
-      (wisi-start-action 1 5))
+      (wisi-start-action 1 5)
+      (wisi-motion-action 1 '(3 OR) 4 6))
   | SELECT guard_opt select_alternative_list END SELECT SEMICOLON
     (progn
       (wisi-statement-action 1 'block-start 4 'block-end 6 'statement-end)
-      (wisi-start-action 1 3))
+      (wisi-start-action 1 3)
+      (wisi-motion-action 1 '(3 OR) 4 6))
   ;
 
 select_alternative
@@ -1515,6 +1471,7 @@ select_alternative
 select_alternative_list
   : select_alternative
   | select_alternative_list OR guard_opt select_alternative
+    (wisi-statement-action 2 'block-middle)
   ;
 
 select_statement
@@ -1591,10 +1548,10 @@ single_task_declaration
 
 ;; ignoring list of labels on one statement
 statement
-  : label simple_statement
-  | simple_statement ;; ignoring list of labels on one statement
-  | label compound_statement
-  | compound_statement
+  : label_opt simple_statement
+    (wisi-statement-action 1 'statement-start 2 'statement-other)
+  | label_opt compound_statement
+    (wisi-statement-action 1 'statement-start 2 'statement-other)
   ;
 
 ;; leaving out [aspect_specification]

@@ -48,11 +48,10 @@ run indent test from emacs -Q:
 
  ada-wisi parser
 build/wisi/Makefile
+    adding label_opt
     test/ada_mode-nominal.adb
-        parses (nicely fast!)
-        EMACS-CMD passing
-        indent failing
-            handle label
+        indent - fixing ada-mode 4.01 bugs
+
 
 Debian : emacs 24.2 (from testing), GNAT GPL 2012:
     ada-mode tests failing
@@ -82,9 +81,6 @@ test/ada_mode-function_2.adb fails parse during edit, gives 'error during redisp
 
  opentoken
 /Projects/org.opentoken.stephe/build/windows_debug/Makefile
-    empty_production_5.parse
-        lookahead for set 7 is missing semicolon
-        lrk.lookahead_closure is wrong
 
     empty_production_4.parse
         2 empty nonterms

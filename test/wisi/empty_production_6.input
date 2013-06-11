@@ -1,0 +1,4 @@
+begin
+   D := B;
+end;
+

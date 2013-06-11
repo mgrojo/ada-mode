@@ -278,15 +278,23 @@ wisi-forward-token, but does not look up symbol."
   (wisi-cache
    (:constructor wisi-cache-create)
    (:copier nil))
-  nonterm;; non-terminal from parse (set by wisi-statement-action)
+  nonterm;; nonterminal from parse (set by wisi-statement-action)
 
-  token;; terminal symbol from wisi-keyword-table, wisi-punctuation-table (set by wisi-statement-action)
+  token
+  ;; terminal symbol from wisi-keyword-table or
+  ;; wisi-punctuation-table, or lower-level nonterminal from parse
+  ;; (set by wisi-statement-action)
 
   class
   ;; arbitrary lisp symbol, used for indentation and navigation.
   ;; some classes are defined by wisi:
-  ;; 'block-start
-  ;; 'statement-start
+  ;;
+  ;; 'block-middle - a block keyword (if then else end), not at thestart of a statement
+  ;;
+  ;; 'block-start - a block keyword at the start of a statement
+  ;;
+  ;; 'statement-start - the start of a statement
+  ;;
   ;; 'open-paren
   ;;
   ;; others are language-specific
@@ -416,8 +424,8 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
 
 (defvar tokens nil);; keep byte-compiler happy; tokens is let-bound in wisi-parse-reduce
 (defun wisi-statement-action (&rest pairs)
-  "Cache indentation and name information in text properties of tokens.
-Intended as a wisent grammar non-terminal action.
+  "Cache information in text properties of tokens.
+Intended as a grammar non-terminal action.
 
 PAIRS is of the form [TOKEN-NUMBER CLASS] ...  where TOKEN-NUMBER
 is the (1 indexed) token number in the production, CLASS is the wisi class of
@@ -448,9 +456,28 @@ that token. Use in a grammar action as:
 		    ;;
 		    ;; generic_package_declaration : generic_formal_part package_specification SEMICOLON
 		    ;;
+		    ;; or simple_statement in
+		    ;;
+		    ;; statement : label_opt simple_statement
+		    ;;
 		    ;; just override class and start
 		    (progn
-		      (setf (wisi-cache-class cache) (or override-start class))
+		      (case (wisi-cache-class cache)
+			(block-start
+			 (setf (wisi-cache-class cache)
+			       (cond
+				 ((eq override-start nil)
+				  (cond
+				   ((memq class '(block-start statement-start)) 'block-start)
+				   (t 'block-middle)))
+
+				 ((memq override-start '(block-start statement-start)) 'block-start)
+
+				 (t (error "unexpected override-start"))
+				 )))
+			(t
+			 (setf (wisi-cache-class cache) (or override-start class)))
+			)
 		      (setf (wisi-cache-start cache) first-keyword-mark))
 
 		  ;; else create new cache
@@ -480,7 +507,7 @@ that token. Use in a grammar action as:
 		    (setq override-start nil)
 		    (setq first-keyword-mark mark))))
 
-	    ;; region is null when a production is empty; if the first
+	    ;; region is nil when a production is empty; if the first
 	    ;; token is a start, override the class on the next token.
 	    (when (and first-item
 		       (memq class '(block-start statement-start)))
@@ -522,7 +549,12 @@ CONTAINED-TOKEN is token number of the contained non-terminal."
 	    ))))))
 
 (defun wisi-motion-action (&rest token-numbers)
-  "Set prev/next marks in all tokens given by TOKENS-NUMBERS."
+  "Set prev/next marks in all tokens given by TOKEN-NUMBERS.
+Each TOKEN-NUMBERS is one of:
+
+number: the token number; mark that token
+
+list (number token_id): mark the token_id in the nonterminal given by the number."
   (save-excursion
     (let (next-keyword-mark
 	  prev-keyword-mark
@@ -541,6 +573,7 @@ CONTAINED-TOKEN is token number of the contained non-terminal."
 	    )
 
 	   ((listp token-number)
+	    ;; cannot be empty
 	    (setq target-token (cadr token-number))
 	    (setq token-number (car token-number))
 	    (setq region (cddr (nth (1- token-number) tokens)))
@@ -549,6 +582,9 @@ CONTAINED-TOKEN is token number of the contained non-terminal."
 	    (setq cache (wisi-get-cache (point)))
 	    (setq mark (copy-marker (1+ (point))))
 	    )
+
+	   (t
+	    (error "unexpected token-number %s" token-number))
 	   )
 
 	  (when prev-keyword-mark
@@ -591,7 +627,15 @@ containing it; or nil if at end of buffer."
       ;; on a cached token; get past it
       (wisi-forward-token t))
 
-    (setq begin (next-single-property-change (point) 'wisi-cache))
+    (cond
+     ((get-text-property (point) 'wisi-cache)
+      ;; on another cached token; for example "null;", now on ";"
+      (setq begin (point)))
+
+     (t
+      (setq begin (next-single-property-change (point) 'wisi-cache)))
+     )
+
     (when begin
       (if (get-text-property (1+ begin) 'wisi-cache)
 	  (setq end (next-single-property-change begin 'wisi-cache))
@@ -724,27 +768,6 @@ the comment on the previous line."
   (save-excursion
     (ada-goto-open-paren 0)
     (+ (current-column) offset)))
-
-(defun wisi-indent-statement-start (offset cache containing)
-  "Return indentation OFFSET relative to line containing start of current statement,
-or containing statement if CONTAINING.
-CACHE contains cache info from a keyword in the current statement."
-  (save-excursion
-    (cond
-     ((markerp (wisi-cache-start cache))
-      (wisi-goto-statement-start cache containing)
-      (unless (ada-in-paren-p)
-	(back-to-indentation))
-      (+ (current-column) offset))
-     (t
-      (if (ada-in-paren-p)
-	  (progn
-	    (ada-goto-open-paren 1)
-	    (+ (current-column) offset))
-
-	;; at outermost containing statement; ignore offset
-	0))
-     )))
 
 (defvar wisi-indent-calculate-functions nil
   "Functions to calculate indentation. Each called with point
