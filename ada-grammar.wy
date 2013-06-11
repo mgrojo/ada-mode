@@ -165,12 +165,9 @@
 %conflict REDUCE/SHIFT in state generic_formal_part, generic_renaming_declaration on token PACKAGE
 %conflict REDUCE/SHIFT in state generic_formal_part, generic_renaming_declaration on token PROCEDURE
 %conflict REDUCE/SHIFT in state identifier_list, object_renaming_declaration on token COLON
-%conflict REDUCE/SHIFT in state label_opt, accept_statement on token ACCEPT
 %conflict REDUCE/SHIFT in state mode, access_definition on token NOT
-%conflict REDUCE/SHIFT in state parameter_profile, generic_instantiation on token IS
+%conflict REDUCE/SHIFT in state parameter_profile_opt, generic_instantiation on token IS
 %conflict SHIFT/REDUCE in state association, name on token EQUAL_GREATER
-%conflict SHIFT/REDUCE in state delay_statement, guard_opt on token DELAY
-%conflict SHIFT/REDUCE in state delay_statement, label_opt on token DELAY
 %conflict SHIFT/REDUCE in state label_opt, label_opt on token IDENTIFIER
 
 %%
@@ -193,18 +190,24 @@
 ;; part not needed left commented out.
 
 accept_statement
-  : ACCEPT IDENTIFIER LEFT_PAREN expression RIGHT_PAREN parameter_profile DO handled_sequence_of_statements END identifier_opt SEMICOLON
+  : ACCEPT IDENTIFIER LEFT_PAREN expression RIGHT_PAREN parameter_profile_opt DO handled_sequence_of_statements END identifier_opt SEMICOLON
     (progn
       (wisi-statement-action 1 'block-start 7 'block-middle 9 'block-end 11 'statement-end)
+      (wisi-start-action 1 6)
       (wisi-start-action 1 8))
-  | ACCEPT IDENTIFIER parameter_profile DO handled_sequence_of_statements END identifier_opt SEMICOLON
+  | ACCEPT IDENTIFIER parameter_profile_opt DO handled_sequence_of_statements END identifier_opt SEMICOLON
     (progn
       (wisi-statement-action 1 'block-start 4 'block-middle 6 'block-end 8 'statement-end)
+      (wisi-start-action 1 3)
       (wisi-start-action 1 5))
-  | ACCEPT IDENTIFIER LEFT_PAREN expression RIGHT_PAREN parameter_profile SEMICOLON
-    (wisi-statement-action 1 'statement-start 7 'statement-end)
-  | ACCEPT IDENTIFIER parameter_profile SEMICOLON
-    (wisi-statement-action 1 'statement-start 4 'statement-end)
+  | ACCEPT IDENTIFIER LEFT_PAREN expression RIGHT_PAREN parameter_profile_opt SEMICOLON
+    (progn
+      (wisi-statement-action 1 'statement-start 7 'statement-end)
+      (wisi-start-action 1 6))
+  | ACCEPT IDENTIFIER parameter_profile_opt SEMICOLON
+    (progn
+      (wisi-statement-action 1 'statement-start 4 'statement-end)
+      (wisi-start-action 1 3))
   ;
 
 access_definition
@@ -214,12 +217,12 @@ access_definition
     (wisi-statement-action 3 'type)
   | ACCESS name
     (wisi-statement-action 2 'type)
-  | NOT NULL ACCESS PROTECTED PROCEDURE parameter_profile
-  | NOT NULL ACCESS PROCEDURE parameter_profile
+  | NOT NULL ACCESS PROTECTED PROCEDURE parameter_profile_opt
+  | NOT NULL ACCESS PROCEDURE parameter_profile_opt
   | NOT NULL ACCESS PROTECTED FUNCTION parameter_and_result_profile
   | NOT NULL ACCESS FUNCTION parameter_and_result_profile
-  | ACCESS PROTECTED PROCEDURE parameter_profile
-  | ACCESS PROCEDURE parameter_profile
+  | ACCESS PROTECTED PROCEDURE parameter_profile_opt
+  | ACCESS PROCEDURE parameter_profile_opt
   | ACCESS PROTECTED FUNCTION parameter_and_result_profile
   | ACCESS FUNCTION parameter_and_result_profile
     (progn
@@ -231,12 +234,12 @@ access_definition
 access_type_definition
   : NOT NULL ACCESS general_access_modifier subtype_indication
   | ACCESS subtype_indication ;; access_to_object_definition
-  | NOT NULL ACCESS PROTECTED PROCEDURE parameter_profile;; access_to_subprogram_definition
-  | NOT NULL ACCESS PROCEDURE parameter_profile
+  | NOT NULL ACCESS PROTECTED PROCEDURE parameter_profile_opt;; access_to_subprogram_definition
+  | NOT NULL ACCESS PROCEDURE parameter_profile_opt
   | NOT NULL ACCESS PROTECTED FUNCTION  parameter_and_result_profile
   | NOT NULL ACCESS FUNCTION  parameter_and_result_profile
-  | ACCESS PROTECTED PROCEDURE parameter_profile
-  | ACCESS PROCEDURE parameter_profile
+  | ACCESS PROTECTED PROCEDURE parameter_profile_opt
+  | ACCESS PROCEDURE parameter_profile_opt
   | ACCESS PROTECTED FUNCTION  parameter_and_result_profile
   | ACCESS FUNCTION  parameter_and_result_profile
   ;
@@ -609,8 +612,8 @@ entry_body
   ;
 
 entry_body_formal_part
-  : LEFT_PAREN FOR IDENTIFIER IN discrete_subtype_definition RIGHT_PAREN parameter_profile
-  | parameter_profile
+  : LEFT_PAREN FOR IDENTIFIER IN discrete_subtype_definition RIGHT_PAREN parameter_profile_opt
+  | parameter_profile_opt
   ;
 
 entry_call_alternative
@@ -621,9 +624,9 @@ entry_call_alternative
 ;; leaving out [aspect_specification]
 entry_declaration
   : overriding_indicator_opt ENTRY IDENTIFIER LEFT_PAREN discrete_subtype_definition RIGHT_PAREN
-    parameter_profile SEMICOLON
+    parameter_profile_opt SEMICOLON
     (wisi-statement-action 1 'statement-start 2 'block-middle 4 'open-paren 6 'close-paren 8 'statement-end)
-  | overriding_indicator_opt ENTRY IDENTIFIER parameter_profile SEMICOLON
+  | overriding_indicator_opt ENTRY IDENTIFIER parameter_profile_opt SEMICOLON
     (wisi-statement-action 1 'statement-start 2 'block-middle 5 'statement-end)
   ;
 
@@ -903,11 +906,6 @@ generic_subprogram_declaration
       (wisi-statement-action 1 'block-start 2 'block-middle 3 'statement-end)
       (wisi-start-action 1 2)
       (wisi-motion-action 1 2))
-  ;
-
-guard_opt
-  : ;; empty
-  | WHEN expression EQUAL_GREATER
   ;
 
 handled_sequence_of_statements
@@ -1242,7 +1240,7 @@ parameter_and_result_profile
  ;; parameter_association is merged into association
  ;; parameter_association_list is merged into association_list
 
-parameter_profile
+parameter_profile_opt
   : ;; empty
   | formal_part
   ;
@@ -1449,28 +1447,42 @@ selected_component
 ;;  : IDENTIFIER | CHARACTER_LITERAL | STRING_LITERAL ; ;; operator_symbol
 
 selective_accept
-  : SELECT guard_opt select_alternative_list ELSE sequence_of_statements END SELECT SEMICOLON
+  : SELECT select_alternative_list ELSE sequence_of_statements END SELECT SEMICOLON
     (progn
-      (wisi-statement-action 1 'block-start 4 'block-middle 6 'block-end 8 'statement-end)
-      (wisi-start-action 1 3)
-      (wisi-start-action 1 5)
-      (wisi-motion-action 1 '(3 OR) 4 6))
-  | SELECT guard_opt select_alternative_list END SELECT SEMICOLON
+      (wisi-statement-action 1 'block-start 3 'block-middle 5 'block-end 7 'statement-end)
+      (wisi-start-action 1 2)
+      (wisi-start-action 1 4)
+      (wisi-motion-action 1 '(2 OR) 3 5))
+  | SELECT select_alternative_list END SELECT SEMICOLON
     (progn
-      (wisi-statement-action 1 'block-start 4 'block-end 6 'statement-end)
-      (wisi-start-action 1 3)
-      (wisi-motion-action 1 '(3 OR) 4 6))
+      (wisi-statement-action 1 'block-start 3 'block-end 5 'statement-end)
+      (wisi-start-action 1 2)
+      (wisi-motion-action 1 '(2 OR) 3 5))
   ;
 
 select_alternative
-  : accept_statement sequence_of_statements_opt ;; accept_alternative
+ ;; we can't use guard_opt here because when present a guard is a
+ ;; block-start, but when absent there is no block-start
+  : WHEN expression EQUAL_GREATER accept_statement sequence_of_statements_opt ;; guard accept_alternative
+    (progn
+      (wisi-statement-action 1 'block-start 3 'statement-other)
+      (wisi-start-action 1 4)
+      (wisi-start-action 1 5))
+  | accept_statement sequence_of_statements_opt ;; accept_alternative
+  | WHEN expression EQUAL_GREATER delay_alternative
+    (progn
+      (wisi-statement-action 1 'block-start 3 'statement-other)
+      (wisi-start-action 1 4))
   | delay_alternative
+  | WHEN expression EQUAL_GREATER TERMINATE SEMICOLON ;; terminate_alternative
+    (wisi-statement-action 1 'block-start 3 'statement-other 4 'statement-start 5 'statement-end)
   | TERMINATE SEMICOLON ;; terminate_alternative
+    (wisi-statement-action 1 'statement-start 2 'statement-end)
   ;
 
 select_alternative_list
   : select_alternative
-  | select_alternative_list OR guard_opt select_alternative
+  | select_alternative_list OR select_alternative
     (wisi-statement-action 2 'block-middle)
   ;
 
@@ -1585,7 +1597,7 @@ subprogram_renaming_declaration
   ;
 
 subprogram_specification
-  : PROCEDURE name parameter_profile ;; procedure_specification
+  : PROCEDURE name parameter_profile_opt ;; procedure_specification
     (progn
       (wisi-statement-action 1 'statement-start 2 'name)
       (wisi-start-action 1 3))

@@ -68,17 +68,12 @@ of containing statement."
      ((markerp (wisi-cache-start cache))
       (let ((start-cache (wisi-goto-statement-start cache containing))
 	    (indent (current-indentation)))
-	(unless (or (ada-in-paren-p)
-		    (= (current-column) (current-indentation)))
-	  ;; statement-start is preceded by label or something else on same line
-	  (setq start-cache (wisi-goto-statement-start start-cache t)))
-
 	(cond
 	 ((ada-in-paren-p)
 	  (ada-goto-open-paren 1)
 	  (+ (current-column) offset))
 
-	 (t
+	 ((= (current-column) (current-indentation))
 	  (case (wisi-cache-token start-cache)
 	    (label_opt
 	     (+ (current-column) (- ada-indent-label) offset))
@@ -86,6 +81,29 @@ of containing statement."
 	    (t
 	     (+ indent offset))
 	    ))
+
+	 (t
+	  ;; statement-start is preceded by something on same line. Handle common cases nicely.
+	  (cond
+	   ((eq 'select_alternative (wisi-cache-nonterm start-cache))
+	    (wisi-goto-statement-start start-cache t)
+	    (+ (current-column) offset ada-indent-when))
+
+	   (t
+	    (let* (prev-column
+		   (prev-cache
+		    (save-excursion
+		      (prog1
+			  (wisi-goto-statement-start start-cache t)
+			(setq prev-column (current-column))))))
+	      (cond
+	       ((eq 'label_opt (wisi-cache-token prev-cache))
+		(+ prev-column (- ada-indent-label) offset))
+
+	       (t
+		(+ indent offset))
+	       )))
+	   ))
 	 )))
 
      (t
@@ -128,7 +146,8 @@ of containing statement."
 
 	(close-paren (wisi-indent-paren 0))
 
-	(open-paren nil);; let after-keyword handle it
+	(open-paren
+	 (ada-wisi-indent-statement-start ada-indent-broken cache nil))
 
 	((return-1;; parameter list
 	  return-2);; no parameter list
@@ -164,6 +183,10 @@ of containing statement."
 
 		((eq 'label_opt (wisi-cache-token start-cache))
 		 (+ (current-column) (- ada-indent-label)))
+
+		((eq 'select_alternative (wisi-cache-nonterm start-cache))
+		 ;; indenting '=>'
+		 (+ (current-column) ada-indent-broken))
 	       ))))
 
 	  (t nil);; else let after-cache handle it
@@ -228,17 +251,15 @@ cached token, return new indentation for point."
 	   ))
 
 	(block-start
-	 (if (equal (nth 1 cache-region) (cddr prev-token))
-	     ;; prev-token has cache; not hanging
-	     (case (wisi-cache-nonterm cache)
-	       (if_expression
-		(ada-wisi-indent-statement-start ada-indent-broken cache nil))
+	 (case (wisi-cache-nonterm cache)
+	   (if_expression
+	    (ada-wisi-indent-statement-start ada-indent-broken cache nil))
 
-	       (t ;; other
-		(wisi-indent-current ada-indent))
-	       )
-	   ;; else hanging
-	   (ada-wisi-indent-statement-start ada-indent-broken cache nil)
+	   (select_alternative
+	    (ada-wisi-indent-statement-start (+ ada-indent-when ada-indent-broken) cache nil))
+
+	   (t ;; other; normal block statement
+	    (ada-wisi-indent-statement-start ada-indent cache nil))
 	   ))
 
 	(close-paren
@@ -299,10 +320,6 @@ cached token, return new indentation for point."
 	    ;; between ',' and 'when'; must be indenting a comment
 	    (ada-wisi-indent-statement-start ada-indent-when cache nil))
 
-	   ((FUNCTION PROCEDURE)
-	    (back-to-indentation)
-	    (+ (current-column) ada-indent-broken))
-
 	   (EQUAL_GREATER
 	    (ecase (wisi-cache-nonterm (wisi-goto-statement-start cache nil))
 	      (block_statement
@@ -321,6 +338,12 @@ cached token, return new indentation for point."
 	       (+ (current-column) ada-indent-broken))
 
 	      ))
+
+	   ;; otherwise just hanging
+	   ((ACCEPT FUNCTION PROCEDURE)
+	    (back-to-indentation)
+	    (+ (current-column) ada-indent-broken))
+
 	  ))
 
 	(statement-start

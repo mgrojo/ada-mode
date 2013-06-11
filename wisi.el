@@ -554,7 +554,7 @@ Each TOKEN-NUMBERS is one of:
 
 number: the token number; mark that token
 
-list (number token_id): mark the token_id in the nonterminal given by the number."
+list (number token_id): mark all tokens with token_id in the nonterminal given by the number."
   (save-excursion
     (let (next-keyword-mark
 	  prev-keyword-mark
@@ -573,12 +573,12 @@ list (number token_id): mark the token_id in the nonterminal given by the number
 	    )
 
 	   ((listp token-number)
-	    ;; cannot be empty
+	    ;; cannot be empty, but may not contain any token_id
 	    (setq target-token (cadr token-number))
 	    (setq token-number (car token-number))
 	    (setq region (cddr (nth (1- token-number) tokens)))
 	    (goto-char (car region))
-	    (wisi-forward-find-token target-token (cdr region))
+	    (wisi-forward-find-token target-token (cdr region) t)
 	    (setq cache (wisi-get-cache (point)))
 	    (setq mark (copy-marker (1+ (point))))
 	    )
@@ -587,7 +587,7 @@ list (number token_id): mark the token_id in the nonterminal given by the number
 	    (error "unexpected token-number %s" token-number))
 	   )
 
-	  (when prev-keyword-mark
+	  (when (and cache prev-keyword-mark)
 	    (setf (wisi-cache-prev cache) prev-keyword-mark)
 	    (setf (wisi-cache-next prev-cache) mark))
 
@@ -658,16 +658,22 @@ If LIMIT (a buffer position) is reached, throw an error."
 	(error "cache with class %s not found" class)))
     result))
 
-(defun wisi-forward-find-token (token limit)
+(defun wisi-forward-find-token (token limit &optional noerror)
   "Search forward for a token that has a cache with TOKEN.
 Return (cache region); the found cache, and the text region
 containing it; or nil if at end of buffer.
-If LIMIT (a buffer position) is reached, throw an error."
-  (let ((result (list (wisi-get-cache (point)) nil)))
-    (while (not (eq token (wisi-cache-token (car result))))
+If LIMIT (a buffer position) is reached; if NOERROR is nil, throw an error, if non-nil, return nil."
+  (let ((result (list (wisi-get-cache (point)) nil))
+	(done nil))
+    (while (not (or done
+		    (eq token (wisi-cache-token (car result)))))
       (setq result (wisi-forward-cache))
       (when (>= (point) limit)
-	(error "cache with token %s not found" token)))
+	(if noerror
+	    (progn
+	      (setq done t)
+	      (setq result nil))
+	  (error "cache with token %s not found" token))))
     result))
 
 (defun wisi-forward-find-nonterm (nonterm limit)

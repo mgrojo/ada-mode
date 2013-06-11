@@ -282,6 +282,7 @@ package body Ada_Mode.Nominal is -- target 0
             accept Middle_1 (Param_1 : in Integer) do
                Local_1 := 0;
             end Middle_1;
+            Local_1 := 0;
       or
          when Started =>
             accept Middle_2
@@ -289,9 +290,9 @@ package body Ada_Mode.Nominal is -- target 0
             Local_1 := 0;
 
       or when Started
-        =>
-         accept Finish; -- Ada mode 4.01
-         Local_1 := 5;
+           =>
+            accept Finish;
+            Local_1 := 5;
       or
          delay 1.0;
          null;
