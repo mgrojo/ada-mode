@@ -22,4 +22,5 @@
 ^test/subdir/ada_mode-nominal-child\.adb$
 ^test/wisi/.*\.el$
 ^test/wisi/.*\.output$
+^test/wisi/.*\.wisi-test$
 ^wisent\.output$

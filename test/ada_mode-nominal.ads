@@ -333,6 +333,14 @@ package Ada_Mode.Nominal is
    end record;
    for Record_Type_2'Size use 32 * 3;
 
+   type Record_Type_3 (Discriminant_1 : access Integer) is tagged record
+      Component_1 : Integer;
+      Component_2 :
+        Integer;
+      Component_3
+        : Integer; -- don't care
+   end record;
+
    type Discrete_Type_1 is (A, B, C);
    type Discrete_Type_2 is
      (A, B, C);

@@ -492,6 +492,12 @@ that token. Use in a grammar action as:
 		    (put-text-property
 		     (car region)
 		     (cdr region)
+		     ;; FIXME: setting the text property on the whole
+		     ;; token confuses indentation; lots of tokens are
+		     ;; marked as 'start'. On the other hand, the text
+		     ;; property is used by wisi-forward-cache to
+		     ;; determine the token region; store that in the
+		     ;; cache instead.
 		     'wisi-cache
 		     (wisi-cache-create
 		      :nonterm (when first-item $nterm);; $nterm defined in wisi-semantic-action
@@ -538,7 +544,7 @@ CONTAINED-TOKEN is token number of the contained non-terminal."
 	      (goto-char (1- (wisi-cache-start cache)))
 	      (setq cache (wisi-get-cache (point))))
 
-	    (if (<= (point) (cdr start-region))
+	    (if (= (point) (car start-region))
 		;; done (don't set mark on cache at start; that should
 		;; point to the containing statement)
 		(setq cache nil)
@@ -716,32 +722,28 @@ cache. Otherwise move to cache-prev, or prev cache if nil."
   ))
 
 (defun wisi-goto-statement-start (cache containing &optional error)
-  "Move point to statement start of statement containing CACHE, return cache at that point.
+  "Move point to start of statement containing CACHE, return cache at that point.
 If at start of a statement and CONTAINING is non-nil, goto start
 of containing statement. If ERROR and at start and CONTAINING, throw error."
-  (let ((done nil)
-	(first t))
-    (while (not done)
-      (cond
-       ((markerp (wisi-cache-start cache))
-	(cond
-	 ((memq (wisi-cache-class cache) '(statement-start block-start))
-	  (setq done t)
-	  (when (and first containing)
-	    (goto-char (1- (wisi-cache-start cache)))
-	    (setq cache (wisi-get-cache (point)))))
+  (cond
+   ((markerp (wisi-cache-start cache))
+    (cond
+     ((memq (wisi-cache-class cache) '(statement-start block-start))
+      (setq done t)
+      (when containing
+	(goto-char (1- (wisi-cache-start cache)))
+	(setq cache (wisi-get-cache (point)))))
 
-	 (t
-	  (goto-char (1- (wisi-cache-start cache)))
-	  (setq cache (wisi-get-cache (point)))
-	  (setq first nil))
-	 ))
-       (t
-	;; at outermost containing statement
-	(if error
-	    (error "already at outermost containing statement")
-	  (setq done t)))))
-    cache))
+     (t
+      (goto-char (1- (wisi-cache-start cache)))
+      (setq cache (wisi-get-cache (point))))
+     ))
+   (t
+    ;; at outermost containing statement
+    (if error
+	(error "already at outermost containing statement")
+      (setq done t))))
+  cache)
 
 (defun wisi-next-statement-cache (cache)
   "Move point to CACHE-next; no motion if nil."

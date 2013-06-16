@@ -7,6 +7,8 @@ test-wisi :: case_expression.wisi-test
 test-wisi :: identifier_list_name_conflict.wisi-test
 test-wisi :: range_conflict.wisi-test
 test-wisi :: subprograms.wisi-test
+test-wisi :: empty_production_6.wisi-test
+test-wisi :: empty_production_8.wisi-test
 
 one : ada_mode-nominal.adb.diff
 two : debug.adb.diff
@@ -27,18 +29,13 @@ else
 WISI_OPENTOKEN := $(CURDIR)/../../../org.opentoken.stephe/build/windows_release
 endif
 
-foo :
-	echo $(LIBRARY_PATH)
-	echo $(WISI_OPENTOKEN)
-	echo $(EMACS)
-
 %.wisi-test : %-wy.el
 	$(EMACS) -Q -batch -L . -L .. -L ../.. -l run-wisi-test.el --eval '(run-test "$*")'
 
 .PRECIOUS : %-wy.el ../../%-grammar-wy.el
 
-# -v 1 dumps grammar, continues with unused tokens
-# -v 2 dumps debug info from parser table generation
+# -v 1 dumps grammar
+# -v 2 dumps debug info from parser table generation, continues with unused tokens, unknown conflicts
 %-wy.el : %.wy $(WISI_OPENTOKEN)/wisi-generate.exe
 	cd ./$(<D); $(WISI_OPENTOKEN)/wisi-generate.exe -v 1 $(<F) Elisp > $(*F).output
 

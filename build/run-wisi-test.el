@@ -5,6 +5,9 @@
 
 (require 'wisi-parse)
 
+;; Default includes mtn, among others, which is broken in Emacs 24.3
+(setq vc-handled-backends '(CVS))
+
 (defvar test-syntax-table
   (let ((table (make-syntax-table)))
     ;; make-syntax-table sets all alphanumeric to w, etc; so we only

@@ -1,0 +1,43 @@
+;;; finding bug in parse table generator; 2 consecutive nonterms can
+;;; be empty, and confused with a similar production
+
+%{
+(require 'wisi)
+%}
+
+%keyword ALIASED "aliased"
+%keyword CONSTANT "constant"
+
+%token <punctuation> COLON_EQUAL ":="
+%token <punctuation> SEMICOLON ";"
+%token <symbol> IDENTIFIER
+
+%start object_declaration_list
+
+%conflict SHIFT/REDUCE in state constant_opt, aliased_opt on token CONSTANT
+
+%%
+
+object_declaration_list
+  : object_declaration
+  | object_declaration_list object_declaration
+    (setq wisi-test-success t)
+  ;
+
+object_declaration
+  : IDENTIFIER aliased_opt constant_opt SEMICOLON
+  | IDENTIFIER constant_opt COLON_EQUAL SEMICOLON
+  ;
+
+aliased_opt
+  : ;; empty
+  | ALIASED
+  ;
+
+constant_opt
+  : ;; empty
+  | CONSTANT
+  ;
+
+%%
+;;; end of file

@@ -165,10 +165,11 @@
 %conflict REDUCE/SHIFT in state generic_formal_part, generic_renaming_declaration on token PACKAGE
 %conflict REDUCE/SHIFT in state generic_formal_part, generic_renaming_declaration on token PROCEDURE
 %conflict REDUCE/SHIFT in state identifier_list, object_renaming_declaration on token COLON
-%conflict REDUCE/SHIFT in state mode, access_definition on token NOT
 %conflict REDUCE/SHIFT in state parameter_profile_opt, generic_instantiation on token IS
 %conflict SHIFT/REDUCE in state association, name on token EQUAL_GREATER
 %conflict SHIFT/REDUCE in state label_opt, label_opt on token IDENTIFIER
+%conflict SHIFT/REDUCE in state null_exclusion_opt, mode on token NOT
+%conflict REDUCE/SHIFT in state aliased_opt, declaration on token CONSTANT
 
 %%
 ;;;; grammar rules
@@ -211,27 +212,18 @@ accept_statement
   ;
 
 access_definition
-  : NOT NULL ACCESS CONSTANT name
-    (wisi-statement-action 5 'type);; for font-lock - see ada-wisi-setup
-  | ACCESS CONSTANT name
-    (wisi-statement-action 3 'type)
-  | ACCESS name
-    (wisi-statement-action 2 'type)
-  | NOT NULL ACCESS PROTECTED PROCEDURE parameter_profile_opt
-  | NOT NULL ACCESS PROCEDURE parameter_profile_opt
-  | NOT NULL ACCESS PROTECTED FUNCTION parameter_and_result_profile
-  | NOT NULL ACCESS FUNCTION parameter_and_result_profile
-  | ACCESS PROTECTED PROCEDURE parameter_profile_opt
-  | ACCESS PROCEDURE parameter_profile_opt
-  | ACCESS PROTECTED FUNCTION parameter_and_result_profile
-  | ACCESS FUNCTION parameter_and_result_profile
+  : null_exclusion_opt ACCESS constant_opt name
+    (wisi-statement-action 4 'type);; for font-lock - see ada-wisi-setup
+  | null_exclusion_opt ACCESS protected_opt PROCEDURE parameter_profile_opt
+  | null_exclusion_opt ACCESS protected_opt FUNCTION parameter_and_result_profile
     (progn
-      (wisi-statement-action 2 'statement-other)
-      (wisi-motion-action 2 '(3 RETURN)))
- ;; FIXME: do others like this, test. use not_null_opt
+      (wisi-statement-action 4 'statement-start) ;; for indenting paren, return
+      (wisi-start-action 4 5)
+      (wisi-motion-action 4 '(5 RETURN)))
   ;
 
 access_type_definition
+ ;; FIXME: use null_exclusion_opt, protected_opt
   : NOT NULL ACCESS general_access_modifier subtype_indication
   | ACCESS subtype_indication ;; access_to_object_definition
   | NOT NULL ACCESS PROTECTED PROCEDURE parameter_profile_opt;; access_to_subprogram_definition
@@ -251,9 +243,18 @@ actual_parameter_part
 
 aggregate
   : LEFT_PAREN association_list RIGHT_PAREN ;; record_aggregate, named_array_aggregate, positional_array_aggregate
-    (wisi-statement-action 1 'open-paren 3 'close-paren)
+    (progn
+      (wisi-statement-action 1 'open-paren 3 'close-paren)
+      (wisi-start-action 1 2))
   | LEFT_PAREN expression WITH association_list RIGHT_PAREN ;; extension_aggregate
-    (wisi-statement-action 1 'open-paren 5 'close-paren)
+    (progn
+      (wisi-statement-action 1 'open-paren 5 'close-paren)
+      (wisi-start-action 1 4))
+  ;
+
+aliased_opt
+  : ;; empty
+  | ALIASED
   ;
 
 array_type_definition
@@ -265,8 +266,9 @@ array_type_definition
 
 assignment_statement
   : name COLON_EQUAL expression SEMICOLON
-    (wisi-statement-action 1 'statement-start 4 'statement-end)
- ;; FIXME: name can be a function call with params, which needs wisi-start-action for parens?
+    (progn
+      (wisi-statement-action 1 'statement-start 4 'statement-end)
+      (wisi-start-action 1 3))
   ;
 
 association
@@ -280,7 +282,9 @@ association
 association_list
   : association
   | association_list COMMA association
-    (wisi-statement-action 2 'list-break)
+    (progn
+      (wisi-statement-action 1 'statement-start 2 'list-break)
+      (wisi-start-action 1 3))
   ;
 
 aspect_clause
@@ -294,7 +298,7 @@ aspect_clause
 asynchronous_select
   : SELECT triggering_alternative THEN ABORT sequence_of_statements END SELECT SEMICOLON
     (progn
-      (wisi-statement-action 1 'block-start 3 'block-middle 6 'block-end 8 'statement-end)
+      (wisi-statement-action 1 'block-start 3 'block-middle 4 'statement-other 6 'block-end 8 'statement-end)
       (wisi-start-action 1 2)
       (wisi-start-action 1 5))
   ;
@@ -458,6 +462,11 @@ compound_statement
 conditional_entry_call
   : SELECT entry_call_alternative ELSE sequence_of_statements END SELECT SEMICOLON
     (wisi-statement-action 1 'block-start 3 'block-middle 5 'block-end 7 'statement-end)
+  ;
+
+constant_opt
+  : ;; empty
+  | CONSTANT
   ;
 
 constraint
@@ -691,6 +700,7 @@ expression
   ;
 
 extended_return_object_declaration
+ ;; FIXME: use constant_opt, aliased_opt
   : IDENTIFIER COLON ALIASED CONSTANT return_subtype_indication COLON_EQUAL expression
   | IDENTIFIER COLON ALIASED return_subtype_indication COLON_EQUAL expression
   | IDENTIFIER COLON CONSTANT return_subtype_indication COLON_EQUAL expression
@@ -802,7 +812,10 @@ formal_derived_type_definition
 ;; leaving out [aspect_specification]
 formal_package_declaration
   : WITH PACKAGE name IS NEW name formal_package_actual_part SEMICOLON
-    (wisi-statement-action 1 'statement-start 8 'statement-end)
+    (progn
+      (wisi-statement-action 1 'statement-start 8 'statement-end)
+      (wisi-start-action 1 6)
+      (wisi-start-action 1 7))
   ;
 
 formal_package_actual_part
@@ -826,7 +839,15 @@ formal_private_type_definition
 ;; leaving out [aspect_specification]
 full_type_declaration
   : TYPE IDENTIFIER discriminant_part IS type_definition SEMICOLON
+    (progn
+      (wisi-statement-action 1 'statement-start 2 'name 6 'statement-end)
+      (wisi-start-action 1 3)
+      (wisi-start-action 1 5))
   | TYPE IDENTIFIER IS type_definition SEMICOLON
+    (progn
+      (wisi-statement-action 1 'statement-start 2 'name 4 'statement-end)
+      (wisi-start-action 1 3)
+      (wisi-start-action 1 5))
   | task_type_declaration
   | protected_type_declaration
   ;
@@ -868,11 +889,17 @@ generic_formal_parameter_declaration
 generic_instantiation
  ;; 'name generic_actual_part' is included in 'name' as a function call
   : PACKAGE name IS NEW name SEMICOLON
-    (wisi-statement-action 1 'statement-start 2 'name 6 'statement-end)
+    (progn
+      (wisi-statement-action 1 'statement-start 2 'name 6 'statement-end)
+      (wisi-start-action 1 5))
   | overriding_indicator_opt PROCEDURE name IS NEW name SEMICOLON
-    (wisi-statement-action 1 'statement-start 2 'block-middle 3 'name 7 'statement-end)
+    (progn
+      (wisi-statement-action 1 'statement-start 2 'block-middle 3 'name 7 'statement-end)
+      (wisi-start-action 1 6))
   | overriding_indicator_opt FUNCTION name IS NEW name SEMICOLON
-    (wisi-statement-action 1 'statement-start 2 'block-middle 3 'name 7 'statement-end)
+    (progn
+      (wisi-statement-action 1 'statement-start 2 'block-middle 3 'name 7 'statement-end)
+      (wisi-start-action 1 6))
   ;
 
 generic_package_declaration
@@ -970,6 +997,19 @@ if_statement
       (wisi-statement-action 1 'block-start 3 'block-middle 5 'block-end 7 'statement-end)
       (wisi-start-action 1 4)
       (wisi-motion-action 1 3 5))
+  ;
+
+incomplete_type_declaration
+  : TYPE IDENTIFIER discriminant_part IS TAGGED SEMICOLON
+    (progn
+      (wisi-statement-action 1 'statement-start 2 'name 6 'statement-end)
+      (wisi-start-action 1 3))
+  | TYPE IDENTIFIER discriminant_part SEMICOLON
+    (progn
+      (wisi-statement-action 1 'statement-start 2 'name 4 'statement-end)
+      (wisi-start-action 1 3))
+  | TYPE IDENTIFIER SEMICOLON
+    (wisi-statement-action 1 'statement-start 2 'name 3 'statement-end)
   ;
 
 index_constraint
@@ -1103,7 +1143,8 @@ name
   | selected_component
   | attribute_reference
   ;; | type_conversion
-  | name actual_parameter_part ;; function_call
+  | name actual_parameter_part ;; function_call, procedure call, generic instantiation
+    (wisi-statement-action 1 'name)
   | qualified_expression
   ;; | generalized_reference
   ;; | generalized_indexing
@@ -1115,43 +1156,25 @@ name_opt
   | name
   ;
 
-;; null_exclusion replaced by 'not null'
+null_exclusion_opt
+  : ;; empty
+  | NOT NULL
+  ;
 
 ;; leaving out [aspect_specification]
 object_declaration
-  : identifier_list COLON ALIASED CONSTANT subtype_indication COLON_EQUAL expression SEMICOLON
-    (wisi-statement-action 1 'statement-start 8 'statement-end)
-  | identifier_list COLON ALIASED CONSTANT subtype_indication SEMICOLON
+  : identifier_list COLON aliased_opt constant_opt subtype_indication COLON_EQUAL expression SEMICOLON
+    (progn
+      (wisi-statement-action 1 'statement-start 8 'statement-end)
+      (wisi-start-action 1 7))
+  | identifier_list COLON aliased_opt constant_opt subtype_indication SEMICOLON
     (wisi-statement-action 1 'statement-start 6 'statement-end)
-  | identifier_list COLON ALIASED subtype_indication COLON_EQUAL expression SEMICOLON
-    (wisi-statement-action 1 'statement-start 7 'statement-end)
-  | identifier_list COLON ALIASED subtype_indication SEMICOLON
-    (wisi-statement-action 1 'statement-start 5 'statement-end)
-  | identifier_list COLON CONSTANT subtype_indication COLON_EQUAL expression SEMICOLON
-    (wisi-statement-action 1 'statement-start 7 'statement-end)
-  | identifier_list COLON CONSTANT subtype_indication SEMICOLON
-    (wisi-statement-action 1 'statement-start 5 'statement-end)
-  | identifier_list COLON subtype_indication COLON_EQUAL expression SEMICOLON
+  | identifier_list COLON aliased_opt constant_opt array_type_definition COLON_EQUAL expression SEMICOLON
+    (progn
+      (wisi-statement-action 1 'statement-start 8 'statement-end)
+      (wisi-start-action 1 7))
+  | identifier_list COLON aliased_opt constant_opt array_type_definition SEMICOLON
     (wisi-statement-action 1 'statement-start 6 'statement-end)
-  | identifier_list COLON subtype_indication SEMICOLON
-    (wisi-statement-action 1 'statement-start 4 'statement-end)
-  ;; | identifier_list COLON [ALIASED] [CONSTANT] access_definition [COLON_EQUAL expression] SEMICOLON
-  | identifier_list COLON ALIASED CONSTANT array_type_definition COLON_EQUAL expression SEMICOLON
-    (wisi-statement-action 1 'statement-start 8 'statement-end)
-  | identifier_list COLON ALIASED CONSTANT array_type_definition SEMICOLON
-    (wisi-statement-action 1 'statement-start 6 'statement-end)
-  | identifier_list COLON ALIASED array_type_definition COLON_EQUAL expression SEMICOLON
-    (wisi-statement-action 1 'statement-start 7 'statement-end)
-  | identifier_list COLON ALIASED array_type_definition SEMICOLON
-    (wisi-statement-action 1 'statement-start 5 'statement-end)
-  | identifier_list COLON CONSTANT array_type_definition COLON_EQUAL expression SEMICOLON
-    (wisi-statement-action 1 'statement-start 7 'statement-end)
-  | identifier_list COLON CONSTANT array_type_definition SEMICOLON
-    (wisi-statement-action 1 'statement-start 5 'statement-end)
-  | identifier_list COLON array_type_definition COLON_EQUAL expression SEMICOLON
-    (wisi-statement-action 1 'statement-start 6 'statement-end)
-  | identifier_list COLON array_type_definition SEMICOLON
-    (wisi-statement-action 1 'statement-start 4 'statement-end)
   | single_task_declaration
   | single_protected_declaration
   ;
@@ -1180,7 +1203,7 @@ overriding_indicator_opt
 package_body
   : PACKAGE BODY name IS declarative_part_opt BEGIN handled_sequence_of_statements END name_opt SEMICOLON
     (progn
-      (wisi-statement-action 1 'block-start 4 'block-middle 6 'block-middle 9 'block-end 10 'statement-end)
+      (wisi-statement-action 1 'block-start 4 'block-middle 6 'block-middle 8 'block-end 10 'statement-end)
       (wisi-start-action 1 5)
       (wisi-start-action 1 7))
   | PACKAGE BODY name IS declarative_part_opt END name_opt SEMICOLON
@@ -1297,7 +1320,9 @@ primary
 
 procedure_call_statement
   : name SEMICOLON
-    (wisi-statement-action 1 'statement-start 2 'statement-end)
+    (progn
+      (wisi-statement-action 1 'statement-start 2 'statement-end)
+      (wisi-start-action 1 1))
   ;
 
 proper_body
@@ -1322,6 +1347,15 @@ protected_body_stub
     (wisi-statement-action 1 'statement-start 6 'statement-end)
   ;
 
+protected_definition
+  : declarative_part_opt PRIVATE declarative_part_opt END IDENTIFIER
+    (wisi-statement-action 2 'block-middle 4 'block-end)
+  | declarative_part_opt PRIVATE declarative_part_opt END
+    (wisi-statement-action 2 'block-middle 4 'block-end)
+  | declarative_part_opt END
+    (wisi-statement-action 2 'block-end)
+  ;
+
 protected_operation_item
   : subprogram_declaration
   | subprogram_body
@@ -1334,13 +1368,9 @@ protected_operation_item_list
   | protected_operation_item_list protected_operation_item
   ;
 
-protected_definition
-  : declarative_part_opt PRIVATE declarative_part_opt END IDENTIFIER
-    (wisi-statement-action 2 'block-middle 4 'block-end)
-  | declarative_part_opt PRIVATE declarative_part_opt END
-    (wisi-statement-action 2 'block-middle 4 'block-end)
-  | declarative_part_opt END
-    (wisi-statement-action 2 'block-end)
+protected_opt
+  : ;; empty
+  | PROTECTED
   ;
 
 protected_type_declaration
@@ -1527,7 +1557,8 @@ simple_statement
  ;; | entry_call_statement ; covered by 'procedure_call_statement'
   ;; | requeue_statement
   | delay_statement
-  ;; | abort_statement
+  | ABORT name SEMICOLON ;; abort_statement; ignoring list of tasks
+    (wisi-statement-action 1 'statement-start 3 'statement-end)
   | raise_statement
   ;; | code_statement
   ;
@@ -1688,7 +1719,7 @@ triggering_alternative
 
 type_declaration
   : full_type_declaration
-  ;; | incomplete_type_declaration
+  | incomplete_type_declaration
   ;; | private_type_declaration
   ;; | private_extension_declaration
   ;

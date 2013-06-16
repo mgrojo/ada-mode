@@ -59,10 +59,11 @@
 
 ;;;; indentation
 
-(defun ada-wisi-indent-statement-start (offset cache containing)
+(defun ada-wisi-indent-statement-start (offset cache containing &optional before)
   "Return indentation of OFFSET plus statement-start for CACHE.
 If at start of a statement and CONTAINING is non-nil, use start
-of containing statement."
+of containing statement.
+BEFORE should be t when called from ada-wisi-before-cache, nil otherwise."
   (save-excursion
     (cond
      ((markerp (wisi-cache-start cache))
@@ -113,9 +114,14 @@ of containing statement."
 	(+ (current-column) offset))
 
        (t
-	;; at outermost containing statement; ignore offset
-	0))
-      ))))
+	;; at outermost containing statement. If called from
+	;; ada-wisi-before-cache, we want to ignore OFFSET (indenting
+	;; 'package' in a package spec). If called from
+	;; ada-wisi-after-cache, we want to include offset (indenting
+	;; first declaration in the package).
+	(if before 0 offset))
+       ))
+      )))
 
 (defun ada-wisi-before-cache ()
   "Point is at indentation, before a cached token. Return new indentation for point."
@@ -127,27 +133,30 @@ of containing statement."
 	(block-start
 	 (case (wisi-cache-token cache)
 	   (IS ;; subprogram body
-	    (ada-wisi-indent-statement-start 0 cache t))
+	    (ada-wisi-indent-statement-start 0 cache t t))
 
 	   (t ;; other
-	    (ada-wisi-indent-statement-start ada-indent cache t))))
+	    (ada-wisi-indent-statement-start ada-indent cache t t))))
 
 	(block-end
-	 (ada-wisi-indent-statement-start 0 cache nil))
+	 (ada-wisi-indent-statement-start 0 cache nil t))
 
 	(block-middle
 	 (case (wisi-cache-token cache)
 	   (WHEN
-	    (ada-wisi-indent-statement-start ada-indent-when cache nil))
+	    (ada-wisi-indent-statement-start ada-indent-when cache nil t))
 
 	   (t
-	    (ada-wisi-indent-statement-start 0 cache nil))
+	    (ada-wisi-indent-statement-start 0 cache nil t))
 	   ))
 
 	(close-paren (wisi-indent-paren 0))
 
+	(name
+	 (ada-wisi-indent-statement-start ada-indent-broken cache nil t))
+
 	(open-paren
-	 (ada-wisi-indent-statement-start ada-indent-broken cache nil))
+	 (ada-wisi-indent-statement-start ada-indent-broken cache nil t))
 
 	((return-1;; parameter list
 	  return-2);; no parameter list
@@ -172,11 +181,18 @@ of containing statement."
 	     (+ (current-column) ada-indent-broken))
 	    )))
 
+	(statement-end
+	 (ada-wisi-indent-statement-start ada-indent-broken cache nil t))
+
 	(statement-other
 	 (cond
 	  ((save-excursion
 	     (let ((start-cache (wisi-goto-statement-start cache nil)))
 	       (cond
+		((eq 'asynchronous_select (wisi-cache-nonterm start-cache))
+		 ;; indenting 'abort'
+		 (+ (current-column) ada-indent-broken))
+
 		((eq 'generic_renaming_declaration (wisi-cache-nonterm start-cache))
 		 ;; indenting keyword following 'generic'
 		 (current-column))
@@ -195,14 +211,14 @@ of containing statement."
 	(statement-start
 	 (cond
 	  ((eq 'label_opt (wisi-cache-token cache))
-	   (ada-wisi-indent-statement-start (+ ada-indent-label ada-indent) cache t))
+	   (ada-wisi-indent-statement-start (+ ada-indent-label ada-indent) cache t t))
 
 	  (t
-	   (ada-wisi-indent-statement-start ada-indent cache t))
+	   (ada-wisi-indent-statement-start ada-indent cache t t))
 	  ))
 
 	(type
-	 (ada-wisi-indent-statement-start ada-indent-broken cache t))
+	 (ada-wisi-indent-statement-start ada-indent-broken cache t t))
 	))
     ))
 
@@ -227,7 +243,8 @@ cached token, return new indentation for point."
 
       (ecase (wisi-cache-class cache)
 	(block-end
-	 (wisi-indent-current 0))
+	 ;; indenting block/subprogram name after 'end'
+	 (wisi-indent-current ada-indent-broken))
 
 	(block-middle
 	 (case (wisi-cache-token cache)
@@ -239,6 +256,7 @@ cached token, return new indentation for point."
 	    (let* ((start-cache (save-excursion (wisi-goto-statement-start cache nil)))
 		   (indent
 		    (ecase (wisi-cache-nonterm start-cache)
+		      (asynchronous_select ada-indent)
 		      (if_statement ada-indent)
 		      (if_expression ada-indent-broken))))
 	      (ada-wisi-indent-statement-start indent cache t)))

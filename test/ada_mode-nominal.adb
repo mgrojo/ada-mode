@@ -37,7 +37,7 @@ package body Ada_Mode.Nominal is -- target 0
      return access function
        (A_Param : in Float)
        return
-     Standard.Float -- Ada mode 4.01, GPS
+       Standard.Float -- Ada mode 4.01, GPS do this differently
    is begin
       -- An early implementation of ada-smie-which-function was confused by this declaration.
       --EMACSCMD:(progn (beginning-of-line)(forward-line -7)(ada-which-function))
@@ -515,7 +515,7 @@ package body Ada_Mode.Nominal is -- target 0
    type Incomplete_Type_1 (Discriminant_1 : Integer) is tagged null record;
 
    type Incomplete_Type_2 (Discriminant_1 : Integer) is tagged null
-      record;
+     record;
 
    type Incomplete_Type_3 (Discriminant_1 : Integer) is tagged
      null record;
@@ -523,15 +523,6 @@ package body Ada_Mode.Nominal is -- target 0
    type Incomplete_Type_4 (Discriminant_1 : Integer) is
      tagged null record;
    -- rest of newline placement covered in spec
-
-   type Incomplete_Type_5 (Discriminant_1 : access Integer) is tagged record
-      -- "record" on same line as "type"; components indented 3 relative to "type"
-      Component_1 : Integer;
-      Component_2 :
-        Integer;
-      Component_3
-        : Integer; -- don't care
-   end record;
 
 begin
    null;

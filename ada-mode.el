@@ -136,6 +136,13 @@ preserved when the list is written back to the file."
   :group 'ada)
 (put 'ada-case-keyword 'safe-local-variable 'functionp)
 
+(defcustom ada-case-strict t
+  "*If non-nil, force Mixed_Case for identifiers.
+Otherwise, allow UPPERCASE for identifiers."
+  :type 'boolean
+  :group 'ada)
+(put 'ada-case-strict 'safe-local-variable 'booleanp)
+
 (defcustom ada-language-version 'ada2012
   "*Ada language version; one of `ada83', `ada95', `ada2005'.
 Only affects the keywords to highlight."
@@ -753,7 +760,8 @@ Uses Mixed_Case, with exceptions defined in
 	    (delete-region (point) end))
 
 	;; else apply Mixed_Case and partial-exceptions
-	(downcase-region start end)
+	(if ada-case-strict
+	    (downcase-region start end))
 	(while (not done)
 	  (setq next
 		(or
