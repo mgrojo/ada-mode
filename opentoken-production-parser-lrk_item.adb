@@ -405,15 +405,16 @@ package body OpenToken.Production.Parser.LRk_Item is
       --  Merge lookaheads of New_Item into Existing_Set. Return True
       --  if Existing_Set is modified.
       --
-      --  New_Item is copied or deallocated, as appropriate.
+      --  New_Item.Lookaheads are moved or deallocated, as appropriate. Rest of New_Item is copied or deallocated.
 
       Found : constant Item_Ptr := Find (New_Item, Existing_Set);
 
-      Source_Lookahead      : Item_Lookahead_Ptr;
-      Previous_Lookahead    : Item_Lookahead_Ptr;
-      Destination_Lookahead : Item_Lookahead_Ptr;
-      Found_Match           : Boolean;
-      Modified              : Boolean := False;
+      New_Lookahead      : Item_Lookahead_Ptr; --  From New_Item
+      Existing_Lookahead : Item_Lookahead_Ptr; --  in Existing_Set
+      Temp               : Item_Lookahead_Ptr; --  for moves
+      Result_Lookahead   : Item_Lookahead_Ptr; --  add new not in existing
+      Found_Match        : Boolean;
+      Modified           : Boolean := False;
    begin
       if Found = null then
          Existing_Set.Set := new Item_Node'
@@ -427,47 +428,44 @@ package body OpenToken.Production.Parser.LRk_Item is
 
       else
          --  Merge their lookaheads.
-         Source_Lookahead := New_Item.Lookaheads;
-         while Source_Lookahead /= null loop
-            Destination_Lookahead := Found.Lookaheads;
+         Result_Lookahead := Found.Lookaheads;
+         New_Lookahead    := New_Item.Lookaheads;
+
+         while New_Lookahead /= null loop
+            Existing_Lookahead := Found.Lookaheads;
 
             Found_Match := False;
-            while Destination_Lookahead /= null loop
+            while Existing_Lookahead /= null loop
 
                if
-                 Destination_Lookahead.Lookaheads (1 .. Destination_Lookahead.Last) =
-                 Source_Lookahead.Lookaheads (1 .. Source_Lookahead.Last)
+                 Existing_Lookahead.Lookaheads (1 .. Existing_Lookahead.Last) =
+                 New_Lookahead.Lookaheads (1 .. New_Lookahead.Last)
                then
                   Found_Match := True;
                   exit;
                end if;
 
-               Destination_Lookahead := Destination_Lookahead.Next;
+               Existing_Lookahead := Existing_Lookahead.Next;
             end loop;
 
             if not Found_Match then
-               if Previous_Lookahead = null then
-                  New_Item.Lookaheads := Source_Lookahead.Next;
-               else
-                  Previous_Lookahead.Next := Source_Lookahead.Next;
-               end if;
-
-               Source_Lookahead.Next := Found.Lookaheads;
-               Found.Lookaheads      := Source_Lookahead;
-               Modified              := True;
-
-               if Previous_Lookahead = null then
-                  Source_Lookahead := New_Item.Lookaheads;
-               else
-                  Source_Lookahead := Previous_Lookahead.Next;
-               end if;
+               --  New lookahead not in Existing; move New to Result
+               Temp               := New_Lookahead.Next;
+               New_Lookahead.Next := Result_Lookahead;
+               Result_Lookahead   := New_Lookahead;
+               New_Lookahead      := Temp;
+               Modified           := True;
             else
-               Previous_Lookahead := Source_Lookahead;
-               Source_Lookahead := Source_Lookahead.Next;
+               --  New lookahead in Existing; free new
+               Temp               := New_Lookahead.Next;
+               New_Lookahead.Next := null;
+               Free (New_Lookahead);
+               New_Lookahead      := Temp;
             end if;
-
          end loop;
 
+         Found.Lookaheads    := Result_Lookahead;
+         New_Item.Lookaheads := null;
          Free (New_Item);
       end if;
       return Modified;
@@ -570,6 +568,8 @@ package body OpenToken.Production.Parser.LRk_Item is
                         end if;
                      end if;
                   end loop Empty_Nonterm;
+
+                  Next_Symbol := Token_List.Next_Token (Current.Dot);
                end if;
 
                Production_List.Next_Production (Production_Iterator);
@@ -614,13 +614,8 @@ package body OpenToken.Production.Parser.LRk_Item is
 
       Goto_Set : Item_Set;
 
-      Item          : Item_Ptr := Kernel.Set;
-      Dot_ID        : Token.Token_ID;
-      Dot_2_ID      : Token.Token_ID;
-      Have_Dot_2_ID : Boolean;
-      RHS_I         : List_Iterator;
-      Prod          : OpenToken.Production.Instance;
-      Prod_I        : Production_List.List_Iterator;
+      Item   : Item_Ptr := Kernel.Set;
+      Dot_ID : Token.Token_ID;
    begin
       Goto_Set.Index := -1;
 
@@ -630,14 +625,6 @@ package body OpenToken.Production.Parser.LRk_Item is
 
             Dot_ID := ID (Item.Dot);
             --  ID of token after Dot
-
-            if Null_Iterator /= Next_Token (Item.Dot) then
-               Have_Dot_2_ID := True;
-               Dot_2_ID := ID (Next_Token (Item.Dot));
-               --  ID of second token after Dot
-            else
-               Have_Dot_2_ID := False;
-            end if;
 
             if Dot_ID = Symbol then
                Goto_Set.Set := new Item_Node'
@@ -651,48 +638,70 @@ package body OpenToken.Production.Parser.LRk_Item is
             if Dot_ID in Nonterminal_ID and then First (Dot_ID)(Symbol) then
                --  Find the production(s) that create Dot_ID
                --  with first token Symbol and put them in
-               Prod_I := Production_List.Initial_Iterator (Grammar);
-               while not Production_List.Past_Last (Prod_I) loop
+               declare
+                  Prod_I : Production_List.List_Iterator := Production_List.Initial_Iterator (Grammar);
+                  Prod   : OpenToken.Production.Instance;
+                  RHS_I  : List_Iterator;
+               begin
+                  while not Production_List.Past_Last (Prod_I) loop
+                     Prod  := Production_List.Get_Production (Prod_I);
+                     RHS_I := Initial_Iterator (Prod.RHS.Tokens);
 
-                  Prod  := Production_List.Get_Production (Prod_I);
-                  RHS_I := Initial_Iterator (Prod.RHS.Tokens);
+                     if (Dot_ID = LHS_ID (Prod) or First (Dot_ID)(LHS_ID (Prod))) and
+                       (RHS_I /= Null_Iterator and then ID (RHS_I) = Symbol)
+                     then
+                        declare
+                           New_Item : constant Item_Node :=
+                             (Prod       => Prod,
+                              Dot        => Next_Token (RHS_I),
+                              Index      => -1, -- replaced in LR0_Kernels
+                              Lookaheads => null,
+                              Next       => Goto_Set.Set);
+                        begin
+                           if null = Find (New_Item, Goto_Set) then
+                              Goto_Set.Set := new Item_Node'(New_Item);
+                              --  else already in goto set
+                           end if;
+                        end;
+                     end if;
 
-                  if (Dot_ID = LHS_ID (Prod) or First (Dot_ID)(LHS_ID (Prod))) and
-                    (RHS_I /= Null_Iterator and then ID (RHS_I) = Symbol)
-                  then
-                     declare
-                        New_Item : constant Item_Node :=
-                          (Prod       => Prod,
-                           Dot        => Next_Token (RHS_I),
-                           Index      => -1, -- replaced in LR0_Kernels
-                           Lookaheads => null,
-                           Next       => Goto_Set.Set);
-                     begin
-                        if null = Find (New_Item, Goto_Set) then
-                           Goto_Set.Set := new Item_Node'(New_Item);
-                           --  else already in goto set
-                        end if;
-                     end;
-                  end if;
-
-                  Production_List.Next_Production (Prod_I);
-               end loop;
-
-            elsif Have_Dot_2_ID and then
-              (Dot_2_ID = Symbol or
-                 (Dot_2_ID in Nonterminal_ID and then First (Dot_2_ID)(Symbol)))
-            then
-               --  If there are any empty productions that create Dot_ID, put Prod in
-               if Dot_ID in Nonterminal_ID and then Has_Empty_Production (Dot_ID) then
-                  Goto_Set.Set := new Item_Node'
-                    (Prod       => Item.Prod,
-                     Dot        => Next_Token (Item.Dot),
-                     Index      => -1, -- replaced in LR0_Kernels
-                     Lookaheads => Item.Lookaheads,
-                     Next       => Goto_Set.Set);
-               end if;
+                     Production_List.Next_Production (Prod_I);
+                  end loop;
+               end;
             end if;
-         end if;
+
+            --  If there are any tokens with empty productions
+            --  following Dot, that are in turn followed by tokens
+            --  that are or start with terminal Symbol, put Item.Prod
+            --  in.
+            if Symbol in Tokenizer.Terminal_ID then
+               declare
+                  RHS_I : List_Iterator  := Item.Dot;
+                  ID    : Token.Token_ID := Dot_ID;
+               begin
+                  loop
+                     exit when not (ID in Nonterminal_ID and then Has_Empty_Production (ID));
+                     Next_Token (RHS_I);
+                     exit when RHS_I = Null_Iterator;
+                     ID := Token_List.ID (RHS_I);
+
+                     if ID = Symbol or
+                       (ID in Nonterminal_ID and then First (ID)(Symbol))
+                     then
+                        Goto_Set.Set := new Item_Node'
+                          (Prod       => Item.Prod,
+                           Dot        => Next_Token (Item.Dot), -- must generate all empty productions in order
+                           Index      => -1, -- replaced in LR0_Kernels
+                           Lookaheads => Item.Lookaheads,
+                           Next       => Goto_Set.Set);
+
+                        exit; -- no need to search for more empty productions
+                     end if;
+                  end loop;
+               end;
+            end if;
+         end if; -- item.dot /= null
+
          Item := Item.Next;
       end loop;
 

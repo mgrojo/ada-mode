@@ -33,12 +33,13 @@ Set 3:
 
 
 Set 4:
-  DECLARATIONS_ID <= DECLARATIONS_ID ^ DECLARATION_ID, EOF_ID
+  DECLARATIONS_ID <= DECLARATIONS_ID ^ DECLARATION_ID, EOF_ID/IS_ID
   OPENTOKEN_ACCEPT_ID <= DECLARATIONS_ID ^ EOF_ID
 
    EOF_ID              => shift and goto state 6,
                           reduce 0 tokens to DECLARATION_ID
-   IS_ID               => shift and goto state 2
+   IS_ID               => reduce 0 tokens to DECLARATION_ID,
+                          shift and goto state 2
    default             => ERROR
 
    DECLARATION_ID      goto state 7
@@ -64,20 +65,22 @@ Set 6:
 
 
 Set 7:
-  DECLARATIONS_ID <= DECLARATIONS_ID DECLARATION_ID ^, BEGIN_ID/EOF_ID
+  DECLARATIONS_ID <= DECLARATIONS_ID DECLARATION_ID ^, BEGIN_ID/IS_ID/EOF_ID
 
    BEGIN_ID            => reduce 2 tokens to DECLARATIONS_ID
+   IS_ID               => reduce 2 tokens to DECLARATIONS_ID
    EOF_ID              => reduce 2 tokens to DECLARATIONS_ID
    default             => ERROR
 
 
 Set 8:
-  DECLARATIONS_ID <= DECLARATIONS_ID ^ DECLARATION_ID, BEGIN_ID
+  DECLARATIONS_ID <= DECLARATIONS_ID ^ DECLARATION_ID, BEGIN_ID/IS_ID
   BODY_ID <= IS_ID DECLARATIONS_ID ^ BEGIN_ID SEMICOLON_ID, IS_ID/BEGIN_ID/EOF_ID
 
    BEGIN_ID            => shift and goto state 9,
                           reduce 0 tokens to DECLARATION_ID
-   IS_ID               => shift and goto state 2
+   IS_ID               => reduce 0 tokens to DECLARATION_ID,
+                          shift and goto state 2
    default             => ERROR
 
    DECLARATION_ID      goto state 7
@@ -100,6 +103,6 @@ Set 10:
 
 
 unknown conflicts:
+SHIFT/REDUCE in state BODY_ID, DECLARATION_ID ( 8) on token IS_ID
 REDUCE/SHIFT in state DECLARATION_ID, BODY_ID ( 8) on token BEGIN_ID
 REDUCE/SHIFT in state DECLARATION_ID, OPENTOKEN_ACCEPT_ID ( 4) on token EOF_ID
-SHIFT/REDUCE in state BODY_ID, DECLARATION_ID ( 2) on token IS_ID

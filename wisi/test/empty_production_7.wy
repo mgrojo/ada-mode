@@ -1,0 +1,37 @@
+;;; finding bug in parse table generator; 2 consecutive nonterms can be empty
+
+%{
+(require 'wisi)
+%}
+
+%keyword ALIASED "aliased"
+%keyword CONSTANT "constant"
+
+%token <punctuation> SEMICOLON ";"
+%token <symbol> IDENTIFIER
+
+%start object_declaration_list
+
+%%
+
+object_declaration_list
+  : object_declaration
+  | object_declaration_list object_declaration
+  ;
+
+object_declaration
+  : IDENTIFIER aliased_opt constant_opt SEMICOLON
+  ;
+
+aliased_opt
+  : ;; empty
+  | ALIASED
+  ;
+
+constant_opt
+  : ;; empty
+  | CONSTANT
+  ;
+
+%%
+;;; end of file

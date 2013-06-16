@@ -16,7 +16,6 @@ Set 2:
    default                    => ERROR
 
    MODE_ID                    goto state 8
-   NAME_ID                    goto state 8
 
 Set 3:
   OPENTOKEN_ACCEPT_ID <= COMPILATION_UNIT_ID ^ EOF_ID

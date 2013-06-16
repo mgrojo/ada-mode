@@ -39,6 +39,8 @@ tests : empty_production_2-parse.diff
 tests : empty_production_3-parse.diff
 # tests : empty_production_4-parse.diff FIXME: still broken
 tests : empty_production_5-parse.diff
+# empty_production_6 only in Emacs Ada mode; requires generalized parser
+tests : empty_production_7-parse.diff
 
 examples : asu_example_3_6-run.run
 examples : asu_example_4_46-run.run

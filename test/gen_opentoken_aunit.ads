@@ -75,14 +75,17 @@ package Gen_OpenToken_AUnit is
       Dot        : in Integer;
       Next       : in LALR.LRk.Item_Ptr)
      return LALR.LRk.Item_Ptr;
-   --  Construct an LR1 item with Prod from Grammar, Dot before token Dot.
+   --  Construct an LR1 item with Prod from Grammar, Dot before token
+   --  Dot (1 indexed; use last + 1 for after last).
 
    function Get_Item_Set
      (Prod : in Integer;
       Dot  : in Integer;
       Next : in LALR.LRk.Item_Set_Ptr)
      return LALR.LRk.Item_Set;
-   --  Construct an LR1 item_set with Prod from Grammar, Dot before token Dot, null lookaheads and goto_list.
+   --  Construct an LR1 item_set with Prod from Grammar, Dot before
+   --  token Dot (1 indexed; use last + 1 for after last), null lookaheads
+   --  and goto_list.
 
    type Token_Array is array (Positive range <>) of Token_ID;
 

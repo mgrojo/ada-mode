@@ -122,7 +122,7 @@ package body Test_Empty_Productions_5 is
       --  Expected lookahead closure:
       --
       --  NAME_ID <= ^ IDENTIFIER_ID, SEMICOLON_ID/LEFT_PAREN_ID
-      --  ACCEPT_STATEMENT_ID <= ACCEPT_ID ^ NAME_ID PARAMETER_PROFILE_ID SEMICOLON_ID
+      --  ACCEPT_STATEMENT_ID <= ACCEPT_ID ^ NAME_ID PARAMETER_PROFILE_ID SEMICOLON_ID, <no lookaheads>
 
       Expected_Set := Get_Item_Node
         (Prod       => 3, -- in grammar
