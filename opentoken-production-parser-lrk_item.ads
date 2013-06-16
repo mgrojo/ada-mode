@@ -188,11 +188,10 @@ package OpenToken.Production.Parser.LRk_Item is
    procedure Free (Subject : in out Item_Set_List);
 
    function LR0_Kernels
-     (Grammar              : in Production_List.Instance;
-      Has_Empty_Production : in Nonterminal_ID_Set;
-      First                : in Derivation_Matrix;
-      Trace                : in Boolean;
-      First_State_Index    : in Natural)
+     (Grammar           : in Production_List.Instance;
+      First             : in Derivation_Matrix;
+      Trace             : in Boolean;
+      First_State_Index : in Natural)
      return Item_Set_List;
 
    function Print (Item : in Item_Lookahead) return String;
@@ -208,11 +207,10 @@ package OpenToken.Production.Parser.LRk_Item is
    --  visible for unit test
 
    function Goto_Transitions
-     (Kernel               : in Item_Set;
-      Symbol               : in Token.Token_ID;
-      First                : in Derivation_Matrix;
-      Has_Empty_Production : in Nonterminal_ID_Set;
-      Grammar              : in Production_List.Instance)
+     (Kernel  : in Item_Set;
+      Symbol  : in Token.Token_ID;
+      First   : in Derivation_Matrix;
+      Grammar : in Production_List.Instance)
      return Item_Set;
 
 end OpenToken.Production.Parser.LRk_Item;

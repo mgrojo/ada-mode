@@ -140,7 +140,7 @@ package body Test_Empty_Productions_6 is
       use OpenToken_AUnit;
 
       Kernels : constant Item_Set_List := LR0_Kernels
-        (Grammar, Has_Empty_Production, First, Trace => False, First_State_Index => First_State_Index);
+        (Grammar, First, Trace => False, First_State_Index => First_State_Index);
 
       Expected : Parse_State;
       Conflict : Parse_Action_Node_Ptr;

@@ -114,7 +114,7 @@ package body Test_Empty_Productions_7 is
       use Ada.Text_IO;
       use LALR.LRk;
       use OpenToken_AUnit;
-      Computed : constant Item_Set := Goto_Transitions (Kernel, Symbol, First, Has_Empty_Production, Grammar);
+      Computed : constant Item_Set := Goto_Transitions (Kernel, Symbol, First, Grammar);
    begin
       if Debug then
          Put_Line ("symbol:   " & Token_IDs'Image (Symbol));
@@ -244,26 +244,6 @@ package body Test_Empty_Productions_7 is
 
       Test_Goto_Transitions ("1", Kernel, ALIASED_ID, Expected, Test.Debug);
 
-      --  Expected goto_transitions on CONSTANT_ID:
-      --  OBJECT_DECLARATION_ID <= IDENTIFIER_ID ALIASED_OPT_ID ^ CONSTANT_OPT_ID SEMICOLON_ID
-
-      Expected := Get_Item_Set
-        (Prod => 4,
-         Dot  => 3,
-         Next => null);
-
-      Test_Goto_Transitions ("2", Kernel, CONSTANT_ID, Expected, Test.Debug);
-
-      --  Expected goto_transitions on SEMICOLON_ID:
-      --  OBJECT_DECLARATION_ID <= IDENTIFIER_ID ALIASED_OPT_ID ^ CONSTANT_OPT_ID SEMICOLON_ID
-
-      Expected := Get_Item_Set
-        (Prod => 4,
-         Dot  => 3,
-         Next => null);
-
-      Test_Goto_Transitions ("3", Kernel, SEMICOLON_ID, Expected, Test.Debug);
-
       --  Expected goto_transitions on aliased_opt_ID:
       --  OBJECT_DECLARATION_ID <= IDENTIFIER_ID ALIASED_OPT_ID ^ CONSTANT_OPT_ID SEMICOLON_ID
 
@@ -272,10 +252,9 @@ package body Test_Empty_Productions_7 is
          Dot  => 3,
          Next => null);
 
-      Test_Goto_Transitions ("4", Kernel, aliased_opt_ID, Expected, Test.Debug);
+      Test_Goto_Transitions ("2", Kernel, aliased_opt_ID, Expected, Test.Debug);
 
-      --  Expected goto_transitions on constant_opt_ID:
-      --  none
+      --  Expected goto_transitions on CONSTANT_ID, SEMICOLON_ID, constant_opt_ID: none
 
       Expected :=
         (Set       => null,
@@ -283,6 +262,8 @@ package body Test_Empty_Productions_7 is
          Index     => -1,
          Next      => null);
 
+      Test_Goto_Transitions ("3", Kernel, CONSTANT_ID, Expected, Test.Debug);
+      Test_Goto_Transitions ("4", Kernel, SEMICOLON_ID, Expected, Test.Debug);
       Test_Goto_Transitions ("5", Kernel, constant_opt_ID, Expected, Test.Debug);
 
    end Goto_Transitions_1;
@@ -318,16 +299,6 @@ package body Test_Empty_Productions_7 is
 
       Test_Goto_Transitions ("1", Kernel, CONSTANT_ID, Expected, Test.Debug);
 
-      --  Expected goto_transitions on SEMICOLON_ID:
-      --  OBJECT_DECLARATION_ID <= IDENTIFIER_ID ALIASED_OPT_ID CONSTANT_OPT_ID ^ SEMICOLON_ID
-
-      Expected := Get_Item_Set
-        (Prod => 4,
-         Dot  => 4,
-         Next => null);
-
-      Test_Goto_Transitions ("2", Kernel, SEMICOLON_ID, Expected, Test.Debug);
-
       --  Expected goto_transitions on constant_opt_ID:
       --  OBJECT_DECLARATION_ID <= IDENTIFIER_ID ALIASED_OPT_ID CONSTANT_OPT_ID ^ SEMICOLON_ID
 
@@ -336,7 +307,17 @@ package body Test_Empty_Productions_7 is
          Dot  => 4,
          Next => null);
 
-      Test_Goto_Transitions ("3", Kernel, constant_opt_ID, Expected, Test.Debug);
+      Test_Goto_Transitions ("2", Kernel, constant_opt_ID, Expected, Test.Debug);
+
+      --  Expected goto_transitions on SEMICOLON_ID: none
+
+      Expected :=
+        (Set       => null,
+         Goto_List => null,
+         Index     => -1,
+         Next      => null);
+
+      Test_Goto_Transitions ("3", Kernel, SEMICOLON_ID, Expected, Test.Debug);
 
    end Goto_Transitions_2;
 
@@ -350,7 +331,7 @@ package body Test_Empty_Productions_7 is
       Used_Tokens : Analyzers.Token_Array_Boolean := (others => False);
 
       Kernels : Item_Set_List := LR0_Kernels
-        (Grammar, Has_Empty_Production, First, Trace => Test.Debug, First_State_Index => First_State_Index);
+        (Grammar, First, Trace => Test.Debug, First_State_Index => First_State_Index);
 
       Expected : Parse_State;
    begin

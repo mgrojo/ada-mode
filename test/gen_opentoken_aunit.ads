@@ -73,7 +73,8 @@ package Gen_OpenToken_AUnit is
      (Prod       : in Integer;
       Lookaheads : in LALR.LRk.Item_Lookahead_Ptr;
       Dot        : in Integer;
-      Next       : in LALR.LRk.Item_Ptr)
+      Next       : in LALR.LRk.Item_Ptr := null;
+      Index      : in Integer           := -1)
      return LALR.LRk.Item_Ptr;
    --  Construct an LR1 item with Prod from Grammar, Dot before token
    --  Dot (1 indexed; use last + 1 for after last).

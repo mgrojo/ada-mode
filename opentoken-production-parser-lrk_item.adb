@@ -604,7 +604,6 @@ package body OpenToken.Production.Parser.LRk_Item is
      (Kernel               : in Item_Set;
       Symbol               : in Token.Token_ID;
       First                : in Derivation_Matrix;
-      Has_Empty_Production : in Nonterminal_ID_Set;
       Grammar              : in Production_List.Instance)
      return Item_Set
    is
@@ -669,37 +668,6 @@ package body OpenToken.Production.Parser.LRk_Item is
                   end loop;
                end;
             end if;
-
-            --  If there are any tokens with empty productions
-            --  following Dot, that are in turn followed by tokens
-            --  that are or start with terminal Symbol, put Item.Prod
-            --  in.
-            if Symbol in Tokenizer.Terminal_ID then
-               declare
-                  RHS_I : List_Iterator  := Item.Dot;
-                  ID    : Token.Token_ID := Dot_ID;
-               begin
-                  loop
-                     exit when not (ID in Nonterminal_ID and then Has_Empty_Production (ID));
-                     Next_Token (RHS_I);
-                     exit when RHS_I = Null_Iterator;
-                     ID := Token_List.ID (RHS_I);
-
-                     if ID = Symbol or
-                       (ID in Nonterminal_ID and then First (ID)(Symbol))
-                     then
-                        Goto_Set.Set := new Item_Node'
-                          (Prod       => Item.Prod,
-                           Dot        => Next_Token (Item.Dot), -- must generate all empty productions in order
-                           Index      => -1, -- replaced in LR0_Kernels
-                           Lookaheads => Item.Lookaheads,
-                           Next       => Goto_Set.Set);
-
-                        exit; -- no need to search for more empty productions
-                     end if;
-                  end loop;
-               end;
-            end if;
          end if; -- item.dot /= null
 
          Item := Item.Next;
@@ -755,11 +723,10 @@ package body OpenToken.Production.Parser.LRk_Item is
    end Free;
 
    function LR0_Kernels
-     (Grammar              : in Production_List.Instance;
-      Has_Empty_Production : in Nonterminal_ID_Set;
-      First                : in Derivation_Matrix;
-      Trace                : in Boolean;
-      First_State_Index    : in Natural)
+     (Grammar           : in Production_List.Instance;
+      First             : in Derivation_Matrix;
+      Trace             : in Boolean;
+      First_State_Index : in Natural)
      return Item_Set_List
    is
       Kernel_List : Item_Set_List :=
@@ -797,7 +764,7 @@ package body OpenToken.Production.Parser.LRk_Item is
 
             for Symbol in Token.Token_ID loop
 
-               New_Items := Goto_Transitions (Checking_Set.all, Symbol, First, Has_Empty_Production, Grammar);
+               New_Items := Goto_Transitions (Checking_Set.all, Symbol, First, Grammar);
 
                --  See if any of the item sets need to be added to our list
                if New_Items.Set /= null then

@@ -117,7 +117,7 @@ package body Test_LR1_Lookahead_Closure is
       First : constant Derivation_Matrix := First_Derivations
         (Grammar, Has_Empty_Production, Trace => Test.Debug);
 
-      Kernels : Item_Set_List := LR0_Kernels (Grammar, Has_Empty_Production, First, Test.Debug, First_State_Index => 1);
+      Kernels : Item_Set_List := LR0_Kernels (Grammar, First, Test.Debug, First_State_Index => 1);
 
       procedure Test_One (Label : in String; Input : in Item_Set; Expected : in Item_Set)
       is

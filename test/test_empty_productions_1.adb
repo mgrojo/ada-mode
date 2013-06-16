@@ -102,7 +102,7 @@ package body Test_Empty_Productions_1 is
       use Ada.Text_IO;
       use LALR.LRk;
       use OpenToken_AUnit;
-      Computed : constant Item_Set := Goto_Transitions (Kernel, Symbol, First, Has_Empty_Production, Grammar);
+      Computed : constant Item_Set := Goto_Transitions (Kernel, Symbol, First, Grammar);
    begin
       if Debug then
          Put_Line ("symbol:   " & Token_IDs'Image (Symbol));
@@ -177,23 +177,17 @@ package body Test_Empty_Productions_1 is
 
       Test_Goto_Transitions ("1", Kernel, IS_ID, Expected, Test.Debug);
 
-      --  Expected goto_transitions on BEGIN_ID:
-      --  BODY_ID <= IS_ID DECLARATIVE_PART_ID ^ BEGIN_ID SEMICOLON_ID
-
-      Expected := Get_Item_Set
-        (Prod => 6, -- in Grammar
-         Dot  => 3,
-         Next => null);
-
-      Test_Goto_Transitions ("2", Kernel, BEGIN_ID, Expected, Test.Debug);
-
-      --  Expected goto_transitions on SEMICOLON_ID: none
+      --  Expected goto_transitions on BEGIN_ID: none
 
       Expected :=
         (Set       => null,
          Goto_List => null,
          Index     => -1,
          Next      => null);
+
+      Test_Goto_Transitions ("2", Kernel, BEGIN_ID, Expected, Test.Debug);
+
+      --  Expected goto_transitions on SEMICOLON_ID: none
 
       Test_Goto_Transitions ("3", Kernel, SEMICOLON_ID, Expected, Test.Debug);
 
@@ -249,7 +243,7 @@ package body Test_Empty_Productions_1 is
       use OpenToken_AUnit;
 
       Kernels  : constant Item_Set_List := LALR.LRk.LR0_Kernels
-        (Grammar, Has_Empty_Production, First, Trace => False, First_State_Index => 1);
+        (Grammar, First, Trace => False, First_State_Index => 1);
       Kernel   : constant Item_Set_Ptr  := Find (2, Kernels);
       Expected : Set_Reference_Ptr;
 
@@ -262,16 +256,10 @@ package body Test_Empty_Productions_1 is
       --  DECLARATIVE_PART_ID => BODY_ID <= IS_ID DECLARATIVE_PART_ID ^ BEGIN_ID SEMICOLON_ID ; Set 8
       --  DECLARATIONS_ID =>
       --    DECLARATIVE_PART_ID <= DECLARATIONS_ID ^
-      --    DECLARATIONS_ID <= DECLARATIONS_ID ^ BODY_ID ; Set 4
-      --  IS_ID               => BODY_ID <= IS_ID ^ DECLARATIVE_PART_ID BEGIN_ID SEMICOLON_ID ; Set 2
-      --  BEGIN_ID            => BODY_ID <= IS_ID DECLARATIVE_PART_ID ^ BEGIN_ID SEMICOLON_ID ; Set 8
+      --    DECLARATIONS_ID <= DECLARATIONS_ID ^ BODY_ID ; Set 3
+      --  IS_ID => BODY_ID <= IS_ID ^ DECLARATIVE_PART_ID BEGIN_ID SEMICOLON_ID ; Set 2
 
       --  Only Index is checked in Expected.Set
-      Expected := new Set_Reference'
-        (Symbol => BEGIN_ID,
-         Set    => new Item_Set'(Set => null, Goto_List => null, Index => 8, Next => null),
-         Next   => null);
-
       Expected := new Set_Reference'
         (Symbol => IS_ID,
          Set    => new Item_Set'(Set => null, Goto_List => null, Index => 2, Next => null),
@@ -279,7 +267,7 @@ package body Test_Empty_Productions_1 is
 
       Expected := new Set_Reference'
         (Symbol => declarations_ID,
-         Set    => new Item_Set'(Set => null, Goto_List => null, Index => 4, Next => null),
+         Set    => new Item_Set'(Set => null, Goto_List => null, Index => 3, Next => null),
          Next   => Expected);
 
       Expected := new Set_Reference'
@@ -308,8 +296,7 @@ package body Test_Empty_Productions_1 is
       use LALR.LRk;
       use OpenToken_AUnit;
 
-      Kernels : constant Item_Set_List := LR0_Kernels
-        (Grammar, Has_Empty_Production, First, Trace => False, First_State_Index => 1);
+      Kernels : constant Item_Set_List := LR0_Kernels (Grammar, First, Trace => False, First_State_Index => 1);
 
       Expected : Parse_State;
    begin
@@ -323,7 +310,7 @@ package body Test_Empty_Productions_1 is
       --  default  => ERROR
 
       --  Expected reduction gotos:
-      --  DECLARATIONS_ID => Set 4
+      --  DECLARATIONS_ID => Set 3
       --  DECLARATIVE_PART_ID => Set 8
       --  BODY_ID => Set 5
       Expected.Action_List := new Action_Node'
@@ -364,7 +351,7 @@ package body Test_Empty_Productions_1 is
 
       Expected.Reduction_List := new Reduction_Node'
         (Symbol => declarations_ID,
-         State  => 4,
+         State  => 3,
          Next   => Expected.Reduction_List);
 
       Test_Actions ("1", Kernels, 2, Expected, Test.Debug);

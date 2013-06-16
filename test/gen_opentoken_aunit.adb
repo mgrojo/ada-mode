@@ -164,7 +164,8 @@ package body Gen_OpenToken_AUnit is
      (Prod       : in Integer;
       Lookaheads : in LALR.LRk.Item_Lookahead_Ptr;
       Dot        : in Integer;
-      Next       : in LALR.LRk.Item_Ptr)
+      Next       : in LALR.LRk.Item_Ptr := null;
+      Index      : in Integer           := -1)
      return LALR.LRk.Item_Ptr
    is
       Grammar_I : Production_Lists.List_Iterator := Grammar.Initial_Iterator;
@@ -183,7 +184,7 @@ package body Gen_OpenToken_AUnit is
       return new LALR.LRk.Item_Node'
         (Prod       => Production_Lists.Get_Production (Grammar_I),
          Dot        => Dot_I,
-         Index      => -1,
+         Index      => Index,
          Lookaheads => Lookaheads,
          Next       => Next);
    end Get_Item_Node;

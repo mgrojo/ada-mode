@@ -1057,7 +1057,7 @@ package body OpenToken.Production.Parser.LALR is
         (Grammar, Has_Empty_Production, Trace);
       Used_Tokens          : Tokenizer.Token_Array_Boolean   := (others => False);
 
-      Kernels : LRk.Item_Set_List := LRk.LR0_Kernels (Grammar, Has_Empty_Production, First, Trace, First_State_Index);
+      Kernels : LRk.Item_Set_List := LRk.LR0_Kernels (Grammar, First, Trace, First_State_Index);
 
       I             : LRk.Item_Set_Ptr  := Kernels.Head;
       Accept_Index  : Integer           := 0;
