@@ -285,6 +285,8 @@ wisi-forward-token, but does not look up symbol."
   ;; wisi-punctuation-table, or lower-level nonterminal from parse
   ;; (set by wisi-statement-action)
 
+  last ;; pos of last char in token, relative to first (0 indexed)
+
   class
   ;; arbitrary lisp symbol, used for indentation and navigation.
   ;; some classes are defined by wisi:
@@ -491,17 +493,12 @@ that token. Use in a grammar action as:
 		  (with-silent-modifications
 		    (put-text-property
 		     (car region)
-		     (cdr region)
-		     ;; FIXME: setting the text property on the whole
-		     ;; token confuses indentation; lots of tokens are
-		     ;; marked as 'start'. On the other hand, the text
-		     ;; property is used by wisi-forward-cache to
-		     ;; determine the token region; store that in the
-		     ;; cache instead.
+		     (1+ (car region))
 		     'wisi-cache
 		     (wisi-cache-create
 		      :nonterm (when first-item $nterm);; $nterm defined in wisi-semantic-action
 		      :token   token
+		      :last  (- (cdr region) (car region))
 		      :class   (or override-start class)
 		      :start   first-keyword-mark)
 		     )))
@@ -535,7 +532,7 @@ CONTAINED-TOKEN is token number of the contained non-terminal."
       ;; nil when empty production
       (save-excursion
 	(goto-char (cdr contained-region))
-	(let ((cache (car (wisi-backward-cache)))
+	(let ((cache (wisi-backward-cache))
 	      (mark (copy-marker (1+ (car start-region)))))
 	  (while cache
 
@@ -551,7 +548,7 @@ CONTAINED-TOKEN is token number of the contained non-terminal."
 
 	      ;; else set mark, loop
 	      (setf (wisi-cache-start cache) mark)
-	      (setq cache (car (wisi-backward-cache))))
+	      (setq cache (wisi-backward-cache)))
 	    ))))))
 
 (defun wisi-motion-action (&rest token-numbers)
@@ -605,99 +602,101 @@ list (number token_id): mark all tokens with token_id in the nonterminal given b
 ;;;; motion
 (defun wisi-backward-cache ()
   "Move point backward to the beginning of the first token preceding point that has a cache.
-Returns (cache region); the found cache, and the text region
-containing it; or nil if at beginning of buffer."
-  (let (begin end)
-    (setq end (previous-single-property-change (point) 'wisi-cache))
-    (when end
-      (if (get-text-property (1- end) 'wisi-cache)
-	  (setq begin
-		(or
-		 (previous-single-property-change end 'wisi-cache)
-		 ;; that fails if first cache is at bob
-		 (point-min)))
-	;; else single-character token
-	(setq begin end))
-      (goto-char begin)
-      (list (get-text-property begin 'wisi-cache)
-	    (cons begin end)))
+Returns cache, or nil if at beginning of buffer."
+  (let (cache pos)
+    (setq pos (previous-single-property-change (point) 'wisi-cache))
+    ;; There are three cases:
+    ;;
+    ;; 1) caches separated by non-cache chars: 'if ... then'
+    ;;    pos is before 'f', cache is on 'i'
+    ;;
+    ;; 2) caches not separated: ');'
+    ;;    pos is before ';', cache is on ';'
+    ;;
+    ;; 3) at bob; pos is nil
+    ;;
+    (if pos
+	(progn
+	  (setq cache (get-text-property pos 'wisi-cache))
+	  (if cache
+	      ;; case 2
+	      (goto-char pos)
+	    ;; case 1
+	    (setq cache (get-text-property (1- pos) 'wisi-cache))
+	    (goto-char (1- pos))))
+      ;; at bob
+      (goto-char (point-min))
+      (setq cache nil))
+    cache
     ))
 
 (defun wisi-forward-cache ()
   "Move point forward to the beginning of the first token after point that has a cache.
-Assumes relevant portion of buffer is parsed.
-Returns (cache region); the found cache, and the text region
-containing it; or nil if at end of buffer."
-  (let (begin end)
+Returns cache, or nil if at end of buffer."
+  (let (cache pos)
     (when (get-text-property (point) 'wisi-cache)
-      ;; on a cached token; get past it
-      (wisi-forward-token t))
+      ;; on a cache; get past it
+      (goto-char (1+ (point))))
 
-    (cond
-     ((get-text-property (point) 'wisi-cache)
-      ;; on another cached token; for example "null;", now on ";"
-      (setq begin (point)))
+    (setq cache (get-text-property (point) 'wisi-cache))
+    (if cache
+	nil
 
-     (t
-      (setq begin (next-single-property-change (point) 'wisi-cache)))
-     )
-
-    (when begin
-      (if (get-text-property (1+ begin) 'wisi-cache)
-	  (setq end (next-single-property-change begin 'wisi-cache))
-	;; else single-character token
-	(setq end begin))
-      (goto-char begin)
-      (list (get-text-property begin 'wisi-cache)
-	    (list begin end)))
+      (setq pos (next-single-property-change (point) 'wisi-cache))
+      (if pos
+	  (progn
+	    (goto-char pos)
+	    (setq cache (get-text-property pos 'wisi-cache)))
+	;; at eob
+	(goto-char (point-max))
+	(setq cache nil))
+      )
+    cache
     ))
 
 (defun wisi-forward-find-class (class limit)
   "Search forward for a token that has a cache with CLASS.
-Return (cache region); the found cache, and the text region
-containing it; or nil if at end of buffer.
+Return cache, or nil if at end of buffer.
 If LIMIT (a buffer position) is reached, throw an error."
-  (let ((result (wisi-forward-cache)))
-    (while (not (eq class (wisi-cache-class (car result))))
-      (setq result (wisi-forward-cache))
+  (let ((cache (wisi-forward-cache)))
+    (while (not (eq class (wisi-cache-class cache)))
+      (setq cache (wisi-forward-cache))
       (when (>= (point) limit)
 	(error "cache with class %s not found" class)))
-    result))
+    cache))
 
 (defun wisi-forward-find-token (token limit &optional noerror)
   "Search forward for a token that has a cache with TOKEN.
-Return (cache region); the found cache, and the text region
-containing it; or nil if at end of buffer.
-If LIMIT (a buffer position) is reached; if NOERROR is nil, throw an error, if non-nil, return nil."
-  (let ((result (list (wisi-get-cache (point)) nil))
+Return cache, or nil if at end of buffer.
+If LIMIT (a buffer position) is reached, then if NOERROR is nil, throw an
+error, if non-nil, return nil."
+  (let ((cache (wisi-get-cache (point)))
 	(done nil))
     (while (not (or done
-		    (eq token (wisi-cache-token (car result)))))
-      (setq result (wisi-forward-cache))
+		    (eq token (wisi-cache-token cache))))
+      (setq cache (wisi-forward-cache))
       (when (>= (point) limit)
 	(if noerror
 	    (progn
 	      (setq done t)
-	      (setq result nil))
+	      (setq cache nil))
 	  (error "cache with token %s not found" token))))
-    result))
+    cache))
 
 (defun wisi-forward-find-nonterm (nonterm limit)
   "Search forward for a token that has a cache with NONTERM.
-Return (cache region); the found cache, and the text region
-containing it; or nil if at end of buffer.
+Return cache, or nil if at end of buffer.
 If LIMIT (a buffer position) is reached, throw an error."
-  (let ((result (wisi-forward-cache)))
-    (while (not (eq nonterm (wisi-cache-nonterm (car result))))
-      (setq result (wisi-forward-cache))
+  (let ((cache (wisi-forward-cache)))
+    (while (not (eq nonterm (wisi-cache-nonterm cache)))
+      (setq cache (wisi-forward-cache))
       (when (>= (point) limit)
 	(error "cache with nonterm %s not found" nonterm)))
-    result))
+    cache))
 
 (defun wisi-forward-statement-keyword ()
   "If not at a cached token, move forward to next
 cache. Otherwise move to cache-next, or next cache if nil."
-  (wisi-validate-cache (point-max))
   (let ((cache (wisi-get-cache (point))))
     (if cache
 	(let ((next (wisi-cache-next cache)))
@@ -711,7 +710,6 @@ cache. Otherwise move to cache-next, or next cache if nil."
 (defun wisi-backward-statement-keyword ()
   "If not at a cached token, move backward to prev
 cache. Otherwise move to cache-prev, or prev cache if nil."
-  (wisi-validate-cache (point-max))
   (let ((cache (wisi-get-cache (point))))
     (if cache
 	(let ((prev (wisi-cache-prev cache)))
@@ -729,7 +727,6 @@ of containing statement. If ERROR and at start and CONTAINING, throw error."
    ((markerp (wisi-cache-start cache))
     (cond
      ((memq (wisi-cache-class cache) '(statement-start block-start))
-      (setq done t)
       (when containing
 	(goto-char (1- (wisi-cache-start cache)))
 	(setq cache (wisi-get-cache (point)))))
@@ -740,9 +737,8 @@ of containing statement. If ERROR and at start and CONTAINING, throw error."
      ))
    (t
     ;; at outermost containing statement
-    (if error
-	(error "already at outermost containing statement")
-      (setq done t))))
+    (when error
+      (error "already at outermost containing statement"))))
   cache)
 
 (defun wisi-next-statement-cache (cache)
@@ -768,12 +764,14 @@ the comment on the previous line."
   "Return indentation OFFSET relative to indentation of current line."
   (save-excursion
     (unless (ada-in-paren-p)
+      ;; FIXME: use (current-indentation), don't use save-excursion
       (back-to-indentation))
     (+ (current-column) offset)))
 
 (defun wisi-indent-paren (offset)
   "Return indentation OFFSET relative to preceding open paren."
   (save-excursion
+    ;; FIXME: don't move point, so don't need save-excursion
     (ada-goto-open-paren 0)
     (+ (current-column) offset)))
 

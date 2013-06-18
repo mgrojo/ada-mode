@@ -188,19 +188,28 @@ BEFORE should be t when called from ada-wisi-before-cache, nil otherwise."
 	 (cond
 	  ((save-excursion
 	     (let ((start-cache (wisi-goto-statement-start cache nil)))
-	       (cond
-		((eq 'asynchronous_select (wisi-cache-nonterm start-cache))
+	       (case (wisi-cache-nonterm start-cache)
+		(asynchronous_select
 		 ;; indenting 'abort'
 		 (+ (current-column) ada-indent-broken))
 
-		((eq 'generic_renaming_declaration (wisi-cache-nonterm start-cache))
+		(generic_renaming_declaration
 		 ;; indenting keyword following 'generic'
 		 (current-column))
 
-		((eq 'label_opt (wisi-cache-token start-cache))
-		 (+ (current-column) (- ada-indent-label)))
+		(statement
+		 (case (wisi-cache-token start-cache)
+		   (label_opt
+		    (+ (current-column) (- ada-indent-label)))
 
-		((eq 'select_alternative (wisi-cache-nonterm start-cache))
+		   (t
+		    (error "unexpected cache-token in statement"))))
+
+		(overriding_indicator_opt
+		 ;; indenting 'overriding' following 'not'
+		 (current-column))
+
+		(select_alternative
 		 ;; indenting '=>'
 		 (+ (current-column) ada-indent-broken))
 	       ))))
@@ -227,19 +236,16 @@ BEFORE should be t when called from ada-wisi-before-cache, nil otherwise."
 cached token, return new indentation for point."
   (let* ((start (point))
 	 (prev-token (save-excursion (wisi-backward-token)))
-	 (cache-region (wisi-backward-cache))
-	 (cache (car cache-region)))
+	 (cache (wisi-backward-cache)))
 
     (cond
      ((not cache) ;; bob
 	0)
 
      (t
-      (case (wisi-cache-class cache)
-	((name type) ;; not useful for indenting
-	 (setq cache-region (wisi-backward-cache))
-	 (setq cache (car cache-region)))
-	)
+      (while (memq (wisi-cache-class cache) '(name type))
+	;; not useful for indenting
+	(setq cache (wisi-backward-cache)))
 
       (ecase (wisi-cache-class cache)
 	(block-end
@@ -285,8 +291,8 @@ cached token, return new indentation for point."
 	 (ada-wisi-indent-statement-start ada-indent-broken cache nil))
 
 	(list-break
-	 (if (equal (nth 1 cache-region) (cddr prev-token))
-	     ;; prev-token has cache; not hanging
+	 (if (equal (point) (caddr prev-token))
+	     ;; we are indenting the first token after the list-break; not hanging.
 	     (wisi-indent-paren 1)
 	   ;; else hanging
 	   (wisi-indent-paren (+ 1 ada-indent-broken))))
@@ -340,16 +346,15 @@ cached token, return new indentation for point."
 
 	   (EQUAL_GREATER
 	    (ecase (wisi-cache-nonterm (wisi-goto-statement-start cache nil))
-	      (block_statement
-	       ;; in exception handler
-	       (+ (current-column) ada-indent-when ada-indent))
+	      (exception_handler
+	       (+ (current-column) ada-indent-when))
 
 	      (case_expression
 	       ;; between '=>' and ','
 	       (+ (current-column) ada-indent-when ada-indent))
 
-	      (case_statement
-	       (+ (current-column) ada-indent-when ada-indent))
+	      (case_statement_alternative
+	       (+ (current-column) ada-indent-when))
 
 	      (generic_renaming_declaration
 	       ;; not indenting keyword following 'generic'
@@ -423,10 +428,12 @@ cached token, return new indentation for point."
 	  ;;     function ... is ... end;
 	  ;;     <point>
 	  ;;     function ... is ... end;
-	  (car (wisi-forward-cache)))))
+	  (wisi-forward-cache)))
+	start-pos)
     (if (ada-wisi-declarative-region-start-p cache)
 	(wisi-forward-token t)
       (while (not done)
+	(setq start-pos (point))
 	(setq cache (wisi-goto-statement-start cache t t))
 	(case (wisi-cache-nonterm cache)
 	  (block_statement
@@ -436,8 +443,8 @@ cached token, return new indentation for point."
 	     )
 	   (setq done t))
 
-	  (subprogram_body ;; overriding_indicator_opt preceding subprogram_specification
-	   (ada-next-statement-keyword) ;; procedure/function
+	  (overriding_indicator_opt
+	   (wisi-forward-find-nonterm 'subprogram_specification start-pos) ;; procedure/function
 	   (ada-next-statement-keyword) ;; is
 	   (wisi-forward-token t)
 	   (setq done t))
@@ -463,17 +470,16 @@ cached token, return new indentation for point."
   "used in `ada-wisi-which-function'."
   (let (region
 	result
-	(token (wisi-forward-cache)))
+	(cache (wisi-forward-cache)))
 
     (while (< 0 cache-skip)
-      (setq token (wisi-forward-cache))
+      (setq cache (wisi-forward-cache))
       (setq cache-skip (1- cache-skip)))
 
-    (unless (eq 'name (wisi-cache-class (car token)))
-      (error "%s is not a name token" token))
+    (unless (eq 'name (wisi-cache-class cache))
+      (error "%s is not a name" cache))
 
-    (setq region (cadr token))
-    (setq result (buffer-substring-no-properties (car region) (cadr region)))
+    (setq result (buffer-substring-no-properties (point) (+ (point) (wisi-cache-last cache))))
 
     (when (not ff-function-name)
       (setq ff-function-name
@@ -492,7 +498,7 @@ cached token, return new indentation for point."
     (let ((result nil))
 
       (while (not result)
-	(setq cache (car (wisi-backward-cache)))
+	(setq cache (wisi-backward-cache))
 	(if (null cache)
 	    ;; bob
 	    (setq result "")

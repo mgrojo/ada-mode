@@ -1195,8 +1195,10 @@ object_renaming_declaration
 
 overriding_indicator_opt
   : NOT OVERRIDING
+    (wisi-statement-action 1 'statement-start 2 'statement-other)
   | OVERRIDING
-  | ;; empty - following keyword is also statement-start
+    (wisi-statement-action 1 'statement-start)
+  | ;; empty - following keyword is statement-start
   ;
 
 ;; leaving out [aspect_specification]

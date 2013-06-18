@@ -76,12 +76,14 @@
 	 (active-parser-count 1)
 	 active-parser-count-prev
 	 (active 'shift)
-	 (token (funcall lexer)))
+	 (token (funcall lexer))
+	 some-pending)
 
     (aset (wisi-parser-state-stack (aref parser-states 0)) 0 0) ;; Initial state
 
     (while (not (eq active 'accept))
       (setq active-parser-count-prev active-parser-count)
+      (setq some-pending nil)
       (dotimes (parser-index (length parser-states))
 	(when (eq active (wisi-parser-state-active (aref parser-states parser-index)))
 	  (let* ((parser-state (aref parser-states parser-index))
@@ -100,6 +102,7 @@
 		  )
 		 (t
 		  ;; don't let the new parser execute again in this parser-index loop
+		  (setq some-pending t)
 		  (setf (wisi-parser-state-active result)
 			(case (wisi-parser-state-active result)
 			  (shift 'pending-shift)
@@ -161,7 +164,7 @@
 		 )))
 	    )));; end dotimes
 
-      (when (< active-parser-count-prev active-parser-count)
+      (when some-pending
 	;; change pending-* parsers to *
 	(dotimes (parser-index (length parser-states))
 	  (cond

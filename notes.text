@@ -13,9 +13,9 @@ run indent test from emacs -Q:
 (progn
   (add-to-list 'load-path "/Projects/org.emacs.ada-mode.smie")
   (add-to-list 'load-path "/Projects/org.emacs.ada-mode.smie/build")
-  ;(global-font-lock-mode -1)
-  (load "runtest-wisi")
-  (find-file "/Projects/org.emacs.ada-mode.smie/test/ada_mode-generic_package.ads")
+  (global-font-lock-mode -1)
+  (load "run-indent-test-wisi")
+  (find-file "/Projects/org.emacs.ada-mode.smie/test/ada_mode-long_paren.adb")
   (setq skip-reindent-test t)
 )
 
@@ -46,8 +46,8 @@ run indent test from emacs -Q:
  ada-wisi parser
 build/wisi/Makefile
     tests
-        test/ada_mode-long_paren.adb
-            store cache in single char text property
+        test/ada_mode-nominal.ads parse failing; need more grammar
+
 
 Debian : emacs 24.2 (from testing), GNAT GPL 2012:
     ada-mode tests failing
