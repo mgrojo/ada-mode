@@ -204,7 +204,9 @@ If at end of buffer, returns `wisent-eoi-term'."
 	    (setq token-text temp-text
 		  token-id temp-id
 		  next-point (point)))
-	  (if (= (- (point) start) wisi-punctuation-table-max-length)
+	  (if (or
+	       (eobp)
+	       (= (- (point) start) wisi-punctuation-table-max-length))
 	      (setq done t)
 	    (forward-char 1))
 	  )
@@ -398,7 +400,7 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
 	;; FIXME: if more than one start non-terminal in buffer,
 	;; wisent-parse will stop after the next one; need loop
 	(goto-char wisi-cache-max)
-	(if (> wisi-debug 1)
+	(if (> wisi-debug 0)
 	    ;; let debugger stop in wisi-parse
 	    (progn
 	      (wisi-parse wisi-parse-table 'wisi-forward-token)
@@ -541,9 +543,8 @@ CONTAINED-TOKEN is token number of the contained non-terminal."
 	      (goto-char (1- (wisi-cache-start cache)))
 	      (setq cache (wisi-get-cache (point))))
 
-	    (if (= (point) (car start-region))
-		;; done (don't set mark on cache at start; that should
-		;; point to the containing statement)
+	    (if (<= (point) (car contained-region))
+		;; done
 		(setq cache nil)
 
 	      ;; else set mark, loop

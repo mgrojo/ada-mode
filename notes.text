@@ -46,8 +46,9 @@ run indent test from emacs -Q:
  ada-wisi parser
 build/wisi/Makefile
     tests
-        test/ada_mode-nominal.ads parse failing; need more grammar
-
+        test/ada_mode-nominal.ads
+            parse passing
+            need ada-wisi-scan-paramlist
 
 Debian : emacs 24.2 (from testing), GNAT GPL 2012:
     ada-mode tests failing
@@ -98,6 +99,9 @@ generalized parse
     execute after parse completes
 
  ada-wisi other
+use defvar-local
+    check emacs 23.3
+
 /Projects/Web/stephe-leake/emacs/ada-mode/emacs-ada-mode.html
     to-do list
 

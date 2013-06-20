@@ -147,8 +147,7 @@ package Ada_Mode.Nominal is
    --EMACSCMD:(test-face "procedure (" font-lock-keyword-face)
    type Procedure_Access_Type_1 is access protected procedure (A_Param : out Integer);
    --EMACSCMD:(ada-which-function)
-   --EMACSRESULT:"Procedure_Access_Type_1"
-   --  Compare to "Ada_Mode" result above; good enough.
+   --EMACSRESULT:"Ada_Mode.Nominal"
 
    -- we don't put newline inside the paren here
    type Procedure_Access_Type_2 is access protected procedure
@@ -232,7 +231,7 @@ package Ada_Mode.Nominal is
        (A_Param : in Float)
        return Standard.Float;
    --EMACSCMD:(progn (beginning-of-line)(forward-line -1)(ada-which-function))
-   --EMACSRESULT:"Function_Access_Type_10"
+   --EMACSRESULT:"Ada_Mode.Nominal"
 
    -- a pathological case
    type Function_Access_Type_11 is access
@@ -361,7 +360,7 @@ package Ada_Mode.Nominal is
    type Decimal_Fixed_Point_3 is delta 0.10
      digits 10;
    --EMACSCMD:(progn (beginning-of-line)(forward-line -1)(ada-which-function))
-   --EMACSRESULT:"Function_Access_Type_11"
+   --EMACSRESULT:"Ada_Mode.Nominal"
 
    type Decimal_Fixed_Point_4 is delta
      0.10 digits 10;
@@ -711,7 +710,5 @@ private
      is tagged;
    type Incomplete_Type_4
      (<>) is tagged;
-   type
-     Incomplete_Type_5 (<>) is tagged;
 
 end Ada_Mode.Nominal;

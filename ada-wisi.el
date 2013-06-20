@@ -526,8 +526,8 @@ cached token, return new indentation for point."
 	      (protected_body
 	       (setq result (ada-wisi-which-function-1 0 "protected" nil)))
 
-	      (protected_type_declaration
-	       (setq result (ada-wisi-which-function-1 1 "protected" t)))
+	      ((protected_type_declaration single_protected_declaration)
+	       (setq result (ada-wisi-which-function-1 0 "protected" t)))
 
 	      (task_type_declaration
 	       ;; FIXME: need test
