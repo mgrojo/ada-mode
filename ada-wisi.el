@@ -70,7 +70,18 @@ BEFORE should be t when called from ada-wisi-before-cache, nil otherwise."
       (let ((start-cache (wisi-goto-statement-start cache containing))
 	    (start-indent (current-indentation)))
 	(cond
+	 ;; special cases
+	 ;;
+	 ;; aggregate:
+	 ;;      (Default_Parent with
+	 ;;       10, 12.0, True);
+	 ;;      indenting '10'; ignore 'offset'
+	 ((eq 'aggregate (wisi-cache-nonterm start-cache))
+	  (+ (current-column) 1))
+
+	 ;; all other structures
 	 ((= (current-column) start-indent)
+	  ;; start is at indentation
 	  (cond
 	    ((eq 'label_opt (wisi-cache-token start-cache))
 	     (+ (current-column) (- ada-indent-label) offset))
@@ -79,13 +90,15 @@ BEFORE should be t when called from ada-wisi-before-cache, nil otherwise."
 	     (+ start-indent offset))
 	    ))
 
-	 ((ada-in-paren-p)
-	  (ada-goto-open-paren 1)
-	  (+ (current-column) offset))
-
 	 (t
 	  ;; statement-start is preceded by something on same line. Handle common cases nicely.
 	  (cond
+	   ((ada-in-paren-p)
+	    ;; foo := (if bar
+	    ;;         then ...)
+	    ;;   indenting 'then'; offset = 0
+	    (+ (current-column) offset))
+
 	   ((eq 'select_alternative (wisi-cache-nonterm start-cache))
 	    (wisi-goto-statement-start start-cache t)
 	    (+ (current-column) offset ada-indent-when))
@@ -131,13 +144,30 @@ BEFORE should be t when called from ada-wisi-before-cache, nil otherwise."
        ))
       )))
 
+(defun ada-wisi-indent-renames (pos-renames)
+  (wisi-forward-find-token '(FUNCTION PROCEDURE) pos-renames)
+  (let ((pos-subprogram (point)))
+    (cond
+     ((<= ada-indent-renames 0)
+      ;; indent relative to parameters paren, if any
+      ;; FIXME: this is wrong for one return access function case:
+      ;; overriding function Foo return access Bar (...) renames ...;
+      (if (wisi-forward-find-token 'LEFT_PAREN pos-renames t)
+	  (+ (current-column) ada-indent-renames)
+	(goto-char pos-subprogram)
+	(+ (current-column) ada-indent-broken)))
+
+     (t
+      ;; indent relative to line containing 'function' or 'procedure'
+      (+ (current-indentation) ada-indent-broken)))
+    ))
+
 (defun ada-wisi-before-cache ()
   "Point is at indentation, before a cached token. Return new indentation for point."
-  (let ((cache (wisi-get-cache (point)))
-	top-class)
+  (let ((pos-0 (point))
+	(cache (wisi-get-cache (point))))
     (when cache
-      (setq top-class (wisi-cache-class cache))
-      (ecase top-class
+      (ecase (wisi-cache-class cache)
 	(block-start
 	 (case (wisi-cache-token cache)
 	   (IS ;; subprogram body
@@ -171,7 +201,7 @@ BEFORE should be t when called from ada-wisi-before-cache, nil otherwise."
 	 (let ((return-pos (point))
 	       (indent
 		(if (and
-		     (eq top-class 'return-2)
+		     (eq (wisi-cache-class cache) 'return-2)
 		     (<= ada-indent-return 0))
 		    ada-indent-broken
 		  ada-indent-return)))
@@ -179,7 +209,7 @@ BEFORE should be t when called from ada-wisi-before-cache, nil otherwise."
 	   (wisi-goto-statement-start cache nil) ;; matching 'function'
 	   (cond
 	    ((and
-	      (eq top-class 'return-1)
+	      (eq (wisi-cache-class cache) 'return-1)
 	      (<= ada-indent-return 0))
 	     ;; indent relative to "("
 	     (wisi-forward-find-class 'open-paren return-pos)
@@ -193,37 +223,47 @@ BEFORE should be t when called from ada-wisi-before-cache, nil otherwise."
 	 (ada-wisi-indent-statement-start ada-indent-broken cache nil t))
 
 	(statement-other
-	 (cond
-	  ((save-excursion
-	     (let ((start-cache (wisi-goto-statement-start cache nil)))
-	       (case (wisi-cache-nonterm start-cache)
-		(asynchronous_select
-		 ;; indenting 'abort'
-		 (+ (current-column) ada-indent-broken))
+	 (save-excursion
+	   (let ((start-cache (wisi-goto-statement-start cache nil)))
+	     (case (wisi-cache-token cache)
+	       (EQUAL_GREATER
+		(+ (current-column) ada-indent-broken))
 
-		(generic_renaming_declaration
-		 ;; indenting keyword following 'generic'
-		 (current-column))
+	       (RENAMES
+		(ada-wisi-indent-renames pos-0))
 
-		(statement
-		 (case (wisi-cache-token start-cache)
-		   (label_opt
-		    (+ (current-column) (- ada-indent-label)))
+	       (t
+		(ecase (wisi-cache-nonterm start-cache)
+		  (aggregate
+		   ;; indenting 'with'
+		   (+ (current-column) 1))
 
-		   (t
-		    (error "unexpected cache-token in statement"))))
+		  (asynchronous_select
+		   ;; indenting 'abort'
+		   (+ (current-column) ada-indent-broken))
 
-		(overriding_indicator_opt
-		 ;; indenting 'overriding' following 'not'
-		 (current-column))
+		  (generic_renaming_declaration
+		   ;; indenting keyword following 'generic'
+		   (current-column))
 
-		(select_alternative
-		 ;; indenting '=>'
-		 (+ (current-column) ada-indent-broken))
-	       ))))
+		  (overriding_indicator_opt
+		   (ecase (wisi-cache-token cache)
+		     (OVERRIDING
+		      ;; indenting 'overriding' following 'not'
+		      (current-column))
 
-	  (t nil);; else let after-cache handle it
-	  ))
+		     ((PROCEDURE FUNCTION)
+		      ;; indenting 'procedure' or 'function following 'overriding'
+		      (current-column))
+		     ))
+
+		  (statement
+		   (ecase (wisi-cache-token start-cache)
+		     (label_opt
+		      (+ (current-column) (- ada-indent-label)))
+		     ))
+
+		  )))))) ;; end statement-other
 
 	(statement-start
 	 (cond
@@ -372,7 +412,7 @@ cached token, return new indentation for point."
 	      ))
 
 	   ;; otherwise just hanging
-	   ((ACCEPT FUNCTION PROCEDURE)
+	   ((ACCEPT FUNCTION PROCEDURE RENAMES)
 	    (back-to-indentation)
 	    (+ (current-column) ada-indent-broken))
 
@@ -453,7 +493,7 @@ cached token, return new indentation for point."
 	   (setq done t))
 
 	  (overriding_indicator_opt
-	   (wisi-forward-find-nonterm 'subprogram_specification start-pos) ;; procedure/function
+	   (wisi-forward-find-token '(FUNCTION PROCEDURE) start-pos)
 	   (ada-next-statement-keyword) ;; is
 	   (wisi-forward-token t)
 	   (setq done t))
@@ -625,7 +665,7 @@ cached token, return new indentation for point."
 	    ;; add or delete 'body' as needed
 	    (case (wisi-cache-nonterm cache)
 	      (overriding_indicator_opt
-	       (wisi-forward-find-nonterm 'subprogram_specification (point-max))
+	       (wisi-forward-find-nonterm '(procedure_specification subprogram_specification) (point-max))
 	       (setq result (ada-wisi-which-function-1 0 (wisi-forward-token t) nil)))
 
 	      (package_specification
@@ -637,7 +677,7 @@ cached token, return new indentation for point."
 	      ((protected_type_declaration single_protected_declaration)
 	       (setq result (ada-wisi-which-function-1 0 "protected" t)))
 
-	      ((subprogram_body subprogram_specification null_procedure_declaration)
+	      ((procedure_specification subprogram_body subprogram_specification)
 	       (setq result (ada-wisi-which-function-1 0 (wisi-forward-token t) nil)))
 
 	      (task_type_declaration

@@ -46,8 +46,7 @@ run indent test from emacs -Q:
  ada-wisi parser
 build/wisi/Makefile
     tests
-        test/ada_mode-nominal-child.adb parse fails
-        test/ada_mode-nominal-child.ads failing
+        test/ada_mode-opentoken.ads failing
 
 Debian : emacs 24.2 (from testing), GNAT GPL 2012:
     ada-mode tests failing
@@ -568,6 +567,8 @@ ada-control.el from JP Rosen; see email
 completion
     http://emacswiki.org/emacs/CategoryCompletion
     autocomplete package
+
+http://cedet.sourceforge.net/addlang.shtml
 
 time on long code
     get stats on GDS file sizes

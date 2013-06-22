@@ -19,7 +19,7 @@ package Ada_Mode.Nominal.Child is
       end record;
 
    -- goto parent type declaration
-   --EMACSCMD:(progn (end-of-line 3)(backward-word 2)(ada-goto-declaration nil t)(looking-at "Parent_Type_1"))
+   --EMACSCMD:(progn (end-of-line 3)(backward-word 1)(ada-goto-declaration nil t)(looking-at "Parent_Type_1"))
    --EMACSRESULT:t
    overriding procedure Procedure_1a (Item  : in out Child_Type_1);
 
@@ -69,7 +69,7 @@ package Ada_Mode.Nominal.Child is
    overriding function Function_2f
      (Param : in Child_Type_1)
      return Float   -- from ada-indent-return
-                renames Function_2f_Different_Name;  -- from ada-indent-renames
+     renames Function_2f_Different_Name;  -- from ada-indent-renames
 
    function Child_Add (Left, Right : in Child_Type_1) return Child_Type_1;
 

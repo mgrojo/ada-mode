@@ -273,7 +273,8 @@ aggregate
       (wisi-start-action 1 2))
   | LEFT_PAREN expression WITH association_list RIGHT_PAREN ;; extension_aggregate
     (progn
-      (wisi-statement-action 1 'open-paren 5 'close-paren)
+      (wisi-statement-action 1 'open-paren 3 'statement-other 5 'close-paren)
+      (wisi-start-action 1 3)
       (wisi-start-action 1 4))
   ;
 
@@ -972,7 +973,6 @@ generic_package_declaration
       (wisi-motion-action 1 2 3))
   ;
 
-;; leaving out [aspect_specification]
 generic_renaming_declaration
  ;; keyword following 'generic' is marked 'statement-other to support this indentation:
  ;;
@@ -980,12 +980,12 @@ generic_renaming_declaration
  ;; package foo renames
  ;;   bar;
  ;;
-  : GENERIC PACKAGE name RENAMES name SEMICOLON
-    (wisi-statement-action 1 'statement-start 2 'statement-other 6 'statement-end)
-  | GENERIC PROCEDURE name RENAMES name SEMICOLON
-    (wisi-statement-action 1 'statement-start 2 'statement-other 6 'statement-end)
-  | GENERIC FUNCTION name RENAMES name SEMICOLON
-    (wisi-statement-action 1 'statement-start 2 'statement-other 6 'statement-end)
+  : GENERIC PACKAGE name RENAMES name aspect_specification_opt SEMICOLON
+    (wisi-statement-action 1 'statement-start 2 'statement-other 3 'name 4 'statement-other 7 'statement-end)
+  | GENERIC PROCEDURE name RENAMES name aspect_specification_opt SEMICOLON
+    (wisi-statement-action 1 'statement-start 2 'statement-other 3 'name 4 'statement-other 7 'statement-end)
+  | GENERIC FUNCTION name RENAMES name aspect_specification_opt SEMICOLON
+    (wisi-statement-action 1 'statement-start 2 'statement-other 3 'name 4 'statement-other 7 'statement-end)
   ;
 
 ;; leaving out [aspect_specification]
@@ -1239,7 +1239,7 @@ null_exclusion_opt
   ;
 
 null_procedure_declaration
-  : overriding_indicator_opt PROCEDURE name parameter_profile_opt IS NULL aspect_specification_opt SEMICOLON
+  : overriding_indicator_opt procedure_specification IS NULL aspect_specification_opt SEMICOLON
     (progn
       (wisi-statement-action 1 'statement-start 2 'statement-other 3 'name 6 'statement-end)
       (wisi-start-action 1 4))
@@ -1263,16 +1263,13 @@ object_declaration
   | single_protected_declaration
   ;
 
-;; leaving out [aspect_specification]
 object_renaming_declaration
-  : IDENTIFIER COLON NOT NULL name RENAMES name SEMICOLON
-    (wisi-statement-action 1 'statement-start 8 'statement-end)
-  | IDENTIFIER COLON name RENAMES name SEMICOLON
-    (wisi-statement-action 1 'statement-start 6 'statement-end)
-  | IDENTIFIER COLON access_definition RENAMES name SEMICOLON
-    (wisi-statement-action 1 'statement-start 6 'statement-end)
-  | IDENTIFIER COLON EXCEPTION RENAMES name SEMICOLON ;; exception_renaming_declaration
-    (wisi-statement-action 1 'statement-start 6 'statement-end)
+  : IDENTIFIER COLON null_exclusion_opt name RENAMES name aspect_specification_opt SEMICOLON
+    (wisi-statement-action 1 'statement-start 4 'name 5 'statement-other 8 'statement-end)
+  | IDENTIFIER COLON access_definition RENAMES name aspect_specification_opt SEMICOLON
+    (wisi-statement-action 1 'statement-start 4 'statement-other 7 'statement-end)
+  | IDENTIFIER COLON EXCEPTION RENAMES name aspect_specification_opt SEMICOLON ;; exception_renaming_declaration
+    (wisi-statement-action 1 'statement-start 4 'statement-other 7 'statement-end)
   ;
 
 ;; operator_symbol is STRING_LITERAL, in name
@@ -1315,7 +1312,7 @@ package_declaration
 ;; leaving out [aspect_specification]
 package_renaming_declaration
   : PACKAGE name RENAMES name SEMICOLON
-    (wisi-statement-action 1 'statement-start 5 'statement-end)
+    (wisi-statement-action 1 'statement-start 2 'name 3 'statement-other 5 'statement-end)
   ;
 
 ;; leaving out [aspect_specification]
@@ -1423,6 +1420,13 @@ procedure_call_statement
     (progn
       (wisi-statement-action 1 'statement-start 2 'statement-end)
       (wisi-start-action 1 1))
+  ;
+
+procedure_specification
+  : PROCEDURE name parameter_profile_opt
+    (progn
+      (wisi-statement-action 1 'statement-start 2 'name)
+      (wisi-start-action 1 3))
   ;
 
 proper_body
@@ -1689,6 +1693,7 @@ simple_statement
     (wisi-statement-action 1 'statement-start 3 'statement-end)
   | raise_statement
   ;; | code_statement
+  | pragma
   ;
 
 ;; leaving out [aspect_specification]
@@ -1749,17 +1754,13 @@ subprogram_declaration
 
 subprogram_default : name | BOX | NULL ;
 
-;; leaving out [aspect_specification]
 subprogram_renaming_declaration
-  : overriding_indicator_opt subprogram_specification RENAMES name SEMICOLON
-    (wisi-statement-action 1 'statement-start 2 'block-middle 5 'statement-end)
+  : overriding_indicator_opt subprogram_specification RENAMES name aspect_specification_opt SEMICOLON
+    (wisi-statement-action 1 'statement-start 2 'block-middle 3 'statement-other 6 'statement-end)
   ;
 
 subprogram_specification
-  : PROCEDURE name parameter_profile_opt ;; procedure_specification
-    (progn
-      (wisi-statement-action 1 'statement-start 2 'name)
-      (wisi-start-action 1 3))
+  : procedure_specification
   | FUNCTION name parameter_and_result_profile ;; function_specification
     (progn
       (wisi-statement-action 1 'statement-start 2 'name)

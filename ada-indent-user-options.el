@@ -108,12 +108,18 @@ An example is:
 If `ada-indent-renames' is zero or less, then
 - if the subprogram has parameters, the indentation is done
   relative to the open parenthesis;
-- if not, `ada-indent-broken' is used relative to the keyword.
+- if not, `ada-indent-broken' is used relative to the indentation of
+  the line containing the keyword.
 
-An example is:
+Examples:
+   ada-indent-renames = 2
+   generic function A (B : Integer) return C
+   >>renames Foo;
+
+   ada-indent-renames = 0
    function A (B : Integer)
-              return C;
-   >>renames Foo;"
+              return C
+   >>>>>>>>>>>renames Foo;"
 :type 'integer :group 'ada-indent)
 (put 'ada-indent-renames 'safe-local-variable 'integerp)
 

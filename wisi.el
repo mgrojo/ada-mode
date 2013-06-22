@@ -694,10 +694,14 @@ error, if non-nil, return nil."
 
 (defun wisi-forward-find-nonterm (nonterm limit)
   "Search forward for a token that has a cache with NONTERM.
+NONTERM may be a list; stop on any cache that has a member of the list.
 Return cache, or nil if at end of buffer.
 If LIMIT (a buffer position) is reached, throw an error."
-  (let ((cache (wisi-forward-cache)))
-    (while (not (eq nonterm (wisi-cache-nonterm cache)))
+  (let ((nonterm-list (cond
+		       ((listp nonterm) nonterm)
+		       (t (list nonterm))))
+	(cache (wisi-forward-cache)))
+    (while (not (memq (wisi-cache-nonterm cache) nonterm-list))
       (setq cache (wisi-forward-cache))
       (when (>= (point) limit)
 	(error "cache with nonterm %s not found" nonterm)))
