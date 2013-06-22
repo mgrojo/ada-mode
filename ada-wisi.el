@@ -70,11 +70,7 @@ BEFORE should be t when called from ada-wisi-before-cache, nil otherwise."
       (let ((start-cache (wisi-goto-statement-start cache containing))
 	    (start-indent (current-indentation)))
 	(cond
-	 ((ada-in-paren-p)
-	  (ada-goto-open-paren 1)
-	  (+ (current-column) offset))
-
-	 ((= (current-column) (current-indentation))
+	 ((= (current-column) start-indent)
 	  (cond
 	    ((eq 'label_opt (wisi-cache-token start-cache))
 	     (+ (current-column) (- ada-indent-label) offset))
@@ -82,6 +78,10 @@ BEFORE should be t when called from ada-wisi-before-cache, nil otherwise."
 	    (t
 	     (+ start-indent offset))
 	    ))
+
+	 ((ada-in-paren-p)
+	  (ada-goto-open-paren 1)
+	  (+ (current-column) offset))
 
 	 (t
 	  ;; statement-start is preceded by something on same line. Handle common cases nicely.
@@ -287,6 +287,10 @@ cached token, return new indentation for point."
 
 	(block-start
 	 (case (wisi-cache-nonterm cache)
+	   (exception_handler
+	    ;; between 'when' and '=>'
+	    (+ (current-column) ada-indent-broken))
+
 	   (if_expression
 	    (ada-wisi-indent-statement-start ada-indent-broken cache nil))
 
@@ -357,15 +361,9 @@ cached token, return new indentation for point."
 
 	   (EQUAL_GREATER
 	    (ecase (wisi-cache-nonterm (wisi-goto-statement-start cache nil))
-	      (exception_handler
-	       (+ (current-column) ada-indent-when))
-
-	      (case_expression
-	       ;; between '=>' and ','
-	       (+ (current-column) ada-indent-when ada-indent))
-
-	      (case_statement_alternative
-	       (+ (current-column) ada-indent-when))
+	      ((case_expression_alternative case_statement_alternative exception_handler)
+	       ;; start is 'when'
+	       (+ (current-column) ada-indent))
 
 	      (generic_renaming_declaration
 	       ;; not indenting keyword following 'generic'

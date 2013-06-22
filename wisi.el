@@ -510,14 +510,14 @@ that token. Use in a grammar action as:
 		(when first-item
 		  (setq first-item nil)
 		  (when (or override-start
-			    (memq class '(block-start statement-start)))
+			    (memq class '(block-middle block-start statement-start)))
 		    (setq override-start nil)
 		    (setq first-keyword-mark mark))))
 
 	    ;; region is nil when a production is empty; if the first
 	    ;; token is a start, override the class on the next token.
 	    (when (and first-item
-		       (memq class '(block-start statement-start)))
+		       (memq class '(block-middle block-start statement-start)))
 	      (setq override-start class)))
 	))
       )))

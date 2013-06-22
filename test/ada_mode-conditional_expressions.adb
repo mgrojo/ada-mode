@@ -68,8 +68,8 @@ begin
             when -1 => 42,
             when 0 => 41,
             when 1 =>
-               (if J > 42
-                  -- comment indented as code (ada-indent-broken)
-                then 44
-                else 45));
+              (if J > 42
+                 -- comment indented as code (ada-indent-broken)
+               then 44
+               else 45));
 end Ada_Mode.Conditional_Expressions;

@@ -319,7 +319,9 @@ association_list
 
 aspect_clause
   : FOR attribute_reference USE expression SEMICOLON ;; attribute_definition_clause
-    (wisi-statement-action 1 'statement-start 5 'statement-end)
+    (progn
+      (wisi-statement-action 1 'statement-start 5 'statement-end)
+      (wisi-start-action 1 3))
   ;; | enumeration_representation_clause
   | record_representation_clause
   ;; | at_clause
@@ -344,8 +346,7 @@ attribute_reference : name TICK attribute_designator ;
 
 attribute_designator
  ;; : IDENTIFIER LEFT_PAREN expression RIGHT_PAREN
- ;; causes shift/reduce conflict with something; covered by name =>
- ;; function_call => name'identifier actual_parameter_part?
+ ;; FIXME: causes shift/reduce conflict with something
   : IDENTIFIER
   | ACCESS
   | DELTA
@@ -382,12 +383,15 @@ case_expression
   : CASE expression IS case_expression_alternative_list
     (progn
       (wisi-statement-action 1 'block-start 3 'block-middle)
+      (wisi-start-action 1 2)
       (wisi-start-action 1 4))
   ;
 
 case_expression_alternative
   : WHEN discrete_choice_list EQUAL_GREATER expression
-    (wisi-statement-action 1 'block-middle 3 'statement-other)
+    (progn
+      (wisi-statement-action 1 'block-middle 3 'statement-other)
+      (wisi-start-action 1 4))
   ;
 
 case_expression_alternative_list
@@ -463,7 +467,11 @@ compilation_unit
 
 component_clause
   : IDENTIFIER AT simple_expression RANGE simple_expression DOT_DOT simple_expression SEMICOLON
-    (wisi-statement-action 1 'statement-start 8 'statement-end)
+    (progn
+      (wisi-statement-action 1 'statement-start 8 'statement-end)
+      (wisi-start-action 1 3)
+      (wisi-start-action 1 5)
+      (wisi-start-action 1 7))
   ;
 
 component_clause_list
@@ -473,7 +481,9 @@ component_clause_list
 
 component_declaration
   : identifier_list COLON component_definition COLON_EQUAL expression aspect_specification_opt SEMICOLON
-    (wisi-statement-action 1 'statement-start 7 'statement-end)
+    (progn
+      (wisi-statement-action 1 'statement-start 7 'statement-end)
+      (wisi-start-action 1 5))
   | identifier_list COLON component_definition aspect_specification_opt SEMICOLON
     (wisi-statement-action 1 'statement-start 5 'statement-end)
   ;
@@ -543,6 +553,9 @@ declaration
   | generic_instantiation
   | null_procedure_declaration
   | identifier_list COLON CONSTANT COLON_EQUAL expression SEMICOLON ;; number_declaration
+    (progn
+      (wisi-statement-action 1 'statement-start 6 'statement-end)
+      (wisi-start-action 1 5))
   | object_declaration
   | package_declaration
   | pragma ;; not a 'declaration' in ARM, but it must be in the grammar
@@ -569,7 +582,13 @@ delay_alternative : delay_statement sequence_of_statements_opt ;
 
 delay_statement
   : DELAY UNTIL expression SEMICOLON
+    (progn
+      (wisi-statement-action 1 'statement-start 4 'statement-end)
+      (wisi-start-action 1 3))
   | DELAY expression SEMICOLON
+    (progn
+      (wisi-statement-action 1 'statement-start 3 'statement-end)
+      (wisi-start-action 1 2))
   ;
 
 derived_type_definition
@@ -635,7 +654,10 @@ discriminant_specification_list
 
 elsif_expression_item
   : ELSIF expression THEN expression
-    (wisi-statement-action 1 'block-middle 3 'block-middle)
+    (progn
+      (wisi-statement-action 1 'block-middle 3 'block-middle)
+      (wisi-start-action 1 2)
+      (wisi-start-action 1 4))
   ;
 
 elsif_expression_list
@@ -735,7 +757,9 @@ exception_handler_list
 
 exit_statement
   : EXIT identifier_opt WHEN expression SEMICOLON
-    (wisi-statement-action 1 'statement-start 5 'statement-end)
+    (progn
+      (wisi-statement-action 1 'statement-start 5 'statement-end)
+      (wisi-start-action 1 4))
   | EXIT identifier_opt SEMICOLON
     (wisi-statement-action 1 'statement-start 3 'statement-end)
   ;
@@ -781,6 +805,7 @@ factor
 
 formal_object_declaration
  ;; leaving out [aspect_specification]
+ ;; FIXME: use null_exclusion_opt, add start-action on expression
   : identifier_list COLON mode NOT NULL name COLON_EQUAL expression SEMICOLON
     (wisi-statement-action 1 'statement-start 9 'statement-end)
   | identifier_list COLON mode name COLON_EQUAL expression SEMICOLON
@@ -992,20 +1017,30 @@ if_expression
   : IF expression THEN expression elsif_expression_list ELSE expression
     (progn
       (wisi-statement-action 1 'block-start 3 'block-middle 6 'block-middle)
+      (wisi-start-action 1 2)
+      (wisi-start-action 1 4)
       (wisi-start-action 1 5)
+      (wisi-start-action 1 7)
       (wisi-motion-action 1 3 5 6))
   | IF expression THEN expression elsif_expression_list
     (progn
       (wisi-statement-action 1 'block-start 3 'block-middle)
+      (wisi-start-action 1 2)
+      (wisi-start-action 1 4)
       (wisi-start-action 1 5)
       (wisi-motion-action 1 3 5))
   | IF expression THEN expression ELSE expression
     (progn
       (wisi-statement-action 1 'block-start 3 'block-middle 5 'block-middle)
+      (wisi-start-action 1 2)
+      (wisi-start-action 1 4)
+      (wisi-start-action 1 6)
       (wisi-motion-action 1 3 5))
   | IF expression THEN expression
     (progn
       (wisi-statement-action 1 'block-start 3 'block-middle)
+      (wisi-start-action 1 2)
+      (wisi-start-action 1 4)
       (wisi-motion-action 1 3))
   ;
 
@@ -1013,6 +1048,7 @@ if_statement
   : IF expression THEN sequence_of_statements elsif_statement_list ELSE sequence_of_statements END IF SEMICOLON
     (progn
       (wisi-statement-action 1 'block-start 3 'block-middle 6 'block-middle 8 'block-end 10 'statement-end)
+      (wisi-start-action 1 2)
       (wisi-start-action 1 4)
       (wisi-start-action 1 5)
       (wisi-start-action 1 7)
@@ -1020,18 +1056,21 @@ if_statement
   | IF expression THEN sequence_of_statements elsif_statement_list END IF SEMICOLON
     (progn
       (wisi-statement-action 1 'block-start 3 'block-middle 6 'block-end 9 'statement-end)
+      (wisi-start-action 1 2)
       (wisi-start-action 1 4)
       (wisi-start-action 1 5)
       (wisi-motion-action 1 3 5 6))
   | IF expression THEN sequence_of_statements ELSE sequence_of_statements END IF SEMICOLON
     (progn
       (wisi-statement-action 1 'block-start 3 'block-middle 5 'block-middle 7 'block-end 9 'statement-end)
+      (wisi-start-action 1 2)
       (wisi-start-action 1 4)
       (wisi-start-action 1 6)
       (wisi-motion-action 1 3 5 7))
   | IF expression THEN sequence_of_statements END IF SEMICOLON
     (progn
       (wisi-statement-action 1 'block-start 3 'block-middle 5 'block-end 7 'statement-end)
+      (wisi-start-action 1 2)
       (wisi-start-action 1 4)
       (wisi-motion-action 1 3 5))
   ;
@@ -1144,7 +1183,7 @@ membership_choice_list
 
 membership_choice
   : simple_expression
- ;; ARM has 'choice_expression' here, but that leads to a shift/reduce conflict, because of the following productions:
+ ;; FIXME: ARM has 'choice_expression' here, but that leads to a shift/reduce conflict, because of the following productions:
  ;; membership_choice_list => membership_choice => choice_expression => choice_relation_and_list
  ;; relation => simple_expression IN choice_relation_and_list
  ;; thus 'choice_relation_and_list AND' could be followed by relation (=> reduce) or choice_relation (=> shift)
@@ -1342,7 +1381,8 @@ pragma
 pragma_argument_association
   : IDENTIFIER EQUAL_GREATER expression
   | expression
- ;; | IDENTIFIER TICK CLASS EQUAL_GREATER expression;; aspect_mark; causes shift/reduce conflict with attribute_reference
+ ;; | IDENTIFIER TICK CLASS EQUAL_GREATER expression;; aspect_mark;
+ ;; FIXME: causes shift/reduce conflict with attribute_reference
   ;
 
 pragma_argument_association_list
@@ -1361,7 +1401,9 @@ primary
   | NEW name ;; allocator, leaving out subpool_specification
  ;; | LEFT_PAREN expression RIGHT_PAREN ;; covered by 'aggregate'
   | LEFT_PAREN if_expression RIGHT_PAREN ;; conditional_expression
+    (wisi-statement-action 1 'open-paren 3 'close-paren)
   | LEFT_PAREN case_expression RIGHT_PAREN ;; conditional_expression
+    (wisi-statement-action 1 'open-paren 3 'close-paren)
   ;; | LEFT_PAREN quantified_expression RIGHT_PAREN
   ;
 
@@ -1406,10 +1448,10 @@ protected_body_stub
   ;
 
 protected_definition
-  : declarative_part_opt PRIVATE declarative_part_opt END IDENTIFIER
-    (wisi-statement-action 2 'block-middle 4 'block-end)
-  | declarative_part_opt PRIVATE declarative_part_opt END
-    (wisi-statement-action 2 'block-middle 4 'block-end)
+  : declarative_part_opt PRIVATE declarative_part_opt END identifier_opt
+    (progn
+      (wisi-statement-action 2 'block-middle 4 'block-end)
+      (wisi-start-action 2 3))
   | declarative_part_opt END
     (wisi-statement-action 2 'block-end)
   ;
@@ -1453,7 +1495,9 @@ raise_statement
   : RAISE SEMICOLON
     (wisi-statement-action 1 'statement-start 2 'statement-end)
   | RAISE name WITH expression SEMICOLON
-    (wisi-statement-action 1 'statement-start 5 'statement-end)
+    (progn
+      (wisi-statement-action 1 'statement-start 5 'statement-end)
+      (wisi-start-action 1 4))
   | RAISE name SEMICOLON
     (wisi-statement-action 1 'statement-start 3 'statement-end)
   ;
@@ -1574,16 +1618,20 @@ select_alternative
   : WHEN expression EQUAL_GREATER accept_statement sequence_of_statements_opt ;; guard accept_alternative
     (progn
       (wisi-statement-action 1 'block-start 3 'statement-other)
+      (wisi-start-action 1 2)
       (wisi-start-action 1 4)
       (wisi-start-action 1 5))
   | accept_statement sequence_of_statements_opt ;; accept_alternative
   | WHEN expression EQUAL_GREATER delay_alternative
     (progn
       (wisi-statement-action 1 'block-start 3 'statement-other)
+      (wisi-start-action 1 2)
       (wisi-start-action 1 4))
   | delay_alternative
   | WHEN expression EQUAL_GREATER TERMINATE SEMICOLON ;; terminate_alternative
-    (wisi-statement-action 1 'block-start 3 'statement-other 4 'statement-start 5 'statement-end)
+    (progn
+      (wisi-statement-action 1 'block-start 3 'statement-other 4 'statement-start 5 'statement-end)
+      (wisi-start-action 1 2))
   | TERMINATE SEMICOLON ;; terminate_alternative
     (wisi-statement-action 1 'statement-start 2 'statement-end)
   ;
@@ -1620,7 +1668,9 @@ simple_return_statement
   : RETURN SEMICOLON
     (wisi-statement-action 1 'statement-start 2 'statement-end)
   | RETURN expression SEMICOLON
-    (wisi-statement-action 1 'statement-start 3 'statement-end)
+    (progn
+      (wisi-statement-action 1 'statement-start 3 'statement-end)
+      (wisi-start-action 1 2))
   ;
 
 simple_statement
