@@ -179,6 +179,8 @@ where:
 `start, end' are the character positions in the buffer of the start
 and end of the token text.
 
+If TEXT-ONLY and LOWER are non-nil, result is converted to lowercase.
+
 If at end of buffer, returns `wisent-eoi-term'."
   (forward-comment (point-max))
   ;; skips leading whitespace, comment, trailing whitespace.
@@ -543,7 +545,9 @@ CONTAINED-TOKEN is token number of the contained non-terminal."
 	      (goto-char (1- (wisi-cache-start cache)))
 	      (setq cache (wisi-get-cache (point))))
 
-	    (if (<= (point) (car contained-region))
+	    (if (or (and (= (car start-region) (car contained-region))
+			 (<= (point) (car contained-region)))
+		    (< (point) (car contained-region)))
 		;; done
 		(setq cache nil)
 
@@ -668,13 +672,17 @@ If LIMIT (a buffer position) is reached, throw an error."
 
 (defun wisi-forward-find-token (token limit &optional noerror)
   "Search forward for a token that has a cache with TOKEN.
+TOKEN may be a list; stop on any cache that has a member of the list.
 Return cache, or nil if at end of buffer.
 If LIMIT (a buffer position) is reached, then if NOERROR is nil, throw an
 error, if non-nil, return nil."
-  (let ((cache (wisi-get-cache (point)))
+  (let ((token-list (cond
+		     ((listp token) token)
+		     (t (list token))))
+	(cache (wisi-get-cache (point)))
 	(done nil))
     (while (not (or done
-		    (eq token (wisi-cache-token cache))))
+		    (memq (wisi-cache-token cache) token-list)))
       (setq cache (wisi-forward-cache))
       (when (>= (point) limit)
 	(if noerror

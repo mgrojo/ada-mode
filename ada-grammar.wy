@@ -223,7 +223,7 @@ abstract_tagged_limited_opt
 
 abstract_subprogram_declaration
   : overriding_indicator_opt subprogram_specification IS ABSTRACT aspect_specification_opt SEMICOLON
-    (wisi-statement-action 1 'statement-start 6 'statement-end)
+    (wisi-statement-action 1 'statement-start 2 'statement-other 6 'statement-end)
   ;
 
 accept_statement
@@ -247,21 +247,18 @@ accept_statement
       (wisi-start-action 1 3))
   ;
 
-access_definition
-  : null_exclusion_opt ACCESS constant_opt name
+access_definition ;; same as access_type_definition for our purposes
+  : null_exclusion_opt ACCESS general_access_modifier_opt name
     (wisi-statement-action 4 'type);; for font-lock - see ada-wisi-setup
   | null_exclusion_opt ACCESS protected_opt PROCEDURE parameter_profile_opt
+    (progn
+      (wisi-statement-action 4 'statement-start) ;; for indenting paren
+      (wisi-start-action 4 5))
   | null_exclusion_opt ACCESS protected_opt FUNCTION parameter_and_result_profile
     (progn
       (wisi-statement-action 4 'statement-start) ;; for indenting paren, return
       (wisi-start-action 4 5)
       (wisi-motion-action 4 '(5 RETURN)))
-  ;
-
-access_type_definition
-  : null_exclusion_opt ACCESS general_access_modifier_opt subtype_indication ;; access_to_object_definition
-  | null_exclusion_opt ACCESS protected_opt PROCEDURE parameter_profile_opt;; access_to_subprogram_definition
-  | null_exclusion_opt ACCESS protected_opt FUNCTION parameter_and_result_profile
   ;
 
 actual_parameter_part
@@ -475,9 +472,10 @@ component_clause_list
   ;
 
 component_declaration
- ;; leaving out [aspect_specification]
-  : identifier_list COLON component_definition COLON_EQUAL expression SEMICOLON
-  | identifier_list COLON component_definition SEMICOLON
+  : identifier_list COLON component_definition COLON_EQUAL expression aspect_specification_opt SEMICOLON
+    (wisi-statement-action 1 'statement-start 7 'statement-end)
+  | identifier_list COLON component_definition aspect_specification_opt SEMICOLON
+    (wisi-statement-action 1 'statement-start 5 'statement-end)
   ;
 
 component_definition
@@ -679,13 +677,16 @@ entry_call_alternative
   | name sequence_of_statements_opt ;; entry_call_statement
   ;
 
-;; leaving out [aspect_specification]
 entry_declaration
   : overriding_indicator_opt ENTRY IDENTIFIER LEFT_PAREN discrete_subtype_definition RIGHT_PAREN
-    parameter_profile_opt SEMICOLON
-    (wisi-statement-action 1 'statement-start 2 'block-middle 4 'open-paren 6 'close-paren 8 'statement-end)
-  | overriding_indicator_opt ENTRY IDENTIFIER parameter_profile_opt SEMICOLON
-    (wisi-statement-action 1 'statement-start 2 'block-middle 5 'statement-end)
+    parameter_profile_opt aspect_specification_opt SEMICOLON
+    (progn
+      (wisi-statement-action 1 'statement-start 2 'block-middle 4 'open-paren 6 'close-paren 9 'statement-end)
+      (wisi-start-action 1 7))
+  | overriding_indicator_opt ENTRY IDENTIFIER parameter_profile_opt aspect_specification_opt SEMICOLON
+    (progn
+      (wisi-statement-action 1 'statement-start 2 'block-middle 6 'statement-end)
+      (wisi-start-action 1 4))
   ;
 
 enumeration_type_definition
@@ -839,7 +840,7 @@ formal_type_definition
   | DELTA BOX ;; formal_ordinary_fixed_point_definition
   | DELTA BOX DIGITS BOX ;; formal_decimal_fixed_point_definition
   | array_type_definition ;; formal_array_type_definition
-  | access_type_definition ;; formal_access_type_definition
+  | access_definition ;; access_type_definition, formal_access_type_definition
   | interface_type_definition ;; formal_interface_type_definition
   ;
 
@@ -1200,7 +1201,9 @@ null_exclusion_opt
 
 null_procedure_declaration
   : overriding_indicator_opt PROCEDURE name parameter_profile_opt IS NULL aspect_specification_opt SEMICOLON
-    (wisi-statement-action 1 'statement-start 3 'name 6 'statement-end)
+    (progn
+      (wisi-statement-action 1 'statement-start 2 'statement-other 3 'name 6 'statement-end)
+      (wisi-start-action 1 4))
   ;
 
 ;; leaving out [aspect_specification]
@@ -1365,12 +1368,12 @@ primary
 private_extension_declaration
   : TYPE IDENTIFIER discriminant_part_opt IS abstract_limited_synchronized_opt NEW subtype_indication
     and_interface_list_opt WITH PRIVATE aspect_specification_opt SEMICOLON
-    (wisi-statement-action 1 'statement-start 2 'name 11 'statement-end)
+    (wisi-statement-action 1 'statement-start 2 'name 12 'statement-end)
   ;
 
 private_type_declaration
   : TYPE IDENTIFIER discriminant_part_opt IS abstract_tagged_limited_opt PRIVATE aspect_specification_opt SEMICOLON
-    (wisi-statement-action 1 'statement-start 2 'name 7 'statement-end)
+    (wisi-statement-action 1 'statement-start 2 'name 8 'statement-end)
   ;
 
 procedure_call_statement
@@ -1429,11 +1432,15 @@ protected_opt
   ;
 
 protected_type_declaration
- ;; leaving out [aspect_specification]
-  : PROTECTED TYPE IDENTIFIER discriminant_part_opt IS NEW interface_list WITH protected_definition SEMICOLON
-    (wisi-statement-action 1 'statement-start 3 'name 8 'block-start 10 'statement-end)
-  | PROTECTED TYPE IDENTIFIER discriminant_part_opt IS protected_definition SEMICOLON
-    (wisi-statement-action 1 'statement-start 3 'name 5 'block-start 7 'statement-end)
+  : PROTECTED TYPE IDENTIFIER discriminant_part_opt aspect_specification_opt IS NEW interface_list WITH
+    protected_definition SEMICOLON
+    (progn
+      (wisi-statement-action 1 'statement-start 3 'name 6 'block-start 11 'statement-end)
+      (wisi-start-action 1 10))
+  | PROTECTED TYPE IDENTIFIER discriminant_part_opt aspect_specification_opt IS protected_definition SEMICOLON
+    (progn
+      (wisi-statement-action 1 'statement-start 3 'name 6 'block-start 8 'statement-end)
+      (wisi-start-action 1 7))
   ;
 
 ;; protected_operation_declaration merged into declaration
@@ -1463,19 +1470,30 @@ real_range_specification_opt
   ;
 
 record_representation_clause
-  : FOR name USE RECORD mod_clause_opt component_clause_list END RECORD SEMICOLON
+  : FOR name USE record_representation_clause_1 SEMICOLON
     (progn
-      (wisi-statement-action 1 'statement-start 4 'block-start 7 'block-end 9 'statement-end)
-      (wisi-start-action 4 6))
+      (wisi-statement-action 1 'statement-start 5 'statement-end)
+      (wisi-start-action 1 4))
   ;
 
-record_type_definition
-  : abstract_tagged_limited_opt record_definition
+record_representation_clause_1
+ ;; separate to get statement-start right
+  : RECORD mod_clause_opt component_clause_list END RECORD
+    (progn
+      (wisi-statement-action 1 'block-start 4 'block-end)
+      (wisi-start-action 1 3))
   ;
 
 record_definition
   : RECORD component_list END RECORD
+    (progn
+      (wisi-statement-action 1 'block-start 3 'block-end)
+      (wisi-start-action 1 2))
   | NULL RECORD
+  ;
+
+record_type_definition
+  : abstract_tagged_limited_opt record_definition
   ;
 
 relation_and_list
@@ -1739,14 +1757,17 @@ task_definition
 
 ;; task_item replaced by declaration
 
-;; leaving out [aspect_specification]
 task_type_declaration
-  : TASK TYPE IDENTIFIER discriminant_part_opt IS NEW interface_list WITH task_definition SEMICOLON
-    (wisi-statement-action 1 'statement-start 10 'statement-end)
-  | TASK TYPE IDENTIFIER discriminant_part_opt IS task_definition SEMICOLON
-    (wisi-statement-action 1 'statement-start 7 'statement-end)
-  | TASK TYPE IDENTIFIER discriminant_part_opt SEMICOLON
-    (wisi-statement-action 1 'statement-start 5 'statement-end)
+  : TASK TYPE IDENTIFIER discriminant_part_opt aspect_specification_opt IS NEW interface_list WITH task_definition SEMICOLON
+    (progn
+      (wisi-statement-action 1 'statement-start 11 'statement-end)
+      (wisi-start-action 1 10))
+  | TASK TYPE IDENTIFIER discriminant_part_opt aspect_specification_opt IS task_definition SEMICOLON
+    (progn
+      (wisi-statement-action 1 'statement-start 8 'statement-end)
+      (wisi-start-action 1 7))
+  | TASK TYPE IDENTIFIER discriminant_part_opt aspect_specification_opt SEMICOLON
+    (wisi-statement-action 1 'statement-start 6 'statement-end)
   ;
 
 term
@@ -1789,7 +1810,7 @@ type_definition
   | DELTA expression DIGITS expression real_range_specification_opt ;; decimal_fixed_point_definition
   | array_type_definition
   | record_type_definition
-  | access_type_definition
+  | access_definition ;; access_type_definition
   | derived_type_definition
   | interface_type_definition
   ;

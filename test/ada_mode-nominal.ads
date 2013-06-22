@@ -34,21 +34,21 @@ with Ada.Strings.Unbounded;
 --EMACSCMD:(test-face "with" font-lock-keyword-face)
 --EMACSCMD:(test-face "Ada.Strings" font-lock-constant-face)
 limited private with Ada.Strings.Bounded,
-                  --EMACSCMD:(test-face "Ada.Containers" 'default)
-                  Ada.Containers;
+  --EMACSCMD:(test-face "Ada.Containers" 'default)
+  Ada.Containers;
 --EMACSCMD:(test-face "limited" font-lock-keyword-face)
 --EMACSCMD:(test-face "with" font-lock-keyword-face)
 --EMACSCMD:(test-face "Ada" font-lock-constant-face)
 --EMACSCMD:(progn (forward-line 1)(ada-find-other-file nil)(looking-at "package Ada.Strings.Bounded"))
 limited with Ada.Strings.Bounded,
-          Ada.Containers;
+  Ada.Containers;
 --EMACSRESULT:t
 --EMACSCMD:(test-face "private" font-lock-keyword-face)
 --EMACSCMD:(test-face "with" font-lock-keyword-face)
 --EMACSCMD:(test-face "Ada" font-lock-constant-face)
 --EMACSCMD:(progn (forward-line 1)(ada-find-other-file nil)(looking-at "package Ada.Containers.Vectors"))
 private with Ada.Containers.Vectors,
-          Ada.Containers.Bounded_Doubly_Linked_Lists;
+  Ada.Containers.Bounded_Doubly_Linked_Lists;
 --EMACSRESULT:t
 -- test ada-find-other-file on 'with subprogram-body'
 --EMACSCMD:(progn (forward-line 1)(ada-find-other-file t)(looking-at "Ada_Mode.Library_Function return"))
@@ -240,7 +240,7 @@ package Ada_Mode.Nominal is
        return access function
          (A_Param : in Float)
          return
-     Standard.Float; -- Ada mode 4.01, GPS
+         Standard.Float; -- different from Ada mode 4.01, GPS
 
    --EMACSCMD:(test-face "array (" font-lock-keyword-face)
    --EMACSCMD:(test-face "Integer" 'default)
@@ -300,7 +300,7 @@ package Ada_Mode.Nominal is
    --EMACSCMD:(test-face "record;" font-lock-keyword-face)
    type Null_Record_Type_1 is null record;
    type Null_Record_Type_2 is null
-      record;
+     record;
    type Null_Record_Type_3 is
      null record;
    type Null_Record_Type_4
@@ -308,7 +308,7 @@ package Ada_Mode.Nominal is
 
    type Record_Type_1 is record
       --EMACSCMD:(progn (forward-line 1)(forward-word 2)(insert "   ")(ada-align))
-      Component_1   : Integer := 1;   -- initialization confused things when record_definition was separate in grammar
+      Component_1   : Integer := 1;   -- initialization confused things in smie
       Component_2   : Integer := 2;
       Component_356 : Float   := 3.0; -- longer component name, shorter type name for align test
    end record;
@@ -460,11 +460,11 @@ package Ada_Mode.Nominal is
    Integer_D, Integer_E, Integer_F :
      Integer;
    Integer_G, Integer_H,
-   Integer_I : Integer; -- ada-mode 4.01 uses zero indent for multi-identifier object declarations
+     Integer_I : Integer; -- different from ada-mode 4.01
 
    Integer_J,
-   Integer_K,
-   Integer_L, Integer_M : Integer;
+     Integer_K,
+     Integer_L, Integer_M : Integer;
 
    Float_1 : aliased constant Float := 1.0;
    Float_2 : aliased constant Float :=
@@ -656,36 +656,36 @@ private
       end record; -- Ada mode 4.01 aligned this with "type"; this is better
 
    type Limited_Derived_Type_1 is abstract limited new Private_Type_1
-      with record
+     with record
          Component_1 : Integer := 0;
          Component_2 : Integer := 1;
          Component_3 : Integer := 2;
       end record
-     with Pack => True; -- FIXME: aspect indented with ada-indent-broken; ok? ask list, GPS
+        with Pack => True; -- FIXME: aspect indented with ada-indent-broken; ok? ask list, GPS
 
    type Limited_Derived_Type_1a is abstract limited new
-      Private_Type_1 with record
+     Private_Type_1 with record
          Component_1 : Integer;
          Component_2 : Integer;
          Component_3 : Integer;
       end record;
 
    type Limited_Derived_Type_1b is abstract limited
-      new Private_Type_1 with record
+     new Private_Type_1 with record
          Component_1 : Integer;
          Component_2 : Integer;
          Component_3 : Integer;
       end record;
 
    type Limited_Derived_Type_1c is abstract
-      limited new Private_Type_1 with record -- Ada mode 4.01 aligned this with "type"; this is better
+     limited new Private_Type_1 with record -- Ada mode 4.01 aligned this with "type"; this is better
          Component_1 : Integer;
          Component_2 : Integer;
          Component_3 : Integer;
       end record;
 
    type Limited_Derived_Type_1d is
-      abstract limited new Private_Type_1 with record
+     abstract limited new Private_Type_1 with record
          Component_1 : Integer;
          Component_2 : Integer;
          Component_3 : Integer;

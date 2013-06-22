@@ -62,6 +62,10 @@
 		   (setq error-p t)
 		   (message
 		    (concat
+		     (buffer-file-name) ":" (format "%d" (line-number-at-pos))
+		     ": command: %s") last-cmd)
+		   (message
+		    (concat
 		     (buffer-file-name) ":" (format "%d" (count-lines (point-min) (point)))
 		     ": %s: %s") (car err) (cdr err)))))))
 
