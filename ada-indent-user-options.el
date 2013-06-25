@@ -105,20 +105,27 @@ An example is:
 (defcustom ada-indent-renames 2
   "*Indentation for 'renames' relative to the matching subprogram keyword.
 
-If `ada-indent-renames' is zero or less, then
-- if the subprogram has parameters, the indentation is done
-  relative to the open parenthesis;
-- if not, `ada-indent-broken' is used relative to the indentation of
-  the line containing the keyword.
+For 'renames' of non-subprograms the indentation is
+`ada-indent-broken' relative to the line containing the matching
+keyword.
+
+If the subprogram has parameters then if `ada-indent-renames' is
+zero or less the indentation is abs `ada-indent-renames' relative
+to the open parenthesis; if `ada-indent-renames' is one or more
+the indentation is relative to the line containing the keyword.
+
+If the subprogram has no parameters then `ada-indent-broken' the
+indentation is relative to the indentation of the line containing
+the keyword.
 
 Examples:
    ada-indent-renames = 2
    generic function A (B : Integer) return C
    >>renames Foo;
 
-   ada-indent-renames = 0
+   ada-indent-renames = -1
    function A (B : Integer)
-              return C
+               return C
    >>>>>>>>>>>renames Foo;"
 :type 'integer :group 'ada-indent)
 (put 'ada-indent-renames 'safe-local-variable 'integerp)
@@ -126,10 +133,13 @@ Examples:
 (defcustom ada-indent-return 0
   "*Indentation for 'return' relative to the matching 'function' keyword.
 
-If `ada-indent-return' is zero or less, and the function has
-parameters, the indentation is done relative to the open
-parenthesis; otherwise, `ada-indent-broken' is used relative to
-line containing 'function'.
+If the function has parameters, then if `ada-indent-return' is
+zero or less the indentation is abs `ada-indent-return' relative
+to the open parenthesis; if `ada-indent-return' is one or more,
+indentation is relative to line containing 'function'.
+
+If the function has no parameters, `ada-indent-broken' is used
+relative to line containing 'function'.
 
 An example is:
    function A (B : Integer)
@@ -189,7 +199,7 @@ An example is:
 	(message "WARNING: setting `ada-indent-with' to obsolete `ada-with-indent'")
 	ada-with-indent)
       ada-indent-broken)
-  "*Indentation for the lines in a 'with' statement.
+  "*Indentation for the lines in a 'with' context clause.
 
 An example is:
    with Ada.Text_IO,

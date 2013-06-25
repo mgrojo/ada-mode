@@ -46,7 +46,8 @@ run indent test from emacs -Q:
  ada-wisi parser
 build/wisi/Makefile
     tests
-        test/ada_mode-opentoken.ads failing
+        failing because everything that looks like a procedure call is a statement-start
+            need to change 'start' to 'containing' (arrgghh!!)
 
 Debian : emacs 24.2 (from testing), GNAT GPL 2012:
     ada-mode tests failing

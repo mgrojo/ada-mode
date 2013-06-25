@@ -3,7 +3,7 @@
 --  is 0, which means indent on the open parenthesis for the function, or
 --  use ada-indent-broken if there is no parenthesis.
 
---  See ada_mode-options-indent_return_1.ads, _2.ads for other values of
+--  See ada_mode-options-indent_return_2.ads, _3.ads for other values of
 --  ada-indent-return, ada-indent-renames.
 --  (ediff "ada_mode-options-indent_return_1.ads" "ada_mode-options-indent_return_2.ads")
 --  (ediff "ada_mode-options-indent_return_1.ads" "ada_mode-options-indent_return_3.ads")
@@ -16,7 +16,7 @@ package Ada_Mode.Options.Indent_Return_1 is
 
    function A return Integer;
    function B
-      return Integer;   -- from ada-indent-broken (or ada-indent-return if > 0)
+      return Integer;   -- from ada-indent-broken; no parameters
 
    function C (B : Integer) return Integer;
    function D (B : Integer)
@@ -49,8 +49,8 @@ package Ada_Mode.Options.Indent_Return_1 is
 
    function AR return Integer renames A;
    function BR
-      return Integer   --  from ada-indent-broken/return
-     renames B;  --  from ada-indent-broken (or ada-indent-renames if > 0)
+      return Integer   --  from ada-indent-broken
+      renames B;  --  from ada-indent-broken
 
    function CR (B : Integer) return Integer renames C;
    function DR (B : Integer)
@@ -68,7 +68,7 @@ package Ada_Mode.Options.Indent_Return_1 is
 
    procedure P;
    procedure PR
-     renames P;  -- from ada-indent-broken/renames
+      renames P;  -- from ada-indent-broken
 
    procedure Q (X : Integer);
    procedure QR (X : Integer)

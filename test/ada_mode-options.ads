@@ -6,7 +6,7 @@
 --EMACSCMD: ada-indent-record-rel-type
 --EMACSRESULT: 0
 
--- Testing with uppercase Ada keywords; smie parser must be case-insensitive!
+-- Testing with uppercase Ada keywords; parser must be case-insensitive!
 PACKAGE Ada_Mode.Options IS
    PRAGMA Elaborate_Body (Options);
 
@@ -20,11 +20,11 @@ PACKAGE Ada_Mode.Options IS
 -- comment in column 0
 
    TYPE Derived_Type_1 IS
-   NEW Private_Type_1 WITH RECORD
+     NEW Private_Type_1 WITH RECORD
       Component_2 : Integer;
    END RECORD;
 
-   END Ada_Mode.Options;
+END Ada_Mode.Options;
 -- Local Variables:
 -- ada-indent-record-rel-type: 0
 -- ada-indent-comment-col-0: t

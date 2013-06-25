@@ -75,19 +75,12 @@ package body Ada_Mode.Parens is
            4 => (2, 2, 2));
 
       -- Parsing inside nested parens
-      --EMACSCMD:(progn (end-of-line 4)(backward-char 2)(ada-smie-validate-cache (point))(ada-smie-get-cache (point)))
-      --EMACSRESULT:"=>"
       A :=
         (1 =>
-           -- The first validate-cache above does the entire aggregate
-           --EMACSCMD:(progn (forward-line 3)(forward-word 1)(forward-char 1)(ada-smie-get-cache (point)))
-           --EMACSRESULT:"=>"
            (1 => 12,
             2 => 13,
             3 => 14),
          2 =>
-           --EMACSCMD:(progn (forward-line 3)(forward-word 1)(forward-char 1)(ada-smie-get-cache (point)))
-           --EMACSRESULT:"=>"
            (1 => 22,
             2 => 23,
             3 => 24),
@@ -144,14 +137,18 @@ package body Ada_Mode.Parens is
          null;
       end if;
 
-      --EMACSCMD:(progn (forward-line 2)(ada-next-statement-keyword)(looking-at "loop"))
+      --EMACSCMD:(progn (forward-line 2)(back-to-indentation)(ada-next-statement-keyword)(looking-at "loop"))
       --EMACSRESULT: t
       while A.all
         or else B.all
+      --EMACSCMD:(progn (forward-line 2)(back-to-indentation)(ada-next-statement-keyword)(looking-at "end loop"))
+      --EMACSRESULT: t
       loop
-         null;
+         if A = null then B.all; end if; -- cached keywords between 'loop' and 'end loop'
       end loop;
 
+      --EMACSCMD:(progn (forward-line 2)(back-to-indentation)(ada-next-statement-keyword)(looking-at "loop"))
+      --EMACSRESULT: t
       while A.all
         or else (B.all
                    and then C

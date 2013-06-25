@@ -139,7 +139,7 @@ package body Ada_Mode.Nominal is -- target 0
          do
             -- extended return with do
             case Param_1 is
-               -- comment after "is", before "when"
+            -- comment after "is", before "when"
                when A | Nominal.B =>
                   null;
                when C =>

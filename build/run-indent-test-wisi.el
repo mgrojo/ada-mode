@@ -1,7 +1,7 @@
 ;; run tests using ada-wisi, gpr-wisi
 
 (require 'ada-wisi)
-;(require 'ada-wisi-opentoken) FIXME: not implemented yet
+(require 'ada-wisi-opentoken)
 
 (require 'gpr-wisi)
 (require 'gpr-mode)

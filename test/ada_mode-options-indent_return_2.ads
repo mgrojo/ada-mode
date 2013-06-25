@@ -3,11 +3,13 @@
 
 --EMACSCMD:(setq skip-recase-test t)
 
+-- ada-indent-return > 0 indents relative to "function" (FIXME: using ada-indent-broken?)
+-- ada-indent-renames < 0 indents relative to the open paren, if any
 package Ada_Mode.Options.Indent_Return_2 is
 
    function A return Integer;
    function B
-        return Integer;   -- from ada-indent-broken (or ada-indent-return if > 0)
+      return Integer;   -- from ada-indent-broken (or ada-indent-return if > 0)
 
    function C (B : Integer) return Integer;
    function D (B : Integer)
@@ -20,7 +22,7 @@ package Ada_Mode.Options.Indent_Return_2 is
         return Integer;   -- from ada-indent-return
 
    type G is access function
-                         return Integer; -- from ada-indent-broken/return
+                       return Integer; -- from ada-indent-broken
 
    type H is access function (C : Integer)
                          return Integer;  -- from ada-indent-return
@@ -32,7 +34,7 @@ package Ada_Mode.Options.Indent_Return_2 is
       with function J (B : Integer)
                 return Integer;   --  from ada-indent-return
       with function K
-                return Integer;   --  from ada-indent-broken/return
+              return Integer;   --  from ada-indent-broken
    package L is
    end L;
 
@@ -40,8 +42,8 @@ package Ada_Mode.Options.Indent_Return_2 is
 
    function AR return Integer renames A;
    function BR
-        return Integer   --  from ada-indent-broken/return
-      renames B;  --  from ada-indent-broken (or ada-indent-renames if > 0)
+      return Integer   --  from ada-indent-broken
+      renames B;  --  from ada-indent-broken
 
    function CR (B : Integer) return Integer renames C;
    function DR (B : Integer)

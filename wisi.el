@@ -426,6 +426,10 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
 	    (error msg)))
 	(message msg)))))
 
+(defun wisi-statement-start-cache (cache)
+  "Return cache from (wisi-cache-start CACHE)."
+  (wisi-get-cache (1- (wisi-cache-start cache))))
+
 ;;;; parse actions
 
 (defvar tokens nil);; keep byte-compiler happy; tokens is let-bound in wisi-parse-reduce
@@ -682,7 +686,8 @@ error, if non-nil, return nil."
 	(cache (wisi-get-cache (point)))
 	(done nil))
     (while (not (or done
-		    (memq (wisi-cache-token cache) token-list)))
+		    (and cache
+			 (memq (wisi-cache-token cache) token-list))))
       (setq cache (wisi-forward-cache))
       (when (>= (point) limit)
 	(if noerror
@@ -710,6 +715,7 @@ If LIMIT (a buffer position) is reached, throw an error."
 (defun wisi-forward-statement-keyword ()
   "If not at a cached token, move forward to next
 cache. Otherwise move to cache-next, or next cache if nil."
+  (wisi-validate-cache (point-max))
   (let ((cache (wisi-get-cache (point))))
     (if cache
 	(let ((next (wisi-cache-next cache)))
@@ -723,6 +729,7 @@ cache. Otherwise move to cache-next, or next cache if nil."
 (defun wisi-backward-statement-keyword ()
   "If not at a cached token, move backward to prev
 cache. Otherwise move to cache-prev, or prev cache if nil."
+  (wisi-validate-cache (point-max))
   (let ((cache (wisi-get-cache (point))))
     (if cache
 	(let ((prev (wisi-cache-prev cache)))
