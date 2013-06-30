@@ -24,36 +24,31 @@
 ;;;; indentation algorithm overview
 ;;
 ;; This design is inspired in part by experience writing a SMIE
-;; indentation engine for Ada; see ada-smie.el.
+;; indentation engine for Ada.
 ;;
 ;; The general approach to indenting a given token is to find the
 ;; start of the statement it is part of, or some other relevant point
-;; in the statement (called 'statement indent points'), and indent
-;; relative to that.  So we need a parser that lets us find statement
-;; indent points from arbitrary places in the code.
+;; in the statement, and indent relative to that.  So we need a parser
+;; that lets us find statement indent points from arbitrary places in
+;; the code.
 ;;
-;; wisent provides an LALR(1) parser, which in general wants to start
-;; from the first token in a non-terminal. The grammar has
-;; non-terminals for Ada statements and declarations. The beginning of
-;; the buffer always works as a starting point for the parser; it must
-;; be the start of a declaration (a compilation unit).
-;;
-;; Ada as represented by the EBNF in LRM Annex P is not LALR(1), so we
-;; use a generalized LALR(1) parser (see wisi-parse, wisi-compile).
+;; The grammar for Ada as represented by the EBNF in LRM Annex P is
+;; not LALR(1), so we use a generalized LALR(1) parser (see
+;; wisi-parse, wisi-compile).
 ;;
 ;; The parser actions store indentation and other information as text
-;; properties of the keywords at statement indent points.
+;; properties of tokens in statements.
 ;;
 ;; An indentation engine moves text in the buffer, as does user
 ;; editing, so we can't rely on character positions remaining
 ;; constant. So the parser actions use markers to store
 ;; positions. Text properties also move with the text.
 ;;
-;; The stored information includes a marker at the first token of the
-;; statement. Thus, the indentation algorithm is: find the nearest
-;; token with cached information, and either indent from it, or fetch
-;; from it the marker for the statement start, and indent relative to
-;; that.
+;; The stored information includes a marker at each statement indent
+;; point. Thus, the indentation algorithm is: find the previous token
+;; with cached information, and either indent from it, or fetch from
+;; it the marker for the previous statement indent point, and indent
+;; relative to that.
 ;;
 ;; Since we have a cache (the text properties), we need to consider
 ;; when to invalidate it. Ideally, we invalidate only when a change to
@@ -62,12 +57,9 @@
 ;; (indentation and newlines) do not affect an Ada parse. Other
 ;; languages are sensitive to newlines (Bash for example) or
 ;; indentation (Python). Adding comments does not change a parse,
-;; unless code is commented out. In order to be conservative, for now
-;; we invalidate the cache after the edit point if the change involves
-;; anything other than whitespace.
-;;
-;; We always use 'ecase' in the indentation code, to ensure that the
-;; symbols expected match those stored in the text properties.
+;; unless code is commented out. For now we invalidate the cache after
+;; the edit point if the change involves anything other than
+;; whitespace.
 ;;
 ;;; comparison to the SMIE parser
 ;;
@@ -82,11 +74,11 @@
 ;; involves the same amount of work as the first language.
 ;;
 ;; Using a generalized LALR parser avoids that particular problem;
-;; since the language is already defined in terms of the grammar, it
-;; is only a matter of a format change to teach the wisi parser the
+;; assuming the language is already defined by a grammar, it is only a
+;; matter of a format change to teach the wisi parser the
 ;; language. The problem in a wisi indentation engine is caching the
-;; output of the parser in a useful way, since we can't start the parser
-;; from arbitrary places in the code (as we can with the SMIE
+;; output of the parser in a useful way, since we can't start the
+;; parser from arbitrary places in the code (as we can with the SMIE
 ;; parser). A second problem is determining when to invalidate the
 ;; cache. But these problems are independent of the language being
 ;; parsed, so once we have one wisi indentation engine working,
@@ -94,8 +86,8 @@
 ;;
 ;; The SMIE parser does not find the start of each statement, only the
 ;; first language keyword in each statement; additional code must be
-;; written to find the statement start. The wisi parser finds the
-;; statement start directly.
+;; written to find the statement start and indent points. The wisi
+;; parser finds the statement start and indent points directly.
 ;;
 ;; In SMIE, it is best if each grammar rule is a complete statement,
 ;; so forward-sexp will traverse the entire statement. If nested
@@ -139,7 +131,8 @@
 ;;
 ;;; code style
 ;;
-;; 'wisi' is short for "wisent indentation engine".
+;; 'wisi' was originally short for "wisent indentation engine", but
+;; now is just a name.
 ;;
 ;; not using lexical-binding or cl-lib because we support Emacs 23
 ;;
@@ -295,7 +288,7 @@ wisi-forward-token, but does not look up symbol."
   ;; arbitrary lisp symbol, used for indentation and navigation.
   ;; some classes are defined by wisi:
   ;;
-  ;; 'block-middle - a block keyword (if then else end), not at thestart of a statement
+  ;; 'block-middle - a block keyword (ie: if then else end), not at the start of a statement
   ;;
   ;; 'block-start - a block keyword at the start of a statement
   ;;
@@ -305,9 +298,12 @@ wisi-forward-token, but does not look up symbol."
   ;;
   ;; others are language-specific
 
-  start
-  ;; a) if this is not first keyword; mark at the first keyword of the current statement
-  ;; b) if this is first keyword; function to move from this keyword to first token or nil
+  containing
+  ;; Marker at the containing keyword for this token.
+  ;; A containing keyword is an indent point; the start of a
+  ;; statement, or 'begin', 'then' or 'else' for a block of
+  ;; statements, etc.
+  ;; nil only for first token in buffer
 
   prev ;; marker at previous motion token in statement; nil if none
   next ;; marker at next motion token in statement; nil if none
@@ -426,9 +422,11 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
 	    (error msg)))
 	(message msg)))))
 
-(defun wisi-statement-start-cache (cache)
-  "Return cache from (wisi-cache-start CACHE)."
-  (wisi-get-cache (1- (wisi-cache-start cache))))
+(defun wisi-get-containing-cache (cache)
+  "Return cache from (wisi-cache-containing CACHE)."
+  (let ((containing (wisi-cache-containing cache)))
+    (and containing
+	 (wisi-get-cache (1- containing)))))
 
 ;;;; parse actions
 
@@ -470,7 +468,7 @@ that token. Use in a grammar action as:
 		    ;;
 		    ;; statement : label_opt simple_statement
 		    ;;
-		    ;; just override class and start
+		    ;; just override class and containing
 		    (progn
 		      (case (wisi-cache-class cache)
 			(block-start
@@ -488,16 +486,9 @@ that token. Use in a grammar action as:
 			(t
 			 (setf (wisi-cache-class cache) (or override-start class)))
 			)
-		      (setf (wisi-cache-start cache) first-keyword-mark))
+		      (setf (wisi-cache-containing cache) first-keyword-mark))
 
 		  ;; else create new cache
-		  ;;
-		  ;; :start is a marker to the first keyword in a
-		  ;; statement. The first keyword in a contained statement
-		  ;; has a marker to the first keyword in the containing
-		  ;; statement; the outermost containing statement has
-		  ;; nil. `wisi-start-action' (below) sets the start
-		  ;; markers in contained statements.
 		  (with-silent-modifications
 		    (put-text-property
 		     (car region)
@@ -508,7 +499,7 @@ that token. Use in a grammar action as:
 		      :token   token
 		      :last  (- (cdr region) (car region))
 		      :class   (or override-start class)
-		      :start   first-keyword-mark)
+		      :containing   first-keyword-mark)
 		     )))
 
 		(when first-item
@@ -526,37 +517,36 @@ that token. Use in a grammar action as:
 	))
       )))
 
-(defun wisi-start-action (start-token contained-token)
-  "Set start marks in all tokens in CONTAINED-TOKEN with null start mark to marker pointing to start of START-TOKEN.
-START-TOKEN is token number of first token in containing statement (if empty, next token is used).
-CONTAINED-TOKEN is token number of the contained non-terminal."
-  (let* ((start-region (cddr (nth (1- start-token) tokens))) ;; tokens is let-bound in wisi-parse-reduce
+(defun wisi-containing-action (containing-token contained-token)
+  "Set containing marks in all tokens in CONTAINED-TOKEN with null containing mark to marker pointing to CONTAINING-TOKEN.
+If CONTAINING-TOKEN is empty, the next token number is used."
+  (let* ((containing-region (cddr (nth (1- containing-token) tokens))) ;; tokens is let-bound in wisi-parse-reduce
 	 (contained-region (cddr (nth (1- contained-token) tokens))))
-    (unless start-region
-      ;; start-token is empty; use next
-      (setq start-region (cddr (nth start-token tokens))))
+    (while (not containing-region)
+      ;; containing-token is empty; use next
+      (setq containing-region (cddr (nth containing-token tokens))))
 
     (when contained-region
       ;; nil when empty production
       (save-excursion
 	(goto-char (cdr contained-region))
 	(let ((cache (wisi-backward-cache))
-	      (mark (copy-marker (1+ (car start-region)))))
+	      (mark (copy-marker (1+ (car containing-region)))))
 	  (while cache
 
 	    ;; skip blocks that are already marked
-	    (while (markerp (wisi-cache-start cache))
-	      (goto-char (1- (wisi-cache-start cache)))
+	    (while (markerp (wisi-cache-containing cache))
+	      (goto-char (1- (wisi-cache-containing cache)))
 	      (setq cache (wisi-get-cache (point))))
 
-	    (if (or (and (= (car start-region) (car contained-region))
+	    (if (or (and (= (car containing-region) (car contained-region))
 			 (<= (point) (car contained-region)))
 		    (< (point) (car contained-region)))
 		;; done
 		(setq cache nil)
 
 	      ;; else set mark, loop
-	      (setf (wisi-cache-start cache) mark)
+	      (setf (wisi-cache-containing cache) mark)
 	      (setq cache (wisi-backward-cache)))
 	    ))))))
 
@@ -739,27 +729,15 @@ cache. Otherwise move to cache-prev, or prev cache if nil."
       (wisi-backward-cache))
   ))
 
-(defun wisi-goto-statement-start (cache containing &optional error)
-  "Move point to start of statement containing CACHE, return cache at that point.
-If at start of a statement and CONTAINING is non-nil, goto start
-of containing statement. If ERROR and at start and CONTAINING, throw error."
+(defun wisi-goto-containing (cache &optional error)
+  "Move point to containing token for CACHE, return cache at that point."
   (cond
-   ((markerp (wisi-cache-start cache))
-    (cond
-     ((memq (wisi-cache-class cache) '(statement-start block-start))
-      (when containing
-	(goto-char (1- (wisi-cache-start cache)))
-	(setq cache (wisi-get-cache (point)))))
-
-     (t
-      (goto-char (1- (wisi-cache-start cache)))
-      (setq cache (wisi-get-cache (point))))
-     ))
+   ((markerp (wisi-cache-containing cache))
+    (goto-char (1- (wisi-cache-containing cache)))
+    (wisi-get-cache (point)))
    (t
-    ;; at outermost containing statement
-    (when error
-      (error "already at outermost containing statement"))))
-  cache)
+    (error "already at outermost containing token"))
+   ))
 
 (defun wisi-next-statement-cache (cache)
   "Move point to CACHE-next; no motion if nil."

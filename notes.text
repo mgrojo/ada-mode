@@ -46,8 +46,8 @@ run indent test from emacs -Q:
  ada-wisi parser
 build/wisi/Makefile
     tests
-        failing because everything that looks like a procedure call is a statement-start
-            need to change 'start' to 'containing' (arrgghh!!)
+        test/ada_mode-conditional_expressions.adb
+            ambiguous parse result
 
 Debian : emacs 24.2 (from testing), GNAT GPL 2012:
     ada-mode tests failing
@@ -77,6 +77,10 @@ test/ada_mode-function_2.adb fails parse during edit, gives 'error during redisp
 
  opentoken
 /Projects/org.opentoken.stephe/build/windows_debug/Makefile
+
+delete debug_parser.adb from release
+
+GNAT 2013 changes AUnit again!
 
 doc alex/aflex avail at http://sourceforge.net/projects/p2ada/
     compare
