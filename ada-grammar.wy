@@ -310,8 +310,14 @@ and_interface_list_opt
 array_type_definition
   : ARRAY LEFT_PAREN index_subtype_definition_list RIGHT_PAREN OF component_definition
  ;; unconstrained_array_definition
+    (progn
+      (wisi-statement-action 2 'open-paren 4 'close-paren)
+      (wisi-containing-action 2 3))
   | ARRAY LEFT_PAREN discrete_subtype_definition_list RIGHT_PAREN OF component_definition
  ;; constrained_array_definition
+    (progn
+      (wisi-statement-action 2 'open-paren 4 'close-paren)
+      (wisi-containing-action 2 3))
   ;
 
 assignment_statement
@@ -636,7 +642,7 @@ discrete_choice_list
 discrete_choice
   : choice_expression ;; includes 'name'
   | null_exclusion_opt name constraint ;; from subytpe_indication, excluding plain 'name'
-  | null_exclusion_opt name            ;; ""
+  | NOT NULL name                      ;; ""
   | range
   | OTHERS
   ;
@@ -889,7 +895,7 @@ formal_type_declaration
   : TYPE IDENTIFIER discriminant_part_opt IS formal_type_definition aspect_specification_opt SEMICOLON
  ;; formal_complete_type_declaration
     (progn
-      (wisi-statement-action 1 'statement-start 7 'statement-end)
+      (wisi-statement-action 1 'statement-start 4 'statement-other 7 'statement-end)
       (wisi-containing-action 1 3)
       (wisi-containing-action 4 5))
   | TYPE IDENTIFIER discriminant_part_opt IS TAGGED aspect_specification_opt SEMICOLON
@@ -1283,11 +1289,9 @@ name
   | attribute_reference
   ;; | type_conversion
   | name actual_parameter_part
- ;; function_call, procedure call, generic instantiation. Only a
- ;; procedure call is actually a statement start, but this works for
- ;; expressions in parens as well.
+ ;; function_call, procedure call, generic instantiation.
     (progn
-      (wisi-statement-action 1 'statement-start)
+      (wisi-statement-action 1 'name-paren)
       (wisi-containing-action 1 2))
   | qualified_expression
   ;; | generalized_reference
@@ -1315,7 +1319,7 @@ null_procedure_declaration
 object_declaration
   : identifier_list COLON aliased_opt constant_opt subtype_indication COLON_EQUAL expression aspect_specification_opt SEMICOLON
     (progn
-      (wisi-statement-action 1 'statement-start 9 'statement-end)
+      (wisi-statement-action 1 'statement-start 6 'statement-other 9 'statement-end)
       (wisi-containing-action 6 7))
   | identifier_list COLON aliased_opt constant_opt subtype_indication aspect_specification_opt SEMICOLON
     (wisi-statement-action 1 'statement-start 7 'statement-end)
@@ -1356,7 +1360,7 @@ package_body
       (wisi-containing-action 7 8))
   | PACKAGE BODY name aspect_specification_opt IS declarative_part_opt END name_opt SEMICOLON
     (progn
-      (wisi-statement-action 1 'block-start 5 'block-middle 7 'block-end 9 'statement-end)
+      (wisi-statement-action 1 'block-start 3 'name 5 'block-middle 7 'block-end 9 'statement-end)
       (wisi-containing-action 5 6))
   ;
 
@@ -1470,7 +1474,10 @@ primary
 private_extension_declaration
   : TYPE IDENTIFIER discriminant_part_opt IS abstract_limited_synchronized_opt NEW subtype_indication
     and_interface_list_opt WITH PRIVATE aspect_specification_opt SEMICOLON
-    (wisi-statement-action 1 'statement-start 2 'name 12 'statement-end)
+    (progn
+      (wisi-statement-action 1 'statement-start 2 'name 6 'statement-other 12 'statement-end)
+      (wisi-containing-action 6 7)
+      (wisi-containing-action 6 8))
   ;
 
 private_type_declaration

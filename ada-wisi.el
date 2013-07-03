@@ -57,77 +57,91 @@
 
 ;;;; indentation
 
+(defun ada-wisi-indent-cache (offset cache)
+  "Return indentation of OFFSET plus indentation of line containing point. Point must be at CACHE."
+  (let ((indent (current-indentation)))
+    (cond
+     ;; special cases
+     ;;
+     ((eq 'LEFT_PAREN (wisi-cache-token cache))
+      ;; test/ada_mode-conditional_expressions.adb
+      ;; K3 : Integer := (if
+      ;;                    J > 42
+      ;;                  then
+      ;;                    -1
+      ;;                  else
+      ;;                    +1);
+      ;;   indenting 'J > 42'; 'offset' = ada-indent-broken
+      (+ (current-column) 1 offset))
+
+     ((ada-in-paren-p)
+      ;; test/ada_mode-conditional_expressions.adb
+      ;; K2 : Integer := (if J > 42
+      ;;                  then -1
+      ;;   indenting 'then'; offset = 0
+      ;;
+      ;; test/ada_mode-parens.adb
+      ;; Local_2 : Integer := (1 + 2 +
+      ;;                         3);
+      ;;   indenting '3)'; 'offset' = ada-indent-broken
+      ;;
+      ;; test/ada_mode-parens.adb
+      ;; return Float (
+      ;;               Integer'Value
+      ;;                 (Local_6));
+      ;;   indenting '(local_6)'; 'offset' = ada-indent - 1
+      (save-excursion
+	(ada-goto-open-paren 1)
+	(+ (current-column) offset)))
+
+     ;; all other structures
+     ((= (current-column) indent)
+      ;; containing is at indentation
+      (cond
+       ((eq 'label_opt (wisi-cache-token cache))
+	(+ (current-column) (- ada-indent-label) offset))
+
+       (t
+	(+ indent offset))
+       ))
+
+     (t
+      ;; containing token is preceded by something on same line. Handle common cases nicely.
+      (save-excursion
+	(cond
+	 ((eq 'select_alternative (wisi-cache-nonterm cache))
+	  (wisi-goto-containing cache t)
+	  (+ (current-column) offset ada-indent-when))
+
+	 ((eq 'record_definition (wisi-cache-nonterm cache))
+	  (wisi-goto-containing containing-cache t) ;; type
+	  (if (= (current-column) indent)
+	      ;; 'record' on same line as 'type
+	      (+ (current-column) offset)
+	    ;; 'record' on a line indented by ada-indent-broken
+	    (+ (current-column) ada-indent-record-rel-type offset)))
+
+	 (t
+	  (let* (containing-column
+		 (containing-cache (wisi-goto-containing cache t)))
+	    (setq containing-column (current-column))
+	    (cond
+	     ((eq 'label_opt (wisi-cache-token containing-cache))
+	      (+ containing-column (- ada-indent-label) offset))
+
+	     (t
+	      (+ indent offset))
+	     )))
+	)))
+     )))
+
 (defun ada-wisi-indent-containing (offset cache &optional before)
-  "Return indentation of OFFSET plus indentation of containing token CACHE.
+  "Return indentation of OFFSET plus indentation of token containing CACHE.
 BEFORE should be t when called from ada-wisi-before-cache, nil otherwise."
   (save-excursion
     (cond
      ((markerp (wisi-cache-containing cache))
-      (let ((containing-cache (wisi-goto-containing cache))
-	    (containing-indent (current-indentation)))
-	(cond
-	 ;; special cases
-	 ;;
-	 ((ada-in-paren-p)
-	  ;; test/ada_mode-conditional_expressions.adb
-	  ;; K2 : Integer := (if J > 42
-          ;;                  then -1
-   	  ;;   indenting 'then'; offset = 0
-	  ;;
-	  ;; test/ada_mode-parens.adb
-	  ;; Local_2 : Integer := (1 + 2 +
-	  ;;                         3);
-	  ;;   indenting '3)'; 'offset' = ada-indent-broken
-	  ;;
-	  ;; test/ada_mode-parens.adb
-	  ;; return Float (
-	  ;;               Integer'Value
-	  ;;                 (Local_6));
-	  ;;   indenting '(local_6)'; 'offset' = ada-indent - 1
-	  (+ (current-column) offset))
-
-	 ;; all other structures
-	 ((= (current-column) containing-indent)
-	  ;; containing is at indentation
-	  (cond
-	   ((eq 'label_opt (wisi-cache-token containing-cache))
-	     (+ (current-column) (- ada-indent-label) offset))
-
-	    (t
-	     (+ containing-indent offset))
-	    ))
-
-	 (t
-	  ;; containing token is preceded by something on same line. Handle common cases nicely.
-	  (cond
-	   ((eq 'select_alternative (wisi-cache-nonterm containing-cache))
-	    (wisi-goto-containing containing-cache t)
-	    (+ (current-column) offset ada-indent-when))
-
-	   ((eq 'record_definition (wisi-cache-nonterm containing-cache))
-	    (wisi-goto-containing containing-cache t) ;; type
-	    (if (= (current-column) containing-indent)
-		;; 'record' on same line as 'type
-		(+ (current-column) offset)
-	      ;; 'record' on a line indented by ada-indent-broken
-	      (+ (current-column) ada-indent-record-rel-type offset)))
-
-	   (t
-	    (let* (prev-column
-		   (prev-cache
-		    (save-excursion
-		      (prog1
-			  (wisi-goto-containing containing-cache t)
-			(setq prev-column (current-column))))))
-	      (cond
-	       ((eq 'label_opt (wisi-cache-token prev-cache))
-		(+ prev-column (- ada-indent-label) offset))
-
-	       (t
-		(+ containing-indent offset))
-	       )))
-	   ))
-	 )))
+      (ada-wisi-indent-cache offset (wisi-goto-containing cache)))
 
      (t
       (cond
@@ -179,30 +193,51 @@ BEFORE should be t when called from ada-wisi-before-cache, nil otherwise."
 	(name
 	 (ada-wisi-indent-containing ada-indent-broken cache t))
 
+	(name-paren
+	 ;; ada_mode-generic_instantiation.ads
+	 ;;   procedure Procedure_6 is new
+	 ;;     Instance.Generic_Procedure (Integer, Function_1);
+	 ;; indenting 'Instance'
+	 (ada-wisi-indent-containing ada-indent-broken cache t))
+
 	(open-paren
-	 (let ((prev-cache (save-excursion (wisi-backward-cache))))
-	   (case (wisi-cache-token prev-cache)
-	    (EQUAL_GREATER
-	     ;; in aggregate; test/ada_mode-parens.adb
-	     ;; (1 =>
-	     ;;    (1 => 12,
-	     ;;     2 => 13,
-	     ;;     3 => 14),
-	     ;;   indenting '(1 => 12'; statement-start is '1 =>'
-	     (ada-wisi-indent-containing (1- ada-indent) prev-cache t))
+	 (let ((containing-cache (wisi-get-containing-cache cache)))
+	   (case (wisi-cache-token containing-cache)
+	     (EQUAL_GREATER
+	      ;; test/ada_mode-parens.adb
+	      ;; (1 =>
+	      ;;    (1 => 12,
+	      ;;     2 => 13,
+	      ;;     3 => 14),
+	      ;;   indenting '(1 => 12'; containing is '=>'
+	      ;;
+	      ;; test/ada_mode-conditional_expressions.adb
+	      ;;  when 1 =>
+	      ;;    (if J > 42
+	      ;;   indenting '(if'; containing is '=>'
+	      (setq containing-cache (wisi-get-containing-cache containing-cache))
+	      (ecase (wisi-cache-token containing-cache)
+		(LEFT_PAREN
+		 (ada-wisi-indent-containing (1- ada-indent) containing-cache t))
+		(WHEN
+		 (ada-wisi-indent-containing (+ -1 ada-indent-when ada-indent) containing-cache t))
+		))
 
-	    (LEFT_PAREN
-	     ;; nested aggregate: test/ada_mode-parens.adb
-	     ;; ((1, 2, 3),
-	     ;;  (4, 5, 6));
-	     ;;   indenting '(4'; statement-start is '((1';
-	     (ada-wisi-indent-containing 1 prev-cache t))
+	     (LEFT_PAREN
+	      ;; nested aggregate: test/ada_mode-parens.adb
+	      ;; ((1, 2, 3),
+	      ;;  (4, 5, 6));
+	      ;;   indenting '(4'; statement-start is '((1';
+	      (ada-wisi-indent-containing 1 containing-cache t))
 
-	    (t
-	     ;; if in aggregate, statement-start is containing open-paren, and offset is ignored
-	     ;; otherwise, indent 1 less than normal, so aggregate contents are indented normally
-	     (ada-wisi-indent-containing (1- ada-indent) cache t))
-	    )))
+	     (t
+	      ;; Open paren in an expression.
+	      ;;
+	      ;; test/ada_mode-conditional_expressions.adb
+	      ;; L0 : Integer :=
+	      ;;   (case J is when 42 => -1, when Integer'First .. 41 => 0, when others => 1);
+	      (ada-wisi-indent-containing ada-indent-broken cache t))
+	     )))
 
 	(return-1;; parameter list
 	 (let ((return-pos (point)))
@@ -260,6 +295,20 @@ BEFORE should be t when called from ada-wisi-before-cache, nil otherwise."
 
 		  (asynchronous_select
 		   ;; indenting 'abort'
+		   (+ (current-column) ada-indent-broken))
+
+		  (formal_package_declaration
+		   ;; test/ada_mode-generic_package.ads
+		   ;; with package A_Package_7 is
+		   ;;   new Ada.Text_IO.Integer_IO (Num => Formal_Signed_Integer_Type);
+		   ;; indenting 'new'
+		   (+ (current-column) ada-indent-broken))
+
+		  (generic_instantiation
+		   ;; test/ada_mode-generic_instantiation.ads
+		   ;; procedure Procedure_7 is
+		   ;;   new Instance.Generic_Procedure (Integer, Function_1);
+		   ;; indenting 'new'
 		   (+ (current-column) ada-indent-broken))
 
 		  (generic_renaming_declaration
@@ -413,11 +462,35 @@ cached token, return new indentation for point."
 	 (ada-wisi-indent-containing ada-indent-broken cache nil))
 
 	(list-break
-	 (if (equal (point) (caddr prev-token))
-	     ;; we are indenting the first token after the list-break; not hanging.
-	     (wisi-indent-paren 1)
-	   ;; else hanging
-	   (wisi-indent-paren (+ 1 ada-indent-broken))))
+	 (let* ((list-element-token
+		 (save-excursion
+		   (wisi-goto-containing cache)
+		   (wisi-cache-token (wisi-forward-cache))))
+		(indent
+		 (case list-element-token
+		   (WHEN ada-indent-when)
+		   (t 0))))
+	   (if (equal (point) (caddr prev-token))
+	       ;; we are indenting the first token after the list-break; not hanging.
+	       (wisi-indent-paren (+ 1 indent))
+	     ;; else hanging
+	     (wisi-indent-paren (+ 1 ada-indent-broken indent)))))
+
+	(name-paren
+	 (save-excursion
+	   (let ((start-pos (point))
+		 (containing (wisi-goto-containing cache)))
+	   (while (eq (wisi-cache-class containing) 'statement-other)
+	     (setq containing (wisi-goto-containing containing)))
+
+	   (ecase (wisi-cache-class containing)
+	     (statement-start
+	      ;; ada_mode-generic_instantiation.ads
+	      ;; procedure Procedure_4 is new Instance.
+	      ;;   Generic_Procedure (Integer, Function_1);
+	      ;; indenting 'Generic_Procedure'
+	      (ada-wisi-indent-cache ada-indent-broken cache))
+	     ))))
 
 	(open-paren
 	 ;; 1) A parenthesized expression, or the first item in an aggregate:
@@ -468,14 +541,15 @@ cached token, return new indentation for point."
 
 	   (EQUAL_GREATER
 	    (ecase (wisi-cache-nonterm (wisi-goto-containing cache nil))
-	      (association
-	       ;; 2      =>
-	       ;;   1 + 2 * 3,
-	       ;;  indenting '1'
-	       (+ (current-column) ada-indent-broken))
+	      (actual_parameter_part
+	       ;; ada_mode-generic_package.ads
+	       ;; with package A_Package_2 is new Ada.Text_IO.Integer_IO (Num =>
+	       ;;                                                           Formal_Signed_Integer_Type);
+	       ;;  indenting 'Formal_Signed_...', point on '(Num'
+	       (+ (current-column) 1 ada-indent-broken))
 
 	      ((case_expression_alternative case_statement_alternative exception_handler)
-	       ;; start is 'when'
+	       ;; containing is 'when'
 	       (+ (current-column) ada-indent))
 
 	      (generic_renaming_declaration
@@ -492,7 +566,7 @@ cached token, return new indentation for point."
 	    (ada-wisi-indent-containing 0 cache nil))
 
 	   ;; otherwise just hanging
-	   ((ACCEPT FUNCTION PROCEDURE RENAMES)
+	   ((ACCEPT FUNCTION IS PROCEDURE RENAMES)
 	    (back-to-indentation)
 	    (+ (current-column) ada-indent-broken))
 
@@ -504,9 +578,11 @@ cached token, return new indentation for point."
 	    (+ (current-column) ada-indent-with))
 
 	   (t
-	    ;; hanging
-	    (ada-wisi-indent-containing ada-indent-broken cache nil))))
-
+	    ;; procedure Procedure_8
+	    ;;   is new Instance.Generic_Procedure (Integer, Function_1);
+	    ;; indenting 'is'; hanging
+	    (+ (current-column) ada-indent-broken))
+	   ))
 	)))
     ))
 
@@ -540,6 +616,29 @@ cached token, return new indentation for point."
       )))
 
 ;;;; ada-mode functions (alphabetical)
+
+(defun ada-wisi-goto-declaration-start ()
+  "For `ada-goto-declaration-start', which see.
+Also return cache at start."
+  (wisi-validate-cache (point))
+  (let ((cache (wisi-get-cache (point))))
+    (unless cache
+      (setq cache (wisi-backward-cache)))
+    ;; cache is null at bob
+    (while (and cache
+		(not (memq (wisi-cache-nonterm cache)
+			   '(generic_package_declaration
+			     generic_subprogram_declaration
+			     package_body
+			     package_declaration
+			     protected_body
+			     protected_type_declaration
+			     single_protected_declaration
+			     subprogram_body
+			     subprogram_declaration
+			     task_type_declaration))))
+      (setq cache (wisi-goto-containing cache nil)))
+    cache))
 
 (defun ada-wisi-declarative-region-start-p (cache)
   "Return t if cache is a keyword starting a declarative region."
@@ -695,18 +794,11 @@ cached token, return new indentation for point."
        ))
     paramlist))
 
-(defun ada-wisi-which-function-1 (cache-skip keyword body)
+(defun ada-wisi-which-function-1 (keyword add-body)
   "used in `ada-wisi-which-function'."
   (let (region
 	result
-	(cache (wisi-forward-cache)))
-
-    (while (< 0 cache-skip)
-      (setq cache (wisi-forward-cache))
-      (setq cache-skip (1- cache-skip)))
-
-    (unless (eq 'name (wisi-cache-class cache))
-      (error "%s is not a name" cache))
+	(cache (wisi-forward-find-class 'name (point-max))))
 
     (setq result (buffer-substring-no-properties (point) (+ (point) (wisi-cache-last cache))))
 
@@ -714,7 +806,7 @@ cached token, return new indentation for point."
       (setq ff-function-name
 	    (concat
 	     keyword
-	     (when body "\\s-+body")
+	     (when add-body "\\s-+body")
 	     "\\s-+"
 	     result
 	     ada-symbol-end)))
@@ -725,49 +817,47 @@ cached token, return new indentation for point."
   (wisi-validate-cache (point))
   (save-excursion
     (let ((result nil))
+      (setq cache (ada-wisi-goto-declaration-start))
+      (if (null cache)
+	  ;; bob
+	  (setq result "")
 
-      (while (not result)
-	(setq cache (wisi-backward-cache))
-	(if (null cache)
-	    ;; bob
-	    (setq result "")
+	(case (wisi-cache-nonterm cache)
+	  ((generic_package_declaration generic_subprogram_declaration)
+	   ;; name is after next statement keyword
+	   (wisi-next-statement-cache cache)
+	   (setq cache (wisi-get-cache (point))))
+	  )
 
-	  (setq cache (wisi-goto-containing cache))
+	;; add or delete 'body' as needed
+	(ecase (wisi-cache-nonterm cache)
+	  (package_body
+	   (setq result (ada-wisi-which-function-1 "package" nil)))
 
-	  (if (null cache)
-	      ;; bob
-	      (setq result "")
+	  ((package_declaration
+	    package_specification) ;; after 'generic'
+	   (setq result (ada-wisi-which-function-1 "package" t)))
 
-	    (case (wisi-cache-nonterm cache)
-	      (generic_formal_part
-	       ;; name is after next statement keyword
-	       (wisi-next-statement-cache cache)
-	       (setq cache (wisi-get-cache (point))))
-	      )
+	  (protected_body
+	   (setq result (ada-wisi-which-function-1 "protected" nil)))
 
-	    ;; add or delete 'body' as needed
-	    (case (wisi-cache-nonterm cache)
-	      (overriding_indicator_opt
-	       (wisi-forward-find-nonterm '(procedure_specification subprogram_specification) (point-max))
-	       (setq result (ada-wisi-which-function-1 0 (wisi-forward-token t) nil)))
+	  ((protected_type_declaration single_protected_declaration)
+	   (setq result (ada-wisi-which-function-1 "protected" t)))
 
-	      (package_specification
-	       (setq result (ada-wisi-which-function-1 0 "package" t)))
+	  ((subprogram_declaration
+	    subprogram_specification) ;; after 'generic'
+	   (setq result (ada-wisi-which-function-1
+			 (wisi-forward-token t) ;; FIXME: overriding?
+			 nil))) ;; no 'body' keyword in subprogram bodies
 
-	      (protected_body
-	       (setq result (ada-wisi-which-function-1 0 "protected" nil)))
+	  (subprogram_body
+	   (setq result (ada-wisi-which-function-1 (wisi-forward-token t) nil)))
 
-	      ((protected_type_declaration single_protected_declaration)
-	       (setq result (ada-wisi-which-function-1 0 "protected" t)))
+	  (task_type_declaration
+	   ;; FIXME: need test
+	   (setq result (ada-wisi-which-function-1 "task" t)))
 
-	      ((procedure_specification subprogram_body subprogram_specification)
-	       (setq result (ada-wisi-which-function-1 0 (wisi-forward-token t) nil)))
-
-	      (task_type_declaration
-	       ;; FIXME: need test
-	       (setq result (ada-wisi-which-function-1 1 "task" t)))
-
-	      ))))
+	  ))
       result)))
 
 ;;;; debugging
@@ -776,10 +866,7 @@ cached token, return new indentation for point."
   (interactive)
   (define-key ada-mode-map "\M-j" 'wisi-show-cache)
   (define-key ada-mode-map "\M-k" 'wisi-show-token)
-  (define-key ada-mode-map "\M-h"
-    (lambda ()
-      (interactive)
-      (wisi-goto-containing (wisi-get-cache (point)) t)))
+  (define-key ada-mode-map "\M-h" 'wisi-show-containing-or-previous-cache)
   )
 
 (defun ada-wisi-debug-setup ()

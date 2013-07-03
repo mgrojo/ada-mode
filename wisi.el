@@ -460,15 +460,16 @@ that token. Use in a grammar action as:
 	  (if region
 	      (progn
 		(if (setq cache (get-text-property (car region) 'wisi-cache))
-		    ;; We are processing a previously set non-terminal; ie package_specification in
+		    ;; We are processing a previously set non-terminal; ie generic_formal_part in
 		    ;;
 		    ;; generic_package_declaration : generic_formal_part package_specification SEMICOLON
+		    ;;    (wisi-statement-action 1 'block-start 2 'block-middle 3 'statement-end)
 		    ;;
 		    ;; or simple_statement in
 		    ;;
 		    ;; statement : label_opt simple_statement
 		    ;;
-		    ;; just override class and containing
+		    ;; override nonterm, class and containing
 		    (progn
 		      (case (wisi-cache-class cache)
 			(block-start
@@ -486,6 +487,8 @@ that token. Use in a grammar action as:
 			(t
 			 (setf (wisi-cache-class cache) (or override-start class)))
 			)
+		      (when first-item
+			(setf (wisi-cache-nonterm cache) $nterm))
 		      (setf (wisi-cache-containing cache) first-keyword-mark))
 
 		  ;; else create new cache
@@ -535,7 +538,8 @@ If CONTAINING-TOKEN is empty, the next token number is used."
 	  (while cache
 
 	    ;; skip blocks that are already marked
-	    (while (markerp (wisi-cache-containing cache))
+	    (while (and (>= (point) (car contained-region))
+			(markerp (wisi-cache-containing cache)))
 	      (goto-char (1- (wisi-cache-containing cache)))
 	      (setq cache (wisi-get-cache (point))))
 
@@ -736,7 +740,8 @@ cache. Otherwise move to cache-prev, or prev cache if nil."
     (goto-char (1- (wisi-cache-containing cache)))
     (wisi-get-cache (point)))
    (t
-    (error "already at outermost containing token"))
+    (when error
+      (error "already at outermost containing token")))
    ))
 
 (defun wisi-next-statement-cache (cache)
@@ -769,7 +774,6 @@ the comment on the previous line."
 (defun wisi-indent-paren (offset)
   "Return indentation OFFSET relative to preceding open paren."
   (save-excursion
-    ;; FIXME: don't move point, so don't need save-excursion
     (ada-goto-open-paren 0)
     (+ (current-column) offset)))
 
@@ -819,6 +823,14 @@ the comment on the previous line."
   (interactive)
   (let ((token (wisi-forward-token)))
     (message "%s" (car token))))
+
+(defun wisi-show-containing-or-previous-cache ()
+  (interactive)
+  (let ((cache (wisi-get-cache (point))))
+    (if cache
+	(message "containing %s" (wisi-goto-containing cache t))
+      (message "previous %s" (wisi-backward-cache)))
+    ))
 
 ;;;; setup
 

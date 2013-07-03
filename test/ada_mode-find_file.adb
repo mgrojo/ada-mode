@@ -8,7 +8,7 @@
 -- <current dir> "...smie/test", gnat library dir
 --EMACSRESULT:3
 
--- Select package name, goto its spec
+-- Select package name, goto its parent spec
 --EMACSCMD:(progn (forward-line 1)(forward-word 2)(forward-char 1)(push-mark-command t t)(forward-word 2)(ada-find-other-file t)(pop-mark)(looking-at "package Ada_Mode is"))
 package body Ada_Mode.Find_File is
    --EMACSRESULT:t

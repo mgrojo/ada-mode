@@ -1547,19 +1547,18 @@ don't move to corresponding declaration."
 - If region is active, assume it contains a package name;
   position point on that package declaration.
 
-- If point is in the start line of a top level child package
-  declaration (but not package body), or a child subprogram spec
-  or body, position point on the corresponding parent package
-  declaration.
+- If point is in the start line of a non-nested child package or
+  subprogram declaration, position point on the corresponding
+  parent package specification.
 
-- If point is in the start line of a top level separate body,
+- If point is in the start line of a separate body,
   position point on the corresponding separate stub declaration.
 
 - If point is in a context clause line, position point on the
-  package declaration that is mentioned.
+  first package declaration that is mentioned.
 
-- If point is in a subprogram body or declaration, position point
-  on the corresponding declaration or body.
+- If point is in a subprogram body or specification, position point
+  on the corresponding specification or body.
 
 OTHER-WINDOW-FRAME (default nil, set by interactive prefix)
 controls window and frame choice:
@@ -1833,9 +1832,9 @@ C-u C-u : show in other frame"
   ;; No useful default; the indentation engine should supply a useful function
   ;; This is run from ff-pre-load-hook, so ff-function-name may have
   ;; been set by ff-treat-special; don't reset it.
-  "Function to move point to start of the subprogram, package, or
-task declaration point is currently in or just after.  Called
-with no parameters.")
+  "Function to move point to start of the generic, package,
+protected, subprogram, or task declaration point is currently in
+or just after.  Called with no parameters.")
 
 (defun ada-goto-declaration-start ()
   "Call `ada-goto-declaration-start'."
