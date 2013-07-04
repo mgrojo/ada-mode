@@ -65,13 +65,11 @@
      ;;
      ((eq 'LEFT_PAREN (wisi-cache-token cache))
       ;; test/ada_mode-conditional_expressions.adb
-      ;; K3 : Integer := (if
-      ;;                    J > 42
-      ;;                  then
-      ;;                    -1
-      ;;                  else
-      ;;                    +1);
-      ;;   indenting 'J > 42'; 'offset' = ada-indent-broken
+      ;; (RT                            => RT,
+      ;;  Monitor                       => True,
+      ;;  RX_Enable                     =>
+      ;;    (RX_Torque_Subaddress |
+      ;;   indenting '(RX_'
       (+ (current-column) 1 offset))
 
      ((ada-in-paren-p)
@@ -122,15 +120,24 @@
 	    (+ (current-column) ada-indent-record-rel-type offset)))
 
 	 (t
-	  (let* (containing-column
+	  (let* (containing-indent
 		 (containing-cache (wisi-goto-containing cache t)))
-	    (setq containing-column (current-column))
+	    (setq containing-indent (current-indentation))
 	    (cond
 	     ((eq 'label_opt (wisi-cache-token containing-cache))
-	      (+ containing-column (- ada-indent-label) offset))
+	      (+ containing-indent (- ada-indent-label) offset))
 
 	     (t
-	      (+ indent offset))
+	      ;; test/ada_mode-generic_instantiation.ads
+	      ;; function Function_1 is new Instance.Generic_Function
+	      ;;   (Param_Type  => Integer,
+	      ;;
+	      ;; test/ada_mode-nested_packages.adb
+	      ;; function Create (Model   : in Integer;
+	      ;;                  Context : in String) return String is
+	      ;;    ...
+	      ;;    Cache : array (1 .. 10) of Boolean := (True, False, others => False);
+	      (+ containing-indent offset))
 	     )))
 	)))
      )))
@@ -201,43 +208,48 @@ BEFORE should be t when called from ada-wisi-before-cache, nil otherwise."
 	 (ada-wisi-indent-containing ada-indent-broken cache t))
 
 	(open-paren
-	 (let ((containing-cache (wisi-get-containing-cache cache)))
-	   (case (wisi-cache-token containing-cache)
-	     (EQUAL_GREATER
-	      ;; test/ada_mode-parens.adb
-	      ;; (1 =>
-	      ;;    (1 => 12,
-	      ;;     2 => 13,
-	      ;;     3 => 14),
-	      ;;   indenting '(1 => 12'; containing is '=>'
-	      ;;
-	      ;; test/ada_mode-conditional_expressions.adb
-	      ;;  when 1 =>
-	      ;;    (if J > 42
-	      ;;   indenting '(if'; containing is '=>'
-	      (setq containing-cache (wisi-get-containing-cache containing-cache))
-	      (ecase (wisi-cache-token containing-cache)
-		(LEFT_PAREN
-		 (ada-wisi-indent-containing (1- ada-indent) containing-cache t))
-		(WHEN
-		 (ada-wisi-indent-containing (+ -1 ada-indent-when ada-indent) containing-cache t))
-		))
+	 (save-excursion
+	   (let ((containing-cache (wisi-goto-containing cache)))
+	     (case (wisi-cache-token containing-cache)
+	       (EQUAL_GREATER
+		(setq containing-cache (wisi-goto-containing containing-cache))
+		(ecase (wisi-cache-token containing-cache)
+		  (COMMA
+		   ;; test/ada_mode-parens.adb
+		   ;; (RT                            => RT,
+		   ;;  Monitor                       => True,
+		   ;;  RX_Enable                     =>
+		   ;;    (RX_Torque_Subaddress |
+		   (ada-wisi-indent-containing (1- ada-indent) containing-cache t))
+		  (LEFT_PAREN
+		   ;; test/ada_mode-parens.adb
+		   ;; (1 =>
+		   ;;    (1 => 12,
+		   ;;   indenting '(1 => 12'; containing is '=>'
+		   (ada-wisi-indent-cache (1- ada-indent) containing-cache))
+		  (WHEN
+		   ;; test/ada_mode-conditional_expressions.adb
+		   ;;  when 1 =>
+		   ;;    (if J > 42
+		   ;;   indenting '(if'; containing is '=>'
+		   (+ (current-column) -1 ada-indent))
+		  ))
 
-	     (LEFT_PAREN
-	      ;; nested aggregate: test/ada_mode-parens.adb
-	      ;; ((1, 2, 3),
-	      ;;  (4, 5, 6));
-	      ;;   indenting '(4'; statement-start is '((1';
-	      (ada-wisi-indent-containing 1 containing-cache t))
+	       (LEFT_PAREN
+		;; nested aggregate: test/ada_mode-parens.adb
+		;; ((1, 2, 3),
+		;;  (4, 5, 6));
+		;;   indenting '(4'; statement-start is '((1';
+		(ada-wisi-indent-containing 1 containing-cache t))
 
-	     (t
-	      ;; Open paren in an expression.
-	      ;;
-	      ;; test/ada_mode-conditional_expressions.adb
-	      ;; L0 : Integer :=
-	      ;;   (case J is when 42 => -1, when Integer'First .. 41 => 0, when others => 1);
-	      (ada-wisi-indent-containing ada-indent-broken cache t))
-	     )))
+	       (t
+		;; Open paren in an expression.
+		;;
+		;; test/ada_mode-conditional_expressions.adb
+		;; L0 : Integer :=
+		;;   (case J is when 42 => -1, when Integer'First .. 41 => 0, when others => 1);
+		(ada-wisi-indent-containing ada-indent-broken cache t))
+	       ))))
 
 	(return-1;; parameter list
 	 (let ((return-pos (point)))
@@ -371,9 +383,17 @@ BEFORE should be t when called from ada-wisi-before-cache, nil otherwise."
 		    ((block-start block-middle)
 		     (ada-wisi-indent-containing ada-indent cache t))
 
+		    (statement-other
+		     (ecase (wisi-cache-token containing-cache)
+		       (EQUAL_GREATER
+			;; test/ada_mode-nested_packages.adb
+			;; exception
+			;;    when Io.Name_Error =>
+			;;       null;
+			(ada-wisi-indent-containing ada-indent cache t))
+		       ))
+
 		    (t
-		     ;; anything that looks like a procedure call is a containing token
-		     ;;
 		     ;; test/ada_mode-generic_instantiation.ads
 		     ;; procedure Procedure_6 is new
 		     ;;   Instance.Generic_Procedure (Integer, Function_1);
