@@ -18,7 +18,7 @@ package body Ada_Mode.Nominal is -- target 0
    function Function_Access_1
      (A_Param : in Float)
      return
-     Standard.Float
+       Standard.Float
    is -- target 1
       --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at " -- target 1"))
       --EMACSRESULT:t
@@ -37,7 +37,7 @@ package body Ada_Mode.Nominal is -- target 0
      return access function
        (A_Param : in Float)
        return
-       Standard.Float -- Ada mode 4.01, GPS do this differently
+         Standard.Float
    is begin
       -- An early implementation of ada-smie-which-function was confused by this declaration.
       --EMACSCMD:(progn (beginning-of-line)(forward-line -7)(ada-which-function))
@@ -86,9 +86,9 @@ package body Ada_Mode.Nominal is -- target 0
 
                --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at " -- target 3"))
                --EMACSRESULT:t
-               begin -- target 4
-                     --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at "begin -- target 4"))
-                     --EMACSRESULT:t
+               begin
+                  --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at " -- target 3"))
+                  --EMACSRESULT:t
 
                   --EMACSCMD:(test-face "Integer" 'default)
                   -- "Integer" is in fact a type, but it would require
@@ -110,8 +110,10 @@ package body Ada_Mode.Nominal is -- target 0
                      raise Constraint_Error
                        with "help!";
                   when
+                    -- pathological case - should put 'raise' on next line
+                    -- just ensure it doesn't raise an error
                     E : others => raise
-                      Constraint_Error with "help!";
+                    Constraint_Error with "help!";
                end;
             elsif False
             then
@@ -139,7 +141,7 @@ package body Ada_Mode.Nominal is -- target 0
          do
             -- extended return with do
             case Param_1 is
-            -- comment after "is", before "when"
+               -- comment after "is", before "when"
                when A | Nominal.B =>
                   null;
                when C =>
@@ -214,8 +216,8 @@ package body Ada_Mode.Nominal is -- target 0
         (X : Integer)
         -- an expression with 'not' to see if we need that in the
         -- grammar (conflicts with 'not null')
-        when Local_1 = 0 and not -- Ada mode 4.01 screws this up.
-        (Local_2 = 1)
+        when Local_1 = 0 and not
+          (Local_2 = 1)
       is
          Tmp : Integer := 0;
       begin

@@ -606,7 +606,7 @@ package Ada_Mode.Nominal is
       Parent_Element_2 => 2.0,
       Parent_Element_3 => False);
    --EMACSCMD:(progn (forward-line -2)(ada-which-function))
-   --EMACSRESULT:"Function_2g"
+   --EMACSRESULT:"Ada_Mode.Nominal"
 
    procedure Procedure_2a;
    procedure

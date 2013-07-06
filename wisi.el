@@ -749,6 +749,13 @@ cache. Otherwise move to cache-prev, or prev cache if nil."
   (when (markerp (wisi-cache-next cache))
     (goto-char (1- (wisi-cache-next cache)))))
 
+(defun wisi-prev-statement-cache (cache)
+  "Move point to CACHE-next, return cache; error motion if nil."
+  (when (not (markerp (wisi-cache-prev cache)))
+    (error "no prev statement cache"))
+  (goto-char (1- (wisi-cache-prev cache)))
+  (wisi-get-cache (point)))
+
 ;;;;; indentation
 
 (defun wisi-comment-indent ()
