@@ -487,8 +487,7 @@ that token. Use in a grammar action as:
 			(t
 			 (setf (wisi-cache-class cache) (or override-start class)))
 			)
-		      (when first-item
-			(setf (wisi-cache-nonterm cache) $nterm))
+		      (setf (wisi-cache-nonterm cache) $nterm)
 		      (setf (wisi-cache-containing cache) first-keyword-mark))
 
 		  ;; else create new cache
@@ -498,7 +497,7 @@ that token. Use in a grammar action as:
 		     (1+ (car region))
 		     'wisi-cache
 		     (wisi-cache-create
-		      :nonterm (when first-item $nterm);; $nterm defined in wisi-semantic-action
+		      :nonterm $nterm;; $nterm defined in wisi-semantic-action
 		      :token   token
 		      :last  (- (cdr region) (car region))
 		      :class   (or override-start class)

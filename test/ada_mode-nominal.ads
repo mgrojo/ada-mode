@@ -668,14 +668,14 @@ private
          Component_1 : Integer;
          Component_2 : Integer;
          Component_3 : Integer;
-   end record;
+      end record;
 
    type Limited_Derived_Type_1b is abstract limited
       new Private_Type_1 with record
          Component_1 : Integer;
          Component_2 : Integer;
          Component_3 : Integer;
-   end record;
+      end record;
 
    type Limited_Derived_Type_1c is abstract
       limited new Private_Type_1 with record -- Ada mode 4.01 aligned this with "type"; this is better

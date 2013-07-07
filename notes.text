@@ -46,8 +46,7 @@ run indent test from emacs -Q:
  ada-wisi parser
 build/wisi/Makefile
     tests
-        test/ada_mode-nominal.ads indent
-            fix derived type record defs
+        test/ada_mode-nominal-child.ads indent
 
 Debian : emacs 24.2 (from testing), GNAT GPL 2012:
     ada-mode tests failing
