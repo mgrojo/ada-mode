@@ -240,7 +240,7 @@ package Ada_Mode.Nominal is
        return access function
          (A_Param : in Float)
          return
-         Standard.Float; -- different from Ada mode 4.01, GPS
+           Standard.Float;
 
    --EMACSCMD:(test-face "array (" font-lock-keyword-face)
    --EMACSCMD:(test-face "Integer" 'default)
@@ -655,8 +655,8 @@ private
          Component_3 : Integer;
       end record; -- Ada mode 4.01 aligned this with "type"; this is better
 
-   type Limited_Derived_Type_1 is abstract limited new Private_Type_1
-     with record
+   type Limited_Derived_Type_1 is abstract limited new Private_Type_1 with
+      record
          Component_1 : Integer := 0;
          Component_2 : Integer := 1;
          Component_3 : Integer := 2;
@@ -664,34 +664,39 @@ private
         with Pack => True; -- FIXME: aspect indented with ada-indent-broken; ok? ask list, GPS
 
    type Limited_Derived_Type_1a is abstract limited new
-     Private_Type_1 with record
+      Private_Type_1 with record
          Component_1 : Integer;
          Component_2 : Integer;
          Component_3 : Integer;
-      end record;
+   end record;
 
    type Limited_Derived_Type_1b is abstract limited
-     new Private_Type_1 with record
+      new Private_Type_1 with record
          Component_1 : Integer;
          Component_2 : Integer;
          Component_3 : Integer;
-      end record;
+   end record;
 
    type Limited_Derived_Type_1c is abstract
-     limited new Private_Type_1 with record -- Ada mode 4.01 aligned this with "type"; this is better
+      limited new Private_Type_1 with record -- Ada mode 4.01 aligned this with "type"; this is better
          Component_1 : Integer;
          Component_2 : Integer;
          Component_3 : Integer;
       end record;
 
    type Limited_Derived_Type_1d is
-     abstract limited new Private_Type_1 with record
+      abstract limited new Private_Type_1 with record
          Component_1 : Integer;
          Component_2 : Integer;
          Component_3 : Integer;
       end record;
 
    type Limited_Derived_Type_2 is abstract limited new Private_Type_1 with null record;
+
+   type Limited_Derived_Type_2a is abstract limited new Private_Type_1
+      with record
+         Component_1 : Integer;
+      end record;
 
    type Limited_Derived_Type_3 is abstract limited new Private_Type_1
      with null record;
