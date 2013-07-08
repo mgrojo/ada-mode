@@ -9,10 +9,10 @@ package Ada_Mode.Parens is
    -- non-pathological; compare to T3
    type T1 (A : Integer;
             B : Integer)
-      is limited record
-         V : Character;
-         C : Integer;
-      end record;
+     is limited record
+        V : Character;
+        C : Integer;
+     end record;
 
    --EMACSCMD:(progn (end-of-line 3)(ada-in-paramlist-p))
    --EMACSRESULT:nil
@@ -30,7 +30,7 @@ package Ada_Mode.Parens is
      (Param_1,
         Param_2,
         Param_3 : in Ada.Text_IO.
-          Count; -- pretending this is wrapped because of line length limit
+        Count; -- pretending this is wrapped because of line length limit
       Param_4,
         Param_5 : in
         out Integer; -- who would do this!?

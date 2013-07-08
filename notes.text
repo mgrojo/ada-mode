@@ -2,22 +2,12 @@ General notes on implementing the Emacs Ada mode indentation engine using the sm
 
 run wisi test from emacs -Q:
 (progn
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.smie")
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.smie/build")
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.smie/build/wisi")
-  (load "run-wisi-test")
-  (find-file "/Projects/org.emacs.ada-mode.smie/build/Makefile")
-  (run-test "empty_production_6"))
-
-run indent test from emacs -Q:
-(progn
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.smie")
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.smie/build")
-  (global-font-lock-mode -1)
+  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-1")
+  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-1/build")
+  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-1/build/wisi")
   (load "run-indent-test-wisi")
-  (find-file "/Projects/org.emacs.ada-mode.smie/test/ada_mode-long_paren.adb")
-  (setq skip-reindent-test t)
-)
+  (find-file "/Projects/org.emacs.ada-mode.stephe-1/build/wisi/Makefile")
+  (run-test "ada_mode-parens.adb"))
 
 (progn
     (require 'ada-smie)
@@ -46,7 +36,7 @@ run indent test from emacs -Q:
  ada-wisi parser
 build/wisi/Makefile
     tests
-        test/ada_mode-nominal-child.ads indent
+        test/ada_mode-quantified_expressions.adb indent
 
 Debian : emacs 24.2 (from testing), GNAT GPL 2012:
     ada-mode tests failing

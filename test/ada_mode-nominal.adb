@@ -141,7 +141,7 @@ package body Ada_Mode.Nominal is -- target 0
          do
             -- extended return with do
             case Param_1 is
-               -- comment after "is", before "when"
+            -- comment after "is", before "when"
                when A | Nominal.B =>
                   null;
                when C =>
@@ -358,12 +358,14 @@ package body Ada_Mode.Nominal is -- target 0
    --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at " -- target 0"))
    --EMACSRESULT:t
 
-   -- Functions can't be 'is null', so we test some indentation issues
    function Function_1a return Float
    is begin
       Procedure_2a;
       Procedure_2a;
-      return 1.0;
+      return 1.0 +
+        Function_2a (Parent_Type_1'(1, 2.0, False)) +
+        -- multi-line expression that happens to have a cache at a line start
+        12.0;
    end Function_1a;
 
    function Function_1b return Float

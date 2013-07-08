@@ -20,7 +20,7 @@ PACKAGE Ada_Mode.Options IS
 -- comment in column 0
 
    TYPE Derived_Type_1 IS
-     NEW Private_Type_1 WITH RECORD
+   NEW Private_Type_1 WITH RECORD
       Component_2 : Integer;
    END RECORD;
 

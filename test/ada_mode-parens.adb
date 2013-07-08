@@ -141,8 +141,8 @@ package body Ada_Mode.Parens is
       --EMACSRESULT: t
       while A.all
         or else B.all
-      --EMACSCMD:(progn (forward-line 2)(back-to-indentation)(ada-next-statement-keyword)(looking-at "end loop"))
-      --EMACSRESULT: t
+        --EMACSCMD:(progn (forward-line 2)(back-to-indentation)(ada-next-statement-keyword)(looking-at "end loop"))
+        --EMACSRESULT: t
       loop
          if A = null then B.all := False; end if; -- cached keywords between 'loop' and 'end loop'
       end loop;
@@ -179,12 +179,12 @@ package body Ada_Mode.Parens is
          exit when A.all
            or else (B.all
                       and then C
-                      and then D); --  Indented on 'exit' instead of 'and then'
+                      and then D);
 
          exit when A.all
            or else (B.all
                       and then C
-                      and then D)  --  Indented on 'if', instead of 'and then'
+                      and then D)
            or else ((B.all
                        and then C)
                       or else
