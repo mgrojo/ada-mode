@@ -35,53 +35,8 @@ run wisi test from emacs -Q:
 
  ada-wisi parser
 build/wisi/Makefile
-    commit changes before slice
-
     tests
-        test/ada_mode-adacore_8910_004.adb parse
-            need slice
-                makes grammar ambiguous!
-
-   Line   : String(1..80);
-'String(1..80)' can be:
- 'subtype_indication => name constraint'
- 'subtype_indication => name => slice => name ( range )'
-
-
-
-    things that look like LEFT_PAREN ... RIGHT_PAREN
-        actual_parameter_part : LEFT_PAREN association_list RIGHT_PAREN
-            occurs as IDENTIFIER actual_parameter_part
-        aggregate : LEFT_PAREN association_list RIGHT_PAREN | ...
-            occurs in primary, qualified_expression
-        array_type_definition
-            starts with ARRAY, not name
-        attribute_designator : IDENTIFIER LEFT_PAREN expression RIGHT_PAREN | ...
-            occurs as attribute_reference
-        discriminant_part_opt : LEFT_PAREN discriminant_specification_list RIGHT_PAREN
-            occurs as IDENTIFIER discriminant_part_opt
-        enumeration_type_definition : LEFT_PAREN enumeration_literal_list RIGHT_PAREN
-            preceded by 'type'
-        formal_part : LEFT_PAREN parameter_specification_list RIGHT_PAREN
-            occurs in parameter_profile_opt, parameter_and_result_profile;
-            preceded by PROCEDURE name, FUNCTION name ACCEPT IDENTIFIER
-        index_constraint : LEFT_PAREN discrete_subtype_definition_list RIGHT_PAREN
-            occurs in constraint, which occurs in subtype_indication, which occurs in lots of places
-        slice : LEFT_PAREN discrete_range RIGHT_PAREN
-        conditional_expression :
-            starts with LEFT_PAREN IF or CASE
-        quantified_expression :
-            starts with LEFT_PAREN FOR
-
-        non-ambiguous until introduce slice!
-            can't sort into discrete sets, too big a change to lump all together
-
-    merge parsers when stacks are almost identical?
-        put back full slice, see what the stacks are:
-        only differ by empty _opt (range is nil)?
-        execute second action with 'verify only' flag; error if not _same_ text property
-            nonterm will be different - slice vs constraint
-            add list of nonterm priority to resolve consistently
+        test/bug_5746.adb indent
 
 Debian : emacs 24.2 (from testing), GNAT GPL 2012:
     ada-mode tests failing

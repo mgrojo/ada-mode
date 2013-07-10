@@ -200,21 +200,34 @@ BEFORE should be t when called from ada-wisi-before-cache, nil otherwise."
 
 	(name-paren
 	 (let ((containing (wisi-goto-containing cache)))
-	   (case (wisi-cache-token containing)
-	     (LEFT_PAREN
+	   (case (wisi-cache-class containing)
+ 	     (open-paren
+	      ;; test/ada_mode-slices.adb
+	      ;; Put_Line(Day'Image(D1) & " - " & Day'Image(D2) & " = " &
+	      ;;            Integer'Image(N));
 	      ;;
 	      ;; test/ada_mode-parens.adb
 	      ;; return Float (
 	      ;;               Integer'Value
 	      ;; indenting 'Integer'
-	      (+ (current-column) 1))
+	      ;;
+	      ;; We distinguish the two cases by going to the first token,
+	      ;; and comparing point to pos-0.
+	      (let ((paren-column (current-column)))
+		(wisi-forward-token t); "("
+		(forward-comment (point-max))
+		(if (= (point) pos-0)
+		    ;; 2)
+		    (1+ paren-column)
+		  ;; 1)
+		  (+ paren-column 1 ada-indent-broken))))
 
 	     (t
-	      ;; ada_mode-generic_instantiation.ads
+	      ;; test/ada_mode-generic_instantiation.ads
 	      ;;   procedure Procedure_6 is new
 	      ;;     Instance.Generic_Procedure (Integer, Function_1);
-	      ;; indenting 'Instance'
-	      (ada-wisi-indent-containing ada-indent-broken cache t))
+	      ;; indenting 'Instance'; containing is 'new'
+	      (ada-wisi-indent-cache ada-indent-broken containing))
 	     )))
 
 	(open-paren

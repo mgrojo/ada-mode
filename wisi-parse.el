@@ -176,6 +176,8 @@
 
       (setq active (wisi-parsers-active parser-states active-parser-count))
       (when (eq active 'shift)
+	(when (> active-parser-count 1)
+	  (setq active-parser-count (wisi-parse-elim-identical parser-states active-parser-count)))
 	(setq token (funcall lexer)))
     )
     (when (> active-parser-count 1)
@@ -243,6 +245,45 @@ token, execute 'reduce parsers."
     (unless result
       (error "no active parsers"))
     result))
+
+(defun wisi-parse-elim-identical (parser-states active-parser-count)
+  "Check for parsers in PARSER-STATES that have reached identical states eliminate one.
+Return new ACTIVE-PARSER-COUNT. Assumes all parsers have active
+nil, 'shift, or 'accept."
+  ;; parser-states passed by reference; active-parser-count by copy
+  ;; see test/ada_mode-slices.adb for example
+  (dotimes (parser-i (1- (length parser-states)))
+    (when (wisi-parser-state-active (aref parser-states parser-i))
+      (dotimes (parser-j (- (length parser-states) parser-i 2))
+	(when (wisi-parser-state-active (aref parser-states (+ parser-i parser-j 1)))
+	  (when (eq (wisi-parser-state-sp (aref parser-states parser-i))
+		     (wisi-parser-state-sp (aref parser-states (+ parser-i parser-j 1))))
+	    (let ((compare t))
+	      (dotimes (stack-i (wisi-parser-state-sp (aref parser-states parser-i)))
+		(setq
+		 compare
+		 (and compare
+		      (equal (aref (wisi-parser-state-stack (aref parser-states parser-i)) stack-i)
+			     (aref (wisi-parser-state-stack (aref parser-states (+ parser-i parser-j 1))) stack-i)))))
+	      (when compare
+		;; parser stacks are identical
+		(setq active-parser-count (1- active-parser-count))
+		(when (> wisi-debug 0) (message "terminate identical parser %d (%d active)"
+						(+ parser-i parser-j 1) active-parser-count))
+		(when (= active-parser-count 1)
+		  ;; the actions for the two parsers are not
+		  ;; identical, but either is good enough for
+		  ;; indentation and navigation, so we just do one.
+		  (wisi-execute-pending (wisi-parser-state-pending (aref parser-states (+ parser-i parser-j 1))))
+		  (setf (wisi-parser-state-pending (aref parser-states (+ parser-i parser-j 1))) nil)
+
+		  ;; clear pending of other parser so it can be reused
+		  (setf (wisi-parser-state-pending (aref parser-states parser-i)) nil))
+
+		(setf (wisi-parser-state-active (aref parser-states (+ parser-i parser-j 1))) nil))
+	      )))
+	)))
+  active-parser-count)
 
 (defun wisi-execute-pending (pending)
   (while pending

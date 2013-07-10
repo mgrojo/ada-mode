@@ -1,7 +1,13 @@
+-- tests slices; example of typical code.
+
 --EMACSCMD:(setq skip-recase-test t)
-with Adacore_8910_003_Aux; use Adacore_8910_003_Aux;
 with Ada.Text_IO; use Ada.Text_IO;
-procedure Adacore_8910_003 is
+procedure Ada_Mode.Slices is
+   type Day is (Sun, Mon, Tues);
+
+   function "+" (Left : in Day; Right : in Integer) return Day;
+   function "-" (Left, Right : in Day) return Integer;
+
    D1, D2 : Day;
    N      : Integer;
    Line   : String(1..80);
@@ -73,4 +79,4 @@ begin
       Put_Line(Day'Image(D1) & " - " & Day'Image(D2) & " = " &
                  Integer'Image(N));
    end loop;
-end Adacore_8910_003;
+end Ada_Mode.Slices;
