@@ -10,16 +10,16 @@ package Adacore_8114_010 is
      );
 
    type Wrong_Indentation is
-     (     --  The following line is now indented in the same column
+     (
       Value_1,
       Value_2
-     );    --  This is also aligned on the comment
+     );
 
    type Wrong_Indentation_Two is
      (  Value_0,
-        Value_1,
-        Value_2
-     );   --  This is also aligned on the comment
+      Value_1,
+      Value_2
+     );
 
 
    procedure Correct_Sub

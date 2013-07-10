@@ -709,6 +709,12 @@ cached token, return new indentation for point."
 	       ;; not indenting keyword following 'generic'
 	       (+ (current-column) ada-indent-broken))
 
+	      (primary
+	       ;; test/ada_mode-quantified_expressions.adb
+	       ;; if (for some J in 1 .. 10 =>
+	       ;;       J/2 = 0)
+	       (ada-wisi-indent-containing ada-indent-broken cache))
+
 	      ))
 
 	   (IS
