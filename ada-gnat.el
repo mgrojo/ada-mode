@@ -973,10 +973,11 @@ Prompt user if more than one."
 
   (when (featurep 'ada-smie)
     ;; we don't use add-hook here, because we don't want the global value.
-    (add-to-list 'smie-indent-functions 'ada-gnatprep-indent))
-
-  (when (featurep 'ada-smie)
+    (add-to-list 'smie-indent-functions 'ada-gnatprep-indent)
     (set (make-variable-buffer-local 'ada-fix-context-clause) 'ada-smie-context-clause))
+
+  (when (featurep 'ada-wisi)
+    (add-to-list 'wisi-indent-calculate-functions 'ada-gnatprep-indent))
 )
 
 ;; add at end, so it is after ada-smie-setup, and can modify smie-indent-functions

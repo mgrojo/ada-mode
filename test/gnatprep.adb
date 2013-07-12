@@ -35,15 +35,18 @@ begin
 
    declare
       Control_Flags : Integer;
-      --EMACSCMD:(progn (end-of-line 2)(forward-char -4)(face-at-point))
-      for Control_Flags use at (BASE_ADDRESS + 16#3fd#);
+      --EMACSCMD:(progn (end-of-line 5)(forward-char -4)(face-at-point))
       --EMACSRESULT:font-lock-constant-face
+      --EMACSCMD:(progn (end-of-line 3)(forward-char -3)(syntax-class (syntax-after (point))))
+      --EMACSRESULT:2
+      for Control_Flags use at (BASE_ADDRESS + 16#3fd#);
 
       --  Don't change the hex literal to mixed case
       --EMACSCMD:(progn (end-of-line 2)(forward-char -1)(ada-case-adjust)(buffer-substring (- (point) 6) (point)))
       Other_Flags : constant Interfaces.Unsigned_16 := 16#ffff#;
       --EMACSRESULT:"#ffff#"
    begin
+      null;
    end;
 
 end Gnatprep;

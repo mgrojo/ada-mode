@@ -1,4 +1,3 @@
-^ada-grammar-wy\.el$
 ^ada-grammar\.output$
 ^build/.*\.tar\.gz$
 ^build/smie/.*\.ali$
@@ -14,7 +13,6 @@
 ^build/wisi/.*\.tmp$
 ^build/wisi/.*\.wisi-test$
 ^build/wisi/obj$
-^gpr-grammar-wy\.el$
 ^gpr-grammar\.output$
 ^run_sjw\.text$
 ^test/.*\.ali$

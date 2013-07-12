@@ -254,7 +254,7 @@ nil, 'shift, or 'accept."
   ;; see test/ada_mode-slices.adb for example
   (dotimes (parser-i (1- (length parser-states)))
     (when (wisi-parser-state-active (aref parser-states parser-i))
-      (dotimes (parser-j (- (length parser-states) parser-i 2))
+      (dotimes (parser-j (- (length parser-states) parser-i 1))
 	(when (wisi-parser-state-active (aref parser-states (+ parser-i parser-j 1)))
 	  (when (eq (wisi-parser-state-sp (aref parser-states parser-i))
 		     (wisi-parser-state-sp (aref parser-states (+ parser-i parser-j 1))))

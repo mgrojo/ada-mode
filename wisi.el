@@ -787,7 +787,7 @@ the comment on the previous line."
   "Functions to calculate indentation. Each called with point
   before a token at the beginning of a line (at current
   indentation); return indentation column for that token, or
-  nil. Preserve point. Calling stops when first function returns
+  nil. May move point. Calling stops when first function returns
   non-nil.")
 (make-local-variable 'wisi-indent-calculate-functions)
 

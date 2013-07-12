@@ -1164,7 +1164,7 @@ Return new value of PROJECT."
     (modify-syntax-entry ?\" "\"" table)
 
     ;; punctuation; operators etc
-    (modify-syntax-entry ?#  "$" table); based number
+    (modify-syntax-entry ?#  "w" table); based number - word syntax, since we don't need the number
     (modify-syntax-entry ?&  "." table)
     (modify-syntax-entry ?*  "." table)
     (modify-syntax-entry ?+  "." table)
@@ -2271,6 +2271,12 @@ The paragraph is indented on the first line."
 
   (run-mode-hooks 'ada-mode-hook)
 
+  ;; If global-font-lock is not enabled, ada-gnat-syntax-propertize is
+  ;; not run when the text is first loaded into the buffer. Recover
+  ;; from that.
+  (syntax-ppss-flush-cache (point-min))
+  (syntax-propertize (point-max))
+
   (add-hook 'hack-local-variables-hook 'ada-mode-post-local-vars)
   )
 
@@ -2307,6 +2313,7 @@ The paragraph is indented on the first line."
 		  ada-2005-keywords
 		  ada-2012-keywords))))
   )
+
 (put 'ada-mode 'custom-mode-group 'ada)
 
 ;;;;; Global initializations

@@ -259,7 +259,7 @@ package body GNAT.Command_Line is
                raise Invalid_Parameter;
             end if;
 
-            --  If switch can have an optionnal argument
+            --  If switch can have an optional argument
          elsif Index_Switches + Max_Length <= Switches'Last
            and then Switches (Index_Switches + Max_Length) = '?'
          then

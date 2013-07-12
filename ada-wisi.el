@@ -336,24 +336,35 @@ BEFORE should be t when called from ada-wisi-before-cache, nil otherwise."
 	       (EQUAL_GREATER
 		(+ (current-column) ada-indent-broken))
 
-	       (RENAMES
-		(wisi-forward-find-token '(FUNCTION PROCEDURE) pos-0)
-		(let ((pos-subprogram (point))
-		      (has-params
-		       ;; FIXME: this is wrong for one return access
-		       ;; function case: overriding function Foo
-		       ;; return access Bar (...) renames ...;
-		       (wisi-forward-find-token 'LEFT_PAREN pos-0 t)))
-		  (if has-params
-		   (if (<= ada-indent-renames 0)
-		       ;; indent relative to paren
-		       (+ (current-column) (- ada-indent-renames))
-		     ;; else relative to line containing keyword
-		     (goto-char pos-subprogram)
-		     (+ (current-indentation) ada-indent-renames))
+	       (ELSIF
+		;; test/g-comlin.adb
+		;;   elsif Current_Argument < CL.Argument_Count then
+		(ada-wisi-indent-cache 0 containing))
 
-		   ;; no params
-		   (goto-char pos-subprogram)
+	       (RENAMES
+		(ecase (wisi-cache-nonterm containing)
+		  ((generic_renaming_declaration subprogram_renaming_declaration)
+		   (wisi-forward-find-token '(FUNCTION PROCEDURE) pos-0)
+		   (let ((pos-subprogram (point))
+			 (has-params
+			  ;; FIXME: this is wrong for one return access
+			  ;; function case: overriding function Foo
+			  ;; return access Bar (...) renames ...;
+			  (wisi-forward-find-token 'LEFT_PAREN pos-0 t)))
+		     (if has-params
+			 (if (<= ada-indent-renames 0)
+			     ;; indent relative to paren
+			     (+ (current-column) (- ada-indent-renames))
+			   ;; else relative to line containing keyword
+			   (goto-char pos-subprogram)
+			   (+ (current-indentation) ada-indent-renames))
+
+		       ;; no params
+		       (goto-char pos-subprogram)
+		       (+ (current-indentation) ada-indent-broken))
+		     ))
+
+		  (object_renaming_declaration
 		   (+ (current-indentation) ada-indent-broken))
 		  ))
 
@@ -697,6 +708,12 @@ cached token, return new indentation for point."
 	   (COMMA
 	    ;; between ',' and 'when'; must be indenting a comment
 	    (ada-wisi-indent-containing ada-indent-when cache nil))
+
+	   (ELSIF
+	    ;; test/g-comlin.adb
+	    ;; elsif Index_Switches + Max_Length <= Switches'Last
+	    ;;   and then Switches (Index_Switches + Max_Length) = '?'
+	    (ada-wisi-indent-cache ada-indent-broken cache))
 
 	   (EQUAL_GREATER
 	    (ecase (wisi-cache-nonterm (wisi-goto-containing cache nil))
