@@ -37,7 +37,7 @@ run wisi test from emacs -Q:
  ada-wisi parser
 build/wisi/Makefile
     tests
-        test/gnatprep.adb passes
+        test/mats_weber_bugs.adb parse failing
 
 
 Debian : emacs 24.2 (from testing), GNAT GPL 2012:
@@ -95,6 +95,8 @@ generalized parse
  ada-wisi other
 use defvar-local
     check emacs 23.3
+
+ada-wisi-make-subprogram-body
 
 /Projects/Web/stephe-leake/emacs/ada-mode/emacs-ada-mode.html
     to-do list

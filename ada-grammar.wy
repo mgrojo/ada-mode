@@ -1302,7 +1302,7 @@ name_list
   : name
   | name_list COMMA name
     (progn
-      (wisi-statement-action 2 'list-break)
+      (wisi-statement-action 2 'statement-other)
       (wisi-containing-action 2 3))
   ;
 
@@ -1603,7 +1603,7 @@ protected_type_declaration
 qualified_expression
   : name TICK aggregate
     (progn
-      (wisi-statement-action 1 'statement-other 3 'statement-other)
+      (wisi-statement-action 1 'statement-other)
       (wisi-containing-action 1 3))
   ;
 

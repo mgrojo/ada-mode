@@ -55,28 +55,28 @@ package Indent is
 
       C_S_Controls : constant
         CSCL_Type :=
-        CSCL_Type'
-        (
-         1 =>  --  Used to be aligned on "CSCL_Type'"
-               --  aligned with previous comment.
-           IO_CPU_Control_State_S_Pkg.CPU2_Fault_Status_Type'
-           (Unused2  => 10,  -- Used to be aligned on "1 =>"
-            B_P_Fail => False,
-            B_L_I    => True),
+          CSCL_Type'
+            (
+             1 =>  --  Used to be aligned on "CSCL_Type'"
+                   --  aligned with previous comment.
+               IO_CPU_Control_State_S_Pkg.CPU2_Fault_Status_Type'
+                 (Unused2  => 10,  -- Used to be aligned on "1 =>"
+                  B_P_Fail => False,
+                  B_L_I    => True),
 
-         2 =>
-           IO_CPU_Control_State_S_Pkg.CPU2_Fault_Status_Type'
-           (Unused2  => 10,  -- Used to be aligned on "1 =>"
-            B_P_Fail => False,
-            B_L_I    => True),
+             2 =>
+               IO_CPU_Control_State_S_Pkg.CPU2_Fault_Status_Type'
+                 (Unused2  => 10,  -- Used to be aligned on "1 =>"
+                  B_P_Fail => False,
+                  B_L_I    => True),
 
-         --  Comment to disturbe the aggregate indentation
+             --  Comment to (try to) disturb the aggregate indentation
 
-         3 =>
-           IO_CPU_Control_State_S_Pkg.CPU2_Fault_Status_Type'
-           (Unused2  => 10,  -- Used to be aligned on "1 =>"
-            B_P_Fail => False,
-            B_L_I    => True));
+             3 =>
+               IO_CPU_Control_State_S_Pkg.CPU2_Fault_Status_Type'
+                 (Unused2  => 10,  -- Used to be aligned on "1 =>"
+                  B_P_Fail => False,
+                  B_L_I    => True));
 
    end B_C_Parameters;
 

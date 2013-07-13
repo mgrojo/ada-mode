@@ -5,8 +5,15 @@ with Ada.Text_IO; use Ada.Text_IO;
 procedure Ada_Mode.Slices is
    type Day is (Sun, Mon, Tues);
 
-   function "+" (Left : in Day; Right : in Integer) return Day;
-   function "-" (Left, Right : in Day) return Integer;
+   function "+" (Left : in Day; Right : in Integer) return Day
+   is begin
+      return Sun;
+   end "+";
+
+   function "-" (Left, Right : in Day) return Integer
+   is begin
+      return 0;
+   end "-";
 
    D1, D2 : Day;
    N      : Integer;

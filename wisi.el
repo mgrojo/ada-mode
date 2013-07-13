@@ -743,6 +743,16 @@ cache. Otherwise move to cache-prev, or prev cache if nil."
       (error "already at outermost containing token")))
    ))
 
+(defun wisi-goto-containing-paren (cache)
+  "Move point to just after the open-paren containing CACHE.
+Return cache for paren, or nil if no containing paren."
+  (while (and cache
+	      (not (eq (wisi-cache-class cache) 'open-paren)))
+    (setq cache (wisi-goto-containing cache)))
+  (when cache
+    (forward-char 1))
+  cache)
+
 (defun wisi-next-statement-cache (cache)
   "Move point to CACHE-next; no motion if nil."
   (when (markerp (wisi-cache-next cache))
