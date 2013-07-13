@@ -232,6 +232,12 @@ BEFORE should be t when called from ada-wisi-before-cache, nil otherwise."
 		  ;; 1)
 		  (+ paren-column 1 ada-indent-broken))))
 
+	     (list-break
+	      ;; test/parent.adb
+	      ;; Append_To (Formals,
+	      ;;            Make_Parameter_Specification (Loc,
+	      (wisi-indent-paren 1))
+
 	     (t
 	      ;; test/ada_mode-generic_instantiation.ads
 	      ;;   procedure Procedure_6 is new
@@ -864,9 +870,13 @@ cached token, return new indentation for point."
 	  ))
 
 	(statement-start
-	 (case (wisi-cache-nonterm cache)
-	   (with_clause
+	 (case (wisi-cache-token cache)
+	   (WITH ;; with_clause
 	    (+ (current-column) ada-indent-with))
+
+	   (label_opt
+	    ;; comment after label
+	    (+ (current-column) (- ada-indent-label)))
 
 	   (t
 	    ;; procedure Procedure_8

@@ -36,8 +36,8 @@ run wisi test from emacs -Q:
 
  ada-wisi parser
 build/wisi/Makefile
-    tests
-        test/mats_weber_bugs.adb parse failing
+    test
+        test/with_use1.adb indent
 
 
 Debian : emacs 24.2 (from testing), GNAT GPL 2012:
@@ -97,6 +97,9 @@ use defvar-local
     check emacs 23.3
 
 ada-wisi-make-subprogram-body
+
+interactive:
+    if parse fails, indent to previous line. when parse succeeds after previous fail, reindent current statement
 
 /Projects/Web/stephe-leake/emacs/ada-mode/emacs-ada-mode.html
     to-do list

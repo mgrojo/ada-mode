@@ -18,16 +18,10 @@ L2:
    end loop L2;
 
 L3: for I in 1..5 loop
-   null;
-   -- this is what ada-mode 4.01 did in this case. Don't put loops on
-   -- the same line as the label if ada-indent-label is not 0!
-end loop L3;
+      null;
+   end loop L3;
 
-L4: for I in 1..5 loop
-   null;
-end loop L4;
-
-A := 2; -- wrong because L4 is wrong
+   A := 2;
 
 BLOCK_TRY:
    declare

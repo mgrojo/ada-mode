@@ -16,9 +16,9 @@ procedure Pragma_Indent is
 
    procedure Toto;
 
-   --  pragma parameter list; same as procedure call, not ada-broken-indent
+   --  pragma parameter list; same as procedure call
    pragma Import (C, Toto,
-                  "toto");
+                    "toto");
 begin
    --  procedure call; not ada-broken-indent
    Foo (1,

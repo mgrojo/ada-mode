@@ -1,118 +1,106 @@
 -- Bugs reported by Mats Weber <Mats.Weber@elca-matrix.ch>
 -- ada-mode version: 2.23
 
--- Fontification is messed up with string delimiter inside
--- character constant
--- starting with the '"' character, everything is fontified as a string
--- litteral until the end of the buffer.
--- Indentation is also incorrect for the following statment
--- Fixed in: ada-mode 3.2, by using text properties on '
-procedure Test is
-begin
-   if False then
-      Put('"');
-      A := 1;
-   end if;
-end Test;
+--EMACSCMD:(font-lock-fontify-buffer)
 
---  Fontification problem for a raise without an exception name
---  Fixed in: ada-mode 2.28
-
-procedure Test is
-begin
-   raise Error; -- is fontified correctly, but in
-   raise;       -- the raise keyword does not get the keyword font.
-end Test;
-
-
---  Incorrect fontification of 'body'
-
-package body Test is -- fontified correctly, but in
-   task body Yy is -- "body" appears red.
-   end Test;
-
-
-   -- Bad indentation of a begin .. end block inside a loop --
-   -- Workaround: The loop gets correct indentation if you remove the
-   --  exception block
-
-   procedure Test is
+with Ada.Text_Io; use Ada.Text_Io;
+package body Mats_Weber_Bugs is
+   -- Fontification is messed up with string delimiter inside
+   -- character constant
+   -- starting with the '"' character, everything is fontified as a string
+   -- litteral until the end of the buffer.
+   -- Indentation is also incorrect for the following statment
+   -- Fixed in: ada-mode 3.2, by using text properties on '
+   procedure Test_1 is
+      A : Integer;
    begin
+      if False then
+         --EMACSCMD:(test-face "'" 'font-lock-string-face)
+         Put('"');
+         --EMACSCMD:(test-face "\"" 'font-lock-string-face)
+         Put('"');
+         A := 1;
+      end if;
+   end Test_1;
+
+   procedure Test_2 is
+   begin
+      --  Fontification problem for a raise without an exception name
+      --  Fixed in: ada-mode 2.28
+
+      --EMACSCMD:(test-face "raise" 'font-lock-keyword-face)
+      raise Error;
+   exception
+      --EMACSCMD:(test-face "raise" 'font-lock-keyword-face)
+      when others => raise;
+   end Test_2;
+
+   --  Incorrect fontification of 'body'
+
+   --EMACSCMD:(test-face "body" 'font-lock-keyword-face)
+   package body Test_3 is
+      --EMACSCMD:(test-face "body" 'font-lock-keyword-face)
+      task body Yy is
       begin
          null;
-      exception
-         when others =>
-            null;
-      end;
+      end Yy;
 
-      loop
-         begin  --  Begin is not correctly indented (under loop)
-            null;
-         end;
-      end loop;
-   end Test;
-
-
-   -- the following piece of code is not indented correctly:
-   -- The indentation gets correct if you remove the first declare block, select
-   -- everything and hit C-c C-l.
-
-   package body P is
-
-      procedure Q is
+      -- Bad indentation of a begin .. end block inside a loop
+      procedure Test_4 is
       begin
-         declare
          begin
             null;
+         exception
+            when others =>
+               null;
          end;
 
-         if True then
+         loop
             begin
-               exception -- missing 'statement;' causes bad indentation, but not crash
-               when Constraint_Error => null;
+               null;
             end;
-         end if;
-      end Q;
+         end loop;
+      end Test_4;
 
-   end P;
+      -- the following piece of code is not indented correctly
+      package body P is
 
-   -- Wrong indentation of continuation lines in record declaration
-   -- and parameter lists
+         procedure Q is
+         begin
+            declare
+            begin
+               null;
+            end;
 
-   procedure Test is
-      type Tt is
-         record
-            Min,
-            Max : Int;
-         end record;
-      -- max gets indented with respect to min, which is wrong. I realise that
-      -- this requires more analysis to get right, but I think it would be
-      -- worth it if not too hard to implement.
-   begin
-      -- indent of
-      Put(File,
-          Item => A &
-            B);
-      -- this silimar case also gets the wrong indentation: "b" gets indented
-      -- under "item" instead of "a" (same remark as in the previous one).
+            if True then
+               begin
+                  null;
+               exception
+                  when Constraint_Error => null;
+               end;
+            end if;
+         end Q;
 
-   end Test;
+      end P;
 
-   --  Incorrect indentation when the previous line starts
-   --  with a declaration (even if inside a paramlist....)
-   --  reported by: Mats Weber <Mats.Weber@elca-matrix.ch>
-   --  ada-mode version: 3.1
+      -- Wrong indentation of continuation lines in record declaration
+      -- and parameter lists
 
-   package Test is
+      procedure Test_5 is
+         type Tt is
+            record
+               Min,
+                 Max : Integer;
+            end record;
+         File : File_Type;
+         A : String := "hi";
+         B : String := "World";
+      begin
+         -- indent of
+         Put(File,
+             Item => A &
+               B);
+      end Test_5;
 
-      procedure Toto (Un : in Integer;
-                      Deux : in Integer);
-
-      procedure Tata;
-
-   private
-
-      A : Integer;
-   end Test;
-
-   -- no 'end package'.
+   end Test_3;
+end Mats_Weber_Bugs;

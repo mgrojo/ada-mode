@@ -31,9 +31,6 @@ COMPILE_FILES := $(filter-out ada_mode-long_paren.adb, $(COMPILE_FILES))
 # This has incomplete code; used for testing OpenToken special rule
 COMPILE_FILES := $(filter-out ada_mode-opentoken.ads, $(COMPILE_FILES))
 
-# This has some illegal code, left that way to test graceful handling in ada-smie
-COMPILE_FILES := $(filter-out mats_weber_bugs.adb, $(COMPILE_FILES))
-
 COMPILE_FILES := $(filter-out g-comlin.adb, $(COMPILE_FILES))# copied from gnat runtime; gnat won't compile it!
 COMPILE_FILES := $(filter-out gnatprep.adb, $(COMPILE_FILES))# could run thru gnatprep, but it's not worth it.
 COMPILE_FILES := $(filter-out highlight.adb, $(COMPILE_FILES))# font-lock only
