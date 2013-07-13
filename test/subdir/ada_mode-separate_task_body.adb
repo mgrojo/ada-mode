@@ -28,7 +28,7 @@ begin
      abort
       -- 'abort' indented with ada-broken-indent, since this is part
       --  of a "select then abort" statement. Comment indented with
-      --  ada-indent.
+      --  ada-indent relative to 'select'.
 
       Titi;
       -- 'Titi' indented with ada-indent, as is this comment.

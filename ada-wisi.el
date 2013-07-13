@@ -683,9 +683,6 @@ cached token, return new indentation for point."
 		   ;;  Child_Element_1 => 10,
 		   ;;  Child_Element_2 => 12.0,
 		   (wisi-indent-paren 1))
-
-		  (with_clause; hanging, at top level
-		   ada-indent-broken)
 		  ))
 	       ))))
 
@@ -748,6 +745,16 @@ cached token, return new indentation for point."
 
 	(statement-other
 	 (ecase (wisi-cache-token cache)
+	   (ABORT
+	    ;; select
+	    ;;    Please_Abort;
+	    ;; then
+	    ;;   abort
+	    ;;    -- 'abort' indented with ada-broken-indent, since this is part
+	    ;;    Titi;
+	    (ada-wisi-indent-containing ada-indent cache))
+
+	    ;; test/subdir/ada_mode-separate_task_body.adb
 	   ((COLON COLON_EQUAL)
 	    ;; Local_3 : constant Float :=
 	    ;;   Local_2;
@@ -756,14 +763,20 @@ cached token, return new indentation for point."
 	   (COMMA
 	    (ecase (wisi-cache-nonterm cache)
 	      (name_list
-	       ;; test/ada_mode-nominal.ads
-	       ;; limited private with Ada.Strings.Bounded,
-	       ;;   --EMACSCMD:(test-face "Ada.Containers" 'default)
-	       ;;   Ada.Containers;
-	       (ada-wisi-indent-containing ada-indent-broken cache))
+	       (ecase (wisi-cache-nonterm (wisi-get-containing-cache cache))
+		 (use_clause
+		  ;; test/with_use1.adb
+		  (ada-wisi-indent-containing ada-indent-use cache))
 
-	    ;; FIXME: where? ;; between ',' and 'when'; must be indenting a comment
-	    ;; (ada-wisi-indent-containing ada-indent-when cache nil))
+		 (with_clause
+		  ;; test/ada_mode-nominal.ads
+		  ;; limited private with Ada.Strings.Bounded,
+		  ;;   --EMACSCMD:(test-face "Ada.Containers" 'default)
+		  ;;   Ada.Containers;
+		  ;;
+		  ;; test/with_use1.adb
+		  (ada-wisi-indent-containing ada-indent-with cache))
+		 ))
 	      ))
 
 	   (ELSIF

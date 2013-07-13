@@ -519,7 +519,7 @@ package body Ada_Mode.Nominal is -- target 0
    type Incomplete_Type_1 (Discriminant_1 : Integer) is tagged null record;
 
    type Incomplete_Type_2 (Discriminant_1 : Integer) is tagged null
-     record;
+     record; -- ada-indent-broken, not ada-indent-record-rel-type, because no record components
 
    type Incomplete_Type_3 (Discriminant_1 : Integer) is tagged
      null record;

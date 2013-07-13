@@ -386,19 +386,18 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
 
 (defvar wisi-debug 0
   "wisi debug mode:
-0 : normal
-1 : position point at parse errors
-2 : debug-on-error works in parser.")
+0 : normal - ignore parse errors, for indenting new code
+1 : report parse errors (for running tests)
+2 : show parse states, position point at parse errors, debug-on-error works in parser
+3 : dump parser stack.")
 
 (defun wisi-validate-cache (pos)
   "Ensure cached data is valid at least up to POS in current buffer."
   (when (< wisi-cache-max pos)
     (let (msg)
       (save-excursion
-	;; FIXME: if more than one start non-terminal in buffer,
-	;; wisent-parse will stop after the next one; need loop
 	(goto-char wisi-cache-max)
-	(if (> wisi-debug 0)
+	(if (> wisi-debug 1)
 	    ;; let debugger stop in wisi-parse
 	    (progn
 	      (wisi-parse wisi-parse-table 'wisi-forward-token)
@@ -412,15 +411,14 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
 	     (setq msg (cdr err)))
 	    )))
       (when msg
-	(when (and (> wisi-debug 0)
+	(when (and (> wisi-debug 1)
 		   (string-match ":\\([0-9]+\\):\\([0-9]+\\):" msg))
 	  (let ((line (string-to-number (match-string 1 msg)))
 		(col (string-to-number (match-string 2 msg))))
 	    (goto-char (point-min))
 	    (forward-line (1- line))
 	    (forward-char col)
-	    (error msg)))
-	(message msg)))))
+	    (error msg)))))))
 
 (defun wisi-get-containing-cache (cache)
   "Return cache from (wisi-cache-containing CACHE)."

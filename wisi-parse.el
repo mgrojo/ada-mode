@@ -112,11 +112,11 @@
 		(setq active-parser-count (1+ active-parser-count))
 		(setf (wisi-parser-state-label result) j)
 		(aset parser-states j result))
-	      (when (> wisi-debug 0) (message "spawn parser (%d active)" active-parser-count)))
+	      (when (> wisi-debug 1) (message "spawn parser (%d active)" active-parser-count)))
 
 	    (when (eq 'error (wisi-parser-state-active parser-state))
 	      (setq active-parser-count (1- active-parser-count))
-	      (when (> wisi-debug 0) (message "terminate parser (%d active)" active-parser-count))
+	      (when (> wisi-debug 1) (message "terminate parser (%d active)" active-parser-count))
 	      (case active-parser-count
 		(0
 		 (cond
@@ -268,7 +268,7 @@ nil, 'shift, or 'accept."
 	      (when compare
 		;; parser stacks are identical
 		(setq active-parser-count (1- active-parser-count))
-		(when (> wisi-debug 0) (message "terminate identical parser %d (%d active)"
+		(when (> wisi-debug 1) (message "terminate identical parser %d (%d active)"
 						(+ parser-i parser-j 1) active-parser-count))
 		(when (= active-parser-count 1)
 		  ;; the actions for the two parsers are not
@@ -299,9 +299,9 @@ Return nil or new parser (a wisi-parse-state struct)."
 	 (parse-action (wisent-parse-action (car token) (aref actions state)))
 	 new-parser-state)
 
-    (when (> wisi-debug 0)
+    (when (> wisi-debug 1)
       ;; output trace info
-      (if (> wisi-debug 1)
+      (if (> wisi-debug 2)
 	  (progn
 	    ;; put top 10 stack items
 	    (let* ((count (min 20 (wisi-parser-state-sp parser-state)))
