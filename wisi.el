@@ -143,20 +143,13 @@
 
 ;;;; lexer
 
-(defvar wisi-class-list nil)
-(make-variable-buffer-local 'wisi-class-list)
-(defvar wisi-keyword-table nil)
-(make-variable-buffer-local 'wisi-keyword-table)
-(defvar wisi-punctuation-table-max-length 0)
-(make-variable-buffer-local 'wisi-punctuation-table-max-length)
-(defvar wisi-punctuation-table nil)
-(make-variable-buffer-local 'wisi-punctuation-table)
-(defvar wisi-string-double-term nil) ;; string delimited by double quotes
-(make-variable-buffer-local 'wisi-string-double-term)
-(defvar wisi-string-single-term nil) ;; string delimited by single quotes
-(make-variable-buffer-local 'wisi-string-single-term)
-(defvar wisi-symbol-term nil)
-(make-variable-buffer-local 'wisi-symbol-term)
+(defvar-local wisi-class-list nil)
+(defvar-local wisi-keyword-table nil)
+(defvar-local wisi-punctuation-table-max-length 0)
+(defvar-local wisi-punctuation-table nil)
+(defvar-local wisi-string-double-term nil) ;; string delimited by double quotes
+(defvar-local wisi-string-single-term nil) ;; string delimited by single quotes
+(defvar-local wisi-symbol-term nil)
 
 (defun wisi-forward-token (&optional text-only lower)
   "Move point forward across one token, skipping leading whitespace and comments.
@@ -411,7 +404,7 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
 	     (setq msg (cdr err)))
 	    )))
       (when msg
-	(when (and (> wisi-debug 1)
+	(when (and (> wisi-debug 0)
 		   (string-match ":\\([0-9]+\\):\\([0-9]+\\):" msg))
 	  (let ((line (string-to-number (match-string 1 msg)))
 		(col (string-to-number (match-string 2 msg))))
@@ -751,6 +744,15 @@ Return cache for paren, or nil if no containing paren."
     (forward-char 1))
   cache)
 
+(defun wisi-goto-start (cache)
+  "Move point to containing ancestor of CACHE that has class block-start or statement-start."
+  (when
+    ;; cache nil at bob
+    (while (and cache
+		(not (memq (wisi-cache-class cache) '(block-start statement-start))))
+      (setq cache (wisi-goto-containing cache)))
+    ))
+
 (defun wisi-next-statement-cache (cache)
   "Move point to CACHE-next; no motion if nil."
   (when (markerp (wisi-cache-next cache))
@@ -791,13 +793,21 @@ the comment on the previous line."
     (ada-goto-open-paren 0)
     (+ (current-column) offset)))
 
-(defvar wisi-indent-calculate-functions nil
+(defvar-local wisi-indent-calculate-functions nil
   "Functions to calculate indentation. Each called with point
   before a token at the beginning of a line (at current
   indentation); return indentation column for that token, or
   nil. May move point. Calling stops when first function returns
   non-nil.")
-(make-local-variable 'wisi-indent-calculate-functions)
+
+(defvar-local wisi-parse-failed nil
+  "Non-nil when a recent parse has failed.")
+
+(defvar-local wisi-post-parse-fail-hook
+  "Function to reindent portion of buffer.
+Called from `wisi-indent-line' when a parse succeeds after
+failing; assumes user was editing code that is now syntactically
+correct.")
 
 (defun wisi-indent-line ()
   "Indent current line using the wisi indentation engine."
@@ -806,13 +816,25 @@ the comment on the previous line."
   (wisi-validate-cache (point))
 
   (let* ((savep (point))
-	 (indent (or (with-demoted-errors
-                       (save-excursion
-                         (forward-line 0)
-                         (skip-chars-forward " \t")
-                         (if (>= (point) savep) (setq savep nil))
-                         (or (run-hook-with-args-until-success 'wisi-indent-calculate-functions) 0)))
-                     0)))
+	 (indent
+	  (or (save-excursion
+		(back-to-indentation)
+		(when (>= (point) savep) (setq savep nil))
+		(if (< wisi-cache-max (point))
+		    (progn
+		      ;; parse failed. Assume user is editing; indent to previous line, fix it after parse succeeds
+		      (setq wisi-parse-failed t)
+		      (forward-line -1);; safe at bob
+		      (back-to-indentation)
+		      (current-column))
+
+		  ;; else parse succeeded
+		  (when wisi-parse-failed
+		    (run-hooks 'wisi-post-parse-fail-hook))
+		  (setq wisi-parse-failed nil)
+		  (with-demoted-errors
+		    (or (run-hook-with-args-until-success 'wisi-indent-calculate-functions) 0))
+		  )))))
     (if savep
 	;; point was inside line text; leave it there
 	(save-excursion (indent-line-to indent))
@@ -848,7 +870,7 @@ the comment on the previous line."
 
 ;;;; setup
 
-(defun wisi-setup (indent-calculate class-list keyword-table token-table parse-table)
+(defun wisi-setup (indent-calculate post-parse-fail class-list keyword-table token-table parse-table)
   "Set up a buffer for parsing files with wisi."
   (setq wisi-class-list class-list)
   (setq wisi-string-double-term (car (symbol-value (intern-soft "string-double" token-table))))
@@ -881,10 +903,13 @@ the comment on the previous line."
   (setq wisi-indent-calculate-functions indent-calculate)
   (set (make-local-variable 'indent-line-function) 'wisi-indent-line)
 
+  (setq wisi-post-parse-fail-hook post-parse-fail)
+
   (add-hook 'before-change-functions 'wisi-before-change nil t)
   (add-hook 'after-change-functions 'wisi-after-change nil t)
 
-  ;; WORKAROUND: sometimes the first time font-lock is run, syntax-propertize is not run properly, so we run it here
+  ;; WORKAROUND: sometimes the first time font-lock is run,
+  ;; syntax-propertize is not run properly, so we run it here
   (syntax-propertize (point-max))
   )
 

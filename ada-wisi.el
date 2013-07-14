@@ -930,7 +930,24 @@ cached token, return new indentation for point."
        (current-column))
       )))
 
+(defun ada-wisi-post-parse-fail ()
+  "For `wisi-post-parse-fail-hook'."
+  (indent-region
+   (save-excursion
+     (wisi-goto-start (wisi-backward-cache))
+     (point))
+   (point)))
+
 ;;;; ada-mode functions (alphabetical)
+
+(defun ada-wisi-declarative-region-start-p (cache)
+  "Return t if cache is a keyword starting a declarative region."
+  (case (wisi-cache-token cache)
+   (DECLARE t)
+   (IS
+    (memq (wisi-cache-class cache) '(block-start block-middle)))
+   (t nil)
+   ))
 
 (defun ada-wisi-goto-declaration-start ()
   "For `ada-goto-declaration-start', which see.
@@ -967,15 +984,6 @@ Also return cache at start."
 	(setq done t))
 	)
     cache))
-
-(defun ada-wisi-declarative-region-start-p (cache)
-  "Return t if cache is a keyword starting a declarative region."
-  (case (wisi-cache-token cache)
-   (DECLARE t)
-   (IS
-    (memq (wisi-cache-class cache) '(block-start block-middle)))
-   (t nil)
-   ))
 
 (defun ada-wisi-goto-declarative-region-start ()
   "For `ada-goto-declarative-region-start', which see."
@@ -1014,6 +1022,27 @@ Also return cache at start."
 	     (wisi-cache-nonterm
 	      (wisi-get-cache (nth 1 parse-result)))
 	     ))))
+
+(defun ada-wisi-make-subprogram-body ()
+  "For `ada-make-subprogram-body'."
+  (let* ((begin (point))
+	 (end (save-excursion (wisi-forward-find-class 'statement-end (point-max)) (point)))
+	 (cache (wisi-forward-find-class 'name end))
+	 (name (buffer-substring-no-properties
+		(point)
+		(+ (point) (wisi-cache-last cache)))))
+    (goto-char end)
+    (newline)
+    (insert " is begin\nnull;\nend ");; legal syntax; parse does not fail
+    (insert name)
+    (forward-char 1)
+
+    ;; newline after body to separate from next body
+    (newline-and-indent)
+    (indent-region begin (point))
+    (forward-line -2)
+    (back-to-indentation); before 'null;'
+    ))
 
 (defun ada-wisi-scan-paramlist (begin end)
   "For `ada-scan-paramlist'."
@@ -1201,6 +1230,7 @@ Also return cache at start."
   (wisi-setup '(ada-wisi-comment
 		ada-wisi-before-cache
 		ada-wisi-after-cache)
+	      'ada-wisi-post-parse-fail
 	      ada-wisi-class-list
 	      ada-grammar-wy--keyword-table
 	      ada-grammar-wy--token-table
@@ -1230,14 +1260,14 @@ Also return cache at start."
 	 nil t)
      )))
 
-  (set (make-local-variable 'ada-which-function) 'ada-wisi-which-function)
-  (set (make-local-variable 'ada-in-paramlist-p) 'ada-wisi-in-paramlist-p)
-  (set (make-local-variable 'ada-scan-paramlist) 'ada-wisi-scan-paramlist)
-  (set (make-local-variable 'ada-goto-declaration-start) 'ada-wisi-goto-declaration-start)
-  (set (make-local-variable 'ada-goto-declarative-region-start) 'ada-wisi-goto-declarative-region-start)
-  (set (make-local-variable 'ada-next-statement-keyword) 'wisi-forward-statement-keyword)
-  (set (make-local-variable 'ada-prev-statement-keyword) 'wisi-backward-statement-keyword)
-  (set (make-local-variable 'ada-make-subprogram-body) 'ada-wisi-make-subprogram-body)
+  (setq ada-which-function 'ada-wisi-which-function)
+  (setq ada-in-paramlist-p 'ada-wisi-in-paramlist-p)
+  (setq ada-scan-paramlist 'ada-wisi-scan-paramlist)
+  (setq ada-goto-declaration-start 'ada-wisi-goto-declaration-start)
+  (setq ada-goto-declarative-region-start 'ada-wisi-goto-declarative-region-start)
+  (setq ada-next-statement-keyword 'wisi-forward-statement-keyword)
+  (setq ada-prev-statement-keyword 'wisi-backward-statement-keyword)
+  (setq ada-make-subprogram-body 'ada-wisi-make-subprogram-body)
   )
 
 (add-hook 'ada-mode-hook 'ada-wisi-setup)

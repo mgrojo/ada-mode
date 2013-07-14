@@ -22,8 +22,10 @@ COMPILE_FILES := $(subst subdir/,,$(COMPILE_FILES))
 
 COMPILE_FILES := $(filter-out ada_mode-ada83.ads, $(COMPILE_FILES))# font-lock only
 
-# This has incomplete code deliberately; used for interactive editing test (via EMACSCMD)
-COMPILE_FILES := $(filter-out ada_mode-interactive.adb, $(COMPILE_FILES))
+# These have incomplete code deliberately; used for interactive editing test (via EMACSCMD)
+COMPILE_FILES := $(filter-out ada_mode-interactive_common.adb, $(COMPILE_FILES))
+COMPILE_FILES := $(filter-out ada_mode-interactive_smie.adb, $(COMPILE_FILES))
+COMPILE_FILES := $(filter-out ada_mode-interactive_wisi.adb, $(COMPILE_FILES))
 
 # This has incomplete code; tests a former bug in syntax-ppss
 COMPILE_FILES := $(filter-out ada_mode-long_paren.adb, $(COMPILE_FILES))

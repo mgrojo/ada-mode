@@ -316,7 +316,7 @@ current construct."
       (align-current))
      )))
 
-(defvar ada-in-paramlist-p nil
+(defvar-local ada-in-paramlist-p nil
   "Function to return t if point is inside the parameter-list of a subprogram declaration.
 Function is called with no arguments.
 Supplied by indentation engine parser.")
@@ -350,7 +350,7 @@ Supplied by indentation engine parser.")
 	(ada-insert-paramlist-single-line paramlist)))
     ))
 
-(defvar ada-scan-paramlist nil
+(defvar-local ada-scan-paramlist nil
   "Function to scan a region, return a list of subprogram parameter declarations (in inverse declaration order).
 Function is called with two args BEGIN END (the region).
 Each parameter declaration is represented by a list
@@ -1367,7 +1367,7 @@ unit name; it should return the Ada name that should be found in FILE-NAME.")
 	       'ada-ff-special-with)
 	 )))
 
-(defvar ada-which-function nil
+(defvar-local ada-which-function nil
   ;; No useful default; the indentation engine should supply a useful function
   ;; This is run from ff-pre-load-hook, so ff-function-name may have
   ;; been set by ff-treat-special; don't reset it.
@@ -1828,7 +1828,7 @@ C-u C-u : show in other frame"
       )
     ))
 
-(defvar ada-goto-declaration-start nil
+(defvar-local ada-goto-declaration-start nil
   ;; No useful default; the indentation engine should supply a useful function
   ;; This is run from ff-pre-load-hook, so ff-function-name may have
   ;; been set by ff-treat-special; don't reset it.
@@ -1841,7 +1841,7 @@ or just after.  Called with no parameters.")
   (when ada-goto-declaration-start
     (funcall ada-goto-declaration-start)))
 
-(defvar ada-goto-declarative-region-start nil
+(defvar-local ada-goto-declarative-region-start nil
   ;; No useful default; the indentation engine should supply a useful function
   "Function to move point to start of the declarative region of
 the subprogram, package, task, or declare block point
@@ -1852,7 +1852,7 @@ is currently in.  Called with no parameters.")
   (when ada-goto-declarative-region-start
     (funcall ada-goto-declarative-region-start)))
 
-(defvar ada-next-statement-keyword nil
+(defvar-local ada-next-statement-keyword nil
   ;; No useful default; the indentation engine should supply a useful function
   "Function called with no parameters; it should move forward to
 the next keyword in the statement following the one point is
@@ -1867,7 +1867,7 @@ keyword in the containing statement.")
   (when ada-next-statement-keyword
     (funcall ada-next-statement-keyword)))
 
-(defvar ada-prev-statement-keyword nil
+(defvar-local ada-prev-statement-keyword nil
   ;; No useful default; the indentation engine should supply a useful function
   "Function called with no parameters; it should move to the previous
 keyword in the statement following the one point is in (ie from
@@ -1882,8 +1882,10 @@ keyword in the previous statement or containing statement.")
 
 ;;;; code creation
 
-(defvar ada-make-subprogram-body nil
-  "Function to convert subprogram specification at point into a subprogram body stub.")
+(defvar-local ada-make-subprogram-body nil
+  "Function to convert subprogram specification after point into a subprogram body stub.
+Called with no args, point at declaration start. Leave point in
+subprogram body, for user to add code.")
 
 (defun ada-make-subprogram-body ()
   "If point is in or after a subprogram specification, convert it

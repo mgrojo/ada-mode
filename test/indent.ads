@@ -57,8 +57,8 @@ package Indent is
         CSCL_Type :=
           CSCL_Type'
             (
-             1 =>  --  Used to be aligned on "CSCL_Type'"
-                   --  aligned with previous comment.
+             1 => --  Used to be aligned on "CSCL_Type'"
+                  --  aligned with previous comment.
                IO_CPU_Control_State_S_Pkg.CPU2_Fault_Status_Type'
                  (Unused2  => 10,  -- Used to be aligned on "1 =>"
                   B_P_Fail => False,

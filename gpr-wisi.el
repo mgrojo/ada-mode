@@ -91,6 +91,11 @@
 	))
     ))
 
+(defun gpr-wisi-post-parse-fail ()
+  "For `wisi-post-parse-fail-hook'."
+  ;; keep it simple :)
+  nil)
+
 ;;; debugging
 (defun gpr-wisi-debug-keys ()
   "Add debug key definitions to `gpr-mode-map'."
@@ -105,6 +110,7 @@
   "Set up a buffer for parsing Ada files with wisi."
   (wisi-setup '(gpr-wisi-before-keyword
 		gpr-wisi-after-keyword)
+	      'gpr-wisi-post-parse-fail
 	      gpr-wisi-class-list
 	      gpr-grammar-wy--keyword-table
 	      gpr-grammar-wy--token-table

@@ -10,7 +10,7 @@ test-wisi :: subprograms.wisi-test
 test-wisi :: empty_production_6.wisi-test
 test-wisi :: empty_production_8.wisi-test
 
-one : ada_mode-nominal.adb.diff
+one : ada_mode-interactive_common.adb.diff
 two : debug.adb.diff
 
 vpath %.wy ../../ ../../test/wisi
@@ -61,9 +61,8 @@ RUNTEST := run-indent-test-wisi.el
 INDENT.EL := ada-wisi.el gpr-wisi.el ../../gpr-grammar-wy.el ../../ada-grammar-wy.el
 include ../common.make
 
-# FIXME: delete currently broken tests
-ADA_TEST_FILES := $(filter-out ada_mode-interactive.adb, $(ADA_TEST_FILES)) # explicit smie functions
-# end FIXME:
+# delete non-wisi tests
+ADA_TEST_FILES := $(filter-out ada_mode-interactive_smie.adb, $(ADA_TEST_FILES)) # explicit smie functions
 
 test-ada : $(addsuffix .diff, $(subst subdir/,,$(ADA_TEST_FILES)))
 

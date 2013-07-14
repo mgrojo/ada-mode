@@ -36,70 +36,21 @@ run wisi test from emacs -Q:
 
 (list (wisi-parser-state-active (aref parser-states 1)) (wisi-parser-state-sp (aref parser-states 1)) (wisi-parser-state-stack (aref parser-states 1)))
 
- ada-wisi parser
+ ada-wisi
 build/wisi/Makefile
-    all tests pass!
-
-Debian : emacs 24.2 (from testing), GNAT GPL 2012:
-    ada-mode tests failing
-        check for updated emacs?
-
-& should be punctuation?
 
 do fixmes
-    gpr-add-log-current-function dispatch to gpr-wisi
 
-    ./test/gpr/simple.gpr:43:            "6.2.2" | -- FIXME: continuation line; ada-indent-broken = 2
+Debian : emacs 24.2 (from testing), GNAT GPL 2013:
 
-wisi-statement-action check class against wisi-class-list, to catch spelling mistakes
-
-test/ada_mode-generic_instantiation.ads
-    introduces shift/reduce conflicts between generic procedure instantiation and procedure body
-
-merge two parsers if reach the same stack?
-    but actions are probably different!
-    grammar is redundant?
-    wait until accept?
-
-test/ada_mode-function_2.adb fails parse during edit, gives 'error during redisplay'
-    but passes test
-    can't find error!
-    wisi-debug 0 should give no error message
-
- opentoken
-/Projects/org.opentoken.stephe/build/windows_debug/Makefile
-
-delete debug_parser.adb from release
-
-GNAT 2013 changes AUnit again!
-
-doc alex/aflex avail at http://sourceforge.net/projects/p2ada/
-    compare
-
-objc.wy
-    abo.pignard@wanadoo.fr
-    just confirm, declare conflicts
-
-wisi-generate requires declaring non-reporting %tokens first, But should sort by kind
-
-error on missing ':' in 'range | foo ;'
-
-pointer at end of kernel => default should be reduce or accept
-    don't need to compute lookaheads?
-    see FIXME in opentoken-production-parser-lalr.adb
-
-generalized parse
-    build parse tree to store actions, tokens for results
-    execute after parse completes
-
- ada-wisi other
 use defvar-local
     check emacs 23.3
 
 ada-wisi-make-subprogram-body
 
-interactive:
-    if parse fails, indent to previous line. when parse succeeds after previous fail, reindent current statement
+gpr-add-log-current-function dispatch to gpr-wisi
+
+ada-add-log-current-function
 
 /Projects/Web/stephe-leake/emacs/ada-mode/emacs-ada-mode.html
     to-do list
@@ -296,6 +247,36 @@ support multiple compilation units in one file
 
 syntax illegal at edit point means parse backwards from end makes sense
     insert phantom tokens to match two error points
+
+ opentoken
+/Projects/org.opentoken.stephe/build/windows_debug/Makefile
+
+delete debug_parser.adb from release
+
+GNAT 2013 changes AUnit again!
+
+doc alex/aflex avail at http://sourceforge.net/projects/p2ada/
+    compare
+
+objc.wy
+    abo.pignard@wanadoo.fr
+    just confirm, declare conflicts
+
+wisi-generate requires declaring non-reporting %tokens first, But should sort by kind
+
+error on missing ':' in 'range | foo ;'
+
+pointer at end of kernel => default should be reduce or accept
+    don't need to compute lookaheads?
+    see FIXME in opentoken-production-parser-lalr.adb
+
+generalized parse
+    build parse tree to store actions, tokens for results
+    execute after parse completes
+
+ ada-wisi parser
+recursive descent allows stopping parse at point?
+    action can store high-level category, refine later
 
  non-ada-mode bugs
 bug in semantic-grammar.wy
