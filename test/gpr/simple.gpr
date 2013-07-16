@@ -47,6 +47,6 @@ project Simple is
 
          when "4.3.2" =>
             null;
-         end case;
+      end case;
    end Compiler;
 end Simple;

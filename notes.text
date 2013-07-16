@@ -40,13 +40,14 @@ run wisi test from emacs -Q:
 build/wisi/Makefile
 
 do fixmes
+    ada-grammar.wy first
+    (grep-find "find . -type f -print | xargs grep -n FIXME")
+
+./ada-gnat.el:866:	   (ada-smie-forward-tokens-unrefined ":");; FIXME: generalize to wisi!
+./ada-gnat.el:894:	     (forward-line 1);; FIXME: need `ada-goto-declaration-end'
+
 
 Debian : emacs 24.2 (from testing), GNAT GPL 2013:
-
-use defvar-local
-    check emacs 23.3
-
-ada-wisi-make-subprogram-body
 
 gpr-add-log-current-function dispatch to gpr-wisi
 

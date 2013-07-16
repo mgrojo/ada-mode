@@ -2,6 +2,8 @@
 
 all : ../../ada-grammar-wy.el ../../gpr-grammar-wy.el compile-clean compile test-clean test
 
+test : test-ada test-gpr test-elisp
+
 test-wisi :: body_instantiation_conflict.wisi-test
 test-wisi :: case_expression.wisi-test
 test-wisi :: identifier_list_name_conflict.wisi-test

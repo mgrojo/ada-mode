@@ -793,6 +793,12 @@ the comment on the previous line."
     (ada-goto-open-paren 0)
     (+ (current-column) offset)))
 
+(defun wisi-indent-start (offset cache)
+  "Return indentation of OFFSET relative to containing ancestor
+of CACHE with class statement-start or block-start."
+  (wisi-goto-start cache)
+  (+ (current-indentation) offset))
+
 (defvar-local wisi-indent-calculate-functions nil
   "Functions to calculate indentation. Each called with point
   before a token at the beginning of a line (at current

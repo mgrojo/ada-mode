@@ -43,29 +43,55 @@
 (defconst gpr-wisi-class-list
   '(
     block-start
+    block-middle
     block-end
     close-paren
     open-paren
     statement-end
     statement-other
-    statement-middle ;; FIXME; use either statement-middle or statement-other
     statement-start
     ))
 
-(defun gpr-wisi-before-keyword ()
+(defun gpr-wisi-indent-cache (offset cache)
+  "Return indentation of OFFSET relative to CACHE or containing ancestor of CACHE that is at a line beginning."
+  (let ((indent (current-indentation)))
+    (while (and cache
+		(not (= (current-column) indent)))
+      (when (eq 'WHEN (wisi-cache-token cache))
+	(setq offset (+ offset ada-indent-when)))
+      (setq cache (wisi-goto-containing cache))
+      (setq indent (current-indentation)))
+  (+ (current-indentation) offset)
+  ))
+
+(defun gpr-wisi-indent-containing (offset cache)
+  "Return indentation of OFFSET relative to containing ancestor of CACHE that is at a line beginning."
+  (gpr-wisi-indent-cache offset (wisi-goto-containing cache)))
+
+(defun gpr-wisi-before-cache ()
   (let ((cache (wisi-get-cache (point))))
     (when cache
       (ecase (wisi-cache-class cache)
-	(block-start (wisi-indent-statement-start ada-indent (car (wisi-backward-cache))) nil)
-	(block-end (wisi-indent-statement-start 0 cache nil))
+	(block-start (wisi-indent-start ada-indent (wisi-backward-cache)))
+	(block-end (wisi-indent-start 0 cache))
+	(block-middle
+	 (wisi-indent-start
+	  (if (eq (wisi-cache-token cache) 'WHEN) ada-indent-when 0)
+	  ;; FIXME: need test of ada-indent-when in gpr
+	  cache))
 	(close-paren (wisi-indent-paren 0))
-	((open-paren statement-start) nil); let after-keyword handle it
-	(statement-middle (wisi-indent-statement-start ada-indent-when cache nil))
+	(open-paren nil); let after-keyword handle it
+	(statement-start
+	 (if (not (wisi-get-containing-cache cache))
+	     ;; at bob
+	     0
+	   ;; not at bob
+	   (gpr-wisi-indent-containing ada-indent cache)))
 	))
     ))
 
-(defun gpr-wisi-after-keyword ()
-  (let ((cache (car (wisi-backward-cache))))
+(defun gpr-wisi-after-cache ()
+  (let ((cache (wisi-backward-cache)))
     (if (not cache)
 	;; bob
 	0
@@ -73,21 +99,30 @@
 	(block-end
 	 (wisi-indent-current 0))
 
-	(block-start
-	 (wisi-indent-current ada-indent))
+	((block-start block-middle)
+	 (gpr-wisi-indent-cache ada-indent cache))
 
 	(open-paren
 	 (1+ (current-column)))
 
 	(statement-end
-	 (wisi-indent-statement-start 0 cache nil))
+	 (wisi-indent-start 0 cache))
 
-	(statement-middle;; when, else
-	 (wisi-indent-current ada-indent))
+	((statement-other close-paren)
+	 ;; test/gpr/simple.gpr
+	 ;; ) & Style_Checks
+	 ;; & Standard_Common.Compiler'Default_Switches;
+	 ;;
+	 ;; for Source_Dirs use
+	 ;;   ("../auto",
+	 (wisi-indent-start ada-indent-broken cache))
 
-	((statement-start close-paren)
+	(statement-start
+	 ;; test/gpr/simple.gpr
+	 ;; type GNAT_Version_Type
+	 ;;   is ("7.0.1",
 	 ;; hanging
-	 (wisi-indent-statement-start ada-indent-broken cache nil))
+	 (gpr-wisi-indent-cache ada-indent-broken cache))
 	))
     ))
 
@@ -100,6 +135,7 @@
 (defun gpr-wisi-debug-keys ()
   "Add debug key definitions to `gpr-mode-map'."
   (interactive)
+  (define-key gpr-mode-map "\M-h" 'wisi-show-containing-or-previous-cache)
   (define-key gpr-mode-map "\M-j" 'wisi-show-cache)
   (define-key gpr-mode-map "\M-k" 'wisi-show-token)
   )
@@ -108,8 +144,8 @@
 ;;;###autoload
 (defun gpr-wisi-setup ()
   "Set up a buffer for parsing Ada files with wisi."
-  (wisi-setup '(gpr-wisi-before-keyword
-		gpr-wisi-after-keyword)
+  (wisi-setup '(gpr-wisi-before-cache
+		gpr-wisi-after-cache)
 	      'gpr-wisi-post-parse-fail
 	      gpr-wisi-class-list
 	      gpr-grammar-wy--keyword-table

@@ -68,7 +68,7 @@
      ("symbol"
       (IDENTIFIER)
      )
-     ("string"
+     ("string-double"
       (STRING_LITERAL)
      )
     )
@@ -81,29 +81,29 @@
      ((attribute_declaration
        ((FOR IDENTIFIER USE expression SEMICOLON )
         (progn
-        `,(wisi-statement-action 1 'statement-start 5 'statement-end)
-        `,(wisi-start-action 1 4)))
+        (wisi-statement-action 1 'statement-start 3 'statement-other 5 'statement-end)
+        (wisi-containing-action 3 4)))
        ((FOR IDENTIFIER LEFT_PAREN STRING_LITERAL RIGHT_PAREN USE expression SEMICOLON )
         (progn
-        `,(wisi-statement-action 1 'statement-start 3 'open-paren 6 'close-paren 8 'statement-end)
-        `,(wisi-start-action 1 7))))
+        (wisi-statement-action 1 'statement-start 3 'open-paren 5 'close-paren 6 'statement-other 8 'statement-end)
+        (wisi-containing-action 6 7))))
       (attribute_prefix
        ((PROJECT ))
        ((name )))
       (attribute_reference
        ((attribute_prefix QUOTE IDENTIFIER ))
        ((attribute_prefix QUOTE IDENTIFIER LEFT_PAREN STRING_LITERAL RIGHT_PAREN )
-        `,(wisi-statement-action 4 'open-paren 6 'close-paren)))
+        (wisi-statement-action 4 'open-paren 6 'close-paren)))
       (case_statement
        ((CASE name IS case_items END CASE SEMICOLON )
         (progn
-        `,(wisi-statement-action 1 'statement-start 5 'statement-middle 7 'statement-end)
-        `,(wisi-start-action 1 4))))
+        (wisi-statement-action 1 'statement-start 3 'block-start 5 'block-end 7 'statement-end)
+        (wisi-containing-action 3 4))))
       (case_item
        ((WHEN discrete_choice_list EQUAL_GREATER declarative_items )
         (progn
-        `,(wisi-statement-action 1 'statement-middle)
-        `,(wisi-start-action 1 4))))
+        (wisi-statement-action 1 'block-middle 3 'block-start)
+        (wisi-containing-action 3 4))))
       (case_items
        ((case_item ))
        ((case_items case_item )))
@@ -132,7 +132,7 @@
        ((expression AMPERSAND term )))
       (external_value
        ((EXTERNAL LEFT_PAREN string_list RIGHT_PAREN )
-        `,(wisi-statement-action 2 'open-paren 4 'close-paren)))
+        (wisi-statement-action 2 'open-paren 4 'close-paren)))
       (name
        ((IDENTIFIER ))
        ((name DOT IDENTIFIER )))
@@ -143,8 +143,8 @@
       (package_spec
        ((PACKAGE IDENTIFIER IS simple_declarative_items END IDENTIFIER SEMICOLON )
         (progn
-        `,(wisi-statement-action 1 'statement-start 3 'block-start 5 'block-end 7 'statement-end)
-        `,(wisi-start-action 1 4))))
+        (wisi-statement-action 1 'statement-start 3 'block-start 5 'block-end 7 'statement-end)
+        (wisi-containing-action 3 4))))
       (project_qualifier
        ((ABSTRACT ))
        ((STANDARD ))
@@ -155,28 +155,24 @@
       (simple_declarative_item
        ((IDENTIFIER COLON_EQUALS expression SEMICOLON )
         (progn
-        `,(wisi-statement-action 1 'statement-start 4 'statement-end)
-        `,(wisi-start-action 1 3)))
+        (wisi-statement-action 1 'statement-start 4 'statement-end)
+        (wisi-containing-action 1 3)))
        ((IDENTIFIER COLON IDENTIFIER COLON_EQUALS expression SEMICOLON )
         (progn
-        `,(wisi-statement-action 1 'statement-start 6 'statement-end)
-        `,(wisi-start-action 1 5)))
+        (wisi-statement-action 1 'statement-start 6 'statement-end)
+        (wisi-containing-action 1 5)))
        ((attribute_declaration ))
        ((case_statement ))
        ((NULL SEMICOLON )
-        `,(wisi-statement-action 1 'statement-start 2 'statement-end)))
+        (wisi-statement-action 1 'statement-start 2 'statement-end)))
       (simple_declarative_items
        ((simple_declarative_item ))
        ((simple_declarative_items simple_declarative_item )))
       (simple_project_declaration
        ((PROJECT IDENTIFIER IS declarative_items END IDENTIFIER SEMICOLON )
         (progn
-        `,(wisi-statement-action
-        1 'statement-start
-        3 'block-start
-        5 'block-end
-        7 'statement-end)
-        `,(wisi-start-action 1 4))))
+        (wisi-statement-action 1 'statement-start 3 'block-start 5 'block-end 7 'statement-end)
+        (wisi-containing-action 3 4))))
       (string_expression
        ((STRING_LITERAL ))
        ((name ))
@@ -189,16 +185,12 @@
        ((string_expression ))
        ((LEFT_PAREN RIGHT_PAREN ))
        ((LEFT_PAREN string_list RIGHT_PAREN )
-        `,(wisi-statement-action
+        (wisi-statement-action
         1 'open-paren
         3 'close-paren)))
       (typed_string_declaration
        ((TYPE IDENTIFIER IS LEFT_PAREN string_list RIGHT_PAREN SEMICOLON )
-        `,(wisi-statement-action
-        1 'statement-start
-        4 'open-paren
-        6 'close-paren
-        7 'statement-end)))
+        (wisi-statement-action 1 'statement-start 4 'open-paren 6 'close-paren 7 'statement-end)))
       (with_clause
        ((WITH string_list SEMICOLON ))))
      [((default . error) (ABSTRACT .  1) (STANDARD .  6) (AGGREGATE .  2) (LIBRARY .  4) (CONFIGURATION .  3) (WITH .  7) (PROJECT .  5))

@@ -1209,9 +1209,9 @@ Also return cache at start."
 (defun ada-wisi-debug-keys ()
   "Add debug key definitions to `ada-mode-map'."
   (interactive)
+  (define-key ada-mode-map "\M-h" 'wisi-show-containing-or-previous-cache)
   (define-key ada-mode-map "\M-j" 'wisi-show-cache)
   (define-key ada-mode-map "\M-k" 'wisi-show-token)
-  (define-key ada-mode-map "\M-h" 'wisi-show-containing-or-previous-cache)
   )
 
 (defun ada-wisi-debug-setup ()
