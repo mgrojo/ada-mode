@@ -151,8 +151,7 @@
 %token <symbol> IDENTIFIER
 %token <string-double> STRING_LITERAL
 %token <string-single> CHARACTER_LITERAL
-%token <numeric_literal> NUMERIC_LITERAL
-;; FIXME: wisi lexer treats numeric_literal as identifier; fix that or delete this
+;; wisi lexer treats numeric_literal as identifier, and that's good enough for our purposes
 
 %start compilation_unit
 
@@ -184,6 +183,7 @@
 %conflict REDUCE/SHIFT in state parameter_profile_opt, generic_instantiation on token IS
 %conflict REDUCE/SHIFT in state subprogram_specification, null_procedure_declaration on token IS
 %conflict SHIFT/REDUCE in state actual_parameter_part, actual_parameter_part_opt on token LEFT_PAREN
+%conflict SHIFT/REDUCE in state attribute_designator, attribute_designator on token LEFT_PAREN
 %conflict SHIFT/REDUCE in state identifier_list, null_exclusion_opt on token IDENTIFIER
 %conflict SHIFT/REDUCE in state label_opt, label_opt on token IDENTIFIER
 %conflict SHIFT/REDUCE in state name, discrete_subtype_definition_list on token RIGHT_PAREN
@@ -391,10 +391,8 @@ at_clause
 attribute_reference : name TICK attribute_designator ;
 
 attribute_designator
- ;; : IDENTIFIER LEFT_PAREN expression RIGHT_PAREN
- ;; FIXME: causes shift/reduce conflict with something
- ;; FIXME: test
-  : IDENTIFIER
+  : IDENTIFIER LEFT_PAREN expression RIGHT_PAREN
+  | IDENTIFIER
   | ACCESS
   | DELTA
   | DIGITS
@@ -585,10 +583,10 @@ constant_opt
 
 constraint
   : RANGE range ;; range_constraint
- ;; | digits_constraint ;; FIXME: is this in tests
- ;; | delta_constraint ;; FIXME: is this in tests
+ ;; | digits_constraint ;; not in any code I have
+ ;; | delta_constraint ;; not in any code I have
   | index_constraint
- ;; | discriminant_constraint ;; FIXME: is this in tests
+ ;; | discriminant_constraint ;; not in any code I have
   ;
 
 context_clause
@@ -713,8 +711,8 @@ elsif_expression_item
     (progn
       (wisi-statement-action 1 'statement-other 3 'block-middle)
       (wisi-containing-action 1 2)
-      (wisi-containing-action 3 4)
-      (wisi-motion-action 1 3))
+      (wisi-containing-action 3 4))
+ ;; motion set in if_expression
   ;
 
 elsif_expression_list
@@ -727,8 +725,8 @@ elsif_statement_item
     (progn
       (wisi-statement-action 1 'statement-other 3 'block-middle)
       (wisi-containing-action 1 2)
-      (wisi-containing-action 3 4)
-      (wisi-motion-action 1 3))
+      (wisi-containing-action 3 4))
+ ;; motion set in if_statement
   ;
 
 elsif_statement_list
@@ -1100,14 +1098,14 @@ if_expression
       (wisi-containing-action 3 4)
       (wisi-containing-action 3 5)
       (wisi-containing-action 6 7)
-      (wisi-motion-action 1 3 5 6))
+      (wisi-motion-action 1 3 '(5 (ELSIF THEN)) 6))
   | IF expression THEN expression elsif_expression_list
     (progn
       (wisi-statement-action 1 'statement-start 3 'block-middle)
       (wisi-containing-action 1 2)
       (wisi-containing-action 3 4)
       (wisi-containing-action 3 5)
-      (wisi-motion-action 1 3 5))
+      (wisi-motion-action 1 3 '(5 (ELSIF THEN))))
   | IF expression THEN expression ELSE expression
     (progn
       (wisi-statement-action 1 'statement-start 3 'block-middle 5 'block-middle)
@@ -1131,14 +1129,14 @@ if_statement
       (wisi-containing-action 3 4)
       (wisi-containing-action 3 5)
       (wisi-containing-action 6 7)
-      (wisi-motion-action 1 3 5 6 7)) ;; FIXME: test navigate from ELSE to last elsif
+      (wisi-motion-action 1 3 '(5 (ELSIF THEN)) 6 8))
   | IF expression THEN sequence_of_statements elsif_statement_list END IF SEMICOLON
     (progn
       (wisi-statement-action 1 'statement-start 3 'block-middle 6 'block-end 9 'statement-end)
       (wisi-containing-action 1 2)
       (wisi-containing-action 3 4)
       (wisi-containing-action 3 5)
-      (wisi-motion-action 1 3 5 6))
+      (wisi-motion-action 1 3 '(5 (ELSIF THEN)) 6))
   | IF expression THEN sequence_of_statements ELSE sequence_of_statements END IF SEMICOLON
     (progn
       (wisi-statement-action 1 'statement-start 3 'block-middle 5 'block-middle 7 'block-end 9 'statement-end)
@@ -1494,8 +1492,8 @@ pragma_argument_association_list
 ;; prefix is name
 
 primary
-  : NUMERIC_LITERAL
-  | NULL
+;; : NUMERIC_LITERAL is lexed as identifier
+  : NULL
  ;; | STRING_LITERAL in name
   | aggregate
   | name

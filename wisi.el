@@ -550,7 +550,9 @@ Each TOKEN-NUMBERS is one of:
 
 number: the token number; mark that token
 
-list (number token_id): mark all tokens with token_id in the nonterminal given by the number."
+list (number token_id):
+list (number (token_id token_id)):
+   mark all tokens with token_id in the nonterminal given by the number."
   (save-excursion
     (let (next-keyword-mark
 	  prev-keyword-mark
@@ -566,29 +568,41 @@ list (number token_id): mark all tokens with token_id in the nonterminal given b
 	    (setq region (cddr (nth (1- token-number) tokens)))
 	    (setq cache (wisi-get-cache (car region)))
 	    (setq mark (copy-marker (1+ (car region))))
+
+	    (when (and cache prev-keyword-mark)
+	      (setf (wisi-cache-prev cache) prev-keyword-mark)
+	      (setf (wisi-cache-next prev-cache) mark))
+
+	    (setq prev-keyword-mark mark)
+	    (setq prev-cache cache)
 	    )
 
 	   ((listp token-number)
-	    ;; cannot be empty, but may not contain any token_id
+	    ;; cannot be empty, but may contain 0, 1, or more token_id; token_id may be a list
 	    (setq target-token (cadr token-number))
+	    (when (not (listp target-token))
+	      (setq target-token (list target-token)))
 	    (setq token-number (car token-number))
 	    (setq region (cddr (nth (1- token-number) tokens)))
 	    (goto-char (car region))
-	    (wisi-forward-find-token target-token (cdr region) t)
-	    (setq cache (wisi-get-cache (point)))
-	    (setq mark (copy-marker (1+ (point))))
+	    (while (wisi-forward-find-token target-token (cdr region) t)
+	      (setq cache (wisi-get-cache (point)))
+	      (setq mark (copy-marker (1+ (point))))
+
+	      (when prev-keyword-mark
+		(setf (wisi-cache-prev cache) prev-keyword-mark)
+		(setf (wisi-cache-next prev-cache) mark))
+
+	      (setq prev-keyword-mark mark)
+	      (setq prev-cache cache)
+	      (wisi-forward-token);; don't find same token again
+	      )
 	    )
 
 	   (t
 	    (error "unexpected token-number %s" token-number))
 	   )
 
-	  (when (and cache prev-keyword-mark)
-	    (setf (wisi-cache-prev cache) prev-keyword-mark)
-	    (setf (wisi-cache-next prev-cache) mark))
-
-	  (setq prev-keyword-mark mark)
-	  (setq prev-cache cache)
 	  ))
       )))
 
@@ -660,6 +674,7 @@ If LIMIT (a buffer position) is reached, throw an error."
 
 (defun wisi-forward-find-token (token limit &optional noerror)
   "Search forward for a token that has a cache with TOKEN.
+If point is at a matching token, return that token.
 TOKEN may be a list; stop on any cache that has a member of the list.
 Return cache, or nil if at end of buffer.
 If LIMIT (a buffer position) is reached, then if NOERROR is nil, throw an
@@ -765,7 +780,7 @@ Return cache for paren, or nil if no containing paren."
   (goto-char (1- (wisi-cache-prev cache)))
   (wisi-get-cache (point)))
 
-;;;;; indentation
+;;;; indentation
 
 (defun wisi-comment-indent ()
   "For `comment-indent-function'. Indent single line comment to
@@ -874,7 +889,7 @@ correct.")
       (message "previous %s" (wisi-backward-cache)))
     ))
 
-;;;; setup
+;;;;; setup
 
 (defun wisi-setup (indent-calculate post-parse-fail class-list keyword-table token-table parse-table)
   "Set up a buffer for parsing files with wisi."

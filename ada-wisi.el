@@ -604,11 +604,10 @@ cached token, return new indentation for point."
 	      ))
 
 	   ((THEN ELSE)
-	    (let* ((containing-cache (save-excursion (wisi-goto-containing cache nil)))
-		   (indent
-		    (ecase (wisi-cache-nonterm containing-cache)
-		      (statement ada-indent)
-		      (if_expression ada-indent-broken))))
+	    (let ((indent
+		   (ecase (wisi-cache-nonterm (wisi-get-containing-cache cache))
+		     ((statement if_statement elsif_statement_item) ada-indent)
+		     ((if_expression elsif_expression_item) ada-indent-broken))))
 	      (ada-wisi-indent-containing indent cache t)))
 
 	   (WHEN
