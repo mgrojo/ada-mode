@@ -933,9 +933,10 @@ cached token, return new indentation for point."
   "For `wisi-post-parse-fail-hook'."
   (indent-region
    (save-excursion
-     (wisi-goto-start (wisi-backward-cache))
+     (wisi-goto-start (or (wisi-get-cache (point)) (wisi-backward-cache)))
      (point))
-   (point)))
+   (point))
+  (back-to-indentation))
 
 ;;;; ada-mode functions (alphabetical)
 

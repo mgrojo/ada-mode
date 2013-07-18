@@ -130,6 +130,11 @@ package body Ada_Mode.Nominal is -- target 0
                --EMACSCMD:(progn (end-of-line -2)(backward-word 1)(ada-next-statement-keyword)(looking-at "else"))
                --EMACSRESULT: t
 
+               -- nested if/then/else; test next-keyword skips this
+               if True then
+                  null;
+               end if;
+
                return 1;   -- a comment
                            -- another comment, aligned with previous
 

@@ -302,17 +302,22 @@ wisi-forward-token, but does not look up symbol."
   next ;; marker at next motion token in statement; nil if none
   )
 
-(defvar wisi-cache-max 0
+(defvar-local wisi-cache-max 0
   "Maximimum position in buffer where wisi token cache is valid.")
-(make-variable-buffer-local 'wisi-cache-max)
 
-(defvar wisi-parse-table nil)
-(make-variable-buffer-local 'wisi-parse-table)
+(defvar-local wisi-parse-table nil)
+
+(defvar-local wisi-parse-failed nil
+  "Non-nil when a recent parse has failed - cleared when parse succeeds.")
+
+(defvar-local wisi-parse-try nil
+  "Non-nil when parse is needed - cleared when parse succeeds.")
 
 (defun wisi-invalidate-cache()
   "Invalidate the wisi token cache for the current buffer."
   (interactive)
   (setq wisi-cache-max 0)
+  (setq wisi-parse-try t)
   (with-silent-modifications
     (remove-text-properties (point-min) (point-max) '(wisi-cache))))
 
@@ -340,7 +345,8 @@ wisi-forward-token, but does not look up symbol."
 (defun wisi-after-change (begin end length)
   "For `after-change-functions'."
   ;; (syntax-ppss-flush-cache begin) is in before-change-functions
-  (when (>= wisi-cache-max begin)
+  (when (or wisi-parse-failed
+	    (>= wisi-cache-max begin))
     (save-excursion
       ;; FIXME: if wisi-change-need-invalidate, don't do any more checks.
       (let ((need-invalidate t)
@@ -386,22 +392,27 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
 
 (defun wisi-validate-cache (pos)
   "Ensure cached data is valid at least up to POS in current buffer."
-  (when (< wisi-cache-max pos)
+  (when (and wisi-parse-try
+	    (< wisi-cache-max pos))
     (let (msg)
+      (setq wisi-parse-try nil)
       (save-excursion
 	(goto-char wisi-cache-max)
 	(if (> wisi-debug 1)
 	    ;; let debugger stop in wisi-parse
 	    (progn
 	      (wisi-parse wisi-parse-table 'wisi-forward-token)
-	      (setq wisi-cache-max (point)))
+	      (setq wisi-cache-max (point))
+	      (setq wisi-parse-failed nil))
 	  ;; else capture errors from bad syntax, so higher level functions can try to continue
 	  (condition-case err
 	      (progn
 		(wisi-parse wisi-parse-table 'wisi-forward-token)
-		(setq wisi-cache-max (point)))
+		(setq wisi-cache-max (point))
+		(setq wisi-parse-failed nil))
 	    (wisi-parse-error
-	     (setq msg (cdr err)))
+	      (setq wisi-parse-failed t)
+	      (setq msg (cdr err)))
 	    )))
       (when msg
 	(when (and (> wisi-debug 0)
@@ -520,7 +531,7 @@ If CONTAINING-TOKEN is empty, the next token number is used."
       (setq containing-region (cddr (nth containing-token tokens))))
 
     (when contained-region
-      ;; nil when empty production
+      ;; nil when empty production, may not contain any caches
       (save-excursion
 	(goto-char (cdr contained-region))
 	(let ((cache (wisi-backward-cache))
@@ -569,7 +580,9 @@ list (number (token_id token_id)):
 	    (setq cache (wisi-get-cache (car region)))
 	    (setq mark (copy-marker (1+ (car region))))
 
-	    (when (and cache prev-keyword-mark)
+	    (when (and prev-keyword-mark
+		       cache
+		       (null (wisi-cache-prev cache)))
 	      (setf (wisi-cache-prev cache) prev-keyword-mark)
 	      (setf (wisi-cache-next prev-cache) mark))
 
@@ -579,6 +592,7 @@ list (number (token_id token_id)):
 
 	   ((listp token-number)
 	    ;; cannot be empty, but may contain 0, 1, or more token_id; token_id may be a list
+	    ;; there must have been a prev keyword
 	    (setq target-token (cadr token-number))
 	    (when (not (listp target-token))
 	      (setq target-token (list target-token)))
@@ -589,12 +603,12 @@ list (number (token_id token_id)):
 	      (setq cache (wisi-get-cache (point)))
 	      (setq mark (copy-marker (1+ (point))))
 
-	      (when prev-keyword-mark
+	      (when (null (wisi-cache-prev cache))
 		(setf (wisi-cache-prev cache) prev-keyword-mark)
-		(setf (wisi-cache-next prev-cache) mark))
+		(setf (wisi-cache-next prev-cache) mark)
+		(setq prev-keyword-mark mark)
+		(setq prev-cache cache))
 
-	      (setq prev-keyword-mark mark)
-	      (setq prev-cache cache)
 	      (wisi-forward-token);; don't find same token again
 	      )
 	    )
@@ -821,38 +835,33 @@ of CACHE with class statement-start or block-start."
   nil. May move point. Calling stops when first function returns
   non-nil.")
 
-(defvar-local wisi-parse-failed nil
-  "Non-nil when a recent parse has failed.")
-
 (defvar-local wisi-post-parse-fail-hook
   "Function to reindent portion of buffer.
 Called from `wisi-indent-line' when a parse succeeds after
 failing; assumes user was editing code that is now syntactically
-correct.")
+correct. Must leave point at indentation of current line.")
 
 (defun wisi-indent-line ()
   "Indent current line using the wisi indentation engine."
   (interactive)
 
-  (wisi-validate-cache (point))
-
-  (let* ((savep (point))
+  (let* ((prev-wisi-parse-failed wisi-parse-failed)
+	 (savep (point))
 	 (indent
 	  (or (save-excursion
+		(wisi-validate-cache (point))
 		(back-to-indentation)
 		(when (>= (point) savep) (setq savep nil))
 		(if (< wisi-cache-max (point))
 		    (progn
 		      ;; parse failed. Assume user is editing; indent to previous line, fix it after parse succeeds
-		      (setq wisi-parse-failed t)
 		      (forward-line -1);; safe at bob
 		      (back-to-indentation)
 		      (current-column))
 
 		  ;; else parse succeeded
-		  (when wisi-parse-failed
+		  (when prev-wisi-parse-failed
 		    (run-hooks 'wisi-post-parse-fail-hook))
-		  (setq wisi-parse-failed nil)
 		  (with-demoted-errors
 		    (or (run-hook-with-args-until-success 'wisi-indent-calculate-functions) 0))
 		  )))))
@@ -932,6 +941,8 @@ correct.")
   ;; WORKAROUND: sometimes the first time font-lock is run,
   ;; syntax-propertize is not run properly, so we run it here
   (syntax-propertize (point-max))
+
+  (wisi-invalidate-cache)
   )
 
 (provide 'wisi)
