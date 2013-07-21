@@ -949,6 +949,31 @@ cached token, return new indentation for point."
    (t nil)
    ))
 
+(defun ada-wisi-context-clause ()
+  "For `ada-fix-context-clause'."
+  (wisi-validate-cache (point-max))
+  (save-excursion
+    (goto-char (point-min))
+    (let ((begin nil)
+	  (end nil)
+	  cache)
+
+      (while (not end)
+	(setq cache (wisi-forward-cache))
+	(case (wisi-cache-nonterm cache)
+	 (use-clause nil)
+	 (with-clause
+	  (when (not begin)
+	    (setq begin (point-at-bol))))
+	 (t
+	  ;; start of compilation unit
+	  (setq end (point-at-bol))
+	  (unless begin
+	    (setq begin end)))
+	 ))
+      (cons begin end)
+    )))
+
 (defun ada-wisi-goto-declaration-start ()
   "For `ada-goto-declaration-start', which see.
 Also return cache at start."
@@ -1210,6 +1235,7 @@ Also return cache at start."
   "Add debug key definitions to `ada-mode-map'."
   (interactive)
   (define-key ada-mode-map "\M-h" 'wisi-show-containing-or-previous-cache)
+  (define-key ada-mode-map "\M-i" 'wisi-goto-end)
   (define-key ada-mode-map "\M-j" 'wisi-show-cache)
   (define-key ada-mode-map "\M-k" 'wisi-show-token)
   )
@@ -1260,14 +1286,16 @@ Also return cache at start."
 	 nil t)
      )))
 
-  (setq ada-which-function 'ada-wisi-which-function)
-  (setq ada-in-paramlist-p 'ada-wisi-in-paramlist-p)
-  (setq ada-scan-paramlist 'ada-wisi-scan-paramlist)
+  (setq ada-fix-context-clause 'ada-wisi-context-clause)
   (setq ada-goto-declaration-start 'ada-wisi-goto-declaration-start)
   (setq ada-goto-declarative-region-start 'ada-wisi-goto-declarative-region-start)
+  (setq ada-goto-end 'wisi-goto-end)
+  (setq ada-in-paramlist-p 'ada-wisi-in-paramlist-p)
+  (setq ada-make-subprogram-body 'ada-wisi-make-subprogram-body)
   (setq ada-next-statement-keyword 'wisi-forward-statement-keyword)
   (setq ada-prev-statement-keyword 'wisi-backward-statement-keyword)
-  (setq ada-make-subprogram-body 'ada-wisi-make-subprogram-body)
+  (setq ada-scan-paramlist 'ada-wisi-scan-paramlist)
+  (setq ada-which-function 'ada-wisi-which-function)
   )
 
 (add-hook 'ada-mode-hook 'ada-wisi-setup)

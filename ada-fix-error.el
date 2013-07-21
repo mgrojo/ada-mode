@@ -63,6 +63,9 @@ clause, BEGIN = END, at start of compilation unit.")
 If ada-fix-sort-context-clause, sort the context clauses using
 sort-lines."
   (let ((context-clause (ada-fix-context-clause)))
+    (when (not context-clause)
+      (error "no compilation unit found"))
+
     (goto-char (cdr context-clause))
     (insert "with ")
     (ada-fix-insert-unit-name package-name)
@@ -70,7 +73,7 @@ sort-lines."
 
     (when (and (< (car context-clause) (cdr context-clause))
 	       ada-fix-sort-context-clause)
-      ;; FIXME: this puts "limited with", "private with" at top of list; prefer at bottom
+      ;; FIXME (later): this puts "limited with", "private with" at top of list; prefer at bottom
       (sort-lines nil (car context-clause) (point)))
     ))
 

@@ -14,7 +14,8 @@ package body Ada_Mode.Nominal is -- target 0
    --EMACSCMD:(test-face "Ada" font-lock-constant-face)
    use Ada.Strings;
 
-   --EMACSCMD:(progn (forward-line 1) (ada-next-statement-keyword)(looking-at "is -- target 1"))
+   --EMACSCMD:(progn (forward-line 2) (ada-next-statement-keyword)(looking-at "is -- target 1"))
+   --EMACSRESULT:t
    function Function_Access_1
      (A_Param : in Float)
      return

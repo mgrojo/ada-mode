@@ -156,6 +156,16 @@ If nil, no contextual menu is available."
   :type '(restricted-sexp :match-alternatives (stringp vectorp))
   :group 'ada)
 
+(defcustom ada-fill-comment-prefix "-- "
+  "Comment fill prefix."
+  :type 'string
+  :group 'ada)
+
+(defcustom ada-fill-comment-postfix " --"
+  "Comment fill postfix."
+  :type 'string
+  :group 'ada)
+
 ;;;;; end of user variables
 
 (defvar ada-compiler nil
@@ -213,13 +223,11 @@ If nil, no contextual menu is available."
      ["Indent Lines in File"        (indent-region (point-min) (point-max))  t]
      ["Align"                       ada-align               t]
      ["Comment Selection"           comment-region               t]
-     ["Uncomment Selection"         (lambda () (comment-region t)) t]
-     ["Fill Comment Paragraph"      fill-paragraph               t];; FIXME: ada-fill-comment-paragraph?
-     ["Fill Comment Paragraph Justify"
-      ada-fill-comment-paragraph-justify                         t]
-     ["Fill Comment Paragraph Postfix"
-      ada-fill-comment-paragraph-postfix                         t]
-     ["---"                         nil                          nil]
+     ["Uncomment Selection"         (comment-region t) t]
+     ["Fill Comment Paragraph"         ada-fill-comment-paragraph           t]
+     ["Fill Comment Paragraph Justify" (ada-fill-comment-paragraph 'full))  t]
+     ["Fill Comment Paragraph Postfix" (ada-fill-comment-paragraph 'full t) t]
+     ["---" nil nil]
      ["Make body for subprogram"    ada-make-subprogram-body     t]
      )
     ("Case Exceptions"
@@ -356,7 +364,7 @@ Function is called with two args BEGIN END (the region).
 Each parameter declaration is represented by a list
 '((identifier ...) in-p out-p not-null-p access-p constant-p protected-p type default)."
   ;; mode is 'in | out | in out | [not null] access [constant | protected]'
-  ;; FIXME: handle single-line trailing comments, or longer comments, in paramlist?
+  ;; IMPROVEME: handle single-line trailing comments, or longer comments, in paramlist?
   )
 
 (defun ada-scan-paramlist (begin end)
@@ -1861,6 +1869,16 @@ to the next keyword in the current statement. If at the last keyword,
 move forward to the first keyword in the next statement or next
 keyword in the containing statement.")
 
+(defvar-local ada-goto-end nil
+  ;; No useful default; the indentation engine should supply a useful function
+  "Function to move point to end of the declaration or statement point is in or before.
+Called with no parameters.")
+
+(defun ada-goto-end ()
+  "Call `ada-goto-end'."
+  (when ada-goto-end
+    (funcall ada-goto-end)))
+
 (defun ada-next-statement-keyword ()
   "See `ada-next-statement-keyword' variable."
   (interactive)
@@ -1924,20 +1942,6 @@ package body file, containing skeleton code that will compile.")
 
 ;;;; fill-comment
 
-(defun ada-fill-comment-paragraph-justify ()
-  "Fill current comment paragraph and justify each line as well."
-  (interactive)
-  (ada-fill-comment-paragraph 'full))
-
-(defun ada-fill-comment-paragraph-postfix ()
-  "Fill current comment paragraph and justify each line as well.
-Adds `ada-fill-comment-postfix' at the end of each line."
-  (interactive)
-  (ada-fill-comment-paragraph 'full t))
-
-(defvar ada-fill-comment-prefix nil)
-(defvar ada-fill-comment-postfix " --")
-
 (defun ada-fill-comment-paragraph (&optional justify postfix)
   "Fill the current comment paragraph.
 If JUSTIFY is non-nil, each line is justified as well.
@@ -1945,17 +1949,19 @@ If POSTFIX and JUSTIFY are non-nil, `ada-fill-comment-postfix' is appended
 to each line filled and justified.
 The paragraph is indented on the first line."
   (interactive "P")
-  ;; check if inside comment or just in front a comment
   (if (and (not (ada-in-comment-p))
 	   (not (looking-at "[ \t]*--")))
       (error "Not inside comment"))
 
   (let* (indent from to
 	 (opos (point-marker))
-	 fill-prefix
+	 ;; we bind `fill-prefix' here rather than in ada-mode because
+	 ;; setting it in ada-mode causes indent-region to use it for
+	 ;; all indentation.
+	 (fill-prefix ada-fill-comment-prefix)
 	 (fill-column (current-fill-column)))
 
-    ;;  Find end of paragraph
+    ;;  Find end of comment paragraph
     (back-to-indentation)
     (while (and (not (eobp)) (looking-at ".*--[ \t]*[^ \t\n]"))
       (forward-line 1)
@@ -1990,14 +1996,13 @@ The paragraph is indented on the first line."
 
     ;;  Remove the old postfixes
     (goto-char from)
-    (while (re-search-forward "--\n" to t)
+    (while (re-search-forward (concat ada-fill-comment-postfix "\n") to t)
       (replace-match "\n"))
 
     (goto-char (1- to))
     (setq to (point-marker))
 
     ;;  Indent and justify the paragraph
-    (setq fill-prefix ada-fill-comment-prefix)
     (set-left-margin from to indent)
     (if postfix
 	(setq fill-column (- fill-column (length ada-fill-comment-postfix))))
@@ -2219,6 +2224,10 @@ The paragraph is indented on the first line."
   (set (make-local-variable 'comment-end) "")
   (set (make-local-variable 'comment-start-skip) "---*[ \t]*")
   (set (make-local-variable 'comment-multi-line) nil)
+
+  ;; we _don't_ set `fill-prefix' here because that causes
+  ;; indent-region to use it for all indentation. See
+  ;; ada-fill-comment-paragraph.
 
   ;; AdaCore standard style (enforced by -gnaty) requires two spaces
   ;; after '--' in comments; this makes it easier to distinguish

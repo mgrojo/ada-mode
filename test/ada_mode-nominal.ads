@@ -28,7 +28,10 @@ with
 --EMACSCMD:(font-lock-fontify-buffer)
 --EMACSCMD:(test-face "with" font-lock-keyword-face)
 --EMACSCMD:(test-face "Ada" font-lock-constant-face)
-with Ada.Strings.Unbounded;
+--EMACSCMD:(progn (ada-goto-end)(looking-at "; -- end 1"))
+--EMACSRESULT:t
+with Ada.Strings.Unbounded; -- end 1
+
 --EMACSCMD:(test-face "limited" font-lock-keyword-face)
 --EMACSCMD:(test-face "private" font-lock-keyword-face)
 --EMACSCMD:(test-face "with" font-lock-keyword-face)
@@ -58,6 +61,10 @@ with Ada_Mode.Library_Procedure;
 -- test ada-find-other-file on 'with subprogram-spec'
 --EMACSCMD:(progn (forward-line 1)(ada-find-other-file t)(looking-at "Ada_Mode.Function_2 return Boolean;"))
 with Ada_Mode.Function_2;
+--EMACSCMD:(progn (ada-goto-end)(looking-back "end Ada_Mode.Nominal"))
+--EMACSRESULT:t
+--EMACSCMD:(progn (forward-line 2) (ada-next-statement-keyword)(looking-at "private -- Ada_Mode.Nominal"))
+--EMACSRESULT:t
 package Ada_Mode.Nominal is
 
    -- ada-indent-refine-subprogram calls ada-indent-is-generic-p,
@@ -332,8 +339,12 @@ package Ada_Mode.Nominal is
    end record;
    for Record_Type_2'Size use 32 * 3;
 
+   --EMACSCMD:(progn (ada-goto-end)(looking-back "end record"))
+   --EMACSRESULT:t
    type Record_Type_3 (Discriminant_1 : access Integer) is tagged record
-      Component_1 : Integer;
+      --EMACSCMD:(progn (ada-goto-end)(looking-at "; -- end 2"))
+      --EMACSRESULT:t
+      Component_1 : Integer; -- end 2
       Component_2 :
         Integer;
       Component_3
@@ -405,7 +416,10 @@ package Ada_Mode.Nominal is
 
       -- only two examples, to get 'protected' and 'is-entry_body' into grammar
 
-      function F1 return Integer;
+      --EMACSCMD:(progn (ada-goto-end)(looking-at "; -- end 3"))
+      --EMACSRESULT:t
+      function F1 return Integer; -- end 3
+
       --EMACSCMD:(test-face "Discrete_Type_1" font-lock-type-face)
       function F2 (Param_1 : Discrete_Type_1; B : Float) return Float;
       entry E1
@@ -416,6 +430,8 @@ package Ada_Mode.Nominal is
         (A : Float;
          B : Float);
 
+      --EMACSCMD:(progn (ada-goto-end)(looking-back "end Protected_1"))
+      --EMACSRESULT:t
       -- This is a comment just before 'private'; broken versions of the
       -- indentation engine aligned this with 'private'.
    private
@@ -590,10 +606,12 @@ package Ada_Mode.Nominal is
    not overriding function
      Function_2e (Param : in Parent_Type_1) return Float;
 
+   --EMACSCMD:(progn (ada-goto-end)(looking-at "; -- end 5"))
+   --EMACSRESULT:t
    not overriding
    function Function_2f
      (Param : in Parent_Type_1)
-     return Float;
+     return Float; -- end 5
 
    function Function_2g
      (Param : in Private_Type_1)
@@ -646,7 +664,14 @@ package Ada_Mode.Nominal is
       procedure Separate_Procedure_2 (Item : in Integer);
    end Separate_Package_1;
 
-private
+   --EMACSCMD:(progn (ada-goto-end)(looking-back "end Ada_Mode.Nominal"))
+   --EMACSRESULT:t
+   --EMACSCMD:(progn (forward-line 2) (ada-next-statement-keyword)(looking-at "end Ada_Mode.Nominal"))
+   --EMACSRESULT:t
+private -- Ada_Mode.Nominal
+   --EMACSCMD:(progn (forward-line -1) (ada-prev-statement-keyword)(looking-at "package Ada_Mode.Nominal"))
+   --EMACSRESULT:t
+
    type Private_Type_1 is abstract tagged limited null record;
    type Private_Type_2 is abstract tagged limited
       record
@@ -717,3 +742,5 @@ private
      (<>) is tagged;
 
 end Ada_Mode.Nominal;
+--EMACSCMD:(progn (forward-line -1) (ada-prev-statement-keyword)(looking-at "private -- Ada_Mode.Nominal"))
+--EMACSRESULT:t

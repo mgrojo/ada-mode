@@ -38,19 +38,18 @@ run wisi test from emacs -Q:
 
  ada-wisi
 build/wisi/Makefile
+c:/Projects/GDS/main_lynx_5/sal/build/x86_gnu_windows_debug/Makefile
 
 do fixmes
-    ada-grammar.wy first
     (grep-find "find . -type f -print | xargs grep -n FIXME")
 
-./ada-gnat.el:866:	   (ada-smie-forward-tokens-unrefined ":");; FIXME: generalize to wisi!
-./ada-gnat.el:894:	     (forward-line 1);; FIXME: need `ada-goto-declaration-end'
+test indent on GDS code
 
-indent GDS
+test indent with standard emacs code skeleton/template
 
 need ada-indent-statement
-    which needs wisi-goto-end
-        goto corresponding end-statement, without using motion cache
+
+fix motion for all blocks
 
 Debian : emacs 24.2 (from testing), GNAT GPL 2013:
 
@@ -67,6 +66,8 @@ indentation bug:
          Lookaheads => +(LEFT_PAREN_ID, SEMICOLON_ID),
          Dot        => 1,
          Next       => Expected_Set);
+
+test menu
 
 select-prj should open prj if not in alist
 

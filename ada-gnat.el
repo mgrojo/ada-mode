@@ -115,12 +115,12 @@ See also `ada-gnat-parse-emacs-final'."
     (setq project (ada-gnat-get-paths project))
     )
 
-  ;; FIXME: This is only needed when actually running the gnat
-  ;; compiler; parsing a gnat project is a crude proxy for
-  ;; that. Could set in an 'ada-compile' function, but there's no good
-  ;; way to know when to clear it. Same for
-  ;; compilation-error-regexp-alist. So we do this here, and assume other modes will set
-  ;; these variables appropriately.
+  ;; This is only needed when actually running the gnat compiler;
+  ;; parsing a gnat project is a crude proxy for that. Could set in an
+  ;; 'ada-compile' function, but there's no good way to know when to
+  ;; clear it. Same for compilation-error-regexp-alist. So we do this
+  ;; here, and assume other modes will set these variables
+  ;; appropriately.
   ;;
   ;; One possible approach is per-project compilation buffers; then
   ;; these variables could be buffer-local.
@@ -615,7 +615,7 @@ Prompt user if more than one."
   ;;
   ;; column number can vary, so only check the line number
 
-  ;; FIXME: compilation--message->loc not in Emacs 23.2
+  ;; FIXME (emacs 23): compilation--message->loc not in Emacs 23.2
   (let ((line (progn (beginning-of-line) (nth 1 (compilation--message->loc (ada-get-compilation-message)))))
 	done choices)
     (while (not done)
@@ -806,10 +806,11 @@ Prompt user if more than one."
 	   (delete-char 1)
 	   t)
 
-	  ((looking-at (concat "missing \"with \\([a-zA-Z0-9_.']+\\);\""))
+	  ((looking-at "\\(?:possible \\)?missing \"with \\([a-zA-Z0-9_.]+\\);")
+	   ;; also 'possible missing "with Ada.Text_IO; use Ada.Text_IO"' - ignoring the 'use'
 	   (let ((package-name (match-string-no-properties 1)))
 	     (pop-to-buffer source-buffer)
-	     ;; FIXME: should check if prefix is already with'd, extend it
+	     ;; FIXME (later): should check if prefix is already with'd, extend it
 	     (ada-fix-add-with-clause package-name))
 	   t)
 
@@ -863,11 +864,13 @@ Prompt user if more than one."
 ;;;; warnings
 	  ((looking-at (concat "warning: " ada-gnat-quoted-name-regexp " is not modified, could be declared constant"))
 	   (pop-to-buffer source-buffer)
-	   (ada-smie-forward-tokens-unrefined ":");; FIXME: generalize to wisi!
+	   (search-forward ":")
+	   (forward-comment (- (point-max) (point)))
 	   ;; "aliased" must be before "constant", so check for it
 	   (when (looking-at "aliased")
-	     (forward-word 1))
-	   (insert " constant")
+	     (forward-word 1)
+	     (forward-char 1))
+	   (insert "constant ")
 	   t)
 
 	  ((looking-at (concat "warning: formal parameter " ada-gnat-quoted-name-regexp " is not referenced"))
@@ -891,8 +894,7 @@ Prompt user if more than one."
 	  ((looking-at (concat "warning: variable " ada-gnat-quoted-name-regexp " is assigned but never read"))
 	   (let ((param (match-string 1)))
 	     (pop-to-buffer source-buffer)
-	     (forward-line 1);; FIXME: need `ada-goto-declaration-end'
-	     (backward-char 1)
+	     (ada-goto-end)
 	     (newline-and-indent)
 	     (insert "pragma Unreferenced (" param ");"))
 	   t)

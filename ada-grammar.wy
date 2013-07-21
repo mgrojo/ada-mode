@@ -177,6 +177,7 @@
 %conflict REDUCE/SHIFT in state identifier_list, object_renaming_declaration on token COLON
 %conflict REDUCE/SHIFT in state name, aspect_clause on token USE
 %conflict REDUCE/SHIFT in state name, association on token EQUAL_GREATER
+%conflict REDUCE/SHIFT in state name, pragma_argument_association on token TICK
 %conflict REDUCE/SHIFT in state null_exclusion_opt, name on token CHARACTER_LITERAL
 %conflict REDUCE/SHIFT in state null_exclusion_opt, name on token IDENTIFIER
 %conflict REDUCE/SHIFT in state null_exclusion_opt, name on token STRING_LITERAL
@@ -1274,7 +1275,7 @@ membership_choice_list
 
 membership_choice
   : simple_expression
- ;; FIXME: ARM has 'choice_expression' here, but that leads to a shift/reduce conflict, because of the following productions:
+ ;; ARM has 'choice_expression' here, but that leads to a shift/reduce conflict, because of the following productions:
  ;; membership_choice_list => membership_choice => choice_expression => choice_relation_and_list
  ;; relation => simple_expression IN choice_relation_and_list
  ;; thus 'choice_relation_and_list AND' could be followed by relation (=> reduce) or choice_relation (=> shift)
@@ -1419,11 +1420,13 @@ package_specification
     (progn
       (wisi-statement-action 1 'statement-start 2 'name 4 'block-start 6 'block-middle 8 'block-end)
       (wisi-containing-action 4 5)
-      (wisi-containing-action 6 7))
+      (wisi-containing-action 6 7)
+      (wisi-motion-action 1 6 8))
   | PACKAGE name aspect_specification_opt IS declarative_part_opt END name
     (progn
       (wisi-statement-action 1 'statement-start 2 'name 4 'block-start 6 'block-end)
-      (wisi-containing-action 4 5))
+      (wisi-containing-action 4 5)
+      (wisi-motion-action 1 6))
   ;
 
 parameter_and_result_profile
@@ -1480,8 +1483,7 @@ pragma
 pragma_argument_association
   : IDENTIFIER EQUAL_GREATER expression
   | expression
- ;; | IDENTIFIER TICK CLASS EQUAL_GREATER expression;; aspect_mark;
- ;; FIXME: causes shift/reduce conflict with attribute_reference
+  | IDENTIFIER TICK IDENTIFIER EQUAL_GREATER expression
   ;
 
 pragma_argument_association_list

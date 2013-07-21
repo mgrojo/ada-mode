@@ -300,6 +300,7 @@ wisi-forward-token, but does not look up symbol."
 
   prev ;; marker at previous motion token in statement; nil if none
   next ;; marker at next motion token in statement; nil if none
+  end ;; marker at token at end of current statement
   )
 
 (defvar-local wisi-cache-max 0
@@ -432,6 +433,27 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
 
 ;;;; parse actions
 
+(defun wisi-set-end (tokens end-mark)
+  "Set END-MARK on all unset caches in TOKENS."
+  (let ((tokens-t tokens))
+    (while tokens-t
+      (let* ((token (pop tokens-t))
+	     (region (cddr token))
+	     cache)
+	(when region
+	  (goto-char (car region))
+	  (setq cache (wisi-get-cache (car region)))
+	  (while (and cache
+		      (< (point) (cdr region)))
+	    (if (not (wisi-cache-end cache))
+		(setf (wisi-cache-end cache) end-mark)
+	      (goto-char (wisi-cache-end cache))
+	      )
+	    (setq cache (wisi-forward-cache))
+	    ))
+	))
+    ))
+
 (defvar tokens nil);; keep byte-compiler happy; tokens is let-bound in wisi-parse-reduce
 (defun wisi-statement-action (&rest pairs)
   "Cache information in text properties of tokens.
@@ -461,7 +483,7 @@ that token. Use in a grammar action as:
 
 	  (if region
 	      (progn
-		(if (setq cache (get-text-property (car region) 'wisi-cache))
+		(if (setq cache (wisi-get-cache (car region)))
 		    ;; We are processing a previously set non-terminal; ie generic_formal_part in
 		    ;;
 		    ;; generic_package_declaration : generic_formal_part package_specification SEMICOLON
@@ -511,7 +533,11 @@ that token. Use in a grammar action as:
 		  (when (or override-start
 			    (memq class '(block-middle block-start statement-start)))
 		    (setq override-start nil)
-		    (setq first-keyword-mark mark))))
+		    (setq first-keyword-mark mark)))
+
+		(when (eq class 'statement-end)
+		  (wisi-set-end tokens (copy-marker (1+ (car region)))))
+		)
 
 	    ;; region is nil when a production is empty; if the first
 	    ;; token is a start, override the class on the next token.
@@ -727,7 +753,8 @@ If LIMIT (a buffer position) is reached, throw an error."
 
 (defun wisi-forward-statement-keyword ()
   "If not at a cached token, move forward to next
-cache. Otherwise move to cache-next, or next cache if nil."
+cache. Otherwise move to cache-next, or next cache if nil.
+Return cache found."
   (wisi-validate-cache (point-max))
   (let ((cache (wisi-get-cache (point))))
     (if cache
@@ -737,7 +764,9 @@ cache. Otherwise move to cache-next, or next cache if nil."
 	    (wisi-forward-token)
 	    (wisi-forward-cache)))
       (wisi-forward-cache))
-  ))
+    )
+  (wisi-get-cache (point))
+  )
 
 (defun wisi-backward-statement-keyword ()
   "If not at a cached token, move backward to prev
@@ -780,6 +809,17 @@ Return cache for paren, or nil if no containing paren."
     (while (and cache
 		(not (memq (wisi-cache-class cache) '(block-start statement-start))))
       (setq cache (wisi-goto-containing cache)))
+    ))
+
+(defun wisi-goto-end ()
+  "Move point to token at end of statement point is in or before."
+  (interactive)
+  (wisi-validate-cache (point-max))
+  (let ((cache (or (wisi-get-cache (point))
+		   (wisi-forward-cache))))
+    (when (wisi-cache-end cache)
+      ;; nil when cache is statement-end
+      (goto-char (1- (wisi-cache-end cache))))
     ))
 
 (defun wisi-next-statement-cache (cache)
