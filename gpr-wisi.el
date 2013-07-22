@@ -77,7 +77,7 @@
 	(block-middle
 	 (wisi-indent-start
 	  (if (eq (wisi-cache-token cache) 'WHEN) ada-indent-when 0)
-	  ;; FIXME: need test of ada-indent-when in gpr
+	  ;; FIXME (later): need test of ada-indent-when in gpr
 	  cache))
 	(close-paren (wisi-indent-paren 0))
 	(open-paren nil); let after-keyword handle it
@@ -99,8 +99,21 @@
 	(block-end
 	 (wisi-indent-current 0))
 
-	((block-start block-middle)
-	 (gpr-wisi-indent-cache ada-indent cache))
+	(block-middle
+	 (case (wisi-cache-token cache)
+	   (WHEN
+	    (gpr-wisi-indent-cache ada-indent-broken cache))
+	   (t
+	    (gpr-wisi-indent-cache ada-indent cache))
+	   ))
+
+	(block-start
+	 (case (wisi-cache-token cache)
+	   (EQUAL_GREATER
+	    (gpr-wisi-indent-containing ada-indent cache))
+	   (t
+	    (gpr-wisi-indent-cache ada-indent cache))
+	   ))
 
 	(open-paren
 	 (1+ (current-column)))
@@ -131,6 +144,20 @@
   ;; keep it simple :)
   nil)
 
+(defun gpr-wisi-which-function ()
+  "For `gpr-which-function'."
+  (wisi-validate-cache (point))
+  (let ((cache (wisi-backward-cache)))
+    (while (and cache
+		(not (and
+		      (memq (wisi-cache-nonterm cache) '(package_spec simple_project_declaration))
+		      (eq (wisi-cache-class cache) 'statement-start))))
+      (setq cache (wisi-goto-containing cache)))
+    (when cache
+      (wisi-forward-token); package | project
+      (wisi-forward-token t); name
+      )))
+
 ;;; debugging
 (defun gpr-wisi-debug-keys ()
   "Add debug key definitions to `gpr-mode-map'."
@@ -153,6 +180,7 @@
 	      gpr-grammar-wy--parse-table)
 
   (set (make-local-variable 'comment-indent-function) 'wisi-comment-indent)
+  (setq gpr-which-function 'gpr-wisi-which-function)
   )
 
 (add-hook 'gpr-mode-hook 'gpr-wisi-setup)

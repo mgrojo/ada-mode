@@ -11,7 +11,7 @@
 --EMACSCMD:(setq skip-recase-test t)
 
 -- ada-indent-return <= 0 indents relative to the open parenthesis
--- ada-indent-renames > 0 indents relative to the "function" or "procedure" keyword
+-- ada-indent-renames > 0 indents relative to the "function" or "procedure" keyword, if there are parameters
 package Ada_Mode.Options.Indent_Return_1 is
 
    function A return Integer;
@@ -29,7 +29,7 @@ package Ada_Mode.Options.Indent_Return_1 is
               return Integer;   -- from ada-indent-return
 
    type G is access function
-                       return Integer; -- from ada-indent-broken/return
+                       return Integer; -- from ada-indent-broken
 
    type H is access function (C : Integer)
                              return Integer;  -- from ada-indent-return
@@ -41,7 +41,7 @@ package Ada_Mode.Options.Indent_Return_1 is
       with function J (B : Integer)
                       return Integer;   --  from ada-indent-return
       with function K
-              return Integer;   --  from ada-indent-broken/return
+              return Integer;   --  from ada-indent-broken
    package L is
    end L;
 

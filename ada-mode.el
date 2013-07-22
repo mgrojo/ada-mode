@@ -168,6 +168,11 @@ If nil, no contextual menu is available."
 
 ;;;;; end of user variables
 
+(defconst ada-symbol-end
+  ;; we can't just add \> here; that might match _ in a user modified ada-mode-syntax-table
+  "\\([ \t]+\\|$\\)"
+  "Regexp to add to symbol name in `ada-which-function'.")
+
 (defvar ada-compiler nil
   "Symbol indicating which compiler is being used with the current buffer.")
 
@@ -225,7 +230,7 @@ If nil, no contextual menu is available."
      ["Comment Selection"           comment-region               t]
      ["Uncomment Selection"         (comment-region t) t]
      ["Fill Comment Paragraph"         ada-fill-comment-paragraph           t]
-     ["Fill Comment Paragraph Justify" (ada-fill-comment-paragraph 'full))  t]
+     ["Fill Comment Paragraph Justify" (ada-fill-comment-paragraph 'full)   t]
      ["Fill Comment Paragraph Postfix" (ada-fill-comment-paragraph 'full t) t]
      ["---" nil nil]
      ["Make body for subprogram"    ada-make-subprogram-body     t]
@@ -690,7 +695,7 @@ when interactive, user is prompted to choose a file from `ada-case-exception-fil
 	   ada-case-exception-file;; nil is a list
 	   (listp ada-case-exception-file))
 	  (if (called-interactively-p)
-	      ;; FIXME: not tested yet
+	      ;; FIXME (later): not tested yet
 	      (completing-read "case exception file: " ada-case-exception-file
 			       nil ;; predicate
 			       t   ;; require-match
@@ -1021,7 +1026,7 @@ list. Parser must modify or add to the property list and return it.")
 	(setcdr (assoc prj-file ada-prj-alist) project)
       (add-to-list 'ada-prj-alist (cons prj-file project)))
 
-    ;; (ada-xref-update-project-menu) FIXME: implement
+    ;; (ada-xref-update-project-menu) FIXME (later): implement
 
     ;; return t for interactive use
     t))
@@ -1064,7 +1069,7 @@ Return new value of PROJECT."
 			 (expand-file-name
 			  (substitute-in-file-name (match-string 2)))))
 
-	   ;; FIXME: handle 'compilation-error-regexp-alist; set to
+	   ;; IMPROVEME: handle 'compilation-error-regexp-alist; set to
 	   ;; nil, let user add others in project file. Assumes other
 	   ;; Makefiles/projects will do the same. Or use per-project
 	   ;; compilation buffer.
@@ -1386,11 +1391,6 @@ addition, if ff-function-name is non-nil, store in
 ff-function-name a regexp that will find the function in the
 other file.")
 
-(defconst ada-symbol-end
-  ;; we can't just add \> here; that might match _ in a user modified ada-mode-syntax-table
-  "\\([ \t]+\\|$\\)"
-  "Regexp to add to symbol name in `ada-which-function'.")
-
 (defun ada-which-function ()
   "See `ada-which-function' variable."
   (when ada-which-function
@@ -1527,7 +1527,7 @@ Ada mode initialization does this correctly, if you set
   ;; The above means we don't get here with prefix arg nil; the user
   ;; is requesting other frame or other window.
   ;;
-  ;; FIXME: use `display-buffer-overriding-action' to accomplish this? see misc_defun.el misc-compile
+  ;; FIXME (later): use `display-buffer-overriding-action' to accomplish this? see misc_defun.el misc-compile
   (let* ((window (ada-buffer-window buffer-or-name))
 	 (frame (and window (window-frame window))))
 
@@ -1809,7 +1809,7 @@ C-u     : show in other window
 C-u C-u : show in other frame"
   (interactive "P")
 
-  ;; FIXME: preserving the current window works only if the frame
+  ;; preserving the current window works only if the frame
   ;; doesn't change, at least on Windows.
   (let ((start-buffer (current-buffer))
 	(start-window (selected-window))
@@ -1821,7 +1821,7 @@ C-u C-u : show in other frame"
       (setq item (get-text-property pos 'ada-secondary-error))
       ;; set point in compilation buffer past this secondary error,
       ;; so user can easily go to the next one.
-      ;; FIXME: this has no effect!
+      ;; FIXME (later): this has no effect!
       (goto-char (next-single-property-change pos 'ada-secondary-error)))
 
     (set-buffer start-buffer);; for windowing history
@@ -1932,7 +1932,7 @@ package body file, containing skeleton code that will compile.")
   (let ((body-file-name (buffer-file-name)))
     (ff-find-the-other-file)
     (funcall ada-make-package-body body-file-name)
-    ;; FIXME: if 'ada-make-package-body' fails, delete the body buffer
+    ;; FIXME (later): if 'ada-make-package-body' fails, delete the body buffer
     ;; so it doesn't get written to disk, and we can try again.
 
     ;; back to the body, read in from the disk.
@@ -1981,8 +1981,6 @@ The paragraph is indented on the first line."
       (forward-line -1)
       (back-to-indentation))
 
-    ;;  We want one line above the first one, unless we are at the beginning
-    ;;  of the buffer
     (unless (bobp)
       (forward-line 1))
     (beginning-of-line)
@@ -1996,8 +1994,8 @@ The paragraph is indented on the first line."
 
     ;;  Remove the old postfixes
     (goto-char from)
-    (while (re-search-forward (concat ada-fill-comment-postfix "\n") to t)
-      (replace-match "\n"))
+    (while (re-search-forward (concat "\\(" ada-fill-comment-postfix "\\)" "\n") to t)
+      (delete-region (match-beginning 1) (match-end 1)))
 
     (goto-char (1- to))
     (setq to (point-marker))

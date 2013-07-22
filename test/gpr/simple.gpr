@@ -30,6 +30,7 @@ project Simple is
 
       --EMACSCMD:(gpr-add-log-current-function)
       --EMACSRESULT:"Compiler"
+
       case GNAT_Version is
          when "GPL-2012" | "7.0.1" =>
             for Default_Switches ("Ada") use
@@ -40,8 +41,8 @@ project Simple is
               & Standard_Common.Compiler'Default_Switches;
 
          when "GPL-2011" |
-            "6.2.2" | -- FIXME: continuation line; ada-indent-broken = 2
-            "6.2.1" =>
+           "6.2.2" |
+           "6.2.1" =>
             --  comment in case
             for Default_Switches ("Ada") use ("-gnat2005", "-gnatyO");
 

@@ -288,7 +288,7 @@ BEFORE should be t when called from ada-wisi-before-cache, nil otherwise."
 	      ;; test/ada_mode-nominal.adb
 	      ;; function Function_Access_11
 	      ;;   (A_Param : in Float)
-	      ;;   --  FIXME: EMACSCMD:(test-face "function" font-lock-keyword-face)
+	      ;;   --  EMACSCMD:(test-face "function" font-lock-keyword-face)
 	      ;;   return access function
 	      ;;     (A_Param : in Float)
 	      ;;     return
@@ -373,7 +373,7 @@ BEFORE should be t when called from ada-wisi-before-cache, nil otherwise."
 		 (wisi-forward-find-token '(FUNCTION PROCEDURE) pos-0)
 		 (let ((pos-subprogram (point))
 		       (has-params
-			;; FIXME: this is wrong for one return access
+			;; this is wrong for one return access
 			;; function case: overriding function Foo
 			;; return access Bar (...) renames ...;
 			(wisi-forward-find-token 'LEFT_PAREN pos-0 t)))
@@ -1217,14 +1217,13 @@ Also return cache at start."
 	    subprogram_specification ;; after 'generic'
 	    null_procedure_declaration)
 	   (setq result (ada-wisi-which-function-1
-			 (wisi-forward-token t) ;; FIXME: overriding?
+			 (wisi-forward-token t)
 			 nil))) ;; no 'body' keyword in subprogram bodies
 
 	  (subprogram_body
 	   (setq result (ada-wisi-which-function-1 (wisi-forward-token t) nil)))
 
 	  (task_type_declaration
-	   ;; FIXME: need test
 	   (setq result (ada-wisi-which-function-1 "task" t)))
 
 	  ))

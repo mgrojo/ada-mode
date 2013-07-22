@@ -1,15 +1,16 @@
 --  Similar to ada_mode-options-indent_return_1.ads, except with a
 --  different value of ada-indent-return and ada-indent-renames.
+--  (ediff "ada_mode-options-indent_return_1.ads" "ada_mode-options-indent_return_2.ads")
 
 --EMACSCMD:(setq skip-recase-test t)
 
--- ada-indent-return > 0 indents relative to "function" (FIXME: using ada-indent-broken?)
+-- ada-indent-return > 0 indents relative to "function", if there are parameters
 -- ada-indent-renames < 0 indents relative to the open paren, if any
 package Ada_Mode.Options.Indent_Return_2 is
 
    function A return Integer;
    function B
-      return Integer;   -- from ada-indent-broken (or ada-indent-return if > 0)
+      return Integer;   -- from ada-indent-broken; no parameters
 
    function C (B : Integer) return Integer;
    function D (B : Integer)
@@ -61,7 +62,7 @@ package Ada_Mode.Options.Indent_Return_2 is
 
    procedure P;
    procedure PR
-      renames P;  -- from ada-indent-broken/renames
+      renames P;  -- from ada-indent-broken
 
    procedure Q (X : Integer);
    procedure QR (X : Integer)

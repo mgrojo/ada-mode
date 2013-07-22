@@ -60,7 +60,7 @@ current construct."
     (define-key map "\C-c`"    'ada-show-secondary-error)
     (define-key map "\C-c\C-a" 'gpr-align)
     (define-key map "\C-c\C-c" 'compile)
-    ;; FIXME: implement?
+    ;; FIXME (later): implement?
     ;; (define-key map "\C-c\C-n" 'ada-next-statement-keyword)
     ;; (define-key map "\C-c\C-o" 'ada-find-other-file)
     ;; (define-key map "\C-c\M-o" 'ada-find-other-file-noset)
@@ -86,7 +86,7 @@ current construct."
     ["------"        nil nil]
     ["Next compilation error"     next-error                t]
     ["Show secondary error"       ada-show-secondary-error  t]
-    ;; FIXME: implement?
+    ;; FIXME (later): implement?
     ;; ["Other File"                 ada-find-other-file       t]
     ;; ["Other File don't find decl" ada-find-other-file-noset t]
     ("Edit"
@@ -157,6 +157,16 @@ current construct."
 	       'gpr-ff-special-with)
 	 )))
 
+(defvar-local gpr-which-function nil
+  ;; No useful default; the indentation engine should supply a useful function
+  "Function called with no parameters; it should return the name
+of the package or project point is in or just after, or nil.")
+
+(defun gpr-which-function ()
+  "See `gpr-which-function' variable."
+  (when gpr-which-function
+    (funcall gpr-which-function)))
+
 (defun gpr-add-log-current-function ()
   "For `add-log-current-defun-function'. Returns enclosing package or project name."
   ;; add-log-current-defun is typically called with point at the start
@@ -165,18 +175,8 @@ current construct."
   ;; first
   (save-excursion
     (end-of-line 1)
-    ;; FIXME: move to gpr-wisi, or merge that here
-    (wisi-validate-cache (point))
-    (let ((cache (wisi-backward-cache)))
-      (while (and cache
-		  (not (and
-			(memq (wisi-cache-nonterm cache) '(package_spec simple_project_declaration))
-			(eq (wisi-cache-class cache) 'statement-start))))
-	(setq cache (wisi-goto-containing cache)))
-      (when cache
-	(wisi-forward-token); package | project
-	(wisi-forward-token t); name
-	))))
+    (gpr-which-function)))
+
 ;;;;
 (defun gpr-mode ()
   "The major mode for editing GNAT project files."
@@ -220,7 +220,7 @@ current construct."
 
   (run-hooks 'gpr-mode-hook)
 
-  ;; FIXME: need this? use ada? duplicate? factor out?
+  ;; FIXME (later): need this? use ada? duplicate? factor out?
   ;; (if gpr-auto-case
   ;;     (gpr-activate-keys-for-case))
   )

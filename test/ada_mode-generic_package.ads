@@ -14,12 +14,6 @@ with Ada.Strings.Unbounded;
 --EMACSCMD:(ada-which-function)
 --EMACSRESULT:(if (featurep 'ada-wisi) "" nil)
 
--- FIXME: ada-smie-next-statement-keyword is broken here because of
--- "procedure-spec" in Procedure_Formal_Access_Type. Fix is either to
--- change that to "procedure-access" (along with other "procedure-*"
--- and "function-*" changes, such as "procedure-body"), or switch to
--- LALR parser; we are waiting for the latter.
---
 --EMACSCMD:(progn (ada-next-statement-keyword)(looking-at "generic$"))
 --EMACSRESULT: (if (featurep 'ada-wisi) t nil)
 --EMACSCMD:(progn (forward-line 2) (ada-next-statement-keyword)(looking-at "package Ada_Mode.Generic_Package"))

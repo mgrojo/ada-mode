@@ -524,6 +524,8 @@ package Ada_Mode.Nominal is
      : Ada.Strings.Unbounded.String_Access;
 
    task type Task_Type_1 (Name : access String) is
+      --EMACSCMD:(ada-which-function)
+      --EMACSRESULT:"Task_Type_1"
       entry Start (Discrete_Type_1) (Param_1 : in Integer);
       entry Middle_1 (Param_1 : in Integer);
       entry Middle_2 (Param_1 : in Integer);
@@ -549,14 +551,14 @@ package Ada_Mode.Nominal is
    -- a filled comment. Now is the time for all good parsers to come
    -- to the aid of programmer.
 
-   --EMACSCMD:(progn (forward-line 2)(forward-word 2)(insert "    ")(ada-fill-comment-paragraph-justify))
+   --EMACSCMD:(progn (forward-line 2)(forward-word 2)(insert "    ")(ada-fill-comment-paragraph 'full))
 
    -- a filled  and justified comment.  Now  is the time for  all good
    -- parsers to come to the aid of programmer.
 
-   --FIXME: broken EMACSCMD:(progn (forward-line 2)(forward-word 2)(insert "    ")(ada-fill-comment-paragraph-postfix))
+   --EMACSCMD:(progn (forward-line 2)(forward-word 2)(insert "    ")(ada-fill-comment-paragraph 'full t))
 
-   -- a filled and  justified postfix comment. Now  is the time for --
+   -- a filled and  justified postfix comment. Now is  the time for --
    -- all good parsers to come to the aid of programmer.            --
 
    not overriding procedure Procedure_1a (Item  : in out Parent_Type_1);
@@ -669,7 +671,8 @@ package Ada_Mode.Nominal is
    --EMACSCMD:(progn (forward-line 2) (ada-next-statement-keyword)(looking-at "end Ada_Mode.Nominal"))
    --EMACSRESULT:t
 private -- Ada_Mode.Nominal
-   --EMACSCMD:(progn (forward-line -1) (ada-prev-statement-keyword)(looking-at "package Ada_Mode.Nominal"))
+
+   --EMACSCMD:(progn (forward-line -2) (ada-prev-statement-keyword)(looking-at "package Ada_Mode.Nominal"))
    --EMACSRESULT:t
 
    type Private_Type_1 is abstract tagged limited null record;
@@ -686,7 +689,7 @@ private -- Ada_Mode.Nominal
          Component_2 : Integer := 1;
          Component_3 : Integer := 2;
       end record
-        with Pack => True; -- FIXME: aspect indented with ada-indent-broken; ok? ask list, GPS
+        with Pack => True; -- FIXME (later): aspect indented with ada-indent-broken; ok? ask list, GPS
 
    type Limited_Derived_Type_1a is abstract limited new
       Private_Type_1 with record

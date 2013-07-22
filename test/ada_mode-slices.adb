@@ -1,9 +1,16 @@
 -- tests slices; example of typical code.
 
+--EMACSCMD:(ada-parse-prj-file "subdir/ada_mode.adp")
+--EMACSCMD:(ada-select-prj-file "subdir/ada_mode.adp")
+
 --EMACSCMD:(setq skip-recase-test t)
 with Ada.Text_IO; use Ada.Text_IO;
 procedure Ada_Mode.Slices is
    type Day is (Sun, Mon, Tues);
+
+   --EMACSCMD:(progn (forward-line 2)(forward-word 1)(forward-char 1)(ada-goto-declaration nil)(looking-at "+\" (Left : in Day; Right : in Integer) return Day$"))
+   --EMACSRESULT:t
+   function "+" (Left : in Day; Right : in Integer) return Day;
 
    function "+" (Left : in Day; Right : in Integer) return Day
    is begin

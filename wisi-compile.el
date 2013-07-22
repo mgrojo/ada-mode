@@ -123,38 +123,16 @@ side-effects only."
   (let* ((actn (aref rcode r))
 	 (n    (aref actn 1))         ; number of tokens in production
 	 (name (apply 'format "%s:%d" (aref actn 2)))
-	 (form (wisent-semantic-action-expand-body (aref actn 0) n))
-	 ($l   (car form))            ; list of $vars used in body
-	 (form (cdr form))            ; expanded form of body
-	 (bl   nil)                   ; `let*' binding list
-	 $v i action-symbol)
-
-    ;; Compute bl; the list of $N and $regionN bindings
-    (setq i n)
-    (while (> i 0)
-      ;; FIXME: not using $I, $regionn anymore
-      ;; a token is (symbol "text" start . end)
-      ;; bind $regionI if used in action
-      (setq $v (intern (format "$region%d" i)))
-      (when (memq $v $l)
-	(setq bl (cons `(,$v (cddr (nth (1- ,i) tokens))) bl)))
-
-      ;; bind $I if used in action
-      (setq $v (intern (format "$%d" i)))
-      (when (memq $v $l)
-	(setq bl (cons `(,$v (car (nth (1- ,i) tokens))) bl)))
-      (setq i (1- i)))
-
-    (setq action-symbol (intern name (aref rcode 0)))
+	 (form (aref actn 0))
+	 (action-symbol (intern name (aref rcode 0))))
 
     (fset action-symbol
 	  `(lambda (tokens)
-	     (let* (,@bl
-		    ($nterm  ',(aref tags (aref rlhs r))))
+	     (let* (($nterm ',(aref tags (aref rlhs r)))
+		    ($1 nil));; wisent-parse-nonterminals defines a default body of $1 for empty actions
 	       ,form
 	       nil)))
 
-    ;; Return the action list
     (list (car (aref actn 2)) action-symbol n)))
 
 (defun wisi-compile-grammar (grammar)

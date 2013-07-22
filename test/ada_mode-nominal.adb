@@ -14,7 +14,7 @@ package body Ada_Mode.Nominal is -- target 0
    --EMACSCMD:(test-face "Ada" font-lock-constant-face)
    use Ada.Strings;
 
-   --EMACSCMD:(progn (forward-line 2) (ada-next-statement-keyword)(looking-at "is -- target 1"))
+   --EMACSCMD:(progn (forward-line 2) (back-to-indentation) (ada-next-statement-keyword)(looking-at "is -- target 1"))
    --EMACSRESULT:t
    function Function_Access_1
      (A_Param : in Float)
@@ -34,7 +34,7 @@ package body Ada_Mode.Nominal is -- target 0
 
    function Function_Access_11
      (A_Param : in Float)
-     --  FIXME: EMACSCMD:(test-face "function" font-lock-keyword-face)
+     --  FIXME (later): EMACSCMD:(test-face "function" font-lock-keyword-face)
      return access function
        (A_Param : in Float)
        return
@@ -168,10 +168,16 @@ package body Ada_Mode.Nominal is -- target 0
          return D : Float
          do
             -- extended return with do
+            --EMACSCMD:(progn (forward-line 2) (back-to-indentation) (ada-next-statement-keyword)(looking-at "when A | Nominal.B"))
+            --EMACSRESULT:t
             case Param_1 is
             -- comment after "is", before "when"
+            --EMACSCMD:(progn (forward-line 2) (back-to-indentation) (ada-next-statement-keyword)(looking-at "when C"))
+            --EMACSRESULT:t
                when A | Nominal.B =>
                   null;
+                  --EMACSCMD:(progn (forward-line 2) (back-to-indentation) (ada-next-statement-keyword)(looking-at "end case"))
+                  --EMACSRESULT:t
                when C =>
                   --EMACSCMD:(progn (forward-line 2)(forward-word 1)(forward-char 1)(insert "   ")(ada-align))
                   -- result is tested in diff
@@ -184,7 +190,6 @@ package body Ada_Mode.Nominal is -- target 0
                <<Label_1>>
                   D := D - Float (F1);
             end case;
-            --  FIXME: test keyword motion on case
          end return;
       end; -- no F2 on purpose
 

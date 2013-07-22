@@ -342,7 +342,7 @@
         (wisi-statement-action 1 'block-start 3 'block-middle 5 'block-end 7 'statement-end)
         (wisi-containing-action 1 2)
         (wisi-containing-action 3 4)
-        (wisi-motion-action 1 3 4 5))))
+        (wisi-motion-action 1 '(4 WHEN) 5))))
       (case_statement_alternative
        ((WHEN discrete_choice_list EQUAL_GREATER sequence_of_statements )
         (progn
@@ -1409,14 +1409,14 @@
       (task_type_declaration
        ((TASK TYPE IDENTIFIER discriminant_part_opt aspect_specification_opt IS NEW interface_list WITH task_definition SEMICOLON )
         (progn
-        (wisi-statement-action 1 'statement-start 10 'statement-other 11 'statement-end)
+        (wisi-statement-action 1 'statement-start 3 'name 10 'statement-other 11 'statement-end)
         (wisi-containing-action 9 10)))
        ((TASK TYPE IDENTIFIER discriminant_part_opt aspect_specification_opt IS task_definition SEMICOLON )
         (progn
-        (wisi-statement-action 1 'statement-start 6 'block-start 8 'statement-end)
+        (wisi-statement-action 1 'statement-start 3 'name 6 'block-start 8 'statement-end)
         (wisi-containing-action 6 7)))
        ((TASK TYPE IDENTIFIER discriminant_part_opt aspect_specification_opt SEMICOLON )
-        (wisi-statement-action 1 'statement-start 6 'statement-end)))
+        (wisi-statement-action 1 'statement-start 3 'name 6 'statement-end)))
       (term
        ((factor ))
        ((term multiplying_operator factor )))

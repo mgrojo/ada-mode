@@ -300,7 +300,9 @@ is (ada-gnat-run-buffer)"
   "For `ada-xref-other-function'."
   (let* ((start-file (file-name-nondirectory (buffer-file-name)))
 	 (start-line (line-number-at-pos))
-	 (start-col  (1+ (current-column)))
+	 (start-col  (case (char-after)
+		       (?\" (+ 2 (current-column))) ;; work around bug in gnat find
+		       (t (1+ (current-column)))))
 	 (arg (format "%s:%s:%d:%d" identifier start-file start-line start-col))
 	 (switch (if parent "-d" nil))
 	 status
