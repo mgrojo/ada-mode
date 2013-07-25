@@ -1,7 +1,6 @@
 ;;; ada-mode.el --- major-mode for editing Ada sources
 ;;
-;;; Copyright (C) 1994, 1995, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013  Free Software Foundation, Inc.
+;;; Copyright (C) 1994, 1995, 1997 - 2013  Free Software Foundation, Inc.
 
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
@@ -1347,7 +1346,7 @@ unit name; it should return the Ada name that should be found in FILE-NAME.")
      (or
       (ff-get-file-name
        compilation-search-path
-       (ada-file-name-from-ada-name (match-string 1))
+       (ada-file-name-from-ada-name package-name)
        (append ada-spec-suffixes ada-body-suffixes))
       (error "package '%s' not found; set project file?" package-name)))
     ))
@@ -1810,20 +1809,25 @@ C-u C-u : show in other frame"
   (let ((start-buffer (current-buffer))
 	(start-window (selected-window))
 	(start-frame (selected-frame))
-	pos item)
+	pos item file)
     (set-buffer compilation-last-buffer)
     (setq pos (next-single-property-change (point) 'ada-secondary-error))
     (when pos
       (setq item (get-text-property pos 'ada-secondary-error))
-      ;; set point in compilation buffer past this secondary error,
-      ;; so user can easily go to the next one.
-      ;; FIXME (later): this has no effect!
-      (goto-char (next-single-property-change pos 'ada-secondary-error)))
+      ;; file-relative-name handles absolute Windows paths from
+      ;; g++. Do this in compilation buffer to get correct
+      ;; default-directory.
+      (setq file (file-relative-name (nth 0 item)))
+
+      ;; Set point in compilation buffer past this secondary error, so
+      ;; user can easily go to the next one. For some reason, this
+      ;; doesn't change the visible point!?
+      (forward-line 1))
 
     (set-buffer start-buffer);; for windowing history
     (when item
       (ada-goto-source
-       (nth 0 item); file
+       file
        (nth 1 item); line
        (nth 2 item); column
        other-window-frame)
