@@ -141,14 +141,17 @@ case_items
   ;
 
 compilation_unit
-  : context_clause project_declaration
-  | project_declaration
+  : context_clause_opt project_qualifier_opt project_declaration
   ;
 
 context_clause
   : with_clause
-  | project_qualifier
   | context_clause with_clause
+  ;
+
+context_clause_opt
+  : ;; empty
+  | context_clause
   ;
 
 ;; (info "(gnat_ugn)Declarations")
@@ -218,8 +221,9 @@ package_spec
 ;;   end package_identifier ;
 
 ;; (info "(gnat_ugn)Qualified Projects")
-project_qualifier
-  : ABSTRACT
+project_qualifier_opt
+  : ;; empty
+  | ABSTRACT
   | STANDARD
   | AGGREGATE
   | AGGREGATE LIBRARY

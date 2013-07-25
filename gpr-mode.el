@@ -138,11 +138,12 @@ current construct."
 (defun gpr-ff-special-with ()
   (ada-require-project-file)
   (let ((project-name (match-string 1)))
-    (or
-     (ff-get-file-name
-      (ada-prj-get 'prj_dir)
-      (concat (match-string 1) ".gpr"))
-     (error "project '%s' not found; set project file?" project-name))
+    (file-name-nondirectory
+     (or
+      (ff-get-file-name
+       (ada-prj-get 'prj_dir)
+       (concat (match-string 1) ".gpr"))
+      (error "project '%s' not found; set project file?" project-name)))
     ))
 
 (defun gpr-set-ff-special-constructs ()
@@ -205,6 +206,7 @@ of the package or project point is in or just after, or nil.")
 	 ((?\_ . "w"))))
 
   (gpr-set-ff-special-constructs)
+  (setq ff-search-directories 'compilation-search-path)
 
   (set (make-local-variable 'add-log-current-defun-function)
        'gpr-add-log-current-function)

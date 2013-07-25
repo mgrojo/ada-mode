@@ -244,10 +244,6 @@ src_dir, obj_dir, prj_dir will include compiler runtime."
 
   (setq project (ada-gnat-get-paths project))
 
-  ;; add dir containing gpr-file to ada_project_path, so we can run
-  ;; gnat in other directories (ie, for gnat stub)
-  (ada-gnat-prj-add-prj-dir (file-name-directory gpr-file) project)
-
   (message "Parsing %s ... done" gpr-file)
   project)
 
