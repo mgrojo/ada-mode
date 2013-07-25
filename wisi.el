@@ -324,7 +324,9 @@ wisi-forward-token, but does not look up symbol."
 
 (defun wisi-before-change (begin end)
   "For `before-change-functions'."
+  ;; begin . end is range of text being deleted
   (save-excursion
+    ;; don't invalidate parse for whitespace, string, or comment changes
     (let (;; (info "(elisp)Parser State")
 	  (state (syntax-ppss begin)))
       ;; syntax-ppss has moved point to "begin".
@@ -345,16 +347,19 @@ wisi-forward-token, but does not look up symbol."
 
 (defun wisi-after-change (begin end length)
   "For `after-change-functions'."
+  ;; begin . end is range of text being inserted (may be empty)
   ;; (syntax-ppss-flush-cache begin) is in before-change-functions
   (when (or wisi-parse-failed
 	    (>= wisi-cache-max begin))
     (save-excursion
-      ;; FIXME: if wisi-change-need-invalidate, don't do any more checks.
       (let ((need-invalidate t)
 	    ;; (info "(elisp)Parser State")
 	    (state (syntax-ppss begin)))
 	;; syntax-ppss has moved point to "begin".
 	(cond
+	 (wisi-change-need-invalidate
+	  nil)
+
 	 ((or
 	   (nth 3 state); in string
 	   (nth 4 state)); in comment
@@ -371,8 +376,7 @@ wisi-forward-token, but does not look up symbol."
 	 (t nil)
 	 )
 
-	(if (or wisi-change-need-invalidate
-		need-invalidate)
+	(if need-invalidate
 	    (wisi-invalidate-cache)
 	  ;; else move cache-max by the net change length
 	  (setq wisi-cache-max
@@ -850,11 +854,8 @@ the comment on the previous line."
 
 (defun wisi-indent-current (offset)
   "Return indentation OFFSET relative to indentation of current line."
-  (save-excursion
-    (unless (ada-in-paren-p)
-      ;; FIXME: use (current-indentation), don't use save-excursion
-      (back-to-indentation))
-    (+ (current-column) offset)))
+  (+ (current-indentation) offset)
+  )
 
 (defun wisi-indent-paren (offset)
   "Return indentation OFFSET relative to preceding open paren."

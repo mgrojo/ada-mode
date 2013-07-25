@@ -90,7 +90,6 @@
 		 (result (wisi-parse-1 token parser-state (> active-parser-count 1) actions gotos)))
 	    (when result
 	      ;; spawn a new parser
-	      ;; FIXME: put new parser on new-parser-list, add to parser-states after this parser-index loop
 	      (let ((j (wisi-free-parser parser-states)))
 		(cond
 		 ((= j -1)

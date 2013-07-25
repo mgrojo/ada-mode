@@ -1075,7 +1075,7 @@ Return new value of PROJECT."
 	   ;; compilation buffer.
 
 	   ((string= (match-string 1) "comp_cmd")
-	    (add-list 'comp_cmd (match-string 2)))
+	    (add-to-list 'comp_cmd (match-string 2)))
 
 	   ((string= (match-string 1) "make_cmd")
 	    (add-to-list 'make_cmd (match-string 2)))
@@ -1152,10 +1152,6 @@ Return new value of PROJECT."
   (when (ada-prj-get 'casing)
     (setq ada-case-exception-file (ada-prj-get 'casing))
     (ada-case-read-all-exceptions))
-
-  (let ((ada_project_path (ada-prj-get 'ada_project_path)))
-    (when ada_project_path
-      (setenv "ADA_PROJECT_PATH" ada_project_path)))
 
   (setq compilation-search-path (ada-prj-get 'src_dir))
 

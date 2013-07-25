@@ -921,6 +921,7 @@ cached token, return new indentation for point."
       ;; would align the comment with the block-middle, which is wrong. So
       ;; we only call ada-wisi-after-cache.
 
+      ;; FIXME: need option to match gnat style check; change indentation to match (ie mod 3)
       (ada-wisi-after-cache))
 
       (t

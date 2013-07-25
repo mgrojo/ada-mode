@@ -39,6 +39,13 @@ run wisi test from emacs -Q:
 build/wisi/Makefile
 c:/Projects/GDS/main_lynx_5/sal/build/x86_gnu_windows_debug/Makefile
 
+./wisi.el:361:	  ;; FIXME: insert newline in comment to create non-comment!?
+    need tests for wisi-before/after-change vs comments, strings
+
+ada-wisi-comment
+    add option to match gnat comment style check
+        have tests in ada_mode-conditional_expressions.adb, ada_mode-parens.adb
+
 do fixmes not marked later (needed for using at work)
     (grep-find "find . -type f -print | xargs grep -n FIXME:")
 

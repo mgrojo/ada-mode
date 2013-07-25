@@ -6,7 +6,7 @@
 
 --EMACSCMD:major-mode
 --EMACSRESULT:'gpr-mode
-project Simple is
+library project Simple is
 
    type GNAT_Version_Type
      is ("7.0.1",

@@ -1,3 +1,5 @@
+--EMACSCMD:(progn (forward-line 2)(ff-find-other-file)(looking-at "-- captured from 'Standard settings"))
+--EMACSRESULT:t
 with "standard_common";
 with "gds";
 project GDS_Test is

@@ -32,7 +32,7 @@
 ;; <rolf.ebert_nosp...@gmx.net> in 2004.
 ;;
 ;; Stephen Leake <stephen_leake@member.fsf.org> rewrote it in 2013 to
-;; use the wisi indentation engine, and to be independent of ada-mode.
+;; use the wisi indentation engine.
 ;;
 ;;;;; Code:
 
@@ -136,12 +136,13 @@ current construct."
   "Expressions to highlight in gpr mode.")
 
 (defun gpr-ff-special-with ()
+  (ada-require-project-file)
   (let ((project-name (match-string 1)))
     (or
      (ff-get-file-name
-      (getenv "ADA_PROJECT_PATH");; set by user or Ada project
+      (ada-prj-get 'prj_dir)
       (concat (match-string 1) ".gpr"))
-     (error "project '%s' not found; set project file?" package-name))
+     (error "project '%s' not found; set project file?" project-name))
     ))
 
 (defun gpr-set-ff-special-constructs ()
@@ -214,6 +215,7 @@ of the package or project point is in or just after, or nil.")
   ;; paragraph-start above when the comment is right after a
   ;; multi-line subprogram declaration (the comments are aligned under
   ;; the latest parameter, not under the declaration start).
+  ;; FIXME: need test - should be in gpr-wisi?
   (set (make-local-variable 'comment-line-break-function)
        (lambda (&optional soft) (let ((fill-prefix nil))
 				  (indent-new-comment-line soft))))

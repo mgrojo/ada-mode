@@ -69,6 +69,27 @@ Intended to be added to `smie-indent-functions'."
 
 ;;;; project file handling
 
+(defun ada-gnat-prj-add-prj-dir (dir project)
+  "Add DIR to 'prj_dir and ADA_PROJECT_PATH in 'proc_env. Return new project."
+  (let ((prj-dir (plist-get project 'prj_dir))
+	(proc-env (plist-get project 'proc_env)))
+
+    (if prj-dir
+	(add-to-list 'prj-dir dir)
+      (setq prj-dir (list dir)))
+
+    (setq project (plist-put project 'prj_dir prj-dir))
+
+    (add-to-list 'proc-env
+		 (concat "ADA_PROJECT_PATH="
+			 (mapconcat 'identity
+				    (plist-get project 'prj_dir)
+				    (plist-get project 'path_sep))))
+
+    (setq project (plist-put project 'proc_env proc-env))
+
+    project))
+
 (defun ada-gnat-prj-parse-emacs-file (name value project)
   "Handle gnat-specific Emacs Ada project file settings.
 Return new PROJECT if NAME recognized, nil otherwise.
@@ -76,22 +97,10 @@ See also `ada-gnat-parse-emacs-final'."
   (let ((process-environment (plist-get project 'proc_env))); for substitute-in-file-name
     (cond
      ((string= name "ada_project_path")
-      (let ((path-current (plist-get project 'ada_project_path))
-	    (path-add (expand-file-name (substitute-in-file-name value)))
-	    (sep (plist-get project 'path_sep))
-	    (proc-env (plist-get project 'proc_env)))
-
-	(setq project
-	      (plist-put project
-			 'ada_project_path
-			 (concat path-current sep path-add)))
-
-	(add-to-list 'proc-env
-		     (concat "ADA_PROJECT_PATH=" (plist-get project 'ada_project_path)))
-
-	(setq project (plist-put project 'proc_env proc-env))
-
-	project))
+      ;; We maintain two project values for this;
+      ;; 'prj_dir - a list of directories, for gpr-ff-special-with
+      ;; ADA_PROJECT_PATH in 'proc_env, for ada-gnat-run
+      (ada-gnat-prj-add-prj-dir (expand-file-name (substitute-in-file-name value)) project))
 
      ((string= (match-string 1) "gpr_file")
       ;; The file is parsed in `ada-gnat-parse-emacs-prj-file-final', so
@@ -150,7 +159,8 @@ See also `ada-gnat-parse-emacs-final'."
   (with-current-buffer (ada-gnat-run-buffer)
     (let ((status (ada-gnat-run (list "list" "-v")))
 	  (src-dirs (ada-prj-get 'src_dir project))
-	  (obj-dirs (ada-prj-get 'obj_dir project)))
+	  (obj-dirs (ada-prj-get 'obj_dir project))
+	  (prj-dirs (ada-prj-get 'prj_dir project)))
 
       ;; gnat list -P -v returns 0 in nominal cases
       ;; gnat list -v return 4, but still lists compiler dirs
@@ -187,6 +197,19 @@ See also `ada-gnat-parse-emacs-final'."
 			     (expand-file-name
 			      (buffer-substring-no-properties (point) (point-at-eol)))))
 	      (forward-line 1))
+
+	    ;; Project path
+	    (search-forward "Project Search Path:")
+	    (forward-line 1)
+	    (while (not (looking-at "^$"))
+	      (back-to-indentation)
+	      (if (looking-at "<Current_Directory>")
+		  (add-to-list 'prj-dirs ".")
+		(add-to-list 'prj-dirs
+			     (expand-file-name
+			      (buffer-substring-no-properties (point) (point-at-eol)))))
+	      (forward-line 1))
+
 	    )
 	('error
 	 (pop-to-buffer (current-buffer))
@@ -196,14 +219,15 @@ See also `ada-gnat-parse-emacs-final'."
 
       (setq project (plist-put project 'src_dir (reverse src-dirs)))
       (setq project (plist-put project 'obj_dir (reverse obj-dirs)))
+      (setq project (plist-put project 'prj_dir (reverse prj-dirs)))
       ))
   project)
 
 (defun ada-gnat-parse-gpr (gpr-file project)
-  "Append to src_dir and obj_dir in PROJECT by parsing GPR-FILE.
+  "Append to src_dir, obj_dir and prj_dir in PROJECT by parsing GPR-FILE.
 Return new value of PROJECT.
 GPR-FILE must be full path to file, normalized.
-src_dir, obj_dir will include compiler runtime."
+src_dir, obj_dir, prj_dir will include compiler runtime."
   ;; this can take a long time; let the user know what's up
   (message "Parsing %s ..." gpr-file)
 
@@ -222,12 +246,7 @@ src_dir, obj_dir will include compiler runtime."
 
   ;; add dir containing gpr-file to ada_project_path, so we can run
   ;; gnat in other directories (ie, for gnat stub)
-  (setq project
-	(plist-put project
-		   'ada_project_path
-		   (concat (plist-get project 'ada_project_path)
-			   (plist-get project 'path_sep)
-			   (file-name-directory gpr-file))))
+  (ada-gnat-prj-add-prj-dir (file-name-directory gpr-file) project)
 
   (message "Parsing %s ... done" gpr-file)
   project)
