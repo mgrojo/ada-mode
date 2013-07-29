@@ -29,6 +29,7 @@ package body Ada_Mode.Parens is
       Local_8 : String := ("123" &
                              "456" & "789");
 
+      -- no comment between ( and first association
       Local_9 : String := (
                            "123" &
                              "456" &
@@ -76,7 +77,9 @@ package body Ada_Mode.Parens is
 
       -- Parsing inside nested parens
       A :=
-        (1 =>
+        (
+         -- a comment between paren and first association
+         1 =>
            (1 => 12,
             2 => 13,
             3 => 14),
@@ -143,7 +146,7 @@ package body Ada_Mode.Parens is
         or else B.all
         --EMACSCMD:(progn (forward-line 3)(back-to-indentation)(ada-next-statement-keyword)(looking-at "end loop"))
         --EMACSRESULT: t
-        -- FIXME: conflicts with gnat style check
+        -- FIXME (later): conflicts with gnat style check
       loop
          if A = null then B.all := False; end if; -- cached keywords between 'loop' and 'end loop'
       end loop;

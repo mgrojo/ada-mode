@@ -1,3 +1,6 @@
+--EMACSCMD:(ada-parse-prj-file "gds_test.adp") ;; for ff-find-other-file
+--EMACSCMD:(ada-select-prj-file "gds_test.adp")
+
 --EMACSCMD:(progn (forward-line 2)(ff-find-other-file)(looking-at "-- captured from 'Standard settings"))
 --EMACSRESULT:t
 with "standard_common";

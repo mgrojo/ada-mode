@@ -4,6 +4,10 @@
 --EMACSCMD:(ada-parse-prj-file "subdir/ada_mode.adp")
 --EMACSCMD:(ada-select-prj-file "subdir/ada_mode.adp")
 
+--EMACSCMD:(progn (goto-char (car (ada-fix-context-clause))) (looking-at "with Ada.Strings"))
+--EMACSRESULT:t
+pragma License (Unrestricted); -- for testing ada-wisi-context-clause
+
 with Ada.Strings; -- test two context clauses
 with Ada.Strings.Unbounded;
 --EMACSCMD:(test-face "use" font-lock-keyword-face)
@@ -460,6 +464,7 @@ package body Ada_Mode.Nominal is -- target 0
          Local_1 : Float := 1.0e-36;
          Local_2 : Integer := 2;
          Local_3 : Character := '\'; -- must override default syntax for \
+         Local_4 : constant String := "a nested quote "" is hard";
       begin
          --EMACSCMD:(ada-which-function)
          --EMACSRESULT:"Function_2a"

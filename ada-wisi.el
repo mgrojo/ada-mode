@@ -712,23 +712,32 @@ cached token, return new indentation for point."
 	 ;;     we are indenting 'bar'
 	 ;;
 	 ;; 2) A parenthesized expression, or the first item in an
-	 ;;    aggregate, and there is a comment or whitespace between
+	 ;;    aggregate, and there is whitespace between
 	 ;;    ( and the first token:
 	 ;;
-	 ;;    (
-	 ;;     foo + bar)
-	 ;;    (
-	 ;;     foo => bar)
+	 ;; test/ada_mode-parens.adb
+	 ;; Local_9 : String := (
+	 ;;                      "123"
 	 ;;
-	 ;;    we are indenting 'foo'
+	 ;; 3) A parenthesized expression, or the first item in an
+	 ;;    aggregate, and there is a comment between
+	 ;;    ( and the first token:
 	 ;;
-	 ;; We distinguish the two cases by going to the first token,
-	 ;; and comparing point to start.
-	 (let ((paren-column (current-column)))
-	   (wisi-forward-token t); "("
-	   (forward-comment (point-max))
+	 ;; test/ada_mode-nominal.adb
+	 ;; A :=
+	 ;;   (
+	 ;;    -- a comment between paren and first association
+	 ;;    1 =>
+	 ;;
+	 (let ((paren-column (current-column))
+	       (start-is-comment (save-excursion (goto-char start) (looking-at comment-start-skip))))
+	   (wisi-forward-token t); point is now after paren
+	   (if start-is-comment
+	       (skip-syntax-forward " >"); point is now on comment
+	     (forward-comment (point-max)); point is now on first token
+	     )
 	   (if (= (point) start)
-	       ;; 2)
+	       ;; case 2) or 3)
 	       (1+ paren-column)
 	     ;; 1)
 	     (+ paren-column 1 ada-indent-broken))))
@@ -962,16 +971,17 @@ cached token, return new indentation for point."
       (while (not end)
 	(setq cache (wisi-forward-cache))
 	(case (wisi-cache-nonterm cache)
-	 (use-clause nil)
-	 (with-clause
-	  (when (not begin)
-	    (setq begin (point-at-bol))))
-	 (t
-	  ;; start of compilation unit
-	  (setq end (point-at-bol))
-	  (unless begin
-	    (setq begin end)))
-	 ))
+	  (pragma nil)
+	  (use-clause nil)
+	  (with-clause
+	   (when (not begin)
+	     (setq begin (point-at-bol))))
+	  (t
+	   ;; start of compilation unit
+	   (setq end (point-at-bol))
+	   (unless begin
+	     (setq begin end)))
+	  ))
       (cons begin end)
     )))
 
@@ -1261,6 +1271,7 @@ Also return cache at start."
 	      ada-grammar-wy--keyword-table
 	      ada-grammar-wy--token-table
 	      ada-grammar-wy--parse-table)
+  (setq wisi-string-quote-escape-doubled t)
 
   (set (make-local-variable 'comment-indent-function) 'wisi-comment-indent)
 
