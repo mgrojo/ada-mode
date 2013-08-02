@@ -932,11 +932,10 @@ cached token, return new indentation for point."
 
 (defun ada-wisi-post-parse-fail ()
   "For `wisi-post-parse-fail-hook'."
-  (indent-region
-   (save-excursion
-     (wisi-goto-start (or (wisi-get-cache (point)) (wisi-backward-cache)))
-     (point))
-   (point))
+  (save-excursion
+    (let ((start-cache (wisi-goto-start (or (wisi-get-cache (point)) (wisi-backward-cache)))))
+      (indent-region (point) (wisi-cache-end start-cache))
+      ))
   (back-to-indentation))
 
 ;;;; ada-mode functions (alphabetical)
@@ -962,6 +961,7 @@ cached token, return new indentation for point."
       (while (not end)
 	(setq cache (wisi-forward-cache))
 	(case (wisi-cache-nonterm cache)
+	  (pragma nil)
 	 (use-clause nil)
 	 (with-clause
 	  (when (not begin)
@@ -1013,6 +1013,7 @@ Also return cache at start."
 
 (defun ada-wisi-goto-declarative-region-start ()
   "For `ada-goto-declarative-region-start', which see."
+  (wisi-validate-cache (point))
   (let ((done nil)
 	(cache
 	 (or
@@ -1032,6 +1033,14 @@ Also return cache at start."
 	(case (wisi-cache-class cache)
 	  ((block-middle block-end)
 	   (setq cache (wisi-prev-statement-cache cache)))
+
+	  (statement-start
+	   (case (wisi-cache-nonterm cache)
+	     (subprogram_body
+	      (setq cache (wisi-goto-cache-next cache)))
+	     (t
+	      (setq cache (wisi-goto-containing cache t)))
+	     ))
 
 	  (t
 	   (setq cache (wisi-goto-containing cache t)))

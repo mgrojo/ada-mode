@@ -755,6 +755,11 @@ If LIMIT (a buffer position) is reached, throw an error."
 	(error "cache with nonterm %s not found" nonterm)))
     cache))
 
+(defun wisi-goto-cache-next (cache)
+  (goto-char (1- (wisi-cache-next cache)))
+  (wisi-get-cache (point))
+  )
+
 (defun wisi-forward-statement-keyword ()
   "If not at a cached token, move forward to next
 cache. Otherwise move to cache-next, or next cache if nil.
@@ -807,13 +812,15 @@ Return cache for paren, or nil if no containing paren."
   cache)
 
 (defun wisi-goto-start (cache)
-  "Move point to containing ancestor of CACHE that has class block-start or statement-start."
+  "Move point to containing ancestor of CACHE that has class block-start or statement-start.
+Return start cache."
   (when
     ;; cache nil at bob
     (while (and cache
 		(not (memq (wisi-cache-class cache) '(block-start statement-start))))
       (setq cache (wisi-goto-containing cache)))
-    ))
+    )
+  cache)
 
 (defun wisi-goto-end ()
   "Move point to token at end of statement point is in or before."
