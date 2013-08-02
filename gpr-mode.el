@@ -155,7 +155,7 @@ current construct."
 	;; go to.
 	(list
 	 ;; A "with" clause.
-	 (cons "^with[ \t]+\"\\(\\sw+\\)\";"
+	 (cons "^with[ \t]+\"\\(\\(?:\\sw\\|\\s_\\)+\\)\";"
 	       'gpr-ff-special-with)
 	 )))
 
@@ -205,6 +205,7 @@ of the package or project point is in or just after, or nil.")
 	 nil t
 	 ((?\_ . "w"))))
 
+  (setq ff-search-directories 'compilation-search-path); same as ada-mode
   (gpr-set-ff-special-constructs)
   (setq ff-search-directories 'compilation-search-path)
 

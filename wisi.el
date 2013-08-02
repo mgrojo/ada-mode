@@ -145,9 +145,10 @@
 
 (defvar-local wisi-class-list nil)
 (defvar-local wisi-keyword-table nil)
-(defvar-local wisi-punctuation-table-max-length 0)
 (defvar-local wisi-punctuation-table nil)
+(defvar-local wisi-punctuation-table-max-length 0)
 (defvar-local wisi-string-double-term nil) ;; string delimited by double quotes
+(defvar-local wisi-string-quote-escape-doubled nil)
 (defvar-local wisi-string-single-term nil) ;; string delimited by single quotes
 (defvar-local wisi-symbol-term nil)
 
@@ -206,10 +207,14 @@ If at end of buffer, returns `wisent-eoi-term'."
       (setq token-id (symbol-value (intern-soft token-text wisi-keyword-table))))
 
      ((eq syntax 7)
-      ;; string quote, either single or double. we assume we are before the start quote, not the end quote
+      ;; string quote, either single or double. we assume point is before the start quote, not the end quote
       (let ((delim (char-after (point)))
 	    (forward-sexp-function nil))
 	(forward-sexp)
+	;; point is now after the end quote; check for a doubled quote
+	(while (and wisi-string-quote-escape-doubled
+		    (eq (char-after (point)) delim))
+	  (forward-sexp))
 	(setq token-text (buffer-substring-no-properties start (point)))
 	(setq token-id (if (= delim ?\") wisi-string-double-term wisi-string-single-term))))
 

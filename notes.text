@@ -9,7 +9,7 @@ run wisi test from emacs -Q:
   (setq debug-on-error t)
   (load "run-indent-test-wisi")
   (setq default-directory "/Projects/org.emacs.ada-mode.stephe-1/build/wisi/")
-  (run-test "../../test/ada_mode.adb"))
+  (run-test "../../test/gpr/gds_test.gpr"))
 
 (progn
     (require 'ada-smie)
@@ -37,7 +37,8 @@ run wisi test from emacs -Q:
 
  ada-wisi
 build/wisi/Makefile
-c:/Projects/GDS/main_lynx_5/sal/build/x86_gnu_windows_debug/Makefile
+
+set ff-other-file-alist appropriately
 
 ./wisi.el:361:	  ;; FIXME: insert newline in comment to create non-comment!?
     need tests for wisi-before/after-change vs comments, strings
