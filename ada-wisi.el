@@ -32,8 +32,9 @@
 ;;
 ;;;;
 
-(require 'ada-indent-user-options)
+(require 'ada-fix-error)
 (require 'ada-grammar-wy)
+(require 'ada-indent-user-options)
 (require 'wisi)
 
 (defconst ada-wisi-class-list
@@ -1204,8 +1205,8 @@ Also return cache at start."
   "For `ada-which-function'."
   (wisi-validate-cache (point))
   (save-excursion
-    (let ((result nil))
-      (setq cache (ada-wisi-goto-declaration-start))
+    (let ((result nil)
+	  (cache (ada-wisi-goto-declaration-start)))
       (if (null cache)
 	  ;; bob
 	  (setq result "")
@@ -1256,16 +1257,6 @@ Also return cache at start."
   (define-key ada-mode-map "\M-i" 'wisi-goto-end)
   (define-key ada-mode-map "\M-j" 'wisi-show-cache)
   (define-key ada-mode-map "\M-k" 'wisi-show-token)
-  )
-
-(defun ada-wisi-debug-setup ()
-  "Set up with debug grammar."
-  (interactive)
-  (wisi-setup '(ada-wisi-before-cache
-		ada-wisi-after-cache)
-	      debug-wy--keyword-table
-	      debug-wy--token-table
-	      debug-wy--parse-table)
   )
 
 ;;;###autoload

@@ -1,3 +1,4 @@
+^.*\.elc$
 ^ada-grammar\.output$
 ^build/.*\.tar\.gz$
 ^build/smie/.*\.ali$

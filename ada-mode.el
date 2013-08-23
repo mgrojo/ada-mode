@@ -172,12 +172,12 @@ If nil, no contextual menu is available."
   "\\([ \t]+\\|$\\)"
   "Regexp to add to symbol name in `ada-which-function'.")
 
-(defvar ada-compiler nil
+(defvar-local ada-compiler nil
   "Symbol indicating which compiler is being used with the current buffer.")
 
 ;;;; keymap and menus
 
-(defvar ada-mode-map
+(defvar-local ada-mode-map
   (let ((map (make-sparse-keymap)))
     ;; C-c <letter> are reserved for users
 
@@ -458,7 +458,7 @@ Each parameter declaration is represented by a list
 	      (insert ident)
 	      (insert ", "))
 	    (nth 0 param))
-      (delete-backward-char 2); last ", "
+      (delete-char -2); last ", "
       (indent-to colon-col)
       (insert ": ")
 
@@ -515,7 +515,7 @@ Each parameter declaration is represented by a list
 	      (insert ident)
 	      (insert ", "))
 	    (nth 0 param))
-      (delete-backward-char 2); last ", "
+      (delete-char -2); last ", "
 
       (insert " : ")
 
@@ -693,7 +693,7 @@ when interactive, user is prompted to choose a file from `ada-case-exception-fil
 	 ((and
 	   ada-case-exception-file;; nil is a list
 	   (listp ada-case-exception-file))
-	  (if (called-interactively-p)
+	  (if (called-interactively-p 'any)
 	      ;; FIXME (later): not tested yet
 	      (completing-read "case exception file: " ada-case-exception-file
 			       nil ;; predicate
@@ -902,8 +902,6 @@ ARG is the prefix the user entered with \\[universal-argument]."
   ;; call this function if ada-auto-case is off. That means
   ;; ada-auto-case cannot be changed after an Ada buffer is created.
 
-  (make-variable-buffer-local 'ada-mode-map)
-
   ;; The 'or ...' is there to be sure that the value will not be
   ;; changed again when Ada mode is called more than once, since we
   ;; are rebinding the keys.
@@ -1051,8 +1049,7 @@ Return new value of PROJECT."
 	(parse-file-ext (cdr (assoc ada-compiler ada-prj-parse-file-ext)))
 	(parse-file-final (cdr (assoc ada-compiler ada-prj-parse-file-final))))
 
-    (save-excursion
-      (set-buffer (find-file-noselect prj-file))
+    (with-current-buffer (find-file-noselect prj-file)
       (goto-char (point-min))
 
       ;; process each line
@@ -1455,6 +1452,7 @@ either an existing one, or a new one if there are no existing other frames."
 				 (or
 				  (get-lru-window frame)
 				  (frame-first-window frame)))))))))
+	 frame
 	 type)
 
     (cond
@@ -2236,8 +2234,6 @@ The paragraph is indented on the first line."
 
   (set (make-local-variable 'require-final-newline) t)
 
-  (set (make-local-variable 'ispell-check-comments) 'exclusive)
-
   (set (make-local-variable 'font-lock-defaults)
        '(ada-font-lock-keywords
 	 nil t
@@ -2327,6 +2323,8 @@ The paragraph is indented on the first line."
 
 (put 'ada-mode 'custom-mode-group 'ada)
 
+(provide 'ada-mode)
+
 ;;;;; Global initializations
 
 ;; load indent engine first; compilers may need to know which is being
@@ -2339,7 +2337,5 @@ The paragraph is indented on the first line."
 
 (unless (or pop-up-frames display-buffer-function)
   (setq display-buffer-function 'ada-display-buffer))
-
-(provide 'ada-mode)
 
 ;;; end of file

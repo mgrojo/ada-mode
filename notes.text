@@ -38,21 +38,43 @@ run wisi test from emacs -Q:
  ada-wisi
 build/wisi/Makefile
 
-set ff-other-file-alist appropriately
+wisi-debug on menu
 
-./wisi.el:361:	  ;; FIXME: insert newline in comment to create non-comment!?
-    need tests for wisi-before/after-change vs comments, strings
+C-F11 broken on gpr with
+    allow .gpr in string - fix on work computer
 
-ada-wisi-comment
-    add option to match gnat comment style check
-        have tests in ada_mode-conditional_expressions.adb, ada_mode-parens.adb
+indentation bugs:
 
-do fixmes not marked later (needed for using at work)
-    (grep-find "find . -type f -print | xargs grep -n FIXME:")
+    ----
+        var : type :=
+          init;
+
+        --  comment
+        var : type :=
+          init;
+
+    ----
+        var : type :=
+          (aggregate);
+
+    ----
+      Expected_Set := Get_Item_Node
+        (Prod       => 4, -- in grammar
+         Lookaheads => +(LEFT_PAREN_ID, SEMICOLON_ID),
+         Dot        => 1,
+         Next       => Expected_Set);
+
+ada-wisi parse fails on sal-math_double-dof_3.ads
+    pragma after generic instantiation
 
 opentoken hits compiler bug in gnat 7.0.1
     ok with gnat 2012
-    wait for 7.1.2 in main to try that
+    7.1.2 is in main_lynx_5; try that
+
+parser is too slow
+    try byte-compile -
+    see 'incremental LALR' below
+    cache parser state periodically (every 200 token caches?), resume parse from last avail cache
 
 test indent on GDS code
 
@@ -71,12 +93,14 @@ ada-add-log-current-function
 /Projects/Web/stephe-leake/emacs/ada-mode/emacs-ada-mode.html
     to-do list
 
-indentation bug:
-      Expected_Set := Get_Item_Node
-        (Prod       => 4, -- in grammar
-         Lookaheads => +(LEFT_PAREN_ID, SEMICOLON_ID),
-         Dot        => 1,
-         Next       => Expected_Set);
+set ff-other-file-alist appropriately
+
+./wisi.el:361:	  ;; FIXME: insert newline in comment to create non-comment!?
+    need tests for wisi-before/after-change vs comments, strings
+
+ada-wisi-comment
+    add option to match gnat comment style check
+        have tests in ada_mode-conditional_expressions.adb, ada_mode-parens.adb
 
 test menu
 
@@ -116,11 +140,6 @@ from georg bauhaus:
 jump back after C-c C-d
     etags uses M-., M-*, find-tag-marker-ring, tags-location-ring
     global mark ring? C-u <space>
-
-wisent-parser does not execute actions when grammar is byte-compiled!
-    need to byte-compile everything?
-    wisent-debug-on-entry?
-    change action to string, use eval?
 
 better error handling for wisi?
     for wisent-parse, need to set an 'error action on statement_start tokens?

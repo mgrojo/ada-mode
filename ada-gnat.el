@@ -288,7 +288,7 @@ Assumes current buffer is (ada-gnat-run-buffer)"
 	    (concat "-P" (file-name-nondirectory (ada-prj-get 'gpr_file)))))
 	 (cmd (append command (list project-file-switch) switches-args)))
 
-    (setq cmd (delete-if 'null cmd))
+    (setq cmd (cl-delete-if 'null cmd))
 
     (insert (format "ADA_PROJECT_PATH=%s\ngnat " (getenv "ADA_PROJECT_PATH"))); for debugging
     (mapc (lambda (str) (insert (concat str " "))) cmd);; show command for debugging
@@ -306,7 +306,7 @@ is (ada-gnat-run-buffer)"
 
   (let ((default-directory (or dir default-directory)))
 
-    (setq command (delete-if 'null command))
+    (setq command (cl-delete-if 'null command))
     (mapc (lambda (str) (insert (concat str " "))) command)
     (newline)
     (apply 'call-process "gnat" nil t nil command)
@@ -405,7 +405,7 @@ is (ada-gnat-run-buffer)"
 
     (while (string-match "\\." ada-name)
       (setq ada-name (replace-match "-" t t ada-name)))
-    (downcase ada-name)
+    (setq ada-name (downcase ada-name))
 
     (with-current-buffer (ada-gnat-run-buffer)
       (setq status
@@ -666,10 +666,12 @@ Prompt user if more than one."
 (defun ada-gnat-fix-error (msg source-buffer source-window)
   "For `ada-gnat-fix-error-hook'."
   (let ((start-pos (point))
+	message-column
 	result)
     ;; Move to start of error message text
     (skip-syntax-forward "^-")
     (forward-char 1)
+    (setq message-column (current-column))
 
     ;; recognize it, handle it
     (setq
@@ -699,7 +701,8 @@ Prompt user if more than one."
 	     ;; the lines after that may contain alternate matches;
 	     ;; collect all, let user choose.
 	     (while (not done)
-	       (next-line 1)
+	       (forward-line 1)
+	       (move-to-column message-column)
 	       (setq done (not
 			   (and
 			    (equal file-line-struct (ada-get-compilation-message))
@@ -814,7 +817,8 @@ Prompt user if more than one."
 
 	  ((looking-at (concat "expected \\(private \\)?type " ada-gnat-quoted-name-regexp))
 	   (let ((type (match-string 2)))
-	     (next-line 1)
+	     (forward-line 1)
+	     (move-to-column message-column)
 	     (when (or (looking-at "found type access")
 		       (looking-at "found type .*_Access_Type"))
 	       ;; assume just need '.all'
@@ -844,7 +848,8 @@ Prompt user if more than one."
 	   t)
 
 	  ((looking-at "No legal interpretation for operator")
-	   (next-line)
+	   (forward-line 1)
+	   (move-to-column message-column)
 	   (looking-at (concat "use clause on " ada-gnat-quoted-name-regexp))
 	   (let ((package (match-string 1)))
 	     (pop-to-buffer source-buffer)
@@ -983,7 +988,7 @@ Prompt user if more than one."
 ;;;;; setup
 
 (defun ada-gnat-setup ()
-  (set (make-variable-buffer-local 'ada-compiler) 'gnat)
+  (setq ada-compiler 'gnat)
 
   (set (make-local-variable 'ada-file-name-from-ada-name) 'ada-gnat-file-name-from-ada-name)
   (set (make-local-variable 'ada-ada-name-from-file-name) 'ada-gnat-ada-name-from-file-name)
@@ -997,10 +1002,11 @@ Prompt user if more than one."
 
   (when (featurep 'ada-smie)
     ;; we don't use add-hook here, because we don't want the global value.
-    (add-to-list 'smie-indent-functions 'ada-gnatprep-indent)
-    (set (make-variable-buffer-local 'ada-fix-context-clause) 'ada-smie-context-clause))
+    (add-to-list 'smie-indent-functions 'ada-gnatprep-indent))
 
   (when (featurep 'ada-wisi)
+    ;; FIXME: not clear how to satisfy byte-compiler that wisi-indent-calculate-functions is defined here.
+    ;; (why doesn't it complain about smie-indent-functions?)
     (add-to-list 'wisi-indent-calculate-functions 'ada-gnatprep-indent))
 )
 
