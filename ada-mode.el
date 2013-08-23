@@ -1093,6 +1093,7 @@ Return new value of PROJECT."
 	    (if (and parse-file-ext
 		     (setq tmp-prj (funcall parse-file-ext (match-string 1) (match-string 2) project)))
 		(setq project tmp-prj)
+
 	      ;; any other field in the file is set as a project property or project environment variable
 	      (if (= ?$ (elt (match-string 1) 0))
 		  ;; process env var
@@ -1106,6 +1107,7 @@ Return new value of PROJECT."
 				     'proc_env
 				     env-current)))
 		;; project var
+		;; FIXME: make it a list if multiple occurances
 		(setq project (plist-put project
 					 (intern (match-string 1))
 					 (match-string 2))))

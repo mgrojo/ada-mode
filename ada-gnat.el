@@ -74,9 +74,14 @@ Intended to be added to `smie-indent-functions'."
   (let ((prj-dir (plist-get project 'prj_dir))
 	(proc-env (plist-get project 'proc_env)))
 
-    (if prj-dir
-	(add-to-list 'prj-dir dir)
+    (cond
+     ((listp prj-dir)
+	(add-to-list 'prj-dir dir))
+
+     (prj-dir
       (setq prj-dir (list dir)))
+
+     (t nil))
 
     (setq project (plist-put project 'prj_dir prj-dir))
 

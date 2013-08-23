@@ -62,8 +62,6 @@ current construct."
     (define-key map "\C-c\C-c" 'compile)
     ;; FIXME (later): implement?
     ;; (define-key map "\C-c\C-n" 'ada-next-statement-keyword)
-    ;; (define-key map "\C-c\C-o" 'ada-find-other-file)
-    ;; (define-key map "\C-c\M-o" 'ada-find-other-file-noset)
     ;; (define-key map "\C-c\C-p" 'ada-prev-statement-keyword)
     (define-key map "\C-c\C-t" 'ada-case-read-all-exceptions)
     (define-key map "\C-c\C-w" 'ada-case-adjust-at-point)
@@ -86,9 +84,6 @@ current construct."
     ["------"        nil nil]
     ["Next compilation error"     next-error                t]
     ["Show secondary error"       ada-show-secondary-error  t]
-    ;; FIXME (later): implement?
-    ;; ["Other File"                 ada-find-other-file       t]
-    ;; ["Other File don't find decl" ada-find-other-file-noset t]
     ("Edit"
      ["Indent Line"                 indent-for-tab-command  t]
      ["Indent Lines in Selection"   indent-region           t]
@@ -205,9 +200,8 @@ of the package or project point is in or just after, or nil.")
 	 nil t
 	 ((?\_ . "w"))))
 
-  (setq ff-search-directories 'compilation-search-path); same as ada-mode
   (gpr-set-ff-special-constructs)
-  (setq ff-search-directories 'compilation-search-path)
+  (setq ff-search-directories (ada-prj-get 'prj_dir))
 
   (set (make-local-variable 'add-log-current-defun-function)
        'gpr-add-log-current-function)
