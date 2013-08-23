@@ -1,6 +1,9 @@
 # build and test the Emacs wisent Ada indentation and navigation engine
 
-all : ../../ada-grammar-wy.el ../../gpr-grammar-wy.el compile-clean compile test-clean test
+all : byte-compile compile-clean compile test-clean test
+
+byte-compile : ../../ada-grammar-wy.el ../../gpr-grammar-wy.el
+	cd ../../; $(EMACS) -batch -L . -f batch-byte-compile *.el
 
 test : test-ada test-gpr test-elisp
 
@@ -50,6 +53,9 @@ $(WISI_OPENTOKEN)/wisi-generate.exe : force
 GPRBUILD_TARGET := x86-windows
 %.exe : %.adb force
 	gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P wisi_opentoken_agg.gpr $(GPRBUILD_ARGS) $*
+
+byte-compile-clean :
+	cd ../..; rm -f *.elc
 
 clean ::
 	cd ../..; rm -f *-wy.el *.elc

@@ -1,7 +1,7 @@
 ;;; ada-imenu.el - Ada mode interface to imenu for Ada Mode 5.00.
 ;;; Copied with minor changes from ada-mode.el 4.01.
 
-;; Copyright (C) 2012  Free Software Foundation, Inc.
+;; Copyright (C) 2012, 2013  Free Software Foundation, Inc.
 ;;
 ;; Author: Simon Wright <simon@pushface.org>
 ;; Contributors: see ada-mode.el, and specifically Christian Egli
@@ -65,7 +65,6 @@ each type of entity that can be found in an Ada file.")
   (setq imenu-auto-rescan t)
   (setq imenu-case-fold-search t)
   (setq imenu-generic-expression ada--imenu-generic-expression)
-  (setq imenu-scanning-message nil)
   (setq imenu-sort-function 'imenu--sort-by-name)
   (setq imenu-use-markers nil)
 

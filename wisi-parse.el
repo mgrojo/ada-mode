@@ -5,7 +5,6 @@
 ;; path.
 
 (require 'semantic/wisent)
-(require 'cl)
 
 (defstruct (wisi-parser-state
 	    (:copier nil))

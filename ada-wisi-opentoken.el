@@ -13,6 +13,7 @@
 ;; End:
 
 (require 'ada-mode)
+(require 'wisi)
 
 (defcustom ada-indent-opentoken nil
   "If non-nil, apply `ada-wisi-opentoken' indentation rule."

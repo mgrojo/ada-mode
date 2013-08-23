@@ -3540,7 +3540,7 @@ the start of CHILD, which must be a keyword."
       ((equal arg "with-agg")
        (ada-smie-rule-statement 0 arg))
 
-      ((member token '("with-context-1" "with-context-2"))
+      ((member arg '("with-context-1" "with-context-2"))
        (ada-smie-rule-statement ada-indent-with arg))
 
       ((member arg ada-smie-block-keywords)
@@ -4319,11 +4319,12 @@ This lets us know which indentation function succeeded."
 	 nil t)
      )))
 
+  (setq ada-fix-context-clause 'ada-smie-context-clause)
   (set (make-local-variable 'ada-which-function) 'ada-smie-which-function)
   (set (make-local-variable 'ada-in-paramlist-p) 'ada-smie-in-paramlist-p)
   (set (make-local-variable 'ada-scan-paramlist) 'ada-smie-scan-paramlist)
-  (set (make-local-variable 'ada-goto-declaration-start) 'ada-smie-goto-declaration-start)
-  (set (make-local-variable 'ada-goto-declarative-region-start) 'ada-smie-goto-declarative-region-start)
+  (setq ada-goto-declaration-start 'ada-smie-goto-declaration-start)
+  (setq ada-goto-declarative-region-start 'ada-smie-goto-declarative-region-start)
   (set (make-local-variable 'ada-next-statement-keyword) 'ada-smie-forward-statement-keyword-1)
   (set (make-local-variable 'ada-prev-statement-keyword) 'ada-smie-backward-statement-keyword-1)
   (set (make-local-variable 'ada-make-subprogram-body) 'ada-smie-make-subprogram-body)

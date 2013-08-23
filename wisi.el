@@ -138,7 +138,6 @@
 ;;
 ;;;;;
 
-(require 'cl)
 (require 'wisi-parse)
 
 ;;;; lexer
@@ -152,7 +151,7 @@
 (defvar-local wisi-string-single-term nil) ;; string delimited by single quotes
 (defvar-local wisi-symbol-term nil)
 
-(defun wisi-forward-token (&optional text-only lower)
+(defun wisi-forward-token (&optional text-only)
   "Move point forward across one token, skipping leading whitespace and comments.
 Return the corresponding token, in a format determined by TEXT-ONLY:
 TEXT-ONLY t:          text
@@ -161,12 +160,10 @@ where:
 `token' is a token symbol (not string) from `wisi-punctuation-table',
 `wisi-keyword-table', `wisi-string-double-term', `wisi-string-double-term' or `wisi-symbol-term'.
 
-`text' is the token text from the buffer (lowercase if LOWER),
+`text' is the token text from the buffer
 
 `start, end' are the character positions in the buffer of the start
 and end of the token text.
-
-If TEXT-ONLY and LOWER are non-nil, result is converted to lowercase.
 
 If at end of buffer, returns `wisent-eoi-term'."
   (forward-comment (point-max))
@@ -230,9 +227,7 @@ If at end of buffer, returns `wisent-eoi-term'."
       (wisi-error "unrecognized token '%s'" (buffer-substring-no-properties start (point))))
 
     (if text-only
-	(if lower
-	    (lowercase token-text)
-	  token-text)
+	token-text
       (cons token-id (cons token-text (cons start (point)))))
     ))
 
@@ -318,6 +313,8 @@ wisi-forward-token, but does not look up symbol."
 
 (defvar-local wisi-parse-try nil
   "Non-nil when parse is needed - cleared when parse succeeds.")
+
+(defvar-local wisi-change-need-invalidate nil)
 
 (defun wisi-invalidate-cache()
   "Invalidate the wisi token cache for the current buffer."
@@ -463,7 +460,7 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
 	))
     ))
 
-(defvar tokens nil);; keep byte-compiler happy; tokens is let-bound in wisi-parse-reduce
+(defvar tokens nil);; keep byte-compiler almost happy; `tokens' is bound in action created by wisi-semantic-action
 (defun wisi-statement-action (&rest pairs)
   "Cache information in text properties of tokens.
 Intended as a grammar non-terminal action.
@@ -603,7 +600,8 @@ list (number (token_id token_id)):
     (let (next-keyword-mark
 	  prev-keyword-mark
 	  prev-cache
-	  cache)
+	  cache
+	  mark)
       (while token-numbers
 	(let ((token-number (pop token-numbers))
 	      target-token

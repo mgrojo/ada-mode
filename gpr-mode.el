@@ -198,8 +198,6 @@ of the package or project point is in or just after, or nil.")
 
   (set (make-local-variable 'require-final-newline) t)
 
-  (set (make-local-variable 'ispell-check-comments) 'exclusive)
-
   (set (make-local-variable 'font-lock-defaults)
        '(gpr-font-lock-keywords
 	 nil t
@@ -233,9 +231,9 @@ of the package or project point is in or just after, or nil.")
 ;; user needs to add this somewhere:
 (add-to-list 'auto-mode-alist '("\\.gpr\\'" . gpr-mode))  ; GNAT project files
 
+(provide 'gpr-mode)
+
 (unless (featurep 'gpr-indent-engine)
   (require 'gpr-wisi))
-
-(provide 'gpr-mode)
 
 ;;; end of file

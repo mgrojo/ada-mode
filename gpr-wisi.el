@@ -38,6 +38,7 @@
 ;; we reuse some stuff from ada-mode
 (require 'ada-indent-user-options)
 (require 'gpr-grammar-wy)
+(require 'gpr-mode)
 (require 'wisi)
 
 (defconst gpr-wisi-class-list

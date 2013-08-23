@@ -55,7 +55,7 @@
 	(prod (car (nth (cdr value) (cdr (assoc (car value) nonterms))))))
     (if symbol
 	(list (car value) symbol (length prod))
-      (error "%s not in symbol-array" (symbol)))))
+      (error "%s not in symbol-array" symbol))))
 
 (defun wisi-replace-actions (action symbol-array nonterms)
   "Replace semantic action symbol names in ACTION with list as defined in `wisi-compile-grammar'.
