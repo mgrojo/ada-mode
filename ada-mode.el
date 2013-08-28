@@ -85,6 +85,8 @@
 (require 'which-func nil t)
 (require 'compile nil t)
 
+(eval-when-compile (require 'cl-macs))
+
 (defun ada-mode-version ()
   "Return Ada mode version."
   (interactive)
@@ -1423,121 +1425,6 @@ previously set by a file navigation command."
 	(back-to-indentation))
       (setq ff-function-name nil))))
 
-(defun ada-buffer-window (buffer)
-  (let ((frames (frame-list))
-	frame window)
-    (while (and frames
-		(not window))
-      (setq frame (pop frames))
-      (let ((windows (window-list frame 0))
-	    temp)
-	(while (and windows
-		    (not window))
-	  (setq temp (pop windows))
-	  (when (eq (window-buffer temp) buffer)
-	    (setq window temp)))))
-    window))
-
-(defun ada-display-buffer-other-frame (buffer-or-name &optional current-ok)
-  "Display BUFFER-OR-NAME (an existing buffer or the name of an existing buffer) in another frame,
-either an existing one, or a new one if there are no existing other frames."
-  (let* ((buffer (if (bufferp buffer-or-name) buffer-or-name (get-buffer buffer-or-name)))
-	 (window (ada-buffer-window buffer))
-	 (frame-1 (and window (window-frame window)))
-	 (frame-2 (car (filtered-frame-list
-			(lambda (frame)
-			  (and
-			   (not (eq frame (selected-frame)))
-			   (not (window-dedicated-p
-				 (or
-				  (get-lru-window frame)
-				  (frame-first-window frame)))))))))
-	 frame
-	 type)
-
-    (cond
-     ((and window
-	   frame-1
-	   (or current-ok
-	       (not (eq frame-1 (selected-frame)))))
-      (setq type 'reuse)
-      (setq frame frame-1))
-
-     (frame-2
-      (setq type 'reuse)
-      (setq window
-	    (or
-	     (get-lru-window frame-2)
-	     ;; lru-window can be nil if window was deleted, by ediff for example
-	     (frame-first-window frame-2)))
-      (setq frame frame-2))
-
-     (t
-      (setq type 'frame)
-      (setq frame (make-frame))
-      (setq window (get-lru-window frame)))
-     )
-
-    (cond
-     ((not (functionp 'display-buffer-record-window))
-      ;; emacs 23.4
-      (window--display-buffer-1 window)
-      (window--display-buffer-2 buffer window))
-
-     ((functionp 'window--display-buffer-1)
-      ;; emacs 24.2
-      (display-buffer-record-window type window buffer)
-      (window--display-buffer-1 window)
-      (window--display-buffer-2 buffer window))
-
-     ((functionp 'window--display-buffer)
-      ;; emacs 24.3
-      (window--display-buffer buffer window type))
-     )))
-
-(defun ada-display-buffer (buffer-or-name &optional old-other-window)
-  "For `display-buffer-function', which see.  Prefix arg on user-level
-command determines frame and window:
-
-nil   : no prefix - other window, current frame
-'(4)  : C-u       - other window, current frame
-'(16) : C-u C-u   - other frame.
-
-Note that `ada-display-buffer' is not called when mapping a
-buffer to the currently selected window is desired; other
-functions handle that.
-
-If 'other frame' is requested, and there is only one current
-frame, a new frame is created. Otherwise, an existing frame is
-reused.
-
-In addition, `pop-up-frames' non-nil is interpreted to mean
-'other frame', which reuses an existing frame, ignoring
-`pop-up-frame-alist'.  If you set `pop-up-frames' non-nil in your
-~/.emacs, you are propably expecting the default behavior, which
-always pops up a new frame.  To get that, don't set
-`display-buffer-function' to `ada-display-buffer' (the standard
-Ada mode initialization does this correctly, if you set
-`pop-up-frames' to non-nil before ada-mode.el is loaded)."
-  ;; The above means we don't get here with prefix arg nil; the user
-  ;; is requesting other frame or other window.
-  ;;
-  ;; FIXME (later): use `display-buffer-overriding-action' to accomplish this? see misc_defun.el misc-compile
-  (let* ((window (ada-buffer-window buffer-or-name))
-	 (frame (and window (window-frame window))))
-
-    (cond
-     ((or pop-up-frames (equal current-prefix-arg '(16)))
-      ;; other frame
-      (ada-display-buffer-other-frame buffer-or-name (not (equal (selected-frame) frame))))
-
-     (t ;; other window
-      (let ((display-buffer-function nil))
-	;; we use standard display-buffer, since it handles this case
-	;; the way current code expects it to.
-	(display-buffer buffer-or-name old-other-window)))
-     )))
-
 (defun ada-find-other-file-noset (other-window-frame)
   "Same as `ada-find-other-file', but preserve point in the other file,
 don't move to corresponding declaration."
@@ -1690,13 +1577,17 @@ C-u C-u : show in other frame
 
 (defvar ada-xref-other-function nil
   "alist indexed by `ada-compiler' of functions that return cross reference information.
-Function is called with two arguments, an Ada identifier or
-operator_symbol, and a 'parent' flag.  point is at the start of
-the identifier.  Returns a list '(file line column) giving the
-corresponding location.  'file' may be absolute, or on
-`compilation-search-path'.  If point is at the specification, the
-corresponding location is the body, and vice versa. If the
-'parent' flag is non-nil, return the parent type declaration.")
+Function is called with five arguments:
+- an Ada identifier or operator_symbol
+- filename of containing the identifier
+- line number containing the identifier
+- column of the start of the identifier
+- 'parent' flag.
+Returns a list '(file line column) giving the corresponding location.
+'file' may be absolute, or on `compilation-search-path'.  If point is
+at the specification, the corresponding location is the body, and vice
+versa. If the 'parent' flag is non-nil, return the parent type
+declaration.")
 
 (defun ada-goto-declaration (other-window-frame &optional parent)
   "Move to the declaration or body of the identifier around point.
@@ -1710,13 +1601,20 @@ C-u     : show in other window
 C-u C-u : show in other frame"
   (interactive "P")
 
-  (let ((identifier (ada-identifier-at-point))
-	(xref-function (cdr (assoc ada-compiler ada-xref-other-function)))
+  (let ((xref-function (cdr (assoc ada-compiler ada-xref-other-function)))
 	target)
     (when (null xref-function)
       (error "no cross reference information available"))
 
-    (setq target (funcall xref-function identifier parent))
+    (setq target
+	  (funcall xref-function
+		   (ada-identifier-at-point)
+		   (file-name-nondirectory (buffer-file-name))
+		   (line-number-at-pos)
+		   (cl-case (char-after)
+		     (?\" (+ 2 (current-column))) ;; work around bug in gnat find
+		     (t (1+ (current-column))))
+		   parent))
 
     (ada-goto-source (nth 0 target)
 		     (nth 1 target)
@@ -1738,22 +1636,29 @@ C-u C-u : show in other frame"
 
 (defvar ada-xref-all-function nil
   "alist indexed by `ada-compiler' of functions that return cross reference information.
-Called with one argument, an Ada identifier or operator_symbol.
-point is at the start of the identifier.  Displays a buffer in
-compilation-mode giving locations where the identifier is
-referenced.")
+Called with four arguments:
+- an Ada identifier or operator_symbol
+- filename of containing the identifier
+- line number containing the identifier
+- column of the start of the identifier
+Displays a buffer in compilation-mode giving locations where the
+identifier is declared or referenced.")
 
 (defun ada-show-references ()
   "Show all references of identifier at point."
   (interactive)
 
-  (let ((identifier (ada-identifier-at-point))
-	(xref-function (cdr (assoc ada-compiler ada-xref-all-function)))
-	target)
+  (let ((xref-function (cdr (assoc ada-compiler ada-xref-all-function))))
     (when (null xref-function)
       (error "no cross reference information available"))
 
-    (funcall xref-function identifier)
+    (funcall xref-function
+	     (ada-identifier-at-point)
+	     (file-name-nondirectory (buffer-file-name))
+	     (line-number-at-pos)
+	     (cl-case (char-after)
+	       (?\" (+ 2 (current-column))) ;; work around bug in gnat find
+	       (t (1+ (current-column)))))
     ))
 
 ;; This is autoloaded because it may be used in ~/.emacs
@@ -2299,7 +2204,7 @@ The paragraph is indented on the first line."
 
   (when ada-auto-case (ada-case-activate-keys))
 
-  (case ada-language-version
+  (cl-case ada-language-version
    (ada83
     (setq ada-keywords ada-83-keywords))
 
@@ -2330,12 +2235,9 @@ The paragraph is indented on the first line."
 ;; load indent engine first; compilers may need to know which is being
 ;; used (for preprocessor keywords, for example).
 (unless (featurep 'ada-indent-engine)
-  (require 'ada-smie))
+  (require 'ada-wisi))
 
 (unless (featurep 'ada-compiler)
   (require 'ada-gnat))
-
-(unless (or pop-up-frames display-buffer-function)
-  (setq display-buffer-function 'ada-display-buffer))
 
 ;;; end of file

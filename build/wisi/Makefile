@@ -3,7 +3,7 @@
 all : byte-compile compile-clean compile test-clean test
 
 byte-compile : ../../ada-grammar-wy.el ../../gpr-grammar-wy.el
-	cd ../../; $(EMACS) -batch -L . -f batch-byte-compile *.el
+	cd ../../; emacs -batch -L . -f batch-byte-compile *.el
 
 test : test-ada test-gpr test-elisp
 
@@ -26,16 +26,13 @@ vpath %.el ../../ .
 ifeq ($(LIBRARY_PATH),/usr/lib/i386-linux-gnu/)
 #linux
 WISI_OPENTOKEN := /home/Projects/opentoken/org.opentoken.stephe/build/linux_release
-
-# this is apparently overridden to /bin/emacs! must specify on make command line (sigh).
-EMACS := /usr/bin/emacs
 else
 # windows
 WISI_OPENTOKEN := $(CURDIR)/../../../org.opentoken.stephe/build/windows_release
 endif
 
 %.wisi-test : %-wy.el
-	$(EMACS) -Q -batch -L . -L .. -L ../.. -l run-wisi-test.el --eval '(run-test "$*")'
+	emacs -Q -batch -L . -L .. -L ../.. -l run-wisi-test.el --eval '(run-test "$*")'
 
 .PRECIOUS : %-wy.el ../../%-grammar-wy.el
 

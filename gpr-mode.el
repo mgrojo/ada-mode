@@ -63,6 +63,7 @@ current construct."
     ;; FIXME (later): implement?
     ;; (define-key map "\C-c\C-n" 'ada-next-statement-keyword)
     ;; (define-key map "\C-c\C-p" 'ada-prev-statement-keyword)
+    (define-key map "\C-c\C-S-p" 'gpr-set-as-project)
     (define-key map "\C-c\C-t" 'ada-case-read-all-exceptions)
     (define-key map "\C-c\C-w" 'ada-case-adjust-at-point)
     (define-key map "\C-c\C-y" 'ada-case-create-exception)
@@ -74,7 +75,7 @@ current construct."
 (easy-menu-define gpr-mode-menu gpr-mode-map "Menu keymap for gpr mode"
   '("gpr"
     ("Help"
-     ["gpr Mode"              (info "ada-mode") t]
+     ["gpr Mode"              (info "gpr-mode") t]
      ["GNAT Reference Manual" (info "gnat_rm") t]
      ["GNAT User Guide"       (info "gnat_ugn") t]
      ["Key bindings"          describe-bindings t]
@@ -82,6 +83,7 @@ current construct."
 
     ["Customize"     (customize-group 'ada)];; we reuse the Ada indentation options
     ["------"        nil nil]
+    ["Set as current project"     gpr-set-as-project        t]
     ["Next compilation error"     next-error                t]
     ["Show secondary error"       ada-show-secondary-error  t]
     ("Edit"
@@ -96,8 +98,6 @@ current construct."
       ada-fill-comment-paragraph-justify                         t]
      ["Fill Comment Paragraph Postfix"
       ada-fill-comment-paragraph-postfix                         t]
-     ["---"                         nil                          nil]
-     ["Make body for subprogram"    ada-make-subprogram-body     t]
      )
     ))
 
@@ -173,6 +173,12 @@ of the package or project point is in or just after, or nil.")
   (save-excursion
     (end-of-line 1)
     (gpr-which-function)))
+
+(defun gpr-set-as-project ()
+  "Set current file as Emacs project file."
+  (interactive)
+  (ada-parse-prj-file (buffer-file-name))
+  (ada-select-prj-file (buffer-file-name)))
 
 ;;;;
 (defun gpr-mode ()

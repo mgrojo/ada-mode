@@ -316,20 +316,18 @@ is (ada-gnat-run-buffer)"
 
 (defconst ada-gnat-file-line-col-regexp "\\(.*\\):\\([0-9]+\\):\\([0-9]+\\)")
 
-(defun ada-gnat-xref-other (identifier parent)
+(defun ada-gnat-xref-other (identifier file line col parent)
   "For `ada-xref-other-function'."
-  (let* ((start-file (file-name-nondirectory (buffer-file-name)))
-	 (start-line (line-number-at-pos))
-	 (start-col  (case (char-after)
-		       (?\" (+ 2 (current-column))) ;; work around bug in gnat find
-		       (t (1+ (current-column)))))
-	 (arg (format "%s:%s:%d:%d" identifier start-file start-line start-col))
-	 (switch (if parent "-d" nil))
+  (let* ((arg (format "%s:%s:%d:%d" identifier file line col))
+	 (switches (concat
+		  (when parent "-d")
+		  (when (ada-prj-get 'gpr_ext) (concat "--ext=" (ada-prj-get 'gpr_ext)))
+		  ))
 	 status
 	 (result nil))
     (with-current-buffer (ada-gnat-run-buffer)
-      (if switch
-	  (setq status (ada-gnat-run (list "find" switch arg)))
+      (if (< 0 (length switches))
+	  (setq status (ada-gnat-run (list "find" switches arg)))
 	(setq status (ada-gnat-run (list "find" arg))))
 
       (cond
@@ -342,34 +340,38 @@ is (ada-gnat-run-buffer)"
 	  (unless (looking-at (concat ada-gnat-file-line-col-regexp ":"))
 	    ;; no results
 	    (error "'%s' not found in cross-reference files; recompile?" identifier))
-	  (let ((found-file (match-string 1))
-		(found-line (string-to-number (match-string 2)))
-		(found-col  (string-to-number (match-string 3))))
-	    (cond
-	     (parent
-	      (skip-syntax-forward "^ ")
-	      (skip-syntax-forward " ")
-	      (if (looking-at (concat "derived from .* (" ada-gnat-file-line-col-regexp ")"))
-		  ;; found other item
-		  (setq result (list (match-string 1)
-				     (string-to-number (match-string 2))
-				     (1- (string-to-number (match-string 3)))))
-		(forward-line 1)))
+	  (if (looking-at (concat ada-gnat-file-line-col-regexp ": warning:"))
+	      ;; error in *.gpr; ignore here.
+	      (forward-line 1)
+	    ;; else process line
+	    (let ((found-file (match-string 1))
+		  (found-line (string-to-number (match-string 2)))
+		  (found-col  (string-to-number (match-string 3))))
+	      (cond
+	       (parent
+		(skip-syntax-forward "^ ")
+		(skip-syntax-forward " ")
+		(if (looking-at (concat "derived from .* (" ada-gnat-file-line-col-regexp ")"))
+		    ;; found other item
+		    (setq result (list (match-string 1)
+				       (string-to-number (match-string 2))
+				       (1- (string-to-number (match-string 3)))))
+		  (forward-line 1)))
 
-	     (t
-	      (if (not
-		   (and
-		    (equal start-file found-file)
-		    (= start-line found-line)
-		    (= start-col found-col)))
-		  ;; found other item
-		  (setq result (list found-file found-line (1- found-col)))
-		(forward-line 1)))
-	     )
-	    (when (eobp)
-	      (pop-to-buffer (current-buffer))
-	      (error "gnat find did not return other item"))
-	    )))
+	       (t
+		(if (not
+		     (and
+		      (equal file found-file)
+		      (= line found-line)
+		      (= col found-col)))
+		    ;; found other item
+		    (setq result (list found-file found-line (1- found-col)))
+		  (forward-line 1)))
+	       )
+	      (when (eobp)
+		(pop-to-buffer (current-buffer))
+		(error "gnat find did not return other item"))
+	      ))))
 
        (t ; failure
 	(pop-to-buffer (current-buffer))
@@ -377,17 +379,13 @@ is (ada-gnat-run-buffer)"
        ))
     result))
 
-(defun ada-gnat-xref-all (identifier)
+(defun ada-gnat-xref-all (identifier file line col)
   "For `ada-xref-all-function'."
   ;; we use `compilation-start' to run gnat, not `ada-gnat-run', so it
   ;; is asynchronous, and automatically runs the compilation error
   ;; filter.
 
-  (let* ((start-file (file-name-nondirectory (buffer-file-name)))
-	 (start-line (line-number-at-pos))
-	 (start-col  (1+ (current-column)))
-	 (cmd (format "gnat find -r %s:%s:%d:%d" identifier start-file start-line start-col))
-	 )
+  (let* ((cmd (format "gnat find -r %s:%s:%d:%d" identifier file line col)))
 
     (with-current-buffer (ada-gnat-run-buffer); for process-environment
       (let ((compilation-environment process-environment)
@@ -1006,7 +1004,7 @@ Prompt user if more than one."
 
   (when (featurep 'ada-wisi)
     ;; FIXME: not clear how to satisfy byte-compiler that wisi-indent-calculate-functions is defined here.
-    ;; (why doesn't it complain about smie-indent-functions?)
+    ;; (smie is pre-loaded, so it doesn't complain about smie-indent-functions)
     (add-to-list 'wisi-indent-calculate-functions 'ada-gnatprep-indent))
 )
 
@@ -1048,3 +1046,6 @@ Prompt user if more than one."
 (provide 'ada-compiler)
 
 ;; end of file
+;;
+;; byte-compiler warns that 'cl-delete-if' might not be defined. But
+;; cl-seq.el has no 'provide', and cl-delete-if is autoloaded.

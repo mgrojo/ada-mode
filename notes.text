@@ -35,6 +35,15 @@ run wisi test from emacs -Q:
 
 (list (wisi-parser-state-active (aref parser-states 1)) (wisi-parser-state-sp (aref parser-states 1)) (wisi-parser-state-stack (aref parser-states 1)))
 
+ gnatinspect
+build:
+    cd ~/Projects
+    tar xf ~/Downloads/gnatcoll...
+    cd gnatcoll ...
+    ./configure --prefix=/usr/gnat-7.1.2 --with-readline --enable-gpl
+    make Gnatcoll_Build=Debug
+    sudo make Gnatcoll_Build=Debug install
+
  ada-wisi
 build/wisi/Makefile
 
@@ -67,12 +76,8 @@ indentation bugs:
 ada-wisi parse fails on sal-math_double-dof_3.ads
     pragma after generic instantiation
 
-opentoken hits compiler bug in gnat 7.0.1
-    ok with gnat 2012
-    7.1.2 is in main_lynx_5; try that
-
 parser is too slow
-    try byte-compile -
+    try byte-compile - not enough
     see 'incremental LALR' below
     cache parser state periodically (every 200 token caches?), resume parse from last avail cache
 

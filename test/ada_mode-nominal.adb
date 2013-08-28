@@ -18,6 +18,8 @@ package body Ada_Mode.Nominal is -- target 0
    --EMACSCMD:(test-face "Ada" font-lock-constant-face)
    use Ada.Strings;
 
+   Progress_Reporter : access procedure (Current, Total : Integer) := null;
+
    --EMACSCMD:(progn (forward-line 4) (back-to-indentation) (ada-next-statement-keyword)(looking-at "is -- target 1"))
    --EMACSRESULT:t
    --EMACSCMD:(progn (forward-line 3)(forward-word 1) (ada-goto-declarative-region-start)(looking-at " -- target 1"))

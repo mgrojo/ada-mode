@@ -29,6 +29,8 @@
 (require 'ada-mode)
 (require 'compile)
 
+(eval-when-compile (require 'cl-macs))
+
 (defcustom ada-fix-sort-context-clause t
   "*If non-nil, sort context clause when inserting 'with'"
   :type 'boolean
@@ -141,7 +143,7 @@ point and return nil.")
 (defun ada-get-compilation-message ()
   "Get compilation message at point.
 Compatible with Emacs 23.4 and 24.x."
-  (case emacs-major-version
+  (cl-case emacs-major-version
     (23 (get-text-property (point) 'message))
     (24 (get-text-property (point) 'compilation-message))))
 
