@@ -183,6 +183,7 @@ If nil, no contextual menu is available."
 
     ;; global-map has C-x ` 'next-error
     (define-key map [return]   'ada-indent-newline-indent)
+    (define-key map ["\C-c" tab] 'ada-indent-region)
     (define-key map "\C-c`"    'ada-show-secondary-error)
     (define-key map "\C-c\C-a" 'ada-align)
     (define-key map "\C-c\C-b" 'ada-make-subprogram-body)
@@ -223,7 +224,7 @@ If nil, no contextual menu is available."
     ["------"        nil nil]
     ("Edit"
      ["Indent Line"                 indent-for-tab-command  t]
-     ["Indent Lines in Selection"   indent-region           t]
+     ["Indent Lines in Selection or current statement"   ada-indent-region       t]
      ["Indent Lines in File"        (indent-region (point-min) (point-max))  t]
      ["Align"                       ada-align               t]
      ["Comment Selection"           comment-region               t]
@@ -250,6 +251,17 @@ If nil, no contextual menu is available."
   (funcall indent-line-function)
   (forward-char 1)
   (funcall indent-line-function))
+
+(defvar-local ada-indent-region nil
+  "Function to indent the current region, or the current statement/declaration if region is not active.
+Function is called with no arguments.
+Supplied by indentation engine parser.")
+
+(defun ada-indent-region ()
+  "Return t if point is inside the parameter-list of a subprogram declaration."
+  (interactive)
+  (when ada-indent-region
+    (funcall ada-indent-region)))
 
 ;;;; abbrev, align
 

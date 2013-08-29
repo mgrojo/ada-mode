@@ -971,8 +971,8 @@ cached token, return new indentation for point."
 	(setq cache (wisi-forward-cache))
 	(case (wisi-cache-nonterm cache)
 	  (pragma nil)
-	  (use-clause nil)
-	  (with-clause
+	  (use_clause nil)
+	  (with_clause
 	   (when (not begin)
 	     (setq begin (point-at-bol))))
 	  (t
@@ -1066,6 +1066,24 @@ Also return cache at start."
 	     (wisi-cache-nonterm
 	      (wisi-get-cache (nth 1 parse-result)))
 	     ))))
+
+(defun ada-wisi-indent-region ()
+  "For `ada-indent-region'."
+  ;; force reparse, in case parser got confused
+  (let ((wisi-parse-try t))
+    (wisi-validate-cache (point)))
+
+  (if (use-region-p)
+      (indent-region (region-beginning) (region-end))
+
+    ;; else find start/end of current statement
+    (let* ((pos (point))
+	   (end (progn (wisi-goto-end) (point)))
+	   (end-cache (wisi-get-cache end))
+	   (start (progn (wisi-goto-start end-cache) (point))))
+      (indent-region start end)
+      (goto-char pos))
+    ))
 
 (defun ada-wisi-make-subprogram-body ()
   "For `ada-make-subprogram-body'."
@@ -1310,6 +1328,7 @@ Also return cache at start."
   (setq ada-goto-declarative-region-start 'ada-wisi-goto-declarative-region-start)
   (setq ada-goto-end 'wisi-goto-end)
   (setq ada-in-paramlist-p 'ada-wisi-in-paramlist-p)
+  (setq ada-indent-region 'ada-wisi-indent-region)
   (setq ada-make-subprogram-body 'ada-wisi-make-subprogram-body)
   (setq ada-next-statement-keyword 'wisi-forward-statement-keyword)
   (setq ada-prev-statement-keyword 'wisi-backward-statement-keyword)

@@ -758,6 +758,23 @@ Prompt user if more than one."
 		 (ada-fix-add-with-clause unit-name))))
 	   t)
 
+	  ((looking-at (concat ada-gnat-quoted-name-regexp " is undefined"))
+	   ;; We either need to add a with_clause for a package, or
+	   ;; something is spelled wrong.
+	   (save-excursion
+	     (let ((unit-name (match-string 1))
+		   (correct-spelling (ada-gnat-misspelling)))
+	       (if correct-spelling
+		   (progn
+		     (pop-to-buffer source-buffer)
+		     (search-forward unit-name)
+		     (replace-match correct-spelling))
+
+		 ;; else assume missing with
+		 (pop-to-buffer source-buffer)
+		 (ada-fix-add-with-clause unit-name))))
+	   t)
+
 	  ((looking-at (concat ada-gnat-quoted-name-regexp " not declared in " ada-gnat-quoted-name-regexp))
 	   (save-excursion
 	     (let ((child-name (match-string 1))
@@ -950,11 +967,21 @@ Prompt user if more than one."
 	   t)
 
 	  ((or
+	    (looking-at "(style) bad column")
 	    (looking-at "(style) bad indentation")
 	    (looking-at "(style) incorrect layout"))
 	   (set-buffer source-buffer)
 	   (funcall indent-line-function)
 	   t)
+
+         ((looking-at "(style) missing \"overriding\" indicator")
+          (set-buffer source-buffer)
+          (cond
+           ((looking-at "\\(procedure\\)\\|\\(function\\)")
+            (insert "overriding ")
+	    t)
+           (t
+            nil)))
 
 	  ((looking-at "(style) space not allowed")
 	   (set-buffer source-buffer)

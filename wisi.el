@@ -405,6 +405,9 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
   (when (and wisi-parse-try
 	    (< wisi-cache-max pos))
     (let (msg)
+      (when (> wisi-debug 0)
+	(message "wisi: parsing ..."))
+
       (setq wisi-parse-try nil)
       (save-excursion
 	(goto-char wisi-cache-max)
@@ -424,15 +427,21 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
 	      (setq wisi-parse-failed t)
 	      (setq msg (cdr err)))
 	    )))
-      (when msg
-	(when (and (> wisi-debug 0)
-		   (string-match ":\\([0-9]+\\):\\([0-9]+\\):" msg))
-	  (let ((line (string-to-number (match-string 1 msg)))
-		(col (string-to-number (match-string 2 msg))))
-	    (goto-char (point-min))
-	    (forward-line (1- line))
-	    (forward-char col)
-	    (error msg)))))))
+      (if msg
+	  ;; error
+	  (when (> wisi-debug 0)
+	    (message "wisi: parsing ... error")
+	    (when (string-match ":\\([0-9]+\\):\\([0-9]+\\):" msg)
+	      (let ((line (string-to-number (match-string 1 msg)))
+		    (col (string-to-number (match-string 2 msg))))
+		(goto-char (point-min))
+		(forward-line (1- line))
+		(forward-char col)
+		(error msg))))
+	;; no msg; success
+	(when (> wisi-debug 0)
+	  (message "wisi: parsing ... done")))
+      )))
 
 (defun wisi-get-containing-cache (cache)
   "Return cache from (wisi-cache-containing CACHE)."
