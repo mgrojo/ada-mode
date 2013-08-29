@@ -149,8 +149,8 @@ current construct."
 	;; invoked.  Each cdr should return the absolute file name to
 	;; go to.
 	(list
-	 ;; A "with" clause.
-	 (cons "^with[ \t]+\"\\(\\(?:\\sw\\|\\s_\\)+\\)\";"
+	 ;; A "with" clause; allow "foo_bar.gpr"
+	 (cons "^with[ \t]+\"\\(\\(?:\\sw\\|\\s_|\\s.\\)+\\)\";"
 	       'gpr-ff-special-with)
 	 )))
 
