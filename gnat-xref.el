@@ -27,7 +27,8 @@
 ;; M-x gnat-xref-mode
 
 (defgroup gnat-xref nil
-  "Minor mode for navigating sources using GNAT cross reference tool.")
+  "Minor mode for navigating sources using GNAT cross reference tool."
+  :group 'languages)
 
 (defun gnat-xref-goto-declaration (other-window-frame &optional parent)
   "Move to the declaration or body of the identifier around point.

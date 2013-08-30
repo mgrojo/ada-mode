@@ -41,6 +41,8 @@ package Ada_Mode.Nominal.Child is
       Item_2 : out    Character)
      is null;
 
+   --EMACSCMD:(progn (forward-line 2)(forward-word 1)(ada-find-other-file nil)(looking-at "overriding function Function_2a"))
+   --EMACSRESULT:t
    overriding function Function_2a (Param : in Child_Type_1) return Float;
 
    overriding

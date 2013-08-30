@@ -446,6 +446,11 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
     (and containing
 	 (wisi-get-cache (1- containing)))))
 
+(defun wisi-cache-text (cache)
+  "Return property-less buffer substring designated by cache.
+Point must be at cache."
+  (buffer-substring-no-properties (point) (+ (point) (wisi-cache-last cache))))
+
 ;;;; parse actions
 
 (defun wisi-set-end (tokens end-mark)
@@ -901,26 +906,30 @@ Called from `wisi-indent-line' when a parse succeeds after
 failing; assumes user was editing code that is now syntactically
 correct. Must leave point at indentation of current line.")
 
+(defvar-local wisi-indent-fail nil
+  "Non-nil when wisi-indent-line fails due to parse failing; cleared when indent succeeds.")
+
 (defun wisi-indent-line ()
   "Indent current line using the wisi indentation engine."
   (interactive)
 
-  (let* ((prev-wisi-parse-failed wisi-parse-failed)
-	 (savep (point))
+  (let* ((savep (point))
 	 (indent
 	  (or (save-excursion
 		(wisi-validate-cache (point))
 		(back-to-indentation)
 		(when (>= (point) savep) (setq savep nil))
-		(if (< wisi-cache-max (point))
+		(if wisi-parse-failed
 		    (progn
 		      ;; parse failed. Assume user is editing; indent to previous line, fix it after parse succeeds
+		      (setq wisi-indent-failed t)
 		      (forward-line -1);; safe at bob
 		      (back-to-indentation)
 		      (current-column))
 
 		  ;; else parse succeeded
-		  (when prev-wisi-parse-failed
+		  (when wisi-indent-failed
+		    (setq wisi-indent-failed nil)
 		    (run-hooks 'wisi-post-parse-fail-hook))
 		  (with-demoted-errors
 		    (or (run-hook-with-args-until-success 'wisi-indent-calculate-functions) 0))
@@ -994,6 +1003,7 @@ correct. Must leave point at indentation of current line.")
   (set (make-local-variable 'indent-line-function) 'wisi-indent-line)
 
   (setq wisi-post-parse-fail-hook post-parse-fail)
+  (setq wisi-indent-failed t)
 
   (add-hook 'before-change-functions 'wisi-before-change nil t)
   (add-hook 'after-change-functions 'wisi-after-change nil t)

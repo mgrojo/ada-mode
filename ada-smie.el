@@ -604,6 +604,13 @@
 
 ;;;; utils for refine-*, forward/backward token
 
+(defvar ada-smie-debug nil
+  "When non-nil, `ada-smie-show-keyword-forward' and
+`ada-smie-show-keyword-backward' invalidate cache first, so
+they always run the refine algorithm.  In addition,
+`ada-smie-refine-error' throws errors instead of failing more
+gracefully.")
+
 (defconst ada-smie-block-keywords
   '("=>-when"
     "abort-select"
@@ -4118,12 +4125,6 @@ If DECLARE non-nil, stop at first containing declarative region (for 'declare' b
     )))
 
 ;;;; parser debug
-(defvar ada-smie-debug nil
-  "When non-nil, `ada-smie-show-keyword-forward' and
-`ada-smie-show-keyword-backward' invalidate cache first, so
-they always run the refine algorithm.  In addition,
-`ada-smie-refine-error' throws errors instead of failing more
-gracefully.")
 
 (defun ada-smie-show-keyword-forward ()
   "Show the grammar info for word following point, and move across it."

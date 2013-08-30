@@ -700,7 +700,6 @@ Prompt user if more than one."
 	     ;; collect all, let user choose.
 	     (while (not done)
 	       (forward-line 1)
-	       (move-to-column message-column)
 	       (setq done (not
 			   (and
 			    (equal file-line-struct (ada-get-compilation-message))

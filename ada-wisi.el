@@ -1207,7 +1207,7 @@ Also return cache at start."
 	result
 	(cache (wisi-forward-find-class 'name (point-max))))
 
-    (setq result (buffer-substring-no-properties (point) (+ (point) (wisi-cache-last cache))))
+    (setq result (wisi-cache-text cache))
 
     (when (not ff-function-name)
       (setq ff-function-name
@@ -1255,11 +1255,13 @@ Also return cache at start."
 	    subprogram_specification ;; after 'generic'
 	    null_procedure_declaration)
 	   (setq result (ada-wisi-which-function-1
-			 (wisi-forward-token t)
+			 (wisi-cache-text (wisi-forward-find-token '(FUNCTION PROCEDURE) (point-max)))
 			 nil))) ;; no 'body' keyword in subprogram bodies
 
 	  (subprogram_body
-	   (setq result (ada-wisi-which-function-1 (wisi-forward-token t) nil)))
+	   (setq result (ada-wisi-which-function-1
+			 (wisi-cache-text (wisi-forward-find-token '(FUNCTION PROCEDURE) (point-max)))
+			 nil)))
 
 	  (task_type_declaration
 	   (setq result (ada-wisi-which-function-1 "task" t)))
