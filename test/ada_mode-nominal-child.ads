@@ -3,10 +3,6 @@
 --EMACSCMD:(font-lock-fontify-buffer)
 package Ada_Mode.Nominal.Child is
 
-   --EMACSCMD:(ada-make-package-body "ada_mode-nominal-child.adb")
-   --EMACSCMD:(progn (ada-find-other-file nil)(looking-at "package body Ada_Mode.Nominal.Child"))
-   --EMACSCMD:(condition-case nil (delete-file "ada_mode-nominal-child.adb") (error nil))
-
    --EMACSCMD:(test-face "is" font-lock-keyword-face)
    --EMACSCMD:(test-face "new" font-lock-keyword-face)
    --EMACSCMD:(test-face "Parent_Type_1" font-lock-type-face)
@@ -27,6 +23,7 @@ package Ada_Mode.Nominal.Child is
    overriding procedure Procedure_1b
      (Item  : in out Child_Type_1) is null;
    --EMACSRESULT:"Procedure_1b"
+   --EMACSCMD:(setq ff-function-name nil)
 
    procedure Procedure_1c_Different_Name (Item  : in out Child_Type_1) is null;
 

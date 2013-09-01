@@ -1434,12 +1434,12 @@ package_specification
       (wisi-statement-action 1 'statement-start 2 'name 4 'block-start 6 'block-middle 8 'block-end)
       (wisi-containing-action 4 5)
       (wisi-containing-action 6 7)
-      (wisi-motion-action 1 6 8))
+      (wisi-motion-action 1 4 6 8))
   | PACKAGE name aspect_specification_opt IS declarative_part_opt END name
     (progn
       (wisi-statement-action 1 'statement-start 2 'name 4 'block-start 6 'block-end)
       (wisi-containing-action 4 5)
-      (wisi-motion-action 1 6))
+      (wisi-motion-action 1 4 6))
   ;
 
 parameter_and_result_profile

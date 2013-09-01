@@ -34,6 +34,12 @@
 (require 'ada-fix-error)
 (require 'compile)
 
+;; We use cl-delete-if, defined in cl-seq.el. cl-seq.el has no
+;; 'provide'.  autoload for cl-delete-if is defined in
+;; cl-loaddefs.el, which is not pre-loaded, so we load it here.
+;; FIXME: asking on emacs-devel if this is the right way
+(eval-and-compile (load "cl-loaddefs.el"))
+
 ;;;;; code
 ;;;; gnatprep utils
 
@@ -1072,6 +1078,3 @@ Prompt user if more than one."
 (provide 'ada-compiler)
 
 ;; end of file
-;;
-;; byte-compiler warns that 'cl-delete-if' might not be defined. But
-;; cl-seq.el has no 'provide', and cl-delete-if is autoloaded.

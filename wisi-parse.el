@@ -5,8 +5,9 @@
 ;; path.
 
 (require 'semantic/wisent)
+(eval-when-compile (require 'cl-macs))
 
-(defstruct (wisi-parser-state
+(cl-defstruct (wisi-parser-state
 	    (:copier nil))
   label ;; integer identifying parser for debug
 

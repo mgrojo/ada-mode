@@ -36,6 +36,8 @@ run wisi test from emacs -Q:
 (list (wisi-parser-state-active (aref parser-states 1)) (wisi-parser-state-sp (aref parser-states 1)) (wisi-parser-state-stack (aref parser-states 1)))
 
  gnatinspect
+waiting on wavefront
+
 build:
     cd ~/Projects
     tar xf ~/Downloads/gnatcoll...
@@ -80,6 +82,9 @@ parser is too slow
     try byte-compile - not enough
     see 'incremental LALR' below
     cache parser state periodically (every 200 token caches?), resume parse from last avail cache
+
+parser is too picky
+    change syntax to allow empty instead of 'null;', extra , or ; in lists, etc
 
 test indent on GDS code
 

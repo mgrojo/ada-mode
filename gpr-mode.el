@@ -137,7 +137,8 @@ current construct."
      (or
       (ff-get-file-name
        (ada-prj-get 'prj_dir)
-       (concat (match-string 1) ".gpr"))
+       (match-string 1)
+       '("" ".gpr"))
       (error "project '%s' not found; set project file?" project-name)))
     ))
 
@@ -150,7 +151,7 @@ current construct."
 	;; go to.
 	(list
 	 ;; A "with" clause; allow "foo_bar.gpr"
-	 (cons "^with[ \t]+\"\\(\\(?:\\sw\\|\\s_|\\s.\\)+\\)\";"
+	 (cons "^with[ \t]+\"\\(\\(?:\\(?:\\sw\\|\\s.\\)\\|\\s_\\)+\\)\";"
 	       'gpr-ff-special-with)
 	 )))
 

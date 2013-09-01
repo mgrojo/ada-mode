@@ -139,6 +139,7 @@
 ;;;;;
 
 (require 'wisi-parse)
+(eval-when-compile (require 'cl-macs))
 
 ;;;; lexer
 
@@ -264,7 +265,7 @@ wisi-forward-token, but does not look up symbol."
 ;; the cache stores the results of parsing as text properties on
 ;; keywords, for use by the indention and motion engines.
 
-(defstruct
+(cl-defstruct
   (wisi-cache
    (:constructor wisi-cache-create)
    (:copier nil))
@@ -906,7 +907,7 @@ Called from `wisi-indent-line' when a parse succeeds after
 failing; assumes user was editing code that is now syntactically
 correct. Must leave point at indentation of current line.")
 
-(defvar-local wisi-indent-fail nil
+(defvar-local wisi-indent-failed nil
   "Non-nil when wisi-indent-line fails due to parse failing; cleared when indent succeeds.")
 
 (defun wisi-indent-line ()
@@ -1003,7 +1004,7 @@ correct. Must leave point at indentation of current line.")
   (set (make-local-variable 'indent-line-function) 'wisi-indent-line)
 
   (setq wisi-post-parse-fail-hook post-parse-fail)
-  (setq wisi-indent-failed t)
+  (setq wisi-indent-failed nil)
 
   (add-hook 'before-change-functions 'wisi-before-change nil t)
   (add-hook 'after-change-functions 'wisi-after-change nil t)

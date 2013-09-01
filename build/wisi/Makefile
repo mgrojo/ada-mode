@@ -3,7 +3,7 @@
 all : byte-compile compile-clean compile test-clean test
 
 byte-compile : ../../ada-grammar-wy.el ../../gpr-grammar-wy.el
-	cd ../../; emacs -batch -L . -f batch-byte-compile *.el
+	cd ../../; emacs -Q -batch -L . -f batch-byte-compile *.el
 
 test : test-ada test-gpr test-elisp
 
@@ -15,7 +15,7 @@ test-wisi :: subprograms.wisi-test
 test-wisi :: empty_production_6.wisi-test
 test-wisi :: empty_production_8.wisi-test
 
-one : ada_mode-interactive_common.adb.diff
+one : gds_test.gpr.diff
 two : debug.adb.diff
 
 vpath %.wy ../../ ../../test/wisi

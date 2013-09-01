@@ -36,7 +36,7 @@ is
    -- Ada_Identifier in comment; force auto-case
    --EMACSRESULT:t
 
-   -- testing ada-make-subprogram-body
+   -- testing ada-make-subprogram-body. see ada_mode-nominal-child.adb for 'overriding'
 
    -- procedure, no parameters
    --EMACSCMD:(progn (end-of-line 3)(kill-line 4)(insert ";")(ada-make-subprogram-body))

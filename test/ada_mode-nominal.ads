@@ -63,9 +63,9 @@ with Ada_Mode.Library_Procedure;
 with Ada_Mode.Function_2;
 --EMACSCMD:(progn (ada-goto-end)(looking-back "end Ada_Mode.Nominal"))
 --EMACSRESULT:t
---EMACSCMD:(progn (forward-line 2) (ada-next-statement-keyword)(looking-at "private -- Ada_Mode.Nominal"))
+--EMACSCMD:(progn (end-of-line 3)(forward-word -3) (ada-next-statement-keyword)(looking-at "private -- Ada_Mode.Nominal"))
 --EMACSRESULT:t
-package Ada_Mode.Nominal is
+package Ada_Mode.Nominal is -- target 0
 
    -- ada-indent-refine-subprogram calls ada-indent-is-generic-p,
    -- which can scan the entire buffer looking for generic. That can
@@ -672,7 +672,7 @@ package Ada_Mode.Nominal is
    --EMACSRESULT:t
 private -- Ada_Mode.Nominal
 
-   --EMACSCMD:(progn (forward-line -2) (ada-prev-statement-keyword)(looking-at "package Ada_Mode.Nominal"))
+   --EMACSCMD:(progn (forward-line -2) (ada-prev-statement-keyword)(looking-at "is -- target 0"))
    --EMACSRESULT:t
 
    type Private_Type_1 is abstract tagged limited null record;
