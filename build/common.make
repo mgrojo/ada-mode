@@ -22,6 +22,9 @@ COMPILE_FILES := $(subst subdir/,,$(COMPILE_FILES))
 
 COMPILE_FILES := $(filter-out ada_mode-ada83.ads, $(COMPILE_FILES))# font-lock only
 
+# parents are not pure
+COMPILE_FILES := $(filter-out ada_mode-generic_parent_instantiation.ads, $(COMPILE_FILES))
+
 # These have incomplete code deliberately; used for interactive editing test (via EMACSCMD)
 COMPILE_FILES := $(filter-out ada_mode-interactive_common.adb, $(COMPILE_FILES))
 COMPILE_FILES := $(filter-out ada_mode-interactive_smie.adb, $(COMPILE_FILES))

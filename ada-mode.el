@@ -223,6 +223,7 @@ If nil, no contextual menu is available."
     ["Goto Declaration/Body"      ada-goto-declaration      t]
     ["Goto parent declaration"    ada-goto-declaration-parent t]
     ["Show references"            ada-show-references       t]
+    ["Toggle show parser errors"  wisi-toggle-show-parser-errors t]
     ["------"        nil nil]
     ("Edit"
      ["Indent Line"                 indent-for-tab-command  t]

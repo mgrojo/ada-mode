@@ -86,6 +86,7 @@ current construct."
     ["Set as current project"     gpr-set-as-project        t]
     ["Next compilation error"     next-error                t]
     ["Show secondary error"       ada-show-secondary-error  t]
+    ["Toggle show parser errors"  wisi-toggle-show-parser-errors t]
     ("Edit"
      ["Indent Line"                 indent-for-tab-command  t]
      ["Indent Lines in Selection"   indent-region           t]

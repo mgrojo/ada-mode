@@ -509,8 +509,8 @@ choice_relation
   ;
 
 compilation_unit
-  : context_clause library_item
-  | library_item
+  : context_clause library_item pragma_opt
+  | library_item pragma_opt
   | context_clause subunit
   | subunit
   ;
@@ -1502,6 +1502,11 @@ pragma_argument_association
 pragma_argument_association_list
   : pragma_argument_association
   | pragma_argument_association_list COMMA pragma_argument_association
+  ;
+
+pragma_opt
+  : ;; empty
+  | pragma
   ;
 
 ;; prefix is name

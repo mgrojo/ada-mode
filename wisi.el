@@ -398,6 +398,13 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
 2 : show parse states, position point at parse errors, debug-on-error works in parser
 3 : dump parser stack.")
 
+(defun wisi-toggle-show-parser-errors ()
+  "Toggle showing wisi-parse errors."
+  (interactive)
+  (if (= wisi-debug 0)
+      (setq wisi-debug 1)
+     (setq wisi-debug 0)))
+
 (defun wisi-validate-cache (pos)
   "Ensure cached data is valid at least up to POS in current buffer."
   (when (and wisi-parse-try

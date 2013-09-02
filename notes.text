@@ -49,52 +49,21 @@ build:
  ada-wisi
 build/wisi/Makefile
 
-wisi-debug on menu
-
-C-F11 broken on gpr with
-    allow .gpr in string - fix on work computer
-
-indentation bugs:
-
-    ----
-        var : type :=
-          init;
-
-        --  comment
-        var : type :=
-          init;
-
-    ----
-        var : type :=
-          (aggregate);
-
-    ----
-      Expected_Set := Get_Item_Node
-        (Prod       => 4, -- in grammar
-         Lookaheads => +(LEFT_PAREN_ID, SEMICOLON_ID),
-         Dot        => 1,
-         Next       => Expected_Set);
-
-ada-wisi parse fails on sal-math_double-dof_3.ads
-    pragma after generic instantiation
-
-parser is too slow
-    try byte-compile - not enough
-    see 'incremental LALR' below
-    cache parser state periodically (every 200 token caches?), resume parse from last avail cache
-
-parser is too picky
-    change syntax to allow empty instead of 'null;', extra , or ; in lists, etc
-
-test indent on GDS code
-
 test indent with standard emacs code skeleton/template
 
-need ada-indent-statement
-
-fix motion for all blocks
-
 Debian : emacs 24.2 (from testing), GNAT GPL 2013:
+
+ada-mode-patches.el
+    add ELSE/skeleton placeholders to ada-font-lock-syntactic-keywords,
+        sets them to comment syntax so smie will ignore them
+        now done in syntax-propertize; need user hook?
+
+mouse operations
+    goto-declaration
+    compiler error
+    others?
+
+    double-click underscore selects full word, double-click letter selects partial word?
 
 gpr-add-log-current-function dispatch to gpr-wisi
 
@@ -116,9 +85,6 @@ test menu
 
 select-prj should open prj if not in alist
 
-set buffer-local at variable declaration, not in ada-mode
-    make it clearer to someone trying to understand what the variable does
-
 Markus Schöpflin <markus.schoepflin@comsoft.aero> wants this style (including all caps):
 
    FOOBAR.PROC (
@@ -126,56 +92,11 @@ Markus Schöpflin <markus.schoepflin@comsoft.aero> wants this style (including a
       ARG2 => VAL2
    );
 
-from georg bauhaus:
-    procedure Y is
-       X : Character;
-    begin
-
-       case True is
-          when False in False .. True =>
-            null;
-       when False =>
-          null;
-    end case;
-
-    L:
-       begin
-          if X in 'a' .. 'z' or X in 'A' .. 'Z' then
-          null;
-    end if;
-    end L;
-
-    end Y;
-
 jump back after C-c C-d
     etags uses M-., M-*, find-tag-marker-ring, tags-location-ring
     global mark ring? C-u <space>
 
-better error handling for wisi?
-    for wisent-parse, need to set an 'error action on statement_start tokens?
-        then skip to ;
-
-    see [dickgrune] 10 p 219
-
-    wisent-parse-stream is _not_ better; just a "semantic" wrapper around wisent-parse
-
-    semantic-bovinate-stream is an LL parser with possibly better error handling.
-
-add code to opentoken to report conflicts and path to their lca!
-    [dickgrune] 9.6.3 mentions DeRemer and Pennello for this
-
-    and useless nonterminals/rules
-
-incremental LALR [dickgrune] 9.7.4
-
-for |, need to distinguish 'when', '=>'
-    block-middle-start, block-middle-end?
-    else => block-middle? statement-middle?
-
 need C-c C-d on <=
-
-ada-make-subprogram-body
-    doesn't handle "+" after 'end'
 
 FIXMEs
     context menus
@@ -191,39 +112,21 @@ FIXMEs
 'Access gives wrong face to following token:
      Percent_Percent & EOF + Output_Elisp'Access and
 
-in project file, support three kinds of settings:
-    prj: src_dir (= elisp add-to-list compilation-search-dir)
-    env: ADA_PROJECT_PATH (currently $env)
-    elisp: ada-mode options
-        ada-spec/body-suffixes
+parser is too picky
+    change syntax to allow empty instead of 'null;', extra , or ; in lists, etc
 
-    three sections, rather than per-line?
-
-    or just use eval: (load "prj.el") in the makefile
+parser is too slow
+    try byte-compile - not enough
+    see incremental LALR [dickgrune] 9.7.4
+    cache parser state periodically (every 200 token caches?), resume parse from last avail cache
 
 don't parse or move cache if narrowed
 
 old options set in ada-mode-hook are now ignored
     need warning?
 
-ada-mode-patches.el
-    add ELSE placeholders to ada-font-lock-syntactic-keywords,
-        sets them to comment syntax so smie will ignore them
-        now done in syntax-propertize; need user hook?
-
-mouse operations
-    goto-declaration
-    compiler error
-    others?
-
-    double-click underscore selects full word, double-click letter selects partial word?
-
-add <gnat>/lib/gnat to compilation-search-path, for library *.gpr
-
 ada-fix-error.el
-    small; merge into ada-mode.el?
-
-    sort 'limited private with' at end of context clause?
+    sort 'limited private with' at end of context clause
 
 ada-make-subprogram-body
 
@@ -291,9 +194,6 @@ rest of ada-mode
 
 support multiple compilation units in one file
     don't add $EOI for accept rule
-
-syntax illegal at edit point means parse backwards from end makes sense
-    insert phantom tokens to match two error points
 
  opentoken
 /Projects/org.opentoken.stephe/build/windows_debug/Makefile
@@ -636,22 +536,19 @@ read/write access requires a public key:
     mtn --db ~/monotone-dbs/ada-france.db sync "mtn://www.ada-france.org?org.emacs.*"
 
  release process
-Emacs 24.3, gnat 7.1.0w (sal-standard):
+Emacs 24.3, gnat 7.1.2 (sal-standard):
     /Projects/org.opentoken.stephe/build/windows_release/Makefile all
-    build/smie/Makefile all
-    build/wisi/Makefile test-wisi test-gpr test-ada
-        all test-wisi, test-gpr passing
-        some test-ada passing
+    build/wisi/Makefile all
+
+Debian: Emacs 24.2, gnat-4.7
 
 Emacs 23.4, (gnat-2012) (gnat-2013):
-/Projects/org.opentoken.stephe/build/windows_release/Makefile
-    clean
-    wisi-generate.exe
+    /Projects/org.opentoken.stephe/build/windows_release/Makefile
+        clean
+        wisi-generate.exe
 
-test/Makefile all
-    build/smie/Makefile all EMACS=/Apps/emacs-23.4/bin/emacs.exe GNATMAKE=/apps/GNAT-gpl_2012/bin/gnatmake
-        ada-mode failing weirdly
-    build/wisi/Makefile all EMACS=/Apps/emacs-23.4/bin/emacs.exe GNATMAKE=/apps/GNAT-gpl_2012/bin/gnatmake
+    test/Makefile all
+        build/wisi/Makefile all
 
 (dvc-status)
 (dvc-status "/Projects/org.opentoken.stephe")
