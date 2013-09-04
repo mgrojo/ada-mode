@@ -36,13 +36,12 @@ run wisi test from emacs -Q:
 (list (wisi-parser-state-active (aref parser-states 1)) (wisi-parser-state-sp (aref parser-states 1)) (wisi-parser-state-stack (aref parser-states 1)))
 
  gnatinspect
-waiting on wavefront
-
 build:
+    (gds-lynx-5)
     cd ~/Projects
     tar xf ~/Downloads/gnatcoll...
     cd gnatcoll ...
-    ./configure --prefix=/usr/gnat-7.1.2 --with-readline --enable-gpl
+    ./configure --prefix=/usr/gnat-7.1.2 --enable-gpl
     make Gnatcoll_Build=Debug
     sudo make Gnatcoll_Build=Debug install
 
