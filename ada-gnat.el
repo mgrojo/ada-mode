@@ -162,7 +162,7 @@ See also `ada-gnat-parse-emacs-final'."
 (defun ada-gnat-get-paths (project)
   "Add project and/or compiler source, object paths to PROJECT src_dir, obj_dir."
   (with-current-buffer (ada-gnat-run-buffer)
-    (let ((status (ada-gnat-run (list "list" "-v")))
+    (let ((status (ada-gnat-run-gnat (list "list" "-v")))
 	  (src-dirs (ada-prj-get 'src_dir project))
 	  (obj-dirs (ada-prj-get 'obj_dir project))
 	  (prj-dirs (ada-prj-get 'prj_dir project)))
@@ -276,26 +276,35 @@ src_dir, obj_dir, prj_dir will include compiler runtime."
 	)
       buffer)))
 
-(defun ada-gnat-run (command &optional switches-args)
-  "Run the gnat command line tool, as \"gnat COMMAND -P<prj> SWITCHES-ARGS\".
+(defun ada-gnat-run (exec command)
+  "Run a gnat command line tool, as \"EXEC COMMAND\".
+EXEC must be an executable found on `exec-path'. COMMAND must be a list of strings.
 Return process status.
 Assumes current buffer is (ada-gnat-run-buffer)"
   (set 'buffer-read-only nil)
   (erase-buffer)
 
+  (setq command (cl-delete-if 'null command))
+
+  (insert (format "ADA_PROJECT_PATH=%s\n%s" (getenv "ADA_PROJECT_PATH") exec)); for debugging
+  (mapc (lambda (str) (insert (concat str " "))) command); for debugging
+  (newline)
+  (let ((process-environment (ada-prj-get 'proc_env)))
+    (apply 'call-process exec nil t nil command)
+    ))
+
+(defun ada-gnat-run-gnat (command &optional switches-args)
+  "Run the \"gnat\" command line tool, as \"gnat COMMAND -P<prj> SWITCHES-ARGS\".
+COMMAND and SWITCHES-ARGS must be a string or list of strings.
+Return process status.
+Assumes current buffer is (ada-gnat-run-buffer)"
   (let* ((project-file-switch
 	  (when (ada-prj-get 'gpr_file)
 	    (concat "-P" (file-name-nondirectory (ada-prj-get 'gpr_file)))))
 	 (cmd (append command (list project-file-switch) switches-args)))
 
-    (setq cmd (cl-delete-if 'null cmd))
-
-    (insert (format "ADA_PROJECT_PATH=%s\ngnat " (getenv "ADA_PROJECT_PATH"))); for debugging
-    (mapc (lambda (str) (insert (concat str " "))) cmd);; show command for debugging
-    (newline)
-    (let ((process-environment (ada-prj-get 'proc_env)))
-      (apply 'call-process "gnat" nil t nil cmd)
-    )))
+    (ada-gnat-run "gnat" cmd)
+    ))
 
 (defun ada-gnat-run-no-prj (command &optional dir)
   "Run the gnat command line tool, as \"gnat COMMAND\", with DIR as current directory.
@@ -327,8 +336,8 @@ is (ada-gnat-run-buffer)"
 	 (result nil))
     (with-current-buffer (ada-gnat-run-buffer)
       (if (< 0 (length switches))
-	  (setq status (ada-gnat-run (list "find" switches arg)))
-	(setq status (ada-gnat-run (list "find" arg))))
+	  (setq status (ada-gnat-run-gnat (list "find" switches arg)))
+	(setq status (ada-gnat-run-gnat (list "find" arg))))
 
       (cond
        ((= status 0); success

@@ -24,10 +24,92 @@
 
 ;;; Usage:
 ;;
-;; M-x gnat-xref-mode
+;; M-x gnat-xref
 
 (defgroup gnat-xref nil
-  "Minor mode for navigating sources using GNAT cross reference tool.")
+  "Minor mode for navigating sources using GNAT cross reference tool `gnatinspect'.")
+
+(defun gnat-xref-other (identifier file line col parent)
+  "For `ada-xref-other-function', using gnatinspect."
+  (unless (ada-prj-get 'gpr_file)
+    (error "no gnat project file defined."))
+
+  (with-current-buffer (ada-gnat-run-buffer)
+    (let* ((project-file (file-name-nondirectory (ada-prj-get 'gpr_file)))
+	   (arg (format "%s:%s:%d:%d" identifier file line col))
+	   status
+	   (result nil))
+
+      (setq status (ada-gnat-run "gnatinspect" (list "-P" project-file "-c" (concat "refs " arg))))
+
+      (cond
+       ((= status 0); success
+	(goto-char (point-min))
+	(forward-line 2); skip ADA_PROJECT_PATH, echoed command
+
+	;; FIXME: change to gnatinspect, handle parent
+
+	;; gnat find returns two items; the starting point, and the 'other' point
+	(while (not result)
+	  (unless (looking-at (concat ada-gnat-file-line-col-regexp ":"))
+	    ;; no results
+	    (error "'%s' not found in cross-reference files; recompile?" identifier))
+	  (if (looking-at (concat ada-gnat-file-line-col-regexp ": warning:"))
+	      ;; error in *.gpr; ignore here.
+	      (forward-line 1)
+	    ;; else process line
+	    (let ((found-file (match-string 1))
+		  (found-line (string-to-number (match-string 2)))
+		  (found-col  (string-to-number (match-string 3))))
+	      (cond
+	       (parent
+		(skip-syntax-forward "^ ")
+		(skip-syntax-forward " ")
+		(if (looking-at (concat "derived from .* (" ada-gnat-file-line-col-regexp ")"))
+		    ;; found other item
+		    (setq result (list (match-string 1)
+				       (string-to-number (match-string 2))
+				       (1- (string-to-number (match-string 3)))))
+		  (forward-line 1)))
+
+	       (t
+		(if (not
+		     (and
+		      (equal file found-file)
+		      (= line found-line)
+		      (= col found-col)))
+		    ;; found other item
+		    (setq result (list found-file found-line (1- found-col)))
+		  (forward-line 1)))
+	       )
+	      (when (eobp)
+		(pop-to-buffer (current-buffer))
+		(error "gnat find did not return other item"))
+	      ))))
+
+       (t ; failure
+	(pop-to-buffer (current-buffer))
+	(error "gnat find failed"))
+       ))
+    result))
+
+(defun ada-gnat-xref-all (identifier file line col)
+  "For `ada-xref-all-function'."
+  ;; we use `compilation-start' to run gnat, not `ada-gnat-run', so it
+  ;; is asynchronous, and automatically runs the compilation error
+  ;; filter.
+
+  (let* ((cmd (format "gnat find -r %s:%s:%d:%d" identifier file line col)))
+
+    (with-current-buffer (ada-gnat-run-buffer); for process-environment
+      (let ((compilation-environment process-environment)
+	    (compilation-error "reference"))
+	(when (ada-prj-get 'gpr_file)
+	  (setq cmd (concat cmd " -P" (file-name-nondirectory (ada-prj-get 'gpr_file)))))
+
+	(compilation-start cmd)
+    ))))
+
 
 (defun gnat-xref-goto-declaration (other-window-frame &optional parent)
   "Move to the declaration or body of the identifier around point.
