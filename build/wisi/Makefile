@@ -21,14 +21,11 @@ two : debug.adb.diff
 vpath %.wy ../../ ../../test/wisi
 vpath %.el ../../ .
 
-# There doesn't seem to be a reliable way to detect the OS?
-# not clear what sets LIBRARY_PATH on windows (sigh)
-ifeq ($(LIBRARY_PATH),/usr/lib/i386-linux-gnu/)
-#linux
-WISI_OPENTOKEN := /home/Projects/opentoken/org.opentoken.stephe/build/linux_release
+ifeq ($(shell uname),Linux)
+WISI_OPENTOKEN := /home/Projects/opentoken/org.opentoken.stephe/build/release
 else
 # windows
-WISI_OPENTOKEN := $(CURDIR)/../../../org.opentoken.stephe/build/windows_release
+WISI_OPENTOKEN := $(CURDIR)/../../../org.opentoken.stephe/build/release
 endif
 
 %.wisi-test : %-wy.el
