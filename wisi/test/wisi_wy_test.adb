@@ -41,7 +41,7 @@ package body Wisi_WY_Test is
       Expected_El_File : constant String        := Test.Root_Name.all & "-wy.good_el";
    begin
       Spawn
-        (Program_Name => Locate_Exec_On_Path ("wisi-generate.exe").all,
+        (Program_Name => Locate_Exec_On_Path ("./wisi-generate.exe").all,
          Args         =>
            (1         => Wy_File,
             2         => new String'("elisp")),

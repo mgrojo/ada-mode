@@ -24,6 +24,7 @@ with Ada.Directories;
 with AUnit.Assertions;
 with AUnit.Check;
 with GNAT.OS_Lib;
+with GNAT.Source_Info;
 package body Test_Generate_Errors is
 
    ----------
@@ -43,7 +44,7 @@ package body Test_Generate_Errors is
       Expected_Error_File : constant String        := Test.Root_Name.all & ".good_out";
    begin
       Spawn
-        (Program_Name => Locate_Exec_On_Path ("wisi-generate.exe").all,
+        (Program_Name => Locate_Exec_On_Path ("./wisi-generate.exe").all,
          Args         =>
            (1         => Wy_File,
             2         => new String'("test")),
@@ -70,7 +71,7 @@ package body Test_Generate_Errors is
 
    overriding function Name (T : Test_Case) return AUnit.Message_String
    is begin
-      return new String'("../../wisi/test/Test_Generate_Errors.adb " & T.Root_Name.all);
+      return new String'("../../wisi/test/" & GNAT.Source_Info.File & T.Root_Name.all);
    end Name;
 
 end Test_Generate_Errors;

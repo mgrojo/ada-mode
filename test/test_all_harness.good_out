@@ -1,5 +1,5 @@
 
-OK ../../wisi/test/Test_Generate_Errors.adb ../../wisi/test/unused_tokens : Run_Test
+OK ../../wisi/test/test_generate_errors.adb../../wisi/test/unused_tokens : Run_Test
 OK ../../wisi/test/wisi_rules_test.adb : Nominal
 OK ../../wisi/test/wisi_rules_test.adb : Single_Line
 OK ../../wisi/test/wisi_wy_test.adb ../../wisi/test/body_instantiation_conflict : Run_Test
