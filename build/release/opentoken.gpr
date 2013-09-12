@@ -3,8 +3,7 @@
 --  This is not in Build because the object and executable paths are
 --  relative to this file.
 --
---  (ediff "../windows_release/opentoken.gpr" "../linux_release/opentoken.gpr")
---  (ediff "../windows_release/opentoken.gpr" "../windows_debug/opentoken.gpr")
+--  (ediff "../release/opentoken.gpr" "../debug/opentoken.gpr")
 
 with "../common";
 project OpenToken is
@@ -23,5 +22,16 @@ project OpenToken is
         Common.Compiler.Style_Checks &
         Common.Compiler'Default_Switches ("Ada");
    end Compiler;
+
+   package Builder is
+      for Default_Switches ("Ada") use Common.Builder'Default_Switches ("Ada");
+
+      --  We use ".exe" extension even on non-Windows, to simplify the makefiles.
+      for Executable_Suffix use ".exe";
+   end Builder;
+
+   package Binder is
+      for Default_Switches ("Ada") use Common.Binder'Default_Switches ("Ada");
+   end Binder;
 
 end OpenToken;

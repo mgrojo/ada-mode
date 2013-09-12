@@ -98,7 +98,7 @@ test_m3_lexer.run : test_m3_lexer.exe
 	./test_m3_lexer.exe ../../Examples/Language_Lexer_Examples/something.java
 
 install: library
-	make -f Makefile.install install
+	make -f Install.make install
 
 library:
 	gnatmake -p -Popentoken_lib

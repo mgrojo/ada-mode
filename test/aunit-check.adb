@@ -26,6 +26,7 @@
 with AUnit.Assertions;
 with Ada.Exceptions;
 with Ada.Strings.Fixed;
+with Ada.Strings.Maps;
 package body AUnit.Check is
 
    procedure Gen_Check_Discrete
@@ -94,6 +95,32 @@ package body AUnit.Check is
       return True;
    end Not_In;
 
+   function Chomp (Line : String) return String
+   is
+      use Ada.Strings.Maps;
+
+      EOL_Set : constant Character_Set := To_Set (Character'Val (10) & Character'Val (13));
+
+      function Last_Non_Terminating (P : Natural) return Natural
+      is
+         --  Return position of the last character in Line that is not one of the line
+         --  terminating characters, or 0. Starts looking at position P, backwards.
+      begin
+         if P >= Line'First then
+            if Is_In (Line (P), EOL_Set) then
+               return Last_Non_Terminating (P - 1);
+            else
+               return P;
+            end if;
+         else
+            return 0;
+         end if;
+      end Last_Non_Terminating;
+
+   begin
+      return Line (Line'First .. Last_Non_Terminating (Line'Last));
+   end Chomp;
+
    procedure Check_Files
      (Label         : in String;
       Computed_Name : in String;
@@ -128,8 +155,8 @@ package body AUnit.Check is
       begin
          while not End_Of_File (Expected) and not End_Of_File (Computed) loop
             declare
-               Computed_Line : constant String := Get_Line (Computed);
-               Expected_Line : constant String := Get_Line (Expected);
+               Computed_Line : constant String := Chomp (Get_Line (Computed));
+               Expected_Line : constant String := Chomp (Get_Line (Expected));
             begin
                --  Get_Line advances the line counter beyond the line of interest
                if Not_In (Line (Computed) - 1, Skip) then

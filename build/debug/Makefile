@@ -1,7 +1,6 @@
-# (ediff "../windows_debug/Makefile" "../linux_debug/Makefile")
+# (ediff "../debug/Makefile" "../release/Makefile")
 
-# no reason to run 'all' in debug
-all:
+all: test-clean tests examples library
 
 # ../../Test/test_one_harness.adb
 # ../../Test/test_all_harness.adb
@@ -20,7 +19,7 @@ EMACS := /apps/emacs-24.2.91/bin/emacs.exe
 trace :
 	addr2line -e wisi-generate.exe 0x40eb70 0x4214f8 0x401aba 0x402641 0x4013f8 0x74ea33a8 0x77689ef0 0x77689ec3
 
-GPRBUILD_TARGET := x86-windows
+GPRBUILD_TARGET := $(shell gcc -dumpmachine)
 include ../common.make
 
 # Local Variables:

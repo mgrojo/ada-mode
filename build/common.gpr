@@ -9,7 +9,7 @@ project Common is
 
    type Lib_Type is ("static", "dynamic");
 
-   Libtype : Lib_Type := external ("LIBTYPE", "dynamic");
+   Libtype : Lib_Type := External ("LIBTYPE", "dynamic");
 
    package Compiler is
       -- Switches for gcc
@@ -44,12 +44,12 @@ project Common is
 
       --  The project file syntax does not let us set a variable in a
       --  case statement. So we set the Default_Switches attribute to
-      --  contain the version-dependent switches. This is then
+      --  contain the external-dependent switches. This is then
       --  accessible in child project files via 'Default_Switches.
 
       case Build is
          when "Developer" =>
-            -- -gnatyO requires patching the compiler runtime source
+            -- -gnatyO requires patching the compiler runtime source for GNAT 6.x and earlier
             -- It is not valid for GNAT 4.x and earlier
             for Default_Switches ("Ada") use ("-gnatyO");
 

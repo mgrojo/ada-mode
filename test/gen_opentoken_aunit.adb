@@ -59,7 +59,10 @@ package body Gen_OpenToken_AUnit is
       Check (Label & ".RHS", First_Token (Computed), First_Token (Expected));
    end Check;
 
-   procedure Check (Label : in String; Computed : in LALR.LRk.Item_Lookahead_Ptr; Expected : in LALR.LRk.Item_Lookahead_Ptr)
+   procedure Check
+     (Label    : in String;
+      Computed : in LALR.LRk.Item_Lookahead_Ptr;
+      Expected : in LALR.LRk.Item_Lookahead_Ptr)
    is
       use AUnit.Check;
       use LALR.LRk;
@@ -121,7 +124,10 @@ package body Gen_OpenToken_AUnit is
       Check (Label & ".Next = null", Computed.Next = null, Expected.Next = null);
    end Check;
 
-   procedure Check (Label : in String; Computed : in LALR.LRk.Set_Reference_Ptr; Expected : in LALR.LRk.Set_Reference_Ptr)
+   procedure Check
+     (Label    : in String;
+      Computed : in LALR.LRk.Set_Reference_Ptr;
+      Expected : in LALR.LRk.Set_Reference_Ptr)
    is
       use AUnit.Check;
       use LALR.LRk;
@@ -220,7 +226,10 @@ package body Gen_OpenToken_AUnit is
       return Result;
    end "+";
 
-   procedure Check (Label : in String; Computed : in LALR.Parse_Action_Rec; Expected : in LALR.Parse_Action_Rec)
+   procedure Check
+     (Label    : in String;
+      Computed : in LALR.Parse_Action_Rec;
+      Expected : in LALR.Parse_Action_Rec)
    is
       use AUnit.Check;
       use LALR;
@@ -237,7 +246,10 @@ package body Gen_OpenToken_AUnit is
       end case;
    end Check;
 
-   procedure Check (Label : in String; Computed : in LALR.Parse_Action_Node_Ptr; Expected : in LALR.Parse_Action_Node_Ptr)
+   procedure Check
+     (Label    : in String;
+      Computed : in LALR.Parse_Action_Node_Ptr;
+      Expected : in LALR.Parse_Action_Node_Ptr)
    is
       use AUnit.Check;
       use type LALR.Parse_Action_Node_Ptr;

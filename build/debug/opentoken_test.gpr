@@ -11,28 +11,37 @@
 --  GNU General Public License for more details.
 
 --  For running OpenToken tests.
+--  use installed AdaCore aunit (not SAL aunit; don't put SAL in project path)
+--
+--  (ediff "opentoken_test.gpr" "../release/opentoken_test.gpr")
 
 with "../common";
-with "opentoken";
 with "aunit";
+with "opentoken";
 project OpenToken_Test is
 
    for Source_Dirs use
-     ("../../Examples/ASU_Example_3_6",
+     (
+      ".",
+      "../../Examples/ASU_Example_3_6",
       "../../Examples/ASU_Example_4_46",
       "../../Examples/ASU_Example_5_10",
       "../../Examples/Language_Lexer_Examples",
       "../../Test",
-      "../../wisi/test");
+      "../../wisi/test"
+     );
 
    for Object_Dir use "obj";
    for Exec_Dir use ".";
 
    package Compiler is
+      -- AUnit requires -fno-strict-aliasing
       for Default_Switches ("Ada") use
-        --  AUnit requires -fno-strict-aliasing
         OpenToken.Compiler'Default_Switches ("Ada") & ("-fno-strict-aliasing");
 
+      -- generated code has long lines, so relax limit
+      for Switches ("empty_production_5*.ad?") use
+        OpenToken.Compiler'Default_Switches ("Ada") & ("-fno-strict-aliasing", "-gnatyM123");
    end Compiler;
 
    package Builder is

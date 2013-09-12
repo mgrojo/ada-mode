@@ -1,18 +1,11 @@
---  For running OpenToken tests.
-with "aunit";
-with "common";
-project OpenToken_Test is
+--  For using OpenToken in other projects, and building OpenToken
+with "../common";
+project OpenToken is
 
    for Source_Dirs use
      ("../..",
-      "../../Examples/ASU_Example_3_6",
-      "../../Examples/ASU_Example_4_46",
-      "../../Examples/ASU_Example_5_10",
-      "../../Examples/Language_Lexer_Examples",
       "../../Language_Lexers",
-      "../../Test",
-      "../../Test",
-      "../../wisi/test");
+      "../../wisi");
 
    for Object_Dir use "obj";
    for Exec_Dir use ".";
@@ -22,7 +15,6 @@ project OpenToken_Test is
         Common.Compiler.Debug_Switches &
         Common.Compiler.Style_Checks &
         Common.Compiler'Default_Switches ("Ada");
-
    end Compiler;
 
    package Builder is
@@ -36,4 +28,4 @@ project OpenToken_Test is
       for Default_Switches ("Ada") use Common.Binder'Default_Switches ("Ada");
    end Binder;
 
-end OpenToken_Test;
+end OpenToken;
