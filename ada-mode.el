@@ -111,8 +111,9 @@ a good place to add Ada environment specific bindings.")
   "*Non-nil means automatically change case of preceding word while typing.
 Casing of Ada keywords is done according to `ada-case-keyword',
 identifiers are Mixed_Case."
-  :type 'boolean :group 'ada)
-(put 'ada-auto-case 'safe-local-variable 'booleanp)
+  :type  'boolean
+  :group 'ada
+  :safe  'booleanp)
 
 (defcustom ada-case-exception-file nil
   "*List of special casing exceptions dictionaries for identifiers.
@@ -126,29 +127,33 @@ words that either start at the beginning of a word or after a _
 character, and end either at the end of the word or at a _
 character.  Characters after the first word are ignored, and not
 preserved when the list is written back to the file."
-  :type '(repeat (file))
-  :group 'ada)
-(put 'ada-case-exception-file 'safe-local-variable 'listp)
+  :type  '(repeat (file))
+  :group 'ada
+  :safe  'listp)
 
 (defcustom ada-case-keyword 'downcase-word
   "*Function to call to adjust the case of an Ada keywords."
   :type '(choice (const downcase-word)
 		 (const upcase-word))
-  :group 'ada)
-(put 'ada-case-keyword 'safe-local-variable 'functionp)
+  :group 'ada
+  :safe  'functionp)
 
 (defcustom ada-case-strict t
   "*If non-nil, force Mixed_Case for identifiers.
 Otherwise, allow UPPERCASE for identifiers."
   :type 'boolean
-  :group 'ada)
-(put 'ada-case-strict 'safe-local-variable 'booleanp)
+  :group 'ada
+  :safe  'booleanp)
 
 (defcustom ada-language-version 'ada2012
   "*Ada language version; one of `ada83', `ada95', `ada2005'.
 Only affects the keywords to highlight."
-  :type '(choice (const ada83) (const ada95) (const ada2005) (const ada2012)) :group 'ada)
-(put 'ada-language-version 'safe-local-variable 'symbolp)
+  :type '(choice (const ada83)
+		 (const ada95)
+		 (const ada2005)
+		 (const ada2012))
+  :group 'ada
+  :safe  'symbolp)
 
 (defcustom ada-popup-key '[down-mouse-3]
   ;; FIXME (later, when testing menu): don't need a var for this; user can just bind a key
@@ -177,6 +182,9 @@ If nil, no contextual menu is available."
 (defvar-local ada-compiler nil
   "Symbol indicating which compiler is being used with the current buffer.")
 
+(defvar-local ada-xref-tool nil
+  "Symbol indicating which cross reference tool is being used with the current buffer.")
+
 ;;;; keymap and menus
 
 (defvar-local ada-mode-map
@@ -184,22 +192,23 @@ If nil, no contextual menu is available."
     ;; C-c <letter> are reserved for users
 
     ;; global-map has C-x ` 'next-error
-    (define-key map [return]   'ada-indent-newline-indent)
-    (define-key map [?\C-c tab] 'ada-indent-region)
-    (define-key map "\C-c`"    'ada-show-secondary-error)
-    (define-key map "\C-c\C-a" 'ada-align)
-    (define-key map "\C-c\C-b" 'ada-make-subprogram-body)
-    (define-key map "\C-c\C-c" 'compile)
-    (define-key map "\C-c\C-d" 'ada-goto-declaration)
-    (define-key map "\C-c\M-d" 'ada-goto-declaration-parent)
-    (define-key map "\C-c\C-n" 'ada-next-statement-keyword)
-    (define-key map "\C-c\C-o" 'ada-find-other-file)
-    (define-key map "\C-c\M-o" 'ada-find-other-file-noset)
-    (define-key map "\C-c\C-p" 'ada-prev-statement-keyword)
-    (define-key map "\C-c\C-r" 'ada-show-references)
-    (define-key map "\C-c\C-t" 'ada-case-read-all-exceptions)
-    (define-key map "\C-c\C-w" 'ada-case-adjust-at-point)
-    (define-key map "\C-c\C-y" 'ada-case-create-exception)
+    (define-key map [return] 	 'ada-indent-newline-indent)
+    (define-key map [?\C-c tab]  'ada-indent-region)
+    (define-key map "\C-c`" 	 'ada-show-secondary-error)
+    (define-key map "\C-c\C-a" 	 'ada-align)
+    (define-key map "\C-c\C-b" 	 'ada-make-subprogram-body)
+    (define-key map "\C-c\C-c"   'compile)
+    (define-key map "\C-c\C-d" 	 'ada-goto-declaration)
+    (define-key map "\C-c\M-d" 	 'ada-goto-declaration-parent)
+    (define-key map "\C-c\C-n" 	 'ada-next-statement-keyword)
+    (define-key map "\C-c\C-o" 	 'ada-find-other-file)
+    (define-key map "\C-c\M-o" 	 'ada-find-other-file-noset)
+    (define-key map "\C-c\C-p" 	 'ada-prev-statement-keyword)
+    (define-key map "\C-c\C-r" 	 'ada-show-references)
+    (define-key map "\C-c\C-t" 	 'ada-case-read-all-exceptions)
+    (define-key map "\C-c\C-w" 	 'ada-case-adjust-at-point)
+    (define-key map "\C-c\C-x"   'ada-show-overriding)
+    (define-key map "\C-c\C-y" 	 'ada-case-create-exception)
     (define-key map "\C-c\C-\M-y" (lambda () (ada-case-create-exception nil nil t)))
     map
   )  "Local keymap used for Ada mode.")
@@ -213,17 +222,19 @@ If nil, no contextual menu is available."
      ["Key bindings"         describe-bindings t]
      )
 
-    ["Customize"     (customize-group 'ada)]
+    ["Customize"                  (customize-group 'ada)    t]
+    ["Set project ..."            ada-set-prj               t]
     ["------"        nil nil]
     ["Next compilation error"     next-error                t]
     ["Show secondary error"       ada-show-secondary-error  t]
+    ["Toggle show parser errors"  wisi-toggle-show-parser-errors t] ;; FIXME: generalize to other parsers
     ["------"        nil nil]
     ["Other File"                 ada-find-other-file       t]
     ["Other File don't find decl" ada-find-other-file-noset t]
     ["Goto Declaration/Body"      ada-goto-declaration      t]
     ["Goto parent declaration"    ada-goto-declaration-parent t]
     ["Show references"            ada-show-references       t]
-    ["Toggle show parser errors"  wisi-toggle-show-parser-errors t] ;; FIXME: allow other parsers!
+    ["Show overriding"            ada-show-overriding       t]
     ["------"        nil nil]
     ("Edit"
      ["Indent Line"                 indent-for-tab-command  t]
@@ -239,8 +250,8 @@ If nil, no contextual menu is available."
      ["Make body for subprogram"    ada-make-subprogram-body     t]
      )
     ("Case Exceptions"
-     ["Create full exception"    'ada-case-create-exception t]
-     ["Create partial exception" (lambda () (interactive) (ada-case-create-exception nil nil t)) t]
+     ["Create full exception"       ada-case-create-exception t]
+     ["Create partial exception"    (ada-case-create-exception nil nil t) t]
      )
     ))
 
@@ -1171,6 +1182,12 @@ Return new value of PROJECT."
   ;; return 't', for decent display in message buffer when called interactively
   t)
 
+(defun ada-set-prj ()
+  "Select the current project file from the list of currently available project files."
+  (interactive)
+  (ada-select-prj-file (completing-read "project: " ada-prj-alist nil t))
+  )
+
 ;;;; syntax properties
 
 (defvar ada-mode-syntax-table
@@ -1662,6 +1679,32 @@ identifier is declared or referenced.")
   (interactive)
 
   (let ((xref-function (cdr (assoc ada-compiler ada-xref-all-function))))
+    (when (null xref-function)
+      (error "no cross reference information available"))
+
+    (funcall xref-function
+	     (ada-identifier-at-point)
+	     (file-name-nondirectory (buffer-file-name))
+	     (line-number-at-pos)
+	     (cl-case (char-after)
+	       (?\" (+ 2 (current-column))) ;; work around bug in gnat find
+	       (t (1+ (current-column)))))
+    ))
+
+(defvar ada-xref-overriding-function nil
+  "alist indexed by `ada-xref-tool' of functions that return cross reference information.
+Called with four arguments:
+- an Ada identifier or operator_symbol
+- filename of containing the identifier
+- line number containing the identifier
+- column of the start of the identifier
+Displays a buffer in compilation-mode giving locations of the overriding declarations.")
+
+(defun ada-show-overriding ()
+  "Show all overridings of identifier at point."
+  (interactive)
+
+  (let ((xref-function (cdr (assoc ada-xref-tool ada-xref-overriding-function))))
     (when (null xref-function)
       (error "no cross reference information available"))
 

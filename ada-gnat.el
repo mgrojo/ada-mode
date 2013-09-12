@@ -73,7 +73,7 @@ list."
 ;;;; project file handling
 
 (defun ada-gnat-prj-add-prj-dir (dir project)
-  "Add DIR to 'prj_dir and ADA_PROJECT_PATH in 'proc_env. Return new project."
+  "Add DIR to 'prj_dir and to ADA_PROJECT_PATH in 'proc_env. Return new project."
   (let ((prj-dir (plist-get project 'prj_dir))
 	(proc-env (plist-get project 'proc_env)))
 
@@ -227,7 +227,8 @@ See also `ada-gnat-parse-emacs-final'."
 
       (setq project (plist-put project 'src_dir (reverse src-dirs)))
       (setq project (plist-put project 'obj_dir (reverse obj-dirs)))
-      (setq project (plist-put project 'prj_dir (reverse prj-dirs)))
+      (mapc (lambda (dir) (ada-gnat-prj-add-prj-dir dir project))
+	    (reverse prj-dirs))
       ))
   project)
 
@@ -289,10 +290,10 @@ Assumes current buffer is (ada-gnat-run-buffer)"
 
   (setq command (cl-delete-if 'null command))
 
-  (insert (format "ADA_PROJECT_PATH=%s\n%s" (getenv "ADA_PROJECT_PATH") exec)); for debugging
-  (mapc (lambda (str) (insert (concat str " "))) command); for debugging
-  (newline)
   (let ((process-environment (ada-prj-get 'proc_env)))
+    (insert (format "ADA_PROJECT_PATH=%s\n%s" (getenv "ADA_PROJECT_PATH") exec)); for debugging
+    (mapc (lambda (str) (insert (concat str " "))) command); for debugging
+    (newline)
     (apply 'call-process exec nil t nil command)
     ))
 
@@ -518,34 +519,11 @@ is (ada-gnat-run-buffer)"
 
 ;;;; compiler message handling
 
-(defvar ada-compilation-filter-start (make-marker)
-  "Implement `compilation-filter-start' for emacs 23.4.")
-
-(defun ada-gnat-compilation-start (proc)
-  "Implement `compilation-filter-start' for emacs 23.4."
-  (set-marker ada-compilation-filter-start (point-max)))
-
-(when (not (functionp 'compilation--put-prop))
-  (defun compilation--put-prop (matchnum prop val)
-    (when (and (integerp matchnum) (match-beginning matchnum))
-      (put-text-property
-       (match-beginning matchnum) (match-end matchnum)
-       prop val)))
-  )
-
 (defun ada-gnat-compilation-filter ()
   "Filter to add text properties to secondary file references.
 For `compilation-filter-hook'."
   (save-excursion
-    (cond
-     ((boundp 'compilation-filter-start)
-      ;; emacs 24.x
-      (goto-char compilation-filter-start))
-
-     (t
-      ;; emacs 23.4
-      (goto-char ada-compilation-filter-start))
-     )
+    (goto-char compilation-filter-start)
 
     ;; compilation-filter might insert partial lines, or it might insert multiple lines
     (when (bolp)
@@ -606,15 +584,10 @@ For `compilation-filter-hook'."
 	  (forward-line 1))
 	))
 
-    (cond
-     ((boundp 'compilation-filter-start)
-      ;; emacs 24.x manages compilation-filter-start
-      nil)
-
-     (t
-      ;; emacs 23.4
-      (set-marker ada-compilation-filter-start (point)))
-     )
+    ;; FIXME: emacs 24.x manages compilation-filter-start, emacs 23.4 does not
+    ;;
+    ;; emacs 23.4
+    ;; (set-marker compilation-filter-start (point)))
     ))
 
 (defun ada-gnat-debug-filter ()
