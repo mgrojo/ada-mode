@@ -11,6 +11,7 @@
 ;; End:
 
 (require 'ada-mode)
+(require 'ada-smie)
 
 (defcustom ada-indent-opentoken nil
   "If non-nil, apply `ada-smie-opentoken' indentation rule."

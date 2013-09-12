@@ -107,7 +107,7 @@ Return the new alist."
 
    (reverse result)))
 
-(defun wisi-semantic-action (r)
+(defun wisi-semantic-action (r rcode tags rlhs)
   "Define an Elisp function for semantic action at rule R.
 On entry RCODE[R] contains a vector [BODY N (NTERM I)] where BODY
 is the body of the semantic action, N is the number of tokens in
@@ -127,7 +127,7 @@ side-effects only."
 	 (action-symbol (intern name (aref rcode 0))))
 
     (fset action-symbol
-	  `(lambda (tokens)
+	  `(lambda (wisi-tokens)
 	     (let* (($nterm ',(aref tags (aref rlhs r)))
 		    ($1 nil));; wisent-parse-nonterminals defines a default body of $1 for empty actions
 	       ,form
@@ -194,7 +194,7 @@ names have the format nonterm:index."
     ;; create semantic action functions, interned in rcode[0]
     (let* ((i 1))
       (while (<= i nrules)
-	(wisi-semantic-action i)
+	(wisi-semantic-action i rcode tags rlhs)
 	(setq i (1+ i)))
       )
 

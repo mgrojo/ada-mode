@@ -1584,7 +1584,7 @@ protected_definition
     (progn
       (wisi-statement-action 2 'block-middle 4 'block-end)
       (wisi-containing-action 2 3))
-  | declarative_part_opt END
+  | declarative_part_opt END identifier_opt
     (wisi-statement-action 2 'block-end)
   ;
 

@@ -46,19 +46,36 @@ build:
     make Gnatcoll_Build=Debug
     sudo make Gnatcoll_Build=Debug install
 
- ada-wisi
+ urgent
 build/wisi/Makefile
 
+parse failing:
+
+    package Tasks is
+
+    type T is null record;
+
+    protected type P is
+    entry Foo;
+    end P;
+
+    end Tasks;
+    wisi-validate-cache: debug.adb:7:5: syntax error in grammar state 1026; unexpected P, expecting one of (default SEMICOLON)
+
+Can't capitalize keywords in comments:
+
+    -- new
+
+gpr C-F11 on 'with' handle relative path
+    with "../common";
+
 test indent with standard emacs code skeleton/template
+    4.01 ada-stmt.el uses (require 'skeleton)
 
 Debian : emacs 24.2 (from testing), GNAT GPL 2013:
 
-ada-mode-patches.el
-    add ELSE/skeleton placeholders to ada-font-lock-syntactic-keywords,
-        sets them to comment syntax so smie will ignore them
-        now done in syntax-propertize; need user hook?
-
 mouse operations
+    ask on list
     goto-declaration
     compiler error
     others?
@@ -72,8 +89,6 @@ ada-add-log-current-function
 /Projects/Web/stephe-leake/emacs/ada-mode/emacs-ada-mode.html
     to-do list
 
-set ff-other-file-alist appropriately
-
 ./wisi.el:361:	  ;; FIXME: insert newline in comment to create non-comment!?
     need tests for wisi-before/after-change vs comments, strings
 
@@ -81,16 +96,15 @@ ada-wisi-comment
     add option to match gnat comment style check
         have tests in ada_mode-conditional_expressions.adb, ada_mode-parens.adb
 
-test menu
-
-select-prj should open prj if not in alist
-
 Markus Schöpflin <markus.schoepflin@comsoft.aero> wants this style (including all caps):
 
    FOOBAR.PROC (
       ARG1 => VAL1,
       ARG2 => VAL2
    );
+
+    add a custom indent function, like the one for opentoken
+    12 sep 2013: sent email
 
 jump back after C-c C-d
     etags uses M-., M-*, find-tag-marker-ring, tags-location-ring
@@ -114,11 +128,18 @@ FIXMEs
 
 parser is too picky
     change syntax to allow empty instead of 'null;', extra , or ; in lists, etc
+    also empty expressions; if then else end if;
 
 parser is too slow
     try byte-compile - not enough
     see incremental LALR [dickgrune] 9.7.4
     cache parser state periodically (every 200 token caches?), resume parse from last avail cache
+        won't help much; still need to parse to end of file
+        won't help at all on first parse
+        unless it's incremental in idle time!
+
+    first parse is for font-lock, and is automatic; use reduced grammar/actions for that?
+        so slow parse is only for user-invoked indentation, where they can more easily tolerate the delay
 
 don't parse or move cache if narrowed
 
@@ -220,10 +241,6 @@ pointer at end of kernel => default should be reduce or accept
 generalized parse
     build parse tree to store actions, tokens for results
     execute after parse completes
-
- ada-wisi parser
-recursive descent allows stopping parse at point?
-    action can store high-level category, refine later
 
  non-ada-mode bugs
 bug in semantic-grammar.wy
@@ -490,6 +507,15 @@ specify options in .prj
         debug vs release changes .prj; check options changed, warn?
 
  to do later
+DEC Ada legacy code
+    foo.a for spec, foo_b.a for body
+
+share/convert case exceptions with GPS
+    see email for python script
+
+file-local case exceptions
+    for -fdump-spec C imports
+
 vhdl-wisi
 
 ada-control.el from JP Rosen; see email
@@ -570,9 +596,6 @@ build/wisi/Makefile zip
     update todo list
     add release note
         (dvc-log)
-
-    consider org-mode to html
-        http://bill2u.wordpress.com/ sortable tables in org-mode
 
 ~/Web/Makefile
     edit date in ADA-MODE-SMIE_GZ, ADA-MODE-OPENTOKEN_BZ2

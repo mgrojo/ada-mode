@@ -61,6 +61,7 @@
 %keyword CONFIGURATION "configuration"
 %keyword END "end"
 %keyword EXTERNAL "external"
+%keyword EXTERNAL_AS_LIST "external_as_list"
 %keyword FOR "for"
 %keyword IS "is"
 %keyword LEFT_PAREN "("
@@ -185,6 +186,8 @@ expression
 
 external_value
   : EXTERNAL LEFT_PAREN string_list RIGHT_PAREN
+    (wisi-statement-action 2 'open-paren 4 'close-paren)
+  | EXTERNAL_AS_LIST LEFT_PAREN string_list RIGHT_PAREN
     (wisi-statement-action 2 'open-paren 4 'close-paren)
   ;
 

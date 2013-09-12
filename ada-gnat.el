@@ -45,8 +45,9 @@
 
 (defun ada-gnatprep-indent ()
   "If point is on a gnatprep keyword, return indentation column
-for it. Otherwise return nil.
-Intended to be added to `smie-indent-functions'."
+for it. Otherwise return nil.  Intended to be added to
+`wisi-indent-calculate-functions' or other indentation function
+list."
   ;; gnatprep keywords are:
   ;;
   ;; #if identifier [then]
@@ -55,16 +56,12 @@ Intended to be added to `smie-indent-functions'."
   ;; #end if;
   ;;
   ;; they are all indented at column 0.
-  ;;
-  ;; This function works on smie-indent-functions; it will probably
-  ;; work in other indentation engines as well, so we call it
-  ;; 'ada-gnatprep-indent
   (when (equal (char-after) ?\#) 0))
 
 (defun ada-gnat-syntax-propertize (start end)
   (goto-char start)
   (while (re-search-forward
-	  "^[ \t]*\\(#\\(?:if\\|else\\|elsif\\|end\\)\\)"; 1: gnatprep keywords.
+	  "^[ \t]*\\(#\\(?:if\\|else\\|elsif\\|end\\)\\)"; gnatprep keywords.
 	  end t)
     (cond
      ((match-beginning 1)
@@ -1030,13 +1027,10 @@ Prompt user if more than one."
 
   (add-hook 'ada-syntax-propertize-hook 'ada-gnat-syntax-propertize)
 
-  (when (featurep 'ada-smie)
-    ;; we don't use add-hook here, because we don't want the global value.
+  (when (boundp 'smie-indent-functions)
     (add-to-list 'smie-indent-functions 'ada-gnatprep-indent))
 
-  (when (featurep 'ada-wisi)
-    ;; FIXME: not clear how to satisfy byte-compiler that wisi-indent-calculate-functions is defined here.
-    ;; (smie is pre-loaded, so it doesn't complain about smie-indent-functions)
+  (when (boundp 'wisi-indent-calculate-functions)
     (add-to-list 'wisi-indent-calculate-functions 'ada-gnatprep-indent))
 )
 
@@ -1068,6 +1062,9 @@ Prompt user if more than one."
    ;;   foo.c:2: `TRUE' undeclared here (not in a function)
    ;;   foo.c:2 : `TRUE' undeclared here (not in a function)
    "^\\(\\(.:\\)?[^ :\n]+\\):\\([0-9]+\\)\\s-?:?\\([0-9]+\\)?" 1 3 4))
+
+; ignore gnat library files
+(add-to-list 'completion-ignored-extensions ".ali")
 
 ;; gnatmake -gnatD generates files with .dg extensions. But we don't
 ;; need to navigate between them.

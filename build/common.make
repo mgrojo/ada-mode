@@ -137,6 +137,6 @@ source-clean :: test-clean
 	rm -rf ../../_MTN/resolutions
 
 zip :
-	tar zcf org.emacs.ada-mode.smie-`date +%Y-%m-%d`.tar.gz --exclude _MTN --exclude "*~" --exclude "*.diff" --exclude "*.tmp" --exclude "*.ali" --exclude "*.tar.gz" -C ../../../ org.emacs.ada-mode.smie
+	tar zcf org.emacs.ada-mode.stephe-`date +%Y-%m-%d`.tar.gz --exclude _MTN --exclude "*~" --exclude "*.diff" --exclude "*.tmp" --exclude "*.ali" --exclude "*.tar.gz" -C ../../../ org.emacs.ada-mode.stephe-1
 
 # end of file

@@ -39,6 +39,7 @@ begin
 >>>null;"
   :type 'integer  :group 'ada-indentation)
 (put 'ada-indent 'safe-local-variable 'integerp)
+(make-variable-buffer-local 'ada-indent)
 
 (defvar ada-broken-indent nil)
 (make-obsolete-variable
@@ -59,12 +60,14 @@ Example :
    >>(Field1 => Value);"
   :type 'integer :group 'ada-indentation)
 (put 'ada-indent-broken 'safe-local-variable 'integerp)
+(make-variable-buffer-local 'ada-indent-broken)
 
 (defcustom ada-indent-comment-col-0 nil
   "If non-nil, comments currently starting in column 0 are left in column 0.
 Otherwise, they are indented with previous comments or code."
   :type 'boolena :group 'ada-indentation)
 (put 'ada-indent-comment-col-0 'safe-local-variable 'booleanp)
+(make-variable-buffer-local 'ada-indent-comment-col-0)
 
 (defvar ada-label-indent nil)
 (make-obsolete-variable
@@ -92,6 +95,7 @@ Example :
    <<<<Foo := 0;"
   :type 'integer :group 'ada-indentation)
 (put 'ada-indent-label 'safe-local-variable 'integerp)
+(make-variable-buffer-local 'ada-indent-label)
 
 (defcustom ada-indent-record-rel-type 3
   "*Indentation for 'record' relative to 'type' or 'use'.
@@ -101,6 +105,7 @@ An example is:
    >>>record"
   :type 'integer :group 'ada-indent)
 (put 'ada-indent-record-rel-type 'safe-local-variable 'integerp)
+(make-variable-buffer-local 'ada-indent-record-rel-type)
 
 (defcustom ada-indent-renames 2
   "*Indentation for 'renames' relative to the matching subprogram keyword.
@@ -129,6 +134,7 @@ Examples:
    >>>>>>>>>>>renames Foo;"
 :type 'integer :group 'ada-indent)
 (put 'ada-indent-renames 'safe-local-variable 'integerp)
+(make-variable-buffer-local 'ada-indent-renames)
 
 (defcustom ada-indent-return 0
   "*Indentation for 'return' relative to the matching 'function' keyword.
@@ -146,6 +152,7 @@ An example is:
    >>>>>>>>>>>return C;"
 :type 'integer :group 'ada-indent)
 (put 'ada-indent-return 'safe-local-variable 'integerp)
+(make-variable-buffer-local 'ada-indent-return)
 
 (defvar ada-use-indent nil)
 (make-obsolete-variable
@@ -166,6 +173,7 @@ An example is:
    >>Ada.Numerics;"
   :type 'integer :group 'ada)
 (put 'ada-indent-use 'safe-local-variable 'integerp)
+(make-variable-buffer-local 'ada-indent-use)
 
 (defvar ada-when-indent nil)
 (make-obsolete-variable
@@ -186,6 +194,7 @@ An example is:
    >>>when B =>"
   :type 'integer :group 'ada-indent)
 (put 'ada-indent-when 'safe-local-variable 'integerp)
+(make-variable-buffer-local 'ada-indent-when)
 
 (defvar ada-with-indent nil)
 (make-obsolete-variable
@@ -206,6 +215,7 @@ An example is:
    >>Ada.Numerics;"
   :type 'integer :group 'ada)
 (put 'ada-indent-with 'safe-local-variable 'integerp)
+(make-variable-buffer-local 'ada-indent-with)
 
 (provide 'ada-indent-user-options)
 

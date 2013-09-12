@@ -58,8 +58,14 @@ C-u C-u : show in other frame
 (defun gnat-xref-show-references ()
   "Show declaration and all references of identifier at point."
   (interactive)
-  (ada-gnat-xref-all (symbol-at-point)))
-
+  (ada-gnat-xref-all
+   (symbol-at-point)
+   (file-name-nondirectory (buffer-file-name))
+   (line-number-at-pos)
+   (cl-case (char-after)
+     (?\" (+ 2 (current-column))) ;; work around bug in gnat find
+     (t (1+ (current-column)))))
+  )
 
 (defun gnat-xref-goto-declaration-parent ()
   "Move to the parent type declaration of the type identifier around point."

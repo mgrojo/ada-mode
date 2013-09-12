@@ -482,7 +482,7 @@ Point must be at cache."
 	))
     ))
 
-(defvar tokens nil);; keep byte-compiler almost happy; `tokens' is bound in action created by wisi-semantic-action
+(defvar wisi-tokens nil);; keep byte-compiler happy; `wisi-tokens' is bound in action created by wisi-semantic-action
 (defun wisi-statement-action (&rest pairs)
   "Cache information in text properties of tokens.
 Intended as a grammar non-terminal action.
@@ -497,8 +497,8 @@ that token. Use in a grammar action as:
 	  (override-start nil))
       (while pairs
 	(let* ((number (1- (pop pairs)))
-	       (region (cddr (nth number tokens)));; tokens is let-bound in wisi-parse-reduce
-	       (token (car (nth number tokens)))
+	       (region (cddr (nth number wisi-tokens)));; wisi-tokens is let-bound in wisi-parse-reduce
+	       (token (car (nth number wisi-tokens)))
 	       (class (pop pairs))
 	       (mark
 		;; Marker one char into token, so indent-line-to
@@ -564,7 +564,7 @@ that token. Use in a grammar action as:
 		    (setq first-keyword-mark mark)))
 
 		(when (eq class 'statement-end)
-		  (wisi-set-end tokens (copy-marker (1+ (car region)))))
+		  (wisi-set-end wisi-tokens (copy-marker (1+ (car region)))))
 		)
 
 	    ;; region is nil when a production is empty; if the first
@@ -578,11 +578,12 @@ that token. Use in a grammar action as:
 (defun wisi-containing-action (containing-token contained-token)
   "Set containing marks in all tokens in CONTAINED-TOKEN with null containing mark to marker pointing to CONTAINING-TOKEN.
 If CONTAINING-TOKEN is empty, the next token number is used."
-  (let* ((containing-region (cddr (nth (1- containing-token) tokens))) ;; tokens is let-bound in wisi-parse-reduce
-	 (contained-region (cddr (nth (1- contained-token) tokens))))
+  ;; wisi-tokens is is bound in action created by wisi-semantic-action
+  (let* ((containing-region (cddr (nth (1- containing-token) wisi-tokens)))
+	 (contained-region (cddr (nth (1- contained-token) wisi-tokens))))
     (while (not containing-region)
       ;; containing-token is empty; use next
-      (setq containing-region (cddr (nth containing-token tokens))))
+      (setq containing-region (cddr (nth containing-token wisi-tokens))))
 
     (when contained-region
       ;; nil when empty production, may not contain any caches
@@ -631,7 +632,7 @@ list (number (token_id token_id)):
 	  (cond
 	   ((numberp token-number)
 	    (setq target-token nil)
-	    (setq region (cddr (nth (1- token-number) tokens)))
+	    (setq region (cddr (nth (1- token-number) wisi-tokens)))
 	    (setq cache (wisi-get-cache (car region)))
 	    (setq mark (copy-marker (1+ (car region))))
 
@@ -652,7 +653,7 @@ list (number (token_id token_id)):
 	    (when (not (listp target-token))
 	      (setq target-token (list target-token)))
 	    (setq token-number (car token-number))
-	    (setq region (cddr (nth (1- token-number) tokens)))
+	    (setq region (cddr (nth (1- token-number) wisi-tokens)))
 	    (goto-char (car region))
 	    (while (wisi-forward-find-token target-token (cdr region) t)
 	      (setq cache (wisi-get-cache (point)))

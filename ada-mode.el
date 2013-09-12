@@ -185,7 +185,7 @@ If nil, no contextual menu is available."
 
     ;; global-map has C-x ` 'next-error
     (define-key map [return]   'ada-indent-newline-indent)
-    (define-key map ["\C-c" tab] 'ada-indent-region)
+    (define-key map [?\C-c tab] 'ada-indent-region)
     (define-key map "\C-c`"    'ada-show-secondary-error)
     (define-key map "\C-c\C-a" 'ada-align)
     (define-key map "\C-c\C-b" 'ada-make-subprogram-body)
@@ -223,7 +223,7 @@ If nil, no contextual menu is available."
     ["Goto Declaration/Body"      ada-goto-declaration      t]
     ["Goto parent declaration"    ada-goto-declaration-parent t]
     ["Show references"            ada-show-references       t]
-    ["Toggle show parser errors"  wisi-toggle-show-parser-errors t]
+    ["Toggle show parser errors"  wisi-toggle-show-parser-errors t] ;; FIXME: allow other parsers!
     ["------"        nil nil]
     ("Edit"
      ["Indent Line"                 indent-for-tab-command  t]

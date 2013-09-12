@@ -18,6 +18,7 @@
 ^run_sjw\.text$
 ^test/.*\.ali$
 ^test/debug\.adb$
+^test/gpr/debug\.gpr$
 ^test/subdir/ada_mode-nominal-child\.adb$
 ^test/wisi/.*\.el$
 ^test/wisi/.*\.output$
