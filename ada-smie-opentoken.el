@@ -14,9 +14,10 @@
 
 (defcustom ada-indent-opentoken nil
   "If non-nil, apply `ada-smie-opentoken' indentation rule."
-  :type 'boolean :group 'ada-indentation)
+  :type 'boolean
+  :group 'ada-indentation
+  :safe 'booleanp)
 (make-variable-buffer-local 'ada-indent-opentoken)
-(put 'ada-indent-opentoken 'safe-local-variable 'booleanp)
 
 (defun ada-smie-opentoken ()
   "Return appropriate indentation (an integer column) for continuation lines in an OpenToken grammar statement."

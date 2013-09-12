@@ -35,18 +35,42 @@ run wisi test from emacs -Q:
 
 (list (wisi-parser-state-active (aref parser-states 1)) (wisi-parser-state-sp (aref parser-states 1)) (wisi-parser-state-stack (aref parser-states 1)))
 
- gnatinspect
-build:
+ gnat-xref
+build gnatinspect:
     (gds-lynx-5)
     cd ~/Projects
     tar xf ~/Downloads/gnatcoll...
     cd gnatcoll ...
-    ./configure --prefix=/usr/gnat-7.1.2 --enable-gpl
+    case:
+    when linux:
+        ./configure --prefix=/usr/gnat-7.1.2 --enable-gpl
+    when windows:
+        in cygwin bash, with gnat-7.1.2 in path:
+        ./configure --prefix=/Apps/GNAT-7.1.2 --enable-gpl
+    end case
+
     make Gnatcoll_Build=Debug
     sudo make Gnatcoll_Build=Debug install
 
- ada-wisi
+
+    c:/Apps/GNAT-7.1.2/gnatcoll-1.6w-src/docs/xref.rst
+    c:/Apps/GNAT-7.1.2/gnatcoll-1.6w-src/src/tools/gnatinspect.adb
+    (gpr-set-as-project "c:/Apps/GNAT-7.1.2/gnatcoll-1.6w-src/src/gnatcoll_tools.gpr")
+    file:///c:/Apps/GNAT-7.1.2/gnatcoll-1.6w-src/docs/_build/html/xref.html
+
+
+add "overridden_recursive" gnatinspect query
+    show declarations of all overridings of gds-mil_std_1553-devices write_message (Device_Type)
+    ada-mode.el ada-xref-overriding
+    gnat-xref.el gnat-xref-overriding
+    use compilation-regexp-alist-alist
+        set up gnat, gnatinspect etc regexp lists
+
+
+ general
 build/wisi/Makefile
+
+user guide
 
 test indent with standard emacs code skeleton/template
 

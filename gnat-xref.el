@@ -1,11 +1,14 @@
-;;; gnat-xref.el --- minor-mode for navigating sources using GNAT
-;;; cross reference tool.
+;;; gnat-xref.el --- minor-mode for navigating sources using the
+;;; AdaCore cross reference tool gnatinspect.
+;;;
+;;; gnatinspect supports Ada and any gcc language that supports the
+;;; -fdump-xref switch (which includes C, C++).
 ;;
 ;;; Copyright (C) 2013  Free Software Foundation, Inc.
 
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
-;; Keywords: languages ada
+;; Keywords: languages Ada C C++ cross-reference
 
 ;; This file is part of GNU Emacs.
 
@@ -112,6 +115,36 @@
     ))))
 
 
+(defun gnat-xref-overriding (identifier file line col)
+  "For `ada-xref-overriding-function', using gnatinspect."
+  ;; This will in general return a list of references, so we use
+  ;; `compilation-start' to run gnatinspect, so the user can navigate
+  ;; to each result in turn via `next-error'.
+  ;;
+  ;; WORKAROUND: gnatinspect from gnatcoll-1.6w can't handle aggregate
+  ;; projects, so we use an alternate project file for gnatinspect
+  ;; queries, specified in the Emacs ada-mode project file by "gnatinspect_gpr_file".
+
+  (with-current-buffer (ada-gnat-run-buffer)
+    (let* ((project-file (file-name-nondirectory
+			  (or (ada-prj-get 'gnatinspect_gpr_file)
+			      (ada-prj-get 'gpr_file))))
+	   (arg (format "%s:%s:%d:%d" identifier file line col))
+	   (cmd (concat "gnatinspect --project=" project-file
+			" --nightlydb=gnatinspect.db"
+			" -c \"overridden_recursive " arg "\"")))
+
+      (unless project-file
+	(error "no gnatinspect project file defined."))
+
+      ;; FIXME: need to provide a different compilation-regexp
+      (with-current-buffer (ada-gnat-run-buffer); for default-directory
+	(let ((compilation-environment (ada-prj-get 'proc_env))
+	      (compilation-error "reference"))
+	  (compilation-start cmd)
+	  ))
+      )))
+
 (defun gnat-xref-goto-declaration (other-window-frame &optional parent)
   "Move to the declaration or body of the identifier around point.
 If at the declaration, go to the body, and vice versa.
@@ -162,6 +195,22 @@ C-u C-u : show in other frame
   "Minor mode for navigating sources using GNAT cross reference tool."
   :initial-value t
   :lighter       " gnat-xref"   ;; mode line
-  )
+
+  (if gnat-xref
+      ;; enable use of gnatinspect
+      (progn
+	(when (boundp 'ada-xref-tool)
+	  ;; for ada-mode
+	  (setq         ada-xref-tool                 'gnatinspect)
+	  (add-to-list 'ada-xref-overriding-function  (cons 'gnatinspect 'gnat-xref-overriding))
+	  ))
+
+    ;; disable use of gnatinspect
+    (when (boundp 'ada-xref-tool)
+      ;; for ada-mode
+      (setq ada-xref-tool nil)
+      ;; no need to delete from lists
+      )
+    ))
 
 ;;; end of file

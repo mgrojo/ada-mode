@@ -176,11 +176,11 @@ of the package or project point is in or just after, or nil.")
     (end-of-line 1)
     (gpr-which-function)))
 
-(defun gpr-set-as-project ()
-  "Set current file as Emacs project file."
+(defun gpr-set-as-project (&optional file)
+  "Set FILE (default current buffer file) as Emacs project file."
   (interactive)
-  (ada-parse-prj-file (buffer-file-name))
-  (ada-select-prj-file (buffer-file-name)))
+  (ada-parse-prj-file (or file (buffer-file-name)))
+  (ada-select-prj-file (or file (buffer-file-name))))
 
 ;;;;
 (defun gpr-mode ()

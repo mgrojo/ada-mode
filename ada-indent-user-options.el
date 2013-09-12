@@ -37,8 +37,9 @@ Example :
 procedure Foo is
 begin
 >>>null;"
-  :type 'integer  :group 'ada-indentation)
-(put 'ada-indent 'safe-local-variable 'integerp)
+  :type 'integer
+  :group 'ada-indentation
+  :safe 'integerp)
 
 (defvar ada-broken-indent nil)
 (make-obsolete-variable
@@ -57,14 +58,16 @@ begin
 Example :
    My_Var : My_Type :=
    >>(Field1 => Value);"
-  :type 'integer :group 'ada-indentation)
-(put 'ada-indent-broken 'safe-local-variable 'integerp)
+  :type  'integer
+  :group 'ada-indentation
+  :safe  'integerp)
 
 (defcustom ada-indent-comment-col-0 nil
   "If non-nil, comments currently starting in column 0 are left in column 0.
 Otherwise, they are indented with previous comments or code."
-  :type 'boolena :group 'ada-indentation)
-(put 'ada-indent-comment-col-0 'safe-local-variable 'booleanp)
+  :type  'boolean
+  :group 'ada-indentation
+  :safe  'booleanp)
 
 (defvar ada-label-indent nil)
 (make-obsolete-variable
@@ -90,8 +93,9 @@ Example :
 
    <<Label_2>>
    <<<<Foo := 0;"
-  :type 'integer :group 'ada-indentation)
-(put 'ada-indent-label 'safe-local-variable 'integerp)
+  :type  'integer
+  :group 'ada-indentation
+  :safe  'integerp)
 
 (defcustom ada-indent-record-rel-type 3
   "*Indentation for 'record' relative to 'type' or 'use'.
@@ -99,8 +103,9 @@ Example :
 An example is:
    type A is
    >>>record"
-  :type 'integer :group 'ada-indent)
-(put 'ada-indent-record-rel-type 'safe-local-variable 'integerp)
+  :type  'integer
+  :group 'ada-indent
+  :safe  'integerp)
 
 (defcustom ada-indent-renames 2
   "*Indentation for 'renames' relative to the matching subprogram keyword.
@@ -127,8 +132,9 @@ Examples:
    function A (B : Integer)
                return C
    >>>>>>>>>>>renames Foo;"
-:type 'integer :group 'ada-indent)
-(put 'ada-indent-renames 'safe-local-variable 'integerp)
+  :type  'integer
+  :group 'ada-indent
+  :safe  'integerp)
 
 (defcustom ada-indent-return 0
   "*Indentation for 'return' relative to the matching 'function' keyword.
@@ -144,8 +150,9 @@ relative to line containing 'function'.
 An example is:
    function A (B : Integer)
    >>>>>>>>>>>return C;"
-:type 'integer :group 'ada-indent)
-(put 'ada-indent-return 'safe-local-variable 'integerp)
+  :type  'integer
+  :group 'ada-indent
+  :safe  'integerp)
 
 (defvar ada-use-indent nil)
 (make-obsolete-variable
@@ -164,8 +171,9 @@ An example is:
 An example is:
    use Ada.Text_IO,
    >>Ada.Numerics;"
-  :type 'integer :group 'ada)
-(put 'ada-indent-use 'safe-local-variable 'integerp)
+  :type  'integer
+  :group 'ada
+  :safe  'integerp)
 
 (defvar ada-when-indent nil)
 (make-obsolete-variable
@@ -184,8 +192,9 @@ An example is:
 An example is:
    case A is
    >>>when B =>"
-  :type 'integer :group 'ada-indent)
-(put 'ada-indent-when 'safe-local-variable 'integerp)
+  :type  'integer
+  :group 'ada-indent
+  :safe  'integerp)
 
 (defvar ada-with-indent nil)
 (make-obsolete-variable
@@ -204,8 +213,9 @@ An example is:
 An example is:
    with Ada.Text_IO,
    >>Ada.Numerics;"
-  :type 'integer :group 'ada)
-(put 'ada-indent-with 'safe-local-variable 'integerp)
+  :type  'integer
+  :group 'ada
+  :safe  'integerp)
 
 (provide 'ada-indent-user-options)
 
