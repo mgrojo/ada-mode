@@ -89,7 +89,7 @@ COMPILE_FILES := $(COMPILE_FILES:.ads=.ali)
 # remove duplicates
 COMPILE_FILES := $(sort $(COMPILE_FILES))
 
-compile : $(COMPILE_FILES)
+compile-ada : $(COMPILE_FILES)
 
 # we compile with -gnatyN3 to be sure our indentation meets gnat's
 # check. We don't check any other style requirements; not needed for
@@ -118,11 +118,11 @@ named_block.ali : named_block.adb
 	$(GNATMAKE) -gnat2012 -P ada_mode_parent.gpr -gnatc -gnatyN3 $(<F)
 
 # (grep-find "find .. -type f -print | xargs grep -n FIXME")
-clean :: compile-clean test-clean
+clean :: compile-ada-clean test-clean
 	find ../../ -name "*~" -delete
 
 # .ali files are in source dir, so they are shared between wisi and smie tests
-compile-clean :
+compile-ada-clean :
 	rm -f ../../test/*.ali ../../test/subdir/*.ali *.ali
 
 test-clean ::

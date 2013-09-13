@@ -1,8 +1,13 @@
 # build and test the Emacs wisent Ada indentation and navigation engine
 
-all : byte-compile compile-clean compile test-clean test
+# "compile-ada" is a test; it verifies the test sources are legal Ada
+all : byte-compile compile-ada-clean compile-ada test-clean test
 
-byte-compile : ../../ada-grammar-wy.el ../../gpr-grammar-wy.el
+# this updates everything after any source change, without running the tests.
+byte-compile : ../../ada-grammar-wy.el ../../gpr-grammar-wy.el update
+
+# *-wy.el are in monotone, so this is all we need after a monotone update
+update :
 	cd ../../; emacs -Q -batch -L . -f batch-byte-compile *.el
 
 test : test-ada test-gpr test-elisp
@@ -21,6 +26,7 @@ two : debug.adb.diff
 vpath %.wy ../../ ../../test/wisi
 vpath %.el ../../ .
 
+# these are correct paths for Stephe's development machines; need mechanism to override?
 ifeq ($(shell uname),Linux)
 WISI_OPENTOKEN := /home/Projects/opentoken/org.opentoken.stephe/build/release
 else
