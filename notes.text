@@ -1,4 +1,4 @@
-General notes on implementing the Emacs Ada mode indentation engine using the smie and wisent parsers
+General notes on implementing the Emacs Ada mode indentation engine using the wisi parser
 
 run wisi test from emacs -Q:
 (progn
@@ -10,17 +10,6 @@ run wisi test from emacs -Q:
   (load "run-indent-test-wisi")
   (setq default-directory "/Projects/org.emacs.ada-mode.stephe-1/build/wisi/")
   (run-test "../../test/gpr/gds_test.gpr"))
-
-(progn
-    (require 'ada-smie)
-    (setq ada-mode-hook (delete 'ada-wisi-setup ada-mode-hook))
-    (add-hook 'ada-mode-hook 'ada-smie-setup))
-
-(progn
-    (require 'ada-wisi)
-    (setq ada-mode-hook (delete 'ada-smie-setup ada-mode-hook))
-    (setq ada-mode-hook (delete 'ada-smie-opentoken-setup ada-mode-hook))
-    (add-hook 'ada-mode-hook 'ada-wisi-setup))
 
 (setq wisi-debug 2)
 (setq wisent-parse-max-stack-size 40)
@@ -57,14 +46,6 @@ build gnatinspect:
     c:/Apps/GNAT-7.1.2/gnatcoll-1.6w-src/src/tools/gnatinspect.adb
     (gpr-set-as-project "c:/Apps/GNAT-7.1.2/gnatcoll-1.6w-src/src/gnatcoll_tools.gpr")
     file:///c:/Apps/GNAT-7.1.2/gnatcoll-1.6w-src/docs/_build/html/xref.html
-
-
-add "overridden_recursive" gnatinspect query
-    show declarations of all overridings of gds-mil_std_1553-devices write_message (Device_Type)
-    ada-mode.el ada-xref-overriding
-    gnat-xref.el gnat-xref-overriding
-    use compilation-regexp-alist-alist
-        set up gnat, gnatinspect etc regexp lists
 
 
  general
