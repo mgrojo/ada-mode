@@ -114,6 +114,10 @@
 	(compilation-start cmd)
     ))))
 
+(defconst gnatxref-overriding-regexp-alist
+  ;; Write_Message:C:\Projects\GDS\work_dscovr_release\common\1553\gds-mil_std_1553-utf.ads:252:25
+  (list "^.*:\\(.*\\):\\([0123456789]+\\):\\([0123456789]+\\)" 1 2 3)
+  "Regexp for compilation-error-regexp-alist, matching `gnatinspect overriding_recursive' output")
 
 (defun gnat-xref-overriding (identifier file line col)
   "For `ada-xref-overriding-function', using gnatinspect."
@@ -123,7 +127,8 @@
   ;;
   ;; WORKAROUND: gnatinspect from gnatcoll-1.6w can't handle aggregate
   ;; projects, so we use an alternate project file for gnatinspect
-  ;; queries, specified in the Emacs ada-mode project file by "gnatinspect_gpr_file".
+  ;; queries, specified in the Emacs ada-mode project file by
+  ;; "gnatinspect_gpr_file".
 
   (with-current-buffer (ada-gnat-run-buffer)
     (let* ((project-file (file-name-nondirectory
@@ -140,8 +145,12 @@
       ;; FIXME: need to provide a different compilation-regexp
       (with-current-buffer (ada-gnat-run-buffer); for default-directory
 	(let ((compilation-environment (ada-prj-get 'proc_env))
-	      (compilation-error "reference"))
-	  (compilation-start cmd)
+	      (compilation-error "reference")
+	      (compilation-mode-hook
+	       (lambda () (set (make-local-variable 'compilation-error-regexp-alist) (list 'gnatinspect-overriding)))))
+	  (compilation-start cmd
+			     'compilation-mode
+			     (lambda (mode-name) (concat mode-name "-gnatinspect-overriding")))
 	  ))
       )))
 
@@ -218,5 +227,10 @@ C-u C-u : show in other frame
       ;; no need to delete from lists
       )
     ))
+
+(provide 'gnat-xref)
+
+(add-to-list 'compilation-error-regexp-alist-alist
+	     (cons 'gnatinspect-overriding gnatxref-overriding-regexp-alist))
 
 ;;; end of file
