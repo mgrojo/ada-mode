@@ -99,9 +99,10 @@
 %keyword PROTECTED "protected"
 %keyword RAISE "raise"
 %keyword RANGE "range"
-%keyword RENAMES "renames"
 %keyword RECORD "record"
 %keyword REM "rem"
+%keyword RENAMES "renames"
+%keyword REQUEUE "requeue"
 %keyword RETURN "return"
 %keyword REVERSE "reverse"
 %keyword RIGHT_PAREN ")"
@@ -1739,6 +1740,17 @@ renaming_declaration
   | generic_renaming_declaration
   ;
 
+requeue_statement
+  : REQUEUE name WITH ABORT SEMICOLON
+    (progn
+      (wisi-statement-action 1 'statement-start 2 'name 5 'statement-end)
+      (wisi-containing-action 1 2))
+  | REQUEUE name SEMICOLON
+    (progn
+      (wisi-statement-action 1 'statement-start 2 'name 5 'statement-end)
+      (wisi-containing-action 1 2))
+  ;
+
 return_subtype_indication
   : subtype_indication
   | access_definition
@@ -1839,7 +1851,7 @@ simple_statement
   | procedure_call_statement
   | simple_return_statement
  ;; | entry_call_statement ; covered by 'procedure_call_statement'
-  ;; | requeue_statement
+  | requeue_statement
   | delay_statement
   | ABORT name SEMICOLON ;; abort_statement; ignoring list of tasks
     (wisi-statement-action 1 'statement-start 3 'statement-end)

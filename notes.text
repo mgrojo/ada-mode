@@ -64,6 +64,8 @@ parse failing:
     end Tasks;
     wisi-validate-cache: debug.adb:7:5: syntax error in grammar state 1026; unexpected P, expecting one of (default SEMICOLON)
 
+    requeue_statement
+
 Can't capitalize keywords in comments:
 
     -- new
