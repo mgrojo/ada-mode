@@ -1609,7 +1609,7 @@ C-u C-u : show in other frame
   "alist indexed by `ada-compiler' of functions that return cross reference information.
 Function is called with five arguments:
 - an Ada identifier or operator_symbol
-- filename of containing the identifier
+- filename containing the identifier
 - line number containing the identifier
 - column of the start of the identifier
 - 'parent' flag.
@@ -1668,7 +1668,7 @@ C-u C-u : show in other frame"
   "alist indexed by `ada-compiler' of functions that return cross reference information.
 Called with four arguments:
 - an Ada identifier or operator_symbol
-- filename of containing the identifier
+- filename containing the identifier
 - line number containing the identifier
 - column of the start of the identifier
 Displays a buffer in compilation-mode giving locations where the
@@ -1695,7 +1695,7 @@ identifier is declared or referenced.")
   "alist indexed by `ada-xref-tool' of functions that return cross reference information.
 Called with four arguments:
 - an Ada identifier or operator_symbol
-- filename of containing the identifier
+- filename containing the identifier
 - line number containing the identifier
 - column of the start of the identifier
 Displays a buffer in compilation-mode giving locations of the overriding declarations.")

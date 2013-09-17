@@ -1016,11 +1016,19 @@
        ((single_protected_declaration )))
       (object_renaming_declaration
        ((IDENTIFIER COLON null_exclusion_opt name RENAMES name aspect_specification_opt SEMICOLON )
-        (wisi-statement-action 1 'statement-start 4 'name 5 'statement-other 8 'statement-end))
+        (progn
+        (wisi-statement-action 1 'statement-start 4 'name 5 'statement-other 6 'name 8 'statement-end)
+        (wisi-containing-action 1 4)
+        (wisi-containing-action 1 6)))
        ((IDENTIFIER COLON access_definition RENAMES name aspect_specification_opt SEMICOLON )
-        (wisi-statement-action 1 'statement-start 4 'statement-other 7 'statement-end))
+        (progn
+        (wisi-statement-action 1 'statement-start 4 'statement-other 5 'name 7 'statement-end)
+        (wisi-containing-action 1 3)
+        (wisi-containing-action 1 5)))
        ((IDENTIFIER COLON EXCEPTION RENAMES name aspect_specification_opt SEMICOLON )
-        (wisi-statement-action 1 'statement-start 4 'statement-other 7 'statement-end)))
+        (progn
+        (wisi-statement-action 1 'statement-start 4 'statement-other 5 'name 7 'statement-end)
+        (wisi-containing-action 1 5))))
       (overriding_indicator_opt
        ((NOT OVERRIDING )
         (wisi-statement-action 1 'statement-start 2 'statement-other))
