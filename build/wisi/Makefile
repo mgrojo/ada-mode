@@ -4,10 +4,10 @@
 all : byte-compile compile-ada-clean compile-ada test-clean test
 
 # this updates everything after any source change, without running the tests.
-byte-compile : ../../ada-grammar-wy.el ../../gpr-grammar-wy.el update
+update : ../../ada-grammar-wy.el ../../gpr-grammar-wy.el  byte-compile
 
 # *-wy.el are in monotone, so this is all we need after a monotone update
-update :
+byte-compile :
 	cd ../../; emacs -Q -batch -L . -f batch-byte-compile *.el
 
 test : test-ada test-gpr test-elisp

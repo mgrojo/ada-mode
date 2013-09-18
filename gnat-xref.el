@@ -94,10 +94,10 @@
        (t ; failure
 	(pop-to-buffer (current-buffer))
 	(error "gnat find failed"))
-       ))
-    result))
+       )
+      result)))
 
-(defun ada-gnat-xref-all (identifier file line col)
+(defun gnat-xref-all (identifier file line col)
   "For `ada-xref-all-function'."
   ;; we use `compilation-start' to run gnat, not `ada-gnat-run', so it
   ;; is asynchronous, and automatically runs the compilation error
@@ -105,8 +105,8 @@
 
   (let* ((cmd (format "gnat find -r %s:%s:%d:%d" identifier file line col)))
 
-    (with-current-buffer (ada-gnat-run-buffer); for process-environment
-      (let ((compilation-environment process-environment)
+    (with-current-buffer (ada-gnat-run-buffer); for default-directory
+      (let ((compilation-environment (ada-prj-get 'proc_env)) ;; for ADA_PROJECT_PATH
 	    (compilation-error "reference"))
 	(when (ada-prj-get 'gpr_file)
 	  (setq cmd (concat cmd " -P" (file-name-nondirectory (ada-prj-get 'gpr_file)))))
@@ -144,7 +144,7 @@
 
       ;; FIXME: need to provide a different compilation-regexp
       (with-current-buffer (ada-gnat-run-buffer); for default-directory
-	(let ((compilation-environment (ada-prj-get 'proc_env))
+	(let ((compilation-environment (ada-prj-get 'proc_env)) ;; for ADA_PROJECT_PATH
 	      (compilation-error "reference")
 	      (compilation-mode-hook
 	       (lambda () (set (make-local-variable 'compilation-error-regexp-alist) (list 'gnatinspect-overriding)))))
