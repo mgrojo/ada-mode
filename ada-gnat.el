@@ -290,7 +290,7 @@ Assumes current buffer is (ada-gnat-run-buffer)"
 
   (setq command (cl-delete-if 'null command))
 
-  (let ((process-environment (ada-prj-get 'proc_env)))
+  (let ((process-environment (ada-prj-get 'proc_env))) ;; for ADA_PROJECT_PATH
     (insert (format "ADA_PROJECT_PATH=%s\n%s" (getenv "ADA_PROJECT_PATH") exec)); for debugging
     (mapc (lambda (str) (insert (concat str " "))) command); for debugging
     (newline)
@@ -400,9 +400,12 @@ is (ada-gnat-run-buffer)"
 
   (let* ((cmd (format "gnat find -r %s:%s:%d:%d" identifier file line col)))
 
-    (with-current-buffer (ada-gnat-run-buffer); for process-environment
-      (let ((compilation-environment process-environment)
-	    (compilation-error "reference"))
+    (with-current-buffer (ada-gnat-run-buffer); for default-directory
+      (let ((compilation-environment (ada-prj-get 'proc_env))
+	    (compilation-error "reference")
+	    ;; gnat find uses standard gnu format for output, so don't
+	    ;; need to set compilation-error-regexp-alist
+	    )
 	(when (ada-prj-get 'gpr_file)
 	  (setq cmd (concat cmd " -P" (file-name-nondirectory (ada-prj-get 'gpr_file)))))
 
