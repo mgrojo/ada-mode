@@ -36,7 +36,7 @@ library project Simple is
             for Default_Switches ("Ada") use
               ("-gnat2012",
                -- comment in list
-               "-gnatw.V", "-gnatyO"
+               "-gnatw" & ".V", "-gnatyO"
               ) & Style_Checks
               & Standard_Common.Compiler'Default_Switches;
 

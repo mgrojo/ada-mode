@@ -111,7 +111,7 @@ package body Ada_Mode.Nested_Packages is
       procedure Test_Proc is
          Local_File : Ada.Text_IO.File_Type;
          package Io renames Ada.Text_IO;
-         --EMACSCMD:(progn (end-of-line 2)(forward-word -1) (wisi-goto-containing (wisi-get-cache (point))) (looking-at "A_File"))
+         --EMACSCMD:(progn (end-of-line 2)(forward-word -2) (wisi-goto-containing (wisi-get-cache (point))) (looking-at "A_File"))
          A_File : Io.File_Type renames Local_File;
       begin
          --  Indentation is broken by this if statement

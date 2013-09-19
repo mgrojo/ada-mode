@@ -82,6 +82,8 @@
 
 %start compilation_unit
 
+%conflict SHIFT/REDUCE in state string_expression, term on token AMPERSAND
+
 %%
 ;; grammar rules, non-terminal alphabetical order
 ;;
@@ -264,12 +266,17 @@ simple_project_declaration
   ;
 
 ;; (info "(gnat_ugn)Expressions")
+;; that does not include string_expression & string_primary, but the compiler accepts it
 string_expression
+  : string_primary
+  | string_expression AMPERSAND string_primary
+  ;
+
+string_primary
   : STRING_LITERAL
   | name;; variable_name
   | external_value
   | attribute_reference
-  ;; | ( string_expression { & string_expression } )
   ;
 
 ;; (info "(gnat_ugn)Expressions")
@@ -279,7 +286,7 @@ string_list
   | string_list COMMA string_expression
   ;
 
-;; see string_list
+;; see string_list for info reference
 ;; string_variable_name covered by string_expression
 term
   : string_expression
@@ -288,7 +295,6 @@ term
     (wisi-statement-action
        1 'open-paren
        3 'close-paren)
- ;;  | string_attribute_reference
   ;
 
 typed_string_declaration

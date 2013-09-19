@@ -409,7 +409,9 @@ is (ada-gnat-run-buffer)"
 	(when (ada-prj-get 'gpr_file)
 	  (setq cmd (concat cmd " -P" (file-name-nondirectory (ada-prj-get 'gpr_file)))))
 
-	(compilation-start cmd)
+	(compilation-start cmd
+			   'compilation-mode
+			   (lambda (mode-name) (concat mode-name "-gnatfind")))
     ))))
 
 (defun ada-gnat-file-name-from-ada-name (ada-name)
