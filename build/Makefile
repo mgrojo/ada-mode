@@ -139,122 +139,31 @@ debian-clean :
 #
 update-upstream : source_ada.clean source_scribe.clean source_ada.stamp source_scribe.stamp
 
-UPSTREAM_ADA := arm_cont.adb
-UPSTREAM_ADA += arm_cont.ads
-UPSTREAM_ADA += arm_corr.adb
-UPSTREAM_ADA += arm_corr.ads
-UPSTREAM_ADA += arm_db.adb
-UPSTREAM_ADA += arm_db.ads
-UPSTREAM_ADA += arm_file.adb
-UPSTREAM_ADA += arm_file.ads
-UPSTREAM_ADA += arm_form.ada
-UPSTREAM_ADA += arm_frm.adb
-UPSTREAM_ADA += arm_frm.ads
-UPSTREAM_ADA += arm_frmd.adb
-UPSTREAM_ADA += arm_frmd.ads
-UPSTREAM_ADA += arm_frms.adb
-UPSTREAM_ADA += arm_html.adb
-UPSTREAM_ADA += arm_html.ads
-UPSTREAM_ADA += arm_indx.adb
-UPSTREAM_ADA += arm_indx.ads
-UPSTREAM_ADA += arm_inp.adb
-UPSTREAM_ADA += arm_inp.ads
-UPSTREAM_ADA += arm_mast.adb
-UPSTREAM_ADA += arm_mast.ads
-UPSTREAM_ADA += arm_out.ads
-UPSTREAM_ADA += arm_rtf.adb
-UPSTREAM_ADA += arm_rtf.ads
-UPSTREAM_ADA += arm_str.adb
-UPSTREAM_ADA += arm_str.ads
-UPSTREAM_ADA += arm_sub.adb
-UPSTREAM_ADA += arm_sub.ads
-UPSTREAM_ADA += arm_syn.adb
-UPSTREAM_ADA += arm_syn.ads
-UPSTREAM_ADA += arm_texi.adb
-UPSTREAM_ADA += arm_texi.ads
-UPSTREAM_ADA += arm_text.adb
-UPSTREAM_ADA += arm_text.ads
-
 # We do not convert to unix line endings here to minimize the diff
 # with upstream; the Ada compiler on Debian can handle DOS line
 # endings.
 source_ada.stamp :
-	for file in $(UPSTREAM_ADA); do wget -nv -O ../../org.adaic.arm_form.upstream/progs/$$file "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/progs/$$file?rev=HEAD"; done
+	rm -rf ../../org.adaic.arm_form.upstream/progse
+	cd ../../org.adaic.arm_form.upstream; python3 ../org.adaic.arm_form/build/download.py progse
 	touch source_ada.stamp
 
 source_ada.clean :
 	rm -f source_ada.stamp
 
-UPSTREAM_SCRIBE := 01.MSS
-UPSTREAM_SCRIBE += 02.MSS
-UPSTREAM_SCRIBE += 03A.MSS
-UPSTREAM_SCRIBE += 03B.MSS
-UPSTREAM_SCRIBE += 03C.MSS
-UPSTREAM_SCRIBE += 04A.MSS
-UPSTREAM_SCRIBE += 04B.MSS
-UPSTREAM_SCRIBE += 05.MSS
-UPSTREAM_SCRIBE += 06.MSS
-UPSTREAM_SCRIBE += 07.MSS
-UPSTREAM_SCRIBE += 08.MSS
-UPSTREAM_SCRIBE += 09.MSS
-UPSTREAM_SCRIBE += 10.MSS
-UPSTREAM_SCRIBE += 11.MSS
-UPSTREAM_SCRIBE += 12.MSS
-UPSTREAM_SCRIBE += 13A.MSS
-UPSTREAM_SCRIBE += 13B.MSS
-UPSTREAM_SCRIBE += AARM.MSM
-UPSTREAM_SCRIBE += ATTRIBS.MSS
-UPSTREAM_SCRIBE += DS.MSS
-UPSTREAM_SCRIBE += GLOSSARY.MSS
-UPSTREAM_SCRIBE += IMPLDEF.MSS
-UPSTREAM_SCRIBE += INDEX.MSS
-UPSTREAM_SCRIBE += INFOSYS.MSS
-UPSTREAM_SCRIBE += LANGDEF.MSS
-UPSTREAM_SCRIBE += LIBRARY.MSS
-UPSTREAM_SCRIBE += NUMERICS.MSS
-UPSTREAM_SCRIBE += PRAGMAS.MSS
-UPSTREAM_SCRIBE += PRE.MSS
-UPSTREAM_SCRIBE += PRE_ADA.MSS
-UPSTREAM_SCRIBE += PRE_DIRS.MSS
-UPSTREAM_SCRIBE += PRE_IO.MSS
-UPSTREAM_SCRIBE += PRE_Locales.MSS
-UPSTREAM_SCRIBE += PRE_MATH.MSS
-UPSTREAM_SCRIBE += Pre_Containers.MSS
-UPSTREAM_SCRIBE += Pre_Con2.MSS
-UPSTREAM_SCRIBE += Pre_Environ.MSS
-UPSTREAM_SCRIBE += Pre_Con2.MSS
-UPSTREAM_SCRIBE += RM.MSM
-UPSTREAM_SCRIBE += RT.MSS
-UPSTREAM_SCRIBE += Real_attribs.mss
-UPSTREAM_SCRIBE += SAFETY.MSS
-UPSTREAM_SCRIBE += SP.MSS
-UPSTREAM_SCRIBE += SYNTAX.MSS
-UPSTREAM_SCRIBE += TITLE.MSS
-UPSTREAM_SCRIBE += ansi_cover.mss
-UPSTREAM_SCRIBE += ansi_title.mss
-UPSTREAM_SCRIBE += front_matter.mss
-UPSTREAM_SCRIBE += interface.mss
-UPSTREAM_SCRIBE += iso-rm.msm
-UPSTREAM_SCRIBE += obsolescent.mss
-UPSTREAM_SCRIBE += pre_chars.mss
-UPSTREAM_SCRIBE += pre_cmdln.mss
-UPSTREAM_SCRIBE += pre_standard.mss
-UPSTREAM_SCRIBE += pre_strings.mss
-
-# This retrieves CVS HEAD, for the next Ada version (commit to mtn branch org.adaic.arm_form.upstream)
+# This retrieves the CVS tag given in download.py "tag" (near the end of the file)
+# use 'download.py source HEAD' for testing the next Ada version
+# after updating, commit to mtn branch org.adaic.arm_form.upstream
 #
 # We convert to unix line endings because the scribe processor insists
 # on uniform formatting; this works for both Windows and Debian.
 source_scribe.stamp :
-	for file in $(UPSTREAM_SCRIBE); do wget -nv -O ../../org.adaic.arm_form.upstream/source/$$file "http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/source/$$file?rev=HEAD"; done
-	cd ../../org.adaic.arm_form.upstream/source; dos2unix -f *.MSS *.mss *.MSM
+	rm -rf ../../org.adaic.arm_form.upstream/source
+	cd ../../org.adaic.arm_form.upstream; python3 ../org.adaic.arm_form/build/download.py source
+	cd ../../org.adaic.arm_form.upstream/source; dos2unix -f *.MSS *.mss *.msm
 	touch source_scribe.stamp
 
 source_scribe.clean :
 	rm -f source_scribe.stamp
-
-2005-SRC.zip :
-	wget http://www.ada-auth.org/arm-files/2005-SRC.zip
 
 source_scribe_2005.stamp : 2005-SRC.zip | ../source_2005
 	cd ../source_2005; unzip ../build/2005-SRC.zip; rm arm_form.exe

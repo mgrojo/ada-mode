@@ -1,4 +1,28 @@
+Project to serve as a convenient packaging of the Ada Reference Manual
+formatter and sources.
+
+There are two monotone branches:
+
+org.adaic.arm_form.upstream
+
+    Verbatim copy of the sources in the AdaIC CVS web server
+    http://www.ada-auth.org/cgi-bin/cvsweb.cgi/arm/
+    except that:
+
+        the file names are converted to lowercase.
+
+        the line endings in the source directory are converted to unix.
+
+org.adaic.arm_form
+
+    Local branch with minor changes and a Makefile that builds
+    everything.
+
 To do a release:
+
+build/download.py
+    near the end of the file, change the default value of "tag" if
+    necessary (for a new Ada version)
 
 build/Makefile
     update-upstream
