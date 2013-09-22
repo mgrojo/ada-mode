@@ -21,7 +21,7 @@ package body ARM_Format is
     --
     -- ---------------------------------------
     -- Copyright 2000, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-    --           2010, 2011, 2012
+    --           2010, 2011, 2012, 2013
     -- AXE Consultants. All rights reserved.
     -- P.O. Box 1512, Madison WI  53701
     -- E-Mail: randy@rrsoftware.com
@@ -279,6 +279,8 @@ package body ARM_Format is
     --			"small" format.
     -- 11/ 5/12 - RLB - Added stupidly missing compare for "small" format.
     -- 11/26/12 - RLB - Added subdivision names.
+    --  7/ 5/13 - RLB - Added a nasty hack so added aspect names are marked
+    --			as such in Show_Changes versions.
 
     type Command_Kind_Type is (Normal, Begin_Word, Parameter);
 
@@ -1117,7 +1119,9 @@ Ada.Text_IO.Put_Line ("%% Oops, can't find end of item chg new command, line " &
 		     Ada95_Incompatibilities | Ada95_Extensions |
 		     Ada95_Wording | Ada2005_Inconsistencies |
 		     Ada2005_Incompatibilities | Ada2005_Extensions |
-		     Ada2005_Wording | Reason | Ramification | Proof |
+		     Ada2005_Wording | Ada2012_Inconsistencies |
+		     Ada2012_Incompatibilities | Ada2012_Extensions |
+		     Ada2012_Wording | Reason | Ramification | Proof |
 		     Imp_Note | Corr_Change | Discussion |
 		     Honest | Glossary_Marker | Bare_Annotation |
 		     Element_Ref | Child_Ref | Usage_Note =>
@@ -1444,7 +1448,11 @@ Ada.Text_IO.Put_Line ("%% Oops, can't find out if AARM paragraph, line " & ARM_I
 				         Ada2005_Inconsistencies | -- Inconsistent2005
 				         Ada2005_Incompatibilities | -- Incompatible2005
 				         Ada2005_Extensions | -- Extend2005
-				         Ada2005_Wording => -- DiffWord2005
+				         Ada2005_Wording | -- DiffWord2005
+				         Ada2012_Inconsistencies | -- Inconsistent2012
+				         Ada2012_Incompatibilities | -- Incompatible2012
+				         Ada2012_Extensions | -- Extend2012
+				         Ada2012_Wording => -- DiffWord2012
 				        return 2; -- Normal indent for annotations.
 		        	    when Reason | Ramification | Proof |
 					 Imp_Note | Corr_Change | Discussion |
@@ -1532,7 +1540,9 @@ Ada.Text_IO.Put_Line ("%% Oops, can't find out if AARM paragraph, line " & ARM_I
 				         Ada95_Incompatibilities | Ada95_Extensions |
 				         Ada95_Wording | Ada2005_Inconsistencies |
 				         Ada2005_Incompatibilities | Ada2005_Extensions |
-				         Ada2005_Wording | Reason | Ramification | Proof |
+				         Ada2005_Wording | Ada2012_Inconsistencies |
+				         Ada2012_Incompatibilities | Ada2012_Extensions |
+				         Ada2012_Wording | Reason | Ramification | Proof |
 				         Imp_Note | Corr_Change | Discussion |
 				         Honest | Glossary_Marker | Bare_Annotation |
 				         Element_Ref | Child_Ref | Usage_Note |
@@ -1614,7 +1624,11 @@ Ada.Text_IO.Put_Line ("%% Oops, can't find out if AARM paragraph, line " & ARM_I
 		         Ada2005_Inconsistencies | -- Inconsistent2005
 		         Ada2005_Incompatibilities | -- Incompatible2005
 		         Ada2005_Extensions | -- Extend2005
-		         Ada2005_Wording => -- DiffWord2005
+		         Ada2005_Wording | -- DiffWord2005
+		         Ada2012_Inconsistencies | -- Inconsistent2012
+		         Ada2012_Incompatibilities | -- Incompatible2012
+		         Ada2012_Extensions | -- Extend2012
+		         Ada2012_Wording => -- DiffWord2012
 			Format_Object.Style  := ARM_Output.Small;
 			Format_Object.Indent := 2; -- Two units.
 			Format_Object.No_Breaks := False;
@@ -1892,6 +1906,8 @@ Ada.Text_IO.Put_Line ("%% Oops, can't find out if AARM paragraph, line " & ARM_I
 			    ARM_Output.Ordinary_Text (Output_Object, Data.Paragraph_Kind_Title(For_Type).Str(1..Data.Paragraph_Kind_Title(For_Type).Length));
 			    ARM_Output.End_Paragraph (Output_Object);
 			    Format_Object.Last_Paragraph_Subhead_Type := For_Type;
+--!!Debug:
+--Ada.Text_IO.Put_Line ("Write notes header");
 			else
 			    null; -- No subheader. We don't change the last
 			        -- subheader generated, either.
@@ -1908,7 +1924,11 @@ Ada.Text_IO.Put_Line ("%% Oops, can't find out if AARM paragraph, line " & ARM_I
 		         Ada2005_Inconsistencies | -- Inconsistent2005
 		         Ada2005_Incompatibilities | -- Incompatible2005
 		         Ada2005_Extensions | -- Extend2005
-		         Ada2005_Wording => -- DiffWord2005
+		         Ada2005_Wording | -- DiffWord2005
+		         Ada2012_Inconsistencies | -- Inconsistent2012
+		         Ada2012_Incompatibilities | -- Incompatible2012
+		         Ada2012_Extensions | -- Extend2012
+		         Ada2012_Wording => -- DiffWord2012
 			ARM_Output.Category_Header (Output_Object, Paragraph_Kind_Title(For_Type).Str(1..Paragraph_Kind_Title(For_Type).Length));
 			Format_Object.Last_Paragraph_Subhead_Type := For_Type;
         	    when Plain | Introduction | Element_Ref | Child_Ref | Usage_Note =>
@@ -1963,7 +1983,11 @@ Ada.Text_IO.Put_Line ("%% Oops, can't find out if AARM paragraph, line " & ARM_I
 		         Ada2005_Inconsistencies | -- Inconsistent2005
 		         Ada2005_Incompatibilities | -- Incompatible2005
 		         Ada2005_Extensions | -- Extend2005
-		         Ada2005_Wording => -- DiffWord2005
+		         Ada2005_Wording | -- DiffWord2005
+		         Ada2012_Inconsistencies | -- Inconsistent2012
+		         Ada2012_Incompatibilities | -- Incompatible2012
+		         Ada2012_Extensions | -- Extend2012
+		         Ada2012_Wording => -- DiffWord2012
 			null; -- Not an annotation.
         	    when Reason | Ramification | Proof |
 			 Imp_Note | Corr_Change | Discussion |
@@ -3039,6 +3063,9 @@ Ada.Text_IO.Put_Line("    -- No Start Paragraph (Del-NewOnly)");
 	            Format_State.Nesting_Stack(Format_State.Nesting_Stack_Ptr).Is_Formatting
 		        := False; -- Leave the format alone.
 		end if;
+--!!Debug:
+---Ada.Text_IO.Put_Line ("Next=" & Paragraph_Type'Image(Format_Object.Next_Paragraph_Subhead_Type));
+
 	    -- ISOOnly text:
 	    elsif Ada.Characters.Handling.To_Lower (Ada.Strings.Fixed.Trim (
 	    	Format_State.Nesting_Stack(Format_State.Nesting_Stack_Ptr).Name, Ada.Strings.Right))
@@ -3166,6 +3193,42 @@ Ada.Text_IO.Put_Line("    -- No Start Paragraph (Del-NewOnly)");
 		    Format_Object.Next_Paragraph_Subhead_Type := Ada2005_Wording;
 		else -- Don't show annotations.
 		    Toss_for_RM ("diffword2005");
+		end if;
+	    elsif Ada.Characters.Handling.To_Lower (Ada.Strings.Fixed.Trim (
+	    	Format_State.Nesting_Stack(Format_State.Nesting_Stack_Ptr).Name, Ada.Strings.Right))
+	    	= "inconsistent2012" then
+		if Format_Object.Include_Annotations then
+		    Format_Object.Next_Paragraph_Format_Type := Ada2012_Inconsistencies;
+		    Format_Object.Next_Paragraph_Subhead_Type := Ada2012_Inconsistencies;
+		else -- Don't show annotations.
+		    Toss_for_RM ("inconsistent2012");
+		end if;
+	    elsif Ada.Characters.Handling.To_Lower (Ada.Strings.Fixed.Trim (
+	    	Format_State.Nesting_Stack(Format_State.Nesting_Stack_Ptr).Name, Ada.Strings.Right))
+	    	= "incompatible2012" then
+		if Format_Object.Include_Annotations then
+		    Format_Object.Next_Paragraph_Format_Type := Ada2012_Incompatibilities;
+		    Format_Object.Next_Paragraph_Subhead_Type := Ada2012_Incompatibilities;
+		else -- Don't show annotations.
+		    Toss_for_RM ("incompatible2012");
+		end if;
+	    elsif Ada.Characters.Handling.To_Lower (Ada.Strings.Fixed.Trim (
+	    	Format_State.Nesting_Stack(Format_State.Nesting_Stack_Ptr).Name, Ada.Strings.Right))
+	    	= "extend2012" then
+		if Format_Object.Include_Annotations then
+		    Format_Object.Next_Paragraph_Format_Type := Ada2012_Extensions;
+		    Format_Object.Next_Paragraph_Subhead_Type := Ada2012_Extensions;
+		else -- Don't show annotations.
+		    Toss_for_RM ("extend2012");
+		end if;
+	    elsif Ada.Characters.Handling.To_Lower (Ada.Strings.Fixed.Trim (
+	    	Format_State.Nesting_Stack(Format_State.Nesting_Stack_Ptr).Name, Ada.Strings.Right))
+	    	= "diffword2012" then
+		if Format_Object.Include_Annotations then
+		    Format_Object.Next_Paragraph_Format_Type := Ada2012_Wording;
+		    Format_Object.Next_Paragraph_Subhead_Type := Ada2012_Wording;
+		else -- Don't show annotations.
+		    Toss_for_RM ("diffword2012");
 		end if;
 	    -- ASIS groupings:
 	    elsif Ada.Characters.Handling.To_Lower (Ada.Strings.Fixed.Trim (
@@ -4850,6 +4913,8 @@ Ada.Text_IO.Put_Line("    -- No Start Paragraph (Del-NewOnly)");
 			        Format_Object.Next_Enumerated_Num := Format_State.Nesting_Stack(Format_State.Nesting_Stack_Ptr).Old_Next_Enum_Num;
 			        Format_State.Nesting_Stack_Ptr := Format_State.Nesting_Stack_Ptr - 1;
 --Ada.Text_IO.Put_Line (" &Unstack (End)");
+--!!Debug:
+--Ada.Text_IO.Put_Line ("(End) Next=" & Paragraph_Type'Image(Format_Object.Next_Paragraph_Subhead_Type));
 			    end if;
 
 			    Check_End_Paragraph; -- End any paragraph that we're in.
@@ -6644,6 +6709,9 @@ Ada.Text_IO.Put_Line("    -- No Start Paragraph (Del-NewOnly)");
 				      Level, Format_Object.Clause_Number)) then
 				    Ada.Text_IO.Put_Line ("** Unable to match title with section numbers, line " & ARM_Input.Line_String (Input_Object));
 			        end if;
+--!!Debug:
+--Ada.Text_IO.Put_Line ("Start clause " & Clause_Number & " -- " & Title(1..Title_Length));
+
 			    end;
 			exception
 			    when ARM_Contents.Not_Found_Error =>
@@ -6862,6 +6930,8 @@ Ada.Text_IO.Put_Line("    -- No Start Paragraph (Del-NewOnly)");
 					-- In this case, we have no sane
 					-- way to show the old, so we hope that
 					-- isn't expected.
+--!!Debug:
+--Ada.Text_IO.Put_Line ("Start clause " & Clause_Number & " -- " & New_Title(1..New_Title_Length));
 			        elsif New_Disposition = ARM_Output.Deletion then
 			            raise Program_Error; -- A deletion inside of an insertion command!
 			        else -- Insertion.
@@ -6897,6 +6967,8 @@ Ada.Text_IO.Put_Line("    -- No Start Paragraph (Del-NewOnly)");
 					    Clause_Number => Clause_Number,
 					    Top_Level_Subdivision_Name => Format_Object.Top_Level_Subdivision_Name);
 				    end if;
+--!!Debug:
+--Ada.Text_IO.Put_Line ("Start clause " & Clause_Number & " -- " & New_Title(1..New_Title_Length));
 				end if;
 			    end;
 			exception
@@ -7051,6 +7123,8 @@ Ada.Text_IO.Put_Line("    -- No Start Paragraph (Del-NewOnly)");
 				          Level, Format_Object.Clause_Number)) then
 				        Ada.Text_IO.Put_Line ("** Unable to match title with section numbers, line " & ARM_Input.Line_String (Input_Object));
 			            end if;
+--!!Debug:
+--Ada.Text_IO.Put_Line ("Start clause " & Clause_Number & " -- " & New_Title(1..New_Title_Length));
 			        end;
 			    exception
 			        when ARM_Contents.Not_Found_Error =>
@@ -8256,7 +8330,7 @@ Ada.Text_IO.Put_Line("    -- No Start Paragraph (Del-NewOnly)");
 
 		when Change_Aspect_Description =>
 		    -- This command is of the form:
-		    -- @chgdocreq{Version=[<version>], Kind=(<kind>),
+		    -- @chgaspectdesc{Version=[<version>], Kind=(<kind>),
 		    --   Aspect=[<name>],Text=(<text>)}}
 		    -- where <version> is a single character, <Kind> is one
 		    -- of Revised, Added, or Deleted, <Name> is the aspect
@@ -8624,7 +8698,7 @@ Ada.Text_IO.Put_Line("    -- No Start Paragraph (Del-NewOnly)");
 
 		when Added_Aspect_Description_List =>
 		    -- This command is of the form:
-		    -- @AddedAspect{Version=[v]}
+		    -- @AddedAspectList{Version=[v]}
 		    declare
 			Version : ARM_Contents.Change_Version_Type;
 		    begin
@@ -8744,6 +8818,8 @@ Ada.Text_IO.Put_Line("    -- No Start Paragraph (Del-NewOnly)");
 		     Incompatible95_Name | Extend95_Name | Wording95_Name |
 		     Inconsistent2005_Name |
 		     Incompatible2005_Name | Extend2005_Name | Wording2005_Name |
+		     Inconsistent2012_Name |
+		     Incompatible2012_Name | Extend2012_Name | Wording2012_Name |
 		     Syntax_Title | Resolution_Title | Legality_Title |
 		     Static_Title | Link_Title | Run_Title | Bounded_Title |
 		     Erroneous_Title | Req_Title | Doc_Title | Metrics_Title |
@@ -8755,6 +8831,8 @@ Ada.Text_IO.Put_Line("    -- No Start Paragraph (Del-NewOnly)");
 		     Incompatible95_Title | Extend95_Title | Wording95_Title |
 		     Inconsistent2005_Title |
 		     Incompatible2005_Title | Extend2005_Title | Wording2005_Title |
+		     Inconsistent2012_Title |
+		     Incompatible2012_Title | Extend2012_Title | Wording2012_Title |
 		     EM_Dash | EN_Dash | LT | LE | GT | GE | NE | PI |
 		     Times | PorM | Single_Quote | Thin_Space | Left_Quote |
 		     Right_Quote | Left_Double_Quote | Right_Double_Quote |
@@ -9118,6 +9196,14 @@ Ada.Text_IO.Put_Line("    -- No Start Paragraph (Del-NewOnly)");
 		    Put_Name(Ada2005_Extensions);
 		when Wording2005_Name =>
 		    Put_Name(Ada2005_Wording);
+		when Inconsistent2012_Name =>
+		    Put_Name(Ada2012_Inconsistencies);
+		when Incompatible2012_Name =>
+		    Put_Name(Ada2012_Incompatibilities);
+		when Extend2012_Name =>
+		    Put_Name(Ada2012_Extensions);
+		when Wording2012_Name =>
+		    Put_Name(Ada2012_Wording);
 
 		when Syntax_Title =>
 		    Put_Title(Syntax);
@@ -9177,6 +9263,14 @@ Ada.Text_IO.Put_Line("    -- No Start Paragraph (Del-NewOnly)");
 		    Put_Title(Ada2005_Extensions);
 		when Wording2005_Title =>
 		    Put_Title(Ada2005_Wording);
+		when Inconsistent2012_Title =>
+		    Put_Title(Ada2012_Inconsistencies);
+		when Incompatible2012_Title =>
+		    Put_Title(Ada2012_Incompatibilities);
+		when Extend2012_Title =>
+		    Put_Title(Ada2012_Extensions);
+		when Wording2012_Title =>
+		    Put_Title(Ada2012_Wording);
 
 		when EM_Dash =>
 		    Check_Paragraph;
@@ -9391,14 +9485,32 @@ Ada.Text_IO.Put_Line("    -- No Start Paragraph (Del-NewOnly)");
 		if not Format_Object.Impdef_Info.Add_to_DB then
 		    null; -- Don't add to the DB
 		elsif Format_Object.Impdef_Info.Command = Aspect then
-	            ARM_Database.Insert (DB,
-		        Sort_Key => Format_Object.Impdef_Info.Aspect_Name(1..Format_Object.Impdef_Info.Aspect_Name_Len),
-		        Hang_Item => Format_Object.Impdef_Info.Aspect_Name(1..Format_Object.Impdef_Info.Aspect_Name_Len),
-		        Text => Text_Buffer(1..Text_Buffer_Len) &
-		           See_String,
-		        Change_Kind => Format_Object.Impdef_Info.Change_Kind,
-		        Version => Format_Object.Impdef_Info.Version,
-			Initial_Version => Format_Object.Impdef_Info.Initial_Version);
+		    if Format_Object.Impdef_Info.Initial_Version >= '4' then
+		        -- ** Horrible hack: We treat the aspect as inserted
+			-- if the initial version is greater than 4 (this is
+			-- what we need in the RM and AARM). This
+			-- should depend on other parameters, and ideally
+			-- be determined inside of the DB_Report code.
+	                ARM_Database.Insert (DB,
+		            Sort_Key => Format_Object.Impdef_Info.Aspect_Name(1..Format_Object.Impdef_Info.Aspect_Name_Len),
+		            Hang_Item => "@Chg{Version=[" & Format_Object.Impdef_Info.Initial_Version &
+				"],New=[" & Format_Object.Impdef_Info.Aspect_Name(1..Format_Object.Impdef_Info.Aspect_Name_Len) &
+				"],Old=[]}",
+		            Text => Text_Buffer(1..Text_Buffer_Len) &
+		               See_String,
+		            Change_Kind => Format_Object.Impdef_Info.Change_Kind,
+		            Version => Format_Object.Impdef_Info.Version,
+			    Initial_Version => Format_Object.Impdef_Info.Initial_Version);
+		    else -- Normal
+	                ARM_Database.Insert (DB,
+		            Sort_Key => Format_Object.Impdef_Info.Aspect_Name(1..Format_Object.Impdef_Info.Aspect_Name_Len),
+		            Hang_Item => Format_Object.Impdef_Info.Aspect_Name(1..Format_Object.Impdef_Info.Aspect_Name_Len),
+		            Text => Text_Buffer(1..Text_Buffer_Len) &
+		               See_String,
+		            Change_Kind => Format_Object.Impdef_Info.Change_Kind,
+		            Version => Format_Object.Impdef_Info.Version,
+			    Initial_Version => Format_Object.Impdef_Info.Initial_Version);
+		    end if;
 		else
 	            ARM_Database.Insert (DB,
 		        Sort_Key => Sort_Clause_String,
