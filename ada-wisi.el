@@ -253,7 +253,7 @@ BEFORE should be t when called from ada-wisi-before-cache, nil otherwise."
 	 (let ((containing (wisi-goto-containing cache)))
 	   (when (and
 		  (not (memq (wisi-cache-token containing) '(FUNCTION PROCEDURE)))
-		  (eq (wisi-cache-class containing) 'name-paren))
+		  (memq (wisi-cache-class containing) '(name name-paren)))
 	     (setq containing (wisi-goto-containing containing)))
 
 	   (cl-case (wisi-cache-token containing)
@@ -417,6 +417,10 @@ BEFORE should be t when called from ada-wisi-before-cache, nil otherwise."
 		 ;; indenting 'abort'
 		 (+ (current-column) ada-indent-broken))
 
+		(component_declaration
+		 ;; test/ada_mode-nominal.ads record_type_3
+		 (+ (current-column) ada-indent-broken))
+
 		(entry_body
 		 ;; indenting 'when'
 		 (+ (current-column) ada-indent-broken))
@@ -483,17 +487,6 @@ BEFORE should be t when called from ada-wisi-before-cache, nil otherwise."
 		 ;;     (Parent_Element_1 => 1,
 		 (ada-wisi-indent-cache ada-indent-broken containing))
 
-		((subprogram_body subprogram_declaration subprogram_specification null_procedure_declaration)
-		 (cl-ecase (wisi-cache-token cache)
-		   (OVERRIDING
-		    ;; indenting 'overriding' following 'not'
-		    (current-column))
-
-		   ((PROCEDURE FUNCTION)
-		    ;; indenting 'procedure' or 'function following 'overriding'
-		    (current-column))
-		   ))
-
 		(statement
 		 (cl-case (wisi-cache-token containing)
 		   (label_opt
@@ -508,6 +501,21 @@ BEFORE should be t when called from ada-wisi-before-cache, nil otherwise."
 		    ;;   abort
 		    (ada-wisi-indent-cache ada-indent-broken cache))
 		   ))
+
+		((subprogram_body subprogram_declaration subprogram_specification null_procedure_declaration)
+		 (cl-ecase (wisi-cache-token cache)
+		   (OVERRIDING
+		    ;; indenting 'overriding' following 'not'
+		    (current-column))
+
+		   ((PROCEDURE FUNCTION)
+		    ;; indenting 'procedure' or 'function following 'overriding'
+		    (current-column))
+		   ))
+
+		(subtype_declaration
+		 ;; test/adacore_9717_001.ads A_Long_Name
+		 (+ (current-column) ada-indent-broken))
 
 		))))) ;; end statement-other
 
@@ -641,7 +649,7 @@ cached token, return new indentation for point."
 	   ))
 
 	(close-paren
-	 ;; ada_mode-nominal.adb
+	 ;; test/ada_mode-nominal.adb
 	 ;; return 1.0 +
 	 ;;   Foo (Bar) + -- multi-line expression that happens to have a cache at a line start
 	 ;;   12;
@@ -845,10 +853,17 @@ cached token, return new indentation for point."
 		     (+ type-column ada-indent-record-rel-type)
 		   ;; 'record' on later line
 		   (+ type-column ada-indent-broken))))
-	      (formal_type_declaration
-	       ;; ada_mode-generic_package.ads
-	       ;; type Synchronized_Formal_Derived_Type is abstract synchronized new Formal_Private_Type and Interface_Type
-	       ;;   with private;
+
+	      ((formal_type_declaration
+		;; test/ada_mode-generic_package.ads
+		;; type Synchronized_Formal_Derived_Type is abstract synchronized new Formal_Private_Type and Interface_Type
+		;;   with private;
+
+		subtype_declaration)
+		;; test/ada_mode-nominal.ads
+		;;    subtype Subtype_2 is Signed_Integer_Type range 10 ..
+		;;      20;
+
 	       (+ (current-column) ada-indent-broken))
 	      ))
 

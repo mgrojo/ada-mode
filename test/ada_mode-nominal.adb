@@ -329,8 +329,11 @@ package body Ada_Mode.Nominal is -- target 0
       or
          when Started =>
             accept Middle_2
-              (Param_1 : in Integer);
-            Local_1 := 0;
+              (Param_1 : in Integer)
+            do
+               Local_1 := 0;
+               requeue Finish;
+            end Middle_2;
 
       or when Started
            =>

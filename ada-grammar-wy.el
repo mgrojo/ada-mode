@@ -396,10 +396,13 @@
       (component_declaration
        ((identifier_list COLON component_definition COLON_EQUAL expression aspect_specification_opt SEMICOLON )
         (progn
-        (wisi-statement-action 1 'statement-start 7 'statement-end)
+        (wisi-statement-action 1 'statement-start 2 'statement-other 7 'statement-end)
+        (wisi-containing-action 2 3)
         (wisi-containing-action 4 5)))
        ((identifier_list COLON component_definition aspect_specification_opt SEMICOLON )
-        (wisi-statement-action 1 'statement-start 5 'statement-end)))
+        (progn
+        (wisi-statement-action 1 'statement-start 2 'statement-other 5 'statement-end)
+        (wisi-containing-action 2 3))))
       (component_definition
        ((ALIASED subtype_indication ))
        ((subtype_indication ))
@@ -1137,6 +1140,7 @@
        ((TYPE IDENTIFIER discriminant_part_opt IS abstract_limited_synchronized_opt NEW subtype_indication and_interface_list_opt WITH PRIVATE aspect_specification_opt SEMICOLON )
         (progn
         (wisi-statement-action 1 'statement-start 2 'name 6 'statement-other 12 'statement-end)
+        (wisi-containing-action 1 3)
         (wisi-containing-action 6 7)
         (wisi-containing-action 6 8))))
       (private_type_declaration
@@ -1417,11 +1421,19 @@
         (wisi-motion-action 1 '(3 RETURN)))))
       (subtype_declaration
        ((SUBTYPE IDENTIFIER IS subtype_indication aspect_specification_opt SEMICOLON )
-        (wisi-statement-action 1 'statement-start 6 'statement-end)))
+        (progn
+        (wisi-statement-action 1 'statement-start 3 'statement-other 6 'statement-end)
+        (wisi-containing-action 3 4))))
       (subtype_indication
-       ((NOT NULL name constraint ))
+       ((NOT NULL name constraint )
+        (progn
+        (wisi-statement-action 3 'name)
+        (wisi-containing-action 3 4)))
        ((NOT NULL name ))
-       ((name constraint ))
+       ((name constraint )
+        (progn
+        (wisi-statement-action 1 'name)
+        (wisi-containing-action 1 2)))
        ((name )))
       (subunit
        ((SEPARATE LEFT_PAREN name RIGHT_PAREN proper_body )))

@@ -51,30 +51,6 @@ build gnatinspect:
  general
 build/wisi/Makefile
 
-exclude .elc from .tar.gz
-
-use EMACS_EXE in makefiles
-
-test on rest of arm_form
-
-parse failing:
-
-    package Tasks is
-
-    type T is null record;
-
-    protected type P is
-    entry Foo;
-    end P;
-
-    end Tasks;
-    wisi-validate-cache: debug.adb:7:5: syntax error in grammar state 1026; unexpected P, expecting one of (default SEMICOLON)
-
-    requeue_statement
-
-simon wright email indentation bugs
-    test/access_in_record.ads
-
 Can't capitalize keywords in comments:
 
     -- new
@@ -103,6 +79,13 @@ ada-add-log-current-function
 
 /Projects/Web/stephe-leake/emacs/ada-mode/emacs-ada-mode.html
     to-do list
+
+from Simon Wright:
+   --  I'd like (the option to have) the 'is' line up with the 'type'.
+   type A;
+   type A_Finalizer
+     (AP : access A)
+   is new Ada.Finalization.Limited_Controlled with null record;
 
 ./wisi.el:361:	  ;; FIXME: insert newline in comment to create non-comment!?
     need tests for wisi-before/after-change vs comments, strings

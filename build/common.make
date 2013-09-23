@@ -20,6 +20,7 @@ GPR_TEST_FILES := $(shell cd ../../test/gpr; ls *.gpr)
 COMPILE_FILES := $(ADA_TEST_FILES)
 COMPILE_FILES := $(subst subdir/,,$(COMPILE_FILES))
 
+COMPILE_FILES := $(filter-out access_in_record.ads, $(COMPILE_FILES))# incomplete code
 COMPILE_FILES := $(filter-out ada_mode-ada83.ads, $(COMPILE_FILES))# font-lock only
 
 # parents are not pure
@@ -63,16 +64,13 @@ test-gpr : $(addsuffix .diff, $(subst subdir/,,$(GPR_TEST_FILES)))
 
 # emacs to test with
 #
-# Something in Cygwin bash declares EMACS=t when running under make
-# under Emacs, so we can't use ?= here.
-#
 # emacs 24.2.91 and earlier define "emacs_dir".
 #
-# This can be overridden with 'make EMACS=...'.
-EMACS := $(emacs_dir)/bin/emacs
+# This can be overridden with 'make EMACS_EXE=...'.
+EMACS_EXE ?= $(emacs_dir)/bin/emacs
 
 test-elisp :
-	$(EMACS) -Q -batch -L ../../test -L ../.. -l ada-mode-test.el
+	$(EMACS_EXE) -Q -batch -L ../../test -L ../.. -l ada-mode-test.el
 
 %.diff : % %.tmp
 	diff -u $< $*.tmp > $*.diff
@@ -81,7 +79,7 @@ test-elisp :
 
 # load path; .. for runtest.el, ../.. for ada-mode.el etc
 %.tmp : % $(INDENT.EL)
-	$(EMACS) -Q -batch -L .. -L ../.. -l $(RUNTEST) --eval '(run-test "$<")'
+	$(EMACS_EXE) -Q -batch -L .. -L ../.. -l $(RUNTEST) --eval '(run-test "$<")'
 
 COMPILE_FILES := $(COMPILE_FILES:.adb=.ali)
 COMPILE_FILES := $(COMPILE_FILES:.ads=.ali)
@@ -137,6 +135,6 @@ source-clean :: test-clean
 	rm -rf ../../_MTN/resolutions
 
 zip :
-	tar zcf org.emacs.ada-mode.stephe-`date +%Y-%m-%d`.tar.gz --exclude _MTN --exclude "*~" --exclude "*.diff" --exclude "*.tmp" --exclude "*.ali" --exclude "*.tar.gz" -C ../../../ org.emacs.ada-mode.stephe-1
+	tar zcf org.emacs.ada-mode.stephe-`date +%Y-%m-%d`.tar.gz --exclude _MTN --exclude "*~" --exclude "*.ali" --exclude "*.diff" --exclude "*.elc" --exclude "*.tmp" --exclude "*.tar.gz" -C ../../../ org.emacs.ada-mode.stephe-1
 
 # end of file

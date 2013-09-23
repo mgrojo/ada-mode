@@ -8,7 +8,7 @@ update : ../../ada-grammar-wy.el ../../gpr-grammar-wy.el  byte-compile
 
 # *-wy.el are in monotone, so this is all we need after a monotone update
 byte-compile :
-	cd ../../; emacs -Q -batch -L . -f batch-byte-compile *.el
+	cd ../../; $(EMACS_EXE) -Q -batch -L . -f batch-byte-compile *.el
 
 test : test-ada test-gpr test-elisp
 
@@ -35,7 +35,7 @@ WISI_OPENTOKEN := $(CURDIR)/../../../org.opentoken.stephe/build/release
 endif
 
 %.wisi-test : %-wy.el
-	emacs -Q -batch -L . -L .. -L ../.. -l run-wisi-test.el --eval '(run-test "$*")'
+	$(EMACS_EXE) -Q -batch -L . -L .. -L ../.. -l run-wisi-test.el --eval '(run-test "$*")'
 
 .PRECIOUS : %-wy.el ../../%-grammar-wy.el
 

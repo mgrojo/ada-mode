@@ -1,7 +1,7 @@
 --EMACSCMD:(ada-parse-prj-file "subdir/ada_mode.adp")
 --EMACSCMD:(ada-select-prj-file "subdir/ada_mode.adp")
 
-with Ada.Strings.Maps.Character_Set;
+with Ada.Strings.Maps;
 package body Ada_Mode.Parens is
 
    --  This used to cause exponential explosion of parallel parsers;
