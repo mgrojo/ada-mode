@@ -756,12 +756,12 @@ package body ARM_Master is
 		            Source_Data(Source_Length).File_Name_Len := ILen + 4;
 			    Ada.Strings.Fixed.Move (
 					Target => Source_Data(Source_Length).File_Name,
-				        Source => Item(1..ILen) & ".MSS");
+				        Source => Ada.Characters.Handling.To_Lower (Item(1..ILen)) & ".mss");
 			else
 		            Source_Data(Source_Length).File_Name_Len := ILen;
 			    Ada.Strings.Fixed.Move (
 				        Target => Source_Data(Source_Length).File_Name,
-				        Source => Item(1..ILen));
+				        Source => Ada.Characters.Handling.To_Lower (Item(1..ILen)));
 			end if;
 		    -- else no parameter, error already produced.
 		    end if;
@@ -892,7 +892,7 @@ package body ARM_Master is
 
 		when File_Prefix =>
 		    -- @FilePrefix{<File_Prefix>}
-		    Output_File_Prefix := +Get_Single_String;
+		    Output_File_Prefix := +Ada.Characters.Handling.To_Lower (Get_Single_String);
 		    Ada.Text_IO.Put_Line("File Prefix is " &
 			(+Output_File_Prefix));
 

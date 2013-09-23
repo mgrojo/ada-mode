@@ -21,6 +21,6 @@
 ^build/source_scribe\.stamp$
 ^build/source_scribe_2005\.stamp$
 ^build/txt$
-^source/Output$
+^source/output$
 ^source_2005$
 ^source_2005_orig$

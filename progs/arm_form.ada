@@ -17,7 +17,7 @@ procedure ARM_Formatter is
     -- reference manual files (in various formats).
     --
     -- ---------------------------------------
-    -- Copyright 2000, 2002, 2004, 2005, 2006, 2011, 2012
+    -- Copyright 2000, 2002, 2004, 2005, 2006, 2011, 2012, 2013
     --   AXE Consultants. All rights reserved.
     -- P.O. Box 1512, Madison WI  53701
     -- E-Mail: randy@rrsoftware.com
@@ -234,12 +234,12 @@ procedure ARM_Formatter is
 	declare
 	    use type Ada.Strings.Unbounded.Unbounded_String;
         begin
-	    Master_File := Ada.Strings.Unbounded.To_Unbounded_String(
-		    Ada.Strings.Fixed.Trim (Ada.Command_Line.Argument(1),
-		       Ada.Strings.Right));
+	    Master_File := Ada.Strings.Unbounded.To_Unbounded_String
+              (Ada.Characters.Handling.To_Lower
+                 (Ada.Strings.Fixed.Trim (Ada.Command_Line.Argument(1), Ada.Strings.Right)));
 	    if Ada.Strings.Unbounded.Index (Master_File, ".") = 0 then
 		-- Add extension if it is missing.
-		Master_File := Master_File & ".MSM";
+		Master_File := Master_File & ".msm";
 	    end if;
         end;
     exception
@@ -290,4 +290,3 @@ exception
     when No_Command_Error =>
 	null; -- Error message displayed by command line processor.
 end ARM_Formatter;
-

@@ -8,25 +8,26 @@ DEBIAN_VERSION := 2012.2
 ZIP_DATE       := 20130312
 
 # debian-free is _not_ in all
-all : source_scribe_2005.stamp html info TXT publish
+#all : source_scribe_2005.stamp
+all : html info TXT publish
 # pdf not in 'all' because may not have tools installed
 
 html : html/arm2012/RM-TOC.html
 html : html/aarm2012/AA-TOC.html
-html : html/arm2005/RM-TOC.html
-html : html/aarm2005/AA-TOC.html
+#html : html/arm2005/RM-TOC.html
+#html : html/aarm2005/AA-TOC.html
 info : arm2012.info
 info : aarm2012.info
-info : arm2005.info
-info : aarm2005.info
+#info : arm2005.info
+#info : aarm2005.info
 pdf  : arm2012.pdf
 pdf  : aarm2012.pdf
-pdf  : arm2005.pdf
-pdf  : aarm2005.pdf
+#pdf  : arm2005.pdf
+#pdf  : aarm2005.pdf
 TXT  : txt/arm2012/RM-TOC.TXT
 TXT  : txt/aarm2012/AA-TOC.TXT
-TXT  : txt/arm2005/RM-TOC.TXT
-TXT  : txt/aarm2005/AA-TOC.TXT
+#TXT  : txt/arm2005/RM-TOC.TXT
+#TXT  : txt/aarm2005/AA-TOC.TXT
 
 # We have been unable to get rid of all the section ref violations, so we
 # specify --no-validate. Delete that to see the errors.
@@ -35,7 +36,7 @@ TEXI_DVI_OPTS := --quiet
 
 arm2012.texinfo : arm_form.exe
 	cd ../source; ../build/arm_form.exe RM info New-Only 3
-	mv ../source/output/RM.texinfo ./arm2012.texinfo
+	mv ../source/output/rm.texinfo ./arm2012.texinfo
 
 arm2005.texinfo : arm_form.exe
 	cd ../source_2005; ../build/arm_form.exe RM info New-Only 2
@@ -43,48 +44,48 @@ arm2005.texinfo : arm_form.exe
 
 aarm2012.texinfo : arm_form.exe
 	cd ../source; ../build/arm_form.exe AARM info New-Only 3
-	mv ../source/output/AA.texinfo ./aarm2012.texinfo
+	mv ../source/output/aa.texinfo ./aarm2012.texinfo
 
 aarm2005.texinfo : arm_form.exe
 	cd ../source_2005; ../build/arm_form.exe AARM info New-Only 2
 	mv ../source_2005/output/AA.texinfo ./aarm2005.texinfo
 
-html/arm2012/RM-TOC.html : arm_form.exe | html/arm2012 ../source/Output
+html/arm2012/RM-TOC.html : arm_form.exe | html/arm2012 ../source/output
 	cd ../source; ../build/arm_form.exe RM HTML New-Only 3
 	rm -rf html/arm2012/*
 	mv ../source/output/* html/arm2012
 
-html/arm2005/RM-TOC.html : arm_form.exe | html/arm2005 ../source_2005/Output
+html/arm2005/RM-TOC.html : arm_form.exe | html/arm2005 ../source_2005/output
 	cd ../source_2005; ../build/arm_form.exe RM HTML New-Only 2
 	rm -rf html/arm2005/*
 	mv ../source_2005/output/* html/arm2005
 
-html/aarm2012/AA-TOC.html : arm_form.exe | html/aarm2012 ../source/Output
+html/aarm2012/AA-TOC.html : arm_form.exe | html/aarm2012 ../source/output
 	cd ../source; ../build/arm_form.exe AARM HTML New-Only 3
 	rm -rf html/aarm2012/*
 	mv ../source/output/* html/aarm2012
 
-html/aarm2005/AA-TOC.html : arm_form.exe | html/aarm2005 ../source_2005/Output
+html/aarm2005/AA-TOC.html : arm_form.exe | html/aarm2005 ../source_2005/output
 	cd ../source_2005; ../build/arm_form.exe AARM HTML New-Only 2
 	rm -rf html/aarm2005/*
 	mv ../source_2005/output/* html/aarm2005
 
-txt/arm2012/RM-TOC.TXT : arm_form.exe | txt/arm2012 ../source/Output
+txt/arm2012/RM-TOC.TXT : arm_form.exe | txt/arm2012 ../source/output
 	cd ../source; ../build/arm_form.exe RM Text New-Only 3
 	rm -rf txt/arm2012/*
 	mv ../source/output/* txt/arm2012
 
-txt/arm2005/RM-TOC.TXT : arm_form.exe | txt/arm2005 ../source_2005/Output
+txt/arm2005/RM-TOC.TXT : arm_form.exe | txt/arm2005 ../source_2005/output
 	cd ../source_2005; ../build/arm_form.exe RM Text New-Only 2
 	rm -rf txt/arm2005/*
 	mv ../source_2005/output/* txt/arm2005
 
-txt/aarm2012/AA-TOC.TXT : arm_form.exe | txt/aarm2012 ../source/Output
+txt/aarm2012/AA-TOC.TXT : arm_form.exe | txt/aarm2012 ../source/output
 	cd ../source; ../build/arm_form.exe AARM Text New-Only 3
 	rm -rf txt/aarm2012/*
 	mv ../source/output/* txt/aarm2012
 
-txt/aarm2005/AA-TOC.TXT : arm_form.exe | txt/aarm2005 ../source_2005/Output
+txt/aarm2005/AA-TOC.TXT : arm_form.exe | txt/aarm2005 ../source_2005/output
 	cd ../source_2005; ../build/arm_form.exe AARM Text New-Only 2
 	rm -rf txt/aarm2005/*
 	mv ../source_2005/output/* txt/aarm2005
@@ -95,12 +96,13 @@ arm_form.exe : force
 trace :
 	addr2line -e arm_form.exe 0x5c12e7 0x5c598e 0x43e05b 0x446c5b 0x448369 0x545205 0x4e9221 0x4e3b1a 0x5831a1 0x5ad295 0x5adee9 0x4cb3f5 0x401850 0x401235 0x401286 0x7c817075
 
-html/arm2005 html/arm2012 html/aarm2005 html/aarm2012 txt/arm2005 txt/arm2012 txt/aarm2005 txt/aarm2012 ../source/Output ../source_2005 ../source_2005/Output :
+html/arm2005 html/arm2012 html/aarm2005 html/aarm2012 txt/arm2005 txt/arm2012 txt/aarm2005 txt/aarm2012 ../source/output ../source_2005 ../source_2005/output :
 	mkdir -p $@
 
 publish : publish-info publish-zip
 
-publish-info : aarm2012.info arm2012.info aarm2005.info arm2005.info
+#publish-info : aarm2005.info arm2005.info
+publish-info : aarm2012.info arm2012.info
 	tar zcf arm2012-$(ZIP_DATE).tar.gz aarm*.info arm*.info
 
 publish-zip : arm_info-$(ZIP_DATE)-src.tar.gz
@@ -185,7 +187,7 @@ clean ::
 	rm 2005-SRC.zip
 	rm -rf objects html txt
 	rm -f *.dvi *.info* *.texinfo *.log *.pdf *.stamp *.tar.gz *.toc *.zip
-	rm -rf ../source/Output ../source_2005/Output
+	rm -rf ../source/output ../source_2005/output
 
 info-clean :
 	rm -f *.info*
