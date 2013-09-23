@@ -51,6 +51,11 @@
      'error-message
      "wisi parse error")
 
+(defvar wisi-parse-max-parallel 15
+  "Maximum number of parallel parsers for acceptable performance.
+If a file needs more than this, it's probably an indication that
+the grammar is excessively redundant.")
+
 (defun wisi-parse (automaton lexer)
   "Parse input using the automaton specified in AUTOMATON.
 
@@ -90,6 +95,10 @@
 		 (result (wisi-parse-1 token parser-state (> active-parser-count 1) actions gotos)))
 	    (when result
 	      ;; spawn a new parser
+	      (when (= active-parser-count wisi-parse-max-parallel)
+		(signal 'wisi-parse-error
+			(wisi-error-msg (concat "too many parallel parsers required;"
+						" simplify grammar, or increase `wisi-parse-max-parallel'"))))
 	      (let ((j (wisi-free-parser parser-states)))
 		(cond
 		 ((= j -1)

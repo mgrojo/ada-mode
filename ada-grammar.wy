@@ -165,13 +165,15 @@
 %conflict REDUCE/REDUCE in state choice_relation, relation on token XOR
 %conflict REDUCE/REDUCE in state identifier_list, name on token COMMA
 %conflict REDUCE/REDUCE in state name, direct_name on token USE
+%conflict REDUCE/REDUCE in state primary, subtype_indication on token COMMA
+%conflict REDUCE/REDUCE in state primary, subtype_indication on token RIGHT_PAREN
+%conflict REDUCE/REDUCE in state primary, subtype_indication on token EQUAL_GREATER
 %conflict REDUCE/SHIFT in state aliased_opt, declaration on token CONSTANT
 %conflict REDUCE/SHIFT in state aspect_specification_opt, generic_instantiation on token IS
 %conflict REDUCE/SHIFT in state aspect_specification_opt, package_body_stub on token IS
 %conflict REDUCE/SHIFT in state aspect_specification_opt, protected_body_stub on token IS
 %conflict REDUCE/SHIFT in state aspect_specification_opt, subprogram_body_stub on token IS
 %conflict REDUCE/SHIFT in state aspect_specification_opt, task_body_stub on token IS
-%conflict REDUCE/SHIFT in state discrete_subtype_definition, name ( 568) on token RIGHT_PAREN
 %conflict REDUCE/SHIFT in state formal_derived_type_definition, formal_derived_type_definition on token WITH
 %conflict REDUCE/SHIFT in state generic_formal_part, generic_renaming_declaration on token FUNCTION
 %conflict REDUCE/SHIFT in state generic_formal_part, generic_renaming_declaration on token PACKAGE
@@ -180,19 +182,12 @@
 %conflict REDUCE/SHIFT in state name, aspect_clause on token USE
 %conflict REDUCE/SHIFT in state name, association on token EQUAL_GREATER
 %conflict REDUCE/SHIFT in state name, pragma_argument_association on token TICK
-%conflict REDUCE/SHIFT in state null_exclusion_opt, association on token CHARACTER_LITERAL
-%conflict REDUCE/SHIFT in state null_exclusion_opt, identifier_list on token IDENTIFIER
-%conflict REDUCE/SHIFT in state null_exclusion_opt, name on token CHARACTER_LITERAL
-%conflict REDUCE/SHIFT in state null_exclusion_opt, name on token IDENTIFIER
-%conflict REDUCE/SHIFT in state null_exclusion_opt, name on token STRING_LITERAL
 %conflict REDUCE/SHIFT in state parameter_profile_opt, generic_instantiation on token IS
 %conflict REDUCE/SHIFT in state subprogram_specification, null_procedure_declaration on token IS
 %conflict SHIFT/REDUCE in state actual_parameter_part, actual_parameter_part_opt on token LEFT_PAREN
 %conflict SHIFT/REDUCE in state attribute_designator, attribute_designator on token LEFT_PAREN
 %conflict SHIFT/REDUCE in state label_opt, label_opt on token IDENTIFIER
-%conflict SHIFT/REDUCE in state name, null_exclusion_opt on token CHARACTER_LITERAL
-%conflict SHIFT/REDUCE in state name, null_exclusion_opt on token IDENTIFIER
-%conflict SHIFT/REDUCE in state name, null_exclusion_opt on token STRING_LITERAL
+%conflict SHIFT/REDUCE in state name, discrete_subtype_definition on token RIGHT_PAREN
 %conflict SHIFT/REDUCE in state null_exclusion_opt, aliased_opt on token NOT
 
 %%
@@ -658,17 +653,16 @@ direct_name
   | STRING_LITERAL ;; operator_symbol
   ;
 
+discrete_choice
+  : choice_expression ;; includes 'name'
+  | NOT NULL name ;; from subytpe_indication, excluding constructs covered by 'name'
+  | range
+  | OTHERS
+  ;
+
 discrete_choice_list
   : discrete_choice
   | discrete_choice_list BAR discrete_choice
-  ;
-
-discrete_choice
-  : choice_expression ;; includes 'name'
-  | null_exclusion_opt name constraint ;; from subytpe_indication, excluding plain 'name'
-  | NOT NULL name                      ;; ""
-  | range
-  | OTHERS
   ;
 
  ;; discrete_range is the same as discrete_subtype_definition
@@ -695,8 +689,8 @@ discriminant_part_opt
   ;
 
 discriminant_specification
-  : identifier_list COLON null_exclusion_opt name COLON_EQUAL expression
-  | identifier_list COLON null_exclusion_opt name
+  : identifier_list COLON null_exclusion_opt_name COLON_EQUAL expression
+  | identifier_list COLON null_exclusion_opt_name
   | identifier_list COLON access_definition COLON_EQUAL expression
   | identifier_list COLON access_definition
   ;
@@ -1320,9 +1314,8 @@ name
   | name LEFT_PAREN range RIGHT_PAREN ;; slice
   | selected_component
   | attribute_reference
-  ;; | type_conversion
   | name actual_parameter_part
- ;; function_call, procedure call, generic instantiation.
+ ;; type_conversion, function_call, procedure call, generic instantiation.
     (progn
       (wisi-statement-action 1 'name-paren)
       (wisi-containing-action 1 2))
@@ -1340,6 +1333,18 @@ name_opt
 null_exclusion_opt
   : ;; empty
   | NOT NULL
+  ;
+
+;; we don't use 'null_exclusion_opt' when it is followed by 'name',
+;; because that leads to excessive parallel parsing to resolve the
+;; conflict. Instead, we use 'null_exclusion_opt_name'; not all name
+;; variants can be preceded by 'NOT NULL'.
+
+null_exclusion_opt_name
+  : IDENTIFIER
+  | selected_component
+  | NOT NULL IDENTIFIER
+  | NOT NULL selected_component
   ;
 
 null_procedure_declaration
@@ -1935,8 +1940,10 @@ subtype_declaration
   ;
 
 subtype_indication
-  : null_exclusion_opt name constraint
-  | null_exclusion_opt name
+  : NOT NULL name constraint
+  | NOT NULL name
+  | name constraint
+  | name
   ;
 
 ;; subtype_mark replaced by name

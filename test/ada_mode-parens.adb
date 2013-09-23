@@ -1,6 +1,28 @@
 --EMACSCMD:(ada-parse-prj-file "subdir/ada_mode.adp")
 --EMACSCMD:(ada-select-prj-file "subdir/ada_mode.adp")
+
+with Ada.Strings.Maps.Character_Set;
 package body Ada_Mode.Parens is
+
+   --  This used to cause exponential explosion of parallel parsers;
+   --  now it's linear.
+   No_Conditional_Set : constant Ada.Strings.Maps.Character_Set :=
+     Ada.Strings.Maps."or"
+     (Ada.Strings.Maps.To_Set (' '),
+      Ada.Strings.Maps."or"
+      (Ada.Strings.Maps.To_Set ('.'),
+       Ada.Strings.Maps."or"
+       (Ada.Strings.Maps.To_Set (','),
+        Ada.Strings.Maps."or"
+        (Ada.Strings.Maps.To_Set (':'),
+         Ada.Strings.Maps."or"
+         (Ada.Strings.Maps.To_Set (';'),
+          Ada.Strings.Maps."or"
+          (Ada.Strings.Maps.To_Set ('!'),
+           Ada.Strings.Maps."or"
+           (Ada.Strings.Maps.To_Set ('('),
+            Ada.Strings.Maps.To_Set (')'))))))));
+
    --EMACSCMD:(progn (forward-line 3)(forward-word 2)(newline)(ada-align))
    -- only one default. result is tested by .diff
    function Function_1

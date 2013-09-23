@@ -43,6 +43,7 @@ endif
 # -v 2 dumps debug info from parser table generation, continues with unused tokens, unknown conflicts
 %-wy.el : %.wy $(WISI_OPENTOKEN)/wisi-generate.exe
 	cd ./$(<D); $(WISI_OPENTOKEN)/wisi-generate.exe -v 1 $(<F) Elisp > $(*F).output
+	dos2unix $@
 
 # ../../../org.opentoken.stephe/wisi/wisi-generate.adb
 $(WISI_OPENTOKEN)/wisi-generate.exe : force

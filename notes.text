@@ -55,31 +55,7 @@ exclude .elc from .tar.gz
 
 use EMACS_EXE in makefiles
 
-parse ambiguous?
-        No_Conditional_Set : constant Ada.Strings.Maps.Character_Set :=
-         Ada.Strings.Maps."or" (Ada.Strings.Maps.To_Set (' '),
-           Ada.Strings.Maps."or" (Ada.Strings.Maps.To_Set ('.'),
-             Ada.Strings.Maps."or" (Ada.Strings.Maps.To_Set (','),
-               Ada.Strings.Maps."or" (Ada.Strings.Maps.To_Set (':'),
-                 Ada.Strings.Maps."or" (Ada.Strings.Maps.To_Set (';'),
-                   Ada.Strings.Maps."or" (Ada.Strings.Maps.To_Set ('!'),
-                     Ada.Strings.Maps."or" (Ada.Strings.Maps.To_Set ('('),
-			                      Ada.Strings.Maps.To_Set (')'))))))));
-         274 parsers in No_Conditional_Set
-        then 972, 2430
-
-        because of nested paren, 570: discrete_subtype_definition_list
-            => 271  name <= name LEFT_PAREN discrete_subtype_definition RIGHT_PAREN ^ ;; slice
-                slice is redundant with subprogram call; delete from grammar
-
-        also '.' in 460, 107
-
-        in wisi-parse-elim-identical
-            that's an n^2 algorithm!
-
-    need file-local & global variable to disable parsing/indenting
-
-    test on rest of arm_form
+test on rest of arm_form
 
 parse failing:
 

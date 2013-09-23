@@ -1,4 +1,5 @@
-;;; Utilities for implementing an indentation engine using the wisent LALR parser
+;;; Utilities for implementing an indentation engine using a
+;;; generalized LALR parser
 ;;
 ;; Copyright (C) 2012, 2013  Free Software Foundation, Inc.
 ;;
@@ -24,7 +25,7 @@
 ;;;; indentation algorithm overview
 ;;
 ;; This design is inspired in part by experience writing a SMIE
-;; indentation engine for Ada.
+;; indentation engine for Ada, and the wisent parser.
 ;;
 ;; The general approach to indenting a given token is to find the
 ;; start of the statement it is part of, or some other relevant point
@@ -36,7 +37,7 @@
 ;; not LALR(1), so we use a generalized LALR(1) parser (see
 ;; wisi-parse, wisi-compile).
 ;;
-;; The parser actions store indentation and other information as text
+;; The parser actions cache indentation and other information as text
 ;; properties of tokens in statements.
 ;;
 ;; An indentation engine moves text in the buffer, as does user
@@ -47,7 +48,7 @@
 ;; The stored information includes a marker at each statement indent
 ;; point. Thus, the indentation algorithm is: find the previous token
 ;; with cached information, and either indent from it, or fetch from
-;; it the marker for the previous statement indent point, and indent
+;; it the marker for a previous statement indent point, and indent
 ;; relative to that.
 ;;
 ;; Since we have a cache (the text properties), we need to consider
@@ -68,10 +69,11 @@
 ;; keywords so that each new keyword can be assigned a unique
 ;; precedence. This means ad hoc code must be written to determine the
 ;; correct refinement for each language keyword from the surrounding
-;; tokens. In effect, the knowledge of the language grammar is mostly
-;; embedded in the refinement code; only a small amount is in the
-;; refined grammar. Implementing a SMIE parser for a new language
-;; involves the same amount of work as the first language.
+;; tokens. In effect, for a complex language like Ada, the knowledge
+;; of the language grammar is mostly embedded in the refinement code;
+;; only a small amount is in the refined grammar. Implementing a SMIE
+;; parser for a new language involves the same amount of work as the
+;; first language.
 ;;
 ;; Using a generalized LALR parser avoids that particular problem;
 ;; assuming the language is already defined by a grammar, it is only a
@@ -101,40 +103,35 @@
 ;; running multiple parsers in parallel, persuing each choice in the
 ;; conflict. If the conflict is due to a genuine ambiguity, both paths
 ;; will succeed, which causes the parse to fail, since it is not clear
-;; which set of text properties to store. So grammar conflicts must
-;; still be analyzed and minimized.
+;; which set of text properties to store. Even if one branch
+;; ultimately fails, running parallel parsers over large sections of
+;; code is slow. Finally, this approach can lead to exponential growth
+;; in the number of parsers. So grammar conflicts must still be
+;; analyzed and minimized.
 ;;
 ;; In addition, the complete grammar must be specified; in smie, it is
 ;; often possible to specify a subset of the grammar.
 ;;
 ;;;; grammar compiler and parser
 ;;
-;; wisent on its own does not provide a way to process a plain text
-;; representation of BNF into an LALR parser table. It does provide
-;; `wisent-compile-grammar' for compiling a lisp representation of BNF
-;; into a parser table. semantic provides
-;; `semantic-grammar-create-package', which parses plain text BNF in
-;; near-bison format and outputs the lisp forms that
-;; `wisent-compile-grammar' expects.
-;;
-;; However, since we are using a generalized LALR(1) parser, we cannot
-;; use any of the wisent grammar functions. We use the OpenToken Ada
-;; package to compile wisent BNF to Elisp source (similar to
+;; Since we are using a generalized LALR(1) parser, we cannot use any
+;; of the wisent grammar functions. We use the OpenToken Ada package
+;; to compile BNF to Elisp source (similar to
 ;; semantic-grammar-create-package), and wisi-compile-grammar to
 ;; compile that to the parser table.
 ;;
-;; wisent also does not provide a lexer. Semantic provides a complex
-;; lexer, more complicated than we need for indentation. So we
-;; use the elisp lexer, which consists of `forward-comment',
-;; `skip-syntax-forward', and `scan-sexp'. We wrap that in functions
-;; that return tokens in the form wisi-parse expects.
+;; Semantic provides a complex lexer, more complicated than we need
+;; for indentation. So we use the elisp lexer, which consists of
+;; `forward-comment', `skip-syntax-forward', and `scan-sexp'. We wrap
+;; that in functions that return tokens in the form wisi-parse
+;; expects.
 ;;
 ;;; code style
 ;;
 ;; 'wisi' was originally short for "wisent indentation engine", but
 ;; now is just a name.
 ;;
-;; not using lexical-binding or cl-lib because we support Emacs 23
+;; not using lexical-binding because we support Emacs 23
 ;;
 ;;;;;
 
