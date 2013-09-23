@@ -51,6 +51,36 @@ build gnatinspect:
  general
 build/wisi/Makefile
 
+exclude .elc from .tar.gz
+
+use EMACS_EXE in makefiles
+
+parse ambiguous?
+        No_Conditional_Set : constant Ada.Strings.Maps.Character_Set :=
+         Ada.Strings.Maps."or" (Ada.Strings.Maps.To_Set (' '),
+           Ada.Strings.Maps."or" (Ada.Strings.Maps.To_Set ('.'),
+             Ada.Strings.Maps."or" (Ada.Strings.Maps.To_Set (','),
+               Ada.Strings.Maps."or" (Ada.Strings.Maps.To_Set (':'),
+                 Ada.Strings.Maps."or" (Ada.Strings.Maps.To_Set (';'),
+                   Ada.Strings.Maps."or" (Ada.Strings.Maps.To_Set ('!'),
+                     Ada.Strings.Maps."or" (Ada.Strings.Maps.To_Set ('('),
+			                      Ada.Strings.Maps.To_Set (')'))))))));
+         274 parsers in No_Conditional_Set
+        then 972, 2430
+
+        because of nested paren, 570: discrete_subtype_definition_list
+            => 271  name <= name LEFT_PAREN discrete_subtype_definition RIGHT_PAREN ^ ;; slice
+                slice is redundant with subprogram call; delete from grammar
+
+        also '.' in 460, 107
+
+        in wisi-parse-elim-identical
+            that's an n^2 algorithm!
+
+    need file-local & global variable to disable parsing/indenting
+
+    test on rest of arm_form
+
 parse failing:
 
     package Tasks is
@@ -65,6 +95,9 @@ parse failing:
     wisi-validate-cache: debug.adb:7:5: syntax error in grammar state 1026; unexpected P, expecting one of (default SEMICOLON)
 
     requeue_statement
+
+simon wright email indentation bugs
+    test/access_in_record.ads
 
 Can't capitalize keywords in comments:
 
@@ -223,9 +256,15 @@ support multiple compilation units in one file
     don't add $EOI for accept rule
 
  opentoken
-/Projects/org.opentoken.stephe/build/windows_debug/Makefile
+/Projects/org.opentoken.stephe/build/debug/Makefile
+
+resolve dynamic library names
+    windows: _version.dll
+    linux: .so.version
+    OSX:   .dylib.version
 
 delete debug_parser.adb from release
+delete build/x86_* from release
 
 GNAT 2013 changes AUnit again!
 

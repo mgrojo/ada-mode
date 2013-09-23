@@ -171,6 +171,7 @@
 %conflict REDUCE/SHIFT in state aspect_specification_opt, protected_body_stub on token IS
 %conflict REDUCE/SHIFT in state aspect_specification_opt, subprogram_body_stub on token IS
 %conflict REDUCE/SHIFT in state aspect_specification_opt, task_body_stub on token IS
+%conflict REDUCE/SHIFT in state discrete_subtype_definition, name ( 568) on token RIGHT_PAREN
 %conflict REDUCE/SHIFT in state formal_derived_type_definition, formal_derived_type_definition on token WITH
 %conflict REDUCE/SHIFT in state generic_formal_part, generic_renaming_declaration on token FUNCTION
 %conflict REDUCE/SHIFT in state generic_formal_part, generic_renaming_declaration on token PACKAGE
@@ -179,6 +180,8 @@
 %conflict REDUCE/SHIFT in state name, aspect_clause on token USE
 %conflict REDUCE/SHIFT in state name, association on token EQUAL_GREATER
 %conflict REDUCE/SHIFT in state name, pragma_argument_association on token TICK
+%conflict REDUCE/SHIFT in state null_exclusion_opt, association on token CHARACTER_LITERAL
+%conflict REDUCE/SHIFT in state null_exclusion_opt, identifier_list on token IDENTIFIER
 %conflict REDUCE/SHIFT in state null_exclusion_opt, name on token CHARACTER_LITERAL
 %conflict REDUCE/SHIFT in state null_exclusion_opt, name on token IDENTIFIER
 %conflict REDUCE/SHIFT in state null_exclusion_opt, name on token STRING_LITERAL
@@ -186,9 +189,7 @@
 %conflict REDUCE/SHIFT in state subprogram_specification, null_procedure_declaration on token IS
 %conflict SHIFT/REDUCE in state actual_parameter_part, actual_parameter_part_opt on token LEFT_PAREN
 %conflict SHIFT/REDUCE in state attribute_designator, attribute_designator on token LEFT_PAREN
-%conflict SHIFT/REDUCE in state identifier_list, null_exclusion_opt on token IDENTIFIER
 %conflict SHIFT/REDUCE in state label_opt, label_opt on token IDENTIFIER
-%conflict SHIFT/REDUCE in state name, discrete_subtype_definition_list on token RIGHT_PAREN
 %conflict SHIFT/REDUCE in state name, null_exclusion_opt on token CHARACTER_LITERAL
 %conflict SHIFT/REDUCE in state name, null_exclusion_opt on token IDENTIFIER
 %conflict SHIFT/REDUCE in state name, null_exclusion_opt on token STRING_LITERAL
@@ -1312,11 +1313,11 @@ name
   | CHARACTER_LITERAL
   ;; | explicit_dereference
   ;; | indexed_component
-  | name LEFT_PAREN discrete_subtype_definition RIGHT_PAREN ;; slice
-    (progn
-      (wisi-statement-action 1 'name-paren 2 'open-paren 4 'close-paren)
-      (wisi-containing-action 1 2)
-      (wisi-containing-action 2 3))
+
+ ;; ARM has 'name ( discrete_subtype_definition )' here, but that's
+ ;; partly redundant with 'name actual_parameter_part'; this is the
+ ;; part that is not redundant.
+  | name LEFT_PAREN range RIGHT_PAREN ;; slice
   | selected_component
   | attribute_reference
   ;; | type_conversion
