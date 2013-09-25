@@ -64,10 +64,8 @@ test-gpr : $(addsuffix .diff, $(subst subdir/,,$(GPR_TEST_FILES)))
 
 # emacs to test with
 #
-# emacs 24.2.91 and earlier define "emacs_dir".
-#
 # This can be overridden with 'make EMACS_EXE=...'.
-EMACS_EXE ?= $(emacs_dir)/bin/emacs
+EMACS_EXE ?= emacs
 
 test-elisp :
 	$(EMACS_EXE) -Q -batch -L ../../test -L ../.. -l ada-mode-test.el

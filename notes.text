@@ -42,11 +42,33 @@ build gnatinspect:
     sudo make Gnatcoll_Build=Debug install
 
 
-    c:/Apps/GNAT-7.1.2/gnatcoll-1.6w-src/docs/xref.rst
-    c:/Apps/GNAT-7.1.2/gnatcoll-1.6w-src/src/tools/gnatinspect.adb
-    (gpr-set-as-project "c:/Apps/GNAT-7.1.2/gnatcoll-1.6w-src/src/gnatcoll_tools.gpr")
-    file:///c:/Apps/GNAT-7.1.2/gnatcoll-1.6w-src/docs/_build/html/xref.html
+~/Projects/gnatcoll-1.6w-src/docs/xref.rst
+c:/Apps/GNAT-7.1.2/gnatcoll-1.6w-src/src/tools/gnatinspect.adb
+(gpr-set-as-project "c:/Apps/GNAT-7.1.2/gnatcoll-1.6w-src/src/gnatcoll_tools.gpr")
+file:///c:/Apps/GNAT-7.1.2/gnatcoll-1.6w-src/docs/_build/html/xref.html
 
+implement C++ C-c M-d parent
+
+implement C++ C-c ? children
+
+unify gnat-xref with ada-mode
+    add Ada, C++ tests of gnat-xref
+
+    /home/Projects/org.emacs.ada-mode.stephe-1/gnat-xref.el
+    /home/Projects/GDS/work_stephe_2/dscovr/build/x86_gnu_linux_release/Makefile
+    /home/Projects/GDS/work_stephe_2/common/itc/opsim/itc_dscovr_gdsi/Gds1553/src/Gds1553.cpp
+
+
+cd /home/Projects/GDS/work_stephe_2/dscovr/build/x86_gnu_linux_release/
+
+export ADA_PROJECT_PATH=../../../makerules:../../../common/build/x86_gnu_linux_release:../../../sal/build:../../../sal/build/x86_gnu_linux_release:../../../opentoken/build/linux_release
+
+gnatinspect --project=gds_dscovr_no_text_io.gpr --nightlydb=gnatinspect.db -c "refs itc_assert:Gds1553.cpp"
+
+
+C-F11 fails on #include <Itcsb1553/Itcsb1553.hpp>
+
+need std include files in search list
 
  general
 build/wisi/Makefile

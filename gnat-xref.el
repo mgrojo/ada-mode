@@ -33,88 +33,128 @@
   "Minor mode for navigating sources using GNAT cross reference tool `gnatinspect'."
   :group 'languages)
 
-(defun gnat-xref-other (identifier file line col parent)
-  "For `ada-xref-other-function', using gnatinspect."
+(defun gnat-xref-other (identifier file line col)
+  ;; For `ada-xref-other-function', using gnatinspect.
+  "Move to the declaration or body of IDENTIFIER, which is at the location FILE LINE COL.
+FILE must be absolute. If the location is the declaration, go to
+the body, and vice versa. If the location is a reference, goto
+the declaration."
+
   (unless (ada-prj-get 'gpr_file)
     (error "no gnat project file defined."))
 
   (with-current-buffer (ada-gnat-run-buffer)
-    (let* ((project-file (file-name-nondirectory (ada-prj-get 'gpr_file)))
-	   (arg (format "%s:%s:%d:%d" identifier file line col))
-	   status
-	   (result nil))
+    (let ((project-file (file-name-nondirectory
+			 (or (ada-prj-get 'gnatinspect_gpr_file)
+			     (ada-prj-get 'gpr_file))))
+	  (arg (format "%s:%s:%d:%d" identifier (file-name-nondirectory file) line col))
+	  status
+	  (regexp "\\(.*\\):\\(.*\\):\\([0-9]+\\):\\([0-9]+\\) (\\(.*\\))")
+	  (decl-loc nil)
+	  (body-loc nil)
+	  (want 'unknown) ;; 'decl 'body
+	  (result nil))
 
+      ;; 'gnatinspect refs' returns a list containing the declaration,
+      ;; the body, and all the references, in no particular order.
+      ;;
+      ;; We search the list, looking for the input location,
+      ;; declaration and body, then return the declaration or body as
+      ;; appropriate.
+      ;;
+      ;; the format of each line is name:file:line:column (type) scope=name:file:line:column
+      ;;                            1    2    3    4       5
+      ;;
+      ;; 'type' can be:
+      ;;   body
+      ;;   declaration
+      ;;   full declaration  (for a private type)
+      ;;   implicit reference
+      ;;   reference
+      ;;   static call
+      ;;
+      ;; Module_Type:/home/Projects/GDS/work_stephe_2/common/1553/gds-hardware-bus_1553-wrapper.ads:171:9 (full declaration) scope=Wrapper:/home/Projects/GDS/work_stephe_2/common/1553/gds-hardware-bus_1553-wrapper.ads:49:31
+      ;;
+      ;; itc_assert:/home/Projects/GDS/work_stephe_2/common/itc/opsim/itc_dscovr_gdsi/Gds1553/src/Gds1553.cpp:830:9 (reference) scope=Gds1553WriteSubaddress:/home/Projects/GDS/work_stephe_2/common/itc/opsim/itc_dscovr_gdsi/Gds1553/inc/Gds1553.hpp:173:24
+      (message "running gnatinspect ...")
       (setq status (ada-gnat-run "gnatinspect" (list "-P" project-file "-c" (concat "refs " arg))))
+      (message "running gnatinspect ... done.")
+      (message "parsing result ...")
 
       (cond
        ((= status 0); success
 	(goto-char (point-min))
-	(forward-line 2); skip ADA_PROJECT_PATH, echoed command
 
-	;; FIXME: change to gnatinspect, handle parent
-
-	;; gnat find returns two items; the starting point, and the 'other' point
 	(while (not result)
-	  (unless (looking-at (concat ada-gnat-file-line-col-regexp ":"))
-	    ;; no results
-	    (error "'%s' not found in cross-reference files; recompile?" identifier))
-	  (if (looking-at (concat ada-gnat-file-line-col-regexp ": warning:"))
-	      ;; error in *.gpr; ignore here.
-	      (forward-line 1)
-	    ;; else process line
-	    (let ((found-file (match-string 1))
-		  (found-line (string-to-number (match-string 2)))
-		  (found-col  (string-to-number (match-string 3))))
-	      (cond
-	       (parent
-		(skip-syntax-forward "^ ")
-		(skip-syntax-forward " ")
-		(if (looking-at (concat "derived from .* (" ada-gnat-file-line-col-regexp ")"))
-		    ;; found other item
-		    (setq result (list (match-string 1)
-				       (string-to-number (match-string 2))
-				       (1- (string-to-number (match-string 3)))))
-		  (forward-line 1)))
+	  (cond
+	   ((eobp)
+	    (pop-to-buffer (current-buffer))
+	    (error "gnatinspect did not return other item"))
 
-	       (t
-		(if (not
-		     (and
-		      (equal file found-file)
-		      (= line found-line)
-		      (= col found-col)))
-		    ;; found other item
-		    (setq result (list found-file found-line (1- found-col)))
-		  (forward-line 1)))
-	       )
-	      (when (eobp)
-		(pop-to-buffer (current-buffer))
-		(error "gnat find did not return other item"))
-	      ))))
+	   ((looking-at regexp)
+	    ;; process line
+	    (let ((found-file (match-string 2))
+		  (found-line (string-to-number (match-string 3)))
+		  (found-col  (string-to-number (match-string 4)))
+		  (found-type (match-string 5)))
+
+	      (when (string-equal found-type "declaration")
+		(setq decl-loc (list found-file found-line (1- found-col))))
+
+	      (when (or
+		     (string-equal found-type "body")
+		     (string-equal found-type "full declaration"))
+		(setq body-loc (list found-file found-line (1- found-col))))
+
+	      (when
+		  (and (eq want 'unknown)
+		       (equal found-file file)
+		       (= found-line line)
+		       (= found-col col))
+		;; search item
+		(cond
+		 ((string-equal found-type "declaration")
+		  (setq want 'body))
+
+		 (t
+		  (setq want 'decl))
+
+		 ))
+	      (cl-ecase want
+		(unknown)
+
+		(decl (when decl-loc (setq result decl-loc)))
+
+		(body (when body-loc (setq result body-loc)))
+		)
+	      ))
+
+	   (t ;; ignore line
+	    ;;
+	    ;; This skips ADA_PROJECT_PATH and echoed command at start of buffer.
+	    ;;
+	    ;; It also skips warning lines. For example,
+	    ;; gnatcoll-1.6w-20130902 can't handle the Auto_Text_IO
+	    ;; language, because it doesn't use the gprconfig
+	    ;; configuration project. That gives lines like:
+	    ;;
+	    ;; common_text_io.gpr:15:07: language unknown for "gds-hardware-bus_1553-time_tone.ads"
+	    ;;
+	    ;; There are probably other warnings that might be reported as well.
+	    )
+	   )
+	  (forward-line 1)
+	  ))
 
        (t ; failure
 	(pop-to-buffer (current-buffer))
-	(error "gnat find failed"))
+	;; gnatinspect from gnatcoll-1.6w-20130902 can't handle aggregate projects; M910-032
+	(error "gnatinspect failed; can't handle aggregate projects? - use gnatinspect_gpr_file"))
        )
+      (message "parsing result ... done")
       result)))
 
-(defun gnat-xref-all (identifier file line col)
-  "For `ada-xref-all-function'."
-  ;; we use `compilation-start' to run gnat, not `ada-gnat-run', so it
-  ;; is asynchronous, and automatically runs the compilation error
-  ;; filter.
-
-  (let* ((cmd (format "gnat find -r %s:%s:%d:%d" identifier file line col)))
-
-    (with-current-buffer (ada-gnat-run-buffer); for default-directory
-      (let ((compilation-environment (ada-prj-get 'proc_env)) ;; for ADA_PROJECT_PATH
-	    (compilation-error "reference"))
-	(when (ada-prj-get 'gpr_file)
-	  (setq cmd (concat cmd " -P" (file-name-nondirectory (ada-prj-get 'gpr_file)))))
-
-	(compilation-start cmd)
-    ))))
-
-(defconst gnatxref-overriding-regexp-alist
+(defconst gnat-xref-overriding-regexp-alist
   ;; Write_Message:C:\Projects\GDS\work_dscovr_release\common\1553\gds-mil_std_1553-utf.ads:252:25
   (list "^.*:\\(.*\\):\\([0123456789]+\\):\\([0123456789]+\\)" 1 2 3)
   "Regexp for compilation-error-regexp-alist, matching `gnatinspect overriding_recursive' output")
@@ -142,7 +182,6 @@
       (unless project-file
 	(error "no gnatinspect project file defined."))
 
-      ;; FIXME: need to provide a different compilation-regexp
       (with-current-buffer (ada-gnat-run-buffer); for default-directory
 	(let ((compilation-environment (ada-prj-get 'proc_env)) ;; for ADA_PROJECT_PATH
 	      (compilation-error "reference")
@@ -154,9 +193,10 @@
 	  ))
       )))
 
-(defun gnat-xref-goto-declaration (other-window-frame &optional parent)
+(defun gnat-xref-goto-declaration (other-window-frame)
   "Move to the declaration or body of the identifier around point.
-If at the declaration, go to the body, and vice versa.
+If at the declaration, go to the body, and vice versa. If at a
+reference, goto the declaration.
 
 OTHER-WINDOW-FRAME (default nil, set by interactive prefix)
 controls window and frame choice:
@@ -166,12 +206,15 @@ C-u     : show in other window
 C-u C-u : show in other frame
 "
   (interactive "P")
-  (let ((target (ada-gnat-xref-other
-		 (thing-at-point 'symbol)
-		 (file-name-nondirectory (buffer-file-name))
-		 (line-number-at-pos)
-		 (car (bounds-of-thing-at-point 'symbol))
-		 parent)))
+
+  (let ((target
+	 (gnat-xref-other
+	  (thing-at-point 'symbol)
+	  (buffer-file-name)
+	  (line-number-at-pos)
+	  (save-excursion
+	    (goto-char (car (bounds-of-thing-at-point 'symbol)))
+	    (1+ (current-column))))))
 
     (ada-goto-source (nth 0 target)
 		     (nth 1 target)
@@ -179,22 +222,10 @@ C-u C-u : show in other frame
 		     other-window-frame)
     ))
 
-(defun gnat-xref-show-references ()
-  "Show declaration and all references of identifier at point."
-  (interactive)
-  (ada-gnat-xref-all
-   (symbol-at-point)
-   (file-name-nondirectory (buffer-file-name))
-   (line-number-at-pos)
-   (cl-case (char-after)
-     (?\" (+ 2 (current-column))) ;; work around bug in gnat find
-     (t (1+ (current-column)))))
-  )
-
 (defun gnat-xref-goto-declaration-parent ()
   "Move to the parent type declaration of the type identifier around point."
   (interactive)
-  (gnat-xref-goto-declaration t))
+  (error "not implemented"))
 
 (defvar-local gnat-xref-map
   (let ((map (make-sparse-keymap)))
@@ -207,7 +238,8 @@ C-u C-u : show in other frame
   )  "Local keymap used for GNAT xref minor mode.")
 
 (define-minor-mode gnat-xref
-  "Minor mode for navigating sources using GNAT cross reference tool."
+  "Minor mode for navigating sources using GNAT cross reference tool.
+Enable mode if ARG is positive"
   :initial-value t
   :lighter       " gnat-xref"   ;; mode line
 
@@ -231,6 +263,6 @@ C-u C-u : show in other frame
 (provide 'gnat-xref)
 
 (add-to-list 'compilation-error-regexp-alist-alist
-	     (cons 'gnatinspect-overriding gnatxref-overriding-regexp-alist))
+	     (cons 'gnatinspect-overriding gnat-xref-overriding-regexp-alist))
 
 ;;; end of file
