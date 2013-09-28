@@ -72,7 +72,7 @@
 (defun gpr-wisi-before-cache ()
   (let ((cache (wisi-get-cache (point))))
     (when cache
-      (ecase (wisi-cache-class cache)
+      (cl-ecase (wisi-cache-class cache)
 	(block-start (wisi-indent-start ada-indent (wisi-backward-cache)))
 	(block-end (wisi-indent-start 0 cache))
 	(block-middle
@@ -96,12 +96,12 @@
     (if (not cache)
 	;; bob
 	0
-      (ecase (wisi-cache-class cache)
+      (cl-ecase (wisi-cache-class cache)
 	(block-end
 	 (wisi-indent-current 0))
 
 	(block-middle
-	 (case (wisi-cache-token cache)
+	 (cl-case (wisi-cache-token cache)
 	   (WHEN
 	    (gpr-wisi-indent-cache ada-indent-broken cache))
 	   (t
@@ -109,7 +109,7 @@
 	   ))
 
 	(block-start
-	 (case (wisi-cache-token cache)
+	 (cl-case (wisi-cache-token cache)
 	   (EQUAL_GREATER
 	    (gpr-wisi-indent-containing ada-indent cache))
 	   (t

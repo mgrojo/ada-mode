@@ -112,7 +112,7 @@ the grammar is excessively redundant.")
 		  ;; don't let the new parser execute again in this parser-index loop
 		  (setq some-pending t)
 		  (setf (wisi-parser-state-active result)
-			(case (wisi-parser-state-active result)
+			(cl-case (wisi-parser-state-active result)
 			  (shift 'pending-shift)
 			  (reduce 'pending-reduce)
 			 )))
@@ -125,7 +125,7 @@ the grammar is excessively redundant.")
 	    (when (eq 'error (wisi-parser-state-active parser-state))
 	      (setq active-parser-count (1- active-parser-count))
 	      (when (> wisi-debug 1) (message "terminate parser (%d active)" active-parser-count))
-	      (case active-parser-count
+	      (cl-case active-parser-count
 		(0
 		 (cond
 		  ((= active-parser-count-prev 1)
@@ -375,18 +375,18 @@ Return nil."
   "Return a pair (START . END), the buffer region for a nonterminal.
 STACK is the parser stack.  I and J are the indices in STACK of
 the first and last tokens of the nonterminal."
-  (let ((start (caddr (aref stack i)))
-        (end   (cdddr (aref stack j))))
+  (let ((start (cl-caddr (aref stack i)))
+        (end   (cl-cdddr (aref stack j))))
     (while (and (or (not start) (not end))
 		(/= i j))
       (cond
        ((not start)
 	;; item i is an empty production
-	(setq start (caddr (aref stack (setq i (+ i 2))))))
+	(setq start (cl-caddr (aref stack (setq i (+ i 2))))))
 
        ((not end)
 	;; item j is an empty production
-	(setq end (cdddr (aref stack (setq j (- j 2))))))
+	(setq end (cl-cdddr (aref stack (setq j (- j 2))))))
 
        (t (setq i j))))
     (and start end (cons start end))))

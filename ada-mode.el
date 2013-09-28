@@ -187,6 +187,9 @@ If nil, no contextual menu is available."
 
 ;;;; keymap and menus
 
+(defvar ada-expand nil
+  "Function to call to expand tokens (ie insert skeletons).")
+
 (defvar-local ada-mode-map
   (let ((map (make-sparse-keymap)))
     ;; C-c <letter> are reserved for users
@@ -198,6 +201,7 @@ If nil, no contextual menu is available."
     (define-key map "\C-c\C-b" 	 'ada-make-subprogram-body)
     (define-key map "\C-c\C-c"   'compile)
     (define-key map "\C-c\C-d" 	 'ada-goto-declaration)
+    (define-key map "\C-c\C-e" 	 '(lambda () (interactive) (funcall ada-expand)))
     (define-key map "\C-c\M-d" 	 'ada-goto-declaration-parent)
     (define-key map "\C-c\C-n" 	 'ada-next-statement-keyword)
     (define-key map "\C-c\C-o" 	 'ada-find-other-file)
@@ -2294,5 +2298,8 @@ The paragraph is indented on the first line."
 
 (unless (featurep 'ada-compiler)
   (require 'ada-gnat))
+
+(unless (featurep 'ada-skeletons)
+  (require 'ada-skel))
 
 ;;; end of file

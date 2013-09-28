@@ -671,7 +671,7 @@ cached token, return new indentation for point."
 		      (cl-case list-element-token
 			(WHEN ada-indent-when)
 			(t 0))))
-		  (if (equal break-point (caddr prev-token))
+		  (if (equal break-point (cl-caddr prev-token))
 		      ;; we are indenting the first token after the list-break; not hanging.
 		      (+ (current-column) 1 indent)
 		    ;; else hanging
@@ -1115,7 +1115,7 @@ Also return cache at start."
       (indent-region (region-beginning) (region-end))
 
     ;; else find start/end of current statement
-    (let* ((pos (point))
+    (let* ((pos (copy-marker (point)))
 	   (end (progn (wisi-goto-end) (point)))
 	   (end-cache (wisi-get-cache end))
 	   (start (progn (wisi-goto-start end-cache) (point))))
@@ -1125,6 +1125,10 @@ Also return cache at start."
 
 (defun ada-wisi-make-subprogram-body ()
   "For `ada-make-subprogram-body'."
+  (wisi-validate-cache (point))
+  (when wisi-parse-failed
+    (error "syntax parse failed; cannot create body"))
+
   (let* ((begin (point))
 	 (end (save-excursion (wisi-forward-find-class 'statement-end (point-max)) (point)))
 	 (cache (wisi-forward-find-class 'name end))

@@ -29,9 +29,13 @@ vpath %.el ../../ .
 # these are correct paths for Stephe's development machines; need mechanism to override?
 ifeq ($(shell uname),Linux)
 WISI_OPENTOKEN := /home/Projects/opentoken/org.opentoken.stephe/build/release
+export ADA_PROJECT_PATH=../../test/:../../test/subdir
+
 else
 # windows
 WISI_OPENTOKEN := $(CURDIR)/../../../org.opentoken.stephe/build/release
+export ADA_PROJECT_PATH=../../test/;../../test/subdir
+
 endif
 
 %.wisi-test : %-wy.el
@@ -50,10 +54,6 @@ $(WISI_OPENTOKEN)/wisi-generate.exe : force
 	$(MAKE) -C $(WISI_OPENTOKEN) wisi-generate.exe
 
 .PHONY : force
-
-GPRBUILD_TARGET := x86-windows
-%.exe : %.adb force
-	gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P wisi_opentoken_agg.gpr $(GPRBUILD_ARGS) $*
 
 byte-compile-clean :
 	cd ../..; rm -f *.elc
@@ -74,8 +74,6 @@ include ../common.make
 ADA_TEST_FILES := $(filter-out ada_mode-interactive_smie.adb, $(ADA_TEST_FILES)) # explicit smie functions
 
 test-ada : $(addsuffix .diff, $(subst subdir/,,$(ADA_TEST_FILES)))
-
-export ADA_PROJECT_PATH=../../test/;../../test/subdir
 
 # eval: (ada-parse-prj-file "wisi_opentoken.prj")
 # eval: (ada-select-prj-file "wisi_opentoken.prj")

@@ -48,8 +48,24 @@ c:/Apps/GNAT-7.1.2/gnatcoll-1.6w-src/src/tools/gnatinspect.adb
 file:///c:/Apps/GNAT-7.1.2/gnatcoll-1.6w-src/docs/_build/html/xref.html
 
 implement C++ C-c M-d parent
+    parent_types
+    overrides
+        both work
+        need them combined in gnatinspect.adb
+            try to implement that, discuss with Emmanuel
+
 
 implement C++ C-c ? children
+    /home/Projects/GDS/work_stephe_2/common/itc/itcsb/libitcsb_1553/inc/Itcsb1553/Bus.hpp
+
+    overridden_recursive
+
+    gnatinspect --project=gds_dscovr.gpr --nightlydb=gnatinspect.db -c "overridden_recursive transmit_to_bc:SubaddressTX.hpp"
+        nothing (bug?)
+        same for RX
+
+    child_types_recursive
+        works
 
 unify gnat-xref with ada-mode
     add Ada, C++ tests of gnat-xref
@@ -63,7 +79,7 @@ cd /home/Projects/GDS/work_stephe_2/dscovr/build/x86_gnu_linux_release/
 
 export ADA_PROJECT_PATH=../../../makerules:../../../common/build/x86_gnu_linux_release:../../../sal/build:../../../sal/build/x86_gnu_linux_release:../../../opentoken/build/linux_release
 
-gnatinspect --project=gds_dscovr_no_text_io.gpr --nightlydb=gnatinspect.db -c "refs itc_assert:Gds1553.cpp"
+gnatinspect --project=gds_dscovr.gpr --nightlydb=gnatinspect.db -c "parent_types SubaddressPacket:Gds1553.cpp"
 
 
 C-F11 fails on #include <Itcsb1553/Itcsb1553.hpp>
@@ -72,6 +88,17 @@ need std include files in search list
 
  general
 build/wisi/Makefile
+
+buffer-local variable to store last parse error
+    key C-c g / menu to show it, and jump to location
+    replace "toggle show parse error"
+
+multiple compilation units per buffer
+
+ada-skel.el
+    test/ada_skel.adb
+
+    bug in skeleton handling of _; if skeleton-end-hook indents, the pos of _ moves; should be a marker.
 
 Can't capitalize keywords in comments:
 
@@ -84,6 +111,10 @@ user guide
 
 test indent with standard emacs code skeleton/template
     4.01 ada-stmt.el uses (require 'skeleton)
+        and has keymap for skeletons
+
+    template system should be defined by parsing ada-grammar.wy
+        for else, but not for ada-skel
 
 Debian : emacs 24.2 (from testing), GNAT GPL 2013:
 
@@ -148,7 +179,11 @@ FIXMEs
 
 parser is too picky
     change syntax to allow empty instead of 'null;', extra , or ; in lists, etc
-    also empty expressions; if then else end if;
+        sequence_of_statements: done
+        discrete_choice_list: done
+
+    empty expressions; if then else end if;
+    empty compilation unit after context clauses
 
 parser is too slow
     try byte-compile - not enough

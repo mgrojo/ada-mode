@@ -520,7 +520,7 @@ that token. Use in a grammar action as:
 		    ;;
 		    ;; override nonterm, class and containing
 		    (progn
-		      (case (wisi-cache-class cache)
+		      (cl-case (wisi-cache-class cache)
 			(block-start
 			 (setf (wisi-cache-class cache)
 			       (cond
@@ -644,26 +644,28 @@ list (number (token_id token_id)):
 	    )
 
 	   ((listp token-number)
-	    ;; cannot be empty, but may contain 0, 1, or more token_id; token_id may be a list
+	    ;; token-number may contain 0, 1, or more token_id; token_id may be a list
+	    ;; the corresponding region may be empty
 	    ;; there must have been a prev keyword
 	    (setq target-token (cadr token-number))
 	    (when (not (listp target-token))
 	      (setq target-token (list target-token)))
 	    (setq token-number (car token-number))
 	    (setq region (cddr (nth (1- token-number) wisi-tokens)))
-	    (goto-char (car region))
-	    (while (wisi-forward-find-token target-token (cdr region) t)
-	      (setq cache (wisi-get-cache (point)))
-	      (setq mark (copy-marker (1+ (point))))
+	    (when region
+	      (goto-char (car region))
+	      (while (wisi-forward-find-token target-token (cdr region) t)
+		(setq cache (wisi-get-cache (point)))
+		(setq mark (copy-marker (1+ (point))))
 
-	      (when (null (wisi-cache-prev cache))
-		(setf (wisi-cache-prev cache) prev-keyword-mark)
-		(setf (wisi-cache-next prev-cache) mark)
-		(setq prev-keyword-mark mark)
-		(setq prev-cache cache))
+		(when (null (wisi-cache-prev cache))
+		  (setf (wisi-cache-prev cache) prev-keyword-mark)
+		  (setf (wisi-cache-next prev-cache) mark)
+		  (setq prev-keyword-mark mark)
+		  (setq prev-cache cache))
 
-	      (wisi-forward-token);; don't find same token again
-	      )
+		(wisi-forward-token);; don't find same token again
+		))
 	    )
 
 	   (t

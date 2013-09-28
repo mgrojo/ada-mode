@@ -419,6 +419,7 @@ package body Ada_Mode.Nominal is -- target 0
       declare -- target 8
 
          -- no label, zero statements between begin, declare
+         --EMACSCMD:(progn (wisi-goto-end) (looking-at "; -- target 9"))
       begin
          return Local_1;
       exception
@@ -427,7 +428,7 @@ package body Ada_Mode.Nominal is -- target 0
 
          when others =>
             return 0.0;
-      end;
+      end; -- target 9
    end
      Function_1b;
 
