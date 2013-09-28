@@ -201,8 +201,9 @@ If nil, no contextual menu is available."
     (define-key map "\C-c\C-b" 	 'ada-make-subprogram-body)
     (define-key map "\C-c\C-c"   'compile)
     (define-key map "\C-c\C-d" 	 'ada-goto-declaration)
-    (define-key map "\C-c\C-e" 	 '(lambda () (interactive) (funcall ada-expand)))
     (define-key map "\C-c\M-d" 	 'ada-goto-declaration-parent)
+    (define-key map "\C-c\C-e" 	 '(lambda () (interactive) (funcall ada-expand)))
+    (define-key map "\C-c\C-i" 	 'ada-indent-statement)
     (define-key map "\C-c\C-n" 	 'ada-next-statement-keyword)
     (define-key map "\C-c\C-o" 	 'ada-find-other-file)
     (define-key map "\C-c\M-o" 	 'ada-find-other-file-noset)
@@ -230,25 +231,25 @@ If nil, no contextual menu is available."
     ["------"        nil nil]
     ["Next compilation error"     next-error                t]
     ["Show secondary error"       ada-show-secondary-error  t]
-    ["Toggle show parser errors"  wisi-toggle-show-parser-errors t] ;; FIXME: generalize to other parsers
+    ["Show last parse error"      ada-show-parse-error      t]
     ["------"        nil nil]
-    ["Other File"                 ada-find-other-file       t]
-    ["Other File don't find decl" ada-find-other-file-noset t]
-    ["Goto Declaration/Body"      ada-goto-declaration      t]
+    ["Other file"                 ada-find-other-file       t]
+    ["Other file don't find decl" ada-find-other-file-noset t]
+    ["Goto declaration/body"      ada-goto-declaration      t]
     ["Goto parent declaration"    ada-goto-declaration-parent t]
     ["Show references"            ada-show-references       t]
     ["Show overriding"            ada-show-overriding       t]
     ["------"        nil nil]
     ("Edit"
-     ["Indent Line"                 indent-for-tab-command  t]
-     ["Indent Lines in Selection or current statement"   ada-indent-region       t]
-     ["Indent Lines in File"        (indent-region (point-min) (point-max))  t]
+     ["Indent line"                 indent-for-tab-command  t]
+     ["Indent current statement"    ada-indent-statement       t]
+     ["Indent lines in file"        (indent-region (point-min) (point-max))  t]
      ["Align"                       ada-align               t]
-     ["Comment Selection"           comment-region               t]
-     ["Uncomment Selection"         (comment-region t) t]
-     ["Fill Comment Paragraph"         ada-fill-comment-paragraph           t]
-     ["Fill Comment Paragraph Justify" (ada-fill-comment-paragraph 'full)   t]
-     ["Fill Comment Paragraph Postfix" (ada-fill-comment-paragraph 'full t) t]
+     ["Comment selection"           comment-region               t]
+     ["Uncomment selection"         (comment-region t) t]
+     ["Fill comment paragraph"         ada-fill-comment-paragraph           t]
+     ["Fill comment paragraph justify" (ada-fill-comment-paragraph 'full)   t]
+     ["Fill comment paragraph postfix" (ada-fill-comment-paragraph 'full t) t]
      ["---" nil nil]
      ["Make body for subprogram"    ada-make-subprogram-body     t]
      )
@@ -269,16 +270,16 @@ If nil, no contextual menu is available."
   (forward-char 1)
   (funcall indent-line-function))
 
-(defvar-local ada-indent-region nil
-  "Function to indent the current region, or the current statement/declaration if region is not active.
+(defvar-local ada-indent-statement nil
+  "Function to indent the current current statement/declaration.
 Function is called with no arguments.
 Supplied by indentation engine parser.")
 
-(defun ada-indent-region ()
+(defun ada-indent-statement ()
   "Return t if point is inside the parameter-list of a subprogram declaration."
   (interactive)
-  (when ada-indent-region
-    (funcall ada-indent-region)))
+  (when ada-indent-statement
+    (funcall ada-indent-statement)))
 
 ;;;; abbrev, align
 
@@ -577,6 +578,15 @@ Each parameter declaration is represented by a list
 	(insert "; "))
       )
     ))
+
+(defvar-local ada-show-parse-error nil
+  "Function to show last error reported by indentation parser."
+  )
+
+(defun ada-show-parse-error ()
+  (interactive)
+  (when ada-show-parse-error
+    (funcall ada-show-parse-error)))
 
 ;;;; context menu
 

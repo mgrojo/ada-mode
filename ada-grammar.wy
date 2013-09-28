@@ -154,7 +154,7 @@
 %token <string-single> CHARACTER_LITERAL
 ;; wisi lexer treats numeric_literal as identifier, and that's good enough for our purposes
 
-%start compilation_unit
+%start compilation_unit_list
 
 ;; known conflicts that are resolved by generalized LALR parser
 %conflict REDUCE/REDUCE in state abstract_limited_opt, abstract_limited_synchronized_opt on token NEW
@@ -505,11 +505,20 @@ choice_relation
   | simple_expression
   ;
 
+;; since we allow multiple compilation units in one parse, and don't
+;; require a library_item in order to be user friendly, we don't need
+;; a 'context_clause', since a list of context_items is just a
+;; compilation_unit_list. Since context_item includes pragma, this
+;; also allows a pragma following a compilation_unit.
 compilation_unit
-  : context_clause library_item pragma_opt
-  | library_item pragma_opt
-  | context_clause subunit
+  : context_item
+  | library_item
   | subunit
+  ;
+
+compilation_unit_list
+  : compilation_unit
+  | compilation_unit_list compilation_unit
   ;
 
 component_clause
@@ -588,11 +597,6 @@ constraint
  ;; | delta_constraint ;; not in any code I have
   | index_constraint
  ;; | discriminant_constraint ;; not in any code I have
-  ;
-
-context_clause
-  : context_item
-  | context_clause context_item
   ;
 
 context_item : pragma | with_clause | use_clause;
@@ -1521,11 +1525,6 @@ pragma_argument_association
 pragma_argument_association_list
   : pragma_argument_association
   | pragma_argument_association_list COMMA pragma_argument_association
-  ;
-
-pragma_opt
-  : ;; empty
-  | pragma
   ;
 
 ;; prefix is name

@@ -89,16 +89,25 @@ need std include files in search list
  general
 build/wisi/Makefile
 
-buffer-local variable to store last parse error
-    key C-c g / menu to show it, and jump to location
-    replace "toggle show parse error"
-
-multiple compilation units per buffer
-
 ada-skel.el
     test/ada_skel.adb
 
+    add else placeholders?
+        see Georg email for ada-grammar hack
+            or force comment syntax
+        add 'placeholder text property, before-change that deletes it/checks for "..."
+        add goto-next-/prev-placeholder, kill-placeholder
+
     bug in skeleton handling of _; if skeleton-end-hook indents, the pos of _ moves; should be a marker.
+
+parser is too picky
+    change syntax to allow empty instead of 'null;', extra , or ; in lists, etc
+        sequence_of_statements: done
+        discrete_choice_list: done
+
+    empty compilation unit after context clauses: done
+
+    empty expressions; if then else end if;
 
 Can't capitalize keywords in comments:
 
@@ -109,12 +118,8 @@ gpr C-F11 on 'with' handle relative path
 
 user guide
 
-test indent with standard emacs code skeleton/template
-    4.01 ada-stmt.el uses (require 'skeleton)
-        and has keymap for skeletons
-
-    template system should be defined by parsing ada-grammar.wy
-        for else, but not for ada-skel
+template system should be defined by parsing ada-grammar.wy
+    for else, but not for ada-skel
 
 Debian : emacs 24.2 (from testing), GNAT GPL 2013:
 
@@ -176,14 +181,6 @@ FIXMEs
 
 'Access gives wrong face to following token:
      Percent_Percent & EOF + Output_Elisp'Access and
-
-parser is too picky
-    change syntax to allow empty instead of 'null;', extra , or ; in lists, etc
-        sequence_of_statements: done
-        discrete_choice_list: done
-
-    empty expressions; if then else end if;
-    empty compilation unit after context clauses
 
 parser is too slow
     try byte-compile - not enough

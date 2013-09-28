@@ -40,9 +40,6 @@
        line col
        (apply 'format message args))))
 
-(defun wisi-error (message &rest args)
-  (error (wisi-error-msg message args)))
-
 (defvar wisi-parse-error nil)
 (put 'wisi-parse-error
      'error-conditions

@@ -395,55 +395,63 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
 2 : show parse states, position point at parse errors, debug-on-error works in parser
 3 : dump parser stack.")
 
-(defun wisi-toggle-show-parser-errors ()
-  "Toggle showing wisi-parse errors."
+(defvar-local wisi-parse-error-msg nil)
+
+(defun wisi-goto-error ()
+  "Move point to position in last error message (if any)."
+  (when (string-match ":\\([0-9]+\\):\\([0-9]+\\):" wisi-parse-error-msg)
+    (let ((line (string-to-number (match-string 1 wisi-parse-error-msg)))
+	  (col (string-to-number (match-string 2 wisi-parse-error-msg))))
+      (goto-char (point-min))
+      (forward-line (1- line))
+      (forward-char col))))
+
+(defun wisi-show-parse-error ()
+  "Show last wisi-parse error."
   (interactive)
-  (if (= wisi-debug 0)
-      (setq wisi-debug 1)
-     (setq wisi-debug 0)))
+  (if wisi-parse-failed
+      (progn
+	(message wisi-parse-error-msg)
+	(wisi-goto-error))
+    (message "parse succeeded")))
 
 (defun wisi-validate-cache (pos)
   "Ensure cached data is valid at least up to POS in current buffer."
   (when (and wisi-parse-try
 	    (< wisi-cache-max pos))
-    (let (msg)
-      (when (> wisi-debug 0)
-	(message "wisi: parsing ..."))
+    (when (> wisi-debug 0)
+      (message "wisi: parsing ..."))
 
-      (setq wisi-parse-try nil)
-      (save-excursion
-	(goto-char wisi-cache-max)
-	(if (> wisi-debug 1)
-	    ;; let debugger stop in wisi-parse
+    (setq wisi-parse-try nil)
+    (setq wisi-parse-error-msg nil)
+    (save-excursion
+      (goto-char wisi-cache-max)
+      (if (> wisi-debug 1)
+	  ;; let debugger stop in wisi-parse
+	  (progn
+	    (wisi-parse wisi-parse-table 'wisi-forward-token)
+	    (setq wisi-cache-max (point))
+	    (setq wisi-parse-failed nil))
+	;; else capture errors from bad syntax, so higher level functions can try to continue
+	(condition-case err
 	    (progn
 	      (wisi-parse wisi-parse-table 'wisi-forward-token)
 	      (setq wisi-cache-max (point))
 	      (setq wisi-parse-failed nil))
-	  ;; else capture errors from bad syntax, so higher level functions can try to continue
-	  (condition-case err
-	      (progn
-		(wisi-parse wisi-parse-table 'wisi-forward-token)
-		(setq wisi-cache-max (point))
-		(setq wisi-parse-failed nil))
-	    (wisi-parse-error
-	      (setq wisi-parse-failed t)
-	      (setq msg (cdr err)))
-	    )))
-      (if msg
-	  ;; error
-	  (when (> wisi-debug 0)
-	    (message "wisi: parsing ... error")
-	    (when (string-match ":\\([0-9]+\\):\\([0-9]+\\):" msg)
-	      (let ((line (string-to-number (match-string 1 msg)))
-		    (col (string-to-number (match-string 2 msg))))
-		(goto-char (point-min))
-		(forward-line (1- line))
-		(forward-char col)
-		(error msg))))
-	;; no msg; success
+	  (wisi-parse-error
+	   (setq wisi-parse-failed t)
+	   (setq wisi-parse-error-msg (cdr err)))
+	  )))
+    (if wisi-parse-error-msg
+	;; error
 	(when (> wisi-debug 0)
-	  (message "wisi: parsing ... done")))
-      )))
+	  (message "wisi: parsing ... error")
+	  (wisi-goto-error)
+	  (error msg))
+      ;; no msg; success
+      (when (> wisi-debug 0)
+	(message "wisi: parsing ... done")))
+    ))
 
 (defun wisi-get-containing-cache (cache)
   "Return cache from (wisi-cache-containing CACHE)."
