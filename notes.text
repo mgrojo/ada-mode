@@ -92,21 +92,13 @@ build/wisi/Makefile
 ada-skel.el
     test/ada_skel.adb
 
-    protected spec?
-
     package/task/protected body
         need to dispatch on name, two words
         could just special case in ada-skel-expand
 
-    add else placeholders?
-        see Georg email for ada-grammar hack
-            or force comment syntax
-        add 'placeholder text property, before-change that deletes it/checks for "..."
-        add goto-next-/prev-placeholder, kill-placeholder
-
-        need to expand placeholder into menu; that's the key else feature
-
-    bug in skeleton handling of _; if skeleton-end-hook indents, the pos of _ moves; should be a marker.
+electric paren?
+    typing ( inserts ), moves point back
+        sometimes not what we want - use C-q ( or ( <delete>
 
 parser is too picky
     change syntax to allow empty instead of 'null;', extra , or ; in lists, etc
@@ -262,17 +254,21 @@ ada-find-other-file in separate bodies
         tell adacore how well it works
         waiting for gnatcoll 1.5
 
-rest of ada-mode
-    merge all of ada-mode-patches, most of ada-mode-keys
-    process patches in ada-mode email
+help -> manual looked for arm95
 
-    help -> manual looked for arm95
+check emacs buglist
+    http://debbugs.gnu.org/cgi/pkgreport.cgi?package=ada-mode
 
-    check emacs buglist
-        http://debbugs.gnu.org/cgi/pkgreport.cgi?package=ada-mode
+skeleton enhancements
+    add else placeholders?
+        see Georg email for ada-grammar hack
+            or force comment syntax
+        add 'placeholder text property, before-change that deletes it/checks for "..."
+        add goto-next-/prev-placeholder, kill-placeholder
 
-support multiple compilation units in one file
-    don't add $EOI for accept rule
+        need to expand placeholder into menu; that's the key else feature
+
+    bug in skeleton handling of _; if skeleton-end-hook indents, the pos of _ moves; should be a marker.
 
  opentoken
 /Projects/org.opentoken.stephe/build/debug/Makefile

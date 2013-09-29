@@ -201,9 +201,12 @@ package body Ada_Mode.Nominal is -- target 0
          end return;
       end; -- no F2 on purpose
 
-      entry E1 (X : Integer) when Local_1 = 0 is
+      --EMACSCMD:(progn (forward-line 1)(comment-forward 1)(ada-next-statement-keyword)(looking-at "when Local_1"))
+      entry E1 (X : Integer) when Local_1 = 0 is -- target E1
          Tmp : Integer := 0;
          Local_4 : Discrete_Type_1 := A;
+         --EMACSCMD:(progn (forward-line 2)(comment-forward 1)(ada-prev-statement-keyword)(looking-at "is -- target E1"))
+         --EMACSCMD:(progn (forward-line 1)(comment-forward 1)(ada-next-statement-keyword)(looking-at "end E1;"))
       begin
          Local_1 :=
            X + Tmp;

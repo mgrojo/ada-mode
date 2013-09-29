@@ -7,7 +7,8 @@ all : byte-compile compile-ada-clean compile-ada test-clean test
 update : ../../ada-grammar-wy.el ../../gpr-grammar-wy.el  byte-compile
 
 # *-wy.el are in monotone, so this is all we need after a monotone update
-byte-compile :
+# doing byte-compile-clean first avoids errors caused by loading new source on old .elc
+byte-compile : byte-compile-clean
 	cd ../../; $(EMACS_EXE) -Q -batch -L . -f batch-byte-compile *.el
 
 test : test-ada test-gpr test-elisp
@@ -20,7 +21,7 @@ test-wisi :: subprograms.wisi-test
 test-wisi :: empty_production_6.wisi-test
 test-wisi :: empty_production_8.wisi-test
 
-one : gds_test.gpr.diff
+one : ada_skel.adb.diff
 two : debug.adb.diff
 
 vpath %.wy ../../ ../../test/wisi

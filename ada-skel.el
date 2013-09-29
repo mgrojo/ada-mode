@@ -74,6 +74,12 @@
 ;; no ada-skel-body because package, task, protected bodies are
 ;; different; need more stuff like ada-make-subprogram-body.
 
+(define-skeleton ada-skel-accept
+  "Insert accept statement with name from `str'."
+  ()
+  "accept " str " do\n"
+  "end " str ";")
+
 (define-skeleton ada-skel-case
   "Insert case statement."
   ()
@@ -90,6 +96,14 @@
   "begin\n"
   "exception\n"
   "end " str | -1 ?\;)
+
+(define-skeleton ada-skel-entry
+  "Insert entry statement with name from `str'."
+  ()
+  "entry " str " when " _ "\n"
+  "is\n"
+  "begin\n"
+  "end " str ";")
 
 (define-skeleton ada-skel-for
   "Insert a for loop statement with an optional name (from `str')."
@@ -123,12 +137,27 @@ See `ada-find-other-file' to create library level package body from spec."
   "private\n"
   "end " str ";")
 
+(define-skeleton ada-skel-protected
+  "Insert a protected type specification with name from `str'."
+  ()
+  "protected type " str " is\n"
+  _
+  "private\n"
+  "end " str ";")
+
 (define-skeleton ada-skel-record
   "Insert a record type declaration with a type name from `str'."
   ()
   "type " str " is record\n"
   _
   "end record;")
+
+(define-skeleton ada-skel-return
+  "Insert an extended return statement."
+  ()
+  "return" _ "\n"
+  "do\n"
+  "end return;")
 
 (define-skeleton ada-skel-select
   "Insert a select statement."
@@ -155,13 +184,17 @@ See `ada-find-other-file' to create library level package body from spec."
 ;;;;; token alist
 
 (defconst ada-skel-token-alist
-  '(("case" . ada-skel-case)
+  '(("accept" . ada-skel-accept)
+    ("case" . ada-skel-case)
     ("declare" . ada-skel-declare)
+    ("entry" . ada-skel-entry)
     ("for" . ada-skel-for)
     ("if" . ada-skel-if)
     ("loop" . ada-skel-loop)
     ("package" . ada-skel-package)
+    ("protected" . ada-skel-protected)
     ("record" . ada-skel-record)
+    ("return" . ada-skel-return)
     ("select" . ada-skel-select)
     ("task" . ada-skel-task)
     ("while" . ada-skel-while))
@@ -190,11 +223,10 @@ it is a name, and use the word before that as the token."
 	     (point)))
 	  (funcall skel name))
 
-      ;; word at point is not a token; assume it is a name
+      ;; word after point is not a token; assume it is a name
       (if name
 	  ;; already tried that once, don't recurse
 	  (error "undefined skeleton token: %s" name)
-	(skip-syntax-backward "w_") ;; name
 	(skip-syntax-backward " ")
 	(ada-skel-expand token)))
     ))
