@@ -568,6 +568,11 @@ component_list
     (wisi-statement-action 1 'statement-start 2 'statement-end)
   ;
 
+component_list_opt
+  : ;; empty
+  | component_list
+  ;
+
 compound_statement
   : if_statement
   | case_statement
@@ -726,7 +731,7 @@ elsif_expression_list
   ;
 
 elsif_statement_item
-  : ELSIF expression THEN sequence_of_statements_opt
+  : ELSIF expression_opt THEN sequence_of_statements_opt
     (progn
       (wisi-statement-action 1 'statement-other 3 'block-middle)
       (wisi-containing-action 1 2)
@@ -835,8 +840,13 @@ exception_handler_list
   | exception_handler_list exception_handler
   ;
 
+exception_handler_list_opt
+  : ;; empty for user friendly
+  | exception_handler_list
+  ;
+
 exit_statement
-  : EXIT identifier_opt WHEN expression SEMICOLON
+  : EXIT identifier_opt WHEN expression_opt SEMICOLON
     (progn
       (wisi-statement-action 1 'statement-start 3 'statement-other 5 'statement-end)
       (wisi-containing-action 3 4))
@@ -851,6 +861,11 @@ expression
   | relation_or_list
   | relation_or_else_list
   | relation_xor_list
+  ;
+
+expression_opt
+  : ;; empty for user friendly
+  | expression
   ;
 
 extended_return_object_declaration
@@ -1077,7 +1092,7 @@ generic_subprogram_declaration
   ;
 
 handled_sequence_of_statements
-  : sequence_of_statements EXCEPTION exception_handler_list
+  : sequence_of_statements_opt EXCEPTION exception_handler_list_opt
     (progn
       (wisi-statement-action 2 'block-middle)
       (wisi-containing-action 2 3)
@@ -1127,7 +1142,7 @@ if_expression
   ;
 
 if_statement
-  : IF expression THEN sequence_of_statements_opt elsif_statement_list ELSE sequence_of_statements_opt END IF SEMICOLON
+  : IF expression_opt THEN sequence_of_statements_opt elsif_statement_list ELSE sequence_of_statements_opt END IF SEMICOLON
     (progn
       (wisi-statement-action 1 'statement-start 3 'block-middle 6 'block-middle 8 'block-end 10 'statement-end)
       (wisi-containing-action 1 2)
@@ -1135,21 +1150,21 @@ if_statement
       (wisi-containing-action 3 5)
       (wisi-containing-action 6 7)
       (wisi-motion-action 1 3 '(5 (ELSIF THEN)) 6 8))
-  | IF expression THEN sequence_of_statements_opt elsif_statement_list END IF SEMICOLON
+  | IF expression_opt THEN sequence_of_statements_opt elsif_statement_list END IF SEMICOLON
     (progn
       (wisi-statement-action 1 'statement-start 3 'block-middle 6 'block-end 9 'statement-end)
       (wisi-containing-action 1 2)
       (wisi-containing-action 3 4)
       (wisi-containing-action 3 5)
       (wisi-motion-action 1 3 '(5 (ELSIF THEN)) 6))
-  | IF expression THEN sequence_of_statements_opt ELSE sequence_of_statements_opt END IF SEMICOLON
+  | IF expression_opt THEN sequence_of_statements_opt ELSE sequence_of_statements_opt END IF SEMICOLON
     (progn
       (wisi-statement-action 1 'statement-start 3 'block-middle 5 'block-middle 7 'block-end 9 'statement-end)
       (wisi-containing-action 1 2)
       (wisi-containing-action 3 4)
       (wisi-containing-action 5 6)
       (wisi-motion-action 1 3 5 7))
-  | IF expression THEN sequence_of_statements_opt END IF SEMICOLON
+  | IF expression_opt THEN sequence_of_statements_opt END IF SEMICOLON
     (progn
       (wisi-statement-action 1 'statement-start 3 'block-middle 5 'block-end 7 'statement-end)
       (wisi-containing-action 1 2)
@@ -1201,26 +1216,31 @@ interface_type_definition
 ;
 
 iteration_scheme
-  : WHILE expression
+  : WHILE expression_opt
     (progn
       (wisi-statement-action 1 'statement-start)
       (wisi-containing-action 1 2))
-  | FOR loop_parameter_specification
-    (progn
-      (wisi-statement-action 1 'statement-start)
-      (wisi-containing-action 1 2))
-  | FOR iterator_specification
+  | FOR iterator_specification_opt
     (progn
       (wisi-statement-action 1 'statement-start)
       (wisi-containing-action 1 2))
   ;
 
 iterator_specification
-;; : IDENTIFIER IN [reverse] iterator_name ;; covered by loop_parameter_specification
-  : IDENTIFIER COLON subtype_indication OF REVERSE name
+ ;; also loop_parameter_specification, to avoid redundancy bewteen
+ ;; iterator_specification_opt and loop_parameter_specification_opt
+ ;;
+  : IDENTIFIER IN REVERSE discrete_subtype_definition
+  | IDENTIFIER IN discrete_subtype_definition
+  | IDENTIFIER COLON subtype_indication OF REVERSE name
   | IDENTIFIER COLON subtype_indication OF name
   | IDENTIFIER OF REVERSE name
   | IDENTIFIER OF name
+  ;
+
+iterator_specification_opt
+  : ;; empty
+  | iterator_specification
   ;
 
 label_opt
@@ -1251,11 +1271,6 @@ library_unit_renaming_declaration
  ;; : package_renaming_declaration
   : generic_renaming_declaration
  ;; | subprogram_renaming_declaration
-  ;
-
-loop_parameter_specification
-  : IDENTIFIER IN REVERSE discrete_subtype_definition
-  | IDENTIFIER IN discrete_subtype_definition
   ;
 
 loop_statement
@@ -1437,7 +1452,7 @@ package_body
   ;
 
 package_body_stub
-  : PACKAGE BODY name IS aspect_specification_opt SEPARATE SEMICOLON
+  : PACKAGE BODY name IS SEPARATE aspect_specification_opt SEMICOLON
     (wisi-statement-action 1 'statement-start 7 'statement-end)
   ;
 
@@ -1646,11 +1661,7 @@ qualified_expression
   ;
 
 quantified_expression
-  : FOR quantifier loop_parameter_specification EQUAL_GREATER expression
-    (progn
-      (wisi-statement-action 4 'statement-other)
-      (wisi-containing-action 4 5))
-  | FOR quantifier iterator_specification EQUAL_GREATER expression
+  : FOR quantifier iterator_specification EQUAL_GREATER expression
     (progn
       (wisi-statement-action 4 'statement-other)
       (wisi-containing-action 4 5))
@@ -1681,7 +1692,7 @@ real_range_specification_opt
   ;
 
 record_definition
-  : RECORD component_list END RECORD
+  : RECORD component_list_opt END RECORD
     (progn
       (wisi-statement-action 1 'block-start 3 'block-end)
       (wisi-containing-action 1 2))
@@ -1777,13 +1788,13 @@ selected_component
 ;;  : IDENTIFIER | CHARACTER_LITERAL | STRING_LITERAL ; ;; operator_symbol
 
 selective_accept
-  : SELECT select_alternative_list ELSE sequence_of_statements_opt END SELECT SEMICOLON
+  : SELECT select_alternative_list_opt ELSE sequence_of_statements_opt END SELECT SEMICOLON
     (progn
       (wisi-statement-action 1 'block-start 3 'block-middle 5 'block-end 7 'statement-end)
       (wisi-containing-action 1 2)
       (wisi-containing-action 3 4)
       (wisi-motion-action 1 '(2 OR) 3 5))
-  | SELECT select_alternative_list END SELECT SEMICOLON
+  | SELECT select_alternative_list_opt END SELECT SEMICOLON
     (progn
       (wisi-statement-action 1 'block-start 3 'block-end 5 'statement-end)
       (wisi-containing-action 1 2)
@@ -1818,6 +1829,11 @@ select_alternative_list
   : select_alternative
   | select_alternative_list OR select_alternative
     (wisi-statement-action 2 'block-middle)
+  ;
+
+select_alternative_list_opt
+  : ;; empty
+  | select_alternative_list
   ;
 
 select_statement

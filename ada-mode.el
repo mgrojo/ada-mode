@@ -271,7 +271,7 @@ If nil, no contextual menu is available."
   (funcall indent-line-function))
 
 (defvar-local ada-indent-statement nil
-  "Function to indent the current current statement/declaration.
+  "Function to indent the statement/declaration point is in or after.
 Function is called with no arguments.
 Supplied by indentation engine parser.")
 

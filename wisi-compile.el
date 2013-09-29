@@ -47,8 +47,13 @@
 ;;
 ;;;;
 
-;; can't just 'require'; `wisent-with-context' doesn't work.
-(load (locate-library "semantic/wisent/comp.el"))
+(eval-when-compile
+  ;; can't just 'require'; `wisent-with-context' doesn't work.
+  ;; also can't load .elc; must load .el
+  (load (locate-library "semantic/wisent/comp.el")))
+
+(eval-and-compile
+  (require 'semantic/wisent/comp))
 
 (defun wisi-compose-action (value symbol-array nonterms)
   (let ((symbol (intern-soft (format "%s:%d" (car value) (cdr value)) symbol-array))

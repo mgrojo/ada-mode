@@ -1112,9 +1112,14 @@ Also return cache at start."
     (wisi-validate-cache (point)))
 
   (let* ((pos (copy-marker (point)))
-	 (end (progn (wisi-goto-end) (point)))
-	 (end-cache (wisi-get-cache end))
-	 (start (progn (wisi-goto-start end-cache) (point))))
+	 (cache (or (wisi-get-cache (point))
+		    (wisi-backward-cache)))
+	 (start (progn (wisi-goto-start cache) (point)))
+	 (end (progn
+		(when (wisi-cache-end cache)
+		  ;; nil when cache is statement-end
+		  (goto-char (1- (wisi-cache-end cache))))
+		(point))))
     (indent-region start end)
     (goto-char pos)
     ))
@@ -1310,6 +1315,7 @@ Also return cache at start."
 (defun ada-wisi-debug-keys ()
   "Add debug key definitions to `ada-mode-map'."
   (interactive)
+  (define-key ada-mode-map "\M-e" 'wisi-show-parse-error)
   (define-key ada-mode-map "\M-h" 'wisi-show-containing-or-previous-cache)
   (define-key ada-mode-map "\M-i" 'wisi-goto-end)
   (define-key ada-mode-map "\M-j" 'wisi-show-cache)

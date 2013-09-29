@@ -2,14 +2,14 @@ General notes on implementing the Emacs Ada mode indentation engine using the wi
 
 run wisi test from emacs -Q:
 (progn
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-1")
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-1/build")
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-1/build/wisi")
+  (add-to-list 'load-path "/home/Projects/org.emacs.ada-mode.stephe-1")
+  (add-to-list 'load-path "/home/Projects/org.emacs.ada-mode.stephe-1/build")
+  (add-to-list 'load-path "/home/Projects/org.emacs.ada-mode.stephe-1/build/wisi")
   (global-font-lock-mode -1)
   (setq debug-on-error t)
   (load "run-indent-test-wisi")
-  (setq default-directory "/Projects/org.emacs.ada-mode.stephe-1/build/wisi/")
-  (run-test "../../test/gpr/gds_test.gpr"))
+  (setq default-directory "/home/Projects/org.emacs.ada-mode.stephe-1/build/wisi/")
+  (run-test "../../test/ada_skel.adb"))
 
 (setq wisi-debug 2)
 (setq wisent-parse-max-stack-size 40)
@@ -92,11 +92,19 @@ build/wisi/Makefile
 ada-skel.el
     test/ada_skel.adb
 
+    protected spec?
+
+    package/task/protected body
+        need to dispatch on name, two words
+        could just special case in ada-skel-expand
+
     add else placeholders?
         see Georg email for ada-grammar hack
             or force comment syntax
         add 'placeholder text property, before-change that deletes it/checks for "..."
         add goto-next-/prev-placeholder, kill-placeholder
+
+        need to expand placeholder into menu; that's the key else feature
 
     bug in skeleton handling of _; if skeleton-end-hook indents, the pos of _ moves; should be a marker.
 
@@ -172,8 +180,6 @@ FIXMEs
     context menus
 
     project files on menu
-
-    manual
 
     test/ada_mode-generic_package.ads
     ada-next-statement-keyword on 'generic' broken due to "procedure-spec" in access type

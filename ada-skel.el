@@ -66,31 +66,105 @@
 
 ;; We don't define skeletons that prompt for most of the content; it
 ;; is easier just to type in the buffer.
+;;
+;; These skeletons are not intended to teach a novice the language,
+;; just to make it easier to write code that the ada-wisi parser
+;; likes, and handle repeated names nicely.
+
+;; no ada-skel-body because package, task, protected bodies are
+;; different; need more stuff like ada-make-subprogram-body.
 
 (define-skeleton ada-skel-case
-  "Build skeleton case statement.
-Prompt for the selector expression.  Also builds the first when clause."
-  "[selector expression]: "
-  "case " str " is" \n
-  "when " _ "=>" \n
-  \n
+  "Insert case statement."
+  ()
+  "case " str " is\n"
+  "when " _ "=>\n"
   "end case;")
 
 (define-skeleton ada-skel-declare
-  "Insert a block with a declare part.
-Indent for the first declaration."
-  "[block name]: "
+  "Insert a block statement with an optional name (from `str')."
+  ()
   str & ":\n"
   "declare\n"
   _
   "begin\n"
+  "exception\n"
   "end " str | -1 ?\;)
+
+(define-skeleton ada-skel-for
+  "Insert a for loop statement with an optional name (from `str')."
+  ()
+  str & ":\n"
+  "for " _ " loop\n"
+  "end loop " str | -1 ";")
+
+(define-skeleton ada-skel-if
+  "Insert an if statement."
+  ()
+  "if " _ " then\n"
+  "elsif  then\n"
+  "else\n"
+  "end if;")
+
+(define-skeleton ada-skel-loop
+  "Insert a loop statement with an optional name (from `str')."
+  ()
+  str & ":\n"
+  "loop\n"
+  "exit " str | -1 " when " _ ";\n"
+  "end loop " str | -1 ";")
+
+(define-skeleton ada-skel-package
+  "Insert a package specification with name from `str'.
+See `ada-find-other-file' to create library level package body from spec."
+  ()
+  "package " str " is\n"
+  _
+  "private\n"
+  "end " str ";")
+
+(define-skeleton ada-skel-record
+  "Insert a record type declaration with a type name from `str'."
+  ()
+  "type " str " is record\n"
+  _
+  "end record;")
+
+(define-skeleton ada-skel-select
+  "Insert a select statement."
+  ()
+  "select\n"
+  _
+  "else\n"
+  "end select;")
+
+(define-skeleton ada-skel-task
+  "Insert a task specification with name from `str'."
+  ()
+  "task " str " is\n"
+  _
+  "end " str ";")
+
+(define-skeleton ada-skel-while
+  "Insert a while loop statement with an optional name (from `str')."
+  ()
+  str & ":\n"
+  "while " _ " loop\n"
+  "end loop " str | -1 ";")
 
 ;;;;; token alist
 
 (defconst ada-skel-token-alist
   '(("case" . ada-skel-case)
-    ("declare" . ada-skel-declare))
+    ("declare" . ada-skel-declare)
+    ("for" . ada-skel-for)
+    ("if" . ada-skel-if)
+    ("loop" . ada-skel-loop)
+    ("package" . ada-skel-package)
+    ("record" . ada-skel-record)
+    ("select" . ada-skel-select)
+    ("task" . ada-skel-task)
+    ("while" . ada-skel-while))
   "alist of skeletons, indexed by a string. See `ada-skel-expand'.
 The string is normally the first Ada keyword in the skeleton, but can be anything.")
 
@@ -127,7 +201,7 @@ it is a name, and use the word before that as the token."
 
 (defun ada-skel-setup ()
   "Set buffer-local values for ada-skel."
-  (add-hook 'skeleton-end-hook 'ada-indent-region nil t))
+  (add-hook 'skeleton-end-hook 'ada-indent-statement nil t))
 
 (provide 'ada-skeletons)
 (provide 'ada-skel)

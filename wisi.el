@@ -222,7 +222,7 @@ If at end of buffer, returns `wisent-eoi-term'."
      );; cond
 
     (unless token-id
-      (wisi-error "unrecognized token '%s'" (buffer-substring-no-properties start (point))))
+      (error (wisi-error-msg "unrecognized token '%s'" (buffer-substring-no-properties start (point)))))
 
     (if text-only
 	token-text
@@ -447,7 +447,7 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
 	(when (> wisi-debug 0)
 	  (message "wisi: parsing ... error")
 	  (wisi-goto-error)
-	  (error msg))
+	  (error wisi-parse-error-msg))
       ;; no msg; success
       (when (> wisi-debug 0)
 	(message "wisi: parsing ... done")))
