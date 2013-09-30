@@ -45,7 +45,7 @@ build gnatinspect:
 ~/Projects/gnatcoll-1.6w-src/docs/xref.rst
 c:/Apps/GNAT-7.1.2/gnatcoll-1.6w-src/src/tools/gnatinspect.adb
 (gpr-set-as-project "c:/Apps/GNAT-7.1.2/gnatcoll-1.6w-src/src/gnatcoll_tools.gpr")
-file:///c:/Apps/GNAT-7.1.2/gnatcoll-1.6w-src/docs/_build/html/xref.html
+(browse-url "file:///c:/Apps/GNAT-7.1.2/gnatcoll-1.6w-src/docs/_build/html/xref.html")
 
 implement C++ C-c M-d parent
     parent_types
@@ -123,6 +123,11 @@ Can't capitalize keywords in comments:
 
 gpr C-F11 on 'with' handle relative path
     with "../common";
+
+gpr log-edit-function-name
+    use package.attribute:
+        Source_Dirs
+        Compiler.Default_Switches
 
 user guide
 
