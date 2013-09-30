@@ -7,6 +7,7 @@ run wisi test from emacs -Q:
   (add-to-list 'load-path "/home/Projects/org.emacs.ada-mode.stephe-1/build/wisi")
   (global-font-lock-mode -1)
   (setq debug-on-error t)
+  (setq wisi-debug 1)
   (load "run-indent-test-wisi")
   (setq default-directory "/home/Projects/org.emacs.ada-mode.stephe-1/build/wisi/")
   (run-test "../../test/ada_skel.adb"))
@@ -89,34 +90,19 @@ need std include files in search list
  general
 build/wisi/Makefile
 
+xmtn-status ediff respect mtn:manual_merge!
+
 ada-skel.el
-    test/ada_skel.adb
-
-    package/task/protected body
-        need to dispatch on name, two words
-        could just special case in ada-skel-expand
-
-electric paren?
-    typing ( inserts ), moves point back
-        sometimes not what we want - use C-q ( or ( <delete>
-
-parser is too picky
-    change syntax to allow empty instead of 'null;', extra , or ; in lists, etc
-        sequence_of_statements: done
-        discrete_choice_list: done
-
-    empty compilation unit after context clauses: done
-
-    empty expressions; if then else end if;
-
-Can't capitalize keywords in comments:
-
-    -- new
+    run test
+    commit
+    add placeholders to all skeletons?
+        need auto-delete
 
 gpr C-F11 on 'with' handle relative path
     with "../common";
 
 user guide
+    (electric-pair-mode 1), skeleton-pair, skeleton-pair-on-word
 
 template system should be defined by parsing ada-grammar.wy
     for else, but not for ada-skel

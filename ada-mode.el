@@ -863,12 +863,15 @@ If IN-COMMENT is non-nil, adjust case of words in comments."
       (cond
        ;; Some attributes are also keywords, but captialized as
        ;; attributes. So check for attribute first.
-       ((save-excursion
-	 (skip-syntax-backward "w_")
-	 (eq (char-before) ?'))
+       ((and
+	 (not in-comment)
+	 (save-excursion
+	   (skip-syntax-backward "w_")
+	   (eq (char-before) ?')))
 	(ada-case-adjust-identifier))
 
        ((and
+	 (not in-comment)
 	 (not (eq typed-char ?_))
 	 (ada-after-keyword-p))
 	(funcall ada-case-keyword -1))
@@ -1205,6 +1208,7 @@ Return new value of PROJECT."
 
 (defvar ada-mode-syntax-table
   (let ((table (make-syntax-table)))
+    ;; (info "(elisp)Syntax Class Table" "*info syntax class table*")
     ;; make-syntax-table sets all alphanumeric to w, etc; so we only
     ;; have to add ada-specific things.
 
@@ -1233,13 +1237,20 @@ Return new value of PROJECT."
     (modify-syntax-entry ?\|  "." table)
 
     ;; and \f and \n end a comment
-    (modify-syntax-entry ?\f  ">   " table)
-    (modify-syntax-entry ?\n  ">   " table)
+    (modify-syntax-entry ?\f  ">" table)
+    (modify-syntax-entry ?\n  ">" table)
 
     (modify-syntax-entry ?_ "_" table); symbol constituents, not word.
 
     (modify-syntax-entry ?\( "()" table)
     (modify-syntax-entry ?\) ")(" table)
+
+    ;; skeleton placeholder delimiters; see ada-skel.el. We use generic
+    ;; comment delimiter class, not comment starter/comment ender, so
+    ;; these can be distinguished from line end.
+    (modify-syntax-entry ?{ "!" table)
+    (modify-syntax-entry ?} "!" table)
+
     table
     )
   "Syntax table to be used for editing Ada source code.")

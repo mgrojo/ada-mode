@@ -1111,18 +1111,20 @@ Also return cache at start."
   (let ((wisi-parse-try t))
     (wisi-validate-cache (point)))
 
-  (let* ((pos (copy-marker (point)))
-	 (cache (or (wisi-get-cache (point))
-		    (wisi-backward-cache)))
-	 (start (progn (wisi-goto-start cache) (point)))
-	 (end (progn
-		(when (wisi-cache-end cache)
-		  ;; nil when cache is statement-end
-		  (goto-char (1- (wisi-cache-end cache))))
-		(point))))
-    (indent-region start end)
-    (goto-char pos)
-    ))
+  (save-excursion
+    (let ((cache (or (wisi-get-cache (point))
+		     (wisi-backward-cache))))
+      (when cache
+	;; can be nil if in header comment
+	(let ((start (progn (wisi-goto-start cache) (point)))
+	      (end (progn
+		     (when (wisi-cache-end cache)
+		       ;; nil when cache is statement-end
+		       (goto-char (1- (wisi-cache-end cache))))
+		     (point))))
+	  (indent-region start end)
+	  ))
+      )))
 
 (defun ada-wisi-make-subprogram-body ()
   "For `ada-make-subprogram-body'."

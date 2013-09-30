@@ -4,10 +4,7 @@
 ;;   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2013
 ;;   Free Software Foundation, Inc.
 
-;; Authors: Daniel Pfeiffer
-;;	Markus Heritsch
-;;	Rolf Ebert <ebert@waporo.muc.de>
-;; Maintainer: Stephen Leake <stephen_leake@stephe-leake.org>
+;; Authors: Stephen Leake <stephen_leake@stephe-leake.org>
 ;; Keywords: languages, ada
 
 ;; This file is part of GNU Emacs.
@@ -25,11 +22,18 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-;;; Commentary:
+;;; Design:
 ;;
 ;; The primary user command is `ada-skel-expand', which inserts the
 ;; skeleton associated with the previous word (possibly skipping a
 ;; name).
+;;
+;; We don't define skeletons that prompt for most of the content; it
+;; is easier just to type in the buffer.
+;;
+;; These skeletons are not intended to teach a novice the language,
+;; just to make it easier to write code that the ada-wisi parser
+;; likes, and handle repeated names nicely.
 
 ;;; History:
 
@@ -57,22 +61,52 @@
 ;; enhancements and bug fixes.
 ;;
 ;; Sep 2013 Stephen Leake renamed to ada-skel (to match skeleton.el),
-;; added ada-skel-alist (to get some of the functionality of the sadly
-;; missed Else package). Also updated for Ada 2012.
+;; complete re-write: added ada-skel-alist (to get some of the
+;; functionality of the sadly missed Else package). Simplified
+;; skeletons; just make it easier to work with the ada-wisi parser,
+;; don't try to teach syntax.
 
 (require 'skeleton nil t)
 
+;;;;; user variables
+
+(defcustom ada-skel-initial-string "header"
+  "*String to insert in empty buffer.
+This could end in a token recognized by `ada-skel-expand'."
+  :type 'string
+  :group 'ada
+  :safe 'stringp)
+
+(define-skeleton ada-skel-user-restricted
+  "Example copyright/license skeleton, with automatic year and owner."
+  ()
+  "--  Copyright (C) " (format-time-string "%Y ") user-full-name " All Rights Reserved.\n"
+  "\n"
+  "pragma License (Restricted);\n"
+)
+
+(define-skeleton ada-skel-gpl
+  "Example copyright/license skeleton, with automatic year and owner, GPLv3."
+  ()
+  "--  Copyright (C) " (format-time-string "%Y ") user-full-name " All Rights Reserved.\n"
+  "--\n"
+  "--  This program is free software; you can redistribute it and/or\n"
+  "--  modify it under terms of the GNU General Public License as\n"
+  "--  published by the Free Software Foundation; either version 3, or (at\n"
+  "--  your option) any later version. This program is distributed in the\n"
+  "--  hope that it will be useful, but WITHOUT ANY WARRANTY; without even\n"
+  "--  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR\n"
+  "--  PURPOSE. See the GNU General Public License for more details. You\n"
+  "--  should have received a copy of the GNU General Public License\n"
+  "--  distributed with this program; see file COPYING. If not, write to\n"
+  "--  the Free Software Foundation, 51 Franklin Street, Suite 500, Boston,\n"
+  "--  MA 02110-1335, USA.\n"
+  "\n"
+  "pragma License (GPL);\n"
+
+)
+
 ;;;;; skeletons (alphabetical)
-
-;; We don't define skeletons that prompt for most of the content; it
-;; is easier just to type in the buffer.
-;;
-;; These skeletons are not intended to teach a novice the language,
-;; just to make it easier to write code that the ada-wisi parser
-;; likes, and handle repeated names nicely.
-
-;; no ada-skel-body because package, task, protected bodies are
-;; different; need more stuff like ada-make-subprogram-body.
 
 (define-skeleton ada-skel-accept
   "Insert accept statement with name from `str'."
@@ -112,6 +146,17 @@
   "for " _ " loop\n"
   "end loop " str | -1 ";")
 
+(define-skeleton ada-skel-header
+  "Insert a file header comment, with automatic copyright year and prompt for copyright owner/license.
+Each user will probably want to override this."
+  ()
+  "--  Abstract :\n"
+  "--\n"
+  "--  " _ "\n"
+  "--\n"
+  "{copyright_license}\n"
+  )
+
 (define-skeleton ada-skel-if
   "Insert an if statement."
   ()
@@ -128,7 +173,15 @@
   "exit " str | -1 " when " _ ";\n"
   "end loop " str | -1 ";")
 
-(define-skeleton ada-skel-package
+(define-skeleton ada-skel-package-body
+  "Insert a package body with name from `str'."
+  ()
+  "package body " str " is\n"
+  _
+  "begin\n"
+  "end " str ";")
+
+(define-skeleton ada-skel-package-spec
   "Insert a package specification with name from `str'.
 See `ada-find-other-file' to create library level package body from spec."
   ()
@@ -137,7 +190,14 @@ See `ada-find-other-file' to create library level package body from spec."
   "private\n"
   "end " str ";")
 
-(define-skeleton ada-skel-protected
+(define-skeleton ada-skel-protected-body
+  "Insert a protected body with name from `str'."
+  ()
+  "protected body " str " is\n"
+  _
+  "end " str ";")
+
+(define-skeleton ada-skel-protected-spec
   "Insert a protected type specification with name from `str'."
   ()
   "protected type " str " is\n"
@@ -167,7 +227,16 @@ See `ada-find-other-file' to create library level package body from spec."
   "else\n"
   "end select;")
 
-(define-skeleton ada-skel-task
+(define-skeleton ada-skel-task-body
+  "Insert a task body with name from `str'."
+  ()
+  "task body " str "\n"
+  "is\n"
+  _
+  "begin\n"
+  "end " str ";")
+
+(define-skeleton ada-skel-task-spec
   "Insert a task specification with name from `str'."
   ()
   "task " str " is\n"
@@ -181,59 +250,101 @@ See `ada-find-other-file' to create library level package body from spec."
   "while " _ " loop\n"
   "end loop " str | -1 ";")
 
-;;;;; token alist
+;;;;; token alist, other functions
 
 (defconst ada-skel-token-alist
   '(("accept" . ada-skel-accept)
     ("case" . ada-skel-case)
+    ("copyright_license"
+     ("GPL" . ada-skel-gpl)
+     ("restricted" . ada-skel-user-restricted))
     ("declare" . ada-skel-declare)
     ("entry" . ada-skel-entry)
     ("for" . ada-skel-for)
+    ("header" . ada-skel-header)
     ("if" . ada-skel-if)
     ("loop" . ada-skel-loop)
-    ("package" . ada-skel-package)
-    ("protected" . ada-skel-protected)
+    ("package body" . ada-skel-package-body)
+    ("package" . ada-skel-package-spec)
+    ("protected body" . ada-skel-protected-body)
+    ("protected" . ada-skel-protected-spec)
     ("record" . ada-skel-record)
     ("return" . ada-skel-return)
     ("select" . ada-skel-select)
-    ("task" . ada-skel-task)
+    ("task body" . ada-skel-task-body)
+    ("task" . ada-skel-task-spec)
     ("while" . ada-skel-while))
-  "alist of skeletons, indexed by a string. See `ada-skel-expand'.
-The string is normally the first Ada keyword in the skeleton, but can be anything.")
+  "alist of elements (STRING ELEMENT). See `ada-skel-expand'.
+STRING must be a symbol in the current syntax, and is normally
+the first Ada keyword in the skeleton.
+
+ELEMENT may be:
+- a skeleton, which is inserted
+- an alist of (string . skeleton). User is prompted with `completing-read', selected skeleton is inserted. ")
 
 ;;;###autoload
-(defun ada-skel-expand (&optional name)
-  "Expand the word before point to a skeleton, as defined by `ada-skel-token-alist'.
+(defun ada-skel-expand (&optional name more-token)
+  "Expand the token or placeholder before point to a skeleton, as defined by `ada-skel-token-alist'.
+A token is a symbol in the current syntax.
+A placeholder is a symbol enclosed in generic comment delimiters.
 If the word before point is not in `ada-skel-token-alist', assume
 it is a name, and use the word before that as the token."
   (interactive "*")
+
+  ;; skip trailing space, newline, and placeholder delimiter
+  (skip-syntax-backward " !")
+
   (let* ((end (prog1 (point) (skip-syntax-backward "w_")))
 	 (token (buffer-substring-no-properties (point) end))
-	 (skel (cdr (assoc-string token ada-skel-token-alist))))
+	 (skel (assoc-string (if more-token (concat token " " more-token) token) ada-skel-token-alist))
+	 (handled nil))
+
     (if skel
 	(progn
-	  ;; delete token and name. point is currently before token.
+	  (when (listp (cdr skel))
+	    (let ((prompt (concat (car skel) ": "))
+		  (alist (cdr skel)))
+	      (setq skel (assoc-string (completing-read prompt alist) alist))))
+
+	  ;; delete placeholder delimiters around token, token,
+	  ;; more-token, and name. point is currently before token.
+	  (skip-syntax-backward "!")
 	  (delete-region
 	   (point)
 	   (progn
-	     (skip-syntax-forward "w_")
+	     (skip-syntax-forward "!w_")
+	     (when more-token
+	       (skip-syntax-forward " ")
+	       (skip-syntax-forward "!w_!"))
 	     (when name
 	       (skip-syntax-forward " ")
 	       (skip-syntax-forward "w_"))
 	     (point)))
-	  (funcall skel name))
+	  (funcall (cdr skel) name)
+	  (setq handled t))
 
-      ;; word after point is not a token; assume it is a name
+      ;; word after point is not a token
       (if name
-	  ;; already tried that once, don't recurse
-	  (error "undefined skeleton token: %s" name)
-	(skip-syntax-backward " ")
-	(ada-skel-expand token)))
+	  ;; special case for "body" keyword; need previous keyword.
+	  (when (string-equal token "body")
+	    (ada-skel-expand name "body")
+	    (setq handled t))
+
+	;; assume it is a name
+	(ada-skel-expand token)
+	(setq handled t)))
+
+    (when (not handled)
+      (error "undefined skeleton token: %s" name))
     ))
 
 (defun ada-skel-setup ()
-  "Set buffer-local values for ada-skel."
-  (add-hook 'skeleton-end-hook 'ada-indent-statement nil t))
+  "Setup a buffer ada-skel."
+  (add-hook 'skeleton-end-hook 'ada-indent-statement nil t)
+  (when (and ada-skel-initial-string
+	     (= (buffer-size) 0))
+    (insert ada-skel-initial-string))
+  )
 
 (provide 'ada-skeletons)
 (provide 'ada-skel)

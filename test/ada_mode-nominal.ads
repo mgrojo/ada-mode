@@ -143,6 +143,10 @@ package Ada_Mode.Nominal is -- target 0
    --EMACSCMD:(ada-which-function)
    --EMACSRESULT:"Ada_Mode.Nominal"
 
+   --  Test case-adjust of keyword in comment
+   --EMACSCMD:(progn (forward-line 1)(forward-word 1)(downcase-word -1)(ada-case-adjust-at-point t)(let ((case-fold-search nil))(looking-back "New")))
+   --  New is a keyword in code, but not here
+
    type
      Object_Access_Type_8 is access all Integer;
 

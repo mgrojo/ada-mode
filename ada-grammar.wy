@@ -1607,7 +1607,7 @@ proper_body
   ;
 
 protected_body
-  : PROTECTED BODY IDENTIFIER aspect_specification_opt IS protected_operation_item_list END identifier_opt SEMICOLON
+  : PROTECTED BODY IDENTIFIER aspect_specification_opt IS protected_operation_item_list_opt END identifier_opt SEMICOLON
     (progn
       (wisi-statement-action 1 'block-start 3 'name 5 'block-middle 7 'block-end 9 'statement-end)
       (wisi-containing-action 5 6)
@@ -1638,6 +1638,11 @@ protected_operation_item
 protected_operation_item_list
   : protected_operation_item
   | protected_operation_item_list protected_operation_item
+  ;
+
+protected_operation_item_list_opt
+  : ;; empty
+  | protected_operation_item_list
   ;
 
 protected_opt
