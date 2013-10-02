@@ -1,0 +1,19 @@
+Emacs Ada mode.
+
+See ada-mode.texi (or a compiled version) for help on using Ada mode.
+
+To install Ada mode, gpr mode, and associated utilities from this distribution:
+
+Unzip to a convenient place (we will use ~/ada-mode in the following).
+
+In a shell:
+$ cd ~/ada-mode/build/wisi
+$ byte-compile
+
+Edit your ~/.emacs, add:
+
+(add-to-list 'load-path (expand-file-name "~/ada-mode"))
+
+(end of file)
+
+

@@ -10,7 +10,7 @@ run wisi test from emacs -Q:
   (setq wisi-debug 1)
   (load "run-indent-test-wisi")
   (setq default-directory "/home/Projects/org.emacs.ada-mode.stephe-1/build/wisi/")
-  (run-test "../../test/ada_skel.adb"))
+  (run-test "../../test/ada_mode-nominal.adb"))
 
 (setq wisi-debug 2)
 (setq wisent-parse-max-stack-size 40)
@@ -91,23 +91,37 @@ need std include files in search list
 build/wisi/Makefile
 
 xmtn-status ediff respect mtn:manual_merge!
+latex-skel
 
-ada-skel.el
-    run test
-    commit
-    add placeholders to all skeletons?
-        need auto-delete
+ada-mode, gpr-mode user guide
+    ada-mode.texi
+    /home/Projects/emacs_stephe.main/emacs_stephe_site_lisp/ada-mode.texi
+    /home/Projects/emacs_stephe.main/emacs_stephe_site_lisp/ada-mode.el
 
-gpr C-F11 on 'with' handle relative path
-    with "../common";
+    editing indenting
+
+    (electric-pair-mode 1)
+
+    check for more recent fsf doc license; doclicense.texi
+
+    compile examples
+        show make files?
+
+gpr-skel.el
+
+gpr-mode.texi
+
+show current project on menu
+
+set ada-compiler in Ada mode project file?
+
+goto-next-declaration
+    need my page-down in ada-mode
 
 gpr log-edit-function-name
     use package.attribute:
         Source_Dirs
         Compiler.Default_Switches
-
-user guide
-    (electric-pair-mode 1), skeleton-pair, skeleton-pair-on-word
 
 template system should be defined by parsing ada-grammar.wy
     for else, but not for ada-skel
@@ -251,13 +265,9 @@ check emacs buglist
     http://debbugs.gnu.org/cgi/pkgreport.cgi?package=ada-mode
 
 skeleton enhancements
-    add else placeholders?
-        see Georg email for ada-grammar hack
-            or force comment syntax
+    add else placeholders to all skeletons?
         add 'placeholder text property, before-change that deletes it/checks for "..."
         add goto-next-/prev-placeholder, kill-placeholder
-
-        need to expand placeholder into menu; that's the key else feature
 
     bug in skeleton handling of _; if skeleton-end-hook indents, the pos of _ moves; should be a marker.
 

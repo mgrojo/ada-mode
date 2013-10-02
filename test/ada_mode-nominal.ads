@@ -67,15 +67,6 @@ with Ada_Mode.Function_2;
 --EMACSRESULT:t
 package Ada_Mode.Nominal is -- target 0
 
-   -- ada-indent-refine-subprogram calls ada-indent-is-generic-p,
-   -- which can scan the entire buffer looking for generic. That can
-   -- blow the lisp stack if enough occurences of unrefined "function"
-   -- or "procedure" are encountered, which was the case is in this
-   -- buffer, when indenting "function Function_2f". So we force
-   -- indenting that first, to test that problem is fixed. EMACSCMD:
-   -- (progn (forward-line) (search-forward "function Function_2f")
-   -- (indent-for-tab-command))
-
    --EMACSCMD:(test-face "pragma" font-lock-keyword-face)
    --EMACSCMD:(test-face "Elaborate_Body" font-lock-function-name-face)
    --EMACSCMD:(test-face "Ada_Mode" 'default)

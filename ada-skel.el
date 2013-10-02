@@ -264,26 +264,33 @@ See `ada-find-other-file' to create library level package body from spec."
     ("header" . ada-skel-header)
     ("if" . ada-skel-if)
     ("loop" . ada-skel-loop)
-    ("package body" . ada-skel-package-body)
-    ("package" . ada-skel-package-spec)
-    ("protected body" . ada-skel-protected-body)
-    ("protected" . ada-skel-protected-spec)
+    ("package"
+     ("body" . ada-skel-package-body)
+     ("spec" . ada-skel-package-spec))
+    ("protected"
+     ("body" . ada-skel-protected-body)
+     ("spec" . ada-skel-protected-spec))
     ("record" . ada-skel-record)
     ("return" . ada-skel-return)
     ("select" . ada-skel-select)
-    ("task body" . ada-skel-task-body)
-    ("task" . ada-skel-task-spec)
+    ("task"
+     ("body" . ada-skel-task-body)
+     ("spec" . ada-skel-task-spec))
     ("while" . ada-skel-while))
   "alist of elements (STRING ELEMENT). See `ada-skel-expand'.
 STRING must be a symbol in the current syntax, and is normally
-the first Ada keyword in the skeleton.
+the first Ada keyword in the skeleton. All strings must be
+lowercase; `ada-skel-expand' converts user inputs.
 
 ELEMENT may be:
 - a skeleton, which is inserted
 - an alist of (string . skeleton). User is prompted with `completing-read', selected skeleton is inserted. ")
 
+(defvar ada-skel-test-input nil
+  "When non-nil, bypasses prompt in alist token expansions - used for unit testing.")
+
 ;;;###autoload
-(defun ada-skel-expand (&optional name more-token)
+(defun ada-skel-expand (&optional name)
   "Expand the token or placeholder before point to a skeleton, as defined by `ada-skel-token-alist'.
 A token is a symbol in the current syntax.
 A placeholder is a symbol enclosed in generic comment delimiters.
@@ -291,12 +298,13 @@ If the word before point is not in `ada-skel-token-alist', assume
 it is a name, and use the word before that as the token."
   (interactive "*")
 
-  ;; skip trailing space, newline, and placeholder delimiter
-  (skip-syntax-backward " !")
+  ;; Skip trailing space, newline, and placeholder delimiter.
+  ;; Standard comment end included for languages where that is newline.
+  (skip-syntax-backward " !>")
 
   (let* ((end (prog1 (point) (skip-syntax-backward "w_")))
-	 (token (buffer-substring-no-properties (point) end))
-	 (skel (assoc-string (if more-token (concat token " " more-token) token) ada-skel-token-alist))
+	 (token (downcase (buffer-substring-no-properties (point) end)))
+	 (skel (assoc-string token ada-skel-token-alist))
 	 (handled nil))
 
     (if skel
@@ -304,18 +312,21 @@ it is a name, and use the word before that as the token."
 	  (when (listp (cdr skel))
 	    (let ((prompt (concat (car skel) ": "))
 		  (alist (cdr skel)))
-	      (setq skel (assoc-string (completing-read prompt alist) alist))))
+	      (setq skel (assoc-string
+			  (or ada-skel-test-input
+			      (completing-read prompt alist))
+			  alist))
+	      	  (setq ada-skel-test-input nil) ;; don't reuse input on recursive call
+		  ))
 
-	  ;; delete placeholder delimiters around token, token,
-	  ;; more-token, and name. point is currently before token.
+
+	  ;; delete placeholder delimiters around token, token, and
+	  ;; name. point is currently before token.
 	  (skip-syntax-backward "!")
 	  (delete-region
 	   (point)
 	   (progn
 	     (skip-syntax-forward "!w_")
-	     (when more-token
-	       (skip-syntax-forward " ")
-	       (skip-syntax-forward "!w_!"))
 	     (when name
 	       (skip-syntax-forward " ")
 	       (skip-syntax-forward "w_"))
@@ -323,14 +334,20 @@ it is a name, and use the word before that as the token."
 	  (funcall (cdr skel) name)
 	  (setq handled t))
 
-      ;; word after point is not a token
-      (if name
-	  ;; special case for "body" keyword; need previous keyword.
-	  (when (string-equal token "body")
-	    (ada-skel-expand name "body")
-	    (setq handled t))
+      ;; word after point is not a token; assume it is a name
+      (when (not name)
+	;; avoid infinite recursion
 
-	;; assume it is a name
+	;; Do this now, because skeleton insert won't.
+	;;
+	;; We didn't do it above, because we don't want to adjust case
+	;; on tokens and placeholders.
+	(let (end)
+	  (ada-case-adjust-at-point)
+	  (setq end (point))
+	  (skip-syntax-backward "w_")
+	  (setq token (buffer-substring-no-properties (point) end)))
+
 	(ada-skel-expand token)
 	(setq handled t)))
 

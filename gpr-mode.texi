@@ -1,0 +1,94 @@
+\input texinfo  @c -*-texinfo-*-
+@setfilename ../../info/gpr-mode
+@settitle gpr Mode
+
+@copying
+Copyright @copyright{} 2013  Free Software Foundation, Inc.
+
+@quotation
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.3 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, with the Front-Cover texts being ``A GNU Manual'',
+and with the Back-Cover Texts as in (a) below.  A copy of the license
+is included in the section entitled ``GNU Free Documentation License''.
+
+(a) The FSF's Back-Cover Text is: ``You have the freedom to copy and
+modify this GNU manual.  Buying copies from the FSF supports it in
+developing GNU and promoting software freedom.''
+@end quotation
+@end copying
+
+@dircategory Emacs editing modes
+@direntry
+* gpr mode: (gpr-mode).         Emacs mode for editing and navigating gpr files (gnat project files).
+@end direntry
+
+@titlepage
+@sp 10
+@title{gpr Mode}
+@sp 2
+@subtitle An Emacs major mode for editing and navigating gpr files
+@sp 2
+@page
+@vskip 0pt plus 1filll
+@insertcopying
+@end titlepage
+
+@contents
+
+@node Top, Overview, (dir), (dir)
+
+@ifnottex
+@insertcopying
+@end ifnottex
+
+@menu
+* Overview::
+* Installation::
+* GNU Free Documentation License::
+* Index::
+@end menu
+
+@node Overview, Installation, Top, Top
+@chapter Overview
+gpr files are the project files used by the GNAT compiler and
+associated tools. They describe search paths, compiler options, etc.
+
+@xref{GNAT Project Manager,,GNAT Project Manager,gnat_ugn,GNAT Pro
+User's Guide}, for general information on gpr files.
+
+The Emacs mode for gpr files helps the user in reading
+existing code and facilitates writing new code.
+
+When you open a file with a file extension of @file{.gpr}, Emacs will
+automatically load and activate gpr mode.
+
+@node Installation, , Overview, Top
+@chapter Installation
+
+gpr mode is part of the standard Emacs distribution; if you use that,
+no files need to be installed.
+
+gpr mode is also available as a separate distribution (bundled with
+Ada mode), from the Emacs Ada mode website
+@uref{http://stephe-leake.org/emacs/ada-mode/emacs-ada-mode.html}. The
+separate distribution may be more recent.
+
+For installing the separate distribution, see the @file{README} file
+in the distribution.
+
+gpr mode does not have a separate version; it uses the Ada mode
+version number. To see what version of Ada mode you have installed, do
+@kbd{M-x ada-mode-version}.
+
+@node GNU Free Documentation License, Index, , Top
+@appendix GNU Free Documentation License
+@include doclicense.texi
+
+@node Index,  , GNU Free Documentation License, Top
+@unnumbered Index
+
+@printindex fn
+
+@bye

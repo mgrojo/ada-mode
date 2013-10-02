@@ -9,42 +9,42 @@ package body Ada_Skel is
    --  that)
 
    --  ada-skel-record
-   --EMACSCMD:(progn (forward-line 1)(kill-word 5)(forward-line 1)(kill-line 1)(forward-char -1)(insert " Record_Type_1")(funcall ada-expand))
+   --EMACSCMD:(progn (forward-line 1)(kill-line 2)(insert "record record_type_1\n")(funcall ada-expand))
    type Record_Type_1 is record
    end record;
 
    --  ada-skel-package-body
-   --EMACSCMD:(progn (forward-line 1)(forward-word 4)(kill-word 1)(forward-line 1)(kill-line 2)(forward-char -1)(funcall ada-expand))
+   --EMACSCMD:(progn (forward-line 1)(kill-line 3)(insert "package package_1\n")(let ((ada-skel-test-input "body"))(funcall ada-expand)))
    package body Package_1 is
    begin
    end Package_1;
 
    --  ada-skel-package-spec
-   --EMACSCMD:(progn (forward-line 1)(forward-word 3)(kill-word 1)(forward-line 1)(kill-line 2)(forward-char -1)(funcall ada-expand))
+   --EMACSCMD:(progn (forward-line 1)(kill-line 3)(insert "package package_1 ")(let ((ada-skel-test-input "spec"))(funcall ada-expand)))
    package Package_1 is
    private
    end Package_1;
 
+   --  ada-skel-protected-body
+   --EMACSCMD:(progn (forward-line 1)(forward-word 1)(kill-word 4)(insert " Protected_1")(forward-line 1)(kill-line 1)(forward-char -1)(let ((ada-skel-test-input "body"))(funcall ada-expand)))
+   protected body Protected_1 is
+   end Protected_1;
+
    --  ada-skel-protected-spec
-   --EMACSCMD:(progn (forward-line 1)(forward-word 1)(kill-word 1)(forward-word 2)(kill-word 1)(forward-line 1)(kill-line 2)(forward-char -1)(funcall ada-expand))
+   --EMACSCMD:(progn (forward-line 1)(forward-word 1)(kill-word 1)(forward-word 2)(kill-word 1)(forward-line 1)(kill-line 2)(forward-char -1)(let ((ada-skel-test-input "spec"))(funcall ada-expand)))
    protected type Protected_1 is
    private
    end Protected_1;
 
-   --  ada-skel-protected-body
-   --EMACSCMD:(progn (forward-line 1)(forward-word 4)(kill-word 1)(forward-line 1)(kill-line 1)(forward-char -1)(funcall ada-expand))
-   protected body Protected_1 is
-   end Protected_1;
-
    --  ada-skel-task-body
-   --EMACSCMD:(progn (forward-line 1)(forward-word 4)(forward-line 1)(kill-line 3)(forward-char -1)(funcall ada-expand))
+   --EMACSCMD:(progn (forward-line 1)(forward-word 1)(kill-word 1)(forward-line 1)(kill-line 3)(forward-char -1)(let ((ada-skel-test-input "body"))(funcall ada-expand)))
    task body Task_1
    is
    begin
    end Task_1;
 
    --  ada-skel-task-spec
-   --EMACSCMD:(progn (forward-line 1)(forward-word 3)(kill-word 1)(forward-line 1)(kill-line 1)(forward-char -1)(funcall ada-expand))
+   --EMACSCMD:(progn (forward-line 1)(forward-word 3)(kill-word 1)(forward-line 1)(kill-line 1)(forward-char -1)(let ((ada-skel-test-input "spec"))(funcall ada-expand)))
    task Task_1 is
    end Task_1;
 

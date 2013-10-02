@@ -90,7 +90,7 @@
 (defun ada-mode-version ()
   "Return Ada mode version."
   (interactive)
-  (let ((version-string "5.00"))
+  (let ((version-string "5.00")) ;; must match ada-mode.texi
     (if (called-interactively-p 'interactive)
 	(message version-string)
       version-string)))
@@ -241,21 +241,25 @@ If nil, no contextual menu is available."
     ["Show overriding"            ada-show-overriding       t]
     ["------"        nil nil]
     ("Edit"
+     ["Expand skeleton"             (funcall ada-expand)    t]
      ["Indent line"                 indent-for-tab-command  t]
-     ["Indent current statement"    ada-indent-statement       t]
+     ["Indent current statement"    ada-indent-statement    t]
      ["Indent lines in file"        (indent-region (point-min) (point-max))  t]
      ["Align"                       ada-align               t]
-     ["Comment selection"           comment-region               t]
-     ["Uncomment selection"         (comment-region t) t]
+     ["Comment selection"           comment-region          t]
+     ["Uncomment selection"         (comment-region t)      t]
      ["Fill comment paragraph"         ada-fill-comment-paragraph           t]
      ["Fill comment paragraph justify" (ada-fill-comment-paragraph 'full)   t]
      ["Fill comment paragraph postfix" (ada-fill-comment-paragraph 'full t) t]
      ["---" nil nil]
      ["Make body for subprogram"    ada-make-subprogram-body     t]
      )
-    ("Case Exceptions"
+    ("Casing"
      ["Create full exception"       ada-case-create-exception t]
      ["Create partial exception"    (ada-case-create-exception nil nil t) t]
+     ["Adjust case at point"        ada-case-adjust-at-point  t]
+     ["Adjust case region"          ada-case-adjust-region    t]
+     ["Adjust case buffer"          ada-case-adjust-buffer    t]
      )
     ))
 
@@ -855,7 +859,7 @@ If IN-COMMENT is non-nil, adjust case of words in comments."
 		     (not (ada-in-string-or-comment-p)))
 		 ;; we sometimes want to capitialize an Ada identifier
 		 ;; referenced in a comment, via
-		 ;; ada-adjust-case-at-point.
+		 ;; ada-case-adjust-at-point.
 
 		 (not (ada-in-numeric-literal-p))
 		 ))
@@ -1019,13 +1023,8 @@ compiler-specific objects."
 	 'casing          (if (listp (default-value 'ada-case-exception-file))
 			      (default-value 'ada-case-exception-file)
 			    (list (default-value 'ada-case-exception-file)))
-	 'main            (if file
-			      (file-name-nondirectory
-			       (file-name-sans-extension file))
-			    "")
 	 'path_sep        path-separator;; prj variable so users can override it for their compiler
 	 'proc_env        process-environment
-	 'run_cmd         "./${main}"
 	 'src_dir         (list ".")
 	 )))
     (if ada-prj-default-function
@@ -1086,7 +1085,7 @@ should add to or modify the list and return it.")
   "Parse the Ada mode project file PRJ-FILE, set project properties in PROJECT.
 Return new value of PROJECT."
   (let (;; fields that are lists or that otherwise require special processing
-	casing comp_cmd make_cmd obj_dir run_cmd src_dir
+	casing src_dir
 	tmp-prj
 	(parse-file-ext (cdr (assoc ada-compiler ada-prj-parse-file-ext)))
 	(parse-file-final (cdr (assoc ada-compiler ada-prj-parse-file-final))))
@@ -1111,17 +1110,6 @@ Return new value of PROJECT."
 	   ;; nil, let user add others in project file. Assumes other
 	   ;; Makefiles/projects will do the same. Or use per-project
 	   ;; compilation buffer.
-
-	   ((string= (match-string 1) "comp_cmd")
-	    (add-to-list 'comp_cmd (match-string 2)))
-
-	   ((string= (match-string 1) "make_cmd")
-	    (add-to-list 'make_cmd (match-string 2)))
-
-	   ((string= (match-string 1) "obj_dir")
-	    (add-to-list 'obj_dir
-			 (file-name-as-directory
-			  (expand-file-name (match-string 2)))))
 
 	   ((string= (match-string 1) "src_dir")
 	    (add-to-list 'src_dir
@@ -1159,9 +1147,6 @@ Return new value of PROJECT."
 
     ;; process accumulated lists
     (if casing (set 'project (plist-put project 'casing (reverse casing))))
-    (if comp_cmd (set 'project (plist-put project 'comp_cmd (reverse comp_cmd))))
-    (if make_cmd (set 'project (plist-put project 'make_cmd (reverse make_cmd))))
-    (if obj_dir (set 'project (plist-put project 'obj_dir (reverse obj_dir))))
     (if src_dir (set 'project (plist-put project 'src_dir (reverse src_dir))))
 
     (when parse-file-final
@@ -1173,6 +1158,9 @@ Return new value of PROJECT."
 
     project
     ))
+
+(defvar ada-project-search-path nil
+  "Search path for finding Ada project files")
 
 (defun ada-select-prj-file (prj-file)
   "Select PRJ-FILE as the current project file."
@@ -1194,6 +1182,7 @@ Return new value of PROJECT."
     (ada-case-read-all-exceptions))
 
   (setq compilation-search-path (ada-prj-get 'src_dir))
+  (setq ada-project-search-path (ada-prj-get 'prj_dir))
 
   ;; return 't', for decent display in message buffer when called interactively
   t)
@@ -1655,7 +1644,7 @@ C-u     : show in other window
 C-u C-u : show in other frame"
   (interactive "P")
 
-  (let ((xref-function (cdr (assoc ada-compiler ada-xref-other-function)))
+  (let ((xref-function (cdr (assoc ada-compiler ada-xref-other-function)));; FIXME: use ada-xref
 	target)
     (when (null xref-function)
       (error "no cross reference information available"))
@@ -1666,7 +1655,7 @@ C-u C-u : show in other frame"
 		   (file-name-nondirectory (buffer-file-name))
 		   (line-number-at-pos)
 		   (cl-case (char-after)
-		     (?\" (+ 2 (current-column))) ;; work around bug in gnat find
+		     (?\" (+ 2 (current-column))) ;; work around bug in gnat find FIXME: do this in ada-gnat!
 		     (t (1+ (current-column))))
 		   parent))
 

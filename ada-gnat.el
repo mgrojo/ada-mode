@@ -128,7 +128,7 @@ See also `ada-gnat-parse-emacs-final'."
   (if (ada-prj-get 'gpr_file project)
       (set 'project (ada-gnat-parse-gpr (ada-prj-get 'gpr_file project) project))
 
-    ;; add the compiler libraries to src_dir, obj_dir
+    ;; add the compiler libraries to src_dir
     (setq project (ada-gnat-get-paths project))
     )
 
@@ -163,11 +163,10 @@ See also `ada-gnat-parse-emacs-final'."
   project)
 
 (defun ada-gnat-get-paths (project)
-  "Add project and/or compiler source, object paths to PROJECT src_dir, obj_dir."
+  "Add project and/or compiler source, object paths to PROJECT src_dir."
   (with-current-buffer (ada-gnat-run-buffer)
     (let ((status (ada-gnat-run-gnat (list "list" "-v")))
 	  (src-dirs (ada-prj-get 'src_dir project))
-	  (obj-dirs (ada-prj-get 'obj_dir project))
 	  (prj-dirs (ada-prj-get 'prj_dir project)))
 
       ;; gnat list -P -v returns 0 in nominal cases
@@ -193,19 +192,6 @@ See also `ada-gnat-parse-emacs-final'."
 			       (buffer-substring-no-properties (point) (point-at-eol))))))
 	      (forward-line 1))
 
-	    ;;  Object path
-
-	    (search-forward "Object Search Path:")
-	    (forward-line 1)
-	    (while (not (looking-at "^$"))
-	      (back-to-indentation)
-	      (if (looking-at "<Current_Directory>")
-		  (add-to-list 'obj-dirs ".")
-		(add-to-list 'obj-dirs
-			     (expand-file-name
-			      (buffer-substring-no-properties (point) (point-at-eol)))))
-	      (forward-line 1))
-
 	    ;; Project path
 	    (search-forward "Project Search Path:")
 	    (forward-line 1)
@@ -226,17 +212,16 @@ See also `ada-gnat-parse-emacs-final'."
 	 ))
 
       (setq project (plist-put project 'src_dir (reverse src-dirs)))
-      (setq project (plist-put project 'obj_dir (reverse obj-dirs)))
       (mapc (lambda (dir) (ada-gnat-prj-add-prj-dir dir project))
 	    (reverse prj-dirs))
       ))
   project)
 
 (defun ada-gnat-parse-gpr (gpr-file project)
-  "Append to src_dir, obj_dir and prj_dir in PROJECT by parsing GPR-FILE.
+  "Append to src_dir and prj_dir in PROJECT by parsing GPR-FILE.
 Return new value of PROJECT.
 GPR-FILE must be full path to file, normalized.
-src_dir, obj_dir, prj_dir will include compiler runtime."
+src_dir will include compiler runtime."
   ;; this can take a long time; let the user know what's up
   (message "Parsing %s ..." gpr-file)
 

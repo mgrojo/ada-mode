@@ -207,7 +207,7 @@ of the package or project point is in or just after, or nil.")
 	 ((?\_ . "w"))))
 
   (gpr-set-ff-special-constructs)
-  (setq ff-search-directories (ada-prj-get 'prj_dir))
+  (setq ff-search-directories 'ada-project-search-path)
 
   (set (make-local-variable 'add-log-current-defun-function)
        'gpr-add-log-current-function)

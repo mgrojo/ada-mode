@@ -1,5 +1,7 @@
 ^.*\.elc$
 ^ada-grammar\.output$
+^ada-mode\.html$
+^ada-mode\.info$
 ^build/.*\.tar\.gz$
 ^build/smie/.*\.ali$
 ^build/smie/.*\.diff$
@@ -15,6 +17,8 @@
 ^build/wisi/.*\.wisi-test$
 ^build/wisi/obj$
 ^gpr-grammar\.output$
+^gpr-mode\.html$
+^gpr-mode\.info$
 ^run_sjw\.text$
 ^test/.*\.ali$
 ^test/debug\.adb$
