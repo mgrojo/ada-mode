@@ -93,20 +93,6 @@ build/wisi/Makefile
 xmtn-status ediff respect mtn:manual_merge!
 latex-skel
 
-made things prj-local; run all tests, commit
-    test/ada_mode-ada83.ads
-        test passing in batch mode, but fails interactive
-            because global-font-lock-mode-enable-in-buffers is run before file local variables
-                in after-change-major-mode-hook (not significant)
-                and in change-major-mode-after-body-hook (this is where it matters)
-
-        change ada-font-lock-defaults to three vars
-            use function to compute vars
-
-        set font-lock-defaults in post-local-vars (before ada-wisi, ada-gnat)
-
-    copy to -ada95, 2005, 2012
-
 sort out ada-compiler vs ada-xref-tool
 
 ada-compiler

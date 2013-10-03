@@ -996,7 +996,7 @@ Prompt user if more than one."
   (when (boundp 'wisi-indent-calculate-functions)
     (add-to-list 'wisi-indent-calculate-functions 'ada-gnatprep-indent))
 
-  (add-hook 'hack-local-variables-hook 'ada-mode-post-local-vars nil t)
+  (add-hook 'hack-local-variables-hook 'ada-gnat-post-local-vars nil t)
   )
 
 (defun ada-gnat-post-local-vars ()

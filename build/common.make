@@ -22,6 +22,9 @@ COMPILE_FILES := $(subst subdir/,,$(COMPILE_FILES))
 
 COMPILE_FILES := $(filter-out access_in_record.ads, $(COMPILE_FILES))# incomplete code
 COMPILE_FILES := $(filter-out ada_mode-ada83.ads, $(COMPILE_FILES))# font-lock only
+COMPILE_FILES := $(filter-out ada_mode-ada95.ads, $(COMPILE_FILES))# font-lock only
+COMPILE_FILES := $(filter-out ada_mode-ada2005.ads, $(COMPILE_FILES))# font-lock only
+COMPILE_FILES := $(filter-out ada_mode-ada2012.ads, $(COMPILE_FILES))# font-lock only
 
 # parents are not pure
 COMPILE_FILES := $(filter-out ada_mode-generic_parent_instantiation.ads, $(COMPILE_FILES))

@@ -118,8 +118,10 @@ identifiers are Mixed_Case."
 
 (defcustom ada-case-exception-file nil
   "*Default list of special casing exceptions dictionaries for identifiers.
+Override with 'casing' project variable.
+
 New exceptions may be added interactively via `ada-case-create-exception'.
-If an exception is defined in multiple files, the first occurance is used.
+If an exception is defined in multiple files, the first occurence is used.
 
 The file format is one word per line, that gives the casing to be
 used for that word in Ada source code.  If the line starts with
@@ -219,7 +221,6 @@ Values defined by compiler packages.")
     (define-key map "\C-c\M-o" 	 'ada-find-other-file-noset)
     (define-key map "\C-c\C-p" 	 'ada-prev-statement-keyword)
     (define-key map "\C-c\C-r" 	 'ada-show-references)
-    (define-key map "\C-c\C-t" 	 'ada-case-read-all-exceptions)
     (define-key map "\C-c\C-w" 	 'ada-case-adjust-at-point)
     (define-key map "\C-c\C-x"   'ada-show-overriding)
     (define-key map "\C-c\C-y" 	 'ada-case-create-exception)
@@ -720,8 +721,9 @@ replacing current values of `ada-case-full-exceptions', `ada-case-partial-except
   (setq ada-case-full-exceptions '()
 	ada-case-partial-exceptions '())
 
-  (dolist (file ada-case-exception-file)
-    (ada-case-merge-all-exceptions (ada-case-read-exceptions file)))
+  (when (ada-prj-get 'casing)
+    (dolist (file (ada-prj-get 'casing))
+      (ada-case-merge-all-exceptions (ada-case-read-exceptions file))))
   )
 
 (defun ada-case-add-exception (word exceptions)
@@ -735,30 +737,29 @@ replacing current values of `ada-case-full-exceptions', `ada-case-partial-except
   "Define WORD as an exception for the casing system, save it in FILE-NAME.
 If PARTIAL is non-nil, create a partial word exception.
 WORD defaults to the active region, or the word at point.
-When non-interactive, FILE-NAME defaults to the first file in `ada-case-exception-file';
-when interactive, user is prompted to choose a file from `ada-case-exception-file'."
+When non-interactive, FILE-NAME defaults to the first file in project variable casing;
+when interactive, user is prompted to choose a file from project variable casing."
   (interactive)
-  (setq file-name
-	(cond
-	 (file-name file-name)
-	 ((stringp ada-case-exception-file)
-	  ada-case-exception-file)
-	 ((and
-	   ada-case-exception-file;; nil is a list
-	   (listp ada-case-exception-file))
-	  (if (called-interactively-p 'any)
-	      ;; FIXME (later): not tested yet
-	      (completing-read "case exception file: " ada-case-exception-file
-			       nil ;; predicate
-			       t   ;; require-match
-			       nil ;; initial-input
-			       nil ;; hist
-			       (car ada-case-exception-file) ;; default
-			       )
-	    (car ada-case-exception-file)))
-	 (t
-	  (error
-	   "No exception file specified. See variable `ada-case-exception-file'"))))
+  (let ((casing (ada-prj-get 'casing)))
+    (setq file-name
+	  (cond
+	   (file-name file-name)
+
+	   (casing
+	    (if (called-interactively-p 'any)
+		;; FIXME (later): not tested yet
+		(completing-read "case exception file: " casing
+				 nil ;; predicate
+				 t   ;; require-match
+				 nil ;; initial-input
+				 nil ;; hist
+				 (car casing) ;; default
+				 )
+	      (car casing)))
+	   (t
+	    (error
+	     "No exception file specified. See variable `ada-case-exception-file'")))
+	  ))
 
   (unless word
     (if (use-region-p)
@@ -1018,10 +1019,10 @@ Optional PLIST defaults to `ada-prj-current-project'."
   (let ((file (buffer-file-name nil)))
     (list
      ;; variable name alphabetical order
-     'ada_compiler    'ada-compiler
-     'casing          (if (listp 'ada-case-exception-file)
-			  'ada-case-exception-file
-			(list 'ada-case-exception-file))
+     'ada_compiler    ada-compiler
+     'casing          (if (listp ada-case-exception-file)
+			  ada-case-exception-file
+			(list ada-case-exception-file))
      'path_sep        path-separator;; prj variable so users can override it for their compiler
      'proc_env        process-environment
      'src_dir         (list ".")
@@ -1058,8 +1059,6 @@ list. Parser must modify or add to the property list and return it.")
     (if (assoc prj-file ada-prj-alist)
 	(setcdr (assoc prj-file ada-prj-alist) project)
       (add-to-list 'ada-prj-alist (cons prj-file project)))
-
-    ;; (ada-xref-update-project-menu) FIXME (later): implement
 
     ;; return t for interactive use
     t))
@@ -1138,7 +1137,7 @@ Return new value of PROJECT."
 				     'proc_env
 				     env-current)))
 		;; project var
-		;; FIXME: make it a list if multiple occurances
+		;; FIXME: make it a list if multiple occurences
 		(setq project (plist-put project
 					 (intern (match-string 1))
 					 (match-string 2))))
@@ -1179,9 +1178,7 @@ Return new value of PROJECT."
 
   (setq ada-prj-current-file prj-file)
 
-  (when (ada-prj-get 'casing)
-    (setq ada-case-exception-file (ada-prj-get 'casing))
-    (ada-case-read-all-exceptions))
+  (ada-case-read-all-exceptions)
 
   (setq compilation-search-path (ada-prj-get 'src_dir))
   (setq ada-project-search-path (ada-prj-get 'prj_dir))
@@ -2278,6 +2275,10 @@ The paragraph is indented on the first line."
   ;; do M-x ada-mode M-; (hack-local-variables)
 
   (when ada-auto-case (ada-case-activate-keys))
+
+  ;; This calls ada-font-lock-keywords, which depends on
+  ;; ada-language-version
+  (font-lock-refresh-defaults)
 
   (cl-case ada-language-version
    (ada83

@@ -1352,7 +1352,7 @@ Also return cache at start."
   (setq ada-show-parse-error 'wisi-show-parse-error)
   (setq ada-which-function 'ada-wisi-which-function)
 
-  (add-hook 'hack-local-variables-hook 'ada-mode-post-local-vars nil t)
+  (add-hook 'hack-local-variables-hook 'ada-wisi-post-local-vars nil t)
   )
 
 (defun ada-wisi-post-local-vars ()

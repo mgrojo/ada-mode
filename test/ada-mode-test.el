@@ -41,9 +41,9 @@
 (copy-file "../../test/case-exceptions-1" "case-exceptions-1.tmp")
 (copy-file "../../test/case-exceptions-2" "case-exceptions-2.tmp")
 
-(setq ada-case-exception-file '("case-exceptions-1.tmp" "case-exceptions-2.tmp"))
-
-(ada-case-read-all-exceptions)
+;; ada-case-read-all-exceptions only reads from project variable; duplicate here.
+(dolist (file '("case-exceptions-1.tmp" "case-exceptions-2.tmp"))
+  (ada-case-merge-all-exceptions (ada-case-read-exceptions file)))
 
 (test "case 1 full words"
       ada-case-full-exceptions
@@ -66,7 +66,7 @@
        (cons "IO" t)
        ))
 
-(ada-case-create-exception "CaMeLcase" nil nil)
+(ada-case-create-exception "CaMeLcase" "case-exceptions-1.tmp" nil)
 (ada-case-create-exception "CaMeL" "case-exceptions-2.tmp" t)
 
 (test "case 2 full words"
