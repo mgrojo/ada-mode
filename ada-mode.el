@@ -34,7 +34,7 @@
 ;; should load that compiler's ada-* file first; that will define
 ;; ada-compiler as a feature, so ada-gnat.el will not be loaded.
 ;;
-;; FIXME (later): see the user guide at ....
+;; See the user guide (info "ada-mode"), built from ada-mode.texi.
 
 ;;; History:
 ;;
@@ -61,8 +61,8 @@
 ;; Briot <briot@gnat.com> at Ada Core Technologies.
 ;;
 ;; A complete rewrite, to restructure the code more orthogonally, and
-;; to use smie for the indentation engine, was done in 2012 by Stephen
-;; Leake <stephen_leake@stephe-leake.org>.
+;; to use wisi for the indentation engine, was done in 2012 - 2013 by
+;; Stephen Leake <stephen_leake@stephe-leake.org>.
 
 ;;; Credits:
 ;;
@@ -99,8 +99,8 @@
 
 (defvar ada-mode-hook nil
   "*List of functions to call when Ada mode is invoked.
-This hook is executed after `ada-mode' is fully loaded.  This is
-a good place to add Ada environment specific bindings.")
+This hook is executed after `ada-mode' is fully loaded, but
+before file local variables are processed.")
 
 (defgroup ada nil
   "Major mode for editing and compiling Ada source in Emacs."
@@ -114,9 +114,10 @@ identifiers are Mixed_Case."
   :type  'boolean
   :group 'ada
   :safe  'booleanp)
+(make-variable-buffer-local 'ada-auto-case)
 
 (defcustom ada-case-exception-file nil
-  "*List of special casing exceptions dictionaries for identifiers.
+  "*Default list of special casing exceptions dictionaries for identifiers.
 New exceptions may be added interactively via `ada-case-create-exception'.
 If an exception is defined in multiple files, the first occurance is used.
 
@@ -137,6 +138,7 @@ preserved when the list is written back to the file."
 		 (const upcase-word))
   :group 'ada
   :safe  'functionp)
+(make-variable-buffer-local 'ada-case-keyword)
 
 (defcustom ada-case-strict t
   "*If non-nil, force Mixed_Case for identifiers.
@@ -144,6 +146,7 @@ Otherwise, allow UPPERCASE for identifiers."
   :type 'boolean
   :group 'ada
   :safe  'booleanp)
+(make-variable-buffer-local 'ada-case-strict)
 
 (defcustom ada-language-version 'ada2012
   "*Ada language version; one of `ada83', `ada95', `ada2005'.
@@ -154,6 +157,7 @@ Only affects the keywords to highlight."
 		 (const ada2012))
   :group 'ada
   :safe  'symbolp)
+(make-variable-buffer-local 'ada-language-version)
 
 (defcustom ada-popup-key '[down-mouse-3]
   ;; FIXME (later, when testing menu): don't need a var for this; user can just bind a key
@@ -179,9 +183,15 @@ If nil, no contextual menu is available."
   "\\([ \t]+\\|$\\)"
   "Regexp to add to symbol name in `ada-which-function'.")
 
-(defvar-local ada-compiler nil
-  "Symbol indicating which compiler is being used with the current buffer.")
+(defvar ada-compiler nil
+  "Symbol indicating default Ada compiler; can be overridden in project files.
+Values defined by compiler packages.")
 
+;; FIXME: delete this; too confusing. gnatinspect requires gnat
+;; compiler, so this is not orthogonal from ada-compiler. gnat-xref
+;; just overwrite indirection variables. but allow gnat 6.2.2 (no
+;; gnatinspect) with one project and gnat 7.1.2 (has gnatinspect) with
+;; another
 (defvar-local ada-xref-tool nil
   "Symbol indicating which cross reference tool is being used with the current buffer.")
 
@@ -1002,35 +1012,20 @@ Optional PLIST defaults to `ada-prj-current-project'."
   (unless ada-prj-current-file
     (error "no Emacs Ada project file specified")))
 
-(defvar ada-prj-default-function nil
-  "Alist indexed by `ada-compiler' of compiler-specific functions
-to return default Emacs Ada project properties for the current
-buffer.  Called with one argument; the compiler-independent
-default properties list.  Function should add to the list and
-return it.")
-
 (defun ada-prj-default ()
-  "Return the default project properties list with the current buffer as main.
-Calls `ada-prj-default-function' to extend the list with
-compiler-specific objects."
+  "Return the default project properties list."
 
-  (let*
-      ((file (buffer-file-name nil))
-       (props
-	(list
-	 ;; variable name alphabetical order
-	 'ada-compiler    (default-value 'ada-compiler)
-	 'casing          (if (listp (default-value 'ada-case-exception-file))
-			      (default-value 'ada-case-exception-file)
-			    (list (default-value 'ada-case-exception-file)))
-	 'path_sep        path-separator;; prj variable so users can override it for their compiler
-	 'proc_env        process-environment
-	 'src_dir         (list ".")
-	 )))
-    (if ada-prj-default-function
-	(funcall ada-prj-default-function props)
-      props)
-    ))
+  (let ((file (buffer-file-name nil)))
+    (list
+     ;; variable name alphabetical order
+     'ada_compiler    'ada-compiler
+     'casing          (if (listp 'ada-case-exception-file)
+			  'ada-case-exception-file
+			(list 'ada-case-exception-file))
+     'path_sep        path-separator;; prj variable so users can override it for their compiler
+     'proc_env        process-environment
+     'src_dir         (list ".")
+     )))
 
 (defvar ada-prj-parser-alist
   (list
@@ -1070,14 +1065,16 @@ list. Parser must modify or add to the property list and return it.")
     t))
 
 (defvar ada-prj-parse-file-ext nil
-"Alist indexed by `ada-compiler' of compiler-specific functions to process one Ada project property.
+"Alist of compiler-specific functions to process one Ada project property.
+Indexed by project variable ada_compiler.
 Called with three arguments; the property name, property value,
 and project properties list. Function should add to or modify the
 properties list and return it, or return nil if the name is not
 recognized.")
 
 (defvar ada-prj-parse-file-final nil
-  "Alist indexed by `ada-compiler' of compiler-specific function to finish processing Ada project properties.
+  "Alist of compiler-specific functions to finish processing Ada project properties.
+Indexed by project variable ada_compiler.
 Called with one argument; the project properties list. Function
 should add to or modify the list and return it.")
 
@@ -1101,6 +1098,13 @@ Return new value of PROJECT."
 	(when (looking-at "^\\([^=\n]+\\)=\\(.*\\)")
 	  (cond
 	   ;; variable name alphabetical order
+
+	   ((string= (match-string 1) "ada_compiler")
+	    (let ((comp (intern (match-string 2))))
+	      (setq project (plist-put project 'ada_compiler comp))
+	      (setq parse-file-ext (cdr (assoc comp ada-prj-parse-file-ext)))
+	      (setq parse-file-final (cdr (assoc comp ada-prj-parse-file-final)))))
+
 	   ((string= (match-string 1) "casing")
 	    (add-to-list 'casing
 			 (expand-file-name
@@ -1174,8 +1178,6 @@ Return new value of PROJECT."
     (error "Project file '%s' was not previously parsed." prj-file))
 
   (setq ada-prj-current-file prj-file)
-
-  (setq ada-compiler (ada-prj-get 'ada-compiler))
 
   (when (ada-prj-get 'casing)
     (setq ada-case-exception-file (ada-prj-get 'casing))
@@ -1619,7 +1621,8 @@ C-u C-u : show in other frame
   )
 
 (defvar ada-xref-other-function nil
-  "alist indexed by `ada-compiler' of functions that return cross reference information.
+  "alist of functions that return cross reference information.
+Indexed by project variable ada_compiler.
 Function is called with five arguments:
 - an Ada identifier or operator_symbol
 - filename containing the identifier
@@ -1644,7 +1647,7 @@ C-u     : show in other window
 C-u C-u : show in other frame"
   (interactive "P")
 
-  (let ((xref-function (cdr (assoc ada-compiler ada-xref-other-function)));; FIXME: use ada-xref
+  (let ((xref-function (cdr (assoc (ada-prj-get 'ada_compiler) ada-xref-other-function)))
 	target)
     (when (null xref-function)
       (error "no cross reference information available"))
@@ -1678,7 +1681,8 @@ C-u C-u : show in other frame"
   (ada-goto-declaration other-window-frame t))
 
 (defvar ada-xref-all-function nil
-  "alist indexed by `ada-compiler' of functions that return cross reference information.
+  "alist of functions that return cross reference information.
+Indexed by project variable ada_compiler.
 Called with four arguments:
 - an Ada identifier or operator_symbol
 - filename containing the identifier
@@ -1691,7 +1695,7 @@ identifier is declared or referenced.")
   "Show all references of identifier at point."
   (interactive)
 
-  (let ((xref-function (cdr (assoc ada-compiler ada-xref-all-function))))
+  (let ((xref-function (cdr (assoc (ada-prj-get 'ada_compiler) ada-xref-all-function))))
     (when (null xref-function)
       (error "no cross reference information available"))
 
@@ -1726,7 +1730,9 @@ Displays a buffer in compilation-mode giving locations of the overriding declara
 	     (file-name-nondirectory (buffer-file-name))
 	     (line-number-at-pos)
 	     (cl-case (char-after)
-	       (?\" (+ 2 (current-column))) ;; work around bug in gnat find
+	       ;; FIXME: point may not be at start of identifier, not needed for all compilers: move to ada-gnat
+	       ;; to work around bug in gnat find
+	       (?\" (+ 2 (current-column)))
 	       (t (1+ (current-column)))))
     ))
 
@@ -2022,10 +2028,10 @@ The paragraph is indented on the first line."
   "List of keywords new in Ada 2012.")
 
 (defvar ada-keywords nil
-  "List of Ada keywords for current `ada-language'.")
+  "List of Ada keywords for current `ada-language-version'.")
 
 (defun ada-font-lock-keywords ()
-  "Ada mode keywords for font-lock, customized according to `ada-language-version'."
+  "Return Ada mode value for `font-lock-keywords', depending on `ada-language-version'."
   (list
 
    ;; keywords followed by a name that should be in function-name-face.
@@ -2208,10 +2214,10 @@ The paragraph is indented on the first line."
 
   (set (make-local-variable 'require-final-newline) t)
 
-  (set (make-local-variable 'font-lock-defaults)
-       '(ada-font-lock-keywords
-	 nil t
-	 ((?\_ . "w")))); treat underscore as a word component
+  (setq font-lock-defaults
+	'(ada-font-lock-keywords
+	  nil t
+	  ((?\_ . "w")))); treat underscore as a word component
 
   (set (make-local-variable 'ff-other-file-alist)
        'ada-other-file-alist)
@@ -2258,7 +2264,7 @@ The paragraph is indented on the first line."
   (syntax-ppss-flush-cache (point-min))
   (syntax-propertize (point-max))
 
-  (add-hook 'hack-local-variables-hook 'ada-mode-post-local-vars)
+  (add-hook 'hack-local-variables-hook 'ada-mode-post-local-vars nil t)
   )
 
 (defun ada-mode-post-local-vars ()
@@ -2301,8 +2307,6 @@ The paragraph is indented on the first line."
 
 ;;;;; Global initializations
 
-;; load indent engine first; compilers may need to know which is being
-;; used (for preprocessor keywords, for example).
 (unless (featurep 'ada-indent-engine)
   (require 'ada-wisi))
 

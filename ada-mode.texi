@@ -56,9 +56,10 @@ developing GNU and promoting software freedom.''
 * Indentation::                 Indenting your code automatically as you type
 * Statement skeletons::
 * Aligning code::
-* Automatic Casing::            Adjusting the case of words automatically
+* Automatic casing::            Adjusting the case of words automatically
 * Comment Handling::            Reformatting comments easily
-* GNU Free Documentation License::  The license for this documentation.
+* Key summary::
+* GNU Free Documentation License::
 * Index::
 @end menu
 
@@ -80,9 +81,8 @@ Ada mode works without any customization, if you are using the GNAT
 compiler (@url{https://libre2.adacore.com/}) and the GNAT default
 naming convention.
 
-You must customize a few things if you are using a different compiler
-or file naming convention;
-@c FIXME: @xref{Other compiler},
+You must customize a few things if you are using a different file
+naming convention or compiler; @xref{Other compiler},
 @xref{Non-standard file names}.
 
 In addition, you may want to customize the indentation,
@@ -119,14 +119,15 @@ ada-mode-version}.
 Here we assume you are familiar with setting variables in Emacs,
 either thru 'customize' or in elisp (in your @file{.emacs} file). For
 a basic introduction to customize, elisp, and Emacs in general, see
-the tutorial (@key{C-h t}).
+the tutorial (@kbd{C-h t}).
 
 @menu
 * Non-standard file names::
+* Other compiler::
 * Other customization::
 @end menu
 
-@node Non-standard file names, Other customization, Customization, Customization
+@node Non-standard file names, Other compiler, Customization, Customization
 @section Non-standard file names
 
 By default, Ada mode is configured to use the GNAT file naming
@@ -139,7 +140,8 @@ file extentions to allow moving from a package body to the
 corresponding spec and back.
 
 Emacs and Ada mode support ways to use alternative file extensions for
-specs and bodies.
+specs and bodies. Note that you must also tell the compiler about
+these extensions; doing that is beyond the scope of this manual.
 
 For instance, if your spec and bodies files are called
 @file{@var{unit}_s.ada} and @file{@var{unit}_b.ada}, respectively, you
@@ -174,7 +176,19 @@ function for @code{ada-file-name-from-ada-name}. Doing that is beyond
 the scope of this manual; see the current definitions in
 @file{ada-mode.el} and @file{ada-gnat.el} for examples.
 
-@node Other customization,  , Non-standard file names, Customization
+@node Other compiler, Other customization, Non-standard file names, Customization
+@section Other compiler
+The project variable @code{ada_compiler} (default elisp variable
+@code{ada-compiler}) is used to index several variables that point to
+the compiler-specific functions for corresponding Ada mode operations.
+
+To use a compiler other than GNAT, you must write Emacs lisp code that
+provides the interface to the compiler, and set @code{ada-compiler} and
+the indirection variables.
+
+See @file{ada-gnat.el} for an example.
+
+@node Other customization,  , Other compiler, Customization
 @section Other customization
 
 All user-settable Ada mode variables can be set via the menu
@@ -201,14 +215,18 @@ Deletes tab characters that have crept into the file.
 @item indent-tabs-mode
 Don't insert tab characters when indenting.
 @item copyright-update
-Updates the copyright date in the file header comment, to the current year.
+Updates the copyright date in the file header comment, to the current
+year.
+@item electric-pair-mode
+Insert a matching right paren when you type a left paren.
 @end table
 
 The above can all be set by the following code in your
-@file{~/.emacs}. Note that these are functions that are added to
+@file{~/.emacs}. Note that some are functions that are added to
 @code{before-save-hook}; they run just before a buffer is written to disk.
 @example
 (setq-default indent-tabs-mode nil)
+(electric-pair-mode 1)
 (add-hook 'ada-mode-hook
    (lambda ()
     (add-hook 'before-save-hook 'delete-trailing-whitespace nil t)
@@ -244,7 +262,7 @@ will jump to the first error. If you press that key again, it will
 move you to the second error, and so on.
 
 Some error messages also include references to other files. These
-references are accessed via @key{C-c `}.
+references are accessed via @kbd{C-c `}.
 
 @node Project files, Moving Through Ada Code, Compiling Executing, Top
 @chapter Project files
@@ -264,12 +282,12 @@ other customization is needed, a GNAT project file can be used without
 an Emacs Ada mode project file.
 
 @menu
-* Project File Overview::
+* Project file overview::
 * Project file variables::
 @end menu
 
-@node Project File Overview, Project file variables, Project files, Project files
-@section Project File Overview
+@node Project file overview, Project file variables, Project files, Project files
+@section Project file overview
 
 Project files have a simple syntax; they may be edited directly. Each
 line specifies a project variable name and its value, separated by
@@ -307,7 +325,7 @@ project file.
 After a project file is parsed, you can make it current again with
 just @code{ada-select-prj-file}, or by selecting it from the menu.
 
-@node Project file variables,  , Project File Overview, Project files
+@node Project file variables,  , Project file overview, Project files
 @section Project file variables
 
 Some project file variables can also be defined in elisp variables.
@@ -341,11 +359,12 @@ the project file.
 @c defined in ada-mode.el ada-prj-pars-file-1; alphabetical order
 @c defaults defined in ada-mode.el ada-prj-default
 
-@item @code{casing}         [default: @code{nil}]
-List of files containing casing exceptions.
-@c FIXME: @xref{Automatic casing}.
+@item @code{ada_compiler}   [default: @code{ada-compiler, gnat}]
+Ada compiler for this project. It must occur in the project file
+before any compiler-specific project variable.
 
-Lisp variable: @code{ada-case-exception-file}.
+@item @code{casing}         [default: @code{ada-case-exception-file, nil}]
+List of files containing casing exceptions. @xref{Automatic casing}.
 
 @item @code{src_dir}        [default: @code{"."}]
 A list of directories to search for source files.
@@ -452,6 +471,9 @@ Show all declarations that override the primitive procedure at
 point. Use @kbd{C-x `} (@code{next-error}) to visit each reference (as
 for compilation errors).
 
+@item C-u SPACE
+Jump back to the previous location.
+
 @end table
 
 @node Identifier completion, Indentation, Moving Through Ada Code, Top
@@ -540,16 +562,17 @@ Indentation for the lines in a @code{with} context clause.
 @end table
 
 The following keys indent portions of the text:
-@table @key
+@table @kbd
 
 @item RET
-Indents the new line.
+Insert and indent a new line.
 
 @item TAB
 Indent the current line, or the current region.
 
 @item C-c TAB
-Indents the current statement or declaration.
+Indent the current statement or declaration.
+
 @end table
 
 The indentation algorithm relies on a grammar parser to identify the
@@ -570,7 +593,7 @@ if A then
 end if;
 @end example
 
-when you type @key{RET B}, @code{B} is indented to the same column as
+when you type @kbd{RET B}, @code{B} is indented to the same column as
 @code{if}. Then when you type the final @code{;}, all three lines are
 indented, putting @code{B} where it belongs.
 
@@ -592,8 +615,8 @@ One way to easily insert empty statements like this is using
 @node Statement skeletons, Aligning code, Indentation, Top
 @chapter Statement skeletons
 
-@key{C-c C-e} expands the previous one or two words into a statment
-skeleton. For example, @key{if C-c C-e} expands to:
+@kbd{C-c C-e} expands the previous one or two words into a statment
+skeleton. For example, @kbd{if C-c C-e} expands to:
 
 @example
 if  then
@@ -609,7 +632,7 @@ indentation.
 For named statements (packages, loops, etc), the name is taken from
 the word before point, and the name of statement from the word before
 that. Some expansions prompt for more information, such as
-whether a spec or body is desired. For example, @key{package A_Package
+whether a spec or body is desired. For example, @kbd{package A_Package
 C-c C-e} first prompts for ``body'' or ``spec''. If ``spec'' is
 selected, the following code is inserted:
 
@@ -619,7 +642,7 @@ private
 end A_Package;
 @end example
 
-Named blocks work similarly: @key{declare A_Block C-c C-e} expands
+Named blocks work similarly: @kbd{declare A_Block C-c C-e} expands
 (without prompting) to:
 
 @example
@@ -634,7 +657,7 @@ Note that the order of the keyword @code{declare} and the name
 @code{A_Block} are reversed in the expansion; this may take some
 getting used to.
 
-@node Aligning code, Automatic Casing, Statement skeletons, Top
+@node Aligning code, Automatic casing, Statement skeletons, Top
 @chapter Aligning code
 
 Aligning code adds space in each line so that similar parts of
@@ -655,7 +678,7 @@ Another : Float   := 1.0;
 More    : Integer := 2;
 @end example
 
-Alignment is invoked by @key{C-c C-a}, which aligns the sequence of
+Alignment is invoked by @kbd{C-c C-a}, which aligns the sequence of
 statements surrounding point, or within the selected region.
 
 Parameter lists are also aligned:
@@ -676,8 +699,8 @@ is aligned to:
       More    : in out Integer := 2);
 @end example
 
-@node Automatic Casing, Comment Handling, Aligning code, Top
-@chapter Automatic Casing
+@node Automatic casing, Comment Handling, Aligning code, Top
+@chapter Automatic casing
 
 Casing of identifiers, attributes and keywords is automatically
 performed while typing when the variable @code{ada-auto-case} is
@@ -759,7 +782,7 @@ Adjust case in the active buffer.
 
 @end table
 
-@node Comment Handling, GNU Free Documentation License, Automatic Casing, Top
+@node Comment Handling, Key summary, Automatic casing, Top
 @chapter Comment Handling
 
 By default, comment lines get indented like Ada code. There are a few
@@ -780,9 +803,94 @@ Otherwise, add a comment at the end of the line, in a column given by
 Fill the current comment paragraph.
 @end table
 
-@c FIXME: key summary
+@node Key summary, GNU Free Documentation License, Comment Handling, Top
+@chapter Key summary
+@c search for @kbd. Alphabetical by key sequence
 
-@node GNU Free Documentation License, Index, Comment Handling, Top
+@table @kbd
+@item M-/
+@xref{Identifier completion}.
+Complete the word before point; repeat to cycle thru possible
+completions.
+
+@item M-;
+@xref{Comment Handling}.
+If the region is active, comment or uncomment it.
+
+@item RET
+@xref{Indentation}.
+Insert and indent a new line.
+
+@item TAB
+@xref{Indentation}.
+Indent the current line, or the current region.
+
+@item C-c TAB
+@xref{Indentation}.
+Indent the current statement or declaration.
+
+@item C-c `
+@xref{Compiler errors}.
+Move to the location of the secondary reference in the current compilation error.
+
+@item C-c C-a
+@xref{Aligning code}.
+Align code.
+
+@item C-c C-d
+@xref{Moving Through Ada Code}.
+Move from any use of an identifier to its declaration, for from a declaration to its body.
+
+@item C-c M-d
+@xref{Moving Through Ada Code}.
+Move from a child type declaration to the parent type declaration.
+
+@item C-c C-e
+@xref{Statement skeletons}.
+Expand previous one or two words into a statement or declaration
+skeleton.
+
+@item C-c C-n
+@xref{Moving Through Ada Code}.
+Move to the next keyword in the current statement.
+
+@item C-c C-o
+@xref{Moving Through Ada Code}.
+Switch between corresponding spec and body, or find other spec.
+
+@item C-c C-p
+@xref{Moving Through Ada Code}.
+Move to the previous keyword in the current statement.
+
+@item C-c C-r
+@xref{Moving Through Ada Code}.
+Show all references to the identifier surrounding point.
+
+@item C-c C-w
+@xref{Automatic casing}.
+Adjust case of the word at point. With prefix arg, adjust case even if
+in comment.
+
+@item C-c C-x
+@xref{Moving Through Ada Code}.
+Show all declarations that override the primitive procedure at
+point.
+
+@item C-c C-y
+@xref{Automatic casing}.
+Create case exception.
+
+@item C-x `
+@xref{Compiler errors}.
+Move to the location of the next compilation error or show result.
+
+@item M-q
+@xref{Comment Handling}.
+Fill the current comment paragraph.
+
+@end table
+
+@node GNU Free Documentation License, Index, Key summary, Top
 @appendix GNU Free Documentation License
 @include doclicense.texi
 

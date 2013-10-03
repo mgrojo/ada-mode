@@ -987,31 +987,32 @@ Prompt user if more than one."
 ;;;;; setup
 
 (defun ada-gnat-setup ()
-  (setq ada-compiler 'gnat)
-
   (set (make-local-variable 'ada-file-name-from-ada-name) 'ada-gnat-file-name-from-ada-name)
   (set (make-local-variable 'ada-ada-name-from-file-name) 'ada-gnat-ada-name-from-file-name)
   (set (make-local-variable 'ada-make-package-body) 'ada-gnat-make-package-body)
 
-  (font-lock-add-keywords nil
-   ;; gnatprep preprocessor line
-   (list (list "^[ \t]*\\(#.*\n\\)"  '(1 font-lock-type-face t))))
-
   (add-hook 'ada-syntax-propertize-hook 'ada-gnat-syntax-propertize)
-
-  (when (boundp 'smie-indent-functions)
-    (add-to-list 'smie-indent-functions 'ada-gnatprep-indent))
 
   (when (boundp 'wisi-indent-calculate-functions)
     (add-to-list 'wisi-indent-calculate-functions 'ada-gnatprep-indent))
-)
 
-;; add at end, so it is after ada-smie-setup, and can modify smie-indent-functions
+  (add-hook 'hack-local-variables-hook 'ada-mode-post-local-vars nil t)
+  )
+
+(defun ada-gnat-post-local-vars ()
+  ;; run after file local variables are read because font-lock-add-keywords
+  ;; evaluates font-lock-defaults, which depends on ada-language-version.
+  (font-lock-add-keywords nil
+   ;; gnatprep preprocessor line
+   (list (list "^[ \t]*\\(#.*\n\\)"  '(1 font-lock-type-face t))))
+  )
+
+;; must be after indentation engine setup, because that resets the
+;; indent function list.
 (add-hook 'ada-mode-hook 'ada-gnat-setup t)
 
 (setq-default ada-compiler 'gnat)
 
-;; don't need ada-prj-default-function
 (add-to-list 'ada-xref-other-function  (cons 'gnat 'ada-gnat-xref-other))
 (add-to-list 'ada-xref-all-function    (cons 'gnat 'ada-gnat-xref-all))
 (add-to-list 'ada-prj-parser-alist     (cons "gpr" 'ada-gnat-parse-gpr))

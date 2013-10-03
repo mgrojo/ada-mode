@@ -93,40 +93,111 @@ build/wisi/Makefile
 xmtn-status ediff respect mtn:manual_merge!
 latex-skel
 
+made things prj-local; run all tests, commit
+    test/ada_mode-ada83.ads
+        test passing in batch mode, but fails interactive
+            because global-font-lock-mode-enable-in-buffers is run before file local variables
+                in after-change-major-mode-hook (not significant)
+                and in change-major-mode-after-body-hook (this is where it matters)
+
+        change ada-font-lock-defaults to three vars
+            use function to compute vars
+
+        set font-lock-defaults in post-local-vars (before ada-wisi, ada-gnat)
+
+    copy to -ada95, 2005, 2012
+
+sort out ada-compiler vs ada-xref-tool
+
+ada-compiler
+    used by:
+        ada-prj-parse-file-ext
+            indexed by (ada-prj-get 'ada_compiler)
+            doesn't care about gnatinspect
+
+        ada-xref-other-function
+            indexed by (ada-prj-get 'ada_compiler)
+            should use gnatinspect (gnat xref is going away)
+
+        ada-xref-all-function
+            use (ada-prj-get 'ada_compiler)
+            should use gnatinspect (gnat xref is going away)
+
+        ada-fix-error-alist
+            indexed by (ada-prj-get 'ada_compiler)
+
+ada-xref-tool
+    chooses "gnat xref" vs "gnatinspect"
+    should be per-project
+
+    if just overwrite global compiler-indexed redirect vars, then it must be separate from ada-compiler
+        change those to all be per-project?
+        then eliminate ada-compiler
+
+    gnat 6.2.2 has no gnatinspect
+    gnat 7.1.2 prefers gnatinspect
+
+    needs to be separate from ada-compiler
+
+    but it's a gnat issue, not some other tool issue
+
+    adds another project variable?
+
+    move _all_ gnat functionality to gnat-xref?
+        or just gnat?
+
+        gnatprep-indent : not really ada specific, doesn't run gnat
+
+        add-prj-dir : not ada specific
+
+        parse-emacs-file : not ada specific
+            switch to other env var instead of ada_project_path
+
+        get-paths: can use gnatinspect?
+
+ada-case-exception-file should be prj-var only
+    custom var is default
+
 ada-mode, gpr-mode user guide
     ada-mode.texi
     /home/Projects/emacs_stephe.main/emacs_stephe_site_lisp/ada-mode.texi
     /home/Projects/emacs_stephe.main/emacs_stephe_site_lisp/ada-mode.el
 
-    editing indenting
-
-    (electric-pair-mode 1)
-
-    check for more recent fsf doc license; doclicense.texi
+    fixmes
 
     compile examples
-        show make files?
+        include 'make' example
+
+test prompt for file in case-create-exception
+
+set arbitrary emacs vars in Ada mode project file
+    el_file=
+
+manuel Gomez using comp_cmd, make_cmd, src_dir, obj_dir; not .gpr files
+    reference project variables in project var values
+
+compile/build/run keys
+    for Emacs & Ada novices
+
+show current project on menu
+
+goto-next-declaration or equiv
+    need my page-down in ada-mode
+
+do C-x 5 prefix
+    for Emacs 24.x
+
+check emacs buglist
+    http://debbugs.gnu.org/cgi/pkgreport.cgi?package=ada-mode
 
 gpr-skel.el
 
 gpr-mode.texi
 
-show current project on menu
-
-set ada-compiler in Ada mode project file?
-
-goto-next-declaration
-    need my page-down in ada-mode
-
 gpr log-edit-function-name
     use package.attribute:
         Source_Dirs
         Compiler.Default_Switches
-
-template system should be defined by parsing ada-grammar.wy
-    for else, but not for ada-skel
-
-Debian : emacs 24.2 (from testing), GNAT GPL 2013:
 
 mouse operations
     ask on list
@@ -143,66 +214,41 @@ ada-add-log-current-function
 /Projects/Web/stephe-leake/emacs/ada-mode/emacs-ada-mode.html
     to-do list
 
-from Simon Wright:
-   --  I'd like (the option to have) the 'is' line up with the 'type'.
-   type A;
-   type A_Finalizer
-     (AP : access A)
-   is new Ada.Finalization.Limited_Controlled with null record;
-
 ./wisi.el:361:	  ;; FIXME: insert newline in comment to create non-comment!?
     need tests for wisi-before/after-change vs comments, strings
 
-ada-wisi-comment
-    add option to match gnat comment style check
-        have tests in ada_mode-conditional_expressions.adb, ada_mode-parens.adb
-
-Markus Schöpflin <markus.schoepflin@comsoft.aero> wants this style (including all caps):
-
-   FOOBAR.PROC (
-      ARG1 => VAL1,
-      ARG2 => VAL2
-   );
-
-    add a custom indent function, like the one for opentoken
-    12 sep 2013: sent email
-
-jump back after C-c C-d
-    etags uses M-., M-*, find-tag-marker-ring, tags-location-ring
-    global mark ring? C-u <space>
-
-need C-c C-d on <=
-
-FIXMEs
-    context menus
-
-    project files on menu
-
-    test/ada_mode-generic_package.ads
-    ada-next-statement-keyword on 'generic' broken due to "procedure-spec" in access type
-
+C-c C-d on <= use
 
 'Access gives wrong face to following token:
      Percent_Percent & EOF + Output_Elisp'Access and
 
-parser is too slow
-    try byte-compile - not enough
-    see incremental LALR [dickgrune] 9.7.4
-    cache parser state periodically (every 200 token caches?), resume parse from last avail cache
-        won't help much; still need to parse to end of file
-        won't help at all on first parse
-        unless it's incremental in idle time!
-
-    first parse is for font-lock, and is automatic; use reduced grammar/actions for that?
-        so slow parse is only for user-invoked indentation, where they can more easily tolerate the delay
-
 don't parse or move cache if narrowed
-
-old options set in ada-mode-hook are now ignored
-    need warning?
 
 ada-fix-error.el
     sort 'limited private with' at end of context clause
+
+ emacs 23 compat
+
+font-lock-keywords buffer local by default?
+
+ possible enhancements
+
+skeleton
+    add else placeholders to all skeletons?
+        add 'placeholder text property, before-change that deletes it/checks for "..."
+        add goto-next-/prev-placeholder, kill-placeholder
+
+    bug in skeleton handling of _; if skeleton-end-hook indents, the pos of _ moves; should be a marker.
+
+    template system could be defined by parsing ada-grammar.wy
+        for ada-skel-verbose
+
+ada-align-paramlist
+    test/ada_mode-parens.adb
+
+    handle wrapping due to line length limit?
+
+    handle single-line trailing comments, or longer comments, in paramlist?
 
 ada-make-subprogram-body
 
@@ -220,56 +266,39 @@ ada-make-subprogram-body
 
     gnat switch for alphabetical order; option to match that
 
-ada-align-paramlist
-    test/ada_mode-parens.adb
 
-    handle wrapping due to line length limit?
+parser is too slow
+    try byte-compile - not enough
+    see incremental LALR [dickgrune] 9.7.4
+    cache parser state periodically (every 200 token caches?), resume parse from last avail cache
+        won't help much; still need to parse to end of file
+        won't help at all on first parse
+        unless it's incremental in idle time!
 
-    handle single-line trailing comments, or longer comments, in paramlist?
+    first parse is for font-lock, and is automatic; use reduced grammar/actions for that?
+        so slow parse is only for user-invoked indentation, where they can more easily tolerate the delay
 
-ada-case-adjust
+ possible new options
+ada-wisi-comment
+    add option to match gnat comment style check
+        have tests in ada_mode-conditional_expressions.adb, ada_mode-parens.adb
 
-    support multiple files
-        menu of file to save new exception in
-        prompt for file in case-create-exception
-            edited, not tested
+from Simon Wright:
+   --  I'd like (the option to have) the 'is' line up with the 'type'.
+   type A;
+   type A_Finalizer
+     (AP : access A)
+   is new Ada.Finalization.Limited_Controlled with null record;
 
-    store acronym expansion
-        either pointer to source file, or string
+Markus Schöpflin <markus.schoepflin@comsoft.aero> wants this style (including all caps):
 
-    change ada-auto-case to multivalued
-        nil for none, t or 'half for 4.0 behavior, 'full for the current 5.0.
+   FOOBAR.PROC (
+      ARG1 => VAL1,
+      ARG2 => VAL2
+   );
 
-        also to buffer-local, to allow some files to have different behavior (ie, for -fdump-ada-spec)
-            set in file local variables
-
-ada-gnat-parse-gpr-file
-    if object dir not created, search for Source Search Path fails
-
-manuel Gomez using comp_cmd, make_cmd, src_dir, obj_dir; not .gpr files
-    I could use make_cmd to get project-local env vars in make, like ADA_PROJECT_PATH, TEST_CHASSIS
-    reference project variables in project var values
-
-ada-find-other-file in separate bodies
-    not on 'separate' line; must use ada-gnat-xref
-
-    alternate to 'gnat find': gnatinspect
-        packaged in GNAT GPL 2012, not in 7.0.1, 7.1, gnatcoll-1.4
-        uses gnatcoll.xref library
-        tell adacore how well it works
-        waiting for gnatcoll 1.5
-
-help -> manual looked for arm95
-
-check emacs buglist
-    http://debbugs.gnu.org/cgi/pkgreport.cgi?package=ada-mode
-
-skeleton enhancements
-    add else placeholders to all skeletons?
-        add 'placeholder text property, before-change that deletes it/checks for "..."
-        add goto-next-/prev-placeholder, kill-placeholder
-
-    bug in skeleton handling of _; if skeleton-end-hook indents, the pos of _ moves; should be a marker.
+    add a custom indent function, like the one for opentoken
+    12 sep 2013: sent email
 
  opentoken
 /Projects/org.opentoken.stephe/build/debug/Makefile
@@ -363,11 +392,6 @@ ada-display-buffer
         bury buffer doesn't bring back last buffer
 
     review windows.el to see if there is now a better solution
-
-support xref for C files?
-    at least if compiled with gprbuild?
-    gcc options?
-    gnatxref?
 
 emacs versions:
     24.x gdb (all versions) broken for break commands (can't terminate prompting)

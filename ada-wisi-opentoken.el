@@ -45,8 +45,8 @@
 (defun ada-wisi-opentoken-setup ()
   (add-to-list 'wisi-indent-calculate-functions 'ada-wisi-opentoken))
 
-;; This must be last on ada-mode-hook, so ada-wisi-opentoken is first
-;; on wisi-indent-calculate-functions
+;; This must be after ada-wisi-setup on ada-mode-hook, because
+;; ada-wisi-setup resets wisi-indent-calculate-functions
 (add-hook 'ada-mode-hook 'ada-wisi-opentoken-setup t)
 
 (add-to-list 'ada-align-rules

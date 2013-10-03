@@ -1,34 +1,35 @@
--- Test font-lock with ada-language-version not ada2012
+-- Test casing and font-lock with on keywords added in later language versions.
+--
+-- We only test the face of one keyword from each of the
+-- ada-*-casing-versions; enough to tell that the choice via file
+-- local variable works.
 
 --EMACSCMD:(setq skip-reindent-test t)
+--EMACSCMD:(setq case-fold-search nil)
 
---EMACSCMD:(setq ada-language-version 'ada83)
--- need to recompute font-lock-keywords and re-fontify
---EMACSCMD:(ada-mode)
+-- global-font-lock-mode is off in batch tests
 --EMACSCMD:(font-lock-fontify-buffer)
---EMACSCMD:(test-face "abstract" 'default)
-abstract
 
---EMACSCMD:(setq ada-language-version 'ada95)
---EMACSCMD:(ada-mode)
---EMACSCMD:(font-lock-fontify-buffer)
---EMACSCMD:(test-face "abstract" 'font-lock-keyword-face)
-abstract
---EMACSCMD:(test-face "interface" 'default)
-interface
+-- from ada83
+--EMACSCMD:(test-face "abort" 'font-lock-keyword-face)
+--EMACSCMD:(progn (forward-line 1)(upcase-word 1)(ada-case-adjust)(looking-back "'abort"))
+abort
 
---EMACSCMD:(setq ada-language-version 'ada2005)
---EMACSCMD:(ada-mode)
---EMACSCMD:(font-lock-fontify-buffer)
---EMACSCMD:(test-face "interface" 'font-lock-keyword-face)
-interface
---EMACSCMD:(test-face "some" 'default)
-some
+-- from ada95
+--EMACSCMD:(test-face "Abstract" 'default)
+--EMACSCMD:(progn (forward-line 1)(upcase-word 1)(ada-case-adjust)(looking-back "'Abstract"))
+Abstract
 
---EMACSCMD:(setq ada-language-version 'ada2012)
---EMACSCMD:(ada-mode)
---EMACSCMD:(font-lock-fontify-buffer)
---EMACSCMD:(test-face "some" 'font-lock-keyword-face)
-some
-  
-  
+-- from ada2005
+--EMACSCMD:(test-face "Interface" 'default)
+--EMACSCMD:(progn (forward-line 1)(upcase-word 1)(ada-case-adjust)(looking-back "'Interface"))
+Interface
+
+-- from ada2012
+--EMACSCMD:(test-face "Some" 'default)
+--EMACSCMD:(progn (forward-line 1)(upcase-word 1)(ada-case-adjust)(looking-back "'Some"))
+Some
+
+-- Local Variables:
+-- ada-language-version : ada83
+-- End:

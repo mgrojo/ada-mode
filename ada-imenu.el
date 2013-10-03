@@ -71,6 +71,7 @@ each type of entity that can be found in an Ada file.")
   (imenu-add-to-menubar "Entities")
 )
 
+;; ada--imenu-mode does not depend on file local variables
 (add-hook 'ada-mode-hook 'ada--imenu-mode)
 
 (provide 'ada-imenu)

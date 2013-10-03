@@ -1339,6 +1339,25 @@ Also return cache at start."
 
   (set (make-local-variable 'comment-indent-function) 'wisi-comment-indent)
 
+  (setq ada-fix-context-clause 'ada-wisi-context-clause)
+  (setq ada-goto-declaration-start 'ada-wisi-goto-declaration-start)
+  (setq ada-goto-declarative-region-start 'ada-wisi-goto-declarative-region-start)
+  (setq ada-goto-end 'wisi-goto-end)
+  (setq ada-in-paramlist-p 'ada-wisi-in-paramlist-p)
+  (setq ada-indent-statement 'ada-wisi-indent-statement)
+  (setq ada-make-subprogram-body 'ada-wisi-make-subprogram-body)
+  (setq ada-next-statement-keyword 'wisi-forward-statement-keyword)
+  (setq ada-prev-statement-keyword 'wisi-backward-statement-keyword)
+  (setq ada-scan-paramlist 'ada-wisi-scan-paramlist)
+  (setq ada-show-parse-error 'wisi-show-parse-error)
+  (setq ada-which-function 'ada-wisi-which-function)
+
+  (add-hook 'hack-local-variables-hook 'ada-mode-post-local-vars nil t)
+  )
+
+(defun ada-wisi-post-local-vars ()
+  ;; run after file local variables are read because font-lock-add-keywords
+  ;; evaluates font-lock-defaults, which depends on ada-language-version.
   (font-lock-add-keywords nil
    ;; use keyword cache to distinguish between 'function ... return <type>;' and 'return ...;'
    (list
@@ -1360,19 +1379,6 @@ Also return cache at start."
 	   'default)
 	 nil t)
      )))
-
-  (setq ada-fix-context-clause 'ada-wisi-context-clause)
-  (setq ada-goto-declaration-start 'ada-wisi-goto-declaration-start)
-  (setq ada-goto-declarative-region-start 'ada-wisi-goto-declarative-region-start)
-  (setq ada-goto-end 'wisi-goto-end)
-  (setq ada-in-paramlist-p 'ada-wisi-in-paramlist-p)
-  (setq ada-indent-statement 'ada-wisi-indent-statement)
-  (setq ada-make-subprogram-body 'ada-wisi-make-subprogram-body)
-  (setq ada-next-statement-keyword 'wisi-forward-statement-keyword)
-  (setq ada-prev-statement-keyword 'wisi-backward-statement-keyword)
-  (setq ada-scan-paramlist 'ada-wisi-scan-paramlist)
-  (setq ada-show-parse-error 'wisi-show-parse-error)
-  (setq ada-which-function 'ada-wisi-which-function)
   )
 
 (add-hook 'ada-mode-hook 'ada-wisi-setup)
