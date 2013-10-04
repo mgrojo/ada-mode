@@ -363,11 +363,24 @@ the project file.
 Ada compiler for this project. It must occur in the project file
 before any compiler-specific project variable.
 
+@item @code{auto_case}      [default: @code{ada-auto-case, t}]
+Non-nil means automatically change case of preceding word while typing.
+
+@item @code{case_keyword}   [default: @code{ada-case-keyword, downcase-word}]
+Function to call to adjust the case of an Ada keywords.
+
+@item @code{case_strict}    [default: @code{ada-case-strict, t}]
+If non-nil, force Mixed_Case for identifiers.
+Otherwise, allow UPPERCASE for identifiers.
+
 @item @code{casing}         [default: @code{ada-case-exception-file, nil}]
 List of files containing casing exceptions. @xref{Automatic casing}.
 
 @item @code{src_dir}        [default: @code{"."}]
 A list of directories to search for source files.
+
+@item @code{xref_tool}      [default: @code{ada-xref-tool, gnat-xref}]
+Cross reference tool for this project.
 
 @end table
 

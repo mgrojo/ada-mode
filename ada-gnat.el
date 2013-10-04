@@ -98,7 +98,7 @@ list."
 
     project))
 
-(defun ada-gnat-prj-parse-emacs-file (name value project)
+(defun ada-gnat-prj-parse-emacs-one (name value project)
   "Handle gnat-specific Emacs Ada project file settings.
 Return new PROJECT if NAME recognized, nil otherwise.
 See also `ada-gnat-parse-emacs-final'."
@@ -986,13 +986,45 @@ Prompt user if more than one."
 
 ;;;;; setup
 
-(defun ada-gnat-setup ()
-  (set (make-local-variable 'ada-file-name-from-ada-name) 'ada-gnat-file-name-from-ada-name)
-  (set (make-local-variable 'ada-ada-name-from-file-name) 'ada-gnat-ada-name-from-file-name)
-  (set (make-local-variable 'ada-make-package-body) 'ada-gnat-make-package-body)
+(defun ada-gnat-select-prj-compiler ()
+  (setq ada-compiler 'gnat)
+  (setq ada-fix-error-hook 'ada-gnat-fix-error-hook)
+  (add-to-list 'completion-ignored-extensions ".ali") ;; gnat library files
+  )
+
+(defun ada-gnat-deselect-prj-compiler ()
+  (setq completion-ignored-extensions (delete 'completion-ignored-extensions ".ali"))
+  )
+
+(defun ada-gnat-select-prj-xref ()
+  (setq ada-xref-tool 'gnat)
+
+  (setq ada-file-name-from-ada-name 'ada-gnat-file-name-from-ada-name)
+  (setq ada-ada-name-from-file-name 'ada-gnat-ada-name-from-file-name)
+  (setq ada-make-package-body       'ada-gnat-make-package-body)
 
   (add-hook 'ada-syntax-propertize-hook 'ada-gnat-syntax-propertize)
 
+  ;; must be after indentation engine setup, because that resets the
+  ;; indent function list.
+  (add-hook 'ada-mode-hook 'ada-gnat-setup t)
+
+  (setq ada-xref-other-function  'ada-gnat-xref-other)
+  (setq ada-xref-all-function    'ada-gnat-xref-all)
+  (setq ada-xref-overriding-function nil)
+
+  ;; gnatmake -gnatD generates files with .dg extensions. But we don't
+  ;; need to navigate between them.
+  ;;
+  ;; There is no common convention for a file extension for gnatprep files.
+  )
+
+(defun ada-gnat-deselect-prj-xref ()
+  (setq ada-syntax-propertize-hook (delq 'ada-gnat-syntax-propertize ada-syntax-propertize-hook))
+  (setq ada-mode-hook (delq 'ada-gnat-setup ada-mode-hook))
+  )
+
+(defun ada-gnat-setup ()
   (when (boundp 'wisi-indent-calculate-functions)
     (add-to-list 'wisi-indent-calculate-functions 'ada-gnatprep-indent))
 
@@ -1007,20 +1039,17 @@ Prompt user if more than one."
    (list (list "^[ \t]*\\(#.*\n\\)"  '(1 font-lock-type-face t))))
   )
 
-;; must be after indentation engine setup, because that resets the
-;; indent function list.
-(add-hook 'ada-mode-hook 'ada-gnat-setup t)
+(add-to-list 'ada-prj-parser-alist       '("gpr" . ada-gnat-parse-gpr))
+(add-to-list 'ada-select-prj-compiler    '(gnat  . ada-gnat-select-prj-compiler))
+(add-to-list 'ada-deselect-prj-compiler  '(gnat  . ada-gnat-deselect-prj-compiler))
+(add-to-list 'ada-select-prj-xref-tool   '(gnat  . ada-gnat-select-prj-xref))
+(add-to-list 'ada-deselect-prj-xref-tool '(gnat  . ada-gnat-deselect-prj-xref))
 
-(setq-default ada-compiler 'gnat)
-
-(add-to-list 'ada-xref-other-function  (cons 'gnat 'ada-gnat-xref-other))
-(add-to-list 'ada-xref-all-function    (cons 'gnat 'ada-gnat-xref-all))
-(add-to-list 'ada-prj-parser-alist     (cons "gpr" 'ada-gnat-parse-gpr))
-(add-to-list 'ada-prj-parse-file-ext   (cons 'gnat 'ada-gnat-prj-parse-emacs-file))
-(add-to-list 'ada-prj-parse-file-final (cons 'gnat 'ada-gnat-prj-parse-emacs-final))
+(add-to-list 'ada-prj-parse-one-compiler   (cons 'gnat 'ada-gnat-prj-parse-emacs-one))
+(add-to-list 'ada-prj-parse-final-compiler (cons 'gnat 'ada-gnat-prj-parse-emacs-final))
+;; no parse-*-xref yet
 
 (add-hook 'ada-gnat-fix-error-hook 'ada-gnat-fix-error)
-(add-to-list 'ada-fix-error-alist (cons 'gnat 'ada-gnat-fix-error-hook))
 
 (add-to-list
  'compilation-error-regexp-alist-alist
@@ -1036,15 +1065,14 @@ Prompt user if more than one."
    ;;   foo.c:2 : `TRUE' undeclared here (not in a function)
    "^\\(\\(.:\\)?[^ :\n]+\\):\\([0-9]+\\)\\s-?:?\\([0-9]+\\)?" 1 3 4))
 
-; ignore gnat library files
-(add-to-list 'completion-ignored-extensions ".ali")
+(unless (default-value ada-compiler)
+  (set-default 'ada-compiler 'gnat))
 
-;; gnatmake -gnatD generates files with .dg extensions. But we don't
-;; need to navigate between them.
-;;
-;; There is no common convention for a file extension for gnatprep files.
+(unless (default-value ada-xref-tool)
+  (set-default 'ada-xref-tool 'gnat))
 
 (provide 'ada-gnat)
 (provide 'ada-compiler)
+(provide 'ada-xref-tool)
 
 ;; end of file

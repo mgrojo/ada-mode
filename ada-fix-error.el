@@ -122,9 +122,9 @@ extend a with_clause to include CHILD-NAME  .	"
   (forward-line -1)
   (indent-according-to-mode))
 
-(defvar ada-fix-error-alist nil
-  "Alist holding hook to recognize and fix errors.
-Indexed by project variable ada_compiler.
+(defvar ada-fix-error-hook nil
+  ;; determined by ada_compiler, set by *-select-prj-compiler
+  "Hook to recognize and fix errors.
 Hook functions are called with three args:
 
 MSG, the `compilation--message' struct for the current error
@@ -163,7 +163,7 @@ Compatible with Emacs 23.4 and 24.x."
       (let ((comp-buf-pt (point))
 	    (success
 	     (run-hook-with-args-until-success
-	      (cdr (assoc (ada-prj-get 'ada_compiler) ada-fix-error-alist))
+	      ada-fix-error-hook
 	      (compilation-next-error 0)
 	      source-buffer
 	      source-window)))

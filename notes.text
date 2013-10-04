@@ -90,59 +90,24 @@ need std include files in search list
  general
 build/wisi/Makefile
 
-xmtn-status ediff respect mtn:manual_merge!
-latex-skel
+xmtn-status ediff respect mtn:manual_merge
 
-sort out ada-compiler vs ada-xref-tool
+FIXMEs on redirects
+    edited; run tests
 
-ada-compiler
-    used by:
-        ada-prj-parse-file-ext
-            indexed by (ada-prj-get 'ada_compiler)
-            doesn't care about gnatinspect
+    test/gnatprep.adb failing on font, syntax (works interactive)
 
-        ada-xref-other-function
-            indexed by (ada-prj-get 'ada_compiler)
-            should use gnatinspect (gnat xref is going away)
+fixme in ada-wisi-setup
 
-        ada-xref-all-function
-            use (ada-prj-get 'ada_compiler)
-            should use gnatinspect (gnat xref is going away)
+need ada-gnat-compile-setup/-select-prj vs ada-tartan-compile-setup; ada-gnat-xref-setup vs gnat-inspect-setup
 
-        ada-fix-error-alist
-            indexed by (ada-prj-get 'ada_compiler)
+    split ada-gnat into gnat-core, ada-gnat-compile, ada-gnat-xref
+        use gnat-core in gnat-inspect
 
-ada-xref-tool
-    chooses "gnat xref" vs "gnatinspect"
-    should be per-project
+    need ada-gnatprep-select-prj?
+        lump with xref for now
 
-    if just overwrite global compiler-indexed redirect vars, then it must be separate from ada-compiler
-        change those to all be per-project?
-        then eliminate ada-compiler
-
-    gnat 6.2.2 has no gnatinspect
-    gnat 7.1.2 prefers gnatinspect
-
-    needs to be separate from ada-compiler
-
-    but it's a gnat issue, not some other tool issue
-
-    adds another project variable?
-
-    move _all_ gnat functionality to gnat-xref?
-        or just gnat?
-
-        gnatprep-indent : not really ada specific, doesn't run gnat
-
-        add-prj-dir : not ada specific
-
-        parse-emacs-file : not ada specific
-            switch to other env var instead of ada_project_path
-
-        get-paths: can use gnatinspect?
-
-ada-case-exception-file should be prj-var only
-    custom var is default
+    provide ada-nil-compile for GDS
 
 ada-mode, gpr-mode user guide
     ada-mode.texi

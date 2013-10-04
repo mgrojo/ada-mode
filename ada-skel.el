@@ -289,6 +289,16 @@ ELEMENT may be:
 (defvar ada-skel-test-input nil
   "When non-nil, bypasses prompt in alist token expansions - used for unit testing.")
 
+(defun ada-skel-build-prompt (alist count)
+  "Build a prompt from the keys of the ALIST.
+The prompt consists of the first COUNT keys from the alist, separated by `|', with
+trailing `...' if there are more keys."
+  (if (>= count (length alist))
+      (concat (mapconcat 'car alist " | ") " : ")
+    (let ((alist-1 (butlast alist (- (length alist) count))))
+      (concat (mapconcat 'car alist-1 " | ") " | ... : "))
+  ))
+
 ;;;###autoload
 (defun ada-skel-expand (&optional name)
   "Expand the token or placeholder before point to a skeleton, as defined by `ada-skel-token-alist'.
@@ -310,15 +320,14 @@ it is a name, and use the word before that as the token."
     (if skel
 	(progn
 	  (when (listp (cdr skel))
-	    (let ((prompt (concat (car skel) ": "))
-		  (alist (cdr skel)))
+	    (let* ((alist (cdr skel))
+		   (prompt (ada-skel-build-prompt alist 4)))
 	      (setq skel (assoc-string
 			  (or ada-skel-test-input
 			      (completing-read prompt alist))
 			  alist))
-	      	  (setq ada-skel-test-input nil) ;; don't reuse input on recursive call
-		  ))
-
+	      (setq ada-skel-test-input nil) ;; don't reuse input on recursive call
+	      ))
 
 	  ;; delete placeholder delimiters around token, token, and
 	  ;; name. point is currently before token.

@@ -1339,6 +1339,9 @@ Also return cache at start."
 
   (set (make-local-variable 'comment-indent-function) 'wisi-comment-indent)
 
+  ;; FIXME: move to load time, in 'ada-wisi-select' function to make
+  ;; it easy to change indentation engines during developing the next
+  ;; one.
   (setq ada-fix-context-clause 'ada-wisi-context-clause)
   (setq ada-goto-declaration-start 'ada-wisi-goto-declaration-start)
   (setq ada-goto-declarative-region-start 'ada-wisi-goto-declarative-region-start)
