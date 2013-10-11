@@ -993,7 +993,7 @@ Prompt user if more than one."
   )
 
 (defun ada-gnat-deselect-prj-compiler ()
-  (setq completion-ignored-extensions (delete 'completion-ignored-extensions ".ali"))
+  (setq completion-ignored-extensions (delete ".ali" completion-ignored-extensions))
   )
 
 (defun ada-gnat-select-prj-xref ()
@@ -1037,6 +1037,10 @@ Prompt user if more than one."
   (font-lock-add-keywords nil
    ;; gnatprep preprocessor line
    (list (list "^[ \t]*\\(#.*\n\\)"  '(1 font-lock-type-face t))))
+
+  (when global-font-lock-mode
+    ;; ensure the modified keywords are applied
+    (font-lock-refresh-defaults))
   )
 
 (add-to-list 'ada-prj-parser-alist       '("gpr" . ada-gnat-parse-gpr))

@@ -10,7 +10,7 @@ run wisi test from emacs -Q:
   (setq wisi-debug 1)
   (load "run-indent-test-wisi")
   (setq default-directory "/home/Projects/org.emacs.ada-mode.stephe-1/build/wisi/")
-  (run-test "../../test/ada_mode-nominal.adb"))
+  (run-test "../../test/gnatprep.adb"))
 
 (setq wisi-debug 2)
 (setq wisent-parse-max-stack-size 40)
@@ -30,7 +30,7 @@ build gnatinspect:
     (gds-lynx-5)
     cd ~/Projects
     tar xf ~/Downloads/gnatcoll...
-    cd gnatcoll ...
+    cd gnatcoll...
     case:
     when linux:
         ./configure --prefix=/usr/gnat-7.1.2 --enable-gpl
@@ -92,11 +92,6 @@ build/wisi/Makefile
 
 xmtn-status ediff respect mtn:manual_merge
 
-FIXMEs on redirects
-    edited; run tests
-
-    test/gnatprep.adb failing on font, syntax (works interactive)
-
 fixme in ada-wisi-setup
 
 need ada-gnat-compile-setup/-select-prj vs ada-tartan-compile-setup; ada-gnat-xref-setup vs gnat-inspect-setup
@@ -108,6 +103,8 @@ need ada-gnat-compile-setup/-select-prj vs ada-tartan-compile-setup; ada-gnat-xr
         lump with xref for now
 
     provide ada-nil-compile for GDS
+
+fixme in test/gnatprep.adb
 
 ada-mode, gpr-mode user guide
     ada-mode.texi

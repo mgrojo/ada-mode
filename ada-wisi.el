@@ -929,8 +929,10 @@ cached token, return new indentation for point."
 
 (defun ada-wisi-comment ()
   "Compute indentation of a comment. For `wisi-indent-functions'."
-  ;; We know we are at the first token on a line.
-  (when (looking-at comment-start-skip)
+  ;; We know we are at the first token on a line. We check for comment
+  ;; syntax, not comment-start, to accomodate gnatprep, skeleton
+  ;; placeholders, etc.
+  (when (= 11 (syntax-class (syntax-after (point))))
 
     ;; We are at a comment; indent to previous code or comment.
     (cond
@@ -1382,6 +1384,10 @@ Also return cache at start."
 	   'default)
 	 nil t)
      )))
+
+  (when global-font-lock-mode
+    ;; ensure the modified keywords are applied
+    (font-lock-refresh-defaults))
   )
 
 (add-hook 'ada-mode-hook 'ada-wisi-setup)

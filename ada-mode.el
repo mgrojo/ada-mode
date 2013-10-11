@@ -2426,9 +2426,10 @@ The paragraph is indented on the first line."
 
   (when ada-auto-case (ada-case-activate-keys))
 
-  ;; This calls ada-font-lock-keywords, which depends on
-  ;; ada-language-version
-  (font-lock-refresh-defaults)
+  (when global-font-lock-mode
+    ;; This calls ada-font-lock-keywords, which depends on
+    ;; ada-language-version
+    (font-lock-refresh-defaults))
 
   (cl-case ada-language-version
    (ada83
