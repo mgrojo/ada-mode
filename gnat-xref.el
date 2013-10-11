@@ -227,7 +227,7 @@ C-u C-u : show in other frame
   (interactive)
   (error "not implemented"))
 
-(defvar-local gnat-xref-map
+(defvar gnat-xref-map
   (let ((map (make-sparse-keymap)))
     ;; C-c <letter> are reserved for users
 

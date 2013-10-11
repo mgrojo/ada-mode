@@ -1341,22 +1341,6 @@ Also return cache at start."
 
   (set (make-local-variable 'comment-indent-function) 'wisi-comment-indent)
 
-  ;; FIXME: move to load time, in 'ada-wisi-select' function to make
-  ;; it easy to change indentation engines during developing the next
-  ;; one.
-  (setq ada-fix-context-clause 'ada-wisi-context-clause)
-  (setq ada-goto-declaration-start 'ada-wisi-goto-declaration-start)
-  (setq ada-goto-declarative-region-start 'ada-wisi-goto-declarative-region-start)
-  (setq ada-goto-end 'wisi-goto-end)
-  (setq ada-in-paramlist-p 'ada-wisi-in-paramlist-p)
-  (setq ada-indent-statement 'ada-wisi-indent-statement)
-  (setq ada-make-subprogram-body 'ada-wisi-make-subprogram-body)
-  (setq ada-next-statement-keyword 'wisi-forward-statement-keyword)
-  (setq ada-prev-statement-keyword 'wisi-backward-statement-keyword)
-  (setq ada-scan-paramlist 'ada-wisi-scan-paramlist)
-  (setq ada-show-parse-error 'wisi-show-parse-error)
-  (setq ada-which-function 'ada-wisi-which-function)
-
   (add-hook 'hack-local-variables-hook 'ada-wisi-post-local-vars nil t)
   )
 
@@ -1391,6 +1375,19 @@ Also return cache at start."
   )
 
 (add-hook 'ada-mode-hook 'ada-wisi-setup)
+
+(setq ada-fix-context-clause 'ada-wisi-context-clause)
+(setq ada-goto-declaration-start 'ada-wisi-goto-declaration-start)
+(setq ada-goto-declarative-region-start 'ada-wisi-goto-declarative-region-start)
+(setq ada-goto-end 'wisi-goto-end)
+(setq ada-in-paramlist-p 'ada-wisi-in-paramlist-p)
+(setq ada-indent-statement 'ada-wisi-indent-statement)
+(setq ada-make-subprogram-body 'ada-wisi-make-subprogram-body)
+(setq ada-next-statement-keyword 'wisi-forward-statement-keyword)
+(setq ada-prev-statement-keyword 'wisi-backward-statement-keyword)
+(setq ada-scan-paramlist 'ada-wisi-scan-paramlist)
+(setq ada-show-parse-error 'wisi-show-parse-error)
+(setq ada-which-function 'ada-wisi-which-function)
 
 (provide 'ada-wisi)
 (provide 'ada-indent-engine)

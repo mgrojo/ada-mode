@@ -281,7 +281,7 @@ Values defined by cross reference packages.")
   ;; skeleton function
   "Function to call to expand tokens (ie insert skeletons).")
 
-(defvar-local ada-mode-map
+(defvar ada-mode-map
   (let ((map (make-sparse-keymap)))
     ;; C-c <letter> are reserved for users
 
@@ -364,7 +364,7 @@ Values defined by cross reference packages.")
   (forward-char 1)
   (funcall indent-line-function))
 
-(defvar-local ada-indent-statement nil
+(defvar ada-indent-statement nil
   ;; indentation function
   "Function to indent the statement/declaration point is in or after.
 Function is called with no arguments.")
@@ -452,7 +452,7 @@ current construct."
       (align-current))
      )))
 
-(defvar-local ada-in-paramlist-p nil
+(defvar ada-in-paramlist-p nil
   ;; Supplied by indentation engine parser
   "Function to return t if point is inside the parameter-list of a subprogram declaration.
 Function is called with no arguments.")
@@ -486,7 +486,7 @@ Function is called with no arguments.")
 	(ada-insert-paramlist-single-line paramlist)))
     ))
 
-(defvar-local ada-scan-paramlist nil
+(defvar ada-scan-paramlist nil
   ;; Supplied by indentation engine parser
   "Function to scan a region, return a list of subprogram parameter declarations (in inverse declaration order).
 Function is called with two args BEGIN END (the region).
@@ -674,7 +674,7 @@ Each parameter declaration is represented by a list
       )
     ))
 
-(defvar-local ada-show-parse-error nil
+(defvar ada-show-parse-error nil
   ;; Supplied by indentation engine parser
   "Function to show last error reported by indentation parser."
   )

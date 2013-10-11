@@ -36,7 +36,7 @@
   :type 'boolean
   :group 'ada)
 
-(defvar-local ada-fix-context-clause nil
+(defvar ada-fix-context-clause nil
   "Function to return the region containing the context clause for the current buffer.
 Called with no arguments; return (BEGIN . END). BEGIN and
 END must be at beginning of line.  If there is no context

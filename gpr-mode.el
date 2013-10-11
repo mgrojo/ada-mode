@@ -156,8 +156,8 @@ current construct."
 	       'gpr-ff-special-with)
 	 )))
 
-(defvar-local gpr-which-function nil
-  ;; No useful default; the indentation engine should supply a useful function
+(defvar gpr-which-function nil
+  ;; supplied by the indentation engine
   "Function called with no parameters; it should return the name
 of the package or project point is in or just after, or nil.")
 

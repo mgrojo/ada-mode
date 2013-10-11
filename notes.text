@@ -92,8 +92,6 @@ build/wisi/Makefile
 
 xmtn-status ediff respect mtn:manual_merge
 
-fixme in ada-wisi-setup
-
 need ada-gnat-compile-setup/-select-prj vs ada-tartan-compile-setup; ada-gnat-xref-setup vs gnat-inspect-setup
 
     split ada-gnat into gnat-core, ada-gnat-compile, ada-gnat-xref

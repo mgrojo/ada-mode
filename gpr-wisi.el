@@ -181,10 +181,11 @@
 	      gpr-grammar-wy--parse-table)
 
   (set (make-local-variable 'comment-indent-function) 'wisi-comment-indent)
-  (setq gpr-which-function 'gpr-wisi-which-function)
   )
 
 (add-hook 'gpr-mode-hook 'gpr-wisi-setup)
+
+(setq gpr-which-function 'gpr-wisi-which-function)
 
 (provide 'gpr-wisi)
 (provide 'gpr-indent-engine)
