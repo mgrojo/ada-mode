@@ -1318,8 +1318,11 @@ Indexed by project variable xref_tool.")
     (setq ada-prj-current-file nil)
     (error "Project file '%s' was not previously parsed." prj-file))
 
-  (funcall (cdr (assq (ada-prj-get 'ada_compiler) ada-deselect-prj-compiler)))
-  (funcall (cdr (assq (ada-prj-get 'xref_tool) ada-deselect-prj-xref-tool)))
+  (let ((func (cdr (assq (ada-prj-get 'ada_compiler) ada-deselect-prj-compiler))))
+    (when func (funcall func)))
+
+  (let ((func (cdr (assq (ada-prj-get 'xref_tool) ada-deselect-prj-xref-tool))))
+    (when func (funcall func)))
 
   (setq ada-prj-current-file prj-file)
 
@@ -1328,8 +1331,11 @@ Indexed by project variable xref_tool.")
   (setq compilation-search-path (ada-prj-get 'src_dir))
   (setq ada-project-search-path (ada-prj-get 'prj_dir))
 
-  (funcall (cdr (assq (ada-prj-get 'ada_compiler) ada-select-prj-compiler)))
-  (funcall (cdr (assq (ada-prj-get 'xref_tool) ada-select-prj-xref-tool)))
+  (let ((func (cdr (assq (ada-prj-get 'ada_compiler) ada-select-prj-compiler))))
+    (when func (funcall func)))
+
+  (let ((func (cdr (assq (ada-prj-get 'xref_tool) ada-select-prj-xref-tool))))
+    (when func (funcall func)))
 
   ;; return 't', for decent display in message buffer when called interactively
   t)
@@ -2463,10 +2469,10 @@ The paragraph is indented on the first line."
   (require 'ada-wisi))
 
 (unless (featurep 'ada-compiler)
-  (require 'ada-gnat))
+  (require 'ada-gnat-compile))
 
 (unless (featurep 'ada-xref-tool)
-  (require 'ada-gnat))
+  (require 'ada-gnat-xref))
 
 (unless (featurep 'ada-skeletons)
   (require 'ada-skel))

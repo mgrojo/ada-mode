@@ -92,21 +92,21 @@ build/wisi/Makefile
 
 xmtn-status ediff respect mtn:manual_merge
 
-need ada-gnat-xref-setup vs gnat-inspect-setup
+add tests for gnat-inspect
+    add ada-gnat-inspect in gnat-inspect.el, use in prj files
 
-    split out gnat-core; done
+    run all current tests with gnat-inspect instead of gnat-xref
 
-    split out ada-gnat-compile, ada-gnat-xref
-
-    provide ada-nil-compile for GDS?
+    add C++
 
 fixme in test/gnatprep.adb
     need ada-gnatprep-select-prj?
         lump with xref for now
 
-add tests for gnat-inspect
-    run all current tests with gnat-inspect instead of gnat-xref
-    add C++
+    some people don't use project files
+        they should
+
+add ada-gnat-compile
 
 ada-mode, gpr-mode user guide
     ada-mode.texi

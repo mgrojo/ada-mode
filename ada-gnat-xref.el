@@ -1,0 +1,811 @@
+;; Ada mode cross-reference functionality provided by the 'gnat xref'
+;; tool. Includes related functions, such as gnatprep support.
+;;
+;; These tools are all Ada-specific; see gnat-inspect for
+;; multi-language GNAT cross-reference tools.
+;;
+;; GNAT is provided by AdaCore; see http://libre.adacore.com/
+;;
+;;; Copyright (C) 2012, 2013  Free Software Foundation, Inc.
+;;
+;; Author: Stephen Leake <stephen_leake@member.fsf.org>
+;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
+;; Keywords: languages ada
+;;
+;; This file is part of GNU Emacs.
+;;
+;; GNU Emacs is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+;;
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;;
+;;; Usage:
+;;
+;; Emacs should enter Ada mode automatically when you load an Ada
+;; file, based on the file extension.
+;;
+;; By default, ada-mode is configured to load this file, so nothing
+;; special needs to done to use it.
+
+(require 'ada-fix-error)
+(require 'compile)
+(require 'gnat-core)
+
+;;;;; code
+;;;; gnatprep utils
+;;
+;; It is possible to use gnatprep with other compilers, and other
+;; language source code, but we are ignoring that.
+
+(defun ada-gnatprep-indent ()
+  "If point is on a gnatprep keyword, return indentation column
+for it. Otherwise return nil.  Intended to be added to
+`wisi-indent-calculate-functions' or other indentation function
+list."
+  ;; gnatprep keywords are:
+  ;;
+  ;; #if identifier [then]
+  ;; #elsif identifier [then]
+  ;; #else
+  ;; #end if;
+  ;;
+  ;; they are all indented at column 0.
+  (when (equal (char-after) ?\#) 0))
+
+(defun ada-gnat-syntax-propertize (start end)
+  (goto-char start)
+  (while (re-search-forward
+	  "^[ \t]*\\(#\\(?:if\\|else\\|elsif\\|end\\)\\)"; gnatprep keywords.
+	  end t)
+    (cond
+     ((match-beginning 1)
+      (put-text-property
+       (match-beginning 1) (match-end 1) 'syntax-table '(11 . ?\n)))
+     )
+    ))
+
+;;;; uses of gnat tools
+
+(defconst ada-gnat-file-line-col-regexp "\\(.*\\):\\([0-9]+\\):\\([0-9]+\\)")
+
+(defun ada-gnat-xref-other (identifier file line col parent)
+  "For `ada-xref-other-function', using 'gnat find', which is Ada-specific."
+  (let* ((arg (format "%s:%s:%d:%d" identifier file line col))
+	 (switches (concat
+		  (when parent "-d")
+		  (when (ada-prj-get 'gpr_ext) (concat "--ext=" (ada-prj-get 'gpr_ext)))
+		  ))
+	 status
+	 (result nil))
+    (with-current-buffer (gnat-run-buffer)
+      (if (< 0 (length switches))
+	  (setq status (gnat-run-gnat (list "find" switches arg)))
+	(setq status (gnat-run-gnat (list "find" arg))))
+
+      (cond
+       ((= status 0); success
+	(goto-char (point-min))
+	(forward-line 2); skip ADA_PROJECT_PATH, 'gnat find'
+
+	;; gnat find returns two items; the starting point, and the 'other' point
+	(while (not result)
+	  (unless (looking-at (concat ada-gnat-file-line-col-regexp ":"))
+	    ;; no results
+	    (error "'%s' not found in cross-reference files; recompile?" identifier))
+	  (if (looking-at (concat ada-gnat-file-line-col-regexp ": warning:"))
+	      ;; error in *.gpr; ignore here.
+	      (forward-line 1)
+	    ;; else process line
+	    (let ((found-file (match-string 1))
+		  (found-line (string-to-number (match-string 2)))
+		  (found-col  (string-to-number (match-string 3))))
+	      (cond
+	       (parent
+		(skip-syntax-forward "^ ")
+		(skip-syntax-forward " ")
+		(if (looking-at (concat "derived from .* (" ada-gnat-file-line-col-regexp ")"))
+		    ;; found other item
+		    (setq result (list (match-string 1)
+				       (string-to-number (match-string 2))
+				       (1- (string-to-number (match-string 3)))))
+		  (forward-line 1)))
+
+	       (t
+		(if (not
+		     (and
+		      (equal file found-file)
+		      (= line found-line)
+		      (= col found-col)))
+		    ;; found other item
+		    (setq result (list found-file found-line (1- found-col)))
+		  (forward-line 1)))
+	       )
+	      (when (eobp)
+		(pop-to-buffer (current-buffer))
+		(error "gnat find did not return other item"))
+	      ))))
+
+       (t ; failure
+	(pop-to-buffer (current-buffer))
+	(error "gnat find failed"))
+       ))
+    result))
+
+(defun ada-gnat-xref-all (identifier file line col)
+  "For `ada-xref-all-function'."
+  ;; we use `compilation-start' to run gnat, not `gnat-run', so it
+  ;; is asynchronous, and automatically runs the compilation error
+  ;; filter.
+
+  (let* ((cmd (format "gnat find -r %s:%s:%d:%d" identifier file line col)))
+
+    (with-current-buffer (gnat-run-buffer); for default-directory
+      (let ((compilation-environment (ada-prj-get 'proc_env))
+	    (compilation-error "reference")
+	    ;; gnat find uses standard gnu format for output, so don't
+	    ;; need to set compilation-error-regexp-alist
+	    )
+	(when (ada-prj-get 'gpr_file)
+	  (setq cmd (concat cmd " -P" (file-name-nondirectory (ada-prj-get 'gpr_file)))))
+
+	(compilation-start cmd
+			   'compilation-mode
+			   (lambda (mode-name) (concat mode-name "-gnatfind")))
+    ))))
+
+(defun ada-gnat-file-name-from-ada-name (ada-name)
+  "For `ada-file-name-from-ada-name'."
+  (let* (status
+	 (result nil))
+
+    (while (string-match "\\." ada-name)
+      (setq ada-name (replace-match "-" t t ada-name)))
+    (setq ada-name (downcase ada-name))
+
+    (with-current-buffer (gnat-run-buffer)
+      (setq status
+	    (gnat-run-no-prj
+	     (list
+	      "krunch"
+	      ada-name
+	      ;; "0" means only krunch GNAT library names
+	      "0")))
+
+      (cond
+       ((= status 0); success
+	(goto-char (point-min))
+	(forward-line 1); skip  cmd
+	(setq result (buffer-substring-no-properties (line-beginning-position) (line-end-position)))
+	)
+
+       (t ; failure
+	(pop-to-buffer (current-buffer))
+	(error "gnat krunch failed"))
+       ))
+    result))
+
+(defconst ada-gnat-predefined-package-alist
+  '(("a-textio" . "Ada.Text_IO")
+    ("a-chahan" . "Ada.Characters.Handling")
+    ("a-comlin" . "Ada.Command_Line")
+    ("a-except" . "Ada.Exceptions")
+    ("a-numeri" . "Ada.Numerics")
+    ("a-string" . "Ada.Strings")
+    ("a-strmap" . "Ada.Strings.Maps")
+    ("a-strunb" . "Ada.Strings.Unbounded")
+    ("g-socket" . "GNAT.Sockets")
+    ("interfac" . "Interfaces")
+    ("i-c"      . "Interfaces.C")
+    ("i-cstrin" . "Interfaces.C.Strings")
+    ("s-stoele" . "System.Storage_Elements")
+    ("unchconv" . "Unchecked_Conversion") ; Ada 83 name
+    )
+  "Alist (filename . package name) of GNAT file names for predefined Ada packages.")
+
+(defun ada-gnat-ada-name-from-file-name (file-name)
+  "For `ada-ada-name-from-file-name'."
+  (let* (status
+	 (ada-name (file-name-sans-extension (file-name-nondirectory file-name)))
+	(predefined (cdr (assoc ada-name ada-gnat-predefined-package-alist))))
+
+    (if predefined
+        predefined
+      (while (string-match "-" ada-name)
+	(setq ada-name (replace-match "." t t ada-name)))
+      ada-name)))
+
+(defun ada-gnat-make-package-body (body-file-name)
+  "For `ada-make-package-body'."
+  ;; WORKAROUND: gnat stub 7.1w does not accept aggregate project files,
+  ;; and doesn't use the gnatstub package if it is in a 'with'd
+  ;; project file; see AdaCore ticket LC30-001. On the other hand we
+  ;; need a project file to specify the source dirs so the tree file
+  ;; can be generated. So we use gnat-run-no-prj, and the user
+  ;; must specify the proper project file in gnat_stub_opts.
+  ;;
+  ;; gnatstub always creates the body in the current directory (in the
+  ;; process where gnatstub is running); the -o parameter may not
+  ;; contain path info. So we pass a directory to gnat-run-no-prj.
+  (let ((start-buffer (current-buffer))
+	(start-file (buffer-file-name))
+	;; can also specify gnat stub options/switches in .gpr file, in package 'gnatstub'.
+	(opts (when (ada-prj-get 'gnat_stub_opts)
+		(split-string (ada-prj-get 'gnat_stub_opts))))
+	(switches (when (ada-prj-get 'gnat_stub_switches)
+		    (split-string (ada-prj-get 'gnat_stub_switches))))
+	status)
+
+    ;; Make sure all relevant files are saved to disk. This also saves
+    ;; the bogus body buffer created by ff-find-the-other-file, so we
+    ;; need -f gnat stub option. We won't get here if there is an
+    ;; existing body file.
+    (save-some-buffers t)
+    (add-to-list 'opts "-f")
+    (with-current-buffer (gnat-run-buffer)
+      (setq status
+	    (gnat-run-no-prj
+	     (append (list "stub") opts (list start-file "-cargs") switches)
+	     (file-name-directory body-file-name)))
+
+      (cond
+       ((= status 0); success - fix indentation
+	(find-file body-file-name)
+	(indent-region (point-min) (point-max))
+	(save-buffer)
+	(set-buffer start-buffer))
+
+       (t ; failure
+	(pop-to-buffer (current-buffer))
+	(delete-file body-file-name);; created by find-file
+	(error "gnat stub failed"))
+       ))
+    nil))
+
+;;;; compiler message handling
+
+(defun ada-gnat-compilation-filter ()
+  "Filter to add text properties to secondary file references.
+For `compilation-filter-hook'."
+  (save-excursion
+    (goto-char compilation-filter-start)
+
+    ;; compilation-filter might insert partial lines, or it might insert multiple lines
+    (when (bolp)
+      (while (not (eobp))
+	;; We don't want 'next-error' to always go to secondary
+	;; references, so we _don't_ set 'compilation-message text
+	;; property. Instead, we set 'ada-secondary-error, so
+	;; `ada-goto-secondary-error' will handle it. We also set
+	;; fonts, so the user can see the reference.
+
+	;; typical secondary references look like:
+	;;
+	;; trivial_productions_test.adb:57:77:   ==> in call to "Get" at \
+	;;    opentoken-token-enumerated-analyzer.ads:88, instance at line 41
+	;;
+	;; c:/foo/bar/lookahead_test.adb:379:14: found type access to "Standard.String" defined at line 379
+	;;
+	;; lookahead_test.ads:23:09: "Name" has been inherited from subprogram at aunit-simple_test_cases.ads:47
+	;;
+	;; lalr.adb:668:37: non-visible declaration at analyzer.ads:60, instance at parser.ads:38
+	;;
+	;; save the file from the primary reference, look for "*.ad?:nn", "at line nnn"
+
+	(let (file)
+	  (when (looking-at "^\\(\\(.:\\)?[^ :\n]+\\):")
+	    (setq file (match-string-no-properties 1)))
+
+	  (skip-syntax-forward "^-"); space following primary reference
+
+	  (while (search-forward-regexp "\\s-\\(\\([^[:blank:]]+\\.[[:alpha:]]+\\):\\([0-9]+\\)\\)"
+					(line-end-position) t)
+
+	    (goto-char (match-end 0))
+	    (with-silent-modifications
+	      (compilation--put-prop 2 'font-lock-face compilation-info-face); file
+	      (compilation--put-prop 3 'font-lock-face compilation-line-face); line
+	      (put-text-property
+	       (match-beginning 0) (match-end 0)
+	       'ada-secondary-error
+	       (list
+		(match-string-no-properties 2); file
+		(string-to-number (match-string-no-properties 3)); line
+		1)); column
+	      ))
+
+	  (when (search-forward-regexp "\\(at line \\)\\([0-9]+\\)" (line-end-position) t)
+	    (with-silent-modifications
+	      (compilation--put-prop 1 'font-lock-face compilation-info-face); "at line" instead of file
+	      (compilation--put-prop 2 'font-lock-face compilation-line-face); line
+	      (put-text-property
+	       (match-beginning 1) (match-end 1)
+	       'ada-secondary-error
+	       (list
+		file
+		(string-to-number (match-string-no-properties 2)); line
+		1)); column
+	      ))
+	  (forward-line 1))
+	))
+    ))
+
+(defun ada-gnat-debug-filter ()
+  ;; call ada-gnat-compilation-filter with `compilation-filter-start' bound
+  (interactive)
+  (beginning-of-line)
+  (let ((compilation-filter-start (point)))
+    (ada-gnat-compilation-filter)))
+
+;;;;; auto fix compilation errors
+
+(defconst ada-gnat-quoted-name-regexp
+  "\"\\([a-zA-Z0-9_.']+\\)\""
+  "regexp to extract the quoted names in error messages")
+
+(defconst ada-gnat-quoted-punctuation-regexp
+  "\"\\([,:;=()|]+\\)\""
+  "regexp to extract quoted punctuation in error messages")
+
+(defvar ada-gnat-fix-error-hook nil
+  "For `ada-fix-error-alist'.")
+
+(defun ada-gnat-misspelling ()
+  "Return correct spelling from current compiler error, if there are corrections offered.
+Prompt user if more than one."
+  ;; wisi-output.adb:115:41: no selector "Productions" for type "RHS_Type" defined at wisi.ads:77
+  ;; wisi-output.adb:115:41: invalid expression in loop iterator
+  ;; wisi-output.adb:115:42: possible misspelling of "Production"
+  ;; wisi-output.adb:115:42: possible misspelling of "Production"
+  ;;
+  ;; column number can vary, so only check the line number
+
+  (let ((line (progn (beginning-of-line) (nth 1 (compilation--message->loc (ada-get-compilation-message)))))
+	done choices)
+    (while (not done)
+      (forward-line 1)
+      (setq done (or (not (ada-get-compilation-message))
+		     (not (equal line (nth 1 (compilation--message->loc (ada-get-compilation-message)))))))
+      (when (and (not done)
+		 (progn
+		   (skip-syntax-forward "^-")
+		   (forward-char 1)
+		   (looking-at (concat "possible misspelling of " ada-gnat-quoted-name-regexp))))
+	(push (match-string 1) choices)))
+
+    ;; return correct spelling
+    (cond
+     ((= 0 (length choices))
+      nil)
+
+     ((= 1 (length choices))
+      (car choices))
+
+     (t ;; multiple choices
+      (completing-read "correct spelling: " choices))
+     )))
+
+(defun ada-gnat-fix-error (msg source-buffer source-window)
+  "For `ada-gnat-fix-error-hook'."
+  (let ((start-pos (point))
+	message-column
+	result)
+    ;; Move to start of error message text
+    (skip-syntax-forward "^-")
+    (forward-char 1)
+    (setq message-column (current-column))
+
+    ;; recognize it, handle it
+    (setq
+     result
+     (unwind-protect
+	 (cond
+	  ;; It is tempting to define an alist of (MATCH . ACTION), but
+	  ;; that is too hard to debug
+	  ;;
+	  ;; This list will get long, so let's impose some order.
+	  ;;
+	  ;; First expressions that start with a named regexp, alphabetical by variable name.
+	  ;;
+	  ;; Then expressions that start with a string, alphabetical by string.
+	  ;;
+	  ;; Then style errors.
+
+	  ((looking-at (concat ada-gnat-quoted-name-regexp " is not visible"))
+	   (let ((ident (match-string 1))
+		 (done nil)
+		 (file-line-struct (progn (beginning-of-line) (ada-get-compilation-message)))
+		 pos choices unit-name)
+	     ;; next line may contain a reference to where ident is
+	     ;; defined; if present, it will have been marked by
+	     ;; ada-gnat-compilation-filter
+	     ;;
+	     ;; the lines after that may contain alternate matches;
+	     ;; collect all, let user choose.
+	     (while (not done)
+	       (forward-line 1)
+	       (setq done (not
+			   (and
+			    (equal file-line-struct (ada-get-compilation-message))
+			    (let ((limit (1- (line-end-position))))
+			      ;; 1- because next compilation error is at next line beginning
+			      (setq pos (next-single-property-change (point) 'ada-secondary-error nil limit))
+			      (< pos limit)))))
+	       (when (not done)
+		 (let* ((item (get-text-property pos 'ada-secondary-error))
+			(unit-file (nth 0 item)))
+		   (add-to-list 'choices (ada-gnat-ada-name-from-file-name unit-file))))
+	       );; while
+
+	     (cond
+	      ((= 0 (length choices))
+	       (setq unit-name nil))
+
+	      ((= 1 (length choices))
+	       (setq unit-name (car choices)))
+
+	      (t ;; multiple choices
+	       (setq unit-name
+		     (completing-read "package name: " choices)))
+	      );; cond
+
+	     (when unit-name
+	       (pop-to-buffer source-buffer)
+	       ;; We either need to add a with_clause for a package, or
+	       ;; prepend the package name here (or add a use clause, but I
+	       ;; don't want to do that automatically).
+	       ;;
+	       ;; If we need to add a with_clause, unit-name may be only
+	       ;; the prefix of the real package name, but in that case
+	       ;; we'll be back after the next compile; no way to get the
+	       ;; full package name (without the function/type name) now.
+	       ;; Note that we can't use gnat find, because the code
+	       ;; doesn't compile.
+	       (cond
+		((looking-at (concat unit-name "\\."))
+		 (ada-fix-add-with-clause unit-name))
+		(t
+		 (ada-fix-insert-unit-name unit-name)
+		 (insert ".")))
+	       t) ;; success, else nil => fail
+	     ))
+
+	  ((looking-at (concat ada-gnat-quoted-name-regexp " is undefined"))
+	   ;; We either need to add a with_clause for a package, or
+	   ;; something is spelled wrong.
+	   (save-excursion
+	     (let ((unit-name (match-string 1))
+		   (correct-spelling (ada-gnat-misspelling)))
+	       (if correct-spelling
+		   (progn
+		     (pop-to-buffer source-buffer)
+		     (search-forward unit-name)
+		     (replace-match correct-spelling))
+
+		 ;; else assume missing with
+		 (pop-to-buffer source-buffer)
+		 (ada-fix-add-with-clause unit-name))))
+	   t)
+
+	  ((looking-at (concat ada-gnat-quoted-name-regexp " is undefined"))
+	   ;; We either need to add a with_clause for a package, or
+	   ;; something is spelled wrong.
+	   (save-excursion
+	     (let ((unit-name (match-string 1))
+		   (correct-spelling (ada-gnat-misspelling)))
+	       (if correct-spelling
+		   (progn
+		     (pop-to-buffer source-buffer)
+		     (search-forward unit-name)
+		     (replace-match correct-spelling))
+
+		 ;; else assume missing with
+		 (pop-to-buffer source-buffer)
+		 (ada-fix-add-with-clause unit-name))))
+	   t)
+
+	  ((looking-at (concat ada-gnat-quoted-name-regexp " not declared in " ada-gnat-quoted-name-regexp))
+	   (save-excursion
+	     (let ((child-name (match-string 1))
+		   (correct-spelling (ada-gnat-misspelling)))
+	       (if correct-spelling
+		   (progn
+		     (setq correct-spelling (match-string 1))
+		     (pop-to-buffer source-buffer)
+		     (search-forward child-name)
+		     (replace-match correct-spelling))
+
+		 ;; else guess that "child" is a child package, and extend the with_clause
+		 (pop-to-buffer source-buffer)
+		 (ada-fix-extend-with-clause child-name))))
+	   t)
+
+	  ((looking-at (concat ada-gnat-quoted-punctuation-regexp
+			       " should be "
+			       ada-gnat-quoted-punctuation-regexp))
+	   (let ((bad (match-string-no-properties 1))
+		 (good (match-string-no-properties 2)))
+	     (pop-to-buffer source-buffer)
+	     (looking-at bad)
+	     (delete-region (match-beginning 0) (match-end 0))
+	     (insert good))
+	   t)
+
+;;;; strings
+	  ((looking-at (concat "\"end " ada-name-regexp ";\" expected"))
+	   (let ((expected-name (match-string 1)))
+	     (pop-to-buffer source-buffer)
+	     (if (looking-at (concat "end " ada-name-regexp ";"))
+		 (progn
+		   (goto-char (match-end 1))   ; just before ';'
+		   (delete-region (match-beginning 1) (match-end 1)))
+	       ;; else we have just 'end;'
+	       (forward-word 1)
+	       (insert " "))
+	     (insert expected-name))
+	   t)
+
+	  ((looking-at "expected an access type")
+	   (progn
+	     (set-buffer source-buffer)
+	     (backward-char 1)
+	     (when (looking-at "\\.all")
+	       (delete-char 4)
+	       t)))
+
+	  ((looking-at (concat "expected \\(private \\)?type " ada-gnat-quoted-name-regexp))
+	   (let ((type (match-string 2)))
+	     (forward-line 1)
+	     (move-to-column message-column)
+	     (when (or (looking-at "found type access")
+		       (looking-at "found type .*_Access_Type"))
+	       ;; assume just need '.all'
+	       (pop-to-buffer source-buffer)
+	       (forward-word 1)
+	       (insert ".all")
+	       t)))
+
+	  ((looking-at "extra \".\" ignored")
+	   (set-buffer source-buffer)
+	   (delete-char 1)
+	   t)
+
+	  ((looking-at "\\(?:possible \\)?missing \"with \\([a-zA-Z0-9_.]+\\);")
+	   ;; also 'possible missing "with Ada.Text_IO; use Ada.Text_IO"' - ignoring the 'use'
+	   (let ((package-name (match-string-no-properties 1)))
+	     (pop-to-buffer source-buffer)
+	     ;; FIXME (later): should check if prefix is already with'd, extend it
+	     (ada-fix-add-with-clause package-name))
+	   t)
+
+	  ;; must be after above
+	  ((looking-at "missing \"\\(.+\\)\"")
+	   (let ((stuff (match-string-no-properties 1)))
+	     (set-buffer source-buffer)
+	     (insert (concat stuff)));; if missing ")", don't need space; otherwise do?
+	   t)
+
+	  ((looking-at "No legal interpretation for operator")
+	   (forward-line 1)
+	   (move-to-column message-column)
+	   (looking-at (concat "use clause on " ada-gnat-quoted-name-regexp))
+	   (let ((package (match-string 1)))
+	     (pop-to-buffer source-buffer)
+	     (ada-fix-add-use package))
+	   t)
+
+	  ((looking-at (concat "no selector " ada-gnat-quoted-name-regexp))
+	   ;; Check next line for spelling error.
+	   (save-excursion
+	     (let ((unit-name (match-string 1))
+		   (correct-spelling (ada-gnat-misspelling)))
+	       (when correct-spelling
+		 (pop-to-buffer source-buffer)
+		 (search-forward unit-name)
+		 (replace-match correct-spelling)
+		 t))))
+
+	  ((looking-at (concat "operator for \\(private \\)?type " ada-gnat-quoted-name-regexp))
+	   (let ((type (match-string 2)))
+	     (pop-to-buffer source-buffer)
+	     (ada-goto-declarative-region-start)
+	     (newline-and-indent)
+	     (insert "use type " type ";"))
+	   t)
+
+	  ((looking-at "parentheses required for unary minus")
+	   (set-buffer source-buffer)
+	   (insert "(")
+	   (forward-word 1)
+	   (insert ")")
+	   t)
+
+	  ((looking-at "prefix of dereference must be an access type")
+	   (pop-to-buffer source-buffer)
+	   ;; point is after '.' in '.all'
+	   (delete-region (- (point) 1) (+ (point) 3))
+	   t)
+
+;;;; warnings
+	  ((looking-at (concat "warning: " ada-gnat-quoted-name-regexp " is not modified, could be declared constant"))
+	   (pop-to-buffer source-buffer)
+	   (search-forward ":")
+	   (forward-comment (- (point-max) (point)))
+	   ;; "aliased" must be before "constant", so check for it
+	   (when (looking-at "aliased")
+	     (forward-word 1)
+	     (forward-char 1))
+	   (insert "constant ")
+	   t)
+
+	  ((looking-at (concat "warning: formal parameter " ada-gnat-quoted-name-regexp " is not referenced"))
+	   (let ((param (match-string 1)))
+	     (pop-to-buffer source-buffer)
+	     (ada-goto-declarative-region-start)
+	     (newline-and-indent)
+	     (insert "pragma Unreferenced (" param ");"))
+	   t)
+
+	  ((or
+	    (looking-at (concat "warning: no entities of " ada-gnat-quoted-name-regexp " are referenced$"))
+	    (looking-at (concat "warning: unit " ada-gnat-quoted-name-regexp " is never instantiated$"))
+	    (looking-at "warning: redundant with clause"))
+	   ;; just delete the 'with'; assume it's on a line by itself.
+	   (pop-to-buffer source-buffer)
+	   (beginning-of-line)
+	   (delete-region (point) (progn (forward-line 1) (point)))
+	   t)
+
+	  ((looking-at (concat "warning: variable " ada-gnat-quoted-name-regexp " is assigned but never read"))
+	   (let ((param (match-string 1)))
+	     (pop-to-buffer source-buffer)
+	     (ada-goto-end)
+	     (newline-and-indent)
+	     (insert "pragma Unreferenced (" param ");"))
+	   t)
+
+	  ((looking-at (concat "warning: unit " ada-gnat-quoted-name-regexp " is not referenced$"))
+	   ;; just delete the 'with'; assume it's on a line by itself.
+	   (pop-to-buffer source-buffer)
+	   (beginning-of-line)
+	   (delete-region (point) (progn (forward-line 1) (point)))
+	   t)
+
+;;;; style errors
+	  ((looking-at "(style) \".*\" in wrong column")
+	   (progn
+	     (set-buffer source-buffer)
+	     (funcall indent-line-function))
+	   t)
+
+	  ((looking-at "(style) bad capitalization, mixed case required")
+	   (progn
+	     (set-buffer source-buffer)
+	     (forward-word)
+	     (ada-case-adjust-identifier)
+	     t))
+
+	  ((looking-at (concat "(style) bad casing of " ada-gnat-quoted-name-regexp))
+	   (let ((correct (match-string-no-properties 1))
+		 end)
+	     ;; gnat leaves point on first bad character, but we need to replace the whole word
+	     (set-buffer source-buffer)
+	     (skip-syntax-backward "w_")
+	     (setq end (point))
+	     (skip-syntax-forward "w_")
+	     (delete-region (point) end)
+	     (insert correct))
+	   t)
+
+	  ((or
+	    (looking-at "(style) bad column")
+	    (looking-at "(style) bad indentation")
+	    (looking-at "(style) incorrect layout"))
+	   (set-buffer source-buffer)
+	   (funcall indent-line-function)
+	   t)
+
+         ((looking-at "(style) missing \"overriding\" indicator")
+          (set-buffer source-buffer)
+          (cond
+           ((looking-at "\\(procedure\\)\\|\\(function\\)")
+            (insert "overriding ")
+	    t)
+           (t
+            nil)))
+
+	  ((looking-at "(style) space not allowed")
+	   (set-buffer source-buffer)
+	   ;; Error places point on space. More than one trailing space
+	   ;; should be fixed by delete-trailing-whitespace in
+	   ;; before-save-hook, once the file is modified.
+	   (delete-char 1)
+	   t)
+
+	  ((looking-at "(style) space required")
+	   (set-buffer source-buffer)
+	   (insert " ")
+	   t)
+	  )));; end of setq unwind-protect cond
+    (if result
+	t
+      (goto-char start-pos)
+      nil)
+    ))
+
+;;;;; setup
+
+(defun ada-gnat-xref-select-prj ()
+  (setq ada-xref-tool 'gnat)
+
+  (setq ada-file-name-from-ada-name 'ada-gnat-file-name-from-ada-name)
+  (setq ada-ada-name-from-file-name 'ada-gnat-ada-name-from-file-name)
+  (setq ada-make-package-body       'ada-gnat-make-package-body)
+
+  (add-hook 'ada-syntax-propertize-hook 'ada-gnat-syntax-propertize)
+
+  ;; must be after indentation engine setup, because that resets the
+  ;; indent function list.
+  (add-hook 'ada-mode-hook 'ada-gnat-setup t)
+
+  (setq ada-xref-other-function  'ada-gnat-xref-other)
+  (setq ada-xref-all-function    'ada-gnat-xref-all)
+  (setq ada-xref-overriding-function nil)
+
+  ;; gnatmake -gnatD generates files with .dg extensions. But we don't
+  ;; need to navigate between them.
+  ;;
+  ;; There is no common convention for a file extension for gnatprep files.
+
+  (add-to-list 'completion-ignored-extensions ".ali") ;; gnat library files, used for cross reference
+  )
+
+(defun ada-gnat-xref-deselect-prj ()
+  (setq ada-syntax-propertize-hook (delq 'ada-gnat-syntax-propertize ada-syntax-propertize-hook))
+  (setq ada-mode-hook (delq 'ada-gnat-xref-setup ada-mode-hook))
+  (setq completion-ignored-extensions (delete ".ali" completion-ignored-extensions))
+  )
+
+(defun ada-gnat-xref-setup ()
+  (when (boundp 'wisi-indent-calculate-functions)
+    (add-to-list 'wisi-indent-calculate-functions 'ada-gnatprep-indent))
+
+  (add-hook 'hack-local-variables-hook 'ada-gnat-post-local-vars nil t)
+  )
+
+(defun ada-gnat-post-local-vars ()
+  ;; run after file local variables are read because font-lock-add-keywords
+  ;; evaluates font-lock-defaults, which depends on ada-language-version.
+  (font-lock-add-keywords nil
+   ;; gnatprep preprocessor line
+   (list (list "^[ \t]*\\(#.*\n\\)"  '(1 font-lock-type-face t))))
+
+  (when global-font-lock-mode
+    ;; ensure the modified keywords are applied
+    (font-lock-refresh-defaults))
+  )
+
+(defun ada-gnat-xref ()
+  "Set Ada mode global vars to use 'gnat xref'"
+  (set-default 'ada-xref-tool 'gnat)
+  (add-to-list 'ada-prj-parser-alist       '("gpr" . gnat-parse-gpr))
+  (add-to-list 'ada-select-prj-xref-tool   '(gnat  . ada-gnat-xref-select-prj))
+  (add-to-list 'ada-deselect-prj-xref-tool '(gnat  . ada-gnat-xref-deselect-prj))
+
+  ;; no parse-*-xref yet
+
+  (add-hook 'ada-gnat-fix-error-hook 'ada-gnat-fix-error))
+
+(provide 'ada-gnat-xref)
+(provide 'ada-xref-tool)
+
+(unless (default-value ada-xref-tool) (ada-gnat-xref))
+
+;; end of file

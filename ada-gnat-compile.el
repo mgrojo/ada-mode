@@ -1,4 +1,8 @@
-;; Ada mode functionality specific to the GNAT compiler
+;; Ada mode compiling functionality provided by the 'gnat'
+;; tool.
+;;
+;; These tools are all Ada-specific; use Makefiles for multi-language
+;; GNAT compilation tools.
 ;;
 ;; GNAT is provided by AdaCore; see http://libre.adacore.com/
 ;;
@@ -31,239 +35,10 @@
 ;; By default, ada-mode is configured to load this file, so nothing
 ;; special needs to done to use it.
 
-(require 'ada-fix-error)
 (require 'compile)
 (require 'gnat-core)
 
 ;;;;; code
-;;;; gnatprep utils
-;;
-;; It is possible to use gnatprep with other compilers, and other
-;; language source code, but we are ignoring that.
-
-(defun ada-gnatprep-indent ()
-  "If point is on a gnatprep keyword, return indentation column
-for it. Otherwise return nil.  Intended to be added to
-`wisi-indent-calculate-functions' or other indentation function
-list."
-  ;; gnatprep keywords are:
-  ;;
-  ;; #if identifier [then]
-  ;; #elsif identifier [then]
-  ;; #else
-  ;; #end if;
-  ;;
-  ;; they are all indented at column 0.
-  (when (equal (char-after) ?\#) 0))
-
-(defun ada-gnat-syntax-propertize (start end)
-  (goto-char start)
-  (while (re-search-forward
-	  "^[ \t]*\\(#\\(?:if\\|else\\|elsif\\|end\\)\\)"; gnatprep keywords.
-	  end t)
-    (cond
-     ((match-beginning 1)
-      (put-text-property
-       (match-beginning 1) (match-end 1) 'syntax-table '(11 . ?\n)))
-     )
-    ))
-
-;;;; uses of gnat tools
-
-(defconst ada-gnat-file-line-col-regexp "\\(.*\\):\\([0-9]+\\):\\([0-9]+\\)")
-
-(defun ada-gnat-xref-other (identifier file line col parent)
-  "For `ada-xref-other-function', using 'gnat find', which is Ada-specific."
-  (let* ((arg (format "%s:%s:%d:%d" identifier file line col))
-	 (switches (concat
-		  (when parent "-d")
-		  (when (ada-prj-get 'gpr_ext) (concat "--ext=" (ada-prj-get 'gpr_ext)))
-		  ))
-	 status
-	 (result nil))
-    (with-current-buffer (gnat-run-buffer)
-      (if (< 0 (length switches))
-	  (setq status (gnat-run-gnat (list "find" switches arg)))
-	(setq status (gnat-run-gnat (list "find" arg))))
-
-      (cond
-       ((= status 0); success
-	(goto-char (point-min))
-	(forward-line 2); skip ADA_PROJECT_PATH, 'gnat find'
-
-	;; gnat find returns two items; the starting point, and the 'other' point
-	(while (not result)
-	  (unless (looking-at (concat ada-gnat-file-line-col-regexp ":"))
-	    ;; no results
-	    (error "'%s' not found in cross-reference files; recompile?" identifier))
-	  (if (looking-at (concat ada-gnat-file-line-col-regexp ": warning:"))
-	      ;; error in *.gpr; ignore here.
-	      (forward-line 1)
-	    ;; else process line
-	    (let ((found-file (match-string 1))
-		  (found-line (string-to-number (match-string 2)))
-		  (found-col  (string-to-number (match-string 3))))
-	      (cond
-	       (parent
-		(skip-syntax-forward "^ ")
-		(skip-syntax-forward " ")
-		(if (looking-at (concat "derived from .* (" ada-gnat-file-line-col-regexp ")"))
-		    ;; found other item
-		    (setq result (list (match-string 1)
-				       (string-to-number (match-string 2))
-				       (1- (string-to-number (match-string 3)))))
-		  (forward-line 1)))
-
-	       (t
-		(if (not
-		     (and
-		      (equal file found-file)
-		      (= line found-line)
-		      (= col found-col)))
-		    ;; found other item
-		    (setq result (list found-file found-line (1- found-col)))
-		  (forward-line 1)))
-	       )
-	      (when (eobp)
-		(pop-to-buffer (current-buffer))
-		(error "gnat find did not return other item"))
-	      ))))
-
-       (t ; failure
-	(pop-to-buffer (current-buffer))
-	(error "gnat find failed"))
-       ))
-    result))
-
-(defun ada-gnat-xref-all (identifier file line col)
-  "For `ada-xref-all-function'."
-  ;; we use `compilation-start' to run gnat, not `gnat-run', so it
-  ;; is asynchronous, and automatically runs the compilation error
-  ;; filter.
-
-  (let* ((cmd (format "gnat find -r %s:%s:%d:%d" identifier file line col)))
-
-    (with-current-buffer (gnat-run-buffer); for default-directory
-      (let ((compilation-environment (ada-prj-get 'proc_env))
-	    (compilation-error "reference")
-	    ;; gnat find uses standard gnu format for output, so don't
-	    ;; need to set compilation-error-regexp-alist
-	    )
-	(when (ada-prj-get 'gpr_file)
-	  (setq cmd (concat cmd " -P" (file-name-nondirectory (ada-prj-get 'gpr_file)))))
-
-	(compilation-start cmd
-			   'compilation-mode
-			   (lambda (mode-name) (concat mode-name "-gnatfind")))
-    ))))
-
-(defun ada-gnat-file-name-from-ada-name (ada-name)
-  "For `ada-file-name-from-ada-name'."
-  (let* (status
-	 (result nil))
-
-    (while (string-match "\\." ada-name)
-      (setq ada-name (replace-match "-" t t ada-name)))
-    (setq ada-name (downcase ada-name))
-
-    (with-current-buffer (gnat-run-buffer)
-      (setq status
-	    (gnat-run-no-prj
-	     (list
-	      "krunch"
-	      ada-name
-	      ;; "0" means only krunch GNAT library names
-	      "0")))
-
-      (cond
-       ((= status 0); success
-	(goto-char (point-min))
-	(forward-line 1); skip  cmd
-	(setq result (buffer-substring-no-properties (line-beginning-position) (line-end-position)))
-	)
-
-       (t ; failure
-	(pop-to-buffer (current-buffer))
-	(error "gnat krunch failed"))
-       ))
-    result))
-
-(defconst ada-gnat-predefined-package-alist
-  '(("a-textio" . "Ada.Text_IO")
-    ("a-chahan" . "Ada.Characters.Handling")
-    ("a-comlin" . "Ada.Command_Line")
-    ("a-except" . "Ada.Exceptions")
-    ("a-numeri" . "Ada.Numerics")
-    ("a-string" . "Ada.Strings")
-    ("a-strmap" . "Ada.Strings.Maps")
-    ("a-strunb" . "Ada.Strings.Unbounded")
-    ("g-socket" . "GNAT.Sockets")
-    ("interfac" . "Interfaces")
-    ("i-c"      . "Interfaces.C")
-    ("i-cstrin" . "Interfaces.C.Strings")
-    ("s-stoele" . "System.Storage_Elements")
-    ("unchconv" . "Unchecked_Conversion") ; Ada 83 name
-    )
-  "Alist (filename . package name) of GNAT file names for predefined Ada packages.")
-
-(defun ada-gnat-ada-name-from-file-name (file-name)
-  "For `ada-ada-name-from-file-name'."
-  (let* (status
-	 (ada-name (file-name-sans-extension (file-name-nondirectory file-name)))
-	(predefined (cdr (assoc ada-name ada-gnat-predefined-package-alist))))
-
-    (if predefined
-        predefined
-      (while (string-match "-" ada-name)
-	(setq ada-name (replace-match "." t t ada-name)))
-      ada-name)))
-
-(defun ada-gnat-make-package-body (body-file-name)
-  "For `ada-make-package-body'."
-  ;; WORKAROUND: gnat stub 7.1w does not accept aggregate project files,
-  ;; and doesn't use the gnatstub package if it is in a 'with'd
-  ;; project file; see AdaCore ticket LC30-001. On the other hand we
-  ;; need a project file to specify the source dirs so the tree file
-  ;; can be generated. So we use gnat-run-no-prj, and the user
-  ;; must specify the proper project file in gnat_stub_opts.
-  ;;
-  ;; gnatstub always creates the body in the current directory (in the
-  ;; process where gnatstub is running); the -o parameter may not
-  ;; contain path info. So we pass a directory to gnat-run-no-prj.
-  (let ((start-buffer (current-buffer))
-	(start-file (buffer-file-name))
-	;; can also specify gnat stub options/switches in .gpr file, in package 'gnatstub'.
-	(opts (when (ada-prj-get 'gnat_stub_opts)
-		(split-string (ada-prj-get 'gnat_stub_opts))))
-	(switches (when (ada-prj-get 'gnat_stub_switches)
-		    (split-string (ada-prj-get 'gnat_stub_switches))))
-	status)
-
-    ;; Make sure all relevant files are saved to disk. This also saves
-    ;; the bogus body buffer created by ff-find-the-other-file, so we
-    ;; need -f gnat stub option. We won't get here if there is an
-    ;; existing body file.
-    (save-some-buffers t)
-    (add-to-list 'opts "-f")
-    (with-current-buffer (gnat-run-buffer)
-      (setq status
-	    (gnat-run-no-prj
-	     (append (list "stub") opts (list start-file "-cargs") switches)
-	     (file-name-directory body-file-name)))
-
-      (cond
-       ((= status 0); success - fix indentation
-	(find-file body-file-name)
-	(indent-region (point-min) (point-max))
-	(save-buffer)
-	(set-buffer start-buffer))
-
-       (t ; failure
-	(pop-to-buffer (current-buffer))
-	(delete-file body-file-name);; created by find-file
-	(error "gnat stub failed"))
-       ))
-    nil))
 
 ;;;; compiler message handling
 
@@ -437,7 +212,7 @@ Prompt user if more than one."
 	       (when (not done)
 		 (let* ((item (get-text-property pos 'ada-secondary-error))
 			(unit-file (nth 0 item)))
-		   (add-to-list 'choices (ada-gnat-ada-name-from-file-name unit-file))))
+		   (add-to-list 'choices (ada-ada-name-from-file-name unit-file))))
 	       );; while
 
 	     (cond
@@ -738,74 +513,29 @@ Prompt user if more than one."
 
 ;;;;; setup
 
-(defun ada-gnat-select-prj-compiler ()
+(defun ada-gnat-compile-select-prj ()
   (setq ada-compiler 'gnat)
   (setq ada-fix-error-hook 'ada-gnat-fix-error-hook)
   (add-to-list 'completion-ignored-extensions ".ali") ;; gnat library files
   )
 
-(defun ada-gnat-deselect-prj-compiler ()
+(defun ada-gnat-compile-deselect-prj ()
   (setq completion-ignored-extensions (delete ".ali" completion-ignored-extensions))
   )
 
-(defun ada-gnat-select-prj-xref ()
-  (setq ada-xref-tool 'gnat)
+(defun ada-gnat-compile ()
+  "Set Ada mode global vars to use 'gnat' for compiling."
+  (set-default 'ada-compiler 'gnat)
+  (add-to-list 'ada-select-prj-compiler    '(gnat  . ada-gnat-compile-select-prj))
+  (add-to-list 'ada-deselect-prj-compiler  '(gnat  . ada-gnat-compile-deselect-prj))
 
-  (setq ada-file-name-from-ada-name 'ada-gnat-file-name-from-ada-name)
-  (setq ada-ada-name-from-file-name 'ada-gnat-ada-name-from-file-name)
-  (setq ada-make-package-body       'ada-gnat-make-package-body)
+  (add-to-list 'ada-prj-parse-one-compiler   (cons 'gnat 'gnat-prj-parse-emacs-one))
+  (add-to-list 'ada-prj-parse-final-compiler (cons 'gnat 'gnat-prj-parse-emacs-final))
 
-  (add-hook 'ada-syntax-propertize-hook 'ada-gnat-syntax-propertize)
+  (add-hook 'ada-gnat-fix-error-hook 'ada-gnat-fix-error))
 
-  ;; must be after indentation engine setup, because that resets the
-  ;; indent function list.
-  (add-hook 'ada-mode-hook 'ada-gnat-setup t)
-
-  (setq ada-xref-other-function  'ada-gnat-xref-other)
-  (setq ada-xref-all-function    'ada-gnat-xref-all)
-  (setq ada-xref-overriding-function nil)
-
-  ;; gnatmake -gnatD generates files with .dg extensions. But we don't
-  ;; need to navigate between them.
-  ;;
-  ;; There is no common convention for a file extension for gnatprep files.
-  )
-
-(defun ada-gnat-deselect-prj-xref ()
-  (setq ada-syntax-propertize-hook (delq 'ada-gnat-syntax-propertize ada-syntax-propertize-hook))
-  (setq ada-mode-hook (delq 'ada-gnat-setup ada-mode-hook))
-  )
-
-(defun ada-gnat-setup ()
-  (when (boundp 'wisi-indent-calculate-functions)
-    (add-to-list 'wisi-indent-calculate-functions 'ada-gnatprep-indent))
-
-  (add-hook 'hack-local-variables-hook 'ada-gnat-post-local-vars nil t)
-  )
-
-(defun ada-gnat-post-local-vars ()
-  ;; run after file local variables are read because font-lock-add-keywords
-  ;; evaluates font-lock-defaults, which depends on ada-language-version.
-  (font-lock-add-keywords nil
-   ;; gnatprep preprocessor line
-   (list (list "^[ \t]*\\(#.*\n\\)"  '(1 font-lock-type-face t))))
-
-  (when global-font-lock-mode
-    ;; ensure the modified keywords are applied
-    (font-lock-refresh-defaults))
-  )
-
-(add-to-list 'ada-prj-parser-alist       '("gpr" . gnat-parse-gpr))
-(add-to-list 'ada-select-prj-compiler    '(gnat  . ada-gnat-select-prj-compiler))
-(add-to-list 'ada-deselect-prj-compiler  '(gnat  . ada-gnat-deselect-prj-compiler))
-(add-to-list 'ada-select-prj-xref-tool   '(gnat  . ada-gnat-select-prj-xref))
-(add-to-list 'ada-deselect-prj-xref-tool '(gnat  . ada-gnat-deselect-prj-xref))
-
-(add-to-list 'ada-prj-parse-one-compiler   (cons 'gnat 'gnat-prj-parse-emacs-one))
-(add-to-list 'ada-prj-parse-final-compiler (cons 'gnat 'gnat-prj-parse-emacs-final))
-;; no parse-*-xref yet
-
-(add-hook 'ada-gnat-fix-error-hook 'ada-gnat-fix-error)
+(provide 'ada-gnat-compile)
+(provide 'ada-compiler)
 
 (add-to-list
  'compilation-error-regexp-alist-alist
@@ -816,19 +546,11 @@ Prompt user if more than one."
    ;; with full path Source_Reference pragma :
    ;;   d:/maphds/version_x/1773/sbs-abi-dll_lib.ads.gp:39:06: file "interfaces_c.ads" not found
    ;;
-   ;; gnu cc1:
+   ;; gnu cc1: (gnatmake can invoke the C compiler)
    ;;   foo.c:2: `TRUE' undeclared here (not in a function)
    ;;   foo.c:2 : `TRUE' undeclared here (not in a function)
    "^\\(\\(.:\\)?[^ :\n]+\\):\\([0-9]+\\)\\s-?:?\\([0-9]+\\)?" 1 3 4))
 
-(unless (default-value ada-compiler)
-  (set-default 'ada-compiler 'gnat))
-
-(unless (default-value ada-xref-tool)
-  (set-default 'ada-xref-tool 'gnat))
-
-(provide 'ada-gnat)
-(provide 'ada-compiler)
-(provide 'ada-xref-tool)
+(unless (default-value ada-compiler) (ada-gnat-compile))
 
 ;; end of file

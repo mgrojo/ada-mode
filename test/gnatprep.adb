@@ -14,7 +14,7 @@
 --
 -- FIXME: need simpler mechanism for user to enable gnatprep per-file.
 --
---EMACSCMD:(ada-gnat-select-prj-xref)
+--EMACSCMD:(ada-gnat-xref-select-prj)
 --EMACSCMD:(progn (syntax-ppss-flush-cache (point-min)) (syntax-propertize (point-max)))
 --EMACSCMD:(ada-gnat-post-local-vars)
 
