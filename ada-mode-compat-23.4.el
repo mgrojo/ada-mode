@@ -13,4 +13,12 @@
      (match-beginning matchnum) (match-end matchnum)
      prop val)))
 
+;; FIXME: emacs 24.x manages compilation-filter-start, emacs 23.4 does not
+;;
+;; gnat-core.el gnat-prj-parse-emacs-final needs:
+;;    (add-hook 'compilation-start-hook 'ada-gnat-compilation-start))
+;;
+;; ada-gnat.el ada-gnat-compilation-filter needs:
+;;    (set-marker compilation-filter-start (point)))
+
 ;; end of file

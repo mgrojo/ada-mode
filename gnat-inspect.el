@@ -1,4 +1,4 @@
-;;; gnat-xref.el --- minor-mode for navigating sources using the
+;;; gnat-inspect.el --- minor-mode for navigating sources using the
 ;;; AdaCore cross reference tool gnatinspect.
 ;;;
 ;;; gnatinspect supports Ada and any gcc language that supports the
@@ -27,13 +27,13 @@
 
 ;;; Usage:
 ;;
-;; M-x gnat-xref
+;; M-x gnat-inspect
 
-(defgroup gnat-xref nil
+(defgroup gnat-inspect nil
   "Minor mode for navigating sources using GNAT cross reference tool `gnatinspect'."
   :group 'languages)
 
-(defun gnat-xref-other (identifier file line col)
+(defun gnat-inspect-other (identifier file line col)
   ;; For `ada-xref-other-function', using gnatinspect.
   "Move to the declaration or body of IDENTIFIER, which is at the location FILE LINE COL.
 FILE must be absolute. If the location is the declaration, go to
@@ -43,7 +43,7 @@ the declaration."
   (unless (ada-prj-get 'gpr_file)
     (error "no gnat project file defined."))
 
-  (with-current-buffer (ada-gnat-run-buffer)
+  (with-current-buffer (gnat-run-buffer)
     (let ((project-file (file-name-nondirectory
 			 (or (ada-prj-get 'gnatinspect_gpr_file)
 			     (ada-prj-get 'gpr_file))))
@@ -77,7 +77,7 @@ the declaration."
       ;;
       ;; itc_assert:/home/Projects/GDS/work_stephe_2/common/itc/opsim/itc_dscovr_gdsi/Gds1553/src/Gds1553.cpp:830:9 (reference) scope=Gds1553WriteSubaddress:/home/Projects/GDS/work_stephe_2/common/itc/opsim/itc_dscovr_gdsi/Gds1553/inc/Gds1553.hpp:173:24
       (message "running gnatinspect ...")
-      (setq status (ada-gnat-run "gnatinspect" (list "-P" project-file "-c" (concat "refs " arg))))
+      (setq status (gnat-run "gnatinspect" (list "-P" project-file "-c" (concat "refs " arg))))
       (message "running gnatinspect ... done.")
       (message "parsing result ...")
 
@@ -154,12 +154,12 @@ the declaration."
       (message "parsing result ... done")
       result)))
 
-(defconst gnat-xref-overriding-regexp-alist
+(defconst gnat-inspect-overriding-regexp-alist
   ;; Write_Message:C:\Projects\GDS\work_dscovr_release\common\1553\gds-mil_std_1553-utf.ads:252:25
   (list "^.*:\\(.*\\):\\([0123456789]+\\):\\([0123456789]+\\)" 1 2 3)
   "Regexp for compilation-error-regexp-alist, matching `gnatinspect overriding_recursive' output")
 
-(defun gnat-xref-overriding (identifier file line col)
+(defun gnat-inspect-overriding (identifier file line col)
   "For `ada-xref-overriding-function', using gnatinspect."
   ;; This will in general return a list of references, so we use
   ;; `compilation-start' to run gnatinspect, so the user can navigate
@@ -170,7 +170,7 @@ the declaration."
   ;; queries, specified in the Emacs ada-mode project file by
   ;; "gnatinspect_gpr_file".
 
-  (with-current-buffer (ada-gnat-run-buffer)
+  (with-current-buffer (gnat-run-buffer)
     (let* ((project-file (file-name-nondirectory
 			  (or (ada-prj-get 'gnatinspect_gpr_file)
 			      (ada-prj-get 'gpr_file))))
@@ -182,7 +182,7 @@ the declaration."
       (unless project-file
 	(error "no gnatinspect project file defined."))
 
-      (with-current-buffer (ada-gnat-run-buffer); for default-directory
+      (with-current-buffer (gnat-run-buffer); for default-directory
 	(let ((compilation-environment (ada-prj-get 'proc_env)) ;; for ADA_PROJECT_PATH
 	      (compilation-error "reference")
 	      (compilation-mode-hook
@@ -193,7 +193,7 @@ the declaration."
 	  ))
       )))
 
-(defun gnat-xref-goto-declaration (other-window-frame)
+(defun gnat-inspect-goto-declaration (other-window-frame)
   "Move to the declaration or body of the identifier around point.
 If at the declaration, go to the body, and vice versa. If at a
 reference, goto the declaration.
@@ -208,7 +208,7 @@ C-u C-u : show in other frame
   (interactive "P")
 
   (let ((target
-	 (gnat-xref-other
+	 (gnat-inspect-other
 	  (thing-at-point 'symbol)
 	  (buffer-file-name)
 	  (line-number-at-pos)
@@ -222,34 +222,34 @@ C-u C-u : show in other frame
 		     other-window-frame)
     ))
 
-(defun gnat-xref-goto-declaration-parent ()
+(defun gnat-inspect-goto-declaration-parent ()
   "Move to the parent type declaration of the type identifier around point."
   (interactive)
   (error "not implemented"))
 
-(defvar gnat-xref-map
+(defvar gnat-inspect-map
   (let ((map (make-sparse-keymap)))
     ;; C-c <letter> are reserved for users
 
-    (define-key map "\C-c\C-d" 'gnat-xref-goto-declaration)
-    (define-key map "\C-c\M-d" 'gnat-xref-goto-declaration-parent)
-    (define-key map "\C-c\C-r" 'gnat-xref-all-references)
+    (define-key map "\C-c\C-d" 'gnat-inspect-goto-declaration)
+    (define-key map "\C-c\M-d" 'gnat-inspect-goto-declaration-parent)
+    (define-key map "\C-c\C-r" 'gnat-inspect-all-references)
     map
-  )  "Local keymap used for GNAT xref minor mode.")
+  )  "Local keymap used for GNAT inspect minor mode.")
 
-(define-minor-mode gnat-xref
+(define-minor-mode gnat-inspect
   "Minor mode for navigating sources using GNAT cross reference tool.
 Enable mode if ARG is positive"
   :initial-value t
-  :lighter       " gnat-xref"   ;; mode line
+  :lighter       " gnat-inspect"   ;; mode line
 
-  (if gnat-xref
+  (if gnat-inspect
       ;; enable use of gnatinspect
       (progn
 	(when (boundp 'ada-xref-tool)
 	  ;; for ada-mode
 	  (setq         ada-xref-tool                 'gnatinspect)
-	  (add-to-list 'ada-xref-overriding-function  (cons 'gnatinspect 'gnat-xref-overriding))
+	  (add-to-list 'ada-xref-overriding-function  (cons 'gnatinspect 'gnat-inspect-overriding))
 	  ))
 
     ;; disable use of gnatinspect
@@ -260,9 +260,9 @@ Enable mode if ARG is positive"
       )
     ))
 
-(provide 'gnat-xref)
+(provide 'gnat-inspect)
 
 (add-to-list 'compilation-error-regexp-alist-alist
-	     (cons 'gnatinspect-overriding gnat-xref-overriding-regexp-alist))
+	     (cons 'gnatinspect-overriding gnat-inspect-overriding-regexp-alist))
 
 ;;; end of file
