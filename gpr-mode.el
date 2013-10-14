@@ -86,7 +86,7 @@ current construct."
     ["Set as current project"     gpr-set-as-project        t]
     ["Next compilation error"     next-error                t]
     ["Show secondary error"       ada-show-secondary-error  t]
-    ["Toggle show parser errors"  wisi-toggle-show-parser-errors t]
+    ["Show last parse error"      gpr-show-parse-error      t]
     ("Edit"
      ["Indent Line"                 indent-for-tab-command  t]
      ["Indent Lines in Selection"   indent-region           t]
@@ -101,6 +101,16 @@ current construct."
       ada-fill-comment-paragraph-postfix                         t]
      )
     ))
+
+(defvar gpr-show-parse-error nil
+  ;; Supplied by indentation engine parser
+  "Function to show last error reported by indentation parser."
+  )
+
+(defun gpr-show-parse-error ()
+  (interactive)
+  (when gpr-show-parse-error
+    (funcall gpr-show-parse-error)))
 
 (defvar gpr-font-lock-keywords
   (progn
@@ -225,12 +235,10 @@ of the package or project point is in or just after, or nil.")
 
   (run-hooks 'gpr-mode-hook)
 
-  ;; FIXME (later): need this? use ada? duplicate? factor out?
-  ;; (if gpr-auto-case
-  ;;     (gpr-activate-keys-for-case))
   )
 
 ;; user needs to add this somewhere:
+;; FIXME: add autoload processing?
 (add-to-list 'auto-mode-alist '("\\.gpr\\'" . gpr-mode))  ; GNAT project files
 
 (provide 'gpr-mode)

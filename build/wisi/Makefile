@@ -11,7 +11,7 @@ update : ../../ada-grammar-wy.el ../../gpr-grammar-wy.el  byte-compile
 byte-compile : byte-compile-clean
 	cd ../../; $(EMACS_EXE) -Q -batch -L . -f batch-byte-compile *.el
 
-test : test-ada test-gpr test-elisp
+test : test-ada-gnatxref.stamp test-ada-gnatinspect.stamp test-gpr test-elisp
 
 test-wisi :: body_instantiation_conflict.wisi-test
 test-wisi :: case_expression.wisi-test
@@ -21,8 +21,8 @@ test-wisi :: subprograms.wisi-test
 test-wisi :: empty_production_6.wisi-test
 test-wisi :: empty_production_8.wisi-test
 
-one : ada_skel.adb.diff
-two : debug.adb.diff
+one : RUNTEST := run-indent-test-wisi-gnatinspect.el
+one : ada_mode-nominal.ads.diff
 
 vpath %.wy ../../ ../../test/wisi
 vpath %.el ../../ .
@@ -64,17 +64,29 @@ clean ::
 	rm -f *-wy.el *.elc
 
 test-clean ::
-	rm -f *.output *.wisi-test
+	rm -f *.output *.wisi-test *.stamp
 	cd ../../test/wisi/; rm -f *-wy.el *.output
 
-RUNTEST := run-indent-test-wisi.el
 INDENT.EL := ada-wisi.el gpr-wisi.el ../../gpr-grammar-wy.el ../../ada-grammar-wy.el
 include ../common.make
 
-# delete non-wisi tests
-ADA_TEST_FILES := $(filter-out ada_mode-interactive_smie.adb, $(ADA_TEST_FILES)) # explicit smie functions
+.PHONY : force
 
-test-ada : $(addsuffix .diff, $(subst subdir/,,$(ADA_TEST_FILES)))
+test-ada-gnatxref : RUNTEST := run-indent-test-wisi.el
+test-ada-gnatxref : $(addsuffix .diff, $(subst subdir/,,$(ADA_TEST_FILES)))
+
+test-ada-gnatxref.stamp : force
+	rm -f *.diff *.tmp
+	$(MAKE) test-ada-gnatxref
+	touch $@
+
+test-ada-gnatinspect : RUNTEST := run-indent-test-wisi-gnatinspect.el
+test-ada-gnatinspect : $(addsuffix .diff, $(subst subdir/,,$(ADA_TEST_FILES)))
+
+test-ada-gnatinspect.stamp : force
+	rm -f *.diff *.tmp
+	$(MAKE) test-ada-gnatinspect
+	touch $@
 
 # eval: (ada-parse-prj-file "wisi_opentoken.prj")
 # eval: (ada-select-prj-file "wisi_opentoken.prj")

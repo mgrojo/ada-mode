@@ -2,15 +2,18 @@ General notes on implementing the Emacs Ada mode indentation engine using the wi
 
 run wisi test from emacs -Q:
 (progn
-  (add-to-list 'load-path "/home/Projects/org.emacs.ada-mode.stephe-1")
-  (add-to-list 'load-path "/home/Projects/org.emacs.ada-mode.stephe-1/build")
-  (add-to-list 'load-path "/home/Projects/org.emacs.ada-mode.stephe-1/build/wisi")
+  (add-to-list 'exec-path "/apps/GNAT-7.1.2/bin")
+  (add-to-list 'exec-path "/Apps/monotone-1.0.90/")
+  (setenv "PATH" (mapconcat 'identity  exec-path  path-separator))
+  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-1")
+  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-1/build")
+  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-1/build/wisi")
   (global-font-lock-mode -1)
   (setq debug-on-error t)
   (setq wisi-debug 1)
-  (load "run-indent-test-wisi")
-  (setq default-directory "/home/Projects/org.emacs.ada-mode.stephe-1/build/wisi/")
-  (run-test "../../test/gnatprep.adb"))
+  (load "run-indent-test-gpr")
+  (setq default-directory "/Projects/org.emacs.ada-mode.stephe-1/build/wisi/")
+  (run-test "../../test/gpr/gds.gpr"))
 
 (setq wisi-debug 2)
 (setq wisent-parse-max-stack-size 40)
@@ -49,12 +52,7 @@ c:/Apps/GNAT-7.1.2/gnatcoll-1.6w-src/src/tools/gnatinspect.adb
 (browse-url "file:///c:/Apps/GNAT-7.1.2/gnatcoll-1.6w-src/docs/_build/html/xref.html")
 
 implement C++ C-c M-d parent
-    parent_types
-    overrides
-        both work
-        need them combined in gnatinspect.adb
-            try to implement that, discuss with Emmanuel
-
+    just need key, menu
 
 implement C++ C-c ? children
     /home/Projects/GDS/work_stephe_2/common/itc/itcsb/libitcsb_1553/inc/Itcsb1553/Bus.hpp
@@ -92,12 +90,7 @@ build/wisi/Makefile
 
 xmtn-status ediff respect mtn:manual_merge
 
-add tests for gnat-inspect
-    add ada-gnat-inspect in gnat-inspect.el, use in prj files
-
-    run all current tests with gnat-inspect instead of gnat-xref
-
-    add C++
+GPR_PROJECT_PATH occurs multiple times in compilation_environment
 
 fixme in test/gnatprep.adb
     need ada-gnatprep-select-prj?
@@ -164,6 +157,8 @@ ada-add-log-current-function
 /Projects/Web/stephe-leake/emacs/ada-mode/emacs-ada-mode.html
     to-do list
 
+add C++ tests
+
 ./wisi.el:361:	  ;; FIXME: insert newline in comment to create non-comment!?
     need tests for wisi-before/after-change vs comments, strings
 
@@ -184,6 +179,8 @@ font-lock-keywords buffer local by default?
  possible enhancements
 
 skeleton
+    see python-skeleton-autoinsert
+
     add else placeholders to all skeletons?
         add 'placeholder text property, before-change that deletes it/checks for "..."
         add goto-next-/prev-placeholder, kill-placeholder

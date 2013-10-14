@@ -14,10 +14,12 @@ package Ada_Mode.Nominal.Child is
          Child_Element_3 : Boolean;
       end record;
 
-   -- goto parent type declaration
-   --EMACSCMD:(progn (end-of-line 3)(backward-word 1)(ada-goto-declaration nil t)(looking-at "Parent_Type_1"))
+   -- goto parent type declaration for Child_Type_1
+   --EMACSCMD:(progn (end-of-line 3)(backward-word 1)(ada-show-declaration-parents nil)(when (eq ada-xref-tool 'gnatinspect) (next-error)(next-error)(set-buffer "compilation-gnatinspect-parent_types"))(looking-at "Parent_Type_1"))
    --EMACSRESULT:t
    overriding procedure Procedure_1a (Item  : in out Child_Type_1);
+   -- FIXME: test goto overriding for Procedure_1a
+   -- FIXME: test multiple parents
 
    --EMACSCMD: (progn (forward-line 2)(ada-which-function))
    overriding procedure Procedure_1b
@@ -41,6 +43,7 @@ package Ada_Mode.Nominal.Child is
    --EMACSCMD:(progn (forward-line 2)(forward-word 1)(ada-find-other-file nil)(looking-at "overriding function Function_2a"))
    --EMACSRESULT:t
    overriding function Function_2a (Param : in Child_Type_1) return Float;
+   -- FIXME: test does not distinguish spec from body!
 
    overriding
    function Function_2b (Param : in Child_Type_1) return

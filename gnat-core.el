@@ -123,15 +123,11 @@ See also `ada-gnat-parse-emacs-final'."
 (defun gnat-get-paths (project)
   "Add project and/or compiler source, object paths to PROJECT src_dir."
   (with-current-buffer (gnat-run-buffer)
-    (let ((status (gnat-run-gnat (list "list" "-v")))
-	  (src-dirs (ada-prj-get 'src_dir project))
+    ;; gnat list -v -P can return status 0 or 4; always lists compiler dirs
+    (let ((src-dirs (ada-prj-get 'src_dir project))
 	  (prj-dirs (ada-prj-get 'prj_dir project)))
 
-      ;; gnat list -P -v returns 0 in nominal cases
-      ;; gnat list -v return 4, but still lists compiler dirs
-      (when (not (member status '(0 4)))
-	(pop-to-buffer (current-buffer))
-	(error "gnat list returned status %d" status))
+      (gnat-run-gnat "list" (list "-v") '(0 4))
 
       (goto-char (point-min))
 
@@ -223,9 +219,11 @@ src_dir will include compiler runtime."
 	)
       buffer)))
 
-(defun gnat-run (exec command)
+(defun gnat-run (exec command &optional err-msg expected-status)
   "Run a gnat command line tool, as \"EXEC COMMAND\".
 EXEC must be an executable found on `exec-path'. COMMAND must be a list of strings.
+ERR-MSG must be nil or a string.
+EXPECTED-STATUS must be nil or a list of integers.
 Return process status.
 Assumes current buffer is (gnat-run-buffer)"
   (set 'buffer-read-only nil)
@@ -233,24 +231,36 @@ Assumes current buffer is (gnat-run-buffer)"
 
   (setq command (cl-delete-if 'null command))
 
-  (let ((process-environment (ada-prj-get 'proc_env))) ;; for GPR_PROJECT_PATH
-    (insert (format "GPR_PROJECT_PATH=%s\n%s" (getenv "GPR_PROJECT_PATH") exec)); for debugging
-    (mapc (lambda (str) (insert (concat str " "))) command); for debugging
-    (newline)
-    (apply 'call-process exec nil t nil command)
-    ))
+  (insert (format "GPR_PROJECT_PATH=%s\n%s " (getenv "GPR_PROJECT_PATH") exec)); for debugging
+  (mapc (lambda (str) (insert (concat str " "))) command); for debugging
+  (newline)
+  (let ((process-environment (ada-prj-get 'proc_env)) ;; for GPR_PROJECT_PATH
+	status)
+    (setq status (apply 'call-process exec nil t nil command))
+    (cond
+     ((memq status (or expected-status '(0))); success
+      nil)
 
-(defun gnat-run-gnat (command &optional switches-args)
+     (t ; failure
+      (pop-to-buffer (current-buffer))
+      (if err-msg
+	  (error "%s %s failed; %s" exec (car command) err-msg)
+	(error "%s %s failed" exec (car command))
+	))
+     )))
+
+(defun gnat-run-gnat (command &optional switches-args expected-status)
   "Run the \"gnat\" command line tool, as \"gnat COMMAND -P<prj> SWITCHES-ARGS\".
-COMMAND and SWITCHES-ARGS must be a string or list of strings.
+COMMAND must be a string, SWITCHES-ARGS a list of strings.
+EXPECTED-STATUS must be nil or a list of integers.
 Return process status.
 Assumes current buffer is (ada-gnat-run-buffer)"
   (let* ((project-file-switch
 	  (when (ada-prj-get 'gpr_file)
 	    (concat "-P" (file-name-nondirectory (ada-prj-get 'gpr_file)))))
-	 (cmd (append command (list project-file-switch) switches-args)))
+	 (cmd (append (list command) (list project-file-switch) switches-args)))
 
-    (gnat-run "gnat" cmd)
+    (gnat-run "gnat" cmd nil expected-status)
     ))
 
 (defun gnat-run-no-prj (command &optional dir)
@@ -260,13 +270,144 @@ is (ada-gnat-run-buffer)"
   (set 'buffer-read-only nil)
   (erase-buffer)
 
-  (let ((default-directory (or dir default-directory)))
+  (setq command (cl-delete-if 'null command))
+  (mapc (lambda (str) (insert (concat str " "))) command)
+  (newline)
 
-    (setq command (cl-delete-if 'null command))
-    (mapc (lambda (str) (insert (concat str " "))) command)
-    (newline)
-    (apply 'call-process "gnat" nil t nil command)
+  (let ((default-directory (or dir default-directory))
+	status)
+
+    (setq status (apply 'call-process "gnat" nil t nil command))
+    (cond
+     ((= status 0); success
+      nil)
+
+     (t ; failure
+      (pop-to-buffer (current-buffer))
+      (error "gnat %s failed" (car command)))
+     )))
+
+;;;; gnatprep utils
+
+(defun gnatprep-indent ()
+  "If point is on a gnatprep keyword, return indentation column
+for it. Otherwise return nil.  Intended to be added to
+`wisi-indent-calculate-functions' or other indentation function
+list."
+  ;; gnatprep keywords are:
+  ;;
+  ;; #if identifier [then]
+  ;; #elsif identifier [then]
+  ;; #else
+  ;; #end if;
+  ;;
+  ;; they are all indented at column 0.
+  (when (equal (char-after) ?\#) 0))
+
+(defun gnatprep-syntax-propertize (start end)
+  (goto-char start)
+  (while (re-search-forward
+	  "^[ \t]*\\(#\\(?:if\\|else\\|elsif\\|end\\)\\)"; gnatprep keywords.
+	  end t)
+    (cond
+     ((match-beginning 1)
+      (put-text-property
+       (match-beginning 1) (match-end 1) 'syntax-table '(11 . ?\n)))
+     )
     ))
+
+;;;; support for ada-gnat-xref and ada-gnatinspect
+(defun ada-gnat-file-name-from-ada-name (ada-name)
+  "For `ada-file-name-from-ada-name'."
+  (let ((result nil))
+
+    (while (string-match "\\." ada-name)
+      (setq ada-name (replace-match "-" t t ada-name)))
+
+    (setq ada-name (downcase ada-name))
+
+    (with-current-buffer (gnat-run-buffer)
+      (gnat-run-no-prj
+       (list
+	"krunch"
+	ada-name
+	;; "0" means only krunch GNAT library names
+	"0"))
+
+      (goto-char (point-min))
+      (forward-line 1); skip  cmd
+      (setq result (buffer-substring-no-properties (line-beginning-position) (line-end-position)))
+      )
+    result))
+
+(defconst ada-gnat-predefined-package-alist
+  '(("a-textio" . "Ada.Text_IO")
+    ("a-chahan" . "Ada.Characters.Handling")
+    ("a-comlin" . "Ada.Command_Line")
+    ("a-except" . "Ada.Exceptions")
+    ("a-numeri" . "Ada.Numerics")
+    ("a-string" . "Ada.Strings")
+    ("a-strmap" . "Ada.Strings.Maps")
+    ("a-strunb" . "Ada.Strings.Unbounded")
+    ("g-socket" . "GNAT.Sockets")
+    ("interfac" . "Interfaces")
+    ("i-c"      . "Interfaces.C")
+    ("i-cstrin" . "Interfaces.C.Strings")
+    ("s-stoele" . "System.Storage_Elements")
+    ("unchconv" . "Unchecked_Conversion") ; Ada 83 name
+    )
+  "Alist (filename . package name) of GNAT file names for predefined Ada packages.")
+
+(defun ada-gnat-ada-name-from-file-name (file-name)
+  "For `ada-ada-name-from-file-name'."
+  (let* (status
+	 (ada-name (file-name-sans-extension (file-name-nondirectory file-name)))
+	(predefined (cdr (assoc ada-name ada-gnat-predefined-package-alist))))
+
+    (if predefined
+        predefined
+      (while (string-match "-" ada-name)
+	(setq ada-name (replace-match "." t t ada-name)))
+      ada-name)))
+
+(defun ada-gnat-make-package-body (body-file-name)
+  "For `ada-make-package-body'."
+  ;; WORKAROUND: gnat stub 7.1w does not accept aggregate project files,
+  ;; and doesn't use the gnatstub package if it is in a 'with'd
+  ;; project file; see AdaCore ticket LC30-001. On the other hand we
+  ;; need a project file to specify the source dirs so the tree file
+  ;; can be generated. So we use gnat-run-no-prj, and the user
+  ;; must specify the proper project file in gnat_stub_opts.
+  ;;
+  ;; gnatstub always creates the body in the current directory (in the
+  ;; process where gnatstub is running); the -o parameter may not
+  ;; contain path info. So we pass a directory to gnat-run-no-prj.
+  (let ((start-buffer (current-buffer))
+	(start-file (buffer-file-name))
+	;; can also specify gnat stub options/switches in .gpr file, in package 'gnatstub'.
+	(opts (when (ada-prj-get 'gnat_stub_opts)
+		(split-string (ada-prj-get 'gnat_stub_opts))))
+	(switches (when (ada-prj-get 'gnat_stub_switches)
+		    (split-string (ada-prj-get 'gnat_stub_switches))))
+	)
+
+    ;; Make sure all relevant files are saved to disk. This also saves
+    ;; the bogus body buffer created by ff-find-the-other-file, so we
+    ;; need -f gnat stub option. We won't get here if there is an
+    ;; existing body file.
+    (save-some-buffers t)
+    (add-to-list 'opts "-f")
+    (with-current-buffer (gnat-run-buffer)
+      (gnat-run-no-prj
+       (append (list "stub") opts (list start-file "-cargs") switches)
+       (file-name-directory body-file-name))
+
+      (find-file body-file-name)
+      (indent-region (point-min) (point-max))
+      (save-buffer)
+      (set-buffer start-buffer)
+      )
+    nil))
 
 (provide 'gnat-core)
 

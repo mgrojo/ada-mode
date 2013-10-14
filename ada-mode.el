@@ -292,7 +292,7 @@ Values defined by cross reference packages.")
     (define-key map "\C-c\C-b" 	 'ada-make-subprogram-body)
     (define-key map "\C-c\C-c"   'compile)
     (define-key map "\C-c\C-d" 	 'ada-goto-declaration)
-    (define-key map "\C-c\M-d" 	 'ada-goto-declaration-parent)
+    (define-key map "\C-c\M-d" 	 'ada-show-declaration-parents)
     (define-key map "\C-c\C-e" 	 '(lambda () (interactive) (funcall ada-expand)))
     (define-key map "\C-c\C-i" 	 'ada-indent-statement)
     (define-key map "\C-c\C-n" 	 'ada-next-statement-keyword)
@@ -1102,6 +1102,7 @@ Optional PLIST defaults to `ada-prj-current-project'."
     (list
      ;; variable name alphabetical order
      'ada_compiler    ada-compiler
+     'ada_ref_tool    ada-xref-tool
      'auto_case       ada-auto-case
      'case_keyword    ada-case-keyword
      'case_strict     ada-case-strict
@@ -1778,19 +1779,17 @@ C-u C-u : show in other frame
 (defvar ada-xref-other-function nil
   ;; determined by xref_tool, set by *-select-prj-xref
   "Function that returns cross reference information.
-Function is called with five arguments:
+Function is called with four arguments:
 - an Ada identifier or operator_symbol
 - filename containing the identifier
 - line number containing the identifier
 - column of the start of the identifier
-- 'parent' flag.
 Returns a list '(file line column) giving the corresponding location.
 'file' may be absolute, or on `compilation-search-path'.  If point is
 at the specification, the corresponding location is the body, and vice
-versa. If the 'parent' flag is non-nil, return the parent type
-declaration.")
+versa.")
 
-(defun ada-goto-declaration (other-window-frame &optional parent)
+(defun ada-goto-declaration (other-window-frame)
   "Move to the declaration or body of the identifier around point.
 If at the declaration, go to the body, and vice versa.
 
@@ -1810,10 +1809,8 @@ C-u C-u : show in other frame"
 		    (ada-identifier-at-point)
 		    (file-name-nondirectory (buffer-file-name))
 		    (line-number-at-pos)
-		    (cl-case (char-after)
-		      (?\" (+ 2 (current-column))) ;; work around bug in gnat find FIXME: do this in ada-gnat!
-		      (t (1+ (current-column))))
-		    parent)))
+		    (1+ (current-column))
+		    )))
 
       (ada-goto-source (nth 0 target)
 		       (nth 1 target)
@@ -1821,8 +1818,18 @@ C-u C-u : show in other frame"
 		       other-window-frame)
     ))
 
-(defun ada-goto-declaration-parent (other-window-frame)
-  "Move to the parent type declaration of the type identifier around point.
+(defvar ada-xref-parent-function nil
+  ;; determined by xref_tool, set by *-select-prj-xref
+  "Function that returns cross reference information.
+Function is called with four arguments:
+- an Ada identifier or operator_symbol
+- filename containing the identifier
+- line number containing the identifier
+- column of the start of the identifier
+Displays a buffer in compilation-mode giving locations of the parent type declarations.")
+
+(defun ada-show-declaration-parents (other-window-frame)
+  "Display the locations of the parent type declarations of the type identifier around point.
 
 OTHER-WINDOW-FRAME (default nil, set by interactive prefix)
 controls window and frame choice:
@@ -1831,7 +1838,15 @@ nil     : show in current window
 C-u     : show in other window
 C-u C-u : show in other frame"
   (interactive "P")
-  (ada-goto-declaration other-window-frame t))
+  (when (null ada-xref-parent-function)
+    (error "no cross reference information available"))
+
+  (funcall ada-xref-parent-function
+	   (ada-identifier-at-point)
+	   (file-name-nondirectory (buffer-file-name))
+	   (line-number-at-pos)
+	   (1+ (current-column)))
+  )
 
 (defvar ada-xref-all-function nil
   ;; determined by xref_tool, set by *-select-prj-xref
@@ -1862,7 +1877,7 @@ identifier is declared or referenced.")
 
 (defvar ada-xref-overriding-function nil
   ;; determined by ada-xref-tool, set by *-select-prj
-  "Function that returns cross reference information for overriding subprograms.
+  "Function that displays cross reference information for overriding subprograms.
 Called with four arguments:
 - an Ada identifier or operator_symbol
 - filename containing the identifier
@@ -2411,7 +2426,7 @@ The paragraph is indented on the first line."
 
   (run-mode-hooks 'ada-mode-hook)
 
-  ;; If global-font-lock is not enabled, ada-gnat-syntax-propertize is
+  ;; If global-font-lock is not enabled, ada-syntax-propertize is
   ;; not run when the text is first loaded into the buffer. Recover
   ;; from that.
   (syntax-ppss-flush-cache (point-min))

@@ -520,6 +520,11 @@ Prompt user if more than one."
   )
 
 (defun ada-gnat-compile-deselect-prj ()
+  ;; We don't clear this here; the current value is the default,
+  ;; possibly overridden by a project.
+  ;; (setq ada-compiler nil)
+
+  (setq ada-fix-error-hook nil)
   (setq completion-ignored-extensions (delete ".ali" completion-ignored-extensions))
   )
 

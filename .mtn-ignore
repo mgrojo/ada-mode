@@ -13,6 +13,7 @@
 ^build/wisi/.*\.el$
 ^build/wisi/.*\.exe$
 ^build/wisi/.*\.output$
+^build/wisi/.*\.stamp$
 ^build/wisi/.*\.tmp$
 ^build/wisi/.*\.wisi-test$
 ^build/wisi/obj$
@@ -22,8 +23,10 @@
 ^run_sjw\.text$
 ^test/.*\.ali$
 ^test/debug\.adb$
+^test/gnatinspect\.db$
 ^test/gpr/debug\.gpr$
 ^test/subdir/ada_mode-nominal-child\.adb$
+^test/subdir/gnatinspect\.db$
 ^test/wisi/.*\.el$
 ^test/wisi/.*\.output$
 ^test/wisi/.*\.wisi-test$

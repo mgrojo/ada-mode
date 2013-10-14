@@ -16,6 +16,7 @@ ADA_TEST_FILES := $(filter-out debug.adb, $(ADA_TEST_FILES))# debug only
 ADA_TEST_FILES := $(filter-out debug.ads, $(ADA_TEST_FILES))# debug only
 
 GPR_TEST_FILES := $(shell cd ../../test/gpr; ls *.gpr)
+GPR_TEST_FILES := $(filter-out debug.gpr, $(GPR_TEST_FILES))
 
 COMPILE_FILES := $(ADA_TEST_FILES)
 COMPILE_FILES := $(subst subdir/,,$(COMPILE_FILES))
@@ -66,6 +67,7 @@ vpath %.gpr ../../test/gpr
 
 # test-ada defined in engine-specific Makefiles, to allow further filtering of ADA_TEST_FILES
 
+test-gpr : RUNTEST := run-indent-test-gpr.el
 test-gpr : $(addsuffix .diff, $(subst subdir/,,$(GPR_TEST_FILES)))
 
 # emacs to test with

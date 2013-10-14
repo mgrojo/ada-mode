@@ -187,6 +187,8 @@
 
 (setq gpr-which-function 'gpr-wisi-which-function)
 
+(setq gpr-show-parse-error 'wisi-show-parse-error)
+
 (provide 'gpr-wisi)
 (provide 'gpr-indent-engine)
 
