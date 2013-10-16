@@ -138,7 +138,7 @@
     (ada-goto-source (nth 0 result)
 		     (nth 1 result)
 		     (nth 2 result)
-		     nil ;; other-window-frame
+		     nil ;; other-window
 		     )
     ))
 
@@ -213,20 +213,6 @@
 (defun ada-gnat-xref-setup ()
   (when (boundp 'wisi-indent-calculate-functions)
     (add-to-list 'wisi-indent-calculate-functions 'gnatprep-indent))
-
-  (add-hook 'hack-local-variables-hook 'ada-gnat-post-local-vars nil t)
-  )
-
-(defun ada-gnat-post-local-vars ()
-  ;; run after file local variables are read because font-lock-add-keywords
-  ;; evaluates font-lock-defaults, which depends on ada-language-version.
-  (font-lock-add-keywords nil
-   ;; gnatprep preprocessor line
-   (list (list "^[ \t]*\\(#.*\n\\)"  '(1 font-lock-type-face t))))
-
-  (when global-font-lock-mode
-    ;; ensure the modified keywords are applied
-    (font-lock-refresh-defaults))
   )
 
 (defun ada-gnat-xref ()
@@ -237,6 +223,10 @@
   (add-to-list 'ada-deselect-prj-xref-tool '(gnat  . ada-gnat-xref-deselect-prj))
 
   ;; no parse-*-xref yet
+
+  (font-lock-add-keywords 'ada-mode
+   ;; gnatprep preprocessor line
+   (list (list "^[ \t]*\\(#.*\n\\)"  '(1 font-lock-type-face t))))
 
   (add-hook 'ada-gnat-fix-error-hook 'ada-gnat-fix-error))
 

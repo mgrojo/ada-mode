@@ -38,8 +38,7 @@
 
 (defun gnat-prj-add-prj-dir (dir project)
   "Add DIR to 'prj_dir and to GPR_PROJECT_PATH in 'proc_env. Return new project."
-  (let ((prj-dir (plist-get project 'prj_dir))
-	(proc-env (plist-get project 'proc_env)))
+  (let ((prj-dir (plist-get project 'prj_dir)))
 
     (cond
      ((listp prj-dir)
@@ -52,13 +51,14 @@
 
     (setq project (plist-put project 'prj_dir prj-dir))
 
-    (add-to-list 'proc-env
-		 (concat "GPR_PROJECT_PATH="
-			 (mapconcat 'identity
-				    (plist-get project 'prj_dir)
-				    (plist-get project 'path_sep))))
+    (let ((process-environment (plist-get project 'proc_env)))
+      (setenv "GPR_PROJECT_PATH"
+	      (mapconcat 'identity
+			 (plist-get project 'prj_dir)
+			 (plist-get project 'path_sep)))
 
-    (setq project (plist-put project 'proc_env proc-env))
+      (setq project (plist-put project 'proc_env process-environment))
+      )
 
     project))
 

@@ -1226,6 +1226,12 @@ Return new value of PROJECT."
 			 (expand-file-name
 			  (substitute-in-file-name (match-string 2)))))
 
+	   ((string= (match-string 1) "el_file")
+	    (let ((file (expand-file-name (substitute-in-file-name (match-string 2)))))
+	      (setq project (plist-put project 'el_file file))
+	      ;; eval now as well as in select, since it might affect parsing
+	      (load-file file)))
+
 	   ((string= (match-string 1) "src_dir")
 	    (add-to-list 'src_dir
 			 (file-name-as-directory
@@ -1234,8 +1240,8 @@ Return new value of PROJECT."
 	   ((string= (match-string 1) "xref_tool")
 	    (let ((xref (intern (match-string 2))))
 	      (setq project (plist-put project 'xref_tool xref))
-	      (setq parse-one-compiler (cdr (assq xref ada-prj-parse-one-xref)))
-	      (setq parse-final-compiler (cdr (assq xref ada-prj-parse-final-xref)))))
+	      (setq parse-one-xref (cdr (assq xref ada-prj-parse-one-xref)))
+	      (setq parse-final-xref (cdr (assq xref ada-prj-parse-final-xref)))))
 
 	   (t
 	    (if (or
@@ -1246,24 +1252,17 @@ Return new value of PROJECT."
 
 		(setq project tmp-prj)
 
-	      ;; any other field in the file is set as a project property or project environment variable
+	      ;; any other field in the file is set as an environment
+	      ;; variable or ignored
 	      (if (= ?$ (elt (match-string 1) 0))
 		  ;; process env var
-		  (let ((env-current (plist-get project 'proc_env))
-			(env-add (concat (substring (match-string 1) 1)
-					 "="
-					 (expand-file-name (substitute-in-file-name (match-string 2))))))
-		    (add-to-list 'env-current env-add)
+		  (let ((process-environment (plist-get project 'proc_env)))
+		    (setenv (substring (match-string 1) 1)
+			    (expand-file-name (substitute-in-file-name (match-string 2))))
 		    (setq project
-			  (plist-put project
-				     'proc_env
-				     env-current)))
-		;; project var
-		;; FIXME: make it a list if multiple occurences
-		(setq project (plist-put project
-					 (intern (match-string 1))
-					 (match-string 2))))
-	      ))
+			  (plist-put project 'proc_env process-environment)))
+		;; not recognized; ignore
+	      )))
 	   ))
 
 	(forward-line 1))
@@ -1326,6 +1325,9 @@ Indexed by project variable xref_tool.")
     (when func (funcall func)))
 
   (setq ada-prj-current-file prj-file)
+
+  (when (ada-prj-get 'el_file)
+    (load-file (ada-prj-get 'el_file)))
 
   (ada-case-read-all-exceptions)
 
@@ -1626,13 +1628,13 @@ previously set by a file navigation command."
 	(back-to-indentation))
       (setq ff-function-name nil))))
 
-(defun ada-find-other-file-noset (other-window-frame)
+(defun ada-find-other-file-noset (other-window)
   "Same as `ada-find-other-file', but preserve point in the other file,
 don't move to corresponding declaration."
   (interactive "P")
-  (ada-find-other-file other-window-frame t))
+  (ada-find-other-file other-window t))
 
-(defun ada-find-other-file (other-window-frame &optional no-set-point)
+(defun ada-find-other-file (other-window &optional no-set-point)
   "Move to the corresponding declaration in another file.
 
 - If region is active, assume it contains a package name;
@@ -1651,19 +1653,11 @@ don't move to corresponding declaration."
 - If point is in a subprogram body or specification, position point
   on the corresponding specification or body.
 
-OTHER-WINDOW-FRAME (default nil, set by interactive prefix)
-controls window and frame choice:
+If OTHER-WINDOW (set by interactive prefix) is non-nil, show the
+buffer in another window.
 
-nil     : show in current window
-C-u     : show in other window
-C-u C-u : show in other frame
-
-When called from lisp, OTHER-WINDOW-FRAME is only interpreted as
-nil/non-nil; it must set `current-prefix-arg' to have the
-meanings shown here.
-
-If NO-SET-POINT is nil (the default), set point in the other file on
-the corresponding declaration. If non-nil, preserve existing point in
+If NO-SET-POINT is nil, set point in the other file on the
+corresponding declaration. If non-nil, preserve existing point in
 the other file."
 
   ;; ff-get-file, ff-find-other file first process
@@ -1687,11 +1681,11 @@ the other file."
 	 compilation-search-path
 	 (ada-file-name-from-ada-name ff-function-name)
 	 ada-spec-suffixes
-	 other-window-frame)
+	 other-window)
 	(deactivate-mark))
 
     ;; else use name at point
-    (ff-find-other-file other-window-frame)))
+    (ff-find-other-file other-window)))
 
 (defvar ada-operator-re
   "\\+\\|-\\|/\\|\\*\\*\\|\\*\\|=\\|&\\|abs\\|mod\\|rem\\|and\\|not\\|or\\|xor\\|<=\\|<\\|>=\\|>"
@@ -1734,23 +1728,17 @@ identifier.  May be an Ada identifier or operator function name."
       (error "No identifier around"))
      )))
 
-(defun ada-goto-source (file line column other-window-frame)
+(defun ada-goto-source (file line column other-window)
   "Find and select FILE, at LINE and COLUMN.
 FILE may be absolute, or on `compilation-search-path'.
 
-OTHER-WINDOW-FRAME (default nil, set by interactive prefix)
-controls window and frame choice:
-
-nil     : show in current window
-C-u     : show in other window
-C-u C-u : show in other frame
-"
+If OTHER-WINDOW is non-nil, show the buffer in another window."
   (setq file (ff-get-file-name compilation-search-path file))
   (let ((buffer (get-file-buffer file)))
     (cond
      ((bufferp buffer)
       (cond
-       ((null other-window-frame)
+       ((null other-window)
 	(switch-to-buffer buffer))
 
        (t (switch-to-buffer-other-window buffer))
@@ -1758,7 +1746,7 @@ C-u C-u : show in other frame
 
      ((file-exists-p file)
       (cond
-       ((null other-window-frame)
+       ((null other-window)
 	(find-file file))
 
        (t
@@ -1789,16 +1777,12 @@ Returns a list '(file line column) giving the corresponding location.
 at the specification, the corresponding location is the body, and vice
 versa.")
 
-(defun ada-goto-declaration (other-window-frame)
+(defun ada-goto-declaration (other-window)
   "Move to the declaration or body of the identifier around point.
 If at the declaration, go to the body, and vice versa.
 
-OTHER-WINDOW-FRAME (default nil, set by interactive prefix)
-controls window and frame choice:
-
-nil     : show in current window
-C-u     : show in other window
-C-u C-u : show in other frame"
+If OTHER-WINDOW (set by interactive prefix) is non-nil, show the
+buffer in another window."
   (interactive "P")
 
   (when (null ada-xref-other-function)
@@ -1815,7 +1799,7 @@ C-u C-u : show in other frame"
       (ada-goto-source (nth 0 target)
 		       (nth 1 target)
 		       (nth 2 target)
-		       other-window-frame)
+		       other-window)
     ))
 
 (defvar ada-xref-parent-function nil
@@ -1828,16 +1812,9 @@ Function is called with four arguments:
 - column of the start of the identifier
 Displays a buffer in compilation-mode giving locations of the parent type declarations.")
 
-(defun ada-show-declaration-parents (other-window-frame)
-  "Display the locations of the parent type declarations of the type identifier around point.
-
-OTHER-WINDOW-FRAME (default nil, set by interactive prefix)
-controls window and frame choice:
-
-nil     : show in current window
-C-u     : show in other window
-C-u C-u : show in other frame"
-  (interactive "P")
+(defun ada-show-declaration-parents ()
+  "Display the locations of the parent type declarations of the type identifier around point."
+  (interactive)
   (when (null ada-xref-parent-function)
     (error "no cross reference information available"))
 
@@ -1934,25 +1911,20 @@ the file name."
     (speedbar-add-supported-extension body))
   )
 
-(defun ada-show-secondary-error (other-window-frame)
+(defun ada-show-secondary-error (other-window)
   "Show the next secondary file reference in the compilation buffer.
 A secondary file reference is defined by text having text
 property `ada-secondary-error'.  These can be set by
 compiler-specific compilation filters.
 
-OTHER-WINDOW-FRAME (default nil, set by interactive prefix)
-controls window and frame choice:
-
-nil     : show in current window
-C-u     : show in other window
-C-u C-u : show in other frame"
+If OTHER-WINDOW (set by interactive prefix) is non-nil, show the
+buffer in another window."
   (interactive "P")
 
   ;; preserving the current window works only if the frame
   ;; doesn't change, at least on Windows.
   (let ((start-buffer (current-buffer))
 	(start-window (selected-window))
-	(start-frame (selected-frame))
 	pos item file)
     (set-buffer compilation-last-buffer)
     (setq pos (next-single-property-change (point) 'ada-secondary-error))
@@ -1974,9 +1946,8 @@ C-u C-u : show in other frame"
        file
        (nth 1 item); line
        (nth 2 item); column
-       other-window-frame)
+       other-window)
       (select-window start-window)
-      (select-frame start-frame)
       )
     ))
 

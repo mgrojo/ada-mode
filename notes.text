@@ -48,6 +48,7 @@ build gnatinspect:
 
 ~/Projects/gnatcoll-1.6w-src/docs/xref.rst
 c:/Apps/GNAT-7.1.2/gnatcoll-1.6w-src/src/tools/gnatinspect.adb
+(require 'gpr-mode)
 (gpr-set-as-project "c:/Apps/GNAT-7.1.2/gnatcoll-1.6w-src/src/gnatcoll_tools.gpr")
 (browse-url "file:///c:/Apps/GNAT-7.1.2/gnatcoll-1.6w-src/docs/_build/html/xref.html")
 
@@ -86,23 +87,24 @@ C-F11 fails on #include <Itcsb1553/Itcsb1553.hpp>
 need std include files in search list
 
  general
+(progn
+ (setq ada-xref-tool 'gnat_inspect)
+ (require 'gnat-inspect))
 build/wisi/Makefile
 
 xmtn-status ediff respect mtn:manual_merge
 
-GPR_PROJECT_PATH occurs multiple times in compilation_environment
-
-fixme in test/gnatprep.adb
-    need ada-gnatprep-select-prj?
-        lump with xref for now
-
+add compile functions, prj vars
     some people don't use project files
-        they should
+        provide option to use default proj settings
 
-add ada-gnat-compile
+    manuel Gomez using comp_cmd, make_cmd, src_dir, obj_dir; not .gpr files
+        reference project variables in project var values
 
-ada-mode, gpr-mode user guide
-    ada-mode.texi
+    compile/build/run keys
+        for Emacs & Ada novices
+
+ada-mode.texi
     /home/Projects/emacs_stephe.main/emacs_stephe_site_lisp/ada-mode.texi
     /home/Projects/emacs_stephe.main/emacs_stephe_site_lisp/ada-mode.el
 
@@ -112,15 +114,6 @@ ada-mode, gpr-mode user guide
         include 'make' example
 
 test prompt for file in case-create-exception
-
-set arbitrary emacs vars in Ada mode project file
-    el_file=
-
-manuel Gomez using comp_cmd, make_cmd, src_dir, obj_dir; not .gpr files
-    reference project variables in project var values
-
-compile/build/run keys
-    for Emacs & Ada novices
 
 show current project on menu
 
@@ -135,12 +128,12 @@ check emacs buglist
 
 gpr-skel.el
 
-gpr-mode.texi
-
 gpr log-edit-function-name
     use package.attribute:
         Source_Dirs
         Compiler.Default_Switches
+
+gpr-mode.texi
 
 mouse operations
     ask on list
@@ -157,6 +150,9 @@ ada-add-log-current-function
 /Projects/Web/stephe-leake/emacs/ada-mode/emacs-ada-mode.html
     to-do list
 
+ELPA package
+    with autoloads
+
 add C++ tests
 
 ./wisi.el:361:	  ;; FIXME: insert newline in comment to create non-comment!?
@@ -171,6 +167,8 @@ don't parse or move cache if narrowed
 
 ada-fix-error.el
     sort 'limited private with' at end of context clause
+
+add test for el_file
 
  emacs 23 compat
 

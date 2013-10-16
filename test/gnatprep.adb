@@ -1,22 +1,19 @@
 --EMACSCMD:(setq skip-recase-test t)
 
--- Tests the way gnatprep statements are highlighted. We also test
--- other usage of the '#' sign, especially in based numbers or in
--- strings.
+-- Tests the way gnatprep statements are highlighted and indented. We
+-- also test other usage of the '#' sign, especially in based numbers
+-- or in strings.
 
--- gnatprep font-lock is enabled in ada-gnat-post-local-vars, which is
--- added to hack-local-variables-hook in ada-gnat-setup, which is
--- added to ada-mode-hook by ada-select-prj-file. But that is too late
--- here, so we call ada-gnat-post-local-vars directly.
---
--- Similarly, gnatprep syntax-propertize is set by
--- ada-gnat-select-prj-xref.
---
--- FIXME: need simpler mechanism for user to enable gnatprep per-file.
---
---EMACSCMD:(ada-gnat-xref-select-prj)
---EMACSCMD:(progn (syntax-ppss-flush-cache (point-min)) (syntax-propertize (point-max)))
---EMACSCMD:(ada-gnat-post-local-vars)
+-- gnatprep indentation is enabled by `ada-gnat-inspect-setup' or
+-- `ada-gnat-xref-setup', which are added to ada-mode-hook when a
+-- project file is selected. When this file is run as a test, no
+-- project file has been selected before the file is opened, so
+-- gnatprep indentation is not enabled. So we run ada-mode again after
+-- selecting the project file.
+
+--EMACSCMD:(ada-parse-prj-file "ada_mode.gpr")
+--EMACSCMD:(ada-select-prj-file "ada_mode.gpr")
+--EMACSCMD:(ada-mode)
 
 -- font-lock doesn't turn on when non-interactive
 --EMACSCMD:(font-lock-fontify-buffer)

@@ -35,6 +35,11 @@
   "Minor mode for navigating sources using GNAT cross reference tool `gnatinspect'."
   :group 'languages)
 
+(defun gnat-inspect-dist (found-line line found-col col)
+  "Return non-nil if found-line, -col is closer to line, col than min-distance."
+  (+ (abs (- found-line line))
+     (* (abs (- found-col col)) 250)))
+
 (defun gnat-inspect-other (identifier file line col)
   "For `ada-xref-other-function', using gnatinspect."
   (unless (ada-prj-get 'gpr_file)
@@ -48,13 +53,14 @@
 
   (with-current-buffer (gnat-run-buffer)
     (let ((project-file (file-name-nondirectory
-			 (or (ada-prj-get 'gnatinspect_gpr_file)
+			 (or (ada-prj-get 'gnat_inspect_gpr_file)
 			     (ada-prj-get 'gpr_file))))
 	  (arg (format "%s:%s:%d:%d" identifier (file-name-nondirectory file) line col))
 	  (regexp "\\(.*\\):\\(.*\\):\\([0-9]+\\):\\([0-9]+\\) (\\(.*\\))")
 	  (decl-loc nil)
 	  (body-loc nil)
-	  (want 'unknown) ;; 'decl 'body
+	  (search-type nil)
+	  (min-distance (1- (expt 2 29)))
 	  (result nil))
 
       ;; 'gnatinspect refs' returns a list containing the declaration,
@@ -82,24 +88,22 @@
 
       ;; gnatinspect from gnatcoll-1.6w-20130902 can't handle aggregate projects; M910-032
       (gnat-run "gnatinspect" (list "-P" project-file "-c" (concat "refs " arg))
-		"can't handle aggregate projects? - use gnatinspect_gpr_file")
+		"can't handle aggregate projects? - use gnat_inspect_gpr_file")
       (message "running gnatinspect ... done.")
       (message "parsing result ...")
 
       (goto-char (point-min))
 
-      (while (not result)
+      (while (not (eobp))
 	(cond
-	 ((eobp)
-	  (pop-to-buffer (current-buffer))
-	  (error "gnatinspect did not return other item"))
-
 	 ((looking-at regexp)
 	  ;; process line
-	  (let ((found-file (file-name-nondirectory (match-string 2)))
-		(found-line (string-to-number (match-string 3)))
-		(found-col  (string-to-number (match-string 4)))
-		(found-type (match-string 5)))
+	  (let* ((found-file (file-name-nondirectory (match-string 2)))
+		 (found-line (string-to-number (match-string 3)))
+		 (found-col  (string-to-number (match-string 4)))
+		 (found-type (match-string 5))
+		 (dist       (gnat-inspect-dist found-line line found-col col))
+		 )
 
 	    (when (string-equal found-type "declaration")
 	      (setq decl-loc (list found-file found-line (1- found-col))))
@@ -110,31 +114,20 @@
 	      (setq body-loc (list found-file found-line (1- found-col))))
 
 	    (when
-		(and (eq want 'unknown)
-		     (equal found-file file)
-		     (= found-line line)
-		     (= found-col col))
-	      ;; search item
-	      (cond
-	       ((string-equal found-type "declaration")
-		(setq want 'body))
-
-	       (t
-		(setq want 'decl))
-
-	       ))
-	    (cl-ecase want
-	      (unknown)
-
-	      (decl (when decl-loc (setq result decl-loc)))
-
-	      (body (when body-loc (setq result body-loc)))
-	      )
+		;; In general, we don't know where in the gnatinspect
+		;; output the search item occurs, so we search for it.
+		;;
+		;; We use the same distance algorithm as gnatinspect
+		;; to allow a fuzzy match on edited code.
+		(and (equal found-file file)
+		     (< dist min-distance))
+	      (setq min-distance dist)
+	      (setq search-type found-type))
 	    ))
 
 	 (t ;; ignore line
 	  ;;
-	  ;; This skips ADA_PROJECT_PATH and echoed command at start of buffer.
+	  ;; This skips GPR_PROJECT_PATH and echoed command at start of buffer.
 	  ;;
 	  ;; It also skips warning lines. For example,
 	  ;; gnatcoll-1.6w-20130902 can't handle the Auto_Text_IO
@@ -149,6 +142,24 @@
 	(forward-line 1)
 	)
 
+      (cond
+       ((null search-type)
+	(pop-to-buffer (current-buffer))
+	(error "gnatinspect did not return other item"))
+
+       ((and
+	 (string-equal search-type "declaration")
+	 body-loc)
+	(setq result body-loc))
+
+       (decl-loc
+	(setq result decl-loc))
+       )
+
+      (when (null result)
+	(pop-to-buffer (current-buffer))
+	(error "gnatinspect did not return other item"))
+
       (message "parsing result ... done")
       result)))
 
@@ -162,11 +173,11 @@
   ;; WORKAROUND: gnatinspect from gnatcoll-1.6w can't handle aggregate
   ;; projects, so we use an alternate project file for gnatinspect
   ;; queries, specified in the Emacs ada-mode project file by
-  ;; "gnatinspect_gpr_file".
+  ;; "gnat_inspect_gpr_file".
 
   (with-current-buffer (gnat-run-buffer); for default-directory
     (let* ((project-file (file-name-nondirectory
-			  (or (ada-prj-get 'gnatinspect_gpr_file)
+			  (or (ada-prj-get 'gnat_inspect_gpr_file)
 			      (ada-prj-get 'gpr_file))))
 	   (arg (format "%s:%s:%d:%d" identifier file line col))
 	   (cmd-1
@@ -180,7 +191,7 @@
       (let ((process-environment (ada-prj-get 'proc_env)) ;; for GPR_PROJECT_PATH
 	    (compilation-error "reference")
 	    (compilation-mode-hook
-	     (lambda () (set (make-local-variable 'compilation-error-regexp-alist) (list 'gnatinspect-ident-file)))))
+	     (lambda () (set (make-local-variable 'compilation-error-regexp-alist) (list 'gnat-inspect-ident-file)))))
 
 	(compilation-start cmd-1
 			   'compilation-mode
@@ -202,18 +213,13 @@
   ;; to each result in turn via `next-error'.
   (gnat-inspect-compilation identifier file line col "overridden_recursive"))
 
-(defun gnat-inspect-goto-declaration (other-window-frame)
+(defun gnat-inspect-goto-declaration (other-window)
   "Move to the declaration or body of the identifier around point.
 If at the declaration, go to the body, and vice versa. If at a
 reference, goto the declaration.
 
-OTHER-WINDOW-FRAME (default nil, set by interactive prefix)
-controls window and frame choice:
-
-nil     : show in current window
-C-u     : show in other window
-C-u C-u : show in other frame
-"
+If OTHER-WINDOW (set by interactive prefix) is non-nil, show the
+buffer in another window."
   (interactive "P")
 
   (let ((target
@@ -229,7 +235,7 @@ C-u C-u : show in other frame
     (ada-goto-source (nth 0 target)
 		     (nth 1 target)
 		     (nth 2 target)
-		     other-window-frame)
+		     other-window)
     ))
 
 (defvar gnat-inspect-map
@@ -255,7 +261,7 @@ Enable mode if ARG is positive"
 ;;;;; support for Ada mode
 
 (defun ada-gnat-inspect-select-prj ()
-  (setq ada-xref-tool 'gnatinspect)
+  (setq ada-xref-tool 'gnat-inspect)
 
   (setq ada-file-name-from-ada-name 'ada-gnat-file-name-from-ada-name)
   (setq ada-ada-name-from-file-name 'ada-gnat-ada-name-from-file-name)
@@ -299,31 +305,21 @@ Enable mode if ARG is positive"
 (defun ada-gnat-inspect-setup ()
   (when (boundp 'wisi-indent-calculate-functions)
     (add-to-list 'wisi-indent-calculate-functions 'gnatprep-indent))
-
-  (add-hook 'hack-local-variables-hook 'ada-gnat-post-local-vars nil t)
-  )
-
-(defun ada-gnat-post-local-vars ()
-  ;; run after file local variables are read because font-lock-add-keywords
-  ;; evaluates font-lock-defaults, which depends on ada-language-version.
-  (font-lock-add-keywords nil
-   ;; gnatprep preprocessor line
-   (list (list "^[ \t]*\\(#.*\n\\)"  '(1 font-lock-type-face t))))
-
-  (when global-font-lock-mode
-    ;; ensure the modified keywords are applied
-    (font-lock-refresh-defaults))
   )
 
 (defun ada-gnat-inspect ()
   "Set Ada mode global vars to use gnatinspect."
   (require 'ada-mode)
-  (setq         ada-xref-tool              'gnatinspect)
-  (add-to-list 'ada-prj-parser-alist       '("gpr" . gnat-parse-gpr))
-  (add-to-list 'ada-select-prj-xref-tool   '(gnatinspect  . ada-gnat-inspect-select-prj))
-  (add-to-list 'ada-deselect-prj-xref-tool '(gnatinspect  . ada-gnat-inspect-deselect-prj))
 
-  ;; no parse-*-xref yet
+  (add-to-list 'ada-prj-parser-alist       '("gpr" . gnat-parse-gpr))
+  (add-to-list 'ada-select-prj-xref-tool   '(gnat_inspect  . ada-gnat-inspect-select-prj))
+  (add-to-list 'ada-deselect-prj-xref-tool '(gnat_inspect  . ada-gnat-inspect-deselect-prj))
+
+  ;; no parse-*-xref
+
+  (font-lock-add-keywords 'ada-mode
+   ;; gnatprep preprocessor line
+   (list (list "^[ \t]*\\(#.*\n\\)"  '(1 font-lock-type-face t))))
 
   (add-hook 'ada-gnat-fix-error-hook 'ada-gnat-fix-error)
   )
@@ -331,10 +327,12 @@ Enable mode if ARG is positive"
 (provide 'gnat-inspect)
 
 (add-to-list 'compilation-error-regexp-alist-alist
-	     (cons 'gnatinspect-ident-file gnat-inspect-ident-file-regexp-alist))
+	     (cons 'gnat-inspect-ident-file gnat-inspect-ident-file-regexp-alist))
+
+(ada-gnat-inspect)
 
 (unless (and (boundp 'ada-xref-tool)
 	     (default-value 'ada-xref-tool))
-  (ada-gnat-inspect))
+  (setq ada-xref-tool 'gnat_inspect))
 
 ;;; end of file

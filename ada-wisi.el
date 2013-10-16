@@ -1347,7 +1347,7 @@ Also return cache at start."
 (defun ada-wisi-post-local-vars ()
   ;; run after file local variables are read because font-lock-add-keywords
   ;; evaluates font-lock-defaults, which depends on ada-language-version.
-  (font-lock-add-keywords nil
+  (font-lock-add-keywords 'ada-mode
    ;; use keyword cache to distinguish between 'function ... return <type>;' and 'return ...;'
    (list
     (list
