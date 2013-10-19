@@ -87,22 +87,42 @@ C-F11 fails on #include <Itcsb1553/Itcsb1553.hpp>
 need std include files in search list
 
  general
-(progn
- (setq ada-xref-tool 'gnat_inspect)
- (require 'gnat-inspect))
 build/wisi/Makefile
-
-xmtn-status ediff respect mtn:manual_merge
 
 add compile functions, prj vars
     some people don't use project files
         provide option to use default proj settings
 
-    manuel Gomez using comp_cmd, make_cmd, src_dir, obj_dir; not .gpr files
-        reference project variables in project var values
-
     compile/build/run keys
         for Emacs & Ada novices
+        review 4.01, see what could be simplified
+        /Projects/emacs_stephe.main/emacs_stephe_site_lisp/ada-mode.texi
+        ada-mode.texi
+
+        put in ada-build.el, as extension
+        (require 'ada-build)
+
+        go thru examples, add required functions
+            (setq ada-prj-current-file nil
+                  ada-prj-alist nil)
+
+            test/Example_1/hello.adb
+                done to "Ada | Show main"
+
+        test ADA_INCLUDE_PATH, ADA_OBJECT_PATH from user env, prj file
+            see 4.01 ada-xref.el ada-set-environment
+            that's gnat-specific; put in default prj values
+
+        allow defining arbitrary user project vars?
+            can't be in extension; might be used by some other extension
+            comp_opt - 4.01: default set from lisp, used in default check_cmd, comp_cmd, make_cmd
+                no need for lisp default?
+            as list?
+
+        process el_file before create default project, to allow setting lisp vars?
+
+    manuel Gomez using comp_cmd, make_cmd, src_dir, obj_dir; not .gpr files
+        reference project variables in project var values
 
 ada-mode.texi
     /home/Projects/emacs_stephe.main/emacs_stephe_site_lisp/ada-mode.texi
@@ -112,6 +132,9 @@ ada-mode.texi
 
     compile examples
         include 'make' example
+
+    developer section
+        see email from geoge bauhaus
 
 test prompt for file in case-create-exception
 
@@ -169,6 +192,10 @@ ada-fix-error.el
     sort 'limited private with' at end of context clause
 
 add test for el_file
+
+gnatprep
+    the value of a preprocessor symbol is either empty, a string
+    literal, or an Ada identifier/keyword; handle $symbol in lexer
 
  emacs 23 compat
 
@@ -252,6 +279,8 @@ resolve dynamic library names
     windows: _version.dll
     linux: .so.version
     OSX:   .dylib.version
+
+    see ada-mode email from simon wright for patch
 
 delete debug_parser.adb from release
 delete build/x86_* from release

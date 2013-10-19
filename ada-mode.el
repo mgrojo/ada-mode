@@ -1,26 +1,26 @@
 ;;; ada-mode.el --- major-mode for editing Ada sources
 ;;
 ;;; Copyright (C) 1994, 1995, 1997 - 2013  Free Software Foundation, Inc.
-
+;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Keywords: languages ada
-
+;;
 ;; This file is part of GNU Emacs.
-
+;;
 ;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
-
+;;
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-
+;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-
+;;
 ;;; Usage:
 ;;
 ;; Emacs should enter Ada mode automatically when you load an Ada
@@ -29,8 +29,7 @@
 ;; extensions.
 ;;
 ;; By default, ada-mode is configured to take full advantage of the
-;; GNAT compiler (the menus will include the cross-referencing
-;; features,...).  If you are using another compiler, you
+;; GNAT compiler.  If you are using another compiler, you
 ;; should load that compiler's ada-* file first; that will define
 ;; ada-compiler as a feature, so ada-gnat.el will not be loaded.
 ;;
@@ -173,18 +172,17 @@
 ;;;;; User variables
 
 (defvar ada-mode-hook nil
-  "*List of functions to call when Ada mode is invoked.
+  "List of functions to call when Ada mode is invoked.
 This hook is executed after `ada-mode' is fully loaded, but
 before file local variables are processed.")
 
 (defgroup ada nil
-  "Major mode for editing and compiling Ada source in Emacs."
-  :link '(custom-group-link :tag "Font Lock Faces group" font-lock-faces)
+  "Major mode for editing Ada source code in Emacs."
   :group 'languages)
 
 (defcustom ada-auto-case t
   ;; can be per-buffer
-  "*Buffer-local value that may override project variable `auto_case'.
+  "Buffer-local value that may override project variable `auto_case'.
 Global value is default for project variable `auto_case'.
 Non-nil means automatically change case of preceding word while typing.
 Casing of Ada keywords is done according to `ada-case-keyword',
@@ -195,7 +193,7 @@ identifiers are Mixed_Case."
 (make-variable-buffer-local 'ada-auto-case)
 
 (defcustom ada-case-exception-file nil
-  "*Default list of special casing exceptions dictionaries for identifiers.
+  "Default list of special casing exceptions dictionaries for identifiers.
 Override with 'casing' project variable.
 
 New exceptions may be added interactively via `ada-case-create-exception'.
@@ -213,7 +211,7 @@ preserved when the list is written back to the file."
   :safe  'listp)
 
 (defcustom ada-case-keyword 'downcase-word
-  "*Buffer-local value that may override project variable `case_keyword'.
+  "Buffer-local value that may override project variable `case_keyword'.
 Global value is default for project variable `case_keyword'.
 Function to call to adjust the case of an Ada keywords."
   :type '(choice (const downcase-word)
@@ -223,7 +221,7 @@ Function to call to adjust the case of an Ada keywords."
 (make-variable-buffer-local 'ada-case-keyword)
 
 (defcustom ada-case-strict t
-  "*Buffer-local value that may override project variable `case_strict'.
+  "Buffer-local value that may override project variable `case_strict'.
 Global value is default for project variable `case_strict'.
 If non-nil, force Mixed_Case for identifiers.
 Otherwise, allow UPPERCASE for identifiers."
@@ -233,7 +231,7 @@ Otherwise, allow UPPERCASE for identifiers."
 (make-variable-buffer-local 'ada-case-strict)
 
 (defcustom ada-language-version 'ada2012
-  "*Ada language version; one of `ada83', `ada95', `ada2005'.
+  "Ada language version; one of `ada83', `ada95', `ada2005'.
 Only affects the keywords to highlight."
   :type '(choice (const ada83)
 		 (const ada95)
@@ -245,7 +243,7 @@ Only affects the keywords to highlight."
 
 (defcustom ada-popup-key '[down-mouse-3]
   ;; FIXME (later, when testing menu): don't need a var for this; user can just bind a key
-  "*Key used for binding the contextual menu.
+  "Key used for binding the contextual menu.
 If nil, no contextual menu is available."
   :type '(restricted-sexp :match-alternatives (stringp vectorp))
   :group 'ada)
@@ -288,6 +286,7 @@ Values defined by cross reference packages.")
     ;; global-map has C-x ` 'next-error
     (define-key map [return] 	 'ada-indent-newline-indent)
     (define-key map "\C-c`" 	 'ada-show-secondary-error)
+    (define-key map "\C-c\M-`" 	 'ada-fix-compiler-error)
     (define-key map "\C-c\C-a" 	 'ada-align)
     (define-key map "\C-c\C-b" 	 'ada-make-subprogram-body)
     (define-key map "\C-c\C-c"   'compile)
@@ -321,6 +320,7 @@ Values defined by cross reference packages.")
     ["------"        nil nil]
     ["Next compilation error"     next-error                t]
     ["Show secondary error"       ada-show-secondary-error  t]
+    ["Fix compilation error"      ada-fix-compiler-error    t]
     ["Show last parse error"      ada-show-parse-error      t]
     ["------"        nil nil]
     ["Other file"                 ada-find-other-file       t]
@@ -1090,6 +1090,11 @@ ARG is the prefix the user entered with \\[universal-argument]."
   "Return value of PROP in PLIST.
 Optional PLIST defaults to `ada-prj-current-project'."
   (plist-get (or plist ada-prj-current-project) prop))
+
+(defun ada-prj-put (prop val &optional plist)
+  "Set value of PROP in PLIST to VAL.
+Optional PLIST defaults to `ada-prj-current-project'."
+  (plist-put (or plist ada-prj-current-project) prop val))
 
 (defun ada-require-project-file ()
   (unless ada-prj-current-file

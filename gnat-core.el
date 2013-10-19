@@ -34,8 +34,6 @@
 
 ;;;; project file handling
 
-;; FIXME: move more project functions here from ada-mode.el
-
 (defun gnat-prj-add-prj-dir (dir project)
   "Add DIR to 'prj_dir and to GPR_PROJECT_PATH in 'proc_env. Return new project."
   (let ((prj-dir (plist-get project 'prj_dir)))

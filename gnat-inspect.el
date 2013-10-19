@@ -249,13 +249,15 @@ buffer in another window."
     map
   )  "Local keymap used for GNAT inspect minor mode.")
 
+;; FIXME: define menu
+
 (define-minor-mode gnat-inspect
   "Minor mode for navigating sources using GNAT cross reference tool.
 Enable mode if ARG is positive"
   :initial-value t
   :lighter       " gnat-inspect"   ;; mode line
 
-  ;; just enable the menu and keymape
+  ;; just enable the menu and keymap
   )
 
 ;;;;; support for Ada mode

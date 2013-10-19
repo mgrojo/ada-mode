@@ -113,6 +113,8 @@ in the distribution.
 To see what version of Ada mode you have installed, do @kbd{M-x
 ada-mode-version}.
 
+@c FIXME: gnat-coll
+
 @node Customization, Compiling Executing, Installation, Top
 @chapter Customizing Ada mode
 
@@ -188,6 +190,8 @@ the indirection variables.
 
 See @file{ada-gnat.el} for an example.
 
+@c FIXME: Other xref: gnat-inspect
+
 @node Other customization,  , Other compiler, Customization
 @section Other customization
 
@@ -239,8 +243,597 @@ The above can all be set by the following code in your
 @node Compiling Executing, Project files, Customization, Top
 @chapter Compiling Executing
 
-Ada mode currently assumes you use @code{make} to compile and run
-programs, so it has no direct support for those operations.
+Ada projects can be compiled, linked, and executed using commands on
+the Ada menu. All of these commands can be customized via a project
+file (@pxref{Project files}), but the defaults are sufficient for using
+the GNAT compiler for simple projects (single files, or several files
+in a single directory).
+
+For complex projects, you will want to use @code{make} or some other
+build tool; in that case, you will need an Emacs Ada mode project file
+to tell Emacs about the project directory tree and other settings.
+
+@menu
+* Compile commands::
+* Compiler errors::
+@end menu
+
+@node Compile commands, Compiler errors, Compiling Executing, Compiling Executing
+@section Compile commands
+
+Here are the commands for building an Ada project and running the main
+program.
+
+In multi-file projects, there must be one file that is the main
+program. That is given by the @code{main} project file variable;
+it defaults to the current file if not yet set, but is also set by the
+``set main and build'' command.
+@c FIXME: get main from gpr via gnatinspect? not in gnatcoll 1.6w
+
+@table @code
+
+@item Check file
+Compiles the current file in syntax check mode, by running
+@code{check_cmd} defined in the current project file. This typically
+runs faster than full compile mode, speeding up finding and fixing
+compilation errors.
+
+This sets @code{main} only if it has not been set yet.
+
+@item Compile file
+Compiles the current file, by running @code{comp_cmd} from the current
+project file.
+
+This does not set @code{main}.
+
+@item Set main and Build
+Sets @code{main} to the current file, then executes the Build
+command.
+
+@item Show main
+Display @code{main} in the message buffer.
+
+@item Build
+Compiles all obsolete units of the current @code{main}, and links
+@code{main}, by running @code{make_cmd} from the current project.
+
+This sets @code{main} only if it has not been set yet.
+
+@item Run
+Executes the main program in a shell, displayed in a separate Emacs
+buffer. This runs @code{run_cmd} from the current project. The
+execution buffer allows for interactive input/output.
+
+To modify the run command, in particular to provide or change the
+command line arguments, type @kbd{C-u} before invoking the command.
+
+This command is not available for a cross-compilation toolchain.
+
+@end table
+It is important when using these commands to understand how
+@code{main} is used and changed.
+
+Build runs 'gnatmake' on the main unit. During a typical edit/compile
+session, this is the only command you need to invoke, which is why it
+is bound to @kbd{C-c C-c}. It will compile all files needed by the
+main unit, and display compilation errors in any of them.
+
+Note that Build can be invoked from any Ada buffer; typically you will
+be fixing errors in files other than the main, but you don't have to
+switch back to the main to invoke the compiler again.
+
+Novices and students typically work on single-file Ada projects. In
+this case, @kbd{C-c C-m} will normally be the only command needed; it
+will build the current file, rather than the last-built main.
+
+There are three ways to change @code{main}:
+
+@enumerate
+@item
+Invoke @samp{Ada | Set main and Build}, which sets @code{main} to
+the current file.
+
+@item
+Invoke @samp{Ada | Project | Edit}, edit @code{main} and
+@code{main}, and click @samp{[save]}
+
+@item
+Invoke @samp{Ada | Project | Load}, and load a project file that specifies @code{main}
+
+@end enumerate
+
+@node Compiling Examples, Moving Through Ada Code, Project files, Top
+@chapter Compiling Examples
+
+We present several small projects, and walk thru the process of
+compiling, linking, and running them.
+
+The first example illustrates more Ada mode features than the others;
+you should work thru that example before doing the others.
+
+All of these examples assume you are using GNAT.
+
+The source for these examples is available on the Emacs Ada mode
+website mentioned in @xref{Installation}.
+
+@menu
+* No project files::            Just menus
+* Set compiler options::        A basic Ada mode project file
+* Set source search path::      Source in multiple directories
+* Use GNAT project file::
+* Use multiple GNAT project files::
+@end menu
+
+@node No project files, Set compiler options, Compiling Examples, Compiling Examples
+@section No project files
+This example uses no project files.
+
+First, create a directory @file{Example_1}, containing:
+
+@file{hello.adb}:
+
+@example
+with Ada.Text_IO;
+procedure Hello
+is begin
+   Put_Line("Hello from hello.adb");
+end Hello;
+@end example
+
+Yes, this is missing ``use Ada.Text_IO;'' - we want to demonstrate
+compiler error handling.
+
+@file{hello_2.adb}:
+
+@example
+with Hello_Pkg;
+procedure Hello_2
+is begin
+   Hello_Pkg.Say_Hello;
+end Hello_2;
+@end example
+
+This file has no errors.
+
+@file{hello_pkg.ads}:
+
+@example
+package Hello_Pkg is
+   procedure Say_Hello;
+end Hello_Pkg;
+@end example
+
+This file has no errors.
+
+@file{hello_pkg.adb}:
+
+@example
+with Ada.Text_IO;
+package Hello_Pkg is
+   procedure Say_Hello
+   is begin
+      Ada.Text_IO.Put_Line ("Hello from hello_pkg.adb");
+   end Say_Hello;
+end Hello_Pkg;
+@end example
+
+Yes, this is missing the keyword @code{body}; another compiler error
+example. However, note that the indentation engine parser accepts this
+code with no errors, making it easier to indent slightly illegal Ada
+code.
+
+In buffer @file{hello.adb}, first enable the @code{ada-build} minor
+mode: invoke @key{M-x ada-build}.
+@c FIXME: enable ada-build by default?
+Then invoke the menu entry @samp{Ada | Check file}. You should get a
+@code{*compilation*} buffer containing something like (the directory
+paths will be different):
+
+@example
+-*- mode: compilation; default-directory: "c:/Projects/org.emacs.ada-mode.stephe-1/test/Example_1/" -*-
+Compilation started at Fri Oct 18 04:23:54
+
+gnatmake -u -c -gnatc  c:/Projects/org.emacs.ada-mode.stephe-1/test/Example_1/hello.adb -cargs
+gcc -c -Ic:/Projects/org.emacs.ada-mode.stephe-1/test/Example_1/ -gnatc -I- c:/Projects/org.emacs.ada-mode.stephe-1/test/Example_1/hello.adb
+hello.adb:4:04: "Put_Line" is not visible
+hello.adb:4:04: non-visible declaration at a-textio.ads:263
+hello.adb:4:04: non-visible declaration at a-textio.ads:259
+gnatmake: "c:/Projects/org.emacs.ada-mode.stephe-1/test/Example_1/hello.adb" compilation error
+
+Compilation exited abnormally with code 4 at Fri Oct 18 04:23:54
+@end example
+
+The lines with actual errors (starting with @file{hello.adb}) are
+highlighted, with the file name in red.
+
+Now invoke @samp{Ada | Next compilation error}.  Or you can click the
+middle mouse button on the first error line,
+@c FIXME: not yet
+or use the key binding shown on the menu.  The compilation buffer
+scrolls to put the first error on the top line, and point is put at
+the place of the error in the @file{hello.adb} buffer.
+
+To fix the error, invoke @samp{Ada | Fix compilation error}; this adds
+``Ada.Text_Io.'' to the line:
+
+@example
+    Ada.Text_Io.Put_Line ("hello from hello.adb");
+@end example
+
+@c FIXME: capitalize IO?
+
+Now invoke @samp{Ada | Show main}; this displays @samp{Ada mode main: hello}.
+
+Now (in buffer @file{hello.adb}), invoke @samp{Ada | Build}. You are
+prompted to save the file (if you haven't already). Then the
+compilation buffer is displayed again, containing:
+
+@example
+-*- mode: compilation; default-directory: "c:/Projects/org.emacs.ada-mode.stephe-1/test/Example_1/" -*-
+Compilation started at Fri Oct 18 20:39:33
+
+gnatmake -o hello hello  -cargs  -bargs  -largs
+gcc -c hello.adb
+gnatbind -x hello.ali
+gnatlink hello.ali -o hello.exe
+
+Compilation finished at Fri Oct 18 20:39:34
+@end example
+
+The compilation has succeeded without errors; @file{hello.exe} now
+exists in the same directory as @file{hello.adb}.
+
+Now invoke @samp{Ada | Run}. The @file{*compilation*} buffer is displayed,
+containing
+
+@example
+-*- mode: compilation; default-directory: "c:/Projects/org.emacs.ada-mode.stephe-1/test/Example_1/" -*-
+Compilation started at Fri Oct 18 20:41:53
+
+./hello
+Hello from hello.adb
+
+Compilation finished at Fri Oct 18 20:41:53
+@end example
+
+That completes the first part of this example.
+
+Now we will compile a multi-file project. Open the file
+@file{hello_2.adb}, invoke @samp{M-x ada-build}, and invoke @samp{Ada
+| Set main and Build}. This finds an error in @file{hello_pkg.adb}:
+
+@example
+hello_pkg.adb:2:08: keyword "body" expected here [see file name]
+@end example
+
+This demonstrates that gnatmake finds the files needed by the main
+program. However, it cannot find files in a different directory,
+unless you use an Emacs Ada mode project file or a GNAT project file
+to specify the other directories; @xref{Set source search path},
+@ref{Use GNAT project file}.
+
+Invoke @samp{Ada | Show main}; this displays @file{Ada mode main: hello_2}.
+
+Move to the error with @kbd{C-x `}, and fix the error by adding @code{body}:
+
+@example
+package body Hello_Pkg is
+@end example
+
+Now, while still in @file{hello_pkg.adb}, invoke @samp{Ada | Build}.
+gnatmake successfully builds @file{hello_2}. This demonstrates that
+Emacs has remembered the main file, in the project variable
+@code{main}, and used it for the Build command.
+
+Finally, again while in @file{hello_pkg.adb}, invoke @samp{Ada | Run}.
+The @code{*compilation*} buffer displays @code{Hello from hello_pkg.adb}.
+
+One final point. If you switch back to buffer @file{hello.adb}, and
+invoke @samp{Ada | Run}, @file{hello_2.exe} will be run. That is
+because @code{main} is still set to @code{hello_2}, as you can
+see when you invoke @samp{Ada | Show main}.
+
+There are two ways to change @code{main}:
+
+@enumerate
+@item
+Invoke @samp{Ada | Set main and Build}, which sets @code{main} to
+the current file.
+
+@item
+Invoke @samp{Ada | Set Project ...}, and select a project file that
+specifies @code{main}.
+
+@end enumerate
+
+@node Set compiler options, Set source search path, No project files, Compiling Examples
+@section Set compiler options
+
+This example illustrates using an Emacs Ada mode project file to set a
+compiler option.
+
+If you have files from @file{Example_1} open in Emacs, you should
+close them so you don't get confused. Use menu @samp{File | Close
+(current buffer)}.
+
+In directory @file{Example_2}, create these files:
+
+@file{hello.adb}:
+
+@example
+with Ada.Text_IO;
+procedure Hello
+is begin
+   Put_Line("Hello from hello.adb");
+end Hello;
+@end example
+
+This is the same as @file{hello.adb} from @file{Example_1}. It has two
+errors; missing ``use Ada.Text_IO;'', and no space between
+@code{Put_Line} and its argument list.
+
+@file{hello.adp}:
+
+@example
+comp_opt=-gnatyt
+@end example
+
+This tells the GNAT compiler to check for token spacing; in
+particular, there must be a space preceding a parenthesis.
+
+In buffer @file{hello.adb}, invoke @samp{Ada | Project | Load...}, and
+select @file{Example_2/hello.adp}.
+
+Then, again in buffer @file{hello.adb}, invoke @samp{Ada | Set main and
+Build}. You should get a @code{*compilation*} buffer containing
+something like (the directory paths will be different):
+
+@example
+cd c:/Examples/Example_2/
+gnatmake -o hello hello -g -cargs -gnatyt  -bargs  -largs
+gcc -c -g -gnatyt hello.adb
+hello.adb:4:04: "Put_Line" is not visible
+hello.adb:4:04: non-visible declaration at a-textio.ads:264
+hello.adb:4:04: non-visible declaration at a-textio.ads:260
+hello.adb:4:12: (style) space required
+gnatmake: "hello.adb" compilation error
+@end example
+
+Compare this to the compiler output in @ref{No project files}; the
+gnatmake option @code{-cargs -gnatq -gnatQ} has been replaced by
+@code{-cargs -gnaty}, and an additional error is reported in
+@file{hello.adb} on line 4. This shows that @file{hello.adp} is being
+used to set the compiler options.
+
+Fixing the error, linking and running the code proceed as in @ref{No
+project files}.
+
+@node Set source search path, Use GNAT project file, Set compiler options, Compiling Examples
+@section Set source search path
+
+In this example, we show how to deal with files in more than one
+directory. We start with the same code as in @ref{No project files};
+create those files (with the errors present)
+
+Create the directory @file{Example_3}, containing:
+
+@file{hello_pkg.ads}:
+
+@example
+package Hello_Pkg is
+   procedure Say_Hello;
+end Hello_Pkg;
+@end example
+
+@file{hello_pkg.adb}:
+
+@example
+with Ada.Text_IO;
+package Hello_Pkg is
+   procedure Say_Hello
+   is begin
+      Ada.Text_IO.Put_Line ("Hello from hello_pkg.adb");
+   end Say_Hello;
+end Hello_Pkg;
+@end example
+
+These are the same files from example 1; @file{hello_pkg.adb} has an
+error on line 2.
+
+In addition, create a directory @file{Example_3/Other}, containing these files:
+
+@file{Other/hello_3.adb}:
+
+@example
+with Hello_Pkg;
+with Ada.Text_IO; use Ada.Text_IO;
+procedure Hello_3
+is begin
+   Hello_Pkg.Say_Hello;
+   Put_Line ("From hello_3");
+end Hello_3;
+@end example
+
+There are no errors in this file.
+
+@file{Other/other.adp}:
+
+@example
+src_dir=..
+comp_opt=-I..
+@end example
+
+Note that there must be no trailing spaces.
+
+In buffer @file{hello_3.adb}, invoke @samp{Ada | Project | Load...}, and
+select @file{Example_3/Other/other.adp}.
+
+Then, again in @file{hello_3.adb}, invoke @samp{Ada | Set main and
+Build}. You should get a @code{*compilation*} buffer containing
+something like (the directory paths will be different):
+
+@example
+cd c:/Examples/Example_3/Other/
+gnatmake -o hello_3 hello_3 -g -cargs -I.. -bargs  -largs
+gcc -c -g -I.. hello_3.adb
+gcc -c -I./ -g -I.. -I- C:\Examples\Example_3\hello_pkg.adb
+hello_pkg.adb:2:08: keyword "body" expected here [see file name]
+gnatmake: "C:\Examples\Example_3\hello_pkg.adb" compilation error
+@end example
+
+Compare the @code{-cargs} option to the compiler output in @ref{Set
+compiler options}; this shows that @file{other.adp} is being used to
+set the compiler options.
+
+Move to the error with @kbd{C-x `}. Ada mode searches the list of
+directories given by @code{src_dir} for the file mentioned in the
+compiler error message.
+
+Fixing the error, linking and running the code proceed as in @ref{No
+project files}.
+
+@node Use GNAT project file, Use multiple GNAT project files, Set source search path, Compiling Examples
+@section Use GNAT project file
+
+In this example, we show how to use a GNAT project file, with no Ada
+mode project file.
+
+Create the directory @file{Example_4}, containing:
+
+@file{hello_pkg.ads}:
+
+@example
+package Hello_Pkg is
+   procedure Say_Hello;
+end Hello_Pkg;
+@end example
+
+@file{hello_pkg.adb}:
+
+@example
+with Ada.Text_IO;
+package Hello_Pkg is
+   procedure Say_Hello
+   is begin
+      Ada.Text_IO.Put_Line ("Hello from hello_pkg.adb");
+   end Say_Hello;
+end Hello_Pkg;
+@end example
+
+These are the same files from example 1; @file{hello_pkg.adb} has an
+error on line 2.
+
+In addition, create a directory @file{Example_4/Gnat_Project},
+containing these files:
+
+@file{Gnat_Project/hello_4.adb}:
+
+@example
+with Hello_Pkg;
+with Ada.Text_IO; use Ada.Text_IO;
+procedure Hello_4
+is begin
+   Hello_Pkg.Say_Hello;
+   Put_Line ("From hello_4");
+end Hello_4;
+@end example
+
+There are no errors in this file.
+
+@file{Gnat_Project/hello_4.gpr}:
+
+@example
+Project Hello_4 is
+   for Source_Dirs use (".", "..");
+end Hello_4;
+@end example
+
+In buffer @file{hello_4.adb}, invoke @samp{Ada | Project | Load...}, and
+select @file{Example_4/Gnat_Project/hello_4.gpr}.
+
+Then, again in @file{hello_4.adb}, invoke @samp{Ada | Set main and
+Build}. You should get a @code{*compilation*} buffer containing
+something like (the directory paths will be different):
+
+@example
+cd c:/Examples/Example_4/Gnat_Project/
+gnatmake -o hello_4 hello_4 -Phello_4.gpr -cargs -gnatq -gnatQ -bargs  -largs
+gcc -c -g -gnatyt -gnatq -gnatQ -I- -gnatA c:\Examples\Example_4\Gnat_Project\hello_4.adb
+gcc -c -g -gnatyt -gnatq -gnatQ -I- -gnatA c:\Examples\Example_4\hello_pkg.adb
+hello_pkg.adb:2:08: keyword "body" expected here [see file name]
+gnatmake: "c:\examples\example_4\hello_pkg.adb" compilation error
+@end example
+
+Compare the @code{gcc} options to the compiler output in @ref{Set
+compiler options}; this shows that @file{hello_4.gpr} is being used to
+set the compiler options.
+
+Fixing the error, linking and running the code proceed as in @ref{No
+project files}.
+
+@node Use multiple GNAT project files,  , Use GNAT project file, Compiling Examples
+@section Use multiple GNAT project files
+
+In this example, we show how to use multiple GNAT project files,
+specifying the GNAT project search path in an Ada mode project file.
+
+Create the directory @file{Example_4} as specified in @ref{Use GNAT
+project file}.
+
+Create the directory @file{Example_5}, containing:
+
+@file{hello_5.adb}:
+
+@example
+with Hello_Pkg;
+with Ada.Text_IO; use Ada.Text_IO;
+procedure Hello_5
+is begin
+   Hello_Pkg.Say_Hello;
+   Put_Line ("From hello_5");
+end Hello_5;
+@end example
+
+There are no errors in this file.
+
+@file{hello_5.adp}:
+
+@example
+ada_project_path=../Example_4/Gnat_Project
+gpr_file=hello_5.gpr
+@end example
+
+@file{hello_5.gpr}:
+
+@example
+with "hello_4";
+Project Hello_5 is
+   for Source_Dirs use (".");
+   package Compiler is
+      for Default_Switches ("Ada") use ("-g", "-gnatyt");
+   end Compiler;
+end Hello_5;
+@end example
+
+In buffer @file{hello_5.adb}, invoke @samp{Ada | Project | Load...}, and
+select @file{Example_5/hello_5.adp}.
+
+Then, again in @file{hello_5.adb}, invoke @samp{Ada | Set main and
+Build}. You should get a @code{*compilation*} buffer containing
+something like (the directory paths will be different):
+
+@example
+cd c:/Examples/Example_5/
+gnatmake -o hello_5 hello_5 -Phello_5.gpr -g -cargs -gnatq -gnatQ -bargs  -largs
+gcc -c -g -gnatyt -g -gnatq -gnatQ -I- -gnatA c:\Examples\Example_5\hello_5.adb
+gcc -c -g -gnatyt -g -gnatq -gnatQ -I- -gnatA c:\Examples\Example_4\hello_pkg.adb
+hello_pkg.adb:2:08: keyword "body" expected here [see file name]
+gnatmake: "c:\examples\example_4\hello_pkg.adb" compilation error
+@end example
+
+Now type @kbd{C-x `}. @file{Example_4/hello_pkg.adb} is shown,
+demonstrating that @file{hello_5.gpr} and @file{hello_4.gpr} are being
+used to set the compilation search path.
 
 @menu
 * Compiler errors::
@@ -249,7 +842,9 @@ programs, so it has no direct support for those operations.
 @node Compiler errors,  , Compiling Executing, Compiling Executing
 @section Compiler errors
 
-Running @code{make} places compilation errors in a separate buffer named
+The @code{Check file}, @code{Compile file}, and @code{Build} commands,
+or running @code{make},
+all place compilation errors in a separate buffer named
 @code{*compilation*}.
 
 Each line in this buffer will become active: you can simply click on

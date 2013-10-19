@@ -31,7 +31,7 @@
   :group 'ada)
 
 (defcustom ada-indent 3
-  "*Size of Ada default indentation, when no other indentation is used.
+  "Size of Ada default indentation, when no other indentation is used.
 
 Example :
 procedure Foo is
@@ -54,7 +54,7 @@ begin
 	(message "WARNING: setting `ada-indent-broken' to obsolete `ada-broken-indent'")
 	ada-broken-indent)
     2)
-  "*Indentation for the continuation of a broken line.
+  "Indentation for the continuation of a broken line.
 
 Example :
    My_Var : My_Type :=
@@ -88,7 +88,7 @@ Otherwise, they are indented with previous comments or code."
   ;; incompatible with the default gnat indentation style check, which
   ;; wants all indentations to be a multiple of 3 (with some
   ;; exceptions). So we default this to -3.
-  "*Indentation for a loop, block, or statement label, relative to the item it labels.
+  "Indentation for a loop, block, or statement label, relative to the item it labels.
 
 Example :
    Label_1 :
@@ -102,7 +102,7 @@ Example :
 (make-variable-buffer-local 'ada-indent-label)
 
 (defcustom ada-indent-record-rel-type 3
-  "*Indentation for 'record' relative to 'type' or 'use'.
+  "Indentation for 'record' relative to 'type' or 'use'.
 
 An example is:
    type A is
@@ -113,7 +113,7 @@ An example is:
 (make-variable-buffer-local 'ada-indent-record-rel-type)
 
 (defcustom ada-indent-renames 2
-  "*Indentation for 'renames' relative to the matching subprogram keyword.
+  "Indentation for 'renames' relative to the matching subprogram keyword.
 
 For 'renames' of non-subprograms the indentation is
 `ada-indent-broken' relative to the line containing the matching
@@ -143,7 +143,7 @@ Examples:
 (make-variable-buffer-local 'ada-indent-renames)
 
 (defcustom ada-indent-return 0
-  "*Indentation for 'return' relative to the matching 'function' keyword.
+  "Indentation for 'return' relative to the matching 'function' keyword.
 
 If the function has parameters, then if `ada-indent-return' is
 zero or less the indentation is abs `ada-indent-return' relative
@@ -173,7 +173,7 @@ An example is:
 	(message "WARNING: setting `ada-indent-use' to obsolete `ada-use-indent'")
 	ada-use-indent)
       ada-indent-broken)
-  "*Indentation for the lines in a 'use' statement.
+  "Indentation for the lines in a 'use' statement.
 
 An example is:
    use Ada.Text_IO,
@@ -195,7 +195,7 @@ An example is:
 	(message "WARNING: setting `ada-indent-when' to obsolete `ada-when-indent'")
 	ada-when-indent)
       3)
-  "*Indentation for 'when' relative to 'exception', 'case', 'or' in select.
+  "Indentation for 'when' relative to 'exception', 'case', 'or' in select.
 
 An example is:
    case A is
@@ -217,7 +217,7 @@ An example is:
 	(message "WARNING: setting `ada-indent-with' to obsolete `ada-with-indent'")
 	ada-with-indent)
       ada-indent-broken)
-  "*Indentation for the lines in a 'with' context clause.
+  "Indentation for the lines in a 'with' context clause.
 
 An example is:
    with Ada.Text_IO,

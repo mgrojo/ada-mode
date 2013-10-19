@@ -22,6 +22,8 @@
 ^gpr-mode\.info$
 ^run_sjw\.text$
 ^test/.*\.ali$
+^test/Example_1/.*\.exe$
+^test/Example_1/.*\.o$
 ^test/debug\.adb$
 ^test/gnatinspect\.db$
 ^test/gpr/debug\.gpr$
