@@ -1,4 +1,4 @@
-General notes on implementing the Emacs Ada mode indentation engine using the wisi parser
+General notes on Emacs Ada mode
 
 run wisi test from emacs -Q:
 (progn
@@ -90,13 +90,11 @@ need std include files in search list
 build/wisi/Makefile
 
 add compile functions, prj vars
-    some people don't use project files
-        provide option to use default proj settings
-
     compile/build/run keys
         for Emacs & Ada novices
         review 4.01, see what could be simplified
         /Projects/emacs_stephe.main/emacs_stephe_site_lisp/ada-mode.texi
+        /Projects/emacs_stephe.main/emacs_stephe_site_lisp/ada-mode.el
         ada-mode.texi
 
         put in ada-build.el, as extension
@@ -106,20 +104,13 @@ add compile functions, prj vars
             (setq ada-prj-current-file nil
                   ada-prj-alist nil)
 
-            test/Example_1/hello.adb
-                done to "Ada | Show main"
+            test/Example_1/ done
+
+            test/Example_2/ done
 
         test ADA_INCLUDE_PATH, ADA_OBJECT_PATH from user env, prj file
             see 4.01 ada-xref.el ada-set-environment
             that's gnat-specific; put in default prj values
-
-        allow defining arbitrary user project vars?
-            can't be in extension; might be used by some other extension
-            comp_opt - 4.01: default set from lisp, used in default check_cmd, comp_cmd, make_cmd
-                no need for lisp default?
-            as list?
-
-        process el_file before create default project, to allow setting lisp vars?
 
     manuel Gomez using comp_cmd, make_cmd, src_dir, obj_dir; not .gpr files
         reference project variables in project var values

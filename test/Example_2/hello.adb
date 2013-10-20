@@ -1,5 +1,5 @@
 with Ada.Text_IO;
 procedure Hello
 is begin
-   Put_Line("Hello from hello.adb");
+   Ada.Text_Io.Put_Line ("Hello from hello.adb");
 end Hello;

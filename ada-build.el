@@ -135,24 +135,26 @@ including the directory and extension."
 
   (substitute-in-file-name cmd-string))
 
+(defun ada-build-default-prj (project)
+  "Add to PROJECT the default properties list for Ada project variables used by ada-build."
+  (append
+   project
+   (list
+    'check_cmd       ada-build-check-cmd
+    'comp_cmd        ada-build-comp-cmd
+    'main            (file-name-nondirectory
+		      (file-name-sans-extension (buffer-file-name)))
+    'make_cmd        ada-build-make-cmd
+    'run_cmd         ada-build-run-cmd
+    )))
+
 (defun ada-build-select-default-prj ()
   "Create and select a new default project, with current buffer as main program."
   (let ((prj-file (expand-file-name "default.adp"))
 	project)
 
     (when (null (assoc prj-file ada-prj-alist))
-      (setq
-       project
-       (append
-	(ada-prj-default)
-	(list
-	 'check_cmd       ada-build-check-cmd
-	 'comp_cmd        ada-build-comp-cmd
-	 'main            (file-name-nondirectory
-			   (file-name-sans-extension (buffer-file-name)))
-	 'make_cmd        ada-build-make-cmd
-	 'run_cmd         ada-build-run-cmd
-	 )))
+      (setq project (ada-prj-default)) ;; ada-build-default-prj included via ada-prj-default-compiler-alist
 
       (add-to-list 'ada-prj-alist (cons prj-file project))
       )
@@ -160,46 +162,84 @@ including the directory and extension."
     (ada-select-prj-file prj-file)
   ))
 
+(defun ada-build-find-select-prj-file ()
+  "Search for a project file in the current directory, parse and select it.
+The file must have the same basename as the project variable
+'main', and extension from `ada-prj-file-extensions'.
+Returns non-nil if a file is selected, nil otherwise."
+  (let ((filename
+	 (file-name-completion (file-name-base (ada-prj-get 'main))
+			       ""
+			       (lambda (name) (member (file-name-extension name) ada-prj-file-extensions))))
+	)
+    (when filename
+      (ada-parse-prj-file filename)
+      (ada-select-prj-file filename))
+    ))
+
+(defun ada-build-prompt-select-prj-file ()
+  "Search for a project file, parse and select it.
+The file must have an extension from `ada-prj-file-extensions'.
+Returns non-nil if a file is selected, nil otherwise."
+  (interactive)
+  (let (filename)
+    (condition-case err
+	(setq filename
+	      (read-file-name
+	       "Project file: " ; prompt
+	       nil ; dir
+	       "" ; default-filename
+	       t   ; mustmatch
+	       nil; initial
+	       (lambda (name)
+		 (member (file-name-extension name) ada-prj-file-extensions))))
+      (err
+       (setq filename nil))
+      )
+
+    (when (not (equal "" filename))
+      (ada-parse-prj-file filename)
+      (ada-select-prj-file filename)
+      t)
+    ))
+
 (defun ada-build-require-project-file ()
   "Ensure that a project file is selected.
 Action when no project file is currently selected is determined
 by `ada-build-prompt-prj':
 
-default - just use a default project; no gpr file, current
-directory only, current file as main.
+default - Search for a project file in the current directory with
+the same name as the main file. If not found, use a default
+project; no gpr file, current directory only, current file as
+main.
 
-prompt-default - prompt for a project file; empty result gives
-the default project.
+default-prompt - Search for a project file in the current
+directory with the same name as the main file. If not found,
+prompt for a project file; error result does not change current
+project.
 
-prompt-exist - prompt for a project file; one must be
-selected (or error)
+prompt - Prompt for a project file; error result does not
+change current project.
 
-error - throw an error (no prompt, no default project)."
+error - Throw an error (no prompt, no default project)."
   (unless ada-prj-current-file
     (cl-ecase ada-build-prompt-prj
       (default
-	(ada-build-select-default-prj)))
-    ))
+	(or (ada-build-find-select-prj-file)
+	    (ada-build-select-default-prj)))
 
-;;;; user keys, menu, functions
+      (default-prompt
+	(or (ada-build-find-select-prj-file)
+	    (ada-build-prompt-select-prj)))
 
-(defvar ada-build-map
-  (let ((map (make-sparse-keymap)))
-    ;; C-c <letter> are reserved for users
-    (define-key map "\C-c\C-v"  'ada-build-check)
+      (prompt
+       (ada-build-prompt-select-prj))
 
-    map)
-  "Local keymap used for Ada build minor mode.")
+      (error
+       (error "no project file selected"))
+      )))
 
-(defvar ada-build-menu (make-sparse-keymap "Ada Build"))
-(easy-menu-define ada-build-menu ada-build-map "Menu keymap for Ada Build minor mode"
-  '("Build"
-    ["Check syntax"               ada-build-check       t]
-    ["Show main"                  ada-build-show-main   t]
-    ["Build"                      ada-build-make        t]
-    ["Set main and Build"         ada-build-set-make    t]
-    ["Run"                        ada-build-run         t]
-    ))
+;;;; user functions
 
 (defun ada-build-run-cmd (prj-field confirm prompt)
   "Run the command in the PRJ-FIELD project variable.
@@ -252,16 +292,8 @@ If CONFIRM is non-nil, prompt for user confirmation of the command."
   (interactive)
   (message "Ada mode main: %s"(ada-prj-get 'main)))
 
-;;;; setup
-
-(define-minor-mode ada-build
-  "Minor mode for compiling and running Ada projects.
-Enable mode if ARG is positive"
-  :initial-value t
-  :lighter       " build"   ;; mode line
-
-  ;; just enable the menu and keymap
-  )
+;;; setup
+(add-to-list 'ada-prj-default-list 'ada-build-default-prj)
 
 (provide 'ada-build)
 ;; end of file

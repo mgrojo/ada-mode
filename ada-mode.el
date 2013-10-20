@@ -258,6 +258,13 @@ If nil, no contextual menu is available."
   :type 'string
   :group 'ada)
 
+(defcustom ada-prj-file-extensions '("adp" "prj")
+  "List of Emacs Ada mode project file extensions.
+Used when searching for a project file.
+Any file with one of these extensions will be parsed by `ada-prj-parse-file-1'."
+  :type 'list
+  :group 'ada)
+
 ;;;;; end of user variables
 
 (defconst ada-symbol-end
@@ -289,16 +296,19 @@ Values defined by cross reference packages.")
     (define-key map "\C-c\M-`" 	 'ada-fix-compiler-error)
     (define-key map "\C-c\C-a" 	 'ada-align)
     (define-key map "\C-c\C-b" 	 'ada-make-subprogram-body)
-    (define-key map "\C-c\C-c"   'compile)
+    (define-key map "\C-c\C-c"   'ada-build-make)
     (define-key map "\C-c\C-d" 	 'ada-goto-declaration)
     (define-key map "\C-c\M-d" 	 'ada-show-declaration-parents)
     (define-key map "\C-c\C-e" 	 '(lambda () (interactive) (funcall ada-expand)))
     (define-key map "\C-c\C-i" 	 'ada-indent-statement)
+    (define-key map "\C-c\C-m"   'ada-build-set-make)
     (define-key map "\C-c\C-n" 	 'ada-next-statement-keyword)
     (define-key map "\C-c\C-o" 	 'ada-find-other-file)
     (define-key map "\C-c\M-o" 	 'ada-find-other-file-noset)
     (define-key map "\C-c\C-p" 	 'ada-prev-statement-keyword)
     (define-key map "\C-c\C-r" 	 'ada-show-references)
+    (define-key map "\C-c\M-r" 	 'ada-build-run)
+    (define-key map "\C-c\C-v"   'ada-build-check)
     (define-key map "\C-c\C-w" 	 'ada-case-adjust-at-point)
     (define-key map "\C-c\C-x"   'ada-show-overriding)
     (define-key map "\C-c\C-y" 	 'ada-case-create-exception)
@@ -314,15 +324,23 @@ Values defined by cross reference packages.")
      ["Ada Reference Manual" (info "arm2012") t]
      ["Key bindings"         describe-bindings t]
      )
-
     ["Customize"                  (customize-group 'ada)    t]
-    ["Set project ..."            ada-set-prj               t]
-    ["------"        nil nil]
-    ["Next compilation error"     next-error                t]
-    ["Show secondary error"       ada-show-secondary-error  t]
-    ["Fix compilation error"      ada-fix-compiler-error    t]
-    ["Show last parse error"      ada-show-parse-error      t]
-    ["------"        nil nil]
+    ("Project files"
+     ["Find and select project ..."   ada-build-prompt-select-prj-file t]
+     ["Select project ..."            ada-prj-select                   t]
+     ["Show project"                  ada-prj-show                     t]
+    )
+    ("Build"
+     ["Next compilation error"     next-error                t]
+     ["Show secondary error"       ada-show-secondary-error  t]
+     ["Fix compilation error"      ada-fix-compiler-error    t]
+     ["Show last parse error"      ada-show-parse-error      t]
+     ["Check syntax"               ada-build-check       t]
+     ["Show main"                  ada-build-show-main   t]
+     ["Build"                      ada-build-make        t]
+     ["Set main and Build"         ada-build-set-make    t]
+     ["Run"                        ada-build-run         t]
+     )
     ["Other file"                 ada-find-other-file       t]
     ["Other file don't find decl" ada-find-other-file-noset t]
     ["Goto declaration/body"      ada-goto-declaration      t]
@@ -341,7 +359,6 @@ Values defined by cross reference packages.")
      ["Fill comment paragraph"         ada-fill-comment-paragraph           t]
      ["Fill comment paragraph justify" (ada-fill-comment-paragraph 'full)   t]
      ["Fill comment paragraph postfix" (ada-fill-comment-paragraph 'full t) t]
-     ["---" nil nil]
      ["Make body for subprogram"    ada-make-subprogram-body     t]
      )
     ("Casing"
@@ -350,8 +367,7 @@ Values defined by cross reference packages.")
      ["Adjust case at point"        ada-case-adjust-at-point  t]
      ["Adjust case region"          ada-case-adjust-region    t]
      ["Adjust case buffer"          ada-case-adjust-buffer    t]
-     )
-    ))
+     )))
 
 (defun ada-indent-newline-indent ()
   "insert a newline, indent the old and new lines."
@@ -1100,29 +1116,63 @@ Optional PLIST defaults to `ada-prj-current-project'."
   (unless ada-prj-current-file
     (error "no Emacs Ada project file specified")))
 
-(defun ada-prj-default ()
-  "Return the default project properties list."
+(defvar ada-prj-default-list nil
+  ;; project file parse
+  "List of functions to add default project variables. Called
+with one argument; the default project properties list. Function
+should add to the properties list and return it.")
 
-  (let ((file (buffer-file-name nil)))
-    (list
-     ;; variable name alphabetical order
-     'ada_compiler    ada-compiler
-     'ada_ref_tool    ada-xref-tool
-     'auto_case       ada-auto-case
-     'case_keyword    ada-case-keyword
-     'case_strict     ada-case-strict
-     'casing          (if (listp ada-case-exception-file)
-			  ada-case-exception-file
-			(list ada-case-exception-file))
-     'path_sep        path-separator;; prj variable so users can override it for their compiler
-     'proc_env        process-environment
-     'src_dir         (list ".")
-     'xref_tool       ada-xref-tool
-     )))
+(defvar ada-prj-default-compiler-alist nil
+  ;; project file parse
+  "Compiler-specific function to set default project variables.
+Indexed by ada-compiler.  Called with one argument; the default
+project properties list. Function should add to the properties
+list and return it.")
+
+(defvar ada-prj-default-xref-alist nil
+  ;; project file parse
+  "Xref-tool-specific function to set default project variables.
+Indexed by ada-xref-tool.  Called with one argument; the default
+project properties list. Function should add to the properties
+list and return it.")
+
+(defun ada-prj-default ()
+  "Return the default project properties list.
+Include properties set via `ada-prj-default-compiler-alist',
+`ada-prj-default-xref-alist'."
+
+  (let (project func)
+    (setq
+     project
+     (list
+      ;; variable name alphabetical order
+      'ada_compiler    ada-compiler
+      'ada_ref_tool    ada-xref-tool
+      'auto_case       ada-auto-case
+      'case_keyword    ada-case-keyword
+      'case_strict     ada-case-strict
+      'casing          (if (listp ada-case-exception-file)
+			   ada-case-exception-file
+			 (list ada-case-exception-file))
+      'path_sep        path-separator;; prj variable so users can override it for their compiler
+      'proc_env        process-environment
+      'src_dir         (list ".")
+      'xref_tool       ada-xref-tool
+      ))
+
+    (cl-dolist (func ada-prj-default-list)
+      (setq project (funcall func project)))
+
+    (setq func (cdr (assq ada-compiler ada-prj-default-compiler-alist)))
+    (when func (setq project (funcall func project)))
+    (setq func (cdr (assq ada-xref-tool ada-prj-default-xref-alist)))
+    (when func (setq project (funcall func project)))
+    project))
 
 (defvar ada-prj-parser-alist
-  (list
-   (cons "adp" 'ada-prj-parse-file-1))
+  (mapcar
+   (lambda (ext) (cons ext 'ada-prj-parse-file-1))
+   ada-prj-file-extensions)
   ;; project file parse
   "Alist of parsers for project files.
 Default provides the minimal Ada mode parser; compiler support
@@ -1155,6 +1205,12 @@ list. Parser must modify or add to the property list and return it.")
 
     ;; return t for interactive use
     t))
+
+(defun ada-prj-reparse-select-current ()
+  "Reparse the current project file, re-select it.
+Useful when the project file has been edited."
+  (ada-parse-prj-file ada-prj-current-file)
+  (ada-select-prj-file ada-prj-current-file))
 
 (defvar ada-prj-parse-one-compiler nil
   ;; project file parse
@@ -1257,8 +1313,8 @@ Return new value of PROJECT."
 
 		(setq project tmp-prj)
 
-	      ;; any other field in the file is set as an environment
-	      ;; variable or ignored
+	      ;; Any other field in the file is set as an environment
+	      ;; variable or a project file.
 	      (if (= ?$ (elt (match-string 1) 0))
 		  ;; process env var
 		  (let ((process-environment (plist-get project 'proc_env)))
@@ -1266,7 +1322,9 @@ Return new value of PROJECT."
 			    (expand-file-name (substitute-in-file-name (match-string 2))))
 		    (setq project
 			  (plist-put project 'proc_env process-environment)))
-		;; not recognized; ignore
+
+		;; not recognized; assume it is a user-defined variable like "comp_opt"
+		(setq project (plist-put project (intern (match-string 1)) (match-string 2)))
 	      )))
 	   ))
 
@@ -1348,11 +1406,16 @@ Indexed by project variable xref_tool.")
   ;; return 't', for decent display in message buffer when called interactively
   t)
 
-(defun ada-set-prj ()
+(defun ada-prj-select ()
   "Select the current project file from the list of currently available project files."
   (interactive)
   (ada-select-prj-file (completing-read "project: " ada-prj-alist nil t))
   )
+
+(defun ada-prj-show ()
+  "Show current Emacs Ada mode project file."
+  (interactive)
+  (message "current Emacs Ada mode project file: %s" ada-prj-current-file))
 
 ;;;; syntax properties
 
@@ -2452,6 +2515,7 @@ The paragraph is indented on the first line."
 
 (put 'ada-mode 'custom-mode-group 'ada)
 
+(require 'ada-build)
 (provide 'ada-mode)
 
 ;;;;; Global initializations

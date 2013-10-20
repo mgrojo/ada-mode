@@ -425,9 +425,9 @@ code.
 In buffer @file{hello.adb}, first enable the @code{ada-build} minor
 mode: invoke @key{M-x ada-build}.
 @c FIXME: enable ada-build by default?
-Then invoke the menu entry @samp{Ada | Check file}. You should get a
-@code{*compilation*} buffer containing something like (the directory
-paths will be different):
+Then invoke the menu entry @samp{Ada | Build | Check syntax}. You
+should get a @code{*compilation*} buffer containing something like
+(the directory paths will be different):
 
 @example
 -*- mode: compilation; default-directory: "c:/Projects/org.emacs.ada-mode.stephe-1/test/Example_1/" -*-
@@ -446,15 +446,15 @@ Compilation exited abnormally with code 4 at Fri Oct 18 04:23:54
 The lines with actual errors (starting with @file{hello.adb}) are
 highlighted, with the file name in red.
 
-Now invoke @samp{Ada | Next compilation error}.  Or you can click the
-middle mouse button on the first error line,
+Now invoke @samp{Ada | Build | Next compilation error}.  Or you can
+click the middle mouse button on the first error line,
 @c FIXME: not yet
 or use the key binding shown on the menu.  The compilation buffer
 scrolls to put the first error on the top line, and point is put at
 the place of the error in the @file{hello.adb} buffer.
 
-To fix the error, invoke @samp{Ada | Fix compilation error}; this adds
-``Ada.Text_Io.'' to the line:
+To fix the error, invoke @samp{Ada | Build | Fix compilation error};
+this adds ``Ada.Text_Io.'' to the line:
 
 @example
     Ada.Text_Io.Put_Line ("hello from hello.adb");
@@ -462,9 +462,9 @@ To fix the error, invoke @samp{Ada | Fix compilation error}; this adds
 
 @c FIXME: capitalize IO?
 
-Now invoke @samp{Ada | Show main}; this displays @samp{Ada mode main: hello}.
+Now invoke @samp{Ada | Build | Show main}; this displays @samp{Ada mode main: hello}.
 
-Now (in buffer @file{hello.adb}), invoke @samp{Ada | Build}. You are
+Now (in buffer @file{hello.adb}), invoke @samp{Ada | Build | Build}. You are
 prompted to save the file (if you haven't already). Then the
 compilation buffer is displayed again, containing:
 
@@ -483,8 +483,8 @@ Compilation finished at Fri Oct 18 20:39:34
 The compilation has succeeded without errors; @file{hello.exe} now
 exists in the same directory as @file{hello.adb}.
 
-Now invoke @samp{Ada | Run}. The @file{*compilation*} buffer is displayed,
-containing
+Now invoke @samp{Ada | Build | Run}. The @file{*compilation*} buffer
+is displayed, containing
 
 @example
 -*- mode: compilation; default-directory: "c:/Projects/org.emacs.ada-mode.stephe-1/test/Example_1/" -*-
@@ -500,7 +500,8 @@ That completes the first part of this example.
 
 Now we will compile a multi-file project. Open the file
 @file{hello_2.adb}, invoke @samp{M-x ada-build}, and invoke @samp{Ada
-| Set main and Build}. This finds an error in @file{hello_pkg.adb}:
+| Build | Set main and Build}. This finds an error in
+@file{hello_pkg.adb}:
 
 @example
 hello_pkg.adb:2:08: keyword "body" expected here [see file name]
@@ -512,7 +513,8 @@ unless you use an Emacs Ada mode project file or a GNAT project file
 to specify the other directories; @xref{Set source search path},
 @ref{Use GNAT project file}.
 
-Invoke @samp{Ada | Show main}; this displays @file{Ada mode main: hello_2}.
+Invoke @samp{Ada | Build | Show main}; this displays @file{Ada mode
+main: hello_2}.
 
 Move to the error with @kbd{C-x `}, and fix the error by adding @code{body}:
 
@@ -520,28 +522,29 @@ Move to the error with @kbd{C-x `}, and fix the error by adding @code{body}:
 package body Hello_Pkg is
 @end example
 
-Now, while still in @file{hello_pkg.adb}, invoke @samp{Ada | Build}.
-gnatmake successfully builds @file{hello_2}. This demonstrates that
-Emacs has remembered the main file, in the project variable
-@code{main}, and used it for the Build command.
+Now, while still in @file{hello_pkg.adb}, invoke @samp{Ada | Build |
+Build}.  gnatmake successfully builds @file{hello_2}. This
+demonstrates that Emacs has remembered the main file, in the project
+variable @code{main}, and used it for the Build command.
 
-Finally, again while in @file{hello_pkg.adb}, invoke @samp{Ada | Run}.
-The @code{*compilation*} buffer displays @code{Hello from hello_pkg.adb}.
+Finally, again while in @file{hello_pkg.adb}, invoke @samp{Ada | Build
+| Run}.  The @code{*compilation*} buffer displays @code{Hello from
+hello_pkg.adb}.
 
 One final point. If you switch back to buffer @file{hello.adb}, and
-invoke @samp{Ada | Run}, @file{hello_2.exe} will be run. That is
-because @code{main} is still set to @code{hello_2}, as you can
-see when you invoke @samp{Ada | Show main}.
+invoke @samp{Ada | Build | Run}, @file{hello_2.exe} will be run. That
+is because @code{main} is still set to @code{hello_2}, as you can see
+when you invoke @samp{Ada | Build | Show main}.
 
 There are two ways to change @code{main}:
 
 @enumerate
 @item
-Invoke @samp{Ada | Set main and Build}, which sets @code{main} to
+Invoke @samp{Ada | Build | Set main and Build}, which sets @code{main} to
 the current file.
 
 @item
-Invoke @samp{Ada | Set Project ...}, and select a project file that
+Invoke @samp{Ada | Build | Set Project ...}, and select a project file that
 specifies @code{main}.
 
 @end enumerate
@@ -581,12 +584,11 @@ comp_opt=-gnatyt
 This tells the GNAT compiler to check for token spacing; in
 particular, there must be a space preceding a parenthesis.
 
-In buffer @file{hello.adb}, invoke @samp{Ada | Project | Load...}, and
-select @file{Example_2/hello.adp}.
-
-Then, again in buffer @file{hello.adb}, invoke @samp{Ada | Set main and
-Build}. You should get a @code{*compilation*} buffer containing
-something like (the directory paths will be different):
+In buffer @file{hello.adb}, invoke @samp{Ada | Build | Set main and
+Build}. This finds the project file @file{hello.adp}, uses it to set
+the compiler options, and builds the project. You should get a
+@code{*compilation*} buffer containing something like (the directory
+paths will be different):
 
 @example
 cd c:/Examples/Example_2/
@@ -600,10 +602,10 @@ gnatmake: "hello.adb" compilation error
 @end example
 
 Compare this to the compiler output in @ref{No project files}; the
-gnatmake option @code{-cargs -gnatq -gnatQ} has been replaced by
-@code{-cargs -gnaty}, and an additional error is reported in
-@file{hello.adb} on line 4. This shows that @file{hello.adp} is being
-used to set the compiler options.
+gnatmake option @code{-cargs} has been replaced by @code{-cargs
+-gnaty}, and an additional error is reported in @file{hello.adb} on
+line 4. This shows that @file{hello.adp} is being used to set the
+compiler options.
 
 Fixing the error, linking and running the code proceed as in @ref{No
 project files}.

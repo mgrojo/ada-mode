@@ -530,7 +530,6 @@ Prompt user if more than one."
 
 (defun ada-gnat-compile ()
   "Set Ada mode global vars to use 'gnat' for compiling."
-  (set-default 'ada-compiler 'gnat)
   (add-to-list 'ada-select-prj-compiler    '(gnat  . ada-gnat-compile-select-prj))
   (add-to-list 'ada-deselect-prj-compiler  '(gnat  . ada-gnat-compile-deselect-prj))
 
@@ -541,6 +540,8 @@ Prompt user if more than one."
 
 (provide 'ada-gnat-compile)
 (provide 'ada-compiler)
+
+(ada-gnat-compile)
 
 (add-to-list
  'compilation-error-regexp-alist-alist
@@ -556,6 +557,7 @@ Prompt user if more than one."
    ;;   foo.c:2 : `TRUE' undeclared here (not in a function)
    "^\\(\\(.:\\)?[^ :\n]+\\):\\([0-9]+\\)\\s-?:?\\([0-9]+\\)?" 1 3 4))
 
-(unless (default-value ada-compiler) (ada-gnat-compile))
+(unless (default-value ada-compiler)
+    (set-default 'ada-compiler 'gnat))
 
 ;; end of file
