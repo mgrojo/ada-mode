@@ -39,8 +39,6 @@
 ;; compiling and running capabilities in Ada mode 4.01, done in 2013 by
 ;; Stephen Leake <stephen_leake@stephe-leake.org>.
 
-(require 'ada-mode)
-
 ;;;; User customization
 
 (defgroup ada-build nil
@@ -63,14 +61,14 @@
   :safe  'booleanp)
 
 (defcustom ada-build-check-cmd
-  (concat "${cross_prefix}gnatmake -u -c -gnatc ${gnatmake_opt} ${full_current} -cargs ${comp_opt}")
+  (concat "${cross_prefix}gnatmake -u -c -gnatc ${gnatmake_opt} ${full_current} -cargs -I${src_dir} ${comp_opt}")
   "Default command to syntax check a single file.
 Overridden by project variable 'check_cmd'."
   :type 'string
   :group 'ada-build)
 
 (defcustom ada-build-comp-cmd
-  (concat "${cross_prefix}gnatmake -u -c ${gnatmake_opt} ${full_current} -cargs ${comp_opt}")
+  (concat "${cross_prefix}gnatmake -u -c ${gnatmake_opt} ${full_current} -cargs -I${src_dir} ${comp_opt}")
   "Default command to compile a single file.
 Overridden by project variable 'comp_cmd'."
   :type 'string
@@ -78,7 +76,7 @@ Overridden by project variable 'comp_cmd'."
 
 (defcustom ada-build-make-cmd
   (concat "${cross_prefix}gnatmake -o ${main} ${main} ${gnatmake_opt} "
-	  "-cargs ${comp_opt} -bargs ${bind_opt} -largs ${link_opt}")
+	  "-cargs -I${src_dir} ${comp_opt} -bargs ${bind_opt} -largs ${link_opt}")
   "Default command to compile the application.
 Overridden by project variable 'make_cmd'."
   :type 'string
@@ -106,7 +104,7 @@ to '-Idir_1 -Idir_2'.
 As a special case, ${full_current} is replaced by the name
 including the directory and extension."
 
-  (while (string-match "\\(\\<-[^-]\\)?\${\\([^}]+\\)}" cmd-string)
+  (while (string-match "\\(-[^-$ ]+\\)?\\${\\([^}]+\\)}" cmd-string)
     (let ((prefix (match-string 1 cmd-string))
 	  (name (match-string 2 cmd-string))
 	  value)
@@ -129,7 +127,7 @@ including the directory and extension."
 
        ((listp value)
 	(setq cmd-string (replace-match
-			  (mapconcat (lambda (x) (concat prefix " " value)) value " ")
+			  (mapconcat (lambda (x) (concat prefix x)) value " ")
 			    t t cmd-string)))
        )))
 
@@ -165,10 +163,13 @@ including the directory and extension."
 (defun ada-build-find-select-prj-file ()
   "Search for a project file in the current directory, parse and select it.
 The file must have the same basename as the project variable
-'main', and extension from `ada-prj-file-extensions'.
-Returns non-nil if a file is selected, nil otherwise."
+'main' or the current buffer if 'main' is nil, and extension from
+`ada-prj-file-extensions'.  Returns non-nil if a file is
+selected, nil otherwise."
   (let ((filename
-	 (file-name-completion (file-name-base (ada-prj-get 'main))
+	 (file-name-completion (file-name-base
+				(or (ada-prj-get 'main)
+				    (file-name-nondirectory (file-name-sans-extension (buffer-file-name)))))
 			       ""
 			       (lambda (name) (member (file-name-extension name) ada-prj-file-extensions))))
 	)

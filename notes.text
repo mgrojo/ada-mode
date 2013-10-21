@@ -102,15 +102,14 @@ add compile functions, prj vars
 
         go thru examples, add required functions
             (setq ada-prj-current-file nil
+                  ada-prj-current-project nil
                   ada-prj-alist nil)
 
             test/Example_1/ done
 
             test/Example_2/ done
 
-        test ADA_INCLUDE_PATH, ADA_OBJECT_PATH from user env, prj file
-            see 4.01 ada-xref.el ada-set-environment
-            that's gnat-specific; put in default prj values
+            test/Example_3/ done
 
     manuel Gomez using comp_cmd, make_cmd, src_dir, obj_dir; not .gpr files
         reference project variables in project var values

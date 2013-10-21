@@ -422,12 +422,9 @@ example. However, note that the indentation engine parser accepts this
 code with no errors, making it easier to indent slightly illegal Ada
 code.
 
-In buffer @file{hello.adb}, first enable the @code{ada-build} minor
-mode: invoke @key{M-x ada-build}.
-@c FIXME: enable ada-build by default?
-Then invoke the menu entry @samp{Ada | Build | Check syntax}. You
-should get a @code{*compilation*} buffer containing something like
-(the directory paths will be different):
+In buffer @file{hello.adb}, invoke the menu entry @samp{Ada | Build |
+Check syntax}. You should get a @code{*compilation*} buffer containing
+something like (the directory paths will be different):
 
 @example
 -*- mode: compilation; default-directory: "c:/Projects/org.emacs.ada-mode.stephe-1/test/Example_1/" -*-
@@ -499,9 +496,8 @@ Compilation finished at Fri Oct 18 20:41:53
 That completes the first part of this example.
 
 Now we will compile a multi-file project. Open the file
-@file{hello_2.adb}, invoke @samp{M-x ada-build}, and invoke @samp{Ada
-| Build | Set main and Build}. This finds an error in
-@file{hello_pkg.adb}:
+@file{hello_2.adb}, invoke @samp{Ada | Build | Set main and
+Build}. This finds an error in @file{hello_pkg.adb}:
 
 @example
 hello_pkg.adb:2:08: keyword "body" expected here [see file name]
@@ -614,8 +610,8 @@ project files}.
 @section Set source search path
 
 In this example, we show how to deal with files in more than one
-directory. We start with the same code as in @ref{No project files};
-create those files (with the errors present)
+directory, using an Emacs Ada mode project file to set the search
+path.
 
 Create the directory @file{Example_3}, containing:
 
@@ -662,13 +658,16 @@ There are no errors in this file.
 
 @example
 src_dir=..
-comp_opt=-I..
 @end example
 
 Note that there must be no trailing spaces.
 
-In buffer @file{hello_3.adb}, invoke @samp{Ada | Project | Load...}, and
-select @file{Example_3/Other/other.adp}.
+In buffer @file{hello_3.adb}, invoke @samp{Ada | Project files | Find and
+set project...}, and select @file{Example_3/Other/other.adp}. This
+tells Emacs Ada mode to stop using the project file from
+@file{Example_2}, and use the one for @file{Example_3}. Also note that
+since this project file is not named @file{hello_3.adp}, it would not
+be found by default.
 
 Then, again in @file{hello_3.adb}, invoke @samp{Ada | Set main and
 Build}. You should get a @code{*compilation*} buffer containing

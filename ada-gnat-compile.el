@@ -348,6 +348,12 @@ Prompt user if more than one."
 	   (delete-char 1)
 	   t)
 
+	  ((looking-at (concat "keyword " ada-gnat-quoted-name-regexp " expected here"))
+	   (let ((expected-keyword (match-string 1)))
+	     (pop-to-buffer source-buffer)
+	     (insert " " expected-keyword))
+	   t)
+
 	  ((looking-at "\\(?:possible \\)?missing \"with \\([a-zA-Z0-9_.]+\\);")
 	   ;; also 'possible missing "with Ada.Text_IO; use Ada.Text_IO"' - ignoring the 'use'
 	   (let ((package-name (match-string-no-properties 1)))

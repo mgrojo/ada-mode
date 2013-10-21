@@ -24,6 +24,8 @@
 ^test/.*\.ali$
 ^test/Example_1/.*\.exe$
 ^test/Example_1/.*\.o$
+^test/Example_2/hello\.exe$
+^test/Example_2/hello\.o$
 ^test/debug\.adb$
 ^test/gnatinspect\.db$
 ^test/gpr/debug\.gpr$
