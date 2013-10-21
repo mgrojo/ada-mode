@@ -111,8 +111,16 @@ add compile functions, prj vars
 
             test/Example_3/ done
 
-    manuel Gomez using comp_cmd, make_cmd, src_dir, obj_dir; not .gpr files
-        reference project variables in project var values
+            test/Example_4/ done
+
+            test/Example_5/ done
+
+            example_6 : make
+
+
+add gnatprep minor mode?
+
+should not need ada_col_0 for gnatprep.adb
 
 ada-mode.texi
     /home/Projects/emacs_stephe.main/emacs_stephe_site_lisp/ada-mode.texi

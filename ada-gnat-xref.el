@@ -217,6 +217,7 @@
 
 (defun ada-gnat-xref ()
   "Set Ada mode global vars to use 'gnat xref'"
+  (add-to-list 'ada-prj-file-ext-extra     "gpr")
   (add-to-list 'ada-prj-parser-alist       '("gpr" . gnat-parse-gpr))
   (add-to-list 'ada-select-prj-xref-tool   '(gnat  . ada-gnat-xref-select-prj))
   (add-to-list 'ada-deselect-prj-xref-tool '(gnat  . ada-gnat-xref-deselect-prj))

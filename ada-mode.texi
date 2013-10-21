@@ -444,11 +444,10 @@ The lines with actual errors (starting with @file{hello.adb}) are
 highlighted, with the file name in red.
 
 Now invoke @samp{Ada | Build | Next compilation error}.  Or you can
-click the middle mouse button on the first error line,
-@c FIXME: not yet
-or use the key binding shown on the menu.  The compilation buffer
-scrolls to put the first error on the top line, and point is put at
-the place of the error in the @file{hello.adb} buffer.
+click the middle mouse button on the first error line, or use the key
+binding shown on the menu.  The compilation buffer scrolls to put the
+first error on the top line, and point is put at the place of the
+error in the @file{hello.adb} buffer.
 
 To fix the error, invoke @samp{Ada | Build | Fix compilation error};
 this adds ``Ada.Text_Io.'' to the line:
@@ -456,8 +455,6 @@ this adds ``Ada.Text_Io.'' to the line:
 @example
     Ada.Text_Io.Put_Line ("hello from hello.adb");
 @end example
-
-@c FIXME: capitalize IO?
 
 Now invoke @samp{Ada | Build | Show main}; this displays @samp{Ada mode main: hello}.
 
@@ -744,7 +741,7 @@ There are no errors in this file.
 @file{Gnat_Project/hello_4.gpr}:
 
 @example
-Project Hello_4 is
+project Hello_4 is
    for Source_Dirs use (".", "..");
 end Hello_4;
 @end example
@@ -757,12 +754,15 @@ Build}. You should get a @code{*compilation*} buffer containing
 something like (the directory paths will be different):
 
 @example
-cd c:/Examples/Example_4/Gnat_Project/
-gnatmake -o hello_4 hello_4 -Phello_4.gpr -cargs -gnatq -gnatQ -bargs  -largs
-gcc -c -g -gnatyt -gnatq -gnatQ -I- -gnatA c:\Examples\Example_4\Gnat_Project\hello_4.adb
-gcc -c -g -gnatyt -gnatq -gnatQ -I- -gnatA c:\Examples\Example_4\hello_pkg.adb
+-*- mode: compilation; default-directory: "c:/Projects/org.emacs.ada-mode.stephe-1/test/Example_4/Gnat_Project/" -*-
+Compilation started at Mon Oct 21 11:28:31
+
+gnatmake -Pc:/Projects/org.emacs.ada-mode.stephe-1/test/Example_4/Gnat_Project/hello_4.gpr -o hello_4 hello_4  -cargs -I. -Ic:/Projects/org.emacs.ada-mode.stephe-1/test/Example_4/Gnat_Project -Ic:/Projects/org.emacs.ada-mode.stephe-1/test/Example_4 -Ic:/Apps/GNAT-7.1.2/lib/gcc/i686-pc-mingw32/4.7.3/adainclude  -bargs  -largs
+gcc -c -I. -Ic:/Projects/org.emacs.ada-mode.stephe-1/test/Example_4/Gnat_Project -Ic:/Projects/org.emacs.ada-mode.stephe-1/test/Example_4 -Ic:/Apps/GNAT-7.1.2/lib/gcc/i686-pc-mingw32/4.7.3/adainclude -I- -gnatA C:\Projects\org.emacs.ada-mode.stephe-1\test\Example_4\hello_pkg.adb
 hello_pkg.adb:2:08: keyword "body" expected here [see file name]
-gnatmake: "c:\examples\example_4\hello_pkg.adb" compilation error
+gnatmake: "C:\Projects\org.emacs.ada-mode.stephe-1\test\Example_4\hello_pkg.adb" compilation error
+
+Compilation exited abnormally with code 4 at Mon Oct 21 11:28:31
 @end example
 
 Compare the @code{gcc} options to the compiler output in @ref{Set
@@ -808,7 +808,7 @@ gpr_file=hello_5.gpr
 
 @example
 with "hello_4";
-Project Hello_5 is
+project Hello_5 is
    for Source_Dirs use (".");
    package Compiler is
       for Default_Switches ("Ada") use ("-g", "-gnatyt");
@@ -816,20 +816,25 @@ Project Hello_5 is
 end Hello_5;
 @end example
 
-In buffer @file{hello_5.adb}, invoke @samp{Ada | Project | Load...}, and
-select @file{Example_5/hello_5.adp}.
+In buffer @file{hello_5.adb}, invoke @samp{Ada | Project | Find and
+select project...}, and select @file{Example_5/hello_5.adp}. This
+would also be found by default if no previous project file had been
+selected.
 
 Then, again in @file{hello_5.adb}, invoke @samp{Ada | Set main and
 Build}. You should get a @code{*compilation*} buffer containing
 something like (the directory paths will be different):
 
 @example
-cd c:/Examples/Example_5/
-gnatmake -o hello_5 hello_5 -Phello_5.gpr -g -cargs -gnatq -gnatQ -bargs  -largs
-gcc -c -g -gnatyt -g -gnatq -gnatQ -I- -gnatA c:\Examples\Example_5\hello_5.adb
-gcc -c -g -gnatyt -g -gnatq -gnatQ -I- -gnatA c:\Examples\Example_4\hello_pkg.adb
+-*- mode: compilation; default-directory: "c:/Projects/org.emacs.ada-mode.stephe-1/test/Example_5/" -*-
+Compilation started at Mon Oct 21 11:32:05
+
+gnatmake -Pc:/Projects/org.emacs.ada-mode.stephe-1/test/Example_5/hello_5.gpr -o hello_5 hello_5  -cargs -I. -Ic:/Projects/org.emacs.ada-mode.stephe-1/test/Example_5 -Ic:/Projects/org.emacs.ada-mode.stephe-1/test/Example_4/Gnat_Project -Ic:/Projects/org.emacs.ada-mode.stephe-1/test/Example_4 -Ic:/Apps/GNAT-7.1.2/lib/gcc/i686-pc-mingw32/4.7.3/adainclude  -bargs  -largs
+gcc -c -I. -Ic:/Projects/org.emacs.ada-mode.stephe-1/test/Example_5 -Ic:/Projects/org.emacs.ada-mode.stephe-1/test/Example_4/Gnat_Project -Ic:/Projects/org.emacs.ada-mode.stephe-1/test/Example_4 -Ic:/Apps/GNAT-7.1.2/lib/gcc/i686-pc-mingw32/4.7.3/adainclude -I- -gnatA C:\Projects\org.emacs.ada-mode.stephe-1\test\Example_4\hello_pkg.adb
 hello_pkg.adb:2:08: keyword "body" expected here [see file name]
-gnatmake: "c:\examples\example_4\hello_pkg.adb" compilation error
+gnatmake: "C:\Projects\org.emacs.ada-mode.stephe-1\test\Example_4\hello_pkg.adb" compilation error
+
+Compilation exited abnormally with code 4 at Mon Oct 21 11:32:05
 @end example
 
 Now type @kbd{C-x `}. @file{Example_4/hello_pkg.adb} is shown,
@@ -843,9 +848,8 @@ used to set the compilation search path.
 @node Compiler errors,  , Compiling Executing, Compiling Executing
 @section Compiler errors
 
-The @code{Check file}, @code{Compile file}, and @code{Build} commands,
-or running @code{make},
-all place compilation errors in a separate buffer named
+The @code{Check syntax} and @code{Build} commands, or running
+@code{make}, place compilation errors in a separate buffer named
 @code{*compilation*}.
 
 Each line in this buffer will become active: you can simply click on

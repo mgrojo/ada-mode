@@ -39,6 +39,8 @@
 ;; compiling and running capabilities in Ada mode 4.01, done in 2013 by
 ;; Stephen Leake <stephen_leake@stephe-leake.org>.
 
+(require 'ada-mode)
+
 ;;;; User customization
 
 (defgroup ada-build nil
@@ -67,15 +69,8 @@ Overridden by project variable 'check_cmd'."
   :type 'string
   :group 'ada-build)
 
-(defcustom ada-build-comp-cmd
-  (concat "${cross_prefix}gnatmake -u -c ${gnatmake_opt} ${full_current} -cargs -I${src_dir} ${comp_opt}")
-  "Default command to compile a single file.
-Overridden by project variable 'comp_cmd'."
-  :type 'string
-  :group 'ada-build)
-
 (defcustom ada-build-make-cmd
-  (concat "${cross_prefix}gnatmake -o ${main} ${main} ${gnatmake_opt} "
+  (concat "${cross_prefix}gnatmake -P${gpr_file} -o ${main} ${main} ${gnatmake_opt} "
 	  "-cargs -I${src_dir} ${comp_opt} -bargs ${bind_opt} -largs ${link_opt}")
   "Default command to compile the application.
 Overridden by project variable 'make_cmd'."
@@ -95,11 +90,11 @@ Overridden by project variable 'run_cmd'."
 ${var} is a project variable or environment variable, $var an
 environment variable.
 
-If the value of the project variable is a list, a prefix may be
-specified with the format '-<prefix>${var}'; then the value is
-expanded with the prefix prepended to each list element. For
-example, if src_dir contains 'dir_1 dir_2', '-I${src_dir}' expands
-to '-Idir_1 -Idir_2'.
+A prefix may be specified with the format '-<prefix>${var}'; then
+the value is expanded with the prefix prepended. If the value is
+a list, the prefix is prepended to each list element. For
+example, if src_dir contains 'dir_1 dir_2', '-I${src_dir}'
+expands to '-Idir_1 -Idir_2'.
 
 As a special case, ${full_current} is replaced by the name
 including the directory and extension."
@@ -123,7 +118,7 @@ including the directory and extension."
 	(setq cmd-string (replace-match "" t t cmd-string)))
 
        ((stringp value)
-	(setq cmd-string (replace-match value t t cmd-string)))
+	(setq cmd-string (replace-match (concat prefix value) t t cmd-string)))
 
        ((listp value)
 	(setq cmd-string (replace-match
@@ -139,7 +134,6 @@ including the directory and extension."
    project
    (list
     'check_cmd       ada-build-check-cmd
-    'comp_cmd        ada-build-comp-cmd
     'main            (file-name-nondirectory
 		      (file-name-sans-extension (buffer-file-name)))
     'make_cmd        ada-build-make-cmd
@@ -166,12 +160,18 @@ The file must have the same basename as the project variable
 'main' or the current buffer if 'main' is nil, and extension from
 `ada-prj-file-extensions'.  Returns non-nil if a file is
 selected, nil otherwise."
-  (let ((filename
-	 (file-name-completion (file-name-base
-				(or (ada-prj-get 'main)
-				    (file-name-nondirectory (file-name-sans-extension (buffer-file-name)))))
-			       ""
-			       (lambda (name) (member (file-name-extension name) ada-prj-file-extensions))))
+  (let* ((base-file-name (file-name-base
+			  (or (ada-prj-get 'main)
+			      (file-name-nondirectory (file-name-sans-extension (buffer-file-name))))))
+	 (filename
+	  (or
+	   (file-name-completion base-file-name
+				 ""
+				 (lambda (name) (member (file-name-extension name) ada-prj-file-extensions)))
+
+	   (file-name-completion base-file-name
+				 ""
+				 (lambda (name) (member (file-name-extension name) ada-prj-file-ext-extra)))))
 	)
     (when filename
       (ada-parse-prj-file filename)
@@ -183,7 +183,8 @@ selected, nil otherwise."
 The file must have an extension from `ada-prj-file-extensions'.
 Returns non-nil if a file is selected, nil otherwise."
   (interactive)
-  (let (filename)
+  (let ((ext (append ada-prj-file-extensions ada-prj-file-ext-extra))
+	filename)
     (condition-case err
 	(setq filename
 	      (read-file-name
@@ -193,7 +194,7 @@ Returns non-nil if a file is selected, nil otherwise."
 	       t   ; mustmatch
 	       nil; initial
 	       (lambda (name)
-		 (member (file-name-extension name) ada-prj-file-extensions))))
+		 (member (file-name-extension name) ext))))
       (err
        (setq filename nil))
       )
@@ -231,10 +232,10 @@ error - Throw an error (no prompt, no default project)."
 
       (default-prompt
 	(or (ada-build-find-select-prj-file)
-	    (ada-build-prompt-select-prj)))
+	    (ada-build-prompt-select-prj-file)))
 
       (prompt
-       (ada-build-prompt-select-prj))
+       (ada-build-prompt-select-prj-file))
 
       (error
        (error "no project file selected"))

@@ -1,0 +1,7 @@
+with "hello_4";
+project Hello_5 is
+   for Source_Dirs use (".");
+   package Compiler is
+      for Default_Switches ("Ada") use ("-g", "-gnatyt");
+   end Compiler;
+end Hello_5;

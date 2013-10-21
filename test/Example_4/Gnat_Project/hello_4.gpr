@@ -1,0 +1,3 @@
+project Hello_4 is
+   for Source_Dirs use (".", "..");
+end Hello_4;

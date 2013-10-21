@@ -265,6 +265,14 @@ Any file with one of these extensions will be parsed by `ada-prj-parse-file-1'."
   :type 'list
   :group 'ada)
 
+(defcustom ada-prj-file-ext-extra nil
+  "List of secondary project file extensions.
+Used when searching for a project file that can be a primary or
+secondary project file (referenced from a primary).  The user
+must provide a parser for a file with one of these extensions."
+  :type 'list
+  :group 'ada)
+
 ;;;;; end of user variables
 
 (defconst ada-symbol-end
@@ -2515,10 +2523,11 @@ The paragraph is indented on the first line."
 
 (put 'ada-mode 'custom-mode-group 'ada)
 
-(require 'ada-build)
 (provide 'ada-mode)
 
 ;;;;; Global initializations
+
+(require 'ada-build)
 
 (unless (featurep 'ada-indent-engine)
   (require 'ada-wisi))
