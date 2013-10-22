@@ -255,10 +255,11 @@ to tell Emacs about the project directory tree and other settings.
 
 @menu
 * Compile commands::
+* Compiling Examples::
 * Compiler errors::
 @end menu
 
-@node Compile commands, Compiler errors, Compiling Executing, Compiling Executing
+@node Compile commands, Compiling Examples, , Compiling Executing
 @section Compile commands
 
 Here are the commands for building an Ada project and running the main
@@ -342,8 +343,8 @@ Invoke @samp{Ada | Project | Load}, and load a project file that specifies @code
 
 @end enumerate
 
-@node Compiling Examples, Moving Through Ada Code, Project files, Top
-@chapter Compiling Examples
+@node Compiling Examples, Compiler errors, Compile commands, Compiling Executing
+@section Compiling Examples
 
 We present several small projects, and walk thru the process of
 compiling, linking, and running them.
@@ -362,10 +363,11 @@ website mentioned in @xref{Installation}.
 * Set source search path::      Source in multiple directories
 * Use GNAT project file::
 * Use multiple GNAT project files::
+* Use a Makefile::
 @end menu
 
 @node No project files, Set compiler options, Compiling Examples, Compiling Examples
-@section No project files
+@subsection No project files
 This example uses no project files.
 
 First, create a directory @file{Example_1}, containing:
@@ -543,7 +545,7 @@ specifies @code{main}.
 @end enumerate
 
 @node Set compiler options, Set source search path, No project files, Compiling Examples
-@section Set compiler options
+@subsection Set compiler options
 
 This example illustrates using an Emacs Ada mode project file to set a
 compiler option.
@@ -604,7 +606,7 @@ Fixing the error, linking and running the code proceed as in @ref{No
 project files}.
 
 @node Set source search path, Use GNAT project file, Set compiler options, Compiling Examples
-@section Set source search path
+@subsection Set source search path
 
 In this example, we show how to deal with files in more than one
 directory, using an Emacs Ada mode project file to set the search
@@ -691,7 +693,7 @@ Fixing the error, linking and running the code proceed as in @ref{No
 project files}.
 
 @node Use GNAT project file, Use multiple GNAT project files, Set source search path, Compiling Examples
-@section Use GNAT project file
+@subsection Use GNAT project file
 
 In this example, we show how to use a GNAT project file, with no Ada
 mode project file.
@@ -772,8 +774,8 @@ set the compiler options.
 Fixing the error, linking and running the code proceed as in @ref{No
 project files}.
 
-@node Use multiple GNAT project files,  , Use GNAT project file, Compiling Examples
-@section Use multiple GNAT project files
+@node Use multiple GNAT project files, Use a Makefile, Use GNAT project file, Compiling Examples
+@subsection Use multiple GNAT project files
 
 In this example, we show how to use multiple GNAT project files,
 specifying the GNAT project search path in an Ada mode project file.
@@ -841,8 +843,8 @@ Now type @kbd{C-x `}. @file{Example_4/hello_pkg.adb} is shown,
 demonstrating that @file{hello_5.gpr} and @file{hello_4.gpr} are being
 used to set the compilation search path.
 
-@node Use a Makefile,  , Use GNAT project file, Compiling Examples
-@section Use a Makefile
+@node Use a Makefile
+@subsection Use a Makefile
 
 In this example, we show how to use a Makefile to build an Ada project
 with GNAT, run the result, and clean the build directories.
@@ -888,7 +890,7 @@ In @file{Makefile}, invoke @samp{Tools | Compile...}, and accept the
 default make command. This runs the @samp{all} target, which builds
 @file{hello_5} and runs it.
 
-@node Compiler errors,  , Compiling Executing, Compiling Executing
+@node Compiler errors,  , Compiling Examples, Compiling Executing
 @section Compiler errors
 
 The @code{Check syntax} and @code{Build} commands, or running
@@ -1054,10 +1056,6 @@ with a GNAT project file, and other source directories with the Emacs
 project file.
 
 @end table
-
-@c @node Compiling Examples, Moving Through Ada Code, Project files, Top
-@c @chapter Compiling Examples
-@c FIXME: need something here
 
 @node Moving Through Ada Code, Identifier completion, Project files, Top
 @chapter Moving Through Ada Code

@@ -88,9 +88,10 @@ need std include files in search list
 
  general
 build/wisi/Makefile
+build/Makefile
 
 compile ada-mode.texi
-    add to 'all'
+
 
 add gnatprep minor mode?
 
