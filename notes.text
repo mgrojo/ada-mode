@@ -89,34 +89,8 @@ need std include files in search list
  general
 build/wisi/Makefile
 
-add compile functions, prj vars
-    compile/build/run keys
-        for Emacs & Ada novices
-        review 4.01, see what could be simplified
-        /Projects/emacs_stephe.main/emacs_stephe_site_lisp/ada-mode.texi
-        /Projects/emacs_stephe.main/emacs_stephe_site_lisp/ada-mode.el
-        ada-mode.texi
-
-        put in ada-build.el, as extension
-        (require 'ada-build)
-
-        go thru examples, add required functions
-            (setq ada-prj-current-file nil
-                  ada-prj-current-project nil
-                  ada-prj-alist nil)
-
-            test/Example_1/ done
-
-            test/Example_2/ done
-
-            test/Example_3/ done
-
-            test/Example_4/ done
-
-            test/Example_5/ done
-
-            example_6 : make
-
+compile ada-mode.texi
+    add to 'all'
 
 add gnatprep minor mode?
 

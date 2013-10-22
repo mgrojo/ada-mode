@@ -69,7 +69,8 @@
 	(error "'%s' not found in cross-reference files; recompile?" identifier))
 
       (while (not result)
-	(if (looking-at (concat ada-gnat-file-line-col-regexp ": warning:"))
+	(looking-at (concat ada-gnat-file-line-col-regexp "\\(: warning:\\)?"))
+	(if (match-string 4)
 	    ;; error in *.gpr; ignore here.
 	    (forward-line 1)
 	  ;; else process line

@@ -13,6 +13,8 @@ byte-compile : byte-compile-clean
 
 test : test-ada-gnatxref.stamp test-ada-gnatinspect.stamp test-gpr test-elisp
 
+# (progn (add-to-list 'load-path (expand-file-name "../../test")) (load "ada-mode-test.el"))
+
 test-wisi :: body_instantiation_conflict.wisi-test
 test-wisi :: case_expression.wisi-test
 test-wisi :: identifier_list_name_conflict.wisi-test
@@ -21,8 +23,9 @@ test-wisi :: subprograms.wisi-test
 test-wisi :: empty_production_6.wisi-test
 test-wisi :: empty_production_8.wisi-test
 
-one : RUNTEST := run-indent-test-wisi-gnatinspect.el
-one : ada_mode-nominal.ads.diff
+one : RUNTEST := run-indent-test-wisi.el
+#one : RUNTEST := run-indent-test-wisi-gnatinspect.el
+one : gnatprep.adb.diff
 
 vpath %.wy ../../ ../../test/wisi
 vpath %.el ../../ .

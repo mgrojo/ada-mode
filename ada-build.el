@@ -134,8 +134,9 @@ including the directory and extension."
    project
    (list
     'check_cmd       ada-build-check-cmd
-    'main            (file-name-nondirectory
-		      (file-name-sans-extension (buffer-file-name)))
+    'main            (and (buffer-file-name)
+			  (file-name-nondirectory
+			   (file-name-sans-extension (buffer-file-name))))
     'make_cmd        ada-build-make-cmd
     'run_cmd         ada-build-run-cmd
     )))

@@ -26,6 +26,7 @@
 ^test/Example_1/.*\.o$
 ^test/Example_2/hello\.exe$
 ^test/Example_2/hello\.o$
+^test/Example_4/Gnat_Project/hello_pkg\.o$
 ^test/debug\.adb$
 ^test/gnatinspect\.db$
 ^test/gpr/debug\.gpr$

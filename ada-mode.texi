@@ -841,9 +841,52 @@ Now type @kbd{C-x `}. @file{Example_4/hello_pkg.adb} is shown,
 demonstrating that @file{hello_5.gpr} and @file{hello_4.gpr} are being
 used to set the compilation search path.
 
-@menu
-* Compiler errors::
-@end menu
+@node Use a Makefile,  , Use GNAT project file, Compiling Examples
+@section Use a Makefile
+
+In this example, we show how to use a Makefile to build an Ada project
+with GNAT, run the result, and clean the build directories.
+
+Create the directories @file{Example_4, Example_5} as specified in @ref{Use GNAT
+project file},  @ref{Use multiple GNAT project files}.
+
+In @file{Example_5}, add the file:
+
+@file{Makefile}:
+
+@example
+# build and run hello_5 project
+
+all : build run
+
+.PHONY : force
+
+build : force
+        gprbuild -Phello_5.gpr hello_5
+
+run :
+        ./hello_5
+
+clean :
+        gnatclean -r -Phello_5
+
+export GPR_PROJECT_PATH = ../Example_4/Gnat_Project
+
+# Local Variables:
+# eval:(ada-parse-prj-file "hello_5.adp")
+# eval:(ada-select-prj-file "hello_5.adp")
+# End:
+@end example
+
+Close and re-open @file{Makefile}; the @samp{Local Variables} section
+sets the project file to @file{hello_5.adp} when the @file{Makefile}
+is opened. You can also use @key{C-x C-e} to execute the select line
+after the @file{Makefile} is opened, to change the project file back
+to @file{hello_5.adp}.
+
+In @file{Makefile}, invoke @samp{Tools | Compile...}, and accept the
+default make command. This runs the @samp{all} target, which builds
+@file{hello_5} and runs it.
 
 @node Compiler errors,  , Compiling Executing, Compiling Executing
 @section Compiler errors
