@@ -26,6 +26,8 @@ package Ada_Mode.Parens is
             end record;
 
    --  A pathological subprogram declaration. We don't expect ada-format-paramlist to preserve these newlines.
+   --EMACSCMD:(progn (end-of-line 4)(ada-in-paramlist-p))
+   --EMACSRESULT:t
    function Function_1
      (Param_1,
         Param_2,
@@ -43,4 +45,8 @@ package Ada_Mode.Parens is
 
    function Function_2 (Left, Right : in Array_Type_1) return Array_Type_1;
 
+   --  Test ada-in-paramlist-p in expressions with parens that don't have wisi caches because of a failed parse.
+   --EMACSCMD:(progn (end-of-line 3)(delete-char -1)(forward-word -1)(ada-in-paramlist-p)(end-of-line 1)(insert ";"))
+   --EMACSRESULT:nil
+   A : Integer := 1 + (5 * 3);
 end Ada_Mode.Parens;

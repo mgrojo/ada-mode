@@ -1100,12 +1100,13 @@ Also return cache at start."
   "For `ada-in-paramlist-p'."
   (wisi-validate-cache (point))
   ;; (info "(elisp)Parser State" "*syntax-ppss*")
-  (let ((parse-result (syntax-ppss)))
+  (let* ((parse-result (syntax-ppss))
+	 cache)
     (and (> (nth 0 parse-result) 0)
-	 (eq 'formal_part
-	     (wisi-cache-nonterm
-	      (wisi-get-cache (nth 1 parse-result)))
-	     ))))
+	 ;; cache is nil if the parse failed
+	 (setq cache (wisi-get-cache (nth 1 parse-result)))
+	 (eq 'formal_part (wisi-cache-nonterm cache)))
+    ))
 
 (defun ada-wisi-indent-statement ()
   "For `ada-indent-statement'."

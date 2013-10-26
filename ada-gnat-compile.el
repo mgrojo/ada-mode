@@ -248,24 +248,8 @@ Prompt user if more than one."
 	       t) ;; success, else nil => fail
 	     ))
 
-	  ((looking-at (concat ada-gnat-quoted-name-regexp " is undefined"))
-	   ;; We either need to add a with_clause for a package, or
-	   ;; something is spelled wrong.
-	   (save-excursion
-	     (let ((unit-name (match-string 1))
-		   (correct-spelling (ada-gnat-misspelling)))
-	       (if correct-spelling
-		   (progn
-		     (pop-to-buffer source-buffer)
-		     (search-forward unit-name)
-		     (replace-match correct-spelling))
-
-		 ;; else assume missing with
-		 (pop-to-buffer source-buffer)
-		 (ada-fix-add-with-clause unit-name))))
-	   t)
-
-	  ((looking-at (concat ada-gnat-quoted-name-regexp " is undefined"))
+	  ((or (looking-at (concat ada-gnat-quoted-name-regexp " is undefined"))
+	       (looking-at (concat ada-gnat-quoted-name-regexp " is not a predefined library unit")))
 	   ;; We either need to add a with_clause for a package, or
 	   ;; something is spelled wrong.
 	   (save-excursion

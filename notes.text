@@ -89,6 +89,9 @@ need std include files in search list
  general
 build/wisi/Makefile
 
+gpr
+    add parse/set prj functions on menu
+
 add compile functions, prj vars
     compile/build/run keys
         for Emacs & Ada novices

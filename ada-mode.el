@@ -355,6 +355,7 @@ Values defined by cross reference packages.")
     ["Goto parent declaration"    ada-goto-declaration-parent t]
     ["Show references"            ada-show-references       t]
     ["Show overriding"            ada-show-overriding       t]
+    ["Show last parse error"      ada-show-parse-error      t]
     ["------"        nil nil]
     ("Edit"
      ["Expand skeleton"             (funcall ada-expand)    t]
