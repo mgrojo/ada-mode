@@ -401,7 +401,13 @@ package body Ada_Mode.Nominal is -- target 0
    end Procedure_1f;
 
    procedure Procedure_2a is -- target 7
-   begin null; end;
+      use Ada.Text_IO;
+      File : File_Type;
+   begin
+      --  complex attribute argument
+      raise Constraint_Error with Ada.Text_IO.Count'Image (Line (File)) &
+        "foo";
+   end;
    --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at " -- target 0"))
    --EMACSRESULT:t
 

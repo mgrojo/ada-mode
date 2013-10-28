@@ -273,12 +273,14 @@ nil, 'shift, or 'accept."
 	      (when compare
 		;; parser stacks are identical
 		(setq active-parser-count (1- active-parser-count))
-		(when (> wisi-debug 1) (message "terminate identical parser %d (%d active)"
-						(+ parser-i parser-j 1) active-parser-count))
+		(when (> wisi-debug 1)
+		  (message "terminate identical parser %d (%d active)"
+			   (+ parser-i parser-j 1) active-parser-count))
 		(when (= active-parser-count 1)
 		  ;; the actions for the two parsers are not
 		  ;; identical, but either is good enough for
 		  ;; indentation and navigation, so we just do one.
+		  (when (> wisi-debug 1) (message "executing actions for %d" (+ parser-i parser-j 1)))
 		  (wisi-execute-pending (wisi-parser-state-pending (aref parser-states (+ parser-i parser-j 1))))
 		  (setf (wisi-parser-state-pending (aref parser-states (+ parser-i parser-j 1))) nil)
 
@@ -292,6 +294,7 @@ nil, 'shift, or 'accept."
 
 (defun wisi-execute-pending (pending)
   (while pending
+    (when (> wisi-debug 1) (message "%s" (car pending)))
     (apply (pop pending))))
 
 (defun wisi-parse-1 (token parser-state pendingp actions gotos)

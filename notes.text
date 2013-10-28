@@ -89,6 +89,17 @@ need std include files in search list
  general
 build/wisi/Makefile
 
+
+parser hangs after move code
+    but only on very fresh buffer?
+        fixed by add action on attribute_reference parens?
+        open sal-csv.adb Scan_Commas - buffer is parsed by font-lock
+        move 'if' that sets comma_count up on level
+        wisi-parse-buffer hangs while processing moved 'if'
+        but only sometimes!
+
+    wisi-before/after-change screwing up?
+
 gpr
     add parse/set prj functions on menu
 

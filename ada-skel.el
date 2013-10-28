@@ -190,6 +190,20 @@ See `ada-find-other-file' to create library level package body from spec."
   "private\n"
   "end " str ";")
 
+(define-skeleton ada-skel-procedure-body
+  "Insert a procedure body with name from `str'."
+  ()
+  "procedure " str "\n"
+  "is\n"
+  "begin\n"
+  _
+  "end " str ";")
+
+(define-skeleton ada-skel-procedure-spec
+  "Insert a procedure type specification with name from `str'."
+  ()
+  "procedure " str ";")
+
 (define-skeleton ada-skel-protected-body
   "Insert a protected body with name from `str'."
   ()
@@ -267,6 +281,9 @@ See `ada-find-other-file' to create library level package body from spec."
     ("package"
      ("body" . ada-skel-package-body)
      ("spec" . ada-skel-package-spec))
+    ("procedure"
+     ("body" . ada-skel-procedure-body)
+     ("spec" . ada-skel-procedure-spec))
     ("protected"
      ("body" . ada-skel-protected-body)
      ("spec" . ada-skel-protected-spec))

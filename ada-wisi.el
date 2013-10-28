@@ -649,13 +649,18 @@ cached token, return new indentation for point."
 	   ))
 
 	(close-paren
-	 ;; test/ada_mode-nominal.adb
+	 ;; actual_parameter_part: test/ada_mode-nominal.adb
 	 ;; return 1.0 +
 	 ;;   Foo (Bar) + -- multi-line expression that happens to have a cache at a line start
 	 ;;   12;
 	 ;; indenting '12'; don't indent relative to containing function name
-	 (when (eq (wisi-cache-nonterm cache)
-		   'actual_parameter_part)
+	 ;;
+	 ;; attribute_designator: test/ada_mode-nominal.adb
+	 ;; raise Constraint_Error with Count'Image (Line (File)) &
+	 ;;    "foo";
+	 ;; indenting '"foo"'; relative to raise
+	 (when (memq (wisi-cache-nonterm cache)
+		     '(actual_parameter_part attribute_designator))
 	   (setq cache (wisi-goto-containing cache)))
 	 (ada-wisi-indent-containing ada-indent-broken cache nil))
 
@@ -895,11 +900,20 @@ cached token, return new indentation for point."
 	    (ada-wisi-indent-containing ada-indent-broken cache))
 
 	   (WITH
-	    ;; extension aggregate: test/ada_mode-nominal-child.adb
+	    ;; extension aggregate: test/ada_mode-nominal-child.ads
 	    ;;      (Default_Parent with
 	    ;;       10, 12.0, True);
 	    ;;   indenting '10'; containing is '('
-	    (ada-wisi-indent-containing 0 cache nil))
+	    ;;
+	    ;; raise_statement: test/ada_mode-nominal.adb
+	    ;; raise Constraint_Error with
+            ;;    "help!";
+	    (cl-case (wisi-cache-nonterm cache)
+	      (aggregate
+	       (ada-wisi-indent-containing 0 cache nil))
+	      (raise_statement
+	       (ada-wisi-indent-containing ada-indent-broken cache nil))
+	      ))
 
 	   ;; otherwise just hanging
 	   ((ACCEPT FUNCTION PROCEDURE RENAMES)

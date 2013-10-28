@@ -315,10 +315,12 @@ wisi-forward-token, but does not look up symbol."
 (defvar-local wisi-change-need-invalidate nil)
 
 (defun wisi-invalidate-cache()
-  "Invalidate the wisi token cache for the current buffer."
+  "Invalidate the wisi token cache for the current buffer.
+Also invalidate the Emacs syntax cache."
   (interactive)
   (setq wisi-cache-max 0)
   (setq wisi-parse-try t)
+  (syntax-ppss-flush-cache (point-min))
   (with-silent-modifications
     (remove-text-properties (point-min) (point-max) '(wisi-cache))))
 

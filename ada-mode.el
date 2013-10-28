@@ -352,7 +352,7 @@ Values defined by cross reference packages.")
     ["Other file"                 ada-find-other-file       t]
     ["Other file don't find decl" ada-find-other-file-noset t]
     ["Goto declaration/body"      ada-goto-declaration      t]
-    ["Goto parent declaration"    ada-goto-declaration-parent t]
+    ["Show parent declarations"   ada-show-declaration-parents t]
     ["Show references"            ada-show-references       t]
     ["Show overriding"            ada-show-overriding       t]
     ["Show last parse error"      ada-show-parse-error      t]
