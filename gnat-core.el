@@ -63,7 +63,7 @@
 (defun gnat-prj-parse-emacs-one (name value project)
   "Handle gnat-specific Emacs Ada project file settings.
 Return new PROJECT if NAME recognized, nil otherwise.
-See also `ada-gnat-parse-emacs-final'."
+See also `gnat-parse-emacs-final'."
   (let ((process-environment (plist-get project 'proc_env))); for substitute-in-file-name
     (cond
      ((or
@@ -96,25 +96,6 @@ See also `ada-gnat-parse-emacs-final'."
     ;; add the compiler libraries to src_dir
     (setq project (gnat-get-paths project))
     )
-
-  ;; This is only needed when actually running the gnat compiler;
-  ;; parsing a gnat project is a crude proxy for that. Could set in an
-  ;; 'ada-compile' function, but there's no good way to know when to
-  ;; clear it. Same for compilation-error-regexp-alist. So we do this
-  ;; here, and assume other modes will set these variables
-  ;; appropriately.
-  ;;
-  ;; One possible approach is per-project compilation buffers; then
-  ;; these variables could be buffer-local.
-  ;;
-  ;; Or can we use compilation-[start|finish]-functions to set and remove this?
-  ;; FIXME: move to gnat-select-prj-compile?
-  (setq compilation-filter-hook nil)
-  (add-hook 'compilation-filter-hook 'ada-gnat-compilation-filter)
-
-  ;; ada-mode.el project file parser sets this to other compilers used
-  ;; in the project, so we only add here.
-  (add-to-list 'compilation-error-regexp-alist 'gnat)
 
   project)
 
@@ -252,7 +233,7 @@ Assumes current buffer is (gnat-run-buffer)"
 COMMAND must be a string, SWITCHES-ARGS a list of strings.
 EXPECTED-STATUS must be nil or a list of integers.
 Return process status.
-Assumes current buffer is (ada-gnat-run-buffer)"
+Assumes current buffer is (gnat-run-buffer)"
   (let* ((project-file-switch
 	  (when (ada-prj-get 'gpr_file)
 	    (concat "-P" (file-name-nondirectory (ada-prj-get 'gpr_file)))))
@@ -264,7 +245,7 @@ Assumes current buffer is (ada-gnat-run-buffer)"
 (defun gnat-run-no-prj (command &optional dir)
   "Run the gnat command line tool, as \"gnat COMMAND\", with DIR as current directory.
 Return process status.  Assumes current buffer
-is (ada-gnat-run-buffer)"
+is (gnat-run-buffer)"
   (set 'buffer-read-only nil)
   (erase-buffer)
 

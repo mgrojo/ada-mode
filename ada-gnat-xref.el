@@ -169,8 +169,6 @@
 ;;;;; setup
 
 (defun ada-gnat-xref-select-prj ()
-  (setq ada-xref-tool 'gnat)
-
   (setq ada-file-name-from-ada-name 'ada-gnat-file-name-from-ada-name)
   (setq ada-ada-name-from-file-name 'ada-gnat-ada-name-from-file-name)
   (setq ada-make-package-body       'ada-gnat-make-package-body)
@@ -191,13 +189,10 @@
   ;; There is no common convention for a file extension for gnatprep files.
 
   (add-to-list 'completion-ignored-extensions ".ali") ;; gnat library files, used for cross reference
+  (add-to-list 'compilation-error-regexp-alist 'gnat)
   )
 
 (defun ada-gnat-xref-deselect-prj ()
-  ;; We don't clear this here; the current value is the default,
-  ;; possibly overridden by a project.
-  ;; (setq ada-xref-tool nil)
-
   (setq ada-file-name-from-ada-name nil)
   (setq ada-ada-name-from-file-name nil)
   (setq ada-make-package-body       nil)
@@ -210,6 +205,7 @@
   (setq ada-xref-all-function    nil)
 
   (setq completion-ignored-extensions (delete ".ali" completion-ignored-extensions))
+  (setq compilation-error-regexp-alist (delete 'gnat compilation-error-regexp-alist))
   )
 
 (defun ada-gnat-xref-setup ()

@@ -163,13 +163,49 @@
       (message "parsing result ... done")
       result)))
 
+(defconst gnat-inspect-ident-file-regexp
+  ".*:\\(.*\\):\\([0123456789]+\\):\\([0123456789]+\\)"
+  "Regexp matching <idendifier>:<file>:<line>:<column>")
+
 (defconst gnat-inspect-ident-file-regexp-alist
   ;; Write_Message:C:\Projects\GDS\work_dscovr_release\common\1553\gds-mil_std_1553-utf.ads:252:25
-  (list "^.*:\\(.*\\):\\([0123456789]+\\):\\([0123456789]+\\)" 1 2 3)
-  "Regexp for compilation-error-regexp-alist, matching `gnatinspect overriding_recursive' output")
+  (list (concat "^" gnat-inspect-ident-file-regexp) 1 2 3)
+  "For compilation-error-regexp-alist, matching `gnatinspect overriding_recursive' output")
 
-(defun gnat-inspect-compilation (identifier file line col cmd)
-  "Run gnatinspect identifier:file:line:col cmd, in compilation-mode."
+(defun gnat-inspect-scope-secondary-error ()
+  "Return ada-secondary-error 'face' value for compilation-error-regexp-alist submatch"
+  (list
+   'face
+   compilation-info-face
+   'ada-secondary-error
+   (list
+    file
+    (string-to-number (match-string-no-properties 5)); line
+    (string-to-number (match-string-no-properties 6)) ;; column
+    )))
+
+(defconst gnat-inspect-ident-file-scope-regexp-alist
+  ;; RX_Enable:C:\common\1553\gds-hardware-bus_1553-raw_read_write.adb:163:13 (write reference) scope=New_Packet_TX:C:\common\1553\gds-hardware-bus_1553-raw_read_write.adb:97:14
+
+  (list (concat
+	 gnat-inspect-ident-file-regexp
+	 " (.*) "
+	 "scope="
+;;	 gnat-inspect-ident-file-regexp
+	 )
+	1 2 3 ;; file line column
+	;; 1 ;; hyperlink
+	;;(list 4 'gnat-inspect-scope-secondary-error)
+	)
+  "For compilation-error-regexp-alist, matching `gnatinspect refs' output")
+
+;; debugging:
+;; (setq compilation-error-regexp-alist-alist (cons 'gnat-inspect-ident-file-scope gnat-inspect-ident-file-scope-regexp-alist))
+
+(defun gnat-inspect-compilation (identifier file line col cmd comp-err)
+  "Run gnatinspect identifier:file:line:col cmd, in compilation-mode.
+Uses a separate compilation buffer to run gnatinspect, with
+`compilation-error-regexp-alist' set to COMP-ERR."
   ;; WORKAROUND: gnatinspect from gnatcoll-1.6w can't handle aggregate
   ;; projects, so we use an alternate project file for gnatinspect
   ;; queries, specified in the Emacs ada-mode project file by
@@ -191,7 +227,10 @@
       (let ((process-environment (ada-prj-get 'proc_env)) ;; for GPR_PROJECT_PATH
 	    (compilation-error "reference")
 	    (compilation-mode-hook
-	     (lambda () (set (make-local-variable 'compilation-error-regexp-alist) (list 'gnat-inspect-ident-file)))))
+	     (lambda ()
+	       (set (make-local-variable 'compilation-filter) nil)
+	       (set (make-local-variable 'compilation-error-regexp-alist) (list comp-err))
+	       )))
 
 	(compilation-start cmd-1
 			   'compilation-mode
@@ -199,19 +238,26 @@
 	)
       )))
 
+(defun gnat-inspect-all (identifier file line col)
+  "For `ada-xref-all-function', using gnatinspect."
+  ;; This will in general return a list of references, so we use
+  ;; `compilation-start' to run gnatinspect, so the user can navigate
+  ;; to each result in turn via `next-error'.
+  (gnat-inspect-compilation identifier file line col "refs" 'gnat-inspect-ident-file-scope))
+
 (defun gnat-inspect-parents (identifier file line col)
   "For `ada-xref-parent-function', using gnatinspect."
   ;; This will in general return a list of references, so we use
   ;; `compilation-start' to run gnatinspect, so the user can navigate
   ;; to each result in turn via `next-error'.
-  (gnat-inspect-compilation identifier file line col "parent_types"))
+  (gnat-inspect-compilation identifier file line col "parent_types" 'gnat-inspect-ident-file))
 
 (defun gnat-inspect-overriding (identifier file line col)
   "For `ada-xref-overriding-function', using gnatinspect."
   ;; This will in general return a list of references, so we use
   ;; `compilation-start' to run gnatinspect, so the user can navigate
   ;; to each result in turn via `next-error'.
-  (gnat-inspect-compilation identifier file line col "overridden_recursive"))
+  (gnat-inspect-compilation identifier file line col "overridden_recursive" 'gnat-inspect-ident-file))
 
 (defun gnat-inspect-goto-declaration (other-window)
   "Move to the declaration or body of the identifier around point.
@@ -245,7 +291,7 @@ buffer in another window."
     (define-key map "\C-c\C-d" 'gnat-inspect-goto-declaration)
     ;; FIXME: (define-key map "\C-c\M-d" 'gnat-inspect-parents)
     ;; FIXME: overriding
-    (define-key map "\C-c\C-r" 'gnat-inspect-all-references)
+    (define-key map "\C-c\C-r" 'gnat-inspect-all)
     map
   )  "Local keymap used for GNAT inspect minor mode.")
 
@@ -263,8 +309,6 @@ Enable mode if ARG is positive"
 ;;;;; support for Ada mode
 
 (defun ada-gnat-inspect-select-prj ()
-  (setq ada-xref-tool 'gnat-inspect)
-
   (setq ada-file-name-from-ada-name 'ada-gnat-file-name-from-ada-name)
   (setq ada-ada-name-from-file-name 'ada-gnat-ada-name-from-file-name)
   (setq ada-make-package-body       'ada-gnat-make-package-body)
@@ -275,6 +319,7 @@ Enable mode if ARG is positive"
   ;; indent function list.
   (add-hook 'ada-mode-hook 'ada-gnat-inspect-setup t)
 
+  (setq ada-xref-all-function        'gnat-inspect-all)
   (setq ada-xref-other-function      'gnat-inspect-other)
   (setq ada-xref-parent-function     'gnat-inspect-parents)
   (setq ada-xref-all-function        'gnat-inspect-all)
@@ -284,11 +329,6 @@ Enable mode if ARG is positive"
   )
 
 (defun ada-gnat-inspect-deselect-prj ()
-  ;; We don't clear this here; the current value is the default,
-  ;; possibly overridden by a project.
-  ;;
-  ;; (setq ada-xref-tool nil)
-
   (setq ada-file-name-from-ada-name nil)
   (setq ada-ada-name-from-file-name nil)
   (setq ada-make-package-body       nil)
@@ -329,7 +369,9 @@ Enable mode if ARG is positive"
 (provide 'gnat-inspect)
 
 (add-to-list 'compilation-error-regexp-alist-alist
-	     (cons 'gnat-inspect-ident-file gnat-inspect-ident-file-regexp-alist))
+	     (cons 'gnat-inspect-ident-file       gnat-inspect-ident-file-regexp-alist))
+(add-to-list 'compilation-error-regexp-alist-alist
+	     (cons 'gnat-inspect-ident-file-scope gnat-inspect-ident-file-scope-regexp-alist))
 
 (ada-gnat-inspect)
 

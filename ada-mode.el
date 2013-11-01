@@ -853,16 +853,13 @@ when interactive, user is prompted to choose a file from project variable casing
 	   (file-name file-name)
 
 	   (casing
-	    (if (called-interactively-p 'any)
-		;; FIXME (later): not tested yet
-		(completing-read "case exception file: " casing
-				 nil ;; predicate
-				 t   ;; require-match
-				 nil ;; initial-input
-				 nil ;; hist
-				 (car casing) ;; default
-				 )
-	      (car casing)))
+	    (completing-read "case exception file: " casing
+			     nil ;; predicate
+			     t   ;; require-match
+			     nil ;; initial-input
+			     nil ;; hist
+			     (car casing) ;; default
+			     ))
 	   (t
 	    (error
 	     "No exception file specified. See variable `ada-case-exception-file'")))
@@ -1397,6 +1394,12 @@ Indexed by project variable xref_tool.")
     (when func (funcall func)))
 
   (setq ada-prj-current-file prj-file)
+
+  ;; Project file should fully specify what compilers are used,
+  ;; including what compilation filters they need. There may be more
+  ;; than just an Ada compiler.
+  (setq compilation-error-regexp-alist nil)
+  (setq compilation-filter-hook nil)
 
   (when (ada-prj-get 'el_file)
     (load-file (ada-prj-get 'el_file)))

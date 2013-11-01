@@ -504,18 +504,21 @@ Prompt user if more than one."
 ;;;;; setup
 
 (defun ada-gnat-compile-select-prj ()
-  (setq ada-compiler 'gnat)
   (setq ada-fix-error-hook 'ada-gnat-fix-error-hook)
   (add-to-list 'completion-ignored-extensions ".ali") ;; gnat library files
+
+  (add-hook 'compilation-filter-hook 'ada-gnat-compilation-filter)
+
+  ;; ada-mode.el project file parser sets this to other compilers used
+  ;; in the project, so we only add here.
+  (add-to-list 'compilation-error-regexp-alist 'gnat)
   )
 
 (defun ada-gnat-compile-deselect-prj ()
-  ;; We don't clear this here; the current value is the default,
-  ;; possibly overridden by a project.
-  ;; (setq ada-compiler nil)
-
   (setq ada-fix-error-hook nil)
   (setq completion-ignored-extensions (delete ".ali" completion-ignored-extensions))
+  (setq compilation-filter-hook (delete 'ada-gnat-compilation-filter compilation-filter-hook))
+  (setq compilation-error-regexp-alist (delete 'gnat compilation-error-regexp-alist))
   )
 
 (defun ada-gnat-compile ()

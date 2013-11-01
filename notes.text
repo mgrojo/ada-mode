@@ -67,10 +67,7 @@ implement C++ C-c ? children
     child_types_recursive
         works
 
-unify gnat-xref with ada-mode
-    add Ada, C++ tests of gnat-xref
-
-    /home/Projects/org.emacs.ada-mode.stephe-1/gnat-xref.el
+add Ada, C++ tests of xref
     /home/Projects/GDS/work_stephe_2/dscovr/build/x86_gnu_linux_release/Makefile
     /home/Projects/GDS/work_stephe_2/common/itc/opsim/itc_dscovr_gdsi/Gds1553/src/Gds1553.cpp
 
@@ -86,9 +83,21 @@ C-F11 fails on #include <Itcsb1553/Itcsb1553.hpp>
 
 need std include files in search list
 
+gnatinspect is slow
+    reads *.ali and *.db for every run
+    slow even with hot cache
+    keep running in "session", use in-memory db?
+
  general
 build/wisi/Makefile
 
+implement 'gnat-inspect-all'
+    /Projects/GDS/work_dscovr_release/common/build/x86_gnu_windows_release/Makefile
+    /Projects/GDS/work_dscovr_release/common/1553/gds-hardware-bus_1553.ads RX_Enable
+    secondary-error in compilation regexp not working
+
+need "show overridden"
+    not same as "parent declarations?"
 
 parser hangs after move code
     but only on very fresh buffer?
