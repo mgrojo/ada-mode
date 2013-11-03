@@ -308,6 +308,7 @@ Values defined by cross reference packages.")
     (define-key map "\C-c\C-d" 	 'ada-goto-declaration)
     (define-key map "\C-c\M-d" 	 'ada-show-declaration-parents)
     (define-key map "\C-c\C-e" 	 '(lambda () (interactive) (funcall ada-expand)))
+    (define-key map "\C-c\C-f" 	 'ada-show-parse-error)
     (define-key map "\C-c\C-i" 	 'ada-indent-statement)
     (define-key map "\C-c\C-m"   'ada-build-set-make)
     (define-key map "\C-c\C-n" 	 'ada-next-statement-keyword)
@@ -320,7 +321,7 @@ Values defined by cross reference packages.")
     (define-key map "\C-c\C-w" 	 'ada-case-adjust-at-point)
     (define-key map "\C-c\C-x"   'ada-show-overriding)
     (define-key map "\C-c\C-y" 	 'ada-case-create-exception)
-    (define-key map "\C-c\C-\M-y" (lambda () (ada-case-create-exception nil nil t)))
+    (define-key map "\C-c\M-y"   'ada-case-create-partial-exception)
     map
   )  "Local keymap used for Ada mode.")
 
@@ -355,6 +356,7 @@ Values defined by cross reference packages.")
     ["Show parent declarations"   ada-show-declaration-parents t]
     ["Show references"            ada-show-references       t]
     ["Show overriding"            ada-show-overriding       t]
+    ["Show overridden"            ada-show-overridden       t]
     ["Show last parse error"      ada-show-parse-error      t]
     ["------"        nil nil]
     ("Edit"
@@ -372,7 +374,7 @@ Values defined by cross reference packages.")
      )
     ("Casing"
      ["Create full exception"       ada-case-create-exception t]
-     ["Create partial exception"    (ada-case-create-exception nil nil t) t]
+     ["Create partial exception"    ada-case-create-partial-exception t]
      ["Adjust case at point"        ada-case-adjust-at-point  t]
      ["Adjust case region"          ada-case-adjust-region    t]
      ["Adjust case buffer"          ada-case-adjust-buffer    t]
@@ -842,17 +844,17 @@ replacing current values of `ada-case-full-exceptions', `ada-case-partial-except
 
 (defun ada-case-create-exception (&optional word file-name partial)
   "Define WORD as an exception for the casing system, save it in FILE-NAME.
-If PARTIAL is non-nil, create a partial word exception.
-WORD defaults to the active region, or the word at point.
-When non-interactive, FILE-NAME defaults to the first file in project variable casing;
-when interactive, user is prompted to choose a file from project variable casing."
+If PARTIAL is non-nil, create a partial word exception.  WORD
+defaults to the active region, or the word at point.  User is
+prompted to choose a file from project variable casing if it is a
+list."
   (interactive)
   (let ((casing (ada-prj-get 'casing)))
     (setq file-name
 	  (cond
 	   (file-name file-name)
 
-	   (casing
+	   ((< 1 (length casing))
 	    (completing-read "case exception file: " casing
 			     nil ;; predicate
 			     t   ;; require-match
@@ -860,6 +862,9 @@ when interactive, user is prompted to choose a file from project variable casing
 			     nil ;; hist
 			     (car casing) ;; default
 			     ))
+	   ((= 1 (length casing))
+	    (car casing))
+
 	   (t
 	    (error
 	     "No exception file specified. See variable `ada-case-exception-file'")))
@@ -895,6 +900,12 @@ when interactive, user is prompted to choose a file from project variable casing
 	     word
 	     file-name)
     ))
+
+(defun ada-case-create-partial-exception ()
+  "Define active region or word at point as a partial word exception.
+User is prompted to choose a file from project variable casing if it is a list."
+  (interactive)
+  (ada-case-create-exception nil nil t))
 
 (defun ada-in-numeric-literal-p ()
   "Return t if point is after a prefix of a numeric literal."
@@ -1953,11 +1964,31 @@ Displays a buffer in compilation-mode giving locations of the overriding declara
 	   (ada-identifier-at-point)
 	   (file-name-nondirectory (buffer-file-name))
 	   (line-number-at-pos)
-	   (cl-case (char-after)
-	     ;; FIXME: point may not be at start of identifier, not needed for all compilers: move to ada-gnat
-	     ;; to work around bug in gnat find
-	     (?\" (+ 2 (current-column)))
-	     (t (1+ (current-column)))))
+	   (1+ (current-column)))
+  )
+
+(defvar ada-xref-overridden-function nil
+  ;; determined by ada-xref-tool, set by *-select-prj
+  "Function that displays cross reference information for overridden subprogram.
+Called with four arguments:
+- an Ada identifier or operator_symbol
+- filename containing the identifier
+- line number containing the identifier
+- column of the start of the identifier
+Moves point to the location of the overridden declaration.")
+
+(defun ada-show-overridden ()
+  "Show the overridden declaration of identifier at point."
+  (interactive)
+
+  (when (null ada-xref-overridden-function)
+    (error "no cross reference information available"))
+
+  (funcall ada-xref-overridden-function
+	   (ada-identifier-at-point)
+	   (file-name-nondirectory (buffer-file-name))
+	   (line-number-at-pos)
+	   (1+ (current-column)))
   )
 
 ;; This is autoloaded because it may be used in ~/.emacs

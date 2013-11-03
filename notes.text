@@ -51,6 +51,10 @@ c:/Apps/GNAT-7.1.2/gnatcoll-1.6w-src/src/tools/gnatinspect.adb
 (require 'gpr-mode)
 (gpr-set-as-project "c:/Apps/GNAT-7.1.2/gnatcoll-1.6w-src/src/gnatcoll_tools.gpr")
 (browse-url "file:///c:/Apps/GNAT-7.1.2/gnatcoll-1.6w-src/docs/_build/html/xref.html")
+gnatinspect verbosity in .gnatdebug:
+-- Projects
+-- ENTITIES.PARSING
+
 
 implement C++ C-c M-d parent
     just need key, menu
@@ -86,18 +90,45 @@ need std include files in search list
 gnatinspect is slow
     reads *.ali and *.db for every run
     slow even with hot cache
-    keep running in "session", use in-memory db?
+    keep running in "session": should be way faster (is in shell mode)
+        then need to manage db refresh
+
+    or just forgot -nightlydb? does it reuse default db if it exists?
+        no faster with it.
 
  general
 build/wisi/Makefile
+
+before/after change has race condition between jit-lock-after-change and wisi-after-change
+    to reproduce:
+        open Ada file
+        cut block of code containing a whole statement
+        move elsewhere that it will be legal
+        paste block
+        parser called by jit-lock hangs due to garbled cached markers
+        doesn't happen if font-lock is off
+
+    can disable/enable jit-lock in wisi-before/after-change to avoid hang
+        but sometimes it's not re-enabled!?
+
+    can't even figure out how to not use jit-lock
+        trace find-file; see when font-lock, jit-lock are enabled
+
+    ok if jit-lock-after-change is after wisi-after-change?
+        that should be the default, but sometimes it's not
+        just check for that in wisi-before-change
 
 implement 'gnat-inspect-all'
     /Projects/GDS/work_dscovr_release/common/build/x86_gnu_windows_release/Makefile
     /Projects/GDS/work_dscovr_release/common/1553/gds-hardware-bus_1553.ads RX_Enable
     secondary-error in compilation regexp not working
+        highlight can't be a function
+
+    change ada-show-secondary-error to parse line, col from text, not text-property?
 
 need "show overridden"
     not same as "parent declarations?"
+    gnatinspect failing; no results? try again
 
 parser hangs after move code
     but only on very fresh buffer?

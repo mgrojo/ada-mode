@@ -1416,7 +1416,7 @@
         (wisi-statement-action 1 'statement-start 2 'block-middle 4 'block-middle 6 'block-middle 8 'block-end 10 'statement-end)
         (wisi-containing-action 4 5)
         (wisi-containing-action 6 7)
-        (wisi-motion-action 2 4 6 8))))
+        (wisi-motion-action 1 2 4 6 8))))
       (subprogram_body_stub
        ((overriding_indicator_opt subprogram_specification IS SEPARATE aspect_specification_opt SEMICOLON )
         (wisi-statement-action 1 'statement-start 2 'block-middle 6 'statement-end)))

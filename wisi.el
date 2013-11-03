@@ -313,6 +313,7 @@ wisi-forward-token, but does not look up symbol."
   "Non-nil when parse is needed - cleared when parse succeeds.")
 
 (defvar-local wisi-change-need-invalidate nil)
+(defvar-local wisi-change-jit-lock-mode nil)
 
 (defun wisi-invalidate-cache()
   "Invalidate the wisi token cache for the current buffer.
@@ -327,6 +328,15 @@ Also invalidate the Emacs syntax cache."
 (defun wisi-before-change (begin end)
   "For `before-change-functions'."
   ;; begin . end is range of text being deleted
+  (when (boundp 'jit-lock-mode)
+    (when (memq 'wisi-after-change (memq 'jit-lock-after-change after-change-functions))
+      ;; detect if jit-lock-after-change is before wisi-after-change in after-change-functions; reverse it
+      ;; FIXME: need a better way
+      (setq after-change-functions (delete 'wisi-after-change after-change-functions))
+      (add-hook 'after-change-functions 'wisi-after-change nil t)
+      (setq wisi-change-jit-lock-mode (1+ wisi-change-jit-lock-mode)))
+    )
+
   (save-excursion
     ;; don't invalidate parse for whitespace, string, or comment changes
     (let (;; (info "(elisp)Parser State")
@@ -640,18 +650,19 @@ list (number (token_id token_id)):
 	   ((numberp token-number)
 	    (setq target-token nil)
 	    (setq region (cddr (nth (1- token-number) wisi-tokens)))
-	    (setq cache (wisi-get-cache (car region)))
-	    (setq mark (copy-marker (1+ (car region))))
+	    (when region
+	      (setq cache (wisi-get-cache (car region)))
+	      (setq mark (copy-marker (1+ (car region))))
 
-	    (when (and prev-keyword-mark
-		       cache
-		       (null (wisi-cache-prev cache)))
-	      (setf (wisi-cache-prev cache) prev-keyword-mark)
-	      (setf (wisi-cache-next prev-cache) mark))
+	      (when (and prev-keyword-mark
+			 cache
+			 (null (wisi-cache-prev cache)))
+		(setf (wisi-cache-prev cache) prev-keyword-mark)
+		(setf (wisi-cache-next prev-cache) mark))
 
-	    (setq prev-keyword-mark mark)
-	    (setq prev-cache cache)
-	    )
+	      (setq prev-keyword-mark mark)
+	      (setq prev-cache cache)
+	      ))
 
 	   ((listp token-number)
 	    ;; token-number may contain 0, 1, or more token_id; token_id may be a list
@@ -662,7 +673,7 @@ list (number (token_id token_id)):
 	      (setq target-token (list target-token)))
 	    (setq token-number (car token-number))
 	    (setq region (cddr (nth (1- token-number) wisi-tokens)))
-	    (when region
+	    (when region ;; not an empty token
 	      (goto-char (car region))
 	      (while (wisi-forward-find-token target-token (cdr region) t)
 		(setq cache (wisi-get-cache (point)))
@@ -676,7 +687,7 @@ list (number (token_id token_id)):
 
 		(wisi-forward-token);; don't find same token again
 		))
-	    )
+	      )
 
 	   (t
 	    (error "unexpected token-number %s" token-number))
@@ -869,12 +880,14 @@ Return start cache."
     ))
 
 (defun wisi-next-statement-cache (cache)
-  "Move point to CACHE-next; no motion if nil."
-  (when (markerp (wisi-cache-next cache))
-    (goto-char (1- (wisi-cache-next cache)))))
+  "Move point to CACHE-next, return cache; error if nil."
+  (when (not (markerp (wisi-cache-next cache)))
+    (error "no next statement cache"))
+  (goto-char (1- (wisi-cache-next cache)))
+  (wisi-get-cache (point)))
 
 (defun wisi-prev-statement-cache (cache)
-  "Move point to CACHE-next, return cache; error motion if nil."
+  "Move point to CACHE-next, return cache; error if nil."
   (when (not (markerp (wisi-cache-prev cache)))
     (error "no prev statement cache"))
   (goto-char (1- (wisi-cache-prev cache)))
@@ -1031,6 +1044,9 @@ correct. Must leave point at indentation of current line.")
   (syntax-propertize (point-max))
 
   (wisi-invalidate-cache)
+
+  ;; FIXME: debug counter
+  (setq wisi-change-jit-lock-mode 0)
   )
 
 (provide 'wisi)

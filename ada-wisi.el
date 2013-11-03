@@ -1093,14 +1093,21 @@ Also return cache at start."
 	   ;;        Standard.Float
 	   ;;    is -- target 1
 	   ;;    want target 1
+	   ;;
+	   ;; 3) test/ada_mode-nominal-child.adb
+	   ;;    overriding <point> function Function_2c (Param : in Child_Type_1)
+	   ;;                                    return Float
+	   ;;    is -- target Function_2c
+	   ;;    want target
 
 	   (if first
 	       ;; case 1
 	       (setq cache (wisi-goto-containing cache t))
-	     ;; case 2
+	     ;; case 2, 3
 	     (cl-case (wisi-cache-nonterm cache)
 	       (subprogram_body
-		(setq cache (wisi-goto-cache-next cache)))
+		(while (not (eq 'IS (wisi-cache-token cache)))
+		  (setq cache (wisi-next-statement-cache cache))))
 	       (t
 		(setq cache (wisi-goto-containing cache t)))
 	       )))

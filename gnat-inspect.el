@@ -35,6 +35,19 @@
   "Minor mode for navigating sources using GNAT cross reference tool `gnatinspect'."
   :group 'languages)
 
+(defconst gnat-inspect-ident-file-regexp
+  "\\(.*\\):\\(.*\\):\\([0123456789]+\\):\\([0123456789]+\\)"
+  "Regexp matching <identifier>:<file>:<line>:<column>")
+
+(defconst gnat-inspect-ident-file-regexp-alist
+  ;; Write_Message:C:\Projects\GDS\work_dscovr_release\common\1553\gds-mil_std_1553-utf.ads:252:25
+  (list (concat "^" gnat-inspect-ident-file-regexp) 2 3 4)
+  "For compilation-error-regexp-alist, matching `gnatinspect overriding_recursive' output")
+
+(defconst gnat-inspect-ident-file-type-regexp
+  (concat gnat-inspect-ident-file-regexp " (\\(.*\\))")
+  "Regexp matching <identifier>:<file>:<line>:<column> (<type>)")
+
 (defun gnat-inspect-dist (found-line line found-col col)
   "Return non-nil if found-line, -col is closer to line, col than min-distance."
   (+ (abs (- found-line line))
@@ -56,7 +69,6 @@
 			 (or (ada-prj-get 'gnat_inspect_gpr_file)
 			     (ada-prj-get 'gpr_file))))
 	  (arg (format "%s:%s:%d:%d" identifier (file-name-nondirectory file) line col))
-	  (regexp "\\(.*\\):\\(.*\\):\\([0-9]+\\):\\([0-9]+\\) (\\(.*\\))")
 	  (decl-loc nil)
 	  (body-loc nil)
 	  (search-type nil)
@@ -96,7 +108,7 @@
 
       (while (not (eobp))
 	(cond
-	 ((looking-at regexp)
+	 ((looking-at gnat-inspect-ident-file-type-regexp)
 	  ;; process line
 	  (let* ((found-file (file-name-nondirectory (match-string 2)))
 		 (found-line (string-to-number (match-string 3)))
@@ -163,27 +175,6 @@
       (message "parsing result ... done")
       result)))
 
-(defconst gnat-inspect-ident-file-regexp
-  ".*:\\(.*\\):\\([0123456789]+\\):\\([0123456789]+\\)"
-  "Regexp matching <idendifier>:<file>:<line>:<column>")
-
-(defconst gnat-inspect-ident-file-regexp-alist
-  ;; Write_Message:C:\Projects\GDS\work_dscovr_release\common\1553\gds-mil_std_1553-utf.ads:252:25
-  (list (concat "^" gnat-inspect-ident-file-regexp) 1 2 3)
-  "For compilation-error-regexp-alist, matching `gnatinspect overriding_recursive' output")
-
-(defun gnat-inspect-scope-secondary-error ()
-  "Return ada-secondary-error 'face' value for compilation-error-regexp-alist submatch"
-  (list
-   'face
-   compilation-info-face
-   'ada-secondary-error
-   (list
-    file
-    (string-to-number (match-string-no-properties 5)); line
-    (string-to-number (match-string-no-properties 6)) ;; column
-    )))
-
 (defconst gnat-inspect-ident-file-scope-regexp-alist
   ;; RX_Enable:C:\common\1553\gds-hardware-bus_1553-raw_read_write.adb:163:13 (write reference) scope=New_Packet_TX:C:\common\1553\gds-hardware-bus_1553-raw_read_write.adb:97:14
 
@@ -191,16 +182,20 @@
 	 gnat-inspect-ident-file-regexp
 	 " (.*) "
 	 "scope="
-;;	 gnat-inspect-ident-file-regexp
+	 gnat-inspect-ident-file-regexp
 	 )
 	1 2 3 ;; file line column
-	;; 1 ;; hyperlink
-	;;(list 4 'gnat-inspect-scope-secondary-error)
+	;; 2 ;; type = error
+	;; nil ;; hyperlink
+	;; (list 4 'gnat-inspect-scope-secondary-error)
 	)
   "For compilation-error-regexp-alist, matching `gnatinspect refs' output")
 
 ;; debugging:
-;; (setq compilation-error-regexp-alist-alist (cons 'gnat-inspect-ident-file-scope gnat-inspect-ident-file-scope-regexp-alist))
+;; (setq compilation-error-regexp-alist-alist (list (cons 'gnat-inspect-ident-file-scope gnat-inspect-ident-file-scope-regexp-alist)))
+;;
+;; in *compilation-gnatinspect-ref*, run
+;; (progn (set-text-properties (point-min)(point-max) nil)(compilation-parse-errors (point-min)(point-max)))
 
 (defun gnat-inspect-compilation (identifier file line col cmd comp-err)
   "Run gnatinspect identifier:file:line:col cmd, in compilation-mode.
@@ -228,13 +223,13 @@ Uses a separate compilation buffer to run gnatinspect, with
 	    (compilation-error "reference")
 	    (compilation-mode-hook
 	     (lambda ()
-	       (set (make-local-variable 'compilation-filter) nil)
+	       (set (make-local-variable 'compilation-filter-hook) nil)
 	       (set (make-local-variable 'compilation-error-regexp-alist) (list comp-err))
 	       )))
 
 	(compilation-start cmd-1
 			   'compilation-mode
-			   (lambda (mode-name) (concat mode-name "-gnatinspect-" cmd)))
+			   (lambda (mode-name) (concat "*" mode-name "-gnatinspect-" cmd "*")))
 	)
       )))
 
@@ -258,6 +253,56 @@ Uses a separate compilation buffer to run gnatinspect, with
   ;; `compilation-start' to run gnatinspect, so the user can navigate
   ;; to each result in turn via `next-error'.
   (gnat-inspect-compilation identifier file line col "overridden_recursive" 'gnat-inspect-ident-file))
+
+(defun gnat-inspect-overridden-1 (identifier file line col)
+  "For `ada-xref-overridden-function', using gnatinspect."
+  (unless (or (ada-prj-get 'gnat_inspect_gpr_file)
+			     (ada-prj-get 'gpr_file))
+    (error "no gnat project file defined."))
+
+  (when (eq ?\" (aref identifier 0))
+    ;; gnatinspect wants the quotes stripped
+    (setq col (+ 1 col))
+    (setq identifier (substring identifier 1 (1- (length identifier))))
+    )
+
+  (with-current-buffer (gnat-run-buffer)
+    (let ((project-file (file-name-nondirectory
+			 (or (ada-prj-get 'gnat_inspect_gpr_file)
+			     (ada-prj-get 'gpr_file))))
+	  (arg (format "%s:%s:%d:%d" identifier (file-name-nondirectory file) line col))
+	  (result nil))
+
+      ;; 'gnatinspect overridden' doesn't work; sigh.
+
+      (when (null result)
+	(pop-to-buffer (current-buffer))
+	(error "gnatinspect did not return overridden declaration"))
+
+      (message "parsing result ... done")
+      result)))
+
+(defun gnat-inspect-overridden (other-window)
+  "Move to the overridden declaration of the identifier around point.
+If OTHER-WINDOW (set by interactive prefix) is non-nil, show the
+buffer in another window."
+  (interactive "P")
+
+  (let ((target
+	 (gnat-inspect-overridden-1
+	  (thing-at-point 'symbol)
+	  (buffer-file-name)
+	  (line-number-at-pos)
+	  (save-excursion
+	    (goto-char (car (bounds-of-thing-at-point 'symbol)))
+	    (1+ (current-column)))
+	  )))
+
+    (ada-goto-source (nth 0 target)
+		     (nth 1 target)
+		     (nth 2 target)
+		     other-window)
+    ))
 
 (defun gnat-inspect-goto-declaration (other-window)
   "Move to the declaration or body of the identifier around point.
@@ -324,6 +369,7 @@ Enable mode if ARG is positive"
   (setq ada-xref-parent-function     'gnat-inspect-parents)
   (setq ada-xref-all-function        'gnat-inspect-all)
   (setq ada-xref-overriding-function 'gnat-inspect-overriding)
+  (setq ada-xref-overridden-function 'gnat-inspect-overridden-1)
 
   (add-to-list 'completion-ignored-extensions ".ali") ;; gnat library files, used for cross reference
   )

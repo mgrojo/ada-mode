@@ -210,11 +210,13 @@ Assumes current buffer is (gnat-run-buffer)"
 
   (setq command (cl-delete-if 'null command))
 
-  (insert (format "GPR_PROJECT_PATH=%s\n%s " (getenv "GPR_PROJECT_PATH") exec)); for debugging
-  (mapc (lambda (str) (insert (concat str " "))) command); for debugging
-  (newline)
   (let ((process-environment (ada-prj-get 'proc_env)) ;; for GPR_PROJECT_PATH
 	status)
+
+    (insert (format "GPR_PROJECT_PATH=%s\n%s " (getenv "GPR_PROJECT_PATH") exec)); for debugging
+    (mapc (lambda (str) (insert (concat str " "))) command); for debugging
+    (newline)
+
     (setq status (apply 'call-process exec nil t nil command))
     (cond
      ((memq status (or expected-status '(0))); success

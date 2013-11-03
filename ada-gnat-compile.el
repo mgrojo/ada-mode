@@ -414,6 +414,23 @@ Prompt user if more than one."
 	     (insert "pragma Unreferenced (" param ");"))
 	   t)
 
+	  ((looking-at (concat "warning: formal parameter " ada-gnat-quoted-name-regexp " is not modified"))
+	   (let ((param (match-string 1))
+		 (mode-regexp "\"\\([in out]+\\)\"")
+		 new-mode
+		 old-mode)
+	     (forward-line 1)
+	     (search-forward-regexp
+	      (concat "mode could be " mode-regexp " instead of " mode-regexp))
+	     (setq new-mode (match-string 1))
+	     (setq old-mode (match-string 2))
+	     (pop-to-buffer source-buffer)
+	     (search-forward old-mode)
+	     (replace-match new-mode)
+	     (ada-align)
+	     )
+	   t)
+
 	  ((or
 	    (looking-at (concat "warning: no entities of " ada-gnat-quoted-name-regexp " are referenced$"))
 	    (looking-at (concat "warning: unit " ada-gnat-quoted-name-regexp " is never instantiated$"))
