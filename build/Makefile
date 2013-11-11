@@ -1,4 +1,4 @@
-# Build info version of Ada RM, orig.tar.gz for Debian package, and tar.gz for my web page
+# Build info version of Ada RM, and tar.gz for my web page
 
 # see ../README.txt for list of things to change when scribe or Ada source changes.
 #
@@ -8,10 +8,8 @@ BUILDER_OPTIONS := -k
 ADAFLAGS        :=
 LDFLAGS         :=
 
-DEBIAN_VERSION := 2012.2
 ZIP_DATE       := 20130312
 
-# debian-free is _not_ in all
 #all : source_scribe_2005.stamp
 all : html info TXT publish
 # pdf not in 'all' because may not have tools installed
@@ -114,43 +112,16 @@ publish-zip : arm_info-$(ZIP_DATE)-src.tar.gz
 arm_info-$(ZIP_DATE)-src.tar.gz :
 	tar zcf arm_info-$(ZIP_DATE)-src.tar.gz -C ../.. --exclude "*~" --exclude "*.dvi" --exclude "*.gz" --exclude "*.info" --exclude "*.log" --exclude "*.pdf" --exclude "*.ps" --exclude "*.texinfo" --exclude "*.toc" --exclude "*.stamp" --exclude "*.zip" --exclude html --exclude objects --exclude txt --exclude arm_form.exe --exclude _MTN --exclude .mtn-ignore --exclude=.dvc-exclude org.adaic.arm_form
 
-# starting from a mtn checkout of org.adaic.arm_form, generate the Debian source tarball, set up for building Debian package
-# ../../ada-reference-manual-2012.1-current/ada-reference-manual-2012.1/debian/rules
-debian-free : debian-clean debian-update
-	mtn checkout --branch org.debian.ada-reference-manual ../../ada-reference-manual-$(DEBIAN_VERSION)-current/ada-reference-manual-$(DEBIAN_VERSION)
-	cd ../../ada-reference-manual-$(DEBIAN_VERSION)-current; tar jxf ada-reference-manual_$(DEBIAN_VERSION).orig.tar.bz2
-
-debian-zip : ada-reference-manual_$(DEBIAN_VERSION).orig.tar.bz2
-
-# we include the 2005 scribe source in the Debian tarball; simpler than including 2005-SRC.zip
-ada-reference-manual_$(DEBIAN_VERSION).orig.tar.bz2 : source_scribe_2005.stamp
-	rm -rf ../../ada-reference-manual-$(DEBIAN_VERSION)
-	mtn checkout --branch org.adaic.arm_form ../../ada-reference-manual-$(DEBIAN_VERSION)
-	cp -r ../source_2005 ../../ada-reference-manual-$(DEBIAN_VERSION)
-	tar -c -O  -C ../.. --exclude _MTN --exclude .mtn-ignore --no-anchor ada-reference-manual-$(DEBIAN_VERSION) | bzip2 -9 > ada-reference-manual_$(DEBIAN_VERSION).orig.tar.bz2
-
-debian-update : ada-reference-manual_$(DEBIAN_VERSION).orig.tar.bz2
-debian-update : | ../../ada-reference-manual-$(DEBIAN_VERSION)-current
-	cp $^ ../../ada-reference-manual-$(DEBIAN_VERSION)-current/
-
-debian-clean :
-	rm ada-reference-manual_$(DEBIAN_VERSION).orig.tar.bz2
-	rm -rf ../../ada-reference-manual-$(DEBIAN_VERSION)-current
-
-../../ada-reference-manual-$(DEBIAN_VERSION)-current :
-	mkdir -p $@
-
 # This retrieves CVS HEAD, for both Ada and Scribe source, for the
 # next Ada version (dvc-status "../../org.adaic.arm_form.upstream")
 #
 update-upstream : source_ada.clean source_scribe.clean source_ada.stamp source_scribe.stamp
 
 # We do not convert to unix line endings here to minimize the diff
-# with upstream; the Ada compiler on Debian can handle DOS line
-# endings.
+# with upstream; the Ada compiler can handle DOS line endings.
 source_ada.stamp :
-	rm -rf ../../org.adaic.arm_form.upstream/progse
-	cd ../../org.adaic.arm_form.upstream; python3 ../org.adaic.arm_form/build/download.py progse
+	rm -rf ../../org.adaic.arm_form.upstream/progs
+	cd ../../org.adaic.arm_form.upstream; python3 ../org.adaic.arm_form/build/download.py progs
 	touch source_ada.stamp
 
 source_ada.clean :
@@ -165,7 +136,6 @@ source_ada.clean :
 source_scribe.stamp :
 	rm -rf ../../org.adaic.arm_form.upstream/source
 	cd ../../org.adaic.arm_form.upstream; python3 ../org.adaic.arm_form/build/download.py source
-	cd ../../org.adaic.arm_form.upstream/source; dos2unix -f *.MSS *.mss *.msm
 	touch source_scribe.stamp
 
 source_scribe.clean :
