@@ -75,7 +75,8 @@ project ARM_Info is
         "-gnatVa",
         "-gnatwaCeFKLMP",
         "-fstack-check",
-        "-gnatybefip");
+        "-gnatybefip")
+       & External_As_List ("ADAFLAGS", " ");
   end Compiler;
 
   package Binder is
@@ -86,9 +87,11 @@ project ARM_Info is
       for Default_Switches ("Ada") use ("-C");
 
       --  We use ".exe" extension even on non-Windows, to simplify the makefiles.
-      for Executable_Suffix use ".exe";
-
-      for Switches ("ARM_FORM.ADA") use ("-o", "arm_form.exe");
+      for Executable ("arm_form.adb") use "arm_form.exe";
    end Builder;
+
+  package Linker is
+     for Default_Switches ("Ada") use External_As_List ("LDFLAGS", " ");
+  end Linker;
 
 end ARM_Info;

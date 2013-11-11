@@ -4,6 +4,10 @@
 #
 # Cygwin texi2dvi (GNU Texinfo 4.13) 1.135 fails silently!
 
+BUILDER_OPTIONS := -k
+ADAFLAGS        :=
+LDFLAGS         :=
+
 DEBIAN_VERSION := 2012.2
 ZIP_DATE       := 20130312
 
@@ -91,7 +95,7 @@ txt/aarm2005/AA-TOC.TXT : arm_form.exe | txt/aarm2005 ../source_2005/output
 	mv ../source_2005/output/* txt/aarm2005
 
 arm_form.exe : force
-	gnatmake -p -k -P arm_info.gpr
+	gnatmake -p $(BUILDER_OPTIONS) -P arm_info.gpr $(foreach var,ADAFLAGS LDFLAGS,"-X$(var)=$($(var))")
 
 trace :
 	addr2line -e arm_form.exe 0x5c12e7 0x5c598e 0x43e05b 0x446c5b 0x448369 0x545205 0x4e9221 0x4e3b1a 0x5831a1 0x5ad295 0x5adee9 0x4cb3f5 0x401850 0x401235 0x401286 0x7c817075
