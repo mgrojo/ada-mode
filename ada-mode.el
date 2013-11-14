@@ -1683,6 +1683,7 @@ other file.")
 
 (defun ada-which-function ()
   "See `ada-which-function' variable."
+  (interactive)
   (when ada-which-function
     (funcall ada-which-function)))
 

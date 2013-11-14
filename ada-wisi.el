@@ -593,7 +593,7 @@ cached token, return new indentation for point."
 	0)
 
      (t
-      (while (memq (wisi-cache-class cache) '(name type))
+      (while (memq (wisi-cache-class cache) '(name name-paren type))
 	;; not useful for indenting
 	(setq cache (wisi-backward-cache)))
 
@@ -700,22 +700,6 @@ cached token, return new indentation for point."
 		   (wisi-indent-paren 1))
 		  ))
 	       ))))
-
-	(name-paren
-	 (save-excursion
-	   (let ((start-pos (point))
-		 (containing (wisi-goto-containing cache)))
-	   (while (eq (wisi-cache-class containing) 'statement-other)
-	     (setq containing (wisi-goto-containing containing)))
-
-	   (cl-ecase (wisi-cache-class containing)
-	     (statement-start
-	      ;; ada_mode-generic_instantiation.ads
-	      ;; procedure Procedure_4 is new Instance.
-	      ;;   Generic_Procedure (Integer, Function_1);
-	      ;; indenting 'Generic_Procedure'
-	      (ada-wisi-indent-cache ada-indent-broken cache))
-	     ))))
 
 	(open-paren
 	 ;; 1) A parenthesized expression, or the first item in an aggregate:

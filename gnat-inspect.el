@@ -35,6 +35,105 @@
   "Minor mode for navigating sources using GNAT cross reference tool `gnatinspect'."
   :group 'languages)
 
+;;;;; sessions
+
+;; gnatinspect reads the project files and the database at startup,
+;; which is noticeably slow for a reasonably sized project. But
+;; running queries after startup is fast. So we leave gnatinspect
+;; running, and send it new queries via stdin, getting responses via
+;; stdout.
+;;
+;; We maintain a cache of active sessions, one per gnat project.
+
+(defstruct (gnat-inspect--session)
+  (process nil) ;; running gnatinspect
+  (buffer nil)  ;; receives output of gnatinspect
+  (sent-kill-p nil)
+  (closed-p nil))
+
+(defconst gnat-inspect-buffer-name-prefix " *gnatinspect-")
+
+(defun gnat-inspect--start-process (session)
+  "Start the session process running gnatinspect."
+  (unless (buffer-live-p (gnat-inspect--session-buffer session))
+    ;; user may have killed buffer
+    (setf (gnat-inspect--session-buffer session) (gnat-run-buffer gnat-inspect-buffer-name-prefix)))
+
+  (with-current-buffer (gnat-inspect--session-buffer session)
+    (let ((process-environment (ada-prj-get 'proc_env)) ;; for GPR_PROJECT_PATH
+	  (project-file (file-name-nondirectory
+			 (or (ada-prj-get 'gnat_inspect_gpr_file)
+			     (ada-prj-get 'gpr_file)))))
+      (setf (gnat-inspect--session-process session)
+	    (start-process (concat "gnatinspect " (buffer-name))
+			   (gnat-inspect--session-buffer session)
+			   "gnatinspect"
+			   (concat "--project=" project-file)))
+      )))
+
+(defun gnat-inspect--make-session ()
+  "Create and return a session for the current project file."
+  (let ((session
+	 (make-gnat-inspect--session
+	  :buffer (gnat-run-buffer gnat-inspect-buffer-name-prefix))))
+    (gnat-inspect--start-process session)
+    session))
+
+(defvar gnat-inspect--sessions '()
+  "Assoc list of sessions, indexed by absolute GNAT project file name.")
+
+(defun gnat-inspect-cached-session ()
+  "Return a session for the current project file, creating it if necessary."
+  (let* ((session (cdr (assoc ada-prj-current-file gnat-inspect--sessions))))
+    (if session
+	(progn
+	  (unless (process-live-p (gnat-inspect--session-process session))
+	    (gnat-inspect--start-process session))
+	  session)
+      ;; else
+      (prog1
+          (setq session (gnat-inspect--make-session))
+	(setq gnat-inspect--sessions
+	      (acons ada-prj-current-file session gnat-inspect--sessions))))
+    ))
+
+(defconst gnat-inspect-prompt ">>>"
+  "Regexp matching gnatinspect prompt; indicates previous command is complete.")
+
+(defun gnat-inspect-session-wait (session)
+  "Wait for the current command to complete."
+  (with-current-buffer (gnat-inspect--session-buffer session)
+    (let ((process (gnat-inspect--session-process session))
+	  (search-start (point-min))
+	  (wait-count 0))
+      (while (progn
+	       ;; process output is inserted before point, so move back over it to search it
+	       (goto-char search-start)
+	       (not (re-search-forward gnat-inspect-prompt (point-max) 1)));; don't search same text again
+	(setq search-start (point))
+	(message (concat "running gnatinspect ..." (make-string wait-count ?.)))
+	(accept-process-output process 1.0)
+	(setq wait-count (1+ wait-count))))))
+
+(defun gnat-inspect-session-send (cmd wait)
+  "Send CMD to gnatinspect session for current project."
+  (let ((session (gnat-inspect-cached-session)))
+    (with-current-buffer (gnat-inspect--session-buffer session)
+      (erase-buffer))
+    (process-send-string (gnat-inspect--session-process session)
+			 (concat cmd "\n"))
+    (when wait
+      (gnat-inspect-session-wait session))
+    ))
+
+(defun gnat-inspect-session-kill (session)
+  (when (process-live-p (gnat-inspect--session-process session))
+    (process-send-string (gnat-inspect--session-process session) "exit\n")))
+
+(defun gnat-inspect-kill-all-sessions ()
+  (interactive)
+  (mapc (lambda (assoc) (gnat-inspect-session-kill (cdr assoc))) gnat-inspect--sessions))
+
 (defconst gnat-inspect-ident-file-regexp
   "\\(.*\\):\\(.*\\):\\([0123456789]+\\):\\([0123456789]+\\)"
   "Regexp matching <identifier>:<file>:<line>:<column>")
@@ -48,10 +147,70 @@
   (concat gnat-inspect-ident-file-regexp " (\\(.*\\))")
   "Regexp matching <identifier>:<file>:<line>:<column> (<type>)")
 
+(defconst gnat-inspect-ident-file-scope-regexp-alist
+  ;; RX_Enable:C:\common\1553\gds-hardware-bus_1553-raw_read_write.adb:163:13 (write reference) scope=New_Packet_TX:C:\common\1553\gds-hardware-bus_1553-raw_read_write.adb:97:14
+
+  (list (concat
+	 gnat-inspect-ident-file-regexp
+	 " (.*) "
+	 "scope="
+	 gnat-inspect-ident-file-regexp
+	 )
+	1 2 3 ;; file line column
+	;; 2 ;; type = error
+	;; nil ;; hyperlink
+	;; (list 4 'gnat-inspect-scope-secondary-error)
+	)
+  "For compilation-error-regexp-alist, matching `gnatinspect refs' output")
+
+;; debugging:
+;; (setq compilation-error-regexp-alist-alist (list (cons 'gnat-inspect-ident-file-scope gnat-inspect-ident-file-scope-regexp-alist)))
+;;
+;; in *compilation-gnatinspect-ref*, run
+;; (progn (set-text-properties (point-min)(point-max) nil)(compilation-parse-errors (point-min)(point-max)))
+
+(defun gnat-inspect-compilation (identifier file line col cmd comp-err)
+  ;; FIXME: change to use session
+  "Run gnatinspect identifier:file:line:col cmd, in compilation-mode.
+Uses a separate compilation buffer to run gnatinspect, with
+`compilation-error-regexp-alist' set to COMP-ERR."
+  ;; WORKAROUND: gnatinspect from gnatcoll-1.6w can't handle aggregate
+  ;; projects, so we use an alternate project file for gnatinspect
+  ;; queries, specified in the Emacs ada-mode project file by
+  ;; "gnat_inspect_gpr_file".
+
+  (with-current-buffer (gnat-run-buffer); for default-directory
+    (let* ((project-file (file-name-nondirectory
+			  (or (ada-prj-get 'gnat_inspect_gpr_file)
+			      (ada-prj-get 'gpr_file))))
+	   (arg (format "%s:%s:%d:%d" identifier file line col))
+	   (cmd-1
+		(concat "gnatinspect --project=" project-file
+			" -c \"" cmd " " arg "\""))
+	   )
+      (unless project-file
+	(error "no gnatinspect project file defined."))
+
+      (let ((process-environment (ada-prj-get 'proc_env)) ;; for GPR_PROJECT_PATH
+	    (compilation-error "reference")
+	    (compilation-mode-hook
+	     (lambda ()
+	       (set (make-local-variable 'compilation-filter-hook) nil)
+	       (set (make-local-variable 'compilation-error-regexp-alist) (list comp-err))
+	       )))
+
+	(compilation-start cmd-1
+			   'compilation-mode
+			   (lambda (mode-name) (concat "*" mode-name "-gnatinspect-" cmd "*")))
+	)
+      )))
+
 (defun gnat-inspect-dist (found-line line found-col col)
   "Return non-nil if found-line, -col is closer to line, col than min-distance."
   (+ (abs (- found-line line))
      (* (abs (- found-col col)) 250)))
+
+;;;;; user interface functions
 
 (defun gnat-inspect-other (identifier file line col)
   "For `ada-xref-other-function', using gnatinspect."
@@ -174,64 +333,6 @@
 
       (message "parsing result ... done")
       result)))
-
-(defconst gnat-inspect-ident-file-scope-regexp-alist
-  ;; RX_Enable:C:\common\1553\gds-hardware-bus_1553-raw_read_write.adb:163:13 (write reference) scope=New_Packet_TX:C:\common\1553\gds-hardware-bus_1553-raw_read_write.adb:97:14
-
-  (list (concat
-	 gnat-inspect-ident-file-regexp
-	 " (.*) "
-	 "scope="
-	 gnat-inspect-ident-file-regexp
-	 )
-	1 2 3 ;; file line column
-	;; 2 ;; type = error
-	;; nil ;; hyperlink
-	;; (list 4 'gnat-inspect-scope-secondary-error)
-	)
-  "For compilation-error-regexp-alist, matching `gnatinspect refs' output")
-
-;; debugging:
-;; (setq compilation-error-regexp-alist-alist (list (cons 'gnat-inspect-ident-file-scope gnat-inspect-ident-file-scope-regexp-alist)))
-;;
-;; in *compilation-gnatinspect-ref*, run
-;; (progn (set-text-properties (point-min)(point-max) nil)(compilation-parse-errors (point-min)(point-max)))
-
-(defun gnat-inspect-compilation (identifier file line col cmd comp-err)
-  "Run gnatinspect identifier:file:line:col cmd, in compilation-mode.
-Uses a separate compilation buffer to run gnatinspect, with
-`compilation-error-regexp-alist' set to COMP-ERR."
-  ;; WORKAROUND: gnatinspect from gnatcoll-1.6w can't handle aggregate
-  ;; projects, so we use an alternate project file for gnatinspect
-  ;; queries, specified in the Emacs ada-mode project file by
-  ;; "gnat_inspect_gpr_file".
-
-  (with-current-buffer (gnat-run-buffer); for default-directory
-    (let* ((project-file (file-name-nondirectory
-			  (or (ada-prj-get 'gnat_inspect_gpr_file)
-			      (ada-prj-get 'gpr_file))))
-	   (arg (format "%s:%s:%d:%d" identifier file line col))
-	   (cmd-1
-		(concat "gnatinspect --project=" project-file
-			" --nightlydb=gnatinspect.db"
-			" -c \"" cmd " " arg "\""))
-	   )
-      (unless project-file
-	(error "no gnatinspect project file defined."))
-
-      (let ((process-environment (ada-prj-get 'proc_env)) ;; for GPR_PROJECT_PATH
-	    (compilation-error "reference")
-	    (compilation-mode-hook
-	     (lambda ()
-	       (set (make-local-variable 'compilation-filter-hook) nil)
-	       (set (make-local-variable 'compilation-error-regexp-alist) (list comp-err))
-	       )))
-
-	(compilation-start cmd-1
-			   'compilation-mode
-			   (lambda (mode-name) (concat "*" mode-name "-gnatinspect-" cmd "*")))
-	)
-      )))
 
 (defun gnat-inspect-all (identifier file line col)
   "For `ada-xref-all-function', using gnatinspect."

@@ -28,7 +28,7 @@ run wisi test from emacs -Q:
 
 (list (wisi-parser-state-active (aref parser-states 1)) (wisi-parser-state-sp (aref parser-states 1)) (wisi-parser-state-stack (aref parser-states 1)))
 
- gnat-xref
+ gnat-inspect
 build gnatinspect:
     (gds-lynx-5)
     cd ~/Projects
@@ -54,6 +54,16 @@ c:/Apps/GNAT-7.1.2/gnatcoll-1.6w-src/src/tools/gnatinspect.adb
 gnatinspect verbosity in .gnatdebug:
 -- Projects
 -- ENTITIES.PARSING
+
+gnatinspect is slow
+    implementing gnat-inspect-session-*
+    (require 'gnat-inspect)
+    (gnat-inspect-kill-all-sessions)
+    (ada-parse-prj-file "/Projects/GDS/work_dscovr_release/dscovr/build/x86_gnu_windows_release/gds.prj")
+    (ada-select-prj-file "/Projects/GDS/work_dscovr_release/dscovr/build/x86_gnu_windows_release/gds.prj")
+    (pop-to-buffer " *gnatinspect-c:/Projects/GDS/work_dscovr_release/dscovr/build/x86_gnu_windows_release/gds_dscovr_test_agg.gpr*")
+
+    use in user-interface functions
 
 
 implement C++ C-c M-d parent
@@ -86,15 +96,6 @@ gnatinspect --project=gds_dscovr.gpr --nightlydb=gnatinspect.db -c "parent_types
 C-F11 fails on #include <Itcsb1553/Itcsb1553.hpp>
 
 need std include files in search list
-
-gnatinspect is slow
-    reads *.ali and *.db for every run
-    slow even with hot cache
-    keep running in "session": should be way faster (is in shell mode)
-        then need to manage db refresh
-
-    or just forgot -nightlydb? does it reuse default db if it exists?
-        no faster with it.
 
  general
 build/wisi/Makefile

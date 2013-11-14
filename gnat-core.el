@@ -176,20 +176,20 @@ src_dir will include compiler runtime."
 
 ;;;; command line tool interface
 
-(defun gnat-run-buffer-name ()
-  (concat " *gnat-run-"
+(defun gnat-run-buffer-name (prefix)
+  (concat (or prefix " *gnat-run-")
 	  (or (ada-prj-get 'gpr_file)
 	      ada-prj-current-file)
 	  "*"))
 
-(defun gnat-run-buffer ()
+(defun gnat-run-buffer (&optional buffer-name-prefix)
   "Return a buffer suitable for running gnat command line tools for the current project."
   (ada-require-project-file)
-  (let* ((buffername (gnat-run-buffer-name))
-	 (buffer (get-buffer buffername)))
+  (let* ((name (gnat-run-buffer-name buffer-name-prefix))
+	 (buffer (get-buffer name)))
     (if buffer
 	buffer
-      (setq buffer (get-buffer-create buffername))
+      (setq buffer (get-buffer-create name))
       (with-current-buffer buffer
 	(setq default-directory
 	      (file-name-directory

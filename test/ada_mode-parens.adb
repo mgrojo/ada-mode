@@ -85,6 +85,15 @@ package body Ada_Mode.Parens is
          (4, 5, 6),
          (7, 8, 9),
          (10, 11, 12));
+
+      function To_Matrix (Diag : in Integer) return Matrix_Type
+      is begin
+         return
+           ((Diag, 0, 0),
+            (0, Diag, 0),
+            (0, 0, Diag));
+      end To_Matrix;
+
    begin
       A :=
         (1 |
@@ -105,10 +114,10 @@ package body Ada_Mode.Parens is
            (1 => 12,
             2 => 13,
             3 => 14),
-         2 =>
-           (1 => 22,
-            2 => 23,
-            3 => 24),
+         2 => To_Matrix
+
+           (22), -- blank line in function call in aggregate (phew!)
+
          3 => (others => 30));
 
       --EMACSCMD:(progn (forward-line 3)(forward-word 1)(insert "   ")(ada-align))
