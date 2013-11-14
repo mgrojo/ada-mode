@@ -61,10 +61,14 @@
 
   (with-current-buffer (gnat-inspect--session-buffer session)
     (let ((process-environment (ada-prj-get 'proc_env)) ;; for GPR_PROJECT_PATH
+
+	  ;; WORKAROUND: gnatinspect from gnatcoll-1.6w-20130902 can't handle aggregate projects; M910-032
 	  (project-file (file-name-nondirectory
 			 (or (ada-prj-get 'gnat_inspect_gpr_file)
 			     (ada-prj-get 'gpr_file)))))
       (setf (gnat-inspect--session-process session)
+	    ;; FIXME: need good error message on bad project file:
+	    ;; 		"can't handle aggregate projects? - set gnat_inspect_gpr_file")
 	    (start-process (concat "gnatinspect " (buffer-name))
 			   (gnat-inspect--session-buffer session)
 			   "gnatinspect"
@@ -97,7 +101,8 @@
 	      (acons ada-prj-current-file session gnat-inspect--sessions))))
     ))
 
-(defconst gnat-inspect-prompt ">>>"
+(defconst gnat-inspect-prompt "^>>> $"
+  ;; gnatinspect output starts with '>>> <text>'; it ends with '>>> <newline>'.
   "Regexp matching gnatinspect prompt; indicates previous command is complete.")
 
 (defun gnat-inspect-session-wait (session)
@@ -113,18 +118,23 @@
 	(setq search-start (point))
 	(message (concat "running gnatinspect ..." (make-string wait-count ?.)))
 	(accept-process-output process 1.0)
-	(setq wait-count (1+ wait-count))))))
+	(setq wait-count (1+ wait-count)))
+      (message (concat "running gnatinspect ... done"))
+      )))
 
 (defun gnat-inspect-session-send (cmd wait)
-  "Send CMD to gnatinspect session for current project."
+  "Send CMD to gnatinspect session for current project.
+If WAIT is non-nil, wait for command to complete.
+Return buffer that holds output."
   (let ((session (gnat-inspect-cached-session)))
     (with-current-buffer (gnat-inspect--session-buffer session)
-      (erase-buffer))
-    (process-send-string (gnat-inspect--session-process session)
-			 (concat cmd "\n"))
-    (when wait
-      (gnat-inspect-session-wait session))
-    ))
+      (erase-buffer)
+      (process-send-string (gnat-inspect--session-process session)
+			   (concat cmd "\n"))
+      (when wait
+	(gnat-inspect-session-wait session))
+      (current-buffer)
+      )))
 
 (defun gnat-inspect-session-kill (session)
   (when (process-live-p (gnat-inspect--session-process session))
@@ -133,6 +143,8 @@
 (defun gnat-inspect-kill-all-sessions ()
   (interactive)
   (mapc (lambda (assoc) (gnat-inspect-session-kill (cdr assoc))) gnat-inspect--sessions))
+
+;;;;; utils
 
 (defconst gnat-inspect-ident-file-regexp
   "\\(.*\\):\\(.*\\):\\([0123456789]+\\):\\([0123456789]+\\)"
@@ -223,17 +235,14 @@ Uses a separate compilation buffer to run gnatinspect, with
     (setq identifier (substring identifier 1 (1- (length identifier))))
     )
 
-  (with-current-buffer (gnat-run-buffer)
-    (let ((project-file (file-name-nondirectory
-			 (or (ada-prj-get 'gnat_inspect_gpr_file)
-			     (ada-prj-get 'gpr_file))))
-	  (arg (format "%s:%s:%d:%d" identifier (file-name-nondirectory file) line col))
-	  (decl-loc nil)
-	  (body-loc nil)
-	  (search-type nil)
-	  (min-distance (1- (expt 2 29)))
-	  (result nil))
+  (let ((cmd (format "refs %s:%s:%d:%d" identifier (file-name-nondirectory file) line col))
+	(decl-loc nil)
+	(body-loc nil)
+	(search-type nil)
+	(min-distance (1- (expt 2 29)))
+	(result nil))
 
+    (with-current-buffer (gnat-inspect-session-send cmd t)
       ;; 'gnatinspect refs' returns a list containing the declaration,
       ;; the body, and all the references, in no particular order.
       ;;
@@ -255,12 +264,7 @@ Uses a separate compilation buffer to run gnatinspect, with
       ;; Module_Type:/home/Projects/GDS/work_stephe_2/common/1553/gds-hardware-bus_1553-wrapper.ads:171:9 (full declaration) scope=Wrapper:/home/Projects/GDS/work_stephe_2/common/1553/gds-hardware-bus_1553-wrapper.ads:49:31
       ;;
       ;; itc_assert:/home/Projects/GDS/work_stephe_2/common/itc/opsim/itc_dscovr_gdsi/Gds1553/src/Gds1553.cpp:830:9 (reference) scope=Gds1553WriteSubaddress:/home/Projects/GDS/work_stephe_2/common/itc/opsim/itc_dscovr_gdsi/Gds1553/inc/Gds1553.hpp:173:24
-      (message "running gnatinspect ...")
 
-      ;; gnatinspect from gnatcoll-1.6w-20130902 can't handle aggregate projects; M910-032
-      (gnat-run "gnatinspect" (list "-P" project-file "-c" (concat "refs " arg))
-		"can't handle aggregate projects? - use gnat_inspect_gpr_file")
-      (message "running gnatinspect ... done.")
       (message "parsing result ...")
 
       (goto-char (point-min))

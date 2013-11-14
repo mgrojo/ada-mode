@@ -176,7 +176,7 @@ src_dir will include compiler runtime."
 
 ;;;; command line tool interface
 
-(defun gnat-run-buffer-name (prefix)
+(defun gnat-run-buffer-name (&optional prefix)
   (concat (or prefix " *gnat-run-")
 	  (or (ada-prj-get 'gpr_file)
 	      ada-prj-current-file)

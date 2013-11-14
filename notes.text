@@ -59,11 +59,14 @@ gnatinspect is slow
     implementing gnat-inspect-session-*
     (require 'gnat-inspect)
     (gnat-inspect-kill-all-sessions)
-    (ada-parse-prj-file "/Projects/GDS/work_dscovr_release/dscovr/build/x86_gnu_windows_release/gds.prj")
-    (ada-select-prj-file "/Projects/GDS/work_dscovr_release/dscovr/build/x86_gnu_windows_release/gds.prj")
-    (pop-to-buffer " *gnatinspect-c:/Projects/GDS/work_dscovr_release/dscovr/build/x86_gnu_windows_release/gds_dscovr_test_agg.gpr*")
+    /Projects/GDS/work_dscovr_release/dscovr/build/x86_gnu_windows_debug/Makefile
+
+    (pop-to-buffer " *gnatinspect-c:/Projects/GDS/work_dscovr_release/dscovr/build/x86_gnu_windows_debug/gds_dscovr_test_agg.gpr*")
 
     use in user-interface functions
+        gnat-inspect-other done
+
+        /Projects/GDS/work_dscovr_release/dscovr/1553/test/gds-hardware-bus_1553-core_thruster-test.adb
 
 
 implement C++ C-c M-d parent
