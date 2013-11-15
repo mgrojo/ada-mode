@@ -66,6 +66,7 @@
 	  (project-file (file-name-nondirectory
 			 (or (ada-prj-get 'gnat_inspect_gpr_file)
 			     (ada-prj-get 'gpr_file)))))
+      (erase-buffer); delete any previous messages, prompt
       (setf (gnat-inspect--session-process session)
 	    ;; FIXME: need good error message on bad project file:
 	    ;; 		"can't handle aggregate projects? - set gnat_inspect_gpr_file")
@@ -73,6 +74,7 @@
 			   (gnat-inspect--session-buffer session)
 			   "gnatinspect"
 			   (concat "--project=" project-file)))
+      (gnat-inspect-session-wait session)
       )))
 
 (defun gnat-inspect--make-session ()
@@ -102,7 +104,7 @@
     ))
 
 (defconst gnat-inspect-prompt "^>>> $"
-  ;; gnatinspect output starts with '>>> <text>'; it ends with '>>> <newline>'.
+  ;; gnatinspect output ends with this
   "Regexp matching gnatinspect prompt; indicates previous command is complete.")
 
 (defun gnat-inspect-session-wait (session)

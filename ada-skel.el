@@ -146,6 +146,20 @@ This could end in a token recognized by `ada-skel-expand'."
   "for " _ " loop\n"
   "end loop " str | -1 ";")
 
+(define-skeleton ada-skel-function-body
+  "Insert a function body with name from `str'."
+  ()
+  "function " str " return \n"
+  "is\n"
+  "begin\n"
+  _
+  "end " str ";")
+
+(define-skeleton ada-skel-function-spec
+  "Insert a function type specification with name from `str'."
+  ()
+  "function " str " return ;")
+
 (define-skeleton ada-skel-header
   "Insert a file header comment, with automatic copyright year and prompt for copyright owner/license.
 Each user will probably want to override this."
@@ -275,6 +289,9 @@ See `ada-find-other-file' to create library level package body from spec."
     ("declare" . ada-skel-declare)
     ("entry" . ada-skel-entry)
     ("for" . ada-skel-for)
+    ("function"
+     ("body" . ada-skel-function-body)
+     ("spec" . ada-skel-function-spec))
     ("header" . ada-skel-header)
     ("if" . ada-skel-if)
     ("loop" . ada-skel-loop)
