@@ -51,6 +51,8 @@ class CVSWeb ():
     def download_file (self, path,
                        tag = None): # None means the head revision.
         # Return the contents of the tagged revision of path, as bytes.
+        # If tag is provided, but no revision of this file carries it,
+        # None is returned.
 
         cgi = self._cgi + str.lower (path)
         if tag != None:
@@ -62,7 +64,8 @@ class CVSWeb ():
                 + 'by <i>[^<]*</i>( with line changes <i>[^<]*</i>)?<br>\r\n' \
                 + 'CVS Tags: <b>[^<]*' + re.escape (tag) + '[^<]*</b><br>'
             match = re.search (str.encode (pattern), contents)
-            assert match, path + ': failed to find a revision tagged ' + tag
+            if not match:
+                return None
             cgi += '?rev=' + bytes.decode (match.group (1))
         else:
             cgi += '?rev=HEAD'
@@ -76,24 +79,40 @@ def download_subdir (cvsweb, subdir,
                      rename_lowercase = False,
                      strip_carriage_returns = False):
 
+    def fmt (a, b):
+        print ('{:<30} : {}'.format (a, b))
+
+    fmt ('Subdirectory', subdir)
+    if tag:
+        fmt ('Revision', tag)
+    else:
+        fmt ('Revision', 'latest')
+    fmt ('Renaming files to lowercase', rename_lowercase)
+    fmt ('Stripping carriage returns', strip_carriage_returns)
+
     os.mkdir (subdir) # Fails if the directory exists.
     for basename in cvsweb.files_in_directory (subdir):
         src = subdir + '/' + basename
         if rename_lowercase:
             basename = str.lower (basename)
         dst = os.path.join (subdir, basename) # Local path join.
-        print (dst)
         contents = cvsweb.download_file (src, tag)
+        if not contents:
+            fmt (dst, 'no such tag')
+            return
         if strip_carriage_returns:
             contents = re.sub (b'\r\n', b'\n', contents)
         with open (dst, 'bw') as o:
             o.write (contents)
+        fmt (dst, 'downloaded')
 
 ######################################################################
 
 cvsweb = CVSWeb (hostname = 'www.ada-auth.org',
                  top_directory = 'arm')
-tag = 'Ada2012_Final'
+tags = { '1995':'Final_TC1',
+         '2005':'Amend_Final',
+         '2012':'Ada2012_Final' }
 
 if len (sys.argv) == 2 and sys.argv [1] == 'progs':
     download_subdir (cvsweb, 'progs',
@@ -103,16 +122,13 @@ No certification or signature used for downloaded code sources.
 Hint: diff -rN --ignore-file-name-case --strip-trailing-cr old/ progs/
 """)
 
-elif len (sys.argv) in (2, 3) and sys.argv [1] == 'source':
-    if len (sys.argv) == 3:
-        tag = sys.argv [2]
+elif len (sys.argv) == 2 and sys.argv [1] in tags:
     download_subdir (cvsweb, 'source',
-                     tag = tag,
+                     tag = tags [sys.argv [1]],
                      rename_lowercase = True,
                      strip_carriage_returns = True)
+
 else:
-    print ("""
-Usage: python3 download.py progs
-    or python3 download.py source [TAG]
-Default value for TAG is {}.
-""".format (tag))
+    print ('Usage: {} [progs | {}]'.format (
+            sys.argv [0],
+            str.join (' | ', sorted ([str (year) for year in tags.keys ()]))))

@@ -45,7 +45,6 @@ package body ARM_Texinfo is
    --  VERSION: This is fragile; it changes with each version of the manual.
    Index_Clause      : constant String    := "0.4";
    Index_Clause_Name : constant String    := "Index";
-   Index_Clause_Next : constant String    := "operators";
    Operators_Clause  : constant String    := "operators";
    Last_Index_Clause : constant Character := 'Y';
 
@@ -166,8 +165,8 @@ package body ARM_Texinfo is
       Put_Line (Output_Object.File, "* Index ::    Index"); --  Not in ARM sources
       Put_Line (Output_Object.File, "@end menu");
 
-      -- @node current, next, prev, up
-      Put_Line (Output_Object.File, "@node Front Matter, 0.1, Top, Top");
+      -- @node current
+      Put_Line (Output_Object.File, "@node Front Matter");
       Put_Line (Output_Object.File, "@chapter Front Matter");
    end End_Title_Page;
 
@@ -407,12 +406,8 @@ package body ARM_Texinfo is
       --  Put_Line (Output_Object.File, "* Z::"); --  VERSION: No entries in Z
       Put_Line (Output_Object.File, "@end menu");
 
-      --  @node current, next, prev, up
-      Put_Line
-        (Output_Object.File,
-         "@node " & Operators_Clause &
-           ", A, " & Index_Clause_Name &
-           ", " & Index_Clause_Name);
+      --  @node current
+      Put_Line (Output_Object.File, "@node " & Operators_Clause);
 
       Put_Line (Output_Object.File, "@section operators");
    end Index_Menu;
@@ -550,45 +545,6 @@ package body ARM_Texinfo is
 
       procedure Put_Subclause_Menu is new For_Each (Put_Subclause_Menu_Item);
 
-      function Safe_Next_Clause (Clause : in String) return String
-      is begin
-         if Clause = Index_Clause then
-            return Index_Clause_Next;
-         else
-            declare
-               Result : constant String := ARM_Contents.Next_Clause (Clause);
-            begin
-               if Result = Index_Clause then
-                  return Index_Clause_Name;
-               else
-                  return Result;
-               end if;
-            end;
-         end if;
-      exception
-      when Not_Found_Error =>
-         return "";
-      end Safe_Next_Clause;
-
-      function Safe_Previous_Clause (Clause : in String) return String
-      is begin
-         return ARM_Contents.Previous_Clause (Clause);
-      exception
-      when Not_Found_Error =>
-         return "";
-      end Safe_Previous_Clause;
-
-      function Safe_Parent_Clause (Clause : in String) return String
-      is
-         Temp : constant String := ARM_Contents.Parent_Clause (Clause_Number);
-      begin
-         if Temp'Length = 0 or Temp = "0" then
-            return "Top";
-         else
-            return Temp;
-         end if;
-      end Safe_Parent_Clause;
-
    begin
       Check_Not_In_Paragraph (Output_Object);
 
@@ -603,12 +559,7 @@ package body ARM_Texinfo is
 
       elsif Clause_Number = Index_Clause and Header_Text = Index_Clause_Name then
 
-         Put_Line
-           (Output_Object.File,
-            "@node " & Index_Clause_Name &
-              ", " & Index_Clause_Next &
-              ", " & Safe_Previous_Clause (Clause_Number) &
-              ", " & Safe_Parent_Clause (Clause_Number));
+         Put_Line (Output_Object.File, "@node " & Index_Clause_Name);
 
          Put_Line (Output_Object.File, "@chapter Index");
          Output_Object.State := Index_Start;
@@ -673,12 +624,7 @@ package body ARM_Texinfo is
 
       end case;
 
-      Put_Line
-        (Output_Object.File,
-         "@node " & Clause_Number &
-           ", " & Safe_Next_Clause (Clause_Number) &
-           ", " & Safe_Previous_Clause (Clause_Number) &
-           ", " & Safe_Parent_Clause (Clause_Number));
+      Put_Line (Output_Object.File, "@node " & Clause_Number);
 
       case Level is
       when Section =>
@@ -1254,29 +1200,16 @@ package body ARM_Texinfo is
          when 'A' .. Last_Index_Clause =>
             --  Index section heading
 
-            --  @node current, next, prev, up
+            --  @node current
             case Char is
             when 'A' =>
-               Put_Line
-                 (Output_Object.File,
-                  "@node " & Char &
-                    ", B, " & Operators_Clause &
-                    ", " & Index_Clause_Name);
+               Put_Line (Output_Object.File, "@node " & Char);
 
             when Last_Index_Clause =>
-               Put_Line
-                 (Output_Object.File,
-                  "@node " & Char &
-                    ", , " & Character'Pred (Char) &
-                    ", " & Index_Clause_Name);
+               Put_Line (Output_Object.File, "@node " & Char);
 
             when others =>
-               Put_Line
-                 (Output_Object.File,
-                  "@node " & Char &
-                    ", " & Character'Succ (Char) &
-                    ", " & Character'Pred (Char) &
-                    ", " & Index_Clause_Name);
+               Put_Line (Output_Object.File, "@node " & Char);
             end case;
 
             --  Add non-break space so Emacs info will use big bold

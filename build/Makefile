@@ -16,20 +16,20 @@ all : html info TXT publish
 
 html : html/arm2012/RM-TOC.html
 html : html/aarm2012/AA-TOC.html
-#html : html/arm2005/RM-TOC.html
-#html : html/aarm2005/AA-TOC.html
+html : html/arm2005/RM-TOC.html
+html : html/aarm2005/AA-TOC.html
 info : arm2012.info
 info : aarm2012.info
-#info : arm2005.info
-#info : aarm2005.info
+info : arm2005.info
+info : aarm2005.info
 pdf  : arm2012.pdf
 pdf  : aarm2012.pdf
-#pdf  : arm2005.pdf
-#pdf  : aarm2005.pdf
+pdf  : arm2005.pdf
+pdf  : aarm2005.pdf
 TXT  : txt/arm2012/RM-TOC.TXT
 TXT  : txt/aarm2012/AA-TOC.TXT
-#TXT  : txt/arm2005/RM-TOC.TXT
-#TXT  : txt/aarm2005/AA-TOC.TXT
+TXT  : txt/arm2005/RM-TOC.TXT
+TXT  : txt/aarm2005/AA-TOC.TXT
 
 # We have been unable to get rid of all the section ref violations, so we
 # specify --no-validate. Delete that to see the errors.
@@ -42,7 +42,7 @@ arm2012.texinfo : arm_form.exe
 
 arm2005.texinfo : arm_form.exe
 	cd ../source_2005; ../build/arm_form.exe RM info New-Only 2
-	mv ../source_2005/output/RM.texinfo ./arm2005.texinfo
+	mv ../source_2005/output/rm.texinfo ./arm2005.texinfo
 
 aarm2012.texinfo : arm_form.exe
 	cd ../source; ../build/arm_form.exe AARM info New-Only 3
@@ -50,7 +50,7 @@ aarm2012.texinfo : arm_form.exe
 
 aarm2005.texinfo : arm_form.exe
 	cd ../source_2005; ../build/arm_form.exe AARM info New-Only 2
-	mv ../source_2005/output/AA.texinfo ./aarm2005.texinfo
+	mv ../source_2005/output/aa.texinfo ./aarm2005.texinfo
 
 html/arm2012/RM-TOC.html : arm_form.exe | html/arm2012 ../source/output
 	cd ../source; ../build/arm_form.exe RM HTML New-Only 3
@@ -131,8 +131,9 @@ source_ada.clean :
 # use 'download.py source HEAD' for testing the next Ada version
 # after updating, commit to mtn branch org.adaic.arm_form.upstream
 #
-# We convert to unix line endings because the scribe processor insists
-# on uniform formatting; this works for both Windows and Debian.
+# We convert to unix line endings in download.py because the scribe
+# processor insists on uniform formatting; this works for both Windows
+# and Debian.
 source_scribe.stamp :
 	rm -rf ../../org.adaic.arm_form.upstream/source
 	cd ../../org.adaic.arm_form.upstream; python3 ../org.adaic.arm_form/build/download.py source
