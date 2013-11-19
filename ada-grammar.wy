@@ -347,7 +347,7 @@ association
       (wisi-statement-action 2 'statement-other)
       (wisi-containing-action 2 3))
   | discrete_choice_list EQUAL_GREATER BOX
-  | expression
+  | expression_opt ;; so (foo, ) is indented properly while editing
   ;
 
 association_list

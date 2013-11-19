@@ -195,7 +195,11 @@ Returns non-nil if a file is selected, nil otherwise."
 	       t   ; mustmatch
 	       nil; initial
 	       (lambda (name)
-		 (member (file-name-extension name) ext))))
+		 ;; this allows directories, which enables navigating
+		 ;; to the desired file. We just assume the user won't
+		 ;; return a directory.
+		 (or (file-accessible-directory-p name)
+		     (member (file-name-extension name) ext)))))
       (err
        (setq filename nil))
       )

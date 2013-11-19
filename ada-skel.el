@@ -68,7 +68,7 @@
 
 (require 'skeleton nil t)
 
-;;;;; user variables
+;;;;; user variables, example skeletons intended to be overwritten
 
 (defcustom ada-skel-initial-string "header"
   "*String to insert in empty buffer.
@@ -106,7 +106,7 @@ This could end in a token recognized by `ada-skel-expand'."
 
 )
 
-;;;;; skeletons (alphabetical)
+;;;;; Ada skeletons (alphabetical)
 
 (define-skeleton ada-skel-accept
   "Insert accept statement with name from `str'."
@@ -278,6 +278,11 @@ See `ada-find-other-file' to create library level package body from spec."
   "while " _ " loop\n"
   "end loop " str | -1 ";")
 
+(define-skeleton ada-skel-with-use
+  "Insert with and use context clauses with name from `str'."
+  ()
+  "with " str "; use " str ";")
+
 ;;;;; token alist, other functions
 
 (defconst ada-skel-token-alist
@@ -310,7 +315,8 @@ See `ada-find-other-file' to create library level package body from spec."
     ("task"
      ("body" . ada-skel-task-body)
      ("spec" . ada-skel-task-spec))
-    ("while" . ada-skel-while))
+    ("while" . ada-skel-while)
+    ("with" . ada-skel-with-use))
   "alist of elements (STRING ELEMENT). See `ada-skel-expand'.
 STRING must be a symbol in the current syntax, and is normally
 the first Ada keyword in the skeleton. All strings must be
@@ -346,7 +352,8 @@ it is a name, and use the word before that as the token."
   ;; Standard comment end included for languages where that is newline.
   (skip-syntax-backward " !>")
 
-  (let* ((end (prog1 (point) (skip-syntax-backward "w_")))
+  ;; include punctuation here, in case is is an identifier, to allow Ada.Text_IO
+  (let* ((end (prog1 (point) (skip-syntax-backward "w_.")))
 	 (token (downcase (buffer-substring-no-properties (point) end)))
 	 (skel (assoc-string token ada-skel-token-alist))
 	 (handled nil))
@@ -372,12 +379,12 @@ it is a name, and use the word before that as the token."
 	     (skip-syntax-forward "!w_")
 	     (when name
 	       (skip-syntax-forward " ")
-	       (skip-syntax-forward "w_"))
+	       (skip-syntax-forward "w_."))
 	     (point)))
 	  (funcall (cdr skel) name)
 	  (setq handled t))
 
-      ;; word after point is not a token; assume it is a name
+      ;; word in point .. end is not a token; assume it is a name
       (when (not name)
 	;; avoid infinite recursion
 
@@ -385,11 +392,8 @@ it is a name, and use the word before that as the token."
 	;;
 	;; We didn't do it above, because we don't want to adjust case
 	;; on tokens and placeholders.
-	(let (end)
-	  (ada-case-adjust-at-point)
-	  (setq end (point))
-	  (skip-syntax-backward "w_")
-	  (setq token (buffer-substring-no-properties (point) end)))
+	(save-excursion (ada-case-adjust-region (point) end))
+	(setq token (buffer-substring-no-properties (point) end))
 
 	(ada-skel-expand token)
 	(setq handled t)))

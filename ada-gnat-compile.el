@@ -198,21 +198,24 @@ Prompt user if more than one."
 	     ;; defined; if present, it will have been marked by
 	     ;; ada-gnat-compilation-filter
 	     ;;
+	     ;; or the next line may contain "multiple use clauses cause hiding"
+	     ;;
 	     ;; the lines after that may contain alternate matches;
 	     ;; collect all, let user choose.
 	     (while (not done)
 	       (forward-line 1)
-	       (setq done (not
-			   (and
-			    (equal file-line-struct (ada-get-compilation-message))
-			    (let ((limit (1- (line-end-position))))
-			      ;; 1- because next compilation error is at next line beginning
-			      (setq pos (next-single-property-change (point) 'ada-secondary-error nil limit))
-			      (< pos limit)))))
-	       (when (not done)
-		 (let* ((item (get-text-property pos 'ada-secondary-error))
-			(unit-file (nth 0 item)))
-		   (add-to-list 'choices (ada-ada-name-from-file-name unit-file))))
+	       (unless (looking-at ".* multiple use clauses cause hiding")
+		 (setq done (not
+			     (and
+			      (equal file-line-struct (ada-get-compilation-message))
+			      (let ((limit (1- (line-end-position))))
+				;; 1- because next compilation error is at next line beginning
+				(setq pos (next-single-property-change (point) 'ada-secondary-error nil limit))
+				(< pos limit)))))
+		 (when (not done)
+		   (let* ((item (get-text-property pos 'ada-secondary-error))
+			  (unit-file (nth 0 item)))
+		     (add-to-list 'choices (ada-ada-name-from-file-name unit-file)))))
 	       );; while
 
 	     (cond
@@ -294,6 +297,14 @@ Prompt user if more than one."
 	   t)
 
 ;;;; strings
+	  ((looking-at (concat "misspelling of " ada-gnat-quoted-name-regexp))
+	   (let ((expected-name (match-string 1)))
+	     (pop-to-buffer source-buffer)
+	     (looking-at ada-name-regexp)
+	     (delete-region (match-beginning 1) (match-end 1))
+	     (insert expected-name))
+	   t)
+
 	  ((looking-at (concat "\"end " ada-name-regexp ";\" expected"))
 	   (let ((expected-name (match-string 1)))
 	     (pop-to-buffer source-buffer)

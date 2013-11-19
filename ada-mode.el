@@ -1035,8 +1035,7 @@ With prefix arg, adjust case even if in comment."
       (forward-comment (point-max))
       (skip-syntax-forward "^w_")
       (skip-syntax-forward "w_")
-      (unless (eobp)
-	(ada-case-adjust))))
+      (ada-case-adjust)))
   (widen))
 
 (defun ada-case-adjust-buffer ()
