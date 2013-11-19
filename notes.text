@@ -10,10 +10,11 @@ run wisi test from emacs -Q:
   (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-1/build/wisi")
   (global-font-lock-mode -1)
   (setq debug-on-error t)
-  (setq wisi-debug 1)
-  (load "run-indent-test-gpr")
+;;  (setq wisi-debug 1)
+;;  (load "run-indent-test-gpr")
   (setq default-directory "/Projects/org.emacs.ada-mode.stephe-1/build/wisi/")
-  (run-test "../../test/gpr/gds.gpr"))
+  (load "../../ada-mode-test.el"))
+;;  (run-test "../../test/gpr/gds.gpr"))
 
 (setq wisi-debug 2)
 (setq wisent-parse-max-stack-size 40)
@@ -63,11 +64,18 @@ gnatinspect is slow
 
     (pop-to-buffer " *gnatinspect-c:/Projects/GDS/work_dscovr_release/dscovr/build/x86_gnu_windows_debug/gds_dscovr_test_agg.gpr*")
 
+    set "don't prompt on exit emacs" property on session proceses
+        and on bash shells!
+
     use in user-interface functions
         gnat-inspect-other done
 
         /Projects/GDS/work_dscovr_release/dscovr/1553/test/gds-hardware-bus_1553-core_thruster-test.adb
 
+
+    F7 broken
+        using wrong/broken compilation regexp?
+        c:/Projects/GDS/main_lynx_5/common/1553/gds-cards-sbs_abi-ops.ads Read_Mem
 
 implement C++ C-c M-d parent
     just need key, menu
@@ -103,25 +111,6 @@ need std include files in search list
  general
 build/wisi/Makefile
 
-before/after change has race condition between jit-lock-after-change and wisi-after-change
-    to reproduce:
-        open Ada file
-        cut block of code containing a whole statement
-        move elsewhere that it will be legal
-        paste block
-        parser called by jit-lock hangs due to garbled cached markers
-        doesn't happen if font-lock is off
-
-    can disable/enable jit-lock in wisi-before/after-change to avoid hang
-        but sometimes it's not re-enabled!?
-
-    can't even figure out how to not use jit-lock
-        trace find-file; see when font-lock, jit-lock are enabled
-
-    ok if jit-lock-after-change is after wisi-after-change?
-        that should be the default, but sometimes it's not
-        just check for that in wisi-before-change
-
 implement 'gnat-inspect-all'
     /Projects/GDS/work_dscovr_release/common/build/x86_gnu_windows_release/Makefile
     /Projects/GDS/work_dscovr_release/common/1553/gds-hardware-bus_1553.ads RX_Enable
@@ -133,16 +122,6 @@ implement 'gnat-inspect-all'
 need "show overridden"
     not same as "parent declarations?"
     gnatinspect failing; no results? try again
-
-parser hangs after move code
-    but only on very fresh buffer?
-        fixed by add action on attribute_reference parens?
-        open sal-csv.adb Scan_Commas - buffer is parsed by font-lock
-        move 'if' that sets comma_count up on level
-        wisi-parse-buffer hangs while processing moved 'if'
-        but only sometimes!
-
-    wisi-before/after-change screwing up?
 
 gpr
     add parse/set prj functions on menu
@@ -179,6 +158,10 @@ add compile functions, prj vars
 add gnatprep minor mode?
 
 should not need ada_col_0 for gnatprep.adb
+
+wisi-validate-cache should call grammar parser in a loop
+    that would handle multiple compilation units; doesn't need to be in grammar
+    parser needs to ignore invalid token following valid parse.
 
 ada-mode.texi
     /home/Projects/emacs_stephe.main/emacs_stephe_site_lisp/ada-mode.texi

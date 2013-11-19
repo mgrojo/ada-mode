@@ -785,34 +785,39 @@ properly cased word; value is t.")
   "Read the content of the casing exception file FILE-NAME.
 Return (cons full-exceptions partial-exceptions)."
   (setq file-name (expand-file-name (substitute-in-file-name file-name)))
-  (unless (file-readable-p file-name)
-    (error "'%s' is not a readable file." file-name))
+  (if (file-readable-p file-name)
+      (let (full-exceptions partial-exceptions word)
+	(with-temp-buffer
+	  (insert-file-contents file-name)
+	  (while (not (eobp))
 
-  (let (full-exceptions partial-exceptions word)
-    (with-temp-buffer
-      (insert-file-contents file-name)
-      (while (not (eobp))
+	    (setq word (buffer-substring-no-properties
+			(point) (save-excursion (skip-syntax-forward "w_") (point))))
 
-	(setq word (buffer-substring-no-properties
-		    (point) (save-excursion (skip-syntax-forward "w_") (point))))
+	    (if (char-equal (string-to-char word) ?*)
+		;; partial word exception
+		(progn
+		  (setq word (substring word 1))
+		  (unless (assoc-string word partial-exceptions t)
+		    (add-to-list 'partial-exceptions (cons word t))))
 
-	(if (char-equal (string-to-char word) ?*)
-	    ;; partial word exception
-	    (progn
-	      (setq word (substring word 1))
-	      (unless (assoc-string word partial-exceptions t)
-		(add-to-list 'partial-exceptions (cons word t))))
+	      ;; full word exception
+	      (unless (assoc-string word full-exceptions t)
+		(add-to-list 'full-exceptions (cons word t))))
 
-	  ;; full word exception
-	  (unless (assoc-string word full-exceptions t)
-	    (add-to-list 'full-exceptions (cons word t))))
+	    (forward-line 1))
+	  )
+	(cons full-exceptions partial-exceptions))
 
-	(forward-line 1))
-      )
-    (cons full-exceptions partial-exceptions)))
+    ;; else file not readable; might be a new project with no
+    ;; exceptions yet, so just warn user, return empty pair
+    (message "'%s' is not a readable file." file-name)
+    '(nil . nil)
+    ))
 
 (defun ada-case-merge-exceptions (result new)
-  "Merge NEW exeptions into RESULT."
+  "Merge NEW exeptions into RESULT.
+An item in both lists has the RESULT value."
   (dolist (item new)
     (unless (assoc-string (car item) result t)
       (add-to-list 'result item)))
@@ -1493,7 +1498,10 @@ Indexed by project variable xref_tool.")
 
 (defvar ada-syntax-propertize-hook nil
   ;; provided by preprocessor, lumped with xref-tool
-  "Hook run from `ada-syntax-propertize'.")
+  "Hook run from `ada-syntax-propertize'.
+Called by `syntax-propertize', which is called by font-lock in
+`after-change-functions'. Therefore, care must be taken to avoid
+race conditions with the grammar parser.")
 
 (defun ada-syntax-propertize (start end)
   "Assign `syntax-table' properties in accessible part of buffer.

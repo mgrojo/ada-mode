@@ -328,10 +328,15 @@ Also invalidate the Emacs syntax cache."
 (defun wisi-before-change (begin end)
   "For `before-change-functions'."
   ;; begin . end is range of text being deleted
+
+  ;; If jit-lock-after-change is before wisi-after-change in
+  ;; after-change-functions, it might use any invalid caches in the
+  ;; inserted text.
+  ;;
+  ;; So we check for that here, and ensure it is after
+  ;; wisi-after-change, which deletes the invalid caches
   (when (boundp 'jit-lock-mode)
     (when (memq 'wisi-after-change (memq 'jit-lock-after-change after-change-functions))
-      ;; detect if jit-lock-after-change is before wisi-after-change in after-change-functions; reverse it
-      ;; FIXME: need a better way
       (setq after-change-functions (delete 'wisi-after-change after-change-functions))
       (add-hook 'after-change-functions 'wisi-after-change nil t)
       (setq wisi-change-jit-lock-mode (1+ wisi-change-jit-lock-mode)))
@@ -361,8 +366,24 @@ Also invalidate the Emacs syntax cache."
   "For `after-change-functions'."
   ;; begin . end is range of text being inserted (may be empty)
   ;; (syntax-ppss-flush-cache begin) is in before-change-functions
-  (when (or wisi-parse-failed
-	    (>= wisi-cache-max begin))
+
+  (syntax-ppss-flush-cache begin) ;; IMPROVEME: could check for whitespace
+
+  (cond
+   (wisi-parse-failed
+    ;; The parse was failing, probably due to bad syntax; this change
+    ;; may have fixed it, so try reparse.
+    (setq wisi-parse-try t)
+
+    ;; remove 'wisi-cache on inserted text, which could have caches
+    ;; from before the failed parse, and are in any case invalid.
+    (with-silent-modifications
+      (remove-text-properties begin end '(wisi-cache)))
+    )
+
+   ((>= wisi-cache-max begin)
+    ;; The parse had succeeded paste the start of the inserted
+    ;; text.
     (save-excursion
       (let ((need-invalidate t)
 	    ;; (info "(elisp)Parser State")
@@ -370,6 +391,8 @@ Also invalidate the Emacs syntax cache."
 	;; syntax-ppss has moved point to "begin".
 	(cond
 	 (wisi-change-need-invalidate
+	  ;; wisi-before change determined the removed text alters the
+	  ;; parse
 	  nil)
 
 	 ((or
@@ -389,11 +412,24 @@ Also invalidate the Emacs syntax cache."
 	 )
 
 	(if need-invalidate
+	    ;; The inserted or deleted text could alter the parse
 	    (wisi-invalidate-cache)
-	  ;; else move cache-max by the net change length
+
+	  ;; else move cache-max by the net change length. We don't
+	  ;; need to delete 'wisi-cache in the inserted text, because
+	  ;; if there were any it would not pass the above.
 	  (setq wisi-cache-max
 		(+ wisi-cache-max (- end begin length))))
-	))))
+	)
+      ))
+
+   (t
+    ;; parse never attempted, or only done to before BEGIN. Just
+    ;; remove 'wisi-cache
+    (with-silent-modifications
+      (remove-text-properties begin end '(wisi-cache)))
+    )
+  ))
 
 (defun wisi-get-cache (pos)
   "Return `wisi-cache' struct from the `wisi-cache' text property at POS.

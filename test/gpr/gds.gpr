@@ -1,7 +1,11 @@
---  For using GDS common stuff in mission-specific projects.
+--EMACSCMD:(ada-parse-prj-file "gds_test.adp") ;; for ff-find-other-file
+--EMACSCMD:(ada-select-prj-file "gds_test.adp")
+
 with "opentoken";
 with "sal";
 with "standard_common";
+--EMACSCMD:(progn (forward-line 2)(ff-find-the-other-file)(looking-at "-- for testing"))
+--EMACSRESULT:t
 with "../common_text_io";
 project GDS is
 

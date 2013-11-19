@@ -1,4 +1,7 @@
 ;;; Unit tests on some ada-mode.el functions
+;;
+;; when running interactively:
+;; (setq default-directory "c:/Projects/org.emacs.ada-mode.stephe-1/build/wisi")
 
 ;; Default includes mtn, among others, which is broken in Emacs 22.2, 24.3
 (setq vc-handled-backends '(CVS))
@@ -42,6 +45,8 @@
 (copy-file "../../test/case-exceptions-2" "case-exceptions-2.tmp")
 
 ;; ada-case-read-all-exceptions only reads from project variable; duplicate here.
+(setq ada-case-full-exceptions nil)
+(setq ada-case-partial-exceptions nil)
 (dolist (file '("case-exceptions-1.tmp" "case-exceptions-2.tmp"))
   (ada-case-merge-all-exceptions (ada-case-read-exceptions file)))
 

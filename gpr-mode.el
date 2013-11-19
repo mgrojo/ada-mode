@@ -143,14 +143,16 @@ current construct."
 
 (defun gpr-ff-special-with ()
   (ada-require-project-file)
-  (let ((project-name (match-string 1)))
-    (file-name-nondirectory
-     (or
-      (ff-get-file-name
-       (ada-prj-get 'prj_dir)
-       (match-string 1)
-       '("" ".gpr"))
-      (error "project '%s' not found; set project file?" project-name)))
+  (let ((project-path (match-string 1)))
+    ;; project-path may be any of "foo", "foo.gpr", "../foo.gpr"
+    ;;
+    ;; The result of ff-special-constructs is used by
+    ;; ff-find-the-other-file with ff-search-directories and nil
+    ;; suffix list, so it must contain the relative path and the
+    ;; suffix
+    (if (file-name-extension project-path)
+	project-path
+      (concat project-path ".gpr"))
     ))
 
 (defun gpr-set-ff-special-constructs ()
@@ -161,7 +163,7 @@ current construct."
 	;; invoked.  Each cdr should return the absolute file name to
 	;; go to.
 	(list
-	 ;; A "with" clause; allow "foo_bar.gpr"
+	 ;; A "with" clause; allow "foo_bar.gpr" and "../foo"
 	 (cons "^with[ \t]+\"\\(\\(?:\\(?:\\sw\\|\\s.\\)\\|\\s_\\)+\\)\";"
 	       'gpr-ff-special-with)
 	 )))

@@ -86,13 +86,11 @@ package body Ada_Mode.Parens is
          (7, 8, 9),
          (10, 11, 12));
 
-      function To_Matrix (Diag : in Integer) return Matrix_Type
+      function To_Array (First : in Integer) return Array_Type_1
       is begin
          return
-           ((Diag, 0, 0),
-            (0, Diag, 0),
-            (0, 0, Diag));
-      end To_Matrix;
+           (First, 0, 0);
+      end To_Array;
 
    begin
       A :=
@@ -114,7 +112,7 @@ package body Ada_Mode.Parens is
            (1 => 12,
             2 => 13,
             3 => 14),
-         2 => To_Matrix
+         2 => To_Array
 
            (22), -- blank line in function call in aggregate (phew!)
 

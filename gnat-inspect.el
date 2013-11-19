@@ -45,7 +45,9 @@
 ;;
 ;; We maintain a cache of active sessions, one per gnat project.
 
-(defstruct (gnat-inspect--session)
+(eval-when-compile (require 'cl-macs))
+
+(cl-defstruct (gnat-inspect--session)
   (process nil) ;; running gnatinspect
   (buffer nil)  ;; receives output of gnatinspect
   (sent-kill-p nil)
@@ -100,7 +102,7 @@
       (prog1
           (setq session (gnat-inspect--make-session))
 	(setq gnat-inspect--sessions
-	      (acons ada-prj-current-file session gnat-inspect--sessions))))
+	      (cl-acons ada-prj-current-file session gnat-inspect--sessions))))
     ))
 
 (defconst gnat-inspect-prompt "^>>> $"
