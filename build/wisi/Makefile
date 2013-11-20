@@ -13,6 +13,7 @@ byte-compile : byte-compile-clean
 
 test : test-ada-gnatxref.stamp test-ada-gnatinspect.stamp test-gpr test-elisp
 
+# test-elisp debug:
 # (progn (add-to-list 'load-path (expand-file-name "../../test")) (load "ada-mode-test.el"))
 
 test-wisi :: body_instantiation_conflict.wisi-test

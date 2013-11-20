@@ -287,6 +287,7 @@ See `ada-find-other-file' to create library level package body from spec."
 
 (defconst ada-skel-token-alist
   '(("accept" . ada-skel-accept)
+    ("begin" . ada-skel-declare) ;; easy enough to delete the declare
     ("case" . ada-skel-case)
     ("copyright_license"
      ("GPL" . ada-skel-gpl)
