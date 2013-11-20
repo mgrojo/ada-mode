@@ -110,6 +110,7 @@ need std include files in search list
 
  general
 build/wisi/Makefile
+build/Makefile
 
 implement 'gnat-inspect-all'
     /Projects/GDS/work_dscovr_release/common/build/x86_gnu_windows_release/Makefile
@@ -174,6 +175,8 @@ ada-mode.texi
 
     developer section
         see email from geoge bauhaus
+
+    compile ada-mode.texi
 
 test prompt for file in case-create-exception
 
