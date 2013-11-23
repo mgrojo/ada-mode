@@ -18,6 +18,22 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 
+# Specific targets generate every $document$year.$format combination.
+# Ex: make arm2012.pdf
+AVAILABLE_DOCUMENTS := aarm arm
+AVAILABLE_YEARS     := 2005 2012
+AVAILABLE_FORMATS   := html info texinfo txt pdf
+
+# These variables are intended to be set on the command line when
+# selecting a group of targets.
+# Ex: make "FORMATS=html pdf"
+DOCUMENTS := $(AVAILABLE_DOCUMENTS)
+YEARS     := $(filter-out 2005, $(AVAILABLE_YEARS))
+FORMATS   := $(filter-out pdf texinfo, $(AVAILABLE_FORMATS))
+# 2005 fails to compile with texinfo5.
+# Texinfo is of little interest for the end user.
+# Pdf requires installation of many huge formatting tools.
+
 # see ../README.txt for list of things to change when scribe or Ada source changes.
 #
 # Cygwin texi2dvi (GNU Texinfo 4.13) 1.135 fails silently!
@@ -36,101 +52,89 @@ ZIP_DATE       := 20130312
 .PHONY: all clean publish
 
 # Default target is:
-#all : source_scribe_2005.stamp
-all : html info TXT
-# pdf not in 'all' because may not have tools installed
-
-html : html/arm2012/RM-TOC.html
-html : html/aarm2012/AA-TOC.html
-html : html/arm2005/RM-TOC.html
-html : html/aarm2005/AA-TOC.html
-info : arm2012.info
-info : aarm2012.info
-info : arm2005.info
-info : aarm2005.info
-pdf  : arm2012.pdf
-pdf  : aarm2012.pdf
-pdf  : arm2005.pdf
-pdf  : aarm2005.pdf
-TXT  : txt/arm2012/RM-TOC.TXT
-TXT  : txt/aarm2012/AA-TOC.TXT
-TXT  : txt/arm2005/RM-TOC.TXT
-TXT  : txt/aarm2005/AA-TOC.TXT
+all: $(foreach d,$(DOCUMENTS),\
+     $(foreach y,$(YEARS),\
+     $(foreach f,$(FORMATS),\
+       $(d)$(y).$(f))))
 
 # We have been unable to get rid of all the section ref violations, so we
 # specify --no-validate. Delete that to see the errors.
 TEXI_INFO_OPTS := --no-split --no-number-sections --no-validate
-TEXI_DVI_OPTS := --quiet
+TEXI_PDF_OPTS := --quiet
 
-arm2012.texinfo : arm_form.exe
-	cd ../source; ../build/arm_form.exe RM info New-Only 3
-	mv ../source/output/rm.texinfo ./arm2012.texinfo
+SOURCE_DIR_2005 := source_2005
+SOURCE_DIR_2012 := source
 
-arm2005.texinfo : arm_form.exe
-	cd ../source_2005; ../build/arm_form.exe RM info New-Only 2
-	mv ../source_2005/output/rm.texinfo ./arm2005.texinfo
+MASTER_arm  := rm.msm
+MASTER_aarm := aarm.msm
 
-aarm2012.texinfo : arm_form.exe
-	cd ../source; ../build/arm_form.exe AARM info New-Only 3
-	mv ../source/output/aa.texinfo ./aarm2012.texinfo
+# Rough dependency, but Scheme files should not change often.
+SOURCES_2005 := $(wildcard ../$(SOURCE_DIR_2005)/*.ms[ms])
+SOURCES_2012 := $(wildcard ../$(SOURCE_DIR_2012)/*.ms[ms])
 
-aarm2005.texinfo : arm_form.exe
-	cd ../source_2005; ../build/arm_form.exe AARM info New-Only 2
-	mv ../source_2005/output/aa.texinfo ./aarm2005.texinfo
+# See progs/command.txt.
+CHANGES      := New-Only
+# See inside SOURCE_DIR_YEAR/DOCUMENT.msm for possible values.
+VERSION_2005 := 2
+VERSION_2012 := 3
 
-html/arm2012/RM-TOC.html : arm_form.exe | html/arm2012 ../source/output
-	cd ../source; ../build/arm_form.exe RM HTML New-Only 3
-	rm -rf html/arm2012/*
-	mv ../source/output/* html/arm2012
+define for_d_y_in_AVAILABLE_DOCUMENTS_YEARS_loop
 
-html/arm2005/RM-TOC.html : arm_form.exe | html/arm2005 ../source_2005/output
-	cd ../source_2005; ../build/arm_form.exe RM HTML New-Only 2
-	rm -rf html/arm2005/*
-	mv ../source_2005/output/* html/arm2005
+  $(d)$(y).texinfo: arm_form.exe $(SOURCES_$(y))
+	cd ../$(SOURCE_DIR_$(y)); \
+        ../build/$$< $(MASTER_$(d)) info $(CHANGES) $(VERSION_$(y)) ../build/
+	mv `sed -ne 's/^@FilePrefix{\(.*\)}/\L\1/p' ../$(SOURCE_DIR_$(y))/$(MASTER_$(d))`.texinfo $$@
+  clean::
+	rm --force $(d)$(y).texinfo
 
-html/aarm2012/AA-TOC.html : arm_form.exe | html/aarm2012 ../source/output
-	cd ../source; ../build/arm_form.exe AARM HTML New-Only 3
-	rm -rf html/aarm2012/*
-	mv ../source/output/* html/aarm2012
+  $(d)$(y).html: arm_form.exe $(SOURCES_$(y))
+	rm --force --recursive $$@
+	mkdir --parents $$@
+	cd ../$(SOURCE_DIR_$(y)); \
+         ../build/$$< $(MASTER_$(d)) HTML $(CHANGES) $(VERSION_$(y)) ../build/$$@/
+  clean::
+	rm --force --recursive $(d)$(y).html
 
-html/aarm2005/AA-TOC.html : arm_form.exe | html/aarm2005 ../source_2005/output
-	cd ../source_2005; ../build/arm_form.exe AARM HTML New-Only 2
-	rm -rf html/aarm2005/*
-	mv ../source_2005/output/* html/aarm2005
+  $(d)$(y).txt: arm_form.exe $(SOURCES_$(y))
+	rm --force --recursive $$@
+	mkdir --parents $$@
+	cd ../$(SOURCE_DIR_$(y)); \
+        ../build/$$< $(MASTER_$(d)) Text $(CHANGES) $(VERSION_$(y)) ../build/$$@/
+  clean::
+	rm --force --recursive $(d)$(y).txt
 
-txt/arm2012/RM-TOC.TXT : arm_form.exe | txt/arm2012 ../source/output
-	cd ../source; ../build/arm_form.exe RM Text New-Only 3
-	rm -rf txt/arm2012/*
-	mv ../source/output/* txt/arm2012
+  $(d)$(y).info: $(d)$(y).texinfo
+	texi2any --info $(TEXI_INFO_OPTS) $$< -o $$@
+  clean::
+	rm --force $(d)$(y).info
 
-txt/arm2005/RM-TOC.TXT : arm_form.exe | txt/arm2005 ../source_2005/output
-	cd ../source_2005; ../build/arm_form.exe RM Text New-Only 2
-	rm -rf txt/arm2005/*
-	mv ../source_2005/output/* txt/arm2005
+  $(d)$(y).pdf: $(d)$(y).texinfo
+	texi2any --pdf $(TEXI_PDF_OPTS) $$< -o $$@
+  clean::
+	rm --force $(d)$(y).log $(d)$(y).pdf $(d)$(y).toc
 
-txt/aarm2012/AA-TOC.TXT : arm_form.exe | txt/aarm2012 ../source/output
-	cd ../source; ../build/arm_form.exe AARM Text New-Only 3
-	rm -rf txt/aarm2012/*
-	mv ../source/output/* txt/aarm2012
-
-txt/aarm2005/AA-TOC.TXT : arm_form.exe | txt/aarm2005 ../source_2005/output
-	cd ../source_2005; ../build/arm_form.exe AARM Text New-Only 2
-	rm -rf txt/aarm2005/*
-	mv ../source_2005/output/* txt/aarm2005
+endef
+$(foreach d,$(AVAILABLE_DOCUMENTS),\
+$(foreach y,$(AVAILABLE_YEARS),\
+$(eval $(for_d_y_in_AVAILABLE_DOCUMENTS_YEARS_loop))))
 
 arm_form.exe : force
 	gnatmake -p $(BUILDER_OPTIONS) -P $(PROJECT) $(foreach var,ADAFLAGS LDFLAGS,"-X$(var)=$($(var))")
+clean::
+	rm --force arm_form.exe
+	rm --force --recursive objects
 
 trace :
 	addr2line -e arm_form.exe 0x5c12e7 0x5c598e 0x43e05b 0x446c5b 0x448369 0x545205 0x4e9221 0x4e3b1a 0x5831a1 0x5ad295 0x5adee9 0x4cb3f5 0x401850 0x401235 0x401286 0x7c817075
 
-html/arm2005 html/arm2012 html/aarm2005 html/aarm2012 txt/arm2005 txt/arm2012 txt/aarm2005 txt/aarm2012 ../source/output ../source_2005 ../source_2005/output :
+../source_2005 :
 	mkdir -p $@
 
 INFO_ARCHIVE := arm2012-$(ZIP_DATE).tar.gz
 publish: $(INFO_ARCHIVE)
-# TODO: Add 2005 versions.
-$(INFO_ARCHIVE): aarm2012.info arm2012.info
+$(INFO_ARCHIVE): $(foreach d,$(DOCUMENTS),\
+                 $(foreach y,$(YEARS),\
+                 $(d)$(y).info))
 	tar cf $@ $^
 clean::
 	rm --force $(INFO_ARCHIVE)
@@ -190,10 +194,7 @@ source_2005_orig.stamp : | ../source_2005_orig
 
 # delete everything back to mtn checkout plus source_2005.
 clean ::
-	rm 2005-SRC.zip
-	rm -rf objects html txt
-	rm -f *.dvi *.info* *.texinfo *.log *.pdf *.stamp *.toc *.zip
-	rm -rf ../source/output ../source_2005/output
+	rm -f *.stamp *.zip
 
 info-clean :
 	rm -f *.info*
@@ -201,21 +202,6 @@ info-clean :
 .PHONY : force
 #include ../../../GDS/main/makerules/common_rules.make
 #include ../../../GDS/main/makerules/gnat_project_rules.make
-
-# This produces a PDF, but it has no hyperlinks, so it is suitable
-# only for printing.
-%.dvi : %.texinfo
-	texi2dvi $(TEXI_DVI_OPTS) $<
-
-%.ps : %.dvi
-	dvips $<
-
-%.pdf : %.ps
-	ps2pdf $<
-
-# we don't want all the rules in texinfo_rules.make; they collide with latex_rules.make.
-%.info : %.texinfo
-	makeinfo $(TEXI_INFO_OPTS) $<
 
 VPATH = ../source ../progs
 
