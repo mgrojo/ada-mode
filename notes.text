@@ -112,6 +112,20 @@ need std include files in search list
 build/wisi/Makefile
 build/Makefile
 
+gds-threads-ground_telemetry.adb telemetry_loop ada-statement-prev fails on 'exception'; prev not set?
+
+indentation bug:
+    test_itos_if-telemetry.adb
+      Check
+        (Label & ".Message_2",
+         Buffer
+         (Buffer_Last + 1 ..
+            Buffer_Last + Stream_Element_Offset (Header.ITOS_Header.Length) - Captured_Time_Byte_Length),
+         Message_2,
+         Strict_Indices => False);
+
+    (Buffer_Last should be indented ada-indent-broken relative to Buffer
+
 implement 'gnat-inspect-all'
     /Projects/GDS/work_dscovr_release/common/build/x86_gnu_windows_release/Makefile
     /Projects/GDS/work_dscovr_release/common/1553/gds-hardware-bus_1553.ads RX_Enable

@@ -315,6 +315,7 @@ Values defined by cross reference packages.")
     (define-key map "\C-c\C-o" 	 'ada-find-other-file)
     (define-key map "\C-c\M-o" 	 'ada-find-other-file-noset)
     (define-key map "\C-c\C-p" 	 'ada-prev-statement-keyword)
+    (define-key map "\C-c\C-q" 	 'ada-xref-refresh)
     (define-key map "\C-c\C-r" 	 'ada-show-references)
     (define-key map "\C-c\M-r" 	 'ada-build-run)
     (define-key map "\C-c\C-v"   'ada-build-check)
@@ -350,14 +351,15 @@ Values defined by cross reference packages.")
      ["Set main and Build"         ada-build-set-make    t]
      ["Run"                        ada-build-run         t]
      )
-    ["Other file"                 ada-find-other-file       t]
-    ["Other file don't find decl" ada-find-other-file-noset t]
-    ["Goto declaration/body"      ada-goto-declaration      t]
-    ["Show parent declarations"   ada-show-declaration-parents t]
-    ["Show references"            ada-show-references       t]
-    ["Show overriding"            ada-show-overriding       t]
-    ["Show overridden"            ada-show-overridden       t]
-    ["Show last parse error"      ada-show-parse-error      t]
+    ["Other file"                    ada-find-other-file          t]
+    ["Other file don't find decl"    ada-find-other-file-noset    t]
+    ["Goto declaration/body"         ada-goto-declaration         t]
+    ["Show parent declarations"      ada-show-declaration-parents t]
+    ["Show references"               ada-show-references          t]
+    ["Show overriding"               ada-show-overriding          t]
+    ["Show overridden"               ada-show-overridden          t]
+    ["Show last parse error"         ada-show-parse-error         t]
+    ["Refresh cross reference cache" ada-xref-refresh             t]
     ["------"        nil nil]
     ("Edit"
      ["Expand skeleton"             (funcall ada-expand)    t]
@@ -1861,6 +1863,20 @@ If OTHER-WINDOW is non-nil, show the buffer in another window."
   (goto-char (point-min))
   (forward-line (1- line))
   (forward-char column)
+  )
+
+(defvar ada-xref-refresh-function nil
+  ;; determined by xref_tool, set by *-select-prj-xref
+  "Function that refreshes cross reference information cache.")
+
+(defun ada-xref-refresh ()
+  "Refresh cross reference information cache, if any."
+  (interactive)
+
+  (when (null ada-xref-refresh-function)
+    (error "no cross reference information available"))
+
+  (funcall ada-xref-refresh-function)
   )
 
 (defvar ada-xref-other-function nil
