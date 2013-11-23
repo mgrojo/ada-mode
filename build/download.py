@@ -24,6 +24,8 @@ import re
 import urllib.request
 import sys
 
+USE_EXISTING_FILES = True
+
 ######################################################################
 class CVSWeb ():
 
@@ -90,16 +92,24 @@ def download_subdir (cvsweb, subdir,
     fmt ('Renaming files to lowercase', rename_lowercase)
     fmt ('Stripping carriage returns', strip_carriage_returns)
 
-    os.mkdir (subdir) # Fails if the directory exists.
+    try:
+        os.mkdir (subdir) # Fails if the directory exists.
+    except FileExistsError:
+        if not USE_EXISTING_FILES:
+            raise
+
     for basename in cvsweb.files_in_directory (subdir):
         src = subdir + '/' + basename
         if rename_lowercase:
             basename = str.lower (basename)
         dst = os.path.join (subdir, basename) # Local path join.
+        if USE_EXISTING_FILES and os.path.exists (dst):
+            fmt (dst, 'using existing file')
+            continue
         contents = cvsweb.download_file (src, tag)
         if not contents:
             fmt (dst, 'no such tag')
-            return
+            continue
         if strip_carriage_returns:
             contents = re.sub (b'\r\n', b'\n', contents)
         with open (dst, 'bw') as o:
