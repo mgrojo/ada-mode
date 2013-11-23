@@ -251,16 +251,13 @@ BEFORE should be t when called from ada-wisi-before-cache, nil otherwise."
 
 	(open-paren
 	 (let ((containing (wisi-goto-containing cache)))
-	   (when (and
-		  (not (memq (wisi-cache-token containing) '(FUNCTION PROCEDURE)))
-		  (memq (wisi-cache-class containing) '(name name-paren)))
-	     (setq containing (wisi-goto-containing containing)))
-
 	   (cl-case (wisi-cache-token containing)
 	     (COMMA
 	      ;; test/ada_mode-parens.adb
-	      ;; ((1, 2, 3),
-	      ;;  (4, 5, 6),
+	      ;; A : Matrix_Type :=
+	      ;;   ((1, 2, 3),
+	      ;;    (4, 5, 6),
+	      ;; indenting (4
 	      (ada-wisi-indent-containing 0 containing))
 
 	     (EQUAL_GREATER
@@ -272,18 +269,19 @@ BEFORE should be t when called from ada-wisi-before-cache, nil otherwise."
 		 ;;  Monitor                       => True,
 		 ;;  RX_Enable                     =>
 		 ;;    (RX_Torque_Subaddress |
+		 ;; indenting (RX_Torque
 		 (ada-wisi-indent-containing (1- ada-indent) containing t))
 		(LEFT_PAREN
 		 ;; test/ada_mode-parens.adb
 		 ;; (1 =>
 		 ;;    (1 => 12,
-		 ;;   indenting '(1 => 12'; containing is '=>'
+		 ;; indenting '(1 => 12'; containing is '=>'
 		 (ada-wisi-indent-cache (1- ada-indent) containing))
 		(WHEN
 		 ;; test/ada_mode-conditional_expressions.adb
 		 ;;  when 1 =>
 		 ;;    (if J > 42
-		 ;;   indenting '(if'; containing is '=>'
+		 ;; indenting '(if'; containing is '=>'
 		 (+ (current-column) -1 ada-indent))
 		))
 
@@ -305,7 +303,23 @@ BEFORE should be t when called from ada-wisi-before-cache, nil otherwise."
 	      ;;             and then C)
 	      ;;            or else
 	      ;;            (D
+	      ;; indenting (D
 	      (+ (current-column) 1 ada-indent-broken))
+
+	     (name
+	      ;; test/indent.ads
+	      ;; CSCL_Type'
+	      ;;   (
+	      ;; identing (
+	      ;;
+	      ;; test/ada_mode-parens.adb
+	      ;; Check
+	      ;;   ("foo bar",
+	      ;;    A
+	      ;;      (1),
+	      ;;    A(2));
+	      ;; indenting (1)
+	      (+ (current-indentation) ada-indent-broken))
 
 	     (t
 	      (cond
@@ -313,13 +327,8 @@ BEFORE should be t when called from ada-wisi-before-cache, nil otherwise."
 		 ;; test/ada_mode-nominal.adb
 		 ;; entry E2
 		 ;;   (X : Integer)
+		 ;; indenting (X
 		 (ada-wisi-indent-cache ada-indent-broken containing))
-
-		((eq (wisi-cache-nonterm containing) 'qualified_expression)
-		 ;; test/indent.ads
-		 ;; CSCL_Type'
-		 ;;   (
-		 (+ (current-indentation) ada-indent-broken))
 
 		((and
 		  (eq (wisi-cache-nonterm containing) 'entry_body)
@@ -327,6 +336,7 @@ BEFORE should be t when called from ada-wisi-before-cache, nil otherwise."
 		 ;; test/ada_mode-nominal.adb
 		 ;; when Local_1 = 0 and not
 		 ;;   (Local_2 = 1)
+		 ;; indenting (Local_2
 		 (+ (current-column) ada-indent-broken))
 
 		(t
@@ -335,6 +345,7 @@ BEFORE should be t when called from ada-wisi-before-cache, nil otherwise."
 		 ;; test/ada_mode-conditional_expressions.adb
 		 ;; L0 : Integer :=
 		 ;;   (case J is when 42 => -1, when Integer'First .. 41 => 0, when others => 1);
+		 ;; indenting (case
 		 (ada-wisi-indent-containing ada-indent-broken containing t))
 		))
 	     )))

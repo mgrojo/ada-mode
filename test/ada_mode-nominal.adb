@@ -109,6 +109,8 @@ package body Ada_Mode.Nominal is -- target 0
                   return Integer (Function_1a);
                   --EMACSCMD:(ada-which-function)
                   --EMACSRESULT:"Local_Function"
+                  --EMACSCMD:(progn (forward-line 2)(forward-comment 1)(ada-prev-statement-keyword)(looking-at "begin"))
+                  --EMACSRESULT:t
                exception
                   --EMACSCMD:(test-face "Constraint_Error" 'default)
                   when E : Constraint_Error =>

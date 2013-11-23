@@ -8,20 +8,20 @@ package body Ada_Mode.Parens is
    --  now it's linear.
    No_Conditional_Set : constant Ada.Strings.Maps.Character_Set :=
      Ada.Strings.Maps."or"
-     (Ada.Strings.Maps.To_Set (' '),
-      Ada.Strings.Maps."or"
-      (Ada.Strings.Maps.To_Set ('.'),
-       Ada.Strings.Maps."or"
-       (Ada.Strings.Maps.To_Set (','),
+       (Ada.Strings.Maps.To_Set (' '),
         Ada.Strings.Maps."or"
-        (Ada.Strings.Maps.To_Set (':'),
-         Ada.Strings.Maps."or"
-         (Ada.Strings.Maps.To_Set (';'),
-          Ada.Strings.Maps."or"
-          (Ada.Strings.Maps.To_Set ('!'),
+          (Ada.Strings.Maps.To_Set ('.'),
            Ada.Strings.Maps."or"
-           (Ada.Strings.Maps.To_Set ('('),
-            Ada.Strings.Maps.To_Set (')'))))))));
+             (Ada.Strings.Maps.To_Set (','),
+              Ada.Strings.Maps."or"
+                (Ada.Strings.Maps.To_Set (':'),
+                 Ada.Strings.Maps."or"
+                   (Ada.Strings.Maps.To_Set (';'),
+                    Ada.Strings.Maps."or"
+                      (Ada.Strings.Maps.To_Set ('!'),
+                       Ada.Strings.Maps."or"
+                         (Ada.Strings.Maps.To_Set ('('),
+                          Ada.Strings.Maps.To_Set (')'))))))));
 
    --EMACSCMD:(progn (forward-line 3)(forward-word 2)(newline)(ada-align))
    -- only one default. result is tested by .diff
@@ -92,6 +92,14 @@ package body Ada_Mode.Parens is
            (First, 0, 0);
       end To_Array;
 
+      procedure Check
+        (Label    : in String;
+         Computed : in Array_Type_1;
+         Expected : in Array_Type_1)
+      is begin
+         null;
+      end Check;
+
    begin
       A :=
         (1 |
@@ -117,6 +125,12 @@ package body Ada_Mode.Parens is
            (22), -- blank line in function call in aggregate (phew!)
 
          3 => (others => 30));
+
+      Check
+        ("foo bar",
+         A
+           (1),
+         A (2));
 
       --EMACSCMD:(progn (forward-line 3)(forward-word 1)(insert "   ")(ada-align))
       -- result is tested in diff
