@@ -171,7 +171,7 @@ source_ada.clean :
 # and Debian.
 source_scribe.stamp :
 	rm -rf ../../org.adaic.arm_form.upstream/source
-	cd ../../org.adaic.arm_form.upstream; python3 ../org.adaic.arm_form/build/download.py source 2012
+	cd ../../org.adaic.arm_form.upstream; python3 ../org.adaic.arm_form/build/download.py 2012
 	touch source_scribe.stamp
 
 source_scribe.clean :
