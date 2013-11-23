@@ -43,7 +43,6 @@ package body ARM_Texinfo is
    Indentation : constant := 5;
 
    --  VERSION: This is fragile; it changes with each version of the manual.
-   Index_Clause      : constant String    := "0.4";
    Index_Clause_Name : constant String    := "Index";
    Operators_Clause  : constant String    := "operators";
    Last_Index_Clause : constant Character := 'Y';
@@ -557,7 +556,7 @@ package body ARM_Texinfo is
          --  This section has no content; don't confuse makeinfo.
          return;
 
-      elsif Clause_Number = Index_Clause and Header_Text = Index_Clause_Name then
+      elsif Header_Text = Index_Clause_Name then
 
          Put_Line (Output_Object.File, "@node " & Index_Clause_Name);
 
@@ -1201,16 +1200,7 @@ package body ARM_Texinfo is
             --  Index section heading
 
             --  @node current
-            case Char is
-            when 'A' =>
-               Put_Line (Output_Object.File, "@node " & Char);
-
-            when Last_Index_Clause =>
-               Put_Line (Output_Object.File, "@node " & Char);
-
-            when others =>
-               Put_Line (Output_Object.File, "@node " & Char);
-            end case;
+            Put_Line (Output_Object.File, "@node " & Char);
 
             --  Add non-break space so Emacs info will use big bold
             --  font for single letter titles.

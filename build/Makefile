@@ -28,9 +28,8 @@ AVAILABLE_FORMATS   := html info texinfo txt pdf
 # selecting a group of targets.
 # Ex: make "FORMATS=html pdf"
 DOCUMENTS := $(AVAILABLE_DOCUMENTS)
-YEARS     := $(filter-out 2005, $(AVAILABLE_YEARS))
+YEARS     := $(AVAILABLE_YEARS)
 FORMATS   := $(filter-out pdf texinfo, $(AVAILABLE_FORMATS))
-# 2005 fails to compile with texinfo5.
 # Texinfo is of little interest for the end user.
 # Pdf requires installation of many huge formatting tools.
 
