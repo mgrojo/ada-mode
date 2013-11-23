@@ -1,17 +1,43 @@
 # Build info version of Ada RM, and tar.gz for my web page
 
+# Copyright (c) 2010, 2013 Stephen Leake <stephen_leake@stephe-leake.org>
+# Copyright (c) 2013       Nicolas Boulenguez <nicolas@debian.org>
+
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+
 # see ../README.txt for list of things to change when scribe or Ada source changes.
 #
 # Cygwin texi2dvi (GNU Texinfo 4.13) 1.135 fails silently!
 
+# Compilation of the Scribe formatter written for the Ada Reference
+# Manual, translating .ms[ms] files into various formats.
+PROJECT         := arm_info.gpr
 BUILDER_OPTIONS := -k
 ADAFLAGS        :=
 LDFLAGS         :=
+# Note that the project adds its own flags to these.
 
 ZIP_DATE       := 20130312
 
+# General targets are:
+.PHONY: all clean publish
+
+# Default target is:
 #all : source_scribe_2005.stamp
-all : html info TXT publish
+all : html info TXT
 # pdf not in 'all' because may not have tools installed
 
 html : html/arm2012/RM-TOC.html
@@ -93,7 +119,7 @@ txt/aarm2005/AA-TOC.TXT : arm_form.exe | txt/aarm2005 ../source_2005/output
 	mv ../source_2005/output/* txt/aarm2005
 
 arm_form.exe : force
-	gnatmake -p $(BUILDER_OPTIONS) -P arm_info.gpr $(foreach var,ADAFLAGS LDFLAGS,"-X$(var)=$($(var))")
+	gnatmake -p $(BUILDER_OPTIONS) -P $(PROJECT) $(foreach var,ADAFLAGS LDFLAGS,"-X$(var)=$($(var))")
 
 trace :
 	addr2line -e arm_form.exe 0x5c12e7 0x5c598e 0x43e05b 0x446c5b 0x448369 0x545205 0x4e9221 0x4e3b1a 0x5831a1 0x5ad295 0x5adee9 0x4cb3f5 0x401850 0x401235 0x401286 0x7c817075
@@ -101,16 +127,22 @@ trace :
 html/arm2005 html/arm2012 html/aarm2005 html/aarm2012 txt/arm2005 txt/arm2012 txt/aarm2005 txt/aarm2012 ../source/output ../source_2005 ../source_2005/output :
 	mkdir -p $@
 
-publish : publish-info publish-zip
+INFO_ARCHIVE := arm2012-$(ZIP_DATE).tar.gz
+publish: $(INFO_ARCHIVE)
+# TODO: Add 2005 versions.
+$(INFO_ARCHIVE): aarm2012.info arm2012.info
+	tar cf $@ $^
+clean::
+	rm --force $(INFO_ARCHIVE)
 
-#publish-info : aarm2005.info arm2005.info
-publish-info : aarm2012.info arm2012.info
-	tar zcf arm2012-$(ZIP_DATE).tar.gz aarm*.info arm*.info
-
-publish-zip : arm_info-$(ZIP_DATE)-src.tar.gz
-
-arm_info-$(ZIP_DATE)-src.tar.gz :
-	tar zcf arm_info-$(ZIP_DATE)-src.tar.gz -C ../.. --exclude "*~" --exclude "*.dvi" --exclude "*.gz" --exclude "*.info" --exclude "*.log" --exclude "*.pdf" --exclude "*.ps" --exclude "*.texinfo" --exclude "*.toc" --exclude "*.stamp" --exclude "*.zip" --exclude html --exclude objects --exclude txt --exclude arm_form.exe --exclude _MTN --exclude .mtn-ignore --exclude=.dvc-exclude org.adaic.arm_form
+ZIP_ARCHIVE := arm_info-$(ZIP_DATE)-src.tar.gz
+ZIP_EXCLUDES := *~ *.dvi *.gz *.info *.log *.pdf *.ps *.texinfo *.toc \
+  *.stamp *.zip arm_form.exe _MTN .mtn-ignore .dvc-exclude
+publish: $(ZIP_ARCHIVE)
+$(ZIP_ARCHIVE):
+	tar cf $@ -C ../.. $(foreach e,$(ZIP_EXCLUDES),--exclude="$(e)") org.adaic.arm_form
+clean::
+	rm --force $(ZIP_ARCHIVE)
 
 # This retrieves CVS HEAD, for both Ada and Scribe source, for the
 # next Ada version (dvc-status "../../org.adaic.arm_form.upstream")
@@ -128,7 +160,6 @@ source_ada.clean :
 	rm -f source_ada.stamp
 
 # This retrieves the CVS tag given in download.py "tag" (near the end of the file)
-# use 'download.py source HEAD' for testing the next Ada version
 # after updating, commit to mtn branch org.adaic.arm_form.upstream
 #
 # We convert to unix line endings in download.py because the scribe
@@ -136,7 +167,7 @@ source_ada.clean :
 # and Debian.
 source_scribe.stamp :
 	rm -rf ../../org.adaic.arm_form.upstream/source
-	cd ../../org.adaic.arm_form.upstream; python3 ../org.adaic.arm_form/build/download.py source
+	cd ../../org.adaic.arm_form.upstream; python3 ../org.adaic.arm_form/build/download.py source 2012
 	touch source_scribe.stamp
 
 source_scribe.clean :
@@ -161,7 +192,7 @@ source_2005_orig.stamp : | ../source_2005_orig
 clean ::
 	rm 2005-SRC.zip
 	rm -rf objects html txt
-	rm -f *.dvi *.info* *.texinfo *.log *.pdf *.stamp *.tar.gz *.toc *.zip
+	rm -f *.dvi *.info* *.texinfo *.log *.pdf *.stamp *.toc *.zip
 	rm -rf ../source/output ../source_2005/output
 
 info-clean :
