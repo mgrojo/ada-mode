@@ -61,15 +61,15 @@ all: $(foreach d,$(DOCUMENTS),\
 TEXI_INFO_OPTS := --no-split --no-number-sections --no-validate
 TEXI_PDF_OPTS := --quiet
 
-SOURCE_DIR_2005 := source_2005
-SOURCE_DIR_2012 := source
+SOURCE_DIR_2005 := ../source_2005
+SOURCE_DIR_2012 := ../source
 
 MASTER_arm  := rm.msm
 MASTER_aarm := aarm.msm
 
 # Rough dependency, but Scheme files should not change often.
-SOURCES_2005 := $(wildcard ../$(SOURCE_DIR_2005)/*.ms[ms])
-SOURCES_2012 := $(wildcard ../$(SOURCE_DIR_2012)/*.ms[ms])
+SOURCES_2005 := $(wildcard $(SOURCE_DIR_2005)/*.ms[ms])
+SOURCES_2012 := $(wildcard $(SOURCE_DIR_2012)/*.ms[ms])
 
 # See progs/command.txt.
 CHANGES      := New-Only
@@ -80,25 +80,25 @@ VERSION_2012 := 3
 define for_d_y_in_AVAILABLE_DOCUMENTS_YEARS_loop
 
   $(d)$(y).texinfo: arm_form.exe $(SOURCES_$(y))
-	cd ../$(SOURCE_DIR_$(y)); \
-        ../build/$$< $(MASTER_$(d)) info $(CHANGES) $(VERSION_$(y)) ../build/
-	mv `sed -ne 's/^@FilePrefix{\(.*\)}/\L\1/p' ../$(SOURCE_DIR_$(y))/$(MASTER_$(d))`.texinfo $$@
+	cd $(SOURCE_DIR_$(y)); \
+        $(CURDIR)/$$< $(MASTER_$(d)) info $(CHANGES) $(VERSION_$(y)) $(CURDIR)/
+	mv `sed -ne 's/^@FilePrefix{\(.*\)}/\L\1/p' $(SOURCE_DIR_$(y))/$(MASTER_$(d))`.texinfo $$@
   clean::
 	rm --force $(d)$(y).texinfo
 
   $(d)$(y).html: arm_form.exe $(SOURCES_$(y))
 	rm --force --recursive $$@
 	mkdir --parents $$@
-	cd ../$(SOURCE_DIR_$(y)); \
-         ../build/$$< $(MASTER_$(d)) HTML $(CHANGES) $(VERSION_$(y)) ../build/$$@/
+	cd $(SOURCE_DIR_$(y)); \
+        $(CURDIR)/$$< $(MASTER_$(d)) HTML $(CHANGES) $(VERSION_$(y)) $(CURDIR)/$$@/
   clean::
 	rm --force --recursive $(d)$(y).html
 
   $(d)$(y).txt: arm_form.exe $(SOURCES_$(y))
 	rm --force --recursive $$@
 	mkdir --parents $$@
-	cd ../$(SOURCE_DIR_$(y)); \
-        ../build/$$< $(MASTER_$(d)) Text $(CHANGES) $(VERSION_$(y)) ../build/$$@/
+	cd $(SOURCE_DIR_$(y)); \
+        $(CURDIR)/$$< $(MASTER_$(d)) Text $(CHANGES) $(VERSION_$(y)) $(CURDIR)/$$@/
   clean::
 	rm --force --recursive $(d)$(y).txt
 

@@ -121,7 +121,10 @@ build/Makefile
 verify the following in progs/arm_texi.adb:
 
     Index_Clause  section number corresponding to index
-        not clear how to find the new one
+    to find the new one:
+        generate arm<version>.texinfo
+        move to end of file
+        search backward for "@section ... Index"; '...' is the index number
 
     Z::         no entries for Z?
         look near end of arm<version>.texinfo
