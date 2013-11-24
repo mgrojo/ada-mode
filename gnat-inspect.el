@@ -151,11 +151,12 @@ Return buffer that holds output."
 ;;;;; utils
 
 (defconst gnat-inspect-ident-file-regexp
-  "\\(.*\\):\\(.*\\):\\([0123456789]+\\):\\([0123456789]+\\)"
+  ;; Write_Message:C:\Projects\GDS\work_dscovr_release\common\1553\gds-mil_std_1553-utf.ads:252:25
+  ;; Write_Message:/Projects/GDS/work_dscovr_release/common/1553/gds-mil_std_1553-utf.ads:252:25
+  "\\([^:]*\\):\\(\\(?:.:\\\|/\\)[^:]*\\):\\([0123456789]+\\):\\([0123456789]+\\)"
   "Regexp matching <identifier>:<file>:<line>:<column>")
 
 (defconst gnat-inspect-ident-file-regexp-alist
-  ;; Write_Message:C:\Projects\GDS\work_dscovr_release\common\1553\gds-mil_std_1553-utf.ads:252:25
   (list (concat "^" gnat-inspect-ident-file-regexp) 2 3 4)
   "For compilation-error-regexp-alist, matching `gnatinspect overriding_recursive' output")
 
@@ -172,7 +173,7 @@ Return buffer that holds output."
 	 "scope="
 	 gnat-inspect-ident-file-regexp
 	 )
-	1 2 3 ;; file line column
+	2 3 4;; file line column
 	;; 2 ;; type = error
 	;; nil ;; hyperlink
 	;; (list 4 'gnat-inspect-scope-secondary-error)
@@ -180,46 +181,22 @@ Return buffer that holds output."
   "For compilation-error-regexp-alist, matching `gnatinspect refs' output")
 
 ;; debugging:
-;; (setq compilation-error-regexp-alist-alist (list (cons 'gnat-inspect-ident-file-scope gnat-inspect-ident-file-scope-regexp-alist)))
-;;
-;; in *compilation-gnatinspect-ref*, run
-;; (progn (set-text-properties (point-min)(point-max) nil)(compilation-parse-errors (point-min)(point-max)))
+;; in *compilation-gnatinspect-refs*, run
+;;  (progn (set-text-properties (point-min)(point-max) nil)(compilation-parse-errors (point-min)(point-max) gnat-inspect-ident-file-scope-regexp-alist))
 
 (defun gnat-inspect-compilation (identifier file line col cmd comp-err)
-  ;; FIXME: change to use session
-  "Run gnatinspect identifier:file:line:col cmd, in compilation-mode.
-Uses a separate compilation buffer to run gnatinspect, with
-`compilation-error-regexp-alist' set to COMP-ERR."
-  ;; WORKAROUND: gnatinspect from gnatcoll-1.6w can't handle aggregate
-  ;; projects, so we use an alternate project file for gnatinspect
-  ;; queries, specified in the Emacs ada-mode project file by
-  ;; "gnat_inspect_gpr_file".
-
-  (with-current-buffer (gnat-run-buffer); for default-directory
-    (let* ((project-file (file-name-nondirectory
-			  (or (ada-prj-get 'gnat_inspect_gpr_file)
-			      (ada-prj-get 'gpr_file))))
-	   (arg (format "%s:%s:%d:%d" identifier file line col))
-	   (cmd-1
-		(concat "gnatinspect --project=" project-file
-			" -c \"" cmd " " arg "\""))
-	   )
-      (unless project-file
-	(error "no gnatinspect project file defined."))
-
-      (let ((process-environment (ada-prj-get 'proc_env)) ;; for GPR_PROJECT_PATH
-	    (compilation-error "reference")
-	    (compilation-mode-hook
-	     (lambda ()
-	       (set (make-local-variable 'compilation-filter-hook) nil)
-	       (set (make-local-variable 'compilation-error-regexp-alist) (list comp-err))
-	       )))
-
-	(compilation-start cmd-1
-			   'compilation-mode
-			   (lambda (mode-name) (concat "*" mode-name "-gnatinspect-" cmd "*")))
-	)
-      )))
+  "Run gnatinspect IDENTIFIER:FILE:LINE:COL CMD,
+set compilation-mode with compilation-error-regexp-alist set to COMP-ERR."
+  (pop-to-buffer (gnat-inspect--session-buffer (gnat-inspect-cached-session)))
+  (let ((cmd-1 (format "%s %s:%s:%d:%d" cmd identifier file line col)))
+    (compilation-mode)
+    (setq buffer-read-only nil)
+    (set (make-local-variable 'compilation-error-regexp-alist) (list comp-err))
+    (gnat-inspect-session-send cmd-1 t)
+    (font-lock-fontify-buffer)
+    ;; font-lock-fontify-buffer applies compilation-message text properties
+    ;; IMPROVEME: for some reason, next-error works, but the font colors are not right (no koolaid!)
+    ))
 
 (defun gnat-inspect-dist (found-line line found-col col)
   "Return non-nil if found-line, -col is closer to line, col than min-distance."
@@ -227,6 +204,10 @@ Uses a separate compilation buffer to run gnatinspect, with
      (* (abs (- found-col col)) 250)))
 
 ;;;;; user interface functions
+
+(defun gnat-inspect-refresh ()
+  "For `ada-xref-refresh-function', using gnatinspect."
+  (with-current-buffer (gnat-inspect-session-send "refresh" t)))
 
 (defun gnat-inspect-other (identifier file line col)
   "For `ada-xref-other-function', using gnatinspect."
@@ -347,7 +328,7 @@ Uses a separate compilation buffer to run gnatinspect, with
   ;; This will in general return a list of references, so we use
   ;; `compilation-start' to run gnatinspect, so the user can navigate
   ;; to each result in turn via `next-error'.
-  (gnat-inspect-compilation identifier file line col "refs" 'gnat-inspect-ident-file-scope))
+  (gnat-inspect-compilation identifier file line col "refs" 'gnat-inspect-ident-file))
 
 (defun gnat-inspect-parents (identifier file line col)
   "For `ada-xref-parent-function', using gnatinspect."
@@ -473,6 +454,7 @@ Enable mode if ARG is positive"
   ;; indent function list.
   (add-hook 'ada-mode-hook 'ada-gnat-inspect-setup t)
 
+  (setq ada-xref-refresh-function    'gnat-inspect-refresh)
   (setq ada-xref-all-function        'gnat-inspect-all)
   (setq ada-xref-other-function      'gnat-inspect-other)
   (setq ada-xref-parent-function     'gnat-inspect-parents)

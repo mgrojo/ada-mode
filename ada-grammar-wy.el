@@ -310,7 +310,7 @@
         (progn
         (wisi-statement-action 1 'block-start 3 'block-end 5 'statement-end)
         (wisi-containing-action 1 2)
-        (wisi-motion-action 1 3))))
+        (wisi-motion-action 1 '(2 EXCEPTION) 3))))
       (body
        ((proper_body ))
        ((body_stub )))

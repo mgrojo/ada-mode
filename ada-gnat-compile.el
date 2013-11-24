@@ -48,6 +48,9 @@ For `compilation-filter-hook'."
   (save-excursion
     (goto-char compilation-filter-start)
 
+    ;; primary references are handled by font-lock functions; see
+    ;; `compilation-mode-font-lock-keywords'.
+    ;;
     ;; compilation-filter might insert partial lines, or it might insert multiple lines
     (when (bolp)
       (while (not (eobp))

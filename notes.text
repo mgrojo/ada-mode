@@ -112,7 +112,7 @@ need std include files in search list
 build/wisi/Makefile
 build/Makefile
 
-implement 'gnat-inspect-all'
+implement secondary-error for scope in 'gnat-inspect-all'
     /Projects/GDS/work_dscovr_release/common/build/x86_gnu_windows_release/Makefile
     /Projects/GDS/work_dscovr_release/common/1553/gds-hardware-bus_1553.ads RX_Enable
     secondary-error in compilation regexp not working
