@@ -134,7 +134,7 @@ publish: $(INFO_ARCHIVE)
 $(INFO_ARCHIVE): $(foreach d,$(DOCUMENTS),\
                  $(foreach y,$(YEARS),\
                  $(d)$(y).info))
-	tar cf $@ $^
+	tar czf $@ $^
 clean::
 	rm --force $(INFO_ARCHIVE)
 
@@ -143,7 +143,7 @@ ZIP_EXCLUDES := *~ *.dvi *.gz *.info *.log *.pdf *.ps *.texinfo *.toc \
   *.stamp *.zip arm_form.exe _MTN .mtn-ignore .dvc-exclude
 publish: $(ZIP_ARCHIVE)
 $(ZIP_ARCHIVE):
-	tar cf $@ -C ../.. $(foreach e,$(ZIP_EXCLUDES),--exclude="$(e)") org.adaic.arm_form
+	tar czf $@ -C ../.. $(foreach e,$(ZIP_EXCLUDES),--exclude="$(e)") org.adaic.arm_form
 clean::
 	rm --force $(ZIP_ARCHIVE)
 
