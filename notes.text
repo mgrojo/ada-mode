@@ -178,15 +178,14 @@ ada-mode.texi
 
     compile ada-mode.texi
 
-test prompt for file in case-create-exception
-
-show current project on menu
-
 goto-next-declaration or equiv
     need my page-down in ada-mode
 
 do C-x 5 prefix
     for Emacs 24.x
+
+suggest jit-lock enable hook
+    allow enforcing order in after-change-functions
 
 check emacs buglist
     http://debbugs.gnu.org/cgi/pkgreport.cgi?package=ada-mode

@@ -154,10 +154,10 @@
 ;;     robin-reply@reagans.org
 ;;    and others for their valuable hints.
 
-(require 'find-file nil t)
-(require 'align nil t)
-(require 'which-func nil t)
-(require 'compile nil t)
+(require 'find-file)
+(require 'align)
+(require 'which-func)
+(require 'compile)
 
 (eval-when-compile (require 'cl-macs))
 

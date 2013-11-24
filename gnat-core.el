@@ -25,10 +25,10 @@
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;; We use cl-delete-if, defined in cl-seq.el. cl-seq.el has no
-;; 'provide'.  autoload for cl-delete-if is defined in
-;; cl-loaddefs.el, which is not pre-loaded, so we load it here.
-;; FIXME: asking on emacs-devel if this is the right way
-(eval-and-compile (load "cl-loaddefs.el"))
+;; 'provide'.  autoload for cl-delete-if is defined in cl-loaddefs.el,
+;; which is not pre-loaded.  cl-lib does (load "cl-loaddefs.el"), so
+;; that seems to be the thing to do
+(require 'cl-lib)
 
 ;;;;; code
 

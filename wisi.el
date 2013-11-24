@@ -22,7 +22,7 @@
 ;;
 ;;; History: first experimental version Oct 2012
 ;;
-;;;; indentation algorithm overview
+;;; indentation algorithm overview
 ;;
 ;; This design is inspired in part by experience writing a SMIE
 ;; indentation engine for Ada, and the wisent parser.
@@ -126,7 +126,7 @@
 ;; that in functions that return tokens in the form wisi-parse
 ;; expects.
 ;;
-;;; code style
+;;;; code style
 ;;
 ;; 'wisi' was originally short for "wisent indentation engine", but
 ;; now is just a name.
