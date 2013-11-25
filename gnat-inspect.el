@@ -187,15 +187,22 @@ Return buffer that holds output."
 (defun gnat-inspect-compilation (identifier file line col cmd comp-err)
   "Run gnatinspect IDENTIFIER:FILE:LINE:COL CMD,
 set compilation-mode with compilation-error-regexp-alist set to COMP-ERR."
-  (pop-to-buffer (gnat-inspect--session-buffer (gnat-inspect-cached-session)))
   (let ((cmd-1 (format "%s %s:%s:%d:%d" cmd identifier file line col)))
-    (compilation-mode)
-    (setq buffer-read-only nil)
-    (set (make-local-variable 'compilation-error-regexp-alist) (list comp-err))
-    (gnat-inspect-session-send cmd-1 t)
-    (font-lock-fontify-buffer)
-    ;; font-lock-fontify-buffer applies compilation-message text properties
-    ;; IMPROVEME: for some reason, next-error works, but the font colors are not right (no koolaid!)
+    (with-current-buffer (gnat-inspect--session-buffer (gnat-inspect-cached-session))
+      (compilation-mode)
+      (setq buffer-read-only nil)
+      (set (make-local-variable 'compilation-error-regexp-alist) (list comp-err))
+      (gnat-inspect-session-send cmd-1 t)
+      ;; IMPROVEME: don't display gnatinspect output unless there is more than one parent
+      (display-buffer (gnat-inspect--session-buffer (gnat-inspect-cached-session)))
+      (font-lock-fontify-buffer)
+      ;; font-lock-fontify-buffer applies compilation-message text properties
+      ;; IMPROVEME: for some reason, next-error works, but the font colors are not right (no koolaid!)
+      (goto-char (point-min)))
+    ;; compilation-next-error-function assumes there is not at error
+    ;; at point-min; work around that by moving forward 0 errors for
+    ;; the first one.
+    (next-error 0 t)
     ))
 
 (defun gnat-inspect-dist (found-line line found-col col)
@@ -356,18 +363,21 @@ set compilation-mode with compilation-error-regexp-alist set to COMP-ERR."
     (setq identifier (substring identifier 1 (1- (length identifier))))
     )
 
-  (with-current-buffer (gnat-run-buffer)
-    (let ((project-file (file-name-nondirectory
-			 (or (ada-prj-get 'gnat_inspect_gpr_file)
-			     (ada-prj-get 'gpr_file))))
-	  (arg (format "%s:%s:%d:%d" identifier (file-name-nondirectory file) line col))
-	  (result nil))
+  (let ((cmd (format "overrides %s:%s:%d:%d" identifier (file-name-nondirectory file) line col))
+	result)
+    (with-current-buffer (gnat-inspect-session-send cmd t)
 
-      ;; 'gnatinspect overridden' doesn't work; sigh.
+      (goto-char (point-min))
+      (when (looking-at gnat-inspect-ident-file-regexp)
+	(setq result
+	      (list
+	       (match-string 2)
+	       (string-to-int (match-string 3))
+	       (string-to-int (match-string 4)))))
 
       (when (null result)
 	(pop-to-buffer (current-buffer))
-	(error "gnatinspect did not return overridden declaration"))
+	(error "gnatinspect did not return other item"))
 
       (message "parsing result ... done")
       result)))
@@ -477,6 +487,7 @@ Enable mode if ARG is positive"
   (setq ada-xref-parent-function     nil)
   (setq ada-xref-all-function        nil)
   (setq ada-xref-overriding-function nil)
+  (setq ada-xref-overridden-function nil)
 
   (setq completion-ignored-extensions (delete ".ali" completion-ignored-extensions))
   )
@@ -510,10 +521,10 @@ Enable mode if ARG is positive"
 (add-to-list 'compilation-error-regexp-alist-alist
 	     (cons 'gnat-inspect-ident-file-scope gnat-inspect-ident-file-scope-regexp-alist))
 
-(ada-gnat-inspect)
-
 (unless (and (boundp 'ada-xref-tool)
 	     (default-value 'ada-xref-tool))
   (setq ada-xref-tool 'gnat_inspect))
+
+(ada-gnat-inspect)
 
 ;;; end of file

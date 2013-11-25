@@ -15,10 +15,11 @@ package Ada_Mode.Nominal.Child is
       end record;
 
    -- goto parent type declaration for Child_Type_1
-   --EMACSCMD:(progn (end-of-line 3)(backward-word 1)(ada-show-declaration-parents)(when (eq ada-xref-tool 'gnatinspect) (next-error)(next-error)(set-buffer "compilation-gnatinspect-parent_types"))(looking-at "Parent_Type_1"))
+   --EMACSCMD:(progn (end-of-line 3)(backward-word 1)(ada-show-declaration-parents)(looking-at "Parent_Type_1"))
    --EMACSRESULT:t
    overriding procedure Procedure_1a (Item  : in out Child_Type_1);
-   -- FIXME: test goto overriding for Procedure_1a
+   --EMACSCMD:(progn (forward-line -1)(forward-word 3)(ada-show-overridden t) (back-to-indentation) (looking-at "not overriding procedure Procedure_1a"))
+   --EMACSRESULT:t
    -- FIXME: test multiple parents
 
    --EMACSCMD: (progn (forward-line 2)(ada-which-function))

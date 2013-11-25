@@ -1,9 +1,8 @@
 General notes on Emacs Ada mode
 
-run wisi test from emacs -Q:
+run test from emacs -Q:
 (progn
   (add-to-list 'exec-path "/apps/GNAT-7.1.2/bin")
-  (add-to-list 'exec-path "/Apps/monotone-1.0.90/")
   (setenv "PATH" (mapconcat 'identity  exec-path  path-separator))
   (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-1")
   (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-1/build")
@@ -11,10 +10,9 @@ run wisi test from emacs -Q:
   (global-font-lock-mode -1)
   (setq debug-on-error t)
 ;;  (setq wisi-debug 1)
-;;  (load "run-indent-test-gpr")
+  (load "run-indent-test-wisi-gnatinspect")
   (setq default-directory "/Projects/org.emacs.ada-mode.stephe-1/build/wisi/")
-  (load "../../ada-mode-test.el"))
-;;  (run-test "../../test/gpr/gds.gpr"))
+  (run-test "../../test/ada_mode-nominal-child.ads"))
 
 (setq wisi-debug 2)
 (setq wisent-parse-max-stack-size 40)
@@ -28,6 +26,100 @@ run wisi test from emacs -Q:
 (grep-find "find . -type f -print | \"xargs\" grep -nH \"FIXME:\"")
 
 (list (wisi-parser-state-active (aref parser-states 1)) (wisi-parser-state-sp (aref parser-states 1)) (wisi-parser-state-stack (aref parser-states 1)))
+
+ prepare release
+build/wisi/Makefile
+build/Makefile
+
+gnat-inspect-compilation doesn't leave next-error state right
+    test/ada_mode-nominal-child.ads child_type_1
+
+gpr
+    add parse/set prj functions on menu
+
+add compile functions, prj vars
+    compile/build/run keys
+        for Emacs & Ada novices
+        review 4.01, see what could be simplified
+        /Projects/emacs_stephe.main/emacs_stephe_site_lisp/ada-mode.texi
+        /Projects/emacs_stephe.main/emacs_stephe_site_lisp/ada-mode.el
+        ada-mode.texi
+
+        put in ada-build.el, as extension
+        (require 'ada-build)
+
+        go thru examples, add required functions
+            (setq ada-prj-current-file nil
+                  ada-prj-current-project nil
+                  ada-prj-alist nil)
+
+            test/Example_1/ done
+
+            test/Example_2/ done
+
+            test/Example_3/ done
+
+            test/Example_4/ done
+
+            test/Example_5/ done
+
+            example_6 : make
+
+
+add gnatprep minor mode?
+
+should not need ada_col_0 for gnatprep.adb
+
+ada-mode.texi
+    /home/Projects/emacs_stephe.main/emacs_stephe_site_lisp/ada-mode.texi
+    /home/Projects/emacs_stephe.main/emacs_stephe_site_lisp/ada-mode.el
+
+    fixmes
+
+    compile examples
+        include 'make' example
+
+    developer section
+        see email from geoge bauhaus
+
+    compile ada-mode.texi
+
+goto-next-declaration or equiv
+    need my page-down in ada-mode
+
+mouse operations
+    ask on list
+    goto-declaration
+    compiler error
+    others?
+
+    double-click underscore selects full word, double-click letter selects partial word?
+
+gpr-add-log-current-function dispatch to gpr-wisi
+
+ada-add-log-current-function
+
+gpr log-edit-function-name
+    use package.attribute:
+        Source_Dirs
+        Compiler.Default_Switches
+
+gpr-mode.texi
+
+gpr-skel.el
+
+/Projects/Web/stephe-leake/emacs/ada-mode/emacs-ada-mode.html
+    to-do list
+
+check emacs buglist
+    http://debbugs.gnu.org/cgi/pkgreport.cgi?package=ada-mode
+
+MELPA package
+    with autoloads
+
+emacs 23 compat
+
+    font-lock-keywords buffer local by default?
 
  gnat-inspect
 build gnatinspect:
@@ -120,102 +212,15 @@ implement secondary-error for scope in 'gnat-inspect-all'
 
     change ada-show-secondary-error to parse line, col from text, not text-property?
 
-need "show overridden"
-    not same as "parent declarations?"
-    gnatinspect failing; no results? try again
-
-gpr
-    add parse/set prj functions on menu
-
-add compile functions, prj vars
-    compile/build/run keys
-        for Emacs & Ada novices
-        review 4.01, see what could be simplified
-        /Projects/emacs_stephe.main/emacs_stephe_site_lisp/ada-mode.texi
-        /Projects/emacs_stephe.main/emacs_stephe_site_lisp/ada-mode.el
-        ada-mode.texi
-
-        put in ada-build.el, as extension
-        (require 'ada-build)
-
-        go thru examples, add required functions
-            (setq ada-prj-current-file nil
-                  ada-prj-current-project nil
-                  ada-prj-alist nil)
-
-            test/Example_1/ done
-
-            test/Example_2/ done
-
-            test/Example_3/ done
-
-            test/Example_4/ done
-
-            test/Example_5/ done
-
-            example_6 : make
-
-
-add gnatprep minor mode?
-
-should not need ada_col_0 for gnatprep.adb
-
 wisi-validate-cache should call grammar parser in a loop
     that would handle multiple compilation units; doesn't need to be in grammar
     parser needs to ignore invalid token following valid parse.
-
-ada-mode.texi
-    /home/Projects/emacs_stephe.main/emacs_stephe_site_lisp/ada-mode.texi
-    /home/Projects/emacs_stephe.main/emacs_stephe_site_lisp/ada-mode.el
-
-    fixmes
-
-    compile examples
-        include 'make' example
-
-    developer section
-        see email from geoge bauhaus
-
-    compile ada-mode.texi
-
-goto-next-declaration or equiv
-    need my page-down in ada-mode
 
 do C-x 5 prefix
     for Emacs 24.x
 
 suggest jit-lock enable hook
     allow enforcing order in after-change-functions
-
-check emacs buglist
-    http://debbugs.gnu.org/cgi/pkgreport.cgi?package=ada-mode
-
-gpr-skel.el
-
-gpr log-edit-function-name
-    use package.attribute:
-        Source_Dirs
-        Compiler.Default_Switches
-
-gpr-mode.texi
-
-mouse operations
-    ask on list
-    goto-declaration
-    compiler error
-    others?
-
-    double-click underscore selects full word, double-click letter selects partial word?
-
-gpr-add-log-current-function dispatch to gpr-wisi
-
-ada-add-log-current-function
-
-/Projects/Web/stephe-leake/emacs/ada-mode/emacs-ada-mode.html
-    to-do list
-
-ELPA package
-    with autoloads
 
 add C++ tests
 
@@ -238,11 +243,8 @@ gnatprep
     the value of a preprocessor symbol is either empty, a string
     literal, or an Ada identifier/keyword; handle $symbol in lexer
 
- emacs 23 compat
-
-font-lock-keywords buffer local by default?
-
  possible enhancements
+EDE projects?
 
 skeleton
     see python-skeleton-autoinsert

@@ -321,6 +321,7 @@ Values defined by cross reference packages.")
     (define-key map "\C-c\C-v"   'ada-build-check)
     (define-key map "\C-c\C-w" 	 'ada-case-adjust-at-point)
     (define-key map "\C-c\C-x"   'ada-show-overriding)
+    (define-key map "\C-c\M-x"   'ada-show-overridden)
     (define-key map "\C-c\C-y" 	 'ada-case-create-exception)
     (define-key map "\C-c\M-y"   'ada-case-create-partial-exception)
     map
@@ -1999,21 +2000,29 @@ Called with four arguments:
 - filename containing the identifier
 - line number containing the identifier
 - column of the start of the identifier
-Moves point to the location of the overridden declaration.")
+Returns a list '(file line column) giving the corresponding location.
+'file' may be absolute, or on `compilation-search-path'.")
 
-(defun ada-show-overridden ()
+(defun ada-show-overridden (other-window)
   "Show the overridden declaration of identifier at point."
-  (interactive)
+  (interactive "P")
 
   (when (null ada-xref-overridden-function)
-    (error "no cross reference information available"))
+    (error "'show overridden' not supported, or no cross reference information available"))
 
-  (funcall ada-xref-overridden-function
-	   (ada-identifier-at-point)
-	   (file-name-nondirectory (buffer-file-name))
-	   (line-number-at-pos)
-	   (1+ (current-column)))
-  )
+  (let ((target
+	 (funcall ada-xref-overridden-function
+		  (ada-identifier-at-point)
+		  (file-name-nondirectory (buffer-file-name))
+		  (line-number-at-pos)
+		  (1+ (current-column)))))
+
+    (ada-goto-source (nth 0 target)
+		     (nth 1 target)
+		     (nth 2 target)
+		     other-window)
+
+  ))
 
 ;; This is autoloaded because it may be used in ~/.emacs
 ;;;###autoload
