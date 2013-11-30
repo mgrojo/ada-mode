@@ -123,12 +123,24 @@
   (interactive "f")
   ;; we'd like to run emacs from a makefile as:
   ;;
-  ;; emacs --batch -l runtest.el -f run-test-here <filename>
+  ;; emacs -Q --batch -l runtest.el -f run-test-here <filename>
   ;;
   ;; However, the function specified with -f is run _before_
-  ;; <filename> is visited. So we do this instead:
+  ;; <filename> is visited. So we try this instead:
   ;;
-  ;; emacs --batch -l runtest.el --eval (run-test "<filename>")
+  ;; emacs -Q --batch -l runtest.el --eval '(run-test "<filename>")'
+  ;;
+  ;; And then we discover that processes spawned with start-process
+  ;; don't run when emacs is in --batch mode. So we try this:
+  ;;
+  ;; emacs -Q -l runtest.el --eval '(progn (run-test "<filename>")(kill-emacs))'
+  ;;
+  ;; Then we have problems with font lock defaulting to jit-lock; that
+  ;; screws up font-lock tests because the test runs before jit-lock
+  ;; does. This forces default font-lock, which fontifies the whole
+  ;; buffer when (font-lock-fontify-buffer) is called, which tests
+  ;; that rely on font-lock do explicitly.
+  (setq font-lock-support-mode nil)
 
   (let ((dir default-directory))
     (find-file file-name)

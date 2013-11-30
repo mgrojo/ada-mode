@@ -31,9 +31,6 @@ run test from emacs -Q:
 build/wisi/Makefile
 build/Makefile
 
-gnat-inspect-compilation doesn't leave next-error state right
-    test/ada_mode-nominal-child.ads child_type_1
-
 gpr
     add parse/set prj functions on menu
 

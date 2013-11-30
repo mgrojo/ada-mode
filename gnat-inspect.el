@@ -30,10 +30,8 @@
 ;; M-x gnat-inspect
 
 (require 'compile)
-
-(defgroup gnat-inspect nil
-  "Minor mode for navigating sources using GNAT cross reference tool `gnatinspect'."
-  :group 'languages)
+(require 'ada-mode) ;; for ada-prj-*, some other things
+(eval-when-compile (require 'cl-macs))
 
 ;;;;; sessions
 
@@ -44,8 +42,6 @@
 ;; stdout.
 ;;
 ;; We maintain a cache of active sessions, one per gnat project.
-
-(eval-when-compile (require 'cl-macs))
 
 (cl-defstruct (gnat-inspect--session)
   (process nil) ;; running gnatinspect
@@ -187,22 +183,45 @@ Return buffer that holds output."
 (defun gnat-inspect-compilation (identifier file line col cmd comp-err)
   "Run gnatinspect IDENTIFIER:FILE:LINE:COL CMD,
 set compilation-mode with compilation-error-regexp-alist set to COMP-ERR."
-  (let ((cmd-1 (format "%s %s:%s:%d:%d" cmd identifier file line col)))
+  (let ((cmd-1 (format "%s %s:%s:%d:%d" cmd identifier file line col))
+	(result-count 0)
+	file line column)
     (with-current-buffer (gnat-inspect--session-buffer (gnat-inspect-cached-session))
       (compilation-mode)
       (setq buffer-read-only nil)
       (set (make-local-variable 'compilation-error-regexp-alist) (list comp-err))
       (gnat-inspect-session-send cmd-1 t)
-      ;; IMPROVEME: don't display gnatinspect output unless there is more than one parent
-      (display-buffer (gnat-inspect--session-buffer (gnat-inspect-cached-session)))
+      ;; at EOB. gnatinspect returns one line per result
+      (setq result-count (- (line-number-at-pos) 1))
       (font-lock-fontify-buffer)
       ;; font-lock-fontify-buffer applies compilation-message text properties
-      ;; IMPROVEME: for some reason, next-error works, but the font colors are not right (no koolaid!)
-      (goto-char (point-min)))
+      ;; IMPROVEME: for some reason, next-error works, but the font
+      ;; colors are not right (no koolaid!)
+      (goto-char (point-min))
+
+      (cl-case result-count
+	(0
+	 (error "gnatinspect returned no results"))
+	(1
+	 ;; just go there, don't display session-buffer. We have to
+	 ;; fetch the compilation-message while in the session-buffer.
+	 (let* ((msg (compilation-next-error 0 nil (point-min)))
+		(loc (compilation--message->loc msg)))
+	   (setq file (caar (compilation--loc->file-struct loc))
+		 line (caar (cddr (compilation--loc->file-struct loc)))
+		 column (1- (compilation--loc->col loc)))
+	   ))
+
+	));; case, with-currrent-buffer
+
     ;; compilation-next-error-function assumes there is not at error
     ;; at point-min; work around that by moving forward 0 errors for
     ;; the first one.
-    (next-error 0 t)
+    (if (> result-count 1)
+	;; more than one result; display session buffer
+	(next-error 0 t)
+      ;; else don't display
+      (ada-goto-source file line column nil))
     ))
 
 (defun gnat-inspect-dist (found-line line found-col col)
@@ -339,16 +358,10 @@ set compilation-mode with compilation-error-regexp-alist set to COMP-ERR."
 
 (defun gnat-inspect-parents (identifier file line col)
   "For `ada-xref-parent-function', using gnatinspect."
-  ;; This will in general return a list of references, so we use
-  ;; `compilation-start' to run gnatinspect, so the user can navigate
-  ;; to each result in turn via `next-error'.
   (gnat-inspect-compilation identifier file line col "parent_types" 'gnat-inspect-ident-file))
 
 (defun gnat-inspect-overriding (identifier file line col)
   "For `ada-xref-overriding-function', using gnatinspect."
-  ;; This will in general return a list of references, so we use
-  ;; `compilation-start' to run gnatinspect, so the user can navigate
-  ;; to each result in turn via `next-error'.
   (gnat-inspect-compilation identifier file line col "overridden_recursive" 'gnat-inspect-ident-file))
 
 (defun gnat-inspect-overridden-1 (identifier file line col)
@@ -372,8 +385,8 @@ set compilation-mode with compilation-error-regexp-alist set to COMP-ERR."
 	(setq result
 	      (list
 	       (match-string 2)
-	       (string-to-int (match-string 3))
-	       (string-to-int (match-string 4)))))
+	       (string-to-number (match-string 3))
+	       (string-to-number (match-string 4)))))
 
       (when (null result)
 	(pop-to-buffer (current-buffer))
@@ -499,8 +512,6 @@ Enable mode if ARG is positive"
 
 (defun ada-gnat-inspect ()
   "Set Ada mode global vars to use gnatinspect."
-  (require 'ada-mode)
-
   (add-to-list 'ada-prj-parser-alist       '("gpr" . gnat-parse-gpr))
   (add-to-list 'ada-select-prj-xref-tool   '(gnat_inspect  . ada-gnat-inspect-select-prj))
   (add-to-list 'ada-deselect-prj-xref-tool '(gnat_inspect  . ada-gnat-inspect-deselect-prj))

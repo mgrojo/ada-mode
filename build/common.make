@@ -86,9 +86,9 @@ test-elisp :
 
 .PRECIOUS : %.tmp
 
-# load path; .. for runtest.el, ../.. for ada-mode.el etc
+# load path; .. for run-*.el, ../.. for ada-mode.el etc
 %.tmp : % $(INDENT.EL)
-	$(EMACS_EXE) -Q -batch -L .. -L ../.. -l $(RUNTEST) --eval '(run-test "$<")'
+	$(EMACS_EXE) -Q -L .. -L ../.. -l $(RUNTEST) --eval '(progn (run-test "$<")(kill-emacs))'
 
 COMPILE_FILES := $(COMPILE_FILES:.adb=.ali)
 COMPILE_FILES := $(COMPILE_FILES:.ads=.ali)

@@ -1,4 +1,4 @@
--- -*- ada-when-indent: 3 -*-
+-- -*- ada-indent-when: 3 -*-
 
 --  7402-004
 --  Indentation problem for a 'begin' in a 'case... when' statement

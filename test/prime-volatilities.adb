@@ -1,4 +1,4 @@
--- -*- ada-when-indent: 3 -*-
+-- -*- ada-indent-when: 3 -*-
 --EMACSCMD:(setq skip-recase-test t)
 
 -- Indentation test only
