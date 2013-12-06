@@ -62,7 +62,4 @@ begin
 
 end Gnatprep;
 
--- Local Variables:
--- ada-indent-comment-col-0: t
--- End:
 -- end of file

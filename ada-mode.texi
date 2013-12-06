@@ -30,7 +30,7 @@ developing GNU and promoting software freedom.''
 @title{Ada Mode}
 @sp 2
 @subtitle An Emacs major mode for programming in Ada
-@subtitle Ada Mode Version 4.01
+@subtitle Ada Mode Version 5.00
 @sp 2
 @page
 @vskip 0pt plus 1filll
@@ -59,6 +59,7 @@ developing GNU and promoting software freedom.''
 * Automatic casing::            Adjusting the case of words automatically
 * Comment Handling::            Reformatting comments easily
 * Key summary::
+* Developer overview::
 * GNU Free Documentation License::
 * Index::
 @end menu
@@ -113,7 +114,28 @@ in the distribution.
 To see what version of Ada mode you have installed, do @kbd{M-x
 ada-mode-version}.
 
-@c FIXME: gnat-coll
+@menu
+* gnatinspect::
+@end menu
+
+@node gnatinspect,  , Installation, Installation
+@section gnatinspect
+Ada mode has experimental support for the new AdaCore cross reference
+tool @code{gnatinspect}, which supports Ada, C, C++, and any other
+language for which gcc provices the @code{-fdump-xref}.
+
+@code{gnatinspect} is distributed as part of @code{gnatcoll}. Ada mode
+requires the very latest version, in @code{gnatcoll 1.7w} distributed
+with GNATPro 7.2 preview.
+
+To build @code{gnatinspect}:
+@example
+tar xf ~/Downloads/gnatcoll-1.7w-src.tgz
+cd gnatcoll-1.7w-src
+./configure --prefix=/usr/gnat-7.1.2
+make Gnatcoll_Build=Debug
+sudo make Gnatcoll_Build=Debug install
+@end example
 
 @node Customization, Compiling Executing, Installation, Top
 @chapter Customizing Ada mode
@@ -126,6 +148,7 @@ the tutorial (@kbd{C-h t}).
 @menu
 * Non-standard file names::
 * Other compiler::
+* Other cross-reference::
 * Other customization::
 @end menu
 
@@ -178,7 +201,7 @@ function for @code{ada-file-name-from-ada-name}. Doing that is beyond
 the scope of this manual; see the current definitions in
 @file{ada-mode.el} and @file{ada-gnat.el} for examples.
 
-@node Other compiler, Other customization, Non-standard file names, Customization
+@node Other compiler, Other cross-reference, Non-standard file names, Customization
 @section Other compiler
 The project variable @code{ada_compiler} (default elisp variable
 @code{ada-compiler}) is used to index several variables that point to
@@ -188,11 +211,24 @@ To use a compiler other than GNAT, you must write Emacs lisp code that
 provides the interface to the compiler, and set @code{ada-compiler} and
 the indirection variables.
 
-See @file{ada-gnat.el} for an example.
+See @file{ada-gnat-compile.el} for an example.
 
-@c FIXME: Other xref: gnat-inspect
+@node Other cross-reference, Other customization, Other compiler, Customization
+@section Other cross-reference
+The project variable @code{ada_xref} (default elisp variable
+@code{ada-xref-tool}) is used to index several variables that point to
+the cross-reference-tool-specific functions for corresponding Ada mode
+operations.
 
-@node Other customization,  , Other compiler, Customization
+To use a cross reference tool other than gnatxref, you must write
+Emacs lisp code that provides the interface to the compiler, and set
+@code{ada-xref-tool} and the indirection variables. This has already
+been done for @code{gnatinspect}; set @code{ada-xref-tool} to
+@code{'gnat_inspect}.
+
+See @file{ada-gnat-xref.el} and @file{gnat-inspect.el} for examples.
+
+@node Other customization,  , Other cross-reference, Customization
 @section Other customization
 
 All user-settable Ada mode variables can be set via the menu
@@ -223,14 +259,24 @@ Updates the copyright date in the file header comment, to the current
 year.
 @item electric-pair-mode
 Insert a matching right paren when you type a left paren.
+@item hippie-expand
+Bind hippie-expand to a key; it expands the word before point, using
+words from current buffer, other buffers, file names, etc; see
+@code{hippie-expand-try-functions-list}. You can also add
+@code{ada-skel-hippie-try} to that list. Note that @code{ada-expand},
+which defaults to @code{ada-skel-expand}, is bound to @key{C-c C-e}
+(@pxref{Statement skeletons}).
 @end table
 
 The above can all be set by the following code in your
-@file{~/.emacs}. Note that some are functions that are added to
+@file{~/.emacs}. Note that some are functions are added to
 @code{before-save-hook}; they run just before a buffer is written to disk.
 @example
 (setq-default indent-tabs-mode nil)
 (electric-pair-mode 1)
+(require 'ada-mode)
+(add-to-list 'hippie-expand-try-functions-list 'ada-skel-hippie-try)
+(define-key ada-mode-map "\C-e"     'hippie-expand)
 (add-hook 'ada-mode-hook
    (lambda ()
     (add-hook 'before-save-hook 'delete-trailing-whitespace nil t)
@@ -259,7 +305,7 @@ to tell Emacs about the project directory tree and other settings.
 * Compiler errors::
 @end menu
 
-@node Compile commands, Compiling Examples, , Compiling Executing
+@node Compile commands, Compiling Examples, Compiling Executing, Compiling Executing
 @section Compile commands
 
 Here are the commands for building an Ada project and running the main
@@ -269,7 +315,7 @@ In multi-file projects, there must be one file that is the main
 program. That is given by the @code{main} project file variable;
 it defaults to the current file if not yet set, but is also set by the
 ``set main and build'' command.
-@c FIXME: get main from gpr via gnatinspect? not in gnatcoll 1.6w
+@c IMPROVEME: get main from gpr via gnatinspect? not in gnatcoll 1.6w
 
 @table @code
 
@@ -823,8 +869,8 @@ select project...}, and select @file{Example_5/hello_5.adp}. This
 would also be found by default if no previous project file had been
 selected.
 
-Then, again in @file{hello_5.adb}, invoke @samp{Ada | Set main and
-Build}. You should get a @code{*compilation*} buffer containing
+Then, again in @file{hello_5.adb}, invoke @samp{Ada | Build | Set main
+and Build}. You should get a @code{*compilation*} buffer containing
 something like (the directory paths will be different):
 
 @example
@@ -843,7 +889,7 @@ Now type @kbd{C-x `}. @file{Example_4/hello_pkg.adb} is shown,
 demonstrating that @file{hello_5.gpr} and @file{hello_4.gpr} are being
 used to set the compilation search path.
 
-@node Use a Makefile
+@node Use a Makefile,  , Use multiple GNAT project files, Compiling Examples
 @subsection Use a Makefile
 
 In this example, we show how to use a Makefile to build an Ada project
@@ -1458,7 +1504,7 @@ Otherwise, add a comment at the end of the line, in a column given by
 Fill the current comment paragraph.
 @end table
 
-@node Key summary, GNU Free Documentation License, Comment Handling, Top
+@node Key summary, Developer overview, Comment Handling, Top
 @chapter Key summary
 @c search for @kbd. Alphabetical by key sequence
 
@@ -1545,7 +1591,262 @@ Fill the current comment paragraph.
 
 @end table
 
-@node GNU Free Documentation License, Index, Key summary, Top
+@node Developer overview, GNU Free Documentation License, Key summary, Top
+@chapter Developer overview
+If you'd like to contribute to Ada mode, or just understand the
+sources, here's an overview.
+
+@menu
+* Directory structure::
+* Package organization::
+@end menu
+
+@node Directory structure, Package organization, Developer overview, Developer overview
+@section Directory structure
+@table @file
+@item org.emacs.ada-mode.stephe-1
+Main source.
+
+File extensions:
+@table @file
+@item *.el
+Elisp files; main code.
+
+@item *.elc
+Byte-compiled elisp files, not in the distribution. Generated by the
+Makefile target @code{byte-compile}.
+
+Compiling the parse tables (@file{*-wy.el}) speeds up loading them
+significantly. Compiling other files speeds up parsing, but not
+noticeably.
+
+One reason to byte-compile files is to find errors; the byte compiler
+reports undefined variables, wrong argument counts, etc.
+
+@item *-wy.el
+Parse tables, generated from the corresponding grammar @file{*.wy} by
+the OpenToken tool @file{wisi-generate.exe}. These are in the tarball
+distribution and the monotone so users and Elisp developers don't have
+to install OpenToken.
+
+@item *-wy.output
+Diagnostic output from @file{wisi-generate.exe}, useful for tracing
+parses while debugging a grammar issue. Not in the tarball
+distribution or the monotone repository.
+
+@item *.wy
+Grammar files, specifying the language to be parsed. The syntax for
+these grammar files is similar to that for bison and wisent, but not
+the same; see the OpenToken documentation for more info.
+
+The wisi parser (in @file{wisi-parse.el}) is a generalized LALR
+parser, so it tolerates some conflicts and ambiguities. This makes the
+grammars easier to write, and in particular makes it possible to let
+the Ada grammar closely match Annex P of the Ada Language Reference
+Manual (the syntax summary).
+
+@item *.texi
+Texinfo source for the user guides.
+
+@item *.html
+Generated user guide in HTML format.
+
+@item *.info
+Generated user guide in Emacs info format.
+
+
+@end table
+
+@item build
+Makefiles for byte-compiling, running tests, making zips.
+
+@item build/wisi
+Makefiles for building and testing with the wisi-based
+parser. Separate from @file{build}, because there used to be a
+SMIE-based parser, and there might be another one someday.
+
+The emacs used to byte-compile and run tests is given by the 'make'
+variable EMACS_EXE, which defaults to 'emacs'; it can be overridden on
+the make command line or by an environment variable.
+
+@item test
+All tests for Ada mode, gpr mode, parser.
+
+Each test is run in a separate invocation of Emacs, so it is
+completely independent of all other tests.
+
+The tests are driven by the elisp code in @file{build/*.el}.
+
+In general, the Ada mode tests open the file, execute test actions,
+re-indent, and re-captialize the entire file. The result is diffed
+with the original, and must match.
+
+The test actions are defined by comments with the prefix
+@code{--EMACSCMD:}; they are elisp forms that invoke Ada mode
+functions. This is used to test navigation features and other parser
+effects.
+
+@item test/Example_*
+Starting files for examples in user guide.
+
+@item test/gpr
+Tests for gpr mode.
+
+@item test/subdir
+More tests; allows testing path search features.
+
+@item test/wisi
+Tests of the elisp wisi grammar compiler and parser.
+@end table
+
+@node Package organization,  , Directory structure, Developer overview
+@section Package organization
+
+@menu
+* Ada mode::
+* gpr mode::
+* GNAT core::
+* Wisi::
+@end menu
+
+@node Ada mode, gpr mode, Package organization, Package organization
+@subsection Ada mode
+Ada mode consists of all files with @file{ada-} prefix in the file
+name.
+
+@table @file
+@item ada-mode.el
+The main file, implementing the keymap, menu, and top level
+functionality.
+
+It allows for different backend implementations for compiling,
+cross-referencing, and indenting. The functions for each of these
+backends dispatch thru global variables that are set by Emacs Ada mode
+project files. They default to the GNAT compiler, the gnatxref cross
+reference tool, and the ada-wisi indentation engine.
+
+@item ada-build.el
+Provides functions for compiling Ada files without a Makefile (or
+similar tool).
+
+@item ada-fix-error.el
+Provides an interface to utilities for automatically fixing errors
+reported by the compiler. It dispatches to a compiler-specific
+backend.
+
+@item ada-gnat-compile.el
+Implements the Ada mode compiler functions for the GNAT compiler.
+
+@item ada-gnat-xref.el
+Implements the Ada mode cross reference functions for the GNAT compiler.
+
+@item ada-grammar.*
+The Ada language grammar, and files generated from it by the OpenToken
+tool @file{wisi-generate.exe}.
+
+@item ada-indent-user-options.el
+All user-settable options for the Ada indentation engine.
+
+@item ada-mode-compat-23.4.el
+A start on defining functions used by Ada mode but not in Emacs
+23.4.
+
+Emacs Ada mode is written for Emacs 24.3. Emacs version 23.4 is
+partially supported. Earlier versions of Emacs are not supported.
+
+@item ada-mode.texi
+The Ada mode user guide source and compiled versions.
+
+@item ada-skel.el
+Skeletons for expansion of Ada syntax (@pxref{Statement
+skeletons}). Extends the Emacs skeleton functions with ``tokens'',
+inspired by the lamented Else package (which was inspired by DEC LSE).
+
+@item ada-wisi-opentoken.el
+Indentation functions useful when editing OpenToken code; an example
+of extending the Ada mode indentation engine for special
+circumstances.
+
+@item ada-wisi.el
+Implements the Ada mode indentation functions for the wisi indentation
+engine backend.
+
+@end table
+
+@node gpr mode, GNAT core, Ada mode, Package organization
+@subsection gpr mode
+
+gpr mode consists of all files with @file{gpr-} prefix in the file
+name. The functions in each file are similar to the similarly-named
+Ada mode files.
+
+@node GNAT core, Wisi, gpr mode, Package organization
+@subsection GNAT core
+@table @file
+
+@item gnat-core.el
+GNAT is actually a multi-language tool; it builds on top of the
+multi-language gcc.
+
+@file{gnat-core.el} is a start at a language-agnostic interface to the
+GNAT tools. It was first factored out from @file{ada-gnat.el} and
+@file{ada-mode.el} to support the multi-language
+@file{gnat-inspect.el}, which is still experimental.
+
+More code currently in @file{ada-mode.el} could be migrated to
+@file{gnat-core.el}, in particular the project file support.
+
+@item gnat-inspect.el
+Provides an experimental interface to the experimental multi-language
+cross-reference tool @file{gnatinspect} from AdaCore, which will
+supercede @file{gnatxref}.
+
+Implements the Ada mode cross-reference functions for the
+@file{gnatinspect} backend, and a minor mode providing similar
+functions for C++.
+
+@end table
+
+@node Wisi,  , GNAT core, Package organization
+@subsection Wisi
+
+The ``wisi'' parser. ``wisi'' used to be an acronym, but now it's just
+a name.
+
+@table @file
+@item wisi.el
+Implements the lexer, the main parser driver,
+parser actions that cache parser information in text properties,
+utilities for indenting and navigating using the cached information,
+and general setup.
+
+@item wisi-compile.el
+Implements the parse table
+compiler. @file{wisi-generate.exe} processes the grammar source
+@file{*.wy} into an elisp source representation of a parse table
+@file{*-wy.el}. That is compiled into an internal structure containing
+the state transitions and executable actions. The actions can be any
+elisp form; the intent is that they be calls to the action functions
+provided by @file{wisi.el}. @file{wisi-compile.el} uses some features
+provided by @code{semantic}.
+
+@item wisi-parse.el
+Implements the generalized LALR parser.
+@end table
+
+@node OpenToken
+@section OpenToken
+Ada mode uses the OpenToken tool @file{wisi-generate.exe} to process
+the grammar sources into elisp parse tables. See
+@uref{http://stephe-leake.org/emacs/ada-mode/emacs-ada-mode.html} for
+current information about which version of OpenToken is required, and
+how to get it.
+
+The Makefile variable @code{WISI_OPENTOKEN} gives the path to the
+build directory for OpenToken; you probably need to override it with
+an external environment variable or on the @code{make} command line.
+
+@node GNU Free Documentation License, Index, Developer overview, Top
 @appendix GNU Free Documentation License
 @include doclicense.texi
 

@@ -84,6 +84,7 @@ current construct."
     ["Customize"     (customize-group 'ada)];; we reuse the Ada indentation options
     ["------"        nil nil]
     ["Set as current project"     gpr-set-as-project        t]
+    ["Show current project"       ada-prj-show              t]
     ["Next compilation error"     next-error                t]
     ["Show secondary error"       ada-show-secondary-error  t]
     ["Show last parse error"      gpr-show-parse-error      t]

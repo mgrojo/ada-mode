@@ -11,7 +11,7 @@ update : ../../ada-grammar-wy.el ../../gpr-grammar-wy.el  byte-compile
 byte-compile : byte-compile-clean
 	cd ../../; $(EMACS_EXE) -Q -batch -L . -f batch-byte-compile *.el
 
-test : test-ada-gnatxref.stamp test-ada-gnatinspect.stamp test-gpr test-elisp
+test : test-wisi test-ada-gnatxref.stamp test-ada-gnatinspect.stamp test-gpr test-elisp
 
 # test-elisp debug:
 # (progn (add-to-list 'load-path (expand-file-name "../../test")) (load "ada-mode-test.el"))
@@ -25,20 +25,21 @@ test-wisi :: empty_production_6.wisi-test
 test-wisi :: empty_production_8.wisi-test
 
 one : RUNTEST := run-indent-test-wisi.el
-#one : RUNTEST := run-indent-test-wisi-gnatinspect.el
 one : gnatprep.adb.diff
 
 vpath %.wy ../../ ../../test/wisi
 vpath %.el ../../ .
 
-# these are correct paths for Stephe's development machines; need mechanism to override?
+# These are correct paths for Stephe's development machines;
+# WISI_OPENTOKEN can be overridden on the 'make' command line or by an
+# external environment variable.
 ifeq ($(shell uname),Linux)
-WISI_OPENTOKEN := /home/Projects/opentoken/org.opentoken.stephe/build/release
+WISI_OPENTOKEN ?= /home/Projects/opentoken/org.opentoken.stephe/build/release
 export ADA_PROJECT_PATH=../../test/:../../test/subdir
 
 else
 # windows
-WISI_OPENTOKEN := $(CURDIR)/../../../org.opentoken.stephe/build/release
+WISI_OPENTOKEN ?= $(CURDIR)/../../../org.opentoken.stephe/build/release
 export ADA_PROJECT_PATH=../../test/;../../test/subdir
 
 endif
@@ -52,7 +53,7 @@ endif
 # -v 2 dumps debug info from parser table generation, continues with unused tokens, unknown conflicts
 %-wy.el : %.wy $(WISI_OPENTOKEN)/wisi-generate.exe
 	cd ./$(<D); $(WISI_OPENTOKEN)/wisi-generate.exe -v 1 $(<F) Elisp > $(*F).output
-	dos2unix $@
+	cd ./$(<D); dos2unix $@
 
 # ../../../org.opentoken.stephe/wisi/wisi-generate.adb
 $(WISI_OPENTOKEN)/wisi-generate.exe : force

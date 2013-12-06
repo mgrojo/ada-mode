@@ -164,7 +164,7 @@
 (defun ada-mode-version ()
   "Return Ada mode version."
   (interactive)
-  (let ((version-string "5.00")) ;; must match ada-mode.texi
+  (let ((version-string "5.00")) ;; must match ada-mode.texi, README
     (if (called-interactively-p 'interactive)
 	(message version-string)
       version-string)))
@@ -241,13 +241,6 @@ Only affects the keywords to highlight."
   :safe  'symbolp)
 (make-variable-buffer-local 'ada-language-version)
 
-(defcustom ada-popup-key '[down-mouse-3]
-  ;; FIXME (later, when testing menu): don't need a var for this; user can just bind a key
-  "Key used for binding the contextual menu.
-If nil, no contextual menu is available."
-  :type '(restricted-sexp :match-alternatives (stringp vectorp))
-  :group 'ada)
-
 (defcustom ada-fill-comment-prefix "-- "
   "Comment fill prefix."
   :type 'string
@@ -290,10 +283,6 @@ Values defined by cross reference packages.")
 
 ;;;; keymap and menus
 
-(defvar ada-expand nil
-  ;; skeleton function
-  "Function to call to expand tokens (ie insert skeletons).")
-
 (defvar ada-mode-map
   (let ((map (make-sparse-keymap)))
     ;; C-c <letter> are reserved for users
@@ -324,6 +313,8 @@ Values defined by cross reference packages.")
     (define-key map "\C-c\M-x"   'ada-show-overridden)
     (define-key map "\C-c\C-y" 	 'ada-case-create-exception)
     (define-key map "\C-c\M-y"   'ada-case-create-partial-exception)
+    (define-key map [down-mouse-3] 'ada-popup-menu)
+
     map
   )  "Local keymap used for Ada mode.")
 
@@ -352,18 +343,19 @@ Values defined by cross reference packages.")
      ["Set main and Build"         ada-build-set-make    t]
      ["Run"                        ada-build-run         t]
      )
-    ["Other file"                    ada-find-other-file          t]
-    ["Other file don't find decl"    ada-find-other-file-noset    t]
-    ["Goto declaration/body"         ada-goto-declaration         t]
-    ["Show parent declarations"      ada-show-declaration-parents t]
-    ["Show references"               ada-show-references          t]
-    ["Show overriding"               ada-show-overriding          t]
-    ["Show overridden"               ada-show-overridden          t]
-    ["Show last parse error"         ada-show-parse-error         t]
-    ["Refresh cross reference cache" ada-xref-refresh             t]
-    ["------"        nil nil]
+    ("Navigate"
+     ["Other file"                    ada-find-other-file          t]
+     ["Other file don't find decl"    ada-find-other-file-noset    t]
+     ["Goto declaration/body"         ada-goto-declaration         t]
+     ["Goto next statement keyword"   ada-next-statement-keyword   t]
+     ["Goto prev statement keyword"   ada-next-statement-keyword   t]
+     ["Show parent declarations"      ada-show-declaration-parents t]
+     ["Show references"               ada-show-references          t]
+     ["Show overriding"               ada-show-overriding          t]
+     ["Show overridden"               ada-show-overridden          t]
+     )
     ("Edit"
-     ["Expand skeleton"             (funcall ada-expand)    t]
+     ["Expand skeleton"             funcall ada-expand      t]
      ["Indent line"                 indent-for-tab-command  t]
      ["Indent current statement"    ada-indent-statement    t]
      ["Indent lines in file"        (indent-region (point-min) (point-max))  t]
@@ -381,7 +373,59 @@ Values defined by cross reference packages.")
      ["Adjust case at point"        ada-case-adjust-at-point  t]
      ["Adjust case region"          ada-case-adjust-region    t]
      ["Adjust case buffer"          ada-case-adjust-buffer    t]
+     )
+    ("Misc"
+     ["Show last parse error"         ada-show-parse-error         t]
+     ["Refresh cross reference cache" ada-xref-refresh             t]
      )))
+
+;; This doesn't need to be buffer-local because there can be only one
+;; popup menu at a time.
+(defvar ada-context-menu-on-identifier nil)
+
+(easy-menu-define ada-context-menu nil
+  "Context menu keymap for Ada mode"
+  '("Ada"
+    ["Make body for subprogram"      ada-make-subprogram-body     t] ;; FIXME: include only if will succeed
+    ["Goto declaration/body"         ada-goto-declaration         :included ada-context-menu-on-identifier]
+    ["Show parent declarations"      ada-show-declaration-parents :included ada-context-menu-on-identifier]
+    ["Show references"               ada-show-references          :included ada-context-menu-on-identifier]
+    ["Show overriding"               ada-show-overriding          :included ada-context-menu-on-identifier]
+    ["Show overridden"               ada-show-overridden          :included ada-context-menu-on-identifier]
+    ["Expand skeleton"               ada-expand                        t] ;; FIXME: only if skeleton
+    ["Create full case exception"    ada-case-create-exception         t]
+    ["Create partial case exception" ada-case-create-partial-exception t]
+
+    ["-"                nil nil]
+    ["Align"                       ada-align                  t]
+    ["Adjust case at point"        ada-case-adjust-at-point   (not (use-region-p))]
+    ["Adjust case region"          ada-case-adjust-region     (use-region-p)]
+    ["Indent current statement"    ada-indent-statement       t]
+    ["Goto next statement keyword" ada-next-statement-keyword t]
+    ["Goto prev statement keyword" ada-next-statement-keyword t]
+    ["Other File"                  ada-find-other-file        t]
+    ["Other file don't find decl"  ada-find-other-file-noset  t]))
+
+(defun ada-popup-menu (position)
+  "Pops up a `ada-context-menu', with `ada-context-menu-on-identifer' set appropriately.
+POSITION is the location the mouse was clicked on.
+Sets `ada-context-menu-last-point' to the current position before
+displaying the menu.  When a function from the menu is called,
+point is where the mouse button was clicked."
+  (interactive "e")
+
+  (mouse-set-point last-input-event)
+
+  (setq ada-context-menu-on-identifier
+	(and (char-after)
+	     (or (= (char-syntax (char-after)) ?w)
+		 (= (char-after) ?_))
+	     (not (ada-in-string-or-comment-p))
+	     (save-excursion (skip-syntax-forward "w")
+			     (not (ada-after-keyword-p)))
+	     ))
+    (popup-menu ada-context-menu)
+    )
 
 (defun ada-indent-newline-indent ()
   "insert a newline, indent the old and new lines."
@@ -400,10 +444,20 @@ Values defined by cross reference packages.")
 Function is called with no arguments.")
 
 (defun ada-indent-statement ()
-  "Return t if point is inside the parameter-list of a subprogram declaration."
+  "Indent current statement."
   (interactive)
   (when ada-indent-statement
     (funcall ada-indent-statement)))
+
+(defvar ada-expand nil
+  ;; skeleton function
+  "Function to call to expand tokens (ie insert skeletons).")
+
+(defun ada-expand ()
+  "Expand previous word into a statement skeleton."
+  (interactive)
+  (when ada-expand
+    (funcall ada-expand)))
 
 ;;;; abbrev, align
 
@@ -713,53 +767,6 @@ Each parameter declaration is represented by a list
   (interactive)
   (when ada-show-parse-error
     (funcall ada-show-parse-error)))
-
-;;;; context menu
-
-;; FIXME: test or delete!
-(defvar ada-context-menu-last-point nil)
-(defvar ada-context-menu-on-identifier nil)
-(defvar ada-context-menu nil)
-
-(defun ada-call-from-context-menu (function)
-  "Execute FUNCTION when called from the contextual menu.
-It forces Emacs to change the cursor position."
-  (interactive)
-  (funcall function)
-  (setq ada-context-menu-last-point
-	(list (point) (current-buffer))))
-
-(defun ada-popup-menu (position)
-  "Pops up a contextual menu, depending on where the user clicked.
-POSITION is the location the mouse was clicked on.
-Sets `ada-context-menu-last-point' to the current position before
-displaying the menu.  When a function from the menu is called,
-point is where the mouse button was clicked."
-  (interactive "e")
-
-  ;; don't let context menu commands deactivate the mark (which would
-  ;; hide the region in transient-mark-mode), even if they normally
-  ;; would. FIXME (later, when testing menu): why is this a good idea?
-  (let ((deactivate-mark nil))
-    (setq ada-context-menu-last-point
-	 (list (point) (current-buffer)))
-    (mouse-set-point last-input-event)
-
-    (setq ada-context-menu-on-identifier
-	  (and (char-after)
-	       (or (= (char-syntax (char-after)) ?w)
-		   (= (char-after) ?_))
-	       (not (ada-in-string-or-comment-p))
-	       (save-excursion (skip-syntax-forward "w")
-			       (not (ada-after-keyword-p)))
-	       ))
-    (popup-menu ada-context-menu)
-
-    ;; FIXME (later, when testing menu): is this necessary? what do context menus do by default?
-    ;; why not use save-excursion?
-    (set-buffer (cadr ada-context-menu-last-point))
-    (goto-char (car ada-context-menu-last-point))
-    ))
 
 ;;;; auto-casing
 
@@ -2532,10 +2539,6 @@ The paragraph is indented on the first line."
 		 (modes   . '(ada-mode))))
 
   (setq align-mode-rules-list ada-align-rules)
-
-  ;;  Set up the contextual menu
-  (if ada-popup-key
-      (define-key ada-mode-map ada-popup-key 'ada-popup-menu))
 
   (easy-menu-add ada-mode-menu ada-mode-map)
 

@@ -79,6 +79,7 @@
 
     (wisi-setup
      nil ;; indent-calculate
+     nil ;; post-parse-fail
      test-class-list
      (symbol-value (intern-soft (concat filename "-wy--keyword-table")))
      (symbol-value (intern-soft (concat filename "-wy--token-table")))

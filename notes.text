@@ -31,64 +31,10 @@ run test from emacs -Q:
 build/wisi/Makefile
 build/Makefile
 
-gpr
-    add parse/set prj functions on menu
-
-add compile functions, prj vars
-    compile/build/run keys
-        for Emacs & Ada novices
-        review 4.01, see what could be simplified
-        /Projects/emacs_stephe.main/emacs_stephe_site_lisp/ada-mode.texi
-        /Projects/emacs_stephe.main/emacs_stephe_site_lisp/ada-mode.el
-        ada-mode.texi
-
-        put in ada-build.el, as extension
-        (require 'ada-build)
-
-        go thru examples, add required functions
-            (setq ada-prj-current-file nil
-                  ada-prj-current-project nil
-                  ada-prj-alist nil)
-
-            test/Example_1/ done
-
-            test/Example_2/ done
-
-            test/Example_3/ done
-
-            test/Example_4/ done
-
-            test/Example_5/ done
-
-            example_6 : make
-
-
-add gnatprep minor mode?
-
-should not need ada_col_0 for gnatprep.adb
-
-ada-mode.texi
-    /home/Projects/emacs_stephe.main/emacs_stephe_site_lisp/ada-mode.texi
-    /home/Projects/emacs_stephe.main/emacs_stephe_site_lisp/ada-mode.el
-
-    fixmes
-
-    compile examples
-        include 'make' example
-
-    developer section
-        see email from geoge bauhaus
-
-    compile ada-mode.texi
-
-goto-next-declaration or equiv
-    need my page-down in ada-mode
-
 mouse operations
-    ask on list
-    goto-declaration
-    compiler error
-    others?
+    asked on list
+
+    do snapshot so people can play with it
 
     double-click underscore selects full word, double-click letter selects partial word?
 
@@ -111,7 +57,29 @@ gpr-skel.el
 check emacs buglist
     http://debbugs.gnu.org/cgi/pkgreport.cgi?package=ada-mode
 
+ada-mode.texi
+    /home/Projects/emacs_stephe.main/emacs_stephe_site_lisp/ada-mode.texi
+    /home/Projects/emacs_stephe.main/emacs_stephe_site_lisp/ada-mode.el
+
+    review key summary
+
+    review entire manual
+
+public repository
+    bedap mtn with port forwarding
+        need usher for gds/opentoken/emacs/stephe
+
+    ada-france mtn
+
+    https://www.assembla.com/user/one_page_signup?space_type=public
+        for git and/or hg?
+        ask on c.l.a
+
+    github for git?
+
 MELPA package
+    http://www.emacswiki.org/emacs/MELPA
+    https://github.com/milkypostman/melpa/blob/master/README.md#contributing-new-recipes
     with autoloads
 
 emacs 23 compat
@@ -119,22 +87,7 @@ emacs 23 compat
     font-lock-keywords buffer local by default?
 
  gnat-inspect
-build gnatinspect:
-    (gds-lynx-5)
-    cd ~/Projects
-    tar xf ~/Downloads/gnatcoll...
-    cd gnatcoll...
-    case:
-    when linux:
-        ./configure --prefix=/usr/gnat-7.1.2 --enable-gpl
-    when windows:
-        in cygwin bash, with gnat-7.1.2 in path:
-        ./configure --prefix=/Apps/GNAT-7.1.2 --enable-gpl
-    end case
-
-    make Gnatcoll_Build=Debug
-    sudo make Gnatcoll_Build=Debug install
-
+test 1.7w
 
 ~/Projects/gnatcoll-1.6w-src/docs/xref.rst
 c:/Apps/GNAT-7.1.2/gnatcoll-1.6w-src/src/tools/gnatinspect.adb
@@ -153,6 +106,10 @@ gnatinspect is slow
 
     (pop-to-buffer " *gnatinspect-c:/Projects/GDS/work_dscovr_release/dscovr/build/x86_gnu_windows_debug/gds_dscovr_test_agg.gpr*")
 
+    start or refresh gnatinspect process when select project
+        don't wait
+
+
     set "don't prompt on exit emacs" property on session proceses
         and on bash shells!
 
@@ -162,9 +119,9 @@ gnatinspect is slow
         /Projects/GDS/work_dscovr_release/dscovr/1553/test/gds-hardware-bus_1553-core_thruster-test.adb
 
 
-    F7 broken
-        using wrong/broken compilation regexp?
-        c:/Projects/GDS/main_lynx_5/common/1553/gds-cards-sbs_abi-ops.ads Read_Mem
+F7 broken
+    using wrong/broken compilation regexp?
+    c:/Projects/GDS/main_lynx_5/common/1553/gds-cards-sbs_abi-ops.ads Read_Mem
 
 implement C++ C-c M-d parent
     just need key, menu
@@ -200,6 +157,9 @@ need std include files in search list
  general
 build/wisi/Makefile
 build/Makefile
+
+need indent test of skel expansions
+    verify they parse
 
 implement secondary-error for scope in 'gnat-inspect-all'
     /Projects/GDS/work_dscovr_release/common/build/x86_gnu_windows_release/Makefile
@@ -239,6 +199,9 @@ add test for el_file
 gnatprep
     the value of a preprocessor symbol is either empty, a string
     literal, or an Ada identifier/keyword; handle $symbol in lexer
+
+    gnatprep minor mode?
+
 
  possible enhancements
 EDE projects?
@@ -314,6 +277,8 @@ Markus Schöpflin <markus.schoepflin@comsoft.aero> wants this style (including a
 
  opentoken
 /Projects/org.opentoken.stephe/build/debug/Makefile
+
+http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=703361
 
 resolve dynamic library names
     windows: _version.dll
@@ -661,6 +626,12 @@ read/write access requires a public key:
     mtn --db ~/monotone-dbs/ada-france.db sync "mtn://www.ada-france.org?org.emacs.*"
 
  release process
+bump version
+    ada-mode.el ada-mode-version
+    ada-mode.texi Ada Mode Version
+    README
+
+
 Emacs 24.3, gnat 7.1.2 (sal-standard):
     /Projects/org.opentoken.stephe/build/windows_release/Makefile all
     build/wisi/Makefile all
@@ -697,7 +668,8 @@ build/wisi/Makefile zip
         (dvc-log)
 
 ~/Web/Makefile
-    edit date in ADA-MODE-SMIE_GZ, ADA-MODE-OPENTOKEN_BZ2
+    delete smie
+    edit date in ADA-MODE-WISI_GZ, ADA-MODE-OPENTOKEN_BZ2
     ada-mode
     sync
 

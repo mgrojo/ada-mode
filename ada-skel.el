@@ -403,6 +403,23 @@ it is a name, and use the word before that as the token."
       (error "undefined skeleton token: %s" name))
     ))
 
+(defun ada-skel-hippie-try (old)
+  "For `hippie-expand-try-functions-list'. OLD is ignored."
+  (if old
+      ;; hippie is asking us to try the "next" completion; we don't have one
+      nil
+    (let ((pos (point)))
+      (undo-boundary)
+      (condition-case nil
+	  (progn
+	    (ada-skel-expand)
+	    t)
+	('error
+	 ;; undo ada-case-adjust, motion
+	 (undo)
+	 (goto-char pos)
+	 nil)))))
+
 (defun ada-skel-setup ()
   "Setup a buffer ada-skel."
   (add-hook 'skeleton-end-hook 'ada-indent-statement nil t)

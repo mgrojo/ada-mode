@@ -75,7 +75,8 @@ test-gpr : $(addsuffix .diff, $(subst subdir/,,$(GPR_TEST_FILES)))
 
 # emacs to test with
 #
-# This can be overridden with 'make EMACS_EXE=...'.
+# This can be overridden on the 'make' command line or by an external
+# environment variable.
 EMACS_EXE ?= emacs
 
 test-elisp :
@@ -144,6 +145,6 @@ source-clean :: test-clean
 	rm -rf ../../_MTN/resolutions
 
 zip :
-	tar zcf org.emacs.ada-mode.stephe-`date +%Y-%m-%d`.tar.gz --exclude _MTN --exclude "*~" --exclude "*.ali" --exclude "*.diff" --exclude "*.elc" --exclude "*.tmp" --exclude "*.tar.gz" -C ../../../ org.emacs.ada-mode.stephe-1
+	tar zcf org.emacs.ada-mode.stephe-`date +%Y-%m-%d`.tar.gz --exclude _MTN --exclude "*~" --exclude "*.ali" --exclude "*.diff" --exclude "*.elc" --exclude "*.output" --exclude "*.tar.gz"  --exclude "*.tmp" -C ../../../ org.emacs.ada-mode.stephe-1
 
 # end of file

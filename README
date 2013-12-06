@@ -1,6 +1,7 @@
-Emacs Ada mode.
+Emacs Ada mode version 5.00.
 
-See ada-mode.texi (or a compiled version) for help on using Ada mode.
+See ada-mode.texi (or a compiled version) for help on using and
+customizing Ada mode, and notes for Ada mode developers.
 
 To install Ada mode, gpr mode, and associated utilities from this distribution:
 
@@ -13,6 +14,9 @@ $ byte-compile
 Edit your ~/.emacs, add:
 
 (add-to-list 'load-path (expand-file-name "~/ada-mode"))
+
+Ada mode will be automatically loaded when you open a file with a
+matching extension (default *.ads, *.adb).
 
 (end of file)
 

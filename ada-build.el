@@ -1,5 +1,5 @@
 ;;; ada-build.el --- extensions to ada-mode for compiling and running
-;;; Ada projects (without 'make' or similar tool)
+;;; Ada projects without 'make' or similar tool
 ;;
 ;;; Copyright (C) 1994, 1995, 1997 - 2013  Free Software Foundation, Inc.
 ;;
