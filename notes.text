@@ -154,6 +154,10 @@ C-F11 fails on #include <Itcsb1553/Itcsb1553.hpp>
 
 need std include files in search list
 
+(require 'gpr-mode)
+(gpr-set-as-project "c:/Apps/GNAT-7.1.2/gnatcoll-1.6w-src/src/gnatcoll_tools.gpr")
+(browse-url "file:///c:/Apps/GNAT-7.1.2/gnatcoll-1.6w-src/docs/_build/html/xref.html")
+
  general
 build/wisi/Makefile
 build/Makefile

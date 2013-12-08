@@ -83,23 +83,24 @@ current construct."
 
     ["Customize"     (customize-group 'ada)];; we reuse the Ada indentation options
     ["------"        nil nil]
-    ["Set as current project"     gpr-set-as-project        t]
-    ["Show current project"       ada-prj-show              t]
-    ["Next compilation error"     next-error                t]
-    ["Show secondary error"       ada-show-secondary-error  t]
-    ["Show last parse error"      gpr-show-parse-error      t]
+    ["Find and select project ..." ada-build-prompt-select-prj-file t]
+    ["Select project ..."          ada-prj-select                   t]
+    ["Set as current project"      gpr-set-as-project               t]
+    ["Show current project"        ada-prj-show                     t]
+    ["Next compilation error"      next-error                       t]
+    ["Show secondary error"        ada-show-secondary-error         t]
+    ["Show last parse error"       gpr-show-parse-error             t]
     ("Edit"
-     ["Indent Line"                 indent-for-tab-command  t]
-     ["Indent Lines in Selection"   indent-region           t]
+     ["Indent Line"                 indent-for-tab-command         t]
+     ["Indent Lines in Selection"   indent-region                  t]
      ["Indent Lines in File"        (indent-region (point-min) (point-max))  t]
-     ["Align"                       gpr-align               t]
-     ["Comment Selection"           comment-region               t]
+     ["Align"                       gpr-align                      t]
+     ["Comment Selection"           comment-region                 t]
      ["Uncomment Selection"         (lambda () (comment-region t)) t]
-     ["Fill Comment Paragraph"      fill-paragraph               t]
-     ["Fill Comment Paragraph Justify"
-      ada-fill-comment-paragraph-justify                         t]
-     ["Fill Comment Paragraph Postfix"
-      ada-fill-comment-paragraph-postfix                         t]
+     ["Fill Comment Paragraph"      fill-paragraph                 t]
+
+     ["Fill Comment Paragraph Justify" ada-fill-comment-paragraph-justify t]
+     ["Fill Comment Paragraph Postfix" ada-fill-comment-paragraph-postfix t]
      )
     ))
 

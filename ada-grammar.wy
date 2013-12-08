@@ -163,6 +163,8 @@
 %conflict REDUCE/REDUCE in state choice_relation, relation on token AND
 %conflict REDUCE/REDUCE in state choice_relation, relation on token OR
 %conflict REDUCE/REDUCE in state choice_relation, relation on token XOR
+%conflict REDUCE/REDUCE in state expression_opt, association_opt on token COMMA
+%conflict REDUCE/REDUCE in state expression_opt, association_opt on token RIGHT_PAREN
 %conflict REDUCE/REDUCE in state identifier_list, name on token COMMA
 %conflict REDUCE/REDUCE in state name, direct_name on token USE
 %conflict REDUCE/REDUCE in state primary, subtype_indication on token COMMA
@@ -183,7 +185,7 @@
 %conflict REDUCE/SHIFT in state generic_formal_part, generic_renaming_declaration on token PROCEDURE
 %conflict REDUCE/SHIFT in state identifier_list, object_renaming_declaration on token COLON
 %conflict REDUCE/SHIFT in state name, aspect_clause on token USE
-%conflict REDUCE/SHIFT in state name, association on token EQUAL_GREATER
+%conflict REDUCE/SHIFT in state name, association_opt on token EQUAL_GREATER
 %conflict REDUCE/SHIFT in state name, pragma_argument_association on token TICK
 %conflict REDUCE/SHIFT in state parameter_profile_opt, generic_instantiation on token IS
 %conflict REDUCE/SHIFT in state subprogram_specification, null_procedure_declaration on token IS
@@ -336,8 +338,9 @@ assignment_statement
       (wisi-containing-action 2 3))
   ;
 
-association
-  : CHARACTER_LITERAL EQUAL_GREATER expression ;; part of selector_name that does not overlap name
+association_opt
+  : ;; empty
+  | CHARACTER_LITERAL EQUAL_GREATER expression ;; part of selector_name that does not overlap name
     (progn
       (wisi-statement-action 2 'statement-other)
       (wisi-containing-action 2 3))
@@ -351,8 +354,8 @@ association
   ;
 
 association_list
-  : association
-  | association_list COMMA association
+  : association_opt
+  | association_list COMMA association_opt
     (progn
       (wisi-statement-action 2 'list-break)
       (wisi-containing-action 2 3))
@@ -705,16 +708,17 @@ discriminant_part_opt
       (wisi-containing-action 1 2))
   ;
 
-discriminant_specification
-  : identifier_list COLON null_exclusion_opt_name COLON_EQUAL expression
+discriminant_specification_opt
+  : ;; empty
+  | identifier_list COLON null_exclusion_opt_name COLON_EQUAL expression
   | identifier_list COLON null_exclusion_opt_name
   | identifier_list COLON access_definition COLON_EQUAL expression
   | identifier_list COLON access_definition
   ;
 
 discriminant_specification_list
-  : discriminant_specification
-  | discriminant_specification_list SEMICOLON discriminant_specification
+  : discriminant_specification_opt
+  | discriminant_specification_list SEMICOLON discriminant_specification_opt
     (progn
       (wisi-statement-action 2 'list-break)
       (wisi-containing-action 2 3))
