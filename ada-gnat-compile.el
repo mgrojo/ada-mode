@@ -427,6 +427,14 @@ Prompt user if more than one."
 	   (insert "constant ")
 	   t)
 
+	  ((looking-at (concat "warning: constant " ada-gnat-quoted-name-regexp " is not referenced"))
+	   (let ((constant (match-string 1)))
+	     (pop-to-buffer source-buffer)
+	     (end-of-line)
+	     (newline-and-indent)
+	     (insert "pragma Unreferenced (" constant ");"))
+	   t)
+
 	  ((looking-at (concat "warning: formal parameter " ada-gnat-quoted-name-regexp " is not referenced"))
 	   (let ((param (match-string 1)))
 	     (pop-to-buffer source-buffer)

@@ -31,6 +31,20 @@ run test from emacs -Q:
 build/wisi/Makefile
 build/Makefile
 
+indentation bug:
+   type Configuration_Type
+     (Max_Bus_Slot           : Devices.Null_Bus_Slot_Type;
+      Bus_Controller_Present : Boolean)
+     is new Devices.Configuration_Type
+       (Mode                   => Devices.Multi_Function,
+        Bus_Controller_Present => Bus_Controller_Present)
+       with record
+          BC  : BC_Configuration_Type (Max_Bus_Slot);
+          RTs : RT_Config_Array_Type;
+       end record;
+
+    'is', 'with record' should be aligned with 'type'
+
 mouse operations
     asked on list
 

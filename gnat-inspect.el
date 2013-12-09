@@ -72,6 +72,7 @@
 			   (gnat-inspect--session-buffer session)
 			   "gnatinspect"
 			   (concat "--project=" project-file)))
+      (set-process-query-on-exit-flag (gnat-inspect--session-process session) nil)
       (gnat-inspect-session-wait session)
       )))
 

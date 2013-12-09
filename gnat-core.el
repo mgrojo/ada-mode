@@ -100,7 +100,7 @@ See also `gnat-parse-emacs-final'."
   project)
 
 (defun gnat-get-paths (project)
-  "Add project and/or compiler source, object paths to PROJECT src_dir."
+  "Add project and/or compiler source, object paths to PROJECT src_dir and/or prc_dir."
   (with-current-buffer (gnat-run-buffer)
     ;; gnat list -v -P can return status 0 or 4; always lists compiler dirs
     (let ((src-dirs (ada-prj-get 'src_dir project))
@@ -126,6 +126,9 @@ See also `gnat-parse-emacs-final'."
 	      (forward-line 1))
 
 	    ;; Project path
+	    ;;
+	    ;; These are also added to src_dir, so compilation errors
+	    ;; reported in project files are found.
 	    (search-forward "Project Search Path:")
 	    (forward-line 1)
 	    (while (not (looking-at "^$"))
@@ -133,6 +136,9 @@ See also `gnat-parse-emacs-final'."
 	      (if (looking-at "<Current_Directory>")
 		  (add-to-list 'prj-dirs ".")
 		(add-to-list 'prj-dirs
+			     (expand-file-name
+			      (buffer-substring-no-properties (point) (point-at-eol))))
+		(add-to-list 'src-dirs
 			     (expand-file-name
 			      (buffer-substring-no-properties (point) (point-at-eol)))))
 	      (forward-line 1))
