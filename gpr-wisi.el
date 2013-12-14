@@ -180,6 +180,7 @@
 	      gpr-grammar-wy--token-table
 	      gpr-grammar-wy--parse-table)
 
+  (setq gpr-indent-statement 'wisi-indent-statement)
   (set (make-local-variable 'comment-indent-function) 'wisi-comment-indent)
   )
 

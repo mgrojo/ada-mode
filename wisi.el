@@ -960,6 +960,27 @@ of CACHE with class statement-start or block-start."
   (wisi-goto-start cache)
   (+ (current-indentation) offset))
 
+(defun wisi-indent-statement ()
+  "Indent region given by `wisi-goto-start' on cache at or before point, then wisi-cache-end."
+  ;; force reparse, in case parser got confused
+  (let ((wisi-parse-try t))
+    (wisi-validate-cache (point)))
+
+  (save-excursion
+    (let ((cache (or (wisi-get-cache (point))
+		     (wisi-backward-cache))))
+      (when cache
+	;; can be nil if in header comment
+	(let ((start (progn (wisi-goto-start cache) (point)))
+	      (end (progn
+		     (when (wisi-cache-end cache)
+		       ;; nil when cache is statement-end
+		       (goto-char (1- (wisi-cache-end cache))))
+		     (point))))
+	  (indent-region start end)
+	  ))
+      )))
+
 (defvar-local wisi-indent-calculate-functions nil
   "Functions to calculate indentation. Each called with point
   before a token at the beginning of a line (at current

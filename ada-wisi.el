@@ -1124,27 +1124,6 @@ Also return cache at start."
 	 (eq 'formal_part (wisi-cache-nonterm cache)))
     ))
 
-(defun ada-wisi-indent-statement ()
-  "For `ada-indent-statement'."
-  ;; force reparse, in case parser got confused
-  (let ((wisi-parse-try t))
-    (wisi-validate-cache (point)))
-
-  (save-excursion
-    (let ((cache (or (wisi-get-cache (point))
-		     (wisi-backward-cache))))
-      (when cache
-	;; can be nil if in header comment
-	(let ((start (progn (wisi-goto-start cache) (point)))
-	      (end (progn
-		     (when (wisi-cache-end cache)
-		       ;; nil when cache is statement-end
-		       (goto-char (1- (wisi-cache-end cache))))
-		     (point))))
-	  (indent-region start end)
-	  ))
-      )))
-
 (defun ada-wisi-make-subprogram-body ()
   "For `ada-make-subprogram-body'."
   (wisi-validate-cache (point))
@@ -1398,7 +1377,7 @@ Also return cache at start."
 (setq ada-goto-declarative-region-start 'ada-wisi-goto-declarative-region-start)
 (setq ada-goto-end 'wisi-goto-end)
 (setq ada-in-paramlist-p 'ada-wisi-in-paramlist-p)
-(setq ada-indent-statement 'ada-wisi-indent-statement)
+(setq ada-indent-statement 'wisi-indent-statement)
 (setq ada-make-subprogram-body 'ada-wisi-make-subprogram-body)
 (setq ada-next-statement-keyword 'wisi-forward-statement-keyword)
 (setq ada-prev-statement-keyword 'wisi-backward-statement-keyword)

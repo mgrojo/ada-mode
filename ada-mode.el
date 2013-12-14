@@ -296,7 +296,7 @@ Values defined by cross reference packages.")
     (define-key map "\C-c\C-c"   'ada-build-make)
     (define-key map "\C-c\C-d" 	 'ada-goto-declaration)
     (define-key map "\C-c\M-d" 	 'ada-show-declaration-parents)
-    (define-key map "\C-c\C-e" 	 '(lambda () (interactive) (funcall ada-expand)))
+    (define-key map "\C-c\C-e" 	 'ada-expand)
     (define-key map "\C-c\C-f" 	 'ada-show-parse-error)
     (define-key map "\C-c\C-i" 	 'ada-indent-statement)
     (define-key map "\C-c\C-m"   'ada-build-set-make)
@@ -355,7 +355,7 @@ Values defined by cross reference packages.")
      ["Show overridden"               ada-show-overridden          t]
      )
     ("Edit"
-     ["Expand skeleton"             funcall ada-expand      t]
+     ["Expand skeleton"             ada-expand              t]
      ["Indent line"                 indent-for-tab-command  t]
      ["Indent current statement"    ada-indent-statement    t]
      ["Indent lines in file"        (indent-region (point-min) (point-max))  t]
@@ -1347,10 +1347,12 @@ Return new value of PROJECT."
 	      ;; Any other field in the file is set as an environment
 	      ;; variable or a project file.
 	      (if (= ?$ (elt (match-string 1) 0))
-		  ;; process env var
+		  ;; process env var. We don't do expand-file-name
+		  ;; here because the application may be expecting a
+		  ;; simple string.
 		  (let ((process-environment (plist-get project 'proc_env)))
 		    (setenv (substring (match-string 1) 1)
-			    (expand-file-name (substitute-in-file-name (match-string 2))))
+			    (substitute-in-file-name (match-string 2)))
 		    (setq project
 			  (plist-put project 'proc_env process-environment)))
 

@@ -31,7 +31,7 @@ run test from emacs -Q:
 build/wisi/Makefile
 build/Makefile
 
-indentation bug:
+indentation bugs:
    type Configuration_Type
      (Max_Bus_Slot           : Devices.Null_Bus_Slot_Type;
       Bus_Controller_Present : Boolean)
@@ -44,6 +44,15 @@ indentation bug:
        end record;
 
     'is', 'with record' should be aligned with 'type'
+
+
+          Check
+        (Label & ".Message_1",
+         Buffer
+         (Buffer_Last + 1 + Captured_Time_Length .. Buffer_Last + Stream_Element_Offset (Header.ITOS_Header.Length)),
+         Message_1,
+         Strict_Indices => False);
+    (buffer_last... should be ada-ident-broken from Buffer
 
 mouse operations
     asked on list

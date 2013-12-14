@@ -60,7 +60,10 @@ current construct."
     (define-key map "\C-c`"    'ada-show-secondary-error)
     (define-key map "\C-c\C-a" 'gpr-align)
     (define-key map "\C-c\C-c" 'compile)
-    ;; FIXME (later): implement?
+    (define-key map "\C-c\C-e" 'gpr-expand)
+    (define-key map "\C-c\C-f" 'gpr-show-parse-error)
+    (define-key map "\C-c\C-i" 'gpr-indent-statement)
+            ;; FIXME (later): implement?
     ;; (define-key map "\C-c\C-n" 'ada-next-statement-keyword)
     ;; (define-key map "\C-c\C-p" 'ada-prev-statement-keyword)
     (define-key map "\C-c\C-S-p" 'gpr-set-as-project)
@@ -94,6 +97,7 @@ current construct."
      ["Indent Line"                 indent-for-tab-command         t]
      ["Indent Lines in Selection"   indent-region                  t]
      ["Indent Lines in File"        (indent-region (point-min) (point-max))  t]
+     ["Expand skeleton"             gpr-expand                     t] ;; FIXME: only if skeleton
      ["Align"                       gpr-align                      t]
      ["Comment Selection"           comment-region                 t]
      ["Uncomment Selection"         (lambda () (comment-region t)) t]
@@ -113,6 +117,27 @@ current construct."
   (interactive)
   (when gpr-show-parse-error
     (funcall gpr-show-parse-error)))
+
+(defvar gpr-expand nil
+  ;; skeleton function
+  "Function to call to expand tokens (ie insert skeletons).")
+
+(defun gpr-expand ()
+  "Expand previous word into a statement skeleton."
+  (interactive)
+  (when gpr-expand
+    (funcall gpr-expand)))
+
+(defvar gpr-indent-statement nil
+  ;; indentation function
+  "Function to indent the statement/declaration point is in or after.
+Function is called with no arguments.")
+
+(defun gpr-indent-statement ()
+  "Indent current statement."
+  (interactive)
+  (when gpr-indent-statement
+    (funcall gpr-indent-statement)))
 
 (defvar gpr-font-lock-keywords
   (progn
