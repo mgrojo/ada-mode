@@ -313,7 +313,7 @@ Values defined by cross reference packages.")
     (define-key map "\C-c\M-x"   'ada-show-overridden)
     (define-key map "\C-c\C-y" 	 'ada-case-create-exception)
     (define-key map "\C-c\M-y"   'ada-case-create-partial-exception)
-    (define-key map [down-mouse-3] 'ada-popup-menu)
+    (define-key map [C-down-mouse-3] 'ada-popup-menu)
 
     map
   )  "Local keymap used for Ada mode.")

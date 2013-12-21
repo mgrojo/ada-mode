@@ -27,6 +27,7 @@
 ;;; History: see ada_mode.el
 ;;
 
+(require 'ada-mode)
 (require 'imenu)
 
 (defconst ada--imenu-comment-re "\\([ \t]*--.*\\)?")

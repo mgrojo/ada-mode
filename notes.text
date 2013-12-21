@@ -31,53 +31,9 @@ run test from emacs -Q:
 build/wisi/Makefile
 build/Makefile
 
-indentation bugs:
-   type Configuration_Type
-     (Max_Bus_Slot           : Devices.Null_Bus_Slot_Type;
-      Bus_Controller_Present : Boolean)
-     is new Devices.Configuration_Type
-       (Mode                   => Devices.Multi_Function,
-        Bus_Controller_Present => Bus_Controller_Present)
-       with record
-          BC  : BC_Configuration_Type (Max_Bus_Slot);
-          RTs : RT_Config_Array_Type;
-       end record;
+https://www.gnu.org/prep/standards/html_node/Makefile-Conventions.html
+https://www.rombobjörn.se/Comfignat/
 
-    'is', 'with record' should be aligned with 'type'
-
-
-          Check
-        (Label & ".Message_1",
-         Buffer
-         (Buffer_Last + 1 + Captured_Time_Length .. Buffer_Last + Stream_Element_Offset (Header.ITOS_Header.Length)),
-         Message_1,
-         Strict_Indices => False);
-    (buffer_last... should be ada-ident-broken from Buffer
-
-mouse operations
-    asked on list
-
-    do snapshot so people can play with it
-
-    double-click underscore selects full word, double-click letter selects partial word?
-
-gpr-add-log-current-function dispatch to gpr-wisi
-
-ada-add-log-current-function
-
-gpr log-edit-function-name
-    use package.attribute:
-        Source_Dirs
-        Compiler.Default_Switches
-
-gpr-mode.texi
-
-gpr-skel.el
-
-/Projects/Web/stephe-leake/emacs/ada-mode/emacs-ada-mode.html
-    to-do list
-
-check emacs buglist
     http://debbugs.gnu.org/cgi/pkgreport.cgi?package=ada-mode
 
 ada-mode.texi
@@ -88,7 +44,19 @@ ada-mode.texi
 
     review entire manual
 
-public repository
+do final pre-release snapshot
+
+
+ELPA package
+    http://www.emacswiki.org/emacs/MELPA
+    https://github.com/milkypostman/melpa/blob/master/README.md#contributing-new-recipes
+    with autoloads
+
+    have Savannah account => have Emacs core write privs!
+    so just do git/ELPA
+        there is a plan to include ELPA packages in the Emacs tarball distribution
+
+public repository for ELPA access
     bedap mtn with port forwarding
         need usher for gds/opentoken/emacs/stephe
 
@@ -99,15 +67,6 @@ public repository
         ask on c.l.a
 
     github for git?
-
-MELPA package
-    http://www.emacswiki.org/emacs/MELPA
-    https://github.com/milkypostman/melpa/blob/master/README.md#contributing-new-recipes
-    with autoloads
-
-emacs 23 compat
-
-    font-lock-keywords buffer local by default?
 
  gnat-inspect
 test 1.7w
@@ -185,6 +144,53 @@ need std include files in search list
 build/wisi/Makefile
 build/Makefile
 
+indentation bugs:
+   type Configuration_Type
+     (Max_Bus_Slot           : Devices.Null_Bus_Slot_Type;
+      Bus_Controller_Present : Boolean)
+     is new Devices.Configuration_Type
+       (Mode                   => Devices.Multi_Function,
+        Bus_Controller_Present => Bus_Controller_Present)
+       with record
+          BC  : BC_Configuration_Type (Max_Bus_Slot);
+          RTs : RT_Config_Array_Type;
+       end record;
+
+    'is', 'with record' should be aligned with 'type'
+
+
+    Check
+        (Label & ".Message_1",
+         Buffer
+         (Buffer_Last + 1 + Captured_Time_Length .. Buffer_Last + Stream_Element_Offset (Header.ITOS_Header.Length)),
+         Message_1,
+         Strict_Indices => False);
+
+        (buffer_last... should be ada-ident-broken from Buffer
+
+emacs 23 compat
+
+    font-lock-keywords buffer local by default?
+
+
+gpr-add-log-current-function dispatch to gpr-wisi
+
+ada-add-log-current-function
+
+gpr log-edit-function-name
+    use package.attribute:
+        Source_Dirs
+        Compiler.Default_Switches
+
+gpr-mode.texi
+
+parse error for legal expression function in enclosing parens
+      Y : Boolean := Boolean'(if True then False);
+    vs.
+      Y : Boolean := Boolean'((if True then False));  -- o.K.
+
+    LRM 4.5.7 7/3
+
 need indent test of skel expansions
     verify they parse
 
@@ -205,6 +211,13 @@ do C-x 5 prefix
 
 suggest jit-lock enable hook
     allow enforcing order in after-change-functions
+
+ask about start-process vs --batch
+
+expression functions
+
+gpr fix errors
+    gds_dscovr_utf_agg.gpr:12:19: expected "gds_dscovr_utf_agg"
 
 add C++ tests
 
@@ -658,6 +671,8 @@ bump version
     ada-mode.texi Ada Mode Version
     README
 
+check emacs buglist, mark fixed
+    http://debbugs.gnu.org/cgi/pkgreport.cgi?package=ada-mode
 
 Emacs 24.3, gnat 7.1.2 (sal-standard):
     /Projects/org.opentoken.stephe/build/windows_release/Makefile all

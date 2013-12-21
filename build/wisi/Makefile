@@ -1,7 +1,7 @@
 # build and test the Emacs wisent Ada indentation and navigation engine
 
 # "compile-ada" is a test; it verifies the test sources are legal Ada
-all : byte-compile compile-ada-clean compile-ada test-clean test
+all : update compile-ada-clean compile-ada test-clean test
 
 # this updates everything after any source change, without running the tests.
 update : ../../ada-grammar-wy.el ../../gpr-grammar-wy.el  byte-compile

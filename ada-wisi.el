@@ -417,7 +417,7 @@ BEFORE should be t when called from ada-wisi-before-cache, nil otherwise."
 		 ;; indenting 'with'
 		 (+ (current-column) 1))
 
-		(association
+		(association_opt
 		 ;; test/indent.ads
 		 ;; 1 =>  --  Used to be aligned on "CSCL_Type'"
 		 ;;       --  aligned with previous comment.
