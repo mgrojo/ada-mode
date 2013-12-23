@@ -12,8 +12,9 @@ The Ada Reference Manual was last revised in 2012, and approved by ISO
 in 2013; it is called "Ada 2012". Previous versions are labeled Ada 95
 and Ada 2005.
 
-If you want versions of the manual with change markup, see
-http://www.adaic.com/standards/
+The official version of the Ada Reference Manual is available at
+http://www.adaic.com/standards/. It provides versions of the manual
+with change markup.
 
 For each year version, there are two different versions of manual, one
 that contains just the text of the official standard, and one which
@@ -25,16 +26,16 @@ Why aren't these files the same as upstream?
 ================================================
 
 The text and HTML files are the same as upstream (processed by the
-same tool from the same Scheme sources).
+same tool from the same Scribe sources).
 
 The upstream release does not include an info version; this package
-uses the upstream tool to produces texinfo format from the upstream
-Scheme sources, and then standard tools to produce info format.
+uses the upstream tool to produce texinfo format from the upstream
+Scribe sources, and then standard tools to produce info format.
 
-The upstream PDF files are produced from the Scheme sources using
-Microsoft word as an intermediate step. The PDF file included here is
-produced from the texinfo intermediate; it is intended for paper
-printing only, since it has no hyperlinks.
+The upstream PDF files are produced from the Scribe sources using
+Microsoft word as an intermediate step. The PDF file built by this
+package is produced from the texinfo intermediate; it is intended for
+paper printing only, since it has no hyperlinks.
 
 Why don't these PDF files have hyperlinks?
 ==========================================
@@ -48,36 +49,20 @@ source.
 Where do these files come from?
 ===============================
 
-Source files for the Ada Reference Manual are released as a ZIP
-archive at http://www.ada-auth.org/arm-files/2012-SRC.zip. This
-archive has many defaults.
+The "upstream" for this distribution is in two pieces:
 
-- Previous versions of the standards are not provided.
+- Source files for the Ada Reference Manual are released as a ZIP
+archive at http://www.ada-auth.org/arm-files/2012-SRC.zip.
 
-- The Scheme-like tool used to generate readable formats is provided
-  separately via an unconvenient CVSWeb HTML interface on
-  http://www.ada-auth.org/cgi-bin/cvsweb.cgi/ARM/.
-
-- The file name does not contain any version apart from the Ada
-  standard (a four digit year). In other terms, its contents may
-  change while the name does not. This makes quite hard tracking new
-  releases. For example, on 2013/09/02, the diff with revision tagged
-  as Ada2012_Final in the VCS counts 600 lines, not only comments.
-
-- Names in the ZIP archive are cased randomly (Progs/ARM_SUB.ADb is a
-  good example :-), probably because authors use a case-insensitive
-  OS. The case is not consistent between the ZIP archive and the CVS
-  web interface. Both cause compilation errors due to case mismatch
-  with hardcoded paths in *.MSM.
-
-We hope that this archive will be more convenient. Its content is also
-available in the org.adaic.arm_form.upstream branch of the
-www.ada-france.org monotone server.
+- Source files for the formatter are available via a CVSWeb HTML interface at
+http://www.ada-auth.org/cgi-bin/cvsweb.cgi/ARM/.
 
 Usage
 =====
 
-There are two monotone branches:
+There are two monotone branches in the ada-france monotone server at
+www.ada-france.org (contact Ludovic Brenta <ludovic at ludovic dash
+brenta dot org> for access):
 
 org.adaic.arm_form.upstream
 
@@ -91,8 +76,8 @@ org.adaic.arm_form.upstream
 
 org.adaic.arm_form
 
-    Local branch with minor changes and a Makefile that builds
-    everything.
+    Local branch with minor changes, the texinfo generator, and a
+    Makefile that builds everything.
 
 To do a release:
 
@@ -119,12 +104,6 @@ build/Makefile
     all
 
 verify the following in progs/arm_texi.adb:
-
-    Index_Clause  section number corresponding to index
-    to find the new one:
-        generate arm<version>.texinfo
-        move to end of file
-        search backward for "@section ... Index"; '...' is the index number
 
     Z::         no entries for Z?
         look near end of arm<version>.texinfo
