@@ -144,7 +144,4 @@ source-clean :: test-clean
 	-find ../../ -name ".#*" -print -delete
 	rm -rf ../../_MTN/resolutions
 
-zip :
-	tar zcf org.emacs.ada-mode.stephe-`date +%Y-%m-%d`.tar.gz --exclude _MTN --exclude "*~" --exclude "*.ali" --exclude "*.diff" --exclude "*.elc" --exclude "*.output" --exclude "*.tar.gz"  --exclude "*.tmp" -C ../../../ org.emacs.ada-mode.stephe-1
-
 # end of file

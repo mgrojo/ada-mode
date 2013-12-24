@@ -44,29 +44,22 @@ ada-mode.texi
 
     review entire manual
 
+gpr-mode.texi
+    review
+
+gpr-skel.el
+    move skel-expand to emacs-compat-*?
+        assume will be in emacs 24.5 or 25.*
+    use in ada-skel?
+
 do final pre-release snapshot
 
+review autoloads
 
-ELPA package
-    http://www.emacswiki.org/emacs/MELPA
-    https://github.com/milkypostman/melpa/blob/master/README.md#contributing-new-recipes
-    with autoloads
 
-    have Savannah account => have Emacs core write privs!
-    so just do git/ELPA
-        there is a plan to include ELPA packages in the Emacs tarball distribution
+ada-mode.texi discuss wisi-invalidate-cache, ada-xref-refresh
 
-public repository for ELPA access
-    bedap mtn with port forwarding
-        need usher for gds/opentoken/emacs/stephe
-
-    ada-france mtn
-
-    https://www.assembla.com/user/one_page_signup?space_type=public
-        for git and/or hg?
-        ask on c.l.a
-
-    github for git?
+create org.emacs.ada-mode branch, push 5.0.1 to ELPA
 
  gnat-inspect
 test 1.7w
@@ -144,6 +137,9 @@ need std include files in search list
 build/wisi/Makefile
 build/Makefile
 
+do C-x 5 prefix
+    for Emacs 24.x
+
 indentation bugs:
    type Configuration_Type
      (Max_Bus_Slot           : Devices.Null_Bus_Slot_Type;
@@ -182,8 +178,6 @@ gpr log-edit-function-name
         Source_Dirs
         Compiler.Default_Switches
 
-gpr-mode.texi
-
 parse error for legal expression function in enclosing parens
       Y : Boolean := Boolean'(if True then False);
     vs.
@@ -202,12 +196,11 @@ implement secondary-error for scope in 'gnat-inspect-all'
 
     change ada-show-secondary-error to parse line, col from text, not text-property?
 
+move gnat-inspect ada-* to ada-gnat-inspect.el
+
 wisi-validate-cache should call grammar parser in a loop
     that would handle multiple compilation units; doesn't need to be in grammar
     parser needs to ignore invalid token following valid parse.
-
-do C-x 5 prefix
-    for Emacs 24.x
 
 suggest jit-lock enable hook
     allow enforcing order in after-change-functions
@@ -667,9 +660,13 @@ read/write access requires a public key:
 
  release process
 bump version
-    ada-mode.el ada-mode-version
+    ada-mode.el Version: ada-mode-version
     ada-mode.texi Ada Mode Version
     README
+
+verify other metadata
+    ada-mode.el
+    wisi.el
 
 check emacs buglist, mark fixed
     http://debbugs.gnu.org/cgi/pkgreport.cgi?package=ada-mode
@@ -677,8 +674,6 @@ check emacs buglist, mark fixed
 Emacs 24.3, gnat 7.1.2 (sal-standard):
     /Projects/org.opentoken.stephe/build/windows_release/Makefile all
     build/wisi/Makefile all
-
-Debian: Emacs 24.2, gnat-4.7
 
 Emacs 23.4, (gnat-2012) (gnat-2013):
     /Projects/org.opentoken.stephe/build/windows_release/Makefile

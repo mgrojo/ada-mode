@@ -5,6 +5,7 @@
 
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
+;; Version: 5.0
 ;; Keywords: languages ada gpr gprbuild
 
 ;; This file is part of GNU Emacs.

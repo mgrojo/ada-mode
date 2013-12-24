@@ -30,7 +30,7 @@ developing GNU and promoting software freedom.''
 @title{Ada Mode}
 @sp 2
 @subtitle An Emacs major mode for programming in Ada
-@subtitle Ada Mode Version 5.00
+@subtitle Ada Mode Version 5.0
 @sp 2
 @page
 @vskip 0pt plus 1filll
@@ -1599,6 +1599,7 @@ sources, here's an overview.
 @menu
 * Directory structure::
 * Package organization::
+* OpenToken::
 @end menu
 
 @node Directory structure, Package organization, Developer overview, Developer overview
@@ -1699,7 +1700,7 @@ More tests; allows testing path search features.
 Tests of the elisp wisi grammar compiler and parser.
 @end table
 
-@node Package organization,  , Directory structure, Developer overview
+@node Package organization, OpenToken, Directory structure, Developer overview
 @section Package organization
 
 @menu
@@ -1834,7 +1835,7 @@ provided by @code{semantic}.
 Implements the generalized LALR parser.
 @end table
 
-@node OpenToken
+@node OpenToken,  , Package organization, Developer overview
 @section OpenToken
 Ada mode uses the OpenToken tool @file{wisi-generate.exe} to process
 the grammar sources into elisp parse tables. See

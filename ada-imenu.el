@@ -1,5 +1,4 @@
-;;; ada-imenu.el - Ada mode interface to imenu for Ada Mode 5.00.
-;;; Copied with minor changes from ada-mode.el 4.01.
+;;; ada-imenu.el - Ada mode interface to imenu for Ada Mode
 
 ;; Copyright (C) 2012, 2013  Free Software Foundation, Inc.
 ;;
