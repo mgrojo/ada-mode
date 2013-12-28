@@ -24,18 +24,13 @@
 ;;
 ;;; Commentary:
 ;;
-;; This is a Wisent grammar file Ada. It is derived from the Ada
-;; Reference Manual (ARM), which is available as (info "(aarm2012)")
-;; or at http://www.ada-auth.org/standards/ada12.html under the
-;; license in ada_license.text.
+;; This is a wisi grammar file for the Ada language. It is derived
+;; from the Ada Reference Manual (ARM), which is available as (info
+;; "(aarm2012)") or at http://www.ada-auth.org/standards/ada12.html
+;; under the license in ada_license.text.
 ;;
-;; "wisent" is the European bison
-;; (http://en.wikipedia.org/wiki/Wisent); the 'wisent' parser
-;; generator is the Gnu parser generator implemented in Emacs elisp.
-;; The input file syntax is the same as Gnu bison
-;; (http://www.gnu.org/software/bison/manual/), with some additions
-;; (apparently not documented anywhere). There is a semantic mailing
-;; list at https://lists.sourceforge.net/lists/listinfo/cedet-semantic
+;; see wisi.el for discussion of using the wisi parser for an
+;; indentation engine.
 
 %{
 (require 'wisi)

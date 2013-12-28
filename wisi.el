@@ -34,8 +34,8 @@
 ;; that lets us find statement indent points from arbitrary places in
 ;; the code.
 ;;
-;; The grammar for Ada as represented by the EBNF in LRM Annex P is
-;; not LALR(1), so we use a generalized LALR(1) parser (see
+;; For example, the grammar for Ada as represented by the EBNF in LRM
+;; Annex P is not LALR(1), so we use a generalized LALR(1) parser (see
 ;; wisi-parse, wisi-compile).
 ;;
 ;; The parser actions cache indentation and other information as text
@@ -116,7 +116,7 @@
 ;;;; grammar compiler and parser
 ;;
 ;; Since we are using a generalized LALR(1) parser, we cannot use any
-;; of the wisent grammar functions. We use the OpenToken Ada package
+;; of the wisent grammar functions. We use OpenToken wisi-generate
 ;; to compile BNF to Elisp source (similar to
 ;; semantic-grammar-create-package), and wisi-compile-grammar to
 ;; compile that to the parser table.

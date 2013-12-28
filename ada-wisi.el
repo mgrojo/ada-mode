@@ -1381,6 +1381,7 @@ Also return cache at start."
 (setq ada-make-subprogram-body 'ada-wisi-make-subprogram-body)
 (setq ada-next-statement-keyword 'wisi-forward-statement-keyword)
 (setq ada-prev-statement-keyword 'wisi-backward-statement-keyword)
+(setq ada-reset-parser 'wisi-invalidate-cache)
 (setq ada-scan-paramlist 'ada-wisi-scan-paramlist)
 (setq ada-show-parse-error 'wisi-show-parse-error)
 (setq ada-which-function 'ada-wisi-which-function)

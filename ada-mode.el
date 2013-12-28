@@ -366,12 +366,11 @@ Values defined by cross reference packages.")
      )
     ("Edit"
      ["Expand skeleton"             ada-expand              t]
-     ["Indent line"                 indent-for-tab-command  t]
+     ["Indent line or selection"    indent-for-tab-command  t]
      ["Indent current statement"    ada-indent-statement    t]
      ["Indent lines in file"        (indent-region (point-min) (point-max))  t]
      ["Align"                       ada-align               t]
-     ["Comment selection"           comment-region          t]
-     ["Uncomment selection"         (comment-region t)      t]
+     ["Comment/uncomment selection" comment-dwim            t]
      ["Fill comment paragraph"         ada-fill-comment-paragraph           t]
      ["Fill comment paragraph justify" (ada-fill-comment-paragraph 'full)   t]
      ["Fill comment paragraph postfix" (ada-fill-comment-paragraph 'full t) t]
@@ -387,6 +386,7 @@ Values defined by cross reference packages.")
     ("Misc"
      ["Show last parse error"         ada-show-parse-error         t]
      ["Refresh cross reference cache" ada-xref-refresh             t]
+     ["Reset parser"                  ada-reset-parser             t]
      )))
 
 ;; This doesn't need to be buffer-local because there can be only one
@@ -767,6 +767,16 @@ Each parameter declaration is represented by a list
 	(insert "; "))
       )
     ))
+
+(defvar ada-reset-parser nil
+  ;; Supplied by indentation engine parser
+  "Function to reset parser, to clear confused state."
+  )
+
+(defun ada-reset-parser ()
+  (interactive)
+  (when ada-reset-parser
+    (funcall ada-reset-parser)))
 
 (defvar ada-show-parse-error nil
   ;; Supplied by indentation engine parser
@@ -1188,7 +1198,6 @@ Include properties set via `ada-prj-default-compiler-alist',
      (list
       ;; variable name alphabetical order
       'ada_compiler    ada-compiler
-      'ada_ref_tool    ada-xref-tool
       'auto_case       ada-auto-case
       'case_keyword    ada-case-keyword
       'case_strict     ada-case-strict

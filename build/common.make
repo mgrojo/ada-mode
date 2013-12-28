@@ -17,6 +17,7 @@ ADA_TEST_FILES := $(filter-out debug.ads, $(ADA_TEST_FILES))# debug only
 
 GPR_TEST_FILES := $(shell cd ../../test/gpr; ls *.gpr)
 GPR_TEST_FILES := $(filter-out debug.gpr, $(GPR_TEST_FILES))
+GPR_TEST_FILES := $(filter-out gpr-skel.gpr, $(GPR_TEST_FILES))
 
 COMPILE_FILES := $(ADA_TEST_FILES)
 
@@ -81,6 +82,9 @@ EMACS_EXE ?= emacs
 
 test-elisp :
 	$(EMACS_EXE) -Q -batch -L ../../test -L ../.. -l ada-mode-test.el
+
+gpr-skel.gpr.tmp :
+	$(EMACS_EXE) -Q -batch -L ../../test/gpr -L ../.. -l gpr-skel-test.el --eval '(gpr-skel-test)'
 
 %.diff : % %.tmp
 	diff -u $< $*.tmp > $*.diff

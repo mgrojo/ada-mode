@@ -27,8 +27,12 @@ zip :
 
 MANUALS := ada-mode gpr-mode
 
-info : $(addsuffix .info, $(MANUALS))
+INFO_FILES := $(addsuffix .info, $(MANUALS))
+info : ../dir
 html : $(addsuffix .html, $(MANUALS))
+
+../dir : $(INFO_FILES)
+	for file in $(INFO_FILES); do install-info ../$$file ../dir; done
 
 VPATH := ..
 
@@ -38,13 +42,15 @@ VPATH := ..
 %.html : %.texi
 	makeinfo --html --no-split $< -o ../$@
 
+clean :
+	rm -f ../*.info ../*.html ../dir
+
 .PHONY : force
 
-# FIXME: use install-info to create dir?
 pub-ada : force
 	mkdir -p ../../elpa/packages/ada-mode
 	rm -f ../../elpa/packages/ada-mode/ada-mode-pkg.el
-	cp ../ada*.el ../ada-*.info ../ada_license.text ../../elpa/packages/ada-mode
+	cp ../ada*.el ../ada-*.info ../dir ../ada_license.text ../../elpa/packages/ada-mode
 	cp ../gnat*.el ../../elpa/packages/ada-mode
 	cp ../gpr*.el ../gpr-*.info ../../elpa/packages/ada-mode
 
@@ -52,10 +58,13 @@ pub-wisi : force
 	rm -f ../../elpa/packages/wisi/wisi-pkg.el
 	cp ../wisi*.el ../../elpa/packages/wisi
 
-# WORKAROUND: all-in-place does not build archive-contents
+# all-in-place does not build archive-contents, just *.elc
 build-elpa : force
 	rm -rf ../../elpa/archive-tmp
 	make -C ../../elpa/ archive-tmp process-archive EMACS="emacs -Q --batch"
+
+# (setq package-archives (list (cons "test" "/Projects/elpa/archive/packages")))
+# (list-packages)
 
 # (dvc-diff "/Projects/elpa/")
 # shell git push

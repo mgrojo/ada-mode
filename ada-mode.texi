@@ -68,11 +68,10 @@ developing GNU and promoting software freedom.''
 @chapter Overview
 
 The Emacs mode for programming in Ada helps the user in reading
-existing code and facilitates writing new code.
+existing code and facilitates developing new code.
 
-When the Gnu Ada compiler GNAT is used, the cross-reference
-information output by the compiler is used to provide powerful code
-navigation (jump to definition, find all uses, etc).
+Cross-reference information output by the compiler is used to provide
+powerful code navigation (jump to definition, find all uses, etc).
 
 When you open a file with a file extension of @file{.ads} or
 @file{.adb}, Emacs will automatically load and activate Ada
@@ -83,35 +82,34 @@ compiler (@url{https://libre2.adacore.com/}) and the GNAT default
 naming convention.
 
 You must customize a few things if you are using a different file
-naming convention or compiler; @xref{Other compiler},
-@xref{Non-standard file names}.
+naming convention or compiler; @xref{Non-standard file names},
+@xref{Other compiler}.
 
 In addition, you may want to customize the indentation,
 capitalization, and other things; @xref{Other customization}.
 
-Finally, for large Ada projects, you will want to set up an Emacs
-Ada mode project file for each project; @xref{Project files}. Note
-that these are different from the GNAT project files used by gnatmake
-and other GNAT commands.
+Finally, for large Ada projects, you will want to set up an Emacs Ada
+mode project file for each project; @xref{Project files}. Note that
+these are different from the GNAT project files used by the GNAT
+tools.
 
-@xref{Running Debuggers Under Emacs,,Running Debuggers Under Emacs,emacs,Emacs User Guide}, for general
+@xref{Debuggers,,Debuggers,emacs,Emacs User Guide}, for general
 information on debugging.
 
 @node Installation, Customization, Overview, Top
 @chapter Installation
 
-Ada mode is part of the standard Emacs distribution; if you use that,
-no files need to be installed.
+Ada mode is distributed in the Gnu ELPA package archive; it can be
+installed via @code{M-x list-packages} (@pxref{Packages,,,emacs,Emacs User Guide}).
 
 Ada mode is also available as a separate distribution, from the Emacs
 Ada mode website
-@uref{http://stephe-leake.org/emacs/ada-mode/emacs-ada-mode.html}. The
-separate distribution may be more recent.
+@uref{http://stephe-leake.org/emacs/ada-mode/emacs-ada-mode.html}.
 
 For installing the separate distribution, see the @file{README} file
 in the distribution.
 
-To see what version of Ada mode you have installed, do @kbd{M-x
+To see what version of Ada mode you have installed, invoke @kbd{M-x
 ada-mode-version}.
 
 @menu
@@ -128,7 +126,9 @@ language for which gcc provices the @code{-fdump-xref}.
 requires the very latest version, in @code{gnatcoll 1.7w} distributed
 with GNATPro 7.2 preview.
 
-To build @code{gnatinspect}:
+To build @code{gnatinspect}, assuming gnat-7.1.2 is installed in
+@file{/usr/gnat-7.1.1}:
+
 @example
 tar xf ~/Downloads/gnatcoll-1.7w-src.tgz
 cd gnatcoll-1.7w-src
@@ -199,7 +199,7 @@ If the filename excluding the extension is not derived from the Ada
 name following the GNAT convention, you need to provide an alternate
 function for @code{ada-file-name-from-ada-name}. Doing that is beyond
 the scope of this manual; see the current definitions in
-@file{ada-mode.el} and @file{ada-gnat.el} for examples.
+@file{ada-mode.el} and @file{ada-gnat-xref.el} for examples.
 
 @node Other compiler, Other cross-reference, Non-standard file names, Customization
 @section Other compiler
@@ -260,7 +260,7 @@ year.
 @item electric-pair-mode
 Insert a matching right paren when you type a left paren.
 @item hippie-expand
-Bind hippie-expand to a key; it expands the word before point, using
+Bind @code{hippie-expand} to a key; it expands the word before point, using
 words from current buffer, other buffers, file names, etc; see
 @code{hippie-expand-try-functions-list}. You can also add
 @code{ada-skel-hippie-try} to that list. Note that @code{ada-expand},
@@ -431,7 +431,7 @@ end Hello;
 Yes, this is missing ``use Ada.Text_IO;'' - we want to demonstrate
 compiler error handling.
 
-@file{hello_2.adb}:
+@file{hello_2.adb} has no errors:
 
 @example
 with Hello_Pkg;
@@ -441,17 +441,13 @@ is begin
 end Hello_2;
 @end example
 
-This file has no errors.
-
-@file{hello_pkg.ads}:
+@file{hello_pkg.ads} has no errors:
 
 @example
 package Hello_Pkg is
    procedure Say_Hello;
 end Hello_Pkg;
 @end example
-
-This file has no errors.
 
 @file{hello_pkg.adb}:
 
@@ -962,9 +958,10 @@ An Emacs Ada mode project file specifies what directories hold sources
 for your project, and allows you to customize the compilation commands
 and other things on a per-project basis.
 
-The default file extension for Ada mode project files is
-@file{*.adp}. You can use a different extension by adding it to
-@code{ada-prj-parser-alist}.
+The default file extension for Ada mode project files is @file{*.adp}
+or @file{*.prj}. You can use a different extension by adding it to
+@code{ada-prj-file-extensions}, and a different syntax by adding a
+parser function to @code{ada-prj-parser-alist}.
 
 Note that Ada mode project files @file{*.adp} are different than GNAT
 compiler project files @samp{*.gpr}. However, Emacs Ada mode can use a
@@ -987,6 +984,8 @@ line specifies a project variable name and its value, separated by
 src_dir=/Projects/my_project/src_1
 src_dir=/Projects/my_project/src_2
 @end example
+
+Any line that does not have an ``='' is a comment.
 
 Some variables (like @code{src_dir}) are lists; multiple occurrences
 are concatenated.
@@ -1019,8 +1018,6 @@ just @code{ada-select-prj-file}, or by selecting it from the menu.
 @node Project file variables,  , Project file overview, Project files
 @section Project file variables
 
-Some project file variables can also be defined in elisp variables.
-
 To set a project variable that is a list, specify each element of the
 list on a separate line in the project file.
 
@@ -1028,13 +1025,13 @@ Process environment variables can be referenced using the
 normal @code{$var} syntax.
 
 Most project variables have defaults that can be changed by setting
-elisp variables; the table below identifies the lisp variable for each
+elisp variables; the table below identifies the elisp variable for each
 project variable. Elisp variables corresponding to project variables
 that are lists are elisp lists.
 
-In general, project variables are evaluated when referenced in
-Emacs Ada mode commands. Relative file paths are expanded to
-absolute relative to the directory containing the project file.
+In general, project variables are evaluated when referenced in Emacs
+Ada mode commands. Relative file paths are expanded relative to the
+directory containing the project file.
 
 Ada mode defines some project variables; others are defined by the
 compiler.
@@ -1067,6 +1064,9 @@ Otherwise, allow UPPERCASE for identifiers.
 @item @code{casing}         [default: @code{ada-case-exception-file, nil}]
 List of files containing casing exceptions. @xref{Automatic casing}.
 
+@item @code{path_sep}        [default: @code{path-separator}]
+Separator character used in compiler search paths.
+
 @item @code{src_dir}        [default: @code{"."}]
 A list of directories to search for source files.
 
@@ -1083,14 +1083,18 @@ The following variables are valid with the GNAT compiler:
 @c ada-prj-get 'prj_dir, 'proc_env
 A list of directories to search for GNAT project files.
 
-If set, the @code{ADA_PROJECT_PATH} process environment variable is
+If set, the @code{GPR_PROJECT_PATH} process environment variable is
 set to this value in the child process that runs GNAT tools. If not
-set, @code{ADA_PROJECT_PATH} in the child process is inherited from
+set, @code{GPR_PROJECT_PATH} in the child process is inherited from
 the Emacs process.
 
-If you have the @code{ADA_PROJECT_PATH} environment variable set in
-the Emacs process correctly for all of your projects, you do not need
-to set this project variable.
+If you have the @code{GPR_PROJECT_PATH} or @code{ADA_PROJECT_PATH}
+environment variable set in the Emacs process correctly for all of
+your projects, you do not need to set this project variable.
+
+The project search path can also be set in GNAT aggregate
+projects. However, the gnat tools do not make that path available to
+Emacs, so you must duplicate it in an Emacs Ada project file.
 
 @item @code{gpr_file}   [default: @code{""}]
 The GNAT project file.
@@ -1101,6 +1105,9 @@ project file are appended to @code{src_dir} and
 with a GNAT project file, and other source directories with the Emacs
 project file.
 
+@item @code{gpr_project_path}   [default: @code{""}]
+Same as @code{ada_project_path}.
+
 @end table
 
 @node Moving Through Ada Code, Identifier completion, Project files, Top
@@ -1109,19 +1116,20 @@ project file.
 There are several commands to navigate through Ada code. All
 these functions are available through the Ada menu and keybindings.
 
-Some of these commands rely on facilities provided by the compiler;
-the standard Emacs Ada mode only supports the GNAT compiler, but
-others can be added.
+Some of these commands rely on cross reference facilities provided by
+the compiler; the standard Emacs Ada mode only supports the GNAT
+compiler, but others can be added (@pxref{Other cross-reference}).
 
 @table @kbd
 @item C-c C-d
 @findex ada-goto-declaration
 Move from any use of an identifier to its declaration, for from a declaration to
-its body.
+its body (if there is one).
 
 @item C-c M-d
 @findex ada-goto-declaration-parent
-Move from a child type declaration to the parent type declaration.
+Move from a child type declaration to the parent type declaration;
+display a list of references if there is more than one parent.
 
 @item C-c C-n
 @findex ada-next-statement-keyword
@@ -1137,27 +1145,33 @@ For example, if point is on @samp{then}, move to @samp{if}.
 
 @item C-c C-o
 @findex ada-find-other-file
-Switch between corresponding spec and body. There are several special cases:
-    @itemize @bullet
-    @item
-    If the region is active, it is assumed to contain an Ada package
-    name; position point on the corresponding package declaration.
+Switch between corresponding spec and body. There are several special
+cases:
 
-    @item
-    If point is in the start line of a top level child package
-    declaration (but not package body), or a child subprogram spec or
-    body, position point on the corresponding parent package
-    declaration.
+@itemize @bullet
+@item
+If the region is active, it is assumed to contain an Ada package
+name; position point on the corresponding package declaration.
 
-    @item
-    If point is in the start line of a top level separate body,
-    position point on the corresponding separate stub declaration.
+@item
+If point is in the start line of a top level child package
+declaration (but not package body), or a child subprogram spec or
+body, position point on the corresponding parent package
+declaration.
 
-    @item
-    If point is in a subprogram, position point on the corresponding
-    declaration or body in the other file.
+@item
+If point is in the start line of a top level separate body,
+position point on the corresponding separate stub declaration.
 
-    @end itemize
+@item
+If point is in a subprogram declaration or body, position point on the
+corresponding body or declaration in the other file.
+
+@item
+If point is on a @code{with} clause, position point on the
+corresponding declaration.
+
+@end itemize
 
 @item C-c C-r
 @findex ada-show-references
@@ -1171,8 +1185,18 @@ Show all declarations that override the primitive procedure at
 point. Use @kbd{C-x `} (@code{next-error}) to visit each reference (as
 for compilation errors).
 
+@item C-c M-x
+@findex ada-show-overridden
+Show the declaration that the declaration at point overrides.
+
 @item C-u SPACE
 Jump back to the previous location.
+
+@item Ada | Misc | Refresh cross reference cache
+Cross reference information is loaded from the compiler output when
+the first cross reference command is issued. If the code is recompiled
+after that, the cross reference information is reloaded by invoking
+this menu command.
 
 @end table
 
@@ -1277,13 +1301,14 @@ Indent the current statement or declaration.
 
 The indentation algorithm relies on a grammar parser to identify the
 syntactic role for keywords and other words in the code. If the code
-is accepted by the parser, the indentation is correct. If the code is
-not accepted (because it is partially complete during editing), the
-indentation engine falls back to the trivial algorithm of indenting
-each new line the same as the previous line.
+is accepted by the parser, the indentation is done according to the
+rules in the indentation engine.
 
-Once enough new text has been entered to make the code acceptable to
-the parser, the statement or declaration is properly indented.
+If the code is not accepted (because it is partially complete during
+editing), the indentation engine falls back to the trivial algorithm
+of indenting each new line the same as the previous line. Once enough
+new text has been entered to make the code acceptable to the parser,
+the statement or declaration is properly indented.
 
 For example, if you are entering this code:
 
@@ -1294,12 +1319,13 @@ end if;
 @end example
 
 when you type @kbd{RET B}, @code{B} is indented to the same column as
-@code{if}. Then when you type the final @code{;}, all three lines are
+@code{if}, because the parser does not find @code{end if;}. Then when
+you type the final @code{;} followed by @key{TAB}, all three lines are
 indented, putting @code{B} where it belongs.
 
-To be more user friendly, the parser
-accepts a superset of the Ada grammer. For example, the parser accepts
-this code for an @code{if} statement:
+To be more user friendly, the parser accepts a superset of the Ada
+grammer. For example, the parser accepts this code for an @code{if}
+statement:
 
 @example
 if then
@@ -1312,11 +1338,15 @@ omitted.
 One way to easily insert empty statements like this is using
 @ref{Statement skeletons}.
 
+In rare cases, the parser gets confused; it can be reset by invoking
+menu @key{Ada | Misc | Reset parser}. Please report such cases as a
+bug.
+
 @node Statement skeletons, Aligning code, Indentation, Top
 @chapter Statement skeletons
 
 @kbd{C-c C-e} expands the previous one or two words into a statment
-skeleton. For example, @kbd{if C-c C-e} expands to:
+skeleton. For example, @kbd{i f C-c C-e} expands to:
 
 @example
 if  then
@@ -1330,8 +1360,8 @@ this is a convenient way to insert statements with correct
 indentation.
 
 For named statements (packages, loops, etc), the name is taken from
-the word before point, and the name of statement from the word before
-that. Some expansions prompt for more information, such as
+the word before point, and the name of the statement from the word
+before that. Some expansions prompt for more information, such as
 whether a spec or body is desired. For example, @kbd{package A_Package
 C-c C-e} first prompts for ``body'' or ``spec''. If ``spec'' is
 selected, the following code is inserted:
@@ -1404,8 +1434,8 @@ is aligned to:
 
 Casing of identifiers, attributes and keywords is automatically
 performed while typing when the variable @code{ada-auto-case} is
-non-nil. Every time you type a word separator, the previous word is
-automatically cased.
+non-nil (the default). Every time you type a word separator, the
+previous word is automatically cased.
 
 You can customize the automatic casing with the following variables:
 
@@ -1427,7 +1457,7 @@ lowercase.
 
 If nil, the mixed case characters in identifiers are forced to upper
 case, but the other characters are not modified. That allows typing
-all uppercase identifiers without defining an exception.
+all uppercase identifiers without defining a casing exception.
 @end table
 
 You can define exceptions to these rules, in files specified by the
@@ -1454,10 +1484,8 @@ The word fragment @code{*IO} applies to any word containing ``_io'';
 There are two ways to add new items to this file: you can simply edit
 it as you would edit any text file. Or you can position point on the
 word you want to add, and select menu @samp{Ada | Casing | Create full
-exception} (@kbd{C-c C-y}, @code{ada-case-create-exception}) or
-@samp{Ada | Casing | Create partial exception} (@kbd{C-c C-M-y}).  The
-word will be added to the current list of exceptions and
-to the file.
+exception} or @samp{Ada | Casing | Create partial exception}.  The
+word will be added to the current list of exceptions and to the file.
 
 It is sometimes useful to have multiple exception files. For
 example, one could be the standard Ada acronyms, the second some
@@ -1506,7 +1534,11 @@ Fill the current comment paragraph.
 
 @node Key summary, Developer overview, Comment Handling, Top
 @chapter Key summary
-@c search for @kbd. Alphabetical by key sequence
+@c search for @kbd and @key. Alphabetical by key sequence
+
+This table summarizes the keys described in this manual. Other keys
+are bound by Ada mode; see @key{C-h b} for a complete list. The
+Ada menu also displays keys bound to menu operations.
 
 @table @kbd
 @item M-/
@@ -1517,6 +1549,10 @@ completions.
 @item M-;
 @xref{Comment Handling}.
 If the region is active, comment or uncomment it.
+
+@item M-q
+@xref{Comment Handling}.
+Fill the current comment paragraph.
 
 @item RET
 @xref{Indentation}.
@@ -1538,6 +1574,10 @@ Move to the location of the secondary reference in the current compilation error
 @xref{Aligning code}.
 Align code.
 
+@item C-c C-c
+@xref{Compile commands}.
+Build the current main program.
+
 @item C-c C-d
 @xref{Moving Through Ada Code}.
 Move from any use of an identifier to its declaration, for from a declaration to its body.
@@ -1550,6 +1590,10 @@ Move from a child type declaration to the parent type declaration.
 @xref{Statement skeletons}.
 Expand previous one or two words into a statement or declaration
 skeleton.
+
+@item C-c C-c
+@xref{Compile commands}.
+Build the current file.
 
 @item C-c C-n
 @xref{Moving Through Ada Code}.
@@ -1581,6 +1625,10 @@ point.
 @xref{Automatic casing}.
 Create case exception.
 
+@item C-c `
+@xref{Compiler errors}.
+Move to the location of the next secondary compilation error.
+
 @item C-x `
 @xref{Compiler errors}.
 Move to the location of the next compilation error or show result.
@@ -1605,7 +1653,7 @@ sources, here's an overview.
 @node Directory structure, Package organization, Developer overview, Developer overview
 @section Directory structure
 @table @file
-@item org.emacs.ada-mode.stephe-1
+@item org.emacs.ada-mode
 Main source.
 
 File extensions:
@@ -1615,7 +1663,7 @@ Elisp files; main code.
 
 @item *.elc
 Byte-compiled elisp files, not in the distribution. Generated by the
-Makefile target @code{byte-compile}.
+Makefile target @code{byte-compile}, or by the Emacs package installer.
 
 Compiling the parse tables (@file{*-wy.el}) speeds up loading them
 significantly. Compiling other files speeds up parsing, but not
@@ -1627,8 +1675,8 @@ reports undefined variables, wrong argument counts, etc.
 @item *-wy.el
 Parse tables, generated from the corresponding grammar @file{*.wy} by
 the OpenToken tool @file{wisi-generate.exe}. These are in the tarball
-distribution and the monotone so users and Elisp developers don't have
-to install OpenToken.
+distribution and the monotone repository so users and Elisp developers
+don't have to install OpenToken.
 
 @item *-wy.output
 Diagnostic output from @file{wisi-generate.exe}, useful for tracing
@@ -1659,12 +1707,13 @@ Generated user guide in Emacs info format.
 @end table
 
 @item build
-Makefiles for byte-compiling, running tests, making zips.
+Makefile for building the user guides, publishing to the web page or
+Gnu ELPA. Test drivers.
 
 @item build/wisi
-Makefiles for building and testing with the wisi-based
+Makefile for building and testing with the wisi-based
 parser. Separate from @file{build}, because there used to be a
-SMIE-based parser, and there might be another one someday.
+SMIE-based parser, and there might be another parser someday.
 
 The emacs used to byte-compile and run tests is given by the 'make'
 variable EMACS_EXE, which defaults to 'emacs'; it can be overridden on
@@ -1749,8 +1798,7 @@ tool @file{wisi-generate.exe}.
 All user-settable options for the Ada indentation engine.
 
 @item ada-mode-compat-23.4.el
-A start on defining functions used by Ada mode but not in Emacs
-23.4.
+Defines functions used by Ada mode that are not in Emacs 23.4.
 
 Emacs Ada mode is written for Emacs 24.3. Emacs version 23.4 is
 partially supported. Earlier versions of Emacs are not supported.

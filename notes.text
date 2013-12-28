@@ -27,39 +27,26 @@ run test from emacs -Q:
 
 (list (wisi-parser-state-active (aref parser-states 1)) (wisi-parser-state-sp (aref parser-states 1)) (wisi-parser-state-stack (aref parser-states 1)))
 
- prepare release
+ finish elpa
 build/wisi/Makefile
 build/Makefile
 
-https://www.gnu.org/prep/standards/html_node/Makefile-Conventions.html
-https://www.rombobjörn.se/Comfignat/
+review autoloads
 
-    http://debbugs.gnu.org/cgi/pkgreport.cgi?package=ada-mode
+create org.emacs.ada-mode branch, push 5.0.1 to ELPA
+    after 5.0 appears there
 
-ada-mode.texi
-    /home/Projects/emacs_stephe.main/emacs_stephe_site_lisp/ada-mode.texi
-    /home/Projects/emacs_stephe.main/emacs_stephe_site_lisp/ada-mode.el
-
-    review key summary
-
-    review entire manual
-
-gpr-mode.texi
-    review
+ emacs 23.4
 
 gpr-skel.el
     move skel-expand to emacs-compat-*?
         assume will be in emacs 24.5 or 25.*
     use in ada-skel?
 
-do final pre-release snapshot
+font-lock-keywords buffer local by default?
 
-review autoloads
+packages.el not in 23.4, so don't need (emacs "24.3") in package-requires
 
-
-ada-mode.texi discuss wisi-invalidate-cache, ada-xref-refresh
-
-create org.emacs.ada-mode branch, push 5.0.1 to ELPA
 
  gnat-inspect
 test 1.7w
@@ -164,11 +151,6 @@ indentation bugs:
 
         (buffer_last... should be ada-ident-broken from Buffer
 
-emacs 23 compat
-
-    font-lock-keywords buffer local by default?
-
-
 gpr-add-log-current-function dispatch to gpr-wisi
 
 ada-add-log-current-function
@@ -235,6 +217,9 @@ gnatprep
 
     gnatprep minor mode?
 
+separate gpr-mode indent variables
+
+gpr-next-statement-keyword
 
  possible enhancements
 EDE projects?
@@ -517,8 +502,6 @@ c:/apps/emacs-24.2/lisp/progmodes/ada-mode.el
 http://savannah.gnu.org/projects/emacs/
 
 http://git.savannah.gnu.org/cgit/emacs.git/tree/README?h=elpa
-    or http://marmalade-repo.org/ and/or http://melpa.milkbox.net/.
-    or MELPA
 
 https://www.dropbox.com/sh/7jr3vbv9tm1zod0/jPuvfrJAe8
     w32 builds of cutting-edge emacs branches, pretests
@@ -697,16 +680,14 @@ Debian : emacs 24.2 (from testing), GNAT GPL 2012:
     (shell-send-string "mtn_sync_gds_shevek.sh" "*bash*")
     (xmtn-sync-review)
 
-build/wisi/Makefile zip
+build/Makefile zip
 /Projects/org.opentoken.stephe/build/Makefile zip
 /Projects/Web/stephe-leake/emacs/ada-mode/emacs-ada-mode.html
-    update todo list
     add release note
         (dvc-log)
 
 ~/Web/Makefile
-    delete smie
-    edit date in ADA-MODE-WISI_GZ, ADA-MODE-OPENTOKEN_BZ2
+    edit date in ADA-MODE-STEPHE_GZ, ADA-MODE-OPENTOKEN_BZ2
     ada-mode
     sync
 

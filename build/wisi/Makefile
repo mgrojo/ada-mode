@@ -11,7 +11,7 @@ update : ../../ada-grammar-wy.el ../../gpr-grammar-wy.el  byte-compile
 byte-compile : byte-compile-clean
 	cd ../../; $(EMACS_EXE) -Q -batch -L . -f batch-byte-compile *.el
 
-test : test-wisi test-ada-gnatxref.stamp test-ada-gnatinspect.stamp test-gpr test-elisp
+test : test-wisi test-ada-gnatxref.stamp test-ada-gnatinspect.stamp test-gpr test-elisp gpr-skel.gpr.diff
 
 # test-elisp debug:
 # (progn (add-to-list 'load-path (expand-file-name "../../test")) (load "ada-mode-test.el"))

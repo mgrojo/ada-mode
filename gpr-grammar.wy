@@ -1,4 +1,4 @@
-;;; Wisent grammar for GNAT project files
+;;; Wisi grammar for GNAT project files
 ;;
 ;; Copyright (C) 2013 Free Software Foundation, Inc.
 ;;
@@ -24,7 +24,19 @@
 ;;
 ;;; Commentary:
 ;;
-;; see wisi.el for discussion of using the Emacs wisent parser for an
+;; This is a wisi grammar file for the gpr language. It is derived
+;; from the Gnat Reference Manual (GRM), with the following substitutions:
+;;
+;; simple_name -> IDENTIFIER
+;;
+;; and some simplifications. Repeating constructs are implemented with
+;; extra productions. Optional constructs are implemented by repeated
+;; productions
+;;
+;; The GRM is available as (info "(gnat_ugn)") or at
+;; http://libre.adacore.com/developers/documentation-single/gnat-users-guide
+;;
+;; see wisi.el for discussion of using the wisi parser for an
 ;; indentation engine.
 
 %{
@@ -34,13 +46,6 @@
 ;; Declarations
 
 ;; token declarations
-;;
-;; wisi doesn't need any token types, but the semantic grammar
-;; compiler requires at least two; %keyword and something else for
-;; non-keyword tokens. So we use "symbol".
-;;
-;; In a wisi grammar, every token is either a keyword or an
-;; identifier.
 
 ;; punctuation
 %token <punctuation> AMPERSAND "&"
@@ -82,21 +87,22 @@
 
 %start compilation_unit
 
+%conflict REDUCE/SHIFT in state identifier_opt, term on token RIGHT_PAREN
+%conflict SHIFT/REDUCE in state attribute_declaration, declarative_items on token FOR
+%conflict SHIFT/REDUCE in state attribute_declaration, simple_declarative_items on token FOR
+%conflict SHIFT/REDUCE in state case_item, case_items on token WHEN
+%conflict SHIFT/REDUCE in state case_statement, declarative_items on token CASE
+%conflict SHIFT/REDUCE in state case_statement, simple_declarative_items on token CASE
+%conflict SHIFT/REDUCE in state package_spec, declarative_items on token PACKAGE
+%conflict SHIFT/REDUCE in state simple_declarative_item, declarative_items on token IDENTIFIER
+%conflict SHIFT/REDUCE in state simple_declarative_item, declarative_items on token NULL
+%conflict SHIFT/REDUCE in state simple_declarative_item, simple_declarative_items on token IDENTIFIER
+%conflict SHIFT/REDUCE in state simple_declarative_item, simple_declarative_items on token NULL
 %conflict SHIFT/REDUCE in state string_expression, term on token AMPERSAND
+%conflict SHIFT/REDUCE in state typed_string_declaration, declarative_items on token TYPE
 
 %%
 ;; grammar rules, non-terminal alphabetical order
-;;
-;; The actions cache information in keywords that are significant for
-;; indentation.
-;;
-;; BNF taken from (info "(gnat_ugn)"), with the following substitutions:
-;;
-;; simple_name -> IDENTIFIER
-;;
-;; and some simplifications. Repeating constructs are implemented with
-;; extra productions. Optional constructs are implemented by repeated
-;; productions
 
 attribute_declaration
   : FOR IDENTIFIER USE expression SEMICOLON
@@ -139,12 +145,13 @@ case_item
   ;
 
 case_items
-  : case_item
+  : ;; empty
+  | case_item
   | case_items case_item
   ;
 
 compilation_unit
-  : context_clause_opt project_qualifier_opt project_declaration
+  : context_clause_opt project_qualifier_opt project_declaration_opt
   ;
 
 context_clause
@@ -165,13 +172,14 @@ declarative_item
   ;
 
 declarative_items
-  : declarative_item
+  : ;; empty
+  | declarative_item
   | declarative_items declarative_item
- ;; no action; no visible keywords
   ;
 
 discrete_choice
-  : STRING_LITERAL
+  : ;; empty
+  | STRING_LITERAL
   | OTHERS
   ;
 
@@ -193,14 +201,19 @@ external_value
     (wisi-statement-action 2 'open-paren 4 'close-paren)
   ;
 
-name
-  : IDENTIFIER
-  | name DOT IDENTIFIER
- ;; no action
+identifier_opt
+  : ;; empty
+  | IDENTIFIER
   ;
 
-project_declaration
-  : simple_project_declaration
+name
+  : identifier_opt
+  | name DOT IDENTIFIER
+  ;
+
+project_declaration_opt
+  : ;; empty
+  | simple_project_declaration
  ;;  | project_extension
   ;
 
@@ -212,7 +225,7 @@ package_declaration
   ;
 
 package_spec
-  : PACKAGE IDENTIFIER IS simple_declarative_items END IDENTIFIER SEMICOLON
+  : PACKAGE identifier_opt IS simple_declarative_items END identifier_opt SEMICOLON
     (progn
       (wisi-statement-action 1 'statement-start 3 'block-start 5 'block-end 7 'statement-end)
       (wisi-containing-action 3 4))
@@ -253,13 +266,13 @@ simple_declarative_item
   ;
 
 simple_declarative_items
-  : simple_declarative_item
+  : ;; empty
+  | simple_declarative_item
   | simple_declarative_items simple_declarative_item
- ;; no action
   ;
 
 simple_project_declaration
-  : PROJECT IDENTIFIER IS declarative_items END IDENTIFIER SEMICOLON
+  : PROJECT identifier_opt IS declarative_items END identifier_opt SEMICOLON
     (progn
       (wisi-statement-action 1 'statement-start 3 'block-start 5 'block-end 7 'statement-end)
       (wisi-containing-action 3 4))

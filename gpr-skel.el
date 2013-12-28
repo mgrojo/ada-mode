@@ -43,7 +43,7 @@
 
 ;;;;; user variables, example skeletons intended to be overwritten
 
-(defcustom gpr-skel-initial-string "header\nproject"
+(defcustom gpr-skel-initial-string "{header}\n{project}"
   "*String to insert in empty buffer.
 This could end in a token recognized by `gpr-skel-expand'."
   :type 'string
