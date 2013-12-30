@@ -5,7 +5,6 @@
 ;; Copyright (C) 2012, 2013  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
-;; Keywords: languages ada
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -1322,7 +1321,6 @@ Also return cache at start."
   (define-key ada-mode-map "\M-k" 'wisi-show-token)
   )
 
-;;;###autoload
 (defun ada-wisi-setup ()
   "Set up a buffer for parsing Ada files with wisi."
   (wisi-setup '(ada-wisi-comment

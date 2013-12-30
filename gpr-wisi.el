@@ -5,7 +5,6 @@
 ;; Copyright (C) 2013 Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
-;; Keywords: languages ada
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -169,7 +168,6 @@
   )
 
 ;;;;
-;;;###autoload
 (defun gpr-wisi-setup ()
   "Set up a buffer for parsing Ada files with wisi."
   (wisi-setup '(gpr-wisi-before-cache

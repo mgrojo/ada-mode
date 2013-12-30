@@ -4,7 +4,7 @@
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
-;; published by the Free Software Foundation; either version 2, or (at
+;; published by the Free Software Foundation; either version 3, or (at
 ;; your option) any later version.
 ;;
 ;; This software is distributed in the hope that it will be useful,
@@ -13,12 +13,7 @@
 ;; General Public License for more details.
 ;;
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;; Boston, MA 02110-1301, USA.
-
-;; PLEASE DO NOT MANUALLY EDIT THIS FILE!  It is automatically
-;; generated from the grammar file ada-grammar.wy
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 (require 'wisi)
 (require 'semantic/lex)
@@ -1078,7 +1073,7 @@
        ((PACKAGE name RENAMES name aspect_specification_opt SEMICOLON )
         (wisi-statement-action 1 'statement-start 2 'name 3 'statement-other 6 'statement-end)))
       (package_specification
-       ((PACKAGE name aspect_specification_opt IS declarative_part_opt PRIVATE declarative_part_opt END name )
+       ((PACKAGE name aspect_specification_opt IS declarative_part_opt PRIVATE declarative_part_opt END name_opt )
         (progn
         (wisi-statement-action 1 'statement-start 2 'name 4 'block-start 6 'block-middle 8 'block-end)
         (wisi-containing-action 4 5)
@@ -2286,7 +2281,7 @@
       ((default . error) (ARRAY .  467) (IDENTIFIER .  45) (CHARACTER_LITERAL .  47) (STRING_LITERAL .  46) (ACCESS . (null_exclusion_opt . 0)) (NOT .  855))
       ((default . error) (USE . (exception_declaration . 0)) (TYPE . (exception_declaration . 0)) (TASK . (exception_declaration . 0)) (SUBTYPE . (exception_declaration . 0)) (PROTECTED . (exception_declaration . 0)) (PROCEDURE . (exception_declaration . 0)) (PRAGMA . (exception_declaration . 0)) (PACKAGE . (exception_declaration . 0)) (OVERRIDING . (exception_declaration . 0)) (NOT . (exception_declaration . 0)) (GENERIC . (exception_declaration . 0)) (FUNCTION . (exception_declaration . 0)) (FOR . (exception_declaration . 0)) (ENTRY . (exception_declaration . 0)) (IDENTIFIER . (exception_declaration . 0)) (BEGIN . (exception_declaration . 0)) (END . (exception_declaration . 0)) (PRIVATE . (exception_declaration . 0)))
       ((default . error) (PLUS .  136) (MINUS .  135) (ABS .  138) (NOT .  141) (NULL .  142) (NEW .  140) (IDENTIFIER .  45) (CHARACTER_LITERAL .  47) (STRING_LITERAL .  46) (LEFT_PAREN .  139))
-      ((default . error) (IDENTIFIER .  45) (CHARACTER_LITERAL .  47) (STRING_LITERAL .  46))
+      ((default . error) (SEMICOLON . (name_opt . 0)) (IDENTIFIER .  45) (CHARACTER_LITERAL .  47) (STRING_LITERAL .  46))
       ((default . error) (PRIVATE . (abstract_tagged_limited_opt . 0)) (NULL . (abstract_tagged_limited_opt . 0)) (RECORD . (abstract_tagged_limited_opt . 0)) (TAGGED .  842) (RANGE .  839) (MOD .  837) (DIGITS .  834) (DELTA .  833) (TASK .  479) (PROTECTED .  475) (SYNCHRONIZED .  841) (INTERFACE .  470) (ARRAY .  467) (LEFT_PAREN .  835) (ACCESS . (null_exclusion_opt . 0)) (NOT .  198) (NEW . ((abstract_limited_synchronized_opt . 0) (abstract_limited_opt . 0))) (LIMITED .  836) (ABSTRACT .  832))
       ((default . error) (BEGIN . (single_task_declaration . 2)) (IDENTIFIER . (single_task_declaration . 2)) (ENTRY . (single_task_declaration . 2)) (FOR . (single_task_declaration . 2)) (FUNCTION . (single_task_declaration . 2)) (GENERIC . (single_task_declaration . 2)) (NOT . (single_task_declaration . 2)) (OVERRIDING . (single_task_declaration . 2)) (PACKAGE . (single_task_declaration . 2)) (PRAGMA . (single_task_declaration . 2)) (PROCEDURE . (single_task_declaration . 2)) (PROTECTED . (single_task_declaration . 2)) (SUBTYPE . (single_task_declaration . 2)) (TASK . (single_task_declaration . 2)) (TYPE . (single_task_declaration . 2)) (USE . (single_task_declaration . 2)) (PRIVATE . (single_task_declaration . 2)) (END . (single_task_declaration . 2)))
       ((default . error) (NEW .  829) (END . (declarative_part_opt . 0)) (PRIVATE . (declarative_part_opt . 0)) (USE .  11) (SUBTYPE .  282) (PRAGMA .  7) (NOT .  4) (OVERRIDING .  5) (FUNCTION . (overriding_indicator_opt . 2)) (PROCEDURE . (overriding_indicator_opt . 2)) (ENTRY . (overriding_indicator_opt . 2)) (FOR .  279) (IDENTIFIER .  278) (TYPE .  284) (GENERIC .  2) (PROTECTED .  281) (TASK .  283) (PACKAGE .  280))
@@ -2421,7 +2416,7 @@
       ((default . error) (WITH . (type_definition . 10)) (SEMICOLON . (type_definition . 10)))
       ((default . error) (WITH . (type_definition . 7)) (SEMICOLON . (type_definition . 7)))
       ((default . error) (SEMICOLON . (aspect_specification_opt . 0)) (WITH .  104))
-      ((default . error) (DOT .  84) (TICK .  85) (SEMICOLON . (package_specification . 0)) (LEFT_PAREN .  103))
+      ((default . error) (SEMICOLON . (package_specification . 0)))
       ((default . error) (SEMICOLON .  988))
       ((default . error) (NULL .  987))
       ((default . error) (COLON_EQUAL .  985) (SEMICOLON . (aspect_specification_opt . 0)) (WITH .  104))
@@ -3606,7 +3601,7 @@
       ((access_definition . 856)(array_type_definition . 857)(attribute_reference . 48)(name . 725)(null_exclusion_opt . 201)(qualified_expression . 51)(selected_component . 52)(subtype_indication . 858))
       nil
       ((aggregate . 143)(attribute_reference . 48)(expression . 854)(factor . 145)(name . 146)(primary . 149)(qualified_expression . 51)(relation_and_list . 150)(relation_and_then_list . 151)(relation_or_list . 152)(relation_or_else_list . 153)(relation_xor_list . 154)(relation . 155)(selected_component . 52)(simple_expression . 156)(term . 157)(term_list . 158)(unary_adding_operator . 159))
-      ((attribute_reference . 48)(name . 853)(qualified_expression . 51)(selected_component . 52))
+      ((attribute_reference . 48)(name . 705)(name_opt . 853)(qualified_expression . 51)(selected_component . 52))
       ((abstract_limited_synchronized_opt . 843)(abstract_limited_opt . 844)(abstract_tagged_limited_opt . 845)(access_definition . 846)(array_type_definition . 847)(derived_type_definition . 848)(enumeration_type_definition . 849)(interface_type_definition . 850)(null_exclusion_opt . 201)(record_type_definition . 851)(type_definition . 852))
       nil
       ((abstract_subprogram_declaration . 285)(aspect_clause . 286)(at_clause . 287)(body . 288)(body_stub . 289)(declaration . 290)(declarations . 291)(declarative_part_opt . 830)(entry_declaration . 293)(enumeration_representation_clause . 294)(exception_declaration . 295)(full_type_declaration . 296)(generic_declaration . 297)(generic_formal_part . 17)(generic_instantiation . 298)(generic_package_declaration . 19)(generic_renaming_declaration . 299)(generic_subprogram_declaration . 21)(identifier_list . 300)(incomplete_type_declaration . 301)(null_procedure_declaration . 302)(object_declaration . 303)(object_renaming_declaration . 304)(overriding_indicator_opt . 305)(package_body . 306)(package_body_stub . 307)(package_declaration . 308)(package_renaming_declaration . 309)(package_specification . 28)(pragma . 310)(private_extension_declaration . 311)(private_type_declaration . 312)(procedure_specification . 30)(proper_body . 313)(protected_body . 314)(protected_body_stub . 315)(protected_type_declaration . 316)(record_representation_clause . 317)(renaming_declaration . 318)(single_protected_declaration . 319)(single_task_declaration . 320)(subprogram_body . 321)(subprogram_body_stub . 322)(subprogram_declaration . 323)(subprogram_renaming_declaration . 324)(subtype_declaration . 325)(task_body . 326)(task_body_stub . 327)(task_definition . 831)(task_type_declaration . 328)(type_declaration . 329)(use_clause . 330))
@@ -3741,7 +3736,7 @@
       nil
       nil
       ((aspect_specification_opt . 989))
-      ((actual_parameter_part . 88))
+      nil
       nil
       nil
       ((aspect_specification_opt . 986))

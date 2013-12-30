@@ -1,10 +1,8 @@
 ;;; gpr-skel.el --- an extension to Gpr mode for inserting statement skeletons
 
-;; Copyright (C) 2013
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2013 Free Software Foundation, Inc.
 
 ;; Authors: Stephen Leake <stephen_leake@stephe-leake.org>
-;; Keywords: languages, gpr
 
 ;; This file is part of GNU Emacs.
 
@@ -146,7 +144,6 @@ trailing `...' if there are more keys."
       (concat (mapconcat 'car alist-1 " | ") " | ... : "))
   ))
 
-;;;###autoload
 (defun skeleton-expand (&optional name)
   "Expand the token or placeholder before point to a skeleton, as defined by `skeleton-token-alist'.
 A token is a symbol in the current syntax.

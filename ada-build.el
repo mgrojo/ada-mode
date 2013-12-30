@@ -5,7 +5,6 @@
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
-;; Keywords: languages ada
 ;;
 ;; This file is part of GNU Emacs.
 ;;

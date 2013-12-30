@@ -6,8 +6,6 @@
 ;; Contributors: see ada-mode.el, and specifically Christian Egli
 ;;     <Christian.Egli@hcsd.hac.com> for ada-imenu-generic-expression
 ;;
-;; Keywords: languages ada
-;;
 ;; This file is part of GNU Emacs.
 ;;
 ;; GNU Emacs is free software: you can redistribute it and/or modify

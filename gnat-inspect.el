@@ -9,7 +9,6 @@
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Version: 1.0
-;; Keywords: languages Ada C C++ cross-reference
 
 ;; This file is part of GNU Emacs.
 

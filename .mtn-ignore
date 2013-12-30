@@ -17,6 +17,7 @@
 ^build/wisi/.*\.tmp$
 ^build/wisi/.*\.wisi-test$
 ^build/wisi/obj$
+^dir$
 ^gpr-grammar\.output$
 ^gpr-mode\.html$
 ^gpr-mode\.info$

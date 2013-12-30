@@ -1,11 +1,8 @@
 ;;; ada-skel.el --- an extension to Ada mode for inserting statement skeletons
 
-;; Copyright (C) 1987, 1993, 1994, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
-;;   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2013
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1987, 1993, 1994, 1996-2013  Free Software Foundation, Inc.
 
 ;; Authors: Stephen Leake <stephen_leake@stephe-leake.org>
-;; Keywords: languages, ada
 
 ;; This file is part of GNU Emacs.
 
@@ -340,7 +337,6 @@ trailing `...' if there are more keys."
       (concat (mapconcat 'car alist-1 " | ") " | ... : "))
   ))
 
-;;;###autoload
 (defun ada-skel-expand (&optional name)
   "Expand the token or placeholder before point to a skeleton, as defined by `ada-skel-token-alist'.
 A token is a symbol in the current syntax.

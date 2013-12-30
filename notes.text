@@ -1,5 +1,7 @@
 General notes on Emacs Ada mode
 
+(add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-1")
+
 run test from emacs -Q:
 (progn
   (add-to-list 'exec-path "/apps/GNAT-7.1.2/bin")
@@ -31,10 +33,43 @@ run test from emacs -Q:
 build/wisi/Makefile
 build/Makefile
 
-review autoloads
+change build/common.make to test ELPA installed version
+    rely on autoloads _only_; no explicit requires in test driver
+    set ada-xref-tool to select gnatinspect
+
+autoload in gpr-mode.el
+    (add-to-list 'auto-mode-alist '("\\.gpr\\'" . gpr-mode))  ; GNAT project files
+
+something is loading ada-xref; seeing customization vars from there
+
+something like:
+    (when (featurep 'imenu)
+        (require 'ada-imenu))
+
+    'imenu is not enabled in -Q; what enables it in mine?
+
+    add to user guide, customizations section
+
+    need imenu tests?
+
+no info in emacs-24.3-Q.sh?
+
+my web site:
+    for Emacs <= 24.3
+       (setq package-enable-at-startup nil)
+       (package-initialize)
+
+ada-mode.texi:
+    discuss default project file
+        created when ada-prj-get is called, and no user project file is specified
+
+    example setting case-exceptions and indent-when in file variables
+        mention useful even with project files, for file-specific overrides
 
 create org.emacs.ada-mode branch, push 5.0.1 to ELPA
-    after 5.0 appears there
+    after user testing
+
+after 5.0.1 appears in ELPA, announce to comp.lang.ada
 
  emacs 23.4
 
@@ -47,6 +82,35 @@ font-lock-keywords buffer local by default?
 
 packages.el not in 23.4, so don't need (emacs "24.3") in package-requires
 
+ dvc git
+/Projects/org.emacs.dvc.stephe/lisp/dvc-state.el
+(require 'dvc-state)
+(dvc-state-one "/Projects/elpa")
+
+failed 'git fetch' due to ssh-key prompt leaves FETCH_HEAD empty
+    subsequent 'git fetch' just hang
+    new clone works
+    30 Dec: posted on git mailing list
+
+dvc-state
+    29 Dec: asked about name on dvc list
+
+need xgit-update-review
+    store pre-update rev somewhere
+
+git push --tags
+
+git diff master...contrib
+    diff lca of master/contrib with HEAD of contrib
+
+git relink
+    reduce object storage duplication among workspace repositories
+    still have to fetch to each one
+
+don't have git html docs
+    install git-doc on cygwin?
+    get from source distrib; http://git-scm.com/
+    http://git-scm.com/documentation
 
  gnat-inspect
 test 1.7w
@@ -71,9 +135,6 @@ gnatinspect is slow
     start or refresh gnatinspect process when select project
         don't wait
 
-
-    set "don't prompt on exit emacs" property on session proceses
-        and on bash shells!
 
     use in user-interface functions
         gnat-inspect-other done
@@ -126,6 +187,7 @@ build/Makefile
 
 do C-x 5 prefix
     for Emacs 24.x
+    after 24.4 feature freeze
 
 indentation bugs:
    type Configuration_Type
@@ -502,6 +564,7 @@ c:/apps/emacs-24.2/lisp/progmodes/ada-mode.el
 http://savannah.gnu.org/projects/emacs/
 
 http://git.savannah.gnu.org/cgit/emacs.git/tree/README?h=elpa
+http://elpa.gnu.org/
 
 https://www.dropbox.com/sh/7jr3vbv9tm1zod0/jPuvfrJAe8
     w32 builds of cutting-edge emacs branches, pretests
@@ -643,13 +706,28 @@ read/write access requires a public key:
 
  release process
 bump version
-    ada-mode.el Version: ada-mode-version
-    ada-mode.texi Ada Mode Version
+    ada-mode.el
+        Version:
+        ada-mode-version
+    ada-mode.texi
+        Ada Mode Version
+    wisi.el
+        Version:
     README
+        first line
 
 verify other metadata
     ada-mode.el
     wisi.el
+
+check for ELPA patches by others
+    email from emacs-elpa-diffs@gnu.org
+    cd /Projects/elpa
+    git fetch
+    (dvc-state-one "/Projects/elpa")
+    (ediff-directories "c:/Projects/elpa/packages/ada-mode/" "." nil)
+    (ediff-directories "c:/Projects/elpa/packages/wisi/" "." nil)
+    (dvc-state-one ".")
 
 check emacs buglist, mark fixed
     http://debbugs.gnu.org/cgi/pkgreport.cgi?package=ada-mode
@@ -664,6 +742,8 @@ Emacs 23.4, (gnat-2012) (gnat-2013):
         wisi-generate.exe
 
     test/Makefile all
+        # pushes to elpa workspace, builds archive
+        # FIXME: install from archive?
         build/wisi/Makefile all
 
 (dvc-status)
@@ -680,11 +760,22 @@ Debian : emacs 24.2 (from testing), GNAT GPL 2012:
     (shell-send-string "mtn_sync_gds_shevek.sh" "*bash*")
     (xmtn-sync-review)
 
+    (dvc-state-one "/Projects/elpa")
+
+build/Makefile build-elpa
+    (dvc-state-one "/Projects/elpa")
+    cd /Projects/elpa
+    git push
+    # 24 hrs for web repository to update
+
 build/Makefile zip
 /Projects/org.opentoken.stephe/build/Makefile zip
 /Projects/Web/stephe-leake/emacs/ada-mode/emacs-ada-mode.html
     add release note
         (dvc-log)
+
+(mtn-propagate-one "../org.emacs.ada-mode.stephe-1" "../org.emacs.ada-mode.stephe")
+mtn tag h:org.emacs.ada-mode "org.emacs.ada-mode-<version>"
 
 ~/Web/Makefile
     edit date in ADA-MODE-STEPHE_GZ, ADA-MODE-OPENTOKEN_BZ2

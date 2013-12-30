@@ -1,12 +1,10 @@
 ;;; gpr-mode --- major-mode for editing GNAT project files
 
-;; Copyright (C) 2007, 2008, 2012, 2013  Stephen Leake
-;; Copyright (C) 2004  Rolf Ebert
+;; Copyright (C) 2004, 2007, 2008, 2012-2013  Free Software Foundation, Inc.
 
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Version: 5.0
-;; Keywords: languages ada gpr gprbuild
 
 ;; This file is part of GNU Emacs.
 
