@@ -135,6 +135,13 @@ begin
             Put_Error (Input_File, "unexpected");
             raise Syntax_Error;
          end if;
+      exception
+      when others =>
+         Utils.Put_Error
+           (Name (Input_File),
+            Ada.Text_IO.Line (Input_File) - 1,
+            "syntax error (or wisi bug)");
+         raise Syntax_Error;
       end;
    end loop;
 end Wisi.Declarations;
