@@ -2,6 +2,7 @@
 ^ada-grammar\.output$
 ^ada-mode\.html$
 ^ada-mode\.info$
+^autoloads\.el$
 ^build/.*\.tar\.gz$
 ^build/smie/.*\.ali$
 ^build/smie/.*\.diff$

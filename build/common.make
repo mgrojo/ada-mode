@@ -59,10 +59,6 @@ COMPILE_FILES := $(filter-out highlight.adb, $(COMPILE_FILES))# font-lock only
 COMPILE_FILES := $(filter-out parent.adb, $(COMPILE_FILES))
 COMPILE_FILES := $(filter-out prime-volatilities.adb, $(COMPILE_FILES))
 
-# WORKAROUND: gnat 7.0.1 gives bogus warning when compile with -gnatc; bug report [LA23-003]
-# without -gnatc, get warnings about missing bodies
-COMPILE_FILES := $(filter-out ada_mode-quantified_expressions.adb, $(COMPILE_FILES))
-
 .PHONY : all nominal one test test-clean
 
 vpath %.ads ../../test ../../test/subdir
@@ -91,9 +87,20 @@ gpr-skel.gpr.tmp :
 
 .PRECIOUS : %.tmp
 
-# load path; .. for run-*.el, ../.. for ada-mode.el etc
+autoloads : force
+	$(EMACS_EXE) -Q -batch --eval '(let ((generated-autoload-file (expand-file-name "../../autoloads.el")))(update-directory-autoloads "../../"))'
+
+# load path rationale:
+#    .. for run-*.el
+#    ADA_MODE_DIR = "-L ../.. -l "autoloads.el"" for developing ada-mode
+#    ADA_MODE_DIR = "-f package-initialize" for testing installed ELPA package
+ADA_MODE_DIR ?= -l define_ADA_MODE_DIR
+
+# All gnat-inspect functions run "gnatinspect" in a background process
+# to save startup time. That fails for some reason in batch mode; the
+# background process never runs. So we don't run tests in batch mode.
 %.tmp : % $(INDENT.EL)
-	$(EMACS_EXE) -Q -L .. -L ../.. -l $(RUNTEST) --eval '(progn (run-test "$<")(kill-emacs))'
+	$(EMACS_EXE) -Q -L .. $(ADA_MODE_DIR) -l $(RUNTEST) --eval '(progn (run-test "$<")(kill-emacs))'
 
 COMPILE_FILES := $(COMPILE_FILES:.adb=.ali)
 COMPILE_FILES := $(COMPILE_FILES:.ads=.ali)

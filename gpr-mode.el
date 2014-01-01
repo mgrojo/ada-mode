@@ -1,10 +1,9 @@
 ;;; gpr-mode --- major-mode for editing GNAT project files
 
-;; Copyright (C) 2004, 2007, 2008, 2012-2013  Free Software Foundation, Inc.
+;; Copyright (C) 2004, 2007, 2008, 2012-2014  Free Software Foundation, Inc.
 
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
-;; Version: 5.0
 
 ;; This file is part of GNU Emacs.
 
@@ -208,6 +207,7 @@ of the package or project point is in or just after, or nil.")
   (ada-select-prj-file (or file (buffer-file-name))))
 
 ;;;;
+;;;###autoload
 (defun gpr-mode ()
   "The major mode for editing GNAT project files."
 
@@ -252,8 +252,7 @@ of the package or project point is in or just after, or nil.")
 
   )
 
-;; user needs to add this somewhere:
-;; FIXME: add autoload processing?
+;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.gpr\\'" . gpr-mode))  ; GNAT project files
 
 (provide 'gpr-mode)

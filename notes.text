@@ -1,15 +1,25 @@
 General notes on Emacs Ada mode
 
 (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-1")
+(setq ada-xref-tool 'gnat_inspect)
 
-run test from emacs -Q:
+run test from emacs -Q using installed elpa:
+(progn
+;;  (add-to-list 'exec-path "/apps/GNAT-7.1.2/bin")
+  (setenv "PATH" (mapconcat 'identity  exec-path  path-separator))
+  (package-initialize)
+  (setq debug-on-error t)
+;;  (setq wisi-debug 1)
+  (load "run-indent-test-wisi-gnatinspect")
+  (setq default-directory "/Projects/org.emacs.ada-mode.stephe-1/build/wisi/")
+  (run-test "../../test/ada_mode-nominal-child.ads"))
+
+run test from emacs -Q using source:
 (progn
   (add-to-list 'exec-path "/apps/GNAT-7.1.2/bin")
   (setenv "PATH" (mapconcat 'identity  exec-path  path-separator))
   (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-1")
   (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-1/build")
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-1/build/wisi")
-  (global-font-lock-mode -1)
   (setq debug-on-error t)
 ;;  (setq wisi-debug 1)
   (load "run-indent-test-wisi-gnatinspect")
@@ -29,30 +39,12 @@ run test from emacs -Q:
 
 (list (wisi-parser-state-active (aref parser-states 1)) (wisi-parser-state-sp (aref parser-states 1)) (wisi-parser-state-stack (aref parser-states 1)))
 
- finish elpa
+ 5.0.1
 build/wisi/Makefile
 build/Makefile
 
-change build/common.make to test ELPA installed version
-    rely on autoloads _only_; no explicit requires in test driver
-    set ada-xref-tool to select gnatinspect
-
-autoload in gpr-mode.el
-    (add-to-list 'auto-mode-alist '("\\.gpr\\'" . gpr-mode))  ; GNAT project files
-
-something is loading ada-xref; seeing customization vars from there
-
-something like:
-    (when (featurep 'imenu)
-        (require 'ada-imenu))
-
-    'imenu is not enabled in -Q; what enables it in mine?
-
-    add to user guide, customizations section
-
-    need imenu tests?
-
-no info in emacs-24.3-Q.sh?
+allow finding compiler libraries with no project
+    define the default project search path to contain the compiler library dirs
 
 my web site:
     for Emacs <= 24.3
@@ -91,9 +83,14 @@ failed 'git fetch' due to ssh-key prompt leaves FETCH_HEAD empty
     subsequent 'git fetch' just hang
     new clone works
     30 Dec: posted on git mailing list
+    31 Dec: try to reproduce
 
 dvc-state
     29 Dec: asked about name on dvc list
+
+dvc-state.el:455:1:Warning: the following functions are not known to be
+    defined: dvc-filter-non-ws
+        copy from xmtn- to dvc-state, use dvc-workspacep
 
 need xgit-update-review
     store pre-update rev somewhere
@@ -715,6 +712,8 @@ bump version
         Version:
     README
         first line
+    ../install-elpa.el
+        *-version
 
 verify other metadata
     ada-mode.el

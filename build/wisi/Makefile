@@ -1,7 +1,10 @@
 # build and test the Emacs wisent Ada indentation and navigation engine
 
+# test with mtn controlled source:  (setenv "ADA_MODE_DIR" "-L ../.. -l autoloads.el")
+# test with installed elpa package: (setenv "ADA_MODE_DIR" "-f package-initialize")
+
 # "compile-ada" is a test; it verifies the test sources are legal Ada
-all : update compile-ada-clean compile-ada test-clean test
+all : update compile-ada-clean compile-ada autoloads test-clean test
 
 # this updates everything after any source change, without running the tests.
 update : ../../ada-grammar-wy.el ../../gpr-grammar-wy.el  byte-compile
@@ -45,7 +48,7 @@ export ADA_PROJECT_PATH=../../test/;../../test/subdir
 endif
 
 %.wisi-test : %-wy.el
-	$(EMACS_EXE) -Q -batch -L . -L .. -L ../.. -l run-wisi-test.el --eval '(run-test "$*")'
+	$(EMACS_EXE) -Q -batch -L .. -L ../.. -l run-wisi-test.el --eval '(run-test "$*")'
 
 .PRECIOUS : %-wy.el ../../%-grammar-wy.el
 

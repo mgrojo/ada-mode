@@ -1,6 +1,4 @@
-;; run tests using ada-mode, gpr-mode defaults; ada-wisi, gpr-wisi, ada-gnat-xref
-
-(require 'gpr-mode)
+;; run tests using gpr-mode defaults; gpr-wisi
 
 (require 'run-indent-test)
 

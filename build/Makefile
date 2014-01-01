@@ -16,13 +16,13 @@
 # but currently the code is not that clean; gpr-mode and gnat-inspect
 # require ada-mode. And it's not worth making gnat-core a package.
 
-all : info html
+publish : info pub-ada pub-wisi build-elpa install-elpa
 
-publish : info pub-ada pub-wisi build-elpa
+docs : info html
 
 BRANCH := $(notdir $(shell cd ..; pwd))
 zip :
-	tar zcf $(BRANCH)-`date +%Y-%m-%d`.tar.gz --exclude _MTN --exclude "*~" --exclude "*.ali" --exclude "*.diff" --exclude "*.elc" --exclude "*.output" --exclude "*.tar.gz"  --exclude "*.tmp" -C ../../ $(BRANCH)
+	tar zcf $(BRANCH)-`date +%Y-%m-%d`.tar.gz --exclude _MTN --exclude "autoloads.el" --exclude "*~" --exclude "*.ali" --exclude "*.diff" --exclude "*.elc" --exclude "*.output" --exclude "*.tar.gz"  --exclude "*.tmp" -C ../../ $(BRANCH)
 
 
 MANUALS := ada-mode gpr-mode
@@ -59,14 +59,23 @@ pub-wisi : force
 	cp ../wisi*.el ../../elpa/packages/wisi
 
 # all-in-place does not build archive-contents, just *.elc
+#
+# Other packages are often broken, so just build ours, by only copying
+# ours into archive-tmp
 build-elpa : force
 	rm -rf ../../elpa/archive-tmp
-	make -C ../../elpa/ archive-tmp process-archive EMACS="emacs -Q --batch"
+	mkdir -p ../../elpa/archive-tmp/packages
+	cp -a ../../elpa/packages/ada-mode ../../elpa/archive-tmp/packages
+	cp -a ../../elpa/packages/wisi     ../../elpa/archive-tmp/packages
+	make -C ../../elpa/ process-archive
 
 # (setq package-archives (list (cons "test" "/Projects/elpa/archive/packages")))
 # (list-packages)
 
-# (dvc-diff "/Projects/elpa/")
+# (dvc-state "/Projects/elpa/")
 # shell git push
+
+install-elpa :
+	emacs -Q --batch -l install-elpa.el
 
 # end of file

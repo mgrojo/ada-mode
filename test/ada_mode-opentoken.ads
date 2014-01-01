@@ -1,10 +1,9 @@
 --  This file does not compile. Test enabling special OpenToken indentation rule via Local Variables.
---  Assumes 'ada-wisi-opentoken is loaded.
 
 --EMACSCMD:(ada-parse-prj-file "subdir/ada_mode.adp")
 --EMACSCMD:(ada-select-prj-file "subdir/ada_mode.adp")
 
---EMACSCMD: ada-indent-opentoken
+--EMACSCMD: ada-indent-opentoken-mode
 --EMACSRESULT: t
 with GDS.Modules.Models.Integrator_Models.DOF_6;
 with SAL.Config_Files;
@@ -88,5 +87,5 @@ private
 
 end GDS.Commands.Add_Statement;
 --  Local Variables:
---  ada-indent-opentoken: t
+--  eval: (ada-indent-opentoken-mode)
 --  End:

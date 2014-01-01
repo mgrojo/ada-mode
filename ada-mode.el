@@ -1,11 +1,11 @@
 ;;; ada-mode.el --- major-mode for editing Ada sources
 ;;
-;;; Copyright (C) 1994, 1995, 1997 - 2013  Free Software Foundation, Inc.
+;;; Copyright (C) 1994, 1995, 1997 - 2014  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Keywords FIXME: languages, ada ELPA broken for multiple keywords
-;; Version: 5.0
+;; Version: 5.0.1
 ;; package-requires: ((wisi "1.0"))
 ;; url: http://stephe-leake.org/emacs/ada-mode/emacs-ada-mode.html
 ;;
@@ -161,7 +161,6 @@
 
 (require 'find-file)
 (require 'align)
-(require 'which-func)
 (require 'compile)
 
 (eval-when-compile (require 'cl-macs))
@@ -169,7 +168,7 @@
 (defun ada-mode-version ()
   "Return Ada mode version."
   (interactive)
-  (let ((version-string "5.0"))
+  (let ((version-string "5.0.1"))
     ;; must match:
     ;; ada-mode.texi
     ;; README
@@ -1624,7 +1623,7 @@ See `ff-other-file-alist'.")
   "Regexp for extracting the parent name from fully-qualified name.")
 
 (defvar ada-file-name-from-ada-name nil
-  ;; depends on ada-compiler, per-project
+  ;; determined by ada-xref-tool, set by *-select-prj
   "Function called with one parameter ADA-NAME, which is a library
 unit name; it should return the filename in which ADA-NAME is
 found.")
@@ -1863,7 +1862,8 @@ identifier.  May be an Ada identifier or operator function name."
 FILE may be absolute, or on `compilation-search-path'.
 
 If OTHER-WINDOW is non-nil, show the buffer in another window."
-  (setq file (ff-get-file-name compilation-search-path file))
+  (or (file-name-absolute-p file)
+      (setq file (ff-get-file-name compilation-search-path file)))
   (let ((buffer (get-file-buffer file)))
     (cond
      ((bufferp buffer)
@@ -2541,7 +2541,8 @@ The paragraph is indented on the first line."
   (set (make-local-variable 'add-log-current-defun-function)
        'ada-add-log-current-function)
 
-  (add-hook 'which-func-functions 'ada-which-function nil t)
+  (when (boundp 'which-func-functions)
+    (add-hook 'which-func-functions 'ada-which-function nil t))
 
   ;;  Support for align
   (add-to-list 'align-dq-string-modes 'ada-mode)
@@ -2628,9 +2629,15 @@ The paragraph is indented on the first line."
   (require 'ada-gnat-compile))
 
 (unless (featurep 'ada-xref-tool)
-  (require 'ada-gnat-xref))
+  (cl-case ada-xref-tool
+    ((nil 'gnat) (require 'ada-gnat-xref))
+    ('gnat_inspect (require 'gnat-inspect))
+    ))
 
 (unless (featurep 'ada-skeletons)
   (require 'ada-skel))
+
+(when (featurep 'imenu)
+  (require 'ada-imenu))
 
 ;;; end of file

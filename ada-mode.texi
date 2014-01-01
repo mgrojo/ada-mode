@@ -3,8 +3,7 @@
 @settitle Ada Mode
 
 @copying
-Copyright @copyright{} 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-2007, 2008, 2009, 2010, 2011, 2012, 2013  Free Software Foundation, Inc.
+Copyright @copyright{} 1999 - 2014  Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -30,7 +29,7 @@ developing GNU and promoting software freedom.''
 @title{Ada Mode}
 @sp 2
 @subtitle An Emacs major mode for programming in Ada
-@subtitle Ada Mode Version 5.0
+@subtitle Ada Mode Version 5.0.1
 @sp 2
 @page
 @vskip 0pt plus 1filll
@@ -266,14 +265,22 @@ words from current buffer, other buffers, file names, etc; see
 @code{ada-skel-hippie-try} to that list. Note that @code{ada-expand},
 which defaults to @code{ada-skel-expand}, is bound to @key{C-c C-e}
 (@pxref{Statement skeletons}).
+@item imenu
+@item which-func
 @end table
 
 The above can all be set by the following code in your
 @file{~/.emacs}. Note that some are functions are added to
-@code{before-save-hook}; they run just before a buffer is written to disk.
+@code{before-save-hook}; they run just before a buffer is written to
+disk. Also, the order is important; ada-mode does not set up the
+Ada-specific features of imenu and which-func unless they are loaded
+first.
+
 @example
 (setq-default indent-tabs-mode nil)
 (electric-pair-mode 1)
+(require 'imenu)
+(require 'which-func)
 (require 'ada-mode)
 (add-to-list 'hippie-expand-try-functions-list 'ada-skel-hippie-try)
 (define-key ada-mode-map "\C-e"     'hippie-expand)
@@ -1648,6 +1655,7 @@ sources, here's an overview.
 * Directory structure::
 * Package organization::
 * OpenToken::
+* ELPA::
 @end menu
 
 @node Directory structure, Package organization, Developer overview, Developer overview
@@ -1883,7 +1891,7 @@ provided by @code{semantic}.
 Implements the generalized LALR parser.
 @end table
 
-@node OpenToken,  , Package organization, Developer overview
+@node OpenToken, ELPA, Package organization, Developer overview
 @section OpenToken
 Ada mode uses the OpenToken tool @file{wisi-generate.exe} to process
 the grammar sources into elisp parse tables. See
@@ -1894,6 +1902,27 @@ how to get it.
 The Makefile variable @code{WISI_OPENTOKEN} gives the path to the
 build directory for OpenToken; you probably need to override it with
 an external environment variable or on the @code{make} command line.
+
+@node ELPA,  , OpenToken, Developer overview
+@section ELPA
+Ada mode is published via the Gnu ELPA archive. To test a new version
+of Ada mode, we use a local Gnu ELPA archive. That requires fetching
+Gnu ELPA via git:
+
+@example
+cd /Projects
+git clone git://git.savannah.gnu.org/emacs/elpa.git
+@end example
+
+If you have an Emacs Savannah developer account, you can use:
+
+@example
+cd /Projects
+git clone <login>@@git.savannah.gnu.org/emacs/elpa.git
+@end example
+
+@file{build/Makefile} contains targets for copying Ada mode source to
+the elpa workspace, and for building the elpa archive there.
 
 @node GNU Free Documentation License, Index, Developer overview, Top
 @appendix GNU Free Documentation License
