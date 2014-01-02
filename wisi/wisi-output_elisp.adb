@@ -207,7 +207,7 @@ is
       --  FIXME: allow other license
       Put_Line (";; This program is free software; you can redistribute it and/or");
       Put_Line (";; modify it under the terms of the GNU General Public License as");
-      Put_Line (";; published by the Free Software Foundation; either version 2, or (at");
+      Put_Line (";; published by the Free Software Foundation; either version 3, or (at");
       Put_Line (";; your option) any later version.");
       Put_Line (";;");
       Put_Line (";; This software is distributed in the hope that it will be useful,");
@@ -216,12 +216,7 @@ is
       Put_Line (";; General Public License for more details.");
       Put_Line (";;");
       Put_Line (";; You should have received a copy of the GNU General Public License");
-      Put_Line (";; along with GNU Emacs; see the file COPYING.  If not, write to the");
-      Put_Line (";; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,");
-      Put_Line (";; Boston, MA 02110-1301, USA.");
-      New_Line;
-      Put_Line (";; PLEASE DO NOT MANUALLY EDIT THIS FILE!  It is automatically");
-      Put_Line (";; generated from the grammar file " & Elisp_Package & ".wy");
+      Put_Line (";; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.");
       New_Line;
    end Header;
 
