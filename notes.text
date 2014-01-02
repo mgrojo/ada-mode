@@ -43,6 +43,8 @@ run test from emacs -Q using source:
 build/wisi/Makefile
 build/Makefile
 
+menu shows last non-menu key, want first key
+
 allow finding compiler libraries with no project
     define the default project search path to contain the compiler library dirs
 
@@ -275,6 +277,9 @@ gnatprep
     literal, or an Ada identifier/keyword; handle $symbol in lexer
 
     gnatprep minor mode?
+
+manage "scenario variables" on project menu?
+    GDS_DEVICE_PLATFORM
 
 separate gpr-mode indent variables
 
