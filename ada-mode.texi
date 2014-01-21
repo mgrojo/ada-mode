@@ -99,7 +99,14 @@ information on debugging.
 @chapter Installation
 
 Ada mode is distributed in the Gnu ELPA package archive; it can be
-installed via @code{M-x list-packages} (@pxref{Packages,,,emacs,Emacs User Guide}).
+installed via @code{M-x list-packages} (@pxref{Packages,,,emacs,Emacs
+User Guide}). You must first enable packages in your @file{~/.emacs},
+@emph{after} customizing @code{Info-default-directory-list} (if you do
+that):
+
+@example
+(package-initialize)
+@end example
 
 Ada mode is also available as a separate distribution, from the Emacs
 Ada mode website

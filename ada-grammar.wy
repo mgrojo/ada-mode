@@ -174,7 +174,6 @@
 %conflict REDUCE/SHIFT in state attribute_designator, actual_parameter_part on token LEFT_PAREN
 %conflict REDUCE/SHIFT in state attribute_designator, attribute_reference on token TICK
 %conflict REDUCE/SHIFT in state attribute_designator, selected_component on token DOT
-%conflict REDUCE/SHIFT in state formal_derived_type_definition, formal_derived_type_definition on token WITH
 %conflict REDUCE/SHIFT in state generic_formal_part, generic_renaming_declaration on token FUNCTION
 %conflict REDUCE/SHIFT in state generic_formal_part, generic_renaming_declaration on token PACKAGE
 %conflict REDUCE/SHIFT in state generic_formal_part, generic_renaming_declaration on token PROCEDURE
@@ -187,6 +186,7 @@
 %conflict SHIFT/REDUCE in state actual_parameter_part, actual_parameter_part_opt on token LEFT_PAREN
 %conflict SHIFT/REDUCE in state actual_parameter_part, attribute_designator on token LEFT_PAREN
 %conflict SHIFT/REDUCE in state attribute_reference, attribute_designator on token TICK
+%conflict SHIFT/REDUCE in state formal_derived_type_definition, formal_derived_type_definition on token WITH
 %conflict SHIFT/REDUCE in state label_opt, label_opt on token IDENTIFIER
 %conflict SHIFT/REDUCE in state name, discrete_subtype_definition on token RIGHT_PAREN
 %conflict SHIFT/REDUCE in state null_exclusion_opt, aliased_opt on token NOT
@@ -980,15 +980,13 @@ formal_type_definition
   | interface_type_definition ;; formal_interface_type_definition
   ;
 
+;; formal_derived_type_definition ::=
+;;   [abstract] [limited | synchronized] new subtype_mark [[and interface_list]with private]
 formal_derived_type_definition
-  : ABSTRACT LIMITED NEW name AND interface_list WITH PRIVATE
-  | ABSTRACT SYNCHRONIZED NEW name AND interface_list WITH PRIVATE
-  | ABSTRACT LIMITED NEW name AND interface_list
-  | ABSTRACT SYNCHRONIZED NEW name AND interface_list
-  | ABSTRACT LIMITED NEW name WITH PRIVATE
-  | ABSTRACT SYNCHRONIZED NEW name WITH PRIVATE
-  | ABSTRACT NEW name
-  | NEW name
+  : abstract_limited_synchronized_opt NEW name AND interface_list WITH PRIVATE
+  | abstract_limited_synchronized_opt NEW name WITH PRIVATE
+  | abstract_limited_synchronized_opt NEW name AND interface_list
+  | abstract_limited_synchronized_opt NEW name
   ;
 
 formal_package_declaration

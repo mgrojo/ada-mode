@@ -45,20 +45,15 @@ build/Makefile
 
 menu shows last non-menu key, want first key
 
-allow finding compiler libraries with no project
-    define the default project search path to contain the compiler library dirs
-
-my web site:
-    for Emacs <= 24.3
-       (setq package-enable-at-startup nil)
-       (package-initialize)
-
 ada-mode.texi:
     discuss default project file
         created when ada-prj-get is called, and no user project file is specified
 
     example setting case-exceptions and indent-when in file variables
         mention useful even with project files, for file-specific overrides
+
+allow finding compiler libraries with no project
+    define the default project search path to contain the compiler library dirs
 
 create org.emacs.ada-mode branch, push 5.0.1 to ELPA
     after user testing
@@ -284,6 +279,21 @@ manage "scenario variables" on project menu?
 separate gpr-mode indent variables
 
 gpr-next-statement-keyword
+
+new align rule
+    from Florian Schanda <florian.schanda@altran.com>
+    >    case Foo |
+    >         Some_Other_Thing |
+    >         Bar |
+    >         Baz =>
+    >       null;
+    >
+    > It would be really nifty to have a macro that transforms it into this:
+    >
+    >    case Foo              |
+    >         Some_Other_Thing |
+    >         Bar              |
+    >         Baz              =>
 
  possible enhancements
 EDE projects?

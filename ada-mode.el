@@ -299,6 +299,7 @@ Values defined by cross reference packages.")
     ;; global-map has C-x ` 'next-error
     (define-key map [return] 	 'ada-indent-newline-indent)
     (define-key map "\C-c`" 	 'ada-show-secondary-error)
+    (define-key map "\C-c;"      'comment-dwim)
     (define-key map "\C-c\M-`" 	 'ada-fix-compiler-error)
     (define-key map "\C-c\C-a" 	 'ada-align)
     (define-key map "\C-c\C-b" 	 'ada-make-subprogram-body)
