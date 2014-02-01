@@ -1,6 +1,6 @@
 General notes on Emacs Ada mode
 
-(add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-1")
+(add-to-list 'load-path "/Projects/org.emacs.ada-mode")
 (setq ada-xref-tool 'gnat_inspect)
 
 run test from emacs -Q using installed elpa:
@@ -11,19 +11,19 @@ run test from emacs -Q using installed elpa:
   (setq debug-on-error t)
 ;;  (setq wisi-debug 1)
   (load "run-indent-test-wisi-gnatinspect")
-  (setq default-directory "/Projects/org.emacs.ada-mode.stephe-1/build/wisi/")
+  (setq default-directory "/Projects/org.emacs.ada-mode/build/wisi/")
   (run-test "../../test/ada_mode-nominal-child.ads"))
 
 run test from emacs -Q using source:
 (progn
   (add-to-list 'exec-path "/apps/GNAT-7.1.2/bin")
   (setenv "PATH" (mapconcat 'identity  exec-path  path-separator))
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-1")
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-1/build")
+  (add-to-list 'load-path "/Projects/org.emacs.ada-mode")
+  (add-to-list 'load-path "/Projects/org.emacs.ada-mode/build")
   (setq debug-on-error t)
 ;;  (setq wisi-debug 1)
   (load "run-indent-test-wisi-gnatinspect")
-  (setq default-directory "/Projects/org.emacs.ada-mode.stephe-1/build/wisi/")
+  (setq default-directory "/Projects/org.emacs.ada-mode/build/wisi/")
   (run-test "../../test/ada_mode-nominal-child.ads"))
 
 (setq wisi-debug 2)
@@ -372,6 +372,9 @@ Markus Schöpflin <markus.schoepflin@comsoft.aero> wants this style (including a
 
  opentoken
 /Projects/org.opentoken.stephe/build/debug/Makefile
+
+allow user-specified generated file header
+    ada-grammar-wy.el
 
 http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=703361
 
@@ -731,8 +734,6 @@ bump version
         Version:
     README
         first line
-    ../install-elpa.el
-        *-version
 
 verify other metadata
     ada-mode.el
@@ -792,7 +793,6 @@ build/Makefile zip
     add release note
         (dvc-log)
 
-(mtn-propagate-one "../org.emacs.ada-mode.stephe-1" "../org.emacs.ada-mode.stephe")
 mtn tag h:org.emacs.ada-mode "org.emacs.ada-mode-<version>"
 
 ~/Web/Makefile
