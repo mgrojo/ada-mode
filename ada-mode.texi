@@ -983,6 +983,9 @@ GNAT project file to specify the project directories. If no
 other customization is needed, a GNAT project file can be used without
 an Emacs Ada mode project file.
 
+If no Emacs Ada mode project file is specified, some Ada mode
+functions are not available.
+
 @menu
 * Project file overview::
 * Project file variables::
@@ -1008,7 +1011,8 @@ There must be no space between the variable name and ``='', and no
 trailing spaces.
 
 The current project file is given by the lisp variable
-@code{ada-prj-default-project-file}.
+@code{ada-prj-default-project-file}, and shown by the menu command
+@key{Ada | Project Files | Show project}.
 
 To set the project file, use the menu command @samp{Ada | Set Project
 ...}, or the elisp functions @code{ada-parse-prj-file,
@@ -1023,7 +1027,8 @@ ada-select-prj-file}. The latter can be added to a Makefile:
 
 You specify either a GNAT project file or an Emacs Ada mode project
 file; if the file extension is @code{.gpr}, the file is treated as a
-GNAT project file. Any other extension is treated as an Emacs Ada mode
+GNAT project file. Extensions given by @code{ada-prj-file-extensions}
+(default @file{.adp, .prj}) are treated as an Emacs Ada mode
 project file.
 
 After a project file is parsed, you can make it current again with
@@ -1058,7 +1063,7 @@ the project file.
 @c These are the names that appear in the .adp file, which are the
 @c same as the symbols used with ada-prj-get
 @c
-@c defined in ada-mode.el ada-prj-pars-file-1; alphabetical order
+@c defined in ada-mode.el ada-prj-parse-file-1; alphabetical order
 @c defaults defined in ada-mode.el ada-prj-default
 
 @item @code{ada_compiler}   [default: @code{ada-compiler, gnat}]
@@ -1078,7 +1083,12 @@ Otherwise, allow UPPERCASE for identifiers.
 @item @code{casing}         [default: @code{ada-case-exception-file, nil}]
 List of files containing casing exceptions. @xref{Automatic casing}.
 
-@item @code{path_sep}        [default: @code{path-separator}]
+@item @code{el_file}        [default: ]
+The value is a file name, which is loaded as an elisp file when the
+project file is parsed or selected. This allows setting Ada mode indentation
+variables, and any arbitrary elisp code used to customize the project.
+
+@item @code{path_sep}       [default: @code{path-separator}]
 Separator character used in compiler search paths.
 
 @item @code{src_dir}        [default: @code{"."}]
@@ -1298,6 +1308,10 @@ or @code{or} in @code{select}.
 Indentation for the lines in a @code{with} context clause.
 
 @end table
+
+The indentation variables are buffer local; the global value may be
+overridden in an elisp file invoked by an @code{el_file} Emacs Ada
+mode project file statement, or in a file local variable section.
 
 The following keys indent portions of the text:
 @table @kbd

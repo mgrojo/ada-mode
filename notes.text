@@ -43,18 +43,6 @@ run test from emacs -Q using source:
 build/wisi/Makefile
 build/Makefile
 
-menu shows last non-menu key, want first key
-
-ada-mode.texi:
-    discuss default project file
-        created when ada-prj-get is called, and no user project file is specified
-
-    example setting case-exceptions and indent-when in file variables
-        mention useful even with project files, for file-specific overrides
-
-allow finding compiler libraries with no project
-    define the default project search path to contain the compiler library dirs
-
 create org.emacs.ada-mode branch, push 5.0.1 to ELPA
     after user testing
 
@@ -223,8 +211,17 @@ parse error for legal expression function in enclosing parens
 
     LRM 4.5.7 7/3
 
+SPARK aspects
+    see email
+
+move gpr-skel.el skel-expand to compat*.el
+    use in ada-mode
+    discuss on emacs-devel
+
 need indent test of skel expansions
     verify they parse
+
+tooltip/skel support for subprogram param names
 
 implement secondary-error for scope in 'gnat-inspect-all'
     /Projects/GDS/work_dscovr_release/common/build/x86_gnu_windows_release/Makefile
@@ -294,6 +291,12 @@ new align rule
     >         Some_Other_Thing |
     >         Bar              |
     >         Baz              =>
+
+allow finding compiler libraries with no project
+    define the default project search path to contain the compiler library dirs
+    there is no default project!
+        big change to support that.
+
 
  possible enhancements
 EDE projects?
@@ -378,6 +381,7 @@ resolve dynamic library names
     OSX:   .dylib.version
 
     see ada-mode email from simon wright for patch
+        /temp/sjw-patches-for-darwin.diff
 
 delete debug_parser.adb from release
 delete build/x86_* from release

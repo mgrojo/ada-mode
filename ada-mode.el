@@ -113,7 +113,7 @@
 ;;
 ;;   alist entries are set during load by the implementation elisp files.
 ;;
-;;   `ada-prj-parse-file-ext' uses this style.
+;;   `ada-prj-default-compiler-alist' uses this style.
 
 ;;; History:
 ;;
@@ -1224,7 +1224,7 @@ Include properties set via `ada-prj-default-compiler-alist',
    (lambda (ext) (cons ext 'ada-prj-parse-file-1))
    ada-prj-file-extensions)
   ;; project file parse
-  "Alist of parsers for project files.
+  "Alist of parsers for project files, indexed by file extension.
 Default provides the minimal Ada mode parser; compiler support
 code may add other parsers.  Parser is called with two arguments;
 the project file name and the current project property
