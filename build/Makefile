@@ -50,7 +50,7 @@ clean :
 pub-ada : force
 	mkdir -p ../../elpa/packages/ada-mode
 	rm -f ../../elpa/packages/ada-mode/ada-mode-pkg.el
-	cp ../ada*.el ../ada-*.info ../dir ../ada_license.text ../../elpa/packages/ada-mode
+	cp README ../ada*.el ../ada-*.info ../dir ../ada_license.text ../../elpa/packages/ada-mode
 	cp ../gnat*.el ../../elpa/packages/ada-mode
 	cp ../gpr*.el ../gpr-*.info ../../elpa/packages/ada-mode
 

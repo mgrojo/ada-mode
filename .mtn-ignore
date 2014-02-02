@@ -31,6 +31,8 @@
 ^test/Example_4/Gnat_Project/hello_pkg\.o$
 ^test/debug\.adb$
 ^test/gnatinspect\.db$
+^test/gnatinspect\.db-shm$
+^test/gnatinspect\.db-wal$
 ^test/gpr/debug\.gpr$
 ^test/subdir/ada_mode-nominal-child\.adb$
 ^test/subdir/gnatinspect\.db$
