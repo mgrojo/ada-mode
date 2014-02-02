@@ -2,6 +2,7 @@
 
 # test with mtn controlled source:  (setenv "ADA_MODE_DIR" "-L ../.. -l autoloads.el")
 # test with installed elpa package: (setenv "ADA_MODE_DIR" "-f package-initialize")
+export ADA_MODE_DIR := -L ../.. -l autoloads.el
 
 # "compile-ada" is a test; it verifies the test sources are legal Ada
 all : update compile-ada-clean compile-ada autoloads test-clean test

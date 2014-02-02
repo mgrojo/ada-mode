@@ -1,3 +1,7 @@
+--  enable which-function for Ada mode
+--EMACSCMD:(require 'which-func)
+--EMACSCMD:(ada-mode)
+--EMACSCMD:(setq indent-tabs-mode nil)
 
 with Ada.Text_Io;
 procedure Which_Test is

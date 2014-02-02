@@ -16,7 +16,7 @@
 --  the Free Software Foundation, 51 Franklin Street, Suite 500, Boston,
 --  MA 02110-1335, USA.
 
-pragma License (GPL);
+pragma License (Gpl);
 package Georg_1 is
    package Typ is
       type Ltd is tagged limited null record;

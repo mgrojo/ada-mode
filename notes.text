@@ -10,6 +10,7 @@ run test from emacs -Q using installed elpa:
   (package-initialize)
   (setq debug-on-error t)
 ;;  (setq wisi-debug 1)
+  (load "autoloads.el")
   (load "run-indent-test-wisi-gnatinspect")
   (setq default-directory "/Projects/org.emacs.ada-mode/build/wisi/")
   (run-test "../../test/ada_mode-nominal-child.ads"))
@@ -22,9 +23,10 @@ run test from emacs -Q using source:
   (add-to-list 'load-path "/Projects/org.emacs.ada-mode/build")
   (setq debug-on-error t)
 ;;  (setq wisi-debug 1)
-  (load "run-indent-test-wisi-gnatinspect")
+  (load "autoloads.el")
+  (load "run-indent-test-wisi")
   (setq default-directory "/Projects/org.emacs.ada-mode/build/wisi/")
-  (run-test "../../test/ada_mode-nominal-child.ads"))
+  (run-test "../../test/which_test.adb"))
 
 (setq wisi-debug 2)
 (setq wisent-parse-max-stack-size 40)
@@ -752,7 +754,7 @@ check emacs buglist, mark fixed
     http://debbugs.gnu.org/cgi/pkgreport.cgi?package=ada-mode
 
 Emacs 24.3, gnat 7.1.2 (sal-standard):
-    /Projects/org.opentoken.stephe/build/windows_release/Makefile all
+    /Projects/org.opentoken.stephe/build/release/Makefile all
     build/wisi/Makefile all
 
 Emacs 23.4, (gnat-2012) (gnat-2013):
@@ -765,21 +767,14 @@ Emacs 23.4, (gnat-2012) (gnat-2013):
         # FIXME: install from archive?
         build/wisi/Makefile all
 
-(dvc-status)
-(dvc-status "/Projects/org.opentoken.stephe")
+(dvc-state-one ".")
+(dvc-state-one "/Projects/org.opentoken.stephe")
 (shell-send-string "mtn_sync_ada_france.sh" "*bash*")
 
 Debian : emacs 24.2 (from testing), GNAT GPL 2012:
-    (shell-send-string "ssh-add" "*bash*")
-    (shell-send-string "shevek.sh" "*bash*")
-    (shell-send-string "mtn_sync_gds_shevek.sh" "*bash*")
-    (shell-send-string "mtn_sync_stephe_shevek.sh" "*bash*")
+    (shell-send-string "mtn_sync_ada_france.sh" "*bash*")
     (xmtn-sync-review)
-    on debian: build/wisi/Makefile all
-    (shell-send-string "mtn_sync_gds_shevek.sh" "*bash*")
-    (xmtn-sync-review)
-
-    (dvc-state-one "/Projects/elpa")
+    build/wisi/Makefile all
 
 build/Makefile build-elpa
     (dvc-state-one "/Projects/elpa")
