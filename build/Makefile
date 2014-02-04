@@ -16,13 +16,15 @@
 # but currently the code is not that clean; gpr-mode and gnat-inspect
 # require ada-mode. And it's not worth making gnat-core a package.
 
-publish : info pub-ada pub-wisi build-elpa install-elpa
+VERSION := 5.0.1
+
+publish : docs pub-ada pub-wisi build-elpa install-elpa
 
 docs : info html
 
 BRANCH := $(notdir $(shell cd ..; pwd))
 zip :
-	tar zcf $(BRANCH)-`date +%Y-%m-%d`.tar.gz --exclude _MTN --exclude "autoloads.el" --exclude "*~" --exclude "*.ali" --exclude "*.diff" --exclude "*.elc" --exclude "*.output" --exclude "*.tar.gz"  --exclude "*.tmp" -C ../../ $(BRANCH)
+	tar zcf $(BRANCH)-$(VERSION).tar.gz --exclude _MTN --exclude "autoloads.el" --exclude "gnatinspect.db*" --exclude "*~" --exclude "*.ali" --exclude "*.diff" --exclude "*.elc" --exclude "*.output" --exclude "*.stamp" --exclude "*.tar.gz"  --exclude "*.tmp" --exclude "*.wisi-test" -C ../../ $(BRANCH)
 
 
 MANUALS := ada-mode gpr-mode

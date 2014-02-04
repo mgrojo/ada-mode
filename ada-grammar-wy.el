@@ -16,7 +16,7 @@
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 (require 'wisi)
-(require 'semantic/lex)
+(require 'semantic/lex) ;; FIXME: emacs 23 wants semantic-lex, 24 semantic/lex
 (require 'wisi-compile)
 
 (defconst ada-grammar-wy--keyword-table

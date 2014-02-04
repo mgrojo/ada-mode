@@ -486,6 +486,7 @@ Function is called with no arguments.")
      (modes   . '(ada-mode)))
     (ada-comment
      (regexp  . "\\(\\s-*\\)--")
+     (valid   . (lambda () (ada-align-valid)))
      (modes   . '(ada-mode)))
     (ada-use
      (regexp  . "\\(\\s-*\\)\\<\\(use\\s-\\)")
@@ -500,9 +501,9 @@ Function is called with no arguments.")
 (defun ada-align-valid ()
   "See use in `ada-align-rules'."
   (save-excursion
-    ;; we don't put "when (match-beginning 2)" here; missing a match
+    ;; we don't put "when (match-beginning n)" here; missing a match
     ;; is a bug in the regexp.
-    (goto-char (match-beginning 2))
+    (goto-char (or (match-beginning 2) (match-beginning 1)))
     (not (ada-in-string-or-comment-p))))
 
 (defconst ada-align-region-separate

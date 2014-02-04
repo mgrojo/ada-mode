@@ -38,6 +38,10 @@ push org.emacs.ada-mode 5.0.1 to ELPA
 after 5.0.1 appears in ELPA, announce to comp.lang.ada
 
  5.0.2: emacs 24.2 debian stable
+replace the C-c ; with a command that just says "use M-; instead"
+
+add NEWS for elpa package
+
 no cl-lib; requires compat
 
 gpr-mode keys comment-dwim
@@ -372,11 +376,6 @@ Markus Schöpflin <markus.schoepflin@comsoft.aero> wants this style (including a
  opentoken
 /Projects/org.opentoken.stephe/build/debug/Makefile
 
-allow user-specified generated file header
-    ada-grammar-wy.el
-
-http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=703361
-
 resolve dynamic library names
     windows: _version.dll
     linux: .so.version
@@ -385,10 +384,10 @@ resolve dynamic library names
     see ada-mode email from simon wright for patch
         /temp/sjw-patches-for-darwin.diff
 
+FIXMEs
+
 delete debug_parser.adb from release
 delete build/x86_* from release
-
-GNAT 2013 changes AUnit again!
 
 doc alex/aflex avail at http://sourceforge.net/projects/p2ada/
     compare
@@ -459,6 +458,8 @@ bump version
         Version:
     README
         first line
+    build/Makefile
+        VERSION
 
 verify other metadata
     ada-mode.el
@@ -521,12 +522,12 @@ build/Makefile zip
 mtn tag h:org.emacs.ada-mode "org.emacs.ada-mode-<version>"
 
 ~/Web/Makefile
-    edit date in ADA-MODE-STEPHE_GZ, ADA-MODE-OPENTOKEN_BZ2
+    edit version in ADA-MODE-GZ, date in ADA-MODE-OPENTOKEN_BZ2
     ada-mode
     sync
 
-post on emacs-ada-mode mailing list
-    http://stephe-leake.org/emacs/ada-mode/emacs-ada-mode.html#ada-mode-5.0
+after Gnu ELPA updated, post on emacs-ada-mode mailing list, c.l.a newsgroup
+    http://stephe-leake.org/emacs/ada-mode/emacs-ada-mode.html
 
     also send email to:
         Pascal Pignard <abo.pignard@wanadoo.fr> for objective c
