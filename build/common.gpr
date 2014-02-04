@@ -11,6 +11,8 @@ project Common is
 
    Libtype : Lib_Type := External ("LIBTYPE", "dynamic");
 
+   Dyn_Lib_Extension := External ("DYN_LIB_EXTENSION", "so");
+
    package Compiler is
       -- Switches for gcc
 

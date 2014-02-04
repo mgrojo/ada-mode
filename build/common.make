@@ -16,6 +16,18 @@ VPATH += ../../Examples/Language_Lexer_Examples
 VPATH += ../../Language_Lexers
 VPATH += ../../wisi
 
+# Variables for library creation
+export GPRBUILD_TARGET := $(shell gcc -dumpmachine)
+ifneq (,$(findstring mingw,$(GPRBUILD_TARGET)))
+   export DYN_LIB_EXTENSION := dll
+else ifneq (,$(findstring darwin,$(GPRBUILD_TARGET)))
+   export DYN_LIB_EXTENSION := dylib
+else ifneq (,$(findstring linux,$(GPRBUILD_TARGET)))
+   export DYN_LIB_EXTENSION := so
+else
+   $(error "Don't know dynamic lib file extension for $(GPRBUILD_TARGET)")
+endif
+
 tests : wisi-generate.exe
 tests : association_token_test-run.diff
 tests : enumerated_token_list_test.run
@@ -101,10 +113,10 @@ install: library
 	make -f Install.make install
 
 library:
-	gnatmake -p -Popentoken_lib
+	gprbuild -p -Popentoken_lib
 
 clean :: test-clean
-	rm -f obj/*
+	rm -f obj/* lib-obj/*
 	rm -rf lib/*
 
 distclean :: clean

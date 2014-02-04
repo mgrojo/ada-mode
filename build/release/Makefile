@@ -26,7 +26,6 @@ tree : force
 clean ::
 	rm -f obj_tree/*
 
-GPRBUILD_TARGET := $(shell gcc -dumpmachine)
 include ../common.make
 
 # Local Variables:

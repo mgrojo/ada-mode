@@ -27,6 +27,7 @@
 ^build/release/.*\.parse$
 ^build/release/.*\.txt$
 ^build/release/lib$
+^build/release/lib-obj$
 ^build/release/obj$
 ^build/release/obj_tree$
 ^build/release/test_analyzer_line_column\.in$
