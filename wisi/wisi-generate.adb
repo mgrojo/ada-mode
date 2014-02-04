@@ -3,7 +3,7 @@
 --  Non-OpenToken parser for Wisent grammar files, producing Ada or
 --  Elisp source files.
 --
---  Copyright (C) 2012, 2013 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2012 - 2014 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -38,10 +38,12 @@ is
    is
       use Standard.Ada.Text_IO;
    begin
-      --  FIXME: verbosity meaning is actually determined by output choice.
-      Put_Line ("wisi-generate [-v [level]] {wisent grammar file} {output language}");
+      --  verbosity meaning is actually determined by output choice;
+      --  they should be consistent with this description.
+      Put_Line ("wisi-generate [-v level] [--prologue <file>] {wisent grammar file} {output language}");
       Put_Line ("generate output language source corresponding to 'wisent grammar file'");
       Put_Line ("output language is one of Ada, Elisp, Test");
+      Put_Line ("prologue file overrides prologue section in grammar file");
       Put_Line ("-v sets verbosity (defaults to 0 with no -v, 1 with just -v):");
       Put_Line ("   level 0 - only error messages to standard error");
       Put_Line ("   level 1 - add compiled grammar output to standard out");
@@ -55,15 +57,13 @@ is
    Input_File_Name  : Standard.Ada.Strings.Unbounded.Unbounded_String;
    Input_File       : Standard.Ada.Text_IO.File_Type;
    Output_File_Root : Standard.Ada.Strings.Unbounded.Unbounded_String;
+   Prologue_File    : Standard.Ada.Strings.Unbounded.Unbounded_String;
    Prologue         : String_Lists.List;
    Keywords         : String_Pair_Lists.List;
    Tokens           : Token_Lists.List;
    Start_Token      : Standard.Ada.Strings.Unbounded.Unbounded_String;
    Conflicts        : Conflict_Lists.List;
    Rules            : Rule_Lists.List;
-
-   Copyright : constant String := "2013 Stephen Leake.  All Rights Reserved.";
-   --  FIXME: get copyright from grammar file
 
    procedure Use_Input_File (File_Name : in String)
    is
@@ -88,45 +88,49 @@ is
 begin
    declare
       use Standard.Ada.Command_Line;
+      Arg_Next     : Integer := 1;
+      Options_Done : Boolean := False;
    begin
-      case Argument_Count is
-      when 2 =>
-         Use_Input_File (Argument (1));
-         Set_Output_Language (Argument (2));
-
-      when 3 =>
-         if Argument (1) = "-v" then
-            Verbosity := 1;
-            Use_Input_File (Argument (2));
-            Set_Output_Language (Argument (3));
+      loop
+         exit when Options_Done;
+         if Argument (Arg_Next)(1) /= '-' then
+            Options_Done := True;
          else
-            raise User_Error;
-         end if;
+            if Argument (Arg_Next) = "-v" then
+               Arg_Next  := Arg_Next + 1;
+               Verbosity := Integer'Value (Argument (Arg_Next));
+               Arg_Next  := Arg_Next + 1;
 
-      when 4 =>
-         if Argument (1) = "-v" then
-            Verbosity := Integer'Value (Argument (2));
-            Use_Input_File (Argument (3));
-            Set_Output_Language (Argument (4));
-         else
-            raise User_Error;
-         end if;
+            elsif Argument (Arg_Next) = "--prologue" then
+               Arg_Next      := Arg_Next + 1;
+               Prologue_File := +Argument (Arg_Next);
+               Arg_Next      := Arg_Next + 1;
 
-      when others =>
+            else
+               raise User_Error;
+            end if;
+         end if;
+      end loop;
+
+      Use_Input_File (Argument (Arg_Next));
+      Arg_Next := Arg_Next + 1;
+      Set_Output_Language (Argument (Arg_Next));
+
+      if Arg_Next /= Argument_Count then
          raise User_Error;
-      end case;
+      end if;
    end;
 
-   Wisi.Prologue (Input_File, Prologue);
+   Wisi.Prologue (Prologue_File, Input_File, Prologue);
    Wisi.Declarations (Input_File, Keywords, Tokens, Start_Token, Conflicts);
    Wisi.Rules (Input_File, Rules);
 
    case Output_Language is
    when Ada =>
       Wisi.Output_Ada
-        (-Input_File_Name, -Output_File_Root, Copyright, Prologue, Keywords, Tokens, Start_Token, Rules);
+        (-Input_File_Name, -Output_File_Root, Prologue, Keywords, Tokens, Start_Token, Rules);
    when Elisp =>
-      Wisi.Output_Elisp (-Output_File_Root, Copyright, Prologue, Keywords, Tokens, Start_Token, Conflicts, Rules);
+      Wisi.Output_Elisp (-Output_File_Root, Prologue, Keywords, Tokens, Start_Token, Conflicts, Rules);
    when Test =>
       Wisi.Test_Generate (-Input_File_Name, Keywords, Tokens, Start_Token, Rules);
    end case;

@@ -141,22 +141,30 @@ package body OpenToken.Token.Enumerated.Analyzer is
 
    -----------------------------------------------------------------------
    --  Returns the number of characters found after the last EOL in
-   --  the next Length characters after the buffer's head.
+   --  the next Length-1 characters after the buffer's head.
+   --
+   --  Needed for a multi-line comment:
+   --  /* Foo
+   --     Bar */ next-token
    -----------------------------------------------------------------------
    function Characters_After_Last_EOL
      (Analyzer : in Instance;
       Length   : in Natural)
      return Natural
    is
+      --  Buffer_Head has not been incremented across recognized token
       Slice_Tail : constant Natural := Increment_Buffer_Index (Analyzer.Buffer_Head, Length - 1);
       EOL_String : constant String  := (1 => EOL_Character);
 
       Last_EOL : Natural;
    begin
 
-      --  Find the last EOL character in the first Length characters
-      --  of the buffer
-      if Slice_Tail < Analyzer.Buffer_Head then
+      if Length = 1 then
+         --  Length must include an EOL, so no characters after it
+         return 0;
+
+      elsif Slice_Tail < Analyzer.Buffer_Head then
+         --  Length crosses end of buffer, wraps to beginning
          Last_EOL := Ada.Strings.Fixed.Index
            (Source  => Analyzer.Buffer (Analyzer.Buffer'First .. Slice_Tail),
             Pattern => EOL_String,
@@ -179,8 +187,7 @@ package body OpenToken.Token.Enumerated.Analyzer is
 
       end if;
 
-      --  Figure out how many characters are after that last EOL
-      return Increment_Buffer_Index (Slice_Tail, 1 - Last_EOL);
+      return Increment_Buffer_Index (Slice_Tail, -Last_EOL);
 
    end Characters_After_Last_EOL;
 
@@ -546,17 +553,13 @@ package body OpenToken.Token.Enumerated.Analyzer is
                Analyzer.Line   := Analyzer.Next_Line;
                Analyzer.Column := Analyzer.Next_Column;
 
-               EOLs_Found := EOLs_Buffered (Analyzer => Analyzer, Length => Matched_Length);
+               EOLs_Found := EOLs_Buffered (Analyzer, Matched_Length);
                Analyzer.Next_Line := Analyzer.Next_Line + EOLs_Found;
 
                if EOLs_Found = 0 then
                   Analyzer.Next_Column := Analyzer.Next_Column + Matched_Length;
                else
-                  Analyzer.Next_Column := 1 +
-                    Characters_After_Last_EOL
-                    (Analyzer => Analyzer,
-                     Length   => Matched_Length);
-
+                  Analyzer.Next_Column := 1 + Characters_After_Last_EOL (Analyzer, Matched_Length);
                end if;
 
                --  Quit when we find a reportable token

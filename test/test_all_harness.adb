@@ -2,7 +2,7 @@
 --
 --  Run all OpenToken AUnit tests; see Makefile for other tests.
 --
---  Copyright (C) 2009, 2010, 2012, 2013 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2009, 2010, 2012 - 2014 Stephen Leake.  All Rights Reserved.
 --
 --  This library is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -26,6 +26,7 @@ with Analyzer_Lookahead_Test;
 with OpenToken.Recognizer.Bracketed_Comment.Test;
 with OpenToken.Recognizer.CSV_Field.Test;
 with Test_Accept_Index;
+with Test_Analyzer_Line_Column;
 with Test_Backtrack;
 with Test_Empty_Productions_1;
 with Test_Empty_Productions_4;
@@ -57,6 +58,7 @@ begin
    Add_Test (Suite, new OpenToken.Recognizer.Bracketed_Comment.Test.Test_Case);
    Add_Test (Suite, new OpenToken.Recognizer.CSV_Field.Test.Test_Case);
    Add_Test (Suite, new Test_Accept_Index.Test_Case (Debug => False));
+   Add_Test (Suite, new Test_Analyzer_Line_Column.Test_Case);
    Add_Test (Suite, new Test_Backtrack.Test_Case (Debug => False));
    Add_Test (Suite, new Test_Empty_Productions_1.Test_Case (Debug => False));
    Add_Test (Suite, new Test_Empty_Productions_4.Test_Case (Debug => False));

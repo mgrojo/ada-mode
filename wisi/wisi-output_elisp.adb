@@ -2,7 +2,7 @@
 --
 --  Output Elisp code implementing the grammar defined by the parameters.
 --
---  Copyright (C) 2012, 2013 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2012, 2013, 2014 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -29,7 +29,6 @@ with OpenToken.Token.Enumerated.Nonterminal;
 with Wisi.Utils;
 procedure Wisi.Output_Elisp
   (Elisp_Package : in String;
-   Copyright     : in String;
    Prologue      : in String_Lists.List;
    Keywords      : in String_Pair_Lists.List;
    Tokens        : in Token_Lists.List;
@@ -196,28 +195,15 @@ is
       return Tokens & Tokens_Pkg.Get (Find_Token_ID (Token));
    end "&";
 
-   procedure Header (Elisp_Package : in String; Copyright : in String)
+   procedure Header (Elisp_Package : in String; Prologue : in String_Lists.List)
    is
       use Standard.Ada.Text_IO;
    begin
       Put_Line (";;; " & Elisp_Package & "-wy.el --- Generated parser support file");
       New_Line;
-      Put_Line (";; Copyright (C) " & Copyright);
-      New_Line;
-      --  FIXME: allow other license
-      Put_Line (";; This program is free software; you can redistribute it and/or");
-      Put_Line (";; modify it under the terms of the GNU General Public License as");
-      Put_Line (";; published by the Free Software Foundation; either version 3, or (at");
-      Put_Line (";; your option) any later version.");
-      Put_Line (";;");
-      Put_Line (";; This software is distributed in the hope that it will be useful,");
-      Put_Line (";; but WITHOUT ANY WARRANTY; without even the implied warranty of");
-      Put_Line (";; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU");
-      Put_Line (";; General Public License for more details.");
-      Put_Line (";;");
-      Put_Line (";; You should have received a copy of the GNU General Public License");
-      Put_Line (";; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.");
-      New_Line;
+      for Line of Prologue loop
+         Put_Line (Line);
+      end loop;
    end Header;
 
    procedure Keyword_Table
@@ -338,12 +324,7 @@ begin
    begin
       Create (File, Out_File, Elisp_Package & "-wy.el");
       Set_Output (File);
-      Header (Elisp_Package, Copyright);
-      for Line of Prologue loop
-         Put_Line (Line);
-      end loop;
-      Put_Line ("(require 'semantic/lex)"); -- FIXME: emacs 23 wants semantic-lex, 24 semantic/lex
-      Put_Line ("(require 'wisi-compile)");
+      Header (Elisp_Package, Prologue);
       New_Line;
       Keyword_Table (Elisp_Package, Keywords);
       New_Line;

@@ -1,13 +1,5 @@
 ;; Emacs settings and extentions for OpenToken
 
-(case system-type
-  (gnu/linux
-   (gnat-2012))
-  (t
-   (gnat-7.1)))
-
-;; (require 'ada-smie-opentoken)
-
 ;; extensions to ada-fix-error
 
 (defun opentoken-gnat-fix-error (msg source-buffer source-window)

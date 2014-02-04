@@ -1,8 +1,8 @@
 --  Abstract :
 --
---  Parse the prologue from Input_File, generate Ada for it.
+--  Parse the prologue from Input_File
 --
---  Copyright (C) 2012, 2013 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2012 - 2014 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -21,11 +21,15 @@ pragma License (GPL);
 with Ada.Text_IO; use Ada.Text_IO;
 with Wisi.Utils;  use Wisi.Utils;
 procedure Wisi.Prologue
-  (Input_File : in     Standard.Ada.Text_IO.File_Type;
-   Text       :    out String_Lists.List)
+  (Prologue_Filename : in     Standard.Ada.Strings.Unbounded.Unbounded_String;
+   Input_File        : in     Standard.Ada.Text_IO.File_Type;
+   Text              :    out String_Lists.List)
 is
    use Standard.Ada.Strings.Unbounded;
+   Prologue_File : File_Type;
 begin
+   --  The syntax requires a prologue in Input_File, and we have to
+   --  read it even if we are going to override it.
    if Skip_Comments (Input_File) /= "%{" then
       Put_Error (Input_File, "expected %{");
       raise Syntax_Error;
@@ -36,9 +40,25 @@ begin
          Line : constant String := Get_Line (Input_File);
       begin
          exit when Line = "%}";
-         --  We'll handle a missing terminator when someone actually forgets one :)
-
          Text.Append (Line);
       end;
    end loop;
+
+   if Length (Prologue_Filename) > 0 then
+      Text := String_Lists.Empty_List;
+
+      Open (Prologue_File, In_File, -Prologue_Filename);
+      loop
+         declare
+            Line : constant String := Get_Line (Prologue_File);
+         begin
+            exit when End_Of_File (Prologue_File);
+            Text.Append (Line);
+         end;
+      end loop;
+
+      Close (Prologue_File);
+   end if;
+
+   Set_Input (Standard_Input);
 end Wisi.Prologue;
