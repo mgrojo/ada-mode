@@ -1242,6 +1242,9 @@ list. Parser must modify or add to the property list and return it.")
 
     (setq prj-file (expand-file-name prj-file))
 
+    (unless (file-readable-p prj-file)
+      (error "Project file '%s' is not readable" prj-file))
+
     (if parser
 	;; parser may reference the "current project", so bind that now.
 	(let ((ada-prj-current-project project)
