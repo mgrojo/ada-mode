@@ -2,7 +2,7 @@
 ;;
 ;; [1] ISO/IEC 8652:2012(E); Ada 2012 reference manual
 ;;
-;; Copyright (C) 2012, 2013  Free Software Foundation, Inc.
+;; Copyright (C) 2012 - 2014  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;;
@@ -940,7 +940,8 @@ cached token, return new indentation for point."
   ;; We know we are at the first token on a line. We check for comment
   ;; syntax, not comment-start, to accomodate gnatprep, skeleton
   ;; placeholders, etc.
-  (when (= 11 (syntax-class (syntax-after (point))))
+  (when (and (not (= (point) (point-max))) ;; no char after EOB!
+	     (= 11 (syntax-class (syntax-after (point)))))
 
     ;; We are at a comment; indent to previous code or comment.
     (cond

@@ -4,6 +4,9 @@
 
 -- It does pass the reindent and diff test; all insertions are deleted.
 
+-- Since we are editing, the syntax will be illegal at times; don't fail for that.
+--EMACSCMD:(setq wisi-debug 0)
+
 procedure Ada_Mode.Interactive_Common
 is
    -- newline at start of comment; indent-according-to-mode is called with the comment text exposed!
@@ -86,7 +89,6 @@ begin
 
       -- don't capitalize character constant
       --EMACSCMD:(progn (end-of-line 2)(backward-char 1)(delete-char -1)(execute-kbd-macro "'")(let ((case-fold-search nil))(looking-back "'z'")))
-      E := 'Z';
-      --EMACSCMD:(progn (end-of-line 0)(backward-char 1))
+      E := 'z';
    end;
 end Ada_Mode.Interactive_Common;

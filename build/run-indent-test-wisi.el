@@ -2,4 +2,6 @@
 
 (require 'run-indent-test)
 
+(setq wisi-debug 1);; report parse errors
+
 ;;; end of file

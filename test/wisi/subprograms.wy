@@ -3,6 +3,8 @@
 
 %{
 (require 'wisi)
+(require 'semantic/lex)
+(require 'wisi-compile)
 %}
 
 %keyword FUNCTION "function"
@@ -41,7 +43,7 @@ subprogram
      1 'procedure
      2 'other) ;; ignored if parameter_list is empty
   ;
-  
+
 ;; not on one line, empty production with comment
 parameter_list
   : LEFT_PAREN RIGHT_PAREN ;; c-like no parameters

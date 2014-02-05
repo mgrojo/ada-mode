@@ -6,6 +6,8 @@
 
 %{
 (require 'wisi)
+(require 'semantic/lex)
+(require 'wisi-compile)
 %}
 
 ;; non-reporting

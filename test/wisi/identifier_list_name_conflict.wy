@@ -7,6 +7,8 @@
 
 %{
 (require 'wisi)
+(require 'semantic/lex)
+(require 'wisi-compile)
 %}
 
 %keyword LEFT_PAREN "("

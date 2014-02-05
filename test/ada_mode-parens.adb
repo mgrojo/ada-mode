@@ -1,6 +1,9 @@
 --EMACSCMD:(ada-parse-prj-file "subdir/ada_mode.adp")
 --EMACSCMD:(ada-select-prj-file "subdir/ada_mode.adp")
 
+-- Since we are editing with ada-align, the syntax will be illegal at times; don't fail for that.
+--EMACSCMD:(setq wisi-debug 0)
+
 with Ada.Strings.Maps;
 package body Ada_Mode.Parens is
 

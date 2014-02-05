@@ -1,11 +1,13 @@
 ;; grammar has a shift/reduce conflict
 ;; between a procedure body and a generic procedure instantiation.
 ;; Conflict is handled by generalized parser
-;; 
+;;
 ;; (ediff "body_instantiation_conflict.wy" "../../../org.opentoken.stephe/wisi/test/body_instantiation_conflict.wy")
 
 %{
 (require 'wisi)
+(require 'semantic/lex)
+(require 'wisi-compile)
 %}
 
 %keyword BEGIN "begin"

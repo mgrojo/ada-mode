@@ -5,6 +5,9 @@
 -- It also doesn't pass the reindent and diff test, since we are deliberately adding code
 --EMACSCMD:(setq skip-reindent-test t)
 
+-- Since we are editing, the syntax will be illegal at times; don't fail for that.
+--EMACSCMD:(setq wisi-debug 0)
+
 -- Test the buffer does parse
 --EMACSCMD:(progn (wisi-parse-buffer) wisi-cache-max)
 --EMACSRESULT:(point-max)
