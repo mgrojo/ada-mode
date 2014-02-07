@@ -1,3 +1,5 @@
+^Docs/wisi-user_guide\.html$
+^Docs/wisi-user_guide\.info$
 ^build/.*\.bz2$
 ^build/.*\.gz$
 ^build/.*\.zip$

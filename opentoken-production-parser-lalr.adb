@@ -1,4 +1,4 @@
---  Copyright (C) 2002 - 2005, 2008 - 2013 Stephe Leake
+--  Copyright (C) 2002 - 2005, 2008 - 2014 Stephe Leake
 --  Copyright (C) 1999 Ted Dennison
 --
 --  This file is part of the OpenToken package.
@@ -575,8 +575,7 @@ package body OpenToken.Production.Parser.LALR is
       end loop;
 
       New_Line;
-      --  FIXME: these are "gotos"; the state to goto after reducing to Reduction.symbol. or something like that.
-      --  Reduction actions are shown above. Change the name!
+
       while Reduction /= null loop
          if Reduction.Symbol not in Tokenizer.Terminal_ID then
             --  Terminal_IDs are shown in Actions, above
@@ -881,7 +880,7 @@ package body OpenToken.Production.Parser.LALR is
       --  Place a default error action at the end of every state.
       --  (it should always have at least one action already).
       --
-      --  FIXME: instead, optimize use of default action; compress
+      --  IMPROVEME: instead, optimize use of default action; compress
       --  accept, at least.
       declare
          --  The default action, when nothing else matches an input

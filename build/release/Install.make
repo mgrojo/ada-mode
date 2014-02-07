@@ -12,19 +12,24 @@ I_INC	= $(prefix)/include/opentoken
 I_LIB	= $(prefix)/lib/opentoken
 I_GPR	= $(prefix)/lib/gnat
 
-# run this from the main Makefile to build the library
-install:
-	rm -rf $(I_INC)
-	rm -rf $(I_LIB)
+# run this from the main Makefile to install the library
+#
+# we use "tar c | tar x" instead of "cp -p" because the latter is not
+# available on some platforms
+install: install-clean
 	mkdir -p $(I_INC)
 	mkdir -p $(I_LIB)
 	mkdir -p $(I_GPR)
-	cp -p lib/*.ali $(I_LIB)
+	(cd lib; tar cf - *.ali libopentoken.*) | tar xf - -C $(I_LIB)
 	chmod a-w $(I_LIB)/*.ali
-	cp -p lib/libopentoken* $(I_LIB)
 	chmod a-w $(I_LIB)/libopentoken*
-	cp -p ../../*.ad[bs] $(I_INC)
-	cp -p ../../Language_Lexers/*.ad[bs] $(I_INC)
-	cp -p ../opentoken.gpr $(I_GPR)
+	(cd ../../; tar cf - *.ad[bs]) | tar xf - -C $(I_INC)
+	(cd ../../Language_Lexers; tar cf - *.ad[bs]) | tar xf - -C $(I_INC)
+	(cd ../; tar cf - opentoken.gpr) | tar xf - -C $(I_GPR)
+
+install-clean :
+	rm -rf $(I_INC)
+	rm -rf $(I_LIB)
+	rm -f  $(I_GPR)/opentoken.gpr
 
 # end of file

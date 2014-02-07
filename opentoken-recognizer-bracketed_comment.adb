@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2010, 2012 Stephen Leake
+-- Copyright (C) 2010, 2012, 2014 Stephen Leake
 -- Copyright (C) 1999 Christoph Karl Walter Grein
 --
 -- This file is part of the OpenToken package.
@@ -85,7 +85,6 @@ package body OpenToken.Recognizer.Bracketed_Comment is
             end if;
 
             if The_Token.Report then
-               --  FIXME: need more of this
                The_Token.Text := The_Token.Text & Next_Char;
             end if;
 

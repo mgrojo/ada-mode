@@ -3,7 +3,7 @@
 --  Run LALR.Generate, for testing. Exceptions raised by Generate are
 --  propagated.
 --
---  Copyright (C) 2013 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2013, 2014 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -216,5 +216,5 @@ begin
       end;
    end if;
 
-   --  FIXME: just pass "No_Elisp" flag to wisi.output_elisp
+   --  FIXME: this should duplicate part of wisi-output_elisp.adb; add "No_Elisp" flag to that
 end Wisi.Test_Generate;

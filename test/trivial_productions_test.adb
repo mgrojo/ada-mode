@@ -179,8 +179,6 @@ package body Trivial_Productions_Test is
    begin
       --  The test is that there are no exceptions raised, either during grammar construction or parsing
 
-      --  FIXME: 'expecting' is wrong if leave out '('
-
       Parser := LALR_Parsers.Generate
         (Grammar, Analyzer,
          Trace       => Test_Case (Test).Debug,

@@ -145,7 +145,7 @@ when E : OpenToken.Grammar_Error =>
    Standard.Ada.Text_IO.Put_Line (Standard.Ada.Exceptions.Exception_Message (E));
 
 when E :  others =>
-   --  FIXME: for some exceptions, Error message already output via wisi.utils.Put_Error
+   --  IMPROVEME: for some exceptions, Error message already output via wisi.utils.Put_Error
    declare
       use Standard.Ada.Text_IO;
       use Standard.Ada.Exceptions;
