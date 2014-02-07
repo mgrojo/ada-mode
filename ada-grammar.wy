@@ -1296,9 +1296,9 @@ library_unit_declaration
   ;
 
 library_unit_renaming_declaration
- ;; : package_renaming_declaration
-  : generic_renaming_declaration
- ;; | subprogram_renaming_declaration
+  : package_renaming_declaration
+  | generic_renaming_declaration
+  | subprogram_renaming_declaration
   ;
 
 loop_statement

@@ -22,11 +22,11 @@ run test from emacs -Q using source:
   (add-to-list 'load-path "/Projects/org.emacs.ada-mode")
   (add-to-list 'load-path "/Projects/org.emacs.ada-mode/build")
   (setq debug-on-error t)
-;;  (setq wisi-debug 1)
+  (setq wisi-debug 1)
   (load "autoloads.el")
   (load "run-indent-test-wisi")
   (setq default-directory "/Projects/org.emacs.ada-mode/build/wisi/")
-  (run-test "../../test/which_test.adb"))
+  (run-test "../../test/ada_mode-interactive_common.adb"))
 
  5.0.1
 build/wisi/Makefile
@@ -384,6 +384,13 @@ resolve dynamic library names
     see ada-mode email from simon wright for patch
         /temp/sjw-patches-for-darwin.diff
 
+    edited
+    test on windows; done
+    test on debian
+        gnat gpl-2013
+
+use _only_ ada-france mtn repository
+
 FIXMEs
 
 delete debug_parser.adb from release
@@ -395,6 +402,10 @@ doc alex/aflex avail at http://sourceforge.net/projects/p2ada/
 objc.wy
     abo.pignard@wanadoo.fr
     just confirm, declare conflicts
+
+propagate to org.opentoken
+
+do release
 
 wisi-generate requires declaring non-reporting %tokens first, But should sort by kind
 

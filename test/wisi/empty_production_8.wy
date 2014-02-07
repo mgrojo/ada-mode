@@ -3,6 +3,8 @@
 
 %{
 (require 'wisi)
+(require 'semantic/lex)
+(require 'wisi-compile)
 %}
 
 %keyword ALIASED "aliased"
