@@ -7,5 +7,8 @@ project OpenToken is
    for Source_Dirs use ("../../include/opentoken");
    for Library_Name use "opentoken";
    for Library_Dir use  "../../lib/opentoken";
+   -- FIXME: should match LIBTYPE from build time
+   -- FIXME: should build & install both dynamic and static
+   for Library_Kind use "dynamic";
    for Externally_Built use "true";
 end OpenToken;
