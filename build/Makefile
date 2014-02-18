@@ -1,6 +1,7 @@
 # common tasks; see subdirectories for Ada builds
 
-ZIP_VERSION := 4.0w-$(shell date +%Y-%m-%d)
+ZIP_VERSION := 5.0a
+#w-$(shell date +%Y-%m-%d)
 
 .PHONY : zip force
 
@@ -24,7 +25,7 @@ linux-clean :
 	make -C linux_release distclean
 	make -C linux_debug distclean
 
-zip : bz2file zipfile
+zip : source-clean bz2file zipfile
 
 BRANCH := $(notdir $(shell cd ..; pwd))
 

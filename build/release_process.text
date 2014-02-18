@@ -1,16 +1,16 @@
-sync with gds, ada-france, on shevek
-    ~/bin/mtn_sync_ada_france_gds.sh
-    ~/bin/mtn_sync_ada_france.sh
-
-(dvc-status ".")
+(dvc-state-one ".")
 
 review Debian bugs
     http://packages.qa.debian.org/o/opentoken.html
 
     tests implemented, fixed?
 
+    doc in ../Docs/opentoken.html
+
+    Debian package maintainer will mark them closed
+
 review todo list
-    ~/Projects/opentoken.text
+    ~/Misc/opentoken.text
 
 bump version, doc changes
     ../Docs/opentoken.html
@@ -23,50 +23,27 @@ bump version, doc changes
     ~/Web/Makefile
         OPENTOKEN_ZIP_VERSION
 
-    ../../opentoken-4.0a-current/opentoken-4.0a/debian/changelog
-        ChangeLog | New Version
-
-    if user-visible changes, bump Debian soversion (libopentoken<soversion>)
-    if ali changes, bump Debian aliversion (libpentoken<aliversion>-dev)
-        ../../opentoken-4.0a-current/opentoken-4.0a/debian/control
-            update conflicts, replaces on -dev
-            use query-replace for depends
-
-        ../../opentoken-4.0a-current/opentoken-4.0a/debian/test_installed.sh
-        linux_release/opentoken_lib.gpr
-        ../../opentoken-4.0a-current/opentoken-4.0a/debian/rules
-            verify-versions
-
     /home/Projects/Web/stephe-leake/ada/
         delete old *.zip, *.gz
 
-    Debian
-        (dvc-status "../../opentoken-4.0a-current/opentoken-4.0a/debian")
-        cd /home/Projects/opentoken
-        mkdir opentoken-4.0-current
-        sudo schroot aptitude update
-        sudo schroot aptitude full-upgrade
-
-    this file
-
 loop until no changes:
     Windows:
-        (gnat-2009)
+        (sal-standard)
 
         mtn_sync_ada_france.sh
 
-        windows_release/Makefile
+        release/Makefile
             distclean
-            all BUILD=User
+            all
             install
 
         ../../webcheck.main/build/windows_release/Makefile
             maintainer-clean
-            all BUILD=User
+            all
 
-        (dvc-status ".")
+        (dvc-state-one ".")
 
-        mtn sync
+        mtn_sync_ada_france.sh
 
     Debian:
 
@@ -91,8 +68,7 @@ loop until no changes:
             maintainer-clean
             schroot -- make -r all BUILD=User
 
-        (dvc-status "../../opentoken-4.0a-current/opentoken-4.0a/")
-        (dvc-status ".")
+        (dvc-state-one ".")
 
         mtn sync
 
