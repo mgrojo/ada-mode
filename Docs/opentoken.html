@@ -173,16 +173,17 @@ oriented towards testing OpenToken itself.
 
 <h3>Version 5.0a 9 Feb 2014</h3>
 <ul>
-    <li>Fix Debian bug 703361
+    <li>Fix Debian bug 703361; OpenToken.Token.Enumerated.Analyzer.Column function is off by 1 for all lines other than the first.
     <li>Improve library installation on Windows, Linux, Mac
     <li>API changes
         <ul>
             <li>OpenToken.Production.Parser.LALR now takes a generic parameter First_State_Index
             <li>OpenToken.Production.Parser.LALR.Generate now takes additional output control parameters
             <li>OpenToken.Production.Parser.LALR: numerous bugs fixed, mostly around handling empty productions. Support generating parser tables for a generalized LALR parser.
+            <li>OpenToken.Recognizer.Bracketed_Comment now has a Value function that returns the comment text.
             <li>OpenToken.Recognizer.Identifier.Get no longer has defaults for Start_Chars, Body_Chars
             <li>OpenToken.Text_Feeder.Text_IO.Create now takes an argument
-            <li>OpenToken.Token.Analyzer takes more generic parameters
+            <li>OpenToken.Token.Analyzer takes more generic parameters, and imposes an order on Token_ID.
             <li>OpenToken.Token.Enumerated takes more generic parameters
             <li>OpenToken.Token.Enumerated.Input_Feeder deleted; use Set_Text_Feeder
             <li>OpenToken.Token.Enumerated.Token_ID type: Non-reporting tokens must appear first

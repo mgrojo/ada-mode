@@ -77,11 +77,11 @@ end loop
 ~/Web/Makefile
     opentoken sync check
 
-Makefile
-    tag
-
 (dvc-status ".")
 mtn_sync_ada_france.sh
+
+Makefile
+    tag
 
 announce:
     comp.lang.ada
