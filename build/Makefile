@@ -40,9 +40,9 @@ FORMATS   := $(filter-out pdf texinfo, $(AVAILABLE_FORMATS))
 BUILDER_OPTIONS := -k
 ADAFLAGS        :=
 LDFLAGS         :=
-# Note that the project adds its own flags to these.
-
-ZIP_DATE := 20130312
+# arm_info.gpr sets its own flags, then appends these variables so
+# that they take precedence.  The intent is that you may configure the
+# build with a simple variable override.
 
 .PHONY: all clean publish
 
@@ -97,6 +97,7 @@ define doc_year_build
   clean::
 	rm -f -r $(d)$(y).txt
 
+# texi2any is from texinfo 5
   $(d)$(y).info: $(d)$(y).texinfo
 	texi2any --info $(TEXI_INFO_OPTS) $$< -o $$@
   clean::
@@ -121,10 +122,16 @@ clean::
 trace :
 	addr2line -e arm_form.exe 0x5c12e7 0x5c598e 0x43e05b 0x446c5b 0x448369 0x545205 0x4e9221 0x4e3b1a 0x5831a1 0x5ad295 0x5adee9 0x4cb3f5 0x401850 0x401235 0x401286 0x7c817075
 
-# IMPROVEME: 'arm2012' is a misnomer; it contains both 2012, 2005, and future versions.
-INFO_ARCHIVE := arm2012-$(ZIP_DATE).tar.gz
-ZIP_ARCHIVE  := arm_info-$(ZIP_DATE)-src.tar.gz
-publish: $(INFO_ARCHIVE) $(ZIP_ARCHIVE)
+# year is latest standard; bump trailing digit for any change.
+ZIP_VERSION := $(lastword $(AVAILABLE_YEARS)).2
+
+INFO_ARCHIVE := arm_info-$(ZIP_VERSION).tar.gz
+SOURCE_ARCHIVE  := arm_info-$(ZIP_VERSION)-src.tar.gz
+publish: $(INFO_ARCHIVE) $(SOURCE_ARCHIVE)
+
+# --no-name eliminates time stamps, which helps make the tarball reproducible
+# --best gives higher compression than the default; we can afford the time here.
+GZIP := --no-name --best
 
 $(INFO_ARCHIVE): $(foreach d,$(DOCUMENTS),\
                  $(foreach y,$(YEARS),\
@@ -135,10 +142,10 @@ clean::
 
 ZIP_EXCLUDES := *~ *.dvi *.gz *.info *.log *.pdf *.ps *.texinfo *.toc \
   *.stamp *.zip arm_form.exe _MTN .mtn-ignore .dvc-exclude
-$(ZIP_ARCHIVE):
+$(SOURCE_ARCHIVE):
 	tar czf $@ -C ../.. $(foreach e,$(ZIP_EXCLUDES),--exclude="$(e)") org.adaic.arm_form
 clean::
-	rm -f $(ZIP_ARCHIVE)
+	rm -f $(SOURCE_ARCHIVE)
 
 update_upstream : source_ada.clean         source_ada.stamp
 update_upstream : source_scribe_2005.clean source_scribe_2005.stamp

@@ -81,24 +81,17 @@ org.adaic.arm_form
 
 To do a release:
 
-build/download.py
-    near the end of the file, change the default value of "tag" if
-    necessary (for a new Ada version)
-
 build/Makefile
+    if necessary, update AVAILABLE_YEARS for latest version
+    if no new version, bump trailing digit in ZIP_VERSION
+        otherwise, reset digit to 1
+
     update-upstream
 
 (dvc-status "../org.adaic.arm_form.upstream")
     commit message "update from upstream"
 
 (xmtn-propagate-one "../org.adaic.arm_form.upstream" ".")
-
-Verify the following in build/Makefile:
-    ARM_VERSION          four digit year
-    ARM_VERSION_OPTION   command line option to arm_form.exe to choose current version
-    DEBIAN_VERSION       reset to .1, or bump if .1 for current ARM_VERSION was published
-
-    ZIP_DATE             date of build
 
 build/Makefile
     all
