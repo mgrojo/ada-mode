@@ -67,7 +67,8 @@ project ARM_Info is
   package Compiler is
      --  upstream wants Ada 2005 syntax, no GNAT-specific pragmas.
      --  We disable some warnings to minimize source diff with upstream.
-     for Default_Switches ("Ada") use
+     --  We append ADAFLAGS so the Makefile can add or override options.
+     Switches :=
        ("-g",
         "-O0",
         "-gnat2005",
@@ -77,6 +78,14 @@ project ARM_Info is
         "-fstack-check",
         "-gnatybefip")
        & External_As_List ("ADAFLAGS", " ");
+
+     for Default_Switches ("Ada") use Switches;
+
+     -- arm_frm has code that passes the same object via two 'in out'
+     -- params; GNAT 4.8 warns about that, so we suppress the warning
+     -- here.
+     for Switches ("arm_frm.adb") use Switches & ("-gnatw.I");
+
   end Compiler;
 
   package Binder is
