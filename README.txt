@@ -94,7 +94,7 @@ build/Makefile
 (xmtn-propagate-one "../org.adaic.arm_form.upstream" ".")
 
 build/Makefile
-    all
+    all publish
 
 verify the following in progs/arm_texi.adb:
 
@@ -106,3 +106,5 @@ Update web page
     ~/Web/Makefile
         edit ARM_INFO_ZIP_VERSION
         arm_info sync
+
+(dvc-status ".")

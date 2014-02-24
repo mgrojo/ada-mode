@@ -136,14 +136,16 @@ GZIP := --no-name --best
 $(INFO_ARCHIVE): $(foreach d,$(DOCUMENTS),\
                  $(foreach y,$(YEARS),\
                  $(d)$(y).info))
-	tar czf $@ $^
+	tar cf - $^ | gzip $(GZIP) -c > $@
 clean::
 	rm -f $(INFO_ARCHIVE)
 
 ZIP_EXCLUDES := *~ *.dvi *.gz *.info *.log *.pdf *.ps *.texinfo *.toc \
-  *.stamp *.zip arm_form.exe _MTN .mtn-ignore .dvc-exclude
+  *.stamp *.zip arm_form.exe _MTN .mtn-ignore .dvc-exclude aarm2005.html \
+  aarm2005.txt aarm2012.html aarm2012.txt arm2005.html arm2005.txt arm2012.html \
+  arm2012.txt objects
 $(SOURCE_ARCHIVE):
-	tar czf $@ -C ../.. $(foreach e,$(ZIP_EXCLUDES),--exclude="$(e)") org.adaic.arm_form
+	tar cf - -C ../.. $(foreach e,$(ZIP_EXCLUDES),--exclude="$(e)") org.adaic.arm_form | gzip $(GZIP) -c > $@
 clean::
 	rm -f $(SOURCE_ARCHIVE)
 
