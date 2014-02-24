@@ -146,6 +146,14 @@ package body Ada_Mode.Parens is
          others => 5);
    end;
 
+   --EMACSCMD:(progn (forward-line 3)(forward-word 2)(newline)(ada-align))
+   -- lines before ( and after ) not empty. result is tested by .diff
+   function Function_3 (Param_1 : in     Ada.Text_IO.Count;
+                        Param_2 : in out Integer) return Float
+   is begin
+      return 1.0;
+   end Function_3;
+
    --EMACSCMD:(progn (forward-line 2)(forward-word 3)(insert "   ")(forward-line 2)(forward-word 2)(insert "   ")(ada-align))
    -- paren on same line as 'procedure' to test that case in ada-format-paramlist. result is tested by .diff
    procedure If_Statement (A : access          Boolean;

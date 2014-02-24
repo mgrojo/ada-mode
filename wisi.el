@@ -1,11 +1,11 @@
 ;;; wisi.el --- Utilities for implementing an indentation/navigation engine using a generalized LALR parser
 ;;
-;; Copyright (C) 2012, 2013  Free Software Foundation, Inc.
+;; Copyright (C) 2012, 2013, 2014  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
-;; Version: 1.0
+;; Version: 1.0.1
+;; package-requires: ((emacs "24.2"))
 ;; URL: http://stephe-leake.org/emacs/ada-mode/emacs-ada-mode.html
-;; Package-Requires: ((cl-lib "0"))
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -143,7 +143,13 @@
 ;;; Code:
 
 (require 'wisi-parse)
-(eval-when-compile (require 'cl-lib))
+
+(if (and (>= emacs-major-version 24)
+	 (>= emacs-minor-version 3))
+    (require 'cl-macs)
+
+  ;; older
+  (require 'wisi-compat-24.2))
 
 ;;;; lexer
 

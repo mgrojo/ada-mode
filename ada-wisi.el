@@ -36,7 +36,12 @@
 (require 'ada-indent-user-options)
 (require 'wisi)
 
-(eval-when-compile (require 'cl-macs))
+(if (and (>= emacs-major-version 24)
+	     (>= emacs-minor-version 3))
+    (require 'cl-macs)
+
+  ;; older
+  (require 'ada-mode-compat-24.2))
 
 (defconst ada-wisi-class-list
   '(

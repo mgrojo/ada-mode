@@ -1,4 +1,6 @@
-Emacs Ada mode version 5.0.1
+Emacs Ada mode version 5.0.2
+
+Ada mode requires Emacs 24.2 or greater
 
 See ada-mode.texi (or a compiled version) for help on using and
 customizing Ada mode, and notes for Ada mode developers.

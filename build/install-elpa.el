@@ -5,8 +5,8 @@
 (require 'package) ;; not loaded in batch mode
 (package-initialize)
 
-(setq ada-version "5.0.1")
-(setq wisi-version "1.0")
+(setq ada-version "5.0.2")
+(setq wisi-version "1.0.1")
 
 ;; WORKAROUND: In Emacs 24.3, if don't restart Emacs after
 ;; package-delete, package-installed-p still reports true.

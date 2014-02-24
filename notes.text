@@ -22,32 +22,39 @@ run test from emacs -Q using source:
   (add-to-list 'load-path "/Projects/org.emacs.ada-mode")
   (add-to-list 'load-path "/Projects/org.emacs.ada-mode/build")
   (setq debug-on-error t)
-  (setq wisi-debug 1)
   (load "autoloads.el")
   (load "run-indent-test-wisi")
   (setq default-directory "/Projects/org.emacs.ada-mode/build/wisi/")
-  (run-test "../../test/ada_mode-interactive_common.adb"))
+  (run-test "../../test/ada_mode-find_file.adb"))
 
- 5.0.1
+
+ 5.0.2:
+(grep-find "find . -type f -print | \"xargs\" grep -nH \"FIXME:\"")
 build/wisi/Makefile
 build/Makefile
+(setq package-archives (list (cons "test" "/Projects/elpa/archive/packages")))
+doc changes in NEWS-ada-mode.text
 
-push org.emacs.ada-mode 5.0.1 to ELPA
-    done 2 Feb 4:20 PM
+upcase identifiers
+    was ada-case-identifier option in 4.0
 
-after 5.0.1 appears in ELPA, announce to comp.lang.ada
+> --- ada-mode.el.orig	2014-02-05 08:45:10.000000000 +0100
+> +++ ada-mode.el	2014-02-22 11:29:46.000000000 +0100
+> @@ -977,7 +977,7 @@
+>
+>  	;; else apply Mixed_Case and partial-exceptions
+>  	(if ada-case-strict
+> -	    (downcase-region start end))
+> +	    (upcase-region start end))
+>  	(while (not done)
+>  	  (setq next
+>  		(or
 
- 5.0.2: emacs 24.2 debian stable
-replace the C-c ; with a command that just says "use M-; instead"
-
-add NEWS for elpa package
-
-no cl-lib; requires compat
-
-gpr-mode keys comment-dwim
+    actually should factor out ada-mixed-case and ada-case-adjust-substring
+    specify ada-mixed-case as default for ada-case-identifier, allow upcase-region as option (and CamelCase someday :)
+    always call ada-case-adjust-substring after.
 
  5.0.3: emacs 23.4
-(grep-find "find . -type f -print | \"xargs\" grep -nH \"FIXME:\"")
 
 gpr-skel.el
     move skel-expand to emacs-compat-*?
@@ -63,32 +70,7 @@ packages.el not in 23.4, so can't use elpa
 
 TBD
 
- dvc git
-/Projects/org.emacs.dvc.stephe/lisp/dvc-state.el
-(require 'dvc-state)
-(dvc-state-one "/Projects/elpa")
-
-xgit-dvc-heads
-    how to distinguish 3 cases?
-    asked on list
-
-dvc-state.el:455:1:Warning: the following functions are not known to be
-    defined: dvc-filter-non-ws
-        copy from xmtn- to dvc-state, use dvc-workspacep
-
-git push --tags
-
-git diff master...contrib
-    diff lca of master/contrib with HEAD of contrib
-
-git relink
-    reduce object storage duplication among workspace repositories
-    still have to fetch to each one
-
-don't have git html docs
-    install git-doc on cygwin?
-    get from source distrib; http://git-scm.com/
-    http://git-scm.com/documentation
+test on debian testing?
 
  gnat-inspect
 test gnat 7.2, gnatcoll 1.7w
@@ -293,6 +275,7 @@ allow finding compiler libraries with no project
     there is no default project!
         big change to support that.
 
+test on debian testing?
 
  possible enhancements
 EDE projects?
@@ -373,54 +356,6 @@ Markus Schöpflin <markus.schoepflin@comsoft.aero> wants this style (including a
     add a custom indent function, like the one for opentoken
     12 sep 2013: sent email
 
- opentoken
-/Projects/org.opentoken.stephe/build/debug/Makefile
-
-resolve dynamic library names
-    windows: _version.dll
-    linux: .so.version
-    OSX:   .dylib.version
-
-    see ada-mode email from simon wright for patch
-        /temp/sjw-patches-for-darwin.diff
-
-    edited
-    test on windows; done
-    test on debian
-        gnat gpl-2013
-
-use _only_ ada-france mtn repository
-
-FIXMEs
-
-delete debug_parser.adb from release
-delete build/x86_* from release
-
-doc alex/aflex avail at http://sourceforge.net/projects/p2ada/
-    compare
-
-objc.wy
-    abo.pignard@wanadoo.fr
-    just confirm, declare conflicts
-
-propagate to org.opentoken
-
-do release
-
-wisi-generate requires declaring non-reporting %tokens first, But should sort by kind
-
-error on missing ':' in 'range | foo ;'
-
-pointer at end of kernel => default should be reduce or accept
-    don't need to compute lookaheads?
-    see FIXME in opentoken-production-parser-lalr.adb
-
-generalized parse
-    build parse tree to store actions, tokens for results
-    execute after parse completes
-
-    or store token pointers on pending stack, so later operations have results
-
  relevant files
 (browse-url "c:/Projects/arm_info/org.adaic.arm_form/build/html/arm2012/RM-P.html")
 (info "(aarm2012)Annex P" "*info Annex P*")
@@ -460,17 +395,23 @@ read/write access requires a public key:
 
  release process
 bump version
+    bump if _any_ changes, so ELPA package handler knows to update
+
+    wisi.el
+        Version:
+        also in ada-mode.el package-requires
     ada-mode.el
         Version:
         ada-mode-version
     ada-mode.texi
         Ada Mode Version
-    wisi.el
-        Version:
     README
         first line
     build/Makefile
         VERSION
+    build/install-elpa.el
+        ada-version
+        wisi-version
 
 verify other metadata
     ada-mode.el
@@ -492,15 +433,15 @@ Emacs 24.3, gnat 7.1.2 (sal-standard):
     /Projects/org.opentoken.stephe/build/release/Makefile all
     build/wisi/Makefile all
 
-Emacs 23.4, (gnat-2012) (gnat-2013):
+Emacs 24.2, (gnat-2013):
     /Projects/org.opentoken.stephe/build/windows_release/Makefile
         clean
         wisi-generate.exe
 
-    test/Makefile all
-        # pushes to elpa workspace, builds archive
-        # FIXME: install from archive?
-        build/wisi/Makefile all
+    build/Makefile all
+        # pushes to elpa workspace, builds archive, installs
+        (setenv "ADA_MODE_DIR" "-f package-initialize")
+        build/wisi/Makefile byte-compile-clean all
 
 (dvc-state-one ".")
 (dvc-state-one "/Projects/org.opentoken.stephe")
@@ -530,12 +471,12 @@ build/Makefile zip
     add release note
         (dvc-log)
 
-mtn tag h:org.emacs.ada-mode "org.emacs.ada-mode-<version>"
-
 ~/Web/Makefile
     edit version in ADA-MODE-GZ, date in ADA-MODE-OPENTOKEN_BZ2
     ada-mode
     sync
+
+mtn tag h:org.emacs.ada-mode "org.emacs.ada-mode-<version>"
 
 after Gnu ELPA updated, post on emacs-ada-mode mailing list, c.l.a newsgroup
     http://stephe-leake.org/emacs/ada-mode/emacs-ada-mode.html

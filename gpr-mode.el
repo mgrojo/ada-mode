@@ -44,6 +44,7 @@
     ;; global-map has C-x ` 'next-error
     (define-key map [return]   'ada-indent-newline-indent)
     (define-key map "\C-c`"    'ada-show-secondary-error)
+    ;; comment-dwim is in global map on M-;
     (define-key map "\C-c\C-c" 'compile)
     (define-key map "\C-c\C-e" 'gpr-expand)
     (define-key map "\C-c\C-f" 'gpr-show-parse-error)

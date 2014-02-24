@@ -2,6 +2,12 @@
 ;;
 ;; $(EMACS) -Q -batch -l run-wisi-test.el --eval (run-test "<filename>")
 ;;
+;; to debug a test:
+;; (add-to-list 'load-path "/Projects/org.emacs.ada-mode")
+;; (add-to-list 'load-path "/Projects/org.emacs.ada-mode/build")
+;; (load "run-wisi-test")
+;; from Makefile:
+;; M-x : (run-test "<filename>" t)
 
 (require 'wisi-parse)
 
@@ -91,14 +97,19 @@
       (setq expected-result (eval (buffer-substring-no-properties (point) (line-end-position)))))
 
     (goto-char (point-min))
-    (condition-case err
+    (if debug-on-error
+	;; let 'debug-on-error' work
 	(wisi-parse parse-table 'wisi-forward-token)
+
+      ;; not debug
+      (condition-case err
+	  (wisi-parse parse-table 'wisi-forward-token)
         ;; parse action must set wisi-test-success t
-      (error
-       (setq wisi-test-success
-	     (equal (cadr err) expected-result))
-       (unless wisi-test-success
-	 (message (cadr err)))))
+	(error
+	 (setq wisi-test-success
+	       (equal (cadr err) expected-result))
+	 (unless wisi-test-success
+	   (message (cadr err))))))
     (unless wisi-test-success
       (error "parse test failed")))
 

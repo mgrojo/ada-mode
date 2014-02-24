@@ -56,18 +56,24 @@
 	(save-excursion
 	  (setq last-cmd (match-string 0)
 		last-result
-		(condition-case err
+		(if debug-on-error
+		    ;; let debug-on-error work
 		    (eval (car (read-from-string last-cmd)))
-		  (error
-		   (setq error-p t)
-		   (message
-		    (concat
-		     (buffer-file-name) ":" (format "%d" (line-number-at-pos))
-		     ": command: %s") last-cmd)
-		   (message
-		    (concat
-		     (buffer-file-name) ":" (format "%d" (count-lines (point-min) (point)))
-		     ": %s: %s") (car err) (cdr err)))))))
+
+		  ;; not debug
+		  (condition-case err
+		      (eval (car (read-from-string last-cmd)))
+		    (error
+		     (setq error-p t)
+		     (message
+		      (concat
+		       (buffer-file-name) ":" (format "%d" (line-number-at-pos))
+		       ": command: %s") last-cmd)
+		     (message
+		      (concat
+		       (buffer-file-name) ":" (format "%d" (count-lines (point-min) (point)))
+		       ": %s: %s") (car err) (cdr err)))))
+		)))
 
        ((string= (match-string 1) "RESULT")
 	(looking-at ".*$")

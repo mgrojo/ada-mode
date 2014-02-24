@@ -1,6 +1,6 @@
 ;;; wisi-parse.el --- Wisi parser
 
-;; Copyright (C) 2013  Free Software Foundation, Inc.
+;; Copyright (C) 2013, 2014  Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -27,7 +27,13 @@
 ;;; Code:
 
 (require 'semantic/wisent)
-(eval-when-compile (require 'cl-lib))
+
+(if (and (>= emacs-major-version 24)
+	 (>= emacs-minor-version 3))
+    (require 'cl-macs)
+
+  ;; older
+  (require 'wisi-compat-24.2))
 
 (cl-defstruct (wisi-parser-state
 	    (:copier nil))
@@ -330,7 +336,16 @@ nil, 'shift, or 'accept."
 (defun wisi-execute-pending (pending)
   (while pending
     (when (> wisi-debug 1) (message "%s" (car pending)))
-    (apply (pop pending))))
+
+    (cond
+     ((and (>= emacs-major-version 24)
+	   (>= emacs-minor-version 3))
+      (apply (pop pending)))
+
+     (t
+      (let ((func-args (pop pending)))
+	(apply (car func-args) (cdr func-args))))
+     )))
 
 (defun wisi-parse-1 (token parser-state pendingp actions gotos)
   "Perform one shift or reduce on PARSER-STATE.

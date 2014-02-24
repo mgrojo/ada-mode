@@ -5,8 +5,8 @@
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Keywords FIXME: languages, ada ELPA broken for multiple keywords
-;; Version: 5.0.1
-;; package-requires: ((wisi "1.0"))
+;; Version: 5.0.2
+;; package-requires: ((wisi "1.0.1") (emacs "24.2"))
 ;; url: http://stephe-leake.org/emacs/ada-mode/emacs-ada-mode.html
 ;;
 ;; (Gnu ELPA requires single digits between dots in versions)
@@ -163,7 +163,12 @@
 (require 'align)
 (require 'compile)
 
-(eval-when-compile (require 'cl-macs))
+(if (and (>= emacs-major-version 24)
+	   (>= emacs-minor-version 3))
+    (require 'cl-macs)
+
+  ;; older
+  (require 'ada-mode-compat-24.2))
 
 (defun ada-mode-version ()
   "Return Ada mode version."
@@ -299,7 +304,7 @@ Values defined by cross reference packages.")
     ;; global-map has C-x ` 'next-error
     (define-key map [return] 	 'ada-indent-newline-indent)
     (define-key map "\C-c`" 	 'ada-show-secondary-error)
-    (define-key map "\C-c;"      'comment-dwim)
+    (define-key map "\C-c;"      (lambda () (error "use M-; instead"))) ; comment-dwim
     (define-key map "\C-c\M-`" 	 'ada-fix-compiler-error)
     (define-key map "\C-c\C-a" 	 'ada-align)
     (define-key map "\C-c\C-b" 	 'ada-make-subprogram-body)
@@ -644,11 +649,20 @@ Each parameter declaration is represented by a list
       (setq access-p (or access-p (nth 4 param)))
       )
 
-    (unless (save-excursion (skip-chars-backward " \t") (bolp))
-      ;; paramlist starts on same line as subprogram identifier; clean up whitespace
-      (end-of-line)
-      (delete-char (- (skip-syntax-backward " ")))
-      (insert " "))
+    (let ((space-before-p (save-excursion (skip-chars-backward " \t") (not (bolp))))
+	  (space-after-p (save-excursion (skip-chars-forward " \t") (not (eolp)))))
+      (when space-before-p
+	;; paramlist starts on same line as subprogram identifier; clean
+	;; up whitespace. Allow for code on same line as closing paren
+	;; ('return' or ';').
+	(skip-syntax-forward " ")
+	(delete-char (- (skip-syntax-backward " ")))
+	(if space-after-p
+	    (progn
+	      (insert "  ")
+	      (forward-char -1))
+	  (insert " "))
+	))
 
     (insert "(")
 
@@ -947,6 +961,9 @@ User is prompted to choose a file from project variable casing if it is a list."
   "Return t if point is after a prefix of a numeric literal."
   (looking-back "\\([0-9]+#[0-9a-fA-F_]+\\)"))
 
+(defvar ada-keywords nil
+  "List of Ada keywords for current `ada-language-version'.")
+
 (defun ada-after-keyword-p ()
   "Return non-nil if point is after an element of `ada-keywords'."
   (let ((word (buffer-substring-no-properties
@@ -1074,6 +1091,9 @@ With prefix arg, adjust case even if in comment."
   (interactive)
   (ada-case-adjust-region (point-min) (point-max)))
 
+(defvar ada-ret-binding nil)
+(defvar ada-lfd-binding nil)
+
 (defun ada-case-adjust-interactive (arg)
   "Adjust the case of the previous word, and process the character just typed.
 To be bound to keys that should cause auto-casing.
@@ -1097,9 +1117,6 @@ ARG is the prefix the user entered with \\[universal-argument]."
       (self-insert-command (prefix-numeric-value arg)))
      )
   ))
-
-(defvar ada-ret-binding nil)
-(defvar ada-lfd-binding nil)
 
 (defun ada-case-activate-keys ()
   "Modify the key bindings for all the keys that should adjust casing."
@@ -1157,7 +1174,25 @@ ARG is the prefix the user entered with \\[universal-argument]."
 (defun ada-prj-get (prop &optional plist)
   "Return value of PROP in PLIST.
 Optional PLIST defaults to `ada-prj-current-project'."
-  (plist-get (or plist ada-prj-current-project) prop))
+  (let ((prj (or plist ada-prj-current-project)))
+    (if prj
+	(plist-get prj prop)
+
+      ;; no project, just use default vars
+      ;; must match code in ada-prj-default
+      (cl-case plist
+	(ada_compiler    ada-compiler)
+	(auto_case       ada-auto-case)
+	(case_keyword    ada-case-keyword)
+	(case_strict     ada-case-strict)
+	(casing          (if (listp ada-case-exception-file)
+			     ada-case-exception-file
+			   (list ada-case-exception-file)))
+	(path_sep        path-separator)
+	(proc_env        process-environment)
+	(src_dir         (list "."))
+	(xref_tool       ada-xref-tool)
+	))))
 
 (defun ada-prj-put (prop val &optional plist)
   "Set value of PROP in PLIST to VAL.
@@ -2342,9 +2377,6 @@ The paragraph is indented on the first line."
 (defconst ada-2012-keywords
   '("some")
   "List of keywords new in Ada 2012.")
-
-(defvar ada-keywords nil
-  "List of Ada keywords for current `ada-language-version'.")
 
 (defun ada-font-lock-keywords ()
   "Return Ada mode value for `font-lock-keywords', depending on `ada-language-version'."

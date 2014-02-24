@@ -38,12 +38,12 @@ vpath %.el ../../ .
 # WISI_OPENTOKEN can be overridden on the 'make' command line or by an
 # external environment variable.
 ifeq ($(shell uname),Linux)
-WISI_OPENTOKEN ?= /home/Projects/opentoken/org.opentoken.stephe/build/release
+WISI_OPENTOKEN ?= /home/Projects/opentoken/org.opentoken/build/release
 export ADA_PROJECT_PATH=../../test/:../../test/subdir
 
 else
 # windows
-WISI_OPENTOKEN ?= $(CURDIR)/../../../org.opentoken.stephe/build/release
+WISI_OPENTOKEN ?= $(CURDIR)/../../../org.opentoken/build/release
 export ADA_PROJECT_PATH=../../test/;../../test/subdir
 
 endif
@@ -59,7 +59,7 @@ endif
 	cd ./$(<D); $(WISI_OPENTOKEN)/wisi-generate.exe -v 1 $(<F) Elisp > $(*F).output
 	cd ./$(<D); dos2unix $(@F)
 
-# ../../../org.opentoken.stephe/wisi/wisi-generate.adb
+# ../../../org.opentoken/wisi/wisi-generate.adb
 $(WISI_OPENTOKEN)/wisi-generate.exe : force
 	$(MAKE) -C $(WISI_OPENTOKEN) wisi-generate.exe
 

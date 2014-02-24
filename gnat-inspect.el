@@ -4,7 +4,7 @@
 ;;; gnatinspect supports Ada and any gcc language that supports the
 ;;; -fdump-xref switch (which includes C, C++).
 ;;
-;;; Copyright (C) 2013  Free Software Foundation, Inc.
+;;; Copyright (C) 2013, 2014  Free Software Foundation, Inc.
 
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
@@ -31,7 +31,13 @@
 
 (require 'compile)
 (require 'ada-mode) ;; for ada-prj-*, some other things
-(eval-when-compile (require 'cl-macs))
+
+(if (and (>= emacs-major-version 24)
+	 (>= emacs-minor-version 3))
+    (require 'cl-macs)
+
+  ;; older
+  (require 'ada-mode-compat-24.2))
 
 ;;;;; sessions
 
