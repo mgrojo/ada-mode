@@ -47,6 +47,10 @@ VPATH := ..
 clean :
 	rm -f ../*.info ../*.html ../dir
 
+source-clean :
+	-find .. -name "*~" -print -delete
+	-find .. -name ".#*" -print -delete
+
 .PHONY : force
 
 # copy files to ELPA ada-mode package

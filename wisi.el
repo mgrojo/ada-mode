@@ -326,7 +326,6 @@ wisi-forward-token, but does not look up symbol."
   "Non-nil when parse is needed - cleared when parse succeeds.")
 
 (defvar-local wisi-change-need-invalidate nil)
-(defvar-local wisi-change-jit-lock-mode nil)
 
 (defun wisi-invalidate-cache()
   "Invalidate the wisi token cache for the current buffer.
@@ -351,8 +350,7 @@ Also invalidate the Emacs syntax cache."
   (when (boundp 'jit-lock-mode)
     (when (memq 'wisi-after-change (memq 'jit-lock-after-change after-change-functions))
       (setq after-change-functions (delete 'wisi-after-change after-change-functions))
-      (add-hook 'after-change-functions 'wisi-after-change nil t)
-      (setq wisi-change-jit-lock-mode (1+ wisi-change-jit-lock-mode)))
+      (add-hook 'after-change-functions 'wisi-after-change nil t))
     )
 
   (save-excursion
@@ -1106,9 +1104,6 @@ correct. Must leave point at indentation of current line.")
   (syntax-propertize (point-max))
 
   (wisi-invalidate-cache)
-
-  ;; FIXME: debug counter
-  (setq wisi-change-jit-lock-mode 0)
   )
 
 (provide 'wisi)

@@ -1,4 +1,4 @@
-;;; Wisent grammar for Ada
+;;; Wisi grammar for Ada
 ;;
 ;; Copyright (C) 2012 Free Software Foundation, Inc.
 ;;
@@ -25,9 +25,10 @@
 ;;; Commentary:
 ;;
 ;; This is a wisi grammar file for the Ada language. It is derived
-;; from the Ada Reference Manual (ARM), which is available as (info
-;; "(aarm2012)") or at http://www.ada-auth.org/standards/ada12.html
-;; under the license in ada_license.text.
+;; from the 2012 Ada Reference Manual (ARM), which is available as
+;; (info "(aarm2012)") or at
+;; http://www.ada-auth.org/standards/ada12.html, under the license in
+;; ada_license.text.
 ;;
 ;; see wisi.el for discussion of using the wisi parser for an
 ;; indentation engine.
@@ -50,7 +51,7 @@
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 (require 'wisi)
-(require 'semantic/lex) ;; FIXME: emacs 23 wants semantic-lex, 24 semantic/lex
+(require 'semantic/lex)
 (require 'wisi-compile)
 %}
 

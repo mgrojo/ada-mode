@@ -29,13 +29,14 @@ run test from emacs -Q using source:
 
 
  5.0.2:
-(grep-find "find . -type f -print | \"xargs\" grep -nH \"FIXME:\"")
 build/wisi/Makefile
 build/Makefile
 (setq package-archives (list (cons "test" "/Projects/elpa/archive/packages")))
 doc changes in NEWS-ada-mode.text
 
 upcase identifiers
+    org.emacs.ada-mode.stephe-1
+
     was ada-case-identifier option in 4.0
 
 > --- ada-mode.el.orig	2014-02-05 08:45:10.000000000 +0100
@@ -53,22 +54,29 @@ upcase identifiers
     actually should factor out ada-mixed-case and ada-case-adjust-substring
     specify ada-mixed-case as default for ada-case-identifier, allow upcase-region as option (and CamelCase someday :)
     always call ada-case-adjust-substring after.
+    consider ada-case-strict
 
- 5.0.3: emacs 23.4
+ 5.0.a: non_ascii in source
+(grep-find "find . -type f -print | \"xargs\" grep -nH \"FIXME:\"")
+
+test/non_ascii.ads
+
+ 5.0.b: skeleton refactor/cleanup
 
 gpr-skel.el
+    ./gpr-skel.el:111:;; FIXME: code below should be in skeleton.el
+    ./gpr-skel.el:199:	;; FIXME: hook for Ada case adjust
+
     move skel-expand to emacs-compat-*?
         assume will be in emacs 24.5 or 25.*
     use in ada-skel?
 
+ 5.0.x: misc
+
+./wisi.el	  ;; FIXME: insert newline in comment to create non-comment!?
+    need tests for wisi-before/after-change vs comments, strings
+
 font-lock-keywords buffer local by default?
-
-packages.el not in 23.4, so can't use elpa
-
- 5.0.4
-(grep-find "find . -type f -print | \"xargs\" grep -nH \"FIXME:\"")
-
-TBD
 
 test on debian testing?
 
@@ -226,9 +234,6 @@ gpr fix errors
     gds_dscovr_utf_agg.gpr:12:19: expected "gds_dscovr_utf_agg"
 
 add C++ tests
-
-./wisi.el:361:	  ;; FIXME: insert newline in comment to create non-comment!?
-    need tests for wisi-before/after-change vs comments, strings
 
 C-c C-d on <= use
 

@@ -85,7 +85,7 @@
      ["Indent Line or selection"    indent-for-tab-command         t]
      ["Indent current statement"    gpr-indent-statement           t]
      ["Indent Lines in File"        (indent-region (point-min) (point-max))  t]
-     ["Expand skeleton"             gpr-expand                     t] ;; FIXME: only if skeleton
+     ["Expand skeleton"             gpr-expand                     t]
      ["Comment/uncomment selection" comment-dwim                   t]
      ["Fill Comment Paragraph"      fill-paragraph                 t]
 
@@ -244,7 +244,7 @@ of the package or project point is in or just after, or nil.")
   ;; paragraph-start above when the comment is right after a
   ;; multi-line subprogram declaration (the comments are aligned under
   ;; the latest parameter, not under the declaration start).
-  ;; FIXME: need test - should be in gpr-wisi?
+  ;; FIXME: need test - should be in gpr-wisi? why doesn't ada-mode do this?
   (set (make-local-variable 'comment-line-break-function)
        (lambda (&optional soft) (let ((fill-prefix nil))
 				  (indent-new-comment-line soft))))

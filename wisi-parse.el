@@ -105,9 +105,6 @@ the grammar is excessively redundant.")
 	    :label 0
 	    :active  'shift
 	    :stack   (make-vector wisent-parse-max-stack-size nil)
-	    ;; FIXME: better error message when stack overflows, so
-	    ;; user can set wisent-parse-max-stack-size in file-local
-	    ;; vars.
 	    :sp      0
 	    :pending nil)))
 	 (active-parser-count 1)

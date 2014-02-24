@@ -227,7 +227,7 @@ preserved when the list is written back to the file."
 (defcustom ada-case-keyword 'downcase-word
   "Buffer-local value that may override project variable `case_keyword'.
 Global value is default for project variable `case_keyword'.
-Function to call to adjust the case of an Ada keywords."
+Function to call to adjust the case of Ada keywords."
   :type '(choice (const downcase-word)
 		 (const upcase-word))
   :group 'ada
@@ -245,8 +245,9 @@ Otherwise, allow UPPERCASE for identifiers."
 (make-variable-buffer-local 'ada-case-strict)
 
 (defcustom ada-language-version 'ada2012
-  "Ada language version; one of `ada83', `ada95', `ada2005'.
-Only affects the keywords to highlight."
+  "Ada language version; one of `ada83', `ada95', `ada2005', `ada2012'.
+Only affects the keywords to highlight, not which version the
+indentation parser accepts."
   :type '(choice (const ada83)
 		 (const ada95)
 		 (const ada2005)
@@ -401,13 +402,13 @@ Values defined by cross reference packages.")
 (easy-menu-define ada-context-menu nil
   "Context menu keymap for Ada mode"
   '("Ada"
-    ["Make body for subprogram"      ada-make-subprogram-body     t] ;; FIXME: include only if will succeed
+    ["Make body for subprogram"      ada-make-subprogram-body     t]
     ["Goto declaration/body"         ada-goto-declaration         :included ada-context-menu-on-identifier]
     ["Show parent declarations"      ada-show-declaration-parents :included ada-context-menu-on-identifier]
     ["Show references"               ada-show-references          :included ada-context-menu-on-identifier]
     ["Show overriding"               ada-show-overriding          :included ada-context-menu-on-identifier]
     ["Show overridden"               ada-show-overridden          :included ada-context-menu-on-identifier]
-    ["Expand skeleton"               ada-expand                        t] ;; FIXME: only if skeleton
+    ["Expand skeleton"               ada-expand                        t]
     ["Create full case exception"    ada-case-create-exception         t]
     ["Create partial case exception" ada-case-create-partial-exception t]
 
