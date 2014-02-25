@@ -36,18 +36,11 @@ install packages in -Q:
  5.0.2:
 build/wisi/Makefile
 build/Makefile
-doc changes in NEWS-ada-mode.text
-
-use elpa cl-lib instead of some of compat
-
-add "Commentary" comment section; shows in elpa package description
-    add "changes in this release" there?
+doc changes in NEWS-ada-mode.text NEWS-wisi.text
 
 upcase identifiers
     org.emacs.ada-mode.stephe-1
-        use dvc-propagate
-            c:/Projects/org.emacs.dvc.stephe/lisp/dvc-propagate.el
-                reviewed to dvc-propagate-diff
+        use dvc-propagate; ~/Misc/dvc_notes.text
 
     was ada-case-identifier option in 4.0
 

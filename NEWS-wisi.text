@@ -1,0 +1,19 @@
+GNU Emacs wisi NEWS -- history of user-visible changes.
+
+Copyright (C) 2014 Free Software Foundation, Inc.
+See the end of the file for license conditions.
+
+Please send wisi bug reports to bug-gnu-emacs@gnu.org, with
+'wisi' in the subject. If possible, use M-x report-emacs-bug.
+
+
+* wisi 1.0.1
+
+** minor fixes for byte compiler warnings
+
+** Emacs 24.2 supported, via cl-lib in Gnu ELPA
+
+* wisi 1.0
+Feb 2 2014
+
+** first release in ELPA

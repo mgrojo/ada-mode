@@ -65,6 +65,7 @@ pub-ada : force
 # copy files to ELPA wisi package
 pub-wisi : force
 	rm -f ../../elpa/packages/wisi/wisi-pkg.el
+	cp ../NEWS-wisi.text ../../elpa/packages/wisi/NEWS
 	cp ../wisi*.el ../../elpa/packages/wisi
 
 # all-in-place does not build archive-contents, just *.elc

@@ -26,10 +26,18 @@ Please send Emacs Ada mode bug reports to bug-gnu-emacs@gnu.org, with
    global keymap. 'C-c ;' now gives an error with a message saying
    'use M-; instead'.
 
-** Emacs 24.2 supported
+** Emacs 24.2 supported, via cl-lib in Gnu ELPA
 
-* Ada mode 5.0.1 - first release in ELPA
+* Ada mode 5.0.1
+Feb 2 2014
 
-Previous version was 4.00, in Emacs core. 5.0.1 is a complete rewrite,
-using a generalized LALR parser that caches syntactic information in
-text properties.
+First public release, via ELPA
+
+* Ada mode 5.0.0
+Dec 24 2013
+
+** first release in ELPA
+
+** Previous version was 4.00, in Emacs core. 5.0.1 is a complete
+   rewrite, using a generalized LALR parser that caches syntactic
+   information in text properties.
