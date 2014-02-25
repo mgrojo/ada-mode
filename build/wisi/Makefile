@@ -12,8 +12,9 @@ update : ../../ada-grammar-wy.el ../../gpr-grammar-wy.el  byte-compile
 
 # *-wy.el are in monotone, so this is all we need after a monotone update
 # doing byte-compile-clean first avoids errors caused by loading new source on old .elc
+# Emacs 24.2 requires cl-lib from Gnu ELPA, so we need package-initialize here
 byte-compile : byte-compile-clean
-	cd ../../; $(EMACS_EXE) -Q -batch -L . -f batch-byte-compile *.el
+	cd ../../; $(EMACS_EXE) -Q -batch -L . --eval '(progn (package-initialize)(batch-byte-compile))' *.el
 
 test : test-wisi test-ada-gnatxref.stamp test-ada-gnatinspect.stamp test-gpr test-elisp gpr-skel.gpr.diff
 

@@ -23,12 +23,7 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-(if (and (>= emacs-major-version 24)
-	 (>= emacs-minor-version 3))
-    (require 'cl-macs)
-
-  ;; older
-  (require 'ada-mode-compat-24.2))
+(require 'cl-lib)
 
 ;;;;; code
 

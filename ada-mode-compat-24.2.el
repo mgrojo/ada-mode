@@ -17,32 +17,7 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-(require 'cl)
-
-(defalias 'cl-acons (symbol-function 'acons))
-(defalias 'cl-caddr (symbol-function 'caddr))
-(defalias 'cl-case (symbol-function 'case))
-(defalias 'cl-defstruct (symbol-function 'defstruct))
-
-;; 'defalias' doesn't work here; not clear why
-(defun cl-delete-if (cl-pred cl-list &rest cl-keys)
-  "Remove all items satisfying PREDICATE in SEQ.
-This is a destructive function; it reuses the storage of SEQ whenever possible.
-\nKeywords supported:  :key :count :start :end :from-end
-\n(fn PREDICATE SEQ [KEYWORD VALUE]...)"
-  (apply 'delete* nil cl-list :if cl-pred cl-keys))
-
-(defalias 'cl-dolist (symbol-function 'dolist))
-(defalias 'cl-ecase (symbol-function 'ecase))
-
-(defmacro defvar-local (var val &optional docstring)
-  "Define VAR as a buffer-local variable with default value VAL.
-Like `defvar' but additionally marks the variable as being automatically
-buffer-local wherever it is set."
-  (declare (debug defvar) (doc-string 3))
-  ;; Can't use backquote here, it's too early in the bootstrap.
-  (list 'progn (list 'defvar var val docstring)
-        (list 'make-variable-buffer-local (list 'quote var))))
+;; using cl-lib 0.4 from Gnu ELPA
 
 (defun file-name-base (&optional filename)
   "Return the base name of the FILENAME: no directory, no extension.

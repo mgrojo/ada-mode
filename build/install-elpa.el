@@ -8,15 +8,20 @@
 (setq ada-version "5.0.2")
 (setq wisi-version "1.0.1")
 
-;; WORKAROUND: In Emacs 24.3, if don't restart Emacs after
-;; package-delete, package-installed-p still reports true.
-(when (and (package-installed-p 'ada-mode (version-to-list ada-version))
-	   (package--dir "ada-mode" ada-version))
+;; We may be installing a newer version without a version bump, so
+;; just delete the packages.
+(when (package--dir "ada-mode" ada-version)
   (package-delete "ada-mode" ada-version))
 
-(when (and (package-installed-p 'wisi (version-to-list wisi-version))
-	   (package--dir "wisi" wisi-version))
+(when (package--dir "wisi" wisi-version)
   (package-delete "wisi" wisi-version))
+
+(when (and (= emacs-major-version 24)
+	   (= emacs-minor-version 2)
+	   (not (package--dir "cl-lib" "0.4")))
+  (package-refresh-contents)
+  (package-install 'cl-lib)
+  (package-initialize))
 
 (package-download-tar 'wisi wisi-version)
 (package-download-tar 'ada-mode ada-version)

@@ -27,14 +27,8 @@
 ;;;; code
 
 (require 'ada-mode)
+(require 'cl-lib)
 (require 'compile)
-
-(if (and (>= emacs-major-version 24)
-	     (>= emacs-minor-version 3))
-    (require 'cl-macs)
-
-  ;; older
-  (require 'ada-mode-compat-24.2))
 
 (defcustom ada-fix-sort-context-clause t
   "*If non-nil, sort context clause when inserting 'with'"

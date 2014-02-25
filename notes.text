@@ -27,15 +27,27 @@ run test from emacs -Q using source:
   (setq default-directory "/Projects/org.emacs.ada-mode/build/wisi/")
   (run-test "../../test/ada_mode-find_file.adb"))
 
+install packages in -Q:
+(progn
+ (require 'package)
+ (add-to-list 'package-archives (cons "test" "/Projects/elpa/archive/packages"))
+ (list-packages))
 
  5.0.2:
 build/wisi/Makefile
 build/Makefile
-(setq package-archives (list (cons "test" "/Projects/elpa/archive/packages")))
 doc changes in NEWS-ada-mode.text
+
+use elpa cl-lib instead of some of compat
+
+add "Commentary" comment section; shows in elpa package description
+    add "changes in this release" there?
 
 upcase identifiers
     org.emacs.ada-mode.stephe-1
+        use dvc-propagate
+            c:/Projects/org.emacs.dvc.stephe/lisp/dvc-propagate.el
+                reviewed to dvc-propagate-diff
 
     was ada-case-identifier option in 4.0
 

@@ -25,23 +25,13 @@
 ;;
 ;; implementation started Jan 2013
 ;;
-;;; code style
-;;
-;; not using lexical-binding or cl-lib because we support Emacs 23
-;;
 ;;;;
 
 (require 'ada-fix-error)
 (require 'ada-grammar-wy)
 (require 'ada-indent-user-options)
+(require 'cl-lib)
 (require 'wisi)
-
-(if (and (>= emacs-major-version 24)
-	     (>= emacs-minor-version 3))
-    (require 'cl-macs)
-
-  ;; older
-  (require 'ada-mode-compat-24.2))
 
 (defconst ada-wisi-class-list
   '(

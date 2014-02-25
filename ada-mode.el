@@ -6,7 +6,7 @@
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Keywords FIXME: languages, ada ELPA broken for multiple keywords
 ;; Version: 5.0.2
-;; package-requires: ((wisi "1.0.1") (emacs "24.2"))
+;; package-requires: ((wisi "1.0.1") (cl-lib "0.4") (emacs "24.2"))
 ;; url: http://stephe-leake.org/emacs/ada-mode/emacs-ada-mode.html
 ;;
 ;; (Gnu ELPA requires single digits between dots in versions)
@@ -159,16 +159,10 @@
 ;;     robin-reply@reagans.org
 ;;    and others for their valuable hints.
 
-(require 'find-file)
 (require 'align)
+(require 'cl-lib)
 (require 'compile)
-
-(if (and (>= emacs-major-version 24)
-	   (>= emacs-minor-version 3))
-    (require 'cl-macs)
-
-  ;; older
-  (require 'ada-mode-compat-24.2))
+(require 'find-file)
 
 (defun ada-mode-version ()
   "Return Ada mode version."

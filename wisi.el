@@ -4,7 +4,7 @@
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Version: 1.0.1
-;; package-requires: ((emacs "24.2"))
+;; package-requires: ((cl-lib "0.4") (emacs "24.2"))
 ;; URL: http://stephe-leake.org/emacs/ada-mode/emacs-ada-mode.html
 ;;
 ;; This file is part of GNU Emacs.
@@ -142,14 +142,14 @@
 
 ;;; Code:
 
+(require 'cl-lib)
 (require 'wisi-parse)
 
-(if (and (>= emacs-major-version 24)
-	 (>= emacs-minor-version 3))
-    (require 'cl-macs)
-
-  ;; older
-  (require 'wisi-compat-24.2))
+;; WORKAROUND: for some reason, this condition doesn't work in batch mode!
+;; (when (and (= emacs-major-version 24)
+;; 	   (= emacs-minor-version 2))
+  (require 'wisi-compat-24.2)
+;;)
 
 ;;;; lexer
 

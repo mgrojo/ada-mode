@@ -26,14 +26,8 @@
 
 ;;; Code:
 
+(require 'cl-lib)
 (require 'semantic/wisent)
-
-(if (and (>= emacs-major-version 24)
-	 (>= emacs-minor-version 3))
-    (require 'cl-macs)
-
-  ;; older
-  (require 'wisi-compat-24.2))
 
 (cl-defstruct (wisi-parser-state
 	    (:copier nil))

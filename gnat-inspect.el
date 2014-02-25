@@ -29,15 +29,9 @@
 ;;
 ;; M-x gnat-inspect
 
-(require 'compile)
 (require 'ada-mode) ;; for ada-prj-*, some other things
-
-(if (and (>= emacs-major-version 24)
-	 (>= emacs-minor-version 3))
-    (require 'cl-macs)
-
-  ;; older
-  (require 'ada-mode-compat-24.2))
+(require 'cl-lib)
+(require 'compile)
 
 ;;;;; sessions
 
