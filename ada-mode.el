@@ -1103,7 +1103,7 @@ ARG is the prefix the user entered with \\[universal-argument]."
       (ada-case-adjust lastk)
       (funcall ada-lfd-binding))
 
-     ((eq lastk ?\r)
+     ((memq lastk '(?\r return))
       (ada-case-adjust lastk)
       (funcall ada-ret-binding))
 
@@ -1135,6 +1135,8 @@ ARG is the prefix the user entered with \\[universal-argument]."
 	       'ada-case-adjust-interactive)))
 	  '( ?_ ?% ?& ?* ?( ?) ?- ?= ?+
 		?| ?\; ?: ?' ?\" ?< ?, ?. ?> ?/ ?\n 32 ?\r ))
+
+  (define-key ada-mode-map [return] 'ada-case-adjust-interactive)
   )
 
 ;;;; project files
@@ -2521,6 +2523,10 @@ The paragraph is indented on the first line."
 
 ;;;; ada-mode
 
+;; ada-mode does not derive from prog-mode, because we need to call
+;; ada-mode-post-local-vars, and prog-mode does not provide a way to
+;; do that.
+;;
 ;; autoload required by automatic mode setting
 ;;;###autoload
 (defun ada-mode ()
@@ -2618,6 +2624,7 @@ The paragraph is indented on the first line."
   ;; do M-x ada-mode M-; (hack-local-variables)
 
   (when ada-auto-case (ada-case-activate-keys))
+  ;; FIXME: ada-mode-map is not buffer local, so this is a global change
 
   (when global-font-lock-mode
     ;; This calls ada-font-lock-keywords, which depends on

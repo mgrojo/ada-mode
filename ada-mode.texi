@@ -122,9 +122,10 @@ ada-mode-version}.
 
 @menu
 * gnatinspect::
+* Upgrading::
 @end menu
 
-@node gnatinspect,  , Installation, Installation
+@node gnatinspect, Upgrading, Installation, Installation
 @section gnatinspect
 Ada mode has experimental support for the new AdaCore cross reference
 tool @code{gnatinspect}, which supports Ada, C, C++, and any other
@@ -144,6 +145,27 @@ cd gnatcoll-1.7w-src
 make Gnatcoll_Build=Debug
 sudo make Gnatcoll_Build=Debug install
 @end example
+
+@node Upgrading,  , gnatinspect, Installation
+@section Upgrading from previous versions
+
+See the file NEWS for more details; here we summarize only important
+user interface changes.
+
+@table @samp
+@item from 5.0.1
+    Nothing to do.
+
+@item from 4.01
+There are many user interface and API changes between 4.01 and 5.0.1;
+we only document those that may be hard to diagnose here.
+
+@code{prog-mode-hook} is no longer run by @code{ada-mode};
+@code{ada-mode} is no longer derived from @code{prog-mode}. Use
+@code{ada-mode-hook} instead.
+
+
+@end table
 
 @node Customization, Compiling Executing, Installation, Top
 @chapter Customizing Ada mode

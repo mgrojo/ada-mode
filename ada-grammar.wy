@@ -173,10 +173,10 @@
 ;; known conflicts that are resolved by generalized LALR parser
 %conflict REDUCE/REDUCE in state abstract_limited_opt, abstract_limited_synchronized_opt on token NEW
 %conflict REDUCE/REDUCE in state abstract_limited_synchronized_opt, abstract_limited_opt on token NEW
-%conflict REDUCE/REDUCE in state and_interface_list_opt, derived_type_definition on token WITH
 %conflict REDUCE/REDUCE in state choice_relation, relation on token AND
 %conflict REDUCE/REDUCE in state choice_relation, relation on token OR
 %conflict REDUCE/REDUCE in state choice_relation, relation on token XOR
+%conflict REDUCE/REDUCE in state constraint_opt, and_interface_list_opt on token WITH
 %conflict REDUCE/REDUCE in state expression_opt, association_opt on token COMMA
 %conflict REDUCE/REDUCE in state expression_opt, association_opt on token RIGHT_PAREN
 %conflict REDUCE/REDUCE in state identifier_list, name on token COMMA
@@ -619,10 +619,15 @@ constant_opt
 
 constraint
   : RANGE range ;; range_constraint
- ;; | digits_constraint ;; not in any code I have
+ ;; | digits_constraint ;; FIXME: not in any code I have
  ;; | delta_constraint ;; not in any code I have
   | index_constraint
  ;; | discriminant_constraint ;; not in any code I have
+  ;
+
+constraint_opt
+  : ;; empty
+  | constraint
   ;
 
 context_item : pragma | with_clause | use_clause;
@@ -678,7 +683,7 @@ delay_statement
 
 derived_type_definition
   : abstract_limited_opt NEW name and_interface_list_opt WITH record_definition
-  | abstract_limited_opt NEW name
+  | abstract_limited_opt NEW name constraint_opt
   ;
 
 direct_name

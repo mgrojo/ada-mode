@@ -38,6 +38,18 @@ build/wisi/Makefile
 build/Makefile
 doc changes in NEWS-ada-mode.text NEWS-wisi.text
 
+indentation bug:
+
+       FOO :=
+         (FOO => FOO
+           (FOO => FOO),
+          BAR => BAR
+            (BAR => BAR));
+    -------^
+    extra space here
+
+ada-mode-map should be buffer-local, so ada-auto-case can be
+
 upcase identifiers
     org.emacs.ada-mode.stephe-1
         use dvc-propagate; ~/Misc/dvc_notes.text
@@ -60,6 +72,12 @@ upcase identifiers
     specify ada-mixed-case as default for ada-case-identifier, allow upcase-region as option (and CamelCase someday :)
     always call ada-case-adjust-substring after.
     consider ada-case-strict
+
+different casing for identifiers (uppercase) and attributes (mixed)
+
+ada-set-point-accordingly
+    use parse info to find identifier declaration instead of reference?
+
 
  5.0.a: non_ascii in source
 (grep-find "find . -type f -print | \"xargs\" grep -nH \"FIXME:\"")
