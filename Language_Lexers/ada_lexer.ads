@@ -29,7 +29,7 @@ with Ada.Text_IO;
 package Ada_Lexer is
 
    ---------------------------------------------------------------------
-   --  This ia a lexical analyser for the Ada language.
+   --  This is a lexical analyser for the Ada 2012 language.
    --
    --  There is another lexer for the Ada and Java languages at:
    --   <http://home.T-Online.de/home/Christ-Usch.Grein/Ada/Lexer.html>
@@ -52,7 +52,7 @@ package Ada_Lexer is
       Of_T, Or_T, Others_T, Out_T, Overriding_T,
       Package_T, Pragma_T, Private_T, Procedure_T, Protected_T,
       Raise_T, Range_T, Record_T, Rem_T, Renames_T, Requeue_T, Return_T, Reverse_T,
-      Select_T, Separate_T, Subtype_T, Synchronized_T,
+      Select_T, Separate_T, Some_T, Subtype_T, Synchronized_T,
       Tagged_T, Task_T, Terminate_T, Then_T, Type_T,
       Until_T, Use_T,
       When_T, While_T, With_T,

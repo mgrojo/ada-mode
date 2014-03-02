@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2008, 2012, 2013 Stephen Leake
+-- Copyright (C) 2008, 2012, 2013, 2014 Stephen Leake
 -- Copyright (C) 1999, 2008 Christoph Karl Walter Grein
 --
 -- This file is part of the OpenToken package.
@@ -106,6 +106,7 @@ package body Ada_Lexer is
       Reverse_T             => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("reverse")),
       Select_T              => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("select")),
       Separate_T            => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("separate")),
+      Some_T                => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("some")),
       Subtype_T             => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("subtype")),
       Synchronized_T        => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("synchronized")),
       Tagged_T              => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("tagged")),
