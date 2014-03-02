@@ -71,6 +71,17 @@ package body Ada_Mode.Parens is
            "789"
         );
 
+      --  function call (actually type conversion, but it's the same indentation) in aggregate
+      type Local_11_Type is record
+         A : Integer;
+         B : Integer;
+      end record;
+
+      Local_11 : Local_11_Type := Local_11_Type'
+        (A => Integer
+           (1.0),
+         B => Integer
+           (2.0));
    begin
       return Float (
                     Integer'Value

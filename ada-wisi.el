@@ -54,6 +54,20 @@
 
 ;;;; indentation
 
+(defun ada-wisi-current-indentation ()
+  "Return indentation of current line, incremented by 1 if starts with open-paren."
+  (if (not (ada-in-paren-p))
+      (current-indentation)
+
+    (save-excursion
+      (back-to-indentation)
+      (let ((cache (wisi-get-cache (point))))
+	(if (and cache
+		 (eq 'open-paren (wisi-cache-class cache)))
+	    (1+ (current-column))
+	  (current-column))
+	))))
+
 (defun ada-wisi-indent-cache (offset cache)
   "Return indentation of OFFSET plus indentation of line containing point. Point must be at CACHE."
   (let ((indent (current-indentation)))
@@ -83,11 +97,9 @@
 	       ;;                  then -1
 	       ;;   indenting 'then'; offset = 0
 	       ;;
-	       ;; need get-start, not just get-containing, because of:
 	       ;; L1 : Integer := (case J is
 	       ;;                     when 42 => -1,
 	       ;;
-	       ;; _not_ (ada-in-paren-p), because of:
 	       ;; test/indent.ads
 	       ;; C_S_Controls : constant
 	       ;;   CSCL_Type :=
@@ -264,7 +276,7 @@ BEFORE should be t when called from ada-wisi-before-cache, nil otherwise."
 		 ;;  RX_Enable                     =>
 		 ;;    (RX_Torque_Subaddress |
 		 ;; indenting (RX_Torque
-		 (ada-wisi-indent-containing (1- ada-indent) containing t))
+		 (ada-wisi-indent-containing ada-indent-broken containing t))
 		(LEFT_PAREN
 		 ;; test/ada_mode-parens.adb
 		 ;; (1 =>
@@ -300,6 +312,18 @@ BEFORE should be t when called from ada-wisi-before-cache, nil otherwise."
 	      ;; indenting (D
 	      (+ (current-column) 1 ada-indent-broken))
 
+	     (WHEN
+	      ;; test/ada_mode-nominal.adb
+	      ;;
+	      ;; when Local_1 = 0 and not
+	      ;;   (Local_2 = 1)
+	      ;; indenting (Local_2
+	      ;;
+	      ;; entry E3
+	      ;;   (X : Integer) when Local_1 = 0 and not
+	      ;;     (Local_2 = 1)
+	      (+ (ada-wisi-current-indentation) ada-indent-broken))
+
 	     (name
 	      ;; test/indent.ads
 	      ;; CSCL_Type'
@@ -313,7 +337,14 @@ BEFORE should be t when called from ada-wisi-before-cache, nil otherwise."
 	      ;;      (1),
 	      ;;    A(2));
 	      ;; indenting (1)
-	      (+ (current-indentation) ada-indent-broken))
+	      ;;
+	      ;; test/ada_mode-parens.adb
+	      ;; Local_11 : Local_11_Type := Local_11_Type'
+	      ;;   (A => Integer
+	      ;;      (1.0),
+	      ;;    B => Integer
+	      ;;      (2.0));
+	      (+ (ada-wisi-current-indentation) ada-indent-broken))
 
 	     (t
 	      (cond
@@ -323,15 +354,6 @@ BEFORE should be t when called from ada-wisi-before-cache, nil otherwise."
 		 ;;   (X : Integer)
 		 ;; indenting (X
 		 (ada-wisi-indent-cache ada-indent-broken containing))
-
-		((and
-		  (eq (wisi-cache-nonterm containing) 'entry_body)
-		  (eq (wisi-cache-token containing) 'WHEN))
-		 ;; test/ada_mode-nominal.adb
-		 ;; when Local_1 = 0 and not
-		 ;;   (Local_2 = 1)
-		 ;; indenting (Local_2
-		 (+ (current-column) ada-indent-broken))
 
 		(t
 		 ;; Open paren in an expression.

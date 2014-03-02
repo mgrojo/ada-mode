@@ -417,6 +417,7 @@ package Ada_Mode.Nominal is -- target 0
       entry E1
         (X : Integer);
       entry E2 (X : Integer);
+      entry E3 (X : Integer);
       procedure P1;
       procedure P2
         (A : Float;

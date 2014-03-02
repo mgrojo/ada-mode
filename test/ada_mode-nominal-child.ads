@@ -97,9 +97,9 @@ package Ada_Mode.Nominal.Child is
 
    Child_Obj_5 : constant Child_Type_1 :=
      (Parent_Type_1'
-       (Parent_Element_1 => 1,
-        Parent_Element_2 => 2.0,
-        Parent_Element_3 => False)
+        (Parent_Element_1 => 1,
+         Parent_Element_2 => 2.0,
+         Parent_Element_3 => False)
       with
       Child_Element_1 => 10,
       Child_Element_2 => 12.0,

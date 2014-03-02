@@ -270,6 +270,14 @@ package body Ada_Mode.Nominal is -- target 0
          Local_2 := Tmp;
       end E2;
 
+      entry E3
+        (X : Integer) when Local_1 = 0 and not
+          (Local_2 = 1)
+      is
+      begin
+         null;
+      end E3;
+
       procedure P1 is
       begin
          null;
