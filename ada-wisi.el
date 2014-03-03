@@ -822,19 +822,25 @@ cached token, return new indentation for point."
 
 	   (EQUAL_GREATER
 	    (cl-ecase (wisi-cache-nonterm (wisi-goto-containing cache nil))
-	      (actual_parameter_part
+	      ((actual_parameter_part aggregate)
 	       ;; ada_mode-generic_package.ads
 	       ;; with package A_Package_2 is new Ada.Text_IO.Integer_IO (Num =>
 	       ;;                                                           Formal_Signed_Integer_Type);
 	       ;;  indenting 'Formal_Signed_...', point on '(Num'
+	       ;;
+	       ;; test/ada_mode-parens.adb
+	       ;; (1      =>
+	       ;;    1,
+	       ;; indenting '1,'; point on '(1'
 	       (+ (current-column) 1 ada-indent-broken))
 
 	      (association_list
 	       ;; test/ada_mode-parens.adb
-	       ;; (1      => 1,
+	       ;; (1      =>
+	       ;;    1,
 	       ;;  2      =>
 	       ;;    1 + 2 * 3,
-	       ;; point is on ','
+	       ;; indending 1 +; point is on ',' after 1
 	       (wisi-indent-paren (1+ ada-indent-broken)))
 
 	      ((case_expression_alternative case_statement_alternative exception_handler)
