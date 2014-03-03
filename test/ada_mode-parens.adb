@@ -378,4 +378,20 @@ package body Ada_Mode.Parens is
                               There);
    end Hello;
 
+   --  Slice in procedure call
+   procedure Slice_1 (A : in Integer; B : in String)
+   is begin
+      null;
+   end Slice_1;
+
+   procedure Slice
+   is
+      C: constant String := "abcd";
+   begin
+      Slice_1
+        (1,
+         C
+           (1 .. 2));
+   end Slice;
+
 end Ada_Mode.Parens;

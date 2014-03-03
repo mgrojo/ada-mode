@@ -977,6 +977,7 @@
        ((name LEFT_PAREN range RIGHT_PAREN )
         (progn
         (wisi-statement-action 1 'name-paren 2 'open-paren 4 'close-paren)
+        (wisi-containing-action 1 2)
         (wisi-containing-action 2 3)))
        ((selected_component ))
        ((attribute_reference ))

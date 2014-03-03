@@ -9,6 +9,8 @@ Please send Emacs Ada mode bug reports to bug-gnu-emacs@gnu.org, with
 
 * Ada mode 5.0.2
 
+** Several minor indentation bugs have been fixed.
+
 ** Added "2.2 Upgrading from previous versions" to the user guide.
 
 ** ada-align now properly handles subprograms with the opening paren

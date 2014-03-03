@@ -48,6 +48,8 @@ package Ada_Mode.Parens is
 
    function Function_2 (Left, Right : in Array_Type_1) return Array_Type_1;
 
+   procedure Slice;
+
    --  Test ada-in-paramlist-p in expressions with parens that don't have wisi caches because of a failed parse.
    --EMACSCMD:(progn (end-of-line 3)(delete-char -1)(forward-word -1)(ada-in-paramlist-p)(end-of-line 1)(insert ";"))
    --EMACSRESULT:nil
