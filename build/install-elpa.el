@@ -5,7 +5,7 @@
 (require 'package) ;; not loaded in batch mode
 (package-initialize)
 
-(setq ada-version "5.0.2")
+(setq ada-version "5.1.0")
 (setq wisi-version "1.0.1")
 
 ;; We may be installing a newer version without a version bump, so

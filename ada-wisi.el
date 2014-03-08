@@ -187,7 +187,23 @@ BEFORE should be t when called from ada-wisi-before-cache, nil otherwise."
 	    (ada-wisi-indent-containing 0 cache t))
 
 	   (RECORD
-	    (ada-wisi-indent-containing ada-indent-record-rel-type cache t))
+	    ;; test/ada_mode-nominal.ads; ada-indent-record-rel-type = 3
+	    ;; type Private_Type_2 is abstract tagged limited
+	    ;;    record
+	    ;; indenting 'record'
+	    ;;
+	    ;; type Limited_Derived_Type_1d is
+	    ;;    abstract limited new Private_Type_1 with
+	    ;; record
+	    ;; indenting 'record'
+	    ;;
+	    ;; for Record_Type_1 use
+	    ;;   record
+	    ;;   indenting 'record'
+	    (let ((containing (wisi-goto-containing cache)))
+	      (while (not (memq (wisi-cache-token containing) '(FOR TYPE)))
+		(setq containing (wisi-goto-containing containing)))
+	      (+ (current-column) ada-indent-record-rel-type)))
 
 	   (t ;; other
 	    (ada-wisi-indent-containing ada-indent cache t))))
@@ -468,9 +484,36 @@ BEFORE should be t when called from ada-wisi-before-cache, nil otherwise."
 		 ;; type Object_Access_Type_7
 		 ;;   is access all Integer;
 		 ;; indenting 'is'
+		 ;;
+		 ;; type Limited_Derived_Type_1 is abstract limited new Private_Type_1 with
+		 ;; record
+		 ;; indenting 'record'
+		 ;;
+		 ;; type Limited_Derived_Type_3 is abstract limited new Private_Type_1
+		 ;;   with null record;
+		 ;; indenting 'with'
+		 ;;
+		 ;; type Limited_Derived_Type_2a is abstract limited new Private_Type_1
+		 ;; with record
+		 ;; indenting 'with record'
 		 (while (not (eq 'TYPE (wisi-cache-token containing)))
 		   (setq containing (wisi-goto-containing containing)))
-		 (+ (current-column) ada-indent-broken))
+
+		 (cond
+		  ((eq (wisi-cache-token cache) 'RECORD)
+		   (+ (current-column) ada-indent-record-rel-type))
+
+		  ((eq (wisi-cache-token cache) 'WITH)
+		   (let ((type-col (current-column)))
+		     (wisi-goto-end-1 cache)
+		     (if (eq 'WITH (wisi-cache-token (wisi-backward-cache)))
+			 ;; 'with null record;' or 'with private;'
+			 (+ type-col ada-indent-broken)
+		       (+ type-col ada-indent-record-rel-type))))
+
+		  (t
+		   (+ (current-column) ada-indent-broken))
+		  ))
 
 		(generic_instantiation
 		 ;; test/ada_mode-generic_instantiation.ads
@@ -506,6 +549,13 @@ BEFORE should be t when called from ada-wisi-before-cache, nil otherwise."
 		    ;;   := Local_1;
 		    (+ (current-indentation) ada-indent-broken))
 		   ))
+
+		(private_type_declaration
+		 ;; test/aspects.ads
+		 ;; type Vector is tagged private
+		 ;; with
+		 ;; indenting 'with'
+		 (+ (current-indentation) ada-indent-broken))
 
 		(qualified_expression
 		 ;; test/ada_mode-nominal-child.ads
@@ -725,6 +775,16 @@ cached token, return new indentation for point."
 		   ;;  Child_Element_1 => 10,
 		   ;;  Child_Element_2 => 12.0,
 		   (wisi-indent-paren 1))
+
+		  (aspect_specification_opt
+		   ;; aspects.ads:
+		   ;; type Vector is tagged private
+		   ;;   with
+		   ;;     Constant_Indexing => Constant_Reference,
+		   ;;     Variable_Indexing => Reference,
+		   ;; indenting 'Variable_Indexing'
+
+		   (+ (current-indentation) ada-indent-broken))
 		  ))
 	       ))))
 
@@ -785,7 +845,7 @@ cached token, return new indentation for point."
 	    ;;    Please_Abort;
 	    ;; then
 	    ;;   abort
-	    ;;    -- 'abort' indented with ada-broken-indent, since this is part
+	    ;;    -- 'abort' indented with ada-indent-broken, since this is part
 	    ;;    Titi;
 	    (ada-wisi-indent-containing ada-indent cache))
 
@@ -928,6 +988,14 @@ cached token, return new indentation for point."
 	    (cl-case (wisi-cache-nonterm cache)
 	      (aggregate
 	       (ada-wisi-indent-containing 0 cache nil))
+
+	      (aspect_specification_opt
+	       ;; type Vector is tagged private
+	       ;;   with
+	       ;;     Constant_Indexing => Constant_Reference,
+	       ;; indenting 'Constant_Indexing'
+	       (+ (current-indentation) ada-indent-broken))
+
 	      (raise_statement
 	       (ada-wisi-indent-containing ada-indent-broken cache nil))
 	      ))

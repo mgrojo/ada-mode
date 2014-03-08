@@ -16,7 +16,7 @@
 # but currently the code is not that clean; gpr-mode and gnat-inspect
 # require ada-mode. And it's not worth making gnat-core a package.
 
-VERSION := 5.0.1
+VERSION := 5.1.0
 
 publish : docs pub-ada pub-wisi build-elpa install-elpa
 

@@ -542,17 +542,17 @@ package Ada_Mode.Nominal is -- target 0
    --EMACSCMD:(progn (forward-line 2)(forward-word 2)(insert "    ")(ada-fill-comment-paragraph))
 
    -- a filled comment. Now is the time for all good parsers to come
-   -- to the aid of programmer.
+   -- to the aid of programmers.
 
    --EMACSCMD:(progn (forward-line 2)(forward-word 2)(insert "    ")(ada-fill-comment-paragraph 'full))
 
-   -- a filled  and justified comment.  Now  is the time for  all good
-   -- parsers to come to the aid of programmer.
+   -- a filled  and justified comment.   Now is  the time for  all good
+   -- parsers to come to the aid of programmers.
 
    --EMACSCMD:(progn (forward-line 2)(forward-word 2)(insert "    ")(ada-fill-comment-paragraph 'full t))
 
-   -- a filled and  justified postfix comment. Now is  the time for --
-   -- all good parsers to come to the aid of programmer.            --
+   -- a filled  and justified postfix  comment. Now is the  time for --
+   -- all good parsers to come to the aid of programmers.            --
 
    not overriding procedure Procedure_1a (Item  : in out Parent_Type_1);
    --EMACSCMD:(ada-which-function)
@@ -682,7 +682,7 @@ private -- Ada_Mode.Nominal
          Component_2 : Integer := 1;
          Component_3 : Integer := 2;
       end record
-        with Pack => True; -- FIXME (later): aspect indented with ada-indent-broken; ok? ask list, GPS
+      with Pack => True;
 
    type Limited_Derived_Type_1a is abstract limited new
       Private_Type_1 with record
@@ -706,7 +706,8 @@ private -- Ada_Mode.Nominal
       end record;
 
    type Limited_Derived_Type_1d is
-      abstract limited new Private_Type_1 with record
+     abstract limited new Private_Type_1 with
+      record
          Component_1 : Integer;
          Component_2 : Integer;
          Component_3 : Integer;
@@ -740,3 +741,6 @@ private -- Ada_Mode.Nominal
 end Ada_Mode.Nominal;
 --EMACSCMD:(progn (forward-line -1) (ada-prev-statement-keyword)(looking-at "private -- Ada_Mode.Nominal"))
 --EMACSRESULT:t
+-- Local Variables:
+-- fill-column: 70
+-- End:

@@ -33,26 +33,10 @@ install packages in -Q:
  (add-to-list 'package-archives (cons "test" "/Projects/elpa/archive/packages"))
  (list-packages))
 
- 5.0.2:
+ 5.1.0:
 build/wisi/Makefile
 build/Makefile
 doc changes in NEWS-ada-mode.text NEWS-wisi.text
-
-indentation bugs:
-
-   type Configuration_Type
-     (Max_Bus_Slot           : Devices.Null_Bus_Slot_Type;
-      Bus_Controller_Present : Boolean)
-     is new Devices.Configuration_Type
-       (Mode                   => Devices.Multi_Function,
-        Bus_Controller_Present => Bus_Controller_Present)
-       with record
-          BC  : BC_Configuration_Type (Max_Bus_Slot);
-          RTs : RT_Config_Array_Type;
-       end record;
-
-    'is', 'with record' should be aligned with 'type'
-
 
 ada_mode-parens.adb:214:09: (style) bad column
 
@@ -90,12 +74,12 @@ ada-set-point-accordingly
     use parse info to find identifier declaration instead of reference?
 
 
- 5.0.a: non_ascii in source
+ 5.1.a: non_ascii in source
 (grep-find "find . -type f -print | \"xargs\" grep -nH \"FIXME:\"")
 
 test/non_ascii.ads
 
- 5.0.b: skeleton refactor/cleanup
+ 5.1.b: skeleton refactor/cleanup
 
 gpr-skel.el
     ./gpr-skel.el:111:;; FIXME: code below should be in skeleton.el
@@ -105,7 +89,7 @@ gpr-skel.el
         assume will be in emacs 24.5 or 25.*
     use in ada-skel?
 
- 5.0.x: misc
+ 5.1.x: misc
 
 ./wisi.el	  ;; FIXME: insert newline in comment to create non-comment!?
     need tests for wisi-before/after-change vs comments, strings

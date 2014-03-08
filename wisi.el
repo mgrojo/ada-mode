@@ -528,6 +528,9 @@ Point must be at cache."
 	(when region
 	  (goto-char (car region))
 	  (setq cache (wisi-get-cache (car region)))
+	  (when (not cache)
+	    ;; token is non-terminal; first terminal doesn't have cache.
+	    (setq cache (wisi-forward-cache)))
 	  (while (and cache
 		      (< (point) (cdr region)))
 	    (if (not (wisi-cache-end cache))
@@ -907,6 +910,9 @@ Return start cache."
     )
   cache)
 
+(defun wisi-goto-end-1 (cache)
+  (goto-char (1- (wisi-cache-end cache))))
+
 (defun wisi-goto-end ()
   "Move point to token at end of statement point is in or before."
   (interactive)
@@ -915,7 +921,7 @@ Return start cache."
 		   (wisi-forward-cache))))
     (when (wisi-cache-end cache)
       ;; nil when cache is statement-end
-      (goto-char (1- (wisi-cache-end cache))))
+      (wisi-goto-end-1 cache))
     ))
 
 (defun wisi-next-statement-cache (cache)

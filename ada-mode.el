@@ -5,7 +5,7 @@
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Keywords FIXME: languages, ada ELPA broken for multiple keywords
-;; Version: 5.0.2
+;; Version: 5.1.0
 ;; package-requires: ((wisi "1.0.1") (cl-lib "0.4") (emacs "24.2"))
 ;; url: http://stephe-leake.org/emacs/ada-mode/emacs-ada-mode.html
 ;;
@@ -167,7 +167,7 @@
 (defun ada-mode-version ()
   "Return Ada mode version."
   (interactive)
-  (let ((version-string "5.0.1"))
+  (let ((version-string "5.1.0"))
     ;; must match:
     ;; ada-mode.texi
     ;; README
@@ -254,11 +254,13 @@ indentation parser accepts."
   "Comment fill prefix."
   :type 'string
   :group 'ada)
+(make-variable-buffer-local 'ada-language-version)
 
 (defcustom ada-fill-comment-postfix " --"
   "Comment fill postfix."
   :type 'string
   :group 'ada)
+(make-variable-buffer-local 'ada-language-version)
 
 (defcustom ada-prj-file-extensions '("adp" "prj")
   "List of Emacs Ada mode project file extensions.
@@ -1127,14 +1129,14 @@ ARG is the prefix the user entered with \\[universal-argument]."
   (or ada-ret-binding (setq ada-ret-binding (key-binding "\C-M")))
   (or ada-lfd-binding (setq ada-lfd-binding (key-binding "\C-j")))
 
-  (mapcar (function
-	   (lambda(key)
-	     (define-key
-	       ada-mode-map
-	       (char-to-string key)
-	       'ada-case-adjust-interactive)))
-	  '( ?_ ?% ?& ?* ?( ?) ?- ?= ?+
-		?| ?\; ?: ?' ?\" ?< ?, ?. ?> ?/ ?\n 32 ?\r ))
+  (mapc (function
+	 (lambda(key)
+	   (define-key
+	     ada-mode-map
+	     (char-to-string key)
+	     'ada-case-adjust-interactive)))
+	'( ?_ ?% ?& ?* ?( ?) ?- ?= ?+
+	      ?| ?\; ?: ?' ?\" ?< ?, ?. ?> ?/ ?\n 32 ?\r ))
 
   (define-key ada-mode-map [return] 'ada-case-adjust-interactive)
   )
