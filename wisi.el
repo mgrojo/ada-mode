@@ -472,7 +472,7 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
   (when (and wisi-parse-try
 	    (< wisi-cache-max pos))
     (when (> wisi-debug 0)
-      (message "wisi: parsing ..."))
+      (message "wisi: parsing %s ..." (buffer-name)))
 
     (setq wisi-parse-try nil)
     (setq wisi-parse-error-msg nil)

@@ -596,3 +596,6 @@ package body Ada_Mode.Nominal is -- target 0
 begin
    null;
 end Ada_Mode.Nominal;
+-- Local Variables:
+-- ada-auto-case: t
+-- End:

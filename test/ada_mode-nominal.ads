@@ -546,13 +546,13 @@ package Ada_Mode.Nominal is -- target 0
 
    --EMACSCMD:(progn (forward-line 2)(forward-word 2)(insert "    ")(ada-fill-comment-paragraph 'full))
 
-   -- a filled  and justified comment.   Now is  the time for  all good
+   -- a filled  and justified comment.  Now  is the time for  all good
    -- parsers to come to the aid of programmers.
 
    --EMACSCMD:(progn (forward-line 2)(forward-word 2)(insert "    ")(ada-fill-comment-paragraph 'full t))
 
-   -- a filled  and justified postfix  comment. Now is the  time for --
-   -- all good parsers to come to the aid of programmers.            --
+   -- a filled and  justified postfix comment. Now is  the time for --
+   -- all good parsers to come to the aid of programmers.           --
 
    not overriding procedure Procedure_1a (Item  : in out Parent_Type_1);
    --EMACSCMD:(ada-which-function)

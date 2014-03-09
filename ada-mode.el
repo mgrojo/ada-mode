@@ -294,6 +294,33 @@ Values defined by cross reference packages.")
 
 ;;;; keymap and menus
 
+(defvar ada-ret-binding nil)
+(defvar ada-lfd-binding nil)
+
+(defun ada-case-activate-keys ()
+  "Modify the key bindings for all the keys that should adjust casing."
+  (interactive)
+  ;; We can't use post-self-insert-hook for \n, \r, because they are
+  ;; not self-insert.
+
+  ;; The 'or ...' is there to be sure that the value will not be
+  ;; changed again when this is called more than once, since we
+  ;; are rebinding the keys.
+  (or ada-ret-binding (setq ada-ret-binding (key-binding "\C-M")))
+  (or ada-lfd-binding (setq ada-lfd-binding (key-binding "\C-j")))
+
+  (mapc (function
+	 (lambda(key)
+	   (define-key
+	     ada-mode-map
+	     (char-to-string key)
+	     'ada-case-adjust-interactive)))
+	'( ?_ ?% ?& ?* ?( ?) ?- ?= ?+
+	      ?| ?\; ?: ?' ?\" ?< ?, ?. ?> ?/ ?\n 32 ?\r ))
+
+  (define-key ada-mode-map [return] 'ada-case-adjust-interactive)
+  )
+
 (defvar ada-mode-map
   (let ((map (make-sparse-keymap)))
     ;; C-c <letter> are reserved for users
@@ -390,6 +417,7 @@ Values defined by cross reference packages.")
      ["Refresh cross reference cache" ada-xref-refresh             t]
      ["Reset parser"                  ada-reset-parser             t]
      )))
+(ada-case-activate-keys)
 
 ;; This doesn't need to be buffer-local because there can be only one
 ;; popup menu at a time.
@@ -1088,11 +1116,8 @@ With prefix arg, adjust case even if in comment."
   (interactive)
   (ada-case-adjust-region (point-min) (point-max)))
 
-(defvar ada-ret-binding nil)
-(defvar ada-lfd-binding nil)
-
 (defun ada-case-adjust-interactive (arg)
-  "Adjust the case of the previous word, and process the character just typed.
+  "If `ada-auto-case' is non-nil, adjust the case of the previous word, and process the character just typed.
 To be bound to keys that should cause auto-casing.
 ARG is the prefix the user entered with \\[universal-argument]."
   (interactive "P")
@@ -1102,44 +1127,20 @@ ARG is the prefix the user entered with \\[universal-argument]."
 
     (cond
      ((eq lastk ?\n)
-      (ada-case-adjust lastk)
-      (funcall ada-lfd-binding))
+        (when ada-auto-case
+	  (ada-case-adjust lastk))
+	(funcall ada-lfd-binding))
 
      ((memq lastk '(?\r return))
-      (ada-case-adjust lastk)
+      (when ada-auto-case
+	(ada-case-adjust lastk))
       (funcall ada-ret-binding))
 
      (t
-      (ada-case-adjust lastk)
+      (when ada-auto-case
+	(ada-case-adjust lastk))
       (self-insert-command (prefix-numeric-value arg)))
-     )
-  ))
-
-(defun ada-case-activate-keys ()
-  "Modify the key bindings for all the keys that should adjust casing."
-  (interactive)
-  ;; We can't use post-self-insert-hook for \n, \r, because they are
-  ;; not self-insert.  So we make ada-mode-map buffer local, and don't
-  ;; call this function if ada-auto-case is off. That means
-  ;; ada-auto-case cannot be changed after an Ada buffer is created.
-
-  ;; The 'or ...' is there to be sure that the value will not be
-  ;; changed again when Ada mode is called more than once, since we
-  ;; are rebinding the keys.
-  (or ada-ret-binding (setq ada-ret-binding (key-binding "\C-M")))
-  (or ada-lfd-binding (setq ada-lfd-binding (key-binding "\C-j")))
-
-  (mapc (function
-	 (lambda(key)
-	   (define-key
-	     ada-mode-map
-	     (char-to-string key)
-	     'ada-case-adjust-interactive)))
-	'( ?_ ?% ?& ?* ?( ?) ?- ?= ?+
-	      ?| ?\; ?: ?' ?\" ?< ?, ?. ?> ?/ ?\n 32 ?\r ))
-
-  (define-key ada-mode-map [return] 'ada-case-adjust-interactive)
-  )
+     )))
 
 ;;;; project files
 
@@ -2624,9 +2625,6 @@ The paragraph is indented on the first line."
 
   ;; This means to fully set ada-mode interactively, user must
   ;; do M-x ada-mode M-; (hack-local-variables)
-
-  (when ada-auto-case (ada-case-activate-keys))
-  ;; FIXME: ada-mode-map is not buffer local, so this is a global change
 
   (when global-font-lock-mode
     ;; This calls ada-font-lock-keywords, which depends on

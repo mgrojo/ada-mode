@@ -38,11 +38,6 @@ build/wisi/Makefile
 build/Makefile
 doc changes in NEWS-ada-mode.text NEWS-wisi.text
 
-ada_mode-parens.adb:214:09: (style) bad column
-
-ada-mode-map should be buffer-local, so ada-auto-case can be
-    or just query ada-auto-case in case-adjust, make only ada-auto-case buffer-local
-
 font-lock-keywords buffer local by default?
 
 upcase identifiers
@@ -70,14 +65,15 @@ upcase identifiers
 
 different casing for identifiers (uppercase) and attributes (mixed)
 
-ada-set-point-accordingly
-    use parse info to find identifier declaration instead of reference?
-
-
  5.1.a: non_ascii in source
 (grep-find "find . -type f -print | \"xargs\" grep -nH \"FIXME:\"")
 
 test/non_ascii.ads
+
+ada_mode-parens.adb:214:09: (style) bad column
+
+ada-set-point-accordingly
+    use parse info to find identifier declaration instead of reference?
 
  5.1.b: skeleton refactor/cleanup
 
