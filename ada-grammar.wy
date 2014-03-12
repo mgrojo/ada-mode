@@ -207,6 +207,7 @@
 %conflict SHIFT/REDUCE in state actual_parameter_part, attribute_designator on token LEFT_PAREN
 %conflict SHIFT/REDUCE in state association_opt, name on token EQUAL_GREATER
 %conflict SHIFT/REDUCE in state attribute_reference, attribute_designator on token TICK
+%conflict SHIFT/REDUCE in state case_statement_alternative, case_statement_alternative_list on token WHEN
 %conflict SHIFT/REDUCE in state formal_derived_type_definition, formal_derived_type_definition on token WITH
 %conflict SHIFT/REDUCE in state label_opt, label_opt on token IDENTIFIER
 %conflict SHIFT/REDUCE in state name, discrete_subtype_definition on token RIGHT_PAREN
@@ -491,7 +492,8 @@ case_statement_alternative
   ;
 
 case_statement_alternative_list
-  : case_statement_alternative
+  : ;; empty
+  | case_statement_alternative
   | case_statement_alternative_list case_statement_alternative
   ;
 

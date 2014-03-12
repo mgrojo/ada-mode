@@ -175,10 +175,75 @@ BEFORE should be t when called from ada-wisi-before-cache, nil otherwise."
        ))
       )))
 
+(defun ada-wisi-indent-list-break (cache prev-token)
+  "Return indentation for a token contained by CACHE, which must be a list-break.
+point must be on CACHE. PREV-TOKEN is the token before the one being indented."
+  (let ((break-point (point))
+	(containing (wisi-goto-containing cache)))
+    (cl-ecase (wisi-cache-token containing)
+      (LEFT_PAREN
+       (if (equal break-point (cl-caddr prev-token))
+	   ;; we are indenting the first token after the list-break; not hanging.
+	   ;;
+	   ;; test/parent.adb
+	   ;; Append_To (Formals,
+	   ;;            Make_Parameter_Specification (Loc,
+	   ;; indenting 'Make_...'
+	   ;;
+	   ;; test/ada_mode-generic_instantiation.ads
+	   ;; function Function_1 is new Instance.Generic_Function
+	   ;;   (Param_Type  => Integer,
+	   ;;    Result_Type => Boolean,
+	   ;;    Threshold   => 2);
+	   ;; indenting 'Result_Type'
+	   (+ (current-column) 1)
+	 ;; else hanging
+	 ;;
+	 ;; test/ada_mode-parens.adb
+	 ;; A :=
+	 ;;   (1 |
+	 ;;      2 => (1, 1, 1),
+	 ;;    3 |
+	 ;;      4 => (2, 2, 2));
+	 ;; indenting '4 =>'
+	 (+ (current-column) 1 ada-indent-broken)))
+
+      (IS
+       ;; test/ada_mode-conditional_expressions.adb
+       ;; L1 : Integer := (case J is
+       ;;                     when 42 => -1,
+       ;;                     -- comment aligned with 'when'
+       ;; indenting '-- comment'
+       (wisi-indent-paren (+ 1 ada-indent-when)))
+
+      (WITH
+       (cl-ecase (wisi-cache-nonterm containing)
+	 (aggregate
+	  ;; test/ada_mode-nominal-child.ads
+	  ;; (Default_Parent with
+	  ;;  Child_Element_1 => 10,
+	  ;;  Child_Element_2 => 12.0,
+	  ;; indenting 'Child_Element_2'
+	  (wisi-indent-paren 1))
+
+	 (aspect_specification_opt
+	  ;; test/aspects.ads:
+	  ;; type Vector is tagged private
+	  ;;   with
+	  ;;     Constant_Indexing => Constant_Reference,
+	  ;;     Variable_Indexing => Reference,
+	  ;; indenting 'Variable_Indexing'
+	  (+ (current-indentation) ada-indent-broken))
+	 ))
+      )
+    ))
+
 (defun ada-wisi-before-cache ()
   "Point is at indentation, before a cached token. Return new indentation for point."
   (let ((pos-0 (point))
-	(cache (wisi-get-cache (point))))
+	(cache (wisi-get-cache (point)))
+	(prev-token (save-excursion (wisi-backward-token)))
+	)
     (when cache
       (cl-ecase (wisi-cache-class cache)
 	(block-start
@@ -258,10 +323,7 @@ BEFORE should be t when called from ada-wisi-before-cache, nil otherwise."
 		  (+ paren-column 1 ada-indent-broken))))
 
 	     (list-break
-	      ;; test/parent.adb
-	      ;; Append_To (Formals,
-	      ;;            Make_Parameter_Specification (Loc,
-	      (wisi-indent-paren 1))
+	      (ada-wisi-indent-list-break containing prev-token))
 
 	     (t
 	      ;; test/ada_mode-generic_instantiation.ads
@@ -619,13 +681,7 @@ BEFORE should be t when called from ada-wisi-before-cache, nil otherwise."
 		    ))
 
 		 (list-break
-		  ;; test/ada_mode-generic_instantiation.ads
-		  ;; function Function_1 is new Instance.Generic_Function
-		  ;;   (Param_Type  => Integer,
-		  ;;    Result_Type => Boolean,
-		  ;;    Threshold   => 2);
-		  ;;   indenting 'Result_Type'
-		  (wisi-indent-paren 1))
+		  (ada-wisi-indent-list-break cache prev-token))
 
 		 (statement-other
 		  (cl-case (wisi-cache-token containing-cache)
@@ -742,51 +798,7 @@ cached token, return new indentation for point."
 	 (ada-wisi-indent-containing ada-indent-broken cache nil))
 
 	(list-break
-	 (save-excursion
-	   (let ((break-point (point))
-		 (containing (wisi-goto-containing cache)))
-	     (cl-ecase (wisi-cache-token containing)
-	       (LEFT_PAREN
-		(let*
-		    ((list-element-token (wisi-cache-token (save-excursion (wisi-forward-cache))))
-		     (indent
-		      (cl-case list-element-token
-			(WHEN ada-indent-when)
-			(t 0))))
-		  (if (equal break-point (cl-caddr prev-token))
-		      ;; we are indenting the first token after the list-break; not hanging.
-		      (+ (current-column) 1 indent)
-		    ;; else hanging
-		    (+ (current-column) 1 ada-indent-broken indent))))
-
-	       (IS
-		;; ada_mode-conditional_expressions.adb
-		;; L1 : Integer := (case J is
-		;;                     when 42 => -1,
-		;;                     -- comment aligned with 'when'
-		;; indenting '-- comment'
-		(wisi-indent-paren (+ 1 ada-indent-when)))
-
-	       (WITH
-		(cl-ecase (wisi-cache-nonterm containing)
-		  (aggregate
-		   ;; ada_mode-nominal-child.ads
-		   ;; (Default_Parent with
-		   ;;  Child_Element_1 => 10,
-		   ;;  Child_Element_2 => 12.0,
-		   (wisi-indent-paren 1))
-
-		  (aspect_specification_opt
-		   ;; aspects.ads:
-		   ;; type Vector is tagged private
-		   ;;   with
-		   ;;     Constant_Indexing => Constant_Reference,
-		   ;;     Variable_Indexing => Reference,
-		   ;; indenting 'Variable_Indexing'
-
-		   (+ (current-indentation) ada-indent-broken))
-		  ))
-	       ))))
+	 (ada-wisi-indent-list-break cache prev-token))
 
 	(open-paren
 	 ;; 1) A parenthesized expression, or the first item in an aggregate:

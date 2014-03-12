@@ -38,8 +38,6 @@ build/wisi/Makefile
 build/Makefile
 doc changes in NEWS-ada-mode.text NEWS-wisi.text
 
-font-lock-keywords buffer local by default?
-
 upcase identifiers
     org.emacs.ada-mode.stephe-1
         use dvc-propagate; ~/Misc/dvc_notes.text
