@@ -38,29 +38,6 @@ build/wisi/Makefile
 build/Makefile
 doc changes in NEWS-ada-mode.text NEWS-wisi.text
 
-upcase identifiers
-    org.emacs.ada-mode.stephe-1
-        use dvc-propagate; ~/Misc/dvc_notes.text
-
-    was ada-case-identifier option in 4.0
-
-> --- ada-mode.el.orig	2014-02-05 08:45:10.000000000 +0100
-> +++ ada-mode.el	2014-02-22 11:29:46.000000000 +0100
-> @@ -977,7 +977,7 @@
->
->  	;; else apply Mixed_Case and partial-exceptions
->  	(if ada-case-strict
-> -	    (downcase-region start end))
-> +	    (upcase-region start end))
->  	(while (not done)
->  	  (setq next
->  		(or
-
-    actually should factor out ada-mixed-case and ada-case-adjust-substring
-    specify ada-mixed-case as default for ada-case-identifier, allow upcase-region as option (and CamelCase someday :)
-    always call ada-case-adjust-substring after.
-    consider ada-case-strict
-
 different casing for identifiers (uppercase) and attributes (mixed)
 
  5.1.a: non_ascii in source

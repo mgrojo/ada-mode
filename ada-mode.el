@@ -228,6 +228,17 @@ Function to call to adjust the case of Ada keywords."
   :safe  'functionp)
 (make-variable-buffer-local 'ada-case-keyword)
 
+(defcustom ada-case-identifier 'ada-mixed-case
+  "Buffer-local value that may override project variable `case_keyword'.
+Global value is default for project variable `case_keyword'.
+Function to call to adjust the case of Ada keywords."
+  :type '(choice (const ada-mixed-case)
+		 (const downcase-word)
+		 (const upcase-word))
+  :group 'ada
+  :safe  'functionp)
+(make-variable-buffer-local 'ada-case-identifier)
+
 (defcustom ada-case-strict t
   "Buffer-local value that may override project variable `case_strict'.
 Global value is default for project variable `case_strict'.
@@ -996,9 +1007,32 @@ User is prompted to choose a file from project variable casing if it is a list."
 	       (point))))
     (member (downcase word) ada-keywords)))
 
+(defun ada-mixed-case (start end)
+  "Adjust case of region START END to Mixed_Case."
+  (let ((done nil)
+	next)
+    (if ada-case-strict
+	(downcase-region start end))
+    (goto-char start)
+    (while (not done)
+      (setq next
+	    (or
+	     (save-excursion (when (search-forward "_" end t) (point-marker)))
+	     (copy-marker (1+ end))))
+
+      ;; upcase first char
+      (insert-char (upcase (following-char)) 1)
+      (delete-char 1)
+
+      (goto-char next)
+      (if (< (point) end)
+	  (setq start (point))
+	(setq done t))
+      )))
+
 (defun ada-case-adjust-identifier ()
   "Adjust case of the previous word as an identifier.
-Uses Mixed_Case, with exceptions defined in
+Uses `ada-case-identifier', with exceptions defined in
 `ada-case-full-exceptions', `ada-case-partial-exceptions'."
   (interactive)
   (save-excursion
@@ -1018,26 +1052,23 @@ Uses Mixed_Case, with exceptions defined in
 	    (insert (car match))
 	    (delete-region (point) end))
 
-	;; else apply Mixed_Case and partial-exceptions
-	(if ada-case-strict
-	    (downcase-region start end))
+	;; else apply ada-case-identifier
+	(funcall ada-case-identifier start end)
+
+	;; apply partial-exceptions
+	(goto-char start)
 	(while (not done)
 	  (setq next
 		(or
 		 (save-excursion (when (search-forward "_" end t) (point-marker)))
 		 (copy-marker (1+ end))))
 
-	  (if (setq match (assoc-string (buffer-substring-no-properties start (1- next))
+	  (when (setq match (assoc-string (buffer-substring-no-properties start (1- next))
 					ada-case-partial-exceptions t))
-	      (progn
-		;; see comment above at 'full word exception' for why
-		;; we do insert first.
-		(insert (car match))
-		(delete-region (point) (1- next)))
-
-	    ;; else upcase first char
-	    (insert-char (upcase (following-char)) 1)
-	    (delete-char 1))
+	    ;; see comment above at 'full word exception' for why
+	    ;; we do insert first.
+	    (insert (car match))
+	    (delete-region (point) (1- next)))
 
 	  (goto-char next)
 	  (if (< (point) end)

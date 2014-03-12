@@ -1,10 +1,13 @@
-separate (Ada_Mode) protected body Separate_Protected_Body
+separate (ADA_MODE) protected body SEPARATE_PROTECTED_BODY
 is
    -- no comment before "separate", no newline after )
+   --
+   -- also test ada-case-identifier = upcase-region
+
    --EMACSCMD:(ada-parse-prj-file "ada_mode.adp")
    --EMACSCMD:(ada-select-prj-file "ada_mode.adp")
    --EMACSCMD:(progn (goto-char (point-min))(ada-find-other-file t)(looking-at "protected body Separate_Protected_Body is"))
-   entry E when True is
+   entry E when TRUE is
    begin
       null;
    end E;
@@ -12,8 +15,11 @@ is
    begin
       null;
    end P;
-   function F return Boolean is
+   function F return BOOLEAN is
    begin
-      return False;
+      return FALSE;
    end F;
-end Separate_Protected_Body;
+end SEPARATE_PROTECTED_BODY;
+-- Local Variables:
+-- ada-case-identifier: upcase-region
+-- End:
