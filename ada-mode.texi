@@ -1097,12 +1097,15 @@ before any compiler-specific project variable.
 @item @code{auto_case}      [default: @code{ada-auto-case, t}]
 Non-nil means automatically change case of preceding word while typing.
 
+@item @code{case_identifier}   [default: @code{ada-case-identifier, ada-mixed-case}]
+Function to call to adjust the case of an Ada identifier.
+
 @item @code{case_keyword}   [default: @code{ada-case-keyword, downcase-word}]
-Function to call to adjust the case of an Ada keywords.
+Function to call to adjust the case of an Ada keyword.
 
 @item @code{case_strict}    [default: @code{ada-case-strict, t}]
-If non-nil, force Mixed_Case for identifiers.
-Otherwise, allow UPPERCASE for identifiers.
+If non-nil, @code{ada-mixed-case} forces @code{Mixed_Case} for identifiers.
+Otherwise, @code{ada-mixed-case} allows @code{UPPERCASE} for identifiers.
 
 @item @code{casing}         [default: @code{ada-case-exception-file, nil}]
 List of files containing casing exceptions. @xref{Automatic casing}.

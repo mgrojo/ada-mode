@@ -1215,6 +1215,7 @@ Optional PLIST defaults to `ada-prj-current-project'."
 	(ada_compiler    ada-compiler)
 	(auto_case       ada-auto-case)
 	(case_keyword    ada-case-keyword)
+	(case_identifier ada-case-identifier)
 	(case_strict     ada-case-strict)
 	(casing          (if (listp ada-case-exception-file)
 			     ada-case-exception-file
@@ -1267,6 +1268,7 @@ Include properties set via `ada-prj-default-compiler-alist',
       'ada_compiler    ada-compiler
       'auto_case       ada-auto-case
       'case_keyword    ada-case-keyword
+      'case_identifier ada-case-identifier
       'case_strict     ada-case-strict
       'casing          (if (listp ada-case-exception-file)
 			   ada-case-exception-file
@@ -1398,6 +1400,9 @@ Return new value of PROJECT."
 
 	   ((string= (match-string 1) "case_keyword")
 	    (setq project (plist-put project 'case_keyword (intern (match-string 2)))))
+
+	   ((string= (match-string 1) "case_identifier")
+	    (setq project (plist-put project 'case_identifier (intern (match-string 2)))))
 
 	   ((string= (match-string 1) "case_strict")
 	    (setq project (plist-put project 'case_strict (intern (match-string 2)))))

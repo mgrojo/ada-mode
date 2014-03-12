@@ -18,7 +18,7 @@
 
 VERSION := 5.1.0
 
-publish : docs pub-ada pub-wisi build-elpa install-elpa
+all : docs pub-ada pub-wisi build-elpa install-elpa
 
 docs : info html
 
@@ -85,7 +85,13 @@ build-elpa : force
 # (dvc-state-one "/Projects/elpa/")
 # shell git push
 
+# package install from public doesn't work in batch
 install-elpa :
-	emacs -Q --batch -l install-elpa.el
+	emacs -Q -l install-elpa.el
+
+install-clean :
+	rm -r ~/.emacs.d/elpa/ada-mode*
+	rm -r ~/.emacs.d/elpa/wisi*
+	rm -r ~/.emacs.d/elpa/cl*
 
 # end of file

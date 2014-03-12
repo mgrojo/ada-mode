@@ -2,7 +2,6 @@
 
 # test with mtn controlled source:  (setenv "ADA_MODE_DIR" "-L ../.. -l autoloads.el")
 # test with installed elpa package: (setenv "ADA_MODE_DIR" "-f package-initialize")
-export ADA_MODE_DIR ?= -L ../.. -l autoloads.el
 
 # "compile-ada" is a test; it verifies the test sources are legal Ada
 all : update compile-ada-clean compile-ada autoloads test-clean test
@@ -30,7 +29,7 @@ test-wisi :: empty_production_6.wisi-test
 test-wisi :: empty_production_8.wisi-test
 
 one : RUNTEST := run-indent-test-wisi.el
-one : gnatprep.adb.diff
+one : ada_mode-separate_protected_body.adb.diff
 
 vpath %.wy ../../ ../../test/wisi
 vpath %.el ../../ .
@@ -50,7 +49,7 @@ export ADA_PROJECT_PATH=../../test/;../../test/subdir
 endif
 
 %.wisi-test : %-wy.el
-	$(EMACS_EXE) -Q -batch -L .. -L ../.. -l run-wisi-test.el --eval '(run-test "$*")'
+	$(EMACS_EXE) -Q -batch -L .. $(ADA_MODE_DIR) -l run-wisi-test.el --eval '(run-test "$*")'
 
 .PRECIOUS : %-wy.el ../../%-grammar-wy.el
 
