@@ -2,9 +2,13 @@
 
 # test with mtn controlled source:  (setenv "ADA_MODE_DIR" "-L ../.. -l autoloads.el")
 # test with installed elpa package: (setenv "ADA_MODE_DIR" "-f package-initialize")
+ADA_MODE_DIR ?= -L ../.. -l autoloads.el
 
 # "compile-ada" is a test; it verifies the test sources are legal Ada
 all : update compile-ada-clean compile-ada autoloads test-clean test
+
+# things that can be done on debian stable (opentoken doesn't build, no gnatinspect, no gnatstub)
+debian-all : compile-ada-clean compile-ada autoloads test-clean test-debian
 
 # this updates everything after any source change, without running the tests.
 update : ../../ada-grammar-wy.el ../../gpr-grammar-wy.el  byte-compile
@@ -16,6 +20,8 @@ byte-compile : byte-compile-clean
 	cd ../../; $(EMACS_EXE) -Q -batch -L . --eval '(progn (package-initialize)(batch-byte-compile))' *.el
 
 test : test-wisi test-ada-gnatxref.stamp test-ada-gnatinspect.stamp test-gpr test-elisp gpr-skel.gpr.diff
+
+test-debian : test-ada-gnatxref.stamp test-gpr test-elisp gpr-skel.gpr.diff
 
 # test-elisp debug:
 # (progn (add-to-list 'load-path (expand-file-name "../../test")) (load "ada-mode-test.el"))
@@ -38,11 +44,13 @@ vpath %.el ../../ .
 # WISI_OPENTOKEN can be overridden on the 'make' command line or by an
 # external environment variable.
 ifeq ($(shell uname),Linux)
+INDENT.EL := ada-wisi.el gpr-wisi.el
 WISI_OPENTOKEN ?= /home/Projects/opentoken/org.opentoken/build/release
 export ADA_PROJECT_PATH=../../test/:../../test/subdir
 
 else
 # windows
+INDENT.EL := ada-wisi.el gpr-wisi.el ../../gpr-grammar-wy.el ../../ada-grammar-wy.el
 WISI_OPENTOKEN ?= $(CURDIR)/../../../org.opentoken/build/release
 export ADA_PROJECT_PATH=../../test/;../../test/subdir
 
@@ -76,7 +84,6 @@ test-clean ::
 	rm -f *.output *.wisi-test *.stamp
 	cd ../../test/wisi/; rm -f *-wy.el *.output
 
-INDENT.EL := ada-wisi.el gpr-wisi.el ../../gpr-grammar-wy.el ../../ada-grammar-wy.el
 include ../common.make
 
 .PHONY : force
