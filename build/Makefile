@@ -16,7 +16,7 @@
 # but currently the code is not that clean; gpr-mode and gnat-inspect
 # require ada-mode. And it's not worth making gnat-core a package.
 
-VERSION := 5.1.0
+VERSION := 5.1.1
 
 all : docs pub-ada pub-wisi build-elpa install-elpa
 
@@ -87,7 +87,7 @@ build-elpa : force
 
 # package install from public doesn't work in batch
 install-elpa :
-	emacs -Q -l install-elpa.el
+	emacs -Q --eval '(progn (load-file "install-elpa.el")(kill-emacs))'
 
 install-clean :
 	rm -r ~/.emacs.d/elpa/ada-mode*

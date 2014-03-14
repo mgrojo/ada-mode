@@ -7,7 +7,15 @@ Please send Emacs Ada mode bug reports to bug-gnu-emacs@gnu.org, with
 'ada-mode' in the subject. If possible, use M-x report-emacs-bug.
 
 
+* Ada mode 5.1.1
+14 Mar 2014
+
+** require wisi-1.0.2, to fix packaging bug
+
+** gnat-find now called with -a to include read-only .ali files in the results.
+
 * Ada mode 5.1.0
+13 Mar 2014
 
 ** Emacs 24.2 supported, via cl-lib in Gnu ELPA
 
