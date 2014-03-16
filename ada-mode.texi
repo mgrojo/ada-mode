@@ -29,7 +29,7 @@ developing GNU and promoting software freedom.''
 @title Ada Mode
 @sp 2
 @subtitle An Emacs major mode for programming in Ada
-@subtitle Ada Mode Version 5.1.1
+@subtitle Ada Mode Version 5.1.2
 @sp 2
 @page
 @vskip 0pt plus 1filll

@@ -16,7 +16,7 @@
 # but currently the code is not that clean; gpr-mode and gnat-inspect
 # require ada-mode. And it's not worth making gnat-core a package.
 
-VERSION := 5.1.1
+VERSION := 5.1.2
 
 all : docs pub-ada pub-wisi build-elpa install-elpa
 
@@ -55,6 +55,7 @@ source-clean :
 
 # copy files to ELPA ada-mode package
 pub-ada : force
+	rm -rf ../../elpa/archive
 	mkdir -p ../../elpa/packages/ada-mode
 	rm -f ../../elpa/packages/ada-mode/ada-mode-pkg.el
 	cp ../README ../ada*.el ../ada-*.info ../dir ../ada_license.text ../../elpa/packages/ada-mode
