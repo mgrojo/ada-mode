@@ -201,9 +201,12 @@ src_dir will include compiler runtime."
 
 (defun gnat-run (exec command &optional err-msg expected-status)
   "Run a gnat command line tool, as \"EXEC COMMAND\".
-EXEC must be an executable found on `exec-path'. COMMAND must be a list of strings.
+EXEC must be an executable found on `exec-path'.
+COMMAND must be a list of strings.
 ERR-MSG must be nil or a string.
-EXPECTED-STATUS must be nil or a list of integers.
+EXPECTED-STATUS must be nil or a list of integers; throws an error if
+process status is not a member.
+
 Return process status.
 Assumes current buffer is (gnat-run-buffer)"
   (set 'buffer-read-only nil)
@@ -390,6 +393,27 @@ list."
       (set-buffer start-buffer)
       )
     nil))
+
+(defun ada-gnat-syntax-propertize (start end)
+  (goto-char start)
+  (while (re-search-forward
+	  (concat
+	   "[^a-zA-Z0-9)]\\('\\)\\[[\"a-fA-F0-9]+\"\\]\\('\\)"; 1, 2: non-ascii character literal, not attributes
+	   "\\|\\(\\[\"[a-fA-F0-9]+\"\\]\\)"; 3: non-ascii character in identifier
+	   )
+	  end t)
+    (cond
+     ((match-beginning 1)
+	(put-text-property
+	 (match-beginning 1) (match-end 1) 'syntax-table '(7 . ?'))
+	(put-text-property
+	 (match-beginning 2) (match-end 2) 'syntax-table '(7 . ?')))
+
+     ((match-beginning 3)
+	(put-text-property
+	 (match-beginning 3) (match-end 3) 'syntax-table '(2 . nil)))
+     )
+    ))
 
 (provide 'gnat-core)
 

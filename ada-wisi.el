@@ -1435,7 +1435,15 @@ Also return cache at start."
 	      ada-grammar-wy--keyword-table
 	      ada-grammar-wy--token-table
 	      ada-grammar-wy--parse-table)
+
+  ;; Handle escaped quotes in strings
   (setq wisi-string-quote-escape-doubled t)
+
+  ;; Handle bracket notation for non-ascii characters in strings. This
+  ;; is actually more forgiving than that; it will treat
+  ;; '"foo["bar"]baz" as a single string. But that will be caught by
+  ;; the compiler, so it's ok for us.
+  (setq wisi-string-quote-escape '(?\" . ?\[ ))
 
   (set (make-local-variable 'comment-indent-function) 'wisi-comment-indent)
 

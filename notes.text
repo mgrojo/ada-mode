@@ -33,14 +33,12 @@ install packages in -Q:
  (add-to-list 'package-archives (cons "test" "/Projects/elpa/archive/packages"))
  (list-packages))
 
- 5.1.a: non_ascii in source
+ 5.1.a: non_ascii in source etc
 build/wisi/Makefile
 build/Makefile
 doc changes in NEWS-ada-mode.text NEWS-wisi.text
 
 (grep-find "find . -type f -print | \"xargs\" grep -nH \"FIXME:\"")
-
-test/non_ascii.ads
 
 ada_mode-parens.adb:214:09: (style) bad column
 
@@ -48,9 +46,6 @@ ada-set-point-accordingly
     use parse info to find identifier declaration instead of reference?
 
 different casing for identifiers (uppercase) and attributes (mixed)
-
-reparses too much in ada_mode-nominal.ad[sb]
-    inhibit invalidate in case-adjust?
 
  5.1.b: skeleton refactor/cleanup
 

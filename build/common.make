@@ -82,7 +82,7 @@ test-elisp :
 	$(EMACS_EXE) -Q -batch -L ../../test -L ../.. -l ada-mode-test.el
 
 gpr-skel.gpr.tmp :
-	$(EMACS_EXE) -Q -batch -L ../../test/gpr -L ../.. -l gpr-skel-test.el --eval '(gpr-skel-test)'
+	$(EMACS_EXE) -Q -batch -L ../../test/gpr -L ../.. -l gpr-skel-test.el --eval '(progn (setq vc-handled-backends nil)(gpr-skel-test))'
 
 %.diff : % %.tmp
 	diff -u $< $*.tmp > $*.diff
@@ -90,7 +90,7 @@ gpr-skel.gpr.tmp :
 .PRECIOUS : %.tmp
 
 autoloads : force
-	$(EMACS_EXE) -Q -batch --eval '(let ((generated-autoload-file (expand-file-name "../../autoloads.el")))(update-directory-autoloads "../../"))'
+	$(EMACS_EXE) -Q -batch --eval '(progn (setq vc-handled-backends nil)(let ((generated-autoload-file (expand-file-name "../../autoloads.el")))(update-directory-autoloads "../../")))'
 
 # load path rationale:
 #    .. for run-*.el

@@ -7,6 +7,14 @@ Please send Emacs Ada mode bug reports to bug-gnu-emacs@gnu.org, with
 'ada-mode' in the subject. If possible, use M-x report-emacs-bug.
 
 
+* Ada mode 5.1.3
+
+** inhibit reparse due to case adjust; case adjust entire buffer is
+   now _much_ faster.
+
+** Non-ASCII characters supported in Ada mode buffers, including GNAT
+   bracket notation.
+
 * Ada mode 5.1.2
 16 Mar 2014
 

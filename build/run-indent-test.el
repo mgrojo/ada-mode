@@ -103,6 +103,7 @@
 
   (when (not skip-reindent-test)
     ;; Reindent the buffer
+    (message "indenting")
 
     ;; first unindent; if the indentation rules do nothing, the test
     ;; would pass, otherwise!  Only unindent by 1 column, so comments
@@ -121,6 +122,7 @@
   (when (and (not skip-recase-test)
 	     (eq major-mode 'ada-mode))
     ;; gpr-mode doesn't support casing yet
+    (message "casing")
     (ada-case-adjust-buffer))
   )
 

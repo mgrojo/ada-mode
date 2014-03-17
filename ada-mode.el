@@ -233,8 +233,8 @@ Function to call to adjust the case of Ada keywords."
 Global value is default for project variable `case_keyword'.
 Function to call to adjust the case of Ada keywords."
   :type '(choice (const ada-mixed-case)
-		 (const downcase-word)
-		 (const upcase-word))
+		 (const downcase-region)
+		 (const upcase-region))
   :group 'ada
   :safe  'functionp)
 (make-variable-buffer-local 'ada-case-identifier)
@@ -1099,25 +1099,30 @@ If IN-COMMENT is non-nil, adjust case of words in comments."
 		 (not (ada-in-numeric-literal-p))
 		 ))
 
-      (cond
-       ;; Some attributes are also keywords, but captialized as
-       ;; attributes. So check for attribute first.
-       ((and
-	 (not in-comment)
-	 (save-excursion
-	   (skip-syntax-backward "w_")
-	   (eq (char-before) ?')))
-	(ada-case-adjust-identifier))
+      ;; The indentation engine may trigger a reparse on
+      ;; non-whitespace changes, but we know we don't need to reparse
+      ;; for this change (assuming the user has not abused case
+      ;; exceptions!).
+      (let ((inhibit-modification-hooks t))
+	(cond
+	 ;; Some attributes are also keywords, but captialized as
+	 ;; attributes. So check for attribute first.
+	 ((and
+	   (not in-comment)
+	   (save-excursion
+	     (skip-syntax-backward "w_")
+	     (eq (char-before) ?')))
+	  (ada-case-adjust-identifier))
 
-       ((and
-	 (not in-comment)
-	 (not (eq typed-char ?_))
-	 (ada-after-keyword-p))
-	(funcall ada-case-keyword -1))
+	 ((and
+	   (not in-comment)
+	   (not (eq typed-char ?_))
+	   (ada-after-keyword-p))
+	  (funcall ada-case-keyword -1))
 
-       (t (ada-case-adjust-identifier))
-       ))
-    ))
+	 (t (ada-case-adjust-identifier))
+	 ))
+      )))
 
 (defun ada-case-adjust-at-point (&optional in-comment)
   "Adjust case of word at point, move to end of word.
@@ -1125,7 +1130,10 @@ With prefix arg, adjust case even if in comment."
   (interactive "P")
   (when
       (and (not (eobp))
-	   (memq (char-syntax (char-after)) '(?w ?_)))
+	   ;; we use '(syntax-after (point))' here, not '(char-syntax
+	   ;; (char-after))', because the latter does not respect
+	   ;; ada-syntax-propertize.
+	   (memq (syntax-class (syntax-after (point))) '(2 3)))
     (skip-syntax-forward "w_"))
   (ada-case-adjust nil in-comment))
 
@@ -1620,8 +1628,8 @@ In particular, character constants are set to have string syntax."
     (goto-char start)
     (while (re-search-forward
 	    (concat
-	     "[^a-zA-Z0-9)]\\('\\)[^'\n]\\('\\)"; 1, 2: character constants, not attributes
-	     "\\|[^a-zA-Z0-9)]\\('''\\)"; 3: character constant '''
+	     "[^a-zA-Z0-9)]\\('\\)[^'\n]\\('\\)"; 1, 2: character literal, not attribute
+	     "\\|[^a-zA-Z0-9)]\\('''\\)"; 3: character literal '''
 	     "\\|\\(--\\)"; 4: comment start
 	     )
 	    end t)
