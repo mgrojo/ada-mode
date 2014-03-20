@@ -396,7 +396,7 @@
       (component_declaration
        ((identifier_list COLON component_definition COLON_EQUAL expression aspect_specification_opt SEMICOLON )
         (progn
-        (wisi-statement-action 1 'statement-start 2 'statement-other 7 'statement-end)
+        (wisi-statement-action 1 'statement-start 2 'statement-other 4 'statement-other 7 'statement-end)
         (wisi-containing-action 2 3)
         (wisi-containing-action 4 5)
         (wisi-containing-action 4 6)))
@@ -1054,7 +1054,7 @@
         (wisi-containing-action 1 6)))
        ((identifier_list COLON aliased_opt constant_opt access_definition COLON_EQUAL expression aspect_specification_opt SEMICOLON )
         (progn
-        (wisi-statement-action 1 'statement-start 2 'statement-other 9 'statement-end)
+        (wisi-statement-action 1 'statement-start 2 'statement-other 6 'statement-other 9 'statement-end)
         (wisi-containing-action 2 5)
         (wisi-containing-action 6 7)
         (wisi-containing-action 1 8)))
@@ -1065,7 +1065,7 @@
         (wisi-containing-action 1 6)))
        ((identifier_list COLON aliased_opt constant_opt array_type_definition COLON_EQUAL expression aspect_specification_opt SEMICOLON )
         (progn
-        (wisi-statement-action 1 'statement-start 2 'statement-other 9 'statement-end)
+        (wisi-statement-action 1 'statement-start 2 'statement-other 6 'statement-other 9 'statement-end)
         (wisi-containing-action 2 5)
         (wisi-containing-action 6 7)
         (wisi-containing-action 1 8)))

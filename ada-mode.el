@@ -1951,7 +1951,7 @@ If OTHER-WINDOW is non-nil, show the buffer in another window."
 	     (ff-get-file-name compilation-search-path file))))
     (if file-1
 	(setq file file-1)
-      (error "File %s not found; installed library, or set project?" fi))
+      (error "File %s not found; installed library, or set project?" file))
     )
 
   (let ((buffer (get-file-buffer file)))

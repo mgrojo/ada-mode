@@ -648,6 +648,10 @@ If CONTAINING-TOKEN is empty, the next token number is used."
   ;; wisi-tokens is is bound in action created by wisi-semantic-action
   (let* ((containing-region (cddr (nth (1- containing-token) wisi-tokens)))
 	 (contained-region (cddr (nth (1- contained-token) wisi-tokens))))
+
+    (unless (wisi-get-cache (car containing-region))
+      (error "wisi-containing-action: containing-token has no cache. grammar error; missing action"))
+
     (while (not containing-region)
       ;; containing-token is empty; use next
       (setq containing-region (cddr (nth containing-token wisi-tokens))))

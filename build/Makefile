@@ -1,6 +1,6 @@
-# Build manuals, publish to web and ELPA; see subdirs for building
-# code and running tests (each subdir supports a different indentation
-# engine)
+# Build gnatquery, manuals; publish to web and ELPA; see subdirs for
+# building elisp code and running tests (each subdir supports a
+# different indentation engine)
 #
 # test packages from process-archive: (setq package-archives (list (cons "test" "/Projects/elpa/archive/packages")))
 # test packages from all-in-place: (setq package-archives (list (cons "test" "/Projects/elpa/packages")))
@@ -18,7 +18,7 @@
 
 VERSION := 5.1.2
 
-all : docs pub-ada pub-wisi build-elpa install-elpa
+all : gnatquery docs pub-ada pub-wisi build-elpa install-elpa
 
 docs : info html
 
@@ -44,7 +44,7 @@ VPATH := ..
 %.html : %.texi
 	makeinfo --html --no-split $< -o ../$@
 
-clean :
+clean ::
 	rm -f ../*.info ../*.html ../dir
 
 source-clean :
@@ -95,4 +95,25 @@ install-clean :
 	rm -r ~/.emacs.d/elpa/wisi*
 	rm -r ~/.emacs.d/elpa/cl*
 
+## build gnatquery
+
+.PHONY : force
+
+# this requires more complicated LD_LIBRARY_PATH at runtime
+# gnatquery: export LIBRARY_TYPE := relocatable
+gnatquery: force
+	gprbuild -p gnatquery.gpr
+
+install : gnatquery
+	cp gnatquery ~/bin
+
+clean ::
+	rm -rf obj
+	rm -rf gnatquery
+
+# Local Variables:
+# eval: (gnat-7.1.2)
+# eval: (ada-parse-prj-file "gnatquery.prj")
+# eval: (ada-select-prj-file "gnatquery.prj")
+# end:
 # end of file

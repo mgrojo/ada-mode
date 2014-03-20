@@ -157,8 +157,10 @@ Uses 'gnat list'. Returns new '(src-dirs prj-dirs)."
 
     (cl-ecase (ada-prj-get 'xref_tool project)
       (gnat
-       (destructuring-bind (src-dirs prj-dirs)
-	   (gnat-get-paths-1 src-dirs prj-dirs)))
+       (destructuring-bind (src-dirs-1 prj-dirs-1)
+	   (gnat-get-paths-1 src-dirs prj-dirs)
+	 (setq src-dirs src-dirs-1)
+	 (setq prj-dirs prj-dirs-1)))
 
       (gnat_inspect
        (setq src-dirs (gnat-inspect-get-src-dirs src-dirs))
@@ -355,6 +357,8 @@ list."
     ("a-string" . "Ada.Strings")
     ("a-strmap" . "Ada.Strings.Maps")
     ("a-strunb" . "Ada.Strings.Unbounded")
+    ("g-comlin" . "GNAT.Command_Line")
+    ("g-dirope" . "GNAT.Directory_Operations")
     ("g-socket" . "GNAT.Sockets")
     ("interfac" . "Interfaces")
     ("i-c"      . "Interfaces.C")

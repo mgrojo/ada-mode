@@ -4,6 +4,8 @@
 ^ada-mode\.info$
 ^autoloads\.el$
 ^build/.*\.tar\.gz$
+^build/gnatquery$
+^build/obj$
 ^build/smie/.*\.ali$
 ^build/smie/.*\.diff$
 ^build/smie/.*\.tmp$

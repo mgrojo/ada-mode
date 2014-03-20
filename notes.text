@@ -55,7 +55,7 @@ emacs-ada-prj-mode
 replacement for gnatinspect that returns project path for agg project
     gnat 7.2 kills that for gnatls
     as well as everything else ada mode needs
-    gnatquery ?
+    gnatquery; see below
 
  5.1.b: skeleton refactor/cleanup
 
@@ -95,8 +95,8 @@ SPARK aspects
 
 (see general below for more possibilites)
 
- gnat-inspect
-test gnat 7.2, gnatcoll 1.7w
+ gnat-inspect, gnatquery
+test gnat 7.2, gnatcoll 1.6
 
 ~/Projects/gnatcoll-1.6w-src/docs/xref.rst
 c:/Apps/GNAT-7.1.2/gnatcoll-1.6w-src/src/tools/gnatinspect.adb
@@ -107,30 +107,26 @@ gnatinspect verbosity in .gnatdebug:
 -- Projects
 -- ENTITIES.PARSING
 
-gnatinspect is slow
-    implementing gnat-inspect-session-*
-    (require 'gnat-inspect)
-    (gnat-inspect-kill-all-sessions)
-    /Projects/GDS/work_dscovr_release/dscovr/build/x86_gnu_windows_debug/Makefile
+gnat ls does not report source_path for c++ projects
+    nor for aggregates with gnat 7.2!
+    replace gnatinspect with gnat-query, support aggregate project prj_dirs query
+    gnat-inspect.el queries:
+        overrides
+        refresh
+        refs
+        source_dirs
 
-    (pop-to-buffer " *gnatinspect-c:/Projects/GDS/work_dscovr_release/dscovr/build/x86_gnu_windows_debug/gds_dscovr_test_agg.gpr*")
+    use --display_progress
 
-    start or refresh gnatinspect process when select project
-        don't wait
-
-
-    use in user-interface functions
-        gnat-inspect-other done
-
-        /Projects/GDS/work_dscovr_release/dscovr/1553/test/gds-hardware-bus_1553-core_thruster-test.adb
-
+    build/Makefile install
+        when compiled with 7.2.1, dies at runtime with
+gds@localhost$ gnatquery -P gnatquery.gpr
+gnatquery: error while loading shared libraries: libgnat-7.2.so: cannot open shared object file: No such file or directory
+        compile with 7.1.2, gnatcoll 1.6w; works
 
 F7 broken
     using wrong/broken compilation regexp?
     c:/Projects/GDS/main_lynx_5/common/1553/gds-cards-sbs_abi-ops.ads Read_Mem
-
-implement C++ C-c M-d parent
-    just need key, menu
 
 implement C++ C-c ? children
     /home/Projects/GDS/work_stephe_2/common/itc/itcsb/libitcsb_1553/inc/Itcsb1553/Bus.hpp
