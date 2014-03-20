@@ -1946,8 +1946,14 @@ identifier.  May be an Ada identifier or operator function name."
 FILE may be absolute, or on `compilation-search-path'.
 
 If OTHER-WINDOW is non-nil, show the buffer in another window."
-  (or (file-name-absolute-p file)
-      (setq file (ff-get-file-name compilation-search-path file)))
+  (let ((file-1
+	 (or (file-name-absolute-p file)
+	     (ff-get-file-name compilation-search-path file))))
+    (if file-1
+	(setq file file-1)
+      (error "File %s not found; installed library, or set project?" fi))
+    )
+
   (let ((buffer (get-file-buffer file)))
     (cond
      ((bufferp buffer)

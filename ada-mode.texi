@@ -132,15 +132,16 @@ tool @code{gnatinspect}, which supports Ada, C, C++, and any other
 language for which gcc provices the @code{-fdump-xref}.
 
 @code{gnatinspect} is distributed as part of @code{gnatcoll}. Ada mode
-requires the very latest version, in @code{gnatcoll 1.7w} distributed
-with GNATPro 7.2.
+requires the very latest version, in @code{gnatcoll 1.6} distributed
+with GNATPro 7.2. @code{gnatcoll 1.6} must be compiled with GNATPro
+7.2.
 
 To build @code{gnatinspect}, assuming gnat-7.2 is installed in
-@file{/usr/gnat-7.2}:
+@file{/usr/gnat-7.2}, and gnat-7.2 is in PATH:
 
 @example
-tar xf ~/Downloads/gnatcoll-1.7w-src.tgz
-cd gnatcoll-1.7w-src
+tar xf ~/Downloads/gnatcoll-1.6-src.tgz
+cd gnatcoll-1.6-src
 ./configure --prefix=/usr/gnat-7.2
 make Gnatcoll_Build=Debug
 sudo make Gnatcoll_Build=Debug install

@@ -47,6 +47,16 @@ ada-set-point-accordingly
 
 different casing for identifiers (uppercase) and attributes (mixed)
 
+ada-next-statement-keyword skip matched parens if on paren
+
+emacs-ada-prj-mode
+    or emacs-gnat-prj-mode?
+
+replacement for gnatinspect that returns project path for agg project
+    gnat 7.2 kills that for gnatls
+    as well as everything else ada mode needs
+    gnatquery ?
+
  5.1.b: skeleton refactor/cleanup
 
 gpr-skel.el

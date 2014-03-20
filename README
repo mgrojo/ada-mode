@@ -57,8 +57,8 @@ to build gnatinspect:
 
 
 gnatinspect references:
-    gnatcoll-1.6w-src/docs/xref.rst
-    gnatcoll-1.6w-src/src/tools/gnatinspect.adb
+    gnatcoll-1.6-src/docs/xref.rst
+    gnatcoll-1.6-src/src/tools/gnatinspect.adb
 
 debugging gnatinspect:
     verbosity in .gnatdebug:

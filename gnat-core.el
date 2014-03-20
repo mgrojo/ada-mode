@@ -24,6 +24,7 @@
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 (require 'cl-lib)
+(require 'ada-mode) ;; for ada-prj-* etc; will be refactored sometime
 
 ;;;;; code
 
@@ -94,61 +95,80 @@ See also `gnat-parse-emacs-final'."
 
   project)
 
-(defun gnat-get-paths (project)
-  "Add project and/or compiler source, object paths to PROJECT src_dir and/or prc_dir."
+(defun gnat-get-paths-1 (src-dirs prj-dirs)
+  "Append list of source and project dirs in current gpr project to SRC-DIRS, PRJ-DIRS.
+Uses 'gnat list'. Returns new '(src-dirs prj-dirs)."
   (with-current-buffer (gnat-run-buffer)
     ;; gnat list -v -P can return status 0 or 4; always lists compiler dirs
-    (let ((src-dirs (ada-prj-get 'src_dir project))
-	  (prj-dirs (ada-prj-get 'prj_dir project)))
+    ;;
+    ;; WORKAROUND: GNAT 7.2.1 gnatls does not support C++ fully; it
+    ;; does not return src_dirs from C++ projects (see AdaCore ticket
+    ;; M724-045). The workaround is to include the src_dirs in an
+    ;; Emacs Ada mode project.
+    (gnat-run-gnat "list" (list "-v") '(0 4))
 
-      (gnat-run-gnat "list" (list "-v") '(0 4))
+    (goto-char (point-min))
 
-      (goto-char (point-min))
+    (condition-case nil
+	(progn
+	  ;; Source path
+	  (search-forward "Source Search Path:")
+	  (forward-line 1)
+	  (while (not (looking-at "^$")) ; terminate on blank line
+	    (back-to-indentation) ; skip whitespace forward
+	    (if (looking-at "<Current_Directory>")
+		(add-to-list 'src-dirs  (directory-file-name default-directory))
+	      (add-to-list 'src-dirs
+			   (expand-file-name ; canonicalize path part
+			    (directory-file-name
+			     (buffer-substring-no-properties (point) (point-at-eol))))))
+	    (forward-line 1))
 
-      (condition-case nil
-	  (progn
-	    ;; Source path
-	    (search-forward "Source Search Path:")
-	    (forward-line 1)
-	    (while (not (looking-at "^$")) ; terminate on blank line
-	      (back-to-indentation) ; skip whitespace forward
-	      (if (looking-at "<Current_Directory>")
-		  (add-to-list 'src-dirs  (directory-file-name default-directory))
-		(add-to-list 'src-dirs
-			     (expand-file-name ; canonicalize path part
-			      (directory-file-name
-			       (buffer-substring-no-properties (point) (point-at-eol))))))
-	      (forward-line 1))
+	  ;; Project path
+	  ;;
+	  ;; These are also added to src_dir, so compilation errors
+	  ;; reported in project files are found.
+	  (search-forward "Project Search Path:")
+	  (forward-line 1)
+	  (while (not (looking-at "^$"))
+	    (back-to-indentation)
+	    (if (looking-at "<Current_Directory>")
+		(add-to-list 'prj-dirs ".")
+	      (add-to-list 'prj-dirs
+			   (expand-file-name
+			    (buffer-substring-no-properties (point) (point-at-eol))))
+	      (add-to-list 'src-dirs
+			   (expand-file-name
+			    (buffer-substring-no-properties (point) (point-at-eol)))))
+	    (forward-line 1))
 
-	    ;; Project path
-	    ;;
-	    ;; These are also added to src_dir, so compilation errors
-	    ;; reported in project files are found.
-	    (search-forward "Project Search Path:")
-	    (forward-line 1)
-	    (while (not (looking-at "^$"))
-	      (back-to-indentation)
-	      (if (looking-at "<Current_Directory>")
-		  (add-to-list 'prj-dirs ".")
-		(add-to-list 'prj-dirs
-			     (expand-file-name
-			      (buffer-substring-no-properties (point) (point-at-eol))))
-		(add-to-list 'src-dirs
-			     (expand-file-name
-			      (buffer-substring-no-properties (point) (point-at-eol)))))
-	      (forward-line 1))
+	  )
+      ('error
+       (pop-to-buffer (current-buffer))
+       ;; search-forward failed
+       (error "parse gpr failed")
+       ))
+    (list src-dirs prj-dirs)))
 
-	    )
-	('error
-	 (pop-to-buffer (current-buffer))
-	 ;; search-forward failed
-	 (error "parse gpr failed")
-	 ))
+(defun gnat-get-paths (project)
+  "Add project and/or compiler source, project paths to PROJECT src_dir and/or prj_dir."
+  (let ((src-dirs (ada-prj-get 'src_dir project))
+	(prj-dirs (ada-prj-get 'prj_dir project)))
+
+    (cl-ecase (ada-prj-get 'xref_tool project)
+      (gnat
+       (destructuring-bind (src-dirs prj-dirs)
+	   (gnat-get-paths-1 src-dirs prj-dirs)))
+
+      (gnat_inspect
+       (setq src-dirs (gnat-inspect-get-src-dirs src-dirs))
+       (setq prj-dirs (cadr (gnat-get-paths-1 src-dirs prj-dirs))))
+      )
 
       (setq project (plist-put project 'src_dir (reverse src-dirs)))
       (mapc (lambda (dir) (gnat-prj-add-prj-dir dir project))
 	    (reverse prj-dirs))
-      ))
+      )
   project)
 
 (defun gnat-parse-gpr (gpr-file project)
@@ -194,7 +214,8 @@ src_dir will include compiler runtime."
       (with-current-buffer buffer
 	(setq default-directory
 	      (file-name-directory
-	       (or (ada-prj-get 'gpr_file)
+	       (or (ada-prj-get 'gnat_inspect_gpr_file) ;; FIXME: better name? required in gnat 7.2
+		   (ada-prj-get 'gpr_file)
 		   ada-prj-current-file)))
 	)
       buffer)))
