@@ -40,6 +40,12 @@ doc changes in NEWS-ada-mode.text NEWS-wisi.text
 
 (grep-find "find . -type f -print | \"xargs\" grep -nH \"FIXME:\"")
 
+prev-statement-keyword in subprogram skips exception
+
+parsing is noticeably slow in gnatcoll-projects.adb
+    5000 lines
+    not byte-compiled
+
 ada_mode-parens.adb:214:09: (style) bad column
 
 ada-set-point-accordingly
@@ -95,7 +101,7 @@ SPARK aspects
 
 (see general below for more possibilites)
 
- gnat-inspect, gnatquery
+ gpr_query
 test gnat 7.2, gnatcoll 1.6
 
 ~/Projects/gnatcoll-1.6w-src/docs/xref.rst
@@ -109,20 +115,41 @@ gnatinspect verbosity in .gnatdebug:
 
 gnat ls does not report source_path for c++ projects
     nor for aggregates with gnat 7.2!
-    replace gnatinspect with gnat-query, support aggregate project prj_dirs query
-    gnat-inspect.el queries:
-        overrides
-        refresh
-        refs
-        source_dirs
+    replace gnatinspect with gnat_query, support aggregate project prj_dirs query
+    build/Makefile install
+
+    test on aggregate project
+        gds@localhost$ cd ~/GDS/work_stephe_3/dscovr/build/x86_64_gnu_linux_release/
+        gds@localhost$ gnatquery -P gds_dscovr_opsim_agg.gpr
+        Aggregate projects are not supported
+            (see below)
+        gds_dscovr_opsim_agg.gpr: error: invalid project file
+            (should quit here, ref gnat_prj_path)
+        >>>
+
+    gnatcoll.projects.internal_load doesn't support aggregate projects
+    gnatls ditto
+
+        gnat_query get gpr file from agg?
+            traverse tree, look for N_Attribute_Declaration with Name = Project_Files
+            expression_of => list of gpr files
+            if length (list) = 1, use it
+                but preserve Project_Path
+                    parse (env) is 'in out'
+        compiles, runs
+        can't find installed .gpr
+        prj.env.initialize_default_project_path doesn't
+            can't debug; installed not debug?
+            it's prj, not gnatcoll; installed by gnatpro
+
+        workaround; export GPR_PROJECT_PATH="/usr/gnat-7.2.1-x86_64/lib/gnat"
+gpr_query.gpr:23:01: "project" expected
+gnatcoll.gpr:11:01: "project" expected
+gnat_util.gpr:3:09: "project" expected
+            copy gnatcoll-projects internal_load, cut it down
 
     use --display_progress
 
-    build/Makefile install
-        when compiled with 7.2.1, dies at runtime with
-gds@localhost$ gnatquery -P gnatquery.gpr
-gnatquery: error while loading shared libraries: libgnat-7.2.so: cannot open shared object file: No such file or directory
-        compile with 7.1.2, gnatcoll 1.6w; works
 
 F7 broken
     using wrong/broken compilation regexp?

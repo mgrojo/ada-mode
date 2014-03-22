@@ -1,6 +1,6 @@
 --  Abstract :
 --
---  Support Emacs Ada mode and gnat-query minor mode queries about
+--  Support Emacs Ada mode and gpr-query minor mode queries about
 --  GNAT projects and cross reference data
 --
 --  Copyright (C) 2014 Free Software Foundation All Rights Reserved.
@@ -37,7 +37,15 @@ with GNATCOLL.Traces;
 with GNATCOLL.Utils;
 with GNATCOLL.VFS;
 with GNATCOLL.Xref;
-procedure GNATQuery is
+with Namet;
+with Prj.Env;
+with Prj.Err;
+with Prj.Part;
+with Prj.Tree;
+with Sdefault;
+with Sinput.P;
+procedure Gpr_Query is
+   use GNATCOLL;
 
    function "+" (Item : in Ada.Strings.Unbounded.Unbounded_String) return String
      renames Ada.Strings.Unbounded.To_String;
@@ -118,9 +126,6 @@ procedure GNATQuery is
    procedure Process_Overrides is new Process_Command_Single (GNATCOLL.Xref.Overrides);
    procedure Process_Refs (Args : GNATCOLL.Arg_Lists.Arg_List);
    procedure Process_Source_Dirs (Args : GNATCOLL.Arg_Lists.Arg_List);
-
-   procedure Load_Project (Path : GNATCOLL.VFS.Virtual_File);
-   --  Load the given project
 
    type Command_Descr is record
       Name    : GNAT.Strings.String_Access;
@@ -282,35 +287,137 @@ procedure GNATQuery is
 
    procedure Load_Project (Path : GNATCOLL.VFS.Virtual_File)
    is
-      GNAT_Version : GNAT.Strings.String_Access;
+      Temp_Path    : GNATCOLL.VFS.Virtual_File := Path;
+      Env          : GNATCOLL.Projects.Project_Environment_Access;
    begin
-      --  FIXME: this dies for aggregate projects in GNAT 7.2
-      Env.Set_Path_From_Gnatls
-        (Gnatls       => "gnatls",
-         GNAT_Version => GNAT_Version,
-         Errors       => Ada.Text_IO.Put_Line'Access);
-      GNAT.Strings.Free (GNAT_Version);
+      GNATCOLL.Projects.Initialize (Env);
 
-      --  The default extensions must match those defined in the gprconfig
-      --  knowledge base. FIXME: read them from there! Where is this used?
-      --  Env.Register_Default_Language_Extension
-      --    (Language_Name       => "C",
-      --     Default_Spec_Suffix => ".h",
-      --     Default_Body_Suffix => ".c");
-      --  Env.Register_Default_Language_Extension
-      --    (Language_Name       => "C++",
-      --     Default_Spec_Suffix => ".hh",
-      --     Default_Body_Suffix => ".cpp");
+      --  WORKAROUND: gnatcoll 1.6 / GNAT 7.2 GNATCOLL.Projects does
+      --  not support aggregate projects. So handle an important
+      --  special case here.
+      declare
+         use Prj.Tree;
+         use type Prj.Project_Qualifier;
 
-      GNATCOLL.Traces.Trace (Me, "processing 'PROJECT' '" & Path.Display_Full_Name & "'");
-      Tree.Load
-        (Root_Project_Path => Path,
-         Env               => Env,
-         Errors            => Ada.Text_IO.Put_Line'Access);
+         Prj_Tree     : constant Project_Node_Tree_Ref := new Project_Node_Tree_Data;
+         Prj_Env      : Environment;
+         Prj_View     : constant Prj.Project_Tree_Ref  := new Prj.Project_Tree_Data;
+         Project      : Project_Node_Id                := Empty_Node;
+         Project_Path : GNAT.Strings.String_Access;
+      begin
+         Initialize (Prj_Tree);
+         Prj.Initialize (Prj_View); -- sets some global vars required for parsing
 
-   exception
-   when GNATCOLL.Projects.Invalid_Project =>
-      Ada.Text_IO.Put_Line (Path.Display_Full_Name & ": error: invalid project file");
+         Initialize
+           (Prj_Env,
+            Prj.Create_Flags
+              (Report_Error               => null,
+               When_No_Sources            => Prj.Warning,
+               Require_Sources_Other_Lang => True,
+               Compiler_Driver_Mandatory  => False,
+               Allow_Duplicate_Basenames  => True,
+               Require_Obj_Dirs           => Prj.Warning,
+               Allow_Invalid_External     => Prj.Warning,
+               Missing_Source_Files       => Prj.Warning,
+               Ignore_Missing_With        => False));
+
+         Prj.Env.Initialize_Default_Project_Path (Prj_Env.Project_Path, Sdefault.Target_Name.all);
+         --  FIXME: get target_name from command line; not necessarily the same as this code is compiled with!
+         --  FIXME: not working; compile gnat.utils from source to debug
+
+         --  add predefined source paths (Ada.Strings, for example!)
+         --  FIXME: no way to do this via prj?
+         --  gnatinspect spawns gnatls!
+
+         Prj.Err.Initialize;
+
+         Sinput.P.Clear_Source_File_Table;
+         Sinput.P.Reset_First;
+
+         Prj.Part.Parse
+           (Prj_Tree,
+            Project,
+            +Path.Full_Name,
+            Packages_To_Check => GNATCOLL.Projects.No_Packs,
+            Is_Config_File    => False,
+            Env               => Prj_Env,
+            Current_Directory => GNAT.Directory_Operations.Get_Current_Dir);
+
+         if Project_Qualifier_Of (Project, Prj_Tree) = Prj.Aggregate then
+            --  In general, GNATCOLL.Projects cannot handle aggregate
+            --  projects; it can only handle one project tree at a
+            --  time. However, there is one special case we can handle;
+            --  when an aggregate project is used solely to specify
+            --  the Project_Path for a single project.
+            --
+            --  We can't use GNATCOLL.Projects.Attribute_Value,
+            --  because that requires a loaded project, and we can't
+            --  load it if it's an aggregate.
+            --
+            --  We'd like to use
+            --  GNATCOLL.Projects.Normalize.Find_Node_By_Name, but
+            --  that's a private package. So we copy that code.
+            declare
+               function Find_Node_By_Name
+                 (Tree    : in Project_Node_Tree_Ref;
+                  Project : in Project_Node_Id;
+                  Kind    : in Project_Node_Kind;
+                  Name    : in String)
+                 return Project_Node_Id
+               is
+                  use type Namet.Name_Id;
+                  Name_Id : Namet.Name_Id;
+                  Decl    : Project_Node_Id := First_Declarative_Item_Of
+                    (Project_Declaration_Of (Project, Tree), Tree);
+                  Current : Project_Node_Id;
+               begin
+                  Namet.Name_Buffer (1 .. Name'Length) := Name;
+                  Namet.Name_Len                       := Name'Length;
+                  Name_Id                              := Namet.Name_Find;
+
+                  while Decl /= Empty_Node loop
+                     Current := Current_Item_Node (Decl, Tree);
+                     if Kind_Of (Current, Tree) = Kind
+                       and then Prj.Tree.Name_Of (Current, Tree) = Name_Id
+                     then
+                        return Current;
+                     end if;
+
+                     Decl := Next_Declarative_Item (Decl, Tree);
+                  end loop;
+                  return Empty_Node;
+               end Find_Node_By_Name;
+
+               Attr         : constant Project_Node_Id := Find_Node_By_Name
+                 (Prj_Tree, Project, N_Attribute_Declaration, "Project_Files");
+               Attr_Exp     : constant Project_Node_Id := Expression_Of (Attr, Prj_Tree);
+               Gpr_Exp      : constant Project_Node_Id := First_Expression_In_List (Attr_Exp, Prj_Tree);
+            begin
+               if Next_Expression_In_List (Gpr_Exp, Prj_Tree) /= Empty_Node then
+                  raise GNATCOLL.Projects.Invalid_Project with Path.Display_Full_Name &
+                    ": error : Aggregate projects are not supported";
+               end if;
+               Temp_Path := GNATCOLL.VFS.Create_From_UTF8
+                 (Namet.Get_Name_String (String_Value_Of (Gpr_Exp, Prj_Tree)),
+                  Normalize => True);
+
+               --  Prj.part.parse updated Env with the aggregate
+               --  project path.
+            end;
+         end if;
+
+         Prj.Env.Get_Path (Prj_Env.Project_Path, Project_Path);
+         GNATCOLL.Projects.Set_Predefined_Project_Path
+           (Env.all, VFS.From_Path (VFS.Filesystem_String (Project_Path.all)));
+      end;
+
+      begin
+         Tree.Load (Path, Env, Errors => Ada.Text_IO.Put_Line'Access);
+      exception
+      when GNATCOLL.Projects.Invalid_Project =>
+         raise GNATCOLL.Projects.Invalid_Project with +Temp_Path.Full_Name & ": invalid project";
+      end;
+
    end Load_Project;
 
    procedure On_Ctrl_C is
@@ -367,18 +474,18 @@ procedure GNATQuery is
                Cmd   : constant String   := Ada.Characters.Handling.To_Lower (Get_Command (List));
                Found : Boolean           := False;
             begin
-                  for Co in Commands'Range loop
-                     if Commands (Co).Name.all = Cmd then
-                        Commands (Co).Handler (List);
-                        Found := True;
-                        exit;
-                     end if;
-                  end loop;
-
-                  if not Found then
-                     Ada.Text_IO.Put_Line ("Invalid command: '" & Cmd & "'");
-                     raise Invalid_Command;
+               for Co in Commands'Range loop
+                  if Commands (Co).Name.all = Cmd then
+                     Commands (Co).Handler (List);
+                     Found := True;
+                     exit;
                   end if;
+               end loop;
+
+               if not Found then
+                  Ada.Text_IO.Put_Line ("Invalid command: '" & Cmd & "'");
+                  raise Invalid_Command;
+               end if;
             end;
 
          end if;
@@ -396,7 +503,7 @@ procedure GNATQuery is
          Xref.Parse_All_LI_Files
            (Tree                => Tree,
             Project             => Tree.Root_Project,
-            Parse_Runtime_Files => True,
+            Parse_Runtime_Files => False, --  True encounters bug in gnatcoll.projects; null pointer
             Show_Progress       => Progress_Reporter,
             ALI_Encoding        => ALI_Encoding.all,
             From_DB_Name        => Nightly_DB_Name.all,
@@ -442,6 +549,20 @@ procedure GNATQuery is
          Ada.Text_IO.Put_Line (+GNATCOLL.VFS.Full_Name (Dirs (I)));
       end loop;
    end Process_Source_Dirs;
+
+   procedure Undefined_Switch
+     (Switch    : String;
+      Parameter : String;
+      Section   : String)
+   is
+      pragma Unreferenced (Section);
+      pragma Unreferenced (Parameter);
+   begin
+      --  FIXME: this is _not_ called for switch -e!
+      Ada.Text_IO.Put_Line ("'" & Switch & "' : undefined switch");
+      GNAT.Command_Line.Display_Help (Cmdline);
+      raise Invalid_Command;
+   end Undefined_Switch;
 
 begin
    declare
@@ -493,7 +614,7 @@ begin
 
       GNATCOLL.Projects.Initialize (Env);
 
-      Getopt (Cmdline, null);
+      Getopt (Cmdline, Callback => Undefined_Switch'Unrestricted_Access);
    end;
 
    if Project_Name.all = "" then
@@ -580,22 +701,19 @@ begin
       begin
          exit when Input = "exit";
          Process_Line (Input);
-      exception
-         when Invalid_Command =>
-            null;
       end;
    end loop;
 
    On_Ctrl_C;
 
 exception
-   when GNAT.Command_Line.Exit_From_Command_Line
-      | Ada.Text_IO.End_Error =>
-      On_Ctrl_C;
-   when Invalid_Command =>
-      On_Ctrl_C;
-   when E : others =>
-      On_Ctrl_C;
-      Ada.Text_IO.Put_Line ("Unexpected exception");
-      Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (E));
-end GNATQuery;
+when E : GNATCOLL.Projects.Invalid_Project =>
+   Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Message (E));
+   On_Ctrl_C;
+when Invalid_Command =>
+   On_Ctrl_C;
+when E : others =>
+   Ada.Text_IO.Put_Line ("Unexpected exception");
+   Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (E));
+   On_Ctrl_C;
+end Gpr_Query;

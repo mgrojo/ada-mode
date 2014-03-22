@@ -1,4 +1,4 @@
-# Build gnatquery, manuals; publish to web and ELPA; see subdirs for
+# Build gpr_query, manuals; publish to web and ELPA; see subdirs for
 # building elisp code and running tests (each subdir supports a
 # different indentation engine)
 #
@@ -18,7 +18,7 @@
 
 VERSION := 5.1.2
 
-all : gnatquery docs pub-ada pub-wisi build-elpa install-elpa
+all : gpr_query docs pub-ada pub-wisi build-elpa install-elpa
 
 docs : info html
 
@@ -95,25 +95,26 @@ install-clean :
 	rm -r ~/.emacs.d/elpa/wisi*
 	rm -r ~/.emacs.d/elpa/cl*
 
-## build gnatquery
+## build gpr_query
 
 .PHONY : force
 
-# this requires more complicated LD_LIBRARY_PATH at runtime
-# gnatquery: export LIBRARY_TYPE := relocatable
-gnatquery: force
-	gprbuild -p gnatquery.gpr
+gpr_query: force
+	gprbuild -p gpr_query.gpr
 
-install : gnatquery
-	cp gnatquery ~/bin
+one : gpr_query
+	./gpr_query -P gpr_query.gpr -c source_dirs --foobar
+
+install : gpr_query
+	cp gpr_query ~/bin
 
 clean ::
 	rm -rf obj
-	rm -rf gnatquery
+	rm -rf gpr_query
 
 # Local Variables:
-# eval: (gnat-7.1.2)
-# eval: (ada-parse-prj-file "gnatquery.prj")
-# eval: (ada-select-prj-file "gnatquery.prj")
+# eval: (gnat-7.2.1)
+# eval: (ada-parse-prj-file "gpr_query.prj")
+# eval: (ada-select-prj-file "gpr_query.prj")
 # end:
 # end of file

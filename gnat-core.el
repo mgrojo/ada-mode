@@ -79,6 +79,13 @@ See also `gnat-parse-emacs-final'."
 		       'gpr_file
 		       (expand-file-name (substitute-in-file-name value))))
       project)
+
+     ((string= (match-string 1) "gnat_inspect_gpr_file")
+      (setq project
+	    (plist-put project
+		       'gnat_inspect_gpr_file
+		       (expand-file-name (substitute-in-file-name value))))
+      project)
      )))
 
 (defun gnat-prj-parse-emacs-final (project)

@@ -1,6 +1,6 @@
 --  Abstract :
 --
---  build gnatquery
+--  build gpr_query
 --
 --  Copyright (C) 2014 Stephen Leake All Rights Reserved.
 --
@@ -20,8 +20,8 @@ with "gnatcoll";
 with "gnatcoll_iconv";
 with "gnatcoll_readline";
 with "gnatcoll_sqlite";
-project Gnatquery is
-   for Main use ("gnatquery.adb");
+project Gpr_query is
+   for Main use ("gpr_query.adb");
 
    for Source_Dirs use ("..");
 
@@ -30,7 +30,7 @@ project Gnatquery is
    for Exec_Dir use ".";
 
    type Build_Type is ("Debug", "Normal");
-   Build : Build_Type := External ("Gnatquery_Build", "Normal");
+   Build : Build_Type := External ("Gpr_query_Build", "Normal");
 
    for Languages use ("Ada");
 
@@ -60,8 +60,4 @@ project Gnatquery is
       for Default_Switches ("Ada") use ("-lpthread");
    end Linker;
 
-   package Ide is
-      for VCS_Kind use "git";
-   end Ide;
-
-end Gnatquery;
+end Gpr_query;

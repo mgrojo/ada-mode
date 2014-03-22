@@ -1,9 +1,0 @@
--- FIXME: replace with gnat_query
-
--- broken: xref_tool=gnat_inspect
-
-gpr_file=gnatquery.gpr
-
-casing=emacs_case_exception
-
--- end of file

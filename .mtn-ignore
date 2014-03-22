@@ -5,6 +5,7 @@
 ^autoloads\.el$
 ^build/.*\.tar\.gz$
 ^build/gnatquery$
+^build/gpr_query$
 ^build/obj$
 ^build/smie/.*\.ali$
 ^build/smie/.*\.diff$

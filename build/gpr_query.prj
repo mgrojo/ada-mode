@@ -1,0 +1,8 @@
+-- FIXME: replace with gpr_query
+-- xref_tool=gnat_inspect
+
+gpr_file=gpr_query.gpr
+
+casing=emacs_case_exception
+
+-- end of file
