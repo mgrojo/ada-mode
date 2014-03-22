@@ -76,10 +76,10 @@ procedure Gpr_Query is
    function Image (Self : GNATCOLL.Xref.Entity_Information) return String;
    --  Return a display version of the argument
 
-   Xref : aliased My_Xref_Database;
-   Env     : GNATCOLL.Projects.Project_Environment_Access;
-   Tree    : GNATCOLL.Projects.Project_Tree;
-   Previous_Progress : Natural := 0;
+   Xref              : aliased My_Xref_Database;
+   Env               : GNATCOLL.Projects.Project_Environment_Access;
+   Tree              : GNATCOLL.Projects.Project_Tree;
+   Previous_Progress : Natural                          := 0;
    Progress_Reporter : access procedure (Current, Total : Integer) := null;
 
    procedure Dump (Refs : in out GNATCOLL.Xref.References_Cursor'Class);
@@ -118,12 +118,13 @@ procedure Gpr_Query is
 
    --  Command procedures; Args is the command line.
    --
-   --  Infrastructre commands
+   --  Infrastructure commands
    procedure Process_Help (Args : GNATCOLL.Arg_Lists.Arg_List);
    procedure Process_Refresh (Args : GNATCOLL.Arg_Lists.Arg_List);
 
    --  Queries; alphabetical
    procedure Process_Overrides is new Process_Command_Single (GNATCOLL.Xref.Overrides);
+   procedure Process_Project_Path (Args : GNATCOLL.Arg_Lists.Arg_List);
    procedure Process_Refs (Args : GNATCOLL.Arg_Lists.Arg_List);
    procedure Process_Source_Dirs (Args : GNATCOLL.Arg_Lists.Arg_List);
 
@@ -145,19 +146,25 @@ procedure Gpr_Query is
        new String'("Refresh the contents of the xref database."),
        Process_Refresh'Access),
 
+      --  queries
       (new String'("overrides"),
        new String'("name:file:line:column"),
        new String'("The entity that is overridden by the parameter"),
        Process_Overrides'Access),
 
+      (new String'("project_path"),
+       null,
+       new String'("The project search path."),
+       Process_Project_Path'Access),
+
       (new String'("refs"),
        new String'("name:file:line:column"),
-       new String'("Display all known references to the entity."),
+       new String'("All known references to the entity."),
        Process_Refs'Access),
 
       (new String'("source_dirs"),
        null,
-       new String'("Return the project source directories, recursively."),
+       new String'("The project source directories, recursively."),
        Process_Source_Dirs'Access));
 
    --  Parsed command line info
@@ -287,10 +294,16 @@ procedure Gpr_Query is
 
    procedure Load_Project (Path : GNATCOLL.VFS.Virtual_File)
    is
-      Temp_Path    : GNATCOLL.VFS.Virtual_File := Path;
-      Env          : GNATCOLL.Projects.Project_Environment_Access;
+      Temp_Path : GNATCOLL.VFS.Virtual_File := Path;
+      Gnat_Version : GNAT.Strings.String_Access;
    begin
       GNATCOLL.Projects.Initialize (Env);
+
+      --  add predefined_source_dirs: gnatcoll.projects says "you must
+      --  set these, or use gnatls for Ada".
+      --  FIXME: get from elsewhere for C++
+      GNATCOLL.Projects.Set_Path_From_Gnatls (Env.all, "gnatls", Gnat_Version);
+      GNAT.Strings.Free (Gnat_Version);
 
       --  WORKAROUND: gnatcoll 1.6 / GNAT 7.2 GNATCOLL.Projects does
       --  not support aggregate projects. So handle an important
@@ -321,13 +334,9 @@ procedure Gpr_Query is
                Missing_Source_Files       => Prj.Warning,
                Ignore_Missing_With        => False));
 
-         Prj.Env.Initialize_Default_Project_Path (Prj_Env.Project_Path, Sdefault.Target_Name.all);
          --  FIXME: get target_name from command line; not necessarily the same as this code is compiled with!
-         --  FIXME: not working; compile gnat.utils from source to debug
-
-         --  add predefined source paths (Ada.Strings, for example!)
-         --  FIXME: no way to do this via prj?
-         --  gnatinspect spawns gnatls!
+         Prj.Env.Initialize_Default_Project_Path (Prj_Env.Project_Path, Sdefault.Target_Name.all);
+         --  Only works if current executable is installed in gnat/bin directory
 
          Prj.Err.Initialize;
 
@@ -358,6 +367,7 @@ procedure Gpr_Query is
             --  GNATCOLL.Projects.Normalize.Find_Node_By_Name, but
             --  that's a private package. So we copy that code.
             declare
+               use Namet;
                function Find_Node_By_Name
                  (Tree    : in Project_Node_Tree_Ref;
                   Project : in Project_Node_Id;
@@ -365,44 +375,70 @@ procedure Gpr_Query is
                   Name    : in String)
                  return Project_Node_Id
                is
-                  use type Namet.Name_Id;
                   Name_Id : Namet.Name_Id;
                   Decl    : Project_Node_Id := First_Declarative_Item_Of
                     (Project_Declaration_Of (Project, Tree), Tree);
                   Current : Project_Node_Id;
                begin
-                  Namet.Name_Buffer (1 .. Name'Length) := Name;
-                  Namet.Name_Len                       := Name'Length;
-                  Name_Id                              := Namet.Name_Find;
+                  Name_Buffer (1 .. Name'Length) := Name;
+                  Name_Len                       := Name'Length;
+                  Name_Id                        := Name_Find;
 
                   while Decl /= Empty_Node loop
                      Current := Current_Item_Node (Decl, Tree);
-                     if Kind_Of (Current, Tree) = Kind
-                       and then Prj.Tree.Name_Of (Current, Tree) = Name_Id
-                     then
-                        return Current;
+                     if Kind_Of (Current, Tree) = Kind then
+                        if Name_Of (Current, Tree) = Name_Id then
+                           return Current;
+                        end if;
                      end if;
-
                      Decl := Next_Declarative_Item (Decl, Tree);
                   end loop;
                   return Empty_Node;
                end Find_Node_By_Name;
 
-               Attr         : constant Project_Node_Id := Find_Node_By_Name
-                 (Prj_Tree, Project, N_Attribute_Declaration, "Project_Files");
-               Attr_Exp     : constant Project_Node_Id := Expression_Of (Attr, Prj_Tree);
-               Gpr_Exp      : constant Project_Node_Id := First_Expression_In_List (Attr_Exp, Prj_Tree);
+               Node         : Project_Node_Id := Find_Node_By_Name
+                 (Prj_Tree, Project, N_Attribute_Declaration, "project_files");
+               Gpr_File_Name : Name_Id;
+               Gpr_Path_Name : Path_Name_Type;
             begin
-               if Next_Expression_In_List (Gpr_Exp, Prj_Tree) /= Empty_Node then
+               if Node = Empty_Node then
                   raise GNATCOLL.Projects.Invalid_Project with Path.Display_Full_Name &
                     ": error : Aggregate projects are not supported";
                end if;
-               Temp_Path := GNATCOLL.VFS.Create_From_UTF8
-                 (Namet.Get_Name_String (String_Value_Of (Gpr_Exp, Prj_Tree)),
-                  Normalize => True);
+               Node := Expression_Of (Node, Prj_Tree); -- kind = N_Expression
+               Node := First_Expression_In_List (Node, Prj_Tree); -- kind = N_term
 
-               --  Prj.part.parse updated Env with the aggregate
+               if Next_Expression_In_List (Node, Prj_Tree) /= Empty_Node then
+                  raise GNATCOLL.Projects.Invalid_Project with Path.Display_Full_Name &
+                    ": error : Aggregate projects are not supported";
+               end if;
+
+               Node := Current_Term (Node, Prj_Tree); -- kind = N_Literal_String_List
+               Node := First_Expression_In_List (Node, Prj_Tree); -- kind = N_Expression
+               Node := First_Expression_In_List (Node, Prj_Tree); -- kind = N_Term
+               Node := Current_Term (Node, Prj_Tree); -- kind = N_Literal_String
+               Gpr_File_Name := String_Value_Of (Node, Prj_Tree);
+
+               --  Prj.part.parse updated Prj_Env with the aggregate
                --  project path.
+               --  FIXME: no, it didn't; just parsed, not processed.
+               --
+               --  However, it just uses "." for the
+               --  "project file directory", which is probably not the
+               --  current process directory. So we pass in Dir_Name.
+               Prj.Env.Find_Project
+                 (Prj_Env.Project_Path,
+                  Project_File_Name => Get_Name_String (Gpr_File_Name),
+                  Directory         => String (GNATCOLL.VFS.Dir_Name (Path)),
+                  Path              => Gpr_Path_Name);
+
+               if Gpr_Path_Name = No_Path then
+                  Prj.Env.Get_Path (Prj_Env.Project_Path, Project_Path);
+                  Ada.Text_IO.Put_Line ("project path: " & Project_Path.all);
+                  raise GNATCOLL.Projects.Invalid_Project with
+                    "'" & Get_Name_String (Gpr_File_Name) & "' project file not found";
+               end if;
+               Temp_Path := GNATCOLL.VFS.Create_From_UTF8 (Get_Name_String (Gpr_Path_Name));
             end;
          end if;
 
@@ -412,7 +448,7 @@ procedure Gpr_Query is
       end;
 
       begin
-         Tree.Load (Path, Env, Errors => Ada.Text_IO.Put_Line'Access);
+         Tree.Load (Temp_Path, Env, Errors => Ada.Text_IO.Put_Line'Access);
       exception
       when GNATCOLL.Projects.Invalid_Project =>
          raise GNATCOLL.Projects.Invalid_Project with +Temp_Path.Full_Name & ": invalid project";
@@ -433,7 +469,7 @@ procedure Gpr_Query is
       use type GNAT.Strings.String_Access;
    begin
       for C in Commands'Range loop
-         if Args_Length (Args) = 0
+         if Args_Length (Args) <= 0 -- Empty_Command_Line returns -1
            or else Nth_Arg (Args, 1) = Commands (C).Name.all
          then
             Put ("  " & Commands (C).Name.all);
@@ -484,6 +520,7 @@ procedure Gpr_Query is
 
                if not Found then
                   Ada.Text_IO.Put_Line ("Invalid command: '" & Cmd & "'");
+                  Process_Help (Empty_Command_Line);
                   raise Invalid_Command;
                end if;
             end;
@@ -493,6 +530,16 @@ procedure Gpr_Query is
 
       GNAT.Strings.Free (Expr);
    end Process_Line;
+
+   procedure Process_Project_Path (Args : GNATCOLL.Arg_Lists.Arg_List)
+   is
+      pragma Unreferenced (Args);
+      Dirs : constant GNATCOLL.VFS.File_Array := GNATCOLL.Projects.Predefined_Project_Path (Env.all);
+   begin
+      for I in Dirs'Range loop
+         Ada.Text_IO.Put_Line (+GNATCOLL.VFS.Full_Name (Dirs (I)));
+      end loop;
+   end Process_Project_Path;
 
    procedure Process_Refresh (Args : GNATCOLL.Arg_Lists.Arg_List)
    is
@@ -541,28 +588,11 @@ procedure Gpr_Query is
       Dirs : constant GNATCOLL.VFS.File_Array := GNATCOLL.Projects.Source_Dirs
         (Project   => Tree.Root_Project,
          Recursive => True);
-      --  FIXME: add predefined_source_dirs:
-      --  /usr/gnat-7.2.1-x86_64/lib/gcc/x86_64-pc-linux-gnu/4.7.4/rts-native/adainclude/g-string.ads
-
    begin
       for I in Dirs'Range loop
          Ada.Text_IO.Put_Line (+GNATCOLL.VFS.Full_Name (Dirs (I)));
       end loop;
    end Process_Source_Dirs;
-
-   procedure Undefined_Switch
-     (Switch    : String;
-      Parameter : String;
-      Section   : String)
-   is
-      pragma Unreferenced (Section);
-      pragma Unreferenced (Parameter);
-   begin
-      --  FIXME: this is _not_ called for switch -e!
-      Ada.Text_IO.Put_Line ("'" & Switch & "' : undefined switch");
-      GNAT.Command_Line.Display_Help (Cmdline);
-      raise Invalid_Command;
-   end Undefined_Switch;
 
 begin
    declare
@@ -614,7 +644,7 @@ begin
 
       GNATCOLL.Projects.Initialize (Env);
 
-      Getopt (Cmdline, Callback => Undefined_Switch'Unrestricted_Access);
+      Getopt (Cmdline, Callback => null);
    end;
 
    if Project_Name.all = "" then
@@ -711,6 +741,9 @@ when E : GNATCOLL.Projects.Invalid_Project =>
    Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Message (E));
    On_Ctrl_C;
 when Invalid_Command =>
+   On_Ctrl_C;
+when GNAT.Command_Line.Invalid_Switch =>
+   GNAT.Command_Line.Display_Help (Cmdline);
    On_Ctrl_C;
 when E : others =>
    Ada.Text_IO.Put_Line ("Unexpected exception");

@@ -30,7 +30,7 @@ project Gpr_query is
    for Exec_Dir use ".";
 
    type Build_Type is ("Debug", "Normal");
-   Build : Build_Type := External ("Gpr_query_Build", "Normal");
+   Build : Build_Type := External ("Gpr_Query_Build", "Normal");
 
    for Languages use ("Ada");
 
@@ -49,7 +49,7 @@ project Gpr_query is
 
       case Build is
          when "Debug" =>
-            for Switches ("Ada") use Common_Switches & ("-O1");
+            for Switches ("Ada") use Common_Switches & ("-O0");
          when "Normal" =>
             -- WORKAROUND (GNAT 7.2.1): adding -gnatn here gives errors about missing sources in installed gnatcoll.
             for Switches ("Ada") use Common_Switches & ("-O2");
