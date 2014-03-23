@@ -27,6 +27,8 @@ with Ada.Strings.Unbounded;
 with Ada.Text_IO;
 with GNAT.Command_Line;
 with GNAT.Directory_Operations;
+with GNAT.Expect;
+with GNAT.OS_Lib;
 with GNAT.Strings;
 with GNATCOLL.Arg_Lists;
 with GNATCOLL.Paragraph_Filling;
@@ -353,17 +355,7 @@ procedure Gpr_Query is
    procedure Load_Project (Path : GNATCOLL.VFS.Virtual_File)
    is
       Temp_Path    : GNATCOLL.VFS.Virtual_File := Path;
-      Gnat_Version : GNAT.Strings.String_Access;
-      Project_Path : GNAT.Strings.String_Access;
    begin
-      GNATCOLL.Projects.Initialize (Env);
-
-      --  add predefined_source_dirs: gnatcoll.projects says "you must
-      --  set these, or use gnatls for Ada".
-      --  FIXME: get from elsewhere for C++
-      GNATCOLL.Projects.Set_Path_From_Gnatls (Env.all, "gnatls", Gnat_Version);
-      GNAT.Strings.Free (Gnat_Version);
-
       --  WORKAROUND: gnatcoll 1.6 / GNAT 7.2 GNATCOLL.Projects does
       --  not support aggregate projects. So handle an important
       --  special case here.
@@ -376,9 +368,21 @@ procedure Gpr_Query is
          Prj_Env      : Environment;
          Prj_View     : constant Prj.Project_Tree_Ref  := new Prj.Project_Tree_Data;
          Project      : Project_Node_Id                := Empty_Node;
+         Project_Path : GNAT.Strings.String_Access;
       begin
          Initialize (Prj_Tree);
          Prj.Initialize (Prj_View); -- sets some global vars required for parsing
+
+         --  We need a valid Prj_Env, but we don't need any project
+         --  search path for the aggregate projects we support.
+         --
+         --  However, the full project may need projects from the
+         --  default predefined project path, or from one of the
+         --  project path environment variables. So we do this here.
+         Prj.Env.Initialize_Default_Project_Path (Prj_Env.Project_Path, Target_Name => "");
+         Prj.Env.Get_Path (Prj_Env.Project_Path, Project_Path);
+         Prj.Env.Add_Directories
+           (Prj_Env.Project_Path, +To_Path (GNATCOLL.Projects.Predefined_Project_Path (Env.all)));
 
          Initialize
            (Prj_Env,
@@ -392,9 +396,6 @@ procedure Gpr_Query is
                Allow_Invalid_External     => Prj.Warning,
                Missing_Source_Files       => Prj.Warning,
                Ignore_Missing_With        => False));
-
-         Prj.Env.Add_Directories
-           (Prj_Env.Project_Path, +To_Path (GNATCOLL.Projects.Predefined_Project_Path (Env.all)));
 
          Prj.Err.Initialize;
 
@@ -494,6 +495,7 @@ procedure Gpr_Query is
                Decl                  : Project_Node_Id  := First_Declarative_Item_Of
                  (Project_Declaration_Of (Project, Prj_Tree), Prj_Tree);
                Current               : Project_Node_Id;
+
             begin
                while Decl /= Empty_Node loop
                   Current := Current_Item_Node (Decl, Prj_Tree);
@@ -512,6 +514,10 @@ procedure Gpr_Query is
                   Decl := Next_Declarative_Item (Decl, Prj_Tree);
                end loop;
 
+               Prj.Env.Get_Path (Prj_Env.Project_Path, Project_Path);
+               GNATCOLL.Projects.Set_Predefined_Project_Path
+                 (Env.all, From_Path (Filesystem_String (Project_Path.all)));
+
                Prj.Env.Find_Project
                  (Prj_Env.Project_Path,
                   Project_File_Name => Get_Name_String (Gpr_File_Name),
@@ -519,19 +525,15 @@ procedure Gpr_Query is
                   Path              => Gpr_Path_Name);
 
                if Gpr_Path_Name = No_Path then
-                  Prj.Env.Get_Path (Prj_Env.Project_Path, Project_Path);
                   Ada.Text_IO.Put_Line ("project search path:");
-                  Put (GNATCOLL.VFS.From_Path (GNATCOLL.VFS.Filesystem_String (Project_Path.all)));
+                  Put (GNATCOLL.Projects.Predefined_Project_Path (Env.all));
                   raise GNATCOLL.Projects.Invalid_Project with
                     "'" & Get_Name_String (Gpr_File_Name) & "' project file not found";
                end if;
+
                Temp_Path := Create_From_UTF8 (Get_Name_String (Gpr_Path_Name));
             end;
          end if;
-
-         Prj.Env.Get_Path (Prj_Env.Project_Path, Project_Path);
-         GNATCOLL.Projects.Set_Predefined_Project_Path
-           (Env.all, From_Path (Filesystem_String (Project_Path.all)));
       end;
 
       begin
@@ -539,10 +541,164 @@ procedure Gpr_Query is
       exception
       when GNATCOLL.Projects.Invalid_Project =>
          Ada.Text_IO.Put_Line ("project search path:");
-         Put (GNATCOLL.VFS.From_Path (GNATCOLL.VFS.Filesystem_String (Project_Path.all)));
+         Put (GNATCOLL.Projects.Predefined_Project_Path (Env.all));
          raise GNATCOLL.Projects.Invalid_Project with +Temp_Path.Full_Name & ": invalid project";
       end;
 
+      --  Set predefined_source_dirs, depending on the languages used in the project.
+      --  gnatcoll.projects says "you must set these".
+      declare
+         use GNATCOLL.Projects;
+         Languages : constant GNAT.Strings.String_List :=
+           GNATCOLL.Projects.Languages (Root_Project (Tree), Recursive => True);
+
+         procedure Set_Path_From_Gcc (Exec_Name : in String)
+         is
+            use GNAT.Expect;
+            use GNAT.OS_Lib;
+
+            Line_End_Pattern  : constant String :=
+              (if Directory_Separator = '/' then "" & ASCII.LF
+               else "" & ASCII.CR & ASCII.LF);
+
+            Exec_Search_Path : GNAT.Strings.String_Access;
+            Status           : aliased Integer;
+         begin
+            --  get gcc program search path from 'gcc -print-search-dirs'
+            declare
+               use Ada.Strings.Fixed;
+               Start_Pattern : constant String := "programs: =";
+               First         : Integer;
+               Last          : Integer;
+            begin
+               declare
+                  Temp : constant String :=
+                    (GNAT.Expect.Get_Command_Output
+                       (Command  => "gcc",
+                        Arguments => (1 => new String'("-print-search-dirs")),
+                        Input     => "",
+                        Status    => Status'Unchecked_Access));
+               begin
+                  --  ignoring status here
+
+                  --  output looks like:
+                  --  install: /usr/gnat-7.2.1-x86_64/bin/../lib/gcc/x86_64-pc-linux-gnu/4.7.4/
+                  --  programs: =/usr/gnat/bin/../libexec/gcc/x86_64-pc-linux-gnu/4.7.4/:...
+                  --  libraries: =/usr/gnat-7.2.1-x86_64/bin/../lib/gcc/x86_64-pc-linux-gnu/4.7.4/:...
+                  First            := Index (Source => Temp, Pattern => Start_Pattern) + Start_Pattern'Length;
+                  Last             := Index (Source => Temp (First + 1 .. Temp'Last), Pattern => Line_End_Pattern) - 1;
+                  Exec_Search_Path := new String'(Temp (First .. Last));
+               end;
+            exception
+            when Invalid_Process =>
+               raise Invalid_Project with "spawn of gcc to get exec search path failed";
+            end;
+
+            --  find Exec_Name on path, and execute '<exec> -v foo';
+            --  result is predefined source path
+            declare
+               Exec_Full_Name : constant String_Access := Locate_Regular_File (Exec_Name, Exec_Search_Path.all);
+            begin
+               if Exec_Full_Name = null then
+                  raise Invalid_Project with "cannot locate '" & Exec_Name & "' on '" & Exec_Search_Path.all &
+                    "' to get predefined source dirs";
+               end if;
+
+               declare
+                  use Ada.Strings.Fixed;
+                  Temp : constant String := GNAT.Expect.Get_Command_Output
+                    (Command    => Exec_Full_Name.all,
+                     Arguments  => Argument_String_To_List ("-v foo").all,
+                     Input      => "",
+                     Status     => Status'Unchecked_Access,
+                     Err_To_Out => True);
+
+                  Dir_Pattern : constant String := Line_End_Pattern & " ";
+                  First       : Integer         := Temp'First;
+                  First_Dir   : Integer;
+                  Dir_Count   : Integer         := 0;
+               begin
+                  --  Status is error, because "foo" is not a real file; ignore
+
+                  --  output on stderr looks like:
+                  --  ignoring nonexistent directory "/usr/include/x86_64-linux-gnu/"
+                  --  ignoring ...
+                  --  #include "..." search starts here:
+                  --  #include <...> search starts here:
+                  --   /usr/local/include
+                  --   /usr/include
+                  --  End of search list.
+                  --
+                  --  The desired directory list is every line that starts with a ' '.
+                  --
+                  --  First count how many there are.
+                  loop
+                     First := Index (Source => Temp (First .. Temp'Last), Pattern => Dir_Pattern);
+                     exit when First = 0;
+                     if Dir_Count = 0 then
+                        First_Dir := First + Dir_Pattern'Length;
+                     end if;
+                     Dir_Count := Dir_Count + 1;
+                     First := First + 1;
+                  end loop;
+
+                  --  Now accumulate the dirs
+                  declare
+                     use GNATCOLL.VFS;
+                     Source_Dirs : GNATCOLL.VFS.File_Array (1 .. Dir_Count);
+                     Last        : Integer;
+                  begin
+                     First := First_Dir;
+                     for I in Source_Dirs'Range loop
+                        Last := Index (Source => Temp (First .. Temp'Last), Pattern => Line_End_Pattern);
+                        Source_Dirs (I) := Create_From_UTF8 (Temp (First .. Last - 1));
+                        First := Last + Dir_Pattern'Length;
+                     end loop;
+
+                     Set_Predefined_Source_Path (Env.all, Source_Dirs & Predefined_Source_Path (Env.all));
+                  end;
+               end;
+            exception
+            when Invalid_Process =>
+               raise Invalid_Project with "spawn of " & Exec_Name & " to get predefined source dirs failed";
+            end;
+         end Set_Path_From_Gcc;
+
+         use Ada.Characters.Handling;
+
+         --  Languages can have duplicates; eliminate them
+         Ada_Done : Boolean := False;
+         C_Done   : Boolean := False;
+         Cpp_Done : Boolean := False;
+      begin
+         for I in Languages'Range loop
+            if To_Lower (Languages (I).all) = "ada" and not Ada_Done then
+               declare
+                  --  Set_Path_From_Gnatls clobbers the project path
+                  --  set above; use temp_env to just get source dirs.
+                  Temp_Env     : GNATCOLL.Projects.Project_Environment_Access;
+                  Gnat_Version : GNAT.Strings.String_Access;
+               begin
+                  Initialize (Temp_Env);
+                  Set_Path_From_Gnatls (Temp_Env.all, "gnatls", Gnat_Version);
+                  GNAT.Strings.Free (Gnat_Version);
+                  Set_Predefined_Source_Path (Env.all, Predefined_Source_Path (Temp_Env.all));
+               end;
+
+               Ada_Done := True;
+
+            elsif To_Lower (Languages (I).all) = "c" and not C_Done then
+               Set_Path_From_Gcc ("cc1");
+               C_Done := True;
+
+            elsif To_Lower (Languages (I).all) = "c++" and not Cpp_Done then
+               Set_Path_From_Gcc ("cc1plus");
+               Cpp_Done := True;
+
+            end if;
+         end loop;
+
+      end;
    end Load_Project;
 
    procedure Process_Help (Args : GNATCOLL.Arg_Lists.Arg_List)
