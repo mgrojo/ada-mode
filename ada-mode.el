@@ -2721,6 +2721,7 @@ The paragraph is indented on the first line."
   (cl-case ada-xref-tool
     ((nil 'gnat) (require 'ada-gnat-xref))
     ('gnat_inspect (require 'gnat-inspect))
+    ('gpr_query (require 'gpr-query))
     ))
 
 (unless (featurep 'ada-skeletons)

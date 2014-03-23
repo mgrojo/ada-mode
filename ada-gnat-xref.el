@@ -1,7 +1,7 @@
 ;; Ada mode cross-reference functionality provided by the 'gnat xref'
 ;; tool. Includes related functions, such as gnatprep support.
 ;;
-;; These tools are all Ada-specific; see gnat-inspect for
+;; These tools are all Ada-specific; see gpr-query or gnat-inspect for
 ;; multi-language GNAT cross-reference tools.
 ;;
 ;; GNAT is provided by AdaCore; see http://libre.adacore.com/

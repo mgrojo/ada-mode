@@ -27,7 +27,6 @@ with Ada.Strings.Unbounded;
 with Ada.Text_IO;
 with GNAT.Command_Line;
 with GNAT.Directory_Operations;
-with GNAT.OS_Lib;
 with GNAT.Strings;
 with GNATCOLL.Arg_Lists;
 with GNATCOLL.Paragraph_Filling;
@@ -63,9 +62,6 @@ procedure Gpr_Query is
    --  Process a full line of commands.
    --  Raise Invalid_Command when the command is invalid.
 
-   procedure On_Ctrl_C;
-   pragma Convention (C, On_Ctrl_C);
-
    function Get_Entity (Arg : String) return GNATCOLL.Xref.Entity_Information;
    --  Return the entity matching the "name:file:line:column" argument
 
@@ -82,8 +78,11 @@ procedure Gpr_Query is
    Previous_Progress : Natural                          := 0;
    Progress_Reporter : access procedure (Current, Total : Integer) := null;
 
+   procedure Dump (Curs : in out GNATCOLL.Xref.Entities_Cursor'Class);
    procedure Dump (Refs : in out GNATCOLL.Xref.References_Cursor'Class);
    --  Display the results of a query
+
+   procedure Put (Item : GNATCOLL.VFS.File_Array);
 
    generic
       with function Compute
@@ -105,8 +104,7 @@ procedure Gpr_Query is
       Comp   : Entity_Information;
    begin
       if Args_Length (Args) /= 1 then
-         Ada.Text_IO.Put_Line ("Invalid number of arguments");
-         return;
+         raise Invalid_Command with "Invalid number of arguments";
       end if;
 
       Entity := Get_Entity (Nth_Arg (Args, 1));
@@ -116,6 +114,46 @@ procedure Gpr_Query is
       end if;
    end Process_Command_Single;
 
+   generic
+      with procedure Compute
+        (Self   : in     GNATCOLL.Xref.Xref_Database'Class;
+         Entity : in     GNATCOLL.Xref.Entity_Information;
+         Cursor :    out GNATCOLL.Xref.Entities_Cursor'Class);
+   procedure Process_Command_Multiple (Args : GNATCOLL.Arg_Lists.Arg_List);
+
+   procedure Process_Command_Multiple (Args : GNATCOLL.Arg_Lists.Arg_List)
+   is
+      use GNATCOLL.Arg_Lists;
+      use GNATCOLL.Xref;
+
+      Entity      : Entity_Information;
+      Descendants : Recursive_Entities_Cursor;
+
+      --  Apparently a generic formal parameter cannot match a subprogram access type, so we need this:
+      procedure Do_Compute
+        (Self   : in     GNATCOLL.Xref.Xref_Database'Class;
+         Entity : in     GNATCOLL.Xref.Entity_Information;
+         Cursor :    out GNATCOLL.Xref.Entities_Cursor'Class)
+      is begin
+         Compute (Self, Entity, Cursor);
+      end Do_Compute;
+   begin
+      if Args_Length (Args) /= 1 then
+         raise Invalid_Command with "Invalid number of arguments";
+      end if;
+
+      Entity := Get_Entity (Nth_Arg (Args, 1));
+
+      Recursive
+        (Self    => Xref'Unchecked_Access,
+         Entity  => Entity,
+         Compute => Do_Compute'Unrestricted_Access,
+         Cursor  => Descendants);
+
+      Dump (Descendants);
+
+   end Process_Command_Multiple;
+
    --  Command procedures; Args is the command line.
    --
    --  Infrastructure commands
@@ -123,7 +161,9 @@ procedure Gpr_Query is
    procedure Process_Refresh (Args : GNATCOLL.Arg_Lists.Arg_List);
 
    --  Queries; alphabetical
-   procedure Process_Overrides is new Process_Command_Single (GNATCOLL.Xref.Overrides);
+   procedure Process_Overridden is new Process_Command_Single (GNATCOLL.Xref.Overrides);
+   procedure Process_Overridding is new Process_Command_Multiple (GNATCOLL.Xref.Overridden_By);
+   procedure Process_Parent_Types is new Process_Command_Multiple (GNATCOLL.Xref.Parent_Types);
    procedure Process_Project_Path (Args : GNATCOLL.Arg_Lists.Arg_List);
    procedure Process_Refs (Args : GNATCOLL.Arg_Lists.Arg_List);
    procedure Process_Source_Dirs (Args : GNATCOLL.Arg_Lists.Arg_List);
@@ -147,10 +187,21 @@ procedure Gpr_Query is
        Process_Refresh'Access),
 
       --  queries
-      (new String'("overrides"),
+
+      (new String'("overridden"),
        new String'("name:file:line:column"),
        new String'("The entity that is overridden by the parameter"),
-       Process_Overrides'Access),
+       Process_Overridden'Access),
+
+      (new String'("overridding"),
+       new String'("name:file:line:column"),
+       new String'("The entities that override the parameter"),
+       Process_Overridding'Access),
+
+      (new String'("parent_types"),
+       new String'("name:file:line:column"),
+       new String'("The parent types of the entity."),
+       Process_Parent_Types'Access),
 
       (new String'("project_path"),
        null,
@@ -192,6 +243,16 @@ procedure Gpr_Query is
          Previous_Progress := Now;
       end if;
    end Display_Progress;
+
+   procedure Dump (Curs : in out GNATCOLL.Xref.Entities_Cursor'Class)
+   is
+      use GNATCOLL.Xref;
+   begin
+      while Curs.Has_Element loop
+         Ada.Text_IO.Put_Line (Image (Curs.Element));
+         Curs.Next;
+      end loop;
+   end Dump;
 
    procedure Dump (Refs : in out GNATCOLL.Xref.References_Cursor'Class)
    is
@@ -247,10 +308,7 @@ procedure Gpr_Query is
                Path  => Words (Words'First + 1).all));
 
       when others =>
-         Ada.Text_IO.Put_Line
-           ("Invalid parameter, expecting name:file:line:column => '" & Arg & "'");
-         GNAT.Strings.Free (Words);
-         return No_Entity;
+         raise Invalid_Command with "Invalid parameter '" & Arg & "', expecting name:file:line:column";
       end case;
 
       GNAT.Strings.Free (Words);
@@ -294,8 +352,9 @@ procedure Gpr_Query is
 
    procedure Load_Project (Path : GNATCOLL.VFS.Virtual_File)
    is
-      Temp_Path : GNATCOLL.VFS.Virtual_File := Path;
+      Temp_Path    : GNATCOLL.VFS.Virtual_File := Path;
       Gnat_Version : GNAT.Strings.String_Access;
+      Project_Path : GNAT.Strings.String_Access;
    begin
       GNATCOLL.Projects.Initialize (Env);
 
@@ -317,7 +376,6 @@ procedure Gpr_Query is
          Prj_Env      : Environment;
          Prj_View     : constant Prj.Project_Tree_Ref  := new Prj.Project_Tree_Data;
          Project      : Project_Node_Id                := Empty_Node;
-         Project_Path : GNAT.Strings.String_Access;
       begin
          Initialize (Prj_Tree);
          Prj.Initialize (Prj_View); -- sets some global vars required for parsing
@@ -420,7 +478,6 @@ procedure Gpr_Query is
                      declare
                         Dir : constant String := Get_Name_String (String_Value_Of (Node, Prj_Tree));
                      begin
-                        Ada.Text_IO.Put_Line ("add dir " & Dir);
                         if GNATCOLL.VFS_Utils.Is_Absolute_Path (+Dir) then
                            Prj.Env.Add_Directories (Prj_Env.Project_Path, Dir);
                         else
@@ -463,7 +520,8 @@ procedure Gpr_Query is
 
                if Gpr_Path_Name = No_Path then
                   Prj.Env.Get_Path (Prj_Env.Project_Path, Project_Path);
-                  Ada.Text_IO.Put_Line ("project path: " & Project_Path.all);
+                  Ada.Text_IO.Put_Line ("project search path:");
+                  Put (GNATCOLL.VFS.From_Path (GNATCOLL.VFS.Filesystem_String (Project_Path.all)));
                   raise GNATCOLL.Projects.Invalid_Project with
                     "'" & Get_Name_String (Gpr_File_Name) & "' project file not found";
                end if;
@@ -480,16 +538,12 @@ procedure Gpr_Query is
          Tree.Load (Temp_Path, Env, Errors => Ada.Text_IO.Put_Line'Access);
       exception
       when GNATCOLL.Projects.Invalid_Project =>
+         Ada.Text_IO.Put_Line ("project search path:");
+         Put (GNATCOLL.VFS.From_Path (GNATCOLL.VFS.Filesystem_String (Project_Path.all)));
          raise GNATCOLL.Projects.Invalid_Project with +Temp_Path.Full_Name & ": invalid project";
       end;
 
    end Load_Project;
-
-   procedure On_Ctrl_C is
-   begin
-      Free (Xref);
-      GNAT.OS_Lib.OS_Exit (0);
-   end On_Ctrl_C;
 
    procedure Process_Help (Args : GNATCOLL.Arg_Lists.Arg_List)
    is
@@ -548,9 +602,7 @@ procedure Gpr_Query is
                end loop;
 
                if not Found then
-                  Ada.Text_IO.Put_Line ("Invalid command: '" & Cmd & "'");
-                  Process_Help (Empty_Command_Line);
-                  raise Invalid_Command;
+                  raise Invalid_Command with "Invalid command: '" & Cmd & "'";
                end if;
             end;
 
@@ -565,9 +617,7 @@ procedure Gpr_Query is
       pragma Unreferenced (Args);
       Dirs : constant GNATCOLL.VFS.File_Array := GNATCOLL.Projects.Predefined_Project_Path (Env.all);
    begin
-      for I in Dirs'Range loop
-         Ada.Text_IO.Put_Line (+GNATCOLL.VFS.Full_Name (Dirs (I)));
-      end loop;
+      Put (Dirs);
    end Process_Project_Path;
 
    procedure Process_Refresh (Args : GNATCOLL.Arg_Lists.Arg_List)
@@ -590,25 +640,19 @@ procedure Gpr_Query is
    procedure Process_Refs (Args : GNATCOLL.Arg_Lists.Arg_List)
    is
       use GNATCOLL.Arg_Lists;
-      use GNATCOLL.Xref;
-      Entity  : Entity_Information;
-      Refs    : References_Cursor;
-      Renamed : Entity_Information;
    begin
       if Args_Length (Args) /= 1 then
-         Ada.Text_IO.Put_Line ("Invalid number of arguments");
-         return;
+         raise Invalid_Command with "Invalid number of arguments";
       end if;
 
-      Entity := Get_Entity (Nth_Arg (Args, 1));
-
-      Renamed := Xref.Renaming_Of (Entity);
-      if Renamed /= No_Entity then
-         Ada.Text_IO.Put_Line ("Renaming of " & Image (Renamed));
-      end if;
-
-      Xref.References (Entity, Cursor => Refs);
-      Dump (Refs);
+      declare
+         use GNATCOLL.Xref;
+         Entity  : constant Entity_Information := Get_Entity (Nth_Arg (Args, 1));
+         Refs    : References_Cursor;
+      begin
+         Xref.References (Entity, Cursor => Refs);
+         Dump (Refs);
+      end;
    end Process_Refs;
 
    procedure Process_Source_Dirs (Args : GNATCOLL.Arg_Lists.Arg_List)
@@ -622,10 +666,17 @@ procedure Gpr_Query is
          Recursive => True) &
         Predefined_Source_Path (Env.all);
    begin
-      for I in Dirs'Range loop
-         Ada.Text_IO.Put_Line (+Full_Name (Dirs (I)));
-      end loop;
+      Put (Dirs);
    end Process_Source_Dirs;
+
+   procedure Put (Item : GNATCOLL.VFS.File_Array)
+   is
+      use GNATCOLL.VFS;
+   begin
+      for I in Item'Range loop
+         Ada.Text_IO.Put_Line (+Full_Name (Item (I)));
+      end loop;
+   end Put;
 
 begin
    declare
@@ -633,7 +684,7 @@ begin
    begin
       Set_Usage
         (Cmdline,
-         Help => "Query project info and cross-references on source code");
+         Help => "Query project info and cross-references on source code. See ada-mode docs for more help.");
       Define_Switch
         (Cmdline,
          Output      => DB_Name'Access,
@@ -682,14 +733,21 @@ begin
 
    if Project_Name.all = "" then
       Ada.Text_IO.Put_Line ("No project file specified");
-      Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
+      GNAT.Command_Line.Display_Help (Cmdline);
       return;
    end if;
 
    declare
       use GNATCOLL.VFS;
+      use GNATCOLL.VFS_Utils;
+      use GNAT.Directory_Operations;
       use type GNAT.Strings.String_Access;
-      Path : constant Virtual_File := Create (+Project_Name.all);
+
+      Path : constant Virtual_File :=
+        (if Is_Absolute_Path (+Project_Name.all) then
+           Create_From_UTF8 (Project_Name.all, Normalize => True)
+        else
+           Create_From_UTF8 (Get_Current_Dir & Project_Name.all, Normalize => True));
    begin
       if not Path.Is_Regular_File then
          Ada.Text_IO.Put_Line (Project_Name.all & ": not found");
@@ -699,8 +757,9 @@ begin
 
       --  FIXME: this requires gnatcoll 1.6, which requires gnat 7.2.
       --  but not really? just patch gnatcoll 1.6, like we did 1.6w
-      --  In any case, needs to compile with current public release 2013
+      --  In any case, needs to compile with current public release
 
+      --  specifying the config file avoids errors for user installed languages
       --  if Config_File /= null and then Config_File.all /= "" then
       --     Env.Set_Config_File (Create_From_Base (+Config_File.all, Get_Current_Dir.Full_Name.all));
       --  end if;
@@ -753,7 +812,6 @@ begin
 
    if Commands_From_Switch.all /= "" then
       Process_Line (Commands_From_Switch.all);
-      On_Ctrl_C;
       return;
    end if;
 
@@ -764,22 +822,26 @@ begin
       begin
          exit when Input = "exit";
          Process_Line (Input);
+      exception
+      when E : Invalid_Command =>
+         Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Message (E));
+         Process_Help (GNATCOLL.Arg_Lists.Empty_Command_Line);
       end;
    end loop;
-
-   On_Ctrl_C;
 
 exception
 when E : GNATCOLL.Projects.Invalid_Project =>
    Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Message (E));
-   On_Ctrl_C;
-when Invalid_Command =>
-   On_Ctrl_C;
+   Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
+when E :  Invalid_Command =>
+   Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Message (E));
+   Process_Help (GNATCOLL.Arg_Lists.Empty_Command_Line);
+   Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
 when GNAT.Command_Line.Invalid_Switch =>
    GNAT.Command_Line.Display_Help (Cmdline);
-   On_Ctrl_C;
+   Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
 when E : others =>
    Ada.Text_IO.Put_Line ("Unexpected exception");
    Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (E));
-   On_Ctrl_C;
+   Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
 end Gpr_Query;

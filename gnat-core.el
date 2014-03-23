@@ -172,12 +172,16 @@ Uses 'gnat list'. Returns new '(src-dirs prj-dirs)."
       (gnat_inspect
        (setq src-dirs (gnat-inspect-get-src-dirs src-dirs))
        (setq prj-dirs (cadr (gnat-get-paths-1 src-dirs prj-dirs))))
+
+      (gpr_query
+       (setq src-dirs (gpr-query-get-src-dirs src-dirs))
+       (setq prj-dirs (gpr-query-get-prj-dirs prj-dirs)))
       )
 
-      (setq project (plist-put project 'src_dir (reverse src-dirs)))
-      (mapc (lambda (dir) (gnat-prj-add-prj-dir dir project))
-	    (reverse prj-dirs))
-      )
+    (setq project (plist-put project 'src_dir (reverse src-dirs)))
+    (mapc (lambda (dir) (gnat-prj-add-prj-dir dir project))
+	  (reverse prj-dirs))
+    )
   project)
 
 (defun gnat-parse-gpr (gpr-file project)

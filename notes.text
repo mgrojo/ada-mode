@@ -113,15 +113,23 @@ gnatinspect verbosity in .gnatdebug:
 -- Projects
 -- ENTITIES.PARSING
 
-gnat ls does not report source_path for c++ projects
-    nor for aggregates with gnat 7.2!
-    replace gnatinspect with gpr_query, support aggregate project prj_dirs query
+replace gnatinspect with gpr_query
     build/Makefile install
 
     use in elisp
+        testing in work_stephe_3
+
+    for C, C++ predefined source_dirs
+        gnatcoll.projects.languages
+        gcc -v --help
+            gives cc1 location
+        /usr/gnat-7.2.1-x86_64/bin/../libexec/gcc/x86_64-pc-linux-gnu/4.7.4/cc1 -v help-dummy -mtune=generic -march=x86-64 -iprefix /usr/gnat-7.2.1-x86_64/bin/../lib/gcc/x86_64-pc-linux-gnu/4.7.4/
+            gives include search
+            compute iprefix from cc1 location
 
     use --display_progress
 
+    write tests!
 
 F7 broken
     using wrong/broken compilation regexp?
