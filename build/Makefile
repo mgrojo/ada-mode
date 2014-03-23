@@ -99,14 +99,17 @@ install-clean :
 
 .PHONY : force
 
+# export Gpr_Query_Build := Debug
 gpr_query: force
 	gprbuild -p gpr_query.gpr
 
-one : gpr_query
-	./gpr_query -P gpr_query.gpr -c source_dirs --foobar
+one : /usr/gnat-7.2.1-x86_64/bin/gpr_query
+#	gpr_query -P gpr_query.gpr -c project_path
+	gpr_query -P ~/GDS/work_stephe_3/dscovr/build/x86_64_gnu_linux_release/gds_dscovr_utf_agg.gpr -c source_dirs
 
-install : gpr_query
-	cp gpr_query ~/bin
+# FIXME: get install dir from 'type gnat'?
+/usr/gnat-7.2.1-x86_64/bin/gpr_query install : gpr_query
+	cp gpr_query /usr/gnat-7.2.1-x86_64/bin
 
 clean ::
 	rm -rf obj

@@ -36,13 +36,13 @@ with GNATCOLL.SQL.Sqlite;
 with GNATCOLL.Traces;
 with GNATCOLL.Utils;
 with GNATCOLL.VFS;
+with GNATCOLL.VFS_Utils;
 with GNATCOLL.Xref;
 with Namet;
 with Prj.Env;
 with Prj.Err;
 with Prj.Part;
 with Prj.Tree;
-with Sdefault;
 with Sinput.P;
 procedure Gpr_Query is
    use GNATCOLL;
@@ -309,6 +309,7 @@ procedure Gpr_Query is
       --  not support aggregate projects. So handle an important
       --  special case here.
       declare
+         use GNATCOLL.VFS;
          use Prj.Tree;
          use type Prj.Project_Qualifier;
 
@@ -334,9 +335,8 @@ procedure Gpr_Query is
                Missing_Source_Files       => Prj.Warning,
                Ignore_Missing_With        => False));
 
-         --  FIXME: get target_name from command line; not necessarily the same as this code is compiled with!
-         Prj.Env.Initialize_Default_Project_Path (Prj_Env.Project_Path, Sdefault.Target_Name.all);
-         --  Only works if current executable is installed in gnat/bin directory
+         Prj.Env.Add_Directories
+           (Prj_Env.Project_Path, +To_Path (GNATCOLL.Projects.Predefined_Project_Path (Env.all)));
 
          Prj.Err.Initialize;
 
@@ -362,74 +362,103 @@ procedure Gpr_Query is
             --  We can't use GNATCOLL.Projects.Attribute_Value,
             --  because that requires a loaded project, and we can't
             --  load it if it's an aggregate.
-            --
-            --  We'd like to use
-            --  GNATCOLL.Projects.Normalize.Find_Node_By_Name, but
-            --  that's a private package. So we copy that code.
+
             declare
                use Namet;
-               function Find_Node_By_Name
-                 (Tree    : in Project_Node_Tree_Ref;
-                  Project : in Project_Node_Id;
-                  Kind    : in Project_Node_Kind;
-                  Name    : in String)
-                 return Project_Node_Id
-               is
-                  Name_Id : Namet.Name_Id;
-                  Decl    : Project_Node_Id := First_Declarative_Item_Of
-                    (Project_Declaration_Of (Project, Tree), Tree);
-                  Current : Project_Node_Id;
-               begin
-                  Name_Buffer (1 .. Name'Length) := Name;
-                  Name_Len                       := Name'Length;
-                  Name_Id                        := Name_Find;
+               Prj_Dir : constant String := +Dir_Name (Path);
 
-                  while Decl /= Empty_Node loop
-                     Current := Current_Item_Node (Decl, Tree);
-                     if Kind_Of (Current, Tree) = Kind then
-                        if Name_Of (Current, Tree) = Name_Id then
-                           return Current;
-                        end if;
-                     end if;
-                     Decl := Next_Declarative_Item (Decl, Tree);
-                  end loop;
-                  return Empty_Node;
-               end Find_Node_By_Name;
-
-               Node         : Project_Node_Id := Find_Node_By_Name
-                 (Prj_Tree, Project, N_Attribute_Declaration, "project_files");
                Gpr_File_Name : Name_Id;
                Gpr_Path_Name : Path_Name_Type;
+
+               function Find_Name_Id (Name : in String) return Name_Id
+               is begin
+                  Name_Buffer (1 .. Name'Length) := Name;
+                  Name_Len                       := Name'Length;
+                  return Name_Find;
+               end Find_Name_Id;
+
+               procedure Fail
+               is begin
+                  raise GNATCOLL.Projects.Invalid_Project with Path.Display_Full_Name &
+                    ": error : Aggregate projects are not supported";
+               end Fail;
+
+               procedure Process_Files (Node : in out Project_Node_Id)
+               is
+               begin
+                  if Node = Empty_Node then
+                     Fail;
+                  end if;
+                  Node := Expression_Of (Node, Prj_Tree); -- kind = N_Expression
+                  Node := First_Expression_In_List (Node, Prj_Tree); -- kind = N_term
+
+                  if Next_Expression_In_List (Node, Prj_Tree) /= Empty_Node then
+                     Fail;
+                  end if;
+
+                  Node := Current_Term (Node, Prj_Tree); -- kind = N_Literal_String_List
+                  Node := First_Expression_In_List (Node, Prj_Tree); -- kind = N_Expression
+                  Node := First_Expression_In_List (Node, Prj_Tree); -- kind = N_Term
+                  Node := Current_Term (Node, Prj_Tree); -- kind = N_Literal_String
+
+                  Gpr_File_Name := String_Value_Of (Node, Prj_Tree);
+
+               end Process_Files;
+
+               procedure Process_Path (Node : in out Project_Node_Id)
+               is
+                  Expression : Project_Node_Id;
+               begin
+                  Node := Expression_Of (Node, Prj_Tree); -- kind = N_Expression
+                  Node := First_Expression_In_List (Node, Prj_Tree); -- kind = N_term
+                  Node := Current_Term (Node, Prj_Tree); -- kind = N_Literal_String_List
+                  Expression := First_Expression_In_List (Node, Prj_Tree); -- kind = N_Expression
+                  loop
+                     Node := First_Term (Expression, Prj_Tree); -- kind = N_Term
+                     Node := Current_Term (Node, Prj_Tree); -- kind = N_Literal_String
+
+                     declare
+                        Dir : constant String := Get_Name_String (String_Value_Of (Node, Prj_Tree));
+                     begin
+                        Ada.Text_IO.Put_Line ("add dir " & Dir);
+                        if GNATCOLL.VFS_Utils.Is_Absolute_Path (+Dir) then
+                           Prj.Env.Add_Directories (Prj_Env.Project_Path, Dir);
+                        else
+                           Prj.Env.Add_Directories (Prj_Env.Project_Path, Prj_Dir & Dir);
+                        end if;
+                     end;
+                     Expression := Next_Expression_In_List (Expression, Prj_Tree);
+                     exit when Expression = Empty_Node;
+                  end loop;
+               end Process_Path;
+
+               Project_Files_Name_Id : constant Name_Id := Find_Name_Id ("project_files");
+               Project_Path_Name_Id  : constant Name_Id := Find_Name_Id ("project_path");
+               Decl                  : Project_Node_Id  := First_Declarative_Item_Of
+                 (Project_Declaration_Of (Project, Prj_Tree), Prj_Tree);
+               Current               : Project_Node_Id;
             begin
-               if Node = Empty_Node then
-                  raise GNATCOLL.Projects.Invalid_Project with Path.Display_Full_Name &
-                    ": error : Aggregate projects are not supported";
-               end if;
-               Node := Expression_Of (Node, Prj_Tree); -- kind = N_Expression
-               Node := First_Expression_In_List (Node, Prj_Tree); -- kind = N_term
+               while Decl /= Empty_Node loop
+                  Current := Current_Item_Node (Decl, Prj_Tree);
+                  case Kind_Of (Current, Prj_Tree) is
+                  when N_Attribute_Declaration =>
+                     if Name_Of (Current, Prj_Tree) = Project_Files_Name_Id then
+                        Process_Files (Current);
+                     elsif Name_Of (Current, Prj_Tree) = Project_Path_Name_Id then
+                        Process_Path (Current);
+                     end if;
 
-               if Next_Expression_In_List (Node, Prj_Tree) /= Empty_Node then
-                  raise GNATCOLL.Projects.Invalid_Project with Path.Display_Full_Name &
-                    ": error : Aggregate projects are not supported";
-               end if;
+                  when others =>
+                     --  Just assume this makes our assumptions invalid.
+                     Fail;
+                  end case;
+                  Decl := Next_Declarative_Item (Decl, Prj_Tree);
+               end loop;
 
-               Node := Current_Term (Node, Prj_Tree); -- kind = N_Literal_String_List
-               Node := First_Expression_In_List (Node, Prj_Tree); -- kind = N_Expression
-               Node := First_Expression_In_List (Node, Prj_Tree); -- kind = N_Term
-               Node := Current_Term (Node, Prj_Tree); -- kind = N_Literal_String
-               Gpr_File_Name := String_Value_Of (Node, Prj_Tree);
-
-               --  Prj.part.parse updated Prj_Env with the aggregate
-               --  project path.
-               --  FIXME: no, it didn't; just parsed, not processed.
-               --
-               --  However, it just uses "." for the
-               --  "project file directory", which is probably not the
-               --  current process directory. So we pass in Dir_Name.
                Prj.Env.Find_Project
                  (Prj_Env.Project_Path,
                   Project_File_Name => Get_Name_String (Gpr_File_Name),
-                  Directory         => String (GNATCOLL.VFS.Dir_Name (Path)),
+                  Directory         => String (Dir_Name (Path)),
                   Path              => Gpr_Path_Name);
 
                if Gpr_Path_Name = No_Path then
@@ -438,13 +467,13 @@ procedure Gpr_Query is
                   raise GNATCOLL.Projects.Invalid_Project with
                     "'" & Get_Name_String (Gpr_File_Name) & "' project file not found";
                end if;
-               Temp_Path := GNATCOLL.VFS.Create_From_UTF8 (Get_Name_String (Gpr_Path_Name));
+               Temp_Path := Create_From_UTF8 (Get_Name_String (Gpr_Path_Name));
             end;
          end if;
 
          Prj.Env.Get_Path (Prj_Env.Project_Path, Project_Path);
          GNATCOLL.Projects.Set_Predefined_Project_Path
-           (Env.all, VFS.From_Path (VFS.Filesystem_String (Project_Path.all)));
+           (Env.all, From_Path (Filesystem_String (Project_Path.all)));
       end;
 
       begin
@@ -585,12 +614,16 @@ procedure Gpr_Query is
    procedure Process_Source_Dirs (Args : GNATCOLL.Arg_Lists.Arg_List)
    is
       pragma Unreferenced (Args);
-      Dirs : constant GNATCOLL.VFS.File_Array := GNATCOLL.Projects.Source_Dirs
+      use GNATCOLL.VFS;
+      use GNATCOLL.Projects;
+
+      Dirs : constant File_Array := Source_Dirs
         (Project   => Tree.Root_Project,
-         Recursive => True);
+         Recursive => True) &
+        Predefined_Source_Path (Env.all);
    begin
       for I in Dirs'Range loop
-         Ada.Text_IO.Put_Line (+GNATCOLL.VFS.Full_Name (Dirs (I)));
+         Ada.Text_IO.Put_Line (+Full_Name (Dirs (I)));
       end loop;
    end Process_Source_Dirs;
 

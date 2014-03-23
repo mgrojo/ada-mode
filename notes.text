@@ -118,12 +118,7 @@ gnat ls does not report source_path for c++ projects
     replace gnatinspect with gpr_query, support aggregate project prj_dirs query
     build/Makefile install
 
-    need to process Project_Path attribute
-
-    source_dirs still doesn't include ada.strings!?
-        apparently 'set from gnatls' does it wrong!
-
-    project_path has "no target"; need real target
+    use in elisp
 
     use --display_progress
 
