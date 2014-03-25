@@ -33,12 +33,19 @@ install packages in -Q:
  (add-to-list 'package-archives (cons "test" "/Projects/elpa/archive/packages"))
  (list-packages))
 
- 5.1.a: non_ascii in source etc
+ next release
+ 5.1.a: non_ascii in source etc
 build/wisi/Makefile
 build/Makefile
 doc changes in NEWS-ada-mode.text NEWS-wisi.text
 
 (grep-find "find . -type f -print | \"xargs\" grep -nH \"FIXME:\"")
+
+C-c C-d on +Normalize_Pathname
+    includes + in identifier
+
+type name after aliased doesn't have typename font:
+   Force_Refresh        : aliased Boolean;
 
 prev-statement-keyword in subprogram skips exception
 
@@ -63,7 +70,7 @@ replacement for gnatinspect that returns project path for agg project
     as well as everything else ada mode needs
     gnatquery; see below
 
- 5.1.b: skeleton refactor/cleanup
+5.1.b: skeleton refactor/cleanup
 
 gpr-skel.el
     ./gpr-skel.el:111:;; FIXME: code below should be in skeleton.el
@@ -73,7 +80,7 @@ gpr-skel.el
         assume will be in emacs 24.5 or 25.*
     use in ada-skel?
 
- 5.1.x: misc
+5.1.x: misc
 
 ./wisi.el	  ;; FIXME: insert newline in comment to create non-comment!?
     need tests for wisi-before/after-change vs comments, strings
@@ -102,38 +109,25 @@ SPARK aspects
 (see general below for more possibilites)
 
  gpr_query
-test gnat 7.2, gnatcoll 1.6
+build/Makefile one
 
-~/Projects/gnatcoll-1.6w-src/docs/xref.rst
-c:/Apps/GNAT-7.1.2/gnatcoll-1.6w-src/src/tools/gnatinspect.adb
-(require 'gpr-mode)
-(gpr-set-as-project "c:/Apps/GNAT-7.1.2/gnatcoll-1.6w-src/src/gnatcoll_tools.gpr")
-(browse-url "file:///c:/Apps/GNAT-7.1.2/gnatcoll-1.6w-src/docs/_build/html/xref.html")
-gnatinspect verbosity in .gnatdebug:
--- Projects
--- ENTITIES.PARSING
+~/GDS/work_stephe_3/dscovr/simics_601/modules/itcsb_time_sync/itcsb_time_sync.cpp
+    cd /home/gds/GDS/work_stephe_3/dscovr/build/itcsb_time_sync_simics_agg.gpr
+    delta_time:itcsb_time_sync.cpp:146:100
+        in .gli, but not found
+        submitted to adacore N325-065
 
-replace gnatinspect with gpr_query
-    build/Makefile install
+when loading itscb_time_sync_simics.gpr:
+    [PROJECTS] Library_Files not including : Bus.cpp.gli (which is for project ITCSB_Time_Sync)
 
-    use in elisp
-        testing in work_stephe_3
+gpr_query refs output distinguishes between read ref and write query
+    useful for "where is this var set?"
+    xref filter?
+    elisp filter?
 
-    for C, C++ predefined source_dirs
-        gnatcoll.projects.languages
-        gcc -v --help
-            gives cc1 location
-        /usr/gnat-7.2.1-x86_64/bin/../libexec/gcc/x86_64-pc-linux-gnu/4.7.4/cc1 -v help-dummy -mtune=generic -march=x86-64 -iprefix /usr/gnat-7.2.1-x86_64/bin/../lib/gcc/x86_64-pc-linux-gnu/4.7.4/
-            gives include search
-            compute iprefix from cc1 location
+use --display_progress
 
-    use --display_progress
-
-    write tests!
-
-F7 broken
-    using wrong/broken compilation regexp?
-    c:/Projects/GDS/main_lynx_5/common/1553/gds-cards-sbs_abi-ops.ads Read_Mem
+write tests!
 
 implement C++ C-c ? children
     /home/Projects/GDS/work_stephe_2/common/itc/itcsb/libitcsb_1553/inc/Itcsb1553/Bus.hpp
@@ -159,9 +153,9 @@ export ADA_PROJECT_PATH=../../../makerules:../../../common/build/x86_gnu_linux_r
 gnatinspect --project=gds_dscovr.gpr --nightlydb=gnatinspect.db -c "parent_types SubaddressPacket:Gds1553.cpp"
 
 
-C-F11 fails on #include <Itcsb1553/Itcsb1553.hpp>
+parse linker cross reference output; -cref
+    for pragma import
 
-need std include files in search list
 
 (require 'gpr-mode)
 (gpr-set-as-project "c:/Apps/GNAT-7.1.2/gnatcoll-1.6w-src/src/gnatcoll_tools.gpr")

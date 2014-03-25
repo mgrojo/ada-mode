@@ -3,4 +3,5 @@ GNATCOLL
 SQL
 Text_IO
 VFS
+*OS
 *UTF8

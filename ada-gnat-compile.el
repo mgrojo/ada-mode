@@ -496,17 +496,15 @@ Prompt user if more than one."
 
 ;;;; style errors
 	  ((looking-at "(style) \".*\" in wrong column")
-	   (progn
-	     (set-buffer source-buffer)
-	     (funcall indent-line-function))
+	   (set-buffer source-buffer)
+	   (funcall indent-line-function)
 	   t)
 
 	  ((looking-at "(style) bad capitalization, mixed case required")
-	   (progn
-	     (set-buffer source-buffer)
-	     (forward-word)
-	     (ada-case-adjust-identifier)
-	     t))
+	   (set-buffer source-buffer)
+	   (forward-word)
+	   (ada-case-adjust-identifier)
+	   t)
 
 	  ((looking-at (concat "(style) bad casing of " ada-gnat-quoted-name-regexp))
 	   (let ((correct (match-string-no-properties 1))
@@ -526,6 +524,11 @@ Prompt user if more than one."
 	    (looking-at "(style) incorrect layout"))
 	   (set-buffer source-buffer)
 	   (funcall indent-line-function)
+	   t)
+
+	  ((looking-at "(style) misplaced \"then\"")
+	   (set-buffer source-buffer)
+	   (delete-indentation)
 	   t)
 
          ((looking-at "(style) missing \"overriding\" indicator")

@@ -76,6 +76,12 @@
 			   (concat "--project=" project-file)))
       (set-process-query-on-exit-flag (gpr-query--session-process session) nil)
       (gpr-query-session-wait session)
+
+      ;; check for warnings about invalid directories etc
+      (goto-char (point-min))
+      (when (search-forward "warning:" nil t)
+	(pop-to-buffer (current-buffer))
+	(error "gpr_query warnings"))
       )))
 
 (defun gpr-query--make-session ()
@@ -114,16 +120,20 @@
     (let ((process (gpr-query--session-process session))
 	  (search-start (point-min))
 	  (wait-count 0))
-      (while (progn
-	       ;; process output is inserted before point, so move back over it to search it
-	       (goto-char search-start)
-	       (not (re-search-forward gpr-query-prompt (point-max) 1)))
+      (while (and (process-live-p process)
+		  (progn
+		    ;; process output is inserted before point, so move back over it to search it
+		    (goto-char search-start)
+		    (not (re-search-forward gpr-query-prompt (point-max) 1))))
 	(setq search-start (point));; don't search same text again
 	(message (concat "running gpr_query ..." (make-string wait-count ?.)))
 	;; FIXME: use --display-progress
 	(accept-process-output process 1.0)
 	(setq wait-count (1+ wait-count)))
-      (message (concat "running gpr_query ... done"))
+      (if (process-live-p process)
+	  (message (concat "running gpr_query ... done"))
+	(pop-to-buffer (current-buffer))
+	(error "gpr_query process died"))
       )))
 
 (defun gpr-require-prj ()
@@ -178,10 +188,26 @@ Uses 'gpr_query'. Returns new list."
     )
   src-dirs)
 
+(defun gpr-query-get-prj-dirs (prj-dirs)
+  "Append list of source dirs in current gpr project to PRJ-DIRS.
+Uses 'gpr_query'. Returns new list."
+
+  (with-current-buffer (gpr-query--session-buffer (gpr-query-cached-session))
+    (gpr-query-session-send "project_path" t)
+    (goto-char (point-min))
+    (while (not (looking-at gpr-query-prompt))
+      (add-to-list 'prj-dirs
+		   (directory-file-name
+		    (buffer-substring-no-properties (point) (point-at-eol))))
+      (forward-line 1))
+    )
+  prj-dirs)
+
 (defconst gpr-query-ident-file-regexp
   ;; Write_Message:C:\Projects\GDS\work_dscovr_release\common\1553\gds-mil_std_1553-utf.ads:252:25
   ;; Write_Message:/Projects/GDS/work_dscovr_release/common/1553/gds-mil_std_1553-utf.ads:252:25
   "\\([^:]*\\):\\(\\(?:.:\\\|/\\)[^:]*\\):\\([0123456789]+\\):\\([0123456789]+\\)"
+  ;;  1          2                           3                   4
   "Regexp matching <identifier>:<file>:<line>:<column>")
 
 (defconst gpr-query-ident-file-regexp-alist
@@ -230,6 +256,10 @@ set compilation-mode with compilation-error-regexp-alist set to COMP-ERR."
 		 line (caar (cddr (compilation--loc->file-struct loc)))
 		 column (1- (compilation--loc->col loc)))
 	   ))
+
+	(t
+	 ;; for next-error, below
+	 (setq next-error-last-buffer (current-buffer)))
 
 	));; case, with-currrent-buffer
 

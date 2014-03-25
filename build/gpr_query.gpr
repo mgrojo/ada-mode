@@ -60,4 +60,8 @@ project Gpr_query is
       for Default_Switches ("Ada") use ("-lpthread");
    end Linker;
 
+   package Binder is
+      for default_switches ("Ada") use ("-E"); -- symbolic traceback
+   end Binder;
+
 end Gpr_query;

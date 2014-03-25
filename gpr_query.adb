@@ -21,7 +21,7 @@ pragma License (GPL);
 
 with Ada.Characters.Handling;
 with Ada.Command_Line;
-with Ada.Exceptions;
+with Ada.Exceptions.Traceback;
 with Ada.Strings.Fixed;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO;
@@ -34,7 +34,8 @@ with GNATCOLL.Arg_Lists;
 with GNATCOLL.Paragraph_Filling;
 with GNATCOLL.Projects;
 with GNATCOLL.SQL.Sqlite;
-with GNATCOLL.Traces;
+with GNATCOLL.Traces; use GNATCOLL.Traces;
+with GNAT.Traceback.Symbolic;
 with GNATCOLL.Utils;
 with GNATCOLL.VFS;
 with GNATCOLL.VFS_Utils;
@@ -48,6 +49,8 @@ with Sinput.P;
 procedure Gpr_Query is
    use GNATCOLL;
 
+   Me : constant GNATCOLL.Traces.Trace_Handle := GNATCOLL.Traces.Create ("gpr_query");
+
    function "+" (Item : in Ada.Strings.Unbounded.Unbounded_String) return String
      renames Ada.Strings.Unbounded.To_String;
 
@@ -55,9 +58,6 @@ procedure Gpr_Query is
    is begin
       return String (Item);
    end "+";
-
-
-   Me : constant GNATCOLL.Traces.Trace_Handle := GNATCOLL.Traces.Create ("Query");
 
    Invalid_Command : exception;
    procedure Process_Line (Line : String);
@@ -80,6 +80,8 @@ procedure Gpr_Query is
    Previous_Progress : Natural                          := 0;
    Progress_Reporter : access procedure (Current, Total : Integer) := null;
 
+   --  Subprogram specs for subprograms used before bodies
+   procedure Check_Arg_Count (Args : in GNATCOLL.Arg_Lists.Arg_List; Expected : in Integer);
    procedure Dump (Curs : in out GNATCOLL.Xref.Entities_Cursor'Class);
    procedure Dump (Refs : in out GNATCOLL.Xref.References_Cursor'Class);
    --  Display the results of a query
@@ -105,9 +107,7 @@ procedure Gpr_Query is
       Entity : Entity_Information;
       Comp   : Entity_Information;
    begin
-      if Args_Length (Args) /= 1 then
-         raise Invalid_Command with "Invalid number of arguments";
-      end if;
+      Check_Arg_Count (Args, 1);
 
       Entity := Get_Entity (Nth_Arg (Args, 1));
       Comp := Compute (Xref, Entity);
@@ -140,9 +140,7 @@ procedure Gpr_Query is
          Compute (Self, Entity, Cursor);
       end Do_Compute;
    begin
-      if Args_Length (Args) /= 1 then
-         raise Invalid_Command with "Invalid number of arguments";
-      end if;
+      Check_Arg_Count (Args, 1);
 
       Entity := Get_Entity (Nth_Arg (Args, 1));
 
@@ -223,11 +221,13 @@ procedure Gpr_Query is
    --  Parsed command line info
    Cmdline              : GNAT.Command_Line.Command_Line_Configuration;
    Commands_From_Switch : aliased GNAT.Strings.String_Access;
-   DB_Name              : aliased GNAT.Strings.String_Access := new String'("gnatquery.db");
+   DB_Name              : aliased GNAT.Strings.String_Access := new String'("gpr_query.db");
+   Force_Refresh        : aliased Boolean;
    Nightly_DB_Name      : aliased GNAT.Strings.String_Access;
    Show_Progress        : aliased Boolean;
    Project_Name         : aliased GNAT.Strings.String_Access;
-   Config_File          : aliased GNAT.Strings.String_Access;
+   Traces_Config_File   : aliased GNAT.Strings.String_Access;
+   Gpr_Config_File      : aliased GNAT.Strings.String_Access;
    ALI_Encoding         : aliased GNAT.Strings.String_Access := new String'("");
 
    ----------
@@ -352,6 +352,16 @@ procedure Gpr_Query is
       end if;
    end Image;
 
+   procedure Check_Arg_Count (Args : in GNATCOLL.Arg_Lists.Arg_List; Expected : in Integer)
+   is
+      Count : constant Integer := GNATCOLL.Arg_Lists.Args_Length (Args);
+   begin
+      if Count /= Expected then
+         raise Invalid_Command with "Invalid number of arguments" & Integer'Image (Count) &
+           "; expecting" & Integer'Image (Expected);
+      end if;
+   end Check_Arg_Count;
+
    procedure Load_Project (Path : GNATCOLL.VFS.Virtual_File)
    is
       Temp_Path    : GNATCOLL.VFS.Virtual_File := Path;
@@ -449,15 +459,15 @@ procedure Gpr_Query is
                      Fail;
                   end if;
                   Node := Expression_Of (Node, Prj_Tree); -- kind = N_Expression
-                  Node := First_Expression_In_List (Node, Prj_Tree); -- kind = N_term
+                  Node := First_Term (Node, Prj_Tree); -- kind = N_term
 
-                  if Next_Expression_In_List (Node, Prj_Tree) /= Empty_Node then
+                  if Next_Term (Node, Prj_Tree) /= Empty_Node then
                      Fail;
                   end if;
 
                   Node := Current_Term (Node, Prj_Tree); -- kind = N_Literal_String_List
                   Node := First_Expression_In_List (Node, Prj_Tree); -- kind = N_Expression
-                  Node := First_Expression_In_List (Node, Prj_Tree); -- kind = N_Term
+                  Node := First_Term (Node, Prj_Tree); -- kind = N_Term
                   Node := Current_Term (Node, Prj_Tree); -- kind = N_Literal_String
 
                   Gpr_File_Name := String_Value_Of (Node, Prj_Tree);
@@ -468,8 +478,9 @@ procedure Gpr_Query is
                is
                   Expression : Project_Node_Id;
                begin
+                  Trace (Me, "project path:");
                   Node := Expression_Of (Node, Prj_Tree); -- kind = N_Expression
-                  Node := First_Expression_In_List (Node, Prj_Tree); -- kind = N_term
+                  Node := First_Term (Node, Prj_Tree); -- kind = N_term
                   Node := Current_Term (Node, Prj_Tree); -- kind = N_Literal_String_List
                   Expression := First_Expression_In_List (Node, Prj_Tree); -- kind = N_Expression
                   loop
@@ -477,13 +488,12 @@ procedure Gpr_Query is
                      Node := Current_Term (Node, Prj_Tree); -- kind = N_Literal_String
 
                      declare
-                        Dir : constant String := Get_Name_String (String_Value_Of (Node, Prj_Tree));
+                        Dir : constant String := GNAT.OS_Lib.Normalize_Pathname
+                          (Name      => Get_Name_String (String_Value_Of (Node, Prj_Tree)),
+                           Directory => Prj_Dir);
                      begin
-                        if GNATCOLL.VFS_Utils.Is_Absolute_Path (+Dir) then
-                           Prj.Env.Add_Directories (Prj_Env.Project_Path, Dir);
-                        else
-                           Prj.Env.Add_Directories (Prj_Env.Project_Path, Prj_Dir & Dir);
-                        end if;
+                        Trace (Me, Dir);
+                        Prj.Env.Add_Directories (Prj_Env.Project_Path, Dir);
                      end;
                      Expression := Next_Expression_In_List (Expression, Prj_Tree);
                      exit when Expression = Empty_Node;
@@ -537,7 +547,13 @@ procedure Gpr_Query is
       end;
 
       begin
-         Tree.Load (Temp_Path, Env, Errors => Ada.Text_IO.Put_Line'Access);
+         --  Recompute_View => True registers all the source files
+         --  (among other things), so we will know that a .[ag]li
+         --  belongs to this project
+         Tree.Load
+           (Temp_Path, Env,
+            Errors         => Ada.Text_IO.Put_Line'Access,
+            Recompute_View => True);
       exception
       when GNATCOLL.Projects.Invalid_Project =>
          Ada.Text_IO.Put_Line ("project search path:");
@@ -651,6 +667,7 @@ procedure Gpr_Query is
                      First := First_Dir;
                      for I in Source_Dirs'Range loop
                         Last := Index (Source => Temp (First .. Temp'Last), Pattern => Line_End_Pattern);
+                        Trace (Me, "predefined source dir '" & Temp (First .. Last - 1) & "'");
                         Source_Dirs (I) := Create_From_UTF8 (Temp (First .. Last - 1));
                         First := Last + Dir_Pattern'Length;
                      end loop;
@@ -672,6 +689,8 @@ procedure Gpr_Query is
          Cpp_Done : Boolean := False;
       begin
          for I in Languages'Range loop
+            Trace (Me, "Language " & Languages (I).all);
+
             if To_Lower (Languages (I).all) = "ada" and not Ada_Done then
                declare
                   --  Set_Path_From_Gnatls clobbers the project path
@@ -689,6 +708,7 @@ procedure Gpr_Query is
 
             elsif To_Lower (Languages (I).all) = "c" and not C_Done then
                Set_Path_From_Gcc ("cc1");
+
                C_Done := True;
 
             elsif To_Lower (Languages (I).all) = "c++" and not Cpp_Done then
@@ -697,8 +717,8 @@ procedure Gpr_Query is
 
             end if;
          end loop;
-
       end;
+
    end Load_Project;
 
    procedure Process_Help (Args : GNATCOLL.Arg_Lists.Arg_List)
@@ -781,25 +801,22 @@ procedure Gpr_Query is
       use type GNATCOLL.Projects.Project_Environment_Access;
       pragma Unreferenced (Args);
    begin
-      if Env /= null then
-         Xref.Parse_All_LI_Files
-           (Tree                => Tree,
-            Project             => Tree.Root_Project,
-            Parse_Runtime_Files => False, --  True encounters bug in gnatcoll.projects; null pointer
-            Show_Progress       => Progress_Reporter,
-            ALI_Encoding        => ALI_Encoding.all,
-            From_DB_Name        => Nightly_DB_Name.all,
-            To_DB_Name          => DB_Name.all);
-      end if;
+      Xref.Parse_All_LI_Files
+        (Tree                => Tree,
+         Project             => Tree.Root_Project,
+         Parse_Runtime_Files => False, --  True encounters bug in gnatcoll.projects; null pointer
+         Show_Progress       => Progress_Reporter,
+         ALI_Encoding        => ALI_Encoding.all,
+         From_DB_Name        => Nightly_DB_Name.all,
+         To_DB_Name          => DB_Name.all,
+         Force_Refresh       => Force_Refresh);
    end Process_Refresh;
 
    procedure Process_Refs (Args : GNATCOLL.Arg_Lists.Arg_List)
    is
       use GNATCOLL.Arg_Lists;
    begin
-      if Args_Length (Args) /= 1 then
-         raise Invalid_Command with "Invalid number of arguments";
-      end if;
+      Check_Arg_Count (Args, 1);
 
       declare
          use GNATCOLL.Xref;
@@ -841,6 +858,20 @@ begin
       Set_Usage
         (Cmdline,
          Help => "Query project info and cross-references on source code. See ada-mode docs for more help.");
+
+      --  Switch variable alphabetic order
+      Define_Switch
+        (Cmdline,
+         Output      => ALI_Encoding'Access,
+         Long_Switch => "--encoding=",
+         Switch      => "-e=",
+         Help        => "The character encoding used for source and ALI files");
+      Define_Switch
+        (Cmdline,
+         Output      => Commands_From_Switch'Access,
+         Switch      => "-c:",
+         Long_Switch => "--command=",
+         Help        => "Execute the commands from ARG, and exit");
       Define_Switch
         (Cmdline,
          Output      => DB_Name'Access,
@@ -848,15 +879,19 @@ begin
          Help        => "Specifies the name of the database (or ':memory:')");
       Define_Switch
         (Cmdline,
+         Output      => Force_Refresh'Access,
+         Long_Switch => "--force_refresh",
+         Help        => "Force rebuilding the database.");
+      Define_Switch
+        (Cmdline,
+         Output      => Gpr_Config_File'Access,
+         Long_Switch => "--autoconf=",
+         Help        => "Specify the gpr configuration file (.cgpr)");
+      Define_Switch
+        (Cmdline,
          Output      => Nightly_DB_Name'Access,
          Long_Switch => "--nightlydb=",
          Help        => "Specifies the name of a prebuilt database");
-      Define_Switch
-        (Cmdline,
-         Output      => Commands_From_Switch'Access,
-         Switch      => "-c:",
-         Long_Switch => "--command=",
-         Help        => "Execute the commands from ARG, and exit");
       Define_Switch
         (Cmdline,
          Output      => Project_Name'Access,
@@ -871,18 +906,9 @@ begin
          Help        => "Show progress as LI files are parsed");
       Define_Switch
         (Cmdline,
-         Output      => ALI_Encoding'Access,
-         Long_Switch => "--encoding=",
-         Switch      => "-e=",
-         Help        => "The character encoding used for source and ALI files");
-      Define_Switch
-        (Cmdline,
-         Output      => Config_File'Access,
-         Long_Switch => "--config=",
-         Help        => "Specify the configuration file (.cgpr) to load before"
-           & " loading the project");
-
-      GNATCOLL.Projects.Initialize (Env);
+         Output      => Traces_Config_File'Access,
+         Long_Switch => "--tracefile=",
+         Help        => "Specify an alternative traces configuration file");
 
       Getopt (Cmdline, Callback => null);
    end;
@@ -891,6 +917,37 @@ begin
       Ada.Text_IO.Put_Line ("No project file specified");
       GNAT.Command_Line.Display_Help (Cmdline);
       return;
+   end if;
+
+   --  Only trace if user specifies --tracefile
+   if Traces_Config_File.all /= "" and then GNAT.OS_Lib.Is_Regular_File (Traces_Config_File.all) then
+      GNATCOLL.Traces.Parse_Config_File
+        (Filename         => Traces_Config_File.all,
+         Force_Activation => False);
+      Trace (Me, "trace enabled");
+   end if;
+
+   GNATCOLL.Projects.Initialize (Env); -- for register_default_language
+
+   if Gpr_Config_File.all /= "" and then GNAT.OS_Lib.Is_Regular_File (Gpr_Config_File.all) then
+      Env.Set_Config_File
+        (GNATCOLL.VFS.Create_From_UTF8
+           (GNAT.OS_Lib.Normalize_Pathname
+              (Name => Gpr_Config_File.all,
+               Directory => GNAT.Directory_Operations.Get_Current_Dir)));
+   else
+      --  Apparently Ada language extensions are already registered (sigh)
+
+      Env.Register_Default_Language_Extension
+        (Language_Name       => "C",
+         Default_Spec_Suffix => ".h",
+         Default_Body_Suffix => ".c");
+
+      Env.Register_Default_Language_Extension
+        (Language_Name       => "C++",
+         Default_Spec_Suffix => ".hh",
+         Default_Body_Suffix => ".cpp");
+
    end if;
 
    declare
@@ -946,7 +1003,7 @@ begin
          --  the database in the directory containing the project file.
          if Temp = No_File then
             Temp := Tree.Root_Project.Project_Path.Dir;
-            GNATCOLL.Traces.Trace
+            Trace
               (Me, "Root project does not have an object dir:" & ASCII.LF
                  & "creating database in " & (+Temp.Full_Name.all));
          end if;
@@ -999,5 +1056,6 @@ when GNAT.Command_Line.Invalid_Switch =>
 when E : others =>
    Ada.Text_IO.Put_Line ("Unexpected exception");
    Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (E));
+   Ada.Text_IO.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (Ada.Exceptions.Traceback.Tracebacks (E)));
    Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
 end Gpr_Query;
