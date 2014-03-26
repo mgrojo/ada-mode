@@ -51,6 +51,13 @@ procedure Gpr_Query is
 
    Me : constant GNATCOLL.Traces.Trace_Handle := GNATCOLL.Traces.Create ("gpr_query");
 
+   type Os_Type is (Windows, Linux);
+   OS : constant Os_Type := (if GNAT.Directory_Operations.Dir_Separator = '/' then Linux else Windows);
+   Exe_Ext : constant String :=
+     (case OS is
+      when Windows => ".exe",
+      when Linux => "");
+
    function "+" (Item : in Ada.Strings.Unbounded.Unbounded_String) return String
      renames Ada.Strings.Unbounded.To_String;
 
@@ -421,6 +428,10 @@ procedure Gpr_Query is
             Env               => Prj_Env,
             Current_Directory => GNAT.Directory_Operations.Get_Current_Dir);
 
+         if Project = Empty_Node then
+            raise GNATCOLL.Projects.Invalid_Project with "parse project failed";
+         end if;
+
          if Project_Qualifier_Of (Project, Prj_Tree) = Prj.Aggregate then
             --  In general, GNATCOLL.Projects cannot handle aggregate
             --  projects; it can only handle one project tree at a
@@ -707,12 +718,12 @@ procedure Gpr_Query is
                Ada_Done := True;
 
             elsif To_Lower (Languages (I).all) = "c" and not C_Done then
-               Set_Path_From_Gcc ("cc1");
+               Set_Path_From_Gcc ("cc1" & Exe_Ext);
 
                C_Done := True;
 
             elsif To_Lower (Languages (I).all) = "c++" and not Cpp_Done then
-               Set_Path_From_Gcc ("cc1plus");
+               Set_Path_From_Gcc ("cc1plus" & Exe_Ext);
                Cpp_Done := True;
 
             end if;
@@ -967,20 +978,6 @@ begin
          Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
          return;
       end if;
-
-      --  FIXME: this requires gnatcoll 1.6, which requires gnat 7.2.
-      --  but not really? just patch gnatcoll 1.6, like we did 1.6w
-      --  In any case, needs to compile with current public release
-
-      --  specifying the config file avoids errors for user installed languages
-      --  if Config_File /= null and then Config_File.all /= "" then
-      --     Env.Set_Config_File (Create_From_Base (+Config_File.all, Get_Current_Dir.Full_Name.all));
-      --  end if;
-
-      --  if Config_File /= null and then Config_File.all /= "" then
-      --     Env.Set_Automatic_Config_File (True);
-      --     Env.Set_Config_File (Create_From_Base ("auto.cgpr", Get_Current_Dir.Full_Name.all));
-      --  end if;
 
       if Show_Progress then
          Progress_Reporter := Display_Progress'Unrestricted_Access;

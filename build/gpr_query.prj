@@ -1,8 +1,6 @@
--- FIXME: replace with gpr_query
--- xref_tool=gnat_inspect
-
 gpr_file=gpr_query.gpr
 
+-- FIXME: get casing from gpr file
 casing=emacs_case_exception
 
 -- end of file

@@ -166,10 +166,9 @@ Uses 'gnat list'. Returns new '(src-dirs prj-dirs)."
 
     (cl-ecase (ada-prj-get 'xref_tool project)
       (gnat
-       (cl-destructuring-bind '(src-dirs-1 prj-dirs-1)
-	   (gnat-get-paths-1 src-dirs prj-dirs)
-	 (setq src-dirs src-dirs-1)
-	 (setq prj-dirs prj-dirs-1)))
+       (let ((res (gnat-get-paths-1 src-dirs prj-dirs)))
+	 (setq src-dirs (car res))
+	 (setq prj-dirs (cadr res))))
 
       (gnat_inspect
        (setq src-dirs (gnat-inspect-get-src-dirs src-dirs))

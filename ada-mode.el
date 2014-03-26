@@ -952,9 +952,17 @@ list."
 	    (car casing))
 
 	   (t
-	    (error
-	     "No exception file specified. See variable `ada-case-exception-file'")))
-	  ))
+	    (if ada-prj-current-file
+		(error "No exception file specified; set `casing' in project file.")
+	      ;; FIXME: could prompt, but then need to write to actual project file
+	      ;; 	(let ((temp
+	      ;; 	       (read-file-name
+	      ;; 		"No exception file specified; adding to project. file: ")))
+	      ;; 	  (message "remember to add %s to project file" temp);; FIXME: bleah!
+	      ;; 	  (ada-prj-put 'casing temp)
+	      ;; 	  temp)
+	      (error "No exception file specified, and no project active. See variable `ada-case-exception-file'."))
+	   )))
 
   (unless word
     (if (use-region-p)

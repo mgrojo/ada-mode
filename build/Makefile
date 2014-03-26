@@ -99,6 +99,9 @@ install-clean :
 
 .PHONY : force
 
+INSTALL_BIN := $(dir $(shell which gnat))
+EXE_EXT := .exe
+
 # '-' means no std .gpr; use gnat_utils from ~/Projects (source debug)
 # set in Emacs for gud-gdb
 # (setenv "GPR_PROJECT_PATH" "-:/home/gds/Projects/gnat_util-7.2.1-src:/home/gds/Projects/gnatcoll-1.6-src/src")
@@ -107,10 +110,10 @@ install-clean :
 #export Gpr_Query_Build := Debug
 #export Gnatcoll_Build := Debug
 #export BUILD := Debug
-gpr_query: force
+gpr_query$(EXE_EXT) : force
 	gprbuild -p gpr_query.gpr
 
-one : /usr/gnat-7.2.1-x86_64/bin/gpr_query
+one : $(INSTALL_BIN)/gpr_query$(EXE_EXT)
 #	gpr_query -P gpr_query.gpr -c project_path
 #	gpr_query -P ~/GDS/work_stephe_3/dscovr/build/x86_64_gnu_linux_release/gds_dscovr_test_agg.gpr -c source_dirs
 #	cd ~/GDS/work_stephe_3/dscovr/build/x86_64_gnu_linux_release/; gpr_query -P gds_dscovr_test_agg.gpr -c source_dirs
@@ -121,14 +124,12 @@ one : /usr/gnat-7.2.1-x86_64/bin/gpr_query
 trace :
 	addr2line -e gpr_query 0xbfce4f 0x9ec40c 0x40fc6e 0x40cdfc 0x405aa2 0x419622 0x391ae1ed1b 0x403107
 
-# FIXME: get install dir from 'type gnat'?
-/usr/gnat-7.2.1-x86_64/bin/gpr_query install : gpr_query
-	cp gpr_query /usr/gnat-7.2.1-x86_64/bin
-	cp gpr_query /usr/gnat-7.1.2-x86_64/bin
+$(INSTALL_BIN)/gpr_query$(EXE_EXT) install : gpr_query$(EXE_EXT)
+	cp gpr_query$(EXE_EXT) $(INSTALL_BIN)
 
 clean ::
 	rm -rf obj
-	rm -rf gpr_query
+	rm -rf gpr_query$(EXE_EXT)
 
 # (getenv "GPR_PROJECT_PATH")
 
