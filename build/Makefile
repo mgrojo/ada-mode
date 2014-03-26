@@ -99,8 +99,9 @@ install-clean :
 
 .PHONY : force
 
-INSTALL_BIN := $(dir $(shell which gnat))
-EXE_EXT := .exe
+GNAT_EXE    := $(shell which gnat)
+INSTALL_BIN := $(dir $(GNAT_EXE))
+EXE_EXT     := $(suffix $(GNAT_EXE))
 
 # '-' means no std .gpr; use gnat_utils from ~/Projects (source debug)
 # set in Emacs for gud-gdb

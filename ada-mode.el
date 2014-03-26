@@ -961,7 +961,7 @@ list."
 	      ;; 	  (message "remember to add %s to project file" temp);; FIXME: bleah!
 	      ;; 	  (ada-prj-put 'casing temp)
 	      ;; 	  temp)
-	      (error "No exception file specified, and no project active. See variable `ada-case-exception-file'."))
+	      (error "No exception file specified, and no project active. See variable `ada-case-exception-file'.")))
 	   )))
 
   (unless word
