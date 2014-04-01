@@ -164,6 +164,8 @@ Uses 'gnat list'. Returns new '(src-dirs prj-dirs)."
   (let ((src-dirs (ada-prj-get 'src_dir project))
 	(prj-dirs (ada-prj-get 'prj_dir project)))
 
+    ;; FIXME: use a dispatching function instead, to avoid "require",
+    ;; which sets the wrong defaults.
     (cl-ecase (ada-prj-get 'xref_tool project)
       (gnat
        (let ((res (gnat-get-paths-1 src-dirs prj-dirs)))
@@ -285,8 +287,8 @@ Assumes current buffer is (gnat-run-buffer)"
 
 (defun gnat-run-no-prj (command &optional dir)
   "Run the gnat command line tool, as \"gnat COMMAND\", with DIR as current directory.
-Return process status.  Assumes current buffer
-is (gnat-run-buffer)"
+Return process status.  Process output goes to current buffer,
+which is displayed on error."
   (set 'buffer-read-only nil)
   (erase-buffer)
 
@@ -336,7 +338,7 @@ list."
      )
     ))
 
-;;;; support for ada-gnat-xref and ada-gnatinspect
+;;;; support for xref tools
 (defun ada-gnat-file-name-from-ada-name (ada-name)
   "For `ada-file-name-from-ada-name'."
   (let ((result nil))
@@ -420,6 +422,9 @@ list."
     (save-some-buffers t)
     (add-to-list 'opts "-f")
     (with-current-buffer (gnat-run-buffer)
+      ;; FIXME: gnat-run-buffer requires a project, but we don't
+      ;; actually need one. Just use a temp buffer. Same for other
+      ;; uses of gnat-run-no-prj.
       (gnat-run-no-prj
        (append (list "stub") opts (list start-file "-cargs") switches)
        (file-name-directory body-file-name))

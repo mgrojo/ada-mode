@@ -1838,8 +1838,10 @@ previously set by a file navigation command."
       ;; This will still be confused by multiple references; we need
       ;; to use compiler cross reference info for more precision.
       (while (not done)
-	(when (search-forward-regexp ff-function-name nil t)
-	  (setq found (match-beginning 0)))
+	(if (search-forward-regexp ff-function-name nil t)
+	    (setq found (match-beginning 0))
+	  ;; not in remainder of buffer
+	  (setq done t))
 	(if (ada-in-string-or-comment-p)
 	    (setq found nil)
 	  (setq done t)))
@@ -2303,30 +2305,33 @@ into a subprogram body stub, by calling `ada-make-subprogram-body'."
     (error "`ada-make-subprogram-body' not set")))
 
 (defvar ada-make-package-body nil
-  ;; Supplied by compiler
+  ;; Supplied by xref tool
   "Function to create a package body from a package spec.
 Called with one argument; the absolute path to the body
 file. Current buffer is the package spec.  Should create the
 package body file, containing skeleton code that will compile.")
 
 (defun ada-make-package-body (body-file-name)
-  (if ada-make-package-body
-      (funcall ada-make-package-body body-file-name)
-    (error "`ada-make-package-body' not set")))
+  ;; no error if not set; let ada-skel do its thing.
+  (when ada-make-package-body
+      (funcall ada-make-package-body body-file-name)))
 
 (defun ada-ff-create-body ()
-  ;; ff-find-other-file calls us with point in an empty buffer for the
-  ;; body file; ada-make-package-body expects to be in the spec. So go
-  ;; back.
-  (let ((body-file-name (buffer-file-name)))
-    (ff-find-the-other-file)
-    (ada-make-package-body body-file-name)
-    ;; FIXME (later): if 'ada-make-package-body' fails, delete the body buffer
-    ;; so it doesn't get written to disk, and we can try again.
+  ;; no error if not set; let ada-skel do its thing.
+  (when ada-make-package-body
+    ;; ff-find-other-file calls us with point in an empty buffer for the
+    ;; body file; ada-make-package-body expects to be in the spec. So go
+    ;; back.
+    (let ((body-file-name (buffer-file-name)))
+      (ff-find-the-other-file)
 
-    ;; back to the body, read in from the disk.
-    (ff-find-the-other-file)
-    (revert-buffer t t)
+      (ada-make-package-body body-file-name)
+      ;; FIXME (later): if 'ada-make-package-body' fails, delete the body buffer
+      ;; so it doesn't get written to disk, and we can try again.
+
+      ;; back to the body, read in from the disk.
+      (ff-find-the-other-file)
+      (revert-buffer t t))
     ))
 
 ;;;; fill-comment
@@ -2635,6 +2640,9 @@ The paragraph is indented on the first line."
 	ff-file-created-hook 'ada-ff-create-body)
   (add-hook 'ff-pre-load-hook 'ada-which-function)
   (setq ff-search-directories 'compilation-search-path)
+  (when (null (car compilation-search-path))
+    ;; find-file doesn't handle nil in search path
+    (setq compilation-search-path (list (file-name-directory (buffer-file-name)))))
   (ada-set-ff-special-constructs)
 
   (set (make-local-variable 'add-log-current-defun-function)
@@ -2722,15 +2730,17 @@ The paragraph is indented on the first line."
 (unless (featurep 'ada-indent-engine)
   (require 'ada-wisi))
 
-(unless (featurep 'ada-compiler)
-  (require 'ada-gnat-compile))
-
+;; handle ada-xref-tool before ada-compiler, because ada-gnat-compile
+;; requires gnat-core, which requires the xref tools, and we get the wrong default.
 (unless (featurep 'ada-xref-tool)
   (cl-case ada-xref-tool
     ((nil 'gnat) (require 'ada-gnat-xref))
     ('gnat_inspect (require 'gnat-inspect))
     ('gpr_query (require 'gpr-query))
     ))
+
+(unless (featurep 'ada-compiler)
+  (require 'ada-gnat-compile))
 
 (unless (featurep 'ada-skeletons)
   (require 'ada-skel))

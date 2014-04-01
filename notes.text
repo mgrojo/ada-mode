@@ -260,6 +260,13 @@ allow finding compiler libraries with no project
 test on debian testing?
 
  possible enhancements
+
+example custom indentation function for Markus Schöpflin <markus.schoepflin@comsoft.aero>
+   FOOBAR.PROC (
+      ARG1 => VAL1,
+      ARG2 => VAL2
+   );
+
 EDE projects?
     just .el files with random code
 

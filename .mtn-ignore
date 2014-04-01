@@ -6,6 +6,7 @@
 ^build/.*\.tar\.gz$
 ^build/gnatquery$
 ^build/gpr_query\(\.exe\)?$
+^build/gpr_query\.exe$
 ^build/obj$
 ^build/smie/.*\.ali$
 ^build/smie/.*\.diff$
@@ -33,10 +34,14 @@
 ^test/Example_2/hello\.o$
 ^test/Example_4/Gnat_Project/hello_pkg\.o$
 ^test/debug\.adb$
+^test/debug\.ads$
 ^test/gnatinspect\.db$
 ^test/gnatinspect\.db-shm$
 ^test/gnatinspect\.db-wal$
 ^test/gpr/debug\.gpr$
+^test/gpr_query\.db$
+^test/gpr_query\.db-shm$
+^test/gpr_query\.db-wal$
 ^test/subdir/ada_mode-nominal-child\.adb$
 ^test/subdir/gnatinspect\.db$
 ^test/wisi/.*\.el$

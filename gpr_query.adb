@@ -21,6 +21,7 @@ pragma License (GPL);
 
 with Ada.Characters.Handling;
 with Ada.Command_Line;
+with Ada.Environment_Variables;
 with Ada.Exceptions.Traceback;
 with Ada.Strings.Fixed;
 with Ada.Strings.Unbounded;
@@ -30,12 +31,12 @@ with GNAT.Directory_Operations;
 with GNAT.Expect;
 with GNAT.OS_Lib;
 with GNAT.Strings;
+with GNAT.Traceback.Symbolic;
 with GNATCOLL.Arg_Lists;
 with GNATCOLL.Paragraph_Filling;
 with GNATCOLL.Projects;
 with GNATCOLL.SQL.Sqlite;
 with GNATCOLL.Traces; use GNATCOLL.Traces;
-with GNAT.Traceback.Symbolic;
 with GNATCOLL.Utils;
 with GNATCOLL.VFS;
 with GNATCOLL.VFS_Utils;
@@ -371,7 +372,7 @@ procedure Gpr_Query is
 
    procedure Load_Project (Path : GNATCOLL.VFS.Virtual_File)
    is
-      Temp_Path    : GNATCOLL.VFS.Virtual_File := Path;
+      Temp_Path : GNATCOLL.VFS.Virtual_File := Path;
    begin
       --  WORKAROUND: gnatcoll 1.6 / GNAT 7.2 GNATCOLL.Projects does
       --  not support aggregate projects. So handle an important
@@ -962,6 +963,7 @@ begin
    end if;
 
    declare
+      use Ada.Environment_Variables;
       use GNATCOLL.VFS;
       use GNATCOLL.VFS_Utils;
       use GNAT.Directory_Operations;
@@ -971,7 +973,7 @@ begin
         (if Is_Absolute_Path (+Project_Name.all) then
            Create_From_UTF8 (Project_Name.all, Normalize => True)
         else
-           Create_From_UTF8 (Get_Current_Dir & Project_Name.all, Normalize => True));
+           Locate_Regular_File (+Project_Name.all, From_Path (+Value ("GPR_PROJECT_PATH"))));
    begin
       if not Path.Is_Regular_File then
          Ada.Text_IO.Put_Line (Project_Name.all & ": not found");

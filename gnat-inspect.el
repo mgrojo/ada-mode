@@ -561,6 +561,7 @@ Enable mode if ARG is positive"
   )
 
 (provide 'gnat-inspect)
+(provide 'ada-xref-tool)
 
 (add-to-list 'compilation-error-regexp-alist-alist
 	     (cons 'gnat-inspect-ident-file       gnat-inspect-ident-file-regexp-alist))
