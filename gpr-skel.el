@@ -148,7 +148,7 @@ trailing `...' if there are more keys."
   "Expand the token or placeholder before point to a skeleton, as defined by `skeleton-token-alist'.
 A token is a symbol in the current syntax.
 A placeholder is a symbol enclosed in generic comment delimiters.
-If the word before point is not in `gpr-skel-token-alist', assume
+If the word before point is not in `skeleton-token-alist', assume
 it is a name, and use the word before that as the token."
   (interactive "*")
 

@@ -1955,8 +1955,8 @@ FILE may be absolute, or on `compilation-search-path'.
 
 If OTHER-WINDOW is non-nil, show the buffer in another window."
   (let ((file-1
-	 (or (file-name-absolute-p file)
-	     (ff-get-file-name compilation-search-path file))))
+	 (if (file-name-absolute-p file) file
+	   (ff-get-file-name compilation-search-path file))))
     (if file-1
 	(setq file file-1)
       (error "File %s not found; installed library, or set project?" file))
@@ -2011,7 +2011,7 @@ If OTHER-WINDOW is non-nil, show the buffer in another window."
   "Function that returns cross reference information.
 Function is called with four arguments:
 - an Ada identifier or operator_symbol
-- filename containing the identifier
+- filename containing the identifier (full path)
 - line number containing the identifier
 - column of the start of the identifier
 Returns a list '(file line column) giving the corresponding location.
@@ -2033,7 +2033,7 @@ buffer in another window."
     (let ((target
 	   (funcall ada-xref-other-function
 		    (ada-identifier-at-point)
-		    (file-name-nondirectory (buffer-file-name))
+		    (buffer-file-name)
 		    (line-number-at-pos)
 		    (1+ (current-column))
 		    )))

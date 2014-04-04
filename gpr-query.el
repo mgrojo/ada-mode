@@ -204,19 +204,19 @@ Uses 'gpr_query'. Returns new list."
   prj-dirs)
 
 (defconst gpr-query-ident-file-regexp
-  ;; Write_Message:C:\Projects\GDS\work_dscovr_release\common\1553\gds-mil_std_1553-utf.ads:252:25
-  ;; Write_Message:/Projects/GDS/work_dscovr_release/common/1553/gds-mil_std_1553-utf.ads:252:25
-  "\\([^:]*\\):\\(\\(?:.:\\\|/\\)[^:]*\\):\\([0123456789]+\\):\\([0123456789]+\\)"
-  ;;  1          2                           3                   4
-  "Regexp matching <identifier>:<file>:<line>:<column>")
+  ;; C:\Projects\GDS\work_dscovr_release\common\1553\gds-mil_std_1553-utf.ads:252:25
+  ;; /Projects/GDS/work_dscovr_release/common/1553/gds-mil_std_1553-utf.ads:252:25
+  "\\(\\(?:.:\\\|/\\)[^:]*\\):\\([0123456789]+\\):\\([0123456789]+\\)"
+  ;; 1                          2                   3
+  "Regexp matching <file>:<line>:<column>")
 
 (defconst gpr-query-ident-file-regexp-alist
-  (list (concat "^" gpr-query-ident-file-regexp) 2 3 4)
+  (list (concat "^" gpr-query-ident-file-regexp) 1 2 3)
   "For compilation-error-regexp-alist, matching gpr_query output")
 
 (defconst gpr-query-ident-file-type-regexp
   (concat gpr-query-ident-file-regexp " (\\(.*\\))")
-  "Regexp matching <identifier>:<file>:<line>:<column> (<type>)")
+  "Regexp matching <file>:<line>:<column> (<type>)")
 
 ;; debugging:
 ;; in *compilation-gpr_query-refs*, run
@@ -390,8 +390,8 @@ Enable mode if ARG is positive"
       ;; declaration and body, then return the declaration or body as
       ;; appropriate.
       ;;
-      ;; the format of each line is name:file:line:column (type)
-      ;;                            1    2    3    4       5
+      ;; the format of each line is file:line:column (type)
+      ;;                            1    2    3       4
       ;;
       ;; 'type' can be:
       ;;   body
@@ -413,10 +413,10 @@ Enable mode if ARG is positive"
 	(cond
 	 ((looking-at gpr-query-ident-file-type-regexp)
 	  ;; process line
-	  (let* ((found-file (file-name-nondirectory (match-string 2)))
-		 (found-line (string-to-number (match-string 3)))
-		 (found-col  (string-to-number (match-string 4)))
-		 (found-type (match-string 5))
+	  (let* ((found-file (match-string 1))
+		 (found-line (string-to-number (match-string 2)))
+		 (found-col  (string-to-number (match-string 3)))
+		 (found-type (match-string 4))
 		 (dist       (gpr-query-dist found-line line found-col col))
 		 )
 
@@ -502,9 +502,9 @@ Enable mode if ARG is positive"
       (when (looking-at gpr-query-ident-file-regexp)
 	(setq result
 	      (list
-	       (match-string 2)
-	       (string-to-number (match-string 3))
-	       (string-to-number (match-string 4)))))
+	       (match-string 1)
+	       (string-to-number (match-string 2))
+	       (string-to-number (match-string 3)))))
 
       (when (null result)
 	(pop-to-buffer (current-buffer))

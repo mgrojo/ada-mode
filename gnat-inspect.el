@@ -308,7 +308,7 @@ set compilation-mode with compilation-error-regexp-alist set to COMP-ERR."
 	(cond
 	 ((looking-at gnat-inspect-ident-file-type-regexp)
 	  ;; process line
-	  (let* ((found-file (file-name-nondirectory (match-string 2)))
+	  (let* ((found-file (match-string 2))
 		 (found-line (string-to-number (match-string 3)))
 		 (found-col  (string-to-number (match-string 4)))
 		 (found-type (match-string 5))

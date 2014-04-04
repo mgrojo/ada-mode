@@ -105,12 +105,12 @@ EXE_EXT     := $(suffix $(GNAT_EXE))
 
 # '-' means no std .gpr; use gnat_utils from ~/Projects (source debug)
 # set in Emacs for gud-gdb
-# (setenv "GPR_PROJECT_PATH" "-:/home/gds/Projects/gnat_util-7.2.1-src:/home/gds/Projects/gnatcoll-1.6-src/src")
+# (setenv "GPR_PROJECT_PATH" "-:/home/gds/Projects/gnat_util-7.2.1-src:/home/gds/Projects/gnatcoll-1.7w-src/src")
 # (setenv "GPR_PROJECT_PATH" nil)
-#export GPR_PROJECT_PATH := -:/home/gds/Projects/gnat_util-7.2.1-src:/home/gds/Projects/gnatcoll-1.6-src/src
-#export Gpr_Query_Build := Debug
-#export Gnatcoll_Build := Debug
-#export BUILD := Debug
+# export GPR_PROJECT_PATH := -:/home/gds/Projects/gnat_util-7.2.1-src:/home/gds/Projects/gnatcoll-1.7w-src/src
+# export Gpr_Query_Build := Debug
+# export Gnatcoll_Build := Debug
+# export BUILD := Debug
 gpr_query$(EXE_EXT) : force
 	gprbuild -p gpr_query.gpr
 

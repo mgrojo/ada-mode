@@ -555,7 +555,7 @@ compilation_unit_list
 component_clause
   : IDENTIFIER AT simple_expression RANGE simple_expression DOT_DOT simple_expression SEMICOLON
     (progn
-      (wisi-statement-action 1 'statement-start 8 'statement-end)
+      (wisi-statement-action 1 'statement-start 2 'statement-other 4 'statement-other 6 'statement-other 8 'statement-end)
       (wisi-containing-action 2 3)
       (wisi-containing-action 4 5)
       (wisi-containing-action 6 7))
@@ -1586,13 +1586,13 @@ package_specification
   ;
 
 parameter_and_result_profile
-  : formal_part RETURN null_exclusion_opt name
+  : formal_part RETURN null_exclusion_opt name_opt
     (progn
       (wisi-statement-action
        2 'return-1;; for ada-indent-return
        4 'type);; for font-lock - see ada-wisi-setup
       (wisi-containing-action 2 4))
-  | RETURN name
+  | RETURN name_opt
     (wisi-statement-action 1 'return-2 2 'type)
   | formal_part RETURN access_definition
     (progn

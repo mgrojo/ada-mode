@@ -150,7 +150,7 @@ This could end in a token recognized by `ada-skel-expand'."
   "is\n"
   "begin\n"
   _
-  "end " str ";")
+  "end " str ";" >)
 
 (define-skeleton ada-skel-function-spec
   "Insert a function type specification with name from `str'."
@@ -404,15 +404,22 @@ it is a name, and use the word before that as the token."
   (if old
       ;; hippie is asking us to try the "next" completion; we don't have one
       nil
-    (let ((pos (point)))
+    (let ((pos (point))
+	  (undo-len (if (eq 't pending-undo-list)
+			0
+		      (length pending-undo-list))))
       (undo-boundary)
       (condition-case nil
 	  (progn
 	    (ada-skel-expand)
 	    t)
 	('error
-	 ;; undo ada-case-adjust, motion
-	 (undo)
+	 ;; undo hook action if any
+	 (unless (or (eq 't pending-undo-list)
+		     (= undo-len (length pending-undo-list)))
+	   (undo))
+
+	 ;; undo motion
 	 (goto-char pos)
 	 nil)))))
 
