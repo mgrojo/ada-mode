@@ -3,6 +3,8 @@
 --  Support Emacs Ada mode and gpr-query minor mode queries about
 --  GNAT projects and cross reference data
 --
+--  requires gnatcoll 1.7w 20140330, gnat 7.2.1
+--
 --  Copyright (C) 2014 Free Software Foundation All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
@@ -52,6 +54,8 @@ procedure Gpr_Query is
 
    Me : constant GNATCOLL.Traces.Trace_Handle := GNATCOLL.Traces.Create ("gpr_query");
 
+   Db_Error : exception;
+
    type Os_Type is (Windows, Linux);
    OS : constant Os_Type := (if GNAT.Directory_Operations.Dir_Separator = '/' then Linux else Windows);
    Exe_Ext : constant String :=
@@ -84,7 +88,7 @@ procedure Gpr_Query is
 
    Xref              : aliased My_Xref_Database;
    Env               : GNATCOLL.Projects.Project_Environment_Access;
-   Tree              : GNATCOLL.Projects.Project_Tree;
+   Tree              : aliased GNATCOLL.Projects.Project_Tree;
    Previous_Progress : Natural                          := 0;
    Progress_Reporter : access procedure (Current, Total : Integer) := null;
 
@@ -267,18 +271,13 @@ procedure Gpr_Query is
    procedure Dump (Refs : in out GNATCOLL.Xref.References_Cursor'Class)
    is
       use GNATCOLL.Xref;
-
-      Ref : Entity_Reference;
    begin
       while Has_Element (Refs) loop
-         Ref := Refs.Element;
-
          declare
-            Name : constant String := +Xref.Declaration (Ref.Entity).Name;
+            Ref : constant Entity_Reference := Refs.Element;
          begin
-            Ada.Text_IO.Put_Line (Name & ':' & Xref.Image (Ref) & " (" & (+Ref.Kind) & ")");
+            Ada.Text_IO.Put_Line (Xref.Image (Ref) & " (" & (+Ref.Kind) & ")");
          end;
-
          Next (Refs);
       end loop;
    end Dump;
@@ -292,12 +291,13 @@ procedure Gpr_Query is
       Ref    : GNATCOLL.Xref.Entity_Reference;
    begin
       case Words'Length is
-      when 4 =>
+      when 4         =>
          Ref := Xref.Get_Entity
            (Name     => Words (Words'First).all,
             File     => Format_Pathname
               (Style => UNIX,
                Path  => Words (Words'First + 1).all),
+            Project  => GNATCOLL.Projects.No_Project,
             Line     => Integer'Value (Words (Words'First + 2).all),
             Column   => Visible_Column
               (Integer'Value (Words (Words'First + 3).all)));
@@ -308,6 +308,7 @@ procedure Gpr_Query is
             File     => Format_Pathname
               (Style => UNIX,
                Path  => Words (Words'First + 1).all),
+            Project  => GNATCOLL.Projects.No_Project,
             Line     => Integer'Value (Words (Words'First + 2).all));
 
       when 2 =>
@@ -315,7 +316,8 @@ procedure Gpr_Query is
            (Name     => Words (Words'First).all,
             File     => Format_Pathname
               (Style => UNIX,
-               Path  => Words (Words'First + 1).all));
+               Path  => Words (Words'First + 1).all),
+            Project  => GNATCOLL.Projects.No_Project);
 
       when others =>
          raise Invalid_Command with "Invalid parameter '" & Arg & "', expecting name:file:line:column";
@@ -344,19 +346,19 @@ procedure Gpr_Query is
    function Image (Self : GNATCOLL.Xref.Entity_Information) return String
    is
       use GNATCOLL.Xref;
-
-      Decl : Entity_Declaration;
    begin
       if Self = No_Entity then
          return "Unknown entity";
       else
-         Decl := Xref.Declaration (Self);
-
-         if Is_Predefined_Entity (Decl) then
-            return "predefined entity: " & (+Decl.Name);
-         else
-            return +Decl.Name & ":" & Xref.Image (Decl.Location);
-         end if;
+         declare
+            Decl : constant Entity_Declaration := Xref.Declaration (Self);
+         begin
+            if Is_Predefined_Entity (Decl) then
+               return "predefined entity: " & (+Decl.Name);
+            else
+               return Xref.Image (Decl.Location);
+            end if;
+         end;
       end if;
    end Image;
 
@@ -1018,7 +1020,21 @@ begin
       end;
    end if;
 
-   Xref.Setup_DB (GNATCOLL.SQL.Sqlite.Setup (Database => DB_Name.all));
+   declare
+      use type GNAT.Strings.String_Access;
+      Error : GNAT.Strings.String_Access;
+   begin
+      Setup_DB
+        (Self  => Xref,
+         Tree  => Tree'Unchecked_Access,
+         DB    => GNATCOLL.SQL.Sqlite.Setup (Database => DB_Name.all),
+         Error => Error);
+
+      if Error /= null then
+         --  old db schema
+         raise Db_Error with Error.all;
+      end if;
+   end;
 
    Process_Refresh (GNATCOLL.Arg_Lists.Empty_Command_Line);
 
@@ -1045,7 +1061,10 @@ exception
 when E : GNATCOLL.Projects.Invalid_Project =>
    Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Message (E));
    Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
-when E :  Invalid_Command =>
+when E : Db_Error =>
+   Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Message (E));
+   Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
+when E : Invalid_Command =>
    Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Message (E));
    Process_Help (GNATCOLL.Arg_Lists.Empty_Command_Line);
    Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);

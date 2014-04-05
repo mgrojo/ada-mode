@@ -52,7 +52,8 @@
     (setq col (+ 1 col))
     )
 
-  (let* ((arg (format "%s:%s:%d:%d" identifier file line col))
+  (let* ((file-non-dir (file-name-nondirectory file))
+	 (arg (format "%s:%s:%d:%d" identifier file line col))
 	 (switches (concat
                     "-a"
                     (when (ada-prj-get 'gpr_ext) (concat "--ext=" (ada-prj-get 'gpr_ext)))))
@@ -80,7 +81,7 @@
 		(found-col  (string-to-number (match-string 3))))
 	    (if (not
 		 (and
-		  (equal file found-file)
+		  (equal file-non-dir found-file)
 		  (= line found-line)
 		  (= col found-col)))
 		;; found other item
