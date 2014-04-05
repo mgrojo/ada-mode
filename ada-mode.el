@@ -1628,41 +1628,40 @@ race conditions with the grammar parser.")
   "Assign `syntax-table' properties in accessible part of buffer.
 In particular, character constants are set to have string syntax."
   ;; (info "(elisp)Syntax Properties")
-  (let ((modified (buffer-modified-p))
-	(buffer-undo-list t)
-	(inhibit-read-only t)
-	(inhibit-point-motion-hooks t)
-	(inhibit-modification-hooks t))
+  ;;
+  ;; called from `syntax-propertize', inside save-excursion with-silent-modifications
+  (let ((inhibit-read-only t)
+	(inhibit-point-motion-hooks t))
     (goto-char start)
-    (while (re-search-forward
-	    (concat
-	     "[^a-zA-Z0-9)]\\('\\)[^'\n]\\('\\)"; 1, 2: character literal, not attribute
-	     "\\|[^a-zA-Z0-9)]\\('''\\)"; 3: character literal '''
-	     "\\|\\(--\\)"; 4: comment start
-	     )
-	    end t)
-      ;; The help for syntax-propertize-extend-region-functions
-      ;; implies that 'start end' will always include whole lines, in
-      ;; which case we don't need
-      ;; syntax-propertize-extend-region-functions
-      (cond
-       ((match-beginning 1)
-	(put-text-property
-	 (match-beginning 1) (match-end 1) 'syntax-table '(7 . ?'))
-	(put-text-property
-	 (match-beginning 2) (match-end 2) 'syntax-table '(7 . ?')))
-       ((match-beginning 3)
-	(put-text-property
-	 (match-beginning 3) (1+ (match-beginning 3)) 'syntax-table '(7 . ?'))
-	(put-text-property
-	 (1- (match-end 3)) (match-end 3) 'syntax-table '(7 . ?')))
-       ((match-beginning 4)
-	(put-text-property
-	 (match-beginning 4) (match-end 4) 'syntax-table '(11 . nil)))
-       ))
-    (run-hook-with-args 'ada-syntax-propertize-hook start end)
-    (unless modified
-      (restore-buffer-modified-p nil))))
+    (save-match-data
+      (while (re-search-forward
+	      (concat
+	       "[^a-zA-Z0-9)]\\('\\)[^'\n]\\('\\)"; 1, 2: character literal, not attribute
+	       "\\|[^a-zA-Z0-9)]\\('''\\)"; 3: character literal '''
+	       "\\|\\(--\\)"; 4: comment start
+	       )
+	      end t)
+	;; The help for syntax-propertize-extend-region-functions
+	;; implies that 'start end' will always include whole lines, in
+	;; which case we don't need
+	;; syntax-propertize-extend-region-functions
+	(cond
+	 ((match-beginning 1)
+	  (put-text-property
+	   (match-beginning 1) (match-end 1) 'syntax-table '(7 . ?'))
+	  (put-text-property
+	   (match-beginning 2) (match-end 2) 'syntax-table '(7 . ?')))
+	 ((match-beginning 3)
+	  (put-text-property
+	   (match-beginning 3) (1+ (match-beginning 3)) 'syntax-table '(7 . ?'))
+	  (put-text-property
+	   (1- (match-end 3)) (match-end 3) 'syntax-table '(7 . ?')))
+	 ((match-beginning 4)
+	  (put-text-property
+	   (match-beginning 4) (match-end 4) 'syntax-table '(11 . nil)))
+	 )))
+    (run-hook-with-args 'ada-syntax-propertize-hook start end))
+  )
 
 (defun ada-in-comment-p (&optional parse-result)
   "Return t if inside a comment.

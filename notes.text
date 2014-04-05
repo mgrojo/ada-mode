@@ -261,6 +261,9 @@ test on debian testing?
 
  possible enhancements
 
+make as much as possible work with no project
+    use ada-build-require-project-file when a project is necessary
+
 example custom indentation function for Markus Schöpflin <markus.schoepflin@comsoft.aero>
    FOOBAR.PROC (
       ARG1 => VAL1,

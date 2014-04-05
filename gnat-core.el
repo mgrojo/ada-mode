@@ -328,15 +328,16 @@ list."
 
 (defun gnatprep-syntax-propertize (start end)
   (goto-char start)
-  (while (re-search-forward
-	  "^[ \t]*\\(#\\(?:if\\|else\\|elsif\\|end\\)\\)"; gnatprep keywords.
-	  end t)
-    (cond
-     ((match-beginning 1)
-      (put-text-property
-       (match-beginning 1) (match-end 1) 'syntax-table '(11 . ?\n)))
-     )
-    ))
+  (save-match-data
+    (while (re-search-forward
+	    "^[ \t]*\\(#\\(?:if\\|else\\|elsif\\|end\\)\\)"; gnatprep keywords.
+	    end t)
+      (cond
+       ((match-beginning 1)
+	(put-text-property
+	 (match-beginning 1) (match-end 1) 'syntax-table '(11 . ?\n)))
+       )
+      )))
 
 ;;;; support for xref tools
 (defun ada-gnat-file-name-from-ada-name (ada-name)
@@ -438,24 +439,25 @@ list."
 
 (defun ada-gnat-syntax-propertize (start end)
   (goto-char start)
-  (while (re-search-forward
-	  (concat
-	   "[^a-zA-Z0-9)]\\('\\)\\[[\"a-fA-F0-9]+\"\\]\\('\\)"; 1, 2: non-ascii character literal, not attributes
-	   "\\|\\(\\[\"[a-fA-F0-9]+\"\\]\\)"; 3: non-ascii character in identifier
-	   )
-	  end t)
-    (cond
-     ((match-beginning 1)
+  (save-match-data
+    (while (re-search-forward
+	    (concat
+	     "[^a-zA-Z0-9)]\\('\\)\\[[\"a-fA-F0-9]+\"\\]\\('\\)"; 1, 2: non-ascii character literal, not attributes
+	     "\\|\\(\\[\"[a-fA-F0-9]+\"\\]\\)"; 3: non-ascii character in identifier
+	     )
+	    end t)
+      (cond
+       ((match-beginning 1)
 	(put-text-property
 	 (match-beginning 1) (match-end 1) 'syntax-table '(7 . ?'))
 	(put-text-property
 	 (match-beginning 2) (match-end 2) 'syntax-table '(7 . ?')))
 
-     ((match-beginning 3)
+       ((match-beginning 3)
 	(put-text-property
 	 (match-beginning 3) (match-end 3) 'syntax-table '(2 . nil)))
-     )
-    ))
+       )
+      )))
 
 (provide 'gnat-core)
 

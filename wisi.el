@@ -382,9 +382,8 @@ Also invalidate the Emacs syntax cache."
 (defun wisi-after-change (begin end length)
   "For `after-change-functions'."
   ;; begin . end is range of text being inserted (may be empty)
-  ;; (syntax-ppss-flush-cache begin) is in before-change-functions
 
-  (syntax-ppss-flush-cache begin) ;; IMPROVEME: could check for whitespace
+  ;; (syntax-ppss-flush-cache begin) is in before-change-functions
 
   (cond
    (wisi-parse-failed
@@ -399,7 +398,7 @@ Also invalidate the Emacs syntax cache."
     )
 
    ((>= wisi-cache-max begin)
-    ;; The parse had succeeded paste the start of the inserted
+    ;; The parse had succeeded past the start of the inserted
     ;; text.
     (save-excursion
       (let ((need-invalidate t)
@@ -418,7 +417,9 @@ Also invalidate the Emacs syntax cache."
 	  ;; FIXME: insert newline in comment to create non-comment!?
 	  ;; or paste a chunk of code
 	  ;; => check that all of change region is comment or string
-	  (setq need-invalidate nil))
+	  (setq need-invalidate nil)
+	  ;; no caches to remove
+	  )
 
 	 ((progn
 	    (skip-syntax-forward " " end);; does not skip newlines
@@ -429,7 +430,8 @@ Also invalidate the Emacs syntax cache."
 	 )
 
 	(if need-invalidate
-	    ;; The inserted or deleted text could alter the parse
+	    ;; The inserted or deleted text could alter the parse;
+	    ;; wisi-invalidate-cache removes all 'wisi-cache.
 	    (wisi-invalidate-cache)
 
 	  ;; else move cache-max by the net change length. We don't
