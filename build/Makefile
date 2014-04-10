@@ -74,10 +74,12 @@ SOURCES_2005 := $(wildcard $(SOURCE_DIR_2005)/*.ms[ms])
 SOURCES_2012 := $(wildcard $(SOURCE_DIR_2012)/*.ms[ms])
 define doc_year_build
 
+  # Non-unique intermediate paths would create a race condition, so we
+  # store the temporary result into the versioned source directory.
   $(d)$(y).texinfo: arm_form.exe $(SOURCES_$(y))
 	cd $(SOURCE_DIR_$(y)); \
-        $(CURDIR)/$$< $(MASTER_$(d)) info $(CHANGES) $(VERSION_$(y)) $(CURDIR)/
-	mv `sed -ne 's/^@FilePrefix{\(.*\)}/\L\1/p' $(SOURCE_DIR_$(y))/$(MASTER_$(d))`.texinfo $$@
+        $(CURDIR)/$$< $(MASTER_$(d)) info $(CHANGES) $(VERSION_$(y)) ./; \
+        mv `sed -ne '/^@FilePrefix{\(.*\)}/{s//\L\1/p;q}' $(MASTER_$(d))`.texinfo $(CURDIR)/$$@
   clean::
 	rm -f $(d)$(y).texinfo
 
