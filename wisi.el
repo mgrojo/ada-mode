@@ -653,7 +653,10 @@ If CONTAINING-TOKEN is empty, the next token number is used."
 
     (unless (or (not contained-region) ;; contained-token is empty
 		(wisi-get-cache (car containing-region)))
-      (error "wisi-containing-action: containing-token has no cache. grammar error; missing action"))
+      (signal 'wisi-parse-error
+	      (wisi-error-msg
+	       "wisi-containing-action: containing-token '%s' has no cache. grammar error; missing action"
+	       (nth 1 (nth (1- containing-token) wisi-tokens)))))
 
     (while (not containing-region)
       ;; containing-token is empty; use next

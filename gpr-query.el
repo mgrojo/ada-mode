@@ -204,19 +204,19 @@ Uses 'gpr_query'. Returns new list."
   prj-dirs)
 
 (defconst gpr-query-ident-file-regexp
-  ;; Write_Message:C:\Projects\GDS\work_dscovr_release\common\1553\gds-mil_std_1553-utf.ads:252:25
-  ;; Write_Message:/Projects/GDS/work_dscovr_release/common/1553/gds-mil_std_1553-utf.ads:252:25
-  "\\([^:]*\\):\\(\\(?:.:\\\|/\\)[^:]*\\):\\([0123456789]+\\):\\([0123456789]+\\)"
-  ;;  1          2                           3                   4
-  "Regexp matching <identifier>:<file>:<line>:<column>")
+  ;; C:\Projects\GDS\work_dscovr_release\common\1553\gds-mil_std_1553-utf.ads:252:25
+  ;; /Projects/GDS/work_dscovr_release/common/1553/gds-mil_std_1553-utf.ads:252:25
+  "\\(\\(?:.:\\\|/\\)[^:]*\\):\\([0123456789]+\\):\\([0123456789]+\\)"
+  ;; 1                          2                   3
+  "Regexp matching <file>:<line>:<column>")
 
 (defconst gpr-query-ident-file-regexp-alist
-  (list (concat "^" gpr-query-ident-file-regexp) 2 3 4)
+  (list (concat "^" gpr-query-ident-file-regexp) 1 2 3)
   "For compilation-error-regexp-alist, matching gpr_query output")
 
 (defconst gpr-query-ident-file-type-regexp
   (concat gpr-query-ident-file-regexp " (\\(.*\\))")
-  "Regexp matching <identifier>:<file>:<line>:<column> (<type>)")
+  "Regexp matching <file>:<line>:<column> (<type>)")
 
 ;; debugging:
 ;; in *compilation-gpr_query-refs*, run
@@ -248,6 +248,9 @@ set compilation-mode with compilation-error-regexp-alist set to COMP-ERR."
 	(0
 	 (error "gpr_query returned no results"))
 	(1
+	 (when (looking-at "^Error: entity not found")
+	   (error (buffer-substring-no-properties (line-beginning-position) (line-end-position))))
+
 	 ;; just go there, don't display session-buffer. We have to
 	 ;; fetch the compilation-message while in the session-buffer.
 	 (let* ((msg (compilation-next-error 0 nil (point-min)))
@@ -263,13 +266,17 @@ set compilation-mode with compilation-error-regexp-alist set to COMP-ERR."
 
 	));; case, with-currrent-buffer
 
-    ;; compilation-next-error-function assumes there is not an error
-    ;; at point-min; work around that by moving forward 0 errors for
-    ;; the first one.
     (if (> result-count 1)
-	;; more than one result; display session buffer
-	(next-error 0 t)
-      ;; else don't display
+	;; more than one result; display session buffer, goto first ref
+	;;
+	;; compilation-next-error-function assumes there is not an error
+	;; at point-min; work around that by moving forward 0 errors for
+	;; the first one. Unless the first line contains "warning: ".
+	(if (looking-at "^warning: ")
+	    (next-error)
+	  (next-error 0 t))
+
+      ;; just one result; go there
       (ada-goto-source file line column nil))
     ))
 
@@ -279,6 +286,16 @@ set compilation-mode with compilation-error-regexp-alist set to COMP-ERR."
      (* (abs (- found-line line)) 250)))
 
 ;;;;; user interface functions
+
+(defun gpr-query-show-references ()
+  "Show all references of identifier at point."
+  (interactive)
+  (gpr-query-all
+   (thing-at-point 'symbol)
+   (file-name-nondirectory (buffer-file-name))
+   (line-number-at-pos)
+   (1+ (current-column)))
+  )
 
 (defun gpr-query-overridden (other-window)
   "Move to the overridden declaration of the identifier around point.
@@ -334,7 +351,7 @@ buffer in another window."
     (define-key map "\C-c\C-i\C-d" 'gpr-query-goto-declaration)
     (define-key map "\C-c\C-i\C-p" 'ada-build-prompt-select-prj-file)
     (define-key map "\C-c\C-i\C-q" 'gpr-query-refresh)
-    (define-key map "\C-c\C-i\C-r" 'gpr-query-all)
+    (define-key map "\C-c\C-i\C-r" 'gpr-query-show-references)
     ;; FIXME: (define-key map "\C-c\M-d" 'gpr-query-parents)
     ;; FIXME: overriding
     map
@@ -348,6 +365,11 @@ buffer in another window."
     ["Show current project"          ada-prj-show                     t]
     ["Next compilation error"        next-error                       t]
     ["Show secondary error"          ada-show-secondary-error         t]
+    ["Goto declaration/body"         gpr-query-goto-declaration       t]
+    ["Show parent declarations"      ada-show-declaration-parents     t]
+    ["Show references"               gpr-query-show-references        t]
+    ;; ["Show overriding"               gpr-query-show-overriding        t]
+    ;; ["Show overridden"               gpr-query-show-overridden        t]
     ["Refresh cross reference cache" gpr-query-refresh        t]
     ))
 
@@ -390,8 +412,8 @@ Enable mode if ARG is positive"
       ;; declaration and body, then return the declaration or body as
       ;; appropriate.
       ;;
-      ;; the format of each line is name:file:line:column (type)
-      ;;                            1    2    3    4       5
+      ;; the format of each line is file:line:column (type)
+      ;;                            1    2    3       4
       ;;
       ;; 'type' can be:
       ;;   body
@@ -413,10 +435,10 @@ Enable mode if ARG is positive"
 	(cond
 	 ((looking-at gpr-query-ident-file-type-regexp)
 	  ;; process line
-	  (let* ((found-file (file-name-nondirectory (match-string 2)))
-		 (found-line (string-to-number (match-string 3)))
-		 (found-col  (string-to-number (match-string 4)))
-		 (found-type (match-string 5))
+	  (let* ((found-file (match-string 1))
+		 (found-line (string-to-number (match-string 2)))
+		 (found-col  (string-to-number (match-string 3)))
+		 (found-type (match-string 4))
 		 (dist       (gpr-query-dist found-line line found-col col))
 		 )
 
@@ -502,9 +524,9 @@ Enable mode if ARG is positive"
       (when (looking-at gpr-query-ident-file-regexp)
 	(setq result
 	      (list
-	       (match-string 2)
-	       (string-to-number (match-string 3))
-	       (string-to-number (match-string 4)))))
+	       (match-string 1)
+	       (string-to-number (match-string 2))
+	       (string-to-number (match-string 3)))))
 
       (when (null result)
 	(pop-to-buffer (current-buffer))

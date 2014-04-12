@@ -147,6 +147,13 @@ make Gnatcoll_Build=Debug
 sudo make Gnatcoll_Build=Debug install
 @end example
 
+To build an sqlite3 executable that is compatible with the database
+created by gnatinspect:
+
+@example
+gcc -O2 -o sqlite3 shell.c sqlite3.c -ldl -lpthread
+@end example
+
 @node Upgrading,  , gnatinspect, Installation
 @section Upgrading from previous versions
 
