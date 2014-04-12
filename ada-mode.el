@@ -2089,9 +2089,7 @@ identifier is declared or referenced.")
 	   (ada-identifier-at-point)
 	   (file-name-nondirectory (buffer-file-name))
 	   (line-number-at-pos)
-	   (cl-case (char-after)
-	     (?\" (+ 2 (current-column))) ;; FIXME: work around bug in gnat find
-	     (t (1+ (current-column)))))
+	   (1+ (current-column)))
   )
 
 (defvar ada-xref-overriding-function nil

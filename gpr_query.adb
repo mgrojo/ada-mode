@@ -173,7 +173,7 @@ procedure Gpr_Query is
 
    --  Queries; alphabetical
    procedure Process_Overridden is new Process_Command_Single (GNATCOLL.Xref.Overrides);
-   procedure Process_Overridding is new Process_Command_Multiple (GNATCOLL.Xref.Overridden_By);
+   procedure Process_Overriding is new Process_Command_Multiple (GNATCOLL.Xref.Overridden_By);
    procedure Process_Parent_Types is new Process_Command_Multiple (GNATCOLL.Xref.Parent_Types);
    procedure Process_Project_Path (Args : GNATCOLL.Arg_Lists.Arg_List);
    procedure Process_Refs (Args : GNATCOLL.Arg_Lists.Arg_List);
@@ -204,10 +204,10 @@ procedure Gpr_Query is
        new String'("The entity that is overridden by the parameter"),
        Process_Overridden'Access),
 
-      (new String'("overridding"),
+      (new String'("overriding"),
        new String'("name:file:line:column"),
        new String'("The entities that override the parameter"),
-       Process_Overridding'Access),
+       Process_Overriding'Access),
 
       (new String'("parent_types"),
        new String'("name:file:line:column"),
@@ -318,6 +318,8 @@ procedure Gpr_Query is
                Path  => Words (Words'First + 1).all),
             Project  => GNATCOLL.Projects.No_Project);
 
+      --  Xref.Get_Entity treats 'File => ""' as searching for pre-defined entities such as "Integer".
+
       when others =>
          raise Invalid_Command with "Invalid parameter '" & Arg & "', expecting name:file:line:column";
       end case;
@@ -328,7 +330,7 @@ procedure Gpr_Query is
          Ada.Text_IO.Put_Line ("Error: entity not found '" & Arg & "'");
 
       elsif GNATCOLL.Xref.Is_Fuzzy_Match (Ref.Entity) then
-         Ada.Text_IO.Put_Line ("fuzzy match for the entity");
+         Ada.Text_IO.Put_Line ("warning: fuzzy match for the entity");
          --  FIXME: gnat-query.el look for this, prompt for reparse?
       end if;
 

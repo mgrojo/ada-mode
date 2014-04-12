@@ -119,16 +119,7 @@ SPARK aspects
  gpr_query
 build/Makefile one
 
-~/GDS/work_stephe_3/dscovr/simics_601/modules/itcsb_time_sync/itcsb_time_sync.cpp
-    cd /home/gds/GDS/work_stephe_3/dscovr/build/itcsb_time_sync_simics_agg.gpr
-    delta_time:itcsb_time_sync.cpp:146:100
-        in .gli, but not found
-        submitted to adacore N325-065
-
-when loading itscb_time_sync_simics.gpr:
-    [PROJECTS] Library_Files not including : Bus.cpp.gli (which is for project ITCSB_Time_Sync)
-
-gpr_query refs output distinguishes between read ref and write query
+gpr_query refs output distinguishes between read ref and write ref
     useful for "where is this var set?"
     xref filter?
     elisp filter?
