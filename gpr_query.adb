@@ -1024,7 +1024,7 @@ begin
 
    declare
       use type GNAT.Strings.String_Access;
-      Error    : GNAT.Strings.String_Access;
+      Error : GNAT.Strings.String_Access;
    begin
       Setup_DB
         (Self  => Xref,
