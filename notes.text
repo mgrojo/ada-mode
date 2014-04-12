@@ -41,9 +41,9 @@ doc changes in NEWS-ada-mode.text NEWS-wisi.text
 
 (grep-find "find . -type f -print | \"xargs\" grep -nH \"FIXME:\"")
 
-doc ada-skel header in ada-mode.texi
-
 aspect indentation; see florian shanda email
+    test/debug.ads
+
 
 aspect'class; see georg bauhaus email
 

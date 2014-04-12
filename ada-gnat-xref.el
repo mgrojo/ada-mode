@@ -53,7 +53,7 @@
     )
 
   (let* ((file-non-dir (file-name-nondirectory file))
-	 (arg (format "%s:%s:%d:%d" identifier file line col))
+	 (arg (format "%s:%s:%d:%d" identifier file-non-dir line col))
 	 (switches (concat
                     "-a"
                     (when (ada-prj-get 'gpr_ext) (concat "--ext=" (ada-prj-get 'gpr_ext)))))

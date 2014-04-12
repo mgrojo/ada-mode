@@ -53,8 +53,8 @@ developing GNU and promoting software freedom.''
 * Moving Through Ada Code::     Moving easily through Ada sources
 * Identifier completion::       Finishing words automatically
 * Indentation::                 Indenting your code automatically as you type
-* Statement skeletons::
-* Aligning code::
+* Statement skeletons::         Some code is written for you
+* Aligning code::               Making it pretty
 * Automatic casing::            Adjusting the case of words automatically
 * Comment Handling::            Reformatting comments easily
 * Key summary::
@@ -1424,7 +1424,9 @@ indentation.
 
 For named statements (packages, loops, etc), the name is taken from
 the word before point, and the name of the statement from the word
-before that. Some expansions prompt for more information, such as
+before that.
+
+Some expansions prompt for more information, such as
 whether a spec or body is desired. For example, @kbd{package A_Package
 C-c C-e} first prompts for ``body'' or ``spec''. If ``spec'' is
 selected, the following code is inserted:
@@ -1448,7 +1450,17 @@ A_Block:
 
 Note that the order of the keyword @code{declare} and the name
 @code{A_Block} are reversed in the expansion; this may take some
-getting used to.
+getting used to. Alternately, if no name is present in the buffer, you
+are prompted for a name: @kbd{declare C-c C-e} first prompts for a
+name, then expands to the above.
+
+The variable @code{ada-skel-initial-string} defines what to insert in
+a newly created empty buffer. It defaults to @code{\{header\}}, which
+is a placeholder defined by @code{ada-skel-header}, which inserts a
+typical header with a copyright license (choice of GPL or
+restricted). Users will typically want to override the definition of
+@code{ada-skel-initial-string} and/or @code{ada-skel-header}, or
+provide more choices of copyright license.
 
 @node Aligning code, Automatic casing, Statement skeletons, Top
 @chapter Aligning code

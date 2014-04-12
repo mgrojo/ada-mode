@@ -296,42 +296,28 @@ point must be on CACHE. PREV-TOKEN is the token before the one being indented."
 	(close-paren (wisi-indent-paren 0))
 
 	(name
-	 (ada-wisi-indent-containing ada-indent-broken cache t))
+	 (cl-case (wisi-cache-nonterm cache)
+	   ((procedure_specification subprogram_specification)
+	    ;; test/ada_mode-nominal.ads
+	    ;; not
+	    ;; overriding
+	    ;; procedure
+	    ;;   Procedure_1c (Item  : in out Parent_Type_1);
+	    ;; indenting 'Procedure_1c'
+	    ;;
+	    ;; not overriding function
+	    ;;   Function_2e (Param : in Parent_Type_1) return Float;
+	    ;; indenting 'Function_2e'
+	    (ada-wisi-indent-containing ada-indent-broken cache t))
+
+	   (t
+	    ;; defer to ada-wisi-after-cache, for consistency
+	    nil)
+	   ))
 
 	(name-paren
-	 (let ((containing (wisi-goto-containing cache)))
-	   (cl-case (wisi-cache-class containing)
- 	     (open-paren
-	      ;; test/ada_mode-slices.adb
-	      ;; Put_Line(Day'Image(D1) & " - " & Day'Image(D2) & " = " &
-	      ;;            Integer'Image(N));
-	      ;;
-	      ;; test/ada_mode-parens.adb
-	      ;; return Float (
-	      ;;               Integer'Value
-	      ;; indenting 'Integer'
-	      ;;
-	      ;; We distinguish the two cases by going to the first token,
-	      ;; and comparing point to pos-0.
-	      (let ((paren-column (current-column)))
-		(wisi-forward-token t); "("
-		(forward-comment (point-max))
-		(if (= (point) pos-0)
-		    ;; 2)
-		    (1+ paren-column)
-		  ;; 1)
-		  (+ paren-column 1 ada-indent-broken))))
-
-	     (list-break
-	      (ada-wisi-indent-list-break containing prev-token))
-
-	     (t
-	      ;; test/ada_mode-generic_instantiation.ads
-	      ;;   procedure Procedure_6 is new
-	      ;;     Instance.Generic_Procedure (Integer, Function_1);
-	      ;; indenting 'Instance'; containing is 'new'
-	      (ada-wisi-indent-cache ada-indent-broken containing))
-	     )))
+	 ;; defer to ada-wisi-after-cache, for consistency
+	 nil)
 
 	(open-paren
 	 (let ((containing (wisi-goto-containing cache)))
@@ -650,6 +636,15 @@ point must be on CACHE. PREV-TOKEN is the token before the one being indented."
 		   ((PROCEDURE FUNCTION)
 		    ;; indenting 'procedure' or 'function following 'overriding'
 		    (current-column))
+
+		   (WITH
+		    ;; indenting aspect specification on subprogram declaration
+		    ;; test/aspects.ads
+		    ;; procedure Foo (X : Integer;
+		    ;;                Y : out Integer)
+		    ;; with Pre => X > 10 and
+		    ;; indenting 'with'
+		    (current-column))
 		   ))
 
 		(subtype_declaration
@@ -684,28 +679,8 @@ point must be on CACHE. PREV-TOKEN is the token before the one being indented."
 		  (ada-wisi-indent-list-break cache prev-token))
 
 		 (statement-other
-		  (cl-case (wisi-cache-token containing-cache)
-		    (LEFT_PAREN
-		     ;; test/ada_mode-parens.adb
-		     ;; return Float (
-		     ;;               Integer'Value
-		     ;;   indenting 'Integer'
-		     (wisi-indent-paren 1))
-
-		    (EQUAL_GREATER
-		     ;; test/ada_mode-nested_packages.adb
-		     ;; exception
-		     ;;    when Io.Name_Error =>
-		     ;;       null;
-		     (ada-wisi-indent-containing ada-indent containing-cache t))
-
-		    (t
-		     ;; test/ada_mode-generic_instantiation.ads
-		     ;; procedure Procedure_6 is new
-		     ;;   Instance.Generic_Procedure (Integer, Function_1);
-		     ;;   indenting 'Instance'
-		     (ada-wisi-indent-containing ada-indent-broken cache t))
-		    ))
+		  ;; defer to ada-wisi-after-cache
+		  nil)
 		 ))))
 	     ))
 
@@ -718,6 +693,7 @@ point must be on CACHE. PREV-TOKEN is the token before the one being indented."
   "Point is at indentation, not before a cached token. Find previous
 cached token, return new indentation for point."
   (let ((start (point))
+	temp-col
 	(prev-token (save-excursion (wisi-backward-token)))
 	(cache (wisi-backward-cache)))
 
@@ -792,6 +768,11 @@ cached token, return new indentation for point."
 	 ;; raise Constraint_Error with Count'Image (Line (File)) &
 	 ;;    "foo";
 	 ;; indenting '"foo"'; relative to raise
+	 ;;
+	 ;; test/ada_mode-slices.adb
+	 ;; Put_Line(Day'Image(D1) & " - " & Day'Image(D2) & " = " &
+	 ;;            Integer'Image(N));
+	 ;; indenting 'Integer'
 	 (when (memq (wisi-cache-nonterm cache)
 		     '(actual_parameter_part attribute_designator))
 	   (setq cache (wisi-goto-containing cache)))
@@ -828,6 +809,10 @@ cached token, return new indentation for point."
 	 ;;    -- a comment between paren and first association
 	 ;;    1 =>
 	 ;;
+	 ;; test/ada_mode-parens.adb
+	 ;; return Float (
+	 ;;               Integer'Value
+	 ;; indenting 'Integer'
 	 (let ((paren-column (current-column))
 	       (start-is-comment (save-excursion (goto-char start) (looking-at comment-start-skip))))
 	   (wisi-forward-token t); point is now after paren
@@ -893,6 +878,7 @@ cached token, return new indentation for point."
 	    (ada-wisi-indent-cache ada-indent-broken cache))
 
 	   (EQUAL_GREATER
+	    (setq temp-col (current-column))
 	    (cl-ecase (wisi-cache-nonterm (wisi-goto-containing cache nil))
 	      ((actual_parameter_part aggregate)
 	       ;; ada_mode-generic_package.ads
@@ -905,6 +891,13 @@ cached token, return new indentation for point."
 	       ;;    1,
 	       ;; indenting '1,'; point on '(1'
 	       (+ (current-column) 1 ada-indent-broken))
+
+	      (aspect_specification_opt
+	       ;; test/aspects.ads
+	       ;; with Pre => X > 10 and
+	       ;;             X < 50 and
+	       ;; indenting 'X < 50'
+	       (+ 3 temp-col))
 
 	      (association_list
 	       ;; test/ada_mode-parens.adb
@@ -928,6 +921,23 @@ cached token, return new indentation for point."
 	       ;; if (for some J in 1 .. 10 =>
 	       ;;       J/2 = 0)
 	       (ada-wisi-indent-containing ada-indent-broken cache))
+
+
+	      (select_alternative
+	       ;; test/ada_mode-nominal.adb
+	       ;; or when Started
+	       ;;      =>
+	       ;;       accept Finish;
+	       ;; indenting 'accept'; point is on 'when'
+	       (+ (current-column) ada-indent))
+
+	      (variant
+	       ;; test/generic_param.adb
+	       ;; case Item_Type is
+	       ;;    when Fix | Airport =>
+	       ;;       null;
+	       ;; indenting 'null'
+	       (+ (current-column) ada-indent))
 
 	      ))
 
@@ -980,6 +990,11 @@ cached token, return new indentation for point."
 	    ;; ada_mode-nominal.ads
 	    ;; type Limited_Derived_Type_2 is abstract limited new Private_Type_1 with
 	    ;;   private;
+	    ;;
+	    ;; test/ada_mode-generic_instantiation.ads
+	    ;;   procedure Procedure_6 is new
+	    ;;     Instance.Generic_Procedure (Integer, Function_1);
+	    ;; indenting 'Instance'; containing is 'new'
 	    (ada-wisi-indent-containing ada-indent-broken cache))
 
 	   (WHEN
@@ -989,26 +1004,26 @@ cached token, return new indentation for point."
 	    (ada-wisi-indent-containing ada-indent-broken cache))
 
 	   (WITH
-	    ;; extension aggregate: test/ada_mode-nominal-child.ads
-	    ;;      (Default_Parent with
-	    ;;       10, 12.0, True);
-	    ;;   indenting '10'; containing is '('
-	    ;;
-	    ;; raise_statement: test/ada_mode-nominal.adb
-	    ;; raise Constraint_Error with
-            ;;    "help!";
 	    (cl-case (wisi-cache-nonterm cache)
 	      (aggregate
+	       ;; test/ada_mode-nominal-child.ads
+	       ;;   (Default_Parent with
+	       ;;    10, 12.0, True);
+	       ;; indenting '10'; containing is '('
 	       (ada-wisi-indent-containing 0 cache nil))
 
 	      (aspect_specification_opt
+	       ;; test/aspects.ads
 	       ;; type Vector is tagged private
-	       ;;   with
-	       ;;     Constant_Indexing => Constant_Reference,
+	       ;; with
+	       ;;   Constant_Indexing => Constant_Reference,
 	       ;; indenting 'Constant_Indexing'
-	       (+ (current-indentation) ada-indent-broken))
+	       (current-indentation))
 
 	      (raise_statement
+	       ;; raise_statement: test/ada_mode-nominal.adb
+	       ;; raise Constraint_Error with
+	       ;;    "help!";
 	       (ada-wisi-indent-containing ada-indent-broken cache nil))
 	      ))
 

@@ -272,7 +272,7 @@ accept_statement
       (wisi-motion-action 1 5 '(6 EXCEPTION)))
   | ACCEPT IDENTIFIER actual_parameter_part_opt parameter_profile_opt SEMICOLON
     (progn
-      (wisi-statement-action 1 'statement-start 2 'name-paren 7 'statement-end)
+      (wisi-statement-action 1 'statement-start 2 'name-paren 5 'statement-end)
       (wisi-containing-action 2 3)
       (wisi-containing-action 2 4))
   ;
@@ -348,6 +348,29 @@ array_type_definition
       (wisi-containing-action 5 6))
   ;
 
+aspect_clause
+  : FOR attribute_reference USE expression SEMICOLON ;; attribute_definition_clause
+    (progn
+      (wisi-statement-action 1 'statement-start 3 'statement-other 5 'statement-end)
+      (wisi-containing-action 3 4))
+  | enumeration_representation_clause
+  | record_representation_clause
+  | at_clause
+  ;
+
+;; aspect_mark ::= aspect_identifier['Class]
+
+;; aspect_specification ::=
+;;   with aspect_mark [=> aspect_definition] {,
+;;        aspect_mark [=> aspect_definition] }
+aspect_specification_opt
+  : ;; empty
+  | WITH association_list ;; overkill, but simpler.
+    (progn
+      (wisi-statement-action 1 'statement-other)
+      (wisi-containing-action 1 2))
+  ;
+
 assignment_statement
   : name COLON_EQUAL expression SEMICOLON
     (progn
@@ -376,29 +399,6 @@ association_list
     (progn
       (wisi-statement-action 2 'list-break)
       (wisi-containing-action 2 3))
-  ;
-
-aspect_clause
-  : FOR attribute_reference USE expression SEMICOLON ;; attribute_definition_clause
-    (progn
-      (wisi-statement-action 1 'statement-start 3 'statement-other 5 'statement-end)
-      (wisi-containing-action 3 4))
-  | enumeration_representation_clause
-  | record_representation_clause
-  | at_clause
-  ;
-
-;; aspect_mark ::= aspect_identifier['Class]
-
-;; aspect_specification ::=
-;;   with aspect_mark [=> aspect_definition] {,
-;;        aspect_mark [=> aspect_definition] }
-aspect_specification_opt
-  : ;; empty
-  | WITH association_list ;; overkill, but simpler.
-    (progn
-      (wisi-statement-action 1 'statement-other)
-      (wisi-containing-action 1 2))
   ;
 
 asynchronous_select
@@ -815,7 +815,6 @@ entry_declaration
     parameter_profile_opt aspect_specification_opt SEMICOLON
     (progn
       (wisi-statement-action 1 'statement-start 2 'block-middle 4 'open-paren 6 'close-paren 8 'statement-end)
-      (wisi-containing-action 1 2)
       (wisi-containing-action 2 4)
       (wisi-containing-action 4 5)
       (wisi-containing-action 2 6)
@@ -823,7 +822,6 @@ entry_declaration
   | overriding_indicator_opt ENTRY IDENTIFIER parameter_profile_opt aspect_specification_opt SEMICOLON
     (progn
       (wisi-statement-action 1 'statement-start 2 'block-middle 6 'statement-end)
-      (wisi-containing-action 1 2)
       (wisi-containing-action 2 4)
       (wisi-containing-action 2 5))
   ;
@@ -1455,7 +1453,6 @@ null_procedure_declaration
   : overriding_indicator_opt procedure_specification IS NULL aspect_specification_opt SEMICOLON
     (progn
       (wisi-statement-action 1 'statement-start 2 'statement-other 3 'name 6 'statement-end)
-      (wisi-containing-action 1 2)
       (wisi-containing-action 2 5))
   ;
 
@@ -1712,8 +1709,8 @@ protected_body
   : PROTECTED BODY IDENTIFIER aspect_specification_opt IS protected_operation_item_list_opt END identifier_opt SEMICOLON
     (progn
       (wisi-statement-action 1 'block-start 3 'name 5 'block-middle 7 'block-end 9 'statement-end)
-      (wisi-containing-action 2 3)
-      (wisi-containing-action 3 4)
+      (wisi-containing-action 1 3)
+      (wisi-containing-action 1 4)
       (wisi-containing-action 5 6)
       (wisi-motion-action 1 5 7))
   ;
@@ -1722,7 +1719,7 @@ protected_body_stub
   : PROTECTED BODY IDENTIFIER IS SEPARATE aspect_specification_opt SEMICOLON
     (progn
       (wisi-statement-action 1 'statement-start 7 'statement-end)
-      (wisi-containing-action 2 3)
+      (wisi-containing-action 1 3)
       (wisi-containing-action 3 6))
   ;
 
@@ -1762,13 +1759,13 @@ protected_type_declaration
     protected_definition SEMICOLON
     (progn
       (wisi-statement-action 1 'statement-start 3 'name 6 'block-start 11 'statement-end)
-      (wisi-containing-action 2 3)
+      (wisi-containing-action 1 3)
       (wisi-containing-action 3 5)
       (wisi-containing-action 9 10))
   | PROTECTED TYPE IDENTIFIER discriminant_part_opt aspect_specification_opt IS protected_definition SEMICOLON
     (progn
       (wisi-statement-action 1 'statement-start 3 'name 6 'block-start 8 'statement-end)
-      (wisi-containing-action 2 3)
+      (wisi-containing-action 1 3)
       (wisi-containing-action 3 5)
       (wisi-containing-action 6 7))
   ;
@@ -2076,8 +2073,10 @@ subprogram_body_stub
   ;
 
 subprogram_declaration
-  : overriding_indicator_opt subprogram_specification SEMICOLON
-    (wisi-statement-action 1 'statement-start 2 'block-middle 3 'statement-end)
+  : overriding_indicator_opt subprogram_specification aspect_specification_opt SEMICOLON
+    (progn
+      (wisi-statement-action 1 'statement-start 2 'block-middle 4 'statement-end)
+      (wisi-containing-action 2 3))
   ;
 
 subprogram_default : name | BOX | NULL ;

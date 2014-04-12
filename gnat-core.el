@@ -25,8 +25,6 @@
 
 (require 'cl-lib)
 (require 'ada-mode) ;; for ada-prj-* etc; will be refactored sometime
-(require 'gpr-query)
-(require 'gnat-inspect)
 
 ;;;;; code
 
@@ -164,8 +162,9 @@ Uses 'gnat list'. Returns new '(src-dirs prj-dirs)."
   (let ((src-dirs (ada-prj-get 'src_dir project))
 	(prj-dirs (ada-prj-get 'prj_dir project)))
 
-    ;; FIXME: use a dispatching function instead, to avoid "require",
-    ;; which sets the wrong defaults.
+    ;; FIXME: use a dispatching function instead, to avoid "require" here,
+    ;; which gives "warning: function not known".
+    ;; Using 'require' at top level gives the wrong default ada-xref-tool
     (cl-ecase (ada-prj-get 'xref_tool project)
       (gnat
        (let ((res (gnat-get-paths-1 src-dirs prj-dirs)))
@@ -173,10 +172,12 @@ Uses 'gnat list'. Returns new '(src-dirs prj-dirs)."
 	 (setq prj-dirs (cadr res))))
 
       (gnat_inspect
+       (require 'gnat-inspect)
        (setq src-dirs (gnat-inspect-get-src-dirs src-dirs))
        (setq prj-dirs (cadr (gnat-get-paths-1 src-dirs prj-dirs))))
 
       (gpr_query
+       (require 'gpr-query)
        (setq src-dirs (gpr-query-get-src-dirs src-dirs))
        (setq prj-dirs (gpr-query-get-prj-dirs prj-dirs)))
       )

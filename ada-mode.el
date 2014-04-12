@@ -2727,8 +2727,6 @@ The paragraph is indented on the first line."
 (unless (featurep 'ada-indent-engine)
   (require 'ada-wisi))
 
-;; handle ada-xref-tool before ada-compiler, because ada-gnat-compile
-;; requires gnat-core, which requires the xref tools, and we get the wrong default.
 (unless (featurep 'ada-xref-tool)
   (cl-case ada-xref-tool
     ((nil 'gnat) (require 'ada-gnat-xref))

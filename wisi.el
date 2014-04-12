@@ -651,6 +651,12 @@ If CONTAINING-TOKEN is empty, the next token number is used."
   (let* ((containing-region (cddr (nth (1- containing-token) wisi-tokens)))
 	 (contained-region (cddr (nth (1- contained-token) wisi-tokens))))
 
+    (unless containing-region ;;
+      (signal 'wisi-parse-error
+	      (wisi-error-msg
+	       "wisi-containing-action: containing-region '%s' is empty. grammar error; bad action"
+	       (nth 1 (nth (1- containing-token) wisi-tokens)))))
+
     (unless (or (not contained-region) ;; contained-token is empty
 		(wisi-get-cache (car containing-region)))
       (signal 'wisi-parse-error
