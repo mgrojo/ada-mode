@@ -37,6 +37,7 @@ install packages in -Q:
  5.1.a: non_ascii in source etc
 
 do release (below)
+    done thru 24.2
 
 
 5.1.b: skeleton refactor/cleanup
@@ -358,11 +359,6 @@ Markus Schöpflin <markus.schoepflin@comsoft.aero> wants this style (including a
 (browse-url "c:/Projects/arm_info/org.adaic.arm_form/build/html/arm2012/RM-P.html")
 (info "(aarm2012)Annex P" "*info Annex P*")
 (info "(elisp)Parser State" "*info syntax-ppss*")
-c:/Projects/emacs_stephe.work/emacs_stephe/ada-mode-keys.el
-c:/Projects/emacs_stephe.work/emacs_stephe/gnat-fix-error.el
-c:/Projects/emacs_stephe.main/emacs_stephe_site_lisp/ada-mode.el
-c:/Projects/emacs_stephe.main/emacs_stephe_site_lisp/gpr-mode.el
-c:/apps/emacs-24.2/lisp/progmodes/ada-mode.el
 "c:/home/stephe/Backup/eBooks/Dick Grune/BookBody.pdf" [dickgrune]
 
 http://savannah.gnu.org/projects/emacs/

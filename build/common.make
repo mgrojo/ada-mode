@@ -77,10 +77,10 @@ test-gpr : $(addsuffix .diff, $(subst subdir/,,$(GPR_TEST_FILES)))
 EMACS_EXE ?= emacs
 
 test-elisp :
-	$(EMACS_EXE) -Q -batch -L ../../test -L ../.. -l ada-mode-test.el
+	$(EMACS_EXE) -Q -batch -L ../../test -L ../.. $(ADA_MODE_DIR) -l ada-mode-test.el
 
 gpr-skel.gpr.tmp :
-	$(EMACS_EXE) -Q -batch -L ../../test/gpr -L ../.. -l gpr-skel-test.el --eval '(progn (setq vc-handled-backends nil)(gpr-skel-test))'
+	$(EMACS_EXE) -Q -batch -L ../../test/gpr -L ../.. $(ADA_MODE_DIR) -l gpr-skel-test.el --eval '(progn (setq vc-handled-backends nil)(gpr-skel-test))'
 
 %.diff : % %.tmp
 	diff -u $< $*.tmp > $*.diff
