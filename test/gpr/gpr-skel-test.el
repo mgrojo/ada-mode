@@ -20,7 +20,8 @@ Preserves text after point."
       (when (not (member (car token-skel) exclude))
 	(if (functionp (cdr token-skel))
 	    (progn
-	      (funcall (cdr token-skel))
+	      ;; Provide a "str" arg in case it is needed
+	      (funcall (cdr token-skel) "foo")
 	      (goto-char (1- post-marker))
 	      (newline))
 	  (skeleton-expand-all (cdr token-skel) exclude)))
@@ -40,7 +41,7 @@ Preserves text after point."
       (end-of-line)
       (skeleton-expand) ;; header
       (goto-char (point-max))
-      (skeleton-expand) ;; project
+      (skeleton-expand "Project_1") ;; project
       (skeleton-expand-all gpr-skel-token-alist '("header""project"))
       (indent-region (point-min) (point-max))
       (let ((buffer-file-coding-system 'undecided-unix))

@@ -4,8 +4,8 @@
 --
 {copyright_license}
 
-project  is
-   case  is
+project Project_1 is
+   case foo is
       when =>
    end case;
    --  Copyright (C) 2014  All Rights Reserved.
@@ -24,8 +24,8 @@ project  is
 
    --  Copyright (C) 2014  All Rights Reserved.
 
-   package  is
-   end ;
+   package foo is
+   end foo;
 
 
-end ;
+end Project_1;

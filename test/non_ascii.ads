@@ -31,6 +31,4 @@ package Non_ASCII is
 
    ["03c0"]_ASCII : constant := 3.14159;
 
-   --  End FIXME:
-
 end Non_ASCII;

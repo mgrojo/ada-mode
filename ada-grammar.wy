@@ -631,10 +631,10 @@ constant_opt
 
 constraint
   : RANGE range ;; range_constraint
- ;; | digits_constraint ;; FIXME: not in any code I have
- ;; | delta_constraint ;; not in any code I have
+ ;; | digits_constraint
+ ;; | delta_constraint
   | index_constraint
- ;; | discriminant_constraint ;; not in any code I have
+ ;; | discriminant_constraint
   ;
 
 constraint_opt

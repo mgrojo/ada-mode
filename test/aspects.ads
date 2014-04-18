@@ -15,6 +15,26 @@ package Aspects is
                X < 50 and
                F (X),
      Post =>
-        Y >= X and
-        Some_Very_Verbose_Predicate (X, Y);
+       Y >= X and
+       Some_Very_Verbose_Predicate (X, Y);
+
+   procedure Bar (Y : out Integer)
+   with
+     Pre => X > 10 and
+            X < 50,
+     Post =>
+       Y >= X and
+       Some_Very_Verbose_Predicate (X, Y);
+
+   procedure Baz (Y : out Integer)
+   with
+     Pre =>
+       X > 10 and
+       X < 50,
+     Post =>
+       Y >= X and
+       Some_Very_Verbose_Predicate (X, Y);
+
+   type T is tagged private with Type_Invariant'Class => False;
+
 end Aspects;

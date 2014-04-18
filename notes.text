@@ -35,17 +35,36 @@ install packages in -Q:
 
  next release
  5.1.a: non_ascii in source etc
+
+do release (below)
+
+
+5.1.b: skeleton refactor/cleanup
 build/wisi/Makefile
 build/Makefile
 doc changes in NEWS-ada-mode.text NEWS-wisi.text
 
+default bindings for begin-defun, end-defun (see ludovic email)
+
+gentler error handling for "gnat find did not return other item" (see ludovic email)
+
+ada-goto-previous-reference from 4.0 (see ludovic email)
+
+./gnat-core.el:427:      ;; FIXME: gnat-run-buffer requires a project, but we don't
+
+./gpr-mode.el:251:  ;; FIXME: need test - should be in gpr-wisi? why doesn't ada-mode do this?
+
+gpr-skel.el
+    ./gpr-skel.el:111:;; FIXME: code below should be in skeleton.el
+    ./gpr-skel.el:199:	;; FIXME: hook for Ada case adjust
+
+    move skel-expand to emacs-compat-*?
+        assume will be in emacs 24.5 or 25.*
+    use in ada-skel?
+
 (grep-find "find . -type f -print | \"xargs\" grep -nH \"FIXME:\"")
 
-aspect indentation; see florian shanda email
-    test/debug.ads
-
-
-aspect'class; see georg bauhaus email
+5.1.x: misc
 
 C-c C-d on +Normalize_Pathname
     includes + in identifier
@@ -73,23 +92,6 @@ ada-next-statement-keyword skip matched parens if on paren
 emacs-ada-prj-mode
     or emacs-gnat-prj-mode?
 
-replacement for gnatinspect that returns project path for agg project
-    gnat 7.2 kills that for gnatls
-    as well as everything else ada mode needs
-    gnatquery; see below
-
-5.1.b: skeleton refactor/cleanup
-
-gpr-skel.el
-    ./gpr-skel.el:111:;; FIXME: code below should be in skeleton.el
-    ./gpr-skel.el:199:	;; FIXME: hook for Ada case adjust
-
-    move skel-expand to emacs-compat-*?
-        assume will be in emacs 24.5 or 25.*
-    use in ada-skel?
-
-5.1.x: misc
-
 ./wisi.el	  ;; FIXME: insert newline in comment to create non-comment!?
     need tests for wisi-before/after-change vs comments, strings
 
@@ -111,13 +113,15 @@ parse error for legal expression function in enclosing parens
 
     LRM 4.5.7 7/3
 
-SPARK aspects
-    see email
+separate color for vendor-specific aspects
+    spark aspects in test/aspects.ads
 
 (see general below for more possibilites)
 
  gpr_query
 build/Makefile one
+
+get casing from gpr file
 
 gpr_query refs output distinguishes between read ref and write ref
     useful for "where is this var set?"
@@ -390,7 +394,8 @@ read/write access requires a public key:
  release process
 bump version
     bump if _any_ changes, so ELPA package handler knows to update
-        install ada-mode, wisi from public ELPA
+        (list-packages) install ada-mode, wisi from public ELPA
+        build/Makefile docs pub-ada pub-wisi
         (ediff-directories "~/.emacs.d/elpa/wisi-1.0.2" "/Projects/elpa/packages/wisi" nil)
         (ediff-directories "~/.emacs.d/elpa/ada-mode-5.1.1" "/Projects/elpa/packages/ada-mode" nil)
 
@@ -417,21 +422,21 @@ verify other metadata
     wisi.el
 
 check for ELPA patches by others
-    email from emacs-elpa-diffs@gnu.org
     cd /Projects/elpa
     git fetch
     (dvc-state-one "/Projects/elpa")
         revert local changes
         update
-    cd /Projects/org.emacs.ada-mode
-    mtn checkout --branch org.emacs.ada-mode -r t:org.emacs.ada-mode-5.0.1 ../org.emacs.ada-mode-5.0.1
-    (ediff-directories "c:/Projects/elpa/packages/ada-mode/" "../org.emacs.ada-mode-5.0.1" nil)
-    (ediff-directories "c:/Projects/elpa/packages/wisi/" "../org.emacs.ada-mode-5.0.1" nil)
-        apply changes to current
+    git log -- packages/wisi
+    git log -- packages/ada-mode
+    apply changes to current
     (dvc-state-one ".")
 
 check emacs buglist, mark fixed
     http://debbugs.gnu.org/cgi/pkgreport.cgi?package=ada-mode
+
+(list-packages)
+    delete old ada-mode, wisi, cl-lib packages
 
 build/Makefile all
     # pushes to elpa workspace, builds archive, installs

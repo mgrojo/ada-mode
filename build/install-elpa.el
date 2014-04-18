@@ -5,8 +5,8 @@
 
 (package-initialize)
 
-(setq ada-version "5.1.2")
-(setq wisi-version "1.0.3")
+(setq ada-version "5.1.3")
+(setq wisi-version "1.0.4")
 
 ;; We may be installing a newer version without a version bump, so
 ;; just delete the packages.

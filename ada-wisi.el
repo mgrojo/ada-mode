@@ -229,9 +229,9 @@ point must be on CACHE. PREV-TOKEN is the token before the one being indented."
 	 (aspect_specification_opt
 	  ;; test/aspects.ads:
 	  ;; type Vector is tagged private
-	  ;;   with
-	  ;;     Constant_Indexing => Constant_Reference,
-	  ;;     Variable_Indexing => Reference,
+	  ;; with
+	  ;;   Constant_Indexing => Constant_Reference,
+	  ;;   Variable_Indexing => Reference,
 	  ;; indenting 'Variable_Indexing'
 	  (+ (current-indentation) ada-indent-broken))
 	 ))
@@ -603,7 +603,7 @@ point must be on CACHE. PREV-TOKEN is the token before the one being indented."
 		 ;; type Vector is tagged private
 		 ;; with
 		 ;; indenting 'with'
-		 (+ (current-indentation) ada-indent-broken))
+		 (current-indentation))
 
 		(qualified_expression
 		 ;; test/ada_mode-nominal-child.ads
@@ -693,7 +693,6 @@ point must be on CACHE. PREV-TOKEN is the token before the one being indented."
   "Point is at indentation, not before a cached token. Find previous
 cached token, return new indentation for point."
   (let ((start (point))
-	temp-col
 	(prev-token (save-excursion (wisi-backward-token)))
 	(cache (wisi-backward-cache)))
 
@@ -878,68 +877,91 @@ cached token, return new indentation for point."
 	    (ada-wisi-indent-cache ada-indent-broken cache))
 
 	   (EQUAL_GREATER
-	    (setq temp-col (current-column))
-	    (cl-ecase (wisi-cache-nonterm (wisi-goto-containing cache nil))
-	      ((actual_parameter_part aggregate)
-	       ;; ada_mode-generic_package.ads
-	       ;; with package A_Package_2 is new Ada.Text_IO.Integer_IO (Num =>
-	       ;;                                                           Formal_Signed_Integer_Type);
-	       ;;  indenting 'Formal_Signed_...', point on '(Num'
-	       ;;
-	       ;; test/ada_mode-parens.adb
-	       ;; (1      =>
-	       ;;    1,
-	       ;; indenting '1,'; point on '(1'
-	       (+ (current-column) 1 ada-indent-broken))
+	    (let ((cache-col (current-column))
+		  (cache-pos (point))
+		  (line-end-pos (line-end-position))
+		  (containing (wisi-goto-containing cache nil)))
+	      (while (eq (wisi-cache-nonterm containing) 'association_list)
+		(setq containing (wisi-goto-containing containing nil)))
 
-	      (aspect_specification_opt
-	       ;; test/aspects.ads
-	       ;; with Pre => X > 10 and
-	       ;;             X < 50 and
-	       ;; indenting 'X < 50'
-	       (+ 3 temp-col))
+	      (cl-ecase (wisi-cache-nonterm containing)
+		((actual_parameter_part aggregate)
+		 ;; ada_mode-generic_package.ads
+		 ;; with package A_Package_2 is new Ada.Text_IO.Integer_IO (Num =>
+		 ;;                                                           Formal_Signed_Integer_Type);
+		 ;;  indenting 'Formal_Signed_...', point on '(Num'
+		 ;;
+		 ;; test/ada_mode-parens.adb
+		 ;; (1      =>
+		 ;;    1,
+		 ;;  2      =>
+		 ;;    1 + 2 * 3,
+		 ;; indenting '1,' or '1 +'; point on '(1'
+		 (+ (current-column) 1 ada-indent-broken))
 
-	      (association_list
-	       ;; test/ada_mode-parens.adb
-	       ;; (1      =>
-	       ;;    1,
-	       ;;  2      =>
-	       ;;    1 + 2 * 3,
-	       ;; indending 1 +; point is on ',' after 1
-	       (wisi-indent-paren (1+ ada-indent-broken)))
+		(aspect_specification_opt
+		 ;; test/aspects.ads
+		 ;; with Pre => X > 10 and
+		 ;;             X < 50 and
+		 ;;             F (X),
+		 ;;   Post =>
+		 ;;     Y >= X and
+		 ;; indenting 'X < 50' or 'Y >= X'; cache is '=>', point is on '=>'
+		 ;; or indenting 'Post =>'; cache is ',', point is on 'with'
+		 (cl-ecase (wisi-cache-token cache)
+		   (COMMA
+		    (+ (current-indentation) ada-indent-broken))
 
-	      ((case_expression_alternative case_statement_alternative exception_handler)
-	       ;; containing is 'when'
-	       (+ (current-column) ada-indent))
+		   (EQUAL_GREATER
+		    (if (= (+ 2 cache-pos) line-end-pos)
+			;;   Post =>
+			;;     Y >= X and
+			(progn
+			  (goto-char cache-pos)
+			  (+ (current-indentation) ada-indent-broken))
+		      ;; with Pre => X > 10 and
+		      ;;             X < 50 and
+		      (+ 3 cache-col)))
+		   ))
 
-	      (generic_renaming_declaration
-	       ;; not indenting keyword following 'generic'
-	       (+ (current-column) ada-indent-broken))
+		(association_list
+		 (cl-ecase (save-excursion (wisi-cache-token (wisi-goto-containing cache nil)))
+		   (COMMA
+		    (ada-wisi-indent-containing (* 2 ada-indent-broken) cache))
+		   ))
 
-	      (primary
-	       ;; test/ada_mode-quantified_expressions.adb
-	       ;; if (for some J in 1 .. 10 =>
-	       ;;       J/2 = 0)
-	       (ada-wisi-indent-containing ada-indent-broken cache))
+		((case_expression_alternative case_statement_alternative exception_handler)
+		 ;; containing is 'when'
+		 (+ (current-column) ada-indent))
+
+		(generic_renaming_declaration
+		 ;; not indenting keyword following 'generic'
+		 (+ (current-column) ada-indent-broken))
+
+		(primary
+		 ;; test/ada_mode-quantified_expressions.adb
+		 ;; if (for some J in 1 .. 10 =>
+		 ;;       J/2 = 0)
+		 (ada-wisi-indent-containing ada-indent-broken cache))
 
 
-	      (select_alternative
-	       ;; test/ada_mode-nominal.adb
-	       ;; or when Started
-	       ;;      =>
-	       ;;       accept Finish;
-	       ;; indenting 'accept'; point is on 'when'
-	       (+ (current-column) ada-indent))
+		(select_alternative
+		 ;; test/ada_mode-nominal.adb
+		 ;; or when Started
+		 ;;      =>
+		 ;;       accept Finish;
+		 ;; indenting 'accept'; point is on 'when'
+		 (+ (current-column) ada-indent))
 
-	      (variant
-	       ;; test/generic_param.adb
-	       ;; case Item_Type is
-	       ;;    when Fix | Airport =>
-	       ;;       null;
-	       ;; indenting 'null'
-	       (+ (current-column) ada-indent))
+		(variant
+		 ;; test/generic_param.adb
+		 ;; case Item_Type is
+		 ;;    when Fix | Airport =>
+		 ;;       null;
+		 ;; indenting 'null'
+		 (+ (current-column) ada-indent))
 
-	      ))
+		)))
 
 	   (IS
 	    (setq cache (wisi-goto-containing cache))
@@ -1017,8 +1039,8 @@ cached token, return new indentation for point."
 	       ;; type Vector is tagged private
 	       ;; with
 	       ;;   Constant_Indexing => Constant_Reference,
-	       ;; indenting 'Constant_Indexing'
-	       (current-indentation))
+	       ;; indenting 'Constant_Indexing'; point is on 'with'
+	       (+ (current-indentation) ada-indent-broken))
 
 	      (raise_statement
 	       ;; raise_statement: test/ada_mode-nominal.adb
