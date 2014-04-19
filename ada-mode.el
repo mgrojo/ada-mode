@@ -1850,6 +1850,18 @@ previously set by a file navigation command."
 	(back-to-indentation))
       (setq ff-function-name nil))))
 
+(defun ada-check-current-project (file-name)
+  "Throw error if FILE-NAME (must be absolute) is not found in
+the current project source directories, or if no project has been
+set."
+  (when (null (car compilation-search-path))
+    (error "no file search path defined; set project file?"))
+
+  (unless (string= file-name
+		   (locate-file (file-name-nondirectory file-name)
+				compilation-search-path))
+    (error "current file not part of current project; wrong project?")))
+
 (defun ada-find-other-file-noset (other-window)
   "Same as `ada-find-other-file', but preserve point in the other file,
 don't move to corresponding declaration."
@@ -1893,8 +1905,7 @@ the other file."
   ;;                       information
 
   (interactive "P")
-  (when (null (car compilation-search-path))
-    (error "no file search path defined; set project file?"))
+  (ada-check-current-project (buffer-file-name))
 
   (if mark-active
       (progn
@@ -2027,6 +2038,7 @@ If at the declaration, go to the body, and vice versa.
 If OTHER-WINDOW (set by interactive prefix) is non-nil, show the
 buffer in another window."
   (interactive "P")
+  (ada-check-current-project (buffer-file-name))
 
   (when (null ada-xref-other-function)
     (error "no cross reference information available"))
@@ -2058,6 +2070,8 @@ Displays a buffer in compilation-mode giving locations of the parent type declar
 (defun ada-show-declaration-parents ()
   "Display the locations of the parent type declarations of the type identifier around point."
   (interactive)
+  (ada-check-current-project (buffer-file-name))
+
   (when (null ada-xref-parent-function)
     (error "no cross reference information available"))
 
@@ -2082,6 +2096,7 @@ identifier is declared or referenced.")
 (defun ada-show-references ()
   "Show all references of identifier at point."
   (interactive)
+  (ada-check-current-project (buffer-file-name))
 
   (when (null ada-xref-all-function)
     (error "no cross reference information available"))
@@ -2106,6 +2121,7 @@ Displays a buffer in compilation-mode giving locations of the overriding declara
 (defun ada-show-overriding ()
   "Show all overridings of identifier at point."
   (interactive)
+  (ada-check-current-project (buffer-file-name))
 
   (when (null ada-xref-overriding-function)
     (error "no cross reference information available"))
@@ -2131,6 +2147,7 @@ Returns a list '(file line column) giving the corresponding location.
 (defun ada-show-overridden (other-window)
   "Show the overridden declaration of identifier at point."
   (interactive "P")
+  (ada-check-current-project (buffer-file-name))
 
   (when (null ada-xref-overridden-function)
     (error "'show overridden' not supported, or no cross reference information available"))

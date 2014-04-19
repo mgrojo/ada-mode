@@ -61,15 +61,13 @@
   (with-current-buffer (gpr-query--session-buffer session)
     (let ((process-environment (ada-prj-get 'proc_env)) ;; for GPR_PROJECT_PATH
 
-	  ;; WORKAROUND: gnatcoll-1.6 can't handle aggregate projects; M910-032
-	  ;; gpr_query can handle some aggregate projects, but not all
-	  (project-file (file-name-nondirectory
-			 (or (ada-prj-get 'gpr_query_file)
-			     (ada-prj-get 'gpr_file)))))
+	  (project-file (file-name-nondirectory (ada-prj-get 'gpr_file))))
       (erase-buffer); delete any previous messages, prompt
       (setf (gpr-query--session-process session)
+	    ;; gnatcoll-1.6 can't handle aggregate projects; M910-032
+	    ;; gpr_query can handle some aggregate projects, but not all
 	    ;; FIXME: need good error message on bad project file:
-	    ;; 		"can't handle aggregate projects? - set gpr_query_file")
+	    ;; 		"can't handle aggregate projects?")
 	    (start-process (concat "gpr_query " (buffer-name))
 			   (gpr-query--session-buffer session)
 			   "gpr_query"
