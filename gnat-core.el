@@ -79,13 +79,6 @@ See also `gnat-parse-emacs-final'."
 		       'gpr_file
 		       (expand-file-name (substitute-in-file-name value))))
       project)
-
-     ((string= (match-string 1) "gnat_inspect_gpr_file")
-      (setq project
-	    (plist-put project
-		       'gnat_inspect_gpr_file
-		       (expand-file-name (substitute-in-file-name value))))
-      project)
      )))
 
 (defun gnat-prj-parse-emacs-final (project)
@@ -166,15 +159,10 @@ Uses 'gnat list'. Returns new '(src-dirs prj-dirs)."
     ;; which gives "warning: function not known".
     ;; Using 'require' at top level gives the wrong default ada-xref-tool
     (cl-ecase (ada-prj-get 'xref_tool project)
-      (gnat
+      ((gnat gnat_inspect)
        (let ((res (gnat-get-paths-1 src-dirs prj-dirs)))
 	 (setq src-dirs (car res))
 	 (setq prj-dirs (cadr res))))
-
-      (gnat_inspect
-       (require 'gnat-inspect)
-       (setq src-dirs (gnat-inspect-get-src-dirs src-dirs))
-       (setq prj-dirs (cadr (gnat-get-paths-1 src-dirs prj-dirs))))
 
       (gpr_query
        (require 'gpr-query)
@@ -231,8 +219,7 @@ src_dir will include compiler runtime."
       (with-current-buffer buffer
 	(setq default-directory
 	      (file-name-directory
-	       (or (ada-prj-get 'gnat_inspect_gpr_file) ;; FIXME: better name? required in gnat 7.2
-		   (ada-prj-get 'gpr_file)
+	       (or (ada-prj-get 'gpr_file)
 		   ada-prj-current-file)))
 	)
       buffer)))

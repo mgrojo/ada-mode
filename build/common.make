@@ -21,8 +21,6 @@ GPR_TEST_FILES := $(filter-out gpr-skel.gpr, $(GPR_TEST_FILES))
 
 COMPILE_FILES := $(ADA_TEST_FILES)
 
-ADA_TEST_FILES := $(filter-out non_ascii.ads, $(ADA_TEST_FILES))# FIXME: compile succeeds, indent fails
-
 COMPILE_FILES := $(subst subdir/,,$(COMPILE_FILES))
 
 COMPILE_FILES := $(filter-out access_in_record.ads, $(COMPILE_FILES))# incomplete code
@@ -79,10 +77,10 @@ test-gpr : $(addsuffix .diff, $(subst subdir/,,$(GPR_TEST_FILES)))
 EMACS_EXE ?= emacs
 
 test-elisp :
-	$(EMACS_EXE) -Q -batch -L ../../test -L ../.. -l ada-mode-test.el
+	$(EMACS_EXE) -Q -batch -L ../../test -L ../.. $(ADA_MODE_DIR) -l ada-mode-test.el
 
 gpr-skel.gpr.tmp :
-	$(EMACS_EXE) -Q -batch -L ../../test/gpr -L ../.. -l gpr-skel-test.el --eval '(progn (setq vc-handled-backends nil)(gpr-skel-test))'
+	$(EMACS_EXE) -Q -batch -L ../../test/gpr -L ../.. $(ADA_MODE_DIR) -l gpr-skel-test.el --eval '(progn (setq vc-handled-backends nil)(gpr-skel-test))'
 
 %.diff : % %.tmp
 	diff -u $< $*.tmp > $*.diff

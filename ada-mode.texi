@@ -29,7 +29,7 @@ developing GNU and promoting software freedom.''
 @title Ada Mode
 @sp 2
 @subtitle An Emacs major mode for programming in Ada
-@subtitle Ada Mode Version 5.1.2
+@subtitle Ada Mode Version 5.1.3
 @sp 2
 @page
 @vskip 0pt plus 1filll
@@ -1455,7 +1455,7 @@ are prompted for a name: @kbd{declare C-c C-e} first prompts for a
 name, then expands to the above.
 
 The variable @code{ada-skel-initial-string} defines what to insert in
-a newly created empty buffer. It defaults to @code{\{header\}}, which
+a newly created empty buffer. It defaults to @code{@{header@}}, which
 is a placeholder defined by @code{ada-skel-header}, which inserts a
 typical header with a copyright license (choice of GPL or
 restricted). Users will typically want to override the definition of

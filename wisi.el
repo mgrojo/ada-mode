@@ -1,9 +1,9 @@
 ;;; wisi.el --- Utilities for implementing an indentation/navigation engine using a generalized LALR parser
 ;;
-;; Copyright (C) 2012, 2013, 2014  Free Software Foundation, Inc.
+;; Copyright (C) 2012 - 2014  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
-;; Version: 1.0.3
+;; Version: 1.0.4
 ;; package-requires: ((cl-lib "0.4") (emacs "24.2"))
 ;; URL: http://stephe-leake.org/emacs/ada-mode/emacs-ada-mode.html
 ;;

@@ -7,18 +7,18 @@
 #
 # Ideally we'd have 5 packages with dependencies:
 #
-# ada-mode     => gnat wisi, gnat-inspect
-# gpr-mode     => gnat wisi
-# gnat         =>
-# gnat-inspect => gnat
+# ada-mode     => gnat-core, wisi, gnat-inspect
+# gpr-mode     => gnat-core, wisi
+# gnat-core    =>
+# gnat-inspect => gnat-core
 # wisi         =>
 #
 # but currently the code is not that clean; gpr-mode and gnat-inspect
 # require ada-mode. And it's not worth making gnat-core a package.
 
-VERSION := 5.1.2
+VERSION := 5.1.3
 
-all : gpr_query docs pub-ada pub-wisi build-elpa install-elpa
+all : docs pub-ada pub-wisi build-elpa install-elpa
 
 docs : info html
 

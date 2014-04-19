@@ -62,12 +62,11 @@
 
 	  ;; WORKAROUND: gnatinspect from gnatcoll-1.6w-20130902 can't handle aggregate projects; M910-032
 	  (project-file (file-name-nondirectory
-			 (or (ada-prj-get 'gnat_inspect_gpr_file)
-			     (ada-prj-get 'gpr_file)))))
+			 (ada-prj-get 'gpr_file))))
       (erase-buffer); delete any previous messages, prompt
       (setf (gnat-inspect--session-process session)
 	    ;; FIXME: need good error message on bad project file:
-	    ;; 		"can't handle aggregate projects? - set gnat_inspect_gpr_file")
+	    ;; 		"can't handle aggregate projects?")
 	    (start-process (concat "gnatinspect " (buffer-name))
 			   (gnat-inspect--session-buffer session)
 			   "gnatinspect"
@@ -89,6 +88,8 @@
 
 (defun gnat-inspect-cached-session ()
   "Return a session for the current project file, creating it if necessary."
+  (gnat-inspect-ensure-gpr)
+
   (let* ((session (cdr (assoc ada-prj-current-file gnat-inspect--sessions))))
     (if session
 	(progn
@@ -152,22 +153,9 @@ Return buffer that holds output."
 
 ;;;;; utils
 
-(defun gnat-inspect-get-src-dirs (src-dirs)
-  "Append list of source dirs in current gpr project to SRC-DIRS.
-Uses 'gnatinspect'. Returns new list."
-
-  (with-current-buffer (gnat-inspect--session-buffer (gnat-inspect-cached-session))
-    ;; This works for Ada and non-Ada projects; 'gnat list' only works
-    ;; for Ada projects.
-    (gnat-inspect-session-send "source_dirs" t)
-    (goto-char (point-min))
-    (while (not (looking-at gnat-inspect-prompt))
-      (add-to-list 'src-dirs
-		   (directory-file-name
-		    (buffer-substring-no-properties (point) (point-at-eol))))
-      (forward-line 1))
-    )
-  src-dirs)
+(defun gnat-inspect-ensure-gpr ()
+  (unless (ada-prj-get 'gpr_file)
+    (error "no gpr file specified")))
 
 (defconst gnat-inspect-ident-file-regexp
   ;; Write_Message:C:\Projects\GDS\work_dscovr_release\common\1553\gds-mil_std_1553-utf.ads:252:25
@@ -206,6 +194,8 @@ Uses 'gnatinspect'. Returns new list."
 (defun gnat-inspect-compilation (identifier file line col cmd comp-err)
   "Run gnatinspect IDENTIFIER:FILE:LINE:COL CMD,
 set compilation-mode with compilation-error-regexp-alist set to COMP-ERR."
+  (gnat-inspect-ensure-gpr)
+
   (let ((cmd-1 (format "%s %s:%s:%d:%d" cmd identifier file line col))
 	(result-count 0)
 	file line column)
@@ -257,13 +247,10 @@ set compilation-mode with compilation-error-regexp-alist set to COMP-ERR."
 (defun gnat-inspect-refresh ()
   "For `ada-xref-refresh-function', using gnatinspect."
   (interactive)
-  (with-current-buffer (gnat-inspect-session-send "refresh" t)))
+  (gnat-inspect-session-send "refresh" t))
 
 (defun gnat-inspect-other (identifier file line col)
   "For `ada-xref-other-function', using gnatinspect."
-  (unless (ada-prj-get 'gpr_file)
-    (error "no gnat project file defined."))
-
   (when (eq ?\" (aref identifier 0))
     ;; gnatinspect wants the quotes stripped
     (setq col (+ 1 col))
@@ -308,7 +295,7 @@ set compilation-mode with compilation-error-regexp-alist set to COMP-ERR."
 	(cond
 	 ((looking-at gnat-inspect-ident-file-type-regexp)
 	  ;; process line
-	  (let* ((found-file (match-string 2))
+	  (let* ((found-file (expand-file-name (match-string 2)));; converts Windows to normal
 		 (found-line (string-to-number (match-string 3)))
 		 (found-col  (string-to-number (match-string 4)))
 		 (found-type (match-string 5))
@@ -390,8 +377,7 @@ set compilation-mode with compilation-error-regexp-alist set to COMP-ERR."
 
 (defun gnat-inspect-overridden-1 (identifier file line col)
   "For `ada-xref-overridden-function', using gnatinspect."
-  (unless (or (ada-prj-get 'gnat_inspect_gpr_file)
-			     (ada-prj-get 'gpr_file))
+  (unless (ada-prj-get 'gpr_file)
     (error "no gnat project file defined."))
 
   (when (eq ?\" (aref identifier 0))
@@ -474,8 +460,6 @@ buffer in another window."
     (define-key map "\C-c\C-i\C-p" 'ada-build-prompt-select-prj-file)
     (define-key map "\C-c\C-i\C-q" 'gnat-inspect-refresh)
     (define-key map "\C-c\C-i\C-r" 'gnat-inspect-all)
-    ;; FIXME: (define-key map "\C-c\M-d" 'gnat-inspect-parents)
-    ;; FIXME: overriding
     map
   )  "Local keymap used for GNAT inspect minor mode.")
 
@@ -507,6 +491,7 @@ Enable mode if ARG is positive"
   (setq ada-make-package-body       'ada-gnat-make-package-body)
 
   (add-hook 'ada-syntax-propertize-hook 'gnatprep-syntax-propertize)
+  (add-hook 'ada-syntax-propertize-hook 'ada-gnat-syntax-propertize)
 
   ;; must be after indentation engine setup, because that resets the
   ;; indent function list.

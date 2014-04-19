@@ -9,6 +9,10 @@ Please send Emacs Ada mode bug reports to bug-gnu-emacs@gnu.org, with
 
 * Ada mode 5.1.3
 
+** more GNAT error message auto-fixes
+
+** support aspects on subprogram declarations; format same as SPARK examples.
+
 ** fix bug in ada-syntax-propertize that caused query-replace to screw up
 
 ** inhibit reparse due to case adjust; case adjust entire buffer is

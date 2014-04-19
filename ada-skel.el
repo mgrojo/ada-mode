@@ -67,7 +67,13 @@
 
 ;;;;; user variables, example skeletons intended to be overwritten
 
-(defcustom ada-skel-initial-string "{header}"
+(defcustom ada-skel-initial-string
+  "{header}
+--  Emacs note: Type C-c C-e with point after the above placeholder
+--
+--  This text was inserted by ada-skel-initial-string;
+--  M-x customize-variable <RET> ada-skel-initial-string <RET>
+--  (info \"(ada-mode)Statement skeletons\")"
   "*String to insert in empty buffer.
 This could end in a token recognized by `ada-skel-expand'."
   :type 'string
@@ -424,7 +430,7 @@ it is a name, and use the word before that as the token."
 	 nil)))))
 
 (defun ada-skel-setup ()
-  "Setup a buffer ada-skel."
+  "Setup a buffer for ada-skel."
   (add-hook 'skeleton-end-hook 'ada-indent-statement nil t)
   (when (and ada-skel-initial-string
 	     (= (buffer-size) 0))
