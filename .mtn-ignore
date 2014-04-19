@@ -1,4 +1,5 @@
 ^.*\.elc$
+^NUL$
 ^ada-grammar\.output$
 ^ada-mode\.html$
 ^ada-mode\.info$
