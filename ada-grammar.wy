@@ -202,6 +202,7 @@
 %conflict REDUCE/SHIFT in state name, aspect_clause on token USE
 %conflict REDUCE/SHIFT in state name, pragma_argument_association on token TICK
 %conflict REDUCE/SHIFT in state parameter_profile_opt, generic_instantiation on token IS
+%conflict REDUCE/SHIFT in state subprogram_specification, expression_function_declaration on token IS
 %conflict REDUCE/SHIFT in state subprogram_specification, null_procedure_declaration on token IS
 %conflict SHIFT/REDUCE in state actual_parameter_part, actual_parameter_part_opt on token LEFT_PAREN
 %conflict SHIFT/REDUCE in state actual_parameter_part, attribute_designator on token LEFT_PAREN
@@ -650,7 +651,7 @@ declaration
   | body
   | entry_declaration
   | exception_declaration
-  ;; | expression_function_declaration
+  | expression_function_declaration
   | generic_declaration
   | generic_instantiation
   | null_procedure_declaration
@@ -912,6 +913,14 @@ expression_opt
   | expression
   ;
 
+expression_function_declaration
+  : overriding_indicator_opt function_specification IS paren_expression aspect_specification_opt SEMICOLON
+    (progn
+      (wisi-statement-action 1 'statement-start 2 'statement-other 6 'statement-end)
+      (wisi-containing-action 2 4)
+      (wisi-containing-action 2 5))
+  ;
+
 extended_return_object_declaration
   : IDENTIFIER COLON aliased_opt constant_opt return_subtype_indication COLON_EQUAL expression
   | IDENTIFIER COLON aliased_opt constant_opt return_subtype_indication
@@ -1069,6 +1078,15 @@ full_type_declaration
       (wisi-containing-action 4 6))
   | task_type_declaration
   | protected_type_declaration
+  ;
+
+function_specification
+  : FUNCTION name parameter_and_result_profile
+    (progn
+      (wisi-statement-action 1 'statement-other 2 'name)
+      (wisi-containing-action 1 2)
+      (wisi-containing-action 1 3)
+      (wisi-motion-action 1 '(3 RETURN)))
   ;
 
 general_access_modifier_opt
@@ -1624,6 +1642,22 @@ parameter_specification_list
       (wisi-containing-action 2 3))
   ;
 
+;; ARM 4.5.7 7 allows ( conditional_expression ) instead of (( conditional_expression ))
+paren_expression
+  : LEFT_PAREN expression RIGHT_PAREN
+    (progn
+      (wisi-statement-action 1 'open-paren 3 'close-paren)
+      (wisi-containing-action 1 2))
+  | LEFT_PAREN case_expression RIGHT_PAREN
+    (progn
+      (wisi-statement-action 1 'open-paren 3 'close-paren)
+      (wisi-containing-action 1 2))
+  | LEFT_PAREN if_expression RIGHT_PAREN
+    (progn
+      (wisi-statement-action 1 'open-paren 3 'close-paren)
+      (wisi-containing-action 1 2))
+  ;
+
 pragma
   : PRAGMA IDENTIFIER LEFT_PAREN pragma_argument_association_list RIGHT_PAREN SEMICOLON
     (progn
@@ -1694,7 +1728,8 @@ procedure_call_statement
 procedure_specification
   : PROCEDURE name parameter_profile_opt
     (progn
-      (wisi-statement-action 1 'statement-start 2 'name)
+      (wisi-statement-action 1 'statement-other 2 'name)
+      (wisi-containing-action 1 2)
       (wisi-containing-action 1 3))
   ;
 
@@ -2090,11 +2125,7 @@ subprogram_renaming_declaration
 
 subprogram_specification
   : procedure_specification
-  | FUNCTION name parameter_and_result_profile ;; function_specification
-    (progn
-      (wisi-statement-action 1 'statement-start 2 'name)
-      (wisi-containing-action 1 3)
-      (wisi-motion-action 1 '(3 RETURN)))
+  | function_specification
   ;
 
 subtype_declaration

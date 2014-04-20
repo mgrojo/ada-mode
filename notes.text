@@ -39,8 +39,6 @@ build/wisi/Makefile
 build/Makefile
 doc changes in NEWS-ada-mode.text NEWS-wisi.text
 
-add to-do list to web
-
 default bindings for begin-defun, end-defun (see ludovic email)
 
 gentler error handling for "gnat find did not return other item" (see ludovic email)
@@ -73,7 +71,10 @@ prev-statement-keyword in subprogram skips exception
 
 parsing is noticeably slow in gnatcoll-projects.adb
     5000 lines
-    not byte-compiled
+
+    cache the parser state at various points in the file, so only the
+    code past the edit needs to be reparsed, and hopefully not even
+    that if the change is truly local.
 
 ada_mode-parens.adb:214:09: (style) bad column
 
@@ -471,8 +472,6 @@ Debian : emacs, gnat from stable (wheezy 4 May 2013, emacs 24.2, gnat 4.8)
 review NEWS-ada-mode.text, NEWS-wisi.text
     add release date
     (dvc-log)
-    /Projects/Web/stephe-leake/emacs/ada-mode/emacs-ada-mode.html
-        update to-do list
 
 build/Makefile pub-ada pub-wisi
 

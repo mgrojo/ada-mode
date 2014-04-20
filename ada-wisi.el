@@ -297,7 +297,7 @@ point must be on CACHE. PREV-TOKEN is the token before the one being indented."
 
 	(name
 	 (cl-case (wisi-cache-nonterm cache)
-	   ((procedure_specification subprogram_specification)
+	   ((function_specification procedure_specification)
 	    ;; test/ada_mode-nominal.ads
 	    ;; not
 	    ;; overriding
