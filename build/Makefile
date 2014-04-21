@@ -123,7 +123,7 @@ one : $(INSTALL_BIN)/gpr_query$(EXE_EXT)
 #--tracefile .gnatdebug
 
 trace :
-	addr2line -e gpr_query 0xbfce4f 0x9ec40c 0x40fc6e 0x40cdfc 0x405aa2 0x419622 0x391ae1ed1b 0x403107
+	addr2line -e gpr_query 0x925505 0x4166d3 0x40cb34 0x391ae1ed1b 0x40cb77
 
 $(INSTALL_BIN)/gpr_query$(EXE_EXT) install : gpr_query$(EXE_EXT)
 	cp gpr_query$(EXE_EXT) $(INSTALL_BIN)

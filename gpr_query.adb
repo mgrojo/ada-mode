@@ -23,6 +23,7 @@ pragma License (GPL);
 
 with Ada.Characters.Handling;
 with Ada.Command_Line;
+with Ada.Directories;
 with Ada.Environment_Variables;
 with Ada.Exceptions.Traceback;
 with Ada.Strings.Fixed;
@@ -924,7 +925,7 @@ begin
         (Cmdline,
          Output      => Traces_Config_File'Access,
          Long_Switch => "--tracefile=",
-         Help        => "Specify an alternative traces configuration file");
+         Help        => "Specify a traces configuration file");
 
       Getopt (Cmdline, Callback => null);
    end;
@@ -941,6 +942,9 @@ begin
         (Filename         => Traces_Config_File.all,
          Force_Activation => False);
       Trace (Me, "trace enabled");
+
+      --  Prj.* not controlled by Traces
+      Prj.Current_Verbosity := Prj.High;
    end if;
 
    GNATCOLL.Projects.Initialize (Env); -- for register_default_language
@@ -968,19 +972,24 @@ begin
 
    declare
       use Ada.Environment_Variables;
+      use Ada.Text_IO;
       use GNATCOLL.VFS;
       use GNATCOLL.VFS_Utils;
       use GNAT.Directory_Operations;
       use type GNAT.Strings.String_Access;
 
-      Path : constant Virtual_File :=
+      Gpr_Project_Path : constant String :=
+        (if Exists ("GPR_PROJECT_PATH") then Ada.Directories.Current_Directory & ":" & Value ("GPR_PROJECT_PATH")
+         else Ada.Directories.Current_Directory);
+
+      Path : constant Virtual_File := -- must be an absolute file name
         (if Is_Absolute_Path (+Project_Name.all) then
            Create_From_UTF8 (Project_Name.all, Normalize => True)
-        else
-           Locate_Regular_File (+Project_Name.all, From_Path (+Value ("GPR_PROJECT_PATH"))));
+         else
+           Locate_Regular_File (+Project_Name.all, From_Path (+Gpr_Project_Path)));
    begin
       if not Path.Is_Regular_File then
-         Ada.Text_IO.Put_Line (Project_Name.all & ": not found");
+         Put (Project_Name.all & ": not found on path " & Gpr_Project_Path);
          Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
          return;
       end if;
