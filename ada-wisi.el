@@ -1076,7 +1076,7 @@ cached token, return new indentation for point."
     ))
 
 (defun ada-wisi-comment ()
-  "Compute indentation of a comment. For `wisi-indent-functions'."
+  "Compute indentation of a comment. For `wisi-indent-calculate-functions'."
   ;; We know we are at the first token on a line. We check for comment
   ;; syntax, not comment-start, to accomodate gnatprep, skeleton
   ;; placeholders, etc.
