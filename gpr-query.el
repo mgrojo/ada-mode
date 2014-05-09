@@ -169,6 +169,11 @@ Return buffer that holds output."
     (message "Killed %d sessions" count)
     ))
 
+(defun gpr-query-show-buffer ()
+  "Show gpr-query buffer for current project."
+  (interactive)
+  (pop-to-buffer (gpr-query--session-buffer (gpr-query-cached-session))))
+
 ;;;;; utils
 
 (defun gpr-query-get-src-dirs (src-dirs)
@@ -361,6 +366,7 @@ buffer in another window."
     ["Find and select project ..."   ada-build-prompt-select-prj-file t]
     ["Select project ..."            ada-prj-select                   t]
     ["Show current project"          ada-prj-show                     t]
+    ["Show gpr-query buffer"         gpr-query-show-buffer            t]
     ["Next compilation error"        next-error                       t]
     ["Show secondary error"          ada-show-secondary-error         t]
     ["Goto declaration/body"         gpr-query-goto-declaration       t]
