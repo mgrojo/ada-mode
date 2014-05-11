@@ -224,6 +224,10 @@ src_dir will include compiler runtime."
 	)
       buffer)))
 
+(defun ada-gnat-show-run-buffer ()
+  (interactive)
+  (pop-to-buffer (gnat-run-buffer)))
+
 (defun gnat-run (exec command &optional err-msg expected-status)
   "Run a gnat command line tool, as \"EXEC COMMAND\".
 EXEC must be an executable found on `exec-path'.

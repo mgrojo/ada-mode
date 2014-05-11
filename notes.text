@@ -39,10 +39,6 @@ build/wisi/Makefile
 build/Makefile
 doc changes in NEWS-ada-mode.text NEWS-wisi.text
 
-gentler error handling for "gnat find did not return other item" (see ludovic email)
-
-ada-goto-previous-reference from 4.0 (see ludovic email)
-
 ./gnat-core.el:427:      ;; FIXME: gnat-run-buffer requires a project, but we don't
 
 ./gpr-mode.el:251:  ;; FIXME: need test - should be in gpr-wisi? why doesn't ada-mode do this?
@@ -54,6 +50,10 @@ gpr-skel.el
     move skel-expand to emacs-compat-*?
         assume will be in emacs 24.5 or 25.*
     use in ada-skel?
+
+move stuff out of ada-mode-keys.el
+    ada-make-package-spec
+        skel default to (ada-name-from-file-name (buffer-file-name))?
 
 (grep-find "find . -type f -print | \"xargs\" grep -nH \"FIXME:\"")
 

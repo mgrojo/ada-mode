@@ -78,7 +78,6 @@
       ;; check for warnings about invalid directories etc
       (goto-char (point-min))
       (when (search-forward "warning:" nil t)
-	(pop-to-buffer (current-buffer))
 	(error "gpr_query warnings"))
       )))
 
@@ -114,6 +113,9 @@
 
 (defun gpr-query-session-wait (session)
   "Wait for the current command to complete."
+  (unless (process-live-p (gpr-query--session-process session))
+    (error "gpr-query process died"))
+
   (with-current-buffer (gpr-query--session-buffer session)
     (let ((process (gpr-query--session-process session))
 	  (search-start (point-min))
@@ -130,7 +132,6 @@
 	(setq wait-count (1+ wait-count)))
       (if (process-live-p process)
 	  (message (concat "running gpr_query ... done"))
-	(pop-to-buffer (current-buffer))
 	(error "gpr_query process died"))
       )))
 
@@ -494,7 +495,6 @@ Enable mode if ARG is positive"
        )
 
       (when (null result)
-	(pop-to-buffer (current-buffer))
 	(error "gpr_query did not return other item; refresh?"))
 
       (message "parsing result ... done")
@@ -533,7 +533,6 @@ Enable mode if ARG is positive"
 	       (string-to-number (match-string 3)))))
 
       (when (null result)
-	(pop-to-buffer (current-buffer))
 	(error "gpr_query did not return a result; refresh?"))
 
       (message "parsing result ... done")
@@ -557,6 +556,7 @@ Enable mode if ARG is positive"
   (setq ada-xref-all-function        'gpr-query-all)
   (setq ada-xref-overriding-function 'gpr-query-overriding)
   (setq ada-xref-overridden-function 'gpr-query-overridden-1)
+  (setq ada-show-xref-tool-buffer    'gpr-query-show-buffer)
 
   (add-to-list 'completion-ignored-extensions ".ali") ;; gnat library files, used for cross reference
   )
@@ -574,6 +574,7 @@ Enable mode if ARG is positive"
   (setq ada-xref-all-function        nil)
   (setq ada-xref-overriding-function nil)
   (setq ada-xref-overridden-function nil)
+  (setq ada-show-xref-tool-buffer    nil)
 
   (setq completion-ignored-extensions (delete ".ali" completion-ignored-extensions))
   )

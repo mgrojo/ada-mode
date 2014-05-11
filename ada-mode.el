@@ -357,6 +357,7 @@ Values defined by cross reference packages.")
     (define-key map "\C-c\C-q" 	 'ada-xref-refresh)
     (define-key map "\C-c\C-r" 	 'ada-show-references)
     (define-key map "\C-c\M-r" 	 'ada-build-run)
+    (define-key map "\C-c\C-s"   'ada-goto-previous-pos)
     (define-key map "\C-c\C-v"   'ada-build-check)
     (define-key map "\C-c\C-w" 	 'ada-case-adjust-at-point)
     (define-key map "\C-c\C-x"   'ada-show-overriding)
@@ -403,6 +404,7 @@ Values defined by cross reference packages.")
      ["Show references"               ada-show-references          t]
      ["Show overriding"               ada-show-overriding          t]
      ["Show overridden"               ada-show-overridden          t]
+     ["Goto prev position"            ada-goto-previous-pos        t]
      )
     ("Edit"
      ["Expand skeleton"             ada-expand              t]
@@ -425,6 +427,7 @@ Values defined by cross reference packages.")
      )
     ("Misc"
      ["Show last parse error"         ada-show-parse-error         t]
+     ["Show xref tool buffer"         ada-show-xref-tool-buffer    t]
      ["Refresh cross reference cache" ada-xref-refresh             t]
      ["Reset parser"                  ada-reset-parser             t]
      )))
@@ -1566,6 +1569,16 @@ Indexed by project variable xref_tool.")
   (interactive)
   (message "current Emacs Ada mode project file: %s" ada-prj-current-file))
 
+(defvar ada-show-xref-tool-buffer nil
+  ;; Supplied by xref tool
+  "Function to show process buffer used by xref tool."
+  )
+
+(defun ada-show-xref-tool-buffer ()
+  (interactive)
+  (when ada-show-xref-tool-buffer
+    (funcall ada-show-xref-tool-buffer)))
+
 ;;;; syntax properties
 
 (defvar ada-mode-syntax-table
@@ -1961,6 +1974,27 @@ identifier.  May be an Ada identifier or operator function name."
       (error "No identifier around"))
      )))
 
+(defvar ada-goto-pos-ring '()
+  "List of positions selected by navigation functions. Used
+to go back to these positions.")
+
+(defconst ada-goto-pos-ring-max 16
+  "Number of positions kept in the list `ada-goto-pos-ring'.")
+
+(defun ada-goto-push-pos ()
+  "Push current filename, position on `ada-goto-pos-ring'. See `ada-goto-previous-pos'."
+  (setq ada-goto-pos-ring (cons (list (point) (buffer-file-name)) ada-goto-pos-ring))
+  (if (> (length ada-goto-pos-ring) ada-goto-pos-ring-max)
+      (setcdr (nthcdr (1- ada-goto-pos-ring-max) ada-goto-pos-ring) nil)))
+
+(defun ada-goto-previous-pos ()
+  "Go to the first position in `ada-goto-pos-ring', pop `ada-goto-pos-ring'."
+  (interactive)
+  (when ada-goto-pos-ring
+    (let ((pos (pop ada-goto-pos-ring)))
+      (find-file (cadr pos))
+      (goto-char (car pos)))))
+
 (defun ada-goto-source (file line column other-window)
   "Find and select FILE, at LINE and COLUMN.
 FILE may be absolute, or on `compilation-search-path'.
@@ -1973,6 +2007,8 @@ If OTHER-WINDOW is non-nil, show the buffer in another window."
 	(setq file file-1)
       (error "File %s not found; installed library, or set project?" file))
     )
+
+  (ada-goto-push-pos)
 
   (let ((buffer (get-file-buffer file)))
     (cond
@@ -2664,6 +2700,7 @@ The paragraph is indented on the first line."
        'ada-other-file-alist)
   (setq ff-post-load-hook    'ada-set-point-accordingly
 	ff-file-created-hook 'ada-ff-create-body)
+  (add-hook 'ff-pre-load-hook 'ada-goto-push-pos)
   (add-hook 'ff-pre-load-hook 'ada-which-function)
   (setq ff-search-directories 'compilation-search-path)
   (when (null (car compilation-search-path))
