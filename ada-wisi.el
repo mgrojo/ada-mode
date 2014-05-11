@@ -1191,6 +1191,10 @@ Also return cache at start."
 	)
     cache))
 
+(defun ada-wisi-goto-declaration-end ()
+  "For `ada-goto-declaration-end', which see."
+  (wisi-goto-end-1 (ada-wisi-goto-declaration-start)))
+
 (defun ada-wisi-goto-declarative-region-start ()
   "For `ada-goto-declarative-region-start', which see."
   (wisi-validate-cache (point))
@@ -1521,6 +1525,7 @@ Also return cache at start."
 
 (setq ada-fix-context-clause 'ada-wisi-context-clause)
 (setq ada-goto-declaration-start 'ada-wisi-goto-declaration-start)
+(setq ada-goto-declaration-end 'ada-wisi-goto-declaration-end)
 (setq ada-goto-declarative-region-start 'ada-wisi-goto-declarative-region-start)
 (setq ada-goto-end 'wisi-goto-end)
 (setq ada-in-paramlist-p 'ada-wisi-in-paramlist-p)

@@ -2242,14 +2242,26 @@ buffer in another window."
   ;;
   ;; This is run from ff-pre-load-hook, so ff-function-name may have
   ;; been set by ff-treat-special; don't reset it.
-  "Function to move point to start of the generic, package,
-protected, subprogram, or task declaration point is currently in
-or just after.  Called with no parameters.")
+  "For `beginning-of-defun-function'. Function to move point to
+start of the generic, package, protected, subprogram, or task
+declaration point is currently in or just after.  Called with no
+parameters.")
 
 (defun ada-goto-declaration-start ()
   "Call `ada-goto-declaration-start'."
   (when ada-goto-declaration-start
     (funcall ada-goto-declaration-start)))
+
+(defvar ada-goto-declaration-end nil
+  ;; supplied by indentation engine
+  "For `end-of-defun-function'. Function to move point to end of
+current declaration.")
+
+(defun ada-goto-declaration-end ()
+  "See `ada-goto-declaration-end' variable."
+  (interactive)
+  (when ada-goto-declaration-end
+    (funcall ada-goto-declaration-end)))
 
 (defvar ada-goto-declarative-region-start nil
   ;; Supplied by indentation engine
@@ -2731,6 +2743,12 @@ The paragraph is indented on the first line."
 		  ada-95-keywords
 		  ada-2005-keywords
 		  ada-2012-keywords))))
+
+  (when ada-goto-declaration-start
+    (set (make-local-variable 'beginning-of-defun-function) ada-goto-declaration-start))
+
+  (when ada-goto-declaration-end
+    (set (make-local-variable 'end-of-defun-function) ada-goto-declaration-end))
   )
 
 (put 'ada-mode 'custom-mode-group 'ada)

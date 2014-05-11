@@ -39,8 +39,6 @@ build/wisi/Makefile
 build/Makefile
 doc changes in NEWS-ada-mode.text NEWS-wisi.text
 
-default bindings for begin-defun, end-defun (see ludovic email)
-
 gentler error handling for "gnat find did not return other item" (see ludovic email)
 
 ada-goto-previous-reference from 4.0 (see ludovic email)
