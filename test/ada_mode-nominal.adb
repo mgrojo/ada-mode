@@ -255,6 +255,29 @@ package body Ada_Mode.Nominal is -- target 0
                end loop Loop_5;
          end case;
 
+         --  A deeply nested case statement; used to cause parser explosion
+         case Local_4 is
+            when A =>
+               case Local_4 is
+                  when A =>
+                     case Local_4 is
+                        when A =>
+                           case Local_4 is
+                              when A =>
+                                 null;
+                              when B | C =>
+                                 null;
+                           end case;
+                        when B |C =>
+                           null;
+                     end case;
+                  when B | C =>
+                     null;
+               end case;
+            when B | C =>
+               null;
+         end case;
+
          -- A comment before 'end'
       end E1;
 

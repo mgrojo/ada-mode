@@ -689,7 +689,7 @@ Each parameter declaration is represented by a list
       )
 
     (let ((space-before-p (save-excursion (skip-chars-backward " \t") (not (bolp))))
-	  (space-after-p (save-excursion (skip-chars-forward " \t") (not (eolp)))))
+	  (space-after-p (save-excursion (skip-chars-forward " \t") (not (or (= (char-after) ?\;) (eolp))))))
       (when space-before-p
 	;; paramlist starts on same line as subprogram identifier; clean
 	;; up whitespace. Allow for code on same line as closing paren

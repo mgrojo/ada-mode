@@ -208,7 +208,6 @@
 %conflict SHIFT/REDUCE in state actual_parameter_part, attribute_designator on token LEFT_PAREN
 %conflict SHIFT/REDUCE in state association_opt, name on token EQUAL_GREATER
 %conflict SHIFT/REDUCE in state attribute_reference, attribute_designator on token TICK
-%conflict SHIFT/REDUCE in state case_statement_alternative, case_statement_alternative_list on token WHEN
 %conflict SHIFT/REDUCE in state formal_derived_type_definition, formal_derived_type_definition on token WITH
 %conflict SHIFT/REDUCE in state label_opt, label_opt on token IDENTIFIER
 %conflict SHIFT/REDUCE in state name, discrete_subtype_definition on token RIGHT_PAREN
@@ -476,7 +475,7 @@ case_expression_alternative_list
   ;
 
 case_statement
-  : CASE expression IS case_statement_alternative_list END CASE SEMICOLON
+  : CASE expression_opt IS case_statement_alternative_list END CASE SEMICOLON
     (progn
       (wisi-statement-action 1 'block-start 3 'block-middle 5 'block-end 7 'statement-end)
       (wisi-containing-action 1 2)
@@ -492,9 +491,11 @@ case_statement_alternative
       (wisi-containing-action 3 4))
   ;
 
+;; We don't allow an empty list here; that leads to parallel parser
+;; explosion in nested case statements. Note that ada-skel-case
+;; inserts an empty 'when =>'
 case_statement_alternative_list
-  : ;; empty
-  | case_statement_alternative
+  : case_statement_alternative
   | case_statement_alternative_list case_statement_alternative
   ;
 

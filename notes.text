@@ -39,6 +39,8 @@ build/wisi/Makefile
 build/Makefile
 doc changes in NEWS-ada-mode.text NEWS-wisi.text
 
+ftp://alpha.gnu.org/gnu/emacs/pretest/emacs-24.3.91.tar.xz
+
 ./gnat-core.el:427:      ;; FIXME: gnat-run-buffer requires a project, but we don't
 
 ./gpr-mode.el:251:  ;; FIXME: need test - should be in gpr-wisi? why doesn't ada-mode do this?
