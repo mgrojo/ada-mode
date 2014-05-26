@@ -41,10 +41,6 @@ doc changes in NEWS-ada-mode.text NEWS-wisi.text
 
 ftp://alpha.gnu.org/gnu/emacs/pretest/emacs-24.3.91.tar.xz
 
-./gnat-core.el:427:      ;; FIXME: gnat-run-buffer requires a project, but we don't
-
-./gpr-mode.el:251:  ;; FIXME: need test - should be in gpr-wisi? why doesn't ada-mode do this?
-
 gpr-skel.el
     ./gpr-skel.el:111:;; FIXME: code below should be in skeleton.el
     ./gpr-skel.el:199:	;; FIXME: hook for Ada case adjust
@@ -71,6 +67,8 @@ prev-statement-keyword in subprogram skips exception
 
 parsing is noticeably slow in gnatcoll-projects.adb
     5000 lines
+
+    reduce redundancy in aggregates?
 
     cache the parser state at various points in the file, so only the
     code past the edit needs to be reparsed, and hopefully not even
@@ -385,12 +383,23 @@ read/write access requires a public key:
     mtn --db ~/monotone-dbs/ada-france.db sync "mtn://www.ada-france.org?org.emacs.*"
 
  release process
+check for ELPA patches by others
+    (dvc-pull "/Projects/elpa")
+    (dvc-sync-review "/Projects/elpa")
+        revert local changes
+        update
+    cd /Projects/elpa
+    git log -2 -- packages/wisi
+    git log -2 -- packages/ada-mode
+    apply changes to current
+    (dvc-state-one ".")
+
 bump version
-    bump if _any_ changes, so ELPA package handler knows to update
+    bump if _any_ changes other than autoloads, so ELPA package handler knows to update
         (list-packages) install ada-mode, wisi from public ELPA
         build/Makefile docs pub-ada pub-wisi
-        (ediff-directories "~/.emacs.d/elpa/wisi-1.0.2" "/Projects/elpa/packages/wisi" nil)
-        (ediff-directories "~/.emacs.d/elpa/ada-mode-5.1.1" "/Projects/elpa/packages/ada-mode" nil)
+        (ediff-directories "~/.emacs.d/elpa/wisi-1.0.4" "/Projects/elpa/packages/wisi" nil)
+        (ediff-directories "~/.emacs.d/elpa/ada-mode-5.1.3" "/Projects/elpa/packages/ada-mode" nil)
 
     wisi.el
         Version:
@@ -413,17 +422,6 @@ bump version
 verify other metadata
     ada-mode.el
     wisi.el
-
-check for ELPA patches by others
-    cd /Projects/elpa
-    git fetch
-    (dvc-state-one "/Projects/elpa")
-        revert local changes
-        update
-    git log -- packages/wisi
-    git log -- packages/ada-mode
-    apply changes to current
-    (dvc-state-one ".")
 
 check emacs buglist, mark fixed
     http://debbugs.gnu.org/cgi/pkgreport.cgi?package=ada-mode
@@ -455,8 +453,10 @@ Emacs 24.2, (gnat-2013):
 
     build/Makefile install-clean
 
-(dvc-state-one ".")
-(dvc-state-one "/Projects/org.opentoken")
+Emacs 24.3
+
+(dvc-status ".")
+(dvc-status "/Projects/org.opentoken")
 (shell-send-string "mtn_sync_ada_france.sh" "*bash*")
 
 Debian : emacs, gnat from stable (wheezy 4 May 2013, emacs 24.2, gnat 4.8)
