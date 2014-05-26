@@ -457,17 +457,27 @@ Emacs 24.3
 
 (dvc-status ".")
 (dvc-status "/Projects/org.opentoken")
-(shell-send-string "mtn_sync_ada_france.sh" "*bash*")
+(dvc-sync-run ".")
+(dvc-sync-review ".")
 
 Debian : emacs, gnat from stable (wheezy 4 May 2013, emacs 24.2, gnat 4.8)
-    emacs.sh
-    (shell-send-string "mtn_sync_ada_france.sh" "*bash*")
-    (xmtn-sync-review)
-    emacs-stable.sh
+    emacs.sh ;; for dvc
+
+    ;; gds.db (dvc-sync-run "/home/Projects/org.emacs.ada-mode")
+    (dvc-sync-review "/home/Projects/org.emacs.ada-mode")
+
+    emacs-stable.sh ;; for ada-mode testing
+
     M-x list-packages
         # install cl-lib
     /home/Projects/org.emacs.ada-mode/build/wisi/Makefile
         debian-all
+
+    (dvc-status)
+    ;; gds.db (dvc-sync-run "/home/Projects/org.emacs.ada-mode")
+    (dvc-sync-review "/home/Projects/org.emacs.ada-mode")
+
+(dvc-sync-run ".")
 
 review NEWS-ada-mode.text, NEWS-wisi.text
     add release date
@@ -476,14 +486,18 @@ review NEWS-ada-mode.text, NEWS-wisi.text
 build/Makefile pub-ada pub-wisi
 
 cd /Projects/elpa
-    git fetch
+    (dvc-pull "/Projects/elpa")
+    (dvc-sync-review "/Projects/elpa")
     (dvc-state-one "/Projects/elpa")
     commit ada-mode, wisi
-    git push
+    (dvc-push "/Projects/elpa")
     # 24 hrs for web repository to update
 
 (dvc-state-one ".")
 mtn tag h:org.emacs.ada-mode "org.emacs.ada-mode-<version>"
+
+;; _not_ dvc-sync; default is shevek::gds-central.db
+(shell-send-string "mtn_sync_ada_france.sh" "*bash*")
 
 build/Makefile zip
 
