@@ -144,15 +144,13 @@ newsgroup comp.lang.ada.
 the standard GNAT directories, where the compiler will find it by
 default. This assumes you have write permission in the GNAT directory
 tree. Then just put 'with "OpenToken";' in your project file. To
-install it on Windows, using a DOS shell, and assuming GNAT and 'make'
-are in your PATH:
+install it using a bash shell (Cygwin on Windows, or Linux), and
+assuming GNAT and 'make' are in your PATH:
 
 <pre>
-cd opentoken/Build/windows_release
-make -f Makefile.install install
+cd opentoken/build/release
+make install
 </pre>
-
-<p>On GNU/Linux, use 'linux_release' instead of 'windows_release'.
 
 <p>See <a href="opentoken_developer_tools.html">developer
 instructions</a> if you want to run the tests or work on OpenToken,

@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
---  Copyright (C) 2009 Stephe Leake
+--  Copyright (C) 2009, 2014 Stephe Leake
 --  Copyright (C) 2000 Ted Dennison
 --
 --  This file is part of the OpenToken package.
@@ -103,7 +103,7 @@ package body OpenToken.Token.List_Mixin is
       Build       : in List_Action    := null)
      return Handle
    is
-      New_Token : Handle := new Class'(Class (Token));
+      New_Token : constant Handle := new Class'(Class (Token));
    begin
       Set_Name (OpenToken.Token.Instance (New_Token.all), Name);
 
