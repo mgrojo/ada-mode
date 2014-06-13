@@ -1869,10 +1869,21 @@ set."
   (when (null (car compilation-search-path))
     (error "no file search path defined; set project file?"))
 
-  (unless (string= file-name
-		   (locate-file (file-name-nondirectory file-name)
-				compilation-search-path))
-    (error "current file not part of current project; wrong project?")))
+  ;; file-truename handles symbolic links
+  (let* ((visited-file (file-truename file-name))
+         (found-file (file-truename
+                      (locate-file (file-name-nondirectory visited-file)
+                                   compilation-search-path))))
+    (unless found-file
+      (error "current file not part of current project; wrong project?"))
+
+    ;; (nth 10 (file-attributes ...)) is the inode; required when hard
+    ;; links are present.
+    (let* ((visited-file-inode (nth 10 (file-attributes visited-file)))
+           (found-file-inode (nth 10 (file-attributes found-file))))
+      (unless (equal visited-file-inode found-file-inode)
+        (error "%s (opened) and %s (found in project) are two different files"
+               file-name found-file)))))
 
 (defun ada-find-other-file-noset (other-window)
   "Same as `ada-find-other-file', but preserve point in the other file,

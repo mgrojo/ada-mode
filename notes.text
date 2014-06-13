@@ -39,6 +39,8 @@ build/wisi/Makefile
 build/Makefile
 doc changes in NEWS-ada-mode.text NEWS-wisi.text
 
+gnatinspect.exe dies in test/ada_mode-nominal.ads
+
 ftp://alpha.gnu.org/gnu/emacs/pretest/emacs-24.3.91.tar.xz
 
 gpr-skel.el
@@ -508,9 +510,5 @@ build/Makefile zip
 
 after Gnu ELPA updated, post on emacs-ada-mode mailing list, c.l.a newsgroup
     http://stephe-leake.org/emacs/ada-mode/emacs-ada-mode.html
-
-    also send email to:
-        Pascal Pignard <abo.pignard@wanadoo.fr> for objective c
-        cedet-semantic
 
 -- end of file

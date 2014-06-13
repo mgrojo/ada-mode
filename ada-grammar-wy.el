@@ -1324,8 +1324,8 @@
         (wisi-statement-action 1 'statement-start 2 'statement-end))
        ((RAISE name WITH expression SEMICOLON )
         (progn
-        (wisi-statement-action 1 'statement-start 3 'statement-other 5 'statement-end)
-        (wisi-containing-action 3 4)))
+        (wisi-statement-action 1 'statement-start 5 'statement-end)
+        (wisi-containing-action 1 4)))
        ((RAISE name SEMICOLON )
         (wisi-statement-action 1 'statement-start 3 'statement-end)))
       (range

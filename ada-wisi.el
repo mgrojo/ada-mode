@@ -1002,12 +1002,6 @@ cached token, return new indentation for point."
 	    ;;        1 =>
 	    (+ (current-column) 1))
 
-	   (OF
-	    ;; ada_mode-nominal.ads
-	    ;; Anon_Array_2 : array (1 .. 10) of
-	    ;;   Integer;
-	    (ada-wisi-indent-containing ada-indent-broken cache))
-
 	   (NEW
 	    ;; ada_mode-nominal.ads
 	    ;; type Limited_Derived_Type_2 is abstract limited new Private_Type_1 with
@@ -1017,6 +1011,12 @@ cached token, return new indentation for point."
 	    ;;   procedure Procedure_6 is new
 	    ;;     Instance.Generic_Procedure (Integer, Function_1);
 	    ;; indenting 'Instance'; containing is 'new'
+	    (ada-wisi-indent-containing ada-indent-broken cache))
+
+	   (OF
+	    ;; ada_mode-nominal.ads
+	    ;; Anon_Array_2 : array (1 .. 10) of
+	    ;;   Integer;
 	    (ada-wisi-indent-containing ada-indent-broken cache))
 
 	   (WHEN
@@ -1041,12 +1041,6 @@ cached token, return new indentation for point."
 	       ;;   Constant_Indexing => Constant_Reference,
 	       ;; indenting 'Constant_Indexing'; point is on 'with'
 	       (+ (current-indentation) ada-indent-broken))
-
-	      (raise_statement
-	       ;; raise_statement: test/ada_mode-nominal.adb
-	       ;; raise Constraint_Error with
-	       ;;    "help!";
-	       (ada-wisi-indent-containing ada-indent-broken cache nil))
 	      ))
 
 	   ;; otherwise just hanging

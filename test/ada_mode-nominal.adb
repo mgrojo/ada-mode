@@ -85,7 +85,7 @@ package body Ada_Mode.Nominal is -- target 0
             Bad_Thing : exception;
             --EMACSCMD:(test-face "Boolean" font-lock-type-face)
             Dummy : Boolean;
-            pragma Unreferenced (Dummy); -- test ada-indent-statement-or-declaration handling of this in refine-begin
+            pragma Unreferenced (Dummy);
          begin
             --EMACSCMD:(progn (forward-line 4)(forward-comment 1)(ada-prev-statement-keyword)(looking-at "begin"))
             --EMACSRESULT: t
@@ -123,7 +123,8 @@ package body Ada_Mode.Nominal is -- target 0
                     Bad_Thing -- ada-mode 4.01 indentation
                     =>        -- ""
                      raise Constraint_Error
-                       with "help!";
+                       with Integer'Image (1) &
+                       "help!";
                   when
                     -- pathological case - should put 'raise' on next line
                     -- just ensure it doesn't raise an error
