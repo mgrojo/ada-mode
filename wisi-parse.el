@@ -75,6 +75,9 @@
 If a file needs more than this, it's probably an indication that
 the grammar is excessively redundant.")
 
+(defvar wisi-parse-max-parallel-current 0
+  "Maximum number of parallel parsers used in most recent parse.")
+
 (defvar wisi-debug 0
   "wisi debug mode:
 0 : normal - ignore parse errors, for indenting new code
@@ -106,6 +109,8 @@ the grammar is excessively redundant.")
 	 (active 'shift)
 	 (token (funcall lexer))
 	 some-pending)
+
+    (setq wisi-parse-max-parallel-current 0)
 
     (aset (wisi-parser-state-stack (aref parser-states 0)) 0 0) ;; Initial state
 
@@ -144,6 +149,7 @@ the grammar is excessively redundant.")
 			 )))
 		  )
 		(setq active-parser-count (1+ active-parser-count))
+		(setq wisi-parse-max-parallel-current (max wisi-parse-max-parallel-current active-parser-count))
 		(setf (wisi-parser-state-label result) j)
 		(aset parser-states j result))
 	      (when (> wisi-debug 1)
