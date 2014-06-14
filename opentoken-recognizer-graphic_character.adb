@@ -59,7 +59,8 @@ package body OpenToken.Recognizer.Graphic_Character is
          end if;
       when The_Character =>
          if Ada.Characters.Handling.Is_Graphic (Next_Char) and
-           not Ada.Strings.Maps.Is_In (Element => Next_Char, Set => The_Token.Excluded) then
+           not Ada.Strings.Maps.Is_In (Element => Next_Char, Set => The_Token.Excluded)
+         then
             Verdict         := So_Far_So_Good;
             The_Token.State := Closing_Tick;
          else

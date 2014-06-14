@@ -1,5 +1,6 @@
 -------------------------------------------------------------------------------
 --
+-- Copyright (C) 2014 Stephen Leake
 -- Copyright (C) 1999 Christoph Karl Walter Grein
 --
 -- This file is part of the OpenToken package.
@@ -65,8 +66,10 @@ package body OpenToken.Recognizer.HTML_Entity is
          if Next_Char = '#' then
             Verdict         := So_Far_So_Good;
             The_Token.State := Number;
-         elsif Ada.Strings.Maps.Is_In (Element => Next_Char,
-                                       Set     => Ada.Strings.Maps.Constants.Letter_Set) then
+         elsif Ada.Strings.Maps.Is_In
+           (Element => Next_Char,
+            Set     => Ada.Strings.Maps.Constants.Letter_Set)
+         then
             Verdict         := So_Far_So_Good;
             The_Token.State := Rest;
             The_Token.Set   := Ada.Strings.Maps.Constants.Letter_Set;
@@ -82,8 +85,10 @@ package body OpenToken.Recognizer.HTML_Entity is
                Verdict         := So_Far_So_Good;
                The_Token.Set   := Ada.Strings.Maps.Constants.Hexadecimal_Digit_Set;
                --  We stay in this state so that we must have at least one digit.
-            elsif Ada.Strings.Maps.Is_In (Element => Next_Char,
-                                          Set     => Ada.Strings.Maps.Constants.Decimal_Digit_Set) then
+            elsif Ada.Strings.Maps.Is_In
+              (Element => Next_Char,
+               Set     => Ada.Strings.Maps.Constants.Decimal_Digit_Set)
+            then
                Verdict         := So_Far_So_Good;
                The_Token.State := Rest;
                The_Token.Set   := Ada.Strings.Maps.Constants.Decimal_Digit_Set;

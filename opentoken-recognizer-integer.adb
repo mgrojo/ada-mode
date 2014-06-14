@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2002, 2003 Stephen Leake
+-- Copyright (C) 2002, 2003, 2014 Stephen Leake
 -- Copyright (C) 1999, 2000 FlightSafety International and Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -116,7 +116,9 @@ package body OpenToken.Recognizer.Integer is
             end if;
          when Failed =>
             if The_Token.Last_Verdict = Matches and
-              (Next_Char = 'e' or Next_Char = 'E') and The_Token.Allow_Exponent then
+              (Next_Char = 'e' or Next_Char = 'E') and
+              The_Token.Allow_Exponent
+            then
                Verdict         := So_Far_So_Good;
                The_Token.State := Exponent_Sign;
             else

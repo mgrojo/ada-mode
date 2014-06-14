@@ -156,7 +156,8 @@ package body OpenToken.Recognizer.Real is
 
             elsif The_Token.Last_Verdict = Matches     and
               (Next_Char = 'e' or Next_Char = 'E') and
-              The_Token.Allow_Laziness and The_Token.Allow_Exponent then
+              The_Token.Allow_Laziness and The_Token.Allow_Exponent
+            then
                Verdict         := So_Far_So_Good;
                The_Token.State := Exponent_Sign;
                Extended_Digits.Clear (The_Token.Decimal_Recognizer);
@@ -201,7 +202,8 @@ package body OpenToken.Recognizer.Real is
             if (The_Token.Last_Verdict = Matches or   -- Aft present
                   (The_Token.Last_Verdict = Failed and  -- Aft not present (but Fore present)
                      The_Token.Allow_Laziness)) and
-              (Next_Char = 'e' or Next_Char = 'E') and The_Token.Allow_Exponent then
+              (Next_Char = 'e' or Next_Char = 'E') and The_Token.Allow_Exponent
+            then
                Verdict         := So_Far_So_Good;
                The_Token.State := Exponent_Sign;
                Extended_Digits.Clear (The_Token.Decimal_Recognizer);

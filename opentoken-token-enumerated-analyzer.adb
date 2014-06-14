@@ -335,7 +335,8 @@ package body OpenToken.Token.Enumerated.Analyzer is
 
                --  If its the longest match yet, save it.
                if Match (Token_Index) = Recognizer.Matches and
-                 Best_Match_Length < Increment_Buffer_Index (Current_Char, 1 - Analyzer.Buffer_Head) then
+                 Best_Match_Length < Increment_Buffer_Index (Current_Char, 1 - Analyzer.Buffer_Head)
+               then
 
                   Best_Match_Token  := Token_Index;
                   Best_Match_Length := Increment_Buffer_Index (Current_Char, 1 - Analyzer.Buffer_Head);
