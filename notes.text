@@ -41,6 +41,27 @@ doc changes in NEWS-ada-mode.text NEWS-wisi.text
 
 gnatinspect.exe dies in test/ada_mode-nominal.ads
 
+parsing is noticeably slow
+    /apps/GNAT-7.2.1/gnatcoll-1.6-src/src/gnatcoll-projects.adb
+    7204 lines
+    (time-it 'wisi-parse-buffer 1)
+        first: 1.264000
+        later: 2.402000
+            garbage collection of text properties?
+        (wisi-invalidate-cache) first: 2.371000
+        delete, reload: 1.279000
+
+    wisi-parse-max-parallel-count = 4
+        no redundancy to reduce
+
+    don't do syntax-propertize for font-lock, unless parsing is already done
+        not parsed on open; start of buffer doesn't require syntax propertize?
+        happens on scroll to end
+
+    cache the parser state at various points in the file, so only the
+    code past the edit needs to be reparsed, and hopefully not even
+    that if the change is truly local.
+
 ftp://alpha.gnu.org/gnu/emacs/pretest/emacs-24.3.91.tar.xz
 
 gpr-skel.el
@@ -66,15 +87,6 @@ type name after aliased doesn't have typename font:
    Force_Refresh        : aliased Boolean;
 
 prev-statement-keyword in subprogram skips exception
-
-parsing is noticeably slow in gnatcoll-projects.adb
-    5000 lines
-
-    reduce redundancy in aggregates?
-
-    cache the parser state at various points in the file, so only the
-    code past the edit needs to be reparsed, and hopefully not even
-    that if the change is truly local.
 
 ada_mode-parens.adb:214:09: (style) bad column
 
