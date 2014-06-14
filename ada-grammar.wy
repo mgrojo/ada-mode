@@ -706,6 +706,11 @@ direct_name
   | STRING_LITERAL ;; operator_symbol
   ;
 
+direct_name_opt
+  : ;; empty
+  | direct_name
+  ;
+
 discrete_choice
   : choice_expression ;; includes 'name'
   | NOT NULL name ;; from subytpe_indication, excluding constructs covered by 'name'
@@ -2253,7 +2258,7 @@ type_definition
   ;
 
 variant_part
-  : CASE direct_name IS variant_list END CASE SEMICOLON
+  : CASE direct_name_opt IS variant_list END CASE SEMICOLON
     (progn
       (wisi-statement-action 1 'statement-start 3 'block-start 5 'block-end 7 'statement-end)
       (wisi-containing-action 3 4))
@@ -2265,7 +2270,7 @@ variant_list
   ;
 
 variant
-  : WHEN discrete_choice_list EQUAL_GREATER component_list
+  : WHEN discrete_choice_list EQUAL_GREATER component_list_opt
     (progn
       (wisi-statement-action 1 'block-middle 3 'statement-other)
       (wisi-containing-action 1 2)

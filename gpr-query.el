@@ -114,6 +114,7 @@
 (defun gpr-query-session-wait (session)
   "Wait for the current command to complete."
   (unless (process-live-p (gpr-query--session-process session))
+    (gpr-query-show-buffer)
     (error "gpr-query process died"))
 
   (with-current-buffer (gpr-query--session-buffer session)
@@ -132,6 +133,7 @@
 	(setq wait-count (1+ wait-count)))
       (if (process-live-p process)
 	  (message (concat "running gpr_query ... done"))
+	(gpr-query-show-buffer)
 	(error "gpr_query process died"))
       )))
 
@@ -147,8 +149,10 @@ If WAIT is non-nil, wait for command to complete.
 Return buffer that holds output."
   (gpr-require-prj)
   (let ((session (gpr-query-cached-session)))
+    ;; always wait for previous command to complete; also checks for
+    ;; dead process.
+    (gpr-query-session-wait session)
     (with-current-buffer (gpr-query--session-buffer session)
-      ;; FIXME: Check prev command complete (might not have waited); look for prompt at EOB
       (erase-buffer)
       (process-send-string (gpr-query--session-process session)
 			   (concat cmd "\n"))
