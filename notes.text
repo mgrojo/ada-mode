@@ -41,6 +41,23 @@ doc changes in NEWS-ada-mode.text NEWS-wisi.text
 
 gnatinspect.exe dies in test/ada_mode-nominal.ads
 
+wisi-set-end scans same text repeatedly for each nested scope
+    org.emacs.ada-mode.stephe-1
+    first: 1.046000 vs 1.264000
+    later: 1.311000 vs 2.402000
+
+    running tests
+        test/ada_mode-interactive_wisi.adb failing
+
+need motion-action on package body
+
+cache the parser state at various points in the file
+    - parsing delay after each edit is much more annoying than initial delay
+    - only the code past the edit needs to be reparsed
+    - not even most of that if the change is truly local.
+
+    org.emacs.ada-mode.stephe-1
+
 parsing is noticeably slow
     /apps/GNAT-7.2.1/gnatcoll-1.6-src/src/gnatcoll-projects.adb
     7204 lines
@@ -48,8 +65,28 @@ parsing is noticeably slow
         first: 1.264000
         later: 2.402000
             garbage collection of text properties?
+            buffer starts as single tree entry, gets broken up?
         (wisi-invalidate-cache) first: 2.371000
+        (time-it 'wisi-invalidate-cache 1) = 0.0
         delete, reload: 1.279000
+
+    (progn (profiler-start 'cpu) (time-it 'wisi-parse-buffer 10) (profiler-report) (profiler-stop))
+        B - profiler-report-render-reversed-calltree shows low-level time hogs:
+        34% of time spent in next-single-property-change in actions
+            31% in wisi-set-end
+        19% in garbage collection
+        comment out action execution/pending in wisi-parse-reduce:
+            first: 1.067
+            later: 1.092 seconds
+
+        comment out set-end: 1.722200
+            restore: 2.933
+
+    restore actions: 1.716, 2.979
+    turn off fontify: 1.623000, 2.684000
+        wisi-parse-reduce 30% + 5%
+            most in next-single-property
+        GC 19%
 
     wisi-parse-max-parallel-count = 4
         no redundancy to reduce
@@ -57,10 +94,6 @@ parsing is noticeably slow
     don't do syntax-propertize for font-lock, unless parsing is already done
         not parsed on open; start of buffer doesn't require syntax propertize?
         happens on scroll to end
-
-    cache the parser state at various points in the file, so only the
-    code past the edit needs to be reparsed, and hopefully not even
-    that if the change is truly local.
 
 ftp://alpha.gnu.org/gnu/emacs/pretest/emacs-24.3.91.tar.xz
 

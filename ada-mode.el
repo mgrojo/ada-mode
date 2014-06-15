@@ -339,6 +339,8 @@ Values defined by cross reference packages.")
     (define-key map [return] 	 'ada-indent-newline-indent)
     (define-key map "\C-c`" 	 'ada-show-secondary-error)
     (define-key map "\C-c;"      (lambda () (error "use M-; instead"))) ; comment-dwim
+    (define-key map "\C-c<" 	 'ada-goto-declaration-start)
+    (define-key map "\C-c>" 	 'ada-goto-declaration-end)
     (define-key map "\C-c\M-`" 	 'ada-fix-compiler-error)
     (define-key map "\C-c\C-a" 	 'ada-align)
     (define-key map "\C-c\C-b" 	 'ada-make-subprogram-body)
@@ -398,7 +400,8 @@ Values defined by cross reference packages.")
      ["Other file don't find decl"    ada-find-other-file-noset    t]
      ["Goto declaration/body"         ada-goto-declaration         t]
      ["Goto next statement keyword"   ada-next-statement-keyword   t]
-     ["Goto prev statement keyword"   ada-next-statement-keyword   t]
+     ["Goto declaration start"        ada-goto-declaration-start   t]
+     ["Goto declaration end"          ada-goto-declaration-end     t]
      ["Show parent declarations"      ada-show-declaration-parents t]
      ["Show references"               ada-show-references          t]
      ["Show overriding"               ada-show-overriding          t]
@@ -2295,6 +2298,7 @@ parameters.")
 
 (defun ada-goto-declaration-start ()
   "Call `ada-goto-declaration-start'."
+  (interactive)
   (when ada-goto-declaration-start
     (funcall ada-goto-declaration-start)))
 
