@@ -33,40 +33,36 @@ install packages in -Q:
  (add-to-list 'package-archives (cons "test" "/Projects/elpa/archive/packages"))
  (list-packages))
 
- 5.0.2:
+ next release
+5.1.b: skeleton refactor/cleanup
 build/wisi/Makefile
 build/Makefile
 doc changes in NEWS-ada-mode.text NEWS-wisi.text
 
-upcase identifiers
-    org.emacs.ada-mode.stephe-1
-        use dvc-propagate; ~/Misc/dvc_notes.text
+gnatinspect.exe dies in test/ada_mode-nominal.ads
 
-    was ada-case-identifier option in 4.0
+parsing is noticeably slow
+    /apps/GNAT-7.2.1/gnatcoll-1.6-src/src/gnatcoll-projects.adb
+    7204 lines
+    (time-it 'wisi-parse-buffer 1)
+        first: 1.264000
+        later: 2.402000
+            garbage collection of text properties?
+        (wisi-invalidate-cache) first: 2.371000
+        delete, reload: 1.279000
 
-> --- ada-mode.el.orig	2014-02-05 08:45:10.000000000 +0100
-> +++ ada-mode.el	2014-02-22 11:29:46.000000000 +0100
-> @@ -977,7 +977,7 @@
->
->  	;; else apply Mixed_Case and partial-exceptions
->  	(if ada-case-strict
-> -	    (downcase-region start end))
-> +	    (upcase-region start end))
->  	(while (not done)
->  	  (setq next
->  		(or
+    wisi-parse-max-parallel-count = 4
+        no redundancy to reduce
 
-    actually should factor out ada-mixed-case and ada-case-adjust-substring
-    specify ada-mixed-case as default for ada-case-identifier, allow upcase-region as option (and CamelCase someday :)
-    always call ada-case-adjust-substring after.
-    consider ada-case-strict
+    don't do syntax-propertize for font-lock, unless parsing is already done
+        not parsed on open; start of buffer doesn't require syntax propertize?
+        happens on scroll to end
 
- 5.0.a: non_ascii in source
-(grep-find "find . -type f -print | \"xargs\" grep -nH \"FIXME:\"")
+    cache the parser state at various points in the file, so only the
+    code past the edit needs to be reparsed, and hopefully not even
+    that if the change is truly local.
 
-test/non_ascii.ads
-
- 5.0.b: skeleton refactor/cleanup
+ftp://alpha.gnu.org/gnu/emacs/pretest/emacs-24.3.91.tar.xz
 
 gpr-skel.el
     ./gpr-skel.el:111:;; FIXME: code below should be in skeleton.el
@@ -76,51 +72,75 @@ gpr-skel.el
         assume will be in emacs 24.5 or 25.*
     use in ada-skel?
 
- 5.0.x: misc
+move stuff out of ada-mode-keys.el
+    ada-make-package-spec
+        skel default to (ada-name-from-file-name (buffer-file-name))?
+
+(grep-find "find . -type f -print | \"xargs\" grep -nH \"FIXME:\"")
+
+5.1.x: misc
+
+C-c C-d on +Normalize_Pathname
+    includes + in identifier
+
+type name after aliased doesn't have typename font:
+   Force_Refresh        : aliased Boolean;
+
+prev-statement-keyword in subprogram skips exception
+
+ada_mode-parens.adb:214:09: (style) bad column
+
+ada-set-point-accordingly
+    use parse info to find identifier declaration instead of reference?
+
+different casing for identifiers (uppercase) and attributes (mixed)
+
+src_dir=/foo/bar/* for C++
+
+ada-next-statement-keyword skip matched parens if on paren
+
+emacs-ada-prj-mode
+    or emacs-gnat-prj-mode?
 
 ./wisi.el	  ;; FIXME: insert newline in comment to create non-comment!?
     need tests for wisi-before/after-change vs comments, strings
 
-font-lock-keywords buffer local by default?
-
 test on debian testing?
 
- gnat-inspect
-test gnat 7.2, gnatcoll 1.7w
+gpr-add-log-current-function dispatch to gpr-wisi
 
-~/Projects/gnatcoll-1.6w-src/docs/xref.rst
-c:/Apps/GNAT-7.1.2/gnatcoll-1.6w-src/src/tools/gnatinspect.adb
-(require 'gpr-mode)
-(gpr-set-as-project "c:/Apps/GNAT-7.1.2/gnatcoll-1.6w-src/src/gnatcoll_tools.gpr")
-(browse-url "file:///c:/Apps/GNAT-7.1.2/gnatcoll-1.6w-src/docs/_build/html/xref.html")
-gnatinspect verbosity in .gnatdebug:
--- Projects
--- ENTITIES.PARSING
+ada-add-log-current-function
 
-gnatinspect is slow
-    implementing gnat-inspect-session-*
-    (require 'gnat-inspect)
-    (gnat-inspect-kill-all-sessions)
-    /Projects/GDS/work_dscovr_release/dscovr/build/x86_gnu_windows_debug/Makefile
+gpr log-edit-function-name
+    use package.attribute:
+        Source_Dirs
+        Compiler.Default_Switches
 
-    (pop-to-buffer " *gnatinspect-c:/Projects/GDS/work_dscovr_release/dscovr/build/x86_gnu_windows_debug/gds_dscovr_test_agg.gpr*")
+parse error for legal expression function in enclosing parens
+      Y : Boolean := Boolean'(if True then False);
+    vs.
+      Y : Boolean := Boolean'((if True then False));  -- o.K.
 
-    start or refresh gnatinspect process when select project
-        don't wait
+    LRM 4.5.7 7/3
 
+separate color for vendor-specific aspects
+    spark aspects in test/aspects.ads
 
-    use in user-interface functions
-        gnat-inspect-other done
+(see general below for more possibilites)
 
-        /Projects/GDS/work_dscovr_release/dscovr/1553/test/gds-hardware-bus_1553-core_thruster-test.adb
+ gpr_query
+build/Makefile one
 
+get casing from gpr file
 
-F7 broken
-    using wrong/broken compilation regexp?
-    c:/Projects/GDS/main_lynx_5/common/1553/gds-cards-sbs_abi-ops.ads Read_Mem
+gpr_query refs output distinguishes between read ref and write ref
+    useful for "where is this var set?"
+    xref filter?
+    elisp filter?
 
-implement C++ C-c M-d parent
-    just need key, menu
+use --display_progress
+
+write tests!
 
 implement C++ C-c ? children
     /home/Projects/GDS/work_stephe_2/common/itc/itcsb/libitcsb_1553/inc/Itcsb1553/Bus.hpp
@@ -146,9 +166,9 @@ export ADA_PROJECT_PATH=../../../makerules:../../../common/build/x86_gnu_linux_r
 gnatinspect --project=gds_dscovr.gpr --nightlydb=gnatinspect.db -c "parent_types SubaddressPacket:Gds1553.cpp"
 
 
-C-F11 fails on #include <Itcsb1553/Itcsb1553.hpp>
+parse linker cross reference output; -cref
+    for pragma import
 
-need std include files in search list
 
 (require 'gpr-mode)
 (gpr-set-as-project "c:/Apps/GNAT-7.1.2/gnatcoll-1.6w-src/src/gnatcoll_tools.gpr")
@@ -161,49 +181,6 @@ build/Makefile
 do C-x 5 prefix
     for Emacs 24.x
     after 24.4 feature freeze
-
-indentation bugs:
-   type Configuration_Type
-     (Max_Bus_Slot           : Devices.Null_Bus_Slot_Type;
-      Bus_Controller_Present : Boolean)
-     is new Devices.Configuration_Type
-       (Mode                   => Devices.Multi_Function,
-        Bus_Controller_Present => Bus_Controller_Present)
-       with record
-          BC  : BC_Configuration_Type (Max_Bus_Slot);
-          RTs : RT_Config_Array_Type;
-       end record;
-
-    'is', 'with record' should be aligned with 'type'
-
-
-    Check
-        (Label & ".Message_1",
-         Buffer
-         (Buffer_Last + 1 + Captured_Time_Length .. Buffer_Last + Stream_Element_Offset (Header.ITOS_Header.Length)),
-         Message_1,
-         Strict_Indices => False);
-
-        (buffer_last... should be ada-ident-broken from Buffer
-
-gpr-add-log-current-function dispatch to gpr-wisi
-
-ada-add-log-current-function
-
-gpr log-edit-function-name
-    use package.attribute:
-        Source_Dirs
-        Compiler.Default_Switches
-
-parse error for legal expression function in enclosing parens
-      Y : Boolean := Boolean'(if True then False);
-    vs.
-      Y : Boolean := Boolean'((if True then False));  -- o.K.
-
-    LRM 4.5.7 7/3
-
-SPARK aspects
-    see email
 
 move gpr-skel.el skel-expand to compat*.el
     use in ada-mode
@@ -288,7 +265,28 @@ allow finding compiler libraries with no project
 test on debian testing?
 
  possible enhancements
+
+make as much as possible work with no project
+    use ada-build-require-project-file when a project is necessary
+
+example custom indentation function for Markus Schöpflin <markus.schoepflin@comsoft.aero>
+   FOOBAR.PROC (
+      ARG1 => VAL1,
+      ARG2 => VAL2
+   );
+
 EDE projects?
+    just .el files with random code
+
+completion:
+    built-in pcomplete
+
+    http://elpa.gnu.org/packages/company.html
+        including C++ parameters, class members
+
+    MELPA package auto-complete
+
+
 
 skeleton
     see python-skeleton-autoinsert
@@ -370,11 +368,6 @@ Markus Schöpflin <markus.schoepflin@comsoft.aero> wants this style (including a
 (browse-url "c:/Projects/arm_info/org.adaic.arm_form/build/html/arm2012/RM-P.html")
 (info "(aarm2012)Annex P" "*info Annex P*")
 (info "(elisp)Parser State" "*info syntax-ppss*")
-c:/Projects/emacs_stephe.work/emacs_stephe/ada-mode-keys.el
-c:/Projects/emacs_stephe.work/emacs_stephe/gnat-fix-error.el
-c:/Projects/emacs_stephe.main/emacs_stephe_site_lisp/ada-mode.el
-c:/Projects/emacs_stephe.main/emacs_stephe_site_lisp/gpr-mode.el
-c:/apps/emacs-24.2/lisp/progmodes/ada-mode.el
 "c:/home/stephe/Backup/eBooks/Dick Grune/BookBody.pdf" [dickgrune]
 
 http://savannah.gnu.org/projects/emacs/
@@ -404,8 +397,23 @@ read/write access requires a public key:
     mtn --db ~/monotone-dbs/ada-france.db sync "mtn://www.ada-france.org?org.emacs.*"
 
  release process
+check for ELPA patches by others
+    (dvc-pull "/Projects/elpa")
+    (dvc-sync-review "/Projects/elpa")
+        revert local changes
+        update
+    cd /Projects/elpa
+    git log -2 -- packages/wisi
+    git log -2 -- packages/ada-mode
+    apply changes to current
+    (dvc-state-one ".")
+
 bump version
-    bump if _any_ changes, so ELPA package handler knows to update
+    bump if _any_ changes other than autoloads, so ELPA package handler knows to update
+        (list-packages) install ada-mode, wisi from public ELPA
+        build/Makefile docs pub-ada pub-wisi
+        (ediff-directories "~/.emacs.d/elpa/wisi-1.0.4" "/Projects/elpa/packages/wisi" nil)
+        (ediff-directories "~/.emacs.d/elpa/ada-mode-5.1.3" "/Projects/elpa/packages/ada-mode" nil)
 
     wisi.el
         Version:
@@ -422,77 +430,97 @@ bump version
     build/install-elpa.el
         ada-version
         wisi-version
+    /Projects/Web/stephe-leake/emacs/ada-mode/emacs-ada-mode.html
+        change version
 
 verify other metadata
     ada-mode.el
     wisi.el
 
-check for ELPA patches by others
-    email from emacs-elpa-diffs@gnu.org
-    cd /Projects/elpa
-    git fetch
-    (dvc-state-one "/Projects/elpa")
-    (ediff-directories "c:/Projects/elpa/packages/ada-mode/" "." nil)
-    (ediff-directories "c:/Projects/elpa/packages/wisi/" "." nil)
-    (dvc-state-one ".")
-
 check emacs buglist, mark fixed
     http://debbugs.gnu.org/cgi/pkgreport.cgi?package=ada-mode
 
-Emacs 24.3, gnat 7.1.2 (sal-standard):
-    /Projects/org.opentoken.stephe/build/release/Makefile all
+(list-packages)
+    delete old ada-mode, wisi, cl-lib packages
+
+build/Makefile all
+    # pushes to elpa workspace, builds archive, installs
+
+Emacs 24.3, gnat 7.1.2 (sal-standard), installed ada-mode:
+    (setenv "ADA_MODE_DIR" "-f package-initialize")
     build/wisi/Makefile all
 
 Emacs 24.2, (gnat-2013):
-    /Projects/org.opentoken.stephe/build/windows_release/Makefile
+    /Projects/org.opentoken/build/release/Makefile
         clean
         wisi-generate.exe
 
-    build/Makefile all
-        # pushes to elpa workspace, builds archive, installs
-        (setenv "ADA_MODE_DIR" "-f package-initialize")
-        build/wisi/Makefile byte-compile-clean all
+    build/Makefile install-elpa # deletes and recompiles, installs cl-lib
 
-(dvc-state-one ".")
-(dvc-state-one "/Projects/org.opentoken.stephe")
-(shell-send-string "mtn_sync_ada_france.sh" "*bash*")
+    (setenv "ADA_MODE_DIR" "-f package-initialize")
+    build/wisi/Makefile clean all
+        ignore byte-compile warnings about 'foo' from cl package called at runtime
+        no gnatinspect
+
+    /Projects/org.opentoken/build/release/Makefile
+        clean
+
+    build/Makefile install-clean
+
+Emacs 24.3
+
+(dvc-status ".")
+(dvc-status "/Projects/org.opentoken")
+(dvc-sync-run ".")
+(dvc-sync-review ".")
 
 Debian : emacs, gnat from stable (wheezy 4 May 2013, emacs 24.2, gnat 4.8)
-    (shell-send-string "mtn_sync_ada_france_gds.sh" "*bash*")
-    (xmtn-sync-review)
-    emacs-stable.sh
+    emacs.sh ;; for dvc
+
+    ;; gds.db (dvc-sync-run "/home/Projects/org.emacs.ada-mode")
+    (dvc-sync-review "/home/Projects/org.emacs.ada-mode")
+
+    emacs-stable.sh ;; for ada-mode testing
+
+    M-x list-packages
+        # install cl-lib
     /home/Projects/org.emacs.ada-mode/build/wisi/Makefile
         debian-all
 
-build/Makefile all
+    (dvc-status)
+    ;; gds.db (dvc-sync-run "/home/Projects/org.emacs.ada-mode")
+    (dvc-sync-review "/home/Projects/org.emacs.ada-mode")
 
-build/wisi/Makefile
-    (setenv "ADA_MODE_DIR" "-f package-initialize")
-    test-clean test
+(dvc-sync-run ".")
 
-(dvc-state-one "/Projects/elpa")
-    cd /Projects/elpa
-    git push
+review NEWS-ada-mode.text, NEWS-wisi.text
+    add release date
+    (dvc-log)
+
+build/Makefile pub-ada pub-wisi
+
+cd /Projects/elpa
+    (dvc-pull "/Projects/elpa")
+    (dvc-sync-review "/Projects/elpa")
+    (dvc-state-one "/Projects/elpa")
+    commit ada-mode, wisi
+    (dvc-push "/Projects/elpa")
     # 24 hrs for web repository to update
 
+(dvc-state-one ".")
+mtn tag h:org.emacs.ada-mode "org.emacs.ada-mode-<version>"
+
+;; _not_ dvc-sync; default is shevek::gds-central.db
+(shell-send-string "mtn_sync_ada_france.sh" "*bash*")
+
 build/Makefile zip
-/Projects/org.opentoken.stephe/build/Makefile zip
-/Projects/Web/stephe-leake/emacs/ada-mode/emacs-ada-mode.html
-    add release note
-        (dvc-log)
 
 ~/Web/Makefile
-    edit version in ADA-MODE-GZ, date in ADA-MODE-OPENTOKEN_BZ2
+    edit version in ADA-MODE-GZ
     ada-mode
     sync
 
-mtn tag h:org.emacs.ada-mode "org.emacs.ada-mode-<version>"
-
 after Gnu ELPA updated, post on emacs-ada-mode mailing list, c.l.a newsgroup
     http://stephe-leake.org/emacs/ada-mode/emacs-ada-mode.html
-
-    also send email to:
-        Pascal Pignard <abo.pignard@wanadoo.fr> for objective c
-        cedet-semantic
 
 -- end of file

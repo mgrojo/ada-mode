@@ -1,15 +1,16 @@
 -- Various generic_instantiations
 -- test ada-parse-prj-file with no gpr file
---EMACSCMD:(ada-parse-prj-file "ada_mode-no-gpr.adp")
---EMACSCMD:(ada-select-prj-file "ada_mode-no-gpr.adp")
+--EMACSCMD:(and (eq ada-xref-tool 'gnat) (ada-parse-prj-file "ada_mode-no-gpr.adp"))
+--EMACSCMD:(and (eq ada-xref-tool 'gnat) (ada-select-prj-file "ada_mode-no-gpr.adp"))
 
---EMACSCMD:(progn (forward-line 1)(ada-find-other-file t)(looking-at "Ada_Mode.Generic_Parent is"))
+--EMACSCMD:(and (eq ada-xref-tool 'gnat) (progn (forward-line 2)(ada-find-other-file t)(looking-at "package Ada_Mode.Generic_Parent is")))
+--EMACSRESULT:(eq ada-xref-tool 'gnat)
 with Ada_Mode.Generic_Parent;
 with Ada_Mode.Nominal;
 private
 package Ada_Mode.Generic_Instantiation is
-   --EMACSCMD:(progn (end-of-line 0)(backward-word)(ada-next-statement-keyword)(looking-at "end Ada_Mode.Generic_Instantiation"))
-   --EMACSRESULT:t
+   --EMACSCMD:(and (eq ada-xref-tool 'gnat) (progn (end-of-line 0)(backward-word)(ada-next-statement-keyword)(looking-at "end Ada_Mode.Generic_Instantiation")))
+   --EMACSRESULT:(eq ada-xref-tool 'gnat)
 
    package Instance is new Ada_Mode.Generic_Parent;
 

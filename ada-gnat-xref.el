@@ -1,12 +1,12 @@
 ;; Ada mode cross-reference functionality provided by the 'gnat xref'
 ;; tool. Includes related functions, such as gnatprep support.
 ;;
-;; These tools are all Ada-specific; see gnat-inspect for
+;; These tools are all Ada-specific; see gpr-query or gnat-inspect for
 ;; multi-language GNAT cross-reference tools.
 ;;
 ;; GNAT is provided by AdaCore; see http://libre.adacore.com/
 ;;
-;;; Copyright (C) 2012, 2013  Free Software Foundation, Inc.
+;;; Copyright (C) 2012 - 2014  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
@@ -52,8 +52,11 @@
     (setq col (+ 1 col))
     )
 
-  (let* ((arg (format "%s:%s:%d:%d" identifier file line col))
-	 (switches (when (ada-prj-get 'gpr_ext) (concat "--ext=" (ada-prj-get 'gpr_ext))))
+  (let* ((file-non-dir (file-name-nondirectory file))
+	 (arg (format "%s:%s:%d:%d" identifier file-non-dir line col))
+	 (switches (concat
+                    "-a"
+                    (when (ada-prj-get 'gpr_ext) (concat "--ext=" (ada-prj-get 'gpr_ext)))))
 	 status
 	 (result nil))
     (with-current-buffer (gnat-run-buffer)
@@ -78,7 +81,7 @@
 		(found-col  (string-to-number (match-string 3))))
 	    (if (not
 		 (and
-		  (equal file found-file)
+		  (equal file-non-dir found-file)
 		  (= line found-line)
 		  (= col found-col)))
 		;; found other item
@@ -87,7 +90,6 @@
 	    ))
 
 	(when (eobp)
-	  (pop-to-buffer (current-buffer))
 	  (error "gnat find did not return other item"))
 	))
     result))
@@ -96,13 +98,14 @@
   "For `ada-xref-parents-function', using 'gnat find', which is Ada-specific."
 
   (let* ((arg (format "%s:%s:%d:%d" identifier file line col))
-	 (switches (concat
+	 (switches (list
+                    "-a"
 		    "-d"
 		    (when (ada-prj-get 'gpr_ext) (concat "--ext=" (ada-prj-get 'gpr_ext)))
 		    ))
 	 (result nil))
     (with-current-buffer (gnat-run-buffer)
-      (gnat-run-gnat "find" (list switches arg))
+      (gnat-run-gnat "find" (append switches (list arg)))
 
       (goto-char (point-min))
       (forward-line 2); skip GPR_PROJECT_PATH, 'gnat find'
@@ -132,7 +135,6 @@
 	      (forward-line 1)))
 	  )
 	(when (eobp)
-	  (pop-to-buffer (current-buffer))
 	  (error "gnat find did not return parent types"))
 	))
 
@@ -149,7 +151,7 @@
   ;; is asynchronous, and automatically runs the compilation error
   ;; filter.
 
-  (let* ((cmd (format "gnat find -r %s:%s:%d:%d" identifier file line col)))
+  (let* ((cmd (format "gnat find -a -r %s:%s:%d:%d" identifier file line col)))
 
     (with-current-buffer (gnat-run-buffer); for default-directory
       (let ((compilation-environment (ada-prj-get 'proc_env))
@@ -173,6 +175,7 @@
   (setq ada-make-package-body       'ada-gnat-make-package-body)
 
   (add-hook 'ada-syntax-propertize-hook 'gnatprep-syntax-propertize)
+  (add-hook 'ada-syntax-propertize-hook 'ada-gnat-syntax-propertize)
 
   ;; must be after indentation engine setup, because that resets the
   ;; indent function list.
@@ -181,6 +184,7 @@
   (setq ada-xref-other-function  'ada-gnat-xref-other)
   (setq ada-xref-parent-function 'ada-gnat-xref-parents)
   (setq ada-xref-all-function    'ada-gnat-xref-all)
+  (setq ada-show-xref-tool-buffer 'ada-gnat-show-run-buffer)
 
   ;; gnatmake -gnatD generates files with .dg extensions. But we don't
   ;; need to navigate between them.
@@ -202,6 +206,7 @@
   (setq ada-xref-other-function  nil)
   (setq ada-xref-parent-function nil)
   (setq ada-xref-all-function    nil)
+  (setq ada-show-xref-tool-buffer nil)
 
   (setq completion-ignored-extensions (delete ".ali" completion-ignored-extensions))
   (setq compilation-error-regexp-alist (delete 'gnat compilation-error-regexp-alist))

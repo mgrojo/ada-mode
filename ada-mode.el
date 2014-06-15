@@ -5,8 +5,8 @@
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Keywords FIXME: languages, ada ELPA broken for multiple keywords
-;; Version: 5.0.2
-;; package-requires: ((wisi "1.0.1") (cl-lib "0.4") (emacs "24.2"))
+;; Version: 5.1.4
+;; package-requires: ((wisi "1.0.4") (cl-lib "0.4") (emacs "24.2"))
 ;; url: http://stephe-leake.org/emacs/ada-mode/emacs-ada-mode.html
 ;;
 ;; (Gnu ELPA requires single digits between dots in versions)
@@ -167,11 +167,10 @@
 (defun ada-mode-version ()
   "Return Ada mode version."
   (interactive)
-  (let ((version-string "5.0.1"))
+  (let ((version-string "5.1.4"))
     ;; must match:
     ;; ada-mode.texi
     ;; README
-    ;; gpr-mode.el
     ;; Version: above
     (if (called-interactively-p 'interactive)
 	(message version-string)
@@ -228,6 +227,17 @@ Function to call to adjust the case of Ada keywords."
   :safe  'functionp)
 (make-variable-buffer-local 'ada-case-keyword)
 
+(defcustom ada-case-identifier 'ada-mixed-case
+  "Buffer-local value that may override project variable `case_keyword'.
+Global value is default for project variable `case_keyword'.
+Function to call to adjust the case of Ada keywords."
+  :type '(choice (const ada-mixed-case)
+		 (const downcase-region)
+		 (const upcase-region))
+  :group 'ada
+  :safe  'functionp)
+(make-variable-buffer-local 'ada-case-identifier)
+
 (defcustom ada-case-strict t
   "Buffer-local value that may override project variable `case_strict'.
 Global value is default for project variable `case_strict'.
@@ -254,11 +264,13 @@ indentation parser accepts."
   "Comment fill prefix."
   :type 'string
   :group 'ada)
+(make-variable-buffer-local 'ada-language-version)
 
 (defcustom ada-fill-comment-postfix " --"
   "Comment fill postfix."
   :type 'string
   :group 'ada)
+(make-variable-buffer-local 'ada-language-version)
 
 (defcustom ada-prj-file-extensions '("adp" "prj")
   "List of Emacs Ada mode project file extensions.
@@ -292,6 +304,33 @@ Values defined by cross reference packages.")
 
 ;;;; keymap and menus
 
+(defvar ada-ret-binding nil)
+(defvar ada-lfd-binding nil)
+
+(defun ada-case-activate-keys ()
+  "Modify the key bindings for all the keys that should adjust casing."
+  (interactive)
+  ;; We can't use post-self-insert-hook for \n, \r, because they are
+  ;; not self-insert.
+
+  ;; The 'or ...' is there to be sure that the value will not be
+  ;; changed again when this is called more than once, since we
+  ;; are rebinding the keys.
+  (or ada-ret-binding (setq ada-ret-binding (key-binding "\C-M")))
+  (or ada-lfd-binding (setq ada-lfd-binding (key-binding "\C-j")))
+
+  (mapc (function
+	 (lambda(key)
+	   (define-key
+	     ada-mode-map
+	     (char-to-string key)
+	     'ada-case-adjust-interactive)))
+	'( ?_ ?% ?& ?* ?( ?) ?- ?= ?+
+	      ?| ?\; ?: ?' ?\" ?< ?, ?. ?> ?/ ?\n 32 ?\r ))
+
+  (define-key ada-mode-map [return] 'ada-case-adjust-interactive)
+  )
+
 (defvar ada-mode-map
   (let ((map (make-sparse-keymap)))
     ;; C-c <letter> are reserved for users
@@ -317,6 +356,7 @@ Values defined by cross reference packages.")
     (define-key map "\C-c\C-q" 	 'ada-xref-refresh)
     (define-key map "\C-c\C-r" 	 'ada-show-references)
     (define-key map "\C-c\M-r" 	 'ada-build-run)
+    (define-key map "\C-c\C-s"   'ada-goto-previous-pos)
     (define-key map "\C-c\C-v"   'ada-build-check)
     (define-key map "\C-c\C-w" 	 'ada-case-adjust-at-point)
     (define-key map "\C-c\C-x"   'ada-show-overriding)
@@ -363,6 +403,7 @@ Values defined by cross reference packages.")
      ["Show references"               ada-show-references          t]
      ["Show overriding"               ada-show-overriding          t]
      ["Show overridden"               ada-show-overridden          t]
+     ["Goto prev position"            ada-goto-previous-pos        t]
      )
     ("Edit"
      ["Expand skeleton"             ada-expand              t]
@@ -385,9 +426,11 @@ Values defined by cross reference packages.")
      )
     ("Misc"
      ["Show last parse error"         ada-show-parse-error         t]
+     ["Show xref tool buffer"         ada-show-xref-tool-buffer    t]
      ["Refresh cross reference cache" ada-xref-refresh             t]
      ["Reset parser"                  ada-reset-parser             t]
      )))
+(ada-case-activate-keys)
 
 ;; This doesn't need to be buffer-local because there can be only one
 ;; popup menu at a time.
@@ -645,7 +688,7 @@ Each parameter declaration is represented by a list
       )
 
     (let ((space-before-p (save-excursion (skip-chars-backward " \t") (not (bolp))))
-	  (space-after-p (save-excursion (skip-chars-forward " \t") (not (eolp)))))
+	  (space-after-p (save-excursion (skip-chars-forward " \t") (not (or (= (char-after) ?\;) (eolp))))))
       (when space-before-p
 	;; paramlist starts on same line as subprogram identifier; clean
 	;; up whitespace. Allow for code on same line as closing paren
@@ -911,9 +954,17 @@ list."
 	    (car casing))
 
 	   (t
-	    (error
-	     "No exception file specified. See variable `ada-case-exception-file'")))
-	  ))
+	    (if ada-prj-current-file
+		(error "No exception file specified; set `casing' in project file.")
+	      ;; IMPROVEME: could prompt, but then need to write to actual project file
+	      ;; 	(let ((temp
+	      ;; 	       (read-file-name
+	      ;; 		"No exception file specified; adding to project. file: ")))
+	      ;; 	  (message "remember to add %s to project file" temp)
+	      ;; 	  (ada-prj-put 'casing temp)
+	      ;; 	  temp)
+	      (error "No exception file specified, and no project active. See variable `ada-case-exception-file'.")))
+	   )))
 
   (unless word
     (if (use-region-p)
@@ -966,9 +1017,32 @@ User is prompted to choose a file from project variable casing if it is a list."
 	       (point))))
     (member (downcase word) ada-keywords)))
 
+(defun ada-mixed-case (start end)
+  "Adjust case of region START END to Mixed_Case."
+  (let ((done nil)
+	next)
+    (if ada-case-strict
+	(downcase-region start end))
+    (goto-char start)
+    (while (not done)
+      (setq next
+	    (or
+	     (save-excursion (when (search-forward "_" end t) (point-marker)))
+	     (copy-marker (1+ end))))
+
+      ;; upcase first char
+      (insert-char (upcase (following-char)) 1)
+      (delete-char 1)
+
+      (goto-char next)
+      (if (< (point) end)
+	  (setq start (point))
+	(setq done t))
+      )))
+
 (defun ada-case-adjust-identifier ()
   "Adjust case of the previous word as an identifier.
-Uses Mixed_Case, with exceptions defined in
+Uses `ada-case-identifier', with exceptions defined in
 `ada-case-full-exceptions', `ada-case-partial-exceptions'."
   (interactive)
   (save-excursion
@@ -988,26 +1062,23 @@ Uses Mixed_Case, with exceptions defined in
 	    (insert (car match))
 	    (delete-region (point) end))
 
-	;; else apply Mixed_Case and partial-exceptions
-	(if ada-case-strict
-	    (downcase-region start end))
+	;; else apply ada-case-identifier
+	(funcall ada-case-identifier start end)
+
+	;; apply partial-exceptions
+	(goto-char start)
 	(while (not done)
 	  (setq next
 		(or
 		 (save-excursion (when (search-forward "_" end t) (point-marker)))
 		 (copy-marker (1+ end))))
 
-	  (if (setq match (assoc-string (buffer-substring-no-properties start (1- next))
+	  (when (setq match (assoc-string (buffer-substring-no-properties start (1- next))
 					ada-case-partial-exceptions t))
-	      (progn
-		;; see comment above at 'full word exception' for why
-		;; we do insert first.
-		(insert (car match))
-		(delete-region (point) (1- next)))
-
-	    ;; else upcase first char
-	    (insert-char (upcase (following-char)) 1)
-	    (delete-char 1))
+	    ;; see comment above at 'full word exception' for why
+	    ;; we do insert first.
+	    (insert (car match))
+	    (delete-region (point) (1- next)))
 
 	  (goto-char next)
 	  (if (< (point) end)
@@ -1038,25 +1109,30 @@ If IN-COMMENT is non-nil, adjust case of words in comments."
 		 (not (ada-in-numeric-literal-p))
 		 ))
 
-      (cond
-       ;; Some attributes are also keywords, but captialized as
-       ;; attributes. So check for attribute first.
-       ((and
-	 (not in-comment)
-	 (save-excursion
-	   (skip-syntax-backward "w_")
-	   (eq (char-before) ?')))
-	(ada-case-adjust-identifier))
+      ;; The indentation engine may trigger a reparse on
+      ;; non-whitespace changes, but we know we don't need to reparse
+      ;; for this change (assuming the user has not abused case
+      ;; exceptions!).
+      (let ((inhibit-modification-hooks t))
+	(cond
+	 ;; Some attributes are also keywords, but captialized as
+	 ;; attributes. So check for attribute first.
+	 ((and
+	   (not in-comment)
+	   (save-excursion
+	     (skip-syntax-backward "w_")
+	     (eq (char-before) ?')))
+	  (ada-case-adjust-identifier))
 
-       ((and
-	 (not in-comment)
-	 (not (eq typed-char ?_))
-	 (ada-after-keyword-p))
-	(funcall ada-case-keyword -1))
+	 ((and
+	   (not in-comment)
+	   (not (eq typed-char ?_))
+	   (ada-after-keyword-p))
+	  (funcall ada-case-keyword -1))
 
-       (t (ada-case-adjust-identifier))
-       ))
-    ))
+	 (t (ada-case-adjust-identifier))
+	 ))
+      )))
 
 (defun ada-case-adjust-at-point (&optional in-comment)
   "Adjust case of word at point, move to end of word.
@@ -1064,7 +1140,10 @@ With prefix arg, adjust case even if in comment."
   (interactive "P")
   (when
       (and (not (eobp))
-	   (memq (char-syntax (char-after)) '(?w ?_)))
+	   ;; we use '(syntax-after (point))' here, not '(char-syntax
+	   ;; (char-after))', because the latter does not respect
+	   ;; ada-syntax-propertize.
+	   (memq (syntax-class (syntax-after (point))) '(2 3)))
     (skip-syntax-forward "w_"))
   (ada-case-adjust nil in-comment))
 
@@ -1086,11 +1165,8 @@ With prefix arg, adjust case even if in comment."
   (interactive)
   (ada-case-adjust-region (point-min) (point-max)))
 
-(defvar ada-ret-binding nil)
-(defvar ada-lfd-binding nil)
-
 (defun ada-case-adjust-interactive (arg)
-  "Adjust the case of the previous word, and process the character just typed.
+  "If `ada-auto-case' is non-nil, adjust the case of the previous word, and process the character just typed.
 To be bound to keys that should cause auto-casing.
 ARG is the prefix the user entered with \\[universal-argument]."
   (interactive "P")
@@ -1100,42 +1176,20 @@ ARG is the prefix the user entered with \\[universal-argument]."
 
     (cond
      ((eq lastk ?\n)
-      (ada-case-adjust lastk)
-      (funcall ada-lfd-binding))
+        (when ada-auto-case
+	  (ada-case-adjust lastk))
+	(funcall ada-lfd-binding))
 
-     ((eq lastk ?\r)
-      (ada-case-adjust lastk)
+     ((memq lastk '(?\r return))
+      (when ada-auto-case
+	(ada-case-adjust lastk))
       (funcall ada-ret-binding))
 
      (t
-      (ada-case-adjust lastk)
+      (when ada-auto-case
+	(ada-case-adjust lastk))
       (self-insert-command (prefix-numeric-value arg)))
-     )
-  ))
-
-(defun ada-case-activate-keys ()
-  "Modify the key bindings for all the keys that should adjust casing."
-  (interactive)
-  ;; We can't use post-self-insert-hook for \n, \r, because they are
-  ;; not self-insert.  So we make ada-mode-map buffer local, and don't
-  ;; call this function if ada-auto-case is off. That means
-  ;; ada-auto-case cannot be changed after an Ada buffer is created.
-
-  ;; The 'or ...' is there to be sure that the value will not be
-  ;; changed again when Ada mode is called more than once, since we
-  ;; are rebinding the keys.
-  (or ada-ret-binding (setq ada-ret-binding (key-binding "\C-M")))
-  (or ada-lfd-binding (setq ada-lfd-binding (key-binding "\C-j")))
-
-  (mapcar (function
-	   (lambda(key)
-	     (define-key
-	       ada-mode-map
-	       (char-to-string key)
-	       'ada-case-adjust-interactive)))
-	  '( ?_ ?% ?& ?* ?( ?) ?- ?= ?+
-		?| ?\; ?: ?' ?\" ?< ?, ?. ?> ?/ ?\n 32 ?\r ))
-  )
+     )))
 
 ;;;; project files
 
@@ -1179,6 +1233,7 @@ Optional PLIST defaults to `ada-prj-current-project'."
 	(ada_compiler    ada-compiler)
 	(auto_case       ada-auto-case)
 	(case_keyword    ada-case-keyword)
+	(case_identifier ada-case-identifier)
 	(case_strict     ada-case-strict)
 	(casing          (if (listp ada-case-exception-file)
 			     ada-case-exception-file
@@ -1231,6 +1286,7 @@ Include properties set via `ada-prj-default-compiler-alist',
       'ada_compiler    ada-compiler
       'auto_case       ada-auto-case
       'case_keyword    ada-case-keyword
+      'case_identifier ada-case-identifier
       'case_strict     ada-case-strict
       'casing          (if (listp ada-case-exception-file)
 			   ada-case-exception-file
@@ -1362,6 +1418,9 @@ Return new value of PROJECT."
 
 	   ((string= (match-string 1) "case_keyword")
 	    (setq project (plist-put project 'case_keyword (intern (match-string 2)))))
+
+	   ((string= (match-string 1) "case_identifier")
+	    (setq project (plist-put project 'case_identifier (intern (match-string 2)))))
 
 	   ((string= (match-string 1) "case_strict")
 	    (setq project (plist-put project 'case_strict (intern (match-string 2)))))
@@ -1509,6 +1568,16 @@ Indexed by project variable xref_tool.")
   (interactive)
   (message "current Emacs Ada mode project file: %s" ada-prj-current-file))
 
+(defvar ada-show-xref-tool-buffer nil
+  ;; Supplied by xref tool
+  "Function to show process buffer used by xref tool."
+  )
+
+(defun ada-show-xref-tool-buffer ()
+  (interactive)
+  (when ada-show-xref-tool-buffer
+    (funcall ada-show-xref-tool-buffer)))
+
 ;;;; syntax properties
 
 (defvar ada-mode-syntax-table
@@ -1571,41 +1640,40 @@ race conditions with the grammar parser.")
   "Assign `syntax-table' properties in accessible part of buffer.
 In particular, character constants are set to have string syntax."
   ;; (info "(elisp)Syntax Properties")
-  (let ((modified (buffer-modified-p))
-	(buffer-undo-list t)
-	(inhibit-read-only t)
-	(inhibit-point-motion-hooks t)
-	(inhibit-modification-hooks t))
+  ;;
+  ;; called from `syntax-propertize', inside save-excursion with-silent-modifications
+  (let ((inhibit-read-only t)
+	(inhibit-point-motion-hooks t))
     (goto-char start)
-    (while (re-search-forward
-	    (concat
-	     "[^a-zA-Z0-9)]\\('\\)[^'\n]\\('\\)"; 1, 2: character constants, not attributes
-	     "\\|[^a-zA-Z0-9)]\\('''\\)"; 3: character constant '''
-	     "\\|\\(--\\)"; 4: comment start
-	     )
-	    end t)
-      ;; The help for syntax-propertize-extend-region-functions
-      ;; implies that 'start end' will always include whole lines, in
-      ;; which case we don't need
-      ;; syntax-propertize-extend-region-functions
-      (cond
-       ((match-beginning 1)
-	(put-text-property
-	 (match-beginning 1) (match-end 1) 'syntax-table '(7 . ?'))
-	(put-text-property
-	 (match-beginning 2) (match-end 2) 'syntax-table '(7 . ?')))
-       ((match-beginning 3)
-	(put-text-property
-	 (match-beginning 3) (1+ (match-beginning 3)) 'syntax-table '(7 . ?'))
-	(put-text-property
-	 (1- (match-end 3)) (match-end 3) 'syntax-table '(7 . ?')))
-       ((match-beginning 4)
-	(put-text-property
-	 (match-beginning 4) (match-end 4) 'syntax-table '(11 . nil)))
-       ))
-    (run-hook-with-args 'ada-syntax-propertize-hook start end)
-    (unless modified
-      (restore-buffer-modified-p nil))))
+    (save-match-data
+      (while (re-search-forward
+	      (concat
+	       "[^a-zA-Z0-9)]\\('\\)[^'\n]\\('\\)"; 1, 2: character literal, not attribute
+	       "\\|[^a-zA-Z0-9)]\\('''\\)"; 3: character literal '''
+	       "\\|\\(--\\)"; 4: comment start
+	       )
+	      end t)
+	;; The help for syntax-propertize-extend-region-functions
+	;; implies that 'start end' will always include whole lines, in
+	;; which case we don't need
+	;; syntax-propertize-extend-region-functions
+	(cond
+	 ((match-beginning 1)
+	  (put-text-property
+	   (match-beginning 1) (match-end 1) 'syntax-table '(7 . ?'))
+	  (put-text-property
+	   (match-beginning 2) (match-end 2) 'syntax-table '(7 . ?')))
+	 ((match-beginning 3)
+	  (put-text-property
+	   (match-beginning 3) (1+ (match-beginning 3)) 'syntax-table '(7 . ?'))
+	  (put-text-property
+	   (1- (match-end 3)) (match-end 3) 'syntax-table '(7 . ?')))
+	 ((match-beginning 4)
+	  (put-text-property
+	   (match-beginning 4) (match-end 4) 'syntax-table '(11 . nil)))
+	 )))
+    (run-hook-with-args 'ada-syntax-propertize-hook start end))
+  )
 
 (defun ada-in-comment-p (&optional parse-result)
   "Return t if inside a comment.
@@ -1781,8 +1849,10 @@ previously set by a file navigation command."
       ;; This will still be confused by multiple references; we need
       ;; to use compiler cross reference info for more precision.
       (while (not done)
-	(when (search-forward-regexp ff-function-name nil t)
-	  (setq found (match-beginning 0)))
+	(if (search-forward-regexp ff-function-name nil t)
+	    (setq found (match-beginning 0))
+	  ;; not in remainder of buffer
+	  (setq done t))
 	(if (ada-in-string-or-comment-p)
 	    (setq found nil)
 	  (setq done t)))
@@ -1791,6 +1861,29 @@ previously set by a file navigation command."
 	;; different parsers find different points on the line; normalize here
 	(back-to-indentation))
       (setq ff-function-name nil))))
+
+(defun ada-check-current-project (file-name)
+  "Throw error if FILE-NAME (must be absolute) is not found in
+the current project source directories, or if no project has been
+set."
+  (when (null (car compilation-search-path))
+    (error "no file search path defined; set project file?"))
+
+  ;; file-truename handles symbolic links
+  (let* ((visited-file (file-truename file-name))
+         (found-file (file-truename
+                      (locate-file (file-name-nondirectory visited-file)
+                                   compilation-search-path))))
+    (unless found-file
+      (error "current file not part of current project; wrong project?"))
+
+    ;; (nth 10 (file-attributes ...)) is the inode; required when hard
+    ;; links are present.
+    (let* ((visited-file-inode (nth 10 (file-attributes visited-file)))
+           (found-file-inode (nth 10 (file-attributes found-file))))
+      (unless (equal visited-file-inode found-file-inode)
+        (error "%s (opened) and %s (found in project) are two different files"
+               file-name found-file)))))
 
 (defun ada-find-other-file-noset (other-window)
   "Same as `ada-find-other-file', but preserve point in the other file,
@@ -1835,8 +1928,7 @@ the other file."
   ;;                       information
 
   (interactive "P")
-  (when (null (car compilation-search-path))
-    (error "no file search path defined; set project file?"))
+  (ada-check-current-project (buffer-file-name))
 
   (if mark-active
       (progn
@@ -1892,13 +1984,42 @@ identifier.  May be an Ada identifier or operator function name."
       (error "No identifier around"))
      )))
 
+(defvar ada-goto-pos-ring '()
+  "List of positions selected by navigation functions. Used
+to go back to these positions.")
+
+(defconst ada-goto-pos-ring-max 16
+  "Number of positions kept in the list `ada-goto-pos-ring'.")
+
+(defun ada-goto-push-pos ()
+  "Push current filename, position on `ada-goto-pos-ring'. See `ada-goto-previous-pos'."
+  (setq ada-goto-pos-ring (cons (list (point) (buffer-file-name)) ada-goto-pos-ring))
+  (if (> (length ada-goto-pos-ring) ada-goto-pos-ring-max)
+      (setcdr (nthcdr (1- ada-goto-pos-ring-max) ada-goto-pos-ring) nil)))
+
+(defun ada-goto-previous-pos ()
+  "Go to the first position in `ada-goto-pos-ring', pop `ada-goto-pos-ring'."
+  (interactive)
+  (when ada-goto-pos-ring
+    (let ((pos (pop ada-goto-pos-ring)))
+      (find-file (cadr pos))
+      (goto-char (car pos)))))
+
 (defun ada-goto-source (file line column other-window)
   "Find and select FILE, at LINE and COLUMN.
 FILE may be absolute, or on `compilation-search-path'.
 
 If OTHER-WINDOW is non-nil, show the buffer in another window."
-  (or (file-name-absolute-p file)
-      (setq file (ff-get-file-name compilation-search-path file)))
+  (let ((file-1
+	 (if (file-name-absolute-p file) file
+	   (ff-get-file-name compilation-search-path file))))
+    (if file-1
+	(setq file file-1)
+      (error "File %s not found; installed library, or set project?" file))
+    )
+
+  (ada-goto-push-pos)
+
   (let ((buffer (get-file-buffer file)))
     (cond
      ((bufferp buffer)
@@ -1948,7 +2069,7 @@ If OTHER-WINDOW is non-nil, show the buffer in another window."
   "Function that returns cross reference information.
 Function is called with four arguments:
 - an Ada identifier or operator_symbol
-- filename containing the identifier
+- filename containing the identifier (full path)
 - line number containing the identifier
 - column of the start of the identifier
 Returns a list '(file line column) giving the corresponding location.
@@ -1963,6 +2084,7 @@ If at the declaration, go to the body, and vice versa.
 If OTHER-WINDOW (set by interactive prefix) is non-nil, show the
 buffer in another window."
   (interactive "P")
+  (ada-check-current-project (buffer-file-name))
 
   (when (null ada-xref-other-function)
     (error "no cross reference information available"))
@@ -1970,7 +2092,7 @@ buffer in another window."
     (let ((target
 	   (funcall ada-xref-other-function
 		    (ada-identifier-at-point)
-		    (file-name-nondirectory (buffer-file-name))
+		    (buffer-file-name)
 		    (line-number-at-pos)
 		    (1+ (current-column))
 		    )))
@@ -1994,6 +2116,8 @@ Displays a buffer in compilation-mode giving locations of the parent type declar
 (defun ada-show-declaration-parents ()
   "Display the locations of the parent type declarations of the type identifier around point."
   (interactive)
+  (ada-check-current-project (buffer-file-name))
+
   (when (null ada-xref-parent-function)
     (error "no cross reference information available"))
 
@@ -2018,6 +2142,7 @@ identifier is declared or referenced.")
 (defun ada-show-references ()
   "Show all references of identifier at point."
   (interactive)
+  (ada-check-current-project (buffer-file-name))
 
   (when (null ada-xref-all-function)
     (error "no cross reference information available"))
@@ -2026,9 +2151,7 @@ identifier is declared or referenced.")
 	   (ada-identifier-at-point)
 	   (file-name-nondirectory (buffer-file-name))
 	   (line-number-at-pos)
-	   (cl-case (char-after)
-	     (?\" (+ 2 (current-column))) ;; FIXME: work around bug in gnat find
-	     (t (1+ (current-column)))))
+	   (1+ (current-column)))
   )
 
 (defvar ada-xref-overriding-function nil
@@ -2044,6 +2167,7 @@ Displays a buffer in compilation-mode giving locations of the overriding declara
 (defun ada-show-overriding ()
   "Show all overridings of identifier at point."
   (interactive)
+  (ada-check-current-project (buffer-file-name))
 
   (when (null ada-xref-overriding-function)
     (error "no cross reference information available"))
@@ -2069,6 +2193,7 @@ Returns a list '(file line column) giving the corresponding location.
 (defun ada-show-overridden (other-window)
   "Show the overridden declaration of identifier at point."
   (interactive "P")
+  (ada-check-current-project (buffer-file-name))
 
   (when (null ada-xref-overridden-function)
     (error "'show overridden' not supported, or no cross reference information available"))
@@ -2163,14 +2288,26 @@ buffer in another window."
   ;;
   ;; This is run from ff-pre-load-hook, so ff-function-name may have
   ;; been set by ff-treat-special; don't reset it.
-  "Function to move point to start of the generic, package,
-protected, subprogram, or task declaration point is currently in
-or just after.  Called with no parameters.")
+  "For `beginning-of-defun-function'. Function to move point to
+start of the generic, package, protected, subprogram, or task
+declaration point is currently in or just after.  Called with no
+parameters.")
 
 (defun ada-goto-declaration-start ()
   "Call `ada-goto-declaration-start'."
   (when ada-goto-declaration-start
     (funcall ada-goto-declaration-start)))
+
+(defvar ada-goto-declaration-end nil
+  ;; supplied by indentation engine
+  "For `end-of-defun-function'. Function to move point to end of
+current declaration.")
+
+(defun ada-goto-declaration-end ()
+  "See `ada-goto-declaration-end' variable."
+  (interactive)
+  (when ada-goto-declaration-end
+    (funcall ada-goto-declaration-end)))
 
 (defvar ada-goto-declarative-region-start nil
   ;; Supplied by indentation engine
@@ -2240,30 +2377,33 @@ into a subprogram body stub, by calling `ada-make-subprogram-body'."
     (error "`ada-make-subprogram-body' not set")))
 
 (defvar ada-make-package-body nil
-  ;; Supplied by compiler
+  ;; Supplied by xref tool
   "Function to create a package body from a package spec.
 Called with one argument; the absolute path to the body
 file. Current buffer is the package spec.  Should create the
 package body file, containing skeleton code that will compile.")
 
 (defun ada-make-package-body (body-file-name)
-  (if ada-make-package-body
-      (funcall ada-make-package-body body-file-name)
-    (error "`ada-make-package-body' not set")))
+  ;; no error if not set; let ada-skel do its thing.
+  (when ada-make-package-body
+      (funcall ada-make-package-body body-file-name)))
 
 (defun ada-ff-create-body ()
-  ;; ff-find-other-file calls us with point in an empty buffer for the
-  ;; body file; ada-make-package-body expects to be in the spec. So go
-  ;; back.
-  (let ((body-file-name (buffer-file-name)))
-    (ff-find-the-other-file)
-    (ada-make-package-body body-file-name)
-    ;; FIXME (later): if 'ada-make-package-body' fails, delete the body buffer
-    ;; so it doesn't get written to disk, and we can try again.
+  ;; no error if not set; let ada-skel do its thing.
+  (when ada-make-package-body
+    ;; ff-find-other-file calls us with point in an empty buffer for the
+    ;; body file; ada-make-package-body expects to be in the spec. So go
+    ;; back.
+    (let ((body-file-name (buffer-file-name)))
+      (ff-find-the-other-file)
 
-    ;; back to the body, read in from the disk.
-    (ff-find-the-other-file)
-    (revert-buffer t t)
+      (ada-make-package-body body-file-name)
+      ;; FIXME (later): if 'ada-make-package-body' fails, delete the body buffer
+      ;; so it doesn't get written to disk, and we can try again.
+
+      ;; back to the body, read in from the disk.
+      (ff-find-the-other-file)
+      (revert-buffer t t))
     ))
 
 ;;;; fill-comment
@@ -2521,6 +2661,10 @@ The paragraph is indented on the first line."
 
 ;;;; ada-mode
 
+;; ada-mode does not derive from prog-mode, because we need to call
+;; ada-mode-post-local-vars, and prog-mode does not provide a way to
+;; do that.
+;;
 ;; autoload required by automatic mode setting
 ;;;###autoload
 (defun ada-mode ()
@@ -2566,8 +2710,12 @@ The paragraph is indented on the first line."
        'ada-other-file-alist)
   (setq ff-post-load-hook    'ada-set-point-accordingly
 	ff-file-created-hook 'ada-ff-create-body)
+  (add-hook 'ff-pre-load-hook 'ada-goto-push-pos)
   (add-hook 'ff-pre-load-hook 'ada-which-function)
   (setq ff-search-directories 'compilation-search-path)
+  (when (null (car compilation-search-path))
+    ;; find-file doesn't handle nil in search path
+    (setq compilation-search-path (list (file-name-directory (buffer-file-name)))))
   (ada-set-ff-special-constructs)
 
   (set (make-local-variable 'add-log-current-defun-function)
@@ -2617,8 +2765,6 @@ The paragraph is indented on the first line."
   ;; This means to fully set ada-mode interactively, user must
   ;; do M-x ada-mode M-; (hack-local-variables)
 
-  (when ada-auto-case (ada-case-activate-keys))
-
   (when global-font-lock-mode
     ;; This calls ada-font-lock-keywords, which depends on
     ;; ada-language-version
@@ -2644,6 +2790,12 @@ The paragraph is indented on the first line."
 		  ada-95-keywords
 		  ada-2005-keywords
 		  ada-2012-keywords))))
+
+  (when ada-goto-declaration-start
+    (set (make-local-variable 'beginning-of-defun-function) ada-goto-declaration-start))
+
+  (when ada-goto-declaration-end
+    (set (make-local-variable 'end-of-defun-function) ada-goto-declaration-end))
   )
 
 (put 'ada-mode 'custom-mode-group 'ada)
@@ -2657,14 +2809,15 @@ The paragraph is indented on the first line."
 (unless (featurep 'ada-indent-engine)
   (require 'ada-wisi))
 
-(unless (featurep 'ada-compiler)
-  (require 'ada-gnat-compile))
-
 (unless (featurep 'ada-xref-tool)
   (cl-case ada-xref-tool
     ((nil 'gnat) (require 'ada-gnat-xref))
     ('gnat_inspect (require 'gnat-inspect))
+    ('gpr_query (require 'gpr-query))
     ))
+
+(unless (featurep 'ada-compiler)
+  (require 'ada-gnat-compile))
 
 (unless (featurep 'ada-skeletons)
   (require 'ada-skel))

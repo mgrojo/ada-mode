@@ -85,7 +85,7 @@ package body Ada_Mode.Nominal is -- target 0
             Bad_Thing : exception;
             --EMACSCMD:(test-face "Boolean" font-lock-type-face)
             Dummy : Boolean;
-            pragma Unreferenced (Dummy); -- test ada-indent-statement-or-declaration handling of this in refine-begin
+            pragma Unreferenced (Dummy);
          begin
             --EMACSCMD:(progn (forward-line 4)(forward-comment 1)(ada-prev-statement-keyword)(looking-at "begin"))
             --EMACSRESULT: t
@@ -123,7 +123,8 @@ package body Ada_Mode.Nominal is -- target 0
                     Bad_Thing -- ada-mode 4.01 indentation
                     =>        -- ""
                      raise Constraint_Error
-                       with "help!";
+                       with Integer'Image (1) &
+                       "help!";
                   when
                     -- pathological case - should put 'raise' on next line
                     -- just ensure it doesn't raise an error
@@ -255,6 +256,29 @@ package body Ada_Mode.Nominal is -- target 0
                end loop Loop_5;
          end case;
 
+         --  A deeply nested case statement; used to cause parser explosion
+         case Local_4 is
+            when A =>
+               case Local_4 is
+                  when A =>
+                     case Local_4 is
+                        when A =>
+                           case Local_4 is
+                              when A =>
+                                 null;
+                              when B | C =>
+                                 null;
+                           end case;
+                        when B |C =>
+                           null;
+                     end case;
+                  when B | C =>
+                     null;
+               end case;
+            when B | C =>
+               null;
+         end case;
+
          -- A comment before 'end'
       end E1;
 
@@ -269,6 +293,14 @@ package body Ada_Mode.Nominal is -- target 0
       begin
          Local_2 := Tmp;
       end E2;
+
+      entry E3
+        (X : Integer) when Local_1 = 0 and not
+          (Local_2 = 1)
+      is
+      begin
+         null;
+      end E3;
 
       procedure P1 is
       begin
@@ -588,3 +620,6 @@ package body Ada_Mode.Nominal is -- target 0
 begin
    null;
 end Ada_Mode.Nominal;
+-- Local Variables:
+-- ada-auto-case: t
+-- End:

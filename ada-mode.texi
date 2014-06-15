@@ -29,7 +29,7 @@ developing GNU and promoting software freedom.''
 @title Ada Mode
 @sp 2
 @subtitle An Emacs major mode for programming in Ada
-@subtitle Ada Mode Version 5.0.2
+@subtitle Ada Mode Version 5.1.4
 @sp 2
 @page
 @vskip 0pt plus 1filll
@@ -53,8 +53,8 @@ developing GNU and promoting software freedom.''
 * Moving Through Ada Code::     Moving easily through Ada sources
 * Identifier completion::       Finishing words automatically
 * Indentation::                 Indenting your code automatically as you type
-* Statement skeletons::
-* Aligning code::
+* Statement skeletons::         Some code is written for you
+* Aligning code::               Making it pretty
 * Automatic casing::            Adjusting the case of words automatically
 * Comment Handling::            Reformatting comments easily
 * Key summary::
@@ -98,7 +98,8 @@ information on debugging.
 @node Installation, Customization, Overview, Top
 @chapter Installation
 
-Ada mode requires Emacs 24.2 or greater.
+Ada mode requires Emacs 24.2 or greater; it also requires the Emacs
+lisp sources (not just the compiled binaries).
 
 Ada mode is distributed in the Gnu ELPA package archive; it can be
 installed via @code{M-x list-packages} (@pxref{Packages,,,emacs,Emacs
@@ -122,28 +123,58 @@ ada-mode-version}.
 
 @menu
 * gnatinspect::
+* Upgrading::
 @end menu
 
-@node gnatinspect,  , Installation, Installation
+@node gnatinspect, Upgrading, Installation, Installation
 @section gnatinspect
 Ada mode has experimental support for the new AdaCore cross reference
 tool @code{gnatinspect}, which supports Ada, C, C++, and any other
 language for which gcc provices the @code{-fdump-xref}.
 
 @code{gnatinspect} is distributed as part of @code{gnatcoll}. Ada mode
-requires the very latest version, in @code{gnatcoll 1.7w} distributed
-with GNATPro 7.2.
+requires the very latest version, in @code{gnatcoll 1.6} distributed
+with GNATPro 7.2. @code{gnatcoll 1.6} must be compiled with GNATPro
+7.2.
 
 To build @code{gnatinspect}, assuming gnat-7.2 is installed in
-@file{/usr/gnat-7.2}:
+@file{/usr/gnat-7.2}, and gnat-7.2 is in PATH:
 
 @example
-tar xf ~/Downloads/gnatcoll-1.7w-src.tgz
-cd gnatcoll-1.7w-src
+tar xf ~/Downloads/gnatcoll-1.6-src.tgz
+cd gnatcoll-1.6-src
 ./configure --prefix=/usr/gnat-7.2
 make Gnatcoll_Build=Debug
 sudo make Gnatcoll_Build=Debug install
 @end example
+
+To build an sqlite3 executable that is compatible with the database
+created by gnatinspect:
+
+@example
+gcc -O2 -o sqlite3 shell.c sqlite3.c -ldl -lpthread
+@end example
+
+@node Upgrading,  , gnatinspect, Installation
+@section Upgrading from previous versions
+
+See the file NEWS for more details; here we summarize only important
+user interface changes.
+
+@table @samp
+@item from 5.0.1
+    Nothing to do.
+
+@item from 4.01
+There are many user interface and API changes between 4.01 and 5.0.1;
+we only document those that may be hard to diagnose here.
+
+@code{prog-mode-hook} is no longer run by @code{ada-mode};
+@code{ada-mode} is no longer derived from @code{prog-mode}. Use
+@code{ada-mode-hook} instead.
+
+
+@end table
 
 @node Customization, Compiling Executing, Installation, Top
 @chapter Customizing Ada mode
@@ -1075,12 +1106,15 @@ before any compiler-specific project variable.
 @item @code{auto_case}      [default: @code{ada-auto-case, t}]
 Non-nil means automatically change case of preceding word while typing.
 
+@item @code{case_identifier}   [default: @code{ada-case-identifier, ada-mixed-case}]
+Function to call to adjust the case of an Ada identifier.
+
 @item @code{case_keyword}   [default: @code{ada-case-keyword, downcase-word}]
-Function to call to adjust the case of an Ada keywords.
+Function to call to adjust the case of an Ada keyword.
 
 @item @code{case_strict}    [default: @code{ada-case-strict, t}]
-If non-nil, force Mixed_Case for identifiers.
-Otherwise, allow UPPERCASE for identifiers.
+If non-nil, @code{ada-mixed-case} forces @code{Mixed_Case} for identifiers.
+Otherwise, @code{ada-mixed-case} allows @code{UPPERCASE} for identifiers.
 
 @item @code{casing}         [default: @code{ada-case-exception-file, nil}]
 List of files containing casing exceptions. @xref{Automatic casing}.
@@ -1391,7 +1425,9 @@ indentation.
 
 For named statements (packages, loops, etc), the name is taken from
 the word before point, and the name of the statement from the word
-before that. Some expansions prompt for more information, such as
+before that.
+
+Some expansions prompt for more information, such as
 whether a spec or body is desired. For example, @kbd{package A_Package
 C-c C-e} first prompts for ``body'' or ``spec''. If ``spec'' is
 selected, the following code is inserted:
@@ -1415,7 +1451,17 @@ A_Block:
 
 Note that the order of the keyword @code{declare} and the name
 @code{A_Block} are reversed in the expansion; this may take some
-getting used to.
+getting used to. Alternately, if no name is present in the buffer, you
+are prompted for a name: @kbd{declare C-c C-e} first prompts for a
+name, then expands to the above.
+
+The variable @code{ada-skel-initial-string} defines what to insert in
+a newly created empty buffer. It defaults to @code{@{header@}}, which
+is a placeholder defined by @code{ada-skel-header}, which inserts a
+typical header with a copyright license (choice of GPL or
+restricted). Users will typically want to override the definition of
+@code{ada-skel-initial-string} and/or @code{ada-skel-header}, or
+provide more choices of copyright license.
 
 @node Aligning code, Automatic casing, Statement skeletons, Top
 @chapter Aligning code

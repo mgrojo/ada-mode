@@ -53,11 +53,13 @@
     ;; (define-key map "\C-c\C-n" 'ada-next-statement-keyword)
     ;; (define-key map "\C-c\C-p" 'ada-prev-statement-keyword)
     (define-key map "\C-c\C-o" 	 'ff-find-other-file)
-    (define-key map "\C-c\C-S-p" 'gpr-set-as-project)
+    (define-key map "\C-c\C-P" 'gpr-set-as-project)
     (define-key map "\C-c\C-t" 'ada-case-read-all-exceptions)
     (define-key map "\C-c\C-w" 'ada-case-adjust-at-point)
     (define-key map "\C-c\C-y" 'ada-case-create-exception)
     (define-key map "\C-c\C-\M-y" (lambda () (ada-case-create-exception nil nil t)))
+    (define-key map "\M-n" 'skeleton-next-placeholder)
+    (define-key map "\M-p" 'skeleton-prev-placeholder)
     map
   )  "Local keymap used for GPR mode.")
 
@@ -82,12 +84,14 @@
     ["Show last parse error"       gpr-show-parse-error             t]
     ["Other file"                  ff-find-other-file               t]
     ("Edit"
-     ["Indent Line or selection"    indent-for-tab-command         t]
-     ["Indent current statement"    gpr-indent-statement           t]
-     ["Indent Lines in File"        (indent-region (point-min) (point-max))  t]
-     ["Expand skeleton"             gpr-expand                     t]
-     ["Comment/uncomment selection" comment-dwim                   t]
-     ["Fill Comment Paragraph"      fill-paragraph                 t]
+     ["Indent Line or selection"      indent-for-tab-command         t]
+     ["Indent current statement"      gpr-indent-statement           t]
+     ["Indent Lines in File"          (indent-region (point-min) (point-max))  t]
+     ["Expand skeleton"               gpr-expand                     t]
+     ["Next skeleton placeholder"     skeleton-next-placeholder      t]
+     ["Previous skeleton placeholder" skeleton-prev-placeholder      t]
+     ["Comment/uncomment selection"   comment-dwim                   t]
+     ["Fill Comment Paragraph"        fill-paragraph                 t]
 
      ["Fill Comment Paragraph Justify" ada-fill-comment-paragraph-justify t]
      ["Fill Comment Paragraph Postfix" ada-fill-comment-paragraph-postfix t]
@@ -237,17 +241,6 @@ of the package or project point is in or just after, or nil.")
 
   (set (make-local-variable 'add-log-current-defun-function)
        'gpr-add-log-current-function)
-
-  ;; used by autofill to break a comment line and continue it on
-  ;; another line. The reason we need this one is that the default
-  ;; behavior does not work correctly with the definition of
-  ;; paragraph-start above when the comment is right after a
-  ;; multi-line subprogram declaration (the comments are aligned under
-  ;; the latest parameter, not under the declaration start).
-  ;; FIXME: need test - should be in gpr-wisi? why doesn't ada-mode do this?
-  (set (make-local-variable 'comment-line-break-function)
-       (lambda (&optional soft) (let ((fill-prefix nil))
-				  (indent-new-comment-line soft))))
 
   (run-hooks 'gpr-mode-hook)
 

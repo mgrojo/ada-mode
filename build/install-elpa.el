@@ -1,12 +1,12 @@
 ;; install ada-mode, wisi from local elpa archive, for testing
 
-(setq package-archives (list (cons "test" "/Projects/elpa/archive/packages")))
+(require 'package)
+(add-to-list 'package-archives (cons "test" "/Projects/elpa/archive/packages"))
 
-(require 'package) ;; not loaded in batch mode
 (package-initialize)
 
-(setq ada-version "5.0.2")
-(setq wisi-version "1.0.1")
+(setq ada-version "5.1.4")
+(setq wisi-version "1.0.4")
 
 ;; We may be installing a newer version without a version bump, so
 ;; just delete the packages.
@@ -24,6 +24,9 @@
   (package-initialize))
 
 (package-download-tar 'wisi wisi-version)
+
+;; package-download-tar doesn't update load-path, so ada-mode doesn't see wisi
+(add-to-list 'load-path (expand-file-name (concat "~/.emacs.d/elpa/wisi-" wisi-version)))
 (package-download-tar 'ada-mode ada-version)
 
 ;; end of file

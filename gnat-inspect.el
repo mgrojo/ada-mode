@@ -62,12 +62,11 @@
 
 	  ;; WORKAROUND: gnatinspect from gnatcoll-1.6w-20130902 can't handle aggregate projects; M910-032
 	  (project-file (file-name-nondirectory
-			 (or (ada-prj-get 'gnat_inspect_gpr_file)
-			     (ada-prj-get 'gpr_file)))))
+			 (ada-prj-get 'gpr_file))))
       (erase-buffer); delete any previous messages, prompt
       (setf (gnat-inspect--session-process session)
 	    ;; FIXME: need good error message on bad project file:
-	    ;; 		"can't handle aggregate projects? - set gnat_inspect_gpr_file")
+	    ;; 		"can't handle aggregate projects?")
 	    (start-process (concat "gnatinspect " (buffer-name))
 			   (gnat-inspect--session-buffer session)
 			   "gnatinspect"
@@ -89,6 +88,8 @@
 
 (defun gnat-inspect-cached-session ()
   "Return a session for the current project file, creating it if necessary."
+  (gnat-inspect-ensure-gpr)
+
   (let* ((session (cdr (assoc ada-prj-current-file gnat-inspect--sessions))))
     (if session
 	(progn
@@ -102,12 +103,19 @@
 	      (cl-acons ada-prj-current-file session gnat-inspect--sessions))))
     ))
 
+(defun gnat-inspect-show-session-buffer ()
+  (interactive)
+  (pop-to-buffer (gnat-inspect-cached-session)))
+
 (defconst gnat-inspect-prompt "^>>> $"
   ;; gnatinspect output ends with this
   "Regexp matching gnatinspect prompt; indicates previous command is complete.")
 
 (defun gnat-inspect-session-wait (session)
   "Wait for the current command to complete."
+  (unless (process-live-p (gnat-inspect--session-process session))
+    (error "gnatinspect process failed"))
+
   (with-current-buffer (gnat-inspect--session-buffer session)
     (let ((process (gnat-inspect--session-process session))
 	  (search-start (point-min))
@@ -137,15 +145,24 @@ Return buffer that holds output."
       (current-buffer)
       )))
 
-(defun gnat-inspect-session-kill (session)
-  (when (process-live-p (gnat-inspect--session-process session))
-    (process-send-string (gnat-inspect--session-process session) "exit\n")))
-
 (defun gnat-inspect-kill-all-sessions ()
   (interactive)
-  (mapc (lambda (assoc) (gnat-inspect-session-kill (cdr assoc))) gnat-inspect--sessions))
+  (let ((count 0))
+    (mapc (lambda (assoc)
+	    (let ((session (cdr assoc)))
+	      (when (process-live-p (gnat-inspect--session-process session))
+		(setq count (1+ count))
+		(process-send-string (gnat-inspect--session-process session) "exit\n")
+		)))
+	    gnat-inspect--sessions)
+    (message "Killed %d sessions" count)
+    ))
 
 ;;;;; utils
+
+(defun gnat-inspect-ensure-gpr ()
+  (unless (ada-prj-get 'gpr_file)
+    (error "no gpr file specified")))
 
 (defconst gnat-inspect-ident-file-regexp
   ;; Write_Message:C:\Projects\GDS\work_dscovr_release\common\1553\gds-mil_std_1553-utf.ads:252:25
@@ -184,6 +201,8 @@ Return buffer that holds output."
 (defun gnat-inspect-compilation (identifier file line col cmd comp-err)
   "Run gnatinspect IDENTIFIER:FILE:LINE:COL CMD,
 set compilation-mode with compilation-error-regexp-alist set to COMP-ERR."
+  (gnat-inspect-ensure-gpr)
+
   (let ((cmd-1 (format "%s %s:%s:%d:%d" cmd identifier file line col))
 	(result-count 0)
 	file line column)
@@ -234,13 +253,11 @@ set compilation-mode with compilation-error-regexp-alist set to COMP-ERR."
 
 (defun gnat-inspect-refresh ()
   "For `ada-xref-refresh-function', using gnatinspect."
-  (with-current-buffer (gnat-inspect-session-send "refresh" t)))
+  (interactive)
+  (gnat-inspect-session-send "refresh" t))
 
 (defun gnat-inspect-other (identifier file line col)
   "For `ada-xref-other-function', using gnatinspect."
-  (unless (ada-prj-get 'gpr_file)
-    (error "no gnat project file defined."))
-
   (when (eq ?\" (aref identifier 0))
     ;; gnatinspect wants the quotes stripped
     (setq col (+ 1 col))
@@ -285,7 +302,7 @@ set compilation-mode with compilation-error-regexp-alist set to COMP-ERR."
 	(cond
 	 ((looking-at gnat-inspect-ident-file-type-regexp)
 	  ;; process line
-	  (let* ((found-file (file-name-nondirectory (match-string 2)))
+	  (let* ((found-file (expand-file-name (match-string 2)));; converts Windows to normal
 		 (found-line (string-to-number (match-string 3)))
 		 (found-col  (string-to-number (match-string 4)))
 		 (found-type (match-string 5))
@@ -331,7 +348,6 @@ set compilation-mode with compilation-error-regexp-alist set to COMP-ERR."
 
       (cond
        ((null search-type)
-	(pop-to-buffer (current-buffer))
 	(error "gnatinspect did not return other item; refresh?"))
 
        ((and
@@ -344,7 +360,6 @@ set compilation-mode with compilation-error-regexp-alist set to COMP-ERR."
        )
 
       (when (null result)
-	(pop-to-buffer (current-buffer))
 	(error "gnatinspect did not return other item; refresh?"))
 
       (message "parsing result ... done")
@@ -367,8 +382,7 @@ set compilation-mode with compilation-error-regexp-alist set to COMP-ERR."
 
 (defun gnat-inspect-overridden-1 (identifier file line col)
   "For `ada-xref-overridden-function', using gnatinspect."
-  (unless (or (ada-prj-get 'gnat_inspect_gpr_file)
-			     (ada-prj-get 'gpr_file))
+  (unless (ada-prj-get 'gpr_file)
     (error "no gnat project file defined."))
 
   (when (eq ?\" (aref identifier 0))
@@ -390,7 +404,6 @@ set compilation-mode with compilation-error-regexp-alist set to COMP-ERR."
 	       (string-to-number (match-string 4)))))
 
       (when (null result)
-	(pop-to-buffer (current-buffer))
 	(error "gnatinspect did not return other item; refresh?"))
 
       (message "parsing result ... done")
@@ -445,16 +458,25 @@ buffer in another window."
 
 (defvar gnat-inspect-map
   (let ((map (make-sparse-keymap)))
-    ;; C-c <letter> are reserved for users
+    ;; C-c C-i prefix for gnat-inspect minor mode
 
-    (define-key map "\C-c\C-d" 'gnat-inspect-goto-declaration)
-    ;; FIXME: (define-key map "\C-c\M-d" 'gnat-inspect-parents)
-    ;; FIXME: overriding
-    (define-key map "\C-c\C-r" 'gnat-inspect-all)
+    (define-key map "\C-c\C-i\C-d" 'gnat-inspect-goto-declaration)
+    (define-key map "\C-c\C-i\C-p" 'ada-build-prompt-select-prj-file)
+    (define-key map "\C-c\C-i\C-q" 'gnat-inspect-refresh)
+    (define-key map "\C-c\C-i\C-r" 'gnat-inspect-all)
     map
   )  "Local keymap used for GNAT inspect minor mode.")
 
-;; FIXME: define menu
+(defvar gnat-inspect-menu (make-sparse-keymap "gnat-inspect"))
+(easy-menu-define gnat-inspect-menu gnat-inspect-map "Menu keymap for gnat-inspect minor mode"
+  '("gnat-inspect"
+    ["Find and select project ..."   ada-build-prompt-select-prj-file t]
+    ["Select project ..."            ada-prj-select                   t]
+    ["Show current project"          ada-prj-show                     t]
+    ["Next compilation error"        next-error                       t]
+    ["Show secondary error"          ada-show-secondary-error         t]
+    ["Refresh cross reference cache" gnat-inspect-refresh        t]
+    ))
 
 (define-minor-mode gnat-inspect
   "Minor mode for navigating sources using GNAT cross reference tool.
@@ -473,6 +495,7 @@ Enable mode if ARG is positive"
   (setq ada-make-package-body       'ada-gnat-make-package-body)
 
   (add-hook 'ada-syntax-propertize-hook 'gnatprep-syntax-propertize)
+  (add-hook 'ada-syntax-propertize-hook 'ada-gnat-syntax-propertize)
 
   ;; must be after indentation engine setup, because that resets the
   ;; indent function list.
@@ -485,6 +508,7 @@ Enable mode if ARG is positive"
   (setq ada-xref-all-function        'gnat-inspect-all)
   (setq ada-xref-overriding-function 'gnat-inspect-overriding)
   (setq ada-xref-overridden-function 'gnat-inspect-overridden-1)
+  (setq ada-show-xref-tool-buffer    'gnat-inspect-show-session-buffer)
 
   (add-to-list 'completion-ignored-extensions ".ali") ;; gnat library files, used for cross reference
   )
@@ -502,6 +526,7 @@ Enable mode if ARG is positive"
   (setq ada-xref-all-function        nil)
   (setq ada-xref-overriding-function nil)
   (setq ada-xref-overridden-function nil)
+  (setq ada-show-xref-tool-buffer    nil)
 
   (setq completion-ignored-extensions (delete ".ali" completion-ignored-extensions))
   )
@@ -527,6 +552,7 @@ Enable mode if ARG is positive"
   )
 
 (provide 'gnat-inspect)
+(provide 'ada-xref-tool)
 
 (add-to-list 'compilation-error-regexp-alist-alist
 	     (cons 'gnat-inspect-ident-file       gnat-inspect-ident-file-regexp-alist))

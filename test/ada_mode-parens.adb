@@ -71,6 +71,17 @@ package body Ada_Mode.Parens is
            "789"
         );
 
+      --  function call (actually type conversion, but it's the same indentation) in aggregate
+      type Local_11_Type is record
+         A : Integer;
+         B : Integer;
+      end record;
+
+      Local_11 : Local_11_Type := Local_11_Type'
+        (A => Integer
+           (1.0),
+         B => Integer
+           (2.0));
    begin
       return Float (
                     Integer'Value
@@ -138,7 +149,8 @@ package body Ada_Mode.Parens is
       --EMACSCMD:(progn (forward-line 3)(forward-word 1)(insert "   ")(ada-align))
       -- result is tested in diff
       return
-        (1      => 1,
+        (1      =>
+           1,
          2      =>
            1 + 2 * 3,
          3      => 1 +
@@ -366,5 +378,21 @@ package body Ada_Mode.Parens is
                             Hello &
                               There);
    end Hello;
+
+   --  Slice in procedure call
+   procedure Slice_1 (A : in Integer; B : in String)
+   is begin
+      null;
+   end Slice_1;
+
+   procedure Slice
+   is
+      C: constant String := "abcd";
+   begin
+      Slice_1
+        (1,
+         C
+           (1 .. 2));
+   end Slice;
 
 end Ada_Mode.Parens;
