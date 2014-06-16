@@ -29,6 +29,7 @@ Preserves text after point."
 
 (defun gpr-skel-test ()
   (let ((filename "gpr-skel.gpr.tmp")
+	(user-full-name "gpr-skel") ;; reproducible)
 	(wisi-debug 1);; report parse errors
 	)
     (with-temp-buffer
