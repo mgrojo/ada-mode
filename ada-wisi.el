@@ -1187,7 +1187,10 @@ Also return cache at start."
 
 (defun ada-wisi-goto-declaration-end ()
   "For `ada-goto-declaration-end', which see."
-  (wisi-goto-end-1 (ada-wisi-goto-declaration-start)))
+  (let ((cache (wisi-get-cache (point))))
+    (unless cache
+      (setq cache (wisi-backward-cache)))
+    (wisi-goto-end-1 cache)))
 
 (defun ada-wisi-goto-declarative-region-start ()
   "For `ada-goto-declarative-region-start', which see."

@@ -20,11 +20,11 @@ is
    -- adding text inside a string does not invalidate cache
    --EMACSCMD:(wisi-parse-buffer)
    A : constant String :=
-     "hi some text there!";
+     "hi there!";
    --EMACSCMD:(progn (end-of-line 0)(forward-word -1)(insert "some text ")wisi-cache-max)
    --EMACSRESULT:(point-max)
 
-   -- adding text inside a comment does not invalidate some text cache
+   -- adding text inside a comment does not invalidate cache
    --EMACSCMD:(progn (end-of-line 0)(forward-word -1)(insert "some text ")wisi-cache-max)
    --EMACSRESULT:(point-max)
 

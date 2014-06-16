@@ -342,7 +342,7 @@ Also invalidate the Emacs syntax cache."
   (interactive)
   (setq wisi-cache-max 0)
   (setq wisi-parse-try t)
-  (setq wisi-end-caches (list nil))
+  (setq wisi-end-caches nil)
   (syntax-ppss-flush-cache (point-min))
   (with-silent-modifications
     (remove-text-properties (point-min) (point-max) '(wisi-cache))))
@@ -531,57 +531,28 @@ Point must be at cache."
 
 ;;;; parse actions
 
-(defun wisi-set-end (end-mark)
-  "Set END-MARK on all caches in `wisi-end-caches'."
-  (let ((statement-caches (pop wisi-end-caches)))
-    (while statement-caches
-      (let ((cache (wisi-get-cache (pop statement-caches))))
-	(setf (wisi-cache-end cache) end-mark)
-	)))
-  (when (eq nil wisi-end-caches)
-    ;; when pop empties wisi-end-caches, we want '(nil), not nil
-    (setq wisi-end-caches (list nil))))
+(defun wisi-set-end (start-mark end-mark)
+  "Set END-MARK on all caches in `wisi-end-caches' in range START-MARK END-MARK,
+delete from `wisi-end-caches'."
+  (let ((i 0)
+	pos cache)
+    (while (< i (length wisi-end-caches))
+      (setq pos (nth i wisi-end-caches))
+      (setq cache (wisi-get-cache pos))
+
+      (if (and (>= pos start-mark)
+	       (<  pos end-mark))
+	  (progn
+	    (setf (wisi-cache-end cache) end-mark)
+	    (setq wisi-end-caches (delq pos wisi-end-caches)))
+
+	;; else not in range
+	(setq i (1+ i)))
+      )))
 
 (defvar wisi-tokens nil)
 ;; keep byte-compiler happy; `wisi-tokens' is bound in action created
 ;; by wisi-semantic-action
-
-(defun wisi-end-caches-start (pairs)
-  "Either start a new statement on `wisi-end-caches', or continue an existing one."
-  ;; We often execute wisi-statement-action for a parameter list
-  ;; before seeing the corresponding statement-start. In that case,
-  ;; the top item in wisi-end-caches is the parameter list, and one of
-  ;; the tokens in wisi-tokens contains that parameter list.
-  (let ((tokens wisi-tokens)
-	(end-cache-start (point-max))
-	(end-cache-end (point-min))
-	pt
-	region
-	continue)
-    (cl-do ((i 0))
-	((= i (length (car wisi-end-caches))))
-      (setq pt (nth i (car wisi-end-caches)))
-      (when (< pt end-cache-start)
-	(setq end-cache-start pt))
-      (when (> pt end-cache-end)
-	(setq end-cache-end pt))
-      (setq i (1+ i))
-      )
-
-    (cl-do ((i 0))
-	((= i (length wisi-tokens)))
-      (setq region (cddr (nth i wisi-tokens)))
-      (when (and
-	     region
-	     (= (car region) end-cache-start)
-	     (= (cdr region) (1+ end-cache-end)))
-	(setq continue t))
-      (setq i (1+ i))
-      )
-
-    (unless continue
-      (push nil wisi-end-caches))
-    ))
 
 (defun wisi-statement-action (&rest pairs)
   "Cache information in text properties of tokens.
@@ -643,32 +614,33 @@ that token. Use in a grammar action as:
 		      (setf (wisi-cache-containing cache) first-keyword-mark))
 
 		  ;; else create new cache
-		  (when (memq class '(statement-start block-start))
-		    (wisi-end-caches-start pairs))
-
 		  (with-silent-modifications
 		    (put-text-property
 		     (car region)
 		     (1+ (car region))
 		     'wisi-cache
 		     (wisi-cache-create
-		      :nonterm $nterm;; $nterm defined in wisi-semantic-action
-		      :token   token
-		      :last  (- (cdr region) (car region))
-		      :class   (or override-start class)
-		      :containing   first-keyword-mark)
+		      :nonterm    $nterm;; $nterm defined in wisi-semantic-action
+		      :token      token
+		      :last       (- (cdr region) (car region))
+		      :class      (or override-start class)
+		      :containing first-keyword-mark)
 		     ))
-		  (push (car region) (car wisi-end-caches)))
+		  (if wisi-end-caches
+		      (push (car region) wisi-end-caches)
+		    (setq wisi-end-caches (list (car region)))
+		    ))
 
 		(when first-item
 		  (setq first-item nil)
 		  (when (or override-start
+			    ;; FIXME: why block-middle here?
 			    (memq class '(block-middle block-start statement-start)))
 		    (setq override-start nil)
 		    (setq first-keyword-mark mark)))
 
 		(when (eq class 'statement-end)
-		  (wisi-set-end (copy-marker (1+ (car region)))))
+		  (wisi-set-end (1- first-keyword-mark) (copy-marker (1+ (car region)))))
 		)
 
 	    ;; region is nil when a production is empty; if the first
