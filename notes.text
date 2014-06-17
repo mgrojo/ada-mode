@@ -40,10 +40,27 @@ build/Makefile
 doc changes in NEWS-ada-mode.text NEWS-wisi.text
 
 cache the parser state at various points in the file
-    - parsing delay after each edit is much more annoying than initial delay
-    - only the code past the edit needs to be reparsed
-    - not even most of that if the change is truly local.
+    org.emacs.ada-mode.stephe-1
 
+    test/debug.adb
+    test/gnatcoll-projects.adb
+    (time-it 'wisi-parse-buffer 1)
+
+    (goto-line 4300)
+    (time-it (lambda () (wisi-validate-cache (1+ wisi-cache-max))) 1)
+
+    no caching:
+        first: 1.248000
+        more : 1.591000
+
+    start cache only:
+        first: 1.232000, 1.233, 1.232
+        more, from bob : 1.591000, 1.514, 1.513
+        more, (wisi-invalidate-cache 143792) : 0.749
+
+cache at 10004 line 225
+
+stage 2: preserve caches after edit region
     org.emacs.ada-mode.stephe-1
 
 parsing is noticeably slow

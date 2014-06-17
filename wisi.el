@@ -336,16 +336,18 @@ wisi-forward-token, but does not look up symbol."
 (defvar wisi-end-caches nil
   "List of buffer positions of caches in current statement that need wisi-cache-end set.")
 
-(defun wisi-invalidate-cache()
-  "Invalidate the wisi token cache for the current buffer.
-Also invalidate the Emacs syntax cache."
+(defun wisi-invalidate-cache(&optional after)
+  "Invalidate parsing caches for the current buffer from AFTER to end of buffer.
+Caches are the Emacs syntax cache, the wisi token cache, and the wisi parser cache."
   (interactive)
-  (setq wisi-cache-max 0)
+  (when (not after)
+    (setq after (point-min)))
+  (setq wisi-cache-max after)
   (setq wisi-parse-try t)
   (setq wisi-end-caches nil)
-  (syntax-ppss-flush-cache (point-min))
+  (syntax-ppss-flush-cache after)
   (with-silent-modifications
-    (remove-text-properties (point-min) (point-max) '(wisi-cache))))
+    (remove-text-properties after (point-max) '(wisi-cache wisi-parse-cache))))
 
 (defun wisi-before-change (begin end)
   "For `before-change-functions'."
@@ -396,7 +398,8 @@ Also invalidate the Emacs syntax cache."
     (setq wisi-parse-try t)
 
     ;; remove 'wisi-cache on inserted text, which could have caches
-    ;; from before the failed parse, and are in any case invalid.
+    ;; from before the failed parse (or another buffer), and are in
+    ;; any case invalid.
     (with-silent-modifications
       (remove-text-properties begin end '(wisi-cache)))
     )
@@ -436,7 +439,7 @@ Also invalidate the Emacs syntax cache."
 	(if need-invalidate
 	    ;; The inserted or deleted text could alter the parse;
 	    ;; wisi-invalidate-cache removes all 'wisi-cache.
-	    (wisi-invalidate-cache)
+	    (wisi-invalidate-cache begin)
 
 	  ;; else move cache-max by the net change length. We don't
 	  ;; need to delete 'wisi-cache in the inserted text, because
@@ -481,7 +484,7 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
 
 (defun wisi-validate-cache (pos)
   "Ensure cached data is valid at least up to POS in current buffer."
-  (let ((msg (format "wisi: parsing %s:%d ..." (buffer-name) (line-number-at-pos))))
+  (let ((msg (when (> wisi-debug 0) (format "wisi: parsing %s:%d ..." (buffer-name) (line-number-at-pos)))))
     (when (and wisi-parse-try
 	       (< wisi-cache-max pos))
       (when (> wisi-debug 0)
@@ -490,17 +493,17 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
       (setq wisi-parse-try nil)
       (setq wisi-parse-error-msg nil)
       (save-excursion
-	(goto-char wisi-cache-max)
 	(if (> wisi-debug 1)
 	    ;; let debugger stop in wisi-parse
 	    (progn
-	      (wisi-parse wisi-parse-table 'wisi-forward-token)
+	      (wisi-parse wisi-cache-max wisi-parse-table 'wisi-forward-token)
 	      (setq wisi-cache-max (point))
 	      (setq wisi-parse-failed nil))
+
 	  ;; else capture errors from bad syntax, so higher level functions can try to continue
 	  (condition-case err
 	      (progn
-		(wisi-parse wisi-parse-table 'wisi-forward-token)
+		(wisi-parse wisi-cache-max wisi-parse-table 'wisi-forward-token)
 		(setq wisi-cache-max (point))
 		(setq wisi-parse-failed nil))
 	    (wisi-parse-error
