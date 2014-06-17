@@ -1736,6 +1736,7 @@ found.")
 
 (defun ada-file-name-from-ada-name (ada-name)
   "Return the filename in which ADA-NAME is found."
+  (ada-require-project-file)
   (funcall ada-file-name-from-ada-name ada-name))
 
 (defvar ada-ada-name-from-file-name nil
@@ -1745,6 +1746,7 @@ unit name; it should return the Ada name that should be found in FILE-NAME.")
 
 (defun ada-ada-name-from-file-name (file-name)
   "Return the ada-name that should be found in FILE-NAME."
+  (ada-require-project-file)
   (funcall ada-ada-name-from-file-name file-name))
 
 (defun ada-ff-special-extract-parent ()
@@ -1874,11 +1876,12 @@ set."
 
   ;; file-truename handles symbolic links
   (let* ((visited-file (file-truename file-name))
-         (found-file (file-truename
-                      (locate-file (file-name-nondirectory visited-file)
-                                   compilation-search-path))))
+         (found-file (locate-file (file-name-nondirectory visited-file)
+				  compilation-search-path)))
     (unless found-file
       (error "current file not part of current project; wrong project?"))
+
+    (setq found-file (file-truename found-file))
 
     ;; (nth 10 (file-attributes ...)) is the inode; required when hard
     ;; links are present.

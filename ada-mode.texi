@@ -133,17 +133,17 @@ tool @code{gnatinspect}, which supports Ada, C, C++, and any other
 language for which gcc provices the @code{-fdump-xref}.
 
 @code{gnatinspect} is distributed as part of @code{gnatcoll}. Ada mode
-requires the very latest version, in @code{gnatcoll 1.6} distributed
-with GNATPro 7.2. @code{gnatcoll 1.6} must be compiled with GNATPro
-7.2.
+requires the very latest version, in @code{gnatcoll 1.7w} distributed
+with GNAT GPL 2014.
 
-To build @code{gnatinspect}, assuming gnat-7.2 is installed in
-@file{/usr/gnat-7.2}, and gnat-7.2 is in PATH:
+To build @code{gnatinspect}, assuming GNAT GPL 2014 is installed in
+@file{/usr/gnat-gpl-2014}, and @file{/usr/gnat-gpl-2014/bin} is in
+PATH:
 
 @example
-tar xf ~/Downloads/gnatcoll-1.6-src.tgz
-cd gnatcoll-1.6-src
-./configure --prefix=/usr/gnat-7.2
+tar xf ~/Downloads/gnatcoll-1.7x-src.tgz
+cd gnatcoll-1.7w-src
+./configure --prefix=/usr/gnat-gpl-2014
 make Gnatcoll_Build=Debug
 sudo make Gnatcoll_Build=Debug install
 @end example
@@ -152,6 +152,7 @@ To build an sqlite3 executable that is compatible with the database
 created by gnatinspect:
 
 @example
+cd gnatcoll-1.7w-src/src/sqlite/amalgamation/
 gcc -O2 -o sqlite3 shell.c sqlite3.c -ldl -lpthread
 @end example
 

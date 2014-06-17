@@ -19,7 +19,13 @@ update : ../../ada-grammar-wy.el ../../gpr-grammar-wy.el  byte-compile
 byte-compile : byte-compile-clean
 	cd ../../; $(EMACS_EXE) -Q -batch -L . --eval '(progn (package-initialize)(batch-byte-compile))' *.el
 
-test : test-wisi test-ada-gnatxref.stamp test-ada-gnatinspect.stamp test-gpr test-elisp gpr-skel.gpr.diff
+test : test-wisi
+test : test-ada-gnatxref.stamp
+test : test-ada-gnatinspect.stamp
+test : test-ada-gpr_query.stamp
+test : test-gpr
+test : test-elisp
+test : gpr-skel.gpr.diff
 
 test-debian : test-ada-gnatxref.stamp test-gpr test-elisp gpr-skel.gpr.diff
 
@@ -34,8 +40,8 @@ test-wisi :: subprograms.wisi-test
 test-wisi :: empty_production_6.wisi-test
 test-wisi :: empty_production_8.wisi-test
 
-one : RUNTEST := run-indent-test-wisi.el
-one : ada_mode-separate_protected_body.adb.diff
+one : RUNTEST := run-indent-test-wisi-gpr_query.el
+one : ada_mode-nominal.ads.diff
 
 vpath %.wy ../../ ../../test/wisi
 vpath %.el ../../ .
@@ -102,6 +108,14 @@ test-ada-gnatinspect : $(addsuffix .diff, $(subst subdir/,,$(ADA_TEST_FILES)))
 test-ada-gnatinspect.stamp : force
 	rm -f *.diff *.tmp
 	$(MAKE) test-ada-gnatinspect
+	touch $@
+
+test-ada-gpr_query : RUNTEST := run-indent-test-wisi-gpr_query.el
+test-ada-gpr_query : $(addsuffix .diff, $(subst subdir/,,$(ADA_TEST_FILES)))
+
+test-ada-gpr_query.stamp : force
+	rm -f *.diff *.tmp
+	$(MAKE) test-ada-gpr_query
 	touch $@
 
 # eval: (ada-parse-prj-file "wisi_opentoken.prj")

@@ -39,18 +39,6 @@ build/wisi/Makefile
 build/Makefile
 doc changes in NEWS-ada-mode.text NEWS-wisi.text
 
-gnatinspect.exe dies in test/ada_mode-nominal.ads
-
-wisi-set-end scans same text repeatedly for each nested scope
-    org.emacs.ada-mode.stephe-1
-    first: 1.046000 vs 1.264000
-    later: 1.311000 vs 2.402000
-
-    running tests
-        test/ada_mode-interactive_wisi.adb failing
-
-need motion-action on package body
-
 cache the parser state at various points in the file
     - parsing delay after each edit is much more annoying than initial delay
     - only the code past the edit needs to be reparsed
@@ -94,6 +82,9 @@ parsing is noticeably slow
     don't do syntax-propertize for font-lock, unless parsing is already done
         not parsed on open; start of buffer doesn't require syntax propertize?
         happens on scroll to end
+
+use condition-case-unless-debug instead of 'if debug-on-error'
+need motion-action on package body
 
 ftp://alpha.gnu.org/gnu/emacs/pretest/emacs-24.3.91.tar.xz
 
@@ -479,11 +470,12 @@ check emacs buglist, mark fixed
 build/Makefile all
     # pushes to elpa workspace, builds archive, installs
 
-Emacs 24.3, gnat 7.1.2 (sal-standard), installed ada-mode:
+Emacs 24.3, gnat 7.2.1 (sal-standard), installed ada-mode:
     (setenv "ADA_MODE_DIR" "-f package-initialize")
     build/wisi/Makefile all
+        gnatinspect fails on Windows
 
-Emacs 24.2, (gnat-2013):
+Emacs 24.2, (gnat-2014):
     /Projects/org.opentoken/build/release/Makefile
         clean
         wisi-generate.exe

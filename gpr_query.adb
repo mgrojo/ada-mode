@@ -979,7 +979,9 @@ begin
       use type GNAT.Strings.String_Access;
 
       Gpr_Project_Path : constant String :=
-        (if Exists ("GPR_PROJECT_PATH") then Ada.Directories.Current_Directory & ":" & Value ("GPR_PROJECT_PATH")
+        (if Exists ("GPR_PROJECT_PATH") then Ada.Directories.Current_Directory &
+           GNAT.OS_Lib.Path_Separator &
+           Value ("GPR_PROJECT_PATH")
          else Ada.Directories.Current_Directory);
 
       Path : constant Virtual_File := -- must be an absolute file name
