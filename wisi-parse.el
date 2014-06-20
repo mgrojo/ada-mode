@@ -86,6 +86,9 @@ point at which that max was spawned.")
 2 : show parse states, position point at parse errors, debug-on-error works in parser
 3 : also show top 10 items of parser stack.")
 
+(defvar wisi-parse-cache-enable t
+  "If non-nil, use cached parse states to speed parse after edit.")
+
 (defconst wisi-parse-cache-interval 10000
   "Minimum chars between parser caches.")
 
@@ -133,12 +136,19 @@ Parsing resumes from first cache before START.
 	 (parse-cache-last (1- (previous-single-property-change start 'wisi-parse-cache nil (point-min))))
 	 )
 
-    (goto-char parse-cache-last)
+    (if wisi-parse-cache-enable
+	(progn
+	  (goto-char parse-cache-last)
 
-    (let ((parser-state (get-text-property (point) 'wisi-parse-cache)))
-      (if parser-state
-	  (setf (aref parser-states 0) parser-state)
-	(aset (wisi-parser-state-stack (aref parser-states 0)) 0 0)))
+	  (let ((parser-state (get-text-property (point) 'wisi-parse-cache)))
+	    (if parser-state
+		(setf (aref parser-states 0) parser-state)
+	      (aset (wisi-parser-state-stack (aref parser-states 0)) 0 0)))
+	  )
+
+      ;; else start from (point-min)
+      (goto-char parse-cache-last)
+      (aset (wisi-parser-state-stack (aref parser-states 0)) 0 0))
 
     (setq token (funcall lexer))
     (setq wisi-parse-max-parallel-current (cons 0 0))

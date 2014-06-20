@@ -5,6 +5,8 @@
 -- It also doesn't pass the reindent and diff test, since we are deliberately adding code
 --EMACSCMD:(setq skip-reindent-test t)
 
+-- We don't disable the casing test; that is important during interactive editing.
+
 -- Since we are editing, the syntax will be illegal at times; don't fail for that.
 --EMACSCMD:(setq wisi-debug 0)
 
@@ -14,7 +16,7 @@
 
 -- Test cache invalidation when inserting code programmatically
 --EMACSCMD:(progn(forward-line 2)(insert "with A;\n") wisi-cache-max)
---EMACSRESULT:0
+--EMACSRESULT:(1+ (point))
 procedure Ada_Mode.Interactive_Wisi
 is
    -- adding text inside a string does not invalidate cache
@@ -40,7 +42,8 @@ is
    function Local_Function_1 return Float;
    --EMACSRESULT:3
 
-   -- adding a body interactively leaves it properly indented. Start with invalid syntax (missing final ';')
+   -- adding a body interactively leaves it properly indented, and caches updated.
+   -- Start with invalid syntax (missing final ';')
    --EMACSCMD:(progn (end-of-line 7)(delete-char -1)(newline-and-indent)(current-column))
    --EMACSRESULT:5
    --EMACSCMD:(progn (forward-line 5)(back-to-indentation)(execute-kbd-macro "is begin\nnull;\nend;")(indent-for-tab-command)(current-indentation))
@@ -54,6 +57,10 @@ is
    --EMACSRESULT:6
    --EMACSCMD:(progn (forward-line -5)(current-indentation))
    --EMACSRESULT:3
+   --EMACSCMD:(progn (forward-line -7)(ada-goto-declaration-start)(looking-at "function Function_Access_1"))
+   --EMACSRESULT:t
+   --EMACSCMD:(progn (forward-line -14)(forward-word 1)(ada-goto-declaration-end)(looking-back "end"))
+   --EMACSRESULT:t
 
    -- calling ada-make-subprogram-body tested in ada_mode-interactive_common.adb
 
@@ -64,5 +71,16 @@ is
      (Read_Success);
 
 begin
-   null;
+   --  extending block
+   --EMACSCMD:(progn (forward-line 4)(kill-line 1)(forward-line 1)(yank) wisi-cache-max)
+   --EMACSRESULT:(+ 4 (point))
+   begin -- target extending
+      Stuff_2;
+   end; -- target extending
+   Stuff_3;
+
+   --EMACSCMD:(progn (forward-line -2)(forward-word 1)(wisi-goto-statement-start) (looking-at "begin -- target extending"))
+   --EMACSRESULT:t
+   --EMACSCMD:(progn (forward-line -4)(forward-word 1)(wisi-goto-statement-end) (looking-at "; -- target extending"))
+   --EMACSRESULT:t
 end Ada_Mode.Interactive_Wisi;

@@ -218,19 +218,37 @@ If at end of buffer, returns `wisent-eoi-term'."
       (setq token-id (symbol-value (intern-soft token-text wisi-keyword-table))))
 
      ((eq syntax 7)
-      ;; string quote, either single or double. we assume point is before the start quote, not the end quote
+      ;; string quote, either single or double. we assume point is
+      ;; before the start quote, not the end quote
       (let ((delim (char-after (point)))
 	    (forward-sexp-function nil))
-	(forward-sexp)
-	;; point is now after the end quote; check for an escaped quote
-	(while (or
-		(and wisi-string-quote-escape-doubled
-		     (eq (char-after (point)) delim))
-		(and (eq delim (car wisi-string-quote-escape))
-		     (eq (char-before (1- (point))) (cdr wisi-string-quote-escape))))
-	  (forward-sexp))
-	(setq token-text (buffer-substring-no-properties start (point)))
-	(setq token-id (if (= delim ?\") wisi-string-double-term wisi-string-single-term))))
+	(condition-case err
+	    (progn
+	      (forward-sexp)
+
+	      ;; point is now after the end quote; check for an escaped quote
+	      (while (or
+		      (and wisi-string-quote-escape-doubled
+			   (eq (char-after (point)) delim))
+		      (and (eq delim (car wisi-string-quote-escape))
+			   (eq (char-before (1- (point))) (cdr wisi-string-quote-escape))))
+		(forward-sexp))
+	      (setq token-text (buffer-substring-no-properties start (point)))
+	      (setq token-id (if (= delim ?\") wisi-string-double-term wisi-string-single-term)))
+	  (scan-error
+	   ;; Something screwed up; we should not get here if
+	   ;; syntax-propertize works properly. However, we are
+	   ;; getting here in test/ada_mode-interactive_common.adb,
+	   ;; and I can't figure out why. So hard-code a fix for that
+	   ;; case; assume this is an Ada character literal.
+	   (cond
+	    ((= delim ?\')
+	     (setq token-text (buffer-substring-no-properties start (+ 2 start)))
+	     (setq token-id wisi-string-single-term))
+
+	    (t
+	     (error "wisi-forward-token: forward-sexp failed"))))
+	   )))
 
      (t ;; assuming word syntax
       (skip-syntax-forward "w_'")
@@ -331,16 +349,19 @@ wisi-forward-token, but does not look up symbol."
 (defvar-local wisi-parse-try nil
   "Non-nil when parse is needed - cleared when parse succeeds.")
 
-(defvar-local wisi-change-need-invalidate nil)
+(defvar-local wisi-change-need-invalidate nil
+  "When non-nil, buffer position to invalidate from.
+Used in before/after change functions.")
 
-(defvar wisi-end-caches nil
+(defvar-local wisi-end-caches nil
   "List of buffer positions of caches in current statement that need wisi-cache-end set.")
 
 (defun wisi-invalidate-cache(&optional after)
   "Invalidate parsing caches for the current buffer from AFTER to end of buffer.
 Caches are the Emacs syntax cache, the wisi token cache, and the wisi parser cache."
   (interactive)
-  (when (not after)
+  (when (or (not wisi-parse-cache-enable)
+	    (not after))
     (setq after (point-min)))
   (setq wisi-cache-max after)
   (setq wisi-parse-try t)
@@ -365,29 +386,37 @@ Caches are the Emacs syntax cache, the wisi token cache, and the wisi parser cac
       (add-hook 'after-change-functions 'wisi-after-change nil t))
     )
 
-  (save-excursion
-    ;; don't invalidate parse for whitespace, string, or comment changes
-    (let (;; (info "(elisp)Parser State")
-	  (state (syntax-ppss begin)))
-      ;; syntax-ppss has moved point to "begin".
-      (cond
-       ((or
-	 (nth 3 state); in string
-	 (nth 4 state)); in comment
-	;; FIXME: check that entire range is in comment or string
-	(setq wisi-change-need-invalidate nil))
+  (setq wisi-change-need-invalidate nil)
 
-       ((progn
-	  (skip-syntax-forward " " end);; does not skip newline
-	  (eq (point) end))
-	(setq wisi-change-need-invalidate nil))
+  (when (and (> end begin)
+	     (>= wisi-cache-max begin))
+    (save-excursion
+      ;; don't invalidate parse for whitespace, string, or comment changes
+      (let (;; (info "(elisp)Parser State")
+	    (state (syntax-ppss begin)))
+	;; syntax-ppss has moved point to "begin".
+	(cond
+	 ((or
+	   (nth 3 state); in string
+	   (nth 4 state)); in comment
+	  ;; FIXME: check that entire range is in comment or string
+	  )
 
-       (t (setq wisi-change-need-invalidate t))
-       ))))
+	 ((progn
+	    (skip-syntax-forward " " end);; does not skip newline
+	    (eq (point) end)))
+
+	 (t
+	  (setq wisi-change-need-invalidate
+		(progn
+		  (wisi-goto-statement-start)
+		  (point))))
+	 ))))
+  )
 
 (defun wisi-after-change (begin end length)
   "For `after-change-functions'."
-  ;; begin . end is range of text being inserted (may be empty)
+  ;; begin . end is range of text being inserted (empty if equal)
 
   ;; (syntax-ppss-flush-cache begin) is in before-change-functions
 
@@ -401,14 +430,14 @@ Caches are the Emacs syntax cache, the wisi token cache, and the wisi parser cac
     ;; from before the failed parse (or another buffer), and are in
     ;; any case invalid.
     (with-silent-modifications
-      (remove-text-properties begin end '(wisi-cache)))
+      (remove-text-properties begin end '(wisi-cache wisi-parse-cache)))
     )
 
    ((>= wisi-cache-max begin)
     ;; The parse had succeeded past the start of the inserted
     ;; text.
     (save-excursion
-      (let ((need-invalidate t)
+      (let (need-invalidate
 	    ;; (info "(elisp)Parser State")
 	    (state (syntax-ppss begin)))
 	;; syntax-ppss has moved point to "begin".
@@ -416,7 +445,10 @@ Caches are the Emacs syntax cache, the wisi token cache, and the wisi parser cac
 	 (wisi-change-need-invalidate
 	  ;; wisi-before change determined the removed text alters the
 	  ;; parse
-	  nil)
+	  (setq need-invalidate wisi-change-need-invalidate))
+
+	 ((= end begin)
+	  (setq need-invalidate nil))
 
 	 ((or
 	   (nth 3 state); in string
@@ -433,17 +465,16 @@ Caches are the Emacs syntax cache, the wisi token cache, and the wisi parser cac
 	    (eq (point) end))
 	  (setq need-invalidate nil))
 
-	 (t nil)
+	 (t
+	  (setq need-invalidate begin))
 	 )
 
 	(if need-invalidate
 	    ;; The inserted or deleted text could alter the parse;
 	    ;; wisi-invalidate-cache removes all 'wisi-cache.
-	    (wisi-invalidate-cache begin)
+	    (wisi-invalidate-cache need-invalidate)
 
-	  ;; else move cache-max by the net change length. We don't
-	  ;; need to delete 'wisi-cache in the inserted text, because
-	  ;; if there were any it would not pass the above.
+	  ;; else move cache-max by the net change length.
 	  (setq wisi-cache-max
 		(+ wisi-cache-max (- end begin length))))
 	)
@@ -451,9 +482,9 @@ Caches are the Emacs syntax cache, the wisi token cache, and the wisi parser cac
 
    (t
     ;; parse never attempted, or only done to before BEGIN. Just
-    ;; remove 'wisi-cache
+    ;; remove caches
     (with-silent-modifications
-      (remove-text-properties begin end '(wisi-cache)))
+      (remove-text-properties begin end '(wisi-cache 'wisi-parse-cache)))
     )
   ))
 
@@ -476,11 +507,17 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
 (defun wisi-show-parse-error ()
   "Show last wisi-parse error."
   (interactive)
-  (if wisi-parse-failed
-      (progn
-	(message wisi-parse-error-msg)
-	(wisi-goto-error))
-    (message "parse succeeded")))
+  (cond
+   (wisi-parse-failed
+    (message wisi-parse-error-msg)
+    (wisi-goto-error))
+
+   (wisi-parse-try
+    (message "need parse"))
+
+   (t
+    (message "parse succeeded"))
+   ))
 
 (defun wisi-validate-cache (pos)
   "Ensure cached data is valid at least up to POS in current buffer."
@@ -946,7 +983,16 @@ Return start cache."
 (defun wisi-goto-end-1 (cache)
   (goto-char (1- (wisi-cache-end cache))))
 
-(defun wisi-goto-end ()
+(defun wisi-goto-statement-start ()
+  "Move point to token at start of statement point is in or after."
+  (interactive)
+  (wisi-validate-cache (point-max))
+  (let ((cache (wisi-get-cache (point))))
+    (unless cache
+      (setq cache (wisi-backward-cache)))
+    (wisi-goto-start cache)))
+
+(defun wisi-goto-statement-end ()
   "Move point to token at end of statement point is in or before."
   (interactive)
   (wisi-validate-cache (point-max))

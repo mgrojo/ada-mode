@@ -1656,10 +1656,10 @@ In particular, character constants are set to have string syntax."
 	       "\\|\\(--\\)"; 4: comment start
 	       )
 	      end t)
-	;; The help for syntax-propertize-extend-region-functions
-	;; implies that 'start end' will always include whole lines, in
-	;; which case we don't need
-	;; syntax-propertize-extend-region-functions
+	;; syntax-propertize-extend-region-functions is set to
+	;; syntax-propertize-wholelines by default. We assume no
+	;; coding standard will permit a character literal at the
+	;; start of a line (not preceded by whitespace).
 	(cond
 	 ((match-beginning 1)
 	  (put-text-property

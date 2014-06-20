@@ -19,13 +19,13 @@ run test from emacs -Q using source:
 (progn
   (add-to-list 'exec-path "/apps/GNAT-7.1.2/bin")
   (setenv "PATH" (mapconcat 'identity  exec-path  path-separator))
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode")
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode/build")
+  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-1")
+  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-1/build")
   (setq debug-on-error t)
   (load "autoloads.el")
   (load "run-indent-test-wisi")
-  (setq default-directory "/Projects/org.emacs.ada-mode/build/wisi/")
-  (run-test "../../test/ada_mode-find_file.adb"))
+  (setq default-directory "/Projects/org.emacs.ada-mode.stephe-1/build/wisi/")
+  (run-test "../../test/ada_mode-interactive_common.adb"))
 
 install packages in -Q:
 (progn
@@ -42,8 +42,45 @@ doc changes in NEWS-ada-mode.text NEWS-wisi.text
 cache the parser state at various points in the file
     org.emacs.ada-mode.stephe-1
 
+    run all tests
+        test/ada_mode-interactive_common.adb failing
+            indentation
+            'procedure' in Proc_1 lost container marker!
+            before (indent-code-rigidly -1)
+
+        set edebug in run-test-here; problem goes away!
+        parse fails in jit-lock; 'z' syntax problem
+            fails before setting container
+
+        wisi-forward-token must handle missing close quote nicely?
+            at least report it as a parse fail, not silently ignore it
+            but it won't have string syntax if there is no close!
+            add debug; syntax-class is correct!
+
+        turn off global-font-lock; still get error
+            now leaves syntax incorrect!
+            ada-syntax-propertize doesn't fix it?!
+            bug in regexp
+                if start is on leading quote, not recognized
+                syntax-propertize-extend-region-functions is set to (syntax-propertize-wholelines)
+                verbosity in ada-syn-prop shows only whole lines, but also screws up something
+
+                delete requirement for preceding char in regexp
+
+
+    propagate to o.e.a
+
+    preserve caches after edit region
+
+    handle more than one edited region
+        merge into one for now
+        wisi-invalid-region?
+
     test/debug.adb
+        cache at 10004 line 225
+
     test/gnatcoll-projects.adb
+
     (time-it 'wisi-parse-buffer 1)
 
     (goto-line 4300)
@@ -58,10 +95,6 @@ cache the parser state at various points in the file
         more, from bob : 1.591000, 1.514, 1.513
         more, (wisi-invalidate-cache 143792) : 0.749
 
-cache at 10004 line 225
-
-stage 2: preserve caches after edit region
-    org.emacs.ada-mode.stephe-1
 
 parsing is noticeably slow
     /apps/GNAT-7.2.1/gnatcoll-1.6-src/src/gnatcoll-projects.adb

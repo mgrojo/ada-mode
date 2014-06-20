@@ -99,11 +99,11 @@
     (goto-char (point-min))
     (if debug-on-error
 	;; let 'debug-on-error' work
-	(wisi-parse parse-table 'wisi-forward-token)
+	(wisi-parse (point-min) parse-table 'wisi-forward-token)
 
       ;; not debug
       (condition-case err
-	  (wisi-parse parse-table 'wisi-forward-token)
+	  (wisi-parse (point-min) parse-table 'wisi-forward-token)
         ;; parse action must set wisi-test-success t
 	(error
 	 (setq wisi-test-success

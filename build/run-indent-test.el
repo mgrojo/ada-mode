@@ -43,9 +43,10 @@
     ;;    Executes the lisp form inside a save-excursion, saves the result as a lisp object.
     ;;
     ;; --EMACSRESULT: <form>
-    ;;    <form> is evaluated inside save-excursion and compared
-    ;;    (using `equal') with the result of the previous EMACSCMD,
-    ;;    and the test fails if they don't match.
+    ;;    point is moved to end of line, <form> is evaluated inside
+    ;;    save-excursion and compared (using `equal') with the result
+    ;;    of the previous EMACSCMD, and the test fails if they don't
+    ;;    match.
 
     (goto-char (point-min))
     (while (and (not skip-cmds)
@@ -77,7 +78,7 @@
 
        ((string= (match-string 1) "RESULT")
 	(looking-at ".*$")
-	(setq expected-result (save-excursion (eval (car (read-from-string (match-string 0))))))
+	(setq expected-result (save-excursion (end-of-line 1) (eval (car (read-from-string (match-string 0))))))
 	(unless (equal expected-result last-result)
 	  ;; we don't abort here, so we can see all errors at once
 	  (setq error-p t)
@@ -109,7 +110,7 @@
     ;; would pass, otherwise!  Only unindent by 1 column, so comments
     ;; not currently in column 0 are still not in column 0, in case
     ;; the mode supports a special case for comments in column 0.
-    (indent-code-rigidly (point-min) (point-max) -1)
+    (indent-rigidly (point-min) (point-max) -1)
 
     ;; indent-region uses save-excursion, so we can't goto an error location
     (indent-region (point-min) (point-max))
