@@ -22,10 +22,12 @@ run test from emacs -Q using source:
   (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-1")
   (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-1/build")
   (setq debug-on-error t)
+;  (global-font-lock-mode -1)
   (load "autoloads.el")
   (load "run-indent-test-wisi")
   (setq default-directory "/Projects/org.emacs.ada-mode.stephe-1/build/wisi/")
-  (run-test "../../test/ada_mode-interactive_common.adb"))
+  (run-test "../../test/ada_mode-interactive_common.adb")
+  (ada-wisi-debug-keys))
 
 install packages in -Q:
 (progn
@@ -44,29 +46,19 @@ cache the parser state at various points in the file
 
     run all tests
         test/ada_mode-interactive_common.adb failing
-            indentation
-            'procedure' in Proc_1 lost container marker!
-            before (indent-code-rigidly -1)
+            only with font-lock mode enabled?!
 
-        set edebug in run-test-here; problem goes away!
-        parse fails in jit-lock; 'z' syntax problem
-            fails before setting container
+            add verbosity on wisi-parse-try
 
-        wisi-forward-token must handle missing close quote nicely?
-            at least report it as a parse fail, not silently ignore it
-            but it won't have string syntax if there is no close!
-            add debug; syntax-class is correct!
+            now we have wisi-cache-max = point-max after test, with font-lock, but indent is wrong!
 
-        turn off global-font-lock; still get error
-            now leaves syntax incorrect!
-            ada-syntax-propertize doesn't fix it?!
-            bug in regexp
-                if start is on leading quote, not recognized
-                syntax-propertize-extend-region-functions is set to (syntax-propertize-wholelines)
-                verbosity in ada-syn-prop shows only whole lines, but also screws up something
+            add verbosity in indent
 
-                delete requirement for preceding char in regexp
+            skip indent, case tests, investigate state
 
+            class of procedure is statement-other; should be statement-start
+                don't execute actions before wisi-cache-max
+                Proc_1 still wrong
 
     propagate to o.e.a
 
@@ -133,10 +125,9 @@ parsing is noticeably slow
         not parsed on open; start of buffer doesn't require syntax propertize?
         happens on scroll to end
 
-use condition-case-unless-debug instead of 'if debug-on-error'
-need motion-action on package body
-
 ftp://alpha.gnu.org/gnu/emacs/pretest/emacs-24.3.91.tar.xz
+    better compile trunk, emacs-24 branch
+    (dvc-status-one "/Projects/emacs/trunk")
 
 gpr-skel.el
     ./gpr-skel.el:111:;; FIXME: code below should be in skeleton.el

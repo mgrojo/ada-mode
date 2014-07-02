@@ -11,7 +11,7 @@ procedure Ada_Mode.Interactive_Common
 is
    -- newline at start of comment; indent-according-to-mode is called with the comment text exposed!
    --EMACSCMD:(progn (forward-line 2)(back-to-indentation)(forward-char 2) (comment-indent-new-line)(indent-for-tab-command)wisi-cache-max)
-   --EMACSRESULT:(point-max)
+   --EMACSRESULT:(progn (end-of-line 3)(- (point) 2))
    --
    --is; used to cause an unrecognized "is"
    --EMACSCMD:(progn (forward-line -2)(kill-line 1))

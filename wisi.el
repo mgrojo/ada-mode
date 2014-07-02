@@ -25,7 +25,7 @@
 
 ;;; Commentary:
 
-;;;; History: first experimental version Oct 2012
+;;;; History: see NEWS-wisi.text
 ;;
 ;;;; indentation algorithm overview
 ;;
@@ -130,6 +130,15 @@
 ;; `forward-comment', `skip-syntax-forward', and `scan-sexp'.  We wrap
 ;; that in functions that return tokens in the form wisi-parse
 ;; expects.
+;;
+;;;; lexer
+;;
+;; The lexer is `wisi-forward-token'. It relies on syntax properties,
+;; so syntax-propertize must be called on the to be lexed before
+;; wisi-forward-token is called. In general, it is hard to determine
+;; an appropriate end-point for syntax-propertize, other than
+;; point-max. So we call (syntax-propertize point-max) in wisi-setup,
+;; and also call syntax-propertize in wisi-after-change.
 ;;
 ;;;; code style
 ;;
@@ -237,18 +246,9 @@ If at end of buffer, returns `wisent-eoi-term'."
 	      (setq token-id (if (= delim ?\") wisi-string-double-term wisi-string-single-term)))
 	  (scan-error
 	   ;; Something screwed up; we should not get here if
-	   ;; syntax-propertize works properly. However, we are
-	   ;; getting here in test/ada_mode-interactive_common.adb,
-	   ;; and I can't figure out why. So hard-code a fix for that
-	   ;; case; assume this is an Ada character literal.
-	   (cond
-	    ((= delim ?\')
-	     (setq token-text (buffer-substring-no-properties start (+ 2 start)))
-	     (setq token-id wisi-string-single-term))
-
-	    (t
-	     (error "wisi-forward-token: forward-sexp failed"))))
-	   )))
+	   ;; syntax-propertize works properly.
+	   (error "wisi-forward-token: forward-sexp failed %s" err)
+	   ))))
 
      (t ;; assuming word syntax
       (skip-syntax-forward "w_'")
@@ -338,9 +338,6 @@ wisi-forward-token, but does not look up symbol."
   end ;; marker at token at end of current statement
   )
 
-(defvar-local wisi-cache-max 0
-  "Maximimum position in buffer where wisi token cache is valid.")
-
 (defvar-local wisi-parse-table nil)
 
 (defvar-local wisi-parse-failed nil
@@ -419,6 +416,8 @@ Caches are the Emacs syntax cache, the wisi token cache, and the wisi parser cac
   ;; begin . end is range of text being inserted (empty if equal)
 
   ;; (syntax-ppss-flush-cache begin) is in before-change-functions
+
+  (syntax-propertize end) ;; see comments above on "lexer" re syntax-propertize
 
   (cond
    (wisi-parse-failed
@@ -1050,9 +1049,7 @@ of CACHE with class statement-start or block-start."
 
 (defun wisi-indent-statement ()
   "Indent region given by `wisi-goto-start' on cache at or before point, then wisi-cache-end."
-  ;; force reparse, in case parser got confused
-  (let ((wisi-parse-try t))
-    (wisi-validate-cache (point)))
+  (wisi-validate-cache (point))
 
   (save-excursion
     (let ((cache (or (wisi-get-cache (point))
@@ -1090,26 +1087,33 @@ correct. Must leave point at indentation of current line.")
   (interactive)
 
   (let* ((savep (point))
-	 (indent
-	  (or (save-excursion
-		(wisi-validate-cache (point))
-		(back-to-indentation)
-		(when (>= (point) savep) (setq savep nil))
-		(if wisi-parse-failed
-		    (progn
-		      ;; parse failed. Assume user is editing; indent to previous line, fix it after parse succeeds
-		      (setq wisi-indent-failed t)
-		      (forward-line -1);; safe at bob
-		      (back-to-indentation)
-		      (current-column))
+	 indent)
+    (save-excursion
+      (back-to-indentation)
+      (when (>= (point) savep) (setq savep nil))
 
-		  ;; else parse succeeded
-		  (when wisi-indent-failed
-		    (setq wisi-indent-failed nil)
-		    (run-hooks 'wisi-post-parse-fail-hook))
-		  (with-demoted-errors
-		    (or (run-hook-with-args-until-success 'wisi-indent-calculate-functions) 0))
-		  )))))
+      (when (> (point) wisi-cache-max)
+	(wisi-validate-cache (point))
+	(when (and (not wisi-parse-failed)
+		   wisi-indent-failed)
+	  (setq wisi-indent-failed nil)
+	  (run-hooks 'wisi-post-parse-fail-hook)))
+
+      (if (> (point) wisi-cache-max)
+	  (progn
+	    ;; no indent info at point. Assume user is
+	    ;; editing; indent to previous line, fix it
+	    ;; after parse succeeds
+	    (setq wisi-indent-failed t)
+	    (forward-line -1);; safe at bob
+	    (back-to-indentation)
+	    (setq indent (current-column)))
+
+	(setq indent
+	      (with-demoted-errors
+		(or (run-hook-with-args-until-success 'wisi-indent-calculate-functions) 0))
+	      )))
+
     (if savep
 	;; point was inside line text; leave it there
 	(save-excursion (indent-line-to indent))
@@ -1184,8 +1188,7 @@ correct. Must leave point at indentation of current line.")
   (add-hook 'before-change-functions 'wisi-before-change nil t)
   (add-hook 'after-change-functions 'wisi-after-change nil t)
 
-  ;; WORKAROUND: sometimes the first time font-lock is run,
-  ;; syntax-propertize is not run properly, so we run it here
+  ;; see comments on "lexer" above re syntax-propertize
   (syntax-propertize (point-max))
 
   (wisi-invalidate-cache)

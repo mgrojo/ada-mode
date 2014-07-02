@@ -29,6 +29,28 @@
 (require 'cl-lib)
 (require 'semantic/wisent)
 
+(defvar wisi-parse-max-parallel 15
+  "Maximum number of parallel parsers for acceptable performance.
+If a file needs more than this, it's probably an indication that
+the grammar is excessively redundant.")
+
+(defvar wisi-parse-max-parallel-current (cons 0 0)
+  "Cons (count . point); Maximum number of parallel parsers used in most recent parse,
+point at which that max was spawned.")
+
+(defvar wisi-debug 0
+  "wisi debug mode:
+0 : normal - ignore parse errors, for indenting new code
+1 : report parse errors (for running tests)
+2 : show parse states, position point at parse errors, debug-on-error works in parser
+3 : also show top 10 items of parser stack.")
+
+(defvar wisi-parse-cache-enable t
+  "If non-nil, use cached parse states to speed parse after edit.")
+
+(defconst wisi-parse-cache-interval 10000
+  "Minimum chars between parser caches.")
+
 (cl-defstruct (wisi-parser-state
 	    (:copier nil))
   label ;; integer identifying parser for debug
@@ -70,27 +92,8 @@
      'error-message
      "wisi parse error")
 
-(defvar wisi-parse-max-parallel 15
-  "Maximum number of parallel parsers for acceptable performance.
-If a file needs more than this, it's probably an indication that
-the grammar is excessively redundant.")
-
-(defvar wisi-parse-max-parallel-current (cons 0 0)
-  "Cons (count . point); Maximum number of parallel parsers used in most recent parse,
-point at which that max was spawned.")
-
-(defvar wisi-debug 0
-  "wisi debug mode:
-0 : normal - ignore parse errors, for indenting new code
-1 : report parse errors (for running tests)
-2 : show parse states, position point at parse errors, debug-on-error works in parser
-3 : also show top 10 items of parser stack.")
-
-(defvar wisi-parse-cache-enable t
-  "If non-nil, use cached parse states to speed parse after edit.")
-
-(defconst wisi-parse-cache-interval 10000
-  "Minimum chars between parser caches.")
+(defvar-local wisi-cache-max 0
+  "Maximimum position in buffer where wisi-cache text properties are valid.")
 
 (defun wisi-parse-cache-set (parser-state)
   "Store PARSER-STATE in a `wisi-parse-cache' text property at point."
@@ -496,6 +499,16 @@ the first and last tokens of the nonterminal."
        (t (setq i j))))
     (and start end (cons start end))))
 
+(defun wisi-parse-max-pos (tokens)
+  "Return max position in tokens."
+  (let ((result 0))
+    (mapc
+     (lambda (token)
+       (when (cl-cdddr token)
+	 (setq result (max (cl-cdddr token) result))))
+     tokens)
+    result))
+
 (defun wisi-parse-reduce (action parser-state pendingp gotos)
   "Reduce PARSER-STATE.stack, and execute or pend ACTION."
   (let* ((stack (wisi-parser-state-stack parser-state)); reference
@@ -524,7 +537,15 @@ the first and last tokens of the nonterminal."
 			  (list (list (nth 1 action) tokens))))
 	  (setf (wisi-parser-state-pending parser-state)
 		(list (list (nth 1 action) tokens))))
-      (funcall (nth 1 action) tokens))
+
+      ;; Not pending. Execute actions if past wisi-cache-max. We don't
+      ;; execute actions before wisi-cache-max, because later actions
+      ;; can update existing caches, and if the parse fails that won't
+      ;; happen. It also saves time.
+      (when (or (not wisi-parse-cache-enable)
+		(>= (wisi-parse-max-pos tokens) wisi-cache-max))
+
+	(funcall (nth 1 action) tokens)))
     ))
 
 (provide 'wisi-parse)
