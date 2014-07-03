@@ -45,20 +45,6 @@ cache the parser state at various points in the file
     org.emacs.ada-mode.stephe-1
 
     run all tests
-        test/ada_mode-interactive_common.adb failing
-            only with font-lock mode enabled?!
-
-            add verbosity on wisi-parse-try
-
-            now we have wisi-cache-max = point-max after test, with font-lock, but indent is wrong!
-
-            add verbosity in indent
-
-            skip indent, case tests, investigate state
-
-            class of procedure is statement-other; should be statement-start
-                don't execute actions before wisi-cache-max
-                Proc_1 still wrong
 
     propagate to o.e.a
 

@@ -395,15 +395,22 @@ nil, 'shift, or 'accept."
   (while pending
     (when (> wisi-debug 1) (message "%s" (car pending)))
 
-    (cond
-     ((and (>= emacs-major-version 24)
-	   (>= emacs-minor-version 3))
-      (apply (pop pending)))
+    ;; Execute actions if past wisi-cache-max. See comments in
+    ;; wisi-parse-reduce for rationale.
+    (let ((func-args (pop pending)))
+      (if (or (not wisi-parse-cache-enable)
+	      (>= (wisi-parse-max-pos (cdr func-args)) wisi-cache-max))
+	  (cond
+	   ((and (>= emacs-major-version 24)
+		 (>= emacs-minor-version 3))
+	    (apply func-args))
 
-     (t
-      (let ((func-args (pop pending)))
-	(apply (car func-args) (cdr func-args))))
-     )))
+	   (t
+	    (apply (car func-args) (cdr func-args)))
+	   )
+
+	(when (> wisi-debug 1) (message "... action skipped"))
+	))))
 
 (defun wisi-parse-1 (token parser-state pendingp actions gotos)
   "Perform one shift or reduce on PARSER-STATE.
@@ -541,11 +548,14 @@ the first and last tokens of the nonterminal."
       ;; Not pending. Execute actions if past wisi-cache-max. We don't
       ;; execute actions before wisi-cache-max, because later actions
       ;; can update existing caches, and if the parse fails that won't
-      ;; happen. It also saves time.
-      (when (or (not wisi-parse-cache-enable)
-		(>= (wisi-parse-max-pos tokens) wisi-cache-max))
+      ;; happen. It also saves time. This logic must match
+      ;; wisi-execute-pending.
+      (if (or (not wisi-parse-cache-enable)
+	      (>= (wisi-parse-max-pos tokens) wisi-cache-max))
 
-	(funcall (nth 1 action) tokens)))
+	  (funcall (nth 1 action) tokens)
+	(when (> wisi-debug 1) (message "... action skipped"))
+	))
     ))
 
 (provide 'wisi-parse)
