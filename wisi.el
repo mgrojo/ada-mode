@@ -357,15 +357,20 @@ Used in before/after change functions.")
   "Invalidate parsing caches for the current buffer from AFTER to end of buffer.
 Caches are the Emacs syntax cache, the wisi token cache, and the wisi parser cache."
   (interactive)
-  (when (or (not wisi-parse-cache-enable)
-	    (not after))
-    (setq after (point-min)))
+  (if (or (not wisi-parse-cache-enable)
+	  (not after))
+      (setq after (point-min))
+    (setq after
+	(save-excursion
+	  (goto-char after)
+	  (line-beginning-position))))
+  (when (> wisi-debug 0) (message "wisi-invalidate %s:%d" (current-buffer) after))
   (setq wisi-cache-max after)
   (setq wisi-parse-try t)
   (setq wisi-end-caches nil)
   (syntax-ppss-flush-cache after)
   (with-silent-modifications
-    (remove-text-properties after (point-max) '(wisi-cache wisi-parse-cache))))
+    (remove-text-properties after (point-max) '(wisi-cache nil wisi-parse-cache nil))))
 
 (defun wisi-before-change (begin end)
   "For `before-change-functions'."
@@ -921,7 +926,7 @@ If LIMIT (a buffer position) is reached, throw an error."
   "If not at a cached token, move forward to next
 cache. Otherwise move to cache-next, or next cache if nil.
 Return cache found."
-  (wisi-validate-cache (point-max))
+  (wisi-validate-cache (point-max)) ;; ensure there is a next cache to move to
   (let ((cache (wisi-get-cache (point))))
     (if cache
 	(let ((next (wisi-cache-next cache)))
@@ -937,7 +942,7 @@ Return cache found."
 (defun wisi-backward-statement-keyword ()
   "If not at a cached token, move backward to prev
 cache. Otherwise move to cache-prev, or prev cache if nil."
-  (wisi-validate-cache (point-max))
+  (wisi-validate-cache (point))
   (let ((cache (wisi-get-cache (point))))
     (if cache
 	(let ((prev (wisi-cache-prev cache)))
@@ -985,7 +990,7 @@ Return start cache."
 (defun wisi-goto-statement-start ()
   "Move point to token at start of statement point is in or after."
   (interactive)
-  (wisi-validate-cache (point-max))
+  (wisi-validate-cache (point))
   (let ((cache (wisi-get-cache (point))))
     (unless cache
       (setq cache (wisi-backward-cache)))
@@ -994,7 +999,7 @@ Return start cache."
 (defun wisi-goto-statement-end ()
   "Move point to token at end of statement point is in or before."
   (interactive)
-  (wisi-validate-cache (point-max))
+  (wisi-validate-cache (point))
   (let ((cache (or (wisi-get-cache (point))
 		   (wisi-forward-cache))))
     (when (wisi-cache-end cache)

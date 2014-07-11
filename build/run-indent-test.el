@@ -47,10 +47,13 @@
     ;;    save-excursion and compared (using `equal') with the result
     ;;    of the previous EMACSCMD, and the test fails if they don't
     ;;    match.
+    ;;
+    ;; --EMACSDEBUG: <form>
+    ;;    Eval form, display result. Also used for setting breakpoint.
 
     (goto-char (point-min))
     (while (and (not skip-cmds)
-		(re-search-forward "--EMACS\\(CMD\\|RESULT\\):" nil t))
+		(re-search-forward "--EMACS\\(CMD\\|RESULT\\|DEBUG\\):" nil t))
       (cond
        ((string= (match-string 1) "CMD")
 	(looking-at ".*$")
@@ -84,12 +87,19 @@
 	  (setq error-p t)
 	  (message
 	   (concat
-	    (buffer-file-name) ":" (format "%d" (count-lines (point-min) (point))) ":\n"
+	    (format "error: %s:%d:\n" (buffer-file-name) (line-number-at-pos))
 	    (format "Result of '%s' does not match.\nGot    '%s',\nexpect '%s'"
 		    last-cmd
 		    last-result
 		    expected-result)
 	    ))))
+
+       ((string= (match-string 1) "DEBUG")
+	(looking-at ".*$")
+	(message "DEBUG: %s:%d %s"
+		 (current-buffer)
+		 (line-number-at-pos)
+		 (eval (car (read-from-string (match-string 0))))))
 
        (t
 	(setq error-p t)

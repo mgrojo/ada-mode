@@ -17,7 +17,7 @@ run test from emacs -Q using installed elpa:
 
 run test from emacs -Q using source:
 (progn
-  (add-to-list 'exec-path "/apps/GNAT-7.1.2/bin")
+  (add-to-list 'exec-path "/apps/GNAT-7.2.1/bin")
   (setenv "PATH" (mapconcat 'identity  exec-path  path-separator))
   (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-1")
   (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-1/build")
@@ -25,8 +25,9 @@ run test from emacs -Q using source:
 ;  (global-font-lock-mode -1)
   (load "autoloads.el")
   (load "run-indent-test-wisi")
+  (setq wisi-debug 1)
   (setq default-directory "/Projects/org.emacs.ada-mode.stephe-1/build/wisi/")
-  (run-test "../../test/ada_mode-interactive_common.adb")
+  (run-test "../../test/ada_mode-nominal.ads")
   (ada-wisi-debug-keys))
 
 install packages in -Q:
@@ -36,7 +37,7 @@ install packages in -Q:
  (list-packages))
 
  next release
-5.1.b: skeleton refactor/cleanup
+5.1.b:
 build/wisi/Makefile
 build/Makefile
 doc changes in NEWS-ada-mode.text NEWS-wisi.text
@@ -46,23 +47,12 @@ cache the parser state at various points in the file
 
     run all tests
 
+
     propagate to o.e.a
 
-    preserve caches after edit region
+    measure, publish
 
-    handle more than one edited region
-        merge into one for now
-        wisi-invalid-region?
-
-    test/debug.adb
-        cache at 10004 line 225
-
-    test/gnatcoll-projects.adb
-
-    (time-it 'wisi-parse-buffer 1)
-
-    (goto-line 4300)
-    (time-it (lambda () (wisi-validate-cache (1+ wisi-cache-max))) 1)
+    review tests for 'if ada-smie', 'if gnat-inspect'
 
     no caching:
         first: 1.248000
@@ -73,6 +63,21 @@ cache the parser state at various points in the file
         more, from bob : 1.591000, 1.514, 1.513
         more, (wisi-invalidate-cache 143792) : 0.749
 
+
+5.1.c preserve caches after edit region
+
+    handle more than one edited region
+        merge into one for now
+        wisi-invalid-region?
+
+    test/debug.adb
+
+    test/gnatcoll-projects.adb
+
+    (time-it 'wisi-parse-buffer 1)
+
+    (goto-line 4300)
+    (time-it (lambda () (wisi-validate-cache (1+ wisi-cache-max))) 1)
 
 parsing is noticeably slow
     /apps/GNAT-7.2.1/gnatcoll-1.6-src/src/gnatcoll-projects.adb
@@ -111,6 +116,10 @@ parsing is noticeably slow
         not parsed on open; start of buffer doesn't require syntax propertize?
         happens on scroll to end
 
+5.1.x: misc
+
+skeleton refactor/cleanup
+
 ftp://alpha.gnu.org/gnu/emacs/pretest/emacs-24.3.91.tar.xz
     better compile trunk, emacs-24 branch
     (dvc-status-one "/Projects/emacs/trunk")
@@ -128,8 +137,6 @@ move stuff out of ada-mode-keys.el
         skel default to (ada-name-from-file-name (buffer-file-name))?
 
 (grep-find "find . -type f -print | \"xargs\" grep -nH \"FIXME:\"")
-
-5.1.x: misc
 
 C-c C-d on +Normalize_Pathname
     includes + in identifier

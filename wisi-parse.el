@@ -145,12 +145,17 @@ Parsing resumes from first cache before START.
 
 	  (let ((parser-state (get-text-property (point) 'wisi-parse-cache)))
 	    (if parser-state
-		(setf (aref parser-states 0) parser-state)
+		(progn
+		  (setf (wisi-parser-state-stack (aref parser-states 0))
+			(copy-sequence (wisi-parser-state-stack parser-state)))
+		  (setf (wisi-parser-state-sp (aref parser-states 0))
+			(wisi-parser-state-sp parser-state)))
 	      (aset (wisi-parser-state-stack (aref parser-states 0)) 0 0)))
+	  (when (> wisi-debug 0) (message "parse cache %d" parse-cache-last))
 	  )
 
       ;; else start from (point-min)
-      (goto-char parse-cache-last)
+      (goto-char (point-min))
       (aset (wisi-parser-state-stack (aref parser-states 0)) 0 0))
 
     (setq token (funcall lexer))
@@ -268,7 +273,7 @@ Parsing resumes from first cache before START.
 	(when (and (= active-parser-count 1)
 		   (> (point) (+ parse-cache-last wisi-parse-cache-interval)))
 	  ;; IMPROVEME: check for existing parser cache, halt if same state.
-	  (wisi-parse-cache-set (aref  parser-states (wisi-parsers-active-index parser-states)))
+	  (wisi-parse-cache-set (aref parser-states (wisi-parsers-active-index parser-states)))
 	  (setq parse-cache-last (point)))
 
 	(setq token (funcall lexer)))
@@ -293,6 +298,8 @@ PARSER-STATES[*].active is the last action a parser took. If it
 was 'shift, that parser used the input token, and should not be
 executed again until another input token is available, after all
 parsers have shifted the current token or terminated.
+
+Returns one of:
 
 'accept : all PARSER-STATES have active set to nil or 'accept -
 done parsing
@@ -323,7 +330,9 @@ token, execute 'reduce parsers."
       'accept)
      ((= (+ shift-count accept-count) active-count)
       'shift)
-     (t (error "unexpected result in wisi-parsers-active"))
+     (t
+      ;; all parsers in error state; should not get here
+      (error "all parsers in error state; programmer error"))
      )))
 
 (defun wisi-free-parser (parser-states)
@@ -391,26 +400,38 @@ nil, 'shift, or 'accept."
 	)))
   active-parser-count)
 
+(defun wisi-parse-max-pos (tokens)
+  "Return max position in tokens, or point if tokens nil."
+  (let ((result (point)))
+    (mapc
+     (lambda (token)
+       (when (cl-cdddr token)
+	 (setq result (max (cl-cdddr token) result))))
+     tokens)
+    result)
+  )
+
+(defun wisi-parse-exec-action (func tokens)
+  "Execute action if tokens past wisi-cache-max."
+  ;; We don't execute actions before wisi-cache-max, because later
+  ;; actions can update existing caches, and if the parse fails that
+  ;; won't happen. It also saves time.
+  (if (or (not wisi-parse-cache-enable)
+	  (>= (wisi-parse-max-pos tokens) wisi-cache-max))
+
+      (funcall func tokens)
+
+    (when (> wisi-debug 1)
+      (message "... action skipped"))
+    ))
+
 (defun wisi-execute-pending (pending)
   (while pending
     (when (> wisi-debug 1) (message "%s" (car pending)))
 
-    ;; Execute actions if past wisi-cache-max. See comments in
-    ;; wisi-parse-reduce for rationale.
     (let ((func-args (pop pending)))
-      (if (or (not wisi-parse-cache-enable)
-	      (>= (wisi-parse-max-pos (cdr func-args)) wisi-cache-max))
-	  (cond
-	   ((and (>= emacs-major-version 24)
-		 (>= emacs-minor-version 3))
-	    (apply func-args))
-
-	   (t
-	    (apply (car func-args) (cdr func-args)))
-	   )
-
-	(when (> wisi-debug 1) (message "... action skipped"))
-	))))
+      (wisi-parse-exec-action (car func-args) (cadr func-args)))
+    ))
 
 (defun wisi-parse-1 (token parser-state pendingp actions gotos)
   "Perform one shift or reduce on PARSER-STATE.
@@ -506,16 +527,6 @@ the first and last tokens of the nonterminal."
        (t (setq i j))))
     (and start end (cons start end))))
 
-(defun wisi-parse-max-pos (tokens)
-  "Return max position in tokens."
-  (let ((result 0))
-    (mapc
-     (lambda (token)
-       (when (cl-cdddr token)
-	 (setq result (max (cl-cdddr token) result))))
-     tokens)
-    result))
-
 (defun wisi-parse-reduce (action parser-state pendingp gotos)
   "Reduce PARSER-STATE.stack, and execute or pend ACTION."
   (let* ((stack (wisi-parser-state-stack parser-state)); reference
@@ -545,17 +556,9 @@ the first and last tokens of the nonterminal."
 	  (setf (wisi-parser-state-pending parser-state)
 		(list (list (nth 1 action) tokens))))
 
-      ;; Not pending. Execute actions if past wisi-cache-max. We don't
-      ;; execute actions before wisi-cache-max, because later actions
-      ;; can update existing caches, and if the parse fails that won't
-      ;; happen. It also saves time. This logic must match
-      ;; wisi-execute-pending.
-      (if (or (not wisi-parse-cache-enable)
-	      (>= (wisi-parse-max-pos tokens) wisi-cache-max))
-
-	  (funcall (nth 1 action) tokens)
-	(when (> wisi-debug 1) (message "... action skipped"))
-	))
+      ;; Not pending.
+      (wisi-parse-exec-action (nth 1 action) tokens)
+      )
     ))
 
 (provide 'wisi-parse)

@@ -16,7 +16,7 @@
 
 -- Test cache invalidation when inserting code programmatically
 --EMACSCMD:(progn(forward-line 2)(insert "with A;\n") wisi-cache-max)
---EMACSRESULT:(1+ (point))
+--EMACSRESULT:(line-beginning-position 2)
 procedure Ada_Mode.Interactive_Wisi
 is
    -- adding text inside a string does not invalidate cache
@@ -73,7 +73,7 @@ is
 begin
    --  extending block
    --EMACSCMD:(progn (forward-line 4)(kill-line 1)(forward-line 1)(yank) wisi-cache-max)
-   --EMACSRESULT:(+ 4 (point))
+   --EMACSRESULT:(line-beginning-position 2)
    begin -- target extending
       Stuff_2;
    end; -- target extending
