@@ -34,10 +34,18 @@ install packages in -Q:
  (list-packages))
 
  next release
-5.1.b: skeleton refactor/cleanup
+5.1.b:
 build/wisi/Makefile
 build/Makefile
 doc changes in NEWS-ada-mode.text NEWS-wisi.text
+
+http://debbugs.gnu.org/cgi/bugreport.cgi?bug=17583
+    include texi sources - done
+
+    clear execute bits in git
+        git update-index --chmod=-x <file>
+
+ada-goto-end in keys, menu
 
 cache the parser state at various points in the file
     - parsing delay after each edit is much more annoying than initial delay

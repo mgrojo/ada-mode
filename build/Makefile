@@ -58,10 +58,10 @@ pub-ada : force
 	rm -rf ../../elpa/archive
 	mkdir -p ../../elpa/packages/ada-mode
 	rm -f ../../elpa/packages/ada-mode/ada-mode-pkg.el
-	cp ../README ../ada*.el ../ada-*.info ../dir ../ada_license.text ../../elpa/packages/ada-mode
+	cp ../README ../ada*.el ../ada-*.texi ../ada-*.info ../dir ../ada_license.text ../../elpa/packages/ada-mode
 	cp ../NEWS-ada-mode.text ../../elpa/packages/ada-mode/NEWS
 	cp ../gnat*.el ../../elpa/packages/ada-mode
-	cp ../gpr*.el ../gpr-*.info ../../elpa/packages/ada-mode
+	cp ../gpr*.el ../gpr-*.texi ../gpr-*.info ../../elpa/packages/ada-mode
 
 # copy files to ELPA wisi package
 pub-wisi : force
