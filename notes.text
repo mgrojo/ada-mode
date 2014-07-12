@@ -440,12 +440,15 @@ check for ELPA patches by others
     apply changes to current
     (dvc-state-one ".")
 
+check emacs buglist
+    http://debbugs.gnu.org/cgi/pkgreport.cgi?package=ada-mode
+
 bump version
     bump if _any_ changes other than autoloads, so ELPA package handler knows to update
         (list-packages) install ada-mode, wisi from public ELPA
         build/Makefile docs pub-ada pub-wisi
-        (ediff-directories "~/.emacs.d/elpa/wisi-1.0.4" "/Projects/elpa/packages/wisi" nil)
-        (ediff-directories "~/.emacs.d/elpa/ada-mode-5.1.3" "/Projects/elpa/packages/ada-mode" nil)
+        (ediff-directories "~/.emacs.d/elpa/wisi-1.0.5" "/Projects/elpa/packages/wisi" nil)
+        (ediff-directories "~/.emacs.d/elpa/ada-mode-5.1.5" "/Projects/elpa/packages/ada-mode" nil)
 
     wisi.el
         Version:
@@ -469,9 +472,6 @@ verify other metadata
     ada-mode.el
     wisi.el
 
-check emacs buglist, mark fixed
-    http://debbugs.gnu.org/cgi/pkgreport.cgi?package=ada-mode
-
 (list-packages)
     delete old ada-mode, wisi, cl-lib packages
 
@@ -481,7 +481,7 @@ build/Makefile all
 Emacs 24.3, gnat 7.2.1 (sal-standard), installed ada-mode:
     (setenv "ADA_MODE_DIR" "-f package-initialize")
     build/wisi/Makefile all
-        gnatinspect fails on Windows
+        gnatinspect, gpr_query fail on Windows
 
 Emacs 24.2, (gnat-2014):
     /Projects/org.opentoken/build/release/Makefile
@@ -555,5 +555,8 @@ build/Makefile zip
 
 after Gnu ELPA updated, post on emacs-ada-mode mailing list, c.l.a newsgroup
     http://stephe-leake.org/emacs/ada-mode/emacs-ada-mode.html
+
+mark fixed bugs
+    http://debbugs.gnu.org/cgi/pkgreport.cgi?package=ada-mode
 
 -- end of file
