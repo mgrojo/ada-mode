@@ -3,7 +3,7 @@
 --EMACSCMD:(ada-parse-prj-file "subdir/ada_mode.adp")
 --EMACSCMD:(ada-select-prj-file "subdir/ada_mode.adp")
 
--- Since we are editing with ada-align, the syntax will be illegal at times; don't fail for that.
+-- Since we are editing, the syntax will be illegal at times; don't fail for that.
 --EMACSCMD:(setq wisi-debug 0)
 
 with Ada.Text_IO;
@@ -51,7 +51,7 @@ package Ada_Mode.Parens is
    procedure Slice;
 
    --  Test ada-in-paramlist-p in expressions with parens that don't have wisi caches because of a failed parse.
-   --EMACSCMD:(progn (end-of-line 3)(delete-char -1)(forward-word -1)(ada-in-paramlist-p)(end-of-line 1)(insert ";"))
+   --EMACSCMD:(progn (end-of-line 3)(delete-char -1)(forward-word -1)(prog1 (ada-in-paramlist-p)(end-of-line 1)(insert ";")))
    --EMACSRESULT:nil
    A : Integer := 1 + (5 * 3);
 end Ada_Mode.Parens;

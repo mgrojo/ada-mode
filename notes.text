@@ -27,7 +27,7 @@ run test from emacs -Q using source:
   (load "run-indent-test-wisi")
   (setq wisi-debug 1)
   (setq default-directory "/Projects/org.emacs.ada-mode.stephe-1/build/wisi/")
-  (run-test "../../test/ada_mode-nominal.ads")
+  (run-test "../../test/ada_mode-parens.ads")
   (ada-wisi-debug-keys))
 
 install packages in -Q:
@@ -45,8 +45,10 @@ doc changes in NEWS-ada-mode.text NEWS-wisi.text
 cache the parser state at various points in the file
     org.emacs.ada-mode.stephe-1
 
-    run all tests
+    run all tests; passing
 
+    delete end, goto end
+        requires reparse, which fails?
 
     propagate to o.e.a
 

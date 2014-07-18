@@ -402,7 +402,7 @@ nil, 'shift, or 'accept."
 
 (defun wisi-parse-max-pos (tokens)
   "Return max position in tokens, or point if tokens nil."
-  (let ((result (point)))
+  (let ((result (if tokens 0 (point))))
     (mapc
      (lambda (token)
        (when (cl-cdddr token)
