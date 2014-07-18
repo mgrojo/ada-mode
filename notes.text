@@ -34,16 +34,19 @@ install packages in -Q:
  (list-packages))
 
  next release
+waiting on elpa update
+
 5.1.b:
 build/wisi/Makefile
 build/Makefile
 doc changes in NEWS-ada-mode.text NEWS-wisi.text
 
-http://debbugs.gnu.org/cgi/bugreport.cgi?bug=17583
-    include texi sources - done
+doc git/elpa checkout, config
 
-    clear execute bits in git
-        git update-index --chmod=-x <file>
+clear execute bits in git
+    git update-index --chmod=-x <file>
+
+subtitle in ada-mode.texi doesn't appear in .info, .html
 
 ada-goto-end in keys, menu
 
@@ -530,7 +533,7 @@ review NEWS-ada-mode.text, NEWS-wisi.text
     add release date
     (dvc-log)
 
-build/Makefile pub-ada pub-wisi
+build/Makefile docs pub-ada pub-wisi
 
 cd /Projects/elpa
     (dvc-pull "/Projects/elpa")
@@ -558,5 +561,6 @@ after Gnu ELPA updated, post on emacs-ada-mode mailing list, c.l.a newsgroup
 
 mark fixed bugs
     http://debbugs.gnu.org/cgi/pkgreport.cgi?package=ada-mode
+    http://debbugs.gnu.org/Developer.html
 
 -- end of file

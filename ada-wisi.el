@@ -55,18 +55,22 @@
 ;;;; indentation
 
 (defun ada-wisi-current-indentation ()
-  "Return indentation of current line, incremented by 1 if starts with open-paren."
+  "Return indentation appropriate for point on current line:
+if not in paren, beginning of line
+if in paren, pos following paren."
   (if (not (ada-in-paren-p))
       (current-indentation)
 
-    (save-excursion
-      (back-to-indentation)
-      (let ((cache (wisi-get-cache (point))))
-	(if (and cache
-		 (eq 'open-paren (wisi-cache-class cache)))
-	    (1+ (current-column))
-	  (current-column))
-	))))
+    (or
+     (save-excursion
+       (let ((line (line-number-at-pos)))
+	 (ada-goto-open-paren 1)
+	 (when (= line (line-number-at-pos))
+	   (current-column))))
+     (save-excursion
+       (back-to-indentation)
+       (current-column)))
+    ))
 
 (defun ada-wisi-indent-cache (offset cache)
   "Return indentation of OFFSET plus indentation of line containing point. Point must be at CACHE."
@@ -408,6 +412,12 @@ point must be on CACHE. PREV-TOKEN is the token before the one being indented."
 	      ;;      (1.0),
 	      ;;    B => Integer
 	      ;;      (2.0));
+	      ;;
+	      ;; test/ada_mode-parens.adb
+	      ;; Local_12 : Local_11_Type
+	      ;;   := Local_11_Type'(A => Integer
+	      ;;     (1.0),
+	      ;; indenting (1.0)
 	      (+ (ada-wisi-current-indentation) ada-indent-broken))
 
 	     (t
