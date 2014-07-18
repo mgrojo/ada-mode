@@ -19,14 +19,14 @@ run test from emacs -Q using source:
 (progn
   (add-to-list 'exec-path "/apps/GNAT-7.2.1/bin")
   (setenv "PATH" (mapconcat 'identity  exec-path  path-separator))
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-1")
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-1/build")
+  (add-to-list 'load-path "/Projects/org.emacs.ada-mode")
+  (add-to-list 'load-path "/Projects/org.emacs.ada-mode/build")
   (setq debug-on-error t)
 ;  (global-font-lock-mode -1)
   (load "autoloads.el")
   (load "run-indent-test-wisi")
   (setq wisi-debug 1)
-  (setq default-directory "/Projects/org.emacs.ada-mode.stephe-1/build/wisi/")
+  (setq default-directory "/Projects/org.emacs.ada-mode/build/wisi/")
   (run-test "../../test/ada_mode-parens.ads")
   (ada-wisi-debug-keys))
 
@@ -37,22 +37,23 @@ install packages in -Q:
  (list-packages))
 
  next release
+waiting on elpa update
+
 5.1.b:
-build/wisi/Makefile
-build/Makefile
-doc changes in NEWS-ada-mode.text NEWS-wisi.text
+    build/wisi/Makefile
+    build/Makefile
+    doc changes in NEWS-ada-mode.text NEWS-wisi.text
 
-cache the parser state at various points in the file
-    org.emacs.ada-mode.stephe-1
+    doc git/elpa checkout, config
 
-    run all tests; passing
+    clear execute bits in git
+        git update-index --chmod=-x <file>
 
-    delete end, goto end
-        requires reparse, which fails?
+    subtitle in ada-mode.texi doesn't appear in .info, .html
 
-    propagate to o.e.a
+    ada-goto-end in keys, menu
 
-    measure, publish
+    measure speed with/without parser cache
 
     review tests for 'if ada-smie', 'if gnat-inspect'
 
@@ -67,6 +68,7 @@ cache the parser state at various points in the file
 
 
 5.1.c preserve caches after edit region
+    org.emacs.ada-mode.stephe-1
 
     handle more than one edited region
         merge into one for now
@@ -468,12 +470,15 @@ check for ELPA patches by others
     apply changes to current
     (dvc-state-one ".")
 
+check emacs buglist
+    http://debbugs.gnu.org/cgi/pkgreport.cgi?package=ada-mode
+
 bump version
     bump if _any_ changes other than autoloads, so ELPA package handler knows to update
         (list-packages) install ada-mode, wisi from public ELPA
         build/Makefile docs pub-ada pub-wisi
-        (ediff-directories "~/.emacs.d/elpa/wisi-1.0.4" "/Projects/elpa/packages/wisi" nil)
-        (ediff-directories "~/.emacs.d/elpa/ada-mode-5.1.3" "/Projects/elpa/packages/ada-mode" nil)
+        (ediff-directories "~/.emacs.d/elpa/wisi-1.0.5" "/Projects/elpa/packages/wisi" nil)
+        (ediff-directories "~/.emacs.d/elpa/ada-mode-5.1.5" "/Projects/elpa/packages/ada-mode" nil)
 
     wisi.el
         Version:
@@ -497,9 +502,6 @@ verify other metadata
     ada-mode.el
     wisi.el
 
-check emacs buglist, mark fixed
-    http://debbugs.gnu.org/cgi/pkgreport.cgi?package=ada-mode
-
 (list-packages)
     delete old ada-mode, wisi, cl-lib packages
 
@@ -509,7 +511,7 @@ build/Makefile all
 Emacs 24.3, gnat 7.2.1 (sal-standard), installed ada-mode:
     (setenv "ADA_MODE_DIR" "-f package-initialize")
     build/wisi/Makefile all
-        gnatinspect fails on Windows
+        gnatinspect, gpr_query fail on Windows
 
 Emacs 24.2, (gnat-2014):
     /Projects/org.opentoken/build/release/Makefile
@@ -558,7 +560,7 @@ review NEWS-ada-mode.text, NEWS-wisi.text
     add release date
     (dvc-log)
 
-build/Makefile pub-ada pub-wisi
+build/Makefile docs pub-ada pub-wisi
 
 cd /Projects/elpa
     (dvc-pull "/Projects/elpa")
@@ -583,5 +585,9 @@ build/Makefile zip
 
 after Gnu ELPA updated, post on emacs-ada-mode mailing list, c.l.a newsgroup
     http://stephe-leake.org/emacs/ada-mode/emacs-ada-mode.html
+
+mark fixed bugs
+    http://debbugs.gnu.org/cgi/pkgreport.cgi?package=ada-mode
+    http://debbugs.gnu.org/Developer.html
 
 -- end of file
