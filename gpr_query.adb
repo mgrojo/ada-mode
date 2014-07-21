@@ -44,6 +44,7 @@ with GNATCOLL.Utils;
 with GNATCOLL.VFS;
 with GNATCOLL.VFS_Utils;
 with GNATCOLL.Xref;
+with Makeutl;
 with Namet;
 with Prj.Env;
 with Prj.Err;
@@ -55,7 +56,9 @@ procedure Gpr_Query is
 
    Me : constant GNATCOLL.Traces.Trace_Handle := GNATCOLL.Traces.Create ("gpr_query");
 
-   Db_Error : exception;
+   Db_Error        : exception;
+   Invalid_Command : exception;
+   Not_Supported   : exception;
 
    type Os_Type is (Windows, Linux);
    OS : constant Os_Type := (if GNAT.Directory_Operations.Dir_Separator = '/' then Linux else Windows);
@@ -72,7 +75,6 @@ procedure Gpr_Query is
       return String (Item);
    end "+";
 
-   Invalid_Command : exception;
    procedure Process_Line (Line : String);
    --  Process a full line of commands.
    --  Raise Invalid_Command when the command is invalid.
@@ -396,16 +398,21 @@ procedure Gpr_Query is
          Initialize (Prj_Tree);
          Prj.Initialize (Prj_View); -- sets some global vars required for parsing
 
-         --  We need a valid Prj_Env, but we don't need any project
-         --  search path for the aggregate projects we support.
-         --
-         --  However, the full project may need projects from the
-         --  default predefined project path, or from one of the
+         --  We need a valid Prj_Env, with the project
+         --  search path containing the default predefined project path and the
          --  project path environment variables. So we do this here.
-         Prj.Env.Initialize_Default_Project_Path (Prj_Env.Project_Path, Target_Name => "");
+         --
+         --  Note that this relies on getting the .../gnat/bin path
+         --  from the gpr_query command line invocation, so gpr_query
+         --  must be in gnat/bin, and run with the full path.
+         if Makeutl.Executable_Prefix_Path'Length = 0 then
+            Ada.Text_IO.Put_Line ("warning: gpr_query not executed from gnat install dir");
+         end if;
+
+         Prj.Env.Initialize_Default_Project_Path (Prj_Env.Project_Path, Target_Name => "x86-windows");
          Prj.Env.Get_Path (Prj_Env.Project_Path, Project_Path);
-         Prj.Env.Add_Directories
-           (Prj_Env.Project_Path, +To_Path (GNATCOLL.Projects.Predefined_Project_Path (Env.all)));
+
+         Trace (Me, "predefined project path '" & Project_Path.all & "'");
 
          Initialize
            (Prj_Env,
@@ -494,27 +501,70 @@ procedure Gpr_Query is
                procedure Process_Path (Node : in out Project_Node_Id)
                is
                   Expression : Project_Node_Id;
+                  Term       : Project_Node_Id;
                begin
                   Trace (Me, "project path:");
-                  Node := Expression_Of (Node, Prj_Tree); -- kind = N_Expression
-                  Node := First_Term (Node, Prj_Tree); -- kind = N_term
-                  Node := Current_Term (Node, Prj_Tree); -- kind = N_Literal_String_List
+                  Node       := Expression_Of (Node, Prj_Tree);            -- kind = N_Expression
+                  Node       := First_Term (Node, Prj_Tree);               -- kind = N_term
+                  Node       := Current_Term (Node, Prj_Tree);             -- kind = N_Literal_String_List
                   Expression := First_Expression_In_List (Node, Prj_Tree); -- kind = N_Expression
-                  loop
-                     Node := First_Term (Expression, Prj_Tree); -- kind = N_Term
-                     Node := Current_Term (Node, Prj_Tree); -- kind = N_Literal_String
 
+                  All_Paths :
+                  loop
                      declare
-                        Dir : constant String := GNAT.OS_Lib.Normalize_Pathname
-                          (Name      => Get_Name_String (String_Value_Of (Node, Prj_Tree)),
-                           Directory => Prj_Dir);
+                        use Ada.Strings.Unbounded;
+                        Path : Unbounded_String;
                      begin
-                        Trace (Me, Dir);
-                        Prj.Env.Add_Directories (Prj_Env.Project_Path, Dir);
+
+                        Term := First_Term (Expression, Prj_Tree); -- kind = N_Term
+
+                        All_Terms :
+                        loop
+                           Node := Current_Term (Term, Prj_Tree);
+
+                           case Kind_Of (Node, Prj_Tree) is
+                           when N_Literal_String =>
+                              declare
+                                 Dir : constant String := Get_Name_String (String_Value_Of (Node, Prj_Tree));
+                              begin
+                                 Path := Path & Dir;
+                              end;
+
+                           when N_External_Value =>
+                              declare
+                                 Env_Var_Node : constant Project_Node_Id := External_Reference_Of (Node, Prj_Tree);
+
+                                 Env_Var_Name : constant String :=
+                                   Get_Name_String (String_Value_Of (Env_Var_Node, Prj_Tree));
+
+                                 Dir : constant String := Ada.Environment_Variables.Value (Env_Var_Name);
+                              begin
+                                 Path := Path & Dir;
+                              end;
+
+                           when others =>
+                              raise Not_Supported with "node kind " &
+                                Project_Node_Kind'Image (Kind_Of (Node, Prj_Tree)) &
+                                " not supported";
+                           end case;
+
+                           Term := Next_Term (Term, Prj_Tree);
+                           exit All_Terms when Term = Empty_Node;
+                        end loop All_Terms;
+
+                        declare
+                           Norm_Path : constant String := GNAT.OS_Lib.Normalize_Pathname
+                             (Name      => To_String (Path),
+                              Directory => Prj_Dir);
+                        begin
+                           Trace (Me, Norm_Path);
+                           Prj.Env.Add_Directories (Prj_Env.Project_Path, Norm_Path);
+                        end;
                      end;
+
                      Expression := Next_Expression_In_List (Expression, Prj_Tree);
-                     exit when Expression = Empty_Node;
-                  end loop;
+                     exit All_Paths when Expression = Empty_Node;
+                  end loop All_Paths;
                end Process_Path;
 
                Project_Files_Name_Id : constant Name_Id := Find_Name_Id ("project_files");
@@ -918,7 +968,7 @@ begin
       Define_Switch
         (Cmdline,
          Output      => Show_Progress'Access,
-         Long_Switch      => "--display_progress",
+         Long_Switch => "--display_progress",
          Switch      => "-d",
          Help        => "Show progress as LI files are parsed");
       Define_Switch

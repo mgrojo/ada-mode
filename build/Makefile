@@ -101,7 +101,15 @@ install-clean :
 
 GNAT_EXE    := $(shell which gnat)
 INSTALL_BIN := $(dir $(GNAT_EXE))
-EXE_EXT     := $(suffix $(GNAT_EXE))
+
+ifeq ($(shell uname),Linux)
+EXE_EXT :=
+
+else
+# windows
+EXE_EXT := .exe
+
+endif
 
 # '-' means no std .gpr; use gnat_utils from ~/Projects (source debug)
 # set in Emacs for gud-gdb

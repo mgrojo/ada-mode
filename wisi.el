@@ -367,7 +367,6 @@ Caches are the Emacs syntax cache, the wisi token cache, and the wisi parser cac
   (when (> wisi-debug 0) (message "wisi-invalidate %s:%d" (current-buffer) after))
   (setq wisi-cache-max after)
   (setq wisi-parse-try t)
-  (setq wisi-end-caches nil)
   (syntax-ppss-flush-cache after)
   (with-silent-modifications
     (remove-text-properties after (point-max) '(wisi-cache nil wisi-parse-cache nil))))
@@ -392,6 +391,12 @@ Caches are the Emacs syntax cache, the wisi token cache, and the wisi parser cac
 
   (when (and (> end begin)
 	     (>= wisi-cache-max begin))
+
+    (when wisi-parse-failed
+      ;; The parse was failing, probably due to bad syntax; this change
+      ;; may have fixed it, so try reparse.
+      (setq wisi-parse-try t))
+
     (save-excursion
       ;; don't invalidate parse for whitespace, string, or comment changes
       (let (;; (info "(elisp)Parser State")
@@ -435,6 +440,8 @@ Caches are the Emacs syntax cache, the wisi token cache, and the wisi parser cac
     ;; any case invalid.
     (with-silent-modifications
       (remove-text-properties begin end '(wisi-cache wisi-parse-cache)))
+
+    ;; FIXME: move wisi-cache-max to begin
     )
 
    ((>= wisi-cache-max begin)
@@ -533,6 +540,8 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
 
       (setq wisi-parse-try nil)
       (setq wisi-parse-error-msg nil)
+      (setq wisi-end-caches nil)
+
       (save-excursion
 	(if (> wisi-debug 1)
 	    ;; let debugger stop in wisi-parse

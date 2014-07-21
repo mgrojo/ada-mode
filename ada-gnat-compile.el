@@ -330,6 +330,19 @@ Prompt user if more than one."
 	     (insert expected-name))
 	   t)
 
+	  ((looking-at (concat "\"end loop " ada-name-regexp ";\" expected"))
+	   (let ((expected-name (match-string 1)))
+	     (pop-to-buffer source-buffer)
+	     (if (looking-at (concat "end loop " ada-name-regexp ";"))
+		 (progn
+		   (goto-char (match-end 1))   ; just before ';'
+		   (delete-region (match-beginning 1) (match-end 1)))
+	       ;; else we have just 'end loop;'
+	       (forward-word 2)
+	       (insert " "))
+	     (insert expected-name))
+	   t)
+
 	  ((looking-at "expected an access type")
 	   (progn
 	     (set-buffer source-buffer)

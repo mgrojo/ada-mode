@@ -352,9 +352,11 @@ Values defined by cross reference packages.")
     (define-key map "\C-c\C-i" 	 'ada-indent-statement)
     (define-key map "\C-c\C-m"   'ada-build-set-make)
     (define-key map "\C-c\C-n" 	 'ada-next-statement-keyword)
+    (define-key map "\C-c\M-n" 	 'ada-next-placeholder)
     (define-key map "\C-c\C-o" 	 'ada-find-other-file)
     (define-key map "\C-c\M-o" 	 'ada-find-other-file-noset)
     (define-key map "\C-c\C-p" 	 'ada-prev-statement-keyword)
+    (define-key map "\C-c\M-p" 	 'ada-prev-placeholder)
     (define-key map "\C-c\C-q" 	 'ada-xref-refresh)
     (define-key map "\C-c\C-r" 	 'ada-show-references)
     (define-key map "\C-c\M-r" 	 'ada-build-run)
@@ -407,6 +409,8 @@ Values defined by cross reference packages.")
      ["Show overriding"               ada-show-overriding          t]
      ["Show overridden"               ada-show-overridden          t]
      ["Goto prev position"            ada-goto-previous-pos        t]
+     ["Next placeholder"              ada-next-placeholder    t]
+     ["Previous placeholder"          ada-prev-placeholder    t]
      )
     ("Edit"
      ["Expand skeleton"             ada-expand              t]
@@ -514,6 +518,28 @@ Function is called with no arguments.")
   (interactive)
   (when ada-expand
     (funcall ada-expand)))
+
+(defvar ada-next-placeholder nil
+  ;; skeleton function
+  "Function to call to goto next placeholder.")
+
+(defun ada-next-placeholder ()
+  "Goto next placeholder.
+Placeholders are defined by the skeleton backend."
+  (interactive)
+  (when ada-next-placeholder
+    (funcall ada-next-placeholder)))
+
+(defvar ada-prev-placeholder nil
+  ;; skeleton function
+  "Function to call to goto previous placeholder.")
+
+(defun ada-prev-placeholder ()
+  "Goto previous placeholder.
+Placeholders are defined by the skeleton backend."
+  (interactive)
+  (when ada-prev-placeholder
+    (funcall ada-prev-placeholder)))
 
 ;;;; abbrev, align
 
