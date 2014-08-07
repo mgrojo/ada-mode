@@ -385,6 +385,7 @@ Values defined by cross reference packages.")
      ["Find and select project ..."   ada-build-prompt-select-prj-file t]
      ["Select project ..."            ada-prj-select                   t]
      ["Show project"                  ada-prj-show                     t]
+     ["Show project search path"      ada-prj-show-path                t]
     )
     ("Build"
      ["Next compilation error"     next-error                t]
@@ -430,6 +431,7 @@ Values defined by cross reference packages.")
      ["Adjust case at point"        ada-case-adjust-at-point  t]
      ["Adjust case region"          ada-case-adjust-region    t]
      ["Adjust case buffer"          ada-case-adjust-buffer    t]
+     ["Show casing files list"      ada-case-show-files       t]
      )
     ("Misc"
      ["Show last parse error"         ada-show-parse-error         t]
@@ -874,13 +876,25 @@ Each parameter declaration is represented by a list
 
 (defvar ada-case-full-exceptions '()
   "Alist of words (entities) that have special casing, built from
-`ada-case-exception-file' full word exceptions. Indexed by
+project file casing file list full word exceptions. Indexed by
 properly cased word; value is t.")
 
 (defvar ada-case-partial-exceptions '()
   "Alist of partial words that have special casing, built from
-`ada-case-exception-file' partial word exceptions. Indexed by
+project casing files list partial word exceptions. Indexed by
 properly cased word; value is t.")
+
+(defun ada-case-show-files ()
+  "Show current casing files list."
+  (interactive)
+  (if (ada-prj-get 'casing)
+      (progn
+	(pop-to-buffer (get-buffer-create "*casing files*"))
+	(erase-buffer)
+	(dolist (file (ada-prj-get 'casing))
+	  (insert (format "%s\n" file))))
+    (message "no casing files")
+    ))
 
 (defun ada-case-save-exceptions (full-exceptions partial-exceptions file-name)
   "Save FULL-EXCEPTIONS, PARTIAL-EXCEPTIONS to the file FILE-NAME."
@@ -924,6 +938,7 @@ Return (cons full-exceptions partial-exceptions)."
     ;; else file not readable; might be a new project with no
     ;; exceptions yet, so just warn user, return empty pair
     (message "'%s' is not a readable file." file-name)
+    (ding) (sit-for 1)
     '(nil . nil)
     ))
 
@@ -941,7 +956,7 @@ An item in both lists has the RESULT value."
   (setq ada-case-partial-exceptions (ada-case-merge-exceptions ada-case-partial-exceptions (cdr exceptions))))
 
 (defun ada-case-read-all-exceptions ()
-  "Read case exceptions from all files in `ada-case-exception-file',
+  "Read case exceptions from all files in project casing files,
 replacing current values of `ada-case-full-exceptions', `ada-case-partial-exceptions'."
   (interactive)
   (setq ada-case-full-exceptions '()
@@ -1525,9 +1540,6 @@ Return new value of PROJECT."
     project
     ))
 
-(defvar ada-project-search-path nil
-  "Search path for finding Ada project files")
-
 (defvar ada-select-prj-compiler nil
   "Alist of functions to call for compiler specific project file selection.
 Indexed by project variable ada_compiler.")
@@ -1575,7 +1587,6 @@ Indexed by project variable xref_tool.")
   (ada-case-read-all-exceptions)
 
   (setq compilation-search-path (ada-prj-get 'src_dir))
-  (setq ada-project-search-path (ada-prj-get 'prj_dir))
 
   (let ((func (cdr (assq (ada-prj-get 'ada_compiler) ada-select-prj-compiler))))
     (when func (funcall func)))
@@ -1596,6 +1607,16 @@ Indexed by project variable xref_tool.")
   "Show current Emacs Ada mode project file."
   (interactive)
   (message "current Emacs Ada mode project file: %s" ada-prj-current-file))
+
+(defvar ada-prj-show-path nil
+  ;; Supplied by compiler
+  "Function to show project search path used by compiler (and possibly xref tool)."
+  )
+
+(defun ada-prj-show-path ()
+  (interactive)
+  (when ada-prj-show-path
+    (funcall ada-prj-show-path)))
 
 (defvar ada-show-xref-tool-buffer nil
   ;; Supplied by xref tool
@@ -1766,7 +1787,7 @@ found.")
   (funcall ada-file-name-from-ada-name ada-name))
 
 (defvar ada-ada-name-from-file-name nil
-  ;; depends on ada-compiler, per-project
+  ;; supplied by compiler
   "Function called with one parameter FILE-NAME, which is a library
 unit name; it should return the Ada name that should be found in FILE-NAME.")
 
@@ -1981,7 +2002,7 @@ the other file."
 
 (defun ada-identifier-at-point ()
   "Return the identifier around point, move point to start of
-identifier.  May be an Ada identifier or operator function name."
+identifier.  May be an Ada identifier or operator."
 
   (when (ada-in-comment-p)
     (error "Inside comment"))
@@ -1990,7 +2011,8 @@ identifier.  May be an Ada identifier or operator function name."
 
     (skip-chars-backward "a-zA-Z0-9_<>=+\\-\\*/&")
 
-    ;; Just in front of, or inside, a string => we could have an operator
+    ;; Just in front of, or inside, a string => we could have an
+    ;; operator function declaration.
     (cond
      ((ada-in-string-p)
       (cond
@@ -2009,7 +2031,7 @@ identifier.  May be an Ada identifier or operator function name."
 	   (looking-at (concat "\"\\(" ada-operator-re "\\)\"")))
       (setq identifier (concat "\"" (match-string-no-properties 1) "\"")))
 
-     ((looking-at "[a-zA-Z0-9_]+")
+     ((looking-at "[a-zA-Z0-9_]+\\|[+\\-*/&=<>]")
       (setq identifier (match-string-no-properties 0)))
 
      (t
@@ -2121,18 +2143,18 @@ buffer in another window."
   (when (null ada-xref-other-function)
     (error "no cross reference information available"))
 
-    (let ((target
-	   (funcall ada-xref-other-function
-		    (ada-identifier-at-point)
-		    (buffer-file-name)
-		    (line-number-at-pos)
-		    (1+ (current-column))
-		    )))
+  (let ((target
+	 (funcall ada-xref-other-function
+		  (ada-identifier-at-point)
+		  (buffer-file-name)
+		  (line-number-at-pos)
+		  (1+ (current-column))
+		  )))
 
-      (ada-goto-source (nth 0 target)
-		       (nth 1 target)
-		       (nth 2 target)
-		       other-window)
+    (ada-goto-source (nth 0 target)
+		     (nth 1 target)
+		     (nth 2 target)
+		     other-window)
     ))
 
 (defvar ada-xref-parent-function nil

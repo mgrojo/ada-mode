@@ -145,7 +145,7 @@ This could end in a token recognized by `ada-skel-expand'."
 (define-skeleton ada-skel-for
   "Insert a for loop statement with an optional name (from `str')."
   ()
-  str & ":\n"
+  str & " :\n"
   "for " _ " loop\n"
   "end loop " str | -1 ";")
 

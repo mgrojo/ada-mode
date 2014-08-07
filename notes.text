@@ -37,14 +37,14 @@ install packages in -Q:
  (list-packages))
 
  next release
-waiting on elpa update
-
 5.1.b:
     build/wisi/Makefile
     build/Makefile
     doc changes in NEWS-ada-mode.text NEWS-wisi.text
 
     FIXMEs in wisi.el, wisi-parse.el
+        wisi-end-caches must be markers if cached
+        what happens to cached markers that point to text that is deleted?
 
     doc git/elpa checkout, config
 
@@ -53,20 +53,12 @@ waiting on elpa update
 
     subtitle in ada-mode.texi doesn't appear in .info, .html
 
+    don't do syntax-propertize for font-lock, unless parsing is already done
+        triggered by 'return' keyword; see ada-wisi.el ada-wisi-post-local-vars
+
     ada-goto-end in keys, menu
 
-    measure speed with/without parser cache
-
     review tests for 'if ada-smie', 'if gnat-inspect'
-
-    no caching:
-        first: 1.248000
-        more : 1.591000
-
-    start cache only:
-        first: 1.232000, 1.233, 1.232
-        more, from bob : 1.591000, 1.514, 1.513
-        more, (wisi-invalidate-cache 143792) : 0.749
 
     DB : Database_Access := new Books.Database.Database (Config);
         name after new is type; wrong color
@@ -120,10 +112,6 @@ parsing is noticeably slow
 
     wisi-parse-max-parallel-count = 4
         no redundancy to reduce
-
-    don't do syntax-propertize for font-lock, unless parsing is already done
-        not parsed on open; start of buffer doesn't require syntax propertize?
-        happens on scroll to end
 
 5.1.x: misc
 

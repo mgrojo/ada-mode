@@ -90,4 +90,13 @@ begin
       --EMACSCMD:(progn (end-of-line 2)(backward-char 1)(delete-char -1)(execute-kbd-macro "'")(let ((case-fold-search nil))(looking-back "'z'")))
       E := 'z';
    end;
+
+   -- Properly set end marker after edit
+   -- FIXME: need ada-goto-statement-start/-end
+   --EMACSCMD:(progn (end-of-line 2)(kill-line 2)(newline-and-indent)(insert "end loop;")(newline-and-indent)(wisi-goto-statement-start)(looking-at "for File_Name"))
+   for File_Name in File_Names loop
+   end loop;
+   --EMACSRESULT:t
+   --EMACSCMD:(progn (beginning-of-line -2)(wisi-goto-statement-end)(looking-back "end loop"))
+
 end Ada_Mode.Interactive_Common;

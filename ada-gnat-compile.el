@@ -584,6 +584,7 @@ Prompt user if more than one."
 
 (defun ada-gnat-compile-select-prj ()
   (setq ada-fix-error-hook 'ada-gnat-fix-error-hook)
+  (setq ada-prj-show-path 'gnat-prj-show-path)
   (add-to-list 'completion-ignored-extensions ".ali") ;; gnat library files
 
   (add-hook 'compilation-filter-hook 'ada-gnat-compilation-filter)

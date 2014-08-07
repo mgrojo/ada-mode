@@ -429,21 +429,17 @@ Caches are the Emacs syntax cache, the wisi token cache, and the wisi parser cac
 
   (syntax-propertize end) ;; see comments above on "lexer" re syntax-propertize
 
+  ;; The parse was failing, probably due to bad syntax; this change
+  ;; may have fixed it, so try reparse.
+  (setq wisi-parse-try t)
+
+  ;; remove 'wisi-cache on inserted text, which could have caches
+  ;; from before the failed parse (or another buffer), and are in
+  ;; any case invalid.
+  (with-silent-modifications
+    (remove-text-properties begin end '(wisi-cache wisi-parse-cache)))
+
   (cond
-   (wisi-parse-failed
-    ;; The parse was failing, probably due to bad syntax; this change
-    ;; may have fixed it, so try reparse.
-    (setq wisi-parse-try t)
-
-    ;; remove 'wisi-cache on inserted text, which could have caches
-    ;; from before the failed parse (or another buffer), and are in
-    ;; any case invalid.
-    (with-silent-modifications
-      (remove-text-properties begin end '(wisi-cache wisi-parse-cache)))
-
-    ;; FIXME: move wisi-cache-max to begin
-    )
-
    ((>= wisi-cache-max begin)
     ;; The parse had succeeded past the start of the inserted
     ;; text.
@@ -645,7 +641,8 @@ that token. Use in a grammar action as:
 		    ;;
 		    ;; statement : label_opt simple_statement
 		    ;;
-		    ;; override nonterm, class and containing
+		    ;; override nonterm, class, containing
+		    ;; set end only if not set yet (due to failed parse)
 		    (progn
 		      (cl-case (wisi-cache-class cache)
 			(block-start
@@ -664,7 +661,13 @@ that token. Use in a grammar action as:
 			 (setf (wisi-cache-class cache) (or override-start class)))
 			)
 		      (setf (wisi-cache-nonterm cache) $nterm)
-		      (setf (wisi-cache-containing cache) first-keyword-mark))
+		      (setf (wisi-cache-containing cache) first-keyword-mark)
+		      (unless (wisi-cache-end cache)
+			(if wisi-end-caches
+			    (push (car region) wisi-end-caches)
+			  (setq wisi-end-caches (list (car region)))
+			  ))
+		      )
 
 		  ;; else create new cache
 		  (with-silent-modifications

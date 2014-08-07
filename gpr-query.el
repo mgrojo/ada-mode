@@ -407,6 +407,11 @@ Enable mode if ARG is positive"
     (setq identifier (substring identifier 1 (1- (length identifier))))
     )
 
+  (when (eq system-type 'windows-nt)
+    ;; Since Windows file system is case insensitive, GNAT and Emacs
+    ;; can disagree on the case, so convert all to lowercase.
+    (setq file (downcase file)))
+
   (let ((cmd (format "refs %s:%s:%d:%d" identifier (file-name-nondirectory file) line col))
 	(decl-loc nil)
 	(body-loc nil)
@@ -445,13 +450,19 @@ Enable mode if ARG is positive"
 	(cond
 	 ((looking-at gpr-query-ident-file-type-regexp)
 	  ;; process line
-	  ;; 'expand-file-name' converts Windows directory separators to normal Emacs
-	  (let* ((found-file (expand-file-name (match-string 1)))
+	  (let* ((found-file (match-string 1))
 		 (found-line (string-to-number (match-string 2)))
 		 (found-col  (string-to-number (match-string 3)))
 		 (found-type (match-string 4))
 		 (dist       (gpr-query-dist found-line line found-col col))
 		 )
+
+	    (when (eq system-type 'windows-nt)
+	      ;; 'expand-file-name' converts Windows directory
+	      ;; separators to normal Emacs.  Since Windows file
+	      ;; system is case insensitive, GNAT and Emacs can
+	      ;; disagree on the case, so convert all to lowercase.
+	      (setq found-file (downcase (expand-file-name found-file))))
 
 	    (when (string-equal found-type "declaration")
 	      (setq decl-loc (list found-file found-line (1- found-col))))
