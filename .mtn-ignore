@@ -4,9 +4,9 @@
 ^ada-mode\.html$
 ^ada-mode\.info$
 ^autoloads\.el$
+^build/.*\.exe$
 ^build/.*\.tar\.gz$
 ^build/gpr_query$
-^build/gpr_query\.exe$
 ^build/obj$
 ^build/smie/.*\.ali$
 ^build/smie/.*\.diff$

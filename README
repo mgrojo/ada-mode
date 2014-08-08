@@ -37,6 +37,8 @@ By default ada-mode uses gnat find for cross-reference functions.
 There is experimental support for an alternative, gnatinspect. You can
 select that by adding:
 
+FIXME: duplicates ada_mode.texi
+
 (require 'gnat-inspect)
 
 in your ~/.emacs, before anything that loads ada-mode
@@ -67,4 +69,24 @@ debugging gnatinspect:
     -- Projects
     -- ENTITIES.PARSING
 
+
+By default ada-mode uses an elisp parser, which can be slow on large files.
+There is experimental support an alternative, using the GPS parser running in a subprocess.
+
+FIXME: move to ada_mode.texi
+
+to build ada_mode_gps_indent.exe:
+
+   install gnatcoll as in gnatinspect above
+   
+   configure GPS source
+      use msys64 on Windows:
+        cd /C/Projects/gps-release-ide-6.0.1-src/
+
+        export PATH=/c/apps/GNAT-gpl_2014/bin:$PATH
+
+        ./configure -build=x86_64-pc-mingw32
+
+   in build/Makefile, run target 'install'
+   
 (end of file)

@@ -24,11 +24,11 @@ run test from emacs -Q using source:
   (setq debug-on-error t)
 ;  (global-font-lock-mode -1)
   (load "autoloads.el")
-  (load "run-indent-test-wisi")
+  (load "run-indent-test-gpr")
   (setq wisi-debug 1)
   (setq default-directory "/Projects/org.emacs.ada-mode/build/wisi/")
-  (run-test "../../test/ada_mode-parens.ads")
-  (ada-wisi-debug-keys))
+  (run-test "../../test/gpr/gds.gpr")
+  (gpr-wisi-debug-keys))
 
 install packages in -Q:
 (progn
@@ -37,6 +37,17 @@ install packages in -Q:
  (list-packages))
 
  next release
+5.1.c: GPS sub-process indentation engine
+    build/Makefile
+
+time ./ada_mode_gps_indent.exe /apps/GNAT-gpl_2014/gnatcoll-1.7w-src/src/sqlite/gnatcoll-xref.adb > foo.adb
+0m0.177s
+
+    (time-it 'wisi-parse-buffer 1)
+        1.35 seconds
+
+    (time-it (lambda () (indent-region (point-min) (point-max))) 1)
+
 5.1.b:
     build/wisi/Makefile
     build/Makefile
