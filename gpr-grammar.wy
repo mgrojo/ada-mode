@@ -122,6 +122,13 @@
 %%
 ;; grammar rules, non-terminal alphabetical order
 
+aggregate
+  : LEFT_PAREN string_list RIGHT_PAREN
+    (progn
+      (wisi-statement-action 1 'open-paren 3 'close-paren)
+      (wisi-containing-action 1 2))
+  ;
+
 attribute_declaration
   : FOR IDENTIFIER USE expression SEMICOLON
     (progn
@@ -213,10 +220,8 @@ expression
   ;
 
 external_value
-  : EXTERNAL LEFT_PAREN string_list RIGHT_PAREN
-    (wisi-statement-action 2 'open-paren 4 'close-paren)
-  | EXTERNAL_AS_LIST LEFT_PAREN string_list RIGHT_PAREN
-    (wisi-statement-action 2 'open-paren 4 'close-paren)
+  : EXTERNAL aggregate
+  | EXTERNAL_AS_LIST aggregate
   ;
 
 identifier_opt
@@ -315,6 +320,9 @@ string_primary
 string_list
   : string_expression
   | string_list COMMA string_expression
+    (progn
+      (wisi-statement-action 2 'list-break)
+      (wisi-containing-action 2 3))
   ;
 
 ;; see string_list for info reference
@@ -322,15 +330,14 @@ string_list
 term
   : string_expression
   | LEFT_PAREN RIGHT_PAREN
-  | LEFT_PAREN string_list RIGHT_PAREN
-    (wisi-statement-action
-       1 'open-paren
-       3 'close-paren)
+  | aggregate
   ;
 
 typed_string_declaration
-  : TYPE IDENTIFIER IS LEFT_PAREN string_list RIGHT_PAREN SEMICOLON
-    (wisi-statement-action 1 'statement-start 4 'open-paren 6 'close-paren 7 'statement-end)
+  : TYPE IDENTIFIER IS aggregate SEMICOLON
+    (progn
+      (wisi-statement-action 1 'statement-start 5 'statement-end)
+      (wisi-containing-action 1 4))
   ;
 
 with_clause

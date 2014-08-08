@@ -587,6 +587,9 @@ Prompt user if more than one."
   (setq ada-prj-show-path 'gnat-prj-show-path)
   (add-to-list 'completion-ignored-extensions ".ali") ;; gnat library files
 
+  ;; find error locations in .gpr files
+  (setq compilation-search-path (append compilation-search-path (ada-prj-get 'prj_dir)))
+
   (add-hook 'compilation-filter-hook 'ada-gnat-compilation-filter)
 
   ;; ada-mode.el project file parser sets this to other compilers used
@@ -597,6 +600,9 @@ Prompt user if more than one."
 (defun ada-gnat-compile-deselect-prj ()
   (setq ada-fix-error-hook nil)
   (setq completion-ignored-extensions (delete ".ali" completion-ignored-extensions))
+
+  ;; don't need to delete from compilation-search-path; completely rewritten in ada-select-prj-file
+
   (setq compilation-filter-hook (delete 'ada-gnat-compilation-filter compilation-filter-hook))
   (setq compilation-error-regexp-alist (delete 'gnat compilation-error-regexp-alist))
   )

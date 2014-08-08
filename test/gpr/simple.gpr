@@ -21,6 +21,7 @@ library project Simple is
 
    for Source_Dirs use
      ("../auto",
+      External ("GNAT_VERSION") & "/foo",
       "../../1553");
 
    for Object_Dir use "objects";

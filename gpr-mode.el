@@ -79,6 +79,7 @@
     ["Select project ..."          ada-prj-select                   t]
     ["Set as current project"      gpr-set-as-project               t]
     ["Show current project"        ada-prj-show                     t]
+    ["Show project search path"    ada-prj-show-path                t]
     ["Next compilation error"      next-error                       t]
     ["Show secondary error"        ada-show-secondary-error         t]
     ["Show last parse error"       gpr-show-parse-error             t]
@@ -237,7 +238,7 @@ of the package or project point is in or just after, or nil.")
 	 ((?\_ . "w"))))
 
   (gpr-set-ff-special-constructs)
-  (setq ff-search-directories (ada-prj-get 'prj_dir))
+  (setq ff-search-directories 'compilation-search-path);; includes project search path
 
   (set (make-local-variable 'add-log-current-defun-function)
        'gpr-add-log-current-function)
