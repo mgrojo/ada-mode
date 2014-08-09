@@ -40,15 +40,32 @@ install packages in -Q:
 5.1.c: GPS sub-process indentation engine
     build/Makefile
 
-    need lisp interface
+    (progn
+      (require 'ada-gps)
+      (setq ada-gps-exec (concat default-directory "build/ada_mode_gps_indent"))
+      (setq ada-mode-hook (delq 'ada-wisi-setup ada-mode-hook))
+      (setq ada-mode-hook (delq 'ada-gps-setup ada-mode-hook)))
 
-time ./ada_mode_gps_indent.exe /apps/GNAT-gpl_2014/gnatcoll-1.7w-src/src/sqlite/gnatcoll-xref.adb > foo.adb
-0m0.177s
 
-    (time-it 'wisi-parse-buffer 1)
-        1.35 seconds
+    hangs in indent
+
+    c:/apps/GNAT-gpl_2014/gnatcoll-1.7w-src/src/sqlite/gnatcoll-xref.adb
+        copied to build/foo.adb
+
+    wisi timing:
+    (progn
+        (ada-wisi-setup)
+        (wisi-invalidate-cache)
+        (time-it (lambda () (indent-region (point-min) (point-max))) 1))
+        2.062000
 
     (time-it (lambda () (indent-region (point-min) (point-max))) 1)
+        0.531000
+
+    ada-gps timing:
+    (progn
+        (ada-gps-setup)
+        (time-it (lambda () (indent-region (point-min) (point-max))) 1))
 
 5.1.b:
     build/wisi/Makefile
