@@ -19,75 +19,206 @@
 
 pragma License (GPL);
 
-
 with Ada.Command_Line;
-with Ada.Text_IO;
+with Ada.Exceptions;
+with Ada.Strings.Fixed;
+with Ada.Strings.Unbounded;
+with Ada.Text_IO; use Ada.Text_IO;
 with Ada_Analyzer;
 with Case_Handling;
 with GNAT.OS_Lib;
-with GNAT.Strings;
+with GNAT.Traceback.Symbolic;
 with GNATCOLL.Symbols;
 with Language;
-with Line_Buffers;
-with UTF8_Utils;
 procedure Ada_Mode_GPS_Indent is
-   subtype String_Access is GNAT.Strings.String_Access;
 
-   Symbols    : constant GNATCOLL.Symbols.Symbol_Table_Access := GNATCOLL.Symbols.Allocate;
-   F          : GNAT.OS_Lib.File_Descriptor;
-   Name       : constant String := Ada.Command_Line.Argument (1);
-   Buffer     : String_Access;
-   Length     : Integer;
-   pragma Unreferenced (Length);
-   New_Buffer : Line_Buffers.Extended_Line_Buffer;
+   Programmer_Error : exception;
 
-   procedure Replace_Cb
-     (Line    : Natural;
-      First   : Natural;
-      Last    : Natural;
-      Replace : String)
+   Prompt : constant String := "GPS_Indent> ";
+
+   procedure Usage
    is
    begin
-      --  analyze calls replace_cb for ":", ":=" etc. weird. We only
+      Put_Line ("Prompt is '" & Prompt & "'");
+      Put_Line ("commands are case sensitive");
+      Put_Line ("each command starts with a two-character decimal count of bytes in command");
+
+      Put_Line ("Commands: ");
+
+      Put_Line ("NNcompute_indent <line> <text_byte_count><text>");
+      Put_Line ("  first line is 1 (emacs convention)");
+      Put_Line ("  text must be UTF8 encoded");
+      Put_Line ("  outputs: <indent><newline>");
+      Put_Line ("  no indent is 0 (emacs convention)");
+
+      Put_Line ("04exit");
+
+      --  FIXME: need protocol for indent settings
+
+   end Usage;
+
+   function Get_Command_Length return Integer
+   is
+      Temp : aliased String (1 .. 2);
+      Read_Bytes : constant Integer := GNAT.OS_Lib.Read (GNAT.OS_Lib.Standin, Temp'Address, 2);
+   begin
+      if Read_Bytes /= 2 then
+         raise Programmer_Error with "2 bytes of command byte count not provided";
+      end if;
+      return Integer'Value (Temp);
+   end Get_Command_Length;
+
+   function Get_Integer
+     (Source : in     String;
+      Last   : in out Integer)
+     return Integer
+   is
+      use Ada.Exceptions;
+      use Ada.Strings.Fixed;
+      First : constant Integer := Last + 2;
+   begin
+      Last := Index
+        (Source  => Source,
+         Pattern => " ",
+         From    => First);
+
+      if Last = 0 then
+         Last := Source'Last;
+      else
+         Last := Last - 1;
+      end if;
+
+      return Integer'Value (Source (First .. Last));
+   exception
+   when E : others =>
+      Put_Line ("bad integer '" & Source (First .. Source'Last) & "'");
+      Put_Line ("Exception : " & Exception_Name (E));
+      Put_Line (Exception_Message (E));
+      raise;
+   end Get_Integer;
+
+   procedure Replace_Cb
+     (Line    : in Natural;
+      First   : in Natural;
+      Last    : in Natural;
+      Replace : in String)
+   is
+      pragma Unreferenced (Line);
+   begin
+      --  analyze calls replace_cb for ":", ":=" etc. We only
       --  want the leading spaces, for indentation.
       if Replace'Length > 0 and First = 1 then
-         Ada.Text_IO.Put_Line (Natural'Image (Line) & ":" & Natural'Image (Last - 1));
+         Put_Line (Natural'Image (Last - 1));
       end if;
    end Replace_Cb;
 
 begin
-   --  FIXME: change to read from standard_input; need protocol for line count or something
-   F := GNAT.OS_Lib.Open_Read (Name, GNAT.OS_Lib.Binary);
-   Buffer := new String (1 .. Integer (GNAT.OS_Lib.File_Length (F)));
-   Length := GNAT.OS_Lib.Read (F, Buffer.all'Address, Buffer'Length);
-   GNAT.OS_Lib.Close (F);
 
-   --  Input text must be UTF8 encoded
+   Commands :
+   loop
+      Put (Prompt); Flush;
 
-   New_Buffer := Line_Buffers.To_Line_Buffer (Buffer.all);
+      declare
+         use Ada.Strings.Fixed;
+         Command_Length : constant Integer := Get_Command_Length;
+         Command_Line   : aliased String (1 .. Command_Length);
 
-   --  FIXME: stop at desired line (or only pass in that much text?)
-   Ada_Analyzer.Analyze_Ada_Source
-     (Buffer.all, Symbols,
-      Indent_Params =>
-        (Indent_Level        => 3, -- FIXME: get from ada-mode once, at process start
-         Indent_Continue     => 2,
-         Indent_Decl         => 2,
-         Indent_Conditional  => 1,
-         Indent_Record       => 3,
-         Indent_Case_Extra   => Language.Automatic,
-         Casing_Policy       => Case_Handling.Disabled,
-         Reserved_Casing     => Case_Handling.Unchanged,
-         Ident_Casing        => Case_Handling.Unchanged,
-         Format_Operators    => True,
-         Use_Tabs            => False,
-         Align_On_Colons     => True,
-         Align_On_Arrows     => True,
-         Align_Decl_On_Colon => True,
-         Indent_Comments     => True,
-         Stick_Comments      => False),
-      Replace => Replace_Cb'Unrestricted_Access);
+         Read_Bytes : Integer := GNAT.OS_Lib.Read (GNAT.OS_Lib.Standin, Command_Line'Address, Command_Length);
+         Last       : Integer := Index (Source => Command_Line, Pattern => " ");
+      begin
+         if Read_Bytes /= Command_Length then
+            raise Programmer_Error with
+              "Read_Bytes" & Integer'Image (Read_Bytes) & " /= Command_Length" & Integer'Image (Command_Length);
+         end if;
 
-   Line_Buffers.Free (New_Buffer);
-   GNAT.Strings.Free (Buffer);
+         if Last = 0 then
+            Last := Command_Line'Last;
+         else
+            Last := Last - 1;
+         end if;
+
+         if Command_Line (1 .. Last) = "exit" then
+            exit Commands;
+
+         elsif Command_Line (1 .. Last) = "compute_indent" then
+            declare
+               use Ada.Strings.Unbounded;
+
+               Indent_Line : constant Integer      := Get_Integer (Command_Line, Last);
+               Byte_Count  : constant Integer      := Get_Integer (Command_Line, Last);
+               Buffer      : aliased String_Access := new String (1 .. Byte_Count);
+            begin
+               Read_Bytes := GNAT.OS_Lib.Read (GNAT.OS_Lib.Standin, Buffer.all'Address, Byte_Count);
+
+               if Read_Bytes /= Byte_Count then
+                  Put_Line ("Read_Bytes" & Integer'Image (Read_Bytes) & " /= Byte_Count" & Integer'Image (Byte_Count));
+               else
+                  Ada_Analyzer.Analyze_Ada_Source
+                    (Buffer.all, GNATCOLL.Symbols.Allocate,
+                     Indent_Params          =>
+                       (Indent_Level        => 3, -- FIXME: get from ada-mode once, at process start
+                        Indent_Continue     => 2,
+                        Indent_Decl         => 2,
+                        Indent_Conditional  => 1,
+                        Indent_Record       => 3,
+                        Indent_Case_Extra   => Language.Automatic,
+                        Casing_Policy       => Case_Handling.Disabled,
+                        Reserved_Casing     => Case_Handling.Unchanged,
+                        Ident_Casing        => Case_Handling.Unchanged,
+                        Format_Operators    => True,
+                        Use_Tabs            => False,
+                        Align_On_Colons     => True,
+                        Align_On_Arrows     => True,
+                        Align_Decl_On_Colon => True,
+                        Indent_Comments     => True,
+                        Stick_Comments      => False),
+                     From                   => Indent_Line,
+                     To                     => Indent_Line,
+                     Replace                => Replace_Cb'Unrestricted_Access);
+               end if;
+               Free (Buffer);
+            exception
+               when E : others =>
+                  declare
+                     use Ada.Exceptions;
+                     use GNAT.Traceback.Symbolic;
+                  begin
+                     Put_Line ("analyze failed on '" & Buffer.all & "'");
+                     Put_Line ("Exception : " & Exception_Name (E));
+                     Put_Line (Exception_Message (E));
+                     Put_Line (Symbolic_Traceback (E));
+                  end;
+            end;
+
+         else
+            Put_Line ("unrecognized command '" & Command_Line & "'");
+            Usage;
+         end if;
+      exception
+      when E : Programmer_Error =>
+         declare
+            use Ada.Exceptions;
+         begin
+            Put_Line (Exception_Message (E));
+            Usage;
+            Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
+            exit Commands;
+         end;
+
+      when E : others =>
+         declare
+            use Ada.Exceptions;
+            use GNAT.Traceback.Symbolic;
+         begin
+            Put_Line ("Bad command '" & Command_Line & "'");
+            Put_Line ("Exception : " & Exception_Name (E));
+            Put_Line (Exception_Message (E));
+            Put_Line (Symbolic_Traceback (E));
+            Usage;
+            Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
+            exit Commands;
+         end;
+      end;
+   end loop Commands;
+
 end Ada_Mode_GPS_Indent;

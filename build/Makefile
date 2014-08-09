@@ -130,7 +130,7 @@ ada_mode_gps_indent$(EXE_EXT) : force
 	gprbuild -p ada_mode_gps_indent.gpr
 
 one : ada_mode_gps_indent$(EXE_EXT)
-	/bin/bash -c "time ./ada_mode_gps_indent$(EXE_EXT) /apps/GNAT-gpl_2014/gnatcoll-1.7w-src/src/sqlite/gnatcoll-xref.adb > foo.txt"
+	./ada_mode_gps_indent$(EXE_EXT) < commands.txt
 
 trace :
 	addr2line -e gpr_query 0x925505 0x4166d3 0x40cb34 0x391ae1ed1b 0x40cb77

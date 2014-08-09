@@ -40,6 +40,8 @@ install packages in -Q:
 5.1.c: GPS sub-process indentation engine
     build/Makefile
 
+    need lisp interface
+
 time ./ada_mode_gps_indent.exe /apps/GNAT-gpl_2014/gnatcoll-1.7w-src/src/sqlite/gnatcoll-xref.adb > foo.adb
 0m0.177s
 
