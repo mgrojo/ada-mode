@@ -22,6 +22,8 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
+(defvar ada-gps-debug 0)
+
 ;;;;; sessions
 
 ;; ada_mode_gps_indent runs a loop, waiting for indentation requests.
@@ -66,6 +68,12 @@
 	(error "ada_gps warnings"))
       )))
 
+(defun ada-gps-require-session ()
+  "Create ada-gps session if not active."
+  (unless (and (ada-gps--session-process ada-gps-session)
+	       (process-live-p (ada-gps--session-process ada-gps-session)))
+   (ada-gps--start-process)))
+
 (defconst ada-gps-prompt "^GPS_Indent> $"
   "Regexp matching ada_mode_gps_indent prompt; indicates previous command is complete.")
 
@@ -77,31 +85,41 @@
 
   (with-current-buffer (ada-gps--session-buffer ada-gps-session)
     (let ((process (ada-gps--session-process ada-gps-session))
-	  (search-start (point-min)))
+	  (search-start (point-min))
+	  (wait-count 0)
+	  (found nil))
       (while (and (process-live-p process)
 		  (progn
 		    ;; process output is inserted before point, so move back over it to search it
 		    (goto-char search-start)
-		    (not (re-search-forward ada-gps-prompt (point-max) 1))))
+		    (not (setq found (re-search-forward ada-gps-prompt (point-max) t)))))
 	(setq search-start (point));; don't search same text again
-	(accept-process-output process 1.0))
-      (unless (process-live-p process)
+	(setq wait-count (1+ wait-count))
+	(accept-process-output process 0.1))
+      (if found
+	  (when (> ada-gps-debug 0)
+	    (message "ada-gps-session-wait: %d" wait-count)
+	    (message "'%s'" (buffer-substring-no-properties (point-min) (point-max))))
+
 	(ada-gps-show-buffer)
 	(error "ada_gps process died"))
       )))
 
-(defun ada-gps-session-send (cmd wait)
-  "Send CMD to ada_gps session, prepended with CMD byte count.
-If WAIT is non-nil, wait for command to complete."
-  ;; always wait for previous command to complete; also checks for
-  ;; dead process.
-  (ada-gps-session-wait)
-  (let ((byte-count-img (format "%02d" (length cmd))))
+(defun ada-gps-session-send (cmd wait prefix)
+  "Send CMD to ada_gps session.
+If WAIT is non-nil, wait for command to complete.
+If PREFIX is non-nil, prefix with count of bytes in cmd."
+  (ada-gps-require-session)
+  ;; we don't wait for previous command to complete, because the
+  ;; previous call to ada-gps-session-cmd might have been a partial
+  ;; command string (in particular, for 'compute_indent').
+  (let* ((byte-count-img (when prefix (format "%02d" (length cmd))))
+	 (msg (concat byte-count-img cmd)))
+    (when (> ada-gps-debug 0)
+      (message msg))
     (with-current-buffer (ada-gps--session-buffer ada-gps-session)
       (erase-buffer)
-      (process-send-string
-       (ada-gps--session-process ada-gps-session)
-       (concat byte-count-img cmd))
+      (process-send-string (ada-gps--session-process ada-gps-session) msg)
       (when wait
 	(ada-gps-session-wait))
       )))
@@ -130,13 +148,15 @@ If WAIT is non-nil, wait for command to complete."
 
       ;; send complete current line
       (end-of-line)
-      (ada-gps-session-send (format "compute_indent %d %d" (line-number-at-pos) (point)) nil)
-      (ada-gps-session-send (buffer-substring-no-properties (point-min) (point)) t)
+      (ada-gps-session-send (format "compute_indent %d %d" (line-number-at-pos) (1- (point))) nil t)
+      (ada-gps-session-send (buffer-substring-no-properties (point-min) (point)) t nil)
       )
     (with-current-buffer (ada-gps--session-buffer ada-gps-session)
       (goto-char (point-min))
-      (looking-at (concat ada-gps-prompt "\\([0-9+]\\)$"))
-      (setq indent (string-to-number (match-string 1)))
+      (if (looking-at (concat " *\\([0-9+]\\)$"))
+	  (setq indent (string-to-number (match-string 1)))
+	;; gps did not compute indent for some reason
+	(setq indent 0))
       )
 
     (if savep
@@ -150,10 +170,7 @@ If WAIT is non-nil, wait for command to complete."
 (defun ada-gps-setup ()
   "Set up a buffer for indenting with ada-gps."
   (set (make-local-variable 'indent-line-function) 'ada-gps-indent-line)
-  (unless (ada-gps--session-process ada-gps-session)
-    ;; just loaded; create buffer, process
-   (ada-gps--start-process)
-   (ada-gps-session-wait))
+  (ada-gps-require-session)
 
   ;; FIXME: need this?
   ;; (set (make-local-variable 'comment-indent-function) 'wisi-comment-indent)

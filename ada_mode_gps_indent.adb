@@ -59,11 +59,12 @@ procedure Ada_Mode_GPS_Indent is
 
    function Get_Command_Length return Integer
    is
-      Temp : aliased String (1 .. 2);
+      Temp : aliased String (1 .. 2) := "  ";
       Read_Bytes : constant Integer := GNAT.OS_Lib.Read (GNAT.OS_Lib.Standin, Temp'Address, 2);
    begin
       if Read_Bytes /= 2 then
-         raise Programmer_Error with "2 bytes of command byte count not provided";
+         raise Programmer_Error with "2 bytes of command byte count not provided; got" &
+           Integer'Image (Read_Bytes) & "'" & Temp & "'";
       end if;
       return Integer'Value (Temp);
    end Get_Command_Length;
@@ -104,11 +105,12 @@ procedure Ada_Mode_GPS_Indent is
       Replace : in String)
    is
       pragma Unreferenced (Line);
+      pragma Unreferenced (Last);
    begin
       --  analyze calls replace_cb for ":", ":=" etc. We only
       --  want the leading spaces, for indentation.
       if Replace'Length > 0 and First = 1 then
-         Put_Line (Natural'Image (Last - 1));
+         Put_Line (Natural'Image (Replace'Length));
       end if;
    end Replace_Cb;
 

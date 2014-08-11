@@ -126,6 +126,7 @@ export BUILD := Debug
 gpr_query$(EXE_EXT) : force
 	gprbuild -p gpr_query.gpr
 
+# (setq ada-gps-exec (concat default-directory "ada_mode_gps_indent"))
 ada_mode_gps_indent$(EXE_EXT) : force
 	gprbuild -p ada_mode_gps_indent.gpr
 
