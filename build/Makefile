@@ -136,12 +136,18 @@ one : ada_mode_gps_indent$(EXE_EXT)
 trace :
 	addr2line -e gpr_query 0x925505 0x4166d3 0x40cb34 0x391ae1ed1b 0x40cb77
 
-$(INSTALL_BIN)/gpr_query$(EXE_EXT) install : gpr_query$(EXE_EXT)
+$(INSTALL_BIN)/gpr_query$(EXE_EXT) install_gpr_query : gpr_query$(EXE_EXT)
 	cp gpr_query$(EXE_EXT) $(INSTALL_BIN)
+
+$(INSTALL_BIN)/ada_mode_gps_indent$(EXE_EXT) install_ada_mode_gps_indent : ada_mode_gps_indent$(EXE_EXT)
+	cp ada_mode_gps_indent$(EXE_EXT) $(INSTALL_BIN)
+
+install : install_gpr_query install_ada_mode_gps_indent
 
 clean ::
 	rm -rf obj
 	rm -rf gpr_query$(EXE_EXT)
+	rm -rf ada_mode_gps_indent$(EXE_EXT)
 
 # (getenv "GPR_PROJECT_PATH")
 

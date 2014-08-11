@@ -17,18 +17,18 @@ run test from emacs -Q using installed elpa:
 
 run test from emacs -Q using source:
 (progn
-  (add-to-list 'exec-path "/apps/GNAT-7.2.1/bin")
+  (add-to-list 'exec-path "/apps/GNAT-gpl_2014/bin")
   (setenv "PATH" (mapconcat 'identity  exec-path  path-separator))
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode")
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode/build")
+  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-2")
+  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-2/build")
   (setq debug-on-error t)
 ;  (global-font-lock-mode -1)
   (load "autoloads.el")
-  (load "run-indent-test-gpr")
-  (setq wisi-debug 1)
-  (setq default-directory "/Projects/org.emacs.ada-mode/build/wisi/")
-  (run-test "../../test/gpr/gds.gpr")
-  (gpr-wisi-debug-keys))
+  (load "run-indent-test-gps")
+;  (setq wisi-debug 1)
+  (setq default-directory "/Projects/org.emacs.ada-mode.stephe-2/build/wisi/")
+;  (setq ada-gps-exec "/Projects/org.emacs.ada-mode.stephe-2/build/ada_mode_gps_indent"))
+  (run-test "../../test/gnatprep.adb"))
 
 install packages in -Q:
 (progn
@@ -40,16 +40,33 @@ install packages in -Q:
 5.1.c: GPS sub-process indentation engine
     build/Makefile
 
+    doc build in ada-mode.texi
+
+    ask for beta testers via mtn on emacs-ada-mode
+
     (progn
       (require 'ada-gps)
-      (setq ada-gps-exec (concat default-directory "build/ada_mode_gps_indent"))
-      (setq ada-mode-hook (delq 'ada-wisi-setup ada-mode-hook))
-      (setq ada-mode-hook (delq 'ada-gps-setup ada-mode-hook)))
+      (setq ada-gps-exec (concat default-directory "build/ada_mode_gps_indent")))
 
+    running ada-test-gps
+        reporting indentation bugs
+            ada_mode.adb; 'is separate'
+            ada_mode-conditional_expressions.adb;
+                -1
+                (case
+                -- comment aligned with 'when'
+                others
+                =>
 
-    hangs in indent
+        already have (setq skip-reindent-test t):
+            ada_mode-ada2005.ads
+            ada_mode-ada2014.ads
+            ada_mode-ada83.ads
+            ada_mode-ada95.ads
+            ada_mode-interactive_wisi.adb
 
     c:/apps/GNAT-gpl_2014/gnatcoll-1.7w-src/src/sqlite/gnatcoll-xref.adb
+        7081 lines, 241060 chars
         copied to build/foo.adb
 
     wisi timing:
@@ -62,10 +79,23 @@ install packages in -Q:
     (time-it (lambda () (indent-region (point-min) (point-max))) 1)
         0.531000
 
-    ada-gps timing:
     (progn
-        (ada-gps-setup)
-        (time-it (lambda () (indent-region (point-min) (point-max))) 1))
+        (goto-char (point-max))
+        (forward-line -3)
+        (time-it 'indent-according-to-mode 10))
+        0.001 seconds
+
+    ada-gps timing:
+    (time-it (lambda () (indent-region (point-min) (point-max))) 1)
+        ~700 seconds?
+
+    (progn
+        (goto-char (point-max))
+        (forward-line -3)
+        (time-it 'indent-according-to-mode 10))
+        Total 1.857000 seconds; per iteration 0.185700
+
+    include *.adb, build/Makefile in ELPA for gpr_query, ada_mode_gps_indent
 
 5.1.b:
     build/wisi/Makefile
