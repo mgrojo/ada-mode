@@ -119,7 +119,7 @@ If PREFIX is non-nil, prefix with count of bytes in cmd."
   ;; we don't wait for previous command to complete, because the
   ;; previous call to ada-gps-session-cmd might have been a partial
   ;; command string (in particular, for 'compute_indent').
-  (let* ((byte-count-img (when prefix (format "%02d" (length cmd))))
+  (let* ((byte-count-img (when prefix (format "%02d" (string-bytes cmd))))
 	 (msg (concat byte-count-img cmd)))
     (when (and (> ada-gps-debug 0)
 	       (< (length msg) 100))
@@ -155,7 +155,8 @@ If PREFIX is non-nil, prefix with count of bytes in cmd."
 
       ;; send complete current line
       (end-of-line)
-      (ada-gps-session-send (format "compute_indent %d %d" (line-number-at-pos) (1- (point))) nil t)
+      (ada-gps-session-send
+       (format "compute_indent %d %d" (line-number-at-pos) (1- (position-bytes (point)))) nil t)
       (ada-gps-session-send (buffer-substring-no-properties (point-min) (point)) t nil)
       )
     (with-current-buffer (ada-gps--session-buffer ada-gps-session)
