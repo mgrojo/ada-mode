@@ -99,7 +99,7 @@ Block_1:
 
    --  ada-skel-for with name
    --EMACSCMD:(progn (forward-line 1)(kill-line 1)(forward-word 1)(kill-word 1)(forward-line 1)(kill-line 1)(forward-char -1)(insert " Loop_1")(funcall ada-expand))
-Loop_1:
+Loop_1 :
    for  loop
    end loop Loop_1;
 

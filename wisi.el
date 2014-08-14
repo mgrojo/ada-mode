@@ -358,8 +358,7 @@ Used in before/after change functions.")
   "Invalidate parsing caches for the current buffer from AFTER to end of buffer.
 Caches are the Emacs syntax cache, the wisi token cache, and the wisi parser cache."
   (interactive)
-  (if (or (not wisi-parse-cache-enable)
-	  (not after))
+  (if (not after)
       (setq after (point-min))
     (setq after
 	(save-excursion
@@ -370,7 +369,7 @@ Caches are the Emacs syntax cache, the wisi token cache, and the wisi parser cac
   (setq wisi-parse-try t)
   (syntax-ppss-flush-cache after)
   (with-silent-modifications
-    (remove-text-properties after (point-max) '(wisi-cache nil wisi-parse-cache nil))))
+    (remove-text-properties after (point-max) '(wisi-cache nil))))
 
 (defun wisi-before-change (begin end)
   "For `before-change-functions'."
@@ -438,7 +437,7 @@ Caches are the Emacs syntax cache, the wisi token cache, and the wisi parser cac
   ;; from before the failed parse (or another buffer), and are in
   ;; any case invalid.
   (with-silent-modifications
-    (remove-text-properties begin end '(wisi-cache wisi-parse-cache)))
+    (remove-text-properties begin end '(wisi-cache)))
 
   (cond
    ((>= wisi-cache-max begin)
@@ -492,7 +491,7 @@ Caches are the Emacs syntax cache, the wisi token cache, and the wisi parser cac
     ;; parse never attempted, or only done to before BEGIN. Just
     ;; remove caches
     (with-silent-modifications
-      (remove-text-properties begin end '(wisi-cache 'wisi-parse-cache)))
+      (remove-text-properties begin end '(wisi-cache)))
     )
   ))
 
@@ -543,14 +542,14 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
 	(if (> wisi-debug 1)
 	    ;; let debugger stop in wisi-parse
 	    (progn
-	      (wisi-parse wisi-cache-max wisi-parse-table 'wisi-forward-token)
+	      (wisi-parse wisi-parse-table 'wisi-forward-token)
 	      (setq wisi-cache-max (point))
 	      (setq wisi-parse-failed nil))
 
 	  ;; else capture errors from bad syntax, so higher level functions can try to continue
 	  (condition-case err
 	      (progn
-		(wisi-parse wisi-cache-max wisi-parse-table 'wisi-forward-token)
+		(wisi-parse wisi-parse-table 'wisi-forward-token)
 		(setq wisi-cache-max (point))
 		(setq wisi-parse-failed nil))
 	    (wisi-parse-error

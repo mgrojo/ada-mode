@@ -42,14 +42,16 @@ install packages in -Q:
     build/Makefile
     doc changes in NEWS-ada-mode.text NEWS-wisi.text
 
+    running all tests
+
+    add EMACSXREF
+        skip separate from EMACSCMD
+        add test-ada-wisi; skip xref
+        skip cmd in xref tests
+
     mention ARM info format in ada-mode.texi
         or include in ELPA?
-        ask on Debian list
-
-    FIXMEs in wisi.el, wisi-parse.el
-        wisi-end-caches must be markers if cached
-        what happens to cached markers that point to text that is deleted?
-        or delete parser cache if GPS backend works well
+        ask on Debian, emacs lists
 
     doc git/elpa checkout, config
 
@@ -69,54 +71,32 @@ install packages in -Q:
         name after new is type; wrong color
 
 
-5.1.c preserve caches after edit region
-    org.emacs.ada-mode.stephe-1
+5.1.c: handle parser errors more gracefully
+    continue by adding virtual tokens
+        find shortest path from current state to defined action on next real token
+            go thru FIRST, look for actions on next token, use first found
+                provide grammar source hint for picking? (prefer semicolon, or 'then')
+            if none, recurse (breadth-first search)
+        can compute at grammar compile time
+        add result as 'error' entry in state machine?
 
-    handle more than one edited region
-        merge into one for now
-        wisi-invalid-region?
+        cache for virtual end token (if one needed) located after last real token in sentence
+            needed for 'goto end', and for setting something in 'end' field
 
-    test/debug.adb
+        no storage cache for other virtual tokens
 
-    test/gnatcoll-projects.adb
+        adding 'if then else end if' before 'foo := bar;'; just typed 'if <expression>'; add 'then'
+            that will later add 'end if;' before the next 'end', which will be wrong
+                no problem; it will be deleted when the new 'end if' is typed/parsed
 
-    (time-it 'wisi-parse-buffer 1)
+    don't use virtual tokens for indent
 
-    (goto-line 4300)
-    (time-it (lambda () (wisi-validate-cache (1+ wisi-cache-max))) 1)
+    show location of virtual tokens in 'show parse error'?
+        could be several
 
-parsing is noticeably slow
-    /apps/GNAT-7.2.1/gnatcoll-1.6-src/src/gnatcoll-projects.adb
-    7204 lines
-    (time-it 'wisi-parse-buffer 1)
-        first: 1.264000
-        later: 2.402000
-            garbage collection of text properties?
-            buffer starts as single tree entry, gets broken up?
-        (wisi-invalidate-cache) first: 2.371000
-        (time-it 'wisi-invalidate-cache 1) = 0.0
-        delete, reload: 1.279000
-
-    (progn (profiler-start 'cpu) (time-it 'wisi-parse-buffer 10) (profiler-report) (profiler-stop))
-        B - profiler-report-render-reversed-calltree shows low-level time hogs:
-        34% of time spent in next-single-property-change in actions
-            31% in wisi-set-end
-        19% in garbage collection
-        comment out action execution/pending in wisi-parse-reduce:
-            first: 1.067
-            later: 1.092 seconds
-
-        comment out set-end: 1.722200
-            restore: 2.933
-
-    restore actions: 1.716, 2.979
-    turn off fontify: 1.623000, 2.684000
-        wisi-parse-reduce 30% + 5%
-            most in next-single-property
-        GC 19%
-
-    wisi-parse-max-parallel-count = 4
-        no redundancy to reduce
+can abandon parse when reach desired point
+    unless command is 'goto-end'; finish parse of at least current statement
+    in goto-end, check if end reached is virtual; if so, reparse
 
 5.1.x: misc
 
@@ -431,7 +411,10 @@ Markus Schöpflin <markus.schoepflin@comsoft.aero> wants this style (including a
     add a custom indent function, like the one for opentoken
     12 sep 2013: sent email
 
- relevant files
+ relevant files, debug hints
+(progn (profiler-start 'cpu) (time-it 'wisi-parse-buffer 10) (profiler-report) (profiler-stop))
+    B - profiler-report-render-reversed-calltree shows low-level time hogs
+
 (browse-url "c:/Projects/arm_info/org.adaic.arm_form/build/html/arm2012/RM-P.html")
 (info "(aarm2012)Annex P" "*info Annex P*")
 (info "(elisp)Parser State" "*info syntax-ppss*")
