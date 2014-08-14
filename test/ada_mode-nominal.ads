@@ -293,6 +293,8 @@ package Ada_Mode.Nominal is -- target 0
    type Limited_Derived_Type_1 is abstract limited new Private_Type_1 with private;
    type Limited_Derived_Type_2 is abstract limited new Private_Type_1 with
      private;
+   type Limited_Derived_Type_3 is abstract limited
+     new Private_Type_1 with private;
    -- rest of Limited_Derived below, due to freezing rules
 
    --EMACSCMD:(test-face "null record" font-lock-keyword-face)

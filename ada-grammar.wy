@@ -921,6 +921,7 @@ expression_opt
 
 expression_function_declaration
   : overriding_indicator_opt function_specification IS paren_expression aspect_specification_opt SEMICOLON
+ ;; IS does not start a block, so it is not cached
     (progn
       (wisi-statement-action 1 'statement-start 2 'statement-other 6 'statement-end)
       (wisi-containing-action 2 4)

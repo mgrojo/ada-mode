@@ -42,9 +42,14 @@ install packages in -Q:
     build/Makefile
     doc changes in NEWS-ada-mode.text NEWS-wisi.text
 
+    mention ARM info format in ada-mode.texi
+        or include in ELPA?
+        ask on Debian list
+
     FIXMEs in wisi.el, wisi-parse.el
         wisi-end-caches must be markers if cached
         what happens to cached markers that point to text that is deleted?
+        or delete parser cache if GPS backend works well
 
     doc git/elpa checkout, config
 
@@ -182,6 +187,23 @@ separate color for vendor-specific aspects
     spark aspects in test/aspects.ads
 
 (see general below for more possibilites)
+
+completion:
+    built-in pcomplete
+        completion-at-point-functions
+
+    http://elpa.gnu.org/packages/company.html
+        including C++ parameters, class members
+
+    MELPA package auto-complete
+
+    get completion candidates from gpr_query
+
+fix fontification of aspect names
+    they are _not_ context clauses
+    they are often on a different line than 'with'
+    there are more than one of them
+    need parser info
 
  gpr_query
 build/Makefile one
@@ -332,16 +354,6 @@ example custom indentation function for Markus Schöpflin <markus.schoepflin@com
 
 EDE projects?
     just .el files with random code
-
-completion:
-    built-in pcomplete
-
-    http://elpa.gnu.org/packages/company.html
-        including C++ parameters, class members
-
-    MELPA package auto-complete
-
-
 
 skeleton
     see python-skeleton-autoinsert

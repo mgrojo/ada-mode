@@ -87,6 +87,10 @@ package body Ada_Mode.Parens is
         := Local_11_Type'(A => Integer
                             (1.0),
                           B => Integer (2.0));
+
+      Local_13 : Local_11_Type
+        := (Integer'(1),
+            Integer'(2));
    begin
       return Float (
                     Integer'Value

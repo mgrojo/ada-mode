@@ -134,7 +134,7 @@
 ;;;; lexer
 ;;
 ;; The lexer is `wisi-forward-token'. It relies on syntax properties,
-;; so syntax-propertize must be called on the to be lexed before
+;; so syntax-propertize must be called on the text to be lexed before
 ;; wisi-forward-token is called. In general, it is hard to determine
 ;; an appropriate end-point for syntax-propertize, other than
 ;; point-max. So we call (syntax-propertize point-max) in wisi-setup,
@@ -259,7 +259,8 @@ If at end of buffer, returns `wisent-eoi-term'."
      );; cond
 
     (unless token-id
-      (error (wisi-error-msg "unrecognized token '%s'" (buffer-substring-no-properties start (point)))))
+      (signal 'wisi-parse-error
+	      (wisi-error-msg "unrecognized token '%s'" (buffer-substring-no-properties start (point)))))
 
     (if text-only
 	token-text
@@ -1103,8 +1104,8 @@ correct. Must leave point at indentation of current line.")
   "Indent current line using the wisi indentation engine."
   (interactive)
 
-  (let* ((savep (point))
-	 indent)
+  (let ((savep (point))
+	indent)
     (save-excursion
       (back-to-indentation)
       (when (>= (point) savep) (setq savep nil))

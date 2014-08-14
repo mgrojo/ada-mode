@@ -503,7 +503,8 @@ Prompt user if more than one."
 	  ((looking-at (concat "warning: variable " ada-gnat-quoted-name-regexp " is assigned but never read"))
 	   (let ((param (match-string 1)))
 	     (pop-to-buffer source-buffer)
-	     (ada-goto-end)
+	     (ada-goto-end) ;; leaves point before semicolon
+	     (forward-char 1)
 	     (newline-and-indent)
 	     (insert "pragma Unreferenced (" param ");"))
 	   t)

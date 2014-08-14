@@ -47,9 +47,7 @@
 
 (cl-defstruct (gpr-query--session)
   (process nil) ;; running gpr_query
-  (buffer nil)  ;; receives output of gpr_query
-  (sent-kill-p nil)
-  (closed-p nil))
+  (buffer nil)) ;; receives output of gpr_query
 
 (defconst gpr-query-buffer-name-prefix " *gpr_query-")
 

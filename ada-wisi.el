@@ -507,6 +507,13 @@ point must be on CACHE. PREV-TOKEN is the token before the one being indented."
 		 ;; indenting 'with'
 		 (+ (current-column) 1))
 
+		(association_list
+		 ;; test/ada_mode-parens.adb
+		 ;; Local_13 : Local_11_Type
+		 ;;   := (Integer'(1),
+		 ;;       Integer'(2));
+		 (ada-wisi-indent-cache 0 containing))
+
 		(association_opt
 		 ;; test/indent.ads
 		 ;; 1 =>  --  Used to be aligned on "CSCL_Type'"
@@ -554,6 +561,12 @@ point must be on CACHE. PREV-TOKEN is the token before the one being indented."
 		 ;; type Limited_Derived_Type_2a is abstract limited new Private_Type_1
 		 ;; with record
 		 ;; indenting 'with record'
+		 ;;
+		 ;; test/access_in_record.ads
+		 ;; type A
+		 ;;    is new Ada.Streams.Root_Stream_Type with record
+		 ;; FIXME: line with 'record' use ada-indent-record-rel-type
+
 		 (while (not (eq 'TYPE (wisi-cache-token containing)))
 		   (setq containing (wisi-goto-containing containing)))
 
@@ -607,6 +620,12 @@ point must be on CACHE. PREV-TOKEN is the token before the one being indented."
 		    ;;   := Local_1;
 		    (+ (current-indentation) ada-indent-broken))
 		   ))
+
+		(private_extension_declaration
+		 ;; test/ada_mode-nominal.ads
+		 ;; type Limited_Derived_Type_3 is abstract limited
+		 ;;   new Private_Type_1 with private;
+		 (+ (current-indentation) ada-indent-broken))
 
 		(private_type_declaration
 		 ;; test/aspects.ads
