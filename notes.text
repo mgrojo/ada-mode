@@ -42,16 +42,66 @@ install packages in -Q:
     build/Makefile
     doc changes in NEWS-ada-mode.text NEWS-wisi.text
 
-    running all tests
+    compute a list of text properties in a separate process, and return
+    that to the Emacs process to be applied.
+        build/Makefile
 
-    add EMACSXREF
-        skip separate from EMACSCMD
-        add test-ada-wisi; skip xref
-        skip cmd in xref tests
+            clean up ada_grammar.adb
 
-    mention ARM info format in ada-mode.texi
-        or include in ELPA?
-        ask on Debian, emacs lists
+        time ./ada_grammar-parse /apps/GNAT-gpl_2014/gnatcoll-1.7w-src/src/sqlite/gnatcoll-xref.adb
+            unknown conflicts
+                Ada parser doesn't know what to do with conflicts!
+                just do one path for now
+
+        don't need allocated token objects on parser stack, just token_id
+
+        OpenToken lexer is too slow?
+            time ./run_ada_lexer /apps/GNAT-gpl_2014/gnatcoll-1.7w-src/src/sqlite/gnatcoll-xref.adb
+            real    0m0.359s
+            user    0m0.031s
+            sys     0m0.000s
+
+
+        replace with aflex
+            from http://sourceforge.net/projects/p2ada/files/p2ada/Sources/
+            c:/Projects/aflex/build/Makefile
+            time ./run_ada_lexer /apps/GNAT-gpl_2014/gnatcoll-1.7w-src/src/sqlite/gnatcoll-xref.adb > foo.text
+            real	0m0.200s
+            user	0m0.000s
+            sys	0m0.000s
+            includes file io
+
+            edit yylex.adb to remove "ECHO" call in state 104, warm file cache:
+            real	0m0.080s
+            user	0m0.000s
+            sys	0m0.000s
+
+            build with optimization
+            no better; dominated by io
+
+            (/ 0.36 0.08) = 4.5
+
+        integrate into OpenToken lexer
+            not yet; time parser first
+
+            aflex generates ada_syntax.a, containing function yylex
+                change aflex to name function ada_syntax.yylex
+
+                ECHO is an error handler?
+                    writes via "Text_IO.Put (user_output_file)"
+
+            ada_syntax_dfa -> ada_syntax-dfa.ads
+
+        generate *.l, associated packages from *.wy
+
+
+    add error recovery to parser
+
+    more intelligent rules when parser fails?
+
+    don't do syntax-propertize for font-lock, unless parsing is already done
+        not parsed on open; start of buffer doesn't require syntax propertize?
+        happens on scroll to end
 
     doc git/elpa checkout, config
 
@@ -165,8 +215,6 @@ parse error for legal expression function in enclosing parens
 
 separate color for vendor-specific aspects
     spark aspects in test/aspects.ads
-
-(see general below for more possibilites)
 
 completion:
     built-in pcomplete

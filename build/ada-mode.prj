@@ -5,4 +5,5 @@ gpr_file=ada_mode_parent.gpr
 -- for compiling wisent grammars
 src_dir=..
 
+casing=emacs_case_exceptions
 -- end of file

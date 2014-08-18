@@ -1,6 +1,6 @@
 ^.*\.elc$
 ^NUL$
-^ada-grammar\.output$
+^ada_grammar\.output$
 ^ada-mode\.html$
 ^ada-mode\.info$
 ^autoloads\.el$

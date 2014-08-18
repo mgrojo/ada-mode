@@ -1,0 +1,8 @@
+aggregate project Ada_Mode_Wisi_Parse_Agg is
+
+   for project_path use
+     (external ("WISI_OPENTOKEN"));
+
+   for Project_files use ("ada_mode_wisi_parse.gpr");
+
+end Ada_Mode_Wisi_Parse_Agg;

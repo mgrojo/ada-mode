@@ -447,7 +447,8 @@ block_statement
       (wisi-motion-action 1 '(2 EXCEPTION) 3))
   ;
 
-body : proper_body | body_stub ;
+;; Annex P has overloaded 'body'; keyword and grammar element
+body_g : proper_body | body_stub ;
 
 body_stub : subprogram_body_stub | package_body_stub | task_body_stub | protected_body_stub ;
 
@@ -632,7 +633,7 @@ constant_opt
   ;
 
 constraint
-  : RANGE range ;; range_constraint
+  : RANGE range_g ;; range_constraint
  ;; | digits_constraint
  ;; | delta_constraint
   | index_constraint
@@ -644,12 +645,12 @@ constraint_opt
   | constraint
   ;
 
-context_item : pragma | with_clause | use_clause;
+context_item : pragma_g | with_clause | use_clause;
 
 declaration
   : abstract_subprogram_declaration
   | aspect_clause
-  | body
+  | body_g
   | entry_declaration
   | exception_declaration
   | expression_function_declaration
@@ -662,7 +663,7 @@ declaration
       (wisi-containing-action 1 5))
   | object_declaration
   | package_declaration
-  | pragma ;; not a 'declaration' in ARM, but it must be in the grammar
+  | pragma_g ;; not a 'declaration' in ARM, but it must be in the grammar
   | renaming_declaration
   | subprogram_declaration
   | subtype_declaration
@@ -714,7 +715,7 @@ direct_name_opt
 discrete_choice
   : choice_expression ;; includes 'name'
   | NOT NULL name ;; from subytpe_indication, excluding constructs covered by 'name'
-  | range
+  | range_g
   | OTHERS
   ;
 
@@ -728,7 +729,7 @@ discrete_choice_list
 
  ;; discrete_range_list is the same as discrete_subtype_definition_list
 
-discrete_subtype_definition : subtype_indication | range ;
+discrete_subtype_definition : subtype_indication | range_g ;
 
 discrete_subtype_definition_list
   : discrete_subtype_definition
@@ -1130,7 +1131,7 @@ generic_formal_parameter_declaration
   | formal_type_declaration
   | formal_subprogram_declaration
   | formal_package_declaration
-  | pragma
+  | pragma_g
   ;
 
 generic_instantiation
@@ -1399,7 +1400,7 @@ membership_choice
  ;; relation => simple_expression IN choice_relation_and_list
  ;; thus 'choice_relation_and_list AND' could be followed by relation (=> reduce) or choice_relation (=> shift)
  ;; This only occurs in legal Ada in expressions such as 'True in 1 and 3'; not useful, so we leave it out.
-  | range
+  | range_g
  ;;  | name ;; subtype_mark - also covered by simple_expression; avoid reduce/reduce conflict
   ;
 
@@ -1434,7 +1435,7 @@ name
  ;; ARM has 'name ( discrete_subtype_definition )' here, but that's
  ;; partly redundant with 'name actual_parameter_part'; this is the
  ;; part that is not redundant.
-  | name LEFT_PAREN range RIGHT_PAREN ;; slice
+  | name LEFT_PAREN range_g RIGHT_PAREN ;; slice
     (progn
       (wisi-statement-action 1 'name-paren 2 'open-paren 4 'close-paren)
       (wisi-containing-action 1 2)
@@ -1667,7 +1668,8 @@ paren_expression
       (wisi-containing-action 1 2))
   ;
 
-pragma
+;; Annex P has overloaded 'pragma'; keyword and grammar
+pragma_g
   : PRAGMA IDENTIFIER LEFT_PAREN pragma_argument_association_list RIGHT_PAREN SEMICOLON
     (progn
       (wisi-statement-action 1 'statement-start 3 'open-paren 5 'close-paren 6 'statement-end)
@@ -1844,7 +1846,8 @@ raise_statement
     (wisi-statement-action 1 'statement-start 3 'statement-end)
   ;
 
-range
+;; Annex P has overloaded 'range'; keyword and grammar
+range_g
   : name TICK RANGE LEFT_PAREN expression RIGHT_PAREN ;; range_attribute_reference
     (progn
       (wisi-statement-action 4 'open-paren 6 'close-paren)
@@ -2053,7 +2056,7 @@ simple_statement
     (wisi-statement-action 1 'statement-start 3 'statement-end)
   | raise_statement
   ;; | code_statement
-  | pragma
+  | pragma_g
   ;
 
 single_protected_declaration
