@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2002, 2003, 2010, 2012, 2013 Stephe Leake
+-- Copyright (C) 2002, 2003, 2010, 2012, 2013, 2014 Stephe Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -41,7 +41,9 @@ package OpenToken.Production.Parser is
 
    subtype Nonterminal_ID is Token.Token_ID range Token.Token_ID'Succ (Tokenizer.Last_Terminal) .. Token.Token_ID'Last;
 
-   type Instance is abstract tagged private;
+   type Instance is abstract tagged record
+      Analyzer : Tokenizer.Instance;
+   end record;
 
    ----------------------------------------------------------------------------
    --  Attempt a parse. This routine will return when the grammar indicates the
@@ -86,8 +88,4 @@ package OpenToken.Production.Parser is
    ----------------------------------------------------------------------------
    function Column (Parser : in Instance) return Natural;
 
-private
-   type Instance is abstract tagged record
-      Analyzer : Tokenizer.Instance;
-   end record;
 end OpenToken.Production.Parser;

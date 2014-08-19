@@ -20,7 +20,10 @@ pragma License (GPL);
 
 with Ada.Characters.Handling;
 with Ada.Text_IO; use Ada.Text_IO;
+with OpenToken.Production.Put_Ada;
 with OpenToken;
+with Wisi.Gen_Generate_Utils;
+with Wisi.Utils;
 procedure Wisi.Output_Ada
   (Input_File_Name  : in String;
    Output_File_Root : in String;
@@ -28,10 +31,48 @@ procedure Wisi.Output_Ada
    Keywords         : in String_Pair_Lists.List;
    Tokens           : in Token_Lists.List;
    Start_Token      : in Standard.Ada.Strings.Unbounded.Unbounded_String;
+   Conflicts        : in Conflict_Lists.List;
    Rules            : in Rule_Lists.List)
 is
-   Grammar_File : File_Type;
-   Exe_File     : File_Type;
+   EOI_Image : constant String := "EOF";
+
+   package Generate_Utils is new Wisi.Gen_Generate_Utils (Keywords, Tokens, Conflicts, Rules, EOI_Image);
+
+   type Action_Name_List is array (Integer range <>) of access constant String;
+   type Action_Name_List_Access is access Action_Name_List;
+
+   Empty_Action : constant access constant String := new String'("Self");
+   Action_Names : array (Generate_Utils.Token_IDs) of Action_Name_List_Access;
+
+   function Token_Name (ID : in Generate_Utils.Token_IDs) return String
+   is begin
+      return Generate_Utils.Token_Image (ID) & "_ID";
+   end Token_Name;
+
+   function Action_Name (Item : in Generate_Utils.Token_IDs; Index : in Integer) return String
+   is begin
+      return Action_Names (Item) (Index).all;
+   exception
+   when others =>
+      Wisi.Utils.Put_Error
+        (Input_File_Name,
+         1,
+         "Name for '" & Generate_Utils.Token_Image (Item) & "'," & Integer'Image (Index) & " not defined.");
+      raise Programmer_Error;
+   end Action_Name;
+
+   package Production_Put_Ada is new Generate_Utils.Productions.Put_Ada (Token_Name, Action_Name);
+
+   Grammar : constant Generate_Utils.Production_Lists.Instance := Generate_Utils.To_Grammar
+     (Input_File_Name, -Start_Token);
+   Parser  : constant Generate_Utils.LALR_Parsers.Instance := Generate_Utils.LALR_Parsers.Generate
+     (Grammar,
+      Generate_Utils.Analyzers.Null_Analyzer,
+      Generate_Utils.To_Conflicts,
+      Trace                    => Verbosity > 1,
+      Put_Grammar              => Verbosity > 0,
+      Ignore_Unused_Tokens     => Verbosity > 1,
+      Ignore_Unknown_Conflicts => Verbosity > 1);
 
    function To_Ada (File_Name : in String) return String
    is
@@ -45,16 +86,13 @@ is
             Result (I) := '.';
             Result (I + 1) := To_Upper (Result (I + 1));
          elsif Result (I) = '_' then
-            Result (I) := To_Upper (Result (I));
+            Result (I + 1) := To_Upper (Result (I + 1));
          end if;
       end loop;
       return Result;
    end To_Ada;
 
-   Grammar_Package_Name : constant String := To_Ada (Output_File_Root);
-   Exe_Name             : constant String := To_Ada (Output_File_Root) & ".Parse";
-
-   Indent : Positive_Count := 1;
+   Package_Name : constant String := To_Ada (Output_File_Root);
 
    procedure Put_Prologue
    is
@@ -72,47 +110,41 @@ is
       end loop;
    end Put_Prologue;
 
-   procedure Indent_Line (Text : in String)
-   is begin
-      Set_Col (Indent);
-      Put_Line (Text);
-   end Indent_Line;
-
-   procedure Put (List : in String_Lists.List)
+   procedure Put (Action : in Generate_Utils.LALR_Parsers.Parse_Action_Rec)
    is
-      --  Put OpenToken syntax for a production
-      use Standard.Ada.Strings;
-      use Standard.Ada.Strings.Unbounded;
-      use String_Lists;
-      use type Standard.Ada.Containers.Count_Type;
-      Item : Cursor := List.First;
+      use Generate_Utils.LALR_Parsers;
    begin
-      for Element of List loop
-         Put ("(+" & Element & "_ID)");
-         Next (Item);
-         exit when Item = No_Element;
-         if Col > 100 then
-            Put_Line (" &");
-            Set_Col (Indent + 2);
+      case Action.Verb is
+      when Shift =>
+         Put (" (Shift");
+         Put ("," & State_Index'Image (Action.State));
+      when Reduce | Accept_It =>
+         if Action.Verb = Reduce then
+            Put (" (Reduce");
          else
-            Put (" & ");
+            Put (" (Accept_It");
          end if;
-      end loop;
-      if List.Length = 0 then
-         Put (" +Self");
-      else
-         Put (" + Self");
-      end if;
+         Put (", ");
+         Production_Put_Ada.Put (Action.Production);
+         Put ("," & Integer'Image (Action.Length));
+      when Error =>
+         Put (" (Verb => Error");
+         null;
+      end case;
+      Put (")");
    end Put;
+
+   use Generate_Utils;
+   Spec_File : File_Type;
+   Body_File : File_Type;
 
 begin
    if Verbosity > 0 then
-      Put_Line ("no verbosity for Ada output");
-      raise User_Error;
+      Generate_Utils.Put_Tokens;
    end if;
 
-   Create (Grammar_File, Out_File, Output_File_Root & ".ads");
-   Set_Output (Grammar_File);
+   Create (Spec_File, Out_File, Output_File_Root & ".ads");
+   Set_Output (Spec_File);
    Put_Line ("--  generated by OpenToken Wisi from " & Input_File_Name);
    Put_Line ("--");
    Put_Prologue;
@@ -156,7 +188,7 @@ begin
    Put_Line ("with OpenToken.Token.Enumerated.Analyzer;");
    Put_Line ("with OpenToken.Token.Enumerated.List;");
    Put_Line ("with OpenToken.Token.Enumerated.Nonterminal;");
-   Put_Line ("package " & Grammar_Package_Name & " is");
+   Put_Line ("package " & Package_Name & " is");
    Indent := Indent + 3;
 
    New_Line;
@@ -185,7 +217,7 @@ begin
          end loop;
       end if;
    end loop;
-   Indent_Line ("EOF_ID,");
+   Indent_Line (EOI_Image & "_ID,");
    New_Line;
    Indent_Line ("--  non-terminals");
    declare
@@ -220,7 +252,9 @@ begin
    Indent_Line ("package Productions is new OpenToken.Production (Tokens_Pkg, Token_Lists, Nonterminals);");
    Indent_Line ("package Production_Lists is new Productions.List;");
    Indent_Line ("package Parsers is new Productions.Parser (Production_Lists, Analyzers);");
-   Indent_Line ("package LALR_Parsers is new Parsers.LALR (First_State_Index => 1);");
+   Indent_Line
+     ("package LALR_Parsers is new Parsers.LALR (First_State_Index => " &
+        State_Image (LALR_Parsers.State_Index'First) & ");");
    New_Line;
    Indent_Line ("Syntax : constant Analyzers.Syntax :=");
    Indent_Line ("  (Whitespace_ID  => Analyzers.Get");
@@ -270,165 +304,197 @@ begin
    end loop;
    Indent_Line ("EOF_ID => Analyzers.Get (OpenToken.Recognizer.End_Of_File.Get));");
    New_Line;
-
    Indent := Indent - 3;
 
-   Indent_Line ("function ""+""");
-   Indent_Line ("  (Item : in Token_IDs)");
-   Indent_Line ("  return Tokens_Pkg.Instance'Class");
-   Indent_Line ("renames Tokens_Pkg.""+"";");
+   Put_Line ("function Create_Parser return LALR_Parsers.Instance;");
+   New_Line;
+   Put_Line ("Parser : LALR_Parsers.Instance := Create_Parser;");
    New_Line;
 
-   Indent_Line ("--  Allow infix operators for building productions");
-   Indent_Line ("use type Token_Lists.Instance;");
-   Indent_Line ("use type Productions.Right_Hand_Side;");
-   Indent_Line ("use type Productions.Instance;");
-   Indent_Line ("use type Production_Lists.Instance;");
+   Put_Line ("end " & Package_Name & ";");
+   Close (Spec_File);
+
+   Create (Body_File, Out_File, Output_File_Root & ".adb");
+   Set_Output (Body_File);
+   Indent := 1;
+   Put_Line ("--  generated by OpenToken Wisi from " & Input_File_Name);
+   Put_Line ("--");
+   Put_Prologue;
+   Put_Line ("with Ada.Containers.Indefinite_Doubly_Linked_Lists;");
+   Put_Line ("with Ada.Text_IO; use Ada.Text_IO;");
+   Put_Line ("package body " & Package_Name & " is");
+   Indent := Indent + 3;
    New_Line;
 
    Indent_Line ("Self : Nonterminals.Synthesize renames Nonterminals.Synthesize_Self;");
    New_Line;
 
-   Indent_Line ("Grammar : constant Production_Lists.Instance :=");
-   Indent := Indent + 2;
-   declare
-      Rule_Cursor : Rule_Lists.Cursor := Rules.First;
-      use type Rule_Lists.Cursor;
-   begin
-      --  Add the required OpenToken accept production:
-      Indent_Line
-        ("Nonterminals.Get (opentoken_accept_ID) <= Nonterminals.Get (" & (-Start_Token) &
-           "_ID) & (+EOF_ID) and");
-      loop
-         declare
-            use type RHS_Lists.Cursor;
-            Rule       : constant Rule_Lists.Constant_Reference_Type := Rules.Constant_Reference (Rule_Cursor);
-            RHS_Cursor : Wisi.RHS_Lists.Cursor                       := Rule.Right_Hand_Sides.First;
-         begin
-            if RHS_Cursor = Wisi.RHS_Lists.No_Element then
-               Put_Line
-                 (Standard_Error, Input_File_Name & ":0:0: no productions for rule '" & (-Rule.Left_Hand_Side) & "'");
-            else
-               loop
-                  Set_Col (Indent);
-                  Put ("Nonterminals.Get (" & (-Rule.Left_Hand_Side) & "_ID) <= ");
-                  declare
-                     RHS : constant RHS_Lists.Constant_Reference_Type :=
-                       Rule.Right_Hand_Sides.Constant_Reference (RHS_Cursor);
-                  begin
-                     Put (RHS.Production);
-                     Wisi.RHS_Lists.Next (RHS_Cursor);
-                     if RHS_Cursor = Wisi.RHS_Lists.No_Element then
-                        exit;
-                     else
-                        Indent_Line ("and");
-                     end if;
-                  end;
-               end loop;
-            end if;
-         end;
-         Rule_Lists.Next (Rule_Cursor);
-         if Rule_Cursor = Rule_Lists.No_Element then
-            Indent_Line (";");
-            exit;
-         else
-            Indent_Line ("and");
+   Action_Names (Find_Token_ID ("opentoken_accept")) := new Action_Name_List (0 .. 0);
+   Action_Names (Find_Token_ID ("opentoken_accept")) (0) := Empty_Action;
+
+   Indent_Line ("package String_Lists is new Ada.Containers.Indefinite_Doubly_Linked_Lists (String);");
+   New_Line;
+   Indent_Line ("Actions : String_Lists.List;");
+   New_Line;
+
+   for Rule of Rules loop
+      declare
+         use type Ada.Containers.Count_Type;
+         LHS_ID : constant Token_IDs := Find_Token_ID (-Rule.Left_Hand_Side);
+         Index  : Integer            := 0; -- Matches Generate_Utils.To_Grammar
+      begin
+         if Action_Names (LHS_ID) = null then
+            Action_Names (LHS_ID) := new Action_Name_List (0 .. Integer (Rule.Right_Hand_Sides.Length) - 1);
          end if;
-      end loop;
-   end;
 
-   Put_Line ("end " & Grammar_Package_Name & ";");
-   Close (Grammar_File);
+         for RHS of Rule.Right_Hand_Sides loop
+            if RHS.Action.Length > 0 then
+               declare
+                  Name : constant String := -Rule.Left_Hand_Side & '_' & Int_Image (Index);
+               begin
+                  Action_Names (LHS_ID) (Index) := new String'(Name & "'Access");
 
-   Create (Exe_File, Out_File, Output_File_Root & "-parse.adb");
-   Set_Output (Exe_File);
-   Put_Line ("--  generated by OpenToken Wisi from " & Input_File_Name);
-   Put_Line ("--");
-   Put_Prologue;
-   Put_Line ("");
-   Put_Line ("with Ada.Command_Line;");
-   Put_Line ("with Ada.Directories;");
-   Put_Line ("with Ada.Exceptions;");
-   Put_Line ("with Ada.Text_IO; use Ada.Text_IO;");
-   Put_Line ("with OpenToken.Text_Feeder.Text_IO;");
-   Put_Line ("procedure " & Exe_Name & " is");
+                  Indent_Line ("procedure " & Name);
+                  Indent := Indent + 2;
+                  Indent_Line ("(New_Token : out Nonterminals.Class;");
+                  Indent := Indent + 1;
+                  Indent_Line ("Source    : in  Token_Lists.Instance'Class;");
+                  Indent_Line ("To_ID     : in  Token_IDs)");
+                  Indent := Indent - 3;
+                  Indent_Line ("is");
+                  Indent_Line ("   pragma Unreferenced (Source);");
+                  Indent_Line ("begin");
+                  Indent := Indent + 3;
+                  Indent_Line ("New_Token := Nonterminals.Get (To_ID);");
+                  --  Assuming simple elisp syntax for actions, as used by wisi elisp parser
+                  --  Just accumulate elisp sexp to pass back to Emacs
+                  for Line of RHS.Action loop
+                     Indent_Line ("Actions.Append (""" & Line & """);");
+                  end loop;
+                  Indent := Indent - 3;
+                  Indent_Line ("end " & Name & ";");
+                  New_Line;
+               end;
+            else
+               Action_Names (LHS_ID) (Index) := Empty_Action;
+            end if;
+
+            Index := Index + 1;
+         end loop;
+      end;
+   end loop;
+
+   Indent_Line ("procedure Add_Action");
+   Indent := Indent + 2;
+   Indent_Line ("(State  : in out LALR_Parsers.Parse_State;");
+   Indent := Indent + 1;
+   Indent_Line ("Symbol : in     Token_IDs;");
+   Indent_Line ("Action : in     LALR_Parsers.Parse_Action_Rec)");
+   Indent := Indent - 3;
+   Indent_Line ("is");
+   Indent_Line ("   use LALR_Parsers;");
+   Indent_Line ("begin");
+   Indent := Indent + 3;
+   Indent_Line
+     ("State.Action_List := new Action_Node'(Symbol, new Parse_Action_Node'(Action, null), State.Action_List);");
+   Indent := Indent - 3;
+   Indent_Line ("end Add_Action;");
    New_Line;
-   Put_Line ("   procedure Put_Usage");
-   Put_Line ("   is begin");
-   Put_Line ("      Put_Line (""" & Output_File_Root & "-parse [-v verbosity] filename"");");
-   Put_Line ("      Put_Line (""  verbosity 0 (default); only grammar action output"");");
-   Put_Line ("      Put_Line (""  verbosity 1 : also output parse table, and trace of states while parsing"");");
-   Put_Line ("      Put_Line (""  verbosity 2 : also output grammar building debug info"");");
-   Put_Line ("   end Put_Usage;");
+
+   Indent_Line ("procedure Add_Action");
+   Indent := Indent + 2;
+   Indent_Line ("(State    : in out LALR_Parsers.Parse_State;");
+   Indent := Indent + 1;
+   Indent_Line ("Symbol   : in     Token_IDs;");
+   Indent_Line ("Action_1 : in     LALR_Parsers.Parse_Action_Rec;");
+   Indent_Line ("Action_2 : in     LALR_Parsers.Parse_Action_Rec)");
+   Indent := Indent - 3;
+   Indent_Line ("is");
+   Indent_Line ("   use LALR_Parsers;");
+   Indent_Line ("begin");
+   Indent := Indent + 3;
+   Indent_Line ("State.Action_List := new Action_Node'");
+   Indent_Line
+     ("  (Symbol, new Parse_Action_Node'(Action_1, new Parse_Action_Node'(Action_2, null)), State.Action_List);");
+   Indent := Indent - 3;
+   Indent_Line ("end Add_Action;");
    New_Line;
-   Put_Line ("   Input_File  : aliased File_Type;");
-   Put_Line ("   Verbosity   : Integer := 0;");
-   Put_Line ("   Parser      : LALR_Parsers.Instance;");
+
+   Indent_Line ("procedure Add_Reduction");
+   Indent := Indent + 2;
+   Indent_Line ("(State    : in out LALR_Parsers.Parse_State;");
+   Indent := Indent + 1;
+   Indent_Line ("Symbol   : in     Token_IDs;");
+   Indent_Line ("To_State : in     LALR_Parsers.State_Index)");
+   Indent := Indent - 3;
+   Indent_Line ("is");
+   Indent_Line ("   use LALR_Parsers;");
+   Indent_Line ("begin");
+   Indent := Indent + 3;
+   Indent_Line ("State.Reduction_List := new Reduction_Node'(Symbol, To_State, State.Reduction_List);");
+   Indent := Indent - 3;
+   Indent_Line ("end Add_Reduction;");
    New_Line;
-   Put_Line ("   procedure Use_File (File_Name : in String)");
-   Put_Line ("   is begin");
-   Put_Line ("      Open (Input_File, In_File, File_Name);");
-   Put_Line ("   exception");
-   Put_Line ("   when Name_Error =>");
-   Put_Line ("      Put_Line (File_Name & "" cannot be opened"");");
-   Put_Line ("      raise OpenToken.User_Error;");
-   Put_Line ("   end Use_File;");
+
+   Indent_Line ("function Create_Parser return LALR_Parsers.Instance");
+   Indent_Line ("is");
+   Indent := Indent + 3;
+   Indent_Line ("use LALR_Parsers;");
+   Indent_Line ("use Productions;");
+   Indent_Line
+     ("Table : constant Parse_Table_Ptr := new Parse_Table (" &
+        State_Image (Parser.Table'First) & " .. " & State_Image (Parser.Table'Last) & ");");
+   Indent := Indent - 3;
+   Indent_Line ("begin");
+   Indent := Indent + 3;
+   for State_Index in Parser.Table.all'Range loop
+      Actions :
+      declare
+         use Generate_Utils.LALR_Parsers;
+         Node : Action_Node_Ptr := Parser.Table (State_Index).Action_List;
+      begin
+         loop
+            exit when Node = null;
+            Set_Col (Indent);
+            Put ("Add_Action (Table (" & State_Image (State_Index) & "), ");
+            Put (Token_Name (Node.Symbol) & ",");
+            declare
+               Action_Node : Parse_Action_Node_Ptr := Node.Action;
+            begin
+               loop
+                  exit when Action_Node = null;
+                  Put (Action_Node.Item);
+                  Action_Node := Action_Node.Next;
+                  if Action_Node /= null then
+                     Put (",");
+                  end if;
+               end loop;
+            end;
+            Put_Line (");");
+            Node := Node.Next;
+         end loop;
+      end Actions;
+
+      Reductions :
+      declare
+         use Generate_Utils.LALR_Parsers;
+         Node : Reduction_Node_Ptr := Parser.Table (State_Index).Reduction_List;
+      begin
+         loop
+            exit when Node = null;
+            Set_Col (Indent);
+            Put ("Add_Reduction (Table (" & State_Image (State_Index) & "), ");
+            Put_Line (Token_Name (Node.Symbol) & ", " & State_Image (Node.State) & ");");
+            Node := Node.Next;
+         end loop;
+      end Reductions;
+   end loop;
    New_Line;
-   Put_Line ("begin");
-   Put_Line ("   declare");
-   Put_Line ("      use Ada.Command_Line;");
-   Put_Line ("   begin");
-   Put_Line ("      case Argument_Count is");
-   Put_Line ("      when 1 =>");
-   Put_Line ("         Use_File (Argument (1));");
-   New_Line;
-   Put_Line ("      when 3 =>");
-   Put_Line ("         if Argument (1) = ""-v"" then");
-   Put_Line ("            Verbosity := Integer'Value (Argument (2));");
-   Put_Line ("            OpenToken.Trace_Parse := Verbosity > 0;");
-   New_Line;
-   Put_Line ("         else");
-   Put_Line ("            Set_Exit_Status (Failure);");
-   Put_Line ("            Put_Usage;");
-   Put_Line ("            return;");
-   Put_Line ("         end if;");
-   New_Line;
-   Put_Line ("         Use_File (Argument (3));");
-   New_Line;
-   Put_Line ("      when others =>");
-   Put_Line ("         Set_Exit_Status (Failure);");
-   Put_Line ("         Put_Usage;");
-   Put_Line ("         return;");
-   Put_Line ("      end case;");
-   Put_Line ("   exception");
-   Put_Line ("   when others =>");
-   Put_Line ("      Set_Exit_Status (Failure);");
-   Put_Line ("      Put_Usage;");
-   Put_Line ("      return;");
-   Put_Line ("   end;");
-   New_Line;
-   Put_Line ("   Parser := LALR_Parsers.Generate");
-   Put_Line ("     (Grammar, Analyzers.Initialize");
-   Put_Line ("       (Syntax, OpenToken.Text_Feeder.Text_IO.Create (Input_File'Unchecked_Access)),");
-   Put_Line ("      Trace       => Verbosity > 1,");
-   Put_Line ("      Put_Grammar => Verbosity > 0);");
-   New_Line;
-   Put_Line ("   Parser.Parse;");
-   Put_Line ("exception");
-   Put_Line ("when E : OpenToken.Grammar_Error =>");
-   Put_Line ("   Put_Line (Standard_Error, Ada.Exceptions.Exception_Message (E));");
-   Put_Line ("   if Verbosity = 0 then");
-   Put_Line ("      Ada.Command_Line.Set_Exit_Status (Standard.Ada.Command_Line.Failure);");
-   Put_Line ("   end if;");
-   Put_Line ("when E : OpenToken.Syntax_Error =>");
-   Put_Line ("   Put_Line");
-   Put_Line ("     (Standard_Error, Ada.Directories.Simple_Name (Name (Input_File)) & ':' &");
-   Put_Line ("      Ada.Exceptions.Exception_Message (E));");
-   Put_Line ("   Ada.Command_Line.Set_Exit_Status (Standard.Ada.Command_Line.Failure);");
-   Put_Line ("when End_Error =>");
-   Put_Line ("   null;");
-   Put_Line ("end " & Exe_Name & ";");
-   Close (Exe_File);
+   Indent_Line ("return (Analyzers.Initialize (Syntax, null), Table);");
+   Indent := Indent - 3;
+   Indent_Line ("end Create_Parser;");
+   Put_Line ("end " & Package_Name & ";");
+   Close (Body_File);
 exception
 when others =>
    Set_Output (Standard_Output);

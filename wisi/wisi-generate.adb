@@ -128,7 +128,7 @@ begin
    case Output_Language is
    when Ada =>
       Wisi.Output_Ada
-        (-Input_File_Name, -Output_File_Root, Prologue, Keywords, Tokens, Start_Token, Rules);
+        (-Input_File_Name, -Output_File_Root, Prologue, Keywords, Tokens, Start_Token, Conflicts, Rules);
    when Elisp =>
       Wisi.Output_Elisp (-Output_File_Root, Prologue, Keywords, Tokens, Start_Token, Conflicts, Rules);
    when Test =>
