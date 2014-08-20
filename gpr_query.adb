@@ -532,14 +532,18 @@ procedure Gpr_Query is
 
                            when N_External_Value =>
                               declare
+                                 use Ada.Environment_Variables;
                                  Env_Var_Node : constant Project_Node_Id := External_Reference_Of (Node, Prj_Tree);
 
                                  Env_Var_Name : constant String :=
                                    Get_Name_String (String_Value_Of (Env_Var_Node, Prj_Tree));
-
-                                 Dir : constant String := Ada.Environment_Variables.Value (Env_Var_Name);
                               begin
-                                 Path := Path & Dir;
+                                 if Exists (Env_Var_Name) then
+                                    Path := Path & Value (Env_Var_Name);
+                                 else
+                                    raise Invalid_Command with "Environment variable '" &
+                                      Env_Var_Name & "' not defined.";
+                                 end if;
                               end;
 
                            when others =>

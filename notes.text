@@ -42,7 +42,14 @@ install packages in -Q:
     build/Makefile
     doc changes in NEWS-ada-mode.text NEWS-wisi.text
 
-    running all tests
+    handle all indent options like ada-case-strict
+        need case-strict, ada-indent prj-wide for aflex
+        need case-strict buffer-local for ada-mode ada_tokens
+
+        set buffer-local from prj-get in ada-mode-hook
+            use an alist or auto naming rule to define prj var
+
+        or user write cond string-match on default-dir
 
     add EMACSXREF
         skip separate from EMACSCMD

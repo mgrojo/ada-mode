@@ -936,9 +936,8 @@ Return (cons full-exceptions partial-exceptions)."
 	(cons full-exceptions partial-exceptions))
 
     ;; else file not readable; might be a new project with no
-    ;; exceptions yet, so just warn user, return empty pair
+    ;; exceptions yet, so just return empty pair
     (message "'%s' is not a readable file." file-name)
-    (ding) (sit-for 1)
     '(nil . nil)
     ))
 
@@ -2798,6 +2797,8 @@ The paragraph is indented on the first line."
   (setq align-mode-rules-list ada-align-rules)
 
   (easy-menu-add ada-mode-menu ada-mode-map)
+
+  (setq ada-case-strict (ada-prj-get 'case_strict))
 
   (run-mode-hooks 'ada-mode-hook)
 

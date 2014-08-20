@@ -36,6 +36,7 @@
 
 ;; we reuse several ada-mode functions
 (require 'ada-mode)
+(require 'cl-lib)
 
 (defvar gpr-mode-map
   (let ((map (make-sparse-keymap)))
@@ -77,7 +78,7 @@
     ["------"        nil nil]
     ["Find and select project ..." ada-build-prompt-select-prj-file t]
     ["Select project ..."          ada-prj-select                   t]
-    ["Set as current project"      gpr-set-as-project               t]
+    ["Parse and select current file" gpr-set-as-project             t]
     ["Show current project"        ada-prj-show                     t]
     ["Show project search path"    ada-prj-show-path                t]
     ["Next compilation error"      next-error                       t]
@@ -209,6 +210,14 @@ of the package or project point is in or just after, or nil.")
 (defun gpr-set-as-project (&optional file)
   "Set FILE (default current buffer file) as Emacs project file."
   (interactive)
+  (save-some-buffers t)
+  ;; Kill sessions to catch changed env vars
+  ;; FIXME: need dispatching kill single session
+  (cl-ecase ada-xref-tool
+    (gnat_xref nil)
+    (gnat_inspect (gnat-inspect-kill-all-sessions))
+    (gpr_query (gpr-query-kill-all-sessions))
+    )
   (ada-parse-prj-file (or file (buffer-file-name)))
   (ada-select-prj-file (or file (buffer-file-name))))
 

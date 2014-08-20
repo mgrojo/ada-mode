@@ -1509,6 +1509,8 @@ Also return cache at start."
   ;; is actually more forgiving than that; it will treat
   ;; '"foo["bar"]baz" as a single string. But that will be caught by
   ;; the compiler, so it's ok for us.
+  ;; FIXME: not! prevents strings ending in [
+  ;; Move to syntax-propertize
   (setq wisi-string-quote-escape '(?\" . ?\[ ))
 
   (set (make-local-variable 'comment-indent-function) 'wisi-comment-indent)
@@ -1531,8 +1533,8 @@ Also return cache at start."
       "\\)\\>[ \t]*"
       ada-name-regexp "?")
      '(1 font-lock-keyword-face)
-     '(2 (if (eq (when (not (ada-in-string-or-comment-p))
-		   (wisi-validate-cache (match-end 2))
+     '(2 (if (eq (when (and (not (ada-in-string-or-comment-p))
+			    (> wisi-cache-max (match-end 2))) ;; don't require parse just for font-lock
 		   (and (wisi-get-cache (match-beginning 2))
 			(wisi-cache-class (wisi-get-cache (match-beginning 2)))))
 		 'type)

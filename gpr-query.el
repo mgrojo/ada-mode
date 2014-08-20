@@ -160,6 +160,14 @@ Return buffer that holds output."
       (current-buffer)
       )))
 
+(defun gpr-query-kill-session (session)
+  (let ((process (gpr-query--session-process session)))
+    (when (process-live-p process)
+      (process-send-string (gpr-query--session-process session) "exit\n")
+      (while (process-live-p process)
+    	(accept-process-output process 1.0)))
+    ))
+
 (defun gpr-query-kill-all-sessions ()
   (interactive)
   (let ((count 0))
@@ -395,7 +403,10 @@ Enable mode if ARG is positive"
 (defun gpr-query-refresh ()
   "For `ada-xref-refresh-function', using gpr_query."
   (interactive)
-  (with-current-buffer (gpr-query-session-send "refresh" t)))
+  ;; need to kill session to get changed env vars etc
+  (let ((session (gpr-query-cached-session)))
+    (gpr-query-kill-session session)
+    (gpr-query--start-process session)))
 
 (defun gpr-query-other (identifier file line col)
   "For `ada-xref-other-function', using gpr_query."
