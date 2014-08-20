@@ -158,7 +158,7 @@ begin
                   Ada_Analyzer.Analyze_Ada_Source
                     (Buffer.all, GNATCOLL.Symbols.Allocate,
                      Indent_Params          =>
-                       (Indent_Level        => 3, -- FIXME: get from ada-mode once, at process start
+                       (Indent_Level        => 3, -- FIXME: get from ada-mode
                         Indent_Continue     => 2,
                         Indent_Decl         => 2,
                         Indent_Conditional  => 1,
@@ -169,9 +169,9 @@ begin
                         Ident_Casing        => Case_Handling.Unchanged,
                         Format_Operators    => True,
                         Use_Tabs            => False,
-                        Align_On_Colons     => True,
+                        Align_On_Colons     => True, -- FIXME: get from ada-mdoe
                         Align_On_Arrows     => True,
-                        Align_Decl_On_Colon => True,
+                        Align_Decl_On_Colon => False,
                         Indent_Comments     => True,
                         Stick_Comments      => False),
                      From                   => Indent_Line,

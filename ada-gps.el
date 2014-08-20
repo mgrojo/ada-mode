@@ -22,6 +22,8 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
+(require 'ada-mode)
+
 (defcustom ada-gps-size-threshold 100000
   "Max size (in characters) for using ada-wisi indentation engine."
   :type 'integer
@@ -46,10 +48,7 @@
 
 (defconst ada-gps-buffer-name " *ada_gps*")
 
-(defcustom ada-gps-exec "ada_mode_gps_indent"
-  "Name of executable to use for ada_mode_gps_indent,"
-  :type 'string
-  :group 'ada-indentation)
+;; ada-gps-exec declared in ada-mode for auto-detection of indent engine
 
 (defun ada-gps--start-process ()
   "Start the session process running ada_gps."
@@ -215,6 +214,9 @@ If PREFIX is non-nil, prefix with count of bytes in cmd."
 
     (ada-wisi-setup))
   )
+
+(unless (locate-file ada-gps-exec exec-path '(".exe"))
+  (error "%s not found on `exec-path'" ada-gps-exec))
 
 (add-hook 'ada-mode-hook 'ada-gps-or-wisi-setup)
 (setq ada-mode-hook (delq 'ada-wisi-setup ada-mode-hook))

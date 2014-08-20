@@ -1463,7 +1463,7 @@ Also return cache at start."
 	   (setq result (ada-wisi-which-function-1 "protected" t)))
 
 	  ((subprogram_declaration
-	    subprogram_specification ;; after 'generic'
+	    generic_subprogram_declaration ;; after 'generic'
 	    null_procedure_declaration)
 	   (setq result (ada-wisi-which-function-1
 			 (wisi-cache-text (wisi-forward-find-token '(FUNCTION PROCEDURE) (point-max)))
