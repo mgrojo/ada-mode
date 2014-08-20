@@ -2,7 +2,7 @@
 --
 --  Parse the production rules from Input_File, add to List.
 --
---  Copyright (C) 2012, 2013 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2012 - 2014 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -24,8 +24,9 @@ with Ada.Strings.Maps;
 with Ada.Text_IO; use Ada.Text_IO;
 with Wisi.Utils;  use Wisi.Utils;
 procedure Wisi.Rules
-  (Input_File : in     Standard.Ada.Text_IO.File_Type;
-   Rule_List  : in out Rule_Lists.List)
+  (Input_File      : in     Standard.Ada.Text_IO.File_Type;
+   Rule_List       : in out Rule_Lists.List;
+   Actions_Present :    out Boolean)
 is
    use Standard.Ada.Strings;
    use Standard.Ada.Strings.Fixed;
@@ -39,6 +40,8 @@ is
 begin
    --  We assume actions start on a new line starting with either ` or
    --  (, and are terminated by ; on a new line.
+
+   Actions_Present := False;
 
    loop
       declare
@@ -86,6 +89,7 @@ begin
                   State         := Action;
                   RHS.Action    := RHS.Action + Line;
                   Need_New_Line := True;
+                  Actions_Present := True;
 
                when ';' =>
                   Rule.Right_Hand_Sides.Append (RHS);

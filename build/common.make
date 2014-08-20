@@ -55,6 +55,7 @@ tests : empty_production_5-parse.diff
 # empty_production_6 only in Emacs Ada mode; requires generalized parser
 tests : empty_production_7-parse.diff
 # empty_production_8 only in Emacs Ada mode; requires generalized parser
+tests : multi_conflict-parse.diff
 
 examples : asu_example_3_6-run.run
 examples : asu_example_4_46-run.run
@@ -137,9 +138,6 @@ source-clean ::
 wisi-generate.exe : force
 	gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P opentoken.gpr $(GPRBUILD_ARGS) wisi-generate
 
-# we depend on %.adb, because the source for some executables is generated
-%.exe : %.adb force; gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P opentoken_test.gpr $(GPRBUILD_ARGS) $*
-
 %.check : %.adb force; gnatmake -p -k -gnatc -Popentoken_test.gpr $(GNATMAKE_ARGS) $*
 
 %.out : %.exe ;	./$*.exe > $*.out 2>&1
@@ -149,26 +147,23 @@ DIFF_OPT := -u -w
 
 %.diff : %.good_el %.el ; diff $(DIFF_OPT) $^ > $@
 
-%-parse.diff : %.good_parse %.parse ; diff $(DIFF_OPT) $^ > $@
+# the grammar and the state trace of the parse is the known good output
+%-parse.diff : %.good_parse %.parse
+	diff $(DIFF_OPT) $^ > $@
+	diff $(DIFF_OPT) $(^:parse=grammar) >> $@
 
 %.run : %.exe ;	./$(*F).exe $(RUN_ARGS)
 
-# %-wy.el : RUN_ARGS := -v
+# %-wy.el : RUN_ARGS := -v 1
 %-wy.el : %.wy wisi-generate.exe
 	./wisi-generate.exe $(RUN_ARGS) $< Elisp > $*.output
 
-# no verbosity for Ada output; set -v in %.parse instead FIXME: now there is verbosity
+# wisi-generate Ada runs lalr_parser.generate, and we always want the grammar for tests
 %.ads : %.wy wisi-generate.exe
-	./wisi-generate.exe $< Ada
+	./wisi-generate.exe -v 1 $< Ada > $*.grammar
 
-# the grammar and the state trace of the parse is the known good output
-# specify RUN_ARGS on command line to get -v 2 (adding it to 'one :' is too late)
 %.parse : %.input %_run.exe
-ifeq ($(RUN_ARGS),)
-	./$*_run.exe -v 1 $< > $*.parse
-else
-	./$*_run.exe $(RUN_ARGS) $< > $*.parse
-endif
+	./$*_run.exe -v $< > $*.parse
 
 %_run.exe : %_run.adb %.ads; gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P opentoken_test.gpr $(GPRBUILD_ARGS) $*_run
 

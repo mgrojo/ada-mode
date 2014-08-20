@@ -1,1 +1,6 @@
-foo
+ 0 : 
+IDENTIFIER_ID : SHIFT
+ 1 : IDENTIFIER_ID
+ 0 : 
+EOF_ID : ERROR
+ 2: 1:3: Syntax error; expecting 'EOF_ID' or 'TICK_ID' or 'RIGHT_PAREN_ID'; found EOF_ID ''

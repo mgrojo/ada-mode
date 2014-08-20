@@ -9,7 +9,8 @@ t_one : test_one_harness.run
 t_all : test_all_harness.diff
 
 # from ../common.make
-one : test-clean empty_production_5-parse.diff
+#one : test-clean
+one : multi_conflict-parse.diff
 
 trace :
 	addr2line -e asu_example_5_10_rd-run.exe 0x411a82 0x411aec 0x416f34 0x401783 0x401235 0x401286 0x7c817075

@@ -27,7 +27,6 @@
 
 %start name
 
-%conflict REDUCE/SHIFT in state attribute_designator, attribute_reference on token TICK
 %conflict SHIFT/REDUCE in state attribute_reference, attribute_designator on token TICK
 
 %%

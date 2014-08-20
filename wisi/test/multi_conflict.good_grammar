@@ -1,0 +1,145 @@
+Parse Table:
+Set 0:
+  opentoken_accept <= ^ name EOF
+
+   IDENTIFIER           => shift and goto state 1
+   default              => ERROR
+
+   attribute_reference  goto state 2
+   name                 goto state 3
+   qualified_expression goto state 4
+
+Set 1:
+  name <= IDENTIFIER ^, EOF/RIGHT_PAREN/TICK
+
+   EOF                  => reduce 1 tokens to name
+   RIGHT_PAREN          => reduce 1 tokens to name
+   TICK                 => reduce 1 tokens to name
+   default              => ERROR
+
+
+Set 2:
+  name <= attribute_reference ^, EOF/RIGHT_PAREN/TICK
+
+   EOF                  => reduce 1 tokens to name
+   RIGHT_PAREN          => reduce 1 tokens to name
+   TICK                 => reduce 1 tokens to name
+   default              => ERROR
+
+
+Set 3:
+  qualified_expression <= name ^ TICK aggregate, EOF/TICK
+  attribute_reference <= name ^ TICK attribute_designator, EOF/TICK
+  opentoken_accept <= name ^ EOF
+
+   TICK                 => shift and goto state 5
+   EOF                  => shift and goto state 6
+   default              => ERROR
+
+
+Set 4:
+  name <= qualified_expression ^, EOF/RIGHT_PAREN/TICK
+
+   EOF                  => reduce 1 tokens to name
+   RIGHT_PAREN          => reduce 1 tokens to name
+   TICK                 => reduce 1 tokens to name
+   default              => ERROR
+
+
+Set 5:
+  attribute_reference <= name TICK ^ attribute_designator, RIGHT_PAREN/TICK/EOF
+  qualified_expression <= name TICK ^ aggregate, RIGHT_PAREN/TICK/EOF
+
+   LEFT_PAREN           => shift and goto state 7
+   IDENTIFIER           => shift and goto state 1
+   default              => ERROR
+
+   aggregate            goto state 8
+   attribute_reference  goto state 2
+   attribute_designator goto state 9
+   name                 goto state 10
+   qualified_expression goto state 4
+
+Set 6:
+  opentoken_accept <= name EOF ^, EOF/RIGHT_PAREN/LEFT_PAREN/IDENTIFIER/TICK
+
+   EOF                  => accept it
+   RIGHT_PAREN          => accept it
+   LEFT_PAREN           => accept it
+   IDENTIFIER           => accept it
+   TICK                 => accept it
+   default              => ERROR
+
+
+Set 7:
+  aggregate <= LEFT_PAREN ^ name RIGHT_PAREN, RIGHT_PAREN/EOF/TICK
+
+   IDENTIFIER           => shift and goto state 1
+   default              => ERROR
+
+   attribute_reference  goto state 2
+   name                 goto state 11
+   qualified_expression goto state 4
+
+Set 8:
+  qualified_expression <= name TICK aggregate ^, RIGHT_PAREN/EOF/TICK
+
+   RIGHT_PAREN          => reduce 3 tokens to qualified_expression
+   EOF                  => reduce 3 tokens to qualified_expression
+   TICK                 => reduce 3 tokens to qualified_expression
+   default              => ERROR
+
+
+Set 9:
+  attribute_reference <= name TICK attribute_designator ^, RIGHT_PAREN/EOF/TICK
+
+   RIGHT_PAREN          => reduce 3 tokens to attribute_reference
+   EOF                  => reduce 3 tokens to attribute_reference
+   TICK                 => reduce 3 tokens to attribute_reference
+   default              => ERROR
+
+
+Set 10:
+  qualified_expression <= name ^ TICK aggregate, RIGHT_PAREN/EOF/TICK
+  attribute_designator <= name ^, RIGHT_PAREN/EOF/TICK
+  attribute_reference <= name ^ TICK attribute_designator, RIGHT_PAREN/EOF/TICK
+
+   RIGHT_PAREN          => reduce 1 tokens to attribute_designator
+   EOF                  => reduce 1 tokens to attribute_designator
+   TICK                 => reduce 1 tokens to attribute_designator,
+                           shift and goto state 5
+   default              => ERROR
+
+
+Set 11:
+  qualified_expression <= name ^ TICK aggregate, RIGHT_PAREN/TICK
+  attribute_reference <= name ^ TICK attribute_designator, RIGHT_PAREN/TICK
+  aggregate <= LEFT_PAREN name ^ RIGHT_PAREN, RIGHT_PAREN/TICK/EOF
+
+   TICK                 => shift and goto state 5
+   RIGHT_PAREN          => shift and goto state 12
+   default              => ERROR
+
+
+Set 12:
+  aggregate <= LEFT_PAREN name RIGHT_PAREN ^, RIGHT_PAREN/EOF/TICK
+
+   RIGHT_PAREN          => reduce 3 tokens to aggregate
+   EOF                  => reduce 3 tokens to aggregate
+   TICK                 => reduce 3 tokens to aggregate
+   default              => ERROR
+
+
+Tokens:
+ 1 => TICK
+ 2 => IDENTIFIER
+ 3 => LEFT_PAREN
+ 4 => RIGHT_PAREN
+ 5 => EOF
+ 6 => aggregate
+ 7 => attribute_reference
+ 8 => attribute_designator
+ 9 => name
+ 10 => qualified_expression
+ 11 => opentoken_accept
+

@@ -8,6 +8,7 @@
 ^build/debug/.*\.diff$
 ^build/debug/.*\.el$
 ^build/debug/.*\.exe$
+^build/debug/.*\.grammar$
 ^build/debug/.*\.out$
 ^build/debug/.*\.parse$
 ^build/debug/.*\.txt$
