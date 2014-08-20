@@ -40,10 +40,9 @@ is
    begin
       --  verbosity meaning is actually determined by output choice;
       --  they should be consistent with this description.
-      Put_Line ("wisi-generate [-v level] [--prologue <file>] {wisent grammar file} {output language}");
+      Put_Line ("wisi-generate [-v level] {wisent grammar file} {output language}");
       Put_Line ("generate output language source corresponding to 'wisent grammar file'");
       Put_Line ("output language is one of Ada, Elisp, Test");
-      Put_Line ("prologue file overrides prologue section in grammar file");
       Put_Line ("-v sets verbosity (defaults to 0 with no -v, 1 with just -v):");
       Put_Line ("   level 0 - only error messages to standard error");
       Put_Line ("   level 1 - add compiled grammar output to standard out");
@@ -57,7 +56,6 @@ is
    Input_File_Name  : Standard.Ada.Strings.Unbounded.Unbounded_String;
    Input_File       : Standard.Ada.Text_IO.File_Type;
    Output_File_Root : Standard.Ada.Strings.Unbounded.Unbounded_String;
-   Prologue_File    : Standard.Ada.Strings.Unbounded.Unbounded_String;
    Prologue         : String_Lists.List;
    Keywords         : String_Pair_Lists.List;
    Tokens           : Token_Lists.List;
@@ -101,11 +99,6 @@ begin
                Verbosity := Integer'Value (Argument (Arg_Next));
                Arg_Next  := Arg_Next + 1;
 
-            elsif Argument (Arg_Next) = "--prologue" then
-               Arg_Next      := Arg_Next + 1;
-               Prologue_File := +Argument (Arg_Next);
-               Arg_Next      := Arg_Next + 1;
-
             else
                raise User_Error;
             end if;
@@ -121,7 +114,7 @@ begin
       end if;
    end;
 
-   Wisi.Prologue (Prologue_File, Input_File, Prologue);
+   Wisi.Prologue (Input_File, Prologue);
    Wisi.Declarations (Input_File, Keywords, Tokens, Start_Token, Conflicts);
    Wisi.Rules (Input_File, Rules);
 

@@ -15,6 +15,7 @@ VPATH += ../../Examples/ASU_Example_5_10
 VPATH += ../../Examples/Language_Lexer_Examples
 VPATH += ../../Language_Lexers
 VPATH += ../../wisi
+VPATH += ../../wisi/test
 
 # Variables for library creation
 export GPRBUILD_TARGET := $(shell gcc -dumpmachine)
@@ -123,8 +124,8 @@ distclean :: clean
 	rm -rf obj obj_tree
 
 test-clean :
-	rm -f *.diff *.exe *.out *.parse *.txt  *-wy.el
-	rm -f *.ads *-parse.adb
+	rm -f *.diff *_run.exe *.out *.parse *.txt  *-wy.el
+	rm -f *.ads *.adb
 
 source-clean ::
 	-find $(SOURCE_ROOT) -name "*~" -print | xargs rm -v
@@ -156,20 +157,22 @@ DIFF_OPT := -u -w
 %-wy.el : %.wy wisi-generate.exe
 	./wisi-generate.exe $(RUN_ARGS) $< Elisp > $*.output
 
-# no verbosity for Ada output; set -v in %.parse instead
-%-parse.adb : %.wy wisi-generate.exe
-	./wisi-generate.exe --prologue $(<D)/ada-prologue.ads $< Ada
+# no verbosity for Ada output; set -v in %.parse instead FIXME: now there is verbosity
+%.ads : %.wy wisi-generate.exe
+	./wisi-generate.exe $< Ada
 
 # the grammar and the state trace of the parse is the known good output
 # specify RUN_ARGS on command line to get -v 2 (adding it to 'one :' is too late)
-%.parse : %.input %-parse.exe
+%.parse : %.input %_run.exe
 ifeq ($(RUN_ARGS),)
-	./$*-parse.exe -v 1 $< > $*.parse
+	./$*_run.exe -v 1 $< > $*.parse
 else
-	./$*-parse.exe $(RUN_ARGS) $< > $*.parse
+	./$*_run.exe $(RUN_ARGS) $< > $*.parse
 endif
 
-.PRECIOUS : %-wy.el %-parse.adb %-parse.exe %.parse
+%_run.exe : %_run.adb %.ads; gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P opentoken_test.gpr $(GPRBUILD_ARGS) $*_run
+
+.PRECIOUS : %-wy.el %.adb %_run.exe %.parse
 
 vpath %.wy ../../wisi/test
 vpath %-wy.good_el  ../../wisi/test

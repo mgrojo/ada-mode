@@ -184,7 +184,6 @@ begin
       Put_Line ("with OpenToken.Recognizer.Graphic_Character;");
    end if;
 
-   Put_Line ("with OpenToken.Token.Enumerated;");
    Put_Line ("with OpenToken.Token.Enumerated.Analyzer;");
    Put_Line ("with OpenToken.Token.Enumerated.List;");
    Put_Line ("with OpenToken.Token.Enumerated.Nonterminal;");
@@ -243,13 +242,13 @@ begin
    Indent := Indent - 3;
 
    Indent_Line
-     ("package Tokens_Pkg is new OpenToken.Token.Enumerated (Token_IDs, Token_IDs'Image, Token_IDs'Width);");
-   Indent_Line ("package Analyzers is new Tokens_Pkg.Analyzer");
+     ("package Tokens is new OpenToken.Token.Enumerated (Token_IDs, Token_IDs'Image, Token_IDs'Width);");
+   Indent_Line ("package Analyzers is new Tokens.Analyzer");
    Indent_Line ("  (First_Terminal => " & (-Keywords.First_Element.Name) & "_ID,");
    Indent_Line ("   Last_Terminal  => EOF_ID);");
-   Indent_Line ("package Token_Lists is new Tokens_Pkg.List;");
-   Indent_Line ("package Nonterminals is new Tokens_Pkg.Nonterminal (Token_Lists);");
-   Indent_Line ("package Productions is new OpenToken.Production (Tokens_Pkg, Token_Lists, Nonterminals);");
+   Indent_Line ("package Token_Lists is new Tokens.List;");
+   Indent_Line ("package Nonterminals is new Tokens.Nonterminal (Token_Lists);");
+   Indent_Line ("package Productions is new OpenToken.Production (Tokens, Token_Lists, Nonterminals);");
    Indent_Line ("package Production_Lists is new Productions.List;");
    Indent_Line ("package Parsers is new Productions.Parser (Production_Lists, Analyzers);");
    Indent_Line
@@ -306,9 +305,9 @@ begin
    New_Line;
    Indent := Indent - 3;
 
-   Put_Line ("function Create_Parser return LALR_Parsers.Instance;");
+   Indent_Line ("function Create_Parser return LALR_Parsers.Instance;");
    New_Line;
-   Put_Line ("Parser : LALR_Parsers.Instance := Create_Parser;");
+   Indent_Line ("Parser : LALR_Parsers.Instance := Create_Parser;");
    New_Line;
 
    Put_Line ("end " & Package_Name & ";");
