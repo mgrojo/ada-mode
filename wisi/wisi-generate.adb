@@ -62,7 +62,8 @@ is
    Start_Token      : Standard.Ada.Strings.Unbounded.Unbounded_String;
    Conflicts        : Conflict_Lists.List;
    Rules            : Rule_Lists.List;
-   Actions_Present  : Boolean;
+   Rule_Count       : Integer;
+   Action_Count     : Integer;
 
    procedure Use_Input_File (File_Name : in String)
    is
@@ -117,13 +118,13 @@ begin
 
    Wisi.Prologue (Input_File, Prologue);
    Wisi.Declarations (Input_File, Keywords, Tokens, Start_Token, Conflicts);
-   Wisi.Rules (Input_File, Rules, Actions_Present);
+   Wisi.Rules (Input_File, Rules, Rule_Count, Action_Count);
 
    case Output_Language is
    when Ada =>
       Wisi.Output_Ada
         (-Input_File_Name, -Output_File_Root, Prologue, Keywords, Tokens, Start_Token, Conflicts, Rules,
-         Actions_Present);
+         Rule_Count, Action_Count);
    when Elisp =>
       Wisi.Output_Elisp (-Output_File_Root, Prologue, Keywords, Tokens, Start_Token, Conflicts, Rules);
    when Test =>

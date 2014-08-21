@@ -728,11 +728,16 @@ package body OpenToken.Production.Parser.LALR is
             --  There is a conflict. Report it, but add it anyway, so
             --  an enhanced parser can follow both paths
             declare
+               --  Enforce canonical Reduce/Reduce or Shift/Reduce
+               --  order, to simplify searching and code generation.
                Action_A : constant Parse_Action_Rec :=
                  (if Action.Verb = Shift then Action else Matching_Action.Action.Item);
 
                Action_B : constant Parse_Action_Rec :=
                  (if Action.Verb = Shift then Matching_Action.Action.Item else Action);
+
+               Action_A_Ptr : Parse_Action_Node_Ptr;
+               Action_B_Ptr : Parse_Action_Node_Ptr;
 
                New_Conflict : constant Conflict :=
                  (Action_A    => Action_A.Verb,
@@ -745,15 +750,17 @@ package body OpenToken.Production.Parser.LALR is
                if not Is_Present (New_Conflict, Conflicts) then
                   Conflicts.Append (New_Conflict);
 
-                  if Matching_Action = Action_List then
-                     Action_List.Action := new Parse_Action_Node'
-                       (Item => Action,
-                        Next => Action_List.Action);
+                  if Action.Verb = Shift then
+                     Action_A_Ptr := new Parse_Action_Node'(Action, Matching_Action.Action);
+
                   else
-                     Matching_Action.Action := new Parse_Action_Node'
-                       (Item => Action,
-                        Next => Matching_Action.Action);
+                     Action_B_Ptr      := new Parse_Action_Node'(Action, null);
+                     Action_A_Ptr      := Matching_Action.Action;
+                     Action_A_Ptr.Next := Action_B_Ptr;
                   end if;
+
+                  Matching_Action.Action := Action_A_Ptr;
+
                end if;
             end;
             if Trace then

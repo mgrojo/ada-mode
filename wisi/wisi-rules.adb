@@ -24,9 +24,10 @@ with Ada.Strings.Maps;
 with Ada.Text_IO; use Ada.Text_IO;
 with Wisi.Utils;  use Wisi.Utils;
 procedure Wisi.Rules
-  (Input_File      : in     Standard.Ada.Text_IO.File_Type;
-   Rule_List       : in out Rule_Lists.List;
-   Actions_Present :    out Boolean)
+  (Input_File   : in     Standard.Ada.Text_IO.File_Type;
+   Rule_List    : in out Rule_Lists.List;
+   Rule_Count   :    out Integer;
+   Action_Count :    out Integer)
 is
    use Standard.Ada.Strings;
    use Standard.Ada.Strings.Fixed;
@@ -41,7 +42,8 @@ begin
    --  We assume actions start on a new line starting with either ` or
    --  (, and are terminated by ; on a new line.
 
-   Actions_Present := False;
+   Rule_Count   := 0;
+   Action_Count := 0;
 
    loop
       declare
@@ -71,6 +73,8 @@ begin
          is begin
             case State is
             when Left_Hand_Side =>
+               Rule_Count := Rule_Count + 1;
+
                Cursor := -1 + Index (Set => Standard.Ada.Strings.Maps.To_Set (" :"), Source => Line);
                if Cursor = -1 then Cursor := Line'Last; end if;
 
@@ -89,7 +93,7 @@ begin
                   State         := Action;
                   RHS.Action    := RHS.Action + Line;
                   Need_New_Line := True;
-                  Actions_Present := True;
+                  Action_Count  := Action_Count + 1;
 
                when ';' =>
                   Rule.Right_Hand_Sides.Append (RHS);
