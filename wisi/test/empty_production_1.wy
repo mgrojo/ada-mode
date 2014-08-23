@@ -17,6 +17,8 @@
 %keyword IS "is"
 
 %token <punctuation> SEMICOLON ";"
+
+%token <whitespace> WHITESPACE ""
 %token <line_comment> COMMENT "--"
 
 %start declarative_part

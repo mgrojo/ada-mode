@@ -74,7 +74,7 @@
        ((STRING_LITERAL ))))
      [((default . error) (LEFT_PAREN .  3) (IDENTIFIER .  2) (STRING_LITERAL .  1))
       ((default . error) (RIGHT_PAREN . (name . 1)) ($EOI . (name . 1)) (STRING_LITERAL . (name . 1)) (IDENTIFIER . (name . 1)) (LEFT_PAREN . (name . 1)) (COMMA . (name . 1)))
-      ((default . error) ($EOI . ((name . 0) (identifier_list . 0))) (LEFT_PAREN . ((name . 0) (identifier_list . 0))) (IDENTIFIER . ((name . 0) (identifier_list . 0))) (STRING_LITERAL . ((name . 0) (identifier_list . 0))) (COMMA . ((name . 0) (identifier_list . 0))))
+      ((default . error) ($EOI . ((identifier_list . 0) (name . 0))) (LEFT_PAREN . ((identifier_list . 0) (name . 0))) (IDENTIFIER . ((identifier_list . 0) (name . 0))) (STRING_LITERAL . ((identifier_list . 0) (name . 0))) (COMMA . ((identifier_list . 0) (name . 0))))
       ((default . error) (IDENTIFIER .  14) (STRING_LITERAL .  13))
       ((default . error) ($EOI .  12))
       ((default . error) (LEFT_PAREN .  3) (IDENTIFIER .  2) (STRING_LITERAL .  1))

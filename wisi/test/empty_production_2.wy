@@ -19,6 +19,8 @@
 %keyword IS "is"
 
 %token <punctuation> SEMICOLON ";"
+
+%token <whitespace> WHITESPACE ""
 %token <line_comment> COMMENT "--"
 
 %start declarations
@@ -28,9 +30,9 @@
 ;; with an "unknown conflicts" error.
 ;;
 ;; IMPROVEME: add --ignore-unknown-conflicts to generated -parse.adb
-%conflict SHIFT/REDUCE in state BODY_ID, DECLARATION_ID on token IS_ID
-%conflict REDUCE/SHIFT in state DECLARATION_ID, BODY_ID on token BEGIN_ID
-%conflict REDUCE/SHIFT in state DECLARATION_ID, OPENTOKEN_ACCEPT_ID on token EOF_ID
+%conflict SHIFT/REDUCE in state body, declaration on token BEGIN
+%conflict SHIFT/REDUCE in state opentoken_accept, declaration on token EOI
+%conflict SHIFT/REDUCE in state body, declaration on token IS
 
 %%
 

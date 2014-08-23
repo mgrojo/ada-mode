@@ -25,6 +25,8 @@
 
 %token <symbol> IDENTIFIER
 
+%token <whitespace> WHITESPACE ""
+
 %start name
 
 %conflict SHIFT/REDUCE in state attribute_reference, attribute_designator on token TICK

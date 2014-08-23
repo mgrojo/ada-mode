@@ -46,15 +46,31 @@ tests : token_selection_test-run.run
 tests : token_sequence_test-run.run
 
 # wisi parse tests
-tests : case_expression-parse.diff
+# ../../wisi/test
+
+# to parse .wy, build .ads, run parser, we'd like to do:
+# %_run.exe : %_run.adb %.ads; gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P opentoken_test.gpr $(GPRBUILD_ARGS) $*_run
+# but that gets overridden by the simpler .exe rule for other things. So we must list %.ads explicitly in tests:
+
+# body_instantiation_conflict run from test_wisi_suite
+# case_expression run from test_wisi_suite
+tests : empty_production_1.ads
 tests : empty_production_1-parse.diff
+tests : empty_production_2.ads
 tests : empty_production_2-parse.diff
+tests : empty_production_3.ads
 tests : empty_production_3-parse.diff
+tests : empty_production_4.ads
 tests : empty_production_4-parse.diff
+tests : empty_production_5.ads
 tests : empty_production_5-parse.diff
-# empty_production_6 only in Emacs Ada mode; requires generalized parser
+tests : empty_production_6.ads
+tests : empty_production_6-parse.diff
+tests : empty_production_7.ads
 tests : empty_production_7-parse.diff
-# empty_production_8 only in Emacs Ada mode; requires generalized parser
+tests : empty_production_8.ads
+tests : empty_production_8-parse.diff
+tests : multi_conflict.ads
 tests : multi_conflict-parse.diff
 
 examples : asu_example_3_6-run.run
@@ -149,8 +165,8 @@ DIFF_OPT := -u -w
 
 # the grammar and the state trace of the parse is the known good output
 %-parse.diff : %.good_parse %.parse
-	diff $(DIFF_OPT) $^ > $@
-	diff $(DIFF_OPT) $(^:parse=grammar) >> $@
+	diff $(DIFF_OPT) $(^:parse=grammar) > $@
+	diff $(DIFF_OPT) $^ >> $@
 
 %.run : %.exe ;	./$(*F).exe $(RUN_ARGS)
 
@@ -159,15 +175,18 @@ DIFF_OPT := -u -w
 	./wisi-generate.exe $(RUN_ARGS) $< Elisp > $*.output
 
 # wisi-generate Ada runs lalr_parser.generate, and we always want the grammar for tests
+%.ads : RUN_ARGS ?= -v 1
 %.ads : %.wy wisi-generate.exe
-	./wisi-generate.exe -v 1 $< Ada > $*.grammar
+	./wisi-generate.exe $(RUN_ARGS) $< Ada > $*.grammar
+	dos2unix $*.grammar
 
 %.parse : %.input %_run.exe
 	./$*_run.exe -v $< > $*.parse
+	dos2unix $*.parse
 
-%_run.exe : %_run.adb %.ads; gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P opentoken_test.gpr $(GPRBUILD_ARGS) $*_run
+%.exe : force; gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P opentoken_test.gpr $(GPRBUILD_ARGS) $*
 
-.PRECIOUS : %-wy.el %.adb %_run.exe %.parse
+.PRECIOUS : %-wy.el %.ads %_run.exe %.parse
 
 vpath %.wy ../../wisi/test
 vpath %-wy.good_el  ../../wisi/test

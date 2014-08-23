@@ -25,18 +25,21 @@ with OpenToken.Token.Enumerated.Analyzer;
 with OpenToken.Token.Enumerated.List.Print;
 with OpenToken.Token.Enumerated.Nonterminal;
 generic
-   Keywords  : in Wisi.String_Pair_Lists.List;
-   Tokens    : in Wisi.Token_Lists.List;
-   Conflicts : in Wisi.Conflict_Lists.List;
-   Rules     : in Wisi.Rule_Lists.List;
-   EOI_Image : in String;
+   Keywords               : in Wisi.String_Pair_Lists.List;
+   Tokens                 : in Wisi.Token_Lists.List;
+   Conflicts              : in Wisi.Conflict_Lists.List;
+   Rules                  : in Wisi.Rule_Lists.List;
+   EOI_Image              : in String;
+   OpenToken_Accept_Image : in String;
+   First_State_Index      : in Integer;
+
+   with function To_Token_Image (Item : in Ada.Strings.Unbounded.Unbounded_String) return String;
 package Wisi.Gen_Generate_Utils is
 
    subtype Token_IDs is Integer range
      1 .. Count (Tokens) + Integer (Keywords.Length) + 1 + Integer (Rules.Length) + 1;
    --  one extra terminal for EOI
    --  one extra non-terminal for the OpenToken accept symbol followed by EOI.
-   --  don't need a whitespace token; handled by Elisp Wisi lexer
 
    function Count_Non_Reporting return Integer;
 
@@ -71,14 +74,17 @@ package Wisi.Gen_Generate_Utils is
    package Productions is new OpenToken.Production (Tokens_Pkg, Token_Lists, Nonterminals);
    package Production_Lists is new Productions.List;
    package Parsers is new Productions.Parser (Production_Lists, Analyzers);
-   package LALR_Parsers is new Parsers.LALR (First_State_Index => 0);  -- match Elisp array indexing
+   package LALR_Parsers is new Parsers.LALR (First_State_Index);
 
    procedure Print_Action (Item : in Nonterminals.Synthesize) is null;
    package Token_List_Print is new Token_Lists.Print;
    package Print_Production is new Productions.Print (Token_List_Print, Print_Action);
    package Print_Production_Lists is new Production_Lists.Print (Print_Production.Print);
 
-   function To_Conflicts return LALR_Parsers.Conflict_Lists.List;
+   function To_Conflicts
+     (Shift_Reduce_Conflict_Count  : out Integer;
+      Reduce_Reduce_Conflict_Count : out Integer)
+     return LALR_Parsers.Conflict_Lists.List;
 
    function To_Grammar (Source_File_Name : in String; Start_Token : in String) return Production_Lists.Instance;
    --  Source_File_Name used in errors

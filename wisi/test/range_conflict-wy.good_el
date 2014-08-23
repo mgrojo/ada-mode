@@ -82,7 +82,7 @@
       ((default . error) (IN .  18))
       ((default . error) (RIGHT_PAREN .  17))
       ((default . error) (RANGE .  16))
-      ((default . error) (RIGHT_PAREN . (range . 1)) ($EOI . (range . 1)) (STRING_LITERAL . (range . 1)) (IDENTIFIER . (range . 1)) (LEFT_PAREN . ((range . 1)  21)))
+      ((default . error) (RIGHT_PAREN . (range . 1)) ($EOI . (range . 1)) (STRING_LITERAL . (range . 1)) (IDENTIFIER . (range . 1)) (LEFT_PAREN . ( 21 (range . 1))))
       ((default . error) ($EOI . (primary . 2)) (RIGHT_PAREN . (primary . 2)) (LEFT_PAREN . (primary . 2)) (STRING_LITERAL . (primary . 2)) (IDENTIFIER . (primary . 2)) (DOT_DOT . (primary . 2)) (IN . (primary . 2)))
       ((default . error) (IDENTIFIER .  1) (STRING_LITERAL .  2) (LEFT_PAREN .  3))
       ((default . error) ($EOI . (range . 2)) (RIGHT_PAREN . (range . 2)) (LEFT_PAREN . (range . 2)) (STRING_LITERAL . (range . 2)) (IDENTIFIER . (range . 2)))

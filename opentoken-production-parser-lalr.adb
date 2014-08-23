@@ -748,24 +748,32 @@ package body OpenToken.Production.Parser.LALR is
                   On          => Symbol);
             begin
                if not Is_Present (New_Conflict, Conflicts) then
+                  --  The same conflict may occur in a different
+                  --  kernel. Only add it to conflicts once, but still
+                  --  need second action on current kernel.
                   Conflicts.Append (New_Conflict);
 
-                  if Action.Verb = Shift then
-                     Action_A_Ptr := new Parse_Action_Node'(Action, Matching_Action.Action);
-
-                  else
-                     Action_B_Ptr      := new Parse_Action_Node'(Action, null);
-                     Action_A_Ptr      := Matching_Action.Action;
-                     Action_A_Ptr.Next := Action_B_Ptr;
+                  if Trace then
+                     Ada.Text_IO.Put_Line (" - conflict added");
                   end if;
-
-                  Matching_Action.Action := Action_A_Ptr;
-
+               else
+                  if Trace then
+                     Ada.Text_IO.Put_Line (" - conflict duplicate");
+                  end if;
                end if;
+
+               if Action.Verb = Shift then
+                  Action_A_Ptr := new Parse_Action_Node'(Action, Matching_Action.Action);
+
+               else
+                  Action_B_Ptr      := new Parse_Action_Node'(Action, null);
+                  Action_A_Ptr      := Matching_Action.Action;
+                  Action_A_Ptr.Next := Action_B_Ptr;
+               end if;
+
+               Matching_Action.Action := Action_A_Ptr;
+
             end;
-            if Trace then
-               Ada.Text_IO.Put_Line (" - conflict");
-            end if;
          end if;
       else
          Action_List := new Action_Node'
@@ -1295,15 +1303,16 @@ package body OpenToken.Production.Parser.LALR is
                for I in 1 .. 10 loop
                   exit when Stack_I = null;
                   Ada.Text_IO.Put_Line
-                    (State_Index'Image (Stack_I.State) &
-                       " : " &
+                    (State_Index'Image (Stack_I.State) & " : " &
                        (if Stack_I.Seen_Token = null then ""
                          else Token.Token_Image (Token.ID (Stack_I.Seen_Token.all))));
                   Stack_I := Stack_I.Next;
                end loop;
             end;
             Ada.Text_IO.Put
-              (Token.Token_Image (Token.ID (Seen_Token.all)) & " : " & Parse_Action_Verbs'Image (Action.Verb));
+              (State_Index'Image (Stack.State) & " : " &
+                 Token.Token_Image (Token.ID (Seen_Token.all)) & " : " &
+                 Parse_Action_Verbs'Image (Action.Verb));
          end if;
 
          case Action.Verb is
@@ -1345,7 +1354,8 @@ package body OpenToken.Production.Parser.LALR is
 
             if Trace_Parse then
                Ada.Text_IO.Put_Line
-                 (" to " & Token.Token_Image (Token.ID (Action.Production.LHS.all)) &
+                 (Integer'Image (Action.Length) & " tokens to " &
+                    Token.Token_Image (Token.ID (Action.Production.LHS.all)) &
                     ", goto state" & State_Index'Image (Stack.State));
             end if;
 

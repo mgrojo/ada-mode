@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2009, 2010, 2013 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2009, 2010, 2013, 2014 Stephen Leake.  All Rights Reserved.
 --
 --  This library is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -157,12 +157,14 @@ package body AUnit.Check is
             declare
                Computed_Line : constant String := Chomp (Get_Line (Computed));
                Expected_Line : constant String := Chomp (Get_Line (Expected));
+               Line_Image    : constant String := ":" & Trim (Positive_Count'Image (Line (Expected)), Both);
             begin
                --  Get_Line advances the line counter beyond the line of interest
                if Not_In (Line (Computed) - 1, Skip) then
-                  Check (Computed_Name & ":" & Trim (Positive_Count'Image (Line (Expected)), Both),
-                         Computed_Line,
-                         Expected_Line);
+                  Check
+                    (Expected_Name & Line_Image & " " & Computed_Name & Line_Image,
+                     Computed_Line,
+                     Expected_Line);
                end if;
             end;
          end loop;

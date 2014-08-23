@@ -27,7 +27,7 @@ package body Wisi.Gen_Generate_Utils is
       Result : Integer := 0;
    begin
       for Kind of Tokens loop
-         if -Kind.Kind = """line_comment""" then
+         if -Kind.Kind = """line_comment""" or -Kind.Kind = """whitespace""" then
             Result := Result + Integer (Kind.Tokens.Length);
          end if;
       end loop;
@@ -39,14 +39,18 @@ package body Wisi.Gen_Generate_Utils is
       use type Standard.Ada.Strings.Unbounded.Unbounded_String;
       Result : Token_IDs := Token_IDs'First;
    begin
+      --  Same order as set_token_images below.
       for Kind of Tokens loop
-         for Pair of Kind.Tokens loop
-            if Pair.Name = Token then
-               return Result;
-            end if;
-            Result := Result + 1;
-         end loop;
+         if -Kind.Kind = """line_comment""" or -Kind.Kind = """whitespace""" then
+            for Pair of Kind.Tokens loop
+               if Pair.Name = Token then
+                  return Result;
+               end if;
+               Result := Result + 1;
+            end loop;
+         end if;
       end loop;
+
       for Pair of Keywords loop
          if Pair.Name = Token then
             return Result;
@@ -54,7 +58,20 @@ package body Wisi.Gen_Generate_Utils is
          Result := Result + 1;
       end loop;
 
-      if Token = EOI_Image then
+      for Kind of Tokens loop
+         if not (-Kind.Kind = """line_comment""" or -Kind.Kind = """whitespace""") then
+            for Pair of Kind.Tokens loop
+               if Pair.Name = Token then
+                  return Result;
+               end if;
+               Result := Result + 1;
+            end loop;
+         end if;
+      end loop;
+
+      if Token = EOI_Image or
+        Token = "EOI"
+      then
          return Result;
       end if;
       Result := Result + 1;
@@ -66,7 +83,9 @@ package body Wisi.Gen_Generate_Utils is
          Result := Result + 1;
       end loop;
 
-      if Token = "opentoken_accept" then
+      if Token = OpenToken_Accept_Image or
+        Token = "opentoken_accept"
+      then
          return Result;
       end if;
 
@@ -78,18 +97,30 @@ package body Wisi.Gen_Generate_Utils is
       ID           : Token_IDs := Token_IDs'First;
       Token_Images : ID_Array_Access_String_Type;
    begin
+      --  same order as output_ada
+
+      --  non-reporting
       for Kind of Tokens loop
-         for Pair of Kind.Tokens loop
-            Token_Images (ID) := new String'(-Pair.Name);
-            ID := ID + 1;
-         end loop;
+         if -Kind.Kind = """line_comment""" or -Kind.Kind = """whitespace""" then
+            for Pair of Kind.Tokens loop
+               Token_Images (ID) := new String'(To_Token_Image (Pair.Name));
+               ID := ID + 1;
+            end loop;
+         end if;
       end loop;
 
-      if ID /= Token_Count + 1 then raise Programmer_Error; end if;
-
       for Pair of Keywords loop
-         Token_Images (ID) := new String'(-Pair.Name);
+         Token_Images (ID) := new String'(To_Token_Image (Pair.Name));
          ID := ID + 1;
+      end loop;
+
+      for Kind of Tokens loop
+         if not (-Kind.Kind = """line_comment""" or -Kind.Kind = """whitespace""") then
+            for Pair of Kind.Tokens loop
+               Token_Images (ID) := new String'(To_Token_Image (Pair.Name));
+               ID := ID + 1;
+            end loop;
+         end if;
       end loop;
 
       if ID /= EOI_ID then raise Programmer_Error; end if;
@@ -98,13 +129,13 @@ package body Wisi.Gen_Generate_Utils is
       ID                := ID + 1;
 
       for Rule of Rules loop
-         Token_Images (ID) := new String'(-Rule.Left_Hand_Side);
+         Token_Images (ID) := new String'(To_Token_Image (Rule.Left_Hand_Side));
          ID := ID + 1;
       end loop;
 
       if ID /= Accept_ID then raise Programmer_Error; end if;
 
-      Token_Images (ID) := new String'("opentoken_accept");
+      Token_Images (ID) := new String'(OpenToken_Accept_Image);
 
       for Token of Token_Images loop
          if Token.all'Length > Token_Image_Width then
@@ -139,18 +170,34 @@ package body Wisi.Gen_Generate_Utils is
       New_Line;
    end Put_Tokens;
 
-   function To_Conflicts return LALR_Parsers.Conflict_Lists.List
+   function To_Conflicts
+     (Shift_Reduce_Conflict_Count  : out Integer;
+      Reduce_Reduce_Conflict_Count : out Integer)
+     return LALR_Parsers.Conflict_Lists.List
    is
-      Result : LALR_Parsers.Conflict_Lists.List;
+      use type LALR_Parsers.Parse_Action_Verbs;
+      Result   : LALR_Parsers.Conflict_Lists.List;
+      Conflict : LALR_Parsers.Conflict;
    begin
-      for Conflict of Conflicts loop
-         Result.Append
-           ((LALR_Parsers.Conflict_Parse_Actions'Value (-Conflict.Action_A),
-             Find_Token_ID (-Conflict.LHS_A),
-             LALR_Parsers.Conflict_Parse_Actions'Value (-Conflict.Action_B),
-             Find_Token_ID (-Conflict.LHS_B),
-             -1,
-             Find_Token_ID (-Conflict.On)));
+      Shift_Reduce_Conflict_Count  := 0;
+      Reduce_Reduce_Conflict_Count := 0;
+
+      for Item of Conflicts loop
+         Conflict :=
+           (LALR_Parsers.Conflict_Parse_Actions'Value (-Item.Action_A),
+            Find_Token_ID (-Item.LHS_A),
+            LALR_Parsers.Conflict_Parse_Actions'Value (-Item.Action_B),
+            Find_Token_ID (-Item.LHS_B),
+            -1,
+            Find_Token_ID (-Item.On));
+
+         if Conflict.Action_A = LALR_Parsers.Shift then
+            Shift_Reduce_Conflict_Count := Shift_Reduce_Conflict_Count + 1;
+         else
+            Reduce_Reduce_Conflict_Count := Reduce_Reduce_Conflict_Count + 1;
+         end if;
+
+         Result.Append (Conflict);
       end loop;
       return Result;
    exception
@@ -226,5 +273,10 @@ package body Wisi.Gen_Generate_Utils is
    begin
       return Trim (Integer'Image (Item), Both);
    end Int_Image;
+
+begin
+   if Verbosity > 0 then
+      Put_Tokens;
+   end if;
 
 end Wisi.Gen_Generate_Utils;

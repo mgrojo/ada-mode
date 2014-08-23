@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2013 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2013, 2014 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -157,8 +157,8 @@ package body Test_Empty_Productions_6 is
       --  compilation_unit <= BEGIN ^ sequence_of_statements END SEMICOLON
       --
       --  Expected actions:
-      --  IDENTIFIER_ID => reduce 0 tokens to label_opt_id
       --  IDENTIFIER_ID => shift and goto 7
+      --  IDENTIFIER_ID => reduce 0 tokens to label_opt_id
       --  default  => ERROR
 
       --  Expected reduction gotos:
@@ -174,17 +174,17 @@ package body Test_Empty_Productions_6 is
          Next  => null);
 
       Conflict := new Parse_Action_Node'
-        (Item     =>
-           (Verb  => Shift,
-            State => 4),
-         Next     => null);
-
-      Conflict := new Parse_Action_Node'
         (Item          =>
            (Verb       => Reduce,
             Production => Get_Production (6),
             Length     => 0),
-         Next          => Conflict);
+         Next          => null);
+
+      Conflict := new Parse_Action_Node'
+        (Item     =>
+           (Verb  => Shift,
+            State => 4),
+         Next     => Conflict);
 
       Expected.Action_List := new Action_Node'
         (Symbol      => IDENTIFIER_ID,

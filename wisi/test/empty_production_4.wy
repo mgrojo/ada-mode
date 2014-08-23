@@ -12,6 +12,8 @@
 
 %token <symbol> IDENTIFIER
 
+%token <whitespace> WHITESPACE ""
+
 %start compilation_unit
 
 %%

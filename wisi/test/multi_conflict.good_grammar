@@ -1,145 +1,147 @@
+Tokens:
+ 1 => WHITESPACE_ID
+ 2 => LEFT_PAREN_ID
+ 3 => RIGHT_PAREN_ID
+ 4 => TICK_ID
+ 5 => IDENTIFIER_ID
+ 6 => EOF_ID
+ 7 => AGGREGATE_ID
+ 8 => ATTRIBUTE_REFERENCE_ID
+ 9 => ATTRIBUTE_DESIGNATOR_ID
+ 10 => NAME_ID
+ 11 => QUALIFIED_EXPRESSION_ID
+ 12 => OPENTOKEN_ACCEPT_ID
+
 Parse Table:
-Set 0:
-  opentoken_accept <= ^ name EOF
-
-   IDENTIFIER           => shift and goto state 1
-   default              => ERROR
-
-   attribute_reference  goto state 2
-   name                 goto state 3
-   qualified_expression goto state 4
-
 Set 1:
-  name <= IDENTIFIER ^, EOF/RIGHT_PAREN/TICK
+  OPENTOKEN_ACCEPT_ID <= ^ NAME_ID EOF_ID
 
-   EOF                  => reduce 1 tokens to name
-   RIGHT_PAREN          => reduce 1 tokens to name
-   TICK                 => reduce 1 tokens to name
-   default              => ERROR
+   IDENTIFIER_ID           => shift and goto state 2
+   default                 => ERROR
 
+   ATTRIBUTE_REFERENCE_ID  goto state 3
+   NAME_ID                 goto state 4
+   QUALIFIED_EXPRESSION_ID goto state 5
 
 Set 2:
-  name <= attribute_reference ^, EOF/RIGHT_PAREN/TICK
+  NAME_ID <= IDENTIFIER_ID ^, EOF_ID/RIGHT_PAREN_ID/TICK_ID
 
-   EOF                  => reduce 1 tokens to name
-   RIGHT_PAREN          => reduce 1 tokens to name
-   TICK                 => reduce 1 tokens to name
-   default              => ERROR
+   EOF_ID                  => reduce 1 tokens to NAME_ID
+   RIGHT_PAREN_ID          => reduce 1 tokens to NAME_ID
+   TICK_ID                 => reduce 1 tokens to NAME_ID
+   default                 => ERROR
 
 
 Set 3:
-  qualified_expression <= name ^ TICK aggregate, EOF/TICK
-  attribute_reference <= name ^ TICK attribute_designator, EOF/TICK
-  opentoken_accept <= name ^ EOF
+  NAME_ID <= ATTRIBUTE_REFERENCE_ID ^, EOF_ID/RIGHT_PAREN_ID/TICK_ID
 
-   TICK                 => shift and goto state 5
-   EOF                  => shift and goto state 6
-   default              => ERROR
+   EOF_ID                  => reduce 1 tokens to NAME_ID
+   RIGHT_PAREN_ID          => reduce 1 tokens to NAME_ID
+   TICK_ID                 => reduce 1 tokens to NAME_ID
+   default                 => ERROR
 
 
 Set 4:
-  name <= qualified_expression ^, EOF/RIGHT_PAREN/TICK
+  QUALIFIED_EXPRESSION_ID <= NAME_ID ^ TICK_ID AGGREGATE_ID, EOF_ID/TICK_ID
+  ATTRIBUTE_REFERENCE_ID <= NAME_ID ^ TICK_ID ATTRIBUTE_DESIGNATOR_ID, EOF_ID/TICK_ID
+  OPENTOKEN_ACCEPT_ID <= NAME_ID ^ EOF_ID
 
-   EOF                  => reduce 1 tokens to name
-   RIGHT_PAREN          => reduce 1 tokens to name
-   TICK                 => reduce 1 tokens to name
-   default              => ERROR
+   TICK_ID                 => shift and goto state 6
+   EOF_ID                  => shift and goto state 7
+   default                 => ERROR
 
 
 Set 5:
-  attribute_reference <= name TICK ^ attribute_designator, RIGHT_PAREN/TICK/EOF
-  qualified_expression <= name TICK ^ aggregate, RIGHT_PAREN/TICK/EOF
+  NAME_ID <= QUALIFIED_EXPRESSION_ID ^, EOF_ID/RIGHT_PAREN_ID/TICK_ID
 
-   LEFT_PAREN           => shift and goto state 7
-   IDENTIFIER           => shift and goto state 1
-   default              => ERROR
+   EOF_ID                  => reduce 1 tokens to NAME_ID
+   RIGHT_PAREN_ID          => reduce 1 tokens to NAME_ID
+   TICK_ID                 => reduce 1 tokens to NAME_ID
+   default                 => ERROR
 
-   aggregate            goto state 8
-   attribute_reference  goto state 2
-   attribute_designator goto state 9
-   name                 goto state 10
-   qualified_expression goto state 4
 
 Set 6:
-  opentoken_accept <= name EOF ^, EOF/RIGHT_PAREN/LEFT_PAREN/IDENTIFIER/TICK
+  ATTRIBUTE_REFERENCE_ID <= NAME_ID TICK_ID ^ ATTRIBUTE_DESIGNATOR_ID, RIGHT_PAREN_ID/TICK_ID/EOF_ID
+  QUALIFIED_EXPRESSION_ID <= NAME_ID TICK_ID ^ AGGREGATE_ID, RIGHT_PAREN_ID/TICK_ID/EOF_ID
 
-   EOF                  => accept it
-   RIGHT_PAREN          => accept it
-   LEFT_PAREN           => accept it
-   IDENTIFIER           => accept it
-   TICK                 => accept it
-   default              => ERROR
+   LEFT_PAREN_ID           => shift and goto state 8
+   IDENTIFIER_ID           => shift and goto state 2
+   default                 => ERROR
 
+   AGGREGATE_ID            goto state 9
+   ATTRIBUTE_REFERENCE_ID  goto state 3
+   ATTRIBUTE_DESIGNATOR_ID goto state 10
+   NAME_ID                 goto state 11
+   QUALIFIED_EXPRESSION_ID goto state 5
 
 Set 7:
-  aggregate <= LEFT_PAREN ^ name RIGHT_PAREN, RIGHT_PAREN/EOF/TICK
+  OPENTOKEN_ACCEPT_ID <= NAME_ID EOF_ID ^, EOF_ID/IDENTIFIER_ID/TICK_ID/RIGHT_PAREN_ID/LEFT_PAREN_ID
 
-   IDENTIFIER           => shift and goto state 1
-   default              => ERROR
+   EOF_ID                  => accept it
+   IDENTIFIER_ID           => accept it
+   TICK_ID                 => accept it
+   RIGHT_PAREN_ID          => accept it
+   LEFT_PAREN_ID           => accept it
+   default                 => ERROR
 
-   attribute_reference  goto state 2
-   name                 goto state 11
-   qualified_expression goto state 4
 
 Set 8:
-  qualified_expression <= name TICK aggregate ^, RIGHT_PAREN/EOF/TICK
+  AGGREGATE_ID <= LEFT_PAREN_ID ^ NAME_ID RIGHT_PAREN_ID, RIGHT_PAREN_ID/EOF_ID/TICK_ID
 
-   RIGHT_PAREN          => reduce 3 tokens to qualified_expression
-   EOF                  => reduce 3 tokens to qualified_expression
-   TICK                 => reduce 3 tokens to qualified_expression
-   default              => ERROR
+   IDENTIFIER_ID           => shift and goto state 2
+   default                 => ERROR
 
+   ATTRIBUTE_REFERENCE_ID  goto state 3
+   NAME_ID                 goto state 12
+   QUALIFIED_EXPRESSION_ID goto state 5
 
 Set 9:
-  attribute_reference <= name TICK attribute_designator ^, RIGHT_PAREN/EOF/TICK
+  QUALIFIED_EXPRESSION_ID <= NAME_ID TICK_ID AGGREGATE_ID ^, RIGHT_PAREN_ID/EOF_ID/TICK_ID
 
-   RIGHT_PAREN          => reduce 3 tokens to attribute_reference
-   EOF                  => reduce 3 tokens to attribute_reference
-   TICK                 => reduce 3 tokens to attribute_reference
-   default              => ERROR
+   RIGHT_PAREN_ID          => reduce 3 tokens to QUALIFIED_EXPRESSION_ID
+   EOF_ID                  => reduce 3 tokens to QUALIFIED_EXPRESSION_ID
+   TICK_ID                 => reduce 3 tokens to QUALIFIED_EXPRESSION_ID
+   default                 => ERROR
 
 
 Set 10:
-  qualified_expression <= name ^ TICK aggregate, RIGHT_PAREN/EOF/TICK
-  attribute_designator <= name ^, RIGHT_PAREN/EOF/TICK
-  attribute_reference <= name ^ TICK attribute_designator, RIGHT_PAREN/EOF/TICK
+  ATTRIBUTE_REFERENCE_ID <= NAME_ID TICK_ID ATTRIBUTE_DESIGNATOR_ID ^, RIGHT_PAREN_ID/EOF_ID/TICK_ID
 
-   RIGHT_PAREN          => reduce 1 tokens to attribute_designator
-   EOF                  => reduce 1 tokens to attribute_designator
-   TICK                 => reduce 1 tokens to attribute_designator,
-                           shift and goto state 5
-   default              => ERROR
+   RIGHT_PAREN_ID          => reduce 3 tokens to ATTRIBUTE_REFERENCE_ID
+   EOF_ID                  => reduce 3 tokens to ATTRIBUTE_REFERENCE_ID
+   TICK_ID                 => reduce 3 tokens to ATTRIBUTE_REFERENCE_ID
+   default                 => ERROR
 
 
 Set 11:
-  qualified_expression <= name ^ TICK aggregate, RIGHT_PAREN/TICK
-  attribute_reference <= name ^ TICK attribute_designator, RIGHT_PAREN/TICK
-  aggregate <= LEFT_PAREN name ^ RIGHT_PAREN, RIGHT_PAREN/TICK/EOF
+  QUALIFIED_EXPRESSION_ID <= NAME_ID ^ TICK_ID AGGREGATE_ID, RIGHT_PAREN_ID/EOF_ID/TICK_ID
+  ATTRIBUTE_DESIGNATOR_ID <= NAME_ID ^, RIGHT_PAREN_ID/EOF_ID/TICK_ID
+  ATTRIBUTE_REFERENCE_ID <= NAME_ID ^ TICK_ID ATTRIBUTE_DESIGNATOR_ID, RIGHT_PAREN_ID/EOF_ID/TICK_ID
 
-   TICK                 => shift and goto state 5
-   RIGHT_PAREN          => shift and goto state 12
-   default              => ERROR
+   RIGHT_PAREN_ID          => reduce 1 tokens to ATTRIBUTE_DESIGNATOR_ID
+   EOF_ID                  => reduce 1 tokens to ATTRIBUTE_DESIGNATOR_ID
+   TICK_ID                 => shift and goto state 6,
+                              reduce 1 tokens to ATTRIBUTE_DESIGNATOR_ID
+   default                 => ERROR
 
 
 Set 12:
-  aggregate <= LEFT_PAREN name RIGHT_PAREN ^, RIGHT_PAREN/EOF/TICK
+  QUALIFIED_EXPRESSION_ID <= NAME_ID ^ TICK_ID AGGREGATE_ID, RIGHT_PAREN_ID/TICK_ID
+  ATTRIBUTE_REFERENCE_ID <= NAME_ID ^ TICK_ID ATTRIBUTE_DESIGNATOR_ID, RIGHT_PAREN_ID/TICK_ID
+  AGGREGATE_ID <= LEFT_PAREN_ID NAME_ID ^ RIGHT_PAREN_ID, RIGHT_PAREN_ID/TICK_ID/EOF_ID
 
-   RIGHT_PAREN          => reduce 3 tokens to aggregate
-   EOF                  => reduce 3 tokens to aggregate
-   TICK                 => reduce 3 tokens to aggregate
-   default              => ERROR
+   TICK_ID                 => shift and goto state 6
+   RIGHT_PAREN_ID          => shift and goto state 13
+   default                 => ERROR
 
 
-Tokens:
- 1 => TICK
- 2 => IDENTIFIER
- 3 => LEFT_PAREN
- 4 => RIGHT_PAREN
- 5 => EOF
- 6 => aggregate
- 7 => attribute_reference
- 8 => attribute_designator
- 9 => name
- 10 => qualified_expression
- 11 => opentoken_accept
+Set 13:
+  AGGREGATE_ID <= LEFT_PAREN_ID NAME_ID RIGHT_PAREN_ID ^, RIGHT_PAREN_ID/EOF_ID/TICK_ID
 
+   RIGHT_PAREN_ID          => reduce 3 tokens to AGGREGATE_ID
+   EOF_ID                  => reduce 3 tokens to AGGREGATE_ID
+   TICK_ID                 => reduce 3 tokens to AGGREGATE_ID
+   default                 => ERROR
+
+
+ 5 rules, 0 actions, 1 shift/reduce conflicts, 0 reduce/reduce conflicts, 13 states, 47 table entries

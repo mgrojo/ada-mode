@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2013 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2013, 2014 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -74,7 +74,7 @@ package body Test_Empty_Productions_4 is
      Nonterminals.Get (compilation_unit_ID) <= (+subprogram_declaration_ID) & (+subprogram_declaration_ID) + Self -- 2
      and
      Nonterminals.Get (subprogram_declaration_ID) <= (+overriding_indicator_ID) & (+PROCEDURE_ID) &
-     (+IDENTIFIER_ID)& (+SEMICOLON_ID) + Self -- 3
+     (+IDENTIFIER_ID) & (+SEMICOLON_ID) + Self -- 3
      and
      Nonterminals.Get (overriding_indicator_ID) <= (+OVERRIDING_ID) + Self -- 4
      and

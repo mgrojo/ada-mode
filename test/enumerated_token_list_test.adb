@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2010, 2013 Stephe Leake
+-- Copyright (C) 2010, 2013, 2014 Stephe Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -87,7 +87,7 @@ begin
             Ada.Text_IO.Put_Line
               ("  (got a " &
                  Token_IDs'Image (Master_Token.ID (Token_List.Token_Handle (Iterator).all)) &
-                 " where a "& Token_IDs'Image (ID) & " was expected.");
+                 " where a " & Token_IDs'Image (ID) & " was expected.");
             Passed := False;
          end if;
          Token_List.Next_Token (Iterator);

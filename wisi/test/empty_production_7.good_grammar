@@ -1,0 +1,110 @@
+Tokens:
+ 1 => WHITESPACE_ID
+ 2 => ALIASED_ID
+ 3 => CONSTANT_ID
+ 4 => SEMICOLON_ID
+ 5 => IDENTIFIER_ID
+ 6 => EOF_ID
+ 7 => OBJECT_DECLARATION_LIST_ID
+ 8 => OBJECT_DECLARATION_ID
+ 9 => ALIASED_OPT_ID
+ 10 => CONSTANT_OPT_ID
+ 11 => OPENTOKEN_ACCEPT_ID
+
+Parse Table:
+Set 1:
+  OPENTOKEN_ACCEPT_ID <= ^ OBJECT_DECLARATION_LIST_ID EOF_ID
+
+   IDENTIFIER_ID              => shift and goto state 2
+   default                    => ERROR
+
+   OBJECT_DECLARATION_LIST_ID goto state 3
+   OBJECT_DECLARATION_ID      goto state 4
+
+Set 2:
+  OBJECT_DECLARATION_ID <= IDENTIFIER_ID ^ ALIASED_OPT_ID CONSTANT_OPT_ID SEMICOLON_ID, IDENTIFIER_ID/EOF_ID
+
+   CONSTANT_ID                => reduce 0 tokens to ALIASED_OPT_ID
+   SEMICOLON_ID               => reduce 0 tokens to ALIASED_OPT_ID
+   ALIASED_ID                 => shift and goto state 7
+   default                    => ERROR
+
+   ALIASED_OPT_ID             goto state 8
+
+Set 3:
+  OBJECT_DECLARATION_LIST_ID <= OBJECT_DECLARATION_LIST_ID ^ OBJECT_DECLARATION_ID, EOF_ID/IDENTIFIER_ID
+  OPENTOKEN_ACCEPT_ID <= OBJECT_DECLARATION_LIST_ID ^ EOF_ID
+
+   EOF_ID                     => shift and goto state 5
+   IDENTIFIER_ID              => shift and goto state 2
+   default                    => ERROR
+
+   OBJECT_DECLARATION_ID      goto state 6
+
+Set 4:
+  OBJECT_DECLARATION_LIST_ID <= OBJECT_DECLARATION_ID ^, EOF_ID/IDENTIFIER_ID
+
+   EOF_ID                     => reduce 1 tokens to OBJECT_DECLARATION_LIST_ID
+   IDENTIFIER_ID              => reduce 1 tokens to OBJECT_DECLARATION_LIST_ID
+   default                    => ERROR
+
+
+Set 5:
+  OPENTOKEN_ACCEPT_ID <= OBJECT_DECLARATION_LIST_ID EOF_ID ^, EOF_ID/IDENTIFIER_ID/SEMICOLON_ID/CONSTANT_ID/ALIASED_ID
+
+   EOF_ID                     => accept it
+   IDENTIFIER_ID              => accept it
+   SEMICOLON_ID               => accept it
+   CONSTANT_ID                => accept it
+   ALIASED_ID                 => accept it
+   default                    => ERROR
+
+
+Set 6:
+  OBJECT_DECLARATION_LIST_ID <= OBJECT_DECLARATION_LIST_ID OBJECT_DECLARATION_ID ^, IDENTIFIER_ID/EOF_ID
+
+   IDENTIFIER_ID              => reduce 2 tokens to OBJECT_DECLARATION_LIST_ID
+   EOF_ID                     => reduce 2 tokens to OBJECT_DECLARATION_LIST_ID
+   default                    => ERROR
+
+
+Set 7:
+  ALIASED_OPT_ID <= ALIASED_ID ^, CONSTANT_ID/SEMICOLON_ID
+
+   CONSTANT_ID                => reduce 1 tokens to ALIASED_OPT_ID
+   SEMICOLON_ID               => reduce 1 tokens to ALIASED_OPT_ID
+   default                    => ERROR
+
+
+Set 8:
+  OBJECT_DECLARATION_ID <= IDENTIFIER_ID ALIASED_OPT_ID ^ CONSTANT_OPT_ID SEMICOLON_ID, EOF_ID/IDENTIFIER_ID
+
+   SEMICOLON_ID               => reduce 0 tokens to CONSTANT_OPT_ID
+   CONSTANT_ID                => shift and goto state 9
+   default                    => ERROR
+
+   CONSTANT_OPT_ID            goto state 10
+
+Set 9:
+  CONSTANT_OPT_ID <= CONSTANT_ID ^, SEMICOLON_ID
+
+   SEMICOLON_ID               => reduce 1 tokens to CONSTANT_OPT_ID
+   default                    => ERROR
+
+
+Set 10:
+  OBJECT_DECLARATION_ID <= IDENTIFIER_ID ALIASED_OPT_ID CONSTANT_OPT_ID ^ SEMICOLON_ID, IDENTIFIER_ID/EOF_ID
+
+   SEMICOLON_ID               => shift and goto state 11
+   default                    => ERROR
+
+
+Set 11:
+  OBJECT_DECLARATION_ID <= IDENTIFIER_ID ALIASED_OPT_ID CONSTANT_OPT_ID SEMICOLON_ID ^, EOF_ID/IDENTIFIER_ID
+
+   EOF_ID                     => reduce 4 tokens to OBJECT_DECLARATION_ID
+   IDENTIFIER_ID              => reduce 4 tokens to OBJECT_DECLARATION_ID
+   default                    => ERROR
+
+
+ 4 rules, 0 actions, 0 shift/reduce conflicts, 0 reduce/reduce conflicts, 11 states, 34 table entries

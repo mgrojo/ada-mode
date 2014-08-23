@@ -26,6 +26,7 @@
 ^build/release/.*\.diff$
 ^build/release/.*\.el$
 ^build/release/.*\.exe$
+^build/release/.*\.grammar$
 ^build/release/.*\.out$
 ^build/release/.*\.parse$
 ^build/release/.*\.txt$
