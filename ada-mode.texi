@@ -123,10 +123,12 @@ ada-mode-version}.
 
 @menu
 * gnatinspect::
+* gpr_query::
+* ada_mode_gps_indent::
 * Upgrading::
 @end menu
 
-@node gnatinspect, Upgrading, Installation, Installation
+@node gnatinspect, gpr_query, Installation, Installation
 @section gnatinspect
 Ada mode has experimental support for the new AdaCore cross reference
 tool @code{gnatinspect}, which supports Ada, C, C++, and any other
@@ -156,7 +158,49 @@ cd gnatcoll-1.7w-src/src/sqlite/amalgamation/
 gcc -O2 -o sqlite3 shell.c sqlite3.c -ldl -lpthread
 @end example
 
-@node Upgrading,  , gnatinspect, Installation
+@node gpr_query, ada_mode_gps_indent, gnatinspect, Installation
+@section gpr_query
+@file{gpr_query} is similar to @file{gnatinspect}, but customized for
+Emacs ada-mode use. To install it, install @file{gnatinspect} as above
+(@ref{gnatinspect}), then:
+
+@example
+cd ~/.emacs.d/elpa/ada-mode-5.xx/build
+make install-gpr_query
+@end example
+
+@node ada_mode_gps_indent, Upgrading, gpr_query, Installation
+@section ada_mode_gps_indent
+@file{ada-gps} is an alternate indentation engine, using the
+indentation engine from AdaCore's GPS. It is very fast for indenting
+single lines in very large files; the default ada-wisi is slow in that
+case.
+
+To install it:
+@itemize
+@item
+install @file{gnatinspect} as above (@ref{gnatinspect}).
+
+@item
+download GPS source from @url{libre.adacore.com}
+
+@item
+unpack GPS source somewhere convenient
+
+@item
+In @file{~/.emacs.d/elpa/ada-mode-5.xx/build/Makefile}, edit the
+default value for GPS_ROOT to match.
+
+@item
+compile @file{ada_mode_gps_indent.adb}:
+@example
+cd ~/.emacs.d/elpa/ada-mode-5.xx/build
+make install-ada_mode_gps_indent
+@end example
+
+@end itemize
+
+@node Upgrading,  , ada_mode_gps_indent, Installation
 @section Upgrading from previous versions
 
 See the file NEWS for more details; here we summarize only important
@@ -189,6 +233,7 @@ the tutorial (@kbd{C-h t}).
 * Non-standard file names::
 * Other compiler::
 * Other cross-reference::
+* Other indentation::
 * Other customization::
 @end menu
 
@@ -260,13 +305,50 @@ The project variable @code{ada_xref} (default elisp variable
 the cross-reference-tool-specific functions for corresponding Ada mode
 operations.
 
-To use a cross reference tool other than gnatxref, you must write
-Emacs lisp code that provides the interface to the compiler, and set
-@code{ada-xref-tool} and the indirection variables. This has already
-been done for @code{gnatinspect}; set @code{ada-xref-tool} to
-@code{'gnat_inspect}.
+The default cross-reference tool is @file{gnatxref}, provided by the
+file @file{ada-gnat-xref.el}. Two other tools are supported:
+@file{gnat_inspect} and @file{gpr_query}. To use these, add one of the
+following to @file{~/.emacs}:
 
-See @file{ada-gnat-xref.el} and @file{gnat-inspect.el} for examples.
+@example
+(require 'gnat-inspect)
+(require 'gpr-query)
+@end example
+
+To use @file{gpr_query}, the Ada code @file{gpr_query.adb} must be
+compiled; see @ref{Installation}.
+
+To use a cross reference tool other than the above, you must write
+Emacs lisp code that provides the interface to the compiler, and set
+@code{ada-xref-tool} and the indirection variables.
+
+See @file{ada-gnat-xref.el}, @file{gnat-inspect.el},
+@file{gpr-query.el} for examples.
+
+@node Other indentation, Other customization, Other compiler, Customization
+@section Other indentation
+The ada-mode indentation engine is set by a function on
+@var{ada-mode-hook}, which is set when the elisp code defining the
+indentation engine is loaded.
+
+The default indentation tool is @file{ada-wisi}, provided by the
+file @file{ada-wisi.el}. It can be very slow on very large files, so
+an alternative is provided in @file{ada-gps.el}; on small files, it
+uses ada-wisi, on large files, it uses the AdaCore GPS indentation
+engine.
+
+To use ada-gps, add the
+following to @file{~/.emacs}:
+
+@example
+(require 'ada-gps)
+@end example
+
+To use @file{ada-gps}, the Ada code @file{ada_mode_gps_indent.adb}
+must be compiled; see @ref{Installation}.
+
+The threshold for ``large file'' is in user variable
+@var{ada-gps-size-threshold}.
 
 @node Other customization,  , Other cross-reference, Customization
 @section Other customization
