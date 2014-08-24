@@ -49,7 +49,9 @@ test-wisi :: empty_production_8.wisi-test
 #one : export Ada_Mode_Wisi_Parse_Build := Debug
 one : ../../ada_grammar.ads
 	gprbuild -p ada_mode_wisi_parse_agg.gpr run_ada_parser.adb
-	bash -c "time ./run_ada_parser.exe /apps/GNAT-gpl_2014/gnatcoll-1.7w-src/src/sqlite/gnatcoll-xref.adb"
+	./run_ada_parser.exe -v ../../test/debug.adb
+
+# bash -c "time ./run_ada_parser.exe /apps/GNAT-gpl_2014/gnatcoll-1.7w-src/src/sqlite/gnatcoll-xref.adb"
 
 vpath %.wy ../../ ../../test/wisi
 vpath %.el ../../ .
@@ -66,9 +68,8 @@ export ADA_PROJECT_PATH=../../test/:../../test/subdir
 else
 # windows
 INDENT.EL := ada-wisi.el gpr-wisi.el ../../gpr-grammar-wy.el ../../ada_grammar-wy.el
-WISI_OPENTOKEN ?= $(CURDIR)/../../../org.opentoken.stephe/build/release
 # (setenv "WISI_OPENTOKEN" (concat (substring default-directory 2) "../../../org.opentoken.stephe/build/release"))
-# (setenv "WISI_OPENTOKEN" nil)
+WISI_OPENTOKEN ?= $(CURDIR)/../../../org.opentoken.stephe/build/release
 export ADA_PROJECT_PATH=../../test/;../../test/subdir
 
 endif
@@ -81,11 +82,11 @@ endif
 # -v 1 dumps grammar
 # -v 2 dumps debug info from parser table generation, continues with unused tokens, unknown conflicts
 %-wy.el : %.wy $(WISI_OPENTOKEN)/wisi-generate.exe
-	cd ./$(<D); $(WISI_OPENTOKEN)/wisi-generate.exe -v 1 $(<F) Elisp > $(*F).output
+	cd ./$(<D); $(WISI_OPENTOKEN)/wisi-generate.exe -v 1 $(<F) Elisp > $(*F).elisp_output
 	cd ./$(<D); dos2unix $(@F)
 
 %.ads : %.wy $(WISI_OPENTOKEN)/wisi-generate.exe
-	cd ./$(<D); $(WISI_OPENTOKEN)/wisi-generate.exe $(<F) Ada
+	cd ./$(<D); $(WISI_OPENTOKEN)/wisi-generate.exe -v 1 $(<F) Ada > $(*F).ada_output
 
 %.a : %.l
 	aflex -i $<
@@ -142,11 +143,12 @@ test-ada-gpr_query.stamp : force
 	$(MAKE) test-ada-gpr_query
 	touch $@
 
-# eval: (ada-parse-prj-file "ada_mode_wisi_parse.prj")
-# eval: (ada-select-prj-file "ada_mode_wisi_parse.prj")
-
-# Local Variables:
 # eval: (ada-parse-prj-file "../ada-mode.prj")
 # eval: (ada-select-prj-file "../ada-mode.prj")
+
+# Local Variables:
+# eval: (setenv "WISI_OPENTOKEN" (concat (substring default-directory 2) "../../../org.opentoken.stephe/build/release"))
+# eval: (ada-parse-prj-file "ada_mode_wisi_parse.prj")
+# eval: (ada-select-prj-file "ada_mode_wisi_parse.prj")
 # End:
 # end of file

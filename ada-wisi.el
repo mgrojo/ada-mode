@@ -28,7 +28,7 @@
 ;;;;
 
 (require 'ada-fix-error)
-(require 'ada-grammar-wy)
+(require 'ada_grammar-wy)
 (require 'ada-indent-user-options)
 (require 'cl-lib)
 (require 'wisi)
@@ -1164,7 +1164,7 @@ cached token, return new indentation for point."
       (while (not end)
 	(setq cache (wisi-forward-cache))
 	(cl-case (wisi-cache-nonterm cache)
-	  (pragma nil)
+	  (pragma_g nil)
 	  (use_clause nil)
 	  (with_clause
 	   (when (not begin)
@@ -1498,9 +1498,9 @@ Also return cache at start."
 		ada-wisi-after-cache)
 	      'ada-wisi-post-parse-fail
 	      ada-wisi-class-list
-	      ada-grammar-wy--keyword-table
-	      ada-grammar-wy--token-table
-	      ada-grammar-wy--parse-table)
+	      ada_grammar-wy--keyword-table
+	      ada_grammar-wy--token-table
+	      ada_grammar-wy--parse-table)
 
   ;; Handle escaped quotes in strings
   (setq wisi-string-quote-escape-doubled t)

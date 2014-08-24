@@ -17,17 +17,17 @@ run test from emacs -Q using installed elpa:
 
 run test from emacs -Q using source:
 (progn
-  (add-to-list 'exec-path "/apps/GNAT-7.2.1/bin")
+  (add-to-list 'exec-path "/apps/GNAT-GPL_2014/bin")
   (setenv "PATH" (mapconcat 'identity  exec-path  path-separator))
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode")
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode/build")
+  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-1")
+  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-1/build")
   (setq debug-on-error t)
 ;  (global-font-lock-mode -1)
   (load "autoloads.el")
   (load "run-indent-test-wisi")
   (setq wisi-debug 1)
-  (setq default-directory "/Projects/org.emacs.ada-mode/build/wisi/")
-  (run-test "../../test/ada_mode-parens.ads")
+  (setq default-directory "/Projects/org.emacs.ada-mode.stephe-1/build/wisi/")
+  (run-test "../../test/access_in_record.ads")
   (ada-wisi-debug-keys))
 
 install packages in -Q:
@@ -42,20 +42,29 @@ install packages in -Q:
     build/Makefile
     doc changes in NEWS-ada-mode.text NEWS-wisi.text
 
-    compute a list of text properties in a separate process, and return
-    that to the Emacs process to be applied.
-        build/Makefile
+    rename "reductions" to "gotos"
 
-            clean up ada_grammar.adb
+    split lalr into generate, parse
+        simplify data structures
 
-        time ./ada_grammar-parse /apps/GNAT-gpl_2014/gnatcoll-1.7w-src/src/sqlite/gnatcoll-xref.adb
-            unknown conflicts
-                Ada parser doesn't know what to do with conflicts!
-                just do one path for now
+    run all tests
 
-        don't need allocated token objects on parser stack, just token_id
+    add parallel parsing to parser
 
-        OpenToken lexer is too slow?
+    run all tests
+
+    time ./run_ada_parser /apps/GNAT-gpl_2014/gnatcoll-1.7w-src/src/sqlite/gnatcoll-xref.adb
+
+    integrate to ada-mode
+        need region for each token
+
+        time wisi-parse-buffer
+
+    implement wisi actions in Ada?
+        compute a list of text properties in ada_mode_wisi_parse, and return
+        that to the Emacs process to be applied.
+
+    OpenToken lexer is too slow?
             time ./run_ada_lexer /apps/GNAT-gpl_2014/gnatcoll-1.7w-src/src/sqlite/gnatcoll-xref.adb
             real    0m0.359s
             user    0m0.031s
@@ -94,14 +103,12 @@ install packages in -Q:
 
         generate *.l, associated packages from *.wy
 
-
     add error recovery to parser
 
-    more intelligent rules when parser fails?
+    don't need allocated token objects on parser stack, just token_id
+        add alternate parser
 
-    don't do syntax-propertize for font-lock, unless parsing is already done
-        not parsed on open; start of buffer doesn't require syntax propertize?
-        happens on scroll to end
+    more intelligent rules when parser fails?
 
     doc git/elpa checkout, config
 

@@ -5,16 +5,20 @@ with Ada_Grammar;
 with OpenToken.Text_Feeder.Text_IO;
 procedure Run_Ada_Parser
 is
-   File     : File_Type;
-   Feeder   : OpenToken.Text_Feeder.Text_Feeder_Ptr;
-   Analyzer : Ada_Grammar.Analyzers.Instance := Ada_Grammar.Analyzers.Initialize (Ada_Grammar.Syntax, Feeder);
+   File   : File_Type;
+   Parser : Ada_Grammar.LALR_Parsers.Instance := Ada_Grammar.Create_Parser;
 begin
-   Open (File, In_File, Argument (1));
-   Set_Input (File);
-   Feeder := OpenToken.Text_Feeder.Text_IO.Create (Standard_Input);
-   Ada_Grammar.Analyzers.Set_Text_Feeder (Analyzer, Feeder);
+   if Argument (1) = "-v" then
+      OpenToken.Trace_Parse := True;
+      Open (File, In_File, Argument (2));
+   else
+      Open (File, In_File, Argument (1));
+   end if;
 
-   Ada_Grammar.LALR_Parsers.Parse (Ada_Grammar.Parser);
+   Set_Input (File);
+   Ada_Grammar.LALR_Parsers.Set_Text_Feeder (Parser, OpenToken.Text_Feeder.Text_IO.Create (Current_Input));
+
+   Ada_Grammar.LALR_Parsers.Parse (Parser);
 
 exception
 when E : others =>

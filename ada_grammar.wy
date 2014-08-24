@@ -163,6 +163,9 @@
 %token <punctuation> STAR_STAR "**"
 %token <punctuation> TICK "'"
 
+;; whitespace, comment not seen by wisi lexer, but are needed by Ada lexer
+%token <whitespace> ""
+%token <line_comment> "--"
 %token <symbol> IDENTIFIER
 %token <string-double> STRING_LITERAL
 %token <string-single> CHARACTER_LITERAL
@@ -186,32 +189,30 @@
 %conflict REDUCE/REDUCE in state primary, subtype_indication on token COMMA
 %conflict REDUCE/REDUCE in state primary, subtype_indication on token EQUAL_GREATER
 %conflict REDUCE/REDUCE in state primary, subtype_indication on token RIGHT_PAREN
-%conflict REDUCE/SHIFT in state aliased_opt, declaration on token CONSTANT
-%conflict REDUCE/SHIFT in state aspect_specification_opt, generic_instantiation on token IS
-%conflict REDUCE/SHIFT in state aspect_specification_opt, package_body_stub on token IS
-%conflict REDUCE/SHIFT in state aspect_specification_opt, protected_body_stub on token IS
-%conflict REDUCE/SHIFT in state aspect_specification_opt, subprogram_body_stub on token IS
-%conflict REDUCE/SHIFT in state aspect_specification_opt, task_body_stub on token IS
-%conflict REDUCE/SHIFT in state attribute_designator, actual_parameter_part on token LEFT_PAREN
-%conflict REDUCE/SHIFT in state attribute_designator, attribute_reference on token TICK
-%conflict REDUCE/SHIFT in state attribute_designator, selected_component on token DOT
-%conflict REDUCE/SHIFT in state generic_formal_part, generic_renaming_declaration on token FUNCTION
-%conflict REDUCE/SHIFT in state generic_formal_part, generic_renaming_declaration on token PACKAGE
-%conflict REDUCE/SHIFT in state generic_formal_part, generic_renaming_declaration on token PROCEDURE
-%conflict REDUCE/SHIFT in state identifier_list, object_renaming_declaration on token COLON
-%conflict REDUCE/SHIFT in state name, aspect_clause on token USE
-%conflict REDUCE/SHIFT in state name, pragma_argument_association on token TICK
-%conflict REDUCE/SHIFT in state parameter_profile_opt, generic_instantiation on token IS
-%conflict REDUCE/SHIFT in state subprogram_specification, expression_function_declaration on token IS
-%conflict REDUCE/SHIFT in state subprogram_specification, null_procedure_declaration on token IS
 %conflict SHIFT/REDUCE in state actual_parameter_part, actual_parameter_part_opt on token LEFT_PAREN
 %conflict SHIFT/REDUCE in state actual_parameter_part, attribute_designator on token LEFT_PAREN
+%conflict SHIFT/REDUCE in state aspect_clause, name on token USE
 %conflict SHIFT/REDUCE in state association_opt, name on token EQUAL_GREATER
 %conflict SHIFT/REDUCE in state attribute_reference, attribute_designator on token TICK
+%conflict SHIFT/REDUCE in state declaration, aliased_opt on token CONSTANT
+%conflict SHIFT/REDUCE in state expression_function_declaration, subprogram_specification on token IS
 %conflict SHIFT/REDUCE in state formal_derived_type_definition, formal_derived_type_definition on token WITH
+%conflict SHIFT/REDUCE in state generic_instantiation, aspect_specification_opt on token IS
+%conflict SHIFT/REDUCE in state generic_instantiation, parameter_profile_opt on token IS
+%conflict SHIFT/REDUCE in state generic_renaming_declaration, generic_formal_part on token FUNCTION
+%conflict SHIFT/REDUCE in state generic_renaming_declaration, generic_formal_part on token PACKAGE
+%conflict SHIFT/REDUCE in state generic_renaming_declaration, generic_formal_part on token PROCEDURE
 %conflict SHIFT/REDUCE in state label_opt, label_opt on token IDENTIFIER
 %conflict SHIFT/REDUCE in state name, discrete_subtype_definition on token RIGHT_PAREN
 %conflict SHIFT/REDUCE in state null_exclusion_opt, aliased_opt on token NOT
+%conflict SHIFT/REDUCE in state null_procedure_declaration, subprogram_specification on token IS
+%conflict SHIFT/REDUCE in state object_renaming_declaration, identifier_list on token COLON
+%conflict SHIFT/REDUCE in state package_body_stub, aspect_specification_opt on token IS
+%conflict SHIFT/REDUCE in state pragma_argument_association, name on token TICK
+%conflict SHIFT/REDUCE in state protected_body_stub, aspect_specification_opt on token IS
+%conflict SHIFT/REDUCE in state selected_component, attribute_designator on token DOT
+%conflict SHIFT/REDUCE in state subprogram_body_stub, aspect_specification_opt on token IS
+%conflict SHIFT/REDUCE in state task_body_stub, aspect_specification_opt on token IS
 
 %%
 ;;;; grammar rules

@@ -143,7 +143,6 @@ clean ::
 # (getenv "GPR_PROJECT_PATH")
 
 # Local Variables:
-# eval: (gnat-7.2.1)
 # eval: (ada-parse-prj-file "gpr_query.prj")
 # eval: (ada-select-prj-file "gpr_query.prj")
 # end:
