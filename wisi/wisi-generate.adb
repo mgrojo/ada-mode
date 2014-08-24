@@ -126,7 +126,8 @@ begin
         (-Input_File_Name, -Output_File_Root, Prologue, Keywords, Tokens, Start_Token, Conflicts, Rules,
          Rule_Count, Action_Count);
    when Elisp =>
-      Wisi.Output_Elisp (-Output_File_Root, Prologue, Keywords, Tokens, Start_Token, Conflicts, Rules);
+      Wisi.Output_Elisp
+        (-Input_File_Name, -Output_File_Root, Prologue, Keywords, Tokens, Start_Token, Conflicts, Rules);
    when Test =>
       Wisi.Test_Generate (-Input_File_Name, Keywords, Tokens, Start_Token, Rules);
    end case;

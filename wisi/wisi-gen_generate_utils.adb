@@ -70,7 +70,7 @@ package body Wisi.Gen_Generate_Utils is
       end loop;
 
       if Token = EOI_Image or
-        Token = "EOI"
+        Token = "EOI" -- used in conflicts
       then
          return Result;
       end if;
