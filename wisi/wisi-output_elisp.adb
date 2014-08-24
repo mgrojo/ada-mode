@@ -101,7 +101,7 @@ is
       Put_Line ("  (semantic-lex-make-type-table");
       Put_Line ("   '(");
       for Kind of Tokens loop
-         if not (-Kind.Kind = """line-comment""" or -Kind.Kind = """whitespace""") then
+         if not (-Kind.Kind = """line_comment""" or -Kind.Kind = """whitespace""") then
             Put_Line ("     (" & (-Kind.Kind));
             for Token of Kind.Tokens loop
                if 0 = Length (Token.Value) then

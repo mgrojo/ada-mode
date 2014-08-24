@@ -31,9 +31,6 @@
 (defconst case_expression-wy--token-table
   (semantic-lex-make-type-table
    '(
-     ("line_comment"
-      (COMMENT . "--")
-     )
      ("punctuation"
       (DOT_DOT . "..")
       (EQUAL_GREATER . "=>")

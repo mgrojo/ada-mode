@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2012, 2013 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2012 - 2014 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -194,9 +194,11 @@ package body OpenToken.Production.Parser.LALR.Elisp is
       --  terminal tokens
       Put ("   '((");
       for Kind of Tokens loop
-         for Pair of Kind.Tokens loop
-            Put (-Pair.Name & " ");
-         end loop;
+         if not (-Kind.Kind = """line_comment""" or -Kind.Kind = """whitespace""") then
+            for Pair of Kind.Tokens loop
+               Put (-Pair.Name & " ");
+            end loop;
+         end if;
       end loop;
       for Pair of Keywords loop
          Put (-Pair.Name & " ");
