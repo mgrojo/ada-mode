@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2013 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2013, 2014 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -339,20 +339,20 @@ package body Test_Empty_Productions_1 is
             Next          => null),
          Next             => Expected.Action_List);
 
-      Expected.Reduction_List := new Reduction_Node'
+      Expected.Goto_List := new Goto_Node'
         (Symbol => body_ID,
          State  => 5,
-         Next   => Expected.Reduction_List);
+         Next   => Expected.Goto_List);
 
-      Expected.Reduction_List := new Reduction_Node'
+      Expected.Goto_List := new Goto_Node'
         (Symbol => declarative_part_ID,
          State  => 8,
-         Next   => Expected.Reduction_List);
+         Next   => Expected.Goto_List);
 
-      Expected.Reduction_List := new Reduction_Node'
+      Expected.Goto_List := new Goto_Node'
         (Symbol => declarations_ID,
          State  => 3,
-         Next   => Expected.Reduction_List);
+         Next   => Expected.Goto_List);
 
       Test_Actions ("1", Kernels, 2, Expected, Test.Debug);
 

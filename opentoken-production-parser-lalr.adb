@@ -39,18 +39,17 @@ package body OpenToken.Production.Parser.LALR is
 
    --  Following are the types used in the parse "table". The parse
    --  table is an array indexed by parse state that where each state
-   --  contains a list of parse actions and a list of reduction
-   --  actions.
+   --  contains a list of parse actions and a list of gotos.
    --
    --  Parse actions are indexed by the terminal they match and are either
    --    o Shift and change to a designated state.
    --    o Reduce by the given production
    --
-   --  Reduction actions are indexed by the nonterminal they match and
-   --  designate the state the parser need to change to.
+   --  Gotos are indexed by the nonterminal they match and designate
+   --  the state the parser need to change to.
 
    --  The following types are used for the Parser's stack. The stack
-   --  designates the tokens that have been read or derived, and the
+   --  contains the tokens that have been read or derived, and the
    --  parser states in which that occurred.
 
    type State_Node;
@@ -140,13 +139,13 @@ package body OpenToken.Production.Parser.LALR is
      return State_Index
    is
       use type Tokenizer.Terminal_ID;
-      Reduction_Node : Reduction_Node_Ptr := Table.all (State).Reduction_List;
+      Goto_Node : Goto_Node_Ptr := Table.all (State).Goto_List;
    begin
-      while Reduction_Node.Next /= null and Reduction_Node.Symbol /= ID loop
-         Reduction_Node := Reduction_Node.Next;
+      while Goto_Node.Next /= null and Goto_Node.Symbol /= ID loop
+         Goto_Node := Goto_Node.Next;
       end loop;
 
-      return Reduction_Node.State;
+      return Goto_Node.State;
    end Goto_For;
 
    function Find
@@ -552,39 +551,36 @@ package body OpenToken.Production.Parser.LALR is
       use Ada.Text_IO;
       use Ada.Strings.Fixed;
       use LRk;
-      Action    : Action_Node_Ptr    := State.Action_List;
-      Reduction : Reduction_Node_Ptr := State.Reduction_List;
+      Action_Ptr : Action_Node_Ptr := State.Action_List;
+      Goto_Ptr   : Goto_Node_Ptr   := State.Goto_List;
    begin
-      if Action = null then
+      if Action_Ptr = null then
          raise Programmer_Error with "LALR: Action contains no default entry";
       end if;
 
-      while Action /= null loop
-         if Action.Next = null then
+      while Action_Ptr /= null loop
+         if Action_Ptr.Next = null then
             Put ("   default" & (Token.Token_Image_Width - 7) * ' ' & " => ");
-            Put_Parse_Action (Action.Action);
+            Put_Parse_Action (Action_Ptr.Action);
             New_Line;
          else
-            Put ("   " & Token.Token_Image (Action.Symbol) &
-                   (Token.Token_Image_Width - Token.Token_Image (Action.Symbol)'Length) * ' '
+            Put ("   " & Token.Token_Image (Action_Ptr.Symbol) &
+                   (Token.Token_Image_Width - Token.Token_Image (Action_Ptr.Symbol)'Length) * ' '
                    & " => ");
-            Put_Parse_Action (Action.Action);
+            Put_Parse_Action (Action_Ptr.Action);
             New_Line;
          end if;
-         Action := Action.Next;
+         Action_Ptr := Action_Ptr.Next;
       end loop;
 
       New_Line;
 
-      while Reduction /= null loop
-         if Reduction.Symbol not in Tokenizer.Terminal_ID then
-            --  Terminal_IDs are shown in Actions, above
-            Put_Line
-              ("   " & Token.Token_Image (Reduction.Symbol) &
-                 (Token.Token_Image_Width - Token.Token_Image (Reduction.Symbol)'Length) * ' ' &
-                 " goto state" & State_Index'Image (Reduction.State));
-         end if;
-         Reduction := Reduction.Next;
+      while Goto_Ptr /= null loop
+         Put_Line
+           ("   " & Token.Token_Image (Goto_Ptr.Symbol) &
+              (Token.Token_Image_Width - Token.Token_Image (Goto_Ptr.Symbol)'Length) * ' ' &
+              " goto state" & State_Index'Image (Goto_Ptr.State));
+         Goto_Ptr := Goto_Ptr.Next;
       end loop;
    end Put;
 
@@ -953,17 +949,17 @@ package body OpenToken.Production.Parser.LALR is
 
       --  Fill in this state's Goto transitions
       declare
-         Goto_Node : LRk.Set_Reference_Ptr := Kernel.Goto_List;
+         Goto_Ptr : LRk.Set_Reference_Ptr := Kernel.Goto_List;
       begin
-         while Goto_Node /= null loop
-            if Goto_Node.Symbol in Nonterminal_ID then
-               Table (State).Reduction_List :=
-                 new Reduction_Node'
-                 (Symbol => Goto_Node.Symbol,
-                  State  => State_Index (Goto_Node.Set.Index),
-                  Next   => Table (State).Reduction_List);
+         while Goto_Ptr /= null loop
+            if Goto_Ptr.Symbol in Nonterminal_ID then
+               Table (State).Goto_List :=
+                 new Goto_Node'
+                 (Symbol => Goto_Ptr.Symbol,
+                  State  => State_Index (Goto_Ptr.Set.Index),
+                  Next   => Table (State).Goto_List);
             end if;
-            Goto_Node := Goto_Node.Next;
+            Goto_Ptr := Goto_Ptr.Next;
          end loop;
       end;
    end Add_Actions;

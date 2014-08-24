@@ -191,20 +191,20 @@ package body Test_Empty_Productions_6 is
          Action      => Conflict,
          Next        => Expected.Action_List);
 
-      Expected.Reduction_List := new Reduction_Node'
+      Expected.Goto_List := new Goto_Node'
         (Symbol => label_opt_ID,
          State  => 7,
-         Next   => Expected.Reduction_List);
+         Next   => Expected.Goto_List);
 
-      Expected.Reduction_List := new Reduction_Node'
+      Expected.Goto_List := new Goto_Node'
         (Symbol => sequence_of_statements_ID,
          State  => 6,
-         Next   => Expected.Reduction_List);
+         Next   => Expected.Goto_List);
 
-      Expected.Reduction_List := new Reduction_Node'
+      Expected.Goto_List := new Goto_Node'
         (Symbol => statement_ID,
          State  => 5,
-         Next   => Expected.Reduction_List);
+         Next   => Expected.Goto_List);
 
       Test_Actions ("1", Kernels, 1, Expected, Test.Debug);
 

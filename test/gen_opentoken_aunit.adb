@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2013 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2013, 2014 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -302,12 +302,12 @@ package body Gen_OpenToken_AUnit is
       end loop;
    end Check;
 
-   procedure Check (Label : in String; Computed : in LALR.Reduction_Node_Ptr; Expected : in LALR.Reduction_Node_Ptr)
+   procedure Check (Label : in String; Computed : in LALR.Goto_Node_Ptr; Expected : in LALR.Goto_Node_Ptr)
    is
       use AUnit.Check;
-      use type LALR.Reduction_Node_Ptr;
-      Computed_I : LALR.Reduction_Node_Ptr := Computed;
-      Expected_I : LALR.Reduction_Node_Ptr := Expected;
+      use type LALR.Goto_Node_Ptr;
+      Computed_I : LALR.Goto_Node_Ptr := Computed;
+      Expected_I : LALR.Goto_Node_Ptr := Expected;
       Index      : Integer  := 1;
    begin
       if Computed /= null or Expected /= null then
@@ -335,7 +335,7 @@ package body Gen_OpenToken_AUnit is
       Expected : in LALR.Parse_State)
    is begin
       Check (Label & ".Action_List", Computed.Action_List, Expected.Action_List);
-      Check (Label & ".Reduction_List", Computed.Reduction_List, Expected.Reduction_List);
+      Check (Label & ".Goto_List", Computed.Goto_List, Expected.Goto_List);
    end Check;
 
 end Gen_OpenToken_AUnit;

@@ -45,7 +45,7 @@
 
 (defconst case_expression-wy--parse-table
    (wisi-compile-grammar
-   '((COMMENT DOT_DOT EQUAL_GREATER TICK IDENTIFIER RANGE WHEN )
+   '((DOT_DOT EQUAL_GREATER TICK IDENTIFIER RANGE WHEN )
      ((case_expression
        ((WHEN discrete_choice EQUAL_GREATER )
         (setq wisi-test-success t)))

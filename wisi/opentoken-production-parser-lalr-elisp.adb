@@ -109,11 +109,11 @@ package body OpenToken.Production.Parser.LALR.Elisp is
 
    procedure Goto_Table (Parser : in Instance)
    is
-      function Filter_Terminals (List : in Reduction_Node_Ptr) return Reduction_Node_Ptr
+      function Filter_Terminals (List : in Goto_Node_Ptr) return Goto_Node_Ptr
       is
-         Result : Reduction_Node_Ptr := List;
-         Prev   : Reduction_Node_Ptr := List;
-         Item   : Reduction_Node_Ptr := List;
+         Result : Goto_Node_Ptr := List;
+         Prev   : Goto_Node_Ptr := List;
+         Item   : Goto_Node_Ptr := List;
       begin
          while Item /= null loop
             if Item.Symbol in Tokenizer.Terminal_ID then
@@ -136,7 +136,7 @@ package body OpenToken.Production.Parser.LALR.Elisp is
       Put ("     [");
       for State in Parser.Table'Range loop
          declare
-            Gotos : Reduction_Node_Ptr := Filter_Terminals (Parser.Table (State).Reduction_List);
+            Gotos : Goto_Node_Ptr := Filter_Terminals (Parser.Table (State).Goto_List);
          begin
             if Gotos = null then
                if State = Parser.Table'First then

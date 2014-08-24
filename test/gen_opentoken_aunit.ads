@@ -2,7 +2,7 @@
 --
 --  AUnit routines useful in OpenToken tests
 --
---  Copyright (C) 2013 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2013, 2014 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -104,7 +104,7 @@ package Gen_OpenToken_AUnit is
 
    procedure Check (Label : in String; Computed : in LALR.Action_Node_Ptr; Expected : in LALR.Action_Node_Ptr);
 
-   procedure Check (Label : in String; Computed : in LALR.Reduction_Node_Ptr; Expected : in LALR.Reduction_Node_Ptr);
+   procedure Check (Label : in String; Computed : in LALR.Goto_Node_Ptr; Expected : in LALR.Goto_Node_Ptr);
 
    procedure Check
      (Label    : in String;

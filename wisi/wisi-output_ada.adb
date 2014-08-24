@@ -513,7 +513,7 @@ begin
    Indent_Line ("end Add_Action;");
    New_Line;
 
-   Indent_Line ("procedure Add_Reduction");
+   Indent_Line ("procedure Add_Goto");
    Indent := Indent + 2;
    Indent_Line ("(State    : in out LALR_Parsers.Parse_State;");
    Indent := Indent + 1;
@@ -524,9 +524,9 @@ begin
    Indent_Line ("   use LALR_Parsers;");
    Indent_Line ("begin");
    Indent := Indent + 3;
-   Indent_Line ("State.Reduction_List := new Reduction_Node'(Symbol, To_State, State.Reduction_List);");
+   Indent_Line ("State.Goto_List := new Goto_Node'(Symbol, To_State, State.Goto_List);");
    Indent := Indent - 3;
-   Indent_Line ("end Add_Reduction;");
+   Indent_Line ("end Add_Goto;");
    New_Line;
 
    Indent_Line ("function Create_Parser return LALR_Parsers.Instance");
@@ -609,19 +609,19 @@ begin
          end loop;
       end Actions;
 
-      Reductions :
+      Gotos :
       declare
          use Generate_Utils.LALR_Parsers;
-         Node : Reduction_Node_Ptr := Parser.Table (State_Index).Reduction_List;
+         Node : Goto_Node_Ptr := Parser.Table (State_Index).Goto_List;
       begin
          loop
             exit when Node = null;
             Set_Col (Indent);
-            Put ("Add_Reduction (Table (" & State_Image (State_Index) & "), ");
+            Put ("Add_Goto (Table (" & State_Image (State_Index) & "), ");
             Put_Line (Token_Image (Node.Symbol) & ", " & State_Image (Node.State) & ");");
             Node := Node.Next;
          end loop;
-      end Reductions;
+      end Gotos;
    end loop;
    New_Line;
    Indent_Line ("return (Analyzers.Initialize (Syntax, null), Table);");

@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2013 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2013, 2014 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -390,7 +390,7 @@ package body Test_Empty_Productions_7 is
             Next          => null),
          Next             => Expected.Action_List);
 
-      Expected.Reduction_List := new Reduction_Node'
+      Expected.Goto_List := new Goto_Node'
         (Symbol => aliased_opt_ID,
          State  => 8,
          Next   => null);
