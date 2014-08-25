@@ -129,7 +129,7 @@ begin
       Wisi.Output_Elisp
         (-Input_File_Name, -Output_File_Root, Prologue, Keywords, Tokens, Start_Token, Conflicts, Rules);
    when Test =>
-      Wisi.Test_Generate (-Input_File_Name, Keywords, Tokens, Start_Token, Rules);
+      Wisi.Test_Generate (-Input_File_Name, Keywords, Tokens, Start_Token, Conflicts, Rules);
    end case;
 
 exception

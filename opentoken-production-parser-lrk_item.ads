@@ -36,6 +36,9 @@ generic
 
    --  The number of elements of lookahead to keep in an item
    K : in Natural;
+
+   --  We only instantiate this with K = 1, but it's not worth
+   --  optimizing the code; there is only one loop on 1 .. K.
 package OpenToken.Production.Parser.LRk_Item is
 
    --  Lookahead Sets

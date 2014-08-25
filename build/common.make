@@ -141,7 +141,7 @@ distclean :: clean
 	rm -rf obj obj_tree
 
 test-clean :
-	rm -f *.diff *_run.exe *-run.exe *test.exe *.grammar *.out *.parse *.txt *-wy.el
+	rm -f *.diff *_run.exe *-run.exe *test.exe *.parse_table *.out *.parse *.txt *-wy.el
 	rm -f *.ads *.adb
 
 source-clean ::
@@ -163,9 +163,9 @@ DIFF_OPT := -u -w
 
 %.diff : %.good_el %.el ; diff $(DIFF_OPT) $^ > $@
 
-# the grammar and the state trace of the parse is the known good output
+# the parse_table and the state trace of the parse is the known good output
 %-parse.diff : %.good_parse %.parse
-	diff $(DIFF_OPT) $(^:parse=grammar) > $@
+	diff $(DIFF_OPT) $(^:parse=parse_table) > $@
 	diff $(DIFF_OPT) $^ >> $@
 
 %.run : %.exe ;	./$(*F).exe $(RUN_ARGS)
@@ -174,11 +174,11 @@ DIFF_OPT := -u -w
 %-wy.el : %.wy wisi-generate.exe
 	./wisi-generate.exe $(RUN_ARGS) $< Elisp > $*.output
 
-# wisi-generate Ada runs lalr_parser.generate, and we always want the grammar for tests
+# wisi-generate Ada runs lalr_parser.generate, and we always want the parse_table for tests
 %.ads : RUN_ARGS ?= -v 1
 %.ads : %.wy wisi-generate.exe
-	./wisi-generate.exe $(RUN_ARGS) $< Ada > $*.grammar
-	dos2unix $*.grammar
+	./wisi-generate.exe $(RUN_ARGS) $< Ada > $*.parse_table
+	dos2unix $*.parse_table
 
 %.parse : %.input %_run.exe
 	./$*_run.exe -v $< > $*.parse
