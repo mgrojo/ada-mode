@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
---  Copyright (C) 2009, 2010, 2012, 2013 Stephen Leake
+--  Copyright (C) 2009, 2010, 2012, 2013, 2014 Stephen Leake
 --  Copyright (C) 2000 Ted Dennison
 --
 --  This file is part of the OpenToken package.
@@ -20,7 +20,8 @@
 pragma License (GPL);
 
 with OpenToken.Production.List;
-with OpenToken.Production.Parser.LALR;
+with OpenToken.Production.Parser.LALR.Generator;
+with OpenToken.Production.Parser.LALR.Parser;
 with OpenToken.Recognizer.Character_Set;
 with OpenToken.Recognizer.End_Of_File;
 with OpenToken.Recognizer.Keyword;
@@ -52,7 +53,9 @@ package body Trivial_Productions_Test is
       package Productions is new OpenToken.Production (Tokens, Token_Lists, Nonterminals);
       package Production_Lists is new Productions.List;
       package Parsers is new Productions.Parser (Production_Lists, Analyzers);
-      package LALR_Parsers is new Parsers.LALR (First_State_Index => 1);
+      package LALRs is new Parsers.LALR (First_State_Index => 1);
+      package LALR_Generators is new LALRs.Generator;
+      package LALR_Parsers is new LALRs.Parser;
 
       EOF    : constant Tokens.Class       := Tokens.Get (EOF_ID);
       Symbol : constant Tokens.Class       := Tokens.Get (Symbol_ID);
@@ -90,7 +93,9 @@ package body Trivial_Productions_Test is
    begin
       --  The test is that there are no exceptions raised, either during grammar construction or parsing
 
-      Parser := LALR_Parsers.Generate (Grammar, Analyzer, Trace => Test_Case (Test).Debug);
+      Parser :=
+        (Analyzer,
+         LALR_Generators.Generate (Grammar, Trace => Test_Case (Test).Debug));
 
       OpenToken.Text_Feeder.String.Set (Feeder, Text);
       Analyzer.Reset;
@@ -130,7 +135,9 @@ package body Trivial_Productions_Test is
       package Productions is new OpenToken.Production (Tokens_Pkg, Token_Lists, Nonterminals);
       package Production_Lists is new Productions.List;
       package Parsers is new Productions.Parser (Production_Lists, Analyzers);
-      package LALR_Parsers is new Parsers.LALR (First_State_Index => 1);
+      package LALRs is new Parsers.LALR (First_State_Index => 1);
+      package LALR_Generators is new LALRs.Generator;
+      package LALR_Parsers is new LALRs.Parser;
 
       EOF            : constant Tokens_Pkg.Class := Tokens_Pkg.Get (EOF_ID);
       Function_Tok   : constant Tokens_Pkg.Class := Tokens_Pkg.Get (Function_ID);
@@ -179,10 +186,12 @@ package body Trivial_Productions_Test is
    begin
       --  The test is that there are no exceptions raised, either during grammar construction or parsing
 
-      Parser := LALR_Parsers.Generate
-        (Grammar, Analyzer,
-         Trace       => Test_Case (Test).Debug,
-         Put_Grammar => Test_Case (Test).Debug);
+      Parser :=
+        (Analyzer,
+         LALR_Generators.Generate
+           (Grammar,
+            Trace       => Test_Case (Test).Debug,
+            Put_Parse_Table => Test_Case (Test).Debug));
 
       OpenToken.Text_Feeder.String.Set (Feeder, Text);
       Analyzer.Reset;

@@ -3,6 +3,11 @@
 -- Copyright (C) 2002, 2003, 2009, 2010, 2013, 2014 Stephe Leake
 -- Copyright (C) 1999 Ted Dennison
 --
+--  References:
+--
+--  [dragon] "Compilers Principles, Techniques, and Tools" by Aho,
+--  Sethi, and Ullman (aka: "The [Red] Dragon Book").
+--
 -- This file is part of the OpenToken package.
 --
 -- The OpenToken package is free software; you can redistribute it and/or
@@ -25,21 +30,34 @@
 -----------------------------------------------------------------------------
 
 -----------------------------------------------------------------------------
---  This package provides an implementation of a LALR (Look-Ahead
---  Left-to-right scanning Rightmost-deriving) parser for grammars
---  defined by a production list. This is probably the most popular
---  method due to it being a good trade-off between the amount of
---  grammars handled and the size of its parse table.
------------------------------------------------------------------------------
+--  This package is the root package of an implementation of a LALR
+--  (Look-Ahead Left-to-right scanning Rightmost-deriving) parser for
+--  grammars defined by a production list. It contains types shared by
+--  the parse table generator in child package generator, and the
+--  parser in child package parser. Debug output of structures is in
+--  child package Text_IO.
+
 with Ada.Containers.Doubly_Linked_Lists;
-with OpenToken.Production.Parser.LRk_Item;
 generic
    First_State_Index : in Natural;
 package OpenToken.Production.Parser.LALR is
 
    --  No private types; that would make it too hard to write the unit tests
 
-   type State_Index is new Integer range First_State_Index .. Integer'Last;
+   --  Following are the types used in the parse table. The parse
+   --  table is an array indexed by parse state that where each state
+   --  contains a list of parse actions and a list of gotos.
+   --
+   --  Parse actions are indexed by the terminal they match and are either
+   --    o Shift and change to a designated state.
+   --    o Reduce by the given production
+   --
+   --  Gotos are indexed by the nonterminal they match and designate
+   --  the state the parser need to change to.
+
+   type Unknown_State_Index is new Integer range -1 .. Integer'Last;
+   subtype State_Index is Unknown_State_Index range Unknown_State_Index (First_State_Index) .. Unknown_State_Index'Last;
+   Unknown_State : constant Unknown_State_Index := -1;
 
    type Parse_Action_Verbs is (Shift, Reduce, Accept_It, Error);
    type Parse_Action_Rec (Verb : Parse_Action_Verbs := Shift) is record
@@ -47,8 +65,10 @@ package OpenToken.Production.Parser.LALR is
       when Shift =>
          State : State_Index;
       when Reduce | Accept_It =>
-         Production : OpenToken.Production.Instance;
-         Length     : Natural;
+         LHS         : Nonterminal.Handle;
+         Action      : Nonterminal.Synthesize;
+         Index       : Integer; -- into rule, for generating action names, debugging.
+         Token_Count : Natural;
       when Error =>
          null;
       end case;
@@ -85,85 +105,29 @@ package OpenToken.Production.Parser.LALR is
       Goto_List   : Goto_Node_Ptr;
    end record;
 
-   procedure Put (State : in Parse_State);
-
    type Parse_Table is array (State_Index range <>) of Parse_State;
 
    type Parse_Table_Ptr is access Parse_Table;
-
-   type Instance is new OpenToken.Production.Parser.Instance with record
-      Table : Parse_Table_Ptr;
-   end record;
 
    subtype Conflict_Parse_Actions is Parse_Action_Verbs range Shift .. Reduce;
    type Conflict is record
       --  A typical conflict is:
       --
-      --  REDUCE/SHIFT in state: 11 on token IS
+      --  SHIFT/REDUCE in state: 11 on token IS
       --
       --  State numbers change with minor changes in the grammar, so
       --  we identify the state by the LHS of the two productions
       --  involved. We also store the state number for generated
-      --  conflicts (not for known conflicts from the input file), for
-      --  Text_IO output.
+      --  conflicts (not for known conflicts from the grammar
+      --  definition file), for Text_IO output.
       Action_A    : Conflict_Parse_Actions;
       LHS_A       : Token.Token_ID;
       Action_B    : Conflict_Parse_Actions;
       LHS_B       : Token.Token_ID;
-      State_Index : Integer; -- not State_Index (below), so we can use -1 to represent unknown
+      State_Index : Unknown_State_Index;
       On          : Token.Token_ID;
    end record;
 
    package Conflict_Lists is new Ada.Containers.Doubly_Linked_Lists (Conflict);
-
-   function Generate
-     (Grammar                  : in Production_List.Instance;
-      Analyzer                 : in Tokenizer.Instance;
-      Known_Conflicts          : in Conflict_Lists.List := Conflict_Lists.Empty_List;
-      Trace                    : in Boolean             := False;
-      Put_Grammar              : in Boolean             := False;
-      Ignore_Unused_Tokens     : in Boolean             := False;
-      Ignore_Unknown_Conflicts : in Boolean             := False)
-     return Instance;
-   --  We don't use OpenToken.Trace here; we often want to see a trace
-   --  of the parser execution without the parser generation.
-   --  Analyzer is copied.
-   --
-   --  Unless Ignore_Unused_Tokens is True, raise Grammar_Error if
-   --  there are unused tokens.
-   --
-   --  Unless Ignore_Unknown_Conflicts is True, raise Grammar_Error if there
-   --  are unknown conflicts.
-
-   overriding procedure Parse (Parser : in out Instance);
-
-   procedure Cleanup (Parser : in out Instance) is null;
-   --  Free any resources used by Parser.
-
-   procedure Put_Table (Parser : in Instance);
-
-   ----------
-   --  Visible for unit test
-
-   package LRk is new OpenToken.Production.Parser.LRk_Item (1);
-
-   procedure Fill_In_Lookaheads
-     (Grammar              : in     Production_List.Instance;
-      Has_Empty_Production : in     LRk.Nonterminal_ID_Set;
-      First                : in     LRk.Derivation_Matrix;
-      Kernels              : in out LRk.Item_Set_List;
-      Accept_Index         : in     Integer;
-      Used_Tokens          : in out Tokenizer.Token_Array_Boolean;
-      Trace                : in     Boolean);
-
-   procedure Add_Actions
-     (Kernel               : in     LRk.Item_Set_Ptr;
-      Accept_Index         : in     Integer;
-      Grammar              : in     Production_List.Instance;
-      Has_Empty_Production : in     LRk.Nonterminal_ID_Set;
-      First                : in     LRk.Derivation_Matrix;
-      Conflicts            : in out Conflict_Lists.List;
-      Table                : in out Parse_Table;
-      Trace                : in     Boolean);
 
 end OpenToken.Production.Parser.LALR;

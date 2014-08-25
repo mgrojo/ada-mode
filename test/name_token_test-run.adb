@@ -2,7 +2,7 @@
 --
 --  Run Name_Token_Test
 --
---  Copyright (C) 2002, 2003, 2009, 2013 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2002, 2003, 2009, 2013, 2014 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -21,16 +21,16 @@ with Ada.Text_IO; use Ada.Text_IO;
 with Ada.Command_Line;
 procedure Name_Token_Test.Run
 is
-   use LALR_Parser;
-
    Trace : constant Boolean := Ada.Command_Line.Argument_Count > 1;
 
    procedure Parse_Command (Parser : in out LALR_Parser.Instance; Command : in String)
-   is begin
+   is
+      use LALR_Parser;
+   begin
       Put_Line ("'" & Command & "'");
       OpenToken.Text_Feeder.String.Set (String_Feeder, Command);
 
-      Set_Text_Feeder (Parser, String_Feeder'Unchecked_Access);
+      Set_Text_Feeder (Parser, String_Feeder'Access);
 
       --  Read and parse statements from the string until end of string
       loop
@@ -53,43 +53,49 @@ begin
 
    Put_Line ("Simple Parser");
    declare
-      Simple_Parser : LALR_Parser.Instance := LALR_Parser.Generate
-        (Simple_Grammar, The_Analyzer,
-         Trace                => Trace,
-         Put_Grammar          => Trace,
-         Ignore_Unused_Tokens => True);
+      Parser : LALR_Parser.Instance :=
+        (Tokenizer.Initialize (Syntax),
+         LALR_Generator.Generate
+           (Simple_Grammar,
+            Put_Parse_Table      => Trace,
+            Trace                => Trace,
+            Ignore_Unused_Tokens => True));
    begin
-      Parse_Command (Simple_Parser, "Module (Index)");
-      Parse_Command (Simple_Parser, "Module.Component");
+      Parse_Command (Parser, "Module (Index)");
+      Parse_Command (Parser, "Module.Component");
    end;
 
    New_Line;
    Put_Line ("Medium Parser");
    declare
-      Medium_Parser : LALR_Parser.Instance := LALR_Parser.Generate
-        (Medium_Grammar, The_Analyzer,
-         Trace                => Trace,
-         Put_Grammar          => Trace,
-         Ignore_Unused_Tokens => True);
+      Parser : LALR_Parser.Instance :=
+        (Tokenizer.Initialize (Syntax),
+         LALR_Generator.Generate
+           (Medium_Grammar,
+            Put_Parse_Table      => Trace,
+            Trace                => Trace,
+            Ignore_Unused_Tokens => True));
    begin
-      Parse_Command (Medium_Parser, "Module.Symbol (Index)");
-      Parse_Command (Medium_Parser, "Module.Symbol.Component");
+      Parse_Command (Parser, "Module.Symbol (Index)");
+      Parse_Command (Parser, "Module.Symbol.Component");
    end;
 
    New_Line;
    Put_Line ("Full Parser");
    declare
-      Full_Parser : LALR_Parser.Instance := LALR_Parser.Generate
-        (Full_Grammar, The_Analyzer,
-         Trace                => Trace,
-         Put_Grammar          => Trace,
-         Ignore_Unused_Tokens => False);
+      Parser : LALR_Parser.Instance :=
+        (Tokenizer.Initialize (Syntax),
+         LALR_Generator.Generate
+           (Full_Grammar,
+            Put_Parse_Table      => Trace,
+            Trace                => Trace,
+            Ignore_Unused_Tokens => False));
    begin
-      Parse_Command (Full_Parser, "Module.Symbol");
-      Parse_Command (Full_Parser, "Module.Symbol (Index)");
-      Parse_Command (Full_Parser, "Module.Symbol.Component");
-      Parse_Command (Full_Parser, "Module.Symbol (Index).Component");
-      Parse_Command (Full_Parser, "Module.Symbol.Component (Index)");
+      Parse_Command (Parser, "Module.Symbol");
+      Parse_Command (Parser, "Module.Symbol (Index)");
+      Parse_Command (Parser, "Module.Symbol.Component");
+      Parse_Command (Parser, "Module.Symbol (Index).Component");
+      Parse_Command (Parser, "Module.Symbol.Component (Index)");
    end;
 
 end Name_Token_Test.Run;

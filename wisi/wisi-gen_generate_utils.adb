@@ -173,25 +173,26 @@ package body Wisi.Gen_Generate_Utils is
    function To_Conflicts
      (Shift_Reduce_Conflict_Count  : out Integer;
       Reduce_Reduce_Conflict_Count : out Integer)
-     return LALR_Parsers.Conflict_Lists.List
+     return LALRs.Conflict_Lists.List
    is
-      use type LALR_Parsers.Parse_Action_Verbs;
-      Result   : LALR_Parsers.Conflict_Lists.List;
-      Conflict : LALR_Parsers.Conflict;
+      use type LALRs.Unknown_State_Index;
+      use type LALRs.Parse_Action_Verbs;
+      Result   : LALRs.Conflict_Lists.List;
+      Conflict : LALRs.Conflict;
    begin
       Shift_Reduce_Conflict_Count  := 0;
       Reduce_Reduce_Conflict_Count := 0;
 
       for Item of Conflicts loop
          Conflict :=
-           (LALR_Parsers.Conflict_Parse_Actions'Value (-Item.Action_A),
+           (LALRs.Conflict_Parse_Actions'Value (-Item.Action_A),
             Find_Token_ID (-Item.LHS_A),
-            LALR_Parsers.Conflict_Parse_Actions'Value (-Item.Action_B),
+            LALRs.Conflict_Parse_Actions'Value (-Item.Action_B),
             Find_Token_ID (-Item.LHS_B),
             -1,
             Find_Token_ID (-Item.On));
 
-         if Conflict.Action_A = LALR_Parsers.Shift then
+         if Conflict.Action_A = LALRs.Shift then
             Shift_Reduce_Conflict_Count := Shift_Reduce_Conflict_Count + 1;
          else
             Reduce_Reduce_Conflict_Count := Reduce_Reduce_Conflict_Count + 1;
@@ -258,21 +259,13 @@ package body Wisi.Gen_Generate_Utils is
       return Grammar;
    end To_Grammar;
 
-   function State_Image (Item : in LALR_Parsers.State_Index) return String
+   function State_Image (Item : in LALRs.State_Index) return String
    is
       use Ada.Strings;
       use Ada.Strings.Fixed;
    begin
-      return Trim (LALR_Parsers.State_Index'Image (Item), Both);
+      return Trim (LALRs.State_Index'Image (Item), Both);
    end State_Image;
-
-   function Int_Image (Item : in Integer) return String
-   is
-      use Ada.Strings;
-      use Ada.Strings.Fixed;
-   begin
-      return Trim (Integer'Image (Item), Both);
-   end Int_Image;
 
 begin
    if Verbosity > 0 then

@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2009, 2013 Stephe Leake
+-- Copyright (C) 2009, 2013, 2014 Stephe Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -28,6 +28,11 @@
 with Ada.Tags;
 with Ada.Text_IO;
 package body OpenToken.Token.Enumerated is
+
+   procedure Free (Item : in out Handle)
+   is begin
+      Dispose (Item);
+   end Free;
 
    function Get
      (ID    : in Token_ID := Token_ID'First;

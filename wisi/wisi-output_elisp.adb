@@ -44,19 +44,19 @@ is
       First_State_Index => 0, -- Match elisp array indexing
       To_Token_Image    => To_Token_Image);
 
-   package Parser_Elisp is new Generate_Utils.LALR_Parsers.Elisp (Generate_Utils.Token_Image);
+   package Parser_Elisp is new Generate_Utils.LALRs.Elisp (Generate_Utils.Token_Image);
 
    Shift_Reduce_Conflict_Count  : Integer;
    Reduce_Reduce_Conflict_Count : Integer;
 
    Grammar : constant Generate_Utils.Production_Lists.Instance := Generate_Utils.To_Grammar
      (Input_File_Name, -Start_Token);
-   Parser  : constant Generate_Utils.LALR_Parsers.Instance     := Generate_Utils.LALR_Parsers.Generate
+
+   Parser : constant Generate_Utils.LALRs.Parse_Table_Ptr := Generate_Utils.LALR_Generators.Generate
      (Grammar,
-      Generate_Utils.Analyzers.Null_Analyzer,
       Generate_Utils.To_Conflicts (Shift_Reduce_Conflict_Count, Reduce_Reduce_Conflict_Count),
       Trace                    => Verbosity > 1,
-      Put_Grammar              => Verbosity > 0,
+      Put_Parse_Table          => Verbosity > 0,
       Ignore_Unused_Tokens     => Verbosity > 1,
       Ignore_Unknown_Conflicts => Verbosity > 1);
 

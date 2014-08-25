@@ -2,7 +2,7 @@
 --
 --  Test grammar generator with an Ada-like Name syntax
 --
---  Copyright (C) 2002, 2003, 2010, 2013 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2002, 2003, 2010, 2013, 2014 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -19,7 +19,8 @@
 
 with Ada.Strings.Maps.Constants;
 with OpenToken.Production.List;
-with OpenToken.Production.Parser.LALR;
+with OpenToken.Production.Parser.LALR.Generator;
+with OpenToken.Production.Parser.LALR.Parser;
 with OpenToken.Recognizer.Character_Set;
 with OpenToken.Recognizer.End_Of_File;
 with OpenToken.Recognizer.Identifier;
@@ -63,7 +64,9 @@ package Name_Token_Test is
    --  Parser stuff.
    package Tokenizer is new Master_Token.Analyzer (Dot_ID, EOF_ID);
    package Parser is new Production.Parser (Production_List, Tokenizer);
-   package LALR_Parser is new Parser.LALR (First_State_Index => 1);
+   package LALRs is new Parser.LALR (First_State_Index => 1);
+   package LALR_Parser is new LALRs.Parser;
+   package LALR_Generator is new LALRs.Generator;
 
    package Tokens is
       --  For use in right hand sides, syntax.
@@ -91,9 +94,6 @@ package Name_Token_Test is
      );
 
    String_Feeder : aliased OpenToken.Text_Feeder.String.Instance;
-
-   The_Analyzer : Tokenizer.Instance := Tokenizer.Initialize (Syntax);
-   --  This analyzer is not actually used by the parser; a copy is made!
 
    use type Production.Instance;        --  "<="
    use type Production_List.Instance;   --  "and"

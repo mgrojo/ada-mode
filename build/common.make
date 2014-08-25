@@ -134,14 +134,14 @@ library:
 	gprbuild -p -Popentoken_lib
 
 clean :: test-clean
-	rm -f obj/* lib-obj/*
+	rm -rf obj/* lib-obj/* *.exe
 	rm -rf lib/*
 
 distclean :: clean
 	rm -rf obj obj_tree
 
 test-clean :
-	rm -f *.diff *_run.exe *.out *.parse *.txt  *-wy.el
+	rm -f *.diff *_run.exe *-run.exe *test.exe *.grammar *.out *.parse *.txt *-wy.el
 	rm -f *.ads *.adb
 
 source-clean ::

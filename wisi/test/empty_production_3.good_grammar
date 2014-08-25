@@ -10,7 +10,7 @@ Tokens:
  9 => OPENTOKEN_ACCEPT_ID
 
 Parse Table:
-Set 1:
+State 1:
   OPENTOKEN_ACCEPT_ID <= ^ COMPILATION_UNIT_ID EOF_ID
 
    IDENTIFIER_ID              => shift and goto state 2
@@ -19,7 +19,7 @@ Set 1:
    COMPILATION_UNIT_ID        goto state 3
    PARAMETER_SPECIFICATION_ID goto state 4
 
-Set 2:
+State 2:
   PARAMETER_SPECIFICATION_ID <= IDENTIFIER_ID ^ MODE_ID NAME_ID, EOF_ID/IDENTIFIER_ID
 
    IDENTIFIER_ID              => reduce 0 tokens to MODE_ID
@@ -28,14 +28,14 @@ Set 2:
 
    MODE_ID                    goto state 8
 
-Set 3:
+State 3:
   OPENTOKEN_ACCEPT_ID <= COMPILATION_UNIT_ID ^ EOF_ID
 
    EOF_ID                     => shift and goto state 6
    default                    => ERROR
 
 
-Set 4:
+State 4:
   COMPILATION_UNIT_ID <= PARAMETER_SPECIFICATION_ID ^ PARAMETER_SPECIFICATION_ID, EOF_ID
 
    IDENTIFIER_ID              => shift and goto state 2
@@ -43,14 +43,14 @@ Set 4:
 
    PARAMETER_SPECIFICATION_ID goto state 5
 
-Set 5:
+State 5:
   COMPILATION_UNIT_ID <= PARAMETER_SPECIFICATION_ID PARAMETER_SPECIFICATION_ID ^, EOF_ID
 
    EOF_ID                     => reduce 2 tokens to COMPILATION_UNIT_ID
    default                    => ERROR
 
 
-Set 6:
+State 6:
   OPENTOKEN_ACCEPT_ID <= COMPILATION_UNIT_ID EOF_ID ^, EOF_ID/IDENTIFIER_ID/IN_ID
 
    EOF_ID                     => accept it
@@ -59,14 +59,14 @@ Set 6:
    default                    => ERROR
 
 
-Set 7:
+State 7:
   MODE_ID <= IN_ID ^, IDENTIFIER_ID
 
    IDENTIFIER_ID              => reduce 1 tokens to MODE_ID
    default                    => ERROR
 
 
-Set 8:
+State 8:
   PARAMETER_SPECIFICATION_ID <= IDENTIFIER_ID MODE_ID ^ NAME_ID, EOF_ID/IDENTIFIER_ID
 
    IDENTIFIER_ID              => shift and goto state 9
@@ -74,7 +74,7 @@ Set 8:
 
    NAME_ID                    goto state 10
 
-Set 9:
+State 9:
   NAME_ID <= IDENTIFIER_ID ^, EOF_ID/IDENTIFIER_ID
 
    EOF_ID                     => reduce 1 tokens to NAME_ID
@@ -82,7 +82,7 @@ Set 9:
    default                    => ERROR
 
 
-Set 10:
+State 10:
   PARAMETER_SPECIFICATION_ID <= IDENTIFIER_ID MODE_ID NAME_ID ^, EOF_ID/IDENTIFIER_ID
 
    EOF_ID                     => reduce 3 tokens to PARAMETER_SPECIFICATION_ID

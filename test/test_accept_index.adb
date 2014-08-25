@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2009, 2010, 2012, 2013 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2009, 2010, 2012, 2013, 2014 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -22,7 +22,8 @@ with AUnit.Assertions;
 with Ada.Exceptions;
 with Ada.Strings.Maps.Constants;
 with OpenToken.Production.List;
-with OpenToken.Production.Parser.LALR;
+with OpenToken.Production.Parser.LALR.Generator;
+with OpenToken.Production.Parser.LALR.Parser;
 with OpenToken.Recognizer.Based_Integer;
 with OpenToken.Recognizer.Character_Set;
 with OpenToken.Recognizer.End_Of_File;
@@ -60,7 +61,9 @@ package body Test_Accept_Index is
    package Production is new OpenToken.Production (Master_Token, Token_List, Nonterminal);
    package Production_List is new Production.List;
    package OpenToken_Parser is new Production.Parser (Production_List, Tokenizer);
-   package LALR_Parser is new OpenToken_Parser.LALR (First_State_Index => 1);
+   package LALRs is new OpenToken_Parser.LALR (First_State_Index => 1);
+   package LALR_Parser is new LALRs.Parser;
+   package LALR_Generator is new LALRs.Generator;
 
    package Integer_Literal is new Master_Token.Integer;
 
@@ -98,7 +101,6 @@ package body Test_Accept_Index is
      Statement <= Master_Token.Get (Set_ID) & Identifier & Equals & Int + Nonterminal.Synthesize_Self;
 
    String_Feeder : aliased OpenToken.Text_Feeder.String.Instance;
-   Analyzer      : constant Tokenizer.Instance := Tokenizer.Initialize (Syntax);
    Parser        : LALR_Parser.Instance;
 
    ----------
@@ -110,10 +112,12 @@ package body Test_Accept_Index is
    begin
       --  The test is that there are no exceptions.
 
-      Parser := LALR_Parser.Generate
-        (Grammar, Analyzer,
-         Trace       => Test.Debug,
-         Put_Grammar => Test.Debug);
+      Parser :=
+        (Tokenizer.Initialize (Syntax),
+         LALR_Generator.Generate
+           (Grammar,
+            Trace           => Test.Debug,
+            Put_Parse_Table => Test.Debug));
 
       OpenToken.Trace_Parse := Test.Debug;
 

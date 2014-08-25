@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2013 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2013, 2014 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -21,7 +21,7 @@ pragma License (GPL);
 with Ada.Text_IO;
 with Gen_OpenToken_AUnit;
 with OpenToken.Production.List;
-with OpenToken.Production.Parser.LALR;
+with OpenToken.Production.Parser.LALR.Generator;
 with OpenToken.Token.Enumerated.Analyzer;
 with OpenToken.Token.Enumerated.List;
 with OpenToken.Token.Enumerated.Nonterminal;
@@ -63,7 +63,8 @@ package body Test_Empty_Productions_8 is
      (First_Terminal => COLON_EQUAL_ID,
       Last_Terminal  => EOF_ID);
    package Parsers is new Productions.Parser (Production_Lists, Analyzers);
-   package LALR is new Parsers.LALR (First_State_Index);
+   package LALRs is new Parsers.LALR (First_State_Index);
+   package LALR_Generators is new LALRs.Generator;
 
    --  Allow infix operators for building productions
    use type Token_Lists.Instance;
@@ -100,11 +101,12 @@ package body Test_Empty_Productions_8 is
 
    package OpenToken_AUnit is new Gen_OpenToken_AUnit
      (Token_IDs, Tokens_Pkg, Token_Lists, Nonterminals, Productions, Production_Lists, COLON_EQUAL_ID, EOF_ID,
-      Analyzers, Parsers, First_State_Index, LALR, Grammar);
+      Analyzers, Parsers, First_State_Index, LALRs, LALR_Generators, Grammar);
 
-   Has_Empty_Production : constant LALR.LRk.Nonterminal_ID_Set := LALR.LRk.Has_Empty_Production (Grammar);
+   Has_Empty_Production : constant LALR_Generators.LRk.Nonterminal_ID_Set :=
+     LALR_Generators.LRk.Has_Empty_Production (Grammar);
 
-   First : constant LALR.LRk.Derivation_Matrix := LALR.LRk.First_Derivations
+   First : constant LALR_Generators.LRk.Derivation_Matrix := LALR_Generators.LRk.First_Derivations
      (Grammar, Has_Empty_Production, Trace => False);
 
    ----------
@@ -113,13 +115,13 @@ package body Test_Empty_Productions_8 is
    procedure Kernels_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       Test : Test_Case renames Test_Case (T);
-      use LALR.LRk;
+      use LALR_Generators.LRk;
 
       Kernels : constant Item_Set_List := LR0_Kernels
-        (Grammar, First, Trace => Test.Debug, First_State_Index => First_State_Index);
+        (Grammar, First, Trace => Test.Debug, First_State_Index => LALRs.Unknown_State_Index (First_State_Index));
 
       procedure Check_Kernel
-        (State : in Integer;
+        (State : in LALRs.State_Index;
          Prod  : in Integer;
          Dot   : in Integer)
       is
@@ -131,9 +133,9 @@ package body Test_Empty_Productions_8 is
               (Prod         => Prod,
                Lookaheads   => null,
                Dot          => Dot,
-               Index        => State),
+               State        => State),
             Goto_List       => null,
-            Index           => State,
+            State           => State,
             Next            => null);
       begin
          Computed.Next := null;
@@ -146,7 +148,7 @@ package body Test_Empty_Productions_8 is
             Put (Expected.all);
          end if;
 
-         Check (Integer'Image (State), Computed.all, Expected.all);
+         Check (LALRs.State_Index'Image (State), Computed.all, Expected.all);
 
       end Check_Kernel;
 

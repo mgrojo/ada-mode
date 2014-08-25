@@ -22,7 +22,7 @@ with AUnit.Check;
 with Ada.Text_IO;
 with Gen_OpenToken_AUnit;
 with OpenToken.Production.List;
-with OpenToken.Production.Parser.LALR;
+with OpenToken.Production.Parser.LALR.Generator;
 with OpenToken.Token.Enumerated.Analyzer;
 with OpenToken.Token.Enumerated.List;
 with OpenToken.Token.Enumerated.Nonterminal;
@@ -57,7 +57,8 @@ package body Test_Empty_Productions_1 is
      (First_Terminal => BEGIN_ID,
       Last_Terminal  => EOF_ID);
    package Parsers is new Productions.Parser (Production_Lists, Analyzers);
-   package LALR is new Parsers.LALR (First_State_Index => 1);
+   package LALRs is new Parsers.LALR (First_State_Index => 1);
+   package LALR_Generator is new LALRs.Generator;
 
    --  Allow infix operators for building productions
    use type Token_Lists.Instance;
@@ -85,22 +86,23 @@ package body Test_Empty_Productions_1 is
 
    package OpenToken_AUnit is new Gen_OpenToken_AUnit
      (Token_IDs, Tokens_Pkg, Token_Lists, Nonterminals, Productions, Production_Lists, BEGIN_ID, EOF_ID,
-      Analyzers, Parsers, 1, LALR, Grammar);
+      Analyzers, Parsers, 1, LALRs, LALR_Generator, Grammar);
 
-   Has_Empty_Production : constant LALR.LRk.Nonterminal_ID_Set := LALR.LRk.Has_Empty_Production (Grammar);
+   Has_Empty_Production : constant LALR_Generator.LRk.Nonterminal_ID_Set :=
+     LALR_Generator.LRk.Has_Empty_Production (Grammar);
 
-   First : constant LALR.LRk.Derivation_Matrix := LALR.LRk.First_Derivations
+   First : constant LALR_Generator.LRk.Derivation_Matrix := LALR_Generator.LRk.First_Derivations
      (Grammar, Has_Empty_Production, Trace => False);
 
    procedure Test_Goto_Transitions
      (Label    : in String;
-      Kernel   : in LALR.LRk.Item_Set;
+      Kernel   : in LALR_Generator.LRk.Item_Set;
       Symbol   : in Token_IDs;
-      Expected : in LALR.LRk.Item_Set;
+      Expected : in LALR_Generator.LRk.Item_Set;
       Debug    : in Boolean)
    is
       use Ada.Text_IO;
-      use LALR.LRk;
+      use LALR_Generator.LRk;
       use OpenToken_AUnit;
       Computed : constant Item_Set := Goto_Transitions (Kernel, Symbol, First, Grammar);
    begin
@@ -115,24 +117,25 @@ package body Test_Empty_Productions_1 is
 
    procedure Test_Actions
      (Label    : in String;
-      Kernels  : in LALR.LRk.Item_Set_List;
-      State    : in Integer;
-      Expected : in LALR.Parse_State;
+      Kernels  : in LALR_Generator.LRk.Item_Set_List;
+      State    : in LALRs.Unknown_State_Index;
+      Expected : in LALRs.Parse_State;
       Debug    : in Boolean)
    is
       use OpenToken_AUnit;
-      Accept_Index : constant                       := 1;
-      Kernel       : constant LALR.LRk.Item_Set_Ptr := LALR.LRk.Find (State, Kernels);
-      Conflicts    : LALR.Conflict_Lists.List;
-      Table        : LALR.Parse_Table (1 .. LALR.State_Index (Kernels.Size));
+      Accept_Index : constant                                 := 1;
+      Kernel       : constant LALR_Generator.LRk.Item_Set_Ptr := LALR_Generator.LRk.Find (State, Kernels);
+      Conflicts    : LALRs.Conflict_Lists.List;
+      Table        : LALRs.Parse_Table (1 .. Kernels.Size);
    begin
       if Debug then
-         LALR.LRk.Put (Kernel.all);
+         LALR_Generator.LRk.Put (Kernel.all);
       end if;
 
-      LALR.Add_Actions (Kernel, Accept_Index, Grammar, Has_Empty_Production, First, Conflicts, Table, Trace => Debug);
+      LALR_Generator.Add_Actions
+        (Kernel, Accept_Index, Grammar, Has_Empty_Production, First, Conflicts, Table, Trace => Debug);
 
-      Check (Label, Table (LALR.State_Index (Kernel.Index)), Expected);
+      Check (Label, Table (Kernel.State), Expected);
    end Test_Actions;
 
    ----------
@@ -149,7 +152,7 @@ package body Test_Empty_Productions_1 is
    procedure Goto_Transitions_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       Test : Test_Case renames Test_Case (T);
-      use LALR.LRk;
+      use LALR_Generator.LRk;
       use OpenToken_AUnit;
 
       --  kernel:
@@ -182,7 +185,7 @@ package body Test_Empty_Productions_1 is
       Expected :=
         (Set       => null,
          Goto_List => null,
-         Index     => -1,
+         State     => LALRs.Unknown_State,
          Next      => null);
 
       Test_Goto_Transitions ("2", Kernel, BEGIN_ID, Expected, Test.Debug);
@@ -196,7 +199,7 @@ package body Test_Empty_Productions_1 is
    procedure Goto_Transitions_2 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       Test : Test_Case renames Test_Case (T);
-      use LALR.LRk;
+      use LALR_Generator.LRk;
       use OpenToken_AUnit;
 
       --  kernel:
@@ -229,7 +232,7 @@ package body Test_Empty_Productions_1 is
       Expected :=
         (Set       => null,
          Goto_List => null,
-         Index     => -1,
+         State     => LALRs.Unknown_State,
          Next      => null);
 
       Test_Goto_Transitions ("2", Kernel, SEMICOLON_ID, Expected, Test.Debug);
@@ -239,10 +242,10 @@ package body Test_Empty_Productions_1 is
    procedure Goto_Set_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       Test : Test_Case renames Test_Case (T);
-      use LALR.LRk;
+      use LALR_Generator.LRk;
       use OpenToken_AUnit;
 
-      Kernels  : constant Item_Set_List := LALR.LRk.LR0_Kernels
+      Kernels  : constant Item_Set_List := LALR_Generator.LRk.LR0_Kernels
         (Grammar, First, Trace => False, First_State_Index => 1);
       Kernel   : constant Item_Set_Ptr  := Find (2, Kernels);
       Expected : Set_Reference_Ptr;
@@ -262,22 +265,22 @@ package body Test_Empty_Productions_1 is
       --  Only Index is checked in Expected.Set
       Expected := new Set_Reference'
         (Symbol => IS_ID,
-         Set    => new Item_Set'(Set => null, Goto_List => null, Index => 2, Next => null),
+         Set    => new Item_Set'(Set => null, Goto_List => null, State => 2, Next => null),
          Next   => Expected);
 
       Expected := new Set_Reference'
         (Symbol => declarations_ID,
-         Set    => new Item_Set'(Set => null, Goto_List => null, Index => 3, Next => null),
+         Set    => new Item_Set'(Set => null, Goto_List => null, State => 3, Next => null),
          Next   => Expected);
 
       Expected := new Set_Reference'
         (Symbol => declarative_part_ID,
-         Set    => new Item_Set'(Set => null, Goto_List => null, Index => 8, Next => null),
+         Set    => new Item_Set'(Set => null, Goto_List => null, State => 8, Next => null),
          Next   => Expected);
 
       Expected := new Set_Reference'
         (Symbol => body_ID,
-         Set    => new Item_Set'(Set => null, Goto_List => null, Index => 5, Next => null),
+         Set    => new Item_Set'(Set => null, Goto_List => null, State => 5, Next => null),
          Next   => Expected);
 
       if Test.Debug then
@@ -292,8 +295,8 @@ package body Test_Empty_Productions_1 is
    procedure Actions_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       Test : Test_Case renames Test_Case (T);
-      use LALR;
-      use LALR.LRk;
+      use LALRs;
+      use LALR_Generator.LRk;
       use OpenToken_AUnit;
 
       Kernels : constant Item_Set_List := LR0_Kernels (Grammar, First, Trace => False, First_State_Index => 1);
@@ -330,14 +333,16 @@ package body Test_Empty_Productions_1 is
          Next        => Expected.Action_List);
 
       Expected.Action_List := new Action_Node'
-        (Symbol           => BEGIN_ID,
-         Action           => new Parse_Action_Node'
-           (Item          =>
-              (Verb       => Reduce,
-               Production => Get_Production (4),
-               Length     => 0),
-            Next          => null),
-         Next             => Expected.Action_List);
+        (Symbol            => BEGIN_ID,
+         Action            => new Parse_Action_Node'
+           (Item           =>
+              (Verb        => Reduce,
+               LHS         => Productions.LHS (Get_Production (4)),
+               Action      => null,
+               Index       => 0,
+               Token_Count => 0),
+            Next           => null),
+         Next              => Expected.Action_List);
 
       Expected.Goto_List := new Goto_Node'
         (Symbol => body_ID,

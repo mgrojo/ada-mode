@@ -12,7 +12,7 @@ Tokens:
  11 => OPENTOKEN_ACCEPT_ID
 
 Parse Table:
-Set 1:
+State 1:
   OPENTOKEN_ACCEPT_ID <= ^ OBJECT_DECLARATION_LIST_ID EOF_ID
 
    IDENTIFIER_ID              => shift and goto state 2
@@ -21,7 +21,7 @@ Set 1:
    OBJECT_DECLARATION_LIST_ID goto state 3
    OBJECT_DECLARATION_ID      goto state 4
 
-Set 2:
+State 2:
   OBJECT_DECLARATION_ID <= IDENTIFIER_ID ^ ALIASED_OPT_ID CONSTANT_OPT_ID SEMICOLON_ID, IDENTIFIER_ID/EOF_ID
 
    CONSTANT_ID                => reduce 0 tokens to ALIASED_OPT_ID
@@ -31,7 +31,7 @@ Set 2:
 
    ALIASED_OPT_ID             goto state 8
 
-Set 3:
+State 3:
   OBJECT_DECLARATION_LIST_ID <= OBJECT_DECLARATION_LIST_ID ^ OBJECT_DECLARATION_ID, EOF_ID/IDENTIFIER_ID
   OPENTOKEN_ACCEPT_ID <= OBJECT_DECLARATION_LIST_ID ^ EOF_ID
 
@@ -41,7 +41,7 @@ Set 3:
 
    OBJECT_DECLARATION_ID      goto state 6
 
-Set 4:
+State 4:
   OBJECT_DECLARATION_LIST_ID <= OBJECT_DECLARATION_ID ^, EOF_ID/IDENTIFIER_ID
 
    EOF_ID                     => reduce 1 tokens to OBJECT_DECLARATION_LIST_ID
@@ -49,7 +49,7 @@ Set 4:
    default                    => ERROR
 
 
-Set 5:
+State 5:
   OPENTOKEN_ACCEPT_ID <= OBJECT_DECLARATION_LIST_ID EOF_ID ^, EOF_ID/IDENTIFIER_ID/SEMICOLON_ID/CONSTANT_ID/ALIASED_ID
 
    EOF_ID                     => accept it
@@ -60,7 +60,7 @@ Set 5:
    default                    => ERROR
 
 
-Set 6:
+State 6:
   OBJECT_DECLARATION_LIST_ID <= OBJECT_DECLARATION_LIST_ID OBJECT_DECLARATION_ID ^, IDENTIFIER_ID/EOF_ID
 
    IDENTIFIER_ID              => reduce 2 tokens to OBJECT_DECLARATION_LIST_ID
@@ -68,7 +68,7 @@ Set 6:
    default                    => ERROR
 
 
-Set 7:
+State 7:
   ALIASED_OPT_ID <= ALIASED_ID ^, CONSTANT_ID/SEMICOLON_ID
 
    CONSTANT_ID                => reduce 1 tokens to ALIASED_OPT_ID
@@ -76,7 +76,7 @@ Set 7:
    default                    => ERROR
 
 
-Set 8:
+State 8:
   OBJECT_DECLARATION_ID <= IDENTIFIER_ID ALIASED_OPT_ID ^ CONSTANT_OPT_ID SEMICOLON_ID, EOF_ID/IDENTIFIER_ID
 
    SEMICOLON_ID               => reduce 0 tokens to CONSTANT_OPT_ID
@@ -85,21 +85,21 @@ Set 8:
 
    CONSTANT_OPT_ID            goto state 10
 
-Set 9:
+State 9:
   CONSTANT_OPT_ID <= CONSTANT_ID ^, SEMICOLON_ID
 
    SEMICOLON_ID               => reduce 1 tokens to CONSTANT_OPT_ID
    default                    => ERROR
 
 
-Set 10:
+State 10:
   OBJECT_DECLARATION_ID <= IDENTIFIER_ID ALIASED_OPT_ID CONSTANT_OPT_ID ^ SEMICOLON_ID, IDENTIFIER_ID/EOF_ID
 
    SEMICOLON_ID               => shift and goto state 11
    default                    => ERROR
 
 
-Set 11:
+State 11:
   OBJECT_DECLARATION_ID <= IDENTIFIER_ID ALIASED_OPT_ID CONSTANT_OPT_ID SEMICOLON_ID ^, EOF_ID/IDENTIFIER_ID
 
    EOF_ID                     => reduce 4 tokens to OBJECT_DECLARATION_ID

@@ -22,7 +22,7 @@ pragma License (GPL);
 with Ada.Exceptions;
 with Ada.Text_IO;
 with OpenToken.Production.List.Print;
-with OpenToken.Production.Parser.LALR;
+with OpenToken.Production.Parser.LALR.Generator;
 with OpenToken.Production.Print;
 with OpenToken.Token.Enumerated.Analyzer;
 with OpenToken.Token.Enumerated.List.Print;
@@ -137,10 +137,11 @@ is
    package Productions is new OpenToken.Production (Tokens_Pkg, Token_Lists, Nonterminals);
    package Production_Lists is new Productions.List;
    package Parsers is new Productions.Parser (Production_Lists, Analyzers);
-   package LALR_Parsers is new Parsers.LALR (First_State_Index => 0);
+   package LALRs is new Parsers.LALR (First_State_Index => 0);
+   package LALR_Generators is new LALRs.Generator;
 
    Grammar : Production_Lists.Instance;
-   Parser  : LALR_Parsers.Instance;
+   Parser  : LALRs.Parse_Table_Ptr;
    pragma Unreferenced (Parser);
 
    --  Allow infix operators for building productions
@@ -190,11 +191,10 @@ begin
    end loop;
 
    --  List unused tokens first
-   Parser := LALR_Parsers.Generate
+   Parser := LALR_Generators.Generate
      (Grammar,
-      Analyzers.Null_Analyzer,
-      Trace       => Verbosity > 1,
-      Put_Grammar => Verbosity > 0);
+      Put_Parse_Table => Verbosity > 0,
+      Trace           => Verbosity > 1);
 
    if Verbosity > 0 then
       declare

@@ -20,7 +20,7 @@ pragma License (GPL);
 
 with AUnit.Check;
 with OpenToken.Production.List;
-with OpenToken.Production.Parser.LALR;
+with OpenToken.Production.Parser.LALR.Generator;
 with OpenToken.Token.Enumerated.Analyzer;
 with OpenToken.Token.Enumerated.List;
 with OpenToken.Token.Enumerated.Nonterminal;
@@ -56,7 +56,8 @@ package body Test_Empty_Productions_4 is
      (First_Terminal => IDENTIFIER_ID,
       Last_Terminal  => EOF_ID);
    package Parsers is new Productions.Parser (Production_Lists, Analyzers);
-   package LALR is new Parsers.LALR (First_State_Index => 1);
+   package LALRs is new Parsers.LALR (First_State_Index => 1);
+   package LALR_Generators is new LALRs.Generator;
 
    --  Allow infix operators for building productions
    use type Token_Lists.Instance;
@@ -81,10 +82,11 @@ package body Test_Empty_Productions_4 is
      Nonterminals.Get (overriding_indicator_ID) <= +Self -- 5; empty
      ;
 
-   Has_Empty_Production : constant LALR.LRk.Nonterminal_ID_Set := LALR.LRk.Has_Empty_Production (Grammar);
+   Has_Empty_Production : constant LALR_Generators.LRk.Nonterminal_ID_Set :=
+     LALR_Generators.LRk.Has_Empty_Production (Grammar);
 
-   First : constant LALR.LRk.Derivation_Matrix :=
-     LALR.LRk.First_Derivations (Grammar, Has_Empty_Production, Trace => False);
+   First : constant LALR_Generators.LRk.Derivation_Matrix :=
+     LALR_Generators.LRk.First_Derivations (Grammar, Has_Empty_Production, Trace => False);
 
    ----------
    --  Test procedures

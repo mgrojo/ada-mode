@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2009, 2012, 2013 Stephe Leake
+-- Copyright (C) 2009, 2012, 2013, 2014 Stephe Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -62,6 +62,8 @@ package OpenToken.Token.Enumerated is
    subtype Class is Instance'Class;
 
    type Handle is access all Class;
+
+   procedure Free (Item : in out Handle);
 
    type Recognizer_Handle is access all OpenToken.Recognizer.Class;
    --  Defined here rather than in Opentoken.Recognizer to allow
@@ -174,6 +176,6 @@ private
       Build : Action;
    end record;
 
-   procedure Free is new Ada.Unchecked_Deallocation (Class, Handle);
+   procedure Dispose is new Ada.Unchecked_Deallocation (Class, Handle);
 
 end OpenToken.Token.Enumerated;

@@ -18,9 +18,10 @@
 --  MA 02110-1335, USA.
 
 pragma License (GPL);
-with OpenToken.Production.Print;
 with OpenToken.Production.List.Print;
-with OpenToken.Production.Parser.LALR;
+with OpenToken.Production.Parser.LALR.Parser;
+with OpenToken.Production.Parser.LALR.Generator;
+with OpenToken.Production.Print;
 with OpenToken.Token.Enumerated.Analyzer;
 with OpenToken.Token.Enumerated.List.Print;
 with OpenToken.Token.Enumerated.Nonterminal;
@@ -74,7 +75,9 @@ package Wisi.Gen_Generate_Utils is
    package Productions is new OpenToken.Production (Tokens_Pkg, Token_Lists, Nonterminals);
    package Production_Lists is new Productions.List;
    package Parsers is new Productions.Parser (Production_Lists, Analyzers);
-   package LALR_Parsers is new Parsers.LALR (First_State_Index);
+   package LALRs is new Parsers.LALR (First_State_Index);
+   package LALR_Parsers is new LALRs.Parser;
+   package LALR_Generators is new LALRs.Generator;
 
    procedure Print_Action (Item : in Nonterminals.Synthesize) is null;
    package Token_List_Print is new Token_Lists.Print;
@@ -84,7 +87,7 @@ package Wisi.Gen_Generate_Utils is
    function To_Conflicts
      (Shift_Reduce_Conflict_Count  : out Integer;
       Reduce_Reduce_Conflict_Count : out Integer)
-     return LALR_Parsers.Conflict_Lists.List;
+     return LALRs.Conflict_Lists.List;
 
    function To_Grammar (Source_File_Name : in String; Start_Token : in String) return Production_Lists.Instance;
    --  Source_File_Name used in errors
@@ -95,8 +98,8 @@ package Wisi.Gen_Generate_Utils is
    procedure Indent_Line (Text : in String);
    --  Put Text indented to Indent to Current_Output, with newline.
 
-   function State_Image (Item : in LALR_Parsers.State_Index) return String;
-   function Int_Image (Item : in Integer) return String;
+   function State_Image (Item : in LALRs.State_Index) return String;
+   function Int_Image (Item : in Integer) return String renames LALR_Parsers.Int_Image;
    --  no leading space
 
 end Wisi.Gen_Generate_Utils;

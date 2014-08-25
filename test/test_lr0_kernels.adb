@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2009, 2010, 2012, 2013 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2009, 2010, 2012, 2013, 2014 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -21,7 +21,8 @@ pragma License (GPL);
 with Ada.Text_IO;
 with OpenToken.Production.List.Print;
 with OpenToken.Production.List;
-with OpenToken.Production.Parser.LALR;
+with OpenToken.Production.Parser.LALR.Generator;
+with OpenToken.Production.Parser.LALR.Parser;
 with OpenToken.Production.Parser;
 with OpenToken.Production.Print;
 with OpenToken.Recognizer.Based_Integer;
@@ -201,10 +202,12 @@ package body Test_LR0_Kernels is
      Aggregate_Token.Grammar and
      Association_Token.Grammar;
    package OpenToken_Parser is new Production.Parser (Production_List, Tokenizer);
-   package LALR_Parser is new OpenToken_Parser.LALR (First_State_Index => 1);
-   String_Feeder : aliased OpenToken.Text_Feeder.String.Instance;
-   An_Analyzer : constant Tokenizer.Instance := Tokenizer.Initialize (Syntax);
-   Command_Parser : LALR_Parser.Instance;
+   package LALRs is new OpenToken_Parser.LALR (First_State_Index => 1);
+   package LALR_Generators is new LALRs.Generator;
+   package LALR_Parsers is new LALRs.Parser;
+   String_Feeder  : aliased OpenToken.Text_Feeder.String.Instance;
+   An_Analyzer    : constant Tokenizer.Instance := Tokenizer.Initialize (Syntax);
+   Command_Parser : LALR_Parsers.Instance;
 
    procedure Print_Action (Action : in Nonterminal.Synthesize) is null;
 
@@ -217,14 +220,9 @@ package body Test_LR0_Kernels is
       Print_Production_List.Print (Grammar);
    end Dump_Grammar;
 
-   procedure Dump_Parse_Table
-   is begin
-      LALR_Parser.Put_Table (Command_Parser);
-   end Dump_Parse_Table;
-
    procedure Execute_Command (Command : in String; Trace : in Boolean)
    is
-      use LALR_Parser;
+      use LALR_Parsers;
    begin
       OpenToken.Text_Feeder.String.Set (String_Feeder, Command);
 
@@ -249,15 +247,17 @@ package body Test_LR0_Kernels is
    is
       Test : Test_Case renames Test_Case (T);
    begin
-      Command_Parser := LALR_Parser.Generate
-        (Grammar, An_Analyzer,
-         Trace => Test.Debug);
-
       if Test.Debug then
          Dump_Grammar;
-         Dump_Parse_Table;
          OpenToken.Trace_Parse := True;
       end if;
+
+      Command_Parser :=
+        (An_Analyzer,
+         LALR_Generators.Generate
+           (Grammar,
+            Put_Parse_Table => Test.Debug,
+            Trace           => Test.Debug));
 
       --  The test is that we get no exceptions. Note that the
       --  aggregate is not a real aggregate; simpler syntax for this

@@ -39,6 +39,7 @@ is
 
    EOI_Image              : constant String := "EOF_ID";
    OpenToken_Accept_Image : constant String := "OPENTOKEN_ACCEPT_ID";
+   First_State_Index      : constant        := 1;
 
    function To_Token_Image (Item : in Ada.Strings.Unbounded.Unbounded_String) return String
    is begin
@@ -47,8 +48,7 @@ is
    end To_Token_Image;
 
    package Generate_Utils is new Wisi.Gen_Generate_Utils
-     (Keywords, Tokens, Conflicts, Rules, EOI_Image, OpenToken_Accept_Image,
-      First_State_Index => 1,
+     (Keywords, Tokens, Conflicts, Rules, EOI_Image, OpenToken_Accept_Image, First_State_Index,
       To_Token_Image    => To_Token_Image);
 
    type Action_Name_List is array (Integer range <>) of access constant String;
@@ -74,12 +74,12 @@ is
 
    Grammar : constant Generate_Utils.Production_Lists.Instance := Generate_Utils.To_Grammar
      (Input_File_Name, -Start_Token);
-   Parser  : constant Generate_Utils.LALR_Parsers.Instance := Generate_Utils.LALR_Parsers.Generate
+
+   Parser : constant Generate_Utils.LALRs.Parse_Table_Ptr := Generate_Utils.LALR_Generators.Generate
      (Grammar,
-      Generate_Utils.Analyzers.Null_Analyzer,
       Generate_Utils.To_Conflicts (Shift_Reduce_Conflict_Count, Reduce_Reduce_Conflict_Count),
       Trace                    => Verbosity > 1,
-      Put_Grammar              => Verbosity > 0,
+      Put_Parse_Table          => Verbosity > 0,
       Ignore_Unused_Tokens     => Verbosity > 1,
       Ignore_Unknown_Conflicts => Verbosity > 1);
 
@@ -136,7 +136,8 @@ begin
    end if;
 
    Put_Line ("with OpenToken.Production.List;");
-   Put_Line ("with OpenToken.Production.Parser.LALR;");
+   Put_Line ("with OpenToken.Production.Parser.LALR.Generator;");
+   Put_Line ("with OpenToken.Production.Parser.LALR.Parser;");
 
    if Is_In (Tokens, """whitespace""") then
       Put_Line ("with OpenToken.Recognizer.Character_Set;");
@@ -237,8 +238,10 @@ begin
    Indent_Line ("package Production_Lists is new Productions.List;");
    Indent_Line ("package Parsers is new Productions.Parser (Production_Lists, Analyzers);");
    Indent_Line
-     ("package LALR_Parsers is new Parsers.LALR (First_State_Index => " &
-        State_Image (LALR_Parsers.State_Index'First) & ");");
+     ("package LALRs is new Parsers.LALR (First_State_Index => " &
+        Int_Image (First_State_Index) & ");");
+   Indent_Line ("package LALR_Generators is new LALRs.Generator;");
+   Indent_Line ("package LALR_Parsers is new LALRs.Parser;");
    New_Line;
    Indent_Line ("Syntax : constant Analyzers.Syntax :=");
    Indent_Line ("  (");
@@ -395,11 +398,11 @@ begin
 
    --  This procedure is called for Shift actions
    Indent_Line ("procedure Add_Action");
-   Indent_Line ("  (State       : in out LALR_Parsers.Parse_State;");
+   Indent_Line ("  (State       : in out LALRs.Parse_State;");
    Indent_Line ("   Symbol      : in     Token_IDs;");
-   Indent_Line ("   State_Index : in     LALR_Parsers.State_Index)");
+   Indent_Line ("   State_Index : in     LALRs.State_Index)");
    Indent_Line ("is");
-   Indent_Line ("   use LALR_Parsers;");
+   Indent_Line ("   use LALRs;");
    Indent_Line ("   Action : constant Parse_Action_Rec := (Shift, State_Index);");
    Indent_Line ("begin");
    Indent := Indent + 3;
@@ -411,23 +414,24 @@ begin
 
    --  This procedure is called for Reduce or Accept_It actions
    Indent_Line ("procedure Add_Action");
-   Indent_Line ("  (State           : in out LALR_Parsers.Parse_State;");
+   Indent_Line ("  (State           : in out LALRs.Parse_State;");
    Indent_Line ("   Symbol          : in     Token_IDs;");
-   Indent_Line ("   Verb            : in     LALR_Parsers.Parse_Action_Verbs;");
+   Indent_Line ("   Verb            : in     LALRs.Parse_Action_Verbs;");
    Indent_Line ("   LHS_ID          : in     Token_IDs;");
    Indent_Line ("   RHS_Token_Count : in     Natural;");
    Indent_Line ("   Synthesize      : in     Nonterminals.Synthesize)");
    Indent_Line ("is");
-   Indent_Line ("   use LALR_Parsers;");
+   Indent_Line ("   use LALRs;");
    Indent_Line ("   use Productions;");
    Indent_Line ("   Action : Parse_Action_Rec;");
+   Indent_Line ("   LHS    : constant Nonterminal.Handle := new Nonterminal.Class'(Nonterminal.Get (LHS_ID));");
    Indent_Line ("begin");
    Indent := Indent + 3;
    Indent_Line ("case Verb is");
    Indent_Line ("when Reduce =>");
-   Indent_Line ("   Action := (Reduce, Nonterminal.Get (LHS_ID) <= +Synthesize, RHS_Token_Count);");
+   Indent_Line ("   Action := (Reduce, LHS, Synthesize, 0, RHS_Token_Count);");
    Indent_Line ("when Accept_It =>");
-   Indent_Line ("   Action := (Accept_It, Nonterminal.Get (LHS_ID) <= +Synthesize, RHS_Token_Count);");
+   Indent_Line ("   Action := (Accept_It, LHS, Synthesize, 0, RHS_Token_Count);");
    Indent_Line ("when others =>");
    Indent_Line ("   null;");
    Indent_Line ("end case;");
@@ -440,19 +444,20 @@ begin
    if Shift_Reduce_Conflict_Count > 0 then
       --  This procedure is called for Shift/Reduce conflicts
       Indent_Line ("procedure Add_Action");
-      Indent_Line ("  (State       : in out LALR_Parsers.Parse_State;");
+      Indent_Line ("  (State       : in out LALRs.Parse_State;");
       Indent_Line ("   Symbol      : in     Token_IDs;");
-      Indent_Line ("   State_Index : in     LALR_Parsers.State_Index;");
+      Indent_Line ("   State_Index : in     LALRs.State_Index;");
       Indent_Line ("   LHS_ID      : in     Token_IDs;");
       Indent_Line ("   RHS_Token_Count : in     Natural;");
       Indent_Line ("   Synthesize  : in     Nonterminals.Synthesize)");
       Indent_Line ("is");
-      Indent_Line ("   use LALR_Parsers;");
+      Indent_Line ("   use LALRs;");
       Indent_Line ("   use Productions;");
       Indent_Line ("   Action_1 : constant Parse_Action_Rec := (Shift, State_Index);");
+      Indent_Line ("   LHS      : constant Nonterminal.Handle := new Nonterminal.Class'(Nonterminal.Get (LHS_ID));");
       Indent_Line
         ("   Action_2 : constant Parse_Action_Rec := " &
-           "(Reduce, Nonterminal.Get (LHS_ID) <= +Synthesize, RHS_Token_Count);");
+           "(Accept_It, LHS, Synthesize, 0, RHS_Token_Count);");
       Indent_Line ("begin");
       Indent := Indent + 3;
       Indent_Line ("State.Action_List := new Action_Node'");
@@ -466,7 +471,7 @@ begin
    if Reduce_Reduce_Conflict_Count > 0 then
       --  This procedure is called for Reduce/Reduce conflicts
       Indent_Line ("procedure Add_Action");
-      Indent_Line ("  (State             : in out LALR_Parsers.Parse_State;");
+      Indent_Line ("  (State             : in out LALRs.Parse_State;");
       Indent_Line ("   Symbol            : in     Token_IDs;");
       Indent_Line ("   LHS_ID_1          : in     Token_IDs;");
       Indent_Line ("   RHS_Token_Count_1 : in     Natural;");
@@ -475,7 +480,7 @@ begin
       Indent_Line ("   RHS_Token_Count_2 : in     Natural;");
       Indent_Line ("   Synthesize_2      : in     Nonterminals.Synthesize)");
       Indent_Line ("is");
-      Indent_Line ("   use LALR_Parsers;");
+      Indent_Line ("   use LALRs;");
       Indent_Line ("   use Productions;");
       Indent_Line
         ("   Action_1 : constant Parse_Action_Rec := " &
@@ -496,10 +501,10 @@ begin
    --  This procedure is called for Error actions
    --  Error action must be last in list
    Indent_Line ("procedure Add_Action");
-   Indent_Line ("  (State  : in out LALR_Parsers.Parse_State;");
+   Indent_Line ("  (State  : in out LALRs.Parse_State;");
    Indent_Line ("   Symbol : in     Token_IDs)");
    Indent_Line ("is");
-   Indent_Line ("   use LALR_Parsers;");
+   Indent_Line ("   use LALRs;");
    Indent_Line ("   Action : constant Parse_Action_Rec := (Verb => Error);");
    Indent_Line ("   Node   : Action_Node_Ptr           := State.Action_List;");
    Indent_Line ("begin");
@@ -515,13 +520,13 @@ begin
 
    Indent_Line ("procedure Add_Goto");
    Indent := Indent + 2;
-   Indent_Line ("(State    : in out LALR_Parsers.Parse_State;");
+   Indent_Line ("(State    : in out LALRs.Parse_State;");
    Indent := Indent + 1;
    Indent_Line ("Symbol   : in     Token_IDs;");
-   Indent_Line ("To_State : in     LALR_Parsers.State_Index)");
+   Indent_Line ("To_State : in     LALRs.State_Index)");
    Indent := Indent - 3;
    Indent_Line ("is");
-   Indent_Line ("   use LALR_Parsers;");
+   Indent_Line ("   use LALRs;");
    Indent_Line ("begin");
    Indent := Indent + 3;
    Indent_Line ("State.Goto_List := new Goto_Node'(Symbol, To_State, State.Goto_List);");
@@ -532,20 +537,20 @@ begin
    Indent_Line ("function Create_Parser return LALR_Parsers.Instance");
    Indent_Line ("is");
    Indent := Indent + 3;
-   Indent_Line ("use LALR_Parsers;");
+   Indent_Line ("use LALRs;");
    Indent_Line ("use Productions;");
    Indent_Line
      ("Table : constant Parse_Table_Ptr := new Parse_Table (" &
-        State_Image (Parser.Table'First) & " .. " & State_Image (Parser.Table'Last) & ");");
+        State_Image (Parser'First) & " .. " & State_Image (Parser'Last) & ");");
    Indent := Indent - 3;
    Indent_Line ("begin");
    Indent := Indent + 3;
 
-   for State_Index in Parser.Table'Range loop
+   for State_Index in Parser'Range loop
       Actions :
       declare
-         use Generate_Utils.LALR_Parsers;
-         Node : Action_Node_Ptr := Parser.Table (State_Index).Action_List;
+         use Generate_Utils.LALRs;
+         Node : Action_Node_Ptr := Parser (State_Index).Action_List;
       begin
          loop
             exit when Node = null;
@@ -559,25 +564,20 @@ begin
                when Shift =>
                   Put (", " & State_Image (Action_Node.Item.State));
                when Reduce | Accept_It =>
-                  declare
-                     use Productions;
-                     ID : constant Token_IDs := LHS_ID (Action_Node.Item.Production);
-                  begin
-                     if Action_Node.Next = null then
-                        if Action_Node.Item.Verb = Reduce then
-                           Put (", Reduce");
-                        else
-                           Put (", Accept_It");
-                        end if;
+                  if Action_Node.Next = null then
+                     if Action_Node.Item.Verb = Reduce then
+                        Put (", Reduce");
                      else
-                        --  conflict; Verb must be reduce
-                        null;
+                        Put (", Accept_It");
                      end if;
-                     Put
-                       (", " & Token_Image (ID) & "," &
-                          Integer'Image (Action_Node.Item.Length) & ", " &
-                          Action_Name (ID, Index (Action_Node.Item.Production)));
-                  end;
+                  else
+                     --  conflict; Verb must be reduce
+                     null;
+                  end if;
+                  Put
+                    (", " & Token_Image (Tokens_Pkg.ID (Action_Node.Item.LHS.all)) & "," &
+                       Integer'Image (Action_Node.Item.Token_Count) & ", " &
+                       Action_Name (Tokens_Pkg.ID (Action_Node.Item.LHS.all), Action_Node.Item.Index));
                when Error =>
                   null;
                end case;
@@ -589,18 +589,13 @@ begin
                   when Shift =>
                      Put (", " & State_Image (Action_Node.Item.State));
                   when Reduce =>
-                     declare
-                        use Productions;
-                        ID : constant Token_IDs := LHS_ID (Action_Node.Item.Production);
-                     begin
-                        Put
-                          (", " & Token_Image (ID) & "," &
-                             Integer'Image (Action_Node.Item.Length) & ", " &
-                             Action_Name (ID, Index (Action_Node.Item.Production)));
-                     end;
+                     Put
+                       (", " & Token_Image (Tokens_Pkg.ID (Action_Node.Item.LHS.all)) & "," &
+                          Integer'Image (Action_Node.Item.Token_Count) & ", " &
+                          Action_Name (Tokens_Pkg.ID (Action_Node.Item.LHS.all), Action_Node.Item.Index));
                   when others =>
                      raise Programmer_Error with "second action verb: " &
-                       LALR_Parsers.Parse_Action_Verbs'Image (Action_Node.Item.Verb);
+                       LALRs.Parse_Action_Verbs'Image (Action_Node.Item.Verb);
                   end case;
                end if;
             end;
@@ -611,8 +606,8 @@ begin
 
       Gotos :
       declare
-         use Generate_Utils.LALR_Parsers;
-         Node : Goto_Node_Ptr := Parser.Table (State_Index).Goto_List;
+         use Generate_Utils.LALRs;
+         Node : Goto_Node_Ptr := Parser (State_Index).Goto_List;
       begin
          loop
             exit when Node = null;
@@ -637,7 +632,7 @@ begin
         Integer'Image (Action_Count) & " actions," &
         Integer'Image (Shift_Reduce_Conflict_Count) & " shift/reduce conflicts," &
         Integer'Image (Reduce_Reduce_Conflict_Count) & " reduce/reduce conflicts," &
-        LALR_Parsers.State_Index'Image (Parser.Table'Last) & " states," &
+        LALRs.State_Index'Image (Parser'Last) & " states," &
         Integer'Image (Table_Entry_Count) & " table entries");
 exception
 when others =>

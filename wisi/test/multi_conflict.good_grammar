@@ -13,7 +13,7 @@ Tokens:
  12 => OPENTOKEN_ACCEPT_ID
 
 Parse Table:
-Set 1:
+State 1:
   OPENTOKEN_ACCEPT_ID <= ^ NAME_ID EOF_ID
 
    IDENTIFIER_ID           => shift and goto state 2
@@ -23,7 +23,7 @@ Set 1:
    NAME_ID                 goto state 4
    QUALIFIED_EXPRESSION_ID goto state 5
 
-Set 2:
+State 2:
   NAME_ID <= IDENTIFIER_ID ^, EOF_ID/RIGHT_PAREN_ID/TICK_ID
 
    EOF_ID                  => reduce 1 tokens to NAME_ID
@@ -32,7 +32,7 @@ Set 2:
    default                 => ERROR
 
 
-Set 3:
+State 3:
   NAME_ID <= ATTRIBUTE_REFERENCE_ID ^, EOF_ID/RIGHT_PAREN_ID/TICK_ID
 
    EOF_ID                  => reduce 1 tokens to NAME_ID
@@ -41,7 +41,7 @@ Set 3:
    default                 => ERROR
 
 
-Set 4:
+State 4:
   QUALIFIED_EXPRESSION_ID <= NAME_ID ^ TICK_ID AGGREGATE_ID, EOF_ID/TICK_ID
   ATTRIBUTE_REFERENCE_ID <= NAME_ID ^ TICK_ID ATTRIBUTE_DESIGNATOR_ID, EOF_ID/TICK_ID
   OPENTOKEN_ACCEPT_ID <= NAME_ID ^ EOF_ID
@@ -51,7 +51,7 @@ Set 4:
    default                 => ERROR
 
 
-Set 5:
+State 5:
   NAME_ID <= QUALIFIED_EXPRESSION_ID ^, EOF_ID/RIGHT_PAREN_ID/TICK_ID
 
    EOF_ID                  => reduce 1 tokens to NAME_ID
@@ -60,7 +60,7 @@ Set 5:
    default                 => ERROR
 
 
-Set 6:
+State 6:
   ATTRIBUTE_REFERENCE_ID <= NAME_ID TICK_ID ^ ATTRIBUTE_DESIGNATOR_ID, RIGHT_PAREN_ID/TICK_ID/EOF_ID
   QUALIFIED_EXPRESSION_ID <= NAME_ID TICK_ID ^ AGGREGATE_ID, RIGHT_PAREN_ID/TICK_ID/EOF_ID
 
@@ -74,7 +74,7 @@ Set 6:
    NAME_ID                 goto state 11
    QUALIFIED_EXPRESSION_ID goto state 5
 
-Set 7:
+State 7:
   OPENTOKEN_ACCEPT_ID <= NAME_ID EOF_ID ^, EOF_ID/IDENTIFIER_ID/TICK_ID/RIGHT_PAREN_ID/LEFT_PAREN_ID
 
    EOF_ID                  => accept it
@@ -85,7 +85,7 @@ Set 7:
    default                 => ERROR
 
 
-Set 8:
+State 8:
   AGGREGATE_ID <= LEFT_PAREN_ID ^ NAME_ID RIGHT_PAREN_ID, RIGHT_PAREN_ID/EOF_ID/TICK_ID
 
    IDENTIFIER_ID           => shift and goto state 2
@@ -95,7 +95,7 @@ Set 8:
    NAME_ID                 goto state 12
    QUALIFIED_EXPRESSION_ID goto state 5
 
-Set 9:
+State 9:
   QUALIFIED_EXPRESSION_ID <= NAME_ID TICK_ID AGGREGATE_ID ^, RIGHT_PAREN_ID/EOF_ID/TICK_ID
 
    RIGHT_PAREN_ID          => reduce 3 tokens to QUALIFIED_EXPRESSION_ID
@@ -104,7 +104,7 @@ Set 9:
    default                 => ERROR
 
 
-Set 10:
+State 10:
   ATTRIBUTE_REFERENCE_ID <= NAME_ID TICK_ID ATTRIBUTE_DESIGNATOR_ID ^, RIGHT_PAREN_ID/EOF_ID/TICK_ID
 
    RIGHT_PAREN_ID          => reduce 3 tokens to ATTRIBUTE_REFERENCE_ID
@@ -113,7 +113,7 @@ Set 10:
    default                 => ERROR
 
 
-Set 11:
+State 11:
   QUALIFIED_EXPRESSION_ID <= NAME_ID ^ TICK_ID AGGREGATE_ID, RIGHT_PAREN_ID/EOF_ID/TICK_ID
   ATTRIBUTE_DESIGNATOR_ID <= NAME_ID ^, RIGHT_PAREN_ID/EOF_ID/TICK_ID
   ATTRIBUTE_REFERENCE_ID <= NAME_ID ^ TICK_ID ATTRIBUTE_DESIGNATOR_ID, RIGHT_PAREN_ID/EOF_ID/TICK_ID
@@ -125,7 +125,7 @@ Set 11:
    default                 => ERROR
 
 
-Set 12:
+State 12:
   QUALIFIED_EXPRESSION_ID <= NAME_ID ^ TICK_ID AGGREGATE_ID, RIGHT_PAREN_ID/TICK_ID
   ATTRIBUTE_REFERENCE_ID <= NAME_ID ^ TICK_ID ATTRIBUTE_DESIGNATOR_ID, RIGHT_PAREN_ID/TICK_ID
   AGGREGATE_ID <= LEFT_PAREN_ID NAME_ID ^ RIGHT_PAREN_ID, RIGHT_PAREN_ID/TICK_ID/EOF_ID
@@ -135,7 +135,7 @@ Set 12:
    default                 => ERROR
 
 
-Set 13:
+State 13:
   AGGREGATE_ID <= LEFT_PAREN_ID NAME_ID RIGHT_PAREN_ID ^, RIGHT_PAREN_ID/EOF_ID/TICK_ID
 
    RIGHT_PAREN_ID          => reduce 3 tokens to AGGREGATE_ID

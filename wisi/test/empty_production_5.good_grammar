@@ -13,7 +13,7 @@ Tokens:
  12 => OPENTOKEN_ACCEPT_ID
 
 Parse Table:
-Set 1:
+State 1:
   OPENTOKEN_ACCEPT_ID <= ^ COMPILATION_UNIT_ID EOF_ID
 
    ACCEPT_ID            => shift and goto state 2
@@ -22,7 +22,7 @@ Set 1:
    COMPILATION_UNIT_ID  goto state 3
    ACCEPT_STATEMENT_ID  goto state 4
 
-Set 2:
+State 2:
   ACCEPT_STATEMENT_ID <= ACCEPT_ID ^ NAME_ID PARAMETER_PROFILE_ID SEMICOLON_ID, EOF_ID/ACCEPT_ID
 
    IDENTIFIER_ID        => shift and goto state 7
@@ -30,14 +30,14 @@ Set 2:
 
    NAME_ID              goto state 8
 
-Set 3:
+State 3:
   OPENTOKEN_ACCEPT_ID <= COMPILATION_UNIT_ID ^ EOF_ID
 
    EOF_ID               => shift and goto state 6
    default              => ERROR
 
 
-Set 4:
+State 4:
   COMPILATION_UNIT_ID <= ACCEPT_STATEMENT_ID ^ ACCEPT_STATEMENT_ID, EOF_ID
 
    ACCEPT_ID            => shift and goto state 2
@@ -45,14 +45,14 @@ Set 4:
 
    ACCEPT_STATEMENT_ID  goto state 5
 
-Set 5:
+State 5:
   COMPILATION_UNIT_ID <= ACCEPT_STATEMENT_ID ACCEPT_STATEMENT_ID ^, EOF_ID
 
    EOF_ID               => reduce 2 tokens to COMPILATION_UNIT_ID
    default              => ERROR
 
 
-Set 6:
+State 6:
   OPENTOKEN_ACCEPT_ID <= COMPILATION_UNIT_ID EOF_ID ^, EOF_ID/IDENTIFIER_ID/SEMICOLON_ID/RIGHT_PAREN_ID/LEFT_PAREN_ID/ACCEPT_ID
 
    EOF_ID               => accept it
@@ -64,7 +64,7 @@ Set 6:
    default              => ERROR
 
 
-Set 7:
+State 7:
   NAME_ID <= IDENTIFIER_ID ^, LEFT_PAREN_ID/SEMICOLON_ID
 
    LEFT_PAREN_ID        => reduce 1 tokens to NAME_ID
@@ -72,7 +72,7 @@ Set 7:
    default              => ERROR
 
 
-Set 8:
+State 8:
   ACCEPT_STATEMENT_ID <= ACCEPT_ID NAME_ID ^ PARAMETER_PROFILE_ID SEMICOLON_ID, EOF_ID/ACCEPT_ID
 
    SEMICOLON_ID         => reduce 0 tokens to PARAMETER_PROFILE_ID
@@ -81,21 +81,21 @@ Set 8:
 
    PARAMETER_PROFILE_ID goto state 10
 
-Set 9:
+State 9:
   PARAMETER_PROFILE_ID <= LEFT_PAREN_ID ^ IDENTIFIER_ID RIGHT_PAREN_ID, SEMICOLON_ID
 
    IDENTIFIER_ID        => shift and goto state 12
    default              => ERROR
 
 
-Set 10:
+State 10:
   ACCEPT_STATEMENT_ID <= ACCEPT_ID NAME_ID PARAMETER_PROFILE_ID ^ SEMICOLON_ID, EOF_ID/ACCEPT_ID
 
    SEMICOLON_ID         => shift and goto state 11
    default              => ERROR
 
 
-Set 11:
+State 11:
   ACCEPT_STATEMENT_ID <= ACCEPT_ID NAME_ID PARAMETER_PROFILE_ID SEMICOLON_ID ^, EOF_ID/ACCEPT_ID
 
    EOF_ID               => reduce 4 tokens to ACCEPT_STATEMENT_ID
@@ -103,14 +103,14 @@ Set 11:
    default              => ERROR
 
 
-Set 12:
+State 12:
   PARAMETER_PROFILE_ID <= LEFT_PAREN_ID IDENTIFIER_ID ^ RIGHT_PAREN_ID, SEMICOLON_ID
 
    RIGHT_PAREN_ID       => shift and goto state 13
    default              => ERROR
 
 
-Set 13:
+State 13:
   PARAMETER_PROFILE_ID <= LEFT_PAREN_ID IDENTIFIER_ID RIGHT_PAREN_ID ^, SEMICOLON_ID
 
    SEMICOLON_ID         => reduce 3 tokens to PARAMETER_PROFILE_ID

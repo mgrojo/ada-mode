@@ -11,7 +11,7 @@ Tokens:
  10 => OPENTOKEN_ACCEPT_ID
 
 Parse Table:
-Set 1:
+State 1:
   OPENTOKEN_ACCEPT_ID <= ^ DECLARATIONS_ID EOF_ID
 
    EOF_ID              => reduce 0 tokens to DECLARATION_ID
@@ -23,7 +23,7 @@ Set 1:
    DECLARATIONS_ID     goto state 4
    BODY_ID             goto state 5
 
-Set 2:
+State 2:
   BODY_ID <= IS_ID ^ DECLARATIONS_ID BEGIN_ID SEMICOLON_ID, EOF_ID/BEGIN_ID/IS_ID
 
    BEGIN_ID            => reduce 0 tokens to DECLARATION_ID
@@ -35,7 +35,7 @@ Set 2:
    DECLARATIONS_ID     goto state 8
    BODY_ID             goto state 5
 
-Set 3:
+State 3:
   DECLARATIONS_ID <= DECLARATION_ID ^, EOF_ID/BEGIN_ID/IS_ID
 
    EOF_ID              => reduce 1 tokens to DECLARATIONS_ID
@@ -44,7 +44,7 @@ Set 3:
    default             => ERROR
 
 
-Set 4:
+State 4:
   DECLARATIONS_ID <= DECLARATIONS_ID ^ DECLARATION_ID, EOF_ID/IS_ID
   OPENTOKEN_ACCEPT_ID <= DECLARATIONS_ID ^ EOF_ID
 
@@ -57,7 +57,7 @@ Set 4:
    DECLARATION_ID      goto state 7
    BODY_ID             goto state 5
 
-Set 5:
+State 5:
   DECLARATION_ID <= BODY_ID ^, EOF_ID/IS_ID/BEGIN_ID
 
    EOF_ID              => reduce 1 tokens to DECLARATION_ID
@@ -66,7 +66,7 @@ Set 5:
    default             => ERROR
 
 
-Set 6:
+State 6:
   OPENTOKEN_ACCEPT_ID <= DECLARATIONS_ID EOF_ID ^, EOF_ID/SEMICOLON_ID/IS_ID/BEGIN_ID
 
    EOF_ID              => accept it
@@ -76,7 +76,7 @@ Set 6:
    default             => ERROR
 
 
-Set 7:
+State 7:
   DECLARATIONS_ID <= DECLARATIONS_ID DECLARATION_ID ^, BEGIN_ID/IS_ID/EOF_ID
 
    BEGIN_ID            => reduce 2 tokens to DECLARATIONS_ID
@@ -85,7 +85,7 @@ Set 7:
    default             => ERROR
 
 
-Set 8:
+State 8:
   DECLARATIONS_ID <= DECLARATIONS_ID ^ DECLARATION_ID, BEGIN_ID/IS_ID
   BODY_ID <= IS_ID DECLARATIONS_ID ^ BEGIN_ID SEMICOLON_ID, IS_ID/BEGIN_ID/EOF_ID
 
@@ -98,14 +98,14 @@ Set 8:
    DECLARATION_ID      goto state 7
    BODY_ID             goto state 5
 
-Set 9:
+State 9:
   BODY_ID <= IS_ID DECLARATIONS_ID BEGIN_ID ^ SEMICOLON_ID, EOF_ID/BEGIN_ID/IS_ID
 
    SEMICOLON_ID        => shift and goto state 10
    default             => ERROR
 
 
-Set 10:
+State 10:
   BODY_ID <= IS_ID DECLARATIONS_ID BEGIN_ID SEMICOLON_ID ^, IS_ID/BEGIN_ID/EOF_ID
 
    IS_ID               => reduce 4 tokens to BODY_ID

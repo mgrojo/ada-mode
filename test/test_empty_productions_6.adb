@@ -21,7 +21,7 @@ pragma License (GPL);
 with Ada.Text_IO;
 with Gen_OpenToken_AUnit;
 with OpenToken.Production.List;
-with OpenToken.Production.Parser.LALR;
+with OpenToken.Production.Parser.LALR.Generator;
 with OpenToken.Token.Enumerated.Analyzer;
 with OpenToken.Token.Enumerated.List;
 with OpenToken.Token.Enumerated.Nonterminal;
@@ -64,7 +64,8 @@ package body Test_Empty_Productions_6 is
      (First_Terminal => COLON_ID,
       Last_Terminal  => EOF_ID);
    package Parsers is new Productions.Parser (Production_Lists, Analyzers);
-   package LALR is new Parsers.LALR (First_State_Index);
+   package LALRs is new Parsers.LALR (First_State_Index);
+   package LALR_Generators is new LALRs.Generator;
 
    --  Allow infix operators for building productions
    use type Token_Lists.Instance;
@@ -96,37 +97,38 @@ package body Test_Empty_Productions_6 is
 
    package OpenToken_AUnit is new Gen_OpenToken_AUnit
      (Token_IDs, Tokens_Pkg, Token_Lists, Nonterminals, Productions, Production_Lists, COLON_ID, EOF_ID,
-      Analyzers, Parsers, First_State_Index, LALR, Grammar);
+      Analyzers, Parsers, First_State_Index, LALRs, LALR_Generators, Grammar);
 
-   Has_Empty_Production : constant LALR.LRk.Nonterminal_ID_Set := LALR.LRk.Has_Empty_Production (Grammar);
+   Has_Empty_Production : constant LALR_Generators.LRk.Nonterminal_ID_Set :=
+     LALR_Generators.LRk.Has_Empty_Production (Grammar);
 
-   First : constant LALR.LRk.Derivation_Matrix := LALR.LRk.First_Derivations
+   First : constant LALR_Generators.LRk.Derivation_Matrix := LALR_Generators.LRk.First_Derivations
      (Grammar, Has_Empty_Production, Trace => False);
 
    Accept_Index : constant := 3;
 
    procedure Test_Actions
      (Label    : in String;
-      Kernels  : in LALR.LRk.Item_Set_List;
-      State    : in Integer;
-      Expected : in LALR.Parse_State;
+      Kernels  : in LALR_Generators.LRk.Item_Set_List;
+      State    : in LALRs.Unknown_State_Index;
+      Expected : in LALRs.Parse_State;
       Debug    : in Boolean)
    is
       use OpenToken_AUnit;
-      Kernel    : constant LALR.LRk.Item_Set_Ptr := LALR.LRk.Find (State, Kernels);
-      Conflicts : LALR.Conflict_Lists.List;
-      Table     : LALR.Parse_Table (1 .. LALR.State_Index (Kernels.Size));
+      Kernel    : constant LALR_Generators.LRk.Item_Set_Ptr := LALR_Generators.LRk.Find (State, Kernels);
+      Conflicts : LALRs.Conflict_Lists.List;
+      Table     : LALRs.Parse_Table (1 .. LALRs.State_Index (Kernels.Size));
    begin
-      LALR.Add_Actions
+      LALR_Generators.Add_Actions
         (Kernel, Accept_Index, Grammar, Has_Empty_Production, First, Conflicts, Table, Trace => Debug);
 
       if Debug then
-         LALR.Put (Table (LALR.State_Index (Kernel.Index)));
+         LALR_Generators.Put (Table (Kernel.State));
          Ada.Text_IO.Put_Line ("Expected:");
-         LALR.Put (Expected);
+         LALR_Generators.Put (Expected);
       end if;
 
-      Check (Label, Table (LALR.State_Index (Kernel.Index)), Expected);
+      Check (Label, Table (Kernel.State), Expected);
    end Test_Actions;
 
    ----------
@@ -135,21 +137,23 @@ package body Test_Empty_Productions_6 is
    procedure Actions_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       Test : Test_Case renames Test_Case (T);
-      use LALR;
-      use LALR.LRk;
+      use LALRs;
+      use LALR_Generators.LRk;
       use OpenToken_AUnit;
 
       Kernels : constant Item_Set_List := LR0_Kernels
-        (Grammar, First, Trace => False, First_State_Index => First_State_Index);
+        (Grammar, First,
+         Trace             => False,
+         First_State_Index => LALRs.State_Index (First_State_Index));
 
       Expected : Parse_State;
       Conflict : Parse_Action_Node_Ptr;
 
-      Conflicts : LALR.Conflict_Lists.List;
-      Parser    : LALR.Instance;
+      Conflicts : LALRs.Conflict_Lists.List;
+      Parser    : LALRs.Parse_Table_Ptr;
    begin
       if Test.Debug then
-         LALR.LRk.Put (Kernels);
+         LALR_Generators.LRk.Put (Kernels);
       end if;
 
       --  kernel 1:
@@ -174,11 +178,13 @@ package body Test_Empty_Productions_6 is
          Next  => null);
 
       Conflict := new Parse_Action_Node'
-        (Item          =>
-           (Verb       => Reduce,
-            Production => Get_Production (6),
-            Length     => 0),
-         Next          => null);
+        (Item           =>
+           (Verb        => Reduce,
+            LHS         => Productions.LHS (Get_Production (6)),
+            Action      => null,
+            Index       => 0,
+            Token_Count => 0),
+         Next           => null);
 
       Conflict := new Parse_Action_Node'
         (Item     =>
@@ -219,16 +225,15 @@ package body Test_Empty_Productions_6 is
           State_Index => -1,
           On          => IDENTIFIER_ID));
 
-      Parser := LALR.Generate
+      Parser := LALR_Generators.Generate
         (Grammar,
-         Analyzers.Null_Analyzer,
          Conflicts,
          Trace                    => Test.Debug,
-         Put_Grammar              => Test.Debug,
+         Put_Parse_Table          => Test.Debug,
          Ignore_Unused_Tokens     => Test.Debug,
          Ignore_Unknown_Conflicts => Test.Debug);
 
-      Check ("2", Parser.Table (1), Expected);
+      Check ("2", Parser (1), Expected);
    end Actions_1;
 
    ----------

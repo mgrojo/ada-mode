@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2009, 2010, 2012, 2013 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2009, 2010, 2012, 2013, 2014 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -23,7 +23,8 @@ with AUnit.Assertions;
 with AUnit.Check;
 with Ada.Exceptions;
 with OpenToken.Production.List;
-with OpenToken.Production.Parser.LALR;
+with OpenToken.Production.Parser.LALR.Generator;
+with OpenToken.Production.Parser.LALR.Parser;
 with OpenToken.Production.Parser;
 with OpenToken.Recognizer.Based_Integer;
 with OpenToken.Recognizer.Character_Set;
@@ -78,7 +79,9 @@ package body Test_LR_Expecting is
    package Production is new OpenToken.Production (Master_Token, Token_List, Nonterminal);
    package Production_List is new Production.List;
    package OpenToken_Parser is new Production.Parser (Production_List, Tokenizer);
-   package LALR_Parser is new OpenToken_Parser.LALR (First_State_Index => 1);
+   package LALRs is new OpenToken_Parser.LALR (First_State_Index => 1);
+   package LALR_Generators is new LALRs.Generator;
+   package LALR_Parsers is new LALRs.Parser;
 
    --  Terminals
    EOF        : constant Master_Token.Class := Master_Token.Get (EOF_ID, Name => "EOF");
@@ -177,13 +180,13 @@ package body Test_LR_Expecting is
 
    String_Feeder : aliased OpenToken.Text_Feeder.String.Instance;
    Analyzer      : constant Tokenizer.Instance := Tokenizer.Initialize (Syntax);
-   Parser        : LALR_Parser.Instance;
+   Parser        : LALR_Parsers.Instance;
 
    procedure Execute
      (Command          : in String;
       Expected_Message : in String)
    is
-      use LALR_Parser;
+      use LALR_Parsers;
    begin
       OpenToken.Text_Feeder.String.Set (String_Feeder, Command);
 
@@ -203,10 +206,12 @@ package body Test_LR_Expecting is
    is
       Test : Test_Case renames Test_Case (T);
    begin
-      Parser := LALR_Parser.Generate
-        (Grammar, Analyzer,
-         Trace       => Test.Debug,
-         Put_Grammar => Test.Debug);
+      Parser :=
+        (Analyzer,
+         LALR_Generators.Generate
+           (Grammar,
+            Trace           => Test.Debug,
+            Put_Parse_Table => Test.Debug));
 
       OpenToken.Trace_Parse := Test.Debug;
 
