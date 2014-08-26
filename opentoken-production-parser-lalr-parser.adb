@@ -24,59 +24,102 @@
 
 pragma License (Modified_GPL);
 
-with Ada.Exceptions;
 with Ada.Text_IO;
-with Ada.Unchecked_Deallocation;
 with Ada.Strings.Unbounded;
-with Ada.Strings.Fixed;
 package body OpenToken.Production.Parser.LALR.Parser is
 
-   --  The following types are used for the Parser's stack. The stack
-   --  contains the tokens that have been read or derived, and the
-   --  parser states in which that occurred.
+   package Parser_Lists is
 
-   type State_Node;
-   type State_Node_Ptr is access State_Node;
+      type List is tagged private;
 
-   type State_Node is record
-      State      : State_Index;
-      Seen_Token : Token.Handle;
-      Next       : State_Node_Ptr;
-   end record;
+      function Initialize return List;
 
-   procedure Free is new Ada.Unchecked_Deallocation (State_Node, State_Node_Ptr);
+      function Count (List : in Parser_Lists.List) return Integer;
+
+      type Iterator is tagged private;
+
+      function First (List : in Parser_Lists.List'Class) return Iterator;
+      procedure Next (Iter : in out Iterator);
+      function Is_Done (Iter : in Iterator) return Boolean;
+
+      procedure Set_Verb (Iter : in Iterator; Verb : in Parse_Action_Verbs);
+      function Verb (Iter : in Iterator) return Parse_Action_Verbs;
+
+      type Stack_Item is record
+         State : Unknown_State_Index;
+         Token : OpenToken.Production.Token.Handle;
+      end record;
+
+      function Peek (Iter : in Iterator) return Stack_Item;
+      function Pop (Iter : in Iterator) return Stack_Item;
+      procedure Push (Iter : in Iterator; Item : in Stack_Item);
+
+      procedure Put_Top_10 (Iter : in Iterator);
+      --  Put image of top 10 stack items to Current_Output.
+
+      type Action_Token is record
+         Action      : Nonterminal.Synthesize;
+         Token_Count : Integer;
+         Tokens      : Token_List.Instance;
+      end record;
+
+      procedure Append (Iter : in Iterator; Item : in Action_Token);
+      function Pop (Iter : in Iterator) return Action_Token;
+      function Action_Tokens_Empty (Iter : in Iterator) return Boolean;
+
+      procedure Prepend_Copy (List : in out Parser_Lists.List; Iter : in Iterator'Class);
+      --  Copy parser at Iter, add to current list. New copy will not
+      --  appear in Iter.Next ...; it is accessible as First (List).
+
+      procedure Free (List : in out Parser_Lists.List; Iter : in Iterator'Class);
+      --  Move Iter to the internal free list, free its stack; it will
+      --  not appear in future iterations.
+
+   private
+
+      type Parser_State;
+      type Parser_State_Access is access Parser_State;
+
+      type Iterator is tagged record
+         Ptr : Parser_State_Access;
+      end record;
+
+      type List is tagged record
+         Head  : Parser_State_Access;
+         Free  : Parser_State_Access;
+         Count : Integer;
+      end record;
+
+   end Parser_Lists;
+   package body Parser_Lists is separate;
 
    --  Return the action for the given state index and terminal ID.
-   --  The final action in the action list for a state is returned if no
-   --  other node matches ID.
+   --  The final action in the action list for a state (the error
+   --  action) is returned if no other node matches ID.
    function Action_For
-     (Table : in Parse_Table_Ptr;
+     (Table : in Parse_Table;
       State : in State_Index;
       ID    : in Tokenizer.Terminal_ID)
-     return Parse_Action_Rec
+     return Parse_Action_Node_Ptr
    is
       use type Tokenizer.Terminal_ID;
-      Action_Node : Action_Node_Ptr := Table.all (State).Action_List;
+      Action_Node : Action_Node_Ptr := Table (State).Action_List;
    begin
       while Action_Node.Next /= null and Action_Node.Symbol /= ID loop
          Action_Node := Action_Node.Next;
       end loop;
 
-      if Action_Node.Action.Next = null then
-         return Action_Node.Action.Item;
-      else
-         raise Parse_Error with "conflicting actions in state" & State_Index'Image (State);
-      end if;
+      return Action_Node.Action;
    end Action_For;
 
    function Goto_For
-     (Table : in Parse_Table_Ptr;
+     (Table : in Parse_Table;
       State : in State_Index;
       ID    : in Token.Token_ID)
      return State_Index
    is
       use type Tokenizer.Terminal_ID;
-      Goto_Node : Goto_Node_Ptr := Table.all (State).Goto_List;
+      Goto_Node : Goto_Node_Ptr := Table (State).Goto_List;
    begin
       while Goto_Node.Next /= null and Goto_Node.Symbol /= ID loop
          Goto_Node := Goto_Node.Next;
@@ -130,194 +173,171 @@ package body OpenToken.Production.Parser.LALR.Parser is
    end Names;
 
    procedure Reduce_Stack
-     (Stack  : in out State_Node_Ptr;
-      LHS         : in Nonterminal.Handle;
-      Action      : in Nonterminal.Synthesize;
-      Token_Count : in Natural)
+     (Current_Parser : in Parser_Lists.Iterator;
+      New_Token      : in Nonterminal.Handle;
+      Action         : in Nonterminal.Synthesize;
+      Token_Count    : in Natural)
    is
       use type Nonterminal.Synthesize;
 
-      Arguments    : Token_List.Instance;
-      Popped_State : State_Node_Ptr;
-      Args_Added   : Natural := 0;
-
-      New_Token : constant Nonterminal.Handle := new Nonterminal.Class'(LHS.all);
+      Tokens : Token_List.Instance;
    begin
       --  Pop the indicated number of token states from the stack, and
       --  call the production action routine to create a new
       --  nonterminal token.
-      --
-      --  Leave Stack.State containing post-reduce state and produced
-      --  token (after action call).
 
-      --  Build the argument list, while popping all but the last
-      --  argument's state off of the stack.
       if Token_Count > 0 then
-         loop
-            Token_List.Enqueue (Arguments, Stack.Seen_Token);
-
-            Args_Added := Args_Added + 1;
-            exit when Args_Added = Token_Count;
-
-            --  Leave the state containing the first token in
-            --  Production on Stack; overwrite it with the produced
-            --  token
-            Popped_State := Stack;
-            Stack        := Stack.Next;
-            Free (Popped_State);
+         for I in 1 .. Token_Count loop
+            Token_List.Enqueue (Tokens, Current_Parser.Pop.Token);
          end loop;
-         Stack.State      := Stack.Next.State;
-         Stack.Seen_Token := Token.Handle (New_Token);
-      else
-         --  Empty production; push a new item on the stack.
-         Stack := new State_Node'
-           (State      => Stack.State,
-            Seen_Token => Token.Handle (New_Token),
-            Next       => Stack);
       end if;
 
-      Action (New_Token.all, Arguments, Token.ID (LHS.all));
-      Token_List.Clean (Arguments);
+      --  FIXME: add to pending if parallel parsing
+      Action (New_Token.all, Tokens, Token.ID (New_Token.all));
+      Token_List.Clean (Tokens);
 
    end Reduce_Stack;
 
-   overriding procedure Parse (Parser : in out Instance)
+   procedure Do_Action
+     (Action         : in Parse_Action_Rec;
+      Current_Parser : in Parser_Lists.Iterator;
+      Current_Token  : in Token.Handle;
+      Table          : in Parse_Table)
+   is begin
+
+      if Trace_Parse then
+         Parser_Lists.Put_Top_10 (Current_Parser);
+         Ada.Text_IO.Put (Token.Token_Image (Token.ID (Current_Token.all)) & " : ");
+         Put (Action);
+         Ada.Text_IO.New_Line;
+      end if;
+
+      case Action.Verb is
+      when Shift =>
+         Current_Parser.Push ((Action.State, Current_Token));
+
+      when Reduce =>
+         declare
+            New_Token : constant Nonterminal.Handle := new Nonterminal.Class'(Action.LHS.all);
+         begin
+            Reduce_Stack (Current_Parser, New_Token, Action.Action, Action.Token_Count);
+
+            Current_Parser.Push
+              ((State    => Goto_For
+                  (Table => Table,
+                   State => Current_Parser.Peek.State,
+                   ID    => Token.ID (Action.LHS.all)),
+                Token    => OpenToken.Production.Token.Handle (New_Token)));
+         end;
+
+      when Accept_It =>
+         declare
+            New_Token : constant Nonterminal.Handle := new Nonterminal.Class'(Action.LHS.all);
+         begin
+            Reduce_Stack (Current_Parser, New_Token, Action.Action, Action.Token_Count);
+         end;
+
+      when Error =>
+         null;
+
+      end case;
+
+      Current_Parser.Set_Verb (Action.Verb);
+   end Do_Action;
+
+   --  Return the type of parser cycle to execute.
+   --
+   --  Accept : all Parsers.Verb return Accept - done parsing.
+   --
+   --  Shift : all Parsers.Verb return Accept, Shift, or Error - get a
+   --  new token, execute Shift parsers, terminate Error parsers.
+   --
+   --  Reduce : some Parsers.Verb return Reduce - no new token,
+   --  execute Reduce parsers.
+   --
+   --  Error : all Parsers.Verb return Error; report errors, terminate
+   --  parse.
+   function Parse_Verb (Parsers : in Parser_Lists.List) return Parse_Action_Verbs
    is
-      Stack        : State_Node_Ptr := new State_Node; -- Stack is current state, stack.next is prev state, etc.
-      Seen_Token   : Token.Handle;
-      Action       : Parse_Action_Rec;
-      Popped_State : State_Node_Ptr;
-
-      use type Token_List.Instance;
+      Iter         : Parser_Lists.Iterator := Parser_Lists.First (Parsers);
+      Shift_Count  : Integer               := 0;
+      Accept_Count : Integer               := 0;
+      Error_Count  : Integer               := 0;
    begin
-
-      --  Get the first token from the analyzer
-      begin
-         Tokenizer.Find_Next (Parser.Analyzer);
-      exception
-      when E : Syntax_Error =>
-         raise Syntax_Error with
-           Int_Image (Line (Parser)) &
-           ":" &
-           Int_Image (Column (Parser) - 1) &
-           " " &
-           Ada.Exceptions.Exception_Message (E);
-      end;
-
-      Seen_Token := new Token.Class'(Token.Class (Tokenizer.Get (Parser.Analyzer)));
-
-      Stack.State := State_Index'First;
+      --  Iter.Verb is the last action a parser took. If it was Shift,
+      --  that parser used the input token, and should not be executed
+      --  again until another input token is available, after all
+      --  parsers have shifted the current token or terminated.
       loop
-         Action := Action_For
-           (Table => Parser.Table,
-            State => Stack.State,
-            ID    => Token.ID (Seen_Token.all));
-
-         if Trace_Parse then
-            declare
-               use type Token.Handle;
-               Stack_I : State_Node_Ptr := Stack;
-            begin
-               for I in 1 .. 10 loop
-                  exit when Stack_I = null;
-                  Ada.Text_IO.Put_Line
-                    (State_Index'Image (Stack_I.State) & " : " &
-                       (if Stack_I.Seen_Token = null then ""
-                         else Token.Token_Image (Token.ID (Stack_I.Seen_Token.all))));
-                  Stack_I := Stack_I.Next;
-               end loop;
-            end;
-            Ada.Text_IO.Put
-              (State_Index'Image (Stack.State) & " : " &
-                 Token.Token_Image (Token.ID (Seen_Token.all)) & " : " &
-                 Parse_Action_Verbs'Image (Action.Verb));
-         end if;
-
-         case Action.Verb is
+         case Iter.Verb is
          when Shift =>
-            if Trace_Parse then
-               Ada.Text_IO.New_Line;
-            end if;
-
-            Stack := new State_Node'
-              (State      => Action.State,
-               Seen_Token => Seen_Token,
-               Next       => Stack);
-
-            begin
-               Tokenizer.Find_Next (Parser.Analyzer);
-            exception
-            when E : Syntax_Error =>
-               raise Syntax_Error with
-                 Int_Image (Line (Parser)) &
-                 ":" &
-                 Int_Image (Column (Parser) - 1) &
-                 " " &
-                 Ada.Exceptions.Exception_Message (E);
-            end;
-
-            Seen_Token := new Token.Class'(Token.Class (Tokenizer.Get (Parser.Analyzer)));
+            Shift_Count := Shift_Count + 1;
 
          when Reduce =>
-
-            Reduce_Stack (Stack, Action.LHS, Action.Action, Action.Token_Count);
-
-            Stack.State := Goto_For
-              (Table => Parser.Table,
-               State => Stack.State,
-               ID    => Token.ID (Action.LHS.all));
-
-            if Trace_Parse then
-               Ada.Text_IO.Put_Line
-                 (Integer'Image (Action.Token_Count) & " tokens to " &
-                    Token.Token_Image (Token.ID (Action.LHS.all)) &
-                    ", goto state" & State_Index'Image (Stack.State));
-            end if;
+            return Reduce;
 
          when Accept_It =>
-
-            Reduce_Stack (Stack, Action.LHS, Action.Action, Action.Token_Count);
-
-            if Trace_Parse then
-               Ada.Text_IO.New_Line;
-            end if;
-
-            --  Clean up
-            Token.Free (Stack.Seen_Token);
-            while Stack /= null loop
-               Popped_State := Stack;
-               Stack := Stack.Next;
-               Token.Free (Popped_State.Seen_Token);
-               Free (Popped_State);
-            end loop;
-
-            return;
+            Accept_Count := Accept_Count + 1;
 
          when Error =>
-            if Trace_Parse then
-               Ada.Text_IO.New_Line;
-            end if;
+            Error_Count := Error_Count + 1;
+         end case;
 
-            --  Clean up
+         exit when Iter.Is_Done;
+         Iter.Next;
+      end loop;
+
+      if Parsers.Count = Accept_Count then
+         return Accept_It;
+      elsif Parsers.Count = Error_Count then
+         return Error;
+      elsif Parsers.Count = Shift_Count + Accept_Count + Error_Count then
+         return Shift;
+      else
+         raise Programmer_Error;
+      end if;
+   end Parse_Verb;
+
+   overriding procedure Parse (Parser : in out Instance)
+   is
+      Parsers        : Parser_Lists.List := Parser_Lists.Initialize;
+      Current_Verb   : Parse_Action_Verbs;
+      Current_Token  : Token.Handle;
+      Current_Parser : Parser_Lists.Iterator;
+      Action         : Parse_Action_Node_Ptr;
+   begin
+
+      loop
+         --  exit on Accept_It action or syntax error.
+
+         Current_Verb := Parse_Verb (Parsers);
+
+         case Current_Verb is
+         when Shift =>
+            Tokenizer.Find_Next (Parser.Analyzer);
+            Current_Token := new Token.Class'(Token.Class (Tokenizer.Get (Parser.Analyzer)));
+
+         when Accept_It =>
+            --  Done. FIXME: free everything
+            return;
+
+         when Reduce =>
+            null;
+
+         when Error =>
+            --  All parsers errored; report errors
             declare
-               ID     : constant String := Token.Name (Seen_Token.all);
-               Lexeme : constant String := Tokenizer.Lexeme (Parser.Analyzer);
+               ID     : constant String := Token.Name (Current_Token.all);
+               Lexeme : constant String := Parser.Analyzer.Lexeme;
 
-               Expecting_Tokens : constant Token_Array := Expecting (Parser.Table, Stack.State);
+               --  FIXME: merge expecting from all active parsers
+               Expecting_Tokens : constant Token_Array := Expecting (Parser.Table, Parsers.First.Peek.State);
             begin
-
-               Token.Free (Stack.Seen_Token);
-               while Stack /= null loop
-                  Popped_State := Stack;
-                  Stack := Stack.Next;
-                  Token.Free (Popped_State.Seen_Token);
-                  Free (Popped_State);
-               end loop;
-
+               --  FIXME: free everything
                raise Syntax_Error with
-                 Int_Image (Line (Parser)) &
+                 Int_Image (Parser.Analyzer.Line) &
                  ":" &
-                 Int_Image (Column (Parser) - 1) &
+                 Int_Image (Parser.Analyzer.Column) &
                  ": Syntax error; expecting " &
                  Names (Parser.Analyzer, Expecting_Tokens) &
                  "; found " &
@@ -326,25 +346,49 @@ package body OpenToken.Production.Parser.LALR.Parser is
                  Lexeme &
                  "'";
             end;
+
          end case;
+
+         Current_Parser := Parser_Lists.First (Parsers);
+         loop
+            --  All parsers reduce as much as possible, then shift
+            --  Current_Token, then wait until all parsers have
+            --  shifted it.
+
+            if Current_Verb = Shift and Current_Parser.Verb = Error then
+               Parsers.Free (Current_Parser);
+
+            elsif Current_Parser.Verb = Current_Verb  then
+
+               Action := Action_For
+                 (Table => Parser.Table.all,
+                  State => Current_Parser.Peek.State,
+                  ID    => Token.ID (Current_Token.all));
+
+               Do_Action (Action.Item, Current_Parser, Current_Token, Parser.Table.all);
+
+               if Action.Next /= null then
+                  --  conflict; spawn a new parser
+                  if Parsers.Count = Parser.Max_Parallel then
+                     raise Parse_Error with "too many parallel parsers required in grammar state" &
+                       State_Index'Image (Current_Parser.Peek.State) &
+                       "; simplify grammar, or increase max-parallel (" &
+                       Integer'Image (Parser.Max_Parallel) & ")";
+
+                  else
+                     Parsers.Prepend_Copy (Current_Parser);
+                     if Trace_Parse then
+                        Ada.Text_IO.Put_Line ("spawn parser (" & Int_Image (Parsers.Count) & " active)");
+                     end if;
+                     Do_Action (Action.Next.Item, Parsers.First, Current_Token, Parser.Table.all);
+                  end if;
+               end if;
+            end if;
+
+            Current_Parser.Next;
+         end loop;
 
       end loop;
    end Parse;
-
-   function Initialize
-     (Table    : in Parse_Table_Ptr;
-      Analyzer : in Tokenizer.Instance)
-     return Instance
-   is begin
-      return (Analyzer, Table);
-   end Initialize;
-
-   function Int_Image (Item : in Integer) return String
-   is
-      use Ada.Strings;
-      use Ada.Strings.Fixed;
-   begin
-      return Trim (Integer'Image (Item), Both);
-   end Int_Image;
 
 end OpenToken.Production.Parser.LALR.Parser;

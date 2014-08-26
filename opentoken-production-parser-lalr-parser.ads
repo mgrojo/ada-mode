@@ -31,17 +31,10 @@ generic
 package OpenToken.Production.Parser.LALR.Parser is
 
    type Instance is new OpenToken.Production.Parser.Instance with record
-      Table : Parse_Table_Ptr;
+      Table        : Parse_Table_Ptr;
+      Max_Parallel : Integer := 15;
    end record;
 
-   function Initialize
-     (Table    : in Parse_Table_Ptr;
-      Analyzer : in Tokenizer.Instance)
-     return Instance;
-
    overriding procedure Parse (Parser : in out Instance);
-
-   function Int_Image (Item : in Integer) return String;
-   --  Used in Parser error messages; no leading space
 
 end OpenToken.Production.Parser.LALR.Parser;

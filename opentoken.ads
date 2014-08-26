@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
---  Copyright (C) 2009, 2010, 2013 Stephe Leake
+--  Copyright (C) 2009, 2010, 2013, 2014 Stephe Leake
 --  Copyright (C) 1999 FlightSafety International and Ted Dennison
 --
 --  This file is part of the OpenToken package.
@@ -72,6 +72,9 @@ package OpenToken is
 
    --  Put Message, indented by 3 * Trace_Indent; no new_line
    procedure Trace_Put (Message : in String);
+
+   function Int_Image (Item : in Integer) return String;
+   --  No leading space
 
 private
    Trace_Indent : Integer := 0;

@@ -19,7 +19,6 @@
 
 pragma License (GPL);
 with OpenToken.Production.List.Print;
-with OpenToken.Production.Parser.LALR.Parser;
 with OpenToken.Production.Parser.LALR.Generator;
 with OpenToken.Production.Print;
 with OpenToken.Token.Enumerated.Analyzer;
@@ -76,7 +75,6 @@ package Wisi.Gen_Generate_Utils is
    package Production_Lists is new Productions.List;
    package Parsers is new Productions.Parser (Production_Lists, Analyzers);
    package LALRs is new Parsers.LALR (First_State_Index);
-   package LALR_Parsers is new LALRs.Parser;
    package LALR_Generators is new LALRs.Generator;
 
    procedure Print_Action (Item : in Nonterminals.Synthesize) is null;
@@ -99,7 +97,7 @@ package Wisi.Gen_Generate_Utils is
    --  Put Text indented to Indent to Current_Output, with newline.
 
    function State_Image (Item : in LALRs.State_Index) return String;
-   function Int_Image (Item : in Integer) return String renames LALR_Parsers.Int_Image;
+   function Int_Image (Item : in Integer) return String renames OpenToken.Int_Image;
    --  no leading space
 
 end Wisi.Gen_Generate_Utils;

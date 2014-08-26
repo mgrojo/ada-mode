@@ -110,36 +110,6 @@ package body OpenToken.Production.Parser.LALR.Generator is
 
    end Print_Propagations;
 
-   function Image (Item : in Parse_Action_Rec) return String
-   is begin
-      case Item.Verb is
-      when Shift =>
-         return Parse_Action_Verbs'Image (Item.Verb) & State_Index'Image (Item.State);
-      when Reduce | Accept_It =>
-         return Parse_Action_Verbs'Image (Item.Verb) & " " & Token.Token_Image (Token.ID (Item.LHS.all));
-      when Error =>
-         return Parse_Action_Verbs'Image (Item.Verb);
-      end case;
-   end Image;
-
-   procedure Put (Item : in Parse_Action_Rec)
-   is
-      use Ada.Text_IO;
-   begin
-      case Item.Verb is
-      when Shift =>
-         Put ("shift and goto state" & State_Index'Image (Item.State));
-
-      when Reduce =>
-         Put
-           ("reduce" & Integer'Image (Item.Token_Count) & " tokens to " & Token.Token_Image (Token.ID (Item.LHS.all)));
-      when Accept_It =>
-         Put ("accept it");
-      when Error =>
-         Put ("ERROR");
-      end case;
-   end Put;
-
    function Image (Item : in Conflict) return String
    is begin
       return
@@ -602,7 +572,13 @@ package body OpenToken.Production.Parser.LALR.Generator is
          Current := Current.Next.all;
       end loop;
 
-      Ada.Text_IO.Put_Line ("item for " & Image (Action) & ", " & Token.Token_Image (Lookahead) & " not found in");
+      Ada.Text_IO.Put_Line
+        ("item for " & Parse_Action_Verbs'Image (Action.Verb) &
+           (case Action.Verb is
+            when Shift => State_Index'Image (Action.State),
+            when Reduce => " " & Token.Token_Image (Token.ID (Action.LHS.all)),
+            when others => "") & ", " &
+           Token.Token_Image (Lookahead) & " not found in");
       LRk.Put (Closure);
       raise Programmer_Error;
    end Find;

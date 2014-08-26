@@ -619,7 +619,8 @@ begin
       end Gotos;
    end loop;
    New_Line;
-   Indent_Line ("return (Analyzers.Initialize (Syntax, null), Table);");
+   --  FIXME: get Max_Parallel from some command line
+   Indent_Line ("return (Analyzers.Initialize (Syntax, null), Table, Max_Parallel => 15);");
    Indent := Indent - 3;
    Indent_Line ("end Create_Parser;");
    Put_Line ("end " & Package_Name & ";");

@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
---  Copyright (C) 2002, 2003, 2009, 2012, 2013 Stephe Leake
+--  Copyright (C) 2002, 2003, 2009, 2012 - 2014 Stephe Leake
 --  Copyright (C) 1999 FlightSafety International and Ted Dennison
 --
 --  This file is part of the OpenToken package.
@@ -203,9 +203,9 @@ package OpenToken.Token.Enumerated.Analyzer is
    --  sequence of characters before failing. Ties go to the token
    --  with the smallest Terminal_Id.
    --
-   --  Raises Syntax_Error if no token could be found (unless there is
-   --  a default token defined).
-   --------------------------------------------------------------------------
+   --  Raises Syntax_Error with an appropriate message if no token
+   --  could be found and there is no default token.
+   --  ------------------------------------------------------------------------
    overriding procedure Find_Next
      (Analyzer   : in out Instance;
       Look_Ahead : in     Boolean := False);

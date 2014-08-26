@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
---  Copyright (C) 2002, 2003, 2009, 2012, 2013 Stephe Leake
+--  Copyright (C) 2002, 2003, 2009, 2012 - 2014 Stephe Leake
 --  Copyright (C) 1999, 2000 FlightSafety International and Ted Dennison
 --
 --  This file is part of the OpenToken package.
@@ -32,6 +32,7 @@
 --
 -------------------------------------------------------------------------------
 
+with Ada.Exceptions;
 with Ada.Strings.Fixed;
 with Ada.Text_IO;
 with Ada.Unchecked_Deallocation;
@@ -683,6 +684,14 @@ package body OpenToken.Token.Enumerated.Analyzer is
             Analyzer.Lookahead_Count := Analyzer.Lookahead_Count - 1;
          end if;
       end if;
+   exception
+   when E : Syntax_Error =>
+      raise Syntax_Error with
+        Int_Image (Line (Analyzer)) &
+        ":" &
+        Int_Image (Column (Analyzer) - 1) &
+        " " &
+        Ada.Exceptions.Exception_Message (E);
    end Find_Next;
 
    overriding function Mark_Push_Back (Analyzer : in Instance) return Token.Queue_Mark'Class

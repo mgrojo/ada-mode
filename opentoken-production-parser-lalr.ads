@@ -130,4 +130,9 @@ package OpenToken.Production.Parser.LALR is
 
    package Conflict_Lists is new Ada.Containers.Doubly_Linked_Lists (Conflict);
 
+   ----------
+   --  Useful text output
+
+   procedure Put (Item : in Parse_Action_Rec);
+
 end OpenToken.Production.Parser.LALR;
