@@ -1,2 +1,3 @@
+build/Makefile
 build/wisi/Makefile
 test/Example_4/hello_pkg.adb
