@@ -7,6 +7,10 @@ Please send Emacs Ada mode bug reports to bug-gnu-emacs@gnu.org, with
 'ada-mode' in the subject. If possible, use M-x report-emacs-bug.
 
 
+* Ada mode 5.1.6
+
+** fix ada-format-paramlist to handle 'aliased' keyword (new in Ada 2012)
+
 * Ada mode 5.1.5
 12 Jul 2014
 

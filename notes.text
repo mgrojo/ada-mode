@@ -27,7 +27,7 @@ run test from emacs -Q using source:
   (load "run-indent-test-wisi")
   (setq wisi-debug 1)
   (setq default-directory "/Projects/org.emacs.ada-mode/build/wisi/")
-  (run-test "../../test/ada_mode-parens.ads")
+  (run-test "../../test/ada_mode-conditional_expressions.adb")
   (ada-wisi-debug-keys))
 
 install packages in -Q:

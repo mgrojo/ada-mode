@@ -211,7 +211,7 @@
 %conflict SHIFT/REDUCE in state formal_derived_type_definition, formal_derived_type_definition on token WITH
 %conflict SHIFT/REDUCE in state label_opt, label_opt on token IDENTIFIER
 %conflict SHIFT/REDUCE in state name, discrete_subtype_definition on token RIGHT_PAREN
-%conflict SHIFT/REDUCE in state null_exclusion_opt, aliased_opt on token NOT
+%conflict SHIFT/REDUCE in state null_exclusion_opt, mode_opt on token NOT
 
 %%
 ;;;; grammar rules
@@ -1639,8 +1639,8 @@ parameter_profile_opt
 parameter_specification
   : identifier_list COLON aliased_opt mode_opt null_exclusion_opt name COLON_EQUAL expression
   | identifier_list COLON aliased_opt mode_opt null_exclusion_opt name
-  | identifier_list COLON access_definition COLON_EQUAL expression
-  | identifier_list COLON access_definition
+  | identifier_list COLON aliased_opt access_definition COLON_EQUAL expression
+  | identifier_list COLON aliased_opt access_definition
   ;
 
 parameter_specification_list

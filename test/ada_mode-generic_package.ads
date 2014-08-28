@@ -80,7 +80,7 @@ generic
    --EMACSCMD:(test-face "function" font-lock-keyword-face)
    --EMACSCMD:(test-face "Concrete_Function_1" font-lock-function-name-face)
    --EMACSCMD:(test-face "return" font-lock-keyword-face)
-   --EMACSCMD:(test-face "Float" font-lock-type-face)
+   -- "Float" is _not_ font-lock-type-face, because that requires parsing, which we don't do just for font-lock
    --EMACSCMD:(test-face "is" font-lock-keyword-face)
    with function Concrete_Function_1 return Float is <>;
    with function Concrete_Function_2 return Float

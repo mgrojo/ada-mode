@@ -1,7 +1,9 @@
 --  Let the body compile
 package Format_Paramlist is
 
-   type Z is tagged null record;
+   type Z is tagged record
+      Z_Int : Integer;
+   end record;
 
    Default_Z : constant Z := (others => <>);
 

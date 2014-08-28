@@ -1325,6 +1325,7 @@ Also return cache at start."
   (let (token
 	text
 	identifiers
+	(aliased-p nil)
 	(in-p nil)
 	(out-p nil)
 	(not-null-p nil)
@@ -1351,10 +1352,11 @@ Also return cache at start."
 	(skip-syntax-forward " ")
 	(setq type-begin (point))
 	(save-excursion
-	  (while (member (car (wisi-forward-token)) '(IN OUT NOT NULL ACCESS CONSTANT PROTECTED))
+	  (while (member (car (wisi-forward-token)) '(ALIASED IN OUT NOT NULL ACCESS CONSTANT PROTECTED))
 	    (skip-syntax-forward " ")
 	    (setq type-begin (point)))))
 
+       ((equal token 'ALIASED) (setq aliased-p t))
        ((equal token 'IN) (setq in-p t))
        ((equal token 'OUT) (setq out-p t))
        ((and (not type-end)
@@ -1386,12 +1388,13 @@ Also return cache at start."
 
 	(setq type (buffer-substring-no-properties type-begin type-end))
 	(setq param (list (reverse identifiers)
-			  in-p out-p not-null-p access-p constant-p protected-p
+			  aliased-p in-p out-p not-null-p access-p constant-p protected-p
 			  type default))
 	(if paramlist
 	    (add-to-list 'paramlist param)
 	  (setq paramlist (list param)))
 	(setq identifiers nil
+	      aliased-p nil
 	      in-p nil
 	      out-p nil
 	      not-null-p nil

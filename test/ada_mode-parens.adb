@@ -345,7 +345,7 @@ package body Ada_Mode.Parens is
    end;
 
    --EMACSCMD:(progn (forward-line 4)(forward-word 2)(insert "    ")(ada-align))
-   -- default at end of list
+   -- default at end of list, only 'in'
    procedure Param_Format_8
      (Grammar           : in String;
       Analyzer          : in String;

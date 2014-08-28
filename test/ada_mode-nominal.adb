@@ -75,7 +75,7 @@ package body Ada_Mode.Nominal is -- target 0
       --EMACSCMD:(ada-which-function)
       --EMACSRESULT:"Protected_1"
 
-      --EMACSCMD:(test-face "Integer" font-lock-type-face)
+      --  "Integer" is not font-lock-type-face; not parsing for just font-lock
       function F1 return Integer is
          -- some people like 'is' on the line with 'function' here
 
