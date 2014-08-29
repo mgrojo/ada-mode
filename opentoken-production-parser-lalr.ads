@@ -133,6 +133,9 @@ package OpenToken.Production.Parser.LALR is
    ----------
    --  Useful text output
 
+   function State_Image (Item : in State_Index) return String;
+   --  no leading space
+
    procedure Put (Item : in Parse_Action_Rec);
 
 end OpenToken.Production.Parser.LALR;

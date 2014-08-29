@@ -1,0 +1,140 @@
+-------------------------------------------------------------------------------
+--
+--  Copyright (C) 2014 Stephen Leake
+--
+--  This file is part of the OpenToken package.
+--
+--  The OpenToken package is free software; you can redistribute it
+--  and/or modify it under the terms of the GNU General Public License
+--  as published by the Free Software Foundation; either version 3, or
+--  (at your option) any later version. The OpenToken package is
+--  distributed in the hope that it will be useful, but WITHOUT ANY
+--  WARRANTY; without even the implied warranty of MERCHANTABILITY or
+--  FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public
+--  License for more details. You should have received a copy of the
+--  GNU General Public License distributed with the OpenToken package;
+--  see file GPL.txt. If not, write to the Free Software Foundation,
+--  59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+
+pragma License (GPL);
+
+with AUnit.Check;
+with OpenToken.Production.List;
+with OpenToken.Production.Parser.LALR.Parser;
+with OpenToken.Token.Enumerated.Analyzer;
+with OpenToken.Token.Enumerated.List;
+with OpenToken.Token.Enumerated.Nonterminal;
+package body Parser_Lists_Test is
+
+--  we need an instantiation of OpenToken.Production.Parser.LALR.Parser to test
+
+   type Token_ID is (If_ID, Then_ID, Else_ID, End_ID, EOF_ID, Statement_ID);
+
+   Token_Image_Width : constant Integer := Token_ID'Width;
+   package Token is new OpenToken.Token.Enumerated (Token_ID, Token_ID'Image, Token_Image_Width);
+   package Token_List is new Token.List;
+   package Nonterminal is new Token.Nonterminal (Token_List);
+   package Production is new OpenToken.Production (Token, Token_List, Nonterminal);
+   package Production_List is new Production.List;
+   package Tokenizer is new Token.Analyzer (First_Terminal => If_ID, Last_Terminal => EOF_ID);
+   package Parser is new Production.Parser (Production_List, Tokenizer);
+   package LALRs is new Parser.LALR (First_State_Index => 1);
+   package LALR_Parser is new LALRs.Parser;
+
+   --  FIXME: duplicates gen_opentoken_aunit.ads
+   procedure Check is new AUnit.Check.Gen_Check_Discrete (LALRs.Parse_Action_Verbs);
+   procedure Check is new AUnit.Check.Gen_Check_Discrete (LALRs.Unknown_State_Index);
+   --  end FIXME:
+
+   procedure Check is new AUnit.Check.Gen_Check_Access (Token.Class, Token.Handle);
+
+   procedure Check
+     (Label    : in String;
+      Computed : in LALR_Parser.Parser_Lists.Stack_Item;
+      Expected : in LALR_Parser.Parser_Lists.Stack_Item)
+   is
+   begin
+      Check (Label & ".State", Computed.State, Expected.State);
+      Check (Label & ".Token", Computed.Token, Expected.Token);
+   end Check;
+   ----------
+   --  Test procedures
+
+   procedure Init (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+      use LALRs;
+      use LALR_Parser.Parser_Lists;
+      use AUnit.Check;
+
+      Parsers : List := Initialize;
+      Cursor  : constant LALR_Parser.Parser_Lists.Cursor := Parsers.First;
+   begin
+      Check ("1: Count", Parsers.Count, 1);
+      Check ("1: Is_Done", Cursor.Is_Done, False);
+      Check ("1: Label", Cursor.Label, 1);
+      Check ("1: Verb", Cursor.Verb, Shift);
+      Check ("1: Stack_Empty", Cursor.Stack_Empty, False);
+      Check ("1: Peek.State", Cursor.Peek.State, State_Index'First);
+      Check ("1: Peek.Token", Cursor.Peek.Token, null);
+      Check ("1: Action_Tokens_Empty", Cursor.Action_Tokens_Empty, True);
+   end Init;
+
+   procedure Stack (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+      use LALRs;
+      use LALR_Parser.Parser_Lists;
+      use AUnit.Check;
+
+      Parsers : List := Initialize;
+      Cursor  : constant LALR_Parser.Parser_Lists.Cursor := Parsers.First;
+
+      Item_1 : constant Stack_Item := (2, new Token.Class'(Token.Get (If_ID)));
+      Item_2 : constant Stack_Item := (3, new Token.Class'(Token.Get (Then_ID)));
+   begin
+      Check ("1: Pop", Cursor.Pop, (State_Index'First, null));
+      Check ("1: Stack_Empty", Cursor.Stack_Empty, True);
+      Check ("1: Stack_Free_Count", Parsers.Stack_Free_Count, 1);
+
+      Cursor.Push (Item_1);
+      Check ("2a: Stack_Free_Count", Parsers.Stack_Free_Count, 0);
+      Check ("2a: Stack_Empty", Cursor.Stack_Empty, False);
+      Check ("2: Pop", Cursor.Pop, Item_1);
+      Check ("2b: Stack_Free_Count", Parsers.Stack_Free_Count, 1);
+      Check ("2b: Stack_Empty", Cursor.Stack_Empty, True);
+
+      Cursor.Push (Item_1);
+      Cursor.Push (Item_2);
+      Check ("3a: Stack_Free_Count", Parsers.Stack_Free_Count, 0);
+      Check ("3a: Stack_Empty", Cursor.Stack_Empty, False);
+      Check ("3b: Pop", Cursor.Pop, Item_2);
+      Check ("3b: Peek.State", Cursor.Peek.State, Item_1.State);
+      Check ("3b: Stack_Free_Count", Parsers.Stack_Free_Count, 1);
+      Check ("3b: Stack_Empty", Cursor.Stack_Empty, False);
+
+      Check ("3c: Pop", Cursor.Pop, Item_1);
+      Check ("3c: Stack_Free_Count", Parsers.Stack_Free_Count, 2);
+      Check ("3c: Stack_Empty", Cursor.Stack_Empty, True);
+   end Stack;
+
+   ----------
+   --  Public subprograms
+
+   overriding function Name (T : Test_Case) return AUnit.Message_String
+   is
+      pragma Unreferenced (T);
+   begin
+      return new String'("../../Test/parser_lists_test.adb");
+   end Name;
+
+   overriding procedure Register_Tests (T : in out Test_Case)
+   is
+      use AUnit.Test_Cases.Registration;
+   begin
+      Register_Routine (T, Init'Access, "Init");
+      Register_Routine (T, Stack'Access, "Stack");
+      --  FIXME: test pending actions
+   end Register_Tests;
+
+end Parser_Lists_Test;

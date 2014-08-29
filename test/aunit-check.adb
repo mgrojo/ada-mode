@@ -39,6 +39,16 @@ package body AUnit.Check is
          Label & " got " & Item_Type'Image (Computed) & " expecting " & Item_Type'Image (Expected));
    end Gen_Check_Discrete;
 
+   procedure Gen_Check_Access
+     (Label    : in String;
+      Computed : in Item_Access_Type;
+      Expected : in Item_Access_Type)
+   is begin
+      Standard.AUnit.Assertions.Assert
+        (Computed = Expected,
+         Label & " access values mismatch");
+   end Gen_Check_Access;
+
    procedure Check
      (Label    : in String;
       Computed : in Boolean;

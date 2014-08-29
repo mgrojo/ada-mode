@@ -1,8 +1,9 @@
 with Ada.Command_Line;
 with Ada.Exceptions;
 with Ada.Text_IO;      use Ada.Text_IO;
-with OpenToken.Text_Feeder.Text_IO;
 with Empty_Production_2; use Empty_Production_2;
+with GNAT.Traceback.Symbolic;
+with OpenToken.Text_Feeder.Text_IO;
 procedure Empty_Production_2_Run
 is
    procedure Put_Usage
@@ -59,11 +60,10 @@ begin
    LALR_Parsers.Set_Text_Feeder (Parser, OpenToken.Text_Feeder.Text_IO.Create (Current_Input));
    LALR_Parsers.Parse (Parser);
 exception
-when E : others =>
-   if Is_Open (File) then
-      Put_Line (Count'Image (Line (File)) & ": " & Ada.Exceptions.Exception_Message (E));
-   else
-      Put_Line (Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E));
-   end if;
+when E : Parse_Error =>
+   Put_Line (Ada.Exceptions.Exception_Message (E));
 
+when E : others =>
+   Put_Line (Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E));
+   Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
 end Empty_Production_2_Run;

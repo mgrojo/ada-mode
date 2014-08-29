@@ -10,6 +10,9 @@
 ;; shift to start the nested declaration (as in 2), reduce to the
 ;; empty declaration. Both are correct according to the grammar; this
 ;; is reported as shift/reduce conflicts.
+;;
+;; In the actual parse, an infinite number of parsers are spawned,
+;; terminating when the parallel parse limit is reached.
 
 %{
 (require 'wisi)

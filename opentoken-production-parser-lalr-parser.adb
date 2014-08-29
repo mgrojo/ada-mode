@@ -24,73 +24,10 @@
 
 pragma License (Modified_GPL);
 
-with Ada.Text_IO;
 with Ada.Strings.Unbounded;
+with Ada.Text_IO;
 package body OpenToken.Production.Parser.LALR.Parser is
 
-   package Parser_Lists is
-
-      type List is tagged private;
-
-      function Initialize return List;
-
-      function Count (List : in Parser_Lists.List) return Integer;
-
-      type Iterator is tagged private;
-
-      function First (List : in Parser_Lists.List'Class) return Iterator;
-      procedure Next (Iter : in out Iterator);
-      function Is_Done (Iter : in Iterator) return Boolean;
-
-      procedure Set_Verb (Iter : in Iterator; Verb : in Parse_Action_Verbs);
-      function Verb (Iter : in Iterator) return Parse_Action_Verbs;
-
-      type Stack_Item is record
-         State : Unknown_State_Index;
-         Token : OpenToken.Production.Token.Handle;
-      end record;
-
-      function Peek (Iter : in Iterator) return Stack_Item;
-      function Pop (Iter : in Iterator) return Stack_Item;
-      procedure Push (Iter : in Iterator; Item : in Stack_Item);
-
-      procedure Put_Top_10 (Iter : in Iterator);
-      --  Put image of top 10 stack items to Current_Output.
-
-      type Action_Token is record
-         Action      : Nonterminal.Synthesize;
-         Token_Count : Integer;
-         Tokens      : Token_List.Instance;
-      end record;
-
-      procedure Append (Iter : in Iterator; Item : in Action_Token);
-      function Pop (Iter : in Iterator) return Action_Token;
-      function Action_Tokens_Empty (Iter : in Iterator) return Boolean;
-
-      procedure Prepend_Copy (List : in out Parser_Lists.List; Iter : in Iterator'Class);
-      --  Copy parser at Iter, add to current list. New copy will not
-      --  appear in Iter.Next ...; it is accessible as First (List).
-
-      procedure Free (List : in out Parser_Lists.List; Iter : in Iterator'Class);
-      --  Move Iter to the internal free list, free its stack; it will
-      --  not appear in future iterations.
-
-   private
-
-      type Parser_State;
-      type Parser_State_Access is access Parser_State;
-
-      type Iterator is tagged record
-         Ptr : Parser_State_Access;
-      end record;
-
-      type List is tagged record
-         Head  : Parser_State_Access;
-         Free  : Parser_State_Access;
-         Count : Integer;
-      end record;
-
-   end Parser_Lists;
    package body Parser_Lists is separate;
 
    --  Return the action for the given state index and terminal ID.
@@ -173,7 +110,7 @@ package body OpenToken.Production.Parser.LALR.Parser is
    end Names;
 
    procedure Reduce_Stack
-     (Current_Parser : in Parser_Lists.Iterator;
+     (Current_Parser : in Parser_Lists.Cursor;
       New_Token      : in Nonterminal.Handle;
       Action         : in Nonterminal.Synthesize;
       Token_Count    : in Natural)
@@ -200,16 +137,18 @@ package body OpenToken.Production.Parser.LALR.Parser is
 
    procedure Do_Action
      (Action         : in Parse_Action_Rec;
-      Current_Parser : in Parser_Lists.Iterator;
+      Current_Parser : in Parser_Lists.Cursor;
       Current_Token  : in Token.Handle;
       Table          : in Parse_Table)
    is begin
 
       if Trace_Parse then
          Parser_Lists.Put_Top_10 (Current_Parser);
-         Ada.Text_IO.Put (Token.Token_Image (Token.ID (Current_Token.all)) & " : ");
+         Ada.Text_IO.Put
+           (Integer'Image (Current_Parser.Label) & ": " &
+              State_Image (Current_Parser.Peek.State) & ": " &
+              Token.Token_Image (Token.ID (Current_Token.all)) & " : ");
          Put (Action);
-         Ada.Text_IO.New_Line;
       end if;
 
       case Action.Verb is
@@ -228,6 +167,10 @@ package body OpenToken.Production.Parser.LALR.Parser is
                    State => Current_Parser.Peek.State,
                    ID    => Token.ID (Action.LHS.all)),
                 Token    => OpenToken.Production.Token.Handle (New_Token)));
+
+            if Trace_Parse then
+               Ada.Text_IO.Put (", goto state " & State_Image (Current_Parser.Peek.State));
+            end if;
          end;
 
       when Accept_It =>
@@ -241,6 +184,10 @@ package body OpenToken.Production.Parser.LALR.Parser is
          null;
 
       end case;
+
+      if Trace_Parse then
+         Ada.Text_IO.New_Line;
+      end if;
 
       Current_Parser.Set_Verb (Action.Verb);
    end Do_Action;
@@ -259,17 +206,17 @@ package body OpenToken.Production.Parser.LALR.Parser is
    --  parse.
    function Parse_Verb (Parsers : in Parser_Lists.List) return Parse_Action_Verbs
    is
-      Iter         : Parser_Lists.Iterator := Parser_Lists.First (Parsers);
-      Shift_Count  : Integer               := 0;
-      Accept_Count : Integer               := 0;
-      Error_Count  : Integer               := 0;
+      Shift_Count  : Integer := 0;
+      Accept_Count : Integer := 0;
+      Error_Count  : Integer := 0;
    begin
-      --  Iter.Verb is the last action a parser took. If it was Shift,
+      --  Cursor.Verb is the last action a parser took. If it was Shift,
       --  that parser used the input token, and should not be executed
       --  again until another input token is available, after all
       --  parsers have shifted the current token or terminated.
-      loop
-         case Iter.Verb is
+      for Cursor in Parsers.Iterate loop
+
+         case Parser_Lists.Verb (Cursor) is
          when Shift =>
             Shift_Count := Shift_Count + 1;
 
@@ -282,9 +229,6 @@ package body OpenToken.Production.Parser.LALR.Parser is
          when Error =>
             Error_Count := Error_Count + 1;
          end case;
-
-         exit when Iter.Is_Done;
-         Iter.Next;
       end loop;
 
       if Parsers.Count = Accept_Count then
@@ -303,7 +247,7 @@ package body OpenToken.Production.Parser.LALR.Parser is
       Parsers        : Parser_Lists.List := Parser_Lists.Initialize;
       Current_Verb   : Parse_Action_Verbs;
       Current_Token  : Token.Handle;
-      Current_Parser : Parser_Lists.Iterator;
+      Current_Parser : Parser_Lists.Cursor;
       Action         : Parse_Action_Node_Ptr;
    begin
 
@@ -351,6 +295,8 @@ package body OpenToken.Production.Parser.LALR.Parser is
 
          Current_Parser := Parser_Lists.First (Parsers);
          loop
+            exit when Current_Parser.Is_Done;
+
             --  All parsers reduce as much as possible, then shift
             --  Current_Token, then wait until all parsers have
             --  shifted it.
@@ -358,14 +304,12 @@ package body OpenToken.Production.Parser.LALR.Parser is
             if Current_Verb = Shift and Current_Parser.Verb = Error then
                Parsers.Free (Current_Parser);
 
-            elsif Current_Parser.Verb = Current_Verb  then
+            elsif Current_Parser.Verb = Current_Verb then
 
                Action := Action_For
                  (Table => Parser.Table.all,
                   State => Current_Parser.Peek.State,
                   ID    => Token.ID (Current_Token.all));
-
-               Do_Action (Action.Item, Current_Parser, Current_Token, Parser.Table.all);
 
                if Action.Next /= null then
                   --  conflict; spawn a new parser
@@ -383,6 +327,8 @@ package body OpenToken.Production.Parser.LALR.Parser is
                      Do_Action (Action.Next.Item, Parsers.First, Current_Token, Parser.Table.all);
                   end if;
                end if;
+
+               Do_Action (Action.Item, Current_Parser, Current_Token, Parser.Table.all);
             end if;
 
             Current_Parser.Next;

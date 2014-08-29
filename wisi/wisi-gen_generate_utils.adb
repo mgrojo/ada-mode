@@ -18,7 +18,6 @@
 
 pragma License (GPL);
 with Ada.Exceptions;
-with Ada.Strings.Fixed;
 with Wisi.Utils;
 package body Wisi.Gen_Generate_Utils is
 
@@ -258,14 +257,6 @@ package body Wisi.Gen_Generate_Utils is
 
       return Grammar;
    end To_Grammar;
-
-   function State_Image (Item : in LALRs.State_Index) return String
-   is
-      use Ada.Strings;
-      use Ada.Strings.Fixed;
-   begin
-      return Trim (LALRs.State_Index'Image (Item), Both);
-   end State_Image;
 
 begin
    if Verbosity > 0 then

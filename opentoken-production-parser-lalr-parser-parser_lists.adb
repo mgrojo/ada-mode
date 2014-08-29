@@ -20,45 +20,29 @@ pragma License (GPL);
 separate (OpenToken.Production.Parser.LALR.Parser)
 package body Parser_Lists is
 
-   type Stack_Node;
-   type Stack_Node_Access is access Stack_Node;
-   type Stack_Node is record
-      Item : Stack_Item;
-      Next : Stack_Node_Access;
-   end record;
-
-   type Stack is record
-      Head : Stack_Node_Access;
-      Free : Stack_Node_Access;
-      --  Popped nodes go on the free list, pushed nodes come from
-      --  the free list.
-   end record;
+   --  FIXME: move to List for unit tests
+   Parser_Label : Integer;
 
    --  FIXME: procedure Free is new Ada.Unchecked_Deallocation (Stack_Node, Stack_Node_Access);
-
-   type Parser_State is record
-      Verb  : Parse_Action_Verbs; -- last action performed
-      Stack : Parser_Lists.Stack;
-      --  Pending_Actions : Action_Token_List; -- FIXME: accumulated actions while parallel parsing
-      Next  : Parser_State_Access;
-   end record;
-
    --  FIXME: procedure Free is new Ada.Unchecked_Deallocation (Parser_State, Parser_State_Access);
 
    function Initialize return List
    is begin
+      Parser_Label := 1;
+
       return
         (Head              => new Parser_State'
-           (Verb           => Parse_Action_Verbs'First,
+           (Label          => Parser_Label,
+            Verb           => Parse_Action_Verbs'First,
             Stack          =>
               (Head        => new Stack_Node'
                  (Item     =>
                     (State => State_Index'First,
                      Token => null),
-                  Next     => null),
-               Free        => null),
+                  Next     => null)),
             Next           => null),
-         Free              => null,
+         Parser_Free       => null,
+         Stack_Free        => null,
          Count             => 1);
 
    end Initialize;
@@ -68,113 +52,139 @@ package body Parser_Lists is
       return List.Count;
    end Count;
 
-   function First (List : in Parser_Lists.List'Class) return Iterator
+   function First (List : aliased in out Parser_Lists.List'Class) return Cursor
    is begin
-      return (Ptr => List.Head);
+      return (List'Access, Ptr => List.Head);
    end First;
 
-   procedure Next (Iter : in out Iterator)
+   procedure Next (Cursor : in out Parser_Lists.Cursor)
    is begin
-      if Iter.Ptr /= null then
-         Iter.Ptr := Iter.Ptr.Next;
+      if Cursor.Ptr /= null then
+         Cursor.Ptr := Cursor.Ptr.Next;
       end if;
    end Next;
 
-   function Is_Done (Iter : in Iterator) return Boolean
+   function Is_Done (Cursor : in Parser_Lists.Cursor) return Boolean
    is begin
-      return Iter.Ptr = null;
+      return Cursor.Ptr = null;
    end Is_Done;
 
-   procedure Set_Verb (Iter : in Iterator; Verb : in Parse_Action_Verbs)
+   function Label (Cursor : in Parser_Lists.Cursor) return Integer
    is begin
-      Iter.Ptr.Verb := Verb;
+      return Cursor.Ptr.Label;
+   end Label;
+
+   procedure Set_Verb (Cursor : in Parser_Lists.Cursor; Verb : in Parse_Action_Verbs)
+   is begin
+      Cursor.Ptr.Verb := Verb;
    end Set_Verb;
 
-   function Verb (Iter : in Iterator) return Parse_Action_Verbs
+   function Verb (Cursor : in Parser_Lists.Cursor) return Parse_Action_Verbs
    is begin
-      return Iter.Ptr.Verb;
+      return Cursor.Ptr.Verb;
    end Verb;
 
-   function Peek (Iter : in Iterator) return Stack_Item
+   function Stack_Empty (Cursor : in Parser_Lists.Cursor) return Boolean
    is begin
-      return Iter.Ptr.Stack.Head.Item;
+      return Cursor.Ptr.Stack.Head = null;
+   end Stack_Empty;
+
+   function Peek (Cursor : in Parser_Lists.Cursor) return Stack_Item
+   is begin
+      return Cursor.Ptr.Stack.Head.Item;
    end Peek;
 
-   function Pop (Iter : in Iterator) return Stack_Item
+   function Pop (Cursor : in Parser_Lists.Cursor) return Stack_Item
    is
-      Result : constant Stack_Item := Iter.Ptr.Stack.Head.Item;
+      Result    : constant Stack_Item        := Cursor.Ptr.Stack.Head.Item;
+      Temp_Free : constant Stack_Node_Access := Cursor.List.Stack_Free;
    begin
-      Iter.Ptr.Stack.Free      := Iter.Ptr.Stack.Head;
-      Iter.Ptr.Stack.Head      := Iter.Ptr.Stack.Head.Next;
-      Iter.Ptr.Stack.Free.Next := Iter.Ptr.Stack.Free;
-      Iter.Ptr.Stack.Free.Item :=
-        (State => Unknown_State,
-         Token => null); -- Token is free'd after being passed to user action
+      Cursor.List.Stack_Free := Cursor.Ptr.Stack.Head;
+      Cursor.Ptr.Stack.Head  := Cursor.Ptr.Stack.Head.Next;
+
+      Cursor.List.Stack_Free.all :=
+        (Item     =>
+           (State => Unknown_State,
+            Token => null), -- Token is free'd after being passed to user action
+         Next     => Temp_Free);
+
       return Result;
    end Pop;
 
-   procedure Push (Iter : in Iterator; Item : in Stack_Item)
+   procedure Push (Cursor : in Parser_Lists.Cursor; Item : in Stack_Item)
    is
-      Temp : constant Stack_Node_Access := Iter.Ptr.Stack.Free;
+      Temp : constant Stack_Node_Access := Cursor.List.Stack_Free;
    begin
       if Temp = null then
-         Iter.Ptr.Stack.Head := new Stack_Node'(Item, Iter.Ptr.Stack.Head);
+         Cursor.Ptr.Stack.Head := new Stack_Node'(Item, Cursor.Ptr.Stack.Head);
       else
-         Iter.Ptr.Stack.Free := Iter.Ptr.Stack.Free.Next;
-         Temp.all            := (Item, Iter.Ptr.Stack.Head);
-         Iter.Ptr.Stack.Head := Temp;
+         Cursor.List.Stack_Free := Cursor.List.Stack_Free.Next;
+         Temp.all               := (Item, Cursor.Ptr.Stack.Head);
+         Cursor.Ptr.Stack.Head  := Temp;
       end if;
    end Push;
 
-   procedure Put_Top_10 (Iter : in Iterator)
+   procedure Put_Top_10 (Cursor : in Parser_Lists.Cursor)
    is
+      use Ada.Text_IO;
       use type Token.Handle;
-      Stack_I : Stack_Node_Access := Iter.Ptr.Stack.Head;
+      Stack_I : Stack_Node_Access := Cursor.Ptr.Stack.Head;
    begin
+      Put (Integer'Image (Cursor.Ptr.Label) & " stack: ");
       for I in 1 .. 10 loop
          exit when Stack_I = null;
-         Ada.Text_IO.Put_Line
+         Ada.Text_IO.Put
            (State_Index'Image (Stack_I.Item.State) & " : " &
               (if Stack_I.Item.Token = null then ""
-               else Token.Token_Image (Token.ID (Stack_I.Item.Token.all))));
+               else Token.Token_Image (Token.ID (Stack_I.Item.Token.all))) &
+              ", ");
          Stack_I := Stack_I.Next;
       end loop;
+      New_Line;
    end Put_Top_10;
 
-   procedure Append (Iter : in Iterator; Item : in Action_Token)
+   procedure Append (Cursor : in Parser_Lists.Cursor; Item : in Action_Token)
    is begin
       null; -- FIXME:
    end Append;
 
-   function Pop (Iter : in Iterator) return Action_Token
+   function Pop (Cursor : in Parser_Lists.Cursor) return Action_Token
    is
-      pragma Unreferenced (Iter);
+      pragma Unreferenced (Cursor);
    begin
       return (null, 0, Token_List.Null_List); -- FIXME:
    end Pop;
 
-   function Action_Tokens_Empty (Iter : in Iterator) return Boolean
+   function Action_Tokens_Empty (Cursor : in Parser_Lists.Cursor) return Boolean
    is
-      pragma Unreferenced (Iter);
+      pragma Unreferenced (Cursor);
    begin
       return True; -- FIXME:
    end Action_Tokens_Empty;
 
-   function Deep_Copy (Stack : in Parser_Lists.Stack) return Parser_Lists.Stack
+   function Deep_Copy (Stack : in Parser_Lists.Stack; Stack_Free : in out Stack_Node_Access) return Parser_Lists.Stack
    is
-      --  Create a copy in Result.Free, in reverse order. Then move to
+      --  Create a copy in Copy, in reverse order. Then move to
       --  Result.Head, in correct order.
       I      : Stack_Node_Access := Stack.Head;
+      Copy   : Stack_Node_Access;
       Temp   : Stack_Node_Access;
       Result : Parser_Lists.Stack;
    begin
       loop
          exit when I = null;
-         Result.Free := new Stack_Node'(I.Item, Result.Free);
-         I           := I.Next;
+         if Stack_Free = null then
+            Copy := new Stack_Node'(I.Item, Copy);
+         else
+            Temp       := Copy;
+            Copy       := Stack_Free;
+            Stack_Free := Stack_Free.Next;
+            Copy.all   := (I.Item, Temp);
+         end if;
+         I := I.Next;
       end loop;
 
-      I := Result.Free;
+      I := Copy;
 
       loop
          exit when I = null;
@@ -184,32 +194,111 @@ package body Parser_Lists is
          I           := Temp;
       end loop;
 
-      Result.Free := null;
       return Result;
    end Deep_Copy;
 
-   procedure Prepend_Copy (List : in out Parser_Lists.List; Iter : in Iterator'Class)
+   procedure Prepend_Copy (List : in out Parser_Lists.List; Cursor : in Parser_Lists.Cursor'Class)
    is
-      Temp : constant Parser_State_Access := List.Free;
+      Temp : constant Parser_State_Access := List.Parser_Free;
    begin
+      Parser_Label := Parser_Label + 1;
+      List.Count   := List.Count + 1;
+
       if Temp = null then
          List.Head := new Parser_State'
-           (Iter.Ptr.Verb,
-            Deep_Copy (Iter.Ptr.Stack),
+           (Parser_Label,
+            Cursor.Ptr.Verb,
+            Deep_Copy (Cursor.Ptr.Stack, List.Stack_Free),
             List.Head);
       else
-         List.Free := List.Free.Next;
+         List.Parser_Free := List.Parser_Free.Next;
          Temp.all  :=
-           (Iter.Ptr.Verb,
-            Deep_Copy (Iter.Ptr.Stack),
+           (Parser_Label,
+            Cursor.Ptr.Verb,
+            Deep_Copy (Cursor.Ptr.Stack, List.Stack_Free),
             List.Head);
          List.Head := Temp;
       end if;
    end Prepend_Copy;
 
-   procedure Free (List : in out Parser_Lists.List; Iter : in Iterator'Class)
+   procedure Free (List : in out Parser_Lists.List; Cursor : in Parser_Lists.Cursor'Class)
    is begin
       null; -- FIXME:
    end Free;
+
+   ----------
+   --  stuff for iterators
+
+   function Constant_Reference
+     (Container : aliased in List'Class;
+      Position  : in Iterator_Cursor)
+     return Constant_Reference_Type
+   is
+      pragma Unreferenced (Container);
+   begin
+      return (Element => Position);
+   end Constant_Reference;
+
+   type List_Access_Constant is access constant List;
+
+   type Iterator is new Iterator_Interfaces.Forward_Iterator with record
+      Container : List_Access_Constant;
+   end record;
+
+   overriding function First (Object : Iterator) return Iterator_Cursor;
+   overriding function Next
+     (Object   : Iterator;
+      Position : Iterator_Cursor)
+     return Iterator_Cursor;
+
+   overriding function First (Object : Iterator) return Iterator_Cursor
+   is begin
+      return Iterator_Cursor (Object.Container.Head);
+   end First;
+
+   overriding function Next
+     (Object   : Iterator;
+      Position : Iterator_Cursor)
+     return Iterator_Cursor
+   is
+      pragma Unreferenced (Object);
+   begin
+      if Position = null then
+         return null;
+      else
+         return Iterator_Cursor (Position.Next);
+      end if;
+   end Next;
+
+   function Has_Element (Cursor : in Iterator_Cursor) return Boolean
+   is begin
+      return Cursor /= null;
+   end Has_Element;
+
+   function Verb (Cursor : in Iterator_Cursor) return Parse_Action_Verbs
+   is begin
+      return Cursor.Verb;
+   end Verb;
+
+   function Iterate (Container : aliased List) return Iterator_Interfaces.Forward_Iterator'Class
+   is begin
+      return Iterator'(Container => Container'Access);
+   end Iterate;
+
+   ----------
+   --  For unit tests
+
+   function Stack_Free_Count (List : in Parser_Lists.List) return Integer
+   is
+      Result : Integer := 0;
+      Node   : Stack_Node_Access := List.Stack_Free;
+   begin
+      loop
+         exit when Node = null;
+         Result := Result + 1;
+         Node   := Node.Next;
+      end loop;
+      return Result;
+   end Stack_Free_Count;
 
 end Parser_Lists;

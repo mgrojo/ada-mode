@@ -25,6 +25,7 @@ with AUnit.Test_Suites; use AUnit.Test_Suites;
 with Analyzer_Lookahead_Test;
 with OpenToken.Recognizer.Bracketed_Comment.Test;
 with OpenToken.Recognizer.CSV_Field.Test;
+with Parser_Lists_Test;
 with Test_Accept_Index;
 with Test_Analyzer_Line_Column;
 with Test_Backtrack;
@@ -57,6 +58,7 @@ begin
    Add_Test (Suite, new Analyzer_Lookahead_Test.Test_Case (Debug => False));
    Add_Test (Suite, new OpenToken.Recognizer.Bracketed_Comment.Test.Test_Case);
    Add_Test (Suite, new OpenToken.Recognizer.CSV_Field.Test.Test_Case);
+   Add_Test (Suite, new Parser_Lists_Test.Test_Case);
    Add_Test (Suite, new Test_Accept_Index.Test_Case (Debug => False));
    Add_Test (Suite, new Test_Analyzer_Line_Column.Test_Case);
    Add_Test (Suite, new Test_Backtrack.Test_Case (Debug => False));

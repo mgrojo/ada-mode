@@ -96,8 +96,4 @@ package Wisi.Gen_Generate_Utils is
    procedure Indent_Line (Text : in String);
    --  Put Text indented to Indent to Current_Output, with newline.
 
-   function State_Image (Item : in LALRs.State_Index) return String;
-   function Int_Image (Item : in Integer) return String renames OpenToken.Int_Image;
-   --  no leading space
-
 end Wisi.Gen_Generate_Utils;

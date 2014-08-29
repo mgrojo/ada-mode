@@ -239,7 +239,7 @@ begin
    Indent_Line ("package Parsers is new Productions.Parser (Production_Lists, Analyzers);");
    Indent_Line
      ("package LALRs is new Parsers.LALR (First_State_Index => " &
-        Int_Image (First_State_Index) & ");");
+        OpenToken.Int_Image (First_State_Index) & ");");
    Indent_Line ("package LALR_Generators is new LALRs.Generator;");
    Indent_Line ("package LALR_Parsers is new LALRs.Parser;");
    New_Line;
@@ -361,7 +361,7 @@ begin
             for RHS of Rule.Right_Hand_Sides loop
                if RHS.Action.Length > 0 then
                   declare
-                     Name : constant String := -Rule.Left_Hand_Side & '_' & Int_Image (Index);
+                     Name : constant String := -Rule.Left_Hand_Side & '_' & OpenToken.Int_Image (Index);
                   begin
                      Action_Names (LHS_ID) (Index) := new String'(Name & "'Access");
 
@@ -457,7 +457,7 @@ begin
       Indent_Line ("   LHS      : constant Nonterminal.Handle := new Nonterminal.Class'(Nonterminal.Get (LHS_ID));");
       Indent_Line
         ("   Action_2 : constant Parse_Action_Rec := " &
-           "(Accept_It, LHS, Synthesize, 0, RHS_Token_Count);");
+           "(Reduce, LHS, Synthesize, 0, RHS_Token_Count);");
       Indent_Line ("begin");
       Indent := Indent + 3;
       Indent_Line ("State.Action_List := new Action_Node'");
@@ -541,7 +541,7 @@ begin
    Indent_Line ("use Productions;");
    Indent_Line
      ("Table : constant Parse_Table_Ptr := new Parse_Table (" &
-        State_Image (Parser'First) & " .. " & State_Image (Parser'Last) & ");");
+        LALRs.State_Image (Parser'First) & " .. " & LALRs.State_Image (Parser'Last) & ");");
    Indent := Indent - 3;
    Indent_Line ("begin");
    Indent := Indent + 3;
