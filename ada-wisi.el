@@ -1178,6 +1178,39 @@ cached token, return new indentation for point."
       (cons begin end)
     )))
 
+(defun ada-wisi-on-context-clause ()
+  "For `ada-on-context-clause'."
+
+  (save-excursion
+    (memq (wisi-cache-nonterm (wisi-goto-statement-start)) '(use_clause with_clause))))
+
+(defun ada-wisi-goto-subunit-name ()
+  "For `ada-goto-subunit-name'."
+
+  (let ((end nil)
+	cache
+	(name-pos nil))
+    (save-excursion
+      ;; move to top declaration
+      (goto-char (point-min))
+      (while (not end)
+	(setq cache (wisi-forward-cache))
+	(cl-case (wisi-cache-nonterm cache)
+	  (pragma nil)
+	  (use_clause nil)
+	  (with_clause nil)
+	  (t
+	   ;; start of compilation unit
+	   (setq end t))
+	  ))
+      (when (eq (wisi-cache-nonterm cache) 'subunit)
+	(wisi-forward-find-token 'name (point-max))
+	(setq name-pos (point)))
+      )
+    (when name-pos
+      (goto-char name-pos))
+    ))
+
 (defun ada-wisi-goto-declaration-start ()
   "For `ada-goto-declaration-start', which see.
 Also return cache at start."
@@ -1546,14 +1579,16 @@ Also return cache at start."
 (add-hook 'ada-mode-hook 'ada-wisi-setup)
 
 (setq ada-fix-context-clause 'ada-wisi-context-clause)
-(setq ada-goto-declaration-start 'ada-wisi-goto-declaration-start)
 (setq ada-goto-declaration-end 'ada-wisi-goto-declaration-end)
+(setq ada-goto-declaration-start 'ada-wisi-goto-declaration-start)
 (setq ada-goto-declarative-region-start 'ada-wisi-goto-declarative-region-start)
 (setq ada-goto-end 'wisi-goto-statement-end)
+(setq ada-goto-subunit-name 'ada-wisi-goto-subunit-name)
 (setq ada-in-paramlist-p 'ada-wisi-in-paramlist-p)
 (setq ada-indent-statement 'wisi-indent-statement)
 (setq ada-make-subprogram-body 'ada-wisi-make-subprogram-body)
 (setq ada-next-statement-keyword 'wisi-forward-statement-keyword)
+(setq ada-on-context-clause 'ada-wisi-on-context-clause)
 (setq ada-prev-statement-keyword 'wisi-backward-statement-keyword)
 (setq ada-reset-parser 'wisi-invalidate-cache)
 (setq ada-scan-paramlist 'ada-wisi-scan-paramlist)
