@@ -1572,7 +1572,8 @@
       (subunit
        ((SEPARATE LEFT_PAREN name RIGHT_PAREN proper_body )
         (progn
-        (wisi-statement-action 2 'open-paren 4 'close-paren)
+        (wisi-statement-action 1 'block-start 2 'open-paren 4 'close-paren 5 'block-middle)
+        (wisi-containing-action 1 5)
         (wisi-containing-action 2 3))))
       (task_body
        ((TASK BODY IDENTIFIER aspect_specification_opt IS declarative_part_opt BEGIN handled_sequence_of_statements END identifier_opt SEMICOLON )

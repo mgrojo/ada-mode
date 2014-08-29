@@ -1825,6 +1825,7 @@ unit name; it should return the Ada name that should be found in FILE-NAME.")
     (error "parent '%s' not found; set project file?" ff-function-name))))
 
 (defun ada-ff-special-extract-separate ()
+  ;; match-string contains "separate (parent_name)"
   (let ((package-name (match-string 1)))
     (save-excursion
       (goto-char (match-end 0))
@@ -1896,6 +1897,30 @@ other file.")
   (interactive)
   (when ada-which-function
     (funcall ada-which-function)))
+
+(defvar ada-on-context-clause nil
+  ;; supplied by indentation engine
+  "Function called with no parameters; it should return non-nil
+  if point is on a context clause.")
+
+(defun ada-on-context-clause ()
+  "See `ada-on-context-clause' variable."
+  (interactive)
+  (when ada-on-context-clause
+    (funcall ada-on-context-clause)))
+
+(defvar ada-goto-subunit-name nil
+  ;; supplied by indentation engine
+  "Function called with no parameters; if the current buffer
+  contains a subunit, move point to the subunit name (for
+  `ada-goto-declaration'), return t; otherwise leave point alone,
+  return nil.")
+
+(defun ada-goto-subunit-name ()
+  "See `ada-goto-subunit-name' variable."
+  (interactive)
+  (when ada-goto-subunit-name
+    (funcall ada-goto-subunit-name)))
 
 (defun ada-add-log-current-function ()
   "For `add-log-current-defun-function'; uses `ada-which-function'."
@@ -2001,18 +2026,23 @@ the other file."
   (interactive "P")
   (ada-check-current-project (buffer-file-name))
 
-  (if mark-active
-      (progn
-	(setq ff-function-name (buffer-substring-no-properties (point) (mark)))
-	(ff-get-file
-	 compilation-search-path
-	 (ada-file-name-from-ada-name ff-function-name)
-	 ada-spec-suffixes
-	 other-window)
-	(deactivate-mark))
+  (cond
+   (mark-active
+    (setq ff-function-name (buffer-substring-no-properties (point) (mark)))
+    (ff-get-file
+     compilation-search-path
+     (ada-file-name-from-ada-name ff-function-name)
+     ada-spec-suffixes
+     other-window)
+    (deactivate-mark))
 
-    ;; else use name at point
+   ((and (not (ada-on-context-clause))
+	 (ada-goto-subunit-name))
+    (ada-goto-declaration other-window))
+
+   (t
     (ff-find-other-file other-window)))
+  )
 
 (defvar ada-operator-re
   "\\+\\|-\\|/\\|\\*\\*\\|\\*\\|=\\|&\\|abs\\|mod\\|rem\\|and\\|not\\|or\\|xor\\|<=\\|<\\|>=\\|>"

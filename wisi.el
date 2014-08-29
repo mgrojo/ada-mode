@@ -965,7 +965,8 @@ cache. Otherwise move to cache-prev, or prev cache if nil."
   ))
 
 (defun wisi-goto-containing (cache &optional error)
-  "Move point to containing token for CACHE, return cache at that point."
+  "Move point to containing token for CACHE, return cache at that point.
+If ERROR, throw error when CACHE has no container; else return nil."
   (cond
    ((markerp (wisi-cache-containing cache))
     (goto-char (1- (wisi-cache-containing cache)))
@@ -1000,7 +1001,8 @@ Return start cache."
   (goto-char (1- (wisi-cache-end cache))))
 
 (defun wisi-goto-statement-start ()
-  "Move point to token at start of statement point is in or after."
+  "Move point to token at start of statement point is in or after.
+Return start cache."
   (interactive)
   (wisi-validate-cache (point))
   (let ((cache (wisi-get-cache (point))))

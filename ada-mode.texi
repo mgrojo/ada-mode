@@ -1625,7 +1625,7 @@ file specifies the casing of one word or word fragment. If an
 exception is defined in multiple files, the first occurrence is used.
 
 If the word starts with an asterisk (@code{*}), it defines the casing
-of a word fragemnt (or ``substring''); part of a word between two
+of a word fragment (or ``substring''); part of a word between two
 underscores or word boundary.
 
 For example:
