@@ -206,7 +206,7 @@ package body Test_LR_Expecting is
    is
       Test : Test_Case renames Test_Case (T);
    begin
-      Parser :=
+      Parser := LALR_Parsers.Initialize
         (Analyzer,
          LALR_Generators.Generate
            (Grammar,
@@ -215,21 +215,21 @@ package body Test_LR_Expecting is
 
       OpenToken.Trace_Parse := Test.Debug;
 
-      Execute ("set A = 2", "1:9: Syntax error; expecting ';'; found EOF '" & ASCII.EOT & "'");
+      Execute ("set A = 2", "1:10: Syntax error; expecting ';'; found EOF '" & ASCII.EOT & "'");
 
       if Test.Debug then
-         Execute ("set A = ", "1:8: Syntax error; expecting 'integer  2'; found EOF '" & ASCII.EOT & "'");
+         Execute ("set A = ", "1:9: Syntax error; expecting 'integer  2'; found EOF '" & ASCII.EOT & "'");
       else
-         Execute ("set A = ", "1:8: Syntax error; expecting 'integer'; found EOF '" & ASCII.EOT & "'");
+         Execute ("set A = ", "1:9: Syntax error; expecting 'integer'; found EOF '" & ASCII.EOT & "'");
       end if;
 
-      Execute ("set A", "1:5: Syntax error; expecting '='; found EOF '" & ASCII.EOT & "'");
-      Execute ("set", "1:3: Syntax error; expecting 'identifier'; found EOF '" & ASCII.EOT & "'");
+      Execute ("set A", "1:6: Syntax error; expecting '='; found EOF '" & ASCII.EOT & "'");
+      Execute ("set", "1:4: Syntax error; expecting 'identifier'; found EOF '" & ASCII.EOT & "'");
 
       if Test.Debug then
-         Execute ("2", "1:0: Syntax error; expecting 'set' or 'verify'; found integer  2 '2'");
+         Execute ("2", "1:1: Syntax error; expecting 'set' or 'verify'; found integer  2 '2'");
       else
-         Execute ("2", "1:0: Syntax error; expecting 'set' or 'verify'; found integer '2'");
+         Execute ("2", "1:1: Syntax error; expecting 'set' or 'verify'; found integer '2'");
       end if;
    end Nominal;
 

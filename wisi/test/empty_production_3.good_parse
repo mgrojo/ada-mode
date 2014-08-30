@@ -1,58 +1,28 @@
- 1 : 
- 1 : IDENTIFIER_ID : SHIFT
- 2 : IDENTIFIER_ID
- 1 : 
- 2 : IN_ID : SHIFT
- 7 : IN_ID
- 2 : IDENTIFIER_ID
- 1 : 
- 7 : IDENTIFIER_ID : REDUCE 1 tokens to MODE_ID, goto state 8
- 8 : MODE_ID
- 2 : IDENTIFIER_ID
- 1 : 
- 8 : IDENTIFIER_ID : SHIFT
- 9 : IDENTIFIER_ID
- 8 : MODE_ID
- 2 : IDENTIFIER_ID
- 1 : 
- 9 : IDENTIFIER_ID : REDUCE 1 tokens to NAME_ID, goto state 10
- 10 : NAME_ID
- 8 : MODE_ID
- 2 : IDENTIFIER_ID
- 1 : 
- 10 : IDENTIFIER_ID : REDUCE 3 tokens to PARAMETER_SPECIFICATION_ID, goto state 4
- 4 : PARAMETER_SPECIFICATION_ID
- 1 : 
- 4 : IDENTIFIER_ID : SHIFT
- 2 : IDENTIFIER_ID
- 4 : PARAMETER_SPECIFICATION_ID
- 1 : 
- 2 : IDENTIFIER_ID : REDUCE 0 tokens to MODE_ID, goto state 8
- 8 : MODE_ID
- 2 : IDENTIFIER_ID
- 4 : PARAMETER_SPECIFICATION_ID
- 1 : 
- 8 : IDENTIFIER_ID : SHIFT
- 9 : IDENTIFIER_ID
- 8 : MODE_ID
- 2 : IDENTIFIER_ID
- 4 : PARAMETER_SPECIFICATION_ID
- 1 : 
- 9 : EOF_ID : REDUCE 1 tokens to NAME_ID, goto state 10
- 10 : NAME_ID
- 8 : MODE_ID
- 2 : IDENTIFIER_ID
- 4 : PARAMETER_SPECIFICATION_ID
- 1 : 
- 10 : EOF_ID : REDUCE 3 tokens to PARAMETER_SPECIFICATION_ID, goto state 5
- 5 : PARAMETER_SPECIFICATION_ID
- 4 : PARAMETER_SPECIFICATION_ID
- 1 : 
- 5 : EOF_ID : REDUCE 2 tokens to COMPILATION_UNIT_ID, goto state 3
- 3 : COMPILATION_UNIT_ID
- 1 : 
- 3 : EOF_ID : SHIFT
- 6 : EOF_ID
- 3 : COMPILATION_UNIT_ID
- 1 : 
- 6 : EOF_ID : ACCEPT_IT
+ 1 stack:  1 : , 
+ 1: 1: IDENTIFIER_ID : shift and goto state 2
+ 1 stack:  2 : IDENTIFIER_ID,  1 : , 
+ 1: 2: IN_ID : shift and goto state 7
+ 1 stack:  7 : IN_ID,  2 : IDENTIFIER_ID,  1 : , 
+ 1: 7: IDENTIFIER_ID : reduce 1 tokens to MODE_ID, goto state 8
+ 1 stack:  8 : MODE_ID,  2 : IDENTIFIER_ID,  1 : , 
+ 1: 8: IDENTIFIER_ID : shift and goto state 9
+ 1 stack:  9 : IDENTIFIER_ID,  8 : MODE_ID,  2 : IDENTIFIER_ID,  1 : , 
+ 1: 9: IDENTIFIER_ID : reduce 1 tokens to NAME_ID, goto state 10
+ 1 stack:  10 : NAME_ID,  8 : MODE_ID,  2 : IDENTIFIER_ID,  1 : , 
+ 1: 10: IDENTIFIER_ID : reduce 3 tokens to PARAMETER_SPECIFICATION_ID, goto state 4
+ 1 stack:  4 : PARAMETER_SPECIFICATION_ID,  1 : , 
+ 1: 4: IDENTIFIER_ID : shift and goto state 2
+ 1 stack:  2 : IDENTIFIER_ID,  4 : PARAMETER_SPECIFICATION_ID,  1 : , 
+ 1: 2: IDENTIFIER_ID : reduce 0 tokens to MODE_ID, goto state 8
+ 1 stack:  8 : MODE_ID,  2 : IDENTIFIER_ID,  4 : PARAMETER_SPECIFICATION_ID,  1 : , 
+ 1: 8: IDENTIFIER_ID : shift and goto state 9
+ 1 stack:  9 : IDENTIFIER_ID,  8 : MODE_ID,  2 : IDENTIFIER_ID,  4 : PARAMETER_SPECIFICATION_ID,  1 : , 
+ 1: 9: EOF_ID : reduce 1 tokens to NAME_ID, goto state 10
+ 1 stack:  10 : NAME_ID,  8 : MODE_ID,  2 : IDENTIFIER_ID,  4 : PARAMETER_SPECIFICATION_ID,  1 : , 
+ 1: 10: EOF_ID : reduce 3 tokens to PARAMETER_SPECIFICATION_ID, goto state 5
+ 1 stack:  5 : PARAMETER_SPECIFICATION_ID,  4 : PARAMETER_SPECIFICATION_ID,  1 : , 
+ 1: 5: EOF_ID : reduce 2 tokens to COMPILATION_UNIT_ID, goto state 3
+ 1 stack:  3 : COMPILATION_UNIT_ID,  1 : , 
+ 1: 3: EOF_ID : shift and goto state 6
+ 1 stack:  6 : EOF_ID,  3 : COMPILATION_UNIT_ID,  1 : , 
+ 1: 6: EOF_ID : accept it

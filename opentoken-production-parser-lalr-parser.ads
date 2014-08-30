@@ -36,6 +36,12 @@ package OpenToken.Production.Parser.LALR.Parser is
       Max_Parallel : Integer := 15;
    end record;
 
+   function Initialize
+     (Analyzer     : in Tokenizer.Instance;
+      Table        : in Parse_Table_Ptr;
+      Max_Parallel : in Integer := 15)
+     return Instance;
+
    overriding procedure Parse (Parser : in out Instance);
 
    ----------
@@ -95,9 +101,10 @@ package OpenToken.Production.Parser.LALR.Parser is
       --  Copy parser at Cursor, add to current list. New copy will not
       --  appear in Cursor.Next ...; it is accessible as First (List).
 
-      procedure Free (List : in out Parser_Lists.List; Cursor : in Parser_Lists.Cursor'Class);
+      procedure Free (Cursor : in out Parser_Lists.Cursor'Class);
       --  Move Cursor to the internal free list, free its stack and
-      --  pending actions; it will not appear in future iterations.
+      --  pending actions; it will not appear in future iterations. On
+      --  return, Cursor points to next parser (or none).
 
       ----------
       --  Stuff for iterators, to allow
@@ -109,29 +116,30 @@ package OpenToken.Production.Parser.LALR.Parser is
       --  We'd like to use Cursor here, but we want that to be tagged,
       --  to allow 'Cursor.Next' syntax, and the requirements of
       --  iterators prevent a tagged cursor type (two tagged types on
-      --  First in body). So we define a separate Iterator_Cursor type just
-      --  for Iterators.
+      --  First in body). So we use Parser_Node_Access as the iterator
+      --  type for Iterators.
 
-      type Iterator_Cursor is private;
+      type Parser_Node_Access is private;
 
       type Constant_Reference_Type (Element : not null access constant Parser_State) is null record
       with Implicit_Dereference => Element;
 
       function Constant_Reference
         (Container : aliased in List'Class;
-         Position  : in Iterator_Cursor)
+         Position  : in Parser_Node_Access)
         return Constant_Reference_Type;
 
-      function Has_Element (Cursor : in Iterator_Cursor) return Boolean;
-      function Verb (Cursor : in Iterator_Cursor) return Parse_Action_Verbs;
+      function Has_Element (Cursor : in Parser_Node_Access) return Boolean;
+      function Verb (Cursor : in Parser_Node_Access) return Parse_Action_Verbs;
 
-      package Iterator_Interfaces is new Ada.Iterator_Interfaces (Iterator_Cursor, Has_Element);
+      package Iterator_Interfaces is new Ada.Iterator_Interfaces (Parser_Node_Access, Has_Element);
 
       function Iterate (Container : aliased List) return Iterator_Interfaces.Forward_Iterator'Class;
 
       ----------
       --  For unit tests
 
+      function Parser_Free_Count (List : in Parser_Lists.List) return Integer;
       function Stack_Free_Count (List : in Parser_Lists.List) return Integer;
 
    private
@@ -143,34 +151,32 @@ package OpenToken.Production.Parser.LALR.Parser is
          Next : Stack_Node_Access;
       end record;
 
-      type Stack is record
-         Head : Stack_Node_Access;
-         --  Popped nodes go on the parsers free_stack list, pushed
-         --  nodes come from the free list.
-      end record;
-
-      type Parser_State_Access is access Parser_State;
-
       type Parser_State is record
          Label : Integer;            -- for debugging
          Verb  : Parse_Action_Verbs; -- last action performed
-         Stack : Parser_Lists.Stack;
+         Stack : Stack_Node_Access;
          --  Pending_Actions : Action_Token_List; -- FIXME: accumulated actions while parallel parsing
-         Next  : Parser_State_Access;
+      end record;
+
+      type Parser_Node;
+      type Parser_Node_Access is access Parser_Node;
+
+      type Parser_Node is record
+         Item : aliased Parser_State;
+         Next : Parser_Node_Access;
+         Prev : Parser_Node_Access;
+      end record;
+
+      type List is tagged record
+         Head        : Parser_Node_Access;
+         Parser_Free : Parser_Node_Access;
+         Stack_Free  : Stack_Node_Access;
+         Count       : Integer;
       end record;
 
       type Cursor is tagged record
          List : access Parser_Lists.List;
-         Ptr  : Parser_State_Access;
-      end record;
-
-      type Iterator_Cursor is access all Parser_State;
-
-      type List is tagged record
-         Head        : Parser_State_Access;
-         Parser_Free : Parser_State_Access;
-         Stack_Free  : Stack_Node_Access;
-         Count       : Integer;
+         Ptr  : Parser_Node_Access;
       end record;
 
    end Parser_Lists;

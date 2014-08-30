@@ -189,7 +189,7 @@ package body Test_Statement_Actions is
       Test : Test_Case renames Test_Case (T);
       use AUnit.Assertions;
    begin
-      Command_Parser :=
+      Command_Parser := LALR_Parsers.Initialize
         (An_Analyzer,
          LALR_Generators.Generate (Grammar, Trace => Test.Debug));
 

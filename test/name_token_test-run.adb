@@ -53,7 +53,7 @@ begin
 
    Put_Line ("Simple Parser");
    declare
-      Parser : LALR_Parser.Instance :=
+      Parser : LALR_Parser.Instance := LALR_Parser.Initialize
         (Tokenizer.Initialize (Syntax),
          LALR_Generator.Generate
            (Simple_Grammar,
@@ -68,7 +68,7 @@ begin
    New_Line;
    Put_Line ("Medium Parser");
    declare
-      Parser : LALR_Parser.Instance :=
+      Parser : LALR_Parser.Instance := LALR_Parser.Initialize
         (Tokenizer.Initialize (Syntax),
          LALR_Generator.Generate
            (Medium_Grammar,
@@ -83,7 +83,7 @@ begin
    New_Line;
    Put_Line ("Full Parser");
    declare
-      Parser : LALR_Parser.Instance :=
+      Parser : LALR_Parser.Instance := LALR_Parser.Initialize
         (Tokenizer.Initialize (Syntax),
          LALR_Generator.Generate
            (Full_Grammar,

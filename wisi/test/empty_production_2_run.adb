@@ -60,7 +60,7 @@ begin
    LALR_Parsers.Set_Text_Feeder (Parser, OpenToken.Text_Feeder.Text_IO.Create (Current_Input));
    LALR_Parsers.Parse (Parser);
 exception
-when E : Parse_Error =>
+when E : OpenToken.Parse_Error =>
    Put_Line (Ada.Exceptions.Exception_Message (E));
 
 when E : others =>

@@ -1,83 +1,36 @@
- 1 : 
- 1 : ACCEPT_ID : SHIFT
- 2 : ACCEPT_ID
- 1 : 
- 2 : IDENTIFIER_ID : SHIFT
- 7 : IDENTIFIER_ID
- 2 : ACCEPT_ID
- 1 : 
- 7 : LEFT_PAREN_ID : REDUCE 1 tokens to NAME_ID, goto state 8
- 8 : NAME_ID
- 2 : ACCEPT_ID
- 1 : 
- 8 : LEFT_PAREN_ID : SHIFT
- 9 : LEFT_PAREN_ID
- 8 : NAME_ID
- 2 : ACCEPT_ID
- 1 : 
- 9 : IDENTIFIER_ID : SHIFT
- 12 : IDENTIFIER_ID
- 9 : LEFT_PAREN_ID
- 8 : NAME_ID
- 2 : ACCEPT_ID
- 1 : 
- 12 : RIGHT_PAREN_ID : SHIFT
- 13 : RIGHT_PAREN_ID
- 12 : IDENTIFIER_ID
- 9 : LEFT_PAREN_ID
- 8 : NAME_ID
- 2 : ACCEPT_ID
- 1 : 
- 13 : SEMICOLON_ID : REDUCE 3 tokens to PARAMETER_PROFILE_ID, goto state 10
- 10 : PARAMETER_PROFILE_ID
- 8 : NAME_ID
- 2 : ACCEPT_ID
- 1 : 
- 10 : SEMICOLON_ID : SHIFT
- 11 : SEMICOLON_ID
- 10 : PARAMETER_PROFILE_ID
- 8 : NAME_ID
- 2 : ACCEPT_ID
- 1 : 
- 11 : ACCEPT_ID : REDUCE 4 tokens to ACCEPT_STATEMENT_ID, goto state 4
- 4 : ACCEPT_STATEMENT_ID
- 1 : 
- 4 : ACCEPT_ID : SHIFT
- 2 : ACCEPT_ID
- 4 : ACCEPT_STATEMENT_ID
- 1 : 
- 2 : IDENTIFIER_ID : SHIFT
- 7 : IDENTIFIER_ID
- 2 : ACCEPT_ID
- 4 : ACCEPT_STATEMENT_ID
- 1 : 
- 7 : SEMICOLON_ID : REDUCE 1 tokens to NAME_ID, goto state 8
- 8 : NAME_ID
- 2 : ACCEPT_ID
- 4 : ACCEPT_STATEMENT_ID
- 1 : 
- 8 : SEMICOLON_ID : REDUCE 0 tokens to PARAMETER_PROFILE_ID, goto state 10
- 10 : PARAMETER_PROFILE_ID
- 8 : NAME_ID
- 2 : ACCEPT_ID
- 4 : ACCEPT_STATEMENT_ID
- 1 : 
- 10 : SEMICOLON_ID : SHIFT
- 11 : SEMICOLON_ID
- 10 : PARAMETER_PROFILE_ID
- 8 : NAME_ID
- 2 : ACCEPT_ID
- 4 : ACCEPT_STATEMENT_ID
- 1 : 
- 11 : EOF_ID : REDUCE 4 tokens to ACCEPT_STATEMENT_ID, goto state 5
- 5 : ACCEPT_STATEMENT_ID
- 4 : ACCEPT_STATEMENT_ID
- 1 : 
- 5 : EOF_ID : REDUCE 2 tokens to COMPILATION_UNIT_ID, goto state 3
- 3 : COMPILATION_UNIT_ID
- 1 : 
- 3 : EOF_ID : SHIFT
- 6 : EOF_ID
- 3 : COMPILATION_UNIT_ID
- 1 : 
- 6 : EOF_ID : ACCEPT_IT
+ 1 stack:  1 : , 
+ 1: 1: ACCEPT_ID : shift and goto state 2
+ 1 stack:  2 : ACCEPT_ID,  1 : , 
+ 1: 2: IDENTIFIER_ID : shift and goto state 7
+ 1 stack:  7 : IDENTIFIER_ID,  2 : ACCEPT_ID,  1 : , 
+ 1: 7: LEFT_PAREN_ID : reduce 1 tokens to NAME_ID, goto state 8
+ 1 stack:  8 : NAME_ID,  2 : ACCEPT_ID,  1 : , 
+ 1: 8: LEFT_PAREN_ID : shift and goto state 9
+ 1 stack:  9 : LEFT_PAREN_ID,  8 : NAME_ID,  2 : ACCEPT_ID,  1 : , 
+ 1: 9: IDENTIFIER_ID : shift and goto state 12
+ 1 stack:  12 : IDENTIFIER_ID,  9 : LEFT_PAREN_ID,  8 : NAME_ID,  2 : ACCEPT_ID,  1 : , 
+ 1: 12: RIGHT_PAREN_ID : shift and goto state 13
+ 1 stack:  13 : RIGHT_PAREN_ID,  12 : IDENTIFIER_ID,  9 : LEFT_PAREN_ID,  8 : NAME_ID,  2 : ACCEPT_ID,  1 : , 
+ 1: 13: SEMICOLON_ID : reduce 3 tokens to PARAMETER_PROFILE_ID, goto state 10
+ 1 stack:  10 : PARAMETER_PROFILE_ID,  8 : NAME_ID,  2 : ACCEPT_ID,  1 : , 
+ 1: 10: SEMICOLON_ID : shift and goto state 11
+ 1 stack:  11 : SEMICOLON_ID,  10 : PARAMETER_PROFILE_ID,  8 : NAME_ID,  2 : ACCEPT_ID,  1 : , 
+ 1: 11: ACCEPT_ID : reduce 4 tokens to ACCEPT_STATEMENT_ID, goto state 4
+ 1 stack:  4 : ACCEPT_STATEMENT_ID,  1 : , 
+ 1: 4: ACCEPT_ID : shift and goto state 2
+ 1 stack:  2 : ACCEPT_ID,  4 : ACCEPT_STATEMENT_ID,  1 : , 
+ 1: 2: IDENTIFIER_ID : shift and goto state 7
+ 1 stack:  7 : IDENTIFIER_ID,  2 : ACCEPT_ID,  4 : ACCEPT_STATEMENT_ID,  1 : , 
+ 1: 7: SEMICOLON_ID : reduce 1 tokens to NAME_ID, goto state 8
+ 1 stack:  8 : NAME_ID,  2 : ACCEPT_ID,  4 : ACCEPT_STATEMENT_ID,  1 : , 
+ 1: 8: SEMICOLON_ID : reduce 0 tokens to PARAMETER_PROFILE_ID, goto state 10
+ 1 stack:  10 : PARAMETER_PROFILE_ID,  8 : NAME_ID,  2 : ACCEPT_ID,  4 : ACCEPT_STATEMENT_ID,  1 : , 
+ 1: 10: SEMICOLON_ID : shift and goto state 11
+ 1 stack:  11 : SEMICOLON_ID,  10 : PARAMETER_PROFILE_ID,  8 : NAME_ID,  2 : ACCEPT_ID,  4 : ACCEPT_STATEMENT_ID,  1 : , 
+ 1: 11: EOF_ID : reduce 4 tokens to ACCEPT_STATEMENT_ID, goto state 5
+ 1 stack:  5 : ACCEPT_STATEMENT_ID,  4 : ACCEPT_STATEMENT_ID,  1 : , 
+ 1: 5: EOF_ID : reduce 2 tokens to COMPILATION_UNIT_ID, goto state 3
+ 1 stack:  3 : COMPILATION_UNIT_ID,  1 : , 
+ 1: 3: EOF_ID : shift and goto state 6
+ 1 stack:  6 : EOF_ID,  3 : COMPILATION_UNIT_ID,  1 : , 
+ 1: 6: EOF_ID : accept it

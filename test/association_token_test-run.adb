@@ -23,7 +23,7 @@ procedure Association_Token_Test.Run
 is
    Trace : constant Boolean := Ada.Command_Line.Argument_Count > 0;
 
-   Parser : LALR_Parser.Instance :=
+   Parser : LALR_Parser.Instance := LALR_Parser.Initialize
      (Tokenizer.Initialize (Syntax),
       LALR_Generator.Generate
         (Full_Grammar,

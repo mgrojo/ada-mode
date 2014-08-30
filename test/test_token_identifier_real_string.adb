@@ -235,7 +235,7 @@ package body Test_Token_Identifier_Real_String is
       --  identifier gets stored in the token properly.
 
       begin
-         Parser :=
+         Parser := LALR_Parsers.Initialize
            (An_Analyzer,
             LALR_Generators.Generate (Grammar, Trace => Test.Debug));
       exception

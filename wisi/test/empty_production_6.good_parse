@@ -1,3 +1,32 @@
- 1 : 
- 1 : BEGIN_ID : SHIFT
- 3: conflicting actions in state 2
+ 1 stack:  1 : , 
+ 1: 1: BEGIN_ID : shift and goto state 2
+spawn parser (2 active)
+ 2 stack:  2 : BEGIN_ID,  1 : , 
+ 2: 2: IDENTIFIER_ID : reduce 0 tokens to LABEL_OPT_ID, goto state 8
+ 1 stack:  2 : BEGIN_ID,  1 : , 
+ 1: 2: IDENTIFIER_ID : shift and goto state 5
+ 2 stack:  8 : LABEL_OPT_ID,  2 : BEGIN_ID,  1 : , 
+ 2: 8: IDENTIFIER_ID : shift and goto state 9
+ 2 stack:  9 : IDENTIFIER_ID,  8 : LABEL_OPT_ID,  2 : BEGIN_ID,  1 : , 
+ 2: 9: COLON_EQUAL_ID : shift and goto state 14
+ 1 stack:  5 : IDENTIFIER_ID,  2 : BEGIN_ID,  1 : , 
+ 1: 5: COLON_EQUAL_ID : ERROR
+ 2 stack:  14 : COLON_EQUAL_ID,  9 : IDENTIFIER_ID,  8 : LABEL_OPT_ID,  2 : BEGIN_ID,  1 : , 
+ 2: 14: IDENTIFIER_ID : shift and goto state 15
+ 1: terminate (1 active)
+ 2 stack:  15 : IDENTIFIER_ID,  14 : COLON_EQUAL_ID,  9 : IDENTIFIER_ID,  8 : LABEL_OPT_ID,  2 : BEGIN_ID,  1 : , 
+ 2: 15: SEMICOLON_ID : shift and goto state 16
+ 2 stack:  16 : SEMICOLON_ID,  15 : IDENTIFIER_ID,  14 : COLON_EQUAL_ID,  9 : IDENTIFIER_ID,  8 : LABEL_OPT_ID,  2 : BEGIN_ID,  1 : , 
+ 2: 16: END_ID : reduce 5 tokens to STATEMENT_ID, goto state 6
+ 2 stack:  6 : STATEMENT_ID,  2 : BEGIN_ID,  1 : , 
+ 2: 6: END_ID : reduce 1 tokens to SEQUENCE_OF_STATEMENTS_ID, goto state 7
+ 2 stack:  7 : SEQUENCE_OF_STATEMENTS_ID,  2 : BEGIN_ID,  1 : , 
+ 2: 7: END_ID : shift and goto state 10
+ 2 stack:  10 : END_ID,  7 : SEQUENCE_OF_STATEMENTS_ID,  2 : BEGIN_ID,  1 : , 
+ 2: 10: SEMICOLON_ID : shift and goto state 13
+ 2 stack:  13 : SEMICOLON_ID,  10 : END_ID,  7 : SEQUENCE_OF_STATEMENTS_ID,  2 : BEGIN_ID,  1 : , 
+ 2: 13: EOF_ID : reduce 4 tokens to COMPILATION_UNIT_ID, goto state 3
+ 2 stack:  3 : COMPILATION_UNIT_ID,  1 : , 
+ 2: 3: EOF_ID : shift and goto state 4
+ 2 stack:  4 : EOF_ID,  3 : COMPILATION_UNIT_ID,  1 : , 
+ 2: 4: EOF_ID : accept it

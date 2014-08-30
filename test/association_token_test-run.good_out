@@ -1,254 +1,127 @@
 '(identifier)'
- 1 : 
- 1 : PAREN_LEFT_ID : SHIFT
- 2 : PAREN_LEFT_ID
- 1 : 
- 2 : IDENTIFIER_ID : SHIFT
- 5 : IDENTIFIER_ID
- 2 : PAREN_LEFT_ID
- 1 : 
- 5 : PAREN_RIGHT_ID : REDUCE 1 tokens to ASSOCIATION_ID, goto state 7
- 7 : ASSOCIATION_ID
- 2 : PAREN_LEFT_ID
- 1 : 
- 7 : PAREN_RIGHT_ID : REDUCE 1 tokens to ASSOCIATION_LIST_ID, goto state 8
- 8 : ASSOCIATION_LIST_ID
- 2 : PAREN_LEFT_ID
- 1 : 
- 8 : PAREN_RIGHT_ID : SHIFT
- 9 : PAREN_RIGHT_ID
- 8 : ASSOCIATION_LIST_ID
- 2 : PAREN_LEFT_ID
- 1 : 
- 9 : EOF_ID : REDUCE 3 tokens to AGGREGATE_ID, goto state 3
- 3 : AGGREGATE_ID
- 1 : 
- 3 : EOF_ID : SHIFT
- 4 : EOF_ID
- 3 : AGGREGATE_ID
- 1 : 
- 4 : EOF_ID : ACCEPT_IT
+ 1 stack:  1 : , 
+ 1: 1: PAREN_LEFT_ID : shift and goto state 2
+ 1 stack:  2 : PAREN_LEFT_ID,  1 : , 
+ 1: 2: IDENTIFIER_ID : shift and goto state 5
+ 1 stack:  5 : IDENTIFIER_ID,  2 : PAREN_LEFT_ID,  1 : , 
+ 1: 5: PAREN_RIGHT_ID : reduce 1 tokens to ASSOCIATION_ID, goto state 7
+ 1 stack:  7 : ASSOCIATION_ID,  2 : PAREN_LEFT_ID,  1 : , 
+ 1: 7: PAREN_RIGHT_ID : reduce 1 tokens to ASSOCIATION_LIST_ID, goto state 8
+ 1 stack:  8 : ASSOCIATION_LIST_ID,  2 : PAREN_LEFT_ID,  1 : , 
+ 1: 8: PAREN_RIGHT_ID : shift and goto state 9
+ 1 stack:  9 : PAREN_RIGHT_ID,  8 : ASSOCIATION_LIST_ID,  2 : PAREN_LEFT_ID,  1 : , 
+ 1: 9: EOF_ID : reduce 3 tokens to AGGREGATE_ID, goto state 3
+ 1 stack:  3 : AGGREGATE_ID,  1 : , 
+ 1: 3: EOF_ID : shift and goto state 4
+ 1 stack:  4 : EOF_ID,  3 : AGGREGATE_ID,  1 : , 
+ 1: 4: EOF_ID : accept it
 success
 
 '(identifier, identifier)'
- 1 : 
- 1 : PAREN_LEFT_ID : SHIFT
- 2 : PAREN_LEFT_ID
- 1 : 
- 2 : IDENTIFIER_ID : SHIFT
- 5 : IDENTIFIER_ID
- 2 : PAREN_LEFT_ID
- 1 : 
- 5 : COMMA_ID : REDUCE 1 tokens to ASSOCIATION_ID, goto state 7
- 7 : ASSOCIATION_ID
- 2 : PAREN_LEFT_ID
- 1 : 
- 7 : COMMA_ID : SHIFT
- 10 : COMMA_ID
- 7 : ASSOCIATION_ID
- 2 : PAREN_LEFT_ID
- 1 : 
- 10 : IDENTIFIER_ID : SHIFT
- 5 : IDENTIFIER_ID
- 10 : COMMA_ID
- 7 : ASSOCIATION_ID
- 2 : PAREN_LEFT_ID
- 1 : 
- 5 : PAREN_RIGHT_ID : REDUCE 1 tokens to ASSOCIATION_ID, goto state 7
- 7 : ASSOCIATION_ID
- 10 : COMMA_ID
- 7 : ASSOCIATION_ID
- 2 : PAREN_LEFT_ID
- 1 : 
- 7 : PAREN_RIGHT_ID : REDUCE 1 tokens to ASSOCIATION_LIST_ID, goto state 15
- 15 : ASSOCIATION_LIST_ID
- 10 : COMMA_ID
- 7 : ASSOCIATION_ID
- 2 : PAREN_LEFT_ID
- 1 : 
- 15 : PAREN_RIGHT_ID : REDUCE 3 tokens to ASSOCIATION_LIST_ID, goto state 8
- 8 : ASSOCIATION_LIST_ID
- 2 : PAREN_LEFT_ID
- 1 : 
- 8 : PAREN_RIGHT_ID : SHIFT
- 9 : PAREN_RIGHT_ID
- 8 : ASSOCIATION_LIST_ID
- 2 : PAREN_LEFT_ID
- 1 : 
- 9 : EOF_ID : REDUCE 3 tokens to AGGREGATE_ID, goto state 3
- 3 : AGGREGATE_ID
- 1 : 
- 3 : EOF_ID : SHIFT
- 4 : EOF_ID
- 3 : AGGREGATE_ID
- 1 : 
- 4 : EOF_ID : ACCEPT_IT
+ 1 stack:  1 : , 
+ 1: 1: PAREN_LEFT_ID : shift and goto state 2
+ 1 stack:  2 : PAREN_LEFT_ID,  1 : , 
+ 1: 2: IDENTIFIER_ID : shift and goto state 5
+ 1 stack:  5 : IDENTIFIER_ID,  2 : PAREN_LEFT_ID,  1 : , 
+ 1: 5: COMMA_ID : reduce 1 tokens to ASSOCIATION_ID, goto state 7
+ 1 stack:  7 : ASSOCIATION_ID,  2 : PAREN_LEFT_ID,  1 : , 
+ 1: 7: COMMA_ID : shift and goto state 10
+ 1 stack:  10 : COMMA_ID,  7 : ASSOCIATION_ID,  2 : PAREN_LEFT_ID,  1 : , 
+ 1: 10: IDENTIFIER_ID : shift and goto state 5
+ 1 stack:  5 : IDENTIFIER_ID,  10 : COMMA_ID,  7 : ASSOCIATION_ID,  2 : PAREN_LEFT_ID,  1 : , 
+ 1: 5: PAREN_RIGHT_ID : reduce 1 tokens to ASSOCIATION_ID, goto state 7
+ 1 stack:  7 : ASSOCIATION_ID,  10 : COMMA_ID,  7 : ASSOCIATION_ID,  2 : PAREN_LEFT_ID,  1 : , 
+ 1: 7: PAREN_RIGHT_ID : reduce 1 tokens to ASSOCIATION_LIST_ID, goto state 15
+ 1 stack:  15 : ASSOCIATION_LIST_ID,  10 : COMMA_ID,  7 : ASSOCIATION_ID,  2 : PAREN_LEFT_ID,  1 : , 
+ 1: 15: PAREN_RIGHT_ID : reduce 3 tokens to ASSOCIATION_LIST_ID, goto state 8
+ 1 stack:  8 : ASSOCIATION_LIST_ID,  2 : PAREN_LEFT_ID,  1 : , 
+ 1: 8: PAREN_RIGHT_ID : shift and goto state 9
+ 1 stack:  9 : PAREN_RIGHT_ID,  8 : ASSOCIATION_LIST_ID,  2 : PAREN_LEFT_ID,  1 : , 
+ 1: 9: EOF_ID : reduce 3 tokens to AGGREGATE_ID, goto state 3
+ 1 stack:  3 : AGGREGATE_ID,  1 : , 
+ 1: 3: EOF_ID : shift and goto state 4
+ 1 stack:  4 : EOF_ID,  3 : AGGREGATE_ID,  1 : , 
+ 1: 4: EOF_ID : accept it
 success
 
 '(identifier => identifier)'
- 1 : 
- 1 : PAREN_LEFT_ID : SHIFT
- 2 : PAREN_LEFT_ID
- 1 : 
- 2 : IDENTIFIER_ID : SHIFT
- 5 : IDENTIFIER_ID
- 2 : PAREN_LEFT_ID
- 1 : 
- 5 : EQUALS_GREATER_ID : SHIFT
- 12 : EQUALS_GREATER_ID
- 5 : IDENTIFIER_ID
- 2 : PAREN_LEFT_ID
- 1 : 
- 12 : IDENTIFIER_ID : SHIFT
- 13 : IDENTIFIER_ID
- 12 : EQUALS_GREATER_ID
- 5 : IDENTIFIER_ID
- 2 : PAREN_LEFT_ID
- 1 : 
- 13 : PAREN_RIGHT_ID : REDUCE 3 tokens to ASSOCIATION_ID, goto state 7
- 7 : ASSOCIATION_ID
- 2 : PAREN_LEFT_ID
- 1 : 
- 7 : PAREN_RIGHT_ID : REDUCE 1 tokens to ASSOCIATION_LIST_ID, goto state 8
- 8 : ASSOCIATION_LIST_ID
- 2 : PAREN_LEFT_ID
- 1 : 
- 8 : PAREN_RIGHT_ID : SHIFT
- 9 : PAREN_RIGHT_ID
- 8 : ASSOCIATION_LIST_ID
- 2 : PAREN_LEFT_ID
- 1 : 
- 9 : EOF_ID : REDUCE 3 tokens to AGGREGATE_ID, goto state 3
- 3 : AGGREGATE_ID
- 1 : 
- 3 : EOF_ID : SHIFT
- 4 : EOF_ID
- 3 : AGGREGATE_ID
- 1 : 
- 4 : EOF_ID : ACCEPT_IT
+ 1 stack:  1 : , 
+ 1: 1: PAREN_LEFT_ID : shift and goto state 2
+ 1 stack:  2 : PAREN_LEFT_ID,  1 : , 
+ 1: 2: IDENTIFIER_ID : shift and goto state 5
+ 1 stack:  5 : IDENTIFIER_ID,  2 : PAREN_LEFT_ID,  1 : , 
+ 1: 5: EQUALS_GREATER_ID : shift and goto state 12
+ 1 stack:  12 : EQUALS_GREATER_ID,  5 : IDENTIFIER_ID,  2 : PAREN_LEFT_ID,  1 : , 
+ 1: 12: IDENTIFIER_ID : shift and goto state 13
+ 1 stack:  13 : IDENTIFIER_ID,  12 : EQUALS_GREATER_ID,  5 : IDENTIFIER_ID,  2 : PAREN_LEFT_ID,  1 : , 
+ 1: 13: PAREN_RIGHT_ID : reduce 3 tokens to ASSOCIATION_ID, goto state 7
+ 1 stack:  7 : ASSOCIATION_ID,  2 : PAREN_LEFT_ID,  1 : , 
+ 1: 7: PAREN_RIGHT_ID : reduce 1 tokens to ASSOCIATION_LIST_ID, goto state 8
+ 1 stack:  8 : ASSOCIATION_LIST_ID,  2 : PAREN_LEFT_ID,  1 : , 
+ 1: 8: PAREN_RIGHT_ID : shift and goto state 9
+ 1 stack:  9 : PAREN_RIGHT_ID,  8 : ASSOCIATION_LIST_ID,  2 : PAREN_LEFT_ID,  1 : , 
+ 1: 9: EOF_ID : reduce 3 tokens to AGGREGATE_ID, goto state 3
+ 1 stack:  3 : AGGREGATE_ID,  1 : , 
+ 1: 3: EOF_ID : shift and goto state 4
+ 1 stack:  4 : EOF_ID,  3 : AGGREGATE_ID,  1 : , 
+ 1: 4: EOF_ID : accept it
 success
 
 '(integer => identifier)'
- 1 : 
- 1 : PAREN_LEFT_ID : SHIFT
- 2 : PAREN_LEFT_ID
- 1 : 
- 2 : IDENTIFIER_ID : SHIFT
- 5 : IDENTIFIER_ID
- 2 : PAREN_LEFT_ID
- 1 : 
- 5 : EQUALS_GREATER_ID : SHIFT
- 12 : EQUALS_GREATER_ID
- 5 : IDENTIFIER_ID
- 2 : PAREN_LEFT_ID
- 1 : 
- 12 : IDENTIFIER_ID : SHIFT
- 13 : IDENTIFIER_ID
- 12 : EQUALS_GREATER_ID
- 5 : IDENTIFIER_ID
- 2 : PAREN_LEFT_ID
- 1 : 
- 13 : PAREN_RIGHT_ID : REDUCE 3 tokens to ASSOCIATION_ID, goto state 7
- 7 : ASSOCIATION_ID
- 2 : PAREN_LEFT_ID
- 1 : 
- 7 : PAREN_RIGHT_ID : REDUCE 1 tokens to ASSOCIATION_LIST_ID, goto state 8
- 8 : ASSOCIATION_LIST_ID
- 2 : PAREN_LEFT_ID
- 1 : 
- 8 : PAREN_RIGHT_ID : SHIFT
- 9 : PAREN_RIGHT_ID
- 8 : ASSOCIATION_LIST_ID
- 2 : PAREN_LEFT_ID
- 1 : 
- 9 : EOF_ID : REDUCE 3 tokens to AGGREGATE_ID, goto state 3
- 3 : AGGREGATE_ID
- 1 : 
- 3 : EOF_ID : SHIFT
- 4 : EOF_ID
- 3 : AGGREGATE_ID
- 1 : 
- 4 : EOF_ID : ACCEPT_IT
+ 1 stack:  1 : , 
+ 1: 1: PAREN_LEFT_ID : shift and goto state 2
+ 1 stack:  2 : PAREN_LEFT_ID,  1 : , 
+ 1: 2: IDENTIFIER_ID : shift and goto state 5
+ 1 stack:  5 : IDENTIFIER_ID,  2 : PAREN_LEFT_ID,  1 : , 
+ 1: 5: EQUALS_GREATER_ID : shift and goto state 12
+ 1 stack:  12 : EQUALS_GREATER_ID,  5 : IDENTIFIER_ID,  2 : PAREN_LEFT_ID,  1 : , 
+ 1: 12: IDENTIFIER_ID : shift and goto state 13
+ 1 stack:  13 : IDENTIFIER_ID,  12 : EQUALS_GREATER_ID,  5 : IDENTIFIER_ID,  2 : PAREN_LEFT_ID,  1 : , 
+ 1: 13: PAREN_RIGHT_ID : reduce 3 tokens to ASSOCIATION_ID, goto state 7
+ 1 stack:  7 : ASSOCIATION_ID,  2 : PAREN_LEFT_ID,  1 : , 
+ 1: 7: PAREN_RIGHT_ID : reduce 1 tokens to ASSOCIATION_LIST_ID, goto state 8
+ 1 stack:  8 : ASSOCIATION_LIST_ID,  2 : PAREN_LEFT_ID,  1 : , 
+ 1: 8: PAREN_RIGHT_ID : shift and goto state 9
+ 1 stack:  9 : PAREN_RIGHT_ID,  8 : ASSOCIATION_LIST_ID,  2 : PAREN_LEFT_ID,  1 : , 
+ 1: 9: EOF_ID : reduce 3 tokens to AGGREGATE_ID, goto state 3
+ 1 stack:  3 : AGGREGATE_ID,  1 : , 
+ 1: 3: EOF_ID : shift and goto state 4
+ 1 stack:  4 : EOF_ID,  3 : AGGREGATE_ID,  1 : , 
+ 1: 4: EOF_ID : accept it
 success
 
 '(identifier => identifier, integer => identifier)'
- 1 : 
- 1 : PAREN_LEFT_ID : SHIFT
- 2 : PAREN_LEFT_ID
- 1 : 
- 2 : IDENTIFIER_ID : SHIFT
- 5 : IDENTIFIER_ID
- 2 : PAREN_LEFT_ID
- 1 : 
- 5 : EQUALS_GREATER_ID : SHIFT
- 12 : EQUALS_GREATER_ID
- 5 : IDENTIFIER_ID
- 2 : PAREN_LEFT_ID
- 1 : 
- 12 : IDENTIFIER_ID : SHIFT
- 13 : IDENTIFIER_ID
- 12 : EQUALS_GREATER_ID
- 5 : IDENTIFIER_ID
- 2 : PAREN_LEFT_ID
- 1 : 
- 13 : COMMA_ID : REDUCE 3 tokens to ASSOCIATION_ID, goto state 7
- 7 : ASSOCIATION_ID
- 2 : PAREN_LEFT_ID
- 1 : 
- 7 : COMMA_ID : SHIFT
- 10 : COMMA_ID
- 7 : ASSOCIATION_ID
- 2 : PAREN_LEFT_ID
- 1 : 
- 10 : IDENTIFIER_ID : SHIFT
- 5 : IDENTIFIER_ID
- 10 : COMMA_ID
- 7 : ASSOCIATION_ID
- 2 : PAREN_LEFT_ID
- 1 : 
- 5 : EQUALS_GREATER_ID : SHIFT
- 12 : EQUALS_GREATER_ID
- 5 : IDENTIFIER_ID
- 10 : COMMA_ID
- 7 : ASSOCIATION_ID
- 2 : PAREN_LEFT_ID
- 1 : 
- 12 : IDENTIFIER_ID : SHIFT
- 13 : IDENTIFIER_ID
- 12 : EQUALS_GREATER_ID
- 5 : IDENTIFIER_ID
- 10 : COMMA_ID
- 7 : ASSOCIATION_ID
- 2 : PAREN_LEFT_ID
- 1 : 
- 13 : PAREN_RIGHT_ID : REDUCE 3 tokens to ASSOCIATION_ID, goto state 7
- 7 : ASSOCIATION_ID
- 10 : COMMA_ID
- 7 : ASSOCIATION_ID
- 2 : PAREN_LEFT_ID
- 1 : 
- 7 : PAREN_RIGHT_ID : REDUCE 1 tokens to ASSOCIATION_LIST_ID, goto state 15
- 15 : ASSOCIATION_LIST_ID
- 10 : COMMA_ID
- 7 : ASSOCIATION_ID
- 2 : PAREN_LEFT_ID
- 1 : 
- 15 : PAREN_RIGHT_ID : REDUCE 3 tokens to ASSOCIATION_LIST_ID, goto state 8
- 8 : ASSOCIATION_LIST_ID
- 2 : PAREN_LEFT_ID
- 1 : 
- 8 : PAREN_RIGHT_ID : SHIFT
- 9 : PAREN_RIGHT_ID
- 8 : ASSOCIATION_LIST_ID
- 2 : PAREN_LEFT_ID
- 1 : 
- 9 : EOF_ID : REDUCE 3 tokens to AGGREGATE_ID, goto state 3
- 3 : AGGREGATE_ID
- 1 : 
- 3 : EOF_ID : SHIFT
- 4 : EOF_ID
- 3 : AGGREGATE_ID
- 1 : 
- 4 : EOF_ID : ACCEPT_IT
+ 1 stack:  1 : , 
+ 1: 1: PAREN_LEFT_ID : shift and goto state 2
+ 1 stack:  2 : PAREN_LEFT_ID,  1 : , 
+ 1: 2: IDENTIFIER_ID : shift and goto state 5
+ 1 stack:  5 : IDENTIFIER_ID,  2 : PAREN_LEFT_ID,  1 : , 
+ 1: 5: EQUALS_GREATER_ID : shift and goto state 12
+ 1 stack:  12 : EQUALS_GREATER_ID,  5 : IDENTIFIER_ID,  2 : PAREN_LEFT_ID,  1 : , 
+ 1: 12: IDENTIFIER_ID : shift and goto state 13
+ 1 stack:  13 : IDENTIFIER_ID,  12 : EQUALS_GREATER_ID,  5 : IDENTIFIER_ID,  2 : PAREN_LEFT_ID,  1 : , 
+ 1: 13: COMMA_ID : reduce 3 tokens to ASSOCIATION_ID, goto state 7
+ 1 stack:  7 : ASSOCIATION_ID,  2 : PAREN_LEFT_ID,  1 : , 
+ 1: 7: COMMA_ID : shift and goto state 10
+ 1 stack:  10 : COMMA_ID,  7 : ASSOCIATION_ID,  2 : PAREN_LEFT_ID,  1 : , 
+ 1: 10: IDENTIFIER_ID : shift and goto state 5
+ 1 stack:  5 : IDENTIFIER_ID,  10 : COMMA_ID,  7 : ASSOCIATION_ID,  2 : PAREN_LEFT_ID,  1 : , 
+ 1: 5: EQUALS_GREATER_ID : shift and goto state 12
+ 1 stack:  12 : EQUALS_GREATER_ID,  5 : IDENTIFIER_ID,  10 : COMMA_ID,  7 : ASSOCIATION_ID,  2 : PAREN_LEFT_ID,  1 : , 
+ 1: 12: IDENTIFIER_ID : shift and goto state 13
+ 1 stack:  13 : IDENTIFIER_ID,  12 : EQUALS_GREATER_ID,  5 : IDENTIFIER_ID,  10 : COMMA_ID,  7 : ASSOCIATION_ID,  2 : PAREN_LEFT_ID,  1 : , 
+ 1: 13: PAREN_RIGHT_ID : reduce 3 tokens to ASSOCIATION_ID, goto state 7
+ 1 stack:  7 : ASSOCIATION_ID,  10 : COMMA_ID,  7 : ASSOCIATION_ID,  2 : PAREN_LEFT_ID,  1 : , 
+ 1: 7: PAREN_RIGHT_ID : reduce 1 tokens to ASSOCIATION_LIST_ID, goto state 15
+ 1 stack:  15 : ASSOCIATION_LIST_ID,  10 : COMMA_ID,  7 : ASSOCIATION_ID,  2 : PAREN_LEFT_ID,  1 : , 
+ 1: 15: PAREN_RIGHT_ID : reduce 3 tokens to ASSOCIATION_LIST_ID, goto state 8
+ 1 stack:  8 : ASSOCIATION_LIST_ID,  2 : PAREN_LEFT_ID,  1 : , 
+ 1: 8: PAREN_RIGHT_ID : shift and goto state 9
+ 1 stack:  9 : PAREN_RIGHT_ID,  8 : ASSOCIATION_LIST_ID,  2 : PAREN_LEFT_ID,  1 : , 
+ 1: 9: EOF_ID : reduce 3 tokens to AGGREGATE_ID, goto state 3
+ 1 stack:  3 : AGGREGATE_ID,  1 : , 
+ 1: 3: EOF_ID : shift and goto state 4
+ 1 stack:  4 : EOF_ID,  3 : AGGREGATE_ID,  1 : , 
+ 1: 4: EOF_ID : accept it
 success
 

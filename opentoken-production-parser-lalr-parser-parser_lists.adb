@@ -31,16 +31,17 @@ package body Parser_Lists is
       Parser_Label := 1;
 
       return
-        (Head              => new Parser_State'
-           (Label          => Parser_Label,
-            Verb           => Parse_Action_Verbs'First,
-            Stack          =>
-              (Head        => new Stack_Node'
+        (Head              => new Parser_Node'
+           (Item           =>
+              (Label       => Parser_Label,
+               Verb        => Parse_Action_Verbs'First,
+               Stack       => new Stack_Node'
                  (Item     =>
                     (State => State_Index'First,
                      Token => null),
                   Next     => null)),
-            Next           => null),
+            Next           => null,
+            Prev           => null),
          Parser_Free       => null,
          Stack_Free        => null,
          Count             => 1);
@@ -71,42 +72,48 @@ package body Parser_Lists is
 
    function Label (Cursor : in Parser_Lists.Cursor) return Integer
    is begin
-      return Cursor.Ptr.Label;
+      return Cursor.Ptr.Item.Label;
    end Label;
 
    procedure Set_Verb (Cursor : in Parser_Lists.Cursor; Verb : in Parse_Action_Verbs)
    is begin
-      Cursor.Ptr.Verb := Verb;
+      Cursor.Ptr.Item.Verb := Verb;
    end Set_Verb;
 
    function Verb (Cursor : in Parser_Lists.Cursor) return Parse_Action_Verbs
    is begin
-      return Cursor.Ptr.Verb;
+      return Cursor.Ptr.Item.Verb;
    end Verb;
 
    function Stack_Empty (Cursor : in Parser_Lists.Cursor) return Boolean
    is begin
-      return Cursor.Ptr.Stack.Head = null;
+      return Cursor.Ptr.Item.Stack = null;
    end Stack_Empty;
 
    function Peek (Cursor : in Parser_Lists.Cursor) return Stack_Item
    is begin
-      return Cursor.Ptr.Stack.Head.Item;
+      return Cursor.Ptr.Item.Stack.Item;
    end Peek;
 
-   function Pop (Cursor : in Parser_Lists.Cursor) return Stack_Item
+   procedure Free (List : in out Parser_Lists.List; Stack : in out Stack_Node_Access)
    is
-      Result    : constant Stack_Item        := Cursor.Ptr.Stack.Head.Item;
-      Temp_Free : constant Stack_Node_Access := Cursor.List.Stack_Free;
+      Temp_Free : constant Stack_Node_Access := List.Stack_Free;
    begin
-      Cursor.List.Stack_Free := Cursor.Ptr.Stack.Head;
-      Cursor.Ptr.Stack.Head  := Cursor.Ptr.Stack.Head.Next;
+      List.Stack_Free := Stack;
+      Stack           := Stack.Next;
 
-      Cursor.List.Stack_Free.all :=
+      List.Stack_Free.all :=
         (Item     =>
            (State => Unknown_State,
             Token => null), -- Token is free'd after being passed to user action
          Next     => Temp_Free);
+   end Free;
+
+   function Pop (Cursor : in Parser_Lists.Cursor) return Stack_Item
+   is
+      Result    : constant Stack_Item        := Cursor.Ptr.Item.Stack.Item;
+   begin
+      Free (Cursor.List.all, Cursor.Ptr.Item.Stack);
 
       return Result;
    end Pop;
@@ -116,11 +123,11 @@ package body Parser_Lists is
       Temp : constant Stack_Node_Access := Cursor.List.Stack_Free;
    begin
       if Temp = null then
-         Cursor.Ptr.Stack.Head := new Stack_Node'(Item, Cursor.Ptr.Stack.Head);
+         Cursor.Ptr.Item.Stack := new Stack_Node'(Item, Cursor.Ptr.Item.Stack);
       else
          Cursor.List.Stack_Free := Cursor.List.Stack_Free.Next;
-         Temp.all               := (Item, Cursor.Ptr.Stack.Head);
-         Cursor.Ptr.Stack.Head  := Temp;
+         Temp.all               := (Item, Cursor.Ptr.Item.Stack);
+         Cursor.Ptr.Item.Stack  := Temp;
       end if;
    end Push;
 
@@ -128,9 +135,9 @@ package body Parser_Lists is
    is
       use Ada.Text_IO;
       use type Token.Handle;
-      Stack_I : Stack_Node_Access := Cursor.Ptr.Stack.Head;
+      Stack_I : Stack_Node_Access := Cursor.Ptr.Item.Stack;
    begin
-      Put (Integer'Image (Cursor.Ptr.Label) & " stack: ");
+      Put (Integer'Image (Cursor.Ptr.Item.Label) & " stack: ");
       for I in 1 .. 10 loop
          exit when Stack_I = null;
          Ada.Text_IO.Put
@@ -162,14 +169,14 @@ package body Parser_Lists is
       return True; -- FIXME:
    end Action_Tokens_Empty;
 
-   function Deep_Copy (Stack : in Parser_Lists.Stack; Stack_Free : in out Stack_Node_Access) return Parser_Lists.Stack
+   function Deep_Copy (Stack : in Stack_Node_Access; Stack_Free : in out Stack_Node_Access) return Stack_Node_Access
    is
       --  Create a copy in Copy, in reverse order. Then move to
       --  Result.Head, in correct order.
-      I      : Stack_Node_Access := Stack.Head;
+      I      : Stack_Node_Access := Stack;
       Copy   : Stack_Node_Access;
       Temp   : Stack_Node_Access;
-      Result : Parser_Lists.Stack;
+      Result : Stack_Node_Access;
    begin
       loop
          exit when I = null;
@@ -188,10 +195,10 @@ package body Parser_Lists is
 
       loop
          exit when I = null;
-         Temp        := I.Next;
-         I.Next      := Result.Head;
-         Result.Head := I;
-         I           := Temp;
+         Temp   := I.Next;
+         I.Next := Result;
+         Result := I;
+         I      := Temp;
       end loop;
 
       return Result;
@@ -199,31 +206,67 @@ package body Parser_Lists is
 
    procedure Prepend_Copy (List : in out Parser_Lists.List; Cursor : in Parser_Lists.Cursor'Class)
    is
-      Temp : constant Parser_State_Access := List.Parser_Free;
+      Temp : constant Parser_Node_Access := List.Parser_Free;
    begin
       Parser_Label := Parser_Label + 1;
       List.Count   := List.Count + 1;
 
       if Temp = null then
-         List.Head := new Parser_State'
-           (Parser_Label,
-            Cursor.Ptr.Verb,
-            Deep_Copy (Cursor.Ptr.Stack, List.Stack_Free),
-            List.Head);
+         List.Head := new Parser_Node'
+           (Item =>
+              (Parser_Label,
+               Cursor.Ptr.Item.Verb,
+               Deep_Copy (Cursor.Ptr.Item.Stack, List.Stack_Free)),
+            Next => List.Head,
+            Prev => null);
+
+         List.Head.Next.Prev := List.Head;
       else
          List.Parser_Free := List.Parser_Free.Next;
          Temp.all  :=
-           (Parser_Label,
-            Cursor.Ptr.Verb,
-            Deep_Copy (Cursor.Ptr.Stack, List.Stack_Free),
-            List.Head);
+           ((Parser_Label,
+             Cursor.Ptr.Item.Verb,
+             Deep_Copy (Cursor.Ptr.Item.Stack, List.Stack_Free)),
+            Next => List.Head,
+            Prev => null);
+
          List.Head := Temp;
+
+         List.Head.Next.Prev := List.Head;
       end if;
    end Prepend_Copy;
 
-   procedure Free (List : in out Parser_Lists.List; Cursor : in Parser_Lists.Cursor'Class)
-   is begin
-      null; -- FIXME:
+   procedure Free (Cursor : in out Parser_Lists.Cursor'Class)
+   is
+      Temp_Free : constant Parser_Node_Access := Cursor.List.Parser_Free;
+      Stack     : Stack_Node_Access           := Cursor.Ptr.Item.Stack;
+   begin
+      Cursor.List.Count := Cursor.List.Count - 1;
+
+      if Cursor.List.Head = Cursor.Ptr then
+         Cursor.List.Head := Cursor.Ptr.Next;
+      end if;
+
+      Cursor.List.Parser_Free := Cursor.Ptr;
+
+      if Cursor.Ptr.Prev /= null then
+         Cursor.Ptr.Prev.Next := Cursor.Ptr.Next;
+      end if;
+
+      if Cursor.Ptr.Next /= null then
+         Cursor.Ptr.Next.Prev    := Cursor.Ptr.Prev;
+      end if;
+
+      Cursor.List.Parser_Free := Cursor.Ptr;
+      Cursor.Ptr              := Cursor.Ptr.Next;
+
+      Cursor.List.Parser_Free.Next := Temp_Free;
+      Cursor.List.Parser_Free.Prev := null;
+
+      loop
+         exit when Stack = null;
+         Free (Cursor.List.all, Stack);
+      end loop;
    end Free;
 
    ----------
@@ -231,12 +274,12 @@ package body Parser_Lists is
 
    function Constant_Reference
      (Container : aliased in List'Class;
-      Position  : in Iterator_Cursor)
+      Position  : in Parser_Node_Access)
      return Constant_Reference_Type
    is
       pragma Unreferenced (Container);
    begin
-      return (Element => Position);
+      return (Element => Position.Item'Access);
    end Constant_Reference;
 
    type List_Access_Constant is access constant List;
@@ -245,39 +288,39 @@ package body Parser_Lists is
       Container : List_Access_Constant;
    end record;
 
-   overriding function First (Object : Iterator) return Iterator_Cursor;
+   overriding function First (Object : Iterator) return Parser_Node_Access;
    overriding function Next
      (Object   : Iterator;
-      Position : Iterator_Cursor)
-     return Iterator_Cursor;
+      Position : Parser_Node_Access)
+     return Parser_Node_Access;
 
-   overriding function First (Object : Iterator) return Iterator_Cursor
+   overriding function First (Object : Iterator) return Parser_Node_Access
    is begin
-      return Iterator_Cursor (Object.Container.Head);
+      return Object.Container.Head;
    end First;
 
    overriding function Next
      (Object   : Iterator;
-      Position : Iterator_Cursor)
-     return Iterator_Cursor
+      Position : Parser_Node_Access)
+     return Parser_Node_Access
    is
       pragma Unreferenced (Object);
    begin
       if Position = null then
          return null;
       else
-         return Iterator_Cursor (Position.Next);
+         return Position.Next;
       end if;
    end Next;
 
-   function Has_Element (Cursor : in Iterator_Cursor) return Boolean
+   function Has_Element (Cursor : in Parser_Node_Access) return Boolean
    is begin
       return Cursor /= null;
    end Has_Element;
 
-   function Verb (Cursor : in Iterator_Cursor) return Parse_Action_Verbs
+   function Verb (Cursor : in Parser_Node_Access) return Parse_Action_Verbs
    is begin
-      return Cursor.Verb;
+      return Cursor.Item.Verb;
    end Verb;
 
    function Iterate (Container : aliased List) return Iterator_Interfaces.Forward_Iterator'Class
@@ -287,6 +330,19 @@ package body Parser_Lists is
 
    ----------
    --  For unit tests
+
+   function Parser_Free_Count (List : in Parser_Lists.List) return Integer
+   is
+      Result : Integer := 0;
+      Node   : Parser_Node_Access := List.Parser_Free;
+   begin
+      loop
+         exit when Node = null;
+         Result := Result + 1;
+         Node   := Node.Next;
+      end loop;
+      return Result;
+   end Parser_Free_Count;
 
    function Stack_Free_Count (List : in Parser_Lists.List) return Integer
    is

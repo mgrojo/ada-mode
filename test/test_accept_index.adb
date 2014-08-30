@@ -112,7 +112,7 @@ package body Test_Accept_Index is
    begin
       --  The test is that there are no exceptions.
 
-      Parser :=
+      Parser := LALR_Parser.Initialize
         (Tokenizer.Initialize (Syntax),
          LALR_Generator.Generate
            (Grammar,

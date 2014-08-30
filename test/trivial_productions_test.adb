@@ -93,7 +93,7 @@ package body Trivial_Productions_Test is
    begin
       --  The test is that there are no exceptions raised, either during grammar construction or parsing
 
-      Parser :=
+      Parser := LALR_Parsers.Initialize
         (Analyzer,
          LALR_Generators.Generate (Grammar, Trace => Test_Case (Test).Debug));
 
@@ -186,7 +186,7 @@ package body Trivial_Productions_Test is
    begin
       --  The test is that there are no exceptions raised, either during grammar construction or parsing
 
-      Parser :=
+      Parser := LALR_Parsers.Initialize
         (Analyzer,
          LALR_Generators.Generate
            (Grammar,

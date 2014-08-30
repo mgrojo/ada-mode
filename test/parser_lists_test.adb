@@ -118,15 +118,58 @@ package body Parser_Lists_Test is
       Check ("3c: Stack_Empty", Cursor.Stack_Empty, True);
    end Stack;
 
-   ----------
-   --  Public subprograms
-
-   overriding function Name (T : Test_Case) return AUnit.Message_String
+   procedure Parser_List (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
+      use LALRs;
+      use LALR_Parser.Parser_Lists;
+      use AUnit.Check;
+
+      Parsers : List := Initialize;
+      Cursor  : LALR_Parser.Parser_Lists.Cursor := Parsers.First;
    begin
-      return new String'("../../Test/parser_lists_test.adb");
-   end Name;
+      Check ("0: Parser_Free_Count", Parsers.Parser_Free_Count, 0);
+      Check ("0a: Label", Cursor.Label, 1);
+
+      Prepend_Copy (Parsers, Cursor);
+      Check ("0b: Label", Cursor.Label, 1);
+
+      Cursor := Parsers.First;
+      Check ("1: Parser_Free_Count", Parsers.Parser_Free_Count, 0);
+      Check ("1: Count", Parsers.Count, 2);
+      Check ("1: Label", Cursor.Label, 2);
+
+      Cursor.Next;
+      Check ("2: Label", Cursor.Label, 1);
+
+      --  Delete last parser
+      Free (Cursor);
+      Check ("3: Parser_Free_Count", Parsers.Parser_Free_Count, 1);
+      Check ("3: Count", Parsers.Count, 1);
+      Check ("3: Is_Done", Cursor.Is_Done, True);
+
+      Cursor := Parsers.First;
+      Prepend_Copy (Parsers, Cursor);
+      Cursor := Parsers.First;
+      Check ("4: Parser_Free_Count", Parsers.Parser_Free_Count, 0);
+      Check ("4: Count", Parsers.Count, 2);
+      Check ("4: Label", Cursor.Label, 3);
+
+      --  Delete first parser; cursor advances to next
+      Free (Cursor);
+      Check ("5: Parser_Free_Count", Parsers.Parser_Free_Count, 1);
+      Check ("5: Count", Parsers.Count, 1);
+      Check ("5: Is_Done", Cursor.Is_Done, False);
+      Check ("5: Label", Cursor.Label, 2);
+
+      Free (Cursor);
+      Check ("6: Parser_Free_Count", Parsers.Parser_Free_Count, 2);
+      Check ("6: Count", Parsers.Count, 0);
+      Check ("6: Is_Done", Cursor.Is_Done, True);
+   end Parser_List;
+
+   ----------
+   --  Public subprograms
 
    overriding procedure Register_Tests (T : in out Test_Case)
    is
@@ -134,7 +177,15 @@ package body Parser_Lists_Test is
    begin
       Register_Routine (T, Init'Access, "Init");
       Register_Routine (T, Stack'Access, "Stack");
+      Register_Routine (T, Parser_List'Access, "Parser_List");
       --  FIXME: test pending actions
    end Register_Tests;
+
+   overriding function Name (T : Test_Case) return AUnit.Message_String
+   is
+      pragma Unreferenced (T);
+   begin
+      return new String'("../../Test/parser_lists_test.adb");
+   end Name;
 
 end Parser_Lists_Test;

@@ -252,7 +252,7 @@ package body Test_LR0_Kernels is
          OpenToken.Trace_Parse := True;
       end if;
 
-      Command_Parser :=
+      Command_Parser := LALR_Parsers.Initialize
         (An_Analyzer,
          LALR_Generators.Generate
            (Grammar,

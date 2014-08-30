@@ -302,7 +302,12 @@ package body OpenToken.Production.Parser.LALR.Parser is
             --  shifted it.
 
             if Current_Verb = Shift and Current_Parser.Verb = Error then
-               Parsers.Free (Current_Parser);
+               if Trace_Parse then
+                  Ada.Text_IO.Put_Line
+                    (Integer'Image (Current_Parser.Label) & ": terminate (" &
+                       Int_Image (Parsers.Count - 1) & " active)");
+               end if;
+               Current_Parser.Free;
 
             elsif Current_Parser.Verb = Current_Verb then
 
@@ -329,12 +334,23 @@ package body OpenToken.Production.Parser.LALR.Parser is
                end if;
 
                Do_Action (Action.Item, Current_Parser, Current_Token, Parser.Table.all);
+
+               Current_Parser.Next;
+            else
+               Current_Parser.Next;
             end if;
-
-            Current_Parser.Next;
          end loop;
-
       end loop;
    end Parse;
+
+   function Initialize
+     (Analyzer     : in Tokenizer.Instance;
+      Table        : in Parse_Table_Ptr;
+      Max_Parallel : in Integer := 15)
+     return Instance
+   is begin
+      return (Analyzer, Table, Max_Parallel);
+   end Initialize;
+
 
 end OpenToken.Production.Parser.LALR.Parser;
