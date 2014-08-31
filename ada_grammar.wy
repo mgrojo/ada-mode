@@ -164,8 +164,8 @@
 %token <punctuation> TICK "'"
 
 ;; whitespace, comment not seen by wisi lexer, but are needed by Ada lexer
-%token <whitespace> ""
-%token <line_comment> "--"
+%token <whitespace> WHITESPACE ""
+%token <line_comment> COMMENT "--"
 %token <symbol> IDENTIFIER
 %token <string-double> STRING_LITERAL
 %token <string-single> CHARACTER_LITERAL

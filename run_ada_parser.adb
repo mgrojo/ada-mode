@@ -6,7 +6,7 @@ with OpenToken.Text_Feeder.Text_IO;
 procedure Run_Ada_Parser
 is
    File   : File_Type;
-   Parser : Ada_Grammar.LALR_Parsers.Instance := Ada_Grammar.Create_Parser;
+   Parser : Ada_Grammar.LALR_Parsers.Instance := Ada_Grammar.Create_Parser (Terminate_Same_State => True);
 begin
    if Argument (1) = "-v" then
       OpenToken.Trace_Parse := True;
@@ -21,11 +21,10 @@ begin
    Ada_Grammar.LALR_Parsers.Parse (Parser);
 
 exception
-when E : others =>
-   if Is_Open (File) then
-      Put_Line (Count'Image (Line (File)) & ": " & Ada.Exceptions.Exception_Message (E));
-   else
-      Put_Line (Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E));
-   end if;
+when E : OpenToken.Parse_Error | OpenToken.Syntax_Error =>
+   Put_Line (Name (File) & ":" & Ada.Exceptions.Exception_Message (E));
 
+when E : others =>
+   New_Line;
+   Put_Line (Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E));
 end Run_Ada_Parser;

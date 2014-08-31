@@ -42,21 +42,33 @@ install packages in -Q:
     build/Makefile
     doc changes in NEWS-ada-mode.text NEWS-wisi.text
 
-    rename "reductions" to "gotos"
+    c:/Projects/org.opentoken.stephe/build/debug/Makefile
+        compiling ada_grammar.adb is slow:
+        time gprbuild -p ada_mode_wisi_parse_agg.gpr run_ada_parser.adb
+        -g -01 -fno-var-tracking-assignments 1m38.109s
 
-    split lalr into generate, parse
-        simplify data structures
+    philippe.waroquiers@eurocontrol.int has a file that takes 10 seconds to parse with Emacs Ada mode 5.1.4
+        needs to be < 1 second
 
-    run all tests
+    using /apps/GNAT-gpl_2014/gnatcoll-1.7w-src/src/sqlite/gnatcoll-xref.adb
+        (progn
+            (ada-wisi-setup)
+            (wisi-invalidate-cache)
+            (time-it (lambda () (indent-region (point-min) (point-max))) 1))
 
-    add parallel parsing to parser
-
-    run all tests
+        5.1.5: 2.062000 seconds
+            needs to be < 0.2 seconds
 
     time ./run_ada_parser /apps/GNAT-gpl_2014/gnatcoll-1.7w-src/src/sqlite/gnatcoll-xref.adb
+        real	0m0.390s
+        fast enough!
 
     integrate to ada-mode
+        delete text from wisi-forward-token result
+            time improvement in wisi-parse-buffer!
+
         need region for each token
+            collect in elisp_token type
 
         time wisi-parse-buffer
 
@@ -102,6 +114,16 @@ install packages in -Q:
             ada_syntax_dfa -> ada_syntax-dfa.ads
 
         generate *.l, associated packages from *.wy
+
+    split out recursive descent stuff
+        avoid compile time overhead, name, build runtime overhead
+        token.enumerated abstract
+        rd child
+        lalr child
+        recursive_lalr child; avoid more runtime allocation overhead
+            pass token region to use action
+
+    lalr does not need to be child of production
 
     add error recovery to parser
 

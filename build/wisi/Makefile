@@ -48,10 +48,9 @@ test-wisi :: empty_production_8.wisi-test
 #one : ada_mode-nominal.ads.diff
 #one : export Ada_Mode_Wisi_Parse_Build := Debug
 one : ../../ada_grammar.ads
-	gprbuild -p ada_mode_wisi_parse_agg.gpr run_ada_parser.adb
-	./run_ada_parser.exe -v ../../test/debug.adb
-
-# bash -c "time ./run_ada_parser.exe /apps/GNAT-gpl_2014/gnatcoll-1.7w-src/src/sqlite/gnatcoll-xref.adb"
+	bash -c "time gprbuild -p ada_mode_wisi_parse_agg.gpr run_ada_parser.adb"
+#	./run_ada_parser.exe -v ../../test/debug.adb
+	bash -c "time ./run_ada_parser.exe /apps/GNAT-gpl_2014/gnatcoll-1.7w-src/src/sqlite/gnatcoll-xref.adb"
 
 vpath %.wy ../../ ../../test/wisi
 vpath %.el ../../ .
@@ -62,7 +61,7 @@ vpath %.l ../../ .
 # external environment variable.
 ifeq ($(shell uname),Linux)
 INDENT.EL := ada-wisi.el gpr-wisi.el
-WISI_OPENTOKEN ?= /home/Projects/opentoken/org.opentoken/build/release
+WISI_OPENTOKEN ?= /home/Projects/opentoken/org.opentoken.stephe/build/release
 export ADA_PROJECT_PATH=../../test/:../../test/subdir
 
 else
@@ -86,7 +85,7 @@ endif
 	cd ./$(<D); dos2unix $(@F)
 
 %.ads : %.wy $(WISI_OPENTOKEN)/wisi-generate.exe
-	cd ./$(<D); $(WISI_OPENTOKEN)/wisi-generate.exe -v 1 $(<F) Ada > $(*F).ada_output
+	cd ./$(<D); $(WISI_OPENTOKEN)/wisi-generate.exe -v 1 $(<F) Ada_Emacs > $(*F).ada_output
 
 %.a : %.l
 	aflex -i $<
