@@ -528,7 +528,7 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
 
 (defun wisi-validate-cache (pos)
   "Ensure cached data is valid at least up to POS in current buffer."
-  (let ((msg (when (> wisi-debug 0) (format "wisi: parsing %s:%d ..." (buffer-name) (line-number-at-pos)))))
+  (let ((msg (when (> wisi-debug 0) (format "wisi: parsing %s:%d ..." (buffer-name) (line-number-at-pos pos)))))
     (when (and wisi-parse-try
 	       (< wisi-cache-max pos))
       (when (> wisi-debug 0)
@@ -965,7 +965,8 @@ cache. Otherwise move to cache-prev, or prev cache if nil."
   ))
 
 (defun wisi-goto-containing (cache &optional error)
-  "Move point to containing token for CACHE, return cache at that point."
+  "Move point to containing token for CACHE, return cache at that point.
+If ERROR, throw error when CACHE has no container; else return nil."
   (cond
    ((markerp (wisi-cache-containing cache))
     (goto-char (1- (wisi-cache-containing cache)))
@@ -1000,7 +1001,8 @@ Return start cache."
   (goto-char (1- (wisi-cache-end cache))))
 
 (defun wisi-goto-statement-start ()
-  "Move point to token at start of statement point is in or after."
+  "Move point to token at start of statement point is in or after.
+Return start cache."
   (interactive)
   (wisi-validate-cache (point))
   (let ((cache (wisi-get-cache (point))))

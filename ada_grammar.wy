@@ -204,7 +204,7 @@
 %conflict SHIFT/REDUCE in state generic_renaming_declaration, generic_formal_part on token PROCEDURE
 %conflict SHIFT/REDUCE in state label_opt, label_opt on token IDENTIFIER
 %conflict SHIFT/REDUCE in state name, discrete_subtype_definition on token RIGHT_PAREN
-%conflict SHIFT/REDUCE in state null_exclusion_opt, aliased_opt on token NOT
+%conflict SHIFT/REDUCE in state null_exclusion_opt, mode_opt on token NOT
 %conflict SHIFT/REDUCE in state null_procedure_declaration, subprogram_specification on token IS
 %conflict SHIFT/REDUCE in state object_renaming_declaration, identifier_list on token COLON
 %conflict SHIFT/REDUCE in state package_body_stub, aspect_specification_opt on token IS
@@ -1641,8 +1641,8 @@ parameter_profile_opt
 parameter_specification
   : identifier_list COLON aliased_opt mode_opt null_exclusion_opt name COLON_EQUAL expression
   | identifier_list COLON aliased_opt mode_opt null_exclusion_opt name
-  | identifier_list COLON access_definition COLON_EQUAL expression
-  | identifier_list COLON access_definition
+  | identifier_list COLON aliased_opt access_definition COLON_EQUAL expression
+  | identifier_list COLON aliased_opt access_definition
   ;
 
 parameter_specification_list
@@ -2169,7 +2169,8 @@ subtype_indication
 subunit
   : SEPARATE LEFT_PAREN name RIGHT_PAREN proper_body
     (progn
-      (wisi-statement-action 2 'open-paren 4 'close-paren)
+      (wisi-statement-action 1 'block-start 2 'open-paren 4 'close-paren 5 'block-middle)
+      (wisi-containing-action 1 5)
       (wisi-containing-action 2 3))
   ;
 

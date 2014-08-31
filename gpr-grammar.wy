@@ -116,7 +116,6 @@
 %conflict SHIFT/REDUCE in state simple_declarative_item, declarative_items on token NULL
 %conflict SHIFT/REDUCE in state simple_declarative_item, simple_declarative_items on token IDENTIFIER
 %conflict SHIFT/REDUCE in state simple_declarative_item, simple_declarative_items on token NULL
-%conflict SHIFT/REDUCE in state string_expression, term on token AMPERSAND
 %conflict SHIFT/REDUCE in state typed_string_declaration, declarative_items on token TYPE
 
 %%
@@ -302,10 +301,8 @@ simple_project_declaration
   ;
 
 ;; (info "(gnat_ugn)Expressions")
-;; that does not include string_expression & string_primary, but the compiler accepts it
 string_expression
   : string_primary
-  | string_expression AMPERSAND string_primary
   ;
 
 string_primary
@@ -318,8 +315,8 @@ string_primary
 ;; (info "(gnat_ugn)Expressions")
 ;; we merge that string_list into term, and use 'string_list' for 'string_expression {, string_expression}'
 string_list
-  : string_expression
-  | string_list COMMA string_expression
+  : expression
+  | string_list COMMA expression
     (progn
       (wisi-statement-action 2 'list-break)
       (wisi-containing-action 2 3))

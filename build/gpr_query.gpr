@@ -49,10 +49,10 @@ project Gpr_query is
 
       case Build is
          when "Debug" =>
-            for Switches ("Ada") use Common_Switches & ("-O0");
+            for Default_Switches ("Ada") use Common_Switches & ("-O0");
          when "Normal" =>
             -- WORKAROUND (GNAT 7.2.1): adding -gnatn here gives errors about missing sources in installed gnatcoll.
-            for Switches ("Ada") use Common_Switches & ("-O2");
+            for Default_Switches ("Ada") use Common_Switches & ("-O2");
       end case;
    end Compiler;
 

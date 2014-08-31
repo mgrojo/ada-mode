@@ -5,6 +5,9 @@
 --EMACSCMD:(progn (forward-line 1)(forward-word 2)(downcase-word 2)(ada-case-adjust)(let ((case-fold-search nil))(looking-back "Text_IO")))
 with Ada.Text_IO;
 --EMACSRESULT:t
+-- other file from a subunit on a context clause
+--EMACSCMD:(progn (forward-line -3)(ada-find-other-file t)(looking-at "package Ada.Text_IO is"))
+--EMACSRESULT:t
 
 --EMACSCMD:(progn (forward-line 1)(ada-find-other-file t)(looking-at "package body Separate_Package_1 is separate"))
 separate (Ada_Mode.Nominal)
@@ -24,6 +27,10 @@ package body Separate_Package_1 is
    Object_ANother : Integer;
    --EMACSRESULT:t
    pragma Unreferenced (Object_ANother);
+
+   -- other file from a random place in the body
+   --EMACSCMD:(progn (forward-line 1)(ada-find-other-file t)(looking-at "package body Separate_Package_1 is separate"))
+   --EMACSRESULT:t
 
    package Int_IO is new Ada.Text_IO.Integer_IO (Integer);
    use Int_IO;

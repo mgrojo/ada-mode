@@ -587,6 +587,7 @@ Prompt user if more than one."
   (setq ada-fix-error-hook 'ada-gnat-fix-error-hook)
   (setq ada-prj-show-path 'gnat-prj-show-path)
   (add-to-list 'completion-ignored-extensions ".ali") ;; gnat library files
+  (add-hook 'ada-syntax-propertize-hook 'ada-gnat-syntax-propertize)
 
   ;; find error locations in .gpr files
   (setq compilation-search-path (append compilation-search-path (ada-prj-get 'prj_dir)))
@@ -601,6 +602,7 @@ Prompt user if more than one."
 (defun ada-gnat-compile-deselect-prj ()
   (setq ada-fix-error-hook nil)
   (setq completion-ignored-extensions (delete ".ali" completion-ignored-extensions))
+  (setq ada-syntax-propertize-hook (delq 'ada-gnat-syntax-propertize ada-syntax-propertize-hook))
 
   ;; don't need to delete from compilation-search-path; completely rewritten in ada-select-prj-file
 

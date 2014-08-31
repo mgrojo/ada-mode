@@ -1178,6 +1178,40 @@ cached token, return new indentation for point."
       (cons begin end)
     )))
 
+(defun ada-wisi-on-context-clause ()
+  "For `ada-on-context-clause'."
+
+  (save-excursion
+    (and (wisi-goto-statement-start)
+	 (memq (wisi-cache-nonterm (wisi-goto-statement-start)) '(use_clause with_clause)))))
+
+(defun ada-wisi-goto-subunit-name ()
+  "For `ada-goto-subunit-name'."
+
+  (let ((end nil)
+	cache
+	(name-pos nil))
+    (save-excursion
+      ;; move to top declaration
+      (goto-char (point-min))
+      (while (not end)
+	(setq cache (wisi-forward-cache))
+	(cl-case (wisi-cache-nonterm cache)
+	  (pragma nil)
+	  (use_clause nil)
+	  (with_clause nil)
+	  (t
+	   ;; start of compilation unit
+	   (setq end t))
+	  ))
+      (when (eq (wisi-cache-nonterm cache) 'subunit)
+	(wisi-forward-find-token 'name (point-max))
+	(setq name-pos (point)))
+      )
+    (when name-pos
+      (goto-char name-pos))
+    ))
+
 (defun ada-wisi-goto-declaration-start ()
   "For `ada-goto-declaration-start', which see.
 Also return cache at start."
@@ -1325,6 +1359,7 @@ Also return cache at start."
   (let (token
 	text
 	identifiers
+	(aliased-p nil)
 	(in-p nil)
 	(out-p nil)
 	(not-null-p nil)
@@ -1351,10 +1386,11 @@ Also return cache at start."
 	(skip-syntax-forward " ")
 	(setq type-begin (point))
 	(save-excursion
-	  (while (member (car (wisi-forward-token)) '(IN OUT NOT NULL ACCESS CONSTANT PROTECTED))
+	  (while (member (car (wisi-forward-token)) '(ALIASED IN OUT NOT NULL ACCESS CONSTANT PROTECTED))
 	    (skip-syntax-forward " ")
 	    (setq type-begin (point)))))
 
+       ((equal token 'ALIASED) (setq aliased-p t))
        ((equal token 'IN) (setq in-p t))
        ((equal token 'OUT) (setq out-p t))
        ((and (not type-end)
@@ -1386,12 +1422,13 @@ Also return cache at start."
 
 	(setq type (buffer-substring-no-properties type-begin type-end))
 	(setq param (list (reverse identifiers)
-			  in-p out-p not-null-p access-p constant-p protected-p
+			  aliased-p in-p out-p not-null-p access-p constant-p protected-p
 			  type default))
 	(if paramlist
 	    (add-to-list 'paramlist param)
 	  (setq paramlist (list param)))
 	(setq identifiers nil
+	      aliased-p nil
 	      in-p nil
 	      out-p nil
 	      not-null-p nil
@@ -1463,7 +1500,7 @@ Also return cache at start."
 	   (setq result (ada-wisi-which-function-1 "protected" t)))
 
 	  ((subprogram_declaration
-	    subprogram_specification ;; after 'generic'
+	    generic_subprogram_declaration ;; after 'generic'
 	    null_procedure_declaration)
 	   (setq result (ada-wisi-which-function-1
 			 (wisi-cache-text (wisi-forward-find-token '(FUNCTION PROCEDURE) (point-max)))
@@ -1505,12 +1542,6 @@ Also return cache at start."
   ;; Handle escaped quotes in strings
   (setq wisi-string-quote-escape-doubled t)
 
-  ;; Handle bracket notation for non-ascii characters in strings. This
-  ;; is actually more forgiving than that; it will treat
-  ;; '"foo["bar"]baz" as a single string. But that will be caught by
-  ;; the compiler, so it's ok for us.
-  (setq wisi-string-quote-escape '(?\" . ?\[ ))
-
   (set (make-local-variable 'comment-indent-function) 'wisi-comment-indent)
 
   (add-hook 'hack-local-variables-hook 'ada-wisi-post-local-vars nil t)
@@ -1531,8 +1562,8 @@ Also return cache at start."
       "\\)\\>[ \t]*"
       ada-name-regexp "?")
      '(1 font-lock-keyword-face)
-     '(2 (if (eq (when (not (ada-in-string-or-comment-p))
-		   (wisi-validate-cache (match-end 2))
+     '(2 (if (eq (when (and (not (ada-in-string-or-comment-p))
+			    (> wisi-cache-max (match-end 2))) ;; don't require parse just for font-lock
 		   (and (wisi-get-cache (match-beginning 2))
 			(wisi-cache-class (wisi-get-cache (match-beginning 2)))))
 		 'type)
@@ -1549,14 +1580,16 @@ Also return cache at start."
 (add-hook 'ada-mode-hook 'ada-wisi-setup)
 
 (setq ada-fix-context-clause 'ada-wisi-context-clause)
-(setq ada-goto-declaration-start 'ada-wisi-goto-declaration-start)
 (setq ada-goto-declaration-end 'ada-wisi-goto-declaration-end)
+(setq ada-goto-declaration-start 'ada-wisi-goto-declaration-start)
 (setq ada-goto-declarative-region-start 'ada-wisi-goto-declarative-region-start)
 (setq ada-goto-end 'wisi-goto-statement-end)
+(setq ada-goto-subunit-name 'ada-wisi-goto-subunit-name)
 (setq ada-in-paramlist-p 'ada-wisi-in-paramlist-p)
 (setq ada-indent-statement 'wisi-indent-statement)
 (setq ada-make-subprogram-body 'ada-wisi-make-subprogram-body)
 (setq ada-next-statement-keyword 'wisi-forward-statement-keyword)
+(setq ada-on-context-clause 'ada-wisi-on-context-clause)
 (setq ada-prev-statement-keyword 'wisi-backward-statement-keyword)
 (setq ada-reset-parser 'wisi-invalidate-cache)
 (setq ada-scan-paramlist 'ada-wisi-scan-paramlist)
