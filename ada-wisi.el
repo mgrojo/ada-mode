@@ -1182,7 +1182,8 @@ cached token, return new indentation for point."
   "For `ada-on-context-clause'."
 
   (save-excursion
-    (memq (wisi-cache-nonterm (wisi-goto-statement-start)) '(use_clause with_clause))))
+    (and (wisi-goto-statement-start)
+	 (memq (wisi-cache-nonterm (wisi-goto-statement-start)) '(use_clause with_clause)))))
 
 (defun ada-wisi-goto-subunit-name ()
   "For `ada-goto-subunit-name'."
@@ -1499,7 +1500,7 @@ Also return cache at start."
 	   (setq result (ada-wisi-which-function-1 "protected" t)))
 
 	  ((subprogram_declaration
-	    subprogram_specification ;; after 'generic'
+	    generic_subprogram_declaration ;; after 'generic'
 	    null_procedure_declaration)
 	   (setq result (ada-wisi-which-function-1
 			 (wisi-cache-text (wisi-forward-find-token '(FUNCTION PROCEDURE) (point-max)))

@@ -123,10 +123,11 @@ ada-mode-version}.
 
 @menu
 * gnatinspect::
+* gpr_query::
 * Upgrading::
 @end menu
 
-@node gnatinspect, Upgrading, Installation, Installation
+@node gnatinspect, gpr_query, Installation, Installation
 @section gnatinspect
 Ada mode has experimental support for the new AdaCore cross reference
 tool @code{gnatinspect}, which supports Ada, C, C++, and any other
@@ -156,7 +157,18 @@ cd gnatcoll-1.7w-src/src/sqlite/amalgamation/
 gcc -O2 -o sqlite3 shell.c sqlite3.c -ldl -lpthread
 @end example
 
-@node Upgrading,  , gnatinspect, Installation
+@node gpr_query, ada_mode_gps_indent, gnatinspect, Installation
+@section gpr_query
+@file{gpr_query} is similar to @file{gnatinspect}, but customized for
+Emacs ada-mode use. To install it, install @file{gnatinspect} as above
+(@ref{gnatinspect}), then:
+
+@example
+cd ~/.emacs.d/elpa/ada-mode-5.xx/build
+make install-gpr_query
+@end example
+
+@node Upgrading,  , ada_mode_gps_indent, Installation
 @section Upgrading from previous versions
 
 See the file NEWS for more details; here we summarize only important
@@ -260,13 +272,25 @@ The project variable @code{ada_xref} (default elisp variable
 the cross-reference-tool-specific functions for corresponding Ada mode
 operations.
 
-To use a cross reference tool other than gnatxref, you must write
-Emacs lisp code that provides the interface to the compiler, and set
-@code{ada-xref-tool} and the indirection variables. This has already
-been done for @code{gnatinspect}; set @code{ada-xref-tool} to
-@code{'gnat_inspect}.
+The default cross-reference tool is @file{gnatxref}, provided by the
+file @file{ada-gnat-xref.el}. Two other tools are supported:
+@file{gnat_inspect} and @file{gpr_query}. To use these, add one of the
+following to @file{~/.emacs}:
 
-See @file{ada-gnat-xref.el} and @file{gnat-inspect.el} for examples.
+@example
+(require 'gnat-inspect)
+(require 'gpr-query)
+@end example
+
+To use @file{gpr_query}, the Ada code @file{gpr_query.adb} must be
+compiled; see @ref{Installation}.
+
+To use a cross reference tool other than the above, you must write
+Emacs lisp code that provides the interface to the compiler, and set
+@code{ada-xref-tool} and the indirection variables.
+
+See @file{ada-gnat-xref.el}, @file{gnat-inspect.el},
+@file{gpr-query.el} for examples.
 
 @node Other customization,  , Other cross-reference, Customization
 @section Other customization
