@@ -57,6 +57,15 @@ package body OpenToken.Token.Enumerated is
       Token.Build := Build;
    end Set_Build;
 
+   function Copy (Token : in Handle) return Handle
+   is begin
+      if Token = null then
+         return null;
+      else
+         return new Class'(Token.all);
+      end if;
+   end Copy;
+
    function ID (Token : in Instance'Class) return Token_ID is
    begin
       return Token.ID;

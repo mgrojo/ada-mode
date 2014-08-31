@@ -1,13 +1,14 @@
 with Ada.Command_Line;
 with Ada.Exceptions;
 with Ada.Text_IO;      use Ada.Text_IO;
+with GNAT.Traceback.Symbolic;
 with OpenToken.Text_Feeder.Text_IO;
-with Empty_Production_7; use Empty_Production_7;
-procedure Empty_Production_7_Run
+with Identifier_List_Name_Conflict; use Identifier_List_Name_Conflict;
+procedure Identifier_List_Name_Conflict_Run
 is
    procedure Put_Usage
    is begin
-      Put_Line ("usage: empty_production_7_run [-v] filename");
+      Put_Line ("usage: empty_production_1_run [-v] filename");
       Put_Line ("  outputs grammar actions");
       Put_Line ("  -v : output trace of states while parsing");
    end Put_Usage;
@@ -59,7 +60,11 @@ begin
    LALR_Parsers.Set_Text_Feeder (Parser, OpenToken.Text_Feeder.Text_IO.Create (Current_Input));
    LALR_Parsers.Parse (Parser);
 exception
+when E : OpenToken.Parse_Error =>
+   Put_Line (Ada.Exceptions.Exception_Message (E));
+
 when E : others =>
    New_Line;
    Put_Line (Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E));
-end Empty_Production_7_Run;
+   Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
+end Identifier_List_Name_Conflict_Run;

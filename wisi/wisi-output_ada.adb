@@ -480,14 +480,16 @@ begin
       Indent_Line ("   RHS_Token_Count_2 : in     Natural;");
       Indent_Line ("   Synthesize_2      : in     Nonterminals.Synthesize)");
       Indent_Line ("is");
-      Indent_Line ("   use LALRs;");
-      Indent_Line ("   use Productions;");
+      Indent := Indent + 3;
+      Indent_Line ("use LALRs;");
+      Indent_Line ("use Productions;");
+      Indent_Line ("LHS_1 : constant Nonterminal.Handle := new Nonterminal.Class'(Nonterminal.Get (LHS_ID_1));");
       Indent_Line
-        ("   Action_1 : constant Parse_Action_Rec := " &
-           "(Reduce, Nonterminal.Get (LHS_ID_1) <= +Synthesize_1, RHS_Token_Count_1);");
+        ("Action_1 : constant Parse_Action_Rec := (Reduce, LHS_1, Synthesize_1, 0, RHS_Token_Count_1);");
+      Indent_Line ("LHS_2 : constant Nonterminal.Handle := new Nonterminal.Class'(Nonterminal.Get (LHS_ID_2));");
       Indent_Line
-        ("   Action_2 : constant Parse_Action_Rec := " &
-           "(Reduce, Nonterminal.Get (LHS_ID_2) <= +Synthesize_2, RHS_Token_Count_2);");
+        ("Action_2 : constant Parse_Action_Rec := (Reduce, LHS_2, Synthesize_2, 0, RHS_Token_Count_2);");
+      Indent := Indent - 3;
       Indent_Line ("begin");
       Indent := Indent + 3;
       Indent_Line ("State.Action_List := new Action_Node'");

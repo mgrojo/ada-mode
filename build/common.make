@@ -52,8 +52,8 @@ tests : token_sequence_test-run.run
 # %_run.exe : %_run.adb %.ads; gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P opentoken_test.gpr $(GPRBUILD_ARGS) $*_run
 # but that gets overridden by the simpler .exe rule for other things. So we must list %.ads explicitly in tests:
 
-# body_instantiation_conflict run from test_wisi_suite
-# case_expression run from test_wisi_suite
+# from ../wisi/test
+# some also or only run from ../wisi/test/test_wisi_suite.adb
 tests : empty_production_1.ads
 tests : empty_production_1-parse.diff
 tests : empty_production_2.ads
@@ -70,6 +70,8 @@ tests : empty_production_7.ads
 tests : empty_production_7-parse.diff
 tests : empty_production_8.ads
 tests : empty_production_8-parse.diff
+tests : identifier_list_name_conflict.ads
+tests : identifier_list_name_conflict-parse.diff
 tests : multi_conflict.ads
 tests : multi_conflict-parse.diff
 

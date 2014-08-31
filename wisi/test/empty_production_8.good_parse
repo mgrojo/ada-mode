@@ -92,7 +92,13 @@ spawn parser (2 active)
  2 stack:  10 : CONSTANT_OPT_ID,  2 : IDENTIFIER_ID,  3 : OBJECT_DECLARATION_LIST_ID,  1 : , 
  2: 10: COLON_EQUAL_ID : shift and goto state 11
  3: terminate (1 active)
- 2 stack:  11 : COLON_EQUAL_ID,  10 : SEMICOLON_ID,  2 : IDENTIFIER_ID,  3 : OBJECT_DECLARATION_LIST_ID,  1 : , 
+ 2 stack:  11 : COLON_EQUAL_ID,  10 : CONSTANT_OPT_ID,  2 : IDENTIFIER_ID,  3 : OBJECT_DECLARATION_LIST_ID,  1 : , 
  2: 11: SEMICOLON_ID : shift and goto state 14
- 2 stack:  14 : SEMICOLON_ID,  11 : COLON_EQUAL_ID,  10 : SEMICOLON_ID,  2 : IDENTIFIER_ID,  3 : OBJECT_DECLARATION_LIST_ID,  1 : , 
- 2: 14: EOF_ID : reduce 4 tokens to OBJECT_DECLARATION_ID 7: EXCEPTION_ACCESS_VIOLATION
+ 2 stack:  14 : SEMICOLON_ID,  11 : COLON_EQUAL_ID,  10 : CONSTANT_OPT_ID,  2 : IDENTIFIER_ID,  3 : OBJECT_DECLARATION_LIST_ID,  1 : , 
+ 2: 14: EOF_ID : reduce 4 tokens to OBJECT_DECLARATION_ID, goto state 6
+ 2 stack:  6 : OBJECT_DECLARATION_ID,  3 : OBJECT_DECLARATION_LIST_ID,  1 : , 
+ 2: 6: EOF_ID : reduce 2 tokens to OBJECT_DECLARATION_LIST_ID, goto state 3
+ 2 stack:  3 : OBJECT_DECLARATION_LIST_ID,  1 : , 
+ 2: 3: EOF_ID : shift and goto state 5
+ 2 stack:  5 : EOF_ID,  3 : OBJECT_DECLARATION_LIST_ID,  1 : , 
+ 2: 5: EOF_ID : accept it

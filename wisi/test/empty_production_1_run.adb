@@ -60,10 +60,5 @@ begin
    LALR_Parsers.Parse (Parser);
 exception
 when E : others =>
-   if Is_Open (File) then
-      Put_Line (Count'Image (Line (File)) & ": " & Ada.Exceptions.Exception_Message (E));
-   else
-      Put_Line (Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E));
-   end if;
-
+   Put_Line (Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E));
 end Empty_Production_1_Run;

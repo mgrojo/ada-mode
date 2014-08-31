@@ -177,16 +177,21 @@ package body Parser_Lists is
       Copy   : Stack_Node_Access;
       Temp   : Stack_Node_Access;
       Result : Stack_Node_Access;
+
+      New_Stack_Item : Stack_Item;
    begin
       loop
          exit when I = null;
+
+         New_Stack_Item := (I.Item.State, Token.Copy (I.Item.Token));
+
          if Stack_Free = null then
-            Copy := new Stack_Node'(I.Item, Copy);
+            Copy := new Stack_Node'(New_Stack_Item, Copy);
          else
             Temp       := Copy;
             Copy       := Stack_Free;
             Stack_Free := Stack_Free.Next;
-            Copy.all   := (I.Item, Temp);
+            Copy.all   := (New_Stack_Item, Temp);
          end if;
          I := I.Next;
       end loop;

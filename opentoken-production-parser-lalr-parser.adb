@@ -120,11 +120,12 @@ package body OpenToken.Production.Parser.LALR.Parser is
       Tokens : Token_List.Instance;
    begin
       --  Pop the indicated number of token states from the stack, and
-      --  call the production action routine to create a new
+      --  call the production action routine to update a new
       --  nonterminal token.
 
       if Token_Count > 0 then
          for I in 1 .. Token_Count loop
+            --  Enqueue does not deep copy Token, but clean frees it
             Token_List.Enqueue (Tokens, Current_Parser.Pop.Token);
          end loop;
       end if;
@@ -153,12 +154,13 @@ package body OpenToken.Production.Parser.LALR.Parser is
 
       case Action.Verb is
       when Shift =>
-         Current_Parser.Push ((Action.State, Current_Token));
+         Current_Parser.Push ((Action.State, Token.Copy (Current_Token)));
 
       when Reduce =>
          declare
             New_Token : constant Nonterminal.Handle := new Nonterminal.Class'(Action.LHS.all);
          begin
+            --  FIXME: this should be new_token.all
             Reduce_Stack (Current_Parser, New_Token, Action.Action, Action.Token_Count);
 
             Current_Parser.Push
@@ -259,10 +261,15 @@ package body OpenToken.Production.Parser.LALR.Parser is
          case Current_Verb is
          when Shift =>
             Tokenizer.Find_Next (Parser.Analyzer);
+            Token.Free (Current_Token);
             Current_Token := new Token.Class'(Token.Class (Tokenizer.Get (Parser.Analyzer)));
 
          when Accept_It =>
-            --  Done. FIXME: free everything
+            --  Done.
+            if Parsers.Count > 1 then
+               raise Parse_Error with "Ambiguous parse:" & Integer'Image (Parsers.Count) & " parsers active.";
+            end if;
+            --  FIXME: free everything
             return;
 
          when Reduce =>

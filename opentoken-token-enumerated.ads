@@ -113,9 +113,10 @@ package OpenToken.Token.Enumerated is
      is null;
 
    --------------------------------------------------------------------
-   --  Copy From to To. Called by Parse when a token matches, whether
-   --  Actively is true or not. This is just a dispatching version of
-   --  ':='; see the comments in Parse for more rationale.
+   --  Copy From to To. Called by Enumerated.Parse when a token
+   --  matches, whether Actively is true or not. This is just a
+   --  dispatching version of ':='; see the comments in Parse for more
+   --  rationale.
    --
    --  Parse has verified that From'Tag = To'Tag, and that From.ID =
    --  To.ID.
@@ -124,6 +125,9 @@ package OpenToken.Token.Enumerated is
      (To   : in out Instance;
       From : in     OpenToken.Token.Class)
      is null;
+
+   --  Return a newly allocated copy of Token, or null
+   function Copy (Token : in Handle) return Handle;
 
    --------------------------------------------------------------------------
    --  This function returns the ID of the token. This is made

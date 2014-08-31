@@ -35,7 +35,7 @@
       (COMMA . ",")
       (EQUAL_GREATER . "=>")
      )
-     ("string"
+     ("string-double"
       (STRING_LITERAL)
      )
      ("symbol"
