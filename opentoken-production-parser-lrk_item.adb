@@ -35,8 +35,8 @@ package body OpenToken.Production.Parser.LRk_Item is
    is
       Result : Token_ID_Set;
    begin
-      Result (Token.Token_ID'First .. Tokenizer.Terminal_ID'Last)                      := (others => False);
-      Result (Token.Token_ID'Succ (Tokenizer.Terminal_ID'Last) .. Token.Token_ID'Last) := (others => True);
+      Result (Token.Token_ID'First .. Token.Terminal_ID'Last)                      := (others => False);
+      Result (Token.Token_ID'Succ (Token.Terminal_ID'Last) .. Token.Token_ID'Last) := (others => True);
       return Result;
    end Compute_Non_Terminals;
 
@@ -533,7 +533,7 @@ package body OpenToken.Production.Parser.LRk_Item is
                         Added_New_Item := Added_New_Item or Merge (Merge_From, Result);
                         exit Empty_Nonterm;
 
-                     elsif Token_List.ID (Next_Symbol) in Tokenizer.Terminal_ID then
+                     elsif Token_List.ID (Next_Symbol) in Token.Terminal_ID then
                         Merge_From := Item_Node_Of
                           (Production_Iterator,
                            State         => Unknown_State,
@@ -547,7 +547,7 @@ package body OpenToken.Production.Parser.LRk_Item is
 
                      else
                         --  Next_Symbol is a nonterminal
-                        for Terminal in Tokenizer.Terminal_ID loop
+                        for Terminal in Token.Terminal_ID loop
                            if First (Token_List.ID (Next_Symbol)) (Terminal) then
                               Merge_From := Item_Node_Of
                                 (Production_Iterator,

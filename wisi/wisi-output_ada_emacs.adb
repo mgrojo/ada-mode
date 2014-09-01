@@ -1,6 +1,8 @@
 --  Abstract :
 --
---  Output Ada code implementing the grammar defined by input parameters.
+--  Output Ada code implementing the grammar defined by input
+--  parameters, with actions suitable for the Emacs Ada mode
+--  indentation engine.
 --
 --  Copyright (C) 2012 - 2014 Stephen Leake.  All Rights Reserved.
 --
@@ -23,7 +25,7 @@ with Ada.Text_IO; use Ada.Text_IO;
 with OpenToken;
 with Wisi.Gen_Generate_Utils;
 with Wisi.Utils;
-procedure Wisi.Output_Ada
+procedure Wisi.Output_Ada_Emacs
   (Input_File_Name  : in String;
    Output_File_Root : in String;
    Prologue         : in String_Lists.List;
@@ -282,7 +284,8 @@ begin
          for Item of Kind.Tokens loop
             Indent_Line (To_Token_Image (Item.Name) & " => Analyzers.Get");
             Indent_Line ("  (OpenToken.Recognizer.Identifier.Get");
-            Indent_Line ("     (Start_Chars => Ada.Strings.Maps.Constants.Letter_Set,");
+            --  this is compatible with the Emacs Ada mode wisi elisp lexer
+            Indent_Line ("     (Start_Chars => Ada.Strings.Maps.Constants.Alphanumeric_Set,");
             Indent_Line ("      Body_Chars => Ada.Strings.Maps.Constants.Alphanumeric_Set)),");
          end loop;
       elsif -Kind.Kind = """string-double""" then
@@ -303,7 +306,10 @@ begin
    New_Line;
    Indent := Indent - 3;
 
-   Indent_Line ("function Create_Parser return LALR_Parsers.Instance;");
+   Indent_Line ("function Create_Parser");
+   Indent_Line ("  (Max_Parallel         : in Integer := 15;");
+   Indent_Line ("   Terminate_Same_State : in Boolean := False)");
+   Indent_Line ("  return LALR_Parsers.Instance;");
    New_Line;
    Put_Line ("end " & Package_Name & ";");
    Close (Spec_File);
@@ -373,12 +379,19 @@ begin
                      Indent_Line ("To_ID     : in  Token_IDs)");
                      Indent := Indent - 3;
                      Indent_Line ("is");
-                     Indent_Line ("   pragma Unreferenced (Source);");
+                     Indent_Line ("   Wisi_Nonterm : Wisi_Token.Instance renames Wisi_Token.Instance (New_Token);");
                      Indent_Line ("begin");
                      Indent := Indent + 3;
-                     Indent_Line ("New_Token := Nonterminals.Get (To_ID);");
+                     Indent_Line ("New_Token := Wisi.Get (To_ID, Wisi_Token.Buffer_Range);");
                      --  Assuming simple elisp syntax for actions, as used by wisi elisp parser
                      --  Just accumulate elisp sexp to pass back to Emacs
+                     --  Indent_Line ("actions.append (""(let (tokens '(");
+                     --  Indent_Line ("for Token of Source loop");
+                     --     Put
+                     --       ("(" & Token_Image (Token.ID) & ", """ &
+                     --          Analyzer.Lexeme & """, " &
+                     --          Image (Token.Buffer_Range) & ")");
+                     --  Indent_Line ("end loop;");
                      for Line of RHS.Action loop
                         Indent_Line ("Actions.Append (""" & Line & """);");
                      end loop;
@@ -536,7 +549,10 @@ begin
    Indent_Line ("end Add_Goto;");
    New_Line;
 
-   Indent_Line ("function Create_Parser return LALR_Parsers.Instance");
+   Indent_Line ("function Create_Parser");
+   Indent_Line ("  (Max_Parallel         : in Integer := 15;");
+   Indent_Line ("   Terminate_Same_State : in Boolean := False)");
+   Indent_Line ("  return LALR_Parsers.Instance");
    Indent_Line ("is");
    Indent := Indent + 3;
    Indent_Line ("use LALRs;");
@@ -622,7 +638,7 @@ begin
    end loop;
    New_Line;
    --  FIXME: get Max_Parallel from some command line
-   Indent_Line ("return (Analyzers.Initialize (Syntax, null), Table, Max_Parallel => 15);");
+   Indent_Line ("return (Analyzers.Initialize (Syntax, null), Table, Max_Parallel, Terminate_Same_State);");
    Indent := Indent - 3;
    Indent_Line ("end Create_Parser;");
    Put_Line ("end " & Package_Name & ";");
@@ -641,4 +657,4 @@ exception
 when others =>
    Set_Output (Standard_Output);
    raise;
-end Wisi.Output_Ada;
+end Wisi.Output_Ada_Emacs;

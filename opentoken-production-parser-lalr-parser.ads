@@ -31,15 +31,22 @@ with Ada.Iterator_Interfaces;
 generic
 package OpenToken.Production.Parser.LALR.Parser is
 
+   type Decorator is access procedure (Tok : in out Token.Class; Analyser : in Tokenizer.Instance);
+   --  Add Analyzer information to Tok, such as source file name, line, column.
+
    type Instance is new OpenToken.Production.Parser.Instance with record
-      Table        : Parse_Table_Ptr;
-      Max_Parallel : Integer := 15;
+      Table                : Parse_Table_Ptr;
+      Max_Parallel         : Integer;
+      Terminate_Same_State : Boolean;
+      Decorate             : Decorator;
    end record;
 
    function Initialize
-     (Analyzer     : in Tokenizer.Instance;
-      Table        : in Parse_Table_Ptr;
-      Max_Parallel : in Integer := 15)
+     (Analyzer             : in Tokenizer.Instance;
+      Table                : in Parse_Table_Ptr;
+      Max_Parallel         : in Integer   := 15;
+      Terminate_Same_State : in Boolean   := False;
+      Decorate             : in Decorator := null)
      return Instance;
 
    overriding procedure Parse (Parser : in out Instance);
@@ -83,6 +90,8 @@ package OpenToken.Production.Parser.LALR.Parser is
       function Pop (Cursor : in Parser_Lists.Cursor) return Stack_Item;
       procedure Push (Cursor : in Parser_Lists.Cursor; Item : in Stack_Item);
 
+      function Stack_Equal (Cursor_1, Cursor_2 : in Parser_Lists.Cursor) return Boolean;
+
       procedure Put_Top_10 (Cursor : in Parser_Lists.Cursor);
       --  Put image of top 10 stack items to Current_Output.
 
@@ -120,6 +129,11 @@ package OpenToken.Production.Parser.LALR.Parser is
       --  type for Iterators.
 
       type Parser_Node_Access is private;
+
+      function To_Cursor
+        (List : aliased in out Parser_Lists.List'Class;
+         Ptr  :         in     Parser_Node_Access)
+        return Cursor;
 
       type Constant_Reference_Type (Element : not null access constant Parser_State) is null record
       with Implicit_Dereference => Element;

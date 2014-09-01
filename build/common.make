@@ -74,6 +74,8 @@ tests : identifier_list_name_conflict.ads
 tests : identifier_list_name_conflict-parse.diff
 tests : multi_conflict.ads
 tests : multi_conflict-parse.diff
+tests : subprograms.ads
+tests : subprograms-parse.diff
 
 examples : asu_example_3_6-run.run
 examples : asu_example_4_46-run.run
@@ -176,10 +178,10 @@ DIFF_OPT := -u -w
 %-wy.el : %.wy wisi-generate.exe
 	./wisi-generate.exe $(RUN_ARGS) $< Elisp > $*.output
 
-# wisi-generate Ada runs lalr_parser.generate, and we always want the parse_table for tests
+# wisi-generate Ada_Emacs runs lalr_parser.generate, and we always want the parse_table for tests
 %.ads : RUN_ARGS ?= -v 1
 %.ads : %.wy wisi-generate.exe
-	./wisi-generate.exe $(RUN_ARGS) $< Ada > $*.parse_table
+	./wisi-generate.exe $(RUN_ARGS) $< Ada_Emacs > $*.parse_table
 	dos2unix $*.parse_table
 
 %.parse : %.input %_run.exe

@@ -168,6 +168,40 @@ package body Parser_Lists_Test is
       Check ("6: Is_Done", Cursor.Is_Done, True);
    end Parser_List;
 
+   procedure Stack_Equal (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+      use LALRs;
+      use LALR_Parser.Parser_Lists;
+      use AUnit.Check;
+
+      Parsers : List                := Initialize;
+      Item_1  : constant Stack_Item := (2, new Token.Class'(Token.Get (If_ID)));
+      Item_2  : constant Stack_Item := (3, new Token.Class'(Token.Get (Then_ID)));
+
+      Cursor_1 : constant LALR_Parser.Parser_Lists.Cursor := Parsers.First;
+      Cursor_2 : LALR_Parser.Parser_Lists.Cursor;
+   begin
+      Prepend_Copy (Parsers, Cursor_1);
+      Check ("0a: Label", Cursor_1.Label, 1);
+      Cursor_1.Push (Item_1);
+      Cursor_1.Push (Item_2);
+
+      Cursor_2 := Parsers.First;
+      Check ("0b: Label", Cursor_2.Label, 2);
+      Cursor_2.Push (Item_1);
+      Cursor_2.Push (Item_2);
+
+      Check ("1", Stack_Equal (Cursor_1, Cursor_2), True);
+
+      declare
+         Junk : Stack_Item := Pop (Cursor_2);
+         pragma Unreferenced (Junk);
+      begin
+         Check ("2", Stack_Equal (Cursor_1, Cursor_2), False);
+      end;
+   end Stack_Equal;
+
    ----------
    --  Public subprograms
 
@@ -178,6 +212,7 @@ package body Parser_Lists_Test is
       Register_Routine (T, Init'Access, "Init");
       Register_Routine (T, Stack'Access, "Stack");
       Register_Routine (T, Parser_List'Access, "Parser_List");
+      Register_Routine (T, Stack_Equal'Access, "Stack_equal");
       --  FIXME: test pending actions
    end Register_Tests;
 

@@ -25,7 +25,6 @@
 --
 -------------------------------------------------------------------------------
 
-with OpenToken.Production.List;
 with OpenToken.Token.Enumerated.Analyzer;
 
 -------------------------------------------------------------------------------
@@ -34,12 +33,10 @@ with OpenToken.Token.Enumerated.Analyzer;
 -------------------------------------------------------------------------------
 with OpenToken.Text_Feeder;
 generic
-   with package Production_List is new OpenToken.Production.List;
-   pragma Unreferenced (Production_List); -- used in children
-   with package Tokenizer is new Token.Analyzer (<>);
+   with package Tokenizer is new Token.Analyzer;
 package OpenToken.Production.Parser is
 
-   subtype Nonterminal_ID is Token.Token_ID range Token.Token_ID'Succ (Tokenizer.Last_Terminal) .. Token.Token_ID'Last;
+   subtype Nonterminal_ID is Token.Token_ID range Token.Token_ID'Succ (Token.Last_Terminal) .. Token.Token_ID'Last;
 
    type Instance is abstract tagged record
       Analyzer : Tokenizer.Instance;

@@ -36,10 +36,10 @@ package body OpenToken.Production.Parser.LALR.Parser is
    function Action_For
      (Table : in Parse_Table;
       State : in State_Index;
-      ID    : in Tokenizer.Terminal_ID)
+      ID    : in Token.Terminal_ID)
      return Parse_Action_Node_Ptr
    is
-      use type Tokenizer.Terminal_ID;
+      use type Token.Terminal_ID;
       Action_Node : Action_Node_Ptr := Table (State).Action_List;
    begin
       while Action_Node.Next /= null and Action_Node.Symbol /= ID loop
@@ -55,7 +55,7 @@ package body OpenToken.Production.Parser.LALR.Parser is
       ID    : in Token.Token_ID)
      return State_Index
    is
-      use type Tokenizer.Terminal_ID;
+      use type Token.Terminal_ID;
       Goto_Node : Goto_Node_Ptr := Table (State).Goto_List;
    begin
       while Goto_Node.Next /= null and Goto_Node.Symbol /= ID loop
@@ -244,6 +244,25 @@ package body OpenToken.Production.Parser.LALR.Parser is
       end if;
    end Parse_Verb;
 
+   function Duplicate_State
+     (Parsers        : aliased in out Parser_Lists.List;
+      Current_Parser :         in     Parser_Lists.Cursor)
+     return Boolean
+   is
+      use Parser_Lists;
+   begin
+      for I in Parsers.Iterate loop
+         declare
+            Cursor : constant Parser_Lists.Cursor := To_Cursor (Parsers, I);
+         begin
+            if Cursor /= Current_Parser and then Stack_Equal (Cursor, Current_Parser) then
+               return True;
+            end if;
+         end;
+      end loop;
+      return False;
+   end Duplicate_State;
+
    overriding procedure Parse (Parser : in out Instance)
    is
       Parsers        : Parser_Lists.List := Parser_Lists.Initialize;
@@ -262,12 +281,17 @@ package body OpenToken.Production.Parser.LALR.Parser is
          when Shift =>
             Tokenizer.Find_Next (Parser.Analyzer);
             Token.Free (Current_Token);
-            Current_Token := new Token.Class'(Token.Class (Tokenizer.Get (Parser.Analyzer)));
+            Current_Token := new Token.Class'(Token.Class (Parser.Analyzer.Get));
+            if Parser.Decorate /= null then
+               Parser.Decorate (Current_Token.all, Parser.Analyzer);
+            end if;
 
          when Accept_It =>
             --  Done.
             if Parsers.Count > 1 then
-               raise Parse_Error with "Ambiguous parse:" & Integer'Image (Parsers.Count) & " parsers active.";
+               raise Parse_Error with
+                 Int_Image (Parser.Analyzer.Line) & ":" & Int_Image (Parser.Analyzer.Column) &
+                 ": Ambiguous parse:" & Integer'Image (Parsers.Count) & " parsers active.";
             end if;
             --  FIXME: free everything
             return;
@@ -316,6 +340,16 @@ package body OpenToken.Production.Parser.LALR.Parser is
                end if;
                Current_Parser.Free;
 
+            elsif Parser.Terminate_Same_State and then
+              (Current_Verb = Shift and Duplicate_State (Parsers, Current_Parser))
+            then
+               if Trace_Parse then
+                  Ada.Text_IO.Put_Line
+                    (Integer'Image (Current_Parser.Label) & ": duplicate state; terminate (" &
+                       Int_Image (Parsers.Count - 1) & " active)");
+               end if;
+               Current_Parser.Free;
+
             elsif Current_Parser.Verb = Current_Verb then
 
                Action := Action_For
@@ -326,7 +360,9 @@ package body OpenToken.Production.Parser.LALR.Parser is
                if Action.Next /= null then
                   --  conflict; spawn a new parser
                   if Parsers.Count = Parser.Max_Parallel then
-                     raise Parse_Error with "too many parallel parsers required in grammar state" &
+                     raise Parse_Error with
+                       Int_Image (Parser.Analyzer.Line) & ":" & Int_Image (Parser.Analyzer.Column) &
+                       ": too many parallel parsers required in grammar state" &
                        State_Index'Image (Current_Parser.Peek.State) &
                        "; simplify grammar, or increase max-parallel (" &
                        Integer'Image (Parser.Max_Parallel) & ")";
@@ -351,12 +387,14 @@ package body OpenToken.Production.Parser.LALR.Parser is
    end Parse;
 
    function Initialize
-     (Analyzer     : in Tokenizer.Instance;
-      Table        : in Parse_Table_Ptr;
-      Max_Parallel : in Integer := 15)
+     (Analyzer             : in Tokenizer.Instance;
+      Table                : in Parse_Table_Ptr;
+      Max_Parallel         : in Integer := 15;
+      Terminate_Same_State : in Boolean := False;
+      Decorate             : in Decorator := null)
      return Instance
    is begin
-      return (Analyzer, Table, Max_Parallel);
+      return (Analyzer, Table, Max_Parallel, Terminate_Same_State, Decorate);
    end Initialize;
 
 

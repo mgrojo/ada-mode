@@ -52,19 +52,7 @@
 with OpenToken.Recognizer;
 with OpenToken.Text_Feeder;
 generic
-
-   --  Tokens in the range Token_ID'First .. Pred (First_Terminal) are
-   --  non-reporting (comments, whitespace), and thus are not used in
-   --  generating an LALR grammar.
-   First_Terminal : in Token_ID;
-   Last_Terminal  : in Token_ID;
-   --  Tokens in the range Succ (Last_Terminal) .. Token_ID'Last are
-   --  the nonterminals of a grammar.
-
 package OpenToken.Token.Enumerated.Analyzer is
-
-   subtype Terminal_ID is Token_ID range First_Terminal .. Last_Terminal;
-   --  We can't define Nonterminal_ID here, because if Last_Terminal = Token_ID'last, there are no nonterminals.
 
    type Token_Array_Boolean is array (Token_ID range First_Terminal .. Token_ID'Last) of Boolean;
 

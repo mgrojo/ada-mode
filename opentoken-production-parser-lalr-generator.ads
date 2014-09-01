@@ -29,11 +29,14 @@
 
 pragma License (Modified_GPL);
 
+with OpenToken.Production.List;
 with OpenToken.Production.Parser.LRk_Item;
 generic
+   Token_Image_Width : Integer;
+   with package Production_List is new OpenToken.Production.List;
 package OpenToken.Production.Parser.LALR.Generator is
 
-   package LRk is new OpenToken.Production.Parser.LRk_Item (Unknown_State_Index, Unknown_State, 1);
+   package LRk is new OpenToken.Production.Parser.LRk_Item (Unknown_State_Index, Unknown_State, 1, Production_List);
 
    function Generate
      (Grammar                  : in Production_List.Instance;

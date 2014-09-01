@@ -30,19 +30,21 @@
 --  on grammars and LR(k) items.
 ---------------------------------------------------------------------------
 with Ada.Unchecked_Deallocation;
+with OpenToken.Production.List;
 generic
    type Unknown_State_Index is range <>;
    Unknown_State : in Unknown_State_Index;
 
    --  The number of elements of lookahead to keep in an item
-   K : in Natural;
-
    --  We only instantiate this with K = 1, but it's not worth
    --  optimizing the code; there is only one loop on 1 .. K.
+   K : in Natural;
+
+   with package Production_List is new OpenToken.Production.List;
 package OpenToken.Production.Parser.LRk_Item is
 
    --  Lookahead Sets
-   type Full_Lookahead_Set is array (1 .. K) of Tokenizer.Terminal_ID;
+   type Full_Lookahead_Set is array (1 .. K) of Token.Terminal_ID;
    type Item_Lookahead;
    type Item_Lookahead_Ptr is access Item_Lookahead;
    type Item_Lookahead is record

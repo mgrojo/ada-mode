@@ -86,7 +86,7 @@ package OpenToken.Production.Parser.LALR is
    type Action_Node_Ptr is access Action_Node;
 
    type Action_Node is record
-      Symbol : Tokenizer.Terminal_ID;
+      Symbol : Token.Terminal_ID;
       Action : Parse_Action_Node_Ptr;
       Next   : Action_Node_Ptr;
    end record;

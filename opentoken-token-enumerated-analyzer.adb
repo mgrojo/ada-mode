@@ -393,6 +393,9 @@ package body OpenToken.Token.Enumerated.Analyzer is
          if New_Analyzer.Syntax_List (ID).Recognizer = null then
             raise Grammar_Error with "no recognizer for " & Token_Image (ID);
          end if;
+         --  If Language_Syntax was created with the Get in this package,
+         --  using the default New_Token parameter, the Token IDs are all
+         --  Token_ID'First, which is wrong. So fix that now.
          New_Analyzer.Syntax_List (ID).Token_Handle.ID := ID;
       end loop;
 

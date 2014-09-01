@@ -34,7 +34,9 @@
 
 ;; not actually needed in grammar, but <string>, <punctuation> required by wisi-setup
 %token <punctuation> TICK "'"
-%token <string> STRING_LITERAL
+%token <string-double> STRING_LITERAL
+
+%token <whitespace> WHITESPACE ""
 
 ;; 'opentoken_accept', $EOI added in wisi-generate
 %start compilation_unit

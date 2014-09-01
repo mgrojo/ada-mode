@@ -131,6 +131,29 @@ package body Parser_Lists is
       end if;
    end Push;
 
+   function Stack_Equal (Cursor_1, Cursor_2 : in Parser_Lists.Cursor) return Boolean
+   is
+      use type Token.Handle;
+      use type Token.Token_ID;
+
+      Stack_1 : Stack_Node_Access := Cursor_1.Ptr.Item.Stack;
+      Stack_2 : Stack_Node_Access := Cursor_2.Ptr.Item.Stack;
+   begin
+      loop
+         exit when Stack_1 = null or Stack_2 = null;
+         if not
+           (Stack_1.Item.State = Stack_2.Item.State and
+              ((Stack_1.Item.Token = null or Stack_2.Item.Token = null) or else
+                 Stack_1.Item.Token.ID = Stack_2.Item.Token.ID))
+         then
+            return False;
+         end if;
+         Stack_1 := Stack_1.Next;
+         Stack_2 := Stack_2.Next;
+      end loop;
+      return Stack_1 = null and Stack_2 = null;
+   end Stack_Equal;
+
    procedure Put_Top_10 (Cursor : in Parser_Lists.Cursor)
    is
       use Ada.Text_IO;
@@ -276,6 +299,14 @@ package body Parser_Lists is
 
    ----------
    --  stuff for iterators
+
+   function To_Cursor
+     (List : aliased in out Parser_Lists.List'Class;
+      Ptr  :         in     Parser_Node_Access)
+     return Cursor
+   is begin
+      return (List'Access, Ptr);
+   end To_Cursor;
 
    function Constant_Reference
      (Container : aliased in List'Class;

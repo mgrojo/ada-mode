@@ -157,12 +157,12 @@ package body OpenToken.Production.Parser.LALR.Generator is
 
       while Action_Ptr /= null loop
          if Action_Ptr.Next = null then
-            Put ("   default" & (Token.Token_Image_Width - 7) * ' ' & " => ");
+            Put ("   default" & (Token_Image_Width - 7) * ' ' & " => ");
             Put_Parse_Action (Action_Ptr.Action);
             New_Line;
          else
             Put ("   " & Token.Token_Image (Action_Ptr.Symbol) &
-                   (Token.Token_Image_Width - Token.Token_Image (Action_Ptr.Symbol)'Length) * ' '
+                   (Token_Image_Width - Token.Token_Image (Action_Ptr.Symbol)'Length) * ' '
                    & " => ");
             Put_Parse_Action (Action_Ptr.Action);
             New_Line;
@@ -175,7 +175,7 @@ package body OpenToken.Production.Parser.LALR.Generator is
       while Goto_Ptr /= null loop
          Put_Line
            ("   " & Token.Token_Image (Goto_Ptr.Symbol) &
-              (Token.Token_Image_Width - Token.Token_Image (Goto_Ptr.Symbol)'Length) * ' ' &
+              (Token_Image_Width - Token.Token_Image (Goto_Ptr.Symbol)'Length) * ' ' &
               " goto state" & State_Index'Image (Goto_Ptr.State));
          Goto_Ptr := Goto_Ptr.Next;
       end loop;
@@ -201,11 +201,11 @@ package body OpenToken.Production.Parser.LALR.Generator is
    --  Generator utils
 
    function Find
-     (Symbol      : in Tokenizer.Terminal_ID;
+     (Symbol      : in Token.Terminal_ID;
       Action_List : in Action_Node_Ptr)
      return Action_Node_Ptr
    is
-      use type Tokenizer.Terminal_ID;
+      use type Token.Terminal_ID;
       Action_Node : Action_Node_Ptr := Action_List;
    begin
       while Action_Node /= null loop
@@ -313,7 +313,7 @@ package body OpenToken.Production.Parser.LALR.Generator is
       --  If this is the start symbol production, it gets a lookahead
       --  for each terminal, so it will reduce on anything.
       if Source_Set.State = Accept_State then
-         for Token_ID in Tokenizer.Terminal_ID loop
+         for Token_ID in Token.Terminal_ID loop
             --  These tokens are not actually used in the grammar, so
             --  we don't set Used_Tokens here.
             declare
@@ -472,7 +472,7 @@ package body OpenToken.Production.Parser.LALR.Generator is
       --  '#' lookahead from [dragon]
       Propagate_Lookahead : constant LRk.Item_Lookahead_Ptr := new LRk.Item_Lookahead'
         (Last       => 0,
-         Lookaheads => (others => Tokenizer.Terminal_ID'First),
+         Lookaheads => (others => Token.Terminal_ID'First),
          Next       => null);
 
       Closure : LRk.Item_Set;
@@ -614,7 +614,7 @@ package body OpenToken.Production.Parser.LALR.Generator is
    --  Add (Symbol, Action) to Action_List
    --  Closure .. Conflicts are for conflict reporting
    procedure Add_Action
-     (Symbol               : in     Tokenizer.Terminal_ID;
+     (Symbol               : in     Token.Terminal_ID;
       Action               : in     Parse_Action_Rec;
       Action_List          : in out Action_Node_Ptr;
       Closure              : in     LRk.Item_Set;
@@ -784,10 +784,10 @@ package body OpenToken.Production.Parser.LALR.Generator is
             Add_Lookahead_Actions
               (Item, Kernel, Accept_State, Table (State).Action_List, Has_Empty_Production, Conflicts, Closure, Trace);
 
-         elsif Token_List.ID (Item.Dot) in Tokenizer.Terminal_ID then
+         elsif Token_List.ID (Item.Dot) in Token.Terminal_ID then
             --  Dot is before a terminal token.
             declare
-               Dot_ID : constant Tokenizer.Terminal_ID := Token_List.ID (Item.Dot);
+               Dot_ID : constant Token.Terminal_ID := Token_List.ID (Item.Dot);
                --  ID of token after Item.Dot
             begin
                Add_Action
@@ -828,7 +828,7 @@ package body OpenToken.Production.Parser.LALR.Generator is
            --  enumeration type to make this 'default', for viewing this
            --  list in a debugger. The various Put routines do replace
            --  this with 'default'.
-           (Symbol => Tokenizer.Terminal_ID'Last,
+           (Symbol => Token.Terminal_ID'Last,
             Action => new Parse_Action_Node'(Parse_Action_Rec'(Verb => Error), null),
             Next   => null);
 

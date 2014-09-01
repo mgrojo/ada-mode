@@ -45,17 +45,20 @@ generic
 
    type Token_ID is (<>);
 
-   with function Token_Image (Item : in Token_ID) return String;
+   --  Tokens in the range Token_ID'First .. Pred (First_Terminal) are
+   --  non-reporting (comments, whitespace), and thus are not used in
+   --  generating an LALR grammar.
+   First_Terminal : in Token_ID;
+   Last_Terminal  : in Token_ID;
+   --  Tokens in the range Succ (Last_Terminal) .. Token_ID'Last are
+   --  the nonterminals of a grammar.
 
-   pragma Warnings (Off); -- Token_Image_Width is only used in a child package
-   Token_Image_Width : in Integer;
-   --  Max width of Token_Image.
-   pragma Warnings (On); -- Token_Image_Width is only used in a child package
+   with function Token_Image (Item : in Token_ID) return String;
 
 package OpenToken.Token.Enumerated is
 
-   --  Make Token_ID visible in client packages
-   subtype Parent_Token_ID is Token_ID;
+   subtype Terminal_ID is Token_ID range First_Terminal .. Last_Terminal;
+   --  We can't define Nonterminal_ID here, because if Last_Terminal = Token_ID'last, there are no nonterminals.
 
    type Instance is new OpenToken.Token.Instance with private;
 

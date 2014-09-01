@@ -26,7 +26,7 @@ with Ada.Strings.Unbounded;
 with Ada.Text_IO;
 with OpenToken;
 with Wisi.Declarations;
-with Wisi.Output_Ada;
+with Wisi.Output_Ada_Emacs;
 with Wisi.Output_Elisp;
 with Wisi.Prologue;
 with Wisi.Rules;
@@ -49,7 +49,7 @@ is
       Put_Line ("   level 2 - add diagnostics to standard out, ignore unused tokens, unknown conflicts");
    end Put_Usage;
 
-   type Output_Language_Type is (Ada, Elisp, Test);
+   type Output_Language_Type is (Ada_Emacs, Elisp, Test);
 
    Output_Language : Output_Language_Type;
 
@@ -121,8 +121,8 @@ begin
    Wisi.Rules (Input_File, Rules, Rule_Count, Action_Count);
 
    case Output_Language is
-   when Ada =>
-      Wisi.Output_Ada
+   when Ada_Emacs =>
+      Wisi.Output_Ada_Emacs
         (-Input_File_Name, -Output_File_Root, Prologue, Keywords, Tokens, Start_Token, Conflicts, Rules,
          Rule_Count, Action_Count);
    when Elisp =>
