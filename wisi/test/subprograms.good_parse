@@ -1,0 +1,45 @@
+ 1 stack:  1 : , 
+ 1: 1: FUNCTION : shift and goto state 2
+ 1 stack:  2 : FUNCTION,  1 : , 
+ 1: 2: LEFT_PAREN : shift and goto state 10
+ 1 stack:  10 : LEFT_PAREN,  2 : FUNCTION,  1 : , 
+ 1: 10: SYMBOL : shift and goto state 18
+ 1 stack:  18 : SYMBOL,  10 : LEFT_PAREN,  2 : FUNCTION,  1 : , 
+ 1: 18: RIGHT_PAREN : shift and goto state 19
+ 1 stack:  19 : RIGHT_PAREN,  18 : SYMBOL,  10 : LEFT_PAREN,  2 : FUNCTION,  1 : , 
+ 1: 19: SYMBOL : reduce 3 tokens to parameter_list, goto state 13
+ 1 stack:  13 : parameter_list,  2 : FUNCTION,  1 : , 
+ 1: 13: SYMBOL : shift and goto state 14
+ 1 stack:  14 : SYMBOL,  13 : parameter_list,  2 : FUNCTION,  1 : , 
+ 1: 14: PROCEDURE : reduce 3 tokens to subprogram, goto state 7
+ 1 stack:  7 : subprogram,  1 : , 
+ 1: 7: PROCEDURE : reduce 1 tokens to declaration, goto state 6
+ 1 stack:  6 : declaration,  1 : , 
+ 1: 6: PROCEDURE : reduce 1 tokens to declarations, goto state 5
+ 1 stack:  5 : declarations,  1 : , 
+ 1: 5: PROCEDURE : shift and goto state 3
+ 1 stack:  3 : PROCEDURE,  5 : declarations,  1 : , 
+ 1: 3: SYMBOL : reduce 0 tokens to parameter_list, goto state 12
+ 1 stack:  12 : parameter_list,  3 : PROCEDURE,  5 : declarations,  1 : , 
+ 1: 12: SYMBOL : shift and goto state 15
+ 1 stack:  15 : SYMBOL,  12 : parameter_list,  3 : PROCEDURE,  5 : declarations,  1 : , 
+ 1: 15: EOF_ID : reduce 3 tokens to subprogram, goto state 7
+ 1 stack:  7 : subprogram,  5 : declarations,  1 : , 
+ 1: 7: EOF_ID : reduce 1 tokens to declaration, goto state 8
+ 1 stack:  8 : declaration,  5 : declarations,  1 : , 
+ 1: 8: EOF_ID : reduce 2 tokens to declarations, goto state 5
+ 1 stack:  5 : declarations,  1 : , 
+ 1: 5: EOF_ID : reduce 1 tokens to compilation_unit, goto state 4
+ 1 stack:  4 : compilation_unit,  1 : , 
+ 1: 4: EOF_ID : shift and goto state 9
+ 1 stack:  9 : EOF_ID,  4 : compilation_unit,  1 : , 
+ 1: 9: EOF_ID : accept it
+(let ((tokens '((LEFT_PAREN 10 . 10) (SYMBOL 11 . 13) (RIGHT_PAREN 14 . 14))))
+(wisi-statement-action 1 'open-paren 3 'close-paren)
+)
+(let ((tokens '((FUNCTION 1 . 8) (parameter_list 10 . 14) (SYMBOL 16 . 18))))
+(wisi-statement-action 1 'function 3 'name)
+)
+(let ((tokens '((PROCEDURE 21 . 29) (parameter_list nil) (SYMBOL 31 . 36))))
+(wisi-statement-action 1 'procedure 3 'name)
+)

@@ -116,7 +116,7 @@ package body OpenToken.Production.Parser.LALR.Elisp is
          Item   : Goto_Node_Ptr := List;
       begin
          while Item /= null loop
-            if Item.Symbol in Tokenizer.Terminal_ID then
+            if Item.Symbol in Token.Terminal_ID then
                --  delete from Result list
                if Item = Result then
                   Result := Item.Next;

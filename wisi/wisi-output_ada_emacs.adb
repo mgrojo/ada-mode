@@ -133,49 +133,18 @@ begin
    Put_Line ("--");
    Put_Prologue;
 
-   if Is_In (Tokens, """symbol""") then
-      Put_Line ("with Ada.Strings.Maps.Constants;");
+   if Action_Count > 0 then
+      Put_Line ("with Ada.Containers.Indefinite_Doubly_Linked_Lists;");
    end if;
-
    Put_Line ("with OpenToken.Production.List;");
    Put_Line ("with OpenToken.Production.Parser.LALR.Generator;");
    Put_Line ("with OpenToken.Production.Parser.LALR.Parser;");
-
-   if Is_In (Tokens, """whitespace""") then
-      Put_Line ("with OpenToken.Recognizer.Character_Set;");
-   end if;
-
-   Put_Line ("with OpenToken.Recognizer.End_Of_File;");
-
-   if Is_In (Tokens, """symbol""") then
-      Put_Line ("with OpenToken.Recognizer.Identifier;");
-   end if;
-
-   if Is_In (Tokens, """number""") then
-      Put_Line ("with OpenToken.Recognizer.Integer;");
-   end if;
-
-   Put_Line ("with OpenToken.Recognizer.Keyword;");
-
-   if Is_In (Tokens, """line_comment""") then
-      Put_Line ("with OpenToken.Recognizer.Line_Comment;");
-   end if;
-
-   if Is_In (Tokens, """punctuation""") then
-      Put_Line ("with OpenToken.Recognizer.Separator;");
-   end if;
-
-   if Is_In (Tokens, """string-double""") then
-      Put_Line ("with OpenToken.Recognizer.String;");
-   end if;
-
-   if Is_In (Tokens, """string-single""") then
-      Put_Line ("with OpenToken.Recognizer.Graphic_Character;");
-   end if;
+   Put_Line ("with OpenToken.Text_Feeder;");
 
    Put_Line ("with OpenToken.Token.Enumerated.Analyzer;");
    Put_Line ("with OpenToken.Token.Enumerated.List;");
    Put_Line ("with OpenToken.Token.Enumerated.Nonterminal;");
+   Put_Line ("with OpenToken.Wisi_Tokens;");
    Put_Line ("package " & Package_Name & " is");
    Indent := Indent + 3;
 
@@ -211,10 +180,7 @@ begin
       use Rule_Lists;
       I : Cursor := Rules.First;
    begin
-      --  Add an extra nonterminal as the OpenToken accept symbol
-      --  followed by EOF.
       Indent_Line (OpenToken_Accept_Image & ",");
-
       loop
          Set_Col (Indent);
          Put (To_Token_Image (Element (I).Left_Hand_Side));
@@ -228,87 +194,105 @@ begin
       end loop;
    end;
    Indent := Indent - 3;
+   New_Line;
+
+   Indent_Line ("First_Terminal : constant Token_IDs := " & To_Token_Image (Keywords.First_Element.Name) & ";");
+   Indent_Line ("Last_Terminal : constant Token_IDs := EOF_ID;");
+
+   declare
+      use Ada.Strings.Unbounded;
+      Token_Image_Width : Integer := 0;
+   begin
+      Indent_Line ("Token_Images : constant array (Token_IDs) of access constant String :=");
+      Indent_Line ("  (");
+      Indent := Indent + 3;
+      Indent_Line ("--  non-reporting");
+      for Kind of Tokens loop
+         if -Kind.Kind = """line_comment""" or -Kind.Kind = """whitespace""" then
+            for Item of Kind.Tokens loop
+               Indent_Line ("new String'(""" & To_String (Item.Name) & """),");
+               Token_Image_Width := Integer'Max (Token_Image_Width, Length (Item.Name));
+            end loop;
+         end if;
+      end loop;
+      New_Line;
+      Indent_Line ("--  terminals");
+      --  Keywords first, so they have precedence over identifiers
+      for Item of Keywords loop
+         Indent_Line ("new String'(""" & To_String (Item.Name) & """),");
+         Token_Image_Width := Integer'Max (Token_Image_Width, Length (Item.Name));
+      end loop;
+      for Kind of Tokens loop
+         if not (-Kind.Kind = """line_comment""" or -Kind.Kind = """whitespace""") then
+            for Item of Kind.Tokens loop
+               Indent_Line ("new String'(""" & To_String (Item.Name) & """),");
+               Token_Image_Width := Integer'Max (Token_Image_Width, Length (Item.Name));
+            end loop;
+         end if;
+      end loop;
+      Indent_Line ("new String'(""" & EOI_Image & """),");
+      Token_Image_Width := Integer'Max (Token_Image_Width, EOI_Image'Length);
+      New_Line;
+      Indent_Line ("--  non-terminals");
+      declare
+         use Rule_Lists;
+         I : Cursor := Rules.First;
+      begin
+         Indent_Line ("new String'(""" & OpenToken_Accept_Image & """),");
+         Token_Image_Width := Integer'Max (Token_Image_Width, OpenToken_Accept_Image'Length);
+         loop
+            Set_Col (Indent);
+            Put ("new String'(""" & To_String (Element (I).Left_Hand_Side));
+            Token_Image_Width := Integer'Max (Token_Image_Width, Length (Element (I).Left_Hand_Side));
+            Next (I);
+            if I = No_Element then
+               Put_Line ("""));");
+               exit;
+            else
+               Put_Line ("""),");
+            end if;
+         end loop;
+      end;
+      Indent := Indent - 3;
+      Indent_Line ("Token_Image_Width : constant Integer :=" & Integer'Image (Token_Image_Width) & ";");
+      New_Line;
+   end;
+
+   Indent_Line ("function Token_Image (ID : in Token_IDs) return String is (Token_Images (ID).all);");
 
    Indent_Line
-     ("package Tokens is new OpenToken.Token.Enumerated (Token_IDs, Token_IDs'Image, Token_IDs'Width);");
-   Indent_Line ("package Analyzers is new Tokens.Analyzer");
-   Indent_Line ("  (First_Terminal => " & To_Token_Image (Keywords.First_Element.Name) & ",");
-   Indent_Line ("   Last_Terminal  => EOF_ID);");
+     ("package Tokens is new OpenToken.Token.Enumerated (Token_IDs, First_Terminal, Last_Terminal, Token_Image);");
+   Indent_Line ("package Analyzers is new Tokens.Analyzer;");
    Indent_Line ("package Token_Lists is new Tokens.List;");
    Indent_Line ("package Nonterminals is new Tokens.Nonterminal (Token_Lists);");
    Indent_Line ("package Productions is new OpenToken.Production (Tokens, Token_Lists, Nonterminals);");
-   Indent_Line ("package Production_Lists is new Productions.List;");
-   Indent_Line ("package Parsers is new Productions.Parser (Production_Lists, Analyzers);");
+   Indent_Line ("package Parsers is new Productions.Parser (Analyzers);");
    Indent_Line
      ("package LALRs is new Parsers.LALR (First_State_Index => " &
         OpenToken.Int_Image (First_State_Index) & ");");
-   Indent_Line ("package LALR_Generators is new LALRs.Generator;");
+   Indent_Line ("package Production_Lists is new Productions.List;");
+   Indent_Line ("package LALR_Generators is new LALRs.Generator (Token_IDs'Width, Production_Lists);");
    Indent_Line ("package LALR_Parsers is new LALRs.Parser;");
    New_Line;
-   Indent_Line ("Syntax : constant Analyzers.Syntax :=");
-   Indent_Line ("  (");
-   Indent := Indent + 3;
-   for Item of Keywords loop
-      Indent_Line
-        (To_Token_Image (Item.Name) & " => Analyzers.Get (OpenToken.Recognizer.Keyword.Get (" & (-Item.Value) & ")),");
-   end loop;
-   for Kind of Tokens loop
-      if -Kind.Kind = """line_comment""" then
-         for Item of Kind.Tokens loop
-            Indent_Line
-              (To_Token_Image (Item.Name) & " => Analyzers.Get (OpenToken.Recognizer.Line_Comment.Get (" &
-                 (-Item.Value) & ")),");
-         end loop;
-      elsif -Kind.Kind = """whitespace""" then
-         --  Only one whitespace token. Ignoring value.
-         if Kind.Tokens.Length > 1 then
-            raise Programmer_Error;
-         end if;
-         for Item of Kind.Tokens loop
-            Indent_Line (To_Token_Image (Item.Name) & " => Analyzers.Get");
-            Indent_Line ("   (OpenToken.Recognizer.Character_Set.Get");
-            Indent_Line ("      (OpenToken.Recognizer.Character_Set.Standard_Whitespace)),");
-         end loop;
-      elsif -Kind.Kind = """number""" then
-         for Item of Kind.Tokens loop
-            Indent_Line
-              (To_Token_Image (Item.Name) & " => Analyzers.Get (OpenToken.Recognizer.Integer.Get),");
-         end loop;
-      elsif -Kind.Kind = """punctuation""" then
-         for Item of Kind.Tokens loop
-            Indent_Line
-              (To_Token_Image (Item.Name) & " => Analyzers.Get (OpenToken.Recognizer.Separator.Get (" &
-                 (-Item.Value) & ")),");
-         end loop;
-      elsif -Kind.Kind = """symbol""" then
-         for Item of Kind.Tokens loop
-            Indent_Line (To_Token_Image (Item.Name) & " => Analyzers.Get");
-            Indent_Line ("  (OpenToken.Recognizer.Identifier.Get");
-            --  this is compatible with the Emacs Ada mode wisi elisp lexer
-            Indent_Line ("     (Start_Chars => Ada.Strings.Maps.Constants.Alphanumeric_Set,");
-            Indent_Line ("      Body_Chars => Ada.Strings.Maps.Constants.Alphanumeric_Set)),");
-         end loop;
-      elsif -Kind.Kind = """string-double""" then
-         for Item of Kind.Tokens loop
-            Indent_Line
-              (To_Token_Image (Item.Name) & " => Analyzers.Get (OpenToken.Recognizer.String.Get),");
-         end loop;
-      elsif -Kind.Kind = """string-single""" then
-         for Item of Kind.Tokens loop
-            Indent_Line
-              (To_Token_Image (Item.Name) & " => Analyzers.Get (OpenToken.Recognizer.Graphic_Character.Get),");
-         end loop;
-      else
-         raise OpenToken.Grammar_Error with "unsupported token type '" & (-Kind.Kind) & "'";
-      end if;
-   end loop;
-   Indent_Line ("EOF_ID => Analyzers.Get (OpenToken.Recognizer.End_Of_File.Get));");
+   Indent_Line
+     ("package Wisi_Tokens is new OpenToken.Wisi_Tokens");
+   Indent_Line
+     ("  (Token_IDs, First_Terminal, Last_Terminal, Token_Image_Width, Token_Image, Tokens, Analyzers, Token_Lists,");
+   Indent_Line ("     Nonterminals);");
    New_Line;
-   Indent := Indent - 3;
+
+   if Action_Count > 0 then
+      Indent_Line ("package String_Lists is new Ada.Containers.Indefinite_Doubly_Linked_Lists (String);");
+      New_Line;
+
+      Indent_Line ("Actions : String_Lists.List;");
+      New_Line;
+   end if;
 
    Indent_Line ("function Create_Parser");
    Indent_Line ("  (Max_Parallel         : in Integer := 15;");
-   Indent_Line ("   Terminate_Same_State : in Boolean := False)");
+   Indent_Line ("   Terminate_Same_State : in Boolean := False;");
+   Indent_Line ("   Text_Feeder          : in OpenToken.Text_Feeder.Text_Feeder_Ptr := null)");
    Indent_Line ("  return LALR_Parsers.Instance;");
    New_Line;
    Put_Line ("end " & Package_Name & ";");
@@ -320,14 +304,43 @@ begin
    Put_Line ("--  generated by OpenToken Wisi from " & Input_File_Name);
    Put_Line ("--");
    Put_Prologue;
-   if Action_Count > 0 then
-      Put_Line ("with Ada.Containers.Indefinite_Doubly_Linked_Lists;");
+   if Is_In (Tokens, """symbol""") then
+      Put_Line ("with Ada.Strings.Maps.Constants;");
    end if;
+   if Is_In (Tokens, """whitespace""") then
+      Put_Line ("with OpenToken.Recognizer.Character_Set;");
+   end if;
+
+   Put_Line ("with OpenToken.Recognizer.End_Of_File;");
+
+   if Is_In (Tokens, """symbol""") then
+      Put_Line ("with OpenToken.Recognizer.Identifier;");
+   end if;
+
+   if Is_In (Tokens, """number""") then
+      Put_Line ("with OpenToken.Recognizer.Integer;");
+   end if;
+
+   Put_Line ("with OpenToken.Recognizer.Keyword;");
+
+   if Is_In (Tokens, """line_comment""") then
+      Put_Line ("with OpenToken.Recognizer.Line_Comment;");
+   end if;
+
+   if Is_In (Tokens, """punctuation""") then
+      Put_Line ("with OpenToken.Recognizer.Separator;");
+   end if;
+
+   if Is_In (Tokens, """string-double""") then
+      Put_Line ("with OpenToken.Recognizer.String;");
+   end if;
+
+   if Is_In (Tokens, """string-single""") then
+      Put_Line ("with OpenToken.Recognizer.Graphic_Character;");
+   end if;
+
    Put_Line ("package body " & Package_Name & " is");
    Indent := Indent + 3;
-   New_Line;
-
-   Indent_Line ("Self : Nonterminals.Synthesize renames Nonterminals.Synthesize_Self;");
    New_Line;
 
    Action_Names (Find_Token_ID (OpenToken_Accept_Image))     := new Action_Name_List (0 .. 0);
@@ -351,10 +364,9 @@ begin
    else
       --  generate Action subprograms, populate Action_Names.
 
-      Indent_Line ("package String_Lists is new Ada.Containers.Indefinite_Doubly_Linked_Lists (String);");
-      New_Line;
+      Indent_Line ("Self : constant Nonterminals.Synthesize := Wisi_Tokens.Self'Access;");
 
-      Indent_Line ("Actions : String_Lists.List;");
+      Indent_Line ("use Wisi_Tokens;");
       New_Line;
 
       for Rule of Rules loop
@@ -378,23 +390,16 @@ begin
                      Indent_Line ("Source    : in  Token_Lists.Instance'Class;");
                      Indent_Line ("To_ID     : in  Token_IDs)");
                      Indent := Indent - 3;
-                     Indent_Line ("is");
-                     Indent_Line ("   Wisi_Nonterm : Wisi_Token.Instance renames Wisi_Token.Instance (New_Token);");
-                     Indent_Line ("begin");
+                     Indent_Line ("is begin");
                      Indent := Indent + 3;
-                     Indent_Line ("New_Token := Wisi.Get (To_ID, Wisi_Token.Buffer_Range);");
+                     Indent_Line ("New_Token := Get (To_ID, Total_Buffer_Range (Source));");
                      --  Assuming simple elisp syntax for actions, as used by wisi elisp parser
                      --  Just accumulate elisp sexp to pass back to Emacs
-                     --  Indent_Line ("actions.append (""(let (tokens '(");
-                     --  Indent_Line ("for Token of Source loop");
-                     --     Put
-                     --       ("(" & Token_Image (Token.ID) & ", """ &
-                     --          Analyzer.Lexeme & """, " &
-                     --          Image (Token.Buffer_Range) & ")");
-                     --  Indent_Line ("end loop;");
+                     Indent_Line ("Actions.Append (Image (Source));");
                      for Line of RHS.Action loop
                         Indent_Line ("Actions.Append (""" & Line & """);");
                      end loop;
+                     Indent_Line ("Actions.Append ("")"");");
                      Indent := Indent - 3;
                      Indent_Line ("end " & Name & ";");
                      New_Line;
@@ -437,7 +442,7 @@ begin
    Indent_Line ("   use LALRs;");
    Indent_Line ("   use Productions;");
    Indent_Line ("   Action : Parse_Action_Rec;");
-   Indent_Line ("   LHS    : constant Nonterminal.Handle := new Nonterminal.Class'(Nonterminal.Get (LHS_ID));");
+   Indent_Line ("   LHS    : constant Nonterminal.Handle := new Nonterminal.Class'(Wisi_Tokens.Get (LHS_ID));");
    Indent_Line ("begin");
    Indent := Indent + 3;
    Indent_Line ("case Verb is");
@@ -467,7 +472,7 @@ begin
       Indent_Line ("   use LALRs;");
       Indent_Line ("   use Productions;");
       Indent_Line ("   Action_1 : constant Parse_Action_Rec := (Shift, State_Index);");
-      Indent_Line ("   LHS      : constant Nonterminal.Handle := new Nonterminal.Class'(Nonterminal.Get (LHS_ID));");
+      Indent_Line ("   LHS      : constant Nonterminal.Handle := new Nonterminal.Class'(Wisi_Tokens.Get (LHS_ID));");
       Indent_Line
         ("   Action_2 : constant Parse_Action_Rec := " &
            "(Reduce, LHS, Synthesize, 0, RHS_Token_Count);");
@@ -496,10 +501,10 @@ begin
       Indent := Indent + 3;
       Indent_Line ("use LALRs;");
       Indent_Line ("use Productions;");
-      Indent_Line ("LHS_1 : constant Nonterminal.Handle := new Nonterminal.Class'(Nonterminal.Get (LHS_ID_1));");
+      Indent_Line ("LHS_1 : constant Nonterminal.Handle := new Nonterminal.Class'(Wisi_Tokens.Get (LHS_ID_1));");
       Indent_Line
         ("Action_1 : constant Parse_Action_Rec := (Reduce, LHS_1, Synthesize_1, 0, RHS_Token_Count_1);");
-      Indent_Line ("LHS_2 : constant Nonterminal.Handle := new Nonterminal.Class'(Nonterminal.Get (LHS_ID_2));");
+      Indent_Line ("LHS_2 : constant Nonterminal.Handle := new Nonterminal.Class'(Wisi_Tokens.Get (LHS_ID_2));");
       Indent_Line
         ("Action_2 : constant Parse_Action_Rec := (Reduce, LHS_2, Synthesize_2, 0, RHS_Token_Count_2);");
       Indent := Indent - 3;
@@ -549,9 +554,78 @@ begin
    Indent_Line ("end Add_Goto;");
    New_Line;
 
+   Indent_Line ("function Create_Syntax return Analyzers.Syntax");
+   Indent_Line ("is");
+   Indent_Line ("   use OpenToken.Recognizer;");
+   Indent_Line ("begin");
+   Indent := Indent + 3;
+   Indent_Line ("return");
+   Indent_Line ("  (");
+   Indent := Indent + 3;
+   for Item of Keywords loop
+      Indent_Line
+        (To_Token_Image (Item.Name) & " => Analyzers.Get (Keyword.Get (" & (-Item.Value) &
+        "), Wisi_Tokens.Get (" & To_Token_Image (Item.Name) & ")),");
+   end loop;
+   for Kind of Tokens loop
+      if -Kind.Kind = """line_comment""" then
+         for Item of Kind.Tokens loop
+            Indent_Line
+              (To_Token_Image (Item.Name) & " => Analyzers.Get (Line_Comment.Get (" &
+                 (-Item.Value) & ", Wisi_Tokens.Get (" & To_Token_Image (Item.Name) & ")),");
+         end loop;
+      elsif -Kind.Kind = """whitespace""" then
+         --  Only one whitespace token. Ignoring value.
+         if Kind.Tokens.Length > 1 then
+            raise Programmer_Error;
+         end if;
+         for Item of Kind.Tokens loop
+            Indent_Line (To_Token_Image (Item.Name) & " => Analyzers.Get");
+            Indent_Line ("   (Character_Set.Get (Character_Set.Standard_Whitespace)),");
+         end loop;
+      elsif -Kind.Kind = """number""" then
+         raise Programmer_Error;
+      elsif -Kind.Kind = """punctuation""" then
+         for Item of Kind.Tokens loop
+            Indent_Line
+              (To_Token_Image (Item.Name) & " => Analyzers.Get (Separator.Get (" &
+                 (-Item.Value) & "), Wisi_Tokens.Get (" & To_Token_Image (Item.Name) & ")),");
+         end loop;
+      elsif -Kind.Kind = """symbol""" then
+         for Item of Kind.Tokens loop
+            Indent_Line (To_Token_Image (Item.Name) & " => Analyzers.Get");
+            Indent_Line ("  (Identifier.Get");
+            --  this is compatible with the Emacs Ada mode wisi elisp lexer
+            Indent_Line ("     (Start_Chars => Ada.Strings.Maps.Constants.Alphanumeric_Set,");
+            Indent_Line ("      Body_Chars => Ada.Strings.Maps.Constants.Alphanumeric_Set),");
+            Indent_Line ("   Wisi_Tokens.Get (" & To_Token_Image (Item.Name) & ")),");
+         end loop;
+      elsif -Kind.Kind = """string-double""" then
+         for Item of Kind.Tokens loop
+            Indent_Line
+              (To_Token_Image (Item.Name) & " => Analyzers.Get (OpenToken.Recognizer.String.Get, Wisi_Tokens.Get (" &
+                 To_Token_Image (Item.Name) & ")),");
+         end loop;
+      elsif -Kind.Kind = """string-single""" then
+         for Item of Kind.Tokens loop
+            Indent_Line
+              (To_Token_Image (Item.Name) & " => Analyzers.Get (Graphic_Character.Get (" &
+                 To_Token_Image (Item.Name) & ")),");
+         end loop;
+      else
+         raise OpenToken.Grammar_Error with "unsupported token type '" & (-Kind.Kind) & "'";
+      end if;
+   end loop;
+   Indent_Line ("EOF_ID => Analyzers.Get (End_Of_File.Get, Wisi_Tokens.Get (EOF_ID)));");
+   New_Line;
+   Indent := Indent - 6;
+   Indent_Line ("end Create_Syntax;");
+   New_Line;
+
    Indent_Line ("function Create_Parser");
    Indent_Line ("  (Max_Parallel         : in Integer := 15;");
-   Indent_Line ("   Terminate_Same_State : in Boolean := False)");
+   Indent_Line ("   Terminate_Same_State : in Boolean := False;");
+   Indent_Line ("   Text_Feeder          : in OpenToken.Text_Feeder.Text_Feeder_Ptr := null)");
    Indent_Line ("  return LALR_Parsers.Instance");
    Indent_Line ("is");
    Indent := Indent + 3;
@@ -638,7 +712,9 @@ begin
    end loop;
    New_Line;
    --  FIXME: get Max_Parallel from some command line
-   Indent_Line ("return (Analyzers.Initialize (Syntax, null), Table, Max_Parallel, Terminate_Same_State);");
+   Indent_Line ("return");
+   Indent_Line ("  (Analyzers.Initialize (Create_Syntax, Text_Feeder), Table, Max_Parallel, Terminate_Same_State,");
+   Indent_Line ("   Wisi_Tokens.Decorate'Access);");
    Indent := Indent - 3;
    Indent_Line ("end Create_Parser;");
    Put_Line ("end " & Package_Name & ";");

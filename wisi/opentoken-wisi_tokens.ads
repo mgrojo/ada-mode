@@ -23,8 +23,10 @@ with OpenToken.Token.Enumerated.Nonterminal;
 with OpenToken.Token.Enumerated.List;
 generic
    type Token_IDs is (<>);
-   First_Terminal : in Token_IDs;
-   Last_Terminal  : in Token_IDs;
+   First_Terminal    : in Token_IDs;
+   Last_Terminal     : in Token_IDs;
+   Token_Image_Width : in Integer;
+
    with function Token_Image (Item : in Token_IDs) return String;
    with package Tokens is new OpenToken.Token.Enumerated
      (Token_IDs, First_Terminal, Last_Terminal, Token_Image);
@@ -33,26 +35,21 @@ generic
    with package Nonterminals is new Tokens.Nonterminal (Token_Lists);
 package OpenToken.Wisi_Tokens is
 
-   type Buffer_Range is record
-      Begin_Pos : Integer;
-      End_Pos   : Integer;
-   end record;
-
    type Instance is new Nonterminals.Instance with record
-      Buffer_Range : Wisi_Tokens.Buffer_Range;
+      Buffer_Range : Analyzers.Buffer_Range;
    end record;
 
    subtype Class is Instance'Class;
 
    type Handle is access all Class;
 
-   function Get (ID : in Token_IDs) return Instance'Class;
+   function Get (ID : in Token_IDs) return Nonterminals.Instance'Class;
    --  For use in Syntax; sets null Buffer_Range
 
    procedure Decorate (Token : in out Tokens.Class; Analyzer : in Analyzers.Instance);
    --  For use in Parser; add Buffer_Range from Analyzer current lexeme.
 
-   function Get (ID : in Token_IDs; Buffer_Range : in Wisi_Tokens.Buffer_Range) return Instance'Class;
+   function Get (ID : in Token_IDs; Buffer_Range : in Analyzers.Buffer_Range) return Nonterminals.Instance'Class;
    --  For use in Actions.
 
    procedure Self
@@ -64,7 +61,9 @@ package OpenToken.Wisi_Tokens is
    --  Other functions for wisi actions in generated Ada code for
    --  Ada_Emacs target.
 
+   function Total_Buffer_Range (Tokens : in Token_Lists.Instance'Class) return Analyzers.Buffer_Range;
+
    function Image (Tokens : in Token_Lists.Instance'Class) return String;
-   --  Return elisp prefix for wisi action
+   --  Return elisp prefix for wisi action; declares 'let ((tokens ...))'
 
 end OpenToken.Wisi_Tokens;

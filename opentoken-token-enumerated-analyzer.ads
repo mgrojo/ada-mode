@@ -184,16 +184,6 @@ package OpenToken.Token.Enumerated.Analyzer is
    --------------------------------------------------------------------------
    procedure Unset_Default (Analyzer : in out Instance);
 
-   --------------------------------------------------------------------------
-   --  Locate the next token.
-   --
-   --  The next token will be the token that matches the *longest*
-   --  sequence of characters before failing. Ties go to the token
-   --  with the smallest Terminal_Id.
-   --
-   --  Raises Syntax_Error with an appropriate message if no token
-   --  could be found and there is no default token.
-   --  ------------------------------------------------------------------------
    overriding procedure Find_Next
      (Analyzer   : in out Instance;
       Look_Ahead : in     Boolean := False);
@@ -232,9 +222,6 @@ package OpenToken.Token.Enumerated.Analyzer is
    --------------------------------------------------------------------------
    function Next_Token_Column (Analyzer : in Instance) return Integer;
 
-   --------------------------------------------------------------------------
-   --  Returns the last token that was matched.
-   --------------------------------------------------------------------------
    overriding function Get (Analyzer : in Instance) return OpenToken.Token.Class;
 
    ----------------------------------------------------------------------------
@@ -243,6 +230,17 @@ package OpenToken.Token.Enumerated.Analyzer is
    function ID (Analyzer : in Instance) return Terminal_ID;
 
    overriding function Lexeme (Analyzer : in Instance) return String;
+
+   type Buffer_Range is record
+      Begin_Pos : Integer;
+      End_Pos   : Integer;
+   end record;
+
+   --------------------------------------------------------------------------
+   --  Returns the position of the start and end of the last token
+   --  that was matched, in the internal buffer.
+   --------------------------------------------------------------------------
+   function Bounds (Analyzer : in Instance) return Buffer_Range;
 
    overriding function Last_Recognizer (Analyzer : in Instance) return Recognizer_Handle;
 
@@ -270,19 +268,21 @@ private
       Default_Token : Terminal_ID;
 
       --  User-gettable attributes
-      Line        : Natural := 1;
-      Column      : Natural := 1;
-      Lexeme_Head : Natural := 1;
-      Lexeme_Tail : Natural := 0;
-      Last_Token  : Terminal_ID;
+      Line              : Natural := 1;
+      Column            : Natural := 1;
+      Lexeme_Head       : Natural := 1;
+      Lexeme_Tail       : Natural := 0;
+      Lexeme_Source_Pos : Natural := 1;
+      Last_Token        : Terminal_ID;
 
       Read_From_Lookahead : Boolean;
 
       --  Internal state information
-      Buffer       : String (1 .. Max_String_Length);
-      Buffer_Head  : Natural := 1;
-      Buffer_Tail  : Natural := 0;
-      Buffer_Size  : Natural := 0;
+      Buffer                 : String (1 .. Max_String_Length);
+      Buffer_Head            : Natural := 1;
+      Buffer_Tail            : Natural := 0;
+      Buffer_Size            : Natural := 0;
+      Buffer_Head_Source_Pos : Natural := 1;
 
       Next_Line    : Natural := 1;
       Next_Column  : Natural := 1;

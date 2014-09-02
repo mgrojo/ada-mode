@@ -65,17 +65,16 @@ package Wisi.Gen_Generate_Utils is
    procedure Put_Tokens;
    --  Put user readable token list to Standard_Output
 
-   package Tokens_Pkg is new OpenToken.Token.Enumerated (Token_IDs, Token_Image, Token_Image_Width);
+   package Tokens_Pkg is new OpenToken.Token.Enumerated (Token_IDs, First_Terminal, EOI_ID, Token_Image);
    --  we only need Analyzers to instantiate Parsers, but we might call it for debugging
-   package Analyzers is new Tokens_Pkg.Analyzer
-     (First_Terminal => First_Terminal, Last_Terminal => EOI_ID);
+   package Analyzers is new Tokens_Pkg.Analyzer;
    package Token_Lists is new Tokens_Pkg.List;
    package Nonterminals is new Tokens_Pkg.Nonterminal (Token_Lists);
    package Productions is new OpenToken.Production (Tokens_Pkg, Token_Lists, Nonterminals);
-   package Production_Lists is new Productions.List;
-   package Parsers is new Productions.Parser (Production_Lists, Analyzers);
+   package Parsers is new Productions.Parser (Analyzers);
    package LALRs is new Parsers.LALR (First_State_Index);
-   package LALR_Generators is new LALRs.Generator;
+   package Production_Lists is new Productions.List;
+   package LALR_Generators is new LALRs.Generator (Token_Image_Width, Production_Lists);
 
    procedure Print_Action (Item : in Nonterminals.Synthesize) is null;
    package Token_List_Print is new Token_Lists.Print;

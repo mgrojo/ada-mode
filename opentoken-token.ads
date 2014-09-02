@@ -92,6 +92,9 @@ package OpenToken.Token is
    --  Look_Ahead True on the first call in a real parse, and this lets
    --  the Analyzer assume there is one actively recognized token to
    --  start the lookahead queue with.
+   --
+   --  Raises Syntax_Error with an appropriate message if no token
+   --  is found and there is no default token.
    --------------------------------------------------------------------------
    procedure Find_Next
      (Analyzer   : in out Source;

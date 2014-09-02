@@ -1,6 +1,6 @@
 with Ada.Command_Line;
 with Ada.Exceptions;
-with Ada.Text_IO;      use Ada.Text_IO;
+with Ada.Text_IO; use Ada.Text_IO;
 with Subprograms; use Subprograms;
 with GNAT.Traceback.Symbolic;
 with OpenToken.Text_Feeder.Text_IO;
@@ -59,11 +59,17 @@ begin
    Set_Input (File);
    LALR_Parsers.Set_Text_Feeder (Parser, OpenToken.Text_Feeder.Text_IO.Create (Current_Input));
    LALR_Parsers.Parse (Parser);
+
+   for Line of Actions loop
+      Put_Line (Line);
+   end loop;
+
 exception
-when E : OpenToken.Parse_Error =>
-   Put_Line (Ada.Exceptions.Exception_Message (E));
+when E : OpenToken.Parse_Error | OpenToken.Syntax_Error =>
+   Put_Line (Name (File) & ":" & Ada.Exceptions.Exception_Message (E));
 
 when E : others =>
+   New_Line;
    Put_Line (Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E));
    Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
 end Subprograms_Run;
