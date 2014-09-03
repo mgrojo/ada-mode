@@ -66,6 +66,9 @@ package OpenToken.Token.Enumerated is
 
    type Handle is access all Class;
 
+   overriding
+   function Image (Token : in Instance) return String;
+
    procedure Free (Item : in out Handle);
 
    type Recognizer_Handle is access all OpenToken.Recognizer.Class;

@@ -1,36 +1,49 @@
  1 stack:  1 : , 
- 1: 1: ACCEPT_ID : shift and goto state 2
- 1 stack:  2 : ACCEPT_ID,  1 : , 
- 1: 2: IDENTIFIER_ID : shift and goto state 7
- 1 stack:  7 : IDENTIFIER_ID,  2 : ACCEPT_ID,  1 : , 
- 1: 7: LEFT_PAREN_ID : reduce 1 tokens to NAME_ID, goto state 8
- 1 stack:  8 : NAME_ID,  2 : ACCEPT_ID,  1 : , 
- 1: 8: LEFT_PAREN_ID : shift and goto state 9
- 1 stack:  9 : LEFT_PAREN_ID,  8 : NAME_ID,  2 : ACCEPT_ID,  1 : , 
- 1: 9: IDENTIFIER_ID : shift and goto state 12
- 1 stack:  12 : IDENTIFIER_ID,  9 : LEFT_PAREN_ID,  8 : NAME_ID,  2 : ACCEPT_ID,  1 : , 
- 1: 12: RIGHT_PAREN_ID : shift and goto state 13
- 1 stack:  13 : RIGHT_PAREN_ID,  12 : IDENTIFIER_ID,  9 : LEFT_PAREN_ID,  8 : NAME_ID,  2 : ACCEPT_ID,  1 : , 
- 1: 13: SEMICOLON_ID : reduce 3 tokens to PARAMETER_PROFILE_ID, goto state 10
- 1 stack:  10 : PARAMETER_PROFILE_ID,  8 : NAME_ID,  2 : ACCEPT_ID,  1 : , 
- 1: 10: SEMICOLON_ID : shift and goto state 11
- 1 stack:  11 : SEMICOLON_ID,  10 : PARAMETER_PROFILE_ID,  8 : NAME_ID,  2 : ACCEPT_ID,  1 : , 
- 1: 11: ACCEPT_ID : reduce 4 tokens to ACCEPT_STATEMENT_ID, goto state 4
- 1 stack:  4 : ACCEPT_STATEMENT_ID,  1 : , 
- 1: 4: ACCEPT_ID : shift and goto state 2
- 1 stack:  2 : ACCEPT_ID,  4 : ACCEPT_STATEMENT_ID,  1 : , 
- 1: 2: IDENTIFIER_ID : shift and goto state 7
- 1 stack:  7 : IDENTIFIER_ID,  2 : ACCEPT_ID,  4 : ACCEPT_STATEMENT_ID,  1 : , 
- 1: 7: SEMICOLON_ID : reduce 1 tokens to NAME_ID, goto state 8
- 1 stack:  8 : NAME_ID,  2 : ACCEPT_ID,  4 : ACCEPT_STATEMENT_ID,  1 : , 
- 1: 8: SEMICOLON_ID : reduce 0 tokens to PARAMETER_PROFILE_ID, goto state 10
- 1 stack:  10 : PARAMETER_PROFILE_ID,  8 : NAME_ID,  2 : ACCEPT_ID,  4 : ACCEPT_STATEMENT_ID,  1 : , 
- 1: 10: SEMICOLON_ID : shift and goto state 11
- 1 stack:  11 : SEMICOLON_ID,  10 : PARAMETER_PROFILE_ID,  8 : NAME_ID,  2 : ACCEPT_ID,  4 : ACCEPT_STATEMENT_ID,  1 : , 
- 1: 11: EOF_ID : reduce 4 tokens to ACCEPT_STATEMENT_ID, goto state 5
- 1 stack:  5 : ACCEPT_STATEMENT_ID,  4 : ACCEPT_STATEMENT_ID,  1 : , 
- 1: 5: EOF_ID : reduce 2 tokens to COMPILATION_UNIT_ID, goto state 3
- 1 stack:  3 : COMPILATION_UNIT_ID,  1 : , 
+ 1: 1: ACCEPT : shift and goto state 2
+ 1 stack:  2 : (ACCEPT 1 . 6),  1 : , 
+ 1: 2: IDENTIFIER : shift and goto state 7
+ 1 stack:  7 : (IDENTIFIER 8 . 13),  2 : (ACCEPT 1 . 6),  1 : , 
+ 1: 7: LEFT_PAREN : reduce 1 tokens to name
+ ... goto state 8
+ 1 stack:  8 : (name 8 . 13),  2 : (ACCEPT 1 . 6),  1 : , 
+ 1: 8: LEFT_PAREN : shift and goto state 9
+ 1 stack:  9 : (LEFT_PAREN 15 . 15),  8 : (name 8 . 13),  2 : (ACCEPT 1 . 6),  1 : , 
+ 1: 9: IDENTIFIER : shift and goto state 12
+ 1 stack:  12 : (IDENTIFIER 16 . 18),  9 : (LEFT_PAREN 15 . 15),  8 : (name 8 . 13),  2 : (ACCEPT 1 . 6),  1 : , 
+ 1: 12: RIGHT_PAREN : shift and goto state 13
+ 1 stack:  13 : (RIGHT_PAREN 19 . 19),  12 : (IDENTIFIER 16 . 18),  9 : (LEFT_PAREN 15 . 15),  8 : (name 8 . 13),  2 : (ACCEPT 1 . 6),  1 : , 
+ 1: 13: SEMICOLON : reduce 3 tokens to parameter_profile
+ ... goto state 10
+ 1 stack:  10 : (parameter_profile 15 . 19),  8 : (name 8 . 13),  2 : (ACCEPT 1 . 6),  1 : , 
+ 1: 10: SEMICOLON : shift and goto state 11
+ 1 stack:  11 : (SEMICOLON 20 . 20),  10 : (parameter_profile 15 . 19),  8 : (name 8 . 13),  2 : (ACCEPT 1 . 6),  1 : , 
+ 1: 11: ACCEPT : reduce 4 tokens to accept_statement
+(let ((tokens '((ACCEPT 1 . 6) (name 8 . 13) (parameter_profile 15 . 19) (SEMICOLON 20 . 20))))
+(wisi-statement-actions 1 'statement-start 4 'statement-end)
+)
+ ... goto state 4
+ 1 stack:  4 : (accept_statement 1 . 20),  1 : , 
+ 1: 4: ACCEPT : shift and goto state 2
+ 1 stack:  2 : (ACCEPT 22 . 27),  4 : (accept_statement 1 . 20),  1 : , 
+ 1: 2: IDENTIFIER : shift and goto state 7
+ 1 stack:  7 : (IDENTIFIER 29 . 34),  2 : (ACCEPT 22 . 27),  4 : (accept_statement 1 . 20),  1 : , 
+ 1: 7: SEMICOLON : reduce 1 tokens to name
+ ... goto state 8
+ 1 stack:  8 : (name 29 . 34),  2 : (ACCEPT 22 . 27),  4 : (accept_statement 1 . 20),  1 : , 
+ 1: 8: SEMICOLON : reduce 0 tokens to parameter_profile
+ ... goto state 10
+ 1 stack:  10 : (parameter_profile nil),  8 : (name 29 . 34),  2 : (ACCEPT 22 . 27),  4 : (accept_statement 1 . 20),  1 : , 
+ 1: 10: SEMICOLON : shift and goto state 11
+ 1 stack:  11 : (SEMICOLON 35 . 35),  10 : (parameter_profile nil),  8 : (name 29 . 34),  2 : (ACCEPT 22 . 27),  4 : (accept_statement 1 . 20),  1 : , 
+ 1: 11: EOF_ID : reduce 4 tokens to accept_statement
+(let ((tokens '((ACCEPT 22 . 27) (name 29 . 34) (parameter_profile nil) (SEMICOLON 35 . 35))))
+(wisi-statement-actions 1 'statement-start 4 'statement-end)
+)
+ ... goto state 5
+ 1 stack:  5 : (accept_statement 22 . 35),  4 : (accept_statement 1 . 20),  1 : , 
+ 1: 5: EOF_ID : reduce 2 tokens to compilation_unit
+ ... goto state 3
+ 1 stack:  3 : (compilation_unit 1 . 35),  1 : , 
  1: 3: EOF_ID : shift and goto state 6
- 1 stack:  6 : EOF_ID,  3 : COMPILATION_UNIT_ID,  1 : , 
+ 1 stack:  6 : (EOF_ID 36 . 36),  3 : (compilation_unit 1 . 35),  1 : , 
  1: 6: EOF_ID : accept it

@@ -1,28 +1,38 @@
  1 stack:  1 : , 
- 1: 1: IDENTIFIER_ID : shift and goto state 2
- 1 stack:  2 : IDENTIFIER_ID,  1 : , 
- 1: 2: IN_ID : shift and goto state 7
- 1 stack:  7 : IN_ID,  2 : IDENTIFIER_ID,  1 : , 
- 1: 7: IDENTIFIER_ID : reduce 1 tokens to MODE_ID, goto state 8
- 1 stack:  8 : MODE_ID,  2 : IDENTIFIER_ID,  1 : , 
- 1: 8: IDENTIFIER_ID : shift and goto state 9
- 1 stack:  9 : IDENTIFIER_ID,  8 : MODE_ID,  2 : IDENTIFIER_ID,  1 : , 
- 1: 9: IDENTIFIER_ID : reduce 1 tokens to NAME_ID, goto state 10
- 1 stack:  10 : NAME_ID,  8 : MODE_ID,  2 : IDENTIFIER_ID,  1 : , 
- 1: 10: IDENTIFIER_ID : reduce 3 tokens to PARAMETER_SPECIFICATION_ID, goto state 4
- 1 stack:  4 : PARAMETER_SPECIFICATION_ID,  1 : , 
- 1: 4: IDENTIFIER_ID : shift and goto state 2
- 1 stack:  2 : IDENTIFIER_ID,  4 : PARAMETER_SPECIFICATION_ID,  1 : , 
- 1: 2: IDENTIFIER_ID : reduce 0 tokens to MODE_ID, goto state 8
- 1 stack:  8 : MODE_ID,  2 : IDENTIFIER_ID,  4 : PARAMETER_SPECIFICATION_ID,  1 : , 
- 1: 8: IDENTIFIER_ID : shift and goto state 9
- 1 stack:  9 : IDENTIFIER_ID,  8 : MODE_ID,  2 : IDENTIFIER_ID,  4 : PARAMETER_SPECIFICATION_ID,  1 : , 
- 1: 9: EOF_ID : reduce 1 tokens to NAME_ID, goto state 10
- 1 stack:  10 : NAME_ID,  8 : MODE_ID,  2 : IDENTIFIER_ID,  4 : PARAMETER_SPECIFICATION_ID,  1 : , 
- 1: 10: EOF_ID : reduce 3 tokens to PARAMETER_SPECIFICATION_ID, goto state 5
- 1 stack:  5 : PARAMETER_SPECIFICATION_ID,  4 : PARAMETER_SPECIFICATION_ID,  1 : , 
- 1: 5: EOF_ID : reduce 2 tokens to COMPILATION_UNIT_ID, goto state 3
- 1 stack:  3 : COMPILATION_UNIT_ID,  1 : , 
+ 1: 1: IDENTIFIER : shift and goto state 2
+ 1 stack:  2 : (IDENTIFIER 1 . 3),  1 : , 
+ 1: 2: IN : shift and goto state 7
+ 1 stack:  7 : (IN 5 . 6),  2 : (IDENTIFIER 1 . 3),  1 : , 
+ 1: 7: IDENTIFIER : reduce 1 tokens to mode
+ ... goto state 8
+ 1 stack:  8 : (mode 5 . 6),  2 : (IDENTIFIER 1 . 3),  1 : , 
+ 1: 8: IDENTIFIER : shift and goto state 9
+ 1 stack:  9 : (IDENTIFIER 8 . 13),  8 : (mode 5 . 6),  2 : (IDENTIFIER 1 . 3),  1 : , 
+ 1: 9: IDENTIFIER : reduce 1 tokens to name
+ ... goto state 10
+ 1 stack:  10 : (name 8 . 13),  8 : (mode 5 . 6),  2 : (IDENTIFIER 1 . 3),  1 : , 
+ 1: 10: IDENTIFIER : reduce 3 tokens to parameter_specification
+ ... goto state 4
+ 1 stack:  4 : (parameter_specification 1 . 13),  1 : , 
+ 1: 4: IDENTIFIER : shift and goto state 2
+ 1 stack:  2 : (IDENTIFIER 15 . 17),  4 : (parameter_specification 1 . 13),  1 : , 
+ 1: 2: IDENTIFIER : reduce 0 tokens to mode
+ ... goto state 8
+ 1 stack:  8 : (mode nil),  2 : (IDENTIFIER 15 . 17),  4 : (parameter_specification 1 . 13),  1 : , 
+ 1: 8: IDENTIFIER : shift and goto state 9
+ 1 stack:  9 : (IDENTIFIER 19 . 30),  8 : (mode nil),  2 : (IDENTIFIER 15 . 17),  4 : (parameter_specification 1 . 13),  1 : , 
+ 1: 9: EOF_ID : reduce 1 tokens to name
+ ... goto state 10
+ 1 stack:  10 : (name 19 . 30),  8 : (mode nil),  2 : (IDENTIFIER 15 . 17),  4 : (parameter_specification 1 . 13),  1 : , 
+ 1: 10: EOF_ID : reduce 3 tokens to parameter_specification
+ ... goto state 5
+ 1 stack:  5 : (parameter_specification 15 . 30),  4 : (parameter_specification 1 . 13),  1 : , 
+ 1: 5: EOF_ID : reduce 2 tokens to compilation_unit
+(let ((tokens '((parameter_specification 1 . 13) (parameter_specification 15 . 30))))
+(setq wisi-test-success 't)
+)
+ ... goto state 3
+ 1 stack:  3 : (compilation_unit 1 . 30),  1 : , 
  1: 3: EOF_ID : shift and goto state 6
- 1 stack:  6 : EOF_ID,  3 : COMPILATION_UNIT_ID,  1 : , 
+ 1 stack:  6 : (EOF_ID 31 . 31),  3 : (compilation_unit 1 . 30),  1 : , 
  1: 6: EOF_ID : accept it

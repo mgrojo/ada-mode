@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2002, 2003, 2012, 2013 Stephe Leake
+-- Copyright (C) 2002, 2003, 2012 - 2014 Stephe Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -152,11 +152,20 @@ package body OpenToken.Token.Enumerated.List is
       List.Head := New_Node;
    end Enqueue;
 
-   --------------------------------------------------------------------------
-   --  This routine needs to be called when you are done using a list,
-   --  or want to reset it to empty.
-   --------------------------------------------------------------------------
-   procedure Clean (List : in out Instance) is
+   function Copy (Item : in Instance) return Instance
+   is
+      Result : Instance;
+      Node   : List_Node_Ptr := Item.Head;
+   begin
+      while Node /= null loop
+         Enqueue (Result, Copy (Node.Token));
+         Node := Node.Next;
+      end loop;
+      return Result;
+   end Copy;
+
+   procedure Clean (List : in out Instance)
+   is
       Node : List_Node_Ptr := List.Head;
       Next : List_Node_Ptr;
    begin

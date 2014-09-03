@@ -41,6 +41,9 @@ package OpenToken.Token is
 
    type Handle is access all Class;
 
+   --  Return a string for debug messages
+   function Image (Token : in Instance) return String is abstract;
+
    type Source is abstract tagged private;
 
    subtype Source_Class is Source'Class;

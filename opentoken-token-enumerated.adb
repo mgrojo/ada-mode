@@ -29,6 +29,12 @@ with Ada.Tags;
 with Ada.Text_IO;
 package body OpenToken.Token.Enumerated is
 
+   overriding
+   function Image (Token : in Instance) return String
+   is begin
+      return Token_Image (Token.ID);
+   end Image;
+
    procedure Free (Item : in out Handle)
    is begin
       Dispose (Item);

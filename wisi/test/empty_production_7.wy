@@ -18,7 +18,9 @@
 
 object_declaration_list
   : object_declaration
+    (setq wisi-test-success t)
   | object_declaration_list object_declaration
+    (setq wisi-test-success t)
   ;
 
 object_declaration

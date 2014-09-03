@@ -74,6 +74,8 @@ package OpenToken.Production.Parser.LALR.Parser is
       procedure Next (Cursor : in out Parser_Lists.Cursor);
       function Is_Done (Cursor : in Parser_Lists.Cursor) return Boolean;
 
+      function Active_Parser_Count (Cursor : in Parser_Lists.Cursor) return Integer;
+
       function Label (Cursor : in Parser_Lists.Cursor) return Integer;
 
       procedure Set_Verb (Cursor : in Parser_Lists.Cursor; Verb : in Parse_Action_Verbs);
@@ -97,14 +99,16 @@ package OpenToken.Production.Parser.LALR.Parser is
 
       --  pending user actions
       type Action_Token is record
-         Action      : Nonterminal.Synthesize;
-         Token_Count : Integer;
-         Tokens      : Token_List.Instance;
+         Action    : Nonterminal.Synthesize;
+         New_Token : Nonterminal.Handle;
+         Tokens    : Token_List.Instance;
       end record;
 
       function Action_Tokens_Empty (Cursor : in Parser_Lists.Cursor) return Boolean;
-      procedure Append (Cursor : in Parser_Lists.Cursor; Item : in Action_Token);
-      function Pop (Cursor : in Parser_Lists.Cursor) return Action_Token;
+      procedure Enqueue
+        (Cursor       : in Parser_Lists.Cursor;
+         Action_Token : in Parser_Lists.Action_Token);
+      function Dequeue (Cursor : in Parser_Lists.Cursor) return Action_Token;
 
       procedure Prepend_Copy (List : in out Parser_Lists.List; Cursor : in Parser_Lists.Cursor'Class);
       --  Copy parser at Cursor, add to current list. New copy will not
@@ -155,7 +159,7 @@ package OpenToken.Production.Parser.LALR.Parser is
 
       function Parser_Free_Count (List : in Parser_Lists.List) return Integer;
       function Stack_Free_Count (List : in Parser_Lists.List) return Integer;
-
+      function Action_Token_Free_Count (List : in Parser_Lists.List) return Integer;
    private
 
       type Stack_Node;
@@ -165,11 +169,25 @@ package OpenToken.Production.Parser.LALR.Parser is
          Next : Stack_Node_Access;
       end record;
 
+      type Action_Token_Node;
+      type Action_Token_Node_Access is access Action_Token_Node;
+      type Action_Token_Node is record
+         Item : Action_Token;
+         Next : Action_Token_Node_Access;
+         Prev : Action_Token_Node_Access;
+      end record;
+
+      type Action_Token_List is record
+         Head : Action_Token_Node_Access;
+         Tail : Action_Token_Node_Access;
+         --  Enqueue to head, dequeue from tail
+      end record;
+
       type Parser_State is record
-         Label : Integer;            -- for debugging
-         Verb  : Parse_Action_Verbs; -- last action performed
-         Stack : Stack_Node_Access;
-         --  Pending_Actions : Action_Token_List; -- FIXME: accumulated actions while parallel parsing
+         Label        : Integer;            -- for debugging
+         Verb         : Parse_Action_Verbs; -- last action performed
+         Stack        : Stack_Node_Access;
+         Action_Token : Action_Token_List;
       end record;
 
       type Parser_Node;
@@ -182,10 +200,12 @@ package OpenToken.Production.Parser.LALR.Parser is
       end record;
 
       type List is tagged record
-         Head        : Parser_Node_Access;
-         Parser_Free : Parser_Node_Access;
-         Stack_Free  : Stack_Node_Access;
-         Count       : Integer;
+         Parser_Label      : Integer;
+         Head              : Parser_Node_Access;
+         Parser_Free       : Parser_Node_Access;
+         Stack_Free        : Stack_Node_Access;
+         Action_Token_Free : Action_Token_Node_Access;
+         Count             : Integer;
       end record;
 
       type Cursor is tagged record

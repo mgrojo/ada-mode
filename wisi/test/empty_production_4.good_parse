@@ -1,48 +1,67 @@
  1 stack:  1 : , 
- 1: 1: OVERRIDING_ID : shift and goto state 2
- 1 stack:  2 : OVERRIDING_ID,  1 : , 
- 1: 2: OTHER_ID : reduce 1 tokens to OVERRIDING_INDICATOR_ID, goto state 6
- 1 stack:  6 : OVERRIDING_INDICATOR_ID,  1 : , 
- 1: 6: OTHER_ID : shift and goto state 3
- 1 stack:  3 : OTHER_ID,  6 : OVERRIDING_INDICATOR_ID,  1 : , 
- 1: 3: PROCEDURE_ID : reduce 1 tokens to OTHER_INDICATOR_ID, goto state 7
- 1 stack:  7 : OTHER_INDICATOR_ID,  6 : OVERRIDING_INDICATOR_ID,  1 : , 
- 1: 7: PROCEDURE_ID : shift and goto state 11
- 1 stack:  11 : PROCEDURE_ID,  7 : OTHER_INDICATOR_ID,  6 : OVERRIDING_INDICATOR_ID,  1 : , 
- 1: 11: IDENTIFIER_ID : shift and goto state 12
- 1 stack:  12 : IDENTIFIER_ID,  11 : PROCEDURE_ID,  7 : OTHER_INDICATOR_ID,  6 : OVERRIDING_INDICATOR_ID,  1 : , 
- 1: 12: SEMICOLON_ID : shift and goto state 13
- 1 stack:  13 : SEMICOLON_ID,  12 : IDENTIFIER_ID,  11 : PROCEDURE_ID,  7 : OTHER_INDICATOR_ID,  6 : OVERRIDING_INDICATOR_ID,  1 : , 
- 1: 13: OTHER_ID : reduce 5 tokens to SUBPROGRAM_DECLARATION_ID, goto state 5
- 1 stack:  5 : SUBPROGRAM_DECLARATION_ID,  1 : , 
- 1: 5: OTHER_ID : reduce 0 tokens to OVERRIDING_INDICATOR_ID, goto state 6
- 1 stack:  6 : OVERRIDING_INDICATOR_ID,  5 : SUBPROGRAM_DECLARATION_ID,  1 : , 
- 1: 6: OTHER_ID : shift and goto state 3
- 1 stack:  3 : OTHER_ID,  6 : OVERRIDING_INDICATOR_ID,  5 : SUBPROGRAM_DECLARATION_ID,  1 : , 
- 1: 3: PROCEDURE_ID : reduce 1 tokens to OTHER_INDICATOR_ID, goto state 7
- 1 stack:  7 : OTHER_INDICATOR_ID,  6 : OVERRIDING_INDICATOR_ID,  5 : SUBPROGRAM_DECLARATION_ID,  1 : , 
- 1: 7: PROCEDURE_ID : shift and goto state 11
- 1 stack:  11 : PROCEDURE_ID,  7 : OTHER_INDICATOR_ID,  6 : OVERRIDING_INDICATOR_ID,  5 : SUBPROGRAM_DECLARATION_ID,  1 : , 
- 1: 11: IDENTIFIER_ID : shift and goto state 12
- 1 stack:  12 : IDENTIFIER_ID,  11 : PROCEDURE_ID,  7 : OTHER_INDICATOR_ID,  6 : OVERRIDING_INDICATOR_ID,  5 : SUBPROGRAM_DECLARATION_ID,  1 : , 
- 1: 12: SEMICOLON_ID : shift and goto state 13
- 1 stack:  13 : SEMICOLON_ID,  12 : IDENTIFIER_ID,  11 : PROCEDURE_ID,  7 : OTHER_INDICATOR_ID,  6 : OVERRIDING_INDICATOR_ID,  5 : SUBPROGRAM_DECLARATION_ID,  1 : , 
- 1: 13: PROCEDURE_ID : reduce 5 tokens to SUBPROGRAM_DECLARATION_ID, goto state 8
- 1 stack:  8 : SUBPROGRAM_DECLARATION_ID,  5 : SUBPROGRAM_DECLARATION_ID,  1 : , 
- 1: 8: PROCEDURE_ID : reduce 0 tokens to OVERRIDING_INDICATOR_ID, goto state 6
- 1 stack:  6 : OVERRIDING_INDICATOR_ID,  8 : SUBPROGRAM_DECLARATION_ID,  5 : SUBPROGRAM_DECLARATION_ID,  1 : , 
- 1: 6: PROCEDURE_ID : reduce 0 tokens to OTHER_INDICATOR_ID, goto state 7
- 1 stack:  7 : OTHER_INDICATOR_ID,  6 : OVERRIDING_INDICATOR_ID,  8 : SUBPROGRAM_DECLARATION_ID,  5 : SUBPROGRAM_DECLARATION_ID,  1 : , 
- 1: 7: PROCEDURE_ID : shift and goto state 11
- 1 stack:  11 : PROCEDURE_ID,  7 : OTHER_INDICATOR_ID,  6 : OVERRIDING_INDICATOR_ID,  8 : SUBPROGRAM_DECLARATION_ID,  5 : SUBPROGRAM_DECLARATION_ID,  1 : , 
- 1: 11: IDENTIFIER_ID : shift and goto state 12
- 1 stack:  12 : IDENTIFIER_ID,  11 : PROCEDURE_ID,  7 : OTHER_INDICATOR_ID,  6 : OVERRIDING_INDICATOR_ID,  8 : SUBPROGRAM_DECLARATION_ID,  5 : SUBPROGRAM_DECLARATION_ID,  1 : , 
- 1: 12: SEMICOLON_ID : shift and goto state 13
- 1 stack:  13 : SEMICOLON_ID,  12 : IDENTIFIER_ID,  11 : PROCEDURE_ID,  7 : OTHER_INDICATOR_ID,  6 : OVERRIDING_INDICATOR_ID,  8 : SUBPROGRAM_DECLARATION_ID,  5 : SUBPROGRAM_DECLARATION_ID,  1 : , 
- 1: 13: EOF_ID : reduce 5 tokens to SUBPROGRAM_DECLARATION_ID, goto state 10
- 1 stack:  10 : SUBPROGRAM_DECLARATION_ID,  8 : SUBPROGRAM_DECLARATION_ID,  5 : SUBPROGRAM_DECLARATION_ID,  1 : , 
- 1: 10: EOF_ID : reduce 3 tokens to COMPILATION_UNIT_ID, goto state 4
- 1 stack:  4 : COMPILATION_UNIT_ID,  1 : , 
+ 1: 1: OVERRIDING : shift and goto state 2
+ 1 stack:  2 : (OVERRIDING 1 . 10),  1 : , 
+ 1: 2: OTHER : reduce 1 tokens to overriding_indicator
+ ... goto state 6
+ 1 stack:  6 : (overriding_indicator 1 . 10),  1 : , 
+ 1: 6: OTHER : shift and goto state 3
+ 1 stack:  3 : (OTHER 12 . 16),  6 : (overriding_indicator 1 . 10),  1 : , 
+ 1: 3: PROCEDURE : reduce 1 tokens to other_indicator
+ ... goto state 7
+ 1 stack:  7 : (other_indicator 12 . 16),  6 : (overriding_indicator 1 . 10),  1 : , 
+ 1: 7: PROCEDURE : shift and goto state 11
+ 1 stack:  11 : (PROCEDURE 18 . 26),  7 : (other_indicator 12 . 16),  6 : (overriding_indicator 1 . 10),  1 : , 
+ 1: 11: IDENTIFIER : shift and goto state 12
+ 1 stack:  12 : (IDENTIFIER 28 . 33),  11 : (PROCEDURE 18 . 26),  7 : (other_indicator 12 . 16),  6 : (overriding_indicator 1 . 10),  1 : , 
+ 1: 12: SEMICOLON : shift and goto state 13
+ 1 stack:  13 : (SEMICOLON 34 . 34),  12 : (IDENTIFIER 28 . 33),  11 : (PROCEDURE 18 . 26),  7 : (other_indicator 12 . 16),  6 : (overriding_indicator 1 . 10),  1 : , 
+ 1: 13: OTHER : reduce 5 tokens to subprogram_declaration
+(let ((tokens '((overriding_indicator 1 . 10) (other_indicator 12 . 16) (PROCEDURE 18 . 26) (IDENTIFIER 28 . 33) (SEMICOLON 34 . 34))))
+(wisi-statement-action 1 'statement-start 2 'statement-other 4 'name)
+)
+ ... goto state 5
+ 1 stack:  5 : (subprogram_declaration 1 . 34),  1 : , 
+ 1: 5: OTHER : reduce 0 tokens to overriding_indicator
+ ... goto state 6
+ 1 stack:  6 : (overriding_indicator nil),  5 : (subprogram_declaration 1 . 34),  1 : , 
+ 1: 6: OTHER : shift and goto state 3
+ 1 stack:  3 : (OTHER 37 . 41),  6 : (overriding_indicator nil),  5 : (subprogram_declaration 1 . 34),  1 : , 
+ 1: 3: PROCEDURE : reduce 1 tokens to other_indicator
+ ... goto state 7
+ 1 stack:  7 : (other_indicator 37 . 41),  6 : (overriding_indicator nil),  5 : (subprogram_declaration 1 . 34),  1 : , 
+ 1: 7: PROCEDURE : shift and goto state 11
+ 1 stack:  11 : (PROCEDURE 43 . 51),  7 : (other_indicator 37 . 41),  6 : (overriding_indicator nil),  5 : (subprogram_declaration 1 . 34),  1 : , 
+ 1: 11: IDENTIFIER : shift and goto state 12
+ 1 stack:  12 : (IDENTIFIER 53 . 58),  11 : (PROCEDURE 43 . 51),  7 : (other_indicator 37 . 41),  6 : (overriding_indicator nil),  5 : (subprogram_declaration 1 . 34),  1 : , 
+ 1: 12: SEMICOLON : shift and goto state 13
+ 1 stack:  13 : (SEMICOLON 59 . 59),  12 : (IDENTIFIER 53 . 58),  11 : (PROCEDURE 43 . 51),  7 : (other_indicator 37 . 41),  6 : (overriding_indicator nil),  5 : (subprogram_declaration 1 . 34),  1 : , 
+ 1: 13: PROCEDURE : reduce 5 tokens to subprogram_declaration
+(let ((tokens '((overriding_indicator nil) (other_indicator 37 . 41) (PROCEDURE 43 . 51) (IDENTIFIER 53 . 58) (SEMICOLON 59 . 59))))
+(wisi-statement-action 1 'statement-start 2 'statement-other 4 'name)
+)
+ ... goto state 8
+ 1 stack:  8 : (subprogram_declaration 37 . 59),  5 : (subprogram_declaration 1 . 34),  1 : , 
+ 1: 8: PROCEDURE : reduce 0 tokens to overriding_indicator
+ ... goto state 6
+ 1 stack:  6 : (overriding_indicator nil),  8 : (subprogram_declaration 37 . 59),  5 : (subprogram_declaration 1 . 34),  1 : , 
+ 1: 6: PROCEDURE : reduce 0 tokens to other_indicator
+ ... goto state 7
+ 1 stack:  7 : (other_indicator nil),  6 : (overriding_indicator nil),  8 : (subprogram_declaration 37 . 59),  5 : (subprogram_declaration 1 . 34),  1 : , 
+ 1: 7: PROCEDURE : shift and goto state 11
+ 1 stack:  11 : (PROCEDURE 62 . 70),  7 : (other_indicator nil),  6 : (overriding_indicator nil),  8 : (subprogram_declaration 37 . 59),  5 : (subprogram_declaration 1 . 34),  1 : , 
+ 1: 11: IDENTIFIER : shift and goto state 12
+ 1 stack:  12 : (IDENTIFIER 72 . 77),  11 : (PROCEDURE 62 . 70),  7 : (other_indicator nil),  6 : (overriding_indicator nil),  8 : (subprogram_declaration 37 . 59),  5 : (subprogram_declaration 1 . 34),  1 : , 
+ 1: 12: SEMICOLON : shift and goto state 13
+ 1 stack:  13 : (SEMICOLON 78 . 78),  12 : (IDENTIFIER 72 . 77),  11 : (PROCEDURE 62 . 70),  7 : (other_indicator nil),  6 : (overriding_indicator nil),  8 : (subprogram_declaration 37 . 59),  5 : (subprogram_declaration 1 . 34),  1 : , 
+ 1: 13: EOF_ID : reduce 5 tokens to subprogram_declaration
+(let ((tokens '((overriding_indicator nil) (other_indicator nil) (PROCEDURE 62 . 70) (IDENTIFIER 72 . 77) (SEMICOLON 78 . 78))))
+(wisi-statement-action 1 'statement-start 2 'statement-other 4 'name)
+)
+ ... goto state 10
+ 1 stack:  10 : (subprogram_declaration 62 . 78),  8 : (subprogram_declaration 37 . 59),  5 : (subprogram_declaration 1 . 34),  1 : , 
+ 1: 10: EOF_ID : reduce 3 tokens to compilation_unit
+ ... goto state 4
+ 1 stack:  4 : (compilation_unit 1 . 78),  1 : , 
  1: 4: EOF_ID : shift and goto state 9
- 1 stack:  9 : EOF_ID,  4 : COMPILATION_UNIT_ID,  1 : , 
+ 1 stack:  9 : (EOF_ID 79 . 79),  4 : (compilation_unit 1 . 78),  1 : , 
  1: 9: EOF_ID : accept it

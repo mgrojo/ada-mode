@@ -120,8 +120,10 @@ package body OpenToken.Production.Parser.LALR.Parser is
       Tokens : Token_List.Instance;
    begin
       --  Pop the indicated number of token states from the stack, and
-      --  call the production action routine to update a new
-      --  nonterminal token.
+      --  if not Pending call the production action routine to update
+      --  New_Token.
+      --
+      --  If Pending, queue the action and tokens for later.
 
       if Token_Count > 0 then
          for I in 1 .. Token_Count loop
@@ -130,10 +132,12 @@ package body OpenToken.Production.Parser.LALR.Parser is
          end loop;
       end if;
 
-      --  FIXME: add to pending if parallel parsing
-      Action (New_Token.all, Tokens, Token.ID (New_Token.all));
-      Token_List.Clean (Tokens);
-
+      if Current_Parser.Active_Parser_Count > 1 then
+         Current_Parser.Enqueue ((Action, New_Token, Tokens));
+      else
+         Action (New_Token.all, Tokens, Token.ID (New_Token.all));
+         Token_List.Clean (Tokens);
+      end if;
    end Reduce_Stack;
 
    procedure Do_Action
@@ -142,7 +146,6 @@ package body OpenToken.Production.Parser.LALR.Parser is
       Current_Token  : in Token.Handle;
       Table          : in Parse_Table)
    is begin
-
       if Trace_Parse then
          Parser_Lists.Put_Top_10 (Current_Parser);
          Ada.Text_IO.Put
@@ -150,6 +153,7 @@ package body OpenToken.Production.Parser.LALR.Parser is
               State_Image (Current_Parser.Peek.State) & ": " &
               Token.Token_Image (Token.ID (Current_Token.all)) & " : ");
          Put (Action);
+         Ada.Text_IO.New_Line;
       end if;
 
       case Action.Verb is
@@ -160,7 +164,6 @@ package body OpenToken.Production.Parser.LALR.Parser is
          declare
             New_Token : constant Nonterminal.Handle := new Nonterminal.Class'(Action.LHS.all);
          begin
-            --  FIXME: this should be new_token.all
             Reduce_Stack (Current_Parser, New_Token, Action.Action, Action.Token_Count);
 
             Current_Parser.Push
@@ -171,7 +174,7 @@ package body OpenToken.Production.Parser.LALR.Parser is
                 Token    => OpenToken.Production.Token.Handle (New_Token)));
 
             if Trace_Parse then
-               Ada.Text_IO.Put (", goto state " & State_Image (Current_Parser.Peek.State));
+               Ada.Text_IO.Put_Line (" ... goto state " & State_Image (Current_Parser.Peek.State));
             end if;
          end;
 
@@ -186,10 +189,6 @@ package body OpenToken.Production.Parser.LALR.Parser is
          null;
 
       end case;
-
-      if Trace_Parse then
-         Ada.Text_IO.New_Line;
-      end if;
 
       Current_Parser.Set_Verb (Action.Verb);
    end Do_Action;
@@ -262,6 +261,19 @@ package body OpenToken.Production.Parser.LALR.Parser is
       end loop;
       return False;
    end Duplicate_State;
+
+   procedure Execute_Pending (Current_Parser : in Parser_Lists.Cursor)
+   is
+      Action_Token : Parser_Lists.Action_Token;
+   begin
+      loop
+         exit when Current_Parser.Action_Tokens_Empty;
+         Action_Token := Current_Parser.Dequeue;
+         Action_Token.Action (Action_Token.New_Token.all, Action_Token.Tokens, Token.ID (Action_Token.New_Token.all));
+         --  Action_Token.New_Token still on stack; freed later
+         Token_List.Clean (Action_Token.Tokens);
+      end loop;
+   end Execute_Pending;
 
    overriding procedure Parse (Parser : in out Instance)
    is
@@ -340,6 +352,10 @@ package body OpenToken.Production.Parser.LALR.Parser is
                end if;
                Current_Parser.Free;
 
+               if Parsers.Count = 1 then
+                  Execute_Pending (Parsers.First);
+               end if;
+
             elsif Parser.Terminate_Same_State and then
               (Current_Verb = Shift and Duplicate_State (Parsers, Current_Parser))
             then
@@ -349,6 +365,10 @@ package body OpenToken.Production.Parser.LALR.Parser is
                        Int_Image (Parsers.Count - 1) & " active)");
                end if;
                Current_Parser.Free;
+
+               if Parsers.Count = 1 then
+                  Execute_Pending (Parsers.First);
+               end if;
 
             elsif Current_Parser.Verb = Current_Verb then
 

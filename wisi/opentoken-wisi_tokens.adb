@@ -22,7 +22,7 @@ package body OpenToken.Wisi_Tokens is
 
    function Get (ID : in Token_IDs) return Nonterminals.Instance'Class
    is begin
-      return Instance'(Nonterminals.Instance (Nonterminals.Get (ID)) with (0, 0));
+      return Instance'(Nonterminals.Instance (Nonterminals.Get (ID)) with Analyzers.Null_Buffer_Range);
    end Get;
 
    procedure Decorate (Token : in out Tokens.Class; Analyzer : in Analyzers.Instance)
@@ -39,10 +39,10 @@ package body OpenToken.Wisi_Tokens is
    is
       use Token_Lists;
       I      : List_Iterator          := Tokens.Initial_Iterator;
-      Result : Analyzers.Buffer_Range := (Integer'Last, Integer'First);
+      Result : Analyzers.Buffer_Range := Analyzers.Null_Buffer_Range;
    begin
       if I = Null_Iterator then
-         return (0, 0);
+         return Analyzers.Null_Buffer_Range;
       end if;
 
       loop
@@ -72,11 +72,12 @@ package body OpenToken.Wisi_Tokens is
       New_Token := Get (To_ID, Total_Buffer_Range (Source));
    end Self;
 
+   overriding
    function Image (Token : in Instance) return String
    is
-      use type Analyzers.Buffer_Range;
+      use Analyzers;
    begin
-      if Token.Buffer_Range = (0, 0) then
+      if Token.Buffer_Range = Null_Buffer_Range then
          return "(" & Token_Image (Token.ID) & " nil)";
       else
          return "(" & Token_Image (Token.ID) & Integer'Image (Token.Buffer_Range.Begin_Pos) & " ." &

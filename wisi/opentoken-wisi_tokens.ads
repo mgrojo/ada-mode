@@ -43,6 +43,9 @@ package OpenToken.Wisi_Tokens is
 
    type Handle is access all Class;
 
+   overriding
+   function Image (Token : in Instance) return String;
+
    function Get (ID : in Token_IDs) return Nonterminals.Instance'Class;
    --  For use in Syntax; sets null Buffer_Range
 

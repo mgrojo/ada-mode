@@ -19,33 +19,29 @@
 pragma License (GPL);
 
 with AUnit.Check;
-with OpenToken.Production.List;
 with OpenToken.Production.Parser.LALR.Parser;
 with OpenToken.Token.Enumerated.Analyzer;
 with OpenToken.Token.Enumerated.List;
 with OpenToken.Token.Enumerated.Nonterminal;
 package body Parser_Lists_Test is
 
---  we need an instantiation of OpenToken.Production.Parser.LALR.Parser to test
+   --  we need an instantiation of OpenToken.Production.Parser.LALR.Parser to test
 
-   type Token_ID is (If_ID, Then_ID, Else_ID, End_ID, EOF_ID, Statement_ID);
+   type Token_ID is (If_ID, Then_ID, Else_ID, End_ID, EOF_ID, Statement_ID, Procedure_ID);
 
-   Token_Image_Width : constant Integer := Token_ID'Width;
-   package Token is new OpenToken.Token.Enumerated (Token_ID, Token_ID'Image, Token_Image_Width);
+   package Token is new OpenToken.Token.Enumerated (Token_ID, If_ID, EOF_ID, Token_ID'Image);
    package Token_List is new Token.List;
    package Nonterminal is new Token.Nonterminal (Token_List);
    package Production is new OpenToken.Production (Token, Token_List, Nonterminal);
-   package Production_List is new Production.List;
-   package Tokenizer is new Token.Analyzer (First_Terminal => If_ID, Last_Terminal => EOF_ID);
-   package Parser is new Production.Parser (Production_List, Tokenizer);
+   package Tokenizer is new Token.Analyzer;
+   package Parser is new Production.Parser (Tokenizer);
    package LALRs is new Parser.LALR (First_State_Index => 1);
    package LALR_Parser is new LALRs.Parser;
 
-   --  FIXME: duplicates gen_opentoken_aunit.ads
+   --  These duplicate gen_opentoken_aunit.ads, but we don't need all of that.
+   procedure Check is new AUnit.Check.Gen_Check_Discrete (Token_ID);
    procedure Check is new AUnit.Check.Gen_Check_Discrete (LALRs.Parse_Action_Verbs);
    procedure Check is new AUnit.Check.Gen_Check_Discrete (LALRs.Unknown_State_Index);
-   --  end FIXME:
-
    procedure Check is new AUnit.Check.Gen_Check_Access (Token.Class, Token.Handle);
 
    procedure Check
@@ -202,6 +198,38 @@ package body Parser_Lists_Test is
       end;
    end Stack_Equal;
 
+   procedure Pending (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+      use LALRs;
+      use LALR_Parser.Parser_Lists;
+      use AUnit.Check;
+
+      Parsers : List                  := Initialize;
+      Item_1  : constant Action_Token :=
+        (null, new Nonterminal.Class'(Nonterminal.Get (Statement_ID)), Token_List.Null_List);
+      Item_2  : constant Action_Token :=
+        (null, new Nonterminal.Class'(Nonterminal.Get (Procedure_ID)), Token_List.Null_List);
+
+      Cursor : constant LALR_Parser.Parser_Lists.Cursor := Parsers.First;
+   begin
+      Check ("0: Action_Tokens_Empty", Cursor.Action_Tokens_Empty, True);
+      Cursor.Enqueue (Item_1);
+      Check ("0a: Action_Tokens_Empty", Cursor.Action_Tokens_Empty, False);
+      Cursor.Enqueue (Item_2);
+      Check ("0c: Action_Tokens_Empty", Cursor.Action_Tokens_Empty, False);
+      Check ("0: free count", Parsers.Action_Token_Free_Count, 0);
+
+      Check ("1 dequeue", Token.ID (Dequeue (Cursor).New_Token.all), Statement_ID);
+      Check ("1: Action_Tokens_Empty", Cursor.Action_Tokens_Empty, False);
+      Check ("1: free count", Parsers.Action_Token_Free_Count, 1);
+
+      Check ("2 dequeue", Token.ID (Dequeue (Cursor).New_Token.all), Procedure_ID);
+      Check ("2: Action_Tokens_Empty", Cursor.Action_Tokens_Empty, True);
+      Check ("2: free count", Parsers.Action_Token_Free_Count, 2);
+
+   end Pending;
+
    ----------
    --  Public subprograms
 
@@ -212,8 +240,8 @@ package body Parser_Lists_Test is
       Register_Routine (T, Init'Access, "Init");
       Register_Routine (T, Stack'Access, "Stack");
       Register_Routine (T, Parser_List'Access, "Parser_List");
-      Register_Routine (T, Stack_Equal'Access, "Stack_equal");
-      --  FIXME: test pending actions
+      Register_Routine (T, Stack_Equal'Access, "Stack_Equal");
+      Register_Routine (T, Pending'Access, "Pending");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return AUnit.Message_String

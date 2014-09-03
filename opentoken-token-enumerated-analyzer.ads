@@ -236,6 +236,8 @@ package OpenToken.Token.Enumerated.Analyzer is
       End_Pos   : Integer;
    end record;
 
+   Null_Buffer_Range : constant Buffer_Range := (Integer'Last, Integer'First);
+
    --------------------------------------------------------------------------
    --  Returns the position of the start and end of the last token
    --  that was matched, in the internal buffer.

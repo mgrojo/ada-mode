@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2009 Stephe Leake
+-- Copyright (C) 2009, 2014 Stephe Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -39,6 +39,11 @@ package body OpenToken.Token.Enumerated.Nonterminal is
          return Instance'Class (Instance'(new String'(Name), ID, Build));
       end if;
    end Get;
+
+   function Copy (Token : in Handle) return Handle
+   is begin
+      return Nonterminal.Handle (Enumerated.Copy (Enumerated.Handle (Token)));
+   end Copy;
 
    procedure Synthesize_By_Copying
      (New_Token : out Instance;

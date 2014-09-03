@@ -20,31 +20,26 @@ pragma License (GPL);
 separate (OpenToken.Production.Parser.LALR.Parser)
 package body Parser_Lists is
 
-   --  FIXME: move to List for unit tests
-   Parser_Label : Integer;
-
-   --  FIXME: procedure Free is new Ada.Unchecked_Deallocation (Stack_Node, Stack_Node_Access);
-   --  FIXME: procedure Free is new Ada.Unchecked_Deallocation (Parser_State, Parser_State_Access);
-
    function Initialize return List
    is begin
-      Parser_Label := 1;
-
       return
-        (Head              => new Parser_Node'
-           (Item           =>
-              (Label       => Parser_Label,
-               Verb        => Parse_Action_Verbs'First,
-               Stack       => new Stack_Node'
-                 (Item     =>
-                    (State => State_Index'First,
-                     Token => null),
-                  Next     => null)),
-            Next           => null,
-            Prev           => null),
-         Parser_Free       => null,
-         Stack_Free        => null,
-         Count             => 1);
+        (Parser_Label       => 1,
+         Head               => new Parser_Node'
+           (Item            =>
+              (Label        => 1,
+               Verb         => Parse_Action_Verbs'First,
+               Stack        => new Stack_Node'
+                 (Item      =>
+                    (State  => State_Index'First,
+                     Token  => null),
+                  Next      => null),
+               Action_Token => (null, null)),
+            Next            => null,
+            Prev            => null),
+         Parser_Free        => null,
+         Stack_Free         => null,
+         Action_Token_Free  => null,
+         Count              => 1);
 
    end Initialize;
 
@@ -69,6 +64,11 @@ package body Parser_Lists is
    is begin
       return Cursor.Ptr = null;
    end Is_Done;
+
+   function Active_Parser_Count (Cursor : in Parser_Lists.Cursor) return Integer
+   is begin
+      return Cursor.List.Count;
+   end Active_Parser_Count;
 
    function Label (Cursor : in Parser_Lists.Cursor) return Integer
    is begin
@@ -111,7 +111,7 @@ package body Parser_Lists is
 
    function Pop (Cursor : in Parser_Lists.Cursor) return Stack_Item
    is
-      Result    : constant Stack_Item        := Cursor.Ptr.Item.Stack.Item;
+      Result : constant Stack_Item := Cursor.Ptr.Item.Stack.Item;
    begin
       Free (Cursor.List.all, Cursor.Ptr.Item.Stack);
 
@@ -166,30 +166,83 @@ package body Parser_Lists is
          Ada.Text_IO.Put
            (State_Index'Image (Stack_I.Item.State) & " : " &
               (if Stack_I.Item.Token = null then ""
-               else Token.Token_Image (Token.ID (Stack_I.Item.Token.all))) &
+               else Stack_I.Item.Token.Image) &
               ", ");
          Stack_I := Stack_I.Next;
       end loop;
       New_Line;
    end Put_Top_10;
 
-   procedure Append (Cursor : in Parser_Lists.Cursor; Item : in Action_Token)
-   is begin
-      null; -- FIXME:
-   end Append;
-
-   function Pop (Cursor : in Parser_Lists.Cursor) return Action_Token
+   procedure Enqueue
+     (List              : in out Action_Token_List;
+      Action_Token_Free : in out Action_Token_Node_Access;
+      Action_Token      : in     Parser_Lists.Action_Token)
    is
-      pragma Unreferenced (Cursor);
+      Temp : constant Action_Token_Node_Access := Action_Token_Free;
+
+      New_Node : constant Action_Token_Node := (Action_Token, List.Head, null);
    begin
-      return (null, 0, Token_List.Null_List); -- FIXME:
-   end Pop;
+      if Temp = null then
+         if List.Head = null then
+            List.Tail := new Action_Token_Node'(New_Node);
+            List.Head := List.Tail;
+         else
+            List.Head := new Action_Token_Node'(New_Node);
+         end if;
+      else
+         Action_Token_Free := Action_Token_Free.Next;
+         Temp.all          := (Action_Token, List.Head, null);
+         if List.Head = null then
+            List.Tail := Temp;
+            List.Head := List.Tail;
+         else
+            List.Head := Temp;
+         end if;
+      end if;
+
+      if List.Head.Next /= null then
+         List.Head.Next.Prev := List.Head;
+      end if;
+   end Enqueue;
+
+   procedure Enqueue
+     (Cursor       : in Parser_Lists.Cursor;
+      Action_Token : in Parser_Lists.Action_Token)
+   is begin
+      Enqueue (Cursor.Ptr.Item.Action_Token, Cursor.List.Action_Token_Free, Action_Token);
+   end Enqueue;
+
+   procedure Free (List : in out Parser_Lists.List; Action_Token : in out Action_Token_Node_Access)
+   is
+      Temp_Free : constant Action_Token_Node_Access := List.Action_Token_Free;
+   begin
+      List.Action_Token_Free := Action_Token;
+      Action_Token           := Action_Token.Prev;
+
+      List.Action_Token_Free.all :=
+        (Item         =>
+           (New_Token => null,
+            Action    => null,
+            Tokens    => Token_List.Null_List), -- New_Token, Tokens are free'd after being passed to user action
+         Next         => Temp_Free,
+         Prev         => null);
+   end Free;
+
+   function Dequeue (Cursor : in Parser_Lists.Cursor) return Action_Token
+   is
+      Result : constant Action_Token := Cursor.Ptr.Item.Action_Token.Tail.Item;
+   begin
+      if Cursor.Ptr.Item.Action_Token.Tail = Cursor.Ptr.Item.Action_Token.Head then
+         Cursor.Ptr.Item.Action_Token.Head := null;
+      end if;
+      Free (Cursor.List.all, Cursor.Ptr.Item.Action_Token.Tail);
+
+      return Result;
+   end Dequeue;
 
    function Action_Tokens_Empty (Cursor : in Parser_Lists.Cursor) return Boolean
-   is
-      pragma Unreferenced (Cursor);
-   begin
-      return True; -- FIXME:
+   is begin
+      return Cursor.Ptr.Item.Action_Token.Head = null;
    end Action_Tokens_Empty;
 
    function Deep_Copy (Stack : in Stack_Node_Access; Stack_Free : in out Stack_Node_Access) return Stack_Node_Access
@@ -232,42 +285,62 @@ package body Parser_Lists is
       return Result;
    end Deep_Copy;
 
+   function Deep_Copy
+     (Action_Token      : in     Action_Token_List;
+      Action_Token_Free : in out Action_Token_Node_Access)
+     return Action_Token_List
+   is
+      I      : Action_Token_Node_Access := Action_Token.Tail;
+      Result : Action_Token_List;
+
+      New_Action_Token : Parser_Lists.Action_Token;
+   begin
+      loop
+         exit when I = null;
+
+         New_Action_Token := (I.Item.Action, Nonterminal.Copy (I.Item.New_Token), Token_List.Copy (I.Item.Tokens));
+
+         Enqueue (Result, Action_Token_Free, New_Action_Token);
+
+         I := I.Prev;
+      end loop;
+
+      return Result;
+   end Deep_Copy;
+
    procedure Prepend_Copy (List : in out Parser_Lists.List; Cursor : in Parser_Lists.Cursor'Class)
    is
       Temp : constant Parser_Node_Access := List.Parser_Free;
+
+      New_Parser : constant Parser_Node :=
+        (Item =>
+           (List.Parser_Label + 1,
+            Cursor.Ptr.Item.Verb,
+            Deep_Copy (Cursor.Ptr.Item.Stack, List.Stack_Free),
+            Deep_Copy (Cursor.Ptr.Item.Action_Token, List.Action_Token_Free)),
+         Next => List.Head,
+         Prev => null);
    begin
-      Parser_Label := Parser_Label + 1;
-      List.Count   := List.Count + 1;
+      List.Parser_Label := List.Parser_Label + 1;
+      List.Count        := List.Count + 1;
 
       if Temp = null then
-         List.Head := new Parser_Node'
-           (Item =>
-              (Parser_Label,
-               Cursor.Ptr.Item.Verb,
-               Deep_Copy (Cursor.Ptr.Item.Stack, List.Stack_Free)),
-            Next => List.Head,
-            Prev => null);
+         List.Head := new Parser_Node'(New_Parser);
 
          List.Head.Next.Prev := List.Head;
       else
-         List.Parser_Free := List.Parser_Free.Next;
-         Temp.all  :=
-           ((Parser_Label,
-             Cursor.Ptr.Item.Verb,
-             Deep_Copy (Cursor.Ptr.Item.Stack, List.Stack_Free)),
-            Next => List.Head,
-            Prev => null);
-
-         List.Head := Temp;
-
+         List.Parser_Free    := List.Parser_Free.Next;
+         Temp.all            := New_Parser;
+         List.Head           := Temp;
          List.Head.Next.Prev := List.Head;
       end if;
    end Prepend_Copy;
 
    procedure Free (Cursor : in out Parser_Lists.Cursor'Class)
    is
-      Temp_Free : constant Parser_Node_Access := Cursor.List.Parser_Free;
-      Stack     : Stack_Node_Access           := Cursor.Ptr.Item.Stack;
+      Temp_Free    : constant Parser_Node_Access := Cursor.List.Parser_Free;
+      Stack        : Stack_Node_Access           := Cursor.Ptr.Item.Stack;
+      Action_Token : Action_Token_Node_Access    := Cursor.Ptr.Item.Action_Token.Tail;
    begin
       Cursor.List.Count := Cursor.List.Count - 1;
 
@@ -275,14 +348,12 @@ package body Parser_Lists is
          Cursor.List.Head := Cursor.Ptr.Next;
       end if;
 
-      Cursor.List.Parser_Free := Cursor.Ptr;
-
       if Cursor.Ptr.Prev /= null then
          Cursor.Ptr.Prev.Next := Cursor.Ptr.Next;
       end if;
 
       if Cursor.Ptr.Next /= null then
-         Cursor.Ptr.Next.Prev    := Cursor.Ptr.Prev;
+         Cursor.Ptr.Next.Prev := Cursor.Ptr.Prev;
       end if;
 
       Cursor.List.Parser_Free := Cursor.Ptr;
@@ -294,6 +365,11 @@ package body Parser_Lists is
       loop
          exit when Stack = null;
          Free (Cursor.List.all, Stack);
+      end loop;
+
+      loop
+         exit when Action_Token = null;
+         Free (Cursor.List.all, Action_Token);
       end loop;
    end Free;
 
@@ -392,5 +468,18 @@ package body Parser_Lists is
       end loop;
       return Result;
    end Stack_Free_Count;
+
+   function Action_Token_Free_Count (List : in Parser_Lists.List) return Integer
+   is
+      Result : Integer := 0;
+      Node   : Action_Token_Node_Access := List.Action_Token_Free;
+   begin
+      loop
+         exit when Node = null;
+         Result := Result + 1;
+         Node   := Node.Next;
+      end loop;
+      return Result;
+   end Action_Token_Free_Count;
 
 end Parser_Lists;

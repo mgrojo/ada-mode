@@ -25,7 +25,6 @@
 --
 -------------------------------------------------------------------------------
 
-with OpenToken.Token.Enumerated;
 with OpenToken.Token.Enumerated.List;
 with OpenToken.Token.Enumerated.Nonterminal;
 

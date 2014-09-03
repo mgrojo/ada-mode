@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2012, 2013 Stephe Leake
+-- Copyright (C) 2012 - 2014 Stephe Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -63,6 +63,8 @@ package OpenToken.Token.Enumerated.List is
    ----------------------------------------------------------------------------
    function "&" (Left  : in Instance;
                  Right : in Instance) return Instance;
+
+   function Copy (Item : in Instance) return Instance;
 
    --------------------------------------------------------------------------
    --  This routine needs to be called when you are done using a list,

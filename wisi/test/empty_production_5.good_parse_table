@@ -117,4 +117,4 @@ State 13:
    default              => ERROR
 
 
- 4 rules, 0 actions, 0 shift/reduce conflicts, 0 reduce/reduce conflicts, 13 states, 34 table entries
+ 4 rules, 1 actions, 0 shift/reduce conflicts, 0 reduce/reduce conflicts, 13 states, 34 table entries

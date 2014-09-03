@@ -1,20 +1,20 @@
 with Ada.Command_Line;
 with Ada.Exceptions;
 with Ada.Text_IO; use Ada.Text_IO;
-with Subprograms; use Subprograms;
 with GNAT.Traceback.Symbolic;
 with OpenToken.Text_Feeder.Text_IO;
-procedure Subprograms_Run
+procedure Gen_Parser_Run
 is
+
    procedure Put_Usage
    is begin
-      Put_Line ("usage: subprograms_run [-v] filename");
-      Put_Line ("  outputs grammar actions");
+      Put_Line ("usage: *_run [-v] filename");
+      Put_Line ("  parse input file, executing grammar actions");
       Put_Line ("  -v : output trace of states while parsing");
    end Put_Usage;
 
-   File   : File_Type;
-   Parser : LALR_Parsers.Instance := Create_Parser;
+   File       : File_Type;
+   The_Parser : LALR_Parsers.Instance := Create_Parser;
 
    procedure Use_File (File_Name : in String)
    is begin
@@ -57,12 +57,9 @@ begin
    end;
 
    Set_Input (File);
-   LALR_Parsers.Set_Text_Feeder (Parser, OpenToken.Text_Feeder.Text_IO.Create (Current_Input));
-   LALR_Parsers.Parse (Parser);
-
-   for Line of Actions loop
-      Put_Line (Line);
-   end loop;
+   --  Text_Feeder.Text_IO.Create must be called _after_ Set_Input
+   LALR_Parsers.Set_Text_Feeder (The_Parser, OpenToken.Text_Feeder.Text_IO.Create (Current_Input));
+   LALR_Parsers.Parse (The_Parser);
 
 exception
 when E : OpenToken.Parse_Error | OpenToken.Syntax_Error =>
@@ -72,4 +69,4 @@ when E : others =>
    New_Line;
    Put_Line (Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E));
    Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
-end Subprograms_Run;
+end Gen_Parser_Run;

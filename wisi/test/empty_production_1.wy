@@ -37,6 +37,7 @@ declarative_part
 
 body
   : IS declarative_part BEGIN SEMICOLON
+    (wisi-statement-action 1 'block-middle 3 'block-middle 4 'statement-end)
   ;
 
 %%

@@ -24,6 +24,7 @@ compilation_unit
 
 subprogram_declaration
   : overriding_indicator other_indicator PROCEDURE IDENTIFIER SEMICOLON
+    (wisi-statement-action 1 'statement-start 2 'statement-other 4 'name)
   ;
 
 overriding_indicator
