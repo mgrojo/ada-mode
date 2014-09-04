@@ -2,7 +2,7 @@
 --
 --  Identifier token
 --
---  Copyright (C) 2002, 2009 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2002, 2009, 2014 Stephen Leake.  All Rights Reserved.
 --
 --  This library is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -40,6 +40,7 @@ package OpenToken.Token.Enumerated.Identifier is
 
    overriding procedure Create
      (Lexeme     : in     String;
+      Bounds     : in     Buffer_Range;
       Recognizer : in     Recognizer_Handle;
       New_Token  : in out Instance);
 

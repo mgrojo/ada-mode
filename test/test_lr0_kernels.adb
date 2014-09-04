@@ -20,10 +20,8 @@ pragma License (GPL);
 
 with Ada.Text_IO;
 with OpenToken.Production.List.Print;
-with OpenToken.Production.List;
 with OpenToken.Production.Parser.LALR.Generator;
 with OpenToken.Production.Parser.LALR.Parser;
-with OpenToken.Production.Parser;
 with OpenToken.Production.Print;
 with OpenToken.Recognizer.Based_Integer;
 with OpenToken.Recognizer.Character_Set;
@@ -57,7 +55,8 @@ package body Test_LR0_Kernels is
       Statement_ID,
       Parse_Sequence_ID);
 
-   package Master_Token is new OpenToken.Token.Enumerated (Token_ID_Type, Token_ID_Type'Image, Token_ID_Type'Width);
+   package Master_Token is new OpenToken.Token.Enumerated
+     (Token_ID_Type, Equals_Greater_ID, EOF_ID, Token_ID_Type'Image);
    package Token_List is new Master_Token.List;
    package Nonterminal is new Master_Token.Nonterminal (Token_List);
 
@@ -162,9 +161,7 @@ package body Test_LR0_Kernels is
         Nonterminal.Synthesize_Self;
    end Verify_Statement;
 
-   package Tokenizer is new Master_Token.Analyzer
-     (First_Terminal => Equals_Greater_ID,
-      Last_Terminal  => EOF_ID);
+   package Tokenizer is new Master_Token.Analyzer;
 
    Syntax : constant Tokenizer.Syntax :=
      (
@@ -201,9 +198,9 @@ package body Test_LR0_Kernels is
      Integer_Token.Grammar and
      Aggregate_Token.Grammar and
      Association_Token.Grammar;
-   package OpenToken_Parser is new Production.Parser (Production_List, Tokenizer);
+   package OpenToken_Parser is new Production.Parser (Tokenizer);
    package LALRs is new OpenToken_Parser.LALR (First_State_Index => 1);
-   package LALR_Generators is new LALRs.Generator;
+   package LALR_Generators is new LALRs.Generator (Token_ID_Type'Width, Production_List);
    package LALR_Parsers is new LALRs.Parser;
    String_Feeder  : aliased OpenToken.Text_Feeder.String.Instance;
    An_Analyzer    : constant Tokenizer.Instance := Tokenizer.Initialize (Syntax);

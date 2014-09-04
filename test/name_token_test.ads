@@ -50,7 +50,7 @@ package Name_Token_Test is
       Symbol_Name_ID);
 
    Token_Image_Width : Integer := Token_ID_Type'Width;
-   package Master_Token is new OpenToken.Token.Enumerated (Token_ID_Type, Token_ID_Type'Image, Token_Image_Width);
+   package Master_Token is new OpenToken.Token.Enumerated (Token_ID_Type, Dot_ID, EOF_ID, Token_ID_Type'Image);
    package Token_List is new Master_Token.List;
    package Nonterminal is new Master_Token.Nonterminal (Token_List);
 
@@ -62,11 +62,11 @@ package Name_Token_Test is
    package Production_List is new Production.List;
 
    --  Parser stuff.
-   package Tokenizer is new Master_Token.Analyzer (Dot_ID, EOF_ID);
-   package Parser is new Production.Parser (Production_List, Tokenizer);
+   package Tokenizer is new Master_Token.Analyzer;
+   package Parser is new Production.Parser (Tokenizer);
    package LALRs is new Parser.LALR (First_State_Index => 1);
    package LALR_Parser is new LALRs.Parser;
-   package LALR_Generator is new LALRs.Generator;
+   package LALR_Generator is new LALRs.Generator (Token_Image_Width, Production_List);
 
    package Tokens is
       --  For use in right hand sides, syntax.

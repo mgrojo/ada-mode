@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2009, 2013 Stephe Leake
+-- Copyright (C) 2009, 2013, 2014 Stephe Leake
 -- Copyright (C) 2000 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -44,8 +44,9 @@ package ASU_Example_4_46_RD is
    --  The complete list of tokens. No non-terminals in recursive descent.
    type Token_IDs is (Asterix_ID, ID_ID, Equals_ID, EOF_ID, Whitespace_ID);
 
-   package Master_Token is new OpenToken.Token.Enumerated (Token_IDs, Token_IDs'Image, Token_IDs'Width);
-   package Tokenizer is new Master_Token.Analyzer (Token_IDs'First, Token_IDs'Last);
+   package Master_Token is new OpenToken.Token.Enumerated
+     (Token_IDs, Token_IDs'First, Token_IDs'Last, Token_IDs'Image);
+   package Tokenizer is new Master_Token.Analyzer;
 
    Syntax : constant Tokenizer.Syntax :=
      (Asterix_ID    => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("*")),

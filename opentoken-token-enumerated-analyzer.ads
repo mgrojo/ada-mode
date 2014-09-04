@@ -194,14 +194,14 @@ package OpenToken.Token.Enumerated.Analyzer is
    overriding procedure Push_Back (Analyzer : in out Instance; Mark : in Token.Queue_Mark'Class);
 
    --------------------------------------------------------------------------
-   --  Returns the current text line at which processing will resume.
+   --  Returns the current text line number at which processing will resume.
    --  This is particularly useful for printing error messages when
    --  syntax errors are detected.
    --------------------------------------------------------------------------
    function Line (Analyzer : in Instance) return Natural;
 
    --------------------------------------------------------------------------
-   --  Returns the current text column at which processing will
+   --  Returns the current text column number at which processing will
    --  resume. This is particularly useful for printing error messages
    --  when syntax errors are detected.
    --------------------------------------------------------------------------
@@ -230,13 +230,6 @@ package OpenToken.Token.Enumerated.Analyzer is
    function ID (Analyzer : in Instance) return Terminal_ID;
 
    overriding function Lexeme (Analyzer : in Instance) return String;
-
-   type Buffer_Range is record
-      Begin_Pos : Integer;
-      End_Pos   : Integer;
-   end record;
-
-   Null_Buffer_Range : constant Buffer_Range := (Integer'Last, Integer'First);
 
    --------------------------------------------------------------------------
    --  Returns the position of the start and end of the last token
@@ -275,7 +268,7 @@ private
       Lexeme_Head       : Natural := 1;
       Lexeme_Tail       : Natural := 0;
       Lexeme_Source_Pos : Natural := 1;
-      Last_Token        : Terminal_ID;
+      Last_Token_ID     : Terminal_ID;
 
       Read_From_Lookahead : Boolean;
 

@@ -109,7 +109,7 @@ package body OpenToken.Token.Enumerated is
          --  Previous versions of OpenToken called Create again here,
          --  with an argument of Lexeme (Analyzer), which is wrong
          --  when Next_Token was read from the lookahead queue, since
-         --  the Lexeme reads from the input buffer, which is not
+         --  then Lexeme reads from the input buffer, which is not
          --  preserved in the lookahead queue. We added Copy to handle
          --  that; lexeme is preserved in the copy of the token in the
          --  lookahead queue.
@@ -130,7 +130,8 @@ package body OpenToken.Token.Enumerated is
                   Match.Build (Match.all);
                end if;
             else
-               --  It is the parser programmer's job to ensure these types match.
+               --  It is the parser programmer's job to ensure these
+               --  types match when the IDs do.
                raise Programmer_Error with
                  "Expected a token of type " & Ada.Tags.Expanded_Name (Class (Match.all)'Tag) &
                  "'Class but found a " & Ada.Tags.Expanded_Name (Next_Token'Tag);

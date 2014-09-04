@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2009 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2009, 2014 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -35,7 +35,7 @@ package body OpenToken.Token.Enumerated.Analyzer.AUnit is
       use Standard.AUnit.Assertions;
       Prev : Token_List_Node_Pointer := Analyzer.Lookahead_Tail;
    begin
-      Check_Token_ID (Label & ".last", Analyzer.Last_Token, Last_Token);
+      Check_Token_ID (Label & ".last", Analyzer.Last_Token_ID, Last_Token);
       Check_Token_ID (Label & ".syntax_list", Analyzer.Syntax_List (Last_Token).Token_Handle.ID, Last_Token);
 
       if Tail_Null then

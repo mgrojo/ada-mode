@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
---  Copyright (C) 2013 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2013, 2014 Stephen Leake.  All Rights Reserved.
 --  Copyright (C) 2000 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -51,8 +51,8 @@ package String_Test is
 
    Token_Image_Width : Integer := Example_Token_ID'Width;
    package Master_Example_Token is new OpenToken.Token.Enumerated
-     (Example_Token_ID, Example_Token_ID'Image, Token_Image_Width);
-   package Tokenizer is new Master_Example_Token.Analyzer (If_ID, EOF);
+     (Example_Token_ID, If_ID, EOF, Example_Token_ID'Image);
+   package Tokenizer is new Master_Example_Token.Analyzer;
 
    Ada_Syntax : constant Tokenizer.Syntax :=
      (If_ID      => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("if")),

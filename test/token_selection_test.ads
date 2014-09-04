@@ -2,7 +2,7 @@
 --
 --  Test OpenToken.Token.Selection
 --
---  Copyright (C) 2009, 2013 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2009, 2013, 2014 Stephen Leake.  All Rights Reserved.
 --
 --  This library is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -37,8 +37,9 @@ package Token_Selection_Test is
 
    type Token_IDs is (Do_ID, Several, Things, Int, Times, In_ID, A_ID, Row, EOF, Whitespace);
 
-   package Terminal_Token is new OpenToken.Token.Enumerated (Token_IDs, Token_IDs'Image, Token_IDs'Width);
-   package Tokenizer is new Terminal_Token.Analyzer (Token_IDs'First, Token_IDs'Last);
+   package Terminal_Token is new OpenToken.Token.Enumerated
+     (Token_IDs, Token_IDs'First, Token_IDs'Last, Token_IDs'Image);
+   package Tokenizer is new Terminal_Token.Analyzer;
 
    Syntax : constant Tokenizer.Syntax :=
      (Do_ID      => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("do")),

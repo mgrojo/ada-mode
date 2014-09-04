@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
---  Copyright (C) 2009, 2010, 2012, 2013 Stephen Leake
+--  Copyright (C) 2009, 2010, 2012, 2013, 2014 Stephen Leake
 --
 --  This file is part of the OpenToken package.
 --
@@ -93,8 +93,8 @@ package body Test_Backtrack is
 
    type Token_ID is (T0, T1, T2, T3, T4, T5, EOF, Whitespace);
 
-   package Master_Token is new OpenToken.Token.Enumerated (Token_ID, Token_ID'Image, Token_ID'Width);
-   package Tokenizer is new Master_Token.Analyzer (T0, Whitespace);
+   package Master_Token is new OpenToken.Token.Enumerated (Token_ID, T0, Whitespace, Token_ID'Image);
+   package Tokenizer is new Master_Token.Analyzer;
 
    procedure Check is new AUnit.Check.Gen_Check_Discrete (Token_ID);
 

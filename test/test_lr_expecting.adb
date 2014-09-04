@@ -25,7 +25,6 @@ with Ada.Exceptions;
 with OpenToken.Production.List;
 with OpenToken.Production.Parser.LALR.Generator;
 with OpenToken.Production.Parser.LALR.Parser;
-with OpenToken.Production.Parser;
 with OpenToken.Recognizer.Based_Integer;
 with OpenToken.Recognizer.Character_Set;
 with OpenToken.Recognizer.End_Of_File;
@@ -70,17 +69,17 @@ package body Test_LR_Expecting is
       Statement_ID,
       Parse_Sequence_ID);
 
-   package Master_Token is new OpenToken.Token.Enumerated (Token_IDs, Token_IDs'Image, Token_IDs'Width);
-   package Tokenizer is new Master_Token.Analyzer (First_Terminal => Equals_ID, Last_Terminal => EOF_ID);
+   package Master_Token is new OpenToken.Token.Enumerated (Token_IDs, Equals_ID, EOF_ID, Token_IDs'Image);
+   package Tokenizer is new Master_Token.Analyzer;
    package Integer is new Master_Token.Integer;
 
    package Token_List is new Master_Token.List;
    package Nonterminal is new Master_Token.Nonterminal (Token_List);
    package Production is new OpenToken.Production (Master_Token, Token_List, Nonterminal);
    package Production_List is new Production.List;
-   package OpenToken_Parser is new Production.Parser (Production_List, Tokenizer);
+   package OpenToken_Parser is new Production.Parser (Tokenizer);
    package LALRs is new OpenToken_Parser.LALR (First_State_Index => 1);
-   package LALR_Generators is new LALRs.Generator;
+   package LALR_Generators is new LALRs.Generator (Token_IDs'Width, Production_List);
    package LALR_Parsers is new LALRs.Parser;
 
    --  Terminals

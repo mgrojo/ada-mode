@@ -50,15 +50,15 @@ package ASU_Example_5_10_LR is
                       Multiply_ID, EOF_ID, L_ID, E_ID, T_ID, F_ID);
 
    --  Instantiate all the nessecary packages
-   package Master_Token is new OpenToken.Token.Enumerated (Token_IDs, Token_IDs'Image, Token_IDs'Width);
-   package Tokenizer is new Master_Token.Analyzer (Integer_ID, EOF_ID);
+   package Master_Token is new OpenToken.Token.Enumerated (Token_IDs, Integer_ID, EOF_ID, Token_IDs'Image);
+   package Tokenizer is new Master_Token.Analyzer;
    package Token_List is new Master_Token.List;
    package Nonterminal is new Master_Token.Nonterminal (Token_List);
    package Production is new OpenToken.Production (Master_Token, Token_List, Nonterminal);
    package Production_List is new Production.List;
-   package Parser is new Production.Parser (Production_List, Tokenizer);
+   package Parser is new Production.Parser (Tokenizer);
    package LALR is new Parser.LALR (First_State_Index => 1);
-   package LALR_Generator is new LALR.Generator;
+   package LALR_Generator is new LALR.Generator (Token_IDs'Width, Production_List);
    package LALR_Parser is new LALR.Parser;
 
    --  Instantiate our tokens

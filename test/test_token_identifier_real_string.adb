@@ -52,7 +52,7 @@ package body Test_Token_Identifier_Real_String is
       Value_ID,
       Parse_Sequence_ID);
 
-   package Master_Token is new OpenToken.Token.Enumerated (Token_ID_Type, Token_ID_Type'Image, Token_ID_Type'Width);
+   package Master_Token is new OpenToken.Token.Enumerated (Token_ID_Type, Identifier_ID, EOF_ID, Token_ID_Type'Image);
    package Token_List is new Master_Token.List;
    package Nonterminal is new Master_Token.Nonterminal (Token_List);
 
@@ -75,7 +75,7 @@ package body Test_Token_Identifier_Real_String is
       Parse_Sequence : constant Nonterminal.Class := Nonterminal.Get (Parse_Sequence_ID);
    end Tokens;
 
-   package Tokenizer is new Master_Token.Analyzer (First_Terminal => Identifier_ID, Last_Terminal => EOF_ID);
+   package Tokenizer is new Master_Token.Analyzer;
 
    Syntax : constant Tokenizer.Syntax :=
      (EOF_ID            => Tokenizer.Get (OpenToken.Recognizer.End_Of_File.Get, Tokens.EOF),
@@ -153,9 +153,9 @@ package body Test_Token_Identifier_Real_String is
      Tokens.Value <= Tokens.Real + Test_Action'Access  and
      Tokens.Value <= Tokens.String + Test_Action'Access;
 
-   package OpenToken_Parser is new Production.Parser (Production_List, Tokenizer);
+   package OpenToken_Parser is new Production.Parser (Tokenizer);
    package LALRs is new OpenToken_Parser.LALR (First_State_Index => 1);
-   package LALR_Generators is new LALRs.Generator;
+   package LALR_Generators is new LALRs.Generator (Token_ID_Type'Width, Production_List);
    package LALR_Parsers is new LALRs.Parser;
 
    String_Feeder : aliased OpenToken.Text_Feeder.String.Instance;

@@ -10,8 +10,9 @@ package Token_List_Test is
 
    type Token_IDs is (Int, Comma, EOF, Whitespace);
 
-   package Terminal_Token is new OpenToken.Token.Enumerated (Token_IDs, Token_IDs'Image, Token_IDs'Width);
-   package Tokenizer is new Terminal_Token.Analyzer (Token_IDs'First, Token_IDs'Last);
+   package Terminal_Token is new OpenToken.Token.Enumerated
+     (Token_IDs, Token_IDs'First, Token_IDs'Last, Token_IDs'Image);
+   package Tokenizer is new Terminal_Token.Analyzer;
 
    Syntax : constant Tokenizer.Syntax :=
      (Int        => Tokenizer.Get (OpenToken.Recognizer.Integer.Get),

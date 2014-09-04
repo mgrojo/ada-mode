@@ -92,12 +92,23 @@ package OpenToken.Token.Enumerated is
 
    procedure Set_Build (Token : in out Instance'Class; Build : in Action);
 
+   type Buffer_Range is record
+      Begin_Pos : Integer;
+      End_Pos   : Integer;
+   end record;
+
+   Null_Buffer_Range : constant Buffer_Range := (Integer'Last, Integer'First);
+
    ----------------------------------------------------------------------
    --  Create will be called from Find_Next when a token is
-   --  recognized, whether Look_Ahead is True or not.
+   --  recognized.
    --
-   --  Lexeme is the matched input text. Recognizer is the recognizer
-   --  that matched it.
+   --  Lexeme is the matched input text.
+   --
+   --  Bounds is the start and end position of the input text,
+   --  relative to the last Analyzer Reset.
+   --
+   --  Recognizer is the recognizer that matched the token.
    --
    --  New_Token is the token that the analyzer associates with
    --  Recognizer (specified when the syntax is created).
@@ -114,15 +125,15 @@ package OpenToken.Token.Enumerated is
    ----------------------------------------------------------------------
    procedure Create
      (Lexeme     : in     String;
+      Bounds     : in     Buffer_Range;
       Recognizer : in     Recognizer_Handle;
       New_Token  : in out Instance)
      is null;
 
    --------------------------------------------------------------------
    --  Copy From to To. Called by Enumerated.Parse when a token
-   --  matches, whether Actively is true or not. This is just a
-   --  dispatching version of ':='; see the comments in Parse for more
-   --  rationale.
+   --  matches, when Actively is true. This is just a dispatching
+   --  version of ':='; see the comments in Parse for more rationale.
    --
    --  Parse has verified that From'Tag = To'Tag, and that From.ID =
    --  To.ID.

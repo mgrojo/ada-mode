@@ -46,15 +46,15 @@ package body Trivial_Productions_Test is
          --  Nonterminals
          E_ID, F_ID, T_ID);
 
-      package Tokens is new OpenToken.Token.Enumerated (Token_IDs, Token_IDs'Image, Token_IDs'Width);
-      package Analyzers is new Tokens.Analyzer (Symbol_ID, EOF_ID);
+      package Tokens is new OpenToken.Token.Enumerated (Token_IDs, Symbol_ID, EOF_ID, Token_IDs'Image);
+      package Analyzers is new Tokens.Analyzer;
       package Token_Lists is new Tokens.List;
       package Nonterminals is new Tokens.Nonterminal (Token_Lists);
       package Productions is new OpenToken.Production (Tokens, Token_Lists, Nonterminals);
       package Production_Lists is new Productions.List;
-      package Parsers is new Productions.Parser (Production_Lists, Analyzers);
+      package Parsers is new Productions.Parser (Analyzers);
       package LALRs is new Parsers.LALR (First_State_Index => 1);
-      package LALR_Generators is new LALRs.Generator;
+      package LALR_Generators is new LALRs.Generator (Token_IDs'Width, Production_Lists);
       package LALR_Parsers is new LALRs.Parser;
 
       EOF    : constant Tokens.Class       := Tokens.Get (EOF_ID);
@@ -128,15 +128,15 @@ package body Trivial_Productions_Test is
          Subprogram_ID,
          Parameter_List_ID);
 
-      package Tokens_Pkg is new OpenToken.Token.Enumerated (Token_IDs, Token_IDs'Image, Token_IDs'Width);
-      package Analyzers is new Tokens_Pkg.Analyzer (Function_ID, EOF_ID);
+      package Tokens_Pkg is new OpenToken.Token.Enumerated (Token_IDs, Function_ID, EOF_ID, Token_IDs'Image);
+      package Analyzers is new Tokens_Pkg.Analyzer;
       package Token_Lists is new Tokens_Pkg.List;
       package Nonterminals is new Tokens_Pkg.Nonterminal (Token_Lists);
       package Productions is new OpenToken.Production (Tokens_Pkg, Token_Lists, Nonterminals);
       package Production_Lists is new Productions.List;
-      package Parsers is new Productions.Parser (Production_Lists, Analyzers);
+      package Parsers is new Productions.Parser (Analyzers);
       package LALRs is new Parsers.LALR (First_State_Index => 1);
-      package LALR_Generators is new LALRs.Generator;
+      package LALR_Generators is new LALRs.Generator (Token_IDs'Width, Production_Lists);
       package LALR_Parsers is new LALRs.Parser;
 
       EOF            : constant Tokens_Pkg.Class := Tokens_Pkg.Get (EOF_ID);

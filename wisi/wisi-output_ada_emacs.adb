@@ -274,7 +274,7 @@ begin
    Indent_Line
      ("package Wisi_Tokens is new OpenToken.Wisi_Tokens");
    Indent_Line
-     ("  (Token_IDs, First_Terminal, Last_Terminal, Token_Image_Width, Token_Image, Tokens, Analyzers, Token_Lists,");
+     ("  (Token_IDs, First_Terminal, Last_Terminal, Token_Image_Width, Token_Image, Tokens, Token_Lists,");
    Indent_Line ("     Nonterminals);");
    New_Line;
 
@@ -710,8 +710,7 @@ begin
    New_Line;
    --  FIXME: get Max_Parallel from some command line
    Indent_Line ("return");
-   Indent_Line ("  (Analyzers.Initialize (Create_Syntax, Text_Feeder), Table, Max_Parallel, Terminate_Same_State,");
-   Indent_Line ("   Wisi_Tokens.Decorate'Access);");
+   Indent_Line ("  (Analyzers.Initialize (Create_Syntax, Text_Feeder), Table, Max_Parallel, Terminate_Same_State);");
    Indent := Indent - 3;
    Indent_Line ("end Create_Parser;");
    Put_Line ("end " & Package_Name & ";");

@@ -47,17 +47,15 @@ package body Test_Empty_Productions_4 is
       subprogram_declaration_ID,
       overriding_indicator_ID);
 
-   package Tokens_Pkg is new OpenToken.Token.Enumerated (Token_IDs, Token_IDs'Image, Token_IDs'Width);
+   package Tokens_Pkg is new OpenToken.Token.Enumerated (Token_IDs, IDENTIFIER_ID, EOF_ID, Token_IDs'Image);
    package Token_Lists is new Tokens_Pkg.List;
    package Nonterminals is new Tokens_Pkg.Nonterminal (Token_Lists);
    package Productions is new OpenToken.Production (Tokens_Pkg, Token_Lists, Nonterminals);
    package Production_Lists is new Productions.List;
-   package Analyzers is new Tokens_Pkg.Analyzer
-     (First_Terminal => IDENTIFIER_ID,
-      Last_Terminal  => EOF_ID);
-   package Parsers is new Productions.Parser (Production_Lists, Analyzers);
+   package Analyzers is new Tokens_Pkg.Analyzer;
+   package Parsers is new Productions.Parser (Analyzers);
    package LALRs is new Parsers.LALR (First_State_Index => 1);
-   package LALR_Generators is new LALRs.Generator;
+   package LALR_Generators is new LALRs.Generator (Token_IDs'Width, Production_Lists);
 
    --  Allow infix operators for building productions
    use type Token_Lists.Instance;

@@ -43,8 +43,9 @@ with OpenToken.Token.Enumerated.Analyzer;
 with OpenToken.Token.Enumerated;
 package body Ada_Lexer is
 
-   package Master_Ada_Token is new OpenToken.Token.Enumerated (Ada_Token, Ada_Token'Image, Ada_Token'Width);
-   package Tokenizer        is new Master_Ada_Token.Analyzer (Ada_Token'First, Ada_Token'Last);
+   package Master_Ada_Token is new OpenToken.Token.Enumerated
+     (Ada_Token, Ada_Token'First, Ada_Token'Last, Ada_Token'Image);
+   package Tokenizer        is new Master_Ada_Token.Analyzer;
 
    Syntax : constant Tokenizer.Syntax :=
      (Abort_T               => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("abort")),

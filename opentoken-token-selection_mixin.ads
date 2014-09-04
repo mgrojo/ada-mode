@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2009 Stephe Leake
+-- Copyright (C) 2009, 2014 Stephe Leake
 -- Copyright (C) 2000 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -41,6 +41,9 @@ package OpenToken.Token.Selection_Mixin is
    subtype Class is Instance'Class;
 
    type Handle is access all Class;
+
+   overriding
+   function Image (Item : in Instance) return String;
 
    type Action is access procedure
      (Match : in out Instance;

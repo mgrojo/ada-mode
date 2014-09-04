@@ -54,16 +54,16 @@ package body Test_Accept_Index is
       Statement_ID);
 
    --  Instantiate all the necessary packages
-   package Master_Token is new OpenToken.Token.Enumerated (Token_IDs, Token_IDs'Image, Token_IDs'Width);
-   package Tokenizer is new Master_Token.Analyzer (Equals_ID, Identifier_ID);
+   package Master_Token is new OpenToken.Token.Enumerated (Token_IDs, Equals_ID, Identifier_ID, Token_IDs'Image);
+   package Tokenizer is new Master_Token.Analyzer;
    package Token_List is new Master_Token.List;
    package Nonterminal is new Master_Token.Nonterminal (Token_List);
    package Production is new OpenToken.Production (Master_Token, Token_List, Nonterminal);
    package Production_List is new Production.List;
-   package OpenToken_Parser is new Production.Parser (Production_List, Tokenizer);
+   package OpenToken_Parser is new Production.Parser (Tokenizer);
    package LALRs is new OpenToken_Parser.LALR (First_State_Index => 1);
    package LALR_Parser is new LALRs.Parser;
-   package LALR_Generator is new LALRs.Generator;
+   package LALR_Generator is new LALRs.Generator (Token_IDs'Width, Production_List);
 
    package Integer_Literal is new Master_Token.Integer;
 

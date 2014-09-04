@@ -26,18 +26,18 @@ with OpenToken.Token.Enumerated.List;
 with OpenToken.Token.Enumerated.Nonterminal;
 generic
    type Token_ID is (<>);
-   with package Tokens_Pkg is new OpenToken.Token.Enumerated (Token_ID, Token_ID'Image, Token_ID'Width);
+   First_Terminal : in Token_ID;
+   Last_Terminal  : in Token_ID;
+   with package Tokens_Pkg is new OpenToken.Token.Enumerated (Token_ID, First_Terminal, Last_Terminal, Token_ID'Image);
    with package Token_Lists is new Tokens_Pkg.List;
    with package Nonterminals is new Tokens_Pkg.Nonterminal (Token_Lists);
    with package Productions is new OpenToken.Production (Tokens_Pkg, Token_Lists, Nonterminals);
    with package Production_Lists is new Productions.List;
-   First_Terminal : in Token_ID;
-   Last_Terminal : in Token_ID;
-   with package Analyzers is new Tokens_Pkg.Analyzer (First_Terminal, Last_Terminal);
-   with package Parsers is new Productions.Parser (Production_Lists, Analyzers);
+   with package Analyzers is new Tokens_Pkg.Analyzer;
+   with package Parsers is new Productions.Parser (Analyzers);
    First_State_Index : in Integer;
    with package LALRs is new Parsers.LALR (First_State_Index);
-   with package LALR_Generators is new LALRs.Generator;
+   with package LALR_Generators is new LALRs.Generator (Token_ID'Width, Production_Lists);
    Grammar : in Production_Lists.Instance;
 package Gen_OpenToken_AUnit is
 

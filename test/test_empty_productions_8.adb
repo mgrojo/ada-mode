@@ -54,17 +54,15 @@ package body Test_Empty_Productions_8 is
 
    First_State_Index : constant Integer := 0;
 
-   package Tokens_Pkg is new OpenToken.Token.Enumerated (Token_IDs, Token_IDs'Image, Token_IDs'Width);
+   package Tokens_Pkg is new OpenToken.Token.Enumerated (Token_IDs, COLON_EQUAL_ID, EOF_ID, Token_IDs'Image);
    package Token_Lists is new Tokens_Pkg.List;
    package Nonterminals is new Tokens_Pkg.Nonterminal (Token_Lists);
    package Productions is new OpenToken.Production (Tokens_Pkg, Token_Lists, Nonterminals);
    package Production_Lists is new Productions.List;
-   package Analyzers is new Tokens_Pkg.Analyzer
-     (First_Terminal => COLON_EQUAL_ID,
-      Last_Terminal  => EOF_ID);
-   package Parsers is new Productions.Parser (Production_Lists, Analyzers);
+   package Analyzers is new Tokens_Pkg.Analyzer;
+   package Parsers is new Productions.Parser (Analyzers);
    package LALRs is new Parsers.LALR (First_State_Index);
-   package LALR_Generators is new LALRs.Generator;
+   package LALR_Generators is new LALRs.Generator (Token_IDs'Width, Production_Lists);
 
    --  Allow infix operators for building productions
    use type Token_Lists.Instance;
@@ -100,7 +98,7 @@ package body Test_Empty_Productions_8 is
      ;
 
    package OpenToken_AUnit is new Gen_OpenToken_AUnit
-     (Token_IDs, Tokens_Pkg, Token_Lists, Nonterminals, Productions, Production_Lists, COLON_EQUAL_ID, EOF_ID,
+     (Token_IDs, COLON_EQUAL_ID, EOF_ID, Tokens_Pkg, Token_Lists, Nonterminals, Productions, Production_Lists,
       Analyzers, Parsers, First_State_Index, LALRs, LALR_Generators, Grammar);
 
    Has_Empty_Production : constant LALR_Generators.LRk.Nonterminal_ID_Set :=

@@ -403,11 +403,11 @@ package body OpenToken.Token.Enumerated.Analyzer is
       New_Analyzer.Has_Default   := True;
       New_Analyzer.Default_Token := Default;
 
-      New_Analyzer.Line            := 1;
-      New_Analyzer.Column          := 1;
-      New_Analyzer.Lexeme_Head     := 1;
-      New_Analyzer.Lexeme_Tail     := 0;
-      New_Analyzer.Last_Token      := Default;
+      New_Analyzer.Line          := 1;
+      New_Analyzer.Column        := 1;
+      New_Analyzer.Lexeme_Head   := 1;
+      New_Analyzer.Lexeme_Tail   := 0;
+      New_Analyzer.Last_Token_ID := Default;
 
       --  This is not literally true, but it does mean the lexeme and
       --  recognizer are invalid.
@@ -441,7 +441,7 @@ package body OpenToken.Token.Enumerated.Analyzer is
       Analyzer.Column      := 1;
       Analyzer.Lexeme_Head := 1;
       Analyzer.Lexeme_Tail := 0;
-      Analyzer.Last_Token  := Analyzer.Default_Token;
+      Analyzer.Last_Token_ID  := Analyzer.Default_Token;
 
       Analyzer.Read_From_Lookahead := True;
 
@@ -526,9 +526,25 @@ package body OpenToken.Token.Enumerated.Analyzer is
    is
       EOLs_Found : Integer;
 
-      Matched_Token  : Syntax_ID;
-      Matched_Length : Natural;
+      Matched_Token_ID : Syntax_ID;
+      Matched_Length   : Natural;
    begin
+      --  We allow Create to changing the token stored in the syntax
+      --  list, to avoid another new/free pair.
+
+      if Look_Ahead and Analyzer.Lookahead_Tail = null then
+         --  Push the previous token on the lookahead queue tail, so
+         --  Push_Back can restore it if necessary. Note that this
+         --  copies any user data from the analyzer and recognizer, if
+         --  Create stored them in the token.
+
+         Analyzer.Lookahead_Tail := new Token_List_Node'
+           (Token_Handle => new Enumerated.Class'
+              (Analyzer.Syntax_List (Analyzer.Last_Token_ID).Token_Handle.all),
+            Prev         => null,
+            Next         => null);
+      end if;
+
 
       if Look_Ahead or Analyzer.Lookahead_Queue = null then
 
@@ -536,7 +552,7 @@ package body OpenToken.Token.Enumerated.Analyzer is
             Analyzer.Read_From_Lookahead := False;
 
             loop
-               Find_Best_Match (Analyzer, Matched_Token, Matched_Length);
+               Find_Best_Match (Analyzer, Matched_Token_ID, Matched_Length);
 
                --  If we didn't find a match, its a either syntax error
                --  or a match to the default token.
@@ -549,25 +565,28 @@ package body OpenToken.Token.Enumerated.Analyzer is
                      Find_Non_Match
                        (Unmatched_Length => Matched_Length,
                         Analyzer         => Analyzer);
-                     Matched_Token := Analyzer.Default_Token;
+                     Matched_Token_ID := Analyzer.Default_Token;
 
                   else
                      raise Syntax_Error with "Unrecognized character '" & Analyzer.Buffer (Analyzer.Buffer_Head) & "'";
                   end if;
                end if;
 
-               if Analyzer.Syntax_List (Matched_Token).Recognizer.Report then
+               if Analyzer.Syntax_List (Matched_Token_ID).Recognizer.Report then
                   --  Save off the information for the token we found
-                  Analyzer.Last_Token  := Matched_Token;
                   Analyzer.Lexeme_Head := Analyzer.Buffer_Head;
                   Analyzer.Lexeme_Tail := Increment_Buffer_Index (Analyzer.Buffer_Head, Matched_Length - 1);
 
                   Analyzer.Lexeme_Source_Pos := Analyzer.Buffer_Head_Source_Pos;
 
+                  --  This allows the user token to modify
+                  --  Syntax_List, as well as cache recognizer and
+                  --  analyzer info in the token.
                   Create
                     (Lexeme     => Lexeme (Analyzer),
-                     Recognizer => Analyzer.Syntax_List (Matched_Token).Recognizer,
-                     New_Token  => Analyzer.Syntax_List (Matched_Token).Token_Handle.all);
+                     Bounds     => Bounds (Analyzer),
+                     Recognizer => Analyzer.Syntax_List (Matched_Token_ID).Recognizer,
+                     New_Token  => Analyzer.Syntax_List (Matched_Token_ID).Token_Handle.all);
 
                   Analyzer.Line   := Analyzer.Next_Line;
                   Analyzer.Column := Analyzer.Next_Column;
@@ -588,27 +607,15 @@ package body OpenToken.Token.Enumerated.Analyzer is
 
                Analyzer.Buffer_Head_Source_Pos := Analyzer.Buffer_Head_Source_Pos + Matched_Length;
 
-               exit when Analyzer.Syntax_List (Matched_Token).Recognizer.Report;
+               exit when Analyzer.Syntax_List (Matched_Token_ID).Recognizer.Report;
 
             end loop;
 
             if Look_Ahead then
-               if Analyzer.Lookahead_Tail = null then
-                  --  Push the previous token on the lookahead queue
-                  --  tail, so Push_Back can restore it if necessary.
-                  --  Note that this copies the lexeme and recogizer,
-                  --  if Create stored them in the token.
-
-                  Analyzer.Lookahead_Tail := new Token_List_Node'
-                    (Token_Handle => new Enumerated.Class'(Analyzer.Syntax_List (Analyzer.Last_Token).Token_Handle.all),
-                     Prev         => null,
-                     Next         => null);
-               end if;
-
                --  Push the matched token on the lookahead queue tail.
 
                Analyzer.Lookahead_Tail.Next := new Token_List_Node'
-                 (Token_Handle => new Enumerated.Class'(Analyzer.Syntax_List (Matched_Token).Token_Handle.all),
+                 (Token_Handle => new Enumerated.Class'(Analyzer.Syntax_List (Matched_Token_ID).Token_Handle.all),
                   Prev         => Analyzer.Lookahead_Tail,
                   Next         => null);
 
@@ -621,7 +628,7 @@ package body OpenToken.Token.Enumerated.Analyzer is
                end if;
 
                if Trace_Parse then
-                  Trace_Put ("look ahead " & Token_Image (Analyzer.Last_Token)); Ada.Text_IO.New_Line;
+                  Trace_Put ("look ahead " & Token_Image (Analyzer.Last_Token_ID)); Ada.Text_IO.New_Line;
                   Analyzer.Lookahead_Count := Analyzer.Lookahead_Count + 1;
                   if Analyzer.Lookahead_Count > Analyzer.Max_Lookahead then
                      Analyzer.Max_Lookahead := Analyzer.Lookahead_Count;
@@ -630,15 +637,17 @@ package body OpenToken.Token.Enumerated.Analyzer is
                   end if;
                end if;
             end if;
+            Analyzer.Last_Token_ID := Matched_Token_ID;
          else
             --  Read from lookahead_head
             Analyzer.Read_From_Lookahead := True;
-            Analyzer.Last_Token := Analyzer.Lookahead_Head.Token_Handle.ID;
-            Analyzer.Syntax_List (Analyzer.Last_Token).Token_Handle.all := Analyzer.Lookahead_Head.Token_Handle.all;
+            Analyzer.Last_Token_ID := Analyzer.Lookahead_Head.Token_Handle.ID;
+
+            Analyzer.Syntax_List (Analyzer.Last_Token_ID).Token_Handle.all := Analyzer.Lookahead_Head.Token_Handle.all;
             Analyzer.Lookahead_Head := Analyzer.Lookahead_Head.Next;
 
             if Trace_Parse then
-               Trace_Put ("look ahead " &  Name (Analyzer.Syntax_List (Analyzer.Last_Token).Token_Handle.all));
+               Trace_Put ("look ahead " &  Name (Analyzer.Syntax_List (Analyzer.Last_Token_ID).Token_Handle.all));
                Ada.Text_IO.New_Line;
             end if;
          end if;
@@ -658,9 +667,9 @@ package body OpenToken.Token.Enumerated.Analyzer is
          end if;
 
          --  Pop the first item off the queue and put it into the syntax list
-         Analyzer.Last_Token := Analyzer.Lookahead_Queue.Token_Handle.ID;
+         Analyzer.Last_Token_ID := Analyzer.Lookahead_Queue.Token_Handle.ID;
          Analyzer.Read_From_Lookahead := True;
-         Analyzer.Syntax_List (Analyzer.Last_Token).Token_Handle.all := Analyzer.Lookahead_Queue.Token_Handle.all;
+         Analyzer.Syntax_List (Analyzer.Last_Token_ID).Token_Handle.all := Analyzer.Lookahead_Queue.Token_Handle.all;
          Analyzer.Lookahead_Queue := Analyzer.Lookahead_Queue.Next;
 
          if Analyzer.Lookahead_Queue = null then
@@ -716,20 +725,20 @@ package body OpenToken.Token.Enumerated.Analyzer is
 
          if Analyzer.Lookahead_Head = null then
 
-            Analyzer.Last_Token := Analyzer.Lookahead_Tail.Prev.Token_Handle.ID;
+            Analyzer.Last_Token_ID := Analyzer.Lookahead_Tail.Prev.Token_Handle.ID;
             Analyzer.Read_From_Lookahead := True;
 
-            Analyzer.Syntax_List (Analyzer.Last_Token).Token_Handle.all :=
+            Analyzer.Syntax_List (Analyzer.Last_Token_ID).Token_Handle.all :=
               Analyzer.Lookahead_Tail.Prev.Token_Handle.all;
 
             Analyzer.Lookahead_Head := Analyzer.Lookahead_Tail;
          else
             Analyzer.Lookahead_Head := Analyzer.Lookahead_Head.Prev;
 
-            Analyzer.Last_Token := Analyzer.Lookahead_Head.Prev.Token_Handle.ID;
+            Analyzer.Last_Token_ID := Analyzer.Lookahead_Head.Prev.Token_Handle.ID;
             Analyzer.Read_From_Lookahead := True;
 
-            Analyzer.Syntax_List (Analyzer.Last_Token).Token_Handle.all :=
+            Analyzer.Syntax_List (Analyzer.Last_Token_ID).Token_Handle.all :=
               Analyzer.Lookahead_Head.Prev.Token_Handle.all;
 
          end if;
@@ -737,7 +746,8 @@ package body OpenToken.Token.Enumerated.Analyzer is
       end loop;
 
       if Trace_Parse then
-         Ada.Text_IO.Put_Line ("; current token " & Name (Analyzer.Syntax_List (Analyzer.Last_Token).Token_Handle.all));
+         Ada.Text_IO.Put_Line
+           ("; current token " & Name (Analyzer.Syntax_List (Analyzer.Last_Token_ID).Token_Handle.all));
       end if;
    end Push_Back;
 
@@ -763,12 +773,12 @@ package body OpenToken.Token.Enumerated.Analyzer is
 
    overriding function Get (Analyzer : in Instance) return OpenToken.Token.Class
    is begin
-      return Analyzer.Syntax_List (Analyzer.Last_Token).Token_Handle.all;
+      return Analyzer.Syntax_List (Analyzer.Last_Token_ID).Token_Handle.all;
    end Get;
 
    function ID (Analyzer : in Instance) return Terminal_ID is
    begin
-      return Analyzer.Last_Token;
+      return Analyzer.Last_Token_ID;
    end ID;
 
    overriding function Lexeme (Analyzer : in Instance) return String
@@ -811,9 +821,11 @@ package body OpenToken.Token.Enumerated.Analyzer is
    overriding function Last_Recognizer (Analyzer : in Instance) return Recognizer_Handle
    is begin
       if Analyzer.Read_From_Lookahead then
+         --  Only a problem if the recognizer changes dynamically,
+         --  which we allow it to do via Create.
          raise Programmer_Error;
       end if;
-      return Analyzer.Syntax_List (Analyzer.Last_Token).Recognizer;
+      return Analyzer.Syntax_List (Analyzer.Last_Token_ID).Recognizer;
    end Last_Recognizer;
 
 end OpenToken.Token.Enumerated.Analyzer;

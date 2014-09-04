@@ -294,9 +294,6 @@ package body OpenToken.Production.Parser.LALR.Parser is
             Tokenizer.Find_Next (Parser.Analyzer);
             Token.Free (Current_Token);
             Current_Token := new Token.Class'(Token.Class (Parser.Analyzer.Get));
-            if Parser.Decorate /= null then
-               Parser.Decorate (Current_Token.all, Parser.Analyzer);
-            end if;
 
          when Accept_It =>
             --  Done.
@@ -410,11 +407,10 @@ package body OpenToken.Production.Parser.LALR.Parser is
      (Analyzer             : in Tokenizer.Instance;
       Table                : in Parse_Table_Ptr;
       Max_Parallel         : in Integer := 15;
-      Terminate_Same_State : in Boolean := False;
-      Decorate             : in Decorator := null)
+      Terminate_Same_State : in Boolean := False)
      return Instance
    is begin
-      return (Analyzer, Table, Max_Parallel, Terminate_Same_State, Decorate);
+      return (Analyzer, Table, Max_Parallel, Terminate_Same_State);
    end Initialize;
 
 

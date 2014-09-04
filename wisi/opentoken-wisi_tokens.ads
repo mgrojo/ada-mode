@@ -18,7 +18,6 @@
 
 pragma License (GPL);
 
-with OpenToken.Token.Enumerated.Analyzer;
 with OpenToken.Token.Enumerated.Nonterminal;
 with OpenToken.Token.Enumerated.List;
 generic
@@ -30,13 +29,12 @@ generic
    with function Token_Image (Item : in Token_IDs) return String;
    with package Tokens is new OpenToken.Token.Enumerated
      (Token_IDs, First_Terminal, Last_Terminal, Token_Image);
-   with package Analyzers is new Tokens.Analyzer;
    with package Token_Lists  is new Tokens.List;
    with package Nonterminals is new Tokens.Nonterminal (Token_Lists);
 package OpenToken.Wisi_Tokens is
 
    type Instance is new Nonterminals.Instance with record
-      Buffer_Range : Analyzers.Buffer_Range;
+      Buffer_Range : Tokens.Buffer_Range;
    end record;
 
    subtype Class is Instance'Class;
@@ -49,10 +47,15 @@ package OpenToken.Wisi_Tokens is
    function Get (ID : in Token_IDs) return Nonterminals.Instance'Class;
    --  For use in Syntax; sets null Buffer_Range
 
-   procedure Decorate (Token : in out Tokens.Class; Analyzer : in Analyzers.Instance);
-   --  For use in Parser; add Buffer_Range from Analyzer current lexeme.
+   overriding
+   procedure Create
+     (Lexeme     : in     String;
+      Bounds     : in     Tokens.Buffer_Range;
+      Recognizer : in     Tokens.Recognizer_Handle;
+      New_Token  : in out Instance);
+   --  Callback from Parser; stores Buffer_Range in New_Token
 
-   function Get (ID : in Token_IDs; Buffer_Range : in Analyzers.Buffer_Range) return Nonterminals.Instance'Class;
+   function Get (ID : in Token_IDs; Buffer_Range : in Tokens.Buffer_Range) return Nonterminals.Instance'Class;
    --  For use in Actions.
 
    procedure Self
@@ -64,7 +67,7 @@ package OpenToken.Wisi_Tokens is
    --  Other functions for wisi actions in generated Ada code for
    --  Ada_Emacs target.
 
-   function Total_Buffer_Range (Tokens : in Token_Lists.Instance'Class) return Analyzers.Buffer_Range;
+   function Total_Buffer_Range (Tokens : in Token_Lists.Instance'Class) return Wisi_Tokens.Tokens.Buffer_Range;
 
    function Image (Tokens : in Token_Lists.Instance'Class) return String;
    --  Return elisp prefix for wisi action; declares 'let ((tokens ...))'

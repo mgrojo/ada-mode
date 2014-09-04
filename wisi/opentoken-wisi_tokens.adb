@@ -22,40 +22,49 @@ package body OpenToken.Wisi_Tokens is
 
    function Get (ID : in Token_IDs) return Nonterminals.Instance'Class
    is begin
-      return Instance'(Nonterminals.Instance (Nonterminals.Get (ID)) with Analyzers.Null_Buffer_Range);
+      return Instance'(Nonterminals.Instance (Nonterminals.Get (ID)) with Tokens.Null_Buffer_Range);
    end Get;
 
-   procedure Decorate (Token : in out Tokens.Class; Analyzer : in Analyzers.Instance)
-   is begin
-      Instance (Token).Buffer_Range := Analyzer.Bounds;
-   end Decorate;
+   overriding
+   procedure Create
+     (Lexeme     : in     String;
+      Bounds     : in     Tokens.Buffer_Range;
+      Recognizer : in     Tokens.Recognizer_Handle;
+      New_Token  : in out Instance)
+   is
+      pragma Unreferenced (Recognizer);
+      pragma Unreferenced (Lexeme);
+   begin
+      New_Token.Buffer_Range := Bounds;
+   end Create;
 
-   function Get (ID : in Token_IDs; Buffer_Range : in Analyzers.Buffer_Range) return Nonterminals.Instance'Class
+   function Get (ID : in Token_IDs; Buffer_Range : in Tokens.Buffer_Range) return Nonterminals.Instance'Class
    is begin
       return Instance'(Nonterminals.Instance (Nonterminals.Get (ID)) with Buffer_Range);
    end Get;
 
-   function Total_Buffer_Range (Tokens : in Token_Lists.Instance'Class) return Analyzers.Buffer_Range
+   function Total_Buffer_Range (Tokens : in Token_Lists.Instance'Class) return Wisi_Tokens.Tokens.Buffer_Range
    is
       use Token_Lists;
-      I      : List_Iterator          := Tokens.Initial_Iterator;
-      Result : Analyzers.Buffer_Range := Analyzers.Null_Buffer_Range;
+      use Wisi_Tokens.Tokens;
+      I      : List_Iterator := Tokens.Initial_Iterator;
+      Result : Buffer_Range  := Null_Buffer_Range;
    begin
       if I = Null_Iterator then
-         return Analyzers.Null_Buffer_Range;
+         return Null_Buffer_Range;
       end if;
 
       loop
          exit when I = Null_Iterator;
          declare
-            Buffer_Range : Analyzers.Buffer_Range renames Wisi_Tokens.Instance (Token_Handle (I).all).Buffer_Range;
+            Buffer_Region : Buffer_Range renames Wisi_Tokens.Instance (Token_Handle (I).all).Buffer_Range;
          begin
-            if Result.Begin_Pos > Buffer_Range.Begin_Pos then
-               Result.Begin_Pos := Buffer_Range.Begin_Pos;
+            if Result.Begin_Pos > Buffer_Region.Begin_Pos then
+               Result.Begin_Pos := Buffer_Region.Begin_Pos;
             end if;
 
-            if Result.End_Pos < Buffer_Range.End_Pos then
-               Result.End_Pos := Buffer_Range.End_Pos;
+            if Result.End_Pos < Buffer_Region.End_Pos then
+               Result.End_Pos := Buffer_Region.End_Pos;
             end if;
          end;
 
@@ -75,7 +84,7 @@ package body OpenToken.Wisi_Tokens is
    overriding
    function Image (Token : in Instance) return String
    is
-      use Analyzers;
+      use Tokens;
    begin
       if Token.Buffer_Range = Null_Buffer_Range then
          return "(" & Token_Image (Token.ID) & " nil)";

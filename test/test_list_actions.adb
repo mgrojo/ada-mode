@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
---  Copyright (C) 2009, 2010, 2012, 2013 Stephen Leake
+--  Copyright (C) 2009, 2010, 2012, 2013, 2014 Stephen Leake
 --
 --  This file is part of the OpenToken package.
 --
@@ -34,8 +34,8 @@ package body Test_List_Actions is
 
    type Token_ID is (Int, Plus, EOF, Whitespace);
 
-   package Master_Token is new OpenToken.Token.Enumerated (Token_ID, Token_ID'Image, Token_ID'Width);
-   package Tokenizer is new Master_Token.Analyzer (Token_ID'First, Token_ID'Last);
+   package Master_Token is new OpenToken.Token.Enumerated (Token_ID, Token_ID'First, Token_ID'Last, Token_ID'Image);
+   package Tokenizer is new Master_Token.Analyzer;
    package Integer_Token is new Master_Token.Integer;
    package Int_List is new OpenToken.Token.List_Mixin
      (Parent_Token    => Integer_Token.Instance,

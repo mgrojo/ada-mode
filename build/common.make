@@ -45,14 +45,12 @@ tests : token_list_test-run.run
 tests : token_selection_test-run.run
 tests : token_sequence_test-run.run
 
-# wisi parse tests
-# ../../wisi/test
-
+# from ../wisi/test
+#
 # to parse .wy, build .ads, run parser, we'd like to do:
 # %_run.exe : %_run.adb %.ads; gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P opentoken_test.gpr $(GPRBUILD_ARGS) $*_run
 # but that gets overridden by the simpler .exe rule for other things. So we must list %.ads explicitly in tests:
-
-# from ../wisi/test
+#
 # some also or only run from ../wisi/test/test_wisi_suite.adb
 tests : empty_production_1.ads
 tests : empty_production_1-parse.diff

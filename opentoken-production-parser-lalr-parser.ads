@@ -31,22 +31,17 @@ with Ada.Iterator_Interfaces;
 generic
 package OpenToken.Production.Parser.LALR.Parser is
 
-   type Decorator is access procedure (Tok : in out Token.Class; Analyser : in Tokenizer.Instance);
-   --  Add Analyzer information to Tok, such as source file name, line, column.
-
    type Instance is new OpenToken.Production.Parser.Instance with record
       Table                : Parse_Table_Ptr;
       Max_Parallel         : Integer;
       Terminate_Same_State : Boolean;
-      Decorate             : Decorator;
    end record;
 
    function Initialize
      (Analyzer             : in Tokenizer.Instance;
       Table                : in Parse_Table_Ptr;
       Max_Parallel         : in Integer   := 15;
-      Terminate_Same_State : in Boolean   := False;
-      Decorate             : in Decorator := null)
+      Terminate_Same_State : in Boolean   := False)
      return Instance;
 
    overriding procedure Parse (Parser : in out Instance);

@@ -50,10 +50,8 @@ package body Test_Analyzer_Line_Column is
       assignment_ID,
       opentoken_accept_ID);
 
-   package Tokens_Pkg is new OpenToken.Token.Enumerated (Token_IDs, Token_IDs'Image, Token_IDs'Width);
-   package Analyzers is new Tokens_Pkg.Analyzer
-     (First_Terminal => Comment_ID,
-      Last_Terminal  => EOF_ID);
+   package Tokens_Pkg is new OpenToken.Token.Enumerated (Token_IDs, Comment_ID, EOF_ID, Token_IDs'Image);
+   package Analyzers is new Tokens_Pkg.Analyzer;
 
    Syntax : constant Analyzers.Syntax :=
      (

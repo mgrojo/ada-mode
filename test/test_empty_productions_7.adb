@@ -52,17 +52,15 @@ package body Test_Empty_Productions_7 is
 
    First_State_Index : constant Integer := 1;
 
-   package Tokens_Pkg is new OpenToken.Token.Enumerated (Token_IDs, Token_IDs'Image, Token_IDs'Width);
+   package Tokens_Pkg is new OpenToken.Token.Enumerated (Token_IDs, ALIASED_ID, EOF_ID, Token_IDs'Image);
    package Token_Lists is new Tokens_Pkg.List;
    package Nonterminals is new Tokens_Pkg.Nonterminal (Token_Lists);
    package Productions is new OpenToken.Production (Tokens_Pkg, Token_Lists, Nonterminals);
    package Production_Lists is new Productions.List;
-   package Analyzers is new Tokens_Pkg.Analyzer
-     (First_Terminal => ALIASED_ID,
-      Last_Terminal  => EOF_ID);
-   package Parsers is new Productions.Parser (Production_Lists, Analyzers);
+   package Analyzers is new Tokens_Pkg.Analyzer;
+   package Parsers is new Productions.Parser (Analyzers);
    package LALRs is new Parsers.LALR (First_State_Index);
-   package LALR_Generators is new LALRs.Generator;
+   package LALR_Generators is new LALRs.Generator (Token_IDs'Width, Production_Lists);
 
    --  Allow infix operators for building productions
    use type Token_Lists.Instance;
@@ -95,7 +93,7 @@ package body Test_Empty_Productions_7 is
      ;
 
    package OpenToken_AUnit is new Gen_OpenToken_AUnit
-     (Token_IDs, Tokens_Pkg, Token_Lists, Nonterminals, Productions, Production_Lists, ALIASED_ID, EOF_ID,
+     (Token_IDs, ALIASED_ID, EOF_ID, Tokens_Pkg, Token_Lists, Nonterminals, Productions, Production_Lists,
       Analyzers, Parsers, First_State_Index, LALRs, LALR_Generators, Grammar);
 
    Has_Empty_Production : constant LALR_Generators.LRk.Nonterminal_ID_Set :=
@@ -358,7 +356,7 @@ package body Test_Empty_Productions_7 is
       --  aliased_opt_id => OBJECT_DECLARATION_ID <= IDENTIFIER_ID ALIASED_OPT_ID ^ CONSTANT_OPT_ID SEMICOLON_ID ; 8
 
       Expected.Action_List := new Action_Node'
-        (Symbol  => Analyzers.Terminal_ID'Last, -- ignored, since this is the last action
+        (Symbol  => Tokens_Pkg.Terminal_ID'Last, -- ignored, since this is the last action
          Action  => new Parse_Action_Node'
            (Item => (Verb => Error),
             Next => null),

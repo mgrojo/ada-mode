@@ -29,6 +29,14 @@ with Ada.Text_IO;
 with OpenToken.Token.Linked_List;
 package body OpenToken.Token.List_Mixin is
 
+   overriding
+   function Image (Item : in Instance) return String
+   is
+      pragma Unreferenced (Item);
+   begin
+      return "";
+   end Image;
+
    function "**"
      (Element   : access Component_Token'Class;
       Separator : access OpenToken.Token.Class)

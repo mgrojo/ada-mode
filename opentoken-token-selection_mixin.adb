@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
---  Copyright (C) 2009 Stephe Leake
+--  Copyright (C) 2009, 2014 Stephe Leake
 --  Copyright (C) 2000 Ted Dennison
 --
 --  This file is part of the OpenToken package.
@@ -27,6 +27,14 @@
 
 with Ada.Text_IO;
 package body OpenToken.Token.Selection_Mixin is
+
+   overriding
+   function Image (Item : in Instance) return String
+   is
+      pragma Unreferenced (Item);
+   begin
+      return "";
+   end Image;
 
    overriding procedure Parse
      (Match    : access Instance;

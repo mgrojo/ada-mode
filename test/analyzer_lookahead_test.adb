@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
---  Copyright (C) 2009, 2010, 2012, 2013 Stephen Leake
+--  Copyright (C) 2009, 2010, 2012, 2013, 2014 Stephen Leake
 --  Copyright (C) 2000 Ted Dennison
 --
 --  This file is part of the OpenToken package.
@@ -35,8 +35,8 @@ package body Analyzer_Lookahead_Test is
    type Token_ID is (If_ID, Then_ID, Quit_ID, String_ID, Whitespace, EOF);
 
    package Master_Example_Token is new OpenToken.Token.Enumerated
-     (Token_ID, Token_ID'Image, Token_ID'Width);
-   package Tokenizer is new Master_Example_Token.Analyzer (Token_ID'First, Token_ID'Last);
+     (Token_ID, Token_ID'First, Token_ID'Last, Token_ID'Image);
+   package Tokenizer is new Master_Example_Token.Analyzer;
    package String_Literal is new Master_Example_Token.String;
 
    procedure Check is new AUnit.Check.Gen_Check_Discrete (Token_ID);
