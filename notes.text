@@ -43,7 +43,9 @@ install packages in -Q:
     doc changes in NEWS-ada-mode.text NEWS-wisi.text
 
     c:/Projects/org.opentoken.stephe/build/debug/Makefile
-        compiling ada_grammar.adb is slow:
+
+    compiling ada_grammar.adb is slow:
+        build/wisi/ada_mode_wisi_parse.gpr
         time gprbuild -p ada_mode_wisi_parse_agg.gpr run_ada_parser.adb
         -g -01 -fno-var-tracking-assignments 1m38.109s
 
@@ -54,36 +56,52 @@ install packages in -Q:
         (progn
             (ada-wisi-setup)
             (wisi-invalidate-cache)
-            (time-it (lambda () (indent-region (point-min) (point-max))) 1))
+            (time-it 'wisi-parse-buffer 1))
 
-        5.1.5: 2.062000 seconds
+        5.1.5: 1.239667 seconds
             needs to be < 0.2 seconds
+
+        5.1.5 + no text in token: 1.311667
 
     time ./run_ada_parser /apps/GNAT-gpl_2014/gnatcoll-1.7w-src/src/sqlite/gnatcoll-xref.adb
         real	0m0.390s
-        fast enough!
+        fast enough?
 
     integrate to ada-mode
-        delete text from wisi-forward-token result
-            time improvement in wisi-parse-buffer!
+        write ada_mode_wisi_parse.adb
 
-        need region for each token
-            collect in elisp_token type
+        add choice in wisi-validate-cache, handle output
 
         time wisi-parse-buffer
+        use gprof to find bottleneck
 
     implement wisi actions in Ada?
         compute a list of text properties in ada_mode_wisi_parse, and return
         that to the Emacs process to be applied.
 
+    split out recursive descent stuff
+        avoid compile time overhead, name conflicts/confusion, build runtime overhead
+        make token.enumerated abstract?
+        rd child
+            Parse
+        lalr child
+            ?
+
+    lalr does not need to be child of production
+
+    move Source (= analyzer) out of Token, into new abstract root
+        add missing functions from analyzer
+
+    move lookahead_queue out of analyzer, into lookahead/rd child?
+
     OpenToken lexer is too slow?
+
+        replace with aflex
             time ./run_ada_lexer /apps/GNAT-gpl_2014/gnatcoll-1.7w-src/src/sqlite/gnatcoll-xref.adb
             real    0m0.359s
             user    0m0.031s
             sys     0m0.000s
 
-
-        replace with aflex
             from http://sourceforge.net/projects/p2ada/files/p2ada/Sources/
             c:/Projects/aflex/build/Makefile
             time ./run_ada_lexer /apps/GNAT-gpl_2014/gnatcoll-1.7w-src/src/sqlite/gnatcoll-xref.adb > foo.text
@@ -102,7 +120,7 @@ install packages in -Q:
 
             (/ 0.36 0.08) = 4.5
 
-        integrate into OpenToken lexer
+        integrate aflex as an OpenToken lexer
             not yet; time parser first
 
             aflex generates ada_syntax.a, containing function yylex
@@ -115,22 +133,33 @@ install packages in -Q:
 
         generate *.l, associated packages from *.wy
 
-    split out recursive descent stuff
-        avoid compile time overhead, name, build runtime overhead
-        token.enumerated abstract
-        rd child
-        lalr child
-        recursive_lalr child; avoid more runtime allocation overhead
-            pass token region to use action
+    factor out generic for parser_lists stack, action_token
 
-    lalr does not need to be child of production
+    add container iterators to wisi.*_Lists
+        use in generate
+
+    define iterator function in generator_utils for tokens, rules
+        use in output_ada for various token lists
+
+    add container iterators to Token_Lists, use in wisi_tokens
 
     add error recovery to parser
+        insert virtual tokens to take parser from current state to next token
+            compute in lalr child package; enhance parser table error action?
 
-    don't need allocated token objects on parser stack, just token_id
-        add alternate parser
+    more intelligent rules in wisi when parser fails?
 
-    more intelligent rules when parser fails?
+    still too slow?:
+        free list in wisi_tokens
+
+        recursive_lalr child
+            don't allocate new tokens for stack; just store token_id
+                avoid runtime allocation overhead
+            pass token region, lexeme to user action
+
+        write rd grammar from .wy?
+            see asu_example_5_10
+            see gpr parser
 
     doc git/elpa checkout, config
 

@@ -60,7 +60,7 @@ package body Ada_Mode.Parens is
                              "456" &
                              "789 [");
       -- don't confuse this with gnat non-ascii syntax
-      --EMACSCMD:(progn (end-of-line -1)(back-to-indentation)(wisi-forward-token t))
+      --EMACSCMD:(progn (end-of-line -1)(back-to-indentation)(wisi-token-text (wisi-forward-token)))
       --EMACSRESULT:"\"789 [\""
 
       --EMACSCMD:(progn (end-of-line 2)(ada-case-adjust)(let ((case-fold-search nil))(looking-back "comMENT")))

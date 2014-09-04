@@ -1865,10 +1865,6 @@ unit name; it should return the Ada name that should be found in FILE-NAME.")
 		       ada-parent-name-regexp "\\(?:;\\|[ \t]+\\|$\\)")
 	       'ada-ff-special-extract-parent)
 
-	 ;; A "separate" clause.
-	 (cons (concat "^separate[ \t\n]*(" ada-name-regexp ")")
-	       'ada-ff-special-extract-separate)
-
 	 ;; A "with" clause. Note that it may refer to a procedure body, as well as a spec
 	 (cons (concat "^\\(?:limited[ \t]+\\)?\\(?:private[ \t]+\\)?with[ \t]+" ada-name-regexp)
 	       'ada-ff-special-with)
@@ -1991,11 +1987,11 @@ don't move to corresponding declaration."
   subprogram declaration, position point on the corresponding
   parent package specification.
 
-- If point is in the start line of a separate body,
-  position point on the corresponding separate stub declaration.
-
 - If point is in a context clause line, position point on the
   first package declaration that is mentioned.
+
+- If point is in a separate body, position point on the
+  corresponding specification.
 
 - If point is in a subprogram body or specification, position point
   on the corresponding specification or body.

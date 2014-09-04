@@ -186,7 +186,7 @@ point must be on CACHE. PREV-TOKEN is the token before the one being indented."
 	(containing (wisi-goto-containing cache)))
     (cl-ecase (wisi-cache-token containing)
       (LEFT_PAREN
-       (if (equal break-point (cl-caddr prev-token))
+       (if (equal break-point (cadr prev-token))
 	   ;; we are indenting the first token after the list-break; not hanging.
 	   ;;
 	   ;; test/parent.adb
@@ -843,7 +843,7 @@ cached token, return new indentation for point."
 	 ;; indenting 'Integer'
 	 (let ((paren-column (current-column))
 	       (start-is-comment (save-excursion (goto-char start) (looking-at comment-start-skip))))
-	   (wisi-forward-token t); point is now after paren
+	   (wisi-forward-token); point is now after paren
 	   (if start-is-comment
 	       (skip-syntax-forward " >"); point is now on comment
 	     (forward-comment (point-max)); point is now on first token
@@ -1188,14 +1188,15 @@ cached token, return new indentation for point."
 (defun ada-wisi-goto-subunit-name ()
   "For `ada-goto-subunit-name'."
 
+  (wisi-validate-cache (point-max))
   (let ((end nil)
 	cache
 	(name-pos nil))
     (save-excursion
       ;; move to top declaration
       (goto-char (point-min))
+      (setq cache (or (wisi-get-cache (point)) (wisi-forward-cache)))
       (while (not end)
-	(setq cache (wisi-forward-cache))
 	(cl-case (wisi-cache-nonterm cache)
 	  (pragma nil)
 	  (use_clause nil)
@@ -1203,9 +1204,11 @@ cached token, return new indentation for point."
 	  (t
 	   ;; start of compilation unit
 	   (setq end t))
-	  ))
+	  )
+	(setq cache (wisi-forward-cache))
+	)
       (when (eq (wisi-cache-nonterm cache) 'subunit)
-	(wisi-forward-find-token 'name (point-max))
+	(wisi-forward-find-class 'name (point-max))
 	(setq name-pos (point)))
       )
     (when name-pos
@@ -1272,7 +1275,7 @@ Also return cache at start."
     (while (not done)
       (if (ada-wisi-declarative-region-start-p cache)
 	  (progn
-	    (wisi-forward-token t)
+	    (wisi-forward-token)
 	    (setq done t))
 	(cl-case (wisi-cache-class cache)
 	  ((block-middle block-end)
@@ -1355,6 +1358,8 @@ Also return cache at start."
 (defun ada-wisi-scan-paramlist (begin end)
   "For `ada-scan-paramlist'."
   (wisi-validate-cache end)
+  (when (< wisi-cache-max end)
+    (error "parse failed; can't scan paramlist"))
   (goto-char begin)
   (let (token
 	text
@@ -1377,7 +1382,7 @@ Also return cache at start."
     (while (not done)
       (let ((token-text (wisi-forward-token)))
 	(setq token (nth 0 token-text))
-	(setq text  (nth 1 token-text)))
+	(setq text  (wisi-token-text token-text)))
       (cond
        ((equal token 'COMMA) nil);; multiple identifiers
 

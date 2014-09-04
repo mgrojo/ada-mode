@@ -174,16 +174,12 @@
 (defvar-local wisi-string-single-term nil) ;; string delimited by single quotes
 (defvar-local wisi-symbol-term nil)
 
-(defun wisi-forward-token (&optional text-only)
+(defun wisi-forward-token ()
   "Move point forward across one token, skipping leading whitespace and comments.
-Return the corresponding token, in a format determined by TEXT-ONLY:
-TEXT-ONLY t:          text
-TEXT-ONLY nil:        (token text start . end)
-where:
+Return the corresponding token, in format: (token start . end) where:
+
 `token' is a token symbol (not string) from `wisi-punctuation-table',
 `wisi-keyword-table', `wisi-string-double-term', `wisi-string-double-term' or `wisi-symbol-term'.
-
-`text' is the token text from the buffer
 
 `start, end' are the character positions in the buffer of the start
 and end of the token text.
@@ -198,7 +194,6 @@ If at end of buffer, returns `wisent-eoi-term'."
 	token-id token-text)
     (cond
      ((eobp)
-      (setq token-text "")
       (setq token-id wisent-eoi-term))
 
      ((eq syntax 1)
@@ -210,8 +205,7 @@ If at end of buffer, returns `wisent-eoi-term'."
 	  (setq temp-text (buffer-substring-no-properties start (point)))
 	  (setq temp-id (car (rassoc temp-text wisi-punctuation-table)))
 	  (when temp-id
-	    (setq token-text temp-text
-		  token-id temp-id
+	    (setq token-id temp-id
 		  next-point (point)))
 	  (if (or
 	       (eobp)
@@ -242,7 +236,6 @@ If at end of buffer, returns `wisent-eoi-term'."
 		      (and (eq delim (car wisi-string-quote-escape))
 			   (eq (char-before (1- (point))) (cdr wisi-string-quote-escape))))
 		(forward-sexp))
-	      (setq token-text (buffer-substring-no-properties start (point)))
 	      (setq token-id (if (= delim ?\") wisi-string-double-term wisi-string-single-term)))
 	  (scan-error
 	   ;; Something screwed up; we should not get here if
@@ -262,14 +255,12 @@ If at end of buffer, returns `wisent-eoi-term'."
       (signal 'wisi-parse-error
 	      (wisi-error-msg "unrecognized token '%s'" (buffer-substring-no-properties start (point)))))
 
-    (if text-only
-	token-text
-      (cons token-id (cons token-text (cons start (point)))))
+    (cons token-id (cons start (point)))
     ))
 
 (defun wisi-backward-token ()
   "Move point backward across one token, skipping whitespace and comments.
-Return (nil text start . end) - same structure as
+Return (nil start . end) - same structure as
 wisi-forward-token, but does not look up symbol."
   (forward-comment (- (point)))
   ;; skips leading whitespace, comment, trailing whitespace.
@@ -292,8 +283,14 @@ wisi-forward-token, but does not look up symbol."
       (if (zerop (skip-syntax-backward "."))
 	  (skip-syntax-backward "w_'")))
      )
-    (cons nil (cons (buffer-substring-no-properties (point) end) (cons (point) end)))
+    (cons nil (cons (point) end))
     ))
+
+(defun wisi-token-text (token)
+  "Return buffer text from token range."
+  (let ((region (cdr token)))
+    (and region
+       (buffer-substring-no-properties (car region) (cdr region)))))
 
 ;;;; token info cache
 ;;
@@ -617,7 +614,7 @@ that token. Use in a grammar action as:
 	  (override-start nil))
       (while pairs
 	(let* ((number (1- (pop pairs)))
-	       (region (cddr (nth number wisi-tokens)));; wisi-tokens is let-bound in wisi-parse-reduce
+	       (region (cdr (nth number wisi-tokens)));; wisi-tokens is let-bound in wisi-parse-reduce
 	       (token (car (nth number wisi-tokens)))
 	       (class (pop pairs))
 	       (mark
@@ -711,25 +708,25 @@ that token. Use in a grammar action as:
   "Set containing marks in all tokens in CONTAINED-TOKEN with null containing mark to marker pointing to CONTAINING-TOKEN.
 If CONTAINING-TOKEN is empty, the next token number is used."
   ;; wisi-tokens is is bound in action created by wisi-semantic-action
-  (let* ((containing-region (cddr (nth (1- containing-token) wisi-tokens)))
-	 (contained-region (cddr (nth (1- contained-token) wisi-tokens))))
+  (let* ((containing-region (cdr (nth (1- containing-token) wisi-tokens)))
+	 (contained-region (cdr (nth (1- contained-token) wisi-tokens))))
 
     (unless containing-region ;;
       (signal 'wisi-parse-error
 	      (wisi-error-msg
 	       "wisi-containing-action: containing-region '%s' is empty. grammar error; bad action"
-	       (nth 1 (nth (1- containing-token) wisi-tokens)))))
+	       (wisi-token-text (nth (1- containing-token) wisi-tokens)))))
 
     (unless (or (not contained-region) ;; contained-token is empty
 		(wisi-get-cache (car containing-region)))
       (signal 'wisi-parse-error
 	      (wisi-error-msg
 	       "wisi-containing-action: containing-token '%s' has no cache. grammar error; missing action"
-	       (nth 1 (nth (1- containing-token) wisi-tokens)))))
+	       (wisi-token-text (nth (1- containing-token) wisi-tokens)))))
 
     (while (not containing-region)
       ;; containing-token is empty; use next
-      (setq containing-region (cddr (nth containing-token wisi-tokens))))
+      (setq containing-region (cdr (nth containing-token wisi-tokens))))
 
     (when contained-region
       ;; nil when empty production, may not contain any caches
@@ -777,7 +774,7 @@ list (number (token_id token_id)):
 	  (cond
 	   ((numberp token-number)
 	    (setq target-token nil)
-	    (setq region (cddr (nth (1- token-number) wisi-tokens)))
+	    (setq region (cdr (nth (1- token-number) wisi-tokens)))
 	    (when region
 	      (setq cache (wisi-get-cache (car region)))
 	      (setq mark (copy-marker (1+ (car region))))
@@ -800,7 +797,7 @@ list (number (token_id token_id)):
 	    (when (not (listp target-token))
 	      (setq target-token (list target-token)))
 	    (setq token-number (car token-number))
-	    (setq region (cddr (nth (1- token-number) wisi-tokens)))
+	    (setq region (cdr (nth (1- token-number) wisi-tokens)))
 	    (when region ;; not an empty token
 	      (goto-char (car region))
 	      (while (wisi-forward-find-token target-token (cdr region) t)

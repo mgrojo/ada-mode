@@ -4,7 +4,7 @@ function Separate_Function return Integer is
    --EMACSCMD:(setq skip-recase-test t)
    --EMACSCMD:(ada-parse-prj-file "ada_mode.adp")
    --EMACSCMD:(ada-select-prj-file "ada_mode.adp")
-   --EMACSCMD:(progn (goto-char (point-min))(ada-find-other-file t)(looking-at "function Separate_Function return"))
+   --EMACSCMD:(progn (goto-char (point-min))(ada-find-other-file t)(looking-at "Separate_Function return Integer is separate;"))
    --EMACSRESULT:t
 
    -- `save-excursion' in run-indent-test.el run-test-here is defeated

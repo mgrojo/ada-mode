@@ -182,7 +182,7 @@ point at which that max was spawned.")
 		     (signal 'wisi-parse-error
 			     (wisi-error-msg "syntax error in grammar state %d; unexpected %s, expecting one of %s"
 					     state
-					     (nth 1 token)
+					     (wisi-token-text token)
 					     (mapcar 'car (aref actions state))))
 		     ))
 		  (t
@@ -199,7 +199,7 @@ point at which that max was spawned.")
 					 (wisi-error-msg
 					  "syntax error in grammar state %d; unexpected %s, expecting one of %s"
 					  state
-					  (nth 1 token)
+					  (wisi-token-text token)
 					  (mapcar 'car (aref actions state)))))
 			   )))
 		     (signal 'wisi-parse-error msg)))
@@ -364,8 +364,8 @@ nil, 'shift, or 'accept."
   (let ((result (if tokens 0 (point))))
     (mapc
      (lambda (token)
-       (when (cl-cdddr token)
-	 (setq result (max (cl-cdddr token) result))))
+       (when (cddr token)
+	 (setq result (max (cddr token) result))))
      tokens)
     result)
   )
@@ -469,18 +469,18 @@ Return nil."
   "Return a pair (START . END), the buffer region for a nonterminal.
 STACK is the parser stack.  I and J are the indices in STACK of
 the first and last tokens of the nonterminal."
-  (let ((start (cl-caddr (aref stack i)))
-        (end   (cl-cdddr (aref stack j))))
+  (let ((start (cadr (aref stack i)))
+        (end   (cddr (aref stack j))))
     (while (and (or (not start) (not end))
 		(/= i j))
       (cond
        ((not start)
 	;; item i is an empty production
-	(setq start (cl-caddr (aref stack (setq i (+ i 2))))))
+	(setq start (cadr (aref stack (setq i (+ i 2))))))
 
        ((not end)
 	;; item j is an empty production
-	(setq end (cl-cdddr (aref stack (setq j (- j 2))))))
+	(setq end (cddr (aref stack (setq j (- j 2))))))
 
        (t (setq i j))))
     (and start end (cons start end))))
@@ -503,7 +503,7 @@ the first and last tokens of the nonterminal."
       (dotimes (i token-count)
 	(push (aref stack (- sp (* 2 i) 1)) tokens)))
     (setq sp (+ 2 (- sp (* 2 token-count))))
-    (aset stack (1- sp) (cons nonterm (cons nil nonterm-region)))
+    (aset stack (1- sp) (cons nonterm nonterm-region))
     (aset stack sp new-state)
     (setf (wisi-parser-state-sp parser-state) sp)
     (if pendingp

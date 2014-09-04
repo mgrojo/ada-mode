@@ -9,7 +9,8 @@ with Ada.Text_IO;
 --EMACSCMD:(progn (forward-line -3)(ada-find-other-file t)(looking-at "package Ada.Text_IO is"))
 --EMACSRESULT:t
 
---EMACSCMD:(progn (forward-line 1)(ada-find-other-file t)(looking-at "package body Separate_Package_1 is separate"))
+-- other file from a 'separate' line (same as random place in body)
+--EMACSCMD:(progn (forward-line 1)(ada-find-other-file t)(looking-at "Separate_Package_1 is"))
 separate (Ada_Mode.Nominal)
 package body Separate_Package_1 is
    --EMACSRESULT:t
@@ -29,7 +30,7 @@ package body Separate_Package_1 is
    pragma Unreferenced (Object_ANother);
 
    -- other file from a random place in the body
-   --EMACSCMD:(progn (forward-line 1)(ada-find-other-file t)(looking-at "package body Separate_Package_1 is separate"))
+   --EMACSCMD:(progn (ada-find-other-file t)(looking-at "Separate_Package_1 is"))
    --EMACSRESULT:t
 
    package Int_IO is new Ada.Text_IO.Integer_IO (Integer);

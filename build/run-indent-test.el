@@ -36,6 +36,7 @@
   "Run an indentation and casing test on the current buffer."
   (interactive)
   (setq indent-tabs-mode nil)
+  (setq debug-on-quit t)
   (let (last-result last-cmd expected-result error-p)
     ;; Look for --EMACS comments in the file:
     ;;
