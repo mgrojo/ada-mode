@@ -1,8 +1,11 @@
 GNAT
 *AUnit
+*CR
 *CSV
 *EOF
 *EOI
+*EOL
+*GNAT
 *GPL
 *HTML
 *ID
@@ -14,5 +17,6 @@ GNAT
 *LR0
 *LR1
 *LRk
+*OS
 *OpenToken
 *RHS

@@ -70,6 +70,6 @@ package OpenToken.Wisi_Tokens is
    function Total_Buffer_Range (Tokens : in Token_Lists.Instance'Class) return Wisi_Tokens.Tokens.Buffer_Range;
 
    function Image (Tokens : in Token_Lists.Instance'Class) return String;
-   --  Return elisp prefix for wisi action; declares 'let ((tokens ...))'
+   --  Return elisp prefix for wisi action
 
 end OpenToken.Wisi_Tokens;

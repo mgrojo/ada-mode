@@ -50,7 +50,6 @@
 -----------------------------------------------------------------------------
 
 with OpenToken.Recognizer;
-with OpenToken.Text_Feeder;
 generic
 package OpenToken.Token.Enumerated.Analyzer is
 
@@ -258,7 +257,6 @@ private
    type Instance is new Source with record
       --  User-settable attributes
       Syntax_List   : Syntax;
-      Feeder        : OpenToken.Text_Feeder.Text_Feeder_Ptr;
       Has_Default   : Boolean := False;
       Default_Token : Terminal_ID;
 

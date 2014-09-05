@@ -280,7 +280,7 @@ begin
 
    Indent_Line ("function Create_Parser");
    Indent_Line ("  (Max_Parallel         : in Integer := 15;");
-   Indent_Line ("   Terminate_Same_State : in Boolean := False;");
+   Indent_Line ("   Terminate_Same_State : in Boolean := True;");
    Indent_Line ("   Text_Feeder          : in OpenToken.Text_Feeder.Text_Feeder_Ptr := null)");
    Indent_Line ("  return LALR_Parsers.Instance;");
    New_Line;
@@ -606,7 +606,7 @@ begin
       elsif -Kind.Kind = """string-single""" then
          for Item of Kind.Tokens loop
             Indent_Line
-              (To_Token_Image (Item.Name) & " => Analyzers.Get (Graphic_Character.Get (" &
+              (To_Token_Image (Item.Name) & " => Analyzers.Get (Graphic_Character.Get, Wisi_Tokens.Get (" &
                  To_Token_Image (Item.Name) & ")),");
          end loop;
       else
@@ -621,7 +621,7 @@ begin
 
    Indent_Line ("function Create_Parser");
    Indent_Line ("  (Max_Parallel         : in Integer := 15;");
-   Indent_Line ("   Terminate_Same_State : in Boolean := False;");
+   Indent_Line ("   Terminate_Same_State : in Boolean := True;");
    Indent_Line ("   Text_Feeder          : in OpenToken.Text_Feeder.Text_Feeder_Ptr := null)");
    Indent_Line ("  return LALR_Parsers.Instance");
    Indent_Line ("is");

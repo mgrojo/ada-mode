@@ -87,7 +87,7 @@ package body OpenToken.Wisi_Tokens is
       use Tokens;
    begin
       if Token.Buffer_Range = Null_Buffer_Range then
-         return "(" & Token_Image (Token.ID) & " nil)";
+         return "(" & Token_Image (Token.ID) & ")";
       else
          return "(" & Token_Image (Token.ID) & Integer'Image (Token.Buffer_Range.Begin_Pos) & " ." &
            Integer'Image (Token.Buffer_Range.End_Pos) & ")";
@@ -103,7 +103,17 @@ package body OpenToken.Wisi_Tokens is
 
       I  : List_Iterator := Initial_Iterator (Tokens);
 
-      Token_Line : Bounded_String := To_Bounded_String ("(let ((tokens '(");
+      --  Each action in the .wy file is of the form:
+      --  (progn
+      --   (wisi-statement-action ...)
+      --   (wisi-motion-action ...))
+      --
+      --  In the elisp parser, 'wisi-tokens' is bound to the tokens in the
+      --  RHS of the production.
+      --
+      --  Here, we wrap the actions in '(let ((wisi-tokens ...)) ... )'
+
+      Token_Line : Bounded_String := To_Bounded_String ("(let ((wisi-tokens '(");
    begin
       loop
          exit when I = Null_Iterator;

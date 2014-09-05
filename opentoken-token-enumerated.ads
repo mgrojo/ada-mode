@@ -41,6 +41,7 @@
 
 with Ada.Unchecked_Deallocation;
 with OpenToken.Recognizer;
+with OpenToken.Text_Feeder;
 generic
 
    type Token_ID is (<>);
@@ -173,7 +174,9 @@ package OpenToken.Token.Enumerated is
 
    overriding function Name (Token : in Instance) return String;
 
-   type Source is abstract new OpenToken.Token.Source with null record;
+   type Source is abstract new OpenToken.Token.Source with record
+      Feeder : OpenToken.Text_Feeder.Text_Feeder_Ptr;
+   end record;
 
    --------------------------------------------------------------------------
    --  Returns the actual text of the last token that was matched.
