@@ -18,6 +18,7 @@
 
 with "opentoken";
 project Ada_Mode_Wisi_Parse is
+
    for Main use ("ada_mode_wisi_parse.adb");
 
    for Source_Dirs use (".", "../..");
@@ -66,7 +67,7 @@ project Ada_Mode_Wisi_Parse is
 
          -- , "-gnatdcO"
          for Switches ("run_ada_parser.adb") use Common_Switches & Standard_Style & ("-O2", "-gnatn");
-         for Switches ("ada_grammar.adb") use Common_Switches & Standard_Style & ("-O1", "-fno-var-tracking-assignments"); -- gnatn hangs, 02 slow; -fvar-tracking-assignments gives up (only needed for debug)
+         for Switches ("ada_grammar.adb") use Common_Switches & Standard_Style & ("-O0", "-fno-var-tracking-assignments"); -- gnatn hangs, 01, 02 slow; -fvar-tracking-assignments gives up (only needed for debug)
          for Switches ("ada_grammar.ads") use Common_Switches & Standard_Style & ("-O0"); -- 01, O2 gnatn hangs
          for Switches ("ada_syntax_dfa.adb") use Common_Switches & Aflex_Style & ("-O2", "-gnatn");
          for Switches ("ada_syntax_dfa.ads") use Common_Switches & Aflex_Style & ("-O2", "-gnatn");

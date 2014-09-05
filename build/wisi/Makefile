@@ -14,8 +14,8 @@ debian-all : compile-ada-clean compile-ada autoloads test-clean test-debian
 update : ../../ada_grammar-wy.el
 update : ../../gpr-grammar-wy.el
 update : byte-compile
-update : ada_syntax.ads
-update : ada_grammar.ads
+# update : ../../ada_syntax.ads
+update : ../../ada_grammar.ads
 
 # *-wy.el are in monotone, so this is all we need after a monotone update
 # doing byte-compile-clean first avoids errors caused by loading new source on old .elc
@@ -47,10 +47,8 @@ test-wisi :: empty_production_8.wisi-test
 #one : RUNTEST := run-indent-test-wisi-gpr_query.el
 #one : ada_mode-nominal.ads.diff
 #one : export Ada_Mode_Wisi_Parse_Build := Debug
-one : ../../ada_grammar.ads
-	bash -c "time gprbuild -p ada_mode_wisi_parse_agg.gpr run_ada_parser.adb"
-#	./run_ada_parser.exe -v ../../test/debug.adb
-	bash -c "time ./run_ada_parser.exe /apps/GNAT-gpl_2014/gnatcoll-1.7w-src/src/sqlite/gnatcoll-xref.adb"
+one : ada_mode_wisi_parse.exe
+	./ada_mode_wisi_parse.exe < commands.text
 
 vpath %.wy ../../ ../../test/wisi
 vpath %.el ../../ .
@@ -92,6 +90,10 @@ endif
 
 %.ads : %.a
 	gnatchop -w $*.a $*_dfa.a $*_io.a
+
+ada_mode_wisi_parse.exe : ../../ada_grammar.ads force
+	gprbuild -p ada_mode_wisi_parse_agg.gpr
+#	bash -c "time gprbuild -p ada_mode_wisi_parse_agg.gpr"
 
 clean ::
 	rm -f *.a *.ads *.adb *.exe

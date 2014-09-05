@@ -287,6 +287,12 @@ must provide a parser for a file with one of these extensions."
   :type 'list
   :group 'ada)
 
+(defcustom wisi-ada-parse-exec "ada_mode_wisi_parse"
+  ;; declared here, not in wisi-ada-parse.el, for auto-detection of indent engine below
+  "Name of executable to use for ada_mode_wisi_parse,"
+  :type 'string
+  :group 'ada-indentation)
+
 ;;;;; end of user variables
 
 (defconst ada-symbol-end
@@ -2902,7 +2908,15 @@ The paragraph is indented on the first line."
 (require 'ada-build)
 
 (unless (featurep 'ada-indent-engine)
-  (require 'ada-wisi))
+  (require 'ada-wisi)
+  (if (locate-file wisi-ada-parse-exec exec-path '("" ".exe"))
+      (progn
+	(require 'wisi-ada-parse)
+	(setq wisi-parser 'ada))
+
+    (require 'wisi-parse)
+    (setq wisi-parser 'elisp))
+  )
 
 (unless (featurep 'ada-xref-tool)
   (cl-case ada-xref-tool

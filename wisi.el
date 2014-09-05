@@ -152,7 +152,7 @@
 ;;; Code:
 
 (require 'cl-lib)
-(require 'wisi-parse)
+(require 'wisi-parse-common)
 
 ;; WORKAROUND: for some reason, this condition doesn't work in batch mode!
 ;; (when (and (= emacs-major-version 24)
@@ -523,6 +523,19 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
     (message "parse succeeded"))
    ))
 
+(defvar wisi-parser 'elisp
+  "Choice of wisi parser implementation; 'elisp or 'ada.
+'ada uses external program ada_mode_wisi_parse.")
+
+(defun wisi-parse-current ()
+  "Parse current buffer. Parser used is given by `wisi-parser'."
+  (cl-ecase wisi-parser
+    (elisp
+     (wisi-parse wisi-parse-table 'wisi-forward-token))
+    (ada
+     (wisi-ada-parse))
+    ))
+
 (defun wisi-validate-cache (pos)
   "Ensure cached data is valid at least up to POS in current buffer."
   (let ((msg (when (> wisi-debug 0) (format "wisi: parsing %s:%d ..." (buffer-name) (line-number-at-pos pos)))))
@@ -539,14 +552,14 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
 	(if (> wisi-debug 1)
 	    ;; let debugger stop in wisi-parse
 	    (progn
-	      (wisi-parse wisi-parse-table 'wisi-forward-token)
+	      (wisi-parse-current)
 	      (setq wisi-cache-max (point))
 	      (setq wisi-parse-failed nil))
 
 	  ;; else capture errors from bad syntax, so higher level functions can try to continue
 	  (condition-case err
 	      (progn
-		(wisi-parse wisi-parse-table 'wisi-forward-token)
+		(wisi-parse-current)
 		(setq wisi-cache-max (point))
 		(setq wisi-parse-failed nil))
 	    (wisi-parse-error

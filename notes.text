@@ -48,6 +48,7 @@ install packages in -Q:
         build/wisi/ada_mode_wisi_parse.gpr
         time gprbuild -p ada_mode_wisi_parse_agg.gpr run_ada_parser.adb
         -g -01 -fno-var-tracking-assignments 1m38.109s
+        -g -00 -fno-var-tracking-assignments much faster
 
     philippe.waroquiers@eurocontrol.int has a file that takes 10 seconds to parse with Emacs Ada mode 5.1.4
         needs to be < 1 second
@@ -68,11 +69,18 @@ install packages in -Q:
         fast enough?
 
     integrate to ada-mode
-        write ada_mode_wisi_parse.adb
+        (setq wisi-ada-parse-exec "c:/Projects/org.emacs.ada-mode.stephe-1/build/wisi/ada_mode_wisi_parse.exe")
+        (setq wisi-parser 'elisp)
+        (setq wisi-parser 'ada)
+        (setq wisi-ada-parse-exec-opts "")
+        (setq wisi-ada-parse-debug 1)
+        (setq wisi-ada-parse-debug 0)
 
-        add choice in wisi-validate-cache, handle output
+        test/debug.adb works
 
         time wisi-parse-buffer
+            change ada_grammar back to -O2?
+
         use gprof to find bottleneck
 
     implement wisi actions in Ada?
@@ -582,6 +590,8 @@ bump version
         ada-mode-version
     ada-mode.texi
         Ada Mode Version
+    ada_mode_wisi_parse.adb
+        Version
     README
         first line
     build/Makefile
