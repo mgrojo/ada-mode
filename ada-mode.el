@@ -310,31 +310,20 @@ Values defined by cross reference packages.")
 
 ;;;; keymap and menus
 
-(defvar ada-ret-binding nil)
-(defvar ada-lfd-binding nil)
+(defvar ada-ret-binding 'ada-indent-newline-indent)
+(defvar ada-lfd-binding 'newline-and-indent)
 
-(defun ada-case-activate-keys ()
+(defun ada-case-activate-keys (map)
   "Modify the key bindings for all the keys that should adjust casing."
-  (interactive)
-  ;; We can't use post-self-insert-hook for \n, \r, because they are
-  ;; not self-insert.
-
-  ;; The 'or ...' is there to be sure that the value will not be
-  ;; changed again when this is called more than once, since we
-  ;; are rebinding the keys.
-  (or ada-ret-binding (setq ada-ret-binding (key-binding "\C-M")))
-  (or ada-lfd-binding (setq ada-lfd-binding (key-binding "\C-j")))
-
+  ;; we could just put these in the keymap below, but this is easier.
   (mapc (function
 	 (lambda(key)
 	   (define-key
-	     ada-mode-map
+	     map
 	     (char-to-string key)
 	     'ada-case-adjust-interactive)))
 	'( ?_ ?% ?& ?* ?( ?) ?- ?= ?+
 	      ?| ?\; ?: ?' ?\" ?< ?, ?. ?> ?/ ?\n 32 ?\r ))
-
-  (define-key ada-mode-map [return] 'ada-case-adjust-interactive)
   )
 
 (defvar ada-mode-map
@@ -342,7 +331,7 @@ Values defined by cross reference packages.")
     ;; C-c <letter> are reserved for users
 
     ;; global-map has C-x ` 'next-error
-    (define-key map [return] 	 'ada-indent-newline-indent)
+    (define-key map [return] 	 'ada-case-adjust-interactive)
     (define-key map "\C-c`" 	 'ada-show-secondary-error)
     (define-key map "\C-c;"      (lambda () (error "use M-; instead"))) ; comment-dwim
     (define-key map "\C-c<" 	 'ada-goto-declaration-start)
@@ -374,6 +363,8 @@ Values defined by cross reference packages.")
     (define-key map "\C-c\C-y" 	 'ada-case-create-exception)
     (define-key map "\C-c\M-y"   'ada-case-create-partial-exception)
     (define-key map [C-down-mouse-3] 'ada-popup-menu)
+
+    (ada-case-activate-keys map)
 
     map
   )  "Local keymap used for Ada mode.")
@@ -445,7 +436,6 @@ Values defined by cross reference packages.")
      ["Refresh cross reference cache" ada-xref-refresh             t]
      ["Reset parser"                  ada-reset-parser             t]
      )))
-(ada-case-activate-keys)
 
 ;; This doesn't need to be buffer-local because there can be only one
 ;; popup menu at a time.

@@ -42,6 +42,9 @@ install packages in -Q:
     build/Makefile
     doc changes in NEWS-ada-mode.text NEWS-wisi.text
 
+    fix wisi-compile.el needing comp.el, not comp.elc
+        some systems don't install emacs source by default
+
     c:/Projects/org.opentoken.stephe/build/debug/Makefile
 
     compiling ada_grammar.adb is slow:

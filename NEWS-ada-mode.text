@@ -14,6 +14,8 @@ Please send Emacs Ada mode bug reports to bug-gnu-emacs@gnu.org, with
 
 ** fix ada-format-paramlist to handle 'aliased' keyword (new in Ada 2012)
 
+** restore ada-indent-newline-indent for [return]
+
 * Ada mode 5.1.5
 12 Jul 2014
 
