@@ -8,9 +8,10 @@
 ^build/debug/.*\.diff$
 ^build/debug/.*\.el$
 ^build/debug/.*\.exe$
-^build/debug/.*\.parse_table$
 ^build/debug/.*\.out$
 ^build/debug/.*\.parse$
+^build/debug/.*\.parse_table$
+^build/debug/.*\.text$
 ^build/debug/.*\.txt$
 ^build/debug/lib$
 ^build/debug/obj$
@@ -26,9 +27,9 @@
 ^build/release/.*\.diff$
 ^build/release/.*\.el$
 ^build/release/.*\.exe$
-^build/release/.*\.parse_table$
 ^build/release/.*\.out$
 ^build/release/.*\.parse$
+^build/release/.*\.parse_table$
 ^build/release/.*\.txt$
 ^build/release/lib$
 ^build/release/lib-obj$

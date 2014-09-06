@@ -42,6 +42,8 @@ package OpenToken.Text_Feeder.Counted_GNAT_OS_Lib is
    overriding function End_Of_Text (Feeder : in Instance) return Boolean;
    --  Returns True after Max_Bytes has been read, or the .
 
+   procedure Discard_Rest_Of_Input (Feeder : in out Instance);
+
 private
 
    type Instance is new OpenToken.Text_Feeder.Instance with record

@@ -41,7 +41,9 @@ is
 
    EOI_Image              : constant String := "EOF_ID";
    OpenToken_Accept_Image : constant String := "OPENTOKEN_ACCEPT_ID";
-   First_State_Index      : constant        := 1;
+
+   First_State_Index : constant := 0;
+   --  Match wisi-output_elisp.adb, to allow comparing parse traces.
 
    function To_Token_Image (Item : in Ada.Strings.Unbounded.Unbounded_String) return String
    is begin

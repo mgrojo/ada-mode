@@ -58,9 +58,9 @@ package OpenToken is
    --  Similarly, this is independent of OS
    EOF_Character : constant Character := Ada.Characters.Latin_1.EOT;
 
-   --  The maximum length of a token. Token.Analizer.Get_More_Text
-   --  should return no more than this many characters minus the
-   --  largest reasonable token string. Tune it up if it bugs you.
+   --  The maximum length of some things.
+   --  FIXME: currently only used in recognizers.string (directly), keyword, separator (via Buffers)
+   --  Add independent lengths to those in Get, with more reasonable defaults
    Max_String_Length : constant := 1024;
 
    package Buffers is new Ada.Strings.Bounded.Generic_Bounded_Length (Max_String_Length);

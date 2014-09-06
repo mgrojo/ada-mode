@@ -71,7 +71,8 @@ package OpenToken.Token.Enumerated.Analyzer is
    subtype Syntax_ID is Token_ID range Token_ID'First .. Last_Terminal;
    type Syntax is array (Syntax_ID) of Recognizable_Token;
 
-   type Instance is new Source with private;
+   type Instance (Max_Buffer_Size : Integer) is new Source with private;
+   type Handle is access all Instance;
 
    --  Need to revisit token definitions or raise Max_String_Length
    Token_Too_Long : exception;
@@ -95,13 +96,15 @@ package OpenToken.Token.Enumerated.Analyzer is
    ----------------------------------------------------------------------------
    function Initialize
      (Language_Syntax : in Syntax;
-      Feeder          : in OpenToken.Text_Feeder.Text_Feeder_Ptr := null)
-     return Instance;
+      Feeder          : in OpenToken.Text_Feeder.Text_Feeder_Ptr := null;
+      Max_Buffer_Size : in Integer                               := 1024)
+     return Handle;
    function Initialize
      (Language_Syntax : in Syntax;
       Default         : in Terminal_ID;
-      Feeder          : in OpenToken.Text_Feeder.Text_Feeder_Ptr := null)
-     return Instance;
+      Feeder          : in OpenToken.Text_Feeder.Text_Feeder_Ptr := null;
+      Max_Buffer_Size : in Integer                               := 1024)
+     return Handle;
 
    ----------------------------------------------------------------------
    --  Return name of ID token in Analyzer.Syntax
@@ -254,7 +257,7 @@ private
 
    --  Put all the Analyzer's state information in here, so there can
    --  be several Analyzers running at once.
-   type Instance is new Source with record
+   type Instance (Max_Buffer_Size : Integer) is new Source with record
       --  User-settable attributes
       Syntax_List   : Syntax;
       Has_Default   : Boolean := False;
@@ -271,7 +274,7 @@ private
       Read_From_Lookahead : Boolean;
 
       --  Internal state information
-      Buffer                 : String (1 .. Max_String_Length);
+      Buffer                 : String (1 .. Max_Buffer_Size);
       Buffer_Head            : Natural := 1;
       Buffer_Tail            : Natural := 0;
       Buffer_Size            : Natural := 0;

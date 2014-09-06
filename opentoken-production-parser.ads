@@ -25,13 +25,12 @@
 --
 -------------------------------------------------------------------------------
 
-with OpenToken.Token.Enumerated.Analyzer;
-
 -------------------------------------------------------------------------------
 --  This package provides an interface for a parser for grammars defined by a
 --  production list. There are many possible different methods for parsing.
 -------------------------------------------------------------------------------
 with OpenToken.Text_Feeder;
+with OpenToken.Token.Enumerated.Analyzer;
 generic
    with package Tokenizer is new Token.Analyzer;
 package OpenToken.Production.Parser is
@@ -39,7 +38,7 @@ package OpenToken.Production.Parser is
    subtype Nonterminal_ID is Token.Token_ID range Token.Token_ID'Succ (Token.Last_Terminal) .. Token.Token_ID'Last;
 
    type Instance is abstract tagged record
-      Analyzer : Tokenizer.Instance;
+      Analyzer : Tokenizer.Handle;
    end record;
 
    ----------------------------------------------------------------------------

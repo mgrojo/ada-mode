@@ -38,7 +38,7 @@ package OpenToken.Production.Parser.LALR.Parser is
    end record;
 
    function Initialize
-     (Analyzer             : in Tokenizer.Instance;
+     (Analyzer             : in Tokenizer.Handle;
       Table                : in Parse_Table_Ptr;
       Max_Parallel         : in Integer   := 15;
       Terminate_Same_State : in Boolean   := False)

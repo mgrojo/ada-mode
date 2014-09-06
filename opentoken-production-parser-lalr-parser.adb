@@ -92,13 +92,13 @@ package body OpenToken.Production.Parser.LALR.Parser is
       end;
    end Expecting;
 
-   function Names (Analyzer : in Tokenizer.Instance; Tokens : in Token_Array) return String
+   function Names (Analyzer : in Tokenizer.Handle; Tokens : in Token_Array) return String
    is
       use Ada.Strings.Unbounded;
       Result : Unbounded_String;
    begin
       for I in Tokens'Range loop
-         Result := Result & "'" & Tokenizer.Name (Analyzer, Tokens (I));
+         Result := Result & "'" & Analyzer.Name (Tokens (I));
          if I = Tokens'Last then
             Result := Result & "'";
          else
@@ -151,7 +151,7 @@ package body OpenToken.Production.Parser.LALR.Parser is
          Ada.Text_IO.Put
            (Integer'Image (Current_Parser.Label) & ": " &
               State_Image (Current_Parser.Peek.State) & ": " &
-              Token.Token_Image (Token.ID (Current_Token.all)) & " : ");
+              Current_Token.Image & " : ");
          Put (Action);
          Ada.Text_IO.New_Line;
       end if;
@@ -291,7 +291,7 @@ package body OpenToken.Production.Parser.LALR.Parser is
 
          case Current_Verb is
          when Shift =>
-            Tokenizer.Find_Next (Parser.Analyzer);
+            Parser.Analyzer.Find_Next;
             Token.Free (Current_Token);
             Current_Token := new Token.Class'(Token.Class (Parser.Analyzer.Get));
 
@@ -319,16 +319,9 @@ package body OpenToken.Production.Parser.LALR.Parser is
             begin
                --  FIXME: free everything
                raise Syntax_Error with
-                 Int_Image (Parser.Analyzer.Line) &
-                 ":" &
-                 Int_Image (Parser.Analyzer.Column) &
-                 ": Syntax error; expecting " &
-                 Names (Parser.Analyzer, Expecting_Tokens) &
-                 "; found " &
-                 ID &
-                 " '" &
-                 Lexeme &
-                 "'";
+                 Int_Image (Parser.Analyzer.Line) & ":" & Int_Image (Parser.Analyzer.Column) &
+                 ": Syntax error; expecting " & Names (Parser.Analyzer, Expecting_Tokens) &
+                 "; found " & ID & " '" & Lexeme & "'";
             end;
 
          end case;
@@ -404,7 +397,7 @@ package body OpenToken.Production.Parser.LALR.Parser is
    end Parse;
 
    function Initialize
-     (Analyzer             : in Tokenizer.Instance;
+     (Analyzer             : in Tokenizer.Handle;
       Table                : in Parse_Table_Ptr;
       Max_Parallel         : in Integer := 15;
       Terminate_Same_State : in Boolean := False)
