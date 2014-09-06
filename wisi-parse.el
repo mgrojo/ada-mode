@@ -63,14 +63,6 @@ point at which that max was spawned.")
   ;; list of (action-symbol stack-fragment)
   )
 
-(defvar wisi-parse-error nil)
-(put 'wisi-parse-error
-     'error-conditions
-     '(error wisi-parse-error))
-(put 'wisi-parse-error
-     'error-message
-     "wisi parse error")
-
 (defun wisi-parse (automaton lexer)
   "Parse current buffer from bob using the automaton specified in AUTOMATON.
 
@@ -189,11 +181,11 @@ point at which that max was spawned.")
 
 		(1
 		 (setf (wisi-parser-state-active parser-state) nil); Don't save error for later.
-		 (wisi-execute-pending (wisi-parser-state-pending
-					(aref parser-states (wisi-active-parser parser-states))))
-		 (setf (wisi-parser-state-pending
-			(aref parser-states (wisi-active-parser parser-states)))
-		       nil))
+		 (let ((parser-state (aref parser-states (wisi-active-parser parser-states))))
+		   (wisi-execute-pending (wisi-parser-state-label parser-state)
+					 (wisi-parser-state-pending parser-state))
+		   (setf (wisi-parser-state-pending parser-state) nil)
+		   ))
 		(t
 		 ;; We were in a parallel parse, and this parser
 		 ;; failed; mark it inactive, don't save error for
@@ -316,7 +308,7 @@ nil, 'shift, or 'accept."
 	      (dotimes (stack-i (wisi-parser-state-sp (aref parser-states parser-i)))
 		(setq
 		 compare
-		 (and compare
+		 (and compare ;; bypass expensive 'arefs' after first stack item compare fail
 		      (equal (aref (wisi-parser-state-stack (aref parser-states parser-i)) stack-i)
 			     (aref (wisi-parser-state-stack (aref parser-states (+ parser-i parser-j 1))) stack-i)))))
 	      (when compare
@@ -325,18 +317,19 @@ nil, 'shift, or 'accept."
 		(when (> wisi-debug 1)
 		  (message "terminate identical parser %d (%d active)"
 			   (+ parser-i parser-j 1) active-parser-count))
+		(setf (wisi-parser-state-active (aref parser-states (+ parser-i parser-j 1))) nil))
 		(when (= active-parser-count 1)
 		  ;; the actions for the two parsers are not
 		  ;; identical, but either is good enough for
-		  ;; indentation and navigation, so we just do one.
-		  (when (> wisi-debug 1) (message "executing actions for %d" (+ parser-i parser-j 1)))
-		  (wisi-execute-pending (wisi-parser-state-pending (aref parser-states (+ parser-i parser-j 1))))
-		  (setf (wisi-parser-state-pending (aref parser-states (+ parser-i parser-j 1))) nil)
-
-		  ;; clear pending of other parser so it can be reused
+		  ;; indentation and navigation, so we just do the
+		  ;; actions for the one that is not terminating.
+		  (let ((parser-state (aref parser-states parser-i)))
+		    (wisi-execute-pending (wisi-parser-state-label parser-state)
+					  (wisi-parser-state-pending parser-state))
+		    (setf (wisi-parser-state-pending parser-state) nil)
+		    )
 		  (setf (wisi-parser-state-pending (aref parser-states parser-i)) nil))
 
-		(setf (wisi-parser-state-active (aref parser-states (+ parser-i parser-j 1))) nil))
 	      )))
 	)))
   active-parser-count)
@@ -362,10 +355,11 @@ nil, 'shift, or 'accept."
       (funcall func tokens)
 
     (when (> wisi-debug 1)
-      (message "... action skipped"))
+      (message "... action skipped; before wisi-cache-max"))
     ))
 
-(defun wisi-execute-pending (pending)
+(defun wisi-execute-pending (parser-label pending)
+  (when (> wisi-debug 1) (message "%d: pending actions:" parser-label))
   (while pending
     (when (> wisi-debug 1) (message "%s" (car pending)))
 

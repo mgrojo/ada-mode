@@ -38,5 +38,13 @@
        line col
        (apply 'format message args))))
 
+(defvar wisi-parse-error nil)
+(put 'wisi-parse-error
+     'error-conditions
+     '(error wisi-parse-error))
+(put 'wisi-parse-error
+     'error-message
+     "wisi parse error")
+
 
 (provide 'wisi-parse-common)

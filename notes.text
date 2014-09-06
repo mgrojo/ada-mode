@@ -73,15 +73,97 @@ install packages in -Q:
 
     integrate to ada-mode
         (setq wisi-ada-parse-exec "c:/Projects/org.emacs.ada-mode.stephe-1/build/wisi/ada_mode_wisi_parse.exe")
+        build/wisi/Makefile
+        (require 'wisi-parse)
+        (require 'wisi-ada-parse)
         (setq wisi-parser 'elisp)
         (setq wisi-parser 'ada)
-        (setq wisi-ada-parse-exec-opts "")
+        (setq wisi-ada-parse-exec-opts "-v")
         (setq wisi-ada-parse-debug 1)
         (setq wisi-ada-parse-debug 0)
+        (setq wisi-debug 2)
+        (setq wisi-debug 0)
 
-        test/debug.adb works
+        syntax errors crash ada_mode_wisi_parse
+            try to duplicate in commands_1.text
+            syntax error at 1112
+                no crash
+
+            same Ada text in test/debug_1.adb => crash
+                enable -v
+                hangs, lose output showing cause
+
+            text file byte count should be different than (1- (point-max)), due to line endings
+                but it's not in commands_1.text
+                process_send_string does eol conversion
+                => first read of 1024 ends in same place as when run from Makefile
+
+            handle bad command length nicer
+                still hangs!
+
+            byte count off by one
+                in file test, bad command length loops on no input
+
+                in buffer test, counted_gnat_os_lib never returns eof, so should just wait for more input
+                    should be cancelable via C-g
+                    but it's not (sigh); some other bug?
+
+
+        wisi-parse-buffer hangs, ctrl-g can't break it
+            only in:
+                larger buffer
+                with syntax error that causes discarded text
+                    followed by constraint_error in command_length 'Value (due to wrong discard count?)
+                    (see above for attempts to fix)
+
+            hangs in process-send-string
+
+            kill background process
+                in task manager, not in resource monitor process list (nor cygwin; windows process)
+                => Process  *ada_mode_wisi_parse* exited abnormally with code 256
+
+            c:/Projects/org.opentoken.stephe/wisi/wisi-output_ada_emacs.adb
+            c:/Projects/org.emacs.ada-mode.stephe-1/ada_mode_wisi_parse.adb
+
+            dead lock?
+                emacs sending text to ada, ada sending actions to emacs, both IO queues full
+                process.c says that should be taken care of, depending on ifdef EWOULDBLOCK
+                process-send-string says "sent in bunches if > 500"
+                    maybe it means "by OS send"; not in process.c
+
+                add loop in send-parse to include accept-process-input
+                    no help
+
+
+            developer list says it's a bug; "please run debugger"
+                report it, create simple reproducer
+                    stick with Ada; it's a gnu language :)
+                    but is gnat_os_lib in fsf distro?
+                    may be related to http://debbugs.gnu.org/cgi/bugreport.cgi?bug=18396
+
+                try to compile emacs to run under debugger.
+                use pretest (or emacs 24 branch?)
+
+
+
+        error msg needs file name prepended
+
+        bogus syntax errors from ada_mode_wisi_parse
+            c:/Projects/org.emacs.ada-mode.stephe-1/ada_mode_wisi_parse.adb
+                fixed bug in counted_gnat_os_lib.end_of_file
+                now wisi-parser 'ada fails for other reasons (sigh)
+
+            c:/Projects/org.opentoken.stephe/wisi/wisi-output_ada_emacs.adb
+                still syntax error at 735:1, in last chunk (discarded 0)
+
+        test/debug.adb still broken?
 
         time wisi-parse-buffer
+            (progn
+                (wisi-invalidate-cache)
+                (time-it 'wisi-parse-buffer 1))
+
+            test/debug.adb
             change ada_grammar back to -O2?
 
         use gprof to find bottleneck

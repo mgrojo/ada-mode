@@ -60,7 +60,9 @@
     (with-current-buffer (wisi-ada-parse--session-buffer wisi-ada-parse-session)
       (erase-buffer); delete any previous messages, prompt
       (setf (wisi-ada-parse--session-process wisi-ada-parse-session)
-	    (start-process wisi-ada-parse-buffer-name (current-buffer) exec-file wisi-ada-parse-exec-opts))
+	    (if wisi-ada-parse-exec-opts
+		(start-process wisi-ada-parse-buffer-name (current-buffer) exec-file wisi-ada-parse-exec-opts)
+	      (start-process wisi-ada-parse-buffer-name (current-buffer) exec-file)))
       (set-process-query-on-exit-flag (wisi-ada-parse--session-process wisi-ada-parse-session) nil)
       ;; FIXME: check protocol and version numbers?
       (wisi-ada-parse-session-wait)
@@ -112,16 +114,32 @@
   (wisi-ada-parse-require-session)
 
   ;; ada_mode_wisi_parse can't handle non-ASCII, so we don't need string-bytes here.
-  (let* ((byte-count-img (format "%d" (point-max)))
+  (let* ((buf-string (buffer-substring-no-properties (point-min) (point-max)))
+	 (byte-count-img (format "%d" (1- (length buf-string))))
 	 (cmd (concat "parse " byte-count-img))
 	 (msg (format "%02d%s" (length cmd) cmd))
 	 (process (wisi-ada-parse--session-process wisi-ada-parse-session)))
     (when (> wisi-ada-parse-debug 0)
+      (wisi-ada-parse-show-buffer)
       (message msg))
     (with-current-buffer (wisi-ada-parse--session-buffer wisi-ada-parse-session)
       (erase-buffer))
     (process-send-string process msg)
-    (process-send-string process (buffer-substring-no-properties (point-min) (point-max)))
+
+    ;; WORKAROUND: process-send-string is supposed to allow accepting
+    ;; process output while writing to process input, but apparently
+    ;; it doesn't, at least on windows via pipes. So break up
+    ;; buf-string, and call accept-process-output explicitly
+    (let ((bytes-per-cycle 2047)
+	  (bytes-to-send (length buf-string))
+	  (first 0)
+	  (last 0))
+      (while (< last bytes-to-send)
+	(setq last (min bytes-to-send (+ first bytes-per-cycle)))
+	(message "%d" last)
+	(process-send-string process (substring buf-string first last))
+	(setq first (1+ last))
+	(accept-process-output process 0.1)))
     (wisi-ada-parse-session-wait)
     ))
 

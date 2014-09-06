@@ -17,7 +17,7 @@
 --  MA 02110-1335, USA.
 
 pragma License (GPL);
-
+with Ada.Command_Line;
 with Ada.Exceptions;
 with Ada.Strings.Fixed;
 with Ada.Text_IO; use Ada.Text_IO;
@@ -35,6 +35,9 @@ is
    procedure Usage
    is
    begin
+      Put_Line ("usage: ada_mode_wisi_parse [-v]");
+      Put_Line ("-v : enable parse trace output (will screw up Emacs eval)");
+      Put_Line ("enters a loop waiting for commands:");
       Put_Line ("Prompt is '" & Prompt & "'");
       Put_Line ("commands are case sensitive");
       Put_Line ("each command starts with a two-character decimal count of bytes in command");
@@ -61,11 +64,21 @@ is
       Temp       : aliased String (1 .. 2) := "  ";
       Read_Bytes : constant Integer        := GNAT.OS_Lib.Read (GNAT.OS_Lib.Standin, Temp'Address, 2);
    begin
-      if Read_Bytes /= 2 then
-         raise Programmer_Error with "2 bytes of command byte count not provided; got" &
-           Integer'Image (Read_Bytes) & "'" & Temp & "'";
-      end if;
-      return Integer'Value (Temp);
+      case Read_Bytes is
+      when 2 =>
+         return Integer'Value (Temp);
+      when 0 =>
+         --  Can only happen in a test case when standin is redirected
+         --  to a file; indicates end of file.
+         --
+         --  If standin is a pipe (normal case), the read will block
+         --  when there is no input.
+         raise Ada.Text_IO.End_Error;
+
+      when others =>
+         --  Probably a wrong byte count in the parse command; try again.
+         raise Constraint_Error with "'" & Temp (1 .. Read_Bytes) & "'";
+      end case;
    end Get_Command_Length;
 
    function Get_Integer
@@ -75,7 +88,7 @@ is
    is
       use Ada.Exceptions;
       use Ada.Strings.Fixed;
-      First : constant Integer := Last + 2;
+      First : constant Integer := Last + 2; -- skip leading space
    begin
       Last := Index
         (Source  => Source,
@@ -98,66 +111,99 @@ is
    end Get_Integer;
 
 begin
+   declare
+      use Ada.Command_Line;
+   begin
+      case Argument_Count is
+      when 0 =>
+         null;
+
+      when 1 =>
+         if Argument (1) = "-v" then
+            OpenToken.Trace_Parse := True;
+         else
+            raise Programmer_Error with "invalid option: " & Argument (1);
+         end if;
+
+      when others =>
+         raise Programmer_Error with "invalid option count: " & Integer'Image (Argument_Count);
+      end case;
+   end;
+
    Put_Line ("ada_mode_wisi_parse " & Version & ", protocol version " & Protocol_Version);
 
    --  read commands from standard_input via GNAT.OS_Lib, send results to standard_output.
    loop
       Put (Prompt); Flush;
       declare
-         use Ada.Strings.Fixed;
-         Command_Length : constant Integer := Get_Command_Length;
-         Command_Line   : aliased String (1 .. Command_Length);
-
-         Read_Bytes : constant Integer := GNAT.OS_Lib.Read (GNAT.OS_Lib.Standin, Command_Line'Address, Command_Length);
-
-         Last : Integer := Index (Source => Command_Line, Pattern => " ");
-
-         function Match (Target : in String) return Boolean
-         is begin
-            Last := Command_Line'First + Target'Length - 1;
-            return Command_Line (Command_Line'First .. Last) = Target;
-         end Match;
+         Command_Length : Integer;
       begin
-         if Read_Bytes /= Command_Length then
-            raise Programmer_Error with
-              "Read_Bytes" & Integer'Image (Read_Bytes) & " /= Command_Length" & Integer'Image (Command_Length);
-         end if;
+         Command_Length := Get_Command_Length;
+         declare
+            use Ada.Strings.Fixed;
+            Command_Line   : aliased String (1 .. Command_Length);
 
-         if Last = 0 then
-            Last := Command_Line'Last;
-         else
-            Last := Last - 1;
-         end if;
+            Read_Bytes : constant Integer := GNAT.OS_Lib.Read
+              (GNAT.OS_Lib.Standin, Command_Line'Address, Command_Length);
 
-         Put_Line (";; " & Command_Line);
+            Last : Integer;
 
-         if Match ("parse") then
-            --  Args: <byte_count>
-            --  Input: <text_line>...
-            --  Response:
-            --  [wisi action lisp forms]
-            --  [error form]
-            --  prompt
-            declare
-               Byte_Count : constant Integer := Get_Integer (Command_Line, Last);
-            begin
-               OpenToken.Text_Feeder.Counted_GNAT_OS_Lib.Instance (Parser.Analyzer.Feeder.all).Reset (Byte_Count);
-               Parser.Analyzer.Reset;
-               Parser.Parse;
-            exception
-            when E : OpenToken.Parse_Error | OpenToken.Syntax_Error =>
-               Put_Line ("(signal 'wisi-parse-error """ & Ada.Exceptions.Exception_Message (E) & """)");
-               --  FIXME: read and discard rest of input text
-            end;
+            function Match (Target : in String) return Boolean
+            is begin
+               Last := Command_Line'First + Target'Length - 1;
+               return Last <= Command_Line'Last and then Command_Line (Command_Line'First .. Last) = Target;
+            end Match;
+         begin
+            if Read_Bytes /= Command_Length then
+               raise Programmer_Error with
+                 "Read_Bytes" & Integer'Image (Read_Bytes) & " /= Command_Length" & Integer'Image (Command_Length);
+            end if;
 
-         elsif Match ("quit") then
-            --  Args:
-            exit;
-         else
-            --  Not elisp comments, so errors are generated and the problem is noticed.
-            Put_Line ("bad command: '" & Command_Line & "'");
-            Usage;
-         end if;
+            Put_Line (";; " & Command_Line);
+
+            if Match ("parse") then
+               --  Args: <byte_count>
+               --  Input: <text_line>...
+               --  Response:
+               --  [wisi action lisp forms]
+               --  [error form]
+               --  prompt
+               declare
+                  Byte_Count : constant Integer := Get_Integer (Command_Line, Last);
+                  Feeder : OpenToken.Text_Feeder.Counted_GNAT_OS_Lib.Instance renames
+                    OpenToken.Text_Feeder.Counted_GNAT_OS_Lib.Instance (Parser.Analyzer.Feeder.all);
+               begin
+                  Feeder.Reset (Byte_Count);
+                  Parser.Analyzer.Reset;
+                  Parser.Parse;
+               exception
+               when E : OpenToken.Parse_Error | OpenToken.Syntax_Error =>
+                  Put_Line ("(signal 'wisi-parse-error """ & Ada.Exceptions.Exception_Message (E) & """)");
+                  Feeder.Discard_Rest_Of_Input;
+               end;
+
+            elsif Match ("quit") then
+               --  Args:
+               exit;
+            else
+               --  Not elisp comments, so errors are generated and the problem is noticed.
+               Put_Line ("bad command: '" & Command_Line & "'");
+               Usage;
+            end if;
+         end;
+      exception
+      when E : Constraint_Error =>
+         --  from get_command_length
+         Put_Line ("bad command length: " & Ada.Exceptions.Exception_Message (E));
       end;
    end loop;
+exception
+when End_Error =>
+   null;
+
+when E : others =>
+   Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
+   New_Line (2);
+   Put_Line
+     ("unhandled exception: " & Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E));
 end Ada_Mode_Wisi_Parse;
