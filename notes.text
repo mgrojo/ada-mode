@@ -42,6 +42,9 @@ install packages in -Q:
     build/Makefile
     doc changes in NEWS-ada-mode.text NEWS-wisi.text
 
+    fix wisi-compile.el needing comp.el, not comp.elc
+        some systems don't install emacs source by default
+
     handle all indent options like ada-case-strict
         need case-strict, ada-indent prj-wide for aflex
         need case-strict buffer-local for ada-mode ada_tokens
