@@ -26,6 +26,7 @@ with Ada.Text_IO;
 with OpenToken.Production.List.Print;
 with OpenToken.Production.Parser.LALR.Generator;
 with OpenToken.Production.Parser.LALR.Parser;
+with OpenToken.Production.Parser.LALR.Parser_Lists;
 with OpenToken.Production.Print;
 with OpenToken.Recognizer.Character_Set;
 with OpenToken.Recognizer.End_Of_File;
@@ -156,10 +157,11 @@ package body Test_Token_Identifier_Real_String is
    package OpenToken_Parser is new Production.Parser (Tokenizer);
    package LALRs is new OpenToken_Parser.LALR (First_State_Index => 1);
    package LALR_Generators is new LALRs.Generator (Token_ID_Type'Width, Production_List);
-   package LALR_Parsers is new LALRs.Parser;
+   package Parser_Lists is new LALRs.Parser_Lists;
+   package LALR_Parsers is new LALRs.Parser (Parser_Lists);
 
    String_Feeder : aliased OpenToken.Text_Feeder.String.Instance;
-   An_Analyzer   : constant Tokenizer.Instance := Tokenizer.Initialize (Syntax);
+   An_Analyzer   : constant Tokenizer.Handle := Tokenizer.Initialize (Syntax);
    Parser        : LALR_Parsers.Instance;
 
    procedure Print_Action (Action : in Nonterminal.Synthesize)

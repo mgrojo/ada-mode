@@ -11,6 +11,8 @@ procedure Multi_Conflict_Run is new Gen_Parser_Run
    Multi_Conflict.Nonterminals,
    Multi_Conflict.Productions,
    Multi_Conflict.Parsers,
+   Multi_Conflict.First_State_Index,
    Multi_Conflict.LALRs,
+   Multi_Conflict.Parser_Lists,
    Multi_Conflict.LALR_Parsers,
    Multi_Conflict.Create_Parser);

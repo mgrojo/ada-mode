@@ -33,6 +33,7 @@
 with OpenToken.Production.List;
 with OpenToken.Production.Parser.LALR.Generator;
 with OpenToken.Production.Parser.LALR.Parser;
+with OpenToken.Production.Parser.LALR.Parser_Lists;
 with OpenToken.Recognizer.Character_Set;
 with OpenToken.Recognizer.End_Of_File;
 with OpenToken.Recognizer.Integer;
@@ -59,7 +60,8 @@ package ASU_Example_5_10_LR is
    package Parser is new Production.Parser (Tokenizer);
    package LALR is new Parser.LALR (First_State_Index => 1);
    package LALR_Generator is new LALR.Generator (Token_IDs'Width, Production_List);
-   package LALR_Parser is new LALR.Parser;
+   package Parser_Lists is new LALR.Parser_Lists;
+   package LALR_Parser is new LALR.Parser (Parser_Lists);
 
    --  Instantiate our tokens
    package Integer_Literal is new Master_Token.Integer;
@@ -96,7 +98,7 @@ package ASU_Example_5_10_LR is
            (OpenToken.Recognizer.Character_Set.Standard_Whitespace)));
 
    Feeder   : aliased OpenToken.Text_Feeder.String.Instance;
-   Analyzer : Tokenizer.Instance := Tokenizer.Initialize (Syntax, Feeder'Access);
+   Analyzer : constant Tokenizer.Handle := Tokenizer.Initialize (Syntax, Feeder'Access);
 
    --------------------------------------------------------------------------
    --  Define the Grammar. The text in the example in the book looks something

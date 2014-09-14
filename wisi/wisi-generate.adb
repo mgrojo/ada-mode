@@ -47,23 +47,25 @@ is
       Put_Line ("   level 0 - only error messages to standard error");
       Put_Line ("   level 1 - add compiled grammar output to standard out");
       Put_Line ("   level 2 - add diagnostics to standard out, ignore unused tokens, unknown conflicts");
+      Put_Line ("--first_state_index <n>; default 0");
    end Put_Usage;
 
    type Output_Language_Type is (Ada_Emacs, Elisp, Test);
 
    Output_Language : Output_Language_Type;
 
-   Input_File_Name  : Standard.Ada.Strings.Unbounded.Unbounded_String;
-   Input_File       : Standard.Ada.Text_IO.File_Type;
-   Output_File_Root : Standard.Ada.Strings.Unbounded.Unbounded_String;
-   Prologue         : String_Lists.List;
-   Keywords         : String_Pair_Lists.List;
-   Tokens           : Token_Lists.List;
-   Start_Token      : Standard.Ada.Strings.Unbounded.Unbounded_String;
-   Conflicts        : Conflict_Lists.List;
-   Rules            : Rule_Lists.List;
-   Rule_Count       : Integer;
-   Action_Count     : Integer;
+   Input_File_Name   : Standard.Ada.Strings.Unbounded.Unbounded_String;
+   Input_File        : Standard.Ada.Text_IO.File_Type;
+   Output_File_Root  : Standard.Ada.Strings.Unbounded.Unbounded_String;
+   Prologue          : String_Lists.List;
+   Keywords          : String_Pair_Lists.List;
+   Tokens            : Token_Lists.List;
+   Start_Token       : Standard.Ada.Strings.Unbounded.Unbounded_String;
+   Conflicts         : Conflict_Lists.List;
+   Rules             : Rule_Lists.List;
+   Rule_Count        : Integer;
+   Action_Count      : Integer;
+   First_State_Index : Integer := 0; -- default
 
    procedure Use_Input_File (File_Name : in String)
    is
@@ -95,15 +97,19 @@ begin
          exit when Options_Done;
          if Argument (Arg_Next)(1) /= '-' then
             Options_Done := True;
-         else
-            if Argument (Arg_Next) = "-v" then
-               Arg_Next  := Arg_Next + 1;
-               Verbosity := Integer'Value (Argument (Arg_Next));
-               Arg_Next  := Arg_Next + 1;
 
-            else
-               raise User_Error;
-            end if;
+         elsif Argument (Arg_Next) = "-v" then
+            Arg_Next  := Arg_Next + 1;
+            Verbosity := Integer'Value (Argument (Arg_Next));
+            Arg_Next  := Arg_Next + 1;
+
+         elsif Argument (Arg_Next) = "--first_state_index" then
+            Arg_Next  := Arg_Next + 1;
+            First_State_Index := Integer'Value (Argument (Arg_Next));
+            Arg_Next  := Arg_Next + 1;
+
+         else
+            raise User_Error;
          end if;
       end loop;
 
@@ -124,12 +130,15 @@ begin
    when Ada_Emacs =>
       Wisi.Output_Ada_Emacs
         (-Input_File_Name, -Output_File_Root, Prologue, Keywords, Tokens, Start_Token, Conflicts, Rules,
-         Rule_Count, Action_Count);
+         Rule_Count, Action_Count, First_State_Index);
+
    when Elisp =>
       Wisi.Output_Elisp
-        (-Input_File_Name, -Output_File_Root, Prologue, Keywords, Tokens, Start_Token, Conflicts, Rules);
+        (-Input_File_Name, -Output_File_Root, Prologue, Keywords, Tokens, Start_Token, Conflicts, Rules,
+         First_State_Index);
+
    when Test =>
-      Wisi.Test_Generate (-Input_File_Name, Keywords, Tokens, Start_Token, Conflicts, Rules);
+      Wisi.Test_Generate (-Input_File_Name, Keywords, Tokens, Start_Token, Conflicts, Rules, First_State_Index);
    end case;
 
 exception

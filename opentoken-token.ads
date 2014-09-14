@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
---  Copyright (C) 2009 Stephe Leake
+--  Copyright (C) 2009, 2014 Stephe Leake
 --  Copyright (C) 1999, 2000 Ted Dennison
 --
 --  This file is part of the OpenToken package.
@@ -78,7 +78,7 @@ package OpenToken.Token is
    ------------------------------------------------------------------
    procedure Parse
      (Match    : access Instance;
-      Analyzer : in out Source_Class;
+      Analyzer : access Source_Class;
       Actively : in     Boolean := True)
       is abstract;
 

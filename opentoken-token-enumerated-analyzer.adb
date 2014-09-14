@@ -358,10 +358,12 @@ package body OpenToken.Token.Enumerated.Analyzer is
    function Initialize
      (Language_Syntax : in Syntax;
       Feeder          : in Text_Feeder.Text_Feeder_Ptr := null;
-      Max_Buffer_Size : in Integer                     := 1024)
+      Max_Buffer_Size : in Integer                     := 1024;
+      First_Column    : in Integer                     := 1)
      return Handle
    is
-      New_Analyzer : constant Handle := Initialize (Language_Syntax, Terminal_ID'First, Feeder, Max_Buffer_Size);
+      New_Analyzer : constant Handle := Initialize
+        (Language_Syntax, Terminal_ID'First, Feeder, Max_Buffer_Size, First_Column);
    begin
       New_Analyzer.Has_Default := False;
 
@@ -372,7 +374,8 @@ package body OpenToken.Token.Enumerated.Analyzer is
      (Language_Syntax : in Syntax;
       Default         : in Terminal_ID;
       Feeder          : in Text_Feeder.Text_Feeder_Ptr := null;
-      Max_Buffer_Size : in Integer                     := 1024)
+      Max_Buffer_Size : in Integer                     := 1024;
+      First_Column    : in Integer                     := 1)
      return Handle
    is
       New_Analyzer : constant Handle := new Instance (Max_Buffer_Size);
@@ -392,9 +395,10 @@ package body OpenToken.Token.Enumerated.Analyzer is
       New_Analyzer.Feeder        := Feeder;
       New_Analyzer.Has_Default   := True;
       New_Analyzer.Default_Token := Default;
+      New_Analyzer.First_Column  := First_Column;
 
       New_Analyzer.Line          := 1;
-      New_Analyzer.Column        := 1;
+      New_Analyzer.Column        := New_Analyzer.First_Column;
       New_Analyzer.Lexeme_Head   := 1;
       New_Analyzer.Lexeme_Tail   := 0;
       New_Analyzer.Last_Token_ID := Default;
@@ -408,7 +412,7 @@ package body OpenToken.Token.Enumerated.Analyzer is
       New_Analyzer.Buffer_Size            := 0;
       New_Analyzer.Buffer_Head_Source_Pos := 1;
       New_Analyzer.Next_Line              := 1;
-      New_Analyzer.Next_Column            := 1;
+      New_Analyzer.Next_Column            := New_Analyzer.First_Column;
       New_Analyzer.Lookahead_Queue        := null;
       New_Analyzer.Lookahead_Head         := null;
       New_Analyzer.Lookahead_Tail         := null;
@@ -428,7 +432,7 @@ package body OpenToken.Token.Enumerated.Analyzer is
       Prev : Token_List_Node_Pointer;
    begin
       Analyzer.Line        := 1;
-      Analyzer.Column      := 1;
+      Analyzer.Column      := Analyzer.First_Column;
       Analyzer.Lexeme_Head := 1;
       Analyzer.Lexeme_Tail := 0;
       Analyzer.Last_Token_ID  := Analyzer.Default_Token;
@@ -440,7 +444,7 @@ package body OpenToken.Token.Enumerated.Analyzer is
       Analyzer.Buffer_Size            := 0;
       Analyzer.Buffer_Head_Source_Pos := 1;
       Analyzer.Next_Line              := 1;
-      Analyzer.Next_Column            := 1;
+      Analyzer.Next_Column            := Analyzer.First_Column;
 
       loop
          exit when Analyzer.Lookahead_Tail = null;
@@ -461,9 +465,9 @@ package body OpenToken.Token.Enumerated.Analyzer is
    begin
       Analyzer.Feeder      := Feeder;
       Analyzer.Line        := 1;
-      Analyzer.Column      := 1;
+      Analyzer.Column      := Analyzer.First_Column;
       Analyzer.Next_Line   := 1;
-      Analyzer.Next_Column := 1;
+      Analyzer.Next_Column := Analyzer.First_Column;
    end Set_Text_Feeder;
 
    procedure Set_Syntax (Analyzer : in out Instance; Language_Syntax : in Syntax)
@@ -589,7 +593,7 @@ package body OpenToken.Token.Enumerated.Analyzer is
                if EOLs_Found = 0 then
                   Analyzer.Next_Column := Analyzer.Next_Column + Matched_Length;
                else
-                  Analyzer.Next_Column := 1 + Characters_After_Last_EOL (Analyzer, Matched_Length);
+                  Analyzer.Next_Column := Analyzer.First_Column + Characters_After_Last_EOL (Analyzer, Matched_Length);
                end if;
 
                --  Ditch the last token to make room for more parsing
@@ -677,7 +681,7 @@ package body OpenToken.Token.Enumerated.Analyzer is
       raise Syntax_Error with
         Int_Image (Line (Analyzer)) &
         ":" &
-        Int_Image (Column (Analyzer) - 1) &
+        Int_Image (Column (Analyzer)) &
         " " &
         Ada.Exceptions.Exception_Message (E);
    end Find_Next;

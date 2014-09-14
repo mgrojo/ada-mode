@@ -45,7 +45,7 @@ package body Test_Selection_Actions is
            (OpenToken.Recognizer.Character_Set.Standard_Whitespace)));
 
    Feeder   : aliased OpenToken.Text_Feeder.String.Instance;
-   Analyzer : Tokenizer.Instance := Tokenizer.Initialize (Syntax, Feeder'Access);
+   Analyzer : constant Tokenizer.Handle := Tokenizer.Initialize (Syntax, Feeder'Access);
 
    --  Build and Add_Element actions
 
@@ -77,8 +77,8 @@ package body Test_Selection_Actions is
       pragma Unreferenced (T);
    begin
       OpenToken.Text_Feeder.String.Set (Feeder, "T0");
-      Tokenizer.Reset (Analyzer);
-      Tokenizer.Find_Next (Analyzer);
+      Analyzer.Reset;
+      Analyzer.Find_Next;
 
       Selection.Parse (A_Selection, Analyzer);
 

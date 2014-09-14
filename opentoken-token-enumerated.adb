@@ -86,11 +86,11 @@ package body OpenToken.Token.Enumerated is
 
    overriding procedure Parse
      (Match    : access Instance;
-      Analyzer : in out Source_Class;
-      Actively : in     Boolean      := True)
+      Analyzer : access Source_Class;
+      Actively : in     Boolean := True)
    is
       use type Ada.Tags.Tag;
-      Next_Token : constant OpenToken.Token.Class := Get (Analyzer);
+      Next_Token : constant OpenToken.Token.Class := Analyzer.Get;
    begin
       if Trace_Parse then
          Trace_Indent := Trace_Indent + 1;
@@ -158,7 +158,7 @@ package body OpenToken.Token.Enumerated is
          end if;
       end if;
 
-      Find_Next (Analyzer, Look_Ahead => not Actively);
+      Analyzer.Find_Next (Look_Ahead => not Actively);
 
       if Trace_Parse then
          Trace_Put ("...succeeded"); Ada.Text_IO.New_Line;

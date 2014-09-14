@@ -177,7 +177,8 @@ DIFF_OPT := -u -w
 	./wisi-generate.exe $(RUN_ARGS) $< Elisp > $*.output
 
 # wisi-generate Ada_Emacs runs lalr_parser.generate, and we always want the parse_table for tests
-%.ads : RUN_ARGS ?= -v 1
+# match historical first_state_index
+%.ads : RUN_ARGS ?= -v 1 --first_state_index 1
 %.ads : %.wy wisi-generate.exe
 	./wisi-generate.exe $(RUN_ARGS) $< Ada_Emacs > $*.parse_table
 	dos2unix $*.parse_table

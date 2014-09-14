@@ -36,6 +36,7 @@ with Ada.Text_IO;
 with OpenToken.Production.List;
 with OpenToken.Production.Parser.LALR.Generator;
 with OpenToken.Production.Parser.LALR.Parser;
+with OpenToken.Production.Parser.LALR.Parser_Lists;
 with OpenToken.Recognizer.Character_Set;
 with OpenToken.Recognizer.End_Of_File;
 with OpenToken.Recognizer.Keyword;
@@ -57,7 +58,8 @@ package ASU_Example_4_46 is
    package Parser is new Production.Parser (Tokenizer);
    package LALR is new Parser.LALR (First_State_Index => 1);
    package LALR_Generator is new LALR.Generator (Token_IDs'Width, Production_List);
-   package LALR_Parser is new LALR.Parser;
+   package Parser_Lists is new LALR.Parser_Lists;
+   package LALR_Parser is new LALR.Parser (Parser_Lists);
 
    Syntax : constant Tokenizer.Syntax :=
      (Asterix_ID    => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("*")),
@@ -113,6 +115,6 @@ package ASU_Example_4_46 is
    Feeder     : aliased OpenToken.Text_Feeder.Text_IO.Instance :=
      OpenToken.Text_Feeder.Text_IO.Create (Input_File'Access);
 
-   Analyzer : Tokenizer.Instance := Tokenizer.Initialize (Syntax, Feeder'Access);
+   Analyzer : constant Tokenizer.Handle := Tokenizer.Initialize (Syntax, Feeder'Access);
 
 end ASU_Example_4_46;

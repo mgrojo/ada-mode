@@ -21,6 +21,7 @@ with Ada.Strings.Maps.Constants;
 with OpenToken.Production.List;
 with OpenToken.Production.Parser.LALR.Generator;
 with OpenToken.Production.Parser.LALR.Parser;
+with OpenToken.Production.Parser.LALR.Parser_Lists;
 with OpenToken.Recognizer.Character_Set;
 with OpenToken.Recognizer.End_Of_File;
 with OpenToken.Recognizer.Identifier;
@@ -65,7 +66,8 @@ package Name_Token_Test is
    package Tokenizer is new Master_Token.Analyzer;
    package Parser is new Production.Parser (Tokenizer);
    package LALRs is new Parser.LALR (First_State_Index => 1);
-   package LALR_Parser is new LALRs.Parser;
+   package Parser_Lists is new LALRs.Parser_Lists;
+   package LALR_Parser is new LALRs.Parser (Parser_Lists);
    package LALR_Generator is new LALRs.Generator (Token_Image_Width, Production_List);
 
    package Tokens is

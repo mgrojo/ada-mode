@@ -64,7 +64,7 @@ package Token_Selection_Test is
    A_Keyword       : Terminal_Token.Handle := Syntax (A_ID).Token_Handle;
    Row_Keyword     : Terminal_Token.Handle := Syntax (Row).Token_Handle;
 
-   Analyzer : constant Tokenizer.Instance := Tokenizer.Initialize (Syntax);
+   Analyzer : constant Tokenizer.Handle := Tokenizer.Initialize (Syntax);
 
    String_Feeder : aliased OpenToken.Text_Feeder.String.Instance;
 

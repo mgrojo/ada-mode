@@ -274,6 +274,6 @@ package M3_Lexer is
       Whitespace_T                => Tokenizer.Get (OpenToken.Recognizer.Character_Set.Get (M3_Whitespace)),
       End_of_File_T               => Tokenizer.Get (OpenToken.Recognizer.End_Of_File.Get));
 
-   Analyzer : Tokenizer.Instance := Tokenizer.Initialize (Syntax);
+   Analyzer : constant Tokenizer.Handle := Tokenizer.Initialize (Syntax);
 
 end M3_Lexer;

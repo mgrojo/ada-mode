@@ -67,7 +67,7 @@ package ASU_Example_5_10_RD_Commute is
      );
 
    Feeder   : aliased OpenToken.Text_Feeder.String.Instance;
-   Analyzer : Tokenizer.Instance := Tokenizer.Initialize (Syntax, Feeder'Access);
+   Analyzer : constant Tokenizer.Handle := Tokenizer.Initialize (Syntax, Feeder'Access);
 
    --------------------------------------------------------------------------
    --  Our custom token types. The grammar is:

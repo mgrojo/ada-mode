@@ -38,8 +38,8 @@ package body OpenToken.Token.Selection_Mixin is
 
    overriding procedure Parse
      (Match    : access Instance;
-      Analyzer : in out Source_Class;
-      Actively : in     Boolean      := True)
+      Analyzer : access Source_Class;
+      Actively : in     Boolean := True)
    is
       use Linked_List;
       I : List_Iterator := First (Match.Members);
@@ -53,17 +53,17 @@ package body OpenToken.Token.Selection_Mixin is
          end if;
          Ada.Text_IO.Put_Line
            (" selection " & Name_Dispatch (Match) &
-              "'(" & Names (Match.Members) & ") match " & Name_Dispatch (Get (Analyzer)));
+              "'(" & Names (Match.Members) & ") match " & Name_Dispatch (Analyzer.Get));
       end if;
 
       Find_Match :
       loop
          declare
-            Mark : Queue_Mark'Class renames Mark_Push_Back (Analyzer);
+            Mark : Queue_Mark'Class renames Analyzer.Mark_Push_Back;
          begin
             Parse (Token_Handle (I), Analyzer, Actively => False);
             if Actively then
-               Push_Back (Analyzer, Mark);
+               Analyzer.Push_Back (Mark);
             end if;
             exit Find_Match;
 
@@ -71,7 +71,7 @@ package body OpenToken.Token.Selection_Mixin is
          when Parse_Error =>
             --  We don't need to call Push_Back here if Next_Token (I)
             --  is null, but we can't tell, and it doesn't hurt.
-            Push_Back (Analyzer, Mark);
+            Analyzer.Push_Back (Mark);
          end;
 
          Next_Token (I);
@@ -82,7 +82,7 @@ package body OpenToken.Token.Selection_Mixin is
                   Expected : Linked_List.Instance;
                begin
                   Expecting (Match, Expected);
-                  raise Parse_Error with "Found " & Name_Dispatch (Get (Analyzer)) & "; expected one of " &
+                  raise Parse_Error with "Found " & Name_Dispatch (Analyzer.Get) & "; expected one of " &
                     Token.Linked_List.Names (Expected) & ".";
                end;
             else

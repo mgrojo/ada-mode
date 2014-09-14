@@ -169,8 +169,8 @@ package OpenToken.Token.Enumerated is
    --------------------------------------------------------------------
    overriding procedure Parse
      (Match    : access Instance;
-      Analyzer : in out Source_Class;
-      Actively : in     Boolean      := True);
+      Analyzer : access Source_Class;
+      Actively : in     Boolean := True);
 
    overriding function Name (Token : in Instance) return String;
 

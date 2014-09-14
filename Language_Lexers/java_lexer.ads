@@ -260,6 +260,6 @@ package Java_Lexer is
         (OpenToken.Recognizer.Character_Set.Get (OpenToken.Recognizer.Character_Set.Standard_Whitespace)),
       End_of_File_T                    => Tokenizer.Get (OpenToken.Recognizer.End_Of_File.Get));
 
-   Analyzer : Tokenizer.Instance := Tokenizer.Initialize (Syntax);
+   Analyzer : constant Tokenizer.Handle := Tokenizer.Initialize (Syntax);
 
 end Java_Lexer;

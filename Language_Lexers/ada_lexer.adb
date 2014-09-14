@@ -163,7 +163,7 @@ package body Ada_Lexer is
       Bad_Token_T           => Tokenizer.Get (OpenToken.Recognizer.Nothing.Get),
       End_of_File_T         => Tokenizer.Get (OpenToken.Recognizer.End_Of_File.Get));
 
-   Analyzer : Tokenizer.Instance := Tokenizer.Initialize (Syntax);
+   Analyzer : constant Tokenizer.Handle := Tokenizer.Initialize (Syntax);
 
    procedure Set_Input_Feeder (File : in Ada.Text_IO.File_Type) is
    begin
@@ -173,12 +173,12 @@ package body Ada_Lexer is
 
    procedure Exception_on_Syntax_Error is
    begin
-      Tokenizer.Unset_Default (Analyzer);
+      Analyzer.Unset_Default;
    end Exception_on_Syntax_Error;
 
    procedure Bad_Token_on_Syntax_Error is
    begin
-      Tokenizer.Set_Default (Analyzer, Bad_Token_T);
+      Analyzer.Set_Default (Bad_Token_T);
    end Bad_Token_on_Syntax_Error;
 
    procedure Set_Comments_Reportable (To : in Boolean) is
@@ -194,7 +194,7 @@ package body Ada_Lexer is
       --  Take care that the expression Character'('x') is correctly processed:
       --  A character literal cannot follow an identifier.
    begin
-      Tokenizer.Find_Next (Analyzer, Look_Ahead => False);
+      Analyzer.Find_Next (Look_Ahead => False);
       OpenToken.Recognizer.Graphic_Character.Redefine
         (OpenToken.Recognizer.Graphic_Character.Instance (Syntax (Character_T).Recognizer.all),
          Exclusion (Token_ID = Identifier_T));
@@ -202,22 +202,22 @@ package body Ada_Lexer is
 
    function Line return Natural is
    begin
-      return Tokenizer.Line (Analyzer);
+      return Analyzer.Line;
    end Line;
 
    function Column return Natural is
    begin
-      return Tokenizer.Column (Analyzer);
+      return Analyzer.Column;
    end Column;
 
    function Token_ID return Ada_Token is
    begin
-      return Tokenizer.ID (Analyzer);
+      return Analyzer.ID;
    end Token_ID;
 
    function Lexeme return String is
    begin
-      return Tokenizer.Lexeme (Analyzer);
+      return Analyzer.Lexeme;
    end Lexeme;
 
 end Ada_Lexer;

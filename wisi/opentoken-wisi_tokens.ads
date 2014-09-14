@@ -53,7 +53,7 @@ package OpenToken.Wisi_Tokens is
       Bounds     : in     Tokens.Buffer_Range;
       Recognizer : in     Tokens.Recognizer_Handle;
       New_Token  : in out Instance);
-   --  Callback from Parser; stores Buffer_Range in New_Token
+   --  Callback from Analyzer; stores Buffer_Range in New_Token
 
    function Get (ID : in Token_IDs; Buffer_Range : in Tokens.Buffer_Range) return Nonterminals.Instance'Class;
    --  For use in Actions.
@@ -62,6 +62,7 @@ package OpenToken.Wisi_Tokens is
      (New_Token : out Nonterminals.Class;
       Source    : in  Token_Lists.Instance'Class;
       To_ID     : in  Token_IDs);
+   --  For use in Actions.
 
    ----------
    --  Other functions for wisi actions in generated Ada code for

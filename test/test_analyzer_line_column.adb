@@ -69,10 +69,9 @@ package body Test_Analyzer_Line_Column is
         (Recognizer     => OpenToken.Recognizer.Identifier.Get
           (Start_Chars  => Ada.Strings.Maps.Constants.Alphanumeric_Set,
            Body_Chars   => Ada.Strings.Maps.Constants.Alphanumeric_Set)),
-      EOF_ID            => Analyzers.Get (OpenToken.Recognizer.End_Of_File.Get)
-     );
+      EOF_ID            => Analyzers.Get (OpenToken.Recognizer.End_Of_File.Get));
 
-   Analyzer : Analyzers.Instance := Analyzers.Initialize (Syntax);
+   Analyzer : constant Analyzers.Handle := Analyzers.Initialize (Syntax);
 
    ----------
    --  Test procedures

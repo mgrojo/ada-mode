@@ -24,6 +24,7 @@ with Ada.Strings.Maps.Constants;
 with OpenToken.Production.List;
 with OpenToken.Production.Parser.LALR.Generator;
 with OpenToken.Production.Parser.LALR.Parser;
+with OpenToken.Production.Parser.LALR.Parser_Lists;
 with OpenToken.Recognizer.Based_Integer;
 with OpenToken.Recognizer.Character_Set;
 with OpenToken.Recognizer.End_Of_File;
@@ -62,7 +63,8 @@ package body Test_Accept_Index is
    package Production_List is new Production.List;
    package OpenToken_Parser is new Production.Parser (Tokenizer);
    package LALRs is new OpenToken_Parser.LALR (First_State_Index => 1);
-   package LALR_Parser is new LALRs.Parser;
+   package Parser_Lists is new LALRs.Parser_Lists;
+   package LALR_Parser is new LALRs.Parser (Parser_Lists);
    package LALR_Generator is new LALRs.Generator (Token_IDs'Width, Production_List);
 
    package Integer_Literal is new Master_Token.Integer;

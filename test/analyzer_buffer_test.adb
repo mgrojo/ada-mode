@@ -49,7 +49,7 @@ package body Analyzer_Buffer_Test is
         (OpenToken.Recognizer.Character_Set.Get (OpenToken.Recognizer.Character_Set.Standard_Whitespace)));
 
    String_Feeder : aliased OpenToken.Text_Feeder.String.Instance;
-   Analyzer      : Tokenizer.Instance := Tokenizer.Initialize (Syntax, null, Max_Buffer_Size => 10);
+   Analyzer      : constant Tokenizer.Handle := Tokenizer.Initialize (Syntax, null, Max_Buffer_Size => 10);
 
    procedure Step
      (Label           : in String;
@@ -59,10 +59,10 @@ package body Analyzer_Buffer_Test is
       use Tokenizer;
       use AUnit.Check;
    begin
-      Find_Next (Analyzer, Look_Ahead => False);
+      Analyzer.Find_Next (Look_Ahead => False);
 
-      Check (Label & ".ID", ID (Analyzer), Expected_ID);
-      Check (Label & ".lexeme", Lexeme (Analyzer), Expected_Lexeme);
+      Check (Label & ".ID", Analyzer.ID, Expected_ID);
+      Check (Label & ".lexeme", Analyzer.Lexeme, Expected_Lexeme);
    end Step;
 
    ----------
@@ -80,7 +80,7 @@ package body Analyzer_Buffer_Test is
 
       OpenToken.Text_Feeder.String.Set (String_Feeder, Text);
       Analyzer.Feeder := String_Feeder'Access;
-      Tokenizer.Reset (Analyzer);
+      Analyzer.Reset;
 
       Step ("1", Identifier_ID, "a23456");
       Step ("2", Identifier_ID, "b90123");

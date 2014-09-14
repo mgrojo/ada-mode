@@ -64,7 +64,15 @@ package OpenToken.Token.Enumerated.List is
    function "&" (Left  : in Instance;
                  Right : in Instance) return Instance;
 
-   function Copy (Item : in Instance) return Instance;
+   function "&"
+     (Left  : in Handle;
+      Right : in Handle)
+     return Instance;
+
+   function "&"
+     (Left  : in Instance;
+      Right : in Handle)
+     return Instance;
 
    --------------------------------------------------------------------------
    --  This routine needs to be called when you are done using a list,
@@ -96,14 +104,16 @@ package OpenToken.Token.Enumerated.List is
    ---------------------
    -- Parser Routines --
 
-   --------------------------------------------------------------------------
-   --  Enqueue a token on the given list. The token itself will not be
-   --  copied.  Its storage will be managed by the list from here on
-   --  in. Do not delete it while the list is still using it!
-   --------------------------------------------------------------------------
-   procedure Enqueue (List  : in out Instance;
-                      Token : in     Handle
-                     );
+   --  Enqueue Token on List, at the head. Token itself is not
+   --  copied; it will be freed by Clean.
+   procedure Enqueue
+     (List  : in out Instance;
+      Token : in     Handle);
+
+   --  Append to tail of List, without copying Token
+   procedure Append
+     (List  : in out Instance;
+      Token : in     Handle);
 
 private
    type List_Node;

@@ -133,7 +133,7 @@ package OpenToken.Token.Sequence_Mixin is
    ----------------------------------------------------------------------
    overriding procedure Parse
      (Match    : access Instance;
-      Analyzer : in out Source_Class;
+      Analyzer : access Source_Class;
       Actively : in     Boolean := True);
 
    overriding procedure Expecting (Token : access Instance; List : in out Linked_List.Instance);

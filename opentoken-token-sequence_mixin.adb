@@ -43,7 +43,7 @@ package body OpenToken.Token.Sequence_Mixin is
 
    overriding procedure Parse
      (Match    : access Instance;
-      Analyzer : in out Source_Class;
+      Analyzer : access Source_Class;
       Actively : in     Boolean      := True)
    is
       use Token.Linked_List;
@@ -59,7 +59,7 @@ package body OpenToken.Token.Sequence_Mixin is
          end if;
          Ada.Text_IO.Put_Line
            (" sequence " & Name_Dispatch (Match) &
-              "'(" & Names (Match.Members) & ") match " & Name_Dispatch (Get (Analyzer)));
+              "'(" & Names (Match.Members) & ") match " & Name_Dispatch (Analyzer.Get));
       end if;
 
       if Actively then

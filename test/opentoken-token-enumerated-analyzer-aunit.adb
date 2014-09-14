@@ -21,7 +21,7 @@ package body OpenToken.Token.Enumerated.Analyzer.AUnit is
 
    procedure Check
      (Label        : in String;
-      Analyzer     : in Instance;
+      Analyzer     : in Handle;
       Last_Token   : in Token_ID;
       Tail_Null    : in Boolean          := False;
       Tail_Tokens  : in Token_Array      := Null_Tokens;

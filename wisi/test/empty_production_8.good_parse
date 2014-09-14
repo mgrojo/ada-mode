@@ -1,162 +1,162 @@
  1 stack:  1 : , 
- 1: 1: IDENTIFIER : shift and goto state 2
+ 1: 1: (IDENTIFIER 1 . 7) : shift and goto state 2
  1 stack:  2 : (IDENTIFIER 1 . 7),  1 : , 
- 1: 2: SEMICOLON : reduce 0 tokens to aliased_opt
+ 1: 2: (SEMICOLON 8 . 8) : reduce 0 tokens to aliased_opt
  ... goto state 9
- 1 stack:  9 : (aliased_opt nil),  2 : (IDENTIFIER 1 . 7),  1 : , 
- 1: 9: SEMICOLON : reduce 0 tokens to constant_opt
+ 1 stack:  9 : (aliased_opt),  2 : (IDENTIFIER 1 . 7),  1 : , 
+ 1: 9: (SEMICOLON 8 . 8) : reduce 0 tokens to constant_opt
  ... goto state 12
- 1 stack:  12 : (constant_opt nil),  9 : (aliased_opt nil),  2 : (IDENTIFIER 1 . 7),  1 : , 
- 1: 12: SEMICOLON : shift and goto state 13
- 1 stack:  13 : (SEMICOLON 8 . 8),  12 : (constant_opt nil),  9 : (aliased_opt nil),  2 : (IDENTIFIER 1 . 7),  1 : , 
- 1: 13: IDENTIFIER : reduce 4 tokens to object_declaration
-(let ((tokens '((IDENTIFIER 1 . 7) (aliased_opt nil) (constant_opt nil) (SEMICOLON 8 . 8))))
+ 1 stack:  12 : (constant_opt),  9 : (aliased_opt),  2 : (IDENTIFIER 1 . 7),  1 : , 
+ 1: 12: (SEMICOLON 8 . 8) : shift and goto state 13
+ 1 stack:  13 : (SEMICOLON 8 . 8),  12 : (constant_opt),  9 : (aliased_opt),  2 : (IDENTIFIER 1 . 7),  1 : , 
+ 1: 13: (IDENTIFIER 10 . 16) : reduce 4 tokens to object_declaration
+(let ((wisi-tokens '((IDENTIFIER 1 . 7) (aliased_opt) (constant_opt) (SEMICOLON 8 . 8))))
 (wisi-statement-action 1 'statement-start 4 'statement-end)
 )
  ... goto state 4
  1 stack:  4 : (object_declaration 1 . 8),  1 : , 
- 1: 4: IDENTIFIER : reduce 1 tokens to object_declaration_list
+ 1: 4: (IDENTIFIER 10 . 16) : reduce 1 tokens to object_declaration_list
  ... goto state 3
  1 stack:  3 : (object_declaration_list 1 . 8),  1 : , 
- 1: 3: IDENTIFIER : shift and goto state 2
-spawn parser (2 active)
+ 1: 3: (IDENTIFIER 10 . 16) : shift and goto state 2
+spawn parser from 1 (2 active)
  2 stack:  2 : (IDENTIFIER 10 . 16),  3 : (object_declaration_list 1 . 8),  1 : , 
- 2: 2: CONSTANT : reduce 0 tokens to aliased_opt
+ 2: 2: (CONSTANT 18 . 25) : reduce 0 tokens to aliased_opt
  ... goto state 9
  1 stack:  2 : (IDENTIFIER 10 . 16),  3 : (object_declaration_list 1 . 8),  1 : , 
- 1: 2: CONSTANT : shift and goto state 8
- 2 stack:  9 : (aliased_opt nil),  2 : (IDENTIFIER 10 . 16),  3 : (object_declaration_list 1 . 8),  1 : , 
- 2: 9: CONSTANT : shift and goto state 8
- 2 stack:  8 : (CONSTANT 18 . 25),  9 : (aliased_opt nil),  2 : (IDENTIFIER 10 . 16),  3 : (object_declaration_list 1 . 8),  1 : , 
- 2: 8: SEMICOLON : reduce 1 tokens to constant_opt
+ 1: 2: (CONSTANT 18 . 25) : shift and goto state 8
+ 2 stack:  9 : (aliased_opt),  2 : (IDENTIFIER 10 . 16),  3 : (object_declaration_list 1 . 8),  1 : , 
+ 2: 9: (CONSTANT 18 . 25) : shift and goto state 8
+ 2 stack:  8 : (CONSTANT 18 . 25),  9 : (aliased_opt),  2 : (IDENTIFIER 10 . 16),  3 : (object_declaration_list 1 . 8),  1 : , 
+ 2: 8: (SEMICOLON 26 . 26) : reduce 1 tokens to constant_opt
  ... goto state 12
  1 stack:  8 : (CONSTANT 18 . 25),  2 : (IDENTIFIER 10 . 16),  3 : (object_declaration_list 1 . 8),  1 : , 
- 1: 8: SEMICOLON : reduce 1 tokens to constant_opt
+ 1: 8: (SEMICOLON 26 . 26) : reduce 1 tokens to constant_opt
  ... goto state 10
- 2 stack:  12 : (constant_opt nil),  9 : (aliased_opt nil),  2 : (IDENTIFIER 10 . 16),  3 : (object_declaration_list 1 . 8),  1 : , 
- 2: 12: SEMICOLON : shift and goto state 13
- 1 stack:  10 : (constant_opt nil),  2 : (IDENTIFIER 10 . 16),  3 : (object_declaration_list 1 . 8),  1 : , 
- 1: 10: SEMICOLON : ERROR
- 2 stack:  13 : (SEMICOLON 26 . 26),  12 : (constant_opt nil),  9 : (aliased_opt nil),  2 : (IDENTIFIER 10 . 16),  3 : (object_declaration_list 1 . 8),  1 : , 
- 2: 13: IDENTIFIER : reduce 4 tokens to object_declaration
+ 2 stack:  12 : (constant_opt),  9 : (aliased_opt),  2 : (IDENTIFIER 10 . 16),  3 : (object_declaration_list 1 . 8),  1 : , 
+ 2: 12: (SEMICOLON 26 . 26) : shift and goto state 13
+ 1 stack:  10 : (constant_opt),  2 : (IDENTIFIER 10 . 16),  3 : (object_declaration_list 1 . 8),  1 : , 
+ 1: 10: (SEMICOLON 26 . 26) : ERROR
+ 2 stack:  13 : (SEMICOLON 26 . 26),  12 : (constant_opt),  9 : (aliased_opt),  2 : (IDENTIFIER 10 . 16),  3 : (object_declaration_list 1 . 8),  1 : , 
+ 2: 13: (IDENTIFIER 28 . 34) : reduce 4 tokens to object_declaration
  ... goto state 6
  1: terminate (1 active)
-(let ((tokens '((IDENTIFIER 10 . 16) (aliased_opt nil) (constant_opt 18 . 25) (SEMICOLON 26 . 26))))
+(let ((wisi-tokens '((IDENTIFIER 10 . 16) (aliased_opt) (constant_opt 18 . 25) (SEMICOLON 26 . 26))))
 (wisi-statement-action 1 'statement-start 4 'statement-end)
 )
  2 stack:  6 : (object_declaration 10 . 26),  3 : (object_declaration_list 1 . 8),  1 : , 
- 2: 6: IDENTIFIER : reduce 2 tokens to object_declaration_list
-(let ((tokens '((object_declaration_list 1 . 8) (object_declaration 10 . 26))))
+ 2: 6: (IDENTIFIER 28 . 34) : reduce 2 tokens to object_declaration_list
+(let ((wisi-tokens '((object_declaration_list 1 . 8) (object_declaration 10 . 26))))
 (setq wisi-test-success t)
 )
  ... goto state 3
  2 stack:  3 : (object_declaration_list 1 . 26),  1 : , 
- 2: 3: IDENTIFIER : shift and goto state 2
+ 2: 3: (IDENTIFIER 28 . 34) : shift and goto state 2
  2 stack:  2 : (IDENTIFIER 28 . 34),  3 : (object_declaration_list 1 . 26),  1 : , 
- 2: 2: ALIASED : shift and goto state 7
+ 2: 2: (ALIASED 36 . 42) : shift and goto state 7
  2 stack:  7 : (ALIASED 36 . 42),  2 : (IDENTIFIER 28 . 34),  3 : (object_declaration_list 1 . 26),  1 : , 
- 2: 7: SEMICOLON : reduce 1 tokens to aliased_opt
+ 2: 7: (SEMICOLON 43 . 43) : reduce 1 tokens to aliased_opt
  ... goto state 9
  2 stack:  9 : (aliased_opt 36 . 42),  2 : (IDENTIFIER 28 . 34),  3 : (object_declaration_list 1 . 26),  1 : , 
- 2: 9: SEMICOLON : reduce 0 tokens to constant_opt
+ 2: 9: (SEMICOLON 43 . 43) : reduce 0 tokens to constant_opt
  ... goto state 12
- 2 stack:  12 : (constant_opt nil),  9 : (aliased_opt 36 . 42),  2 : (IDENTIFIER 28 . 34),  3 : (object_declaration_list 1 . 26),  1 : , 
- 2: 12: SEMICOLON : shift and goto state 13
- 2 stack:  13 : (SEMICOLON 43 . 43),  12 : (constant_opt nil),  9 : (aliased_opt 36 . 42),  2 : (IDENTIFIER 28 . 34),  3 : (object_declaration_list 1 . 26),  1 : , 
- 2: 13: IDENTIFIER : reduce 4 tokens to object_declaration
-(let ((tokens '((IDENTIFIER 28 . 34) (aliased_opt 36 . 42) (constant_opt nil) (SEMICOLON 43 . 43))))
+ 2 stack:  12 : (constant_opt),  9 : (aliased_opt 36 . 42),  2 : (IDENTIFIER 28 . 34),  3 : (object_declaration_list 1 . 26),  1 : , 
+ 2: 12: (SEMICOLON 43 . 43) : shift and goto state 13
+ 2 stack:  13 : (SEMICOLON 43 . 43),  12 : (constant_opt),  9 : (aliased_opt 36 . 42),  2 : (IDENTIFIER 28 . 34),  3 : (object_declaration_list 1 . 26),  1 : , 
+ 2: 13: (IDENTIFIER 45 . 51) : reduce 4 tokens to object_declaration
+(let ((wisi-tokens '((IDENTIFIER 28 . 34) (aliased_opt 36 . 42) (constant_opt) (SEMICOLON 43 . 43))))
 (wisi-statement-action 1 'statement-start 4 'statement-end)
 )
  ... goto state 6
  2 stack:  6 : (object_declaration 28 . 43),  3 : (object_declaration_list 1 . 26),  1 : , 
- 2: 6: IDENTIFIER : reduce 2 tokens to object_declaration_list
-(let ((tokens '((object_declaration_list 1 . 26) (object_declaration 28 . 43))))
+ 2: 6: (IDENTIFIER 45 . 51) : reduce 2 tokens to object_declaration_list
+(let ((wisi-tokens '((object_declaration_list 1 . 26) (object_declaration 28 . 43))))
 (setq wisi-test-success t)
 )
  ... goto state 3
  2 stack:  3 : (object_declaration_list 1 . 43),  1 : , 
- 2: 3: IDENTIFIER : shift and goto state 2
+ 2: 3: (IDENTIFIER 45 . 51) : shift and goto state 2
  2 stack:  2 : (IDENTIFIER 45 . 51),  3 : (object_declaration_list 1 . 43),  1 : , 
- 2: 2: ALIASED : shift and goto state 7
+ 2: 2: (ALIASED 53 . 59) : shift and goto state 7
  2 stack:  7 : (ALIASED 53 . 59),  2 : (IDENTIFIER 45 . 51),  3 : (object_declaration_list 1 . 43),  1 : , 
- 2: 7: CONSTANT : reduce 1 tokens to aliased_opt
+ 2: 7: (CONSTANT 61 . 68) : reduce 1 tokens to aliased_opt
  ... goto state 9
  2 stack:  9 : (aliased_opt 53 . 59),  2 : (IDENTIFIER 45 . 51),  3 : (object_declaration_list 1 . 43),  1 : , 
- 2: 9: CONSTANT : shift and goto state 8
+ 2: 9: (CONSTANT 61 . 68) : shift and goto state 8
  2 stack:  8 : (CONSTANT 61 . 68),  9 : (aliased_opt 53 . 59),  2 : (IDENTIFIER 45 . 51),  3 : (object_declaration_list 1 . 43),  1 : , 
- 2: 8: SEMICOLON : reduce 1 tokens to constant_opt
+ 2: 8: (SEMICOLON 69 . 69) : reduce 1 tokens to constant_opt
  ... goto state 12
  2 stack:  12 : (constant_opt 61 . 68),  9 : (aliased_opt 53 . 59),  2 : (IDENTIFIER 45 . 51),  3 : (object_declaration_list 1 . 43),  1 : , 
- 2: 12: SEMICOLON : shift and goto state 13
+ 2: 12: (SEMICOLON 69 . 69) : shift and goto state 13
  2 stack:  13 : (SEMICOLON 69 . 69),  12 : (constant_opt 61 . 68),  9 : (aliased_opt 53 . 59),  2 : (IDENTIFIER 45 . 51),  3 : (object_declaration_list 1 . 43),  1 : , 
- 2: 13: IDENTIFIER : reduce 4 tokens to object_declaration
-(let ((tokens '((IDENTIFIER 45 . 51) (aliased_opt 53 . 59) (constant_opt 61 . 68) (SEMICOLON 69 . 69))))
+ 2: 13: (IDENTIFIER 71 . 77) : reduce 4 tokens to object_declaration
+(let ((wisi-tokens '((IDENTIFIER 45 . 51) (aliased_opt 53 . 59) (constant_opt 61 . 68) (SEMICOLON 69 . 69))))
 (wisi-statement-action 1 'statement-start 4 'statement-end)
 )
  ... goto state 6
  2 stack:  6 : (object_declaration 45 . 69),  3 : (object_declaration_list 1 . 43),  1 : , 
- 2: 6: IDENTIFIER : reduce 2 tokens to object_declaration_list
-(let ((tokens '((object_declaration_list 1 . 43) (object_declaration 45 . 69))))
+ 2: 6: (IDENTIFIER 71 . 77) : reduce 2 tokens to object_declaration_list
+(let ((wisi-tokens '((object_declaration_list 1 . 43) (object_declaration 45 . 69))))
 (setq wisi-test-success t)
 )
  ... goto state 3
  2 stack:  3 : (object_declaration_list 1 . 69),  1 : , 
- 2: 3: IDENTIFIER : shift and goto state 2
+ 2: 3: (IDENTIFIER 71 . 77) : shift and goto state 2
  2 stack:  2 : (IDENTIFIER 71 . 77),  3 : (object_declaration_list 1 . 69),  1 : , 
- 2: 2: COLON_EQUAL : reduce 0 tokens to constant_opt
+ 2: 2: (COLON_EQUAL 79 . 80) : reduce 0 tokens to constant_opt
  ... goto state 10
- 2 stack:  10 : (constant_opt nil),  2 : (IDENTIFIER 71 . 77),  3 : (object_declaration_list 1 . 69),  1 : , 
- 2: 10: COLON_EQUAL : shift and goto state 11
- 2 stack:  11 : (COLON_EQUAL 79 . 80),  10 : (constant_opt nil),  2 : (IDENTIFIER 71 . 77),  3 : (object_declaration_list 1 . 69),  1 : , 
- 2: 11: SEMICOLON : shift and goto state 14
- 2 stack:  14 : (SEMICOLON 82 . 82),  11 : (COLON_EQUAL 79 . 80),  10 : (constant_opt nil),  2 : (IDENTIFIER 71 . 77),  3 : (object_declaration_list 1 . 69),  1 : , 
- 2: 14: IDENTIFIER : reduce 4 tokens to object_declaration
-(let ((tokens '((IDENTIFIER 71 . 77) (constant_opt nil) (COLON_EQUAL 79 . 80) (SEMICOLON 82 . 82))))
+ 2 stack:  10 : (constant_opt),  2 : (IDENTIFIER 71 . 77),  3 : (object_declaration_list 1 . 69),  1 : , 
+ 2: 10: (COLON_EQUAL 79 . 80) : shift and goto state 11
+ 2 stack:  11 : (COLON_EQUAL 79 . 80),  10 : (constant_opt),  2 : (IDENTIFIER 71 . 77),  3 : (object_declaration_list 1 . 69),  1 : , 
+ 2: 11: (SEMICOLON 82 . 82) : shift and goto state 14
+ 2 stack:  14 : (SEMICOLON 82 . 82),  11 : (COLON_EQUAL 79 . 80),  10 : (constant_opt),  2 : (IDENTIFIER 71 . 77),  3 : (object_declaration_list 1 . 69),  1 : , 
+ 2: 14: (IDENTIFIER 84 . 90) : reduce 4 tokens to object_declaration
+(let ((wisi-tokens '((IDENTIFIER 71 . 77) (constant_opt) (COLON_EQUAL 79 . 80) (SEMICOLON 82 . 82))))
 (wisi-statement-action 1 'statement-start 3 'statement-other 4 'statement-end)
 )
  ... goto state 6
  2 stack:  6 : (object_declaration 71 . 82),  3 : (object_declaration_list 1 . 69),  1 : , 
- 2: 6: IDENTIFIER : reduce 2 tokens to object_declaration_list
-(let ((tokens '((object_declaration_list 1 . 69) (object_declaration 71 . 82))))
+ 2: 6: (IDENTIFIER 84 . 90) : reduce 2 tokens to object_declaration_list
+(let ((wisi-tokens '((object_declaration_list 1 . 69) (object_declaration 71 . 82))))
 (setq wisi-test-success t)
 )
  ... goto state 3
  2 stack:  3 : (object_declaration_list 1 . 82),  1 : , 
- 2: 3: IDENTIFIER : shift and goto state 2
-spawn parser (2 active)
+ 2: 3: (IDENTIFIER 84 . 90) : shift and goto state 2
+spawn parser from 2 (2 active)
  3 stack:  2 : (IDENTIFIER 84 . 90),  3 : (object_declaration_list 1 . 82),  1 : , 
- 3: 2: CONSTANT : reduce 0 tokens to aliased_opt
+ 3: 2: (CONSTANT 92 . 99) : reduce 0 tokens to aliased_opt
  ... goto state 9
  2 stack:  2 : (IDENTIFIER 84 . 90),  3 : (object_declaration_list 1 . 82),  1 : , 
- 2: 2: CONSTANT : shift and goto state 8
- 3 stack:  9 : (aliased_opt nil),  2 : (IDENTIFIER 84 . 90),  3 : (object_declaration_list 1 . 82),  1 : , 
- 3: 9: CONSTANT : shift and goto state 8
- 3 stack:  8 : (CONSTANT 92 . 99),  9 : (aliased_opt nil),  2 : (IDENTIFIER 84 . 90),  3 : (object_declaration_list 1 . 82),  1 : , 
- 3: 8: COLON_EQUAL : reduce 1 tokens to constant_opt
+ 2: 2: (CONSTANT 92 . 99) : shift and goto state 8
+ 3 stack:  9 : (aliased_opt),  2 : (IDENTIFIER 84 . 90),  3 : (object_declaration_list 1 . 82),  1 : , 
+ 3: 9: (CONSTANT 92 . 99) : shift and goto state 8
+ 3 stack:  8 : (CONSTANT 92 . 99),  9 : (aliased_opt),  2 : (IDENTIFIER 84 . 90),  3 : (object_declaration_list 1 . 82),  1 : , 
+ 3: 8: (COLON_EQUAL 101 . 102) : reduce 1 tokens to constant_opt
  ... goto state 12
  2 stack:  8 : (CONSTANT 92 . 99),  2 : (IDENTIFIER 84 . 90),  3 : (object_declaration_list 1 . 82),  1 : , 
- 2: 8: COLON_EQUAL : reduce 1 tokens to constant_opt
+ 2: 8: (COLON_EQUAL 101 . 102) : reduce 1 tokens to constant_opt
  ... goto state 10
- 3 stack:  12 : (constant_opt nil),  9 : (aliased_opt nil),  2 : (IDENTIFIER 84 . 90),  3 : (object_declaration_list 1 . 82),  1 : , 
- 3: 12: COLON_EQUAL : ERROR
- 2 stack:  10 : (constant_opt nil),  2 : (IDENTIFIER 84 . 90),  3 : (object_declaration_list 1 . 82),  1 : , 
- 2: 10: COLON_EQUAL : shift and goto state 11
+ 3 stack:  12 : (constant_opt),  9 : (aliased_opt),  2 : (IDENTIFIER 84 . 90),  3 : (object_declaration_list 1 . 82),  1 : , 
+ 3: 12: (COLON_EQUAL 101 . 102) : ERROR
+ 2 stack:  10 : (constant_opt),  2 : (IDENTIFIER 84 . 90),  3 : (object_declaration_list 1 . 82),  1 : , 
+ 2: 10: (COLON_EQUAL 101 . 102) : shift and goto state 11
  3: terminate (1 active)
  2 stack:  11 : (COLON_EQUAL 101 . 102),  10 : (constant_opt 92 . 99),  2 : (IDENTIFIER 84 . 90),  3 : (object_declaration_list 1 . 82),  1 : , 
- 2: 11: SEMICOLON : shift and goto state 14
+ 2: 11: (SEMICOLON 104 . 104) : shift and goto state 14
  2 stack:  14 : (SEMICOLON 104 . 104),  11 : (COLON_EQUAL 101 . 102),  10 : (constant_opt 92 . 99),  2 : (IDENTIFIER 84 . 90),  3 : (object_declaration_list 1 . 82),  1 : , 
- 2: 14: EOF_ID : reduce 4 tokens to object_declaration
-(let ((tokens '((IDENTIFIER 84 . 90) (constant_opt 92 . 99) (COLON_EQUAL 101 . 102) (SEMICOLON 104 . 104))))
+ 2: 14: (EOF_ID 105 . 105) : reduce 4 tokens to object_declaration
+(let ((wisi-tokens '((IDENTIFIER 84 . 90) (constant_opt 92 . 99) (COLON_EQUAL 101 . 102) (SEMICOLON 104 . 104))))
 (wisi-statement-action 1 'statement-start 3 'statement-other 4 'statement-end)
 )
  ... goto state 6
  2 stack:  6 : (object_declaration 84 . 104),  3 : (object_declaration_list 1 . 82),  1 : , 
- 2: 6: EOF_ID : reduce 2 tokens to object_declaration_list
-(let ((tokens '((object_declaration_list 1 . 82) (object_declaration 84 . 104))))
+ 2: 6: (EOF_ID 105 . 105) : reduce 2 tokens to object_declaration_list
+(let ((wisi-tokens '((object_declaration_list 1 . 82) (object_declaration 84 . 104))))
 (setq wisi-test-success t)
 )
  ... goto state 3
  2 stack:  3 : (object_declaration_list 1 . 104),  1 : , 
- 2: 3: EOF_ID : shift and goto state 5
+ 2: 3: (EOF_ID 105 . 105) : shift and goto state 5
  2 stack:  5 : (EOF_ID 105 . 105),  3 : (object_declaration_list 1 . 104),  1 : , 
- 2: 5: EOF_ID : accept it
+ 2: 5: (EOF_ID 106 . 106) : accept it

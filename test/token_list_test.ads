@@ -22,7 +22,7 @@ package Token_List_Test is
                                      (OpenToken.Recognizer.Character_Set.Standard_Whitespace))
      );
 
-   Analyzer : constant Tokenizer.Instance := Tokenizer.Initialize (Syntax);
+   Analyzer : constant Tokenizer.Handle := Tokenizer.Initialize (Syntax);
 
    String_Feeder : aliased OpenToken.Text_Feeder.String.Instance;
 

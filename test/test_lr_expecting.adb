@@ -25,6 +25,7 @@ with Ada.Exceptions;
 with OpenToken.Production.List;
 with OpenToken.Production.Parser.LALR.Generator;
 with OpenToken.Production.Parser.LALR.Parser;
+with OpenToken.Production.Parser.LALR.Parser_Lists;
 with OpenToken.Recognizer.Based_Integer;
 with OpenToken.Recognizer.Character_Set;
 with OpenToken.Recognizer.End_Of_File;
@@ -80,7 +81,8 @@ package body Test_LR_Expecting is
    package OpenToken_Parser is new Production.Parser (Tokenizer);
    package LALRs is new OpenToken_Parser.LALR (First_State_Index => 1);
    package LALR_Generators is new LALRs.Generator (Token_IDs'Width, Production_List);
-   package LALR_Parsers is new LALRs.Parser;
+   package Parser_Lists is new LALRs.Parser_Lists;
+   package LALR_Parsers is new LALRs.Parser (Parser_Lists);
 
    --  Terminals
    EOF        : constant Master_Token.Class := Master_Token.Get (EOF_ID, Name => "EOF");
@@ -178,7 +180,7 @@ package body Test_LR_Expecting is
      Verify_Statement.Grammar;
 
    String_Feeder : aliased OpenToken.Text_Feeder.String.Instance;
-   Analyzer      : constant Tokenizer.Instance := Tokenizer.Initialize (Syntax);
+   Analyzer      : constant Tokenizer.Handle := Tokenizer.Initialize (Syntax);
    Parser        : LALR_Parsers.Instance;
 
    procedure Execute

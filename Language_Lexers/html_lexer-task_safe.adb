@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2009, 2012 Stephen Leake
+-- Copyright (C) 2009, 2012, 2014 Stephen Leake
 -- Copyright (C) 1999, 2000 Christoph Karl Walter Grein
 --
 -- This file is part of the OpenToken package.
@@ -44,20 +44,20 @@ package body HTML_Lexer.Task_Safe is
      (Lexer : in out Lexer_Type;
       Token :    out HTML_Token)
    is begin
-      Tokenizer.Find_Next (Lexer.Analyzer);
+      Lexer.Analyzer.Find_Next;
 
       Token :=
-        (Name   => Tokenizer.ID (Lexer.Analyzer),
-         Lexeme => Ada.Strings.Unbounded.To_Unbounded_String (Tokenizer.Lexeme (Lexer.Analyzer)),
-         Line   => Tokenizer.Line (Lexer.Analyzer),
-         Column => Tokenizer.Column (Lexer.Analyzer));
+        (Name   => Lexer.Analyzer.ID,
+         Lexeme => Ada.Strings.Unbounded.To_Unbounded_String (Lexer.Analyzer.Lexeme),
+         Line   => Lexer.Analyzer.Line,
+         Column => Lexer.Analyzer.Column);
 
       case Token.Name is
       when Start_Tag_Opener | End_Tag_Opener =>
-         Tokenizer.Set_Syntax (Lexer.Analyzer, Lexer.Tag_Syntax);
+         Lexer.Analyzer.Set_Syntax (Lexer.Tag_Syntax);
 
       when Tag_Closer =>
-         Tokenizer.Set_Syntax (Lexer.Analyzer, Lexer.Text_Syntax);
+         Lexer.Analyzer.Set_Syntax (Lexer.Text_Syntax);
 
       when others =>
          null;

@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 1999,2000,2009 Ted Dennison
+-- Copyright (C) 1999,2000,2009,2014 Ted Dennison
 --
 -- This file is part of the OpenToken package.
 --
@@ -60,7 +60,7 @@ begin
       Keyword : constant Master_Token.Handle := Syntax (Keyword_ID).Token_Handle;
       String  : constant Master_Token.Handle := Syntax (String_ID).Token_Handle;
 
-      Analyzer : constant Tokenizer.Instance := Tokenizer.Initialize (Syntax);
+      Analyzer : constant Tokenizer.Handle := Tokenizer.Initialize (Syntax);
       pragma Unreferenced (Analyzer);
 
       Expression : constant Nonterminal.Handle := new Nonterminal.Instance;

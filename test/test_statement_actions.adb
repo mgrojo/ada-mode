@@ -22,6 +22,7 @@ with AUnit.Assertions;
 with Ada.Exceptions;
 with OpenToken.Production.Parser.LALR.Generator;
 with OpenToken.Production.Parser.LALR.Parser;
+with OpenToken.Production.Parser.LALR.Parser_Lists;
 with OpenToken.Production.List;
 with OpenToken.Recognizer.Based_Integer;
 with OpenToken.Recognizer.Character_Set;
@@ -160,10 +161,11 @@ package body Test_Statement_Actions is
    package OpenToken_Parser is new Production.Parser (Tokenizer);
    package LALRs is new OpenToken_Parser.LALR (First_State_Index => 1);
    package LALR_Generators is new LALRs.Generator (Token_ID_Type'Width, Production_List);
-   package LALR_Parsers is new LALRs.Parser;
+   package Parser_Lists is new LALRs.Parser_Lists;
+   package LALR_Parsers is new LALRs.Parser (Parser_Lists);
 
    String_Feeder  : aliased OpenToken.Text_Feeder.String.Instance;
-   An_Analyzer    : constant Tokenizer.Instance := Tokenizer.Initialize (Syntax);
+   An_Analyzer    : constant Tokenizer.Handle := Tokenizer.Initialize (Syntax);
    Command_Parser : LALR_Parsers.Instance;
 
    procedure Execute_Command (Command : in String)

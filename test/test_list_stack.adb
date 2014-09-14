@@ -74,7 +74,7 @@ package body Test_List_Stack is
         (OpenToken.Recognizer.Character_Set.Get (OpenToken.Recognizer.Character_Set.Standard_Whitespace)));
 
    Feeder   : aliased OpenToken.Text_Feeder.String.Instance;
-   Analyzer : Tokenizer.Instance := Tokenizer.Initialize (Syntax, Feeder'Access);
+   Analyzer : constant Tokenizer.Handle := Tokenizer.Initialize (Syntax, Feeder'Access);
 
    package Integer_Selection is new OpenToken.Token.Selection_Mixin
      (Parent_Token    => Integer_Token.Instance,
@@ -164,8 +164,8 @@ package body Test_List_Stack is
       use AUnit.Check;
    begin
       OpenToken.Text_Feeder.String.Set (Feeder, "(10 + 5) * (2 + 3)");
-      Tokenizer.Reset (Analyzer);
-      Tokenizer.Find_Next (Analyzer);
+      Analyzer.Reset;
+      Analyzer.Find_Next;
 
       Expected_Value := 75;
       Integer_Sequence.Parse (L, Analyzer);

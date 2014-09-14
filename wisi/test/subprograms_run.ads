@@ -11,6 +11,8 @@ procedure Subprograms_Run is new Gen_Parser_Run
    Subprograms.Nonterminals,
    Subprograms.Productions,
    Subprograms.Parsers,
+   Subprograms.First_State_Index,
    Subprograms.LALRs,
+   Subprograms.Parser_Lists,
    Subprograms.LALR_Parsers,
    Subprograms.Create_Parser);

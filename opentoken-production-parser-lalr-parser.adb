@@ -28,8 +28,6 @@ with Ada.Strings.Unbounded;
 with Ada.Text_IO;
 package body OpenToken.Production.Parser.LALR.Parser is
 
-   package body Parser_Lists is separate;
-
    --  Return the action for the given state index and terminal ID.
    --  The final action in the action list for a state (the error
    --  action) is returned if no other node matches ID.
@@ -378,9 +376,12 @@ package body OpenToken.Production.Parser.LALR.Parser is
                        Integer'Image (Parser.Max_Parallel) & ")";
 
                   else
+                     if Trace_Parse then
+                        Ada.Text_IO.Put ("spawn parser from " & Int_Image (Current_Parser.Label));
+                     end if;
                      Parsers.Prepend_Copy (Current_Parser);
                      if Trace_Parse then
-                        Ada.Text_IO.Put_Line ("spawn parser (" & Int_Image (Parsers.Count) & " active)");
+                        Ada.Text_IO.Put_Line (" (" & Int_Image (Parsers.Count) & " active)");
                      end if;
                      Do_Action (Action.Next.Item, Parsers.First, Current_Token, Parser.Table.all);
                   end if;

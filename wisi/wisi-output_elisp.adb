@@ -22,14 +22,15 @@ with Ada.Text_IO;
 with OpenToken.Production.Parser.LALR.Elisp;
 with Wisi.Gen_Generate_Utils;
 procedure Wisi.Output_Elisp
-  (Input_File_Name : in String;
-   Elisp_Package   : in String;
-   Prologue        : in String_Lists.List;
-   Keywords        : in String_Pair_Lists.List;
-   Tokens          : in Token_Lists.List;
-   Start_Token     : in Standard.Ada.Strings.Unbounded.Unbounded_String;
-   Conflicts       : in Conflict_Lists.List;
-   Rules           : in Rule_Lists.List)
+  (Input_File_Name   : in String;
+   Elisp_Package     : in String;
+   Prologue          : in String_Lists.List;
+   Keywords          : in String_Pair_Lists.List;
+   Tokens            : in Token_Lists.List;
+   Start_Token       : in Standard.Ada.Strings.Unbounded.Unbounded_String;
+   Conflicts         : in Conflict_Lists.List;
+   Rules             : in Rule_Lists.List;
+   First_State_Index : in Integer)
 is
    EOI_Image              : constant String := "$EOI";
    OpenToken_Accept_Image : constant String := "opentoken_accept";
@@ -41,8 +42,8 @@ is
 
    package Generate_Utils is new Wisi.Gen_Generate_Utils
      (Keywords, Tokens, Conflicts, Rules, EOI_Image, OpenToken_Accept_Image,
-      First_State_Index => 0, -- Match elisp array indexing
-      To_Token_Image    => To_Token_Image);
+      First_State_Index,
+      To_Token_Image => To_Token_Image);
 
    package Parser_Elisp is new Generate_Utils.LALRs.Elisp (Generate_Utils.Token_Image);
 

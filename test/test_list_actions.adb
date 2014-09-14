@@ -52,7 +52,7 @@ package body Test_List_Actions is
      );
 
    Feeder   : aliased OpenToken.Text_Feeder.String.Instance;
-   Analyzer : Tokenizer.Instance := Tokenizer.Initialize (Syntax, Feeder'Access);
+   Analyzer : constant Tokenizer.Handle := Tokenizer.Initialize (Syntax, Feeder'Access);
 
    --  Build and Add_Element actions
 
@@ -111,8 +111,8 @@ package body Test_List_Actions is
       use AUnit.Check;
    begin
       OpenToken.Text_Feeder.String.Set (Feeder, "1 + 2 + 3");
-      Tokenizer.Reset (Analyzer);
-      Tokenizer.Find_Next (Analyzer);
+      Analyzer.Reset;
+      Analyzer.Find_Next;
 
       Int_List.Parse (A_List, Analyzer);
 

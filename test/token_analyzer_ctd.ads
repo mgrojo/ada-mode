@@ -49,7 +49,7 @@ package Token_Analyzer_CTD is
       Default => Tokenizer.Get (OpenToken.Recognizer.Nothing.Get)
      );
 
-   Analyzer : Tokenizer.Instance := Tokenizer.Initialize
+   Analyzer : Tokenizer.Handle := Tokenizer.Initialize
      (Language_Syntax => Syntax,
       Default         => Default);
 

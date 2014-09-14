@@ -17,16 +17,17 @@
 --  MA 02110-1335, USA.
 
 pragma License (GPL);
-separate (OpenToken.Production.Parser.LALR.Parser)
-package body Parser_Lists is
 
-   function Initialize return List
+with Ada.Text_IO;
+package body OpenToken.Production.Parser.LALR.Parser_Lists is
+
+   function Initialize (First_Parser_Label : in Integer := 1) return List
    is begin
       return
-        (Parser_Label       => 1,
+        (Parser_Label       => First_Parser_Label,
          Head               => new Parser_Node'
            (Item            =>
-              (Label        => 1,
+              (Label        => First_Parser_Label,
                Verb         => Parse_Action_Verbs'First,
                Stack        => new Stack_Node'
                  (Item      =>
@@ -163,7 +164,7 @@ package body Parser_Lists is
       Put (Integer'Image (Cursor.Ptr.Item.Label) & " stack: ");
       for I in 1 .. 10 loop
          exit when Stack_I = null;
-         Ada.Text_IO.Put
+         Put
            (State_Index'Image (Stack_I.Item.State) & " : " &
               (if Stack_I.Item.Token = null then ""
                else Stack_I.Item.Token.Image) &
@@ -245,21 +246,66 @@ package body Parser_Lists is
       return Cursor.Ptr.Item.Action_Token.Head = null;
    end Action_Tokens_Empty;
 
-   function Deep_Copy (Stack : in Stack_Node_Access; Stack_Free : in out Stack_Node_Access) return Stack_Node_Access
+   procedure Deep_Copy
+     (Stack             : in     Stack_Node_Access;
+      Stack_Free        : in out Stack_Node_Access;
+      Action_Token      : in     Action_Token_List;
+      Action_Token_Free : in out Action_Token_Node_Access;
+      New_Stack         :    out Stack_Node_Access;
+      New_Action_Tokens :    out Action_Token_List)
    is
-      --  Create a copy in Copy, in reverse order. Then move to
-      --  Result.Head, in correct order.
-      I      : Stack_Node_Access := Stack;
-      Copy   : Stack_Node_Access;
-      Temp   : Stack_Node_Access;
-      Result : Stack_Node_Access;
+      use Token_List;
+      use type Token.Handle;
+
+      --  All Action_Token.New_Token must point either to a token on
+      --  Stack or to tokens in later Action_Token.Tokens; preserve
+      --  that in the new copy.
+      --
+      --  1) Create a map of old action.new_token => new action.new_tokens
+      --  2) Create new Stack, using new action.New_Token pointers
+      --  3) Create new Action, using new action.New_Token pointers
+
+      type New_Token_Item is record
+         Old_Pointer : Token.Handle;
+         New_Pointer : Token.Handle;
+      end record;
+
+      New_Token_Items : array (Integer range 1 .. Count (Action_Token)) of New_Token_Item;
+
+      J          : Action_Token_Node_Access := Action_Token.Head;
+      Action_Pos : Integer;
+      Iter       : List_Iterator;
+      New_Tokens : Token_List.Instance;
+      New_Token  : Token.Handle;
+
+      I    : Stack_Node_Access := Stack;
+      Copy : Stack_Node_Access;
+      Temp : Stack_Node_Access;
 
       New_Stack_Item : Stack_Item;
    begin
+
+      for K in New_Token_Items'Range loop
+         New_Token_Items (K).Old_Pointer := Token.Handle (J.Item.New_Token);
+         New_Token_Items (K).New_Pointer := Token.Copy (I.Item.Token);
+
+         J := J.Next;
+      end loop;
+
+      --  We find New_Tokens in later Actions.Tokens below, while copying Actions.Tokens.
+
+      --  Create a copy of Stack in Copy, in reverse order, using
+      --  New_Token_Items.
+      Action_Pos := 1;
       loop
          exit when I = null;
 
-         New_Stack_Item := (I.Item.State, Token.Copy (I.Item.Token));
+         if Action_Pos <= New_Token_Items'Last and then I.Item.Token = New_Token_Items (Action_Pos).Old_Pointer then
+            New_Stack_Item := (I.Item.State, New_Token_Items (Action_Pos).New_Pointer);
+            Action_Pos     := Action_Pos + 1;
+         else
+            New_Stack_Item := (I.Item.State, Token.Copy (I.Item.Token));
+         end if;
 
          if Stack_Free = null then
             Copy := new Stack_Node'(New_Stack_Item, Copy);
@@ -272,55 +318,80 @@ package body Parser_Lists is
          I := I.Next;
       end loop;
 
-      I := Copy;
+      --  Move to New_Stack, in correct order.
+      I         := Copy;
+      New_Stack := null;
 
       loop
          exit when I = null;
-         Temp   := I.Next;
-         I.Next := Result;
-         Result := I;
-         I      := Temp;
+         Temp      := I.Next;
+         I.Next    := New_Stack;
+         New_Stack := I;
+         I         := Temp;
       end loop;
 
-      return Result;
-   end Deep_Copy;
-
-   function Deep_Copy
-     (Action_Token      : in     Action_Token_List;
-      Action_Token_Free : in out Action_Token_Node_Access)
-     return Action_Token_List
-   is
-      I      : Action_Token_Node_Access := Action_Token.Tail;
-      Result : Action_Token_List;
-
-      New_Action_Token : Parser_Lists.Action_Token;
-   begin
+      --  Copy Action_Tokens, using New_Token_Items.New_Token from previous tokens
+      J          := Action_Token.Tail;
+      Action_Pos := New_Token_Items'Last;
       loop
-         exit when I = null;
+         exit when J = null;
 
-         New_Action_Token := (I.Item.Action, Nonterminal.Copy (I.Item.New_Token), Token_List.Copy (I.Item.Tokens));
+         --  Copy J.Item.Tokens, using New_Token_Items.New_Token from previous actions
+         Iter       := Initial_Iterator (J.Item.Tokens);
+         New_Tokens := Null_List;
+         loop
+            exit when Iter = Null_Iterator;
 
-         Enqueue (Result, Action_Token_Free, New_Action_Token);
+            New_Token := null;
+            Find_New_Token :
+            for K in Action_Pos + 1 .. New_Token_Items'Last loop
+               if Token_Handle (Iter) = New_Token_Items (K).Old_Pointer then
+                  New_Token := New_Token_Items (K).New_Pointer;
+                  exit Find_New_Token;
+               end if;
+            end loop Find_New_Token;
 
-         I := I.Prev;
+            if New_Token = null then
+               Append (New_Tokens, Token.Copy (Token_Handle (Iter)));
+            else
+               Append (New_Tokens, New_Token);
+            end if;
+
+            Next (Iter);
+         end loop;
+
+         Enqueue
+           (New_Action_Tokens,
+            Action_Token_Free,
+            (J.Item.Action, Nonterminal.Handle (New_Token_Items (Action_Pos).New_Pointer), New_Tokens));
+
+         J          := J.Prev;
+         Action_Pos := Action_Pos - 1;
       end loop;
-
-      return Result;
    end Deep_Copy;
 
    procedure Prepend_Copy (List : in out Parser_Lists.List; Cursor : in Parser_Lists.Cursor'Class)
    is
       Temp : constant Parser_Node_Access := List.Parser_Free;
 
-      New_Parser : constant Parser_Node :=
+      New_Stack        : Stack_Node_Access;
+      New_Action_Token : Action_Token_List;
+
+      New_Parser : Parser_Node;
+   begin
+      Deep_Copy
+        (Cursor.Ptr.Item.Stack, List.Stack_Free, Cursor.Ptr.Item.Action_Token, List.Action_Token_Free,
+         New_Stack, New_Action_Token);
+
+      New_Parser :=
         (Item =>
            (List.Parser_Label + 1,
             Cursor.Ptr.Item.Verb,
-            Deep_Copy (Cursor.Ptr.Item.Stack, List.Stack_Free),
-            Deep_Copy (Cursor.Ptr.Item.Action_Token, List.Action_Token_Free)),
+            New_Stack,
+            New_Action_Token),
          Next => List.Head,
          Prev => null);
-   begin
+
       List.Parser_Label := List.Parser_Label + 1;
       List.Count        := List.Count + 1;
 
@@ -440,6 +511,19 @@ package body Parser_Lists is
       return Iterator'(Container => Container'Access);
    end Iterate;
 
+   function Count (Action_Token : in Action_Token_List) return Integer
+   is
+      Result : Integer := 0;
+      I : Action_Token_Node_Access := Action_Token.Head;
+   begin
+      loop
+         exit when I = null;
+         Result := Result + 1;
+         I      := I.Next;
+      end loop;
+      return Result;
+   end Count;
+
    ----------
    --  For unit tests
 
@@ -482,4 +566,4 @@ package body Parser_Lists is
       return Result;
    end Action_Token_Free_Count;
 
-end Parser_Lists;
+end OpenToken.Production.Parser.LALR.Parser_Lists;

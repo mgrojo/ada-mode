@@ -97,13 +97,15 @@ package OpenToken.Token.Enumerated.Analyzer is
    function Initialize
      (Language_Syntax : in Syntax;
       Feeder          : in OpenToken.Text_Feeder.Text_Feeder_Ptr := null;
-      Max_Buffer_Size : in Integer                               := 1024)
+      Max_Buffer_Size : in Integer                               := 1024;
+      First_Column    : in Integer                               := 1)
      return Handle;
    function Initialize
      (Language_Syntax : in Syntax;
       Default         : in Terminal_ID;
       Feeder          : in OpenToken.Text_Feeder.Text_Feeder_Ptr := null;
-      Max_Buffer_Size : in Integer                               := 1024)
+      Max_Buffer_Size : in Integer                               := 1024;
+      First_Column    : in Integer                               := 1)
      return Handle;
 
    ----------------------------------------------------------------------
@@ -205,7 +207,8 @@ package OpenToken.Token.Enumerated.Analyzer is
    --------------------------------------------------------------------------
    --  Returns the current text column number at which processing will
    --  resume. This is particularly useful for printing error messages
-   --  when syntax errors are detected.
+   --  when syntax errors are detected. First column number is given
+   --  in Initialize.
    --------------------------------------------------------------------------
    function Column (Analyzer : in Instance) return Natural;
 
@@ -258,10 +261,12 @@ private
    --  Put all the Analyzer's state information in here, so there can
    --  be several Analyzers running at once.
    type Instance (Max_Buffer_Size : Integer) is new Source with record
+
       --  User-settable attributes
       Syntax_List   : Syntax;
       Has_Default   : Boolean := False;
       Default_Token : Terminal_ID;
+      First_Column  : Integer;
 
       --  User-gettable attributes
       Line              : Natural := 1;

@@ -66,8 +66,7 @@ begin
 
       --  We don't need the Analyzer; we run Initialize because it
       --  sets the correct tokens in Syntax.
-      Analyzer : constant Tokenizer.Instance :=
-        Tokenizer.Initialize (Syntax);
+      Analyzer : constant Tokenizer.Handle := Tokenizer.Initialize (Syntax);
       pragma Unreferenced (Analyzer);
 
       List : Token_List.Instance;

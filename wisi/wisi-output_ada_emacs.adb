@@ -26,24 +26,22 @@ with OpenToken;
 with Wisi.Gen_Generate_Utils;
 with Wisi.Utils;
 procedure Wisi.Output_Ada_Emacs
-  (Input_File_Name  : in String;
-   Output_File_Root : in String;
-   Prologue         : in String_Lists.List;
-   Keywords         : in String_Pair_Lists.List;
-   Tokens           : in Token_Lists.List;
-   Start_Token      : in Standard.Ada.Strings.Unbounded.Unbounded_String;
-   Conflicts        : in Conflict_Lists.List;
-   Rules            : in Rule_Lists.List;
-   Rule_Count       : in Integer;
-   Action_Count     : in Integer)
+  (Input_File_Name   : in String;
+   Output_File_Root  : in String;
+   Prologue          : in String_Lists.List;
+   Keywords          : in String_Pair_Lists.List;
+   Tokens            : in Token_Lists.List;
+   Start_Token       : in Standard.Ada.Strings.Unbounded.Unbounded_String;
+   Conflicts         : in Conflict_Lists.List;
+   Rules             : in Rule_Lists.List;
+   Rule_Count        : in Integer;
+   Action_Count      : in Integer;
+   First_State_Index : in Integer)
 is
    use type Ada.Containers.Count_Type;
 
    EOI_Image              : constant String := "EOF_ID";
    OpenToken_Accept_Image : constant String := "OPENTOKEN_ACCEPT_ID";
-
-   First_State_Index : constant := 0;
-   --  Match wisi-output_elisp.adb, to allow comparing parse traces.
 
    function To_Token_Image (Item : in Ada.Strings.Unbounded.Unbounded_String) return String
    is begin
@@ -138,6 +136,7 @@ begin
    Put_Line ("with OpenToken.Production.List;");
    Put_Line ("with OpenToken.Production.Parser.LALR.Generator;");
    Put_Line ("with OpenToken.Production.Parser.LALR.Parser;");
+   Put_Line ("with OpenToken.Production.Parser.LALR.Parser_Lists;");
    Put_Line ("with OpenToken.Text_Feeder;");
 
    Put_Line ("with OpenToken.Token.Enumerated.Analyzer;");
@@ -267,11 +266,12 @@ begin
    Indent_Line ("package Productions is new OpenToken.Production (Tokens, Token_Lists, Nonterminals);");
    Indent_Line ("package Parsers is new Productions.Parser (Analyzers);");
    Indent_Line
-     ("package LALRs is new Parsers.LALR (First_State_Index => " &
-        OpenToken.Int_Image (First_State_Index) & ");");
+     ("First_State_Index : constant Integer := " & OpenToken.Int_Image (First_State_Index) & ";");
+   Indent_Line ("package LALRs is new Parsers.LALR (First_State_Index);");
    Indent_Line ("package Production_Lists is new Productions.List;");
    Indent_Line ("package LALR_Generators is new LALRs.Generator (Token_IDs'Width, Production_Lists);");
-   Indent_Line ("package LALR_Parsers is new LALRs.Parser;");
+   Indent_Line ("package Parser_Lists is new LALRs.Parser_Lists;");
+   Indent_Line ("package LALR_Parsers is new LALRs.Parser (Parser_Lists);");
    New_Line;
    Indent_Line
      ("package Wisi_Tokens is new OpenToken.Wisi_Tokens");
@@ -712,7 +712,8 @@ begin
    New_Line;
    --  FIXME: get Max_Parallel from some command line
    Indent_Line ("return");
-   Indent_Line ("  (Analyzers.Initialize (Create_Syntax, Text_Feeder), Table, Max_Parallel, Terminate_Same_State);");
+   Indent_Line ("  (Analyzers.Initialize (Create_Syntax, Text_Feeder, First_Column => 0),");
+   Indent_Line ("   Table, Max_Parallel, Terminate_Same_State);");
    Indent := Indent - 3;
    Indent_Line ("end Create_Parser;");
    Put_Line ("end " & Package_Name & ";");

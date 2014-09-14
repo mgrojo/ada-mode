@@ -70,7 +70,7 @@ package String_Test is
       EOF        => Tokenizer.Get (OpenToken.Recognizer.End_Of_File.Get)
      );
 
-   Analyzer : Tokenizer.Instance := Tokenizer.Initialize (Ada_Syntax);
+   Analyzer : Tokenizer.Handle := Tokenizer.Initialize (Ada_Syntax);
 
 
 end String_Test;

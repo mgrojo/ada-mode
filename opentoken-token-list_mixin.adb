@@ -139,7 +139,7 @@ package body OpenToken.Token.List_Mixin is
 
    overriding procedure Parse
      (Match    : access Instance;
-      Analyzer : in out Source_Class;
+      Analyzer : access Source_Class;
       Actively : in     Boolean      := True)
    is
       --  Since this routine can be called recursively, we keep the
@@ -158,7 +158,7 @@ package body OpenToken.Token.List_Mixin is
            (" list " & Name_Dispatch (Match) &
               "'(" & Name_Dispatch (Match.Element) & ", " &
               Name_Dispatch (Match.Separator) & ") match " &
-              Name_Dispatch (Get (Analyzer)));
+              Name_Dispatch (Analyzer.Get));
       end if;
 
       if Local_Match.Initialize /= null then

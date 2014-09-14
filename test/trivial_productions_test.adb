@@ -22,6 +22,7 @@ pragma License (GPL);
 with OpenToken.Production.List;
 with OpenToken.Production.Parser.LALR.Generator;
 with OpenToken.Production.Parser.LALR.Parser;
+with OpenToken.Production.Parser.LALR.Parser_Lists;
 with OpenToken.Recognizer.Character_Set;
 with OpenToken.Recognizer.End_Of_File;
 with OpenToken.Recognizer.Keyword;
@@ -55,7 +56,8 @@ package body Trivial_Productions_Test is
       package Parsers is new Productions.Parser (Analyzers);
       package LALRs is new Parsers.LALR (First_State_Index => 1);
       package LALR_Generators is new LALRs.Generator (Token_IDs'Width, Production_Lists);
-      package LALR_Parsers is new LALRs.Parser;
+      package Parser_Lists is new LALRs.Parser_Lists;
+      package LALR_Parsers is new LALRs.Parser (Parser_Lists);
 
       EOF    : constant Tokens.Class       := Tokens.Get (EOF_ID);
       Symbol : constant Tokens.Class       := Tokens.Get (Symbol_ID);
@@ -67,7 +69,7 @@ package body Trivial_Productions_Test is
         (EOF_ID    => Analyzers.Get (OpenToken.Recognizer.End_Of_File.Get, EOF),
          Symbol_ID => Analyzers.Get (OpenToken.Recognizer.Keyword.Get ("symbol"), Symbol));
 
-      Analyzer : Analyzers.Instance := Analyzers.Initialize (Syntax, Feeder'Access);
+      Analyzer : constant Analyzers.Handle := Analyzers.Initialize (Syntax, Feeder'Access);
 
       --  Allow infix operators for building productions
       use type Token_Lists.Instance;
@@ -137,7 +139,8 @@ package body Trivial_Productions_Test is
       package Parsers is new Productions.Parser (Analyzers);
       package LALRs is new Parsers.LALR (First_State_Index => 1);
       package LALR_Generators is new LALRs.Generator (Token_IDs'Width, Production_Lists);
-      package LALR_Parsers is new LALRs.Parser;
+      package Parser_Lists is new LALRs.Parser_Lists;
+      package LALR_Parsers is new LALRs.Parser (Parser_Lists);
 
       EOF            : constant Tokens_Pkg.Class := Tokens_Pkg.Get (EOF_ID);
       Function_Tok   : constant Tokens_Pkg.Class := Tokens_Pkg.Get (Function_ID);
@@ -162,7 +165,7 @@ package body Trivial_Productions_Test is
          Whitespace_ID  => Analyzers.Get (OpenToken.Recognizer.Character_Set.Get
            (OpenToken.Recognizer.Character_Set.Standard_Whitespace)));
 
-      Analyzer : Analyzers.Instance := Analyzers.Initialize (Syntax, Feeder'Access);
+      Analyzer : constant Analyzers.Handle := Analyzers.Initialize (Syntax, Feeder'Access);
 
       --  Allow infix operators for building productions
       use type Token_Lists.Instance;

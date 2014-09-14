@@ -11,6 +11,8 @@ procedure Empty_Production_5_Run is new Gen_Parser_Run
    Empty_Production_5.Nonterminals,
    Empty_Production_5.Productions,
    Empty_Production_5.Parsers,
+   Empty_Production_5.First_State_Index,
    Empty_Production_5.LALRs,
+   Empty_Production_5.Parser_Lists,
    Empty_Production_5.LALR_Parsers,
    Empty_Production_5.Create_Parser);

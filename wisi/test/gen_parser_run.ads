@@ -1,5 +1,6 @@
 with OpenToken.Production;
 with OpenToken.Production.Parser.LALR.Parser;
+with OpenToken.Production.Parser.LALR.Parser_Lists;
 with OpenToken.Text_Feeder;
 with OpenToken.Token.Enumerated.Analyzer;
 with OpenToken.Token.Enumerated.List;
@@ -15,8 +16,10 @@ generic
    with package Nonterminals is new Tokens.Nonterminal (Token_Lists);
    with package Productions is new OpenToken.Production (Tokens, Token_Lists, Nonterminals);
    with package Parsers is new Productions.Parser (Analyzers);
-   with package LALRs is new Parsers.LALR (First_State_Index => 1);
-   with package LALR_Parsers is new LALRs.Parser;
+   First_State_Index : in Integer;
+   with package LALRs is new Parsers.LALR (First_State_Index);
+   with package Parser_Lists is new LALRs.Parser_Lists;
+   with package LALR_Parsers is new LALRs.Parser (Parser_Lists);
 
    with function Create_Parser
      (Max_Parallel         : in Integer := 15;

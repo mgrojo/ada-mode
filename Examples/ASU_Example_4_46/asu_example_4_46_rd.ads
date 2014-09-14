@@ -118,6 +118,6 @@ package ASU_Example_4_46_RD is
    Feeder     : aliased OpenToken.Text_Feeder.Text_IO.Instance :=
      OpenToken.Text_Feeder.Text_IO.Create (Input_File'Access);
 
-   Analyzer : Tokenizer.Instance := Tokenizer.Initialize (Syntax, Feeder'Access);
+   Analyzer : constant Tokenizer.Handle := Tokenizer.Initialize (Syntax, Feeder'Access);
 
 end ASU_Example_4_46_RD;

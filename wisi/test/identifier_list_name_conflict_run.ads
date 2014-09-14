@@ -11,6 +11,8 @@ procedure Identifier_List_Name_Conflict_Run is new Gen_Parser_Run
    Identifier_List_Name_Conflict.Nonterminals,
    Identifier_List_Name_Conflict.Productions,
    Identifier_List_Name_Conflict.Parsers,
+   Identifier_List_Name_Conflict.First_State_Index,
    Identifier_List_Name_Conflict.LALRs,
+   Identifier_List_Name_Conflict.Parser_Lists,
    Identifier_List_Name_Conflict.LALR_Parsers,
    Identifier_List_Name_Conflict.Create_Parser);
