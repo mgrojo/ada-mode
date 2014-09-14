@@ -103,7 +103,8 @@
       (if found
 	  (when (> wisi-ada-parse-debug 0)
 	    (message "wisi-ada-parse-session-wait: %d" wait-count)
-	    (message "'%s'" (buffer-substring-no-properties (point-min) (point-max))))
+	    (when (> wisi-ada-parse-debug 2)
+	      (message "'%s'" (buffer-substring-no-properties (point-min) (point-max)))))
 
 	(wisi-ada-parse-show-buffer)
 	(error "ada_mode_wisi_parse process died"))
@@ -115,8 +116,7 @@
 
   ;; ada_mode_wisi_parse can't handle non-ASCII, so we don't need string-bytes here.
   (let* ((buf-string (buffer-substring-no-properties (point-min) (point-max)))
-	 (byte-count-img (format "%d" (1- (length buf-string))))
-	 (cmd (concat "parse " byte-count-img))
+	 (cmd (format "parse \"%s\" %d" (buffer-name) (length buf-string)))
 	 (msg (format "%02d%s" (length cmd) cmd))
 	 (process (wisi-ada-parse--session-process wisi-ada-parse-session)))
     (when (> wisi-ada-parse-debug 0)
@@ -126,20 +126,8 @@
       (erase-buffer))
     (process-send-string process msg)
 
-    ;; WORKAROUND: process-send-string is supposed to allow accepting
-    ;; process output while writing to process input, but apparently
-    ;; it doesn't, at least on windows via pipes. So break up
-    ;; buf-string, and call accept-process-output explicitly
-    (let ((bytes-per-cycle 2047)
-	  (bytes-to-send (length buf-string))
-	  (first 0)
-	  (last 0))
-      (while (< last bytes-to-send)
-	(setq last (min bytes-to-send (+ first bytes-per-cycle)))
-	(message "%d" last)
-	(process-send-string process (substring buf-string first last))
-	(setq first (1+ last))
-	(accept-process-output process 0.1)))
+    (process-send-string process buf-string)
+
     (wisi-ada-parse-session-wait)
     ))
 
@@ -159,17 +147,19 @@
 ;;;;; main
 
 (defun wisi-ada-parse ()
-  (wisi-ada-parse-session-send-parse)
-
   ;; Eval the action forms one at a time; it's not one big form.  We
   ;; also need to ignore comments explicitly, since the buffer is not
   ;; in elisp mode (and we don't want to waste time putting it in that
   ;; mode)
+  (wisi-ada-parse-require-session)
   (let ((source-buffer (current-buffer))
 	(action-buffer (wisi-ada-parse--session-buffer wisi-ada-parse-session))
 	 action
 	 action-end
 	 (done nil))
+
+    (wisi-ada-parse-session-send-parse)
+
     (set-buffer action-buffer)
     (goto-char (point-min))
 
@@ -191,6 +181,7 @@
       (when action
 	(set-buffer source-buffer)
 	(eval (car (read-from-string action)) t))
-      )))
+      )
+    (set-buffer source-buffer)))
 
 (provide 'wisi-ada-parse)

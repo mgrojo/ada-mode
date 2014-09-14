@@ -47,8 +47,10 @@ test-wisi :: empty_production_8.wisi-test
 #one : RUNTEST := run-indent-test-wisi-gpr_query.el
 #one : ada_mode-nominal.ads.diff
 #one : export Ada_Mode_Wisi_Parse_Build := Debug
-one : ada_mode_wisi_parse.exe
-	./ada_mode_wisi_parse.exe < commands.text
+#one : ada_mode_wisi_parse.exe
+#	./ada_mode_wisi_parse.exe -v < commands.text
+one : run_ada_parser.exe
+	time ./run_ada_parser.exe /apps/GNAT-gpl_2014/gnatcoll-1.7w-src/src/sqlite/gnatcoll-xref.adb > /dev/null
 
 vpath %.wy ../../ ../../test/wisi
 vpath %.el ../../ .
@@ -92,8 +94,11 @@ endif
 	gnatchop -w $*.a $*_dfa.a $*_io.a
 
 ada_mode_wisi_parse.exe : ../../ada_grammar.ads force
-	gprbuild -p ada_mode_wisi_parse_agg.gpr
-#	bash -c "time gprbuild -p ada_mode_wisi_parse_agg.gpr"
+#	gprbuild -p ada_mode_wisi_parse_agg.gpr
+	bash -c "time gprbuild -p ada_mode_wisi_parse_agg.gpr"
+
+run_ada_parser.exe : ../../ada_grammar.ads force
+	gprbuild -p ada_mode_wisi_parse_agg.gpr run_ada_parser.adb
 
 clean ::
 	rm -f *.a *.ads *.adb *.exe

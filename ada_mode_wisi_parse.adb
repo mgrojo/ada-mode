@@ -44,8 +44,9 @@ is
 
       Put_Line ("Commands: ");
 
-      Put_Line ("NNparse <text_byte_count><text>");
-      Put_Line ("  NN includes 'parse <text_byte_count>'");
+      Put_Line ("NNparse ""<buffer-name>"" <text_byte_count><text>");
+      Put_Line ("  NN includes 'parse ""<buffer-name>"" <text_byte_count>'");
+      Put_Line ("  <buffer-name> used in error messages");
       Put_Line ("  outputs: elisp forms for wisi actions");
 
       Put_Line ("04quit");
@@ -80,6 +81,30 @@ is
          raise Constraint_Error with "'" & Temp (1 .. Read_Bytes) & "'";
       end case;
    end Get_Command_Length;
+
+   function Get_String
+     (Source : in     String;
+      Last   : in out Integer)
+     return String
+   is
+      use Ada.Exceptions;
+      use Ada.Strings.Fixed;
+      First : constant Integer := Index
+        (Source  => Source,
+         Pattern => """",
+         From    => Last + 1);
+   begin
+      Last := Index
+        (Source  => Source,
+         Pattern => """",
+         From    => First + 1);
+
+      if First = 0 or Last = 0 then
+         raise Programmer_Error with "no '""' found for string";
+      end if;
+
+      return Source (First + 1 .. Last - 1);
+   end Get_String;
 
    function Get_Integer
      (Source : in     String;
@@ -169,16 +194,20 @@ begin
                --  [error form]
                --  prompt
                declare
-                  Byte_Count : constant Integer := Get_Integer (Command_Line, Last);
-                  Feeder : OpenToken.Text_Feeder.Counted_GNAT_OS_Lib.Instance renames
+                  Buffer_Name : constant String  := Get_String (Command_Line, Last);
+                  Byte_Count  : constant Integer := Get_Integer (Command_Line, Last);
+                  Feeder      : OpenToken.Text_Feeder.Counted_GNAT_OS_Lib.Instance renames
                     OpenToken.Text_Feeder.Counted_GNAT_OS_Lib.Instance (Parser.Analyzer.Feeder.all);
                begin
                   Feeder.Reset (Byte_Count);
                   Parser.Analyzer.Reset;
                   Parser.Parse;
+                  Put_Line ("(goto-char " & OpenToken.Int_Image (Parser.Analyzer.Bounds.End_Pos) & ")");
                exception
                when E : OpenToken.Parse_Error | OpenToken.Syntax_Error =>
-                  Put_Line ("(signal 'wisi-parse-error """ & Ada.Exceptions.Exception_Message (E) & """)");
+                  Put_Line
+                    ("(signal 'wisi-parse-error """ & Buffer_Name & ":" &
+                       Ada.Exceptions.Exception_Message (E) & """)");
                   Feeder.Discard_Rest_Of_Input;
                end;
 

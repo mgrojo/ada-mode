@@ -34,7 +34,7 @@
 	(col (- (point) (line-beginning-position))))
     (format
      "%s:%d:%d: %s"
-       (file-name-nondirectory (buffer-name)) ;; buffer-file-name is sometimes nil here!?
+       (buffer-name) ;; buffer-file-name is sometimes nil here!?
        line col
        (apply 'format message args))))
 

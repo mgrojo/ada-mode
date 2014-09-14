@@ -1189,6 +1189,9 @@ cached token, return new indentation for point."
   "For `ada-goto-subunit-name'."
 
   (wisi-validate-cache (point-max))
+  (unless (> wisi-cache-max (point))
+    (error "parse failed; can't goto subunit name"))
+
   (let ((end nil)
 	cache
 	(name-pos nil))
@@ -1260,6 +1263,9 @@ Also return cache at start."
 (defun ada-wisi-goto-declarative-region-start ()
   "For `ada-goto-declarative-region-start', which see."
   (wisi-validate-cache (point))
+  (unless (> wisi-cache-max (point))
+    (error "parse failed; can't goto declarative-region-start"))
+
   (let ((done nil)
 	(first t)
 	(cache

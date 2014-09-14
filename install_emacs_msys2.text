@@ -1,0 +1,136 @@
+notes on installing Emacs from source on Windows 7 using MinGW64 64 or 32 bit via Msys2.
+
+Here we give sources for the various packages needed. We give
+directions to the download, rather than an exact URL, to make it easy
+to check for new versions.
+
+These instructions work on a new computer, with only 64 bit Windows 7
+installed.
+
+Msys2 provides all of the tools required, and several of the packages.
+
+These instructions are derived from http://sourceforge.net/p/msys2/wiki/MSYS2%20installation/
+
+There are more detailed instructions at http://sourceforge.net/p/msys2/tickets/32/?limit=10&page=1#216b
+
+For more help, consult the mailing list at https://lists.sourceforge.net/lists/listinfo/msys2-users
+
+00. MSYS2 issues
+
+    If this is the first time you've installed Msys2 on this computer:
+
+        The msys2 runtime does some initialization, and the shell may not
+        start properly (on my system, it finds my Cygwin HOME directory!).
+        (FIXME: where is this configuration? probably the Windows
+        registry). So exit the shell, and start another by clicking on
+        c:\msys64\mingw64_shell.bat in Windows Explorer
+        FIXME: or should that be msys2_shell.bat? when to run which?
+
+        The default home directory for the shell is
+        c:/msys64/home/<windows user>; the shell copies various startup
+        files (.bash_profile etc). Edit these to your own taste.
+
+    You can copy into the shell with a center mouse click.
+
+    pacman maintains a local database of package versions. You have
+    control over when that database is updated from the central
+    repository.
+
+    Running pacman can change dlls that are currently in use without
+    checking, which can cause the post-install scripts to fail. This
+    can happen any time you update the local package version database,
+    since the central repository is updated often, and any new package
+    you install may require an updated dll.
+
+    To run the msys shell under emacs, you need to:
+
+        - set the MSYSTEM env variable to MINGW64 or MING32
+
+        - run c:/msys64/usr/bin/bash or c:/msys32/usr/bin/bash  as the shell
+
+        - start the shell with -i -login
+
+        #FIXME: post shell-explicit patch to make this easier, or
+         modify my code to not use a patch and include that here
+
+01. MSYS2 install
+
+    - if you have a 64 bit machine:
+
+        From http://sourceforge.net/p/msys2/wiki/MSYS2%20installation/ download the 64 bit installer
+
+        run msys2-i686-20140704.exe
+
+        install to the default install directory c:/msys64
+
+    - if you have a 32 bit machine, the 32 bit installer (also works on a 64 bit machine, but is unnecessarily slower)
+
+        run msys2-i686-20140704.exe
+
+        install to the default install directory c:/msys32
+
+
+    The rest of these instructions assume a 64 bit machine; modify the paths accordingly.
+
+    The installer offers to "Run Msys 64/32bit now."; check that.
+
+    That starts an msys shell.
+
+    During updating, kill the msys shell with the Windows X button
+    immediately after running pacman; doing anything else in the shell
+    after runnig pacman, including "exit", may run into the dll
+    problem.
+
+    To update safely:
+
+    - exit all msys2 processes, start a new shell from Windows Explorer: c:\msys64\mingw64_shell.bat
+
+    - In the msys shell:
+
+        $ pacman -Sy
+            # updates local package database from central repository
+
+        $ pacman -S --needed filesystem msys2-runtime libiconv libarchive libgpgme libcurl pacman ncurses libintl
+
+    - from Windows Explorer:
+
+        run c:\msys64\autorebase.bat
+        run c:\msys64\mingw64_shell.bat
+
+    - In the msys shell:
+
+        $ pacman -S --needed bash libreadline
+
+    - from Windows Explorer:
+
+        run c:\msys64\autorebase.bat
+        run c:\msys64\mingw64_shell.bat
+
+02. gcc toolchain install
+
+    Emacs does not yet support 64 bit (it may soon), so we need the 32
+    bit toolchain.
+
+    - in the msys shell:
+
+        $ pacman -S mingw-w64-i686-toolchain
+            # install all (the default choice)
+            # FIXME: list items actually needed
+
+        $ pacman -S tar msys/make
+
+    - from Windows Explorer, run c:\msys64\autorebase.bat
+
+02. build Emacs from source
+
+    download http://alpha.gnu.org/gnu/emacs/pretest/emacs-24.3.93.tar.xz
+
+    $ mkdir /c/Projects
+    $ cd /c/Projects
+    $ tar xf emacs-24.3.93.tar.xz
+    $ cd emacs-24.3.93
+    $ ./configure --build=i686-pc-mingw32 --prefix=/mingw32
+        # use i686-pc-mingw32 for 32 bit host
+        # FIXME: config.guess returns i686-pc-mingw32 when run directly in mingw32_shell.bat
+        # fix sal-msys32
+    $ make
