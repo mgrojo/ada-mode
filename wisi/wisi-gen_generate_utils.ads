@@ -25,13 +25,13 @@ with OpenToken.Token.Enumerated.Analyzer;
 with OpenToken.Token.Enumerated.List.Print;
 with OpenToken.Token.Enumerated.Nonterminal;
 generic
-   Keywords               : in Wisi.String_Pair_Lists.List;
-   Tokens                 : in Wisi.Token_Lists.List;
-   Conflicts              : in Wisi.Conflict_Lists.List;
-   Rules                  : in Wisi.Rule_Lists.List;
-   EOI_Image              : in String;
-   OpenToken_Accept_Image : in String;
-   First_State_Index      : in Integer;
+   Keywords              : in Wisi.String_Pair_Lists.List;
+   Tokens                : in Wisi.Token_Lists.List;
+   Conflicts             : in Wisi.Conflict_Lists.List;
+   Rules                 : in Wisi.Rule_Lists.List;
+   EOI_Name              : in Ada.Strings.Unbounded.Unbounded_String; -- without trailing _ID
+   OpenToken_Accept_Name : in Ada.Strings.Unbounded.Unbounded_String;
+   First_State_Index     : in Integer;
 
    with function To_Token_Image (Item : in Ada.Strings.Unbounded.Unbounded_String) return String;
 package Wisi.Gen_Generate_Utils is
@@ -60,7 +60,19 @@ package Wisi.Gen_Generate_Utils is
 
    Token_Images : constant ID_Array_Access_String_Type := Set_Token_Images;
 
-   function Token_Image (ID : in Token_IDs) return String;
+   function Token_Image (ID : in Token_IDs) return String is (Token_Images (ID).all);
+
+   type Token_Cursor is tagged private;
+   --  Iterate thru tokens in a canonical order.
+
+   function First return Token_Cursor;
+   procedure Next (Cursor : in out Token_Cursor);
+   function Is_Done (Cursor : in out Token_Cursor) return Boolean;
+   function Token_Name (Cursor : in out Token_Cursor) return Standard.Ada.Strings.Unbounded.Unbounded_String;
+   --  Return the token name from the .wy file:
+   --  token: Tokens.name
+   --  keyword: Keywords.name
+   --  nonterminal: Rules.Left_Hand_Side
 
    procedure Put_Tokens;
    --  Put user readable token list to Standard_Output
@@ -94,5 +106,18 @@ package Wisi.Gen_Generate_Utils is
 
    procedure Indent_Line (Text : in String);
    --  Put Text indented to Indent to Current_Output, with newline.
+
+private
+
+   type Token_Cursor_State is
+     (Non_Reporting, Terminals_Keywords, Terminals_Others, EOI, OpenToken_Accept, Nonterminal, Done);
+
+   type Token_Cursor is tagged record
+      State       : Token_Cursor_State;
+      Token_Kind  : Wisi.Token_Lists.Cursor;
+      Token_Item  : String_Pair_Lists.Cursor;
+      Keyword     : String_Pair_Lists.Cursor;
+      Nonterminal : Rule_Lists.Cursor;
+   end record;
 
 end Wisi.Gen_Generate_Utils;

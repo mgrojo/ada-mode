@@ -74,15 +74,15 @@
  1 stack:  10 : (constant_opt 61 . 68),  8 : (aliased_opt 53 . 59),  2 : (IDENTIFIER 45 . 51),  3 : (object_declaration_list 1 . 43),  1 : , 
  1: 10: (SEMICOLON 69 . 69) : shift and goto state 11
  1 stack:  11 : (SEMICOLON 69 . 69),  10 : (constant_opt 61 . 68),  8 : (aliased_opt 53 . 59),  2 : (IDENTIFIER 45 . 51),  3 : (object_declaration_list 1 . 43),  1 : , 
- 1: 11: (EOF_ID 70 . 70) : reduce 4 tokens to object_declaration
+ 1: 11: (EOF 70 . 70) : reduce 4 tokens to object_declaration
  ... goto state 6
  1 stack:  6 : (object_declaration 45 . 69),  3 : (object_declaration_list 1 . 43),  1 : , 
- 1: 6: (EOF_ID 70 . 70) : reduce 2 tokens to object_declaration_list
+ 1: 6: (EOF 70 . 70) : reduce 2 tokens to object_declaration_list
 (let ((wisi-tokens '((object_declaration_list 1 . 43) (object_declaration 45 . 69))))
 (setq wisi-test-success t)
 )
  ... goto state 3
  1 stack:  3 : (object_declaration_list 1 . 69),  1 : , 
- 1: 3: (EOF_ID 70 . 70) : shift and goto state 5
- 1 stack:  5 : (EOF_ID 70 . 70),  3 : (object_declaration_list 1 . 69),  1 : , 
- 1: 5: (EOF_ID 71 . 71) : accept it
+ 1: 3: (EOF 70 . 70) : shift and goto state 5
+ 1 stack:  5 : (EOF 70 . 70),  3 : (object_declaration_list 1 . 69),  1 : , 
+ 1: 5: (EOF 71 . 71) : accept it

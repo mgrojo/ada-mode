@@ -30,8 +30,8 @@ procedure Wisi.Test_Generate
    Rules             : in Rule_Lists.List;
    First_State_Index : in Integer)
 is
-   EOI_Image              : constant String := "$EOI";
-   OpenToken_Accept_Image : constant String := "opentoken_accept";
+   EOI_Name              : constant Ada.Strings.Unbounded.Unbounded_String := +"$EOI";
+   OpenToken_Accept_Name : constant Ada.Strings.Unbounded.Unbounded_String := +"opentoken_accept";
 
    function To_Token_Image (Item : in Ada.Strings.Unbounded.Unbounded_String) return String
    is begin
@@ -39,7 +39,7 @@ is
    end To_Token_Image;
 
    package Generate_Utils is new Wisi.Gen_Generate_Utils
-     (Keywords, Tokens, Conflicts, Rules, EOI_Image, OpenToken_Accept_Image,
+     (Keywords, Tokens, Conflicts, Rules, EOI_Name, OpenToken_Accept_Name,
       First_State_Index,
       To_Token_Image => To_Token_Image);
 

@@ -34,21 +34,21 @@
  1 stack:  12 : (parameter_list),  3 : (PROCEDURE 21 . 29),  5 : (declarations 1 . 18),  1 : , 
  1: 12: (SYMBOL 31 . 36) : shift and goto state 15
  1 stack:  15 : (SYMBOL 31 . 36),  12 : (parameter_list),  3 : (PROCEDURE 21 . 29),  5 : (declarations 1 . 18),  1 : , 
- 1: 15: (EOF_ID 37 . 37) : reduce 3 tokens to subprogram
+ 1: 15: (EOF 37 . 37) : reduce 3 tokens to subprogram
 (let ((wisi-tokens '((PROCEDURE 21 . 29) (parameter_list) (SYMBOL 31 . 36))))
 (wisi-statement-action 1 'procedure 3 'name)
 )
  ... goto state 7
  1 stack:  7 : (subprogram 21 . 36),  5 : (declarations 1 . 18),  1 : , 
- 1: 7: (EOF_ID 37 . 37) : reduce 1 tokens to declaration
+ 1: 7: (EOF 37 . 37) : reduce 1 tokens to declaration
  ... goto state 8
  1 stack:  8 : (declaration 21 . 36),  5 : (declarations 1 . 18),  1 : , 
- 1: 8: (EOF_ID 37 . 37) : reduce 2 tokens to declarations
+ 1: 8: (EOF 37 . 37) : reduce 2 tokens to declarations
  ... goto state 5
  1 stack:  5 : (declarations 1 . 36),  1 : , 
- 1: 5: (EOF_ID 37 . 37) : reduce 1 tokens to compilation_unit
+ 1: 5: (EOF 37 . 37) : reduce 1 tokens to compilation_unit
  ... goto state 4
  1 stack:  4 : (compilation_unit 1 . 36),  1 : , 
- 1: 4: (EOF_ID 37 . 37) : shift and goto state 9
- 1 stack:  9 : (EOF_ID 37 . 37),  4 : (compilation_unit 1 . 36),  1 : , 
- 1: 9: (EOF_ID 38 . 38) : accept it
+ 1: 4: (EOF 37 . 37) : shift and goto state 9
+ 1 stack:  9 : (EOF 37 . 37),  4 : (compilation_unit 1 . 36),  1 : , 
+ 1: 9: (EOF 38 . 38) : accept it

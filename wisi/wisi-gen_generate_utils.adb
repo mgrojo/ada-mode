@@ -68,7 +68,7 @@ package body Wisi.Gen_Generate_Utils is
          end if;
       end loop;
 
-      if Token = EOI_Image or
+      if Token = EOI_Name or
         Token = "EOI" -- used in conflicts
       then
          return Result;
@@ -82,7 +82,7 @@ package body Wisi.Gen_Generate_Utils is
          Result := Result + 1;
       end loop;
 
-      if Token = OpenToken_Accept_Image or
+      if Token = OpenToken_Accept_Name or
         Token = "opentoken_accept"
       then
          return Result;
@@ -124,7 +124,7 @@ package body Wisi.Gen_Generate_Utils is
 
       if ID /= EOI_ID then raise Programmer_Error; end if;
 
-      Token_Images (ID) := new String'(EOI_Image);
+      Token_Images (ID) := new String'(To_Token_Image (EOI_Name));
       ID                := ID + 1;
 
       for Rule of Rules loop
@@ -134,7 +134,7 @@ package body Wisi.Gen_Generate_Utils is
 
       if ID /= Accept_ID then raise Programmer_Error; end if;
 
-      Token_Images (ID) := new String'(OpenToken_Accept_Image);
+      Token_Images (ID) := new String'(To_Token_Image (OpenToken_Accept_Name));
 
       for Token of Token_Images loop
          if Token.all'Length > Token_Image_Width then
@@ -145,11 +145,6 @@ package body Wisi.Gen_Generate_Utils is
       return Token_Images;
    end Set_Token_Images;
 
-   function Token_Image (ID : in Token_IDs) return String
-   is begin
-      return Token_Images (ID).all;
-   end Token_Image;
-
    procedure Indent_Line (Text : in String)
    is
       use Ada.Text_IO;
@@ -157,6 +152,236 @@ package body Wisi.Gen_Generate_Utils is
       Set_Col (Indent);
       Put_Line (Text);
    end Indent_Line;
+
+   function Non_Reporting (Cursor : in Token_Cursor) return Boolean
+   is
+      use Ada.Strings.Unbounded;
+      --  WORKAROUND: in GNAT GPL_2014, using single statement here gives constraint error
+      Token_Ref : constant Wisi.Token_Lists.Constant_Reference_Type := Wisi.Token_Lists.Constant_Reference
+        (Tokens, Cursor.Token_Kind);
+
+      Kind : constant String := To_String (Token_Ref.Element.Kind);
+   begin
+      return Kind = """line_comment""" or Kind = """whitespace""";
+   end Non_Reporting;
+
+   function First_Token_Item (Cursor : in Token_Cursor) return String_Pair_Lists.Cursor
+   is
+      --  WORKAROUND: in GNAT GPL_2014, using single statement here gives discriminant error
+      Token_Ref : constant Wisi.Token_Lists.Constant_Reference_Type :=
+        Wisi.Token_Lists.Constant_Reference (Tokens, Cursor.Token_Kind);
+   begin
+      --  WORKAROUND: in GNAT GPL_2014, using implicit dereference gives "token_ref unused" warning
+      return Token_Ref.Element.Tokens.First;
+   end First_Token_Item;
+
+   function First return Token_Cursor
+   is
+      Cursor : Token_Cursor :=
+        (State       => Non_Reporting,
+         Token_Kind  => Tokens.First,
+         Token_Item  => String_Pair_Lists.No_Element,
+         Keyword     => String_Pair_Lists.No_Element,
+         Nonterminal => Rule_Lists.No_Element);
+   begin
+      loop
+         exit when not Wisi.Token_Lists.Has_Element (Cursor.Token_Kind);
+         if Non_Reporting (Cursor) then
+            Cursor.Token_Item := First_Token_Item (Cursor);
+            if Wisi.String_Pair_Lists.Has_Element (Cursor.Token_Item) then
+               exit;
+            end if;
+         end if;
+         Wisi.Token_Lists.Next (Cursor.Token_Kind);
+      end loop;
+
+      if not Wisi.Token_Lists.Has_Element (Cursor.Token_Kind) then
+         --  no non_reporting tokens
+         Cursor :=
+           (State       => Terminals_Keywords,
+            Token_Kind  => Wisi.Token_Lists.No_Element,
+            Token_Item  => String_Pair_Lists.No_Element,
+            Keyword     => Keywords.First,
+            Nonterminal => Rule_Lists.No_Element);
+
+         if not String_Pair_Lists.Has_Element (Cursor.Keyword) then
+            raise Programmer_Error with "no keyword tokens";
+         end if;
+      end if;
+
+      return Cursor;
+   end First;
+
+   procedure Next (Cursor : in out Token_Cursor)
+   is
+   begin
+      case Cursor.State is
+      when Non_Reporting =>
+         String_Pair_Lists.Next (Cursor.Token_Item);
+         if String_Pair_Lists.Has_Element (Cursor.Token_Item) then
+            return;
+         else
+            loop
+               Wisi.Token_Lists.Next (Cursor.Token_Kind);
+               exit when not Wisi.Token_Lists.Has_Element (Cursor.Token_Kind);
+
+               if Non_Reporting (Cursor) then
+                  Cursor.Token_Item := First_Token_Item (Cursor);
+                  if String_Pair_Lists.Has_Element (Cursor.Token_Item) then
+                     return;
+                  end if;
+               end if;
+            end loop;
+         end if;
+
+         Cursor :=
+           (State       => Terminals_Keywords,
+            Token_Kind  => Wisi.Token_Lists.No_Element,
+            Token_Item  => String_Pair_Lists.No_Element,
+            Keyword     => Keywords.First,
+            Nonterminal => Rule_Lists.No_Element);
+
+         if not String_Pair_Lists.Has_Element (Cursor.Keyword) then
+            raise Programmer_Error with "no keyword tokens";
+         end if;
+
+      when Terminals_Keywords =>
+         --  Keywords before other terminals, so they have precedence over Identifiers
+
+         String_Pair_Lists.Next (Cursor.Keyword);
+         if String_Pair_Lists.Has_Element (Cursor.Keyword) then
+            return;
+         end if;
+
+         --  Done with keywords; on to Terminals_Others
+         Cursor :=
+           (State       => Terminals_Others,
+            Token_Kind  => Tokens.First,
+            Token_Item  => String_Pair_Lists.No_Element,
+            Keyword     => String_Pair_Lists.No_Element,
+            Nonterminal => Rule_Lists.No_Element);
+
+         loop
+            exit when not Wisi.Token_Lists.Has_Element (Cursor.Token_Kind);
+
+            if not Non_Reporting (Cursor) then
+               Cursor.Token_Item := First_Token_Item (Cursor);
+               return;
+            end if;
+         end loop;
+
+         --  no Terminals_Others; on to EOI
+         Cursor :=
+           (State       => EOI,
+            Token_Kind  => Wisi.Token_Lists.No_Element,
+            Token_Item  => String_Pair_Lists.No_Element,
+            Keyword     => String_Pair_Lists.No_Element,
+            Nonterminal => Rule_Lists.No_Element);
+
+      when Terminals_Others =>
+         Wisi.String_Pair_Lists.Next (Cursor.Token_Item);
+         if Wisi.String_Pair_Lists.Has_Element (Cursor.Token_Item) then
+            return;
+         else
+            loop
+               Wisi.Token_Lists.Next (Cursor.Token_Kind);
+               exit when not Wisi.Token_Lists.Has_Element (Cursor.Token_Kind);
+               if not Non_Reporting (Cursor) then
+                  Cursor.Token_Item := First_Token_Item (Cursor);
+                  if Wisi.String_Pair_Lists.Has_Element (Cursor.Token_Item) then
+                     return;
+                  end if;
+               end if;
+            end loop;
+         end if;
+
+         Cursor :=
+           (State       => EOI,
+            Token_Kind  => Wisi.Token_Lists.No_Element,
+            Token_Item  => String_Pair_Lists.No_Element,
+            Keyword     => String_Pair_Lists.No_Element,
+            Nonterminal => Rule_Lists.No_Element);
+
+      when EOI =>
+         if not Rule_Lists.Has_Element (Rules.First) then
+            Cursor.State := Done;
+         else
+            Cursor :=
+              (State       => OpenToken_Accept,
+               Token_Kind  => Wisi.Token_Lists.No_Element,
+               Token_Item  => String_Pair_Lists.No_Element,
+               Keyword     => String_Pair_Lists.No_Element,
+               Nonterminal => Rule_Lists.No_Element);
+         end if;
+
+      when OpenToken_Accept =>
+         Cursor :=
+           (State       => Nonterminal,
+            Token_Kind  => Wisi.Token_Lists.No_Element,
+            Token_Item  => String_Pair_Lists.No_Element,
+            Keyword     => String_Pair_Lists.No_Element,
+            Nonterminal => Rules.First);
+
+         if not Rule_Lists.Has_Element (Cursor.Nonterminal) then
+            Cursor.State := Done;
+         end if;
+
+      when Nonterminal =>
+         Rule_Lists.Next (Cursor.Nonterminal);
+         if not Rule_Lists.Has_Element (Cursor.Nonterminal) then
+            Cursor.State := Done;
+         end if;
+
+      when Done =>
+         null;
+      end case;
+   end Next;
+
+   function Is_Done (Cursor : in out Token_Cursor) return Boolean
+   is begin
+      return Cursor.State = Done;
+   end Is_Done;
+
+   function Token_Name (Cursor : in out Token_Cursor) return Standard.Ada.Strings.Unbounded.Unbounded_String
+   is begin
+      case Cursor.State is
+      when Non_Reporting | Terminals_Others =>
+         declare
+            Token_Ref : constant Wisi.Token_Lists.Constant_Reference_Type :=
+              Wisi.Token_Lists.Constant_Reference (Tokens, Cursor.Token_Kind);
+
+            Item_Ref : constant String_Pair_Lists.Constant_Reference_Type :=
+              String_Pair_Lists.Constant_Reference (Token_Ref.Element.Tokens, Cursor.Token_Item);
+         begin
+            return Item_Ref.Element.Name;
+         end;
+
+      when Terminals_Keywords =>
+         declare
+            Keyword_Ref : constant String_Pair_Lists.Constant_Reference_Type :=
+              String_Pair_Lists.Constant_Reference (Keywords, Cursor.Keyword);
+         begin
+            return Keyword_Ref.Element.Name;
+         end;
+
+      when EOI =>
+         return EOI_Name;
+
+      when OpenToken_Accept =>
+         return OpenToken_Accept_Name;
+
+      when Nonterminal =>
+         declare
+            Rule_Ref : constant Rule_Lists.Constant_Reference_Type := Rule_Lists.Constant_Reference
+              (Rules, Cursor.Nonterminal);
+         begin
+            return Rule_Ref.Element.Left_Hand_Side;
+         end;
+
+      when Done =>
+         raise Programmer_Error with "token cursor is done";
+      end case;
+   end Token_Name;
 
    procedure Put_Tokens
    is

@@ -177,23 +177,23 @@ spawn parser from 1 (2 active)
  1 stack:  17 : (association_list),  2 : (LEFT_PAREN 125 . 125),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
  1: 17: (RIGHT_PAREN 158 . 158) : shift and goto state 20
  2 stack:  20 : (RIGHT_PAREN 158 . 158),  17 : (association_list),  2 : (LEFT_PAREN 125 . 125),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
- 2: 20: (EOF_ID 179 . 179) : reduce 3 tokens to compilation_unit
+ 2: 20: (EOF 179 . 179) : reduce 3 tokens to compilation_unit
  ... goto state 22
  1 stack:  20 : (RIGHT_PAREN 158 . 158),  17 : (association_list),  2 : (LEFT_PAREN 125 . 125),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
- 1: 20: (EOF_ID 179 . 179) : reduce 3 tokens to compilation_unit
+ 1: 20: (EOF 179 . 179) : reduce 3 tokens to compilation_unit
  ... goto state 22
  2 stack:  22 : (compilation_unit),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
- 2: 22: (EOF_ID 179 . 179) : reduce 3 tokens to compilation
+ 2: 22: (EOF 179 . 179) : reduce 3 tokens to compilation
  ... goto state 5
  1 stack:  22 : (compilation_unit),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
- 1: 22: (EOF_ID 179 . 179) : reduce 3 tokens to compilation
+ 1: 22: (EOF 179 . 179) : reduce 3 tokens to compilation
  ... goto state 5
  2 stack:  5 : (compilation),  1 : , 
- 2: 5: (EOF_ID 179 . 179) : shift and goto state 13
+ 2: 5: (EOF 179 . 179) : shift and goto state 13
  1 stack:  5 : (compilation),  1 : , 
- 1: 5: (EOF_ID 179 . 179) : shift and goto state 13
- 2 stack:  13 : (EOF_ID 179 . 179),  5 : (compilation),  1 : , 
- 2: 13: (EOF_ID 180 . 180) : accept it
- 1 stack:  13 : (EOF_ID 179 . 179),  5 : (compilation),  1 : , 
- 1: 13: (EOF_ID 180 . 180) : accept it
+ 1: 5: (EOF 179 . 179) : shift and goto state 13
+ 2 stack:  13 : (EOF 179 . 179),  5 : (compilation),  1 : , 
+ 2: 13: (EOF 180 . 180) : accept it
+ 1 stack:  13 : (EOF 179 . 179),  5 : (compilation),  1 : , 
+ 1: 13: (EOF 180 . 180) : accept it
 c:\projects\org.opentoken.stephe\wisi\test\identifier_list_name_conflict.input:7:1079: Ambiguous parse: 2 parsers active.

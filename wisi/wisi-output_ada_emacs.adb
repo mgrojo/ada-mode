@@ -40,8 +40,8 @@ procedure Wisi.Output_Ada_Emacs
 is
    use type Ada.Containers.Count_Type;
 
-   EOI_Image              : constant String := "EOF_ID";
-   OpenToken_Accept_Image : constant String := "OPENTOKEN_ACCEPT_ID";
+   EOI_Name              : constant Ada.Strings.Unbounded.Unbounded_String := +"EOF";
+   OpenToken_Accept_Name : constant Ada.Strings.Unbounded.Unbounded_String := +"OPENTOKEN_ACCEPT";
 
    function To_Token_Image (Item : in Ada.Strings.Unbounded.Unbounded_String) return String
    is begin
@@ -50,7 +50,7 @@ is
    end To_Token_Image;
 
    package Generate_Utils is new Wisi.Gen_Generate_Utils
-     (Keywords, Tokens, Conflicts, Rules, EOI_Image, OpenToken_Accept_Image, First_State_Index,
+     (Keywords, Tokens, Conflicts, Rules, EOI_Name, OpenToken_Accept_Name, First_State_Index,
       To_Token_Image    => To_Token_Image);
 
    type Action_Name_List is array (Integer range <>) of access constant String;
@@ -126,6 +126,8 @@ is
    Spec_File         : File_Type;
    Body_File         : File_Type;
    Table_Entry_Count : Integer := 0;
+
+   Cursor : Token_Cursor;
 begin
    Create (Spec_File, Out_File, Output_File_Root & ".ads");
    Set_Output (Spec_File);
@@ -150,47 +152,20 @@ begin
    Indent_Line ("type Token_IDs is");
    Indent_Line ("  (");
    Indent := Indent + 3;
-   Indent_Line ("--  non-reporting");
-   for Kind of Tokens loop
-      if -Kind.Kind = """line_comment""" or -Kind.Kind = """whitespace""" then
-         for Item of Kind.Tokens loop
-            Indent_Line (To_Token_Image (Item.Name) & ",");
-         end loop;
+   Cursor := First;
+   loop
+      exit when Cursor.Is_Done;
+      Set_Col (Indent);
+      Put (To_Token_Image (Cursor.Token_Name));
+
+      Cursor.Next;
+
+      if Cursor.Is_Done then
+         Put_Line (");");
+      else
+         Put_Line (",");
       end if;
    end loop;
-   New_Line;
-   Indent_Line ("--  terminals");
-   --  Keywords first, so they have precedence over identifiers
-   for Item of Keywords loop
-      Indent_Line (To_Token_Image (Item.Name) & ",");
-   end loop;
-   for Kind of Tokens loop
-      if not (-Kind.Kind = """line_comment""" or -Kind.Kind = """whitespace""") then
-         for Item of Kind.Tokens loop
-            Indent_Line (To_Token_Image (Item.Name) & ",");
-         end loop;
-      end if;
-   end loop;
-   Indent_Line (EOI_Image & ",");
-   New_Line;
-   Indent_Line ("--  non-terminals");
-   declare
-      use Rule_Lists;
-      I : Cursor := Rules.First;
-   begin
-      Indent_Line (OpenToken_Accept_Image & ",");
-      loop
-         Set_Col (Indent);
-         Put (To_Token_Image (Element (I).Left_Hand_Side));
-         Next (I);
-         if I = No_Element then
-            Put_Line (");");
-            exit;
-         else
-            Put_Line (",");
-         end if;
-      end loop;
-   end;
    Indent := Indent - 3;
    New_Line;
 
@@ -204,53 +179,20 @@ begin
       Indent_Line ("Token_Images : constant array (Token_IDs) of access constant String :=");
       Indent_Line ("  (");
       Indent := Indent + 3;
-      Indent_Line ("--  non-reporting");
-      for Kind of Tokens loop
-         if -Kind.Kind = """line_comment""" or -Kind.Kind = """whitespace""" then
-            for Item of Kind.Tokens loop
-               Indent_Line ("new String'(""" & To_String (Item.Name) & """),");
-               Token_Image_Width := Integer'Max (Token_Image_Width, Length (Item.Name));
-            end loop;
+      Cursor := First;
+      loop
+         exit when Cursor.Is_Done;
+         Set_Col (Indent);
+         Put ("new String'(""" & (-Cursor.Token_Name));
+         Token_Image_Width := Integer'Max (Token_Image_Width, Length (Cursor.Token_Name));
+         Cursor.Next;
+         if Cursor.Is_Done then
+            Put_Line ("""));");
+         else
+            Put_Line ("""),");
          end if;
       end loop;
-      New_Line;
-      Indent_Line ("--  terminals");
-      --  Keywords first, so they have precedence over identifiers
-      for Item of Keywords loop
-         Indent_Line ("new String'(""" & To_String (Item.Name) & """),");
-         Token_Image_Width := Integer'Max (Token_Image_Width, Length (Item.Name));
-      end loop;
-      for Kind of Tokens loop
-         if not (-Kind.Kind = """line_comment""" or -Kind.Kind = """whitespace""") then
-            for Item of Kind.Tokens loop
-               Indent_Line ("new String'(""" & To_String (Item.Name) & """),");
-               Token_Image_Width := Integer'Max (Token_Image_Width, Length (Item.Name));
-            end loop;
-         end if;
-      end loop;
-      Indent_Line ("new String'(""" & EOI_Image & """),");
-      Token_Image_Width := Integer'Max (Token_Image_Width, EOI_Image'Length);
-      New_Line;
-      Indent_Line ("--  non-terminals");
-      declare
-         use Rule_Lists;
-         I : Cursor := Rules.First;
-      begin
-         Indent_Line ("new String'(""" & OpenToken_Accept_Image & """),");
-         Token_Image_Width := Integer'Max (Token_Image_Width, OpenToken_Accept_Image'Length);
-         loop
-            Set_Col (Indent);
-            Put ("new String'(""" & To_String (Element (I).Left_Hand_Side));
-            Token_Image_Width := Integer'Max (Token_Image_Width, Length (Element (I).Left_Hand_Side));
-            Next (I);
-            if I = No_Element then
-               Put_Line ("""));");
-               exit;
-            else
-               Put_Line ("""),");
-            end if;
-         end loop;
-      end;
+
       Indent := Indent - 3;
       Indent_Line ("Token_Image_Width : constant Integer :=" & Integer'Image (Token_Image_Width) & ";");
       New_Line;
@@ -340,8 +282,8 @@ begin
    Indent := Indent + 3;
    New_Line;
 
-   Action_Names (Find_Token_ID (OpenToken_Accept_Image))     := new Action_Name_List (0 .. 0);
-   Action_Names (Find_Token_ID (OpenToken_Accept_Image)) (0) := Empty_Action;
+   Action_Names (Find_Token_ID (-OpenToken_Accept_Name))     := new Action_Name_List (0 .. 0);
+   Action_Names (Find_Token_ID (-OpenToken_Accept_Name)) (0) := Empty_Action;
 
    if Action_Count = 0 then
       --  Populate Action_Names with Empty_Action.

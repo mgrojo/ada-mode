@@ -145,18 +145,18 @@ spawn parser from 2 (2 active)
  2 stack:  11 : (COLON_EQUAL 101 . 102),  10 : (constant_opt 92 . 99),  2 : (IDENTIFIER 84 . 90),  3 : (object_declaration_list 1 . 82),  1 : , 
  2: 11: (SEMICOLON 104 . 104) : shift and goto state 14
  2 stack:  14 : (SEMICOLON 104 . 104),  11 : (COLON_EQUAL 101 . 102),  10 : (constant_opt 92 . 99),  2 : (IDENTIFIER 84 . 90),  3 : (object_declaration_list 1 . 82),  1 : , 
- 2: 14: (EOF_ID 105 . 105) : reduce 4 tokens to object_declaration
+ 2: 14: (EOF 105 . 105) : reduce 4 tokens to object_declaration
 (let ((wisi-tokens '((IDENTIFIER 84 . 90) (constant_opt 92 . 99) (COLON_EQUAL 101 . 102) (SEMICOLON 104 . 104))))
 (wisi-statement-action 1 'statement-start 3 'statement-other 4 'statement-end)
 )
  ... goto state 6
  2 stack:  6 : (object_declaration 84 . 104),  3 : (object_declaration_list 1 . 82),  1 : , 
- 2: 6: (EOF_ID 105 . 105) : reduce 2 tokens to object_declaration_list
+ 2: 6: (EOF 105 . 105) : reduce 2 tokens to object_declaration_list
 (let ((wisi-tokens '((object_declaration_list 1 . 82) (object_declaration 84 . 104))))
 (setq wisi-test-success t)
 )
  ... goto state 3
  2 stack:  3 : (object_declaration_list 1 . 104),  1 : , 
- 2: 3: (EOF_ID 105 . 105) : shift and goto state 5
- 2 stack:  5 : (EOF_ID 105 . 105),  3 : (object_declaration_list 1 . 104),  1 : , 
- 2: 5: (EOF_ID 106 . 106) : accept it
+ 2: 3: (EOF 105 . 105) : shift and goto state 5
+ 2 stack:  5 : (EOF 105 . 105),  3 : (object_declaration_list 1 . 104),  1 : , 
+ 2: 5: (EOF 106 . 106) : accept it

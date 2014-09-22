@@ -30,6 +30,7 @@
 ^build/release/.*\.out$
 ^build/release/.*\.parse$
 ^build/release/.*\.parse_table$
+^build/release/.*\.text$
 ^build/release/.*\.txt$
 ^build/release/lib$
 ^build/release/lib-obj$
