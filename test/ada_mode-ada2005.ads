@@ -26,7 +26,7 @@ abstract
 interface
 
 -- from ada2012
---EMACSCMD:(test-face "Some" 'default)
+--EMACSCMD:(test-face "Some" '(nil default))
 --EMACSCMD:(progn (forward-line 1)(upcase-word 1)(ada-case-adjust)(looking-back "'Some"))
 Some
 

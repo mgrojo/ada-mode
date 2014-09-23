@@ -62,7 +62,7 @@ package body Ada_Mode.Nominal is -- target 0
       --EMACSCMD:(progn (beginning-of-line)(forward-line -12)(ada-which-function))
       --EMACSRESULT:"Function_Access_11"
 
-      --EMACSCMD:(test-face "Function_Access_1" 'default)
+      --EMACSCMD:(test-face "Function_Access_1" '(nil default))
       return Function_Access_1'Access;
    end Function_Access_11;
 
@@ -103,7 +103,7 @@ package body Ada_Mode.Nominal is -- target 0
                   --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at " -- target 3"))
                   --EMACSRESULT:t
 
-                  --EMACSCMD:(test-face "Integer" 'default)
+                  --EMACSCMD:(test-face "Integer" '(nil default))
                   -- "Integer" is in fact a type, but it would require
                   -- name resolution to figure that out.
                   return Integer (Function_1a);
@@ -112,10 +112,10 @@ package body Ada_Mode.Nominal is -- target 0
                   --EMACSCMD:(progn (forward-line 2)(forward-comment 1)(ada-prev-statement-keyword)(looking-at "begin"))
                   --EMACSRESULT:t
                exception
-                  --EMACSCMD:(test-face "Constraint_Error" 'default)
+                  --EMACSCMD:(test-face "Constraint_Error" '(nil default))
                   when E : Constraint_Error =>
                      --EMACSCMD:(test-face "raise" font-lock-keyword-face)
-                     --EMACSCMD:(test-face "Constraint_Error" 'default)
+                     --EMACSCMD:(test-face "Constraint_Error" '(nil default))
                      --EMACSCMD:(test-face "with" font-lock-keyword-face)
                      raise Constraint_Error with
                        "help!";
@@ -226,8 +226,11 @@ package body Ada_Mode.Nominal is -- target 0
                   Local_1 := Local_1 + Local_1;
 
                   case Local_1 is
+                  -- 'exit when' was confused with 'case ... when'
+                  --EMACSCMD:(progn (forward-line 2)(ada-next-statement-keyword)(ada-next-statement-keyword)(looking-at "when 2 =>"))
+                  --EMACSRESULT:t
                      when 1 =>
-                        exit;
+                        exit when Tmp > 1;
                      when 2 => -- at one point, this was mis-refined as "when-exit"
                         Local_4 := B;
                      when others =>

@@ -35,7 +35,7 @@ with Ada.Strings.Unbounded; -- end 1
 --EMACSCMD:(test-face "with" font-lock-keyword-face)
 --EMACSCMD:(test-face "Ada.Strings" font-lock-constant-face)
 limited private with Ada.Strings.Bounded,
-  --EMACSCMD:(test-face "Ada.Containers" 'default)
+  --EMACSCMD:(test-face "Ada.Containers" '(nil default))
   Ada.Containers;
 --EMACSCMD:(test-face "limited" font-lock-keyword-face)
 --EMACSCMD:(test-face "with" font-lock-keyword-face)
@@ -67,7 +67,7 @@ package Ada_Mode.Nominal is -- target 0
 
    --EMACSCMD:(test-face "pragma" font-lock-keyword-face)
    --EMACSCMD:(test-face "Elaborate_Body" font-lock-function-name-face)
-   --EMACSCMD:(test-face "Ada_Mode" 'default)
+   --EMACSCMD:(test-face "Ada_Mode" '(nil default))
    pragma Elaborate_Body (Ada_Mode.Nominal);
 
    -- Comment after one line of code; broken versions of the
@@ -182,9 +182,9 @@ package Ada_Mode.Nominal is -- target 0
    --EMACSCMD:(test-face "access protected" font-lock-keyword-face)
    --EMACSCMD:(test-face "protected" font-lock-keyword-face)
    --EMACSCMD:(test-face "function (" font-lock-keyword-face)
-   --EMACSCMD:(test-face "(" 'default)
-   --EMACSCMD:(test-face "A_Param" 'default)
-   --EMACSCMD:(test-face ":" 'default)
+   --EMACSCMD:(test-face "(" '(nil default))
+   --EMACSCMD:(test-face "A_Param" '(nil default))
+   --EMACSCMD:(test-face ":" '(nil default))
    --EMACSCMD:(test-face "in" font-lock-keyword-face)
    --EMACSCMD:(test-face "Float" font-lock-type-face)
    --EMACSCMD:(test-face "return" font-lock-keyword-face)
@@ -243,7 +243,7 @@ package Ada_Mode.Nominal is -- target 0
            Standard.Float;
 
    --EMACSCMD:(test-face "array (" font-lock-keyword-face)
-   --EMACSCMD:(test-face "Integer" 'default)
+   --EMACSCMD:(test-face "Integer" '(nil default))
    --EMACSCMD:(test-face "range" font-lock-keyword-face)
    --EMACSCMD:(test-face "of" font-lock-keyword-face)
    --EMACSCMD:(test-face "Object_Access_Type_1" font-lock-type-face)

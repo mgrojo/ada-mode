@@ -1187,25 +1187,25 @@ cached token, return new indentation for point."
 
 (defun ada-wisi-goto-subunit-name ()
   "For `ada-goto-subunit-name'."
-
+  (wisi-validate-cache (point-max))
   (let ((end nil)
 	cache
 	(name-pos nil))
     (save-excursion
       ;; move to top declaration
       (goto-char (point-min))
+      (setq cache (or (wisi-get-cache (point))
+		      (wisi-forward-cache)))
       (while (not end)
-	(setq cache (wisi-forward-cache))
 	(cl-case (wisi-cache-nonterm cache)
-	  (pragma nil)
-	  (use_clause nil)
-	  (with_clause nil)
+	  ((pragma use_clause with_clause)
+	   (setq cache (wisi-forward-cache)))
 	  (t
 	   ;; start of compilation unit
 	   (setq end t))
 	  ))
       (when (eq (wisi-cache-nonterm cache) 'subunit)
-	(wisi-forward-find-token 'name (point-max))
+	(wisi-forward-find-token '(IDENTIFIER name) (point-max))
 	(setq name-pos (point)))
       )
     (when name-pos
@@ -1557,13 +1557,16 @@ Also return cache at start."
      (concat
       "\\<\\("
       "return[ \t]+access[ \t]+constant\\|"
-      "return[ \t]+access\\|"
-      "return"
+      "return[ \t]+access"
       "\\)\\>[ \t]*"
       ada-name-regexp "?")
      '(1 font-lock-keyword-face)
-     '(2 (if (eq (when (and (not (ada-in-string-or-comment-p))
-			    (> wisi-cache-max (match-end 2))) ;; don't require parse just for font-lock
+     '(2 font-lock-type-face nil t) ;; name is not found if on next line
+     )
+    (list
+     (concat "\\<\\(return\\)\\>[ \t]*" ada-name-regexp "?")
+     '(1 font-lock-keyword-face)
+     '(2 (if (eq (when (> wisi-cache-max (match-end 2)) ;; don't require parse just for font-lock
 		   (and (wisi-get-cache (match-beginning 2))
 			(wisi-cache-class (wisi-get-cache (match-beginning 2)))))
 		 'type)

@@ -762,9 +762,9 @@ Each TOKEN-NUMBERS is one of:
 
 number: the token number; mark that token
 
-list (number token_id):
-list (number (token_id token_id)):
-   mark all tokens with token_id in the nonterminal given by the number."
+list (number class token_id):
+list (number class token_id class token_id ...):
+   mark all tokens in number nonterminal matching (class token_id) with nil prev/next."
   (save-excursion
     (let (prev-keyword-mark
 	  prev-cache
@@ -772,7 +772,7 @@ list (number (token_id token_id)):
 	  mark)
       (while token-numbers
 	(let ((token-number (pop token-numbers))
-	      target-token
+	      class-tokens target-class target-token
 	      region)
 	  (cond
 	   ((numberp token-number)
@@ -793,29 +793,30 @@ list (number (token_id token_id)):
 	      ))
 
 	   ((listp token-number)
-	    ;; token-number may contain 0, 1, or more token_id; token_id may be a list
+	    ;; token-number may contain 0, 1, or more 'class token_id' pairs
 	    ;; the corresponding region may be empty
 	    ;; there must have been a prev keyword
-	    (setq target-token (cadr token-number))
-	    (when (not (listp target-token))
-	      (setq target-token (list target-token)))
+	    (setq class-tokens (cdr token-number))
 	    (setq token-number (car token-number))
 	    (setq region (cddr (nth (1- token-number) wisi-tokens)))
 	    (when region ;; not an empty token
-	      (goto-char (car region))
-	      (while (wisi-forward-find-token target-token (cdr region) t)
-		(setq cache (wisi-get-cache (point)))
-		(setq mark (copy-marker (1+ (point))))
+	      (while class-tokens
+		(setq target-class (pop class-tokens))
+		(setq target-token (list (pop class-tokens)))
+		(goto-char (car region))
+		(while (wisi-forward-find-token target-token (cdr region) t)
+		  (setq cache (wisi-get-cache (point)))
+		  (when (and (null (wisi-cache-prev cache))
+			     (eq target-class (wisi-cache-class cache)))
+		    (setf (wisi-cache-prev cache) prev-keyword-mark)
+		    (setq mark (copy-marker (1+ (point))))
+		    (setf (wisi-cache-next prev-cache) mark)
+		    (setq prev-keyword-mark mark)
+		    (setq prev-cache cache))
 
-		(when (null (wisi-cache-prev cache))
-		  (setf (wisi-cache-prev cache) prev-keyword-mark)
-		  (setf (wisi-cache-next prev-cache) mark)
-		  (setq prev-keyword-mark mark)
-		  (setq prev-cache cache))
-
-		(wisi-forward-token);; don't find same token again
+		  (wisi-forward-token);; don't find same token again
 		))
-	      )
+	      ))
 
 	   (t
 	    (error "unexpected token-number %s" token-number))

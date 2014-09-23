@@ -175,7 +175,7 @@
         (wisi-containing-action 2 3)
         (wisi-containing-action 2 4)
         (wisi-containing-action 5 6)
-        (wisi-motion-action 1 5 '(6 EXCEPTION))))
+        (wisi-motion-action 1 5 '(6 block-middle EXCEPTION))))
        ((ACCEPT IDENTIFIER actual_parameter_part_opt parameter_profile_opt SEMICOLON )
         (progn
         (wisi-statement-action 1 'statement-start 2 'name-paren 5 'statement-end)
@@ -192,7 +192,7 @@
         (progn
         (wisi-statement-action 4 'name-paren)
         (wisi-containing-action 4 5)
-        (wisi-motion-action 4 '(5 RETURN)))))
+        (wisi-motion-action 4 '(5 return-1 RETURN return-2 RETURN)))))
       (actual_parameter_part
        ((LEFT_PAREN association_list RIGHT_PAREN )
         (progn
@@ -303,12 +303,12 @@
         (wisi-statement-action 1 'block-start 3 'block-middle 5 'block-end 7 'statement-end)
         (wisi-containing-action 1 2)
         (wisi-containing-action 3 4)
-        (wisi-motion-action 1 3 '(4 EXCEPTION) 5)))
+        (wisi-motion-action 1 3 '(4 block-middle EXCEPTION) 5)))
        ((BEGIN handled_sequence_of_statements END identifier_opt SEMICOLON )
         (progn
         (wisi-statement-action 1 'block-start 3 'block-end 5 'statement-end)
         (wisi-containing-action 1 2)
-        (wisi-motion-action 1 '(2 EXCEPTION) 3))))
+        (wisi-motion-action 1 '(2 block-middle EXCEPTION) 3))))
       (body
        ((proper_body ))
        ((body_stub )))
@@ -340,7 +340,7 @@
         (wisi-statement-action 1 'block-start 3 'block-middle 5 'block-end 7 'statement-end)
         (wisi-containing-action 1 2)
         (wisi-containing-action 3 4)
-        (wisi-motion-action 1 '(4 WHEN) 5))))
+        (wisi-motion-action 1 '(4 block-middle WHEN) 5))))
       (case_statement_alternative
        ((WHEN discrete_choice_list EQUAL_GREATER sequence_of_statements_opt )
         (progn
@@ -776,7 +776,7 @@
         (wisi-statement-action 1 'statement-other 2 'name)
         (wisi-containing-action 1 2)
         (wisi-containing-action 1 3)
-        (wisi-motion-action 1 '(3 RETURN)))))
+        (wisi-motion-action 1 '(3 return-1 RETURN return-2 RETURN)))))
       (general_access_modifier_opt
        (())
        ((ALL ))
@@ -848,7 +848,7 @@
         (progn
         (wisi-statement-action 2 'block-middle)
         (wisi-containing-action 2 3)
-        (wisi-motion-action 2 '(3 WHEN))))
+        (wisi-motion-action 2 '(3 block-middle WHEN))))
        ((sequence_of_statements_opt )))
       (identifier_list
        ((IDENTIFIER ))
@@ -864,14 +864,14 @@
         (wisi-containing-action 3 4)
         (wisi-containing-action 3 5)
         (wisi-containing-action 6 7)
-        (wisi-motion-action 1 3 '(5 (ELSIF THEN)) 6)))
+        (wisi-motion-action 1 3 '(5 statement-other ELSIF block-middle THEN) 6)))
        ((IF expression THEN expression elsif_expression_list )
         (progn
         (wisi-statement-action 1 'statement-start 3 'block-middle)
         (wisi-containing-action 1 2)
         (wisi-containing-action 3 4)
         (wisi-containing-action 3 5)
-        (wisi-motion-action 1 3 '(5 (ELSIF THEN)))))
+        (wisi-motion-action 1 3 '(5 statement-other ELSIF block-middle THEN))))
        ((IF expression THEN expression ELSE expression )
         (progn
         (wisi-statement-action 1 'statement-start 3 'block-middle 5 'block-middle)
@@ -893,14 +893,14 @@
         (wisi-containing-action 3 4)
         (wisi-containing-action 3 5)
         (wisi-containing-action 6 7)
-        (wisi-motion-action 1 3 '(5 (ELSIF THEN)) 6 8)))
+        (wisi-motion-action 1 3 '(5 statement-other ELSIF block-middle THEN) 6 8)))
        ((IF expression_opt THEN sequence_of_statements_opt elsif_statement_list END IF SEMICOLON )
         (progn
         (wisi-statement-action 1 'statement-start 3 'block-middle 6 'block-end 9 'statement-end)
         (wisi-containing-action 1 2)
         (wisi-containing-action 3 4)
         (wisi-containing-action 3 5)
-        (wisi-motion-action 1 3 '(5 (ELSIF THEN)) 6)))
+        (wisi-motion-action 1 3 '(5 statement-other ELSIF block-middle THEN) 6)))
        ((IF expression_opt THEN sequence_of_statements_opt ELSE sequence_of_statements_opt END IF SEMICOLON )
         (progn
         (wisi-statement-action 1 'statement-start 3 'block-middle 5 'block-middle 7 'block-end 9 'statement-end)
@@ -1122,7 +1122,7 @@
         (wisi-containing-action 3 4)
         (wisi-containing-action 5 6)
         (wisi-containing-action 7 8)
-        (wisi-motion-action 1 5 7 '(8 EXCEPTION) 9)))
+        (wisi-motion-action 1 5 7 '(8 block-middle EXCEPTION) 9)))
        ((PACKAGE BODY name aspect_specification_opt IS declarative_part_opt END name_opt SEMICOLON )
         (progn
         (wisi-statement-action 1 'block-start 3 'name 5 'block-middle 7 'block-end 9 'statement-end)
@@ -1416,12 +1416,12 @@
         (wisi-statement-action 1 'block-start 3 'block-middle 5 'block-end 7 'statement-end)
         (wisi-containing-action 1 2)
         (wisi-containing-action 3 4)
-        (wisi-motion-action 1 '(2 OR) 3 5)))
+        (wisi-motion-action 1 '(2 block-middle OR) 3 5)))
        ((SELECT select_alternative_list_opt END SELECT SEMICOLON )
         (progn
         (wisi-statement-action 1 'block-start 3 'block-end 5 'statement-end)
         (wisi-containing-action 1 2)
-        (wisi-motion-action 1 '(2 OR) 3))))
+        (wisi-motion-action 1 '(2 block-middle OR) 3))))
       (select_alternative
        ((WHEN expression EQUAL_GREATER accept_statement sequence_of_statements_opt )
         (progn

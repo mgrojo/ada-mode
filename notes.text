@@ -42,8 +42,24 @@ install packages in -Q:
     build/Makefile
     doc changes in NEWS-ada-mode.text NEWS-wisi.text
 
-    fix wisi-compile.el needing comp.el, not comp.elc
-        some systems don't install emacs source by default
+    motion bugs
+       begin
+       exception
+          when Foo =>
+          when Bar =>
+             null;
+       end;
+
+    fix 'not null' without 'access'
+        test/format_paramlist.adb
+
+    if specify project file in gnat_stub_opts, gnat stub can't find it due to changed directory
+        change to gnat_stub_gpr, manage directory
+        or edit gnat_stub_opts, insert project dir?
+
+    ada-indent-newline-indent from end of comment line inserts extra blank line
+
+    usage, version info in wisi-generate.exe
 
     handle all indent options like ada-case-strict
         need case-strict, ada-indent prj-wide for aflex
@@ -194,6 +210,18 @@ fix fontification of aspect names
     they are often on a different line than 'with'
     there are more than one of them
     need parser info
+
+fix fontification across newline
+    function () return access
+        foo;
+
+    set face property in parser action?
+
+invalidate fontification when parse succeeds?
+    or move 'return' fontification into parser actions
+
+fix wisi-compile.el needing comp.el, not comp.elc
+    some systems don't install emacs source by default
 
  gpr_query
 build/Makefile one
@@ -457,6 +485,12 @@ read/write access requires a public key:
     mtn --db ~/monotone-dbs/ada-france.db sync "mtn://www.ada-france.org?org.emacs.*"
 
  release process
+move to external elpa package?
+    - Push the tree you want onto a branch `externals/<pkg>' in the
+      `elpa' repository.
+    - Remove the packages/<pkg> directory in the `master' branch.
+    - Edit `externals-list' in the `master' branch.
+
 check for ELPA patches by others
     (dvc-pull "/Projects/elpa")
     (dvc-sync-review "/Projects/elpa")
@@ -495,6 +529,11 @@ bump version
         wisi-version
     /Projects/Web/stephe-leake/emacs/ada-mode/emacs-ada-mode.html
         change version
+
+        update Debian gnat install
+        split out ada-france access; needed by opentoken, wisi
+
+    /Projects/Web/stephe-leake/emacs/wisi/wisi.html
 
 verify other metadata
     ada-mode.el

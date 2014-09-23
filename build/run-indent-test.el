@@ -9,7 +9,8 @@
 (defvar skip-recase-test nil)
 
 (defun test-face (token face)
-  "Test if TOKEN in next code line has FACE."
+  "Test if TOKEN in next code line has FACE.
+FACE may be a list; emacs 24.3.93 uses nil instead of 'default."
   (save-excursion
     (beginning-of-line); forward-comment doesn't move if inside a comment!
     (forward-comment (point-max))
@@ -22,7 +23,10 @@
 	(count-lines (point-min) (point))
 	token)))
     (goto-char (match-beginning 0))
-    (unless (eq (face-at-point) face)
+    (unless (or (and (listp face)
+		     (memq (face-at-point) face))
+		(eq (face-at-point) face))
+
       (error
        "%s:%d: found face %s, expecting %s for '%s'"
 	(buffer-file-name)

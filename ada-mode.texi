@@ -157,7 +157,7 @@ cd gnatcoll-1.7w-src/src/sqlite/amalgamation/
 gcc -O2 -o sqlite3 shell.c sqlite3.c -ldl -lpthread
 @end example
 
-@node gpr_query, ada_mode_gps_indent, gnatinspect, Installation
+@node gpr_query, Upgrading, gnatinspect, Installation
 @section gpr_query
 @file{gpr_query} is similar to @file{gnatinspect}, but customized for
 Emacs ada-mode use. To install it, install @file{gnatinspect} as above
@@ -168,7 +168,7 @@ cd ~/.emacs.d/elpa/ada-mode-5.xx/build
 make install-gpr_query
 @end example
 
-@node Upgrading,  , ada_mode_gps_indent, Installation
+@node Upgrading,  , gpr_query, Installation
 @section Upgrading from previous versions
 
 See the file NEWS for more details; here we summarize only important

@@ -21,12 +21,12 @@ abort
 abstract
 
 -- from ada2005
---EMACSCMD:(test-face "Interface" 'default)
+--EMACSCMD:(test-face "Interface" '(nil default))
 --EMACSCMD:(progn (forward-line 1)(upcase-word 1)(ada-case-adjust)(looking-back "'Interface"))
 Interface
 
 -- from ada2012
---EMACSCMD:(test-face "Some" 'default)
+--EMACSCMD:(test-face "Some" '(nil default))
 --EMACSCMD:(progn (forward-line 1)(upcase-word 1)(ada-case-adjust)(looking-back "'Some"))
 Some
 
