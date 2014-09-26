@@ -42,59 +42,39 @@ install packages in -Q:
     build/Makefile
     doc changes in NEWS-ada-mode.text NEWS-wisi.text
 
-    motion bugs
-       begin
-       exception
-          when Foo =>
-          when Bar =>
-             null;
-       end;
+    mention ARM info format in ada-mode.texi
+        also include in separate ELPA package?
+        23 sep: asked on Debian, emacs-devel, emacs-ada-mode lists
+            answer: separate elpa package
 
-    fix 'not null' without 'access'
-        test/format_paramlist.adb
+    font-lock can't handle 'new'; move to ada-wisi
+        running all tests
+            test/ada_mode-parens.adb failing ada-align-paramlist deletes access
+
+        also 'renames'
+            edited
+
+        also name on next line
+            edited some tests
+            but font-lock-add-keywords can't handle that either?
+                except set limit in pre-match-form in match-anchored?
+                see font-lock.el font-lock-fontify-anchored-keywords
+                but that hangs emacs, and the doc says "don't do that". sigh.
+                find emacs-devel thread on lexer doing faces
+
+
+    refontify after parse doesn't work sometimes
+        test/ada_mode-generic_instantion.ads Gen_function_2
+        works with explicit font-lock-fontify-buffer
+
+    use post-self-insert-hook for casing
+        in 23.2?
+
+    use electric-indent-mode instead of ada-indent-newline-indent
 
     if specify project file in gnat_stub_opts, gnat stub can't find it due to changed directory
         change to gnat_stub_gpr, manage directory
         or edit gnat_stub_opts, insert project dir?
-
-    ada-indent-newline-indent from end of comment line inserts extra blank line
-
-    usage, version info in wisi-generate.exe
-
-    handle all indent options like ada-case-strict
-        need case-strict, ada-indent prj-wide for aflex
-        need case-strict buffer-local for ada-mode ada_tokens
-
-        set buffer-local from prj-get in ada-mode-hook
-            use an alist or auto naming rule to define prj var
-
-        or user write cond string-match on default-dir
-
-    add EMACSXREF
-        skip separate from EMACSCMD
-        add test-ada-wisi; skip xref
-        skip cmd in xref tests
-
-    mention ARM info format in ada-mode.texi
-        or include in ELPA?
-        ask on Debian, emacs lists
-
-    doc git/elpa checkout, config
-
-    clear execute bits in git
-        git update-index --chmod=-x <file>
-
-    subtitle in ada-mode.texi doesn't appear in .info, .html
-
-    don't do syntax-propertize for font-lock, unless parsing is already done
-        triggered by 'return' keyword; see ada-wisi.el ada-wisi-post-local-vars
-
-    ada-goto-end in keys, menu
-
-    review tests for 'if ada-smie', 'if gnat-inspect'
-
-    DB : Database_Access := new Books.Database.Database (Config);
-        name after new is type; wrong color
 
 
 5.1.c: handle parser errors more gracefully
@@ -222,6 +202,15 @@ invalidate fontification when parse succeeds?
 
 fix wisi-compile.el needing comp.el, not comp.elc
     some systems don't install emacs source by default
+
+handle all indent options like ada-case-strict
+    need case-strict, ada-indent prj-wide for aflex
+    need case-strict buffer-local for ada-mode ada_tokens
+
+    set buffer-local from prj-get in ada-mode-hook
+        use an alist or auto naming rule to define prj var
+
+    or user write cond string-match on default-dir
 
  gpr_query
 build/Makefile one
@@ -484,6 +473,21 @@ read/write access requires a public key:
 
     mtn --db ~/monotone-dbs/ada-france.db sync "mtn://www.ada-france.org?org.emacs.*"
 
+ git config for elpa checkout
+[core]
+	repositoryformatversion = 0
+	filemode = true
+	bare = false
+	logallrefupdates = true
+	ignorecase = true
+[remote "origin"]
+	fetch = +refs/heads/master:refs/remotes/origin/master
+	push  = +refs/heads/master
+	url = stephen_leake@git.sv.gnu.org:/srv/git/emacs/elpa.git
+[branch "master"]
+	remote = origin
+	merge = refs/heads/master
+
  release process
 move to external elpa package?
     - Push the tree you want onto a branch `externals/<pkg>' in the
@@ -527,8 +531,13 @@ bump version
     build/install-elpa.el
         ada-version
         wisi-version
+
+    /Projects/org.opentoken.stephe/wisi/wisi-generate.adb
+        version
+
     /Projects/Web/stephe-leake/emacs/ada-mode/emacs-ada-mode.html
-        change version
+        change ada-mode version
+        change wisi-generate version
 
         update Debian gnat install
         split out ada-france access; needed by opentoken, wisi

@@ -392,7 +392,7 @@ point must be on CACHE. PREV-TOKEN is the token before the one being indented."
 	      ;;     (Local_2 = 1)
 	      (+ (ada-wisi-current-indentation) ada-indent-broken))
 
-	     (name
+	     ((IDENTIFIER selected_component name)
 	      ;; test/indent.ads
 	      ;; CSCL_Type'
 	      ;;   (
@@ -1164,11 +1164,12 @@ cached token, return new indentation for point."
       (while (not end)
 	(setq cache (wisi-forward-cache))
 	(cl-case (wisi-cache-nonterm cache)
-	  (pragma nil)
-	  (use_clause nil)
+	  (pragma (wisi-goto-end-1 cache))
+	  (use_clause (wisi-goto-end-1 cache))
 	  (with_clause
 	   (when (not begin)
-	     (setq begin (point-at-bol))))
+	     (setq begin (point-at-bol)))
+	   (wisi-goto-end-1 cache))
 	  (t
 	   ;; start of compilation unit
 	   (setq end (point-at-bol))
@@ -1547,12 +1548,38 @@ Also return cache at start."
   (add-hook 'hack-local-variables-hook 'ada-wisi-post-local-vars nil t)
   )
 
+(defun ada-wisi-face ()
+  "Return face for token in match-data 2"
+  (let (cache)
+    (if	(and
+	 (> wisi-cache-max (match-end 2))
+	 (setq cache (wisi-get-cache (match-beginning 2))))
+	(wisi-cache-face cache)
+      'default)
+    ))
+
 (defun ada-wisi-post-local-vars ()
   ;; run after file local variables are read because font-lock-add-keywords
   ;; evaluates font-lock-defaults, which depends on ada-language-version.
   (font-lock-add-keywords 'ada-mode
-   ;; use keyword cache to distinguish between 'function ... return <type>;' and 'return ...;'
+   ;; use parse results to distinguish difficult cases, but don't
+   ;; require parse just for font-lock
    (list
+    (list
+     (concat "\\<\\(and\\)\\>[ \t]*" ada-name-regexp "?")
+     '(1 font-lock-keyword-face)
+     '(2 (ada-wisi-face) nil t) ;; name is not found if on next line
+     )
+    (list
+     (concat "\\<\\(new\\)\\>[ \t]*" ada-name-regexp "?")
+     '(1 font-lock-keyword-face)
+     '(2 (ada-wisi-face) nil t) ;; name is not found if on next line
+     )
+    (list
+     (concat "\\<\\(renames\\)\\>[ \t]*" ada-name-regexp "?")
+     '(1 font-lock-keyword-face)
+     '(2 (ada-wisi-face) nil t)
+     )
     (list
      (concat
       "\\<\\("
@@ -1566,14 +1593,13 @@ Also return cache at start."
     (list
      (concat "\\<\\(return\\)\\>[ \t]*" ada-name-regexp "?")
      '(1 font-lock-keyword-face)
-     '(2 (if (eq (when (> wisi-cache-max (match-end 2)) ;; don't require parse just for font-lock
-		   (and (wisi-get-cache (match-beginning 2))
-			(wisi-cache-class (wisi-get-cache (match-beginning 2)))))
-		 'type)
-	     font-lock-type-face
-	   'default)
-	 nil t)
+     '(2 (ada-wisi-face) nil t)
      )))
+
+  (when (boundp 'jit-lock-mode)
+    ;; use results of parse to improve fontification.
+    ;; FIXME: only refontify changed regions?
+    (add-hook 'wisi-post-parse-succeed-hook 'jit-lock-refontify nil t))
 
   (when global-font-lock-mode
     ;; ensure the modified keywords are applied

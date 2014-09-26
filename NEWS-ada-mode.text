@@ -9,10 +9,13 @@ Please send Emacs Ada mode bug reports to bug-gnu-emacs@gnu.org, with
 
 * Ada mode 5.1.6
 
-** fix ada-find-other-file in separate bodies; now correctly navigates
-   to the body stub
+** improve syntax highlighting of names after 'of', 'new', 'renames'
 
-** fix ada-format-paramlist to handle 'aliased' keyword (new in Ada 2012)
+** fix ada-format-paramlist to handle 'aliased' keyword (new in Ada
+   2012), and 'not null' without 'access'.
+
+** fix ada-find-other-file in separate bodies; now navigates to the
+   spec.
 
 ** restore ada-indent-newline-indent for [return]
 

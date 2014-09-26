@@ -1,4 +1,5 @@
 
+--EMACSCMD:(progn (forward-line 2)(test-face "Ada.Text_IO" '(nil default)))
 with
   Ada.Text_IO; -- font-lock doesn't work across newline
 
@@ -88,13 +89,15 @@ package Ada_Mode.Nominal is -- target 0
    type Object_Access_Type_0b is access all Integer;
    --EMACSCMD:(test-face "not" font-lock-keyword-face)
    --EMACSCMD:(test-face "null" font-lock-keyword-face)
+   --EMACSCMD:(test-face "access all" font-lock-keyword-face)
+   --EMACSCMD:(test-face "all" font-lock-keyword-face)
    --EMACSCMD:(test-face "Integer" font-lock-type-face)
    type Object_Access_Type_0c is not null access all Integer;
+   --EMACSCMD:(test-face "constant" font-lock-keyword-face)
    --EMACSCMD:(test-face "Integer" font-lock-type-face)
    type Object_Access_Type_0d is not null access constant Integer;
    --EMACSCMD:(test-face "Integer" font-lock-type-face)
    type Object_Access_Type_0e is access constant Integer;
-   --EMACSCMD:(test-face "Integer" font-lock-type-face)
    type Object_Access_Type_0f is not null access constant Integer;
    type Object_Access_Type_1 is not null access all Integer
      ; -- we don't really care
@@ -310,7 +313,7 @@ package Ada_Mode.Nominal is -- target 0
 
    type Record_Type_1 is record
       --EMACSCMD:(progn (forward-line 1)(forward-word 2)(insert "   ")(ada-align))
-      Component_1   : Integer := 1;   -- initialization confused things in smie
+      Component_1   : Integer := 1;
       Component_2   : Integer := 2;
       Component_356 : Float   := 3.0; -- longer component name, shorter type name for align test
    end record;

@@ -336,7 +336,8 @@ wisi-forward-token, but does not look up symbol."
 
   prev ;; marker at previous motion token in statement; nil if none
   next ;; marker at next motion token in statement; nil if none
-  end ;; marker at token at end of current statement
+  end  ;; marker at token at end of current statement
+  face ;; for font-lock. only set when regexp font-lock can't handle it
   )
 
 (defvar-local wisi-parse-table nil)
@@ -526,6 +527,9 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
     (message "parse succeeded"))
    ))
 
+(defvar wisi-post-parse-succeed-hook nil
+  "Hook run after parse succeeds.")
+
 (defun wisi-validate-cache (pos)
   "Ensure cached data is valid at least up to POS in current buffer."
   (let ((msg (when (> wisi-debug 0) (format "wisi: parsing %s:%d ..." (buffer-name) (line-number-at-pos pos)))))
@@ -544,14 +548,18 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
 	    (progn
 	      (wisi-parse wisi-parse-table 'wisi-forward-token)
 	      (setq wisi-cache-max (point))
-	      (setq wisi-parse-failed nil))
+	      (setq wisi-parse-failed nil)
+	      (run-hooks 'wisi-post-parse-succeed-hook))
 
-	  ;; else capture errors from bad syntax, so higher level functions can try to continue
+	  ;; else capture errors from bad syntax, so higher level
+	  ;; functions can try to continue and/or we don't bother the
+	  ;; user.
 	  (condition-case err
 	      (progn
 		(wisi-parse wisi-parse-table 'wisi-forward-token)
 		(setq wisi-cache-max (point))
-		(setq wisi-parse-failed nil))
+		(setq wisi-parse-failed nil)
+		(run-hooks 'wisi-post-parse-succeed-hook))
 	    (wisi-parse-error
 	     (setq wisi-parse-failed t)
 	     (setq wisi-parse-error-msg (cdr err)))
@@ -776,7 +784,6 @@ list (number class token_id class token_id ...):
 	      region)
 	  (cond
 	   ((numberp token-number)
-	    (setq target-token nil)
 	    (setq region (cddr (nth (1- token-number) wisi-tokens)))
 	    (when region
 	      (setq cache (wisi-get-cache (car region)))
@@ -804,15 +811,15 @@ list (number class token_id class token_id ...):
 		(setq target-class (pop class-tokens))
 		(setq target-token (list (pop class-tokens)))
 		(goto-char (car region))
-		(while (wisi-forward-find-token target-token (cdr region) t)
-		  (setq cache (wisi-get-cache (point)))
-		  (when (and (null (wisi-cache-prev cache))
-			     (eq target-class (wisi-cache-class cache)))
-		    (setf (wisi-cache-prev cache) prev-keyword-mark)
-		    (setq mark (copy-marker (1+ (point))))
-		    (setf (wisi-cache-next prev-cache) mark)
-		    (setq prev-keyword-mark mark)
-		    (setq prev-cache cache))
+		(while (setq cache (wisi-forward-find-token target-token (cdr region) t))
+		  (when (eq target-class (wisi-cache-class cache))
+		    (when (null (wisi-cache-prev cache))
+		      (setf (wisi-cache-prev cache) prev-keyword-mark))
+		    (when (null (wisi-cache-next cache))
+		      (setq mark (copy-marker (1+ (point))))
+		      (setf (wisi-cache-next prev-cache) mark)
+		      (setq prev-keyword-mark mark)
+		      (setq prev-cache cache)))
 
 		  (wisi-forward-token);; don't find same token again
 		))
@@ -823,6 +830,37 @@ list (number class token_id class token_id ...):
 	   )
 
 	  ))
+      )))
+
+(defun wisi-extend-action (number)
+  "Extend text of cache at token NUMBER to cover all of token NUMBER.
+Also override token with new token."
+  (let* ((token-region (nth (1- number) wisi-tokens));; wisi-tokens is let-bound in wisi-parse-reduce
+	 (token (car token-region))
+	 (region (cddr token-region))
+	cache)
+
+    (when region
+      (setq cache (wisi-get-cache (car region)))
+      (setf (wisi-cache-last cache) (- (cdr region) (car region)))
+      (setf (wisi-cache-token cache) token)
+      )
+    ))
+
+(defun wisi-face-action (&rest pairs)
+  "Cache face information in text properties of tokens.
+Intended as a grammar non-terminal action.
+
+PAIRS is of the form [TOKEN-NUMBER fase] ..."
+  (while pairs
+    (let* ((number (1- (pop pairs)))
+	   (region (cddr (nth number wisi-tokens)));; wisi-tokens is let-bound in wisi-parse-reduce
+	   (face (pop pairs))
+	   cache)
+
+      (when region
+	(setq cache (wisi-get-cache (car region)))
+	(setf (wisi-cache-face cache) face))
       )))
 
 ;;;; motion

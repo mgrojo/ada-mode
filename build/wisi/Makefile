@@ -118,6 +118,8 @@ test-ada-gpr_query.stamp : force
 	$(MAKE) test-ada-gpr_query
 	touch $@
 
+# we don't use 'expand-file-name' here because that adds c:/ on windows
+# eval: (setenv "WISI_OPENTOKEN" "/Projects/org.opentoken/build/release")
 # eval: (ada-parse-prj-file "wisi_opentoken.prj")
 # eval: (ada-select-prj-file "wisi_opentoken.prj")
 

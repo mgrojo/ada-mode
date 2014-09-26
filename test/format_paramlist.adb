@@ -1,4 +1,4 @@
---  Test ada-format-paramlist in pathological cases
+--  Test ada-format-paramlist in several cases
 --  All results checked by diff
 
 package body Format_Paramlist is
@@ -26,7 +26,6 @@ package body Format_Paramlist is
       return 0;
    end F;
 
-
    --EMACSCMD:(progn (forward-line 3)(forward-word 1)(insert "   ") (ada-align))
    --  just 'out'
    function G (D : out Z'Class;
@@ -38,6 +37,7 @@ package body Format_Paramlist is
    end G;
 
    --  Handle 'aliased' (Ada 2012 syntax)
+   --EMACSCMD:(progn (forward-line 3)(forward-word 1)(insert "   ") (ada-align))
    procedure H
      (A : aliased in              Z;
       B :            out          Z;
@@ -46,5 +46,28 @@ package body Format_Paramlist is
    is begin
       null;
    end H;
+
+   type Z_Access is access Z;
+
+   --  Handle 'not null' without 'access'
+   --EMACSCMD:(progn (forward-line 6)(forward-word 1)(insert "   ") (ada-align))
+   --EMACSCMD:(progn (forward-line 4)(test-face "Z_Access" 'font-lock-type-face))
+   --EMACSCMD:(progn (forward-line 4)(test-face "Z_Access" 'font-lock-type-face))
+   --EMACSCMD:(progn (forward-line 4)(test-face "Z_Access" 'font-lock-type-face))
+   procedure I
+     (A : in     not null Z_Access;
+      B :        not null Z_Access;
+      C : in out Z_Access)
+   is begin
+      null;
+   end I;
+
+   --EMACSCMD:(progn (forward-line 3)(forward-word 1)(insert "   ") (ada-align))
+   procedure J
+     (B :                 not null Z_Access;
+      D : not null access Z)
+   is begin
+      null;
+   end J;
 
 end Format_Paramlist;
