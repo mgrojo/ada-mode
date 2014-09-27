@@ -278,16 +278,20 @@ accept_statement
 
 access_definition ;; same as access_type_definition for our purposes
   : null_exclusion_opt ACCESS general_access_modifier_opt name
-    (wisi-statement-action 4 'type);; for font-lock - see ada-wisi-setup
+    (progn
+      (wisi-statement-action 2 'keyword)
+      (wisi-face-action 2 'font-lock-keyword-face 4 'font-lock-type-face))
   | null_exclusion_opt ACCESS protected_opt PROCEDURE parameter_profile_opt
     (progn
-      (wisi-statement-action 4 'name-paren)
-      (wisi-containing-action 4 5))
+      (wisi-statement-action 2 'keyword 4 'name-paren)
+      (wisi-containing-action 4 5)
+      (wisi-face-action 2 'font-lock-keyword-face))
   | null_exclusion_opt ACCESS protected_opt FUNCTION parameter_and_result_profile
     (progn
-      (wisi-statement-action 4 'name-paren)
+      (wisi-statement-action 2 'keyword 4 'name-paren)
       (wisi-containing-action 4 5)
-      (wisi-motion-action 4 '(5 return-1 RETURN return-2 RETURN)))
+      (wisi-motion-action 4 '(5 return-1 RETURN return-2 RETURN))
+      (wisi-face-action 2 'font-lock-keyword-face))
   ;
 
 actual_parameter_part
@@ -336,15 +340,17 @@ array_type_definition
   : ARRAY LEFT_PAREN index_subtype_definition_list RIGHT_PAREN OF component_definition
  ;; unconstrained_array_definition
     (progn
-      (wisi-statement-action 2 'open-paren 4 'close-paren 5 'statement-other)
+      (wisi-statement-action 1 'keyword 2 'open-paren 4 'close-paren 5 'statement-other)
       (wisi-containing-action 2 3)
-      (wisi-containing-action 5 6))
+      (wisi-containing-action 5 6)
+      (wisi-face-action 1 'font-lock-keyword-face))
   | ARRAY LEFT_PAREN discrete_subtype_definition_list RIGHT_PAREN OF component_definition
  ;; constrained_array_definition
     (progn
-      (wisi-statement-action 2 'open-paren 4 'close-paren 5 'statement-other)
+      (wisi-statement-action 1 'keyword 2 'open-paren 4 'close-paren 5 'statement-other)
       (wisi-containing-action 2 3)
-      (wisi-containing-action 5 6))
+      (wisi-containing-action 5 6)
+      (wisi-face-action 1 'font-lock-keyword-face))
   ;
 
 aspect_clause
@@ -628,6 +634,9 @@ conditional_entry_call
 constant_opt
   : ;; empty
   | CONSTANT
+    (progn
+      (wisi-statement-action 1 'keyword)
+      (wisi-face-action 1 'font-lock-keyword-face))
   ;
 
 constraint
@@ -1422,8 +1431,17 @@ mod_clause_opt
 mode_opt
   : ;; empty
   | IN
+    (progn
+      (wisi-statement-action 1 'keyword)
+      (wisi-face-action 1 'font-lock-keyword-face))
   | IN OUT
+    (progn
+      (wisi-statement-action 1 'keyword)
+      (wisi-face-action 1 'font-lock-keyword-face))
   | OUT
+    (progn
+      (wisi-statement-action 1 'keyword)
+      (wisi-face-action 1 'font-lock-keyword-face))
   ;
 
 multiplying_operator : STAR | SLASH | MOD | REM ; ;; * | / | mod | rem
@@ -1473,6 +1491,9 @@ name_opt
 null_exclusion_opt
   : ;; empty
   | NOT NULL
+    (progn
+      (wisi-statement-action 1 'keyword)
+      (wisi-face-action 1 'font-lock-keyword-face))
   ;
 
 ;; we don't use 'null_exclusion_opt' when it is followed by 'name',
@@ -1626,14 +1647,12 @@ package_specification
 parameter_and_result_profile
   : formal_part RETURN null_exclusion_opt name_opt
     (progn
-      (wisi-statement-action
-       2 'return-1;; for ada-indent-return
-       4 'type);; for font-lock - see ada-wisi-setup
+      (wisi-statement-action 2 'return-1);; for ada-indent-return
       (wisi-containing-action 2 4)
       (wisi-face-action 4 'font-lock-type-face))
   | RETURN name_opt
     (progn
-      (wisi-statement-action 1 'return-2 2 'type)
+      (wisi-statement-action 1 'return-2)
       (wisi-face-action 2 'font-lock-type-face))
   | formal_part RETURN access_definition
     (progn
@@ -1655,7 +1674,9 @@ parameter_profile_opt
 
 parameter_specification
   : identifier_list COLON aliased_opt mode_opt null_exclusion_opt name COLON_EQUAL expression
+    (wisi-face-action 6 'font-lock-type-face)
   | identifier_list COLON aliased_opt mode_opt null_exclusion_opt name
+    (wisi-face-action 6 'font-lock-type-face)
   | identifier_list COLON aliased_opt access_definition COLON_EQUAL expression
   | identifier_list COLON aliased_opt access_definition
   ;
@@ -2170,14 +2191,19 @@ subtype_declaration
 subtype_indication
   : NOT NULL name constraint
     (progn
-      (wisi-statement-action 3 'name)
-      (wisi-containing-action 3 4))
+      (wisi-statement-action 1 'keyword)
+      (wisi-containing-action 3 4)
+      (wisi-face-action 1 'font-lock-keyword-face 3 'font-lock-type-face))
   | NOT NULL name
+    (progn
+      (wisi-statement-action 1 'keyword)
+      (wisi-face-action 1 'font-lock-keyword-face 3 'font-lock-type-face))
   | name constraint
     (progn
-      (wisi-statement-action 1 'name)
-      (wisi-containing-action 1 2))
+      (wisi-containing-action 1 2)
+      (wisi-face-action 1 'font-lock-type-face))
   | name
+    (wisi-face-action 1 'font-lock-type-face)
   ;
 
 ;; subtype_mark replaced by name

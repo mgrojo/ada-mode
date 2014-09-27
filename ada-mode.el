@@ -2515,7 +2515,8 @@ The paragraph is indented on the first line."
 	   (not (looking-at "[ \t]*--")))
       (error "Not inside comment"))
 
-  (let* (indent from to
+  (let* ((inhibit-modification-changes t) ;; don't run parser for font-lock; comment text is exposed
+	 indent from to
 	 (opos (point-marker))
 	 ;; we bind `fill-prefix' here rather than in ada-mode because
 	 ;; setting it in ada-mode causes indent-region to use it for
@@ -2657,7 +2658,6 @@ The paragraph is indented on the first line."
 	  "in[ \t]+out[ \t]+not[ \t]+null\\|"
 	  "in[ \t]+out\\|"
 	  "in\\|"
-	  "is\\|"
 	  ;; "return" can't distinguish between 'function ... return <type>;' and 'return ...;'
 	  ;; "new" can't distinguish between generic instantiation
 	  ;;       package foo is new bar (...)
@@ -2668,8 +2668,7 @@ The paragraph is indented on the first line."
 	  "not[ \t]+null[ \t]access[ \t]constant\\|"
 	  "not[ \t]+null[ \t]access\\|"
 	  "not[ \t]+null\\|"
-	  "of[ \t]+reverse\\|" ;; array FIXME: exclude iterable_name
-	  "of\\|" ;; array FIXME: exclude iterable_name
+	  ;; "of" can't distinguish between array and iterable_name
 	  "out\\|"
 	  "subtype\\|"
 	  "type"
@@ -2693,7 +2692,8 @@ The paragraph is indented on the first line."
    	      "select" "separate" "task" "terminate"
    	      "then" "when" "while" "xor")
    	    (when (member ada-language-version '(ada95 ada2005 ada2012))
-   	      '("abstract" "aliased" "requeue" "tagged" "until"))
+	      ;; "aliased" can't distinguish between object declaration and paramlist
+   	      '("abstract" "requeue" "tagged" "until"))
    	    (when (member ada-language-version '(ada2005 ada2012))
    	      '("interface" "overriding" "synchronized"))
    	    (when (member ada-language-version '(ada2012))
@@ -2702,6 +2702,12 @@ The paragraph is indented on the first line."
    	   t)
    	  "\\>")
    	 '(0 font-lock-keyword-face))
+
+   ;; after the above to handle 'is begin' in blocks
+   (list (concat
+	  "\\<\\(is\\)\\>[ \t]*"
+	  ada-name-regexp "?")
+	 '(1 font-lock-keyword-face) '(2 font-lock-type-face nil t))
 
    ;; object and parameter declarations; word after ":" should be in
    ;; type-face if not already fontified or an exception.
@@ -2786,6 +2792,7 @@ The paragraph is indented on the first line."
 
   (set (make-local-variable 'require-final-newline) t)
 
+  ;; 'font-lock-defaults' is a confusing name; it's buffer local
   (setq font-lock-defaults
 	'(ada-font-lock-keywords
 	  nil t

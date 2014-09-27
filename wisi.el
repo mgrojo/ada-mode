@@ -581,6 +581,11 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
     (and containing
 	 (wisi-get-cache (1- containing)))))
 
+(defun wisi-cache-region (cache)
+  "Return region designated by cache.
+Point must be at cache."
+  (cons (point) (+ (point) (wisi-cache-last cache))))
+
 (defun wisi-cache-text (cache)
   "Return property-less buffer substring designated by cache.
 Point must be at cache."
@@ -860,7 +865,11 @@ PAIRS is of the form [TOKEN-NUMBER fase] ..."
 
       (when region
 	(setq cache (wisi-get-cache (car region)))
-	(setf (wisi-cache-face cache) face))
+	(unless cache
+	  (error "wisi-face-action on non-cache"))
+	(setf (wisi-cache-face cache) face)
+	(when (boundp 'jit-lock-mode)
+	  (jit-lock-refontify (car region) (cdr region))))
       )))
 
 ;;;; motion

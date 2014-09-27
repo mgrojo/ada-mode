@@ -5,7 +5,7 @@ General notes on Emacs Ada mode
 
 run test from emacs -Q using installed elpa:
 (progn
-;;  (add-to-list 'exec-path "/apps/GNAT-7.1.2/bin")
+;;  (add-to-list 'exec-path "/apps/GNAT-2014/bin")
   (setenv "PATH" (mapconcat 'identity  exec-path  path-separator))
   (package-initialize)
   (setq debug-on-error t)
@@ -17,17 +17,16 @@ run test from emacs -Q using installed elpa:
 
 run test from emacs -Q using source:
 (progn
-  (add-to-list 'exec-path "/apps/GNAT-7.2.1/bin")
+  (add-to-list 'exec-path "/apps/GNAT-2014/bin")
   (setenv "PATH" (mapconcat 'identity  exec-path  path-separator))
   (add-to-list 'load-path "/Projects/org.emacs.ada-mode")
   (add-to-list 'load-path "/Projects/org.emacs.ada-mode/build")
   (setq debug-on-error t)
-;  (global-font-lock-mode -1)
   (load "autoloads.el")
   (load "run-indent-test-wisi")
   (setq wisi-debug 1)
   (setq default-directory "/Projects/org.emacs.ada-mode/build/wisi/")
-  (run-test "../../test/ada_mode-conditional_expressions.adb")
+  (run-test "../../test/format_paramlist.adb")
   (ada-wisi-debug-keys))
 
 install packages in -Q:
@@ -47,30 +46,13 @@ install packages in -Q:
         23 sep: asked on Debian, emacs-devel, emacs-ada-mode lists
             answer: separate elpa package
 
-    font-lock can't handle 'new'; move to ada-wisi
-        running all tests
-            test/ada_mode-parens.adb failing ada-align-paramlist deletes access
-
-        also 'renames'
-            edited
-
-        also name on next line
-            edited some tests
-            but font-lock-add-keywords can't handle that either?
-                except set limit in pre-match-form in match-anchored?
-                see font-lock.el font-lock-fontify-anchored-keywords
-                but that hangs emacs, and the doc says "don't do that". sigh.
-                find emacs-devel thread on lexer doing faces
+    filling comment exposes uncommented text to parser, calls font-lock-after-change
+        test/ada_mode-nominal.ads
+        add inhibit-modification-changes in ada-fill-comment-paragraph
+        doesn't work (sigh) ask on emacs-devel
 
 
-    refontify after parse doesn't work sometimes
-        test/ada_mode-generic_instantion.ads Gen_function_2
-        works with explicit font-lock-fontify-buffer
-
-    use post-self-insert-hook for casing
-        in 23.2?
-
-    use electric-indent-mode instead of ada-indent-newline-indent
+    test/format_paramlist.adb -- FIXME (later): delete the extra space in B default exp
 
     if specify project file in gnat_stub_opts, gnat stub can't find it due to changed directory
         change to gnat_stub_gpr, manage directory
@@ -211,6 +193,19 @@ handle all indent options like ada-case-strict
         use an alist or auto naming rule to define prj var
 
     or user write cond string-match on default-dir
+
+set face correctly for name on next line
+    edited some tests
+    but font-lock-add-keywords can't handle that either?
+        except set limit in pre-match-form in match-anchored?
+        see font-lock.el font-lock-fontify-anchored-keywords
+        but that hangs emacs, and the doc says "don't do that". sigh.
+        find emacs-devel thread on lexer doing faces
+
+use post-self-insert-hook for casing
+    in 23.2?
+
+use electric-indent-mode instead of ada-indent-newline-indent
 
  gpr_query
 build/Makefile one

@@ -7,8 +7,8 @@
 --EMACSCMD:(setq skip-reindent-test t)
 --EMACSCMD:(setq case-fold-search nil)
 
--- global-font-lock-mode is off in batch tests
---EMACSCMD:(font-lock-fontify-buffer)
+-- don't report parse failures
+--EMACSCMD:(setq wisi-debug 0)
 
 -- from ada83
 --EMACSCMD:(test-face "abort" 'font-lock-keyword-face)
