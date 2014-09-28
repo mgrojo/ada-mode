@@ -36,30 +36,11 @@ install packages in -Q:
  (list-packages))
 
  next release
-5.1.b:
-    build/wisi/Makefile
-    build/Makefile
-    doc changes in NEWS-ada-mode.text NEWS-wisi.text
+5.1.c:
 
-    mention ARM info format in ada-mode.texi
-        also include in separate ELPA package?
-        23 sep: asked on Debian, emacs-devel, emacs-ada-mode lists
-            answer: separate elpa package
+delete gnatinspect
 
-    filling comment exposes uncommented text to parser, calls font-lock-after-change
-        test/ada_mode-nominal.ads
-        add inhibit-modification-changes in ada-fill-comment-paragraph
-        doesn't work (sigh) ask on emacs-devel
-
-
-    test/format_paramlist.adb -- FIXME (later): delete the extra space in B default exp
-
-    if specify project file in gnat_stub_opts, gnat stub can't find it due to changed directory
-        change to gnat_stub_gpr, manage directory
-        or edit gnat_stub_opts, insert project dir?
-
-
-5.1.c: handle parser errors more gracefully
+handle parser errors more gracefully
     continue by adding virtual tokens
         find shortest path from current state to defined action on next real token
             go thru FIRST, look for actions on next token, use first found
@@ -70,23 +51,37 @@ install packages in -Q:
 
         cache for virtual end token (if one needed) located after last real token in sentence
             needed for 'goto end', and for setting something in 'end' field
+            add space if at eob?
 
         no storage cache for other virtual tokens
 
         adding 'if then else end if' before 'foo := bar;'; just typed 'if <expression>'; add 'then'
             that will later add 'end if;' before the next 'end', which will be wrong
-                no problem; it will be deleted when the new 'end if' is typed/parsed
+                no problem; it will be deleted by invalidate-cache when the new 'end if' is typed/parsed
+                invalidate-cache must also delete refs to the virtual token?
+                    they will be overwritten?
 
     don't use virtual tokens for indent
+        => don't set markers to them
 
     show location of virtual tokens in 'show parse error'?
-        could be several
+        could be many
 
-can abandon parse when reach desired point
-    unless command is 'goto-end'; finish parse of at least current statement
+can abandon parse when reach desired point (not just for errors)
+    ada-indent-region parse to end of region
+        avoids reparsing for every line
+        or is there an indent-region hook for that?
+
+        handle ada-gps better
+
+    if command is 'goto-end', "desired point" is end of current statement
     in goto-end, check if end reached is virtual; if so, reparse
 
 5.1.x: misc
+
+if specify project file in gnat_stub_opts, gnat stub can't find it due to changed directory
+    change to gnat_stub_gpr, manage directory
+    or edit gnat_stub_opts, insert project dir?
 
 skeleton refactor/cleanup
 
@@ -437,6 +432,10 @@ Markus Schöpflin <markus.schoepflin@comsoft.aero> wants this style (including a
 (progn (profiler-start 'cpu) (time-it 'wisi-parse-buffer 10) (profiler-report) (profiler-stop))
     B - profiler-report-render-reversed-calltree shows low-level time hogs
 
+attach gud-gdb to running emacs: attach <process id>
+    source emacs/src/.gdbinit
+    xbacktrace shows lisp backtrace
+
 (browse-url "c:/Projects/arm_info/org.adaic.arm_form/build/html/arm2012/RM-P.html")
 (info "(aarm2012)Annex P" "*info Annex P*")
 (info "(elisp)Parser State" "*info syntax-ppss*")
@@ -485,6 +484,7 @@ read/write access requires a public key:
 
  release process
 move to external elpa package?
+    simplifies git management of elpa?
     - Push the tree you want onto a branch `externals/<pkg>' in the
       `elpa' repository.
     - Remove the packages/<pkg> directory in the `master' branch.
@@ -495,11 +495,12 @@ check for ELPA patches by others
     (dvc-sync-review "/Projects/elpa")
         revert local changes
         update
+        clean sync
     cd /Projects/elpa
     git log -2 -- packages/wisi
     git log -2 -- packages/ada-mode
+    git log -2 -- packages/ada-ref-man
     apply changes to current
-    (dvc-state-one ".")
 
 check emacs buglist
     http://debbugs.gnu.org/cgi/pkgreport.cgi?package=ada-mode
@@ -507,67 +508,66 @@ check emacs buglist
 bump version
     bump if _any_ changes other than autoloads, so ELPA package handler knows to update
         (list-packages) install ada-mode, wisi from public ELPA
-        build/Makefile docs pub-ada pub-wisi
+        build/Makefile docs pub-ada pub-ada-ref-man pub-wisi
         (ediff-directories "~/.emacs.d/elpa/wisi-1.0.5" "/Projects/elpa/packages/wisi" nil)
         (ediff-directories "~/.emacs.d/elpa/ada-mode-5.1.5" "/Projects/elpa/packages/ada-mode" nil)
+        (ediff-directories "~/.emacs.d/elpa/ada-ref-man-2012.0" "/Projects/elpa/packages/ada-ref-man" nil)
 
     wisi.el
         Version:
-        also in ada-mode.el package-requires
     ada-mode.el
         Version:
         ada-mode-version
+        package-requires wisi version
     ada-mode.texi
         Ada Mode Version
-    README
+    README-ada-mode
+        first line
+    README-ada-ref-man
+        first line
+    README-wisi
         first line
     build/Makefile
         VERSION
     build/install-elpa.el
-        ada-version
+        ada-mode-version
+        ada-ref-man-version
         wisi-version
 
     /Projects/org.opentoken.stephe/wisi/wisi-generate.adb
         version
 
     /Projects/Web/stephe-leake/emacs/ada-mode/emacs-ada-mode.html
-        change ada-mode version
-        change wisi-generate version
+        ada-mode version
+        opentoken version
 
-        update Debian gnat install
-        split out ada-france access; needed by opentoken, wisi
+    c:/Projects/Web/stephe-leake/emacs/wisi/wisi.html
+        wisi-version
+        wisi-generate version
+        ada-mode version
+        opentoken version
 
     /Projects/Web/stephe-leake/emacs/wisi/wisi.html
 
 verify other metadata
     ada-mode.el
+    ada-ref-man.el
     wisi.el
-
-(list-packages)
-    delete old ada-mode, wisi, cl-lib packages
 
 build/Makefile all
     # pushes to elpa workspace, builds archive, installs
 
-Emacs 24.3, gnat 7.2.1 (sal-standard), installed ada-mode:
+Emacs 24.3, gnat 2014 (sal-standard), installed ada-mode:
     (setenv "ADA_MODE_DIR" "-f package-initialize")
     build/wisi/Makefile all
         gnatinspect, gpr_query fail on Windows
 
-Emacs 24.2, (gnat-2014):
-    /Projects/org.opentoken/build/release/Makefile
-        clean
-        wisi-generate.exe
-
+Emacs 24.2, gnat 2014:
     build/Makefile install-elpa # deletes and recompiles, installs cl-lib
 
     (setenv "ADA_MODE_DIR" "-f package-initialize")
     build/wisi/Makefile clean all
         ignore byte-compile warnings about 'foo' from cl package called at runtime
-        no gnatinspect
-
-    /Projects/org.opentoken/build/release/Makefile
-        clean
 
     build/Makefile install-clean
 
@@ -575,6 +575,7 @@ Emacs 24.3
 
 (dvc-status ".")
 (dvc-status "/Projects/org.opentoken")
+(dvc-status "/Projects/elpa")
 (dvc-sync-run ".")
 (dvc-sync-review ".")
 

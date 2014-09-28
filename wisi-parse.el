@@ -29,6 +29,12 @@
 (require 'cl-lib)
 (require 'semantic/wisent)
 
+;; WORKAROUND: for some reason, this condition doesn't work in batch mode!
+;; (when (and (= emacs-major-version 24)
+;; 	   (= emacs-minor-version 2))
+  (require 'wisi-compat-24.2)
+;;)
+
 (defvar wisi-parse-max-parallel 15
   "Maximum number of parallel parsers for acceptable performance.
 If a file needs more than this, it's probably an indication that

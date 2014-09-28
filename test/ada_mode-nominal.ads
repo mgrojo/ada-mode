@@ -545,17 +545,17 @@ package Ada_Mode.Nominal is -- target 0
       Parent_Element_3 : Boolean;
    end record;
 
-   --EMACSCMD:(let ((wisi-debug 0))(forward-line 2)(forward-word 2)(insert "    ")(ada-fill-comment-paragraph))
+   --EMACSCMD:(progn (forward-line 2)(forward-word 2)(insert "    ")(ada-fill-comment-paragraph))
 
    -- a filled comment. Now is the time for all good parsers to come
    -- to the aid of programmers.
 
-   --EMACSCMD:(let ((wisi-debug 0)) (forward-line 2)(forward-word 2)(insert "    ")(ada-fill-comment-paragraph 'full))
+   --EMACSCMD:(progn (forward-line 2)(forward-word 2)(insert "    ")(ada-fill-comment-paragraph 'full))
 
    -- a filled  and justified comment.  Now  is the time for  all good
    -- parsers to come to the aid of programmers.
 
-   --EMACSCMD:(let ((wisi-debug 0))(forward-line 2)(forward-word 2)(insert "    ")(ada-fill-comment-paragraph 'full t))
+   --EMACSCMD:(progn (forward-line 2)(forward-word 2)(insert "    ")(ada-fill-comment-paragraph 'full t))
 
    -- a filled and  justified postfix comment. Now is  the time for --
    -- all good parsers to come to the aid of programmers.           --

@@ -26,7 +26,7 @@ developing GNU and promoting software freedom.''
 
 @titlepage
 @sp 10
-@title Ada Mode Version 5.1.5
+@title Ada Mode Version 5.1.6
 @page
 @vskip 0pt plus 1filll
 @insertcopying
@@ -117,11 +117,19 @@ in the distribution.
 To see what version of Ada mode you have installed, invoke @kbd{M-x
 ada-mode-version}.
 
+You may also want to install additional utilities:
+
 @menu
+* Ada Reference Manual::
 * gnatinspect::
 * gpr_query::
 * Upgrading::
 @end menu
+
+@node Ada Reference Manual
+@section Ada Reference Manual
+The ELPA package ada-ref-man includes the Ada Reference Manual and
+Annotated Ada Reference Manual in info format.
 
 @node gnatinspect, gpr_query, Installation, Installation
 @section gnatinspect

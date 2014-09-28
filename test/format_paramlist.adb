@@ -6,10 +6,10 @@
 
 package body Format_Paramlist is
 
-   -- FIXME (later): delete the extra space in B default exp
-   --EMACSCMD:(progn (forward-line 3)(forward-word 1)(insert "   ") (ada-align))
+   -- test deleting extra space after type before ';)'
+   --EMACSCMD:(progn (forward-line 2)(forward-word 3)(insert "   ") (forward-line 1)(forward-word 3)(insert "   ")(ada-align))
    procedure X (Y : in     Z 'Class := Default_Z;
-                B : access Integer     ;
+                B : access Integer;
                 A :    out Integer)
    is begin
       null;

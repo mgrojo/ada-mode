@@ -22,7 +22,7 @@
 ^build/wisi/.*\.tmp$
 ^build/wisi/.*\.wisi-test$
 ^build/wisi/obj$
-^dir$
+^dir-ada-mode$
 ^gpr-grammar\.output$
 ^gpr-mode\.html$
 ^gpr-mode\.info$

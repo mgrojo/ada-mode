@@ -1435,19 +1435,17 @@ Also return cache at start."
 	(wisi-forward-find-token 'SEMICOLON end t))
 
        ((member token '(SEMICOLON RIGHT_PAREN))
-	(if (equal token 'RIGHT_PAREN)
-	    ;; all done
-	    (progn
-	      (setq done t)
-	      (when (not type-end) (setq type-end (1- (point))))
-	      (when default-begin (setq default (buffer-substring-no-properties default-begin (1- (point)))))
-	      )
-	  ;; else semicolon - one param done
-	  (when (not type-end) (setq type-end (1- (point))))
-	  (when default-begin (setq default (buffer-substring-no-properties default-begin (1- (point)))))
-	  )
+	(when (not type-end)
+	  (setq type-end (save-excursion (backward-char 1) (skip-syntax-backward " ") (point))))
 
 	(setq type (buffer-substring-no-properties type-begin type-end))
+
+	(when default-begin
+	  (setq default (buffer-substring-no-properties default-begin (1- (point)))))
+
+	(when (equal token 'RIGHT_PAREN)
+	  (setq done t))
+
 	(setq param (list (reverse identifiers)
 			  aliased-p in-p out-p not-null-p access-p constant-p protected-p
 			  type default))

@@ -4,9 +4,10 @@
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
-;; Keywords FIXME: languages, ada ELPA broken for multiple keywords
-;; Version: 5.1.5
-;; package-requires: ((wisi "1.0.5") (cl-lib "0.4") (emacs "24.2"))
+;; Keywords: languages
+;;  ada
+;; Version: 5.1.6
+;; package-requires: ((wisi "1.0.6") (cl-lib "0.4") (emacs "24.2"))
 ;; url: http://stephe-leake.org/emacs/ada-mode/emacs-ada-mode.html
 ;;
 ;; (Gnu ELPA requires single digits between dots in versions)
@@ -167,7 +168,7 @@
 (defun ada-mode-version ()
   "Return Ada mode version."
   (interactive)
-  (let ((version-string "5.1.5"))
+  (let ((version-string "5.1.6"))
     ;; must match:
     ;; ada-mode.texi
     ;; README
@@ -2515,7 +2516,7 @@ The paragraph is indented on the first line."
 	   (not (looking-at "[ \t]*--")))
       (error "Not inside comment"))
 
-  (let* ((inhibit-modification-changes t) ;; don't run parser for font-lock; comment text is exposed
+  (let* ((inhibit-modification-hooks t) ;; don't run parser for font-lock; comment text is exposed
 	 indent from to
 	 (opos (point-marker))
 	 ;; we bind `fill-prefix' here rather than in ada-mode because

@@ -3,7 +3,11 @@
 ;; Copyright (C) 2012 - 2014  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
-;; Version: 1.0.5
+;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
+;; Keywords: parser
+;;  indentation
+;;  navigation
+;; Version: 1.0.6
 ;; package-requires: ((cl-lib "0.4") (emacs "24.2"))
 ;; URL: http://stephe-leake.org/emacs/ada-mode/emacs-ada-mode.html
 ;;
