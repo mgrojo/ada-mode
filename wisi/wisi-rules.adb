@@ -2,7 +2,7 @@
 --
 --  Parse the production rules from Input_File, add to List.
 --
---  Copyright (C) 2012, 2013 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2012 - 2014 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -34,8 +34,22 @@ is
    type State_Type is (Left_Hand_Side, Production, Action);
    State : State_Type := Left_Hand_Side;
 
+   Paren_Count : Integer; --  For reporting unbalanced parens
+
    Rule : Rule_Type;
    RHS  : RHS_Type;
+
+   procedure Update_Paren_Count (Line : in String)
+   is begin
+      for I in Line'Range loop
+         case Line (I) is
+         when '(' => Paren_Count := Paren_Count + 1;
+         when ')' => Paren_Count := Paren_Count - 1;
+         when others => null;
+         end case;
+      end loop;
+   end Update_Paren_Count;
+
 begin
    --  We assume actions start on a new line starting with either ` or
    --  (, and are terminated by ; on a new line.
@@ -86,6 +100,9 @@ begin
                   State         := Action;
                   RHS.Action    := RHS.Action + Line;
                   Need_New_Line := True;
+                  Paren_Count   := 0;
+
+                  Update_Paren_Count (Line);
 
                when ';' =>
                   Rule.Right_Hand_Sides.Append (RHS);
@@ -121,6 +138,10 @@ begin
                   State         := Left_Hand_Side;
                   Need_New_Line := True;
 
+                  if Paren_Count /= 0 then
+                     raise Syntax_Error with "unbalanced parens in action";
+                  end if;
+
                when '|' =>
                   Rule.Right_Hand_Sides.Append (RHS);
                   State := Production;
@@ -130,9 +151,15 @@ begin
                   Cursor := Index_Non_Blank (Line, From => Cursor + 1);
                   Need_New_Line := Cursor = 0;
 
+                  if Paren_Count /= 0 then
+                     raise Syntax_Error with "unbalanced parens in action";
+                  end if;
+
                when others =>
                   RHS.Action    := RHS.Action + Line;
                   Need_New_Line := True;
+
+                  Update_Paren_Count (Line);
                end case;
             end case;
 
@@ -146,14 +173,23 @@ begin
             exit when Need_New_Line;
          end loop;
       exception
+      when E : Syntax_Error =>
+         declare
+            use Standard.Ada.Exceptions;
+         begin
+            Standard.Ada.Text_IO.Put_Line
+              (Name (Input_File) & ":" &
+                 Trim (Standard.Ada.Text_IO.Count'Image (Standard.Ada.Text_IO.Line (Input_File)), Left) & ":0: " &
+                 Exception_Message (E));
+         end;
       when E : others =>
          declare
             use Standard.Ada.Exceptions;
          begin
             Standard.Ada.Text_IO.Put_Line
               (Name (Input_File) & ":" &
-                 Trim (Standard.Ada.Text_IO.Count'Image (Standard.Ada.Text_IO.Line (Input_File)), Left) & ":0:" &
-                 " unhandled exception " & Exception_Name (E));
+                 Trim (Standard.Ada.Text_IO.Count'Image (Standard.Ada.Text_IO.Line (Input_File)), Left) &
+                 ":0: unhandled exception " & Exception_Name (E));
          end;
          raise Syntax_Error;
       end;
