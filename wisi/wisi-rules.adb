@@ -36,8 +36,22 @@ is
    type State_Type is (Left_Hand_Side, Production, Action);
    State : State_Type := Left_Hand_Side;
 
+   Paren_Count : Integer; --  For reporting unbalanced parens
+
    Rule : Rule_Type;
    RHS  : RHS_Type;
+
+   procedure Update_Paren_Count (Line : in String)
+   is begin
+      for I in Line'Range loop
+         case Line (I) is
+         when '(' => Paren_Count := Paren_Count + 1;
+         when ')' => Paren_Count := Paren_Count - 1;
+         when others => null;
+         end case;
+      end loop;
+   end Update_Paren_Count;
+
 begin
    --  We assume actions start on a new line starting with either ` or
    --  (, and are terminated by ; on a new line.
@@ -94,6 +108,9 @@ begin
                   RHS.Action    := RHS.Action + Line;
                   Need_New_Line := True;
                   Action_Count  := Action_Count + 1;
+                  Paren_Count   := 1;
+
+                  Update_Paren_Count (Line);
 
                when ';' =>
                   Rule.Right_Hand_Sides.Append (RHS);
@@ -129,6 +146,10 @@ begin
                   State         := Left_Hand_Side;
                   Need_New_Line := True;
 
+                  if Paren_Count /= 0 then
+                     raise Syntax_Error with "unbalanced parens in action";
+                  end if;
+
                when '|' =>
                   Rule.Right_Hand_Sides.Append (RHS);
                   State := Production;
@@ -138,9 +159,15 @@ begin
                   Cursor := Index_Non_Blank (Line, From => Cursor + 1);
                   Need_New_Line := Cursor = 0;
 
+                  if Paren_Count /= 0 then
+                     raise Syntax_Error with "unbalanced parens in action";
+                  end if;
+
                when others =>
                   RHS.Action    := RHS.Action + Line;
                   Need_New_Line := True;
+
+                  Update_Paren_Count (Line);
                end case;
             end case;
 

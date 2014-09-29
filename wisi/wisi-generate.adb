@@ -41,8 +41,9 @@ is
       --  verbosity meaning is actually determined by output choice;
       --  they should be consistent with this description.
       Put_Line ("wisi-generate [-v level] {wisent grammar file} {output language}");
+      Put_Line ("version 0.00 - experimental");
       Put_Line ("generate output language source corresponding to 'wisent grammar file'");
-      Put_Line ("output language is one of Ada, Elisp, Test");
+      Put_Line ("output language is one of Ada_Emacs, Elisp, Test");
       Put_Line ("-v sets verbosity (defaults to 0 with no -v, 1 with just -v):");
       Put_Line ("   level 0 - only error messages to standard error");
       Put_Line ("   level 1 - add compiled grammar output to standard out");
