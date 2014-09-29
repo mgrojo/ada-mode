@@ -111,7 +111,8 @@
       )))
 
 (defun wisi-ada-parse-session-send-parse ()
-  "Send a parse command to ada_mode_wisi_parse session, followed by the contents of the current buffer."
+  "Send a parse command to ada_mode_wisi_parse session, followed by the contents of the current buffer.
+Does not wait for command to complete."
   (wisi-ada-parse-require-session)
 
   ;; ada_mode_wisi_parse can't handle non-ASCII, so we don't need string-bytes here.
@@ -120,7 +121,6 @@
 	 (msg (format "%02d%s" (length cmd) cmd))
 	 (process (wisi-ada-parse--session-process wisi-ada-parse-session)))
     (when (> wisi-ada-parse-debug 0)
-      (wisi-ada-parse-show-buffer)
       (message msg))
     (with-current-buffer (wisi-ada-parse--session-buffer wisi-ada-parse-session)
       (erase-buffer))
@@ -128,7 +128,6 @@
 
     (process-send-string process buf-string)
 
-    (wisi-ada-parse-session-wait)
     ))
 
 (defun wisi-ada-parse-kill-session ()
@@ -141,7 +140,7 @@
   "Show wisi-ada-parse buffer."
   (interactive)
   (if (wisi-ada-parse--session-buffer wisi-ada-parse-session)
-      (pop-to-buffer (wisi-ada-parse--session-buffer wisi-ada-parse-session))
+      (switch-to-buffer (wisi-ada-parse--session-buffer wisi-ada-parse-session))
     (error "wisi-ada-parse session not active")))
 
 ;;;;; main
@@ -154,34 +153,80 @@
   (wisi-ada-parse-require-session)
   (let ((source-buffer (current-buffer))
 	(action-buffer (wisi-ada-parse--session-buffer wisi-ada-parse-session))
-	 action
-	 action-end
-	 (done nil))
+	(process (wisi-ada-parse--session-process wisi-ada-parse-session))
+	action
+	action-end
+	(action-count 0)
+	(sexp-start (point-min))
+	(wait-count 0)
+	(need-more nil)
+	(done nil))
 
     (wisi-ada-parse-session-send-parse)
-
     (set-buffer action-buffer)
-    (goto-char (point-min))
 
-    (while (not done)
-      (set-buffer action-buffer)
-      (cond
-       ((eobp) (setq done t))
+    ;; process actions until prompt received
+    (while (and (process-live-p process)
+		(not done))
 
-       ((looking-at "^;;")
-	(forward-line 1)
-	(setq action nil))
+      ;; process output is inserted before point, so move back over it to search it
+      (goto-char sexp-start)
 
-       (t
-	(setq action-end (scan-sexps (point) 1))
-	(setq action (buffer-substring-no-properties (point) action-end))
-	(goto-char action-end)
-	(forward-line 1))
-      )
-      (when action
-	(set-buffer source-buffer)
-	(eval (car (read-from-string action)) t))
-      )
+      ;; process all actions currently in buffer
+      (while (and (process-live-p process)
+		  (not need-more)
+		  (not done))
+	(cond
+	 ((eobp)
+	  (setq need-more t))
+
+	 ((looking-at wisi-ada-parse-prompt)
+	  (setq done t))
+
+	 ((looking-at "^;;")
+	  ;; debug output
+	  (forward-line 1))
+
+	 ((condition-case nil
+	      (setq action-end (scan-sexps (point) 1))
+	    (error
+	     ;; incomplete action
+	     (setq need-more t)
+	     nil))
+	  (when (> wisi-ada-parse-debug 0)
+	    (setq action-count (1+ action-count))
+	    (message "action-count: %d point: %d point-max: %d" action-count (point) (point-max)))
+
+	  (setq action (buffer-substring-no-properties (point) action-end))
+	  (goto-char action-end)
+	  (forward-line 1)
+	  (setq sexp-start (point))
+
+	  (set-buffer source-buffer)
+	  (eval (car (read-from-string action)) t)
+	  (set-buffer action-buffer)
+	  ))
+	)
+
+      (unless done
+	;; end of buffer, or process died
+	(unless (process-live-p process)
+	  (wisi-ada-parse-show-buffer)
+	  (error "wisi-ada-parse process died"))
+
+	(setq wait-count (1+ wait-count))
+	(when (> wisi-ada-parse-debug 0)
+	  (message "wisi-ada-parse-session-wait: %d" wait-count))
+
+	(accept-process-output process) ;; no time-out; that's a race condition
+	(setq need-more nil))
+      );; while not done
+
+    ;; got command prompt
+    (unless (process-live-p process)
+      (wisi-ada-parse-show-buffer)
+      (error "wisi-ada-parse process died"))
+
     (set-buffer source-buffer)))
 
 (provide 'wisi-ada-parse)

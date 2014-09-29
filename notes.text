@@ -37,32 +37,43 @@ install packages in -Q:
  (list-packages))
 
  next release
+propagate from org.opentoken to org.opentoken.stephe
+propagate from o.e.a to o.e.a.stephe-1
+
 5.1.b:
     build/wisi/Makefile
     build/Makefile
     doc changes in NEWS-ada-mode.text NEWS-wisi.text
 
-    fix 'not null' without 'access'
-        ../org.emacs.ada-mode/notes.text
+    report cursor bug to Adacore
+        c:/Projects/org.opentoken.stephe/wisi/wisi-gen_generate_utils.adb
+        WORKAROUNDS
 
     submit docstring bug report/fix on sit-for, accept-process-inputs
         both call pselect, which process events from subprocesses and the keyboard (ie C-g)
         see Eli email
 
+    rms says: "we can specify automatic deletion of a certain text property from text copied into the buffer."
+        use that instead of explicit delete in after-change
+
     c:/Projects/org.opentoken.stephe/build/debug/Makefile
 
-    compiling ada_grammar.adb is slow:
+    compiling ada_grammar.adb is slow, run_ada_parser is slow:
         build/wisi/ada_mode_wisi_parse.gpr
-        time gprbuild -p ada_mode_wisi_parse_agg.gpr run_ada_parser.adb
-        -g -01 -fno-var-tracking-assignments 1m38.109s
-        -g -00 -fno-var-tracking-assignments 0m29.110s
+        compile time: gprbuild -p ada_mode_wisi_parse_agg.gpr run_ada_parser.adb
+        parse time: run_ada_parser gnatcoll-xref.adb
+
+        options                                 compile time    parse time
+        -g -02 -fno-var-tracking-assignments    ?               1.014
+        -g -01 -fno-var-tracking-assignments    1m38.109s       ?
+        -g -00 -fno-var-tracking-assignments    0m29.110s       1.232
 
     philippe.waroquiers@eurocontrol.int has a file that takes 10 seconds to parse with Emacs Ada mode 5.1.4
         needs to be < 1 second
         apparantly around 70,000 lines, 250,000 bytes
 
     using /apps/GNAT-gpl_2014/gnatcoll-1.7w-src/src/sqlite/gnatcoll-xref.adb
-        7082 lines, 25,080 bytes
+        7082 lines, 25,080 bytes, 13570 caches
         (progn
             (ada-wisi-setup)
             (wisi-invalidate-cache)
@@ -73,10 +84,6 @@ install packages in -Q:
 
         5.1.5 + no text in token: 1.311667
 
-    time ./run_ada_parser /apps/GNAT-gpl_2014/gnatcoll-1.7w-src/src/sqlite/gnatcoll-xref.adb
-        real	0m0.390s
-        fast enough?
-
     run under -Q:
     (progn
       (add-to-list 'exec-path "/apps/GNAT-GPL_2014/bin")
@@ -85,6 +92,29 @@ install packages in -Q:
       (setq wisi-ada-parse-exec "c:/Projects/org.emacs.ada-mode.stephe-1/build/wisi/ada_mode_wisi_parse.exe")
       (load "autoloads.el")
       (find-file "/Projects/org.emacs.ada-mode.stephe-1/ada_mode_wisi_parse.adb"))
+
+    pass integer args for elisp wisi actions
+        see extract-text-props.el
+        /Projects/org.opentoken.stephe/build/debug/Makefile
+        /Projects/org.opentoken.stephe/build/release/Makefile
+
+    implement wisi actions in Ada?
+        compute a list of text properties in ada_mode_wisi_parse, and return
+        that to the Emacs process to be applied.
+
+        interpreting list of text properties may still be slow
+            in which case, need FFI, don't need to compute text properties in Ada
+            https://github.com/aaptel/emacs-dynamic-module
+
+        extract text properties from .adb, build elisp sexps, execute
+            extract-text-props.el
+            (load "extract-text-props")
+
+            (progn (wisi-invalidate-cache) (time-it 'apply-text-props 1))
+            gnatcoll-xref 0.310000 seconds! back in business
+
+        need FFI
+            15 Sept: sent email to Aurélien Aptel aurelien.aptel+emacs@gmail.com
 
     integrate to ada-mode
         (setq wisi-ada-parse-exec "/Projects/org.emacs.ada-mode.stephe-1/build/wisi/ada_mode_wisi_parse.exe")
@@ -101,29 +131,35 @@ install packages in -Q:
         (setq wisi-debug 1)
         (setq wisi-debug 0)
 
-        time run_ada_parser
-            gnatcoll-xref.adb
-                1.232 seconds
-
-        time wisi-parse-buffer
+        time wisi-parse-buffer, start-cpu-profiler
+            (progn (profiler-start 'cpu) (time-it 'wisi-parse-buffer 10) (profiler-report) (profiler-stop))
             (progn
                 (wisi-invalidate-cache)
                 (time-it 'wisi-parse-buffer 1))
 
             gnatcoll-xref.adb
-                39.655269 seconds!
-                actions are slow!
+                'ada: 38.703668
                 44167 lines of actions for 7000 lines of source
+                    cpu-profiler output makes no sense
+
+                'elisp: 2.455444
+                    GC 17%
+                    wisi-exec-action 17%
+                    wisi-forward-token 5%
+
 
             ada_mode_wisi_parse.adb
-                1.199642
+                'ada: 1.170002
 
-            start-cpu-profiler
-                gnatcoll-xref.adb
-                    session-wait 50%
+            use elp (emacs lisp profiler)?
+            (with-current-buffer (find-file-noselect "~/src/xdisp.c")
+              (elp-instrument-function 'c-beginning-of-defun)
+              (goto-char (point-max))
+              (condition-case nil
+                  (while (beginning-of-defun) nil)
+                (error nil))
+              (elp-results))
 
-                GC 16%
-            change ada_grammar back to -O2?
 
         use gprof to find Ada bottleneck
 
@@ -132,13 +168,9 @@ install packages in -Q:
             fixed in 24.4
                 protocol 2
 
-            workaround for 24.2, 3
+            workaround for 24.2, 24.3
                 protocol 1
                 queue all output in ada_mode_wisi_parse till parse completed
-
-    implement wisi actions in Ada?
-        compute a list of text properties in ada_mode_wisi_parse, and return
-        that to the Emacs process to be applied.
 
     split out recursive descent stuff
         avoid compile time overhead, name conflicts/confusion, build runtime overhead
@@ -194,19 +226,33 @@ install packages in -Q:
 
         generate *.l, associated packages from *.wy
 
+        see http://harmonia.cs.berkeley.edu/papers/twagner-lexing.pdf
+            ideas on incremental lexing after edit
+
     factor out generic for parser_lists stack, action_token
 
     add container iterators to wisi.*_Lists
         use in generate
-
-    define iterator function in generator_utils for tokens, rules
-        use in output_ada for various token lists
 
     add container iterators to Token_Lists, use in wisi_tokens
 
     add error recovery to parser
         insert virtual tokens to take parser from current state to next token
             compute in lalr child package; enhance parser table error action?
+
+        incremental GLR resources (from Danial Colascione <dancol@dancol.org>):
+        [1] http://harmonia.cs.berkeley.edu/papers/twagner-thesis.pdf
+            ../org.emacs.ada-mode/twagner-thesis.pdf
+
+        [2] http://fileadmin.cs.lth.se/cs/Personal/Emma_Soderberg/docs/SLE08pres.pdf
+
+        use while-no-input to run parser in background
+
+        Bridge parsing: perform one pass over the buffer using a
+        simplified grammar that looks only at nesting constructs,
+        insert virtual braces to make everything balance, and then
+        apply the usual parsing algorithm (with ad-hoc error recovery)
+        to the result.
 
     more intelligent rules in wisi when parser fails?
 
