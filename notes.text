@@ -512,6 +512,16 @@ bump version
         (ediff-directories "~/.emacs.d/elpa/wisi-1.0.5" "/Projects/elpa/packages/wisi" nil)
         (ediff-directories "~/.emacs.d/elpa/ada-mode-5.1.5" "/Projects/elpa/packages/ada-mode" nil)
         (ediff-directories "~/.emacs.d/elpa/ada-ref-man-2012.0" "/Projects/elpa/packages/ada-ref-man" nil)
+        (dvc-status "/Projects/org.opentoken")
+        (dvc-log "/Projects/org.opentoken")
+
+    NEWS-ada-mode.text
+        add release date
+        add new features
+
+    NEWS-wisi.text
+        add release date
+        add new features
 
     wisi.el
         Version:
@@ -573,11 +583,12 @@ Emacs 24.2, gnat 2014:
 
 Emacs 24.3
 
-(dvc-status ".")
-(dvc-status "/Projects/org.opentoken")
-(dvc-status "/Projects/elpa")
-(dvc-sync-run ".")
-(dvc-sync-review ".")
+sync for Debian:
+    (dvc-status ".")
+    (dvc-status "/Projects/org.opentoken")
+        git sets executable bit on any changed files!
+    (dvc-sync-run ".")
+    (dvc-sync-review ".")
 
 Debian : emacs, gnat from stable (wheezy 4 May 2013, emacs 24.2, gnat 4.8)
     emacs.sh ;; for dvc
@@ -598,32 +609,28 @@ Debian : emacs, gnat from stable (wheezy 4 May 2013, emacs 24.2, gnat 4.8)
 
 (dvc-sync-run ".")
 
-review NEWS-ada-mode.text, NEWS-wisi.text
-    add release date
-    (dvc-log)
-
-build/Makefile docs pub-ada pub-wisi
+build/Makefile docs pub-ada pub-ada-ref-man pub-wisi
 
 cd /Projects/elpa
     (dvc-pull "/Projects/elpa")
     (dvc-sync-review "/Projects/elpa")
     (dvc-state-one "/Projects/elpa")
-    commit ada-mode, wisi
+    commit ada-mode, ada-ref-man, wisi
     (dvc-push "/Projects/elpa")
     # 24 hrs for web repository to update
 
 (dvc-state-one ".")
 mtn tag h:org.emacs.ada-mode "org.emacs.ada-mode-<version>"
 
-;; _not_ dvc-sync; default is shevek::gds-central.db
-(shell-send-string "mtn_sync_ada_france.sh" "*bash*")
+(dvc-sync-run ".")
 
 build/Makefile zip
 
 ~/Web/Makefile
     edit version in ADA-MODE-GZ
-    ada-mode
+    ada-mode opentoken wisi
     sync
+    check
 
 after Gnu ELPA updated, post on emacs-ada-mode mailing list, c.l.a newsgroup
     http://stephe-leake.org/emacs/ada-mode/emacs-ada-mode.html
