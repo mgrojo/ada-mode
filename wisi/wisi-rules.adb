@@ -107,10 +107,10 @@ begin
                   State         := Action;
                   RHS.Action    := RHS.Action + Line;
                   Need_New_Line := True;
-                  Action_Count  := Action_Count + 1;
-                  Paren_Count   := 1;
+                  Paren_Count   := 0;
 
                   Update_Paren_Count (Line);
+                  Action_Count  := Action_Count + 1;
 
                when ';' =>
                   Rule.Right_Hand_Sides.Append (RHS);
@@ -181,14 +181,23 @@ begin
             exit when Need_New_Line;
          end loop;
       exception
+      when E : Syntax_Error =>
+         declare
+            use Standard.Ada.Exceptions;
+         begin
+            Standard.Ada.Text_IO.Put_Line
+              (Name (Input_File) & ":" &
+                 Trim (Standard.Ada.Text_IO.Count'Image (Standard.Ada.Text_IO.Line (Input_File)), Left) & ":0: " &
+                 Exception_Message (E));
+         end;
       when E : others =>
          declare
             use Standard.Ada.Exceptions;
          begin
             Standard.Ada.Text_IO.Put_Line
               (Name (Input_File) & ":" &
-                 Trim (Standard.Ada.Text_IO.Count'Image (Standard.Ada.Text_IO.Line (Input_File)), Left) & ":0:" &
-                 " unhandled exception " & Exception_Name (E));
+                 Trim (Standard.Ada.Text_IO.Count'Image (Standard.Ada.Text_IO.Line (Input_File)), Left) &
+                 ":0: unhandled exception " & Exception_Name (E));
          end;
          raise Syntax_Error;
       end;

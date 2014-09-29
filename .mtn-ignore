@@ -9,6 +9,7 @@
 ^build/debug/.*\.el$
 ^build/debug/.*\.exe$
 ^build/debug/.*\.out$
+^build/debug/.*\.output$
 ^build/debug/.*\.parse$
 ^build/debug/.*\.parse_table$
 ^build/debug/.*\.text$
