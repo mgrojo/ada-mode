@@ -4,9 +4,10 @@
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
-;; Keywords FIXME: languages, ada ELPA broken for multiple keywords
-;; Version: 5.1.5
-;; package-requires: ((wisi "1.0.5") (cl-lib "0.4") (emacs "24.2"))
+;; Keywords: languages
+;;  ada
+;; Version: 5.1.6
+;; package-requires: ((wisi "1.0.6") (cl-lib "0.4") (emacs "24.2"))
 ;; url: http://stephe-leake.org/emacs/ada-mode/emacs-ada-mode.html
 ;;
 ;; (Gnu ELPA requires single digits between dots in versions)
@@ -167,7 +168,7 @@
 (defun ada-mode-version ()
   "Return Ada mode version."
   (interactive)
-  (let ((version-string "5.1.5"))
+  (let ((version-string "5.1.6"))
     ;; must match:
     ;; ada-mode.texi
     ;; README
@@ -743,7 +744,8 @@ Each parameter declaration is represented by a list
     (setq type-col
 	  (+ in-col
 	     (cond
-	      (not-null-p 16);      ": [aliased] not null access "
+	      ;; 'not null' without access is part of the type
+	      ((and not-null-p access-p) 16); ": [aliased] not null access "
 	      (access-p 7);         ": [aliased] access "
 	      ((and in-p out-p) 7); ": [aliased] in out "
 	      (in-p 3);             ": [aliased] in "
@@ -777,15 +779,23 @@ Each parameter declaration is represented by a list
 	(indent-to out-col)
 	(insert "out "))
 
-      (when (nth 4 param)
-	(insert "not null "))
+      (when (and (nth 4 param) ;; not null
+		 (nth 5 param)) ;; access
+	(insert "not null access"))
 
-      (when (nth 5 param)
-	(insert "access "))
+      (when (and (not (nth 4 param)) ;; not null
+		 (nth 5 param)) ;; access
+	(insert "access"))
 
       (indent-to type-col)
+
+      (when (and (nth 4 param) ;; not null
+		 (not (nth 5 param))) ;; access
+	(insert "not null "))
+
       (when (nth 6 param)
 	(insert "constant "))
+
       (when (nth 7 param)
 	(insert "protected "))
 
@@ -2508,7 +2518,8 @@ The paragraph is indented on the first line."
 	   (not (looking-at "[ \t]*--")))
       (error "Not inside comment"))
 
-  (let* (indent from to
+  (let* ((inhibit-modification-hooks t) ;; don't run parser for font-lock; comment text is exposed
+	 indent from to
 	 (opos (point-marker))
 	 ;; we bind `fill-prefix' here rather than in ada-mode because
 	 ;; setting it in ada-mode causes indent-region to use it for
@@ -2644,14 +2655,23 @@ The paragraph is indented on the first line."
 	  "access\\|"
 	  "constant\\|"
 	  "in[ \t]+reverse\\|"; loop iterator
+	  "in[ \t]+not[ \t]+null[ \t]+access\\|"
 	  "in[ \t]+not[ \t]+null\\|"
+	  "in[ \t]+out[ \t]+not[ \t]+null[ \t]+access\\|"
 	  "in[ \t]+out[ \t]+not[ \t]+null\\|"
 	  "in[ \t]+out\\|"
 	  "in\\|"
-	  ;; "return\\|" can't distinguish between 'function ... return <type>;' and 'return ...;'
-	  ;; An indentation engine can, so a rule for this is added there
-	  "of[ \t]+reverse\\|"
-	  "of\\|"
+	  ;; "return" can't distinguish between 'function ... return <type>;' and 'return ...;'
+	  ;; "new" can't distinguish between generic instantiation
+	  ;;       package foo is new bar (...)
+	  ;;    and allocation
+	  ;;       a := new baz (...)
+	  ;; A parsing indentation engine can, so rules for these are added there
+	  "not[ \t]+null[ \t]access[ \t]all\\|"
+	  "not[ \t]+null[ \t]access[ \t]constant\\|"
+	  "not[ \t]+null[ \t]access\\|"
+	  "not[ \t]+null\\|"
+	  ;; "of" can't distinguish between array and iterable_name
 	  "out\\|"
 	  "subtype\\|"
 	  "type"
@@ -2666,15 +2686,17 @@ The paragraph is indented on the first line."
    	  (regexp-opt
    	   (append
    	    '("abort" "abs" "accept" "all"
-   	      "and" "array" "at" "begin" "case" "declare" "delay" "delta"
+	      ;; "and" requires parser for types in interface_lists
+   	      "array" "at" "begin" "case" "declare" "delay" "delta"
    	      "digits" "do" "else" "elsif" "entry" "exception" "exit" "for"
    	      "generic" "if" "in" "limited" "loop" "mod" "not"
    	      "null" "or" "others" "private" "raise"
-   	      "range" "record" "rem" "renames" "reverse"
+   	      "range" "record" "rem" "reverse"
    	      "select" "separate" "task" "terminate"
    	      "then" "when" "while" "xor")
    	    (when (member ada-language-version '(ada95 ada2005 ada2012))
-   	      '("abstract" "aliased" "requeue" "tagged" "until"))
+	      ;; "aliased" can't distinguish between object declaration and paramlist
+   	      '("abstract" "requeue" "tagged" "until"))
    	    (when (member ada-language-version '(ada2005 ada2012))
    	      '("interface" "overriding" "synchronized"))
    	    (when (member ada-language-version '(ada2012))
@@ -2683,6 +2705,12 @@ The paragraph is indented on the first line."
    	   t)
    	  "\\>")
    	 '(0 font-lock-keyword-face))
+
+   ;; after the above to handle 'is begin' in blocks
+   (list (concat
+	  "\\<\\(is\\)\\>[ \t]*"
+	  ada-name-regexp "?")
+	 '(1 font-lock-keyword-face) '(2 font-lock-type-face nil t))
 
    ;; object and parameter declarations; word after ":" should be in
    ;; type-face if not already fontified or an exception.
@@ -2697,32 +2725,9 @@ The paragraph is indented on the first line."
 
    ;; keywords followed by a name that should be in function-name-face if not already fontified
    (list (concat
-	  "\\<\\("
-	  "end"
-	  "\\)\\>[ \t]*"
+	  "\\<\\(end\\)\\>[ \t]*"
 	  ada-name-regexp "?")
      '(1 font-lock-keyword-face) '(2 font-lock-function-name-face nil t))
-
-   ;; Keywords followed by a name that could be a type or a function (generic instantiation).
-   (list (concat
-	  "\\<\\("
-	  "new"
-	  "\\)\\>[ \t]*"
-	  ada-name-regexp "?[ \t]*\\((\\)?")
-	 '(1 font-lock-keyword-face)
-	 '(2 (if (match-beginning 3)
-		 font-lock-function-name-face
-	       font-lock-type-face)
-	     nil t))
-
-   ;; keywords followed by a name that should be in type-face if not already fontified (for subtypes)
-   ;; after "new" to handle "is new"
-   (list (concat
-	  "\\<\\("
-	  "is"
-	  "\\)\\>[ \t]*"
-	  ada-name-regexp "?")
-     '(1 font-lock-keyword-face) '(2 font-lock-type-face nil t))
 
    ;; Keywords followed by a comma separated list of names which
    ;; should be in constant-face, unless already fontified. Ada mode 4.01 used this.
@@ -2790,6 +2795,7 @@ The paragraph is indented on the first line."
 
   (set (make-local-variable 'require-final-newline) t)
 
+  ;; 'font-lock-defaults' is a confusing name; it's buffer local
   (setq font-lock-defaults
 	'(ada-font-lock-keywords
 	  nil t

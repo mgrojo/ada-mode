@@ -1,4 +1,5 @@
 
+--EMACSCMD:(progn (forward-line 2)(test-face "Ada.Text_IO" '(nil default)))
 with
   Ada.Text_IO; -- font-lock doesn't work across newline
 
@@ -35,7 +36,7 @@ with Ada.Strings.Unbounded; -- end 1
 --EMACSCMD:(test-face "with" font-lock-keyword-face)
 --EMACSCMD:(test-face "Ada.Strings" font-lock-constant-face)
 limited private with Ada.Strings.Bounded,
-  --EMACSCMD:(test-face "Ada.Containers" 'default)
+  --EMACSCMD:(test-face "Ada.Containers" '(nil default))
   Ada.Containers;
 --EMACSCMD:(test-face "limited" font-lock-keyword-face)
 --EMACSCMD:(test-face "with" font-lock-keyword-face)
@@ -67,7 +68,7 @@ package Ada_Mode.Nominal is -- target 0
 
    --EMACSCMD:(test-face "pragma" font-lock-keyword-face)
    --EMACSCMD:(test-face "Elaborate_Body" font-lock-function-name-face)
-   --EMACSCMD:(test-face "Ada_Mode" 'default)
+   --EMACSCMD:(test-face "Ada_Mode" '(nil default))
    pragma Elaborate_Body (Ada_Mode.Nominal);
 
    -- Comment after one line of code; broken versions of the
@@ -88,13 +89,15 @@ package Ada_Mode.Nominal is -- target 0
    type Object_Access_Type_0b is access all Integer;
    --EMACSCMD:(test-face "not" font-lock-keyword-face)
    --EMACSCMD:(test-face "null" font-lock-keyword-face)
+   --EMACSCMD:(test-face "access all" font-lock-keyword-face)
+   --EMACSCMD:(test-face "all" font-lock-keyword-face)
    --EMACSCMD:(test-face "Integer" font-lock-type-face)
    type Object_Access_Type_0c is not null access all Integer;
+   --EMACSCMD:(test-face "constant" font-lock-keyword-face)
    --EMACSCMD:(test-face "Integer" font-lock-type-face)
    type Object_Access_Type_0d is not null access constant Integer;
    --EMACSCMD:(test-face "Integer" font-lock-type-face)
    type Object_Access_Type_0e is access constant Integer;
-   --EMACSCMD:(test-face "Integer" font-lock-type-face)
    type Object_Access_Type_0f is not null access constant Integer;
    type Object_Access_Type_1 is not null access all Integer
      ; -- we don't really care
@@ -182,9 +185,9 @@ package Ada_Mode.Nominal is -- target 0
    --EMACSCMD:(test-face "access protected" font-lock-keyword-face)
    --EMACSCMD:(test-face "protected" font-lock-keyword-face)
    --EMACSCMD:(test-face "function (" font-lock-keyword-face)
-   --EMACSCMD:(test-face "(" 'default)
-   --EMACSCMD:(test-face "A_Param" 'default)
-   --EMACSCMD:(test-face ":" 'default)
+   --EMACSCMD:(test-face "(" '(nil default))
+   --EMACSCMD:(test-face "A_Param" '(nil default))
+   --EMACSCMD:(test-face ":" '(nil default))
    --EMACSCMD:(test-face "in" font-lock-keyword-face)
    --EMACSCMD:(test-face "Float" font-lock-type-face)
    --EMACSCMD:(test-face "return" font-lock-keyword-face)
@@ -243,7 +246,7 @@ package Ada_Mode.Nominal is -- target 0
            Standard.Float;
 
    --EMACSCMD:(test-face "array (" font-lock-keyword-face)
-   --EMACSCMD:(test-face "Integer" 'default)
+   --EMACSCMD:(test-face "Integer" '(nil default))
    --EMACSCMD:(test-face "range" font-lock-keyword-face)
    --EMACSCMD:(test-face "of" font-lock-keyword-face)
    --EMACSCMD:(test-face "Object_Access_Type_1" font-lock-type-face)
@@ -310,7 +313,7 @@ package Ada_Mode.Nominal is -- target 0
 
    type Record_Type_1 is record
       --EMACSCMD:(progn (forward-line 1)(forward-word 2)(insert "   ")(ada-align))
-      Component_1   : Integer := 1;   -- initialization confused things in smie
+      Component_1   : Integer := 1;
       Component_2   : Integer := 2;
       Component_356 : Float   := 3.0; -- longer component name, shorter type name for align test
    end record;
@@ -614,7 +617,7 @@ package Ada_Mode.Nominal is -- target 0
    function Function_2g
      (Param : in Private_Type_1)
      return Float
-     is abstract;
+       is abstract;
    --  comment after 'is abstract', aligned with 'function'
 
    Default_Parent : constant Parent_Type_1 :=

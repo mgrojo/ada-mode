@@ -328,8 +328,6 @@ nil, 'shift, or 'accept."
 					  (wisi-parser-state-pending parser-state))
 		    (setf (wisi-parser-state-pending parser-state) nil)
 		    )
-		  (setf (wisi-parser-state-pending (aref parser-states parser-i)) nil))
-
 	      )))
 	)))
   active-parser-count)

@@ -16,25 +16,25 @@
 # but currently the code is not that clean; gpr-mode and gnat-inspect
 # require ada-mode. And it's not worth making gnat-core a package.
 
-VERSION := 5.1.5
+VERSION := 5.1.6
 
-all : docs pub-ada pub-wisi build-elpa install-elpa
+all : docs pub-ada pub-ada-ref-man pub-wisi build-elpa install-elpa
 
 docs : info html
 
 BRANCH := $(notdir $(shell cd ..; pwd))
 zip :
-	tar zcf $(BRANCH)-$(VERSION).tar.gz --exclude _MTN --exclude "autoloads.el" --exclude "gnatinspect.db*" --exclude "*~" --exclude "*.ali" --exclude "*.diff" --exclude "*.elc" --exclude "*.output" --exclude "*.stamp" --exclude "*.tar.gz"  --exclude "*.tmp" --exclude "*.wisi-test" -C ../../ $(BRANCH)
+	tar zcf $(BRANCH)-$(VERSION).tar.gz --exclude _MTN --exclude "autoloads.el" --exclude "gpr_query.db*" --exclude "*~" --exclude "*.ali" --exclude "*.diff" --exclude "*.elc" --exclude "*.exe" --exclude "obj" --exclude "*.output" --exclude "*.stamp" --exclude "*.tar.gz"  --exclude "*.tmp" --exclude "*.wisi-test" -C ../../ $(BRANCH)
 
 
 MANUALS := ada-mode gpr-mode
 
 INFO_FILES := $(addsuffix .info, $(MANUALS))
-info : ../dir
+info : ../dir-ada-mode
 html : $(addsuffix .html, $(MANUALS))
 
-../dir : $(INFO_FILES)
-	for file in $(INFO_FILES); do install-info ../$$file ../dir; done
+../dir-ada-mode : $(INFO_FILES)
+	for file in $(INFO_FILES); do install-info ../$$file ../dir-ada-mode; done
 
 VPATH := ..
 
@@ -45,7 +45,7 @@ VPATH := ..
 	makeinfo --html --no-split $< -o ../$@
 
 clean ::
-	rm -f ../*.info ../*.html ../dir
+	rm -f ../*.info ../*.html ../dir-ada-mode
 
 source-clean :
 	-find .. -name "*~" -print -delete
@@ -58,18 +58,30 @@ pub-ada : force
 	rm -rf ../../elpa/archive
 	mkdir -p ../../elpa/packages/ada-mode
 	rm -f ../../elpa/packages/ada-mode/ada-mode-pkg.el
-	cp ../README ../ada*.el ../ada-*.texi ../ada-*.info ../dir ../ada_license.text ../../elpa/packages/ada-mode
+	cp ../ada*.el ../ada-*.texi ../ada-*.info ../ada_license.text ../../elpa/packages/ada-mode
+	cp ../dir-ada-mode ../../elpa/packages/ada-mode/dir
 	cp ../NEWS-ada-mode.text ../../elpa/packages/ada-mode/NEWS
+	cp ../README-ada-mode ../../elpa/packages/ada-mode/README
 	cp ../gnat*.el ../../elpa/packages/ada-mode
 	cp ../gpr*.el ../gpr-*.texi ../gpr-*.info ../../elpa/packages/ada-mode
+
+# copy files to ELPA ada-ref-man package
+pub-ada-ref-man: ARM_INFO ?= c:/Projects/arm_info/org.adaic.arm_form
+pub-ada-ref-man : force
+	cp ../ada-ref-man.el ../../elpa/packages/ada-ref-man/
+	cp ../README-ada-ref-man ../../elpa/packages/ada-ref-man/README
+	cp ../dir-ada-ref-man ../../elpa/packages/ada-ref-man/dir
+	cp $(ARM_INFO)/build/arm2012.info ../../elpa/packages/ada-ref-man
+	cp $(ARM_INFO)/build/aarm2012.info ../../elpa/packages/ada-ref-man
 
 # copy files to ELPA wisi package
 pub-wisi : force
 	rm -f ../../elpa/packages/wisi/wisi-pkg.el
+	cp ../README-wisi ../../elpa/packages/wisi/README
 	cp ../NEWS-wisi.text ../../elpa/packages/wisi/NEWS
 	cp ../wisi*.el ../../elpa/packages/wisi
 
-# all-in-place does not build archive-contents, just *.elc
+# 'make -C elpa all-in-place' does not build archive-contents, just *.elc
 #
 # Other packages are often broken, so just build ours, by only copying
 # ours into archive-tmp
@@ -77,6 +89,7 @@ build-elpa : force
 	rm -rf ../../elpa/archive-tmp
 	mkdir -p ../../elpa/archive-tmp/packages
 	cp -a ../../elpa/packages/ada-mode ../../elpa/archive-tmp/packages
+	cp -a ../../elpa/packages/ada-ref-man ../../elpa/archive-tmp/packages
 	cp -a ../../elpa/packages/wisi     ../../elpa/archive-tmp/packages
 	make -C ../../elpa/ process-archive
 
@@ -92,6 +105,7 @@ install-elpa :
 
 install-clean :
 	rm -r ~/.emacs.d/elpa/ada-mode*
+	rm -r ~/.emacs.d/elpa/ada-ref-man*
 	rm -r ~/.emacs.d/elpa/wisi*
 	rm -r ~/.emacs.d/elpa/cl*
 

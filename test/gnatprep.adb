@@ -4,12 +4,11 @@
 -- also test other usage of the '#' sign, especially in based numbers
 -- or in strings.
 
--- gnatprep indentation is enabled by `ada-gnat-inspect-setup' or
--- `ada-gnat-xref-setup', which are added to ada-mode-hook when a
--- project file is selected. When this file is run as a test, no
--- project file has been selected before the file is opened, so
--- gnatprep indentation is not enabled. So we run ada-mode again after
--- selecting the project file.
+-- gnatprep indentation is enabled by `ada-*-setup', which is added to
+-- ada-mode-hook when a project file is selected. When this file is
+-- run as a test, no project file has been selected before the file is
+-- opened, so gnatprep indentation is not enabled. So we run ada-mode
+-- again after selecting the project file.
 
 --EMACSCMD:(ada-parse-prj-file "ada_mode.gpr")
 --EMACSCMD:(ada-select-prj-file "ada_mode.gpr")

@@ -4,6 +4,7 @@
 -- Since we are editing with ada-align, the syntax will be illegal at times; don't fail for that.
 --EMACSCMD:(setq wisi-debug 0)
 
+--EMACSCMD:(progn (wisi-parse-buffer)(font-lock-fontify-buffer))
 with Ada.Strings.Maps;
 package body Ada_Mode.Parens is
 
@@ -317,6 +318,8 @@ package body Ada_Mode.Parens is
       return A;
    end;
 
+   --EMACSCMD:(progn (forward-line 7)(test-face "Integer" 'font-lock-type-face))
+   --EMACSCMD:(progn (forward-line 6)(forward-word 4) (test-face "Integer" 'font-lock-type-face))
    --EMACSCMD:(progn (forward-line 4)(forward-word 2)(insert "    ")(ada-align))
    -- multiline access [constant | protected]
    function Param_Format_6
@@ -382,7 +385,7 @@ package body Ada_Mode.Parens is
       Ada.Text_IO.Put_Line ("Hello" & ' ' & -- test ada-indent-next keyword with string, character literal
                               "World");
 
-      Ada.Text_IO.Put_Line (Out_File, -- smie-backward-sexp returns "(" here
+      Ada.Text_IO.Put_Line (Out_File,
                             Hello &
                               There);
       Ada.Text_IO.Put_Line ( -- comment after paren

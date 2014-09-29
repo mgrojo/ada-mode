@@ -48,7 +48,6 @@ package body Ada_Mode.Nominal is -- target 0
        return
          Standard.Float
    is begin
-      -- An early implementation of ada-smie-which-function was confused by this declaration.
       --EMACSCMD:(progn (beginning-of-line)(forward-line -7)(ada-which-function))
       --EMACSRESULT:"Function_Access_11"
       --EMACSCMD:(progn (beginning-of-line)(forward-line -8)(ada-which-function))
@@ -62,7 +61,7 @@ package body Ada_Mode.Nominal is -- target 0
       --EMACSCMD:(progn (beginning-of-line)(forward-line -12)(ada-which-function))
       --EMACSRESULT:"Function_Access_11"
 
-      --EMACSCMD:(test-face "Function_Access_1" 'default)
+      --EMACSCMD:(test-face "Function_Access_1" '(nil default))
       return Function_Access_1'Access;
    end Function_Access_11;
 
@@ -99,11 +98,11 @@ package body Ada_Mode.Nominal is -- target 0
 
                --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at " -- target 3"))
                --EMACSRESULT:t
-               begin
-                  --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at " -- target 3"))
-                  --EMACSRESULT:t
+               begin -- 2
+                     --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at " -- target 3"))
+                     --EMACSRESULT:t
 
-                  --EMACSCMD:(test-face "Integer" 'default)
+                  --EMACSCMD:(test-face "Integer" '(nil default))
                   -- "Integer" is in fact a type, but it would require
                   -- name resolution to figure that out.
                   return Integer (Function_1a);
@@ -112,25 +111,35 @@ package body Ada_Mode.Nominal is -- target 0
                   --EMACSCMD:(progn (forward-line 2)(forward-comment 1)(ada-prev-statement-keyword)(looking-at "begin"))
                   --EMACSRESULT:t
                exception
-                  --EMACSCMD:(test-face "Constraint_Error" 'default)
+                  --EMASCMD:(progn (forward-line -1)(back-to-indentation)(ada-prev-statement-keyword)(looking-at "begin -- 2"))
+                  --EMASCMD:(progn (forward-line -2)(back-to-indentation)(ada-next-statement-keyword)(looking-at "when E :"))
+
+                  --EMACSCMD:(test-face "Constraint_Error" '(nil default))
                   when E : Constraint_Error =>
+                     --EMASCMD:(progn (forward-line -1)(back-to-indentation)(ada-next-statement-keyword)(looking-at "when -- 2"))
                      --EMACSCMD:(test-face "raise" font-lock-keyword-face)
-                     --EMACSCMD:(test-face "Constraint_Error" 'default)
+                     --EMACSCMD:(test-face "Constraint_Error" '(nil default))
                      --EMACSCMD:(test-face "with" font-lock-keyword-face)
                      raise Constraint_Error with
                        "help!";
-                  when
+
+                     --EMASCMD:(progn (forward-line 1)(back-to-indentation)(ada-prev-statement-keyword)(looking-at "when E :"))
+                  when -- 2
                     Bad_Thing -- ada-mode 4.01 indentation
                     =>        -- ""
                      raise Constraint_Error
                        with Integer'Image (1) &
                        "help!";
-                  when
-                    -- pathological case - should put 'raise' on next line
-                    -- just ensure it doesn't raise an error
+
+                     --EMASCMD:(progn (forward-line 1)(back-to-indentation)(ada-prev-statement-keyword)(looking-at "when -- 2"))
+                  when -- 3
+                       -- pathological case - should put 'raise' on next line
+                       -- just ensure it doesn't raise an error
                     E : others => raise
                     Constraint_Error with "help!";
                end;
+               --EMASCMD:(progn (end-of-line 0)(backward-word 2)(ada-prev-statement-keyword)(looking-at "when -- 3"))
+
                --EMACSCMD:(progn (forward-line 4)(forward-comment 1)(ada-prev-statement-keyword)(looking-at "then"))
                --EMACSRESULT: t
                --EMACSCMD:(progn (forward-line 2)(forward-comment 1)(ada-next-statement-keyword)(looking-at "then"))
@@ -142,7 +151,7 @@ package body Ada_Mode.Nominal is -- target 0
                --EMACSCMD:(progn (end-of-line -2)(backward-word 1)(ada-next-statement-keyword)(looking-at "else"))
                --EMACSRESULT: t
 
-               -- nested if/then/else; test next-keyword skips this
+               -- nested if/then/else; test next-statement-keyword skips this
                if True then
                   null;
                end if;
@@ -179,6 +188,9 @@ package body Ada_Mode.Nominal is -- target 0
          return D : Float
          do
             -- extended return with do
+            --EMACSCMD:(progn(forward-line -3)(back-to-indentation)(ada-next-statement-keyword)(looking-at "do"))
+            --EMACSCMD:(progn(forward-line -3)(back-to-indentation)(ada-next-statement-keyword)(looking-at "end return"))
+
             --EMACSCMD:(progn (forward-line 2) (back-to-indentation) (ada-next-statement-keyword)(looking-at "when A | Nominal.B"))
             --EMACSRESULT:t
             case Param_1 is
@@ -202,6 +214,7 @@ package body Ada_Mode.Nominal is -- target 0
                   D := D - Float (F1);
             end case;
          end return;
+         --EMACSCMD:(progn(forward-line -1)(back-to-indentation)(ada-prev-statement-keyword)(looking-at "do"))
       end; -- no F2 on purpose
 
       --EMACSCMD:(progn (forward-line 1)(forward-comment 1)(ada-next-statement-keyword)(looking-at "when Local_1"))
@@ -226,8 +239,11 @@ package body Ada_Mode.Nominal is -- target 0
                   Local_1 := Local_1 + Local_1;
 
                   case Local_1 is
+                  -- 'exit when' was confused with 'case ... when'
+                  --EMACSCMD:(progn (forward-line 2)(ada-next-statement-keyword)(ada-next-statement-keyword)(looking-at "when 2 =>"))
+                  --EMACSRESULT:t
                      when 1 =>
-                        exit;
+                        exit when Tmp > 1;
                      when 2 => -- at one point, this was mis-refined as "when-exit"
                         Local_4 := B;
                      when others =>
@@ -402,9 +418,7 @@ package body Ada_Mode.Nominal is -- target 0
          delay 1.0;
       then
          -- The comment after 'null' below has no space between ';'
-         -- and '--'; that confused smie-default-forward-token until
-         -- we fixed ada-syntax-propertize to set comment-start
-         -- syntax.
+         -- and '--'
 
         abort -- ada-mode 4.01 broken indent
          null;-- ada-mode 4.01 gets this wrong; it uses another broken indent.
@@ -617,6 +631,10 @@ package body Ada_Mode.Nominal is -- target 0
      tagged null record;
    -- rest of newline placement covered in spec
 
+   --EMACSCMD:(test-face "Record_Type_3" 'font-lock-type-face)
+   --EMACSCMD:(progn (forward-line 1)(forward-word 3)(test-face "Record_Type_3" 'font-lock-type-face))
+   --EMACSCMD:(test-face "1" 'font-lock-constant-face)
+   Object_3 : access Record_Type_3 := new Record_Type_3 (new Integer'(1));
 begin
    null;
 end Ada_Mode.Nominal;

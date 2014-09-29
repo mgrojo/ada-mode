@@ -34,7 +34,13 @@ generic
    type Constrained_Formal_Array_Type is array (Character) of Ada.Text_IO.Count;
    type Formal_Private_Type is abstract tagged limited private;
    type Interface_Type is task interface;
+
+   --EMACSCMD:(font-lock-fontify-buffer);; don't wait for jit-lock
+
+   --EMACSCMD:(test-face "Formal_Private_Type" 'font-lock-type-face)
    type Limited_Formal_Derived_Type is abstract limited new Formal_Private_Type with private;
+
+   --EMACSCMD:(test-face "Interface_Type" 'font-lock-type-face)
    type Synchronized_Formal_Derived_Type is abstract synchronized new Formal_Private_Type and Interface_Type
      with private;
    type Incomplete_Type (<>) is tagged;
@@ -92,26 +98,34 @@ generic
      return Float is <>;
 
    -- Packages
+
+   --EMACSCMD:(test-face "Ada.Text_IO.Integer_IO" 'font-lock-function-name-face)
    with package A_Package_1 is new Ada.Text_IO.Integer_IO (Num => Formal_Signed_Integer_Type);
    with package A_Package_2 is new Ada.Text_IO.Integer_IO (Num =>
                                                              Formal_Signed_Integer_Type);
    with package A_Package_3 is new Ada.Text_IO.Integer_IO (
                                                            Num => Formal_Signed_Integer_Type);
+
+   --EMACSCMD:(test-face "Ada.Text_IO.Integer_IO" 'font-lock-function-name-face)
    with package A_Package_4 is new Ada.Text_IO.Integer_IO
      (Num => Formal_Signed_Integer_Type);
    with package A_Package_5 is new Ada.Text_IO.
      Integer_IO (Num => Formal_Signed_Integer_Type);
+
+   -- multi-line font-lock doesn't work
    with package A_Package_6 is new
      Ada.Text_IO.Integer_IO (Num => Formal_Signed_Integer_Type);
    with package A_Package_7 is
      new Ada.Text_IO.Integer_IO (Num => Formal_Signed_Integer_Type);
    with package A_Package_8
      is new Ada.Text_IO.Integer_IO (Num => Formal_Signed_Integer_Type);
+
+   --EMACSCMD:(progn (forward-line 2)(test-face "Ada.Text_IO.Integer_IO" 'font-lock-function-name-face))
    with package
      A_Package_9 is new Ada.Text_IO.Integer_IO (Num => Formal_Signed_Integer_Type);
    with
      package A_Package_10 is new Ada.Text_IO.Integer_IO (Num => Formal_Signed_Integer_Type);
-   pragma Unreferenced (A_Package_10); -- not a statement, but allowed here
+   pragma Unreferenced (A_Package_10);
 
 package Ada_Mode.Generic_Package is
    -- See ada_mode-generic_parent.ads for generic subprograms

@@ -270,7 +270,7 @@ accept_statement
       (wisi-containing-action 2 3)
       (wisi-containing-action 2 4)
       (wisi-containing-action 5 6)
-      (wisi-motion-action 1 5 '(6 EXCEPTION)))
+      (wisi-motion-action 1 5 '(6 block-middle EXCEPTION block-middle WHEN)))
   | ACCEPT IDENTIFIER actual_parameter_part_opt parameter_profile_opt SEMICOLON
     (progn
       (wisi-statement-action 1 'statement-start 2 'name-paren 5 'statement-end)
@@ -280,16 +280,20 @@ accept_statement
 
 access_definition ;; same as access_type_definition for our purposes
   : null_exclusion_opt ACCESS general_access_modifier_opt name
-    (wisi-statement-action 4 'type);; for font-lock - see ada-wisi-setup
+    (progn
+      (wisi-statement-action 2 'keyword)
+      (wisi-face-action 2 'font-lock-keyword-face 4 'font-lock-type-face))
   | null_exclusion_opt ACCESS protected_opt PROCEDURE parameter_profile_opt
     (progn
-      (wisi-statement-action 4 'name-paren)
-      (wisi-containing-action 4 5))
+      (wisi-statement-action 2 'keyword 4 'name-paren)
+      (wisi-containing-action 4 5)
+      (wisi-face-action 2 'font-lock-keyword-face))
   | null_exclusion_opt ACCESS protected_opt FUNCTION parameter_and_result_profile
     (progn
-      (wisi-statement-action 4 'name-paren)
+      (wisi-statement-action 2 'keyword 4 'name-paren)
       (wisi-containing-action 4 5)
-      (wisi-motion-action 4 '(5 RETURN)))
+      (wisi-motion-action 4 '(5 return-1 RETURN return-2 RETURN))
+      (wisi-face-action 2 'font-lock-keyword-face))
   ;
 
 actual_parameter_part
@@ -338,15 +342,17 @@ array_type_definition
   : ARRAY LEFT_PAREN index_subtype_definition_list RIGHT_PAREN OF component_definition
  ;; unconstrained_array_definition
     (progn
-      (wisi-statement-action 2 'open-paren 4 'close-paren 5 'statement-other)
+      (wisi-statement-action 1 'keyword 2 'open-paren 4 'close-paren 5 'statement-other)
       (wisi-containing-action 2 3)
-      (wisi-containing-action 5 6))
+      (wisi-containing-action 5 6)
+      (wisi-face-action 1 'font-lock-keyword-face))
   | ARRAY LEFT_PAREN discrete_subtype_definition_list RIGHT_PAREN OF component_definition
  ;; constrained_array_definition
     (progn
-      (wisi-statement-action 2 'open-paren 4 'close-paren 5 'statement-other)
+      (wisi-statement-action 1 'keyword 2 'open-paren 4 'close-paren 5 'statement-other)
       (wisi-containing-action 2 3)
-      (wisi-containing-action 5 6))
+      (wisi-containing-action 5 6)
+      (wisi-face-action 1 'font-lock-keyword-face))
   ;
 
 aspect_clause
@@ -440,12 +446,12 @@ block_statement
       (wisi-statement-action 1 'block-start 3 'block-middle 5 'block-end 7 'statement-end)
       (wisi-containing-action 1 2)
       (wisi-containing-action 3 4)
-      (wisi-motion-action 1 3 '(4 EXCEPTION) 5))
+      (wisi-motion-action 1 3 '(4 block-middle EXCEPTION block-middle WHEN) 5))
   | BEGIN handled_sequence_of_statements END identifier_opt SEMICOLON
     (progn
       (wisi-statement-action 1 'block-start 3 'block-end 5 'statement-end)
       (wisi-containing-action 1 2)
-      (wisi-motion-action 1 '(2 EXCEPTION) 3))
+      (wisi-motion-action 1 '(2 block-middle EXCEPTION block-middle WHEN) 3))
   ;
 
 ;; Annex P has overloaded 'body'; keyword and grammar element
@@ -482,7 +488,7 @@ case_statement
       (wisi-statement-action 1 'block-start 3 'block-middle 5 'block-end 7 'statement-end)
       (wisi-containing-action 1 2)
       (wisi-containing-action 3 4)
-      (wisi-motion-action 1 '(4 WHEN) 5))
+      (wisi-motion-action 1 '(4 block-middle WHEN) 5))
   ;
 
 case_statement_alternative
@@ -631,6 +637,9 @@ conditional_entry_call
 constant_opt
   : ;; empty
   | CONSTANT
+    (progn
+      (wisi-statement-action 1 'keyword)
+      (wisi-face-action 1 'font-lock-keyword-face))
   ;
 
 constraint
@@ -699,8 +708,11 @@ delay_statement
 
 derived_type_definition
   : abstract_limited_opt NEW name and_interface_list_opt WITH record_definition
-    (wisi-statement-action 5 'statement-other)
+    (progn
+      (wisi-statement-action 5 'statement-other)
+      (wisi-face-action 3 'font-lock-type-face))
   | abstract_limited_opt NEW name constraint_opt
+    (wisi-face-action 3 'font-lock-type-face)
   ;
 
 direct_name
@@ -944,7 +956,8 @@ extended_return_statement
   : RETURN extended_return_object_declaration_opt DO handled_sequence_of_statements END RETURN SEMICOLON
     (progn
       (wisi-statement-action 1 'block-start 3 'block-middle 5 'block-end 7 'statement-end)
-      (wisi-containing-action 3 4))
+      (wisi-containing-action 3 4)
+      (wisi-motion-action 1 3 5))
   | RETURN extended_return_object_declaration SEMICOLON
     (wisi-statement-action 1 'statement-start 3 'statement-end)
   ;
@@ -1051,10 +1064,10 @@ formal_type_definition
 ;; formal_derived_type_definition ::=
 ;;   [abstract] [limited | synchronized] new subtype_mark [[and interface_list]with private]
 formal_derived_type_definition
-  : abstract_limited_synchronized_opt NEW name AND interface_list WITH PRIVATE
-  | abstract_limited_synchronized_opt NEW name WITH PRIVATE
-  | abstract_limited_synchronized_opt NEW name AND interface_list
-  | abstract_limited_synchronized_opt NEW name
+  : abstract_limited_synchronized_opt NEW name and_interface_list_opt WITH PRIVATE
+    (wisi-face-action 3 'font-lock-type-face)
+  | abstract_limited_synchronized_opt NEW name and_interface_list_opt
+    (wisi-face-action 3 'font-lock-type-face)
   ;
 
 formal_package_declaration
@@ -1064,7 +1077,8 @@ formal_package_declaration
       (wisi-containing-action 1 3)
       (wisi-containing-action 5 6)
       (wisi-containing-action 6 7)
-      (wisi-containing-action 6 8))
+      (wisi-containing-action 6 8)
+      (wisi-face-action 6 'font-lock-function-name-face))
   ;
 
 formal_package_actual_part
@@ -1095,7 +1109,7 @@ function_specification
       (wisi-statement-action 1 'statement-other 2 'name)
       (wisi-containing-action 1 2)
       (wisi-containing-action 1 3)
-      (wisi-motion-action 1 '(3 RETURN)))
+      (wisi-motion-action 1 '(3 return-1 RETURN return-2 RETURN)))
   ;
 
 general_access_modifier_opt
@@ -1141,17 +1155,20 @@ generic_instantiation
     (progn
       (wisi-statement-action 1 'statement-start 2 'name 4 'statement-other 7 'statement-end)
       (wisi-containing-action 4 5)
-      (wisi-containing-action 5 6))
+      (wisi-containing-action 5 6)
+      (wisi-face-action 5 'font-lock-function-name-face))
   | overriding_indicator_opt PROCEDURE name IS NEW name aspect_specification_opt SEMICOLON
     (progn
       (wisi-statement-action 1 'statement-start 2 'block-middle 3 'name 5 'statement-other 8 'statement-end)
       (wisi-containing-action 5 6)
-      (wisi-containing-action 6 7))
+      (wisi-containing-action 6 7)
+      (wisi-face-action 6 'font-lock-function-name-face))
   | overriding_indicator_opt FUNCTION name IS NEW name aspect_specification_opt SEMICOLON
     (progn
       (wisi-statement-action 1 'statement-start 2 'block-middle 3 'name 5 'statement-other 8 'statement-end)
       (wisi-containing-action 5 6)
-      (wisi-containing-action 6 7))
+      (wisi-containing-action 6 7)
+      (wisi-face-action 6 'font-lock-function-name-face))
   ;
 
 generic_package_declaration
@@ -1172,17 +1189,20 @@ generic_renaming_declaration
     (progn
       (wisi-statement-action 1 'statement-start 2 'statement-other 3 'name 4 'statement-other 7 'statement-end)
       (wisi-containing-action 2 3)
-      (wisi-containing-action 3 6))
+      (wisi-containing-action 3 6)
+      (wisi-face-action 5 'font-lock-function-name-face))
   | GENERIC PROCEDURE name RENAMES name aspect_specification_opt SEMICOLON
     (progn
       (wisi-statement-action 1 'statement-start 2 'statement-other 3 'name 4 'statement-other 7 'statement-end)
       (wisi-containing-action 2 3)
-      (wisi-containing-action 3 6))
+      (wisi-containing-action 3 6)
+      (wisi-face-action 5 'font-lock-function-name-face))
   | GENERIC FUNCTION name RENAMES name aspect_specification_opt SEMICOLON
     (progn
       (wisi-statement-action 1 'statement-start 2 'statement-other 3 'name 4 'statement-other 7 'statement-end)
       (wisi-containing-action 2 3)
-      (wisi-containing-action 3 6))
+      (wisi-containing-action 3 6)
+      (wisi-face-action 5 'font-lock-function-name-face))
   ;
 
 generic_subprogram_declaration
@@ -1197,8 +1217,7 @@ handled_sequence_of_statements
   : sequence_of_statements_opt EXCEPTION exception_handler_list_opt
     (progn
       (wisi-statement-action 2 'block-middle)
-      (wisi-containing-action 2 3)
-      (wisi-motion-action 2 '(3 WHEN)))
+      (wisi-containing-action 2 3))
   | sequence_of_statements_opt
   ;
 
@@ -1220,14 +1239,14 @@ if_expression
       (wisi-containing-action 3 4)
       (wisi-containing-action 3 5)
       (wisi-containing-action 6 7)
-      (wisi-motion-action 1 3 '(5 (ELSIF THEN)) 6))
+      (wisi-motion-action 1 3 '(5 statement-other ELSIF block-middle THEN) 6))
   | IF expression THEN expression elsif_expression_list
     (progn
       (wisi-statement-action 1 'statement-start 3 'block-middle)
       (wisi-containing-action 1 2)
       (wisi-containing-action 3 4)
       (wisi-containing-action 3 5)
-      (wisi-motion-action 1 3 '(5 (ELSIF THEN))))
+      (wisi-motion-action 1 3 '(5 statement-other ELSIF block-middle THEN)))
   | IF expression THEN expression ELSE expression
     (progn
       (wisi-statement-action 1 'statement-start 3 'block-middle 5 'block-middle)
@@ -1251,14 +1270,14 @@ if_statement
       (wisi-containing-action 3 4)
       (wisi-containing-action 3 5)
       (wisi-containing-action 6 7)
-      (wisi-motion-action 1 3 '(5 (ELSIF THEN)) 6 8))
+      (wisi-motion-action 1 3 '(5 statement-other ELSIF block-middle THEN) 6 8))
   | IF expression_opt THEN sequence_of_statements_opt elsif_statement_list END IF SEMICOLON
     (progn
       (wisi-statement-action 1 'statement-start 3 'block-middle 6 'block-end 9 'statement-end)
       (wisi-containing-action 1 2)
       (wisi-containing-action 3 4)
       (wisi-containing-action 3 5)
-      (wisi-motion-action 1 3 '(5 (ELSIF THEN)) 6))
+      (wisi-motion-action 1 3 '(5 statement-other ELSIF block-middle THEN) 6))
   | IF expression_opt THEN sequence_of_statements_opt ELSE sequence_of_statements_opt END IF SEMICOLON
     (progn
       (wisi-statement-action 1 'statement-start 3 'block-middle 5 'block-middle 7 'block-end 9 'statement-end)
@@ -1302,7 +1321,9 @@ index_subtype_definition_list
 
 interface_list
   : name
+    (wisi-face-action 1 'font-lock-type-face)
   | interface_list AND name
+    (wisi-face-action 3 'font-lock-type-face)
   ;
 
 interface_type_definition
@@ -1413,8 +1434,17 @@ mod_clause_opt
 mode_opt
   : ;; empty
   | IN
+    (progn
+      (wisi-statement-action 1 'keyword)
+      (wisi-face-action 1 'font-lock-keyword-face))
   | IN OUT
+    (progn
+      (wisi-statement-action 1 'keyword)
+      (wisi-face-action 1 'font-lock-keyword-face))
   | OUT
+    (progn
+      (wisi-statement-action 1 'keyword)
+      (wisi-face-action 1 'font-lock-keyword-face))
   ;
 
 multiplying_operator : STAR | SLASH | MOD | REM ; ;; * | / | mod | rem
@@ -1429,6 +1459,7 @@ name_list
 
 name
   : IDENTIFIER ;; from direct_name
+    (wisi-statement-action 1 'name) ;; allow wisi-face-action
   | CHARACTER_LITERAL
   ;; | explicit_dereference
   ;; | indexed_component
@@ -1441,14 +1472,15 @@ name
       (wisi-statement-action 1 'name-paren 2 'open-paren 4 'close-paren)
       (wisi-containing-action 1 2)
       (wisi-containing-action 2 3))
-  | selected_component
-  | attribute_reference
+  | selected_component ;; starts with name; extend to cover all
+    (wisi-extend-action 1)
+  | attribute_reference ;; starts with name
   | name actual_parameter_part
  ;; type_conversion, function_call, procedure call, generic instantiation.
     (progn
       (wisi-statement-action 1 'name-paren)
       (wisi-containing-action 1 2))
-  | qualified_expression
+  | qualified_expression ;; starts with name
   ;; | generalized_reference
   ;; | generalized_indexing
   | STRING_LITERAL ;; operator_symbol, designator
@@ -1462,6 +1494,9 @@ name_opt
 null_exclusion_opt
   : ;; empty
   | NOT NULL
+    (progn
+      (wisi-statement-action 1 'keyword)
+      (wisi-face-action 1 'font-lock-keyword-face))
   ;
 
 ;; we don't use 'null_exclusion_opt' when it is followed by 'name',
@@ -1562,7 +1597,7 @@ package_body
       (wisi-containing-action 3 4)
       (wisi-containing-action 5 6)
       (wisi-containing-action 7 8)
-      (wisi-motion-action 1 5 7 '(8 EXCEPTION) 9))
+      (wisi-motion-action 1 5 7 '(8 block-middle EXCEPTION block-middle WHEN) 9))
   | PACKAGE BODY name aspect_specification_opt IS declarative_part_opt END name_opt SEMICOLON
     (progn
       (wisi-statement-action 1 'block-start 3 'name 5 'block-middle 7 'block-end 9 'statement-end)
@@ -1590,7 +1625,8 @@ package_renaming_declaration
     (progn
       (wisi-statement-action 1 'statement-start 2 'name 3 'statement-other 6 'statement-end)
       (wisi-containing-action 1 2)
-      (wisi-containing-action 3 5))
+      (wisi-containing-action 3 5)
+      (wisi-face-action 4 'font-lock-function-name-face))
   ;
 
 package_specification
@@ -1614,12 +1650,13 @@ package_specification
 parameter_and_result_profile
   : formal_part RETURN null_exclusion_opt name_opt
     (progn
-      (wisi-statement-action
-       2 'return-1;; for ada-indent-return
-       4 'type);; for font-lock - see ada-wisi-setup
-      (wisi-containing-action 2 4))
+      (wisi-statement-action 2 'return-1);; for ada-indent-return
+      (wisi-containing-action 2 4)
+      (wisi-face-action 4 'font-lock-type-face))
   | RETURN name_opt
-    (wisi-statement-action 1 'return-2 2 'type)
+    (progn
+      (wisi-statement-action 1 'return-2)
+      (wisi-face-action 2 'font-lock-type-face))
   | formal_part RETURN access_definition
     (progn
       (wisi-statement-action 2 'return-1)
@@ -1640,7 +1677,9 @@ parameter_profile_opt
 
 parameter_specification
   : identifier_list COLON aliased_opt mode_opt null_exclusion_opt name COLON_EQUAL expression
+    (wisi-face-action 6 'font-lock-type-face)
   | identifier_list COLON aliased_opt mode_opt null_exclusion_opt name
+    (wisi-face-action 6 'font-lock-type-face)
   | identifier_list COLON aliased_opt access_definition COLON_EQUAL expression
   | identifier_list COLON aliased_opt access_definition
   ;
@@ -1699,6 +1738,7 @@ primary
   | aggregate
   | name
   | NEW name ;; allocator, leaving out subpool_specification
+    (wisi-face-action 2 'font-lock-type-face)
  ;; | LEFT_PAREN expression RIGHT_PAREN ;; covered by 'aggregate'
   | LEFT_PAREN if_expression RIGHT_PAREN ;; conditional_expression
     (progn
@@ -1722,7 +1762,8 @@ private_extension_declaration
       (wisi-containing-action 1 3)
       (wisi-containing-action 6 7)
       (wisi-containing-action 6 8)
-      (wisi-containing-action 2 11))
+      (wisi-containing-action 2 11)
+      (wisi-face-action 7 'font-lock-type-face))
   ;
 
 private_type_declaration
@@ -1964,12 +2005,12 @@ selective_accept
       (wisi-statement-action 1 'block-start 3 'block-middle 5 'block-end 7 'statement-end)
       (wisi-containing-action 1 2)
       (wisi-containing-action 3 4)
-      (wisi-motion-action 1 '(2 OR) 3 5))
+      (wisi-motion-action 1 '(2 block-middle OR) 3 5))
   | SELECT select_alternative_list_opt END SELECT SEMICOLON
     (progn
       (wisi-statement-action 1 'block-start 3 'block-end 5 'statement-end)
       (wisi-containing-action 1 2)
-      (wisi-motion-action 1 '(2 OR) 3))
+      (wisi-motion-action 1 '(2 block-middle OR) 3))
   ;
 
 select_alternative
@@ -2134,7 +2175,8 @@ subprogram_renaming_declaration
   : overriding_indicator_opt subprogram_specification RENAMES name aspect_specification_opt SEMICOLON
     (progn
       (wisi-statement-action 1 'statement-start 2 'block-middle 3 'statement-other 6 'statement-end)
-      (wisi-containing-action 2 5))
+      (wisi-containing-action 2 5)
+      (wisi-face-action 4 'font-lock-function-name-face))
   ;
 
 subprogram_specification
@@ -2154,14 +2196,19 @@ subtype_declaration
 subtype_indication
   : NOT NULL name constraint
     (progn
-      (wisi-statement-action 3 'name)
-      (wisi-containing-action 3 4))
+      (wisi-statement-action 1 'keyword)
+      (wisi-containing-action 3 4)
+      (wisi-face-action 1 'font-lock-keyword-face 3 'font-lock-type-face))
   | NOT NULL name
+    (progn
+      (wisi-statement-action 1 'keyword)
+      (wisi-face-action 1 'font-lock-keyword-face 3 'font-lock-type-face))
   | name constraint
     (progn
-      (wisi-statement-action 1 'name)
-      (wisi-containing-action 1 2))
+      (wisi-containing-action 1 2)
+      (wisi-face-action 1 'font-lock-type-face))
   | name
+    (wisi-face-action 1 'font-lock-type-face)
   ;
 
 ;; subtype_mark replaced by name

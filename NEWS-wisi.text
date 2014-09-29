@@ -7,6 +7,21 @@ Please send wisi bug reports to bug-gnu-emacs@gnu.org, with
 'wisi' in the subject. If possible, use M-x report-emacs-bug.
 
 
+* wisi 1.0.6
+28 Sep 2014
+
+** add face to wisi-cache
+
+** wisi-before/after-change : improve checks for invalidate-cache
+
+** wisi-motion-action takes class with each token-id
+
+** new parse actions: wisi-extend-action, wisi-face-action
+
+** new functions: wisi-goto-statement-start, -end.
+
+** fix misc bugs
+
 * wisi 1.0.5
 12 Jul 2014
 

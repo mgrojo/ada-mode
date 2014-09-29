@@ -1,6 +1,6 @@
-gpr_file=../../../org.opentoken.stephe/build/windows_release/opentoken.gpr
+gpr_file=$WISI_OPENTOKEN/opentoken.gpr
 
-casing=../../../org.opentoken.stephe/build/emacs_case_exceptions
+casing=$WISI_OPENTOKEN/../emacs_case_exceptions
 
 -- for *.wy
 src_dir=../../

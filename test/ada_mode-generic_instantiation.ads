@@ -12,17 +12,27 @@ package Ada_Mode.Generic_Instantiation is
    --EMACSCMD:(and (eq ada-xref-tool 'gnat) (progn (end-of-line 0)(backward-word)(ada-next-statement-keyword)(looking-at "end Ada_Mode.Generic_Instantiation")))
    --EMACSRESULT:(eq ada-xref-tool 'gnat)
 
+   -- don't wait for jit-lock to get around to refontifying
+   --EMACSCMD:(font-lock-fontify-buffer)
+
+   --EMACSCMD:(test-face "Ada_Mode.Generic_Parent" 'font-lock-function-name-face)
    package Instance is new Ada_Mode.Generic_Parent;
 
+   --EMACSCMD:(test-face "Instance.Generic_Function" 'font-lock-function-name-face)
    function Function_1 is new Instance.Generic_Function
      (Param_Type  => Integer,
       Result_Type => Boolean,
       Threshold   => 2);
 
+   --EMACSCMD:(test-face "Instance.Generic_Procedure" 'font-lock-function-name-face)
    procedure Procedure_2 is new Instance.Generic_Procedure (Integer,
                                                             Function_1);
+
+   --EMACSCMD:(test-face "Instance.Generic_Procedure" 'font-lock-function-name-face)
    procedure Procedure_3 is new Instance.Generic_Procedure
      (Integer, Function_1);
+
+   -- multi-line font-lock doesn't work
    procedure Procedure_4 is new Instance.
      Generic_Procedure (Integer, Function_1);
    procedure Procedure_5 is new Instance
@@ -36,13 +46,17 @@ package Ada_Mode.Generic_Instantiation is
 
    generic function Gen_Function_1 renames
      Instance.Generic_Function;
+
+   --EMACSCMD:(progn (forward-line 2)(test-face "Instance.Generic_Function" 'font-lock-function-name-face))
    generic function Gen_Function_2
      renames Instance.Generic_Function;
+
    generic function
      Gen_Function_3 renames Instance.Generic_Function;
    generic
    function Gen_Function_4 renames Instance.Generic_Function;
 
+   --EMACSCMD:(test-face "Instance.Generic_Procedure" 'font-lock-function-name-face)
    generic procedure Gen_Procedure_1 renames Instance.Generic_Procedure;
    generic procedure Gen_Procedure_2 renames
      Instance.Generic_Procedure;
