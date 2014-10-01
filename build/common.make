@@ -168,6 +168,7 @@ DIFF_OPT := -u -w
 # the parse_table and the state trace of the parse is the known good output
 %-parse.diff : %.good_parse %.parse
 	diff $(DIFF_OPT) $(^:parse=parse_table) > $@
+	diff $(DIFF_OPT) $(^:parse=el) >> $@
 	diff $(DIFF_OPT) $^ >> $@
 
 %.run : %.exe ;	./$(*F).exe $(RUN_ARGS)
@@ -182,6 +183,7 @@ DIFF_OPT := -u -w
 %.ads : %.wy wisi-generate.exe
 	./wisi-generate.exe $(RUN_ARGS) $< Ada_Emacs > $*.parse_table
 	dos2unix $*.parse_table
+	dos2unix $*.el
 
 %.parse : %.input %_run.exe
 	./$*_run.exe -v $< > $*.parse

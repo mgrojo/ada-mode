@@ -94,39 +94,45 @@ package body OpenToken.Wisi_Tokens is
       end if;
    end Image;
 
-   function Image (Tokens : in Token_Lists.Instance'Class) return String
+   function To_Codes (Tokens : in Token_Lists.Instance'Class) return String
    is
       use Token_Lists;
-      Chars_Per_Token : constant Integer := 4 + Token_Image_Width + 2 * Integer'Width;
+      Chars_Per_Token : constant Integer := 4 + 2 * Integer'Width;
       package Bounded is new Ada.Strings.Bounded.Generic_Bounded_Length (Max => 18 + Tokens.Length * Chars_Per_Token);
       use Bounded;
 
       I  : List_Iterator := Initial_Iterator (Tokens);
 
-      --  Each action in the .wy file is of the form:
-      --  (progn
-      --   (wisi-statement-action ...)
-      --   (wisi-motion-action ...))
-      --
       --  In the elisp parser, 'wisi-tokens' is bound to the tokens in the
       --  RHS of the production.
       --
-      --  Here, we wrap the actions in '(let ((wisi-tokens ...)) ... )'
+      --  We return a list of tokens as integer codes '((code range)
+      --  (code range) ...)'; the elisp code will bind that to
+      --  wisi-tokens.
 
-      Token_Line : Bounded_String := To_Bounded_String ("(let ((wisi-tokens '(");
+      Token_Line : Bounded_String := To_Bounded_String ("(");
    begin
       loop
          exit when I = Null_Iterator;
-         Token_Line := Token_Line & Image (Instance (Token_Handle (I).all));
+         declare
+            use type Wisi_Tokens.Tokens.Buffer_Range;
+            Token : Instance renames Instance (Token_Handle (I).all);
+         begin
+            Token_Line := Token_Line & '(' & Int_Image (Token_IDs'Pos (ID (I)));
+
+            if Token.Buffer_Range /= Wisi_Tokens.Tokens.Null_Buffer_Range then
+               Token_Line := Token_Line & Integer'Image (Token.Buffer_Range.Begin_Pos) & " ." &
+                 Integer'Image (Token.Buffer_Range.End_Pos);
+            end if;
+            Token_Line := Token_Line & ")";
+         end;
 
          Next_Token (I);
          if I = Null_Iterator then
-            Token_Line := Token_Line & ")))";
-         else
-            Token_Line := Token_Line & " ";
+            Token_Line := Token_Line & ")";
          end if;
       end loop;
       return To_String (Token_Line);
-   end Image;
+   end To_Codes;
 
 end OpenToken.Wisi_Tokens;

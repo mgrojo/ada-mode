@@ -131,6 +131,10 @@ begin
    Set_Output (File);
    Header (Elisp_Package, Prologue);
    New_Line;
+   Put_Line ("(require 'wisi)");
+   Put_Line ("(require 'semantic/lex)");
+   Put_Line ("(require 'wisi-compile)");
+   New_Line;
    Keyword_Table (Elisp_Package, Keywords);
    New_Line;
    Token_Table (Elisp_Package, Tokens);

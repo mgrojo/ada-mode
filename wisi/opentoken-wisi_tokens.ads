@@ -22,9 +22,8 @@ with OpenToken.Token.Enumerated.Nonterminal;
 with OpenToken.Token.Enumerated.List;
 generic
    type Token_IDs is (<>);
-   First_Terminal    : in Token_IDs;
-   Last_Terminal     : in Token_IDs;
-   Token_Image_Width : in Integer;
+   First_Terminal : in Token_IDs;
+   Last_Terminal  : in Token_IDs;
 
    with function Token_Image (Item : in Token_IDs) return String;
    with package Tokens is new OpenToken.Token.Enumerated
@@ -70,7 +69,6 @@ package OpenToken.Wisi_Tokens is
 
    function Total_Buffer_Range (Tokens : in Token_Lists.Instance'Class) return Wisi_Tokens.Tokens.Buffer_Range;
 
-   function Image (Tokens : in Token_Lists.Instance'Class) return String;
-   --  Return elisp prefix for wisi action
+   function To_Codes (Tokens : in Token_Lists.Instance'Class) return String;
 
 end OpenToken.Wisi_Tokens;
