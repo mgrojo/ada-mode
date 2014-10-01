@@ -1,8 +1,11 @@
 ^.*\.elc$
 ^NUL$
-^ada_grammar.*_output$
 ^ada-mode\.html$
 ^ada-mode\.info$
+^ada_grammar.*_output$
+^ada_grammar\.adb$
+^ada_grammar\.ads$
+^ada_grammar\.el$
 ^autoloads\.el$
 ^build/.*\.exe$
 ^build/.*\.tar\.gz$

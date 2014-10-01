@@ -13,9 +13,10 @@ debian-all : compile-ada-clean compile-ada autoloads test-clean test-debian
 # this updates everything after any source change, without running the tests.
 update : ../../ada_grammar-wy.el
 update : ../../gpr-grammar-wy.el
-update : byte-compile
 # update : ../../ada_syntax.ads
 update : ../../ada_grammar.ads
+update : byte-compile
+update : ada_mode_wisi_parse.exe
 
 # *-wy.el are in monotone, so this is all we need after a monotone update
 # doing byte-compile-clean first avoids errors caused by loading new source on old .elc
@@ -86,6 +87,7 @@ endif
 
 %.ads : %.wy $(WISI_OPENTOKEN)/wisi-generate.exe
 	cd ./$(<D); $(WISI_OPENTOKEN)/wisi-generate.exe -v 1 $(<F) Ada_Emacs > $(*F).ada_output
+	cd ./$(<D); dos2unix $(@F) $(*F).el
 
 %.a : %.l
 	aflex -i $<
@@ -150,7 +152,7 @@ test-ada-gpr_query.stamp : force
 	touch $@
 
 # we don't use 'expand-file-name' here because that adds c:/ on windows
-# eval: (setenv "WISI_OPENTOKEN" "/Projects/org.opentoken/build/release")
+# eval: (setenv "WISI_OPENTOKEN" "/Projects/org.opentoken.stephe/build/release")
 # eval: (ada-parse-prj-file "wisi_opentoken.prj")
 # eval: (ada-select-prj-file "wisi_opentoken.prj")
 
@@ -158,7 +160,7 @@ test-ada-gpr_query.stamp : force
 # eval: (ada-select-prj-file "../ada-mode.prj")
 
 # Local Variables:
-# eval: (setenv "WISI_OPENTOKEN" "/Projects/org.opentoken/build/release")
+# eval: (setenv "WISI_OPENTOKEN" "/Projects/org.opentoken.stephe/build/release")
 # eval: (ada-parse-prj-file "ada_mode_wisi_parse.prj")
 # eval: (ada-select-prj-file "ada_mode_wisi_parse.prj")
 # End:

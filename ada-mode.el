@@ -2653,6 +2653,9 @@ The paragraph is indented on the first line."
 	  "access[ \t]+all\\|"
 	  "access[ \t]+constant\\|"
 	  "access\\|"
+	  "constant[ \t]+access[ \t]+all\\|"
+	  "constant[ \t]+access[ \t]+constant\\|"
+	  "constant[ \t]+access\\|"
 	  "constant\\|"
 	  "in[ \t]+reverse\\|"; loop iterator
 	  "in[ \t]+not[ \t]+null[ \t]+access\\|"
@@ -2906,11 +2909,8 @@ The paragraph is indented on the first line."
 (unless (featurep 'ada-indent-engine)
   (require 'ada-wisi)
   (if (locate-file wisi-ada-parse-exec exec-path '("" ".exe"))
-      (progn
-	(require 'wisi-ada-parse)
-	(setq wisi-parser 'ada))
+	(setq wisi-parser 'ada)
 
-    (require 'wisi-parse)
     (setq wisi-parser 'elisp))
   )
 

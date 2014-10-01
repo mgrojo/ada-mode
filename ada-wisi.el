@@ -29,6 +29,7 @@
 
 (require 'ada-fix-error)
 (require 'ada_grammar-wy)
+(require 'ada_grammar)
 (require 'ada-indent-user-options)
 (require 'cl-lib)
 (require 'wisi)
@@ -1573,7 +1574,8 @@ Also return cache at start."
 	      ada-wisi-class-list
 	      ada_grammar-wy--keyword-table
 	      ada_grammar-wy--token-table
-	      ada_grammar-wy--parse-table)
+	      ada_grammar-wy--parse-table
+	      ada_grammar-names)
 
   ;; Handle escaped quotes in strings
   (setq wisi-string-quote-escape-doubled t)

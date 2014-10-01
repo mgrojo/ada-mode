@@ -158,6 +158,10 @@
 (require 'cl-lib)
 (require 'wisi-parse-common)
 
+;; FIXME: use better dispatching
+(require 'wisi-ada-parse)
+(require 'wisi-parse)
+
 ;; WORKAROUND: for some reason, this condition doesn't work in batch mode!
 ;; (when (and (= emacs-major-version 24)
 ;; 	   (= emacs-minor-version 2))
@@ -342,6 +346,7 @@ wisi-forward-token, but does not look up symbol."
   )
 
 (defvar-local wisi-parse-table nil)
+(defvar-local wisi-elisp-names nil)
 
 (defvar-local wisi-parse-failed nil
   "Non-nil when a recent parse has failed - cleared when parse succeeds.")
@@ -509,6 +514,7 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
   (when (string-match ":\\([0-9]+\\):\\([0-9]+\\):" wisi-parse-error-msg)
     (let ((line (string-to-number (match-string 1 wisi-parse-error-msg)))
 	  (col (string-to-number (match-string 2 wisi-parse-error-msg))))
+      (push-mark)
       (goto-char (point-min))
       (forward-line (1- line))
       (forward-char col))))
@@ -518,8 +524,8 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
   (interactive)
   (cond
    (wisi-parse-failed
-    (message wisi-parse-error-msg)
-    (wisi-goto-error))
+    (wisi-goto-error)
+    (message wisi-parse-error-msg))
 
    (wisi-parse-try
     (message "need parse"))
@@ -541,7 +547,8 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
     (elisp
      (wisi-parse wisi-parse-table 'wisi-forward-token))
     (ada
-     (wisi-ada-parse))
+     ;; FIXME: grammar is specifed by .exe name; that must be here.
+     (wisi-ada-parse wisi-elisp-names))
     ))
 
 (defun wisi-validate-cache (pos)
@@ -856,7 +863,7 @@ list (number class token_id class token_id ...):
 Also override token with new token."
   (let* ((token-region (nth (1- number) wisi-tokens));; wisi-tokens is let-bound in wisi-parse-reduce
 	 (token (car token-region))
-	 (region (cddr token-region))
+	 (region (cdr token-region))
 	cache)
 
     (when region
@@ -873,7 +880,7 @@ Intended as a grammar non-terminal action.
 PAIRS is of the form [TOKEN-NUMBER fase] ..."
   (while pairs
     (let* ((number (1- (pop pairs)))
-	   (region (cddr (nth number wisi-tokens)));; wisi-tokens is let-bound in wisi-parse-reduce
+	   (region (cdr (nth number wisi-tokens)));; wisi-tokens is let-bound in wisi-parse-reduce
 	   (face (pop pairs))
 	   cache)
 
@@ -1173,8 +1180,8 @@ correct. Must leave point at indentation of current line.")
       (back-to-indentation)
       (when (>= (point) savep) (setq savep nil))
 
-      (when (> (point) wisi-cache-max)
-	(wisi-validate-cache (point))
+      (when (>= (point) wisi-cache-max)
+	(wisi-validate-cache (line-end-position)) ;; include at lease the first token on this line
 	(when (and (not wisi-parse-failed)
 		   wisi-indent-failed)
 	  (setq wisi-indent-failed nil)
@@ -1230,7 +1237,7 @@ correct. Must leave point at indentation of current line.")
 
 ;;;;; setup
 
-(defun wisi-setup (indent-calculate post-parse-fail class-list keyword-table token-table parse-table)
+(defun wisi-setup (indent-calculate post-parse-fail class-list keyword-table token-table parse-table elisp-names)
   "Set up a buffer for parsing files with wisi."
   (setq wisi-class-list class-list)
   (setq wisi-string-double-term (car (symbol-value (intern-soft "string-double" token-table))))
@@ -1259,6 +1266,7 @@ correct. Must leave point at indentation of current line.")
 
   (setq wisi-keyword-table keyword-table)
   (setq wisi-parse-table parse-table)
+  (setq wisi-elisp-names elisp-names)
 
   (setq wisi-indent-calculate-functions indent-calculate)
   (set (make-local-variable 'indent-line-function) 'wisi-indent-line)

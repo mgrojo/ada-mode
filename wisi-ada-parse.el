@@ -145,11 +145,40 @@ Does not wait for command to complete."
 
 ;;;;; main
 
-(defun wisi-ada-parse ()
-  ;; Eval the action forms one at a time; it's not one big form.  We
-  ;; also need to ignore comments explicitly, since the buffer is not
-  ;; in elisp mode (and we don't want to waste time putting it in that
-  ;; mode)
+(defun wisi-ada-parse-execute (elisp-names sexp)
+  "Execute encoded SEXP sent from subprocess."
+  ;; sexp is an encoded version of a wisi parser action, with the token list prepended:
+  ;;
+  ;; ((token token ...)
+  ;;  (action-name arg arg ...)
+  ;;  ...
+  ;;  )
+  ;;
+  ;; Translate the codes back to elisp symbols, execute
+  (let (codes token wisi-tokens func arg args)
+    (setq codes (pop sexp))
+    (while codes
+      (setq token (pop codes))
+      (setcar token (aref elisp-names (car token)))
+      (if wisi-tokens
+	  (setq wisi-tokens (cons token wisi-tokens))
+	(setq wisi-tokens (list token))))
+    (setq wisi-tokens (nreverse wisi-tokens))
+    (while sexp
+      (setq codes (pop sexp))
+      (setq func (aref elisp-names (pop codes)))
+      (while codes
+	(setq arg (pop codes))
+	(when (< arg 0)
+	  (setq arg (aref elisp-names (- arg))))
+	(if args
+	    (setq args (cons args arg))
+	  (setq args (list arg)))
+      (setq args (nreverse args))
+      (apply func args))
+    ))
+
+(defun wisi-ada-parse (elisp-names)
   (wisi-ada-parse-require-session)
   (let ((source-buffer (current-buffer))
 	(action-buffer (wisi-ada-parse--session-buffer wisi-ada-parse-session))
@@ -165,14 +194,14 @@ Does not wait for command to complete."
     (wisi-ada-parse-session-send-parse)
     (set-buffer action-buffer)
 
-    ;; process actions until prompt received
+    ;; process responses until prompt received
     (while (and (process-live-p process)
 		(not done))
 
       ;; process output is inserted before point, so move back over it to search it
       (goto-char sexp-start)
 
-      ;; process all actions currently in buffer
+      ;; process all responses currently in buffer
       (while (and (process-live-p process)
 		  (not need-more)
 		  (not done))
@@ -203,7 +232,7 @@ Does not wait for command to complete."
 	  (setq sexp-start (point))
 
 	  (set-buffer source-buffer)
-	  (eval (car (read-from-string action)) t)
+	  (wisi-ada-parse-execute elisp-names (car (read-from-string action)))
 	  (set-buffer action-buffer)
 	  ))
 	)

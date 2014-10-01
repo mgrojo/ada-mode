@@ -19,6 +19,14 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
+;;; Code:
+
+;; WORKAROUND: for some reason, this condition doesn't work in batch mode!
+;; (when (and (= emacs-major-version 24)
+;; 	   (= emacs-minor-version 2))
+  (require 'wisi-compat-24.2)
+;;)
+
 (defvar wisi-debug 0
   "wisi debug mode:
 0 : normal - ignore parse errors, for indenting new code

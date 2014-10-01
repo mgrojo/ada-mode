@@ -317,7 +317,7 @@ nil, 'shift, or 'accept."
 		(when (> wisi-debug 1)
 		  (message "terminate identical parser %d (%d active)"
 			   (+ parser-i parser-j 1) active-parser-count))
-		(setf (wisi-parser-state-active (aref parser-states (+ parser-i parser-j 1))) nil))
+		(setf (wisi-parser-state-active (aref parser-states (+ parser-i parser-j 1))) nil)
 		(when (= active-parser-count 1)
 		  ;; the actions for the two parsers are not
 		  ;; identical, but either is good enough for
@@ -327,8 +327,8 @@ nil, 'shift, or 'accept."
 		    (wisi-execute-pending (wisi-parser-state-label parser-state)
 					  (wisi-parser-state-pending parser-state))
 		    (setf (wisi-parser-state-pending parser-state) nil)
-		    )
-	      )))
+		    ))
+		))))
 	)))
   active-parser-count)
 
