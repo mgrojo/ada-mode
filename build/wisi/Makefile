@@ -51,7 +51,9 @@ test-wisi :: empty_production_8.wisi-test
 #one : ada_mode_wisi_parse.exe
 #	./ada_mode_wisi_parse.exe -v < commands.text
 one : run_ada_parser.exe
-	time ./run_ada_parser.exe /apps/GNAT-gpl_2014/gnatcoll-1.7w-src/src/sqlite/gnatcoll-xref.adb > /dev/null
+	bash -c "time ./run_ada_parser.exe /Projects/org.emacs.ada-mode.stephe-1/ada_mode_wisi_parse.adb > parse.text"
+
+# /apps/GNAT-gpl_2014/gnatcoll-1.7w-src/src/sqlite/gnatcoll-xref.adb
 
 vpath %.wy ../../ ../../test/wisi
 vpath %.el ../../ .
@@ -94,6 +96,9 @@ endif
 
 %.ads : %.a
 	gnatchop -w $*.a $*_dfa.a $*_io.a
+
+%.exe : ../../%.adb force
+	gprbuild -p ada_mode_wisi_parse_agg.gpr $<
 
 ada_mode_wisi_parse.exe : ../../ada_grammar.ads force
 #	gprbuild -p ada_mode_wisi_parse_agg.gpr

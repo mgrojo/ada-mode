@@ -53,7 +53,9 @@
     ;; user may have killed buffer
     (setf (wisi-ada-parse--session-buffer wisi-ada-parse-session) (get-buffer-create wisi-ada-parse-buffer-name)))
 
-  (let ((exec-file (locate-file wisi-ada-parse-exec exec-path '("" ".exe"))))
+  (let ((exec-file (locate-file wisi-ada-parse-exec exec-path '("" ".exe")))
+	(process-connection-type nil) ;; use a pipe, not a pty; avoid line-by-line reads
+	)
     (unless exec-file
       (error "%s not found on `exec-path'" wisi-ada-parse-exec))
 
@@ -124,10 +126,9 @@ Does not wait for command to complete."
       (message msg))
     (with-current-buffer (wisi-ada-parse--session-buffer wisi-ada-parse-session)
       (erase-buffer))
+
     (process-send-string process msg)
-
     (process-send-string process buf-string)
-
     ))
 
 (defun wisi-ada-parse-kill-session ()
@@ -149,13 +150,27 @@ Does not wait for command to complete."
   "Execute encoded SEXP sent from subprocess."
   ;; sexp is an encoded version of a wisi parser action, with the token list prepended:
   ;;
+  ;; A typical action is:
   ;; ((token token ...)
+  ;;  (
+  ;;  (action-name arg arg ...)
   ;;  (action-name arg arg ...)
   ;;  ...
   ;;  )
+  ;; )
+  ;;
+  ;; or, if there is only one action:
+  ;; ((token token ...)
+  ;;  (action-name arg arg ...)
+  ;; )
+  ;;
+  ;; arg can be:
+  ;; positive integer: token number
+  ;; negative integer: symbol
+  ;; list of integers
   ;;
   ;; Translate the codes back to elisp symbols, execute
-  (let (codes token wisi-tokens func arg args)
+  (let (codes codes-1 token wisi-tokens func arg args args-1)
     (setq codes (pop sexp))
     (while codes
       (setq token (pop codes))
@@ -164,16 +179,38 @@ Does not wait for command to complete."
 	  (setq wisi-tokens (cons token wisi-tokens))
 	(setq wisi-tokens (list token))))
     (setq wisi-tokens (nreverse wisi-tokens))
+    (when (sequencep (caar sexp))
+      ;; multiple actions
+      (setq sexp (car sexp)))
     (while sexp
       (setq codes (pop sexp))
-      (setq func (aref elisp-names (pop codes)))
+      (setq func (aref elisp-names (- (pop codes))))
+      (setq args nil)
       (while codes
 	(setq arg (pop codes))
-	(when (< arg 0)
-	  (setq arg (aref elisp-names (- arg))))
+	(cond
+	 ((sequencep arg)
+	  (setq codes-1 arg)
+	  (while codes-1
+	    (setq arg (pop codes-1))
+	    (when (< arg 0)
+	      (setq arg (aref elisp-names (- arg))))
+	    (if args-1
+		(setq args-1 (cons arg args-1))
+	      (setq args-1 (list arg)))
+	    )
+	  (setq arg (nreverse args-1))
+	  )
+
+	 (t
+	  (when (< arg 0)
+	    (setq arg (aref elisp-names (- arg)))))
+	 )
+
 	(if args
-	    (setq args (cons args arg))
+	    (setq args (cons arg args))
 	  (setq args (list arg)))
+	)
       (setq args (nreverse args))
       (apply func args))
     ))
@@ -183,16 +220,24 @@ Does not wait for command to complete."
   (let ((source-buffer (current-buffer))
 	(action-buffer (wisi-ada-parse--session-buffer wisi-ada-parse-session))
 	(process (wisi-ada-parse--session-process wisi-ada-parse-session))
+	(w32-pipe-read-delay 0) ;; fastest subprocess read
 	action
 	action-end
 	(action-count 0)
 	(sexp-start (point-min))
 	(wait-count 0)
 	(need-more nil)
-	(done nil))
+	(done nil)
+	(start-time (float-time))
+	start-wait-time)
 
     (wisi-ada-parse-session-send-parse)
     (set-buffer action-buffer)
+
+    (when (> wisi-ada-parse-debug 0)
+      (message "wisi-ada-parse-send: %f point-max: %d"
+	       (- (float-time) start-time)
+	       (point-max)))
 
     ;; process responses until prompt received
     (while (and (process-live-p process)
@@ -222,17 +267,20 @@ Does not wait for command to complete."
 	     ;; incomplete action
 	     (setq need-more t)
 	     nil))
-	  (when (> wisi-ada-parse-debug 0)
-	    (setq action-count (1+ action-count))
-	    (message "action-count: %d point: %d point-max: %d" action-count (point) (point-max)))
 
-	  (setq action (buffer-substring-no-properties (point) action-end))
+	  (setq action-count (1+ action-count))
+	  (setq action (car (read-from-string (buffer-substring-no-properties (point) action-end))))
 	  (goto-char action-end)
 	  (forward-line 1)
 	  (setq sexp-start (point))
 
 	  (set-buffer source-buffer)
-	  (wisi-ada-parse-execute elisp-names (car (read-from-string action)))
+	  (if (symbolp (car action))
+	      ;; post-parser action
+	      (eval action)
+	    ;; encoded parser action
+	    (wisi-ada-parse-execute elisp-names action))
+
 	  (set-buffer action-buffer)
 	  ))
 	)
@@ -244,10 +292,15 @@ Does not wait for command to complete."
 	  (error "wisi-ada-parse process died"))
 
 	(setq wait-count (1+ wait-count))
-	(when (> wisi-ada-parse-debug 0)
-	  (message "wisi-ada-parse-session-wait: %d" wait-count))
-
+	(setq start-wait-time (float-time))
 	(accept-process-output process) ;; no time-out; that's a race condition
+	(when (> wisi-ada-parse-debug 0)
+	  (message "wisi-ada-parse-session-wait: %d %f %f"
+		   wait-count
+		   (- (float-time) start-time)
+		   (- (float-time) start-wait-time))
+	  (message "action-count: %d point: %d point-max: %d" action-count (point) (point-max)))
+
 	(setq need-more nil))
       );; while not done
 
@@ -256,6 +309,53 @@ Does not wait for command to complete."
       (wisi-ada-parse-show-buffer)
       (error "wisi-ada-parse process died"))
 
+    (when (> wisi-ada-parse-debug 0)
+      (message "total time: %f" (- (float-time) start-time))
+      (message "action-count: %d" action-count))
+
     (set-buffer source-buffer)))
+
+(defun wisi-ada-parse-exec-buffer (action-buffer-name source-buffer-name elisp-names)
+  "for debugging; execute encoded actions in ACTION-BUFFER, applying to SOURCE-BUFFER."
+  (let ((action-buffer (get-buffer action-buffer-name))
+	(source-buffer (get-buffer source-buffer-name))
+	action
+	action-end
+	(action-count 0)
+	(done nil)
+	(start-time (float-time)))
+
+    (set-buffer action-buffer)
+    (goto-char (point-min))
+
+    (while (not done)
+      (cond
+       ((or (eobp)
+	    (looking-at wisi-ada-parse-prompt))
+	(setq done t))
+
+       ((looking-at "^;;")
+	;; debug output
+	(forward-line 1))
+
+       ((setq action-end (scan-sexps (point) 1))
+	(setq action-count (1+ action-count))
+	(setq action (car (read-from-string (buffer-substring-no-properties (point) action-end))))
+	(goto-char action-end)
+	(forward-line 1)
+
+	(set-buffer source-buffer)
+	(if (symbolp (car action))
+	    ;; post-parser action
+	    (eval action)
+	  ;; encoded parser action
+	  (wisi-ada-parse-execute elisp-names action))
+
+	(set-buffer action-buffer)
+	)))
+
+    (message "total time: %f" (- (float-time) start-time))
+    (message "action-count: %d" action-count)
+    ))
 
 (provide 'wisi-ada-parse)

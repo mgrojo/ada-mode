@@ -117,7 +117,7 @@ For more help, consult the mailing list at https://lists.sourceforge.net/lists/l
             # install all (the default choice)
             # FIXME: list items actually needed
 
-        $ pacman -S tar msys/make
+        $ pacman -S tar msys/make diffutils
 
     - from Windows Explorer, run c:\msys64\autorebase.bat
 

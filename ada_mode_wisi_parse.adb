@@ -47,7 +47,8 @@ is
       Put_Line ("NNparse ""<buffer-name>"" <text_byte_count><text>");
       Put_Line ("  NN includes 'parse ""<buffer-name>"" <text_byte_count>'");
       Put_Line ("  <buffer-name> used in error messages");
-      Put_Line ("  outputs: elisp forms for wisi actions");
+      Put_Line ("  outputs: elisp forms for wisi parser actions or post-parser actions");
+      Put_Line ("  wisi parser actions have names encoded as integers; others do not");
 
       Put_Line ("04quit");
    end Usage;
@@ -59,6 +60,10 @@ is
    --  some fairly large buffer is filled.
    Parser : Ada_Grammar.LALR_Parsers.Instance := Ada_Grammar.Create_Parser
      (Text_Feeder => OpenToken.Text_Feeder.Counted_GNAT_OS_Lib.Create (GNAT.OS_Lib.Standin));
+
+   Syntax : constant Ada_Grammar.Analyzers.Syntax := Ada_Grammar.Create_Syntax;
+   --  needed to reallocate analyzer buffer
+   --  FIXME: fix analyzer.reset to reallocate buffer
 
    function Get_Command_Length return Integer
    is
@@ -200,8 +205,14 @@ begin
                     OpenToken.Text_Feeder.Counted_GNAT_OS_Lib.Instance (Parser.Analyzer.Feeder.all);
                begin
                   Feeder.Reset (Byte_Count);
-                  Parser.Analyzer.Reset;
+
+                  --  Reallocate analyzer buffer to hold entire file;
+                  --  avoids delays in Emacs send-process EWOULDBLOCK handling.
+                  Parser.Analyzer := Ada_Grammar.Analyzers.Initialize
+                    (Syntax, Parser.Analyzer.Feeder, Byte_Count, First_Column => 0);
+
                   Parser.Parse;
+                  --  Set point for wisi-cache-max
                   Put_Line ("(goto-char " & OpenToken.Int_Image (Parser.Analyzer.Bounds.End_Pos) & ")");
                exception
                when E : OpenToken.Parse_Error | OpenToken.Syntax_Error =>
