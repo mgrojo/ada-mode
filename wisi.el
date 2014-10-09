@@ -512,6 +512,7 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
   (when (string-match ":\\([0-9]+\\):\\([0-9]+\\):" wisi-parse-error-msg)
     (let ((line (string-to-number (match-string 1 wisi-parse-error-msg)))
 	  (col (string-to-number (match-string 2 wisi-parse-error-msg))))
+      (push-mark)
       (goto-char (point-min))
       (forward-line (1- line))
       (forward-char col))))
@@ -521,8 +522,8 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
   (interactive)
   (cond
    (wisi-parse-failed
-    (message wisi-parse-error-msg)
-    (wisi-goto-error))
+    (wisi-goto-error)
+    (message wisi-parse-error-msg))
 
    (wisi-parse-try
     (message "need parse"))
@@ -1163,8 +1164,8 @@ correct. Must leave point at indentation of current line.")
       (back-to-indentation)
       (when (>= (point) savep) (setq savep nil))
 
-      (when (> (point) wisi-cache-max)
-	(wisi-validate-cache (point))
+      (when (>= (point) wisi-cache-max)
+	(wisi-validate-cache (line-end-position)) ;; include at lease the first token on this line
 	(when (and (not wisi-parse-failed)
 		   wisi-indent-failed)
 	  (setq wisi-indent-failed nil)

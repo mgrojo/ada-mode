@@ -1212,6 +1212,9 @@ cached token, return new indentation for point."
 (defun ada-wisi-goto-subunit-name ()
   "For `ada-goto-subunit-name'."
   (wisi-validate-cache (point-max))
+  (unless (> wisi-cache-max (point))
+    (error "parse failed; can't goto subunit name"))
+
   (let ((end nil)
 	cache
 	(name-pos nil))
@@ -1230,9 +1233,9 @@ cached token, return new indentation for point."
 	   (setq end t))
 	  ))
       (when (eq (wisi-cache-nonterm cache) 'subunit)
-	(wisi-forward-find-token '(IDENTIFIER name selected_component) (point-max)) ;; parent name
+	(wisi-forward-find-class 'name (point-max)) ;; parent name
 	(wisi-forward-token)
-	(wisi-forward-find-token '(IDENTIFIER name selected_component) (point-max)) ;; subunit name
+	(wisi-forward-find-class 'name (point-max)) ;; subunit name
 	(setq name-pos (point)))
       )
     (when name-pos
@@ -1243,6 +1246,9 @@ cached token, return new indentation for point."
   "For `ada-goto-declaration-start', which see.
 Also return cache at start."
   (wisi-validate-cache (point))
+  (unless (> wisi-cache-max (point))
+    (error "parse failed; can't goto declarative-region-start"))
+
   (let ((cache (wisi-get-cache (point)))
 	(done nil))
     (unless cache
@@ -1382,6 +1388,9 @@ Also return cache at start."
 (defun ada-wisi-scan-paramlist (begin end)
   "For `ada-scan-paramlist'."
   (wisi-validate-cache end)
+  (unless (> wisi-cache-max (point))
+    (error "parse failed; can't scan paramlist"))
+
   (goto-char begin)
   (let (token
 	text

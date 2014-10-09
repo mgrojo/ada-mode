@@ -36,9 +36,32 @@ install packages in -Q:
  (list-packages))
 
  next release
-5.1.c:
+o.e.a.stephe-1: external opentoken parser
+o.e.a.stephe-2: external gps parser
+o.e.a.stephe-3: rewrite elisp grammar, actions, parser to use arrays
 
 delete gnatinspect
+
+rms says: "we can specify automatic deletion of a certain text property from text copied into the buffer."
+    use that instead of explicit delete in after-change
+
+syntax-propertize not run in fill-paragraph
+    --  negative numbers for names in action args, to distguish them from other numbers.
+    F4
+
+face error on "and then":
+
+    if I <= Line'Last and then Line (I) = ' ' then
+
+align => in case expressions:
+
+   Result (J) :=
+     (case Line (I) is
+      when '(' => '[',
+      when ')' => ']',
+      when others => Line (I));
+
+5.1.c:
 
 handle parser errors more gracefully
     continue by adding virtual tokens

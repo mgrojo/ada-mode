@@ -1818,26 +1818,6 @@ unit name; it should return the Ada name that should be found in FILE-NAME.")
      ada-spec-suffixes)
     (error "parent '%s' not found; set project file?" ff-function-name))))
 
-(defun ada-ff-special-extract-separate ()
-  ;; match-string contains "separate (parent_name)"
-  (let ((package-name (match-string 1)))
-    (save-excursion
-      (goto-char (match-end 0))
-      (when (eolp) (forward-char 1))
-      (skip-syntax-forward " ")
-      (looking-at
-       (concat "\\(function\\|package body\\|procedure\\|protected body\\|task body\\)\\s +"
-	       ada-name-regexp))
-      (setq ff-function-name (match-string 0))
-      )
-    (file-name-nondirectory
-     (or
-      (ff-get-file-name
-       compilation-search-path
-       (ada-file-name-from-ada-name package-name)
-       ada-body-suffixes)
-      (error "package '%s' not found; set project file?" package-name)))))
-
 (defun ada-ff-special-with ()
   (let ((package-name (match-string 1)))
     (setq ff-function-name (concat "^package\\s-+" package-name "\\([^_]\\|$\\)"))
@@ -1864,10 +1844,6 @@ unit name; it should return the Ada name that should be found in FILE-NAME.")
 	 (cons (concat "^\\(?:private[ \t]+\\)?\\(?:package\\|procedure\\|function\\)[ \t]+"
 		       ada-parent-name-regexp "\\(?:;\\|[ \t]+\\|$\\)")
 	       'ada-ff-special-extract-parent)
-
-	 ;; A "separate" clause.
-	 (cons (concat "^separate[ \t\n]*(" ada-name-regexp ")")
-	       'ada-ff-special-extract-separate)
 
 	 ;; A "with" clause. Note that it may refer to a procedure body, as well as a spec
 	 (cons (concat "^\\(?:limited[ \t]+\\)?\\(?:private[ \t]+\\)?with[ \t]+" ada-name-regexp)
@@ -1987,9 +1963,8 @@ don't move to corresponding declaration."
 - If region is active, assume it contains a package name;
   position point on that package declaration.
 
-- If point is in the start line of a non-nested child package or
-  subprogram declaration, position point on the corresponding
-  parent package specification.
+- If point is in a separate body, position point on the
+  corresponding specification.
 
 - If point is in the start line of a separate body,
   position point on the corresponding separate stub declaration.
@@ -2651,6 +2626,9 @@ The paragraph is indented on the first line."
 	  "access[ \t]+all\\|"
 	  "access[ \t]+constant\\|"
 	  "access\\|"
+	  "constant[ \t]+access[ \t]+all\\|"
+	  "constant[ \t]+access[ \t]+constant\\|"
+	  "constant[ \t]+access\\|"
 	  "constant\\|"
 	  "in[ \t]+reverse\\|"; loop iterator
 	  "in[ \t]+not[ \t]+null[ \t]+access\\|"
