@@ -172,7 +172,7 @@ Uses 'gnat list'. Returns new '(src-dirs prj-dirs)."
     ;; known".
     ;; Using 'require' at top level gives the wrong default ada-xref-tool
     (cl-ecase (ada-prj-get 'xref_tool project)
-      ((gnat gnat_inspect)
+      (gnat
        (let ((res (gnat-get-paths-1 src-dirs prj-dirs)))
 	 (setq src-dirs (car res))
 	 (setq prj-dirs (cadr res))))

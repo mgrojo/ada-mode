@@ -2885,7 +2885,6 @@ The paragraph is indented on the first line."
 (unless (featurep 'ada-xref-tool)
   (cl-case ada-xref-tool
     ((nil 'gnat) (require 'ada-gnat-xref))
-    ('gnat_inspect (require 'gnat-inspect))
     ('gpr_query (require 'gpr-query))
     ))
 

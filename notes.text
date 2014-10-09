@@ -40,8 +40,6 @@ o.e.a.stephe-1: external opentoken parser
 o.e.a.stephe-2: external gps parser
 o.e.a.stephe-3: rewrite elisp grammar, actions, parser to use arrays
 
-delete gnatinspect
-
 rms says: "we can specify automatic deletion of a certain text property from text copied into the buffer."
     use that instead of explicit delete in after-change
 
