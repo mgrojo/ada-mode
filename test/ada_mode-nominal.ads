@@ -545,7 +545,9 @@ package Ada_Mode.Nominal is -- target 0
       Parent_Element_3 : Boolean;
    end record;
 
-   --EMACSCMD:(progn (forward-line 2)(forward-word 2)(insert "    ")(ada-fill-comment-paragraph))
+   -- test that comment prefix is properly fontified
+   --EMACSCMD:(progn (end-of-line 4)(delete-forward-char 6)(sit-for 0.1)(ada-fill-comment-paragraph)(forward-char 4)(syntax-class (syntax-after (point))))
+   --EMACSRESULT: 11
 
    -- a filled comment. Now is the time for all good parsers to come
    -- to the aid of programmers.

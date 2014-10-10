@@ -373,8 +373,14 @@
        ((choice_relation XOR choice_relation ))
        ((choice_relation_xor_list XOR choice_relation )))
       (choice_relation_and_then_list
-       ((choice_relation AND THEN choice_relation ))
-       ((choice_relation_and_then_list AND THEN choice_relation )))
+       ((choice_relation AND THEN choice_relation )
+        (progn
+        (wisi-statement-action 3 'keyword)
+        (wisi-face-action 3 'font-lock-keyword-face)))
+       ((choice_relation_and_then_list AND THEN choice_relation )
+        (progn
+        (wisi-statement-action 3 'keyword)
+        (wisi-face-action 3 'font-lock-keyword-face))))
       (choice_relation_or_else_list
        ((choice_relation OR ELSE choice_relation ))
        ((choice_relation_or_else_list OR ELSE choice_relation )))
@@ -1406,8 +1412,14 @@
        ((relation AND relation ))
        ((relation_and_list AND relation )))
       (relation_and_then_list
-       ((relation AND THEN relation ))
-       ((relation_and_then_list AND THEN relation )))
+       ((relation AND THEN relation )
+        (progn
+        (wisi-statement-action 3 'keyword)
+        (wisi-face-action 3 'font-lock-keyword-face)))
+       ((relation_and_then_list AND THEN relation )
+        (progn
+        (wisi-statement-action 3 'keyword)
+        (wisi-face-action 3 'font-lock-keyword-face))))
       (relation_or_list
        ((relation OR relation ))
        ((relation_or_list OR relation )))

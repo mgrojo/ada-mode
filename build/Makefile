@@ -7,13 +7,13 @@
 #
 # Ideally we'd have 5 packages with dependencies:
 #
-# ada-mode     => gnat-core, wisi, gnat-inspect
+# ada-mode     => gnat-core, wisi, gpr-query
 # gpr-mode     => gnat-core, wisi
 # gnat-core    =>
-# gnat-inspect => gnat-core
+# gpr_query => gnat-core
 # wisi         =>
 #
-# but currently the code is not that clean; gpr-mode and gnat-inspect
+# but currently the code is not that clean; gpr-mode and gpr-query
 # require ada-mode. And it's not worth making gnat-core a package.
 
 VERSION := 5.1.6

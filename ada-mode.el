@@ -2558,7 +2558,13 @@ The paragraph is indented on the first line."
 	    (forward-line))
 	  ))
 
-    (goto-char opos)))
+    (goto-char opos)
+
+    ;; we disabled modification hooks, so font-lock will not run to
+    ;; re-fontify the comment prefix; do that here.
+    (when (memq 'jit-lock-after-change after-change-functions)
+      (jit-lock-after-change from to 0))
+    ))
 
 ;;;; support for font-lock.el
 
@@ -2837,6 +2843,13 @@ The paragraph is indented on the first line."
 
   ;; This means to fully set ada-mode interactively, user must
   ;; do M-x ada-mode M-; (hack-local-variables)
+
+
+  ;; fill-region-as-paragraph in ada-fill-comment-paragraph does not
+  ;; call syntax-propertize, so set comment syntax on
+  ;; ada-fill-comment-prefix. In post-local because user may want to
+  ;; set it per-file.
+  (put-text-property 0 2 'syntax-table '(11 . nil) ada-fill-comment-prefix)
 
   (when global-font-lock-mode
     ;; This calls ada-font-lock-keywords, which depends on

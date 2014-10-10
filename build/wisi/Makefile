@@ -7,7 +7,7 @@ ADA_MODE_DIR ?= -L ../.. -l autoloads.el
 # "compile-ada" is a test; it verifies the test sources are legal Ada
 all : update compile-ada-clean compile-ada autoloads test-clean test
 
-# things that can be done on debian stable (opentoken doesn't build, no gnatinspect, no gnatstub)
+# things that can be done on debian stable (opentoken doesn't build, no gpr_query, no gnatstub)
 debian-all : compile-ada-clean compile-ada autoloads test-clean test-debian
 
 # this updates everything after any source change, without running the tests.
@@ -21,7 +21,6 @@ byte-compile : byte-compile-clean
 
 test : test-wisi
 test : test-ada-gnatxref.stamp
-test : test-ada-gnatinspect.stamp
 test : test-ada-gpr_query.stamp
 test : test-gpr
 test : test-elisp
@@ -100,14 +99,6 @@ test-ada-gnatxref : $(addsuffix .diff, $(subst subdir/,,$(ADA_TEST_FILES)))
 test-ada-gnatxref.stamp : force
 	rm -f *.diff *.tmp
 	$(MAKE) test-ada-gnatxref
-	touch $@
-
-test-ada-gnatinspect : RUNTEST := run-indent-test-wisi-gnatinspect.el
-test-ada-gnatinspect : $(addsuffix .diff, $(subst subdir/,,$(ADA_TEST_FILES)))
-
-test-ada-gnatinspect.stamp : force
-	rm -f *.diff *.tmp
-	$(MAKE) test-ada-gnatinspect
 	touch $@
 
 test-ada-gpr_query : RUNTEST := run-indent-test-wisi-gpr_query.el

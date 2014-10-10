@@ -530,7 +530,13 @@ choice_relation_xor_list
 
 choice_relation_and_then_list
   : choice_relation AND THEN choice_relation
+    (progn
+      (wisi-statement-action 3 'keyword)
+      (wisi-face-action 3 'font-lock-keyword-face))
   | choice_relation_and_then_list AND THEN choice_relation
+    (progn
+      (wisi-statement-action 3 'keyword)
+      (wisi-face-action 3 'font-lock-keyword-face))
   ;
 
 choice_relation_or_else_list
@@ -1932,7 +1938,13 @@ relation_and_list
 
 relation_and_then_list
   : relation AND THEN relation
+    (progn
+      (wisi-statement-action 3 'keyword)
+      (wisi-face-action 3 'font-lock-keyword-face))
   | relation_and_then_list AND THEN relation
+    (progn
+      (wisi-statement-action 3 'keyword)
+      (wisi-face-action 3 'font-lock-keyword-face))
   ;
 
 relation_or_list

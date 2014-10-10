@@ -11,6 +11,8 @@ Please send Emacs Ada mode bug reports to bug-gnu-emacs@gnu.org, with
 
 ** delete gnatinspect support; gpr_query is better
 
+** misc bug fixes
+
 * Ada mode 5.1.6
 28 Sep 2014
 

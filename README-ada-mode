@@ -34,7 +34,7 @@ matching extension (default *.ads, *.adb).
 
 
 By default ada-mode uses gnat find for cross-reference functions.
-There is experimental support for two alternatives: gnat_inspect and
-gpr_query. See ada-mode.texi section Installation for more.
+There is support for an alternative: gpr_query. See ada-mode.texi
+section Installation for more.
 
 (end of file)
