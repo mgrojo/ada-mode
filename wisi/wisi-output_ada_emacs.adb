@@ -1,8 +1,8 @@
 --  Abstract :
 --
 --  Output Ada code implementing the grammar defined by input
---  parameters, with actions suitable for the Emacs Ada mode
---  indentation engine.
+--  parameters, and a parser for that grammar, which outputs encoded
+--  elisp actions for the Emacs Ada mode indentation engine.
 --
 --  Copyright (C) 2012 - 2014 Stephen Leake.  All Rights Reserved.
 --
@@ -346,10 +346,13 @@ is
         ("  (Token_IDs, First_Terminal, Last_Terminal, Token_Image, Tokens, Token_Lists, Nonterminals);");
       New_Line;
 
+      Indent_Line ("function Create_Syntax return Analyzers.Syntax;");
+      New_Line;
       Indent_Line ("function Create_Parser");
-      Indent_Line ("  (Max_Parallel         : in Integer := 15;");
-      Indent_Line ("   Terminate_Same_State : in Boolean := True;");
-      Indent_Line ("   Text_Feeder          : in OpenToken.Text_Feeder.Text_Feeder_Ptr := null)");
+      Indent_Line ("  (Max_Parallel         : in Integer                               := 15;");
+      Indent_Line ("   Terminate_Same_State : in Boolean                               := True;");
+      Indent_Line ("   Text_Feeder          : in OpenToken.Text_Feeder.Text_Feeder_Ptr := null;");
+      Indent_Line ("   Buffer_Size          : in Integer                               := 1024)");
       Indent_Line ("  return LALR_Parsers.Instance;");
       New_Line;
       Put_Line ("end " & Package_Name & ";");
@@ -733,9 +736,10 @@ is
       New_Line;
 
       Indent_Line ("function Create_Parser");
-      Indent_Line ("  (Max_Parallel         : in Integer := 15;");
-      Indent_Line ("   Terminate_Same_State : in Boolean := True;");
-      Indent_Line ("   Text_Feeder          : in OpenToken.Text_Feeder.Text_Feeder_Ptr := null)");
+      Indent_Line ("  (Max_Parallel         : in Integer                               := 15;");
+      Indent_Line ("   Terminate_Same_State : in Boolean                               := True;");
+      Indent_Line ("   Text_Feeder          : in OpenToken.Text_Feeder.Text_Feeder_Ptr := null;");
+      Indent_Line ("   Buffer_Size          : in Integer                               := 1024)");
       Indent_Line ("  return LALR_Parsers.Instance");
       Indent_Line ("is");
       Indent := Indent + 3;
@@ -823,7 +827,7 @@ is
       New_Line;
       --  FIXME: get Max_Parallel from some command line
       Indent_Line ("return");
-      Indent_Line ("  (Analyzers.Initialize (Create_Syntax, Text_Feeder, First_Column => 0),");
+      Indent_Line ("  (Analyzers.Initialize (Create_Syntax, Text_Feeder, Buffer_Size, First_Column => 0),");
       Indent_Line ("   Table, Max_Parallel, Terminate_Same_State);");
       Indent := Indent - 3;
       Indent_Line ("end Create_Parser;");

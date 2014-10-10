@@ -99,6 +99,8 @@ package body OpenToken.Token.Enumerated.Analyzer is
            (Feeder   => Analyzer.Feeder.all,
             New_Text => Analyzer.Buffer (First_New_Char .. Analyzer.Buffer'Last),
             Text_End => Analyzer.Buffer_Tail);
+         --  FIXME: more space in buffer'first .. head! test end of
+         --  file in first and second read.
       end if;
       Analyzer.Buffer_Size := Analyzer.Buffer_Size + Analyzer.Buffer_Tail - First_New_Char + 1;
 
@@ -358,12 +360,12 @@ package body OpenToken.Token.Enumerated.Analyzer is
    function Initialize
      (Language_Syntax : in Syntax;
       Feeder          : in Text_Feeder.Text_Feeder_Ptr := null;
-      Max_Buffer_Size : in Integer                     := 1024;
+      Buffer_Size     : in Integer                     := 1024;
       First_Column    : in Integer                     := 1)
      return Handle
    is
       New_Analyzer : constant Handle := Initialize
-        (Language_Syntax, Terminal_ID'First, Feeder, Max_Buffer_Size, First_Column);
+        (Language_Syntax, Terminal_ID'First, Feeder, Buffer_Size, First_Column);
    begin
       New_Analyzer.Has_Default := False;
 
@@ -374,11 +376,11 @@ package body OpenToken.Token.Enumerated.Analyzer is
      (Language_Syntax : in Syntax;
       Default         : in Terminal_ID;
       Feeder          : in Text_Feeder.Text_Feeder_Ptr := null;
-      Max_Buffer_Size : in Integer                     := 1024;
+      Buffer_Size     : in Integer                     := 1024;
       First_Column    : in Integer                     := 1)
      return Handle
    is
-      New_Analyzer : constant Handle := new Instance (Max_Buffer_Size);
+      New_Analyzer : constant Handle := new Instance (Buffer_Size);
    begin
       --  Initialize the syntax
       New_Analyzer.Syntax_List    := Language_Syntax;

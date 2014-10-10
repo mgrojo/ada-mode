@@ -24,6 +24,7 @@ generic
    with function Create_Parser
      (Max_Parallel         : in Integer := 15;
       Terminate_Same_State : in Boolean := False;
-      Text_Feeder          : in OpenToken.Text_Feeder.Text_Feeder_Ptr := null)
+      Text_Feeder          : in OpenToken.Text_Feeder.Text_Feeder_Ptr := null;
+      Buffer_Size          : in Integer                               := 1024)
      return LALR_Parsers.Instance;
 procedure Gen_Parser_Run;

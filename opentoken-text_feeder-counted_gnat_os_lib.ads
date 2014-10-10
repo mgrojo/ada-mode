@@ -44,12 +44,18 @@ package OpenToken.Text_Feeder.Counted_GNAT_OS_Lib is
 
    procedure Discard_Rest_Of_Input (Feeder : in out Instance);
 
+   --  For profiling
+
+   function Get_Count (Feeder : in Instance) return Integer;
+   --  Count of calls to Get since Reset before end of text.
 private
 
    type Instance is new OpenToken.Text_Feeder.Instance with record
       File       : GNAT.OS_Lib.File_Descriptor;
       Max_Bytes  : Integer;
       Read_Bytes : Integer;
+
+      Get_Count : Integer;
    end record;
 
 end OpenToken.Text_Feeder.Counted_GNAT_OS_Lib;

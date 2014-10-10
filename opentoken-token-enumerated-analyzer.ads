@@ -97,14 +97,14 @@ package OpenToken.Token.Enumerated.Analyzer is
    function Initialize
      (Language_Syntax : in Syntax;
       Feeder          : in OpenToken.Text_Feeder.Text_Feeder_Ptr := null;
-      Max_Buffer_Size : in Integer                               := 1024;
+      Buffer_Size     : in Integer                               := 1024;
       First_Column    : in Integer                               := 1)
      return Handle;
    function Initialize
      (Language_Syntax : in Syntax;
       Default         : in Terminal_ID;
       Feeder          : in OpenToken.Text_Feeder.Text_Feeder_Ptr := null;
-      Max_Buffer_Size : in Integer                               := 1024;
+      Buffer_Size     : in Integer                               := 1024;
       First_Column    : in Integer                               := 1)
      return Handle;
 
@@ -279,10 +279,10 @@ private
       Read_From_Lookahead : Boolean;
 
       --  Internal state information
-      Buffer                 : String (1 .. Max_Buffer_Size);
+      Buffer                 : String (1 .. Max_Buffer_Size); --  FIXME: allow reallocate in Reset
       Buffer_Head            : Natural := 1;
       Buffer_Tail            : Natural := 0;
-      Buffer_Size            : Natural := 0;
+      Buffer_Size            : Natural := 0; -- = tail - head, wrapped; 0 if empty
       Buffer_Head_Source_Pos : Natural := 1;
 
       Next_Line    : Natural := 1;

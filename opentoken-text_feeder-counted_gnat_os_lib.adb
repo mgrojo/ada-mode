@@ -23,13 +23,14 @@ package body OpenToken.Text_Feeder.Counted_GNAT_OS_Lib is
 
    function Create (File : in GNAT.OS_Lib.File_Descriptor) return Text_Feeder_Ptr
    is begin
-      return new Instance'(File, 0, 0);
+      return new Instance'(File, 0, 0, 0);
    end Create;
 
    procedure Reset (Feeder : in out Instance; Max_Bytes : in Integer) is
    begin
       Feeder.Max_Bytes  := Max_Bytes;
       Feeder.Read_Bytes := 0;
+      Feeder.Get_Count  := 0;
    end Reset;
 
    overriding procedure Get
@@ -46,6 +47,8 @@ package body OpenToken.Text_Feeder.Counted_GNAT_OS_Lib is
          Text_End := Text'First;
          Text (Text_End) := EOF_Character;
       else
+         Feeder.Get_Count := Feeder.Get_Count + 1;
+
          Read_Bytes        := Read (Feeder.File, Text'Address, Bytes_To_Read);
          Feeder.Read_Bytes := Feeder.Read_Bytes + Read_Bytes;
 
@@ -136,5 +139,10 @@ package body OpenToken.Text_Feeder.Counted_GNAT_OS_Lib is
 
       Feeder.Read_Bytes := Feeder.Max_Bytes;
    end Discard_Rest_Of_Input;
+
+   function Get_Count (Feeder : in Instance) return Integer
+   is begin
+      return Feeder.Get_Count;
+   end Get_Count;
 
 end OpenToken.Text_Feeder.Counted_GNAT_OS_Lib;
