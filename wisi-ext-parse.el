@@ -1,4 +1,4 @@
-;;; wisi-ada-parse.el --- interface to exteral ada_mode_wisi_parse program
+;;; wisi-ext-parse.el --- interface to exteral ada_mode_wisi_parse program
 ;;
 ;; Copyright (C) 2014  Free Software Foundation, Inc.
 ;;
@@ -22,9 +22,9 @@
 (require 'wisi-parse-common)
 
 (require 'ada-mode)
-;; wisi-ada-parse-exec declared in ada-mode for auto-detection of indent engine
+;; wisi-ext-parse-exec declared in ada-mode for auto-detection of indent engine
 
-(defvar wisi-ada-parse-debug 0)
+(defvar wisi-ext-parse-debug 0)
 
 ;;;;; sessions
 
@@ -33,60 +33,60 @@
 ;;
 ;; We only need one process; there is no persistent state.
 
-(cl-defstruct (wisi-ada-parse--session)
+(cl-defstruct (wisi-ext-parse--session)
   (process nil) ;; running ada_mode_wisi_parse
   (buffer nil))  ;; receives output of ada_mode_wisi_parse
 
-(defvar wisi-ada-parse-session
-  (make-wisi-ada-parse--session)
-  "The single instance of wisi-ada-parse--session")
+(defvar wisi-ext-parse-session
+  (make-wisi-ext-parse--session)
+  "The single instance of wisi-ext-parse--session")
 
-(defconst wisi-ada-parse-buffer-name " *ada_mode_wisi_parse*")
+(defconst wisi-ext-parse-buffer-name " *ada_mode_wisi_parse*")
 
-(defvar wisi-ada-parse-exec-opts nil
-  "list of command-line options for `wisi-ada-parse-exec'.
+(defvar wisi-ext-parse-exec-opts nil
+  "list of command-line options for `wisi-ext-parse-exec'.
 -v echoes commands.")
 
-(defun wisi-ada-parse--start-process ()
+(defun wisi-ext-parse--start-process ()
   "Start the session process running ada_mode_wisi_parse."
-  (unless (buffer-live-p (wisi-ada-parse--session-buffer wisi-ada-parse-session))
+  (unless (buffer-live-p (wisi-ext-parse--session-buffer wisi-ext-parse-session))
     ;; user may have killed buffer
-    (setf (wisi-ada-parse--session-buffer wisi-ada-parse-session) (get-buffer-create wisi-ada-parse-buffer-name)))
+    (setf (wisi-ext-parse--session-buffer wisi-ext-parse-session) (get-buffer-create wisi-ext-parse-buffer-name)))
 
-  (let ((exec-file (locate-file wisi-ada-parse-exec exec-path '("" ".exe")))
+  (let ((exec-file (locate-file wisi-ext-parse-exec exec-path '("" ".exe")))
 	(process-connection-type nil) ;; use a pipe, not a pty; avoid line-by-line reads
 	)
     (unless exec-file
-      (error "%s not found on `exec-path'" wisi-ada-parse-exec))
+      (error "%s not found on `exec-path'" wisi-ext-parse-exec))
 
-    (with-current-buffer (wisi-ada-parse--session-buffer wisi-ada-parse-session)
+    (with-current-buffer (wisi-ext-parse--session-buffer wisi-ext-parse-session)
       (erase-buffer); delete any previous messages, prompt
-      (setf (wisi-ada-parse--session-process wisi-ada-parse-session)
-	    (if wisi-ada-parse-exec-opts
-		(start-process wisi-ada-parse-buffer-name (current-buffer) exec-file wisi-ada-parse-exec-opts)
-	      (start-process wisi-ada-parse-buffer-name (current-buffer) exec-file)))
-      (set-process-query-on-exit-flag (wisi-ada-parse--session-process wisi-ada-parse-session) nil)
+      (setf (wisi-ext-parse--session-process wisi-ext-parse-session)
+	    (if wisi-ext-parse-exec-opts
+		(start-process wisi-ext-parse-buffer-name (current-buffer) exec-file wisi-ext-parse-exec-opts)
+	      (start-process wisi-ext-parse-buffer-name (current-buffer) exec-file)))
+      (set-process-query-on-exit-flag (wisi-ext-parse--session-process wisi-ext-parse-session) nil)
       ;; FIXME: check protocol and version numbers?
-      (wisi-ada-parse-session-wait)
+      (wisi-ext-parse-session-wait)
       )))
 
-(defun wisi-ada-parse-require-session ()
-  "Create wisi-ada-parse session if not active."
-  (unless (and (wisi-ada-parse--session-process wisi-ada-parse-session)
-	       (process-live-p (wisi-ada-parse--session-process wisi-ada-parse-session)))
-   (wisi-ada-parse--start-process)))
+(defun wisi-ext-parse-require-session ()
+  "Create wisi-ext-parse session if not active."
+  (unless (and (wisi-ext-parse--session-process wisi-ext-parse-session)
+	       (process-live-p (wisi-ext-parse--session-process wisi-ext-parse-session)))
+   (wisi-ext-parse--start-process)))
 
-(defconst wisi-ada-parse-prompt "^;;> "
+(defconst wisi-ext-parse-prompt "^;;> "
   "Regexp matching ada_mode_gps_indent prompt; indicates previous command is complete.")
 
-(defun wisi-ada-parse-session-wait ()
+(defun wisi-ext-parse-session-wait ()
   "Wait for the current command to complete."
-  (unless (process-live-p (wisi-ada-parse--session-process wisi-ada-parse-session))
-    (wisi-ada-parse-show-buffer)
-    (error "wisi-ada-parse process died"))
+  (unless (process-live-p (wisi-ext-parse--session-process wisi-ext-parse-session))
+    (wisi-ext-parse-show-buffer)
+    (error "wisi-ext-parse process died"))
 
-  (with-current-buffer (wisi-ada-parse--session-buffer wisi-ada-parse-session)
-    (let ((process (wisi-ada-parse--session-process wisi-ada-parse-session))
+  (with-current-buffer (wisi-ext-parse--session-buffer wisi-ext-parse-session)
+    (let ((process (wisi-ext-parse--session-process wisi-ext-parse-session))
 	  (search-start (point-min))
 	  (wait-count 0)
 	  (found nil))
@@ -96,55 +96,55 @@
 		    ;; FIXME: could process elisp forms as they arrive
 		    ;; FIXME: can take a long time? May need warm fuzzy output
 		    (goto-char search-start)
-		    (not (setq found (re-search-forward wisi-ada-parse-prompt (point-max) t)))))
+		    (not (setq found (re-search-forward wisi-ext-parse-prompt (point-max) t)))))
 	(setq search-start (point));; don't search same text again
 	(setq wait-count (1+ wait-count))
-	(when (> wisi-ada-parse-debug 0)
-	    (message "wisi-ada-parse-session-wait: %d" wait-count))
+	(when (> wisi-ext-parse-debug 0)
+	    (message "wisi-ext-parse-session-wait: %d" wait-count))
 	(accept-process-output process 0.1))
       (if found
-	  (when (> wisi-ada-parse-debug 0)
-	    (message "wisi-ada-parse-session-wait: %d" wait-count)
-	    (when (> wisi-ada-parse-debug 2)
+	  (when (> wisi-ext-parse-debug 0)
+	    (message "wisi-ext-parse-session-wait: %d" wait-count)
+	    (when (> wisi-ext-parse-debug 2)
 	      (message "'%s'" (buffer-substring-no-properties (point-min) (point-max)))))
 
-	(wisi-ada-parse-show-buffer)
+	(wisi-ext-parse-show-buffer)
 	(error "ada_mode_wisi_parse process died"))
       )))
 
-(defun wisi-ada-parse-session-send-parse ()
+(defun wisi-ext-parse-session-send-parse ()
   "Send a parse command to ada_mode_wisi_parse session, followed by the contents of the current buffer.
 Does not wait for command to complete."
-  (wisi-ada-parse-require-session)
+  (wisi-ext-parse-require-session)
 
   ;; ada_mode_wisi_parse can't handle non-ASCII, so we don't need string-bytes here.
   (let* ((buf-string (buffer-substring-no-properties (point-min) (point-max)))
 	 (cmd (format "parse \"%s\" %d" (buffer-name) (length buf-string)))
 	 (msg (format "%02d%s" (length cmd) cmd))
-	 (process (wisi-ada-parse--session-process wisi-ada-parse-session)))
-    (when (> wisi-ada-parse-debug 0)
+	 (process (wisi-ext-parse--session-process wisi-ext-parse-session)))
+    (when (> wisi-ext-parse-debug 0)
       (message msg))
-    (with-current-buffer (wisi-ada-parse--session-buffer wisi-ada-parse-session)
+    (with-current-buffer (wisi-ext-parse--session-buffer wisi-ext-parse-session)
       (erase-buffer))
 
     (process-send-string process msg)
     (process-send-string process buf-string)
     ))
 
-(defun wisi-ada-parse-kill-session ()
+(defun wisi-ext-parse-kill-session ()
   (interactive)
-  (when (process-live-p (wisi-ada-parse--session-process wisi-ada-parse-session))
-    (process-send-string (wisi-ada-parse--session-process wisi-ada-parse-session) "04quit\n")
+  (when (process-live-p (wisi-ext-parse--session-process wisi-ext-parse-session))
+    (process-send-string (wisi-ext-parse--session-process wisi-ext-parse-session) "04quit\n")
     ))
 
-(defun wisi-ada-parse-show-buffer ()
-  "Show wisi-ada-parse buffer."
+(defun wisi-ext-parse-show-buffer ()
+  "Show wisi-ext-parse buffer."
   (interactive)
-  (if (wisi-ada-parse--session-buffer wisi-ada-parse-session)
-      (switch-to-buffer (wisi-ada-parse--session-buffer wisi-ada-parse-session))
-    (error "wisi-ada-parse session not active")))
+  (if (wisi-ext-parse--session-buffer wisi-ext-parse-session)
+      (switch-to-buffer (wisi-ext-parse--session-buffer wisi-ext-parse-session))
+    (error "wisi-ext-parse session not active")))
 
-(defun wisi-ada-parse-xlate-codes (elisp-names args)
+(defun wisi-ext-parse-xlate-codes (elisp-names args)
   (let ((i 0) ;; arg index
 	)
     (while (< i (length args))
@@ -154,42 +154,52 @@ Does not wait for command to complete."
       )
     ))
 
-(defun wisi-ada-parse-exec-action (elisp-names action)
+(defun wisi-ext-parse-exec-action (elisp-names action)
   (let ((func (aref elisp-names (- (car action))))
 	(i 0) ;; arg index
 	j ;; sequence arg index
 	)
-    (while (< i (length (cdr action)))
-      (cond
-	 ((sequencep (aref (cdr action) i))
-	  (wisi-ada-parse-xlate-codes elisp-names (aref (cdr action) i)
-	  )
+    ;; FIXME: time temp for (cadr action)
 
-	 (t
-	  (when (< (aref (cdr action) i) 0)
-	    (aset (cdr action) i (aref elisp-names (- (aref (cdr action) i)))))
-	  ))
-      (setq i (1+ i))
+    (if (vectorp (cadr action))
+	(progn
+	  (while (< i (length (cadr action)))
+	    (cond
+	     ((sequencep (aref (cadr action) i))
+	      (wisi-ext-parse-xlate-codes elisp-names (aref (cadr action) i))
+	      )
+
+	     (t
+	      (when (< (aref (cadr action) i) 0)
+		(aset (cadr action) i (aref elisp-names (- (aref (cadr action) i)))))
+	      ))
+	    (setq i (1+ i))
+	    )
+	  (funcall func (cadr action)))
+
+      ;; no symbol codes to translate
+      (apply func (cdr action))
       )
-    (apply func (append (cdr action) nil));; FIXME; rewrite actions to take arrays?
     ))
 
-(defun wisi-ada-parse-execute (elisp-names sexp)
+(defun wisi-ext-parse-execute (elisp-names sexp)
   "Execute encoded SEXP sent from subprocess."
   ;; sexp is an encoded version of a wisi parser action, with the token list prepended:
   ;;
   ;; A typical action is:
   ;; [[token token ...]
   ;;  [
-  ;;  (action-name . [arg arg ...])
-  ;;  (action-name . [arg arg ...])
+  ;;  (action-name [arg arg ...])
+  ;;  (action-name [arg arg ...])
+  ;;  (action-name arg arg)
+  ;;  (action-name arg)
   ;;  ...
   ;;  ]
   ;; ]
   ;;
   ;; or, if there is only one action:
-  ;; [[token token ...)
-  ;;  [action-name arg arg ...]
+  ;; [[token token ... ]
+  ;;  (action-name [arg arg ... ])
   ;; ]
   ;;
   ;; arg can be:
@@ -207,24 +217,24 @@ Does not wait for command to complete."
     (while (< i (length (aref sexp 0)))
       (setcar (aref (aref sexp 0) i) (aref elisp-names (car (aref (aref sexp 0) i))))
       (setq i (1+ i)))
-    (setq wisi-tokens (append (aref sexp 0) nil));; FIXME; rewrite actions to take arrays?
+    (setq wisi-tokens (aref sexp 0))
 
     (if (arrayp (aref sexp 1))
 	;; multiple actions
 	(while (< j (length (aref sexp 1)))
-	  (wisi-ada-parse-exec-action elisp-names (aref (aref sexp 1) j))
+	  (wisi-ext-parse-exec-action elisp-names (aref (aref sexp 1) j))
 	  (setq j (1+ j)))
       ;; single action
-      (wisi-ada-parse-exec-action elisp-names (aref sexp 1)))
+      (wisi-ext-parse-exec-action elisp-names (aref sexp 1)))
     ))
 
 ;;;;; main
 
-(defun wisi-ada-parse (elisp-names)
-  (wisi-ada-parse-require-session)
+(defun wisi-ext-parse (elisp-names)
+  (wisi-ext-parse-require-session)
   (let ((source-buffer (current-buffer))
-	(action-buffer (wisi-ada-parse--session-buffer wisi-ada-parse-session))
-	(process (wisi-ada-parse--session-process wisi-ada-parse-session))
+	(action-buffer (wisi-ext-parse--session-buffer wisi-ext-parse-session))
+	(process (wisi-ext-parse--session-process wisi-ext-parse-session))
 	(w32-pipe-read-delay 0) ;; fastest subprocess read
 	action
 	action-end
@@ -236,11 +246,11 @@ Does not wait for command to complete."
 	(start-time (float-time))
 	start-wait-time)
 
-    (wisi-ada-parse-session-send-parse)
+    (wisi-ext-parse-session-send-parse)
     (set-buffer action-buffer)
 
-    (when (> wisi-ada-parse-debug 0)
-      (message "wisi-ada-parse-send: %f point-max: %d"
+    (when (> wisi-ext-parse-debug 0)
+      (message "wisi-ext-parse-send: %f point-max: %d"
 	       (- (float-time) start-time)
 	       (point-max)))
 
@@ -259,7 +269,7 @@ Does not wait for command to complete."
 	 ((eobp)
 	  (setq need-more t))
 
-	 ((looking-at wisi-ada-parse-prompt)
+	 ((looking-at wisi-ext-parse-prompt)
 	  (setq done t))
 
 	 ((looking-at "^;;")
@@ -285,7 +295,7 @@ Does not wait for command to complete."
 	      ;; post-parser action
 	      (eval action)
 	    ;; encoded parser action
-	    (wisi-ada-parse-execute elisp-names action))
+	    (wisi-ext-parse-execute elisp-names action))
 
 	  (set-buffer action-buffer)
 	  ))
@@ -294,14 +304,14 @@ Does not wait for command to complete."
       (unless done
 	;; end of buffer, or process died
 	(unless (process-live-p process)
-	  (wisi-ada-parse-show-buffer)
-	  (error "wisi-ada-parse process died"))
+	  (wisi-ext-parse-show-buffer)
+	  (error "wisi-ext-parse process died"))
 
 	(setq wait-count (1+ wait-count))
 	(setq start-wait-time (float-time))
 	(accept-process-output process) ;; no time-out; that's a race condition
-	(when (> wisi-ada-parse-debug 0)
-	  (message "wisi-ada-parse-session-wait: %d %f %f"
+	(when (> wisi-ext-parse-debug 0)
+	  (message "wisi-ext-parse-session-wait: %d %f %f"
 		   wait-count
 		   (- (float-time) start-time)
 		   (- (float-time) start-wait-time))
@@ -312,16 +322,16 @@ Does not wait for command to complete."
 
     ;; got command prompt
     (unless (process-live-p process)
-      (wisi-ada-parse-show-buffer)
-      (error "wisi-ada-parse process died"))
+      (wisi-ext-parse-show-buffer)
+      (error "wisi-ext-parse process died"))
 
-    (when (> wisi-ada-parse-debug 0)
+    (when (> wisi-ext-parse-debug 0)
       (message "total time: %f" (- (float-time) start-time))
       (message "action-count: %d" action-count))
 
     (set-buffer source-buffer)))
 
-(defun wisi-ada-parse-exec-buffer (action-buffer-name source-buffer-name elisp-names)
+(defun wisi-ext-parse-exec-buffer (action-buffer-name source-buffer-name elisp-names)
   "for debugging; execute encoded actions in ACTION-BUFFER, applying to SOURCE-BUFFER."
   (let ((action-buffer (get-buffer action-buffer-name))
 	(source-buffer (get-buffer source-buffer-name))
@@ -337,7 +347,7 @@ Does not wait for command to complete."
     (while (not done)
       (cond
        ((or (eobp)
-	    (looking-at wisi-ada-parse-prompt))
+	    (looking-at wisi-ext-parse-prompt))
 	(setq done t))
 
        ((looking-at "^;;")
@@ -356,16 +366,14 @@ Does not wait for command to complete."
 	    ;; post-parser action
 	    (eval action)
 	  ;; encoded parser action
-	  (if (arrayp action)
-	      (wisi-ada-parse-execute-arr elisp-names action)
-	    (wisi-ada-parse-execute elisp-names action)))
+	  (wisi-ext-parse-execute elisp-names action))
 
 	(set-buffer action-buffer)
 	)))
 
-    (when (> wisi-ada-parse-debug 0)
+    (when (> wisi-ext-parse-debug 0)
       (message "total time: %f" (- (float-time) start-time))
       (message "action-count: %d" action-count))
     ))
 
-(provide 'wisi-ada-parse)
+(provide 'wisi-ext-parse)

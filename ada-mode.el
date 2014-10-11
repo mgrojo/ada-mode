@@ -288,8 +288,8 @@ must provide a parser for a file with one of these extensions."
   :type 'list
   :group 'ada)
 
-(defcustom wisi-ada-parse-exec "ada_mode_wisi_parse"
-  ;; declared here, not in wisi-ada-parse.el, for auto-detection of indent engine below
+(defcustom wisi-ext-parse-exec "ada_mode_wisi_parse"
+  ;; declared here, not in wisi-ext-parse.el, for auto-detection of indent engine below
   "Name of executable to use for ada_mode_wisi_parse,"
   :type 'string
   :group 'ada-indentation)
@@ -2901,7 +2901,7 @@ The paragraph is indented on the first line."
 
 (unless (featurep 'ada-indent-engine)
   (require 'ada-wisi)
-  (if (locate-file wisi-ada-parse-exec exec-path '("" ".exe"))
+  (if (locate-file wisi-ext-parse-exec exec-path '("" ".exe"))
 	(setq wisi-parser 'ada)
 
     (setq wisi-parser 'elisp))

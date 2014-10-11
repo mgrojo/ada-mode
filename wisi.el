@@ -159,7 +159,7 @@
 (require 'wisi-parse-common)
 
 ;; FIXME: use better dispatching
-(require 'wisi-ada-parse)
+(require 'wisi-ext-parse)
 (require 'wisi-parse)
 
 ;; WORKAROUND: for some reason, this condition doesn't work in batch mode!
@@ -548,7 +548,7 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
      (wisi-parse wisi-parse-table 'wisi-forward-token))
     (ada
      ;; FIXME: grammar is specifed by .exe name; that must be here.
-     (wisi-ada-parse wisi-elisp-names))
+     (wisi-ext-parse wisi-elisp-names))
     ))
 
 (defun wisi-validate-cache (pos)

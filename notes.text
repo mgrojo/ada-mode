@@ -48,8 +48,8 @@ install packages in -Q:
 o.e.a.stephe-1: external opentoken parser
 o.e.a.stephe-2: external gps parser
 
-5.1.c: use compiled Ada parser in background process
-    (setq wisi-ada-parse-exec "/Projects/org.emacs.ada-mode.stephe-1/build/wisi/ada_mode_wisi_parse.exe")
+5.1.c: use compiled OpenToken parser in background process
+    (setq wisi-ext-parse-exec "/Projects/org.emacs.ada-mode.stephe-1/build/wisi/ada_mode_wisi_parse.exe")
     build/wisi/Makefile
     build/Makefile
 
@@ -81,6 +81,7 @@ wisi-parse-buffer is slow:
         apparantly around 70,000 lines, 250,000 bytes
 
     time applying actions:
+        /apps/GNAT-gpl_2014/gnatcoll-1.7w-src/src/sqlite/gnatcoll-xref.adb
         (wisi-ada-parse-exec-buffer "gnatcoll-xref.actions" "gnatcoll-xref.adb" ada_grammar-names)
             lists 1.570002, 1.675002, 1.620002 seconds 20527 actions
 

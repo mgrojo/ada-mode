@@ -18,9 +18,6 @@
 (require 'wisi)
 (require 'semantic/lex)
 (require 'wisi-compile)
-(require 'wisi)
-(require 'semantic/lex)
-(require 'wisi-compile)
 
 (defconst gpr-grammar-wy--keyword-table
   (semantic-lex-make-keyword-table
