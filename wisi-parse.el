@@ -469,17 +469,19 @@ the first and last tokens of the nonterminal."
 			   (wisi-nonterm-bounds stack (- sp (* 2 (1- token-count)) 1) (1- sp))))
 	 (post-reduce-state (aref stack (- sp (* 2 token-count))))
 	 (new-state (cdr (assoc nonterm (aref gotos post-reduce-state))))
-	 tokens)
+	 (tokens (make-vector token-count nil)))
+
     (when (not new-state)
       (error "no goto for %s %d" nonterm post-reduce-state))
-    (if (= 1 token-count)
-	(setq tokens (list (aref stack (1- sp))))
-      (dotimes (i token-count)
-	(push (aref stack (- sp (* 2 i) 1)) tokens)))
+
+    (dotimes (i token-count)
+      (aset tokens (- token-count i 1) (aref stack (- sp (* 2 i) 1))))
+
     (setq sp (+ 2 (- sp (* 2 token-count))))
     (aset stack (1- sp) (cons nonterm nonterm-region))
     (aset stack sp new-state)
     (setf (wisi-parser-state-sp parser-state) sp)
+
     (if pendingp
 	(if (wisi-parser-state-pending parser-state)
 	    (setf (wisi-parser-state-pending parser-state)

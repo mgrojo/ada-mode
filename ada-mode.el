@@ -1824,26 +1824,6 @@ unit name; it should return the Ada name that should be found in FILE-NAME.")
      ada-spec-suffixes)
     (error "parent '%s' not found; set project file?" ff-function-name))))
 
-(defun ada-ff-special-extract-separate ()
-  ;; match-string contains "separate (parent_name)"
-  (let ((package-name (match-string 1)))
-    (save-excursion
-      (goto-char (match-end 0))
-      (when (eolp) (forward-char 1))
-      (skip-syntax-forward " ")
-      (looking-at
-       (concat "\\(function\\|package body\\|procedure\\|protected body\\|task body\\)\\s +"
-	       ada-name-regexp))
-      (setq ff-function-name (match-string 0))
-      )
-    (file-name-nondirectory
-     (or
-      (ff-get-file-name
-       compilation-search-path
-       (ada-file-name-from-ada-name package-name)
-       ada-body-suffixes)
-      (error "package '%s' not found; set project file?" package-name)))))
-
 (defun ada-ff-special-with ()
   (let ((package-name (match-string 1)))
     (setq ff-function-name (concat "^package\\s-+" package-name "\\([^_]\\|$\\)"))
@@ -2585,7 +2565,13 @@ The paragraph is indented on the first line."
 	    (forward-line))
 	  ))
 
-    (goto-char opos)))
+    (goto-char opos)
+
+    ;; we disabled modification hooks, so font-lock will not run to
+    ;; re-fontify the comment prefix; do that here.
+    (when (memq 'jit-lock-after-change after-change-functions)
+      (jit-lock-after-change from to 0))
+    ))
 
 ;;;; support for font-lock.el
 
@@ -2865,6 +2851,13 @@ The paragraph is indented on the first line."
   ;; This means to fully set ada-mode interactively, user must
   ;; do M-x ada-mode M-; (hack-local-variables)
 
+
+  ;; fill-region-as-paragraph in ada-fill-comment-paragraph does not
+  ;; call syntax-propertize, so set comment syntax on
+  ;; ada-fill-comment-prefix. In post-local because user may want to
+  ;; set it per-file.
+  (put-text-property 0 2 'syntax-table '(11 . nil) ada-fill-comment-prefix)
+
   (when global-font-lock-mode
     ;; This calls ada-font-lock-keywords, which depends on
     ;; ada-language-version
@@ -2917,7 +2910,6 @@ The paragraph is indented on the first line."
 (unless (featurep 'ada-xref-tool)
   (cl-case ada-xref-tool
     ((nil 'gnat) (require 'ada-gnat-xref))
-    ('gnat_inspect (require 'gnat-inspect))
     ('gpr_query (require 'gpr-query))
     ))
 

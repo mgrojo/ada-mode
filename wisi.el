@@ -637,28 +637,32 @@ delete from `wisi-end-caches'."
 ;; keep byte-compiler happy; `wisi-tokens' is bound in action created
 ;; by wisi-semantic-action
 
-(defun wisi-statement-action (&rest pairs)
+(defun wisi-statement-action (pairs)
   "Cache information in text properties of tokens.
 Intended as a grammar non-terminal action.
 
-PAIRS is of the form [TOKEN-NUMBER CLASS] ...  where TOKEN-NUMBER
-is the (1 indexed) token number in the production, CLASS is the wisi class of
-that token. Use in a grammar action as:
-  (wisi-statement-action 1 'statement-start 7 'statement-end)"
+PAIRS is a vector of the form [TOKEN-NUMBER CLASS TOKEN-NUMBER
+CLASS ...] where TOKEN-NUMBER is the (1 indexed) token number in
+the production, CLASS is the wisi class of that token. Use in a
+grammar action as:
+  (wisi-statement-action [1 'statement-start 7 'statement-end])"
   (save-excursion
     (let ((first-item t)
 	  first-keyword-mark
-	  (override-start nil))
-      (while pairs
-	(let* ((number (1- (pop pairs)))
-	       (region (cdr (nth number wisi-tokens)));; wisi-tokens is let-bound in wisi-parse-reduce
-	       (token (car (nth number wisi-tokens)))
-	       (class (pop pairs))
+	  (override-start nil)
+	  (i 0))
+      (while (< i (length pairs))
+	(let* ((number (1- (aref pairs i)))
+	       (region (cdr (aref wisi-tokens number)));; wisi-tokens is let-bound in wisi-parse-reduce
+	       (token (car (aref wisi-tokens number)))
+	       (class (aref pairs (setq i (1+ i))))
 	       (mark
 		;; Marker one char into token, so indent-line-to
 		;; inserts space before the mark, not after
 		(when region (copy-marker (1+ (car region)))))
 	       cache)
+
+	  (setq i (1+ i))
 
 	  (unless (memq class wisi-class-list)
 	    (error "%s not in wisi-class-list" class))
@@ -745,25 +749,25 @@ that token. Use in a grammar action as:
   "Set containing marks in all tokens in CONTAINED-TOKEN with null containing mark to marker pointing to CONTAINING-TOKEN.
 If CONTAINING-TOKEN is empty, the next token number is used."
   ;; wisi-tokens is is bound in action created by wisi-semantic-action
-  (let* ((containing-region (cdr (nth (1- containing-token) wisi-tokens)))
-	 (contained-region (cdr (nth (1- contained-token) wisi-tokens))))
+  (let* ((containing-region (cdr (aref wisi-tokens (1- containing-token))))
+	 (contained-region (cdr (aref wisi-tokens (1- contained-token)))))
 
     (unless containing-region ;;
       (signal 'wisi-parse-error
 	      (wisi-error-msg
 	       "wisi-containing-action: containing-region '%s' is empty. grammar error; bad action"
-	       (wisi-token-text (nth (1- containing-token) wisi-tokens)))))
+	       (wisi-token-text (aref wisi-tokens (1- containing-token))))))
 
     (unless (or (not contained-region) ;; contained-token is empty
 		(wisi-get-cache (car containing-region)))
       (signal 'wisi-parse-error
 	      (wisi-error-msg
 	       "wisi-containing-action: containing-token '%s' has no cache. grammar error; missing action"
-	       (wisi-token-text (nth (1- containing-token) wisi-tokens)))))
+	       (wisi-token-text (aref wisi-tokens (1- containing-token))))))
 
     (while (not containing-region)
       ;; containing-token is empty; use next
-      (setq containing-region (cdr (nth containing-token wisi-tokens))))
+      (setq containing-region (cdr (aref wisi-tokens containing-token))))
 
     (when contained-region
       ;; nil when empty production, may not contain any caches
@@ -790,27 +794,30 @@ If CONTAINING-TOKEN is empty, the next token number is used."
 	      (setq cache (wisi-backward-cache)))
 	    ))))))
 
-(defun wisi-motion-action (&rest token-numbers)
+(defun wisi-motion-action (token-numbers)
   "Set prev/next marks in all tokens given by TOKEN-NUMBERS.
-Each TOKEN-NUMBERS is one of:
+TOKEN-NUMBERS is a vector with each element one of:
 
 number: the token number; mark that token
 
-list (number class token_id):
-list (number class token_id class token_id ...):
+vector [number class token_id]:
+vector [number class token_id class token_id ...]:
    mark all tokens in number nonterminal matching (class token_id) with nil prev/next."
   (save-excursion
     (let (prev-keyword-mark
 	  prev-cache
 	  cache
-	  mark)
-      (while token-numbers
-	(let ((token-number (pop token-numbers))
-	      class-tokens target-class target-token
+	  mark
+	  (i 0)
+	  j)
+      (while (< i (length token-numbers))
+	(let ((token-number (aref token-numbers i))
+	      target-class target-token
 	      region)
+	  (setq i (1+ i))
 	  (cond
 	   ((numberp token-number)
-	    (setq region (cdr (nth (1- token-number) wisi-tokens)))
+	    (setq region (cdr (aref wisi-tokens (1- token-number))))
 	    (when region
 	      (setq cache (wisi-get-cache (car region)))
 	      (setq mark (copy-marker (1+ (car region))))
@@ -825,17 +832,17 @@ list (number class token_id class token_id ...):
 	      (setq prev-cache cache)
 	      ))
 
-	   ((listp token-number)
+	   ((vectorp token-number)
 	    ;; token-number may contain 0, 1, or more 'class token_id' pairs
 	    ;; the corresponding region may be empty
 	    ;; there must have been a prev keyword
-	    (setq class-tokens (cdr token-number))
-	    (setq token-number (car token-number))
-	    (setq region (cdr (nth (1- token-number) wisi-tokens)))
+	    (setq region (cdr (aref wisi-tokens (1- (aref token-number 0)))))
 	    (when region ;; not an empty token
-	      (while class-tokens
-		(setq target-class (pop class-tokens))
-		(setq target-token (list (pop class-tokens)))
+	      (setq j 1)
+	      (while (< j (length token-number))
+		(setq target-class (aref token-number j))
+		(setq target-token (list (aref token-number (setq j (1+ j)))))
+		(setq j (1+ j))
 		(goto-char (car region))
 		(while (setq cache (wisi-forward-find-token target-token (cdr region) t))
 		  (when (eq target-class (wisi-cache-class cache))
@@ -861,7 +868,7 @@ list (number class token_id class token_id ...):
 (defun wisi-extend-action (number)
   "Extend text of cache at token NUMBER to cover all of token NUMBER.
 Also override token with new token."
-  (let* ((token-region (nth (1- number) wisi-tokens));; wisi-tokens is let-bound in wisi-parse-reduce
+  (let* ((token-region (aref wisi-tokens (1- number)));; wisi-tokens is let-bound in wisi-parse-reduce
 	 (token (car token-region))
 	 (region (cdr token-region))
 	cache)
@@ -873,25 +880,26 @@ Also override token with new token."
       )
     ))
 
-(defun wisi-face-action (&rest pairs)
+(defun wisi-face-action (pairs)
   "Cache face information in text properties of tokens.
 Intended as a grammar non-terminal action.
 
-PAIRS is of the form [TOKEN-NUMBER fase] ..."
-  (while pairs
-    (let* ((number (1- (pop pairs)))
-	   (region (cdr (nth number wisi-tokens)));; wisi-tokens is let-bound in wisi-parse-reduce
-	   (face (pop pairs))
-	   cache)
+PAIRS is a vector of the form [TOKEN-NUMBER face TOKEN-NUMBER face ...]"
+  (let (number region face cache (i 0))
+  (while (< i (length pairs))
+    (setq number (1- (aref pairs i)))
+    (setq region (cdr (aref wisi-tokens number)));; wisi-tokens is let-bound in wisi-parse-reduce
+    (setq face (aref pairs (setq i (1+ i))))
+    (setq i (1+ i))
 
-      (when region
-	(setq cache (wisi-get-cache (car region)))
-	(unless cache
-	  (error "wisi-face-action on non-cache"))
-	(setf (wisi-cache-face cache) face)
-	(when (boundp 'jit-lock-mode)
-	  (jit-lock-refontify (car region) (cdr region))))
-      )))
+    (when region
+      (setq cache (wisi-get-cache (car region)))
+      (unless cache
+	(error "wisi-face-action on non-cache"))
+      (setf (wisi-cache-face cache) face)
+      (when (boundp 'jit-lock-mode)
+	(jit-lock-refontify (car region) (cdr region))))
+    )))
 
 ;;;; motion
 (defun wisi-backward-cache ()

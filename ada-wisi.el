@@ -1249,6 +1249,9 @@ cached token, return new indentation for point."
   "For `ada-goto-declaration-start', which see.
 Also return cache at start."
   (wisi-validate-cache (point))
+  (unless (> wisi-cache-max (point))
+    (error "parse failed; can't goto declarative-region-start"))
+
   (let ((cache (wisi-get-cache (point)))
 	(done nil))
     (unless cache

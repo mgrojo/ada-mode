@@ -1,6 +1,5 @@
 ;;; gpr-query.el --- minor-mode for navigating sources using the
-;;; custom gpr_query tool, based on AdaCore cross reference tool
-;;; gnatinspect.
+;;; custom gpr_query tool.
 ;;;
 ;;; gpr-query supports Ada and any gcc language that supports the
 ;;; AdaCore -fdump-xref switch (which includes C, C++).
@@ -370,7 +369,7 @@ buffer in another window."
     ;; FIXME: (define-key map "\C-c\M-d" 'gpr-query-parents)
     ;; FIXME: overriding
     map
-  )  "Local keymap used for GNAT inspect minor mode.")
+  )  "Local keymap used for gpr query minor mode.")
 
 (defvar gpr-query-menu (make-sparse-keymap "gpr-query"))
 (easy-menu-define gpr-query-menu gpr-query-map "Menu keymap for gpr-query minor mode"

@@ -101,9 +101,9 @@ autoloads : force
 #    ADA_MODE_DIR = "-f package-initialize" for testing installed ELPA package
 ADA_MODE_DIR ?= -l define_ADA_MODE_DIR
 
-# All gnat-inspect functions run "gnatinspect" in a background process
-# to save startup time. That fails for some reason in batch mode; the
-# background process never runs. So we don't run tests in batch mode.
+# All gpr-query functions run "gpr_query" in a background process to
+# save startup time. That fails in batch mode; batch mode does not
+# support background processes. So we don't run tests in batch mode.
 %.tmp : % $(INDENT.EL)
 	$(EMACS_EXE) -Q -L .. $(ADA_MODE_DIR) -l $(RUNTEST) --eval '(progn (run-test "$<")(kill-emacs))'
 

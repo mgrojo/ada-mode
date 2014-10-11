@@ -45,6 +45,9 @@ install packages in -Q:
  (list-packages))
 
  next release
+o.e.a.stephe-1: external opentoken parser
+o.e.a.stephe-2: external gps parser
+
 5.1.c: use compiled Ada parser in background process
     (setq wisi-ada-parse-exec "/Projects/org.emacs.ada-mode.stephe-1/build/wisi/ada_mode_wisi_parse.exe")
     build/wisi/Makefile
@@ -606,6 +609,10 @@ set face correctly for name on next line
         but that hangs emacs, and the doc says "don't do that". sigh.
         find emacs-devel thread on lexer doing faces
 
+    use font-lock-face for parser faces?
+        also fontification-functions?
+        (info "Auto Faces")
+
 use post-self-insert-hook for casing
     in 23.2?
 
@@ -630,10 +637,6 @@ implement C++ C-c ? children
 
     overridden_recursive
 
-    gnatinspect --project=gds_dscovr.gpr --nightlydb=gnatinspect.db -c "overridden_recursive transmit_to_bc:SubaddressTX.hpp"
-        nothing (bug?)
-        same for RX
-
     child_types_recursive
         works
 
@@ -645,9 +648,6 @@ add Ada, C++ tests of xref
 cd /home/Projects/GDS/work_stephe_2/dscovr/build/x86_gnu_linux_release/
 
 export ADA_PROJECT_PATH=../../../makerules:../../../common/build/x86_gnu_linux_release:../../../sal/build:../../../sal/build/x86_gnu_linux_release:../../../opentoken/build/linux_release
-
-gnatinspect --project=gds_dscovr.gpr --nightlydb=gnatinspect.db -c "parent_types SubaddressPacket:Gds1553.cpp"
-
 
 parse linker cross reference output; -cref
     for pragma import
@@ -987,7 +987,7 @@ build/Makefile all
 Emacs 24.3, gnat 2014 (sal-standard), installed ada-mode:
     (setenv "ADA_MODE_DIR" "-f package-initialize")
     build/wisi/Makefile all
-        gnatinspect, gpr_query fail on Windows
+        gpr_query fail on Windows
 
 Emacs 24.2, gnat 2014:
     build/Makefile install-elpa # deletes and recompiles, installs cl-lib
