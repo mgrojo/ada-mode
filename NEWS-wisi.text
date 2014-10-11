@@ -7,6 +7,11 @@ Please send wisi bug reports to bug-gnu-emacs@gnu.org, with
 'wisi' in the subject. If possible, use M-x report-emacs-bug.
 
 
+* wisi 1.1.0
+
+** change wisi-*-action to take a vector of arguments; faster for
+   external parser, catches more errors.
+
 * wisi 1.0.6
 28 Sep 2014
 
