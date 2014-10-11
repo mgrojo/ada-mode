@@ -144,76 +144,81 @@ Does not wait for command to complete."
       (switch-to-buffer (wisi-ada-parse--session-buffer wisi-ada-parse-session))
     (error "wisi-ada-parse session not active")))
 
-;;;;; main
+(defun wisi-ada-parse-xlate-codes (elisp-names args)
+  (let ((i 0) ;; arg index
+	)
+    (while (< i (length args))
+      (when (< (aref args i) 0)
+	    (aset args i (aref elisp-names (- (aref args i)))))
+      (setq i (1+ i))
+      )
+    ))
+
+(defun wisi-ada-parse-exec-action (elisp-names action)
+  (let ((func (aref elisp-names (- (car action))))
+	(i 0) ;; arg index
+	j ;; sequence arg index
+	)
+    (while (< i (length (cdr action)))
+      (cond
+	 ((sequencep (aref (cdr action) i))
+	  (wisi-ada-parse-xlate-codes elisp-names (aref (cdr action) i)
+	  )
+
+	 (t
+	  (when (< (aref (cdr action) i) 0)
+	    (aset (cdr action) i (aref elisp-names (- (aref (cdr action) i)))))
+	  ))
+      (setq i (1+ i))
+      )
+    (apply func (append (cdr action) nil));; FIXME; rewrite actions to take arrays?
+    ))
 
 (defun wisi-ada-parse-execute (elisp-names sexp)
   "Execute encoded SEXP sent from subprocess."
   ;; sexp is an encoded version of a wisi parser action, with the token list prepended:
   ;;
   ;; A typical action is:
-  ;; ((token token ...)
-  ;;  (
-  ;;  (action-name arg arg ...)
-  ;;  (action-name arg arg ...)
+  ;; [[token token ...]
+  ;;  [
+  ;;  (action-name . [arg arg ...])
+  ;;  (action-name . [arg arg ...])
   ;;  ...
-  ;;  )
-  ;; )
+  ;;  ]
+  ;; ]
   ;;
   ;; or, if there is only one action:
-  ;; ((token token ...)
-  ;;  (action-name arg arg ...)
-  ;; )
+  ;; [[token token ...)
+  ;;  [action-name arg arg ...]
+  ;; ]
   ;;
   ;; arg can be:
   ;; positive integer: token number
   ;; negative integer: symbol
   ;; list of integers
-  ;;
+
   ;; Translate the codes back to elisp symbols, execute
-  (let (codes codes-1 token wisi-tokens func arg args args-1)
-    (setq codes (pop sexp))
-    (while codes
-      (setq token (pop codes))
-      (setcar token (aref elisp-names (car token)))
-      (if wisi-tokens
-	  (setq wisi-tokens (cons token wisi-tokens))
-	(setq wisi-tokens (list token))))
-    (setq wisi-tokens (nreverse wisi-tokens))
-    (when (sequencep (caar sexp))
-      ;; multiple actions
-      (setq sexp (car sexp)))
-    (while sexp
-      (setq codes (pop sexp))
-      (setq func (aref elisp-names (- (pop codes))))
-      (setq args nil)
-      (while codes
-	(setq arg (pop codes))
-	(cond
-	 ((sequencep arg)
-	  (setq codes-1 arg)
-	  (while codes-1
-	    (setq arg (pop codes-1))
-	    (when (< arg 0)
-	      (setq arg (aref elisp-names (- arg))))
-	    (if args-1
-		(setq args-1 (cons arg args-1))
-	      (setq args-1 (list arg)))
-	    )
-	  (setq arg (nreverse args-1))
-	  )
-
-	 (t
-	  (when (< arg 0)
-	    (setq arg (aref elisp-names (- arg)))))
-	 )
-
-	(if args
-	    (setq args (cons arg args))
-	  (setq args (list arg)))
+  (let ((i 0);; token or arg index
+	(j 0);; action index
 	)
-      (setq args (nreverse args))
-      (apply func args))
+
+    ;; tokens = (aref sexp 0)
+    ;; token = (aref tokens i)
+    (while (< i (length (aref sexp 0)))
+      (setcar (aref (aref sexp 0) i) (aref elisp-names (car (aref (aref sexp 0) i))))
+      (setq i (1+ i)))
+    (setq wisi-tokens (append (aref sexp 0) nil));; FIXME; rewrite actions to take arrays?
+
+    (if (arrayp (aref sexp 1))
+	;; multiple actions
+	(while (< j (length (aref sexp 1)))
+	  (wisi-ada-parse-exec-action elisp-names (aref (aref sexp 1) j))
+	  (setq j (1+ j)))
+      ;; single action
+      (wisi-ada-parse-exec-action elisp-names (aref sexp 1)))
     ))
+
+;;;;; main
 
 (defun wisi-ada-parse (elisp-names)
   (wisi-ada-parse-require-session)
@@ -243,13 +248,13 @@ Does not wait for command to complete."
     (while (and (process-live-p process)
 		(not done))
 
-      ;; process output is inserted before point, so move back over it to search it
-      (goto-char sexp-start)
-
       ;; process all responses currently in buffer
       (while (and (process-live-p process)
 		  (not need-more)
 		  (not done))
+
+	(goto-char sexp-start)
+
 	(cond
 	 ((eobp)
 	  (setq need-more t))
@@ -259,7 +264,8 @@ Does not wait for command to complete."
 
 	 ((looking-at "^;;")
 	  ;; debug output
-	  (forward-line 1))
+	  (forward-line 1)
+	  (setq sexp-start (point)))
 
 	 ((condition-case nil
 	      (setq action-end (scan-sexps (point) 1))
@@ -275,7 +281,7 @@ Does not wait for command to complete."
 	  (setq sexp-start (point))
 
 	  (set-buffer source-buffer)
-	  (if (symbolp (car action))
+	  (if (listp action)
 	      ;; post-parser action
 	      (eval action)
 	    ;; encoded parser action
@@ -345,17 +351,21 @@ Does not wait for command to complete."
 	(forward-line 1)
 
 	(set-buffer source-buffer)
-	(if (symbolp (car action))
+	(if (and (listp action)
+		 (symbolp (car action)))
 	    ;; post-parser action
 	    (eval action)
 	  ;; encoded parser action
-	  (wisi-ada-parse-execute elisp-names action))
+	  (if (arrayp action)
+	      (wisi-ada-parse-execute-arr elisp-names action)
+	    (wisi-ada-parse-execute elisp-names action)))
 
 	(set-buffer action-buffer)
 	)))
 
-    (message "total time: %f" (- (float-time) start-time))
-    (message "action-count: %d" action-count)
+    (when (> wisi-ada-parse-debug 0)
+      (message "total time: %f" (- (float-time) start-time))
+      (message "action-count: %d" action-count))
     ))
 
 (provide 'wisi-ada-parse)

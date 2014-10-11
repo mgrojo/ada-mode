@@ -62,118 +62,114 @@ install packages in -Q:
 
     c:/Projects/org.opentoken.stephe/build/debug/Makefile
 
-    compiling ada_grammar.adb is slow, run_ada_parser is slow:
-        build/wisi/ada_mode_wisi_parse.gpr
-        compile time: gprbuild -p ada_mode_wisi_parse_agg.gpr run_ada_parser.adb
-        parse time: run_ada_parser gnatcoll-xref.adb
+compiling ada_grammar.adb is slow, run_ada_parser is slow:
+    build/wisi/ada_mode_wisi_parse.gpr
+    compile time: gprbuild -p ada_mode_wisi_parse_agg.gpr run_ada_parser.adb
+    parse time: run_ada_parser gnatcoll-xref.adb
 
-        options                                 compile time    parse time
-        -g -02 -fno-var-tracking-assignments    1m46.689s       0m1.513s
-        -g -01 -fno-var-tracking-assignments    1m38.405s       0m1.591s
-        -g -00 -fno-var-tracking-assignments    0m29.765s       0m1.763s
+    options                                 compile time    parse time
+    -g -02 -fno-var-tracking-assignments    1m46.689s       0m1.513s
+    -g -01 -fno-var-tracking-assignments    1m38.405s       0m1.591s
+    -g -00 -fno-var-tracking-assignments    0m29.765s       0m1.763s
 
+wisi-parse-buffer is slow:
     philippe.waroquiers@eurocontrol.int has a file that takes 10 seconds to parse with Emacs Ada mode 5.1.4
         needs to be < 1 second
         apparantly around 70,000 lines, 250,000 bytes
 
     time applying actions:
         (wisi-ada-parse-exec-buffer "gnatcoll-xref.actions" "gnatcoll-xref.adb" ada_grammar-names)
-            3.704212, 1.620002, 1.655002 seconds 20527 actions
+            lists 1.570002, 1.675002, 1.620002 seconds 20527 actions
 
             comment out (apply func args): 0.686401 seconds
+            comment out (wisi-ada-parse-execute ): 0.260000
+            comment out (read-from-string ): 0.115000
 
         (wisi-ada-parse-exec-buffer "ada_mode_wisi_parse.actions" "ada_mode_wisi_parse.adb" ada_grammar-names)
-            0.046800 seconds 699 actions
+            lists 0.046800 seconds 699 actions
 
         use arrays not lists for wisi-tokens, actions
-            write one action buffer by hand (translate debug.adb)
-            time-it 10000
+            write one action buffer by hand (translate debug.adb actions)
+                test/debug.actions
+            (time-it
+             (lambda () (wisi-ada-parse-exec-buffer "debug.actions" "debug.adb" ada_grammar-names))
+             1000)
+                0.455001
+                byte-compiled 0.320001, 0.180000, 0.170000, 0.165000, 0.180000
+            (time-it
+             (lambda () (wisi-ada-parse-exec-buffer "debug.actions-arr" "debug.adb" ada_grammar-names))
+             1000)
+                0.415001
+                byte-compiled 0.145000, 0.150000, 0.130000, 0.140000, 0.145000
 
+            arrays 17% faster
 
+        testing opentoken
+            need test of list arg:       (wisi-motion-action 1 5 7 '(8 block-middle EXCEPTION block-middle WHEN) 9))
 
-    time wisi-parse-buffer
-        'elisp:
+time wisi-parse-buffer
+    'ada:
+    (progn
+        (setq wisi-parser 'ada)
+        (setq wisi-ada-parse-debug 1))
+    or
+    (progn
+        (setq wisi-parser 'ada)
+        (setq wisi-ada-parse-debug 0)
+        (wisi-invalidate-cache)
+        (time-it 'wisi-parse-buffer 1))
+
+    (progn (profiler-start 'cpu) (time-it 'wisi-parse-buffer 10) (profiler-report) (profiler-stop))
+
+    'command:
+        time ./run_ada_parser file > parse.text
+
+    'cat:
+        (require 'extract-text-props)
+        (let ((w32-pipe-read-delay 0))
+           (pipe-torture "cat.exe"))
+        pipe-torture is in extract-text-props.el
+
+    'elisp:
         (progn
             (setq wisi-parser 'elisp)
             (wisi-invalidate-cache)
             (time-it 'wisi-parse-buffer 1))
 
-        'ada:
-        (progn
-            (setq wisi-parser 'ada)
-            (setq wisi-ada-parse-debug 1))
-        or
-        (progn
-            (setq wisi-parser 'ada)
-            (setq wisi-ada-parse-debug 0)
-            (wisi-invalidate-cache)
-            (time-it 'wisi-parse-buffer 1))
+    /apps/GNAT-gpl_2014/gnatcoll-1.7w-src/src/sqlite/gnatcoll-xref.adb
+        7082 lines, 250780 bytes, 13570 caches
+        actions: 20527  encoded actions: 78885 lines, 1393119 bytes
+        coded actions saved in c:/Projects/org.emacs.ada-mode.stephe-1/gnatcoll-xref.actions
 
-        (progn (profiler-start 'cpu) (time-it 'wisi-parse-buffer 10) (profiler-report) (profiler-stop))
+        cygwin:
+            'ada: 0.995001, 0.890001, 0.845001
 
-        'command:
-            time run_ada_parser file > parse.text
+            'cat: 0.085000, 0.070000
 
-        'cat:
-            (pipe-torture "cat.exe")
-            pipe-torture is in extract-text-props.el
+            'elisp: 1.480002, 1.705002, 1.715003
 
-        cygwin 'ada hangs!
-            debug on debian
+        windows:
+            'ada: 0.995002, 1.050001
 
-        /apps/GNAT-gpl_2014/gnatcoll-1.7w-src/src/sqlite/gnatcoll-xref.adb
-            7082 lines, 250780 bytes, 13570 caches
-            actions: 20527  encoded actions: 78885 lines, 1393119 bytes
-            coded actions saved in c:/Projects/org.emacs.ada-mode.stephe-1/gnatcoll-xref.actions
+            'command: 0m0.200s, 0m0.065s, 0m0.050s
 
-            'command: 0m0.811s, 0m0.796s
+            'cat: 0.075000, 0.075000
 
-            'cat: 2.012403
+            'elisp: 1.615002, 1.635002
 
-            'ada: 23 seconds
-            (setq w32-pipe-read-delay 0): 1.155002, 1.045001
+        linux:
+            'ada: using gnat 2013
 
-            'elisp: 2.455444
-                GC 17%
-                wisi-exec-action 17%
-                wisi-forward-token 5%
+            'cat:
 
-        ada_mode_wisi_parse.adb
-            lines: 251 bytes: 8846
-            actions: 699 encoded actions: 2709 lines, 44252 bytes
-            ada_mode_wisi_parse.actions
+    ada_mode_wisi_parse.adb
+        lines: 251 bytes: 8846
+        actions: 699 encoded actions: 2709 lines, 44252 bytes
+        ada_mode_wisi_parse.actions
 
-            'command: 0m0.047s
+                'command: 0m0.047s
 
-            'ada: 0.764402
-36parse "ada_mode_wisi_parse.adb" 8845
-wisi-ada-parse-send: 0.000000 point-max: 1
-wisi-ada-parse-session-wait: 1 0.062400 0.062400
-action-count: 0 point: 3852 point-max: 3852
-wisi-ada-parse-session-wait: 2 0.124800 0.062400
-action-count: 62 point: 3851 point-max: 7705
-wisi-ada-parse-session-wait: 3 0.187200 0.062400
-action-count: 128 point: 7697 point-max: 11562
-wisi-ada-parse-session-wait: 4 0.249601 0.062401
-action-count: 188 point: 11442 point-max: 15427
-wisi-ada-parse-session-wait: 5 0.312001 0.046800
-action-count: 245 point: 15420 point-max: 19293
-wisi-ada-parse-session-wait: 6 0.374401 0.046800
-action-count: 303 point: 19262 point-max: 23156
-wisi-ada-parse-session-wait: 7 0.436801 0.062400
-action-count: 364 point: 23069 point-max: 27034
-wisi-ada-parse-session-wait: 8 0.624001 0.000000
-action-count: 418 point: 26997 point-max: 30884
-wisi-ada-parse-session-wait: 9 0.686401 0.062400
-action-count: 484 point: 30853 point-max: 34739
-wisi-ada-parse-session-wait: 10 0.748801 0.062400
-action-count: 546 point: 34730 point-max: 38577
-wisi-ada-parse-session-wait: 11 0.811202 0.062401
-action-count: 617 point: 38572 point-max: 42459
-wisi-ada-parse-session-wait: 12 0.873602 0.046800
-action-count: 670 point: 42423 point-max: 44251
-total time: 0.873602
-action-count: 699
+                'ada: 0.764402
 
         use elp (emacs lisp profiler)?
         (with-current-buffer (find-file-noselect "~/src/xdisp.c")
@@ -316,6 +312,8 @@ action-count: 699
 
         c:/Projects/emacs/emacs-24.3.94/src/process.c
             send_process : delay is second arg in wait_reading_process_output
+
+            windows:
             (pipe-torture "/Projects/org.emacs.ada-mode.stephe-1/build/wisi/debug.exe" "4096")
             (* 0.020 (/ 974233 4096)) = 4.74
             20 * 1000 * 1000 : 4.450068
@@ -323,54 +321,14 @@ action-count: 699
              0 * 1000 * 1000 : hangs until C-g (blocking call)
             -1 : (busy wait)
 
-
-read/write code flow
-
-c:/Projects/emacs/emacs-24.3.94/src/process.c:5683 send_process
-    5528: calls emacs_write_sig with orig or write queue data
-        ADAPTIVE_READ_BUFFERING defined at process.c:258 (by default)
-        sets proc->read_output_delay = p->read_output_skip = 0
-        if not all written:
-            emacs_write_sig sets errno == EWOULDBLOCK || errno == EAGAIN
-            5578: send_process pushes remainder to write queue
-            send_process calls process.c:4282 wait_reading_process_output
-                (time_limit => 0,
-                 nsecs => 20ms,
-                 read_kbd => 0,
-                 do_display => 0,
-                 wait_for_cell => Qnil,
-                 wait_proc => NULL,
-                 just_wait_proc => 0),
-            loops to send from write queue
-        send_process returns when write queue is empty
-
-c:/Projects/emacs/emacs-24.3.94/src/process.c:4282 wait_reading_process_output
-    4342: if keyboard input, calls keyboard.c:7101 process_pending_signals
-    4402: runs timers while ! keyboard.c:9872 detect_input_pending ()
-    4453: calls pselect (desc_count, read_fd_set, write_fd_set, NULL, timeout, NULL)
-    4605: calls pselect (desc_count, read_fd_set, write_fd_set, NULL, timeout, NULL)
-    4808: if process input, calls read_process_output
-
-c:/Projects/emacs/emacs-24.3.94/nt/inc/ms-w32.h:219 #define pselect sys_select
-
-c:/Projects/emacs/emacs-24.3.94/src/w32proc.c:1914 sys_select
-    1991: if reader_thread status is STATUS_READ_ACKNOWLEDGED:
-        change it to STATUS_READ_READY
-        signal char_consumed
-    2094: WaitForMultipleObjects (nh + nc, wait_hnd {= reader thread}, FALSE, timeout_ms {= 20ms});
-
-c:/Projects/emacs/emacs-24.3.94/src/w32proc.c:998 reader_thread
-    1018: calls w32.c:7900_sys_read_ahead
-
-c:/Projects/emacs/emacs-24.3.94/src/w32.c:
-    7924: calls rc = _read (fd, &cp->chr, sizeof (char)); {c lib file read ?)
-    7938: calls Sleep (w32_pipe_read_delay); sleeps 50 ms!
-        elisp var w32-pipe-read-delay
-        try setting it to 0
-        needs to be per child!
-
-c:/Projects/emacs/emacs-24.3.94/src/w32proc.c:3223 w32_pipe_read_delay = 50; {in syms_of_ntproc}
-
+            linux:
+            (require 'extract-text-props)
+            (pipe-torture "/home/Projects/org.emacs.ada-mode.stephe-1/build/wisi/debug_counted" "974233" "974233")
+            send_process : delay is second arg in wait_reading_process_output
+            internal pipe size is 65536
+            20 * 1000 * 1000 : 0.3
+            10 * 1000 * 1000 : 0.29
+            -1 (busy wait)   : 0.3 !?
 
     Emacs dead lock: see bug 18420
         c:/home/stephe/Mail/drafts/message-20140907-003138
