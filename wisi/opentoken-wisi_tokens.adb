@@ -106,11 +106,11 @@ package body OpenToken.Wisi_Tokens is
       --  In the elisp parser, 'wisi-tokens' is bound to the tokens in the
       --  RHS of the production.
       --
-      --  We return a list of tokens as integer codes '((code range)
-      --  (code range) ...)'; the elisp code will bind that to
+      --  We return a list of tokens as integer codes '[(code range)
+      --  (code range) ...]'; the elisp code will bind that to
       --  wisi-tokens.
 
-      Token_Line : Bounded_String := To_Bounded_String ("(");
+      Token_Line : Bounded_String := To_Bounded_String ("[");
    begin
       loop
          exit when I = Null_Iterator;
@@ -129,7 +129,7 @@ package body OpenToken.Wisi_Tokens is
 
          Next_Token (I);
          if I = Null_Iterator then
-            Token_Line := Token_Line & ")";
+            Token_Line := Token_Line & "]";
          end if;
       end loop;
       return To_String (Token_Line);

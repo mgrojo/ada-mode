@@ -119,37 +119,43 @@ is
    procedure Get_Elisp_Names (Line : in String)
    is
       --  Line is a wisi action:
-      --  (wisi-statement-action 1 'block-start 2 'name-paren 5 'block-middle 7 'block-end 9 'statement-end)
+      --  (wisi-statement-action [1 'block-start 2 'name-paren 5 'block-middle 7 'block-end 9 'statement-end])
       --  (wisi-containing-action 2 3)
-      --  (wisi-motion-action 1 5 '(6 block-middle EXCEPTION block-middle WHEN))
-      --  (wisi-face-action 2 'font-lock-keyword-face 4 'font-lock-type-face)
+      --  (wisi-motion-action 1 5 [6 block-middle EXCEPTION block-middle WHEN]])
+      --  (wisi-face-action [2 'font-lock-keyword-face 4 'font-lock-type-face])
       --  ...
       --
       --  Enter all names in Elisp_Names
-      I     : Integer := Line'First;
-      First : Integer := Line'First - 1;
+      I       : Integer := Line'First;
+      First   : Integer := Line'First - 1;
+      In_Name : Boolean := False;
    begin
       loop
-         exit when I > Line'Last;
+         exit when not In_Name and I > Line'Last;
 
-         case Line (I) is
-         when '(' =>
-            null;
-
-         when ' ' | ')' =>
-            if First /= Line'First - 1 then
-               Add_Elisp_Name (Line (First .. I - 1));
-               First := Line'First - 1;
+         if In_Name then
+            if I > Line'Last or else
+              (Line (I) = ' ' or Line (I) = ']' or Line (I) = ')')
+            then
+               In_Name := False;
+               if Line (First .. I - 1) = "progn" then
+                  null; -- special form, not symbol
+               else
+                  Add_Elisp_Name (Line (First .. I - 1));
+               end if;
+            else
+               null;
             end if;
+         else
+            case Line (I) is
+            when '(' | ')' | '[' | ']' | '0' .. '9' | ' ' =>
+               null;
 
-         when '0' .. '9' | ''' =>
-            null;
-
-         when others =>
-            if First = Line'First - 1 then
-               First := I;
-            end if;
-         end case;
+            when others =>
+               In_Name := True;
+               First   := I;
+            end case;
+         end if;
 
          I := I + 1;
       end loop;
@@ -163,6 +169,9 @@ is
 
       I     : Integer := Line'First;
       First : Integer := Line'First - 1;
+
+      In_Name      : Boolean := False;
+      In_Func_Name : Boolean := False;
 
       function Find (Name : in String) return Integer
       is
@@ -190,37 +199,53 @@ is
          Code  : constant Integer := Find (Name);
          Image : constant String  := OpenToken.Int_Image (Code);
       begin
-         for K in Image'Range loop
-            J := J + 1;
-            Result (J) := Image (K);
-         end loop;
+         Result (J + 1 .. J + Image'Length) := Image;
+         J := J + Image'Length;
       end Add;
 
    begin
       loop
-         exit when I > Line'Last;
+         exit when not In_Name and I > Line'Last;
 
-         case Line (I) is
-         when '(' | '0' .. '9' =>
-            J := J + 1;
-            Result (J) := Line (I);
-
-         when ''' =>
-            null;
-
-         when ' ' | ')' =>
-            if First /= Line'First - 1 then
-               Add (Line (First .. I - 1));
-               First := Line'First - 1;
+         if In_Name then
+            if I > Line'Last or else
+              (Line (I) = ' ' or Line (I) = ']' or Line (I) = ')')
+            then
+               In_Name := False;
+               if In_Func_Name then
+                  In_Func_Name := False;
+                  if Line (First .. I - 1) = "progn" then
+                     J := J + 1;
+                     Result (J) := '[';
+                  else
+                     J := J + 1;
+                     Result (J) := '(';
+                     Add (Line (First .. I - 1));
+                  end if;
+               else
+                  Add (Line (First .. I - 1));
+                  if I <= Line'Last then
+                     J := J + 1;
+                     Result (J) := Line (I);
+                  end if;
+               end if;
+            else
+               null;
             end if;
-            J := J + 1;
-            Result (J) := Line (I);
+         else
+            case Line (I) is
+            when '(' =>
+               In_Func_Name := True;
 
-         when others =>
-            if First = Line'First - 1 then
-               First := I;
-            end if;
-         end case;
+            when ')' | '[' | ']' | ' ' | '0' .. '9' =>
+               J := J + 1;
+               Result (J) := Line (I);
+
+            when others =>
+               In_Name := True;
+               First   := I;
+            end case;
+         end if;
 
          I := I + 1;
       end loop;
@@ -506,12 +531,12 @@ is
                         --  codes, for faster interpretation on the
                         --  elisp side.
 
-                        Indent_Line ("Put_Line ('(' & To_Codes (Source));");
+                        Indent_Line ("Put_Line ('[' & To_Codes (Source));");
                         for Line of RHS.Action loop
                            Get_Elisp_Names (Line);
                            Indent_Line ("Put_Line (""" & To_Codes (Line) & """);");
                         end loop;
-                        Indent_Line ("Put_Line ("")"");");
+                        Indent_Line ("Put_Line (""]"");");
                         Indent := Indent - 3;
                         Indent_Line ("end " & Name & ";");
                         New_Line;

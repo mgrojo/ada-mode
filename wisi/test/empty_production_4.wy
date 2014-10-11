@@ -22,9 +22,12 @@ compilation_unit
   : subprogram_declaration subprogram_declaration subprogram_declaration
   ;
 
+;; test progn, names with -, digits
 subprogram_declaration
   : overriding_indicator other_indicator PROCEDURE IDENTIFIER SEMICOLON
-    (wisi-statement-action 1 'statement-start 2 'statement-other 4 'name)
+    (progn
+      (wisi-statement-action 1 'statement-start 2 'statement-other 4 'name-1)
+      (wisi-motion-action 3 5))
   ;
 
 overriding_indicator
