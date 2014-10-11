@@ -33,9 +33,9 @@ object_declaration_list
 
 object_declaration
   : IDENTIFIER aliased_opt constant_opt SEMICOLON
-    (wisi-statement-action 1 'statement-start 4 'statement-end)
+    (wisi-statement-action [1 statement-start 4 statement-end])
   | IDENTIFIER constant_opt COLON_EQUAL SEMICOLON
-    (wisi-statement-action 1 'statement-start 3 'statement-other 4 'statement-end)
+    (wisi-statement-action [1 statement-start 3 statement-other 4 statement-end])
   ;
 
 aliased_opt

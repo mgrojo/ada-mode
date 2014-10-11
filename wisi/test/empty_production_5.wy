@@ -24,7 +24,7 @@ compilation_unit
 
 accept_statement
   : ACCEPT name parameter_profile SEMICOLON
-    (wisi-statement-actions 1 'statement-start 4 'statement-end)
+    (wisi-statement-actions [1 statement-start 4 statement-end])
   ;
 
 name : IDENTIFIER ;

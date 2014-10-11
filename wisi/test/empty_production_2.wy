@@ -47,7 +47,7 @@ declarations
 
 body
   : IS declarations BEGIN SEMICOLON
-    (wisi-statement-action 1 'block-middle 3 'block-middle 4 'statement-end)
+    (wisi-statement-action [1 block-middle 3 block-middle 4 statement-end])
   ;
 
 %%

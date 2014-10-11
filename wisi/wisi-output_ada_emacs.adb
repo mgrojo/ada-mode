@@ -148,7 +148,7 @@ is
             end if;
          else
             case Line (I) is
-            when '(' | ')' | '[' | ']' | '0' .. '9' | ' ' =>
+            when '(' | ')' | '[' | ']' | '0' .. '9' | ''' | ' ' =>
                null;
 
             when others =>
@@ -172,6 +172,7 @@ is
 
       In_Name      : Boolean := False;
       In_Func_Name : Boolean := False;
+      In_Action    : Boolean := False;
 
       function Find (Name : in String) return Integer
       is
@@ -215,12 +216,16 @@ is
                if In_Func_Name then
                   In_Func_Name := False;
                   if Line (First .. I - 1) = "progn" then
+                     In_Action := False;
                      J := J + 1;
                      Result (J) := '[';
                   else
+                     In_Action := True;
                      J := J + 1;
                      Result (J) := '(';
                      Add (Line (First .. I - 1));
+                     J := J + 1;
+                     Result (J) := ' ';
                   end if;
                else
                   Add (Line (First .. I - 1));
@@ -237,7 +242,17 @@ is
             when '(' =>
                In_Func_Name := True;
 
-            when ')' | '[' | ']' | ' ' | '0' .. '9' =>
+            when ')' =>
+               J := J + 1;
+               if In_Action then
+                  In_Action := False;
+                  Result (J) := ')';
+               else
+                  --  replace (progn ...) with [ ... ]
+                  Result (J) := ']';
+               end if;
+
+            when '[' | ']' | ' ' | ''' | '0' .. '9' =>
                J := J + 1;
                Result (J) := Line (I);
 

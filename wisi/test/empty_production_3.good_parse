@@ -28,9 +28,9 @@
  ... goto state 5
  1 stack:  5 : (parameter_specification 15 . 30),  4 : (parameter_specification 1 . 13),  1 : , 
  1: 5: (EOF 31 . 31) : reduce 2 tokens to compilation_unit
-(let ((wisi-tokens '((parameter_specification 1 . 13) (parameter_specification 15 . 30))))
-(setq wisi-test-success 't)
-)
+[[(8 1 . 13)(8 15 . 30)]
+(-9 -10 '-11)
+]
  ... goto state 3
  1 stack:  3 : (compilation_unit 1 . 30),  1 : , 
  1: 3: (EOF 31 . 31) : shift and goto state 6

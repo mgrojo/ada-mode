@@ -58,18 +58,18 @@ declaration
 
 subprogram
   : FUNCTION parameter_list SYMBOL
-    (wisi-statement-action 1 'function 3 'name)
+    (wisi-statement-action [1 function 3 name])
   | PROCEDURE parameter_list SYMBOL
-    (wisi-statement-action 1 'procedure 3 'name)
+    (wisi-statement-action [1 procedure 3 name])
   ;
 
 ;; not on one line, empty production with comment
 parameter_list
   : LEFT_PAREN RIGHT_PAREN ;; c-like no parameters
-    (wisi-statement-action 1 'open-paren 2 'close-paren)
+    (wisi-statement-action [1 open-paren 2 close-paren])
   | ;; ada-like no parameters
   | LEFT_PAREN SYMBOL RIGHT_PAREN
-    (wisi-statement-action 1 'open-paren 3 'close-paren)
+    (wisi-statement-action [1 open-paren 3 close-paren])
 
   | TICK STRING_LITERAL ;; just to mention required tokens, so they are not unused
   ;

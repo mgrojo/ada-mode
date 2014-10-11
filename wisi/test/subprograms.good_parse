@@ -8,17 +8,17 @@
  1: 18: (RIGHT_PAREN 14 . 14) : shift and goto state 19
  1 stack:  19 : (RIGHT_PAREN 14 . 14),  18 : (SYMBOL 11 . 13),  10 : (LEFT_PAREN 10 . 10),  2 : (FUNCTION 1 . 8),  1 : , 
  1: 19: (SYMBOL 16 . 18) : reduce 3 tokens to parameter_list
-(let ((wisi-tokens '((LEFT_PAREN 10 . 10) (SYMBOL 11 . 13) (RIGHT_PAREN 14 . 14))))
-(wisi-statement-action 1 'open-paren 3 'close-paren)
-)
+[[(2 10 . 10)(5 11 . 13)(4 14 . 14)]
+(-15 [1 -19 3 -20])
+]
  ... goto state 13
  1 stack:  13 : (parameter_list 10 . 14),  2 : (FUNCTION 1 . 8),  1 : , 
  1: 13: (SYMBOL 16 . 18) : shift and goto state 14
  1 stack:  14 : (SYMBOL 16 . 18),  13 : (parameter_list 10 . 14),  2 : (FUNCTION 1 . 8),  1 : , 
  1: 14: (PROCEDURE 21 . 29) : reduce 3 tokens to subprogram
-(let ((wisi-tokens '((FUNCTION 1 . 8) (parameter_list 10 . 14) (SYMBOL 16 . 18))))
-(wisi-statement-action 1 'function 3 'name)
-)
+[[(1 1 . 8)(14 10 . 14)(5 16 . 18)]
+(-15 [1 -16 3 -17])
+]
  ... goto state 7
  1 stack:  7 : (subprogram 1 . 18),  1 : , 
  1: 7: (PROCEDURE 21 . 29) : reduce 1 tokens to declaration
@@ -35,9 +35,9 @@
  1: 12: (SYMBOL 31 . 36) : shift and goto state 15
  1 stack:  15 : (SYMBOL 31 . 36),  12 : (parameter_list),  3 : (PROCEDURE 21 . 29),  5 : (declarations 1 . 18),  1 : , 
  1: 15: (EOF 37 . 37) : reduce 3 tokens to subprogram
-(let ((wisi-tokens '((PROCEDURE 21 . 29) (parameter_list) (SYMBOL 31 . 36))))
-(wisi-statement-action 1 'procedure 3 'name)
-)
+[[(3 21 . 29)(14)(5 31 . 36)]
+(-15 [1 -18 3 -17])
+]
  ... goto state 7
  1 stack:  7 : (subprogram 21 . 36),  5 : (declarations 1 . 18),  1 : , 
  1: 7: (EOF 37 . 37) : reduce 1 tokens to declaration

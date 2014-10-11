@@ -21,6 +21,7 @@
    statement-other
    name-1
    wisi-motion-action
+   wisi-extend-action
    ])
 
 (provide 'empty_production_4)

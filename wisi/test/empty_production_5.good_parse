@@ -18,9 +18,9 @@
  1: 10: (SEMICOLON 20 . 20) : shift and goto state 11
  1 stack:  11 : (SEMICOLON 20 . 20),  10 : (parameter_profile 15 . 19),  8 : (name 8 . 13),  2 : (ACCEPT 1 . 6),  1 : , 
  1: 11: (ACCEPT 22 . 27) : reduce 4 tokens to accept_statement
-(let ((wisi-tokens '((ACCEPT 1 . 6) (name 8 . 13) (parameter_profile 15 . 19) (SEMICOLON 20 . 20))))
-(wisi-statement-actions 1 'statement-start 4 'statement-end)
-)
+[[(1 1 . 6)(10 8 . 13)(11 15 . 19)(4 20 . 20)]
+(-12 [1 -13 4 -14])
+]
  ... goto state 4
  1 stack:  4 : (accept_statement 1 . 20),  1 : , 
  1: 4: (ACCEPT 22 . 27) : shift and goto state 2
@@ -36,9 +36,9 @@
  1: 10: (SEMICOLON 35 . 35) : shift and goto state 11
  1 stack:  11 : (SEMICOLON 35 . 35),  10 : (parameter_profile),  8 : (name 29 . 34),  2 : (ACCEPT 22 . 27),  4 : (accept_statement 1 . 20),  1 : , 
  1: 11: (EOF 36 . 36) : reduce 4 tokens to accept_statement
-(let ((wisi-tokens '((ACCEPT 22 . 27) (name 29 . 34) (parameter_profile) (SEMICOLON 35 . 35))))
-(wisi-statement-actions 1 'statement-start 4 'statement-end)
-)
+[[(1 22 . 27)(10 29 . 34)(11)(4 35 . 35)]
+(-12 [1 -13 4 -14])
+]
  ... goto state 5
  1 stack:  5 : (accept_statement 22 . 35),  4 : (accept_statement 1 . 20),  1 : , 
  1: 5: (EOF 36 . 36) : reduce 2 tokens to compilation_unit
