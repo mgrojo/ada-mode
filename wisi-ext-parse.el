@@ -187,18 +187,20 @@ Does not wait for command to complete."
   ;; sexp is an encoded version of a wisi parser action, with the token list prepended:
   ;;
   ;; A typical action is:
-  ;; [[token token ...]
+  ;; [nonterm
+  ;;  [token token ...]
   ;;  [
-  ;;  (action-name [arg arg ...])
-  ;;  (action-name [arg arg ...])
-  ;;  (action-name arg arg)
-  ;;  (action-name arg)
-  ;;  ...
+  ;;   (action-name [arg arg ...])
+  ;;   (action-name [arg arg ...])
+  ;;   (action-name arg arg)
+  ;;   (action-name arg)
+  ;;   ...
   ;;  ]
   ;; ]
   ;;
   ;; or, if there is only one action:
-  ;; [[token token ... ]
+  ;; [nonterm
+  ;;  [token token ... ]
   ;;  (action-name [arg arg ... ])
   ;; ]
   ;;
@@ -210,22 +212,25 @@ Does not wait for command to complete."
   ;; Translate the codes back to elisp symbols, execute
   (let ((i 0);; token or arg index
 	(j 0);; action index
+	($nterm (aref elisp-names (- (aref sexp 0))))
+	wisi-tokens
 	)
 
-    ;; tokens = (aref sexp 0)
-    ;; token = (aref tokens i)
-    (while (< i (length (aref sexp 0)))
-      (setcar (aref (aref sexp 0) i) (aref elisp-names (car (aref (aref sexp 0) i))))
+    ;; wisi-tokens = (aref sexp 1)
+    ;; token       = (aref tokens i)
+    (while (< i (length (aref sexp 1)))
+      (setcar (aref (aref sexp 1) i) (aref elisp-names (car (aref (aref sexp 1) i))))
       (setq i (1+ i)))
-    (setq wisi-tokens (aref sexp 0))
 
-    (if (arrayp (aref sexp 1))
+    (setq wisi-tokens (aref sexp 1))
+
+    (if (arrayp (aref sexp 2))
 	;; multiple actions
-	(while (< j (length (aref sexp 1)))
-	  (wisi-ext-parse-exec-action elisp-names (aref (aref sexp 1) j))
+	(while (< j (length (aref sexp 2)))
+	  (wisi-ext-parse-exec-action elisp-names (aref (aref sexp 2) j))
 	  (setq j (1+ j)))
       ;; single action
-      (wisi-ext-parse-exec-action elisp-names (aref sexp 1)))
+      (wisi-ext-parse-exec-action elisp-names (aref sexp 2)))
     ))
 
 ;;;;; main
@@ -248,11 +253,6 @@ Does not wait for command to complete."
 
     (wisi-ext-parse-session-send-parse)
     (set-buffer action-buffer)
-
-    (when (> wisi-ext-parse-debug 0)
-      (message "wisi-ext-parse-send: %f point-max: %d"
-	       (- (float-time) start-time)
-	       (point-max)))
 
     ;; process responses until prompt received
     (while (and (process-live-p process)
@@ -310,12 +310,6 @@ Does not wait for command to complete."
 	(setq wait-count (1+ wait-count))
 	(setq start-wait-time (float-time))
 	(accept-process-output process) ;; no time-out; that's a race condition
-	(when (> wisi-ext-parse-debug 0)
-	  (message "wisi-ext-parse-session-wait: %d %f %f"
-		   wait-count
-		   (- (float-time) start-time)
-		   (- (float-time) start-wait-time))
-	  (message "action-count: %d point: %d point-max: %d" action-count (point) (point-max)))
 
 	(setq need-more nil))
       );; while not done
@@ -331,10 +325,10 @@ Does not wait for command to complete."
 
     (set-buffer source-buffer)))
 
-(defun wisi-ext-parse-exec-buffer (action-buffer-name source-buffer-name elisp-names)
-  "for debugging; execute encoded actions in ACTION-BUFFER, applying to SOURCE-BUFFER."
+(defun wisi-ext-parse-exec-buffer (action-buffer-name elisp-names)
+  "for debugging; execute encoded actions in ACTION-BUFFER, applying to current buffer."
   (let ((action-buffer (get-buffer action-buffer-name))
-	(source-buffer (get-buffer source-buffer-name))
+	(source-buffer (current-buffer))
 	action
 	action-end
 	(action-count 0)
@@ -361,15 +355,19 @@ Does not wait for command to complete."
 	(forward-line 1)
 
 	(set-buffer source-buffer)
-	(if (and (listp action)
-		 (symbolp (car action)))
+	(if (listp action)
 	    ;; post-parser action
 	    (eval action)
 	  ;; encoded parser action
-	  (wisi-ext-parse-execute elisp-names action))
+	  (unless (> wisi-ext-parse-debug 1)
+	    (wisi-ext-parse-execute elisp-names action)))
 
 	(set-buffer action-buffer)
-	)))
+	)
+
+       (t
+	(error "unrecognized action"))
+       ))
 
     (when (> wisi-ext-parse-debug 0)
       (message "total time: %f" (- (float-time) start-time))

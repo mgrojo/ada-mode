@@ -65,53 +65,32 @@ o.e.a.stephe-2: external gps parser
 
     c:/Projects/org.opentoken.stephe/build/debug/Makefile
 
-compiling ada_grammar.adb is slow, run_ada_parser is slow:
-    build/wisi/ada_mode_wisi_parse.gpr
-    compile time: gprbuild -p ada_mode_wisi_parse_agg.gpr run_ada_parser.adb
-    parse time: run_ada_parser gnatcoll-xref.adb
+run all tests with ext parser
 
-    options                                 compile time    parse time
-    -g -02 -fno-var-tracking-assignments    1m46.689s       0m1.513s
-    -g -01 -fno-var-tracking-assignments    1m38.405s       0m1.591s
-    -g -00 -fno-var-tracking-assignments    0m29.765s       0m1.763s
+propagate to o.e.a
+
+do FFI
 
 wisi-parse-buffer is slow:
     philippe.waroquiers@eurocontrol.int has a file that takes 10 seconds to parse with Emacs Ada mode 5.1.4
         needs to be < 1 second
         apparantly around 70,000 lines, 250,000 bytes
 
-    time applying actions:
-        /apps/GNAT-gpl_2014/gnatcoll-1.7w-src/src/sqlite/gnatcoll-xref.adb
-        (wisi-ada-parse-exec-buffer "gnatcoll-xref.actions" "gnatcoll-xref.adb" ada_grammar-names)
-            lists 1.570002, 1.675002, 1.620002 seconds 20527 actions
+    => gnatcoll-xref.adb needs to be < 0.2 second
 
-            comment out (apply func args): 0.686401 seconds
-            comment out (wisi-ada-parse-execute ): 0.260000
-            comment out (read-from-string ): 0.115000
+time wisi-parse-buffer and portions thereof
+    'actions:
+        (progn
+         (setq wisi-ext-parse-debug 1)
+         (wisi-invalidate-cache)
+         (wisi-ext-parse-exec-buffer " *ada_mode_wisi_parse*" ada_grammar-names))
 
-        (wisi-ada-parse-exec-buffer "ada_mode_wisi_parse.actions" "ada_mode_wisi_parse.adb" ada_grammar-names)
-            lists 0.046800 seconds 699 actions
+    'actions-read
+        (progn
+         (setq wisi-ext-parse-debug 2)
+         (wisi-invalidate-cache)
+         (wisi-ext-parse-exec-buffer " *ada_mode_wisi_parse*" ada_grammar-names))
 
-        use arrays not lists for wisi-tokens, actions
-            write one action buffer by hand (translate debug.adb actions)
-                test/debug.actions
-            (time-it
-             (lambda () (wisi-ada-parse-exec-buffer "debug.actions" "debug.adb" ada_grammar-names))
-             1000)
-                0.455001
-                byte-compiled 0.320001, 0.180000, 0.170000, 0.165000, 0.180000
-            (time-it
-             (lambda () (wisi-ada-parse-exec-buffer "debug.actions-arr" "debug.adb" ada_grammar-names))
-             1000)
-                0.415001
-                byte-compiled 0.145000, 0.150000, 0.130000, 0.140000, 0.145000
-
-            arrays 17% faster
-
-        testing opentoken
-            need test of list arg:       (wisi-motion-action 1 5 7 '(8 block-middle EXCEPTION block-middle WHEN) 9))
-
-time wisi-parse-buffer
     'ada:
     (progn
         (setq wisi-parser 'ada)
@@ -123,16 +102,14 @@ time wisi-parse-buffer
         (wisi-invalidate-cache)
         (time-it 'wisi-parse-buffer 1))
 
-    (progn (profiler-start 'cpu) (time-it 'wisi-parse-buffer 10) (profiler-report) (profiler-stop))
-
-    'command:
-        time ./run_ada_parser file > parse.text
-
     'cat:
         (require 'extract-text-props)
         (let ((w32-pipe-read-delay 0))
            (pipe-torture "cat.exe"))
         pipe-torture is in extract-text-props.el
+
+    'command:
+        time ./run_ada_parser file > parse.text
 
     'elisp:
         (progn
@@ -140,9 +117,15 @@ time wisi-parse-buffer
             (wisi-invalidate-cache)
             (time-it 'wisi-parse-buffer 1))
 
+    'text-props:
+        M-x extract-text-props
+        (progn (wisi-invalidate-cache) (time-it 'apply-text-props 1))
+
+    (progn (profiler-start 'cpu) (time-it 'wisi-parse-buffer 10) (profiler-report) (profiler-stop))
+
     /apps/GNAT-gpl_2014/gnatcoll-1.7w-src/src/sqlite/gnatcoll-xref.adb
-        7082 lines, 250780 bytes, 13570 caches
-        actions: 20527  encoded actions: 78885 lines, 1393119 bytes
+        7082 lines, 250780 bytes, 19946 caches
+        actions: 20633  encoded actions: 78885 lines, 1393119 bytes
         coded actions saved in c:/Projects/org.emacs.ada-mode.stephe-1/gnatcoll-xref.actions
 
         cygwin:
@@ -153,13 +136,25 @@ time wisi-parse-buffer
             'elisp: 1.480002, 1.705002, 1.715003
 
         windows:
-            'ada: 0.995002, 1.050001
+            'actions: 0.982802, 1.076402
 
-            'command: 0m0.200s, 0m0.065s, 0m0.050s
+            'actions-read: 0.312001, 0.234000
+                FFI would gain this plus 2 * cat
+
+            'ada:     1.076402, 1.045202, 1.060802
+                parse is fully parallel, and fast enough (just barely)
+
+            'command: 0m0.874s, 0m0.905s, 0m0.842s
+                _slower_ than elisp parser
 
             'cat: 0.075000, 0.075000
 
-            'elisp: 1.615002, 1.635002
+            'elisp: 1.638003, 1.622403, 1.669203
+                'ada is (/ (- 1.6 1.0) 1.6) = 37.5% faster
+
+            'text-props: 0.312001, 0.187200, 0.187200
+                moving text-prop computation to ada would reduce total time to:
+                    max (<parse-in-ada>, <apply-text-props>, <text-props-in-ada>)
 
         linux:
             'ada: using gnat 2013
@@ -174,94 +169,6 @@ time wisi-parse-buffer
                 'command: 0m0.047s
 
                 'ada: 0.764402
-
-        use elp (emacs lisp profiler)?
-        (with-current-buffer (find-file-noselect "~/src/xdisp.c")
-          (elp-instrument-function 'c-beginning-of-defun)
-          (goto-char (point-max))
-          (condition-case nil
-              (while (beginning-of-defun) nil)
-            (error nil))
-          (elp-results))
-
-    pass integer args for elisp wisi actions
-        see extract-text-props.el
-        /Projects/org.opentoken.stephe/build/debug/Makefile
-        /Projects/org.opentoken.stephe/build/release/Makefile
-
-        empty_productions_1-parse.diff passing
-
-        test with emacs
-            test/debug.adb
-
-            gnatcoll-xref 32.198457
-                cpu monitor shows 0.1 cpu
-                must be in time-outs somewhere
-
-            wisi-output_ada_emacs.adb
-                wisi-parse-buffer 4.x seconds
-                    send takes 3.619206 seconds
-                run_ada_parser 0m0.250s
-
-            time send to cat
-                (pipe-torture "c:/Projects/org.opentoken.stephe/wisi/wisi-output_ada_emacs.adb" "cat.exe")
-                    0.062400 seconds
-
-                (pipe-torture-temp "/apps/GNAT-gpl_2014/gnatcoll-1.7w-src/src/sqlite/gnatcoll-xref.adb" "cat.exe")
-                    1.641275 seconds
-
-            implement trivial Ada; test Ada IO vs emacs io
-                (find-file "c:/Projects/org.opentoken.stephe/wisi/wisi-output_ada_emacs.adb")
-                (pipe-torture "/Projects/org.emacs.ada-mode.stephe-1/build/wisi/debug.exe"  "4096")
-                34452 bytes in file
-                4096 => 0.280801 seconds
-                16000 => 0.093600
-                40000 => 0.062400
-
-            time ./debug.exe 16000 < c:/Projects/org.opentoken.stephe/wisi/wisi-output_ada_emacs.adb
-                1024 0m0.047s
-                16000 0m0.062s, 0m0.047s
-
-            send to run_ada_lexer with wisi lexer
-                (pipe-torture "c:/Projects/org.opentoken.stephe/wisi/wisi-output_ada_emacs.adb"
-                "/Projects/org.emacs.ada-mode.stephe-1/build/wisi/run_ada_opentoken_lexer.exe" "1024" "34452")
-                        time ,  calls to get_more_text
-                1024 => 1.872003 1.840803 1.856403, 66
-                4096 => 0.468001, 16
-                16000 => 0.124800, 4
-
-                (pipe-torture "/apps/GNAT-gpl_2014/gnatcoll-1.7w-src/src/sqlite/gnatcoll-xref.adb"
-                "/Projects/org.emacs.ada-mode.stephe-1/build/wisi/run_ada_opentoken_lexer.exe" "250780" "250780")
-                29084 tokens
-                1024 => 14.991626, 488
-                16000 => 1.279202, 30
-                48000 => 0.702001, 10
-                250780 => 0.062000, 1
-
-                emacs 24.3
-                    lexer
-                     1024 => 0.421000
-                    48000 => 0.421000
-
-                    debug
-                    4096  => 0.062000 0.031000 0.047000
-                    40000 => 0.047000
-
-            time ./run_ada_opentoken_lexer.exe 1024 34452 < c:/Projects/org.opentoken.stephe/wisi/wisi-output_ada_emacs.adb
-                4111 tokens
-                1024  0m0.109s, 66
-                16000 0m0.109s, 4
-
-            always make lexer buffer big enough to hold the whole file
-                gps does that
-                should work with 24.3
-
-            wisi-ada-parse-send use process-send-region to avoid copy of buffer
-
-        process-send-string waits until entire string is sent
-            to get fully parallel processing, actions must be in process sentinel
-
-        use arrays not lists for tokens, actions?
 
     implement wisi actions in Ada
         compute a list of text properties in ada_mode_wisi_parse, and return
@@ -839,6 +746,15 @@ Markus Schöpflin <markus.schoepflin@comsoft.aero> wants this style (including a
     12 sep 2013: sent email
 
  relevant files, debug hints
+use elp (emacs lisp profiler)?
+    (with-current-buffer (find-file-noselect "~/src/xdisp.c")
+      (elp-instrument-function 'c-beginning-of-defun)
+      (goto-char (point-max))
+      (condition-case nil
+          (while (beginning-of-defun) nil)
+        (error nil))
+      (elp-results))
+
 (progn (profiler-start 'cpu) (time-it 'wisi-parse-buffer 10) (profiler-report) (profiler-stop))
     B - profiler-report-render-reversed-calltree shows low-level time hogs
 
