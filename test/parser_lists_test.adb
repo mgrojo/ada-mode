@@ -21,23 +21,24 @@ pragma License (GPL);
 with AUnit.Check;
 with OpenToken.Production.Parser.LALR.Parser_Lists.Test;
 with OpenToken.Token.Enumerated.Analyzer;
-with OpenToken.Token.Enumerated.List;
+with OpenToken.Token.Enumerated.List.Print;
 with OpenToken.Token.Enumerated.Nonterminal;
 package body Parser_Lists_Test is
 
    --  we need an instantiation of OpenToken.Production.Parser.LALR.Parser to test
 
-   type Token_ID is (If_ID, Then_ID, Else_ID, End_ID, EOF_ID, Statement_ID, Procedure_ID);
+   type Token_ID is (Identifier_ID, If_ID, Then_ID, Else_ID, End_ID, EOF_ID, Statement_ID, Procedure_ID);
 
    package Token is new OpenToken.Token.Enumerated (Token_ID, If_ID, EOF_ID, Token_ID'Image);
    package Token_List is new Token.List;
+   package Token_List_Print is new Token_List.Print;
    package Nonterminal is new Token.Nonterminal (Token_List);
    package Production is new OpenToken.Production (Token, Token_List, Nonterminal);
    package Tokenizer is new Token.Analyzer;
    package Parser is new Production.Parser (Tokenizer);
    package LALRs is new Parser.LALR (First_State_Index => 1);
    package Parser_Lists is new LALRs.Parser_Lists;
-   package Parser_Lists_Test is new Parser_Lists.Test;
+   package Parser_Lists_Test is new Parser_Lists.Test (Token_List_Print);
 
    --  These duplicate gen_opentoken_aunit.ads, but we don't need all of that.
    procedure Check is new AUnit.Check.Gen_Check_Discrete (Token_ID);
@@ -234,7 +235,8 @@ package body Parser_Lists_Test is
 
    procedure Copy (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
-      pragma Unreferenced (T);
+      Test : Test_Case renames Test_Case (T);
+
       use AUnit.Check;
       use Parser_Lists;
       use LALRs;
@@ -243,20 +245,31 @@ package body Parser_Lists_Test is
 
       Parsers : List := Initialize (First_Parser_Label => 0);
 
-      If_1   : constant Token.Handle := new Token.Class'(Token.Get (If_ID));
-      Then_1 : constant Token.Handle := new Token.Class'(Token.Get (Then_ID));
-      If_2   : constant Token.Handle := new Token.Class'(Token.Get (If_ID));
-      Then_2 : constant Token.Handle := new Token.Class'(Token.Get (Then_ID));
-      End_2  : constant Token.Handle := new Token.Class'(Token.Get (End_ID));
-      End_1  : constant Token.Handle := new Token.Class'(Token.Get (End_ID));
+      If_1    : constant Token.Handle := new Token.Class'(Token.Get (If_ID));
+      Then_1  : constant Token.Handle := new Token.Class'(Token.Get (Then_ID));
+      Else_1  : constant Token.Handle := new Token.Class'(Token.Get (Else_ID));
+      Ident_A : constant Token.Handle := new Token.Class'(Token.Get (Identifier_ID));
+      If_2    : constant Token.Handle := new Token.Class'(Token.Get (If_ID));
+      Then_2  : constant Token.Handle := new Token.Class'(Token.Get (Then_ID));
+      Ident_B : constant Token.Handle := new Token.Class'(Token.Get (Identifier_ID));
+      End_2   : constant Token.Handle := new Token.Class'(Token.Get (End_ID));
+      End_1   : constant Token.Handle := new Token.Class'(Token.Get (End_ID));
 
+      Statement_A : constant Nonterminal.Handle := new Nonterminal.Class'(Nonterminal.Get (Statement_ID, "A"));
+      Statement_B : constant Nonterminal.Handle := new Nonterminal.Class'(Nonterminal.Get (Statement_ID, "B"));
       Statement_1 : constant Nonterminal.Handle := new Nonterminal.Class'(Nonterminal.Get (Statement_ID, "1"));
       Statement_2 : constant Nonterminal.Handle := new Nonterminal.Class'(Nonterminal.Get (Statement_ID, "2"));
 
-      Action_1  : constant Action_Token := (null, Statement_1, If_2 & Then_2 & End_2);
-      Action_2  : constant Action_Token := (null, Statement_2, If_1 & Then_1 & Token.Handle (Statement_1) & End_1);
+      Action_A  : constant Action_Token := (null, Statement_A, Only (Ident_A));
+      Action_B  : constant Action_Token := (null, Statement_B, Only (Ident_B));
+      Action_2  : constant Action_Token := (null, Statement_2, If_2 & Then_2 & Token.Handle (Statement_B) & End_2);
+      Action_1  : constant Action_Token :=
+        (null, Statement_1, If_1 & Then_1 & Token.Handle (Statement_A) & Else_1 & Token.Handle (Statement_2) & End_1);
 
       Cursor : constant Parser_Lists.Cursor := Parsers.First;
+
+      Junk : Stack_Item;
+      pragma Unreferenced (Junk);
    begin
       --  All Action_Token.New_Token must point either to a token on
       --  Stack or to tokens in later Action_Token.Tokens; all
@@ -269,42 +282,78 @@ package body Parser_Lists_Test is
       --  parse. Given the above tokens, we assume the following
       --  productions:
       --
-      --     statement <=
+      --     statement <= IDENTIFIER
       --     statement <= if then statement else statement end
       --     procedure <= statement <eof>
       --
       --  and the following input:
       --
-      --     if then if then end end <eof>
-      --
-      --  the parse stack history is (with made up state numbers):
-      --
-      --  (0 : )
-      --  (1 : If_ID) (0 : )
-      --  (2 : Then_ID) (1 : If_ID) (0 : )
-      --  (1 : If_ID) (2 : Then_ID) (1 : If_ID) (0 : )
-      --  (2 : Then_ID) (1 : If_ID) (2 : Then_ID) (1 : If_ID) (0 : )
-      --  (3 : End_ID) (2 : Then_ID) (1 : If_ID) (2 : Then_ID) (1 : If_ID) (0 : )
-      --     Action: (null, Statement_ID 1, (If_ID, Then_ID, End_ID))
-      --  (5 : Statement_ID 1) (2 : Then_ID) (1 : If_ID) (0 : )
-      --  (1 : End_ID) (5 : Statement_ID 1) (2 : Then_ID) (1 : If_ID) (0 : )
-      --     Action: (null, Statement_ID 2, (If_ID, Then_ID, Statement_ID 1, End_ID))
-      --  (5 : Statement_ID 2) (0 : )
-      --
-      --  Assuming both actions are pending, statement_id 2 is still
-      --  on the stack, statement_id 1 is in the token list of the
-      --  second action.
+      --     if then Statement_A else if then Statement_B end end <eof>
 
-      Cursor.Enqueue (Action_1);
+      --  We use sequential state numbers, for debugging in this test
+      Cursor.Push ((1, If_1));
+      Cursor.Push ((2, Then_1));
+      Cursor.Push ((3, Ident_A));
+      Junk := Cursor.Pop; -- Ident_A
+      Cursor.Push ((4, Token.Handle (Statement_A)));
+      Cursor.Enqueue (Action_A);
+      Cursor.Push ((5, Else_1));
+
+      Cursor.Push ((6, If_2));
+      Cursor.Push ((7, Then_2));
+      Cursor.Push ((8, Ident_B));
+      Junk := Cursor.Pop; -- Ident_B
+      Cursor.Push ((9, Token.Handle (Statement_B)));
+      Cursor.Enqueue (Action_B);
+      Cursor.Push ((10, End_2));
+
+      if Test.Debug then Cursor.Put_Top_10; end if;
+      Parsers.Prepend_Copy (Cursor);
+      if Test.Debug then Parsers.First.Put_Top_10; end if;
+
+      Check ("1", Stack_Equal (Cursor, Parsers.First), True);
+
+      Junk := Cursor.Pop; -- end_2
+      Junk := Cursor.Pop; -- statement_B
+      Junk := Cursor.Pop; -- then_2
+      Junk := Cursor.Pop; -- if_2
+      Cursor.Push ((11, Token.Handle (Statement_2)));
       Cursor.Enqueue (Action_2);
 
-      Cursor.Push ((5, Token.Handle (Statement_2)));
+      Check_Action_Stack ("2", Cursor);
 
-      Check_Action_Stack ("1", Cursor);
+      if Test.Debug then Cursor.Put_Top_10; end if;
+      Parsers.Prepend_Copy (Cursor);
+      if Test.Debug then Parsers.First.Put_Top_10; end if;
+
+      Check ("3", Stack_Equal (Cursor, Parsers.First), True);
+      Check_Action_Stack ("4", Cursor);
+
+      Cursor.Push ((12, End_1));
+      Junk := Cursor.Pop; -- end_1
+      Junk := Cursor.Pop; -- statement_2
+      Junk := Cursor.Pop; -- else_1
+      Junk := Cursor.Pop; -- statement_A
+      Junk := Cursor.Pop; -- then_1
+      Junk := Cursor.Pop; -- if_1
+      Cursor.Push ((13, Token.Handle (Statement_1)));
+      Cursor.Enqueue (Action_1);
+
+      if Test.Debug then
+         Cursor.Put_Top_10;
+         Put_Action_Tokens (Cursor);
+      end if;
+      Check_Action_Stack ("5", Cursor);
 
       Parsers.Prepend_Copy (Cursor);
+      if Test.Debug then
+         Parsers.First.Put_Top_10;
+         Put_Action_Tokens (Parsers.First);
+      end if;
 
-      Check_Action_Stack ("2", Parsers.First);
+      Check ("6", Stack_Equal (Cursor, Parsers.First), True);
+
+      Check_Action_Stack ("7", Parsers.First);
 
    end Copy;
 

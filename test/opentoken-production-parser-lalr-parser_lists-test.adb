@@ -19,6 +19,7 @@
 pragma License (GPL);
 
 with AUnit.Assertions;
+with Ada.Text_IO;
 package body OpenToken.Production.Parser.LALR.Parser_Lists.Test is
 
    function Debug_Image (Item : in Token.Handle) return String
@@ -67,10 +68,10 @@ package body OpenToken.Production.Parser.LALR.Parser_Lists.Test is
    begin
       loop
          exit when Iter = null;
-         if Is_In (Token, Action_Token.Item.Tokens) then
+         if Is_In (Token, Iter.Item.Tokens) then
             return True;
          end if;
-         Iter := Action_Token.Prev;
+         Iter := Iter.Prev;
       end loop;
       return False;
    end Is_In_Prev_Tokens;
@@ -151,5 +152,25 @@ package body OpenToken.Production.Parser.LALR.Parser_Lists.Test is
       end loop;
 
    end Check_Action_Stack;
+
+   procedure Put (Item : in Action_Token)
+   is begin
+      --  We don't put item.Action here; not useful in tests
+      Ada.Text_IO.Put (Debug_Image (Token.Handle (Item.New_Token)) & ": ");
+      Token_List_Print.Print (Item.Tokens);
+   end Put;
+
+   procedure Put_Action_Tokens (Cursor : in Parser_Lists.Cursor)
+   is
+      Action_Token : Action_Token_Node_Access := Cursor.Ptr.Item.Action_Token.Head;
+   begin
+      loop
+         exit when Action_Token = null;
+         Put (Action_Token.Item);
+         Ada.Text_IO.New_Line;
+         Action_Token := Action_Token.Next;
+      end loop;
+   end Put_Action_Tokens;
+
 
 end OpenToken.Production.Parser.LALR.Parser_Lists.Test;

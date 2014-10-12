@@ -9,7 +9,7 @@
  1: 9: (SEMICOLON 51 . 51) : shift and goto state 10
  1 stack:  10 : (SEMICOLON 51 . 51),  9 : (BEGIN 46 . 50),  8 : (declarative_part),  2 : (IS 43 . 44),  1 : , 
  1: 10: (IS 105 . 106) : reduce 4 tokens to body
-[[(3 43 . 44)(8)(2 46 . 50)(4 51 . 51)]
+[-9 [(3 43 . 44)(8)(2 46 . 50)(4 51 . 51)]
 (-10 [1 -11 3 -11 4 -12])
 ]
  ... goto state 5
@@ -29,7 +29,7 @@
  1: 9: (SEMICOLON 120 . 120) : shift and goto state 10
  1 stack:  10 : (SEMICOLON 120 . 120),  9 : (BEGIN 115 . 119),  8 : (declarative_part),  2 : (IS 112 . 113),  2 : (IS 105 . 106),  3 : (declarations 43 . 51),  1 : , 
  1: 10: (BEGIN 122 . 126) : reduce 4 tokens to body
-[[(3 112 . 113)(8)(2 115 . 119)(4 120 . 120)]
+[-9 [(3 112 . 113)(8)(2 115 . 119)(4 120 . 120)]
 (-10 [1 -11 3 -11 4 -12])
 ]
  ... goto state 5
@@ -45,7 +45,7 @@
  1: 9: (SEMICOLON 127 . 127) : shift and goto state 10
  1 stack:  10 : (SEMICOLON 127 . 127),  9 : (BEGIN 122 . 126),  8 : (declarative_part 112 . 120),  2 : (IS 105 . 106),  3 : (declarations 43 . 51),  1 : , 
  1: 10: (EOF 128 . 128) : reduce 4 tokens to body
-[[(3 105 . 106)(8 112 . 120)(2 122 . 126)(4 127 . 127)]
+[-9 [(3 105 . 106)(8 112 . 120)(2 122 . 126)(4 127 . 127)]
 (-10 [1 -11 3 -11 4 -12])
 ]
  ... goto state 7

@@ -262,8 +262,8 @@ package body OpenToken.Production.Parser.LALR.Parser_Lists is
       --  that in the new copy.
       --
       --  1) Create a map of old action.new_token => new action.new_tokens
-      --  2) Create new Stack, using new action.New_Token pointers
-      --  3) Create new Action, using new action.New_Token pointers
+      --  2) Create new Stack, using new action.New_Token pointers or new tokens
+      --  3) Create new Action, using new action.New_Token pointers or new tokens
 
       type New_Token_Item is record
          Old_Pointer : Token.Handle;
@@ -287,7 +287,7 @@ package body OpenToken.Production.Parser.LALR.Parser_Lists is
 
       for K in New_Token_Items'Range loop
          New_Token_Items (K).Old_Pointer := Token.Handle (J.Item.New_Token);
-         New_Token_Items (K).New_Pointer := Token.Copy (I.Item.Token);
+         New_Token_Items (K).New_Pointer := Token.Copy (New_Token_Items (K).Old_Pointer);
 
          J := J.Next;
       end loop;

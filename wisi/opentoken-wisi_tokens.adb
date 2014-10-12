@@ -90,7 +90,8 @@ package body OpenToken.Wisi_Tokens is
          return "(" & Token_Image (Token.ID) & ")";
       else
          return "(" & Token_Image (Token.ID) & Integer'Image (Token.Buffer_Range.Begin_Pos) & " ." &
-           Integer'Image (Token.Buffer_Range.End_Pos) & ")";
+           --  Elisp region end is one past the last character
+           Integer'Image (Token.Buffer_Range.End_Pos + 1) & ")";
       end if;
    end Image;
 
@@ -122,7 +123,8 @@ package body OpenToken.Wisi_Tokens is
 
             if Token.Buffer_Range /= Wisi_Tokens.Tokens.Null_Buffer_Range then
                Token_Line := Token_Line & Integer'Image (Token.Buffer_Range.Begin_Pos) & " ." &
-                 Integer'Image (Token.Buffer_Range.End_Pos);
+                 --  Elisp region end is one past the last character
+                 Integer'Image (Token.Buffer_Range.End_Pos + 1);
             end if;
             Token_Line := Token_Line & ")";
          end;

@@ -161,6 +161,32 @@ is
       end loop;
    end Get_Elisp_Names;
 
+   function Find_Elisp_Name (Name : in String) return Integer
+   is
+      use String_Lists;
+
+      Code   : Integer             := 0;
+      Cursor : String_Lists.Cursor := Elisp_Names.First;
+   begin
+      loop
+         exit when Cursor = No_Element;
+
+         if Constant_Reference (Elisp_Names, Cursor) = Name then
+            --  negative numbers for names in action args, to
+            --  distguish them from other numbers.
+            return -Code;
+         end if;
+         Code := Code + 1;
+         Next (Cursor);
+      end loop;
+      raise Programmer_Error with "'" & Name & "' not found in Elisp_Names";
+   end Find_Elisp_Name;
+
+   function To_Code (Name : in String) return String
+   is begin
+      return OpenToken.Int_Image (Find_Elisp_Name (Name));
+   end To_Code;
+
    function To_Codes (Line : in String) return String
    is
       --  Return Line with names translated to codes
@@ -174,31 +200,9 @@ is
       In_Func_Name : Boolean := False;
       In_Action    : Boolean := False;
 
-      function Find (Name : in String) return Integer
-      is
-         use String_Lists;
-
-         Code   : Integer             := 0;
-         Cursor : String_Lists.Cursor := Elisp_Names.First;
-      begin
-         loop
-            exit when Cursor = No_Element;
-
-            if Constant_Reference (Elisp_Names, Cursor) = Name then
-               --  negative numbers for names in action args, to
-               --  distguish them from other numbers.
-               return -Code;
-            end if;
-            Code := Code + 1;
-            Next (Cursor);
-         end loop;
-         raise Programmer_Error with "'" & Name & "' not found in Elisp_Names";
-      end Find;
-
       procedure Add (Name : in String)
       is
-         Code  : constant Integer := Find (Name);
-         Image : constant String  := OpenToken.Int_Image (Code);
+         Image : constant String := To_Code (Name);
       begin
          Result (J + 1 .. J + Image'Length) := Image;
          J := J + Image'Length;
@@ -542,11 +546,12 @@ is
                         Indent := Indent + 3;
                         Indent_Line ("New_Token := Get (To_ID, Total_Buffer_Range (Source));");
 
-                        --  Translate wisi parser actions into integer
-                        --  codes, for faster interpretation on the
-                        --  elisp side.
+                        --  Translate symbols into integer codes, for
+                        --  faster interpretation on the elisp side.
 
-                        Indent_Line ("Put_Line ('[' & To_Codes (Source));");
+                        Indent_Line
+                          ("Put_Line (""[" & To_Code (-Rule.Left_Hand_Side) & " "" & To_Codes (Source));");
+
                         for Line of RHS.Action loop
                            Get_Elisp_Names (Line);
                            Indent_Line ("Put_Line (""" & To_Codes (Line) & """);");

@@ -67,6 +67,17 @@ package body OpenToken.Token.Enumerated.List is
          Tail => New_Node);
    end Only;
 
+   function Only (Subject : in OpenToken.Token.Enumerated.Handle) return Instance
+   is
+      New_Node : constant List_Node_Ptr := new List_Node'
+        (Token => Subject,
+         Next  => null);
+   begin
+      return
+        (Head => New_Node,
+         Tail => New_Node);
+   end Only;
+
    function "&"
      (Left  : in OpenToken.Token.Enumerated.Class;
       Right : in OpenToken.Token.Enumerated.Class)

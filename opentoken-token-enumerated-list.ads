@@ -43,6 +43,7 @@ package OpenToken.Token.Enumerated.List is
    --  Create a token list from a single instance.
    ----------------------------------------------------------------------------
    function Only (Subject : in Class) return Instance;
+   function Only (Subject : in Handle) return Instance;
 
    ----------------------------------------------------------------------------
    --  Create a token list from a pair of token instances.
