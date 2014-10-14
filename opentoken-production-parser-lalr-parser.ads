@@ -29,7 +29,8 @@
 
 with OpenToken.Production.Parser.LALR.Parser_Lists;
 generic
-   with package Parser_Lists is new OpenToken.Production.Parser.LALR.Parser_Lists;
+   Default_First_Parser_Label : in Integer;
+   with package Parser_Lists is new OpenToken.Production.Parser.LALR.Parser_Lists (Default_First_Parser_Label);
 package OpenToken.Production.Parser.LALR.Parser is
 
    type Instance is new OpenToken.Production.Parser.Instance with record

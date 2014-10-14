@@ -625,7 +625,7 @@ package body OpenToken.Token.Enumerated.Analyzer is
                   Analyzer.Lookahead_Queue := Analyzer.Lookahead_Tail;
                end if;
 
-               if Trace_Parse then
+               if Trace_Parse > 0 then
                   Trace_Put ("look ahead " & Token_Image (Analyzer.Last_Token_ID)); Ada.Text_IO.New_Line;
                   Analyzer.Lookahead_Count := Analyzer.Lookahead_Count + 1;
                   if Analyzer.Lookahead_Count > Analyzer.Max_Lookahead then
@@ -644,7 +644,7 @@ package body OpenToken.Token.Enumerated.Analyzer is
             Analyzer.Syntax_List (Analyzer.Last_Token_ID).Token_Handle.all := Analyzer.Lookahead_Head.Token_Handle.all;
             Analyzer.Lookahead_Head := Analyzer.Lookahead_Head.Next;
 
-            if Trace_Parse then
+            if Trace_Parse > 0 then
                Trace_Put ("look ahead " &  Name (Analyzer.Syntax_List (Analyzer.Last_Token_ID).Token_Handle.all));
                Ada.Text_IO.New_Line;
             end if;
@@ -674,7 +674,7 @@ package body OpenToken.Token.Enumerated.Analyzer is
             Analyzer.Lookahead_Tail := null;
          end if;
 
-         if Trace_Parse then
+         if Trace_Parse > 0 then
             Analyzer.Lookahead_Count := Analyzer.Lookahead_Count - 1;
          end if;
       end if;
@@ -700,7 +700,7 @@ package body OpenToken.Token.Enumerated.Analyzer is
       My_Mark  : Queue_Mark renames Queue_Mark (Mark);
       End_Mark : Token_List_Node_Pointer;
    begin
-      if Trace_Parse then
+      if Trace_Parse > 0 then
          Trace_Put ("...push back");
       end if;
 
@@ -743,7 +743,7 @@ package body OpenToken.Token.Enumerated.Analyzer is
 
       end loop;
 
-      if Trace_Parse then
+      if Trace_Parse > 0 then
          Ada.Text_IO.Put_Line
            ("; current token " & Name (Analyzer.Syntax_List (Analyzer.Last_Token_ID).Token_Handle.all));
       end if;

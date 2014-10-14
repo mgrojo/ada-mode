@@ -187,6 +187,9 @@ is
       return OpenToken.Int_Image (Find_Elisp_Name (Name));
    end To_Code;
 
+   --  Preserve In_Action across lines
+   In_Action : Boolean := False;
+
    function To_Codes (Line : in String) return String
    is
       --  Return Line with names translated to codes
@@ -198,7 +201,6 @@ is
 
       In_Name      : Boolean := False;
       In_Func_Name : Boolean := False;
-      In_Action    : Boolean := False;
 
       procedure Add (Name : in String)
       is
@@ -224,7 +226,6 @@ is
                      J := J + 1;
                      Result (J) := '[';
                   else
-                     In_Action := True;
                      J := J + 1;
                      Result (J) := '(';
                      Add (Line (First .. I - 1));
@@ -245,6 +246,7 @@ is
             case Line (I) is
             when '(' =>
                In_Func_Name := True;
+               In_Action    := True;
 
             when ')' =>
                J := J + 1;
@@ -381,8 +383,9 @@ is
       Indent_Line ("package LALRs is new Parsers.LALR (First_State_Index);");
       Indent_Line ("package Production_Lists is new Productions.List;");
       Indent_Line ("package LALR_Generators is new LALRs.Generator (Token_IDs'Width, Production_Lists);");
-      Indent_Line ("package Parser_Lists is new LALRs.Parser_Lists;");
-      Indent_Line ("package LALR_Parsers is new LALRs.Parser (Parser_Lists);");
+      Indent_Line ("package Parser_Lists is new LALRs.Parser_Lists (First_Parser_Label => 0);");
+      --  match initial elisp parser numbers
+      Indent_Line ("package LALR_Parsers is new LALRs.Parser (0, Parser_Lists);");
       New_Line;
 
       Indent_Line ("package Wisi_Tokens is new OpenToken.Wisi_Tokens");

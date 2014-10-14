@@ -18,10 +18,11 @@
 
 pragma License (GPL);
 
+with Ada.Characters.Handling;
 with Ada.Text_IO;
 package body OpenToken.Production.Parser.LALR.Parser_Lists is
 
-   function Initialize (First_Parser_Label : in Integer := 1) return List
+   function Initialize return List
    is begin
       return
         (Parser_Label       => First_Parser_Label,
@@ -174,6 +175,19 @@ package body OpenToken.Production.Parser.LALR.Parser_Lists is
       New_Line;
    end Put_Top_10;
 
+   function Action_Token_Count (Cursor : in Parser_Lists.Cursor) return Integer
+   is
+      Action_Token : Action_Token_Node_Access := Cursor.Ptr.Item.Action_Token.Head;
+      Result       : Integer                  := 0;
+   begin
+      loop
+         exit when Action_Token = null;
+         Result := Result + 1;
+         Action_Token := Action_Token.Next;
+      end loop;
+      return Result;
+   end Action_Token_Count;
+
    procedure Enqueue
      (List              : in out Action_Token_List;
       Action_Token_Free : in out Action_Token_Node_Access;
@@ -181,28 +195,28 @@ package body OpenToken.Production.Parser.LALR.Parser_Lists is
    is
       Temp : constant Action_Token_Node_Access := Action_Token_Free;
 
-      New_Node : constant Action_Token_Node := (Action_Token, List.Head, null);
+      Node : constant Action_Token_Node := (Action_Token, null, List.Tail);
    begin
       if Temp = null then
-         if List.Head = null then
-            List.Tail := new Action_Token_Node'(New_Node);
+         if List.Tail = null then
+            List.Tail := new Action_Token_Node'(Node);
             List.Head := List.Tail;
          else
-            List.Head := new Action_Token_Node'(New_Node);
+            List.Tail := new Action_Token_Node'(Node);
          end if;
       else
          Action_Token_Free := Action_Token_Free.Next;
          Temp.all          := (Action_Token, List.Head, null);
-         if List.Head = null then
+         if List.Tail = null then
             List.Tail := Temp;
             List.Head := List.Tail;
          else
-            List.Head := Temp;
+            List.Tail := Temp;
          end if;
       end if;
 
-      if List.Head.Next /= null then
-         List.Head.Next.Prev := List.Head;
+      if List.Tail.Prev /= null then
+         List.Tail.Prev.Next := List.Tail;
       end if;
    end Enqueue;
 
@@ -218,25 +232,26 @@ package body OpenToken.Production.Parser.LALR.Parser_Lists is
       Temp_Free : constant Action_Token_Node_Access := List.Action_Token_Free;
    begin
       List.Action_Token_Free := Action_Token;
-      Action_Token           := Action_Token.Prev;
+      Action_Token           := null;
 
       List.Action_Token_Free.all :=
-        (Item         =>
-           (New_Token => null,
-            Action    => null,
-            Tokens    => Token_List.Null_List), -- New_Token, Tokens are free'd after being passed to user action
+        (Item         => Null_Action_Token, -- New_Token, Tokens are free'd after being passed to user action
          Next         => Temp_Free,
          Prev         => null);
    end Free;
 
    function Dequeue (Cursor : in Parser_Lists.Cursor) return Action_Token
    is
-      Result : constant Action_Token := Cursor.Ptr.Item.Action_Token.Tail.Item;
+      Temp   : Action_Token_Node_Access := Cursor.Ptr.Item.Action_Token.Head;
+      Result : constant Action_Token    := Temp.Item;
    begin
-      if Cursor.Ptr.Item.Action_Token.Tail = Cursor.Ptr.Item.Action_Token.Head then
-         Cursor.Ptr.Item.Action_Token.Head := null;
+      if Temp.Next = null then
+         Cursor.Ptr.Item.Action_Token.Tail := null;
+         Free (Cursor.List.all, Cursor.Ptr.Item.Action_Token.Head);
+      else
+         Cursor.Ptr.Item.Action_Token.Head := Temp.Next;
+         Free (Cursor.List.all, Temp);
       end if;
-      Free (Cursor.List.all, Cursor.Ptr.Item.Action_Token.Tail);
 
       return Result;
    end Dequeue;
@@ -273,7 +288,7 @@ package body OpenToken.Production.Parser.LALR.Parser_Lists is
       New_Token_Items : array (Integer range 1 .. Count (Action_Token)) of New_Token_Item;
 
       J          : Action_Token_Node_Access := Action_Token.Head;
-      Action_Pos : Integer;
+      Action_Pos : Integer := New_Token_Items'Last;
       Iter       : List_Iterator;
       New_Tokens : Token_List.Instance;
       New_Token  : Token.Handle;
@@ -282,7 +297,8 @@ package body OpenToken.Production.Parser.LALR.Parser_Lists is
       Copy : Stack_Node_Access;
       Temp : Stack_Node_Access;
 
-      New_Stack_Item : Stack_Item;
+      New_Stack_Item   : Stack_Item;
+      Stack_Item_Found : Boolean;
    begin
 
       for K in New_Token_Items'Range loop
@@ -292,18 +308,22 @@ package body OpenToken.Production.Parser.LALR.Parser_Lists is
          J := J.Next;
       end loop;
 
-      --  We find New_Tokens in later Actions.Tokens below, while copying Actions.Tokens.
-
       --  Create a copy of Stack in Copy, in reverse order, using
-      --  New_Token_Items.
-      Action_Pos := 1;
+      --  New_Token_Items. New_Token_Items appear on the stack in
+      --  reverse order; not all are on stack (some are in later
+      --  actions).
       loop
          exit when I = null;
 
-         if Action_Pos <= New_Token_Items'Last and then I.Item.Token = New_Token_Items (Action_Pos).Old_Pointer then
-            New_Stack_Item := (I.Item.State, New_Token_Items (Action_Pos).New_Pointer);
-            Action_Pos     := Action_Pos + 1;
-         else
+         Stack_Item_Found := False;
+         for K in reverse New_Token_Items'First .. Action_Pos loop
+            if I.Item.Token = New_Token_Items (K).Old_Pointer then
+               New_Stack_Item   := (I.Item.State, New_Token_Items (K).New_Pointer);
+               Stack_Item_Found := True;
+               Action_Pos       := K - 1;
+            end if;
+         end loop;
+         if not Stack_Item_Found then
             New_Stack_Item := (I.Item.State, Token.Copy (I.Item.Token));
          end if;
 
@@ -330,13 +350,12 @@ package body OpenToken.Production.Parser.LALR.Parser_Lists is
          I         := Temp;
       end loop;
 
-      --  Copy Action_Tokens, using New_Token_Items.New_Token from previous tokens
-      J          := Action_Token.Tail;
-      Action_Pos := New_Token_Items'Last;
+      --  Copy Action_Tokens, using New_Token_Items.New_Token from previous actions
+      J          := Action_Token.Head;
+      Action_Pos := 1;
       loop
          exit when J = null;
 
-         --  Copy J.Item.Tokens, using New_Token_Items.New_Token from previous actions
          Iter       := Initial_Iterator (J.Item.Tokens);
          New_Tokens := Null_List;
          loop
@@ -344,7 +363,7 @@ package body OpenToken.Production.Parser.LALR.Parser_Lists is
 
             New_Token := null;
             Find_New_Token :
-            for K in Action_Pos + 1 .. New_Token_Items'Last loop
+            for K in New_Token_Items'First .. Action_Pos - 1 loop
                if Token_Handle (Iter) = New_Token_Items (K).Old_Pointer then
                   New_Token := New_Token_Items (K).New_Pointer;
                   exit Find_New_Token;
@@ -365,8 +384,8 @@ package body OpenToken.Production.Parser.LALR.Parser_Lists is
             Action_Token_Free,
             (J.Item.Action, Nonterminal.Handle (New_Token_Items (Action_Pos).New_Pointer), New_Tokens));
 
-         J          := J.Prev;
-         Action_Pos := Action_Pos - 1;
+         J          := J.Next;
+         Action_Pos := Action_Pos + 1;
       end loop;
    end Deep_Copy;
 
@@ -565,5 +584,159 @@ package body OpenToken.Production.Parser.LALR.Parser_Lists is
       end loop;
       return Result;
    end Action_Token_Free_Count;
+
+   function Is_In (Item : in Nonterminal.Handle; Stack : in Stack_Node_Access) return Boolean
+   is
+      use type Token.Handle;
+      Stack_Node : Stack_Node_Access := Stack;
+   begin
+      loop
+         exit when Stack_Node = null;
+         if Stack_Node.Item.Token = Token.Handle (Item) then
+            return True;
+         end if;
+         Stack_Node := Stack_Node.Next;
+      end loop;
+      return False;
+   end Is_In;
+
+   function Is_In (Item : in Nonterminal.Handle; Tokens : Token_List.Instance) return Boolean
+   is
+      use type Token.Handle;
+      use Token_List;
+      Iter : List_Iterator := Initial_Iterator (Tokens);
+   begin
+      loop
+         exit when Iter = Null_Iterator;
+
+         if Token.Handle (Item) = Token_Handle (Iter) then
+            return True;
+         end if;
+         Next (Iter);
+      end loop;
+      return False;
+   end Is_In;
+
+   function Is_In_Later_Tokens
+     (Token        : in Nonterminal.Handle;
+      Action_Token : in Action_Token_Node_Access)
+     return Boolean
+   is
+      Iter : Action_Token_Node_Access := Action_Token;
+   begin
+      loop
+         exit when Iter = null;
+         if Is_In (Token, Iter.Item.Tokens) then
+            return True;
+         end if;
+         Iter := Iter.Next;
+      end loop;
+      return False;
+   end Is_In_Later_Tokens;
+
+   function Is_In_Prev_New_Token
+     (Item         : in Token.Handle;
+      Action_Token : in Action_Token_Node_Access)
+     return Boolean
+   is
+      use type Token.Handle;
+      Iter : Action_Token_Node_Access := Action_Token;
+   begin
+      loop
+         exit when Iter = null;
+         if Item = Token.Handle (Iter.Item.New_Token) then
+            return True;
+         end if;
+         Iter := Iter.Prev;
+      end loop;
+      return False;
+   end Is_In_Prev_New_Token;
+
+   procedure Check_Are_In_Prev_New_Token
+     (Label        : in String;
+      Tokens       : in Token_List.Instance;
+      Action_Token : in Action_Token_Node_Access)
+   is
+      use Token_List;
+      Iter : List_Iterator := Initial_Iterator (Tokens);
+   begin
+      loop
+         exit when Iter = Null_Iterator;
+         if Token_Handle (Iter).all in Nonterminal.Instance and then
+           (not Is_In_Prev_New_Token (Token_Handle (Iter), Action_Token.Prev))
+         then
+            raise Programmer_Error with Label &
+              " - action token " & Token_Handle (Iter).Image & " not in prev actions tokens";
+         end if;
+         Next (Iter);
+      end loop;
+   end Check_Are_In_Prev_New_Token;
+
+   procedure Check_Action_Stack
+     (Label  : in String;
+      Cursor : in Parser_Lists.Cursor)
+   is
+      use type Token.Handle;
+      Stack        : Stack_Node_Access        := Cursor.Ptr.Item.Stack;
+      Action_Token : Action_Token_Node_Access := Cursor.Ptr.Item.Action_Token.Head;
+   begin
+      loop
+         exit when Action_Token = null;
+         if not (Is_In_Later_Tokens (Action_Token.Item.New_Token, Action_Token.Next) or
+                   Is_In (Action_Token.Item.New_Token, Stack))
+         then
+            raise Programmer_Error with Label &
+              " - action.new_token " & Token.Handle (Action_Token.Item.New_Token).Image &
+              " not in later action tokens or stack";
+         end if;
+         Action_Token := Action_Token.Next;
+      end loop;
+
+      Action_Token := Cursor.Ptr.Item.Action_Token.Tail;
+      loop
+         exit when Stack = null;
+         --  last item on stack has no token
+         if Stack.Item.Token /= null and then Stack.Item.Token.all in Nonterminal.Instance and then
+           not Is_In_Prev_New_Token (Stack.Item.Token, Action_Token)
+         then
+            raise Programmer_Error with Label & " - stack " & Stack.Item.Token.Image &
+              " not in action.new_token";
+         end if;
+         Stack := Stack.Next;
+      end loop;
+
+      loop
+         exit when Action_Token = null;
+         Check_Are_In_Prev_New_Token (Label, Action_Token.Item.Tokens, Action_Token);
+         Action_Token := Action_Token.Prev;
+      end loop;
+
+   end Check_Action_Stack;
+
+   procedure Put (Action_Token : in Parser_Lists.Action_Token)
+   is
+      use type Nonterminal.Handle;
+      use Ada.Characters.Handling;
+      Action_Name : constant String := To_Lower
+        (Token.Token_ID'Image
+           --  LHS is null in unit tests
+           ((if Action_Token.Action.LHS = null then Action_Token.New_Token.ID else Action_Token.Action.LHS.ID))) &
+        "_" & OpenToken.Int_Image (Action_Token.Action.Index);
+   begin
+      Ada.Text_IO.Put (Action_Name & ": " & Action_Token.New_Token.Image & " ");
+      Token_List.Print (Action_Token.Tokens);
+   end Put;
+
+   procedure Put_Action_Tokens (Cursor : in Parser_Lists.Cursor)
+   is
+      Action_Token : Action_Token_Node_Access := Cursor.Ptr.Item.Action_Token.Head;
+   begin
+      loop
+         exit when Action_Token = null;
+         Put (Action_Token.Item);
+         Ada.Text_IO.New_Line;
+         Action_Token := Action_Token.Next;
+      end loop;
+   end Put_Action_Tokens;
 
 end OpenToken.Production.Parser.LALR.Parser_Lists;

@@ -2,7 +2,7 @@
 --
 --  Print types in Production
 --
---  Copyright (C) 2002, 2013 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2002, 2013, 2014 Stephen Leake.  All Rights Reserved.
 --
 --  This library is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -23,9 +23,7 @@
 --  exception does not however invalidate any other reasons why the
 --  executable file  might be covered by the  GNU Public License.
 
-with OpenToken.Token.Enumerated.List.Print;
 generic
-   with package Token_List_Print is new Token_List.Print;
    with procedure Print_Action (Item : in Nonterminal.Synthesize);
 package OpenToken.Production.Print is
 

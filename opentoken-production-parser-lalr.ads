@@ -73,6 +73,9 @@ package OpenToken.Production.Parser.LALR is
          null;
       end case;
    end record;
+   subtype Reduce_Action_Rec is Parse_Action_Rec (Reduce);
+
+   Null_Reduce_Action_Rec : constant Reduce_Action_Rec := (Reduce, null, null, 0, 0);
 
    type Parse_Action_Node;
    type Parse_Action_Node_Ptr is access Parse_Action_Node;

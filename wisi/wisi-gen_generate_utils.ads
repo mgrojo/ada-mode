@@ -22,7 +22,7 @@ with OpenToken.Production.List.Print;
 with OpenToken.Production.Parser.LALR.Generator;
 with OpenToken.Production.Print;
 with OpenToken.Token.Enumerated.Analyzer;
-with OpenToken.Token.Enumerated.List.Print;
+with OpenToken.Token.Enumerated.List;
 with OpenToken.Token.Enumerated.Nonterminal;
 generic
    Keywords              : in Wisi.String_Pair_Lists.List;
@@ -89,8 +89,7 @@ package Wisi.Gen_Generate_Utils is
    package LALR_Generators is new LALRs.Generator (Token_Image_Width, Production_Lists);
 
    procedure Print_Action (Item : in Nonterminals.Synthesize) is null;
-   package Token_List_Print is new Token_Lists.Print;
-   package Print_Production is new Productions.Print (Token_List_Print, Print_Action);
+   package Print_Production is new Productions.Print (Print_Action);
    package Print_Production_Lists is new Production_Lists.Print (Print_Production.Print);
 
    function To_Conflicts

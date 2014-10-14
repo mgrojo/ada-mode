@@ -116,6 +116,9 @@ package OpenToken.Token.Enumerated.List is
      (List  : in out Instance;
       Token : in     Handle);
 
+   procedure Print (Item : in Instance);
+   --  Print Item to Ada.Text_IO.Current_Output.
+
 private
    type List_Node;
    type List_Node_Ptr is access List_Node;

@@ -26,16 +26,7 @@
 -------------------------------------------------------------------------------
 
 with Ada.Unchecked_Deallocation;
-
------------------------------------------------------------------------------
---  This package provides a type and operatoions for building lists of
---  tokens for use in grammar productions
---
---  The algorithm for handling automatic cleanup of list nodes using
---  controlled types was taken directly from Matthew Heaney's tutorial
---  on Homogeneous, Reference-Counted Lists on AdaPower at
---  http://www.adapower.com/alg/homoref.html
------------------------------------------------------------------------------
+with Ada.Text_IO;
 package body OpenToken.Token.Enumerated.List is
 
    procedure Free is new Ada.Unchecked_Deallocation (List_Node, List_Node_Ptr);
@@ -234,5 +225,19 @@ package body OpenToken.Token.Enumerated.List is
    is begin
       return ID (Token_Handle (Iterator).all);
    end ID;
+
+   procedure Print (Item : in Instance)
+   is
+      I : List_Iterator := Initial_Iterator (Item);
+   begin
+      loop
+         exit when I = Null_Iterator;
+         Ada.Text_IO.Put (Token_Handle (I).Image);
+         Next_Token (I);
+         if I /= Null_Iterator then
+            Ada.Text_IO.Put (", ");
+         end if;
+      end loop;
+   end Print;
 
 end OpenToken.Token.Enumerated.List;

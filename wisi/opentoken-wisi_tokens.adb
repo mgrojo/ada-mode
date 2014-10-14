@@ -85,11 +85,12 @@ package body OpenToken.Wisi_Tokens is
    function Image (Token : in Instance) return String
    is
       use Tokens;
+      Name : constant String := Token_Image (Token.ID) & (if Token.Has_Name then Token.Name else "");
    begin
       if Token.Buffer_Range = Null_Buffer_Range then
-         return "(" & Token_Image (Token.ID) & ")";
+         return "(" & Name & ")";
       else
-         return "(" & Token_Image (Token.ID) & Integer'Image (Token.Buffer_Range.Begin_Pos) & " ." &
+         return "(" & Name & Integer'Image (Token.Buffer_Range.Begin_Pos) & " ." &
            --  Elisp region end is one past the last character
            Integer'Image (Token.Buffer_Range.End_Pos + 1) & ")";
       end if;

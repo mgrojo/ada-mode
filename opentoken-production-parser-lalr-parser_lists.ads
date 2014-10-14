@@ -30,6 +30,7 @@
 
 with Ada.Iterator_Interfaces;
 generic
+   First_Parser_Label : in Integer;
 package OpenToken.Production.Parser.LALR.Parser_Lists is
 
    type Parser_State is private;
@@ -40,7 +41,7 @@ package OpenToken.Production.Parser.LALR.Parser_Lists is
      Default_Iterator  => Iterate,
      Iterator_Element  => Parser_State;
 
-   function Initialize (First_Parser_Label : in Integer := 1) return List;
+   function Initialize return List;
 
    function Count (List : in Parser_Lists.List) return Integer;
 
@@ -75,12 +76,15 @@ package OpenToken.Production.Parser.LALR.Parser_Lists is
 
    --  pending user actions
    type Action_Token is record
-      Action    : Nonterminal.Synthesize;
+      Action    : Reduce_Action_Rec;
       New_Token : Nonterminal.Handle;
       Tokens    : Token_List.Instance;
    end record;
 
+   Null_Action_Token : constant Action_Token := (Null_Reduce_Action_Rec, null, Token_List.Null_List);
+
    function Action_Tokens_Empty (Cursor : in Parser_Lists.Cursor) return Boolean;
+   function Action_Token_Count (Cursor : in Parser_Lists.Cursor) return Integer;
    procedure Enqueue
      (Cursor       : in Parser_Lists.Cursor;
       Action_Token : in Parser_Lists.Action_Token);
@@ -131,11 +135,23 @@ package OpenToken.Production.Parser.LALR.Parser_Lists is
    function Iterate (Container : aliased List) return Iterator_Interfaces.Forward_Iterator'Class;
 
    ----------
-   --  For unit tests
+   --  For unit tests, debug assertions
 
    function Parser_Free_Count (List : in Parser_Lists.List) return Integer;
    function Stack_Free_Count (List : in Parser_Lists.List) return Integer;
    function Action_Token_Free_Count (List : in Parser_Lists.List) return Integer;
+
+   procedure Put (Action_Token : in Parser_Lists.Action_Token);
+   procedure Put_Action_Tokens (Cursor : in Parser_Lists.Cursor);
+
+   procedure Check_Action_Stack
+     (Label  : in String;
+      Cursor : in Parser_Lists.Cursor);
+   --  Verify that all Action_Token.New_Token point to tokens on
+   --  Stack or later Action_Token.Tokens, and that all
+   --  nonterminals in Stack and Action_Token.Tokens are pointed to
+   --  by previous Action_Token.New_Token.
+
 private
 
    type Stack_Node;
@@ -156,7 +172,7 @@ private
    type Action_Token_List is record
       Head : Action_Token_Node_Access;
       Tail : Action_Token_Node_Access;
-      --  Enqueue to head, dequeue from tail
+      --  Enqueue to tail, dequeue from head, so 'prev', 'next' make sense
    end record;
 
    function Count (Action_Token : in Action_Token_List) return Integer;

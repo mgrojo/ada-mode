@@ -133,6 +133,8 @@ package OpenToken.Token is
    ----------------------------------------------------------------------
    function Name (Token : in Instance) return String;
 
+   function Has_Name (Token : in Instance) return Boolean;
+
    ----------------------------------------------------------------------
    --  Dispatching calls to Name
    ----------------------------------------------------------------------

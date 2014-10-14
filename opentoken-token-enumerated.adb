@@ -32,7 +32,7 @@ package body OpenToken.Token.Enumerated is
    overriding
    function Image (Token : in Instance) return String
    is begin
-      return Token_Image (Token.ID);
+      return Token_Image (Token.ID) & (if Token.Has_Name then "." & Token.Name.all else "");
    end Image;
 
    procedure Free (Item : in out Handle)
@@ -92,7 +92,7 @@ package body OpenToken.Token.Enumerated is
       use type Ada.Tags.Tag;
       Next_Token : constant OpenToken.Token.Class := Analyzer.Get;
    begin
-      if Trace_Parse then
+      if Trace_Parse > 0 then
          Trace_Indent := Trace_Indent + 1;
          if Actively then
             Trace_Put ("parsing");
@@ -160,13 +160,13 @@ package body OpenToken.Token.Enumerated is
 
       Analyzer.Find_Next (Look_Ahead => not Actively);
 
-      if Trace_Parse then
+      if Trace_Parse > 0 then
          Trace_Put ("...succeeded"); Ada.Text_IO.New_Line;
          Trace_Indent := Trace_Indent - 1;
       end if;
    exception
    when others =>
-      if Trace_Parse then
+      if Trace_Parse > 0 then
          Trace_Put ("...failed"); Ada.Text_IO.New_Line;
          Trace_Indent := Trace_Indent - 1;
       end if;
