@@ -1590,11 +1590,12 @@ Also return cache at start."
 
 (defun ada-wisi-face ()
   "Return face for token in match-data 2"
-  (let (cache)
+  (let ((pos (match-beginning 2))
+	cache)
     (when (< (point-max) ada-wisi-font-lock-size-threshold)
       (wisi-validate-cache (line-end-position)))
 
-    (if	(setq cache (wisi-get-cache (match-beginning 2)))
+    (if	(setq cache (wisi-get-cache pos))
 	(wisi-cache-face cache)
       'default)
     ))

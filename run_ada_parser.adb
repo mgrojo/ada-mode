@@ -9,8 +9,8 @@ is
    Parser : Ada_Grammar.LALR_Parsers.Instance := Ada_Grammar.Create_Parser (Terminate_Same_State => True);
 begin
    if Argument (1) = "-v" then
-      OpenToken.Trace_Parse := True;
-      Open (File, In_File, Argument (2));
+      OpenToken.Trace_Parse := Integer'Value (Argument (2));
+      Open (File, In_File, Argument (3));
    else
       Open (File, In_File, Argument (1));
    end if;

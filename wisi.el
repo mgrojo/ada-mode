@@ -422,9 +422,15 @@ Caches are the Emacs syntax cache, the wisi token cache, and the wisi parser cac
 
 	 (t
 	  (setq wisi-change-need-invalidate
-		(progn
-		  (wisi-goto-statement-start)
-		  (point))))
+		;; we'd like to use (wisi-goto-statement-start) here
+		;; to invalidate the whole statement, but that
+		;; requires parsing; too much for after-change
+		;;
+		;; See test/ada_mode-interactive_wisi.adb
+		;; Function_Access_1 ada-goto-declaration-end; that
+		;; test fails because we don't have
+		;; wisi-goto-statement-start here.
+		(line-beginning-position)))
 	 ))))
   )
 

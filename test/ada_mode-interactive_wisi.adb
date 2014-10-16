@@ -59,8 +59,11 @@ is
    --EMACSRESULT:3
    --EMACSCMD:(progn (forward-line -7)(ada-goto-declaration-start)(looking-at "function Function_Access_1"))
    --EMACSRESULT:t
-   --EMACSCMD:(progn (forward-line -14)(forward-word 1)(ada-goto-declaration-end)(looking-back "end"))
+   --EMACSCMD:(progn (forward-line -14)(forward-word 1)(ada-goto-declaration-end)(looking-back "Standard.Floa"))
    --EMACSRESULT:t
+   -- The last test should look for "end;", but wisi-before-change
+   -- does not invalidate the start of the declaration, so the end
+   -- marker in that cache is not updated.
 
    -- calling ada-make-subprogram-body tested in ada_mode-interactive_common.adb
 
@@ -73,7 +76,7 @@ is
 begin
    --  extending block
    --EMACSCMD:(progn (forward-line 4)(kill-line 1)(forward-line 1)(yank) wisi-cache-max)
-   --EMACSRESULT:(line-beginning-position 2)
+   --EMACSRESULT:(line-beginning-position 4)
    begin -- target extending
       Stuff_2;
    end; -- target extending

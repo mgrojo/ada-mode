@@ -21,22 +21,17 @@ run test from emacs -Q using source:
   (setenv "PATH" (mapconcat 'identity  exec-path  path-separator))
   (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-1")
   (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-1/build")
-  (setq debug-on-error t)
   (load "autoloads.el")
-  (load "run-indent-test-wisi")
+  (load "run-indent-test-wisi-ext-gpr_query")
   (setq wisi-debug 1)
+  (setq ada-wisi-font-lock-size-threshold 0)
+  (setq debug-on-error t)
   (setq default-directory "/Projects/org.emacs.ada-mode.stephe-1/build/wisi/")
-  (run-test "../../test/access_in_record.ads")
+;;  (run-test "../../test/ada_mode-interactive_common.adb")
+  (find-file "../../test/ada_mode-parens.ads")
   (ada-wisi-debug-keys))
 
-run ada_mode_wisi_parse under -Q:
-    (progn
-      (add-to-list 'exec-path "/apps/GNAT-GPL_2014/bin")
-      (setenv "PATH" (mapconcat 'identity  exec-path  path-separator))
-      (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-1")
-      (setq wisi-ada-parse-exec "c:/Projects/org.emacs.ada-mode.stephe-1/build/wisi/ada_mode_wisi_parse.exe")
-      (load "autoloads.el")
-      (find-file "/Projects/org.emacs.ada-mode.stephe-1/ada_mode_wisi_parse.adb"))
+(progn (push-mark)(goto-char wisi-cache-max))
 
 install packages in -Q:
 (progn
@@ -65,9 +60,23 @@ o.e.a.stephe-2: external gps parser
 
     c:/Projects/org.opentoken.stephe/build/debug/Makefile
 
-run all tests with ext parser
+terminate parser on error even if not match current_verb
 
-propagate to o.e.a
+run all ada-mode tests with ext parser
+
+wisi-ext-parse.el
+    ;; FIXME: time temp for (cadr action)
+
+test/ada_mode-interactive_wisi.adb
+    ada-goto-declaration-end failing due to wisi-before-change no longer calling ada-goto-statement-start
+        allow parser to overwrite end and next, but not container
+
+run all opentoken tests
+
+propagate to o.e.ada-mode
+
+propagate to o.opentoken
+
 
 do FFI
 
@@ -189,6 +198,10 @@ time wisi-parse-buffer and portions thereof
             15 Sept: sent email to Aurélien Aptel aurelien.aptel+emacs@gmail.com
 
     use gprof to find Ada bottleneck
+        use array for stack
+            obvious from code, but time it!
+            stack size = generic = 100, double when need more
+
 
     Emacs read/write is slow: bug 18626
         ~/Mail/drafts/message-20141004-010440
@@ -815,12 +828,7 @@ read/write access requires a public key:
 	merge = refs/heads/master
 
  release process
-move to external elpa package?
-    simplifies git management of elpa?
-    - Push the tree you want onto a branch `externals/<pkg>' in the
-      `elpa' repository.
-    - Remove the packages/<pkg> directory in the `master' branch.
-    - Edit `externals-list' in the `master' branch.
+do opentoken release, if needed
 
 check for ELPA patches by others
     (dvc-pull "/Projects/elpa")

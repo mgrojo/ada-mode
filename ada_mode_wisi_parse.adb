@@ -35,8 +35,8 @@ is
    procedure Usage
    is
    begin
-      Put_Line ("usage: ada_mode_wisi_parse [-v]");
-      Put_Line ("-v : enable parse trace output (will screw up Emacs eval)");
+      Put_Line ("usage: ada_mode_wisi_parse [-v level]");
+      Put_Line ("-v level : enable parse trace output (will screw up Emacs eval)");
       Put_Line ("enters a loop waiting for commands:");
       Put_Line ("Prompt is '" & Prompt & "'");
       Put_Line ("commands are case sensitive");
@@ -148,9 +148,9 @@ begin
       when 0 =>
          null;
 
-      when 1 =>
+      when 2 =>
          if Argument (1) = "-v" then
-            OpenToken.Trace_Parse := True;
+            OpenToken.Trace_Parse := Integer'Value (Argument (2));
          else
             raise Programmer_Error with "invalid option: " & Argument (1);
          end if;

@@ -332,28 +332,24 @@ nil, 'shift, or 'accept."
 	)))
   active-parser-count)
 
-(defun wisi-parse-max-pos (tokens)
-  "Return max position in tokens, or point if tokens nil."
-  (let ((result (if tokens 0 (point))))
-    (mapc
-     (lambda (token)
-       (when (cddr token)
-	 (setq result (max (cddr token) result))))
-     tokens)
-    result)
-  )
-
 (defun wisi-parse-exec-action (func tokens)
   "Execute action if all tokens past wisi-cache-max."
   ;; We don't execute actions if all tokens are before wisi-cache-max,
   ;; because later actions can update existing caches, and if the
   ;; parse fails that won't happen. It also saves time.
-  (if (>= (wisi-parse-max-pos tokens) wisi-cache-max)
+  ;;
+  ;; Also skip if no tokens; nothing to do. This can happen when all
+  ;; tokens in a grammar statement are optional.
+  (if tokens
+      (if (>= (wisi-parse-max-pos tokens) wisi-cache-max)
 
-      (funcall func tokens)
+	  (funcall func tokens)
+
+	(when (> wisi-debug 1)
+	  (message "... action skipped; before wisi-cache-max")))
 
     (when (> wisi-debug 1)
-      (message "... action skipped; before wisi-cache-max"))
+      (message "... action skipped; no tokens"))
     ))
 
 (defun wisi-execute-pending (parser-label pending)

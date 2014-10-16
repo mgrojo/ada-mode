@@ -79,6 +79,11 @@ project Ada_Mode_Wisi_Parse is
 
    end Compiler;
 
+   package Builder is
+         --  We use ".exe" extension even on non-Windows, to simplify the makefiles.
+      for Executable_Suffix use ".exe";
+   end Builder;
+
    package Binder is
       for default_switches ("Ada") use ("-E"); -- symbolic traceback
    end Binder;

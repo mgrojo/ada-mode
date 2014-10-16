@@ -47,6 +47,9 @@
   "list of command-line options for `wisi-ext-parse-exec'.
 -v echoes commands.")
 
+(defvar wisi-ext-parse-new-session nil
+  "Non-nil indicates session is new; delay after first command.")
+
 (defun wisi-ext-parse--start-process ()
   "Start the session process running ada_mode_wisi_parse."
   (unless (buffer-live-p (wisi-ext-parse--session-buffer wisi-ext-parse-session))
@@ -68,6 +71,7 @@
       (set-process-query-on-exit-flag (wisi-ext-parse--session-process wisi-ext-parse-session) nil)
       ;; FIXME: check protocol and version numbers?
       (wisi-ext-parse-session-wait)
+      (setq wisi-ext-parse-new-session t)
       )))
 
 (defun wisi-ext-parse-require-session ()
@@ -93,8 +97,6 @@
       (while (and (process-live-p process)
 		  (progn
 		    ;; process output is inserted before point, so move back over it to search it
-		    ;; FIXME: could process elisp forms as they arrive
-		    ;; FIXME: can take a long time? May need warm fuzzy output
 		    (goto-char search-start)
 		    (not (setq found (re-search-forward wisi-ext-parse-prompt (point-max) t)))))
 	(setq search-start (point));; don't search same text again
@@ -180,6 +182,10 @@ Does not wait for command to complete."
       ;; no symbol codes to translate
       (apply func (cdr action))
       )
+
+    (when (> wisi-debug 1)
+      (message "%s" wisi-tokens)
+      (message "(%s %s)" func (cdr action)))
     ))
 
 (defun wisi-ext-parse-execute (elisp-names sexp)
@@ -224,13 +230,24 @@ Does not wait for command to complete."
 
     (setq wisi-tokens (aref sexp 1))
 
-    (if (arrayp (aref sexp 2))
-	;; multiple actions
-	(while (< j (length (aref sexp 2)))
-	  (wisi-ext-parse-exec-action elisp-names (aref (aref sexp 2) j))
-	  (setq j (1+ j)))
-      ;; single action
-      (wisi-ext-parse-exec-action elisp-names (aref sexp 2)))
+    ;; Skip action if all tokens are before wisi-cache-max, or there
+    ;; are no tokens. See wisi-parse.el wisi-parse-exec-action for
+    ;; rationale.
+    (if tokens
+	(if (>= (wisi-parse-max-pos wisi-tokens) wisi-cache-max)
+	    (if (arrayp (aref sexp 2))
+		;; multiple actions
+		(while (< j (length (aref sexp 2)))
+		  (wisi-ext-parse-exec-action elisp-names (aref (aref sexp 2) j))
+		  (setq j (1+ j)))
+	      ;; single action
+	      (wisi-ext-parse-exec-action elisp-names (aref sexp 2)))
+
+	  (when (> wisi-debug 1)
+	    (message "... action skipped; before wisi-cache-max")))
+
+      (when (> wisi-debug 1)
+	(message "... action skipped; no tokens")))
     ))
 
 ;;;;; main
@@ -252,6 +269,10 @@ Does not wait for command to complete."
 	start-wait-time)
 
     (wisi-ext-parse-session-send-parse)
+    (when wisi-ext-parse-new-session
+      (setq wisi-ext-parse-new-session nil)
+      (sit-for 0.1)) ;; makes tests work
+
     (set-buffer action-buffer)
 
     ;; process responses until prompt received
