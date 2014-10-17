@@ -183,20 +183,18 @@
         (wisi-containing-action 2 4))))
       (access_definition
        ((null_exclusion_opt ACCESS general_access_modifier_opt name )
-        (progn
-        (wisi-statement-action [2 keyword])
-        (wisi-face-action [2 font-lock-keyword-face 4 font-lock-type-face])))
+        (wisi-face-action [2 font-lock-keyword-face [4 IDENTIFIER selected_component] font-lock-type-face]))
        ((null_exclusion_opt ACCESS protected_opt PROCEDURE parameter_profile_opt )
         (progn
-        (wisi-statement-action [2 keyword 4 name-paren])
+        (wisi-statement-action [4 name-paren])
         (wisi-containing-action 4 5)
-        (wisi-face-action [2 font-lock-keyword-face])))
+        (wisi-face-action [2 font-lock-keyword-face 4 font-lock-keyword-face])))
        ((null_exclusion_opt ACCESS protected_opt FUNCTION parameter_and_result_profile )
         (progn
-        (wisi-statement-action [2 keyword 4 name-paren])
+        (wisi-statement-action [4 name-paren])
         (wisi-containing-action 4 5)
         (wisi-motion-action [4 [5 return-1 RETURN return-2 RETURN]])
-        (wisi-face-action [2 font-lock-keyword-face]))))
+        (wisi-face-action [2 font-lock-keyword-face 4 font-lock-keyword-face]))))
       (actual_parameter_part
        ((LEFT_PAREN association_list RIGHT_PAREN )
         (progn
@@ -225,23 +223,24 @@
         (wisi-statement-action [1 open-paren 4 close-paren])))
       (aliased_opt
        (())
-       ((ALIASED )))
+       ((ALIASED )
+        (wisi-face-action [1 font-lock-keyword-face])))
       (and_interface_list_opt
        (())
        ((AND interface_list )))
       (array_type_definition
        ((ARRAY LEFT_PAREN index_subtype_definition_list RIGHT_PAREN OF component_definition )
         (progn
-        (wisi-statement-action [1 keyword 2 open-paren 4 close-paren 5 statement-other])
+        (wisi-statement-action [2 open-paren 4 close-paren 5 statement-other])
         (wisi-containing-action 2 3)
         (wisi-containing-action 5 6)
-        (wisi-face-action [1 font-lock-keyword-face])))
+        (wisi-face-action [1 font-lock-keyword-face 5 font-lock-keyword-face])))
        ((ARRAY LEFT_PAREN discrete_subtype_definition_list RIGHT_PAREN OF component_definition )
         (progn
-        (wisi-statement-action [1 keyword 2 open-paren 4 close-paren 5 statement-other])
+        (wisi-statement-action [2 open-paren 4 close-paren 5 statement-other])
         (wisi-containing-action 2 3)
         (wisi-containing-action 5 6)
-        (wisi-face-action [1 font-lock-keyword-face]))))
+        (wisi-face-action [1 font-lock-keyword-face 5 font-lock-keyword-face]))))
       (aspect_clause
        ((FOR attribute_reference USE expression SEMICOLON )
         (progn
@@ -374,9 +373,7 @@
        ((choice_relation_xor_list XOR choice_relation )))
       (choice_relation_and_then_list
        ((choice_relation AND THEN choice_relation )
-        (progn
-        (wisi-statement-action [3 keyword])
-        (wisi-face-action [3 font-lock-keyword-face])))
+        (wisi-face-action [3 font-lock-keyword-face]))
        ((choice_relation_and_then_list AND THEN choice_relation )
         (progn
         (wisi-statement-action 3 keyword)
@@ -417,9 +414,11 @@
         (wisi-containing-action 2 3)
         (wisi-containing-action 2 4))))
       (component_definition
-       ((ALIASED subtype_indication ))
+       ((ALIASED subtype_indication )
+        (wisi-face-action [1 font-lock-keyword-face]))
        ((subtype_indication ))
-       ((ALIASED access_definition ))
+       ((ALIASED access_definition )
+        (wisi-face-action [1 font-lock-keyword-face]))
        ((access_definition )))
       (component_item
        ((component_declaration ))
@@ -451,9 +450,7 @@
       (constant_opt
        (())
        ((CONSTANT )
-        (progn
-        (wisi-statement-action [1 keyword])
-        (wisi-face-action [1 font-lock-keyword-face]))))
+        (wisi-face-action [1 font-lock-keyword-face])))
       (constraint
        ((RANGE range ))
        ((index_constraint )))
@@ -507,9 +504,9 @@
        ((abstract_limited_opt NEW name and_interface_list_opt WITH record_definition )
         (progn
         (wisi-statement-action [5 statement-other])
-        (wisi-face-action [3 font-lock-type-face])))
+        (wisi-face-action [2 font-lock-keyword-face [3 IDENTIFIER selected_component] font-lock-type-face])))
        ((abstract_limited_opt NEW name constraint_opt )
-        (wisi-face-action [3 font-lock-type-face])))
+        (wisi-face-action [2 font-lock-keyword-face [3 IDENTIFIER selected_component] font-lock-type-face])))
       (direct_name
        ((IDENTIFIER ))
        ((STRING_LITERAL )))
@@ -543,8 +540,8 @@
         (wisi-containing-action 1 2))))
       (discriminant_specification_opt
        (())
-       ((identifier_list COLON null_exclusion_opt_name COLON_EQUAL expression ))
-       ((identifier_list COLON null_exclusion_opt_name ))
+       ((identifier_list COLON null_exclusion_opt_name_type COLON_EQUAL expression ))
+       ((identifier_list COLON null_exclusion_opt_name_type ))
        ((identifier_list COLON access_definition COLON_EQUAL expression ))
        ((identifier_list COLON access_definition )))
       (discriminant_specification_list
@@ -682,9 +679,12 @@
         (progn
         (wisi-statement-action [1 block-start 3 block-middle 5 block-end 7 statement-end])
         (wisi-containing-action 3 4)
-        (wisi-motion-action [1 3 5])))
+        (wisi-motion-action [1 3 5])
+        (wisi-face-action [1 font-lock-keyword-face 6 font-lock-keyword-face])))
        ((RETURN extended_return_object_declaration SEMICOLON )
-        (wisi-statement-action [1 statement-start 3 statement-end])))
+        (progn
+        (wisi-statement-action [1 statement-start 3 statement-end])
+        (wisi-face-action [1 font-lock-keyword-face]))))
       (factor
        ((primary STAR_STAR primary ))
        ((primary ))
@@ -695,11 +695,13 @@
         (progn
         (wisi-statement-action [1 statement-start 6 statement-other 9 statement-end])
         (wisi-containing-action 6 7)
-        (wisi-containing-action 6 8)))
+        (wisi-containing-action 6 8)
+        (wisi-face-action [[5 IDENTIFIER selected_component] font-lock-type-face])))
        ((identifier_list COLON mode_opt null_exclusion_opt name aspect_specification_opt SEMICOLON )
         (progn
         (wisi-statement-action [1 statement-start 7 statement-end])
-        (wisi-containing-action 5 6)))
+        (wisi-containing-action 5 6)
+        (wisi-face-action [[5 IDENTIFIER selected_component] font-lock-type-face])))
        ((identifier_list COLON mode_opt access_definition COLON_EQUAL expression aspect_specification_opt SEMICOLON )
         (progn
         (wisi-statement-action [1 statement-start 5 statement-other 8 statement-end])
@@ -766,9 +768,9 @@
        ((interface_type_definition )))
       (formal_derived_type_definition
        ((abstract_limited_synchronized_opt NEW name and_interface_list_opt WITH PRIVATE )
-        (wisi-face-action [3 font-lock-type-face]))
+        (wisi-face-action [[3 IDENTIFIER selected_component] font-lock-type-face]))
        ((abstract_limited_synchronized_opt NEW name and_interface_list_opt )
-        (wisi-face-action [3 font-lock-type-face])))
+        (wisi-face-action [[3 IDENTIFIER selected_component] font-lock-type-face])))
       (formal_package_declaration
        ((WITH PACKAGE name IS NEW name formal_package_actual_part aspect_specification_opt SEMICOLON )
         (progn
@@ -787,7 +789,8 @@
         (wisi-statement-action [1 statement-start 2 name 4 statement-other 7 statement-end])
         (wisi-containing-action 1 3)
         (wisi-containing-action 4 5)
-        (wisi-containing-action 4 6)))
+        (wisi-containing-action 4 6)
+        (wisi-face-action [2 font-lock-type-face])))
        ((task_type_declaration ))
        ((protected_type_declaration )))
       (function_specification
@@ -799,8 +802,10 @@
         (wisi-motion-action [1 [3 return-1 RETURN return-2 RETURN]]))))
       (general_access_modifier_opt
        (())
-       ((ALL ))
-       ((CONSTANT )))
+       ((ALL )
+        (wisi-face-action [1 font-lock-keyword-face]))
+       ((CONSTANT )
+        (wisi-face-action [1 font-lock-keyword-face])))
       (generic_declaration
        ((generic_subprogram_declaration ))
        ((generic_package_declaration )))
@@ -843,26 +848,26 @@
        ((generic_formal_part package_specification SEMICOLON )
         (progn
         (wisi-statement-action [1 block-start 2 block-middle 3 statement-end])
-        (wisi-motion-action [1 2 3]))))
+        (wisi-motion-action [1 2]))))
       (generic_renaming_declaration
        ((GENERIC PACKAGE name RENAMES name aspect_specification_opt SEMICOLON )
         (progn
         (wisi-statement-action [1 statement-start 2 statement-other 3 name 4 statement-other 7 statement-end])
         (wisi-containing-action 2 3)
         (wisi-containing-action 3 6)
-        (wisi-face-action [5 font-lock-function-name-face])))
+        (wisi-face-action [4 font-lock-keyword-face 5 font-lock-function-name-face])))
        ((GENERIC PROCEDURE name RENAMES name aspect_specification_opt SEMICOLON )
         (progn
         (wisi-statement-action [1 statement-start 2 statement-other 3 name 4 statement-other 7 statement-end])
         (wisi-containing-action 2 3)
         (wisi-containing-action 3 6)
-        (wisi-face-action [5 font-lock-function-name-face])))
+        (wisi-face-action [4 font-lock-keyword-face 5 font-lock-function-name-face])))
        ((GENERIC FUNCTION name RENAMES name aspect_specification_opt SEMICOLON )
         (progn
         (wisi-statement-action [1 statement-start 2 statement-other 3 name 4 statement-other 7 statement-end])
         (wisi-containing-action 2 3)
         (wisi-containing-action 3 6)
-        (wisi-face-action [5 font-lock-function-name-face]))))
+        (wisi-face-action [4 font-lock-keyword-face 5 font-lock-function-name-face]))))
       (generic_subprogram_declaration
        ((generic_formal_part subprogram_specification aspect_specification_opt SEMICOLON )
         (progn
@@ -943,9 +948,12 @@
        ((TYPE IDENTIFIER discriminant_part_opt IS TAGGED SEMICOLON )
         (progn
         (wisi-statement-action [1 statement-start 2 name 6 statement-end])
-        (wisi-containing-action 1 3)))
+        (wisi-containing-action 1 3)
+        (wisi-face-action [2 font-lock-type-face])))
        ((TYPE IDENTIFIER SEMICOLON )
-        (wisi-statement-action [1 statement-start 2 name 3 statement-end])))
+        (progn
+        (wisi-statement-action [1 statement-start 2 name 3 statement-end])
+        (wisi-face-action [2 font-lock-type-face]))))
       (index_constraint
        ((LEFT_PAREN discrete_subtype_definition_list RIGHT_PAREN )
         (progn
@@ -961,9 +969,9 @@
         (wisi-containing-action 2 3))))
       (interface_list
        ((name )
-        (wisi-face-action [1 font-lock-type-face]))
+        (wisi-face-action [[1 IDENTIFIER selected_component] font-lock-type-face]))
        ((interface_list AND name )
-        (wisi-face-action [3 font-lock-type-face])))
+        (wisi-face-action [[3 IDENTIFIER selected_component] font-lock-type-face])))
       (interface_type_definition
        ((LIMITED INTERFACE AND interface_list ))
        ((TASK INTERFACE AND interface_list ))
@@ -1035,17 +1043,11 @@
       (mode_opt
        (())
        ((IN )
-        (progn
-        (wisi-statement-action [1 keyword])
-        (wisi-face-action [1 font-lock-keyword-face])))
+        (wisi-face-action [1 font-lock-keyword-face]))
        ((IN OUT )
-        (progn
-        (wisi-statement-action [1 keyword])
-        (wisi-face-action [1 font-lock-keyword-face])))
+        (wisi-face-action [1 font-lock-keyword-face 2 font-lock-keyword-face]))
        ((OUT )
-        (progn
-        (wisi-statement-action [1 keyword])
-        (wisi-face-action [1 font-lock-keyword-face]))))
+        (wisi-face-action [1 font-lock-keyword-face])))
       (multiplying_operator
        ((STAR ))
        ((SLASH ))
@@ -1081,18 +1083,20 @@
       (null_exclusion_opt
        (())
        ((NOT NULL )
-        (progn
-        (wisi-statement-action [1 keyword])
-        (wisi-face-action [1 font-lock-keyword-face]))))
-      (null_exclusion_opt_name
-       ((IDENTIFIER ))
-       ((selected_component ))
-       ((NOT NULL IDENTIFIER ))
-       ((NOT NULL selected_component )))
+        (wisi-face-action [1 font-lock-keyword-face 2 font-lock-keyword-face])))
+      (null_exclusion_opt_name_type
+       ((IDENTIFIER )
+        (wisi-face-action [1 font-lock-type-face]))
+       ((selected_component )
+        (wisi-face-action [1 font-lock-type-face]))
+       ((NOT NULL IDENTIFIER )
+        (wisi-face-action [1 font-lock-keyword-face 2 font-lock-keyword-face 3 font-lock-type-face]))
+       ((NOT NULL selected_component )
+        (wisi-face-action [1 font-lock-keyword-face 2 font-lock-keyword-face 3 font-lock-type-face])))
       (null_procedure_declaration
        ((overriding_indicator_opt procedure_specification IS NULL aspect_specification_opt SEMICOLON )
         (progn
-        (wisi-statement-action [1 statement-start 2 statement-other 3 name 6 statement-end])
+        (wisi-statement-action [1 statement-start 2 statement-other 3 statement-other 6 statement-end])
         (wisi-containing-action 2 5))))
       (object_declaration
        ((identifier_list COLON aliased_opt constant_opt subtype_indication COLON_EQUAL expression aspect_specification_opt SEMICOLON )
@@ -1133,21 +1137,23 @@
       (object_renaming_declaration
        ((IDENTIFIER COLON null_exclusion_opt name RENAMES name aspect_specification_opt SEMICOLON )
         (progn
-        (wisi-statement-action [1 statement-start 4 name 5 statement-other 6 name 8 statement-end])
+        (wisi-statement-action [1 statement-start 5 statement-other 8 statement-end])
         (wisi-containing-action 1 4)
         (wisi-containing-action 1 6)
-        (wisi-containing-action 1 7)))
+        (wisi-face-action [[4 IDENTIFIER selected_component] font-lock-type-face 5 font-lock-keyword-face])))
        ((IDENTIFIER COLON access_definition RENAMES name aspect_specification_opt SEMICOLON )
         (progn
-        (wisi-statement-action [1 statement-start 4 statement-other 5 name 7 statement-end])
+        (wisi-statement-action [1 statement-start 4 statement-other 7 statement-end])
         (wisi-containing-action 1 3)
         (wisi-containing-action 1 5)
-        (wisi-containing-action 1 6)))
+        (wisi-containing-action 1 6)
+        (wisi-face-action [4 font-lock-keyword-face])))
        ((IDENTIFIER COLON EXCEPTION RENAMES name aspect_specification_opt SEMICOLON )
         (progn
-        (wisi-statement-action [1 statement-start 4 statement-other 5 name 7 statement-end])
+        (wisi-statement-action [1 statement-start 4 statement-other 7 statement-end])
         (wisi-containing-action 1 5)
-        (wisi-containing-action 1 6))))
+        (wisi-containing-action 1 6)
+        (wisi-face-action [4 font-lock-keyword-face]))))
       (overriding_indicator_opt
        ((NOT OVERRIDING )
         (wisi-statement-action [1 statement-start 2 statement-other]))
@@ -1186,7 +1192,7 @@
         (wisi-statement-action [1 statement-start 2 name 3 statement-other 6 statement-end])
         (wisi-containing-action 1 2)
         (wisi-containing-action 3 5)
-        (wisi-face-action [4 font-lock-function-name-face]))))
+        (wisi-face-action [3 font-lock-keyword-face 4 font-lock-function-name-face]))))
       (package_specification
        ((PACKAGE name aspect_specification_opt IS declarative_part_opt PRIVATE declarative_part_opt END name_opt )
         (progn
@@ -1208,27 +1214,29 @@
         (progn
         (wisi-statement-action [2 return-1])
         (wisi-containing-action 2 4)
-        (wisi-face-action [4 font-lock-type-face])))
+        (wisi-face-action [2 font-lock-keyword-face [4 IDENTIFIER selected_component] font-lock-type-face])))
        ((RETURN name_opt )
         (progn
         (wisi-statement-action [1 return-2])
-        (wisi-face-action [2 font-lock-type-face])))
+        (wisi-face-action [1 font-lock-keyword-face [2 IDENTIFIER selected_component] font-lock-type-face])))
        ((formal_part RETURN access_definition )
         (progn
         (wisi-statement-action [2 return-1])
-        (wisi-containing-action 2 3)))
+        (wisi-containing-action 2 3)
+        (wisi-face-action [2 font-lock-keyword-face])))
        ((RETURN access_definition )
         (progn
         (wisi-statement-action [1 return-2])
-        (wisi-containing-action 1 2))))
+        (wisi-containing-action 1 2)
+        (wisi-face-action [1 font-lock-keyword-face]))))
       (parameter_profile_opt
        (())
        ((formal_part )))
       (parameter_specification
        ((identifier_list COLON aliased_opt mode_opt null_exclusion_opt name COLON_EQUAL expression )
-        (wisi-face-action [6 font-lock-type-face]))
+        (wisi-face-action [[6 IDENTIFIER selected_component] font-lock-type-face]))
        ((identifier_list COLON aliased_opt mode_opt null_exclusion_opt name )
-        (wisi-face-action [6 font-lock-type-face]))
+        (wisi-face-action [[6 IDENTIFIER selected_component] font-lock-type-face]))
        ((identifier_list COLON aliased_opt access_definition COLON_EQUAL expression ))
        ((identifier_list COLON aliased_opt access_definition )))
       (parameter_specification_list
@@ -1265,11 +1273,14 @@
        ((pragma_argument_association ))
        ((pragma_argument_association_list COMMA pragma_argument_association )))
       (primary
-       ((NULL ))
+       ((NULL )
+        (wisi-face-action [1 font-lock-keyword-face]))
        ((aggregate ))
        ((name ))
        ((NEW name )
-        (wisi-face-action [2 font-lock-type-face]))
+        (progn
+        (wisi-face-action [1 font-lock-keyword-face])
+        (wisi-face-action [[2 IDENTIFIER selected_component] font-lock-type-face])))
        ((LEFT_PAREN if_expression RIGHT_PAREN )
         (progn
         (wisi-statement-action [1 open-paren 3 close-paren])
@@ -1290,19 +1301,20 @@
         (wisi-containing-action 6 7)
         (wisi-containing-action 6 8)
         (wisi-containing-action 2 11)
-        (wisi-face-action [7 font-lock-type-face]))))
+        (wisi-face-action [2 font-lock-type-face 6 font-lock-keyword-face]))))
       (private_type_declaration
        ((TYPE IDENTIFIER discriminant_part_opt IS abstract_tagged_limited_opt PRIVATE aspect_specification_opt SEMICOLON )
         (progn
         (wisi-statement-action [1 statement-start 2 name 8 statement-end])
-        (wisi-containing-action 1 7))))
+        (wisi-containing-action 1 7)
+        (wisi-face-action [2 font-lock-type-face]))))
       (procedure_call_statement
        ((name SEMICOLON )
         (wisi-statement-action [1 statement-start 2 statement-end])))
       (procedure_specification
        ((PROCEDURE name parameter_profile_opt )
         (progn
-        (wisi-statement-action [1 statement-other 2 name])
+        (wisi-statement-action [1 statement-other])
         (wisi-containing-action 1 2)
         (wisi-containing-action 1 3))))
       (proper_body
@@ -1344,7 +1356,8 @@
        ((protected_operation_item_list )))
       (protected_opt
        (())
-       ((PROTECTED )))
+       ((PROTECTED )
+        (wisi-face-action [1 font-lock-keyword-face])))
       (protected_type_declaration
        ((PROTECTED TYPE IDENTIFIER discriminant_part_opt aspect_specification_opt IS NEW interface_list WITH protected_definition SEMICOLON )
         (progn
@@ -1362,7 +1375,8 @@
        ((name TICK aggregate )
         (progn
         (wisi-statement-action [1 statement-other])
-        (wisi-containing-action 1 3))))
+        (wisi-containing-action 1 3)
+        (wisi-face-action [[1 IDENTIFIER selected_component] font-lock-type-face]))))
       (quantified_expression
        ((FOR quantifier iterator_specification EQUAL_GREATER expression )
         (progn
@@ -1413,13 +1427,9 @@
        ((relation_and_list AND relation )))
       (relation_and_then_list
        ((relation AND THEN relation )
-        (progn
-        (wisi-statement-action [3 keyword])
-        (wisi-face-action [3 font-lock-keyword-face])))
+        (wisi-face-action [3 font-lock-keyword-face]))
        ((relation_and_then_list AND THEN relation )
-        (progn
-        (wisi-statement-action [3 keyword])
-        (wisi-face-action [3 font-lock-keyword-face]))))
+        (wisi-face-action [3 font-lock-keyword-face])))
       (relation_or_list
        ((relation OR relation ))
        ((relation_or_list OR relation )))
@@ -1518,11 +1528,14 @@
        ((term_list )))
       (simple_return_statement
        ((RETURN SEMICOLON )
-        (wisi-statement-action [1 statement-start 2 statement-end]))
+        (progn
+        (wisi-statement-action [1 statement-start 2 statement-end])
+        (wisi-face-action [1 font-lock-keyword-face])))
        ((RETURN expression SEMICOLON )
         (progn
         (wisi-statement-action [1 statement-start 3 statement-end])
-        (wisi-containing-action 1 2))))
+        (wisi-containing-action 1 2)
+        (wisi-face-action [1 font-lock-keyword-face]))))
       (simple_statement
        ((NULL SEMICOLON )
         (wisi-statement-action [1 statement-start 2 statement-end]))
@@ -1601,7 +1614,7 @@
         (progn
         (wisi-statement-action [1 statement-start 2 block-middle 3 statement-other 6 statement-end])
         (wisi-containing-action 2 5)
-        (wisi-face-action [4 font-lock-function-name-face]))))
+        (wisi-face-action [3 font-lock-keyword-face 4 font-lock-function-name-face]))))
       (subprogram_specification
        ((procedure_specification ))
        ((function_specification )))
@@ -1611,23 +1624,21 @@
         (wisi-statement-action [1 statement-start 2 name 3 statement-other 6 statement-end])
         (wisi-containing-action 1 2)
         (wisi-containing-action 2 3)
-        (wisi-containing-action 3 4))))
+        (wisi-containing-action 3 4)
+        (wisi-face-action [2 font-lock-type-face]))))
       (subtype_indication
        ((NOT NULL name constraint )
         (progn
-        (wisi-statement-action [1 keyword])
         (wisi-containing-action 3 4)
-        (wisi-face-action [1 font-lock-keyword-face 3 font-lock-type-face])))
+        (wisi-face-action [1 font-lock-keyword-face [3 IDENTIFIER selected_component] font-lock-type-face])))
        ((NOT NULL name )
-        (progn
-        (wisi-statement-action [1 keyword])
-        (wisi-face-action [1 font-lock-keyword-face 3 font-lock-type-face])))
+        (wisi-face-action [1 font-lock-keyword-face [3 IDENTIFIER selected_component] font-lock-type-face]))
        ((name constraint )
         (progn
         (wisi-containing-action 1 2)
-        (wisi-face-action [1 font-lock-type-face])))
+        (wisi-face-action [[1 IDENTIFIER selected_component] font-lock-type-face])))
        ((name )
-        (wisi-face-action [1 font-lock-type-face])))
+        (wisi-face-action [[1 IDENTIFIER selected_component] font-lock-type-face])))
       (subunit
        ((SEPARATE LEFT_PAREN name RIGHT_PAREN proper_body )
         (progn
@@ -1727,11 +1738,13 @@
        ((USE ALL TYPE name_list SEMICOLON )
         (progn
         (wisi-statement-action [1 statement-start 5 statement-end])
-        (wisi-containing-action 1 4)))
+        (wisi-containing-action 1 4)
+        (wisi-face-action [[4 IDENTIFIER selected_component] font-lock-type-face])))
        ((USE TYPE name_list SEMICOLON )
         (progn
         (wisi-statement-action [1 statement-start 4 statement-end])
-        (wisi-containing-action 1 3))))
+        (wisi-containing-action 1 3)
+        (wisi-face-action [[3 IDENTIFIER selected_component] font-lock-type-face]))))
       (with_clause
        ((LIMITED PRIVATE WITH name_list SEMICOLON )
         (progn
@@ -2302,12 +2315,12 @@
       ((default . error) (NEW . (abstract_limited_synchronized_opt . 2)))
       ((default . error) (LIMITED .  756) (RECORD . (abstract_tagged_limited_opt . 2)) (NULL . (abstract_tagged_limited_opt . 2)) (PRIVATE . (abstract_tagged_limited_opt . 2)))
       ((default . error) (RIGHT_PAREN . (discriminant_specification_list . 1)) (SEMICOLON . (discriminant_specification_list . 1)))
-      ((default . error) (SEMICOLON . (null_exclusion_opt_name . 0)) (RIGHT_PAREN . (null_exclusion_opt_name . 0)) (COLON_EQUAL . (null_exclusion_opt_name . 0)) (DOT . (name . 0)) (LEFT_PAREN . (name . 0)) (TICK . (name . 0)))
+      ((default . error) (SEMICOLON . (null_exclusion_opt_name_type . 0)) (RIGHT_PAREN . (null_exclusion_opt_name_type . 0)) (COLON_EQUAL . (null_exclusion_opt_name_type . 0)) (DOT . (name . 0)) (LEFT_PAREN . (name . 0)) (TICK . (name . 0)))
       ((default . error) (NULL .  755))
       ((default . error) (SEMICOLON . (discriminant_specification_opt . 4)) (RIGHT_PAREN . (discriminant_specification_opt . 4)) (COLON_EQUAL .  754))
       ((default . error) (DOT .  87) (TICK .  88) (LEFT_PAREN .  106))
       ((default . error) (SEMICOLON . (discriminant_specification_opt . 2)) (RIGHT_PAREN . (discriminant_specification_opt . 2)) (COLON_EQUAL .  753))
-      ((default . error) (SEMICOLON . (null_exclusion_opt_name . 1)) (RIGHT_PAREN . (null_exclusion_opt_name . 1)) (COLON_EQUAL . (null_exclusion_opt_name . 1)) (DOT . (name . 3)) (LEFT_PAREN . (name . 3)) (TICK . (name . 3)))
+      ((default . error) (SEMICOLON . (null_exclusion_opt_name_type . 1)) (RIGHT_PAREN . (null_exclusion_opt_name_type . 1)) (COLON_EQUAL . (null_exclusion_opt_name_type . 1)) (DOT . (name . 3)) (LEFT_PAREN . (name . 3)) (TICK . (name . 3)))
       ((default . error) ($EOI . (generic_renaming_declaration . 1)) (LIMITED . (generic_renaming_declaration . 1)) (SEPARATE . (generic_renaming_declaration . 1)) (WITH . (generic_renaming_declaration . 1)) (END . (generic_renaming_declaration . 1)) (PRIVATE . (generic_renaming_declaration . 1)) (USE . (generic_renaming_declaration . 1)) (TYPE . (generic_renaming_declaration . 1)) (TASK . (generic_renaming_declaration . 1)) (SUBTYPE . (generic_renaming_declaration . 1)) (PROTECTED . (generic_renaming_declaration . 1)) (PROCEDURE . (generic_renaming_declaration . 1)) (PRAGMA . (generic_renaming_declaration . 1)) (PACKAGE . (generic_renaming_declaration . 1)) (OVERRIDING . (generic_renaming_declaration . 1)) (NOT . (generic_renaming_declaration . 1)) (GENERIC . (generic_renaming_declaration . 1)) (FUNCTION . (generic_renaming_declaration . 1)) (FOR . (generic_renaming_declaration . 1)) (ENTRY . (generic_renaming_declaration . 1)) (IDENTIFIER . (generic_renaming_declaration . 1)) (BEGIN . (generic_renaming_declaration . 1)))
       ((default . error) ($EOI . (generic_renaming_declaration . 0)) (LIMITED . (generic_renaming_declaration . 0)) (SEPARATE . (generic_renaming_declaration . 0)) (WITH . (generic_renaming_declaration . 0)) (END . (generic_renaming_declaration . 0)) (PRIVATE . (generic_renaming_declaration . 0)) (USE . (generic_renaming_declaration . 0)) (TYPE . (generic_renaming_declaration . 0)) (TASK . (generic_renaming_declaration . 0)) (SUBTYPE . (generic_renaming_declaration . 0)) (PROTECTED . (generic_renaming_declaration . 0)) (PROCEDURE . (generic_renaming_declaration . 0)) (PRAGMA . (generic_renaming_declaration . 0)) (PACKAGE . (generic_renaming_declaration . 0)) (OVERRIDING . (generic_renaming_declaration . 0)) (NOT . (generic_renaming_declaration . 0)) (GENERIC . (generic_renaming_declaration . 0)) (FUNCTION . (generic_renaming_declaration . 0)) (FOR . (generic_renaming_declaration . 0)) (ENTRY . (generic_renaming_declaration . 0)) (IDENTIFIER . (generic_renaming_declaration . 0)) (BEGIN . (generic_renaming_declaration . 0)))
       ((default . error) ($EOI . (generic_renaming_declaration . 2)) (LIMITED . (generic_renaming_declaration . 2)) (SEPARATE . (generic_renaming_declaration . 2)) (WITH . (generic_renaming_declaration . 2)) (END . (generic_renaming_declaration . 2)) (PRIVATE . (generic_renaming_declaration . 2)) (USE . (generic_renaming_declaration . 2)) (TYPE . (generic_renaming_declaration . 2)) (TASK . (generic_renaming_declaration . 2)) (SUBTYPE . (generic_renaming_declaration . 2)) (PROTECTED . (generic_renaming_declaration . 2)) (PROCEDURE . (generic_renaming_declaration . 2)) (PRAGMA . (generic_renaming_declaration . 2)) (PACKAGE . (generic_renaming_declaration . 2)) (OVERRIDING . (generic_renaming_declaration . 2)) (NOT . (generic_renaming_declaration . 2)) (GENERIC . (generic_renaming_declaration . 2)) (FUNCTION . (generic_renaming_declaration . 2)) (FOR . (generic_renaming_declaration . 2)) (ENTRY . (generic_renaming_declaration . 2)) (IDENTIFIER . (generic_renaming_declaration . 2)) (BEGIN . (generic_renaming_declaration . 2)))
@@ -2561,8 +2574,8 @@
       ((default . error) (IDENTIFIER .  48) (CHARACTER_LITERAL .  50) (STRING_LITERAL .  49) (PLUS .  144) (MINUS .  143) (ABS .  146) (NOT .  757) (NULL .  150) (NEW .  148) (LEFT_PAREN .  147))
       ((default . error) (OF .  1052))
       ((default . error) (PLUS . (primary . 0)) (MINUS . (primary . 0)) (AMPERSAND . (primary . 0)) (DOT_DOT . (primary . 0)) (SLASH . (primary . 0)) (STAR . (primary . 0)) (MOD . (primary . 0)) (REM . (primary . 0)) (IDENTIFIER .  48) (CHARACTER_LITERAL .  50) (STRING_LITERAL .  49))
-      ((default . error) (DOT . (name . 0)) (LEFT_PAREN . (name . 0)) (TICK . (name . 0)) (SEMICOLON . (null_exclusion_opt_name . 2)) (RIGHT_PAREN . (null_exclusion_opt_name . 2)) (COLON_EQUAL . (null_exclusion_opt_name . 2)))
-      ((default . error) (DOT . (name . 3)) (LEFT_PAREN . (name . 3)) (TICK . (name . 3)) (SEMICOLON . (null_exclusion_opt_name . 3)) (RIGHT_PAREN . (null_exclusion_opt_name . 3)) (COLON_EQUAL . (null_exclusion_opt_name . 3)))
+      ((default . error) (DOT . (name . 0)) (LEFT_PAREN . (name . 0)) (TICK . (name . 0)) (SEMICOLON . (null_exclusion_opt_name_type . 2)) (RIGHT_PAREN . (null_exclusion_opt_name_type . 2)) (COLON_EQUAL . (null_exclusion_opt_name_type . 2)))
+      ((default . error) (DOT . (name . 3)) (LEFT_PAREN . (name . 3)) (TICK . (name . 3)) (SEMICOLON . (null_exclusion_opt_name_type . 3)) (RIGHT_PAREN . (null_exclusion_opt_name_type . 3)) (COLON_EQUAL . (null_exclusion_opt_name_type . 3)))
       ((default . error) (SEMICOLON . (discriminant_specification_opt . 3)) (RIGHT_PAREN . (discriminant_specification_opt . 3)))
       ((default . error) (SEMICOLON . (discriminant_specification_opt . 1)) (RIGHT_PAREN . (discriminant_specification_opt . 1)))
       ((default . error) (DO . (range . 0)) (LOOP . (range . 0)) (XOR . (range . 0)) (OR . (range . 0)) (AND . (range . 0)) (IS . (range . 0)) (WITH . (range . 0)) (SEMICOLON . (range . 0)) (THEN . (range . 0)) (RANGE . (range . 0)) (DIGITS . (range . 0)) (ELSE . (range . 0)) (ELSIF . (range . 0)) (COLON_EQUAL . (range . 0)) (OF . (range . 0)) (COMMA . (range . 0)) (BAR . (range . 0)) (EQUAL_GREATER . (range . 0)) (RIGHT_PAREN . (range . 0)))
@@ -3547,7 +3560,7 @@
       nil
       nil
       nil
-      ((access_definition . 555)(attribute_reference . 51)(name . 556)(null_exclusion_opt . 212)(null_exclusion_opt_name . 557)(qualified_expression . 54)(selected_component . 558))
+      ((access_definition . 555)(attribute_reference . 51)(name . 556)(null_exclusion_opt . 212)(null_exclusion_opt_name_type . 557)(qualified_expression . 54)(selected_component . 558))
       ((discriminant_specification_opt . 552)(identifier_list . 254))
       nil
       nil

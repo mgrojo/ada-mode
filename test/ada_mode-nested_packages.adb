@@ -3,7 +3,7 @@
 --
 -- Also other stuff
 
---EMACSCMD:(font-lock-fontify-buffer)
+--EMACSCMD:(progn (wisi-fontify (point-max))(font-lock-fontify-buffer))
 --EMACSCMD:(setq skip-recase-test t) we have identifiers that don't follow the standard naming convention
 
 --EMACSCMD:(test-face "Ada.Directories" font-lock-constant-face)

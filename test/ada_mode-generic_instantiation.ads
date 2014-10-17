@@ -13,7 +13,8 @@ package Ada_Mode.Generic_Instantiation is
    --EMACSRESULT:(eq ada-xref-tool 'gnat)
 
    -- don't wait for jit-lock to get around to refontifying
-   --EMACSCMD:(font-lock-fontify-buffer)
+   -- 'redisplay' does not invoke fontification-functions (not clear what does!)
+   --EMACSCMD:(progn (wisi-fontify (point-max))(font-lock-fontify-buffer))
 
    --EMACSCMD:(test-face "Ada_Mode.Generic_Parent" 'font-lock-function-name-face)
    package Instance is new Ada_Mode.Generic_Parent;
@@ -44,6 +45,8 @@ package Ada_Mode.Generic_Instantiation is
    procedure Procedure_8
      is new Instance.Generic_Procedure (Integer, Function_1);
 
+   -- multi-line works here, because this is in the parser
+   --EMACSCMD:(progn (forward-line 2)(test-face "Instance.Generic_Function" 'font-lock-function-name-face))
    generic function Gen_Function_1 renames
      Instance.Generic_Function;
 

@@ -1,5 +1,5 @@
 -- This is to test the indentation of declarations in generics package declarations
---EMACSCMD:(font-lock-fontify-buffer)
+--EMACSCMD:(progn (wisi-fontify (point-max))(font-lock-fontify-buffer))
 --EMACSCMD:(ada-parse-prj-file "subdir/ada_mode.adp")
 --EMACSCMD:(ada-select-prj-file "subdir/ada_mode.adp")
 
@@ -35,7 +35,7 @@ generic
    type Formal_Private_Type is abstract tagged limited private;
    type Interface_Type is task interface;
 
-   --EMACSCMD:(font-lock-fontify-buffer);; don't wait for jit-lock
+   --EMACSCMD:(progn (wisi-fontify (point-max))(font-lock-fontify-buffer));; don't wait for jit-lock
 
    --EMACSCMD:(test-face "Formal_Private_Type" 'font-lock-type-face)
    type Limited_Formal_Derived_Type is abstract limited new Formal_Private_Type with private;

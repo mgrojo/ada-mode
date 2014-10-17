@@ -33,19 +33,12 @@
 (require 'cl-lib)
 (require 'wisi)
 
-(defcustom ada-wisi-font-lock-size-threshold 100000
-  "Max size (in characters) for using wisi parser results for syntax highlighting."
-  :type 'integer
-  :group 'ada-indentation
-  :safe 'integerp)
-
 (defconst ada-wisi-class-list
   '(
     block-end
     block-middle ;; not start of statement
     block-start ;; start of block is start of statement
     close-paren
-    keyword    ;; cached only for face; not used in indentation
     list-break
     name
     name-paren ;; anything that looks like a procedure call, since the grammar can't distinguish most of them
@@ -310,24 +303,26 @@ point must be on CACHE. PREV-TOKEN is the token before the one being indented."
 	 nil)
 
 	(name
-	 (cl-case (wisi-cache-nonterm cache)
-	   ((function_specification procedure_specification)
-	    ;; test/ada_mode-nominal.ads
-	    ;; not
-	    ;; overriding
-	    ;; procedure
-	    ;;   Procedure_1c (Item  : in out Parent_Type_1);
-	    ;; indenting 'Procedure_1c'
-	    ;;
-	    ;; not overriding function
-	    ;;   Function_2e (Param : in Parent_Type_1) return Float;
-	    ;; indenting 'Function_2e'
-	    (ada-wisi-indent-containing ada-indent-broken cache t))
+	 (cond
+	  ((let ((temp (save-excursion (wisi-goto-containing cache))))
+	     (and temp
+		  (memq (wisi-cache-nonterm temp) '(subprogram_body subprogram_declaration))))
+	   ;; test/ada_mode-nominal.ads
+	   ;; not
+	   ;; overriding
+	   ;; procedure
+	   ;;   Procedure_1c (Item  : in out Parent_Type_1);
+	   ;; indenting 'Procedure_1c'
+	   ;;
+	   ;; not overriding function
+	   ;;   Function_2e (Param : in Parent_Type_1) return Float;
+	   ;; indenting 'Function_2e'
+	   (ada-wisi-indent-containing ada-indent-broken cache t))
 
-	   (t
-	    ;; defer to ada-wisi-after-cache, for consistency
-	    nil)
-	   ))
+	  (t
+	   ;; defer to ada-wisi-after-cache, for consistency
+	   nil)
+	  ))
 
 	(name-paren
 	 ;; defer to ada-wisi-after-cache, for consistency
@@ -668,6 +663,16 @@ point must be on CACHE. PREV-TOKEN is the token before the one being indented."
 
 		((subprogram_body subprogram_declaration subprogram_specification null_procedure_declaration)
 		 (cl-ecase (wisi-cache-token cache)
+		   (IS
+		    ;; test/ada_mode-nominal.ads
+		    ;; procedure Procedure_1d
+		    ;;   (Item   : in out Parent_Type_1;
+		    ;;    Item_1 : in     Character;
+		    ;;    Item_2 : out    Character)
+		    ;;   is null;
+		    ;; indenting 'is'
+		    (+ (current-column) ada-indent-broken))
+
 		   (OVERRIDING
 		    ;; indenting 'overriding' following 'not'
 		    (current-column))
@@ -759,6 +764,15 @@ cached token, return new indentation for point."
 	      ))
 
 	   ((THEN ELSE)
+	   ;;
+	   ;; test/ada_mode-conditional_expressions.adb
+	   ;; K3 : Integer := (if
+	   ;;                    J > 42
+	   ;;                  then
+	   ;;                    -1
+	   ;;                  else
+	   ;;                    +1);
+	   ;; indenting -1, +1
 	    (let ((indent
 		   (cl-ecase (wisi-cache-nonterm (wisi-get-containing-cache cache))
 		     ((statement if_statement elsif_statement_item) ada-indent)
@@ -1043,6 +1057,14 @@ cached token, return new indentation for point."
 		;;      20;
 
 	       (+ (current-column) ada-indent-broken))
+
+	      (null_procedure_declaration
+	       ;; ada_mode-nominal.ads
+	       ;; procedure Procedure_3b is
+	       ;;   null;
+	       ;; indenting null
+	       (+ (current-column) ada-indent-broken))
+
 	      ))
 
 	   (LEFT_PAREN
@@ -1115,7 +1137,15 @@ cached token, return new indentation for point."
 	    ;; procedure Procedure_8
 	    ;;   is new Instance.Generic_Procedure (Integer, Function_1);
 	    ;; indenting 'is'; hanging
-	    ;;	    (+ (current-column) ada-indent-broken))
+	    ;;
+	    ;; test/ada_mode-conditional_expressions.adb
+	    ;; K3 : Integer := (if
+	    ;;                    J > 42
+	    ;;                  then
+	    ;;                    -1
+	    ;;                  else
+	    ;;                    +1);
+	    ;; indenting J
 	    (ada-wisi-indent-cache ada-indent-broken cache))
 	   ))
 	)))
@@ -1388,7 +1418,7 @@ Also return cache at start."
 (defun ada-wisi-scan-paramlist (begin end)
   "For `ada-scan-paramlist'."
   (wisi-validate-cache end)
-  (unless (> wisi-cache-max (point))
+  (when (< wisi-cache-max end)
     (error "parse failed; can't scan paramlist"))
 
   (goto-char begin)
@@ -1577,64 +1607,6 @@ Also return cache at start."
   (setq wisi-string-quote-escape-doubled t)
 
   (set (make-local-variable 'comment-indent-function) 'wisi-comment-indent)
-
-  (add-hook 'hack-local-variables-hook 'ada-wisi-post-local-vars nil t)
-  )
-
-(defun ada-wisi-face ()
-  "Return face for token in match-data 2"
-  (let (cache)
-    (when (< (point-max) ada-wisi-font-lock-size-threshold)
-      (wisi-validate-cache (line-end-position)))
-
-    (if	(setq cache (wisi-get-cache (match-beginning 2)))
-	(wisi-cache-face cache)
-      'default)
-    ))
-
-(defun ada-wisi-post-local-vars ()
-  ;; run after file local variables are read because font-lock-add-keywords
-  ;; evaluates font-lock-defaults, which depends on ada-language-version.
-  ;;
-  ;; use parse results to distinguish difficult cases, but don't
-  ;; require parse just for font-lock
-  ;;
-  ;; name is not found if on next line
-  (font-lock-add-keywords nil
-   (list
-    (list
-     "\\<\\(of[ \t]+reverse\\)\\>"  ;; following word is object
-     '(1 font-lock-keyword-face)
-     )
-    (list
-     (concat
-      "\\<\\("
-      "aliased[ \t]+not[ \t]+null[ \t]+access\\|"
-      "aliased[ \t]+not[ \t]+null\\|"
-      "return[ \t]+access[ \t]+constant\\|"
-      "return[ \t]+access"
-      "\\)\\>[ \t]*"
-      ada-name-regexp "?")
-     '(1 font-lock-keyword-face)
-     '(2 font-lock-type-face nil t)
-     )
-    (list
-     (concat
-      "\\<\\("
-      "aliased\\|"
-      "and\\|"
-      "of\\|"
-      "new\\|"
-      "renames\\|"
-      "return"
-      "\\)\\>[ \t]*"
-      ada-name-regexp "?")
-     '(1 font-lock-keyword-face)
-     '(2 (ada-wisi-face) nil t)
-     ))
-   nil ;; add at start of list, so these have precedence
-   )
-
   )
 
 (add-hook 'ada-mode-hook 'ada-wisi-setup)

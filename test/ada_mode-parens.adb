@@ -4,7 +4,7 @@
 -- Since we are editing with ada-align, the syntax will be illegal at times; don't fail for that.
 --EMACSCMD:(setq wisi-debug 0)
 
---EMACSCMD:(progn (wisi-parse-buffer)(font-lock-fontify-buffer))
+--EMACSCMD:(progn (wisi-fontify (point-max))(font-lock-fontify-buffer))
 with Ada.Strings.Maps;
 package body Ada_Mode.Parens is
 
@@ -179,6 +179,9 @@ package body Ada_Mode.Parens is
       return 1.0;
    end Function_3;
 
+   --EMACSCMD:(progn (wisi-fontify (point-max))(font-lock-fontify-buffer))
+   --EMACSCMD:(test-face "Boolean" font-lock-type-face)
+   --EMACSCMD:(progn (forward-line 4)(test-face "Boolean" font-lock-type-face))
    --EMACSCMD:(progn (forward-line 2)(forward-word 3)(insert "   ")(forward-line 2)(forward-word 2)(insert "   ")(ada-align))
    -- paren on same line as 'procedure' to test that case in ada-format-paramlist. result is tested by .diff
    procedure If_Statement (A : access          Boolean;
@@ -199,6 +202,7 @@ package body Ada_Mode.Parens is
 
       if A.all
         or else (B.all
+                   --EMACSCMD:(progn (wisi-fontify (point-max))(font-lock-fontify-buffer))
                    --EMACSCMD:(test-face "then" 'font-lock-keyword-face)
                    and then C
                    and then D)  --  requires ada-indent-validate-cache-paren
@@ -319,6 +323,10 @@ package body Ada_Mode.Parens is
       return A;
    end;
 
+   --EMACSCMD:(progn (wisi-fontify (point-max))(font-lock-fontify-buffer))
+   --EMACSCMD:(progn (forward-line 9)(test-face "protected" 'font-lock-keyword-face))
+   --EMACSCMD:(progn (forward-line 8)(test-face "procedure" 'font-lock-keyword-face))
+   --EMACSCMD:(progn (forward-line 8)(test-face "constant" 'font-lock-keyword-face))
    --EMACSCMD:(progn (forward-line 7)(test-face "Integer" 'font-lock-type-face))
    --EMACSCMD:(progn (forward-line 6)(forward-word 4) (test-face "Integer" 'font-lock-type-face))
    --EMACSCMD:(progn (forward-line 4)(forward-word 2)(insert "    ")(ada-align))
@@ -334,6 +342,8 @@ package body Ada_Mode.Parens is
       return A.all;
    end;
 
+   --EMACSCMD:(progn (wisi-fontify (point-max))(font-lock-fontify-buffer))
+   --EMACSCMD:(progn (forward-line 4)(test-face "constant" 'font-lock-keyword-face))
    --EMACSCMD:(progn (forward-line 4)(forward-word 2)(insert "    ")(ada-align))
    -- multiline [not null] access [constant | protected]
    function Param_Format_7
@@ -379,8 +389,8 @@ package body Ada_Mode.Parens is
      (Message_1 : in String := "from ada_mode-parens.adb";
       Message_2 : in String := "from ada_mode-parens.adb")
    is
-      Hello : constant String := "hello";
-      There  : constant String := " there";
+      Hello    : constant String := "hello";
+      There    : constant String := " there";
       Out_File : Ada.Text_IO.File_Type;
    begin
       Ada.Text_IO.Put_Line ("Hello" & ' ' & -- test ada-indent-next keyword with string, character literal

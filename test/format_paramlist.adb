@@ -40,7 +40,9 @@ package body Format_Paramlist is
    end G;
 
    --  Handle 'aliased' (Ada 2012 syntax)
-   --EMACSCMD:(progn (forward-line 18)(forward-word 1)(insert "   ") (ada-align))
+   --EMACSCMD:(progn (forward-line 20)(forward-word 1)(insert "   ") (ada-align))
+   --EMACSCMD:(progn (wisi-fontify (point-max))(font-lock-fontify-buffer))
+
    --EMACSCMD:(progn (forward-line 16)(test-face "aliased" 'font-lock-keyword-face))
    --EMACSCMD:(progn (forward-line 15)(test-face "in" 'font-lock-keyword-face))
    --EMACSCMD:(progn (forward-line 14)(test-face "Z" 'font-lock-type-face))
@@ -74,7 +76,9 @@ package body Format_Paramlist is
    type Z_Access is access Z;
 
    --  Handle 'not null' without 'access'
-   --EMACSCMD:(progn (forward-line 6)(forward-word 1)(insert "   ") (ada-align))
+   --EMACSCMD:(progn (forward-line 8)(forward-word 1)(insert "   ") (ada-align))
+   --EMACSCMD:(progn (wisi-fontify (point-max))(font-lock-fontify-buffer))
+
    --EMACSCMD:(progn (forward-line 4)(test-face "Z_Access" 'font-lock-type-face))
    --EMACSCMD:(progn (forward-line 4)(test-face "Z_Access" 'font-lock-type-face))
    --EMACSCMD:(progn (forward-line 4)(test-face "Z_Access" 'font-lock-type-face))

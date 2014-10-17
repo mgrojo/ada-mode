@@ -20,15 +20,19 @@ FACE may be a list; emacs 24.3.93 uses nil instead of 'default."
       (error
        (error "can't find '%s'" token)))
     (goto-char (match-beginning 0))
-    (unless (or (and (listp face)
-		     (memq (face-at-point) face))
-		(eq (face-at-point) face))
+    ;; we don't use face-at-point, because it doesn't respect
+    ;; font-lock-face set by the parser!
+    (let ((token-face (or (get-text-property (point) 'face)
+			  (get-text-property (point) 'font-lock-face))))
+      (unless (or (and (listp face)
+		       (memq token-face face))
+		  (eq token-face face))
 
-      (error
-       "found face %s, expecting %s for '%s'"
-	(face-at-point)
-	face
-	token))
+	(error
+	 "found face %s, expecting %s for '%s'"
+	 (face-at-point)
+	 face
+	 token)))
     ))
 
 (defun run-test-here ()

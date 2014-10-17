@@ -24,7 +24,7 @@ with
 --EMACSRESULT:(expand-file-name "subdir/ada_mode.adp")
 
 -- test font-lock after parse
---EMACSCMD:(progn (wisi-validate-cache (point-max)) (font-lock-fontify-buffer))
+--EMACSCMD:(progn (wisi-fontify (point-max)) (font-lock-fontify-buffer))
 --EMACSCMD:(test-face "with" font-lock-keyword-face)
 --EMACSCMD:(test-face "Ada" font-lock-constant-face)
 --EMACSCMD:(progn (ada-goto-end)(looking-at "; -- end 1"))

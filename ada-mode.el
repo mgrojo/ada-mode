@@ -1966,8 +1966,9 @@ don't move to corresponding declaration."
 - If point is in a separate body, position point on the
   corresponding specification.
 
-- If point is in the start line of a separate body,
-  position point on the corresponding separate stub declaration.
+- If point is in the start line of a non-nested child package or
+  subprogram declaration, position point on the corresponding
+  parent package specification.
 
 - If point is in a context clause line, position point on the
   first package declaration that is mentioned.
@@ -2596,6 +2597,9 @@ The paragraph is indented on the first line."
   "Return Ada mode value for `font-lock-keywords', depending on `ada-language-version'."
   (list
 
+   ;; Grammar actions set `font-lock-face' property for tokens that
+   ;; this can't handle. Eventually all faces will be set in the grammar.
+
    ;; keywords followed by a name that should be in function-name-face.
    (list
     (apply
@@ -2624,42 +2628,33 @@ The paragraph is indented on the first line."
       (list
        "\\)\\>[ \t]*"
        ada-name-regexp "?")))
-    '(1 font-lock-keyword-face) '(2 font-lock-function-name-face nil t))
+    '(1 font-lock-keyword-face)
+    '(2 font-lock-function-name-face nil t))
 
    ;; keywords followed by a name that should be in type-face.
    (list (concat
 	  "\\<\\("
-	  "access[ \t]+all\\|"
-	  "access[ \t]+constant\\|"
-	  "access\\|"
+	  "aliased[ \t]+not[ \t]+null\\|"
 	  "constant[ \t]+access[ \t]+all\\|"
 	  "constant[ \t]+access[ \t]+constant\\|"
 	  "constant[ \t]+access\\|"
 	  "constant\\|"
 	  "in[ \t]+reverse\\|"; loop iterator
-	  "in[ \t]+not[ \t]+null[ \t]+access\\|"
-	  "in[ \t]+not[ \t]+null\\|"
-	  "in[ \t]+out[ \t]+not[ \t]+null[ \t]+access\\|"
-	  "in[ \t]+out[ \t]+not[ \t]+null\\|"
-	  "in[ \t]+out\\|"
-	  "in\\|"
-	  ;; "return" can't distinguish between 'function ... return <type>;' and 'return ...;'
-	  ;; "new" can't distinguish between generic instantiation
-	  ;;       package foo is new bar (...)
-	  ;;    and allocation
-	  ;;       a := new baz (...)
-	  ;; A parsing indentation engine can, so rules for these are added there
 	  "not[ \t]+null[ \t]access[ \t]all\\|"
 	  "not[ \t]+null[ \t]access[ \t]constant\\|"
-	  "not[ \t]+null[ \t]access\\|"
 	  "not[ \t]+null\\|"
-	  ;; "of" can't distinguish between array and iterable_name
-	  "out\\|"
+	  "return[ \t]+access[ \t]+constant\\|"
 	  "subtype\\|"
 	  "type"
 	  "\\)\\>[ \t]*"
 	  ada-name-regexp "?")
-	 '(1 font-lock-keyword-face nil t) '(2 font-lock-type-face nil t))
+	 '(1 font-lock-keyword-face nil t)
+	 '(2 font-lock-type-face nil t))
+
+   (list
+    "\\<\\(of[ \t]+reverse\\)\\>"  ;; following word is object
+    '(1 font-lock-keyword-face)
+    )
 
    ;; Keywords not treated elsewhere. After above so it doesn't
    ;; override fontication of second or third word in those patterns.
@@ -2693,17 +2688,6 @@ The paragraph is indented on the first line."
 	  "\\<\\(is\\)\\>[ \t]*"
 	  ada-name-regexp "?")
 	 '(1 font-lock-keyword-face) '(2 font-lock-type-face nil t))
-
-   ;; object and parameter declarations; word after ":" should be in
-   ;; type-face if not already fontified or an exception.
-   (list (concat
-	  ":[ \t]*"
-	  ada-name-regexp
-	  "[ \t]*\\(=>\\)?")
-     '(1 (if (match-beginning 2)
-	     'default
-	   font-lock-type-face)
-	 nil t))
 
    ;; keywords followed by a name that should be in function-name-face if not already fontified
    (list (concat

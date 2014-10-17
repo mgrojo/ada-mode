@@ -1,4 +1,4 @@
---EMACSCMD:(font-lock-fontify-buffer)
+--EMACSCMD:(progn (wisi-fontify (point-max))(font-lock-fontify-buffer))
 with Ada.Containers.Vectors;
 procedure Ada_Mode.Quantified_Expressions is
 

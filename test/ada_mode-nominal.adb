@@ -1,5 +1,5 @@
 -- A comment before the first code
---EMACSCMD:(font-lock-fontify-buffer)
+--EMACSCMD:(progn (wisi-fontify (point-max))(font-lock-fontify-buffer))
 
 --EMACSCMD:(ada-parse-prj-file "subdir/ada_mode.adp")
 --EMACSCMD:(ada-select-prj-file "subdir/ada_mode.adp")
@@ -18,6 +18,8 @@ package body Ada_Mode.Nominal is -- target 0
    --EMACSCMD:(test-face "Ada" font-lock-constant-face)
    use Ada.Strings;
 
+   --EMACSCMD:(test-face "access" font-lock-keyword-face)
+   --EMACSCMD:(test-face "procedure" font-lock-keyword-face)
    Progress_Reporter : access procedure (Current, Total : Integer) := null;
 
    --EMACSCMD:(progn (forward-line 4) (back-to-indentation) (ada-next-statement-keyword)(looking-at "is -- target 1"))
@@ -26,7 +28,7 @@ package body Ada_Mode.Nominal is -- target 0
    --EMACSRESULT:t
    function Function_Access_1
      (A_Param : in Float)
-     return
+     return access
        Standard.Float
    is -- target 1
       --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at " -- target 1"))
@@ -37,16 +39,22 @@ package body Ada_Mode.Nominal is -- target 0
    begin
       --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at " -- target 1"))
       --EMACSRESULT:t
-      return 0.0;
+      if A_Param > 0.0 then
+         -- EMACSCMD:(test-face "new" font-lock-keyword-face)
+         return new Float'(0.0);
+      else
+         -- EMACSCMD:(test-face "null" font-lock-keyword-face)
+         return null;
+      end if;
    end;
 
    function Function_Access_11
      (A_Param : in Float)
-     --  FIXME (later): EMACSCMD:(test-face "function" font-lock-keyword-face)
+     --EMACSCMD:(test-face "function" font-lock-keyword-face)
      return access function
        (A_Param : in Float)
        return
-         Standard.Float
+         access Standard.Float
    is begin
       --EMACSCMD:(progn (beginning-of-line)(forward-line -7)(ada-which-function))
       --EMACSRESULT:"Function_Access_11"
@@ -631,10 +639,12 @@ package body Ada_Mode.Nominal is -- target 0
      tagged null record;
    -- rest of newline placement covered in spec
 
+   --EMACSCMD:(test-face "new" 'font-lock-keyword-face)
+   --EMACSCMD:(progn (end-of-line 5)(backward-word 3)(test-face "new" 'font-lock-keyword-face))
    --EMACSCMD:(test-face "Record_Type_3" 'font-lock-type-face)
    --EMACSCMD:(progn (forward-line 1)(forward-word 3)(test-face "Record_Type_3" 'font-lock-type-face))
-   --EMACSCMD:(test-face "1" 'font-lock-constant-face)
-   Object_3 : access Record_Type_3 := new Record_Type_3 (new Integer'(1));
+   -- FIXME: failing EMACSCMD:(test-face "1" 'font-lock-constant-face)
+   Object_3 : access Record_Type_3 := new Record_Type_3 (new Integer'(1234));
 begin
    null;
 end Ada_Mode.Nominal;

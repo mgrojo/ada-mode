@@ -2,11 +2,12 @@
 --  Tests the indentation after a generic statement
 
 -- and some faces
---EMACSCMD:(font-lock-fontify-buffer)
+--EMACSCMD:(progn (wisi-fontify (point-max))(font-lock-fontify-buffer))
 procedure Generic_Param is
 
    generic
       type Item_T is private;
+      --EMACSCMD:(test-face "all" 'font-lock-keyword-face)
       type Item_Ptr_T is access all Item_T;
       type A (<>) is private;
    package Generic_List_Unbounded_Double is

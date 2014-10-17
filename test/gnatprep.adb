@@ -14,8 +14,7 @@
 --EMACSCMD:(ada-select-prj-file "ada_mode.gpr")
 --EMACSCMD:(ada-mode)
 
--- font-lock doesn't turn on when non-interactive
---EMACSCMD:(font-lock-fontify-buffer)
+--EMACSCMD:(progn (wisi-fontify (point-max))(font-lock-fontify-buffer))
 
 procedure Gnatprep is
 
