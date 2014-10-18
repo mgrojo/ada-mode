@@ -114,8 +114,16 @@ begin
       Put_Line ("with OpenToken.Recognizer.Identifier;");
    end if;
 
-   if Is_In (Tokens, """number""") then
-      Put_Line ("with OpenToken.Recognizer.Integer;");
+   if Is_In (Tokens, """number-literal""") then
+      if Is_In (Tokens, """number-literal""", """[0-9]+""") then
+         Put_Line ("with OpenToken.Recognizer.Integer;");
+
+      elsif Is_In (Tokens, """number-literal""", """[0-9.eE]+""") then
+         Put_Line ("with OpenToken.Recognizer.Real;");
+
+      elsif Is_In (Tokens, """number-literal""", """[0-9.#a-fA-F]+""") then
+         Put_Line ("with OpenToken.Recognizer.Real;");
+      end if;
    end if;
 
    Put_Line ("with OpenToken.Recognizer.Keyword;");
@@ -217,10 +225,22 @@ begin
             Indent_Line
               (-Item.Name & "_ID => Analyzers.Get (OpenToken.Recognizer.Line_Comment.Get (" & (-Item.Value) & ")),");
          end loop;
-      elsif -Kind.Kind = """number""" then
+      elsif -Kind.Kind = """number-literal""" then
          for Item of Kind.Tokens loop
-            Indent_Line
-              (-Item.Name & "_ID => Analyzers.Get (OpenToken.Recognizer.Integer.Get),");
+            if -Item.Value = """[0-9]+""" then
+               Indent_Line (-Item.Name & "_ID => Analyzers.Get (OpenToken.Recognizer.Integer.Get),");
+
+            elsif -Item.Value = """[0-9.eE]+""" then
+               Indent_Line (-Item.Name & "_ID => Analyzers.Get (OpenToken.Recognizer.Real.Get),");
+
+            elsif -Item.Value = """[0-9.#a-fA-F]+""" then
+               --  FIXME: need based_number that allows integer or real, based or unbased.
+               Indent_Line (-Item.Name & "_ID => Analyzers.Get (OpenToken.Recognizer.Real.Get),");
+
+            else
+               raise OpenToken.Grammar_Error with "unsupported number-literal regexp '" & (-Item.Name) & "' '" &
+                 (-Item.Value) & "'";
+            end if;
          end loop;
       elsif -Kind.Kind = """punctuation""" then
          for Item of Kind.Tokens loop

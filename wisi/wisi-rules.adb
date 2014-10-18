@@ -34,10 +34,13 @@ is
    type State_Type is (Left_Hand_Side, Production, Action);
    State : State_Type := Left_Hand_Side;
 
-   Paren_Count : Integer; --  For reporting unbalanced parens
+   Paren_Count   : Integer; --  For reporting unbalanced parens
+   Bracket_Count : Integer; -- ""
 
    Rule : Rule_Type;
    RHS  : RHS_Type;
+
+   Error : Boolean := False;
 
    procedure Update_Paren_Count (Line : in String)
    is begin
@@ -45,6 +48,8 @@ is
          case Line (I) is
          when '(' => Paren_Count := Paren_Count + 1;
          when ')' => Paren_Count := Paren_Count - 1;
+         when '[' => Bracket_Count := Bracket_Count + 1;
+         when ']' => Bracket_Count := Bracket_Count - 1;
          when others => null;
          end case;
       end loop;
@@ -101,6 +106,7 @@ begin
                   RHS.Action    := RHS.Action + Line;
                   Need_New_Line := True;
                   Paren_Count   := 0;
+                  Bracket_Count := 0;
 
                   Update_Paren_Count (Line);
 
@@ -142,6 +148,10 @@ begin
                      raise Syntax_Error with "unbalanced parens in action";
                   end if;
 
+                  if Bracket_Count /= 0 then
+                     raise Syntax_Error with "unbalanced brackets in action";
+                  end if;
+
                when '|' =>
                   Rule.Right_Hand_Sides.Append (RHS);
                   State := Production;
@@ -153,6 +163,10 @@ begin
 
                   if Paren_Count /= 0 then
                      raise Syntax_Error with "unbalanced parens in action";
+                  end if;
+
+                  if Bracket_Count /= 0 then
+                     raise Syntax_Error with "unbalanced brackets in action";
                   end if;
 
                when others =>
@@ -174,6 +188,7 @@ begin
          end loop;
       exception
       when E : Syntax_Error =>
+         Error := True;
          declare
             use Standard.Ada.Exceptions;
          begin
@@ -194,4 +209,8 @@ begin
          raise Syntax_Error;
       end;
    end loop;
+
+   if Error then
+      raise Syntax_Error;
+   end if;
 end Wisi.Rules;

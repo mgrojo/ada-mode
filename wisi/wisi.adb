@@ -2,7 +2,7 @@
 --
 --  see spec
 --
---  Copyright (C) 2012, 2013 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2012 - 2014 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -59,6 +59,24 @@ package body Wisi is
       for Token of Tokens loop
          if -Token.Kind = Kind then
             return True;
+         end if;
+      end loop;
+      return False;
+   end Is_In;
+
+   function Is_In
+     (Tokens : in Token_Lists.List;
+      Kind   : in String;
+      Value  : in String)
+     return Boolean
+   is begin
+      for Token of Tokens loop
+         if -Token.Kind = Kind then
+            for Item of Token.Tokens loop
+               if -Item.Value = Value then
+                  return True;
+               end if;
+            end loop;
          end if;
       end loop;
       return False;

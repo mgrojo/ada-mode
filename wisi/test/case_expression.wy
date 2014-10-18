@@ -1,4 +1,5 @@
 ;; test a former OpenToken bug; '=>' was missing in the lookaheads for 'factor <= IDENTIFIER ^'
+;; also test number-literal
 ;;
 ;; This is a subset of the syntax for an Ada 2012 case expression
 ;;
@@ -34,6 +35,7 @@
 %token <punctuation> EQUAL_GREATER "=>"
 %token <punctuation> TICK "'"
 
+%token <number-literal> NUMBER_LITERAL "[0-9.eE]+"
 %token <symbol> IDENTIFIER
 
 %keyword RANGE "range"
@@ -43,7 +45,7 @@
 %%
 
 case_expression
-  : WHEN discrete_choice EQUAL_GREATER
+  : WHEN discrete_choice EQUAL_GREATER factor
     (setq wisi-test-success t)
   ;
 
@@ -62,6 +64,7 @@ discrete_choice
 
 factor
   : IDENTIFIER
+  | NUMBER_LITERAL
   ;
 
 factor_list

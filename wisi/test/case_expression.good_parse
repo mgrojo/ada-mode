@@ -8,17 +8,18 @@ Set 1:
    CASE_EXPRESSION_ID   goto state 3
 
 Set 2:
-  CASE_EXPRESSION_ID <= WHEN_ID ^ DISCRETE_CHOICE_ID EQUAL_GREATER_ID, EOF_ID
+  CASE_EXPRESSION_ID <= WHEN_ID ^ DISCRETE_CHOICE_ID EQUAL_GREATER_ID FACTOR_ID, EOF_ID
 
-   IDENTIFIER_ID        => shift and goto state 5
+   IDENTIFIER_ID        => shift and goto state 6
+   NUMBER_LITERAL_ID    => shift and goto state 5
    default              => ERROR
 
-   CHOICE_EXPRESSION_ID goto state 6
-   CHOICE_RELATION_ID   goto state 7
-   DISCRETE_CHOICE_ID   goto state 8
-   FACTOR_ID            goto state 9
-   FACTOR_LIST_ID       goto state 10
-   RANGE_NT_ID          goto state 11
+   CHOICE_EXPRESSION_ID goto state 7
+   CHOICE_RELATION_ID   goto state 8
+   DISCRETE_CHOICE_ID   goto state 9
+   FACTOR_ID            goto state 10
+   FACTOR_LIST_ID       goto state 11
+   RANGE_NT_ID          goto state 12
 
 Set 3:
   OPENTOKEN_ACCEPT_ID <= CASE_EXPRESSION_ID ^ EOF_ID
@@ -28,10 +29,11 @@ Set 3:
 
 
 Set 4:
-  OPENTOKEN_ACCEPT_ID <= CASE_EXPRESSION_ID EOF_ID ^, EOF_ID/IDENTIFIER_ID/TICK_ID/EQUAL_GREATER_ID/DOT_DOT_ID/WHEN_ID/RANGE_ID
+  OPENTOKEN_ACCEPT_ID <= CASE_EXPRESSION_ID EOF_ID ^, EOF_ID/IDENTIFIER_ID/NUMBER_LITERAL_ID/TICK_ID/EQUAL_GREATER_ID/DOT_DOT_ID/WHEN_ID/RANGE_ID
 
    EOF_ID               => accept it
    IDENTIFIER_ID        => accept it
+   NUMBER_LITERAL_ID    => accept it
    TICK_ID              => accept it
    EQUAL_GREATER_ID     => accept it
    DOT_DOT_ID           => accept it
@@ -41,37 +43,46 @@ Set 4:
 
 
 Set 5:
-  RANGE_NT_ID <= IDENTIFIER_ID ^ TICK_ID RANGE_ID, EQUAL_GREATER_ID
-  FACTOR_ID <= IDENTIFIER_ID ^, DOT_DOT_ID/EQUAL_GREATER_ID
+  FACTOR_ID <= NUMBER_LITERAL_ID ^, EOF_ID/DOT_DOT_ID/EQUAL_GREATER_ID
 
-   TICK_ID              => shift and goto state 14
+   EOF_ID               => reduce 1 tokens to FACTOR_ID
    DOT_DOT_ID           => reduce 1 tokens to FACTOR_ID
    EQUAL_GREATER_ID     => reduce 1 tokens to FACTOR_ID
    default              => ERROR
 
 
 Set 6:
+  RANGE_NT_ID <= IDENTIFIER_ID ^ TICK_ID RANGE_ID, EQUAL_GREATER_ID
+  FACTOR_ID <= IDENTIFIER_ID ^, DOT_DOT_ID/EQUAL_GREATER_ID
+
+   TICK_ID              => shift and goto state 15
+   DOT_DOT_ID           => reduce 1 tokens to FACTOR_ID
+   EQUAL_GREATER_ID     => reduce 1 tokens to FACTOR_ID
+   default              => ERROR
+
+
+Set 7:
   DISCRETE_CHOICE_ID <= CHOICE_EXPRESSION_ID ^, EQUAL_GREATER_ID
 
    EQUAL_GREATER_ID     => reduce 1 tokens to DISCRETE_CHOICE_ID
    default              => ERROR
 
 
-Set 7:
+Set 8:
   CHOICE_EXPRESSION_ID <= CHOICE_RELATION_ID ^, EQUAL_GREATER_ID
 
    EQUAL_GREATER_ID     => reduce 1 tokens to CHOICE_EXPRESSION_ID
    default              => ERROR
 
 
-Set 8:
-  CASE_EXPRESSION_ID <= WHEN_ID DISCRETE_CHOICE_ID ^ EQUAL_GREATER_ID, EOF_ID
+Set 9:
+  CASE_EXPRESSION_ID <= WHEN_ID DISCRETE_CHOICE_ID ^ EQUAL_GREATER_ID FACTOR_ID, EOF_ID
 
-   EQUAL_GREATER_ID     => shift and goto state 13
+   EQUAL_GREATER_ID     => shift and goto state 14
    default              => ERROR
 
 
-Set 9:
+Set 10:
   FACTOR_LIST_ID <= FACTOR_ID ^, DOT_DOT_ID/EQUAL_GREATER_ID
 
    DOT_DOT_ID           => reduce 1 tokens to FACTOR_LIST_ID
@@ -79,60 +90,71 @@ Set 9:
    default              => ERROR
 
 
-Set 10:
+Set 11:
   RANGE_NT_ID <= FACTOR_LIST_ID ^ DOT_DOT_ID FACTOR_LIST_ID, EQUAL_GREATER_ID
   CHOICE_RELATION_ID <= FACTOR_LIST_ID ^, EQUAL_GREATER_ID
 
-   DOT_DOT_ID           => shift and goto state 12
+   DOT_DOT_ID           => shift and goto state 13
    EQUAL_GREATER_ID     => reduce 1 tokens to CHOICE_RELATION_ID
    default              => ERROR
 
 
-Set 11:
+Set 12:
   DISCRETE_CHOICE_ID <= RANGE_NT_ID ^, EQUAL_GREATER_ID
 
    EQUAL_GREATER_ID     => reduce 1 tokens to DISCRETE_CHOICE_ID
    default              => ERROR
 
 
-Set 12:
+Set 13:
   RANGE_NT_ID <= FACTOR_LIST_ID DOT_DOT_ID ^ FACTOR_LIST_ID, EQUAL_GREATER_ID
 
-   IDENTIFIER_ID        => shift and goto state 16
+   IDENTIFIER_ID        => shift and goto state 17
+   NUMBER_LITERAL_ID    => shift and goto state 5
    default              => ERROR
 
-   FACTOR_ID            goto state 9
-   FACTOR_LIST_ID       goto state 17
-
-Set 13:
-  CASE_EXPRESSION_ID <= WHEN_ID DISCRETE_CHOICE_ID EQUAL_GREATER_ID ^, EOF_ID
-
-   EOF_ID               => reduce 3 tokens to CASE_EXPRESSION_ID
-   default              => ERROR
-
+   FACTOR_ID            goto state 10
+   FACTOR_LIST_ID       goto state 19
 
 Set 14:
+  CASE_EXPRESSION_ID <= WHEN_ID DISCRETE_CHOICE_ID EQUAL_GREATER_ID ^ FACTOR_ID, EOF_ID
+
+   IDENTIFIER_ID        => shift and goto state 17
+   NUMBER_LITERAL_ID    => shift and goto state 5
+   default              => ERROR
+
+   FACTOR_ID            goto state 18
+
+Set 15:
   RANGE_NT_ID <= IDENTIFIER_ID TICK_ID ^ RANGE_ID, EQUAL_GREATER_ID
 
-   RANGE_ID             => shift and goto state 15
+   RANGE_ID             => shift and goto state 16
    default              => ERROR
 
 
-Set 15:
+Set 16:
   RANGE_NT_ID <= IDENTIFIER_ID TICK_ID RANGE_ID ^, EQUAL_GREATER_ID
 
    EQUAL_GREATER_ID     => reduce 3 tokens to RANGE_NT_ID
    default              => ERROR
 
 
-Set 16:
-  FACTOR_ID <= IDENTIFIER_ID ^, EQUAL_GREATER_ID
+Set 17:
+  FACTOR_ID <= IDENTIFIER_ID ^, EOF_ID/EQUAL_GREATER_ID
 
+   EOF_ID               => reduce 1 tokens to FACTOR_ID
    EQUAL_GREATER_ID     => reduce 1 tokens to FACTOR_ID
    default              => ERROR
 
 
-Set 17:
+Set 18:
+  CASE_EXPRESSION_ID <= WHEN_ID DISCRETE_CHOICE_ID EQUAL_GREATER_ID FACTOR_ID ^, EOF_ID
+
+   EOF_ID               => reduce 4 tokens to CASE_EXPRESSION_ID
+   default              => ERROR
+
+
+Set 19:
   RANGE_NT_ID <= FACTOR_LIST_ID DOT_DOT_ID FACTOR_LIST_ID ^, EQUAL_GREATER_ID
 
    EQUAL_GREATER_ID     => reduce 3 tokens to RANGE_NT_ID
@@ -144,32 +166,44 @@ WHEN_ID : SHIFT
  2 : WHEN_ID
  1 : 
 IDENTIFIER_ID : SHIFT
- 5 : IDENTIFIER_ID
+ 6 : IDENTIFIER_ID
  2 : WHEN_ID
  1 : 
-EQUAL_GREATER_ID : REDUCE to FACTOR_ID, goto state 9
- 9 : FACTOR_ID
+EQUAL_GREATER_ID : REDUCE to FACTOR_ID, goto state 10
+ 10 : FACTOR_ID
  2 : WHEN_ID
  1 : 
-EQUAL_GREATER_ID : REDUCE to FACTOR_LIST_ID, goto state 10
- 10 : FACTOR_LIST_ID
+EQUAL_GREATER_ID : REDUCE to FACTOR_LIST_ID, goto state 11
+ 11 : FACTOR_LIST_ID
  2 : WHEN_ID
  1 : 
-EQUAL_GREATER_ID : REDUCE to CHOICE_RELATION_ID, goto state 7
- 7 : CHOICE_RELATION_ID
+EQUAL_GREATER_ID : REDUCE to CHOICE_RELATION_ID, goto state 8
+ 8 : CHOICE_RELATION_ID
  2 : WHEN_ID
  1 : 
-EQUAL_GREATER_ID : REDUCE to CHOICE_EXPRESSION_ID, goto state 6
- 6 : CHOICE_EXPRESSION_ID
+EQUAL_GREATER_ID : REDUCE to CHOICE_EXPRESSION_ID, goto state 7
+ 7 : CHOICE_EXPRESSION_ID
  2 : WHEN_ID
  1 : 
-EQUAL_GREATER_ID : REDUCE to DISCRETE_CHOICE_ID, goto state 8
- 8 : DISCRETE_CHOICE_ID
+EQUAL_GREATER_ID : REDUCE to DISCRETE_CHOICE_ID, goto state 9
+ 9 : DISCRETE_CHOICE_ID
  2 : WHEN_ID
  1 : 
 EQUAL_GREATER_ID : SHIFT
- 13 : EQUAL_GREATER_ID
- 8 : DISCRETE_CHOICE_ID
+ 14 : EQUAL_GREATER_ID
+ 9 : DISCRETE_CHOICE_ID
+ 2 : WHEN_ID
+ 1 : 
+NUMBER_LITERAL_ID : SHIFT
+ 5 : NUMBER_LITERAL_ID
+ 14 : EQUAL_GREATER_ID
+ 9 : DISCRETE_CHOICE_ID
+ 2 : WHEN_ID
+ 1 : 
+EOF_ID : REDUCE to FACTOR_ID, goto state 18
+ 18 : FACTOR_ID
+ 14 : EQUAL_GREATER_ID
+ 9 : DISCRETE_CHOICE_ID
  2 : WHEN_ID
  1 : 
 EOF_ID : REDUCE to CASE_EXPRESSION_ID, goto state 3

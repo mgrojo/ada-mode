@@ -24,7 +24,7 @@
 --  [3] wisi-user-manual.texi
 --  [4] http://en.wikipedia.org/wiki/Wisent
 --
---  Copyright (C) 2012, 2013 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2012 - 2014 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -79,6 +79,11 @@ package Wisi is
    --  Add Name, Value to Kind list in Tokens.
 
    function Is_In (Tokens : in Token_Lists.List; Kind : in String) return Boolean;
+   function Is_In
+     (Tokens : in Token_Lists.List;
+      Kind   : in String;
+      Value  : in String)
+     return Boolean;
 
    type Conflict is record
       Action_A    : Standard.Ada.Strings.Unbounded.Unbounded_String;
