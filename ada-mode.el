@@ -1061,6 +1061,7 @@ User is prompted to choose a file from project variable casing if it is a list."
 
 (defun ada-in-numeric-literal-p ()
   "Return t if point is after a prefix of a numeric literal."
+  ;; FIXME: this is actually a based numeric literal; excludes 1234
   (looking-back "\\([0-9]+#[0-9a-fA-F_]+\\)"))
 
 (defvar ada-keywords nil
@@ -1656,7 +1657,7 @@ Indexed by project variable xref_tool.")
     (modify-syntax-entry ?\" "\"" table)
 
     ;; punctuation; operators etc
-    (modify-syntax-entry ?#  "w" table); based number - word syntax, since we don't need the number
+    (modify-syntax-entry ?#  "." table); based number - ada-wisi-number-literal-p requires this syntax
     (modify-syntax-entry ?&  "." table)
     (modify-syntax-entry ?*  "." table)
     (modify-syntax-entry ?+  "." table)
@@ -2598,105 +2599,14 @@ The paragraph is indented on the first line."
   (list
 
    ;; Grammar actions set `font-lock-face' property for tokens that
-   ;; this can't handle. Eventually all faces will be set in the grammar.
+   ;; this doesn't handle.
 
-   ;; keywords followed by a name that should be in function-name-face.
-   (list
-    (apply
-     'concat
-     (append
-      '("\\<\\("
-	"accept\\|"
-	"entry\\|"
-	"function\\|"
-	"package[ \t]+body\\|"
-	"package\\|"
-	"pragma\\|"
-	"procedure\\|"
-	"task[ \t]+body\\|"
-	"task[ \t]+type\\|"
-	"task\\|"
-	)
-      (when (member ada-language-version '(ada95 ada2005 ada2012))
-	'("\\|"
-	  "protected[ \t]+body\\|"
-	  "protected[ \t]+function\\|"
-	  "protected[ \t]+procedure\\|"
-	  "protected[ \t]+type\\|"
-	  "protected"
-	  ))
-      (list
-       "\\)\\>[ \t]*"
-       ada-name-regexp "?")))
-    '(1 font-lock-keyword-face)
-    '(2 font-lock-function-name-face nil t))
-
-   ;; keywords followed by a name that should be in type-face.
-   (list (concat
-	  "\\<\\("
-	  "aliased[ \t]+not[ \t]+null\\|"
-	  "constant[ \t]+access[ \t]+all\\|"
-	  "constant[ \t]+access[ \t]+constant\\|"
-	  "constant[ \t]+access\\|"
-	  "constant\\|"
-	  "in[ \t]+reverse\\|"; loop iterator
-	  "not[ \t]+null[ \t]access[ \t]all\\|"
-	  "not[ \t]+null[ \t]access[ \t]constant\\|"
-	  "not[ \t]+null\\|"
-	  "return[ \t]+access[ \t]+constant\\|"
-	  "subtype\\|"
-	  "type"
-	  "\\)\\>[ \t]*"
-	  ada-name-regexp "?")
-	 '(1 font-lock-keyword-face nil t)
-	 '(2 font-lock-type-face nil t))
-
-   (list
-    "\\<\\(of[ \t]+reverse\\)\\>"  ;; following word is object
-    '(1 font-lock-keyword-face)
-    )
-
-   ;; Keywords not treated elsewhere. After above so it doesn't
-   ;; override fontication of second or third word in those patterns.
-   (list (concat
-   	  "\\<"
-   	  (regexp-opt
-   	   (append
-   	    '("abort" "abs" "accept" "all"
-	      ;; "and" requires parser for types in interface_lists
-   	      "array" "at" "begin" "case" "declare" "delay" "delta"
-   	      "digits" "do" "else" "elsif" "entry" "exception" "exit" "for"
-   	      "generic" "if" "in" "limited" "loop" "mod" "not"
-   	      "null" "or" "others" "private" "raise"
-   	      "range" "record" "rem" "reverse"
-   	      "select" "separate" "task" "terminate"
-   	      "then" "when" "while" "xor")
-   	    (when (member ada-language-version '(ada95 ada2005 ada2012))
-	      ;; "aliased" can't distinguish between object declaration and paramlist
-   	      '("abstract" "requeue" "tagged" "until"))
-   	    (when (member ada-language-version '(ada2005 ada2012))
-   	      '("interface" "overriding" "synchronized"))
-   	    (when (member ada-language-version '(ada2012))
-   	      '("some"))
-   	    )
-   	   t)
-   	  "\\>")
-   	 '(0 font-lock-keyword-face))
-
-   ;; after the above to handle 'is begin' in blocks
-   (list (concat
-	  "\\<\\(is\\)\\>[ \t]*"
-	  ada-name-regexp "?")
-	 '(1 font-lock-keyword-face) '(2 font-lock-type-face nil t))
-
-   ;; keywords followed by a name that should be in function-name-face if not already fontified
-   (list (concat
-	  "\\<\\(end\\)\\>[ \t]*"
-	  ada-name-regexp "?")
-     '(1 font-lock-keyword-face) '(2 font-lock-function-name-face nil t))
+   ;; Keywords
+   (list (concat "\\<" (regexp-opt ada-keywords t) "\\>") '(0 font-lock-keyword-face))
 
    ;; Keywords followed by a comma separated list of names which
    ;; should be in constant-face, unless already fontified. Ada mode 4.01 used this.
+   ;; FIXME: add tests, delete
    (list (concat
    	  "\\<\\("
    	  "goto\\|"
@@ -2710,12 +2620,6 @@ The paragraph is indented on the first line."
 
    ;; statement labels
    '("<<\\(\\sw+\\)>>" 1 font-lock-constant-face)
-
-   ;; based numberic literals
-   (list "\\([0-9]+#[0-9a-fA-F_]+#\\)" '(1 font-lock-constant-face t))
-
-   ;; numeric literals
-   (list "\\W\\([-+]?[0-9._]+\\)\\>" '(1 font-lock-constant-face))
 
    ))
 
@@ -2835,11 +2739,6 @@ The paragraph is indented on the first line."
   ;; set it per-file.
   (put-text-property 0 2 'syntax-table '(11 . nil) ada-fill-comment-prefix)
 
-  (when global-font-lock-mode
-    ;; This calls ada-font-lock-keywords, which depends on
-    ;; ada-language-version
-    (font-lock-refresh-defaults))
-
   (cl-case ada-language-version
    (ada83
     (setq ada-keywords ada-83-keywords))
@@ -2860,6 +2759,11 @@ The paragraph is indented on the first line."
 		  ada-95-keywords
 		  ada-2005-keywords
 		  ada-2012-keywords))))
+
+  (when global-font-lock-mode
+    ;; This calls ada-font-lock-keywords, which depends on
+    ;; ada-keywords
+    (font-lock-refresh-defaults))
 
   (when ada-goto-declaration-start
     (set (make-local-variable 'beginning-of-defun-function) ada-goto-declaration-start))

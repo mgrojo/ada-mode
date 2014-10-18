@@ -1,5 +1,6 @@
 -- A comment before the first code
---EMACSCMD:(progn (wisi-fontify (point-max))(font-lock-fontify-buffer))
+
+--EMACSCMD:(sit-for 0.01);; Let jit-lock activate
 
 --EMACSCMD:(ada-parse-prj-file "subdir/ada_mode.adp")
 --EMACSCMD:(ada-select-prj-file "subdir/ada_mode.adp")
@@ -534,8 +535,11 @@ package body Ada_Mode.Nominal is -- target 0
    is begin
    Block_1:
       declare -- label, no statements between begin, label
+
+         --EMACSCMD:(test-face "1.0e-36" 'font-lock-constant-face)
          Local_1 : Float := 1.0e-36;
-         Local_2 : Integer := 2;
+         --EMACSCMD:(test-face "16#2#" 'font-lock-constant-face)
+         Local_2 : Integer := 16#2#;
          Local_3 : Character := '\'; -- must override default syntax for \
          Local_4 : constant String := "a nested quote "" is hard";
       begin
@@ -643,7 +647,7 @@ package body Ada_Mode.Nominal is -- target 0
    --EMACSCMD:(progn (end-of-line 5)(backward-word 3)(test-face "new" 'font-lock-keyword-face))
    --EMACSCMD:(test-face "Record_Type_3" 'font-lock-type-face)
    --EMACSCMD:(progn (forward-line 1)(forward-word 3)(test-face "Record_Type_3" 'font-lock-type-face))
-   -- FIXME: failing EMACSCMD:(test-face "1" 'font-lock-constant-face)
+   --EMACSCMD:(test-face "1234" 'font-lock-constant-face)
    Object_3 : access Record_Type_3 := new Record_Type_3 (new Integer'(1234));
 begin
    null;

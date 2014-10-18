@@ -14,7 +14,7 @@
 --EMACSCMD:(ada-select-prj-file "ada_mode.gpr")
 --EMACSCMD:(ada-mode)
 
---EMACSCMD:(progn (wisi-fontify (point-max))(font-lock-fontify-buffer))
+--EMACSCMD:(sit-for 0.01);; Let jit-lock activate
 
 procedure Gnatprep is
 
@@ -23,7 +23,7 @@ begin
       -- Can't use 'test-face' here because it skips comments, and gnatprep lines have comment syntax.
       --EMACSCMD:(progn (forward-line 1)(face-at-point))
 #if Gnat_Compiler
-      --EMACSRESULT:font-lock-type-face
+      --EMACSRESULT:font-lock-preprocessor-face
       A := 1;
       --EMACSCMD:(progn (forward-line 1)(syntax-class (syntax-after (point))))
 #elsif Other_Compiler
@@ -33,21 +33,19 @@ begin
       B := 3;
       --EMACSCMD:(progn (forward-line 1)(face-at-point))
 #end if;
-      --EMACSRESULT:font-lock-type-face
+      --EMACSRESULT:font-lock-preprocessor-face
       A := 3;
 
    end if;
 
-   --EMACSCMD:(progn (forward-line 1)(forward-char 14)(face-at-point))
+   --EMACSCMD:(test-face "#" font-lock-string-face))
    A := "in a # string";
-   --EMACSRESULT:font-lock-string-face
 
    declare
       Control_Flags : Integer;
-      --EMACSCMD:(progn (end-of-line 5)(forward-char -4)(face-at-point))
-      --EMACSRESULT:font-lock-constant-face
+      --EMACSCMD:(test-face "16#3fd#" font-lock-constant-face)
       --EMACSCMD:(progn (end-of-line 3)(forward-char -3)(syntax-class (syntax-after (point))))
-      --EMACSRESULT:2
+      --EMACSRESULT:1
       for Control_Flags use at (BASE_ADDRESS + 16#3fd#);
 
       --  Don't change the hex literal to mixed case

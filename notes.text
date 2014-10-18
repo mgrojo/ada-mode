@@ -39,14 +39,23 @@ install packages in -Q:
 o.e.a.stephe-1: external opentoken parser
 o.e.a.stephe-2: external gps parser
 
-set fontified t
+faces
+    test/ada_mode-generic_package.ads
+        end ...;
 
-don't use type face for non-identifier parts of selected_component?
+time lexing with number recognizer
+    speed up first test?
+    or put number back in ada-font-lock-keywords
+        that uses compiled regexp
 
-numbers are parsed as identifier, tagged as name, fontified as type
-    test/debug.adb
-    test/ada_mode-nominal.adb:644 1
+don't abort C-F11 for failed parse; just ignore subunit
 
+navigation order confused
+    if then
+    elsif then
+    elsif then
+    else
+    end if;
 
 face for protected/task type/object?
 

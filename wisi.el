@@ -198,6 +198,30 @@
   "Cons '(delim . character) where 'character' escapes quotes in strings delimited by 'delim'.")
 (defvar-local wisi-string-single-term nil) ;; string delimited by single quotes
 (defvar-local wisi-symbol-term nil)
+(defvar-local wisi-number-literal-term nil)
+(defvar-local wisi-number-literal-p nil)
+
+(defun wisi-number-literal-p (token-text)
+  "Return t if TOKEN-TEXT plus text after point matches the
+syntax for a real literal; otherwise nil. point is after
+TOKEN-TEXT; move point to just past token."
+  ;; typical literals:
+  ;; 1234
+  ;; 1234.5678
+  ;; 1234.5678e+99
+  ;;
+  (let ((end (point)))
+    ;; starts with a simple integer
+    (when (string-match "^[0-9]+" token-text)
+      (when (looking-at "\\.[0-9]+")
+	;; real number
+	(goto-char (setq end (match-end 0)))
+	(when (looking-at  "[Ee][+-][0-9]+")
+	  ;; exponent
+	  (goto-char (setq end (match-end 0)))))
+
+      t
+      )))
 
 (defun wisi-forward-token (&optional text-only)
   "Move point forward across one token, skipping leading whitespace and comments.
@@ -280,7 +304,12 @@ If at end of buffer, returns `wisent-eoi-term'."
       (setq token-text (buffer-substring-no-properties start (point)))
       (setq token-id
 	    (or (symbol-value (intern-soft (downcase token-text) wisi-keyword-table))
-		wisi-symbol-term)))
+		(and (functionp wisi-number-literal-p)
+		     (funcall wisi-number-literal-p token-text)
+		     (setq token-text (buffer-substring-no-properties start (point)))
+		     wisi-number-literal-term)
+		wisi-symbol-term))
+      )
      );; cond
 
     (unless token-id
@@ -393,7 +422,21 @@ Used in before/after change functions.")
   (setq wisi-parse-try t)
   (syntax-ppss-flush-cache after)
   (with-silent-modifications
-    (remove-text-properties after (point-max) '(wisi-cache nil font-lock-face nil))))
+    (remove-text-properties after (point-max) '(wisi-cache nil))
+    ;; remove 'font-lock-face and set 'fontified nil in 'font-lock-face regions
+    (let ((pos after)
+	  end)
+      (while (and pos
+		  (< pos (point-max)))
+	(setq pos (next-single-property-change pos 'font-lock-face))
+	(when pos
+	  (setq end (next-single-property-change pos 'font-lock-face))
+	  (when end
+	    (remove-text-properties pos end '(font-lock-face nil))
+	    (put-text-property pos end 'fontified nil))
+	  (setq pos end))
+	)))
+  )
 
 (defun wisi-before-change (begin end)
   "For `before-change-functions'."
@@ -440,6 +483,8 @@ Used in before/after change functions.")
 	 (t
 	  (setq wisi-change-need-invalidate
 		(progn
+		  ;; note that because of the checks above, this never
+		  ;; triggers a parse, so it's fast.
 		  (wisi-goto-statement-start)
 		  (point))))
 	 ))))
@@ -600,12 +645,10 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
 	  (message "%s done" msg)))
       )))
 
-(defun wisi-fontify (pos)
-  "For `fontification-functions'."
-  ;; FIXME: pos is the _start_ point; we don't know the end point.
-  ;; use some jit-lock hook instead?
+(defun wisi-fontify-region (begin end)
+  "For `jit-lock-functions'."
   (when (< (point-max) wisi-font-lock-size-threshold)
-    (wisi-validate-cache (point-max))))
+    (wisi-validate-cache end)))
 
 (defun wisi-get-containing-cache (cache)
   "Return cache from (wisi-cache-containing CACHE)."
@@ -897,10 +940,12 @@ Also override token with new token."
     (unless (get-text-property (car region) 'font-lock-face)
       ;; don't let higher level grammar statement overwrite lower
       (with-silent-modifications
-	(put-text-property (car region) (cdr region) 'font-lock-face face)))
-    (when (boundp 'jit-lock-mode)
-      (jit-lock-refontify (car region) (cdr region))))
-  )
+	(add-text-properties
+	 (car region) (cdr region)
+	 (list
+	  'font-lock-face face
+	  'fontified t))))
+    ))
 
 (defun wisi-face-action (pairs)
   "Cache face information in text properties of tokens.
@@ -926,10 +971,12 @@ token-number may be an integer, or a vector [integer token_id token_id ...]"
 	  (setq j (1+ j)))
 	(save-excursion
 	  (goto-char (car region))
-	  (while (setq cache (wisi-forward-find-token tokens (cdr region) t))
-	    (wisi-face-action-1 face (wisi-cache-region cache))
-	    (wisi-forward-token)))
-	)
+	  ;; this face applies to the first token
+	  (setq cache (wisi-forward-find-token tokens (cdr region) t))
+	  ;; might be looking for IDENTIFIER in name, but only have "*".
+	  (when cache
+	    (wisi-face-action-1 face (wisi-cache-region cache)))
+	  ))
        )
       (setq i (1+ i))
 
@@ -1286,6 +1333,10 @@ correct. Must leave point at indentation of current line.")
   (setq wisi-string-single-term (car (symbol-value (intern-soft "string-single" token-table))))
   (setq wisi-symbol-term (car (symbol-value (intern-soft "symbol" token-table))))
 
+  (let ((number-literals (cadr (symbol-value (intern-soft "number-literal" token-table)))))
+    (setq wisi-number-literal-term (car number-literals))
+    (setq wisi-number-literal-p (cdr number-literals)))
+
   (setq wisi-punctuation-table (symbol-value (intern-soft "punctuation" token-table)))
   (setq wisi-punctuation-table-max-length 0)
   (let (fail)
@@ -1318,7 +1369,8 @@ correct. Must leave point at indentation of current line.")
   (add-hook 'before-change-functions 'wisi-before-change nil t)
   (add-hook 'after-change-functions 'wisi-after-change nil t)
 
-  (add-to-list 'fontification-functions 'wisi-fontify)
+  (when (functionp 'jit-lock-register)
+      (jit-lock-register 'wisi-fontify-region))
 
   ;; see comments on "lexer" above re syntax-propertize
   (syntax-propertize (point-max))

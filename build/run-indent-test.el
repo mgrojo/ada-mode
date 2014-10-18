@@ -9,7 +9,7 @@
 (defvar skip-recase-test nil)
 
 (defun test-face (token face)
-  "Test if TOKEN in next code line has FACE.
+  "Test if all of TOKEN in next code line has FACE.
 FACE may be a list; emacs 24.3.93 uses nil instead of 'default."
   (save-excursion
     (when (ada-in-comment-p)
@@ -19,27 +19,50 @@ FACE may be a list; emacs 24.3.93 uses nil instead of 'default."
 	(search-forward token (line-end-position))
       (error
        (error "can't find '%s'" token)))
-    (goto-char (match-beginning 0))
-    ;; we don't use face-at-point, because it doesn't respect
-    ;; font-lock-face set by the parser!
-    (let ((token-face (or (get-text-property (point) 'face)
-			  (get-text-property (point) 'font-lock-face))))
+
+    ;; We don't use face-at-point, because it doesn't respect
+    ;; font-lock-face set by the parser! And we want to check for
+    ;; conflicts between font-lock-keywords and the parser.
+
+    ;; If we use (get-text-property (point) 'face), we also get
+    ;; 'font-lock-face, but not vice-versa. So we have to use
+    ;; text-properties-at to check for both.
+    (let ((token (match-string 0))
+	  (props (text-properties-at (match-beginning 0)))
+	  (token-face (get-text-property (match-beginning 0) 'face)))
+
+      (when (and (memq 'font-lock-face props)
+		 (memq 'face props))
+	(describe-text-properties (match-beginning 0))
+	(error "mixed font-lock-keyword and parser faces for '%s'" token))
+
+      (unless (not (text-property-not-all 0 (length token) 'face token-face token))
+	(error "mixed faces, expecting %s for '%s'" face token))
+
       (unless (or (and (listp face)
 		       (memq token-face face))
 		  (eq token-face face))
+	(error "found face %s, expecting %s for '%s'" token-face face token))
+    )))
 
-	(error
-	 "found face %s, expecting %s for '%s'"
-	 (face-at-point)
-	 face
-	 token)))
+(defun test-face-1 (search token face)
+  "Move to end of comment, search for SEARCH, call `test-face'."
+  (save-excursion
+    (when (ada-in-comment-p)
+      (beginning-of-line); forward-comment doesn't move if inside a comment!
+      (forward-comment (point-max)))
+    (search-forward search)
+    (test-face token face)
     ))
 
 (defun run-test-here ()
   "Run an indentation and casing test on the current buffer."
   (interactive)
   (setq indent-tabs-mode nil)
-  (let (last-result last-cmd expected-result error-p)
+  (setq jit-lock-context-time 0.0);; for test-face
+
+  (let ((error-count 0)
+	last-result last-cmd expected-result)
     ;; Look for --EMACS comments in the file:
     ;;
     ;; --EMACSCMD: <form>
@@ -71,7 +94,7 @@ FACE may be a list; emacs 24.3.93 uses nil instead of 'default."
 		  (condition-case err
 		      (eval (car (read-from-string last-cmd)))
 		    (error
-		     (setq error-p t)
+		     (setq error-count (1+ error-count))
 		     (message
 		      (concat
 		       (buffer-file-name) ":" (format "%d" (line-number-at-pos))
@@ -87,7 +110,7 @@ FACE may be a list; emacs 24.3.93 uses nil instead of 'default."
 	(setq expected-result (save-excursion (end-of-line 1) (eval (car (read-from-string (match-string 0))))))
 	(unless (equal expected-result last-result)
 	  ;; we don't abort here, so we can see all errors at once
-	  (setq error-p t)
+	  (setq error-count (1+ error-count))
 	  (message
 	   (concat
 	    (format "error: %s:%d:\n" (buffer-file-name) (line-number-at-pos))
@@ -105,14 +128,13 @@ FACE may be a list; emacs 24.3.93 uses nil instead of 'default."
 		 (eval (car (read-from-string (match-string 0))))))
 
        (t
-	(setq error-p t)
+	(setq error-count (1+ error-count))
 	(error (concat "Unexpected command " (match-string 1))))))
 
-    (when error-p
+    (when (> error-count 0)
       (error
-       (concat
-	    (buffer-file-name) ":" (format "%d" (count-lines (point-min) (point)))
-	    ": aborting due to previous errors")))
+       "%s:%d: aborting due to previous errors (%d)"
+       (buffer-file-name) (line-number-at-pos (point)) error-count))
     )
 
   (when (not skip-reindent-test)

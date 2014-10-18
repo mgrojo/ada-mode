@@ -1592,6 +1592,89 @@ Also return cache at start."
   (define-key ada-mode-map "\M-k" 'wisi-show-token)
   )
 
+(defun ada-wisi-number-literal-p (token-text)
+  "Return t if TOKEN-TEXT plus text after point matches the
+syntax for a real literal; otherwise nil. point is after
+TOKEN-TEXT; move point to just past token."
+  ;; test in test/wisi/ada-number-literal.input
+  ;;
+  ;; starts with a simple integer
+  (let ((end (point)))
+    (when (string-match "^[0-9]+" token-text)
+      (cond
+       ((= (char-after) ?#)
+	;; based number
+	(forward-char 1)
+	(if (not (looking-at "[0-9a-fA-F]+"))
+	    (progn (goto-char end) nil)
+
+	  (goto-char (match-end 0))
+	  (cond
+	   ((= (char-after) ?#)
+	    ;; based integer
+	    (forward-char 1)
+	    t)
+
+	   ((= (char-after) ?.)
+	    ;; based real?
+	    (forward-char 1)
+	    (if (not (looking-at "[0-9a-fA-F]+"))
+		(progn (goto-char end) nil)
+
+	      (goto-char (match-end 0))
+
+	      (if (not (= (char-after) ?#))
+		  (progn (goto-char end) nil)
+
+		(forward-char 1)
+		(setq end (point))
+
+		(if (not (memq (char-after) '(?e ?E)))
+		    ;; based real, no exponent
+		    t
+
+		  ;; exponent?
+		  (forward-char 1)
+		  (if (not (looking-at "[+-]?[0-9]+"))
+		      (progn (goto-char end) t)
+
+		    (goto-char (match-end 0))
+		    t
+		)))))
+
+	   (t
+	    ;; missing trailing #
+	    (goto-char end) nil)
+	   )))
+
+       ((= (char-after ?.))
+	;; decimal real number?
+	(forward-char 1)
+	(if (not (looking-at "[0-9]+"))
+	    ;; decimal integer
+	    (progn (goto-char end) t)
+
+	  (setq end (goto-char (match-end 0)))
+
+	  (if (not (memq (char-after) '(?e ?E)))
+	      ;; decimal real, no exponent
+	      t
+
+	    ;; exponent?
+	    (forward-char 1)
+	    (if (not (looking-at "[+-]?[0-9]+"))
+		(progn (goto-char end) t)
+
+	      (goto-char (match-end 0))
+	      t
+	      ))))
+
+       (t
+	;; just an integer
+	t)
+       ))
+    ))
+
 (defun ada-wisi-setup ()
   "Set up a buffer for parsing Ada files with wisi."
   (wisi-setup '(ada-wisi-comment

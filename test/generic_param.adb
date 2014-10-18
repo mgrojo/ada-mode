@@ -1,8 +1,7 @@
+--  Tests the indentation after a generic statement and some faces
 
---  Tests the indentation after a generic statement
+--EMACSCMD:(sit-for 0.01);; Let jit-lock activate
 
--- and some faces
---EMACSCMD:(progn (wisi-fontify (point-max))(font-lock-fontify-buffer))
 procedure Generic_Param is
 
    generic

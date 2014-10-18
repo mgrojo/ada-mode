@@ -4,7 +4,8 @@
 -- Since we are editing with ada-align, the syntax will be illegal at times; don't fail for that.
 --EMACSCMD:(setq wisi-debug 0)
 
---EMACSCMD:(progn (wisi-fontify (point-max))(font-lock-fontify-buffer))
+--EMACSCMD:(sit-for 0.01);; Let jit-lock activate
+
 with Ada.Strings.Maps;
 package body Ada_Mode.Parens is
 
@@ -179,7 +180,8 @@ package body Ada_Mode.Parens is
       return 1.0;
    end Function_3;
 
-   --EMACSCMD:(progn (wisi-fontify (point-max))(font-lock-fontify-buffer))
+   --EMACSCMD:(sit-for 0.01);; Let jit-lock activate
+
    --EMACSCMD:(test-face "Boolean" font-lock-type-face)
    --EMACSCMD:(progn (forward-line 4)(test-face "Boolean" font-lock-type-face))
    --EMACSCMD:(progn (forward-line 2)(forward-word 3)(insert "   ")(forward-line 2)(forward-word 2)(insert "   ")(ada-align))
@@ -202,7 +204,6 @@ package body Ada_Mode.Parens is
 
       if A.all
         or else (B.all
-                   --EMACSCMD:(progn (wisi-fontify (point-max))(font-lock-fontify-buffer))
                    --EMACSCMD:(test-face "then" 'font-lock-keyword-face)
                    and then C
                    and then D)  --  requires ada-indent-validate-cache-paren
@@ -323,7 +324,8 @@ package body Ada_Mode.Parens is
       return A;
    end;
 
-   --EMACSCMD:(progn (wisi-fontify (point-max))(font-lock-fontify-buffer))
+   --EMACSCMD:(sit-for 0.01);; Let jit-lock activate
+
    --EMACSCMD:(progn (forward-line 9)(test-face "protected" 'font-lock-keyword-face))
    --EMACSCMD:(progn (forward-line 8)(test-face "procedure" 'font-lock-keyword-face))
    --EMACSCMD:(progn (forward-line 8)(test-face "constant" 'font-lock-keyword-face))
@@ -342,7 +344,6 @@ package body Ada_Mode.Parens is
       return A.all;
    end;
 
-   --EMACSCMD:(progn (wisi-fontify (point-max))(font-lock-fontify-buffer))
    --EMACSCMD:(progn (forward-line 4)(test-face "constant" 'font-lock-keyword-face))
    --EMACSCMD:(progn (forward-line 4)(forward-word 2)(insert "    ")(ada-align))
    -- multiline [not null] access [constant | protected]

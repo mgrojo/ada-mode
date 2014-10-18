@@ -31,13 +31,18 @@ test-debian : test-ada-gnatxref.stamp test-gpr test-elisp gpr-skel.gpr.diff
 # test-elisp debug:
 # (progn (add-to-list 'load-path (expand-file-name "../../test")) (load "ada-mode-test.el"))
 
+# test-wisi debug:
+# (progn (load-file "../run-wisi-test.el") (run-test "ada-number-literal"))
+
+test-wisi :: ada-number-literal.wisi-test
 test-wisi :: body_instantiation_conflict.wisi-test
 test-wisi :: case_expression.wisi-test
-test-wisi :: identifier_list_name_conflict.wisi-test
-test-wisi :: range_conflict.wisi-test
-test-wisi :: subprograms.wisi-test
 test-wisi :: empty_production_6.wisi-test
 test-wisi :: empty_production_8.wisi-test
+test-wisi :: identifier_list_name_conflict.wisi-test
+test-wisi :: number-literal.wisi-test
+test-wisi :: range_conflict.wisi-test
+test-wisi :: subprograms.wisi-test
 
 one : RUNTEST := run-indent-test-wisi-gpr_query.el
 one : ada_mode-nominal.ads.diff
@@ -45,17 +50,17 @@ one : ada_mode-nominal.ads.diff
 vpath %.wy ../../ ../../test/wisi
 vpath %.el ../../ .
 
+INDENT.EL := ada-wisi.el gpr-wisi.el ../../gpr-grammar-wy.el ../../ada-grammar-wy.el
+
 # These are correct paths for Stephe's development machines;
 # WISI_OPENTOKEN can be overridden on the 'make' command line or by an
 # external environment variable.
 ifeq ($(shell uname),Linux)
-INDENT.EL := ada-wisi.el gpr-wisi.el
 WISI_OPENTOKEN ?= /home/Projects/opentoken/org.opentoken/build/release
 export ADA_PROJECT_PATH=../../test/:../../test/subdir
 
 else
 # windows
-INDENT.EL := ada-wisi.el gpr-wisi.el ../../gpr-grammar-wy.el ../../ada-grammar-wy.el
 WISI_OPENTOKEN ?= $(CURDIR)/../../../org.opentoken/build/release
 export ADA_PROJECT_PATH=../../test/;../../test/subdir
 

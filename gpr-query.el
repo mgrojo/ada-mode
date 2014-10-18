@@ -619,7 +619,7 @@ Enable mode if ARG is positive"
 
   (font-lock-add-keywords 'ada-mode
    ;; gnatprep preprocessor line
-   (list (list "^[ \t]*\\(#.*\n\\)"  '(1 font-lock-type-face t))))
+   (list (list "^[ \t]*\\(#.*\n\\)"  '(1 font-lock-preprocessor-face t))))
   )
 
 (provide 'gpr-query)

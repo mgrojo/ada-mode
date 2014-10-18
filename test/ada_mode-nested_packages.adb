@@ -3,7 +3,8 @@
 --
 -- Also other stuff
 
---EMACSCMD:(progn (wisi-fontify (point-max))(font-lock-fontify-buffer))
+--EMACSCMD:(sit-for 0.01);; Let jit-lock activate
+
 --EMACSCMD:(setq skip-recase-test t) we have identifiers that don't follow the standard naming convention
 
 --EMACSCMD:(test-face "Ada.Directories" font-lock-constant-face)
