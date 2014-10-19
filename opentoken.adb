@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
---  Copyright (C) 2009 Stephe Leake
+--  Copyright (C) 2009, 2014 Stephe Leake
 --
 --  This file is part of the OpenToken package.
 --
@@ -27,6 +27,14 @@
 with Ada.Strings.Fixed;
 with Ada.Text_IO;
 package body OpenToken is
+
+   function Int_Image (Item : in Integer) return String
+   is
+      use Ada.Strings;
+      use Ada.Strings.Fixed;
+   begin
+      return Trim (Integer'Image (Item), Both);
+   end Int_Image;
 
    procedure Trace_Put (Message : in String)
    is

@@ -15,6 +15,7 @@ VPATH += ../../Examples/ASU_Example_5_10
 VPATH += ../../Examples/Language_Lexer_Examples
 VPATH += ../../Language_Lexers
 VPATH += ../../wisi
+VPATH += ../../wisi/test
 
 # Variables for library creation
 export GPRBUILD_TARGET := $(shell gcc -dumpmachine)
@@ -44,16 +45,34 @@ tests : token_list_test-run.run
 tests : token_selection_test-run.run
 tests : token_sequence_test-run.run
 
-# wisi parse tests
-tests : case_expression-parse.diff
+# from ../wisi/test
+#
+# to parse .wy, build .ads, run parser, we'd like to do:
+# %_run.exe : %_run.adb %.ads; gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P opentoken_test.gpr $(GPRBUILD_ARGS) $*_run
+# but that gets overridden by the simpler .exe rule for other things. So we must list %.ads explicitly in tests:
+#
+# some also or only run from ../wisi/test/test_wisi_suite.adb
+tests : empty_production_1.ads
 tests : empty_production_1-parse.diff
+tests : empty_production_2.ads
 tests : empty_production_2-parse.diff
+tests : empty_production_3.ads
 tests : empty_production_3-parse.diff
+tests : empty_production_4.ads
 tests : empty_production_4-parse.diff
+tests : empty_production_5.ads
 tests : empty_production_5-parse.diff
-# empty_production_6 only in Emacs Ada mode; requires generalized parser
+tests : empty_production_6.ads
+tests : empty_production_6-parse.diff
+tests : empty_production_7.ads
 tests : empty_production_7-parse.diff
-# empty_production_8 only in Emacs Ada mode; requires generalized parser
+tests : empty_production_8.ads
+tests : empty_production_8-parse.diff
+tests : identifier_list_name_conflict.ads
+tests : identifier_list_name_conflict-parse.diff
+tests : multi_conflict.ads
+tests : multi_conflict-parse.diff
+tests : subprograms.ads
 tests : subprograms-parse.diff
 
 examples : asu_example_3_6-run.run
@@ -117,15 +136,15 @@ library:
 	gprbuild -p -Popentoken_lib
 
 clean :: test-clean
-	rm -f obj/* lib-obj/*
+	rm -rf obj/* lib-obj/* *.exe
 	rm -rf lib/*
 
 distclean :: clean
 	rm -rf obj obj_tree
 
 test-clean :
-	rm -f *.diff *.exe *.out *.parse *.txt  *-wy.el
-	rm -f *.ads *-parse.adb
+	rm -f *.diff *_run.exe *-run.exe *test.exe *.parse_table *.out *.parse *.txt *-wy.el
+	rm -f *.ads *.adb
 
 source-clean ::
 	-find $(SOURCE_ROOT) -name "*~" -print | xargs rm -v
@@ -137,9 +156,6 @@ source-clean ::
 wisi-generate.exe : force
 	gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P opentoken.gpr $(GPRBUILD_ARGS) wisi-generate
 
-# we depend on %.adb, because the source for some executables is generated
-%.exe : %.adb force; gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P opentoken_test.gpr $(GPRBUILD_ARGS) $*
-
 %.check : %.adb force; gnatmake -p -k -gnatc -Popentoken_test.gpr $(GNATMAKE_ARGS) $*
 
 %.out : %.exe ;	./$*.exe > $*.out 2>&1
@@ -149,28 +165,33 @@ DIFF_OPT := -u -w
 
 %.diff : %.good_el %.el ; diff $(DIFF_OPT) $^ > $@
 
-%-parse.diff : %.good_parse %.parse ; diff $(DIFF_OPT) $^ > $@
+# the parse_table and the state trace of the parse is the known good output
+%-parse.diff : %.good_parse %.parse
+	diff $(DIFF_OPT) $(^:parse=parse_table) > $@
+	diff $(DIFF_OPT) $(^:parse=el) >> $@
+	diff $(DIFF_OPT) $^ >> $@
 
 %.run : %.exe ;	./$(*F).exe $(RUN_ARGS)
 
-# %-wy.el : RUN_ARGS := -v
+# %-wy.el : RUN_ARGS := -v 1
 %-wy.el : %.wy wisi-generate.exe
 	./wisi-generate.exe $(RUN_ARGS) $< Elisp > $*.output
 
-# no verbosity for Ada output; set -v in %.parse instead
-%-parse.adb : %.wy wisi-generate.exe
-	./wisi-generate.exe --prologue $(<D)/ada-prologue.ads $< Ada
+# wisi-generate Ada_Emacs runs lalr_parser.generate, and we always want the parse_table for tests
+# match historical first_state_index, first_parser_label
+%.ads : RUN_ARGS ?= -v 1 --first_state_index 1 --first_parser_label 1
+%.ads : %.wy wisi-generate.exe
+	./wisi-generate.exe $(RUN_ARGS) $< Ada_Emacs > $*.parse_table
+	dos2unix $*.parse_table
+	dos2unix $*.el
 
-# the grammar and the state trace of the parse is the known good output
-# specify RUN_ARGS on command line to get -v 2 (adding it to 'one :' is too late)
-%.parse : %.input %-parse.exe
-ifeq ($(RUN_ARGS),)
-	./$*-parse.exe -v 1 $< > $*.parse
-else
-	./$*-parse.exe $(RUN_ARGS) $< > $*.parse
-endif
+%.parse : %.input %_run.exe
+	./$*_run.exe -v 2 $< > $*.parse
+	dos2unix $*.parse
 
-.PRECIOUS : %-wy.el %-parse.adb %-parse.exe %.parse
+%.exe : force; gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P opentoken_test.gpr $(GPRBUILD_ARGS) $*
+
+.PRECIOUS : %-wy.el %.ads %_run.exe %.parse
 
 vpath %.wy ../../wisi/test
 vpath %-wy.good_el  ../../wisi/test

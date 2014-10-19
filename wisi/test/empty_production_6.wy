@@ -1,0 +1,50 @@
+;;; finding bug in parse table generator; nonterm followed by possibly empty nonterm
+;;
+;; also testing pending actions during conflict resolution; label_opt
+;; action is not output until one parser terminates.
+
+%{
+(require 'wisi)
+(require 'semantic/lex)
+(require 'wisi-compile)
+%}
+
+%token <punctuation> COLON ":"
+%token <punctuation> COLON_EQUAL ":="
+%token <punctuation> SEMICOLON ";"
+
+%keyword BEGIN "begin"
+%keyword END "end"
+
+%token <symbol> IDENTIFIER
+
+%token <whitespace> WHITESPACE ""
+
+%start compilation_unit
+
+%conflict SHIFT/REDUCE in state label_opt, label_opt on token IDENTIFIER
+
+%%
+
+compilation_unit
+  : BEGIN sequence_of_statements END SEMICOLON
+    (setq wisi-test-success t)
+  ;
+
+statement
+  : label_opt IDENTIFIER COLON_EQUAL IDENTIFIER SEMICOLON
+  ;
+
+sequence_of_statements
+  : statement ;; label is included in statement
+  | sequence_of_statements statement
+  ;
+
+label_opt
+  : ;; empty
+  | IDENTIFIER COLON ;; on blocks, loops
+    (wisi-statement-action [1 block-start])
+  ;
+
+%%
+;;; end of file

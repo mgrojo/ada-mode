@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2012, 2013 Stephe Leake
+-- Copyright (C) 2012 - 2014 Stephe Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -43,6 +43,7 @@ package OpenToken.Token.Enumerated.List is
    --  Create a token list from a single instance.
    ----------------------------------------------------------------------------
    function Only (Subject : in Class) return Instance;
+   function Only (Subject : in Handle) return Instance;
 
    ----------------------------------------------------------------------------
    --  Create a token list from a pair of token instances.
@@ -63,6 +64,16 @@ package OpenToken.Token.Enumerated.List is
    ----------------------------------------------------------------------------
    function "&" (Left  : in Instance;
                  Right : in Instance) return Instance;
+
+   function "&"
+     (Left  : in Handle;
+      Right : in Handle)
+     return Instance;
+
+   function "&"
+     (Left  : in Instance;
+      Right : in Handle)
+     return Instance;
 
    --------------------------------------------------------------------------
    --  This routine needs to be called when you are done using a list,
@@ -94,14 +105,19 @@ package OpenToken.Token.Enumerated.List is
    ---------------------
    -- Parser Routines --
 
-   --------------------------------------------------------------------------
-   --  Enqueue a token on the given list. The token itself will not be
-   --  copied.  Its storage will be managed by the list from here on
-   --  in. Do not delete it while the list is still using it!
-   --------------------------------------------------------------------------
-   procedure Enqueue (List  : in out Instance;
-                      Token : in     Handle
-                     );
+   --  Enqueue Token on List, at the head. Token itself is not
+   --  copied; it will be freed by Clean.
+   procedure Enqueue
+     (List  : in out Instance;
+      Token : in     Handle);
+
+   --  Append to tail of List, without copying Token
+   procedure Append
+     (List  : in out Instance;
+      Token : in     Handle);
+
+   procedure Print (Item : in Instance);
+   --  Print Item to Ada.Text_IO.Current_Output.
 
 private
    type List_Node;

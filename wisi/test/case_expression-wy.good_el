@@ -31,9 +31,6 @@
 (defconst case_expression-wy--token-table
   (semantic-lex-make-type-table
    '(
-     ("line_comment"
-      (COMMENT . "--")
-     )
      ("punctuation"
       (DOT_DOT . "..")
       (EQUAL_GREATER . "=>")
@@ -48,7 +45,7 @@
 
 (defconst case_expression-wy--parse-table
    (wisi-compile-grammar
-   '((COMMENT DOT_DOT EQUAL_GREATER TICK IDENTIFIER RANGE WHEN )
+   '((DOT_DOT EQUAL_GREATER TICK IDENTIFIER RANGE WHEN )
      ((case_expression
        ((WHEN discrete_choice EQUAL_GREATER )
         (setq wisi-test-success t)))
@@ -69,7 +66,7 @@
      [((default . error) (WHEN .  1))
       ((default . error) (IDENTIFIER .  4))
       ((default . error) ($EOI .  3))
-      ((default . error) ($EOI . accept) (WHEN . accept) (RANGE . accept) (IDENTIFIER . accept) (TICK . accept) (EQUAL_GREATER . accept) (DOT_DOT . accept))
+      ((default . error) ($EOI . accept) (IDENTIFIER . accept) (TICK . accept) (EQUAL_GREATER . accept) (DOT_DOT . accept) (WHEN . accept) (RANGE . accept))
       ((default . error) (TICK .  13) (DOT_DOT . (factor . 0)) (EQUAL_GREATER . (factor . 0)))
       ((default . error) (EQUAL_GREATER . (discrete_choice . 0)))
       ((default . error) (EQUAL_GREATER . (choice_expression . 0)))

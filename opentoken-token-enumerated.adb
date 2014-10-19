@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2009, 2013 Stephe Leake
+-- Copyright (C) 2009, 2013, 2014 Stephe Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -29,6 +29,17 @@ with Ada.Tags;
 with Ada.Text_IO;
 package body OpenToken.Token.Enumerated is
 
+   overriding
+   function Image (Token : in Instance) return String
+   is begin
+      return Token_Image (Token.ID) & (if Token.Has_Name then "." & Token.Name.all else "");
+   end Image;
+
+   procedure Free (Item : in out Handle)
+   is begin
+      Dispose (Item);
+   end Free;
+
    function Get
      (ID    : in Token_ID := Token_ID'First;
       Name  : in String   := "";
@@ -52,6 +63,15 @@ package body OpenToken.Token.Enumerated is
       Token.Build := Build;
    end Set_Build;
 
+   function Copy (Token : in Handle) return Handle
+   is begin
+      if Token = null then
+         return null;
+      else
+         return new Class'(Token.all);
+      end if;
+   end Copy;
+
    function ID (Token : in Instance'Class) return Token_ID is
    begin
       return Token.ID;
@@ -66,13 +86,13 @@ package body OpenToken.Token.Enumerated is
 
    overriding procedure Parse
      (Match    : access Instance;
-      Analyzer : in out Source_Class;
-      Actively : in     Boolean      := True)
+      Analyzer : access Source_Class;
+      Actively : in     Boolean := True)
    is
       use type Ada.Tags.Tag;
-      Next_Token : constant OpenToken.Token.Class := Get (Analyzer);
+      Next_Token : constant OpenToken.Token.Class := Analyzer.Get;
    begin
-      if Trace_Parse then
+      if Trace_Parse > 0 then
          Trace_Indent := Trace_Indent + 1;
          if Actively then
             Trace_Put ("parsing");
@@ -89,7 +109,7 @@ package body OpenToken.Token.Enumerated is
          --  Previous versions of OpenToken called Create again here,
          --  with an argument of Lexeme (Analyzer), which is wrong
          --  when Next_Token was read from the lookahead queue, since
-         --  the Lexeme reads from the input buffer, which is not
+         --  then Lexeme reads from the input buffer, which is not
          --  preserved in the lookahead queue. We added Copy to handle
          --  that; lexeme is preserved in the copy of the token in the
          --  lookahead queue.
@@ -110,7 +130,8 @@ package body OpenToken.Token.Enumerated is
                   Match.Build (Match.all);
                end if;
             else
-               --  It is the parser programmer's job to ensure these types match.
+               --  It is the parser programmer's job to ensure these
+               --  types match when the IDs do.
                raise Programmer_Error with
                  "Expected a token of type " & Ada.Tags.Expanded_Name (Class (Match.all)'Tag) &
                  "'Class but found a " & Ada.Tags.Expanded_Name (Next_Token'Tag);
@@ -137,15 +158,15 @@ package body OpenToken.Token.Enumerated is
          end if;
       end if;
 
-      Find_Next (Analyzer, Look_Ahead => not Actively);
+      Analyzer.Find_Next (Look_Ahead => not Actively);
 
-      if Trace_Parse then
+      if Trace_Parse > 0 then
          Trace_Put ("...succeeded"); Ada.Text_IO.New_Line;
          Trace_Indent := Trace_Indent - 1;
       end if;
    exception
    when others =>
-      if Trace_Parse then
+      if Trace_Parse > 0 then
          Trace_Put ("...failed"); Ada.Text_IO.New_Line;
          Trace_Indent := Trace_Indent - 1;
       end if;

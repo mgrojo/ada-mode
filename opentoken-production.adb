@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
---  Copyright (C) 2013 Stephe Leake
+--  Copyright (C) 2013, 2014 Stephe Leake
 --  Copyright (C) 1999 Ted Dennison
 --
 --  This file is part of the OpenToken package.
@@ -144,6 +144,11 @@ package body OpenToken.Production is
       return Token_List.Initial_Iterator (Item.RHS.Tokens);
    end First_Token;
 
+   function LHS (Item : in Instance) return Nonterminal.Handle
+   is begin
+      return Item.LHS;
+   end LHS;
+
    function LHS_ID (Item : in Instance) return Token.Token_ID
    is begin
       return Token.ID (Item.LHS.all);
@@ -153,5 +158,11 @@ package body OpenToken.Production is
    is begin
       return Item.RHS.Index;
    end Index;
+
+   function Action (Item : in Instance) return Nonterminal.Synthesize
+   is begin
+      return Item.RHS.Action;
+   end Action;
+
 
 end OpenToken.Production;

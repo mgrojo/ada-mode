@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2009, 2010, 2012, 2013 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2009, 2010, 2012, 2013, 2014 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -24,7 +24,9 @@ with Ada.Strings.Maps.Constants;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO;
 with OpenToken.Production.List.Print;
-with OpenToken.Production.Parser.LALR;
+with OpenToken.Production.Parser.LALR.Generator;
+with OpenToken.Production.Parser.LALR.Parser;
+with OpenToken.Production.Parser.LALR.Parser_Lists;
 with OpenToken.Production.Print;
 with OpenToken.Recognizer.Character_Set;
 with OpenToken.Recognizer.End_Of_File;
@@ -51,7 +53,7 @@ package body Test_Token_Identifier_Real_String is
       Value_ID,
       Parse_Sequence_ID);
 
-   package Master_Token is new OpenToken.Token.Enumerated (Token_ID_Type, Token_ID_Type'Image, Token_ID_Type'Width);
+   package Master_Token is new OpenToken.Token.Enumerated (Token_ID_Type, Identifier_ID, EOF_ID, Token_ID_Type'Image);
    package Token_List is new Master_Token.List;
    package Nonterminal is new Master_Token.Nonterminal (Token_List);
 
@@ -74,7 +76,7 @@ package body Test_Token_Identifier_Real_String is
       Parse_Sequence : constant Nonterminal.Class := Nonterminal.Get (Parse_Sequence_ID);
    end Tokens;
 
-   package Tokenizer is new Master_Token.Analyzer (First_Terminal => Identifier_ID, Last_Terminal => EOF_ID);
+   package Tokenizer is new Master_Token.Analyzer;
 
    Syntax : constant Tokenizer.Syntax :=
      (EOF_ID            => Tokenizer.Get (OpenToken.Recognizer.End_Of_File.Get, Tokens.EOF),
@@ -152,11 +154,15 @@ package body Test_Token_Identifier_Real_String is
      Tokens.Value <= Tokens.Real + Test_Action'Access  and
      Tokens.Value <= Tokens.String + Test_Action'Access;
 
-   package OpenToken_Parser is new Production.Parser (Production_List, Tokenizer);
-   package LALR_Parser is new OpenToken_Parser.LALR (First_State_Index => 1);
+   package OpenToken_Parser is new Production.Parser (Tokenizer);
+   package LALRs is new OpenToken_Parser.LALR (First_State_Index => 1);
+   package LALR_Generators is new LALRs.Generator (Token_ID_Type'Width, Production_List);
+   package Parser_Lists is new LALRs.Parser_Lists;
+   package LALR_Parsers is new LALRs.Parser (Parser_Lists);
+
    String_Feeder : aliased OpenToken.Text_Feeder.String.Instance;
-   An_Analyzer   : constant Tokenizer.Instance := Tokenizer.Initialize (Syntax);
-   Parser        : LALR_Parser.Instance;
+   An_Analyzer   : constant Tokenizer.Handle := Tokenizer.Initialize (Syntax);
+   Parser        : LALR_Parsers.Instance;
 
    procedure Print_Action (Action : in Nonterminal.Synthesize)
    is
@@ -191,7 +197,7 @@ package body Test_Token_Identifier_Real_String is
 
       OpenToken.Text_Feeder.String.Set (String_Feeder, Input);
 
-      LALR_Parser.Parse (Parser);
+      LALR_Parsers.Parse (Parser);
    exception
    when E : others =>
       declare
@@ -231,7 +237,9 @@ package body Test_Token_Identifier_Real_String is
       --  identifier gets stored in the token properly.
 
       begin
-         Parser := LALR_Parser.Generate (Grammar, An_Analyzer, Trace => Test.Debug);
+         Parser := LALR_Parsers.Initialize
+           (An_Analyzer,
+            LALR_Generators.Generate (Grammar, Trace => Test.Debug));
       exception
       when E : others =>
          declare
@@ -245,7 +253,7 @@ package body Test_Token_Identifier_Real_String is
          Dump_Grammar;
       end if;
 
-      LALR_Parser.Set_Text_Feeder (Parser, String_Feeder'Unchecked_Access);
+      LALR_Parsers.Set_Text_Feeder (Parser, String_Feeder'Unchecked_Access);
 
       OpenToken.Trace_Parse := Test.Debug;
 

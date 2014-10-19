@@ -2,7 +2,7 @@
 --
 --  Elisp output for Wisi
 --
---  Copyright (C) 2012, 2013 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2012 - 2014 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -28,6 +28,6 @@ package OpenToken.Production.Parser.LALR.Elisp is
       Tokens        : in Wisi.Token_Lists.List;
       Keywords      : in Wisi.String_Pair_Lists.List;
       Rules         : in Wisi.Rule_Lists.List;
-      Parser        : in Instance);
+      Parser        : in Parse_Table_Ptr);
 
 end OpenToken.Production.Parser.LALR.Elisp;

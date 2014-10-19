@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
---  Copyright (C) 2002, 2003, 2009, 2012, 2013 Stephe Leake
+--  Copyright (C) 2002, 2003, 2009, 2012 - 2014 Stephe Leake
 --  Copyright (C) 1999 FlightSafety International and Ted Dennison
 --
 --  This file is part of the OpenToken package.
@@ -50,21 +50,8 @@
 -----------------------------------------------------------------------------
 
 with OpenToken.Recognizer;
-with OpenToken.Text_Feeder;
 generic
-
-   --  Tokens in the range Token_ID'First .. Pred (First_Terminal) are
-   --  non-reporting (comments, whitespace), and thus are not used in
-   --  generating an LALR grammar.
-   First_Terminal : in Token_ID;
-   Last_Terminal  : in Token_ID;
-   --  Tokens in the range Succ (Last_Terminal) .. Token_ID'Last are
-   --  the nonterminals of a grammar.
-
 package OpenToken.Token.Enumerated.Analyzer is
-
-   subtype Terminal_ID is Token_ID range First_Terminal .. Last_Terminal;
-   --  We can't define Nonterminal_ID here, because if Last_Terminal = Token_ID'last, there are no nonterminals.
 
    type Token_Array_Boolean is array (Token_ID range First_Terminal .. Token_ID'Last) of Boolean;
 
@@ -84,7 +71,8 @@ package OpenToken.Token.Enumerated.Analyzer is
    subtype Syntax_ID is Token_ID range Token_ID'First .. Last_Terminal;
    type Syntax is array (Syntax_ID) of Recognizable_Token;
 
-   type Instance is new Source with private;
+   type Instance (Max_Buffer_Size : Integer) is new Source with private;
+   type Handle is access all Instance;
 
    --  Need to revisit token definitions or raise Max_String_Length
    Token_Too_Long : exception;
@@ -108,13 +96,17 @@ package OpenToken.Token.Enumerated.Analyzer is
    ----------------------------------------------------------------------------
    function Initialize
      (Language_Syntax : in Syntax;
-      Feeder          : in OpenToken.Text_Feeder.Text_Feeder_Ptr := null)
-     return Instance;
+      Feeder          : in OpenToken.Text_Feeder.Text_Feeder_Ptr := null;
+      Buffer_Size     : in Integer                               := 1024;
+      First_Column    : in Integer                               := 1)
+     return Handle;
    function Initialize
      (Language_Syntax : in Syntax;
       Default         : in Terminal_ID;
-      Feeder          : in OpenToken.Text_Feeder.Text_Feeder_Ptr := null)
-     return Instance;
+      Feeder          : in OpenToken.Text_Feeder.Text_Feeder_Ptr := null;
+      Buffer_Size     : in Integer                               := 1024;
+      First_Column    : in Integer                               := 1)
+     return Handle;
 
    ----------------------------------------------------------------------
    --  Return name of ID token in Analyzer.Syntax
@@ -196,16 +188,6 @@ package OpenToken.Token.Enumerated.Analyzer is
    --------------------------------------------------------------------------
    procedure Unset_Default (Analyzer : in out Instance);
 
-   --------------------------------------------------------------------------
-   --  Locate the next token.
-   --
-   --  The next token will be the token that matches the *longest*
-   --  sequence of characters before failing. Ties go to the token
-   --  with the smallest Terminal_Id.
-   --
-   --  Raises Syntax_Error if no token could be found (unless there is
-   --  a default token defined).
-   --------------------------------------------------------------------------
    overriding procedure Find_Next
      (Analyzer   : in out Instance;
       Look_Ahead : in     Boolean := False);
@@ -216,16 +198,17 @@ package OpenToken.Token.Enumerated.Analyzer is
    overriding procedure Push_Back (Analyzer : in out Instance; Mark : in Token.Queue_Mark'Class);
 
    --------------------------------------------------------------------------
-   --  Returns the current text line at which processing will resume.
+   --  Returns the current text line number at which processing will resume.
    --  This is particularly useful for printing error messages when
    --  syntax errors are detected.
    --------------------------------------------------------------------------
    function Line (Analyzer : in Instance) return Natural;
 
    --------------------------------------------------------------------------
-   --  Returns the current text column at which processing will
+   --  Returns the current text column number at which processing will
    --  resume. This is particularly useful for printing error messages
-   --  when syntax errors are detected.
+   --  when syntax errors are detected. First column number is given
+   --  in Initialize.
    --------------------------------------------------------------------------
    function Column (Analyzer : in Instance) return Natural;
 
@@ -244,9 +227,6 @@ package OpenToken.Token.Enumerated.Analyzer is
    --------------------------------------------------------------------------
    function Next_Token_Column (Analyzer : in Instance) return Integer;
 
-   --------------------------------------------------------------------------
-   --  Returns the last token that was matched.
-   --------------------------------------------------------------------------
    overriding function Get (Analyzer : in Instance) return OpenToken.Token.Class;
 
    ----------------------------------------------------------------------------
@@ -255,6 +235,12 @@ package OpenToken.Token.Enumerated.Analyzer is
    function ID (Analyzer : in Instance) return Terminal_ID;
 
    overriding function Lexeme (Analyzer : in Instance) return String;
+
+   --------------------------------------------------------------------------
+   --  Returns the position of the start and end of the last token
+   --  that was matched, in the internal buffer.
+   --------------------------------------------------------------------------
+   function Bounds (Analyzer : in Instance) return Buffer_Range;
 
    overriding function Last_Recognizer (Analyzer : in Instance) return Recognizer_Handle;
 
@@ -274,27 +260,30 @@ private
 
    --  Put all the Analyzer's state information in here, so there can
    --  be several Analyzers running at once.
-   type Instance is new Source with record
+   type Instance (Max_Buffer_Size : Integer) is new Source with record
+
       --  User-settable attributes
       Syntax_List   : Syntax;
-      Feeder        : OpenToken.Text_Feeder.Text_Feeder_Ptr;
       Has_Default   : Boolean := False;
       Default_Token : Terminal_ID;
+      First_Column  : Integer;
 
       --  User-gettable attributes
-      Line        : Natural := 1;
-      Column      : Natural := 1;
-      Lexeme_Head : Natural := 1;
-      Lexeme_Tail : Natural := 0;
-      Last_Token  : Terminal_ID;
+      Line              : Natural := 1;
+      Column            : Natural := 1;
+      Lexeme_Head       : Natural := 1;
+      Lexeme_Tail       : Natural := 0;
+      Lexeme_Source_Pos : Natural := 1;
+      Last_Token_ID     : Terminal_ID;
 
       Read_From_Lookahead : Boolean;
 
       --  Internal state information
-      Buffer       : String (1 .. Max_String_Length);
-      Buffer_Head  : Natural := 1;
-      Buffer_Tail  : Natural := 0;
-      Buffer_Size  : Natural := 0;
+      Buffer                 : String (1 .. Max_Buffer_Size); --  FIXME: allow reallocate in Reset
+      Buffer_Head            : Natural := 1;
+      Buffer_Tail            : Natural := 0;
+      Buffer_Size            : Natural := 0; -- = tail - head, wrapped; 0 if empty
+      Buffer_Head_Source_Pos : Natural := 1;
 
       Next_Line    : Natural := 1;
       Next_Column  : Natural := 1;

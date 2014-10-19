@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2009 Stephen Leake
+-- Copyright (C) 2009, 2014 Stephen Leake
 -- Copyright (C) 1999, 2000 Christoph Karl Walter Grein
 --
 -- This file is part of the OpenToken package.
@@ -53,7 +53,7 @@ private
       --  contains state, so each lexer needs its own copy.
       Text_Syntax : Tokenizer.Syntax;
       Tag_Syntax  : Tokenizer.Syntax;
-      Analyzer    : Tokenizer.Instance;
+      Analyzer    : Tokenizer.Handle;
    end record;
 
 end HTML_Lexer.Task_Safe;

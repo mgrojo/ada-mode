@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2002, 2003, 2008, 2009, 2012, 2013 Stephe Leake
+-- Copyright (C) 2002, 2003, 2008, 2009, 2012, 2013, 2014 Stephe Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -35,8 +35,8 @@ package body OpenToken.Production.Parser.LRk_Item is
    is
       Result : Token_ID_Set;
    begin
-      Result (Token.Token_ID'First .. Tokenizer.Terminal_ID'Last)                      := (others => False);
-      Result (Token.Token_ID'Succ (Tokenizer.Terminal_ID'Last) .. Token.Token_ID'Last) := (others => True);
+      Result (Token.Token_ID'First .. Token.Terminal_ID'Last)                      := (others => False);
+      Result (Token.Token_ID'Succ (Token.Terminal_ID'Last) .. Token.Token_ID'Last) := (others => True);
       return Result;
    end Compute_Non_Terminals;
 
@@ -193,27 +193,27 @@ package body OpenToken.Production.Parser.LRk_Item is
 
    function Item_Node_Of
      (Prod       : in Production_List.List_Iterator;
-      Index      : in Integer;
+      State      : in Unknown_State_Index;
       Lookaheads : in Item_Lookahead_Ptr := null)
      return Item_Node
    is begin
       return
         (Prod       => Production_List.Get_Production (Prod),
          Dot        => Token_List.Initial_Iterator (Production_List.Get_Production (Prod).RHS.Tokens),
-         Index      => Index,
+         State      => State,
          Lookaheads => Deep_Copy (Lookaheads),
          Next       => null);
    end Item_Node_Of;
 
    function Item_Node_Of
      (Prod  : in OpenToken.Production.Instance;
-      Index : in Integer)
+      State : in Unknown_State_Index)
      return Item_Node
    is begin
       return
         (Prod       => Prod,
          Dot        => Token_List.Initial_Iterator (Prod.RHS.Tokens),
-         Index      => Index,
+         State      => State,
          Lookaheads => null,
          Next       => null);
    end Item_Node_Of;
@@ -267,7 +267,7 @@ package body OpenToken.Production.Parser.LRk_Item is
       Target.Set := new Item_Node'
         (Prod       => New_Item.Prod,
          Dot        => New_Item.Dot,
-         Index      => Target.Index,
+         State      => Target.State,
          Lookaheads => New_Item.Lookaheads,
          Next       => Target.Set);
    end Add;
@@ -333,14 +333,14 @@ package body OpenToken.Production.Parser.LRk_Item is
    end Find;
 
    function Find
-     (Index : in Integer;
+     (State : in Unknown_State_Index;
       Sets  : in Item_Set_List)
      return Item_Set_Ptr
    is
       Set : Item_Set_Ptr := Sets.Head;
    begin
       while Set /= null loop
-         if Set.Index = Index then
+         if Set.State = State then
             return Set;
          end if;
 
@@ -420,7 +420,7 @@ package body OpenToken.Production.Parser.LRk_Item is
          Existing_Set.Set := new Item_Node'
            (Prod       => New_Item.Prod,
             Dot        => New_Item.Dot,
-            Index      => -1,
+            State      => Unknown_State,
             Lookaheads => New_Item.Lookaheads,
             Next       => Existing_Set.Set);
 
@@ -494,12 +494,12 @@ package body OpenToken.Production.Parser.LRk_Item is
       --  copy Goto_List, since we are only concerned with lookaheads
       --  here.
 
-      Result.Index := -1; -- Result does _not_ match any kernel set
+      Result.State := Unknown_State; -- Result does _not_ match any kernel set
       while Item /= null loop
          Result.Set := new Item_Node'
            (Prod       => Item.Prod,
             Dot        => Item.Dot,
-            Index      => -1,
+            State      => Unknown_State,
             Lookaheads => Deep_Copy (Item.Lookaheads),
             Next       => Result.Set);
 
@@ -527,17 +527,17 @@ package body OpenToken.Production.Parser.LRk_Item is
                         --  Need a variable, because the lookaheads might be freed.
                         Merge_From := Item_Node_Of
                           (Production_Iterator,
-                           Index      => -1,
+                           State      => Unknown_State,
                            Lookaheads => Current.Lookaheads);
 
                         Added_New_Item := Added_New_Item or Merge (Merge_From, Result);
                         exit Empty_Nonterm;
 
-                     elsif Token_List.ID (Next_Symbol) in Tokenizer.Terminal_ID then
+                     elsif Token_List.ID (Next_Symbol) in Token.Terminal_ID then
                         Merge_From := Item_Node_Of
                           (Production_Iterator,
-                           Index => -1,
-                           Lookaheads => new Item_Lookahead'
+                           State         => Unknown_State,
+                           Lookaheads    => new Item_Lookahead'
                              (Last       => 1,
                               Lookaheads => (1 => Token_List.ID (Next_Symbol)),
                               Next       => null));
@@ -547,12 +547,12 @@ package body OpenToken.Production.Parser.LRk_Item is
 
                      else
                         --  Next_Symbol is a nonterminal
-                        for Terminal in Tokenizer.Terminal_ID loop
+                        for Terminal in Token.Terminal_ID loop
                            if First (Token_List.ID (Next_Symbol)) (Terminal) then
                               Merge_From := Item_Node_Of
                                 (Production_Iterator,
-                                 Index => -1,
-                                 Lookaheads => new Item_Lookahead'
+                                 State         => Unknown_State,
+                                 Lookaheads    => new Item_Lookahead'
                                    (Last       => 1,
                                     Lookaheads => (1 => Terminal),
                                     Next       => null));
@@ -616,7 +616,7 @@ package body OpenToken.Production.Parser.LRk_Item is
       Item   : Item_Ptr := Kernel.Set;
       Dot_ID : Token.Token_ID;
    begin
-      Goto_Set.Index := -1;
+      Goto_Set.State := Unknown_State;
 
       while Item /= null loop
 
@@ -629,7 +629,7 @@ package body OpenToken.Production.Parser.LRk_Item is
                Goto_Set.Set := new Item_Node'
                  (Prod       => Item.Prod,
                   Dot        => Next_Token (Item.Dot),
-                  Index      => -1, -- replaced in LR0_Kernels
+                  State      => Unknown_State, -- replaced in LR0_Kernels
                   Lookaheads => Item.Lookaheads,
                   Next       => Goto_Set.Set);
             end if;
@@ -653,7 +653,7 @@ package body OpenToken.Production.Parser.LRk_Item is
                            New_Item : constant Item_Node :=
                              (Prod       => Prod,
                               Dot        => Next_Token (RHS_I),
-                              Index      => -1, -- replaced in LR0_Kernels
+                              State      => Unknown_State, -- replaced in LR0_Kernels
                               Lookaheads => null,
                               Next       => Goto_Set.Set);
                         begin
@@ -726,7 +726,7 @@ package body OpenToken.Production.Parser.LRk_Item is
      (Grammar           : in Production_List.Instance;
       First             : in Derivation_Matrix;
       Trace             : in Boolean;
-      First_State_Index : in Natural)
+      First_State_Index : in Unknown_State_Index)
      return Item_Set_List
    is
       Kernel_List : Item_Set_List :=
@@ -735,7 +735,7 @@ package body OpenToken.Production.Parser.LRk_Item is
               (Item_Node_Of
                  (Production_List.Get_Production (Production_List.Initial_Iterator (Grammar)), First_State_Index)),
             Goto_List => null,
-            Index     => First_State_Index,
+            State     => First_State_Index,
             Next      => null),
          Size         => 1);
 
@@ -774,13 +774,13 @@ package body OpenToken.Production.Parser.LRk_Item is
                      New_Items_To_Check := True;
 
                      New_Items.Next  := Kernel_List.Head;
-                     New_Items.Index := Kernel_List.Size + First_State_Index;
+                     New_Items.State := Kernel_List.Size + First_State_Index;
 
                      declare
                         I : Item_Ptr := New_Items.Set;
                      begin
                         while I /= null loop
-                           I.Index := New_Items.Index;
+                           I.State := New_Items.State;
                            I       := I.Next;
                         end loop;
                      end;
@@ -891,7 +891,7 @@ package body OpenToken.Production.Parser.LRk_Item is
 
    function Image_Item
      (Item            : in Item_Node;
-      Show_Index      : in Boolean;
+      Show_State      : in Boolean;
       Show_Lookaheads : in Boolean;
       Show_Tag        : in Boolean := False)
      return String
@@ -923,8 +923,8 @@ package body OpenToken.Production.Parser.LRk_Item is
          Result := Result & " ^";
       end if;
 
-      if Show_Index then
-         Result := Result & " in " & Integer'Image (Item.Index);
+      if Show_State then
+         Result := Result & " in " & Unknown_State_Index'Image (Item.State);
       end if;
 
       if Show_Lookaheads then
@@ -936,7 +936,7 @@ package body OpenToken.Production.Parser.LRk_Item is
 
    procedure Put (Item : in Item_Node; Show_Lookaheads : in Boolean) is
    begin
-      Ada.Text_IO.Put (Image_Item (Item, Show_Index => True, Show_Lookaheads => Show_Lookaheads));
+      Ada.Text_IO.Put (Image_Item (Item, Show_State => True, Show_Lookaheads => Show_Lookaheads));
    end Put;
 
    procedure Put (Item : in Set_Reference_Ptr)
@@ -947,7 +947,7 @@ package body OpenToken.Production.Parser.LRk_Item is
       while Reference /= null loop
          Put_Line
            ("      on " & Token.Token_Image (Reference.Symbol) &
-              " => Set" & Natural'Image (Reference.Set.Index));
+              " => State" & Unknown_State_Index'Image (Reference.Set.State));
 
          Reference := Reference.Next;
       end loop;
@@ -958,10 +958,10 @@ package body OpenToken.Production.Parser.LRk_Item is
       use Ada.Text_IO;
       Set : Item_Ptr := Item.Set;
    begin
-      Put_Line ("Set" & Integer'Image (Item.Index) & ":");
+      Put_Line ("State" & Unknown_State_Index'Image (Item.State) & ":");
 
       while Set /= null loop
-         Put_Line ("  " & Image_Item (Set.all, Show_Index => False, Show_Lookaheads => True));
+         Put_Line ("  " & Image_Item (Set.all, Show_State => False, Show_Lookaheads => True));
 
          Set := Set.Next;
       end loop;
@@ -972,7 +972,7 @@ package body OpenToken.Production.Parser.LRk_Item is
       use Ada.Text_IO;
       Set : Item_Set_Ptr := Item.Head;
    begin
-      Put_Line ("Number of Kernel Sets =" & Integer'Image (Item.Size));
+      Put_Line ("Number of Kernel Sets =" & Unknown_State_Index'Image (Item.Size));
 
       while Set /= null loop
          Put (Set.all);

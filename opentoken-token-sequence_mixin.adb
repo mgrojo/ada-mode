@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
---  Copyright (C) 2009 Stephe Leake
+--  Copyright (C) 2009, 2014 Stephe Leake
 --  Copyright (C) 2000 Ted Dennison
 --
 --  This file is part of the OpenToken package.
@@ -28,6 +28,14 @@
 with Ada.Text_IO;
 package body OpenToken.Token.Sequence_Mixin is
 
+   overriding
+   function Image (Item : in Instance) return String
+   is
+      pragma Unreferenced (Item);
+   begin
+      return "";
+   end Image;
+
    procedure Set_Lookahead (Token : in out Instance; Lookahead : in Integer)
    is begin
       Token.Lookahead := Lookahead;
@@ -35,7 +43,7 @@ package body OpenToken.Token.Sequence_Mixin is
 
    overriding procedure Parse
      (Match    : access Instance;
-      Analyzer : in out Source_Class;
+      Analyzer : access Source_Class;
       Actively : in     Boolean      := True)
    is
       use Token.Linked_List;
@@ -51,7 +59,7 @@ package body OpenToken.Token.Sequence_Mixin is
          end if;
          Ada.Text_IO.Put_Line
            (" sequence " & Name_Dispatch (Match) &
-              "'(" & Names (Match.Members) & ") match " & Name_Dispatch (Get (Analyzer)));
+              "'(" & Names (Match.Members) & ") match " & Name_Dispatch (Analyzer.Get));
       end if;
 
       if Actively then

@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2002, 2003, 2009 Stephen Leake
+-- Copyright (C) 2002, 2003, 2009, 2014 Stephen Leake
 --
 -- This file is part of the OpenToken package.
 --
@@ -54,6 +54,7 @@ package OpenToken.Token.Enumerated.Real is
 
    overriding procedure Create
      (Lexeme     : in     String;
+      Bounds     : in     Buffer_Range;
       Recognizer : in     Recognizer_Handle;
       New_Token  : in out Instance);
 

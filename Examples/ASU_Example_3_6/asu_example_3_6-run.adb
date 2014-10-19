@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2012 Stephen Leake
+-- Copyright (C) 2012, 2014 Stephen Leake
 -- Copyright (C) 1999,2000 FlightSafety International and Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -39,7 +39,7 @@ procedure Asu_Example_3_6.Run is
 
    File_Name : constant String := "asu.txt";
 
-   Analyzer : Tokenizer.Instance := Tokenizer.Initialize (Syntax);
+   Analyzer : constant Tokenizer.Handle := Tokenizer.Initialize (Syntax);
 begin
 
    Ada.Text_IO.Open
@@ -51,9 +51,9 @@ begin
    Analyzer.Set_Text_Feeder (OpenToken.Text_Feeder.Text_IO.Create (Ada.Text_IO.Current_Input));
 
    for Q in 1 .. 10 loop
-      Tokenizer.Find_Next (Analyzer);
+      Analyzer.Find_Next;
 
-      Ada.Text_IO.Put_Line ("Found " & Example_Token_ID'Image (Tokenizer.ID (Analyzer)));
+      Ada.Text_IO.Put_Line ("Found " & Example_Token_ID'Image (Analyzer.ID));
    end loop;
 
 end Asu_Example_3_6.Run;

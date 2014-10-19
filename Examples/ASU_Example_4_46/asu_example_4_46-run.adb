@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2013 Stephe Leake
+-- Copyright (C) 2013, 2014 Stephe Leake
 -- Copyright (C) 1999,2000 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -27,7 +27,9 @@ with Ada.Text_IO;
 procedure ASU_Example_4_46.Run is
 
    --  The lalr parser instance.
-   Test_Parser : LALR_Parser.Instance := LALR_Parser.Generate (Grammar, Analyzer);
+   Test_Parser : LALR_Parser.Instance := LALR_Parser.Initialize
+     (Analyzer,
+      LALR_Generator.Generate (Grammar));
 
    Test_File_Name : constant String := "Example.txt";
 begin

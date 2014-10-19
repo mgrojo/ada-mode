@@ -2,7 +2,7 @@
 --
 --  Run Association_Token_Test
 --
---  Copyright (C) 2002, 2003, 2009, 2010, 2013 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2002, 2003, 2009, 2010, 2013, 2014 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -21,29 +21,29 @@ with Ada.Text_IO; use Ada.Text_IO;
 with Ada.Command_Line;
 procedure Association_Token_Test.Run
 is
-   use LALR_Parser;
-
    Trace : constant Boolean := Ada.Command_Line.Argument_Count > 0;
 
-   Parser : LALR_Parser.Instance := LALR_Parser.Generate
-     (Full_Grammar, The_Analyzer,
-      Trace       => Trace,
-      Put_Grammar => Trace);
+   Parser : LALR_Parser.Instance := LALR_Parser.Initialize
+     (Tokenizer.Initialize (Syntax),
+      LALR_Generator.Generate
+        (Full_Grammar,
+         Put_Parse_Table => Trace,
+         Trace           => Trace));
 
    procedure Parse_Command (Command : in String)
    is begin
       Put_Line ("'" & Command & "'");
       OpenToken.Text_Feeder.String.Set (String_Feeder, Command);
 
-      Set_Text_Feeder (Parser, String_Feeder'Unchecked_Access);
+      LALR_Parser.Set_Text_Feeder (Parser, String_Feeder'Unchecked_Access);
 
-      Parse (Parser);
+      LALR_Parser.Parse (Parser);
 
       Put_Line ("success");
       New_Line;
    exception
    when E : others =>
-      Discard_Buffered_Text (Parser);
+      LALR_Parser.Discard_Buffered_Text (Parser);
       Put_Line ("error: " & Ada.Exceptions.Exception_Name (E) & " : " & Ada.Exceptions.Exception_Message (E));
       New_Line;
    end Parse_Command;

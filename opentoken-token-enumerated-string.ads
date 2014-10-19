@@ -1,5 +1,5 @@
 --
---  Copyright (C) 2003, 2009 Stephen Leake
+--  Copyright (C) 2003, 2009, 2014 Stephen Leake
 --
 --  This file is part of the OpenToken package.
 --
@@ -49,11 +49,9 @@ package OpenToken.Token.Enumerated.String is
       Build : in Action          := null)
      return Instance'Class;
 
-   ----------------------------------------------------------------------
-   --  Strips quotes from Lexeme
-   ----------------------------------------------------------------------
    overriding procedure Create
      (Lexeme     : in     Standard.String;
+      Bounds     : in     Buffer_Range;
       Recognizer : in     Recognizer_Handle;
       New_Token  : in out Instance);
 

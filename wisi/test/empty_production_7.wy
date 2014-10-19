@@ -10,13 +10,17 @@
 %token <punctuation> SEMICOLON ";"
 %token <symbol> IDENTIFIER
 
+%token <whitespace> WHITESPACE ""
+
 %start object_declaration_list
 
 %%
 
 object_declaration_list
   : object_declaration
+    (setq wisi-test-success t)
   | object_declaration_list object_declaration
+    (setq wisi-test-success t)
   ;
 
 object_declaration

@@ -27,7 +27,7 @@
 %}
 
 ;; non-reporting
-;; whitespace added by wisi-generate
+%token <whitespace> WHITESPACE ""
 %token <line_comment> COMMENT "--"
 
 ;; terminals
@@ -35,7 +35,7 @@
 %token <punctuation> EQUAL_GREATER "=>"
 %token <punctuation> TICK "'"
 
-%token <number-literal> NUMBER_LITERAL "[0-9.eE]+"
+%token <number> NUMBER_LITERAL wisi-number-p
 %token <symbol> IDENTIFIER
 
 %keyword RANGE "range"

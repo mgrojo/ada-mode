@@ -9,12 +9,15 @@
 
 %token <symbol> IDENTIFIER
 
+%token <whitespace> WHITESPACE ""
+
 %start compilation_unit
 
 %%
 
 compilation_unit
   : parameter_specification parameter_specification
+    (setq wisi-test-success 't)
   ;
 
 mode

@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
---  Copyright (C) 2009, 2010, 2012, 2013 Stephen Leake
+--  Copyright (C) 2009, 2010, 2012, 2013, 2014 Stephen Leake
 --  Copyright (C) 2000 Ted Dennison
 --
 --  This file is part of the OpenToken package.
@@ -35,8 +35,8 @@ package body Analyzer_Lookahead_Test is
    type Token_ID is (If_ID, Then_ID, Quit_ID, String_ID, Whitespace, EOF);
 
    package Master_Example_Token is new OpenToken.Token.Enumerated
-     (Token_ID, Token_ID'Image, Token_ID'Width);
-   package Tokenizer is new Master_Example_Token.Analyzer (Token_ID'First, Token_ID'Last);
+     (Token_ID, Token_ID'First, Token_ID'Last, Token_ID'Image);
+   package Tokenizer is new Master_Example_Token.Analyzer;
    package String_Literal is new Master_Example_Token.String;
 
    procedure Check is new AUnit.Check.Gen_Check_Discrete (Token_ID);
@@ -54,7 +54,7 @@ package body Analyzer_Lookahead_Test is
       EOF => Tokenizer.Get (OpenToken.Recognizer.End_Of_File.Get));
 
    Feeder   : aliased OpenToken.Text_Feeder.String.Instance;
-   Analyzer : Tokenizer.Instance := Tokenizer.Initialize (Syntax, Feeder'Access);
+   Analyzer : constant Tokenizer.Handle := Tokenizer.Initialize (Syntax, Feeder'Access);
 
    procedure Step
      (Label       : in String;
@@ -63,9 +63,9 @@ package body Analyzer_Lookahead_Test is
    is
       use Tokenizer;
    begin
-      Find_Next (Analyzer, Lookahead);
+      Analyzer.Find_Next (Lookahead);
 
-      Check (Label, ID (Analyzer), Expected_ID);
+      Check (Label, Analyzer.ID, Expected_ID);
    end Step;
 
    ----------
@@ -89,7 +89,7 @@ package body Analyzer_Lookahead_Test is
       ---------------------------------------------------------------------------
 
       OpenToken.Text_Feeder.String.Set (Feeder, Text);
-      Tokenizer.Reset (Analyzer);
+      Analyzer.Reset;
 
       Step ("1", False, String_ID);
       Step ("2", True, If_ID);
@@ -114,7 +114,7 @@ package body Analyzer_Lookahead_Test is
       OpenToken.Trace_Parse := Test.Debug;
 
       OpenToken.Text_Feeder.String.Set (Feeder, "if then ""string"" quit");
-      Reset (Analyzer);
+      Analyzer.Reset;
 
       Analyzer_AUnit.Check
         ("0", Analyzer,
@@ -133,7 +133,7 @@ package body Analyzer_Lookahead_Test is
          Head_Null   => True);
 
       declare
-         Mark : OpenToken.Token.Queue_Mark'Class renames Tokenizer.Mark_Push_Back (Analyzer);
+         Mark : OpenToken.Token.Queue_Mark'Class renames Analyzer.Mark_Push_Back;
       begin
          Step ("2", True, Then_ID);
 
@@ -144,7 +144,7 @@ package body Analyzer_Lookahead_Test is
             Queue_Token => Then_ID,
             Head_Null   => True);
 
-         Push_Back (Analyzer, Mark);
+         Analyzer.Push_Back (Mark);
       end;
 
       Analyzer_AUnit.Check
@@ -155,7 +155,7 @@ package body Analyzer_Lookahead_Test is
          Head_Token  => Then_ID);
 
       declare
-         Mark_2 : OpenToken.Token.Queue_Mark'Class renames Tokenizer.Mark_Push_Back (Analyzer);
+         Mark_2 : OpenToken.Token.Queue_Mark'Class renames Analyzer.Mark_Push_Back;
       begin
          Step ("4", True, Then_ID);
 
@@ -176,7 +176,7 @@ package body Analyzer_Lookahead_Test is
             Head_Null   => True);
 
          declare
-            Mark_1 : OpenToken.Token.Queue_Mark'Class renames Tokenizer.Mark_Push_Back (Analyzer);
+            Mark_1 : OpenToken.Token.Queue_Mark'Class renames Analyzer.Mark_Push_Back;
          begin
             Step ("6", True, Quit_ID);
 
@@ -187,7 +187,7 @@ package body Analyzer_Lookahead_Test is
                Queue_Token => Then_ID,
                Head_Null   => True);
 
-            Push_Back (Analyzer, Mark_1);
+            Analyzer.Push_Back (Mark_1);
          end;
 
          Analyzer_AUnit.Check
@@ -197,7 +197,7 @@ package body Analyzer_Lookahead_Test is
             Queue_Token => Then_ID,
             Head_Token  => Quit_ID);
 
-         Push_Back (Analyzer, Mark_2);
+         Analyzer.Push_Back (Mark_2);
       end;
 
       Analyzer_AUnit.Check
@@ -220,7 +220,7 @@ package body Analyzer_Lookahead_Test is
       Step ("10", False, String_ID);
 
       declare
-         Mark : OpenToken.Token.Queue_Mark'Class renames Tokenizer.Mark_Push_Back (Analyzer);
+         Mark : OpenToken.Token.Queue_Mark'Class renames Analyzer.Mark_Push_Back;
       begin
          Step ("11", True, Quit_ID);
 
@@ -231,7 +231,7 @@ package body Analyzer_Lookahead_Test is
             Queue_Token => Quit_ID,
             Head_Null   => True);
 
-         Push_Back (Analyzer, Mark);
+         Analyzer.Push_Back (Mark);
       end;
 
       Analyzer_AUnit.Check
@@ -301,14 +301,14 @@ package body Analyzer_Lookahead_Test is
       end if;
 
       OpenToken.Text_Feeder.String.Set (Feeder, Text);
-      Tokenizer.Reset (Analyzer);
+      Analyzer.Reset;
 
       --  The very first call to find_next can't be look_ahead =>
       --  true, since no real parser would do that.
-      Tokenizer.Find_Next (Analyzer, Look_Ahead => False);
+      Analyzer.Find_Next (Look_Ahead => False);
 
       declare
-         Mark : OpenToken.Token.Queue_Mark'Class renames Tokenizer.Mark_Push_Back (Analyzer);
+         Mark : OpenToken.Token.Queue_Mark'Class renames Analyzer.Mark_Push_Back;
       begin
          --  Lexemes are not copied to tokens during inactive parse,
          --  but they are copied into the tokens pushed on the queue,
@@ -335,7 +335,7 @@ package body Analyzer_Lookahead_Test is
             Head_Null    => True,
             Check_Token  => Check_Lexeme'Access);
 
-         Tokenizer.Push_Back (Analyzer, Mark);
+         Analyzer.Push_Back (Mark);
       end;
 
       --  The lexemes were preserved by Copy, so they are correct here
@@ -359,8 +359,8 @@ package body Analyzer_Lookahead_Test is
       --  lookahead design.
 
       OpenToken.Text_Feeder.String.Set (Feeder, Text);
-      Tokenizer.Reset (Analyzer);
-      Tokenizer.Find_Next (Analyzer, Look_Ahead => False);
+      Analyzer.Reset;
+      Analyzer.Find_Next (Look_Ahead => False);
 
       begin
          Master_Example_Token.Parse (Bad_String_Token'Access, Analyzer, Actively => True);

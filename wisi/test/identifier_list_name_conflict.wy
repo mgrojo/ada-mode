@@ -1,5 +1,9 @@
 ;; small Ada-like grammar illustrating the reduce/reduce conflict
 ;; between an identifier_list and a name.
+;;
+;; The grammar is ambiguous; the parse spawns two parsers, one finding
+;; name lists, the other identifier lists; both succeed, resulting in
+;; a parse error.
 
 %{
 ;; Copyright (C) 2013 Stephen Leake.  All Rights Reserved.
@@ -28,8 +32,11 @@
 %token <punctuation> COMMA ","
 %token <punctuation> EQUAL_GREATER "=>"
 
-%token <string> STRING_LITERAL
+%token <string-double> STRING_LITERAL
 %token <symbol> IDENTIFIER
+
+%token <whitespace> WHITESPACE ""
+%token <line_comment> COMMENT "--"
 
 ;; not first nonterminal
 %start compilation
@@ -38,7 +45,7 @@
 %conflict REDUCE/REDUCE in state identifier_list, name on token LEFT_PAREN
 %conflict REDUCE/REDUCE in state identifier_list, name on token IDENTIFIER
 %conflict REDUCE/REDUCE in state identifier_list, name on token STRING_LITERAL
-%conflict REDUCE/REDUCE in state identifier_list, name on token $EOI
+%conflict REDUCE/REDUCE in state identifier_list, name on token EOI
 
 %%
 

@@ -24,7 +24,7 @@ with Ada.Directories;
 with AUnit.Assertions;
 with AUnit.Check;
 with GNAT.OS_Lib;
-package body Wisi_WY_Test is
+package body Wisi_Wy_Test is
 
    ----------
    --  Test procedures
@@ -69,4 +69,4 @@ package body Wisi_WY_Test is
       return new String'("../../wisi/test/wisi_wy_test.adb " & T.Root_Name.all);
    end Name;
 
-end Wisi_WY_Test;
+end Wisi_Wy_Test;

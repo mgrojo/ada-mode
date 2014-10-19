@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2009 Stephe Leake
+-- Copyright (C) 2009, 2014 Stephe Leake
 -- Copyright (C) 2000 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -51,7 +51,7 @@ begin
       Mode => In_File);
 
    --  Load up the first token
-   Tokenizer.Find_Next (Analyzer);
+   Analyzer.Find_Next;
 
    OpenToken.Token.Parse
      (Match    => S_Prime,
@@ -60,8 +60,8 @@ begin
    Put_Line ("passed");
 exception
 when Error : OpenToken.Parse_Error =>
-   Put_Line ("failed at line" & Integer'Image (Tokenizer.Line (Analyzer)) &
-               ", column" & Integer'Image (Tokenizer.Column (Analyzer)) &
+   Put_Line ("failed at line" & Integer'Image (Analyzer.Line) &
+               ", column" & Integer'Image (Analyzer.Column) &
                " due to parse exception:");
    Put_Line (Ada.Exceptions.Exception_Information (Error));
 end ASU_Example_4_46_RD.Run;

@@ -2,7 +2,7 @@
 --
 --  AUnit stuff for analyzer unit tests
 --
---  Copyright (C) 2009, 2010 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2009, 2010, 2014 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -36,12 +36,12 @@ package OpenToken.Token.Enumerated.Analyzer.AUnit is
 
    type Check_Token_Proc is access procedure
      (Label           : in     String;
-      Token           : in     Handle;
+      Token           : in     OpenToken.Token.Enumerated.Handle;
       Expected_Lexeme : access String);
 
    procedure Check
      (Label        : in String;
-      Analyzer     : in Instance;
+      Analyzer     : in Handle;
       Last_Token   : in Token_ID;
       Tail_Null    : in Boolean          := False;
       Tail_Tokens  : in Token_Array      := Null_Tokens;

@@ -7,13 +7,23 @@ OK ../../wisi/test/wisi_wy_test.adb ../../wisi/test/case_expression : Run_Test
 OK ../../wisi/test/wisi_wy_test.adb ../../wisi/test/identifier_list_name_conflict : Run_Test
 OK ../../wisi/test/wisi_wy_test.adb ../../wisi/test/range_conflict : Run_Test
 OK ../../wisi/test/wisi_wy_test.adb ../../wisi/test/subprograms : Run_Test
+OK ../../Test/analyzer_buffer_test.adb : Nominal_String
+OK ../../Test/analyzer_buffer_test.adb : Nominal_Counted_Gnat
+OK ../../Test/analyzer_buffer_test.adb : Buffer_Full
 OK ../../Test/analyzer_lookahead_test.adb : Lookahead
 OK ../../Test/analyzer_lookahead_test.adb : Lookahead_Push_Back
 OK ../../Test/analyzer_lookahead_test.adb : Lookahead_Lexemes
 OK ../../Test/analyzer_lookahead_test.adb : Mismatched_Tokens
+OK ../../Test/counted_gnat_os_lib_test.adb : Discard
 OK ../Test/opentoken-recognizer-bracketed_comment-test.adb : Nominal
 OK ../Test/opentoken-recognizer-bracketed_comment-test.adb : Wisi
 OK OpenToken.Recognizer.CSV_Field.Test : Nominal
+OK ../../Test/parser_lists_test.adb : Init
+OK ../../Test/parser_lists_test.adb : Stack
+OK ../../Test/parser_lists_test.adb : Parser_List
+OK ../../Test/parser_lists_test.adb : Stack_Equal
+OK ../../Test/parser_lists_test.adb : Pending
+OK ../../Test/parser_lists_test.adb : Copy
 OK ../../Test/test_accept_index.adb : Nominal
 OK ../../Test/test_empty_productions_8.adb : Nominal
 OK Test_Backtrack : Enumerated_Lookahead
@@ -45,7 +55,7 @@ OK Test_Token_Identifier_Real_String : Nominal
 OK ../../Test/trivial_productions_test.adb : Expression
 OK ../../Test/trivial_productions_test.adb : Subprograms
 
-Total Tests Run:   45
-Successful Tests:  45
+Total Tests Run:   55
+Successful Tests:  55
 Failed Assertions: 0
 Unexpected Errors: 0

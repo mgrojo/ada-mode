@@ -21,15 +21,10 @@ pragma License (GPL);
 with Ada.Text_IO; use Ada.Text_IO;
 with Wisi.Utils;  use Wisi.Utils;
 procedure Wisi.Prologue
-  (Prologue_Filename : in     Standard.Ada.Strings.Unbounded.Unbounded_String;
-   Input_File        : in     Standard.Ada.Text_IO.File_Type;
-   Text              :    out String_Lists.List)
-is
-   use Standard.Ada.Strings.Unbounded;
-   Prologue_File : File_Type;
-begin
-   --  The syntax requires a prologue in Input_File, and we have to
-   --  read it even if we are going to override it.
+  (Input_File : in     Standard.Ada.Text_IO.File_Type;
+   Text       :    out String_Lists.List)
+is begin
+
    if Skip_Comments (Input_File) /= "%{" then
       Put_Error (Input_File, "expected %{");
       raise Syntax_Error;
@@ -44,21 +39,4 @@ begin
       end;
    end loop;
 
-   if Length (Prologue_Filename) > 0 then
-      Text := String_Lists.Empty_List;
-
-      Open (Prologue_File, In_File, -Prologue_Filename);
-      loop
-         declare
-            Line : constant String := Get_Line (Prologue_File);
-         begin
-            exit when End_Of_File (Prologue_File);
-            Text.Append (Line);
-         end;
-      end loop;
-
-      Close (Prologue_File);
-   end if;
-
-   Set_Input (Standard_Input);
 end Wisi.Prologue;

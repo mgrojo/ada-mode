@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
---  Copyright (C) 2009 Stephe Leake
+--  Copyright (C) 2009, 2014 Stephe Leake
 --  Copyright (C) 1999, 2000 Ted Dennison
 --
 --  This file is part of the OpenToken package.
@@ -41,6 +41,9 @@ package OpenToken.Token is
 
    type Handle is access all Class;
 
+   --  Return a string for debug messages
+   function Image (Token : in Instance) return String is abstract;
+
    type Source is abstract tagged private;
 
    subtype Source_Class is Source'Class;
@@ -75,7 +78,7 @@ package OpenToken.Token is
    ------------------------------------------------------------------
    procedure Parse
      (Match    : access Instance;
-      Analyzer : in out Source_Class;
+      Analyzer : access Source_Class;
       Actively : in     Boolean := True)
       is abstract;
 
@@ -92,6 +95,9 @@ package OpenToken.Token is
    --  Look_Ahead True on the first call in a real parse, and this lets
    --  the Analyzer assume there is one actively recognized token to
    --  start the lookahead queue with.
+   --
+   --  Raises Syntax_Error with an appropriate message if no token
+   --  is found and there is no default token.
    --------------------------------------------------------------------------
    procedure Find_Next
      (Analyzer   : in out Source;
@@ -126,6 +132,8 @@ package OpenToken.Token is
    --  Return the name of Token, for error messages
    ----------------------------------------------------------------------
    function Name (Token : in Instance) return String;
+
+   function Has_Name (Token : in Instance) return Boolean;
 
    ----------------------------------------------------------------------
    --  Dispatching calls to Name

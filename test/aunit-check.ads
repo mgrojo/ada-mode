@@ -2,7 +2,7 @@
 --
 --  Generic Check routines for AUnit
 --
---  Copyright (C) 2009, 2010, 2013 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2009, 2010, 2013, 2014 Stephen Leake.  All Rights Reserved.
 --
 --  This library is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -35,6 +35,14 @@ package AUnit.Check is
      (Label    : in String;
       Computed : in Item_Type;
       Expected : in Item_Type);
+
+   generic
+      type Item_Type;
+      type Item_Access_Type is access Item_Type;
+   procedure Gen_Check_Access
+     (Label    : in String;
+      Computed : in Item_Access_Type;
+      Expected : in Item_Access_Type);
 
    procedure Check
      (Label    : in String;

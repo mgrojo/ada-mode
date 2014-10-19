@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2013 Stephen Leake
+--  Copyright (C) 2013, 2014 Stephen Leake
 --
 --  This file is part of the OpenToken package.
 --
@@ -133,9 +133,11 @@ package body Wisi_Rules_Test is
    is
       pragma Unreferenced (Test);
       use Wisi;
-      File     : File_Type;
-      Computed : Wisi.Rule_Lists.List;
-      Expected : Wisi.Rule_Lists.List;
+      File         : File_Type;
+      Computed     : Wisi.Rule_Lists.List;
+      Expected     : Wisi.Rule_Lists.List;
+      Rule_Count   : Integer;
+      Action_Count : Integer;
    begin
       Delete (File_Name);
       Create (File, Out_File, File_Name);
@@ -163,7 +165,7 @@ package body Wisi_Rules_Test is
       Close (File);
 
       Open (File, In_File, File_Name);
-      Wisi.Rules (File, Computed);
+      Wisi.Rules (File, Computed, Rule_Count, Action_Count);
       Close (File);
 
       Wisi.Rule_Lists.Append
@@ -204,9 +206,11 @@ package body Wisi_Rules_Test is
    is
       pragma Unreferenced (Test);
       use Wisi;
-      File     : File_Type;
-      Computed : Wisi.Rule_Lists.List;
-      Expected : Wisi.Rule_Lists.List;
+      File         : File_Type;
+      Computed     : Wisi.Rule_Lists.List;
+      Expected     : Wisi.Rule_Lists.List;
+      Rule_Count   : Integer;
+      Action_Count : Integer;
    begin
       Delete (File_Name);
       Create (File, Out_File, File_Name);
@@ -221,7 +225,7 @@ package body Wisi_Rules_Test is
       Close (File);
 
       Open (File, In_File, File_Name);
-      Wisi.Rules (File, Computed);
+      Wisi.Rules (File, Computed, Rule_Count, Action_Count);
       Close (File);
 
       Wisi.Rule_Lists.Append

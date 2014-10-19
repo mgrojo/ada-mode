@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2013 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2013, 2014 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -20,7 +20,7 @@ pragma License (GPL);
 
 with Gen_OpenToken_AUnit;
 with OpenToken.Production.List;
-with OpenToken.Production.Parser.LALR;
+with OpenToken.Production.Parser.LALR.Generator;
 with OpenToken.Token.Enumerated.Analyzer;
 with OpenToken.Token.Enumerated.List;
 with OpenToken.Token.Enumerated.Nonterminal;
@@ -54,16 +54,15 @@ package body Test_LR1_Lookahead_Closure is
       factor_ID,
       factor_list_ID,
       range_nt_ID);
-   package Tokens_Pkg is new OpenToken.Token.Enumerated (Token_IDs, Token_IDs'Image, Token_IDs'Width);
-   package Analyzers is new Tokens_Pkg.Analyzer
-     (First_Terminal => RANGE_ID,
-      Last_Terminal  => EOF_ID);
+   package Tokens_Pkg is new OpenToken.Token.Enumerated (Token_IDs, RANGE_ID, EOF_ID, Token_IDs'Image);
+   package Analyzers is new Tokens_Pkg.Analyzer;
    package Token_Lists is new Tokens_Pkg.List;
    package Nonterminals is new Tokens_Pkg.Nonterminal (Token_Lists);
    package Productions is new OpenToken.Production (Tokens_Pkg, Token_Lists, Nonterminals);
    package Production_Lists is new Productions.List;
-   package Parsers is new Productions.Parser (Production_Lists, Analyzers);
-   package LALR is new Parsers.LALR (First_State_Index => 1);
+   package Parsers is new Productions.Parser (Analyzers);
+   package LALRs is new Parsers.LALR (First_State_Index => 1);
+   package LALR_Generators is new LALRs.Generator (Token_IDs'Width, Production_Lists);
 
    --  Allow infix operators for building productions
    use type Token_Lists.Instance;
@@ -99,8 +98,8 @@ package body Test_LR1_Lookahead_Closure is
      ;
 
    package OpenToken_AUnit is new Gen_OpenToken_AUnit
-     (Token_IDs, Tokens_Pkg, Token_Lists, Nonterminals, Productions, Production_Lists, RANGE_ID, EOF_ID,
-      Analyzers, Parsers, 1, LALR, Grammar);
+     (Token_IDs, RANGE_ID, EOF_ID, Tokens_Pkg, Token_Lists, Nonterminals, Productions, Production_Lists,
+      Analyzers, Parsers, 1, LALRs, LALR_Generators, Grammar);
 
    ----------
    --  Test procedures
@@ -109,10 +108,10 @@ package body Test_LR1_Lookahead_Closure is
    is
       Test : Test_Case renames Test_Case (T);
 
-      use LALR.LRk;
+      use LALR_Generators.LRk;
       use OpenToken_AUnit;
 
-      Has_Empty_Production : constant Nonterminal_ID_Set := LALR.LRk.Has_Empty_Production (Grammar);
+      Has_Empty_Production : constant Nonterminal_ID_Set := LALR_Generators.LRk.Has_Empty_Production (Grammar);
 
       First : constant Derivation_Matrix := First_Derivations
         (Grammar, Has_Empty_Production, Trace => Test.Debug);
@@ -132,7 +131,7 @@ package body Test_LR1_Lookahead_Closure is
       Null_Item_Set : constant Item_Set :=
         (Set           => null,
          Goto_List     => null,
-         Index         => -1,
+         State         => LALRs.Unknown_State,
          Next          => null);
 
       Expected : Item_Set;

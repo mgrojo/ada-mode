@@ -1,190 +1,72 @@
-Parse Table:
-Set 1:
-  OPENTOKEN_ACCEPT_ID <= ^ DECLARATIVE_PART_ID EOF_ID
-
-   EOF_ID              => reduce 0 tokens to DECLARATIVE_PART_ID
-   IS_ID               => shift and goto state 2
-   default             => ERROR
-
-   DECLARATIONS_ID     goto state 3
-   DECLARATIVE_PART_ID goto state 4
-   BODY_ID             goto state 5
-
-Set 2:
-  BODY_ID <= IS_ID ^ DECLARATIVE_PART_ID BEGIN_ID SEMICOLON_ID, EOF_ID/IS_ID/BEGIN_ID
-
-   BEGIN_ID            => reduce 0 tokens to DECLARATIVE_PART_ID
-   IS_ID               => shift and goto state 2
-   default             => ERROR
-
-   DECLARATIONS_ID     goto state 3
-   DECLARATIVE_PART_ID goto state 8
-   BODY_ID             goto state 5
-
-Set 3:
-  DECLARATIVE_PART_ID <= DECLARATIONS_ID ^, EOF_ID/BEGIN_ID
-  DECLARATIONS_ID <= DECLARATIONS_ID ^ BODY_ID, EOF_ID/BEGIN_ID/IS_ID
-
-   EOF_ID              => reduce 1 tokens to DECLARATIVE_PART_ID
-   BEGIN_ID            => reduce 1 tokens to DECLARATIVE_PART_ID
-   IS_ID               => shift and goto state 2
-   default             => ERROR
-
-   BODY_ID             goto state 7
-
-Set 4:
-  OPENTOKEN_ACCEPT_ID <= DECLARATIVE_PART_ID ^ EOF_ID
-
-   EOF_ID              => shift and goto state 6
-   default             => ERROR
-
-
-Set 5:
-  DECLARATIONS_ID <= BODY_ID ^, EOF_ID/BEGIN_ID/IS_ID
-
-   EOF_ID              => reduce 1 tokens to DECLARATIONS_ID
-   BEGIN_ID            => reduce 1 tokens to DECLARATIONS_ID
-   IS_ID               => reduce 1 tokens to DECLARATIONS_ID
-   default             => ERROR
-
-
-Set 6:
-  OPENTOKEN_ACCEPT_ID <= DECLARATIVE_PART_ID EOF_ID ^, EOF_ID/SEMICOLON_ID/IS_ID/BEGIN_ID
-
-   EOF_ID              => accept it
-   SEMICOLON_ID        => accept it
-   IS_ID               => accept it
-   BEGIN_ID            => accept it
-   default             => ERROR
-
-
-Set 7:
-  DECLARATIONS_ID <= DECLARATIONS_ID BODY_ID ^, IS_ID/BEGIN_ID/EOF_ID
-
-   IS_ID               => reduce 2 tokens to DECLARATIONS_ID
-   BEGIN_ID            => reduce 2 tokens to DECLARATIONS_ID
-   EOF_ID              => reduce 2 tokens to DECLARATIONS_ID
-   default             => ERROR
-
-
-Set 8:
-  BODY_ID <= IS_ID DECLARATIVE_PART_ID ^ BEGIN_ID SEMICOLON_ID, BEGIN_ID/IS_ID/EOF_ID
-
-   BEGIN_ID            => shift and goto state 9
-   default             => ERROR
-
-
-Set 9:
-  BODY_ID <= IS_ID DECLARATIVE_PART_ID BEGIN_ID ^ SEMICOLON_ID, EOF_ID/IS_ID/BEGIN_ID
-
-   SEMICOLON_ID        => shift and goto state 10
-   default             => ERROR
-
-
-Set 10:
-  BODY_ID <= IS_ID DECLARATIVE_PART_ID BEGIN_ID SEMICOLON_ID ^, BEGIN_ID/IS_ID/EOF_ID
-
-   BEGIN_ID            => reduce 4 tokens to BODY_ID
-   IS_ID               => reduce 4 tokens to BODY_ID
-   EOF_ID              => reduce 4 tokens to BODY_ID
-   default             => ERROR
-
-
- 1 : 
-IS_ID : SHIFT
- 2 : IS_ID
- 1 : 
-BEGIN_ID : REDUCE to DECLARATIVE_PART_ID, goto state 8
- 8 : DECLARATIVE_PART_ID
- 2 : IS_ID
- 1 : 
-BEGIN_ID : SHIFT
- 9 : BEGIN_ID
- 8 : DECLARATIVE_PART_ID
- 2 : IS_ID
- 1 : 
-SEMICOLON_ID : SHIFT
- 10 : SEMICOLON_ID
- 9 : BEGIN_ID
- 8 : DECLARATIVE_PART_ID
- 2 : IS_ID
- 1 : 
-IS_ID : REDUCE to BODY_ID, goto state 5
- 5 : BODY_ID
- 1 : 
-IS_ID : REDUCE to DECLARATIONS_ID, goto state 3
- 3 : DECLARATIONS_ID
- 1 : 
-IS_ID : SHIFT
- 2 : IS_ID
- 3 : DECLARATIONS_ID
- 1 : 
-IS_ID : SHIFT
- 2 : IS_ID
- 2 : IS_ID
- 3 : DECLARATIONS_ID
- 1 : 
-BEGIN_ID : REDUCE to DECLARATIVE_PART_ID, goto state 8
- 8 : DECLARATIVE_PART_ID
- 2 : IS_ID
- 2 : IS_ID
- 3 : DECLARATIONS_ID
- 1 : 
-BEGIN_ID : SHIFT
- 9 : BEGIN_ID
- 8 : DECLARATIVE_PART_ID
- 2 : IS_ID
- 2 : IS_ID
- 3 : DECLARATIONS_ID
- 1 : 
-SEMICOLON_ID : SHIFT
- 10 : SEMICOLON_ID
- 9 : BEGIN_ID
- 8 : DECLARATIVE_PART_ID
- 2 : IS_ID
- 2 : IS_ID
- 3 : DECLARATIONS_ID
- 1 : 
-BEGIN_ID : REDUCE to BODY_ID, goto state 5
- 5 : BODY_ID
- 2 : IS_ID
- 3 : DECLARATIONS_ID
- 1 : 
-BEGIN_ID : REDUCE to DECLARATIONS_ID, goto state 3
- 3 : DECLARATIONS_ID
- 2 : IS_ID
- 3 : DECLARATIONS_ID
- 1 : 
-BEGIN_ID : REDUCE to DECLARATIVE_PART_ID, goto state 8
- 8 : DECLARATIVE_PART_ID
- 2 : IS_ID
- 3 : DECLARATIONS_ID
- 1 : 
-BEGIN_ID : SHIFT
- 9 : BEGIN_ID
- 8 : DECLARATIVE_PART_ID
- 2 : IS_ID
- 3 : DECLARATIONS_ID
- 1 : 
-SEMICOLON_ID : SHIFT
- 10 : SEMICOLON_ID
- 9 : BEGIN_ID
- 8 : DECLARATIVE_PART_ID
- 2 : IS_ID
- 3 : DECLARATIONS_ID
- 1 : 
-EOF_ID : REDUCE to BODY_ID, goto state 7
- 7 : BODY_ID
- 3 : DECLARATIONS_ID
- 1 : 
-EOF_ID : REDUCE to DECLARATIONS_ID, goto state 3
- 3 : DECLARATIONS_ID
- 1 : 
-EOF_ID : REDUCE to DECLARATIVE_PART_ID, goto state 4
- 4 : DECLARATIVE_PART_ID
- 1 : 
-EOF_ID : SHIFT
- 6 : EOF_ID
- 4 : DECLARATIVE_PART_ID
- 1 : 
-EOF_ID : ACCEPT_IT
+ 1 stack:  1 : , 
+ 1: 1: (IS 43 . 45) : shift and goto state 2
+ 1 stack:  2 : (IS 43 . 45),  1 : , 
+ 1: 2: (BEGIN 46 . 51) : reduce 0 tokens to declarative_part
+declarative_part_id_0: (declarative_part) 
+ ... goto state 8
+ 1 stack:  8 : (declarative_part),  2 : (IS 43 . 45),  1 : , 
+ 1: 8: (BEGIN 46 . 51) : shift and goto state 9
+ 1 stack:  9 : (BEGIN 46 . 51),  8 : (declarative_part),  2 : (IS 43 . 45),  1 : , 
+ 1: 9: (SEMICOLON 51 . 52) : shift and goto state 10
+ 1 stack:  10 : (SEMICOLON 51 . 52),  9 : (BEGIN 46 . 51),  8 : (declarative_part),  2 : (IS 43 . 45),  1 : , 
+ 1: 10: (IS 105 . 107) : reduce 4 tokens to body
+[-9 [(3 43 . 45)(8)(2 46 . 51)(4 51 . 52)]
+(-10 [1 -11 3 -11 4 -12])
+]
+body_id_0: (body 43 . 52) (IS 43 . 45), (declarative_part), (BEGIN 46 . 51), (SEMICOLON 51 . 52)
+ ... goto state 5
+ 1 stack:  5 : (body 43 . 52),  1 : , 
+ 1: 5: (IS 105 . 107) : reduce 1 tokens to declarations
+declarations_id_0: (declarations 43 . 52) (body 43 . 52)
+ ... goto state 3
+ 1 stack:  3 : (declarations 43 . 52),  1 : , 
+ 1: 3: (IS 105 . 107) : shift and goto state 2
+ 1 stack:  2 : (IS 105 . 107),  3 : (declarations 43 . 52),  1 : , 
+ 1: 2: (IS 112 . 114) : shift and goto state 2
+ 1 stack:  2 : (IS 112 . 114),  2 : (IS 105 . 107),  3 : (declarations 43 . 52),  1 : , 
+ 1: 2: (BEGIN 115 . 120) : reduce 0 tokens to declarative_part
+declarative_part_id_0: (declarative_part) 
+ ... goto state 8
+ 1 stack:  8 : (declarative_part),  2 : (IS 112 . 114),  2 : (IS 105 . 107),  3 : (declarations 43 . 52),  1 : , 
+ 1: 8: (BEGIN 115 . 120) : shift and goto state 9
+ 1 stack:  9 : (BEGIN 115 . 120),  8 : (declarative_part),  2 : (IS 112 . 114),  2 : (IS 105 . 107),  3 : (declarations 43 . 52),  1 : , 
+ 1: 9: (SEMICOLON 120 . 121) : shift and goto state 10
+ 1 stack:  10 : (SEMICOLON 120 . 121),  9 : (BEGIN 115 . 120),  8 : (declarative_part),  2 : (IS 112 . 114),  2 : (IS 105 . 107),  3 : (declarations 43 . 52),  1 : , 
+ 1: 10: (BEGIN 122 . 127) : reduce 4 tokens to body
+[-9 [(3 112 . 114)(8)(2 115 . 120)(4 120 . 121)]
+(-10 [1 -11 3 -11 4 -12])
+]
+body_id_0: (body 112 . 121) (IS 112 . 114), (declarative_part), (BEGIN 115 . 120), (SEMICOLON 120 . 121)
+ ... goto state 5
+ 1 stack:  5 : (body 112 . 121),  2 : (IS 105 . 107),  3 : (declarations 43 . 52),  1 : , 
+ 1: 5: (BEGIN 122 . 127) : reduce 1 tokens to declarations
+declarations_id_0: (declarations 112 . 121) (body 112 . 121)
+ ... goto state 3
+ 1 stack:  3 : (declarations 112 . 121),  2 : (IS 105 . 107),  3 : (declarations 43 . 52),  1 : , 
+ 1: 3: (BEGIN 122 . 127) : reduce 1 tokens to declarative_part
+declarative_part_id_0: (declarative_part 112 . 121) (declarations 112 . 121)
+ ... goto state 8
+ 1 stack:  8 : (declarative_part 112 . 121),  2 : (IS 105 . 107),  3 : (declarations 43 . 52),  1 : , 
+ 1: 8: (BEGIN 122 . 127) : shift and goto state 9
+ 1 stack:  9 : (BEGIN 122 . 127),  8 : (declarative_part 112 . 121),  2 : (IS 105 . 107),  3 : (declarations 43 . 52),  1 : , 
+ 1: 9: (SEMICOLON 127 . 128) : shift and goto state 10
+ 1 stack:  10 : (SEMICOLON 127 . 128),  9 : (BEGIN 122 . 127),  8 : (declarative_part 112 . 121),  2 : (IS 105 . 107),  3 : (declarations 43 . 52),  1 : , 
+ 1: 10: (EOF 128 . 129) : reduce 4 tokens to body
+[-9 [(3 105 . 107)(8 112 . 121)(2 122 . 127)(4 127 . 128)]
+(-10 [1 -11 3 -11 4 -12])
+]
+body_id_0: (body 105 . 128) (IS 105 . 107), (declarative_part 112 . 121), (BEGIN 122 . 127), (SEMICOLON 127 . 128)
+ ... goto state 7
+ 1 stack:  7 : (body 105 . 128),  3 : (declarations 43 . 52),  1 : , 
+ 1: 7: (EOF 128 . 129) : reduce 2 tokens to declarations
+declarations_id_0: (declarations 43 . 128) (declarations 43 . 52), (body 105 . 128)
+ ... goto state 3
+ 1 stack:  3 : (declarations 43 . 128),  1 : , 
+ 1: 3: (EOF 128 . 129) : reduce 1 tokens to declarative_part
+declarative_part_id_0: (declarative_part 43 . 128) (declarations 43 . 128)
+ ... goto state 4
+ 1 stack:  4 : (declarative_part 43 . 128),  1 : , 
+ 1: 4: (EOF 128 . 129) : shift and goto state 6
+ 1 stack:  6 : (EOF 128 . 129),  4 : (declarative_part 43 . 128),  1 : , 
+ 1: 6: (EOF 129 . 130) : accept it
+opentoken_accept_id_0: (OPENTOKEN_ACCEPT 43 . 129) (declarative_part 43 . 128), (EOF 128 . 129)

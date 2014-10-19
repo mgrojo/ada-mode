@@ -3,4 +3,6 @@
 
 gpr_file=opentoken_test.gpr
 
+gnat_stub_opts=-P opentoken_test.gpr
+
 casing=../emacs_case_exceptions
