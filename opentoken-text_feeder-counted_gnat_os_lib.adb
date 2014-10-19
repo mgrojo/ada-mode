@@ -52,7 +52,7 @@ package body OpenToken.Text_Feeder.Counted_GNAT_OS_Lib is
          Read_Bytes        := Read (Feeder.File, Text'Address, Bytes_To_Read);
          Feeder.Read_Bytes := Feeder.Read_Bytes + Read_Bytes;
 
-         if Trace_Parse and Read_Bytes > 0 then
+         if Trace_Parse > 0 and Read_Bytes > 0 then
             Ada.Text_IO.Put_Line ("read" & Integer'Image (Read_Bytes));
             Ada.Text_IO.Put_Line (Text (Text'First .. Text'First + Read_Bytes - 1));
          end if;
@@ -110,7 +110,7 @@ package body OpenToken.Text_Feeder.Counted_GNAT_OS_Lib is
       Read_Bytes  : Integer;
       Bytes_To_Read : Integer;
    begin
-      if Trace_Parse then
+      if Trace_Parse > 0 then
          New_Line;
          Put_Line ("discarding text from" & Integer'Image (Feeder.Read_Bytes) & ":");
       end if;
@@ -119,14 +119,14 @@ package body OpenToken.Text_Feeder.Counted_GNAT_OS_Lib is
          Read_Bytes        := Read (Feeder.File, Junk'Address, Bytes_To_Read);
          Feeder.Read_Bytes := Feeder.Read_Bytes + Read_Bytes;
 
-         if Read_Bytes > 0 and Trace_Parse and First then
+         if Read_Bytes > 0 and Trace_Parse > 0 and First then
             First := False;
             Put_Line (Junk (1 .. Integer'Min (80, Read_Bytes)));
          end if;
          exit when Read_Bytes < Bytes_To_Read or Feeder.Read_Bytes = Feeder.Max_Bytes;
       end loop;
 
-      if Trace_Parse then
+      if Trace_Parse > 0 then
          Put_Line ("...");
          if Read_Bytes > 80 then
             Put_Line (Junk (Read_Bytes - 80 .. Read_Bytes));

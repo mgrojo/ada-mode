@@ -102,12 +102,12 @@ package body OpenToken.Production.Parser.LALR.Parser_Lists is
       Temp_Free : constant Stack_Node_Access := List.Stack_Free;
    begin
       List.Stack_Free := Stack;
-      Stack           := Stack.Next;
+      Stack           := Stack.Next; -- not null; for free (cursor) below
 
       List.Stack_Free.all :=
         (Item     =>
            (State => Unknown_State,
-            Token => null), -- Token is free'd after being passed to user action
+            Token => null), -- Token is free'd after being passed to user action. FIXME: say what?
          Next     => Temp_Free);
    end Free;
 
@@ -206,7 +206,7 @@ package body OpenToken.Production.Parser.LALR.Parser_Lists is
          end if;
       else
          Action_Token_Free := Action_Token_Free.Next;
-         Temp.all          := (Action_Token, List.Head, null);
+         Temp.all          := Node;
          if List.Tail = null then
             List.Tail := Temp;
             List.Head := List.Tail;
@@ -232,7 +232,7 @@ package body OpenToken.Production.Parser.LALR.Parser_Lists is
       Temp_Free : constant Action_Token_Node_Access := List.Action_Token_Free;
    begin
       List.Action_Token_Free := Action_Token;
-      Action_Token           := null;
+      Action_Token           := Action_Token.Next; -- not null; for free (cursor) below
 
       List.Action_Token_Free.all :=
         (Item         => Null_Action_Token, -- New_Token, Tokens are free'd after being passed to user action
@@ -242,15 +242,12 @@ package body OpenToken.Production.Parser.LALR.Parser_Lists is
 
    function Dequeue (Cursor : in Parser_Lists.Cursor) return Action_Token
    is
-      Temp   : Action_Token_Node_Access := Cursor.Ptr.Item.Action_Token.Head;
-      Result : constant Action_Token    := Temp.Item;
+      Result : constant Action_Token := Cursor.Ptr.Item.Action_Token.Head.Item;
    begin
-      if Temp.Next = null then
+      Free (Cursor.List.all, Cursor.Ptr.Item.Action_Token.Head);
+
+      if Cursor.Ptr.Item.Action_Token.Head = null then
          Cursor.Ptr.Item.Action_Token.Tail := null;
-         Free (Cursor.List.all, Cursor.Ptr.Item.Action_Token.Head);
-      else
-         Cursor.Ptr.Item.Action_Token.Head := Temp.Next;
-         Free (Cursor.List.all, Temp);
       end if;
 
       return Result;
@@ -430,7 +427,7 @@ package body OpenToken.Production.Parser.LALR.Parser_Lists is
    is
       Temp_Free    : constant Parser_Node_Access := Cursor.List.Parser_Free;
       Stack        : Stack_Node_Access           := Cursor.Ptr.Item.Stack;
-      Action_Token : Action_Token_Node_Access    := Cursor.Ptr.Item.Action_Token.Tail;
+      Action_Token : Action_Token_Node_Access    := Cursor.Ptr.Item.Action_Token.Head;
    begin
       Cursor.List.Count := Cursor.List.Count - 1;
 

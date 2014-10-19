@@ -236,6 +236,15 @@ package body Parser_Lists_Test is
       Check ("2: Action_Tokens_Empty", Cursor.Action_Tokens_Empty, True);
       Check ("2: free count", Parsers.Action_Token_Free_Count, 2);
 
+      --  Enqueue using free list
+      Cursor.Enqueue (Item_1);
+      Check ("3a: action_token_count", Cursor.Action_Token_Count, 1);
+      Check ("3a: Action_Tokens_Empty", Cursor.Action_Tokens_Empty, False);
+      Cursor.Enqueue (Item_2);
+      Check ("3b: action_token_count", Cursor.Action_Token_Count, 2);
+      Check ("3b: Action_Tokens_Empty", Cursor.Action_Tokens_Empty, False);
+      Check ("0: free count", Parsers.Action_Token_Free_Count, 0);
+
    end Pending;
 
    procedure Copy (T : in out AUnit.Test_Cases.Test_Case'Class)

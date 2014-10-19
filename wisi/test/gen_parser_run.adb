@@ -8,7 +8,7 @@ is
 
    procedure Put_Usage
    is begin
-      Put_Line ("usage: *_run [-v] filename");
+      Put_Line ("usage: *_run [-v <integer>] filename");
       Put_Line ("  parse input file, executing grammar actions");
       Put_Line ("  -v : output trace of states while parsing");
    end Put_Usage;
@@ -32,9 +32,9 @@ begin
       when 1 =>
          Use_File (Argument (1));
 
-      when 2 =>
+      when 3 =>
          if Argument (1) = "-v" then
-            OpenToken.Trace_Parse := True;
+            OpenToken.Trace_Parse := Integer'Value (Argument (2));
 
          else
             Set_Exit_Status (Failure);
@@ -42,7 +42,7 @@ begin
             return;
          end if;
 
-         Use_File (Argument (2));
+         Use_File (Argument (3));
 
       when others =>
          Set_Exit_Status (Failure);

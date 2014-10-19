@@ -137,7 +137,7 @@ package body OpenToken.Production.Parser.LALR.Parser is
             if Trace_Parse > 0 then
                Ada.Text_IO.Put ("pending ");
                Parser_Lists.Put (Action_Token);
-               Ada.Text_IO.Put_Line (" action count:" & Integer'Image (Current_Parser.Action_Count));
+               Ada.Text_IO.Put_Line (" action count:" & Integer'Image (Current_Parser.Action_Token_Count));
             end if;
          else
             Action.Action (New_Token.all, Tokens, Token.ID (New_Token.all));
@@ -194,7 +194,8 @@ package body OpenToken.Production.Parser.LALR.Parser is
          declare
             New_Token : constant Nonterminal.Handle := new Nonterminal.Class'(Action.LHS.all);
          begin
-            Reduce_Stack (Current_Parser, New_Token, Action);
+            Reduce_Stack
+              (Current_Parser, New_Token, (Reduce, Action.LHS, Action.Action, Action.Index, Action.Token_Count));
          end;
 
       when Error =>

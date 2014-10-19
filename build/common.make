@@ -178,15 +178,15 @@ DIFF_OPT := -u -w
 	./wisi-generate.exe $(RUN_ARGS) $< Elisp > $*.output
 
 # wisi-generate Ada_Emacs runs lalr_parser.generate, and we always want the parse_table for tests
-# match historical first_state_index
-%.ads : RUN_ARGS ?= -v 1 --first_state_index 1
+# match historical first_state_index, first_parser_label
+%.ads : RUN_ARGS ?= -v 1 --first_state_index 1 --first_parser_label 1
 %.ads : %.wy wisi-generate.exe
 	./wisi-generate.exe $(RUN_ARGS) $< Ada_Emacs > $*.parse_table
 	dos2unix $*.parse_table
 	dos2unix $*.el
 
 %.parse : %.input %_run.exe
-	./$*_run.exe -v $< > $*.parse
+	./$*_run.exe -v 2 $< > $*.parse
 	dos2unix $*.parse
 
 %.exe : force; gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P opentoken_test.gpr $(GPRBUILD_ARGS) $*

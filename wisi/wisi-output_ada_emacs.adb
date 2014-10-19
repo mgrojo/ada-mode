@@ -26,17 +26,18 @@ with OpenToken;
 with Wisi.Gen_Generate_Utils;
 with Wisi.Utils;
 procedure Wisi.Output_Ada_Emacs
-  (Input_File_Name   : in String;
-   Output_File_Root  : in String;
-   Prologue          : in String_Lists.List;
-   Keywords          : in String_Pair_Lists.List;
-   Tokens            : in Token_Lists.List;
-   Start_Token       : in Standard.Ada.Strings.Unbounded.Unbounded_String;
-   Conflicts         : in Conflict_Lists.List;
-   Rules             : in Rule_Lists.List;
-   Rule_Count        : in Integer;
-   Action_Count      : in Integer;
-   First_State_Index : in Integer)
+  (Input_File_Name    : in String;
+   Output_File_Root   : in String;
+   Prologue           : in String_Lists.List;
+   Keywords           : in String_Pair_Lists.List;
+   Tokens             : in Token_Lists.List;
+   Start_Token        : in Standard.Ada.Strings.Unbounded.Unbounded_String;
+   Conflicts          : in Conflict_Lists.List;
+   Rules              : in Rule_Lists.List;
+   Rule_Count         : in Integer;
+   Action_Count       : in Integer;
+   First_State_Index  : in Integer;
+   First_Parser_Label : in Integer)
 is
    use type Ada.Containers.Count_Type;
 
@@ -383,9 +384,10 @@ is
       Indent_Line ("package LALRs is new Parsers.LALR (First_State_Index);");
       Indent_Line ("package Production_Lists is new Productions.List;");
       Indent_Line ("package LALR_Generators is new LALRs.Generator (Token_IDs'Width, Production_Lists);");
-      Indent_Line ("package Parser_Lists is new LALRs.Parser_Lists (First_Parser_Label => 0);");
-      --  match initial elisp parser numbers
-      Indent_Line ("package LALR_Parsers is new LALRs.Parser (0, Parser_Lists);");
+      Indent_Line
+        ("First_Parser_Label : constant Integer := " & OpenToken.Int_Image (First_Parser_Label) & ";");
+      Indent_Line ("package Parser_Lists is new LALRs.Parser_Lists (First_Parser_Label);");
+      Indent_Line ("package LALR_Parsers is new LALRs.Parser (First_Parser_Label, Parser_Lists);");
       New_Line;
 
       Indent_Line ("package Wisi_Tokens is new OpenToken.Wisi_Tokens");

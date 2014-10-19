@@ -18,8 +18,8 @@ generic
    with package Parsers is new Productions.Parser (Analyzers);
    First_State_Index : in Integer;
    with package LALRs is new Parsers.LALR (First_State_Index);
-   with package Parser_Lists is new LALRs.Parser_Lists;
-   with package LALR_Parsers is new LALRs.Parser (Parser_Lists);
+   with package Parser_Lists is new LALRs.Parser_Lists (First_Parser_Label => 1); -- match previous test runs
+   with package LALR_Parsers is new LALRs.Parser (1, Parser_Lists);
 
    with function Create_Parser
      (Max_Parallel         : in Integer := 15;
