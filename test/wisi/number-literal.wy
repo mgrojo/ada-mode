@@ -5,10 +5,9 @@
 (require 'semantic/lex)
 (require 'wisi-compile)
 %}
-number
 %keyword NUMBER "number"
 
-%token <number-literal> NUMERIC_LITERAL wisi-number-literal-p
+%token <number> NUMERIC_LITERAL wisi-number-p
 
 %start compilation_unit
 

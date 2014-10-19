@@ -39,25 +39,15 @@ install packages in -Q:
 o.e.a.stephe-1: external opentoken parser
 o.e.a.stephe-2: external gps parser
 
-faces
-    test/ada_mode-generic_package.ads
-        end ...;
+review stefan monnier's changes in elpa ada-mode
+    fix dvc-git first; need fileinfo based status
 
-time lexing with number recognizer
-    speed up first test?
-    or put number back in ada-font-lock-keywords
-        that uses compiled regexp
+'raise' in aspects
+    test/int.adb
+    emacs-ada-mode email
+    asked on comp.lang.ada
 
-don't abort C-F11 for failed parse; just ignore subunit
-
-navigation order confused
-    if then
-    elsif then
-    elsif then
-    else
-    end if;
-
-face for protected/task type/object?
+propagate to o.e.a.stephe-1
 
 after trunk transition to git:
     built-in ada-mode: (make-obsolete 'ada-mode "use later version from ELPA via `list-packages')

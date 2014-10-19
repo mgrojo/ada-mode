@@ -381,12 +381,19 @@ nil, 'shift, or 'accept."
   ;; We don't execute actions if all tokens are before wisi-cache-max,
   ;; because later actions can update existing caches, and if the
   ;; parse fails that won't happen. It also saves time.
-  (if (>= (wisi-parse-max-pos tokens) wisi-cache-max)
+  ;;
+  ;; Also skip if no tokens; nothing to do. This can happen when all
+  ;; tokens in a grammar statement are optional.
+  (if (< 0 (length tokens))
+      (if (>= (wisi-parse-max-pos tokens) wisi-cache-max)
 
-      (funcall func tokens)
+	  (funcall func tokens)
+
+	(when (> wisi-debug 1)
+	  (message "... action skipped; before wisi-cache-max %d" wisi-cache-max)))
 
     (when (> wisi-debug 1)
-      (message "... action skipped"))
+      (message "... action skipped; no tokens"))
     ))
 
 (defun wisi-execute-pending (pending)

@@ -4,7 +4,7 @@
 (require 'wisi)
 (require 'semantic/lex)
 (require 'wisi-compile)
-(require 'ada-wisi) ;; for ada-wisi-number-literal-p
+(require 'ada-wisi) ;; for ada-wisi-number-p
 %}
 
 %keyword NUMBER "number"
@@ -12,7 +12,7 @@
 
 %token <punctuation> DOT_DOT ".."
 
-%token <number-literal> NUMERIC_LITERAL ada-wisi-number-literal-p
+%token <number> NUMERIC_LITERAL ada-wisi-number-p
 
 %start compilation_unit
 

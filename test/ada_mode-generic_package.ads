@@ -131,6 +131,8 @@ generic
      package A_Package_10 is new Ada.Text_IO.Integer_IO (Num => Formal_Signed_Integer_Type);
    pragma Unreferenced (A_Package_10);
 
+   --EMACSCMD:(test-face "Ada_Mode.Generic_Package" 'font-lock-function-name-face)
 package Ada_Mode.Generic_Package is
    -- See ada_mode-generic_parent.ads for generic subprograms
+   --EMACSCMD:(test-face "Ada_Mode.Generic_Package" 'font-lock-function-name-face)
 end Ada_Mode.Generic_Package;

@@ -2418,6 +2418,7 @@ Called with no parameters.")
   "See `ada-next-statement-keyword' variable."
   (interactive)
   (when ada-next-statement-keyword
+    (push-mark)
     (funcall ada-next-statement-keyword)))
 
 (defvar ada-prev-statement-keyword nil
@@ -2431,6 +2432,7 @@ keyword in the previous statement or containing statement.")
   "See `ada-prev-statement-keyword' variable."
   (interactive)
   (when ada-prev-statement-keyword
+    (push-mark)
     (funcall ada-prev-statement-keyword)))
 
 ;;;; code creation
@@ -2596,31 +2598,10 @@ The paragraph is indented on the first line."
 
 (defun ada-font-lock-keywords ()
   "Return Ada mode value for `font-lock-keywords', depending on `ada-language-version'."
+   ;; Grammar actions set `font-lock-face' property for all
+   ;; non-keyword tokens that need it.
   (list
-
-   ;; Grammar actions set `font-lock-face' property for tokens that
-   ;; this doesn't handle.
-
-   ;; Keywords
    (list (concat "\\<" (regexp-opt ada-keywords t) "\\>") '(0 font-lock-keyword-face))
-
-   ;; Keywords followed by a comma separated list of names which
-   ;; should be in constant-face, unless already fontified. Ada mode 4.01 used this.
-   ;; FIXME: add tests, delete
-   (list (concat
-   	  "\\<\\("
-   	  "goto\\|"
-   	  "use\\|"
-   	  ;; don't need "limited" "private" here; they are matched separately
-   	  "with"; context clause
-   	  "\\)\\>[ \t]*"
-   	  "\\(\\(?:\\sw\\|[_., \t]\\)+\\>\\)?"; ada-name-regexp, plus ", \t"
-   	  )
-   	 '(1 font-lock-keyword-face) '(2 font-lock-constant-face nil t))
-
-   ;; statement labels
-   '("<<\\(\\sw+\\)>>" 1 font-lock-constant-face)
-
    ))
 
 ;;;; ada-mode

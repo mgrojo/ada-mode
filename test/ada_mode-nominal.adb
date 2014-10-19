@@ -12,11 +12,11 @@ pragma License (Unrestricted); -- for testing ada-wisi-context-clause
 with Ada.Strings; -- test two context clauses
 with Ada.Strings.Unbounded;
 --EMACSCMD:(test-face "use" font-lock-keyword-face)
---EMACSCMD:(test-face "Ada" font-lock-constant-face)
+--EMACSCMD:(test-face "Ada" font-lock-function-name-face)
 use Ada.Strings.Unbounded;
 package body Ada_Mode.Nominal is -- target 0
 
-   --EMACSCMD:(test-face "Ada" font-lock-constant-face)
+   --EMACSCMD:(test-face "Ada" font-lock-function-name-face)
    use Ada.Strings;
 
    --EMACSCMD:(test-face "access" font-lock-keyword-face)
@@ -99,11 +99,11 @@ package body Ada_Mode.Nominal is -- target 0
             --EMACSRESULT: t
             --EMACSCMD:(progn (forward-line 2)(forward-comment 1)(ada-next-statement-keyword)(looking-at "then"))
             --EMACSRESULT: t
-            if True then
-               --EMACSCMD:(progn (end-of-line 0)(backward-word 1)(ada-prev-statement-keyword)(looking-at "if"))
-               --EMACSRESULT: t
-               --EMACSCMD:(progn (end-of-line -2)(backward-word 1)(ada-next-statement-keyword)(looking-at "elsif"))
-               --EMACSRESULT: t
+            if True then -- 1
+                         --EMACSCMD:(progn (end-of-line 0)(backward-word 2)(ada-prev-statement-keyword)(looking-at "if"))
+                         --EMACSRESULT: t
+                         --EMACSCMD:(progn (end-of-line -2)(backward-word 2)(ada-next-statement-keyword)(looking-at "elsif False -- 2"))
+                         --EMACSRESULT: t
 
                --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at " -- target 3"))
                --EMACSRESULT:t
@@ -149,16 +149,16 @@ package body Ada_Mode.Nominal is -- target 0
                end;
                --EMASCMD:(progn (end-of-line 0)(backward-word 2)(ada-prev-statement-keyword)(looking-at "when -- 3"))
 
-               --EMACSCMD:(progn (forward-line 4)(forward-comment 1)(ada-prev-statement-keyword)(looking-at "then"))
+               --EMACSCMD:(progn (forward-line 4)(forward-comment 1)(ada-prev-statement-keyword)(looking-at "then -- 1"))
                --EMACSRESULT: t
-               --EMACSCMD:(progn (forward-line 2)(forward-comment 1)(ada-next-statement-keyword)(looking-at "then"))
+               --EMACSCMD:(progn (forward-line 2)(forward-comment 1)(ada-next-statement-keyword)(looking-at "then -- 2"))
                --EMACSRESULT: t
-            elsif False
-            then
-               --EMACSCMD:(progn (end-of-line 0)(backward-word 1)(ada-prev-statement-keyword)(looking-at "elsif"))
-               --EMACSRESULT: t
-               --EMACSCMD:(progn (end-of-line -2)(backward-word 1)(ada-next-statement-keyword)(looking-at "else"))
-               --EMACSRESULT: t
+            elsif False -- 2
+            then -- 2
+                 --EMACSCMD:(progn (end-of-line 0)(backward-word 2)(ada-prev-statement-keyword)(looking-at "elsif False -- 2"))
+                 --EMACSRESULT: t
+                 --EMACSCMD:(progn (end-of-line -2)(backward-word 2)(ada-next-statement-keyword)(looking-at "elsif True -- 3"))
+                 --EMACSRESULT: t
 
                -- nested if/then/else; test next-statement-keyword skips this
                if True then
@@ -168,17 +168,29 @@ package body Ada_Mode.Nominal is -- target 0
                return 1;   -- a comment
                            -- another comment, aligned with previous
 
-               --EMACSCMD:(progn (forward-line 4)(forward-comment 1)(ada-prev-statement-keyword)(looking-at "then"))
+               --EMACSCMD:(progn (forward-line 4)(forward-comment 1)(ada-prev-statement-keyword)(looking-at "then -- 2"))
                --EMACSRESULT: t
-               --EMACSCMD:(progn (forward-line 2)(forward-comment 1)(ada-next-statement-keyword)(looking-at "end"))
+               --EMACSCMD:(progn (forward-line 2)(forward-comment 1)(ada-next-statement-keyword)(looking-at "then -- 3"))
                --EMACSRESULT: t
-            else
+            elsif True -- 3
+            then -- 3
+                 --EMACSCMD:(progn (end-of-line 0)(backward-word 2)(ada-prev-statement-keyword)(looking-at "elsif True -- 3"))
+                 --EMACSRESULT: t
+                 --EMACSCMD:(progn (end-of-line -2)(backward-word 2)(ada-next-statement-keyword)(looking-at "else -- 4"))
+                 --EMACSRESULT: t
+               return 1;
+
+               --EMACSCMD:(progn (forward-line 4)(forward-comment 1)(ada-prev-statement-keyword)(looking-at "then -- 3"))
+               --EMACSRESULT: t
+               --EMACSCMD:(progn (forward-line 2)(forward-comment 1)(ada-next-statement-keyword)(looking-at "end if; -- 5"))
+               --EMACSRESULT: t
+            else -- 4
                return 0;
-               --EMACSCMD:(progn (forward-line 4)(forward-comment 1)(ada-prev-statement-keyword)(looking-at "else"))
+               --EMACSCMD:(progn (forward-line 4)(forward-comment 1)(ada-prev-statement-keyword)(looking-at "else -- 4"))
                --EMACSRESULT: t
-               --EMACSCMD:(progn (forward-line 2)(forward-comment 1)(ada-next-statement-keyword)(looking-at ";"))
+               --EMACSCMD:(progn (forward-line 2)(forward-comment 1)(ada-next-statement-keyword)(looking-at "; -- 5"))
                --EMACSRESULT: t
-            end if;
+            end if; -- 5
          end Local_Function;
       begin
          --EMACSCMD:(progn (end-of-line 0)(backward-word 1)(ada-next-statement-keyword)(looking-at "end F1"))

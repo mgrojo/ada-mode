@@ -37,4 +37,18 @@ package Aspects is
 
    type T is tagged private with Type_Invariant'Class => False;
 
+   type U is range 0 .. 1_000_000;
+   subtype D is U range 1 .. 10;
+   subtype T is U range D'Last + 1 .. D'Last + 365;
+   type B is record
+      The_Dog : D;
+      The_Day : T;
+   end record;
+
+   function Wuff return Boolean with Pre =>
+     (for all X in U =>
+        (if X in D then
+           (for some Y in U =>
+              Y in T and (X, Y) in B)));
+
 end Aspects;

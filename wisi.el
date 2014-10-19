@@ -198,10 +198,10 @@
   "Cons '(delim . character) where 'character' escapes quotes in strings delimited by 'delim'.")
 (defvar-local wisi-string-single-term nil) ;; string delimited by single quotes
 (defvar-local wisi-symbol-term nil)
-(defvar-local wisi-number-literal-term nil)
-(defvar-local wisi-number-literal-p nil)
+(defvar-local wisi-number-term nil)
+(defvar-local wisi-number-p nil)
 
-(defun wisi-number-literal-p (token-text)
+(defun wisi-number-p (token-text)
   "Return t if TOKEN-TEXT plus text after point matches the
 syntax for a real literal; otherwise nil. point is after
 TOKEN-TEXT; move point to just past token."
@@ -304,10 +304,10 @@ If at end of buffer, returns `wisent-eoi-term'."
       (setq token-text (buffer-substring-no-properties start (point)))
       (setq token-id
 	    (or (symbol-value (intern-soft (downcase token-text) wisi-keyword-table))
-		(and (functionp wisi-number-literal-p)
-		     (funcall wisi-number-literal-p token-text)
+		(and (functionp wisi-number-p)
+		     (funcall wisi-number-p token-text)
 		     (setq token-text (buffer-substring-no-properties start (point)))
-		     wisi-number-literal-term)
+		     wisi-number-term)
 		wisi-symbol-term))
       )
      );; cond
@@ -848,6 +848,26 @@ If CONTAINING-TOKEN is empty, the next token number is used."
 	      (setq cache (wisi-backward-cache)))
 	    ))))))
 
+(defun wisi-match-class-token (cache class-tokens)
+  "Return t if CACHE matches CLASS-TOKENS.
+CLASS-TOKENS is a vector [number class token_id class token_id ...].
+number is ignored."
+  (let ((i 1)
+	(done nil)
+	(result nil)
+	class token)
+    (while (and (not done)
+		(< i (length class-tokens)))
+      (setq class (aref class-tokens i))
+      (setq token (aref class-tokens (setq i (1+ i))))
+      (setq i (1+ i))
+      (when (and (eq class (wisi-cache-class cache))
+		 (eq token (wisi-cache-token cache)))
+	(setq result t
+	      done t))
+      )
+    result))
+
 (defun wisi-motion-action (token-numbers)
   "Set prev/next marks in all tokens given by TOKEN-NUMBERS.
 TOKEN-NUMBERS is a vector with each element one of:
@@ -862,11 +882,9 @@ vector [number class token_id class token_id ...]:
 	  prev-cache
 	  cache
 	  mark
-	  (i 0)
-	  j)
+	  (i 0))
       (while (< i (length token-numbers))
 	(let ((token-number (aref token-numbers i))
-	      target-class target-token
 	      region)
 	  (setq i (1+ i))
 	  (cond
@@ -892,25 +910,23 @@ vector [number class token_id class token_id ...]:
 	    ;; there must have been a prev keyword
 	    (setq region (cddr (aref wisi-tokens (1- (aref token-number 0)))))
 	    (when region ;; not an empty token
-	      (setq j 1)
-	      (while (< j (length token-number))
-		(setq target-class (aref token-number j))
-		(setq target-token (list (aref token-number (setq j (1+ j)))))
-		(setq j (1+ j))
-		(goto-char (car region))
-		(while (setq cache (wisi-forward-find-token target-token (cdr region) t))
-		  (when (eq target-class (wisi-cache-class cache))
-		    (when (null (wisi-cache-prev cache))
-		      (setf (wisi-cache-prev cache) prev-keyword-mark))
-		    (when (null (wisi-cache-next cache))
-		      (setq mark (copy-marker (1+ (point))))
-		      (setf (wisi-cache-next prev-cache) mark)
-		      (setq prev-keyword-mark mark)
-		      (setq prev-cache cache)))
+	      ;; We must search for all targets at the same time, to
+	      ;; get the motion order right.
+	      (goto-char (car region))
+	      (setq cache (or (wisi-get-cache (point))
+			      (wisi-forward-cache)))
+	      (while (< (point) (cdr region))
+		(when (wisi-match-class-token cache token-number)
+		  (when (null (wisi-cache-prev cache))
+		    (setf (wisi-cache-prev cache) prev-keyword-mark))
+		  (when (null (wisi-cache-next cache))
+		    (setq mark (copy-marker (1+ (point))))
+		    (setf (wisi-cache-next prev-cache) mark)
+		    (setq prev-keyword-mark mark)
+		    (setq prev-cache cache)))
 
-		  (wisi-forward-token);; don't find same token again
-		))
-	      ))
+		(setq cache (wisi-forward-cache))
+	      )))
 
 	   (t
 	    (error "unexpected token-number %s" token-number))
@@ -952,32 +968,77 @@ Also override token with new token."
 Intended as a grammar non-terminal action.
 
 PAIRS is a vector of the form [token-number face token-number face ...]
-token-number may be an integer, or a vector [integer token_id token_id ...]"
+token-number may be an integer, or a vector [integer token_id token_id ...]
+
+For an integer token-number, apply face to the first cached token
+in the range covered by wisi-tokens[token-number]. If there are
+no cached tokens, apply face to entire wisi-tokens[token-number]
+region.
+
+For a vector token-number, apply face to the first cached token
+in the range matching one of token_id covered by
+wisi-tokens[token-number]."
   (let (number region face (tokens nil) cache (i 0) (j 1))
     (while (< i (length pairs))
       (setq number (aref pairs i))
       (setq face (aref pairs (setq i (1+ i))))
       (cond
        ((integerp number)
-	(setq number (1- number))
-	(setq region (cddr (aref wisi-tokens number)));; wisi-tokens is let-bound in wisi-parse-reduce
-	(wisi-face-action-1 face region)
-	)
+	(setq region (cddr (aref wisi-tokens (1- number))));; wisi-tokens is let-bound in wisi-parse-reduce
+	(when region
+	  (save-excursion
+	    (goto-char (car region))
+	    (setq cache (or (wisi-get-cache (point))
+			    (wisi-forward-cache)))
+	    (if (< (point) (cdr region))
+		(when cache
+		  (wisi-face-action-1 face (wisi-cache-region cache)))
+
+	      ;; no caches in region; just apply face to region
+	      (wisi-face-action-1 face region))
+	    )))
 
        ((vectorp number)
 	(setq region (cddr (aref wisi-tokens (1- (aref number 0)))))
-	(while (< j (length number))
-	  (setq tokens (cons (aref number j) tokens))
-	  (setq j (1+ j)))
+	(when region
+	  (while (< j (length number))
+	    (setq tokens (cons (aref number j) tokens))
+	    (setq j (1+ j)))
+	  (save-excursion
+	    (goto-char (car region))
+	    (setq cache (wisi-forward-find-token tokens (cdr region) t))
+	    ;; might be looking for IDENTIFIER in name, but only have "*".
+	    (when cache
+	      (wisi-face-action-1 face (wisi-cache-region cache)))
+	    )))
+       )
+      (setq i (1+ i))
+
+      )))
+
+(defun wisi-face-list-action (pairs)
+  "Cache face information in text properties of tokens.
+Intended as a grammar non-terminal action.
+
+PAIRS is a vector of the form [token-number face token-number face ...]
+token-number is an integer. Apply face to all cached tokens
+in the range covered by wisi-tokens[token-number]."
+  (let (number region face cache (i 0))
+    (while (< i (length pairs))
+      (setq number (aref pairs i))
+      (setq face (aref pairs (setq i (1+ i))))
+      (setq region (cddr (aref wisi-tokens (1- number))));; wisi-tokens is let-bound in wisi-parse-reduce
+      (when region
 	(save-excursion
 	  (goto-char (car region))
-	  ;; this face applies to the first token
-	  (setq cache (wisi-forward-find-token tokens (cdr region) t))
-	  ;; might be looking for IDENTIFIER in name, but only have "*".
-	  (when cache
-	    (wisi-face-action-1 face (wisi-cache-region cache)))
-	  ))
-       )
+	  (setq cache (or (wisi-get-cache (point))
+			  (wisi-forward-cache)))
+	  (while (<= (point) (cdr region))
+	    (when cache
+	      (wisi-face-action-1 face (wisi-cache-region cache)))
+	    (setq cache (wisi-forward-cache))
+	    )))
+
       (setq i (1+ i))
 
       )))
@@ -1333,9 +1394,9 @@ correct. Must leave point at indentation of current line.")
   (setq wisi-string-single-term (car (symbol-value (intern-soft "string-single" token-table))))
   (setq wisi-symbol-term (car (symbol-value (intern-soft "symbol" token-table))))
 
-  (let ((number-literals (cadr (symbol-value (intern-soft "number-literal" token-table)))))
-    (setq wisi-number-literal-term (car number-literals))
-    (setq wisi-number-literal-p (cdr number-literals)))
+  (let ((numbers (cadr (symbol-value (intern-soft "number" token-table)))))
+    (setq wisi-number-term (car numbers))
+    (setq wisi-number-p (cdr numbers)))
 
   (setq wisi-punctuation-table (symbol-value (intern-soft "punctuation" token-table)))
   (setq wisi-punctuation-table-max-length 0)

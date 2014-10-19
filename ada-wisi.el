@@ -362,6 +362,12 @@ point must be on CACHE. PREV-TOKEN is the token before the one being indented."
 		 ;;    (if J > 42
 		 ;; indenting '(if'; containing is '=>'
 		 (+ (current-column) -1 ada-indent))
+		(WITH
+		 ;; test/aspects.ads
+		 ;;    function Wuff return Boolean with Pre =>
+		 ;;      (for all x in U =>
+		 ;; indenting '(for';  containing is '=>', 'with', 'function'
+		 (ada-wisi-indent-cache (1- ada-indent) containing))
 		))
 
 	     ((FUNCTION PROCEDURE)
@@ -1242,35 +1248,37 @@ cached token, return new indentation for point."
 (defun ada-wisi-goto-subunit-name ()
   "For `ada-goto-subunit-name'."
   (wisi-validate-cache (point-max))
-  (unless (> wisi-cache-max (point))
-    (error "parse failed; can't goto subunit name"))
+  (if (not (> wisi-cache-max (point)))
+      (progn
+	(message "parse failed; can't goto subunit name")
+	nil)
 
-  (let ((end nil)
-	cache
-	(name-pos nil))
-    (save-excursion
-      ;; move to top declaration
-      (goto-char (point-min))
-      (setq cache (or (wisi-get-cache (point))
-		      (wisi-forward-cache)))
-      (while (not end)
-	(cl-case (wisi-cache-nonterm cache)
-	  ((pragma use_clause with_clause)
-	   (wisi-goto-end-1 cache)
-	   (setq cache (wisi-forward-cache)))
-	  (t
-	   ;; start of compilation unit
-	   (setq end t))
-	  ))
-      (when (eq (wisi-cache-nonterm cache) 'subunit)
-	(wisi-forward-find-class 'name (point-max)) ;; parent name
-	(wisi-forward-token)
-	(wisi-forward-find-class 'name (point-max)) ;; subunit name
-	(setq name-pos (point)))
-      )
-    (when name-pos
-      (goto-char name-pos))
-    ))
+    (let ((end nil)
+	  cache
+	  (name-pos nil))
+      (save-excursion
+	;; move to top declaration
+	(goto-char (point-min))
+	(setq cache (or (wisi-get-cache (point))
+			(wisi-forward-cache)))
+	(while (not end)
+	  (cl-case (wisi-cache-nonterm cache)
+	    ((pragma use_clause with_clause)
+	     (wisi-goto-end-1 cache)
+	     (setq cache (wisi-forward-cache)))
+	    (t
+	     ;; start of compilation unit
+	     (setq end t))
+	    ))
+	(when (eq (wisi-cache-nonterm cache) 'subunit)
+	  (wisi-forward-find-class 'name (point-max)) ;; parent name
+	  (wisi-forward-token)
+	  (wisi-forward-find-class 'name (point-max)) ;; subunit name
+	  (setq name-pos (point)))
+	)
+      (when name-pos
+	(goto-char name-pos))
+      )))
 
 (defun ada-wisi-goto-declaration-start ()
   "For `ada-goto-declaration-start', which see.
@@ -1592,7 +1600,7 @@ Also return cache at start."
   (define-key ada-mode-map "\M-k" 'wisi-show-token)
   )
 
-(defun ada-wisi-number-literal-p (token-text)
+(defun ada-wisi-number-p (token-text)
   "Return t if TOKEN-TEXT plus text after point matches the
 syntax for a real literal; otherwise nil. point is after
 TOKEN-TEXT; move point to just past token."
@@ -1600,7 +1608,9 @@ TOKEN-TEXT; move point to just past token."
   ;;
   ;; starts with a simple integer
   (let ((end (point)))
-    (when (string-match "^[0-9]+" token-text)
+    ;; this first test must be very fast; it is executed for every token
+    (when (and (memq (aref token-text 0) '(?0 ?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9))
+	       (string-match "^[0-9]+" token-text))
       (cond
        ((= (char-after) ?#)
 	;; based number
