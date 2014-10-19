@@ -42,8 +42,10 @@ is
    function Local_Function_1 return Float;
    --EMACSRESULT:3
 
-   -- adding a body interactively leaves it properly indented, and caches updated.
-   -- Start with invalid syntax (missing final ';')
+   -- Adding a body interactively leaves it properly indented, and
+   -- caches updated. Start with invalid syntax (missing final ';') -
+   -- indent after syntax fixed should indent entire statement.
+
    --EMACSCMD:(progn (end-of-line 7)(delete-char -1)(newline-and-indent)(current-column))
    --EMACSRESULT:5
    --EMACSCMD:(progn (forward-line 5)(back-to-indentation)(execute-kbd-macro "is begin\nnull;\nend;")(indent-for-tab-command)(current-indentation))
@@ -59,11 +61,8 @@ is
    --EMACSRESULT:3
    --EMACSCMD:(progn (forward-line -7)(ada-goto-declaration-start)(looking-at "function Function_Access_1"))
    --EMACSRESULT:t
-   --EMACSCMD:(progn (forward-line -14)(forward-word 1)(ada-goto-declaration-end)(looking-back "Standard.Floa"))
+   --EMACSCMD:(progn (forward-line -14)(forward-word 1)(ada-goto-declaration-end)(looking-back "end"))
    --EMACSRESULT:t
-   -- The last test should look for "end;", but wisi-before-change
-   -- does not invalidate the start of the declaration, so the end
-   -- marker in that cache is not updated.
 
    -- calling ada-make-subprogram-body tested in ada_mode-interactive_common.adb
 

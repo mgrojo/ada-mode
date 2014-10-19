@@ -233,7 +233,7 @@ Does not wait for command to complete."
     ;; Skip action if all tokens are before wisi-cache-max, or there
     ;; are no tokens. See wisi-parse.el wisi-parse-exec-action for
     ;; rationale.
-    (if tokens
+    (if wisi-tokens
 	(if (>= (wisi-parse-max-pos wisi-tokens) wisi-cache-max)
 	    (if (arrayp (aref sexp 2))
 		;; multiple actions

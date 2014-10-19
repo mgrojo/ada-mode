@@ -71,6 +71,21 @@
 ;; the edit point if the change involves anything other than
 ;; whitespace.
 ;;
+;;; Handling parse errors:
+;;
+;; When a parse fails, the cache information before the failure point
+;; is only partly correct, and there is no cache informaiton after the
+;; failure point.
+;;
+;; However, in the case where a parse previously succeeded, and the
+;; current parse fails due to editing, we keep the preceding cache
+;; information by setting wisi-cache-max to the edit point in
+;; wisi-before change; the parser does not apply actions before that
+;; point.
+;;
+;; This allows navigation and indentation in the text preceding the
+;; edit point, and saves some time.
+;;
 ;;;; comparison to the SMIE parser
 ;;
 ;; The central problem to be solved in building the SMIE parser is
@@ -363,7 +378,7 @@ Used in before/after change functions.")
 
 (defun wisi-invalidate-cache(&optional after)
   "Invalidate parsing caches for the current buffer from AFTER to end of buffer.
-Caches are the Emacs syntax cache, the wisi token cache, and the wisi parser cache."
+Caches are the Emacs syntax cache, the wisi token cache."
   (interactive)
   (if (not after)
       (setq after (point-min))
@@ -1073,7 +1088,7 @@ Return cache for paren, or nil if no containing paren."
   "Move point to containing ancestor of CACHE that has class block-start or statement-start.
 Return start cache."
   (when
-    ;; cache nil at bob
+    ;; cache nil at bob, or on cache in partially parsed statement
     (while (and cache
 		(not (memq (wisi-cache-class cache) '(block-start statement-start))))
       (setq cache (wisi-goto-containing cache)))

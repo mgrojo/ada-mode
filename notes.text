@@ -60,16 +60,21 @@ o.e.a.stephe-2: external gps parser
 
     c:/Projects/org.opentoken.stephe/build/debug/Makefile
 
-terminate parser on error even if not match current_verb
-
 run all ada-mode tests with ext parser
+    test/ada_mode-nominal.ads
+        wisi-cache-max is point-max + 2 !?
 
 wisi-ext-parse.el
     ;; FIXME: time temp for (cadr action)
 
-test/ada_mode-interactive_wisi.adb
-    ada-goto-declaration-end failing due to wisi-before-change no longer calling ada-goto-statement-start
-        allow parser to overwrite end and next, but not container
+build/run-wisi-test.el
+        ;; FIXME: run this with wisi-ext-parse
+
+other o.e.a fixmes
+
+terminate parser on error even if not match current_verb
+
+other opentoken fixmes
 
 run all opentoken tests
 
