@@ -34,19 +34,12 @@
 (require 'cl-lib)
 (require 'wisi)
 
-(defcustom ada-wisi-font-lock-size-threshold 100000
-  "Max size (in characters) for using wisi parser results for syntax highlighting."
-  :type 'integer
-  :group 'ada-indentation
-  :safe 'integerp)
-
 (defconst ada-wisi-class-list
   '(
     block-end
     block-middle ;; not start of statement
     block-start ;; start of block is start of statement
     close-paren
-    keyword    ;; cached only for face; not used in indentation
     list-break
     name
     name-paren ;; anything that looks like a procedure call, since the grammar can't distinguish most of them
@@ -311,24 +304,26 @@ point must be on CACHE. PREV-TOKEN is the token before the one being indented."
 	 nil)
 
 	(name
-	 (cl-case (wisi-cache-nonterm cache)
-	   ((function_specification procedure_specification)
-	    ;; test/ada_mode-nominal.ads
-	    ;; not
-	    ;; overriding
-	    ;; procedure
-	    ;;   Procedure_1c (Item  : in out Parent_Type_1);
-	    ;; indenting 'Procedure_1c'
-	    ;;
-	    ;; not overriding function
-	    ;;   Function_2e (Param : in Parent_Type_1) return Float;
-	    ;; indenting 'Function_2e'
-	    (ada-wisi-indent-containing ada-indent-broken cache t))
+	 (cond
+	  ((let ((temp (save-excursion (wisi-goto-containing cache))))
+	     (and temp
+		  (memq (wisi-cache-nonterm temp) '(subprogram_body subprogram_declaration))))
+	   ;; test/ada_mode-nominal.ads
+	   ;; not
+	   ;; overriding
+	   ;; procedure
+	   ;;   Procedure_1c (Item  : in out Parent_Type_1);
+	   ;; indenting 'Procedure_1c'
+	   ;;
+	   ;; not overriding function
+	   ;;   Function_2e (Param : in Parent_Type_1) return Float;
+	   ;; indenting 'Function_2e'
+	   (ada-wisi-indent-containing ada-indent-broken cache t))
 
-	   (t
-	    ;; defer to ada-wisi-after-cache, for consistency
-	    nil)
-	   ))
+	  (t
+	   ;; defer to ada-wisi-after-cache, for consistency
+	   nil)
+	  ))
 
 	(name-paren
 	 ;; defer to ada-wisi-after-cache, for consistency
@@ -368,6 +363,12 @@ point must be on CACHE. PREV-TOKEN is the token before the one being indented."
 		 ;;    (if J > 42
 		 ;; indenting '(if'; containing is '=>'
 		 (+ (current-column) -1 ada-indent))
+		(WITH
+		 ;; test/aspects.ads
+		 ;;    function Wuff return Boolean with Pre =>
+		 ;;      (for all x in U =>
+		 ;; indenting '(for';  containing is '=>', 'with', 'function'
+		 (ada-wisi-indent-cache (1- ada-indent) containing))
 		))
 
 	     ((FUNCTION PROCEDURE)
@@ -669,6 +670,16 @@ point must be on CACHE. PREV-TOKEN is the token before the one being indented."
 
 		((subprogram_body subprogram_declaration subprogram_specification null_procedure_declaration)
 		 (cl-ecase (wisi-cache-token cache)
+		   (IS
+		    ;; test/ada_mode-nominal.ads
+		    ;; procedure Procedure_1d
+		    ;;   (Item   : in out Parent_Type_1;
+		    ;;    Item_1 : in     Character;
+		    ;;    Item_2 : out    Character)
+		    ;;   is null;
+		    ;; indenting 'is'
+		    (+ (current-column) ada-indent-broken))
+
 		   (OVERRIDING
 		    ;; indenting 'overriding' following 'not'
 		    (current-column))
@@ -760,6 +771,15 @@ cached token, return new indentation for point."
 	      ))
 
 	   ((THEN ELSE)
+	   ;;
+	   ;; test/ada_mode-conditional_expressions.adb
+	   ;; K3 : Integer := (if
+	   ;;                    J > 42
+	   ;;                  then
+	   ;;                    -1
+	   ;;                  else
+	   ;;                    +1);
+	   ;; indenting -1, +1
 	    (let ((indent
 		   (cl-ecase (wisi-cache-nonterm (wisi-get-containing-cache cache))
 		     ((statement if_statement elsif_statement_item) ada-indent)
@@ -1044,6 +1064,14 @@ cached token, return new indentation for point."
 		;;      20;
 
 	       (+ (current-column) ada-indent-broken))
+
+	      (null_procedure_declaration
+	       ;; ada_mode-nominal.ads
+	       ;; procedure Procedure_3b is
+	       ;;   null;
+	       ;; indenting null
+	       (+ (current-column) ada-indent-broken))
+
 	      ))
 
 	   (LEFT_PAREN
@@ -1116,7 +1144,15 @@ cached token, return new indentation for point."
 	    ;; procedure Procedure_8
 	    ;;   is new Instance.Generic_Procedure (Integer, Function_1);
 	    ;; indenting 'is'; hanging
-	    ;;	    (+ (current-column) ada-indent-broken))
+	    ;;
+	    ;; test/ada_mode-conditional_expressions.adb
+	    ;; K3 : Integer := (if
+	    ;;                    J > 42
+	    ;;                  then
+	    ;;                    -1
+	    ;;                  else
+	    ;;                    +1);
+	    ;; indenting J
 	    (ada-wisi-indent-cache ada-indent-broken cache))
 	   ))
 	)))
@@ -1213,37 +1249,37 @@ cached token, return new indentation for point."
 (defun ada-wisi-goto-subunit-name ()
   "For `ada-goto-subunit-name'."
   (wisi-validate-cache (point-max))
-  (unless (> wisi-cache-max (point))
-    (error "parse failed; can't goto subunit name"))
+  (if (not (> wisi-cache-max (point)))
+      (progn
+	(message "parse failed; can't goto subunit name")
+	nil)
 
-  (let ((end nil)
-	cache
-	(name-pos nil))
-    (save-excursion
-      ;; move to top declaration
-      (goto-char (point-min))
-      (setq cache (or (wisi-get-cache (point))
-		      (wisi-forward-cache)))
-      (while (not end)
-	(cl-case (wisi-cache-nonterm cache)
-	  ((pragma_g use_clause with_clause)
-	   (wisi-goto-end-1 cache)
-	   (setq cache (wisi-forward-cache)))
-	  (t
-	   ;; start of compilation unit
-	   (setq end t))
-	  )
-	(setq cache (wisi-forward-cache))
+    (let ((end nil)
+	  cache
+	  (name-pos nil))
+      (save-excursion
+	;; move to top declaration
+	(goto-char (point-min))
+	(setq cache (or (wisi-get-cache (point))
+			(wisi-forward-cache)))
+	(while (not end)
+	  (cl-case (wisi-cache-nonterm cache)
+	    ((pragma_g use_clause with_clause)
+	     (wisi-goto-end-1 cache)
+	     (setq cache (wisi-forward-cache)))
+	    (t
+	     ;; start of compilation unit
+	     (setq end t))
+	    ))
+	(when (eq (wisi-cache-nonterm cache) 'subunit)
+	  (wisi-forward-find-class 'name (point-max)) ;; parent name
+	  (wisi-forward-token)
+	  (wisi-forward-find-class 'name (point-max)) ;; subunit name
+	  (setq name-pos (point)))
 	)
-      (when (eq (wisi-cache-nonterm cache) 'subunit)
-	(wisi-forward-find-class 'name (point-max)) ;; parent name
-	(wisi-forward-token)
-	(wisi-forward-find-class 'name (point-max)) ;; subunit name
-	(setq name-pos (point)))
-      )
-    (when name-pos
-      (goto-char name-pos))
-    ))
+      (when name-pos
+	(goto-char name-pos))
+      )))
 
 (defun ada-wisi-goto-declaration-start ()
   "For `ada-goto-declaration-start', which see.
@@ -1568,6 +1604,91 @@ Also return cache at start."
   (define-key ada-mode-map "\M-k" 'wisi-show-token)
   )
 
+(defun ada-wisi-number-p (token-text)
+  "Return t if TOKEN-TEXT plus text after point matches the
+syntax for a real literal; otherwise nil. point is after
+TOKEN-TEXT; move point to just past token."
+  ;; test in test/wisi/ada-number-literal.input
+  ;;
+  ;; starts with a simple integer
+  (let ((end (point)))
+    ;; this first test must be very fast; it is executed for every token
+    (when (and (memq (aref token-text 0) '(?0 ?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9))
+	       (string-match "^[0-9]+" token-text))
+      (cond
+       ((= (char-after) ?#)
+	;; based number
+	(forward-char 1)
+	(if (not (looking-at "[0-9a-fA-F]+"))
+	    (progn (goto-char end) nil)
+
+	  (goto-char (match-end 0))
+	  (cond
+	   ((= (char-after) ?#)
+	    ;; based integer
+	    (forward-char 1)
+	    t)
+
+	   ((= (char-after) ?.)
+	    ;; based real?
+	    (forward-char 1)
+	    (if (not (looking-at "[0-9a-fA-F]+"))
+		(progn (goto-char end) nil)
+
+	      (goto-char (match-end 0))
+
+	      (if (not (= (char-after) ?#))
+		  (progn (goto-char end) nil)
+
+		(forward-char 1)
+		(setq end (point))
+
+		(if (not (memq (char-after) '(?e ?E)))
+		    ;; based real, no exponent
+		    t
+
+		  ;; exponent?
+		  (forward-char 1)
+		  (if (not (looking-at "[+-]?[0-9]+"))
+		      (progn (goto-char end) t)
+
+		    (goto-char (match-end 0))
+		    t
+		)))))
+
+	   (t
+	    ;; missing trailing #
+	    (goto-char end) nil)
+	   )))
+
+       ((= (char-after ?.))
+	;; decimal real number?
+	(forward-char 1)
+	(if (not (looking-at "[0-9]+"))
+	    ;; decimal integer
+	    (progn (goto-char end) t)
+
+	  (setq end (goto-char (match-end 0)))
+
+	  (if (not (memq (char-after) '(?e ?E)))
+	      ;; decimal real, no exponent
+	      t
+
+	    ;; exponent?
+	    (forward-char 1)
+	    (if (not (looking-at "[+-]?[0-9]+"))
+		(progn (goto-char end) t)
+
+	      (goto-char (match-end 0))
+	      t
+	      ))))
+
+       (t
+	;; just an integer
+	t)
+       ))
+    ))
+
 (defun ada-wisi-setup ()
   "Set up a buffer for parsing Ada files with wisi."
   (wisi-setup '(ada-wisi-comment
@@ -1584,65 +1705,6 @@ Also return cache at start."
   (setq wisi-string-quote-escape-doubled t)
 
   (set (make-local-variable 'comment-indent-function) 'wisi-comment-indent)
-
-  (add-hook 'hack-local-variables-hook 'ada-wisi-post-local-vars nil t)
-  )
-
-(defun ada-wisi-face ()
-  "Return face for token in match-data 2"
-  (let ((pos (match-beginning 2))
-	cache)
-    (when (< (point-max) ada-wisi-font-lock-size-threshold)
-      (wisi-validate-cache (line-end-position)))
-
-    (if	(setq cache (wisi-get-cache pos))
-	(wisi-cache-face cache)
-      'default)
-    ))
-
-(defun ada-wisi-post-local-vars ()
-  ;; run after file local variables are read because font-lock-add-keywords
-  ;; evaluates font-lock-defaults, which depends on ada-language-version.
-  ;;
-  ;; use parse results to distinguish difficult cases, but don't
-  ;; require parse just for font-lock
-  ;;
-  ;; name is not found if on next line
-  (font-lock-add-keywords nil
-   (list
-    (list
-     "\\<\\(of[ \t]+reverse\\)\\>"  ;; following word is object
-     '(1 font-lock-keyword-face)
-     )
-    (list
-     (concat
-      "\\<\\("
-      "aliased[ \t]+not[ \t]+null[ \t]+access\\|"
-      "aliased[ \t]+not[ \t]+null\\|"
-      "return[ \t]+access[ \t]+constant\\|"
-      "return[ \t]+access"
-      "\\)\\>[ \t]*"
-      ada-name-regexp "?")
-     '(1 font-lock-keyword-face)
-     '(2 font-lock-type-face nil t)
-     )
-    (list
-     (concat
-      "\\<\\("
-      "aliased\\|"
-      "and\\|"
-      "of\\|"
-      "new\\|"
-      "renames\\|"
-      "return"
-      "\\)\\>[ \t]*"
-      ada-name-regexp "?")
-     '(1 font-lock-keyword-face)
-     '(2 (ada-wisi-face) nil t)
-     ))
-   nil ;; add at start of list, so these have precedence
-   )
-
   )
 
 (add-hook 'ada-mode-hook 'ada-wisi-setup)

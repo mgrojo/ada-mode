@@ -1,0 +1,41 @@
+;; test ada-wisi number-literal lexer
+
+%{
+(require 'wisi)
+(require 'semantic/lex)
+(require 'wisi-compile)
+(require 'ada-wisi) ;; for ada-wisi-number-p
+%}
+
+%keyword NUMBER "number"
+%keyword RANGE "range"
+
+%token <punctuation> DOT_DOT ".."
+
+%token <number> NUMERIC_LITERAL ada-wisi-number-p
+
+%start compilation_unit
+
+%%
+
+compilation_unit
+  : number_list
+    (setq wisi-test-success t)
+  ;
+
+number
+  : NUMBER NUMERIC_LITERAL
+  | RANGE NUMERIC_LITERAL DOT_DOT NUMERIC_LITERAL
+  ;
+
+number_list
+  : number
+  | number_list number
+  ;
+
+%%
+
+;; Local Variables:
+;; eval: (add-hook 'before-save-hook 'delete-trailing-whitespace nil t)
+;; End:
+;;; end of file

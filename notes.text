@@ -43,6 +43,20 @@ install packages in -Q:
 o.e.a.stephe-1: external opentoken parser
 o.e.a.stephe-2: external gps parser
 
+review stefan monnier's changes in elpa ada-mode
+    fix dvc-git first; need fileinfo based status
+
+'raise' in aspects
+    test/int.adb
+    emacs-ada-mode email
+    asked on comp.lang.ada
+
+propagate to o.e.a.stephe-1
+
+after trunk transition to git:
+    built-in ada-mode: (make-obsolete 'ada-mode "use later version from ELPA via `list-packages')
+
+
 5.1.c: use compiled OpenToken parser in background process
     (setq wisi-ext-parse-exec "/Projects/org.emacs.ada-mode.stephe-1/build/wisi/ada_mode_wisi_parse.exe")
     build/wisi/Makefile
@@ -446,9 +460,6 @@ move stuff out of ada-mode-keys.el
 C-c C-d on +Normalize_Pathname
     includes + in identifier
 
-type name after aliased doesn't have typename font:
-   Force_Refresh        : aliased Boolean;
-
 prev-statement-keyword in subprogram skips exception
 
 ada_mode-parens.adb:214:09: (style) bad column
@@ -500,21 +511,6 @@ completion:
 
     get completion candidates from gpr_query
 
-fix fontification of aspect names
-    they are _not_ context clauses
-    they are often on a different line than 'with'
-    there are more than one of them
-    need parser info
-
-fix fontification across newline
-    function () return access
-        foo;
-
-    set face property in parser action?
-
-invalidate fontification when parse succeeds?
-    or move 'return' fontification into parser actions
-
 fix wisi-compile.el needing comp.el, not comp.elc
     some systems don't install emacs source by default
 
@@ -526,18 +522,6 @@ handle all indent options like ada-case-strict
         use an alist or auto naming rule to define prj var
 
     or user write cond string-match on default-dir
-
-set face correctly for name on next line
-    edited some tests
-    but font-lock-add-keywords can't handle that either?
-        except set limit in pre-match-form in match-anchored?
-        see font-lock.el font-lock-fontify-anchored-keywords
-        but that hangs emacs, and the doc says "don't do that". sigh.
-        find emacs-devel thread on lexer doing faces
-
-    use font-lock-face for parser faces?
-        also fontification-functions?
-        (info "Auto Faces")
 
 use post-self-insert-hook for casing
     in 23.2?
@@ -713,9 +697,6 @@ parser is too slow
         won't help much; still need to parse to end of file
         won't help at all on first parse
         unless it's incremental in idle time!
-
-    first parse is for font-lock, and is automatic; use reduced grammar/actions for that?
-        so slow parse is only for user-invoked indentation, where they can more easily tolerate the delay
 
 DEC Ada legacy code
     foo.a for spec, foo_b.a for body
@@ -913,6 +894,9 @@ verify other metadata
 
 build/Makefile all
     # pushes to elpa workspace, builds archive, installs
+
+Emacs 24.4?
+    compat-24.3?
 
 Emacs 24.3, gnat 2014 (sal-standard), installed ada-mode:
     (setenv "ADA_MODE_DIR" "-f package-initialize")

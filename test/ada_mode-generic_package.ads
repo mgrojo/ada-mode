@@ -1,5 +1,7 @@
 -- This is to test the indentation of declarations in generics package declarations
---EMACSCMD:(font-lock-fontify-buffer)
+
+--EMACSCMD:(sit-for 0.01);; Let jit-lock activate
+
 --EMACSCMD:(ada-parse-prj-file "subdir/ada_mode.adp")
 --EMACSCMD:(ada-select-prj-file "subdir/ada_mode.adp")
 
@@ -34,8 +36,6 @@ generic
    type Constrained_Formal_Array_Type is array (Character) of Ada.Text_IO.Count;
    type Formal_Private_Type is abstract tagged limited private;
    type Interface_Type is task interface;
-
-   --EMACSCMD:(font-lock-fontify-buffer);; don't wait for jit-lock
 
    --EMACSCMD:(test-face "Formal_Private_Type" 'font-lock-type-face)
    type Limited_Formal_Derived_Type is abstract limited new Formal_Private_Type with private;
@@ -112,21 +112,27 @@ generic
    with package A_Package_5 is new Ada.Text_IO.
      Integer_IO (Num => Formal_Signed_Integer_Type);
 
-   -- multi-line font-lock doesn't work
    with package A_Package_6 is new
+     --EMACSCMD:(test-face "Ada.Text_IO.Integer_IO" 'font-lock-function-name-face)
+     --EMACSCMD:(test-face "Num" nil)
+     --EMACSCMD:(test-face "=>" nil)
+     --EMACSCMD:(test-face "Formal_Signed_Integer_Type" nil)
      Ada.Text_IO.Integer_IO (Num => Formal_Signed_Integer_Type);
    with package A_Package_7 is
      new Ada.Text_IO.Integer_IO (Num => Formal_Signed_Integer_Type);
    with package A_Package_8
      is new Ada.Text_IO.Integer_IO (Num => Formal_Signed_Integer_Type);
 
-   --EMACSCMD:(progn (forward-line 2)(test-face "Ada.Text_IO.Integer_IO" 'font-lock-function-name-face))
    with package
+     --EMACSCMD:(test-face "A_Package_9" 'font-lock-function-name-face)
+     --EMACSCMD:(test-face "Ada.Text_IO.Integer_IO" 'font-lock-function-name-face)
      A_Package_9 is new Ada.Text_IO.Integer_IO (Num => Formal_Signed_Integer_Type);
    with
      package A_Package_10 is new Ada.Text_IO.Integer_IO (Num => Formal_Signed_Integer_Type);
    pragma Unreferenced (A_Package_10);
 
+   --EMACSCMD:(test-face "Ada_Mode.Generic_Package" 'font-lock-function-name-face)
 package Ada_Mode.Generic_Package is
    -- See ada_mode-generic_parent.ads for generic subprograms
+   --EMACSCMD:(test-face "Ada_Mode.Generic_Package" 'font-lock-function-name-face)
 end Ada_Mode.Generic_Package;

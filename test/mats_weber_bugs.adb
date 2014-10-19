@@ -1,7 +1,7 @@
 -- Bugs reported by Mats Weber <Mats.Weber@elca-matrix.ch>
 -- ada-mode version: 2.23
 
---EMACSCMD:(font-lock-fontify-buffer)
+--EMACSCMD:(sit-for 0.01);; Let jit-lock activate
 
 with Ada.Text_Io; use Ada.Text_Io;
 package body Mats_Weber_Bugs is

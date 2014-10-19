@@ -1,6 +1,7 @@
 --EMACSCMD:(ada-parse-prj-file "subdir/ada_mode.adp")
 --EMACSCMD:(ada-select-prj-file "subdir/ada_mode.adp")
---EMACSCMD:(progn (wisi-parse-buffer)(font-lock-fontify-buffer))
+--EMACSCMD:(sit-for 0.01);; Let jit-lock activate
+
 package Ada_Mode.Nominal.Child is
 
    --EMACSCMD:(test-face "is" font-lock-keyword-face)

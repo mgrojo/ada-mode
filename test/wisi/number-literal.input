@@ -1,0 +1,6 @@
+-- Just parse successfully
+number 1234
+number 1234.5678
+number 1234.5678e+99
+number 1234.5678e-99
+

@@ -3,17 +3,19 @@
 --
 -- Also other stuff
 
---EMACSCMD:(font-lock-fontify-buffer)
+--EMACSCMD:(sit-for 0.01);; Let jit-lock activate
+
 --EMACSCMD:(setq skip-recase-test t) we have identifiers that don't follow the standard naming convention
 
---EMACSCMD:(test-face "Ada.Directories" font-lock-constant-face)
---EMACSCMD:(test-face "Ada.Text_IO" font-lock-constant-face)
---EMACSCMD:(test-face "Ada_Mode.Nominal" font-lock-constant-face)
+--EMACSCMD:(test-face "Ada.Directories" font-lock-function-name-face)
+--EMACSCMD:(test-face "Ada.Text_IO" font-lock-function-name-face)
+--EMACSCMD:(test-face "Ada_Mode.Nominal" font-lock-function-name-face)
 with Ada.Directories, Ada.Text_IO, Ada_Mode.Nominal;
---EMACSCMD:(test-face "Ada.Directories" font-lock-constant-face)
---EMACSCMD:(test-face "Ada.Text_IO" font-lock-constant-face)
---EMACSCMD:(test-face "Ada_Mode.Nominal" font-lock-constant-face)
-use  Ada.Directories, Ada.Text_IO, Ada_Mode.Nominal;
+--EMACSCMD:(test-face "Ada.Directories" font-lock-function-name-face)
+--EMACSCMD:(test-face "Ada.Text_IO" font-lock-function-name-face)
+--EMACSCMD:(test-face "Ada_Mode.Nominal" font-lock-function-name-face)
+use Ada.Directories, Ada.Text_IO, Ada_Mode.Nominal;
+--EMACSCMD:(test-face "Ada_Mode.Nested_Packages" font-lock-function-name-face)
 package body Ada_Mode.Nested_Packages is
 
    --EMACSCMD:(progn (forward-line 1)(forward-word 1)(forward-char 3)(ada-identifier-at-point))
@@ -41,6 +43,8 @@ package body Ada_Mode.Nested_Packages is
          --EMACSCMD:(test-face "of" font-lock-keyword-face)
          --EMACSCMD:(test-face "Boolean" font-lock-type-face)
          Cache : array (1 .. 10) of Boolean := (True, False, others => False);
+         --EMACSCMD:(test-face "1" font-lock-constant-face)
+         --EMACSCMD:(test-face ".." nil)
          Strlist : String (1 .. 2);
       begin
          if Cache (Model) then
@@ -156,4 +160,5 @@ package body Ada_Mode.Nested_Packages is
       end loop;
    end Test_For_1;
 
+   --EMACSCMD:(test-face "Ada_Mode.Nested_Packages" font-lock-function-name-face)
 end Ada_Mode.Nested_Packages;

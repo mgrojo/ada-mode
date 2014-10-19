@@ -5,16 +5,16 @@
 
 with Ada.Text_IO,
      Ada.Numerics,   --  used to be indented with ada-broken-indent
-     Foo;
+     Ada.Strings;
 
 use Ada.Text_IO,
     Ada.Numerics,   --  used to be indented with ada-broken-indent
-    Foo;
+    Ada.Strings;
 
 procedure With_Use1 is
    use Ada.Text_IO,
        Ada.Numerics,   --  used to be indented with ada-broken-indent
-       Foo;
+       Ada.Strings;
 
 begin null; end;
 -- Local Variables:

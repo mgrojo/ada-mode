@@ -340,13 +340,13 @@ nil, 'shift, or 'accept."
   ;;
   ;; Also skip if no tokens; nothing to do. This can happen when all
   ;; tokens in a grammar statement are optional.
-  (if tokens
+  (if (< 0 (length tokens))
       (if (>= (wisi-parse-max-pos tokens) wisi-cache-max)
 
 	  (funcall func tokens)
 
 	(when (> wisi-debug 1)
-	  (message "... action skipped; before wisi-cache-max")))
+	  (message "... action skipped; before wisi-cache-max %d" wisi-cache-max)))
 
     (when (> wisi-debug 1)
       (message "... action skipped; no tokens"))

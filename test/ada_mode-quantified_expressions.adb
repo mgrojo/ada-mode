@@ -1,4 +1,5 @@
---EMACSCMD:(font-lock-fontify-buffer)
+--EMACSCMD:(sit-for 0.01);; Let jit-lock activate
+
 with Ada.Containers.Vectors;
 procedure Ada_Mode.Quantified_Expressions is
 

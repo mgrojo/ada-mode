@@ -7,11 +7,11 @@
 --EMACSRESULT: 3
 with Ada.Text_IO,
    Ada.Numerics,   --  used to be indented with ada-broken-indent = 2
-   Foo;
+   Ada.Strings;
 
 use Ada.Text_IO,
       Ada.Numerics,   --  used to be indented with ada-broken-indent
-      Foo;
+      Ada.Strings;
 
 procedure With_Use2 is begin null; end;
 

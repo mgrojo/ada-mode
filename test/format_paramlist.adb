@@ -4,6 +4,8 @@
 -- We are editing things in ada-align; don't abort for temporary bad syntax
 --EMACSCMD:(setq wisi-debug 0)
 
+--EMACSCMD:(sit-for 0.01);; Let jit-lock activate
+
 package body Format_Paramlist is
 
    -- test deleting extra space after type before ';)'
@@ -40,10 +42,12 @@ package body Format_Paramlist is
    end G;
 
    --  Handle 'aliased' (Ada 2012 syntax)
+   --  code must be in window for jit-lock to process it
+
    --EMACSCMD:(progn (forward-line 18)(forward-word 1)(insert "   ") (ada-align))
    --EMACSCMD:(progn (forward-line 16)(test-face "aliased" 'font-lock-keyword-face))
    --EMACSCMD:(progn (forward-line 15)(test-face "in" 'font-lock-keyword-face))
-   --EMACSCMD:(progn (forward-line 14)(test-face "Z" 'font-lock-type-face))
+   --EMACSCMD:(progn (forward-line 14)(sit-for 0.01)(test-face "Z" 'font-lock-type-face))
    --EMACSCMD:(progn (forward-line 14)(test-face "out" 'font-lock-keyword-face))
    --EMACSCMD:(progn (forward-line 13)(test-face "Z" 'font-lock-type-face))
    --EMACSCMD:(progn (forward-line 13)(test-face "aliased" 'font-lock-keyword-face))
@@ -74,7 +78,9 @@ package body Format_Paramlist is
    type Z_Access is access Z;
 
    --  Handle 'not null' without 'access'
-   --EMACSCMD:(progn (forward-line 6)(forward-word 1)(insert "   ") (ada-align))
+   --EMACSCMD:(progn (forward-line 8)(forward-word 1)(insert "   ") (ada-align))
+   --EMACSCMD:(sit-for 0.02);; Let jit-lock activate
+
    --EMACSCMD:(progn (forward-line 4)(test-face "Z_Access" 'font-lock-type-face))
    --EMACSCMD:(progn (forward-line 4)(test-face "Z_Access" 'font-lock-type-face))
    --EMACSCMD:(progn (forward-line 4)(test-face "Z_Access" 'font-lock-type-face))

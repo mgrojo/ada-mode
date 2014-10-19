@@ -1,0 +1,31 @@
+;; test number-literal lexer
+
+%{
+(require 'wisi)
+(require 'semantic/lex)
+(require 'wisi-compile)
+%}
+%keyword NUMBER "number"
+
+%token <number> NUMERIC_LITERAL wisi-number-p
+
+%start compilation_unit
+
+%%
+
+compilation_unit
+  : number_list
+    (setq wisi-test-success t)
+  ;
+
+number_list
+  : NUMBER NUMERIC_LITERAL
+  | number_list NUMBER NUMERIC_LITERAL
+  ;
+
+%%
+
+;; Local Variables:
+;; eval: (add-hook 'before-save-hook 'delete-trailing-whitespace nil t)
+;; End:
+;;; end of file

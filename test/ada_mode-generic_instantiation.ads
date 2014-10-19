@@ -9,11 +9,10 @@ with Ada_Mode.Generic_Parent;
 with Ada_Mode.Nominal;
 private
 package Ada_Mode.Generic_Instantiation is
-   --EMACSCMD:(and (eq ada-xref-tool 'gnat) (progn (end-of-line 0)(backward-word)(ada-next-statement-keyword)(looking-at "end Ada_Mode.Generic_Instantiation")))
-   --EMACSRESULT:(eq ada-xref-tool 'gnat)
+   --EMACSCMD:(progn (end-of-line 0)(backward-word)(ada-next-statement-keyword)(looking-at "end Ada_Mode.Generic_Instantiation"))
+   --EMACSRESULT:t
 
-   -- don't wait for jit-lock to get around to refontifying
-   --EMACSCMD:(font-lock-fontify-buffer)
+   --EMACSCMD:(sit-for 0.01);; Let jit-lock activate
 
    --EMACSCMD:(test-face "Ada_Mode.Generic_Parent" 'font-lock-function-name-face)
    package Instance is new Ada_Mode.Generic_Parent;
@@ -44,6 +43,8 @@ package Ada_Mode.Generic_Instantiation is
    procedure Procedure_8
      is new Instance.Generic_Procedure (Integer, Function_1);
 
+   -- multi-line works here, because this is in the parser
+   --EMACSCMD:(progn (forward-line 2)(test-face "Instance.Generic_Function" 'font-lock-function-name-face))
    generic function Gen_Function_1 renames
      Instance.Generic_Function;
 

@@ -9,6 +9,10 @@ Please send wisi bug reports to bug-gnu-emacs@gnu.org, with
 
 * wisi 1.1.0
 
+** remove face from wisi-cache; set font-lock-face property directly.
+
+** add support for numeric literal tokens.
+
 ** change wisi-*-action to take a vector of arguments; faster for
    external parser, catches more errors.
 

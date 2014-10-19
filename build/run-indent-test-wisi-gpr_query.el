@@ -5,5 +5,6 @@
 (require 'run-indent-test)
 
 (setq wisi-debug 1);; report parse errors
+;;(setq debug-on-error t)
 
 ;;; end of file
