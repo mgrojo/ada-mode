@@ -2,7 +2,7 @@
 --
 --  Parse the declarations from Input_File, add to List.
 --
---  Copyright (C) 2012, 2013 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2012 - 2014 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -18,6 +18,7 @@
 
 pragma License (GPL);
 
+with Ada.Exceptions;
 with Ada.Strings.Fixed;
 with Ada.Text_IO; use Ada.Text_IO;
 with Wisi.Utils;  use Wisi.Utils;
@@ -44,7 +45,7 @@ begin
          function Match (ID : in String) return Boolean
          is begin
             Key_Last := ID'Length;
-            return ID = Line (1 .. ID'Length);
+            return ID'Length <= Line'Last and then ID = Line (1 .. ID'Length);
          end Match;
 
       begin
@@ -132,15 +133,14 @@ begin
             end;
 
          else
-            Put_Error (Input_File, "unexpected");
+            Put_Error (Input_File, "unexpected syntax");
             raise Syntax_Error;
          end if;
       exception
-      when others =>
+      when E : others =>
          Utils.Put_Error
-           (Name (Input_File),
-            Ada.Text_IO.Line (Input_File) - 1,
-            "syntax error (or wisi bug)");
+           (Input_File,
+            "syntax error (or wisi bug): " & Ada.Exceptions.Exception_Message (E));
          raise Syntax_Error;
       end;
    end loop;
