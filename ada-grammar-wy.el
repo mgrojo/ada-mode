@@ -744,7 +744,7 @@
         (progn
         (wisi-statement-action [1 statement-start 5 statement-end])
         (wisi-containing-action 1 3)
-        (wisi-containing-action 2 6))))
+        (wisi-containing-action 2 4))))
       (formal_type_definition
        ((abstract_tagged_limited_opt PRIVATE ))
        ((formal_derived_type_definition ))

@@ -184,6 +184,7 @@
   :type 'integer
   :group 'wisi
   :safe 'integerp)
+(make-variable-buffer-local 'wisi-font-lock-size-threshold)
 
 ;;;; lexer
 
@@ -223,16 +224,12 @@ TOKEN-TEXT; move point to just past token."
       t
       )))
 
-(defun wisi-forward-token (&optional text-only)
+(defun wisi-forward-token ()
   "Move point forward across one token, skipping leading whitespace and comments.
-Return the corresponding token, in a format determined by TEXT-ONLY:
-TEXT-ONLY t:          text
-TEXT-ONLY nil:        (token text start . end)
-where:
+Return the corresponding token, in format: (token start . end) where:
+
 `token' is a token symbol (not string) from `wisi-punctuation-table',
 `wisi-keyword-table', `wisi-string-double-term', `wisi-string-double-term' or `wisi-symbol-term'.
-
-`text' is the token text from the buffer
 
 `start, end' are the character positions in the buffer of the start
 and end of the token text.
@@ -247,7 +244,6 @@ If at end of buffer, returns `wisent-eoi-term'."
 	token-id token-text)
     (cond
      ((eobp)
-      (setq token-text "")
       (setq token-id wisent-eoi-term))
 
      ((eq syntax 1)
@@ -259,8 +255,7 @@ If at end of buffer, returns `wisent-eoi-term'."
 	  (setq temp-text (buffer-substring-no-properties start (point)))
 	  (setq temp-id (car (rassoc temp-text wisi-punctuation-table)))
 	  (when temp-id
-	    (setq token-text temp-text
-		  token-id temp-id
+	    (setq token-id temp-id
 		  next-point (point)))
 	  (if (or
 	       (eobp)
@@ -291,7 +286,6 @@ If at end of buffer, returns `wisent-eoi-term'."
 		      (and (eq delim (car wisi-string-quote-escape))
 			   (eq (char-before (1- (point))) (cdr wisi-string-quote-escape))))
 		(forward-sexp))
-	      (setq token-text (buffer-substring-no-properties start (point)))
 	      (setq token-id (if (= delim ?\") wisi-string-double-term wisi-string-single-term)))
 	  (scan-error
 	   ;; Something screwed up; we should not get here if
@@ -316,14 +310,12 @@ If at end of buffer, returns `wisent-eoi-term'."
       (signal 'wisi-parse-error
 	      (wisi-error-msg "unrecognized token '%s'" (buffer-substring-no-properties start (point)))))
 
-    (if text-only
-	token-text
-      (cons token-id (cons token-text (cons start (point)))))
+    (cons token-id (cons start (point)))
     ))
 
 (defun wisi-backward-token ()
   "Move point backward across one token, skipping whitespace and comments.
-Return (nil text start . end) - same structure as
+Return (nil start . end) - same structure as
 wisi-forward-token, but does not look up symbol."
   (forward-comment (- (point)))
   ;; skips leading whitespace, comment, trailing whitespace.
@@ -346,8 +338,14 @@ wisi-forward-token, but does not look up symbol."
       (if (zerop (skip-syntax-backward "."))
 	  (skip-syntax-backward "w_'")))
      )
-    (cons nil (cons (buffer-substring-no-properties (point) end) (cons (point) end)))
+    (cons nil (cons (point) end))
     ))
+
+(defun wisi-token-text (token)
+  "Return buffer text from token range."
+  (let ((region (cdr token)))
+    (and region
+       (buffer-substring-no-properties (car region) (cdr region)))))
 
 ;;;; token info cache
 ;;
@@ -706,7 +704,7 @@ grammar action as:
 	  (i 0))
       (while (< i (length pairs))
 	(let* ((number (1- (aref pairs i)))
-	       (region (cddr (aref wisi-tokens number)));; wisi-tokens is let-bound in wisi-parse-reduce
+	       (region (cdr (aref wisi-tokens number)));; wisi-tokens is let-bound in wisi-parse-reduce
 	       (token (car (aref wisi-tokens number)))
 	       (class (aref pairs (setq i (1+ i))))
 	       (mark
@@ -802,25 +800,25 @@ grammar action as:
   "Set containing marks in all tokens in CONTAINED-TOKEN with null containing mark to marker pointing to CONTAINING-TOKEN.
 If CONTAINING-TOKEN is empty, the next token number is used."
   ;; wisi-tokens is is bound in action created by wisi-semantic-action
-  (let* ((containing-region (cddr (aref wisi-tokens (1- containing-token))))
-	 (contained-region (cddr (aref wisi-tokens (1- contained-token)))))
+  (let* ((containing-region (cdr (aref wisi-tokens (1- containing-token))))
+	 (contained-region (cdr (aref wisi-tokens (1- contained-token)))))
 
     (unless containing-region ;;
       (signal 'wisi-parse-error
 	      (wisi-error-msg
 	       "wisi-containing-action: containing-region '%s' is empty. grammar error; bad action"
-	       (nth 1 (aref wisi-tokens (1- containing-token))))))
+	       (wisi-token-text (aref wisi-tokens (1- containing-token))))))
 
     (unless (or (not contained-region) ;; contained-token is empty
 		(wisi-get-cache (car containing-region)))
       (signal 'wisi-parse-error
 	      (wisi-error-msg
 	       "wisi-containing-action: containing-token '%s' has no cache. grammar error; missing action"
-	       (nth 1 (aref wisi-tokens (1- containing-token))))))
+	       (wisi-token-text (aref wisi-tokens (1- containing-token))))))
 
     (while (not containing-region)
       ;; containing-token is empty; use next
-      (setq containing-region (cddr (aref wisi-tokens containing-token))))
+      (setq containing-region (cdr (aref wisi-tokens containing-token))))
 
     (when contained-region
       ;; nil when empty production, may not contain any caches
@@ -888,7 +886,7 @@ vector [number class token_id class token_id ...]:
 	  (setq i (1+ i))
 	  (cond
 	   ((numberp token-number)
-	    (setq region (cddr (aref wisi-tokens (1- token-number))))
+	    (setq region (cdr (aref wisi-tokens (1- token-number))))
 	    (when region
 	      (setq cache (wisi-get-cache (car region)))
 	      (setq mark (copy-marker (1+ (car region))))
@@ -907,7 +905,7 @@ vector [number class token_id class token_id ...]:
 	    ;; token-number may contain 0, 1, or more 'class token_id' pairs
 	    ;; the corresponding region may be empty
 	    ;; there must have been a prev keyword
-	    (setq region (cddr (aref wisi-tokens (1- (aref token-number 0)))))
+	    (setq region (cdr (aref wisi-tokens (1- (aref token-number 0)))))
 	    (when region ;; not an empty token
 	      ;; We must search for all targets at the same time, to
 	      ;; get the motion order right.
@@ -939,7 +937,7 @@ vector [number class token_id class token_id ...]:
 Also override token with new token."
   (let* ((token-region (aref wisi-tokens (1- number)));; wisi-tokens is let-bound in wisi-parse-reduce
 	 (token (car token-region))
-	 (region (cddr token-region))
+	 (region (cdr token-region))
 	cache)
 
     (when region
@@ -983,7 +981,7 @@ wisi-tokens[token-number]."
       (setq face (aref pairs (setq i (1+ i))))
       (cond
        ((integerp number)
-	(setq region (cddr (aref wisi-tokens (1- number))));; wisi-tokens is let-bound in wisi-parse-reduce
+	(setq region (cdr (aref wisi-tokens (1- number))));; wisi-tokens is let-bound in wisi-parse-reduce
 	(when region
 	  (save-excursion
 	    (goto-char (car region))
@@ -998,7 +996,7 @@ wisi-tokens[token-number]."
 	    )))
 
        ((vectorp number)
-	(setq region (cddr (aref wisi-tokens (1- (aref number 0)))))
+	(setq region (cdr (aref wisi-tokens (1- (aref number 0)))))
 	(when region
 	  (while (< j (length number))
 	    (setq tokens (cons (aref number j) tokens))
@@ -1026,7 +1024,7 @@ in the range covered by wisi-tokens[token-number]."
     (while (< i (length pairs))
       (setq number (aref pairs i))
       (setq face (aref pairs (setq i (1+ i))))
-      (setq region (cddr (aref wisi-tokens (1- number))));; wisi-tokens is let-bound in wisi-parse-reduce
+      (setq region (cdr (aref wisi-tokens (1- number))));; wisi-tokens is let-bound in wisi-parse-reduce
       (when region
 	(save-excursion
 	  (goto-char (car region))
@@ -1330,11 +1328,7 @@ correct. Must leave point at indentation of current line.")
       (when (>= (point) savep) (setq savep nil))
 
       (when (>= (point) wisi-cache-max)
-	(wisi-validate-cache (line-end-position)) ;; include at lease the first token on this line
-	(when (and (not wisi-parse-failed)
-		   wisi-indent-failed)
-	  (setq wisi-indent-failed nil)
-	  (run-hooks 'wisi-post-parse-fail-hook)))
+	(wisi-validate-cache (line-end-position))) ;; include at lease the first token on this line
 
       (if (> (point) wisi-cache-max)
 	  (progn
@@ -1346,9 +1340,13 @@ correct. Must leave point at indentation of current line.")
 	    (back-to-indentation)
 	    (setq indent (current-column)))
 
+	(when wisi-indent-failed
+	  (setq wisi-indent-failed nil)
+	  (run-hooks 'wisi-post-parse-fail-hook))
+
 	(setq indent
 	      (with-demoted-errors
-		(or (run-hook-with-args-until-success 'wisi-indent-calculate-functions) 0))
+		  (or (run-hook-with-args-until-success 'wisi-indent-calculate-functions) 0))
 	      )))
 
     (if savep

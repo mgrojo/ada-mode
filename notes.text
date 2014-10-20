@@ -46,13 +46,27 @@ review stefan monnier's changes in elpa ada-mode
     test/int.adb
     emacs-ada-mode email
     asked on comp.lang.ada
+    gnat allows it, so o.e.a has to
+
 
 remove 'fontified on inserted text?
     test first; automatically removed?
     'font-lock-face automatically removed?
 
+don't remove 'font-lock-face on invalidate; too annoying
+    requires wisi-face-action override
+    that was ruled out for correctness; still true?
+
 face for entry names?
     in accept and declaration
+
+hippie-expand changed
+    return after expand gives "no match"
+    trying to cycle?
+
+wisi-generate check token numbers in actions, report out of range
+
+navigation error on case after edit 'when' list
 
 after trunk transition to git:
     built-in ada-mode: (make-obsolete 'ada-mode "use later version from ELPA via `list-packages')

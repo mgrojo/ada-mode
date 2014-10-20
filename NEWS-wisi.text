@@ -9,6 +9,8 @@ Please send wisi bug reports to bug-gnu-emacs@gnu.org, with
 
 * wisi 1.1.0
 
+** change wisi-forward-token to not return text; simpler, faster
+
 ** remove face from wisi-cache; set font-lock-face property directly.
 
 ** add support for numeric literal tokens.

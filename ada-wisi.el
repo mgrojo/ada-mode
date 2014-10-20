@@ -185,7 +185,7 @@ point must be on CACHE. PREV-TOKEN is the token before the one being indented."
 	(containing (wisi-goto-containing cache)))
     (cl-ecase (wisi-cache-token containing)
       (LEFT_PAREN
-       (if (equal break-point (cl-caddr prev-token))
+       (if (equal break-point (cadr prev-token))
 	   ;; we are indenting the first token after the list-break; not hanging.
 	   ;;
 	   ;; test/parent.adb
@@ -329,15 +329,26 @@ point must be on CACHE. PREV-TOKEN is the token before the one being indented."
 	 nil)
 
 	(open-paren
-	 (let ((containing (wisi-goto-containing cache)))
+	 (let* ((containing (wisi-goto-containing cache))
+		(containing-pos (point)))
 	   (cl-case (wisi-cache-token containing)
 	     (COMMA
 	      ;; test/ada_mode-parens.adb
 	      ;; A : Matrix_Type :=
 	      ;;   ((1, 2, 3),
 	      ;;    (4, 5, 6),
-	      ;; indenting (4
-	      (ada-wisi-indent-containing 0 containing))
+	      ;; indenting (4; containing is '),' ; 0
+	      ;;
+	      ;; test/ada_mode-parens.adb
+	      ;; Local_14 : Local_14_Type :=
+	      ;;   ("123",
+	      ;;    "456" &
+	      ;;    ("789"));
+	      ;; indenting ("4"; contaning is '3",' ; ada-indent-broken
+
+	      (ada-wisi-indent-containing
+	       (if (= (nth 1 prev-token) containing-pos) 0 ada-indent-broken)
+	       containing))
 
 	     (EQUAL_GREATER
 	      (setq containing (wisi-goto-containing containing))
@@ -870,7 +881,7 @@ cached token, return new indentation for point."
 	 ;; indenting 'Integer'
 	 (let ((paren-column (current-column))
 	       (start-is-comment (save-excursion (goto-char start) (looking-at comment-start-skip))))
-	   (wisi-forward-token t); point is now after paren
+	   (wisi-forward-token); point is now after paren
 	   (if start-is-comment
 	       (skip-syntax-forward " >"); point is now on comment
 	     (forward-comment (point-max)); point is now on first token
@@ -1328,6 +1339,9 @@ Also return cache at start."
 (defun ada-wisi-goto-declarative-region-start ()
   "For `ada-goto-declarative-region-start', which see."
   (wisi-validate-cache (point))
+  (unless (> wisi-cache-max (point))
+    (error "parse failed; can't goto declarative-region-start"))
+
   (let ((done nil)
 	(first t)
 	(cache
@@ -1343,7 +1357,7 @@ Also return cache at start."
     (while (not done)
       (if (ada-wisi-declarative-region-start-p cache)
 	  (progn
-	    (wisi-forward-token t)
+	    (wisi-forward-token)
 	    (setq done t))
 	(cl-case (wisi-cache-class cache)
 	  ((block-middle block-end)
@@ -1451,7 +1465,7 @@ Also return cache at start."
     (while (not done)
       (let ((token-text (wisi-forward-token)))
 	(setq token (nth 0 token-text))
-	(setq text  (nth 1 token-text)))
+	(setq text  (wisi-token-text token-text)))
       (cond
        ((equal token 'COMMA) nil);; multiple identifiers
 

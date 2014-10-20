@@ -1964,15 +1964,15 @@ don't move to corresponding declaration."
 - If region is active, assume it contains a package name;
   position point on that package declaration.
 
-- If point is in a separate body, position point on the
-  corresponding specification.
-
 - If point is in the start line of a non-nested child package or
   subprogram declaration, position point on the corresponding
   parent package specification.
 
 - If point is in a context clause line, position point on the
   first package declaration that is mentioned.
+
+- If point is in a separate body, position point on the
+  corresponding specification.
 
 - If point is in a subprogram body or specification, position point
   on the corresponding specification or body.
