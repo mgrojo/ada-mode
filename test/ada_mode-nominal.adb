@@ -342,6 +342,7 @@ package body Ada_Mode.Nominal is -- target 0
       procedure P1 is
       begin
          null;
+         --EMACSCMD:(test-face "P1" 'font-lock-function-name-face)
       end P1;
 
       procedure P2 (A : Float; B : Float)
@@ -488,6 +489,7 @@ package body Ada_Mode.Nominal is -- target 0
         Function_2a (Parent_Type_1'(1, 2.0, False)) +
         -- multi-line expression that happens to have a cache at a line start
         12.0;
+      --EMACSCMD:(test-face "Function_1a" 'font-lock-function-name-face)
    end Function_1a;
 
    function Function_1b return Float

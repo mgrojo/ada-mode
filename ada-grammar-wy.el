@@ -1593,7 +1593,8 @@
         (wisi-containing-action 2 3)
         (wisi-containing-action 4 5)
         (wisi-containing-action 6 7)
-        (wisi-motion-action [1 2 4 6 8]))))
+        (wisi-motion-action [1 2 4 6 8])
+        (wisi-face-action [9 font-lock-function-name-face]))))
       (subprogram_body_stub
        ((overriding_indicator_opt subprogram_specification IS SEPARATE aspect_specification_opt SEMICOLON )
         (progn

@@ -44,8 +44,8 @@ is
 
    -- adding a body interactively leaves it properly indented, and caches updated.
    -- Start with invalid syntax (missing final ';')
-   --EMACSCMD:(progn (end-of-line 7)(delete-char -1)(newline-and-indent)(current-column))
-   --EMACSRESULT:5
+   --EMACSCMD:(progn (end-of-line 7)(delete-char -1)(newline-and-indent)(list (current-column) wisi-cache-max))
+   --EMACSRESULT:(list 5 (line-beginning-position 4))
    --EMACSCMD:(progn (forward-line 5)(back-to-indentation)(execute-kbd-macro "is begin\nnull;\nend;")(indent-for-tab-command)(current-indentation))
    --EMACSRESULT:3
    function Function_Access_1
@@ -83,4 +83,33 @@ begin
    --EMACSRESULT:t
    --EMACSCMD:(progn (forward-line -4)(forward-word 1)(wisi-goto-statement-end) (looking-at "; -- target extending"))
    --EMACSRESULT:t
+
+   -- merging one 'if' into another, as an 'elsif'. This encountered
+   -- a bug in an earlier version.
+   --
+   -- Scenario:
+   --
+   -- - Paste the 'if'; parse is triggered by font-lock, succeeds
+   --
+   -- - Edit the 'if', leaving 'if then'; parse is triggered by
+   --   font-lock, fails, leaving wisi-cache-max before 'if'
+   --
+   -- - Finish editing the 'elsif'; parse is triggered by font-lock,
+   --   changing the IDENTIFIER cache to ELSIF.
+   --
+   -- - indent properly
+
+   --EMACSCMD:(progn (forward-line 11)(kill-line 2)(forward-line -2)(yank)(forward-line -1)(kill-line)wisi-cache-max)
+   --EMACSRESULT:(line-beginning-position 9)
+   --EMACSCMD:(progn (forward-line 7)(wisi-validate-cache (line-end-position)))
+   --EMACSCMD:(progn (forward-line 6)(back-to-indentation)(wisi-get-cache (point)))
+   --EMACSRESULT:nil
+   --EMACSCMD:(progn (forward-line 4)(back-to-indentation)(insert "el")(wisi-validate-cache (line-end-position))(insert "s")(wisi-validate-cache (line-end-position)))
+   --EMACSCMD:(progn (forward-line 3)(back-to-indentation)(wisi-cache-token (wisi-get-cache (point))))
+   --EMACSRESULT:'ELSIF
+   if  then
+   else
+   end if;
+   if  then
+   end if;
 end Ada_Mode.Interactive_Wisi;

@@ -47,7 +47,12 @@ review stefan monnier's changes in elpa ada-mode
     emacs-ada-mode email
     asked on comp.lang.ada
 
-propagate to o.e.a.stephe-1
+remove 'fontified on inserted text?
+    test first; automatically removed?
+    'font-lock-face automatically removed?
+
+face for entry names?
+    in accept and declaration
 
 after trunk transition to git:
     built-in ada-mode: (make-obsolete 'ada-mode "use later version from ELPA via `list-packages')

@@ -485,7 +485,7 @@ point is where the mouse button was clicked."
   (interactive "*")
   ;; point may be in the middle of a word, so insert newline first,
   ;; then go back and indent.
-  (newline)
+  (insert "\n")
   (forward-char -1)
   (funcall indent-line-function)
   (forward-char 1)

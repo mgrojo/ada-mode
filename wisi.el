@@ -408,19 +408,7 @@ Used in before/after change functions.")
 (defvar-local wisi-end-caches nil
   "List of buffer positions of caches in current statement that need wisi-cache-end set.")
 
-(defun wisi-invalidate-cache(&optional after)
-  "Invalidate parsing caches for the current buffer from AFTER to end of buffer."
-  (interactive)
-  (if (not after)
-      (setq after (point-min))
-    (setq after
-	(save-excursion
-	  (goto-char after)
-	  (line-beginning-position))))
-  (when (> wisi-debug 0) (message "wisi-invalidate %s:%d" (current-buffer) after))
-  (setq wisi-cache-max after)
-  (setq wisi-parse-try t)
-  (syntax-ppss-flush-cache after)
+(defun wisi-delete-cache (after)
   (with-silent-modifications
     (remove-text-properties after (point-max) '(wisi-cache nil))
     ;; remove 'font-lock-face and set 'fontified nil in 'font-lock-face regions
@@ -435,7 +423,22 @@ Used in before/after change functions.")
 	    (remove-text-properties pos end '(font-lock-face nil))
 	    (put-text-property pos end 'fontified nil))
 	  (setq pos end))
-	)))
+	))))
+
+(defun wisi-invalidate-cache(&optional after)
+  "Invalidate parsing caches for the current buffer from AFTER to end of buffer."
+  (interactive)
+  (if (not after)
+      (setq after (point-min))
+    (setq after
+	(save-excursion
+	  (goto-char after)
+	  (line-beginning-position))))
+  (when (> wisi-debug 0) (message "wisi-invalidate %s:%d" (current-buffer) after))
+  (setq wisi-cache-max after)
+  (setq wisi-parse-try t)
+  (syntax-ppss-flush-cache after)
+  (wisi-delete-cache after)
   )
 
 (defun wisi-before-change (begin end)
@@ -456,50 +459,55 @@ Used in before/after change functions.")
 
   (setq wisi-change-need-invalidate nil)
 
-  (when (and (> end begin)
-	     (>= wisi-cache-max begin))
+  (when (> end begin)
+    (if (<= wisi-cache-max begin)
+	;; Change is in unvalidated region; either the parse was
+	;; failing, or there is more than one top-level grammar
+	;; symbol in buffer.
+	(when wisi-parse-failed
+	  ;; The parse was failing, probably due to bad syntax; this
+	  ;; change may have fixed it, so try reparse.
+	  (setq wisi-parse-try t))
 
-    (when wisi-parse-failed
-      ;; The parse was failing, probably due to bad syntax; this change
-      ;; may have fixed it, so try reparse.
-      (setq wisi-parse-try t))
+      ;; change is in validated region
+      (save-excursion
+	;; don't invalidate parse for whitespace, string, or comment changes
+	(let (;; (info "(elisp)Parser State")
+	      (state (syntax-ppss begin)))
+	  ;; syntax-ppss has moved point to "begin".
+	  (cond
+	   ((or
+	     (nth 3 state); in string
+	     (nth 4 state)); in comment
+	    ;; FIXME: check that entire range is in comment or string
+	    )
 
-    (save-excursion
-      ;; don't invalidate parse for whitespace, string, or comment changes
-      (let (;; (info "(elisp)Parser State")
-	    (state (syntax-ppss begin)))
-	;; syntax-ppss has moved point to "begin".
-	(cond
-	 ((or
-	   (nth 3 state); in string
-	   (nth 4 state)); in comment
-	  ;; FIXME: check that entire range is in comment or string
-	  )
+	   ((progn
+	      (skip-syntax-forward " " end);; does not skip newline
+	      (eq (point) end)))
 
-	 ((progn
-	    (skip-syntax-forward " " end);; does not skip newline
-	    (eq (point) end)))
-
-	 (t
-	  (setq wisi-change-need-invalidate
-		(progn
-		  ;; note that because of the checks above, this never
-		  ;; triggers a parse, so it's fast.
-		  (wisi-goto-statement-start)
-		  (point))))
-	 ))))
+	   (t
+	    (setq wisi-change-need-invalidate
+		  (progn
+		    ;; note that because of the checks above, this never
+		    ;; triggers a parse, so it's fast
+		    (wisi-goto-statement-start)
+		    (point))))
+	   )))
+      ))
   )
 
 (defun wisi-after-change (begin end length)
   "For `after-change-functions'."
-  ;; begin . end is range of text being inserted (empty if equal)
+  ;; begin . end is range of text being inserted (empty if equal);
+  ;; length is the size of the deleted text.
 
   ;; (syntax-ppss-flush-cache begin) is in before-change-functions
 
   (syntax-propertize end) ;; see comments above on "lexer" re syntax-propertize
 
-  ;; The parse was failing, probably due to bad syntax; this change
-  ;; may have fixed it, so try reparse.
+  ;; If the parse was failing, this change may have fixed it. Or it
+  ;; may have broken a passing parse.
   (setq wisi-parse-try t)
 
   ;; remove caches on inserted text, which could have caches
@@ -508,10 +516,8 @@ Used in before/after change functions.")
   (with-silent-modifications
     (remove-text-properties begin end '(wisi-cache nil font-lock-face nil)))
 
-  (cond
-   ((>= wisi-cache-max begin)
-    ;; The parse had succeeded past the start of the inserted
-    ;; text.
+  (when (> wisi-cache-max begin)
+    ;; Change is in validated region
     (save-excursion
       (let (need-invalidate
 	    ;; (info "(elisp)Parser State")
@@ -546,23 +552,14 @@ Used in before/after change functions.")
 	 )
 
 	(if need-invalidate
-	    ;; The inserted or deleted text could alter the parse;
-	    ;; wisi-invalidate-cache removes all 'wisi-cache.
 	    (wisi-invalidate-cache need-invalidate)
 
 	  ;; else move cache-max by the net change length.
 	  (setq wisi-cache-max
-		(+ wisi-cache-max (- end begin length))))
+		(+ wisi-cache-max (- end begin length))) )
 	)
       ))
-
-   (t
-    ;; parse never attempted, or only done to before BEGIN. Just
-    ;; remove caches
-    (with-silent-modifications
-      (remove-text-properties begin end '(wisi-cache)))
-    )
-  ))
+  )
 
 (defun wisi-get-cache (pos)
   "Return `wisi-cache' struct from the `wisi-cache' text property at POS.
@@ -631,6 +628,8 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
 		(setq wisi-parse-failed nil))
 	      (run-hooks 'wisi-post-parse-succeed-hook))
 	  (wisi-parse-error
+	   ;; delete caches past wisi-cache-max added by failed parse
+	   (wisi-delete-cache wisi-cache-max)
 	   (setq wisi-parse-failed t)
 	   (setq wisi-parse-error-msg (cdr err)))
 	  ))
