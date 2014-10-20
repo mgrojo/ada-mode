@@ -67,7 +67,7 @@ package body OpenToken.Token.Enumerated.Integer is
 
    overriding function Name (Token : in Instance) return String
    is begin
-      if Trace_Parse then
+      if Trace_Parse > 0 then
          return Enumerated.Name (Enumerated.Instance (Token)) & " " & Standard.Integer'Image (Token.Value);
       else
          return Enumerated.Name (Enumerated.Instance (Token));

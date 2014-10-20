@@ -151,7 +151,7 @@ package body Wisi_Rules_Test is
       Put_Line (File, "    `,(wisi-cache-action 1 'function 2 'other)");
       Put_Line (File, "  | PROCEDURE parameter_list SYMBOL");
       Put_Line (File, "    `,(wisi-cache-action");
-      Put_Line (File, "       1 'procedure)");
+      Put_Line (File, "       1 'procedure");
       Put_Line (File, "       2 'other)");
       Put_Line (File, "  ;");
       New_Line (File);
@@ -185,7 +185,7 @@ package body Wisi_Rules_Test is
             +"`,(wisi-cache-action 1 'function 2 'other)") +
             (+"PROCEDURE" + "parameter_list" + "SYMBOL",
              +"`,(wisi-cache-action" +
-               "1 'procedure)" +
+               "1 'procedure" +
                "2 'other)"),
           Source_Line => 1));
 

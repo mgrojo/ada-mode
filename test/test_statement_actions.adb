@@ -161,8 +161,8 @@ package body Test_Statement_Actions is
    package OpenToken_Parser is new Production.Parser (Tokenizer);
    package LALRs is new OpenToken_Parser.LALR (First_State_Index => 1);
    package LALR_Generators is new LALRs.Generator (Token_ID_Type'Width, Production_List);
-   package Parser_Lists is new LALRs.Parser_Lists;
-   package LALR_Parsers is new LALRs.Parser (Parser_Lists);
+   package Parser_Lists is new LALRs.Parser_Lists (First_Parser_Label => 1);
+   package LALR_Parsers is new LALRs.Parser (1, Parser_Lists);
 
    String_Feeder  : aliased OpenToken.Text_Feeder.String.Instance;
    An_Analyzer    : constant Tokenizer.Handle := Tokenizer.Initialize (Syntax);
@@ -195,7 +195,7 @@ package body Test_Statement_Actions is
         (An_Analyzer,
          LALR_Generators.Generate (Grammar, Trace => Test.Debug));
 
-      OpenToken.Trace_Parse := Test.Debug;
+      OpenToken.Trace_Parse := (if Test.Debug then 1 else 0);
 
       Execute_Command ("set 2;");
 

@@ -15,6 +15,7 @@ OK ../../Test/analyzer_lookahead_test.adb : Lookahead_Push_Back
 OK ../../Test/analyzer_lookahead_test.adb : Lookahead_Lexemes
 OK ../../Test/analyzer_lookahead_test.adb : Mismatched_Tokens
 OK ../../Test/counted_gnat_os_lib_test.adb : Discard
+OK ../Test/opentoken-recognizer-based_integer_real_ada-test.adb : Nominal
 OK ../Test/opentoken-recognizer-bracketed_comment-test.adb : Nominal
 OK ../Test/opentoken-recognizer-bracketed_comment-test.adb : Wisi
 OK OpenToken.Recognizer.CSV_Field.Test : Nominal
@@ -55,7 +56,7 @@ OK Test_Token_Identifier_Real_String : Nominal
 OK ../../Test/trivial_productions_test.adb : Expression
 OK ../../Test/trivial_productions_test.adb : Subprograms
 
-Total Tests Run:   55
-Successful Tests:  55
+Total Tests Run:   56
+Successful Tests:  56
 Failed Assertions: 0
 Unexpected Errors: 0

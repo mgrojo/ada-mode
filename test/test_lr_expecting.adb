@@ -81,8 +81,8 @@ package body Test_LR_Expecting is
    package OpenToken_Parser is new Production.Parser (Tokenizer);
    package LALRs is new OpenToken_Parser.LALR (First_State_Index => 1);
    package LALR_Generators is new LALRs.Generator (Token_IDs'Width, Production_List);
-   package Parser_Lists is new LALRs.Parser_Lists;
-   package LALR_Parsers is new LALRs.Parser (Parser_Lists);
+   package Parser_Lists is new LALRs.Parser_Lists (First_Parser_Label => 1);
+   package LALR_Parsers is new LALRs.Parser (1, Parser_Lists);
 
    --  Terminals
    EOF        : constant Master_Token.Class := Master_Token.Get (EOF_ID, Name => "EOF");
@@ -214,7 +214,7 @@ package body Test_LR_Expecting is
             Trace           => Test.Debug,
             Put_Parse_Table => Test.Debug));
 
-      OpenToken.Trace_Parse := Test.Debug;
+      OpenToken.Trace_Parse := (if Test.Debug then 1 else 0);
 
       Execute ("set A = 2", "1:10: Syntax error; expecting ';'; found EOF '" & ASCII.EOT & "'");
 

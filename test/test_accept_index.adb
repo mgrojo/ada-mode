@@ -63,8 +63,8 @@ package body Test_Accept_Index is
    package Production_List is new Production.List;
    package OpenToken_Parser is new Production.Parser (Tokenizer);
    package LALRs is new OpenToken_Parser.LALR (First_State_Index => 1);
-   package Parser_Lists is new LALRs.Parser_Lists;
-   package LALR_Parser is new LALRs.Parser (Parser_Lists);
+   package Parser_Lists is new LALRs.Parser_Lists (First_Parser_Label => 1);
+   package LALR_Parser is new LALRs.Parser (1, Parser_Lists);
    package LALR_Generator is new LALRs.Generator (Token_IDs'Width, Production_List);
 
    package Integer_Literal is new Master_Token.Integer;
@@ -121,7 +121,7 @@ package body Test_Accept_Index is
             Trace           => Test.Debug,
             Put_Parse_Table => Test.Debug));
 
-      OpenToken.Trace_Parse := Test.Debug;
+      OpenToken.Trace_Parse := (if Test.Debug then 1 else 0);
 
       LALR_Parser.Set_Text_Feeder (Parser, String_Feeder'Unchecked_Access);
 

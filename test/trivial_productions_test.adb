@@ -56,8 +56,8 @@ package body Trivial_Productions_Test is
       package Parsers is new Productions.Parser (Analyzers);
       package LALRs is new Parsers.LALR (First_State_Index => 1);
       package LALR_Generators is new LALRs.Generator (Token_IDs'Width, Production_Lists);
-      package Parser_Lists is new LALRs.Parser_Lists;
-      package LALR_Parsers is new LALRs.Parser (Parser_Lists);
+      package Parser_Lists is new LALRs.Parser_Lists (First_Parser_Label => 1);
+      package LALR_Parsers is new LALRs.Parser (1, Parser_Lists);
 
       EOF    : constant Tokens.Class       := Tokens.Get (EOF_ID);
       Symbol : constant Tokens.Class       := Tokens.Get (Symbol_ID);
@@ -139,8 +139,8 @@ package body Trivial_Productions_Test is
       package Parsers is new Productions.Parser (Analyzers);
       package LALRs is new Parsers.LALR (First_State_Index => 1);
       package LALR_Generators is new LALRs.Generator (Token_IDs'Width, Production_Lists);
-      package Parser_Lists is new LALRs.Parser_Lists;
-      package LALR_Parsers is new LALRs.Parser (Parser_Lists);
+      package Parser_Lists is new LALRs.Parser_Lists (First_Parser_Label => 1);
+      package LALR_Parsers is new LALRs.Parser (1, Parser_Lists);
 
       EOF            : constant Tokens_Pkg.Class := Tokens_Pkg.Get (EOF_ID);
       Function_Tok   : constant Tokens_Pkg.Class := Tokens_Pkg.Get (Function_ID);

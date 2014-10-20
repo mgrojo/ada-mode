@@ -49,7 +49,7 @@ package body Analyzer_Buffer_Test is
         (OpenToken.Recognizer.Character_Set.Get (OpenToken.Recognizer.Character_Set.Standard_Whitespace)));
 
    String_Feeder : aliased OpenToken.Text_Feeder.String.Instance;
-   Analyzer      : constant Tokenizer.Handle := Tokenizer.Initialize (Syntax, null, Max_Buffer_Size => 10);
+   Analyzer      : constant Tokenizer.Handle := Tokenizer.Initialize (Syntax, null, Buffer_Size => 10);
 
    procedure Step
      (Label           : in String;

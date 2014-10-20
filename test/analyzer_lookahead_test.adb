@@ -111,7 +111,7 @@ package body Analyzer_Lookahead_Test is
    begin
       --  Verify that Push_Back works.
 
-      OpenToken.Trace_Parse := Test.Debug;
+      OpenToken.Trace_Parse := Test.Trace_Parse;
 
       OpenToken.Text_Feeder.String.Set (Feeder, "if then ""string"" quit");
       Analyzer.Reset;
@@ -296,7 +296,7 @@ package body Analyzer_Lookahead_Test is
       --  Verify that tokens preserve lexemes when parsing inactively,
       --  even if the tokens are repeated.
 
-      if Test_Case (T).Debug then
+      if Test_Case (T).Trace_Parse > 0 then
          Ada.Text_IO.Put_Line ("Lookahead_Lexemes");
       end if;
 

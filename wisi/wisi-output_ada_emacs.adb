@@ -461,12 +461,8 @@ is
       end if;
 
       if Is_In (Tokens, """number""") then
-         if Is_In (Tokens, """number""", "wisi-number-p") then
-            Put_Line ("with OpenToken.Recognizer.Real;"); -- FIXME: integer_real?
-
-         elsif Is_In (Tokens, """number""", "ada-wisi-number-p") then
-            Put_Line ("with OpenToken.Recognizer.Real;"); -- FIXME: need based_integer_real
-         end if;
+            Put_Line ("with OpenToken.Recognizer.Based_Integer_Real_Ada;");
+            --  FIXME: overkill for wisi-number-p; no based
       end if;
 
       Put_Line ("with OpenToken.Recognizer.Keyword;");
@@ -752,7 +748,13 @@ is
                Indent_Line ("   (Character_Set.Get (Character_Set.Standard_Whitespace)),");
             end loop;
          elsif -Kind.Kind = """number""" then
-            raise Programmer_Error;
+            --  Only one whitespace token. Ignoring value.
+            if Kind.Tokens.Length > 1 then
+               raise Programmer_Error;
+            end if;
+            for Item of Kind.Tokens loop
+               Indent_Line (To_Token_Image (Item.Name) & " => Analyzers.Get (Based_Integer_Real_Ada.Get),");
+            end loop;
          elsif -Kind.Kind = """punctuation""" then
             for Item of Kind.Tokens loop
                Indent_Line

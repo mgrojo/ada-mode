@@ -32,7 +32,6 @@ with OpenToken.Recognizer.Separator;
 with OpenToken.Text_Feeder.String;
 with OpenToken.Token.Enumerated.Analyzer;
 with OpenToken.Token.Enumerated.Integer;
-with OpenToken.Token.Enumerated.List.Print;
 with OpenToken.Token.Enumerated.List;
 with OpenToken.Token.Enumerated.Nonterminal;
 package body Test_LR0_Kernels is
@@ -202,8 +201,8 @@ package body Test_LR0_Kernels is
    package OpenToken_Parser is new Production.Parser (Tokenizer);
    package LALRs is new OpenToken_Parser.LALR (First_State_Index => 1);
    package LALR_Generators is new LALRs.Generator (Token_ID_Type'Width, Production_List);
-   package Parser_Lists is new LALRs.Parser_Lists;
-   package LALR_Parsers is new LALRs.Parser (Parser_Lists);
+   package Parser_Lists is new LALRs.Parser_Lists (First_Parser_Label => 1);
+   package LALR_Parsers is new LALRs.Parser (1, Parser_Lists);
    String_Feeder  : aliased OpenToken.Text_Feeder.String.Instance;
    An_Analyzer    : constant Tokenizer.Handle := Tokenizer.Initialize (Syntax);
    Command_Parser : LALR_Parsers.Instance;
@@ -212,8 +211,7 @@ package body Test_LR0_Kernels is
 
    procedure Dump_Grammar
    is
-      package Print_Token_List is new Token_List.Print;
-      package Print_Production is new Production.Print (Print_Token_List, Print_Action);
+      package Print_Production is new Production.Print (Print_Action);
       package Print_Production_List is new Production_List.Print (Print_Production.Print);
    begin
       Print_Production_List.Print (Grammar);
@@ -248,7 +246,7 @@ package body Test_LR0_Kernels is
    begin
       if Test.Debug then
          Dump_Grammar;
-         OpenToken.Trace_Parse := True;
+         OpenToken.Trace_Parse := 1;
       end if;
 
       Command_Parser := LALR_Parsers.Initialize

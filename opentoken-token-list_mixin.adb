@@ -147,7 +147,7 @@ package body OpenToken.Token.List_Mixin is
       --  for the actions.
       Local_Match : Instance := Match.all;
    begin
-      if Trace_Parse then
+      if Trace_Parse > 0 then
          Trace_Indent := Trace_Indent + 1;
          if Actively then
             Trace_Put ("parsing");
@@ -208,13 +208,13 @@ package body OpenToken.Token.List_Mixin is
          end loop;
       end if;
 
-      if Trace_Parse then
+      if Trace_Parse > 0 then
          Trace_Put ("...succeeded"); Ada.Text_IO.New_Line;
          Trace_Indent := Trace_Indent - 1;
       end if;
    exception
    when others =>
-      if Trace_Parse then
+      if Trace_Parse > 0 then
          Trace_Put ("...failed"); Ada.Text_IO.New_Line;
          Trace_Indent := Trace_Indent - 1;
       end if;

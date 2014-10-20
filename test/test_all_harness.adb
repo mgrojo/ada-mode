@@ -18,6 +18,7 @@
 
 pragma License (GPL);
 
+with Ada.Text_IO;
 with AUnit.Options;
 with AUnit.Reporter.Text;
 with AUnit.Test_Results;
@@ -25,6 +26,8 @@ with AUnit.Test_Suites; use AUnit.Test_Suites;
 with Analyzer_Buffer_Test;
 with Analyzer_Lookahead_Test;
 with Counted_GNAT_OS_Lib_Test;
+with GNAT.Traceback.Symbolic;
+with OpenToken.Recognizer.Based_Integer_Real_Ada.Test;
 with OpenToken.Recognizer.Bracketed_Comment.Test;
 with OpenToken.Recognizer.CSV_Field.Test;
 with Parser_Lists_Test;
@@ -58,11 +61,12 @@ begin
    --  Test cases; test package alphabetical order, unless otherwise noted.
 
    Add_Test (Suite, new Analyzer_Buffer_Test.Test_Case);
-   Add_Test (Suite, new Analyzer_Lookahead_Test.Test_Case (Debug => False));
+   Add_Test (Suite, new Analyzer_Lookahead_Test.Test_Case (Trace_Parse => 0));
    Add_Test (Suite, new Counted_GNAT_OS_Lib_Test.Test_Case);
+   Add_Test (Suite, new OpenToken.Recognizer.Based_Integer_Real_Ada.Test.Test_Case);
    Add_Test (Suite, new OpenToken.Recognizer.Bracketed_Comment.Test.Test_Case);
    Add_Test (Suite, new OpenToken.Recognizer.CSV_Field.Test.Test_Case);
-   Add_Test (Suite, new Parser_Lists_Test.Test_Case);
+   Add_Test (Suite, new Parser_Lists_Test.Test_Case (Debug => False));
    Add_Test (Suite, new Test_Accept_Index.Test_Case (Debug => False));
    Add_Test (Suite, new Test_Analyzer_Line_Column.Test_Case);
    Add_Test (Suite, new Test_Backtrack.Test_Case (Debug => False));
@@ -90,4 +94,7 @@ begin
    --  Provide command line option -v to set verbose mode
    AUnit.Reporter.Text.Report (Reporter, Result);
 
+exception
+when E : others =>
+   Ada.Text_IO.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
 end Test_All_Harness;
