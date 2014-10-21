@@ -215,6 +215,9 @@
 %conflict SHIFT/REDUCE in state label_opt, label_opt on token IDENTIFIER
 %conflict SHIFT/REDUCE in state name, discrete_subtype_definition on token RIGHT_PAREN
 %conflict SHIFT/REDUCE in state null_exclusion_opt, mode_opt on token NOT
+%conflict SHIFT/REDUCE in state relation_or_else_list, relation_or_else_list on token WITH
+%conflict REDUCE/SHIFT in state expression, relation_or_list on token OR
+%conflict REDUCE/SHIFT in state expression, relation_or_else_list on token OR
 %%
 ;;;; grammar rules
 ;;
@@ -1960,6 +1963,8 @@ relation_or_list
 relation_or_else_list
   : relation OR ELSE relation
   | relation_or_else_list OR ELSE relation
+  | relation OR ELSE RAISE name WITH expression ;; GNAT GPL 2014 allows this in aspects
+  | relation OR ELSE RAISE name ;; GNAT GPL 2014 allows this in aspects
   ;
 
 relation_xor_list
@@ -2225,6 +2230,7 @@ subtype_declaration
       (wisi-containing-action 1 2)
       (wisi-containing-action 2 3)
       (wisi-containing-action 3 4)
+      (wisi-containing-action 3 5)
       (wisi-face-action [2 font-lock-type-face]))
   ;
 

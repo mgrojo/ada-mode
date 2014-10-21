@@ -51,4 +51,12 @@ package Aspects is
            (for some Y in U =>
               Y in T and (X, Y) in B)));
 
+   subtype Integer_String is String
+   with Dynamic_Predicate => Integer'Value (Integer_String) in Integer
+     or else raise Constraint_Error with "not an integer string";
+
+   type Integer_String is new String
+   with Dynamic_Predicate => Integer'Value (Integer_String) in Integer or else
+     raise Constraint_Error with "not an integer string";
+
 end Aspects;

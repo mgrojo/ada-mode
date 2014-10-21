@@ -352,7 +352,7 @@ package Ada_Mode.Nominal is -- target 0
       Component_2 :
         Integer;
       Component_3
-        : Integer; -- don't care
+        : Integer;
    end record;
 
    type Discrete_Type_1 is (A, B, C);
@@ -700,7 +700,7 @@ private -- Ada_Mode.Nominal
          Component_2 : Integer := 1;
          Component_3 : Integer := 2;
       end record
-      with Pack => True;
+   with Pack => True;
 
    type Limited_Derived_Type_1a is abstract limited new
       Private_Type_1 with record

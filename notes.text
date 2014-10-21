@@ -42,12 +42,6 @@ o.e.a.stephe-2: external gps parser
 review stefan monnier's changes in elpa ada-mode
     fix dvc-git first; need fileinfo based status
 
-'raise' in aspects
-    test/int.adb
-    emacs-ada-mode email
-    asked on comp.lang.ada
-    gnat allows it, so o.e.a has to
-
 
 remove 'fontified on inserted text?
     test first; automatically removed?

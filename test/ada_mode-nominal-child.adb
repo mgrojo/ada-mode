@@ -60,7 +60,8 @@ package body Ada_Mode.Nominal.Child is
 
    function Child_Add (Left, Right : in Child_Type_1) return Child_Type_1
    is begin
-      return (Parent_Type_1 with 1, 0.0, False);
+      return (Parent_Type_1
+              with 1, 0.0, False);
    end Child_Add;
 
 end Ada_Mode.Nominal.Child;

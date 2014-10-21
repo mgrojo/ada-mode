@@ -9,6 +9,8 @@ Please send Emacs Ada mode bug reports to bug-gnu-emacs@gnu.org, with
 
 * Ada mode 5.1.7
 
+** allow 'or else raise' in expressions for GNAT GPL 2014 aspects
+
 ** move all except keyword face highighting to grammar; much more
    accurate, easier to maintain, simpler, faster.
 
