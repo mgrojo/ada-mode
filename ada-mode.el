@@ -628,8 +628,7 @@ Function is called with no arguments.")
   (ada-goto-open-paren)
   (funcall indent-line-function); so new list is indented properly
 
-  (let* ((inibit-modification-hooks t)
-	 (begin (point))
+  (let* ((begin (point))
 	 (delend (progn (forward-sexp) (point))); just after matching closing paren
 	 (end (progn (backward-char) (forward-comment (- (point))) (point))); end of last parameter-declaration
 	 (multi-line (> end (save-excursion (goto-char begin) (line-end-position))))
@@ -938,11 +937,11 @@ Return (cons full-exceptions partial-exceptions)."
 		(progn
 		  (setq word (substring word 1))
 		  (unless (assoc-string word partial-exceptions t)
-		    (add-to-list 'partial-exceptions (cons word t))))
+		    (push (cons word t) partial-exceptions)))
 
 	      ;; full word exception
 	      (unless (assoc-string word full-exceptions t)
-		(add-to-list 'full-exceptions (cons word t))))
+		(push (cons word t) full-exceptions)))
 
 	    (forward-line 1))
 	  )
@@ -959,7 +958,7 @@ Return (cons full-exceptions partial-exceptions)."
 An item in both lists has the RESULT value."
   (dolist (item new)
     (unless (assoc-string (car item) result t)
-      (add-to-list 'result item)))
+      (push item result)))
   result)
 
 (defun ada-case-merge-all-exceptions (exceptions)
@@ -983,7 +982,7 @@ replacing current values of `ada-case-full-exceptions', `ada-case-partial-except
   "Add case exception WORD to EXCEPTIONS, replacing current entry, if any."
   (if (assoc-string word exceptions t)
       (setcar (assoc-string word exceptions t) word)
-    (add-to-list 'exceptions (cons word t)))
+    (push (cons word t) exceptions))
   exceptions)
 
 (defun ada-case-create-exception (&optional word file-name partial)
@@ -1483,9 +1482,9 @@ Return new value of PROJECT."
 	    (setq project (plist-put project 'case_strict (intern (match-string 2)))))
 
 	   ((string= (match-string 1) "casing")
-	    (add-to-list 'casing
-			 (expand-file-name
-			  (substitute-in-file-name (match-string 2)))))
+            (cl-pushnew (expand-file-name
+                         (substitute-in-file-name (match-string 2)))
+                        casing :test #'equal))
 
 	   ((string= (match-string 1) "el_file")
 	    (let ((file (expand-file-name (substitute-in-file-name (match-string 2)))))
@@ -1494,9 +1493,9 @@ Return new value of PROJECT."
 	      (load-file file)))
 
 	   ((string= (match-string 1) "src_dir")
-	    (add-to-list 'src_dir
-			 (file-name-as-directory
-			  (expand-file-name (match-string 2)))))
+            (cl-pushnew (file-name-as-directory
+                         (expand-file-name (match-string 2)))
+                        src_dir :test #'equal))
 
 	   ((string= (match-string 1) "xref_tool")
 	    (let ((xref (intern (match-string 2))))
@@ -1535,8 +1534,8 @@ Return new value of PROJECT."
       );; done reading file
 
     ;; process accumulated lists
-    (if casing (set 'project (plist-put project 'casing (reverse casing))))
-    (if src_dir (set 'project (plist-put project 'src_dir (reverse src_dir))))
+    (if casing (setq project (plist-put project 'casing (reverse casing))))
+    (if src_dir (setq project (plist-put project 'src_dir (reverse src_dir))))
 
     (when parse-final-compiler
       ;; parse-final-compiler may reference the "current project", so
@@ -2712,7 +2711,6 @@ The paragraph is indented on the first line."
 
   ;; This means to fully set ada-mode interactively, user must
   ;; do M-x ada-mode M-; (hack-local-variables)
-
 
   ;; fill-region-as-paragraph in ada-fill-comment-paragraph does not
   ;; call syntax-propertize, so set comment syntax on

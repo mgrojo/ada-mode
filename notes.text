@@ -40,8 +40,7 @@ o.e.a.stephe-1: external opentoken parser
 o.e.a.stephe-2: external gps parser
 
 review stefan monnier's changes in elpa ada-mode
-    fix dvc-git first; need fileinfo based status
-
+    ask about "Woah?" on compilation--message->loc
 
 remove 'fontified on inserted text?
     test first; automatically removed?
@@ -57,6 +56,8 @@ face for entry names?
 hippie-expand changed
     return after expand gives "no match"
     trying to cycle?
+    stefan may have fixed; 'error -> error
+
 
 wisi-generate check token numbers in actions, report out of range
 
