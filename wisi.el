@@ -409,19 +409,10 @@ Used in before/after change functions.")
 (defun wisi-delete-cache (after)
   (with-silent-modifications
     (remove-text-properties after (point-max) '(wisi-cache nil))
-    ;; remove 'font-lock-face and set 'fontified nil in 'font-lock-face regions
-    (let ((pos after)
-	  end)
-      (while (and pos
-		  (< pos (point-max)))
-	(setq pos (next-single-property-change pos 'font-lock-face))
-	(when pos
-	  (setq end (next-single-property-change pos 'font-lock-face))
-	  (when end
-	    (remove-text-properties pos end '(font-lock-face nil))
-	    (put-text-property pos end 'fontified nil))
-	  (setq pos end))
-	))))
+    ;; We don't remove 'font-lock-face; that's annoying to the user,
+    ;; since they won't be restored until a parse for some other
+    ;; reason, and they are likely to be right anyway.
+    ))
 
 (defun wisi-invalidate-cache(&optional after)
   "Invalidate parsing caches for the current buffer from AFTER to end of buffer."
@@ -508,9 +499,10 @@ Used in before/after change functions.")
   ;; may have broken a passing parse.
   (setq wisi-parse-try t)
 
-  ;; remove caches on inserted text, which could have caches
-  ;; from before the failed parse (or another buffer), and are in
-  ;; any case invalid.
+  ;; Remove caches on inserted text, which could have caches from
+  ;; before the failed parse (or another buffer), and are in any case
+  ;; invalid. No point in removing 'fontified; that's handled by
+  ;; jit-lock.
   (with-silent-modifications
     (remove-text-properties begin end '(wisi-cache nil font-lock-face nil)))
 
@@ -947,20 +939,44 @@ Also override token with new token."
       )
     ))
 
-(defun wisi-face-action-1 (face region)
-  "Apply FACE to REGION."
+(defun wisi-face-action-1 (face region &optional no-override)
+  "Apply FACE to REGION. If NO-OVERRIDE is non-nil, don't override existing face."
   (when region
-    (unless (get-text-property (car region) 'font-lock-face)
-      ;; don't let higher level grammar statement overwrite lower
-      (with-silent-modifications
-	(add-text-properties
-	 (car region) (cdr region)
-	 (list
-	  'font-lock-face face
-	  'fontified t))))
-    ))
+    ;; We allow overriding a face property, because we don't want to
+    ;; delete them in wisi-invalidate (see comments there). On the
+    ;; other hand, it can be an error, so keep this debug
+    ;; code. However, note that font-lock-face properties must be
+    ;; removed first, or the buffer must be fresh (never parsed).
+    ;;
+    ;; Grammar sets no-override when a higher-level production might
+    ;; override a face in a lower-level production; that's not an
+    ;; error.
+    (let (cur-face
+	  (do-set t))
+      (when (or no-override
+		(> wisi-debug 1))
+	(setq cur-face (get-text-property (car region) 'font-lock-face))
+	(if cur-face
+	    (if no-override
+		(setq do-set nil)
+	      (message "%s:%d overriding face %s with %s on '%s'"
+		     (buffer-file-name)
+		     (line-number-at-pos (car region))
+		     face
+		     cur-face
+		     (buffer-substring-no-properties (car region) (cdr region))))
 
-(defun wisi-face-action (pairs)
+	  ))
+      (when do-set
+	(with-silent-modifications
+	  (add-text-properties
+	   (car region) (cdr region)
+	   (list
+	    'font-lock-face face
+	    'fontified t))))
+    )))
+
+(defun wisi-face-action (pairs &optional no-override)
   "Cache face information in text properties of tokens.
 Intended as a grammar non-terminal action.
 
@@ -974,7 +990,9 @@ region.
 
 For a vector token-number, apply face to the first cached token
 in the range matching one of token_id covered by
-wisi-tokens[token-number]."
+wisi-tokens[token-number].
+
+If NO-OVERRIDE is non-nil, don't override existing face."
   (let (number region face (tokens nil) cache (i 0) (j 1))
     (while (< i (length pairs))
       (setq number (aref pairs i))
@@ -989,10 +1007,10 @@ wisi-tokens[token-number]."
 			    (wisi-forward-cache)))
 	    (if (< (point) (cdr region))
 		(when cache
-		  (wisi-face-action-1 face (wisi-cache-region cache)))
+		  (wisi-face-action-1 face (wisi-cache-region cache) no-override))
 
 	      ;; no caches in region; just apply face to region
-	      (wisi-face-action-1 face region))
+	      (wisi-face-action-1 face region no-override))
 	    )))
 
        ((vectorp number)
@@ -1006,20 +1024,22 @@ wisi-tokens[token-number]."
 	    (setq cache (wisi-forward-find-token tokens (cdr region) t))
 	    ;; might be looking for IDENTIFIER in name, but only have "*".
 	    (when cache
-	      (wisi-face-action-1 face (wisi-cache-region cache)))
+	      (wisi-face-action-1 face (wisi-cache-region cache) no-override))
 	    )))
        )
       (setq i (1+ i))
 
       )))
 
-(defun wisi-face-list-action (pairs)
+(defun wisi-face-list-action (pairs &optional no-override)
   "Cache face information in text properties of tokens.
 Intended as a grammar non-terminal action.
 
 PAIRS is a vector of the form [token-number face token-number face ...]
 token-number is an integer. Apply face to all cached tokens
-in the range covered by wisi-tokens[token-number]."
+in the range covered by wisi-tokens[token-number].
+
+If NO-OVERRIDE is non-nil, don't override existing face."
   (let (number region face cache (i 0))
     (while (< i (length pairs))
       (setq number (aref pairs i))
@@ -1032,7 +1052,7 @@ in the range covered by wisi-tokens[token-number]."
 			  (wisi-forward-cache)))
 	  (while (<= (point) (cdr region))
 	    (when cache
-	      (wisi-face-action-1 face (wisi-cache-region cache)))
+	      (wisi-face-action-1 face (wisi-cache-region cache) no-override))
 	    (setq cache (wisi-forward-cache))
 	    )))
 

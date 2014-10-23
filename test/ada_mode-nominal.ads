@@ -535,6 +535,9 @@ package Ada_Mode.Nominal is -- target 0
    task type Task_Type_1 (Name : access String) is
       --EMACSCMD:(ada-which-function)
       --EMACSRESULT:"Task_Type_1"
+
+      --EMACSCMD:(test-face "Start" 'font-lock-function-name-face)
+      --EMACSCMD:(test-face "Discrete_Type_1" 'font-lock-type-face)
       entry Start (Discrete_Type_1) (Param_1 : in Integer);
       entry Middle_1 (Param_1 : in Integer);
       entry Middle_2 (Param_1 : in Integer);

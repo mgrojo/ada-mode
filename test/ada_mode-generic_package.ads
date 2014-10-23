@@ -28,9 +28,11 @@ generic
 
    -- Types
 
+   --EMACSCMD:(test-face "Object_Formal_Access_Type" 'font-lock-type-face)
    type Object_Formal_Access_Type is not null access all Integer;
    type Procedure_Formal_Access_Type is access protected procedure (A_Param : out Integer);
    type Function_Formal_Access_Type is access protected function (A_Param : in Float) return Standard.Float;
+   --EMACSCMD:(test-face "Unconstrained_Formal_Array_Type" 'font-lock-type-face)
    type Unconstrained_Formal_Array_Type is array (Integer range <>, Standard.Character range <>) of
      Object_Formal_Access_Type;
    type Constrained_Formal_Array_Type is array (Character) of Ada.Text_IO.Count;
@@ -43,6 +45,7 @@ generic
    --EMACSCMD:(test-face "Interface_Type" 'font-lock-type-face)
    type Synchronized_Formal_Derived_Type is abstract synchronized new Formal_Private_Type and Interface_Type
      with private;
+   --EMACSCMD:(test-face "Incomplete_Type" 'font-lock-type-face)
    type Incomplete_Type (<>) is tagged;
    type Formal_Discrete_Type is (<>);
 

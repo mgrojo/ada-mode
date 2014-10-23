@@ -238,6 +238,7 @@ package body Ada_Mode.Nominal is -- target 0
          --EMACSCMD:(progn(forward-line -1)(back-to-indentation)(ada-prev-statement-keyword)(looking-at "do"))
       end; -- no F2 on purpose
 
+      --EMACSCMD:(test-face "E1" 'font-lock-function-name-face)
       --EMACSCMD:(progn (forward-line 1)(forward-comment 1)(ada-next-statement-keyword)(looking-at "when Local_1"))
       entry E1 (X : Integer) when Local_1 = 0 is -- target E1
          Tmp : Integer := 0;
@@ -317,6 +318,7 @@ package body Ada_Mode.Nominal is -- target 0
          end case;
 
          -- A comment before 'end'
+         --EMACSCMD:(test-face "E1" 'font-lock-function-name-face)
       end E1;
 
       entry E2

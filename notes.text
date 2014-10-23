@@ -39,26 +39,6 @@ install packages in -Q:
 o.e.a.stephe-1: external opentoken parser
 o.e.a.stephe-2: external gps parser
 
-review stefan monnier's changes in elpa ada-mode
-    ask about "Woah?" on compilation--message->loc
-
-remove 'fontified on inserted text?
-    test first; automatically removed?
-    'font-lock-face automatically removed?
-
-don't remove 'font-lock-face on invalidate; too annoying
-    requires wisi-face-action override
-    that was ruled out for correctness; still true?
-
-face for entry names?
-    in accept and declaration
-
-hippie-expand changed
-    return after expand gives "no match"
-    trying to cycle?
-    stefan may have fixed; 'error -> error
-
-
 wisi-generate check token numbers in actions, report out of range
 
 navigation error on case after edit 'when' list
@@ -441,6 +421,7 @@ attach gud-gdb to running emacs: attach <process id>
 
 (browse-url "c:/Projects/arm_info/org.adaic.arm_form/build/html/arm2012/RM-P.html")
 (info "(aarm2012)Annex P" "*info Annex P*")
+http://www.ada-auth.org/standards/
 (info "(elisp)Parser State" "*info syntax-ppss*")
 "c:/home/stephe/Backup/eBooks/Dick Grune/BookBody.pdf" [dickgrune]
 

@@ -273,7 +273,7 @@ set compilation-mode with compilation-error-regexp-alist set to COMP-ERR."
 	 ;; just go there, don't display session-buffer. We have to
 	 ;; fetch the compilation-message while in the session-buffer.
 	 (let* ((msg (compilation-next-error 0 nil (point-min)))
-                ;; FIXME: '--' indicates internal-only; need better access function
+                ;; FIXME: '--' indicates internal-only; use compile-goto-error
 		(loc (compilation--message->loc msg)))
 	   (setq file (caar (compilation--loc->file-struct loc))
 		 line (caar (cddr (compilation--loc->file-struct loc)))

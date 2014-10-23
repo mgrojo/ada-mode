@@ -2,10 +2,15 @@
 --  We test the select statement in this package, with the different
 --  possible constructions
 
+--EMACSCMD:(sit-for 0.01);;let jit-lock run
 procedure Test_Select is
    task type Task_1 (D : Integer) is
+      --EMACSCMD:(test-face "E1" 'font-lock-function-name-face)
       entry E1;
+      --EMACSCMD:(test-face "E2" 'font-lock-function-name-face)
       entry E2 (X : in Integer);
+      --EMACSCMD:(test-face "E3" 'font-lock-function-name-face)
+      --EMACSCMD:(test-face "Positive" 'font-lock-type-face)
       entry E3 (Positive) (A,B : Integer);
    private
       entry E4;
@@ -20,16 +25,21 @@ procedure Test_Select is
       Local : Integer := 0;
    begin
       select
+         --EMACSCMD:(test-face "E1" 'font-lock-function-name-face)
          accept E1;
 
       or
          when Local = 0 =>
+            --EMACSCMD:(test-face "E2" 'font-lock-function-name-face)
             accept E2 (X : in Integer) do
                Local := X;
+               --EMACSCMD:(test-face "E2" 'font-lock-function-name-face)
             end E2;
       or
+         --EMACSCMD:(test-face "E3" 'font-lock-function-name-face)
          accept E3 (1) (A,B : Integer) do
             Local := A +B;
+            --EMACSCMD:(test-face "E3" 'font-lock-function-name-face)
          end E3;
       else
          loop
