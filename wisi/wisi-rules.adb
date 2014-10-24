@@ -36,11 +36,42 @@ is
 
    Paren_Count   : Integer; --  For reporting unbalanced parens
    Bracket_Count : Integer; -- ""
+   Token_Count   : Integer; -- for reporting out of range tokens
 
    Rule : Rule_Type;
    RHS  : RHS_Type;
 
    Error : Boolean := False;
+
+   procedure Check_Numbers (Line : in String)
+   is
+      Number    : Integer   := 0;
+      First     : Integer   := 0;
+      Last_Char : Character := Line (Line'First);
+   begin
+      for I in Line'Range loop
+         case Line (I) is
+         when '0' .. '9' =>
+            if Last_Char = ' ' then
+               First := I;
+            end if;
+
+         when ' ' =>
+            if First > 0 then
+               Number := Integer'Value (Line (First .. I));
+               if Number > Token_Count then
+                  raise Syntax_Error with "token number " & Line (First .. I) &
+                    " out of range 1 .." & Integer'Image (Token_Count);
+               end if;
+               First := 0;
+            end if;
+
+         when others =>
+            null;
+         end case;
+         Last_Char := Line (I);
+      end loop;
+   end Check_Numbers;
 
    procedure Update_Paren_Count (Line : in String)
    is begin
@@ -93,6 +124,8 @@ begin
                Rule.Left_Hand_Side := +Line (Line'First .. Cursor);
                Rule.Source_Line    := Standard.Ada.Text_IO.Line (Input_File) - 1;
 
+               Token_Count := 0;
+
                State := Production;
 
                Cursor := Index (Pattern => ":", Source => Line);
@@ -108,6 +141,7 @@ begin
                   Paren_Count   := 0;
                   Bracket_Count := 0;
 
+                  Check_Numbers (Line);
                   Update_Paren_Count (Line);
 
                when ';' =>
@@ -120,6 +154,8 @@ begin
                   Rule.Right_Hand_Sides.Append (RHS);
                   RHS.Production.Clear;
                   RHS.Action.Clear;
+
+                  Token_Count   := 0;
 
                   Cursor := Index_Non_Blank (Line, From => Cursor + 1);
                   Need_New_Line := Cursor = 0;
@@ -134,6 +170,8 @@ begin
 
                when others =>
                   Parse_Production;
+                  Token_Count := Token_Count + 1;
+
                end case;
 
             when Action =>
@@ -173,6 +211,7 @@ begin
                   RHS.Action    := RHS.Action + Line;
                   Need_New_Line := True;
 
+                  Check_Numbers (Line);
                   Update_Paren_Count (Line);
                end case;
             end case;

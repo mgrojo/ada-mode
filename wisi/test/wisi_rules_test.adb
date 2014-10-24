@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2013 Stephen Leake
+--  Copyright (C) 2013, 2014 Stephen Leake
 --
 --  This file is part of the OpenToken package.
 --
@@ -20,19 +20,24 @@
 
 pragma License (GPL);
 
+with AUnit.Assertions;
+with AUnit.Check;
 with Ada.Containers;
 with Ada.Directories;
 with Ada.Text_IO; use Ada.Text_IO;
-with AUnit.Check;
 with Wisi.Rules;
 package body Wisi_Rules_Test is
 
    File_Name : constant String := "wisi_rules_test.wy";
+   File      : File_Type;
 
    procedure Delete (Name : in String)
    is
       use Ada.Directories;
    begin
+      if Is_Open (File) then
+         Close (File);
+      end if;
       if Exists (Name) then
          Delete_File (Name);
       end if;
@@ -133,7 +138,6 @@ package body Wisi_Rules_Test is
    is
       pragma Unreferenced (Test);
       use Wisi;
-      File     : File_Type;
       Computed : Wisi.Rule_Lists.List;
       Expected : Wisi.Rule_Lists.List;
    begin
@@ -149,7 +153,7 @@ package body Wisi_Rules_Test is
       Put_Line (File, "    `,(wisi-cache-action 1 'function 2 'other)");
       Put_Line (File, "  | PROCEDURE parameter_list SYMBOL");
       Put_Line (File, "    `,(wisi-cache-action");
-      Put_Line (File, "       1 'procedure)");
+      Put_Line (File, "       1 'procedure");
       Put_Line (File, "       2 'other)");
       Put_Line (File, "  ;");
       New_Line (File);
@@ -183,7 +187,7 @@ package body Wisi_Rules_Test is
             +"`,(wisi-cache-action 1 'function 2 'other)") +
             (+"PROCEDURE" + "parameter_list" + "SYMBOL",
              +"`,(wisi-cache-action" +
-               "1 'procedure)" +
+               "1 'procedure" +
                "2 'other)"),
           Source_Line => 1));
 
@@ -204,7 +208,6 @@ package body Wisi_Rules_Test is
    is
       pragma Unreferenced (Test);
       use Wisi;
-      File     : File_Type;
       Computed : Wisi.Rule_Lists.List;
       Expected : Wisi.Rule_Lists.List;
    begin
@@ -252,6 +255,39 @@ package body Wisi_Rules_Test is
 
    end Single_Line;
 
+   procedure Token_Number_Range (Test : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (Test);
+      use Wisi;
+      use AUnit.Check;
+      Computed : Wisi.Rule_Lists.List;
+   begin
+      --  Verify that token numbers are properly checked for range
+      Delete (File_Name);
+      Create (File, Out_File, File_Name);
+      Put_Line (File, "subprogram_specification");
+      Put_Line (File, "  : PROCEDURE IDENTIFIER parameter_list");
+      Put_Line (File, "  (wisi-statement-action [1 start 2 name 3 other]);"); -- no error
+      New_Line (File);
+      Put_Line (File, "parameter_list");
+      Put_Line (File, ": LEFT_PAREN IDENTIFIER RIGHT_PAREN");
+      Put_Line (File, " (wisi-statement-action [ 1 paren-open 4 paren-close]);"); -- error
+      Put_Line (File, "%%");
+      Close (File);
+
+      Open (File, In_File, File_Name);
+      begin
+         Wisi.Rules (File, Computed);
+         AUnit.Assertions.Assert (False, "1 did not get exception");
+      exception
+      when Syntax_Error =>
+         --  Error message in standard_output; checked in diff
+         null;
+      end;
+      Close (File);
+
+   end Token_Number_Range;
+
    ----------
    --  Public subprograms
 
@@ -261,6 +297,7 @@ package body Wisi_Rules_Test is
    begin
       Register_Routine (T, Nominal'Access, "Nominal");
       Register_Routine (T, Single_Line'Access, "Single_Line");
+      Register_Routine (T, Token_Number_Range'Access, "Token_Number_Range");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return AUnit.Message_String

@@ -39,6 +39,9 @@
       (EQUAL_GREATER . "=>")
       (TICK . "'")
      )
+     ("number-literal"
+      (NUMBER_LITERAL . "[0-9.eE]+")
+     )
      ("symbol"
       (IDENTIFIER)
      )
@@ -48,9 +51,9 @@
 
 (defconst case_expression-wy--parse-table
    (wisi-compile-grammar
-   '((COMMENT DOT_DOT EQUAL_GREATER TICK IDENTIFIER RANGE WHEN )
+   '((COMMENT DOT_DOT EQUAL_GREATER TICK NUMBER_LITERAL IDENTIFIER RANGE WHEN )
      ((case_expression
-       ((WHEN discrete_choice EQUAL_GREATER )
+       ((WHEN discrete_choice EQUAL_GREATER factor )
         (setq wisi-test-success t)))
       (choice_expression
        ((choice_relation )))
@@ -60,31 +63,34 @@
        ((choice_expression ))
        ((range_nt )))
       (factor
-       ((IDENTIFIER )))
+       ((IDENTIFIER ))
+       ((NUMBER_LITERAL )))
       (factor_list
        ((factor )))
       (range_nt
        ((IDENTIFIER TICK RANGE ))
        ((factor_list DOT_DOT factor_list ))))
      [((default . error) (WHEN .  1))
-      ((default . error) (IDENTIFIER .  4))
+      ((default . error) (IDENTIFIER .  5) (NUMBER_LITERAL .  4))
       ((default . error) ($EOI .  3))
-      ((default . error) ($EOI . accept) (WHEN . accept) (RANGE . accept) (IDENTIFIER . accept) (TICK . accept) (EQUAL_GREATER . accept) (DOT_DOT . accept))
-      ((default . error) (TICK .  13) (DOT_DOT . (factor . 0)) (EQUAL_GREATER . (factor . 0)))
+      ((default . error) ($EOI . accept) (WHEN . accept) (RANGE . accept) (IDENTIFIER . accept) (NUMBER_LITERAL . accept) (TICK . accept) (EQUAL_GREATER . accept) (DOT_DOT . accept))
+      ((default . error) ($EOI . (factor . 1)) (DOT_DOT . (factor . 1)) (EQUAL_GREATER . (factor . 1)))
+      ((default . error) (TICK .  14) (DOT_DOT . (factor . 0)) (EQUAL_GREATER . (factor . 0)))
       ((default . error) (EQUAL_GREATER . (discrete_choice . 0)))
       ((default . error) (EQUAL_GREATER . (choice_expression . 0)))
-      ((default . error) (EQUAL_GREATER .  12))
+      ((default . error) (EQUAL_GREATER .  13))
       ((default . error) (DOT_DOT . (factor_list . 0)) (EQUAL_GREATER . (factor_list . 0)))
-      ((default . error) (DOT_DOT .  11) (EQUAL_GREATER . (choice_relation . 0)))
+      ((default . error) (DOT_DOT .  12) (EQUAL_GREATER . (choice_relation . 0)))
       ((default . error) (EQUAL_GREATER . (discrete_choice . 1)))
-      ((default . error) (IDENTIFIER .  15))
-      ((default . error) ($EOI . (case_expression . 0)))
-      ((default . error) (RANGE .  14))
+      ((default . error) (IDENTIFIER .  16) (NUMBER_LITERAL .  4))
+      ((default . error) (IDENTIFIER .  16) (NUMBER_LITERAL .  4))
+      ((default . error) (RANGE .  15))
       ((default . error) (EQUAL_GREATER . (range_nt . 0)))
-      ((default . error) (EQUAL_GREATER . (factor . 0)))
+      ((default . error) ($EOI . (factor . 0)) (EQUAL_GREATER . (factor . 0)))
+      ((default . error) ($EOI . (case_expression . 0)))
       ((default . error) (EQUAL_GREATER . (range_nt . 1)))]
      [((case_expression . 2))
-      ((choice_expression . 5)(choice_relation . 6)(discrete_choice . 7)(factor . 8)(factor_list . 9)(range_nt . 10))
+      ((choice_expression . 6)(choice_relation . 7)(discrete_choice . 8)(factor . 9)(factor_list . 10)(range_nt . 11))
       nil
       nil
       nil
@@ -94,7 +100,9 @@
       nil
       nil
       nil
-      ((factor . 8)(factor_list . 16))
+      nil
+      ((factor . 9)(factor_list . 18))
+      ((factor . 17))
       nil
       nil
       nil

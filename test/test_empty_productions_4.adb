@@ -74,7 +74,7 @@ package body Test_Empty_Productions_4 is
      Nonterminals.Get (compilation_unit_ID) <= (+subprogram_declaration_ID) & (+subprogram_declaration_ID) + Self -- 2
      and
      Nonterminals.Get (subprogram_declaration_ID) <= (+overriding_indicator_ID) & (+PROCEDURE_ID) &
-     (+IDENTIFIER_ID)& (+SEMICOLON_ID) + Self -- 3
+     (+IDENTIFIER_ID) & (+SEMICOLON_ID) + Self -- 3
      and
      Nonterminals.Get (overriding_indicator_ID) <= (+OVERRIDING_ID) + Self -- 4
      and
