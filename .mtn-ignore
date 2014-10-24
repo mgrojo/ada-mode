@@ -1,8 +1,11 @@
 ^.*\.elc$
 ^NUL$
-^ada-grammar\.output$
 ^ada-mode\.html$
 ^ada-mode\.info$
+^ada_grammar.*_output$
+^ada_grammar\.adb$
+^ada_grammar\.ads$
+^ada_grammar\.el$
 ^autoloads\.el$
 ^build/.*\.exe$
 ^build/.*\.tar\.gz$
@@ -23,7 +26,7 @@
 ^build/wisi/.*\.wisi-test$
 ^build/wisi/obj$
 ^dir-ada-mode$
-^gpr-grammar\.output$
+^gpr-grammar.*output$
 ^gpr-mode\.html$
 ^gpr-mode\.info$
 ^run_sjw\.text$
@@ -41,6 +44,6 @@
 ^test/gpr_query\.db-wal$
 ^test/subdir/ada_mode-nominal-child\.adb$
 ^test/wisi/.*\.el$
-^test/wisi/.*\.output$
+^test/wisi/.*\.elisp_output$
 ^test/wisi/.*\.wisi-test$
 ^wisent\.output$
